@@ -3,7 +3,7 @@
 
 #include "instruments/stats.hpp"
 
-#include "capi/handle.hpp"
+#include "capi/handles.hpp"
 #include "capi/tag.hpp"
 #include "object_watch.hpp"
 

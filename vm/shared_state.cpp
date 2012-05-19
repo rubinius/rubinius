@@ -7,7 +7,7 @@
 #include "instruments/tooling.hpp"
 #include "instruments/timing.hpp"
 #include "global_cache.hpp"
-#include "capi/handle.hpp"
+#include "capi/handles.hpp"
 
 #include "util/thread.hpp"
 #include "inline_cache.hpp"

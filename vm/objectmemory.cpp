@@ -28,7 +28,7 @@
 #include "builtin/array.hpp"
 #include "builtin/thread.hpp"
 
-#include "capi/handle.hpp"
+#include "capi/handles.hpp"
 #include "configuration.hpp"
 
 #include "global_cache.hpp"

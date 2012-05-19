@@ -5,10 +5,8 @@
 #include "gc/root.hpp"
 
 #include "capi/value.hpp"
-#include "util/allocator.hpp"
 
 #include <tr1/unordered_set>
-#include <vector>
 
 #ifndef RIO
 #define RIO rb_io_t
@@ -23,7 +21,6 @@ struct RFile;
 
 namespace rubinius {
   class NativeMethodEnvironment;
-  class BakerGC;
 
   namespace capi {
 
@@ -201,36 +198,6 @@ namespace rubinius {
       void free_data();
       bool rio_close();
     };
-
-    class Handles {
-
-    private:
-      Allocator<Handle>* allocator_;
-
-    public:
-
-      Handles()
-        : allocator_(new Allocator<Handle>())
-      {}
-
-      ~Handles();
-
-      Handle* allocate(STATE, Object* obj);
-
-      void deallocate_handles(std::list<Handle*>* cached, int mark, BakerGC* young);
-
-      void flush_all(NativeMethodEnvironment* env);
-
-      Allocator<Handle>* allocator() const {
-        return allocator_;
-      }
-
-      int size() const {
-        return allocator_->in_use_;
-      }
-
-    };
-
 
     typedef std::tr1::unordered_set<Handle*> SlowHandleSet;
 

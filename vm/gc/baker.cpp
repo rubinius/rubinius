@@ -13,7 +13,7 @@
 
 #include "gc/gc.hpp"
 
-#include "capi/handle.hpp"
+#include "capi/handles.hpp"
 #include "capi/tag.hpp"
 
 #ifdef ENABLE_LLVM

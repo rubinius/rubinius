@@ -6,6 +6,7 @@
 #include "gc/root.hpp"
 #include "gc/baker.hpp"
 #include "gc/marksweep.hpp"
+#include "capi/handles.hpp"
 
 #include "object_utils.hpp"
 

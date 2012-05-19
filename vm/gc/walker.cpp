@@ -1,7 +1,7 @@
 #include "gc/walker.hpp"
 #include "objectmemory.hpp"
 
-#include "capi/handle.hpp"
+#include "capi/handles.hpp"
 
 namespace rubinius {
   ObjectWalker::~ObjectWalker() {
