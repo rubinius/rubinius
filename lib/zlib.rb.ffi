@@ -354,32 +354,6 @@ module Zlib
       self[:data_type]
     end
 
-    def detach_input
-      if @input.nil? then
-        data = ''
-      else
-        data = @input
-
-        reset_input
-      end
-
-      data
-    end
-
-    def detach_output
-      if @output.nil? then
-        data = ''
-      else
-        data = @output
-
-        @output = nil
-        self[:avail_out] = 0
-        self[:next_out] = nil
-      end
-
-      data
-    end
-
     ##
     # Closes the stream. All operations on the closed stream will raise an
     # exception.
@@ -441,7 +415,7 @@ module Zlib
     def finish
       run '', Zlib::FINISH
 
-      detach_output
+      flush_next_out
     end
 
     ##
@@ -454,14 +428,32 @@ module Zlib
     alias :stream_end? :finished?
 
     def flush_next_in
-      detach_input
+      if @input.nil? then
+        data = ''
+      else
+        data = @input
+
+        reset_input
+      end
+
+      data
     end
 
     ##
     # Flushes output buffer and returns all data in that buffer.
 
     def flush_next_out
-      detach_output
+      if @output.nil? then
+        data = ''
+      else
+        data = @output
+
+        @output = nil
+        self[:avail_out] = 0
+        self[:next_out] = nil
+      end
+
+      data
     end
 
     def in_stream?
@@ -724,7 +716,7 @@ module Zlib
     def deflate(data, flush = Zlib::NO_FLUSH)
       do_deflate data, flush
 
-      detach_output
+      flush_next_out
     end
 
     ##
@@ -750,7 +742,7 @@ module Zlib
     def finish
       run '', Zlib::FINISH
 
-      detach_output
+      flush_next_out
     end
 
     ##
@@ -761,7 +753,7 @@ module Zlib
     def flush(flush = Zlib::SYNC_FLUSH)
       run '', flush unless flush == Zlib::NO_FLUSH
 
-      detach_output
+      flush_next_out
     end
 
     ##
@@ -1425,7 +1417,7 @@ module Zlib
     end
 
     def write_raw
-      data = @zstream.detach_output
+      data = @zstream.flush_next_out
 
       unless data.empty? then
         @io.write data
@@ -1521,7 +1513,7 @@ module Zlib
 
       if finished? then
         if data.nil? then
-          unzipped = detach_output
+          unzipped = flush_next_out
         else
           @input ||= ''
           @input << data
@@ -1535,7 +1527,7 @@ module Zlib
           run data, Zlib::SYNC_FLUSH
         end
 
-        unzipped = detach_output
+        unzipped = flush_next_out
 
         if finished? and not @input.nil? then
           expand_output
