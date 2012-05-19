@@ -22,13 +22,13 @@ public:
   Roots* roots;
   VariableRootBuffers variable_buffers;
   capi::Handles handles;
-  capi::Handles cached_handles;
+  std::list<capi::Handle*> cached_handles;
 
   void setUp() {
     create();
     roots = &state->globals().roots;
-    gc_data = new GCData(*roots,
-                         &handles, &cached_handles, state->vm()->global_cache());
+    gc_data = new GCData(*roots, &handles,
+                         &cached_handles, state->vm()->global_cache());
   }
 
   void tearDown() {

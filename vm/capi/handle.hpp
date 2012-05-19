@@ -5,6 +5,7 @@
 #include "gc/root.hpp"
 
 #include "capi/value.hpp"
+#include "util/allocator.hpp"
 
 #include <tr1/unordered_set>
 #include <vector>
@@ -36,7 +37,7 @@ namespace rubinius {
       cRFile
     };
 
-    class Handle : public LinkedList::Node {
+    class Handle {
       Object* object_;
       HandleType type_;
       int references_;
@@ -55,16 +56,16 @@ namespace rubinius {
         RFloat*   rfloat;
         RIO*      rio;
         RFile*    rfile;
+        Handle*   next_;
         intptr_t  cache_data;
       } as_;
 
     public:
-      Handle(STATE, Object* obj)
-        : LinkedList::Node()
-        , object_(obj)
+      Handle()
+        : object_(NULL)
         , type_(cUnknown)
         , references_(0)
-        , checksum_(0xffff)
+        , checksum_(0)
         , flush_(0)
         , update_(0)
       {
@@ -72,8 +73,6 @@ namespace rubinius {
       }
 
       static bool valid_handle_p(STATE, Handle* handle);
-
-      ~Handle();
 
       void flush(NativeMethodEnvironment* env) {
         if(flush_) (*flush_)(env, this);
@@ -84,7 +83,11 @@ namespace rubinius {
       }
 
       bool valid_p() {
-        return checksum_ == 0xffff;
+        return checksum_ & 0xffff;
+      }
+
+      void validate() {
+        checksum_ = 0xffff;
       }
 
       void invalidate() {
@@ -154,13 +157,30 @@ namespace rubinius {
          return type_;
       }
 
+      void clear() {
+        forget_object();
+        type_ = cUnknown;
+        references_ = 0;
+        flush_ = 0;
+        update_ = 0;
+      }
+
       void forget_object() {
         free_data();
+        invalidate();
         object_ = 0;
       }
 
       RString* get_rstring() {
         return as_.rstring;
+      }
+
+      Handle* next() const {
+        return as_.next_;
+      }
+
+      void set_next(Handle* next) {
+        as_.next_ = next;
       }
 
       RData*  create_rdata(NativeMethodEnvironment* env);
@@ -182,29 +202,33 @@ namespace rubinius {
       bool rio_close();
     };
 
-    class Handles : public LinkedList {
+    class Handles {
+
+    private:
+      Allocator<Handle>* allocator_;
+
     public:
+
+      Handles()
+        : allocator_(new Allocator<Handle>())
+      {}
 
       ~Handles();
 
-      Handle* front() {
-        return static_cast<Handle*>(head());
+      Handle* allocate(STATE, Object* obj);
+
+      void deallocate_handles(std::list<Handle*>* cached, int mark, BakerGC* young);
+
+      void flush_all(NativeMethodEnvironment* env);
+
+      Allocator<Handle>* allocator() {
+        return allocator_;
       }
 
-      void move(Node* node, Handles* handles) {
-        remove(node);
-        handles->add(node);
+      int size() {
+        return allocator_->in_use_;
       }
 
-      Handle* allocate(STATE, Object* obj) {
-        Handle* handle = new Handle(state, obj);
-        add(handle);
-        return handle;
-      }
-
-      void deallocate_handles(int mark, BakerGC* young);
-
-      typedef LinkedList::Iterator<Handles, Handle> Iterator;
     };
 
 

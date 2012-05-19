@@ -32,7 +32,7 @@ namespace rubinius {
   class GCData {
     Roots& roots_;
     capi::Handles* handles_;
-    capi::Handles* cached_handles_;
+    std::list<capi::Handle*>* cached_handles_;
     GlobalCache* global_cache_;
     std::list<ManagedThread*>* threads_;
     std::list<capi::Handle**>* global_handle_locations_;
@@ -46,7 +46,7 @@ namespace rubinius {
     GCData(VM*);
 
     GCData(Roots& r,
-           capi::Handles* handles = NULL, capi::Handles* cached_handles = NULL,
+           capi::Handles* handles = NULL, std::list<capi::Handle*>* cached_handles = NULL,
            GlobalCache *cache = NULL, std::list<ManagedThread*>* ths = NULL,
            std::list<capi::Handle**>* global_handle_locations = NULL)
       : roots_(r)
@@ -72,7 +72,7 @@ namespace rubinius {
       return handles_;
     }
 
-    capi::Handles* cached_handles() {
+    std::list<capi::Handle*>* cached_handles() {
       return cached_handles_;
     }
 

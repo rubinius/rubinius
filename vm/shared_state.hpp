@@ -61,7 +61,7 @@ namespace rubinius {
     SignalHandler* signal_handler_;
 
     capi::Handles* global_handles_;
-    capi::Handles* cached_handles_;
+    std::list<capi::Handle*> cached_handles_;
     std::list<capi::Handle**> global_handle_locations_;
 
     int global_serial_;
@@ -144,8 +144,8 @@ namespace rubinius {
     capi::Handle* add_global_handle(State*, Object* obj);
     void make_handle_cached(State*, capi::Handle* handle);
 
-    capi::Handles* cached_handles() {
-      return cached_handles_;
+    std::list<capi::Handle*>* cached_handles() {
+      return &cached_handles_;
     }
 
     std::list<capi::Handle**>* global_handle_locations() {

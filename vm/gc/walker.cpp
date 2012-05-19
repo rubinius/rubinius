@@ -58,11 +58,7 @@ namespace rubinius {
       }
     }
 
-    for(capi::Handles::Iterator i(*data.handles()); i.more(); i.advance()) {
-      saw_object(i->object());
-    }
-
-    for(capi::Handles::Iterator i(*data.cached_handles()); i.more(); i.advance()) {
+    for(Allocator<capi::Handle>::Iterator i(data.handles()->allocator()); i.more(); i.advance()) {
       saw_object(i->object());
     }
   }

@@ -330,7 +330,7 @@ namespace rubinius {
     void memstats();
 
     void validate_handles(capi::Handles* handles);
-    void prune_handles(capi::Handles* handles, bool check_forwards);
+    void prune_handles(capi::Handles* handles, std::list<capi::Handle*>* cached, BakerGC* young);
 
     ObjectPosition validate_object(Object* obj);
     bool valid_young_object_p(Object* obj);

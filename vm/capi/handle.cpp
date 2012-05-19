@@ -1,4 +1,5 @@
 #include "builtin/nativemethod.hpp"
+#include "objectmemory.hpp"
 #include "gc/baker.hpp"
 #include "capi/capi.hpp"
 #include "capi/handle.hpp"
@@ -9,16 +10,9 @@ namespace rubinius {
 
     bool Handle::valid_handle_p(STATE, Handle* handle) {
       Handles* global_handles = state->shared().global_handles();
-      Handles* cached_handles = state->shared().cached_handles();
-
-      for(Handles::Iterator i(*global_handles); i.more(); i.advance()) {
+      for(Allocator<Handle>::Iterator i(global_handles->allocator()); i.more(); i.advance()) {
         if(i.current() == handle) return true;
       }
-
-      for(Handles::Iterator i(*cached_handles); i.more(); i.advance()) {
-        if(i.current() == handle) return true;
-      }
-
       return false;
     }
 
@@ -63,75 +57,105 @@ namespace rubinius {
       std::cerr << "  object:     " << object_ << std::endl;
     }
 
-    Handle::~Handle() {
-      free_data();
-      invalidate();
-    }
-
     Handles::~Handles() {
-      capi::Handle* handle = front();
-
-      while(handle) {
-        capi::Handle* next = static_cast<capi::Handle*>(handle->next());
-
-        remove(handle);
-        delete handle;
-
-        handle = next;
-      }
+      delete allocator_;
     }
 
-    void Handles::deallocate_handles(int mark, BakerGC* young) {
 
-      capi::Handle* handle = front();
-      capi::Handle* current;
+    Handle* Handles::allocate(STATE, Object* obj) {
+      bool needs_gc = false;
+      Handle* handle = allocator_->allocate(&needs_gc);
+      handle->set_object(obj);
+      handle->validate();
+      if(needs_gc) {
+        state->memory()->collect_mature_now = true;
+      }
+      return handle;
+    }
 
-      while(handle) {
-        current = handle;
-        handle = static_cast<Handle*>(handle->next());
+    void Handles::deallocate_handles(std::list<Handle*>* cached, int mark, BakerGC* young) {
 
-        Object* obj = current->object();
+      std::vector<bool> chunk_marks(allocator_->chunks_.size(), false);
 
-        if(!current->in_use_p()) {
-          remove(current);
-          delete current;
-          continue;
-        }
+      size_t i = 0;
 
-        // Strong references will already have been updated.
-        if(!current->weak_p()) {
-          continue;
-        }
+      for(std::vector<Handle*>::iterator it = allocator_->chunks_.begin();
+          it != allocator_->chunks_.end(); ++it) {
+        Handle* chunk = *it;
 
-        if(young) {
-          if(obj->young_object_p()) {
+        for(size_t j = 0; j < allocator_->cChunkSize; j++) {
+          Handle* handle = &chunk[j];
 
-            // A weakref pointing to a valid young object
-            //
-            // TODO this only works because we run prune_handles right after
-            // a collection. In this state, valid objects are only in current.
-            if(young->in_current_p(obj)) {
-              continue;
+          Object* obj = handle->object();
 
-            // A weakref pointing to a forwarded young object
-            } else if(obj->forwarded_p()) {
-              current->set_object(obj->forward());
-
-            // A weakref pointing to a dead young object
-            } else {
-              current->forget_object();
-              remove(current);
-              delete current;
-            }
+          if(!handle->in_use_p()) {
+            continue;
           }
 
-        // A weakref pointing to a dead mature object
-        } else if(!obj->marked_p(mark)) {
-          current->forget_object();
-          remove(current);
-          delete current;
+          // Strong references will already have been updated.
+          if(!handle->weak_p()) {
+            chunk_marks[i] = true;
+            continue;
+          }
+
+          if(young) {
+            if(obj->young_object_p()) {
+
+              // A weakref pointing to a valid young object
+              //
+              // TODO this only works because we run prune_handles right after
+              // a collection. In this state, valid objects are only in current.
+              if(young->in_current_p(obj)) {
+                chunk_marks[i] = true;
+              // A weakref pointing to a forwarded young object
+              } else if(obj->forwarded_p()) {
+                handle->set_object(obj->forward());
+                chunk_marks[i] = true;
+              // A weakref pointing to a dead young object
+              } else {
+                handle->clear();
+              }
+            } else {
+              // Not a young object, so won't be GC'd so mark
+              // chunk as still active
+              chunk_marks[i] = true;
+            }
+
+          // A weakref pointing to a dead mature object
+          } else if(!obj->marked_p(mark)) {
+            handle->clear();
+          } else {
+            chunk_marks[i] = true;
+          }
+        }
+        ++i;
+      }
+
+      // Cleanup cached handles
+      for(std::list<Handle*>::iterator i = cached->begin(); i != cached->end();) {
+        Handle* handle = *i;
+        if(handle->in_use_p()) {
+          ++i;
+        } else {
+          i = cached->erase(i);
         }
       }
+
+      i = 0;
+      for(std::vector<Handle*>::iterator it = allocator_->chunks_.begin();
+          it != allocator_->chunks_.end();) {
+        // No header was marked, so it's completely empty. Free it.
+        if(!chunk_marks[i]) {
+          Handle* chunk = *it;
+          delete[] chunk;
+          it = allocator_->chunks_.erase(it);
+        } else {
+          ++it;
+        }
+        ++i;
+      }
+
+      allocator_->rebuild_freelist();
     }
 
     HandleSet::HandleSet()

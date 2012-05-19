@@ -590,8 +590,7 @@ step1:
 
     young_->collect(data, stats);
 
-    prune_handles(data.handles(), true);
-    prune_handles(data.cached_handles(), true);
+    prune_handles(data.handles(), data.cached_handles(), young_);
     gc_stats.young_collection_count++;
 
     data.global_cache()->prune_young();
@@ -633,8 +632,7 @@ step1:
 
     data.global_cache()->prune_unmarked(mark());
 
-    prune_handles(data.handles(), false);
-    prune_handles(data.cached_handles(), false);
+    prune_handles(data.handles(), data.cached_handles(), NULL);
 
 
     // Have to do this after all things that check for mark bits is
@@ -699,8 +697,8 @@ step1:
 
   }
 
-  void ObjectMemory::prune_handles(capi::Handles* handles, bool check_forwards) {
-    handles->deallocate_handles(mark(), check_forwards ? young_: NULL);
+  void ObjectMemory::prune_handles(capi::Handles* handles, std::list<capi::Handle*>* cached, BakerGC* young) {
+    handles->deallocate_handles(cached, mark(), young);
   }
 
   size_t ObjectMemory::mature_bytes_allocated() {

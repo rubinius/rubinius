@@ -92,13 +92,13 @@ namespace rubinius {
       handles_.flush_all(env);
     }
 
-    if(env->state()->vm()->shared.config.capi_global_flush) {
-      capi::Handles* handles = env->state()->vm()->shared.cached_handles();
+    if(env->state()->shared().config.capi_global_flush) {
+      std::list<capi::Handle*>* handles = env->state()->shared().cached_handles();
 
-      if(handles->size() > 0) {
-        for(capi::Handles::Iterator i(*handles); i.more(); i.advance()) {
-          i->flush(env);
-        }
+      for(std::list<capi::Handle*>::iterator i = handles->begin();
+          i != handles->end();
+          ++i) {
+        (*i)->flush(env);
       }
     }
   }
@@ -110,13 +110,13 @@ namespace rubinius {
       handles_.update_all(env);
     }
 
-    if(env->state()->vm()->shared.config.capi_global_flush) {
-      capi::Handles* handles = env->state()->vm()->shared.cached_handles();
+    if(env->state()->shared().config.capi_global_flush) {
+      std::list<capi::Handle*>* handles = env->state()->shared().cached_handles();
 
-      if(handles->size() > 0) {
-        for(capi::Handles::Iterator i(*handles); i.more(); i.advance()) {
-          i->update(env);
-        }
+      for(std::list<capi::Handle*>::iterator i = handles->begin();
+          i != handles->end();
+          ++i) {
+        (*i)->update(env);
       }
     }
   }
@@ -613,12 +613,12 @@ namespace rubinius {
 
     // Optionally get the handles back to the proper state.
     if(state->shared().config.capi_global_flush) {
-      capi::Handles* handles = state->shared().cached_handles();
+      std::list<capi::Handle*>* handles = state->shared().cached_handles();
 
-      if(handles->size() > 0) {
-        for(capi::Handles::Iterator i(*handles); i.more(); i.advance()) {
-          i->update(env);
-        }
+      for(std::list<capi::Handle*>::iterator i = handles->begin();
+          i != handles->end();
+          ++i) {
+        (*i)->update(env);
       }
     }
 

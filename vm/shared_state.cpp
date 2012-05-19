@@ -29,7 +29,6 @@ namespace rubinius {
     : initialized_(false)
     , signal_handler_(0)
     , global_handles_(new capi::Handles)
-    , cached_handles_(new capi::Handles)
     , global_serial_(0)
     , world_(new WorldState)
     , ic_registry_(new InlineCacheRegistry)
@@ -76,7 +75,6 @@ namespace rubinius {
     delete om;
     delete global_cache;
     delete global_handles_;
-    delete cached_handles_;
     if(agent_) {
       delete agent_;
     }
@@ -157,9 +155,8 @@ namespace rubinius {
 
   void SharedState::make_handle_cached(STATE, capi::Handle* handle) {
     SYNC(state);
-    global_handles_->move(handle, cached_handles_);
+    cached_handles_.push_back(handle);
   }
-
 
   QueryAgent* SharedState::autostart_agent(STATE) {
     SYNC(state);

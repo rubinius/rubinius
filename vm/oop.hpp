@@ -278,7 +278,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       owner_id_ = 0;
     }
 
-    bool used_p() const {
+    bool in_use_p() const {
       return object_ != 0;
     }
 

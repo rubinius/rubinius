@@ -19,7 +19,6 @@ namespace rubinius {
   InflatedHeader* InflatedHeaders::allocate(ObjectHeader* obj) {
     bool needs_gc = false;
     InflatedHeader* header = allocator_->allocate(&needs_gc);
-    header->clear();
     header->set_object(obj);
     if(needs_gc) {
       state_->om->collect_mature_now = true;
@@ -50,6 +49,8 @@ namespace rubinius {
         if(header->marked_p(mark)) {
           used = true;
           break;
+        } else {
+          header->clear();
         }
       }
 
@@ -62,27 +63,6 @@ namespace rubinius {
       }
     }
 
-    // Ok, now, rebuild the free_list
-    allocator_->free_list_ = 0;
-    allocator_->in_use_ = 0;
-
-    for(std::vector<InflatedHeader*>::iterator i = allocator_->chunks_.begin();
-        i != allocator_->chunks_.end();
-        ++i) {
-      InflatedHeader* chunk = *i;
-
-      for(size_t j = 0; j < allocator_->cChunkSize; j++) {
-        InflatedHeader* header = &chunk[j];
-
-        if(!header->marked_p(mark)) {
-          header->clear();
-          header->set_next(allocator_->free_list_);
-          allocator_->free_list_ = header;
-        } else {
-          allocator_->in_use_++;
-        }
-      }
-    }
-
+    allocator_->rebuild_freelist();
   }
 }
