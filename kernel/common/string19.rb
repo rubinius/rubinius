@@ -23,20 +23,19 @@ class String
   alias_method :each_codepoint, :codepoints
 
   def count_table(*strings)
-    strings.each do |string|
-      if string =~ /.+\-.+/
-        ranges_found = string.scan(/\w{1}\-\w{1}/)
-        ranges_found.map{ |range| range.gsub(/-/, '').split('') }.each do |range_array|
-          raise ArgumentError, "invalid range \"#{range_array.join('-')}\" in string transliteration" unless range_array == range_array.sort
-        end
-      end
-    end
-
     table = String.pattern 256, 1
 
     i, size = 0, strings.size
     while i < size
       str = StringValue(strings[i]).dup
+
+      if str =~ /.+\-.+/
+        ranges_found = str.scan(/\w{1}\-\w{1}/)
+        ranges_found.map{ |range| range.gsub(/-/, '').split('') }.each do |range_array|
+          raise ArgumentError, "invalid range \"#{range_array.join('-')}\" in string transliteration" unless range_array == range_array.sort
+        end
+      end
+
       if str.size > 1 && str.getbyte(0) == 94 # ?^
         pos, neg = 0, 1
       else
