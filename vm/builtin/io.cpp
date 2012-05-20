@@ -1133,9 +1133,9 @@ failed: /* try next '*' position */
     struct iovec vec[1];
     char buf[1];
 
-    struct {
+    union {
       struct cmsghdr hdr;
-      char pad[8+sizeof(int)+8];
+      unsigned char buf[CMSG_SPACE(sizeof(int))];
     } cmsg;
 
     fd = io->descriptor()->to_native();
@@ -1150,8 +1150,8 @@ failed: /* try next '*' position */
     msg.msg_iov = vec;
     msg.msg_iovlen = 1;
 
-    msg.msg_control = (caddr_t)&cmsg;
-    msg.msg_controllen = CMSG_SPACE(sizeof(int));
+    msg.msg_control = (caddr_t)&cmsg.buf;
+    msg.msg_controllen = sizeof(cmsg.buf);
     msg.msg_flags = 0;
     memset(&cmsg, 0, sizeof(cmsg));
     cmsg.hdr.cmsg_len = CMSG_LEN(sizeof(int));
@@ -1178,9 +1178,9 @@ failed: /* try next '*' position */
     struct iovec vec[1];
     char buf[1];
 
-    struct {
+    union {
       struct cmsghdr hdr;
-      char pad[8+sizeof(int)+8];
+      unsigned char buf[CMSG_SPACE(sizeof(int))];
     } cmsg;
 
     msg.msg_name = NULL;
@@ -1193,8 +1193,8 @@ failed: /* try next '*' position */
     msg.msg_iov = vec;
     msg.msg_iovlen = 1;
 
-    msg.msg_control = (caddr_t)&cmsg;
-    msg.msg_controllen = CMSG_SPACE(sizeof(int));
+    msg.msg_control = (caddr_t)&cmsg.buf;
+    msg.msg_controllen = sizeof(cmsg.buf);
     msg.msg_flags = 0;
     memset(&cmsg, 0, sizeof(cmsg));
     cmsg.hdr.cmsg_len = CMSG_LEN(sizeof(int));
