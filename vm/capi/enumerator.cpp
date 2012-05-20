@@ -18,3 +18,4 @@ extern "C" {
     return rb_funcall2(rb_cEnumerator, rb_intern("new"), argc + 2, args);
   }
 }
+
