@@ -148,7 +148,7 @@ Daedalus.blueprint do |i|
     l.cflags = ["-Ivendor/libffi/include"]
     l.objects = [l.file(".libs/libffi.a")]
     l.to_build do |x|
-      x.command "sh -c ./configure" unless File.exists?("Makefile")
+      x.command "sh -c './configure --disable-builddir'" unless File.exists?("Makefile")
       x.command make
     end
   end
