@@ -205,7 +205,7 @@ module Rubinius
       [prog, argv]
     end
 
-    def self.exec(env, prog, argv, redirects, options)
+    def self.setup_redirects(redirects)
       redirects.each do |key, val|
         key = fd_to_io(key)
 
@@ -219,9 +219,10 @@ module Rubinius
           key.reopen(val)
         end
       end
+    end
 
+    def self.setup_options(options)
       ENV.clear if options[:unsetenv_others]
-      ENV.update(env)
 
       if chdir = options[:chdir]
         Dir.chdir(chdir)
@@ -235,7 +236,12 @@ module Rubinius
       if umask = options[:umask]
         File.umask(umask)
       end
+    end
 
+    def self.exec(env, prog, argv, redirects, options)
+      setup_redirects(redirects)
+      setup_options(options)
+      ENV.update(env)
       Process.perform_exec prog, argv
     end
   end

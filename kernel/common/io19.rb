@@ -718,6 +718,13 @@ class IO
         else
           cmd = str
         end
+
+        if str.last.kind_of? Hash
+          redirects, options = Rubinius::Spawn.adjust_options(str.pop)
+          Rubinius::Spawn.setup_redirects(redirects)
+          Rubinius::Spawn.setup_options(options)
+        end
+
         Process.perform_exec cmd.first, cmd.map(&:to_s)
       else
         Process.perform_exec "/bin/sh", ["sh", "-c", str]
