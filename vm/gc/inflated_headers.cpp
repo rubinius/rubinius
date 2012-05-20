@@ -38,10 +38,8 @@ namespace rubinius {
   void InflatedHeaders::deallocate_headers(int mark) {
 
     std::vector<bool> chunk_marks(allocator_->chunks_.size(), false);
-    size_t i = 0;
-    for(std::vector<InflatedHeader*>::iterator it = allocator_->chunks_.begin();
-        it != allocator_->chunks_.end(); ++it) {
-      InflatedHeader* chunk = *it;
+    for(std::vector<int>::size_type i = 0; i < allocator_->chunks_.size(); ++i) {
+      InflatedHeader* chunk = allocator_->chunks_[i];
 
       for(size_t j = 0; j < allocator_->cChunkSize; j++) {
         InflatedHeader* header = &chunk[j];
@@ -53,7 +51,6 @@ namespace rubinius {
           header->clear();
         }
       }
-      ++i;
     }
 
     allocator_->rebuild_freelist(&chunk_marks);

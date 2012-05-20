@@ -56,14 +56,14 @@ namespace rubinius {
     }
 
     void rebuild_freelist(std::vector<bool>* chunk_marks) {
-      size_t i = 0;
       free_list_ = NULL;
       in_use_ = 0;
-      for(typename std::vector<T*>::iterator it = chunks_.begin(); it != chunks_.end();) {
-        T* chunk = *it;
-        if(!chunk_marks->at(i)) {
+      for(std::vector<int>::size_type i = chunks_.size() - 1;
+          i != (std::vector<int>::size_type) -1; --i) {
+        T* chunk = chunks_[i];
+        if(!chunk_marks->at(i) && chunk == chunks_.back()) {
           delete[] chunk;
-          it = chunks_.erase(it);
+          chunks_.pop_back();
         } else {
           for(size_t j = 0; j < cChunkSize; j++) {
             T* t = &chunk[j];
@@ -75,9 +75,7 @@ namespace rubinius {
               in_use_++;
             }
           }
-          ++it;
         }
-        ++i;
       }
     }
 
