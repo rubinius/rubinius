@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------------
-   n32.S - Copyright (c) 1996, 1998, 2005  Red Hat, Inc.
+   n32.S - Copyright (c) 1996, 1998, 2005, 2007, 2009, 2010  Red Hat, Inc.
    
    MIPS Foreign Function Interface 
 
@@ -40,9 +40,10 @@
 
 #define SIZEOF_FRAME	( 8 * FFI_SIZEOF_ARG )
 
-#ifdef linux
+#ifdef __GNUC__
 	.abicalls
 #endif
+	.set mips4
 	.text
 	.align	2
 	.globl	ffi_call_N32
@@ -529,7 +530,7 @@ cls_epilogue:
 .LFE2:	
 	.end	ffi_closure_N32
 
-#ifdef linux
+#ifdef __GNUC__
         .section        .eh_frame,"aw",@progbits
 .Lframe1:
         .4byte  .LECIE1-.LSCIE1		# length
@@ -586,6 +587,6 @@ cls_epilogue:
 	.uleb128 (SIZEOF_FRAME2 - RA_OFF2)/4
 	.align	EH_FRAME_ALIGN
 .LEFDE3:
-#endif /* linux */	
+#endif /* __GNUC__ */	
 	
 #endif
