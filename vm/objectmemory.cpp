@@ -296,13 +296,15 @@ step1:
     HeaderWord orig = obj->header;
     HeaderWord tmp = orig;
 
+    if(tmp.f.inflated) {
+      // Already inflated. ERROR, let the caller sort it out.
+      return false;
+    }
+
     switch(tmp.f.meaning) {
     case eAuxWordEmpty:
       // ERROR, we can not be here because it's empty. This is only to
       // be called when the header is already in use.
-      return false;
-    case eAuxWordInflated:
-      // Already inflated. ERROR, let the caller sort it out.
       return false;
     case eAuxWordObjID:
       // We could be have made a header before trying again, so
@@ -318,12 +320,19 @@ step1:
 
       ih = inflated_headers_->allocate(obj);
       initial_count = orig.f.aux_word & cAuxLockRecCountMask;
+      break;
+    case eAuxWordHandle:
+      // Handle in use so inflate and update handle
+      ih = inflated_headers_->allocate(obj);
+      // TODO: update with proper handle
+      ih->set_handle(NULL);
+      break;
     }
 
     ih->initialize_mutex(state->vm()->thread_id(), initial_count);
 
     tmp.all_flags = ih;
-    tmp.f.meaning = eAuxWordInflated;
+    tmp.f.inflated = 1;
 
     while(!obj->header.atomic_set(orig, tmp)) {
       // The header can't have been inflated by another thread, the
@@ -343,7 +352,7 @@ step1:
       }
 
       tmp.all_flags = ih;
-      tmp.f.meaning = eAuxWordInflated;
+      tmp.f.inflated = 1;
     }
 
     return true;
@@ -357,6 +366,13 @@ step1:
       HeaderWord new_val = orig;
 
       InflatedHeader* ih = 0;
+
+      if(orig.f.inflated) {
+        if(cDebugThreading) {
+          std::cerr << "[LOCK " << state->vm()->thread_id() << " asked to inflated already inflated lock]" << std::endl;
+        }
+        return false;
+      }
 
       switch(orig.f.meaning) {
       case eAuxWordEmpty:
@@ -382,17 +398,12 @@ step1:
 
         ih = inflated_headers_->allocate(obj);
         break;
-      case eAuxWordInflated:
-        if(cDebugThreading) {
-          std::cerr << "[LOCK " << state->vm()->thread_id() << " asked to inflated already inflated lock]" << std::endl;
-        }
-        return false;
       }
 
       ih->flags().LockContended = 0;
 
       new_val.all_flags = ih;
-      new_val.f.meaning = eAuxWordInflated;
+      new_val.f.inflated = 1;
 
       // Try it all over again if it fails.
       if(!obj->header.atomic_set(orig, new_val)) continue;
@@ -678,7 +689,7 @@ step1:
 
     HeaderWord orig = obj->header;
 
-    if(orig.f.meaning == eAuxWordInflated) {
+    if(orig.f.inflated) {
       rubinius::bug("Massive header state confusion detected. Call a doctor.");
     }
 

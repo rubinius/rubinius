@@ -147,14 +147,13 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
   };
 
   enum AuxWordMeaning {
-    eAuxWordEmpty = 0,
-    eAuxWordObjID = 1,
-    eAuxWordLock =  2,
-    eAuxWordInflated = 3
+    eAuxWordEmpty  = 0,
+    eAuxWordObjID  = 1,
+    eAuxWordLock   = 2,
+    eAuxWordHandle = 3
   };
 
-  const static int AuxMeaningWidth = 2;
-  const static int AuxMeaningMask  = 3;
+  const static int InflatedMask  = 1;
   const static int cAuxLockTIDShift = 8;
   const static int cAuxLockRecCountMask = 0xff;
   const static int cAuxLockRecCountMax  = 0xff - 1;
@@ -164,6 +163,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
   struct ObjectFlags {
 #ifdef RBX_LITTLE_ENDIAN
     // inflated MUST be first, because rest is used as a pointer
+    unsigned int inflated        : 1;
     unsigned int meaning         : 2;
     object_type  obj_type        : 8;
     gc_zone      zone            : 2;
@@ -180,9 +180,9 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     unsigned int Tainted         : 1;
     unsigned int Untrusted       : 1;
     unsigned int LockContended   : 1;
-    unsigned int unused          : 6;
+    unsigned int unused          : 5;
 #else
-    unsigned int unused          : 6;
+    unsigned int unused          : 5;
     unsigned int LockContended   : 1;
     unsigned int Untrusted       : 1;
     unsigned int Tainted         : 1;
@@ -200,6 +200,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     object_type  obj_type        : 8;
     // inflated MUST be first, because rest is used as a pointer
     unsigned int meaning         : 2;
+    unsigned int inflated        : 1;
 #endif
 
     uint32_t aux_word;
@@ -342,12 +343,12 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
   public: // accessors for header members
 
     bool inflated_header_p() const {
-      return header.f.meaning == eAuxWordInflated;
+      return header.f.inflated;
     }
 
     static InflatedHeader* header_to_inflated_header(HeaderWord header) {
       uintptr_t untagged =
-        reinterpret_cast<uintptr_t>(header.all_flags) & ~AuxMeaningMask;
+        reinterpret_cast<uintptr_t>(header.all_flags) & ~InflatedMask;
       return reinterpret_cast<InflatedHeader*>(untagged);
     }
 
@@ -621,10 +622,11 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       // Pull this out into a local so that we don't see any concurrent
       // changes to header.
       HeaderWord tmp = header;
+      if(tmp.f.inflated) {
+        return header_to_inflated_header(tmp)->object_id();
+      }
 
       switch(tmp.f.meaning) {
-      case eAuxWordInflated:
-        return header_to_inflated_header(tmp)->object_id();
       case eAuxWordObjID:
         return tmp.f.aux_word;
       default:

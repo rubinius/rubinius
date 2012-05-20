@@ -30,7 +30,7 @@ namespace rubinius {
 
     HeaderWord new_val = header;
     new_val.all_flags = ih;
-    new_val.f.meaning = eAuxWordInflated;
+    new_val.f.inflated = 1;
 
     // Do a spin update so if someone else is trying to update it at the same time
     // we catch that and keep trying until we get our version in.
@@ -47,6 +47,7 @@ namespace rubinius {
     // we don't hit currently, so don't worry about it for now.
     InflatedHeader* ih = inflated_header();
     header.f = ih->flags();
+    header.f.inflated = 0;
     header.f.meaning = eAuxWordEmpty;
     header.f.aux_word = 0;
 
@@ -78,7 +79,11 @@ namespace rubinius {
       }
 
       return true;
-
+    case eAuxWordHandle:
+      // TODO: fix handle here
+      flags_.meaning = eAuxWordEmpty;
+      flags_.aux_word = 0;
+      return true;
     // Unsupported state, abort.
     default:
       return false;
@@ -95,7 +100,8 @@ namespace rubinius {
     // the new one into place.
     HeaderWord orig = header;
 
-    orig.f.meaning = eAuxWordEmpty;
+    orig.f.inflated = 0;
+    orig.f.meaning  = eAuxWordEmpty;
     orig.f.aux_word = 0;
 
     HeaderWord new_val = orig;
@@ -107,15 +113,19 @@ namespace rubinius {
 
     orig = header;
 
+    if(orig.f.inflated) {
+      ObjectHeader::header_to_inflated_header(orig)->set_object_id(id);
+      return;
+    }
+
     switch(orig.f.meaning) {
     case eAuxWordEmpty:
     case eAuxWordObjID:
       assert(0);
-    case eAuxWordInflated:
-      ObjectHeader::header_to_inflated_header(orig)->set_object_id(id);
-      break;
     case eAuxWordLock:
-      // not inflated, and the aux_word is being used for locking.
+    case eAuxWordHandle:
+      // not inflated, and the aux_word is being used for locking
+      // or a handle.
       // Inflate!
 
       om->inflate_for_id(state, this, id);
@@ -134,12 +144,13 @@ step1:
     // the new one into place.
     HeaderWord orig = self->header;
 
-    orig.f.meaning = eAuxWordEmpty;
+    orig.f.inflated = 0;
+    orig.f.meaning  = eAuxWordEmpty;
     orig.f.aux_word = 0;
 
     HeaderWord new_val = orig;
 
-    new_val.f.meaning = eAuxWordLock;
+    new_val.f.meaning  = eAuxWordLock;
     new_val.f.aux_word = state->vm()->thread_id() << cAuxLockTIDShift;
 
     if(self->header.atomic_set(orig, new_val)) {
@@ -155,9 +166,15 @@ step1:
     // Ok, something went wrong.
     //
     // #2 See if we're locking the object recursively.
-
 step2:
     orig = self->header;
+
+    // The header is inflated, use the full lock.
+    if(orig.f.inflated) {
+      InflatedHeader* ih = ObjectHeader::header_to_inflated_header(orig);
+      return ih->lock_mutex(state, gct, us);
+    }
+
     switch(orig.f.meaning) {
     case eAuxWordEmpty:
       // O_o why is it empty? must be some weird concurrency stuff going
@@ -212,15 +229,10 @@ step2:
         return ret;
       }
 
-    // The header is inflated, use the full lock.
-    case eAuxWordInflated: {
-      InflatedHeader* ih = ObjectHeader::header_to_inflated_header(orig);
-      return ih->lock_mutex(state, gct, us);
-    }
-
     // The header is being used for something other than locking, so we need to
     // inflate it.
     case eAuxWordObjID:
+    case eAuxWordHandle:
       // If we couldn't inflate the lock, that means the header was in some
       // weird state that we didn't detect and handle properly. So redo
       // the whole locking procedure again.
@@ -244,12 +256,13 @@ step1:
     // the new one into place.
     HeaderWord orig = header;
 
-    orig.f.meaning = eAuxWordEmpty;
+    orig.f.inflated = 0;
+    orig.f.meaning  = eAuxWordEmpty;
     orig.f.aux_word = 0;
 
     HeaderWord new_val = orig;
 
-    new_val.f.meaning = eAuxWordLock;
+    new_val.f.meaning  = eAuxWordLock;
     new_val.f.aux_word = state->vm()->thread_id() << cAuxLockTIDShift;
 
     if(header.atomic_set(orig, new_val)) {
@@ -261,9 +274,15 @@ step1:
     // Ok, something went wrong.
     //
     // #2 See if we're locking the object recursively.
-
 step2:
     orig = header;
+
+    // The header is inflated, use the full lock.
+    if(orig.f.inflated) {
+      InflatedHeader* ih = ObjectHeader::header_to_inflated_header(orig);
+      return ih->try_lock_mutex(state, gct);
+    }
+
     switch(orig.f.meaning) {
     case eAuxWordEmpty:
       // O_o why is it empty? must be some weird concurrency stuff going
@@ -309,15 +328,10 @@ step2:
         return eUnlocked;
       }
 
-    // The header is inflated, use the full lock.
-    case eAuxWordInflated: {
-      InflatedHeader* ih = ObjectHeader::header_to_inflated_header(orig);
-      return ih->try_lock_mutex(state, gct);
-    }
-
     // The header is being used for something other than locking, so we need to
     // inflate it.
     case eAuxWordObjID:
+    case eAuxWordHandle:
       // If we couldn't inflate the lock, that means the header was in some
       // weird state that we didn't detect and handle properly. So redo
       // the whole locking procedure again.
@@ -334,17 +348,18 @@ step2:
     // the new one into place.
     HeaderWord orig = header;
 
+    if(orig.f.inflated) {
+      InflatedHeader* ih = ObjectHeader::header_to_inflated_header(orig);
+      return ih->locked_mutex_p(state, gct);
+    }
+
     switch(orig.f.meaning) {
     case eAuxWordLock:
       return true;
     case eAuxWordEmpty:
     case eAuxWordObjID:
+    case eAuxWordHandle:
       return false;
-    case eAuxWordInflated:
-      {
-        InflatedHeader* ih = ObjectHeader::header_to_inflated_header(orig);
-        return ih->locked_mutex_p(state, gct);
-      }
     }
     return false;
   }
@@ -355,9 +370,15 @@ step2:
     for(;;) {
       HeaderWord orig = header;
 
+      if(orig.f.inflated) {
+        InflatedHeader* ih = ObjectHeader::header_to_inflated_header(orig);
+        return ih->unlock_mutex(state, gct);
+      }
+
       switch(orig.f.meaning) {
       case eAuxWordEmpty:
       case eAuxWordObjID:
+      case eAuxWordHandle:
         // Um. well geez. We don't have this object locked.
         if(state->shared().config.thread_debug) {
           std::cerr << "[THREAD] Attempted to unlock an unlocked object.\n";
@@ -367,11 +388,6 @@ step2:
           std::cerr << "[LOCK " << state->vm()->thread_id() << " attempted to unlock an unlocked header]\n";
         }
         return eLockError;
-
-      case eAuxWordInflated: {
-        InflatedHeader* ih = ObjectHeader::header_to_inflated_header(orig);
-        return ih->unlock_mutex(state, gct);
-      }
 
       case eAuxWordLock: {
         unsigned int locker_tid = orig.f.aux_word >> cAuxLockTIDShift;
@@ -458,17 +474,18 @@ step2:
     for(;;) {
       HeaderWord orig = header;
 
-      switch(orig.f.meaning) {
-      case eAuxWordEmpty:
-      case eAuxWordObjID:
-        // Um. well geez. We don't have this object locked.
-        return;
-
-      case eAuxWordInflated: {
+      if(orig.f.inflated) {
         InflatedHeader* ih = ObjectHeader::header_to_inflated_header(orig);
         ih->unlock_mutex_for_terminate(state, gct);
         return;
       }
+
+      switch(orig.f.meaning) {
+      case eAuxWordEmpty:
+      case eAuxWordObjID:
+      case eAuxWordHandle:
+        // Um. well geez. We don't have this object locked.
+        return;
 
       case eAuxWordLock: {
         if(orig.f.aux_word >> cAuxLockTIDShift != state->vm()->thread_id()) {
@@ -534,6 +551,7 @@ step2:
     switch(hdr.f.meaning) {
     case eAuxWordObjID:
     case eAuxWordLock:
+    case eAuxWordHandle:
       header.f.meaning = hdr.f.meaning;
       header.f.aux_word = hdr.f.aux_word;
     }
