@@ -36,33 +36,26 @@ namespace rubinius {
    *             this mark will be retained.
    */
   void InflatedHeaders::deallocate_headers(int mark) {
-    // Detect and free any full chunks first!
-    for(std::vector<InflatedHeader*>::iterator i = allocator_->chunks_.begin();
-        i != allocator_->chunks_.end();) {
-      InflatedHeader* chunk = *i;
 
-      bool used = false;
+    std::vector<bool> chunk_marks(allocator_->chunks_.size(), false);
+    size_t i = 0;
+    for(std::vector<InflatedHeader*>::iterator it = allocator_->chunks_.begin();
+        it != allocator_->chunks_.end(); ++it) {
+      InflatedHeader* chunk = *it;
 
       for(size_t j = 0; j < allocator_->cChunkSize; j++) {
         InflatedHeader* header = &chunk[j];
 
         if(header->marked_p(mark)) {
-          used = true;
+          chunk_marks[i] = true;
           break;
         } else {
           header->clear();
         }
       }
-
-      // No header was marked, so it's completely empty. Free it.
-      if(!used) {
-        delete[] chunk;
-        i = allocator_->chunks_.erase(i);
-      } else {
-        ++i;
-      }
+      ++i;
     }
 
-    allocator_->rebuild_freelist();
+    allocator_->rebuild_freelist(&chunk_marks);
   }
 }

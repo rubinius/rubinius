@@ -77,30 +77,16 @@ namespace rubinius {
       }
 
       // Cleanup cached handles
-      for(std::list<Handle*>::iterator i = cached->begin(); i != cached->end();) {
-        Handle* handle = *i;
+      for(std::list<Handle*>::iterator it = cached->begin(); it != cached->end();) {
+        Handle* handle = *it;
         if(handle->in_use_p()) {
-          ++i;
-        } else {
-          i = cached->erase(i);
-        }
-      }
-
-      i = 0;
-      for(std::vector<Handle*>::iterator it = allocator_->chunks_.begin();
-          it != allocator_->chunks_.end();) {
-        // No header was marked, so it's completely empty. Free it.
-        if(!chunk_marks[i]) {
-          Handle* chunk = *it;
-          delete[] chunk;
-          it = allocator_->chunks_.erase(it);
-        } else {
           ++it;
+        } else {
+          it = cached->erase(it);
         }
-        ++i;
       }
 
-      allocator_->rebuild_freelist();
+      allocator_->rebuild_freelist(&chunk_marks);
     }
   }
 }

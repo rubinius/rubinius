@@ -55,22 +55,29 @@ namespace rubinius {
       return t;
     }
 
-    void rebuild_freelist() {
+    void rebuild_freelist(std::vector<bool>* chunk_marks) {
+      size_t i = 0;
       free_list_ = NULL;
       in_use_ = 0;
-      for(typename std::vector<T*>::iterator i = chunks_.begin(); i != chunks_.end(); ++i) {
-        T* chunk = *i;
+      for(typename std::vector<T*>::iterator it = chunks_.begin(); it != chunks_.end();) {
+        T* chunk = *it;
+        if(!chunk_marks->at(i)) {
+          delete[] chunk;
+          it = chunks_.erase(it);
+        } else {
+          for(size_t j = 0; j < cChunkSize; j++) {
+            T* t = &chunk[j];
 
-        for(size_t j = 0; j < cChunkSize; j++) {
-          T* t = &chunk[j];
-
-          if(!t->in_use_p()) {
-            t->set_next(free_list_);
-            free_list_ = t;
-          } else {
-            in_use_++;
+            if(!t->in_use_p()) {
+              t->set_next(free_list_);
+              free_list_ = t;
+            } else {
+              in_use_++;
+            }
           }
+          ++it;
         }
+        ++i;
       }
     }
 
