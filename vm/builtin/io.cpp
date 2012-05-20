@@ -1133,10 +1133,9 @@ failed: /* try next '*' position */
     struct iovec vec[1];
     char buf[1];
 
-    union {
-      struct cmsghdr hdr;
-      unsigned char buf[CMSG_SPACE(sizeof(int))];
-    } cmsg;
+    static const int cmsg_space = CMSG_SPACE(sizeof(int));
+    struct cmsghdr *cmsg;
+    char cmsg_buf[cmsg_space];
 
     fd = io->descriptor()->to_native();
 
@@ -1150,16 +1149,17 @@ failed: /* try next '*' position */
     msg.msg_iov = vec;
     msg.msg_iovlen = 1;
 
-    msg.msg_control = (caddr_t)&cmsg.buf;
-    msg.msg_controllen = sizeof(cmsg.buf);
+    msg.msg_control = (caddr_t)cmsg_buf;
+    msg.msg_controllen = sizeof(cmsg_buf);
     msg.msg_flags = 0;
-    memset(&cmsg, 0, sizeof(cmsg));
-    cmsg.hdr.cmsg_len = CMSG_LEN(sizeof(int));
-    cmsg.hdr.cmsg_level = SOL_SOCKET;
-    cmsg.hdr.cmsg_type = SCM_RIGHTS;
+    cmsg = CMSG_FIRSTHDR(&msg);
+    memset(cmsg_buf, 0, sizeof(cmsg_buf));
+    cmsg->cmsg_len = CMSG_LEN(sizeof(int));
+    cmsg->cmsg_level = SOL_SOCKET;
+    cmsg->cmsg_type = SCM_RIGHTS;
 
     // Workaround for GCC's broken strict-aliasing checks.
-    int* fd_data = (int*)CMSG_DATA(&cmsg.hdr);
+    int* fd_data = (int*)CMSG_DATA(cmsg);
     *fd_data = fd;
 
     if(sendmsg(descriptor()->to_native(), &msg, 0) == -1) {
@@ -1178,10 +1178,9 @@ failed: /* try next '*' position */
     struct iovec vec[1];
     char buf[1];
 
-    union {
-      struct cmsghdr hdr;
-      unsigned char buf[CMSG_SPACE(sizeof(int))];
-    } cmsg;
+    static const int cmsg_space = CMSG_SPACE(sizeof(int));
+    struct cmsghdr *cmsg;
+    char cmsg_buf[cmsg_space];
 
     msg.msg_name = NULL;
     msg.msg_namelen = 0;
@@ -1193,16 +1192,17 @@ failed: /* try next '*' position */
     msg.msg_iov = vec;
     msg.msg_iovlen = 1;
 
-    msg.msg_control = (caddr_t)&cmsg.buf;
-    msg.msg_controllen = sizeof(cmsg.buf);
+    msg.msg_control = (caddr_t)cmsg_buf;
+    msg.msg_controllen = sizeof(cmsg_buf);
     msg.msg_flags = 0;
-    memset(&cmsg, 0, sizeof(cmsg));
-    cmsg.hdr.cmsg_len = CMSG_LEN(sizeof(int));
-    cmsg.hdr.cmsg_level = SOL_SOCKET;
-    cmsg.hdr.cmsg_type = SCM_RIGHTS;
+    cmsg = CMSG_FIRSTHDR(&msg);
+    memset(cmsg_buf, 0, sizeof(cmsg_buf));
+    cmsg->cmsg_len = CMSG_LEN(sizeof(int));
+    cmsg->cmsg_level = SOL_SOCKET;
+    cmsg->cmsg_type = SCM_RIGHTS;
 
     // Workaround for GCC's broken strict-aliasing checks.
-    int* fd_data = (int *)CMSG_DATA(&cmsg.hdr);
+    int* fd_data = (int *)CMSG_DATA(cmsg);
     *fd_data = -1;
 
     int read_fd = descriptor()->to_native();
@@ -1231,14 +1231,14 @@ failed: /* try next '*' position */
     }
 
     if(msg.msg_controllen != CMSG_SPACE(sizeof(int))
-        || cmsg.hdr.cmsg_len != CMSG_LEN(sizeof(int))
-        || cmsg.hdr.cmsg_level != SOL_SOCKET
-        || cmsg.hdr.cmsg_type != SCM_RIGHTS) {
+        || cmsg->cmsg_len != CMSG_LEN(sizeof(int))
+        || cmsg->cmsg_level != SOL_SOCKET
+        || cmsg->cmsg_type != SCM_RIGHTS) {
       return Primitives::failure();
     }
 
     // Workaround for GCC's broken strict-aliasing checks.
-    fd_data = (int *)CMSG_DATA(&cmsg.hdr);
+    fd_data = (int *)CMSG_DATA(cmsg);
     return Fixnum::from(*fd_data);
 #endif
   }
