@@ -461,6 +461,8 @@ VM Options
         exit 0
       end
 
+      exit 0 if Rubinius::Config["config.print"]
+
       if str = Rubinius::Config['tool.require']
         begin
           require str
