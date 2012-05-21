@@ -319,13 +319,13 @@ containing the Rubinius standard library files.
         end
       else
         options.on "-U", "Set Encoding.default_internal to UTF-8" do
-          Encoding.default_internal = "UTF-8"
+          set_default_internal_encoding('UTF-8')
         end
 
         options.on "-E", "ENC", "Set external:internal character encoding to ENC" do |enc|
           ext, int = enc.split(":")
           Encoding.default_external = ext if ext and !ext.empty?
-          Encoding.default_internal = int if int and !int.empty?
+          set_default_internal_encoding(int) if int and !int.empty?
         end
       end
 
@@ -477,6 +477,16 @@ VM Options
         check_syntax
       end
     end
+
+    def set_default_internal_encoding(encoding)
+      if @default_internal_encoding_set && Encoding.default_internal.name != encoding
+        raise RuntimeError, "Default internal encoding already set to '#{Encoding.default_internal.name}'."
+      else
+        @default_internal_encoding_set = true
+        Encoding.default_internal = encoding
+      end
+    end
+    private :set_default_internal_encoding
 
     RUBYOPT_VALID_OPTIONS = "IdvwWrKT"
 
