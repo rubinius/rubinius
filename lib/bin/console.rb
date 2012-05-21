@@ -239,7 +239,9 @@ help              - You're lookin' at it
 
       agents.map do |path|
         pid, port, cmd, exec = File.readlines(path)
-        Agent.new(pid.to_i, port.to_i, cmd.strip, exec.strip)
+        cmd = cmd.strip if cmd
+        exec = exec.strip if exec
+        Agent.new(pid.to_i, port.to_i, cmd, exec)
       end
     end
 
