@@ -8,7 +8,7 @@ namespace rubinius {
 
     public:
     std::vector<T*> chunks_;
-    T* free_list_;
+    uintptr_t free_list_;
     size_t allocations_;
     int in_use_;
 
@@ -16,7 +16,7 @@ namespace rubinius {
     static const size_t cChunkLimit = 128;
 
     Allocator()
-      : free_list_(NULL)
+      : free_list_(0)
       , allocations_(0)
       , in_use_(0)
     {}
@@ -31,8 +31,9 @@ namespace rubinius {
     void allocate_chunk(bool* needs_gc) {
       T* chunk = new T[cChunkSize];
       for(size_t i = 0; i < cChunkSize; i++) {
+        uintptr_t next_index = chunks_.size() * cChunkSize + i;
         chunk[i].set_next(free_list_);
-        free_list_ = &chunk[i];
+        free_list_ = next_index;
       }
 
       chunks_.push_back(chunk);
@@ -45,7 +46,7 @@ namespace rubinius {
 
     T* allocate(bool* needs_gc) {
       if(!free_list_) allocate_chunk(needs_gc);
-      T* t = free_list_;
+      T* t = from_index(free_list_);
       free_list_ = t->next();
 
       t->clear();
@@ -55,8 +56,12 @@ namespace rubinius {
       return t;
     }
 
+    T* from_index(uintptr_t index) {
+      return chunks_[index / cChunkSize] + (index % cChunkSize);
+    }
+
     void rebuild_freelist(std::vector<bool>* chunk_marks) {
-      free_list_ = NULL;
+      free_list_ = 0;
       in_use_ = 0;
       for(std::vector<int>::size_type i = chunks_.size() - 1;
           i != (std::vector<int>::size_type) -1; --i) {
@@ -70,7 +75,7 @@ namespace rubinius {
 
             if(!t->in_use_p()) {
               t->set_next(free_list_);
-              free_list_ = t;
+              free_list_ = i * cChunkSize + j;
             } else {
               in_use_++;
             }

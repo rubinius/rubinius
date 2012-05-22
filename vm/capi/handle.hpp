@@ -53,7 +53,7 @@ namespace rubinius {
         RFloat*   rfloat;
         RIO*      rio;
         RFile*    rfile;
-        Handle*   next_;
+        uintptr_t next_index_;
         intptr_t  cache_data;
       } as_;
 
@@ -172,12 +172,12 @@ namespace rubinius {
         return as_.rstring;
       }
 
-      Handle* next() const {
-        return as_.next_;
+      uintptr_t next() const {
+        return as_.next_index_;
       }
 
-      void set_next(Handle* next) {
-        as_.next_ = next;
+      void set_next(uintptr_t next_index) {
+        as_.next_index_ = next_index;
       }
 
       RData*  create_rdata(NativeMethodEnvironment* env);

@@ -228,7 +228,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     // to the next free InflatedHeader in the InflatedHeaders free list.
     union {
       ObjectFlags flags_;
-      InflatedHeader* next_;
+      uintptr_t next_index_;
     };
 
     ObjectHeader* object_;
@@ -250,8 +250,8 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return flags_;
     }
 
-    InflatedHeader* next() const {
-      return next_;
+    uintptr_t next() const {
+      return next_index_;
     }
 
     ObjectHeader* object() const {
@@ -266,12 +266,12 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       object_id_ = id;
     }
 
-    void set_next(InflatedHeader* next) {
-      next_ = next;
+    void set_next(uintptr_t next_index) {
+      next_index_ = next_index;
     }
 
     void clear() {
-      next_ = 0;
+      next_index_ = 0;
       object_ = 0;
       handle_ = 0;
       object_id_ = 0;
