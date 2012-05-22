@@ -1,6 +1,6 @@
 namespace :jit do
   task :regenerate_header do
-    puts "GEN vm/llvm/types.ll, vm/llvm/types.cpp.gen"
+    puts "GEN vm/gen/types.ll, vm/llvm/types.cpp.gen"
 
     classes = %w!
                  rubinius::ObjectFlags
@@ -32,6 +32,7 @@ namespace :jit do
                  rubinius::CallUnit
                  rubinius::MethodCacheEntry
                  rubinius::RefCount
+                 rubinius::Fiber
                  atomic::integer
                  memory::Address!
     require 'tempfile'
@@ -85,8 +86,8 @@ namespace :jit do
       f.puts(*types)
     end
 
-    `llvm-as < vm/gen/types.ll > vm/gen/types.bc`
-    `llc -march=cpp -cppgen=contents -o vm/llvm/types.cpp.gen vm/gen/types.bc`
+    `vendor/llvm/Release/bin/llvm-as < vm/gen/types.ll > vm/gen/types.bc`
+    `vendor/llvm/Release/bin/llc -march=cpp -cppgen=contents -o vm/llvm/types.cpp.gen vm/gen/types.bc`
   end
 
   task :generate_header do
