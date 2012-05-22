@@ -313,7 +313,7 @@ module Rubinius
     def self.construct_block(string, binding, file="(eval)", line=1)
       cm = compile_eval string, binding.variables, file, line
 
-      cm.scope = binding.static_scope
+      cm.scope = binding.constant_scope
       cm.name = binding.variables.method.name
 
       # This has to be setup so __FILE__ works in eval.

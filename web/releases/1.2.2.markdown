@@ -48,7 +48,7 @@ collection, Just-In-Time compilation, and compatibility with existing C APIs.
 * Updated fileutils.rb to MRI 1.8.7p334 to fix security issue.
 
 ##### Bug Fixes
-* _(CRASH)_ Allow a CM to have no StaticScope (alexsuraci)
+* _(CRASH)_ Allow a CM to have no ConstantScope (alexsuraci)
 * _(CRASH)_ Update the current call\_frame when waiting on the GIL.
 * _(CRITICAL)_ Enforce compiler signature check (and install the signature).
 * Fix EBADF errors by being more careful with fd's and IO objects

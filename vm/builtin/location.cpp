@@ -54,7 +54,7 @@ namespace rubinius {
       loc->variables(state, call_frame->promote_scope(state));
     }
 
-    loc->static_scope(state, call_frame->static_scope());
+    loc->constant_scope(state, call_frame->constant_scope());
 
     return loc;
   }

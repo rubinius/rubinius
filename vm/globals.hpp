@@ -52,7 +52,7 @@ namespace rubinius {
     TypedRoot<Class*> string, symbol, io;
     TypedRoot<Class*> nil_class, true_class, false_class, fixnum_class, undef_class;
     TypedRoot<Class*> floatpoint, nmc, list, list_node;
-    TypedRoot<Class*> channel, thread, staticscope, lookuptable;
+    TypedRoot<Class*> channel, thread, constantscope, lookuptable;
     TypedRoot<Class*> iseq, executable, native_function, iobuffer;
     TypedRoot<Class*> included_module;
 
@@ -146,7 +146,7 @@ namespace rubinius {
       list_node(&roots),
       channel(&roots),
       thread(&roots),
-      staticscope(&roots),
+      constantscope(&roots),
       lookuptable(&roots),
       iseq(&roots),
       executable(&roots),

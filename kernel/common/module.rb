@@ -437,8 +437,8 @@ class Module
     raise LocalJumpError, "Missing block" unless block_given?
 
     env = prc.block
-    static_scope = env.repoint_scope self
-    return env.call_under(self, static_scope, *args)
+    constant_scope = env.repoint_scope self
+    return env.call_under(self, constant_scope, *args)
   end
   alias_method :class_exec, :module_exec
 
@@ -633,7 +633,7 @@ class Module
     cm = g.package Rubinius::CompiledMethod
 
     cm.scope =
-      Rubinius::StaticScope.new(self, Rubinius::StaticScope.new(Object))
+      Rubinius::ConstantScope.new(self, Rubinius::ConstantScope.new(Object))
 
     Rubinius.add_method name, cm, self, :public
 

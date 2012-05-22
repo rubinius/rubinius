@@ -27,7 +27,7 @@
 #include "builtin/nativefunction.hpp"
 #include "builtin/nativemethod.hpp"
 #include "builtin/regexp.hpp"
-#include "builtin/staticscope.hpp"
+#include "builtin/constantscope.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/system.hpp"
@@ -299,7 +299,7 @@ namespace rubinius {
     CompiledMethod::init(state);
     IO::init(state);
     BlockEnvironment::init(state);
-    StaticScope::init(state);
+    ConstantScope::init(state);
     Dir::init(state);
     CompactLookupTable::init(state);
     Time::init(state);
@@ -374,7 +374,7 @@ namespace rubinius {
 
     System::bootstrap_methods(state);
     Module::bootstrap_methods(state);
-    StaticScope::bootstrap_methods(state);
+    ConstantScope::bootstrap_methods(state);
     VariableScope::bootstrap_methods(state);
 
     /*

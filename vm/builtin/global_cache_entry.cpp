@@ -1,6 +1,6 @@
 #include "builtin/global_cache_entry.hpp"
 #include "builtin/class.hpp"
-#include "builtin/staticscope.hpp"
+#include "builtin/constantscope.hpp"
 
 #include "ontology.hpp"
 
@@ -12,7 +12,7 @@ namespace rubinius {
   }
 
   GlobalCacheEntry* GlobalCacheEntry::create(STATE, Object *value,
-                                             StaticScope* scope)
+                                             ConstantScope* scope)
   {
     GlobalCacheEntry *entry =
       state->vm()->new_object_mature<GlobalCacheEntry>(G(global_cache_entry));
@@ -29,12 +29,12 @@ namespace rubinius {
     return entry;
   }
 
-  bool GlobalCacheEntry::valid_p(STATE, StaticScope* scope) {
+  bool GlobalCacheEntry::valid_p(STATE, ConstantScope* scope) {
     return serial_ == state->shared().global_serial() &&
            scope_ == scope;
   }
 
-  void GlobalCacheEntry::update(STATE, Object* val, StaticScope* sc) {
+  void GlobalCacheEntry::update(STATE, Object* val, ConstantScope* sc) {
     value(state, val);
     scope(state, sc);
     serial_ = state->shared().global_serial();

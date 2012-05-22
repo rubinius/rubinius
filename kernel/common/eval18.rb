@@ -37,26 +37,26 @@ module Kernel
       env = prc.block
 
       if sc
-        static_scope = env.repoint_scope sc
+        constant_scope = env.repoint_scope sc
       else
-        static_scope = env.disable_scope!
+        constant_scope = env.disable_scope!
       end
 
-      return env.call_under(self, static_scope, self)
+      return env.call_under(self, constant_scope, self)
     elsif string
       string = StringValue(string)
 
-      static_scope = Rubinius::StaticScope.of_sender
+      constant_scope = Rubinius::ConstantScope.of_sender
 
       if sc
-        static_scope = Rubinius::StaticScope.new(sc, static_scope)
+        constant_scope = Rubinius::ConstantScope.new(sc, constant_scope)
       else
-        static_scope = static_scope.using_disabled_scope
+        constant_scope = constant_scope.using_disabled_scope
       end
 
       binding = Binding.setup(Rubinius::VariableScope.of_sender,
                               Rubinius::CompiledMethod.of_sender,
-                              static_scope)
+                              constant_scope)
 
       be = Rubinius::Compiler.construct_block string, binding,
                                               filename, line
@@ -95,14 +95,14 @@ module Kernel
 
     env = prc.block
 
-    static_scope = env.static_scope
+    constant_scope = env.constant_scope
     if ImmediateValue === self
-      static_scope = static_scope.using_disabled_scope
+      constant_scope = constant_scope.using_disabled_scope
     else
       sc = Rubinius::Type.object_singleton_class(self)
-      static_scope = static_scope.using_current_as(sc)
+      constant_scope = constant_scope.using_current_as(sc)
     end
 
-    return env.call_under(self, static_scope, *args)
+    return env.call_under(self, constant_scope, *args)
   end
 end

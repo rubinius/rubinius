@@ -1,9 +1,9 @@
 # -*- encoding: us-ascii -*-
 
 module Rubinius
-  class StaticScope
+  class ConstantScope
 
-    def const_defined?(name)
+    def const_defined?(name, search_parents=true)
       scope = self
       while scope and scope.module != Object
         return true if scope.module.const_defined?(name)

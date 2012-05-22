@@ -29,7 +29,7 @@ process.rbc
 regexp.rbc
 rubinius.rbc
 rubinius18.rbc
-static_scope.rbc
+constant_scope.rbc
 string.rbc
 symbol.rbc
 thread.rbc

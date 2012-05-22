@@ -14,7 +14,7 @@
 #include "builtin/tuple.hpp"
 #include "builtin/array.hpp"
 #include "builtin/float.hpp"
-#include "builtin/staticscope.hpp"
+#include "builtin/constantscope.hpp"
 #include "builtin/system.hpp"
 #include "builtin/methodtable.hpp"
 #include "builtin/packed_object.hpp"

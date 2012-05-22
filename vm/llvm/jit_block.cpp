@@ -6,7 +6,7 @@
 
 #include "call_frame.hpp"
 #include "stack_variables.hpp"
-#include "builtin/staticscope.hpp"
+#include "builtin/constantscope.hpp"
 #include "builtin/module.hpp"
 
 #include "instruments/tooling.hpp"
@@ -154,11 +154,11 @@ namespace jit {
     // previous
     b().CreateStore(info_.previous(), get_field(call_frame, offset::CallFrame::previous));
 
-    // static_scope
-    Value* ss = b().CreateLoad(get_field(block_inv, offset::blockinv_static_scope),
-                               "invocation.static_scope");
+    // constant_scope
+    Value* cs = b().CreateLoad(get_field(block_inv, offset::blockinv_constant_scope),
+                               "invocation.constant_scope");
 
-    b().CreateStore(ss, get_field(call_frame, offset::CallFrame::static_scope));
+    b().CreateStore(cs, get_field(call_frame, offset::CallFrame::constant_scope));
 
     // arguments
     b().CreateStore(info_.args(), get_field(call_frame, offset::CallFrame::arguments));
@@ -174,7 +174,7 @@ namespace jit {
     inv_flags_ = b().CreateLoad(get_field(block_inv, offset::blockinv_flags),
         "invocation.flags");
 
-    int block_flags = CallFrame::cCustomStaticScope |
+    int block_flags = CallFrame::cCustomConstantScope |
       CallFrame::cMultipleScopes |
       CallFrame::cBlock |
       CallFrame::cJITed;

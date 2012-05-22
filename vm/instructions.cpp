@@ -11,7 +11,7 @@
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/iseq.hpp"
-#include "builtin/staticscope.hpp"
+#include "builtin/constantscope.hpp"
 #include "builtin/nativemethod.hpp"
 #include "builtin/lookuptable.hpp"
 #include "builtin/proc.hpp"

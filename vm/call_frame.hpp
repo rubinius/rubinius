@@ -29,7 +29,7 @@ namespace rubinius {
   struct CallFrame {
     enum Flags {
       cIsLambda =           1 << 0,
-      cCustomStaticScope =  1 << 1,
+      cCustomConstantScope =  1 << 1,
       cMultipleScopes =     1 << 2,
       cInlineFrame =        1 << 3,
       cClosedScope =        1 << 4,
@@ -41,7 +41,7 @@ namespace rubinius {
     };
 
     CallFrame* previous;
-    StaticScope* static_scope_;
+    ConstantScope* constant_scope_;
 
     void* dispatch_data;
     CompiledMethod* cm;
@@ -136,8 +136,8 @@ namespace rubinius {
       return cm->name();
     }
 
-    bool custom_static_scope_p() {
-      return flags & cCustomStaticScope;
+    bool custom_constant_scope_p() {
+      return flags & cCustomConstantScope;
     }
 
     bool inline_method_p() {
@@ -152,8 +152,8 @@ namespace rubinius {
       return flags & cBlock;
     }
 
-    StaticScope* static_scope() {
-      if(custom_static_scope_p()) return static_scope_;
+    ConstantScope* constant_scope() {
+      if(custom_constant_scope_p()) return constant_scope_;
       return cm->scope();
     }
 

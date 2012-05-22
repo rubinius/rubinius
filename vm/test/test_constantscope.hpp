@@ -1,4 +1,4 @@
-#include "builtin/staticscope.hpp"
+#include "builtin/constantscope.hpp"
 #include "vm.hpp"
 #include "objectmemory.hpp"
 
@@ -6,7 +6,7 @@
 
 using namespace rubinius;
 
-class TestStaticScope : public CxxTest::TestSuite {
+class TestConstantScope : public CxxTest::TestSuite {
   public:
 
   VM *state;

@@ -760,7 +760,7 @@ end
 
 instruction set_const(index) [ value -- value ]
   Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
-  call_frame->static_scope()->module()->set_const(state, sym, stack_top());
+  call_frame->constant_scope()->module()->set_const(state, sym, stack_top());
 end
 
 # [Description]
@@ -835,7 +835,7 @@ instruction push_const_fast(literal association) [ -- constant ]
   GlobalCacheEntry* cache;
 
   if((cache = try_as<GlobalCacheEntry>(val)) != NULL) {
-    if(cache->valid_p(state, call_frame->static_scope())) {
+    if(cache->valid_p(state, call_frame->constant_scope())) {
       res = cache->value();
     }
   } else {
@@ -857,7 +857,7 @@ instruction push_const_fast(literal association) [ -- constant ]
       }
 
       if(res) {
-        cache->update(state, res, call_frame->static_scope());
+        cache->update(state, res, call_frame->constant_scope());
       }
     } else {
       res = Helpers::const_missing(state, sym, call_frame);
@@ -1159,7 +1159,7 @@ instruction create_block(literal) [ -- block ]
   CompiledMethod* cm = as<CompiledMethod>(_lit);
 
   // TODO: We do not need to be doing this everytime.
-  cm->scope(state, call_frame->static_scope());
+  cm->scope(state, call_frame->constant_scope());
 
   Object* be = BlockEnvironment::under_call_frame(state, gct, cm, vmm, call_frame);
 
@@ -1574,29 +1574,29 @@ end
 section "Manipulate scope"
 
 # [Description]
-#   Pushes the current `StaticScope` object on the stack. Many operations are
+#   Pushes the current `ConstantScope` object on the stack. Many operations are
 #   defered to the current scope. This operation retrieves the current scope
 #   so methods can be called on it.
 
 instruction push_scope() [ -- scope ]
-  stack_push(call_frame->static_scope());
+  stack_push(call_frame->constant_scope());
 end
 
 # [Description]
-#   Create a new `StaticScope` object for the given Module on the stack.
+#   Create a new `ConstantScope` object for the given Module on the stack.
 #   This scope is chained off the current scope of the method.
 #
 #   This also sets the scope of the current `CompiledMethod` to the new
-#   `StaticScope`.
+#   `ConstantScope`.
 
 instruction add_scope() [ module -- ]
   Object* obj = stack_pop();
   Module* mod = as<Module>(obj);
-  StaticScope* scope = StaticScope::create(state);
+  ConstantScope* scope = ConstantScope::create(state);
   scope->module(state, mod);
-  scope->parent(state, call_frame->static_scope());
+  scope->parent(state, call_frame->constant_scope());
   call_frame->cm->scope(state, scope);
-  call_frame->static_scope_ = scope;
+  call_frame->constant_scope_ = scope;
 end
 
 # [Description]

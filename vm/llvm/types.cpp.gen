@@ -234,16 +234,16 @@ std::vector<Type*>StructTy_struct_rubinius__CallFrame_fields;
 PointerType* PointerTy_22 = PointerType::get(StructTy_struct_rubinius__CallFrame, 0);
 
 StructTy_struct_rubinius__CallFrame_fields.push_back(PointerTy_22);
-StructType *StructTy_struct_rubinius__StaticScope = mod->getTypeByName("struct.rubinius::StaticScope");
-if (!StructTy_struct_rubinius__StaticScope) {
-StructTy_struct_rubinius__StaticScope = StructType::create(mod->getContext(), "struct.rubinius::StaticScope");
+StructType *StructTy_struct_rubinius__ConstantScope = mod->getTypeByName("struct.rubinius::ConstantScope");
+if (!StructTy_struct_rubinius__ConstantScope) {
+StructTy_struct_rubinius__ConstantScope = StructType::create(mod->getContext(), "struct.rubinius::ConstantScope");
 }
-std::vector<Type*>StructTy_struct_rubinius__StaticScope_fields;
-if (StructTy_struct_rubinius__StaticScope->isOpaque()) {
-StructTy_struct_rubinius__StaticScope->setBody(StructTy_struct_rubinius__StaticScope_fields, /*isPacked=*/false);
+std::vector<Type*>StructTy_struct_rubinius__ConstantScope_fields;
+if (StructTy_struct_rubinius__ConstantScope->isOpaque()) {
+StructTy_struct_rubinius__ConstantScope->setBody(StructTy_struct_rubinius__ConstantScope_fields, /*isPacked=*/false);
 }
 
-PointerType* PointerTy_23 = PointerType::get(StructTy_struct_rubinius__StaticScope, 0);
+PointerType* PointerTy_23 = PointerType::get(StructTy_struct_rubinius__ConstantScope, 0);
 
 StructTy_struct_rubinius__CallFrame_fields.push_back(PointerTy_23);
 StructTy_struct_rubinius__CallFrame_fields.push_back(PointerTy_14);

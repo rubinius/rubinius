@@ -41,7 +41,7 @@ module Rubinius
       @code.scope.using_disabled_scope
     end
 
-    def static_scope
+    def constant_scope
       @code.scope
     end
 

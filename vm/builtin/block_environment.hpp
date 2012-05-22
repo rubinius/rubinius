@@ -13,18 +13,18 @@ namespace rubinius {
   class VMExecutable;
 
   class BlockEnvironment;
-  class StaticScope;
+  class ConstantScope;
 
   struct BlockInvocation {
     int flags;
     Object* self;
-    StaticScope* static_scope;
+    ConstantScope* constant_scope;
     Module* module;
 
-    BlockInvocation(Object* self, StaticScope* static_scope, int flags)
+    BlockInvocation(Object* self, ConstantScope* constant_scope, int flags)
       : flags(flags)
       , self(self)
-      , static_scope(static_scope)
+      , constant_scope(constant_scope)
       , module(0)
     {}
   };

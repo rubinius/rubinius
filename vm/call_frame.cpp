@@ -7,7 +7,7 @@
 #include "builtin/symbol.hpp"
 #include "builtin/compiledmethod.hpp"
 #include "builtin/tuple.hpp"
-#include "builtin/staticscope.hpp"
+#include "builtin/constantscope.hpp"
 #include "builtin/lookuptable.hpp"
 #include "builtin/nativemethod.hpp"
 

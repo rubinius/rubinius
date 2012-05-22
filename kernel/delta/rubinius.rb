@@ -80,21 +80,21 @@ module Rubinius
     open_module_under name, under
   end
 
-  def self.add_defn_method(name, executable, static_scope, vis)
+  def self.add_defn_method(name, executable, constant_scope, vis)
     executable.serial = 1
     if executable.respond_to? :scope=
       # If we're adding a method inside ane eval, dup it so that
       # we don't share the CompiledMethod with the eval, since
       # we're going to mutate it.
-      if static_scope and script = static_scope.current_script
+      if constant_scope and script = constant_scope.current_script
         if script.eval?
           executable = executable.dup
         end
       end
-      executable.scope = static_scope
+      executable.scope = constant_scope
     end
 
-    mod = static_scope.for_method_definition
+    mod = constant_scope.for_method_definition
 
     if Type.object_kind_of?(mod, Class) and ai = Type.singleton_class_object(mod)
       if Type.object_kind_of? ai, Numeric
@@ -171,18 +171,18 @@ module Rubinius
 
   # Must be AFTER add_method, because otherwise we'll run this attach_method to add
   # add_method itself and fail.
-  def self.attach_method(name, executable, static_scope, recv)
+  def self.attach_method(name, executable, constant_scope, recv)
     executable.serial = 1
     if executable.respond_to? :scope=
       # If we're adding a method inside ane eval, dup it so that
       # we don't share the CompiledMethod with the eval, since
       # we're going to mutate it.
-      if static_scope and script = static_scope.current_script
+      if constant_scope and script = constant_scope.current_script
         if script.eval?
           executable = executable.dup
         end
       end
-      executable.scope = static_scope
+      executable.scope = constant_scope
     end
 
     mod = Rubinius::Type.object_singleton_class recv
@@ -272,7 +272,7 @@ module Rubinius
   # Returns nil if there is no file, such as inside eval.
   #
   def self.current_file
-    ss = Rubinius::StaticScope.of_sender
+    cs = Rubinius::ConstantScope.of_sender
     return ss.absolute_active_path
   end
 end

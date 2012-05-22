@@ -1,5 +1,4 @@
 namespace :jit do
-
   task :generate_header do
     puts "GEN vm/llvm/types.cpp.gen"
     `vendor/llvm/Release/bin/llvm-as < vm/llvm/types.ll > vm/gen/types.bc`

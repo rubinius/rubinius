@@ -39,7 +39,7 @@ namespace offset {
 
   const static int blockinv_flags = 0;
   const static int blockinv_self = 1;
-  const static int blockinv_static_scope = 2;
+  const static int blockinv_constant_scope = 2;
   const static int blockinv_module = 3;
 
   const static int runtime_data_method = 0;

@@ -165,13 +165,13 @@ module Rubinius
       script = CompiledMethod::Script.new(self)
 
       # Setup the scoping.
-      ss = StaticScope.new(Object)
-      ss.script = script
+      cs = ConstantScope.new(Object)
+      cs.script = script
 
       if wrap
-        @scope = StaticScope.new(Module.new, ss)
+        @scope = ConstantScope.new(Module.new, cs)
       else
-        @scope = ss
+        @scope = cs
       end
 
       sc = Rubinius::Type.object_singleton_class(MAIN)

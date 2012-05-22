@@ -309,7 +309,7 @@ Date:   Thu May 1 10:48:20 2008 -0700
 
     This is the result of ping-pong between Evan and Wilson. It refactors
     out enclosing_class from being used, and instead information is always
-    pulled directly from the StaticScope object. This lets us inject proper
+    pulled directly from the ConstantScope object. This lets us inject proper
     scoping changes in ruby.
 
 commit 2db27aef88e2ca7752beba846d172ede276275e0
@@ -10207,8 +10207,8 @@ Date:   Wed Dec 5 14:42:27 2007 -0800
     Vastly simplify and fix constant lookup
 
     * New constant lookup specs to test behavior
-    * Added StaticScope object and field on CompiledMethod which stores
-      a StaticScope instance which indicates the lexical scope of the CM.
+    * Added ConstantScope object and field on CompiledMethod which stores
+      a ConstantScope instance which indicates the lexical scope of the CM.
 
 commit 163e56646a817301201af843b45c973da058688c
 Author: Tilman Sauerbeck <tilman@code-monkey.de>

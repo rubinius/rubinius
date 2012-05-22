@@ -7,7 +7,7 @@
 # TODO: document
 
 module Rubinius
-  class StaticScope
+  class ConstantScope
 
     #
     # @todo  Verify the recursion here does not cause problems. --rue
@@ -23,7 +23,7 @@ module Rubinius
     # Module or class this lexical scope enclosed into.
     attr_reader   :module
 
-    # Static scope object this scope enclosed into.
+    # Constant scope object this scope enclosed into.
     attr_reader   :parent
 
     # Module or class representing the 'current class'. MRI manipulates
@@ -50,24 +50,24 @@ module Rubinius
       !@parent
     end
 
-    # Use the same info as the current StaticScope, but set current_module to
-    # +mod+. Chains off the current StaticScope.
+    # Use the same info as the current ConstantScope, but set current_module to
+    # +mod+. Chains off the current ConstantScope.
     def using_current_as(mod)
       if top_level?
         # Don't chain up if this is a toplevel, create a new one.
-        ss = dup
+        cs = dup
       else
-        ss = StaticScope.new @module, self
+        cs = ConstantScope.new @module, self
       end
 
-      ss.current_module = mod
-      return ss
+      cs.current_module = mod
+      return cs
     end
 
     def using_disabled_scope
-      ss = using_current_as(@module)
-      ss.disabled_for_methods = true
-      return ss
+      cs = using_current_as(@module)
+      cs.disabled_for_methods = true
+      return cs
     end
 
     def for_method_definition
