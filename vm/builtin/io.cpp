@@ -394,9 +394,8 @@ namespace rubinius {
     // a lowlevel RIO struct using fdopen, then we MUST use fclose
     // to close it.
 
-    if(inflated_header_p()) {
-      capi::Handle* hdl = inflated_header()->handle();
-      if(hdl && hdl->is_rio()) {
+    if(capi::Handle* hdl = handle(state)) {
+      if(hdl->is_rio()) {
         if(!hdl->rio_close()) {
           Exception::errno_error(state);
         }
@@ -532,9 +531,8 @@ namespace rubinius {
       // a lowlevel RIO struct using fdopen, then we MUST use fclose
       // to close it.
 
-      if(io->inflated_header_p()) {
-        capi::Handle* hdl = io->inflated_header()->handle();
-        if(hdl && hdl->is_rio()) {
+      if(capi::Handle* hdl = io->handle(state)) {
+        if(hdl->is_rio()) {
           hdl->rio_close();
           return;
         }

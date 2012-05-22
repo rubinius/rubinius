@@ -56,13 +56,14 @@ namespace rubinius {
     attr_reader(num_bytes, Fixnum);
     attr_reader(data, ByteArray);
 
-    void update_handle();
+    void update_handle(STATE);
+    void update_handle(VM* vm);
 
     template <class T>
       void num_bytes(T state, Fixnum* obj) {
         num_bytes_ = obj;
         num_chars_ = nil<Fixnum>();
-        update_handle();
+        update_handle(state);
       }
 
     template <class T>
@@ -70,7 +71,7 @@ namespace rubinius {
         data_ = obj;
         if(mature_object_p()) this->write_barrier(state, obj);
 
-        update_handle();
+        update_handle(state);
       }
 
     attr_accessor(num_chars, Fixnum);

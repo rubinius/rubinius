@@ -23,7 +23,7 @@ namespace rubinius {
 
     // Data is just a heap alias for the handle, so go ahead and create
     // the handle and populate it as an RData now.
-    capi::Handle* handle = data->handle();
+    capi::Handle* handle = data->handle(state);
 
     assert(!handle && "can't already have a handle, it's brand new!");
 
@@ -50,7 +50,7 @@ namespace rubinius {
   }
 
   RDataShadow* Data::slow_rdata(STATE) {
-    capi::Handle* handle = this->handle();
+    capi::Handle* handle = this->handle(state);
 
     assert(handle && handle->is_rdata() && "invalid initialized Data object");
 

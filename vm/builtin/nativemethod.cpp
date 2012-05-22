@@ -63,7 +63,7 @@ namespace rubinius {
 
   VALUE NativeMethodFrame::get_handle(STATE, Object* obj) {
 
-    capi::Handle* handle = obj->handle();
+    capi::Handle* handle = obj->handle(state);
 
     if(handle) {
       if(handles_.add_if_absent(handle)) {

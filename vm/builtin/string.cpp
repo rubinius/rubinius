@@ -156,10 +156,15 @@ namespace rubinius {
     return s;
   }
 
-  void String::update_handle() {
+  void String::update_handle(VM* vm) {
+    State state(vm);
+    update_handle(&state);
+  }
+
+  void String::update_handle(STATE) {
     if(!inflated_header_p()) return;
 
-    capi::Handle* handle = inflated_header()->handle();
+    capi::Handle* handle = inflated_header()->handle(state);
     if(!handle) return;
 
     handle->update(NativeMethodEnvironment::get());

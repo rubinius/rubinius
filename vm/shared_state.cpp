@@ -152,7 +152,7 @@ namespace rubinius {
     SYNC(state);
     InflatedHeader* ih = state->memory()->inflate_header(state, obj);
     capi::Handle* handle = global_handles_->allocate(state, obj);
-    ih->set_handle(handle);
+    ih->set_handle(state, handle);
     return handle;
   }
 

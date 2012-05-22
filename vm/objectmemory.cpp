@@ -325,7 +325,7 @@ step1:
       // Handle in use so inflate and update handle
       ih = inflated_headers_->allocate(obj);
       // TODO: update with proper handle
-      ih->set_handle(NULL);
+      ih->set_handle(state, obj->handle(state));
       break;
     }
 
@@ -980,9 +980,9 @@ step1:
         (*fi->finalizer)(state, fi->object);
         // Unhook any handle used by fi->object so that we don't accidentally
         // try and mark it later (after we've finalized it)
-        if(capi::Handle* handle = fi->object->handle()) {
+        if(capi::Handle* handle = fi->object->handle(state)) {
           handle->forget_object();
-          fi->object->set_handle(0);
+          fi->object->clear_handle(state);
         }
 
         // If the object was remembered, unremember it.
@@ -1030,9 +1030,9 @@ step1:
         (*fi->finalizer)(state, fi->object);
         // Unhook any handle used by fi->object so that we don't accidentally
         // try and mark it later (after we've finalized it)
-        if(capi::Handle* handle = fi->object->handle()) {
+        if(capi::Handle* handle = fi->object->handle(state)) {
           handle->forget_object();
-          fi->object->set_handle(0);
+          fi->object->clear_handle(state);
         }
 
         // If the object was remembered, unremember it.
