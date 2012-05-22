@@ -10,7 +10,7 @@ namespace rubinius {
 
   class InstructionSequence;
   class VMMethod;
-  class StaticScope;
+  class ConstantScope;
 
   namespace jit {
     class RuntimeDataHolder;
@@ -33,7 +33,7 @@ namespace rubinius {
     Tuple* lines_;              // slot
     Tuple* local_names_;        // slot
     Symbol* file_;              // slot
-    StaticScope* scope_;        // slot
+    ConstantScope* scope_;        // slot
     LookupTable* breakpoints_;  // slot
 
     VMMethod* backend_method_;
@@ -77,7 +77,7 @@ namespace rubinius {
     attr_accessor(lines, Tuple);
     attr_accessor(local_names, Tuple);
     attr_accessor(file, Symbol);
-    attr_accessor(scope, StaticScope);
+    attr_accessor(scope, ConstantScope);
     attr_accessor(breakpoints, LookupTable);
 
     /* interface */

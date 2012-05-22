@@ -5,7 +5,7 @@
 #include "builtin/fixnum.hpp"
 
 namespace rubinius {
-  class StaticScope;
+  class ConstantScope;
 
   class GlobalCacheEntry : public Object {
   public:
@@ -13,12 +13,12 @@ namespace rubinius {
 
   private:
     Object* value_;  // slot
-    StaticScope* scope_; // slot
+    ConstantScope* scope_; // slot
     int serial_;
 
   public:
     attr_accessor(value, Object);
-    attr_accessor(scope, StaticScope);
+    attr_accessor(scope, ConstantScope);
 
     int serial() { return serial_; }
 
@@ -31,11 +31,11 @@ namespace rubinius {
     }
 
     static void init(STATE);
-    static GlobalCacheEntry* create(STATE, Object* value, StaticScope* scope);
+    static GlobalCacheEntry* create(STATE, Object* value, ConstantScope* scope);
     static GlobalCacheEntry* empty(STATE);
 
-    void update(STATE, Object* value, StaticScope* scope);
-    bool valid_p(STATE, StaticScope* scope);
+    void update(STATE, Object* value, ConstantScope* scope);
+    bool valid_p(STATE, ConstantScope* scope);
 
     class Info : public TypeInfo {
     public:

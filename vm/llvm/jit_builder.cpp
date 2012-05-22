@@ -127,9 +127,9 @@ namespace jit {
   void Builder::check_self_type() {
     int klass_id = 0;
 
-    StaticScope* ss = info_.method()->scope();
-    if(!kind_of<StaticScope>(ss)) return;
-    if(Class* cls = try_as<Class>(ss->module())) {
+    ConstantScope* cs = info_.method()->scope();
+    if(!kind_of<ConstantScope>(cs)) return;
+    if(Class* cls = try_as<Class>(cs->module())) {
       klass_id = cls->class_id();
     } else {
       return;

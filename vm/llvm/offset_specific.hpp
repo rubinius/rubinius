@@ -77,7 +77,7 @@ namespace Class {
 }
 namespace CallFrame {
   const static int previous = 0;
-  const static int static_scope = 1;
+  const static int constant_scope = 1;
   const static int dispatch_data = 2;
   const static int cm = 3;
   const static int flags = 4;
@@ -156,7 +156,7 @@ namespace CompiledMethod {
 namespace BlockInvocation {
   const static int flags = 0;
   const static int self = 1;
-  const static int static_scope = 2;
+  const static int constant_scope = 2;
   const static int module = 3;
 }
 namespace ObjectFlags {

@@ -11,7 +11,7 @@
 #include "builtin/methodtable.hpp"
 #include "builtin/module.hpp"
 #include "builtin/symbol.hpp"
-#include "builtin/staticscope.hpp"
+#include "builtin/constantscope.hpp"
 #include "builtin/string.hpp"
 #include "builtin/system.hpp"
 #include "builtin/packed_object.hpp"

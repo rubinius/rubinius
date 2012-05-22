@@ -3,7 +3,7 @@
 class Binding
   attr_accessor :variables
   attr_accessor :code
-  attr_accessor :static_scope
+  attr_accessor :constant_scope
   attr_accessor :proc_environment
   attr_accessor :self
   attr_accessor :line_number
@@ -18,18 +18,18 @@ class Binding
   #
   # +variables+ is a Rubinius::VariableScope object
   # +code+ is a Rubinius::CompiledMethod object
-  # +static_scope+ is a Rubinius::StaticScope object
+  # +constant_scope+ is a Rubinius::ConstantScope object
   #
   # See Kernel#binding in kernel/common/eval.rb for a simple example of
   # creating a Binding object.
   #
-  def self.setup(variables, code, static_scope, recv=nil, location=nil)
+  def self.setup(variables, code, constant_scope, recv=nil, location=nil)
     bind = allocate()
 
     bind.self = recv || variables.self
     bind.variables = variables
     bind.code = code
-    bind.static_scope = static_scope
+    bind.constant_scope = constant_scope
     bind.line_number = location ? location.line : 1
 
     return bind

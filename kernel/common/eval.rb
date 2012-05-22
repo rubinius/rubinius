@@ -36,7 +36,7 @@ module Kernel
     return Binding.setup(
       Rubinius::VariableScope.of_sender,
       Rubinius::CompiledMethod.of_sender,
-      Rubinius::StaticScope.of_sender,
+      Rubinius::ConstantScope.of_sender,
       self,
       Rubinius::Location.of_closest_ruby_method
     )
@@ -51,18 +51,18 @@ module Kernel
 
     if binding
       binding = Rubinius::Type.coerce_to_binding binding
-      filename ||= binding.static_scope.active_path
+      filename ||= binding.constant_scope.active_path
     else
       binding = Binding.setup(Rubinius::VariableScope.of_sender,
                               Rubinius::CompiledMethod.of_sender,
-                              Rubinius::StaticScope.of_sender,
+                              Rubinius::ConstantScope.of_sender,
                               self)
 
       filename ||= "(eval)"
     end
 
-    existing_scope = binding.static_scope
-    binding.static_scope = existing_scope.dup
+    existing_scope = binding.constant_scope
+    binding.constant_scope = existing_scope.dup
 
     be = Rubinius::Compiler.construct_block string, binding,
                                             filename, lineno
@@ -70,7 +70,7 @@ module Kernel
     be.set_eval_binding binding
 
     result = be.call_on_instance(binding.self)
-    binding.static_scope = existing_scope
+    binding.constant_scope = existing_scope
     result
   end
   module_function :eval
@@ -87,7 +87,7 @@ class Module
 
   def module_eval(string=undefined, filename="(eval)", line=1, &prc)
     # we have a custom version with the prc, rather than using instance_exec
-    # so that we can setup the StaticScope properly.
+    # so that we can setup the ConstantScope properly.
     if prc
       unless string.equal?(undefined)
         raise ArgumentError, "cannot pass both string and proc"
@@ -95,8 +95,8 @@ class Module
 
       # Return a copy of the BlockEnvironment with the receiver set to self
       env = prc.block
-      static_scope = env.repoint_scope self
-      return env.call_under(self, static_scope, self)
+      constant_scope = env.repoint_scope self
+      return env.call_under(self, constant_scope, self)
     elsif string.equal?(undefined)
       raise ArgumentError, 'block not supplied'
     end
@@ -104,17 +104,17 @@ class Module
     string = StringValue(string)
     filename = StringValue(filename)
 
-    # The staticscope of a module_eval CM is the receiver of module_eval
-    ss = Rubinius::StaticScope.new self, Rubinius::StaticScope.of_sender
+    # The constantscope of a module_eval CM is the receiver of module_eval
+    cs = Rubinius::ConstantScope.new self, Rubinius::ConstantScope.of_sender
 
     binding = Binding.setup(Rubinius::VariableScope.of_sender,
                             Rubinius::CompiledMethod.of_sender,
-                            ss)
+                            cs)
 
     be = Rubinius::Compiler.construct_block string, binding,
                                             filename, line
 
-    be.call_under self, ss, self
+    be.call_under self, cs, self
   end
 
   alias_method :class_eval, :module_eval

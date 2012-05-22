@@ -2,7 +2,7 @@
 
 #include "builtin/access_variable.hpp"
 #include "builtin/iseq.hpp"
-#include "builtin/staticscope.hpp"
+#include "builtin/constantscope.hpp"
 #include "builtin/module.hpp"
 
 namespace rubinius {

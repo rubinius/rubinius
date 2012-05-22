@@ -844,7 +844,7 @@ class CPPParser
       "Object" => :Object,
       "Tuple"  => :Tuple,
       "MemoryPointer" => :MemoryPointer,
-      "StaticScope" => :StaticScope,
+      "ConstantScope" => :ConstantScope,
       "Integer" => :Integer,
       "Fixnum" => :Fixnum,
       "CompiledMethod" => :CompiledMethod,

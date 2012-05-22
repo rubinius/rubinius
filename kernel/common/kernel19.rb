@@ -172,7 +172,7 @@ module Kernel
   # directory.
   #
   def require_relative(name)
-    scope = Rubinius::StaticScope.of_sender
+    scope = Rubinius::ConstantScope.of_sender
     Rubinius::CodeLoader.require_relative(name, scope)
   end
   module_function :require_relative

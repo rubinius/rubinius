@@ -4,7 +4,7 @@
 #include "llvm/jit_context.hpp"
 
 #include "builtin/fixnum.hpp"
-#include "builtin/staticscope.hpp"
+#include "builtin/constantscope.hpp"
 #include "builtin/module.hpp"
 #include "builtin/block_environment.hpp"
 #include "field_offset.hpp"

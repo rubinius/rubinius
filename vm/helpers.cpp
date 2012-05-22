@@ -6,7 +6,7 @@
 #include "builtin/module.hpp"
 #include "builtin/compiledmethod.hpp"
 #include "builtin/class.hpp"
-#include "builtin/staticscope.hpp"
+#include "builtin/constantscope.hpp"
 #include "builtin/lookuptable.hpp"
 #include "global_cache.hpp"
 #include "objectmemory.hpp"
@@ -48,7 +48,7 @@ namespace rubinius {
     }
 
     Object* const_get(STATE, CallFrame* call_frame, Symbol* name, bool* found) {
-      StaticScope *cur;
+      ConstantScope *cur;
       Object* result;
 
       *found = false;
@@ -85,7 +85,7 @@ namespace rubinius {
       //
       // So, in this case, foo would print "1", not "2".
       //
-      cur = call_frame->static_scope();
+      cur = call_frame->constant_scope();
       while(!cur->nil_p()) {
         // Detect the toplevel scope (the default) and get outta dodge.
         if(cur->top_level_p(state)) break;
@@ -97,7 +97,7 @@ namespace rubinius {
       }
 
       // Now look up the superclass chain.
-      cur = call_frame->static_scope();
+      cur = call_frame->constant_scope();
       if(!cur->nil_p()) {
         Module* mod = cur->module();
         while(!mod->nil_p()) {
@@ -126,7 +126,7 @@ namespace rubinius {
 
       call_frame = call_frame->top_ruby_frame();
 
-      StaticScope* scope = call_frame->static_scope();
+      ConstantScope* scope = call_frame->constant_scope();
       if(scope->nil_p()) {
         under = G(object);
       } else {
@@ -155,10 +155,10 @@ namespace rubinius {
 
       call_frame = call_frame->top_ruby_frame();
 
-      if(call_frame->static_scope()->nil_p()) {
+      if(call_frame->constant_scope()->nil_p()) {
         under = G(object);
       } else {
-        under = call_frame->static_scope()->module();
+        under = call_frame->constant_scope()->module();
       }
 
       return open_class(state, call_frame, under, super, name, created);
@@ -224,8 +224,8 @@ namespace rubinius {
 
       call_frame = call_frame->top_ruby_frame();
 
-      if(!call_frame->static_scope()->nil_p()) {
-        under = call_frame->static_scope()->module();
+      if(!call_frame->constant_scope()->nil_p()) {
+        under = call_frame->constant_scope()->module();
       }
 
       return open_module(state, call_frame, under, name);

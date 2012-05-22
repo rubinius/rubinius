@@ -19,7 +19,7 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/system.hpp"
-#include "builtin/staticscope.hpp"
+#include "builtin/constantscope.hpp"
 #include "builtin/location.hpp"
 #include "builtin/nativemethod.hpp"
 
@@ -294,14 +294,14 @@ namespace rubinius {
     frame->prepare(vmm->stack_size);
 
     frame->previous = previous;
-    frame->static_scope_ = invocation.static_scope;
+    frame->constant_scope_ = invocation.constant_scope;
 
     frame->arguments = &args;
     frame->dispatch_data = reinterpret_cast<BlockEnvironment*>(env);
     frame->cm =       env->code_;
     frame->scope =    scope;
     frame->top_scope_ = env->top_scope_;
-    frame->flags =    invocation.flags | CallFrame::cCustomStaticScope
+    frame->flags =    invocation.flags | CallFrame::cCustomConstantScope
                                        | CallFrame::cMultipleScopes
                                        | CallFrame::cBlock;
 
@@ -388,9 +388,9 @@ namespace rubinius {
     }
 
     Object* recv = args.shift(state);
-    StaticScope* static_scope = as<StaticScope>(args.shift(state));
+    ConstantScope* constant_scope = as<ConstantScope>(args.shift(state));
 
-    BlockInvocation invocation(recv, static_scope, 0);
+    BlockInvocation invocation(recv, constant_scope, 0);
     return invoke(state, call_frame, this, args, invocation);
   }
 

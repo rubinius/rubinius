@@ -83,7 +83,7 @@ namespace rubinius {
   };
 
   class CompiledMethod;
-  class StaticScope;
+  class ConstantScope;
 
   class SingletonClass : public Class {
   public:

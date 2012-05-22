@@ -87,7 +87,7 @@ field_extract_headers = %w[
   vm/builtin/packed_object.hpp
   vm/builtin/randomizer.hpp
   vm/builtin/regexp.hpp
-  vm/builtin/staticscope.hpp
+  vm/builtin/constantscope.hpp
   vm/builtin/encoding.hpp
   vm/builtin/string.hpp
   vm/builtin/symbol.hpp

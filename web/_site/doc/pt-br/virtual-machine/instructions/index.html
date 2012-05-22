@@ -1533,7 +1533,7 @@ tuple data.</li>
 </table>
 <h3><a class="instruction" name="push_scope">push_scope()</a></h3>
 
-<p>Pushes the current <code>StaticScope</code> object on the stack. Many operations are
+<p>Pushes the current <code>ConstantScope</code> object on the stack. Many operations are
    defered to the current scope. This operation retrieves the current scope
    so methods can be called on it.</p>
 
@@ -1548,11 +1548,11 @@ tuple data.</li>
 </table>
 <h3><a class="instruction" name="add_scope">add_scope()</a></h3>
 
-<p>Create a new <code>StaticScope</code> object for the given Module on the stack.
+<p>Create a new <code>ConstantScope</code> object for the given Module on the stack.
    This scope is chained off the current scope of the method.</p>
 
 <p>This also sets the scope of the current <code>CompiledMethod</code> to the new
-   <code>StaticScope</code>.</p>
+   <code>ConstantScope</code>.</p>
 
 <table class="stack_effect">
 <thead>

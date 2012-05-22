@@ -1447,7 +1447,7 @@
 </table>
 <h3><a class="instruction" name="push_scope">push_scope()</a></h3>
 
-   Pushes the current `StaticScope` object on the stack. Many operations are
+   Pushes the current `ConstantScope` object on the stack. Many operations are
    defered to the current scope. This operation retrieves the current scope
    so methods can be called on it.
 
@@ -1463,11 +1463,11 @@
 </table>
 <h3><a class="instruction" name="add_scope">add_scope()</a></h3>
 
-   Create a new `StaticScope` object for the given Module on the stack.
+   Create a new `ConstantScope` object for the given Module on the stack.
    This scope is chained off the current scope of the method.
 
    This also sets the scope of the current `CompiledMethod` to the new
-   `StaticScope`.
+   `ConstantScope`.
 
 
 <table class="stack_effect">

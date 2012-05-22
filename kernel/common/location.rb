@@ -8,7 +8,7 @@ module Rubinius
 
     attr_reader :ip
     attr_reader :variables
-    attr_reader :static_scope
+    attr_reader :constant_scope
 
     def self.of_closest_ruby_method
       Rubinius.primitive :location_of_closest_ruby_method

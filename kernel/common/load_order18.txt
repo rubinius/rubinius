@@ -43,8 +43,8 @@ bytearray.rbc
 bytearray18.rbc
 channel.rbc
 executable.rbc
-static_scope.rbc
-static_scope18.rbc
+constant_scope.rbc
+constant_scope18.rbc
 hook.rbc
 codeloader.rbc
 codeloader18.rbc

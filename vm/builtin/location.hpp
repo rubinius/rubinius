@@ -7,7 +7,7 @@
 namespace rubinius {
 
   class NativeMethodFrame;
-  class StaticScope;
+  class ConstantScope;
 
   class Location : public Object {
     Module* method_module_; // slot
@@ -17,7 +17,7 @@ namespace rubinius {
     Fixnum* ip_; // slot
     Fixnum* flags_; // slot
     VariableScope* variables_; // slot
-    StaticScope* static_scope_; // slot
+    ConstantScope* constant_scope_; // slot
 
   public:
     const static object_type type = LocationType;
@@ -29,7 +29,7 @@ namespace rubinius {
     attr_accessor(ip, Fixnum);
     attr_accessor(flags, Fixnum);
     attr_accessor(variables, VariableScope);
-    attr_accessor(static_scope, StaticScope);
+    attr_accessor(constant_scope, ConstantScope);
 
     void set_is_block(STATE) {
       flags(state, Fixnum::from(flags()->to_native() | 1));

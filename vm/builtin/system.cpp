@@ -52,7 +52,7 @@
 
 #include "builtin/channel.hpp"
 
-#include "builtin/staticscope.hpp"
+#include "builtin/constantscope.hpp"
 #include "builtin/block_environment.hpp"
 
 #include "builtin/system.hpp"
@@ -823,7 +823,7 @@ namespace rubinius {
   }
 
   Class* System::vm_open_class(STATE, Symbol* name, Object* sup,
-                               StaticScope* scope)
+                               ConstantScope* scope)
   {
     Module* under;
 
@@ -875,7 +875,7 @@ namespace rubinius {
     return cls;
   }
 
-  Module* System::vm_open_module(STATE, Symbol* name, StaticScope* scope) {
+  Module* System::vm_open_module(STATE, Symbol* name, ConstantScope* scope) {
     Module* under = G(object);
 
     if(!scope->nil_p()) {
@@ -922,7 +922,7 @@ namespace rubinius {
 
   Object* System::vm_add_method(STATE, GCToken gct, Symbol* name,
                                 CompiledMethod* method,
-                                StaticScope* scope, Object* vis)
+                                ConstantScope* scope, Object* vis)
   {
     Module* mod = scope->for_method_definition();
 
@@ -981,7 +981,7 @@ namespace rubinius {
 
   Object* System::vm_attach_method(STATE, GCToken gct, Symbol* name,
                                    CompiledMethod* method,
-                                   StaticScope* scope, Object* recv)
+                                   ConstantScope* scope, Object* recv)
   {
     Module* mod = recv->singleton_class(state);
 

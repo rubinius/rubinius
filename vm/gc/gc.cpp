@@ -14,7 +14,7 @@
 #include "builtin/compiledmethod.hpp"
 #include "call_frame.hpp"
 #include "builtin/variable_scope.hpp"
-#include "builtin/staticscope.hpp"
+#include "builtin/constantscope.hpp"
 #include "builtin/block_environment.hpp"
 #include "capi/handle.hpp"
 
@@ -182,11 +182,11 @@ namespace rubinius {
         continue;
       }
 
-      if(call_frame->custom_static_scope_p() &&
-          call_frame->static_scope_ &&
-          call_frame->static_scope_->reference_p()) {
-        call_frame->static_scope_ =
-          (StaticScope*)mark_object(call_frame->static_scope_);
+      if(call_frame->custom_constant_scope_p() &&
+          call_frame->constant_scope_ &&
+          call_frame->constant_scope_->reference_p()) {
+        call_frame->constant_scope_ =
+          (ConstantScope*)mark_object(call_frame->constant_scope_);
       }
 
       if(call_frame->cm && call_frame->cm->reference_p()) {

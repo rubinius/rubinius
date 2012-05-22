@@ -40,8 +40,8 @@ bytearray.rbc
 bytearray19.rbc
 channel.rbc
 executable.rbc
-static_scope.rbc
-static_scope19.rbc
+constant_scope.rbc
+constant_scope19.rbc
 hook.rbc
 codeloader.rbc
 codeloader19.rbc

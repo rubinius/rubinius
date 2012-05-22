@@ -236,8 +236,8 @@ namespace rubinius {
             << " into "
             << ops_.state()->symbol_debug_str(ops_.method_name());
 
-          StaticScope* ss = cm->scope();
-          if(kind_of<StaticScope>(ss) && klass != ss->module() && !klass->module_name()->nil_p()) {
+          ConstantScope* cs = cm->scope();
+          if(kind_of<ConstantScope>(cs) && klass != cs->module() && !klass->module_name()->nil_p()) {
             ops_.state()->log() << " ("
               << ops_.state()->symbol_debug_str(klass->module_name()) << ")";
           }

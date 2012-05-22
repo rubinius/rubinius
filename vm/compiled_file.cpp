@@ -12,7 +12,7 @@
 #include "call_frame.hpp"
 #include "objectmemory.hpp"
 #include "object_utils.hpp"
-#include "builtin/staticscope.hpp"
+#include "builtin/constantscope.hpp"
 #include "builtin/compiledmethod.hpp"
 #include "builtin/class.hpp"
 #include "builtin/thread.hpp"
@@ -43,7 +43,7 @@ namespace rubinius {
 
     Arguments args(state->symbol("script"), G(main), 0, 0);
 
-    cm.get()->scope(state, StaticScope::create(state));
+    cm.get()->scope(state, ConstantScope::create(state));
     cm.get()->scope()->module(state, G(object));
 
     cm->execute(state, NULL, cm.get(), G(object), args);

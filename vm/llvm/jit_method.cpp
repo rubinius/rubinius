@@ -9,7 +9,7 @@
 #include "vmmethod.hpp"
 #include "instruments/tooling.hpp"
 
-#include "builtin/staticscope.hpp"
+#include "builtin/constantscope.hpp"
 #include "builtin/module.hpp"
 
 using namespace llvm;

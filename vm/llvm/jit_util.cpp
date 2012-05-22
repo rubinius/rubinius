@@ -14,7 +14,7 @@
 #include "builtin/class.hpp"
 #include "builtin/string.hpp"
 #include "builtin/block_environment.hpp"
-#include "builtin/staticscope.hpp"
+#include "builtin/constantscope.hpp"
 #include "builtin/proc.hpp"
 #include "builtin/autoload.hpp"
 #include "builtin/global_cache_entry.hpp"
@@ -255,7 +255,7 @@ extern "C" {
 
     // TODO: We don't need to be doing this everytime.
     if(cm->scope()->nil_p()) {
-      cm->scope(state, call_frame->static_scope());
+      cm->scope(state, call_frame->constant_scope());
     }
 
     VMMethod* vmm = call_frame->cm->backend_method();
@@ -288,7 +288,7 @@ extern "C" {
     va_end(ap);
 
     // TODO: We don't need to be doing this everytime.
-    cm->scope(state, closest->static_scope());
+    cm->scope(state, closest->constant_scope());
 
     VMMethod* vmm = closest->cm->backend_method();
     GCTokenImpl gct;
@@ -386,11 +386,11 @@ extern "C" {
     CPP_TRY
 
     Module* mod = as<Module>(top);
-    StaticScope* scope = StaticScope::create(state);
+    ConstantScope* scope = ConstantScope::create(state);
     scope->module(state, mod);
-    scope->parent(state, call_frame->static_scope());
+    scope->parent(state, call_frame->constant_scope());
     call_frame->cm->scope(state, scope);
-    // call_frame->static_scope_ = scope;
+    // call_frame->constant_scope_ = scope;
 
     return cNil;
 
@@ -785,7 +785,7 @@ extern "C" {
     // See if the cache is present, if so, validate it and use the value
     GlobalCacheEntry* cache;
     if((cache = try_as<GlobalCacheEntry>(val)) != NULL) {
-      if(cache->valid_p(state, call_frame->static_scope())) {
+      if(cache->valid_p(state, call_frame->constant_scope())) {
         res = cache->value();
       }
     } else {
@@ -803,7 +803,7 @@ extern "C" {
         }
 
         if(res) {
-          cache->update(state, res, call_frame->static_scope());
+          cache->update(state, res, call_frame->constant_scope());
         }
       } else {
         res = Helpers::const_missing(state, sym, call_frame);
@@ -1046,7 +1046,7 @@ extern "C" {
   }
 
   Object* rbx_set_const(STATE, CallFrame* call_frame, Symbol* name, Object* val) {
-    call_frame->static_scope()->module()->set_const(state, name, val);
+    call_frame->constant_scope()->module()->set_const(state, name, val);
     return val;
   }
 

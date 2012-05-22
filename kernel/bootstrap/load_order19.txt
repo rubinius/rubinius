@@ -31,7 +31,7 @@ regexp.rbc
 regexp19.rbc
 rubinius.rbc
 rubinius19.rbc
-static_scope.rbc
+constant_scope.rbc
 string.rbc
 string19.rbc
 symbol.rbc

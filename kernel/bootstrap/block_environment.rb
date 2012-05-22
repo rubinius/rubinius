@@ -12,7 +12,7 @@ module Rubinius
       raise PrimitiveFailure, "BlockEnvironment#call primitive failed"
     end
 
-    def call_under(recv, static_scope, *args)
+    def call_under(recv, constant_scope, *args)
       Rubinius.primitive :block_call_under
       raise PrimitiveFailure, "BlockEnvironment#call_under primitive failed"
     end

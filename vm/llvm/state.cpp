@@ -13,7 +13,7 @@
 #include "vm/config.h"
 
 #include "builtin/fixnum.hpp"
-#include "builtin/staticscope.hpp"
+#include "builtin/constantscope.hpp"
 #include "builtin/module.hpp"
 #include "builtin/compiledmethod.hpp"
 #include "builtin/class.hpp"
@@ -649,12 +649,12 @@ namespace rubinius {
   }
 
   std::string LLVMState::enclosure_name(CompiledMethod* cm) {
-    StaticScope* ss = cm->scope();
-    if(!kind_of<StaticScope>(ss) || !kind_of<Module>(ss->module())) {
+    ConstantScope* cs = cm->scope();
+    if(!kind_of<ConstantScope>(cs) || !kind_of<Module>(cs->module())) {
       return "ANONYMOUS";
     }
 
-    return symbol_debug_str(ss->module()->module_name());
+    return symbol_debug_str(cs->module()->module_name());
   }
 
   void LLVMState::compile_soon(STATE, CompiledMethod* cm, Object* placement,

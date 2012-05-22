@@ -2250,7 +2250,7 @@ use_send:
       if(info().is_block && !in_inlined_block()) {
         Value* scope = b().CreateLoad(
             b().CreateConstGEP2_32(call_frame_, 0,
-                                   offset::CallFrame::static_scope, "scope_pos"),
+                                   offset::CallFrame::constant_scope, "scope_pos"),
             "cm");
 
         stack_push(scope);

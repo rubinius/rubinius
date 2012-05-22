@@ -8,9 +8,9 @@ namespace rubinius {
 
   class Module;
 
-  class StaticScope : public Object {
+  class ConstantScope : public Object {
   public:
-    const static object_type type = StaticScopeType;
+    const static object_type type = ConstantScopeType;
 
   private:
     Module* module_;      // slot
@@ -20,40 +20,40 @@ namespace rubinius {
     // without having to change module also.
     Module* current_module_;   // slot
 
-    StaticScope* parent_; // slot
+    ConstantScope* parent_; // slot
 
   public:
     /* accessors */
 
     attr_accessor(module, Module);
     attr_accessor(current_module, Module);
-    attr_accessor(parent, StaticScope);
+    attr_accessor(parent, ConstantScope);
 
     /* interface */
 
     static void init(STATE);
     static void bootstrap_methods(STATE);
-    static StaticScope* create(STATE);
+    static ConstantScope* create(STATE);
 
-    // Rubinius.primitive :static_scope_of_sender
-    static StaticScope* of_sender(STATE, CallFrame* calling_environment);
+    // Rubinius.primitive :constant_scope_of_sender
+    static ConstantScope* of_sender(STATE, CallFrame* calling_environment);
 
-    // Rubinius.primitive :static_scope_const_set
+    // Rubinius.primitive :constant_scope_const_set
     Object* const_set(STATE, Object* name, Object* value);
 
     // The module to use when adding and removing methods
     Module* for_method_definition();
 
-    // Rubinius.primitive :static_scope_cvar_defined
+    // Rubinius.primitive :constant_scope_cvar_defined
     Object* cvar_defined(STATE, Symbol* name);
 
-    // Rubinius.primitive :static_scope_cvar_get
+    // Rubinius.primitive :constant_scope_cvar_get
     Object* cvar_get(STATE, Symbol* name);
 
-    // Rubinius.primitive :static_scope_cvar_set
+    // Rubinius.primitive :constant_scope_cvar_set
     Object* cvar_set(STATE, Symbol* name, Object* value);
 
-    // Rubinius.primitive :static_scope_cvar_get_or_set
+    // Rubinius.primitive :constant_scope_cvar_get_or_set
     Object* cvar_get_or_set(STATE, Symbol* name, Object* value);
 
     bool top_level_p(STATE) {
