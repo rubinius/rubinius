@@ -6,6 +6,7 @@
 #include <inttypes.h>
 #include <stdlib.h>
 
+namespace rubinius {
 namespace config {
   class ConfigItem;
 
@@ -347,6 +348,7 @@ namespace config {
       }
     }
   }
+}
 }
 
 #endif
