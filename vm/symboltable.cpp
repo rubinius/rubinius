@@ -117,7 +117,7 @@ namespace rubinius {
     // Symbols can be looked up by multiple threads at the same time.
     // This is fast operation, so we protect this with a spinlock.
     {
-      thread::SpinLock::LockGuard guard(lock_);
+      utilities::thread::SpinLock::LockGuard guard(lock_);
       SymbolMap::iterator entry = symbols.find(hash);
       if(entry == symbols.end()) {
         sym = add(std::string(str, length));

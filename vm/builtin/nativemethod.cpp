@@ -35,7 +35,7 @@
 
 namespace rubinius {
   /** Thread-local NativeMethodEnvironment instance. */
-  thread::ThreadData<NativeMethodEnvironment*> native_method_environment;
+  utilities::thread::ThreadData<NativeMethodEnvironment*> native_method_environment;
 
 /* Class methods */
 

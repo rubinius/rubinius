@@ -11,7 +11,7 @@ namespace rubinius {
   }
 
   void AuxiliaryThreads::shutdown(STATE) {
-    thread::Mutex::LockGuard guard(mutex_);
+    utilities::thread::Mutex::LockGuard guard(mutex_);
 
     if(shutdown_in_progress_) return;
     shutdown_in_progress_ = true;
@@ -26,7 +26,7 @@ namespace rubinius {
   }
 
   void AuxiliaryThreads::before_exec(STATE) {
-    thread::Mutex::LockGuard guard(mutex_);
+    utilities::thread::Mutex::LockGuard guard(mutex_);
 
     if(exec_in_progress_) return;
     exec_in_progress_ = true;
@@ -51,7 +51,7 @@ namespace rubinius {
   }
 
   void AuxiliaryThreads::before_fork(STATE) {
-    thread::Mutex::LockGuard guard(mutex_);
+    utilities::thread::Mutex::LockGuard guard(mutex_);
 
     if(fork_in_progress_) return;
     fork_in_progress_ = true;

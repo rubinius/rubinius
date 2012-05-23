@@ -132,7 +132,7 @@ namespace rubinius {
   bool ObjectMemory::inflate_lock_count_overflow(STATE, ObjectHeader* obj,
                                                  int count)
   {
-    thread::SpinLock::LockGuard guard(inflation_lock_);
+    utilities::thread::SpinLock::LockGuard guard(inflation_lock_);
 
     // Inflation always happens with the ObjectMemory lock held, so we don't
     // need to worry about another thread concurrently inflating it.
@@ -222,7 +222,7 @@ step1:
         GCIndependent gc_guard(state);
 
         if(timed) {
-          timeout = (contention_var_.wait_until(contention_lock_, &ts) == thread::cTimedOut);
+          timeout = (contention_var_.wait_until(contention_lock_, &ts) == utilities::thread::cTimedOut);
           if(timeout) break;
         } else {
           contention_var_.wait(contention_lock_);
@@ -285,7 +285,7 @@ step1:
   }
 
   bool ObjectMemory::inflate_and_lock(STATE, ObjectHeader* obj) {
-    thread::SpinLock::LockGuard guard(inflation_lock_);
+    utilities::thread::SpinLock::LockGuard guard(inflation_lock_);
 
     InflatedHeader* ih = 0;
     int initial_count = 0;
@@ -355,7 +355,7 @@ step1:
   }
 
   bool ObjectMemory::inflate_for_contention(STATE, ObjectHeader* obj) {
-    thread::SpinLock::LockGuard guard(inflation_lock_);
+    utilities::thread::SpinLock::LockGuard guard(inflation_lock_);
 
     for(;;) {
       HeaderWord orig = obj->header;
@@ -420,7 +420,7 @@ step1:
   // WARNING: This returns an object who's body may not have been initialized.
   // It is the callers duty to initialize it.
   Object* ObjectMemory::new_object_fast(STATE, Class* cls, size_t bytes, object_type type) {
-    thread::SpinLock::LockGuard guard(allocation_lock_);
+    utilities::thread::SpinLock::LockGuard guard(allocation_lock_);
 
     if(Object* obj = young_->raw_allocate(bytes, &collect_young_now)) {
       gc_stats.young_object_allocated(bytes);
@@ -435,7 +435,7 @@ step1:
   }
 
   bool ObjectMemory::refill_slab(STATE, gc::Slab& slab) {
-    thread::SpinLock::LockGuard guard(allocation_lock_);
+    utilities::thread::SpinLock::LockGuard guard(allocation_lock_);
 
     Address addr = young_->allocate_for_slab(slab_size_);
 
@@ -674,7 +674,7 @@ step1:
   InflatedHeader* ObjectMemory::inflate_header(STATE, ObjectHeader* obj) {
     if(obj->inflated_header_p()) return obj->inflated_header();
 
-    thread::SpinLock::LockGuard guard(inflation_lock_);
+    utilities::thread::SpinLock::LockGuard guard(inflation_lock_);
 
     // Gotta check again because while waiting for the lock,
     // the object could have been inflated!
@@ -693,7 +693,7 @@ step1:
   }
 
   void ObjectMemory::inflate_for_id(STATE, ObjectHeader* obj, uint32_t id) {
-    thread::SpinLock::LockGuard guard(inflation_lock_);
+    utilities::thread::SpinLock::LockGuard guard(inflation_lock_);
 
     HeaderWord orig = obj->header;
 
@@ -831,7 +831,7 @@ step1:
   }
 
   Object* ObjectMemory::new_object_typed(STATE, Class* cls, size_t bytes, object_type type) {
-    thread::SpinLock::LockGuard guard(allocation_lock_);
+    utilities::thread::SpinLock::LockGuard guard(allocation_lock_);
 
     Object* obj;
 
@@ -846,7 +846,7 @@ step1:
   }
 
   Object* ObjectMemory::new_object_typed_mature(STATE, Class* cls, size_t bytes, object_type type) {
-    thread::SpinLock::LockGuard guard(allocation_lock_);
+    utilities::thread::SpinLock::LockGuard guard(allocation_lock_);
 
     Object* obj;
 
@@ -870,7 +870,7 @@ step1:
   }
 
   Object* ObjectMemory::new_object_typed_enduring(STATE, Class* cls, size_t bytes, object_type type) {
-    thread::SpinLock::LockGuard guard(allocation_lock_);
+    utilities::thread::SpinLock::LockGuard guard(allocation_lock_);
 
     Object* obj = mark_sweep_->allocate(bytes, &collect_mature_now);
     gc_stats.mature_object_allocated(bytes);
@@ -989,7 +989,7 @@ step1:
 
   void ObjectMemory::in_finalizer_thread(STATE) {
     CallFrame* call_frame = 0;
-    thread::Thread::set_os_name("rbx.finalizer");
+    utilities::thread::Thread::set_os_name("rbx.finalizer");
 
     // Forever
     for(;;) {

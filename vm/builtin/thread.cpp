@@ -191,7 +191,7 @@ namespace rubinius {
 
     std::ostringstream tn;
     tn << "rbx.ruby." << vm->thread_id();
-    thread::Thread::set_os_name(tn.str().c_str());
+    utilities::thread::Thread::set_os_name(tn.str().c_str());
 
     state->set_call_frame(0);
     vm->shared.gc_dependent(state);
@@ -331,7 +331,7 @@ namespace rubinius {
   }
 
   Tuple* Thread::context(STATE) {
-    thread::SpinLock::LockGuard lg(init_lock_);
+    utilities::thread::SpinLock::LockGuard lg(init_lock_);
 
     VM* vm = vm_;
     if(!vm) return nil<Tuple>();
@@ -344,7 +344,7 @@ namespace rubinius {
   }
 
   Array* Thread::mri_backtrace(STATE, GCToken gct, CallFrame* calling_environment) {
-    thread::SpinLock::LockGuard lg(init_lock_);
+    utilities::thread::SpinLock::LockGuard lg(init_lock_);
 
     VM* vm = vm_;
     if(!vm) return nil<Array>();

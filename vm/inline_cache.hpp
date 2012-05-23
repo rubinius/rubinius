@@ -69,7 +69,7 @@ namespace rubinius {
 
     int seen_classes_overflow_;
     InlineCacheHit seen_classes_[cTrackedICHits];
-    thread::SpinLock private_lock_;
+    utilities::thread::SpinLock private_lock_;
 
   public:
 

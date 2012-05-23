@@ -473,11 +473,11 @@ namespace rubinius {
   };
 
   template <class T>
-  class GCIndependentLockGuard : public thread::LockGuardTemplate<T> {
+  class GCIndependentLockGuard : public utilities::thread::LockGuardTemplate<T> {
     State* state_;
   public:
     GCIndependentLockGuard(STATE, GCToken gct, T& in_lock)
-      : thread::LockGuardTemplate<T>(in_lock, false)
+      : utilities::thread::LockGuardTemplate<T>(in_lock, false)
       , state_(state)
     {
       state_->shared().gc_independent(state_);
@@ -490,7 +490,7 @@ namespace rubinius {
     }
   };
 
-   typedef GCIndependentLockGuard<thread::Mutex> GCLockGuard;
+   typedef GCIndependentLockGuard<utilities::thread::Mutex> GCLockGuard;
 };
 
 #endif

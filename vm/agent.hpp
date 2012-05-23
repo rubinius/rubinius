@@ -49,7 +49,7 @@ namespace rubinius {
 
     };
 
-    class Thread : public thread::Thread {
+    class Thread : public utilities::thread::Thread {
     private:
       QueryAgent* agent_;
       bool exit_;

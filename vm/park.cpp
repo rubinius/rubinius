@@ -4,7 +4,7 @@
 
 namespace rubinius {
   void Park::park(STATE, CallFrame* call_frame) {
-    thread::Mutex::LockGuard lg(mutex_);
+    utilities::thread::Mutex::LockGuard lg(mutex_);
 
     wake_ = false;
     sleeping_ = true;
@@ -21,7 +21,7 @@ namespace rubinius {
   }
 
   bool Park::park_timed(STATE, CallFrame* call_frame, struct timespec* ts) {
-    thread::Mutex::LockGuard lg(mutex_);
+    utilities::thread::Mutex::LockGuard lg(mutex_);
 
     wake_ = false;
     sleeping_ = true;
@@ -32,7 +32,7 @@ namespace rubinius {
     while(!wake_) {
       GCIndependent gc_guard(state, call_frame);
 
-      if(cond_.wait_until(mutex_, ts) == thread::cTimedOut) {
+      if(cond_.wait_until(mutex_, ts) == utilities::thread::cTimedOut) {
         timeout = true;
         break;
       }

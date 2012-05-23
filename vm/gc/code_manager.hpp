@@ -41,7 +41,7 @@ namespace rubinius {
       ~Chunk();
     };
 
-    thread::Mutex mutex_;
+    utilities::thread::Mutex mutex_;
 
     SharedState* shared_;
 

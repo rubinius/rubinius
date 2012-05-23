@@ -23,7 +23,7 @@ namespace rubinius {
 
     int pending_signals_[NSIG];
     int queued_signals_;
-    thread::SpinLock lock_;
+    utilities::thread::SpinLock lock_;
     int read_fd_;
     int write_fd_;
     bool exit_;
