@@ -324,7 +324,6 @@ step1:
     case eAuxWordHandle:
       // Handle in use so inflate and update handle
       ih = inflated_headers_->allocate(obj);
-      // TODO: update with proper handle
       ih->set_handle(state, obj->handle(state));
       break;
     }
@@ -383,6 +382,10 @@ step1:
         // keep using the original one.
         ih = inflated_headers_->allocate(obj);
         ih->set_object_id(orig.f.aux_word);
+        break;
+      case eAuxWordHandle:
+        ih = inflated_headers_->allocate(obj);
+        ih->set_handle(state, obj->handle(state));
         break;
       case eAuxWordLock:
         // We have to be locking the object to inflate it, thats the law.
@@ -694,11 +697,37 @@ step1:
     }
 
     InflatedHeader* header = inflated_headers_->allocate(obj);
+    header->set_handle(state, obj->handle(state));
     header->set_object_id(id);
 
     if(!obj->set_inflated_header(header)) {
       if(obj->inflated_header_p()) {
         obj->inflated_header()->set_object_id(id);
+        return;
+      }
+
+      // Now things are really in a weird state, just abort.
+      rubinius::bug("Massive header state confusion detected. Call a doctor.");
+    }
+
+  }
+
+  void ObjectMemory::inflate_for_handle(STATE, ObjectHeader* obj, capi::Handle* handle) {
+    SYNC(state);
+
+    HeaderWord orig = obj->header;
+
+    if(orig.f.inflated) {
+      rubinius::bug("Massive header state confusion detected. Call a doctor.");
+    }
+
+    InflatedHeader* header = inflated_headers_->allocate(obj);
+    header->set_handle(state, handle);
+    header->set_object_id(obj->object_id());
+
+    if(!obj->set_inflated_header(header)) {
+      if(obj->inflated_header_p()) {
+        obj->inflated_header()->set_handle(state, handle);
         return;
       }
 

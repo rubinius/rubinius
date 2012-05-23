@@ -18,6 +18,22 @@ namespace rubinius {
       return handle;
     }
 
+    uintptr_t Handles::allocate_index(STATE, Object* obj) {
+      bool needs_gc = false;
+      uintptr_t handle_index = allocator_->allocate_index(&needs_gc);
+      Handle* handle = allocator_->from_index(handle_index);
+      handle->set_object(obj);
+      handle->validate();
+      if(needs_gc) {
+        state->memory()->collect_mature_now = true;
+      }
+      return handle_index;
+    }
+
+    Handle* Handles::find_index(STATE, uintptr_t index) {
+      return allocator_->from_index(index);
+    }
+
     void Handles::deallocate_handles(std::list<Handle*>* cached, int mark, BakerGC* young) {
 
       std::vector<bool> chunk_marks(allocator_->chunks_.size(), false);

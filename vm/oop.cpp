@@ -6,6 +6,8 @@
 #include "builtin/class.hpp"
 #include "builtin/exception.hpp"
 
+#include "capi/handles.hpp"
+
 #include "objectmemory.hpp"
 #include "configuration.hpp"
 
@@ -129,6 +131,64 @@ namespace rubinius {
       // Inflate!
 
       om->inflate_for_id(state, this, id);
+    }
+  }
+
+  // Run only while om's lock is held.
+  void ObjectHeader::set_handle_index(STATE, uintptr_t handle_index) {
+    // Construct 2 new headers: one is the version we hope that
+    // is in use and the other is what we want it to be. The CAS
+    // the new one into place.
+    HeaderWord orig = header;
+
+    orig.f.inflated = 0;
+    orig.f.meaning  = eAuxWordEmpty;
+    orig.f.aux_word = 0;
+
+    HeaderWord new_val = orig;
+
+    new_val.f.meaning = eAuxWordHandle;
+    new_val.f.aux_word = (uint32_t) handle_index;
+
+    if(handle_index < UINT32_MAX && header.atomic_set(orig, new_val)) return;
+
+    capi::Handle* handle = state->shared().global_handles()->find_index(state, handle_index);
+
+    orig = header;
+
+    if(orig.f.inflated) {
+      ObjectHeader::header_to_inflated_header(orig)->set_handle(state, handle);
+      return;
+    }
+
+    switch(orig.f.meaning) {
+    case eAuxWordEmpty:
+    case eAuxWordHandle:
+      assert(0);
+    case eAuxWordLock:
+    case eAuxWordObjID:
+      // not inflated, and the aux_word is being used for locking
+      // or a handle.
+      // Inflate!
+
+      state->memory()->inflate_for_handle(state, this, handle);
+    }
+  }
+
+  capi::Handle* ObjectHeader::handle(STATE) {
+    HeaderWord tmp = header;
+    if(tmp.f.inflated) {
+      return header_to_inflated_header(tmp)->handle(state);
+    }
+
+    capi::Handle* h = NULL;
+    switch(tmp.f.meaning) {
+    case eAuxWordHandle:
+      h = state->shared().global_handles()->find_index(state, tmp.f.aux_word);
+      assert(h->object() == this);
+      return h;
+    default:
+      return NULL;
     }
   }
 

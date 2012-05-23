@@ -56,6 +56,18 @@ namespace rubinius {
       return t;
     }
 
+    uintptr_t allocate_index(bool* needs_gc) {
+      if(!free_list_) allocate_chunk(needs_gc);
+
+      uintptr_t next_index = free_list_;
+      T* t = from_index(free_list_);
+      free_list_ = t->next();
+      t->clear();
+      in_use_++;
+
+      return next_index;
+    }
+
     T* from_index(uintptr_t index) {
       return chunks_[index / cChunkSize] + (index % cChunkSize);
     }

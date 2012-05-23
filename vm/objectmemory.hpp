@@ -362,6 +362,7 @@ namespace rubinius {
 
     InflatedHeader* inflate_header(STATE, ObjectHeader* obj);
     void inflate_for_id(STATE, ObjectHeader* obj, uint32_t id);
+    void inflate_for_handle(STATE, ObjectHeader* obj, capi::Handle* handle);
 
     void in_finalizer_thread(STATE);
     void start_finalizer_thread(STATE);

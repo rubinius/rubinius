@@ -202,7 +202,6 @@ namespace rubinius {
 
       if(!i->weak_p() && i->object()->young_object_p()) {
         i->set_object(saw_object(i->object()));
-        assert(i->object()->inflated_header_p());
 
       // Users manipulate values accessible from the data* within an
       // RData without running a write barrier. Thusly if we see a mature

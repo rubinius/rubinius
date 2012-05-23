@@ -30,8 +30,8 @@ namespace rubinius {
 
       Handle* allocate(STATE, Object* obj);
 
-      uint32_t allocate_index(STATE, Object* obj);
-      Handle* find_index(STATE, uint32_t index);
+      uintptr_t allocate_index(STATE, Object* obj);
+      Handle* find_index(STATE, uintptr_t index);
 
       void deallocate_handles(std::list<Handle*>* cached, int mark, BakerGC* young);
 
