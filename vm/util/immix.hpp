@@ -18,6 +18,7 @@
 using memory::Address;
 
 
+namespace rubinius {
 namespace immix {
 
 
@@ -1162,6 +1163,7 @@ namespace immix {
       return false;
     }
   };
+}
 }
 
 #endif
