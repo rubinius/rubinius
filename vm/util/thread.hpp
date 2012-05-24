@@ -27,7 +27,6 @@ extern "C" int pthread_setname_np(const char*);
 #define HAVE_PTHREAD_SETNAME
 #endif
 
-namespace rubinius {
 namespace thread {
 
   static inline void fail(const char* str) {
@@ -490,13 +489,11 @@ namespace thread {
     }
   };
 }
-}
 
 #ifdef HAVE_OSX_SPINLOCK
 
 #include <libkern/OSAtomic.h>
 
-namespace rubinius {
 namespace thread {
 
   class SpinLock {
@@ -540,11 +537,9 @@ namespace thread {
     }
   };
 };
-}
 
 #else
 
-namespace rubinius {
 namespace thread {
   class SpinLock {
   public: // Types
@@ -586,7 +581,6 @@ namespace thread {
       return ss.str();
     }
   };
-}
 }
 
 #endif

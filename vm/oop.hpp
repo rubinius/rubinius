@@ -15,10 +15,11 @@
 #include "detection.hpp"
 #include "util/thread.hpp"
 
-namespace rubinius {
 namespace thread {
   class Mutex;
 }
+
+namespace rubinius {
 
 /* We use a variable length OOP tag system:
  * The tag represents 1 to 3 bits which uniquely
