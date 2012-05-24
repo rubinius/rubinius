@@ -175,6 +175,24 @@ namespace rubinius {
     }
   }
 
+  void ObjectHeader::clear_handle(STATE) {
+    for(;;) {
+      if(inflated_header_p()) {
+        inflated_header()->set_handle(state, NULL);
+        return;
+      } else {
+        HeaderWord orig = header;
+        orig.f.meaning  = eAuxWordHandle;
+
+        HeaderWord new_val = orig;
+        new_val.f.meaning  = eAuxWordEmpty;
+        new_val.f.aux_word = 0;
+
+        if(header.atomic_set(orig, new_val)) return;
+      }
+    }
+  }
+
   capi::Handle* ObjectHeader::handle(STATE) {
     HeaderWord tmp = header;
     if(tmp.f.inflated) {

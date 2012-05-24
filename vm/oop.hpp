@@ -403,20 +403,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       }
     }
 
-    void clear_handle(STATE) {
-      if(inflated_header_p()) {
-        inflated_header()->set_handle(state, NULL);
-      } else {
-        HeaderWord orig = header;
-        orig.f.meaning  = eAuxWordHandle;
-
-        HeaderWord new_val = orig;
-        new_val.f.meaning  = eAuxWordEmpty;
-        new_val.f.aux_word = 0;
-
-        if(header.atomic_set(orig, new_val)) return;
-      }
-    }
+    void clear_handle(STATE);
 
     void set_handle_index(STATE, uintptr_t handle_index);
 
