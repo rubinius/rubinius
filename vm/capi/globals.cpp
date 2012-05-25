@@ -107,10 +107,11 @@ extern "C" {
   }
 
   void rb_define_readonly_variable(const char* name, VALUE* addr) {
-    // This is pretty much wrong, because when name is accessed, the VALUE
-    // at addr should be retrieved. We're going to just do it once, since almost
-    // no one uses this (just SWIG, and sets it before it uses it anyway)
     rb_gv_set(name, *addr);
+
+    VALUE Globals = rb_const_get(rb_mRubinius, rb_intern("Globals"));
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    rb_funcall(Globals, rb_intern("read_only"), 1, env->get_handle(prefixed_by(env->state(), '$', rb_intern(name))));
   }
 
   void rb_set_kcode(const char *code) {

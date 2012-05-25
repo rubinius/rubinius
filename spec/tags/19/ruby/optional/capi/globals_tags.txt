@@ -1,1 +1,0 @@
-fails:CApiGlobalSpecs rb_define_readonly_variable should define a new readonly global variable
