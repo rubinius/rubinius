@@ -1,4 +1,5 @@
 require File.expand_path('../spec_helper', __FILE__)
+require "stringio"
 
 load_extension("globals")
 
