@@ -326,13 +326,6 @@ module Rubinius
           @value.bytecode(g) if @value
           pos(g)
           g.send :raise, 1, true
-        elsif @name == :$~
-          pos(g)
-          # this is a noop for now, but we need to run the
-          # value anyway because it might have side-effects
-          @value.bytecode(g) if @value
-          g.pop
-          g.push :nil
         else
           pos(g)
           g.push_rubinius

@@ -87,10 +87,18 @@ module Kernel
   # that the compiler can't see.
   Rubinius::Globals.set_hook(:$!) { $! }
 
-  Rubinius::Globals.set_hook(:$~) do
+  get = proc do
     # We raise an exception here because Regexp.last_match won't work
-    raise TypeError, "Unable to handle $! in this context"
+    raise TypeError, "Unable to handle $~ in this context"
   end
+  set = proc do |key, val|
+    if val.nil? || val.kind_of?(MatchData)
+      Rubinius.invoke_primitive :regexp_set_last_match, val
+    else
+      raise TypeError, "Cannot assign #{val.class}, expexted nil or instance MatchData."
+    end
+  end
+  Rubinius::Globals.set_hook(:$~, get, set)
 
   Rubinius::Globals.set_hook(:$*) { ARGV }
 
