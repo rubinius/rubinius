@@ -1794,6 +1794,8 @@ VALUE rb_uint2big(unsigned long number);
 
   void    rb_lastline_set(VALUE obj);
 
+  VALUE   rb_lastline_get(void);
+
 #define HAVE_RB_THREAD_BLOCKING_REGION 1
 
   /* 1.9 provides these, so we will too: */
