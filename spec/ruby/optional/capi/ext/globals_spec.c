@@ -86,6 +86,12 @@ static VALUE global_spec_rb_lastline_set(VALUE self, VALUE line) {
 }
 #endif
 
+#ifdef HAVE_RB_LASTLINE_GET
+static VALUE global_spec_rb_lastline_get(VALUE self) {
+  return rb_lastline_get();
+}
+#endif
+
 void Init_globals_spec() {
   VALUE cls;
   cls = rb_define_class("CApiGlobalSpecs", rb_cObject);
@@ -129,6 +135,10 @@ void Init_globals_spec() {
 
 #ifdef HAVE_RB_LASTLINE_SET
   rb_define_method(cls, "rb_lastline_set", global_spec_rb_lastline_set, 1);
+#endif
+
+#ifdef HAVE_RB_LASTLINE_GET
+  rb_define_method(cls, "rb_lastline_get", global_spec_rb_lastline_get, 0);
 #endif
 }
 

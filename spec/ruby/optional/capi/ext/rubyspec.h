@@ -252,6 +252,7 @@
 #define HAVE_RB_SET_KCODE                  1
 
 #define HAVE_RB_LASTLINE_SET               1
+#define HAVE_RB_LASTLINE_GET               1
 
 /* Hash */
 #define HAVE_RB_HASH                       1
