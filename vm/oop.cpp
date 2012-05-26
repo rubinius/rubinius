@@ -123,7 +123,7 @@ namespace rubinius {
     switch(orig.f.meaning) {
     case eAuxWordEmpty:
     case eAuxWordObjID:
-      assert(0);
+      rubinius::bug("ObjectHeader claimed to be empty or already containing object id");
     case eAuxWordLock:
     case eAuxWordHandle:
       // not inflated, and the aux_word is being used for locking
@@ -164,7 +164,7 @@ namespace rubinius {
     switch(orig.f.meaning) {
     case eAuxWordEmpty:
     case eAuxWordHandle:
-      assert(0);
+      rubinius::bug("ObjectHeader claimed to be empty or already containing handle");
     case eAuxWordLock:
     case eAuxWordObjID:
       // not inflated, and the aux_word is being used for locking

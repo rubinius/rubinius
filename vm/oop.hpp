@@ -14,6 +14,7 @@
 #include "type_info.hpp"
 #include "detection.hpp"
 #include "util/thread.hpp"
+#include "bug.hpp"
 
 namespace thread {
   class Mutex;
@@ -397,9 +398,10 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     capi::Handle* handle(STATE);
 
     void set_handle(STATE, capi::Handle* handle) {
-      assert(inflated_header_p());
       if(inflated_header_p()) {
         inflated_header()->set_handle(state, handle);
+      } else {
+        rubinius::bug("Setting handle directly on not inflated header");
       }
     }
 
