@@ -991,8 +991,20 @@ namespace rubinius {
         continue;
       } else if(seq == '-') {
         native_int max = ++i < bytes ? str[i] : -1;
-        if(max >= 0 && chr > max && CBOOL(invalid_as_empty)) {
-          i++;
+        if(max >= 0 && chr > max) {
+          if (CBOOL(invalid_as_empty)) {
+            i++;
+          } else {
+            std::stringstream ss;
+            if (isprint(chr) && isprint(max)) {
+              ss << "invalid range \"";
+              ss << (char)chr << "-" << (char)max;
+              ss << "\" in string transliteration";
+            } else {
+              ss << "invalid range in string transliteration";
+            }
+            Exception::argument_error(state, ss.str().c_str());
+          }
         } else if(max >= 0) {
           do {
             if(tr_data.assign(chr)) return tr_replace(state, &tr_data);
