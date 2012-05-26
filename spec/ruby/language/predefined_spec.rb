@@ -88,6 +88,38 @@ describe "Predefined global $~" do
     lambda { $~ = Object.new }.should raise_error(TypeError)
     lambda { $~ = 1 }.should raise_error(TypeError)
   end
+
+  it "changes the value of derived capture globals when assigned" do
+    "foo" =~ /(f)oo/
+    foo_match = $~
+    "bar" =~ /(b)ar/
+    $~ = foo_match
+    $1.should == "f"
+  end
+
+  it "changes the value of the derived preceding match global" do
+    "foo hello" =~ /hello/
+    foo_match = $~
+    "bar" =~ /(bar)/
+    $~ = foo_match
+    $`.should == "foo "
+  end
+
+  it "changes the value of the derived following match global" do
+    "foo hello" =~ /foo/
+    foo_match = $~
+    "bar" =~ /(bar)/
+    $~ = foo_match
+    $'.should == " hello"
+  end
+
+  it "changes the value of the derived full match global" do
+    "foo hello" =~ /foo/
+    foo_match = $~
+    "bar" =~ /(bar)/
+    $~ = foo_match
+    $&.should == "foo"
+  end
 end
 
 describe "Predefined global $&" do
