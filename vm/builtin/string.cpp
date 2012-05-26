@@ -991,7 +991,17 @@ namespace rubinius {
         continue;
       } else if(seq == '-') {
         native_int max = ++i < bytes ? str[i] : -1;
-        if(max >= 0 && chr > max && CBOOL(invalid_as_empty)) {
+        if(max >= 0 && chr > max && !LANGUAGE_18_ENABLED(state)) {
+          std::ostringstream message;
+          if (isprint(chr) && isprint(max)) {
+            message << "invalid range \"";
+            message << (char)chr << "-" << (char)max;
+            message << "\" in string transliteration";
+          } else {
+            message << "invalid range in string transliteration";
+          }
+          Exception::argument_error(state, message.str().c_str());
+        } else if(max >= 0 && chr > max && CBOOL(invalid_as_empty)) {
           i++;
         } else if(max >= 0) {
           do {
