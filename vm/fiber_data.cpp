@@ -46,7 +46,7 @@ static void fiber_makectx(fiber_context_t* ctx, void* func, void** stack_bottom,
   uintptr_t s = ((uintptr_t)stack_bottom) + stack_size;
   uintptr_t diff = s % 16;
 
-  void** stack = (void**)(s - diff) - 1;
+  void** stack = (void**)(s - diff) - 2;
 
   *--stack = (void*)0xdeadcafedeadcafe;  /* Dummy return address. */
   ctx->rip = (void*)fiber_wrap_main;
