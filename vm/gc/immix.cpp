@@ -121,7 +121,8 @@ namespace rubinius {
     if(copy && copy != obj && obj->inflated_header_p()) {
       InflatedHeader* ih = obj->deflate_header();
       ih->reset_object(copy);
-      if(!copy->set_inflated_header(ih)) {
+      State state_obj(state());
+      if(!copy->set_inflated_header(&state_obj, ih)) {
         rubinius::bug("Massive IMMIX inflated header screwup.");
       }
     }

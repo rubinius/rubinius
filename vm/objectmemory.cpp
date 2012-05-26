@@ -146,7 +146,7 @@ namespace rubinius {
     InflatedHeader* ih = inflated_headers_->allocate(obj);
     ih->initialize_mutex(state->vm()->thread_id(), count);
 
-    if(!obj->set_inflated_header(ih)) {
+    if(!obj->set_inflated_header(state, ih)) {
       if(obj->inflated_header_p()) return false;
 
       // Now things are really in a weird state, just abort.
@@ -677,7 +677,7 @@ step1:
 
     InflatedHeader* header = inflated_headers_->allocate(obj);
 
-    if(!obj->set_inflated_header(header)) {
+    if(!obj->set_inflated_header(state, header)) {
       if(obj->inflated_header_p()) return obj->inflated_header();
 
       // Now things are really in a weird state, just abort.
@@ -700,7 +700,7 @@ step1:
     header->set_handle(state, obj->handle(state));
     header->set_object_id(id);
 
-    if(!obj->set_inflated_header(header)) {
+    if(!obj->set_inflated_header(state, header)) {
       if(obj->inflated_header_p()) {
         obj->inflated_header()->set_object_id(id);
         return;
@@ -725,7 +725,7 @@ step1:
     header->set_handle(state, handle);
     header->set_object_id(obj->object_id());
 
-    if(!obj->set_inflated_header(header)) {
+    if(!obj->set_inflated_header(state, header)) {
       if(obj->inflated_header_p()) {
         obj->inflated_header()->set_handle(state, handle);
         return;
