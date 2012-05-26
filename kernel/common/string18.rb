@@ -12,6 +12,29 @@ class String
 
   alias_method :bytesize, :size
 
+  def count_table(*strings)
+    table = String.pattern 256, 1
+
+    i, size = 0, strings.size
+    while i < size
+      str = StringValue(strings[i]).dup
+      if str.size > 1 && str.getbyte(0) == 94 # ?^
+        pos, neg = 0, 1
+      else
+        pos, neg = 1, 0
+      end
+
+      set = String.pattern 256, neg
+      str.tr_expand! nil, true
+      j, chars = -1, str.size
+      set.setbyte(str.getbyte(j), pos) while (j += 1) < chars
+
+      table.apply_and! set
+      i += 1
+    end
+    table
+  end
+
   def upto(stop, exclusive=false)
     stop = StringValue(stop)
     return self if self > stop
@@ -35,31 +58,6 @@ class String
     @data.reverse(0, @num_bytes)
     self
   end
-
-  def delete!(*strings)
-    raise ArgumentError, "wrong number of arguments" if strings.empty?
-
-    self.modify!
-
-    table = count_table(*strings).__data__
-
-    i, j = 0, -1
-    while i < @num_bytes
-      c = @data[i]
-      unless table[c] == 1
-        @data[j+=1] = c
-      end
-      i += 1
-    end
-
-    if (j += 1) < @num_bytes
-      self.num_bytes = j
-      self
-    else
-      nil
-    end
-  end
-
 
   def slice!(one, two=undefined)
     # This is un-DRY, but it's a simple manual argument splitting. Keeps
@@ -88,29 +86,6 @@ class String
     end
 
     result
-  end
-
-  def squeeze!(*strings)
-    return if @num_bytes == 0
-    self.modify!
-
-    table = count_table(*strings).__data__
-
-    i, j, last = 1, 0, @data[0]
-    while i < @num_bytes
-      c = @data[i]
-      unless c == last and table[c] == 1
-        @data[j+=1] = last = c
-      end
-      i += 1
-    end
-
-    if (j += 1) < @num_bytes
-      self.num_bytes = j
-      self
-    else
-      nil
-    end
   end
 
   def sub!(pattern, replacement=undefined)

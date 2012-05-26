@@ -22,6 +22,37 @@ class String
 
   alias_method :each_codepoint, :codepoints
 
+  def count_table(*strings)
+    table = String.pattern 256, 1
+
+    i, size = 0, strings.size
+    while i < size
+      str = StringValue(strings[i]).dup
+
+      if str =~ /.+\-.+/
+        ranges_found = str.scan(/\w{1}\-\w{1}/)
+        ranges_found.map{ |range| range.gsub(/-/, '').split('') }.each do |range_array|
+          raise ArgumentError, "invalid range \"#{range_array.join('-')}\" in string transliteration" unless range_array == range_array.sort
+        end
+      end
+
+      if str.size > 1 && str.getbyte(0) == 94 # ?^
+        pos, neg = 0, 1
+      else
+        pos, neg = 1, 0
+      end
+
+      set = String.pattern 256, neg
+      str.tr_expand! nil, true
+      j, chars = -1, str.size
+      set.setbyte(str.getbyte(j), pos) while (j += 1) < chars
+
+      table.apply_and! set
+      i += 1
+    end
+    table
+  end
+
   def encode!(to=undefined, from=undefined, options=nil)
     Rubinius.check_frozen
 
@@ -49,39 +80,6 @@ class String
   def prepend(other)
     self[0,0] = other
     self
-  end
-
-  def delete!(*strings)
-    raise ArgumentError, "wrong number of arguments" if strings.empty?
-
-    strings.each do |string|
-      if string =~ /.+\-.+/
-        ranges_found = string.scan(/\w{1}\-\w{1}/)
-        ranges_found.map{ |range| range.gsub(/-/, '').split('') }.each do |range_array|
-          raise ArgumentError, "invalid range #{strings} in string transliteration" unless range_array == range_array.sort
-        end
-      end
-    end
-
-    self.modify!
-
-    table = count_table(*strings).__data__
-
-    i, j = 0, -1
-    while i < @num_bytes
-      c = @data[i]
-      unless table[c] == 1
-        @data[j+=1] = c
-      end
-      i += 1
-    end
-
-    if (j += 1) < @num_bytes
-      self.num_bytes = j
-      self
-    else
-      nil
-    end
   end
 
   def upto(stop, exclusive=false)
@@ -119,34 +117,6 @@ class String
 
     @data.reverse(0, @num_bytes)
     self
-  end
-
-  def squeeze!(*strings)
-    if strings.first =~ /.+\-.+/
-      range = strings.first.gsub(/-/, '').split('')
-      raise ArgumentError, "invalid range #{strings} in string transliteration" unless range == range.sort
-    end
-
-    return if @num_bytes == 0
-    self.modify!
-
-    table = count_table(*strings).__data__
-
-    i, j, last = 1, 0, @data[0]
-    while i < @num_bytes
-      c = @data[i]
-      unless c == last and table[c] == 1
-        @data[j+=1] = last = c
-      end
-      i += 1
-    end
-
-    if (j += 1) < @num_bytes
-      self.num_bytes = j
-      self
-    else
-      nil
-    end
   end
 
   def sub!(pattern, replacement=undefined)

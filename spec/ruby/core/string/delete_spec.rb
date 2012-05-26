@@ -64,6 +64,7 @@ describe "String#delete" do
     it "raises if the given ranges are invalid" do
       lambda { "hello".delete("h-e") }.should raise_error(ArgumentError)
       lambda { "hello".delete("^h-e") }.should raise_error(ArgumentError)
+      lambda { "hello".delete("abc", "h-e") }.should raise_error(ArgumentError)
     end
   end
 
