@@ -57,34 +57,6 @@ class File
     end
   end
 
-  ##
-  # Returns true if the named files are identical.
-  #
-  #   open("a", "w") {}
-  #   p File.identical?("a", "a")      #=> true
-  #   p File.identical?("a", "./a")    #=> true
-  #   File.link("a", "b")
-  #   p File.identical?("a", "b")      #=> true
-  #   File.symlink("a", "c")
-  #   p File.identical?("a", "c")      #=> true
-  #   open("d", "w") {}
-  #   p File.identical?("a", "d")      #=> false
-  def self.identical?(orig, copy)
-    orig = Rubinius::Type.coerce_to_path(orig)
-    st_o = File::Stat.stat(orig)
-    copy = Rubinius::Type.coerce_to_path(copy)
-    st_c = File::Stat.stat(copy)
-
-    return false if st_o.nil? || st_c.nil?
-
-    return false unless st_o.ino == st_c.ino
-    return false unless st_o.ftype == st_c.ftype
-    return false unless POSIX.access(orig, Constants::R_OK)
-    return false unless POSIX.access(copy, Constants::R_OK)
-
-    true
-  end
-
   def self.world_readable?(path)
     path = Rubinius::Type.coerce_to_path path
     return nil unless exists? path
