@@ -897,11 +897,11 @@ int main() { return tgetnum(""); }
   end
 
   def detect_include_dirs
-    @include_dirs = @include_dirs.select {|p| File.exists? p }
+    @include_dirs = @include_dirs.select {|p| File.directory? p }
   end
 
   def detect_lib_dirs
-    @lib_dirs = @lib_dirs.select {|p| File.exists? p }
+    @lib_dirs = @lib_dirs.select {|p| File.directory? p }
   end
 
   def has_struct_member(struct, member, includes = [])
