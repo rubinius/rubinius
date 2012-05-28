@@ -253,12 +253,17 @@ class Configure
 
     o.doc "\n System settings"
 
-    o.on "--with-include-dir", "PATH", "Add path the default include search paths" do |path|
-      @include_dirs << path
+    o.on "--with-include-dir", "DIR", "Add DIR to the default include search paths" do |dir|
+      @include_dirs << dir
     end
 
-    o.on "--with-lib-dir", "PATH", "Add path the default library search paths" do |path|
-      @lib_dirs << path
+    o.on "--with-lib-dir", "DIR", "Add DIR to the default library search paths" do |dir|
+      @lib_dirs << dir
+    end
+
+    o.on "--with-opt-dir", "DIR", "Add DIR/include and DIR/lib to include and library search paths" do |dir|
+      @include_dirs << "#{dir}/include"
+      @lib_dirs     << "#{dir}/lib"
     end
 
     o.on "--libc", "NAME", "Use NAME as the libc for FFI" do |name|
