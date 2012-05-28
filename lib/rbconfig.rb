@@ -193,8 +193,12 @@ module RbConfig
   CONFIG["ALLOCA"]             = ""
   CONFIG["LIBEXT"]             = "a"
   CONFIG["LINK_SO"]            = ""
-  CONFIG["LIBPATHFLAG"]        = " -L%s"
-  CONFIG["RPATHFLAG"]          = ""
+  # On Linux it needs to pass down the -R flags into the linker so it will
+  # properly link files not located in paths in LD_LIBRARY_PATH. On other
+  # platforms this is not necessary and it is linked properly even for
+  # paths outside LD_LIBRARY_PATH.
+  CONFIG["LIBPATHFLAG"]        = Rubinius.linux? ? " -L%1$-s"     : " -L%s"
+  CONFIG["RPATHFLAG"]          = Rubinius.linux? ? " -Wl,-R%1$-s" : ""
   CONFIG["LIBPATHENV"]         = "DYLD_LIBRARY_PATH"
   CONFIG["TRY_LINK"]           = ""
   CONFIG["EXTSTATIC"]          = ""
