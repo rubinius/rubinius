@@ -53,6 +53,9 @@ class Encoding
 
     def convert(str)
     end
+
+    def self.search_convpath(from, to, options={})
+    end
   end
 
   def self.aliases
