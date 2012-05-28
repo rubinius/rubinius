@@ -158,7 +158,7 @@ Rubinius::BUILD_CONFIG[:include_dirs].each do |i|
 end
 
 Rubinius::BUILD_CONFIG[:lib_dirs].each do |l|
-  add_include_dir l
+  add_link_dir l
 end
 
 add_define *Rubinius::BUILD_CONFIG[:defines]
