@@ -2171,6 +2171,9 @@ def init_mkmf(config = CONFIG, rbconfig = RbConfig::CONFIG)
   # Make sure that we include the lib paths here that we may find libraries so
   # that built in extensions will also find them if they have been configured
   # at build time for Rubinius.
+  Rubinius::BUILD_CONFIG[:include_dirs].each do |inc|
+    $INCFLAGS << inc
+  end
   Rubinius::BUILD_CONFIG[:lib_dirs].each do |lib|
     $DEFLIBPATH << lib
   end
