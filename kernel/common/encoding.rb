@@ -54,6 +54,7 @@ class Encoding
     def convert(str)
     end
 
+    # TODO: Add implementation for this method
     def self.search_convpath(from, to, options={})
     end
   end
