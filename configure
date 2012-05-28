@@ -94,8 +94,8 @@ class Configure
     @x86_32       = false
     @x86_64       = false
     @fibers       = false
-    @include_dirs = ["/usr/local/include", "/opt/local/include"]
-    @lib_dirs     = ["/usr/local/lib", "/opt/local/lib"]
+    @include_dirs = []
+    @lib_dirs     = []
 
     # File system paths
     @bindir       = root + "/bin"
@@ -1084,6 +1084,11 @@ int main() { return tgetnum(""); }
     end
 
     @log.write ""
+
+    ["/usr/local", "/opt/local"].each do |dir|
+      @include_dirs << "#{dir}/include"
+      @lib_dirs     << "#{dir}/lib"
+    end
 
     detect_include_dirs
     detect_lib_dirs
