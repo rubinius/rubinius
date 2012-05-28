@@ -2166,6 +2166,16 @@ def init_mkmf(config = CONFIG, rbconfig = RbConfig::CONFIG)
   $LIBRUBYARG_SHARED = config['LIBRUBYARG_SHARED']
   $DEFLIBPATH = [$extmk ? "$(topdir)" : "$(libdir)"]
   $DEFLIBPATH.unshift(".")
+
+  # ---------------------- Changed for Rubinius --------------------------------
+  # Make sure that we include the lib paths here that we may find libraries so
+  # that built in extensions will also find them if they have been configured
+  # at build time for Rubinius.
+  Rubinius::BUILD_CONFIG[:lib_dirs].each do |lib|
+    $DEFLIBPATH << lib
+  end
+  # ----------------------------------------------------------------------------
+
   $LIBPATH = []
   $INSTALLFILES = []
   $NONINSTALLFILES = [/~\z/, /\A#.*#\z/, /\A\.#/, /\.bak\z/i, /\.orig\z/, /\.rej\z/, /\.l[ao]\z/, /\.o\z/]
