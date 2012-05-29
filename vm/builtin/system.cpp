@@ -149,13 +149,22 @@ namespace rubinius {
   //
   // HACK: remove this when performance is better and compiled_file.rb
   // unmarshal_data method works.
+  static std::stringstream stream;
   Object* System::compiledfile_load(STATE, String* path,
                                     Integer* signature, Integer* version)
   {
-    std::ifstream stream(path->c_str(state));
-    if(!stream) {
+    std::ifstream file(path->c_str(state), std::ios::ate|std::ios::binary);
+
+    if(!file) {
       return Primitives::failure();
     }
+
+    std::streampos length = file.tellg();
+    std::vector<char> buffer(length);
+    file.seekg(0, std::ios::beg);
+    file.read(&buffer[0], length);
+    stream.clear();
+    stream.rdbuf()->pubsetbuf(&buffer[0], length);
 
     CompiledFile* cf = CompiledFile::load(stream);
     if(cf->magic != "!RBIX") {
