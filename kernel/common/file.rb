@@ -616,6 +616,7 @@ class File < IO
 
     return false if st_o.nil? || st_c.nil?
 
+    return false unless st_o.dev == st_c.dev
     return false unless st_o.ino == st_c.ino
     return false unless st_o.ftype == st_c.ftype
     return false unless POSIX.access(orig, Constants::R_OK)
