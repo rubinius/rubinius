@@ -2,7 +2,12 @@ Daedalus.blueprint do |i|
   gcc = i.gcc!
 
   gcc.cflags << "-Ivm -Ivm/test/cxxtest -I. "
+
+  # -fno-omit-frame-pointer is needed to get a backtrace on FreeBSD.
+  # It is enabled by default on OS X, on the other hand, not on Linux.
+  # To use same build flags across platforms, it is added explicitly.
   gcc.cflags << "-pipe -Wall -fno-omit-frame-pointer"
+
   gcc.cflags << "-Wno-unused-function"
   gcc.cflags << "-g -ggdb3 -Werror"
   gcc.cflags << "-DRBX_PROFILER"
