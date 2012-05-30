@@ -492,19 +492,28 @@ namespace rubinius {
     state->vm()->initialize_as_root();
   }
 
-  void Environment::run_file(std::string file) {
-    std::ifstream stream(file.c_str());
-    if(!stream) {
+  static std::stringstream stream;
+  void Environment::run_file(std::string path) {
+    std::ifstream file(path.c_str(), std::ios::ate|std::ios::binary);
+
+    if(!file) {
       std::string msg = std::string("Unable to open file to run: ");
-      msg.append(file);
+      msg.append(path);
       throw std::runtime_error(msg);
     }
+
+    std::streampos length = file.tellg();
+    std::vector<char> buffer(length);
+    file.seekg(0, std::ios::beg);
+    file.read(&buffer[0], length);
+    stream.clear();
+    stream.rdbuf()->pubsetbuf(&buffer[0], length);
 
     CompiledFile* cf = CompiledFile::load(stream);
     if(cf->magic != "!RBIX") throw std::runtime_error("Invalid file");
     if((signature_ > 0 && cf->signature != signature_)
         || cf->version != version_) {
-      throw BadKernelFile(file);
+      throw BadKernelFile(path);
     }
 
     cf->execute(state);
