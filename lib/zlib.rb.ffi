@@ -1493,7 +1493,10 @@ module Zlib
     # is preserved in output buffer.
 
     def <<(string)
-      string = StringValue string unless string.nil?
+      if string
+        string = StringValue string
+        string.force_encoding("ASCII-8BIT" ) unless RUBY_VERSION =~ /^1\.8/
+      end
 
       if finished? then
         unless string.nil? then
