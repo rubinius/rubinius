@@ -66,11 +66,11 @@ namespace rubinius {
       OnStack<2> os(state, env, args.argument_container_location());
       GCTokenImpl gct;
       vmm = env->vmmethod(state, gct);
-    }
 
-    if(!vmm) {
-      Exception::internal_error(state, previous, "invalid bytecode method");
-      return 0;
+      if(!vmm) {
+        Exception::internal_error(state, previous, "invalid bytecode method");
+        return 0;
+      }
     }
 
 #ifdef ENABLE_LLVM
