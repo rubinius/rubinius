@@ -6,6 +6,7 @@
 #include "builtin/module.hpp"
 #include "builtin/class.hpp"
 #include "builtin/compiledcode.hpp"
+#include "builtin/cache.hpp"
 #include "lock.hpp"
 #include "object_utils.hpp"
 
@@ -19,7 +20,6 @@ namespace rubinius {
   struct CallFrame;
   class Arguments;
   class CallUnit;
-  class MethodCacheEntry;
 
   // How many receiver class have been seen to keep track of inside an IC
   const static int cTrackedICHits = 3;
@@ -54,7 +54,7 @@ namespace rubinius {
     Symbol* name;
 
   private:
-    MethodCacheEntry* cache_;
+    MethodCacheEntry* cache_[cTrackedICHits];
     CallUnit* call_unit_;
 
     typedef Object* (*CacheExecutor)(STATE, InlineCache*, CallFrame*, Arguments& args);
@@ -114,6 +114,9 @@ namespace rubinius {
     static Object* check_cache_super_mm(STATE, InlineCache* cache, CallFrame* call_frame,
                                   Arguments& args);
 
+    static Object* check_cache_poly(STATE, InlineCache* cache, CallFrame* call_frame,
+                                  Arguments& args);
+
     static Object* disabled_cache(STATE, InlineCache* cache, CallFrame* call_frame,
                                   Arguments& args);
     static Object* disabled_cache_private(STATE, InlineCache* cache, CallFrame* call_frame,
@@ -122,22 +125,23 @@ namespace rubinius {
                                   Arguments& args);
 
     MethodMissingReason fill_public(STATE, Object* self, Symbol* name, Class* klass,
-                                    MethodCacheEntry*& mce);
+                                    MethodCacheEntry*& mce, bool super = false);
     bool fill_private(STATE, Symbol* name, Module* start, Class* klass,
-                      MethodCacheEntry*& mce);
-    bool fill_method_missing(STATE, Class* klass, MethodCacheEntry*& mce);
+                      MethodCacheEntry*& mce, bool super = false);
+    bool fill_method_missing(STATE, Class* klass, MethodMissingReason reason, MethodCacheEntry*& mce);
 
     MethodCacheEntry* update_and_validate(STATE, CallFrame* call_frame, Object* recv);
     MethodCacheEntry* update_and_validate_private(STATE, CallFrame* call_frame, Object* recv);
 
     InlineCache()
       : name(0)
-      , cache_(0)
       , call_unit_(0)
       , initial_backend_(empty_cache)
       , execute_backend_(empty_cache)
       , seen_classes_overflow_(0)
-    {}
+    {
+      clear();
+    }
 
 #ifdef TRACK_IC_LOCATION
     void set_location(int ip, VMMethod* vmm) {
@@ -163,7 +167,7 @@ namespace rubinius {
       name = sym;
     }
 
-    MethodCacheEntry* cache() {
+    MethodCacheEntry** caches() {
       return cache_;
     }
 
@@ -196,7 +200,37 @@ namespace rubinius {
     }
 
     void clear() {
-      cache_ = 0;
+      for(int i = 0; i < cTrackedICHits; ++i) {
+        cache_[i] = 0;
+      }
+    }
+
+    MethodCacheEntry* get_cache(Object* const recv_class) {
+      for(int i = 0; i < cTrackedICHits; ++i) {
+        MethodCacheEntry* mce = cache_[i];
+        if(likely(mce && mce->receiver_class() == recv_class)) return mce;
+      }
+      return NULL;
+    }
+
+    int cache_size() {
+      for(int i = 0; i < cTrackedICHits; ++i) {
+        if(!cache_[i]) return i;
+      }
+      return cTrackedICHits;
+    }
+
+    void set_cache(MethodCacheEntry* mce) {
+      // Make sure we sync here, so the MethodCacheEntry mce is
+      // guaranteed completely initialized. Otherwise another thread
+      // might see an incompletely initialized MethodCacheEntry.
+      for(int i = 0; i < cTrackedICHits; ++i) {
+        if(!cache_[i] ||
+            cache_[i]->receiver_class() == mce->receiver_class() ||
+            i == cTrackedICHits - 1) {
+          atomic::write(&cache_[i], mce);
+        }
+      }
     }
 
     void update_seen_classes(MethodCacheEntry* mce);

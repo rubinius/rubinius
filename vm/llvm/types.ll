@@ -44,7 +44,7 @@ declare void @output3(%"struct.rubinius::Dispatch"*)
 
 %"struct.rubinius::InlineCache" = type {
             %"struct.rubinius::Symbol"*, ; name
-  %"struct.rubinius::MethodCacheEntry"*, ; cache
+  [3x %"struct.rubinius::MethodCacheEntry"*], ; cache
           %"struct.rubinius::CallUnit"*, ; call_unit
   %"struct.rubinius::Object"* (%"struct.rubinius::State"*, %"struct.rubinius::InlineCache"*, %"struct.rubinius::CallFrame"*, %"struct.rubinius::Arguments"*)*, ; initial
   %"struct.rubinius::Object"* (%"struct.rubinius::State"*, %"struct.rubinius::InlineCache"*, %"struct.rubinius::CallFrame"*, %"struct.rubinius::Arguments"*)*, ; execute
