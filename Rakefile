@@ -207,6 +207,7 @@ end
 desc 'Install the pre-installed gems'
 task :gem_bootstrap do
   STDOUT.puts "Installing pre-installed gems..."
+  ENV['GEM_HOME'] = ENV['GEM_PATH'] = nil
 
   rbx = "#{BUILD_CONFIG[:bindir]}/#{BUILD_CONFIG[:program_name]}"
   gems = Dir["preinstalled-gems/*.gem"]
