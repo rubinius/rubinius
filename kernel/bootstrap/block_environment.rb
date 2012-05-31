@@ -59,6 +59,14 @@ module Rubinius
       def defined_line
         @block_env.line
       end
+
+      def file
+        @block_env.file
+      end
+
+      def defined_line
+        @block_env.line
+      end
     end
   end
 end
