@@ -568,24 +568,28 @@ extern "C" {
                            int serial, Object* recv)
   {
     if(cache->update_and_validate(state, call_frame, recv)) {
-      MethodCacheEntry* mce = cache->cache();
-
-      if(mce && mce->method()->serial()->to_native() == serial) return cTrue;
+      MethodCacheEntry** caches = cache->caches();
+      for(int i = 0; i < cTrackedICHits; ++i) {
+        MethodCacheEntry* mce = caches[i];
+        if(mce && mce->method()->serial()->to_native() != serial) return cFalse;
+      }
     }
 
-    return cFalse;
+    return cTrue;
   }
 
   Object* rbx_check_serial_private(STATE, CallFrame* call_frame, InlineCache* cache,
                            int serial, Object* recv)
   {
     if(cache->update_and_validate_private(state, call_frame, recv)) {
-      MethodCacheEntry* mce = cache->cache();
-
-      if(mce && mce->method()->serial()->to_native() == serial) return cTrue;
+      MethodCacheEntry** caches = cache->caches();
+      for(int i = 0; i < cTrackedICHits; ++i) {
+        MethodCacheEntry* mce = caches[i];
+        if(mce && mce->method()->serial()->to_native() != serial) return cFalse;
+      }
     }
 
-    return cFalse;
+    return cTrue;
   }
 
   Object* rbx_find_const(STATE, CallFrame* call_frame, int index, Object* top) {

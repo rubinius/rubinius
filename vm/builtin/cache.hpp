@@ -1,6 +1,7 @@
 #ifndef RBX_BUILTIN_CACHE_HPP
 #define RBX_BUILTIN_CACHE_HPP
 
+#include "vm.hpp"
 #include "builtin/object.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/integer.hpp"
@@ -22,14 +23,26 @@ namespace rubinius {
     Class*  receiver_class_; // slot
     Executable* method_;     // slot
 
+    MethodMissingReason method_missing_;
+    bool super_;
+
   public:
     attr_accessor(stored_module, Module);
     attr_accessor(receiver_class, Class);
     attr_accessor(method, Executable);
 
+    MethodMissingReason method_missing() {
+      return method_missing_;
+    }
+
+    bool super() {
+      return super_;
+    }
+
   public:
     static MethodCacheEntry* create(STATE, Class* klass, Module* mod,
-                                    Executable* method);
+                                    Executable* method, MethodMissingReason method_missing,
+                                    bool super);
 
     class Info : public TypeInfo {
     public:

@@ -97,7 +97,7 @@ keep_looking:
         !entry->method_missing) {
 
       return MethodCacheEntry::create(state, cls, entry->module,
-                                      entry->method);
+                                      entry->method, eNone, false);
     }
 
     return NULL;
@@ -113,7 +113,7 @@ keep_looking:
         !entry->method_missing) {
 
       return MethodCacheEntry::create(state, cls, entry->module,
-                                      entry->method);
+                                      entry->method, eNone, false);
     }
 
     return NULL;

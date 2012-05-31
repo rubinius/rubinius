@@ -406,12 +406,14 @@ namespace rubinius {
     for(size_t i = 0; i < vmm->inline_cache_count(); i++) {
       InlineCache* cache = &vmm->caches[i];
 
-      MethodCacheEntry* mce = cache->cache_;
-      if(mce) {
-        tmp = mark.call(mce);
-        if(tmp) {
-          cache->cache_ = (MethodCacheEntry*)tmp;
-          mark.just_set(obj, tmp);
+      for(int i = 0; i < cTrackedICHits; ++i) {
+        MethodCacheEntry* mce = cache->cache_[i];
+        if(mce) {
+          tmp = mark.call(mce);
+          if(tmp) {
+            cache->cache_[i] = (MethodCacheEntry*)tmp;
+            mark.just_set(obj, tmp);
+          }
         }
       }
 
