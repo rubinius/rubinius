@@ -263,7 +263,7 @@ class Configure
 
     o.on "--with-opt-dir", "DIR", "Add DIR/include and DIR/lib to include and library search paths" do |dir|
       @include_dirs << "#{dir}/include"
-      @lib_dirs     << "#{dir}/lib"
+      @lib_dirs     << "#{dir}/lib" << "#{dir}/lib64"
     end
 
     o.on "--libc", "NAME", "Use NAME as the libc for FFI" do |name|
@@ -1087,7 +1087,7 @@ int main() { return tgetnum(""); }
 
     ["/usr/local", "/opt/local"].each do |dir|
       @include_dirs << "#{dir}/include"
-      @lib_dirs     << "#{dir}/lib"
+      @lib_dirs     << "#{dir}/lib" << "#{dir}/lib64"
     end
 
     detect_include_dirs

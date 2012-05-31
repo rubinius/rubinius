@@ -197,7 +197,7 @@ namespace rubinius {
                 << " (" << (unsigned int)thread_debug_self() << ") started thread]\n";
     }
 
-    vm->set_root_stack(reinterpret_cast<uintptr_t>(&calculate_stack), 4194304);
+    vm->set_root_stack(reinterpret_cast<uintptr_t>(&calculate_stack), THREAD_STACK_SIZE);
 
     vm->thread->init_lock_.unlock();
 
@@ -246,7 +246,7 @@ namespace rubinius {
   Object* Thread::fork(STATE) {
     pthread_attr_t attrs;
     pthread_attr_init(&attrs);
-    pthread_attr_setstacksize(&attrs, 4194304);
+    pthread_attr_setstacksize(&attrs, THREAD_STACK_SIZE);
     pthread_attr_setdetachstate(&attrs, PTHREAD_CREATE_DETACHED);
 
     int error = pthread_create(&vm_->os_thread(), &attrs, in_new_thread, (void*)vm_);
@@ -260,7 +260,7 @@ namespace rubinius {
   int Thread::fork_attached(STATE) {
     pthread_attr_t attrs;
     pthread_attr_init(&attrs);
-    pthread_attr_setstacksize(&attrs, 4194304);
+    pthread_attr_setstacksize(&attrs, THREAD_STACK_SIZE);
 
     return pthread_create(&vm_->os_thread(), &attrs, in_new_thread, (void*)vm_);
   }
