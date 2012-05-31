@@ -10,6 +10,8 @@
 #include "builtin/lookuptable.hpp"
 #include "executor.hpp"
 
+#define THREAD_STACK_SIZE 4194304
+
 namespace rubinius {
 
   class Channel;
