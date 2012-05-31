@@ -2,6 +2,7 @@
 #define RBX_UTIL_ATOMIC_HPP
 
 #include <stdint.h>
+#include <time.h>
 
 #if (__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 1))
 
@@ -42,6 +43,14 @@
 
 #endif
 
+#if defined(_LP64) || defined(__LP64__) || defined(__x86_64__) || defined(__amd64__)
+#define X86_PAUSE 1
+
+#elif defined(i386) || defined(__i386) || defined(__i386__)
+#define X86_PAUSE 1
+
+#endif
+
 #if defined(APPLE_SYNC) || defined(APPLE_BARRIER)
 #include <libkern/OSAtomic.h>
 #endif
@@ -59,6 +68,15 @@ namespace atomic {
     __asm__ __volatile__ ("mfence" ::: "memory");
 #else
 #error "no memory barrier implementation"
+#endif
+  }
+
+  inline void pause() {
+#if defined(X86_PAUSE)
+    __asm__ __volatile__ ("rep; nop" ::: "memory");
+#else
+    struct timespec ts = {0, 0};
+    nanosleep(&ts, NULL);
 #endif
   }
 

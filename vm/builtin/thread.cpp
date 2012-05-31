@@ -266,8 +266,7 @@ namespace rubinius {
   }
 
   Object* Thread::pass(STATE, CallFrame* calling_environment) {
-    struct timespec ts = {0, 0};
-    nanosleep(&ts, NULL);
+    atomic::pause();
     return cNil;
   }
 
