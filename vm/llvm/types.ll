@@ -12,7 +12,7 @@
 %"struct.rubinius::CallUnit" = type opaque
 %"struct.rubinius::InstructionSequence" = type opaque
 %"struct.rubinius::MethodCacheEntry" = type opaque
-%"struct.rubinius::StaticScope" = type opaque
+%"struct.rubinius::ConstantScope" = type opaque
 
 %"struct.rubinius::Arguments" = type {
    %"struct.rubinius::Symbol"*, ; name
@@ -132,17 +132,17 @@ declare void @output12(%"struct.rubinius::Array"*)
 declare void @output13(%"struct.rubinius::BlockEnvironment"*)
 
 %"struct.rubinius::BlockInvocation" = type {
-                               i32, ; flags
-       %"struct.rubinius::Object"*, ; self
-  %"struct.rubinius::StaticScope"*, ; static_scope
-       %"struct.rubinius::Module"*  ; module
+                                 i32, ; flags
+         %"struct.rubinius::Object"*, ; self
+  %"struct.rubinius::ConstantScope"*, ; constant_scope
+         %"struct.rubinius::Module"*  ; module
 }
 
 declare void @output14(%"struct.rubinius::BlockInvocation"*)
 
 %"struct.rubinius::CallFrame" = type {
        %"struct.rubinius::CallFrame"*, ; previous
-     %"struct.rubinius::StaticScope"*, ; static_scope
+   %"struct.rubinius::ConstantScope"*, ; constant_scope
                                   i8*, ; dispatch_data
   %"struct.rubinius::CompiledMethod"*, ; cm
                                   i32, ; flags
@@ -182,7 +182,7 @@ declare void @output16(%"struct.rubinius::Class"*)
                    %"struct.rubinius::Tuple"*, ; lines
                    %"struct.rubinius::Tuple"*, ; local_names
                   %"struct.rubinius::Symbol"*, ; file
-             %"struct.rubinius::StaticScope"*, ; scope
+           %"struct.rubinius::ConstantScope"*, ; scope
              %"struct.rubinius::LookupTable"*, ; breakpoints
                 %"struct.rubinius::VMMethod"*, ; backend_method
   %"struct.rubinius::jit::RuntimeDataHolder"*, ; jit_data
