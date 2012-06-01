@@ -61,14 +61,13 @@ namespace rubinius {
     , collect_young_now(false)
     , collect_mature_now(false)
     , root_state_(state)
+    , last_object_id(1)
   {
     // TODO Not sure where this code should be...
     if(char* num = getenv("RBX_WATCH")) {
       object_watch = (Object*)strtol(num, NULL, 10);
       std::cout << "Watching for " << object_watch << "\n";
     }
-
-    last_object_id = 0;
 
     large_object_threshold = config.gc_large_object;
     young_->set_lifetime(config.gc_lifetime);
@@ -112,12 +111,10 @@ namespace rubinius {
   }
 
   void ObjectMemory::assign_object_id(STATE, Object* obj) {
-    SYNC(state);
-
     // Double check we've got no id still after the lock.
     if(obj->object_id() > 0) return;
 
-    obj->set_object_id(state, state->memory(), ++last_object_id);
+    obj->set_object_id(state, state->memory(), atomic::fetch_and_add(&last_object_id, 1UL));
   }
 
   Integer* ObjectMemory::assign_object_id_ivar(STATE, Object* obj) {
@@ -135,7 +132,7 @@ namespace rubinius {
   bool ObjectMemory::inflate_lock_count_overflow(STATE, ObjectHeader* obj,
                                                  int count)
   {
-    SYNC(state);
+    thread::SpinLock::LockGuard guard(inflation_lock_);
 
     // Inflation always happens with the ObjectMemory lock held, so we don't
     // need to worry about another thread concurrently inflating it.
@@ -288,7 +285,7 @@ step1:
   }
 
   bool ObjectMemory::inflate_and_lock(STATE, ObjectHeader* obj) {
-    SYNC(state);
+    thread::SpinLock::LockGuard guard(inflation_lock_);
 
     InflatedHeader* ih = 0;
     int initial_count = 0;
@@ -358,7 +355,7 @@ step1:
   }
 
   bool ObjectMemory::inflate_for_contention(STATE, ObjectHeader* obj) {
-    SYNC(state);
+    thread::SpinLock::LockGuard guard(inflation_lock_);
 
     for(;;) {
       HeaderWord orig = obj->header;
@@ -423,7 +420,7 @@ step1:
   // WARNING: This returns an object who's body may not have been initialized.
   // It is the callers duty to initialize it.
   Object* ObjectMemory::new_object_fast(STATE, Class* cls, size_t bytes, object_type type) {
-    SYNC(state);
+    thread::SpinLock::LockGuard guard(allocation_lock_);
 
     if(Object* obj = young_->raw_allocate(bytes, &collect_young_now)) {
       gc_stats.young_object_allocated(bytes);
@@ -432,13 +429,13 @@ step1:
       obj->init_header(cls, YoungObjectZone, type);
       return obj;
     } else {
-      UNSYNC;
+      allocation_lock_.unlock();
       return new_object_typed(state, cls, bytes, type);
     }
   }
 
   bool ObjectMemory::refill_slab(STATE, gc::Slab& slab) {
-    SYNC(state);
+    thread::SpinLock::LockGuard guard(allocation_lock_);
 
     Address addr = young_->allocate_for_slab(slab_size_);
 
@@ -669,7 +666,7 @@ step1:
   InflatedHeader* ObjectMemory::inflate_header(STATE, ObjectHeader* obj) {
     if(obj->inflated_header_p()) return obj->inflated_header();
 
-    SYNC(state);
+    thread::SpinLock::LockGuard guard(inflation_lock_);
 
     // Gotta check again because while waiting for the lock,
     // the object could have been inflated!
@@ -688,7 +685,7 @@ step1:
   }
 
   void ObjectMemory::inflate_for_id(STATE, ObjectHeader* obj, uint32_t id) {
-    SYNC(state);
+    thread::SpinLock::LockGuard guard(inflation_lock_);
 
     HeaderWord orig = obj->header;
 
@@ -826,7 +823,7 @@ step1:
   }
 
   Object* ObjectMemory::new_object_typed(STATE, Class* cls, size_t bytes, object_type type) {
-    SYNC(state);
+    thread::SpinLock::LockGuard guard(allocation_lock_);
 
     Object* obj;
 
@@ -841,7 +838,7 @@ step1:
   }
 
   Object* ObjectMemory::new_object_typed_mature(STATE, Class* cls, size_t bytes, object_type type) {
-    SYNC(state);
+    thread::SpinLock::LockGuard guard(allocation_lock_);
 
     Object* obj;
 
@@ -865,7 +862,7 @@ step1:
   }
 
   Object* ObjectMemory::new_object_typed_enduring(STATE, Class* cls, size_t bytes, object_type type) {
-    SYNC(state);
+    thread::SpinLock::LockGuard guard(allocation_lock_);
 
     Object* obj = mark_sweep_->allocate(bytes, &collect_mature_now);
     gc_stats.mature_object_allocated(bytes);

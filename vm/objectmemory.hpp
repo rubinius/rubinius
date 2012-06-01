@@ -132,6 +132,9 @@ namespace rubinius {
 
   class ObjectMemory : public gc::WriteBarrier, public Lockable {
 
+    thread::SpinLock allocation_lock_;
+    thread::SpinLock inflation_lock_;
+
     /// BakerGC used for the young generation
     BakerGC* young_;
 
