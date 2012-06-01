@@ -2183,7 +2183,7 @@
 </td><td></td></tr>
 <tr><td>   arg1
 </td><td></td></tr>
-<tr><td>   reciever
+<tr><td>   receiver
 </td><td></td></tr>
 </tbody>
 </table>
