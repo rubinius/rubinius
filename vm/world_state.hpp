@@ -123,11 +123,7 @@ namespace rubinius {
                     << pending_threads_ << "]\n";
         }
         // We yield here so other threads are scheduled and can be run.
-        // We've benchmarked this and this turned out to cause the least
-        // cpu burn compared to not doing anything at all here or sleeping
-        // for 1 nanosecond with {0, 1}.
-        struct timespec ts = {0, 0};
-        nanosleep(&ts, NULL);
+        atomic::pause();
       }
 
       if(cDebugThreading) {
@@ -166,8 +162,7 @@ namespace rubinius {
         // We've benchmarked this and this turned out to cause the least
         // cpu burn compared to not doing anything at all here or sleeping
         // for 1 nanosecond with {0, 1}.
-        struct timespec ts = {0, 0};
-        nanosleep(&ts, NULL);
+        atomic::pause();
       }
 
       if(cDebugThreading) {

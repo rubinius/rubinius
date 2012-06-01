@@ -27,8 +27,6 @@
 
 namespace rubinius {
 
-  using std::endl;
-
   Object* UnMarshaller::get_constant() {
     char stack_data[STACK_BUF_SZ];
     char *malloc_data = NULL;
@@ -197,10 +195,12 @@ namespace rubinius {
     }
   }
 
+#define OPCODE_LENGTH 32
+
   InstructionSequence* UnMarshaller::get_iseq() {
     size_t count;
     long op;
-    char data[32];
+    char data[OPCODE_LENGTH];
     stream >> count;
 
     // Read off newline
@@ -210,7 +210,7 @@ namespace rubinius {
     Tuple* ops = iseq->opcodes();
 
     for(size_t i = 0; i < count; i++) {
-      stream.getline(data, 32);
+      stream.getline(data, OPCODE_LENGTH);
       op = strtol(data, NULL, 10);
       ops->put(state, i, Fixnum::from(op));
     }

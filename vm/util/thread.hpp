@@ -559,7 +559,9 @@ namespace thread {
     }
 
     void lock() {
-      while(atomic::test_and_set(&lock_));
+      while(atomic::test_and_set(&lock_)) {
+        atomic::pause();
+      }
     }
 
     void unlock() {
