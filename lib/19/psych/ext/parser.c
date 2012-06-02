@@ -4,6 +4,7 @@ VALUE cPsychParser;
 VALUE ePsychSyntaxError;
 
 static ID id_read;
+static ID id_path;
 static ID id_empty;
 static ID id_start_stream;
 static ID id_end_stream;
@@ -18,9 +19,9 @@ static ID id_end_mapping;
 
 #define PSYCH_TRANSCODE(_str, _yaml_enc, _internal_enc) \
   do { \
-    rb_enc_associate_index(_str, _yaml_enc); \
+    rb_enc_associate_index((_str), (_yaml_enc)); \
     if(_internal_enc) \
-      _str = rb_str_export_to_enc(_str, _internal_enc); \
+      (_str) = rb_str_export_to_enc((_str), (_internal_enc)); \
   } while (0)
 
 static int io_reader(void * data, unsigned char *buf, size_t size, size_t *read)
@@ -39,6 +40,183 @@ static int io_reader(void * data, unsigned char *buf, size_t size, size_t *read)
     return 1;
 }
 
+static void dealloc(void * ptr)
+{
+    yaml_parser_t * parser;
+
+    parser = (yaml_parser_t *)ptr;
+    yaml_parser_delete(parser);
+    xfree(parser);
+}
+
+static VALUE allocate(VALUE klass)
+{
+    yaml_parser_t * parser;
+
+    parser = xmalloc(sizeof(yaml_parser_t));
+    yaml_parser_initialize(parser);
+
+    return Data_Wrap_Struct(klass, 0, dealloc, parser);
+}
+
+static VALUE make_exception(yaml_parser_t * parser, VALUE path)
+{
+    size_t line, column;
+
+    line = parser->context_mark.line + 1;
+    column = parser->context_mark.column + 1;
+
+    return rb_funcall(ePsychSyntaxError, rb_intern("new"), 6,
+	    path,
+	    INT2NUM(line),
+	    INT2NUM(column),
+	    INT2NUM(parser->problem_offset),
+	    parser->problem ? rb_usascii_str_new2(parser->problem) : Qnil,
+	    parser->context ? rb_usascii_str_new2(parser->context) : Qnil);
+}
+
+#ifdef HAVE_RUBY_ENCODING_H
+static VALUE transcode_string(VALUE src, int * parser_encoding)
+{
+    int utf8    = rb_utf8_encindex();
+    int utf16le = rb_enc_find_index("UTF16_LE");
+    int utf16be = rb_enc_find_index("UTF16_BE");
+    int source_encoding = rb_enc_get_index(src);
+
+    if (source_encoding == utf8) {
+	*parser_encoding = YAML_UTF8_ENCODING;
+	return src;
+    }
+
+    if (source_encoding == utf16le) {
+	*parser_encoding = YAML_UTF16LE_ENCODING;
+	return src;
+    }
+
+    if (source_encoding == utf16be) {
+	*parser_encoding = YAML_UTF16BE_ENCODING;
+	return src;
+    }
+
+    src = rb_str_export_to_enc(src, rb_utf8_encoding());
+    RB_GC_GUARD(src);
+
+    *parser_encoding = YAML_UTF8_ENCODING;
+    return src;
+}
+
+static VALUE transcode_io(VALUE src, int * parser_encoding)
+{
+    VALUE io_external_encoding;
+    int io_external_enc_index;
+
+    io_external_encoding = rb_funcall(src, rb_intern("external_encoding"), 0);
+
+    /* if no encoding is returned, assume ascii8bit. */
+    if (NIL_P(io_external_encoding)) {
+	io_external_enc_index = rb_ascii8bit_encindex();
+    } else {
+	io_external_enc_index = rb_to_encoding_index(io_external_encoding);
+    }
+
+    /* Treat US-ASCII as utf_8 */
+    if (io_external_enc_index == rb_usascii_encindex()) {
+	*parser_encoding = YAML_UTF8_ENCODING;
+	return src;
+    }
+
+    if (io_external_enc_index == rb_utf8_encindex()) {
+	*parser_encoding = YAML_UTF8_ENCODING;
+	return src;
+    }
+
+    if (io_external_enc_index == rb_enc_find_index("UTF-16LE")) {
+	*parser_encoding = YAML_UTF16LE_ENCODING;
+	return src;
+    }
+
+    if (io_external_enc_index == rb_enc_find_index("UTF-16BE")) {
+	*parser_encoding = YAML_UTF16BE_ENCODING;
+	return src;
+    }
+
+    /* Just guess on ASCII-8BIT */
+    if (io_external_enc_index == rb_ascii8bit_encindex()) {
+	*parser_encoding = YAML_ANY_ENCODING;
+	return src;
+    }
+
+    /* If the external encoding is something we don't know how to handle,
+     * fall back to YAML_ANY_ENCODING. */
+    *parser_encoding = YAML_ANY_ENCODING;
+
+    return src;
+}
+
+#endif
+
+static VALUE protected_start_stream(VALUE pointer)
+{
+    VALUE *args = (VALUE *)pointer;
+    return rb_funcall(args[0], id_start_stream, 1, args[1]);
+}
+
+static VALUE protected_start_document(VALUE pointer)
+{
+    VALUE *args = (VALUE *)pointer;
+    return rb_funcall3(args[0], id_start_document, 3, args + 1);
+}
+
+static VALUE protected_end_document(VALUE pointer)
+{
+    VALUE *args = (VALUE *)pointer;
+    return rb_funcall(args[0], id_end_document, 1, args[1]);
+}
+
+static VALUE protected_alias(VALUE pointer)
+{
+    VALUE *args = (VALUE *)pointer;
+    return rb_funcall(args[0], id_alias, 1, args[1]);
+}
+
+static VALUE protected_scalar(VALUE pointer)
+{
+    VALUE *args = (VALUE *)pointer;
+    return rb_funcall3(args[0], id_scalar, 6, args + 1);
+}
+
+static VALUE protected_start_sequence(VALUE pointer)
+{
+    VALUE *args = (VALUE *)pointer;
+    return rb_funcall3(args[0], id_start_sequence, 4, args + 1);
+}
+
+static VALUE protected_end_sequence(VALUE handler)
+{
+    return rb_funcall(handler, id_end_sequence, 0);
+}
+
+static VALUE protected_start_mapping(VALUE pointer)
+{
+    VALUE *args = (VALUE *)pointer;
+    return rb_funcall3(args[0], id_start_mapping, 4, args + 1);
+}
+
+static VALUE protected_end_mapping(VALUE handler)
+{
+    return rb_funcall(handler, id_end_mapping, 0);
+}
+
+static VALUE protected_empty(VALUE handler)
+{
+    return rb_funcall(handler, id_empty, 0);
+}
+
+static VALUE protected_end_stream(VALUE handler)
+{
+    return rb_funcall(handler, id_end_stream, 0);
+}
+
 /*
  * call-seq:
  *    parser.parse(yaml)
@@ -48,73 +226,79 @@ static int io_reader(void * data, unsigned char *buf, size_t size, size_t *read)
  *
  * See Psych::Parser and Psych::Parser#handler
  */
-static VALUE parse(VALUE self, VALUE yaml)
+static VALUE parse(int argc, VALUE *argv, VALUE self)
 {
-    yaml_parser_t parser;
+    VALUE yaml, path;
+    yaml_parser_t * parser;
     yaml_event_t event;
     int done = 0;
     int tainted = 0;
+    int state = 0;
+    int parser_encoding = YAML_ANY_ENCODING;
 #ifdef HAVE_RUBY_ENCODING_H
-    int encoding = rb_enc_find_index("ASCII-8BIT");
-    rb_encoding * internal_enc;
+    int encoding = rb_utf8_encindex();
+    rb_encoding * internal_enc = rb_default_internal_encoding();
 #endif
     VALUE handler = rb_iv_get(self, "@handler");
 
+    if (rb_scan_args(argc, argv, "11", &yaml, &path) == 1) {
+	if(rb_respond_to(yaml, id_path))
+	    path = rb_funcall(yaml, id_path, 0);
+	else
+	    path = rb_str_new2("<unknown>");
+    }
 
-    yaml_parser_initialize(&parser);
+    Data_Get_Struct(self, yaml_parser_t, parser);
+
+    yaml_parser_delete(parser);
+    yaml_parser_initialize(parser);
 
     if (OBJ_TAINTED(yaml)) tainted = 1;
 
-    if(rb_respond_to(yaml, id_read)) {
-	yaml_parser_set_input(&parser, io_reader, (void *)yaml);
+    if (rb_respond_to(yaml, id_read)) {
+#ifdef HAVE_RUBY_ENCODING_H
+	yaml = transcode_io(yaml, &parser_encoding);
+	yaml_parser_set_encoding(parser, parser_encoding);
+#endif
+	yaml_parser_set_input(parser, io_reader, (void *)yaml);
 	if (RTEST(rb_obj_is_kind_of(yaml, rb_cIO))) tainted = 1;
     } else {
 	StringValue(yaml);
+#ifdef HAVE_RUBY_ENCODING_H
+	yaml = transcode_string(yaml, &parser_encoding);
+	yaml_parser_set_encoding(parser, parser_encoding);
+#endif
 	yaml_parser_set_input_string(
-		&parser,
+		parser,
 		(const unsigned char *)RSTRING_PTR(yaml),
 		(size_t)RSTRING_LEN(yaml)
 		);
     }
 
     while(!done) {
-	if(!yaml_parser_parse(&parser, &event)) {
-	    size_t line   = parser.mark.line + 1;
-	    size_t column = parser.mark.column;
+	if(!yaml_parser_parse(parser, &event)) {
+	    VALUE exception;
 
-	    yaml_parser_delete(&parser);
-	    rb_raise(ePsychSyntaxError, "couldn't parse YAML at line %d column %d",
-		    (int)line, (int)column);
+	    exception = make_exception(parser, path);
+	    yaml_parser_delete(parser);
+	    yaml_parser_initialize(parser);
+
+	    rb_exc_raise(exception);
 	}
 
 	switch(event.type) {
-	  case YAML_STREAM_START_EVENT:
+	    case YAML_STREAM_START_EVENT:
+	      {
+		  VALUE args[2];
 
-#ifdef HAVE_RUBY_ENCODING_H
-	    switch(event.data.stream_start.encoding) {
-	      case YAML_ANY_ENCODING:
-		break;
-	      case YAML_UTF8_ENCODING:
-		encoding = rb_enc_find_index("UTF-8");
-		break;
-	      case YAML_UTF16LE_ENCODING:
-		encoding = rb_enc_find_index("UTF-16LE");
-		break;
-	      case YAML_UTF16BE_ENCODING:
-		encoding = rb_enc_find_index("UTF-16BE");
-		break;
-	      default:
-		break;
-	    }
-	    internal_enc = rb_default_internal_encoding();
-#endif
-
-	    rb_funcall(handler, id_start_stream, 1,
-		       INT2NUM((long)event.data.stream_start.encoding)
-		);
-	    break;
+		  args[0] = handler;
+		  args[1] = INT2NUM((long)event.data.stream_start.encoding);
+		  rb_protect(protected_start_stream, (VALUE)args, &state);
+	      }
+	      break;
 	  case YAML_DOCUMENT_START_EVENT:
 	    {
+		VALUE args[4];
 		/* Get a list of tag directives (if any) */
 		VALUE tag_directives = rb_ary_new();
 		/* Grab the document version */
@@ -152,19 +336,25 @@ static VALUE parse(VALUE self, VALUE yaml)
 			rb_ary_push(tag_directives, rb_ary_new3((long)2, handle, prefix));
 		    }
 		}
-		rb_funcall(handler, id_start_document, 3,
-			   version, tag_directives,
-			   event.data.document_start.implicit == 1 ? Qtrue : Qfalse
-		    );
+		args[0] = handler;
+		args[1] = version;
+		args[2] = tag_directives;
+		args[3] = event.data.document_start.implicit == 1 ? Qtrue : Qfalse;
+		rb_protect(protected_start_document, (VALUE)args, &state);
 	    }
 	    break;
 	  case YAML_DOCUMENT_END_EVENT:
-	    rb_funcall(handler, id_end_document, 1,
-		       event.data.document_end.implicit == 1 ? Qtrue : Qfalse
-		);
+	    {
+		VALUE args[2];
+
+		args[0] = handler;
+		args[1] = event.data.document_end.implicit == 1 ? Qtrue : Qfalse;
+		rb_protect(protected_end_document, (VALUE)args, &state);
+	    }
 	    break;
 	  case YAML_ALIAS_EVENT:
 	    {
+		VALUE args[2];
 		VALUE alias = Qnil;
 		if(event.data.alias.anchor) {
 		    alias = rb_str_new2((const char *)event.data.alias.anchor);
@@ -174,11 +364,14 @@ static VALUE parse(VALUE self, VALUE yaml)
 #endif
 		}
 
-		rb_funcall(handler, id_alias, 1, alias);
+		args[0] = handler;
+		args[1] = alias;
+		rb_protect(protected_alias, (VALUE)args, &state);
 	    }
 	    break;
 	  case YAML_SCALAR_EVENT:
 	    {
+		VALUE args[7];
 		VALUE anchor = Qnil;
 		VALUE tag = Qnil;
 		VALUE plain_implicit, quoted_implicit, style;
@@ -216,12 +409,19 @@ static VALUE parse(VALUE self, VALUE yaml)
 
 		style = INT2NUM((long)event.data.scalar.style);
 
-		rb_funcall(handler, id_scalar, 6,
-			   val, anchor, tag, plain_implicit, quoted_implicit, style);
+		args[0] = handler;
+		args[1] = val;
+		args[2] = anchor;
+		args[3] = tag;
+		args[4] = plain_implicit;
+		args[5] = quoted_implicit;
+		args[6] = style;
+		rb_protect(protected_scalar, (VALUE)args, &state);
 	    }
 	    break;
 	  case YAML_SEQUENCE_START_EVENT:
 	    {
+		VALUE args[5];
 		VALUE anchor = Qnil;
 		VALUE tag = Qnil;
 		VALUE implicit, style;
@@ -247,15 +447,21 @@ static VALUE parse(VALUE self, VALUE yaml)
 
 		style = INT2NUM((long)event.data.sequence_start.style);
 
-		rb_funcall(handler, id_start_sequence, 4,
-			   anchor, tag, implicit, style);
+		args[0] = handler;
+		args[1] = anchor;
+		args[2] = tag;
+		args[3] = implicit;
+		args[4] = style;
+
+		rb_protect(protected_start_sequence, (VALUE)args, &state);
 	    }
 	    break;
 	  case YAML_SEQUENCE_END_EVENT:
-	    rb_funcall(handler, id_end_sequence, 0);
+	    rb_protect(protected_end_sequence, handler, &state);
 	    break;
 	  case YAML_MAPPING_START_EVENT:
 	    {
+		VALUE args[5];
 		VALUE anchor = Qnil;
 		VALUE tag = Qnil;
 		VALUE implicit, style;
@@ -280,25 +486,53 @@ static VALUE parse(VALUE self, VALUE yaml)
 
 		style = INT2NUM((long)event.data.mapping_start.style);
 
-		rb_funcall(handler, id_start_mapping, 4,
-			   anchor, tag, implicit, style);
+		args[0] = handler;
+		args[1] = anchor;
+		args[2] = tag;
+		args[3] = implicit;
+		args[4] = style;
+
+		rb_protect(protected_start_mapping, (VALUE)args, &state);
 	    }
 	    break;
 	  case YAML_MAPPING_END_EVENT:
-	    rb_funcall(handler, id_end_mapping, 0);
+	    rb_protect(protected_end_mapping, handler, &state);
 	    break;
 	  case YAML_NO_EVENT:
-	    rb_funcall(handler, id_empty, 0);
+	    rb_protect(protected_empty, handler, &state);
 	    break;
 	  case YAML_STREAM_END_EVENT:
-	    rb_funcall(handler, id_end_stream, 0);
+	    rb_protect(protected_end_stream, handler, &state);
 	    done = 1;
 	    break;
 	}
 	yaml_event_delete(&event);
+	if (state) rb_jump_tag(state);
     }
 
     return self;
+}
+
+/*
+ * call-seq:
+ *    parser.mark # => #<Psych::Parser::Mark>
+ *
+ * Returns a Psych::Parser::Mark object that contains line, column, and index
+ * information.
+ */
+static VALUE mark(VALUE self)
+{
+    VALUE mark_klass;
+    VALUE args[3];
+    yaml_parser_t * parser;
+
+    Data_Get_Struct(self, yaml_parser_t, parser);
+    mark_klass = rb_const_get_at(cPsychParser, rb_intern("Mark"));
+    args[0] = INT2NUM(parser->mark.index);
+    args[1] = INT2NUM(parser->mark.line);
+    args[2] = INT2NUM(parser->mark.column);
+
+    return rb_class_new_instance(3, args, mark_klass);
 }
 
 void Init_psych_parser()
@@ -308,6 +542,7 @@ void Init_psych_parser()
 #endif
 
     cPsychParser = rb_define_class_under(mPsych, "Parser", rb_cObject);
+    rb_define_alloc_func(cPsychParser, allocate);
 
     /* Any encoding: Let the parser choose the encoding */
     rb_define_const(cPsychParser, "ANY", INT2NUM(YAML_ANY_ENCODING));
@@ -321,11 +556,14 @@ void Init_psych_parser()
     /* UTF-16-BE Encoding with BOM */
     rb_define_const(cPsychParser, "UTF16BE", INT2NUM(YAML_UTF16BE_ENCODING));
 
+    rb_require("psych/syntax_error");
     ePsychSyntaxError = rb_define_class_under(mPsych, "SyntaxError", rb_eSyntaxError);
 
-    rb_define_method(cPsychParser, "parse", parse, 1);
+    rb_define_method(cPsychParser, "parse", parse, -1);
+    rb_define_method(cPsychParser, "mark", mark, 0);
 
     id_read           = rb_intern("read");
+    id_path           = rb_intern("path");
     id_empty          = rb_intern("empty");
     id_start_stream   = rb_intern("start_stream");
     id_end_stream     = rb_intern("end_stream");

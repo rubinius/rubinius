@@ -7,6 +7,12 @@ module Psych
     # Taken from http://yaml.org/type/timestamp.html
     TIME = /^\d{4}-\d{1,2}-\d{1,2}([Tt]|\s+)\d{1,2}:\d\d:\d\d(\.\d*)?(\s*Z|[-+]\d{1,2}(:\d\d)?)?/
 
+    # Taken from http://yaml.org/type/float.html
+    FLOAT = /^(?:[-+]?([0-9][0-9_,]*)?\.[0-9.]*([eE][-+][0-9]+)?(?# base 10)
+              |[-+]?[0-9][0-9_,]*(:[0-5]?[0-9])+\.[0-9_]*(?# base 60)
+              |[-+]?\.(inf|Inf|INF)(?# infinity)
+              |\.(nan|NaN|NAN)(?# not a number))$/x
+
     # Create a new scanner
     def initialize
       @string_cache = {}
@@ -40,9 +46,13 @@ module Psych
         end
       when TIME
         parse_time string
-      when /^\d{4}-\d{1,2}-\d{1,2}$/
+      when /^\d{4}-(?:1[012]|0\d|\d)-(?:[12]\d|3[01]|0\d|\d)$/
         require 'date'
-        Date.strptime(string, '%Y-%m-%d')
+        begin
+          Date.strptime(string, '%Y-%m-%d')
+        rescue ArgumentError
+          string
+        end
       when /^\.inf$/i
         1 / 0.0
       when /^-\.inf$/i
@@ -55,7 +65,7 @@ module Psych
         else
           string.sub(/^:/, '').to_sym
         end
-      when /^[-+]?[1-9][0-9_]*(:[0-5]?[0-9])+$/
+      when /^[-+]?[0-9][0-9_]*(:[0-5]?[0-9])+$/
         i = 0
         string.split(':').each_with_index do |n,e|
           i += (n.to_i * 60 ** (e - 2).abs)
@@ -67,9 +77,22 @@ module Psych
           i += (n.to_f * 60 ** (e - 2).abs)
         end
         i
+      when FLOAT
+        begin
+          return Float(string.gsub(/[,_]/, ''))
+        rescue ArgumentError
+        end
+
+        @string_cache[string] = true
+        string
       else
-        return Integer(string.gsub(/[,_]/, '')) rescue ArgumentError
-        return Float(string.gsub(/[,_]/, '')) rescue ArgumentError
+        if string.count('.') < 2
+          begin
+            return Integer(string.gsub(/[,_]/, ''))
+          rescue ArgumentError
+          end
+        end
+
         @string_cache[string] = true
         string
       end
