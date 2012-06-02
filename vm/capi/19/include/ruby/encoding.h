@@ -36,6 +36,8 @@ typedef OnigEncodingType rb_encoding;
 #define rb_enc_mbminlen(enc)        (enc)->min_enc_len
 #define rb_enc_mbmaxlen(enc)        (enc)->max_enc_len
 
+#define rb_usascii_str_new2 rb_usascii_str_new_cstr
+
 #define ENCODING_GET(obj) rb_enc_get_index(obj)
 #define ENCODING_SET(obj, i) rb_enc_set_index(obj, i)
 
@@ -81,7 +83,7 @@ VALUE rb_enc_associate_index(VALUE, int);
 void rb_enc_copy(VALUE dest, VALUE src);
 
 VALUE rb_enc_str_new(const char*, long, rb_encoding*);
-VALUE rb_usascii_str_new_cstr(const char* ptr);
+VALUE rb_usascii_str_new2(const char* ptr);
 int rb_enc_str_coderange(VALUE);
 
 VALUE rb_external_str_new_with_enc(const char *ptr, long len, rb_encoding *);

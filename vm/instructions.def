@@ -2235,7 +2235,7 @@ end
 #   ...
 #   arg2
 #   arg1
-#   reciever
+#   receiver
 # [Stack After]
 #   value
 #   ...
