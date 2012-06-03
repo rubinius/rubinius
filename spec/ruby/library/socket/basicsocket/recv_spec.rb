@@ -73,4 +73,23 @@ describe "BasicSocket#recv" do
     ScratchPad.recorded.should == "firstline\377"
   end
 
+  ruby_version_is "1.9" do
+    it "Encoding of received data should be BINARY(ASCII-8BIT)"  do
+      t = Thread.new do
+        client = @server.accept
+        ScratchPad.record client.recv(55)
+        client.close
+      end
+      Thread.pass while t.status and t.status != "sleep"
+      t.status.should_not be_nil
+
+      socket = TCPSocket.new('127.0.0.1', SocketSpecs.port)
+      socket.write("Encoding of received data should be BINARY(ASCII-8BIT)")
+      socket.close
+
+      t.join
+      ScratchPad.recorded.encoding.should == Encoding::ASCII_8BIT
+    end
+  end
+
 end
