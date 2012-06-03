@@ -1,4 +1,4 @@
-require 'psych.so'
+require 'psych/ext/psych'
 require 'psych/nodes'
 require 'psych/streaming'
 require 'psych/visitors'
