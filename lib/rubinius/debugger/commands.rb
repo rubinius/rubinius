@@ -115,8 +115,13 @@ To breakpoint on class method start of Debugger line 4, use:
   Debugger.start:4
       HELP
 
+      # provide this method so it can be overriden for other languages wanting to use this debugger
+      def match_method(method_identifier)
+        /([A-Z]\w*(?:::[A-Z]\w*)*)([.#]|::)([a-zA-Z0-9_\[\]]+[!?=]?)(?:[:](\d+))?/.match(method_identifier)
+      end
+
       def run(args, temp=false)
-        m = /([A-Z]\w*(?:::[A-Z]\w*)*)([.#]|::)([a-zA-Z0-9_\[\]]+[!?=]?)(?:[:](\d+))?/.match(args)
+        m = match_method(args)
         unless m
           error "Unrecognized position: '#{args}'"
           return
