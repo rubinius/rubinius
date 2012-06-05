@@ -242,8 +242,23 @@ class Array
     self
   end
 
+  def inspect
+    return "[]".force_encoding("US-ASCII") if @total == 0
+
+    comma = ", "
+    result = "["
+
+    return "[...]" if Thread.detect_recursion self do
+      each { |o| result << o.inspect << comma }
+    end
+
+    Rubinius::Type.infect(result, self)
+    result.shorten!(2)
+    result << "]"
+  end
+
   def join(sep=nil)
-    return "" if @total == 0
+    return "".force_encoding("US-ASCII") if @total == 0
 
     out = ""
     raise ArgumentError, "recursive array join" if Thread.detect_recursion self do
