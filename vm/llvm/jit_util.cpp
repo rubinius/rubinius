@@ -6,6 +6,7 @@
 #include "vm.hpp"
 #include "objectmemory.hpp"
 #include "call_frame.hpp"
+#include "on_stack.hpp"
 
 #include "builtin/object.hpp"
 #include "builtin/symbol.hpp"
@@ -407,6 +408,7 @@ extern "C" {
          * object itself is wrapped in an Array and passed to the block.
          */
         if(CBOOL(obj->respond_to(state, state->symbol("to_ary"), cFalse))) {
+          OnStack<1> os(state, obj);
           Object* ignored = obj->send(state, call_frame, state->symbol("to_ary"));
           if(!ignored->nil_p() && !kind_of<Array>(ignored)) {
             Exception::type_error(state, "to_ary must return an Array", call_frame);
@@ -478,6 +480,7 @@ extern "C" {
          * object itself is wrapped in an Array and passed to the block.
          */
         if(CBOOL(obj->respond_to(state, state->symbol("to_ary"), cFalse))) {
+          OnStack<1> os(state, obj);
           Object* ignored = obj->send(state, call_frame, state->symbol("to_ary"));
           if(!kind_of<Array>(ignored)) {
             Exception::type_error(state, "to_ary must return an Array", call_frame);

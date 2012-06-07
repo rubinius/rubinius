@@ -11,6 +11,7 @@
 #include "call_frame.hpp"
 #include "objectmemory.hpp"
 #include "configuration.hpp"
+#include "on_stack.hpp"
 
 #include "builtin/array.hpp"
 #include "builtin/exception.hpp"
@@ -688,6 +689,7 @@ namespace rubinius {
     ep.pop(env);
 
     LEAVE_CAPI(state);
+    OnStack<1> os(state, ret);
 
     // Handle any signals that occurred while the native method
     // was running.

@@ -28,6 +28,7 @@
 #include "dispatch.hpp"
 #include "instructions.hpp"
 #include "configuration.hpp"
+#include "on_stack.hpp"
 
 #include "helpers.hpp"
 #include "inline_cache.hpp"
