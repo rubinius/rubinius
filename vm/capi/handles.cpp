@@ -34,6 +34,20 @@ namespace rubinius {
       return allocator_->from_index(index);
     }
 
+    Handles::~Handles() {
+      for(std::vector<int>::size_type i = 0; i < allocator_->chunks_.size(); ++i) {
+        Handle* chunk = allocator_->chunks_[i];
+
+        for(size_t j = 0; j < allocator_->cChunkSize; j++) {
+          Handle* handle = &chunk[j];
+          if(handle->in_use_p()) {
+            handle->clear();
+          }
+        }
+      }
+      delete allocator_;
+    }
+
     void Handles::deallocate_handles(std::list<Handle*>* cached, int mark, BakerGC* young) {
 
       std::vector<bool> chunk_marks(allocator_->chunks_.size(), false);

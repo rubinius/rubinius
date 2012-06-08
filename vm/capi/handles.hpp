@@ -24,9 +24,7 @@ namespace rubinius {
         : allocator_(new Allocator<Handle>())
       {}
 
-      ~Handles() {
-        delete allocator_;
-      }
+      ~Handles();
 
       Handle* allocate(STATE, Object* obj);
 
