@@ -124,7 +124,8 @@ namespace :build do
         Dir.chdir "vendor/llvm" do
           host = Rubinius::BUILD_CONFIG[:host]
           llvm_config_flags = "--build=#{host} --host=#{host} " \
-                              "--enable-optimized --enable-targets=host,cpp"
+                              "--enable-optimized --disable-assertions "\
+                              " --enable-targets=host,cpp"
           sh %[sh -c "#{expand("./configure")} #{llvm_config_flags}"]
           sh make
         end
