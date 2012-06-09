@@ -122,6 +122,9 @@ namespace :build do
       unless File.file?("vendor/llvm/Release/bin/llvm-config")
         ENV["REQUIRES_RTTI"] = "1"
         Dir.chdir "vendor/llvm" do
+          host = Rubinius::BUILD_CONFIG[:host]
+          llvm_config_flags = "--build=#{host} --host=#{host} " \
+                              "--enable-optimized --enable-targets=host,cpp"
           sh %[sh -c "#{expand("./configure")} #{llvm_config_flags}"]
           sh make
         end
