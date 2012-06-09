@@ -1,5 +1,4 @@
 require 'rakelib/rubinius'
-require 'rakelib/build'
 require 'rakelib/instruction_parser'
 require 'rakelib/generator_task'
 
