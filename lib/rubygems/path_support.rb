@@ -65,10 +65,6 @@ class Gem::PathSupport
       gem_path << APPLE_GEM_HOME if defined?(APPLE_GEM_HOME)
     end
 
-    if Gem.respond_to?(:default_preinstalled_dir)
-      gem_path << Gem.default_preinstalled_dir
-    end
-
     @path = gem_path.uniq
   end
 end
