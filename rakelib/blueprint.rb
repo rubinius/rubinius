@@ -190,45 +190,39 @@ Daedalus.blueprint do |i|
   case Rubinius::BUILD_CONFIG[:llvm]
   when :prebuilt, :svn
     llvm = i.external_lib "vendor/llvm" do |l|
-      conf = "vendor/llvm/Release/bin/llvm-config"
-      flags = `#{perl} #{conf} --cflags`.strip.split(/\s+/)
-      flags.delete_if { |x| x.index("-O") == 0 || x.index("-I") == 0 }
-      flags.delete_if { |x| x =~ /-D__STDC/ }
-      flags.delete_if { |x| x == "-DNDEBUG" }
-      flags.delete_if { |x| x == "-fomit-frame-pointer" }
-
-      flags << "-Ivendor/llvm/include" << "-DENABLE_LLVM"
-      l.cflags = flags
-
-      ldflags = `#{perl} #{conf} --ldflags`.strip
-      objects = `#{perl} #{conf} --libfiles`.strip.split(/\s+/)
-
-      if Rubinius::BUILD_CONFIG[:windows]
-        ldflags = ldflags.sub(%r[-L/([a-zA-Z])/], '-L\1:/')
-
-        objects.select do |f|
-          f.sub!(%r[^/([a-zA-Z])/], '\1:/')
-          File.file? f
-        end
-      end
-
-      l.ldflags = [ldflags]
-      l.objects = objects
+      l.cflags = ["-Ivendor/llvm/include"]
+      l.objects = []
     end
 
     gcc.add_library llvm
-    files << llvm
-  when :config
+  end
+
+  case Rubinius::BUILD_CONFIG[:llvm]
+  when :config, :prebuilt, :svn
     conf = Rubinius::BUILD_CONFIG[:llvm_configure]
-    flags = `#{perl} #{conf} --cflags`.strip.split(/\s+/)
+    flags = `#{conf} --cflags`.strip.split(/\s+/)
     flags.delete_if { |x| x.index("-O") == 0 }
     flags.delete_if { |x| x =~ /-D__STDC/ }
     flags.delete_if { |x| x == "-DNDEBUG" }
     flags.delete_if { |x| x == "-fomit-frame-pointer" }
 
     flags << "-DENABLE_LLVM"
+
+    ldflags = `#{conf} --ldflags`.strip.split(/\s+/)
+    objects = `#{conf} --libfiles`.strip.split(/\s+/)
+
+    if Rubinius::BUILD_CONFIG[:windows]
+      ldflags = ldflags.sub(%r[-L/([a-zA-Z])/], '-L\1:/')
+
+      objects.select do |f|
+        f.sub!(%r[^/([a-zA-Z])/], '\1:/')
+        File.file? f
+      end
+    end
+
     gcc.cflags.concat flags
-    gcc.ldflags.concat `#{perl} #{conf} --ldflags --libfiles`.strip.split(/\s+/)
+    gcc.ldflags.concat ldflags
+    gcc.ldflags.concat objects
   when :no
     # nothing, not using LLVM
   else
