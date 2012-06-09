@@ -29,11 +29,24 @@ module Rubinius
     attr_reader   :pre_exe
 
     def self.parse_string(string, name="(eval)", line=1)
-      new(name, line).parse_string string
+      system_parser.new(name, line).parse_string string
     end
 
     def self.parse_file(name, line=1)
-      new(name, line).parse_file
+      system_parser.new(name, line).parse_file
+    end
+
+    def self.system_parser
+      case
+      when Rubinius.ruby18?
+        Melbourne
+      when Rubinius.ruby19?
+        Melbourne19
+      when Rubinius.ruby20?
+        Melbourne20
+      else
+        raise Exception, "no processor is defined for Parser compiler stage."
+      end
     end
 
     def initialize(name, line, transforms=[])

@@ -164,17 +164,7 @@ module Rubinius
         super
         compiler.parser = self
         @transforms = []
-
-        case
-        when Rubinius.ruby18?
-          @processor = Rubinius::Melbourne
-        when Rubinius.ruby19?
-          @processor = Rubinius::Melbourne19
-        when Rubinius.ruby20?
-          @processor = Rubinius::Melbourne20
-        else
-          raise Exception, "no processor is defined for Parser compiler stage."
-        end
+        @processor = Melbourne.system_parser
       end
 
       def root(klass)
