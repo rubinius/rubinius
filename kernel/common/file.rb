@@ -609,10 +609,14 @@ class File < IO
   #   open("d", "w") {}
   #   p File.identical?("a", "d")      #=> false
   def self.identical?(orig, copy)
-    st_o = File::Stat.stat(Rubinius::Type.coerce_to_path(orig))
-    st_c = File::Stat.stat(Rubinius::Type.coerce_to_path(copy))
+    orig = Rubinius::Type.coerce_to_path(orig)
+    st_o = File::Stat.stat(orig)
+    copy = Rubinius::Type.coerce_to_path(copy)
+    st_c = File::Stat.stat(copy)
+
     return false if st_o.nil? || st_c.nil?
 
+    return false unless st_o.dev == st_c.dev
     return false unless st_o.ino == st_c.ino
     return false unless st_o.ftype == st_c.ftype
     return false unless POSIX.access(orig, Constants::R_OK)

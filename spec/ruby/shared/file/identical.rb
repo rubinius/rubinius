@@ -26,12 +26,20 @@ describe :file_identical, :shared => true do
     @object.send(@method, @non_exist, @non_exist).should be_false
   end
 
+  ruby_version_is ""..."1.9" do
+    it "accepts an object that has a #to_str method" do
+      file1, link = mock('file1'), mock('link')
+      file1.should_receive(:to_str).and_return(@file1)
+      link.should_receive(:to_str).and_return(@link)
+      @object.send(@method, file1, link).should == true
+    end
+  end
+
   ruby_version_is "1.9" do
     it "accepts an object that has a #to_path method" do
       @object.send(@method, mock_to_path(@file1), mock_to_path(@link)).should == true
     end
   end
-
 
   it "raises an ArgumentError if not passed two arguments" do
     lambda { @object.send(@method, @file1, @file2, @link) }.should raise_error(ArgumentError)
