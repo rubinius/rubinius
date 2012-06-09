@@ -73,11 +73,11 @@ class Configure
     @llvm_asset_path        = "http://asset.rubini.us/prebuilt"
     @llvm_source_build      = false
 
+    check_tool_version @cc, '-dumpversion', [4, 1]
+    check_tool_version @cxx, '-dumpversion', [4, 1]
+    check_tool_version 'bison', '--version', [2, 3]
 
     if @host == "i686-pc-linux-gnu" || @host == "x86_64-unknown-linux-gnu"
-      check_tool_version @cc, '-dumpversion', [4, 1]
-      check_tool_version 'bison', '--version', [2, 3]
-
       @gcc_major = `#{@cc} -dumpversion`.strip.split(".")[0,2].join(".")
       @llvm_generic_prebuilt  = "llvm-#{@llvm_version}-#{@host}-#{@gcc_major}.tar.bz2"
     else
