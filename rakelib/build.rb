@@ -1,9 +1,9 @@
-def llvm_configure
+def llvm_config_cmd
   case Rubinius::BUILD_CONFIG[:llvm]
   when :svn, :prebuilt
-    "vendor/llvm/Release/bin/llvm-config"
+    "#{build_perl} vendor/llvm/Release/bin/llvm-config"
   when :config
-    Rubinius::BUILD_CONFIG[:llvm_configure]
+    Rubinius::BUILD_CONFIG[:llvm_config_cmd]
   else
     raise "Tried to use LLVM unconfigure!"
   end
@@ -25,7 +25,7 @@ def llvm_flags
     @llvm_flags = []
   end
 
-  @llvm_flags += `#{build_perl} #{llvm_configure} --cflags`.split(/\s+/)
+  @llvm_flags += `#{llvm_config_cmd} --cflags`.split(/\s+/)
   @llvm_flags.delete_if { |e| e.index("-O") == 0 }
   @llvm_flags
 end
@@ -33,7 +33,7 @@ end
 def llvm_link_flags
   return "" unless LLVM_ENABLE
 
-  flags = `#{build_perl} #{llvm_configure} --ldflags`.strip
+  flags = `#{llvm_config_cmd} --ldflags`.strip
   flags.sub!(%r[-L/([a-zA-Z])/], '-L\1:/') if Rubinius::BUILD_CONFIG[:windows]
 
   flags
@@ -42,7 +42,7 @@ end
 def llvm_lib_files
   return [] unless LLVM_ENABLE
 
-  files = `#{build_perl} #{llvm_configure} --libfiles`.split(/\s+/)
+  files = `#{llvm_config_cmd} --libfiles`.split(/\s+/)
   files.select do |f|
     f.sub!(%r[^/([a-zA-Z])/], '\1:/') if Rubinius::BUILD_CONFIG[:windows]
     File.file? f
@@ -50,7 +50,7 @@ def llvm_lib_files
 end
 
 def llvm_version
-  `#{build_perl} #{llvm_configure} --version`.strip
+  `#{llvm_config_cmd} --version`.strip
 end
 
 def host_triple
