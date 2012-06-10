@@ -99,15 +99,22 @@ def add_mri_capi
   $LIBS << " #{DEFAULT_CONFIG["LIBS"]}"
   $LIBS << " #{DEFAULT_CONFIG["DLDLIBS"]}"
 
+  ldshared = DEFAULT_CONFIG["LDSHARED"]
+  if ldshared.start_with? DEFAULT_CONFIG["CC"]
+    ldshared = ldshared.gsub(/\A#{DEFAULT_CONFIG["CC"]} /, '')
+  else
+    ldshared = DEFAULT_CONFIG["LDSHARED"].split[1..-1].join(' ')
+  end
+
   case RUBY_PLATFORM
   when /mingw/
     # do nothing
   when /darwin/
     # necessary to avoid problems with RVM injecting flags into the MRI build
     # process.
-    add_ldflag DEFAULT_CONFIG["LDSHARED"].split[1..-1].join(' ').gsub(/-dynamiclib/, "")
+    add_ldflag ldshared.gsub(/-dynamiclib/, "")
   else
-    add_ldflag DEFAULT_CONFIG["LDSHARED"].split[1..-1].join(' ')
+    add_ldflag ldshared
   end
 
   add_ldflag DEFAULT_CONFIG["LDFLAGS"]
