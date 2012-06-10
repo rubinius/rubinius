@@ -173,6 +173,8 @@ namespace rubinius {
       , paused_(false)
     {
       show_machine_code_ = ls->jit_dump_code() & cMachineCode;
+      condition_.init();
+      pause_condition_.init();
     }
 
     void add(BackgroundCompileRequest* req) {
@@ -619,7 +621,7 @@ namespace rubinius {
     shared_.remove_managed_thread(this);
     shared_.om->del_aux_barrier(&write_barrier_);
     delete passes_;
-    delete module_;
+    delete engine_;
     delete background_thread_;
   }
 
