@@ -9,6 +9,7 @@ module Rubinius
       end
 
       def bytecode(g)
+        pos(g)
         g.push_type
       end
     end
