@@ -504,7 +504,9 @@ namespace rubinius {
       }
     }
 
+#if RBX_LLVM_API_VER <= 300
     llvm::NoFramePointerElim = true;
+#endif
     llvm::InitializeNativeTarget();
 
     VoidTy = Type::getVoidTy(ctx_);
@@ -537,7 +539,18 @@ namespace rubinius {
 
     autogen_types::makeLLVMModuleContents(module_);
 
-    engine_ = ExecutionEngine::create(module_, false, 0, CodeGenOpt::Default, false);
+    llvm::EngineBuilder factory(module_);
+    factory.setAllocateGVsWithCode(false);
+
+#if RBX_LLVM_API_VER > 300
+    llvm::TargetOptions opts;
+    opts.NoFramePointerElim = true;
+    opts.NoFramePointerElimNonLeaf = true;
+
+    factory.setTargetOptions(opts);
+#endif
+
+    engine_ = factory.create();
 
     passes_ = new llvm::FunctionPassManager(module_);
 

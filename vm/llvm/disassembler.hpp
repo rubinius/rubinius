@@ -75,6 +75,11 @@ namespace rubinius {
       const llvm::TargetMachine* target_machine;
       const llvm::MCSubtargetInfo* sub_target;
       const llvm::MCAsmInfo* asm_info;
+#if RBX_LLVM_API_VER > 300
+      const llvm::MCInstrInfo* instr_info;
+      const llvm::MCRegisterInfo* reg_info;
+#endif
+
       llvm::MCDisassembler* disassembler;
       const JITMemoryObject* memory_object;
   };

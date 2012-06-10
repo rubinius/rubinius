@@ -26,15 +26,37 @@ namespace rubinius {
   , disassembler(0)
   , memory_object(0)
   {
+#if RBX_LLVM_API_VER > 300
+    std::string host = llvm::sys::getDefaultTargetTriple();
+#else
     std::string host = llvm::sys::getHostTriple();
+#endif
     std::string error;
     llvm::InitializeNativeTargetAsmPrinter();
+#if RBX_LLVM_API_VER > 300
+    llvm::InitializeNativeTargetDisassembler();
+#else
     llvm::InitializeAllDisassemblers();
+#endif
     target = llvm::TargetRegistry::lookupTarget(host, error);
+
+#if RBX_LLVM_API_VER > 300
+    llvm::TargetOptions options;
+    options.NoFramePointerElim = true;
+    options.NoFramePointerElimNonLeaf = true;
+    target_machine = target->createTargetMachine(host, llvm::sys::getHostCPUName(), "", options);
+#else
     target_machine = target->createTargetMachine(host, llvm::sys::getHostCPUName(), "");
+#endif
 
     sub_target = target->createMCSubtargetInfo(host, llvm::sys::getHostCPUName(), "");
     asm_info = target->createMCAsmInfo(host);
+
+#if RBX_LLVM_API_VER > 300
+    instr_info = target->createMCInstrInfo();
+    reg_info = target->createMCRegInfo(host);
+#endif
+
     if(asm_info) {
       disassembler = target->createMCDisassembler(*sub_target);
       memory_object = new JITMemoryObject((const uint8_t*)buffer, (uint64_t) size);
@@ -58,7 +80,12 @@ namespace rubinius {
     }
 
     llvm::MCInstPrinter* printer = target->createMCInstPrinter(
-                                   asm_info->getAssemblerDialect(), *asm_info, *sub_target);
+                                   asm_info->getAssemblerDialect(), *asm_info,
+#if RBX_LLVM_API_VER > 300
+                                   *instr_info,
+                                   *reg_info,
+#endif
+                                   *sub_target);
     if(!printer) {
       return std::string("No instruction printer for target");
     }
