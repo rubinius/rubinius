@@ -99,6 +99,17 @@ def add_mri_capi
   $LIBS << " #{DEFAULT_CONFIG["LIBS"]}"
   $LIBS << " #{DEFAULT_CONFIG["DLDLIBS"]}"
 
+  case RUBY_PLATFORM
+  when /mingw/
+    # do nothing
+  when /darwin/
+    # necessary to avoid problems with RVM injecting flags into the MRI build
+    # process.
+    add_ldflag DEFAULT_CONFIG["LDSHARED"].split[1..-1].join(' ').gsub(/-dynamiclib/, "")
+  else
+    add_ldflag DEFAULT_CONFIG["LDSHARED"].split[1..-1].join(' ')
+  end
+
   add_ldflag DEFAULT_CONFIG["LDFLAGS"]
   rubyhdrdir = DEFAULT_CONFIG["rubyhdrdir"]
   if rubyhdrdir
@@ -109,8 +120,6 @@ def add_mri_capi
   else
     add_include_dir DEFAULT_CONFIG["archdir"]
   end
-
-  $LDSHARED = DEFAULT_CONFIG["LDSHARED"]
 end
 
 def include18_dir
