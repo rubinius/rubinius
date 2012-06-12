@@ -163,8 +163,12 @@ namespace rubinius {
 
     switch(orig.f.meaning) {
     case eAuxWordEmpty:
+      rubinius::bug("ObjectHeader claimed to be empty");
     case eAuxWordHandle:
-      rubinius::bug("ObjectHeader claimed to be empty or already containing handle");
+      // Someone else has beaten us to it, clear the allocated
+      // header so it can be cleaned up on the next GC
+      handle->clear();
+      break;
     case eAuxWordLock:
     case eAuxWordObjID:
       // not inflated, and the aux_word is being used for locking

@@ -150,7 +150,6 @@ namespace rubinius {
 
   capi::Handle* SharedState::add_global_handle(STATE, Object* obj) {
     SYNC(state);
-    //state->memory()->inflate_header(state, obj);
     assert(obj->reference_p());
     uintptr_t handle_index = global_handles_->allocate_index(state, obj);
     obj->set_handle_index(state, handle_index);
