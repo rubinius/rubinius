@@ -547,6 +547,10 @@ step1:
         std::cerr << "[GC " << std::fixed << std::setprecision(1) << stats.percentage_used << "% "
                   << stats.promoted_objects << "/" << stats.excess_objects << " "
                   << stats.lifetime << " " << diff << "ms]" << std::endl;
+
+        if(state->shared().config.gc_noisy) {
+          std::cerr << "\a" << std::flush;
+        }
       }
     }
 
@@ -574,6 +578,10 @@ step1:
         int diff = (fin_time - start_time) / 1000000;
         size_t kb = mature_bytes_allocated() / 1024;
         std::cerr << "[Full GC " << before_kb << "kB => " << kb << "kB " << diff << "ms]" << std::endl;
+
+        if(state->shared().config.gc_noisy) {
+          std::cerr << "\a\a" << std::flush;
+        }
       }
     }
 
