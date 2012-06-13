@@ -114,7 +114,7 @@ namespace rubinius {
     // Double check we've got no id still after the lock.
     if(obj->object_id() > 0) return;
 
-    obj->set_object_id(state, state->memory(), atomic::fetch_and_add(&last_object_id, 1UL));
+    obj->set_object_id(state, state->memory(), atomic::fetch_and_add(&last_object_id, (size_t)1));
   }
 
   Integer* ObjectMemory::assign_object_id_ivar(STATE, Object* obj) {
