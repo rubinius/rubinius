@@ -149,8 +149,9 @@ namespace rubinius {
   }
 
   capi::Handle* SharedState::add_global_handle(STATE, Object* obj) {
-    SYNC(state);
-    assert(obj->reference_p());
+    if(!obj->reference_p()) {
+      rubinius::bug("Trying to add a handle for a non reference");
+    }
     uintptr_t handle_index = global_handles_->allocate_index(state, obj);
     obj->set_handle_index(state, handle_index);
     return obj->handle(state);

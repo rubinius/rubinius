@@ -11,6 +11,7 @@ namespace rubinius {
     uintptr_t free_list_;
     size_t allocations_;
     int in_use_;
+    thread::SpinLock lock_;
 
     static const size_t cChunkSize = 1024;
     static const size_t cChunkLimit = 128;
@@ -19,7 +20,9 @@ namespace rubinius {
       : free_list_(0)
       , allocations_(0)
       , in_use_(0)
-    {}
+    {
+      lock_.init();
+    }
 
     ~Allocator() {
       for(typename std::vector<T*>::iterator i = chunks_.begin(); i != chunks_.end(); ++i) {
@@ -45,6 +48,7 @@ namespace rubinius {
     }
 
     T* allocate(bool* needs_gc) {
+      thread::SpinLock::LockGuard lg(lock_);
       if(!free_list_) allocate_chunk(needs_gc);
       T* t = from_index(free_list_);
       free_list_ = t->next();
@@ -57,6 +61,7 @@ namespace rubinius {
     }
 
     uintptr_t allocate_index(bool* needs_gc) {
+      thread::SpinLock::LockGuard lg(lock_);
       if(!free_list_) allocate_chunk(needs_gc);
 
       uintptr_t next_index = free_list_;
