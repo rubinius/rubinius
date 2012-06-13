@@ -1,148 +1,162 @@
 require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/common', __FILE__)
 
-# if run indirectly (eg via CI), kills the runner. TODO: needs guard
 describe "Process.kill" do
+  before :each do
+    @sp = ProcessSpecs::Signalizer.new
+  end
+
+  after :each do
+    @sp.cleanup
+  end
+
   it "raises an ArgumentError for unknown signals" do
-    lambda { Process.kill("FOO", 0) }.should raise_error(ArgumentError)
+    lambda { Process.kill("FOO", @sp.pid) }.should raise_error(ArgumentError)
   end
 
-  it "doesn't accept lowercase signal names" do
-    lambda { Process.kill("hup", 0) }.should raise_error(ArgumentError)
+  it "raises an ArgumentError if passed a lowercase signal name" do
+    lambda { Process.kill("term", @sp.pid) }.should raise_error(ArgumentError)
   end
 
-  platform_is_not :windows do
-    it "accepts symbols as signal names" do
-      begin
-        flag = false
-        @saved_trap = Signal.trap("HUP") { flag = true }
-        Process.kill(:HUP, Process.pid).should == 1
-        sleep 0.5
-        flag.should == true
-      ensure
-        Signal.trap("HUP", @saved_trap)
-      end
-    end
+  it "raises an ArgumentError if signal is not a Fixnum or String" do
+    signal = mock("process kill signal")
+    signal.should_not_receive(:to_int)
 
-    it "tests for the existence of a process without sending a signal" do
-      Process.kill(0, 0).should == 1
-      pid = Process.fork {
-        begin
-          Signal.trap("HUP") { Process.exit! 99 }
-          sleep(2) # only so that failures are cleaned up
-        ensure
-          Process.exit!
-        end
-      }
-
-      # Give the child enough time to setup the HUP trap.
-      sleep(0.5)
-
-      Process.kill(0, pid).should == 1
-      Process.kill(1, pid).should == 1
-      Process.waitpid(pid)
-      lambda { Process.kill(0, pid) }.should raise_error(Errno::ESRCH)
-    end
+    lambda { Process.kill(signal, @sp.pid) }.should raise_error(ArgumentError)
   end
 
-  if Process.uid != 0
-    it "raises an EPERM if permission is denied" do
-      lambda { Process.kill(1, 1) }.should raise_error(Errno::EPERM)
-    end
+  it "raises Errno::ESRCH if the process does not exist" do
+    Process.kill("SIGTERM", @sp.pid)
+    @sp.result.should == "signaled"
+    lambda { Process.kill("SIGTERM", @sp.pid) }.should raise_error(Errno::ESRCH)
   end
-end
 
-describe "Process.kill" do
-  platform_is_not :windows do
-    before :all do
-      @saved_trap = Signal.trap("HUP") {}
-    end
+  it "accepts a Symbol as a signal name" do
+    Process.kill(:SIGTERM, @sp.pid)
+    @sp.result.should == "signaled"
+  end
 
-    before :each do
-      @foo = 0
-      @read, @write = IO.pipe
-      Signal.trap("HUP") {
-        @foo = 42
-        @write << "1"
-        @write.close
-      }
-    end
+  it "accepts a String as signal name" do
+    Process.kill("SIGTERM", @sp.pid)
+    @sp.result.should == "signaled"
+  end
 
-    after :each do
-      @read.gets # the signal handler has run
-      @read.close
-      @foo.should == 42
-    end
+  it "accepts a signal name without the 'SIG' prefix" do
+    Process.kill("TERM", @sp.pid)
+    @sp.result.should == "signaled"
+  end
 
-    after :all do
-      Signal.trap("HUP", @saved_trap)
-    end
+  it "accepts a signal name with the 'SIG' prefix" do
+    Process.kill("SIGTERM", @sp.pid)
+    @sp.result.should == "signaled"
+  end
 
-    with_tty do
-      it "sends the given signal to the current process group if pid is zero" do
-        Process.kill("HUP", 0).should == 1
-      end
+  it "acceps an Integer as a signal value" do
+    Process.kill(15, @sp.pid)
+    @sp.result.should == "signaled"
+  end
 
-      it "accepts integer signal numbers" do
-        Process.kill(1, Process.pid).should == 1
-      end
-
-      it "accepts POSIX signal names without 'SIG' prefix" do
-        Process.kill("HUP", Process.pid).should == 1
-      end
-
-      it "accepts POSIX signal names with 'SIG' prefix" do
-        Process.kill("SIGHUP", Process.pid).should == 1
-      end
-
-      it "coerces the pid to an Integer" do
-        Process.kill(1, mock_int(Process.pid)).should == 1
-      end
+  ruby_version_is "1.9" do
+    it "calls #to_int to coerce the pid to an Integer" do
+      Process.kill("SIGTERM", mock_int(@sp.pid))
+      @sp.result.should == "signaled"
     end
   end
 end
 
 describe "Process.kill" do
-  platform_is_not :windows do
-    before :each do
-      @read, @write = IO.pipe
-      @pid = Process.fork {
-        begin
-          @read.close
-          Process.setpgid(0, 0)
-          Signal.trap("HUP") { Process.exit! 99 }
-          @write << "1"
-          @write.close
-          sleep(2) # only so that failures are cleaned up
-        ensure
-          Process.exit! 42
-        end
-      }
-      @write.close
-      @read.gets # the child has changed process groups
-      @read.close
+  ruby_version_is ""..."1.9" do
+    it "raises a TypeError if the PID is not a Fixnum" do
+      pid = mock("process kill pid")
+      pid.should_not_receive(:to_int)
+
+      lambda { Process.kill("SIGTERM", pid) }.should raise_error(TypeError)
     end
+  end
+end
 
-    after :each do
-      Process.waitpid(@pid).should == @pid
-      $?.exitstatus.should == 99
+as_user do
+  describe "Process.kill" do
+    it "raises an Errno::EPERM if permission is denied" do
+      lambda { Process.kill("SIGKILL", 1) }.should raise_error(Errno::EPERM)
     end
+  end
+end
 
-    with_tty do
-      it "sends the given signal to the specified process" do
-        Process.kill("HUP", @pid).should == 1
-      end
+describe "Process.kill" do
+  before :each do
+    @sp1 = ProcessSpecs::Signalizer.new
+    @sp2 = ProcessSpecs::Signalizer.new
+  end
 
-      it "kills process groups if signal is negative" do
-        Process.kill(-1, Process.getpgid(@pid)).should == 1
-      end
+  after :each do
+    @sp1.cleanup
+    @sp2.cleanup
+  end
 
-      it "kills process groups if signal starts with a minus sign" do
-        Process.kill("-HUP", Process.getpgid(@pid)).should == 1
-      end
+  it "signals multiple processes" do
+    Process.kill("SIGTERM", @sp1.pid, @sp2.pid)
+    @sp1.result.should == "signaled"
+    @sp2.result.should == "signaled"
+  end
 
-      it "kills process groups if signal starts with a minus sign and 'SIG'" do
-        Process.kill("-SIGHUP", Process.getpgid(@pid)).should == 1
-      end
-    end
+  it "returns the number of processes signaled" do
+    Process.kill("SIGTERM", @sp1.pid, @sp2.pid).should == 2
+  end
+end
+
+describe "Process.kill" do
+  before :each do
+    @sp = ProcessSpecs::Signalizer.new "self", RUBY_EXE
+  end
+
+  after :each do
+    @sp.cleanup
+  end
+
+  it "signals the process group if the PID is zero" do
+    @sp.result.should == "signaled"
+  end
+end
+
+describe "Process.kill" do
+  before :each do
+    @sp = ProcessSpecs::Signalizer.new "group_numeric", RUBY_EXE
+  end
+
+  after :each do
+    @sp.cleanup
+  end
+
+  it "signals the process group if the signal number is negative" do
+    @sp.result.should == "signaled"
+  end
+end
+
+describe "Process.kill" do
+  before :each do
+    @sp = ProcessSpecs::Signalizer.new "group_short_string", RUBY_EXE
+  end
+
+  after :each do
+    @sp.cleanup
+  end
+
+  it "signals the process group if the short signal name starts with a minus sign" do
+    @sp.result.should == "signaled"
+  end
+end
+
+describe "Process.kill" do
+  before :each do
+    @sp = ProcessSpecs::Signalizer.new "group_full_string", RUBY_EXE
+  end
+
+  after :each do
+    @sp.cleanup
+  end
+
+  it "signals the process group if the full signal name starts with a minus sign" do
+    @sp.result.should == "signaled"
   end
 end
