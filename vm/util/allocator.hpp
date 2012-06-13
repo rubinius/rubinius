@@ -10,14 +10,14 @@ namespace rubinius {
     std::vector<T*> chunks_;
     uintptr_t free_list_;
     size_t allocations_;
-    int in_use_;
+    size_t in_use_;
     thread::SpinLock lock_;
 
     static const size_t cChunkSize = 1024;
     static const size_t cChunkLimit = 128;
 
     Allocator()
-      : free_list_(0)
+      : free_list_((uintptr_t)-1)
       , allocations_(0)
       , in_use_(0)
     {
@@ -32,6 +32,9 @@ namespace rubinius {
     }
 
     void allocate_chunk(bool* needs_gc) {
+      if(in_use_ != chunks_.size() * cChunkSize) {
+        rubinius::bug("Allocating chunk with not all elements used");
+      }
       T* chunk = new T[cChunkSize];
       for(size_t i = 0; i < cChunkSize; i++) {
         uintptr_t next_index = chunks_.size() * cChunkSize + i;
@@ -49,12 +52,11 @@ namespace rubinius {
 
     T* allocate(bool* needs_gc) {
       thread::SpinLock::LockGuard lg(lock_);
-      if(!free_list_) allocate_chunk(needs_gc);
+      if(free_list_ == (uintptr_t)-1) allocate_chunk(needs_gc);
       T* t = from_index(free_list_);
       free_list_ = t->next();
 
       t->clear();
-
       in_use_++;
 
       return t;
@@ -62,15 +64,15 @@ namespace rubinius {
 
     uintptr_t allocate_index(bool* needs_gc) {
       thread::SpinLock::LockGuard lg(lock_);
-      if(!free_list_) allocate_chunk(needs_gc);
+      if(free_list_ == (uintptr_t)-1) allocate_chunk(needs_gc);
 
-      uintptr_t next_index = free_list_;
+      uintptr_t current_index = free_list_;
       T* t = from_index(free_list_);
       free_list_ = t->next();
       t->clear();
       in_use_++;
 
-      return next_index;
+      return current_index;
     }
 
     T* from_index(uintptr_t index) {
@@ -78,7 +80,7 @@ namespace rubinius {
     }
 
     void rebuild_freelist(std::vector<bool>* chunk_marks) {
-      free_list_ = 0;
+      free_list_ = (uintptr_t)-1;
       in_use_ = 0;
       for(std::vector<int>::size_type i = chunks_.size() - 1;
           i != (std::vector<int>::size_type) -1; --i) {
