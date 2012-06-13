@@ -26,6 +26,9 @@ Rubinius::ConfigurationVariables.define do |c|
     s.vm_variable "show", :bool,
       "Display information whenever the GC runs"
 
+    s.vm_variable "noisy", :bool,
+      "Beep whenever the GC runs (once for young, twice for mature). Requires gc.show"
+
     s.vm_variable "immix.debug", :bool,
       "Print out collection stats when the Immix collector finishes"
 
@@ -78,8 +81,8 @@ Rubinius::ConfigurationVariables.define do |c|
       i.vm_variable "blocks", true,
         "Have the JIT try and inline methods and their literal blocks"
     end
-    
-    s.vm_variable "log", :string, 
+
+    s.vm_variable "log", :string,
       "Send JIT debugging output to this file rather than stdout"
 
     s.vm_variable "debug", false,
