@@ -95,11 +95,14 @@ class Rubinius::Backtrace
         start = " #{' ' * spaces}#{recv} at "
       end
 
-      line_break = @width - start.size - 1
+      # start.size without the escapes
+      start_size = 1 + spaces + recv.size + 4
+
+      line_break = @width - start_size - 1
       line_break = nil if line_break < @min_width
 
       if line_break and pos.size >= line_break
-        indent = start.size
+        indent = start_size
 
         new_pos = ""
         bit = ""
@@ -128,7 +131,7 @@ class Rubinius::Backtrace
         str << new_pos
         str << clear
       else
-        if start.size > @width - @min_width
+        if start_size > @width - @min_width
           str << "#{color} #{start}\\\n          #{pos}#{clear}"
         else
           str << "#{color} #{start}#{pos}#{clear}"
