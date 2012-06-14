@@ -47,5 +47,13 @@ module Rubinius
 
       binding
     end
+
+    def self.coerce_to_pid(obj)
+      unless obj.kind_of? Fixnum
+        raise TypeError, "wrong argument type #{obj.class} (expected Fixnum)"
+      end
+
+      obj
+    end
   end
 end

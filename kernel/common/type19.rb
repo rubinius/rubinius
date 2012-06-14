@@ -112,5 +112,9 @@ module Rubinius
 
       offset
     end
+
+    def self.coerce_to_pid(obj)
+      Rubinius::Type.coerce_to obj, Integer, :to_int
+    end
   end
 end

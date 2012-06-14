@@ -106,40 +106,42 @@ module Process
     Struct::Tms.new(*cpu_times)
   end
 
-  def self.kill(sig, pid)
+  def self.kill(signal, *pids)
+    raise ArgumentError, "PID argument required" if pids.length == 0
+
     use_process_group = false
-    sig = sig.to_s if sig.kind_of?(Symbol)
+    signal = signal.to_s if signal.kind_of?(Symbol)
 
-    if sig.kind_of?(String)
-      if sig[0] == ?-
-        sig = sig[1..-1]
+    if signal.kind_of?(String)
+      if signal[0] == ?-
+        signal = signal[1..-1]
         use_process_group = true
       end
-      if sig[0..2] == "SIG"
-        sig = sig[3..-1]
+
+      if signal[0..2] == "SIG"
+        signal = signal[3..-1]
       end
-      number = Signal::Names[sig]
-    else
-      number = sig.to_i
-      if number < 0
-        number = -number
-        use_process_group = true
-      end
+
+      signal = Signal::Names[signal]
     end
 
-    raise ArgumentError unless number
+    raise ArgumentError unless signal.kind_of? Fixnum
 
-    pid = Rubinius::Type.coerce_to pid, Integer, :to_int
-
-    pid = -pid if use_process_group
-    ret = FFI::Platform::POSIX.kill(pid, number)
-
-    case ret
-    when 0
-      return 1
-    when -1
-      Errno.handle
+    if signal < 0
+      signal = -signal
+      use_process_group = true
     end
+
+    pids.each do |pid|
+      pid = Rubinius::Type.coerce_to_pid pid
+
+      pid = -pid if use_process_group
+      result = FFI::Platform::POSIX.kill(pid, signal)
+
+      Errno.handle if result == -1
+    end
+
+    return pids.length
   end
 
   def self.abort(msg=nil)
