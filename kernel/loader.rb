@@ -46,6 +46,9 @@ module Rubinius
 
       Object.const_set :ENV, EnvironmentVariables.new
 
+      # Set the default visibility for the top level binding
+      TOPLEVEL_BINDING.variables.method_visibility = :private
+
       # set terminal width
       width = 80
       if Terminal and ENV['TERM'] and !ENV['RBX_NO_COLS']
