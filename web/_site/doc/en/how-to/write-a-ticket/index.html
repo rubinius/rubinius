@@ -161,8 +161,8 @@ one (or more) of the following categories:</p>
 program and showing the backtrace for an exception.</li>
   <li>A short piece of code illustrating the problem and the command line to
 invoke it.</li>
-  <li>A patch, <strong>including specs if they do not already exist</strong>, and showing
-the spec runs before and after applying the patch.</li>
+  <li>A pull request, <strong>including specs if they do not already exist</strong>, and showing
+the spec runs before and after applying the pull request.</li>
 </ol>
 
 <p>If your issue doesn&rsquo;t fit into one of the categories, it is not invalid. It is
@@ -208,7 +208,7 @@ to see if something there resolves the issue.</li>
   </li>
 </ol>
 
-<h2 id="additional-instructions-for-tickets-with-patches">Additional instructions for tickets with patches</h2>
+<h2 id="additional-instructions-for-pull-requests">Additional instructions for pull requests</h2>
 
 <ul>
   <li>Can be just a set of specs.</li>
@@ -222,11 +222,10 @@ particular with new functionality please indicate if it was already
 discussed on #rubinius or ruby-dev.</li>
 </ul>
 
-<p>Unless for some reason impossible, please use &lsquo;git-format-patch&rsquo; to create the
-patchset. It is much easier to apply and it preserves the correct attribution.
-Otherwise, a unified diff.</p>
+<p>Unless for some reason impossible, please use a pull request to create the
+patchset. It is the easiest way for us to review and apply the changes.</p>
 
-<h2 id="example-of-submitting-a-patch">Example of submitting a patch</h2>
+<h2 id="example-of-submitting-a-pull-request">Example of submitting a pull request</h2>
 
 <p>Suppose the following spec exists and is failing:</p>
 
@@ -263,9 +262,9 @@ No method 'format' on Kernel (Module):
 </code></pre>
 
     <p>The method &lsquo;format&rsquo; already exists but has not been set as a module
-function.  This patch does so.</p>
+function. This pull request does so.</p>
 
-    <p>After the patch is applied:</p>
+    <p>After the pull request is applied:</p>
 
     <pre><code>$ bin/mspec spec/ruby/core/kernel/format_spec.rb
 Started
@@ -276,34 +275,7 @@ Finished in 0.016031 seconds
 2 examples, 2 expectations, 0 failures, 0 errors
 </code></pre>
   </li>
-  <li>
-    <p>Attachment:</p>
-  </li>
 </ol>
-
-<p>Finally, put your patch in a gist and add the link to the gist to your issue.
-Below the patch is reproduced inline for completeness:</p>
-
-<pre><code>From c61cecce6442347ebbdf1ded7a5c0832c97582c1 Mon Sep 17 00:00:00 2001
-From: Brian Ford &lt;bford@engineyard.com&gt;
-Date: Sat, 19 Jan 2008 17:48:19 -0800
-Subject: [PATCH] Set Kernel#format as a module function.
-
-
-diff --git a/kernel/core/kernel.rb b/kernel/core/kernel.rb
-index 2d2e508..f2a382e 100644
---- a/kernel/core/kernel.rb
-+++ b/kernel/core/kernel.rb
-@@ -150,6 +150,7 @@ module Kernel
-   end
-   alias_method :format, :sprintf
-   module_function :sprintf
-+  module_function :format
-   module_function :abort
-
-   def puts(*a)
-</code></pre>
-
 
 
 </div>
