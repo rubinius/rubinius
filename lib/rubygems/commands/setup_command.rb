@@ -209,7 +209,10 @@ TEXT
     say "Installing RubyGems" if @verbose
 
     Dir.chdir 'lib' do
-      lib_files = Dir[File.join('**', '*rb')]
+      lib_files =  Dir[File.join('**', '*rb')]
+
+      # Be sure to include our SSL ca bundles
+      lib_files += Dir[File.join('**', '*pem')]
 
       lib_files.each do |lib_file|
         dest_file = File.join lib_dir, lib_file
@@ -252,9 +255,19 @@ TEXT
   end
 
   def make_destination_dirs(install_destdir)
-    lib_dir = nil
-    bin_dir = nil
+    lib_dir, bin_dir = Gem.default_rubygems_dirs
 
+    unless lib_dir
+      lib_dir, bin_dir = generate_default_dirs(install_destdir)
+    end
+
+    mkdir_p lib_dir
+    mkdir_p bin_dir
+
+    return lib_dir, bin_dir
+  end
+
+  def generate_default_dirs(install_destdir)
     prefix = options[:prefix]
     site_or_vendor = options[:site_or_vendor]
 
@@ -283,10 +296,7 @@ TEXT
       bin_dir = File.join install_destdir, bin_dir.gsub(/^[a-zA-Z]:/, '')
     end
 
-    mkdir_p lib_dir
-    mkdir_p bin_dir
-
-    return lib_dir, bin_dir
+    [lib_dir, bin_dir]
   end
 
   def remove_old_bin_files(bin_dir)
