@@ -101,6 +101,7 @@ The first part shows the type and name of the flag, the last column is
 the number of bits of the total flags header used for this flag.
 
 {% highlight cpp %}
+unsigned int inflated        : 1;
 unsigned int meaning         : 2;
 object_type  obj_type        : 8;
 gc_zone      zone            : 2;
@@ -117,8 +118,19 @@ unsigned int Frozen          : 1;
 unsigned int Tainted         : 1;
 unsigned int Untrusted       : 1;
 unsigned int LockContended   : 1;
-unsigned int unused          : 6;
+unsigned int unused          : 5;
 {% endhighlight %}
+
+#### inflated
+
+This header might actually not be a normal header but a pointer to an
+inflated header. This bit is 1 when this is the case. It means that this
+1 bit should be masked and the header then be treated as a pointer to an
+InflatedHeader.
+
+InflatedHeaders are used when the regular header doesn't provide enough
+room, such as the case when this object is used as a full mutex in
+multiple threads.
 
 #### meaning
 
@@ -132,10 +144,9 @@ meanings defined:
 1. __eAuxWordLock__: This object is optimistically locked to a specific
    running thread. The auxilary 32 bit of data contain the thread id
    that this object is locked for.
-1. __eAuxWordInflated__: This header is inflated which means that we need
-   more storage that this header provides. This can happen if an object
-   is contented for and needs a full fledged lock, or for example when it
-   needs both a lock and an object_id.
+1. __eAuxWordHandle__: The aux_word contains an index to a C-API handle.
+   This happens when this object is used in a C extension and needs a
+   non moving handle to support MRI's C-API semantics.
 
 #### obj\_type
 
@@ -216,7 +227,8 @@ Representation of the trust status of objects also available in Ruby.
 #### LockContended
 
 Flag used for marking whether threads are contending for locking this
-object.
+object. When this happens, the object is inflated and the actual mutex
+is stored in the inflated header.
 
 ## Virtual machine object types
 
