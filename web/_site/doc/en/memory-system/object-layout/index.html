@@ -251,7 +251,8 @@ inflated headers].</p>
 <p>The first part shows the type and name of the flag, the last column is
 the number of bits of the total flags header used for this flag.</p>
 
-<div class="highlight"><pre><code class="cpp"><span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">meaning</span>         <span class="o">:</span> <span class="mi">2</span><span class="p">;</span>
+<div class="highlight"><pre><code class="cpp"><span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">inflated</span>        <span class="o">:</span> <span class="mi">1</span><span class="p">;</span>
+<span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">meaning</span>         <span class="o">:</span> <span class="mi">2</span><span class="p">;</span>
 <span class="n">object_type</span>  <span class="n">obj_type</span>        <span class="o">:</span> <span class="mi">8</span><span class="p">;</span>
 <span class="n">gc_zone</span>      <span class="n">zone</span>            <span class="o">:</span> <span class="mi">2</span><span class="p">;</span>
 <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">age</span>             <span class="o">:</span> <span class="mi">4</span><span class="p">;</span>
@@ -267,9 +268,20 @@ the number of bits of the total flags header used for this flag.</p>
 <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">Tainted</span>         <span class="o">:</span> <span class="mi">1</span><span class="p">;</span>
 <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">Untrusted</span>       <span class="o">:</span> <span class="mi">1</span><span class="p">;</span>
 <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">LockContended</span>   <span class="o">:</span> <span class="mi">1</span><span class="p">;</span>
-<span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">unused</span>          <span class="o">:</span> <span class="mi">6</span><span class="p">;</span>
+<span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">unused</span>          <span class="o">:</span> <span class="mi">5</span><span class="p">;</span>
 </code></pre>
 </div>
+
+<h4 id="inflated">inflated</h4>
+
+<p>This header might actually not be a normal header but a pointer to an
+inflated header. This bit is 1 when this is the case. It means that this
+1 bit should be masked and the header then be treated as a pointer to an
+InflatedHeader.</p>
+
+<p>InflatedHeaders are used when the regular header doesn&rsquo;t provide enough
+room, such as the case when this object is used as a full mutex in
+multiple threads.</p>
 
 <h4 id="meaning">meaning</h4>
 
@@ -284,10 +296,9 @@ header.</li>
   <li><strong>eAuxWordLock</strong>: This object is optimistically locked to a specific
 running thread. The auxilary 32 bit of data contain the thread id
 that this object is locked for.</li>
-  <li><strong>eAuxWordInflated</strong>: This header is inflated which means that we need
-more storage that this header provides. This can happen if an object
-is contented for and needs a full fledged lock, or for example when it
-needs both a lock and an object_id.</li>
+  <li><strong>eAuxWordHandle</strong>: The aux_word contains an index to a C-API handle.
+This happens when this object is used in a C extension and needs a
+non moving handle to support MRI&rsquo;s C-API semantics.</li>
 </ol>
 
 <h4 id="objtype">obj_type</h4>
@@ -371,7 +382,8 @@ when an object is frozen.</p>
 <h4 id="lockcontended">LockContended</h4>
 
 <p>Flag used for marking whether threads are contending for locking this
-object.</p>
+object. When this happens, the object is inflated and the actual mutex
+is stored in the inflated header.</p>
 
 <h2 id="virtual-machine-object-types">Virtual machine object types</h2>
 
