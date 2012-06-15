@@ -17,7 +17,7 @@ and enhancements.
 We recommend that committers who have read/write access to the
 repository do their work on a branch in their local repository.
 As the changes stabilize, they should be committed in two steps.
-The first step should commit the spec that highlights the 
+The first step should commit the spec that highlights the
 behavior under construction while the second commit adds the
 behavior and allows the spec to pass.
 
@@ -43,7 +43,7 @@ rebase the master branch prior to the merge.
 15. git push origin master
 
 Steps 9 through 15 can be automated via a script to save on all
-of that typing. 
+of that typing.
 
 ### Committers With Read-only Access to Rubinius Repository
 

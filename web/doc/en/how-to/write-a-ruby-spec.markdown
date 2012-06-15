@@ -18,6 +18,7 @@ Then, follow these steps to write a spec for a Ruby method:
   2. Run `bin/mspec -tr spec/ruby/some/spec_file.rb`
   3. Repeat until the spec passes on MatzRuby
   4. Commit your changes
-  7. Use `git format-patch`
-  8. Create a gist with your patch and link to it in a ticket on the issue
-     tracker at <http://github.com/rubinius/rubinius/issues>.
+  5. Open a pull request.
+     If you are also implemented the method, feel free to do that
+     together in a single pull request but make sure you have separate
+     commits for the specs and code.

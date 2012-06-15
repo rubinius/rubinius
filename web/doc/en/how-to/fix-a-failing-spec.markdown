@@ -38,5 +38,5 @@ Then, follow these steps to fix a failing spec:
   14. More commits and discussion may happen with other contributors using
       the Pull Request interface.
 
-When your patch is accepted by the Rubinius project, you'll get a commit bit
-for the Rubinius repository. Let Evan know what your Github username is.
+When your pull request is accepted by the Rubinius project, you'll get a commit bit
+for the Rubinius repository. Let Evan, Brian or Dirkjan know what your Github username is.

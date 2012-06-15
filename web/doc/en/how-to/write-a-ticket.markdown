@@ -17,8 +17,8 @@ one (or more) of the following categories:
      program and showing the backtrace for an exception.
   2. A short piece of code illustrating the problem and the command line to
      invoke it.
-  3. A patch, **including specs if they do not already exist**, and showing
-     the spec runs before and after applying the patch.
+  3. A pull request, **including specs if they do not already exist**, and showing
+     the spec runs before and after applying the pull request.
 
 If your issue doesn't fit into one of the categories, it is not invalid. It is
 simply not appropriate for a ticket.
@@ -52,24 +52,25 @@ simply not appropriate for a ticket.
         "unknown" fields in it, please elaborate on those.)
 
 
-## Additional instructions for tickets with patches
+## Additional instructions for pull requests
 
   *  Can be just a set of specs.
-  *  Patches must be accompanied by specs unless the specs already exist.
+  *  Pull requests must be accompanied by specs unless the specs already exist.
   *  Relevant part of spec output and the exact 'bin/mspec' invocation from the
      existing or added spec *before the fix*.
   *  The spec output and the exact 'bin/mspec' invocation  showing success
      *after* the fix.
-  *  Additional description of your patch and how it fixes the problem. In
+  *  Additional description of your pull request and how it fixes the problem. In
      particular with new functionality please indicate if it was already
      discussed on #rubinius or ruby-dev.
 
-Unless for some reason impossible, please use 'git-format-patch' to create the
-patchset. It is much easier to apply and it preserves the correct attribution.
-Otherwise, a unified diff.
+Unless for some reason impossible, please use a pull request to create the
+patchset. It is the easiest way for us to review and apply the changes.
+If opening a pull request is impossible, please use git-format-patch and
+add a link to it using gist.github.com, pastie.org or a similar service.
 
 
-## Example of submitting a patch
+## Example of submitting a pull request
 
 Suppose the following spec exists and is failing:
 
@@ -100,9 +101,9 @@ Suppose the following spec exists and is failing:
        No method 'format' on Kernel (Module):
 
    The method 'format' already exists but has not been set as a module
-   function.  This patch does so.
+   function. This pull request does so.
 
-   After the patch is applied:
+   After the pull request is applied:
 
        $ bin/mspec spec/ruby/core/kernel/format_spec.rb
        Started
@@ -111,28 +112,3 @@ Suppose the following spec exists and is failing:
        Finished in 0.016031 seconds
 
        2 examples, 2 expectations, 0 failures, 0 errors
-
-4. Attachment:
-
-Finally, put your patch in a gist and add the link to the gist to your issue.
-Below the patch is reproduced inline for completeness:
-
-    From c61cecce6442347ebbdf1ded7a5c0832c97582c1 Mon Sep 17 00:00:00 2001
-    From: Brian Ford <bford@engineyard.com>
-    Date: Sat, 19 Jan 2008 17:48:19 -0800
-    Subject: [PATCH] Set Kernel#format as a module function.
-
-
-    diff --git a/kernel/core/kernel.rb b/kernel/core/kernel.rb
-    index 2d2e508..f2a382e 100644
-    --- a/kernel/core/kernel.rb
-    +++ b/kernel/core/kernel.rb
-    @@ -150,6 +150,7 @@ module Kernel
-       end
-       alias_method :format, :sprintf
-       module_function :sprintf
-    +  module_function :format
-       module_function :abort
-
-       def puts(*a)
-
