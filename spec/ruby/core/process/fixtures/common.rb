@@ -41,6 +41,7 @@ module ProcessSpecs
     def initialize(scenario=nil, ruby_exe=nil)
       @script = fixture __FILE__, "kill.rb"
       @pid_file = tmp("process_kill_signal_file")
+      rm_r @pid_file
       @pid = nil
 
       @thread = Thread.new do
