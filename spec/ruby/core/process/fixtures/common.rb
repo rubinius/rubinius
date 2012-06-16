@@ -48,11 +48,11 @@ module ProcessSpecs
         args = [@pid_file, scenario, ruby_exe]
         @result = ruby_exe @script, :args => args
       end
+      Thread.pass until File.exists? @pid_file
     end
 
     def pid
       unless @pid
-        Thread.pass until File.exists? @pid_file
         @pid = IO.read(@pid_file).chomp.to_i
       end
 

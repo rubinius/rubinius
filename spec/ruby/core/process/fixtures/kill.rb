@@ -7,8 +7,6 @@ ruby_exe = ARGV.shift
 # instead, which will likely abort the specs process.
 Process.setsid if scenario
 
-File.open(pid_file, "wb") { |f| f.puts Process.pid }
-
 signaled = false
 
 Signal.trap(:TERM) do
@@ -20,6 +18,8 @@ Signal.trap(:TERM) do
 
   exit
 end
+
+File.open(pid_file, "wb") { |f| f.puts Process.pid }
 
 if scenario
   # We are sending a signal to ourselves or the process group
