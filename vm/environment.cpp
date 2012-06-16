@@ -228,13 +228,13 @@ namespace rubinius {
     // write info to stderr about reporting the error.
     if(fd != STDERR_FILENO) {
       close(fd);
-      safe_write(2, "\n---------------------------------------------\n");
-      safe_write(2, "CRASH: A fatal error has occurred.\n\nBacktrace:\n");
+      safe_write(STDERR_FILENO, "\n---------------------------------------------\n");
+      safe_write(STDERR_FILENO, "CRASH: A fatal error has occurred.\n\nBacktrace:\n");
       backtrace_symbols_fd(array, size, 2);
-      safe_write(2, "\n\n");
-      safe_write(2, "Wrote full error report to: ");
-      safe_write(2, report_path);
-      safe_write(2, "\nRun 'rbx report' to submit this crash report!\n");
+      safe_write(STDERR_FILENO, "\n\n");
+      safe_write(STDERR_FILENO, "Wrote full error report to: ");
+      safe_write(STDERR_FILENO, report_path);
+      safe_write(STDERR_FILENO, "\nRun 'rbx report' to submit this crash report!\n");
     }
 
     exit(100);
@@ -243,25 +243,25 @@ namespace rubinius {
 
   static void quit_handler(int sig) {
     static const char msg[] = "Terminated: signal ";
-    if(write(2, msg, sizeof(msg)) == 0) exit(1);
+    if(write(STDERR_FILENO, msg, sizeof(msg)) == 0) exit(1);
 
     switch(sig) {
     case SIGTERM:
-      if(write(2, "SIGTERM\n", 7) == 0) exit(1);
+      if(write(STDERR_FILENO, "SIGTERM\n", 7) == 0) exit(1);
       break;
 #ifndef RBX_WINDOWS
     case SIGHUP:
-      if(write(2, "SIGHUP\n", 6) == 0) exit(1);
+      if(write(STDERR_FILENO, "SIGHUP\n", 6) == 0) exit(1);
       break;
     case SIGUSR1:
-      if(write(2, "SIGUSR1\n", 7) == 0) exit(1);
+      if(write(STDERR_FILENO, "SIGUSR1\n", 7) == 0) exit(1);
       break;
     case SIGUSR2:
-      if(write(2, "SIGUSR2\n", 7) == 0) exit(1);
+      if(write(STDERR_FILENO, "SIGUSR2\n", 7) == 0) exit(1);
       break;
 #endif
     default:
-      if(write(2, "UNKNOWN\n", 8) == 0) exit(1);
+      if(write(STDERR_FILENO, "UNKNOWN\n", 8) == 0) exit(1);
       break;
     }
 
