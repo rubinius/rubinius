@@ -82,6 +82,9 @@ class MSpecScript
 
     'spec/build',
 
+    # Temporary exclude for Process.kill
+    '^spec/ruby/core/process/kill',
+
     # Excluded because the specs are extremely system dependent.
     '^spec/ruby/library/syslog',
   ] + get(:obsolete_library) + get(:unsupported_library)
