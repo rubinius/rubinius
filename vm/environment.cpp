@@ -242,27 +242,30 @@ namespace rubinius {
 #endif
 
   static void quit_handler(int sig) {
-    static const char msg[] = "Terminated: signal ";
-    if(write(STDERR_FILENO, msg, sizeof(msg)) == 0) exit(1);
 
-    switch(sig) {
-    case SIGTERM:
-      if(write(STDERR_FILENO, "SIGTERM\n", 7) == 0) exit(1);
-      break;
+    if(getpgrp() == getpid()) {
+      static const char msg[] = "Terminated: signal ";
+      if(write(STDERR_FILENO, msg, sizeof(msg)) == 0) exit(1);
+
+      switch(sig) {
+      case SIGTERM:
+        if(write(STDERR_FILENO, "SIGTERM\n", 8) == 0) exit(1);
+        break;
 #ifndef RBX_WINDOWS
-    case SIGHUP:
-      if(write(STDERR_FILENO, "SIGHUP\n", 6) == 0) exit(1);
-      break;
-    case SIGUSR1:
-      if(write(STDERR_FILENO, "SIGUSR1\n", 7) == 0) exit(1);
-      break;
-    case SIGUSR2:
-      if(write(STDERR_FILENO, "SIGUSR2\n", 7) == 0) exit(1);
-      break;
+      case SIGHUP:
+        if(write(STDERR_FILENO, "SIGHUP\n", 7) == 0) exit(1);
+        break;
+      case SIGUSR1:
+        if(write(STDERR_FILENO, "SIGUSR1\n", 8) == 0) exit(1);
+        break;
+      case SIGUSR2:
+        if(write(STDERR_FILENO, "SIGUSR2\n", 8) == 0) exit(1);
+        break;
 #endif
-    default:
-      if(write(STDERR_FILENO, "UNKNOWN\n", 8) == 0) exit(1);
-      break;
+      default:
+        if(write(STDERR_FILENO, "UNKNOWN\n", 9) == 0) exit(1);
+        break;
+      }
     }
 
     _exit(1);
