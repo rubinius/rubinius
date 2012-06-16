@@ -123,7 +123,7 @@ class SpecRunner
   def run(flags=nil)
     self.class.set_at_exit_handler
 
-    sh("bin/mspec ci #{ENV['CI_MODE_FLAG'] || flags} -d --background --agent", &@handler)
+    sh("bin/mspec ci #{ENV['CI_MODE_FLAG'] || flags} -d --background", &@handler)
   end
 end
 
