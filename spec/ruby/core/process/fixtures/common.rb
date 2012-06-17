@@ -36,27 +36,21 @@ module ProcessSpecs
   end
 
   class Signalizer
-    attr_reader :pid_file
+    attr_reader :pid_file, :pid
 
     def initialize(scenario=nil, ruby_exe=nil)
       @script = fixture __FILE__, "kill.rb"
       @pid_file = tmp("process_kill_signal_file")
       rm_r @pid_file
-      @pid = nil
 
       @thread = Thread.new do
         args = [@pid_file, scenario, ruby_exe]
         @result = ruby_exe @script, :args => args
       end
       Thread.pass until File.exists? @pid_file
-    end
-
-    def pid
-      unless @pid
+      while @pid.nil? || @pid == 0
         @pid = IO.read(@pid_file).chomp.to_i
       end
-
-      @pid
     end
 
     def wait_on_result
@@ -72,7 +66,7 @@ module ProcessSpecs
 
     def cleanup
       wait_on_result
-      rm_r @pid_file
+      rm_r pid_file
     end
 
     def result
