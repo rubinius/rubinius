@@ -706,6 +706,12 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
     end.join(" ")
   end
 
+  def c_libs
+    @lib_dirs.map do |d|
+      "-L#{d}"
+    end.join(" ")
+  end
+
   def env(which)
     ENV[which] || ""
   end
@@ -740,7 +746,7 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
 
       libs = (default_link_libs + link_libs).map { |l| "-l#{l}" }.join(" ")
 
-      cmd = "#{@cxx} #{env('CFLAGS')} -o #{basename} #{source} -lstdc++ #{libs} >>#{@log.path} 2>&1"
+      cmd = "#{@cxx} #{env('CFLAGS')} -o #{basename} #{source} #{c_includes} #{c_libs} -lstdc++ #{libs} >>#{@log.path} 2>&1"
       @log.log cmd
       system cmd
       return $?.exitstatus unless run
@@ -980,7 +986,7 @@ int main() { return tgetnum(""); }
 
     @log.log string
 
-    cmd = "#{@cxx} -S -o - -x c #{c_includes} #{env('CFLAGS')} #{file.path} >>#{@log.path} 2>&1"
+    cmd = "#{@cxx} -S -o - -x c #{c_includes} #{c_libs} #{env('CFLAGS')} #{file.path} >>#{@log.path} 2>&1"
     @log.log cmd
     system cmd
 
