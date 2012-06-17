@@ -130,6 +130,15 @@ describe "C-API String function" do
       it_behaves_like :rb_str_new2, :rb_str_new_cstr
     end
 
+    describe "rb_usascii_str_new" do
+      it "creates a new String with US-ASCII Encoding from a char buffer of len characters" do
+        str = encode("abc", "us-ascii")
+        result = @s.rb_usascii_str_new("abcdef", 3)
+        result.should == str
+        result.encoding.should == Encoding::US_ASCII
+      end
+    end
+
     describe "rb_usascii_str_new_cstr" do
       it "creates a new String with US-ASCII Encoding" do
         str = encode("abc", "us-ascii")
