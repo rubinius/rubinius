@@ -40,7 +40,7 @@ namespace rubinius {
     };
 
     SignalHandler(STATE);
-    ~SignalHandler();
+    virtual ~SignalHandler();
 
     void perform(State*);
 

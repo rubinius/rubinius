@@ -112,7 +112,7 @@ namespace rubinius {
     static void unpause(STATE);
 
     LLVMState(STATE);
-    ~LLVMState();
+    virtual ~LLVMState();
 
     void add_internal_functions();
 

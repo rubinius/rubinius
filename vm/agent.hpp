@@ -90,7 +90,7 @@ namespace rubinius {
 
   public:
     QueryAgent(STATE);
-    ~QueryAgent();
+    virtual ~QueryAgent();
 
     void set_verbose() {
       verbose_ = true;

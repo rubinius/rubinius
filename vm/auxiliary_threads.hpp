@@ -9,6 +9,7 @@ namespace rubinius {
   class AuxiliaryThread {
   public:
 
+    virtual ~AuxiliaryThread() { };
     virtual void shutdown(STATE) { };
     virtual void before_exec(STATE) { };
     virtual void after_exec(STATE) { };
