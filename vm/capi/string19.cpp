@@ -30,10 +30,6 @@ extern "C" {
     return str;
   }
 
-  VALUE rb_usascii_str_new(const char* ptr, long len) {
-    return rb_enc_str_new(ptr, len, rb_usascii_encoding());
-  }
-
   VALUE rb_usascii_str_new2(const char* ptr) {
     return rb_enc_str_new(ptr, strlen(ptr), rb_usascii_encoding());
   }
