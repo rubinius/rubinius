@@ -72,6 +72,10 @@ namespace rubinius {
     }
 #endif
 
+    if(agent_) {
+      delete agent_;
+    }
+
     delete tool_broker_;
     delete world_;
     delete ic_registry_;
@@ -79,10 +83,6 @@ namespace rubinius {
     delete global_cache;
     delete global_handles_;
     delete auxiliary_threads_;
-
-    if(agent_) {
-      delete agent_;
-    }
   }
 
   void SharedState::add_managed_thread(ManagedThread* thr) {
