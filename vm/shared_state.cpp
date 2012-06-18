@@ -76,12 +76,12 @@ namespace rubinius {
       delete agent_;
     }
 
-    delete tool_broker_;
-    delete world_;
-    delete ic_registry_;
-    delete om;
-    delete global_cache;
     delete global_handles_;
+    delete tool_broker_;
+    delete global_cache;
+    delete ic_registry_;
+    delete world_;
+    delete om;
     delete auxiliary_threads_;
   }
 
