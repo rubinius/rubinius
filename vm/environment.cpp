@@ -178,10 +178,18 @@ namespace rubinius {
 
     int fd = STDERR_FILENO;
 
-    if(getenv("RBX_PAUSE_ON_CRASH")) {
+    char* pause_env = getenv("RBX_PAUSE_ON_CRASH");
+
+    if(pause_env) {
+      long timeout = strtol(pause_env, NULL, 10);
+      if(timeout <= 0) {
+        timeout = 60;
+      } else {
+        timeout *= 60;
+      }
       std::cerr << "\n========== CRASH (" << getpid();
-      std::cerr << "), pausing for 60 seconds to attach debugger\n";
-      sleep(60);
+      std::cerr << "), pausing for " << timeout << " seconds to attach debugger\n";
+      sleep(timeout);
     }
 
     // If there is a report_path setup..
