@@ -1575,9 +1575,8 @@ module Zlib
   # Returns the table for calculating CRC checksum as an array.
 
   def self.crc_table
-    get_crc_table_c.read_array_of_long(256).map do |x|
-      x >= 0 ? x : 2 ** 32 + x # HACK convert back to unsigned
-    end
+    type = FFI.size_to_type(Rubinius::ZLIB_CRC_TABLE_SIZE)
+    get_crc_table_c.send(:"read_array_of_u#{type}", 256)
   end
 
   ##
