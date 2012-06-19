@@ -366,4 +366,35 @@ class Rational < Numeric
     end
     self
   end
+
+  #
+  # Returns the truncated value, toward the nearest unit, based on the
+  # precision.
+  #
+  # eg:
+  #
+  # Rational(1,2).round    #=> 1
+  # Rational(-1,2).round   #=> -1
+  # Rational(1,4).round(1) #=> Rational(3,10)
+  #
+  def round(precision = 0)
+    return 0 if @numerator == 0
+    return @numerator if @denominator == 1
+
+    adj = (10 ** precision.abs).to_i
+    adj = Rational(1, adj) if precision < 0
+
+    value = self * adj
+
+    value = if self > 0
+      (value + Rational(1,2)).floor
+    else 
+      (value - Rational(1,2)).ceil
+    end
+
+    result = Rational(value, adj)
+
+    return result.numerator if result.denominator == 1
+    result
+  end
 end
