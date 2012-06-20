@@ -16,7 +16,10 @@ namespace rubinius {
       : pending_threads_(0)
       , should_stop_(0)
       , time_waiting_(0)
-    {}
+    {
+      mutex_.init();
+      waiting_to_run_.init();
+    }
 
     uint64_t time_waiting() {
       return time_waiting_.read();
