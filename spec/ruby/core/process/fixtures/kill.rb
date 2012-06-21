@@ -1,3 +1,5 @@
+require 'thread'
+
 pid_file = ARGV.shift
 scenario = ARGV.shift
 ruby_exe = ARGV.shift
@@ -7,16 +9,13 @@ ruby_exe = ARGV.shift
 # instead, which will likely abort the specs process.
 Process.setsid if scenario
 
-signaled = false
+mutex = Mutex.new
 
 Signal.trap(:TERM) do
-  unless signaled
-    signaled = true
-
+  if mutex.try_lock
     puts "signaled"
+    Process.exit!
   end
-
-  exit
 end
 
 File.open(pid_file, "wb") { |f| f.puts Process.pid }
