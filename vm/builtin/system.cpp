@@ -1335,6 +1335,7 @@ namespace rubinius {
       sock = agent->loopback_socket();
     }
 
+    agent->wakeup(state);
     // dup the descriptor so the lifetime of socket is properly controlled.
     return IO::create(state, dup(sock));
   }

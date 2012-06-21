@@ -514,12 +514,19 @@ auth_error:
 
     thread_->stop();
 
+    wakeup(state);
+
+    thread_->join();
+    delete thread_;
+    thread_ = NULL;
+    thread_running_ = false;
+  }
+
+  void QueryAgent::wakeup(STATE) {
     char buf = '!';
     if(write(write_control(), &buf, 1) < 0) {
       std::cerr << "[QA: Write error: " << strerror(errno) << "]\n";
     }
-
-    thread_running_ = false;
   }
 
   void QueryAgent::shutdown(STATE) {
@@ -652,7 +659,7 @@ auth_error:
   }
 
   QueryAgent::Thread::Thread(QueryAgent* agent)
-    : thread::Thread(0, true)
+    : thread::Thread(0, false)
     , agent_(agent)
     , exit_(false)
   {
