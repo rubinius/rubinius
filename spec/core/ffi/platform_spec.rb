@@ -20,3 +20,23 @@ describe "FFI::Platform::LIBSUFFIX" do
   end
 end
 
+describe "FFI::Platform::IS_WINDOWS" do
+  platform_is :linux do
+    it "returns false" do
+      FFI::Platform::IS_WINDOWS.should == false
+    end
+  end
+
+  platform_is :windows do
+    it "returns true" do
+      FFI::Platform::IS_WINDOWS.should == true
+    end
+  end
+
+  platform_is :darwin do
+    it "returns true" do
+      FFI::Platform::IS_WINDOWS.should == false
+    end
+  end
+end
+
