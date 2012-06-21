@@ -208,10 +208,13 @@ module FFI::Platform
   case
   when Rubinius.windows?
     LIBSUFFIX = "dll"
+    IS_WINDOWS = true
   when Rubinius.darwin?
     LIBSUFFIX = "dylib"
+    IS_WINDOWS = false
   else
     LIBSUFFIX = "so"
+    IS_WINDOWS = false
   end
 
   # ruby-ffi compatible
