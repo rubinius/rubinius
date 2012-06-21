@@ -562,14 +562,6 @@ to rebuild the compiler.
       end
     end
 
-    def agent
-      @stage = "starting agent ruby thread"
-
-      if Rubinius::Config['agent.start']
-        Rubinius::AgentRegistry.spawn_thread
-      end
-    end
-
     def rubygems
       @stage = "loading Rubygems"
 
@@ -836,7 +828,6 @@ to rebuild the compiler.
           options
           load_paths
           debugger
-          agent
           rubygems
           gemfile
           requires

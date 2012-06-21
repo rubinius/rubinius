@@ -42,46 +42,5 @@ module Rubinius
         return :error, "unknown variable: #{var}"
       end
     end
-
-    def self.spawn_thread
-      return if @thread
-      require 'rubinius/bert'
-
-      @thread = Thread.new do
-
-        # Ensure the Agent is started
-        Rubinius.agent_start
-
-        dec = BERT::Decode.new Rubinius::FROM_AGENT
-        enc = BERT::Encode.new Rubinius::TO_AGENT
-
-        while true
-          id, op, var, val = dec.read_any_raw
-
-          case op
-          when :set
-            begin
-              code, ret = primary.run_set(var, val)
-            rescue Exception => e
-              code = :error
-              ret = "#{e.message} (#{e.class})"
-            end
-          when :get
-            begin
-              code, ret = primary.run_get(var)
-            rescue Exception => e
-              code = :error
-              ret = "#{e.message} (#{e.class})"
-            end
-          else
-            code = :error
-            ret = "unknown operation: #{op}"
-          end
-
-          enc.write_any_raw BERT::Tuple[id, code, ret]
-          Rubinius::TO_AGENT.flush
-        end
-      end
-    end
   end
 end
