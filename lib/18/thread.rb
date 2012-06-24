@@ -86,7 +86,7 @@ class Mutex
     Rubinius.memory_barrier
 
     if @owner != Thread.current
-      raise ThreadError, "Not owner, #{@owner.inspect} is"
+      raise ThreadError, "#{Thread.current.inspect} not owner, #{@owner.inspect} is"
     end
 
     @owner = nil

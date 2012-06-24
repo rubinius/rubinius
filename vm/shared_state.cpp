@@ -34,7 +34,7 @@ namespace rubinius {
     , world_(new WorldState)
     , ic_registry_(new InlineCacheRegistry)
     , class_count_(0)
-    , thread_ids_(0)
+    , thread_ids_(1)
     , agent_(0)
     , root_vm_(0)
     , env_(env)
@@ -106,8 +106,7 @@ namespace rubinius {
   }
 
   uint32_t SharedState::new_thread_id() {
-    SYNC_TL;
-    return ++thread_ids_;
+    return atomic::fetch_and_add(&thread_ids_, 1);
   }
 
   VM* SharedState::new_vm() {
