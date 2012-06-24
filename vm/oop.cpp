@@ -243,7 +243,7 @@ step1:
       }
 
       // wonderful! Locked! weeeee!
-      state->vm()->add_locked_object(this);
+      state->vm()->add_locked_object(self);
       return eLocked;
     }
 
@@ -332,13 +332,16 @@ step2:
   }
 
   LockStatus ObjectHeader::try_lock(STATE, GCToken gct) {
+
+    ObjectHeader* self = this;
+    OnStack<1> os(state, self);
     // #1 Attempt to lock an unlocked object using CAS.
 
 step1:
     // Construct 2 new headers: one is the version we hope that
     // is in use and the other is what we want it to be. The CAS
     // the new one into place.
-    HeaderWord orig = header;
+    HeaderWord orig = self->header;
 
     orig.f.inflated = 0;
     orig.f.meaning  = eAuxWordEmpty;
@@ -349,9 +352,9 @@ step1:
     new_val.f.meaning  = eAuxWordLock;
     new_val.f.aux_word = state->vm()->thread_id() << cAuxLockTIDShift;
 
-    if(header.atomic_set(orig, new_val)) {
+    if(self->header.atomic_set(orig, new_val)) {
       // wonderful! Locked! weeeee!
-      state->vm()->add_locked_object(this);
+      state->vm()->add_locked_object(self);
       return eLocked;
     }
 
@@ -359,7 +362,7 @@ step1:
     //
     // #2 See if we're locking the object recursively.
 step2:
-    orig = header;
+    orig = self->header;
 
     // The header is inflated, use the full lock.
     if(orig.f.inflated) {
@@ -385,7 +388,7 @@ step2:
         // Inflate the lock then.
         if(++count > cAuxLockRecCountMax) {
           // If we can't inflate the lock, try the whole thing over again.
-          if(!state->memory()->inflate_lock_count_overflow(state, this, count)) {
+          if(!state->memory()->inflate_lock_count_overflow(state, self, count)) {
             goto step1;
           }
           // The header is now set to inflated, and the current thread
@@ -399,7 +402,7 @@ step2:
           // thread might ask for an object_id and the header will
           // be inflated. So if we can't swap in the new header, we'll start
           // this step over.
-          if(!header.atomic_set(orig, new_val)) goto step2;
+          if(!self->header.atomic_set(orig, new_val)) goto step2;
 
           // wonderful! Locked! weeeee!
           state->vm()->add_locked_object(this);
