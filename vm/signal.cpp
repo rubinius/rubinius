@@ -64,6 +64,8 @@ namespace rubinius {
   }
 
   void SignalHandler::stop_thread(STATE) {
+    // Thread might have already been stopped
+    if(!self_) return;
     pthread_t os = self_->os_thread();
 
     exit_ = true;
