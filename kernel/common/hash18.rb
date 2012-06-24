@@ -158,7 +158,6 @@ class Hash
       idx += 1
     end
   end
-  private :each_item
 
   def each
     return to_enum(:each) unless block_given?
@@ -236,16 +235,18 @@ class Hash
     other = Rubinius::Type.coerce_to other, Hash, :to_hash
 
     if block_given?
-      other.each do |key, value|
+      other.each_item do |item|
+        key = item.key
         if key? key
-          __store__ key, yield(key, self[key], value)
+          __store__ key, yield(key, self[key], item.value)
         else
-          __store__ key, value
+          __store__ key, item.value
         end
       end
     else
-      other.each do |key, value|
-        __store__ key, value
+      other.each_item do |item|
+        key = item.key
+        __store__ key, item.value
       end
     end
     self
