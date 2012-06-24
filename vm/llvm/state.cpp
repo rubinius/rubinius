@@ -455,7 +455,6 @@ namespace rubinius {
     , time_spent(0)
   {
 
-    set_name("Background Compiler");
     state->shared().auxiliary_threads()->register_thread(this);
     state->shared().add_managed_thread(this);
     state->shared().om->add_aux_barrier(state, &write_barrier_);

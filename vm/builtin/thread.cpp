@@ -189,6 +189,10 @@ namespace rubinius {
     NativeMethod::init_thread(state);
     VM::set_current(vm);
 
+    std::ostringstream tn;
+    tn << "rbx.ruby." << vm->thread_id();
+    thread::Thread::set_os_name(tn.str().c_str());
+
     state->set_call_frame(0);
     vm->shared.gc_dependent(state);
 

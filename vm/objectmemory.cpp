@@ -989,6 +989,7 @@ step1:
 
   void ObjectMemory::in_finalizer_thread(STATE) {
     CallFrame* call_frame = 0;
+    thread::Thread::set_os_name("rbx.finalizer");
 
     // Forever
     for(;;) {

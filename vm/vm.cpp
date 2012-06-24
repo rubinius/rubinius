@@ -111,6 +111,9 @@ namespace rubinius {
   }
 
   void VM::initialize_as_root() {
+
+    thread::Thread::set_os_name("rbx.ruby.main");
+
     om = new ObjectMemory(this, shared.config);
     shared.om = om;
 
