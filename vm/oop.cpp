@@ -405,7 +405,7 @@ step2:
           if(!self->header.atomic_set(orig, new_val)) goto step2;
 
           // wonderful! Locked! weeeee!
-          state->vm()->add_locked_object(this);
+          state->vm()->add_locked_object(self);
         }
 
         return eLocked;
@@ -422,7 +422,7 @@ step2:
       // If we couldn't inflate the lock, that means the header was in some
       // weird state that we didn't detect and handle properly. So redo
       // the whole locking procedure again.
-      if(!state->memory()->inflate_and_lock(state, this)) goto step1;
+      if(!state->memory()->inflate_and_lock(state, self)) goto step1;
       return eLocked;
     }
 
