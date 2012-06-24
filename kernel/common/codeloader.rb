@@ -114,7 +114,12 @@ module Rubinius
       end
 
       if wait
-        return if req.wait
+        if req.wait
+          # While waiting the code was loaded by another thread.
+          # We need to release the lock so other threads can continue too.
+          req.unlock
+          return false
+        end
 
         # The other thread doing the lock raised an exception
         # through the require, so we try and load it again here.
