@@ -28,6 +28,7 @@ namespace rubinius {
     LookupTable* names_; // slot
     regex_t* onig_data;
     bool fixed_encoding_;
+    bool no_encoding_;
     thread::SpinLock lock_;
 
   public:

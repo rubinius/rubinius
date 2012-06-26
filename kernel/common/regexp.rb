@@ -1,33 +1,19 @@
 # -*- encoding: us-ascii -*-
 
 class Regexp
-
-  # One might read this next array and think, why oh why is this done this way.
-  # The problem is how the 'n' KCODE works. This KCODE means no encoding,
-  # ASCII_8BIT or however you want to call it.
-  #
-  # In 1.9 you can use 'n' for specifying a regexp with the binary encoding,
-  # but all other KCODE encodings from 1.8 are ignored. Therefore we add ?n
-  # so 1.9 can recognize it but the other values only numerical so 1.9's
-  # String#[] won't find these.
-  ValidKcode    = [?n, 101, 115, 117]
-  KcodeValue    = [16, 32, 48, 64]
-
   IGNORECASE         = 1
   EXTENDED           = 2
   MULTILINE          = 4
   DONT_CAPTURE_GROUP = 128
   CAPTURE_GROUP      = 256
-  OPTION_MASK        = IGNORECASE | EXTENDED | MULTILINE | DONT_CAPTURE_GROUP | CAPTURE_GROUP
 
-  KCODE_ASCII   = 0
-  KCODE_NONE    = 16
-  KCODE_EUC     = 32
-  KCODE_SJIS    = 48
-  KCODE_UTF8    = 64
-  KCODE_MASK    = 112
+  KCODE_NONE = (1 << 9)
+  KCODE_EUC  = (2 << 9)
+  KCODE_SJIS = (3 << 9)
+  KCODE_UTF8 = (4 << 9)
+  KCODE_MASK = KCODE_NONE | KCODE_EUC | KCODE_SJIS | KCODE_UTF8
 
-  ESCAPE_TABLE  = Rubinius::Tuple.new(256)
+  ESCAPE_TABLE = Rubinius::Tuple.new(256)
 
   # Seed it with direct replacements
   i = 0
@@ -61,98 +47,8 @@ class Regexp
   ESCAPE_TABLE[124] = '\\|'
   ESCAPE_TABLE[125] = '\\}'
 
-  ##
-  # Constructs a new regular expression from the given pattern. The pattern
-  # may either be a String or a Regexp. If given a Regexp, options are copied
-  # from the pattern and any options given are not honoured. If the pattern is
-  # a String, additional options may be given.
-  #
-  # The first optional argument can either be a Fixnum representing one or
-  # more of the Regexp options ORed together (Regexp::IGNORECASE, EXTENDED and
-  # MULTILINE) or a flag to toggle case sensitivity. If opts is nil or false,
-  # the match is case sensitive. If opts is any non-nil, non-false and
-  # non-Fixnum object, its presence makes the regexp case insensitive (the obj
-  # is not used in any way.)
-  #
-  # The second optional argument can be used to enable multibyte support
-  # (which is disabled by default.) The flag must be one of the following
-  # strings in any combination of upper- and lowercase:
-  #
-  # * 'e', 'euc'  for EUC
-  # * 's', 'sjis' for SJIS
-  # * 'u', 'utf8' for UTF-8
-  #
-  # You may also explicitly pass in 'n', 'N' or 'none' to disable multibyte
-  # support. Any other values are ignored.
-
-  def initialize(pattern, opts=nil, lang=nil)
-    if pattern.kind_of?(Regexp)
-      opts = pattern.options
-      pattern = pattern.source
-    elsif opts.kind_of?(Fixnum)
-      opts = opts & (OPTION_MASK | KCODE_MASK) if opts > 0
-    elsif opts
-      opts = IGNORECASE
-    else
-      opts = 0
-    end
-
-    if opts and lang.kind_of?(String)
-      opts &= OPTION_MASK
-      idx   = ValidKcode.index(lang.downcase[0])
-      opts |= KcodeValue[idx] if idx
-    end
-
-    compile pattern, opts
-  end
-
   class << self
     alias_method :compile, :new
-  end
-
-  def initialize_copy(other)
-    initialize other.source, other.options, other.kcode
-  end
-
-  def self.union(*patterns)
-    case patterns.size
-    when 0
-      return %r/(?!)/
-    when 1
-      pat = patterns.first
-      case pat
-      when Array
-        return union(*pat)
-      when Regexp
-        return pat
-      else
-        return Regexp.new(Regexp.quote(StringValue(pat)))
-      end
-    end
-
-    kcode = nil
-    str = ""
-    patterns.each_with_index do |pat, idx|
-      str << "|" if idx != 0
-
-      if pat.kind_of? Regexp
-        if pat_kcode = pat.kcode
-          if kcode
-            if kcode != pat_kcode
-              raise ArgumentError, "Conflict kcodes: #{kcode} != #{pat_kcode}"
-            end
-          else
-            kcode = pat_kcode
-          end
-        end
-
-        str << pat.to_s
-      else
-        str << Regexp.quote(StringValue(pat))
-      end
-    end
-
-    Regexp.new(str, nil, kcode)
   end
 
   def source
@@ -204,55 +100,6 @@ class Regexp
 
   def casefold?
     (options & IGNORECASE) > 0 ? true : false
-  end
-
-  def eql?(other)
-    return false unless other.kind_of?(Regexp)
-    return false unless source == other.source
-
-    # Ruby 1.8 doesn't destinguish between KCODE_NONE (16) & not specified (0) for eql?
-    o1 = options
-    if o1 & KCODE_MASK == 0
-      o1 += KCODE_NONE
-    end
-
-    o2 = other.options
-    if o2 & KCODE_MASK == 0
-      o2 += KCODE_NONE
-    end
-
-    o1 == o2
-  end
-
-  alias_method :==, :eql?
-
-  def hash
-    str = '/' << source << '/' << option_to_string(options)
-    if options & KCODE_MASK == 0
-      str << 'n'
-    else
-      str << kcode[0, 1]
-    end
-    str.hash
-  end
-
-  def inspect
-    # the regexp matches any / that is after anything except for a \
-    escape = source.gsub(%r!(\\.)|/!) { $1 || '\/' }
-
-    str = "/#{escape}/#{option_to_string(options)}"
-    k = kcode()
-    str << k[0, 1] if k
-    return str
-  end
-
-  def kcode
-    lang = options & KCODE_MASK
-    return "none" if lang == KCODE_NONE
-    return "euc"  if lang == KCODE_EUC
-    return 'sjis' if lang == KCODE_SJIS
-    return 'utf8' if lang == KCODE_UTF8
-    return nil
   end
 
   def match_from(str, count)

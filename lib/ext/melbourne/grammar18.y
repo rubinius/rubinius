@@ -340,8 +340,13 @@ static NODE *extract_block_vars(rb_parser_state *parser_state, NODE* node, var_t
 #define RE_OPTION_MULTILINE          (4)
 #endif
 
+/* Must match up with options/kcode definitions in regexp.rb and regexp.cpp */
 #define RE_OPTION_DONT_CAPTURE_GROUP (128)
 #define RE_OPTION_CAPTURE_GROUP      (256)
+#define RE_KCODE_NONE                (1 << 9)
+#define RE_KCODE_EUC                 (2 << 9)
+#define RE_KCODE_SJIS                (3 << 9)
+#define RE_KCODE_UTF8                (4 << 9)
 #define RE_OPTION_ONCE               (8192)
 
 #define NODE_STRTERM NODE_ZARRAY        /* nothing to gc */
@@ -3205,7 +3210,7 @@ tokadd_escape(int term, rb_parser_state *parser_state)
 static int
 regx_options(rb_parser_state *parser_state)
 {
-    char kcode = 0;
+    int kcode = 0;
     int options = 0;
     int c;
 
@@ -3231,16 +3236,16 @@ regx_options(rb_parser_state *parser_state)
             options |= RE_OPTION_DONT_CAPTURE_GROUP;
             break;
           case 'n':
-            kcode = 16;
+            kcode = RE_KCODE_NONE;
             break;
           case 'e':
-            kcode = 32;
+            kcode = RE_KCODE_EUC;
             break;
           case 's':
-            kcode = 48;
+            kcode = RE_KCODE_SJIS;
             break;
           case 'u':
-            kcode = 64;
+            kcode = RE_KCODE_UTF8;
             break;
           default:
             tokadd((char)c, parser_state);

@@ -24,7 +24,7 @@ describe "A Regex node" do
         g.push_cpath_top
         g.find_const :Regexp
         g.push_literal "x"
-        g.push 16
+        g.push 512
         g.send :new, 2
       end
     end

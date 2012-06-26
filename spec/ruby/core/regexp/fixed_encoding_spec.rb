@@ -3,7 +3,6 @@ require File.expand_path('../../../spec_helper', __FILE__)
 
 ruby_version_is "1.9" do
   describe "Regexp#fixed_encoding?" do
-
     it "returns false by default" do
       /needle/.fixed_encoding?.should be_false
     end
@@ -32,5 +31,8 @@ ruby_version_is "1.9" do
       /文字化け/.fixed_encoding?.should be_true
     end
 
+    it "returns true if the Regexp was created with the Regexp::FIXEDENCODING option" do
+      Regexp.new("", Regexp::FIXEDENCODING).fixed_encoding?.should be_true
+    end
   end
 end

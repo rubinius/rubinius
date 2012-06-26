@@ -77,7 +77,7 @@ class Regexp
     out << ms.serialize_user_class(self, Regexp)
     out << "/"
     out << ms.serialize_integer(str.length) + str
-    out << (options & 0x7).chr
+    out << (options & Regexp::OPTION_MASK).chr
     out << ms.serialize_instance_variables_suffix(self)
 
     out

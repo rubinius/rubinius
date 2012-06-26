@@ -34,12 +34,15 @@
 #define OPTION_CAPTURE_GROUP      ONIG_OPTION_CAPTURE_GROUP
 #define OPTION_MASK               (OPTION_IGNORECASE|OPTION_EXTENDED|OPTION_MULTILINE|ONIG_OPTION_DONT_CAPTURE_GROUP|ONIG_OPTION_CAPTURE_GROUP)
 
-#define KCODE_ASCII       0
-#define KCODE_NONE        16
-#define KCODE_EUC         32
-#define KCODE_SJIS        48
-#define KCODE_UTF8        64
-#define KCODE_MASK        (KCODE_EUC|KCODE_SJIS|KCODE_UTF8)
+// Must match up with options/kcode definitions in grammar and regexp.rb
+#define KCODE_NONE        (1 << 9)
+#define KCODE_EUC         (2 << 9)
+#define KCODE_SJIS        (3 << 9)
+#define KCODE_UTF8        (4 << 9)
+#define KCODE_MASK        (KCODE_NONE|KCODE_EUC|KCODE_SJIS|KCODE_UTF8)
+
+#define OPTION_FIXEDENCODING 16
+#define OPTION_NOENCODING    32
 
 namespace rubinius {
 
@@ -86,33 +89,6 @@ namespace rubinius {
     return r;
   }
 
-  static int encoding_to_kcode(STATE, Encoding* enc) {
-    // TODO: Remove 1.8 kcode/options and add flags struct
-    if(enc == Encoding::usascii_encoding(state)) return KCODE_NONE;
-    if(enc == Encoding::utf8_encoding(state)) return KCODE_UTF8;
-    if(enc == Encoding::find(state, "EUC-JP")) return KCODE_EUC;
-    if(enc == Encoding::find(state, "Windows-31J")) return KCODE_SJIS;
-
-    return KCODE_NONE;
-  }
-
-  static Encoding* kcode_to_encoding(STATE, int kcode, Encoding* enc) {
-    switch(kcode & KCODE_MASK) {
-    case KCODE_NONE:
-      return 0;
-    case KCODE_EUC:
-      return Encoding::find(state, "EUC-JP");
-    case KCODE_SJIS:
-      return Encoding::find(state, "Windows-31J");
-    case KCODE_UTF8:
-      return Encoding::utf8_encoding(state);
-    case KCODE_ASCII:
-    default:
-      return enc;
-    }
-    return enc;
-  }
-
   static OnigEncoding current_encoding(STATE) {
     switch(state->shared().kcode_page()) {
     default:
@@ -128,9 +104,7 @@ namespace rubinius {
   }
 
   int get_kcode_from_enc(OnigEncoding enc) {
-    int r;
-
-    r = KCODE_ASCII;
+    int r = 0;
     if (enc == ONIG_ENCODING_ASCII)       r = KCODE_NONE;
     if (enc == ONIG_ENCODING_EUC_JP)      r = KCODE_EUC;
     if (enc == ONIG_ENCODING_Shift_JIS)   r = KCODE_SJIS;
@@ -288,20 +262,18 @@ namespace rubinius {
     const UChar *pat;
     const UChar *end;
     OnigErrorInfo err_info;
-    OnigOptionType opts;
     OnigEncoding enc;
-    int err, num_names, kcode;
 
-    opts  = options->to_native();
-    kcode = opts & KCODE_MASK;
-    opts &= OPTION_MASK;
+    OnigOptionType opts = options->to_native();
 
     if(LANGUAGE_18_ENABLED(state)) {
+      int kcode = opts & KCODE_MASK;
+
       pat = (UChar*)pattern->byte_address();
       end = pat + pattern->byte_size();
 
       if(kcode == 0) {
-          enc = current_encoding(state);
+        enc = current_encoding(state);
       } else {
         // Don't attempt to fix the encoding later, it's been specified by the
         // user.
@@ -309,9 +281,30 @@ namespace rubinius {
         fixed_encoding_ = true;
       }
     } else {
-      Encoding* source_enc = kcode_to_encoding(state, kcode, pattern->encoding(state));
+      fixed_encoding_ = opts & OPTION_FIXEDENCODING;
+      no_encoding_    = opts & OPTION_NOENCODING;
 
-      fixed_encoding_ = kcode && kcode != KCODE_NONE;
+      Encoding* source_enc = pattern->encoding(state);
+
+      switch(opts & KCODE_MASK) {
+      case KCODE_NONE:
+        source_enc = 0;
+        no_encoding_ = true;
+        break;
+      case KCODE_EUC:
+        source_enc = Encoding::find(state, "EUC-JP");
+        fixed_encoding_ = true;
+        break;
+      case KCODE_SJIS:
+        source_enc = Encoding::find(state, "Windows-31J");
+        fixed_encoding_ = true;
+        break;
+      case KCODE_UTF8:
+        source_enc = Encoding::utf8_encoding(state);
+        fixed_encoding_ = true;
+        break;
+      }
+
       String* converted = pattern->convert_escaped(state, source_enc, fixed_encoding_);
 
       pat = (UChar*)converted->byte_address();
@@ -324,7 +317,7 @@ namespace rubinius {
 
     thread::Mutex::LockGuard lg(state->shared().onig_lock());
 
-    err = onig_new(&this->onig_data, pat, end, opts, enc, ONIG_SYNTAX_RUBY, &err_info);
+    int err = onig_new(&this->onig_data, pat, end, opts & OPTION_MASK, enc, ONIG_SYNTAX_RUBY, &err_info);
 
     if(err != ONIG_NORMAL) {
       UChar onig_err_buf[ONIG_MAX_ERROR_MESSAGE_LEN];
@@ -338,7 +331,7 @@ namespace rubinius {
 
     this->source(state, pattern);
 
-    num_names = onig_number_of_names(this->onig_data);
+    int num_names = onig_number_of_names(this->onig_data);
 
     if(num_names == 0) {
       this->names(state, nil<LookupTable>());
@@ -371,12 +364,16 @@ namespace rubinius {
 
     int result = ((int)onig_get_options(onig_data) & OPTION_MASK);
 
-    if(fixed_encoding_) {
-      // TODO: unify after removing 1.8 kcode
-      if(LANGUAGE_18_ENABLED(state)) {
+    if(LANGUAGE_18_ENABLED(state)) {
+      if(fixed_encoding_) {
         result |= get_kcode_from_enc(onig_get_encoding(onig_data));
-      } else {
-        result |= encoding_to_kcode(state, encoding(state));
+      }
+    } else {
+      if(fixed_encoding_) {
+        result |= OPTION_FIXEDENCODING;
+      }
+      if(no_encoding_) {
+        result |= OPTION_NOENCODING;
       }
     }
 
