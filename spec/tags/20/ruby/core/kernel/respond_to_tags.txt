@@ -1,1 +1,3 @@
 fails:Kernel#respond_to? returns false even if obj responds to the given protected method (include_private = false)
+fails:Kernel#respond_to? returns true if obj responds to the given protected method
+fails:Kernel#respond_to? returns true if obj responds to the given protected method (include_private = false)

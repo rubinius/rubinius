@@ -14,3 +14,4 @@ fails:Integer#chr with an encoding argument behaves as called with no argument i
 fails:Integer#chr with an encoding argument interprets self as a codepoint in the corresponding character set
 fails:Integer#chr with an encoding argument raises a RangeError if self is an invalid codepoint for the given encoding
 fails:Integer#chr with an encoding argument raises a RangeError is self is less than 0
+fails:Integer#chr with an encoding argument raises RangeError if self is invalid as a codepoint in the specified encoding

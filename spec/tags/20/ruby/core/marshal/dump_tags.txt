@@ -1,0 +1,1 @@
+fails:Marshal.dump with a Symbol dumps an encoded Symbol

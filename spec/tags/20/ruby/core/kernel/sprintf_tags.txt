@@ -1,1 +1,8 @@
 fails:Kernel#sprintf is a private method
+fails:Kernel#sprintf passes some tests for negative %u
+fails:Kernel#sprintf with format string that contains %{} sections substitutes values for named references
+fails:Kernel#sprintf with format string that contains %{} sections raises KeyError when no matching key is in second argument
+fails:Kernel#sprintf with format string that contains %<> sections formats values for named references
+fails:Kernel#sprintf with format string that contains %<> sections raises KeyError when no matching key is in second argument
+fails:Kernel#sprintf with negative values with format %x precedes the number with '..'
+fails:Kernel#sprintf with negative values with format %b or %B precedes the number with '..'

@@ -1,0 +1,1 @@
+fails:RbConfig#ruby returns the path to the running Ruby executable

@@ -1,2 +1,4 @@
 fails:String#dump returns a string with nonprinting charaters replaced by \x notation
 fails:String#dump includes .force_encoding(name) if the encoding isn't ASCII compatiable
+fails:String#dump returns a string with multi-byte UTF-8 characters replaced by \u{} notation with lower-case hex digits
+fails:String#dump includes .force_encoding(name) if the encoding isn't ASCII compatible

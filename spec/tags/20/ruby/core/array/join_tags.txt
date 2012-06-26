@@ -2,3 +2,5 @@ fails:Array#join returns a string formed by concatenating each element.to_str se
 fails:Array#join raises an ArgumentError when the Array is recursive
 fails:Array#join does not consider untrustworthiness of either the array or the separator when the array is empty
 fails:Array#join returns a string which would be infected with untrustworthiness of the array, its elements or the separator when the array is not empty
+fails:Array#join uses the first encoding when other strings are compatible
+fails:Array#join uses the widest common encoding when other strings are incompatible

@@ -1,0 +1,2 @@
+fails:String#+ when self and the argument are in different ASCII-compatible encodings uses the argument's encoding if self is ASCII-only
+fails:String#+ when self and the argument are in different ASCII-compatible encodings raises Encoding::CompatibilityError if neither are ASCII-only

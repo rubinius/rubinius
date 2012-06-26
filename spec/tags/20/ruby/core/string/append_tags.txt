@@ -1,3 +1,6 @@
 fails:String#<< raises a RuntimeError when self is frozen
 fails:String#<< raises RangeError for negative length argument
 fails:String#<< with Fixnum raises a RuntimeError when self is frozen
+fails:String#<< with Integer concatencates the argument interpreted as a codepoint
+fails:String#<< when self and the argument are in different ASCII-compatible encodings uses the argument's encoding if self is ASCII-only
+fails:String#<< when self and the argument are in different ASCII-compatible encodings raises Encoding::CompatibilityError if neither are ASCII-only

@@ -1,3 +1,4 @@
 fails:Proc#arity returns 0 if no argument declaration is made, using Kernel#lambda
 fails:Proc#arity returns 0 if no argument declaration is made, using Kernel#proc
 fails:Proc#arity returns 0 if no argument declaration is made, using Proc.new
+fails:Proc#arity returns -2 for a block taking |(a, b), *c| arguments

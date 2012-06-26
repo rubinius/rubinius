@@ -3,3 +3,8 @@ fails:Execution variable $: does not include '.' when the taint check level > 1
 fails:Global variable $-a is read-only
 fails:Global variable $-l is read-only
 fails:Global variable $-p is read-only
+fails:Predefined global $~ changes the value of derived capture globals when assigned
+fails:Predefined global $~ changes the value of the derived preceding match global
+fails:Predefined global $~ changes the value of the derived following match global
+fails:Predefined global $~ changes the value of the derived full match global
+fails:Processing RUBYOPT prints the version number for '-v'

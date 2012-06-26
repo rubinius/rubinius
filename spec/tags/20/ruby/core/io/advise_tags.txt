@@ -1,0 +1,1 @@
+fails:IO#advise raises a RangeError if len is too big

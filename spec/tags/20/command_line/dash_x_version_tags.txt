@@ -1,0 +1,1 @@
+fails:The -Xversion command line option -X19 sets RUBY_VERSION to 1.9.3 when RBXOPT specifies 1.8.7

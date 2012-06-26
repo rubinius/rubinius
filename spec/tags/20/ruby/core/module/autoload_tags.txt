@@ -5,3 +5,4 @@ fails:Module#autoload does not load the file when refering to the constant in de
 fails:Module#autoload does NOT raise a NameError when the autoload file did not define the constant and a module is opened with the same name
 fails:Module#autoload calls #to_path on non-string filenames
 fails:Module#autoload calls #to_path on non-String filename arguments
+fails:Module#autoload return 'constant' on refering the constant with defined?()

@@ -1,1 +1,2 @@
 fails:String#rindex with String behaves the same as String#rindex(?char) for one-character strings
+fails:String#rindex with Regexp reverse matches multibyte UTF-8 chars

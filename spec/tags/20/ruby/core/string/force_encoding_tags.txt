@@ -4,3 +4,4 @@ fails:String#force_encoding returns self
 fails:String#force_encoding does not care if self would be invalid in given encoding
 fails:String#force_encoding does not care if self is already tagged with the given encoding
 fails:String#force_encoding does not transcode self
+fails:String#force_encoding sets the encoding even if the String contents are invalid in that encoding

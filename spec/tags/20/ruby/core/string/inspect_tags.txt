@@ -3,3 +3,5 @@ fails:String#inspect returns a string with non-printing, characters replaced by 
 fails:String#inspect returns a string with extended characters for Unicode strings
 fails:String#inspect produces different output based on #force_encoding
 fails:String#inspect can handle malformed UTF-8 string for #force_encoding('UTF-8')
+fails:String#inspect When default external is UTF-8 returns a string with non-printing characters replaced by \u notation for Unicode strings
+fails:String#inspect When default external is UTF-8 returns a string with extended characters for Unicode strings

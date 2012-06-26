@@ -1,3 +1,6 @@
 fails:String#concat raises a RuntimeError when self is frozen
 fails:String#concat raises RangeError for negative length argument
 fails:String#concat with Fixnum raises a RuntimeError when self is frozen
+fails:String#concat with Integer concatencates the argument interpreted as a codepoint
+fails:String#concat when self and the argument are in different ASCII-compatible encodings uses the argument's encoding if self is ASCII-only
+fails:String#concat when self and the argument are in different ASCII-compatible encodings raises Encoding::CompatibilityError if neither are ASCII-only

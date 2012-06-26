@@ -5,3 +5,4 @@ fails:Magic comment must be at the first of line
 fails:Magic comment can be after the shebang
 fails:Magic comment can take Emacs style
 fails:Magic comment can take vim style
+fails:Magic comment must be the first token of the line
