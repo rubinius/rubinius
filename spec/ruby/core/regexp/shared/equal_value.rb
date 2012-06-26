@@ -16,4 +16,12 @@ describe :regexp_eql, :shared => true do
     /abc/.send(@method, /abc/i).should == false
     /abc/i.send(@method, /abc/i).should == true
   end
+
+  it "is true if self does not specify /n option and other does" do
+    //.send(@method, //n).should == true
+  end
+
+  it "is true if self specifies /n option and other does not" do
+    //n.send(@method, //).should == true
+  end
 end
