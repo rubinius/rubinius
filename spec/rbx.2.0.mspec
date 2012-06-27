@@ -13,11 +13,7 @@ class MSpecScript
     'spec/core',
   ]
 
-  # Standard library specs
-  set :library, [
-    'spec/ruby/library',
-    'spec/library',
-
+  set :obsolete_library, [
     # obsolete libraries
     '^library/cgi-lib',
     '^library/date2',
@@ -47,6 +43,18 @@ class MSpecScript
 
     '^library/dl',  # reimplemented and API changed
   ]
+
+  set :unsupported_library, [
+    # Libraries that Rubinius does not support
+
+    '^library/mathn'
+  ]
+
+  # Standard library specs
+  set :library, [
+    'spec/ruby/library',
+    'spec/library',
+  ] + get(:obsolete_library) + get(:unsupported_library)
 
   # An ordered list of the directories containing specs to run
   set :files, get(:language) + get(:core) + get(:library) +
@@ -56,36 +64,7 @@ class MSpecScript
     'spec/ruby/language',
     'spec/ruby/core',
     'spec/ruby/library',
-
-    # obsolete libraries
-    '^library/cgi-lib',
-    '^library/date2',
-    '^library/enumerator',
-    '^library/eregex',
-    '^library/finalize',
-    '^library/ftools',
-    '^library/generator',
-    '^library/getopts',
-    '^library/importenv',
-    '^library/jcode',
-    '^library/mailread',
-    '^library/parsearg',
-    '^library/parsedate',
-    '^library/ping',
-    '^library/readbytes',
-    '^library/rubyunit',
-    '^library/runit',
-    '^library/soap',
-    '^library/wsdl',
-    '^library/xsd',
-    '^library/Win32API',
-
-    '^library/test/unit/collector',
-    '^library/test/unit/ui',
-    '^library/test/unit/util',
-
-    '^library/dl',  # reimplemented and API changed
-  ]
+  ] + get(:obsolete_library) + get(:unsupported_library)
 
   # An ordered list of the directories containing specs to run
   # as the CI process.
@@ -103,57 +82,9 @@ class MSpecScript
 
     'spec/build',
 
-    # Excluded while building out basic 1.9 infrastructure
-    '^spec/ruby/core/basicobject/basic_object_class',
-    '^spec/ruby/core/basicobject/metaclass',
-    '^spec/ruby/core/encoding/default_internal',
-    '^spec/ruby/core/kernel/define_singleton_method',
-    '^spec/ruby/core/method/parameters',
-    '^spec/ruby/core/module/name',
-    '^spec/ruby/core/numeric/to_c',
-    '^spec/ruby/core/proc/parameters',
-    '^spec/ruby/language/array',
-    '^spec/ruby/language/block',
-    '^spec/ruby/language/case',
-    '^spec/ruby/language/literal_lambda',
-    '^spec/ruby/language/method',
-    '^spec/ruby/language/symbol',
-    '^spec/ruby/language/variables',
-    '^spec/ruby/command_line/dash_e',
-
     # Excluded because the specs are extremely system dependent.
     '^spec/ruby/library/syslog',
-
-    # obsolete libraries
-    '^library/cgi-lib',
-    '^library/date2',
-    '^library/enumerator',
-    '^library/eregex',
-    '^library/finalize',
-    '^library/ftools',
-    '^library/generator',
-    '^library/getopts',
-    '^library/importenv',
-    '^library/jcode',
-    '^library/mailread',
-    '^library/parsearg',
-    '^library/parsedate',
-    '^library/ping',
-    '^library/readbytes',
-    '^library/rubyunit',
-    '^library/runit',
-    '^library/soap',
-    '^library/wsdl',
-    '^library/xsd',
-    '^library/Win32API',
-
-    '^library/test/unit/collector',
-    '^library/test/unit/ui',
-    '^library/test/unit/util',
-
-    '^library/dl',  # reimplemented and API changed
-  ]
-
+  ] + get(:obsolete_library) + get(:unsupported_library)
 
   # The set of substitutions to transform a spec filename
   # into a tag filename.
@@ -172,5 +103,9 @@ class MSpecScript
     MSpec.enable_feature :hash_hamt
   else
     MSpec.enable_feature :hash_bucket
+  end
+
+  module ::Kernel
+    alias_method :require, :gem_original_require
   end
 end
