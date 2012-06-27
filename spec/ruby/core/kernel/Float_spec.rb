@@ -234,37 +234,6 @@ describe :kernel_float, :shared => true do
     (obj = mock('123')).should_receive(:to_f).once.and_return(123)
     lambda { @object.send(:Float, obj) }.should raise_error(TypeError)
   end
-
-  it "treats special float value strings as characters" do
-    lambda { Float("NaN") }.should raise_error(ArgumentError)
-    lambda { Float("-Infinity") }.should raise_error(ArgumentError)
-    lambda { Float("Infinity") }.should raise_error(ArgumentError)
-  end
-
-  it "raises an ArgumentError if a given string contains a null byte" do
-    lambda { Float("\0") }.should raise_error(ArgumentError)
-    lambda { Float("\01") }.should raise_error(ArgumentError)
-    lambda { Float("1\0") }.should raise_error(ArgumentError)
-    lambda { Float("1\01") }.should raise_error(ArgumentError)
-  end
-
-  ruby_version_is '' ... '1.9' do
-    %w(x X).each do |x|
-      it "raises an ArgumentError for values represented as hex with a leading 0#{x}" do
-        lambda { Float("0#{x}1") }.should raise_error(ArgumentError)
-        lambda { Float("0#{x}30") }.should raise_error(ArgumentError)
-      end
-    end
-  end
-
-  ruby_version_is '1.9' do
-    %w(x X).each do |x|
-      it "parses values represented as hex with a leading 0#{x}" do
-        Float("0#{x}1").should == 1.0
-        Float("0#{x}30").should == 48.0
-      end
-    end
-  end
 end
 
 describe "Kernel.Float" do

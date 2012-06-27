@@ -1,7 +1,8 @@
 require File.expand_path('../../../spec_helper', __FILE__)
-require File.expand_path('../fixtures/common', __FILE__)
 
 ruby_version_is "1.9" do
+  require File.expand_path('../fixtures/common', __FILE__)
+
   describe "BasicObject" do
     it "raises NoMethodError for nonexistent methods after #method_missing is removed" do
       script = fixture __FILE__, "remove_method_missing.rb"

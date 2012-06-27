@@ -8,40 +8,33 @@ describe "Socket#connect_nonblock" do
     @hostname = "127.0.0.1"
     @addr = Socket.sockaddr_in(SocketSpecs.port, @hostname)
     @socket = Socket.new(Socket::AF_INET, Socket::SOCK_STREAM, 0)
+    @thread = nil
   end
 
   after :each do
     @socket.close
+    @thread.join if @thread
   end
 
-  platform_is_not :freebsd do
-    it "takes an encoded socket address and starts the connection to it" do
-      lambda {
+  it "takes an encoded socket address and starts the connection to it" do
+    lambda {
+      begin
         @socket.connect_nonblock(@addr)
-      }.should raise_error(Errno::EINPROGRESS)
-    end
-  end
-
-  platform_is :freebsd do
-    it "takes an encoded socket address and starts the connection to it" do
-      lambda {
-        begin
-          @socket.connect_nonblock(@addr)
-        rescue Errno::EINPROGRESS
-          r = @socket.getsockopt(Socket::SOL_SOCKET, Socket::SO_ERROR)
-          if r.unpack('i').first == Errno::ECONNREFUSED::Errno
-            raise Errno::ECONNREFUSED.new
-          else
-            raise r.inspect
-          end
+      rescue Errno::EINPROGRESS
+        IO.select(nil, [@socket])
+        r = @socket.getsockopt(Socket::SOL_SOCKET, Socket::SO_ERROR)
+        if r.int == Errno::ECONNREFUSED::Errno
+          raise Errno::ECONNREFUSED.new
+        else
+          raise r.inspect
         end
-      }.should raise_error(Errno::ECONNREFUSED)
-    end
+      end
+    }.should raise_error(Errno::ECONNREFUSED)
   end
 
   it "connects the socket to the remote side" do
     ready = false
-    thread = Thread.new do
+    @thread = Thread.new do
       server = TCPServer.new(@hostname, SocketSpecs.port)
       ready = true
       conn = server.accept
@@ -50,7 +43,7 @@ describe "Socket#connect_nonblock" do
       server.close
     end
 
-    Thread.pass while (thread.status and thread.status != 'sleep') or !ready
+    Thread.pass while (@thread.status and @thread.status != 'sleep') or !ready
 
     begin
       @socket.connect_nonblock(@addr)

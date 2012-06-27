@@ -28,6 +28,8 @@ describe :tcpsocket_new, :shared => true do
     after :each do
       if @socket
         @socket.write "QUIT"
+        @socket.shutdown(Socket::SHUT_WR)
+        @socket.read
         @socket.close
       end
     end

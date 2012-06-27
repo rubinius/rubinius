@@ -9,7 +9,11 @@ describe :io_new, :shared => true do
   end
 
   after :each do
-    @io.close if @io and !@io.closed?
+    if @io and !@io.closed?
+      @io.close
+    elsif @fd
+      IO.new(@fd, "w").close
+    end
     rm_r @name
   end
 
@@ -271,6 +275,7 @@ describe :io_new, :shared => true do
     it "accepts an :autoclose option" do
       @io = IO.send(@method, @fd, 'w', :autoclose => false)
       @io.autoclose?.should == false
+      @io.autoclose = true
     end
 
     it "accepts any truthy option :autoclose" do

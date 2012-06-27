@@ -133,18 +133,26 @@ describe "Kernel#caller in a Proc or eval" do
       stack[3].should =~ /caller_spec\.rb:129:in `block \(3 levels\) in <top \(required\)>'/
     end
 
-    it "begins with the eval's sender's sender for caller(4) in eval" do
-      stack = CallerFixture.eval_caller(4)
-      stack[0].should =~ /caller_spec\.rb:137:in `block \(3 levels\) in <top \(required\)>'/
-    end
-
     it "shows the current line in the calling block twice when evaled" do
-      stack = CallerFixture.eval_caller(0)
-
+      stack = CallerFixture.eval_caller(0); line = __LINE__
       stack[0].should == "(eval):1:in `eval_caller'"
       stack[1].should =~/caller_fixture2\.rb:23:in `eval'/
       stack[2].should =~/caller_fixture2\.rb:23:in `eval_caller'/
-      stack[3].should =~/caller_spec\.rb:142:in `block \(3 levels\) in <top \(required\)>/
+      stack[3].should =~/caller_spec\.rb:#{line}:in `block \(3 levels\) in <top \(required\)>/
+    end
+  end
+
+  ruby_version_is "1.9"..."2.0" do
+    it "begins with the eval's sender's sender for caller(4) in eval" do
+      stack = CallerFixture.eval_caller(4); line = __LINE__
+      stack[0].should =~ /caller_spec\.rb:#{line}:in `block \(3 levels\) in <top \(required\)>'/
+    end
+  end
+
+  ruby_version_is "2.0" do
+    it "begins with the eval's sender's sender for caller(4) in eval" do
+      stack = CallerFixture.eval_caller(4)
+      stack[0].should =~ /\.rb:\d+:in `instance_eval'/ # mspec.rb
     end
   end
 end

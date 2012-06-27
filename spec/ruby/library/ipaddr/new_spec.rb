@@ -70,11 +70,19 @@ describe "IPAddr#new" do
     a.family.should == Socket::AF_INET
   end
 
+  ruby_bug "#6479", "1.9.3.235" do
+    it "initializes IPAddr ipv4 mapped address with subnet mask" do
+      a = IPAddr.new("::1:192.168.1.2/120")
+      a.to_s.should == "::1:c0a8:100"
+      a.to_string.should == "0000:0000:0000:0000:0000:0001:c0a8:0100"
+      a.family.should == Socket::AF_INET6
+    end
+  end
+
   it "raises on incorrect IPAddr strings" do
     [
       ["fe80::1%fxp0"],
       ["::1/255.255.255.0"],
-      ["::1:192.168.1.2/120"],
       [IPAddr.new("::1").to_i],
       ["::ffff:192.168.1.2/120", Socket::AF_INET],
       ["[192.168.1.2]/120"],

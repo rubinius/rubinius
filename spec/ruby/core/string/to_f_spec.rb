@@ -7,21 +7,19 @@ describe "String#to_f" do
   it "treats leading characters of self as a floating point number" do
    "123.45e1".to_f.should == 1234.5
    "45.67 degrees".to_f.should == 45.67
-   "0".to_f.should eql(0.0)
+   "0".to_f.should == 0.0
    "123.45e1".to_f.should == 1234.5
 
    ".5".to_f.should == 0.5
-   ".5e1".to_f.should eql(5.0)
-   "5e".to_f.should eql(5.0)
-   "5E".to_f.should eql(5.0)
+   ".5e1".to_f.should == 5.0
+   "5e".to_f.should == 5.0
+   "5E".to_f.should == 5.0
   end
 
   it "treats special float value strings as characters" do
-    "NaN".to_f.should eql(0.0)
-    "Infinity".to_f.should eql(0.0)
-    "-Infinity".to_f.should eql(0.0)
-    "Inf".to_f.should eql(0.0)
-    "-Inf".to_f.should eql(0.0)
+    "NaN".to_f.should == 0
+    "Infinity".to_f.should == 0
+    "-Infinity".to_f.should == 0
   end
 
   it "allows for varying case" do
@@ -44,23 +42,23 @@ describe "String#to_f" do
     "1_234_567.890_1".to_f.should == 1_234_567.890_1
   end
 
-  it "returns 0.0 for strings with any non-digit in them" do
-    "blah".to_f.should eql(0.0)
-    "0b5".to_f.should eql(0.0)
-    "0d5".to_f.should eql(0.0)
-    "0o5".to_f.should eql(0.0)
-    "0xx5".to_f.should eql(0.0)
+  it "returns 0 for strings with any non-digit in them" do
+    "blah".to_f.should == 0
+    "0b5".to_f.should == 0
+    "0d5".to_f.should == 0
+    "0o5".to_f.should == 0
+    "0xx5".to_f.should == 0
   end
 
   ruby_version_is "1.9" do
-    it "returns 0.0 for strings with leading underscores" do
-      "_9".to_f.should eql(0.0)
+    it "returns 0 for strings with leading underscores" do
+      "_9".to_f.should == 0
     end
   end
 
   ruby_version_is "" ... "1.9" do
     it "ignores leading underscores" do
-      "_9".to_f.should eql(9.0)
+      "_9".to_f.should == 9.0
     end
   end
 
@@ -68,18 +66,12 @@ describe "String#to_f" do
     "-45.67 degrees".to_f.should == -45.67
     "+45.67 degrees".to_f.should == 45.67
     "-5_5e-5_0".to_f.should == -55e-50
-    "-".to_f.should eql(0.0)
+    "-".to_f.should == 0.0
     (1.0 / "-0".to_f).to_s.should == "-Infinity"
   end
 
   it "returns 0.0 if the conversion fails" do
-    "bad".to_f.should eql(0.0)
-    "thx1138".to_f.should eql(0.0)
-  end
-
-  it "returns 0.0 for strings represented as hex" do
-    "0x1".to_f.should eql(0.0)
-    "0x30".to_f.should eql(0.0)
-    " _0x1".to_f.should eql(0.0)
+    "bad".to_f.should == 0.0
+    "thx1138".to_f.should == 0.0
   end
 end

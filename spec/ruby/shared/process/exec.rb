@@ -12,6 +12,7 @@ describe :process_exec, :shared => true do
   end
 
   it "raises Errno::EACCES when the file does not have execute permissions" do
+    File.executable?(__FILE__).should == false
     lambda { @object.exec __FILE__ }.should raise_error(Errno::EACCES)
   end
 

@@ -16,8 +16,8 @@ Signal.trap(:TERM) do
   if mutex.try_lock
     unless signaled
       signaled = true
-      puts "signaled"
-      Process.exit!
+      STDOUT.puts "signaled"
+      STDOUT.flush
     end
   end
 end
@@ -44,4 +44,4 @@ if scenario
   Thread.new { system cmd }.join
 end
 
-sleep 0.1 while true
+sleep 0.1 until signaled

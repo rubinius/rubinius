@@ -86,8 +86,16 @@ ruby_version_is "1.9" do
     end
 
     platform_is_not :windows do
-      it "returns false by default" do
-        @io.close_on_exec?.should == false
+      ruby_version_is "1.9"..."2.0" do
+        it "returns false by default" do
+          @io.close_on_exec?.should == false
+        end
+      end
+
+      ruby_version_is "2.0" do
+        it "returns true by default" do
+          @io.close_on_exec?.should == true
+        end
       end
 
       it "returns true if set" do

@@ -4,10 +4,7 @@ require File.expand_path('../../fixtures/classes', __FILE__)
 ruby_version_is "1.9" do
   describe "Delegator#trust" do
     before :each do
-      @delegate = lambda do
-        not_compliant_on(:rubinius) { $SAFE = 4 }
-        DelegateSpecs::Delegator.new([])
-      end.call
+      @delegate = DelegateSpecs::Delegator.new([])
     end
 
     it "returns self" do
@@ -23,16 +20,22 @@ ruby_version_is "1.9" do
       @delegate.trust
       @delegate.__getobj__.untrusted?.should be_false
     end
+  end
 
-    not_compliant_on :rubinius do
+  not_compliant_on :rubinius do
+    describe "Delegator#trust" do
+      before :each do
+        @delegate = lambda { $SAFE=4; DelegateSpecs::Delegator.new([]) }.call
+      end
+
       it "raises a SecurityError when modifying a trusted delegator" do
         @delegate.trust
-        lambda{$SAFE=4; @delegate.data = :foo }.should raise_error( SecurityError )
+        lambda { $SAFE=4; @delegate.data = :foo }.should raise_error(SecurityError)
       end
 
       it "raises a SecurityError when modifying a trusted delegate" do
         @delegate.trust
-        lambda{$SAFE=4; @delegate << 42}.should raise_error( SecurityError )
+        lambda { $SAFE=4; @delegate << 42 }.should raise_error(SecurityError)
       end
     end
   end

@@ -37,17 +37,35 @@ describe "Syslog.mask" do
       Syslog.mask.should == nil
     end
 
-    it "persists if the log is reopened" do
-      Syslog.open
-      Syslog.mask.should == 255
-      Syslog.mask = 64
+    platform_is :darwin do
+      it "resets if the log is reopened" do
+        Syslog.open
+        Syslog.mask.should == 255
+        Syslog.mask = 64
 
-      Syslog.reopen("rubyspec") do
-        Syslog.mask.should == 64
+        Syslog.reopen("rubyspec") do
+          Syslog.mask.should == 255
+        end
+
+        Syslog.open do
+          Syslog.mask.should == 255
+        end
       end
+    end
 
-      Syslog.open do
-        Syslog.mask.should == 64
+    platform_is_not :darwin do
+      it "persists if the log is reopened" do
+        Syslog.open
+        Syslog.mask.should == 255
+        Syslog.mask = 64
+
+        Syslog.reopen("rubyspec") do
+          Syslog.mask.should == 64
+        end
+
+        Syslog.open do
+          Syslog.mask.should == 64
+        end
       end
     end
   end

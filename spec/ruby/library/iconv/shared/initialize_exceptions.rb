@@ -1,3 +1,4 @@
+require File.expand_path('../../fixtures/classes.rb', __FILE__)
 describe :iconv_initialize_exceptions, :shared => true do
   it "raises a TypeError when encoding names are not Strings or string-compatible" do
     lambda { Iconv.send @method, Object.new, "us-ascii", @object }.should raise_error(TypeError)
