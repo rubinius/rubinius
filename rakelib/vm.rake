@@ -146,7 +146,8 @@ namespace :build do
   namespace :ffi do
 
     FFI_PREPROCESSABLES = %w[ lib/fcntl.rb
-                              lib/zlib.rb
+                              lib/18/zlib.rb
+                              lib/19/zlib.rb
                             ]
 
     unless BUILD_CONFIG[:windows]

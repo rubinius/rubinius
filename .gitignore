@@ -79,7 +79,8 @@ tmtags
 
 /lib/etc.rb
 /lib/kernel.rb
-/lib/zlib.rb
+/lib/18/zlib.rb
+/lib/19/zlib.rb
 /lib/fcntl.rb
 /lib/syslog.rb
 /lib/readline.rb

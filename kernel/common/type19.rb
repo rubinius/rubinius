@@ -22,7 +22,7 @@ module Rubinius
         enc_a = object_encoding a
         enc_b = object_encoding b
         message = "undefined conversion "
-        message << "for '#{a}' " if object_kind_of?(a, String)
+        message << "for '#{a.inspect}' " if object_kind_of?(a, String)
         message << "from #{enc_a} to #{enc_b}"
 
         raise Encoding::CompatibilityError, message
