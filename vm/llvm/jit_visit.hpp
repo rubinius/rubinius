@@ -1464,7 +1464,7 @@ namespace rubinius {
     void visit_send_stack(opcode which, opcode args) {
       InlineCache* cache = reinterpret_cast<InlineCache*>(which);
 
-      MethodCacheEntry* mce = cache->caches()[0];
+      MethodCacheEntry* mce = cache->get_single_cache();
       atomic::memory_barrier();
 
       if(mce) {
@@ -1700,7 +1700,7 @@ namespace rubinius {
       InlineCache* cache = reinterpret_cast<InlineCache*>(which);
       CompiledCode* block_code = 0;
 
-      MethodCacheEntry* mce = cache->caches()[0];
+      MethodCacheEntry* mce = cache->get_single_cache();
       atomic::memory_barrier();
 
       if(mce &&

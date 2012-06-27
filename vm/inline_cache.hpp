@@ -213,6 +213,13 @@ namespace rubinius {
       return NULL;
     }
 
+    MethodCacheEntry* get_single_cache() {
+      if(cache_size() == 1) {
+        return cache_[0];
+      }
+      return NULL;
+    }
+
     int cache_size() {
       for(int i = 0; i < cTrackedICHits; ++i) {
         if(!cache_[i]) return i;
