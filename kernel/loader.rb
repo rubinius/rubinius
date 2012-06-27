@@ -23,7 +23,7 @@ module Rubinius
       @early_option_stop = false
       @check_syntax = false
 
-      @enable_gems = Rubinius.ruby19?
+      @enable_gems = !Rubinius.ruby18?
       @load_gemfile = false
 
       version = RUBY_VERSION.split(".").first(2).join(".")
@@ -273,7 +273,7 @@ containing the Rubinius standard library files.
         $DEBUG = true
       end
 
-      if Rubinius.ruby19?
+      unless Rubinius.ruby18?
         options.on "--disable-gems", "Do not automatically load rubygems on startup" do
           @enable_gems = false
         end
