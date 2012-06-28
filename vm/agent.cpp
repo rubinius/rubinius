@@ -55,7 +55,6 @@ namespace rubinius {
     : AuxiliaryThread()
     , shared_(state->shared())
     , thread_(0)
-    , thread_running_(false)
     , port_(0)
     , server_fd_(-1)
     , verbose_(false)
@@ -500,17 +499,14 @@ auth_error:
   void QueryAgent::start_thread(STATE) {
     SYNC(state);
 
-    if(thread_running_) return;
-
+    if(thread_) return;
     thread_ = new Thread(this);
-
-    thread_running_ = true;
   }
 
   void QueryAgent::stop_thread(STATE) {
     SYNC(state);
 
-    if(!thread_running_) return;
+    if(!thread_) return;
 
     thread_->stop();
 
@@ -519,7 +515,6 @@ auth_error:
     thread_->join();
     delete thread_;
     thread_ = NULL;
-    thread_running_ = false;
   }
 
   void QueryAgent::wakeup(STATE) {

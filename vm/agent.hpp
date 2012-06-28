@@ -64,7 +64,6 @@ namespace rubinius {
   private:
     SharedState& shared_;
     Thread* thread_;
-    bool thread_running_;
     int port_;
     int server_fd_;
     bool verbose_;
