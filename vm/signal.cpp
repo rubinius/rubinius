@@ -33,6 +33,7 @@ namespace rubinius {
     : AuxiliaryThread()
     , shared_(state->shared())
     , target_(state->vm())
+    , self_(NULL)
     , queued_signals_(0)
     , exit_(false)
     , thread_(state)
@@ -58,14 +59,19 @@ namespace rubinius {
   }
 
   void SignalHandler::start_thread(STATE) {
+    SYNC(state);
+    if(self_) return;
     self_ = state->shared().new_vm();
     thread_.set(Thread::create(state, self_, G(thread), handle_tramp, false));
     run(state);
+
   }
 
   void SignalHandler::stop_thread(STATE) {
+    SYNC(state);
+    if(self_) return;
+
     // Thread might have already been stopped
-    if(!self_) return;
     pthread_t os = self_->os_thread();
 
     exit_ = true;
@@ -74,9 +80,8 @@ namespace rubinius {
     }
 
     void* return_value;
-    if(!pthread_equal(os, pthread_self())) {
-      pthread_join(os, &return_value);
-    }
+    pthread_join(os, &return_value);
+    self_ = NULL;
   }
 
   void SignalHandler::open_pipes() {
@@ -104,8 +109,6 @@ namespace rubinius {
   }
 
   void SignalHandler::after_exec(STATE) {
-    if(self_) rubinius::bug("SignalHandler::after_exec: signal thread still running");
-
     exit_ = false;
     start_thread(state);
   }
