@@ -191,7 +191,8 @@ namespace rubinius {
     return obj;
   }
 
-  Object* System::vm_exec(STATE, String* path, Array* args) {
+  Object* System::vm_exec(STATE, String* path, Array* args,
+                          CallFrame* calling_environment) {
 
     const char* c_path = path->c_str_null_safe(state);
     size_t argc = args->size();
@@ -207,9 +208,14 @@ namespace rubinius {
       argv[i] = const_cast<char*>(as<String>(args->get(state, i))->c_str_null_safe(state));
     }
 
+    OnStack<2> os(state, path, args);
     // Some system (darwin) don't let execvp work if there is more
     // than one thread running.
-    state->shared().auxiliary_threads()->before_exec(state);
+    {
+      // TODO: Make this guard unnecessary
+      GCIndependent guard(state, calling_environment);
+      state->shared().auxiliary_threads()->before_exec(state);
+    }
 
     // TODO Need to stop and kill off any ruby threads!
     // We haven't run into this because exec is almost always called
@@ -269,9 +275,15 @@ namespace rubinius {
 
     int fds[2];
 
+    OnStack<1> os(state, str);
+
     if(pipe(fds) != 0) return Primitives::failure();
 
-    state->shared().auxiliary_threads()->before_fork(state);
+    {
+      // TODO: Make this guard unnecessary
+      GCIndependent guard(state, calling_environment);
+      state->shared().auxiliary_threads()->before_fork(state);
+    }
 
     pid_t pid = ::fork();
 

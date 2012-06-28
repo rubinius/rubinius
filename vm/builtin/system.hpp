@@ -58,7 +58,7 @@ namespace rubinius {
      *  Replace process with given program and args (exec()).
      */
     // Rubinius.primitive :vm_exec
-    static Object*  vm_exec(STATE, String* path, Array* args);
+    static Object*  vm_exec(STATE, String* path, Array* args, CallFrame* calling_environment);
 
     // Rubinius.primitive :vm_replace
     static Object*  vm_replace(STATE, String* str, CallFrame* calling_environment);
