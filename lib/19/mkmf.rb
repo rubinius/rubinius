@@ -156,11 +156,7 @@ end
 
 # ---------------------- Changed for Rubinius --------------------------------
 if dir = ENV['RBX_CAPI_DIR']
-  if Rubinius.ruby18?
-    $topdir = "#{dir}/vm/capi/18/include"
-  else
-    $topdir = "#{dir}/vm/capi/19/include"
-  end
+  $topdir = "#{dir}/vm/capi/19/include"
 else
   $topdir = RbConfig::CONFIG["rubyhdrdir"]
 end
