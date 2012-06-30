@@ -599,7 +599,7 @@ extern "C" {
     if(!found) {
       res = Helpers::const_missing_under(state, under, sym, call_frame);
     } else if(Autoload* autoload = try_as<Autoload>(res)) {
-      res = autoload->resolve(state, call_frame);
+      res = autoload->resolve(state, call_frame, under);
     }
 
     return res;
@@ -770,7 +770,7 @@ extern "C" {
     if(!found) {
       res = Helpers::const_missing(state, sym, call_frame);
     } else if(Autoload* autoload = try_as<Autoload>(res)) {
-      res = autoload->resolve(state, call_frame);
+      res = autoload->resolve(state, call_frame, call_frame->constant_scope()->module());
     }
 
     return res;
@@ -799,7 +799,7 @@ extern "C" {
 
       if(found) {
         if(Autoload* autoload = try_as<Autoload>(res)) {
-          res = autoload->resolve(state, call_frame);
+          res = autoload->resolve(state, call_frame, call_frame->constant_scope()->module());
         }
 
         if(res) {

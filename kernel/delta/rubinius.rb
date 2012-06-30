@@ -54,7 +54,7 @@ module Rubinius
     else
       obj = tbl[name]
       if Type.object_kind_of? obj, Autoload
-        obj = obj.call(true)
+        obj = obj.call(mod, true)
 
         # See comment above about autoload returning nil
         unless obj
