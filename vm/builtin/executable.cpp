@@ -64,7 +64,7 @@ namespace rubinius {
     args.unshift2(state, args.recv(), args.name());
     args.set_recv(exec);
 
-    Dispatch dis(state->symbol("call"));
+    Dispatch dis(G(sym_call));
     return dis.send(state, call_frame, args);
   }
 

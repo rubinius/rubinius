@@ -1035,7 +1035,7 @@ step1:
 
           OnStack<1> os(state, ary);
 
-          fi->ruby_finalizer->send(state, call_frame, state->symbol("call"), ary);
+          fi->ruby_finalizer->send(state, call_frame, G(sym_call), ary);
         }
       } else {
         std::cerr << "Unsupported object to be finalized: "
@@ -1085,7 +1085,7 @@ step1:
 
           OnStack<1> os(state, ary);
 
-          fi->ruby_finalizer->send(state, call_frame, state->symbol("call"), ary);
+          fi->ruby_finalizer->send(state, call_frame, G(sym_call), ary);
         }
       } else {
         std::cerr << "Unsupported object to be finalized: "
@@ -1127,7 +1127,7 @@ step1:
 
             OnStack<1> os(state, ary);
 
-            fi.ruby_finalizer->send(state, 0, state->symbol("call"), ary);
+            fi.ruby_finalizer->send(state, 0, G(sym_call), ary);
           }
         } else {
           std::cerr << "During shutdown, unsupported object to be finalized: "
@@ -1172,7 +1172,7 @@ step1:
 
             OnStack<1> os(state, ary);
 
-            fi.ruby_finalizer->send(state, 0, state->symbol("call"), ary);
+            fi.ruby_finalizer->send(state, 0, G(sym_call), ary);
           }
         } else {
           std::cerr << "During shutdown, unsupported object to be finalized: "

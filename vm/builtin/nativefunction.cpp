@@ -503,7 +503,7 @@ namespace rubinius {
     }
 
     Object* obj = stub->callable->send(state, env->current_call_frame(),
-                                       state->symbol("call"), args);
+                                       G(sym_call), args);
 
     // Ug. An exception is being raised...
     if(!obj) {

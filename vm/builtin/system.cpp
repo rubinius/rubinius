@@ -1112,8 +1112,8 @@ namespace rubinius {
                            CallFrame* call_frame)
   {
     LookupData lookup(obj, obj->lookup_begin(state), G(sym_protected));
-    Dispatch dis(state->symbol("call"));
-    Arguments args(state->symbol("call"), 1, &dest);
+    Dispatch dis(G(sym_call));
+    Arguments args(G(sym_call), 1, &dest);
     args.set_recv(obj);
 
     Object* ret = dis.send(state, call_frame, lookup, args);
