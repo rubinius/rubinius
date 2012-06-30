@@ -15,7 +15,7 @@ module Rubinius
       obj = tbl[name]
       if Type.object_kind_of? obj, Autoload
         obj = begin
-          obj.call(mod, true)
+          obj.call(true)
         rescue NameError # Constant not found in loaded file
           nil
         end
