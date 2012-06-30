@@ -1060,6 +1060,8 @@ module Zlib
     def check_footer
       @zstream.flags |= Zlib::GzipFile::FOOTER_FINISHED
 
+      return unless @zstream.input
+
       footer = @zstream.input.slice! 0, 8
       rest = @io.read 8 - footer.length
       footer << rest if rest
