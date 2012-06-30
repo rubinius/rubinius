@@ -252,6 +252,18 @@ describe "Module#autoload" do
     ModuleSpecs::Autoload::XX::YY.superclass.should == YY
   end
 
+
+  it "looks up the constant in the scope where it is referred" do
+    module ModuleSpecs
+      module Autoload
+        autoload :QQ, fixture(__FILE__, "autoload_scope.rb")
+        class PP
+          QQ.new.should be_kind_of(ModuleSpecs::Autoload::PP::QQ)
+        end
+      end
+    end
+  end
+
   ruby_version_is "1.9" do
     # [ruby-core:19127] [ruby-core:29941]
     it "does NOT raise a NameError when the autoload file did not define the constant and a module is opened with the same name" do
