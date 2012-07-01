@@ -14,7 +14,7 @@ module Rubinius
     else
       obj = tbl[name]
       if Type.object_kind_of? obj, Autoload
-        obj = obj.call(true)
+        obj = obj.call(mod, true)
 
         # nil is returned if the autoload was abort, usually because
         # the file to be required has already been loaded. In which case

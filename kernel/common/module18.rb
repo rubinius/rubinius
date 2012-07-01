@@ -11,7 +11,7 @@ class Module
     while current
       constant = current.constant_table.fetch name, undefined
       unless constant.equal?(undefined)
-        constant = constant.call if constant.kind_of?(Autoload)
+        constant = constant.call(current) if constant.kind_of?(Autoload)
         return constant
       end
 
@@ -21,7 +21,7 @@ class Module
     if instance_of?(Module)
       constant = Object.constant_table.fetch name, undefined
       unless constant.equal?(undefined)
-        constant = constant.call if constant.kind_of?(Autoload)
+        constant = constant.call(current) if constant.kind_of?(Autoload)
         return constant
       end
     end

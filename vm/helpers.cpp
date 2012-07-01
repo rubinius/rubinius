@@ -30,14 +30,17 @@
 
 namespace rubinius {
   namespace Helpers {
-    Object* const_get_under(STATE, Module* mod, Symbol* name, bool* found) {
-      Object* res;
+    Object* const_get_under(STATE, Module* mod, Symbol* name, bool* found, Object* filter) {
+      Object* result;
 
       *found = false;
 
       while(!mod->nil_p()) {
-        res = mod->get_const(state, name, found);
-        if(*found) return res;
+        result = mod->get_const(state, name, found);
+        if(*found) {
+          if(result != filter) return result;
+          *found = false;
+        }
 
         // Don't stop when you see Object, because we need to check any
         // includes into Object as well, and they're found via superclass
@@ -47,7 +50,7 @@ namespace rubinius {
       return cNil;
     }
 
-    Object* const_get(STATE, CallFrame* call_frame, Symbol* name, bool* found) {
+    Object* const_get(STATE, CallFrame* call_frame, Symbol* name, bool* found, Object* filter) {
       ConstantScope *cur;
       Object* result;
 
@@ -91,7 +94,10 @@ namespace rubinius {
         if(cur->top_level_p(state)) break;
 
         result = cur->module()->get_const(state, name, found);
-        if(*found) return result;
+        if(*found) {
+          if(result != filter) return result;
+          *found = false;
+        }
 
         cur = cur->parent();
       }
@@ -102,7 +108,10 @@ namespace rubinius {
         Module* mod = cur->module();
         while(!mod->nil_p()) {
           result = mod->get_const(state, name, found);
-          if(*found) return result;
+          if(*found) {
+            if(result != filter) return result;
+            *found = false;
+          }
 
           mod = mod->superclass();
         }
@@ -110,7 +119,10 @@ namespace rubinius {
 
       // Lastly, check Object specifically
       result = G(object)->get_const(state, name, found, true);
-      if(*found) return result;
+      if(*found) {
+        if(result != filter) return result;
+        *found = false;
+      }
 
       return cNil;
     }

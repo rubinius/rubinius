@@ -803,7 +803,7 @@ instruction find_const(index) [ module -- constant ]
     res = Helpers::const_missing_under(state, under, sym, call_frame);
   } else if(Autoload* autoload = try_as<Autoload>(res)) {
     flush_ip();
-    res = autoload->resolve(state, call_frame);
+    res = autoload->resolve(state, call_frame, under);
   }
 
   CHECK_AND_PUSH(res);
