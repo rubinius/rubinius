@@ -244,6 +244,20 @@ describe "Module#autoload" do
     end
   end
 
+  it "looks up the constant when in a meta class scope" do
+    module ModuleSpecs
+      module Autoload
+        autoload :R, fixture(__FILE__, "autoload_r.rb")
+        class << self
+          def r
+            R.new
+          end
+        end
+      end
+    end
+    ModuleSpecs::Autoload.r.should be_kind_of(ModuleSpecs::Autoload::R)
+  end
+
   ruby_version_is "1.9" do
     # [ruby-core:19127] [ruby-core:29941]
     it "does NOT raise a NameError when the autoload file did not define the constant and a module is opened with the same name" do
