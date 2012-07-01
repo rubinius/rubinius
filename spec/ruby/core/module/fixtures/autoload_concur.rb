@@ -1,6 +1,6 @@
 ScratchPad.recorded << :con_pre
 Thread.current[:in_autoload_rb] = true
-sleep 1
+sleep 0.1
 
 module ModuleSpecs::Autoload
   Concur = 1
