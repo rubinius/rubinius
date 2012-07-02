@@ -428,6 +428,14 @@ extern "C" {
     return rstr->ptr;
   }
 
+  char* rb_str_ptr_readonly_end(VALUE self) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    RString* rstr = Handle::from(self)->as_rstring(env, RSTRING_CACHE_SAFE);
+
+    return rstr->ptr + rstr->len;
+  }
+
   long rb_str_len(VALUE self) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 

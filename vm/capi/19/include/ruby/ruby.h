@@ -652,8 +652,10 @@ VALUE rb_uint2big(unsigned long number);
 /** The pointer to the string str's data. */
 #ifdef RUBY_READONLY_STRING
 #define RSTRING_PTR(str)  rb_str_ptr_readonly(str)
+#define RSTRING_END(str)  rb_str_ptr_readonly_end(str)
 #else
 #define RSTRING_PTR(str)  (RSTRING(str)->ptr)
+#define RSTRING_END(str)  (RSTRING(str)->ptr + RSTRING(str)->len)
 #endif
 
 /** The pointer to the data. */
@@ -1604,6 +1606,8 @@ VALUE rb_uint2big(unsigned long number);
    */
   char* rb_str_ptr_readonly(VALUE self);
 #define HAVE_RB_STR_PTR_READONLY 1
+
+  char* rb_str_ptr_readonly_end(VALUE self);
 
   /** Appends other String to self and returns the modified self. */
   VALUE   rb_str_append(VALUE self, VALUE other);

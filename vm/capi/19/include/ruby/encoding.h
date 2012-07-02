@@ -32,6 +32,17 @@ typedef OnigEncodingType rb_encoding;
 #define rb_enc_mbcput(c, buf, enc)  ONIGENC_CODE_TO_MBC(enc,c,(UChar*)(buf))
 #define rb_enc_asciicompat(enc)     (rb_enc_mbminlen(enc)==1 && !rb_enc_dummy_p(enc))
 
+/* start, ptr, end, encoding -> prev_char */
+#define rb_enc_prev_char(s,p,e,enc) \
+    ((char *)onigenc_get_prev_char_head((enc),(UChar*)(s),(UChar*)(p),(UChar*)(e)))
+/* start, ptr, end, encoding -> next_char */
+#define rb_enc_left_char_head(s,p,e,enc) \
+    ((char *)onigenc_get_left_adjust_char_head((enc),(UChar*)(s),(UChar*)(p),(UChar*)(e)))
+#define rb_enc_right_char_head(s,p,e,enc) \
+    ((char *)onigenc_get_right_adjust_char_head((enc),(UChar*)(s),(UChar*)(p),(UChar*)(e)))
+#define rb_enc_step_back(s,p,e,n,enc) \
+    ((char *)onigenc_step_back((enc),(UChar*)(s),(UChar*)(p),(UChar*)(e),(int)(n)))
+
 #define rb_enc_name(enc)            (enc)->name
 #define rb_enc_mbminlen(enc)        (enc)->min_enc_len
 #define rb_enc_mbmaxlen(enc)        (enc)->max_enc_len

@@ -162,6 +162,9 @@ if enabled_18
   compile_ext "18/pty", :deps => ["Makefile"],
                         :dir => "lib/18/pty/ext",
                         :env => "-X18"
+  compile_ext "18/zlib", :deps => ["Makefile", "extconf.rb"],
+                         :dir => "lib/18/zlib/ext",
+                         :env => "-X18"
 end
 
 if enabled_19
@@ -194,6 +197,9 @@ if enabled_19
   compile_ext "19/pty", :deps => ["Makefile"],
                         :dir => "lib/19/pty/ext",
                         :env => "-X19"
+  compile_ext "19/zlib", :deps => ["Makefile", "extconf.rb"],
+                         :dir => "lib/19/zlib/ext",
+                         :env => "-X19"
 end
 
 compile_ext "dbm", :ignore_fail => true, :deps => ["Makefile"], :dir => "lib/dbm/ext"
