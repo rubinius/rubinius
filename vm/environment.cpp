@@ -580,7 +580,9 @@ namespace rubinius {
     shared->auxiliary_threads()->shutdown(state);
 
     // Hold everyone.
-    while(!state->stop_the_world());
+    while(!state->stop_the_world()) {
+      state->checkpoint(gct, 0);
+    }
     shared->om->run_all_io_finalizers(state);
 
     // TODO: temporarily disable to sort out finalizing Pointer objects
