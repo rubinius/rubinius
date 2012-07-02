@@ -30,6 +30,10 @@ namespace rubinius {
       return 0;
     }
 
+    void set_vm(VM* vm) {
+      vm_ = vm;
+    }
+
     void set_call_frame(CallFrame* cf) {
       vm_->set_call_frame(cf);
     }

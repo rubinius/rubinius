@@ -182,7 +182,7 @@ namespace rubinius {
 
     config.jit_inline_debug.set("no");
 
-    env_->state = state;
+    env_->set_root_vm(state->vm());
     threads_.clear();
     threads_.push_back(state->vm());
 

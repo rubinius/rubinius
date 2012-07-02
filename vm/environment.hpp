@@ -67,6 +67,11 @@ namespace rubinius {
       return argv_;
     }
 
+    void set_root_vm(VM* vm) {
+      root_vm = vm;
+      state->set_vm(vm);
+    }
+
     void setup_cpp_terminate();
 
     void load_vm_options(int argc, char** argv);
