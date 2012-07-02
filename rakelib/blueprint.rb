@@ -8,6 +8,13 @@ Daedalus.blueprint do |i|
   # To use same build flags across platforms, it is added explicitly.
   gcc.cflags << "-pipe -Wall -fno-omit-frame-pointer"
 
+  # Due to a Clang bug (http://llvm.org/bugs/show_bug.cgi?id=9825),
+  # -mno-omit-leaf-frame-pointer is needed for Clang on Linux.
+  # On other combinations of platform and compiler, this flag is implicitly
+  # assumed from -fno-omit-frame-pointer. To use same build flags across
+  # platforms, -mno-omit-leaf-frame-pointer is added explicitly.
+  gcc.cflags << "-mno-omit-leaf-frame-pointer"
+
   gcc.cflags << "-Wno-unused-function"
   gcc.cflags << "-g -ggdb3 -Werror"
   gcc.cflags << "-DRBX_PROFILER"
