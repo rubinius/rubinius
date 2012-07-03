@@ -235,6 +235,9 @@
 
 /* File */
 #define HAVE_RB_FILE_OPEN                  1
+#ifdef RUBY_VERSION_IS_1_9
+#define HAVE_RB_FILE_OPEN_STR              1
+#endif
 
 /* Float */
 #define HAVE_RB_FLOAT_NEW                  1

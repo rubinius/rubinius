@@ -2,6 +2,33 @@ require File.expand_path('../spec_helper', __FILE__)
 
 load_extension('file')
 
+describe :rb_file_open, :shared =>true do
+  it "raises an ArgumentError if passed an empty mode string" do
+    touch @name
+    lambda { @s.rb_file_open(@name, "") }.should raise_error(ArgumentError)
+  end
+
+  it "opens a file in read-only mode with 'r'" do
+    touch(@name) { |f| f.puts "readable" }
+    @file = @s.send(@method, @name, "r")
+    @file.should be_an_instance_of(File)
+    @file.read.chomp.should == "readable"
+  end
+
+  it "creates and opens a non-existent file with 'w'" do
+    @file = @s.send(@method, @name, "w")
+    @file.write "writable"
+    @file.flush
+    @name.should have_data("writable")
+  end
+
+  it "truncates an existing file with 'w'" do
+    touch(@name) { |f| f.puts "existing" }
+    @file = @s.send(@method, @name, "w")
+    @name.should have_data("")
+  end
+end
+
 describe "C-API File function" do
   before :each do
     @s = CApiFileSpecs.new
@@ -15,29 +42,26 @@ describe "C-API File function" do
   end
 
   describe "rb_file_open" do
-    it "raises an ArgumentError if passed an empty mode string" do
-      touch @name
-      lambda { @s.rb_file_open(@name, "") }.should raise_error(ArgumentError)
+    it_behaves_like :rb_file_open, :rb_file_open
+  end
+
+  ruby_version_is "1.9" do
+    describe "rb_file_open_str" do
+      it_behaves_like :rb_file_open, :rb_file_open_str
     end
 
-    it "opens a file in read-only mode with 'r'" do
-      touch(@name) { |f| f.puts "readable" }
-      @file = @s.rb_file_open(@name, "r")
-      @file.should be_an_instance_of(File)
-      @file.read.chomp.should == "readable"
-    end
+    describe "rb_file_open_str" do
+      it "calls #to_path to convert on object to a path" do
+        path = mock("rb_file_open_str to_path")
+        path.should_receive(:to_path).and_return(@name)
+        @s.rb_file_open_str(path, "w")
+      end
 
-    it "creates and opens a non-existent file with 'w'" do
-      @file = @s.rb_file_open(@name, "w")
-      @file.write "writable"
-      @file.flush
-      @name.should have_data("writable")
-    end
-
-    it "truncates an existing file with 'w'" do
-      touch(@name) { |f| f.puts "existing" }
-      @file = @s.rb_file_open(@name, "w")
-      @name.should have_data("")
+      it "calls #to_str to convert an object to a path if #to_path isn't defined" do
+        path = mock("rb_file_open_str to_str")
+        path.should_receive(:to_str).and_return(@name)
+        @s.rb_file_open_str(path, "w")
+      end
     end
   end
 end
