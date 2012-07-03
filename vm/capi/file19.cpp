@@ -29,4 +29,12 @@ extern "C" {
 
     return *obj;
   }
+
+  VALUE rb_file_open_str(VALUE name, const char* mode) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    VALUE m = env->get_handle(String::create(env->state(), mode));
+
+    FilePathValue(name);
+    return rb_funcall(rb_cFile, rb_intern("open"), 2, name, m);
+  }
 }

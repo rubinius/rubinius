@@ -1208,6 +1208,9 @@ VALUE rb_uint2big(unsigned long number);
   /** Returns a File opened with the specified mode. */
   VALUE rb_file_open(const char* name, const char* mode);
 
+  /** Returns a File opened with the specified mode. */
+  VALUE rb_file_open_str(VALUE name, const char* mode);
+
   /** Calls #to_path or #to_str to convert an object to a String. */
   VALUE rb_file_path_value(volatile VALUE* obj);
 
