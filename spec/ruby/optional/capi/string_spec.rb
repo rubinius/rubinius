@@ -432,6 +432,12 @@ describe "C-API String function" do
     end
   end
 
+  describe "rb_str_inspect" do
+    it "returns the equivalent of calling #inspect on the String" do
+      @s.rb_str_inspect("value").should == %["value"]
+    end
+  end
+
   describe "rb_str_intern" do
     it "returns a symbol created from the string" do
       @s.rb_str_intern("symbol").should == :symbol

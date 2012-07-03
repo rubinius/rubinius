@@ -131,6 +131,12 @@ VALUE string_spec_rb_str_freeze(VALUE self, VALUE str) {
 }
 #endif
 
+#ifdef HAVE_RB_STR_INSPECT
+VALUE string_spec_rb_str_inspect(VALUE self, VALUE str) {
+  return rb_str_inspect(str);
+}
+#endif
+
 #ifdef HAVE_RB_STR_INTERN
 VALUE string_spec_rb_str_intern(VALUE self, VALUE str) {
   return rb_str_intern(str);
@@ -509,6 +515,10 @@ void Init_string_spec() {
 
 #ifdef HAVE_RB_STR_FREEZE
   rb_define_method(cls, "rb_str_freeze", string_spec_rb_str_freeze, 1);
+#endif
+
+#ifdef HAVE_RB_STR_INSPECT
+  rb_define_method(cls, "rb_str_inspect", string_spec_rb_str_inspect, 1);
 #endif
 
 #ifdef HAVE_RB_STR_INTERN
