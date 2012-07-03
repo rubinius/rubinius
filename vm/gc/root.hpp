@@ -20,7 +20,7 @@ namespace rubinius {
    *  @todo Document methods. --rue
    */
   class Roots : public LinkedList {
-    thread::Mutex lock_;
+    utilities::thread::Mutex lock_;
 
   public:   /* Ctors */
     Roots()

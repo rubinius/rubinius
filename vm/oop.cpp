@@ -58,7 +58,7 @@ namespace rubinius {
 
   bool InflatedHeader::update(STATE, HeaderWord header) {
     // Gain exclusive access to the insides of the InflatedHeader.
-    thread::Mutex::LockGuard lg(mutex_);
+    utilities::thread::Mutex::LockGuard lg(mutex_);
 
     flags_ = header.f;
 
@@ -766,7 +766,7 @@ step2:
       while(owner_id_ != 0) {
 
         if(ts) {
-          timeout = (condition_.wait_until(mutex_, ts) == thread::cTimedOut);
+          timeout = (condition_.wait_until(mutex_, ts) == utilities::thread::cTimedOut);
           if(timeout) break;
         } else {
           condition_.wait(mutex_);
@@ -931,7 +931,7 @@ step2:
   }
 
   void InflatedHeader::wakeup() {
-    thread::Mutex::LockGuard lg(mutex_);
+    utilities::thread::Mutex::LockGuard lg(mutex_);
     condition_.signal();
 
     if(cDebugThreading) {

@@ -654,7 +654,7 @@ auth_error:
   }
 
   QueryAgent::Thread::Thread(QueryAgent* agent)
-    : thread::Thread(0, false)
+    : utilities::thread::Thread(0, false)
     , agent_(agent)
     , exit_(false)
   {

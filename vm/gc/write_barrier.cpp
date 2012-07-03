@@ -26,7 +26,7 @@ namespace gc {
    * @param target The mature object to be added to the remember set.
    */
   void WriteBarrier::remember_object(Object* target) {
-    thread::SpinLock::LockGuard lg(lock_);
+    utilities::thread::SpinLock::LockGuard lg(lock_);
 
     assert(target->mature_object_p());
 
@@ -54,7 +54,7 @@ namespace gc {
    * to be removed from the remember set.
    */
   void WriteBarrier::unremember_object(Object* target) {
-    thread::SpinLock::LockGuard lg(lock_);
+    utilities::thread::SpinLock::LockGuard lg(lock_);
 
     for(ObjectArray::iterator oi = remember_set_->begin();
         oi != remember_set_->end();
@@ -72,7 +72,7 @@ namespace gc {
    * @param mark The mark bit pattern used on the last trace of live objects.
    */
   int WriteBarrier::unremember_objects(unsigned int mark) {
-    thread::SpinLock::LockGuard lg(lock_);
+    utilities::thread::SpinLock::LockGuard lg(lock_);
     int cleared = 0;
     Object* tmp;
 
@@ -105,7 +105,7 @@ namespace gc {
    * prior to this method being called.
    */
   ObjectArray* WriteBarrier::swap_remember_set() {
-    thread::SpinLock::LockGuard lg(lock_);
+    utilities::thread::SpinLock::LockGuard lg(lock_);
 
     ObjectArray* cur = remember_set_;
     remember_set_ = new ObjectArray(0);

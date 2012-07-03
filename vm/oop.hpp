@@ -16,11 +16,12 @@
 #include "util/thread.hpp"
 #include "bug.hpp"
 
+namespace rubinius {
+namespace utilities {
 namespace thread {
   class Mutex;
 }
-
-namespace rubinius {
+}
 
 /* We use a variable length OOP tag system:
  * The tag represents 1 to 3 bits which uniquely
@@ -236,8 +237,8 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     capi::Handle* handle_;
     uint32_t object_id_;
 
-    thread::Mutex mutex_;
-    thread::Condition condition_;
+    utilities::thread::Mutex mutex_;
+    utilities::thread::Condition condition_;
     uint32_t owner_id_;
     int rec_lock_count_;
 

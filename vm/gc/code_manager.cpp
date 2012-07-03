@@ -58,7 +58,7 @@ namespace rubinius {
   }
 
   void CodeManager::add_resource(CodeResource* cr) {
-    thread::Mutex::LockGuard guard(mutex_);
+    utilities::thread::Mutex::LockGuard guard(mutex_);
 
     total_allocated_ += cr->size();
     bytes_used_ += cr->size();

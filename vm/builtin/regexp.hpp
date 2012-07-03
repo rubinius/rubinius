@@ -29,7 +29,7 @@ namespace rubinius {
     regex_t* onig_data;
     bool fixed_encoding_;
     bool no_encoding_;
-    thread::SpinLock lock_;
+    utilities::thread::SpinLock lock_;
 
   public:
     /* accessors */

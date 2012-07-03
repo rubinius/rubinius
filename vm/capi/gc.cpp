@@ -9,7 +9,7 @@ using namespace rubinius;
 using namespace rubinius::capi;
 
 
-static thread::ThreadData<ObjectMark*> _current_mark;
+static utilities::thread::ThreadData<ObjectMark*> _current_mark;
 
 namespace rubinius {
   namespace capi {

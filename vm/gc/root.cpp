@@ -10,12 +10,12 @@ namespace rubinius {
   }
 
   void Roots::add(Root* node) {
-    thread::Mutex::LockGuard guard(lock_);
+    utilities::thread::Mutex::LockGuard guard(lock_);
     this->LinkedList::add(node);
   }
 
   void Roots::remove(Root* node) {
-    thread::Mutex::LockGuard guard(lock_);
+    utilities::thread::Mutex::LockGuard guard(lock_);
     this->LinkedList::remove(node);
   }
 

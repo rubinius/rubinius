@@ -27,8 +27,8 @@ namespace rubinius {
   private:
     List* value_;  // slot
 
-    thread::Condition condition_;
-    thread::Mutex mutex_;
+    utilities::thread::Condition condition_;
+    utilities::thread::Mutex mutex_;
     int waiters_;
     int semaphore_count_;
 

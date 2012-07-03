@@ -17,7 +17,7 @@ namespace rubinius {
     Object* extra_;
 
     bool is_block_;
-    thread::Condition* waiter_;
+    utilities::thread::Condition* waiter_;
 
   public:
     BackgroundCompileRequest(STATE, CompiledMethod* cm, Object* extra, bool is_block=false)
@@ -51,11 +51,11 @@ namespace rubinius {
       return is_block_;
     }
 
-    void set_waiter(thread::Condition* cond) {
+    void set_waiter(utilities::thread::Condition* cond) {
       waiter_ = cond;
     }
 
-    thread::Condition* waiter() {
+    utilities::thread::Condition* waiter() {
       return waiter_;
     }
 
