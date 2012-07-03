@@ -23,7 +23,7 @@ namespace rubinius {
     bool fork_in_progress_;
     bool exec_in_progress_;
     bool shutdown_in_progress_;
-    thread::Mutex mutex_;
+    utilities::thread::Mutex mutex_;
     std::set<AuxiliaryThread*> threads_;
 
   public:

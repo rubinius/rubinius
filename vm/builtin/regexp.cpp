@@ -315,7 +315,7 @@ namespace rubinius {
       pattern->encoding(state, source_enc);
     }
 
-    thread::Mutex::LockGuard lg(state->shared().onig_lock());
+    utilities::thread::Mutex::LockGuard lg(state->shared().onig_lock());
 
     int err = onig_new(&this->onig_data, pat, end, opts & OPTION_MASK, enc, ONIG_SYNTAX_RUBY, &err_info);
 
@@ -523,7 +523,7 @@ namespace rubinius {
       Exception::argument_error(state, "Not properly initialized Regexp");
     }
 
-    // thread::Mutex::LockGuard lg(state->shared().onig_lock());
+    // utilities::thread::Mutex::LockGuard lg(state->shared().onig_lock());
 
     max = string->byte_size();
     native_int pos = start->to_native();

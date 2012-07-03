@@ -11,7 +11,7 @@ namespace rubinius {
     uintptr_t free_list_;
     size_t allocations_;
     size_t in_use_;
-    thread::SpinLock lock_;
+    utilities::thread::SpinLock lock_;
 
     static const size_t cChunkSize = 1024;
     static const size_t cChunkLimit = 128;
@@ -51,7 +51,7 @@ namespace rubinius {
     }
 
     T* allocate(bool* needs_gc) {
-      thread::SpinLock::LockGuard lg(lock_);
+      utilities::thread::SpinLock::LockGuard lg(lock_);
       if(free_list_ == (uintptr_t)-1) allocate_chunk(needs_gc);
       T* t = from_index(free_list_);
       free_list_ = t->next();
@@ -63,7 +63,7 @@ namespace rubinius {
     }
 
     uintptr_t allocate_index(bool* needs_gc) {
-      thread::SpinLock::LockGuard lg(lock_);
+      utilities::thread::SpinLock::LockGuard lg(lock_);
       if(free_list_ == (uintptr_t)-1) allocate_chunk(needs_gc);
 
       uintptr_t current_index = free_list_;

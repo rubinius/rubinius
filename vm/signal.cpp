@@ -141,7 +141,7 @@ namespace rubinius {
 #endif
 
     GCTokenImpl gct;
-    thread::Thread::set_os_name("rbx.signal-dispatch");
+    utilities::thread::Thread::set_os_name("rbx.signal-dispatch");
 
     for(;;) {
       fd_set fds;

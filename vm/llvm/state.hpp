@@ -79,7 +79,7 @@ namespace rubinius {
 
     bool type_optz_;
 
-    thread::SpinLock method_update_lock_;
+    utilities::thread::SpinLock method_update_lock_;
 
   public:
 

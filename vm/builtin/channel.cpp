@@ -37,8 +37,8 @@ namespace rubinius {
     chan->semaphore_count_ = 0;
 
     // Using placement new to call the constructor of condition_
-    new(&chan->condition_) thread::Condition();
-    new(&chan->mutex_) thread::Mutex();
+    new(&chan->condition_) utilities::thread::Condition();
+    new(&chan->mutex_) utilities::thread::Mutex();
 
     chan->value(state, List::create(state));
 
@@ -51,8 +51,8 @@ namespace rubinius {
     chan->semaphore_count_ = 1;
 
     // Using placement new to call the constructor of condition_
-    new(&chan->condition_) thread::Condition();
-    new(&chan->mutex_) thread::Mutex();
+    new(&chan->condition_) utilities::thread::Condition();
+    new(&chan->mutex_) utilities::thread::Mutex();
 
     chan->value(state, List::create(state));
 
@@ -184,7 +184,7 @@ namespace rubinius {
         GCIndependent gc_guard(state, call_frame);
 
         if(use_timed_wait) {
-          if(self->condition_.wait_until(self->mutex_, &ts) == thread::cTimedOut) break;
+          if(self->condition_.wait_until(self->mutex_, &ts) == utilities::thread::cTimedOut) break;
         } else {
           self->condition_.wait(self->mutex_);
         }

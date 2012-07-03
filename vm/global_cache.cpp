@@ -87,7 +87,7 @@ keep_looking:
   }
 
   MethodCacheEntry* GlobalCache::lookup_public(STATE, Module* mod, Class* cls, Symbol* name) {
-    thread::SpinLock::LockGuard guard(lock_);
+    utilities::thread::SpinLock::LockGuard guard(lock_);
 
     Symbol* entry_name = entry_names[CPU_CACHE_HASH(mod, name)];
     CacheEntry* entry = entries + CPU_CACHE_HASH(mod, name);
@@ -104,7 +104,7 @@ keep_looking:
   }
 
   MethodCacheEntry* GlobalCache::lookup_private(STATE, Module* mod, Class* cls, Symbol* name) {
-    thread::SpinLock::LockGuard guard(lock_);
+    utilities::thread::SpinLock::LockGuard guard(lock_);
 
     Symbol* entry_name = entry_names[CPU_CACHE_HASH(mod, name)];
     CacheEntry* entry = entries + CPU_CACHE_HASH(mod, name);
@@ -124,7 +124,7 @@ keep_looking:
   }
 
   bool GlobalCache::resolve_i(STATE, Symbol* name, Dispatch& msg, LookupData& lookup) {
-    thread::SpinLock::LockGuard guard(lock_);
+    utilities::thread::SpinLock::LockGuard guard(lock_);
 
     Module* klass = lookup.from;
     CacheEntry* entry = this->lookup(state, klass, name);

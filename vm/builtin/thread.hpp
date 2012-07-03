@@ -44,7 +44,7 @@ namespace rubinius {
 
     LookupTable* locals_; // slot
 
-    thread::SpinLock init_lock_;
+    utilities::thread::SpinLock init_lock_;
 
     /// The VM state for this thread and this thread alone
     VM* vm_;

@@ -83,11 +83,11 @@ namespace rubinius {
     Environment* env_;
     tooling::ToolBroker* tool_broker_;
 
-    thread::Mutex onig_lock_;
+    utilities::thread::Mutex onig_lock_;
 
     // This lock is to implement Thread.critical. It is not critical as
     // the name would make it sound.
-    thread::Mutex ruby_critical_lock_;
+    utilities::thread::Mutex ruby_critical_lock_;
     pthread_t ruby_critical_thread_;
     bool ruby_critical_set_;
 
@@ -226,7 +226,7 @@ namespace rubinius {
       return env_;
     }
 
-    thread::Mutex& onig_lock() {
+    utilities::thread::Mutex& onig_lock() {
       return onig_lock_;
     }
 

@@ -67,10 +67,10 @@ using namespace llvm;
 
 namespace rubinius {
 
-  static thread::Mutex lock_;
+  static utilities::thread::Mutex lock_;
 
   LLVMState* LLVMState::get(STATE) {
-    thread::Mutex::LockGuard lg(lock_);
+    utilities::thread::Mutex::LockGuard lg(lock_);
 
     if(!state->shared().llvm_state) {
       state->shared().llvm_state = new LLVMState(state);
@@ -80,13 +80,13 @@ namespace rubinius {
   }
 
   LLVMState* LLVMState::get_if_set(STATE) {
-    thread::Mutex::LockGuard lg(lock_);
+    utilities::thread::Mutex::LockGuard lg(lock_);
 
     return state->shared().llvm_state;
   }
 
   LLVMState* LLVMState::get_if_set(VM* vm) {
-    thread::Mutex::LockGuard lg(lock_);
+    utilities::thread::Mutex::LockGuard lg(lock_);
 
     return vm->shared.llvm_state;
   }
@@ -102,7 +102,7 @@ namespace rubinius {
     return module_->getTypeByName(full_name.c_str());
   }
 
-  class BackgroundCompilerThread : public thread::Thread {
+  class BackgroundCompilerThread : public utilities::thread::Thread {
     enum State {
       cUnknown,
       cRunning,
@@ -111,10 +111,10 @@ namespace rubinius {
       cStopped
     };
 
-    thread::Mutex mutex_;
+    utilities::thread::Mutex mutex_;
     std::list<BackgroundCompileRequest*> pending_requests_;
-    thread::Condition condition_;
-    thread::Condition pause_condition_;
+    utilities::thread::Condition condition_;
+    utilities::thread::Condition pause_condition_;
 
     LLVMState* ls_;
     bool show_machine_code_;
@@ -144,14 +144,14 @@ namespace rubinius {
     }
 
     void add(BackgroundCompileRequest* req) {
-      thread::Mutex::LockGuard guard(mutex_);
+      utilities::thread::Mutex::LockGuard guard(mutex_);
       pending_requests_.push_back(req);
       condition_.signal();
     }
 
     void stop() {
       {
-        thread::Mutex::LockGuard guard(mutex_);
+        utilities::thread::Mutex::LockGuard guard(mutex_);
         if(state == cStopped) return;
 
         stop_ = true;
@@ -168,13 +168,13 @@ namespace rubinius {
       join();
 
       {
-        thread::Mutex::LockGuard guard(mutex_);
+        utilities::thread::Mutex::LockGuard guard(mutex_);
         state = cStopped;
       }
     }
 
     void start() {
-      thread::Mutex::LockGuard guard(mutex_);
+      utilities::thread::Mutex::LockGuard guard(mutex_);
       if(state != cStopped) return;
       state = cUnknown;
       stop_ = false;
@@ -184,7 +184,7 @@ namespace rubinius {
     }
 
     void pause() {
-      thread::Mutex::LockGuard guard(mutex_);
+      utilities::thread::Mutex::LockGuard guard(mutex_);
 
       // it's idle, ie paused.
       if(state == cIdle || state == cPaused) return;
@@ -197,7 +197,7 @@ namespace rubinius {
     }
 
     void unpause() {
-      thread::Mutex::LockGuard guard(mutex_);
+      utilities::thread::Mutex::LockGuard guard(mutex_);
 
       // idle, just waiting for more work, ok, thats fine.
       if(state != cPaused) return;
@@ -237,7 +237,7 @@ namespace rubinius {
 
         // Lock, wait, get a request, unlock
         {
-          thread::Mutex::LockGuard guard(mutex_);
+          utilities::thread::Mutex::LockGuard guard(mutex_);
 
           if(pause_) {
             state = cPaused;
@@ -304,7 +304,7 @@ namespace rubinius {
             llvm::outs() << "[[[ JIT error in background compiling ]]]\n";
           }
           // If someone was waiting on this, wake them up.
-          if(thread::Condition* cond = req->waiter()) {
+          if(utilities::thread::Condition* cond = req->waiter()) {
             cond->signal();
           }
 
@@ -358,7 +358,7 @@ namespace rubinius {
         }
 
         // If someone was waiting on this, wake them up.
-        if(thread::Condition* cond = req->waiter()) {
+        if(utilities::thread::Condition* cond = req->waiter()) {
           cond->signal();
         }
 
@@ -374,7 +374,7 @@ namespace rubinius {
     }
 
     void gc_scan(GarbageCollector* gc) {
-      thread::Mutex::LockGuard guard(mutex_);
+      utilities::thread::Mutex::LockGuard guard(mutex_);
 
       for(std::list<BackgroundCompileRequest*>::iterator i = pending_requests_.begin();
           i != pending_requests_.end();
@@ -679,10 +679,10 @@ namespace rubinius {
     queued_methods_++;
 
     if(wait) {
-      thread::Condition cond;
+      utilities::thread::Condition cond;
       req->set_waiter(&cond);
 
-      thread::Mutex mux;
+      utilities::thread::Mutex mux;
       mux.lock();
 
       background_thread_->add(req);

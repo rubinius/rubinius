@@ -132,8 +132,8 @@ namespace rubinius {
 
   class ObjectMemory : public gc::WriteBarrier, public Lockable {
 
-    thread::SpinLock allocation_lock_;
-    thread::SpinLock inflation_lock_;
+    utilities::thread::SpinLock allocation_lock_;
+    utilities::thread::SpinLock inflation_lock_;
 
     /// BakerGC used for the young generation
     BakerGC* young_;
@@ -177,13 +177,13 @@ namespace rubinius {
 
     /// A condition variable used to control access to
     /// to_finalize_
-    thread::Condition finalizer_var_;
+    utilities::thread::Condition finalizer_var_;
 
     /// Mutex used to manage lock contention
-    thread::Mutex contention_lock_;
+    utilities::thread::Mutex contention_lock_;
 
     /// Condition variable used to manage lock contention
-    thread::Condition contention_var_;
+    utilities::thread::Condition contention_var_;
 
     TypedRoot<Thread*> finalizer_thread_;
 

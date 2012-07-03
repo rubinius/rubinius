@@ -34,7 +34,7 @@ namespace rubinius {
 
     Symbol *entry_names[CPU_CACHE_SIZE];
     CacheEntry entries[CPU_CACHE_SIZE];
-    thread::SpinLock lock_;
+    utilities::thread::SpinLock lock_;
 
   public:
 
@@ -50,7 +50,7 @@ namespace rubinius {
     MethodCacheEntry* lookup_private(STATE, Module* mod, Class* cls, Symbol* name);
 
     void clear(STATE, Symbol* name) {
-      thread::SpinLock::LockGuard guard(lock_);
+      utilities::thread::SpinLock::LockGuard guard(lock_);
       for(size_t i = 0; i < CPU_CACHE_SIZE; i++) {
         if(entry_names[i] == name) {
           entry_names[i] = NULL;
@@ -60,7 +60,7 @@ namespace rubinius {
     }
 
     void clear(STATE, Module* cls, Symbol* name) {
-      thread::SpinLock::LockGuard guard(lock_);
+      utilities::thread::SpinLock::LockGuard guard(lock_);
       size_t i = CPU_CACHE_HASH(cls, name);
       if(entry_names[i] == name && entries[i].klass == cls) {
         entry_names[i] = NULL;
@@ -74,7 +74,7 @@ namespace rubinius {
 
     void retain(STATE, Module* cls, Symbol* name, Module* mod, Executable* meth,
                 bool missing, Symbol* visibility) {
-      thread::SpinLock::LockGuard guard(lock_);
+      utilities::thread::SpinLock::LockGuard guard(lock_);
       retain_i(state, cls, name, mod, meth, missing, visibility);
     }
 

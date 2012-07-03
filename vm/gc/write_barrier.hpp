@@ -38,7 +38,7 @@ namespace gc {
 
   class WriteBarrier {
     /// Lock for synchronising multi-threaded updates to the remember set
-    thread::SpinLock lock_;
+    utilities::thread::SpinLock lock_;
 
   protected:
 

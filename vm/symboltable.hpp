@@ -56,7 +56,7 @@ namespace rubinius {
     SymbolMap symbols;
     SymbolStrings strings;
     SymbolKinds kinds;
-    thread::SpinLock lock_;
+    utilities::thread::SpinLock lock_;
     size_t bytes_used_;
 
     Symbol* lookup(const char* str, size_t length, uint32_t seed);
