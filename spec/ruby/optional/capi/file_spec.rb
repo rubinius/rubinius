@@ -63,5 +63,30 @@ describe "C-API File function" do
         @s.rb_file_open_str(path, "w")
       end
     end
+
+    describe "FilePathValue" do
+      it "returns a String argument unchanged" do
+        obj = "path"
+        @s.FilePathValue(obj).should eql(obj)
+      end
+
+      it "does not call #to_str on a String" do
+        obj = "path"
+        obj.should_not_receive(:to_str)
+        @s.FilePathValue(obj).should eql(obj)
+      end
+
+      it "calls #to_path to convert an object to a String" do
+        obj = mock("FilePathValue to_path")
+        obj.should_receive(:to_path).and_return("path")
+        @s.FilePathValue(obj).should == "path"
+      end
+
+      it "calls #to_str to convert an object to a String if #to_path isn't defined" do
+        obj = mock("FilePathValue to_str")
+        obj.should_receive(:to_str).and_return("path")
+        @s.FilePathValue(obj).should == "path"
+      end
+    end
   end
 end
