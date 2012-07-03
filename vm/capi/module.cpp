@@ -48,6 +48,14 @@ extern "C" {
     return env->get_handle(rcf->name());
   }
 
+  ID rb_frame_this_func() {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    CallFrame* rcf = env->current_call_frame()->top_ruby_frame();
+
+    return env->get_handle(rcf->name());
+  }
+
   static VALUE const_missing(VALUE klass, ID id) {
     return rb_funcall(klass, rb_intern("const_missing"), 1, ID2SYM(id));
   }
