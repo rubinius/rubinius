@@ -307,6 +307,12 @@ VALUE string_spec_rb_str_split(VALUE self, VALUE str) {
 }
 #endif
 
+#ifdef HAVE_RB_STR_SUBSEQ
+VALUE string_spec_rb_str_subseq(VALUE self, VALUE str, VALUE beg, VALUE len) {
+  return rb_str_subseq(str, FIX2INT(beg), FIX2INT(len));
+}
+#endif
+
 #ifdef HAVE_RB_STR_SUBSTR
 VALUE string_spec_rb_str_substr(VALUE self, VALUE str, VALUE beg, VALUE len) {
   return rb_str_substr(str, FIX2INT(beg), FIX2INT(len));
@@ -597,6 +603,10 @@ void Init_string_spec() {
 
 #ifdef HAVE_RB_STR_SPLIT
   rb_define_method(cls, "rb_str_split", string_spec_rb_str_split, 1);
+#endif
+
+#ifdef HAVE_RB_STR_SUBSEQ
+  rb_define_method(cls, "rb_str_subseq", string_spec_rb_str_subseq, 3);
 #endif
 
 #ifdef HAVE_RB_STR_SUBSTR

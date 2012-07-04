@@ -447,6 +447,9 @@
 #define HAVE_RB_STR_RESIZE                 1
 #define HAVE_RB_STR_SET_LEN                1
 #define HAVE_RB_STR_SPLIT                  1
+#ifdef RUBY_VERSION_IS_1_9
+#define HAVE_RB_STR_SUBSEQ                 1
+#endif
 #define HAVE_RB_STR_SUBSTR                 1
 #define HAVE_RB_STR_TO_STR                 1
 #define HAVE_RSTRING                       1
