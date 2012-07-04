@@ -1707,6 +1707,8 @@ VALUE rb_uint2big(unsigned long number);
   /** Splits self using the separator string. Returns Array of substrings. */
   VALUE   rb_str_split(VALUE self, const char* separator);
 
+  VALUE   rb_str_subseq(VALUE self, size_t starting_index, size_t length);
+
   /**
    *  As Ruby's String#slice.
    *

@@ -315,6 +315,11 @@ extern "C" {
     return rb_funcall(self, rb_intern("split"), 1, rb_str_new2(separator));
   }
 
+  VALUE rb_str_subseq(VALUE self, size_t starting_index, size_t length) {
+    return rb_funcall(self, rb_intern("byteslice"), 2,
+                      LONG2NUM(starting_index), LONG2NUM(length) );
+  }
+
   VALUE rb_str_substr(VALUE self, size_t starting_index, size_t length) {
     return rb_funcall(self, rb_intern("slice"), 2,
                       LONG2NUM(starting_index), LONG2NUM(length) );
