@@ -1655,6 +1655,9 @@ VALUE rb_uint2big(unsigned long number);
   /** As Ruby's String#dup, returns copy of self as a new String. */
   VALUE   rb_str_dup(VALUE self);
 
+  /** Returns an escaped String. */
+  VALUE   rb_str_inspect(VALUE self);
+
   /** Returns a symbol created from this string. */
   VALUE   rb_str_intern(VALUE self);
 

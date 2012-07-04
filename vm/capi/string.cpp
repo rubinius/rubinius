@@ -245,6 +245,10 @@ extern "C" {
     return env->get_handle(string->string_dup(env->state()));
   }
 
+  VALUE rb_str_inspect(VALUE self) {
+    return rb_funcall(self, rb_intern("inspect"), 0);
+  }
+
   VALUE rb_str_intern(VALUE self) {
     return rb_funcall(self, rb_intern("to_sym"), 0);
   }
