@@ -117,7 +117,8 @@ extern "C" {
   }
 
   VALUE rb_io_addstr(VALUE io, VALUE str) {
-    return rb_io_write(io, str);
+    rb_io_write(io, str);
+    return io;
   }
 
   VALUE rb_io_print(int argc, VALUE *argv, VALUE io) {
