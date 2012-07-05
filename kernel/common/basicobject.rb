@@ -2,7 +2,7 @@
 
 class BasicObject
   def method_missing(meth, *args)
-    Kernel.raise NoMethodError, "Unable to send '#{meth}' on instance of BasicObject"
+    ::Kernel.raise ::NoMethodError, "Unable to send '#{meth}' on instance of BasicObject"
   end
   private :method_missing
 
