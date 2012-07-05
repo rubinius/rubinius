@@ -61,9 +61,11 @@ namespace rubinius {
       // Ok, this has to be explained or it will be considered black magic.
       // The scope chain always ends with an entry at the top that contains
       // a parent of nil, and a module of Object. This entry is put in
-      // regardless of lexical scoping, it's the default scope.
+      // regardless of lexical scoping, it's the fallback scope (the default
+      // scope). This is not case when deriving from BasicObject, which is
+      // explained later.
       //
-      // When looking up a constant, we don't want to consider the default
+      // When looking up a constant, we don't want to consider the fallback
       // scope (ie, Object) initially because we need to lookup up
       // the superclass chain first, because falling back on the default.
       //
@@ -88,6 +90,12 @@ namespace rubinius {
       //
       // So, in this case, foo would print "1", not "2".
       //
+      // As indicated above, the fallback scope isn't used when the superclass
+      // chain directly rooted from BasicObject. To determine this is the
+      // case, we record whether Object is seen when looking up the superclass
+      // chain. If Object isn't seen, this means we are directly deriving from
+      // BasicObject.
+
       cur = call_frame->constant_scope();
       while(!cur->nil_p()) {
         // Detect the toplevel scope (the default) and get outta dodge.
@@ -103,10 +111,20 @@ namespace rubinius {
       }
 
       // Now look up the superclass chain.
+      Module *fallback = G(object);
+      bool object_seen = false;
+
       cur = call_frame->constant_scope();
       if(!cur->nil_p()) {
         Module* mod = cur->module();
         while(!mod->nil_p()) {
+          if(mod == G(object)) {
+            object_seen = true;
+          }
+          if(!object_seen && mod == G(basicobject)) {
+            fallback = NULL;
+          }
+
           result = mod->get_const(state, name, found);
           if(*found) {
             if(result != filter) return result;
@@ -117,11 +135,13 @@ namespace rubinius {
         }
       }
 
-      // Lastly, check Object specifically
-      result = G(object)->get_const(state, name, found, true);
-      if(*found) {
-        if(result != filter) return result;
-        *found = false;
+      // Lastly, check the fallback scope (=Object) specifically if needed
+      if(fallback) {
+        result = fallback->get_const(state, name, found, true);
+        if(*found) {
+          if(result != filter) return result;
+          *found = false;
+        }
       }
 
       return cNil;
