@@ -21,15 +21,19 @@ describe "C-API IO function" do
   describe "rb_io_addstr" do
     it "calls #to_s to convert the object to a String" do
       obj = mock("rb_io_addstr string")
-      obj.should_receive(:to_s).and_return("rb_io_addstr")
+      obj.should_receive(:to_s).and_return("rb_io_addstr data")
 
       @o.rb_io_addstr(@io, obj)
-      @name.should have_data("rb_io_addstr")
+      @name.should have_data("rb_io_addstr data")
     end
 
     it "writes the String to the IO" do
-      @o.rb_io_addstr(@io, "rb_io_addstr")
-      @name.should have_data("rb_io_addstr")
+      @o.rb_io_addstr(@io, "rb_io_addstr data")
+      @name.should have_data("rb_io_addstr data")
+    end
+
+    it "returns the io" do
+      @o.rb_io_addstr(@io, "rb_io_addstr data").should eql(@io)
     end
   end
 
