@@ -67,6 +67,48 @@ describe "C-API Util function" do
       @o.rb_scan_args([1, 2, 3], "1*&", 3, @acc, &@prc).should == 3
       ScratchPad.recorded.should == [1, [2, 3], @prc]
     end
+
+    ruby_version_is "1.9" do
+      it "assigns post-splat arguments" do
+        @o.rb_scan_args([1, 2, 3], "00*1", 2, @acc).should == 3
+        ScratchPad.recorded.should == [[1, 2], 3]
+      end
+
+      it "assigns required, optional, splat and post-splat arguments" do
+        @o.rb_scan_args([1, 2, 3, 4, 5], "11*1", 4, @acc).should == 5
+        ScratchPad.recorded.should == [1, 2, [3, 4], 5]
+      end
+
+      it "assigns required, splat, post-splat arguments" do
+        @o.rb_scan_args([1, 2, 3, 4], "10*1", 3, @acc).should == 4
+        ScratchPad.recorded.should == [1, [2, 3], 4]
+      end
+
+      it "assigns optional, splat, post-splat arguments" do
+        @o.rb_scan_args([1, 2, 3, 4], "01*1", 3, @acc).should == 4
+        ScratchPad.recorded.should == [1, [2, 3], 4]
+      end
+
+      it "assigns required, optional, splat, post-splat and block arguments" do
+        @o.rb_scan_args([1, 2, 3, 4, 5], "11*1&", 5, @acc, &@prc).should == 5
+        ScratchPad.recorded.should == [1, 2, [3, 4], 5, @prc]
+      end
+
+      it "assigns Hash arguments" do
+        @o.rb_scan_args([{1 => 2, 3 => 4}], "0:", 1, @acc).should == 0
+        ScratchPad.recorded.should == [{1 => 2, 3 => 4}]
+      end
+
+      it "assigns required and Hash arguments" do
+        @o.rb_scan_args([1, {1 => 2, 3 => 4}], "1:", 2, @acc).should == 1
+        ScratchPad.recorded.should == [1, {1 => 2, 3 => 4}]
+      end
+
+      it "assigns required, optional, splat, post-splat, Hash and block arguments" do
+        @o.rb_scan_args([1, 2, 3, 4, 5, {6 => 7}], "11*1:&", 6, @acc, &@prc).should == 5
+        ScratchPad.recorded.should == [1, 2, [3, 4], 5, {6 => 7}, @prc]
+      end
+    end
   end
 
   ruby_version_is "1.9" do
