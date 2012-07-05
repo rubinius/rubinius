@@ -591,6 +591,7 @@ extern "C" {
   Object* rbx_find_const(STATE, CallFrame* call_frame, int index, Object* top) {
     CPP_TRY
 
+    GCTokenImpl gct;
     bool found;
     Module* under = as<Module>(top);
     Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
@@ -599,7 +600,7 @@ extern "C" {
     if(!found) {
       res = Helpers::const_missing_under(state, under, sym, call_frame);
     } else if(Autoload* autoload = try_as<Autoload>(res)) {
-      res = autoload->resolve(state, call_frame, under);
+      res = autoload->resolve(state, gct, call_frame, under);
     }
 
     return res;
@@ -764,13 +765,14 @@ extern "C" {
   }
 
   Object* rbx_push_const(STATE, CallFrame* call_frame, Symbol* sym) {
+    GCTokenImpl gct;
     bool found;
     Object* res = Helpers::const_get(state, call_frame, sym, &found);
 
     if(!found) {
       res = Helpers::const_missing(state, sym, call_frame);
     } else if(Autoload* autoload = try_as<Autoload>(res)) {
-      res = autoload->resolve(state, call_frame);
+      res = autoload->resolve(state, gct, call_frame);
     }
 
     return res;
@@ -798,8 +800,10 @@ extern "C" {
       res = Helpers::const_get(state, call_frame, sym, &found);
 
       if(found) {
+        GCTokenImpl gct;
+        OnStack<2> os(state, cache, res);
         if(Autoload* autoload = try_as<Autoload>(res)) {
-          res = autoload->resolve(state, call_frame);
+          res = autoload->resolve(state, gct, call_frame);
         }
 
         if(res) {

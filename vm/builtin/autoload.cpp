@@ -17,7 +17,13 @@ namespace rubinius {
     G(autoload)->set_object_type(state, AutoloadType);
   }
 
-  Object* Autoload::resolve(STATE, CallFrame* call_frame, Module* under, bool honor_require) {
+  /*
+   * We added GCToken because we use send(). send() itself doesn't accept
+   * a GCToken because it was tried and impacted performance severely. We
+   * include it here anyway so methods using autoload resolving can see
+   * it can trigger a GC due to calling back into Ruby.
+   */
+  Object* Autoload::resolve(STATE, GCToken gct, CallFrame* call_frame, Module* under, bool honor_require) {
     Autoload* self = this;
     OnStack<1> os(state, self);
     Object* res = send(state, call_frame, state->symbol("resolve"));
@@ -38,7 +44,7 @@ namespace rubinius {
     return cNil;
   }
 
-  Object* Autoload::resolve(STATE, CallFrame* call_frame, bool honor_require) {
+  Object* Autoload::resolve(STATE, GCToken gct, CallFrame* call_frame, bool honor_require) {
     Autoload* self = this;
     OnStack<1> os(state, self);
     Object* res = send(state, call_frame, state->symbol("resolve"));

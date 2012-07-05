@@ -4,6 +4,7 @@
 
 #include "helpers.hpp"
 #include "exception_point.hpp"
+#include "on_stack.hpp"
 
 #include "capi/capi.hpp"
 #include "capi/18/include/ruby.h"
@@ -141,6 +142,9 @@ extern "C" {
 
   /** @note   Shares code with rb_define_module_under, change there too. --rue */
   VALUE rb_define_class_under(VALUE outer, const char* name, VALUE super) {
+
+    GCTokenImpl gct;
+
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     Module* module = c_as<Module>(env->get_object(outer));
@@ -150,7 +154,10 @@ extern "C" {
     bool created = false;
 
     LEAVE_CAPI(env->state());
-    Class* opened_class = rubinius::Helpers::open_class(env->state(),
+
+    OnStack<3> os(env->state(), module, superclass, constant);
+
+    Class* opened_class = rubinius::Helpers::open_class(env->state(), gct,
         env->current_call_frame(), module, superclass, constant, &created);
 
     // The call above could have triggered an Autoload resolve, which may

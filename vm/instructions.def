@@ -748,7 +748,7 @@ instruction push_const(literal) [ -- constant ]
     res = Helpers::const_missing(state, sym, call_frame);
   } else if(Autoload* autoload = try_as<Autoload>(res)) {
     flush_ip();
-    res = autoload->resolve(state, call_frame);
+    res = autoload->resolve(state, gct, call_frame);
   }
 
   CHECK_AND_PUSH(res);
@@ -803,7 +803,7 @@ instruction find_const(index) [ module -- constant ]
     res = Helpers::const_missing_under(state, under, sym, call_frame);
   } else if(Autoload* autoload = try_as<Autoload>(res)) {
     flush_ip();
-    res = autoload->resolve(state, call_frame, under);
+    res = autoload->resolve(state, gct, call_frame, under);
   }
 
   CHECK_AND_PUSH(res);
@@ -851,9 +851,10 @@ instruction push_const_fast(literal association) [ -- constant ]
     res = Helpers::const_get(state, call_frame, sym, &found);
 
     if(found) {
+      OnStack<2> os(state, cache, res);
       if(Autoload* autoload = try_as<Autoload>(res)) {
         flush_ip();
-        res = autoload->resolve(state, call_frame);
+        res = autoload->resolve(state, gct, call_frame);
       }
 
       if(res) {
