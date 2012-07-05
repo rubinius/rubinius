@@ -59,7 +59,7 @@ ruby_version_is "1.8.7" do
       ObjectSpecs::IVars.new.instance_exec { @secret }.should == 99
     end
 
-    it "invokes Method objects wihtout rebinding self" do
+    it "invokes Method objects without rebinding self" do
       3.instance_exec(4, &5.method(:+)).should == 9
     end
 
