@@ -8,7 +8,7 @@ class BasicObject
 
   def equal?(other)
     Rubinius.primitive :object_equal
-    raise PrimitiveFailure, "BasicObject#equal? primitive failed"
+    raise ::PrimitiveFailure, "BasicObject#equal? primitive failed"
   end
 
   alias_method :==,   :equal?
@@ -31,11 +31,11 @@ class BasicObject
   #
   def __send__(message, *args)
     Rubinius.primitive :object_send
-    raise PrimitiveFailure, "#__send__ primitive failed"
+    raise ::PrimitiveFailure, "#__send__ primitive failed"
   end
 
   def __id__
     Rubinius.primitive :object_id
-    raise PrimitiveFailure, "#__id__ primitive failed"
+    raise ::PrimitiveFailure, "#__id__ primitive failed"
   end
 end

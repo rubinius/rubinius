@@ -2,7 +2,7 @@
 
 class WeakRef
 
-  class RefError < RuntimeError; end
+  class RefError < ::RuntimeError; end
 
   def self.new
     Rubinius.primitive :weakref_new
