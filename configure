@@ -123,7 +123,7 @@ class Configure
     @libversion = "2.0"
     @version = "#{@libversion}.0dev"
     @release_date = "yyyy-mm-dd"
-    @config_version = 157
+    @config_version = 158
 
     # TODO: add conditionals for platforms
     if RbConfig::CONFIG["build_os"] =~ /darwin/
@@ -913,31 +913,6 @@ int main() { return tgetnum(""); }
     @log.write @curses ? @curses : "not found"
   end
 
-  def detect_zlib_crc_table_size
-    @log.print "Checking zlib crc_table size: "
-
-    status = check_program(true, ['z']) do |f|
-      src = <<-EOP
-#include <zlib.h>
-
-int main() {
-#ifdef z_crc_t
-  return sizeof(z_crc_t);
-#else
-  return sizeof(get_crc_table()[0]);
-#endif
-}
-      EOP
-      f.puts src
-      @log.log src
-    end
-
-    @zlib_crc_table_size = status
-    @log.write "#{@zlib_crc_table_size}"
-  end
-
-
-
   def detect_include_dirs
     @include_dirs = @include_dirs.select {|p| File.directory? p }
   end
@@ -1054,7 +1029,6 @@ int main() {
       # review this and make sure we update it properly to
       # match the newer version which like will have uint32_t
       # as the type.
-      @zlib_crc_table_size = sizeof("long")
       @include_dirs << "#{@vendordir}/zlib"
       @lib_dirs     << "#{@vendordir}/zlib"
     end
@@ -1176,7 +1150,6 @@ int main() {
 
     detect_libc_name
 
-    detect_zlib_crc_table_size
     detect_endian
     detect_tr1_hash
     detect_x86
@@ -1386,8 +1359,6 @@ end
       else
         f.puts %[#define RBX_ZLIB_PATH        ""]
       end
-
-      f.puts %[#define RBX_ZLIB_CRC_TABLE_SIZE #{@zlib_crc_table_size}]
 
       @supported_versions.each do |ver|
         f.puts "#define RBX_DEFAULT_#{ver}       #{ver == @default_version}"
