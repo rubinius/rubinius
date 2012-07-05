@@ -1548,7 +1548,8 @@ VALUE rb_uint2big(unsigned long number);
    *  no parameters that were not consumed by required or optional.
    *  Lastly, the block may be nil.
    */
-  int     rb_scan_args(int argc, const VALUE* argv, const char* spec, ...);
+  int     rb_scan_args_19(int argc, const VALUE* argv, const char* spec, ...);
+#define rb_scan_args    rb_scan_args_19
 
   /** Raise error if $SAFE is not higher than the given level. */
   void    rb_secure(int level);
