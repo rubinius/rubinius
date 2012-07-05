@@ -1,1 +1,0 @@
-fails:GzipReader#read at the end of data returns nil if length prameter is positive
