@@ -152,12 +152,28 @@ namespace rubinius {
   }
 
   Object* Object::freeze(STATE) {
-    if(reference_p()) set_frozen();
+    if(reference_p()) {
+      set_frozen();
+    } else if(!LANGUAGE_18_ENABLED(state)) {
+      LookupTable* tbl = try_as<LookupTable>(G(external_ivars)->fetch(state, this));
+
+      if(!tbl) {
+        tbl = LookupTable::create(state);
+        G(external_ivars)->store(state, this, tbl);
+      }
+      tbl->set_frozen();
+    }
+
     return this;
   }
 
   Object* Object::frozen_p(STATE) {
-    if(reference_p() && is_frozen_p()) return cTrue;
+    if(reference_p()) {
+      if(is_frozen_p()) return cTrue;
+    } else if(!LANGUAGE_18_ENABLED(state)) {
+      LookupTable* tbl = try_as<LookupTable>(G(external_ivars)->fetch(state, this));
+      if(tbl && tbl->is_frozen_p()) return cTrue;
+    }
     return cFalse;
   }
 

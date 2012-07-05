@@ -26,14 +26,6 @@ module ImmediateValue
     false
   end
 
-  def freeze
-    self
-  end
-
-  def frozen?
-    false
-  end
-
   def dup
     raise TypeError, "can't dup #{self.class.name}"
   end
