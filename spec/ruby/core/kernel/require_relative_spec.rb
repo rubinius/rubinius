@@ -32,6 +32,10 @@ ruby_version_is "1.9" do
       ScratchPad.recorded.should == []
     end
 
+    it "raises a LoadError if basepath does not exist" do
+      lambda { eval("require_relative('#{@dir}/nonexistent.rb')") }.should raise_error(LoadError)
+    end
+
     it "calls #to_str on non-String objects" do
       name = mock("load_fixture.rb mock")
       name.should_receive(:to_str).and_return(@path)
