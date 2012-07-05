@@ -22,7 +22,9 @@ module Rubinius
     # check to make sure it's not called inside of an eval.
     def self.require_relative(name, scope)
       script = scope.current_script
-      if script
+      if script && script.data_path.nil?
+        raise LoadError.new "cannot infer basepath from #{script.file_path}"
+      elsif script
         require File.expand_path(name, File.dirname(script.data_path))
       else
         raise LoadError.new "Something is wrong in trying to get relative path"
