@@ -56,6 +56,8 @@ if %w'z libz zlib1 zlib zdll'.find {|z| have_library(z, 'deflateReset')} and
 
   $defs.concat(defines.collect{|d|' -D'+d})
 
+  have_type('z_crc_t', 'zlib.h')
+
   create_makefile('zlib')
 
 end

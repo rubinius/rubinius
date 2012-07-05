@@ -342,7 +342,11 @@ static VALUE
 rb_zlib_crc_table(obj)
     VALUE obj;
 {
-    const unsigned long *crctbl;
+#if !defined(HAVE_TYPE_Z_CRC_T)
+    /* z_crc_t is defined since zlib-1.2.7. */
+    typedef unsigned long z_crc_t;
+#endif
+    const z_crc_t *crctbl;
     VALUE dst;
     int i;
 
