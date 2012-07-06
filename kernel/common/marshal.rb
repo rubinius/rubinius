@@ -933,15 +933,15 @@ module Marshal
     end
 
     def consume(bytes)
-      raise ArgumentError, "marshal data too short" if @consumed > @stream.size
-      data = @stream[@consumed, bytes]
+      raise ArgumentError, "marshal data too short" if @consumed > @stream.bytesize
+      data = @stream.byteslice @consumed, bytes
       @consumed += bytes
       data
     end
 
     def consume_byte
-      raise ArgumentError, "marshal data too short" if @consumed >= @stream.size
-      data = @byte_array[@consumed]
+      raise ArgumentError, "marshal data too short" if @consumed >= @stream.bytesize
+      data = @byte_array.get_byte @consumed
       @consumed += 1
       return data
     end
