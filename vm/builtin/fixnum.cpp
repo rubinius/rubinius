@@ -79,7 +79,7 @@ namespace rubinius {
     if(a == 0 || b == 0) return Fixnum::from(0);
 
     // Adapted from the logic in 1.9
-    if(FIT_SQRT(a) & FIT_SQRT(b)) {
+    if(FIT_SQRT(a) && FIT_SQRT(b)) {
       return Fixnum::from(a * b);
     }
 
