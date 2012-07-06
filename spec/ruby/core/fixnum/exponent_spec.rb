@@ -22,6 +22,8 @@ describe "Fixnum#**" do
     (2 ** 62).should == 4611686018427387904
     (2 ** 63).should == 9223372036854775808
     (2 ** 64).should == 18446744073709551616
+
+    (8 ** 23).should == 590295810358705651712
   end
 
   it "raises negative numbers to the given power" do
