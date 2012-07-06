@@ -40,7 +40,9 @@
 #endif
 
 #ifdef __FreeBSD__
+#define thread	freebsd_thread
 #include <sys/sysctl.h>
+#undef thread
 #endif
 
 namespace rubinius {
