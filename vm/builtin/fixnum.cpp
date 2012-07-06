@@ -71,6 +71,9 @@ namespace rubinius {
 #define SQRT_LONG_MAX ((native_int)1<<((sizeof(native_int)*CHAR_BIT-1)/2))
 /*tests if N*N would overflow*/
 #define FIT_SQRT(n) (((n)<SQRT_LONG_MAX)&&((n)>-SQRT_LONG_MAX))
+// Adapted from the logic in 1.9
+#define NO_OVERFLOW_MUL(a,b) (FIT_SQRT(a)&&FIT_SQRT(b))
+#define OVERFLOW_MUL(a,b) (!(NO_OVERFLOW_MUL(a,b)))
 
   Integer* Fixnum::mul(STATE, Fixnum* other) {
     native_int a  = to_native();
@@ -78,8 +81,7 @@ namespace rubinius {
 
     if(a == 0 || b == 0) return Fixnum::from(0);
 
-    // Adapted from the logic in 1.9
-    if(FIT_SQRT(a) && FIT_SQRT(b)) {
+    if(NO_OVERFLOW_MUL(a, b)) {
       return Fixnum::from(a * b);
     }
 
@@ -204,15 +206,10 @@ namespace rubinius {
      */
     while(exp > 0) {
       if(exp & 1) {
-        native_int intermediate = result * base;
-        // Overflow check when we grow out of the Fixnum range
-        // The division check is for when we overflow a native_int
-        if(intermediate > FIXNUM_MAX ||
-           intermediate < FIXNUM_MIN ||
-           intermediate / result != base) {
+        if(OVERFLOW_MUL(result, base)) {
           return Bignum::from(state, to_native())->pow(state, exponent);
         }
-        result = intermediate;
+        result *= base;
       }
       // The exp > 1 check is to not overflow unnecessary if this is the
       // last iteration of the algorithm
