@@ -137,7 +137,11 @@ class Module
     @method_table.store name, nil, :undef
     Rubinius::VM.reset_method_cache(name)
 
-    if Rubinius::Type.object_respond_to? self, :method_undefined
+    if Rubinius::Type.object_kind_of?(self, Class) and obj = Rubinius::Type.singleton_class_object(self)
+      Rubinius.privately do
+        obj.singleton_method_undefined(name)
+      end
+    else
       method_undefined(name)
     end
 
@@ -155,7 +159,11 @@ class Module
 
       Rubinius::VM.reset_method_cache(name)
 
-      if Rubinius::Type.object_respond_to? self, :method_removed
+      if Rubinius::Type.object_kind_of?(self, Class) and obj = Rubinius::Type.singleton_class_object(self)
+        Rubinius.privately do
+          obj.singleton_method_removed(name)
+        end
+      else
         method_removed(name)
       end
     end
@@ -327,11 +335,7 @@ class Module
       raise TypeError, "wrong argument type #{meth.class} (expected Proc/Method)"
     end
 
-    @method_table.store name, cm, :public
-    Rubinius::VM.reset_method_cache name
-
-    method_added name
-
+    Rubinius.add_method name, cm, self, :public
     meth
   end
 
@@ -340,11 +344,7 @@ class Module
   def thunk_method(name, value)
     thunk = Rubinius::Thunk.new(value)
     name = Rubinius::Type.coerce_to_symbol name
-
-    @method_table.store name, thunk, :public
-    Rubinius::VM.reset_method_cache name
-
-    method_added(name)
+    Rubinius.add_method name, thunk, self, :public
 
     name
   end
@@ -566,6 +566,16 @@ class Module
   end
 
   private :method_added
+
+  def method_removed(name)
+  end
+
+  private :method_removed
+
+  def method_undefined(name)
+  end
+
+  private :method_undefined
 
   def initialize_copy(other)
     @method_table = other.method_table.dup
