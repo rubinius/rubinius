@@ -464,6 +464,8 @@ namespace profiler {
     case kBlockJIT:
       ss << "::" << data << " {" << line_ << "} <jit>";
       break;
+    case kRoot:
+      break;
     case kScript:
       // handled above, just here to make gcc happy.
       abort();
