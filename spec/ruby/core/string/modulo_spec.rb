@@ -343,6 +343,21 @@ describe "String#%" do
 
       lambda { "%c" % Object }.should raise_error(TypeError)
     end
+
+    it "supports single character strings as argument for %c" do
+      ("%c" % 'A').should == "A"
+    end
+
+    it "raises an exception for multiple character strings as argument for %c" do
+      lambda { "%c" % 'AA' }.should raise_error(ArgumentError)
+    end
+
+    it "calls to_str on argument for %c formats" do
+      obj = mock('A')
+      obj.should_receive(:to_str).and_return('A')
+
+      ("%c" % obj).should == "A"
+    end
   end
 
   ruby_version_is "1.8.6.278" do
