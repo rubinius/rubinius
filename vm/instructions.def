@@ -471,7 +471,9 @@ end
 instruction raise_exc() [ value -- ] => raise
   flush_ip();
   Object* t1 = stack_pop();
-  state->raise_exception(as<Exception>(t1));
+  Exception* exc = as<Exception>(t1);
+  exc->locations(state, Location::from_call_stack(state, call_frame));
+  state->raise_exception(exc);
   RUN_EXCEPTION();
 end
 
