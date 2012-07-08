@@ -219,6 +219,53 @@ namespace atomic {
 #endif
   }
 
+// This is a very dirty work around for a bug in Clang 2.9 (or Apple clang 2.0)
+// The bug is that it can't correctly instantiate templates when used with
+// built-in functions for atomic memory access (a GCC extension). It is fixed
+// in Clang 3.0 or later.
+//
+// To work around, we define all explicit template specializations needed by
+// current Rubinius code.
+//
+// The error:
+//   vm/util/atomic.hpp:185:33: error:
+//     cannot initialize a parameter of type 'volatile long long *' with
+//     an lvalue of type 'int *'
+//       return __sync_fetch_and_sub(ptr, inc);
+//                                   ^~~
+//   In file included from vm/shared_state.cpp:18:
+//   vm/world_state.hpp:64:9: note:
+//     in instantiation of function template specialization
+//     'atomic::fetch_and_sub<int>' requested here
+//       atomic::fetch_and_sub(&pending_threads_, 1);
+//       ^
+//
+// The bug report:
+//   http://llvm.org/bugs/show_bug.cgi?id=8345 and
+// The fix:
+//   https://llvm.org/viewvc/llvm-project?view=rev&sortby=date&revision=139373
+#if defined(__clang__) && ( \
+      ((__clang_major__ == 2) && (__clang_minor__ == 9)) || \
+      ((__clang_major__ == 2) && (__clang_minor__ == 0)))
+  // For WorldState::pending_threads_
+  template <> inline int fetch_and_add(int *ptr, int inc) {
+    return __sync_fetch_and_add(ptr, inc);
+  }
+
+  template <> inline int fetch_and_sub(int* ptr, int inc) {
+    return __sync_fetch_and_sub(ptr, inc);
+  }
+
+  // For ObjectMemory::last_object_id
+  template <> inline size_t fetch_and_add(size_t *ptr, size_t inc) {
+    return __sync_fetch_and_add(ptr, inc);
+  }
+
+  template <> inline size_t fetch_and_sub(size_t* ptr, size_t inc) {
+    return __sync_fetch_and_sub(ptr, inc);
+  }
+#endif
+
   template <typename T> inline T read(T *ptr) {
     memory_barrier();
     return *ptr;
