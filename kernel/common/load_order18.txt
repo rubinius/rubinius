@@ -100,6 +100,7 @@ signal.rbc
 splitter.rbc
 splitter18.rbc
 sprinter.rbc
+sprinter18.rbc
 symbol.rbc
 symbol18.rbc
 thread.rbc

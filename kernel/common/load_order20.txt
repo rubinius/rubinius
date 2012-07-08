@@ -108,6 +108,7 @@ signal.rbc
 splitter.rbc
 splitter19.rbc
 sprinter.rbc
+sprinter19.rbc
 symbol.rbc
 symbol19.rbc
 thread.rbc

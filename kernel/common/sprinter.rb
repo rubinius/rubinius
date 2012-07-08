@@ -691,35 +691,6 @@ module Rubinius
         end
       end
 
-      class CharAtom < Atom
-        def bytecode
-          push_value
-          @b.force_type :Fixnum, :Integer
-
-          chr_range_ok = @g.new_label
-
-          @g.dup
-          @g.push 256
-          @g.meta_send_op_lt @g.find_literal(:<)
-          @b.if_true do
-            @g.dup
-            @g.meta_push_neg_1
-            @g.meta_send_op_gt @g.find_literal(:>)
-            @g.git chr_range_ok
-          end
-
-          @g.push 256
-          @g.send :%, 1
-
-          chr_range_ok.set!
-          @g.send :chr, 0
-
-          justify_width
-
-          @b.append_str
-        end
-      end
-
       class FloatAtom < Atom
         def bytecode
           push_value
@@ -1050,6 +1021,13 @@ module Rubinius
         @g.push_const_fast @lit_Fixnum, @slot_Fixnum
       end
 
+      def push_String
+        @lit_String ||= @g.add_literal(:String)
+        @slot_String ||= @g.add_literal(nil)
+
+        @g.push_const_fast @lit_String, @slot_String
+      end
+
       def raise_ArgumentError(msg)
         @lit_ArgumentError ||= @g.add_literal(:ArgumentError)
         @slot_ArgumentError ||= @g.add_literal(nil)
@@ -1076,6 +1054,27 @@ module Rubinius
         end
       end
 
+      def try_type(klass, method)
+
+        @lit_check ||= @g.add_literal(:check_convert_type)
+
+        @g.dup
+        @g.push_const klass
+        @g.swap
+        @g.kind_of
+        if_false do
+          @g.push_type
+          @g.swap
+          @g.push_const klass
+          @g.push_unique_literal method
+          @g.send_stack @lit_check, 3
+          @g.dup
+          if_false do
+            yield if block_given?
+          end
+        end
+      end
+
       def if_true
         l = @g.new_label
         @g.gif l
@@ -1093,7 +1092,6 @@ module Rubinius
       AtomMap = Rubinius::LookupTable.new
       AtomMap[?s] = StringAtom
       AtomMap[?p] = InspectAtom
-      AtomMap[?c] = CharAtom
       AtomMap[?e] = AtomMap[?E] = FloatAtom
       AtomMap[?g] = AtomMap[?G] = FloatAtom
       AtomMap[?f] = FloatAtom
