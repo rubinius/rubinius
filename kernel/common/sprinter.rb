@@ -49,6 +49,13 @@ module Rubinius
       end
     end
 
+    def debug_print
+      printer = Compiler::MethodPrinter.new
+      printer.input(method(:call).executable)
+      printer.bytecode = true
+      printer.run
+    end
+
     def zero_two_expand_integer(int)
       int = Integer(int) unless int.kind_of? Fixnum
 
