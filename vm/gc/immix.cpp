@@ -174,13 +174,13 @@ namespace rubinius {
       }
     }
 
-    std::list<capi::Handle**>* gh = data.global_handle_locations();
+    std::list<capi::GlobalHandle*>* gh = data.global_handle_locations();
 
     if(gh) {
-      for(std::list<capi::Handle**>::iterator i = gh->begin();
+      for(std::list<capi::GlobalHandle*>::iterator i = gh->begin();
           i != gh->end();
           ++i) {
-        capi::Handle** loc = *i;
+        capi::Handle** loc = (*i)->handle();
         if(capi::Handle* hdl = *loc) {
           if(!REFERENCE_P(hdl)) continue;
           if(hdl->valid_p()) {
