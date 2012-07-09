@@ -1,4 +1,6 @@
 before_script: ./configure
+script: rake
+language: cpp
 branches:
   only:
     - master
