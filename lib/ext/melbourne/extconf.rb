@@ -15,8 +15,6 @@ add_lib("cchash")
 #have_library("ptr_array")
 #have_library("cchash")
 
-$CFLAGS += " -ggdb3"
-
 # Courtesy of EventMachine. Thank you EventMachine and tmm1 !
 case RUBY_PLATFORM
 when /mswin32/, /mingw32/, /bccwin32/

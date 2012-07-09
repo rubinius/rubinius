@@ -23,7 +23,7 @@ MARCH=$(shell uname -m)
 OSVER=$(shell uname -r)
 
 WARNINGS = -Wall
-DEBUG = -g -ggdb3
+DEBUG = -g
 
 CFLAGS = $(WARNINGS) $(DEBUG) -fno-strict-aliasing
 NAME=libgdtoa

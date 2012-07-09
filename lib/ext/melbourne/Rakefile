@@ -61,8 +61,15 @@ when ["build:build"]
     end
   else
     puts "Building bootstrap Melbourne for Rubinius"
-    add_cflag "-ggdb3 -O2"
-    add_cxxflag "-ggdb3 -O2"
+    add_cflag "-g"
+    add_cxxflag "-g"
+    if ENV['DEV']
+      add_cflag "-O0 -ggdb3"
+      add_cxxflag "-O0 -ggdb3"
+    else
+      add_cflag "-O2"
+      add_cxxflag "-O2"
+    end
     add_include_dir RbConfig::CONFIG["rubyhdrdir"]
   end
 end

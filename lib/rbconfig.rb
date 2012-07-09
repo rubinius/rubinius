@@ -121,10 +121,10 @@ module RbConfig
   # since we hardcode using gcc, and this flag is only
   # used by mkmf to compile extensions, be sure PIC is in
   # there
-  CONFIG["CFLAGS"]             = "-ggdb3 -fPIC"
+  CONFIG["CFLAGS"]             = "-g -fPIC"
   CONFIG["LDFLAGS"]            = ""
   if ENV['DEV']
-    CONFIG["CFLAGS"] << " -O0"
+    CONFIG["CFLAGS"] << " -O0 -ggdb3"
   else
     CONFIG["CFLAGS"] << " -O2"
   end

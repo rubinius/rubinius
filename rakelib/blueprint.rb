@@ -16,7 +16,7 @@ Daedalus.blueprint do |i|
   gcc.cflags << "-mno-omit-leaf-frame-pointer"
 
   gcc.cflags << "-Wno-unused-function"
-  gcc.cflags << "-g -ggdb3 -Werror"
+  gcc.cflags << "-g -Werror"
   gcc.cflags << "-DRBX_PROFILER"
   gcc.cflags << "-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS"
   gcc.cflags << "-D_LARGEFILE_SOURCE"
@@ -25,7 +25,7 @@ Daedalus.blueprint do |i|
   gcc.cflags << Rubinius::BUILD_CONFIG[:user_cflags]
 
   if ENV['DEV']
-    gcc.cflags << "-O0"
+    gcc.cflags << "-O0 -ggdb3"
     gcc.mtime_only = true
   else
     gcc.cflags << "-O2"
