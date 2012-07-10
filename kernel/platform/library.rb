@@ -37,7 +37,7 @@ module FFI
 
           x.each do |name|
             begin
-              lib = DynamicLibrary.new(name)
+              lib = DynamicLibrary.new(name, @ffi_lib_flags)
               break
             rescue LoadError
             end
@@ -59,6 +59,30 @@ module FFI
       @ffi_lib or [DynamicLibrary::CURRENT_PROCESS]
     end
     private :ffi_libraries
+
+    # Flags used in {#ffi_lib}.
+    #
+    # This map allows you to supply symbols to {#ffi_lib_flags} instead of
+    # the actual constants.
+    def flags_map
+      {
+        :global => DynamicLibrary::RTLD_GLOBAL,
+        :local => DynamicLibrary::RTLD_LOCAL,
+        :lazy => DynamicLibrary::RTLD_LAZY,
+        :now => DynamicLibrary::RTLD_NOW
+      }
+    end
+
+    # Sets library flags for {#ffi_lib}.
+    #
+    # @example
+    #   ffi_lib_flags(:lazy, :local) # => 5
+    #
+    # @param [Symbol, …] flags (see {FlagsMap})
+    # @return [Fixnum] the new value
+    def ffi_lib_flags(*flags)
+      @ffi_lib_flags = flags.inject(0) { |result, f| result | flags_map[f] }
+    end
 
     # Attach a C function to this module. The arguments can have two forms:
     #
