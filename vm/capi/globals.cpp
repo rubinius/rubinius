@@ -56,14 +56,10 @@ extern "C" {
     }
   }
 
-  void rb_global_variable(VALUE* address) {
+  void capi_gc_register_address(VALUE* address, const char* file, int line) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     capi::Handle** loc = reinterpret_cast<capi::Handle**>(address);
-    env->state()->vm()->shared.add_global_handle_location(loc);
-  }
-
-  void rb_gc_register_address(VALUE* address) {
-    rb_global_variable(address);
+    env->state()->vm()->shared.add_global_handle_location(loc, file, line);
   }
 
   void rb_gc_unregister_address(VALUE* address) {

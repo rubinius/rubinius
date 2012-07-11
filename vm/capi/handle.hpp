@@ -199,6 +199,38 @@ namespace rubinius {
       bool rio_close();
     };
 
+    class GlobalHandle {
+    private:
+      Handle** handle_;
+      const char* file_;
+      int line_;
+
+    public:
+      GlobalHandle(Handle** handle, const char* file, int line)
+        : handle_(handle)
+        , file_(file)
+        , line_(line)
+      {}
+
+      GlobalHandle(Handle** handle)
+        : handle_(handle)
+        , file_(NULL)
+        , line_(0)
+      {}
+
+      Handle** handle() {
+        return handle_;
+      }
+
+      const char* file() {
+        return file_;
+      }
+
+      int line() {
+        return line_;
+      }
+    };
+
     typedef std::tr1::unordered_set<Handle*> SlowHandleSet;
 
     class HandleSet {

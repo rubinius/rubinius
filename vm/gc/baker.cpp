@@ -214,13 +214,14 @@ namespace rubinius {
       assert(i->object()->type_id() > InvalidType && i->object()->type_id() < LastObjectType);
     }
 
-    std::list<capi::Handle**>* gh = data.global_handle_locations();
+    std::list<capi::GlobalHandle*>* gh = data.global_handle_locations();
 
     if(gh) {
-      for(std::list<capi::Handle**>::iterator i = gh->begin();
+      for(std::list<capi::GlobalHandle*>::iterator i = gh->begin();
           i != gh->end();
           ++i) {
-        capi::Handle** loc = *i;
+        capi::GlobalHandle* global_handle = *i;
+        capi::Handle** loc = global_handle->handle();
         if(capi::Handle* hdl = *loc) {
           if(!REFERENCE_P(hdl)) continue;
           if(hdl->valid_p()) {

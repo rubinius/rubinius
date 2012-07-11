@@ -152,7 +152,7 @@ extern "C" {
 
 #ifndef RBX_WINDOWS
   extern int __X_rubinius_version __attribute__((weak));
-  int __X_rubinius_version = 1;
+  int __X_rubinius_version = 2;
 #endif
 
   /**
@@ -1207,8 +1207,9 @@ VALUE rb_uint2big(unsigned long number);
   void    rb_gc();
 
   /** Mark variable global. Will not be GC'd. */
-  void    rb_global_variable(VALUE* handle_address);
-  void    rb_gc_register_address(VALUE* address);
+#define rb_global_variable(address)   capi_gc_register_address(address, __FILE__, __LINE__)
+#define rb_gc_register_address(address)   capi_gc_register_address(address, __FILE__, __LINE__)
+  void    capi_gc_register_address(VALUE* address, const char* file, int line);
 
   /** Unmark variable as global */
   void    rb_gc_unregister_address(VALUE* address);
