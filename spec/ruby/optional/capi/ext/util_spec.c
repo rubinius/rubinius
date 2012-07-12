@@ -8,7 +8,7 @@ extern "C" {
 #ifdef HAVE_RB_SCAN_ARGS
 VALUE util_spec_rb_scan_args(VALUE self, VALUE argv, VALUE fmt, VALUE expected, VALUE acc) {
   int i, result, argc = (int)RARRAY_LEN(argv);
-  VALUE args[5], failed, a1, a2, a3, a4, a5, a6;
+  VALUE args[6], failed, a1, a2, a3, a4, a5, a6;
 
   failed = rb_intern("failed");
   a1 = a2 = a3 = a4 = a5 = a6 = failed;
