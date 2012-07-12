@@ -47,6 +47,7 @@
 #include "builtin/class.hpp"
 #include "builtin/atomic.hpp"
 
+#include "environment.hpp"
 #include "configuration.hpp"
 #include "config.h"
 #include "revision.h"
@@ -417,15 +418,33 @@ namespace rubinius {
      * because some are passed to e.g. File.expand_path and having them
      * be uniform is simpler.
      */
-    G(rubinius)->set_const(state, "BIN_PATH", String::create(state, RBX_BIN_PATH));
-    G(rubinius)->set_const(state, "KERNEL_PATH", String::create(state, RBX_KERNEL_PATH));
-    G(rubinius)->set_const(state, "LIB_PATH", String::create(state, RBX_LIB_PATH));
-    G(rubinius)->set_const(state, "HDR18_PATH", String::create(state, RBX_HDR18_PATH));
-    G(rubinius)->set_const(state, "HDR19_PATH", String::create(state, RBX_HDR19_PATH));
-    G(rubinius)->set_const(state, "HDR20_PATH", String::create(state, RBX_HDR20_PATH));
-    G(rubinius)->set_const(state, "GEMS_PATH", String::create(state, RBX_GEMS_PATH));
-    G(rubinius)->set_const(state, "SITE_PATH", String::create(state, RBX_SITE_PATH));
-    G(rubinius)->set_const(state, "VENDOR_PATH", String::create(state, RBX_VENDOR_PATH));
+    Environment* env = state->shared().env();
+
+    if(env) {
+      std::string prefix = env->system_prefix();
+      G(rubinius)->set_const(state, "PREFIX_PATH", String::create(state, prefix.c_str()));
+      std::string path = prefix + RBX_RUNTIME_PATH;
+      G(rubinius)->set_const(state, "RUNTIME_PATH", String::create(state, path.c_str()));
+      path = prefix + RBX_BIN_PATH;
+      G(rubinius)->set_const(state, "BIN_PATH", String::create(state, path.c_str()));
+      path = prefix + RBX_KERNEL_PATH;
+      G(rubinius)->set_const(state, "KERNEL_PATH", String::create(state, path.c_str()));
+      path = prefix + RBX_LIB_PATH;
+      G(rubinius)->set_const(state, "LIB_PATH", String::create(state, path.c_str()));
+      path = prefix + RBX_SITE_PATH;
+      G(rubinius)->set_const(state, "SITE_PATH", String::create(state, path.c_str()));
+      path = prefix + RBX_VENDOR_PATH;
+      G(rubinius)->set_const(state, "VENDOR_PATH", String::create(state, path.c_str()));
+      path = prefix + RBX_GEMS_PATH;
+      G(rubinius)->set_const(state, "GEMS_PATH", String::create(state, path.c_str()));
+
+      path = prefix + RBX_HDR18_PATH;
+      G(rubinius)->set_const(state, "HDR18_PATH", String::create(state, path.c_str()));
+      path = prefix + RBX_HDR19_PATH;
+      G(rubinius)->set_const(state, "HDR19_PATH", String::create(state, path.c_str()));
+      path = prefix + RBX_HDR20_PATH;
+      G(rubinius)->set_const(state, "HDR20_PATH", String::create(state, path.c_str()));
+    }
     G(rubinius)->set_const(state, "ZLIB_PATH", String::create(state, RBX_ZLIB_PATH));
 
     G(rubinius)->set_const(state, "VERSION", String::create(state, RBX_VERSION));

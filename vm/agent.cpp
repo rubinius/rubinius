@@ -35,14 +35,6 @@
 #include <sstream>
 #include <fstream>
 
-#ifdef __APPLE__
-#include <mach-o/dyld.h>
-#endif
-
-#ifdef __FreeBSD__
-#include <sys/sysctl.h>
-#endif
-
 namespace rubinius {
   static char tmp_path[PATH_MAX];
 
@@ -599,53 +591,7 @@ auth_error:
       }
       stream << "\n";
 
-      char buf[PATH_MAX];
-#ifdef __APPLE__
-      uint32_t size = PATH_MAX;
-      if(_NSGetExecutablePath(buf, &size) == 0) {
-        stream << buf << "\n";
-      } else if(realpath(argv[0], buf)) {
-        stream << buf << "\n";
-      } else {
-        stream << argv[0] << "\n";
-      }
-#elif defined(__FreeBSD__)
-      int oid[4];
-      size_t len;
-
-      oid[0] = CTL_KERN;
-      oid[1] = KERN_PROC;
-      oid[2] = KERN_PROC_PATHNAME;
-      oid[3] = getpid();
-      len = PATH_MAX;
-      if(sysctl(oid, 4, buf, &len, 0, 0) == 0) {
-        stream << buf << "\n";
-      } else if(realpath(argv[0], buf)) {
-        stream << buf << "\n";
-      } else {
-        stream << argv[0] << "\n";
-      }
-#elif defined(__linux__)
-      {
-        std::ifstream exe("/proc/self/exe");
-        if(exe) {
-          char buf[PATH_MAX];
-          exe.get(buf, PATH_MAX);
-
-          stream << buf << "\n";
-        } else if(realpath(argv[0], buf)) {
-          stream << buf << "\n";
-        } else {
-          stream << argv[0] << "\n";
-        }
-      }
-#else
-      if(realpath(argv[0], buf)) {
-        stream << buf << "\n";
-      } else {
-        stream << argv[0] << "\n";
-      }
-#endif
+      stream << shared_.env()->executable_name() << "\n";
 
       stream.close();
 

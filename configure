@@ -19,6 +19,9 @@ class Configure
   def initialize(root)
     @log = Logger.new "configure.log"
 
+    @command_line = ARGV.dup
+    @log.log "Command line: #{@command_line.join(" ").inspect}"
+
     @defines = []
     @config = File.join(root, "config.rb")
 
@@ -49,7 +52,6 @@ class Configure
     @rake = ENV['RAKE'] || 'rake'
     @tar = ENV['TAR'] || (@windows ? 'bsdtar' : 'tar')
     @perl = ENV['PERL'] || 'perl'
-    @install = false
     @default_version = "18"
     @version_list = ["18", "19"]
     @supported_versions = ["18", "19", "20"]
@@ -98,20 +100,21 @@ class Configure
     @lib_dirs     = []
 
     # File system paths
-    @bindir       = root + "/bin"
-    @include18dir = root + "/vm/capi/18/include"
-    @include19dir = root + "/vm/capi/19/include"
-    @include20dir = root + "/vm/capi/19/include"
-    @libdir       = root
-    @runtime      = @libdir + "/runtime"
-    @kernel_path  = @libdir + "/kernel"
-    @lib_path     = @libdir + "/lib"
-    @mandir       = root + "/man"
-    @gemsdir      = root + "/gems"
+    @sourcedir    = root
+    @prefixdir    = nil
+    @bindir       = nil
+    @libdir       = nil
+    @runtimedir   = nil
+    @kerneldir    = nil
+    @sitedir      = nil
+    @vendordir    = nil
+    @mandir       = nil
+    @gemsdir      = nil
 
-    # Some simple defaults for when running directly out of the build dir
-    @sitedir      = @lib_path + "/site"
-    @vendordir    = @lib_path + "/vendor"
+    # TODO: fix this
+    @include18dir = nil # root + "/vm/capi/18/include"
+    @include19dir = nil # root + "/vm/capi/19/include"
+    @include20dir = nil # root + "/vm/capi/19/include"
 
     @program_name = "rbx"
 
@@ -123,7 +126,7 @@ class Configure
     @libversion = "2.0"
     @version = "#{@libversion}.0dev"
     @release_date = "yyyy-mm-dd"
-    @config_version = 158
+    @config_version = 159
 
     # TODO: add conditionals for platforms
     if RbConfig::CONFIG["build_os"] =~ /darwin/
@@ -157,6 +160,54 @@ class Configure
 
   def expand(path)
     File.expand_path(path)
+  end
+
+  def expand_install_dir(dir)
+    dir = expand dir
+    if File.directory?(dir) and dir !~ /(rubinius|rbx).*\/?$/
+      original = dir
+      dir + "/rubinius/#{@libversion}"
+      @log.write "The directory #{original} already exists, installing to #{dir}"
+    end
+    dir
+  end
+
+  def set_filesystem_paths
+    @prefixdir    = @sourcedir unless @prefixdir
+    @bindir       = @prefixdir + "/bin" unless @bindir
+    @libdir       = @prefixdir + "/lib" unless @libdir
+    @runtimedir   = @prefixdir + "/runtime" unless @runtimedir
+    @kerneldir    = @prefixdir + "/kernel" unless @kerneldir
+    @sitedir      = @prefixdir + "/site" unless @sitedir
+    @vendordir    = @prefixdir + "/vendor" unless @vendordir
+    @mandir       = @prefixdir + "/man" unless @mandir
+    @gemsdir      = @prefixdir + "/gems" unless @gemsdir
+    @include18dir = @prefixdir + "/vm/capi/18/include" unless @include18dir
+    @include19dir = @prefixdir + "/vm/capi/19/include" unless @include19dir
+    @include20dir = @prefixdir + "/vm/capi/19/include" unless @include20dir
+
+    dirs = [@bindir, @libdir, @runtimedir, @kerneldir, @sitedir, @vendordir,
+            @mandir, @gemsdir, @include18dir, @include19dir, @include20dir]
+
+    parts = dirs.map { |d| d.split "/" }
+
+    i = 0
+    total = parts[0].size
+    prefix = []
+
+    while i < total
+      part = parts[0][i]
+      break unless parts.all? { |p| p[i] == part }
+      prefix << part
+      i += 1
+    end
+
+    @prefixdir = prefix.join "/"
+    size = @prefixdir.size
+
+    dirs.each { |d| d.replace d[size..-1] }
+
+    @stagingdir = "#{@sourcedir}/staging" unless @prefixdir == @sourcedir
   end
 
   def options
@@ -272,71 +323,44 @@ class Configure
     o.doc "\n File system paths for installing Rubinius"
 
     o.on "-P", "--prefix", "PATH", "Install Rubinius in subdirectories of PATH" do |dir|
-      @install = true
-      dir = File.expand_path dir
-
-      if !ENV['RELEASE'] and File.directory? dir and dir !~ /(rubinius|rbx).*\/?$/
-        old = dir
-        dir += "/rubinius/#{@libversion}"
-        @log.write "The directory #{old} already exists, installing to #{dir}"
-      end
-
-      @bindir       = dir + "/bin"
-      @include18dir = dir + "/18/include"
-      @include19dir = dir + "/19/include"
-      @include20dir = dir + "/19/include"
-      @libdir       = dir
-      @runtime      = @libdir + "/runtime"
-      @kernel_path  = @libdir + "/kernel"
-      @lib_path     = @libdir + "/lib"
-      @mandir       = dir + "/man"
-      @gemsdir      = dir + "/gems"
-
-      @sitedir      = dir + "/site"
-      @vendordir    = dir + "/vendor"
+      @prefixdir = expand_install_dir dir
     end
 
     o.on "-B", "--bindir", "PATH", "Install Rubinius executable in PATH" do |dir|
-      @install = true
       @bindir = expand dir
     end
 
     o.on "-I", "--includedir", "PATH", "Install Rubinius C-API include files in PATH" do |dir|
-      @install = true
-      path = expand dir
-      @include18dir = path + "/18"
-      @include19dir = path + "/19"
-      @include20dir = path + "/20"
+      dir = expand dir
+      @include18dir = dir + "/18"
+      @include19dir = dir + "/19"
+      @include20dir = dir + "/20"
     end
 
     o.on "-L", "--libdir", "PATH", "Install Ruby library in PATH" do |dir|
-      @install      = true
-      @libdir       = expand(dir) + "/rubinius/#{@libversion}"
-      @runtime      = @libdir + "/runtime"
-      @kernel_path  = @libdir + "/kernel"
-      @lib_path     = @libdir + "/lib"
+      dir = expand_install_dir dir
 
-      @sitedir      = @libdir + "/site"
-      @vendordir    = @libdir + "/vendor"
+      @libdir       = dir
+      @runtime      = dir + "/runtime"
+      @kernel_path  = dir + "/kernel"
+      @lib_path     = dir + "/lib"
+      @sitedir      = dir + "/site"
+      @vendordir    = dir + "/vendor"
     end
 
     o.on "-M", "--mandir", "PATH", "Install man pages in PATH" do |dir|
-      @install = true
       @mandir = expand dir
     end
 
     o.on "-G", "--gemsdir", "PATH", "Install gems in PATH" do |dir|
-      @install = true
       @gemsdir = expand dir
     end
 
     o.on "--sitedir", "PATH", "Install site-specific Ruby code in PATH" do |dir|
-      @install = true
       @sitedir = expand dir
     end
 
     o.on "--vendordir", "PATH", "Install vendor-specific Ruby code in PATH" do |dir|
-      @install = true
       @vendordir = expand dir
     end
 
@@ -1268,6 +1292,7 @@ int main() { return tgetnum(""); }
       f.puts <<-EOC
 module Rubinius
   BUILD_CONFIG = {
+    :command_line   => #{@command_line.join(" ").inspect},
     :which_ruby     => :#{which_ruby},
     :build_ruby     => "#{build_ruby}",
     :build_rake     => "#{@rake}",
@@ -1292,18 +1317,20 @@ module Rubinius
     :x86_32         => #{@x86_32},
     :x86_64         => #{@x86_64},
     :fibers         => #{@fibers},
+    :sourcedir      => "#{@sourcedir}",
+    :stagingdir     => #{@stagingdir.inspect},
+    :prefixdir      => "#{@prefixdir}",
     :bindir         => "#{@bindir}",
     :libdir         => "#{@libdir}",
-    :runtime        => "#{@runtime}",
-    :kernel_path    => "#{@kernel_path}",
-    :lib_path       => "#{@lib_path}",
+    :runtimedir     => "#{@runtimedir}",
+    :kerneldir      => "#{@kerneldir}",
+    :sitedir        => "#{@sitedir}",
+    :vendordir      => "#{@vendordir}",
     :include18dir   => "#{@include18dir}",
     :include19dir   => "#{@include19dir}",
     :include20dir   => "#{@include20dir}",
     :mandir         => "#{@mandir}",
     :gemsdir        => "#{@gemsdir}",
-    :sitedir        => "#{@sitedir}",
-    :vendordir      => "#{@vendordir}",
     :program_name   => "#{@program_name}",
     :version        => "#{@version}",
     :libversion     => "#{@libversion}",
@@ -1335,11 +1362,12 @@ end
 #define RBX_CPU              "#{@cpu}"
 #define RBX_VENDOR           "#{@vendor}"
 #define RBX_OS               "#{@os}"
+#define RBX_PREFIX_PATH      "#{@prefixdir}"
 #define RBX_BIN_PATH         "#{@bindir}"
 #define RBX_GEMS_PATH        "#{@gemsdir}"
-#define RBX_RUNTIME          "#{@runtime}"
-#define RBX_KERNEL_PATH      "#{@kernel_path}"
-#define RBX_LIB_PATH         "#{@lib_path}"
+#define RBX_RUNTIME_PATH     "#{@runtimedir}"
+#define RBX_KERNEL_PATH      "#{@kerneldir}"
+#define RBX_LIB_PATH         "#{@libdir}"
 #define RBX_HDR18_PATH       "#{@include18dir}"
 #define RBX_HDR19_PATH       "#{@include19dir}"
 #define RBX_HDR20_PATH       "#{@include20dir}"
@@ -1355,7 +1383,7 @@ end
       EOC
 
       if @vendor_zlib
-        f.puts %[#define RBX_ZLIB_PATH        "#{@lib_path}/zlib/"]
+        f.puts %[#define RBX_ZLIB_PATH        "#{@libdir}/zlib/"]
       else
         f.puts %[#define RBX_ZLIB_PATH        ""]
       end
@@ -1594,6 +1622,8 @@ end
     options
     parse ARGV
 
+    set_filesystem_paths
+
     if File.join(@bindir, @program_name) == build_ruby
       @log.error "\nYou are attempting to build using the instance of Rubinius that you are building.\n\n"
 
@@ -1630,19 +1660,46 @@ irc.freenode.net and provide the following system information:
       EOM
     end
 
-    if @install
-      @log.write "\nConfigured. Run 'rake install' to install Rubinius."
+    unless @stagingdir
+      build_msg = <<-EOM
+Rubinius has been configured.
+
+Run 'rake' to build and test Rubinius.
+      EOM
     else
-      @log.write <<-EOM
+      build_msg = <<-EOM
+Rubinius has been configured for the following paths:
 
-Configured. Run 'rake' to build and run VM tests and rubyspecs.
+prefix:  #{@prefixdir}
+bin:     #{@bindir}
+lib:     #{@libdir}
+runtime: #{@runtimedir}
+kernel:  #{@kerneldir}
+site:    #{@sitedir}
+vendor:  #{@vendordir}
+man:     #{@mandir}
+gems:    #{@gemsdir}
 
-After building, you may add '#{@bindir}' to your PATH or run commands directly from that directory. Available commands are:
+Run 'rake' to build, test and install Rubinius.
+      EOM
+    end
+
+    @log.write <<-EOM
+------------------------------------------------------------------
+
+#{build_msg}
+After building, you may add
+
+'#{@prefixdir}#{@bindir}'
+
+to your PATH or run commands directly from that directory.
+
+Available commands are:
 
   #{@program_name}, ruby, rake, gem, irb, rdoc, ri
 
-      EOM
-    end
+------------------------------------------------------------------
+    EOM
   end
 
   # Handles user output and logging while running configure.

@@ -77,25 +77,7 @@ module Rubinius
     def system_load_path
       @stage = "setting up system load path"
 
-      if env_lib = ENV['RBX_LIB'] and File.exists?(env_lib)
-        @main_lib = File.expand_path(env_lib)
-      else
-        # use configured library path and check its existence
-        @main_lib = Rubinius::LIB_PATH
-
-        unless File.exists?(@main_lib)
-          STDERR.puts <<-EOM
-Rubinius was configured to find standard library files at:
-
-  #{@main_lib}
-
-but that directory does not exist.
-
-Set the environment variable RBX_LIB to the directory
-containing the Rubinius standard library files.
-          EOM
-        end
-      end
+      @main_lib = Rubinius::LIB_PATH
 
       @main_lib_bin = File.join @main_lib, "bin"
       Rubinius.const_set :PARSER_EXT_PATH, "#{@main_lib}/ext/melbourne/rbx/melbourne20"

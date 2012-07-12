@@ -18,8 +18,6 @@
 using namespace std;
 using namespace rubinius;
 
-static void check_directory(std::string root);
-
 /**
  * Main rbx entry point.
  *
@@ -53,12 +51,7 @@ int main(int argc, char** argv) {
         env.load_conf(path);
       }
 
-      const char* runtime = getenv("RBX_RUNTIME");
-
-      if(!runtime) runtime = RBX_RUNTIME;
-
-      check_directory(runtime);
-      env.run_from_filesystem(runtime);
+      env.run_from_filesystem();
     } catch(Assertion *e) {
       std::cout << "VM Assertion:" << std::endl;
       std::cout << "  " << e->reason << std::endl << std::endl;
@@ -102,6 +95,24 @@ int main(int argc, char** argv) {
       std::cout << "Ruby backtrace:" << std::endl;
       env.state->vm()->print_backtrace();
       exit_code = 1;
+    } catch(MissingRuntime& e) {
+      std::cerr << std::endl;
+      std::cerr << e.what() << std::endl;
+      std::cerr << "Rubinius was configured to find the directories relative to:" << std::endl;
+      std::cerr << std::endl << "  " << RBX_PREFIX_PATH << std::endl << std::endl;
+      std::cerr << "Set the environment variable RBX_PREFIX_PATH to the directory";
+      std::cerr << std::endl;
+      std::cerr << "that is the prefix of the following runtime directories:" << std::endl;
+      std::cerr << std::endl;
+      std::cerr << "      BIN_PATH: " << RBX_BIN_PATH << std::endl;
+      std::cerr << "  RUNTIME_PATH: " << RBX_RUNTIME_PATH << std::endl;
+      std::cerr << "   KERNEL_PATH: " << RBX_KERNEL_PATH << std::endl;
+      std::cerr << "      LIB_PATH: " << RBX_LIB_PATH << std::endl;
+      std::cerr << "     SITE_PATH: " << RBX_SITE_PATH << std::endl;
+      std::cerr << "   VENDOR_PATH: " << RBX_VENDOR_PATH << std::endl;
+      std::cerr << "     GEMS_PATH: " << RBX_GEMS_PATH << std::endl;
+      std::cerr << std::endl;
+      exit_code = 1;
     } catch(BadKernelFile& e) {
       std::cout << "ERROR: Unable to load: " << e.what() << std::endl << std::endl;
       std::cout << "Please run the following commands to rebuild:" << std::endl;
@@ -130,27 +141,4 @@ int main(int argc, char** argv) {
 #endif
 
   return exit_code;
-}
-
-static void check_directory(std::string runtime) {
-  struct stat st;
-
-  if(stat(runtime.c_str(), &st) == -1 || !S_ISDIR(st.st_mode)) {
-
-    std::cerr << "ERROR: unable to find runtime directory" << std::endl;
-    std::cerr << std::endl;
-    std::cerr << "Rubinius was configured to find the runtime directory at:" << std::endl;
-    std::cerr << std::endl << "  " << runtime << std::endl;
-    std::cerr << std::endl;
-    std::cerr << "but that directory does not exist." << std::endl;
-    std::cerr << std::endl;
-    std::cerr << "Set the environment variable RBX_RUNTIME to the location" << std::endl;
-    std::cerr << "of the directory with the compiled Rubinius kernel files." << std::endl;
-    std::cerr << std::endl;
-    std::cerr << "You may have configured Rubinius for a different install" << std::endl;
-    std::cerr << "directory but you have not run \'rake install\' yet." << std::endl;
-    std::cerr << std::endl;
-
-    exit(1);
-  }
 }

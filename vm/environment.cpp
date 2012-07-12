@@ -52,9 +52,19 @@
 #endif
 #include <fcntl.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <sys/param.h>
+#include <sys/stat.h>
 
 #include "missing/setproctitle.h"
+
+#ifdef __APPLE__
+#include <mach-o/dyld.h>
+#endif
+
+#ifdef __FreeBSD__
+#include <sys/sysctl.h>
+#endif
 
 namespace rubinius {
 
@@ -716,19 +726,111 @@ namespace rubinius {
     }
   }
 
+  std::string Environment::executable_name() {
+    char name[PATH_MAX];
+
+#ifdef __APPLE__
+    uint32_t size = PATH_MAX;
+    if(_NSGetExecutablePath(name, &size) == 0) {
+      return name;
+    } else if(realpath(argv_[0], name)) {
+      return name;
+    }
+#elif defined(__FreeBSD__)
+    size_t size = PATH_MAX;
+    int oid[4];
+
+    oid[0] = CTL_KERN;
+    oid[1] = KERN_PROC;
+    oid[2] = KERN_PROC_PATHNAME;
+    oid[3] = getpid();
+
+    if(sysctl(oid, 4, name, &size, 0, 0) == 0) {
+      return name;
+    } else if(realpath(argv_[0], name)) {
+      return name;
+    }
+#elif defined(__linux__)
+    {
+      std::ifstream exe("/proc/self/exe");
+      if(exe) {
+        return exe.get(name, PATH_MAX);
+      } else if(realpath(argv[0], name)) {
+        return name;
+      }
+    }
+#else
+    if(realpath(argv_[0], name)) {
+      return name;
+    }
+#endif
+
+    return argv_[0];
+  }
+
+  static bool verify_and_set_paths(STATE, std::string prefix) {
+    struct stat st;
+
+    std::string dir = prefix + RBX_RUNTIME_PATH;
+    if(stat(dir.c_str(), &st) == -1 || !S_ISDIR(st.st_mode)) return false;
+
+    dir = prefix + RBX_BIN_PATH;
+    if(stat(dir.c_str(), &st) == -1 || !S_ISDIR(st.st_mode)) return false;
+
+    dir = prefix + RBX_KERNEL_PATH;
+    if(stat(dir.c_str(), &st) == -1 || !S_ISDIR(st.st_mode)) return false;
+
+    dir = prefix + RBX_LIB_PATH;
+    if(stat(dir.c_str(), &st) == -1 || !S_ISDIR(st.st_mode)) return false;
+
+    return true;
+  }
+
+  std::string Environment::system_prefix() {
+    if(!system_prefix_.empty()) return system_prefix_;
+
+    // 1. Check if our configure prefix is overridden by the environment.
+    const char* path = getenv("RBX_PREFIX_PATH");
+    if(path && verify_and_set_paths(state, path)) {
+      system_prefix_ = path;
+      return path;
+    }
+
+    // 2. Check if our configure prefix is valid.
+    path = RBX_PREFIX_PATH;
+    if(verify_and_set_paths(state, path)) {
+      system_prefix_ = path;
+      return path;
+    }
+
+    // 3. Check if we can derive paths from the executable name.
+    // TODO: For Windows, substitute '/' for '\\'
+    std::string name = executable_name();
+    size_t exe = name.rfind('/');
+
+    if(exe != std::string::npos) {
+      std::string prefix = name.substr(0, exe - strlen(RBX_BIN_PATH));
+      if(verify_and_set_paths(state, prefix)) {
+        system_prefix_ = prefix;
+        return prefix;
+      }
+    }
+
+    throw MissingRuntime("FATAL ERROR: unable to find Rubinius runtime directories.");
+  }
+
   /**
-   * Runs rbx from the filesystem, loading the Ruby kernel files relative to
-   * the supplied root directory.
-   *
-   * @param root The path to the Rubinius /runtime directory, which contains
-   * the loader.rbc and kernel files.
+   * Runs rbx from the filesystem. Searches for the Rubinius runtime files
+   * according to the algorithm in find_runtime().
    */
-  void Environment::run_from_filesystem(std::string root) {
+  void Environment::run_from_filesystem() {
     int i = 0;
     state->vm()->set_root_stack(reinterpret_cast<uintptr_t>(&i),
                                 VM::cStackDepthMax);
 
-    load_platform_conf(root);
+    std::string runtime = system_prefix() + RBX_RUNTIME_PATH;
+
+    load_platform_conf(runtime);
     load_vm_options(argc_, argv_);
     boot_vm();
     load_argv(argc_, argv_);
@@ -738,18 +840,19 @@ namespace rubinius {
     load_tool();
 
     if(LANGUAGE_20_ENABLED(state)) {
-      root += "/20";
+      runtime += "/20";
     } else if(LANGUAGE_19_ENABLED(state)) {
-      root += "/19";
+      runtime += "/19";
     } else {
-      root += "/18";
+      runtime += "/18";
     }
-    G(rubinius)->set_const(state, "RUNTIME_PATH", String::create(state, root.c_str(), root.size()));
+    G(rubinius)->set_const(state, "RUNTIME_PATH", String::create(state,
+                           runtime.c_str(), runtime.size()));
 
-    load_kernel(root);
+    load_kernel(runtime);
 
     start_signals();
-    run_file(root + "/loader.rbc");
+    run_file(runtime + "/loader.rbc");
 
     state->vm()->thread_state()->clear();
 

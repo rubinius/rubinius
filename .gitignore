@@ -48,6 +48,7 @@ tmtags
 /lib/site
 /share
 /work
+/staging
 
 # ignore gems and commands installed by gems
 /gems/*
@@ -63,7 +64,6 @@ tmtags
 !/bin/mkspec
 !/bin/mspec
 !/bin/prof.rb
-!/bin/rbx
 
 # don't ignore spec/tags
 !/spec/tags

@@ -27,8 +27,11 @@ namespace :extensions do
 end
 
 def rbx_build
-  # rbx-build can run even if prefix is used
-  File.expand_path "../bin/rbx-build", File.dirname(__FILE__)
+  if BUILD_CONFIG[:stagingdir]
+    "#{BUILD_CONFIG[:stagingdir]}#{BUILD_CONFIG[:bindir]}/#{BUILD_CONFIG[:program_name]}"
+  else
+    "#{BUILD_CONFIG[:sourcedir]}/vm/vm"
+  end
 end
 
 def build_extconf(name, opts)
@@ -44,10 +47,10 @@ def build_extconf(name, opts)
 
   ENV["BUILD_RUBY"] = BUILD_CONFIG[:build_ruby]
 
-  include18_dir = File.expand_path("../../vm/capi/18/include", __FILE__)
-  include19_dir = File.expand_path("../../vm/capi/19/include", __FILE__)
+  include18_dir = "#{BUILD_CONFIG[:sourcedir]}/vm/capi/18/include"
+  include19_dir = "#{BUILD_CONFIG[:sourcedir]}/vm/capi/19/include"
 
-  unless File.directory? BUILD_CONFIG[:runtime]
+  unless File.directory? BUILD_CONFIG[:runtimedir]
     if opts[:env] == "-X18"
       ENV["CFLAGS"] = "-I#{include18_dir}"
     else
@@ -69,7 +72,7 @@ end
 def compile_ext(name, opts={})
   names = name.split ":"
   name = names.last
-  ext_dir = opts[:dir] || File.join("lib/ext", names)
+  ext_dir = opts[:dir] || File.join("#{libprefixdir}/ext", names)
 
   if t = opts[:task]
     ext_task_name = "build:#{t}"
@@ -131,21 +134,21 @@ compile_ext "melbourne", :task => "rbx",
                          :env => melbourne_env,
                          :doc => "for Rubinius"
 
-compile_ext "digest", :dir => "lib/digest/ext"
-compile_ext "digest:md5", :dir => "lib/digest/ext/md5"
-compile_ext "digest:rmd160", :dir => "lib/digest/ext/rmd160"
-compile_ext "digest:sha1", :dir => "lib/digest/ext/sha1"
-compile_ext "digest:sha2", :dir => "lib/digest/ext/sha2"
-compile_ext "digest:bubblebabble", :dir => "lib/digest/ext/bubblebabble"
+compile_ext "digest", :dir => "#{libprefixdir}/digest/ext"
+compile_ext "digest:md5", :dir => "#{libprefixdir}/digest/ext/md5"
+compile_ext "digest:rmd160", :dir => "#{libprefixdir}/digest/ext/rmd160"
+compile_ext "digest:sha1", :dir => "#{libprefixdir}/digest/ext/sha1"
+compile_ext "digest:sha2", :dir => "#{libprefixdir}/digest/ext/sha2"
+compile_ext "digest:bubblebabble", :dir => "#{libprefixdir}/digest/ext/bubblebabble"
 
 if enabled_18
-  compile_ext "18/bigdecimal", :dir => "lib/18/bigdecimal/ext", :env => "-X18"
+  compile_ext "18/bigdecimal", :dir => "#{libprefixdir}/18/bigdecimal/ext", :env => "-X18"
 
-  compile_ext "18/syck", :dir => "lib/18/syck/ext"
-  compile_ext "18/nkf", :dir => "lib/18/nkf/ext", :env => "-X18"
+  compile_ext "18/syck", :dir => "#{libprefixdir}/18/syck/ext"
+  compile_ext "18/nkf", :dir => "#{libprefixdir}/18/nkf/ext", :env => "-X18"
 
   if BUILD_CONFIG[:readline] == :c_readline
-    compile_ext "18/readline", :dir => "lib/18/readline/ext",
+    compile_ext "18/readline", :dir => "#{libprefixdir}/18/readline/ext",
 			       :deps => ["Makefile", "extconf.rb"],
 			       :env => "-X18"
   end
@@ -153,58 +156,67 @@ if enabled_18
   # rbx must be able to run to build these because they use
   # extconf.rb, so they must be after melbourne for Rubinius.
   compile_ext "18/openssl", :deps => ["Makefile", "extconf.h"],
-                            :dir => "lib/18/openssl/ext",
+                            :dir => "#{libprefixdir}/18/openssl/ext",
                             :env => "-X18"
 
   compile_ext "18/dl", :deps => ["Makefile", "dlconfig.h"],
-                       :dir => "lib/18/dl/ext", :env => "-X18"
+                       :dir => "#{libprefixdir}/18/dl/ext", :env => "-X18"
 
   compile_ext "18/pty", :deps => ["Makefile"],
-                        :dir => "lib/18/pty/ext",
+                        :dir => "#{libprefixdir}/18/pty/ext",
                         :env => "-X18"
   compile_ext "18/zlib", :deps => ["Makefile", "extconf.rb"],
-                         :dir => "lib/18/zlib/ext",
+                         :dir => "#{libprefixdir}/18/zlib/ext",
                          :env => "-X18"
 end
 
 if enabled_19
-  compile_ext "19/bigdecimal", :dir => "lib/19/bigdecimal/ext",
+  compile_ext "19/bigdecimal", :dir => "#{libprefixdir}/19/bigdecimal/ext",
                                :deps => ["Makefile", "extconf.rb"],
                                :env => "-X19"
-  compile_ext "19/nkf", :dir => "lib/19/nkf/ext",
+  compile_ext "19/nkf", :dir => "#{libprefixdir}/19/nkf/ext",
                         :deps => ["Makefile", "extconf.rb"],
                         :env => "-X19"
   if BUILD_CONFIG[:readline] == :c_readline
-    compile_ext "19/readline", :dir => "lib/19/readline/ext",
+    compile_ext "19/readline", :dir => "#{libprefixdir}/19/readline/ext",
                                :deps => ["Makefile", "extconf.rb"],
                                :env => "-X19"
   end
 
-  compile_ext "19/psych", :deps => ["Makefile"], :dir => "lib/19/psych/ext", :env => "-X19"
+  compile_ext "19/psych", :deps => ["Makefile"],
+                          :dir => "#{libprefixdir}/19/psych/ext",
+                          :env => "-X19"
 
-  compile_ext "19/syck", :deps => ["Makefile"], :dir => "lib/19/syck/ext", :env => "-X19"
+  compile_ext "19/syck", :deps => ["Makefile"],
+                         :dir => "#{libprefixdir}/19/syck/ext",
+                         :env => "-X19"
 
   compile_ext "json/parser", :deps => ["Makefile", "extconf.rb"],
-                             :dir => "lib/19/json/ext/parser",
+                             :dir => "#{libprefixdir}/19/json/ext/parser",
                              :env => "-X19"
   compile_ext "json/generator", :deps => ["Makefile", "extconf.rb"],
-                                :dir => "lib/19/json/ext/generator",
+                                :dir => "#{libprefixdir}/19/json/ext/generator",
                                 :env => "-X19"
 
   compile_ext "19/openssl", :deps => ["Makefile", "extconf.h"],
-                            :dir => "lib/19/openssl/ext",
+                            :dir => "#{libprefixdir}/19/openssl/ext",
                             :env => "-X19"
   compile_ext "19/pty", :deps => ["Makefile"],
-                        :dir => "lib/19/pty/ext",
+                        :dir => "#{libprefixdir}/19/pty/ext",
                         :env => "-X19"
   compile_ext "19/zlib", :deps => ["Makefile", "extconf.rb"],
-                         :dir => "lib/19/zlib/ext",
+                         :dir => "#{libprefixdir}/19/zlib/ext",
                          :env => "-X19"
 end
 
-compile_ext "dbm", :ignore_fail => true, :deps => ["Makefile"], :dir => "lib/dbm/ext"
-compile_ext "gdbm", :ignore_fail => true, :deps => ["Makefile"], :dir => "lib/gdbm/ext"
-compile_ext "sdbm", :deps => ["Makefile"], :dir => "lib/sdbm/ext"
+compile_ext "dbm", :deps => ["Makefile"],
+                   :dir => "#{libprefixdir}/dbm/ext",
+                   :ignore_fail => true
+compile_ext "gdbm", :deps => ["Makefile"],
+                    :dir => "#{libprefixdir}/gdbm/ext",
+                    :ignore_fail => true
+compile_ext "sdbm", :deps => ["Makefile"],
+                    :dir => "#{libprefixdir}/sdbm/ext"
 
-compile_ext "profiler", :dir => "lib/tooling/profiler",
+compile_ext "profiler", :dir => "#{libprefixdir}/tooling/profiler",
                         :deps => ["Makefile"]

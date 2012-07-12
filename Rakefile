@@ -33,7 +33,7 @@ end
 require config_rb
 BUILD_CONFIG = Rubinius::BUILD_CONFIG
 
-unless BUILD_CONFIG[:config_version] == 158
+unless BUILD_CONFIG[:config_version] == 159
   STDERR.puts "Your configuration is outdated, please run ./configure first"
   exit 1
 end
@@ -42,6 +42,14 @@ end
 unless BUILD_CONFIG[:which_ruby] == :ruby or BUILD_CONFIG[:which_ruby] == :rbx
   STDERR.puts "Sorry, building Rubinius requires MRI or Rubinius"
   exit 1
+end
+
+def libprefixdir
+  if BUILD_CONFIG[:stagingdir]
+    "#{BUILD_CONFIG[:stagingdir]}#{BUILD_CONFIG[:libdir]}"
+  else
+    "#{BUILD_CONFIG[:sourcedir]}/lib"
+  end
 end
 
 # Records the full path to the ruby executable that runs this configure
@@ -93,6 +101,10 @@ class SpecRunner
   @at_exit_handler_set = false
   @at_exit_status = 0
 
+  def self.at_exit_status
+    @at_exit_status
+  end
+
   def self.set_at_exit_handler
     return if @at_exit_handler_set
 
@@ -105,7 +117,7 @@ class SpecRunner
   end
 
   def initialize
-    unless File.directory? BUILD_CONFIG[:runtime]
+    unless File.directory? BUILD_CONFIG[:runtimedir]
       # Setting these enables the specs to run when rbx has been configured
       # to be installed, but rake install has not been run yet.
       ENV["RBX_RUNTIME"] = File.expand_path "../runtime", __FILE__
@@ -127,7 +139,15 @@ class SpecRunner
   end
 end
 
-task :default => :spec
+if BUILD_CONFIG[:stagingdir]
+  task :default => [:spec, :check_status, :install]
+else
+  task :default => :spec
+end
+
+task :check_status do
+  exit unless SpecRunner.at_exit_status == 0
+end
 
 task :github do
   cur = `git config remote.origin.url`.strip
@@ -141,8 +161,8 @@ task :github do
 end
 
 # See vm.rake for more information
-desc "Build everything that needs to be built at default level."
-task :build => ["build:build", "gem_bootstrap"]
+desc "Build Rubinius"
+task :build => %w[build:build gems:install]
 
 desc "Recompile all ruby system files"
 task :rebuild => %w[clean build]
@@ -201,30 +221,6 @@ namespace :clean do
     files = (Dir["*~"] + Dir["**/*~"]).uniq
 
     rm_f files, :verbose => $verbose unless files.empty?
-  end
-end
-
-desc 'Install the pre-installed gems'
-task :gem_bootstrap do
-  STDOUT.puts "Installing pre-installed gems..."
-  ENV['GEM_HOME'] = ENV['GEM_PATH'] = nil
-
-  rbx = "#{BUILD_CONFIG[:bindir]}/#{BUILD_CONFIG[:program_name]}"
-  gems = Dir["preinstalled-gems/*.gem"]
-  options = "--local --conservative --ignore-dependencies --no-rdoc --no-ri"
-
-  BUILD_CONFIG[:version_list].each do |ver|
-    gems.each do |gem|
-      parts = File.basename(gem, ".gem").split "-"
-      gem_name = parts[0..-2].join "-"
-      gem_version = parts[-1]
-
-      system "#{rbx} -X#{ver} -S gem query --name-matches #{gem_name} --installed --version #{gem_version} > #{DEV_NULL}"
-
-      unless $?.success?
-        sh "#{rbx} -X#{ver} -S gem install #{options} #{gem}"
-      end
-    end
   end
 end
 

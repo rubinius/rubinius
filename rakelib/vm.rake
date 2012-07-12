@@ -137,8 +137,15 @@ namespace :build do
   task :build => %W[
                      build:llvm
                      #{VM_EXE}
+                     stage:bin
+                     stage:capi_include
+                     stage:lib
+                     stage:tooling
+                     stage:kernel
                      kernel:build
                      build:ffi:preprocessor
+                     stage:runtime
+                     stage:documentation
                      build:zlib
                      extensions
                    ]
@@ -368,6 +375,13 @@ namespace :vm do
       'vm/test/runner.cpp',
       'vm/test/runner.o',
       VM_EXE,
+      'bin/rbx',
+      'bin/ruby',
+      'bin/rake',
+      'bin/ri',
+      'bin/rdoc',
+      'bin/irb',
+      'bin/gem',
       'vm/.deps',
       'lib/zlib/*',
       'lib/zlib'
@@ -376,6 +390,8 @@ namespace :vm do
     files.each do |filename|
       rm_rf filename, :verbose => $verbose
     end
+
+    rm_rf BUILD_CONFIG[:stagingdir] if BUILD_CONFIG[:stagingdir]
 
     blueprint.clean
   end

@@ -219,10 +219,9 @@ end
 namespace :compiler do
   signature_path = File.expand_path("../../kernel/signature", __FILE__)
 
-  path = File.expand_path("../../lib", __FILE__)
-  Rubinius::COMPILER_PATH = path
-  Rubinius::PARSER_PATH = "#{path}/melbourne"
-  Rubinius::PARSER_EXT_PATH = "#{path}/ext/melbourne/build/melbourne20"
+  Rubinius::COMPILER_PATH = libprefixdir
+  Rubinius::PARSER_PATH = "#{libprefixdir}/melbourne"
+  Rubinius::PARSER_EXT_PATH = "#{libprefixdir}/ext/melbourne/build/melbourne20"
 
   melbourne = "lib/ext/melbourne/build/melbourne.#{$dlext}"
 

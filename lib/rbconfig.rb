@@ -5,18 +5,16 @@ module RbConfig
     raise "Looks like you loaded the Rubinius rbconfig, but this is not Rubinius."
   end
 
-  prefix = File.dirname(File.dirname(__FILE__))
-
   CONFIG = {}
 
-  CONFIG["prefix"]             = prefix
+  CONFIG["prefix"]             = Rubinius::PREFIX_PATH
   CONFIG["install_prefix"]     = ''
   CONFIG["DLEXT"]              = Rubinius::LIBSUFFIX[1..-1]
   CONFIG["EXEEXT"]             = ""
   CONFIG["ruby_install_name"]  = RUBY_ENGINE.dup
   CONFIG["RUBY_INSTALL_NAME"]  = RUBY_ENGINE.dup
   CONFIG["exec_prefix"]        = "$(prefix)"
-  CONFIG["bindir"]             = Rubinius::BUILD_CONFIG[:bindir]
+  CONFIG["bindir"]             = Rubinius::BIN_PATH
   CONFIG["sbindir"]            = "$(exec_prefix)/sbin"
   CONFIG["libexecdir"]         = "$(exec_prefix)/libexec"
   CONFIG["datarootdir"]        = "$(prefix)/share"
@@ -218,7 +216,7 @@ module RbConfig
       RbConfig::CONFIG["bindir"],
       RbConfig::CONFIG["ruby_install_name"] + RbConfig::CONFIG["EXEEXT"]
     )
-  end  
+  end
 
   # Adapted from MRI's' rbconfig.rb
   MAKEFILE_CONFIG = {}

@@ -15,6 +15,16 @@ namespace rubinius {
   class SignalHandler;
 
   /**
+   * Thrown when unable to find Rubinius runtime directories.
+   */
+  class MissingRuntime : public std::runtime_error {
+  public:
+    MissingRuntime(const std::string& str)
+      : std::runtime_error(str)
+    {}
+  };
+
+  /**
    * Thrown when there is a bad signature on a kernel .rbc file.
    */
   class BadKernelFile : public std::runtime_error {
@@ -47,6 +57,8 @@ namespace rubinius {
 
     SignalHandler* sig_handler_;
 
+    std::string system_prefix_;
+
   public:
     SharedState* shared;
     VM* root_vm;
@@ -74,6 +86,8 @@ namespace rubinius {
 
     void setup_cpp_terminate();
 
+    std::string executable_name();
+    std::string system_prefix();
     void load_vm_options(int argc, char** argv);
     void load_argv(int argc, char** argv);
     void load_kernel(std::string root);
@@ -83,7 +97,7 @@ namespace rubinius {
     void load_string(std::string str);
     void run_file(std::string path);
     void load_tool();
-    void run_from_filesystem(std::string root);
+    void run_from_filesystem();
     void boot_vm();
 
     void halt(STATE);
