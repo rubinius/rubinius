@@ -29,4 +29,10 @@ describe "Rubinius::CodeLoader#require_compiled" do
     @loader.require_compiled(@rbc).should be_true
     $LOADED_FEATURES.should == [@rb]
   end
+
+  it "raise an exception if loader can not load the file" do
+    lambda {
+      Rubinius::CodeLoader.require_compiled("not_an_existing_file")
+    }.should raise_error(LoadError)
+  end
 end
