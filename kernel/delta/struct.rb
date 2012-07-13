@@ -40,15 +40,15 @@ class Struct
 
     assigns = []
     0.upto(attrs.size-1) do |i|
-      assigns << "@#{attrs[i]} = a#{i}"
+      assigns << "instance_variable_set(:'@#{attrs[i]}', a#{i})"
     end
 
     hashes = []
     vars = []
 
     0.upto(attrs.size-1) do |i|
-      hashes << "@#{attrs[i]}.hash"
-      vars << "@#{attrs[i]}"
+      hashes << "instance_variable_get(:'@#{attrs[i]}').hash"
+      vars << "instance_variable_get(:'@#{attrs[i]}')"
     end
 
     code = <<-CODE
