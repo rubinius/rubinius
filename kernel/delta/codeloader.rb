@@ -40,10 +40,11 @@ module Rubinius
 
       CodeLoader.loaded_hook.trigger!(@path)
 
+      add_feature
+
       return true
     ensure
-      add_feature
-      req.remove!
+      req.remove! if req
 
       CodeLoader.check_version = saved_check
       CodeLoader.source_extension = saved_extension
