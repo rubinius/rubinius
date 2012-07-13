@@ -174,13 +174,13 @@ class Rubinius::Debugger
   def accept_commands
     cmd = Readline.readline "debug> "
 
-    if cmd.empty?
+    if cmd.nil? || cmd.empty?
       cmd = @last_command
     else
       @last_command = cmd
     end
 
-    command, args = cmd.strip.split(/\s+/, 2)
+    command, args = cmd.to_s.strip.split(/\s+/, 2)
 
     runner = Command.commands.find { |k| k.match?(command) }
 
