@@ -31,14 +31,6 @@ describe "Struct anonymous class instance methods" do
   end
 end
 
-describe "Struct attributes" do
-  it "name may contain hyphens" do
-    klass = Struct.new(:'current-state', :symbol, :'next-state', :action)
-    tuple = klass.new(0, 1, 0, :>>)
-    tuple['current-state'].should == 0
-  end
-end
-
 describe "Struct subclasses" do
   it "can be subclassed" do
     compact = Class.new StructClasses::Car
