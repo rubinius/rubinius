@@ -43,10 +43,17 @@ développeur ici :
   * `libreadline5-dev`
   * `zlib1g-dev`
   * `libssl-dev`
+ 
+### Fedora/CentOS
+
+  * `ruby-devel`
+  * `readline-devel`
+  * `zlib-devel`
+  * `openssl-devel`
 
 ### FreeBSD
 
 Rubinius a un portage dans l'arbre des portages FreeBSD. Il s'appelle `lang/rubinius`.
-Vous pouvez trouver des informations à propos de ce portage sur <http://freshports.org/lang/rubinius/>.
+Vous pouvez trouver des informations à propos de ce portage sur [FreshPorts](http://freshports.org/lang/rubinius/).
 Lors de son installation, le portage installe toutes les dépendances automagiquement.
 
