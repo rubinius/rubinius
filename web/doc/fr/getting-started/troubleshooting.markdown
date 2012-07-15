@@ -63,3 +63,22 @@ Pour chaque erreur, la première étape est de s'assurer que vous avez une copie
   Désactivez execinfo en configurant Rubinius :
 
     ./configure --without-execinfo
+
+### Installer Rubinius avec ruby-build
+
+  Si vous souhaitez installer Rubinius en utilisant ruby-build, dans certains cas, vous
+  pouvez rencontrer des problèmes lors de compilation de Rubinius.
+  
+#### Solution
+
+  Pour palier à ce problème, le mieux est d'installer Rubinius en compilant les sources
+  vous même :
+  
+    $ git clone https://github.com/rubinius/rubinius
+    $ cd rubinius
+    $ ./configure --prefix=/chemin/vers/rubinius
+    $ rake install
+
+  Vous n'êtes pas obligé de spécifier l'option `--prefix`. Cette option vous
+  permet simplement de placer Rubinius où vous le shouhaitez sur votre machine.
+  Il est conseillé de placer Rubinius dans un dossier contenu dans votre `PATH`.

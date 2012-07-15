@@ -42,8 +42,15 @@ reporting at: /Developer/Applications/Utilities/CrashReporterPrefs.app
   * zlib1g-dev
   * libssl-dev
 
+### Fedora/CentOS
+
+  * ruby-devel
+  * readline-devel
+  * zlib-devel
+  * openssl-devel
+
 ### FreeBSD
 
 Rubinius has a port in FreeBSD ports tree. It's called `lang/rubinius`. You
-can find information about this port on <http://freshports.org>. Once being
+can find information about this port on [FreshPorts](http://www.freshports.org/lang/rubinius/). Once being
 installed the port installs all the dependencies automagically.
