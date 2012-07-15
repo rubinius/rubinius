@@ -162,9 +162,7 @@ namespace rubinius {
   }
 
   void String::update_handle(STATE) {
-    if(!inflated_header_p()) return;
-
-    capi::Handle* handle = inflated_header()->handle(state);
+    capi::Handle* handle = this->handle(state);
     if(!handle) return;
 
     handle->update(NativeMethodEnvironment::get());
@@ -837,7 +835,7 @@ namespace rubinius {
     native_int new_size = current_size + length;
     native_int capacity = data_size;
 
-    if(capacity < new_size + 1) {
+    if(capacity <= new_size) {
       // capacity needs one extra byte of room for the trailing null
       do {
         // @todo growth should be more intelligent than doubling

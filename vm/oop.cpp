@@ -209,7 +209,6 @@ namespace rubinius {
     switch(tmp.f.meaning) {
     case eAuxWordHandle:
       h = state->shared().global_handles()->find_index(state, tmp.f.aux_word);
-      assert(h->object() == this);
       return h;
     default:
       return NULL;

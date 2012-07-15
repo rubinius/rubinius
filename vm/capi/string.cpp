@@ -294,20 +294,17 @@ extern "C" {
 
     String* string = capi_get_string(env, self);
 
-    size_t size = c_as<ByteArray>(string->data())->size();
-    if(size != len) {
-      if(size < len) {
-        ByteArray* ba = ByteArray::create_pinned(env->state(), len+1);
-        memcpy(ba->raw_bytes(), string->byte_address(), size);
-        string->data(env->state(), ba);
-      }
-
-      string->byte_address()[len] = 0;
-      string->num_bytes(env->state(), Fixnum::from(len));
-      string->hash_value(env->state(), nil<Fixnum>());
+    size_t capacity = c_as<ByteArray>(string->data())->size();
+    // We make sure we have at least a byte for a trailing NULL
+    if(capacity <= len) {
+      ByteArray* ba = ByteArray::create_pinned(env->state(), len+1);
+      memcpy(ba->raw_bytes(), string->byte_address(), capacity);
+      string->data(env->state(), ba);
     }
-    capi_update_string(env, self);
 
+    string->hash_value(env->state(), nil<Fixnum>());
+    string->num_bytes(env->state(), Fixnum::from(len));
+    capi_update_string(env, self);
     return self;
   }
 
@@ -457,8 +454,8 @@ extern "C" {
 
     String* string = capi_get_string(env, self);
 
-    size_t byte_size = c_as<ByteArray>(string->data())->size();
-    if(len > byte_size) len = byte_size - 1;
+    size_t capacity = c_as<ByteArray>(string->data())->size();
+    if(len > capacity) len = capacity - 1;
 
     string->byte_address()[len] = 0;
     string->num_bytes(env->state(), Fixnum::from(len));
