@@ -36,7 +36,8 @@ describe "TCPServer.new" do
     addr = @server.addr
     addr[0].should == 'AF_INET'
     addr[1].should == SocketSpecs.port
-    addr[2].should == '0.0.0.0'
+    expected = ['', '0.0.0.0']
+    expected.should include(addr[2])
     addr[3].should == '0.0.0.0'
   end
 
@@ -45,7 +46,8 @@ describe "TCPServer.new" do
     addr = @server.addr
     addr[0].should == 'AF_INET'
     addr[1].should == SocketSpecs.port
-    addr[2].should == '0.0.0.0'
+    expected = ['', '0.0.0.0']
+    expected.should include(addr[2])
     addr[3].should == '0.0.0.0'
   end
 
