@@ -16,8 +16,6 @@ class Proc
     end
   end
 
-  # This works because the VM implements &block using push_proc, which
-  # creates a Proc inside the VM.
   def self.new(*args)
     env = nil
 
