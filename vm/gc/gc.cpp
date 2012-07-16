@@ -272,12 +272,11 @@ namespace rubinius {
   void GarbageCollector::scan(VariableRootBuffers& buffers,
                               bool young_only, AddressDisplacement* offset)
   {
-    for(VariableRootBuffers::Iterator vi(buffers);
-        vi.more();
-        vi.advance())
-    {
-      Object*** buffer = displace(vi->buffer(), offset);
-      for(int idx = 0; idx < vi->size(); idx++) {
+    VariableRootBuffer* vrb = displace(buffers.front(), offset);
+
+    while(vrb) {
+      Object*** buffer = displace(vrb->buffer(), offset);
+      for(int idx = 0; idx < vrb->size(); idx++) {
         Object** var = displace(buffer[idx], offset);
         Object* tmp = *var;
 
@@ -285,6 +284,8 @@ namespace rubinius {
           *var = saw_object(tmp);
         }
       }
+
+      vrb = displace((VariableRootBuffer*)vrb->next(), offset);
     }
   }
 
