@@ -400,7 +400,9 @@ class SystemCallError < StandardError
     alias_method :exception, :new
   end
 
-  def initialize(message, errno)
+  # Use splat args here so that arity returns -1 to match MRI.
+  def initialize(*args)
+    message, errno = args
     @errno = errno
 
     msg = "unknown error"

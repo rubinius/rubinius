@@ -23,6 +23,10 @@ describe "SystemCallError.new" do
 
     SystemCallError.new(2**28).should be_an_instance_of(SystemCallError)
   end
+
+  it "returns an arity of -1 for the initialize method" do
+    SystemCallError.instance_method(:initialize).arity.should == -1
+  end
 end
 
 describe "SystemCallError#errno" do
