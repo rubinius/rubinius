@@ -1116,6 +1116,7 @@ namespace rubinius {
     Arguments args(G(sym_call), 1, &dest);
     args.set_recv(obj);
 
+    OnStack<1> os(state, dest);
     Object* ret = dis.send(state, call_frame, lookup, args);
 
     if(!ret && state->vm()->thread_state()->raise_reason() == cCatchThrow) {

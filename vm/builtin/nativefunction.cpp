@@ -392,6 +392,7 @@ namespace rubinius {
     state->gc_dependent();
 
     Array* args = Array::create(state, stub->arg_count);
+    OnStack<1> os(state, args);
 
     for(size_t i = 0; i < stub->arg_count; i++) {
       switch(stub->args_info[i].type) {
