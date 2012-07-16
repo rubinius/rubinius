@@ -983,6 +983,30 @@ describe "Conditional operator assignment 'obj[idx] op= expr'" do
 end
 
 describe "Operator assignment 'obj[idx] op= expr'" do
+  class ArrayWithDefaultIndex < Array
+    def [](index=nil)
+      super(index || 0)
+    end
+
+    def []=(first_arg, second_arg=nil)
+      if second_arg
+        index = fist_arg
+        value = second_arg
+      else
+        index = 0
+        value = first_arg
+      end
+
+      super(index, value)
+    end
+  end
+
+  it "handles empty index (idx) arguments" do
+    array = ArrayWithDefaultIndex.new
+    array << 1
+    (array[] += 5).should == 6
+  end
+
   it "handles complex index (idx) arguments" do
     x = [1,2,3,4]
     (x[0,2] += [5]).should == [1,2,5]
@@ -1002,6 +1026,39 @@ describe "Operator assignment 'obj[idx] op= expr'" do
     (h['key1'] %= 5).should == 3
     (h['key2'] += 'ue').should == 'value'
     h.should == {'key1' => 3, 'key2' => 'value'}
+  end
+
+  it "handles empty splat index (idx) arguments" do
+    array = ArrayWithDefaultIndex.new
+    array << 5
+    splat_index = []
+
+    (array[*splat_index] += 5).should == 10
+    array.should== [10]
+  end
+
+  it "handles single splat index (idx) arguments" do
+    array = [1,2,3,4]
+    splat_index = [0]
+
+    (array[*splat_index] += 5).should == 6
+    array.should == [6,2,3,4]
+  end
+
+  it "handles multiple splat index (idx) arguments" do
+    array = [1,2,3,4]
+    splat_index = [0,2]
+
+    (array[*splat_index] += [5]).should == [1,2,5]
+    array.should == [1,2,5,3,4]
+  end
+
+  it "handles splat index (idx) arguments with normal arguments" do
+    array = [1,2,3,4]
+    splat_index = [2]
+
+    (array[0, *splat_index] += [5]).should == [1,2,5]
+    array.should == [1,2,5,3,4]
   end
 
   # This example fails on 1.9 because of bug #2050
