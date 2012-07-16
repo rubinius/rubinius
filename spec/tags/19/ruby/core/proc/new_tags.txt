@@ -1,1 +1,0 @@
-fails:Proc.new with an associated block called on a subclass of Proc using a reified block parameter returns an instance of the subclass
