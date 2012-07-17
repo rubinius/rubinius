@@ -236,6 +236,7 @@ namespace rubinius {
             cache_[i]->receiver_class() == mce->receiver_class() ||
             i == cTrackedICHits - 1) {
           atomic::write(&cache_[i], mce);
+          return;
         }
       }
     }
