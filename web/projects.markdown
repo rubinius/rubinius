@@ -14,6 +14,10 @@ If your project uses Rubinius, please submit a patch to add it to our list!
 
 An Akin programming language optimized for fun.
 
+### Apricot
+[github.com/programble/apricot](https://github.com/programble/apricot)
+
+A Clojure-like Lisp programming language.
 
 ### Atomy
 [github.com/vito/atomy](https://github.com/vito/atomy)
