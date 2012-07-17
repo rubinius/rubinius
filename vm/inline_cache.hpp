@@ -25,28 +25,31 @@ namespace rubinius {
   const static int cTrackedICHits = 3;
 
   class InlineCacheHit {
-    Class* seen_class_;
+    MethodCacheEntry* entry_;
+    int hits_;
 
   public:
 
     InlineCacheHit()
-      : seen_class_(0)
+      : hits_(0)
     {}
 
-    void assign(Class* mod) {
-      seen_class_ = mod;
+    void assign(MethodCacheEntry* entry) {
+      hits_ = 0;
+      atomic::write(&entry_, entry);
     }
 
-    Class* klass() {
-      return seen_class_;
+    void hit() {
+      ++hits_;
     }
 
-    void set_klass(Class* mod) {
-      seen_class_ = mod;
+    int hits() {
+      return hits_;
     }
 
-    friend class InlineCache;
-    friend class CompiledCode::Info;
+    MethodCacheEntry* entry() {
+      return entry_;
+    }
   };
 
   class InlineCache {
@@ -54,7 +57,8 @@ namespace rubinius {
     Symbol* name;
 
   private:
-    MethodCacheEntry* cache_[cTrackedICHits];
+    InlineCacheHit cache_[cTrackedICHits];
+
     CallUnit* call_unit_;
 
     typedef Object* (*CacheExecutor)(STATE, InlineCache*, CallFrame*, Arguments& args);
@@ -165,7 +169,7 @@ namespace rubinius {
       name = sym;
     }
 
-    MethodCacheEntry** caches() {
+    InlineCacheHit* caches() {
       return cache_;
     }
 
@@ -199,13 +203,13 @@ namespace rubinius {
 
     void clear() {
       for(int i = 0; i < cTrackedICHits; ++i) {
-        cache_[i] = 0;
+        cache_[i].assign(NULL);
       }
     }
 
     MethodCacheEntry* get_cache(Object* const recv_class) {
       for(int i = 0; i < cTrackedICHits; ++i) {
-        MethodCacheEntry* mce = cache_[i];
+        MethodCacheEntry* mce = cache_[i].entry();
         if(likely(mce && mce->receiver_class() == recv_class)) return mce;
       }
       return NULL;
@@ -213,14 +217,14 @@ namespace rubinius {
 
     MethodCacheEntry* get_single_cache() {
       if(cache_size() == 1) {
-        return cache_[0];
+        return cache_[0].entry();
       }
       return NULL;
     }
 
     int cache_size() {
       for(int i = 0; i < cTrackedICHits; ++i) {
-        if(!cache_[i]) return i;
+        if(!cache_[i].entry()) return i;
       }
       return cTrackedICHits;
     }
@@ -230,15 +234,15 @@ namespace rubinius {
       // guaranteed completely initialized. Otherwise another thread
       // might see an incompletely initialized MethodCacheEntry.
       for(int i = 0; i < cTrackedICHits; ++i) {
-        if(!cache_[i]) {
-          atomic::write(&cache_[i], mce);
+        if(!cache_[i].entry()) {
+          cache_[i].assign(mce);
           return;
         }
-        if(cache_[i]->receiver_class() == mce->receiver_class()) return;
+        if(cache_[i].entry()->receiver_class() == mce->receiver_class()) return;
       }
 
       seen_classes_overflow_++;
-      atomic::write(&cache_[cTrackedICHits - 1], mce);
+      cache_[cTrackedICHits - 1].assign(mce);
     }
 
     int seen_classes_overflow() {
@@ -250,13 +254,13 @@ namespace rubinius {
     }
 
     Class* tracked_class(int which) {
-      return cache_[which]->receiver_class();
+      return cache_[which].entry()->receiver_class();
     }
 
     Class* find_class_by_id(int64_t id) {
       for(int i = 0; i < cTrackedICHits; i++) {
-        if(cache_[i]) {
-          Class* cls = cache_[i]->receiver_class();
+        if(cache_[i].entry()) {
+          Class* cls = cache_[i].entry()->receiver_class();
           if(cls && cls->class_id() == id) return cls;
         }
       }
@@ -266,8 +270,8 @@ namespace rubinius {
 
     Class* find_singletonclass(int64_t id) {
       for(int i = 0; i < cTrackedICHits; i++) {
-        if(cache_[i]) {
-          if(Class* cls = cache_[i]->receiver_class()) {
+        if(cache_[i].entry()) {
+          if(Class* cls = cache_[i].entry()->receiver_class()) {
             if(SingletonClass* sc = try_as<SingletonClass>(cls)) {
               if(Class* ref = try_as<Class>(sc->attached_instance())) {
                 if(ref->class_id() == id) return cls;
