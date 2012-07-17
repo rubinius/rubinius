@@ -51,9 +51,9 @@ namespace rubinius {
         if(ops_.state()->config().jit_inline_debug) {
           std::ostream& log = context_.inline_log("NOT inlining");
           log << ops_.state()->symbol_debug_str(cache_->name)
-              << ". Cache contains " << cache_->classes_seen() << " entries: ";
+              << ". Cache contains " << cache_->cache_size() << " entries: ";
 
-          for(int i = 0; i < cache_->classes_seen(); i++) {
+          for(int i = 0; i < cache_->cache_size(); i++) {
             log << ops_.state()->symbol_debug_str(cache_->tracked_class(i)->module_name())
                 << " ";
           }

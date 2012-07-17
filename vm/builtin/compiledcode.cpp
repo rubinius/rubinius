@@ -424,17 +424,6 @@ namespace rubinius {
           mark.just_set(obj, tmp);
         }
       }
-
-      for(int i = 0; i < cTrackedICHits; i++) {
-        Module* mod = cache->seen_classes_[i].klass();
-        if(mod) {
-          tmp = mark.call(mod);
-          if(tmp) {
-            cache->seen_classes_[i].set_klass(force_as<Class>(tmp));
-            mark.just_set(obj, tmp);
-          }
-        }
-      }
     }
   }
 

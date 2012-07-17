@@ -253,7 +253,6 @@ namespace rubinius {
 
     set_cache(mce);
 
-    update_seen_classes(mce);
     call_frame->cm->write_barrier(state, mce);
 
     return mce;
@@ -273,7 +272,6 @@ namespace rubinius {
     }
 
     set_cache(mce);
-    update_seen_classes(mce);
     call_frame->cm->write_barrier(state, mce);
 
     return mce;
@@ -375,7 +373,6 @@ namespace rubinius {
     }
 
     cache->set_cache(mce);
-    cache->update_seen_classes(mce);
 
     call_frame->cm->write_barrier(state, mce);
 
@@ -417,7 +414,6 @@ namespace rubinius {
     }
 
     cache->set_cache(mce);
-    cache->update_seen_classes(mce);
 
     call_frame->cm->write_barrier(state, mce);
 
@@ -459,7 +455,6 @@ namespace rubinius {
     }
 
     cache->set_cache(mce);
-    cache->update_seen_classes(mce);
 
     call_frame->cm->write_barrier(state, mce);
 
@@ -512,7 +507,6 @@ namespace rubinius {
     }
 
     cache->set_cache(mce);
-    cache->update_seen_classes(mce);
 
     call_frame->cm->write_barrier(state, mce);
 
@@ -701,42 +695,6 @@ namespace rubinius {
     return cache->initialize(state, call_frame, args);
   }
 
-
-  void InlineCache::update_seen_classes(MethodCacheEntry* mce) {
-
-    for(int i = 0; i < cTrackedICHits; i++) {
-      Module* mod = seen_classes_[i].klass();
-      if(mod == mce->receiver_class()) {
-        return;
-      }
-    }
-
-    // This comparison is potentially thread unsafe,
-    // but since we never decrease seen_classes_overflow_,
-    // it's not possible to cause any issues here
-    if( seen_classes_overflow_ < cTrackedICHits - 1) {
-      // Ok, we've arrived here and found no hit. There's
-      // potentially room for registering another class,
-      // so we should lock it here before we're allowed to write it.
-
-      private_lock_.lock();
-
-      for(int i = 0; i < cTrackedICHits; i++) {
-        if(!seen_classes_[i].klass()) {
-          // An empty space, record it.
-          seen_classes_[i].assign(mce->receiver_class());
-          private_lock_.unlock();
-          return;
-        }
-      }
-    }
-
-    // Hmmm, what do we do when this is full? Just ignore them?
-    // For now, just keep track of how many times we overflow.
-    seen_classes_overflow_++;
-    private_lock_.unlock();
-  }
-
   void InlineCache::print_location(STATE, std::ostream& stream) {
 #ifdef TRACK_IC_LOCATION
     stream << vmm_->original->file()->c_str(state)
@@ -753,19 +711,21 @@ namespace rubinius {
            << "classes:\n";
 
     for(int i = 0; i < cTrackedICHits; i++) {
-      Module* mod = seen_classes_[i].klass();
-      if(mod) {
-        if(SingletonClass* sc = try_as<SingletonClass>(mod)) {
-          if(Module* inner = try_as<Module>(sc->attached_instance())) {
-            stream << "  SingletonClass:" << inner->debug_str(state);
+      if(cache_[i]) {
+        Module* mod = cache_[i]->receiver_class();
+        if(mod) {
+          if(SingletonClass* sc = try_as<SingletonClass>(mod)) {
+            if(Module* inner = try_as<Module>(sc->attached_instance())) {
+              stream << "  SingletonClass:" << inner->debug_str(state);
+            } else {
+              stream << "  SingletonClass:" << sc->attached_instance()->class_object(state)->debug_str(state);
+            }
           } else {
-            stream << "  SingletonClass:" << sc->attached_instance()->class_object(state)->debug_str(state);
+            stream << "  " << mod->debug_str(state);
           }
-        } else {
-          stream << "  " << mod->debug_str(state);
-        }
 
-        stream << "\n";
+          stream << "\n";
+        }
       }
     }
   }
