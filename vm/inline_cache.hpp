@@ -68,8 +68,6 @@ namespace rubinius {
 #endif
 
     int seen_classes_overflow_;
-    InlineCacheHit seen_classes_[cTrackedICHits];
-    utilities::thread::SpinLock private_lock_;
 
   public:
 
@@ -232,88 +230,62 @@ namespace rubinius {
       // guaranteed completely initialized. Otherwise another thread
       // might see an incompletely initialized MethodCacheEntry.
       for(int i = 0; i < cTrackedICHits; ++i) {
-        if(!cache_[i] ||
-            cache_[i]->receiver_class() == mce->receiver_class() ||
-            i == cTrackedICHits - 1) {
+        if(!cache_[i]) {
           atomic::write(&cache_[i], mce);
           return;
         }
+        if(cache_[i]->receiver_class() == mce->receiver_class()) return;
       }
-    }
 
-    void update_seen_classes(MethodCacheEntry* mce);
+      seen_classes_overflow_++;
+      atomic::write(&cache_[cTrackedICHits - 1], mce);
+    }
 
     int seen_classes_overflow() {
       return seen_classes_overflow_;
     }
 
     int classes_seen() {
-      int seen = 0;
-      for(int i = 0; i < cTrackedICHits; i++) {
-        if(seen_classes_[i].klass()) seen++;
-      }
-
-      return seen;
+      return cache_size();
     }
 
     Class* tracked_class(int which) {
-      return seen_classes_[which].klass();
+      return cache_[which]->receiver_class();
     }
 
     Class* find_class_by_id(int64_t id) {
       for(int i = 0; i < cTrackedICHits; i++) {
-        Class* cls = seen_classes_[i].klass();
-        if(cls && cls->class_id() == id) return cls;
+        if(cache_[i]) {
+          Class* cls = cache_[i]->receiver_class();
+          if(cls && cls->class_id() == id) return cls;
+        }
       }
 
-      return 0;
+      return NULL;
     }
 
     Class* find_singletonclass(int64_t id) {
       for(int i = 0; i < cTrackedICHits; i++) {
-        if(Class* cls = seen_classes_[i].klass()) {
-          if(SingletonClass* sc = try_as<SingletonClass>(cls)) {
-            if(Class* ref = try_as<Class>(sc->attached_instance())) {
-              if(ref->class_id() == id) return cls;
+        if(cache_[i]) {
+          if(Class* cls = cache_[i]->receiver_class()) {
+            if(SingletonClass* sc = try_as<SingletonClass>(cls)) {
+              if(Class* ref = try_as<Class>(sc->attached_instance())) {
+                if(ref->class_id() == id) return cls;
+              }
             }
           }
         }
       }
 
-      return 0;
+      return NULL;
     }
 
 
     Class* dominating_class() {
-      int seen = classes_seen();
-      switch(seen) {
-      case 0:
-        return NULL;
-      case 1:
-        return seen_classes_[0].klass();
-      /*
-       *  These are disabled because they hurt performance.
-      case 2: {
-        int h1 = seen_classes_[0].hits();
-        int h2 = seen_classes_[1].hits();
-        if(h2 * 10 < h1) return seen_classes_[0].klass();
-        if(h1 * 10 < h2) return seen_classes_[1].klass();
-        return NULL;
-      }
-
-      case 3: {
-        int h1 = seen_classes_[0].hits();
-        int h2 = seen_classes_[1].hits();
-        int h3 = seen_classes_[2].hits();
-
-        if(h2 * 10 < h1 && h3 * 10 < h1) return seen_classes_[0].klass();
-        if(h1 * 10 < h2 && h3 * 10 < h2) return seen_classes_[1].klass();
-        if(h1 * 10 < h3 && h2 * 10 < h3) return seen_classes_[2].klass();
-
-        return NULL;
-      }
-      */
-      default:
+      MethodCacheEntry* entry = get_single_cache();
+      if(entry) {
+        return entry->receiver_class();
+      } else {
         return NULL;
       }
     }
