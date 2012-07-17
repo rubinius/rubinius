@@ -115,25 +115,38 @@ namespace rubinius {
       }
     }
 
-    Object* ret;
     if(self->bound_method_->nil_p()) {
-      ret = self->block_->call(state, call_frame, args, flags);
+      if(self->block_->nil_p()) {
+        Exception* exc =
+          Exception::make_type_error(state, BlockEnvironment::type, self->block_, "No code bound to proc");
+        exc->locations(state, Location::from_call_stack(state, call_frame));
+        state->raise_exception(exc);
+        return NULL;
+      } else {
+        return self->block_->call(state, call_frame, args, flags);
+      }
     } else if(NativeMethod* nm = try_as<NativeMethod>(self->bound_method_)) {
-      ret = nm->execute(state, call_frame, nm, G(object), args);
+      return nm->execute(state, call_frame, nm, G(object), args);
     } else if(NativeFunction* nf = try_as<NativeFunction>(self->bound_method_)) {
-      ret = nf->call(state, args, call_frame);
+      return nf->call(state, args, call_frame);
     } else {
       Dispatch dis(state->symbol("__yield__"));
-      ret = dis.send(state, call_frame, args);
+      return dis.send(state, call_frame, args);
     }
-
-    return ret;
   }
 
   Object* Proc::yield(STATE, CallFrame* call_frame, Arguments& args) {
     if(bound_method_->nil_p()) {
-      // NOTE! To match MRI semantics, this explicitely ignores lambda_.
-      return block_->call(state, call_frame, args, 0);
+      if(block_->nil_p()) {
+        Exception* exc =
+          Exception::make_type_error(state, BlockEnvironment::type, block_, "No code bound to proc");
+        exc->locations(state, Location::from_call_stack(state, call_frame));
+        state->raise_exception(exc);
+        return NULL;
+      } else {
+        // NOTE! To match MRI semantics, this explicitely ignores lambda_.
+        return block_->call(state, call_frame, args, 0);
+      }
     } else if(NativeMethod* nm = try_as<NativeMethod>(bound_method_)) {
       return nm->execute(state, call_frame, nm, G(object), args);
     } else if(NativeFunction* nf = try_as<NativeFunction>(bound_method_)) {

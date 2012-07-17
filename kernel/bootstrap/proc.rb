@@ -2,6 +2,10 @@
 
 class Proc
   def self.allocate
+    raise TypeError, "allocator undefined for Proc"
+  end
+
+  def self.__allocate__
     Rubinius.primitive :proc_allocate
     raise PrimitiveFailure, "Proc#allocate failed"
   end

@@ -109,6 +109,29 @@ class Proc
   alias_method :[], :call
   alias_method :yield, :call
 
+  def clone
+    copy = self.class.__allocate__
+    Rubinius.invoke_primitive :object_copy_object, copy, self
+    Rubinius.invoke_primitive :object_copy_singleton_class, copy, self
+
+    Rubinius.privately do
+      copy.initialize_copy self
+    end
+
+    copy.freeze if frozen?
+    copy
+  end
+
+  def dup
+    copy = self.class.__allocate__
+    Rubinius.invoke_primitive :object_copy_object, copy, self
+
+    Rubinius.privately do
+      copy.initialize_copy self
+    end
+    copy
+  end
+
   class Method < Proc
     attr_accessor :bound_method
 

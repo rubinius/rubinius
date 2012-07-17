@@ -62,7 +62,7 @@ class Proc
 
   class Method < Proc 
     def self.__from_method__(meth)
-      obj = allocate()
+      obj = __allocate__
       obj.bound_method = meth
       obj.lambda_style!
 
