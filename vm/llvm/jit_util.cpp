@@ -568,9 +568,9 @@ extern "C" {
                            int serial, Object* recv)
   {
     if(cache->update_and_validate(state, call_frame, recv)) {
-      MethodCacheEntry** caches = cache->caches();
+      InlineCacheHit* caches = cache->caches();
       for(int i = 0; i < cTrackedICHits; ++i) {
-        MethodCacheEntry* mce = caches[i];
+        MethodCacheEntry* mce = caches[i].entry();
         if(mce && mce->method()->serial()->to_native() != serial) return cFalse;
       }
     }
@@ -582,9 +582,9 @@ extern "C" {
                            int serial, Object* recv)
   {
     if(cache->update_and_validate_private(state, call_frame, recv)) {
-      MethodCacheEntry** caches = cache->caches();
+      InlineCacheHit* caches = cache->caches();
       for(int i = 0; i < cTrackedICHits; ++i) {
-        MethodCacheEntry* mce = caches[i];
+        MethodCacheEntry* mce = caches[i].entry();
         if(mce && mce->method()->serial()->to_native() != serial) return cFalse;
       }
     }

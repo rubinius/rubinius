@@ -320,7 +320,7 @@ namespace rubinius {
   Object* InlineCache::check_cache_custom(STATE, InlineCache* cache,
       CallFrame* call_frame, Arguments& args)
   {
-    MethodCacheEntry* mce = cache->cache_[0];
+    MethodCacheEntry* mce = cache->get_single_cache();
 
     args.set_name(cache->name);
     return cache->call_unit_->execute(state, call_frame, cache->call_unit_,
@@ -711,8 +711,8 @@ namespace rubinius {
            << "classes:\n";
 
     for(int i = 0; i < cTrackedICHits; i++) {
-      if(cache_[i]) {
-        Module* mod = cache_[i]->receiver_class();
+      if(cache_[i].entry()) {
+        Module* mod = cache_[i].entry()->receiver_class();
         if(mod) {
           if(SingletonClass* sc = try_as<SingletonClass>(mod)) {
             if(Module* inner = try_as<Module>(sc->attached_instance())) {
