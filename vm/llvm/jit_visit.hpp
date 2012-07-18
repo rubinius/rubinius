@@ -1464,10 +1464,7 @@ namespace rubinius {
     void visit_send_stack(opcode which, opcode args) {
       InlineCache* cache = reinterpret_cast<InlineCache*>(which);
 
-      MethodCacheEntry* mce = cache->get_single_cache();
-      atomic::memory_barrier();
-
-      if(mce) {
+      if(cache->classes_seen()) {
         BasicBlock* failure = new_block("fallback");
         BasicBlock* cont = new_block("continue");
 
@@ -1700,10 +1697,7 @@ namespace rubinius {
       InlineCache* cache = reinterpret_cast<InlineCache*>(which);
       CompiledCode* block_code = 0;
 
-      MethodCacheEntry* mce = cache->get_single_cache();
-      atomic::memory_barrier();
-
-      if(mce &&
+      if(cache->classes_seen() &&
           ls_->config().jit_inline_blocks &&
           !context().inlined_block()) {
         if(has_literal_block) {
