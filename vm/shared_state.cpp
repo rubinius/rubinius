@@ -280,10 +280,14 @@ namespace rubinius {
   }
 
   void SharedState::enter_capi(STATE, const char* file, int line) {
-    capi_lock_.lock(state->vm(), file, line);
+    if(use_capi_lock_) {
+      capi_lock_.lock(state->vm(), file, line);
+    }
   }
 
   void SharedState::leave_capi(STATE) {
-    capi_lock_.unlock(state->vm());
+    if(use_capi_lock_) {
+      capi_lock_.unlock(state->vm());
+    }
   }
 }

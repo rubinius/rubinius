@@ -448,6 +448,8 @@ namespace rubinius {
         strncpy(report_path, config.report_path, sizeof(report_path) - 1);
       }
     }
+
+    state->shared().set_use_capi_lock(config.capi_lock);
   }
 
   void Environment::load_directory(std::string dir) {

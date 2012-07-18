@@ -130,8 +130,13 @@ Rubinius::ConfigurationVariables.define do |c|
     :as => "tool_to_load",
     :description => "Load a VM tool from a shared library"
 
-  c.vm_variable "capi.global_flush", false,
-    "Flush all CAPI handles at CAPI call boundaries"
+  c.section "capi" do |s|
+    s.vm_variable "global_flush", false,
+      "Flush all CAPI handles at CAPI call boundaries"
+
+    s.vm_variable "lock", false,
+      "Lock around using CAPI methods"
+  end
 
   c.vm_variable "int", false,
     :as => "jit_disabled",

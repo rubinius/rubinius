@@ -93,6 +93,7 @@ namespace rubinius {
     pthread_t ruby_critical_thread_;
     bool ruby_critical_set_;
 
+    bool use_capi_lock_;
     Mutex capi_lock_;
 
     bool check_gc_;
@@ -249,6 +250,10 @@ namespace rubinius {
 
     void gc_soon() {
       check_gc_ = true;
+    }
+
+    void set_use_capi_lock(bool s) {
+      use_capi_lock_ = s;
     }
 
     void scheduler_loop();
