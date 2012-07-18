@@ -45,9 +45,10 @@ namespace rubinius {
       size_t byte_size = ba->size();
 
       if(!ba->pinned_p()) {
-        ba = ByteArray::create_pinned(env->state(), byte_size);
-        memcpy(ba->raw_bytes(), string->byte_address(), byte_size);
-        string->data(env->state(), ba);
+        ByteArray* nba = ByteArray::create_pinned(env->state(), byte_size);
+        memcpy(nba->raw_bytes(), ba->raw_bytes(), byte_size);
+        string->data(env->state(), nba);
+        ba = nba;
       }
 
       char* ptr = reinterpret_cast<char*>(ba->raw_bytes());
@@ -105,20 +106,30 @@ namespace rubinius {
       bool unset = type_ != cRString;
 
       if(unset) {
-        type_ = cRString;
+        env->shared().capi_ds_lock().lock();
 
-        string->unshare(env->state());
+        // Gotta double check since we're now lock and it might
+        // have changed since we asked for the lock.
 
-        RString* str = new RString;
-        as_.rstring = str;
+        unset = type_ != cRString;
+        if(unset) {
+          type_ = cRString;
 
-        if(cache_level == RSTRING_CACHE_UNSAFE) {
-          flush_ = flush_cached_rstring;
-          update_ = update_cached_rstring;
-          env->check_tracked_handle(this, true);
-        } else {
-          env->check_tracked_handle(this, false);
+          string->unshare(env->state());
+
+          RString* str = new RString;
+          as_.rstring = str;
+
+          if(cache_level == RSTRING_CACHE_UNSAFE) {
+            flush_ = flush_cached_rstring;
+            update_ = update_cached_rstring;
+            env->check_tracked_handle(this, true);
+          } else {
+            env->check_tracked_handle(this, false);
+          }
         }
+
+        env->shared().capi_ds_lock().unlock();
       }
 
       // The underlying String may have changed since we last got the

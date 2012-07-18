@@ -134,6 +134,10 @@ namespace rubinius {
       current_ep_ = ep;
     }
 
+    SharedState& shared() {
+      return state_->shared();
+    }
+
     /** Set of Handles available in current Frame (convenience.) */
     capi::HandleSet& handles();
 

@@ -19,6 +19,8 @@
 
 #include "lock.hpp"
 
+#include "util/thread.hpp"
+
 #ifdef RBX_WINDOWS
 #include <winsock2.h>
 #endif
@@ -95,6 +97,8 @@ namespace rubinius {
 
     bool use_capi_lock_;
     Mutex capi_lock_;
+
+    utilities::thread::SpinLock capi_ds_lock_;
 
     bool check_gc_;
 
@@ -254,6 +258,10 @@ namespace rubinius {
 
     void set_use_capi_lock(bool s) {
       use_capi_lock_ = s;
+    }
+
+    utilities::thread::SpinLock& capi_ds_lock() {
+      return capi_ds_lock_;
     }
 
     void scheduler_loop();

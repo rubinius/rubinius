@@ -104,6 +104,8 @@ namespace rubinius {
           // and do not change its value.
           num = rarray->len;
         } else {
+          env->shared().capi_ds_lock().lock();
+
           if(rarray->aux.capa < size) {
             delete[] rarray->dmwmb;
             rarray->dmwmb = rarray->ptr = new VALUE[size];
@@ -111,6 +113,8 @@ namespace rubinius {
           }
           num = rarray->aux.capa;
           rarray->len = array->size();
+
+          env->shared().capi_ds_lock().unlock();
         }
 
         for(ssize_t i = 0, j = start; i < num && j < size; i++, j++) {
@@ -133,27 +137,35 @@ namespace rubinius {
      */
     RArray* Handle::as_rarray(NativeMethodEnvironment* env) {
       if(type_ != cRArray) {
-        Array* array = c_as<Array>(object());
-        size_t size = array->tuple()->num_fields();
+        env->shared().capi_ds_lock().lock();
 
-        RArray* ary = new RArray;
-        VALUE* ptr = new VALUE[size];
-        for(size_t i = 0; i < size; i++) {
-          ptr[i] = env->get_handle(array->get(env->state(), i));
+        // Gotta double check since we're now lock and it might
+        // have changed since we asked for the lock.
+        if(type_ != cRArray) {
+          Array* array = c_as<Array>(object());
+          size_t size = array->tuple()->num_fields();
+
+          RArray* ary = new RArray;
+          VALUE* ptr = new VALUE[size];
+          for(size_t i = 0; i < size; i++) {
+            ptr[i] = env->get_handle(array->get(env->state(), i));
+          }
+
+          ary->dmwmb = ary->ptr = ptr;
+          ary->len = array->size();
+          ary->aux.capa = size;
+          ary->aux.shared = Qfalse;
+
+          type_ = cRArray;
+          as_.rarray = ary;
+
+          flush_ = flush_cached_rarray;
+          update_ = update_cached_rarray;
+
+          env->state()->vm()->shared.make_handle_cached(env->state(), this);
         }
 
-        ary->dmwmb = ary->ptr = ptr;
-        ary->len = array->size();
-        ary->aux.capa = size;
-        ary->aux.shared = Qfalse;
-
-        type_ = cRArray;
-        as_.rarray = ary;
-
-        flush_ = flush_cached_rarray;
-        update_ = update_cached_rarray;
-
-        env->state()->vm()->shared.make_handle_cached(env->state(), this);
+        env->shared().capi_ds_lock().unlock();
       }
 
       return as_.rarray;

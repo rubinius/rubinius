@@ -55,38 +55,50 @@ namespace rubinius {
     }
 
     RIO* Handle::as_rio(NativeMethodEnvironment* env) {
+      IO* io_obj = c_as<IO>(object());
+
       if(type_ != cRIO) {
-        IO* io_obj = c_as<IO>(object());
+        env->shared().capi_ds_lock().lock();
 
-        int fd = (int)io_obj->descriptor()->to_native();
-        if(fd == -1) {
-          rb_raise(rb_eIOError, "%s (%d)", strerror(errno), errno);
+        if(type_ != cRIO) {
+          int fd = (int)io_obj->descriptor()->to_native();
+
+          env->shared().capi_ds_lock().unlock();
+
+          if(fd == -1) {
+            rb_raise(rb_eIOError, "%s (%d)", strerror(errno), errno);
+          }
+
+          FILE* f = fdopen(fd, flags_modestr(io_obj->mode()->to_native()));
+
+          if(!f) {
+            std::cerr << "Error convert fd (" << fd << ") to lowlevel IO: "
+                      << strerror(errno) << " (" << errno << ")" << std::endl;
+
+            env->shared().capi_ds_lock().unlock();
+
+            rb_raise(rb_eTypeError,
+                "unable to convert fd (%d) to lowlevel IO: %s (%d)",
+                fd, strerror(errno), errno);
+          }
+
+          RIO* rf = new RIO;
+          rf->handle = as_value();
+          rf->fd = fd;
+          rf->f = f;
+          rf->f2 = NULL;
+          rf->stdio_file = NULL;
+          rf->finalize = NULL;
+
+          // Disable all buffering so that it doesn't get out of sync with
+          // the normal IO buffer.
+          setvbuf(rf->f, 0, _IONBF, 0);
+
+          type_ = cRIO;
+          as_.rio = rf;
         }
 
-        FILE* f = fdopen(fd, flags_modestr(io_obj->mode()->to_native()));
-
-        if(!f) {
-          std::cerr << "Error convert fd (" << fd << ") to lowlevel IO: "
-                    << strerror(errno) << " (" << errno << ")" << std::endl;
-          rb_raise(rb_eTypeError,
-              "unable to convert fd (%d) to lowlevel IO: %s (%d)",
-              fd, strerror(errno), errno);
-        }
-
-        RIO* rf = new RIO;
-        rf->handle = as_value();
-        rf->fd = fd;
-        rf->f = f;
-        rf->f2 = NULL;
-        rf->stdio_file = NULL;
-        rf->finalize = NULL;
-
-        // Disable all buffering so that it doesn't get out of sync with
-        // the normal IO buffer.
-        setvbuf(rf->f, 0, _IONBF, 0);
-
-        type_ = cRIO;
-        as_.rio = rf;
+        env->shared().capi_ds_lock().unlock();
       }
 
       return as_.rio;
