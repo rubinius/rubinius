@@ -526,11 +526,12 @@ namespace rubinius {
       return cache->initialize(state, call_frame, args);
     }
 
-    MethodCacheEntry* mce = cache->get_cache(G(fixnum_class));
+    InlineCacheHit* ic = cache->get_inline_cache(G(fixnum_class));
 
-    if(likely(mce)) {
-      Executable* meth = mce->method();
-      Module* mod = mce->stored_module();
+    if(likely(ic)) {
+      Executable* meth = ic->entry()->method();
+      Module* mod = ic->entry()->stored_module();
+      ic->hit();
 
       return meth->execute(state, call_frame, meth, mod, args);
     }
@@ -548,11 +549,12 @@ namespace rubinius {
       return cache->initialize(state, call_frame, args);
     }
 
-    MethodCacheEntry* mce = cache->get_cache(G(symbol));
+    InlineCacheHit* ic = cache->get_inline_cache(G(symbol));
 
-    if(likely(mce)) {
-      Executable* meth = mce->method();
-      Module* mod = mce->stored_module();
+    if(likely(ic)) {
+      Executable* meth = ic->entry()->method();
+      Module* mod = ic->entry()->stored_module();
+      ic->hit();
 
       return meth->execute(state, call_frame, meth, mod, args);
     }
@@ -570,11 +572,12 @@ namespace rubinius {
       return cache->initialize(state, call_frame, args);
     }
 
-    MethodCacheEntry* mce = cache->get_cache(recv->reference_class());
+    InlineCacheHit* ic = cache->get_inline_cache(recv->reference_class());
 
-    if(likely(mce)) {
-      Executable* meth = mce->method();
-      Module* mod = mce->stored_module();
+    if(likely(ic)) {
+      Executable* meth = ic->entry()->method();
+      Module* mod = ic->entry()->stored_module();
+      ic->hit();
 
       return meth->execute(state, call_frame, meth, mod, args);
     }
@@ -587,12 +590,13 @@ namespace rubinius {
   {
     args.set_name(cache->name);
     Object* const recv_class = args.recv()->lookup_begin(state);
-    MethodCacheEntry* mce = cache->get_cache(recv_class);
 
-    if(likely(mce)) {
+    InlineCacheHit* ic = cache->get_inline_cache(recv_class);
 
-      Executable* meth = mce->method();
-      Module* mod = mce->stored_module();
+    if(likely(ic)) {
+      Executable* meth = ic->entry()->method();
+      Module* mod = ic->entry()->stored_module();
+      ic->hit();
 
       return meth->execute(state, call_frame, meth, mod, args);
     }
@@ -606,14 +610,16 @@ namespace rubinius {
 
     args.set_name(cache->name);
     Object* const recv_class = args.recv()->lookup_begin(state);
-    MethodCacheEntry* mce = cache->get_cache(recv_class);
 
-    if(likely(mce)) {
+    InlineCacheHit* ic = cache->get_inline_cache(recv_class);
+
+    if(likely(ic)) {
 
       args.unshift(state, cache->name);
 
-      Executable* meth = mce->method();
-      Module* mod = mce->stored_module();
+      Executable* meth = ic->entry()->method();
+      Module* mod = ic->entry()->stored_module();
+      ic->hit();
 
       return meth->execute(state, call_frame, meth, mod, args);
     }
@@ -627,12 +633,13 @@ namespace rubinius {
     Symbol* current_name = call_frame->original_name();
     args.set_name(cache->name);
     Object* const recv_class = args.recv()->lookup_begin(state);
-    MethodCacheEntry* mce = cache->get_cache(recv_class);
+    InlineCacheHit* ic = cache->get_inline_cache(recv_class);
 
-    if(likely(mce && current_name == cache->name))
+    if(likely(ic && current_name == cache->name))
     {
-      Executable* meth = mce->method();
-      Module* mod = mce->stored_module();
+      Executable* meth = ic->entry()->method();
+      Module* mod = ic->entry()->stored_module();
+      ic->hit();
 
       return meth->execute(state, call_frame, meth, mod, args);
     }
@@ -648,14 +655,15 @@ namespace rubinius {
     Symbol* current_name = call_frame->original_name();
     args.set_name(cache->name);
     Object* const recv_class = args.recv()->lookup_begin(state);
-    MethodCacheEntry* mce = cache->get_cache(recv_class);
+    InlineCacheHit* ic = cache->get_inline_cache(recv_class);
 
-    if(likely(mce && current_name == cache->name))
+    if(likely(ic && current_name == cache->name))
     {
       args.unshift(state, cache->name);
 
-      Executable* meth = mce->method();
-      Module* mod = mce->stored_module();
+      Executable* meth = ic->entry()->method();
+      Module* mod = ic->entry()->stored_module();
+      ic->hit();
 
       return meth->execute(state, call_frame, meth, mod, args);
     }
@@ -670,14 +678,14 @@ namespace rubinius {
                                    Arguments& args)
   {
     args.set_name(cache->name);
-    Object* const recv = args.recv()->lookup_begin(state);
-    MethodCacheEntry* mce = cache->get_cache(recv);
+    Object* const recv_class = args.recv()->lookup_begin(state);
+    InlineCacheHit* ic = cache->get_inline_cache(recv_class);
 
-    if(likely(mce)) {
-      if(mce->method_missing() != eNone) {
+    if(likely(ic)) {
+      if(ic->entry()->method_missing() != eNone) {
         args.unshift(state, cache->name);
       }
-      if(mce->super()) {
+      if(ic->entry()->super()) {
         Symbol* current_name = call_frame->original_name();
         if(current_name != cache->name) {
           cache->name = current_name;
@@ -685,9 +693,10 @@ namespace rubinius {
         }
       }
 
-      state->vm()->set_method_missing_reason(mce->method_missing());
-      Executable* meth = mce->method();
-      Module* mod = mce->stored_module();
+      state->vm()->set_method_missing_reason(ic->entry()->method_missing());
+      Executable* meth = ic->entry()->method();
+      Module* mod = ic->entry()->stored_module();
+      ic->hit();
 
       return meth->execute(state, call_frame, meth, mod, args);
     }

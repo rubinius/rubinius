@@ -215,6 +215,14 @@ namespace rubinius {
       return NULL;
     }
 
+    InlineCacheHit* get_inline_cache(Object* const recv_class) {
+      for(int i = 0; i < cTrackedICHits; ++i) {
+        MethodCacheEntry* mce = cache_[i].entry();
+        if(likely(mce && mce->receiver_class() == recv_class)) return &cache_[i];
+      }
+      return NULL;
+    }
+
     MethodCacheEntry* get_single_cache() {
       if(cache_size() == 1) {
         return cache_[0].entry();
@@ -233,16 +241,20 @@ namespace rubinius {
       // Make sure we sync here, so the MethodCacheEntry mce is
       // guaranteed completely initialized. Otherwise another thread
       // might see an incompletely initialized MethodCacheEntry.
+      int least_used = cTrackedICHits - 1;
       for(int i = 0; i < cTrackedICHits; ++i) {
         if(!cache_[i].entry()) {
           cache_[i].assign(mce);
           return;
         }
         if(cache_[i].entry()->receiver_class() == mce->receiver_class()) return;
+        if(cache_[i].hits() < cache_[least_used].hits()) {
+          least_used = i;
+        }
       }
 
       seen_classes_overflow_++;
-      cache_[cTrackedICHits - 1].assign(mce);
+      cache_[least_used].assign(mce);
     }
 
     int seen_classes_overflow() {
