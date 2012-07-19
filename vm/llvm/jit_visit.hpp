@@ -1464,66 +1464,69 @@ namespace rubinius {
     void visit_send_stack(opcode which, opcode args) {
       InlineCache* cache = reinterpret_cast<InlineCache*>(which);
 
-      if(cache->classes_seen()) {
-        BasicBlock* failure = new_block("fallback");
-        BasicBlock* cont = new_block("continue");
+      int classes_seen = cache->classes_seen();
 
-        Inliner inl(context(), *this, cache, args, failure);
-        if(inl.consider()) {
-          if(!inl.fail_to_send() && !in_inlined_block()) {
-            BasicBlock* cur = b().GetInsertBlock();
-
-            set_block(failure);
-            emit_uncommon();
-
-            set_block(cur);
-            stack_remove(args+1);
-            if(inl.check_for_exception()) {
-              check_for_exception(inl.result());
-            }
-            stack_push(inl.result());
-
-            type::KnownType kt = inl.guarded_type();
-
-            if(kt.local_source_p() && kt.known_p()) {
-              current_jbb_->add_local(kt.local_id(), kt);
-            }
-
-            b().CreateBr(cont);
-
-            set_block(cont);
-          } else {
-            // Emit both the inlined code and a send for it
-            BasicBlock* inline_block = b().GetInsertBlock();
-
-            b().CreateBr(cont);
-
-            set_block(failure);
-            Value* send_res = inline_cache_send(args, cache);
-            b().CreateBr(cont);
-
-            set_block(cont);
-            PHINode* phi = b().CreatePHI(ObjType, 2, "send_result");
-            phi->addIncoming(inl.result(), inline_block);
-            phi->addIncoming(send_res, failure);
-
-            stack_remove(args + 1);
-            check_for_exception(phi);
-
-            stack_push(phi);
-          }
-
-          allow_private_ = false;
-          return;
-        }
+      if(!classes_seen) {
+        invoke_inline_cache(cache, args);
+        return;
       }
 
-      set_has_side_effects();
+      BasicBlock* failure = new_block("fallback");
+      BasicBlock* cont = new_block("continue");
 
-      Value* ret = inline_cache_send(args, cache);
-      stack_remove(args + 1);
-      check_for_exception(ret);
-      stack_push(ret);
+      Inliner inl(context(), *this, cache, args, failure);
+      bool res = classes_seen > 1 ? inl.consider_poly() : inl.consider_mono();
+
+      if(!res) {
+        invoke_inline_cache(cache, args);
+        return;
+      }
+
+      if(!inl.fail_to_send() && !in_inlined_block()) {
+        BasicBlock* cur = b().GetInsertBlock();
+
+        set_block(failure);
+        emit_uncommon();
+
+        set_block(cur);
+        stack_remove(args+1);
+        if(inl.check_for_exception()) {
+          check_for_exception(inl.result());
+        }
+        stack_push(inl.result());
+
+        if(classes_seen == 1) {
+          type::KnownType kt = inl.guarded_type();
+
+          if(kt.local_source_p() && kt.known_p()) {
+            current_jbb_->add_local(kt.local_id(), kt);
+          }
+        }
+
+        b().CreateBr(cont);
+
+        set_block(cont);
+
+      } else {
+        // Emit both the inlined code and a send for it
+        BasicBlock* inline_block = b().GetInsertBlock();
+
+        b().CreateBr(cont);
+
+        set_block(failure);
+        Value* send_res = inline_cache_send(args, cache);
+        b().CreateBr(cont);
+
+        set_block(cont);
+        PHINode* phi = b().CreatePHI(ObjType, 2, "send_result");
+        phi->addIncoming(inl.result(), inline_block);
+        phi->addIncoming(send_res, failure);
+
+        stack_remove(args + 1);
+        check_for_exception(phi);
+
+        stack_push(phi);
+      }
 
       allow_private_ = false;
     }
@@ -1750,7 +1753,7 @@ namespace rubinius {
         // So that the inliner can find recv and args properly.
         inl.set_block_on_stack();
 
-        if(inl.consider()) {
+        if(inl.consider_mono()) {
           if(!inl.fail_to_send() && !in_inlined_block()) {
             send_result->addIncoming(inl.result(), b().GetInsertBlock());
 
