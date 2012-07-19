@@ -107,6 +107,8 @@ class Module
     end
 
     constant_table[name] = Autoload.new(name, self, path)
+    Object.singleton_class.constant_table[name] = constant_table[name] if self == Kernel
+
     Rubinius.inc_global_serial
     return nil
   end
