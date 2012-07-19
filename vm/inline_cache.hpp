@@ -296,9 +296,8 @@ namespace rubinius {
       return NULL;
     }
 
-
-    Class* dominating_class() {
-      MethodCacheEntry* entry = get_single_cache();
+    Class* get_class(int idx) {
+       MethodCacheEntry* entry = cache_[idx].entry();
       if(entry) {
         return entry->receiver_class();
       } else {

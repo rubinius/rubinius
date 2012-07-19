@@ -93,6 +93,10 @@ namespace rubinius {
       result_ = val;
     }
 
+    void set_failure(BasicBlock* failure) {
+      failure_ = failure;
+    }
+
     void exception_safe() {
       check_for_exception_ = false;
     }
@@ -138,7 +142,12 @@ namespace rubinius {
       return guarded_type_;
     }
 
-    bool consider();
+    bool consider_mono();
+
+    bool consider_poly();
+
+    bool inline_for_class(Class* klass);
+
     void inline_block(JITInlineBlock* ib, Value* self);
 
     void inline_generic_method(Class* klass, Module* mod, CompiledCode* cm, VMMethod* vmm);
