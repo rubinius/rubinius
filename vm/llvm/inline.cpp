@@ -566,7 +566,6 @@ remember:
 
     jit::RuntimeData* rd = new jit::RuntimeData(cm, cache_->name, defined_in);
     context_.add_runtime_data(rd);
-    info.set_runtime_data(rd);
 
     jit::InlineMethodBuilder work(ops_.state(), info, rd);
     work.valid_flag = ops_.valid_flag();
@@ -622,7 +621,6 @@ remember:
 
     jit::RuntimeData* rd = new jit::RuntimeData(ib->method(), nil<Symbol>(), nil<Module>());
     context_.add_runtime_data(rd);
-    info.set_runtime_data(rd);
 
     jit::InlineBlockBuilder work(ops_.state(), info, rd);
     work.valid_flag = ops_.valid_flag();

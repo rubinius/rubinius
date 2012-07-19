@@ -976,12 +976,6 @@ namespace rubinius {
       sig.call("rbx_jit_debug_spot", call_args, 1, "", b());
     }
 
-    Value* gc_literal(Object* obj, Type* type) {
-      jit::GCLiteral* lit = method_info_.runtime_data()->new_literal(obj);
-      Value* ptr = constant(lit->address_of_object(), llvm::PointerType::getUnqual(type));
-      return b().CreateLoad(ptr, "gc_literal");
-    }
-
     virtual void check_for_exception(llvm::Value* val, bool pass_top=true) = 0;
     virtual void propagate_exception() = 0;
   };
