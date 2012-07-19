@@ -1722,7 +1722,7 @@ def init_mkmf(config = CONFIG)
   # that built in extensions will also find them if they have been configured
   # at build time for Rubinius.
   Rubinius::BUILD_CONFIG[:include_dirs].each do |inc|
-    $INCFLAGS << inc
+    $INCFLAGS << " -I#{inc.quote}"
   end
   Rubinius::BUILD_CONFIG[:lib_dirs].each do |lib|
     $DEFLIBPATH << lib
