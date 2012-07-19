@@ -40,7 +40,6 @@ namespace rubinius {
 
     TypedRoot<Class*> self_class_;
     LocalMap local_info_;
-    jit::RuntimeData* runtime_data_;
 
   public:
     VMMethod* vmm;
@@ -272,13 +271,6 @@ namespace rubinius {
                                     const llvm::Twine& name = "");
 
     llvm::BasicBlock* new_block(const char* name);
-
-    void set_runtime_data(jit::RuntimeData* rd) {
-      runtime_data_ = rd;
-    }
-
-    jit::RuntimeData* runtime_data();
-
 
   };
 
