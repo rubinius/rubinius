@@ -6,7 +6,7 @@ class Binding
   attr_accessor :constant_scope
   attr_accessor :proc_environment
   attr_accessor :self
-  attr_accessor :line_number
+  attr_accessor :location
 
   def from_proc?
     @proc_environment
@@ -30,16 +30,24 @@ class Binding
     bind.variables = variables
     bind.code = code
     bind.constant_scope = constant_scope
-    bind.line_number = location ? location.line : 1
+    bind.location = location
 
     return bind
+  end
+
+  def line_number
+    if proc_environment
+      proc_environment.line
+    else
+      location ? location.line : 1
+    end
   end
 
   # Evaluates the Ruby expression(s) in string, in the binding‘s context.
   # If the optional filename and lineno parameters are present,
   # they will be used when reporting syntax errors.
   def eval(expr, filename=nil, lineno=nil)
-    lineno ||= filename ? 1 : self.line_number
+    lineno ||= filename ? 1 : line_number
 
     Kernel.eval(expr, self, filename, lineno)
   end

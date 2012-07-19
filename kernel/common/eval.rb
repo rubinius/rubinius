@@ -45,9 +45,10 @@ module Kernel
 
   # Evaluate and execute code given in the String.
   #
-  def eval(string, binding=nil, filename=nil, lineno=1)
+  def eval(string, binding=nil, filename=nil, lineno=nil)
     filename = StringValue(filename) if filename
-    lineno = Rubinius::Type.coerce_to lineno, Fixnum, :to_i
+    lineno = Rubinius::Type.coerce_to lineno, Fixnum, :to_i if lineno
+    lineno = 1 if filename && !lineno
 
     if binding
       binding = Rubinius::Type.coerce_to_binding binding
@@ -60,6 +61,8 @@ module Kernel
 
       filename ||= "(eval)"
     end
+
+    lineno ||= binding.line_number
 
     existing_scope = binding.constant_scope
     binding.constant_scope = existing_scope.dup
