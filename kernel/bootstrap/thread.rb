@@ -162,6 +162,7 @@ class Thread
     @dying = true
     @sleep = false
     self.raise Die
+    self
   end
 
   alias_method :exit, :kill
