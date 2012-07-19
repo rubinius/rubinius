@@ -58,6 +58,9 @@ Rubinius::ConfigurationVariables.define do |c|
     s.vm_variable "deoptimize_threshold", 500,
       "How many times an uncommon method is called before a method is deoptimized"
 
+    s.vm_variable "deoptimize_overflow_threshold", 5000,
+      "How many times an inline cache overflows before we fallback to using send instead of uncommon exit"
+
     s.vm_variable "max_method_size", 2048,
       "The max size of a method that will be JIT"
 

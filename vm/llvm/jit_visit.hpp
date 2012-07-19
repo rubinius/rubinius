@@ -1477,6 +1477,13 @@ namespace rubinius {
       Inliner inl(context(), *this, cache, args, failure);
       bool res = classes_seen > 1 ? inl.consider_poly() : inl.consider_mono();
 
+      // If we have tried to reoptimize here a few times and failed, we use
+      // a regular send as the fallback so we don't try to keep reoptimizing in
+      // the future.
+      if(cache->seen_classes_overflow() > state()->shared().config.jit_deoptimize_overflow_threshold) {
+        inl.use_send_for_failure();
+      }
+
       if(!res) {
         invoke_inline_cache(cache, args);
         return;
