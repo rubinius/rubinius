@@ -57,4 +57,44 @@ describe "Array#sample" do
       end
     end
   end
+
+  ruby_version_is "1.9" do
+    it "returns only one element" do
+      [2, 3].sample.should be_kind_of(Fixnum)
+    end
+
+    it "returns proper array size" do
+      [2, 3].sample(2).size.should == 2
+    end
+  end
+
+  ruby_version_is "1.9.3" do
+    it "attempts coercion via #to_hash" do
+      obj = mock('hash')
+      obj.should_receive(:to_hash).once.and_return({})
+      [2, 3].sample(obj)
+    end
+
+    it "uses default random generator" do
+      Kernel.should_receive(:rand).and_return(1)
+      [2, 3].sample(:random => Object.new)
+    end
+
+    it "uses given random generator" do
+      random = Random.new
+      random.should_receive(:rand).and_return(1)
+      [2, 3].sample(:random => random)
+    end
+
+    it "uses default random generator and return proper array size" do
+      Kernel.should_receive(:rand).and_return(1, 0)
+      [2, 3].sample(2).should == [3, 2]
+    end
+
+    it "uses given random generator and return proper array size" do
+      random = Random.new
+      random.should_receive(:rand).and_return(1, 0)
+      [2, 3].sample(2, :random => random).should == [3, 2]
+    end
+  end
 end
