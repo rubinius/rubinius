@@ -34,6 +34,25 @@ describe "Array#shuffle" do
       ArraySpecs::MyArray[1, 2, 3].shuffle.should be_an_instance_of(Array)
     end
   end
+
+  ruby_version_is "1.9.3" do
+    it "attempts coercion via #to_hash" do
+      obj = mock('hash')
+      obj.should_receive(:to_hash).once.and_return({})
+      [2, 3].shuffle(obj)
+    end
+
+    it "uses default random generator" do
+      Kernel.should_receive(:rand).exactly(2).and_return(1, 0)
+      [2, 3].shuffle(:random => Object.new).should == [3, 2]
+    end
+
+    it "uses given random generator" do
+      random = Random.new
+      random.should_receive(:rand).exactly(2).and_return(1, 0)
+      [2, 3].shuffle(:random => random).should == [3, 2]
+    end
+  end
 end
 
 describe "Array#shuffle!" do
