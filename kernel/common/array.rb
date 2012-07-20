@@ -935,16 +935,6 @@ class Array
     new_range n, new_size
   end
 
-  def shuffle!
-    Rubinius.check_frozen
-
-    size.times do |i|
-      r = i + Kernel.rand(size - i)
-      @tuple.swap(@start + i, @start + r)
-    end
-    self
-  end
-
   def sort(&block)
     dup.sort_inplace(&block)
   end

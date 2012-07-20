@@ -379,6 +379,16 @@ class Array
     dup.shuffle!
   end
 
+  def shuffle!
+    Rubinius.check_frozen
+
+    size.times do |i|
+      r = i + Kernel.rand(size - i)
+      @tuple.swap(@start + i, @start + r)
+    end
+    self
+  end
+
   def slice!(start, length=undefined)
     Rubinius.check_frozen
 
