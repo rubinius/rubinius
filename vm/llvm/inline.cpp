@@ -102,7 +102,7 @@ namespace rubinius {
   }
 
   bool Inliner::inline_for_class(Class* klass) {
-    // If the cache has a dominating class, inline!
+    if(!klass) return false;
 
     Module* defined_in = 0;
     Executable* meth = klass->find_method(cache_->name, &defined_in);
