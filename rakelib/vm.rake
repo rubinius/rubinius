@@ -146,7 +146,6 @@ namespace :build do
                      build:ffi:preprocessor
                      stage:runtime
                      stage:documentation
-                     build:zlib
                      extensions
                    ]
 
@@ -166,18 +165,6 @@ namespace :build do
 
     FFI::FileProcessor::Task.new FFI_PREPROCESSABLES
 
-  end
-
-  if Rubinius::BUILD_CONFIG[:vendor_zlib]
-    directory 'lib/zlib'
-
-    task :zlib => ['lib/zlib', VM_EXE] do
-      FileList["vendor/zlib/libz.*"].each do |lib|
-        cp lib, 'lib/zlib/'
-      end
-    end
-  else
-    task :zlib
   end
 end
 
@@ -383,8 +370,6 @@ namespace :vm do
       'bin/irb',
       'bin/gem',
       'vm/.deps',
-      'lib/zlib/*',
-      'lib/zlib'
     ].exclude("vm/gen/config.h")
 
     files.each do |filename|

@@ -1382,12 +1382,6 @@ end
 #define RBX_LIBC             "#{@libc}"
       EOC
 
-      if @vendor_zlib
-        f.puts %[#define RBX_ZLIB_PATH        "#{@libdir}/zlib/"]
-      else
-        f.puts %[#define RBX_ZLIB_PATH        ""]
-      end
-
       @supported_versions.each do |ver|
         f.puts "#define RBX_DEFAULT_#{ver}       #{ver == @default_version}"
       end

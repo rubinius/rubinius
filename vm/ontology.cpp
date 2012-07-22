@@ -445,7 +445,6 @@ namespace rubinius {
       path = prefix + RBX_HDR20_PATH;
       G(rubinius)->set_const(state, "HDR20_PATH", String::create(state, path.c_str()));
     }
-    G(rubinius)->set_const(state, "ZLIB_PATH", String::create(state, RBX_ZLIB_PATH));
 
     G(rubinius)->set_const(state, "VERSION", String::create(state, RBX_VERSION));
     G(rubinius)->set_const(state, "LIB_VERSION", String::create(state, RBX_LIB_VERSION));
