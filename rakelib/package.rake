@@ -25,29 +25,52 @@ namespace :package do
     puts "Computed MD5 to #{prebuilt_archive}.md5"
   end
 
-  desc "Build and package the result as an OS X .pkg"
-  task :osx do
+  task :binary_build do
+    RBX_BINARY_PREFIX = ENV["RBX_BINARY_PREFIX"] || "/usr/local/rubinius/#{RBX_VERSION}"
+    RBX_BINARY_BIN = ENV["RBX_BINARY_BIN"] || "/usr/local/bin/rbx"
+
+    ENV["RELEASE"] = "1"
+    sh "./configure --prefix=#{RBX_BINARY_PREFIX} --preserve-prefix"
+    require File.expand_path("../../config.rb", __FILE__)
+
+    RBX_BINARY_ROOT = BUILD_CONFIG[:stagingdir][0...-BUILD_CONFIG[:prefixdir].size]
+
+    sh "rake -q clean; rake -q build"
+    sh "mkdir -p #{RBX_BINARY_ROOT}#{File.dirname(RBX_BINARY_BIN)}"
+
+    bin = "#{RBX_BINARY_PREFIX}#{BUILD_CONFIG[:bindir]}"
+    bin_link = "#{RBX_BINARY_ROOT}#{RBX_BINARY_BIN}"
+    sh "ln -sf #{bin} #{bin_link}"
+  end
+
+  task :check_osx do
     unless osx = ENV['OSX']
       raise "Please set OSX to the version of OS X this is for"
     end
+  end
 
-    prefix = "/usr/local/rubinius/#{RBX_VERSION}"
-    ENV["RELEASE"] = "1"
-    sh "./configure --prefix=#{prefix} --preserve-prefix"
-
-    root = BUILD_CONFIG[:stagingdir][0...-BUILD_CONFIG[:prefixdir].size]
-
-    sh "rake -q clean; rake -q build"
-    sh "mkdir -p #{root}/usr/local/bin"
-    sh "ln -sf #{prefix}/bin/rbx #{root}/usr/local/bin/rbx"
-
+  desc "Build an OS X .pkg"
+  task :osx => [:check_osx, :binary_build] do
     package_name = "rubinius-#{RBX_VERSION}-#{osx}.pkg"
     sh "rm -rf #{package_name}"
 
-    sh "/Developer/Applications/Utilities/PackageMaker.app/Contents/MacOS/PackageMaker --root #{root} --id com.engineyard.rubinius -o rubinius-#{RBX_VERSION}.pkg -t Rubinius -v"
+    sh "/Developer/Applications/Utilities/PackageMaker.app/Contents/MacOS/PackageMaker --root #{RBX_BINARY_ROOT} --id com.engineyard.rubinius -o rubinius-#{RBX_VERSION}.pkg -t Rubinius -v"
 
     sh "mv rubinius-#{RBX_VERSION}.pkg #{package_name}"
     sh "zip -r #{package_name}.zip #{package_name}"
     sh "rm -rf #{package_name}"
+  end
+
+  desc "Build a general Unix/Linux binary package"
+  task :binary => :binary_build do
+    time_stamp = Time.now.strftime("%Y%m%d")
+    package_name = "rubinius-#{RBX_VERSION}-#{time_stamp}-#{BUILD_CONFIG[:host]}.zip"
+    sh "rm -rf #{package_name}"
+
+    Dir.chdir RBX_BINARY_ROOT do
+      sh "zip --symlinks -r #{package_name} *"
+    end
+
+    sh "mv #{RBX_BINARY_ROOT}/#{package_name} #{BUILD_CONFIG[:sourcedir]}"
   end
 end
