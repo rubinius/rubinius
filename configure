@@ -116,6 +116,8 @@ class Configure
     @include19dir = nil # root + "/vm/capi/19/include"
     @include20dir = nil # root + "/vm/capi/19/include"
 
+    @preserve_prefix = false
+
     @program_name = "rbx"
 
     # Library configuration
@@ -208,6 +210,7 @@ class Configure
     dirs.each { |d| d.replace d[size..-1] }
 
     @stagingdir = "#{@sourcedir}/staging" unless @prefixdir == @sourcedir
+    @stagingdir = File.join @stagingdir, @prefixdir if @preserve_prefix
   end
 
   def options
@@ -362,6 +365,10 @@ class Configure
 
     o.on "--vendordir", "PATH", "Install vendor-specific Ruby code in PATH" do |dir|
       @vendordir = expand dir
+    end
+
+    o.on "--preserve-prefix", "Use the configure prefix for staging Rubinius to install" do
+      @preserve_prefix = true
     end
 
     o.doc "\n Optional features"

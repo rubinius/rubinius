@@ -26,18 +26,28 @@ namespace :package do
   end
 
   desc "Build and package the result as an OS X .pkg"
-  task :osx => "build" do
-    Dir.mkdir "pkgtmp"
+  task :osx do
+    unless osx = ENV['OSX']
+      raise "Please set OSX to the version of OS X this is for"
+    end
 
-    ENV['FAKEROOT'] = "pkgtmp"
+    prefix = "/usr/local/rubinius/#{RBX_VERSION}"
+    ENV["RELEASE"] = "1"
+    sh "./configure --prefix=#{prefix} --preserve-prefix"
 
-    Rake::Task['install'].invoke
+    root = BUILD_CONFIG[:stagingdir][0...-BUILD_CONFIG[:prefixdir].size]
 
-    sh "mkdir -p pkgtmp/usr/local/bin"
-    sh "ln -sf /usr/local/rubinius/#{Rubinius::BUILD_CONFIG[:version]}/bin/rbx pkgtmp/usr/local/bin/rbx"
+    sh "rake -q clean; rake -q build"
+    sh "mkdir -p #{root}/usr/local/bin"
+    sh "ln -sf #{prefix}/bin/rbx #{root}/usr/local/bin/rbx"
 
-    sh "/Developer/Applications/Utilities/PackageMaker.app/Contents/MacOS/PackageMaker --root pkgtmp --id com.engineyard.rubinius -o rubinius-#{Rubinius::BUILD_CONFIG[:version]}.pkg -t Rubinius -v"
+    package_name = "rubinius-#{RBX_VERSION}-#{osx}.pkg"
+    sh "rm -rf #{package_name}"
 
-    rm_rf "pkgtmp"
+    sh "/Developer/Applications/Utilities/PackageMaker.app/Contents/MacOS/PackageMaker --root #{root} --id com.engineyard.rubinius -o rubinius-#{RBX_VERSION}.pkg -t Rubinius -v"
+
+    sh "mv rubinius-#{RBX_VERSION}.pkg #{package_name}"
+    sh "zip -r #{package_name}.zip #{package_name}"
+    sh "rm -rf #{package_name}"
   end
 end

@@ -370,13 +370,12 @@ namespace :vm do
       'bin/irb',
       'bin/gem',
       'vm/.deps',
+      'staging'
     ].exclude("vm/gen/config.h")
 
     files.each do |filename|
       rm_rf filename, :verbose => $verbose
     end
-
-    rm_rf BUILD_CONFIG[:stagingdir] if BUILD_CONFIG[:stagingdir]
 
     blueprint.clean
   end
