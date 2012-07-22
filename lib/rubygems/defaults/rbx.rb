@@ -13,12 +13,8 @@ module Gem
     File.join Rubinius::GEMS_PATH, Gem::ConfigMap[:ruby_version]
   end
 
-  def self.default_preinstalled_dir
-    File.join Rubinius::GEMS_PATH, "rubinius", "preinstalled"
-  end
-
   def self.default_path
-    dirs = [default_dir, default_preinstalled_dir]
+    dirs = [default_dir]
     # This is the same test rubygems/defaults.rb uses
     dirs.unshift(Gem.user_dir) if File.exists?(Gem.user_home)
     dirs
