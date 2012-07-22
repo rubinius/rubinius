@@ -230,9 +230,8 @@ module Rubinius
 
     # Returns true if the path exists, is a regular file, and is readable.
     def loadable?(path)
-      return false unless File.exists? path
-
-      @stat = File.stat path
+      @stat = File::Stat.stat path
+      return false unless @stat
       @stat.file? and @stat.readable?
     end
 
