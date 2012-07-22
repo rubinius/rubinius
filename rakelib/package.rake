@@ -44,14 +44,14 @@ namespace :package do
   end
 
   task :check_osx do
-    unless osx = ENV['OSX']
+    unless ENV['OSX']
       raise "Please set OSX to the version of OS X this is for"
     end
   end
 
   desc "Build an OS X .pkg"
   task :osx => [:check_osx, :binary_build] do
-    package_name = "rubinius-#{RBX_VERSION}-#{osx}.pkg"
+    package_name = "rubinius-#{RBX_VERSION}-#{ENV["OSX"]}.pkg"
     sh "rm -rf #{package_name}"
 
     sh "/Developer/Applications/Utilities/PackageMaker.app/Contents/MacOS/PackageMaker --root #{RBX_BINARY_ROOT} --id com.engineyard.rubinius -o rubinius-#{RBX_VERSION}.pkg -t Rubinius -v"
