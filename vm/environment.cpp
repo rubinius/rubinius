@@ -754,8 +754,9 @@ namespace rubinius {
     {
       std::ifstream exe("/proc/self/exe");
       if(exe) {
-        return exe.get(name, PATH_MAX);
-      } else if(realpath(argv[0], name)) {
+        exe.get(name, PATH_MAX);
+        return name;
+      } else if(realpath(argv_[0], name)) {
         return name;
       }
     }
