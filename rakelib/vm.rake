@@ -137,13 +137,14 @@ namespace :build do
   task :build => %W[
                      build:llvm
                      #{VM_EXE}
+                     build:ffi:preprocessor
+                     compiler:generate
                      stage:bin
                      stage:capi_include
                      stage:lib
                      stage:tooling
                      stage:kernel
                      kernel:build
-                     build:ffi:preprocessor
                      stage:runtime
                      stage:documentation
                      extensions

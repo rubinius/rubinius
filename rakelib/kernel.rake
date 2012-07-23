@@ -227,7 +227,7 @@ namespace :compiler do
 
   file melbourne => "extensions:melbourne_build"
 
-  task :load => [compiler_signature, melbourne] + compiler_files do
+  task :load => ['compiler:generate', melbourne] + compiler_files do
 
     if BUILD_CONFIG[:which_ruby] == :ruby
       require "#{Rubinius::COMPILER_PATH}/mri_bridge"
@@ -238,6 +238,8 @@ namespace :compiler do
     require "#{Rubinius::COMPILER_PATH}/compiler"
     require signature_path
   end
+
+  task :generate => [compiler_signature]
 end
 
 desc "Build all kernel files (alias for kernel:build)"
