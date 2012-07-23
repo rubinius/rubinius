@@ -25,6 +25,13 @@ namespace :package do
     puts "Computed MD5 to #{prebuilt_archive}.md5"
   end
 
+  desc "Create a tarball from the source"
+  task :tar do
+    stamp = Time.now.strftime("%Y%m%d")
+    archive = "rubinius-#{RBX_VERSION}-#{stamp}.tar.gz"
+    sh "git archive --format=tar --prefix=rubinius-#{RBX_VERSION}/ HEAD | gzip > #{archive}"
+  end
+
   task :binary_build do
     RBX_BINARY_PREFIX = ENV["RBX_BINARY_PREFIX"] || "/usr/local/rubinius/#{RBX_VERSION}"
     RBX_BINARY_BIN = ENV["RBX_BINARY_BIN"] || "/usr/local/bin/rbx"

@@ -105,13 +105,6 @@ collection, Just-In-Time compilation, and compatibility with existing C APIs.
     fd.close unless fd == STDOUT
   end
 
-  desc "Create the tarball for the release"
-  task :tar do
-    stamp = Time.now.strftime("%Y%m%d")
-    @rbx_tar = "rubinius-#{RBX_VERSION}-#{stamp}.tar.gz"
-    sh "git archive --format=tar --prefix=rubinius-#{RBX_VERSION}/ HEAD | gzip > #{@rbx_tar}"
-  end
-
   desc "Tag HEAD with the current release"
   task :tag do
     sh "git tag release-#{RBX_VERSION} HEAD"
@@ -135,7 +128,7 @@ collection, Just-In-Time compilation, and compatibility with existing C APIs.
     end
 
     puts "* Making tar.gz..."
-    Rake::Task['release:tar'].invoke
+    Rake::Task['package:tar'].invoke
 
     # Do this separately, so that the testing can fail and we leave the directory
     # where it is.
