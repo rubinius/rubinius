@@ -752,9 +752,7 @@ namespace rubinius {
     }
 #elif defined(__linux__)
     {
-      std::ifstream exe("/proc/self/exe");
-      if(exe) {
-        exe.get(name, PATH_MAX);
+      if(readlink("/proc/self/exe", name, PATH_MAX) >= 0) {
         return name;
       } else if(realpath(argv_[0], name)) {
         return name;
