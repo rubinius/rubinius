@@ -1299,8 +1299,7 @@ int main() { return tgetnum(""); }
       f.puts <<-EOC
 module Rubinius
   # Make this reload friendly without silly constant defined warnings.
-  BUILD_CONFIG = {} unless const_defined? :BUILD_CONFIG
-  BUILD_CONFIG.replace({
+  BUILD_CONFIG = {
     :command_line   => #{@command_line.join(" ").inspect},
     :which_ruby     => :#{which_ruby},
     :build_ruby     => "#{build_ruby}",
@@ -1353,7 +1352,7 @@ module Rubinius
     :default_version => "#{@default_version}",
     :vendor_zlib    => #{@vendor_zlib},
     :readline       => :#{@rb_readline ? :rb_readline : :c_readline},
-  })
+  }
 end
       EOC
     end
