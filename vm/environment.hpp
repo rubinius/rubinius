@@ -47,9 +47,10 @@ namespace rubinius {
     int argc_;
     char** argv_;
 
-    /// Signature to be used to verify the validity of .rbc files.
-    /// If the signature in a .rbc file does not match this value, the file
-    /// needs to be recompiled.
+    /**
+     * Digest of the runtime and configuration files to keep the runtime
+     * and VM in sync.
+     */
     uint64_t signature_;
 
     // The Ruby library version with which the .rbc file is compatible.
@@ -88,6 +89,8 @@ namespace rubinius {
 
     std::string executable_name();
     std::string system_prefix();
+    bool verify_paths(std::string prefix);
+    bool load_signature(std::string dir);
     void load_vm_options(int argc, char** argv);
     void load_argv(int argc, char** argv);
     void load_kernel(std::string root);

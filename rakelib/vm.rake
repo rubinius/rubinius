@@ -49,6 +49,7 @@ GENERATED = %W[ vm/gen/revision.h
                 vm/gen/config_variables.h
                 #{encoding_database}
                 #{transcoders_database}
+                #{SIGNATURE_HEADER}
               ] + TYPE_GEN + INSN_GEN
 
 # Files are in order based on dependencies. For example,
