@@ -273,6 +273,6 @@ module Rubinius
   #
   def self.current_file
     cs = Rubinius::ConstantScope.of_sender
-    return ss.absolute_active_path
+    return cs.absolute_active_path
   end
 end
