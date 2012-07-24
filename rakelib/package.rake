@@ -38,7 +38,7 @@ namespace :package do
 
     ENV["RELEASE"] = "1"
     sh "./configure --prefix=#{RBX_BINARY_PREFIX} --preserve-prefix"
-    require File.expand_path("../../config.rb", __FILE__)
+    load_configuration
 
     RBX_BINARY_ROOT = BUILD_CONFIG[:stagingdir][0...-BUILD_CONFIG[:prefixdir].size]
 

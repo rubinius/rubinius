@@ -22,18 +22,24 @@ end
 
 $:.unshift File.expand_path("../", __FILE__)
 
-config_rb = File.expand_path "../config.rb", __FILE__
-config_h  = File.expand_path "../vm/gen/config.h", __FILE__
+BUILD_CONFIG = {} unless Object.const_defined? :BUILD_CONFIG
 
-unless File.exists?(config_rb) and File.exists?(config_h)
-  STDERR.puts "Please run ./configure first"
-  exit 1
+def load_configuration
+  config_rb = File.expand_path "../config.rb", __FILE__
+  config_h  = File.expand_path "../vm/gen/config.h", __FILE__
+
+  unless File.exists?(config_rb) and File.exists?(config_h)
+    STDERR.puts "Please run ./configure first"
+    exit 1
+  end
+
+  load config_rb
+  BUILD_CONFIG.replace Rubinius::BUILD_CONFIG
 end
 
-require config_rb
-BUILD_CONFIG = Rubinius::BUILD_CONFIG
+load_configuration
 
-unless BUILD_CONFIG[:config_version] == 159
+unless BUILD_CONFIG[:config_version] == 160
   STDERR.puts "Your configuration is outdated, please run ./configure first"
   exit 1
 end

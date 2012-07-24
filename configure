@@ -128,7 +128,7 @@ class Configure
     @libversion = "2.0"
     @version = "#{@libversion}.0dev"
     @release_date = "yyyy-mm-dd"
-    @config_version = 159
+    @config_version = 160
 
     # TODO: add conditionals for platforms
     if RbConfig::CONFIG["build_os"] =~ /darwin/
@@ -1298,7 +1298,9 @@ int main() { return tgetnum(""); }
       # TODO: Make this the actual data structure that is written out.
       f.puts <<-EOC
 module Rubinius
-  BUILD_CONFIG = {
+  # Make this reload friendly without silly constant defined warnings.
+  BUILD_CONFIG = {} unless const_defined? :BUILD_CONFIG
+  BUILD_CONFIG.replace({
     :command_line   => #{@command_line.join(" ").inspect},
     :which_ruby     => :#{which_ruby},
     :build_ruby     => "#{build_ruby}",
@@ -1351,7 +1353,7 @@ module Rubinius
     :default_version => "#{@default_version}",
     :vendor_zlib    => #{@vendor_zlib},
     :readline       => :#{@rb_readline ? :rb_readline : :c_readline},
-  }
+  })
 end
       EOC
     end
