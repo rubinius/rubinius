@@ -654,21 +654,6 @@ namespace rubinius {
       throw std::runtime_error(error);
     }
 
-    // Pull in the signature file; this helps control when .rbc files need to
-    // be discarded and recompiled due to changes to the compiler since the
-    // .rbc files were created.
-    std::string sig_path = root + "/signature";
-    std::ifstream sig_stream(sig_path.c_str());
-    if(sig_stream) {
-      sig_stream >> signature_;
-      G(rubinius)->set_const(state, "Signature",
-                       Integer::from(state, signature_));
-      sig_stream.close();
-    } else {
-      std::string error = "Unable to load compiler signature file: " + sig_path;
-      throw std::runtime_error(error);
-    }
-
     version_ = as<Fixnum>(G(rubinius)->get_const(
           state, state->symbol("RUBY_LIB_VERSION")))->to_native();
 
@@ -767,11 +752,46 @@ namespace rubinius {
     return argv_[0];
   }
 
-  static bool verify_and_set_paths(STATE, std::string prefix) {
+  bool Environment::load_signature(std::string runtime) {
+    std::string path = runtime;
+
+    // TODO: Fix this
+    if(LANGUAGE_20_ENABLED(state)) {
+      path += "/20";
+    } else if(LANGUAGE_19_ENABLED(state)) {
+      path += "/19";
+    } else {
+      path += "/18";
+    }
+
+    path += "/signature";
+
+    std::ifstream signature(path.c_str());
+    if(signature) {
+      signature >> signature_;
+
+      if(signature_ != RBX_SIGNATURE) return false;
+
+      signature.close();
+
+      return true;
+    }
+
+    /*
+    } else {
+      std::string error = "Unable to load compiler signature file: " + sig_path;
+      throw std::runtime_error(error);
+     */
+    return false;
+  }
+
+  bool Environment::verify_paths(std::string prefix) {
     struct stat st;
 
     std::string dir = prefix + RBX_RUNTIME_PATH;
     if(stat(dir.c_str(), &st) == -1 || !S_ISDIR(st.st_mode)) return false;
+
+    if(!load_signature(dir)) return false;
 
     dir = prefix + RBX_BIN_PATH;
     if(stat(dir.c_str(), &st) == -1 || !S_ISDIR(st.st_mode)) return false;
@@ -790,14 +810,14 @@ namespace rubinius {
 
     // 1. Check if our configure prefix is overridden by the environment.
     const char* path = getenv("RBX_PREFIX_PATH");
-    if(path && verify_and_set_paths(state, path)) {
+    if(path && verify_paths(path)) {
       system_prefix_ = path;
       return path;
     }
 
     // 2. Check if our configure prefix is valid.
     path = RBX_PREFIX_PATH;
-    if(verify_and_set_paths(state, path)) {
+    if(verify_paths(path)) {
       system_prefix_ = path;
       return path;
     }
@@ -809,7 +829,7 @@ namespace rubinius {
 
     if(exe != std::string::npos) {
       std::string prefix = name.substr(0, exe - strlen(RBX_BIN_PATH));
-      if(verify_and_set_paths(state, prefix)) {
+      if(verify_paths(prefix)) {
         system_prefix_ = prefix;
         return prefix;
       }
@@ -837,6 +857,8 @@ namespace rubinius {
     state->vm()->initialize_config();
 
     load_tool();
+
+    G(rubinius)->set_const(state, "Signature", Integer::from(state, signature_));
 
     if(LANGUAGE_20_ENABLED(state)) {
       runtime += "/20";
