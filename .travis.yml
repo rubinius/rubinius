@@ -15,4 +15,6 @@ notifications:
   email:
     on_success: change
     on_failure: always
-  webhooks: http://elle.fallingsnow.net:13424/
+rvm:
+  - 1.8.7
+  - 1.9.3
