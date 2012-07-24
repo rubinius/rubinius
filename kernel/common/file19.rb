@@ -111,6 +111,20 @@ class File
 
     real
   end
+
+  def self.lchmod(mode, *paths)
+    Rubinius.primitive :file_lchmod19
+    raise NotImplementedError, "lchmod not available on this platform"
+  end
+
+  def self.respond_to?(meth, include_private=false)
+    if meth == :lchmod
+      Rubinius.invoke_primitive(:file_is_lchmod_available)
+    else
+      super
+    end
+  end
+
 end
 
 class File::Stat
