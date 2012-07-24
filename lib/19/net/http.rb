@@ -361,7 +361,7 @@ module Net   #:nodoc:
   class HTTP < Protocol
 
     # :stopdoc:
-    Revision = %q$Revision: 33089 $.split[1]
+    Revision = %q$Revision$.split[1]
     HTTPVersion = '1.1'
     begin
       require 'zlib'
