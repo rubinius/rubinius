@@ -76,6 +76,7 @@ field_extract_headers = %w[
   vm/builtin/dir.hpp
   vm/builtin/exception.hpp
   vm/builtin/float.hpp
+  vm/builtin/file.hpp
   vm/builtin/immediates.hpp
   vm/builtin/iseq.hpp
   vm/builtin/list.hpp
