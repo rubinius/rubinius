@@ -841,7 +841,7 @@ module Net
 
     # Encode a string from UTF-8 format to modified UTF-7.
     def self.encode_utf7(s)
-      return s.gsub(/(&)|([^\x20-\x25\x27-\x7e]+)/n) { |x|
+      return s.gsub(/(&)|([^\x20-\x7e]+)/u) { |x|
         if $1
           "&-"
         else
@@ -901,6 +901,7 @@ module Net
           context.verify_callback = VerifyCallbackProc 
         end
         @sock = SSLSocket.new(@sock, context)
+        @sock.sync_close = true
         @sock.connect   # start ssl session.
         @sock.post_connection_check(@host) if verify
       else
@@ -913,6 +914,7 @@ module Net
       @continuation_request = nil
       @logout_command_tag = nil
       @debug_output_bol = true
+      @exception = nil
 
       @greeting = get_response
       if @greeting.name == "BYE"
@@ -928,14 +930,24 @@ module Net
 
     def receive_responses
       while true
+        synchronize do
+          @exception = nil
+        end
         begin
           resp = get_response
-        rescue Exception
-          @sock.close
-          @client_thread.raise($!)
+        rescue Exception => e
+          synchronize do
+            @sock.close unless @sock.closed?
+            @exception = e
+          end
           break
         end
-        break unless resp
+        unless resp
+          synchronize do
+            @exception = EOFError.new("end of file reached")
+          end
+          break
+        end
         begin
           synchronize do
             case resp
@@ -953,7 +965,9 @@ module Net
               end
               if resp.name == "BYE" && @logout_command_tag.nil?
                 @sock.close
-                raise ByeResponseError, resp.raw_data
+                @exception = ByeResponseError.new(resp.raw_data)
+                @response_arrival.broadcast
+                return
               end
             when ContinuationRequest
               @continuation_request = resp
@@ -963,14 +977,21 @@ module Net
               handler.call(resp)
             end
           end
-        rescue Exception
-          @client_thread.raise($!)
+        rescue Exception => e
+          @exception = e
+          synchronize do
+            @response_arrival.broadcast
+          end
         end
+      end
+      synchronize do
+        @response_arrival.broadcast
       end
     end
 
     def get_tagged_response(tag)
       until @tagged_responses.key?(tag)
+        raise @exception if @exception
         @response_arrival.wait
       end
       return pick_up_tagged_response(tag)
@@ -1103,6 +1124,7 @@ module Net
       while @continuation_request.nil? &&
         !@tagged_responses.key?(Thread.current[:net_imap_tag])
         @response_arrival.wait
+        raise @exception if @exception
       end
       if @continuation_request.nil?
         pick_up_tagged_response(Thread.current[:net_imap_tag])
@@ -1164,9 +1186,15 @@ module Net
     end
 
     def fetch_internal(cmd, set, attr)
-      if attr.instance_of?(String)
+      case attr
+      when String then
         attr = RawData.new(attr)
+      when Array then
+        attr = attr.map { |arg|
+          arg.is_a?(String) ? RawData.new(arg) : arg
+        }
       end
+
       synchronize do
         @responses.delete("FETCH")
         send_command(cmd, MessageSet.new(set), attr)
@@ -2764,11 +2792,16 @@ module Net
           match(T_SPACE)
           result = ResponseCode.new(name, number)
         else
-          match(T_SPACE)
-          @lex_state = EXPR_CTEXT
-          token = match(T_TEXT)
-          @lex_state = EXPR_BEG
-          result = ResponseCode.new(name, token.value)
+          token = lookahead
+          if token.symbol == T_SPACE
+            shift_token
+            @lex_state = EXPR_CTEXT
+            token = match(T_TEXT)
+            @lex_state = EXPR_BEG
+            result = ResponseCode.new(name, token.value)
+          else
+            result = ResponseCode.new(name, nil)
+          end
         end
         match(T_RBRA)
         @lex_state = EXPR_RTEXT

@@ -15,7 +15,7 @@
 # NOTE: You can find Japanese version of this document at:
 # http://www.ruby-lang.org/ja/man/html/net_pop.html
 # 
-#   $Id: pop.rb 22002 2009-02-03 05:35:56Z shyouhei $
+#   $Id$
 # 
 # See Net::POP3 for documentation.
 #
@@ -196,7 +196,7 @@ module Net
   # 
   class POP3 < Protocol
 
-    Revision = %q$Revision: 22002 $.split[1]
+    Revision = %q$Revision$.split[1]
 
     #
     # Class Parameters
@@ -683,9 +683,8 @@ module Net
     end
 
     def set_all_uids   #:nodoc: internal use only (called from POPMail#uidl)
-      command().uidl.each do |num, uid|
-        @mails.find {|m| m.number == num }.uid = uid
-      end
+      uidl = command().uidl
+      @mails.each {|m| m.uid = uidl[m.number] }
     end
 
     def logging(msg)

@@ -22,7 +22,7 @@
 # http://www.ruby-lang.org/ja/man/?cmd=view;name=net%2Fhttp.rb
 #
 #--
-# $Id: http.rb 13657 2007-10-08 11:16:54Z gotoyuzo $
+# $Id$
 #++
 
 require 'net/protocol'
@@ -278,7 +278,7 @@ module Net   #:nodoc:
   class HTTP < Protocol
 
     # :stopdoc:
-    Revision = %q$Revision: 13657 $.split[1]
+    Revision = %q$Revision$.split[1]
     HTTPVersion = '1.1'
     @newimpl = true
     # :startdoc:
@@ -1044,7 +1044,8 @@ module Net   #:nodoc:
       end
 
       req.set_body_internal body
-      begin_transport req
+      begin
+        begin_transport req
         req.exec @socket, @curr_http_version, edit_path(req.path)
         begin
           res = HTTPResponse.read_new(@socket)
@@ -1052,7 +1053,12 @@ module Net   #:nodoc:
         res.reading_body(@socket, req.response_body_permitted?) {
           yield res if block_given?
         }
-      end_transport req, res
+        end_transport req, res
+      rescue => exception
+        D "Conn close because of error #{exception}"
+        @socket.close if @socket and not @socket.closed?
+        raise exception
+      end
 
       res
     end
@@ -1224,6 +1230,7 @@ module Net   #:nodoc:
 
     # Iterates for each header names.
     def each_name(&block)   #:yield: +key+
+      return to_enum(__method__) unless block_given?
       @header.each_key(&block)
     end
 
@@ -1467,6 +1474,8 @@ module Net   #:nodoc:
 
     include HTTPHeader
 
+    BUFSIZE = 16*1024
+
     def initialize(m, reqbody, resbody, path, initheader = nil)
       @method = m
       @request_has_body = reqbody
@@ -1552,12 +1561,12 @@ module Net   #:nodoc:
       supply_default_content_type
       write_header sock, ver, path
       if chunked?
-        while s = f.read(1024)
+        while s = f.read(BUFSIZE)
           sock.write(sprintf("%x\r\n", s.length) << s << "\r\n")
         end
         sock.write "0\r\n\r\n"
       else
-        while s = f.read(1024)
+        while s = f.read(BUFSIZE)
           sock.write s
         end
       end
