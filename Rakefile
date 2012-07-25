@@ -1,6 +1,8 @@
 # NOTE! When updating this file, also update INSTALL, if necessary.
 # NOTE! Please keep your tasks grouped together.
 
+include Rake::DSL if Rake.const_defined? :DSL
+
 if ENV["RUBYLIB"]
   STDERR.puts "ERROR: Please unset RUBYLIB to build Rubinius"
   exit 1
