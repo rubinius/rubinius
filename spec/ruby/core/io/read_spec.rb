@@ -312,6 +312,37 @@ end
 
 ruby_version_is "1.9" do
   describe "IO#read with 1.9 encodings" do
+
+    it "reads a file without a bom" do
+      result = File.read(File.dirname(__FILE__) + "/fixtures/no_bom_UTF-8.txt", :mode => "rb:BOM|utf-8")
+      result.force_encoding("ascii-8bit").should == "UTF-8\n"
+    end
+
+    it "reads a file with a utf-8 bom" do
+      result = File.read(File.dirname(__FILE__) + "/fixtures/bom_UTF-8.txt", :mode => "rb:BOM|utf-16le")
+      result.force_encoding("ascii-8bit").should == "UTF-8\n"
+    end
+
+    it "reads a file with a utf-16le bom" do
+      result = File.read(File.dirname(__FILE__) + "/fixtures/bom_UTF-16LE.txt", :mode => "rb:BOM|utf-8")
+      result.force_encoding("ascii-8bit").should == "U\x00T\x00F\x00-\x001\x006\x00L\x00E\x00\n\x00"
+    end
+
+    it "reads a file with a utf-16be bom" do
+      result = File.read(File.dirname(__FILE__) + "/fixtures/bom_UTF-16BE.txt", :mode => "rb:BOM|utf-8")
+      result.force_encoding("ascii-8bit").should == "\x00U\x00T\x00F\x00-\x001\x006\x00B\x00E\x00\n"
+    end
+
+    it "reads a file with a utf-32le bom" do
+      result = File.read(File.dirname(__FILE__) + "/fixtures/bom_UTF-32LE.txt", :mode => "rb:BOM|utf-8")
+      result.force_encoding("ascii-8bit").should == "U\x00\x00\x00T\x00\x00\x00F\x00\x00\x00-\x00\x00\x003\x00\x00\x002\x00\x00\x00L\x00\x00\x00E\x00\x00\x00\n\x00\x00\x00"
+    end
+
+    it "reads a file with a utf-32be bom" do
+      result = File.read(File.dirname(__FILE__) + "/fixtures/bom_UTF-32BE.txt", :mode => "rb:BOM|utf-8")
+      result.force_encoding("ascii-8bit").should == "\x00\x00\x00U\x00\x00\x00T\x00\x00\x00F\x00\x00\x00-\x00\x00\x003\x00\x00\x002\x00\x00\x00B\x00\x00\x00E\x00\x00\x00\n"
+    end
+
     before :each do
       @file = tmp("io_read_bom.txt")
       @text = "\uFEFFT"
