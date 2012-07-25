@@ -119,6 +119,8 @@ class Configure
     @preserve_prefix = false
 
     @program_name = "rbx"
+    @bin_links = ["rbx", "ruby", "rake", "gem", "irb", "rdoc", "ri"]
+    @use_bin_links = true
 
     # Library configuration
     @rb_readline = false
@@ -323,11 +325,21 @@ class Configure
       @libc = name
     end
 
-    o.doc "\n File system paths for installing Rubinius"
+    o.doc "\n Program names"
 
     o.on "--program-name", "NAME", "Build Rubinius executable as NAME" do |name|
       @program_name = name
     end
+
+    o.on "--bin-link", "NAME", "Create NAME as binary symlink to program name" do |name|
+      @bin_links << name
+    end
+
+    o.on "--no-bin-links", "Do not create any symlinks to program name" do
+      @use_bin_links = false
+    end
+
+    o.doc "\n File system paths for installing Rubinius"
 
     o.on "-P", "--prefix", "PATH", "Install Rubinius in subdirectories of PATH" do |dir|
       @prefixdir = expand_install_dir dir
@@ -1297,6 +1309,8 @@ int main() { return tgetnum(""); }
       @llvm_configure = ""
     end
 
+    @bin_links.delete @program_name
+
     # Write the config file used by the build system and rbconfig.rb.
     File.open @config, "wb" do |f|
       # TODO: Make this the actual data structure that is written out.
@@ -1344,6 +1358,8 @@ module Rubinius
     :mandir         => "#{@mandir}",
     :gemsdir        => "#{@gemsdir}",
     :program_name   => "#{@program_name}",
+    :bin_links      => #{@bin_links.inspect},
+    :use_bin_links  => #{@use_bin_links},
     :version        => "#{@version}",
     :libversion     => "#{@libversion}",
     :release_date   => "#{@release_date}",
@@ -1690,11 +1706,7 @@ Run 'rake' to build, test and install Rubinius.
       EOM
     end
 
-    if @program_name != "ruby"
-      program_links = "#{@program_name}, ruby"
-    else
-      program_links = "#{@program_name}"
-    end
+    links = (@bin_links + [@program_name]).uniq
 
     @log.write <<-EOM
 ------------------------------------------------------------------
@@ -1708,7 +1720,7 @@ to your PATH or run commands directly from that directory.
 
 Available commands are:
 
-  #{program_links}, rake, gem, irb, rdoc, ri
+  #{links.join(", ")}
 
 ------------------------------------------------------------------
     EOM
