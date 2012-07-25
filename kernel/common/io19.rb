@@ -292,7 +292,7 @@ class IO
     @autoclose
   end
 
-  def autoclose= autoclose
+  def autoclose=(autoclose)
     @autoclose = !!autoclose
   end
 
