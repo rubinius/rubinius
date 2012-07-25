@@ -25,6 +25,11 @@ describe :array_join_with_default_separator, :shared => true do
     ["1", "2", "3"].send(@method).should == "1 | 2 | 3"
   end
 
+  it "separates elements with default separator when the passed separator is nil" do
+    $, = "_"
+    [1, 2, 3].join(nil).should == '1_2_3'
+  end
+
   ruby_version_is ""..."1.9" do
     it "coerces non-String elements via #to_s" do
       obj = mock('foo')
