@@ -325,6 +325,10 @@ class Configure
 
     o.doc "\n File system paths for installing Rubinius"
 
+    o.on "--program-name", "NAME", "Build Rubinius executable as NAME" do |name|
+      @program_name = name
+    end
+
     o.on "-P", "--prefix", "PATH", "Install Rubinius in subdirectories of PATH" do |dir|
       @prefixdir = expand_install_dir dir
     end
@@ -1686,6 +1690,12 @@ Run 'rake' to build, test and install Rubinius.
       EOM
     end
 
+    if @program_name != "ruby"
+      program_links = "#{@program_name}, ruby"
+    else
+      program_links = "#{@program_name}"
+    end
+
     @log.write <<-EOM
 ------------------------------------------------------------------
 
@@ -1698,7 +1708,7 @@ to your PATH or run commands directly from that directory.
 
 Available commands are:
 
-  #{@program_name}, ruby, rake, gem, irb, rdoc, ri
+  #{program_links}, rake, gem, irb, rdoc, ri
 
 ------------------------------------------------------------------
     EOM

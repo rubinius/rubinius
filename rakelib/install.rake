@@ -50,10 +50,14 @@ def install_bin(source, target)
 
   # Create symlinks for common commands
   begin
-    ["ruby", "rake", "gem", "irb", "rdoc", "ri"].each do |command|
-      name = "#{target}/#{BUILD_CONFIG[:bindir]}/#{command}"
-      File.delete name if File.exists? name
-      File.symlink BUILD_CONFIG[:program_name], name
+    program_name = BUILD_CONFIG[:program_name]
+
+    ["rbx", "ruby", "rake", "gem", "irb", "rdoc", "ri"].each do |name|
+      link = "#{target}/#{BUILD_CONFIG[:bindir]}/#{name}"
+      unless program_name == name
+        File.delete link if File.exists? link
+        File.symlink program_name, link
+      end
     end
   rescue NotImplementedError
     # ignore
@@ -127,8 +131,9 @@ namespace :stage do
     if BUILD_CONFIG[:stagingdir]
       install_bin "#{BUILD_CONFIG[:sourcedir]}/vm/vm", BUILD_CONFIG[:stagingdir]
 
+      name = BUILD_CONFIG[:program_name]
       mode = File::CREAT | File::TRUNC | File::WRONLY
-      File.open("#{BUILD_CONFIG[:sourcedir]}/bin/rbx", mode, 0755) do |f|
+      File.open("#{BUILD_CONFIG[:sourcedir]}/bin/#{name}", mode, 0755) do |f|
         f.puts <<-EOS
 #!/bin/sh
 #
