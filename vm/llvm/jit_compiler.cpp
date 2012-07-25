@@ -57,8 +57,6 @@ namespace jit {
     if(!mci_) {
       if(!function_) return NULL;
 
-      std::string name = ls->symbol_debug_str(info()->method()->name());
-
       if(indy) ls->shared().gc_independent(ls);
       if(ls->jit_dump_code() & cSimple) {
         llvm::outs() << "[[[ LLVM Simple IR ]]]\n";
@@ -107,7 +105,7 @@ namespace jit {
       ls->passes()->run(*function_);
 
       if(ls->jit_dump_code() & cOptimized) {
-        llvm::outs() << "[[[ LLVM Optimized IR: " << name << " ]]]\n";
+        llvm::outs() << "[[[ LLVM Optimized IR: ]]]\n";
         llvm::outs() << *function_ << "\n";
       }
 
@@ -197,6 +195,7 @@ namespace jit {
     work.setup();
 
     compile_builder(ctx_, ls, info, work);
+    ctx_.set_root(NULL);
   }
 
   void Compiler::compile_builder(jit::Context& ctx, LLVMState* ls, JITMethodInfo& info,
