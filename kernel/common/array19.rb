@@ -449,17 +449,26 @@ class Array
     replace ary
   end
 
-  def sample(n=undefined)
-    return at(Kernel.rand(size)) if n.equal? undefined
+  def sample(*args)
+    random_generator = Kernel
+    n = nil
 
-    n = Rubinius::Type.coerce_to(n, Fixnum, :to_int)
-    raise ArgumentError, "negative array size" if n < 0
+    args.each do |a|
+      if options = Rubinius::Type.check_convert_type(a, Hash, :to_hash)
+        random_generator = options[:random] if options[:random].respond_to?(:rand)
+      else
+        n = Rubinius::Type.coerce_to(a, Fixnum, :to_int)
+        raise ArgumentError, "negative array size" if n < 0
+      end
+    end
+
+    return at(random_generator.rand(size)) unless n
 
     n = size if n > size
     result = Array.new(self)
 
     n.times do |i|
-      r = i + Kernel.rand(size - i)
+      r = i + random_generator.rand(size - i)
       result.tuple.swap(i, r)
     end
 
@@ -476,9 +485,26 @@ class Array
     replace ary unless size == ary.size
   end
 
-  def shuffle
-    return dup.shuffle! if instance_of? Array
-    Array.new(self).shuffle!
+  def shuffle(options = undefined)
+    return dup.shuffle!(options) if instance_of? Array
+    Array.new(self).shuffle!(options)
+  end
+
+  def shuffle!(options = undefined)
+    Rubinius.check_frozen
+
+    random_generator = Kernel
+
+    unless options.equal? undefined
+      options = Rubinius::Type.coerce_to options, Hash, :to_hash
+      random_generator = options[:random] if options[:random].respond_to?(:rand)
+    end
+
+    size.times do |i|
+      r = i + random_generator.rand(size - i)
+      @tuple.swap(@start + i, @start + r)
+    end
+    self
   end
 
   def slice!(start, length=undefined)
