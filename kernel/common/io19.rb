@@ -292,6 +292,10 @@ class IO
     @autoclose
   end
 
+  def autoclose= autoclose
+    @autoclose = !!autoclose
+  end
+
   # Argument matrix for IO#gets and IO#each:
   #
   #  separator / limit | nil | >= 0 | < 0
@@ -552,15 +556,79 @@ class IO
 
     if external.kind_of? String
       external, internal = external.split(':') unless internal
+      if external.downcase.start_with? "bom|"
+        use_bom = true
+        external = external.gsub /\Abom\|/i, ""
+      end
     end
 
     internal = nil if internal == "-"
+
+    if use_bom && encoding = strip_bom
+      external = encoding
+    end
 
     external = Encoding.find external if external.kind_of? String
     internal = Encoding.find internal if internal.kind_of? String
 
     @external = external
     @internal = internal unless internal == external
+  end
+
+  def strip_bom
+    chars = []
+    chars << (c = getc)
+
+    if c == 0x00
+      chars << (c = getc)
+      if c == 0x00
+        chars << (c = getc)
+        if c == 0xFE
+          chars << (c = getc)
+          if c == 0xFF
+            return "UTF-32BE"
+          end
+        end
+      end
+    end
+
+    if c == 0xFF
+      chars << (c = getc)
+      if c == 0xFE
+        chars << (c = getc)
+        if c == 0x00
+          chars << (c = getc)
+          if c == 0x00
+            return "UTF-32LE"
+          end
+        else
+          ungetc c
+          return "UTF-16LE"
+        end
+      end
+    end
+
+    if c == 0xFE
+      chars << (c = getc)
+      if c == 0xFF
+        return "UTF-16BE"
+      end
+    end
+
+    if c == 0xEF
+      chars << (c = getc)
+      if c == 0xBB
+        chars << (c = getc)
+        if c == 0xBF
+          return "UTF-8"
+        end
+      end
+    end
+
+    chars.reverse_each do |c|
+      ungetc c
+    end
+    nil
   end
 
   def external_encoding
