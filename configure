@@ -1232,15 +1232,19 @@ int main() { return tgetnum(""); }
   # Checks whether the given config file is a Perl script by checking its first
   # line for a Perl hashbang.
   def llvm_config_cmd(config)
-    first_line = File.open(config).lines.first
-    if first_line =~ /^#! ?\/usr(\/local)?\/bin\/(env )?perl/
-      "#{@perl} #{config}"
-    else
+    begin
+      File.open(config, "r") do |f|
+        first_line = f.readline
+        if first_line =~ /^#! ?\/usr(\/local)?\/bin\/(env )?perl/
+          "#{@perl} #{config}"
+        else
+          config
+        end
+      end
+    rescue Errno::ENOENT, ArgumentError
+      # The file doesn't exist (ENOENT) or it's a binary file (ArgumentError).
       config
     end
-  rescue Errno::ENOENT, ArgumentError
-    # The file doesn't exist (ENOENT) or it's a binary file (ArgumentError).
-    config
   end
 
   def get_system_name

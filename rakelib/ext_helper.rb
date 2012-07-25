@@ -100,8 +100,8 @@ def add_mri_capi
   $LIBS << " #{DEFAULT_CONFIG["DLDLIBS"]}"
 
   ldshared = DEFAULT_CONFIG["LDSHARED"]
-  if ldshared.start_with? DEFAULT_CONFIG["CC"]
-    ldshared = ldshared.gsub(/\A#{DEFAULT_CONFIG["CC"]} /, '')
+  if ldshared[0...DEFAULT_CONFIG["CC"].size] == DEFAULT_CONFIG["CC"]
+    ldshared = ldshared[DEFAULT_CONFIG["CC"].size..-1].strip
   else
     ldshared = DEFAULT_CONFIG["LDSHARED"].split[1..-1].join(' ')
   end
