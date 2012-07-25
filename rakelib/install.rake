@@ -49,18 +49,16 @@ def install_bin(source, target)
   install source, bin, :mode => 0755, :verbose => $verbose
 
   # Create symlinks for common commands
-  begin
-    program_name = BUILD_CONFIG[:program_name]
-
-    ["rbx", "ruby", "rake", "gem", "irb", "rdoc", "ri"].each do |name|
-      link = "#{target}/#{BUILD_CONFIG[:bindir]}/#{name}"
-      unless program_name == name
+  if BUILD_CONFIG[:use_bin_links]
+    begin
+      BUILD_CONFIG[:bin_links].each do |name|
+        link = "#{target}/#{BUILD_CONFIG[:bindir]}/#{name}"
         File.delete link if File.exists? link
-        File.symlink program_name, link
+        File.symlink BUILD_CONFIG[:program_name], link
       end
+    rescue NotImplementedError
+      # ignore
     end
-  rescue NotImplementedError
-    # ignore
   end
 end
 
