@@ -1,4 +1,5 @@
 #include "config.h"
+#include "signature.h"
 #include "prelude.hpp"
 #include "environment.hpp"
 #include "config_parser.hpp"

@@ -7,7 +7,7 @@ namespace :gems do
     if BUILD_CONFIG[:stagingdir]
       rbx = "#{BUILD_CONFIG[:stagingdir]}#{BUILD_CONFIG[:bindir]}/#{BUILD_CONFIG[:program_name]}"
     else
-      rbx = "#{BUILD_CONFIG[:sourcedir]}/bin/rbx"
+      rbx = "#{BUILD_CONFIG[:sourcedir]}/bin/#{BUILD_CONFIG[:program_name]}"
     end
     gems = Dir["preinstalled-gems/*.gem"]
     options = "--local --conservative --ignore-dependencies --no-rdoc --no-ri"
