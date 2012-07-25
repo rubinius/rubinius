@@ -8,14 +8,10 @@
 desc "Install Rubinius"
 task :install => %w[build:build gems:install install:files install:done]
 
-# What the hell does this code do? We want to avoid sudo whenever
-# possible. This code is based on the assumption that if A is a
-# directory name, if any of the paths leading up to the full A are
-# writable, then A can be created. So A is decomposed one directory
-# at a time from the right-hand side. That path is checked for
-# whether it is a directory. If it is and it is writable, we can
-# create A. Otherwise, we can't create A and sudo is required.
-def need_sudo?
+# Determine if all the targets for the install directories are writable
+# decomposing each candidate directory from the right side and checking if
+# that path is writable. If not, we require explicit permission.
+def need_permission?
   FileList["#{BUILD_CONFIG[:stagingdir]}/*"].each do |name|
     dir = File.expand_path "#{BUILD_CONFIG[:prefixdir]}/#{name}"
 
@@ -194,8 +190,26 @@ namespace :install do
   desc "Install all the Rubinius files"
   task :files do
     if BUILD_CONFIG[:stagingdir]
-      if need_sudo?
-        sh "sudo #{BUILD_CONFIG[:build_ruby]} -S #{BUILD_CONFIG[:build_rake]} install:files", :verbose => true
+      if need_permission?
+        prefix = BUILD_CONFIG[:prefixdir]
+        STDERR.puts <<-EOM
+Rubinius has been configured for the following paths:
+
+bin:     #{prefix}#{BUILD_CONFIG[:bindir]}
+lib:     #{prefix}#{BUILD_CONFIG[:libdir]}
+runtime: #{prefix}#{BUILD_CONFIG[:runtimedir]}
+kernel:  #{prefix}#{BUILD_CONFIG[:kerneldir]}
+site:    #{prefix}#{BUILD_CONFIG[:sitedir]}
+vendor:  #{prefix}#{BUILD_CONFIG[:vendordir]}
+man:     #{prefix}#{BUILD_CONFIG[:mandir]}
+gems:    #{prefix}#{BUILD_CONFIG[:gemsdir]}
+
+Please ensure that the paths to these directories are writable
+by the current user. Otherwise, run 'rake install' with the
+oppropriate command to elevate permissions (eg su, sudo).
+        EOM
+
+        exit(1)
       else
         stagingdir = BUILD_CONFIG[:stagingdir]
         prefixdir = BUILD_CONFIG[:prefixdir]
