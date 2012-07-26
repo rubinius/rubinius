@@ -168,12 +168,15 @@ class ZeroDivisionError < StandardError
 end
 
 class ArgumentError < StandardError
-  def message
-    return @reason_message if @reason_message
-    if @method_name
-      "method '#{@method_name}': given #{@given}, expected #{@expected}"
+  def to_s
+    if @given and @expected
+      if @method_name
+        "method '#{@method_name}': given #{@given}, expected #{@expected}"
+      else
+        "given #{@given}, expected #{@expected}"
+      end
     else
-      "given #{@given}, expected #{@expected}"
+      super
     end
   end
 end
