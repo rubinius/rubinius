@@ -1,3 +1,5 @@
+require 'rakelib/package'
+
 namespace :package do
   desc "Package up the LLVM build into a tar.gz"
   task :llvm do
@@ -9,20 +11,8 @@ namespace :package do
 
     sh "tar -c -C vendor/llvm --exclude .svn --exclude \"*.dylib\" --exclude \"*.so\" -f - Release/lib Release/bin/llvm-config include | bzip2 -9 > #{prebuilt_archive}"
 
-    require 'digest/md5'
-    md5 = Digest::MD5.new
-
-    File.open(prebuilt_archive) do |f|
-      until f.eof?
-        md5 << f.read(1024)
-      end
-    end
-
-    File.open("#{prebuilt_archive}.md5", "w") do |f|
-      f.puts md5.hexdigest
-    end
-
-    puts "Computed MD5 to #{prebuilt_archive}.md5"
+    write_md5_digest_file prebuilt_archive
+    write_sha1_digest_file prebuilt_archive
   end
 
   desc "Create a tarball from the source"
@@ -30,6 +20,9 @@ namespace :package do
     stamp = Time.now.strftime("%Y%m%d")
     archive = "rubinius-#{RBX_VERSION}-#{stamp}.tar.gz"
     sh "git archive --format=tar --prefix=rubinius-#{RBX_VERSION}/ HEAD | gzip > #{archive}"
+
+    write_md5_digest_file archive
+    write_sha1_digest_file archive
   end
 
   task :binary_build do
@@ -63,9 +56,13 @@ namespace :package do
 
     sh "/Developer/Applications/Utilities/PackageMaker.app/Contents/MacOS/PackageMaker --root #{RBX_BINARY_ROOT} --id com.engineyard.rubinius -o rubinius-#{RBX_VERSION}.pkg -t Rubinius -v"
 
+    zip_archive = "#{package_name}.zip"
     sh "mv rubinius-#{RBX_VERSION}.pkg #{package_name}"
-    sh "zip -r #{package_name}.zip #{package_name}"
+    sh "zip -r #{zip_archive} #{package_name}"
     sh "rm -rf #{package_name}"
+
+    write_md5_digest_file zip_archive
+    write_sha1_digest_file zip_archive
   end
 
   desc "Build a general Unix/Linux binary package"
@@ -79,5 +76,8 @@ namespace :package do
     end
 
     sh "mv #{RBX_BINARY_ROOT}/#{package_name} #{BUILD_CONFIG[:sourcedir]}"
+
+    write_md5_digest_file package_name
+    write_sha1_digest_file package_name
   end
 end
