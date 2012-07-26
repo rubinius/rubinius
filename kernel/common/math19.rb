@@ -68,6 +68,7 @@ module Math
     end
 
     FFI::MemoryPointer.new :int do |sign|
+      sign.write_int 1
       result = FFI::Platform::Math.lgamma_r x, sign
       [result, sign.read_int]
     end
