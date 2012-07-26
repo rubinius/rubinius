@@ -35,12 +35,7 @@ module Timeout
   ##
   # Raised by Timeout#timeout when the block times out.
 
-  if RUBY_VERSION >= '1.9'
-    class Error<RuntimeError
-    end
-  else
-    class Error<Interrupt
-    end
+  class Error<Interrupt
   end
 
   # A mutex to protect @requests
