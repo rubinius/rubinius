@@ -35,7 +35,7 @@ module Timeout
   ##
   # Raised by Timeout#timeout when the block times out.
 
-  class Error<Interrupt
+  class Error < RuntimeError
   end
 
   # A mutex to protect @requests
