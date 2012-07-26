@@ -165,9 +165,9 @@ file signature_file => signature_files do
   end
 end
 
-SIGNATURE_HEADER = "vm/gen/signature.h"
+signature_header = "vm/gen/signature.h"
 
-file SIGNATURE_HEADER => signature_file do |t|
+file signature_header => signature_file do |t|
   File.open t.name, "wb" do |file|
     file.puts "#define RBX_SIGNATURE          #{SIGNATURE_HASH}ULL"
   end
