@@ -48,5 +48,12 @@ module Rubinius
     def self.binary_string(string)
       string.force_encoding(Encoding::BINARY)
     end
+
+    def self.external_encoding_string(string)
+      if !Encoding.compatible?(string, Encoding.default_external)
+        raise Encoding::CompatibilityError.new("#{string.encoding.name} and #{Encoding.default_external.name} are incompatible")
+      end
+      string.encode(Encoding.default_external)
+    end
   end
 end
