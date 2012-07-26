@@ -1,0 +1,1 @@
+fails:String#<=> with String does not return 0 if self and other contain identical non-ASCII-compatible bytes in different encodings
