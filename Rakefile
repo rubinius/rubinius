@@ -13,7 +13,7 @@ WARNING   not limited to causing the build to fail or specs to fail     WARNING
 WARNING   or your computer to randomly emit strange beeping sounds      WARNING
 WARNING   or burst into flames. Not all these possible catastrophic     WARNING
 WARNING   effects have been observed in the wild, but you have been     WARNING
-WARNING   warned. We reccomend unsetting this environment variable      WARNING
+WARNING   warned. We recommend unsetting this environment variable      WARNING
 WARNING   and running the build again.                                  WARNING
 WARNING                                                                 WARNING
 WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
