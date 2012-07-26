@@ -67,7 +67,7 @@ class String
 
   def <=>(other)
     if other.kind_of?(String)
-      @data.compare_bytes(other.__data__, @num_bytes, other.size)
+      @data.compare_bytes(other.__data__, @num_bytes, other.bytesize)
     else
       return unless other.respond_to?(:to_str) && other.respond_to?(:<=>)
       return unless tmp = (other <=> self)
