@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes.rb', __FILE__)
 
@@ -41,6 +42,32 @@ describe "String#<=> with String" do
 
     (a <=> b).should == 0
     (b <=> a).should == 0
+  end
+
+  ruby_version_is "1.9" do
+    it "returns 0 if self and other are bytewise identical and have the same encoding" do
+      ("ÄÖÜ" <=> "ÄÖÜ").should == 0
+    end
+
+    it "returns 0 if self and other are bytewise identical and have the same encoding" do
+      ("ÄÖÜ" <=> "ÄÖÜ").should == 0
+    end
+
+    it "returns -1 if self is bytewise less than other" do
+      ("ÄÖÛ" <=> "ÄÖÜ").should == -1
+    end
+
+    it "returns 1 if self is bytewise greater than other" do
+      ("ÄÖÜ" <=> "ÄÖÛ").should == 1
+    end
+
+    it "returns 0 if self and other contain identical ASCII-compatible bytes in different encodings" do
+      ("abc".force_encoding("utf-8") <=> "abc".force_encoding("iso-8859-1")).should == 0
+    end
+
+    it "does not return 0 if self and other contain identical non-ASCII-compatible bytes in different encodings" do
+      ("\xff".force_encoding("utf-8") <=> "\xff".force_encoding("iso-8859-1")).should_not == 0
+    end
   end
 end
 
