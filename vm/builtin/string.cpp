@@ -1338,8 +1338,7 @@ namespace rubinius {
    * parameter is the byte index of a character at which to start searching.
    */
   native_int String::find_character_byte_index(STATE, native_int index,
-                                               native_int start)
-  {
+                                               native_int start) {
     if(byte_compatible_p(encoding_)) {
       return index;
     } else if(fixed_width_p(encoding_)) {
@@ -1356,6 +1355,44 @@ namespace rubinius {
       if(p > e) p = e;
       return p - byte_address();
     }
+  }
+
+  /* Returns the char index of the character at byte index 'index'. The 'start'
+   * parameter is the byte index of a character at which to start searching.
+   * Returns the char index of the first character starting at or after the
+   * given index.
+   */
+  native_int String::find_byte_character_index(STATE, native_int index,
+                                               native_int start) {
+    if(byte_compatible_p(encoding_)) {
+      return index;
+    } else if(fixed_width_p(encoding_)) {
+      return index / ONIGENC_MBC_MINLEN(encoding_->get_encoding());
+    } else {
+      OnigEncodingType* enc = encoding_->get_encoding();
+      uint8_t* p = byte_address() + start;
+      uint8_t* e = byte_address() + byte_size();
+      native_int char_index = 0;
+
+      while(p < e && index > 0) {
+        native_int char_len = mbclen(p, e, enc);
+        p += char_len;
+        index -= char_len;
+        char_index++;
+      }
+
+      return char_index;
+    }
+  }
+
+  /* Returns the char index of the character at byte index 'index'. The 'start'
+   * parameter is the byte index of a character at which to start searching.
+   * Returns the char index of the first character starting at or after the
+   * given index.
+   */
+  Fixnum* String::find_byte_character_index_prim(STATE, Fixnum* index,
+                                                    Fixnum* start) {
+    return Fixnum::from(this->find_byte_character_index(state, index->to_native(), start->to_native()));
   }
 
   /* The 'index' and 'length' parameters are byte based. This method is a

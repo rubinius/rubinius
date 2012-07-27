@@ -140,6 +140,32 @@ class Regexp
 end
 
 class MatchData
+
+  def begin(idx)
+    if idx == 0
+      start = @full.at(0)
+    else
+      start = @region.at(idx - 1).at(0)
+    end
+    Rubinius.invoke_primitive :string_character_index, @source, start, 0
+  end
+
+  def end(idx)
+    if idx == 0
+      fin = @full.at(1)
+    else
+      fin = @region.at(idx - 1).at(1)
+    end
+    Rubinius.invoke_primitive :string_character_index, @source, fin, 0
+  end
+
+  def offset(idx)
+    out = []
+    out << self.begin(idx)
+    out << self.end(idx)
+    return out
+  end
+
   def [](idx, len = nil)
     return to_a[idx, len] if len
 
@@ -183,4 +209,5 @@ class MatchData
       captures == other.captures
   end
   alias_method :eql?, :==
+
 end

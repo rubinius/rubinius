@@ -230,6 +230,10 @@ namespace rubinius {
 
     OnigEncodingType* get_encoding_kcode_fallback(STATE);
     native_int find_character_byte_index(STATE, native_int index, native_int start = 0);
+    native_int find_byte_character_index(STATE, native_int index, native_int start = 0);
+
+    // Rubinius.primitive :string_character_index
+    Fixnum* find_byte_character_index_prim(STATE, Fixnum* index, Fixnum* start);
 
     // Rubinius.primitive :string_index
     Fixnum* index(STATE, String* pattern, Fixnum* start);
