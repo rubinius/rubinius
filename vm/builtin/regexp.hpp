@@ -48,7 +48,7 @@ namespace rubinius {
      */
     // Rubinius.primitive :regexp_initialize
     Regexp* initialize(STATE, String* pattern, Fixnum* options);
-    void maybe_recompile(STATE);
+    void maybe_recompile(STATE, String* string);
 
     // Rubinius.primitive :regexp_options
     Fixnum* options(STATE);

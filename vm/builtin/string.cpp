@@ -1549,6 +1549,24 @@ namespace rubinius {
     }
   }
 
+  OnigEncodingType* String::get_encoding_kcode_fallback(STATE) {
+    if(encoding_->nil_p()) {
+      switch(state->shared().kcode_page()) {
+      default:
+      case kcode::eAscii:
+        return ONIG_ENCODING_ASCII;
+      case kcode::eEUC:
+        return ONIG_ENCODING_EUC_JP;
+      case kcode::eSJIS:
+        return ONIG_ENCODING_Shift_JIS;
+      case kcode::eUTF8:
+        return ONIG_ENCODING_UTF_8;
+      }
+    } else {
+      return encoding_->get_encoding();
+    }
+  }
+
   String* String::find_character(STATE, Fixnum* offset) {
     native_int o = offset->to_native();
     if(o >= byte_size()) return nil<String>();
@@ -1558,16 +1576,15 @@ namespace rubinius {
 
     String* output = 0;
 
-    kcode::table* tbl = state->shared().kcode_table();
-    if(kcode::mbchar_p(tbl, *cur)) {
-      native_int clen = kcode::mbclen(tbl, *cur);
-      if(o + clen <= byte_size()) {
+    OnigEncodingType* enc = get_encoding_kcode_fallback(state);
+
+    if(ONIGENC_MBC_MAXLEN(enc) == 1) {
+      output = String::create(state, reinterpret_cast<const char*>(cur), 1);
+    } else {
+      int clen = precise_mbclen(cur, cur + ONIGENC_MBC_MAXLEN(enc), enc);
+      if(ONIGENC_MBCLEN_CHARFOUND_P(clen)) {
         output = String::create(state, reinterpret_cast<const char*>(cur), clen);
       }
-    }
-
-    if(!output) {
-      output = String::create(state, reinterpret_cast<const char*>(cur), 1);
     }
 
     output->klass(state, class_object(state));

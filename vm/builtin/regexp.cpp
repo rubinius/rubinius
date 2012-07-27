@@ -89,20 +89,6 @@ namespace rubinius {
     return r;
   }
 
-  static OnigEncoding current_encoding(STATE) {
-    switch(state->shared().kcode_page()) {
-    default:
-    case kcode::eAscii:
-      return ONIG_ENCODING_ASCII;
-    case kcode::eEUC:
-      return ONIG_ENCODING_EUC_JP;
-    case kcode::eSJIS:
-      return ONIG_ENCODING_Shift_JIS;
-    case kcode::eUTF8:
-      return ONIG_ENCODING_UTF_8;
-    }
-  }
-
   int get_kcode_from_enc(OnigEncoding enc) {
     int r = 0;
     if (enc == ONIG_ENCODING_ASCII)       r = KCODE_NONE;
@@ -213,7 +199,7 @@ namespace rubinius {
   }
 
   // Called with the onig_lock held.
-  void Regexp::maybe_recompile(STATE) {
+  void Regexp::maybe_recompile(STATE, String* string) {
     const UChar *pat;
     const UChar *end;
     OnigEncoding enc;
@@ -222,7 +208,8 @@ namespace rubinius {
 
     if(fixed_encoding_) return;
 
-    enc = current_encoding(state);
+    enc = string->get_encoding_kcode_fallback(state);
+
     if(enc == onig_data->enc) return;
 
     pat = (UChar*)source()->byte_address();
@@ -273,7 +260,7 @@ namespace rubinius {
       end = pat + pattern->byte_size();
 
       if(kcode == 0) {
-        enc = current_encoding(state);
+        enc = pattern->get_encoding_kcode_fallback(state);
       } else {
         // Don't attempt to fix the encoding later, it's been specified by the
         // user.
@@ -457,7 +444,7 @@ namespace rubinius {
 
     lock_.lock();
 
-    maybe_recompile(state);
+    maybe_recompile(state, string);
 
     int begin_reg[10] = { ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
                          ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
@@ -537,7 +524,7 @@ namespace rubinius {
 
     lock_.lock();
 
-    maybe_recompile(state);
+    maybe_recompile(state, string);
 
     int begin_reg[10] = { ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
                          ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
@@ -553,7 +540,6 @@ namespace rubinius {
     OnigRegion region = { 10, 0, begin_reg, end_reg, 0, 0 };
 
     int* back_match = onig_data->int_map_backward;
-
     beg = onig_match(onig_data, str, fin, str, &region,
                      ONIG_OPTION_NONE);
 
@@ -594,7 +580,7 @@ namespace rubinius {
 
     lock_.lock();
 
-    maybe_recompile(state);
+    maybe_recompile(state, string);
 
     max = string->byte_size();
     native_int pos = start->to_native();
