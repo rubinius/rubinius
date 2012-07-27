@@ -157,6 +157,7 @@ module MethodSpecs
 
   class ToProcBeta
     def method_called(a)
+      ScratchPad << a
       a
     end
 
