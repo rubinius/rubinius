@@ -102,11 +102,55 @@ describe :encode_string, :shared => true do
     "abc\u{fffd}def".send(@method, "EUC-JP", "UTF-8", {:undef => :replace, :replace => ""}).should == "abcdef"
   end
 
-  it "replaces xml characters" do
-    '<xml>bed & breakfast</xml>'.send(@method, 'UTF-8', {:xml => :text}).should == "&lt;xml&gt;bed &amp; breakfast&lt;/xml&gt;"
+  describe "given the :xml => :text option" do
+    it "replaces all instances of '&' with '&amp;'" do
+      '& and &'.send(@method, "UTF-8", :xml => :text).should == '&amp; and &amp;'
+    end
+
+    it "replaces all instances of '<' with '&lt;'" do
+      '< and <'.send(@method, "UTF-8", :xml => :text).should == '&lt; and &lt;'
+    end
+
+    it "replaces all instances of '>' with '&gt;'" do
+      '> and >'.send(@method, "UTF-8", :xml => :text).should == '&gt; and &gt;'
+    end
+
+    it "does not replace '\"'" do
+      '" and "'.send(@method, "UTF-8", :xml => :text).should == '" and "'
+    end
+
+    it "replaces undefined characters with their upper-case hexadecimal numeric character references" do
+      'ürst'.send(@method, Encoding::US_ASCII, :xml => :text).should == '&#xFC;rst'
+    end
   end
 
-  it "replaces xml characters and quotes the result" do
-    '<xml>bed & breakfast</xml>'.send(@method, 'UTF-8', {:xml => :attr}).should == "\"&lt;xml&gt;bed &amp; breakfast&lt;/xml&gt;\""
+  describe "given the :xml => :attr option" do
+    it "surrounds the encoded text with double-quotes" do
+      'abc'.send(@method, "UTF-8", :xml => :attr).should == '"abc"'
+    end
+
+    it "replaces all instances of '&' with '&amp;'" do
+      '& and &'.send(@method, "UTF-8", :xml => :attr).should == '"&amp; and &amp;"'
+    end
+
+    it "replaces all instances of '<' with '&lt;'" do
+      '< and <'.send(@method, "UTF-8", :xml => :attr).should == '"&lt; and &lt;"'
+    end
+
+    it "replaces all instances of '>' with '&gt;'" do
+      '> and >'.send(@method, "UTF-8", :xml => :attr).should == '"&gt; and &gt;"'
+    end
+
+    it "replaces all instances of '\"' with '&quot;'" do
+      '" and "'.send(@method, "UTF-8", :xml => :attr).should == '"&quot; and &quot;"'
+    end
+
+    it "replaces undefined characters with their upper-case hexadecimal numeric character references" do
+      'ürst'.send(@method, Encoding::US_ASCII, :xml => :attr).should == '"&#xFC;rst"'
+    end
+  end
+
+  it "raises ArgumentError if the value of the :xml option is not :text or :attr" do
+    lambda { ''.send(@method, "UTF-8", :xml => :other) }.should raise_error(ArgumentError)
   end
 end
