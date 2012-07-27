@@ -53,6 +53,18 @@ class StringIO
     self
   end
 
+  def set_encoding(external, internal=nil, options=nil)
+    @string.force_encoding(external || Encoding.default_external)
+  end
+
+  def external_encoding
+    @string.encoding
+  end
+
+  def internal_encoding
+    nil
+  end
+
   def each_byte
     return to_enum :each_byte unless block_given?
     raise IOError, "not opened for reading" unless @readable
