@@ -1116,7 +1116,7 @@ module Rubinius
 
         pos = 0
         while match = RE.match_start(@format, pos)
-          pos = match.end(0)
+          pos = match.full.at(1)
 
           _,
           plain_string,

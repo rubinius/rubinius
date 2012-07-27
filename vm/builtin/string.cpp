@@ -1621,6 +1621,8 @@ namespace rubinius {
       int clen = precise_mbclen(cur, cur + ONIGENC_MBC_MAXLEN(enc), enc);
       if(ONIGENC_MBCLEN_CHARFOUND_P(clen)) {
         output = String::create(state, reinterpret_cast<const char*>(cur), clen);
+      } else {
+        output = String::create(state, reinterpret_cast<const char*>(cur), 1);
       }
     }
 
