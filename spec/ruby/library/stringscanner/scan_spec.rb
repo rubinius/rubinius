@@ -6,6 +6,11 @@ require 'strscan'
 describe "StringScanner#scan" do
   before :each do
     @s = StringScanner.new("This is a test")
+    @kcode = $KCODE
+  end
+
+  after :each do
+    $KCODE = @kcode
   end
 
   it "returns the matched string" do
@@ -16,13 +21,22 @@ describe "StringScanner#scan" do
   end
 
   ruby_version_is ""..."1.9" do
-    it "returns the first character for a multi byte string" do
+    it "returns the first character for a multi byte string with no KCODE" do
+      $KCODE = 'NONE'
       m = StringScanner.new("Привет!")
       m.scan(/[А-Яа-я]+/).should == "\320\237\321"
       m.rest.should == "\200\320\270\320\262\320\265\321\202!"
     end
 
+    it "returns the matched string for a multi byte string with KCODE" do
+      $KCODE = 'UTF-8'
+      m = StringScanner.new("Привет!")
+      m.scan(/[А-Яа-я]+/).should == "Привет"
+      m.rest.should == "!"
+    end
+
     it "returns the matched string for a multi byte string with unicode regexp" do
+      $KCODE = 'NONE'
       m = StringScanner.new("Привет!")
       m.scan(/[А-Яа-я]+/u).should == "Привет"
       m.rest.should == "!"
