@@ -68,6 +68,10 @@ class Proc
 
       return obj
     end
+
+    def __yield__(*args, &block)
+      @bound_method.call(*args, &block)
+    end
   end
 
 end
