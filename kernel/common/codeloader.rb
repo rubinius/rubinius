@@ -249,28 +249,6 @@ module Rubinius
       path[0] == ?/ or path.prefix?("./") or path.prefix?("../")
     end
 
-    # Main logic for converting a name to an actual file to load. Used by
-    # #load and by #require when the file extension is provided.
-    #
-    # Expands any #home_path? to an absolute path. Then either checks whether
-    # an absolute path is #loadable? or searches for a loadable file matching
-    # name in $LOAD_PATH.
-    #
-    # Returns true if a loadable file is found, otherwise returns false.
-    def verify_load_path(path, loading=false)
-      path = File.expand_path path if home_path? path
-
-      if qualified_path? path
-        return false unless loadable? path
-      else
-        return false unless path = search_load_path(path, loading)
-      end
-
-      update_paths(path, path)
-
-      return true
-    end
-
     # Called directly by #load. Either resolves the path passed to Kernel#load
     # to a specific file or raises a LoadError.
     def resolve_load_path
