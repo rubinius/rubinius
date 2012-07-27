@@ -27,7 +27,7 @@ namespace :package do
 
   task :binary_build do
     RBX_BINARY_PREFIX = ENV["RBX_BINARY_PREFIX"] || "/usr/local/rubinius/#{RBX_VERSION}"
-    RBX_BINARY_BIN = ENV["RBX_BINARY_BIN"] || "/usr/local/bin/rbx"
+    RBX_BINARY_BIN = ENV["RBX_BINARY_BIN"]
 
     ENV["RELEASE"] = "1"
     sh "./configure --prefix=#{RBX_BINARY_PREFIX} --preserve-prefix"
@@ -36,21 +36,27 @@ namespace :package do
     RBX_BINARY_ROOT = BUILD_CONFIG[:stagingdir][0...-BUILD_CONFIG[:prefixdir].size]
 
     sh "rake -q clean; rake -q build"
-    sh "mkdir -p #{RBX_BINARY_ROOT}#{File.dirname(RBX_BINARY_BIN)}"
 
-    bin = "#{RBX_BINARY_PREFIX}#{BUILD_CONFIG[:bindir]}"
-    bin_link = "#{RBX_BINARY_ROOT}#{RBX_BINARY_BIN}"
-    sh "ln -sf #{bin} #{bin_link}"
-  end
+    if RBX_BINARY_BIN
+      sh "mkdir -p #{RBX_BINARY_ROOT}#{File.dirname(RBX_BINARY_BIN)}"
 
-  task :check_osx do
-    unless ENV['OSX']
-      raise "Please set OSX to the version of OS X this is for"
+      bin = "#{RBX_BINARY_PREFIX}#{BUILD_CONFIG[:bindir]}"
+      bin_link = "#{RBX_BINARY_ROOT}#{RBX_BINARY_BIN}"
+      sh "ln -sf #{bin} #{bin_link}"
     end
   end
 
+  task :setup_osx do
+    unless ENV['OSX']
+      raise "Please set OSX to the version of OS X this is for"
+    end
+
+    ENV["RBX_BINARY_PREFIX"] = "/usr/local/rubinius/#{RBX_VERSION}"
+    ENV["RBX_BINARY_BIN"] = "/usr/local/bin/rbx"
+  end
+
   desc "Build an OS X .pkg"
-  task :osx => [:check_osx, :binary_build] do
+  task :osx => [:setup_osx, :binary_build] do
     package_name = "rubinius-#{RBX_VERSION}-#{ENV["OSX"]}.pkg"
     sh "rm -rf #{package_name}"
 
