@@ -617,36 +617,32 @@ namespace rubinius {
 
   native_int String::char_size(STATE) {
     if(num_chars_->nil_p()) {
-      if(LANGUAGE_18_ENABLED(state)) {
+      if(byte_compatible_p(encoding_)) {
         num_chars(state, num_bytes_);
       } else {
-        if(byte_compatible_p(encoding_)) {
-          num_chars(state, num_bytes_);
+        OnigEncodingType* enc = encoding_->get_encoding();
+        native_int chars;
+
+        if(fixed_width_p(encoding_)) {
+          chars = (byte_size() + ONIGENC_MBC_MINLEN(enc) - 1) / ONIGENC_MBC_MINLEN(enc);
         } else {
-          OnigEncodingType* enc = encoding_->get_encoding();
-          native_int chars;
+          uint8_t* p = byte_address();
+          uint8_t* e = p + byte_size();
 
-          if(fixed_width_p(encoding_)) {
-            chars = (byte_size() + ONIGENC_MBC_MINLEN(enc) - 1) / ONIGENC_MBC_MINLEN(enc);
-          } else {
-            uint8_t* p = byte_address();
-            uint8_t* e = p + byte_size();
+          for(chars = 0; p < e; chars++) {
+            int n = precise_mbclen(p, e, enc);
 
-            for(chars = 0; p < e; chars++) {
-              int n = precise_mbclen(p, e, enc);
-
-              if(ONIGENC_MBCLEN_CHARFOUND_P(n)) {
-                p += ONIGENC_MBCLEN_CHARFOUND_LEN(n);
-              } else if(p + ONIGENC_MBC_MINLEN(enc) <= e) {
-                p += ONIGENC_MBC_MINLEN(enc);
-              } else {
-                p = e;
-              }
+            if(ONIGENC_MBCLEN_CHARFOUND_P(n)) {
+              p += ONIGENC_MBCLEN_CHARFOUND_LEN(n);
+            } else if(p + ONIGENC_MBC_MINLEN(enc) <= e) {
+              p += ONIGENC_MBC_MINLEN(enc);
+            } else {
+              p = e;
             }
           }
-
-          num_chars(state, Fixnum::from(chars));
         }
+
+        num_chars(state, Fixnum::from(chars));
       }
     }
 
