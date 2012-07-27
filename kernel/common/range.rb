@@ -32,7 +32,7 @@ class Range
   end
   alias_method :eql?, :==
 
-  def ===(value)
+  def include?(value)
     # MRI uses <=> to compare, so must we.
 
     beg_compare = (@begin <=> value)
@@ -49,8 +49,7 @@ class Range
 
     return false
   end
-  alias_method :member?, :===
-  alias_method :include?, :===
+  alias_method :member?, :include?
 
   attr_reader_specific :excl, :exclude_end?
 
