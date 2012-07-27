@@ -27,7 +27,7 @@ class StringScanner
   end
 
   def bol?
-    @pos == 0 or @string[pos-1] == ?\n
+    @pos == 0 or @string.getbyte(pos-1) == 10
   end
 
   alias_method :beginning_of_line?, :bol?
@@ -57,7 +57,7 @@ class StringScanner
   end
 
   def eos?
-    @pos >= @string.size
+    @pos >= @string.bytesize
   end
 
   def exist?(pattern)
@@ -133,7 +133,7 @@ class StringScanner
   end
 
   def matched_size
-    @match.to_s.size if @match
+    @match.to_s.bytesize if @match
   end
 
   def matchedsize
@@ -146,7 +146,7 @@ class StringScanner
   end
 
   def pre_match
-    @string.substring(0, match.begin(0)) if @match
+    @string.byteslice(0, match.full.at(0)) if @match
   end
 
   def reset_state
@@ -161,7 +161,7 @@ class StringScanner
   end
 
   def rest
-    @string.substring(@pos, rest_size)
+    @string.byteslice(@pos, rest_size)
   end
 
   def rest?
@@ -169,7 +169,7 @@ class StringScanner
   end
 
   def rest_size
-    @string.size - @pos
+    @string.bytesize - @pos
   end
 
   def restsize
@@ -270,7 +270,7 @@ class StringScanner
 
     return nil unless @match
 
-    fin = @match.end(0)
+    fin = @match.full.at(1)
 
     @prev_pos = @pos
 
@@ -280,7 +280,7 @@ class StringScanner
 
     return width unless getstr
 
-    @string.substring(@prev_pos, width)
+    @string.byteslice(@prev_pos, width)
   end
   private :_scan
 end
