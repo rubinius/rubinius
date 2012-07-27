@@ -343,6 +343,12 @@ describe :kernel_require, :shared => true do
       $LOADED_FEATURES.should == [@path]
     end
 
+    it "does not load twice the same file with and without extension" do
+      $LOAD_PATH << CODE_LOADING_DIR
+      @object.require("load_fixture.rb").should be_true
+      @object.require("load_fixture").should be_false
+    end
+
     describe "when a non-extensioned file is in $LOADED_FEATURES" do
       before :each do
         $LOADED_FEATURES << "load_fixture"
@@ -401,6 +407,12 @@ describe :kernel_require, :shared => true do
           @object.require(path).should be_true
         end
         $LOADED_FEATURES.should == [path]
+      end
+
+      it "stores the resolved filename" do
+        $LOAD_PATH << CODE_LOADING_DIR
+        @object.require("load_fixture.rb").should be_true
+        $LOADED_FEATURES.should == ["load_fixture.rb"]
       end
 
       it "adds the suffix of the resolved filename" do
