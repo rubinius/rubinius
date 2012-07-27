@@ -19,26 +19,26 @@ end
 
 class NilClass
   def __marshal__(ms)
-    Rubinius.binary_string("0")
+    Rubinius::Type.binary_string("0")
   end
 end
 
 class TrueClass
   def __marshal__(ms)
-    Rubinius.binary_string("T")
+    Rubinius::Type.binary_string("T")
   end
 end
 
 class FalseClass
   def __marshal__(ms)
-    Rubinius.binary_string("F")
+    Rubinius::Type.binary_string("F")
   end
 end
 
 class Symbol
   def __marshal__(ms)
     if idx = ms.find_symlink(self)
-      Rubinius.binary_string(";#{ms.serialize_integer(idx)}")
+      Rubinius::Type.binary_string(";#{ms.serialize_integer(idx)}")
     else
       ms.add_symlink self
       ms.serialize_symbol(self)
@@ -87,7 +87,7 @@ end
 class Struct
   def __marshal__(ms)
     attr_syms = _attrs.map { |a| "@#{a}".to_sym }
-    exclude = Rubinius.convert_to_names attr_syms
+    exclude = Rubinius::Type.convert_to_names attr_syms
 
     out =  ms.serialize_instance_variables_prefix(self, exclude)
     out << ms.serialize_extended_object(self)
@@ -134,7 +134,7 @@ class Hash
       @capacity @mask @max_entries @size @entries @default_proc @default
       @state @compare_by_identity @head @tail @table
     ].map { |a| a.to_sym }
-    excluded_ivars = Rubinius.convert_to_names exclude_syms
+    excluded_ivars = Rubinius::Type.convert_to_names exclude_syms
 
     out =  ms.serialize_instance_variables_prefix(self, excluded_ivars)
     out << ms.serialize_extended_object(self)
@@ -166,7 +166,7 @@ class Float
           else
             ("%.*g" % [17, self]) + ms.serialize_mantissa(self)
           end
-    Rubinius.binary_string("f#{ms.serialize_integer(str.length)}#{str}")
+    Rubinius::Type.binary_string("f#{ms.serialize_integer(str.length)}#{str}")
   end
 end
 
@@ -710,7 +710,7 @@ module Marshal
       @depth -= 1;
 
       if link = find_link(obj)
-        str = Rubinius.binary_string("@#{serialize_integer(link)}")
+        str = Rubinius::Type.binary_string("@#{serialize_integer(link)}")
       else
         add_object obj
 
@@ -736,7 +736,7 @@ module Marshal
           str << "e#{serialize(mod.name.to_sym)}"
         end
       end
-      Rubinius.binary_string(str)
+      Rubinius::Type.binary_string(str)
     end
 
     def serialize_mantissa(flt)
@@ -755,7 +755,7 @@ module Marshal
         end
         str.gsub!(/(\000)*\Z/, '')
       end
-      Rubinius.binary_string(str)
+      Rubinius::Type.binary_string(str)
     end
 
     def serializable_instance_variables(obj, exclude_ivars)
@@ -766,7 +766,7 @@ module Marshal
 
     def serialize_instance_variables_prefix(obj, exclude_ivars = false)
       ivars = serializable_instance_variables(obj, exclude_ivars)
-      Rubinius.binary_string(!ivars.empty? || serialize_encoding?(obj) ? "I" : "")
+      Rubinius::Type.binary_string(!ivars.empty? || serialize_encoding?(obj) ? "I" : "")
     end
 
     def serialize_instance_variables_suffix(obj, force=false,
@@ -775,7 +775,7 @@ module Marshal
       ivars = serializable_instance_variables(obj, exclude_ivars)
 
       unless force or !ivars.empty? or serialize_encoding?(obj)
-        return Rubinius.binary_string("")
+        return Rubinius::Type.binary_string("")
       end
 
       count = ivars.size
@@ -798,12 +798,12 @@ module Marshal
         str << serialize(val)
       end
 
-      Rubinius.binary_string(str)
+      Rubinius::Type.binary_string(str)
     end
 
     def serialize_integer(n, prefix = nil)
       if (!Rubinius::L64 && n.is_a?(Fixnum)) || ((n >> 31) == 0 or (n >> 31) == -1)
-        Rubinius.binary_string(prefix.to_s + serialize_fixnum(n))
+        Rubinius::Type.binary_string(prefix.to_s + serialize_fixnum(n))
       else
         serialize_bignum(n)
       end
@@ -827,7 +827,7 @@ module Marshal
         end
         s[0] = (n < 0 ? 256 - cnt : cnt).chr
       end
-      Rubinius.binary_string(s)
+      Rubinius::Type.binary_string(s)
     end
 
     def serialize_bignum(n)
@@ -846,23 +846,23 @@ module Marshal
         cnt += 1
       end
 
-      Rubinius.binary_string(str[0..1] + serialize_fixnum(cnt / 2) + str[2..-1])
+      Rubinius::Type.binary_string(str[0..1] + serialize_fixnum(cnt / 2) + str[2..-1])
     end
 
     def serialize_symbol(obj)
       str = obj.to_s
-      Rubinius.binary_string(":#{serialize_integer(str.length)}#{str}")
+      Rubinius::Type.binary_string(":#{serialize_integer(str.length)}#{str}")
     end
 
     def serialize_string(str)
-      Rubinius.binary_string("\"#{serialize_integer(str.length)}#{str}")
+      Rubinius::Type.binary_string("\"#{serialize_integer(str.length)}#{str}")
     end
 
     def serialize_user_class(obj, cls)
       if obj.class != cls
-        Rubinius.binary_string("C#{serialize(obj.class.name.to_sym)}")
+        Rubinius::Type.binary_string("C#{serialize(obj.class.name.to_sym)}")
       else
-        Rubinius.binary_string('')
+        Rubinius::Type.binary_string('')
       end
     end
 
@@ -874,7 +874,7 @@ module Marshal
       end
 
       out = serialize_instance_variables_prefix(str)
-      out << Rubinius.binary_string("u#{serialize(obj.class.name.to_sym)}")
+      out << Rubinius::Type.binary_string("u#{serialize(obj.class.name.to_sym)}")
       out << serialize_integer(str.length) + str
       out << serialize_instance_variables_suffix(str)
 
@@ -888,7 +888,7 @@ module Marshal
 
       cls = Rubinius::Type.object_class obj
       name = Rubinius::Type.module_inspect cls
-      Rubinius.binary_string("U#{serialize(name.to_sym)}#{val.__marshal__(self)}")
+      Rubinius::Type.binary_string("U#{serialize(name.to_sym)}#{val.__marshal__(self)}")
     end
 
     def set_instance_variables(obj)
@@ -964,7 +964,7 @@ module Marshal
       raise TypeError, "output must respond to write"
     end
 
-    str = Rubinius.binary_string(VERSION_STRING) + ms.serialize(obj)
+    str = Rubinius::Type.binary_string(VERSION_STRING) + ms.serialize(obj)
 
     if an_io
       an_io.write(str)

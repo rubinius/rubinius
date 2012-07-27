@@ -177,7 +177,7 @@ module Kernel
   module_function :caller
 
   def global_variables
-    Rubinius.convert_to_names Rubinius::Globals.variables
+    Rubinius::Type.convert_to_names Rubinius::Globals.variables
   end
   module_function :global_variables
 
@@ -398,7 +398,7 @@ module Kernel
       ary << sym if sym.is_ivar?
     end
 
-    Rubinius.convert_to_names ary
+    Rubinius::Type.convert_to_names ary
   end
 
   alias_method :__instance_variables__, :instance_variables
@@ -477,7 +477,7 @@ module Kernel
       methods.concat m.method_table.private_names
     end
 
-    Rubinius.convert_to_names methods
+    Rubinius::Type.convert_to_names methods
   end
   private :private_singleton_methods
 
@@ -498,7 +498,7 @@ module Kernel
       methods.concat m.method_table.protected_names
     end
 
-    Rubinius.convert_to_names methods
+    Rubinius::Type.convert_to_names methods
   end
   private :protected_singleton_methods
 
@@ -524,7 +524,7 @@ module Kernel
       end
     end
 
-    Rubinius.convert_to_names methods.uniq
+    Rubinius::Type.convert_to_names methods.uniq
   end
 
   def to_s
