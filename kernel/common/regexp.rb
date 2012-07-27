@@ -92,7 +92,7 @@ class Regexp
       if match.collapsing?
         start += 1
       else
-        start = match.end(0)
+        start = match.full.at(1)
       end
     end
     arr

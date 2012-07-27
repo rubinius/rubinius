@@ -594,7 +594,7 @@ class String
     end
 
     while match = pattern.match_from(self, index)
-      fin = match.end(0)
+      fin = match.full.at(1)
 
       if match.collapsing?
         if char = find_character(fin)

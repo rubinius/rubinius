@@ -74,7 +74,7 @@ module Rubinius
 
         collapsed = match.collapsing?
 
-        unless collapsed && (match.begin(0) == last_match_end)
+        unless collapsed && (match.full.at(0) == last_match_end)
           ret << match.pre_match_from(last_match_end)
           ret.push(*match.captures.compact)
         end
@@ -82,13 +82,13 @@ module Rubinius
         if collapsed
           start += 1
         elsif last_match && last_match.collapsing?
-          start = match.end(0) + 1
+          start = match.full.at(1) + 1
         else
-          start = match.end(0)
+          start = match.full.at(1)
         end
 
         last_match = match
-        last_match_end = last_match.end(0)
+        last_match_end = last_match.full.at(1)
       end
 
       if last_match
