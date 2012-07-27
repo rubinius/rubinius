@@ -585,6 +585,7 @@ module Rubinius
         pos(g)
 
         if g.redo
+          g.check_interrupts
           g.goto g.redo
         else
           jump_error g, :redo
