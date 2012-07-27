@@ -257,16 +257,16 @@ module Rubinius
     # name in $LOAD_PATH.
     #
     # Returns true if a loadable file is found, otherwise returns false.
-    def verify_load_path(path, loading=false)
-      path = File.expand_path path if home_path? path
+    def verify_load_path(file, loading=false)
+      file = File.expand_path file if home_path? file
 
-      if qualified_path? path
-        return false unless loadable? path
+      if qualified_path? file
+        return false unless loadable? file
       else
-        return false unless path = search_load_path(path, loading)
+        return false unless path = search_load_path(file, loading)
       end
 
-      update_paths(path, path)
+      update_paths(file, path || file)
 
       return true
     end
