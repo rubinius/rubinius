@@ -22,7 +22,7 @@ class String
 
   alias_method :each_codepoint, :codepoints
 
-  def encode!(to=undefined, from=undefined, options=nil)
+  def encode!(to=undefined, from=undefined, options=undefined)
     Rubinius.check_frozen
 
     # TODO
@@ -32,11 +32,33 @@ class String
       to = Rubinius::Type.coerce_to_encoding to
     end
 
+    if options.equal?(undefined)
+      if from.is_a?(Hash)
+        options = from
+      else
+        options = {}
+      end
+    end
+
     force_encoding to
+
+    case xml = options[:xml]
+      when :text
+        gsub!(/[&><]/, '&' => '&amp;', '>' => '&gt;', '<' => '&lt;')
+      when :attr
+        gsub!(/[&><"]/, '&' => '&amp;', '>' => '&gt;', '<' => '&lt;', '"' => '&quot;')
+        insert(0, '"')
+        insert(-1, '"')
+      when nil
+        # nothing
+      else
+        raise ArgumentError, "unexpected value for xml option: #{xml.inspect}"
+    end
+
     self
   end
 
-  def encode(to=undefined, from=undefined, options=nil)
+  def encode(to=undefined, from=undefined, options=undefined)
     dup.encode!(to, from, options)
   end
 
