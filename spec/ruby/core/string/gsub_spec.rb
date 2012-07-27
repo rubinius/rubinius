@@ -177,6 +177,12 @@ describe "String#gsub with pattern and replacement" do
   end
 
   ruby_version_is "1.9" do
+    it "handles pattern collapse without $KCODE" do
+      str = "こにちわ"
+      reg = %r!!
+      str.gsub(reg, ".").should == ".こ.に.ち.わ."
+    end
+
     it "untrusts the result if the original string or replacement is untrusted" do
       hello = "hello"
       hello_t = "hello"
