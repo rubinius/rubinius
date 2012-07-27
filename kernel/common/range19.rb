@@ -1,7 +1,11 @@
 # -*- encoding: us-ascii -*-
 
 class Range
-  alias_method :cover?, :===
+  def ===(value)
+    include?(value)
+  end
+
+  alias_method :cover?, :include?
 
   def max(&block)
     raise TypeError, "cannot exclude non Integer end value" if @end.kind_of?(Float) && @excl
