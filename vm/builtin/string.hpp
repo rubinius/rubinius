@@ -228,6 +228,7 @@ namespace rubinius {
     String* byte_substring(STATE, native_int index, native_int length);
     String* char_substring(STATE, native_int index, native_int length);
 
+    OnigEncodingType* get_encoding_kcode_fallback(STATE);
     native_int find_character_byte_index(STATE, native_int index, native_int start = 0);
 
     // Rubinius.primitive :string_index
