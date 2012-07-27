@@ -244,6 +244,12 @@ describe :kernel_require, :shared => true do
       ScratchPad.recorded.should == [:loaded]
     end
 
+    it "does not load twice the same file" do
+      $LOAD_PATH << CODE_LOADING_DIR
+      @object.require("load_fixture.rb").should be_true
+      @object.require("load_fixture").should be_false
+    end
+
     it "loads a .rb extensioned file when a C-extension file of the same name is loaded" do
       $LOADED_FEATURES << File.expand_path("load_fixture.bundle", CODE_LOADING_DIR)
       $LOADED_FEATURES << File.expand_path("load_fixture.dylib", CODE_LOADING_DIR)
