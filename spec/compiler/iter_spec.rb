@@ -904,6 +904,7 @@ describe "An Iter node" do
       redo_lbl = d.new_label
       d.push_modifiers
       redo_lbl.set!
+      d.check_interrupts
       d.goto redo_lbl
       d.pop_modifiers
       d.ret
@@ -931,6 +932,7 @@ describe "An Iter node" do
       d.send :x, 0, true
       d.gif f
 
+      d.check_interrupts
       d.goto redo_lbl
       d.goto done
 
