@@ -160,6 +160,11 @@ describe "File.expand_path" do
       Encoding.default_external = Encoding::SHIFT_JIS
       File.expand_path("./a").encoding.should == Encoding::SHIFT_JIS
     end
+
+    it "raises a Encoding::CompatibilityError if the external encoding is not compatible" do
+      Encoding.default_external = Encoding::UTF_16BE
+      lambda { File.expand_path("./a") }.should raise_error(Encoding::CompatibilityError)
+    end
   end
 
   ruby_version_is "2.0" do
