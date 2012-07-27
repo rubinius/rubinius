@@ -80,7 +80,7 @@ class Module
   end
 
   def class_variables
-    Rubinius.convert_to_names(__class_variables__)
+    Rubinius::Type.convert_to_names(__class_variables__)
   end
 
   def name
@@ -253,7 +253,7 @@ class Module
       end
     end
 
-    Rubinius.convert_to_names ary
+    Rubinius::Type.convert_to_names ary
   end
 
   def public_instance_methods(all=true)
@@ -290,7 +290,7 @@ class Module
       end
     end
 
-    Rubinius.convert_to_names ary
+    Rubinius::Type.convert_to_names ary
   end
 
   private :filter_methods

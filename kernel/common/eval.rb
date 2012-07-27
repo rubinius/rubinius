@@ -26,7 +26,7 @@ module Kernel
       scope = scope.parent
     end
 
-    Rubinius.convert_to_names(locals)
+    Rubinius::Type.convert_to_names(locals)
   end
   module_function :local_variables
 

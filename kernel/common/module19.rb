@@ -143,7 +143,7 @@ class Module
       end
     end
 
-    Rubinius.convert_to_names tbl.keys
+    Rubinius::Type.convert_to_names tbl.keys
   end
 
   def private_constant(*names)
