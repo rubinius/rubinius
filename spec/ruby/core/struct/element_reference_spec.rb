@@ -41,4 +41,12 @@ describe "Struct#[]" do
     car = StructClasses::Car.new('Ford', 'Ranger')
     lambda { car[Object.new] }.should raise_error(TypeError)
   end
+
+  it "returns attribute names that contain hyphens" do
+    klass = Struct.new(:'current-state')
+    tuple = klass.new(0)
+    tuple['current-state'].should == 0
+    tuple[:'current-state'].should == 0
+    tuple[0].should == 0
+  end
 end
