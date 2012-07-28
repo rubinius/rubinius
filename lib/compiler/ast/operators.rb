@@ -136,13 +136,14 @@ module Rubinius
     end
 
     class OpAssign1 < Node
-      attr_accessor :receiver, :op, :index, :value
+      attr_accessor :receiver, :op, :arguments, :value
 
-      def initialize(line, receiver, index, op, value)
+      def initialize(line, receiver, arguments, op, value)
         @line = line
         @receiver = receiver
         @op = op
-        @index = index.body
+        arguments = nil if arguments.is_a?(EmptyArray)
+        @arguments = ActualArguments.new line, arguments
         @value = value
       end
 
@@ -154,21 +155,23 @@ module Rubinius
         # X: Pull h onto the stack
         @receiver.bytecode(g)
         # X: Pull :a in
-        @index.each do |idx|
-          idx.bytecode(g)
-        end
+        @arguments.bytecode(g)
+        recv_stack = @arguments.stack_size + 1
 
-        recv_stack = @index.size + 1
-
-        # Dup the receiver and index to use later
+        # Dup the receiver and arguments to use later
         g.dup_many recv_stack
 
         #
         # X: Call [](:a) on h
         #
-        # @index.size will be 1
+        # @arguments.size will be 1
 
-        g.send :[], @index.size
+        if @arguments.splat?
+          g.push :nil
+          g.send_with_splat :[], @arguments.size
+        else
+          g.send :[], @arguments.size
+        end
 
         # X: 2 is now on the top of the stack (TOS)
 
@@ -190,7 +193,7 @@ module Rubinius
           # Ok, take the extra copy off and pull the value onto the stack
           g.pop
 
-          # The receiver and index are still on the stack
+          # The receiver and arguments are still on the stack
 
           @value.bytecode(g)
 
@@ -198,7 +201,13 @@ module Rubinius
           g.dup
           g.move_down recv_stack + 1
 
-          g.send :[]=, @index.size + 1
+          if @arguments.splat?
+            g.send :push, 1
+            g.push :nil
+            g.send_with_splat :[]=, @arguments.size
+          else
+            g.send :[]=, @arguments.size + 1
+          end
           g.pop
 
           # Leaves the value we moved down the stack on the top
@@ -225,22 +234,28 @@ module Rubinius
           # X: 5 TOS
 
           # The new value is on the stack now. It is the last argument to the call
-          # to []= because your dupd versions of recv and index are still on the stack.
+          # to []= because your dupd versions of recv and arguments are still on the stack.
 
           # retain the rhs as the expression value
           g.dup
           g.move_down recv_stack + 1
 
           # X: Call []=(:a, 5) on h
-          g.send :[]=, @index.size + 1
+          if @arguments.splat?
+            g.send :push, 1
+            g.push :nil
+            g.send_with_splat :[]=, @arguments.size
+          else
+            g.send :[]=, @arguments.size + 1
+          end
           g.pop
         end
       end
 
       def to_sexp
-        index = @index.inject([:arglist]) { |s, x| s << x.to_sexp }
+        arguments = [:arglist] + @arguments.to_sexp
         op = @op == :or ? :"||" : :"&&"
-        [:op_asgn1, @receiver.to_sexp, index, op, @value.to_sexp]
+        [:op_asgn1, @receiver.to_sexp, arguments, op, @value.to_sexp]
       end
     end
 

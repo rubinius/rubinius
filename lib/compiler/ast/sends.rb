@@ -455,6 +455,12 @@ module Rubinius
         @array.size
       end
 
+      def stack_size
+        size = @array.size
+        size += 1 if splat?
+        size
+      end
+
       def splat?
         not @splat.nil?
       end
