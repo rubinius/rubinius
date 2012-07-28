@@ -159,7 +159,161 @@
 
   
 
-    
+    <h1 id="basics">Basics</h1>
+
+<p>If you have used other languages, you certainly know what is a function.
+A function is a peace of code which can take several arguments or parameters
+(they designate the same term) and which will return or print out something
+when we call it. A function, in most case, return a result.
+A method works like a function but is associated to an object. Take a
+simple example: a method which say &ldquo;hello&rdquo; to a given name:</p>
+
+<pre><code>def hello(name)
+  puts "Hello #{name}!"
+end
+
+hello("John")
+</code></pre>
+
+<p>Now, if you execute your script, it will output &ldquo;Hello John&rdquo;. We have said that
+a method is associated to an object and even if we don&rsquo;t create a single one
+here, our method is associated to an object. This object is the <code>main</code> object
+which inherit from the <code>Object</code> object.</p>
+
+<p>Here our method print out a sentence. In most case, we return something then
+use a method to print the return (like <code>puts</code> in most case). Here, we can
+edit our method like this:</p>
+
+<pre><code>def hello name
+  return "Hello #{name}!"  	  
+end
+
+puts hello "John"
+</code></pre>
+
+<p>In the code above, you can see that there is no more braces both in the method
+declaration and when we call it. Rubies lets you write beautiful code with
+no extra braces, semi-colon or whatever which can seems to be useless. In 
+programming it&rsquo;s what we call <em>syntaxic sugar</em>. You&rsquo;ll see that there is a lot
+of syntaxic sugar in Ruby, and, sometimes, you&rsquo;ll see that syntaxic sugar is
+essential.</p>
+
+<p>There is also a rule in Ruby you can consider as a kind of syntaxic sugar which
+says that the last line of a method is the returned statement. Sometimes, we
+still use <code>return</code> for more readability. So, we can edit our method like this:</p>
+
+<pre><code>def hello(name)
+  "Hello #{name}"
+end
+</code></pre>
+
+<p>And it will work! </p>
+
+<h1 id="arguments">Arguments</h1>
+
+<p>As we have see in the previous example, a method can take arguments (also called
+parameters). In the previous example, our uniq parameter was the name of the 
+person who we want to say hello. If we want, we can pass several arguments if 
+we named them. We will also see that we can also pass specific argument such
+as blocks. For example, we can define a <code>multiply</code> method which will multiply
+two given numbers. For example:</p>
+
+<pre><code>def multiply(a, b)
+  a * b
+end
+
+multiply 2, 3 # =&gt; 6
+</code></pre>
+
+<p>The problem whith this kind of approach is that you should define x variables
+as parameters if you want to multiply x numbers together. It&rsquo;s not really
+flexible. The solution is to put an asterisk (*) just before a single parameter
+like this for example:</p>
+
+<pre><code>def multiply(*args)
+  b = 1
+  args.map {|n| b *= n}
+  return b
+end
+</code></pre>
+
+<p>Here, we define a single argument with an asterisk just before it ; it tells
+Rubinius to allow the user to pass several arguments to the method. You&rsquo;ll
+often see <code>args</code> just after the asterisk. It&rsquo;s just a convention but you can
+name it as you want. So now, we can call our method multiplying as many numbers
+as we want:</p>
+
+<pre><code>multiply(1, 2, 3, 4) # =&gt; 24
+</code></pre>
+
+<p>It works fine. Cool ! One thing we have not covered here is the ability to
+define a default value for an argument. For example, take our first example
+with the <code>hello</code> method. We can for example set a default name for the <code>name</code> 
+argument like this:</p>
+
+<pre><code>def hello(name = "John")
+  "Hello #{name}!"
+end
+
+puts hello # =&gt; Hello John! 
+</code></pre>
+
+<h1 id="bang-and-predicate-methods">Bang and predicate methods</h1>
+
+<p>There are special methods which are specific to Ruby and often covered together. 
+These methods end with a question mark (?) or a bang (!) and are respectively
+called predicate and bang methods.</p>
+
+<h2 id="predicate-methods">Predicate methods</h2>
+
+<p>The predicate methods (which end with a question mark) return boolean values 
+(<code>true</code> or <code>false</code>). There are not <em>magical</em>, you should make code which return 
+the correct boolean ; it&rsquo;s just a kind of convention when you named your methods.
+For example, take a method, called <code>palindrome?</code> which return <code>true</code> if the 
+given word is a palindrome and <code>false</code> if it isn&rsquo;t:</p>
+
+<pre><code>def palindrome?(word)
+  if word.reverse == word
+    return true
+  else
+    return false
+  end
+end
+
+palindrome?("kayak") # =&gt; true
+palindrome?("volley") # =&gt; false
+</code></pre>
+
+<p>Quite simple, no ? Here, you can see that the reverse method is call on an object
+(here the <code>word</code> object which is a string). In this case, we often say that the
+method is the sender (it sends a message to the object) and the object, the receiver. </p>
+
+<p>There are native predicate methods such as <code>Fixnum#even?</code>, <code>Array#include?</code> or
+<code>Kernel#block_given?</code>.</p>
+
+<h2 id="bang-methods">Bang methods</h2>
+
+<p>The bang methods are often introduced with the predicate methods but their
+aim isn&rsquo;t the same. The bang methods (which end with an exclamation mark) are
+methods which alter the object itself when they are called on it. For example,
+the <code>reverse</code> method has a bang equivalent (which is <code>reverse!</code>). See how it
+works in <code>irb</code> for example:</p>
+
+<pre><code>&gt;&gt; name = "John"
+=&gt; "John"
+&gt;&gt; name.reverse
+=&gt; "nhoJ"
+&gt;&gt; name
+=&gt; "John"
+&gt;&gt; name.reverse!
+=&gt; "nhoJ"
+&gt;&gt; name
+=&gt; "nhoJ"
+</code></pre>
+
+<p>When we call the <code>reverse!</code> method, the name variable is altered and its value
+changes accordingly. It&rsquo;s quite hard to try to create a bang method for the
+moment because we haven&rsquo;t yet covered some concepts such as <code>self</code> or classes. </p>
 
 
 </div>

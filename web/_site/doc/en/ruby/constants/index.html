@@ -159,7 +159,44 @@
 
   
 
-    
+    <p>A constant is just an object wherein we can store strings or whatever object
+we want. For example, we can store a simple string (your name for instance):</p>
+
+<pre><code>Name = "John"
+</code></pre>
+
+<p>A constant can be differencied by a variable by the fact by its name starts
+with a capital letter and because it&rsquo;s normally unredefinable. To define a
+constant, normally, you just have to capitalize the first letter but, by 
+convention, we capitalize all of the letters such as:</p>
+
+<pre><code>NAME = "John"
+</code></pre>
+
+<p>If you want, you can call methods on the constant or, if you need it, pass
+it as an argument of a method. For example, with the <code>hello</code> method of the
+previous chapter, we can pass our constant as a parameter:</p>
+
+<pre><code>hello(NAME) # =&gt; "Hello John"
+</code></pre>
+
+<p>A constant is just an object so you can call method on it! Such as:</p>
+
+<pre><code>NAME.upcase # =&gt; "JOHN"
+
+NAME.reverse # =&gt; "nhoJ"
+
+NAME.prepend("Doe ") #=&gt; "Doe John"
+</code></pre>
+
+<p>Bang methods alter the constant itself. You can use the bang equivalent in the
+example above placing an exclamation mark just after <code>upcase</code> or <code>reverse</code> to
+change the value of the constant. </p>
+
+<p>In Ruby, constants are also used to define modules and classes names. You can
+for instance take the example of the native classes (<code>String</code>, <code>Fixnum</code>, <code>Array</code>,
+or <code>Hash</code> for instance). They all start with a capital letter and are considered
+as constants.</p>
 
 
 </div>
