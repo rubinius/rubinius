@@ -33,22 +33,39 @@ class Struct
 
     return unless superclass.equal? Struct
 
-    args = []
-    0.upto(attrs.size-1) do |i|
-      args << "a#{i} = nil"
-    end
+    # To allow for optimization, we generate code with normal ivar
+    # references for all attributes whose names can be written as
+    # tIVAR tokens. For example, of the following struct attributes
+    #
+    #   Struct.new(:a, :@b, :c?, :'d-e')
+    #
+    # only the first, :a, can be written as a valid tIVAR token:
+    #
+    #   * :a can be written as @a
+    #   * :@b becomes @@b and would be interpreted as a tCVAR
+    #   * :c? becomes @c? and be interpreted as the beginning of
+    #     a ternary expression
+    #   * :'d-e' becomes @d-e and would be interpreted as a method
+    #     invocation
+    #
+    # Attribute names that cannot be written as tIVAR tokens will
+    # fall back to using #instance_variable_(get|set).
 
-    assigns = []
-    0.upto(attrs.size-1) do |i|
-      assigns << "@#{attrs[i]} = a#{i}"
-    end
+    args, assigns, hashes, vars = [], [], [], []
 
-    hashes = []
-    vars = []
+    attrs.each_with_index do |name, i|
+      name = "@#{name}"
 
-    0.upto(attrs.size-1) do |i|
-      hashes << "@#{attrs[i]}.hash"
-      vars << "@#{attrs[i]}"
+      if /^@[a-z_]\w*$/i === name
+        assigns << "#{name} = a#{i}"
+        vars    << name
+      else
+        assigns << "instance_variable_set(:#{name.inspect}, a#{i})"
+        vars    << "instance_variable_get(:#{name.inspect})"
+      end
+
+      args   << "a#{i} = nil"
+      hashes << "#{vars[-1]}.hash"
     end
 
     code = <<-CODE
