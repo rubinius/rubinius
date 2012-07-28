@@ -10,8 +10,11 @@ module Rubinius
 
     def [](key)
       value = getenv(StringValue(key))
-      set_encoding value
-      value.freeze
+      if value
+        set_encoding value
+        value.freeze
+      end
+      value
     end
 
     def each_key
