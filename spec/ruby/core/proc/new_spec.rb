@@ -120,6 +120,33 @@ describe "Proc.new with an associated block" do
   end
 end
 
+describe "Proc.new with a block argument" do
+  it "returns the passed proc created from a block" do
+    passed_prc = Proc.new { "hello".class }
+    prc = Proc.new(&passed_prc)
+
+    prc.should equal(passed_prc)
+    prc.call.should == String
+  end
+
+  it "returns the passed proc created from a method" do
+    method = "hello".method(:class)
+    passed_prc = Proc.new(&method)
+    prc = Proc.new(&passed_prc)
+
+    prc.should equal(passed_prc)
+    prc.call.should == String
+  end
+
+  it "returns the passed proc created from a symbol" do
+    passed_prc = Proc.new(&:class)
+    prc = Proc.new(&passed_prc)
+
+    prc.should equal(passed_prc)
+    prc.call("hello").should == String
+  end
+end
+
 describe "Proc.new without a block" do
   it "raises an ArgumentError" do
     lambda { Proc.new }.should raise_error(ArgumentError)
