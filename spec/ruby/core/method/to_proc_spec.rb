@@ -65,4 +65,22 @@ describe "Method#to_proc" do
     obj = MethodSpecs::ToProcBeta.new
     obj.to_proc.call([1]).should == [1]
   end
+
+  it "should correct handle arguments (unwrap)" do
+    obj = MethodSpecs::ToProcBeta.new
+
+    array = [[1]]
+    array.each(&obj)
+    ScratchPad.recorded.should == [[1]]
+  end
+
+  ruby_version_is "1.9" do
+    it "executes method with whole array (one argument)" do
+      obj = MethodSpecs::ToProcBeta.new
+
+      array = [[1, 2]]
+      array.each(&obj)
+      ScratchPad.recorded.should == [[1, 2]]
+    end
+  end
 end
