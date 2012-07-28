@@ -2,7 +2,10 @@
 
 module Signal
   Rubinius::Config.section 'rbx.platform.signal.' do |key, value|
-    Names[key[23, key.length]] = value.to_i
+    name = key[23, key.length]
+    number = value.to_i
+    Names[name] = number
+    Numbers[number] = name
   end
 
   # special case of signal.c
