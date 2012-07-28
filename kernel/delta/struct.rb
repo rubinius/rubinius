@@ -56,7 +56,7 @@ class Struct
     attrs.each_with_index do |name, i|
       name = "@#{name}"
 
-      if /^@[a-z_]\w*$/i === name
+      if name =~ /^@[a-z_]\w*$/i
         assigns << "#{name} = a#{i}"
         vars    << name
       else
