@@ -5,6 +5,10 @@ module Signal
     "EXIT" => 0
   }
 
+  Numbers = {
+    0 => "EXIT"
+  }
+
   @threads = {}
   @handlers = {}
 

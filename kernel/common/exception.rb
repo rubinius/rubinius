@@ -249,6 +249,10 @@ class NotImplementedError < ScriptError
 end
 
 class Interrupt < SignalException
+  def initialize(*args)
+    super(args.shift)
+    @name = args.shift
+  end
 end
 
 class IOError < StandardError
