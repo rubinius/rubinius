@@ -126,6 +126,12 @@ module Rubinius
       Signal.trap("INT") do |sig|
         raise Interrupt, "Thread has been interrupted"
       end
+
+      ["HUP", "QUIT", "TERM", "ALRM", "USR1", "USR2"].each do |signal|
+        Signal.trap(signal) do |sig|
+          raise SignalException, sig
+        end
+      end
     end
 
     def show_syntax_error(e)
@@ -828,6 +834,14 @@ to rebuild the compiler.
 
           STDERR.puts "\nBacktrace:"
           STDERR.puts e.awesome_backtrace.show
+        rescue Interrupt => e
+          @exit_code = 1
+
+          write_last_error(e)
+          e.render "An exception occurred #{@stage}"
+        rescue SignalException => e
+          Signal.trap(e.signo, "SIG_DFL")
+          Process.kill e.signo, Process.pid
         rescue Object => e
           @exit_code = 1
 
