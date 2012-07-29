@@ -42,9 +42,7 @@ module Signal
       end
 
       return "DEFAULT" unless had_old
-      return old if old
-      return "IGNORE" if Rubinius.ruby18?
-      return nil
+      return old ? old : "IGNORE"
     when "IGNORE", "SIG_IGN", nil
       prc = nil
     when "EXIT"
