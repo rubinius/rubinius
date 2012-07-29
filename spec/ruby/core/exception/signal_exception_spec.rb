@@ -112,3 +112,15 @@ describe "SignalException.new" do
     lambda { SignalException.new("INT","name") }.should raise_error(ArgumentError)
   end
 end
+
+describe "rescueing SignalException" do
+
+  it "raises a SignalException when sent a signal" do
+    begin
+      Process.kill :TERM, Process.pid
+    rescue SignalException => e
+      e.signo.should == Signal.list["TERM"]
+    end
+  end
+
+end
