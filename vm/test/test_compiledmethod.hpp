@@ -2,7 +2,7 @@
 
 #include "builtin/iseq.hpp"
 
-class TestCompiledMethod : public CxxTest::TestSuite, public VMTest {
+class TestCompiledCode : public CxxTest::TestSuite, public VMTest {
 public:
 
   void setUp() {

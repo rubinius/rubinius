@@ -5,13 +5,13 @@
 #include <list>
 
 namespace rubinius {
-  class CompiledMethod;
+  class CompiledCode;
   class State;
   class VM;
   class Tuple;
 
   class BytecodeVerification {
-    CompiledMethod* method_;
+    CompiledCode* method_;
 
     Tuple* ops_;
     native_int total_;
@@ -41,7 +41,7 @@ namespace rubinius {
     };
 
   public:
-    BytecodeVerification(CompiledMethod* cm);
+    BytecodeVerification(CompiledCode* cm);
     ~BytecodeVerification();
 
     bool verify(STATE);

@@ -33,7 +33,7 @@ namespace rubinius {
     JITInlineBlock* inline_block_;
     JITInlineBlock* block_info_;
 
-    TypedRoot<CompiledMethod*> method_;
+    TypedRoot<CompiledCode*> method_;
 
     llvm::BasicBlock* return_pad_;
     llvm::PHINode* return_phi_;
@@ -56,7 +56,7 @@ namespace rubinius {
     type::KnownType self_type;
 
   public:
-    JITMethodInfo(jit::Context& ctx, CompiledMethod* cm, VMMethod* v,
+    JITMethodInfo(jit::Context& ctx, CompiledCode* cm, VMMethod* v,
                   JITMethodInfo* parent = 0);
 
     jit::Context& context() {
@@ -135,7 +135,7 @@ namespace rubinius {
       return variables_;
     }
 
-    CompiledMethod* method() {
+    CompiledCode* method() {
       return method_.get();
     }
 

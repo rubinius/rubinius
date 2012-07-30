@@ -50,7 +50,7 @@ constant_scope19.rbc
 hook.rbc
 codeloader.rbc
 codeloader19.rbc
-compiled_method.rbc
+compiled_code.rbc
 continuation.rbc
 delegated_method.rbc
 fixnum.rbc

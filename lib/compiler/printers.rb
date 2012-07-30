@@ -89,7 +89,7 @@ module Rubinius
         end
 
         cm.literals.each do |m|
-          next unless m.kind_of? Rubinius::CompiledMethod
+          next unless m.kind_of? Rubinius::CompiledCode
           print_method m
         end
       end

@@ -212,9 +212,9 @@ public:
 
     Object* obj = mar->unmarshal();
 
-    TS_ASSERT(kind_of<CompiledMethod>(obj));
+    TS_ASSERT(kind_of<CompiledCode>(obj));
 
-    CompiledMethod* cm = as<CompiledMethod>(obj);
+    CompiledCode* cm = as<CompiledCode>(obj);
 
     TS_ASSERT_EQUALS(cm->ivars(), cNil);
     TS_ASSERT_EQUALS(cm->primitive(), state->symbol("object_equal"));

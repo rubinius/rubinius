@@ -5,7 +5,7 @@
 #include "on_stack.hpp"
 
 #include "builtin/class.hpp"
-#include "builtin/compiledmethod.hpp"
+#include "builtin/compiledcode.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/lookuptable.hpp"
 #include "builtin/methodtable.hpp"

@@ -10,7 +10,7 @@
 #include "builtin/bytearray.hpp"
 #include "builtin/class.hpp"
 #include "builtin/compactlookuptable.hpp"
-#include "builtin/compiledmethod.hpp"
+#include "builtin/compiledcode.hpp"
 #include "builtin/channel.hpp"
 #include "builtin/data.hpp"
 #include "builtin/dir.hpp"
@@ -297,7 +297,7 @@ namespace rubinius {
     Encoding::init(state);
     kcode::init(state);
     Executable::init(state);
-    CompiledMethod::init(state);
+    CompiledCode::init(state);
     IO::init(state);
     BlockEnvironment::init(state);
     ConstantScope::init(state);

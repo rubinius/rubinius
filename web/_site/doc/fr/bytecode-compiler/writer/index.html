@@ -150,7 +150,7 @@
 
   
 
-    <p>Once the Packager has created the CompiledMethod, Rubinius will write
+    <p>Once the Packager has created the CompiledCode, Rubinius will write
 the method to a file for future consumption. For instance, after a file
 is required for the first time, subsequent requires will load the file
 from disk, rather than loading in the Ruby code, then parsing and
@@ -158,10 +158,10 @@ compiling it.</p>
 
 <p>This stage is extremely simple. It takes the original input file name,
 appends <code>c</code> to the end, and calls Rubinius::CompiledFile.dump with the
-CompiledMethod from the previous stage and the file name to write to.</p>
+CompiledCode from the previous stage and the file name to write to.</p>
 
 <p>Once it finishes writing the file to the disk, it returns the input (the
-CompiledMethod), which becomes the return value of the entire compiler
+CompiledCode), which becomes the return value of the entire compiler
 process.</p>
 
 <h2 id="files-referenced">Files Referenced</h2>
@@ -176,12 +176,12 @@ process.</p>
 <p>This stage is actually optional, and is only used when compiling a file.
 When compiling a String, such as with eval, this step is skipped. In
 that case, the compiler stops in the Packager stage, and returns the
-CompiledMethod from that stage as the return value of the compiler.</p>
+CompiledCode from that stage as the return value of the compiler.</p>
 
 <p>Because of the architecture of the Rubinius compiler, it is easy to add
 additional stages to the end of the process, and as long as each of
-those stages returns the inputted CompiledMethod (or a different
-CompiledMethod), everything will work as expected.</p>
+those stages returns the inputted CompiledCode (or a different
+CompiledCode), everything will work as expected.</p>
 
 <p>For more information, please read <a href="/doc/fr/bytecode-compiler/customization/">Customizing the Compiler
 Pipeline</a>.</p>

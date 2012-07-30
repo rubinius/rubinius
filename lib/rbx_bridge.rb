@@ -34,7 +34,7 @@ module Rubinius
     attr_accessor :post_args
   end
 
-  class CompiledMethod
+  class CompiledCode
     attr_accessor :post_args
   end
 

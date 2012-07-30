@@ -10,7 +10,7 @@ module Rubinius
     attr_reader :top_scope
     attr_reader :module
 
-    # The CompiledMethod that implements the code for the block
+    # The CompiledCode that implements the code for the block
     attr_reader :code
 
     attr_accessor :proc_environment
@@ -110,7 +110,7 @@ module Rubinius
         # when given a Proc.
         #
         # The BEs are identical otherwise, except for the
-        # name of the CompiledMethod.
+        # name of the CompiledCode.
 
         other_code = other.block_env.code
         code = block_env.code

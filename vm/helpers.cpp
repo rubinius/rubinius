@@ -4,7 +4,7 @@
 #include "builtin/autoload.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/module.hpp"
-#include "builtin/compiledmethod.hpp"
+#include "builtin/compiledcode.hpp"
 #include "builtin/class.hpp"
 #include "builtin/constantscope.hpp"
 #include "builtin/lookuptable.hpp"

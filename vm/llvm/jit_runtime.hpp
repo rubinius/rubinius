@@ -10,7 +10,7 @@ namespace llvm {
 
 namespace rubinius {
   class Object;
-  class CompiledMethod;
+  class CompiledCode;
   class Symbol;
   class Module;
   class GarbageCollector;
@@ -53,20 +53,20 @@ namespace rubinius {
     class RuntimeData {
 
     public:
-      CompiledMethod* method_;
+      CompiledCode* method_;
       Symbol* name_;
       Module* module_;
 
       GCLiteral* literals_;
 
-      RuntimeData(CompiledMethod* method, Symbol* name, Module* mod)
+      RuntimeData(CompiledCode* method, Symbol* name, Module* mod)
         : method_(method)
         , name_(name)
         , module_(mod)
         , literals_(0)
       {}
 
-      CompiledMethod* method() {
+      CompiledCode* method() {
         return method_;
       }
 

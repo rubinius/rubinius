@@ -17,7 +17,7 @@ class Binding
   # all the right arguments.
   #
   # +variables+ is a Rubinius::VariableScope object
-  # +code+ is a Rubinius::CompiledMethod object
+  # +code+ is a Rubinius::CompiledCode object
   # +constant_scope+ is a Rubinius::ConstantScope object
   #
   # See Kernel#binding in kernel/common/eval.rb for a simple example of

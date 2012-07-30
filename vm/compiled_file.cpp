@@ -1,5 +1,5 @@
 /* A CompiledFile represents a .rbc. This class understands the layout
- * of a .rbc file. It can validate and load the body into a CompiledMethod
+ * of a .rbc file. It can validate and load the body into a CompiledCode
  * object.
  *
  * CompiledFile::execute is a root stack frame in Rubinius. It's where
@@ -13,7 +13,7 @@
 #include "objectmemory.hpp"
 #include "object_utils.hpp"
 #include "builtin/constantscope.hpp"
-#include "builtin/compiledmethod.hpp"
+#include "builtin/compiledcode.hpp"
 #include "builtin/class.hpp"
 #include "builtin/thread.hpp"
 
@@ -37,7 +37,7 @@ namespace rubinius {
   }
 
   bool CompiledFile::execute(STATE) {
-    TypedRoot<CompiledMethod*> cm(state, as<CompiledMethod>(body(state)));
+    TypedRoot<CompiledCode*> cm(state, as<CompiledCode>(body(state)));
 
     state->thread_state()->clear();
 

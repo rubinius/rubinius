@@ -1,5 +1,5 @@
 #include "builtin/cache.hpp"
-#include "builtin/compiledmethod.hpp"
+#include "builtin/compiledcode.hpp"
 #include "builtin/class.hpp"
 
 namespace rubinius {

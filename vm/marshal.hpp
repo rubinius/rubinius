@@ -11,7 +11,7 @@ namespace rubinius {
   class Object;
 
   class InstructionSequence;
-  class CompiledMethod;
+  class CompiledCode;
   class String;
   class Encoding;
   class Array;
@@ -37,7 +37,7 @@ namespace rubinius {
 
     Float* get_float();
     InstructionSequence* get_iseq();
-    CompiledMethod* get_cmethod();
+    CompiledCode* get_cmethod();
     Object* get_constant();
     Object* get_encoding();
 

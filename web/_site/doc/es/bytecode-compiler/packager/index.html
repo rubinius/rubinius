@@ -152,10 +152,10 @@
 
     <p>Una vez que el generador ha sido correctamente codificado en la etapa de
 Codificación, Rubinius empaqueta el bytecode creando un nuevo método compilado
-(un objeto CompiledMethod) con ciertos atributos.</p>
+(un objeto CompiledCode) con ciertos atributos.</p>
 
-<p>Estos atributos están expuestos en cualquier CompiledMethod. Es posible
-extraer un CompiledMethod a partir de un método de Ruby llamando <code>executable</code>
+<p>Estos atributos están expuestos en cualquier CompiledCode. Es posible
+extraer un CompiledCode a partir de un método de Ruby llamando <code>executable</code>
 sobre el método.</p>
 
 <ul>
@@ -188,26 +188,26 @@ convertidos en métodos compilados. Estos métodos compilados hijos se incluyen
 en la tupla de literales del método compilado padre.</p>
 
 <p>Después de que el Generator ha terminado de empaquetarse a sí mismo como un
-CompiledMethod, invoca la etapa de Escritura, con el CompiledMethod como
+CompiledCode, invoca la etapa de Escritura, con el CompiledCode como
 entrada.</p>
 
 <h2 id="ficheros-mencionados">Ficheros mencionados</h2>
 
 <ul>
-  <li><em>kernel/bootstrap/compiled_method.rb</em>: la implementación básica de
-CompiledMethod, básicamente compuesta de diversas primitivas</li>
-  <li><em>kernel/common/compiled_method.rb</em>: una implementación más robusta de
-CompiledMethod, una combinación de métodos primitivos y métodos escritos en
+  <li><em>kernel/bootstrap/compiled_code.rb</em>: la implementación básica de
+CompiledCode, básicamente compuesta de diversas primitivas</li>
+  <li><em>kernel/common/compiled_code.rb</em>: una implementación más robusta de
+CompiledCode, una combinación de métodos primitivos y métodos escritos en
 Ruby</li>
-  <li><em>vm/builtin/compiledmethod.cpp</em>: la implementación en C++ de las primitivas
-de un CompiledMethod</li>
+  <li><em>vm/builtin/compiledcode.cpp</em>: la implementación en C++ de las primitivas
+de un CompiledCode</li>
   <li><em>lib/compiler/generator.rb</em>: La implementación del método <code>package</code>, el cual
-popula el CompiledMethod con información sobre el objeto Generator.</li>
+popula el CompiledCode con información sobre el objeto Generator.</li>
 </ul>
 
 <h2 id="personalizacin">Personalización</h2>
 
-<p>En general, el método <code>package</code> está diseñado para popular el CompiledMethod
+<p>En general, el método <code>package</code> está diseñado para popular el CompiledCode
 con un grupo de variables. Sin embargo, también se podría utilizar el
 empaquetador para popular otro objeto con la misma interfaz. A pesar de todo,
 esto podría no ser útil en sí mismo sin otras personalizaciones más adelante.</p>

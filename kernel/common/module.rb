@@ -20,7 +20,7 @@ class Module
   private :included
 
   def self.nesting
-    scope = Rubinius::CompiledMethod.of_sender.scope
+    scope = Rubinius::CompiledCode.of_sender.scope
     nesting = []
     while scope and scope.module != Object
       nesting << scope.module
@@ -603,7 +603,7 @@ class Module
 
   def add_ivars(cm)
     case cm
-    when Rubinius::CompiledMethod
+    when Rubinius::CompiledCode
       new_ivars = cm.literals.select { |l| l.kind_of?(Symbol) and l.is_ivar? }
       return if new_ivars.empty?
 
@@ -640,7 +640,7 @@ class Module
     g.use_detected
     g.encode
 
-    cm = g.package Rubinius::CompiledMethod
+    cm = g.package Rubinius::CompiledCode
 
     cm.scope =
       Rubinius::ConstantScope.new(self, Rubinius::ConstantScope.new(Object))

@@ -439,15 +439,15 @@ end
 
 # Defined by the VM itself
 class Rubinius::InvalidBytecode < Rubinius::Internal
-  attr_reader :compiled_method
+  attr_reader :compiled_code
   attr_reader :ip
 
   def message
-    if @compiled_method
+    if @compiled_code
       if @ip and @ip >= 0
-        "#{super} - at #{@compiled_method.name}+#{@ip}"
+        "#{super} - at #{@compiled_code.name}+#{@ip}"
       else
-        "#{super} - method #{@compiled_method.name}"
+        "#{super} - method #{@compiled_code.name}"
       end
     else
       super

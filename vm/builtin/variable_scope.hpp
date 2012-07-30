@@ -8,7 +8,7 @@
 
 namespace rubinius {
 
-  class CompiledMethod;
+  class CompiledCode;
   class Module;
   struct CallFrame;
   class Fiber;
@@ -24,7 +24,7 @@ namespace rubinius {
     /** Block given to method */
     Object*         block_;   // slot
     /** Method this scope is for. */
-    CompiledMethod* method_;  // slot
+    CompiledCode* method_;  // slot
     Module*         module_;  // slot
     VariableScope*  parent_;  // slot
     Tuple*          heap_locals_; // slot
@@ -43,7 +43,7 @@ namespace rubinius {
 
   public: /* Accessors */
     attr_accessor(block, Object);
-    attr_accessor(method, CompiledMethod);
+    attr_accessor(method, CompiledCode);
     attr_accessor(module, Module);
     attr_accessor(parent, VariableScope);
     attr_accessor(self, Object);
@@ -112,7 +112,7 @@ namespace rubinius {
     static VariableScope* current(STATE, CallFrame* calling_environment);
 
     // Rubinius.primitive :variable_scope_synthesize
-    static VariableScope* synthesize(STATE, CompiledMethod* method, Module* module, Object* parent, Object* self, Object* block, Tuple* locals);
+    static VariableScope* synthesize(STATE, CompiledCode* method, Module* module, Object* parent, Object* self, Object* block, Tuple* locals);
 
     // Rubinius.primitive :variable_scope_locals
     Tuple* locals(STATE);

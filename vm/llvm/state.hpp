@@ -28,7 +28,7 @@
 namespace rubinius {
   typedef std::map<int, LocalInfo> LocalMap;
   class SymbolTable;
-  class CompiledMethod;
+  class CompiledCode;
   class GarbageCollector;
 
   namespace jit {
@@ -229,17 +229,17 @@ namespace rubinius {
     llvm::Type* ptr_type(std::string name);
     llvm::Type* type(std::string name);
 
-    void compile_soon(STATE, CompiledMethod* cm, Object* extra, bool is_block=false);
+    void compile_soon(STATE, CompiledCode* cm, Object* extra, bool is_block=false);
     void remove(llvm::Function* func);
 
-    CallFrame* find_candidate(STATE, CompiledMethod* start, CallFrame* call_frame);
-    void compile_callframe(STATE, CompiledMethod* start, CallFrame* call_frame,
+    CallFrame* find_candidate(STATE, CompiledCode* start, CallFrame* call_frame);
+    void compile_callframe(STATE, CompiledCode* start, CallFrame* call_frame,
                            int primitive = -1);
 
     Symbol* symbol(const std::string& sym);
     std::string symbol_debug_str(const Symbol* sym);
 
-    std::string enclosure_name(CompiledMethod* cm);
+    std::string enclosure_name(CompiledCode* cm);
 
     void shutdown(STATE);
     void before_exec(STATE);

@@ -7,8 +7,8 @@ module Rubinius
     end
 
     def self.either_method_is_delegated?(meth, other)
-      (meth.executable.kind_of?(Rubinius::CompiledMethod) && other.executable.kind_of?(Rubinius::DelegatedMethod)) ||
-      (meth.executable.kind_of?(Rubinius::DelegatedMethod) && other.executable.kind_of?(Rubinius::CompiledMethod))
+      (meth.executable.kind_of?(Rubinius::CompiledCode) && other.executable.kind_of?(Rubinius::DelegatedMethod)) ||
+      (meth.executable.kind_of?(Rubinius::DelegatedMethod) && other.executable.kind_of?(Rubinius::CompiledCode))
     end
 
     def self.delegated_receiver_for(meth)

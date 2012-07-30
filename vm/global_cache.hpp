@@ -4,7 +4,7 @@
 #include "vm/oop.hpp"
 #include "vm/object_utils.hpp"
 
-#include "builtin/compiledmethod.hpp"
+#include "builtin/compiledcode.hpp"
 
 namespace rubinius {
   #define CPU_CACHE_SIZE 0x1000

@@ -1,6 +1,6 @@
 #include "builtin/location.hpp"
 #include "builtin/class.hpp"
-#include "builtin/compiledmethod.hpp"
+#include "builtin/compiledcode.hpp"
 #include "builtin/array.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/string.hpp"
@@ -123,7 +123,7 @@ namespace rubinius {
     return bt;
   }
 
-  static bool kernel_method(STATE, CompiledMethod* cm) {
+  static bool kernel_method(STATE, CompiledCode* cm) {
     std::string s = cm->file()->cpp_str(state);
     if(s.size() >= 7 && strncmp(s.data(), "kernel/", 7) == 0) return true;
     return false;

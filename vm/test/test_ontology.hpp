@@ -136,7 +136,7 @@ public:
 
     TS_ASSERT_EQUALS(cls->class_object(state), G(klass));
     TS_ASSERT_EQUALS(cls->superclass(), G(executable));
-    TS_ASSERT_EQUALS(G(rubinius)->get_const(state, "CompiledMethod"), G(cmethod));
+    TS_ASSERT_EQUALS(G(rubinius)->get_const(state, "CompiledCode"), G(cmethod));
   }
 
   void test_dir() {

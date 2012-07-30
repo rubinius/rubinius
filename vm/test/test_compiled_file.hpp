@@ -2,7 +2,7 @@
 
 #include "compiled_file.hpp"
 #include "builtin/class.hpp"
-#include "builtin/compiledmethod.hpp"
+#include "builtin/compiledcode.hpp"
 #include "builtin/lookuptable.hpp"
 #include "builtin/constantscope.hpp"
 #include "builtin/symbol.hpp"
@@ -52,7 +52,7 @@ public:
     CompiledFile* cf = CompiledFile::load(stream);
     TS_ASSERT_EQUALS(cf->magic, "!RBIX");
 
-    CompiledMethod* cm = try_as<CompiledMethod>(cf->body(state));
+    CompiledCode* cm = try_as<CompiledCode>(cf->body(state));
     TS_ASSERT(cm);
   }
 };

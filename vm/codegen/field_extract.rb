@@ -89,7 +89,7 @@ class BasicPrimitive
     str << "    goto fail;\n\n"
     prim_return(str);
     str << "fail:\n"
-    str << "  return CompiledMethod::primitive_failed(state, call_frame, exec, mod, args);\n"
+    str << "  return CompiledCode::primitive_failed(state, call_frame, exec, mod, args);\n"
     str << "}\n\n"
   end
 
@@ -135,7 +135,7 @@ class CPPPrimitive < BasicPrimitive
       str << "  return ret;\n"
       str << "\n"
       str << "fail:\n"
-      str << "  return CompiledMethod::primitive_failed(state, call_frame, exec, mod, args);\n"
+      str << "  return CompiledCode::primitive_failed(state, call_frame, exec, mod, args);\n"
       str << "}\n\n"
     else
       args = output_args str, arg_types
@@ -535,7 +535,7 @@ class CPPOverloadedPrimitive < BasicPrimitive
 
     str << "  }\n"
     str << "fail:\n"
-    str << "  return CompiledMethod::primitive_failed(state, call_frame, exec, mod, args);\n"
+    str << "  return CompiledCode::primitive_failed(state, call_frame, exec, mod, args);\n"
     str << "}\n\n"
     return str
   end
@@ -847,7 +847,7 @@ class CPPParser
       "ConstantScope" => :ConstantScope,
       "Integer" => :Integer,
       "Fixnum" => :Fixnum,
-      "CompiledMethod" => :CompiledMethod,
+      "CompiledCode" => :CompiledCode,
       "String" => :String,
       "Module" => :Module,
       "Class" => :Class,

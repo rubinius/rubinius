@@ -1073,7 +1073,7 @@ namespace rubinius {
       Value* gep = b().CreateConstGEP2_32(call_frame_, 0, offset::CallFrame::cm, "cm_pos");
       Value* cm =  b().CreateLoad(gep, "cm");
 
-      gep = b().CreateConstGEP2_32(cm, 0, offset::CompiledMethod::literals, "literals_pos");
+      gep = b().CreateConstGEP2_32(cm, 0, offset::CompiledCode::literals, "literals_pos");
       Value* lits = b().CreateLoad(gep, "literals");
 
       Value* idx2[] = {
@@ -1698,7 +1698,7 @@ namespace rubinius {
       bool block_on_stack = !has_literal_block;
 
       InlineCache* cache = reinterpret_cast<InlineCache*>(which);
-      CompiledMethod* block_code = 0;
+      CompiledCode* block_code = 0;
 
       MethodCacheEntry* mce = cache->cache();
       atomic::memory_barrier();
@@ -1707,7 +1707,7 @@ namespace rubinius {
           ls_->config().jit_inline_blocks &&
           !context().inlined_block()) {
         if(has_literal_block) {
-          block_code = try_as<CompiledMethod>(literal(current_block_));
+          block_code = try_as<CompiledCode>(literal(current_block_));
 
           // Run the policy on the block code here, if we're not going to
           // inline it, don't inline this either.
@@ -2269,7 +2269,7 @@ use_send:
               "cm");
         }
 
-        Value* gep = b().CreateConstGEP2_32(cm, 0, offset::CompiledMethod::scope, "scope_pos");
+        Value* gep = b().CreateConstGEP2_32(cm, 0, offset::CompiledCode::scope, "scope_pos");
         stack_push(b().CreateLoad(gep, "scope"));
       }
     }

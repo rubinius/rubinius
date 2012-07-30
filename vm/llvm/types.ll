@@ -26,7 +26,7 @@
 declare void @output1(%"struct.rubinius::Arguments"*)
 
 %"struct.rubinius::jit::RuntimeData" = type {
-  %"struct.rubinius::CompiledMethod"*, ; method
+  %"struct.rubinius::CompiledCode"*, ; method
           %"struct.rubinius::Symbol"*, ; name
           %"struct.rubinius::Module"*  ; module
 }
@@ -125,7 +125,7 @@ declare void @output12(%"struct.rubinius::Array"*)
            %"struct.rubinius::Object", ; header
    %"struct.rubinius::VariableScope"*, ; scope
    %"struct.rubinius::VariableScope"*, ; top_scope
-  %"struct.rubinius::CompiledMethod"*, ; code
+  %"struct.rubinius::CompiledCode"*, ; code
           %"struct.rubinius::Module"*  ; module
 }
 
@@ -144,7 +144,7 @@ declare void @output14(%"struct.rubinius::BlockInvocation"*)
        %"struct.rubinius::CallFrame"*, ; previous
    %"struct.rubinius::ConstantScope"*, ; constant_scope
                                   i8*, ; dispatch_data
-  %"struct.rubinius::CompiledMethod"*, ; cm
+  %"struct.rubinius::CompiledCode"*, ; cm
                                   i32, ; flags
                                   i32, ; ip
                                   i8*, ; jit_data
@@ -168,7 +168,7 @@ declare void @output15(%"struct.rubinius::CallFrame"*)
 
 declare void @output16(%"struct.rubinius::Class"*)
 
-%"struct.rubinius::CompiledMethod" = type {
+%"struct.rubinius::CompiledCode" = type {
                %"struct.rubinius::Executable", ; header
                   %"struct.rubinius::Object"*, ; metadata
                   %"struct.rubinius::Symbol"*, ; name
@@ -189,7 +189,7 @@ declare void @output16(%"struct.rubinius::Class"*)
                    %"struct.rubinius::Tuple"*  ; literals
 }
 
-declare void @output17(%"struct.rubinius::CompiledMethod"*)
+declare void @output17(%"struct.rubinius::CompiledCode"*)
 
 %"struct.rubinius::Executable" = type {
    %"struct.rubinius::Object", ; header
@@ -237,7 +237,7 @@ declare void @output22(%"struct.rubinius::Tuple"*)
 %"struct.rubinius::VariableScope" = type {
            %"struct.rubinius::Object", ; header
           %"struct.rubinius::Object"*, ; block
-  %"struct.rubinius::CompiledMethod"*, ; method
+  %"struct.rubinius::CompiledCode"*, ; method
           %"struct.rubinius::Module"*, ; module
    %"struct.rubinius::VariableScope"*, ; parent
            %"struct.rubinius::Tuple"*, ; heap_locals

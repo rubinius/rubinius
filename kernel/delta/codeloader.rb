@@ -161,7 +161,7 @@ module Rubinius
     attr_reader :cm
 
     # Compile a Ruby source file and save the compiled file. Return the
-    # internal representation (CompiledMethod) of the Ruby source file.
+    # internal representation (CompiledCode) of the Ruby source file.
     def compile_file(file, compiled)
       if CodeLoader.save_compiled?
         Compiler.compile file, compiled

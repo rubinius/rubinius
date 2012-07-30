@@ -9,7 +9,7 @@
 namespace rubinius {
   class Class;
   class Array;
-  class CompiledMethod;
+  class CompiledCode;
 
   class Exception : public Object {
   public:
@@ -79,7 +79,7 @@ namespace rubinius {
     static Exception* make_lje(STATE, CallFrame* frame);
 
     static void internal_error(STATE, CallFrame* frame, const char* reason);
-    static void bytecode_error(STATE, CallFrame* frame, CompiledMethod* cm,
+    static void bytecode_error(STATE, CallFrame* frame, CompiledCode* cm,
                                int ip, const char* reason);
     static void frozen_error(STATE, CallFrame* frame);
 

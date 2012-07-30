@@ -38,7 +38,7 @@ namespace rubinius {
   void Exception::print_locations(STATE) {
     for(size_t i = 0; i < locations_->size(); i++) {
       if(Location* loc = try_as<Location>(locations_->get(state, i))) {
-        if(CompiledMethod* meth = try_as<CompiledMethod>(loc->method())) {
+        if(CompiledCode* meth = try_as<CompiledCode>(loc->method())) {
           if(Symbol* file_sym = try_as<Symbol>(meth->file())) {
             std::cout << file_sym->debug_str(state) << ":"
                       << meth->line(state, loc->ip()->to_native())
@@ -94,10 +94,10 @@ namespace rubinius {
   }
 
   void Exception::bytecode_error(STATE, CallFrame* call_frame,
-                                 CompiledMethod* cm, int ip, const char* reason)
+                                 CompiledCode* cm, int ip, const char* reason)
   {
     Exception* exc = Exception::make_exception(state, G(exc_vm_bad_bytecode), reason);
-    exc->set_ivar(state, state->symbol("@compiled_method"), cm);
+    exc->set_ivar(state, state->symbol("@compiled_code"), cm);
     exc->set_ivar(state, state->symbol("@ip"), Fixnum::from(ip));
     exc->locations(state, Location::from_call_stack(state, call_frame));
     state->raise_exception(exc);

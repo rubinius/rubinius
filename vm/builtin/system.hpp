@@ -11,7 +11,7 @@ namespace rubinius {
   class Fixnum;
   class String;
   class BlockEnvironment;
-  class CompiledMethod;
+  class CompiledCode;
   class ConstantScope;
   class IO;
 
@@ -191,10 +191,10 @@ namespace rubinius {
     static Tuple* vm_find_public_method(STATE, Object* recv, Symbol* name);
 
     // Rubinius.primitive :vm_add_method
-    static Object* vm_add_method(STATE, GCToken gct, Symbol* name, CompiledMethod* meth, ConstantScope* scope, Object* vis);
+    static Object* vm_add_method(STATE, GCToken gct, Symbol* name, CompiledCode* meth, ConstantScope* scope, Object* vis);
 
     // Rubinius.primitive :vm_attach_method
-    static Object* vm_attach_method(STATE, GCToken gct, Symbol* name, CompiledMethod* meth, ConstantScope* scope, Object* recv);
+    static Object* vm_attach_method(STATE, GCToken gct, Symbol* name, CompiledCode* meth, ConstantScope* scope, Object* recv);
 
     // A robust way to get the class of an object, since Object#class can be redefined.
     // Rubinius.primitive :vm_object_class
@@ -345,7 +345,7 @@ namespace rubinius {
     static Tuple* vm_thread_state(STATE);
 
     // Rubinius.primitive :vm_run_script
-    static Object* vm_run_script(STATE, GCToken gct, CompiledMethod* cm, CallFrame* calling_environment);
+    static Object* vm_run_script(STATE, GCToken gct, CompiledCode* cm, CallFrame* calling_environment);
 
     // Rubinius.primitive :vm_hash_trie_item_index
     static Fixnum* vm_hash_trie_item_index(STATE, Fixnum* hash, Fixnum* level, Integer* map);

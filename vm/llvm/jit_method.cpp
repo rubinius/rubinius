@@ -581,7 +581,7 @@ namespace jit {
       sig << "Executable";
       sig << "Module";
       sig << "Arguments";
-      sig << "CompiledMethod";
+      sig << "CompiledCode";
 
       Value* call_args[] = {
         info_.vm(),

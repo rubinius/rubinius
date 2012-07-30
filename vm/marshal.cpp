@@ -12,7 +12,7 @@
 #include <gdtoa.h>
 
 #include "builtin/array.hpp"
-#include "builtin/compiledmethod.hpp"
+#include "builtin/compiledcode.hpp"
 #include "builtin/encoding.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/float.hpp"
@@ -220,11 +220,11 @@ namespace rubinius {
     return iseq;
   }
 
-  CompiledMethod* UnMarshaller::get_cmethod() {
+  CompiledCode* UnMarshaller::get_cmethod() {
     size_t ver;
     stream >> ver;
 
-    CompiledMethod* cm = CompiledMethod::create(state);
+    CompiledCode* cm = CompiledCode::create(state);
 
     cm->metadata(state, unmarshal());
     cm->primitive(state, (Symbol*)unmarshal());

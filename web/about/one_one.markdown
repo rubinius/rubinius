@@ -146,7 +146,7 @@ features, performance improvements, compatibility adjustements, and bugfixes.
 * Handle #inspect calling #to_s in the right cases. Fixes #405
 * Handle block arguments to a lambda specially. Fixes #398.
 * File#truncate now raises an IOError if file is not opened for writing
-* Fix R::CompiledMethod#add_metadata to allow multiple keys
+* Fix R::CompiledCode#add_metadata to allow multiple keys
 * Don't use self in a block that might be instance_evald. Fixes #399.
 * Expose the SystemExit to at_exit handlers. Fixes #395.
 * Minor performanece fix, don't initialize an object body twice

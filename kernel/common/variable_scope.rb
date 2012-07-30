@@ -7,7 +7,7 @@ module Rubinius
     attr_reader :module
     attr_reader :self
 
-    # CompiledMethod this scope is for.
+    # CompiledCode this scope is for.
     #
     attr_reader :method
 
@@ -132,7 +132,7 @@ module Rubinius
     # Indicates if this scope is for the running of a script body
     def for_script?
       if script = @method.scope.script
-        return script.compiled_method == @method
+        return script.compiled_code == @method
       end
 
       return false

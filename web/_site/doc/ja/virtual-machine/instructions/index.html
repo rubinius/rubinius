@@ -1323,7 +1323,7 @@ tuple data.</li>
 
 <h3><a class="instruction" name="create_block">create_block(literal)</a></h3>
 
-<p>Read a CompiledMethod specified by the operand +literal+ and create a
+<p>Read a CompiledCode specified by the operand +literal+ and create a
    <code>BlockEnvironment</code>.  Push the new <code>BlockEnvironment</code> object on the stack.</p>
 
 <table class="stack_effect">
@@ -1560,7 +1560,7 @@ tuple data.</li>
 <p>Create a new <code>ConstantScope</code> object for the given Module on the stack.
    This scope is chained off the current scope of the method.</p>
 
-<p>This also sets the scope of the current <code>CompiledMethod</code> to the new
+<p>This also sets the scope of the current <code>CompiledCode</code> to the new
    <code>ConstantScope</code>.</p>
 
 <table class="stack_effect">
@@ -1661,7 +1661,7 @@ tuple data.</li>
    method has been overridden. The serial number check is used to determine
    each time the code is executed, whether or not the standard <code>Fixnum#times</code>
    has been overridden. It leverages the serial number field on a
-   <code>CompiledMethod</code>, is initialised to either 0 (for kernel land methods) or
+   <code>CompiledCode</code>, is initialised to either 0 (for kernel land methods) or
    1 (for user land methods).</p>
 
 <h3><a class="instruction" name="check_serial_private">check_serial_private(literal, serial)</a></h3>

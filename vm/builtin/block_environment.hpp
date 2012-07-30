@@ -6,7 +6,7 @@
 #include "executor.hpp"
 
 namespace rubinius {
-  class CompiledMethod;
+  class CompiledCode;
   class VariableScope;
   struct CallFrame;
   class VMMethod;
@@ -39,14 +39,14 @@ namespace rubinius {
   private:
     VariableScope* scope_;      // slot
     VariableScope* top_scope_;  // slot
-    CompiledMethod* code_;      // slot
+    CompiledCode* code_;      // slot
     Module* module_;            // slot
 
   public:
     /* accessors */
     attr_accessor(scope, VariableScope);
     attr_accessor(top_scope, VariableScope);
-    attr_accessor(code, CompiledMethod);
+    attr_accessor(code, CompiledCode);
     attr_accessor(module, Module);
 
     /* interface */
@@ -61,7 +61,7 @@ namespace rubinius {
                             BlockEnvironment* env, Arguments& args,
                             BlockInvocation& invocation);
 
-    static BlockEnvironment* under_call_frame(STATE, GCToken gct, CompiledMethod* cm,
+    static BlockEnvironment* under_call_frame(STATE, GCToken gct, CompiledCode* cm,
       VMMethod* caller, CallFrame* call_frame);
 
     static Object* execute_interpreter(STATE, CallFrame* previous,

@@ -103,7 +103,7 @@ namespace rubinius {
      * Currently prints the same output as show_simple. Is specialized by
      * complex classes to e.g. limit the recursion into nested
      * objects to make the output more manageable. See e.g. Tuple
-     * and CompiledMethod. Immediates and numeric classes print
+     * and CompiledCode. Immediates and numeric classes print
      * their value for both show and show_simple.
      */
     virtual void show(STATE, Object* self, int level);

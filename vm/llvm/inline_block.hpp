@@ -11,14 +11,14 @@ namespace rubinius {
     llvm::PHINode* block_break_result_;
     llvm::BasicBlock* block_break_loc_;
     VMMethod* code_;
-    TypedRoot<CompiledMethod*> method_;
+    TypedRoot<CompiledCode*> method_;
     JITMethodInfo* scope_;
     int which_;
     bool created_object_;
 
   public:
     JITInlineBlock(LLVMState* ls, llvm::PHINode* phi, llvm::BasicBlock* brk,
-                   CompiledMethod* cm, VMMethod* code,
+                   CompiledCode* cm, VMMethod* code,
                    JITMethodInfo* scope, int which);
 
     llvm::PHINode* block_break_result() {
@@ -33,7 +33,7 @@ namespace rubinius {
       return code_;
     }
 
-    CompiledMethod* method() {
+    CompiledCode* method() {
       return method_.get();
     }
 

@@ -1,5 +1,5 @@
-#ifndef RBX_BUILTIN_COMPILEDMETHOD_HPP
-#define RBX_BUILTIN_COMPILEDMETHOD_HPP
+#ifndef RBX_BUILTIN_COMPILEDCODE_HPP
+#define RBX_BUILTIN_COMPILEDCODE_HPP
 
 #include "builtin/executable.hpp"
 #include "vm.hpp"
@@ -16,9 +16,9 @@ namespace rubinius {
     class RuntimeDataHolder;
   }
 
-  class CompiledMethod : public Executable {
+  class CompiledCode : public Executable {
   public:
-    const static object_type type = CompiledMethodType;
+    const static object_type type = CompiledCodeType;
 
   private:
     Object* metadata_;          // slot
@@ -84,8 +84,8 @@ namespace rubinius {
 
     static void init(STATE);
 
-    // Rubinius.primitive :compiledmethod_allocate
-    static CompiledMethod* create(STATE);
+    // Rubinius.primitive :compiledcode_allocate
+    static CompiledCode* create(STATE);
 
     static Object* primitive_failed(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
 
@@ -101,23 +101,23 @@ namespace rubinius {
     static Object* default_executor(STATE, CallFrame*, Executable* exec, Module* mod, Arguments& args);
     static Object* specialized_executor(STATE, CallFrame*, Executable* exec, Module* mod, Arguments& args);
 
-    // Rubinius.primitive :compiledmethod_set_breakpoint
+    // Rubinius.primitive :compiledcode_set_breakpoint
     Object* set_breakpoint(STATE, GCToken gct, Fixnum* ip, Object* bp);
 
-    // Rubinius.primitive :compiledmethod_clear_breakpoint
+    // Rubinius.primitive :compiledcode_clear_breakpoint
     Object* clear_breakpoint(STATE, Fixnum* ip);
 
-    // Rubinius.primitive :compiledmethod_is_breakpoint
+    // Rubinius.primitive :compiledcode_is_breakpoint
     Object* is_breakpoint(STATE, Fixnum* ip);
 
-    // Rubinius.primitive :compiledmethod_of_sender
-    static CompiledMethod* of_sender(STATE, CallFrame* calling_environment);
+    // Rubinius.primitive :compiledcode_of_sender
+    static CompiledCode* of_sender(STATE, CallFrame* calling_environment);
 
-    // Rubinius.primitive :compiledmethod_current
-    static CompiledMethod* current(STATE, CallFrame* calling_environment);
+    // Rubinius.primitive :compiledcode_current
+    static CompiledCode* current(STATE, CallFrame* calling_environment);
 
-    // Rubinius.primitive :compiledmethod_dup
-    CompiledMethod* dup_cm(STATE);
+    // Rubinius.primitive :compiledcode_dup
+    CompiledCode* dup_cm(STATE);
 
     String* full_name(STATE);
 

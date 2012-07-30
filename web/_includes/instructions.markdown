@@ -1219,7 +1219,7 @@
 
 <h3><a class="instruction" name="create_block">create_block(literal)</a></h3>
 
-   Read a CompiledMethod specified by the operand +literal+ and create a
+   Read a CompiledCode specified by the operand +literal+ and create a
    `BlockEnvironment`.  Push the new `BlockEnvironment` object on the stack.
 
 
@@ -1466,7 +1466,7 @@
    Create a new `ConstantScope` object for the given Module on the stack.
    This scope is chained off the current scope of the method.
 
-   This also sets the scope of the current `CompiledMethod` to the new
+   This also sets the scope of the current `CompiledCode` to the new
    `ConstantScope`.
 
 
@@ -1573,7 +1573,7 @@
    method has been overridden. The serial number check is used to determine
    each time the code is executed, whether or not the standard `Fixnum#times`
    has been overridden. It leverages the serial number field on a
-   `CompiledMethod`, is initialised to either 0 (for kernel land methods) or
+   `CompiledCode`, is initialised to either 0 (for kernel land methods) or
    1 (for user land methods).
 
 <h3><a class="instruction" name="check_serial_private">check_serial_private(literal, serial)</a></h3>

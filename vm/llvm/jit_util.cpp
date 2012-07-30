@@ -81,7 +81,7 @@ extern "C" {
   }
 
   void rbx_begin_profiling(STATE, void* data, Executable* exec, Module* mod, Arguments& args,
-                           CompiledMethod* cm)
+                           CompiledCode* cm)
   {
     // Use placement new to stick the class into data, which is on the callers
     // stack.
@@ -89,7 +89,7 @@ extern "C" {
   }
 
   void rbx_begin_profiling_block(STATE, void* data, BlockEnvironment* env,
-                                 Module* mod, CompiledMethod* cm)
+                                 Module* mod, CompiledCode* cm)
   {
     // Use placement new to stick the class into data, which is on the callers
     // stack.
@@ -251,7 +251,7 @@ extern "C" {
     CPP_TRY
 
     Object* _lit = call_frame->cm->literals()->at(state, index);
-    CompiledMethod* cm = as<CompiledMethod>(_lit);
+    CompiledCode* cm = as<CompiledCode>(_lit);
 
     // TODO: We don't need to be doing this everytime.
     if(cm->scope()->nil_p()) {
@@ -265,7 +265,7 @@ extern "C" {
     CPP_CATCH
   }
 
-  Object* rbx_create_block_multi(STATE, CompiledMethod* cm, int count, ...) {
+  Object* rbx_create_block_multi(STATE, CompiledCode* cm, int count, ...) {
     va_list ap;
 
     CallFrame* closest = 0;

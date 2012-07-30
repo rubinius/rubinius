@@ -73,7 +73,7 @@ describe :module_class_eval, :shared => true do
   # This case was found because Rubinius was caching the compiled
   # version of the string and not duping the methods within the
   # eval, causing the method addition to change the static scope
-  # of the shared CompiledMethod.
+  # of the shared CompiledCode.
   it "adds methods respecting the lexical constant scope" do
     code = "def self.attribute; C; end"
 

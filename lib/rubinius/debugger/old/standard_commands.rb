@@ -91,7 +91,7 @@ module Rubinius
 
       def execute(dbg, interface, md)
         mod, mthd_type, mthd, line, cond = md[1], md[2], md[3], md[4], md[5]
-        cm = get_method(mod, mthd_type, mthd).compiled_method
+        cm = get_method(mod, mthd_type, mthd).compiled_code
         ip = 0
         ip = cm.first_ip_on_line(line.to_i) if line
 
@@ -109,7 +109,7 @@ module Rubinius
 
       def execute(dbg, interface, md)
         file, line, cond = md[1], md[2].to_i, md[3]
-        if cm = Rubinius::CompiledMethod.script_for_file(file)
+        if cm = Rubinius::CompiledCode.script_for_file(file)
           cm, ip = cm.locate_line(line)
         else
           return Output.error("No loaded file found matching #{file}")
@@ -290,7 +290,7 @@ module Rubinius
         first, last = md[4], md[5]
 
         if mthd
-          cm = get_method(mod, mthd_type, mthd).compiled_method
+          cm = get_method(mod, mthd_type, mthd).compiled_code
           ip = 0
           last = cm.lines[cm.lines.size-2] + 1 unless last
         else
@@ -340,12 +340,12 @@ module Rubinius
         :description => "List S-expression for current or specified method."
 
       # Displays the S-expression for the specified method
-      # TODO: Change to stored Sexp on CompiledMethod once this is available
+      # TODO: Change to stored Sexp on CompiledCode once this is available
       def execute(dbg, interface, md)
         mod, mthd_type, mthd = md[1], md[2], md[3]
 
         if mthd
-          cm = get_method(mod, mthd_type, mthd).compiled_method
+          cm = get_method(mod, mthd_type, mthd).compiled_code
         else
           # Decode current method
           cm = interface.eval_context.method

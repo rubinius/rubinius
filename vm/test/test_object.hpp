@@ -416,8 +416,8 @@ public:
     TS_ASSERT_EQUALS(state->symbol("blah")->class_object(state), G(symbol));
   }
 
-  CompiledMethod* create_cm() {
-    CompiledMethod* cm = CompiledMethod::create(state);
+  CompiledCode* create_cm() {
+    CompiledCode* cm = CompiledCode::create(state);
     cm->iseq(state, InstructionSequence::create(state, 1));
     cm->iseq()->opcodes()->put(state, 0, Fixnum::from(InstructionSequence::insn_ret));
     cm->stack_size(state, Fixnum::from(10));

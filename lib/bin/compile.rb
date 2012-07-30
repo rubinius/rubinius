@@ -217,7 +217,7 @@ class CompilerScript
       compiler = new_compiler :string, :compiled_file
       set_output compiler, @output_name
     else
-      compiler = new_compiler :string, :compiled_method
+      compiler = new_compiler :string, :compiled_code
     end
 
     parser = compiler.parser

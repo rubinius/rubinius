@@ -6,7 +6,7 @@
 #include "llvm/jit_context.hpp"
 #include "llvm/jit_runtime.hpp"
 
-#include "builtin/compiledmethod.hpp"
+#include "builtin/compiledcode.hpp"
 #include "object_utils.hpp"
 
 namespace rubinius {
@@ -17,7 +17,7 @@ namespace rubinius {
         function()->getEntryBlock().getTerminator());
   }
 
-  JITMethodInfo::JITMethodInfo(jit::Context& ctx, CompiledMethod* cm, VMMethod* v,
+  JITMethodInfo::JITMethodInfo(jit::Context& ctx, CompiledCode* cm, VMMethod* v,
                   JITMethodInfo* parent)
     : context_(ctx)
     , entry_(0)

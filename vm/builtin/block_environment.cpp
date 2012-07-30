@@ -15,7 +15,7 @@
 #include "dispatch.hpp"
 #include "call_frame.hpp"
 #include "builtin/class.hpp"
-#include "builtin/compiledmethod.hpp"
+#include "builtin/compiledcode.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/system.hpp"
@@ -396,7 +396,7 @@ namespace rubinius {
 
 
   BlockEnvironment* BlockEnvironment::under_call_frame(STATE, GCToken gct,
-      CompiledMethod* cm, VMMethod* caller,
+      CompiledCode* cm, VMMethod* caller,
       CallFrame* call_frame)
   {
     OnStack<1> os(state, cm);

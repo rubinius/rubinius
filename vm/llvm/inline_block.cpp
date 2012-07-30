@@ -3,11 +3,11 @@
 #include "llvm/state.hpp"
 
 #include "llvm/inline_block.hpp"
-#include "builtin/compiledmethod.hpp"
+#include "builtin/compiledcode.hpp"
 
 namespace rubinius {
   JITInlineBlock::JITInlineBlock(LLVMState* ls, llvm::PHINode* phi, llvm::BasicBlock* brk,
-                   CompiledMethod* cm, VMMethod* code,
+                   CompiledCode* cm, VMMethod* code,
                    JITMethodInfo* scope, int which)
       : block_break_result_(phi)
       , block_break_loc_(brk)

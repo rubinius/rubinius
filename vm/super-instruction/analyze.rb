@@ -61,8 +61,8 @@ def update_data(stream, data, extra)
   end
 end
 
-def describe_compiled_method(cm, data, max)
-  extra = cm.literals.to_a.find_all { |l| l.kind_of? CompiledMethod }
+def describe_compiled_code(cm, data, max)
+  extra = cm.literals.to_a.find_all { |l| l.kind_of? CompiledCode }
 
   name = cm.name ? cm.name.inspect : 'anonymous'
   stream = cm.iseq.decode
@@ -76,8 +76,8 @@ def describe_compiled_method(cm, data, max)
 
   until extra.empty?
     sub = extra.shift
-    describe_compiled_method(sub, data, max)
-    extra += sub.literals.to_a.find_all { |l| l.kind_of? CompiledMethod }
+    describe_compiled_code(sub, data, max)
+    extra += sub.literals.to_a.find_all { |l| l.kind_of? CompiledCode }
   end
 
 end
@@ -126,7 +126,7 @@ if __FILE__.include?($0) then
 
   begin
     top = Compiler.compile_file(file, flags)
-    describe_compiled_method(top, data, max)
+    describe_compiled_code(top, data, max)
 
   rescue SyntaxError
     exit 1

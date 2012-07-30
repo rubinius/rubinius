@@ -70,7 +70,7 @@ module Rubinius
     end
 
     ##
-    # A class used to convert an CompiledMethod to and from
+    # A class used to convert an CompiledCode to and from
     # a String.
 
     class Marshal
@@ -172,9 +172,9 @@ module Rubinius
         when 77  # ?M
           version = next_string.to_i
           if version != 1
-            raise "Unknown CompiledMethod version #{version}"
+            raise "Unknown CompiledCode version #{version}"
           end
-          cm = CompiledMethod.new
+          cm = CompiledCode.new
           cm.metadata      = unmarshal_data
           cm.primitive     = unmarshal_data
           cm.name          = unmarshal_data
@@ -289,7 +289,7 @@ module Rubinius
             str.append "#{op}\n"
           end
           str
-        when CompiledMethod
+        when CompiledCode
           str = "M\n1\n"
           str.append marshal(val.metadata)
           str.append marshal(val.primitive)

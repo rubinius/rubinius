@@ -6,7 +6,7 @@ namespace rubinius {
   class Module;
   class Class;
   class Symbol;
-  class CompiledMethod;
+  class CompiledCode;
   class State;
   class Object;
   class GlobalCacheEntry;

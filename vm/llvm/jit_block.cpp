@@ -80,7 +80,7 @@ namespace jit {
       sig << llvm::PointerType::getUnqual(ls_->Int8Ty);
       sig << "BlockEnvironment";
       sig << "Module";
-      sig << "CompiledMethod";
+      sig << "CompiledCode";
 
       Value* call_args[] = {
         vm,

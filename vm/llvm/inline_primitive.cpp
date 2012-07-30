@@ -13,10 +13,10 @@ namespace rubinius {
   struct InlinePrimitive {
     JITOperations& ops;
     Inliner& i;
-    CompiledMethod* cm;
+    CompiledCode* cm;
     Class* klass;
 
-    InlinePrimitive(JITOperations& _ops, Inliner& _i, CompiledMethod* _cm,
+    InlinePrimitive(JITOperations& _ops, Inliner& _i, CompiledCode* _cm,
                     Class* _klass)
       : ops(_ops)
       , i(_i)
@@ -669,7 +669,7 @@ namespace rubinius {
 
   };
 
-  bool Inliner::inline_primitive(Class* klass, CompiledMethod* cm, executor prim) {
+  bool Inliner::inline_primitive(Class* klass, CompiledCode* cm, executor prim) {
 
     InlinePrimitive ip(ops_, *this, cm, klass);
 
@@ -840,7 +840,7 @@ namespace rubinius {
     return true;
   }
 
-  int Inliner::detect_jit_intrinsic(Class* klass, CompiledMethod* cm) {
+  int Inliner::detect_jit_intrinsic(Class* klass, CompiledCode* cm) {
     if(klass->instance_type()->to_native() == rubinius::Tuple::type) {
       if(count_ == 2 && cm->name() == ops_.state()->symbol("swap")) {
         return 1;
@@ -850,7 +850,7 @@ namespace rubinius {
     return 0;
   }
 
-  void Inliner::inline_intrinsic(Class* klass, CompiledMethod* cm, int which) {
+  void Inliner::inline_intrinsic(Class* klass, CompiledCode* cm, int which) {
     InlinePrimitive ip(ops_, *this, cm, klass);
 
     switch(which) {
