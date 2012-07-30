@@ -7,7 +7,7 @@ namespace rubinius {
   class VM;
   class Module;
   class Symbol;
-  class CompiledMethod;
+  class CompiledCode;
   class String;
   class Integer;
   class LookupTable;
@@ -27,8 +27,8 @@ namespace rbxti {
     return (rubinius::Symbol*)sym;
   }
 
-  static inline rubinius::CompiledMethod* i(rmethod m) {
-    return (rubinius::CompiledMethod*)m;
+  static inline rubinius::CompiledCode* i(rmethod m) {
+    return (rubinius::CompiledCode*)m;
   }
 
   static inline rubinius::String* i(rstring s) {
@@ -55,7 +55,7 @@ namespace rbxti {
     return (rsymbol)sym;
   }
 
-  static inline rmethod o(rubinius::CompiledMethod* m) {
+  static inline rmethod o(rubinius::CompiledCode* m) {
     return (rmethod)m;
   }
 

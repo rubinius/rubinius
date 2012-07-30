@@ -2,7 +2,7 @@
 #include "oop.hpp"
 
 #include "bytecode_verification.hpp"
-#include "builtin/compiledmethod.hpp"
+#include "builtin/compiledcode.hpp"
 #include "builtin/iseq.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/fixnum.hpp"
@@ -15,7 +15,7 @@
 #include "configuration.hpp"
 
 namespace rubinius {
-  BytecodeVerification::BytecodeVerification(CompiledMethod* cm)
+  BytecodeVerification::BytecodeVerification(CompiledCode* cm)
     : method_(cm)
     , max_stack_seen_(0)
     , stack_(0)
@@ -31,10 +31,10 @@ namespace rubinius {
 
   bool BytecodeVerification::verify(STATE) {
     // Do this setup here instead of the constructor so we can do
-    // some validation of the CompiledMethod's fields we read them.
+    // some validation of the CompiledCode's fields we read them.
 
     // Double check the method itself, since it might be a nil
-    if(!kind_of<CompiledMethod>(method_)) {
+    if(!kind_of<CompiledCode>(method_)) {
       fail("invalid method", -1);
       return false;
     }

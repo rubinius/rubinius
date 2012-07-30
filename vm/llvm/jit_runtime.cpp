@@ -8,7 +8,7 @@
 #include "gc/gc.hpp"
 
 #include "builtin/symbol.hpp"
-#include "builtin/compiledmethod.hpp"
+#include "builtin/compiledcode.hpp"
 #include "builtin/module.hpp"
 
 namespace rubinius {
@@ -44,7 +44,7 @@ namespace jit {
       if(rd->method()) {
         tmp = mark.call(rd->method());
         if(tmp) {
-          rd->method_ = (CompiledMethod*)tmp;
+          rd->method_ = (CompiledCode*)tmp;
           if(obj) mark.just_set(obj, tmp);
         }
       }

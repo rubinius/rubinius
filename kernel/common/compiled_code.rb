@@ -1,10 +1,10 @@
 # -*- encoding: us-ascii -*-
 
 module Rubinius
-  class CompiledMethod < Executable
+  class CompiledCode < Executable
 
     ##
-    # Any CompiledMethod with this value in it's serial slot
+    # Any CompiledCode with this value in it's serial slot
     # is expected to be the default, kernel version
     KernelMethodSerial = 47
 
@@ -34,8 +34,8 @@ module Rubinius
 
     ##
     # Compare this method with +other+. Instead of bugging out if +other+
-    # isn't a {CompiledMethod}, this returns +false+ immediately unless
-    # we're comparing two apples, AKA, {CompiledMethod}s. The methods have
+    # isn't a {CompiledCode}, this returns +false+ immediately unless
+    # we're comparing two apples, AKA, {CompiledCode}s. The methods have
     # to be the exact same in implementation, but their scoping (location)
     # can differ.
     #
@@ -54,14 +54,14 @@ module Rubinius
     # end
     #
     # would all be the same, despite their access to different ivars and scopes
-    # (which {CompiledMethod}s DO keep track of)
+    # (which {CompiledCode}s DO keep track of)
     #
     # @todo Make example (in method documentation) match reality
-    # @param [Rubinius::CompiledMethod] other the other part to compare
+    # @param [Rubinius::CompiledCode] other the other part to compare
     # @param [Boolean]
     #
     def ==(other)
-      return false unless other.kind_of? CompiledMethod
+      return false unless other.kind_of? CompiledCode
       @primitive       == other.primitive     and
         @name          == other.name          and
         @iseq          == other.iseq          and
@@ -111,7 +111,7 @@ module Rubinius
     # this is.
     #
     def set_breakpoint(ip, obj)
-      Rubinius.primitive :compiledmethod_set_breakpoint
+      Rubinius.primitive :compiledcode_set_breakpoint
       raise ArgumentError, "Unable to set breakpoint on #{inspect} at invalid bytecode address #{ip}"
     end
 
@@ -119,7 +119,7 @@ module Rubinius
     # Erase a breakpoint at +ip+
     #
     def clear_breakpoint(ip)
-      Rubinius.primitive :compiledmethod_clear_breakpoint
+      Rubinius.primitive :compiledcode_clear_breakpoint
       raise ArgumentError, "Unable to clear breakpoint on #{inspect} at invalid bytecode address #{ip}"
     end
 
@@ -127,19 +127,19 @@ module Rubinius
     # Indicate if there is a breakpoint set at +ip+
     #
     def breakpoint?(ip)
-      Rubinius.primitive :compiledmethod_is_breakpoint
+      Rubinius.primitive :compiledcode_is_breakpoint
       raise ArgumentError, "Unable to retrieve breakpoint status on #{inspect} at bytecode address #{ip}"
     end
 
     class Script
-      attr_accessor :compiled_method
+      attr_accessor :compiled_code
       attr_accessor :file_path
       attr_accessor :data_path
       attr_accessor :eval_binding
       attr_accessor :eval_source
 
       def initialize(method, path=nil, for_eval=false)
-        @compiled_method = method
+        @compiled_code = method
         @file_path = path
         @for_eval = for_eval
         @eval_binding = nil
@@ -162,7 +162,7 @@ module Rubinius
 
     # Creates the Script instance for a toplevel compiled method.
     def create_script(wrap=false)
-      script = CompiledMethod::Script.new(self)
+      script = CompiledCode::Script.new(self)
 
       # Setup the scoping.
       cs = ConstantScope.new(Object)
@@ -231,13 +231,13 @@ module Rubinius
     end
 
     ##
-    # Returns the address (IP) of the first instruction in this CompiledMethod
+    # Returns the address (IP) of the first instruction in this CompiledCode
     # that is on the specified line, or the address of the first instruction on
     # the next code line after the specified line if there are no instructions
     # on the requested line.
-    # This method only looks at instructions within the current CompiledMethod;
+    # This method only looks at instructions within the current CompiledCode;
     # see #locate_line for an alternate method that also searches inside the child
-    # CompiledMethods.
+    # CompiledCodes.
     #
     # Optionally only consider ip's greater than +start+
     #
@@ -285,7 +285,7 @@ module Rubinius
 
     ##
     #
-    # Given all CompiledMethods in the system, find one that
+    # Given all CompiledCodes in the system, find one that
     # was defined in file +file+ and encompasses +line+
     #
     def self.locate(file, line=nil)
@@ -299,7 +299,7 @@ module Rubinius
       end
 
       ary = []
-      ObjectSpace.find_object([:kind_of, Rubinius::CompiledMethod], ary)
+      ObjectSpace.find_object([:kind_of, Rubinius::CompiledCode], ary)
 
       methods = ary.find_all do |x|
         x.scope and path = x.scope.absolute_active_path and \
@@ -332,12 +332,12 @@ module Rubinius
     end
 
     ##
-    # Convenience method to return an array of the child CompiledMethods from
-    # this CompiledMethod's literals.
+    # Convenience method to return an array of the child CompiledCodes from
+    # this CompiledCode's literals.
     #
     # @return [Tuple]
     def child_methods
-      literals.select { |lit| lit.kind_of? CompiledMethod }
+      literals.select { |lit| lit.kind_of? CompiledCode }
     end
 
     def change_name(name)
@@ -346,7 +346,7 @@ module Rubinius
 
       lits = Tuple.new(cm.literals.size)
       cm.literals.each_with_index do |lit, idx|
-        if lit.kind_of? CompiledMethod and lit.is_block?
+        if lit.kind_of? CompiledCode and lit.is_block?
           lit = lit.change_name name
         end
 
@@ -358,14 +358,14 @@ module Rubinius
     end
 
     ##
-    # Locates the CompiledMethod and instruction address (IP) of the first
+    # Locates the CompiledCode and instruction address (IP) of the first
     # instruction on the specified line. This method recursively examines child
     # compiled methods until an exact match for the searched line is found.
-    # It returns both the matching CompiledMethod and the IP of the first
+    # It returns both the matching CompiledCode and the IP of the first
     # instruction on the requested line, or nil if no match for the specified line
     # is found.
     #
-    # @return [(Rubinius::CompiledMethod, Fixnum), NilClass] returns
+    # @return [(Rubinius::CompiledCode, Fixnum), NilClass] returns
     #   nil if nothing is found, else an array of size 2 containing the method
     #   the line was found in and the IP pointing there.
     def locate_line(line)
@@ -402,9 +402,9 @@ module Rubinius
     # but then converts opcode literal arguments to their actual values by looking
     # them up in the literals tuple.
     # Takes an optional bytecodes argument representing the bytecode that is to
-    # be decoded using this CompiledMethod's locals and literals. This is provided
+    # be decoded using this CompiledCode's locals and literals. This is provided
     # for use by the debugger, where the bytecode sequence to be decoded may not
-    # exactly match the bytecode currently held by the CompiledMethod, typically
+    # exactly match the bytecode currently held by the CompiledCode, typically
     # as a result of substituting yield_debugger instructions into the bytecode.
     def decode(bytecodes = @iseq)
       require 'compiler/iseq'
@@ -511,7 +511,7 @@ module Rubinius
     # Represents virtual machine's CPU instruction.
     # Instructions are organized into instruction
     # sequences known as iSeq, forming body
-    # of CompiledMethods.
+    # of CompiledCodes.
     #
     # To generate VM opcodes documentation
     # use rake doc:vm task.

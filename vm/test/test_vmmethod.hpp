@@ -14,7 +14,7 @@ public:
   }
 
   void test_create() {
-    CompiledMethod* cm = CompiledMethod::create(state);
+    CompiledCode* cm = CompiledCode::create(state);
     Tuple* tup = Tuple::from(state, 1, state->symbol("blah"));
     cm->literals(state, tup);
 
@@ -30,7 +30,7 @@ public:
   }
 
   void test_specialize_transforms_ivars_to_slots() {
-    CompiledMethod* cm = CompiledMethod::create(state);
+    CompiledCode* cm = CompiledCode::create(state);
     Tuple* tup = Tuple::from(state, 1, state->symbol("@blah"));
     cm->literals(state, tup);
 
@@ -56,7 +56,7 @@ public:
   }
 
   void test_validate_ip() {
-    CompiledMethod* cm = CompiledMethod::create(state);
+    CompiledCode* cm = CompiledCode::create(state);
     Tuple* tup = Tuple::from(state, 1, state->symbol("@blah"));
     cm->literals(state, tup);
 

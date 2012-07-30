@@ -14,16 +14,16 @@ namespace rubinius {
   class Arguments;
 
   class VMMethod;
-  class CompiledMethod;
+  class CompiledCode;
   class ObjectMemory;
 
   class Inliners : public CodeResource {
-    std::list<CompiledMethod*> inliners_;
+    std::list<CompiledCode*> inliners_;
 
   public:
     Inliners(ObjectMemory* om);
 
-    std::list<CompiledMethod*>& inliners() {
+    std::list<CompiledCode*>& inliners() {
       return inliners_;
     }
 
@@ -73,7 +73,7 @@ namespace rubinius {
 
     bool resolve_primitive(STATE);
 
-    void add_inliner(ObjectMemory* om, CompiledMethod* cm);
+    void add_inliner(ObjectMemory* om, CompiledCode* cm);
     void clear_inliners(STATE);
 
     class Info : public TypeInfo {

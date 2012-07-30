@@ -68,7 +68,7 @@ namespace rubinius {
     return dis.send(state, call_frame, args);
   }
 
-  void Executable::add_inliner(ObjectMemory* om, CompiledMethod* cm) {
+  void Executable::add_inliner(ObjectMemory* om, CompiledCode* cm) {
     if(!inliners_ || inliners_ == (Inliners*)cNil) inliners_ = new Inliners(om);
     inliners_->inliners().push_back(cm);
 
@@ -77,7 +77,7 @@ namespace rubinius {
 
   void Executable::clear_inliners(STATE) {
     if(!inliners_ || inliners_ == (Inliners*)cNil) return;
-    for(std::list<CompiledMethod*>::const_iterator i = inliners_->inliners().begin();
+    for(std::list<CompiledCode*>::const_iterator i = inliners_->inliners().begin();
         i != inliners_->inliners().end();
         ++i) {
       (*i)->backend_method()->deoptimize(state, *i, 0);
@@ -100,15 +100,15 @@ namespace rubinius {
 
     // std::cout << "Marking inliners: " << inl->inliners().size() << "\n";
 
-    for(std::list<CompiledMethod*>::iterator i = inl->inliners().begin();
+    for(std::list<CompiledCode*>::iterator i = inl->inliners().begin();
         i != inl->inliners().end();
         ++i) {
-      CompiledMethod* cm = *i;
+      CompiledCode* cm = *i;
 
       Object* tmp = mark.call(cm);
       if(tmp) {
-        assert(kind_of<CompiledMethod>(tmp));
-        *i = (CompiledMethod*)tmp;
+        assert(kind_of<CompiledCode>(tmp));
+        *i = (CompiledCode*)tmp;
         mark.just_set(obj, tmp);
       }
     }

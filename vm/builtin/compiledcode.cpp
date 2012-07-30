@@ -1,6 +1,6 @@
 #include "gc/gc.hpp"
 
-#include "builtin/compiledmethod.hpp"
+#include "builtin/compiledcode.hpp"
 #include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/iseq.hpp"
@@ -39,16 +39,16 @@
 
 namespace rubinius {
 
-  void CompiledMethod::init(STATE) {
+  void CompiledCode::init(STATE) {
     GO(cmethod).set(ontology::new_class(state,
-                      "CompiledMethod", G(executable), G(rubinius)));
-    G(cmethod)->set_object_type(state, CompiledMethodType);
+                      "CompiledCode", G(executable), G(rubinius)));
+    G(cmethod)->set_object_type(state, CompiledCodeType);
   }
 
-  CompiledMethod* CompiledMethod::create(STATE) {
-    CompiledMethod* cm = state->new_object<CompiledMethod>(G(cmethod));
+  CompiledCode* CompiledCode::create(STATE) {
+    CompiledCode* cm = state->new_object<CompiledCode>(G(cmethod));
     cm->local_count(state, Fixnum::from(0));
-    cm->set_executor(CompiledMethod::default_executor);
+    cm->set_executor(CompiledCode::default_executor);
     cm->backend_method_ = NULL;
     cm->inliners_ = 0;
     cm->prim_index_ = -1;
@@ -60,18 +60,18 @@ namespace rubinius {
     return cm;
   }
 
-  CompiledMethod* CompiledMethod::dup_cm(STATE) {
-    CompiledMethod* cm = CompiledMethod::create(state);
+  CompiledCode* CompiledCode::dup_cm(STATE) {
+    CompiledCode* cm = CompiledCode::create(state);
     cm->copy_object(state, this);
 
-    cm->set_executor(CompiledMethod::default_executor);
+    cm->set_executor(CompiledCode::default_executor);
     cm->jit_data_ = NULL;
     cm->backend_method_ = NULL;
 
     return cm;
   }
 
-  int CompiledMethod::start_line(STATE) {
+  int CompiledCode::start_line(STATE) {
     if(lines_->nil_p()) return -1;
     if(lines_->num_fields() < 2) return -1;
     // This is fixed as one because entry 0 is always ip = 0 and
@@ -79,7 +79,7 @@ namespace rubinius {
     return as<Fixnum>(lines_->at(state, 1))->to_native();
   }
 
-  int CompiledMethod::start_line() {
+  int CompiledCode::start_line() {
     if(lines_->nil_p()) return -1;
     if(lines_->num_fields() < 2) return -1;
     // This is fixed as one because entry 0 is always ip = 0 and
@@ -87,7 +87,7 @@ namespace rubinius {
     return as<Fixnum>(lines_->at(1))->to_native();
   }
 
-  int CompiledMethod::line(STATE, int ip) {
+  int CompiledCode::line(STATE, int ip) {
     if(lines_->nil_p()) return -3;
 
     size_t fin = lines_->num_fields() - 2;
@@ -103,7 +103,7 @@ namespace rubinius {
     return as<Fixnum>(lines_->at(state, fin+1))->to_native();
   }
 
-  VMMethod* CompiledMethod::internalize(STATE, GCToken gct,
+  VMMethod* CompiledCode::internalize(STATE, GCToken gct,
                                         const char** reason, int* ip)
   {
     VMMethod* vmm = backend_method_;
@@ -112,7 +112,7 @@ namespace rubinius {
 
     if(vmm) return vmm;
 
-    CompiledMethod* self = this;
+    CompiledCode* self = this;
     OnStack<1> os(state, self);
 
     self->hard_lock(state, gct);
@@ -148,10 +148,10 @@ namespace rubinius {
     return vmm;
   }
 
-  Object* CompiledMethod::primitive_failed(STATE, CallFrame* call_frame,
+  Object* CompiledCode::primitive_failed(STATE, CallFrame* call_frame,
               Executable* exec, Module* mod, Arguments& args)
   {
-    if(try_as<CompiledMethod>(exec)) {
+    if(try_as<CompiledCode>(exec)) {
       return VMMethod::execute(state, call_frame, exec, mod, args);
     }
 
@@ -160,16 +160,16 @@ namespace rubinius {
     return cNil;
   }
 
-  void CompiledMethod::specialize(STATE, TypeInfo* ti) {
+  void CompiledCode::specialize(STATE, TypeInfo* ti) {
     backend_method_->specialize(state, this, ti);
   }
 
-  Object* CompiledMethod::default_executor(STATE, CallFrame* call_frame,
+  Object* CompiledCode::default_executor(STATE, CallFrame* call_frame,
                           Executable* exec, Module* mod, Arguments& args)
   {
     LockableScopedLock lg(state, &state->shared(), __FILE__, __LINE__);
 
-    CompiledMethod* cm = as<CompiledMethod>(exec);
+    CompiledCode* cm = as<CompiledCode>(exec);
     if(cm->execute == default_executor) {
       const char* reason = 0;
       int ip = -1;
@@ -188,10 +188,10 @@ namespace rubinius {
     return cm->execute(state, call_frame, exec, mod, args);
   }
 
-  Object* CompiledMethod::specialized_executor(STATE, CallFrame* call_frame,
+  Object* CompiledCode::specialized_executor(STATE, CallFrame* call_frame,
                           Executable* exec, Module* mod, Arguments& args)
   {
-    CompiledMethod* cm = as<CompiledMethod>(exec);
+    CompiledCode* cm = as<CompiledCode>(exec);
 
     Class* cls = args.recv()->class_object(state);
     int id = cls->class_id();
@@ -217,7 +217,7 @@ namespace rubinius {
     return target(state, call_frame, exec, mod, args);
   }
 
-  bool CompiledMethod::can_specialize_p() {
+  bool CompiledCode::can_specialize_p() {
     if(!backend_method_) rubinius::bug("specializing with no backend");
 
     for(int i = 0; i < VMMethod::cMaxSpecializations; i++) {
@@ -227,7 +227,7 @@ namespace rubinius {
     return false;
   }
 
-  void CompiledMethod::set_unspecialized(executor exec, jit::RuntimeDataHolder* rd) {
+  void CompiledCode::set_unspecialized(executor exec, jit::RuntimeDataHolder* rd) {
     if(!backend_method_) rubinius::bug("specializing with no backend");
 
     backend_method_->set_execute_status(VMMethod::eJIT);
@@ -243,7 +243,7 @@ namespace rubinius {
     execute = exec;
   }
 
-  void CompiledMethod::add_specialized(int spec_id, executor exec,
+  void CompiledCode::add_specialized(int spec_id, executor exec,
                                        jit::RuntimeDataHolder* rd)
   {
     if(!backend_method_) rubinius::bug("specializing with no backend");
@@ -276,7 +276,7 @@ namespace rubinius {
     std::cerr << "No room for specialization!\n";
   }
 
-  executor CompiledMethod::find_specialized(int spec_id) {
+  executor CompiledCode::find_specialized(int spec_id) {
     VMMethod* v = backend_method_;
 
     if(!v) return 0;
@@ -290,24 +290,24 @@ namespace rubinius {
     return 0;
   }
 
-  void CompiledMethod::post_marshal(STATE) {
+  void CompiledCode::post_marshal(STATE) {
   }
 
-  size_t CompiledMethod::number_of_locals() {
+  size_t CompiledCode::number_of_locals() {
     return local_count_->to_native();
   }
 
-  String* CompiledMethod::full_name(STATE) {
+  String* CompiledCode::full_name(STATE) {
     return name_->to_str(state);
   }
 
-  void CompiledMethod::set_interpreter(executor interp) {
+  void CompiledCode::set_interpreter(executor interp) {
     set_executor(interp);
     backend_method_->fallback = interp;
   }
 
-  Object* CompiledMethod::set_breakpoint(STATE, GCToken gct, Fixnum* ip, Object* bp) {
-    CompiledMethod* self = this;
+  Object* CompiledCode::set_breakpoint(STATE, GCToken gct, Fixnum* ip, Object* bp) {
+    CompiledCode* self = this;
     OnStack<3> os(state, self, ip, bp);
 
     int i = ip->to_native();
@@ -328,7 +328,7 @@ namespace rubinius {
     return ip;
   }
 
-  Object* CompiledMethod::clear_breakpoint(STATE, Fixnum* ip) {
+  Object* CompiledCode::clear_breakpoint(STATE, Fixnum* ip) {
     int i = ip->to_native();
     if(backend_method_ == NULL) return ip;
     if(!backend_method_->validate_ip(state, i)) return Primitives::failure();
@@ -347,7 +347,7 @@ namespace rubinius {
     return removed ? cTrue : cFalse;
   }
 
-  Object* CompiledMethod::is_breakpoint(STATE, Fixnum* ip) {
+  Object* CompiledCode::is_breakpoint(STATE, Fixnum* ip) {
     int i = ip->to_native();
     if(backend_method_ == NULL) return cFalse;
     if(!backend_method_->validate_ip(state, i)) return Primitives::failure();
@@ -360,7 +360,7 @@ namespace rubinius {
     return cFalse;
   }
 
-  CompiledMethod* CompiledMethod::of_sender(STATE, CallFrame* calling_environment) {
+  CompiledCode* CompiledCode::of_sender(STATE, CallFrame* calling_environment) {
     CallFrame* caller = static_cast<CallFrame*>(calling_environment->previous);
     if(caller) {
       if(caller->cm) {
@@ -368,19 +368,19 @@ namespace rubinius {
       }
     }
 
-    return nil<CompiledMethod>();
+    return nil<CompiledCode>();
   }
 
-  CompiledMethod* CompiledMethod::current(STATE, CallFrame* calling_environment) {
+  CompiledCode* CompiledCode::current(STATE, CallFrame* calling_environment) {
     return calling_environment->cm;
   }
 
-  void CompiledMethod::Info::mark(Object* obj, ObjectMark& mark) {
+  void CompiledCode::Info::mark(Object* obj, ObjectMark& mark) {
     auto_mark(obj, mark);
 
     mark_inliners(obj, mark);
 
-    CompiledMethod* cm = as<CompiledMethod>(obj);
+    CompiledCode* cm = as<CompiledCode>(obj);
     if(!cm->backend_method_) return;
 
     VMMethod* vmm = cm->backend_method_;
@@ -436,8 +436,8 @@ namespace rubinius {
     }
   }
 
-  void CompiledMethod::Info::show(STATE, Object* self, int level) {
-    CompiledMethod* cm = as<CompiledMethod>(self);
+  void CompiledCode::Info::show(STATE, Object* self, int level) {
+    CompiledCode* cm = as<CompiledCode>(self);
 
     class_header(state, self);
     indent_attribute(++level, "file"); cm->file()->show(state, level);

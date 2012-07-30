@@ -90,7 +90,7 @@ namespace rbxti {
   }
 
   rmethod Env::cast_to_rmethod(robject obj) {
-    if(CompiledMethod* c = try_as<CompiledMethod>((Object*)obj)) {
+    if(CompiledCode* c = try_as<CompiledCode>((Object*)obj)) {
       return o(c);
     }
 
@@ -221,7 +221,7 @@ namespace rbxti {
   }
 
   r_mint Env::method_id(rmethod meth) {
-    CompiledMethod* cm = i(meth);
+    CompiledCode* cm = i(meth);
 
     if(VMMethod* vmm = cm->backend_method()) {
       return (vmm->method_id() << 1) | 1;

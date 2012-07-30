@@ -15,7 +15,7 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/constantscope.hpp"
 #include "builtin/module.hpp"
-#include "builtin/compiledmethod.hpp"
+#include "builtin/compiledcode.hpp"
 #include "builtin/class.hpp"
 #include "builtin/block_environment.hpp"
 
@@ -382,7 +382,7 @@ namespace rubinius {
       {
         BackgroundCompileRequest* req = *i;
         if(Object* obj = gc->saw_object(req->method())) {
-          req->set_method(force_as<CompiledMethod>(obj));
+          req->set_method(force_as<CompiledCode>(obj));
         }
 
         if(Object* obj = gc->saw_object(req->extra())) {
@@ -636,7 +636,7 @@ namespace rubinius {
     return symbols_.lookup_debug_string(sym);
   }
 
-  std::string LLVMState::enclosure_name(CompiledMethod* cm) {
+  std::string LLVMState::enclosure_name(CompiledCode* cm) {
     ConstantScope* cs = cm->scope();
     if(!kind_of<ConstantScope>(cs) || !kind_of<Module>(cs->module())) {
       return "ANONYMOUS";
@@ -645,7 +645,7 @@ namespace rubinius {
     return symbol_debug_str(cs->module()->module_name());
   }
 
-  void LLVMState::compile_soon(STATE, CompiledMethod* cm, Object* placement,
+  void LLVMState::compile_soon(STATE, CompiledCode* cm, Object* placement,
                                bool is_block)
   {
     bool wait = config().jit_sync;
@@ -725,7 +725,7 @@ namespace rubinius {
   const static int cInlineMaxDepth = 2;
   const static size_t eMaxInlineSendCount = 10;
 
-  void LLVMState::compile_callframe(STATE, CompiledMethod* start, CallFrame* call_frame,
+  void LLVMState::compile_callframe(STATE, CompiledCode* start, CallFrame* call_frame,
                                     int primitive) {
 
     if(debug_search) {
@@ -778,7 +778,7 @@ namespace rubinius {
     }
   }
 
-  CallFrame* LLVMState::find_candidate(STATE, CompiledMethod* start, CallFrame* call_frame) {
+  CallFrame* LLVMState::find_candidate(STATE, CompiledCode* start, CallFrame* call_frame) {
     if(!config_.jit_inline_generic) {
       return call_frame;
     }
@@ -840,7 +840,7 @@ namespace rubinius {
     // Now start looking at callers.
 
     while(depth-- > 0) {
-      CompiledMethod* cur = call_frame->cm;
+      CompiledCode* cur = call_frame->cm;
 
       if(!cur) {
         if(debug_search) {

@@ -96,7 +96,7 @@ module Rubinius
 
     # encoded bytecode -> compiled method
     class Packager < Stage
-      stage :compiled_method
+      stage :compiled_code
       next_stage Writer
 
       def initialize(compiler, last)
@@ -111,7 +111,7 @@ module Rubinius
       end
 
       def run
-        @output = @input.package Rubinius::CompiledMethod
+        @output = @input.package Rubinius::CompiledCode
         run_next
       end
     end

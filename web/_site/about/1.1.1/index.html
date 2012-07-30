@@ -113,7 +113,7 @@ collection, Just-In-Time compilation, and compatibility with existing C APIs.</p
   <li>Add ruby-debug stub gem</li>
   <li>Use redo_coerced when calling Float#divide. Fixes #564</li>
   <li>Remove old SendSite/Selector cruft</li>
-  <li>Fix CompiledMethod#locate_line</li>
+  <li>Fix CompiledCode#locate_line</li>
   <li>Add Rubinius::OS_ARGV and Rubinius::OS_STARTUP_DIR</li>
   <li>Change IO::Buffer =&gt; IO::InternalBuffer. Fixes #560</li>
   <li>Make sure there is a fallback policy. Fixes #561</li>
@@ -147,7 +147,7 @@ collection, Just-In-Time compilation, and compatibility with existing C APIs.</p
   <li>Make sure the user&rsquo;s gem cache directory exists. Fixes #541</li>
   <li>Incorporate rubygems loadtime speedup patch</li>
   <li>Speed up rubygems gemspec loading via caching</li>
-  <li>Remove CompiledMethod#compile</li>
+  <li>Remove CompiledCode#compile</li>
   <li>Seperate out running finalizers in profiler output</li>
   <li>Add ability to cache eval compile requests</li>
   <li>Handle fixnums in JIT float ops too</li>

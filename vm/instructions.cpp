@@ -3,7 +3,7 @@
 #include "builtin/autoload.hpp"
 #include "builtin/block_environment.hpp"
 #include "builtin/class.hpp"
-#include "builtin/compiledmethod.hpp"
+#include "builtin/compiledcode.hpp"
 #include "builtin/encoding.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"

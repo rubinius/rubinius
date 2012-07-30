@@ -8,11 +8,11 @@ next_url: bytecode-compiler/writer
 ---
 
 Po tym jak Generator został odpowiednio zakodowany podczas etapu
-kodowania, Rubinius pakuje bajtkod jako CompiledMethod tworząc nową
-instancję klasy CompiledMethod i ustawiając na niej kilka atrybutów.
+kodowania, Rubinius pakuje bajtkod jako CompiledCode tworząc nową
+instancję klasy CompiledCode i ustawiając na niej kilka atrybutów.
 
-Te atrubuty są dostępne na każdej instancji klasy CompiledMethod. Aby
-otrzymać instancję CompiledMethod z metody Rubiego wywołaj na niej
+Te atrubuty są dostępne na każdej instancji klasy CompiledCode. Aby
+otrzymać instancję CompiledCode z metody Rubiego wywołaj na niej
 `executable`.
 
 * *iseq*: Krotka (ang. Tuple) zawierająca sekwencję instrukcji
@@ -40,28 +40,28 @@ otrzymać instancję CompiledMethod z metody Rubiego wywołaj na niej
 
 Etap pakowania zamienia również wszystkie pomniejsze generatory
 (np. generatory dla bloków czy metod) na skompilowane metody
-(CompiledMethod). Te pomniejsze skompilowane metody są dostępne w
+(CompiledCode). Te pomniejsze skompilowane metody są dostępne w
 krotce `literals` w nadrzędnej skompilowanej metodzie.
 
-Gdy Generator skończył pakowanie siebie jako CompiledMethod, wywołuje
-etap zapisywania, przekazując CompiledMethod na wejście.
+Gdy Generator skończył pakowanie siebie jako CompiledCode, wywołuje
+etap zapisywania, przekazując CompiledCode na wejście.
 
 ## Pliki
 
-* *kernel/bootstrap/compiled_method.rb*: podstawowa implementacja
-  CompiledMethod, głównie złożona z odwoływań do elementów
+* *kernel/bootstrap/compiled_code.rb*: podstawowa implementacja
+  CompiledCode, głównie złożona z odwoływań do elementów
   podstawowych (primitives)
-* *kernel/common/compiled_method.rb*: bardziej rozbudowana implementacja
-  CompiledMethod, połączenie elementów podstawowych oraz metod
+* *kernel/common/compiled_code.rb*: bardziej rozbudowana implementacja
+  CompiledCode, połączenie elementów podstawowych oraz metod
   napisanych w Ruby
-* *vm/builtin/compiledmethod.cpp*: implementacja elementów
+* *vm/builtin/compiledcode.cpp*: implementacja elementów
   podstawowych w C++
 * *lib/compiler/generator.rb*: Implementacja metody `package`, która
-  wypełnia obiekt CompiledMethod informacjami pochodzącymi z Generatora.
+  wypełnia obiekt CompiledCode informacjami pochodzącymi z Generatora.
 
 ## Dostosowanie pakowania
 
 Ogólnie rzecz biorąc, metoda `package` została zaprojektowana aby
-wypełnić obiekt CompiledMethod serią zmiennych. Możesz jednak użyć
+wypełnić obiekt CompiledCode serią zmiennych. Możesz jednak użyć
 etapu pakowania aby wypełnić inny obiekt posiadający ten sam interfejs
 tymi danymi.

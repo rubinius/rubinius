@@ -5,7 +5,7 @@
 #include "builtin/object.hpp"
 #include "builtin/module.hpp"
 #include "builtin/class.hpp"
-#include "builtin/compiledmethod.hpp"
+#include "builtin/compiledcode.hpp"
 #include "lock.hpp"
 #include "object_utils.hpp"
 
@@ -46,7 +46,7 @@ namespace rubinius {
     }
 
     friend class InlineCache;
-    friend class CompiledMethod::Info;
+    friend class CompiledCode::Info;
   };
 
   class InlineCache {
@@ -73,7 +73,7 @@ namespace rubinius {
 
   public:
 
-    friend class CompiledMethod::Info;
+    friend class CompiledCode::Info;
 
     static Object* empty_cache(STATE, InlineCache* cache, CallFrame* call_frame,
                                Arguments& args);

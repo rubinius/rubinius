@@ -12,7 +12,7 @@ describe "Kernel#eval" do
     rm_r @cache
   end
 
-  it "creates a CompiledMethod that can be cached and re-run" do
+  it "creates a CompiledCode that can be cached and re-run" do
     KernelSpecs.run_cache(@cache).should == "Object:Object"
   end
 

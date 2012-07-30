@@ -6,7 +6,7 @@
 #include "instruments/rbxti-internal.hpp"
 #include "instruments/tooling.hpp"
 
-#include "builtin/compiledmethod.hpp"
+#include "builtin/compiledcode.hpp"
 #include "builtin/block_environment.hpp"
 #include "builtin/variable_scope.hpp"
 #include "builtin/system.hpp"
@@ -62,7 +62,7 @@ namespace tooling {
   }
 
   void* ToolBroker::enter_method(STATE, Executable* exec, Module* o_mod,
-                                 Arguments& args, CompiledMethod* cm)
+                                 Arguments& args, CompiledCode* cm)
   {
     if(!enter_method_func_) return 0;
 
@@ -110,7 +110,7 @@ namespace tooling {
     leave_gc_func_(state->vm()->tooling_env(), tag);
   }
 
-  void* ToolBroker::enter_script(STATE, CompiledMethod* cm)
+  void* ToolBroker::enter_script(STATE, CompiledCode* cm)
   {
     if(!enter_script_func_) return 0;
 

@@ -3,7 +3,7 @@
 #include "object.hpp"
 #include "type_info.hpp"
 #include "compiled_file.hpp"
-#include "builtin/compiledmethod.hpp"
+#include "builtin/compiledcode.hpp"
 #include "llvm.hpp"
 
 #include <llvm/Module.h>
@@ -66,7 +66,7 @@ int main(int argc, char** argv) {
   CompiledFile* cf = CompiledFile::load(stream);
   if(cf->magic != "!RBIX") throw std::runtime_error("Invalid file");
 
-  CompiledMethod* meth = as<CompiledMethod>(cf->body(env.state));
+  CompiledCode* meth = as<CompiledCode>(cf->body(env.state));
 
   delete cf;
 

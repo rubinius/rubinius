@@ -35,7 +35,7 @@ module Kernel
   def binding
     return Binding.setup(
       Rubinius::VariableScope.of_sender,
-      Rubinius::CompiledMethod.of_sender,
+      Rubinius::CompiledCode.of_sender,
       Rubinius::ConstantScope.of_sender,
       self,
       Rubinius::Location.of_closest_ruby_method
@@ -55,7 +55,7 @@ module Kernel
       filename ||= binding.constant_scope.active_path
     else
       binding = Binding.setup(Rubinius::VariableScope.of_sender,
-                              Rubinius::CompiledMethod.of_sender,
+                              Rubinius::CompiledCode.of_sender,
                               Rubinius::ConstantScope.of_sender,
                               self)
 
@@ -111,7 +111,7 @@ class Module
     cs = Rubinius::ConstantScope.new self, Rubinius::ConstantScope.of_sender
 
     binding = Binding.setup(Rubinius::VariableScope.of_sender,
-                            Rubinius::CompiledMethod.of_sender,
+                            Rubinius::CompiledCode.of_sender,
                             cs)
 
     be = Rubinius::Compiler.construct_block string, binding,

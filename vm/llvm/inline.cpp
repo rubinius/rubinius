@@ -92,7 +92,7 @@ namespace rubinius {
       } else {
         inline_ivar_access(klass, acc);
       }
-    } else if(CompiledMethod* cm = try_as<CompiledMethod>(meth)) {
+    } else if(CompiledCode* cm = try_as<CompiledCode>(meth)) {
       VMMethod* vmm = cm->backend_method();
 
       if(!cm->primitive()->nil_p()) {
@@ -100,7 +100,7 @@ namespace rubinius {
         goto remember;
       }
 
-      // Not yet sure why we'd hit a CompiledMethod that hasn't been
+      // Not yet sure why we'd hit a CompiledCode that hasn't been
       // internalized, but protect against that case none the less.
       if(!vmm) return false;
 
@@ -309,7 +309,7 @@ remember:
     emit_inline_block(ib, self);
   }
 
-  bool Inliner::detect_trivial_method(VMMethod* vmm, CompiledMethod* cm) {
+  bool Inliner::detect_trivial_method(VMMethod* vmm, CompiledCode* cm) {
     opcode* stream = vmm->opcodes;
     size_t size_max = 2;
     switch(stream[0]) {
@@ -340,7 +340,7 @@ remember:
     return false;
   }
 
-  void Inliner::inline_trivial_method(Class* klass, CompiledMethod* cm) {
+  void Inliner::inline_trivial_method(Class* klass, CompiledCode* cm) {
     if(ops_.state()->config().jit_inline_debug) {
       context_.inline_log("inlining")
         << ops_.state()->enclosure_name(cm)
@@ -551,7 +551,7 @@ remember:
   }
 
   void Inliner::inline_generic_method(Class* klass, Module* defined_in,
-                                      CompiledMethod* cm, VMMethod* vmm) {
+                                      CompiledCode* cm, VMMethod* vmm) {
     context_.enter_inline();
 
     check_recv(klass);

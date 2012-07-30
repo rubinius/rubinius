@@ -5,7 +5,7 @@
 #include "builtin/class.hpp"
 #include "builtin/module.hpp"
 #include "builtin/symbol.hpp"
-#include "builtin/compiledmethod.hpp"
+#include "builtin/compiledcode.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/constantscope.hpp"
 #include "builtin/lookuptable.hpp"

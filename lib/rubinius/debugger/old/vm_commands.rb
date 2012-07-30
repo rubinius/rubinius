@@ -88,7 +88,7 @@ module Rubinius
         first, last = md[4], md[5]
 
         if mthd
-          cm = get_method(mod, mthd_type, mthd).compiled_method
+          cm = get_method(mod, mthd_type, mthd).compiled_code
           first = 0 unless first
         else
           # Decode current method

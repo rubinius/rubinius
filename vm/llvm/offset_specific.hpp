@@ -133,7 +133,7 @@ namespace UnwindInfo {
   const static int stack_depth = 1;
   const static int type = 2;
 }
-namespace CompiledMethod {
+namespace CompiledCode {
   const static int header = 0;
   const static int metadata = 1;
   const static int name = 2;

@@ -913,7 +913,7 @@ namespace rubinius {
   }
 
   Object* System::vm_add_method(STATE, GCToken gct, Symbol* name,
-                                CompiledMethod* method,
+                                CompiledCode* method,
                                 ConstantScope* scope, Object* vis)
   {
     Module* mod = scope->for_method_definition();
@@ -972,7 +972,7 @@ namespace rubinius {
   }
 
   Object* System::vm_attach_method(STATE, GCToken gct, Symbol* name,
-                                   CompiledMethod* method,
+                                   CompiledCode* method,
                                    ConstantScope* scope, Object* recv)
   {
     Module* mod = recv->singleton_class(state);
@@ -1065,7 +1065,7 @@ namespace rubinius {
     bool disable = CBOOL(o_disable);
 
     while(obj) {
-      if(CompiledMethod* cm = try_as<CompiledMethod>(obj)) {
+      if(CompiledCode* cm = try_as<CompiledCode>(obj)) {
         if(VMMethod* vmm = cm->backend_method()) {
           vmm->deoptimize(state, cm, 0, disable);
         }
@@ -1552,7 +1552,7 @@ namespace rubinius {
     return tuple;
   }
 
-  Object* System::vm_run_script(STATE, GCToken gct, CompiledMethod* cm,
+  Object* System::vm_run_script(STATE, GCToken gct, CompiledCode* cm,
                                 CallFrame* calling_environment)
   {
     Dispatch msg(state->symbol("__script__"), G(object), cm);

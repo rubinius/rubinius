@@ -158,7 +158,7 @@ class UnboundMethod
 
   ##
   # Accepts and stores the Module where the method is defined in as well as
-  # the CompiledMethod itself. Class of the object the method was extracted
+  # the CompiledCode itself. Class of the object the method was extracted
   # from can be given but will not be stored. This is always used internally
   # only.
 

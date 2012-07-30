@@ -576,7 +576,7 @@ namespace profiler {
   method_id Profiler::create_id(Env* env, rmethod cm, rsymbol name,
                                 rsymbol container, Kind kind)
   {
-    // If we have a CompiledMethod, use it's method id.
+    // If we have a CompiledCode, use it's method id.
     if(cm && !env->is_nil(cm)) {
       r_mint i = env->method_id(cm);
       if(i) return i;

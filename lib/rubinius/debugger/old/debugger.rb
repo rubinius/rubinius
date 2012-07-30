@@ -82,7 +82,7 @@ module Rubinius
       Thread.pass until waiting_for_breakpoint?
     end
 
-    # Sets a breakpoint on a +CompiledMethod+ at the specified address.
+    # Sets a breakpoint on a +CompiledCode+ at the specified address.
     def set_breakpoint(cm, ip, condition=nil)
       @breakpoint_tracker.on(cm, :ip => ip, :condition => condition)
     end
@@ -183,7 +183,7 @@ module Rubinius
       @last_lines
     end
 
-    # Returns the decoded instruction sequence for the specified CompiledMethod.
+    # Returns the decoded instruction sequence for the specified CompiledCode.
     # The last decode listing is cached, since it is common to list the bytecode
     # for a method multiple times.
     def asm_for(cm)

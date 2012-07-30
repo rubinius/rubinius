@@ -122,7 +122,7 @@ namespace jit {
 
       if(indy) ls->shared().gc_dependent(ls);
 
-      // Inject the RuntimeData objects used into the original CompiledMethod
+      // Inject the RuntimeData objects used into the original CompiledCode
       // Do this way after we've validated the IR so things are consistent.
       ctx_.runtime_data_holder()->set_function(function_,
                                    mci_->address(), mci_->size());
@@ -142,7 +142,7 @@ namespace jit {
     }
   }
 
-  void Compiler::compile_block(LLVMState* ls, CompiledMethod* cm, VMMethod* vmm) {
+  void Compiler::compile_block(LLVMState* ls, CompiledCode* cm, VMMethod* vmm) {
     if(ls->config().jit_inline_debug) {
       assert(vmm->parent());
 
@@ -169,7 +169,7 @@ namespace jit {
   }
 
   void Compiler::compile_method(LLVMState* ls, BackgroundCompileRequest* req) {
-    CompiledMethod* cm = req->method();
+    CompiledCode* cm = req->method();
 
     if(ls->config().jit_inline_debug) {
       struct timeval tv;

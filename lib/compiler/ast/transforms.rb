@@ -285,7 +285,7 @@ module Rubinius
     class SendFastNew < SendWithArguments
       transform :default, :fast_new, "Fast SomeClass.new path"
 
-      # FIXME duplicated from kernel/common/compiled_method.rb
+      # FIXME duplicated from kernel/common/compiled_code.rb
       KernelMethodSerial = 47
 
       def self.match?(line, receiver, name, arguments, privately)

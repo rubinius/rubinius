@@ -5,7 +5,7 @@
 #include "environment.hpp"
 #include "config_parser.hpp"
 
-#include "builtin/compiledmethod.hpp"
+#include "builtin/compiledcode.hpp"
 #include "builtin/machine_method.hpp"
 #include "compiled_file.hpp"
 
@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
     cout << "Invalid file.\n";
   }
 
-  VMMethod* vmm = as<CompiledMethod>(cf->body(state))->formalize(state, false);
+  VMMethod* vmm = as<CompiledCode>(cf->body(state))->formalize(state, false);
 
   delete cf;
 

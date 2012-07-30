@@ -55,7 +55,7 @@ module Kernel
       end
 
       binding = Binding.setup(Rubinius::VariableScope.of_sender,
-                              Rubinius::CompiledMethod.of_sender,
+                              Rubinius::CompiledCode.of_sender,
                               constant_scope)
 
       be = Rubinius::Compiler.construct_block string, binding,

@@ -100,7 +100,7 @@ module Rubinius
     end
 
     def self.compile_file(file, line=1)
-      compiler = new :file, :compiled_method
+      compiler = new :file, :compiled_code
 
       parser = compiler.parser
       parser.root AST::Script
@@ -115,7 +115,7 @@ module Rubinius
     end
 
     def self.compile_string(string, file="(eval)", line=1)
-      compiler = new :string, :compiled_method
+      compiler = new :string, :compiled_code
 
       parser = compiler.parser
       parser.root AST::Script
@@ -290,7 +290,7 @@ module Rubinius
         end
       end
 
-      compiler = new :eval, :compiled_method
+      compiler = new :eval, :compiled_code
 
       parser = compiler.parser
       parser.root AST::EvalExpression
@@ -317,7 +317,7 @@ module Rubinius
       cm.name = binding.variables.method.name
 
       # This has to be setup so __FILE__ works in eval.
-      script = Rubinius::CompiledMethod::Script.new(cm, file, true)
+      script = Rubinius::CompiledCode::Script.new(cm, file, true)
       script.eval_source = string
 
       cm.scope.script = script

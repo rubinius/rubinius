@@ -9,7 +9,7 @@ bytearray.rbc
 channel.rbc
 class.rbc
 compactlookuptable.rbc
-compiled_method.rbc
+compiled_code.rbc
 configuration.rbc
 dir.rbc
 encoding.rbc

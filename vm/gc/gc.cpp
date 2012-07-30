@@ -11,7 +11,7 @@
 #include "builtin/module.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/weakref.hpp"
-#include "builtin/compiledmethod.hpp"
+#include "builtin/compiledcode.hpp"
 #include "call_frame.hpp"
 #include "builtin/variable_scope.hpp"
 #include "builtin/constantscope.hpp"
@@ -176,7 +176,7 @@ namespace rubinius {
     while(call_frame) {
       call_frame = displace(call_frame, offset);
 
-      // Skip synthetic, non CompiledMethod frames
+      // Skip synthetic, non CompiledCode frames
       if(!call_frame->cm) {
         call_frame = call_frame->previous;
         continue;
@@ -190,7 +190,7 @@ namespace rubinius {
       }
 
       if(call_frame->cm && call_frame->cm->reference_p()) {
-        call_frame->cm = (CompiledMethod*)mark_object(call_frame->cm);
+        call_frame->cm = (CompiledCode*)mark_object(call_frame->cm);
       }
 
       if(call_frame->cm && call_frame->stk) {
@@ -237,7 +237,7 @@ namespace rubinius {
       }
 
       if(jit::RuntimeData* rd = call_frame->runtime_data()) {
-        rd->method_ = (CompiledMethod*)mark_object(rd->method());
+        rd->method_ = (CompiledCode*)mark_object(rd->method());
         rd->name_ = (Symbol*)mark_object(rd->name());
         rd->module_ = (Module*)mark_object(rd->module());
       }

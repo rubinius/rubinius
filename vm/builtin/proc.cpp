@@ -4,7 +4,7 @@
 #include "objectmemory.hpp"
 #include "builtin/class.hpp"
 #include "builtin/block_environment.hpp"
-#include "builtin/compiledmethod.hpp"
+#include "builtin/compiledcode.hpp"
 #include "builtin/system.hpp"
 #include "builtin/location.hpp"
 #include "builtin/nativemethod.hpp"

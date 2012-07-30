@@ -84,7 +84,7 @@ module Rubinius
     executable.serial = 1
     if executable.respond_to? :scope=
       # If we're adding a method inside ane eval, dup it so that
-      # we don't share the CompiledMethod with the eval, since
+      # we don't share the CompiledCode with the eval, since
       # we're going to mutate it.
       if constant_scope and script = constant_scope.current_script
         if script.eval?
@@ -155,7 +155,7 @@ module Rubinius
       end
     else
       case executable
-      when CompiledMethod, AccessVariable
+      when CompiledCode, AccessVariable
         mod.add_ivars(executable)
       end
 
@@ -175,7 +175,7 @@ module Rubinius
     executable.serial = 1
     if executable.respond_to? :scope=
       # If we're adding a method inside ane eval, dup it so that
-      # we don't share the CompiledMethod with the eval, since
+      # we don't share the CompiledCode with the eval, since
       # we're going to mutate it.
       if constant_scope and script = constant_scope.current_script
         if script.eval?

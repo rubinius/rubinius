@@ -44,7 +44,7 @@ namespace rubinius {
     ConstantScope* constant_scope_;
 
     void* dispatch_data;
-    CompiledMethod* cm;
+    CompiledCode* cm;
 
     int flags;
     int ip_;

@@ -65,5 +65,5 @@ class Object
   end
 end
 
-require File.expand_path("../../kernel/common/compiled_method", __FILE__)
+require File.expand_path("../../kernel/common/compiled_code", __FILE__)
 require File.expand_path("../../kernel/delta/options", __FILE__)

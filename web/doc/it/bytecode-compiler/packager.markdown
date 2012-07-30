@@ -8,11 +8,11 @@ next_url: bytecode-compiler/writer
 ---
 
 Once the Generator has been properly encoded in the Encoder stage,
-Rubinius packages the bytecode up as a CompiledMethod by creating a new
-CompiledMethod and setting a number of properties on it.
+Rubinius packages the bytecode up as a CompiledCode by creating a new
+CompiledCode and setting a number of properties on it.
 
-These properties are available on any CompiledMethod. You can retrieve
-the CompiledMethod from a Ruby Method object by calling `executable` on
+These properties are available on any CompiledCode. You can retrieve
+the CompiledCode from a Ruby Method object by calling `executable` on
 it.
 
 * *iseq*: a Tuple containing the raw instruction sequence
@@ -44,26 +44,26 @@ generators for blocks or methods) are also converted into compiled
 methods. These child compiled methods are included in the literals tuple
 of the parent compiled method.
 
-Once the Generator has finished packaging itself as a CompiledMethod, it
-invokes the Writer stage, passing in the CompiledMethod as its input.
+Once the Generator has finished packaging itself as a CompiledCode, it
+invokes the Writer stage, passing in the CompiledCode as its input.
 
 ## Files Referenced
 
-* *kernel/bootstrap/compiled_method.rb*: the basic implementation of
-  CompiledMethod, mostly composed of wiring up primitives
-* *kernel/common/compiled_method.rb*: a more robust implementation of
-  CompiledMethod, a combination of primitive methods and methods written
+* *kernel/bootstrap/compiled_code.rb*: the basic implementation of
+  CompiledCode, mostly composed of wiring up primitives
+* *kernel/common/compiled_code.rb*: a more robust implementation of
+  CompiledCode, a combination of primitive methods and methods written
   in Ruby
-* *vm/builtin/compiledmethod.cpp*: the C++ implementation of the
-  CompiledMethod primitives
+* *vm/builtin/compiledcode.cpp*: the C++ implementation of the
+  CompiledCode primitives
 * *lib/compiler/generator.rb*: The implementation of the `package`
-  method, which populates the CompiledMethod with information from the
+  method, which populates the CompiledCode with information from the
   Generator object.
 
 ## Customization
 
 In general, the `package` method is designed to populate the
-CompiledMethod with a group of variables. However, you could also use
+CompiledCode with a group of variables. However, you could also use
 the packager to populate another object with the same interface.
 However, it would not necessarily be useful on its own, without
 additional customizations later on

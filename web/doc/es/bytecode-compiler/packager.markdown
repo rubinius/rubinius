@@ -9,10 +9,10 @@ next_url: bytecode-compiler/writer
 
 Una vez que el generador ha sido correctamente codificado en la etapa de
 Codificación, Rubinius empaqueta el bytecode creando un nuevo método compilado
-(un objeto CompiledMethod) con ciertos atributos.
+(un objeto CompiledCode) con ciertos atributos.
 
-Estos atributos están expuestos en cualquier CompiledMethod. Es posible
-extraer un CompiledMethod a partir de un método de Ruby llamando `executable`
+Estos atributos están expuestos en cualquier CompiledCode. Es posible
+extraer un CompiledCode a partir de un método de Ruby llamando `executable`
 sobre el método.
 
 * *iseq*: un objeto Tuple con la secuencia de instrucciones
@@ -43,24 +43,24 @@ convertidos en métodos compilados. Estos métodos compilados hijos se incluyen
 en la tupla de literales del método compilado padre.
 
 Después de que el Generator ha terminado de empaquetarse a sí mismo como un
-CompiledMethod, invoca la etapa de Escritura, con el CompiledMethod como
+CompiledCode, invoca la etapa de Escritura, con el CompiledCode como
 entrada.
 
 ## Ficheros mencionados
 
-* *kernel/bootstrap/compiled_method.rb*: la implementación básica de
-  CompiledMethod, básicamente compuesta de diversas primitivas
-* *kernel/common/compiled_method.rb*: una implementación más robusta de
-  CompiledMethod, una combinación de métodos primitivos y métodos escritos en
+* *kernel/bootstrap/compiled_code.rb*: la implementación básica de
+  CompiledCode, básicamente compuesta de diversas primitivas
+* *kernel/common/compiled_code.rb*: una implementación más robusta de
+  CompiledCode, una combinación de métodos primitivos y métodos escritos en
   Ruby
-* *vm/builtin/compiledmethod.cpp*: la implementación en C++ de las primitivas
-  de un CompiledMethod
+* *vm/builtin/compiledcode.cpp*: la implementación en C++ de las primitivas
+  de un CompiledCode
 * *lib/compiler/generator.rb*: La implementación del método `package`, el cual
-  popula el CompiledMethod con información sobre el objeto Generator.
+  popula el CompiledCode con información sobre el objeto Generator.
 
 ## Personalización
 
-En general, el método `package` está diseñado para popular el CompiledMethod
+En general, el método `package` está diseñado para popular el CompiledCode
 con un grupo de variables. Sin embargo, también se podría utilizar el
 empaquetador para popular otro objeto con la misma interfaz. A pesar de todo,
 esto podría no ser útil en sí mismo sin otras personalizaciones más adelante.

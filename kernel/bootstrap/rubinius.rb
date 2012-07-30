@@ -193,7 +193,7 @@ module Rubinius
     raise PrimitiveFailure, "Rubinius.thread_state failed"
   end
 
-  # Used to invoke a CompiledMethod +cm+ as a script body.
+  # Used to invoke a CompiledCode +cm+ as a script body.
   # Sets up the MAIN object as self and bypasses JIT'ing
   # (because why JIT a script you only run once).
   def self.run_script(cm)

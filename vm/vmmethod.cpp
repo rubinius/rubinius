@@ -9,7 +9,7 @@
 #include "vm/object_utils.hpp"
 
 #include "builtin/array.hpp"
-#include "builtin/compiledmethod.hpp"
+#include "builtin/compiledcode.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/iseq.hpp"
 #include "builtin/symbol.hpp"
@@ -37,7 +37,7 @@
 #endif
 
 /*
- * An internalization of a CompiledMethod which holds the instructions for the
+ * An internalization of a CompiledCode which holds the instructions for the
  * method.
  */
 namespace rubinius {
@@ -50,9 +50,9 @@ namespace rubinius {
   }
 
   /*
-   * Turns a CompiledMethod's InstructionSequence into a C array of opcodes.
+   * Turns a CompiledCode's InstructionSequence into a C array of opcodes.
    */
-  VMMethod::VMMethod(STATE, CompiledMethod* meth)
+  VMMethod::VMMethod(STATE, CompiledCode* meth)
     : parent_(NULL)
     , run(VMMethod::interpreter)
     , type(NULL)
@@ -128,7 +128,7 @@ namespace rubinius {
       (number_of_caches_ * sizeof(InlineCache)); // caches
   }
 
-  void VMMethod::fill_opcodes(STATE, CompiledMethod* original) {
+  void VMMethod::fill_opcodes(STATE, CompiledCode* original) {
     Tuple* ops = original->iseq()->opcodes();
     Object* val;
 
@@ -184,7 +184,7 @@ namespace rubinius {
     initialize_caches(state, original, sends);
   }
 
-  void VMMethod::initialize_caches(STATE, CompiledMethod* original, int sends) {
+  void VMMethod::initialize_caches(STATE, CompiledCode* original, int sends) {
     number_of_caches_ = sends;
     caches = new InlineCache[sends];
 
@@ -461,7 +461,7 @@ namespace rubinius {
    * index assigned.  Same for set_ivar/store_my_field.
    */
 
-  void VMMethod::specialize(STATE, CompiledMethod* original, TypeInfo* ti) {
+  void VMMethod::specialize(STATE, CompiledCode* original, TypeInfo* ti) {
     type = ti;
     for(size_t i = 0; i < total;) {
       opcode op = opcodes[i];
@@ -508,7 +508,7 @@ namespace rubinius {
     }
   }
 
-  void VMMethod::setup_argument_handler(CompiledMethod* meth) {
+  void VMMethod::setup_argument_handler(CompiledCode* meth) {
     // Firstly, use the generic case that handles all cases
     fallback = &VMMethod::execute_specialized<GenericArguments>;
 
@@ -550,7 +550,7 @@ namespace rubinius {
    * as opposed to Primitives or FFI functions.
    * It prepares a Ruby method for execution.
    * Here, +exec+ is a VMMethod instance accessed via the +vmm+ slot on
-   * CompiledMethod.
+   * CompiledCode.
    *
    * This method works as a template even though it's here because it's never
    * called from outside of this file. Thus all the template expansions are done.
@@ -559,7 +559,7 @@ namespace rubinius {
     Object* VMMethod::execute_specialized(STATE, CallFrame* previous,
         Executable* exec, Module* mod, Arguments& args) {
 
-      CompiledMethod* cm = as<CompiledMethod>(exec);
+      CompiledCode* cm = as<CompiledCode>(exec);
       VMMethod* vmm = cm->backend_method();
 
       StackVariables* scope = ALLOCA_STACKVARIABLES(vmm->number_of_locals);
@@ -633,7 +633,7 @@ namespace rubinius {
     return execute_specialized<GenericArguments>(state, previous, exec, mod, args);
   }
 
-  Object* VMMethod::execute_as_script(STATE, CompiledMethod* cm, CallFrame* previous) {
+  Object* VMMethod::execute_as_script(STATE, CompiledCode* cm, CallFrame* previous) {
     VMMethod* vmm = cm->backend_method();
 
     StackVariables* scope = ALLOCA_STACKVARIABLES(vmm->number_of_locals);
@@ -682,7 +682,7 @@ namespace rubinius {
 
   // If +disable+ is set, then the method is tagged as not being
   // available for JIT.
-  void VMMethod::deoptimize(STATE, CompiledMethod* original,
+  void VMMethod::deoptimize(STATE, CompiledCode* original,
                             jit::RuntimeDataHolder* rd,
                             bool disable)
   {
@@ -727,7 +727,7 @@ namespace rubinius {
       execute_status_ = eJIT;
     }
 
-    if(original->execute == CompiledMethod::specialized_executor) {
+    if(original->execute == CompiledCode::specialized_executor) {
       bool found = false;
 
       for(int i = 0; i < cMaxSpecializations; i++) {

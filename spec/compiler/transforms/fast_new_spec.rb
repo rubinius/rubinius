@@ -15,7 +15,7 @@ describe "A Call node using FastNew transform" do
 
       g.push :self
       g.dup
-      g.check_serial_private :new, Rubinius::CompiledMethod::KernelMethodSerial
+      g.check_serial_private :new, Rubinius::CompiledCode::KernelMethodSerial
       gif slow
 
       g.send :allocate, 0, true
@@ -100,7 +100,7 @@ describe "A Call node using FastNew transform" do
 
       g.push_const :A
       g.dup
-      g.check_serial :new, Rubinius::CompiledMethod::KernelMethodSerial
+      g.check_serial :new, Rubinius::CompiledCode::KernelMethodSerial
       gif slow
 
       g.send :allocate, 0, true
@@ -130,7 +130,7 @@ describe "A Call node using FastNew transform" do
 
       g.push_const :A
       g.dup
-      g.check_serial :new, Rubinius::CompiledMethod::KernelMethodSerial
+      g.check_serial :new, Rubinius::CompiledCode::KernelMethodSerial
       gif slow
 
       g.send :allocate, 0, true

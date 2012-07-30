@@ -7,7 +7,7 @@
 #include "type_info.hpp"
 #include "unwind_info.hpp"
 
-#include "vm/builtin/compiledmethod.hpp"
+#include "vm/builtin/compiledcode.hpp"
 #include "gc/code_resource.hpp"
 
 #ifdef ENABLE_LLVM
@@ -19,7 +19,7 @@ namespace llvm {
 namespace rubinius {
   typedef uintptr_t opcode;
 
-  class CompiledMethod;
+  class CompiledCode;
   class VMMethod;
   class InterpreterCallFrame;
   class InlineCache;
@@ -92,7 +92,7 @@ namespace rubinius {
   public: // Methods
     static void init(STATE);
 
-    VMMethod(STATE, CompiledMethod* meth);
+    VMMethod(STATE, CompiledCode* meth);
     virtual ~VMMethod();
     virtual void cleanup(STATE, CodeManager* cm);
     virtual int size();
@@ -152,14 +152,14 @@ namespace rubinius {
       flags |= eNoInline;
     }
 
-    void specialize(STATE, CompiledMethod* original, TypeInfo* ti);
+    void specialize(STATE, CompiledCode* original, TypeInfo* ti);
     void compile(STATE);
     static Object* execute(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
 
     template <typename ArgumentHandler>
       static Object* execute_specialized(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
 
-    Object* execute_as_script(STATE, CompiledMethod*cm, CallFrame* previous);
+    Object* execute_as_script(STATE, CompiledCode*cm, CallFrame* previous);
 
     struct InterpreterState {
       int call_flags;
@@ -192,15 +192,15 @@ namespace rubinius {
       CallFrame* const method_call_frame, jit::RuntimeDataHolder* rd,
       int32_t unwind_count, int32_t* unwinds);
 
-    void setup_argument_handler(CompiledMethod* meth);
+    void setup_argument_handler(CompiledCode* meth);
 
     bool validate_ip(STATE, size_t ip);
 
-    void fill_opcodes(STATE, CompiledMethod* original);
-    void initialize_caches(STATE, CompiledMethod* original, int sends);
+    void fill_opcodes(STATE, CompiledCode* original);
+    void initialize_caches(STATE, CompiledCode* original, int sends);
     void find_super_instructions();
 
-    void deoptimize(STATE, CompiledMethod* original, jit::RuntimeDataHolder* rd,
+    void deoptimize(STATE, CompiledCode* original, jit::RuntimeDataHolder* rd,
                     bool disable=false);
 
     /*

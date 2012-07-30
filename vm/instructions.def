@@ -1154,12 +1154,12 @@ instruction passed_blockarg(count) [ -- boolean ]
 end
 
 # [Description]
-#   Read a CompiledMethod specified by the operand +literal+ and create a
+#   Read a CompiledCode specified by the operand +literal+ and create a
 #   `BlockEnvironment`.  Push the new `BlockEnvironment` object on the stack.
 
 instruction create_block(literal) [ -- block ]
   Object* _lit = call_frame->cm->literals()->at(state, literal);
-  CompiledMethod* cm = as<CompiledMethod>(_lit);
+  CompiledCode* cm = as<CompiledCode>(_lit);
 
   // TODO: We do not need to be doing this everytime.
   cm->scope(state, call_frame->constant_scope());
@@ -1590,7 +1590,7 @@ end
 #   Create a new `ConstantScope` object for the given Module on the stack.
 #   This scope is chained off the current scope of the method.
 #
-#   This also sets the scope of the current `CompiledMethod` to the new
+#   This also sets the scope of the current `CompiledCode` to the new
 #   `ConstantScope`.
 
 instruction add_scope() [ module -- ]
@@ -1666,7 +1666,7 @@ end
 #   method has been overridden. The serial number check is used to determine
 #   each time the code is executed, whether or not the standard `Fixnum#times`
 #   has been overridden. It leverages the serial number field on a
-#   `CompiledMethod`, is initialised to either 0 (for kernel land methods) or
+#   `CompiledCode`, is initialised to either 0 (for kernel land methods) or
 #   1 (for user land methods).
 
 instruction check_serial(literal serial) [ receiver -- boolean ]

@@ -200,11 +200,11 @@ if (!StructTy_struct_rubinius__jit__RuntimeData) {
 StructTy_struct_rubinius__jit__RuntimeData = StructType::create(mod->getContext(), "struct.rubinius::jit::RuntimeData");
 }
 std::vector<Type*>StructTy_struct_rubinius__jit__RuntimeData_fields;
-StructType *StructTy_struct_rubinius__CompiledMethod = mod->getTypeByName("struct.rubinius::CompiledMethod");
-if (!StructTy_struct_rubinius__CompiledMethod) {
-StructTy_struct_rubinius__CompiledMethod = StructType::create(mod->getContext(), "struct.rubinius::CompiledMethod");
+StructType *StructTy_struct_rubinius__CompiledCode = mod->getTypeByName("struct.rubinius::CompiledCode");
+if (!StructTy_struct_rubinius__CompiledCode) {
+StructTy_struct_rubinius__CompiledCode = StructType::create(mod->getContext(), "struct.rubinius::CompiledCode");
 }
-std::vector<Type*>StructTy_struct_rubinius__CompiledMethod_fields;
+std::vector<Type*>StructTy_struct_rubinius__CompiledCode_fields;
 StructType *StructTy_struct_rubinius__Executable = mod->getTypeByName("struct.rubinius::Executable");
 if (!StructTy_struct_rubinius__Executable) {
 StructTy_struct_rubinius__Executable = StructType::create(mod->getContext(), "struct.rubinius::Executable");
@@ -247,7 +247,7 @@ PointerType* PointerTy_23 = PointerType::get(StructTy_struct_rubinius__ConstantS
 
 StructTy_struct_rubinius__CallFrame_fields.push_back(PointerTy_23);
 StructTy_struct_rubinius__CallFrame_fields.push_back(PointerTy_14);
-PointerType* PointerTy_18 = PointerType::get(StructTy_struct_rubinius__CompiledMethod, 0);
+PointerType* PointerTy_18 = PointerType::get(StructTy_struct_rubinius__CompiledCode, 0);
 
 StructTy_struct_rubinius__CallFrame_fields.push_back(PointerTy_18);
 StructTy_struct_rubinius__CallFrame_fields.push_back(IntegerType::get(mod->getContext(), 32));
@@ -335,9 +335,9 @@ if (StructTy_struct_rubinius__Executable->isOpaque()) {
 StructTy_struct_rubinius__Executable->setBody(StructTy_struct_rubinius__Executable_fields, /*isPacked=*/false);
 }
 
-StructTy_struct_rubinius__CompiledMethod_fields.push_back(StructTy_struct_rubinius__Executable);
-StructTy_struct_rubinius__CompiledMethod_fields.push_back(PointerTy_3);
-StructTy_struct_rubinius__CompiledMethod_fields.push_back(PointerTy_2);
+StructTy_struct_rubinius__CompiledCode_fields.push_back(StructTy_struct_rubinius__Executable);
+StructTy_struct_rubinius__CompiledCode_fields.push_back(PointerTy_3);
+StructTy_struct_rubinius__CompiledCode_fields.push_back(PointerTy_2);
 StructType *StructTy_struct_rubinius__InstructionSequence = mod->getTypeByName("struct.rubinius::InstructionSequence");
 if (!StructTy_struct_rubinius__InstructionSequence) {
 StructTy_struct_rubinius__InstructionSequence = StructType::create(mod->getContext(), "struct.rubinius::InstructionSequence");
@@ -349,18 +349,18 @@ StructTy_struct_rubinius__InstructionSequence->setBody(StructTy_struct_rubinius_
 
 PointerType* PointerTy_28 = PointerType::get(StructTy_struct_rubinius__InstructionSequence, 0);
 
-StructTy_struct_rubinius__CompiledMethod_fields.push_back(PointerTy_28);
-StructTy_struct_rubinius__CompiledMethod_fields.push_back(PointerTy_9);
-StructTy_struct_rubinius__CompiledMethod_fields.push_back(PointerTy_9);
-StructTy_struct_rubinius__CompiledMethod_fields.push_back(PointerTy_9);
-StructTy_struct_rubinius__CompiledMethod_fields.push_back(PointerTy_9);
-StructTy_struct_rubinius__CompiledMethod_fields.push_back(PointerTy_9);
-StructTy_struct_rubinius__CompiledMethod_fields.push_back(PointerTy_3);
-StructTy_struct_rubinius__CompiledMethod_fields.push_back(PointerTy_10);
-StructTy_struct_rubinius__CompiledMethod_fields.push_back(PointerTy_10);
-StructTy_struct_rubinius__CompiledMethod_fields.push_back(PointerTy_2);
-StructTy_struct_rubinius__CompiledMethod_fields.push_back(PointerTy_23);
-StructTy_struct_rubinius__CompiledMethod_fields.push_back(PointerTy_6);
+StructTy_struct_rubinius__CompiledCode_fields.push_back(PointerTy_28);
+StructTy_struct_rubinius__CompiledCode_fields.push_back(PointerTy_9);
+StructTy_struct_rubinius__CompiledCode_fields.push_back(PointerTy_9);
+StructTy_struct_rubinius__CompiledCode_fields.push_back(PointerTy_9);
+StructTy_struct_rubinius__CompiledCode_fields.push_back(PointerTy_9);
+StructTy_struct_rubinius__CompiledCode_fields.push_back(PointerTy_9);
+StructTy_struct_rubinius__CompiledCode_fields.push_back(PointerTy_3);
+StructTy_struct_rubinius__CompiledCode_fields.push_back(PointerTy_10);
+StructTy_struct_rubinius__CompiledCode_fields.push_back(PointerTy_10);
+StructTy_struct_rubinius__CompiledCode_fields.push_back(PointerTy_2);
+StructTy_struct_rubinius__CompiledCode_fields.push_back(PointerTy_23);
+StructTy_struct_rubinius__CompiledCode_fields.push_back(PointerTy_6);
 StructType *StructTy_struct_rubinius__VMMethod = mod->getTypeByName("struct.rubinius::VMMethod");
 if (!StructTy_struct_rubinius__VMMethod) {
 StructTy_struct_rubinius__VMMethod = StructType::create(mod->getContext(), "struct.rubinius::VMMethod");
@@ -372,7 +372,7 @@ StructTy_struct_rubinius__VMMethod->setBody(StructTy_struct_rubinius__VMMethod_f
 
 PointerType* PointerTy_29 = PointerType::get(StructTy_struct_rubinius__VMMethod, 0);
 
-StructTy_struct_rubinius__CompiledMethod_fields.push_back(PointerTy_29);
+StructTy_struct_rubinius__CompiledCode_fields.push_back(PointerTy_29);
 StructType *StructTy_struct_rubinius__jit__RuntimeDataHolder = mod->getTypeByName("struct.rubinius::jit::RuntimeDataHolder");
 if (!StructTy_struct_rubinius__jit__RuntimeDataHolder) {
 StructTy_struct_rubinius__jit__RuntimeDataHolder = StructType::create(mod->getContext(), "struct.rubinius::jit::RuntimeDataHolder");
@@ -384,10 +384,10 @@ StructTy_struct_rubinius__jit__RuntimeDataHolder->setBody(StructTy_struct_rubini
 
 PointerType* PointerTy_30 = PointerType::get(StructTy_struct_rubinius__jit__RuntimeDataHolder, 0);
 
-StructTy_struct_rubinius__CompiledMethod_fields.push_back(PointerTy_30);
-StructTy_struct_rubinius__CompiledMethod_fields.push_back(PointerTy_10);
-if (StructTy_struct_rubinius__CompiledMethod->isOpaque()) {
-StructTy_struct_rubinius__CompiledMethod->setBody(StructTy_struct_rubinius__CompiledMethod_fields, /*isPacked=*/false);
+StructTy_struct_rubinius__CompiledCode_fields.push_back(PointerTy_30);
+StructTy_struct_rubinius__CompiledCode_fields.push_back(PointerTy_10);
+if (StructTy_struct_rubinius__CompiledCode->isOpaque()) {
+StructTy_struct_rubinius__CompiledCode->setBody(StructTy_struct_rubinius__CompiledCode_fields, /*isPacked=*/false);
 }
 
 

@@ -8,19 +8,19 @@ next_url: bytecode-compiler/transformations
 ---
 
 Gdy zakończył się etap pakowania i utworzony został obiekt
-CompiledMethod, Rubinius zapisuje tą metodą do pliku w celu
+CompiledCode, Rubinius zapisuje tą metodą do pliku w celu
 późniejszego użycia. Na przykład, po tym jak pierwszy raz ładujemy
 plik, następne ładowanie nie będzie ładować już kodu Ruby i wykonywać
-wszystkich poprzednich etapów tylko ładuje CompiledMethod bezpośrednio
+wszystkich poprzednich etapów tylko ładuje CompiledCode bezpośrednio
 z pliku.
 
 Etap zapisu jest bardzo prosty. Polega on na dodaniu do nazwy pliku z
 kodem źródłowym przyrostka `c` oraz wywołaniu
-Rubinius::CompiledFile.dump z obiektem CompiledMethod z poprzedniego
+Rubinius::CompiledFile.dump z obiektem CompiledCode z poprzedniego
 etapu jako argumentem oraz nazwą pliku do którego nastąpi zapis.
 
 Kiedy zapisywanie się zakończy etap ten zwraca to co dostał na wejściu
-na wyjście (czyli CompiledMethod). CompiledMethod jest wartością
+na wyjście (czyli CompiledCode). CompiledCode jest wartością
 zwracaną gdy cały etap kompilacji się skończy.
 
 ## Pliki
@@ -33,11 +33,11 @@ zwracaną gdy cały etap kompilacji się skończy.
 Tak właściwie ten etap (zapisu) jest opcjonalny, wykonywany tylko
 wtedy gdy kompilowany jest plik. Kiedy kompilowany jest String,
 (np. przy pomocy eval), ten etap jest pomijany. W takim wypadku
-kompilator zatrzymuje się na etapie pakowania i zwraca CompiledMethod.
+kompilator zatrzymuje się na etapie pakowania i zwraca CompiledCode.
 
 Dzięki architekturze Rubiniusa łatwo jest dodać inne etapy na końcu
 procesu kompilacji i jeśli tylko te etapy zwrócą podaną na wejściu
-(lub zmienioną) CompiledMethod wszystko będzie działać tak jak powinno.
+(lub zmienioną) CompiledCode wszystko będzie działać tak jak powinno.
 
 Aby dowiedzieć się więcej o dostosowywaniu
 poszczególnych etapów kompilacji do swoich potrzeb przeczytaj
