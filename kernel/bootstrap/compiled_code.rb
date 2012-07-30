@@ -47,4 +47,9 @@ module Rubinius
       raise PrimitiveFailure, "CompiledCode.current failed"
     end
   end
+
+  # NOTE: Temporary alias for backwards compatibility. CompiledMethod will
+  # eventually be deprecated in favor of CompiledCode.
+  CompiledMethod = CompiledCode
+
 end
