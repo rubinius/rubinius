@@ -8,6 +8,7 @@
 #include "instruments/timing.hpp"
 #include "global_cache.hpp"
 #include "capi/handles.hpp"
+#include "capi/tag.hpp"
 
 #include "util/thread.hpp"
 #include "inline_cache.hpp"
@@ -170,6 +171,12 @@ namespace rubinius {
                                                const char* file, int line)
   {
     SYNC_TL;
+    if(*loc && REFERENCE_P(*loc)) {
+      if(!global_handles_->validate(*loc)) {
+        rubinius::bug("Adding invalid handle\n");
+      }
+    }
+
     capi::GlobalHandle* global_handle = new capi::GlobalHandle(loc, file, line);
     global_handle_locations_.push_back(global_handle);
   }

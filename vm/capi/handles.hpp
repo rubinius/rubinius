@@ -31,6 +31,8 @@ namespace rubinius {
       uintptr_t allocate_index(STATE, Object* obj);
       Handle* find_index(STATE, uintptr_t index);
 
+      bool validate(Handle* handle);
+
       void deallocate_handles(std::list<Handle*>* cached, int mark, BakerGC* young);
 
       void flush_all(NativeMethodEnvironment* env);
