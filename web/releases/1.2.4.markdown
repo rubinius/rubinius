@@ -108,10 +108,10 @@ collection, Just-In-Time compilation, and compatibility with existing C APIs.
 * 45e0601 Add HAVE\_ macros for blocking region stuff. Fixes #977
 * f6567b8 Don't use Kernel#sleep to know how much time has past. Fixes #986
 * ee2bdc2 Make sure that a local addrinfo side is found. Fixes #989
-* 3fa02ec Fix CompiledCode#locate\_line. Fixes #1040
+* 3fa02ec Fix CompiledMethod#locate\_line. Fixes #1040
 * f6ac3c8 Include stdint.h where it's needed. Fixes #1036
 * ecadf56 Fix []= with splats and all that jazz. Fixes #1021
-* 57b1181 Fix Method#parameters for non-CompiledCodes. Fixes #925
+* 57b1181 Fix Method#parameters for non-CompiledMethods. Fixes #925
 * 6e3be13 Fix Thread.new, .start, and .fork. Fixes #945
 * 5637a52 Guard all NME operations that need an NMF. Fixes #935
 * aeced68 Add rb\_check\_to\_integer, Fixes #933
@@ -193,7 +193,7 @@ collection, Just-In-Time compilation, and compatibility with existing C APIs.
 * Add FFI::Pointer.size for compatibility with ruby-ffi
 * Add ability to set the marksweep allocation threshold
 * Added version checking to rbc loading.
-* Improve the details the VM can show about a CompiledCode
+* Improve the details the VM can show about a CompiledMethod
 * New blog post: adam prescott on scopes in rubinius
 * Remove Moment, not in use.
 * Added -Xprofiler.output=name option.
