@@ -34,6 +34,10 @@ namespace rubinius {
       return allocator_->from_index(index);
     }
 
+    bool Handles::validate(Handle* handle) {
+      return allocator_->validate(handle);
+    }
+
     Handles::~Handles() {
       for(std::vector<int>::size_type i = 0; i < allocator_->chunks_.size(); ++i) {
         Handle* chunk = allocator_->chunks_[i];

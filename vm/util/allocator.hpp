@@ -79,6 +79,16 @@ namespace rubinius {
       return chunks_[index / cChunkSize] + (index % cChunkSize);
     }
 
+    bool validate(T* ptr) {
+      for(typename std::vector<T*>::iterator i = chunks_.begin(); i != chunks_.end(); ++i) {
+        T* chunk = *i;
+        if(ptr >= chunk && ptr < (chunk + cChunkSize)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
     void rebuild_freelist(std::vector<bool>* chunk_marks) {
       free_list_ = (uintptr_t)-1;
       in_use_ = 0;
