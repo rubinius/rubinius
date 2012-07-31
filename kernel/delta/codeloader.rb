@@ -133,16 +133,21 @@ module Rubinius
         cm = load_compiled_file @load_path, signature, version
       else
         compiled_name = Compiler.compiled_name @load_path
+        compiled_stat = File::Stat.stat compiled_name
 
-        if compiled_name and File.exists? compiled_name
-          if @stat.mtime > File.mtime(compiled_name)
-            cm = compile_file @load_path, compiled_name
-          else
-            begin
-              cm = load_compiled_file compiled_name, signature, version
-            rescue TypeError, InvalidRBC
+        if compiled_name and compiled_stat
+          begin
+            if @stat.mtime > compiled_stat.mtime
               cm = compile_file @load_path, compiled_name
+            else
+              begin
+                cm = load_compiled_file compiled_name, signature, version
+              rescue TypeError, InvalidRBC
+                cm = compile_file @load_path, compiled_name
+              end
             end
+          rescue Errno::ENOENT
+            cm = compile_file @load_path, compiled_name
           end
         else
           cm = compile_file @load_path, compiled_name
