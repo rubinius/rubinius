@@ -34,5 +34,9 @@ module Rubinius
     def self.binary_string(string)
       string
     end
+
+    def self.external_encoding_string(string)
+      string
+    end
   end
 end
