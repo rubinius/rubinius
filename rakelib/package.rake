@@ -3,6 +3,9 @@ require 'rakelib/package'
 namespace :package do
   desc "Package up the LLVM build into a tar.gz"
   task :llvm do
+    host_triple = Rubinius::BUILD_CONFIG[:host]
+    llvm_version = Rubinius::BUILD_CONFIG[:llvm_version]
+    gcc_major_version = Rubinius::BUILD_CONFIG[:gcc_major]
     if host_triple == "i686-pc-linux-gnu" || host_triple == "x86_64-unknown-linux-gnu"
       prebuilt_archive = "llvm-#{llvm_version}-#{host_triple}-#{gcc_major_version}.tar.bz2"
     else

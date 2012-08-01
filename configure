@@ -79,8 +79,8 @@ class Configure
     check_tool_version @cxx, '-dumpversion', [4, 1]
     check_tool_version 'bison', '--version', [2, 3]
 
+    @gcc_major = `#{@cc} -dumpversion`.strip.split(".")[0,2].join(".")
     if @host == "i686-pc-linux-gnu" || @host == "x86_64-unknown-linux-gnu"
-      @gcc_major = `#{@cc} -dumpversion`.strip.split(".")[0,2].join(".")
       @llvm_generic_prebuilt  = "llvm-#{@llvm_version}-#{@host}-#{@gcc_major}.tar.bz2"
     else
       @llvm_generic_prebuilt  = "llvm-#{@llvm_version}-#{@host}.tar.bz2"
@@ -130,7 +130,7 @@ class Configure
     @libversion = "2.0"
     @version = "#{@libversion}.0dev"
     @release_date = "yyyy-mm-dd"
-    @config_version = 161
+    @config_version = 162
 
     # TODO: add conditionals for platforms
     if RbConfig::CONFIG["build_os"] =~ /darwin/
@@ -1329,8 +1329,10 @@ module Rubinius
     :build_perl     => "#{@perl}",
     :llvm           => :#{@llvm},
     :llvm_configure => "#{@llvm_configure}",
+    :llvm_version   => "#{@llvm_version}",
     :cc             => "#{@cc}",
     :cxx            => "#{@cxx}",
+    :gcc_major      => "#{@gcc_major}",
     :user_cflags    => "#{@user_cflags}",
     :user_cppflags  => "#{@user_cppflags}",
     :user_ldflags   => "#{@user_ldflags}",
