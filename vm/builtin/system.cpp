@@ -530,6 +530,24 @@ namespace rubinius {
     return cNil;
   }
 
+  Integer* System::vm_gc_count(STATE) {
+    return Integer::from(state, state->memory()->gc_stats.young_collection_count.read() +
+                                state->memory()->gc_stats.full_collection_count.read());
+  }
+
+  Integer* System::vm_gc_size(STATE) {
+    return Integer::from(state, state->shared().config.gc_bytes * 2 +
+                                state->memory()->immix_usage() +
+                                state->memory()->loe_usage() +
+                                state->memory()->code_usage() +
+                                state->shared().symbols.bytes_used());
+  }
+
+  Integer* System::vm_gc_time(STATE) {
+    return Integer::from(state, state->memory()->gc_stats.total_young_collection_time.read() +
+                                state->memory()->gc_stats.total_full_collection_time.read());
+  }
+
   Object* System::vm_get_config_item(STATE, String* var) {
     ConfigParser::Entry* ent = state->shared().user_variables.find(var->c_str(state));
     if(!ent) return cNil;

@@ -51,3 +51,22 @@ module ObjectSpace
     raise PrimitiveFailure, "vm_each_object failed"
   end
 end
+
+module Rubinius
+  module GC
+    def self.count
+      Rubinius.primitive :vm_gc_count
+      raise PrimitiveFailure, "Failed to get GC count"
+    end
+
+    def self.time
+      Rubinius::primitive :vm_gc_time
+      raise PrimitiveFailure, "Failed to get GC time"
+    end
+
+    def self.size
+      Rubinius::primitive :vm_gc_size
+      raise PrimitiveFailure, "Failed to get GC size"
+    end
+  end
+end
