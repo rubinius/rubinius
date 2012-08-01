@@ -56,7 +56,7 @@ namespace rubinius {
     int total_allocated_;
     int total_freed_;
 
-    int bytes_used_;
+    size_t bytes_used_;
 
   public:
     int freed_resources() {
@@ -75,7 +75,7 @@ namespace rubinius {
       return shared_;
     }
 
-    int& size() {
+    size_t& size() {
       return bytes_used_;
     }
 

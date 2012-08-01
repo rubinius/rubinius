@@ -1209,7 +1209,7 @@ step1:
   }
 
   size_t& ObjectMemory::code_usage() {
-    return (size_t&)code_manager_.size();
+    return code_manager_.size();
   }
 
   void ObjectMemory::memstats() {
