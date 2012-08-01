@@ -722,7 +722,7 @@ to rebuild the compiler.
       run_at_exits
 
       @stage = "running object finalizers"
-      GC.start
+      ::GC.start
       ObjectSpace.run_finalizers
 
       # TODO: Fix these with better -X processing

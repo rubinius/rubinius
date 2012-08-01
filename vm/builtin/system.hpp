@@ -83,6 +83,27 @@ namespace rubinius {
     static Object*  vm_gc_start(STATE, GCToken gct, Object* force, CallFrame* calling_environment);
 
     /**
+     *  Retrieve the number of garbage collections
+     *
+     */
+    // Rubinius.primitive :vm_gc_count
+    static Integer*  vm_gc_count(STATE);
+
+    /**
+     *  Retrieve the amount of memory allocated by the gc
+     *
+     */
+    // Rubinius.primitive :vm_gc_size
+    static Integer*  vm_gc_size(STATE);
+
+    /**
+     *  Retrieve the total time spent garbage collecting
+     *
+     */
+    // Rubinius.primitive :vm_gc_time
+    static Integer*  vm_gc_time(STATE);
+
+    /**
      *  Retrieve a value from VM configuration.
      *
      *  The config is essentially a hierarchical set of
