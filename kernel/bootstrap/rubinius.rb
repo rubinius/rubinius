@@ -236,4 +236,21 @@ module Rubinius
       raise PrimitiveFailure, "Tooling.disable primitive failed"
     end
   end
+
+  module GC
+    def self.count
+      Rubinius.primitive :vm_gc_count
+      raise PrimitiveFailure, "Rubinius::GC.count primitive failed"
+    end
+
+    def self.time
+      Rubinius::primitive :vm_gc_time
+      raise PrimitiveFailure, "Rubinius::GC.time primitive failed"
+    end
+
+    def self.size
+      Rubinius::primitive :vm_gc_size
+      raise PrimitiveFailure, "Rubinius::GC.size primitive failed"
+    end
+  end
 end
