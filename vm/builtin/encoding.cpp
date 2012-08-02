@@ -53,6 +53,9 @@ namespace rubinius {
     enc->set_const(state, "EncodingMap", LookupTable::create(state));
     enc->set_const(state, "EncodingList", Array::create(state, 3));
 
+    G(encoding)->set_ivar(state, state->symbol("@default_external"), G(undefined));
+    G(encoding)->set_ivar(state, state->symbol("@default_internal"), G(undefined));
+
     Encoding* ascii = create_bootstrap(state, "US-ASCII", eAscii, ONIG_ENCODING_US_ASCII);
     Encoding* binary = create_bootstrap(state, "ASCII-8BIT", eBinary, ONIG_ENCODING_ASCII);
     Encoding* utf8 = create_bootstrap(state, "UTF-8", eUtf8, ONIG_ENCODING_UTF_8);
@@ -205,11 +208,23 @@ namespace rubinius {
   }
 
   Encoding* Encoding::default_external(STATE) {
-    return Encoding::find(state, "external");
+    Symbol* default_external = state->symbol("default_external");
+    Encoding* enc = as<Encoding>(G(encoding)->get_ivar(state, default_external));
+    if(enc == G(undefined)) {
+      enc = Encoding::find(state, "external");
+      G(encoding)->set_ivar(state, default_external, enc);
+    }
+    return enc;
   }
 
   Encoding* Encoding::default_internal(STATE) {
-    return Encoding::find(state, "internal");
+    Symbol* default_internal = state->symbol("default_internal");
+    Encoding* enc = as<Encoding>(G(encoding)->get_ivar(state, default_internal));
+    if(enc == G(undefined)) {
+      enc = Encoding::find(state, "internal");
+      G(encoding)->set_ivar(state, default_internal, enc);
+    }
+    return enc;
   }
 
   Encoding* Encoding::get_object_encoding(STATE, Object* obj) {
