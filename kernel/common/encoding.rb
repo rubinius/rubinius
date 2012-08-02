@@ -94,7 +94,10 @@ class Encoding
   private_class_method :set_alias_index
 
   def self.default_external
-    find "external"
+    if @default_external.equal? undefined
+      @default_external = find "external"
+    end
+    @default_external
   end
 
   def self.default_external=(enc)
@@ -102,14 +105,19 @@ class Encoding
 
     set_alias_index "external", enc
     set_alias_index "filesystem", enc
+    @default_external = undefined
   end
 
   def self.default_internal
-    find "internal"
+    if @default_internal.equal? undefined
+      @default_internal = find "internal"
+    end
+    @default_internal
   end
 
   def self.default_internal=(enc)
     set_alias_index "internal", enc
+    @default_internal = undefined
   end
 
   def self.find(name)

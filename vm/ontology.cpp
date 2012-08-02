@@ -348,6 +348,9 @@ namespace rubinius {
      * classes.
      */
 
+    Object* undef = new_object<Object>(G(object));
+    GO(undefined).set(undef);
+
     /*
      * Create our Rubinius module that we hang stuff off
      */
@@ -365,9 +368,6 @@ namespace rubinius {
     Object* main = new_object<Object>(G(object));
     GO(main).set(main);
     G(object)->set_const(state, "MAIN", main); // HACK test hooking up MAIN
-
-    Object* undef = new_object<Object>(G(object));
-    GO(undefined).set(undef);
 
     GO(vm_class).set(ontology::new_class_under(state, "VM", G(rubinius)));
 
