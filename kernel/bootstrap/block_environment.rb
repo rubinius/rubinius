@@ -25,7 +25,7 @@ module Rubinius
     class AsMethod < Executable
       def self.new(block_env)
         Rubinius.primitive :block_as_method_create
-        raise PrimitiveFailure, "BlockEnvironment::AsMethod.new failed"
+        raise PrimitiveFailure, "BlockEnvironment::AsMethod.new primitive failed"
       end
 
       def arity

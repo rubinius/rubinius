@@ -54,7 +54,7 @@ module Rubinius
     #
     def self.load_entry_point(library, name, ptr)
       Rubinius.primitive :nativemethod_load_extension_entry_point
-      raise PrimitiveFailure, "Unable to load #{library}"
+      raise PrimitiveFailure, "Rubinius::NativeMethod3load_entry_point primitive failed: #{library}"
     end
 
     def lines

@@ -78,24 +78,24 @@ class String
 
   def find_string(pattern, start)
     Rubinius.primitive :string_index
-    raise PrimitiveFailure, "String#find_string failed"
+    raise PrimitiveFailure, "String#find_string primitive failed"
   end
 
   def find_string_reverse(pattern, start)
     Rubinius.primitive :string_rindex
-    raise PrimitiveFailure, "String#find_string_reverse failed"
+    raise PrimitiveFailure, "String#find_string_reverse primitive failed"
   end
 
   def ==(other)
     Rubinius.primitive :string_equal
-    raise PrimitiveFailure, "String#== failed"
+    raise PrimitiveFailure, "String#== primitive failed"
   end
 
   def secure_compare(other)
     Rubinius.primitive :string_secure_compare
 
     if other.kind_of?(String)
-      raise PrimitiveFailure, "String#secure_compare failed"
+      raise PrimitiveFailure, "String#secure_compare primitive failed"
     else
       secure_compare StringValue(other)
     end
@@ -103,7 +103,7 @@ class String
 
   def find_character(offset)
     Rubinius.primitive :string_find_character
-    raise PrimitiveFailure, "String#find_character failed"
+    raise PrimitiveFailure, "String#find_character primitive failed"
   end
 
   def size
@@ -126,11 +126,11 @@ class String
   # In time, the JIT should be able to handle this as a ruby method.
   def transform(tbl, respect_kcode)
     Rubinius.primitive :string_transform
-    raise PrimitiveFailure, "String#transform failed"
+    raise PrimitiveFailure, "String#transform primitive failed"
   end
 
   def resize_capacity(count)
     Rubinius.primitive :string_resize_capacity
-    raise PrimitiveFailure, "String#resize_capacity failed"
+    raise PrimitiveFailure, "String#resize_capacity primitive failed"
   end
 end

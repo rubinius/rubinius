@@ -155,18 +155,18 @@ class Float < Numeric
 
   def to_s_minimal
     Rubinius.primitive :float_to_s_minimal
-    raise PrimitiveFailure, "minimally formatted string exceeds character buffer size"
+    raise PrimitiveFailure, "Float#to_s_minimal primitive failed: output exceeds buffer size"
   end
 
   def to_s_formatted(fmt)
     Rubinius.primitive :float_to_s_formatted
-    raise PrimitiveFailure, "String#to_s_formatted output exceeds buffer size"
+    raise PrimitiveFailure, "Float#to_s_formatted primitive failed: output exceeds buffer size"
   end
   private :to_s_formatted
 
   def to_packed(size)
     Rubinius.primitive :float_to_packed
-    raise PrimitiveFailure, "float_to_packed failed"
+    raise PrimitiveFailure, "Float#to_packed primitive failed"
   end
 
   def ceil

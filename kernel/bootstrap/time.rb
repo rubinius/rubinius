@@ -22,12 +22,12 @@ class Time
 
   def seconds
     Rubinius.primitive :time_seconds
-    raise PrimitiveFailure, "Time#second failed"
+    raise PrimitiveFailure, "Time#second primitive failed"
   end
 
   def usec
     Rubinius.primitive :time_useconds
-    raise PrimitiveFailure, "Time#usec failed"
+    raise PrimitiveFailure, "Time#usec primitive failed"
   end
 
   def to_a

@@ -124,12 +124,12 @@ module Kernel
   #
   def send(message, *args)
     Rubinius.primitive :object_send
-    raise PrimitiveFailure, "#send primitive failed"
+    raise PrimitiveFailure, "Kernel#send primitive failed"
   end
 
   def public_send(message, *args)
     Rubinius.primitive :object_public_send
-    raise PrimitiveFailure, "#public_send primitive failed"
+    raise PrimitiveFailure, "Kernel#public_send primitive failed"
   end
 
   # In 1.8, :object_id is an alias to :__id__ because both methods are defined
@@ -137,7 +137,7 @@ module Kernel
   #
   def object_id
     Rubinius.primitive :object_id
-    raise PrimitiveFailure, "#object_id primitive failed"
+    raise PrimitiveFailure, "Kernel#object_id primitive failed"
   end
 
   def proc(&prc)

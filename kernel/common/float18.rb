@@ -9,6 +9,6 @@ class Float
 
   def round
     Rubinius.primitive :float_round
-    raise PrimitiveFailure, "float_round failed"
+    raise PrimitiveFailure, "Float#round primitive failed"
   end
 end

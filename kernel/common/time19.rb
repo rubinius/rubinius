@@ -84,7 +84,7 @@ class Time
 
   def nsec
     Rubinius.primitive :time_nseconds
-    raise PrimitiveFailure, "Time#nsec failed"
+    raise PrimitiveFailure, "Time#nsec primitive failed"
   end
 
   alias_method :tv_nsec, :nsec
