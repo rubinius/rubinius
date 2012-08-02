@@ -215,9 +215,9 @@ namespace rubinius {
       return NULL;
     }
 
-    InlineCacheHit* get_inline_cache(Object* const recv_class) {
+    InlineCacheHit* get_inline_cache(Object* const recv_class, MethodCacheEntry*& mce) {
       for(int i = 0; i < cTrackedICHits; ++i) {
-        MethodCacheEntry* mce = cache_[i].entry();
+        mce = cache_[i].entry();
         if(likely(mce && mce->receiver_class() == recv_class)) return &cache_[i];
       }
       return NULL;
