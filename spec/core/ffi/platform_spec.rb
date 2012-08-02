@@ -40,3 +40,9 @@ describe "FFI::Platform::IS_WINDOWS" do
   end
 end
 
+describe "FFI::Platform::ARCH" do
+  it "returns the architecture type" do
+    FFI::Platform::ARCH.should == Rubinius::CPU
+  end
+end
+
