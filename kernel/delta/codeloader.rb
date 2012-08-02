@@ -133,11 +133,12 @@ module Rubinius
         cm = load_compiled_file @load_path, signature, version
       else
         compiled_name = Compiler.compiled_name @load_path
-        compiled_stat = File::Stat.stat compiled_name
 
-        if compiled_name and compiled_stat
+        if compiled_name
           begin
-            if @stat.mtime > compiled_stat.mtime
+            compiled_stat = File::Stat.stat compiled_name
+
+            if compiled_stat and @stat.mtime > compiled_stat.mtime
               cm = compile_file @load_path, compiled_name
             else
               begin
