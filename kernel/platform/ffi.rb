@@ -217,6 +217,8 @@ module FFI::Platform
     IS_WINDOWS = false
   end
 
+  ARCH = Rubinius::CPU
+
   # ruby-ffi compatible
   LONG_SIZE = Rubinius::SIZEOF_LONG * 8
   ADDRESS_SIZE = Rubinius::WORDSIZE
