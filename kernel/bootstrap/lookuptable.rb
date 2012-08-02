@@ -74,7 +74,7 @@ module Rubinius
 
     def fetch(key, return_on_failure)
       Rubinius.primitive :lookuptable_fetch
-      raise PrimitiveFailure, "fetch failed"
+      raise PrimitiveFailure, "LookupTable#fetch primitive failed"
     end
 
     def key?(key)

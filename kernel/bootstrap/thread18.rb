@@ -3,7 +3,7 @@
 class Thread
   def self.set_critical(obj)
     Rubinius.primitive :thread_set_critical
-    Kernel.raise PrimitiveFailure, "Thread.set_critical failed"
+    Kernel.raise PrimitiveFailure, "Thread.set_critical primitive failed"
   end
 
   def self.start(*args)

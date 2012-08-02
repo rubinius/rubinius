@@ -76,7 +76,7 @@ class Module
   def __class_variables__
     Rubinius.primitive :module_class_variables
 
-    raise PrimitiveFailure, "module_class_variables failed"
+    raise PrimitiveFailure, "Module#__class_variables__ primitive failed"
   end
 
   def class_variables

@@ -9,12 +9,12 @@ module Rubinius
 
     def get_variable(name)
       Rubinius.primitive :vm_get_config_item
-      raise PrimitiveFailure, "Unable to get config variable"
+      raise PrimitiveFailure, "Rubinius::Configuration#get_variable primitive failed"
     end
 
     def get_section(section)
       Rubinius.primitive :vm_get_config_section
-      raise PrimitiveFailure, "Unable to get config section"
+      raise PrimitiveFailure, "Rubinius::Configuration#get_section primitive failed"
     end
 
     def section(section)

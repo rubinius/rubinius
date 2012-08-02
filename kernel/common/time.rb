@@ -193,7 +193,7 @@ class Time
 
   def gmt_offset
     Rubinius.primitive :time_utc_offset
-    raise PrimitiveFailure, "Time#gmt_offset failed"
+    raise PrimitiveFailure, "Time#gmt_offset primitive failed"
   end
 
   def gmtime

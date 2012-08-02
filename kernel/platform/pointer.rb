@@ -52,7 +52,7 @@ module FFI
     # Return the address pointed to as an Integer
     def address
       Rubinius.primitive :pointer_address
-      raise PrimitiveFailure, "Unable to find address"
+      raise PrimitiveFailure, "FFI::Pointer#address primitive failed"
     end
 
     alias_method :to_i, :address
@@ -60,7 +60,7 @@ module FFI
     # Set the address pointed to from an Integer
     def address=(address)
       Rubinius.primitive :pointer_set_address
-      raise PrimitiveFailure, "MemoryPointer#address= primitive failed"
+      raise PrimitiveFailure, "FFI::Pointer#address= primitive failed"
     end
 
     def null?
@@ -70,7 +70,7 @@ module FFI
     # Add +value+ to the address pointed to and return a new Pointer
     def +(value)
       Rubinius.primitive :pointer_add
-      raise PrimitiveFailure, "Unable to add"
+      raise PrimitiveFailure, "FFI::Pointer#+ primitive failed"
     end
 
     # Indicates if +self+ and +other+ point to the same address
@@ -81,21 +81,21 @@ module FFI
 
     def network_order(start, size)
       Rubinius.primitive :pointer_network_order
-      raise PrimitiveFailure, "Unable to convert to network order"
+      raise PrimitiveFailure, "FFI::Pointer#network_order primitive failed"
     end
 
     # Read +len+ bytes from the memory pointed to and return them as
     # a String
     def read_string_length(len)
       Rubinius.primitive :pointer_read_string
-      raise PrimitiveFailure, "Unable to read string"
+      raise PrimitiveFailure, "FFI::Pointer#read_string_length primitive failed"
     end
 
     # Read bytes from the memory pointed to until a NULL is seen, return
     # the bytes as a String
     def read_string_to_null
       Rubinius.primitive :pointer_read_string_to_null
-      raise PrimitiveFailure, "Unable to read string to null"
+      raise PrimitiveFailure, "FFI::Pointer#read_string_to_null primitive failed"
     end
 
     # Read bytes as a String from the memory pointed to
@@ -116,7 +116,7 @@ module FFI
     # write up to +len+ bytes.
     def write_string_length(str, len)
       Rubinius.primitive :pointer_write_string
-      raise PrimitiveFailure, "Unable to write string"
+      raise PrimitiveFailure, "FFI::Pointer#write_string_length primitive failed"
     end
 
     # Write a String +str+ as bytes to the memory pointed to.
@@ -159,13 +159,13 @@ module FFI
     # Read bytes from +offset+ from the memory pointed to as type +type+
     def get_at_offset(offset, type)
       Rubinius.primitive :pointer_get_at_offset
-      raise PrimitiveFailure, "get_field failed"
+      raise PrimitiveFailure, "FFI::Pointer#get_at_offset primitive failed"
     end
 
     # Write +val+ as type +type+ to bytes from +offset+
     def set_at_offset(offset, type, val)
       Rubinius.primitive :pointer_set_at_offset
-      raise PrimitiveFailure, "set_field failed"
+      raise PrimitiveFailure, "FFI::Pointer#set_at_offset primitive failed"
     end
 
     # Number of bytes taken up by a pointer.
@@ -176,82 +176,82 @@ module FFI
     # Primitive methods
     def primitive_read_char(signed)
       Rubinius.primitive :pointer_read_char
-      raise PrimitiveFailure, "Unable to read char"
+      raise PrimitiveFailure, "FFI::Pointer#primitive_read_char primitive failed"
     end
 
     def primitive_write_char(obj)
       Rubinius.primitive :pointer_write_char
-      raise PrimitiveFailure, "Unable to write char"
+      raise PrimitiveFailure, "FFI::Pointer#primitive_write_char primitive failed"
     end
 
     def primitive_read_short(signed)
       Rubinius.primitive :pointer_read_short
-      raise PrimitiveFailure, "Unable to read short"
+      raise PrimitiveFailure, "FFI::Pointer#primitive_read_short primitive failed"
     end
 
     def primitive_write_short(obj)
       Rubinius.primitive :pointer_write_short
-      raise PrimitiveFailure, "Unable to write short"
+      raise PrimitiveFailure, "FFI::Pointer#primitive_write_short primitive failed"
     end
 
     def primitive_read_int(signed)
       Rubinius.primitive :pointer_read_int
-      raise PrimitiveFailure, "Unable to read int"
+      raise PrimitiveFailure, "FFI::Pointer#primitive_read_int primitive failed"
     end
 
     def primitive_write_int(obj)
       Rubinius.primitive :pointer_write_int
-      raise PrimitiveFailure, "Unable to write int"
+      raise PrimitiveFailure, "FFI::Pointer#primitive_write_int primitive failed"
     end
 
     def primitive_read_long(signed)
       Rubinius.primitive :pointer_read_long
-      raise PrimitiveFailure, "Unable to read long"
+      raise PrimitiveFailure, "FFI::Pointer#primitive_read_long primitive failed"
     end
 
     def primitive_write_long(obj)
       Rubinius.primitive :pointer_write_long
-      raise PrimitiveFailure, "Unable to write long"
+      raise PrimitiveFailure, "FFI::Pointer#primitive_write_long primitive failed"
     end
 
     def primitive_read_long_long(signed)
       Rubinius.primitive :pointer_read_long_long
-      raise PrimitiveFailure, "Unable to read long"
+      raise PrimitiveFailure, "FFI::Pointer#primitive_read_long_long primitive failed"
     end
 
     def primitive_write_long_long(obj)
       Rubinius.primitive :pointer_write_long_long
-      raise PrimitiveFailure, "Unable to write long_long"
+      raise PrimitiveFailure, "FFI::Pointer#primitive_write_long_long primitive failed"
     end
 
     def primitive_read_float
       Rubinius.primitive :pointer_read_float
-      raise PrimitiveFailure, "Unable to read float"
+      raise PrimitiveFailure, "FFI::Pointer#primitive_read_float primitive failed"
     end
 
     def primitive_write_float(obj)
       Rubinius.primitive :pointer_write_float
-      raise PrimitiveFailure, "Unable to write float"
+      raise PrimitiveFailure, "FFI::Pointer#primitive_write_float primitive failed"
     end
 
     def primitive_read_double
       Rubinius.primitive :pointer_read_double
-      raise PrimitiveFailure, "Unable to read double"
+      raise PrimitiveFailure, "FFI::Pointer#primitive_read_double primitive failed"
     end
 
     def primitive_write_double(obj)
       Rubinius.primitive :pointer_write_double
-      raise PrimitiveFailure, "Unable to write double"
+      raise PrimitiveFailure, "FFI::Pointer#primitive_write_double primitive failed"
     end
 
     def primitive_read_pointer
       Rubinius.primitive :pointer_read_pointer
-      raise PrimitiveFailure, "Unable to read pointer"
+      raise PrimitiveFailure, "FFI::Pointer#primitive_read_pointer primitive failed"
     end
 
     def primitive_write_pointer(obj)
       Rubinius.primitive :pointer_write_pointer
-      raise PrimitiveFailure, "Unable to write pointer"
+      raise PrimitiveFailure, "FFI::Pointer#primitive_write_pointer primitive failed"
     end
 
     NULL = Pointer.new(0x0)
@@ -318,7 +318,7 @@ module FFI
 
     def self.malloc(total)
       Rubinius.primitive :pointer_malloc
-      raise PrimitiveFailure, "Pointer.malloc failed"
+      raise PrimitiveFailure, "FFI::MemoryPointer.malloc primitive failed"
     end
 
     def self.from_string(str)
@@ -377,7 +377,7 @@ module FFI
     # free() on it's address when it is garbage collected.
     def autorelease=(val)
       Rubinius.primitive :pointer_set_autorelease
-      raise PrimitiveFailure, "Unable to change autorelease"
+      raise PrimitiveFailure, "FFI::MemoryPointer#autorelease= primitive failed"
     end
 
   end

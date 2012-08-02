@@ -32,7 +32,7 @@ module Rubinius
     #
     def self.of_sender
       Rubinius.primitive :compiledcode_of_sender
-      raise PrimitiveFailure, "CompiledCode.of_sender failed"
+      raise PrimitiveFailure, "CompiledCode.of_sender primitive failed"
     end
 
     # Returns the CompiledCode object for the currently executing Ruby
@@ -44,7 +44,7 @@ module Rubinius
     #
     def self.current
       Rubinius.primitive :compiledcode_current
-      raise PrimitiveFailure, "CompiledCode.current failed"
+      raise PrimitiveFailure, "CompiledCode.current primitive failed"
     end
   end
 

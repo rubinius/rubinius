@@ -52,7 +52,7 @@ module FFI
         return type_size(TYPE_PTR)
       end
 
-      raise PrimitiveFailure, "Unable to find type size for #{type}"
+      raise PrimitiveFailure, "FFI.type_size primitive failed: #{type}"
     end
 
     def size_to_type(size)

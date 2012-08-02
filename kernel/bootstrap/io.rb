@@ -62,12 +62,12 @@ class IO
 
   def read_primitive(number_of_bytes)
     Rubinius.primitive :io_sysread
-    raise PrimitiveFailure, "IO::sysread primitive failed!"
+    raise PrimitiveFailure, "IO::sysread primitive failed"
   end
 
   def write(str)
     Rubinius.primitive :io_write
-    raise PrimitiveFailure, "IO#write failed. Might not have passed a string."
+    raise PrimitiveFailure, "IO#write primitive failed"
   end
 
   def read_if_available(size)

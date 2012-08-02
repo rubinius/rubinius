@@ -8,21 +8,21 @@ class Symbol
 
   def index
     Rubinius.primitive :symbol_index
-    raise PrimitiveFailure, "Symbol#index failed."
+    raise PrimitiveFailure, "Symbol#index primitive failed."
   end
 
   def is_ivar?
     Rubinius.primitive :symbol_is_ivar
-    raise PrimitiveFailure, "Symbol#is_ivar failed."
+    raise PrimitiveFailure, "Symbol#is_ivar primitive failed."
   end
 
   def is_cvar?
     Rubinius.primitive :symbol_is_cvar
-    raise PrimitiveFailure, "Symbol#is_cvar failed."
+    raise PrimitiveFailure, "Symbol#is_cvar primitive failed."
   end
 
   def is_constant?
     Rubinius.primitive :symbol_is_constant
-    raise PrimitiveFailure, "Symbol#is_constant failed."
+    raise PrimitiveFailure, "Symbol#is_constant primitive failed."
   end
 end

@@ -22,7 +22,7 @@ class Rubinius::VM
 
   def self.dump_heap(path)
     Rubinius.primitive :vm_dump_heap
-    raise PrimitiveFailure, "Rubinius::VM.dump_heap failed"
+    raise PrimitiveFailure, "Rubinius::VM.dump_heap primitive failed"
   end
 
   def self.__jit_info__

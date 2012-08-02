@@ -160,7 +160,7 @@ module Kernel
   #
   def kind_of?(cls)
     Rubinius.primitive :object_kind_of
-    raise TypeError, 'kind_of? requires a Class or Module argument'
+    raise TypeError, "Kernel#kind_of? primitive failed"
   end
 
   # Hook method invoked when object is sent a message it cannot handle.
@@ -352,7 +352,7 @@ class Symbol
   #
   def to_s
     Rubinius.primitive :symbol_to_s
-    raise PrimitiveFailure, "Symbol#to_s primitive failed."
+    raise PrimitiveFailure, "Symbol#to_s primitive failed"
   end
 
   # For completeness, returns self.
@@ -382,7 +382,7 @@ class String
   #++
   def to_sym
     Rubinius.primitive :symbol_lookup
-    raise PrimitiveFailure, "Unable to symbolize: #{self.dump}"
+    raise PrimitiveFailure, "String#to_sym primitive failed: #{self.dump}"
   end
 
   # For completeness, returns self.

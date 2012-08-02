@@ -44,7 +44,7 @@ module Kernel
 
   def respond_to_all?(meth, include)
     Rubinius.primitive :object_respond_to
-    raise PrimitiveFailure, "Kernel#prim_respond_to? failed"
+    raise PrimitiveFailure, "Kernel#respond_to_all? primiive failed"
   end
 
   private :respond_to_all?

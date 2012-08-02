@@ -38,22 +38,22 @@ class Thread
 
   def priority
     Rubinius.primitive :thread_priority
-    Kernel.raise ThreadError, "Unable to get Thread priority"
+    Kernel.raise ThreadError, "Thread#priority primitive failed"
   end
 
   def priority=(val)
     Rubinius.primitive :thread_set_priority
-    Kernel.raise ThreadError, "Unable to set Thread priority"
+    Kernel.raise ThreadError, "Thread#priority= primitive failed"
   end
 
   def __context__
     Rubinius.primitive :thread_context
-    Kernel.raise PrimitiveFailure, "Thread#__context__ failed"
+    Kernel.raise PrimitiveFailure, "Thread#__context__ primitive failed"
   end
 
   def native_join
     Rubinius.primitive :thread_join
-    Kernel.raise PrimitiveFailure, "Thread#native_join failed"
+    Kernel.raise PrimitiveFailure, "Thread#native_join primitive failed"
   end
 
   def mri_backtrace
@@ -63,7 +63,7 @@ class Thread
 
   def unlock_locks
     Rubinius.primitive :thread_unlock_locks
-    Kernel.raise PrimitiveFailure, "Thread#unlock_locks failed"
+    Kernel.raise PrimitiveFailure, "Thread#unlock_locks primitive failed"
   end
 
   class Die < Exception; end # HACK

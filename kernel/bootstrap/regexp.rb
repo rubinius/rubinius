@@ -12,8 +12,7 @@ class Regexp
 
   def compile(pattern, opts)
     Rubinius.primitive :regexp_initialize
-    raise PrimitiveFailure,
-          "Regexp.compile(#{pattern.inspect}, #{opts}) primitive failed"
+    raise PrimitiveFailure, "Regexp.compile(#{pattern.inspect}, #{opts}) primitive failed"
   end
 
   private :compile
@@ -42,7 +41,7 @@ class Regexp
     Rubinius.primitive :regexp_last_match
 
     return last_match(Integer(field)) if field
-    raise PrimitiveFailure, "Regexp#last_match failed"
+    raise PrimitiveFailure, "Regexp#last_match primitive failed"
   end
 
   def self.last_match=(match)
@@ -52,17 +51,17 @@ class Regexp
       raise TypeError, "Expected MatchData, got #{match.inspect}"
     end
 
-    raise PrimitiveFailure, "Regexp#set_last_match failed"
+    raise PrimitiveFailure, "Regexp#set_last_match primitive failed"
   end
 
   def self.propagate_last_match
     Rubinius.primitive :regexp_propagate_last_match
-    raise PrimitiveFailure, "Regexp#propagate_last_match failed"
+    raise PrimitiveFailure, "Regexp#propagate_last_match primitive failed"
   end
 
   def self.set_block_last_match
     Rubinius.primitive :regexp_set_block_last_match
-    raise PrimitiveFailure, "Regexp#set_block_last_match failed"
+    raise PrimitiveFailure, "Regexp#set_block_last_match primitive failed"
   end
 
 end

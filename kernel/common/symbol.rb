@@ -7,7 +7,7 @@ class Symbol
 
   def self.all_symbols
     Rubinius.primitive :symbol_all_symbols
-    raise PrimitiveFailure, "Symbol.all_symbols failed."
+    raise PrimitiveFailure, "Symbol.all_symbols primitive failed."
   end
 
   # Returns a Proc object which respond to the given method by sym.
