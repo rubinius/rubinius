@@ -44,29 +44,3 @@ module GC
     GC.start
   end
 end
-
-module ObjectSpace
-  def self.find_object(query, callable)
-    Rubinius.primitive :vm_find_object
-    raise PrimitiveFailure, "ObjectSpace#find_object primitive failed"
-  end
-end
-
-module Rubinius
-  module GC
-    def self.count
-      Rubinius.primitive :vm_gc_count
-      raise PrimitiveFailure, "Rubinius::GC.count primitive failed"
-    end
-
-    def self.time
-      Rubinius::primitive :vm_gc_time
-      raise PrimitiveFailure, "Rubinius::GC.time primitive failed"
-    end
-
-    def self.size
-      Rubinius::primitive :vm_gc_size
-      raise PrimitiveFailure, "Rubinius::GC.size primitive failed"
-    end
-  end
-end
