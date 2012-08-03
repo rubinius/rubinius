@@ -380,6 +380,20 @@ module ModuleSpecs
       private :extend_object
     end
   end
+
+  module ModuleToPrepend
+    def m
+      result = super if defined?(super)
+      [:m, result]
+    end
+  end
+
+  class ClassToPrepend
+    prepend ModuleToPrepend if respond_to?(:prepend)
+    def m
+      :c
+    end
+  end
 end
 
 class Object
