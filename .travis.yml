@@ -2,7 +2,8 @@ language: cpp
 compiler:
   - gcc
   - clang
-before_script: ./configure
+before_script:
+  - ./configure --enable-version=18,19,20
 script: rake
 branches:
   only:
