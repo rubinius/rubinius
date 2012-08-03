@@ -64,6 +64,9 @@ rb_encoding* rb_ascii8bit_encoding(void);
 rb_encoding* rb_locale_encoding(void);
 rb_encoding* rb_filesystem_encoding(void);
 
+int rb_enc_coderange_asciionly_p(VALUE obj);
+#define ENC_CODERANGE_ASCIIONLY     rb_enc_coderange_asciionly_p
+
 int rb_utf8_encindex(void);
 int rb_usascii_encindex(void);
 int rb_ascii8bit_encindex(void);
