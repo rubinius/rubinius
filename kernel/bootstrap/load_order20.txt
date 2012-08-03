@@ -30,7 +30,6 @@ process.rbc
 regexp.rbc
 regexp19.rbc
 rubinius.rbc
-rubinius19.rbc
 constant_scope.rbc
 string.rbc
 string19.rbc
