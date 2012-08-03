@@ -177,14 +177,14 @@ static VALUE encoding_spec_rb_enc_set_index(VALUE self, VALUE obj, VALUE index) 
 }
 #endif
 
-#ifdef HAVE_RB_ENCODING_GET
-static VALUE encoding_spec_rb_ENCODING_GET(VALUE self, VALUE obj) {
+#ifdef HAVE_ENCODING_GET
+static VALUE encoding_spec_ENCODING_GET(VALUE self, VALUE obj) {
   return INT2NUM(ENCODING_GET(obj));
 }
 #endif
 
-#ifdef HAVE_RB_ENCODING_SET
-static VALUE encoding_spec_rb_ENCODING_SET(VALUE self, VALUE obj, VALUE index) {
+#ifdef HAVE_ENCODING_SET
+static VALUE encoding_spec_ENCODING_SET(VALUE self, VALUE obj, VALUE index) {
   int i = NUM2INT(index);
 
   rb_encoding* enc = rb_enc_from_index(i);
@@ -322,12 +322,12 @@ void Init_encoding_spec() {
   rb_define_method(cls, "rb_enc_set_index", encoding_spec_rb_enc_set_index, 2);
 #endif
 
-#ifdef HAVE_RB_ENCODING_GET
-  rb_define_method(cls, "rb_ENCODING_GET", encoding_spec_rb_ENCODING_GET, 1);
+#ifdef HAVE_ENCODING_GET
+  rb_define_method(cls, "ENCODING_GET", encoding_spec_ENCODING_GET, 1);
 #endif
 
-#ifdef HAVE_RB_ENCODING_SET
-  rb_define_method(cls, "rb_ENCODING_SET", encoding_spec_rb_ENCODING_SET, 1);
+#ifdef HAVE_ENCODING_SET
+  rb_define_method(cls, "ENCODING_SET", encoding_spec_ENCODING_SET, 2);
 #endif
 
 #if defined(HAVE_RB_ENC_TO_INDEX) && defined(HAVE_RB_ENC_FIND)
