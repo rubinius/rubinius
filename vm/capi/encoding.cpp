@@ -18,6 +18,20 @@ using namespace rubinius;
 using namespace rubinius::capi;
 
 extern "C" {
+  int rb_enc_coderange_asciionly_p(VALUE obj) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Object* val = env->get_object(obj);
+
+    if(String* str = try_as<String>(val)) {
+      if(CBOOL(str->ascii_only_p(env->state()))) return Qtrue;
+    } else {
+      rb_raise(rb_eArgError, "ENC_CODERANGE_ASCIIONLY is only defined for String");
+    }
+
+    return Qfalse;
+  }
+
   int rb_encdb_alias(const char *alias, const char *orig) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
