@@ -486,6 +486,12 @@ class Module
   #
   def included(mod); end
 
+  # Hook method called on Module when another Module is .prepend'd into it.
+  #
+  # Override for module-specific behaviour.
+  #
+  def prepended(mod); end
+
   # :internal:
   #
   # Basic version of .include used in kernel code.
@@ -696,6 +702,14 @@ module Rubinius
     def attach_to(cls)
       @superclass = cls.direct_superclass
       cls.superclass = self
+    end
+
+    # :internal:
+    #
+    # Inject self before class
+    #
+    def attach_before(cls)
+      @superclass = cls
     end
 
     # :internal:
