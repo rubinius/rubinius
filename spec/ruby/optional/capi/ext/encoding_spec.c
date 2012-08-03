@@ -7,6 +7,16 @@
 extern "C" {
 #endif
 
+#ifdef HAVE_ENC_CODERANGE_ASCIIONLY
+static VALUE encoding_spec_ENC_CODERANGE_ASCIIONLY(VALUE self, VALUE obj) {
+  if(ENC_CODERANGE_ASCIIONLY(obj)) {
+    return Qtrue;
+  } else {
+    return Qfalse;
+  }
+}
+#endif
+
 #ifdef HAVE_RB_USASCII_ENCODING
 static VALUE encoding_spec_rb_usascii_encoding(VALUE self) {
   return rb_str_new2(rb_usascii_encoding()->name);
@@ -206,6 +216,11 @@ static VALUE encoding_spec_rb_to_encoding_index(VALUE self, VALUE obj) {
 void Init_encoding_spec() {
   VALUE cls;
   cls = rb_define_class("CApiEncodingSpecs", rb_cObject);
+
+#ifdef HAVE_ENC_CODERANGE_ASCIIONLY
+  rb_define_method(cls, "ENC_CODERANGE_ASCIIONLY",
+                   encoding_spec_ENC_CODERANGE_ASCIIONLY, 1);
+#endif
 
 #ifdef HAVE_RB_USASCII_ENCODING
   rb_define_method(cls, "rb_usascii_encoding", encoding_spec_rb_usascii_encoding, 0);

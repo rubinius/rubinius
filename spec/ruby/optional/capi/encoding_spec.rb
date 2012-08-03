@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 require File.expand_path('../spec_helper', __FILE__)
 require File.expand_path('../fixtures/encoding', __FILE__)
 
@@ -168,6 +169,18 @@ ruby_version_is "1.9" do
 
     describe "ENCODING_SET" do
 
+    end
+
+    describe "ENC_CODERANGE_ASCIIONLY" do
+      it "returns true if the object encoding is only ASCII" do
+        str = encode("abc", "us-ascii")
+        @s.ENC_CODERANGE_ASCIIONLY(str).should be_true
+      end
+
+      it "returns false if the object encoding is not ASCII only" do
+        str = encode("ありがとう", "utf-8")
+        @s.ENC_CODERANGE_ASCIIONLY(str).should be_false
+      end
     end
 
     describe "rb_to_encoding" do
