@@ -1,0 +1,3 @@
+fails:OpenStruct#to_h returns a Hash with members as keys
+fails:OpenStruct#to_h returns a Hash with keys as symbols
+fails:OpenStruct#to_h returns a Hash that is independent from the struct
