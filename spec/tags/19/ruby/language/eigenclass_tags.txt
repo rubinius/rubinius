@@ -1,1 +1,0 @@
-fails:self in an eigenclass body (class << obj) is a metametaclass for metaclasses
