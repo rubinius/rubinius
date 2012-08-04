@@ -1,6 +1,14 @@
 #ifndef RBX_CAPI_HANDLE_HPP
 #define RBX_CAPI_HANDLE_HPP
 
+#include "detection.hpp"
+
+#ifdef OS_X_10_5
+#ifndef RBX_HAVE_TR1_HASH
+#include "missing/leopard_hashtable"
+#endif
+#endif
+
 #include "vm.hpp"
 #include "gc/root.hpp"
 
