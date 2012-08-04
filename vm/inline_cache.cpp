@@ -1,3 +1,11 @@
+#include "detection.hpp"
+
+#ifdef OS_X_10_5
+#ifndef RBX_HAVE_TR1_HASH
+#include "missing/leopard_hashtable"
+#endif
+#endif
+
 #include "inline_cache.hpp"
 #include "arguments.hpp"
 #include "call_frame.hpp"
