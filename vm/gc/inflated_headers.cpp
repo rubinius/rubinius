@@ -6,10 +6,6 @@
 #include <iostream>
 
 namespace rubinius {
-  InflatedHeaders::~InflatedHeaders() {
-    delete allocator_;
-  }
-
   /**
    * Allocates a new InflatedHeader object for the specified obj ObjectHeader.
    *

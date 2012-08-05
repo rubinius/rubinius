@@ -33,7 +33,9 @@ namespace rubinius {
       , allocator_(new Allocator<InflatedHeader>())
     {}
 
-    ~InflatedHeaders();
+    ~InflatedHeaders() {
+      delete allocator_;
+    }
 
     InflatedHeader* allocate(ObjectHeader* obj);
     void deallocate_headers(int mark);

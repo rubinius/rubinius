@@ -219,8 +219,8 @@ namespace rubinius {
     for(std::list<capi::GlobalHandle*>::iterator i = global_handle_locations_.begin();
         i != global_handle_locations_.end(); ++i) {
       if((*i)->handle() == loc) {
-        global_handle_locations_.erase(i);
         delete *i;
+        global_handle_locations_.erase(i);
         return;
       }
     }

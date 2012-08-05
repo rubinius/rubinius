@@ -34,10 +34,10 @@ namespace rubinius {
 
     if(unlikely(!ba)) {
       Exception::memory_error(state);
+    } else {
+      ba->full_size_ = body;
+      memset(ba->bytes, 0, bytes);
     }
-
-    ba->full_size_ = body;
-    memset(ba->bytes, 0, bytes);
     return ba;
   }
 
@@ -54,11 +54,10 @@ namespace rubinius {
 
     if(!ba->pin()) {
       rubinius::bug("unable to allocate pinned ByteArray");
+    } else {
+      ba->full_size_ = body;
+      memset(ba->bytes, 0, bytes);
     }
-
-    ba->full_size_ = body;
-    memset(ba->bytes, 0, bytes);
-
     return ba;
   }
 

@@ -79,14 +79,14 @@ namespace rubinius {
 
     // Slow path.
 
-    size_t bytes;
+    size_t bytes = 0;
 
     tup = state->vm()->new_object_variable<Tuple>(G(tuple), fields, bytes);
     if(unlikely(!tup)) {
       Exception::memory_error(state);
+    } else {
+      tup->full_size_ = bytes;
     }
-
-    tup->full_size_ = bytes;
     return tup;
   }
 
