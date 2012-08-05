@@ -64,17 +64,6 @@ namespace jit {
           if(obj) mark.just_set(obj, tmp);
         }
       }
-
-      GCLiteral* lit = rd->literals();
-      while(lit) {
-        tmp = mark.call(lit->object());
-        if(tmp) {
-          lit->set_object(tmp);
-          if(obj) mark.just_set(obj, tmp);
-        }
-
-        lit = lit->next();
-      }
     }
   }
 
@@ -94,12 +83,6 @@ namespace jit {
 
       if(rd->module()) {
         obj->write_barrier(wb, rd->module());
-      }
-
-      GCLiteral* lit = rd->literals();
-      while(lit) {
-        obj->write_barrier(wb, lit->object());
-        lit = lit->next();
       }
     }
 
