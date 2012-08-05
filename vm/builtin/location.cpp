@@ -60,7 +60,7 @@ namespace rubinius {
   }
 
   Location* Location::of_closest_ruby_method(STATE, CallFrame* calling_environment) {
-    CallFrame* dest = static_cast<CallFrame*>(calling_environment->previous);
+    CallFrame* dest = calling_environment->previous;
     // Skip any frames for native methods
     while(dest->native_method_p()) { dest = dest->previous; }
     return Location::create(state, dest, false);
@@ -96,7 +96,7 @@ namespace rubinius {
 
     // First the first normal frame
     while(!call_frame->cm) {
-      call_frame = static_cast<CallFrame*>(call_frame->previous);
+      call_frame = call_frame->previous;
       // Weird edge case.
       if(!call_frame) return bt;
     }
@@ -106,7 +106,7 @@ namespace rubinius {
 
     bt->append(state, loc);
 
-    call_frame = static_cast<CallFrame*>(call_frame->previous);
+    call_frame = call_frame->previous;
 
     while(call_frame) {
       // Ignore synthetic frames
@@ -117,7 +117,7 @@ namespace rubinius {
         if(loc) bt->append(state, loc);
       }
 
-      call_frame = static_cast<CallFrame*>(call_frame->previous);
+      call_frame = call_frame->previous;
     }
 
     return bt;
@@ -169,7 +169,7 @@ namespace rubinius {
             Tuple::from(state, 4, call_frame->cm, line, block, name));
       }
 
-      call_frame = static_cast<CallFrame*>(call_frame->previous);
+      call_frame = call_frame->previous;
     }
 
     return bt;

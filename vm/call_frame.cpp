@@ -91,12 +91,12 @@ namespace rubinius {
         }
 
         stream << std::endl;
-        cf = static_cast<CallFrame*>(cf->previous);
+        cf = cf->previous;
         continue;
       }
 
       if(!cf->cm) {
-        cf = static_cast<CallFrame*>(cf->previous);
+        cf = cf->previous;
         continue;
       }
 
@@ -160,7 +160,7 @@ namespace rubinius {
       stream << ")";
 
       stream << std::endl;
-      cf = static_cast<CallFrame*>(cf->previous);
+      cf = cf->previous;
     }
 
   }
@@ -175,7 +175,7 @@ namespace rubinius {
     CallFrame* cur = this;
     while(cur) {
       if(cur->scope && cur->scope->on_heap() == scope) return true;
-      cur = static_cast<CallFrame*>(cur->previous);
+      cur = cur->previous;
     }
 
     return false;
