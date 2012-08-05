@@ -25,7 +25,9 @@ namespace rubinius {
   }
 
   ByteArray* ByteArray::create(STATE, native_int bytes) {
-    assert(bytes >= 0 && bytes < INT32_MAX);
+    if(bytes < 0 || bytes >= INT32_MAX) {
+      rubinius::bug("Invalid byte array size");
+    }
 
     size_t body = bytes;
     ByteArray* ba = state->vm()->new_object_bytes<ByteArray>(G(bytearray), body);
@@ -40,7 +42,9 @@ namespace rubinius {
   }
 
   ByteArray* ByteArray::create_pinned(STATE, native_int bytes) {
-    assert(bytes >= 0 && bytes < INT32_MAX);
+    if(bytes < 0 || bytes >= INT32_MAX) {
+      rubinius::bug("Invalid byte array size");
+    }
 
     size_t body = bytes;
     ByteArray* ba = state->memory()->new_object_bytes_mature<ByteArray>(state, G(bytearray), body);
