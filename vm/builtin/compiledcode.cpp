@@ -361,7 +361,7 @@ namespace rubinius {
   }
 
   CompiledCode* CompiledCode::of_sender(STATE, CallFrame* calling_environment) {
-    CallFrame* caller = static_cast<CallFrame*>(calling_environment->previous);
+    CallFrame* caller = calling_environment->previous;
     if(caller) {
       if(caller->cm) {
         return caller->cm;

@@ -600,7 +600,7 @@ namespace rubinius {
     bool include_vars = CBOOL(inc_vars);
 
     for(native_int i = skip->to_native(); call_frame && i > 0; --i) {
-      call_frame = static_cast<CallFrame*>(call_frame->previous);
+      call_frame = call_frame->previous;
     }
 
     return Location::from_call_stack(state, call_frame, include_vars);
@@ -611,7 +611,7 @@ namespace rubinius {
     CallFrame* call_frame = calling_environment;
 
     for(native_int i = skip->to_native(); call_frame && i > 0; --i) {
-      call_frame = static_cast<CallFrame*>(call_frame->previous);
+      call_frame = call_frame->previous;
     }
 
     return Location::mri_backtrace(state, call_frame);

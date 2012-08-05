@@ -245,7 +245,7 @@ namespace rubinius {
 
       saw_variable_scope(call_frame, displace(call_frame->scope, offset));
 
-      call_frame = static_cast<CallFrame*>(call_frame->previous);
+      call_frame = call_frame->previous;
     }
   }
 
