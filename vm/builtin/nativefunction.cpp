@@ -149,7 +149,7 @@ namespace rubinius {
 
       default:
         rubinius::bug("Unsupported FFI type");
-		return 0;	// Keep GCC happy
+        return 0; // Keep GCC happy
     }
   }
 
