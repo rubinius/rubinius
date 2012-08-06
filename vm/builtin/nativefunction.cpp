@@ -123,6 +123,7 @@ namespace rubinius {
 
       case RBX_FFI_TYPE_INT:
       case RBX_FFI_TYPE_UINT:
+      case RBX_FFI_TYPE_ENUM:
         return sizeof(int);
 
       case RBX_FFI_TYPE_LONG:

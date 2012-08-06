@@ -261,7 +261,7 @@ module FFI
       @typedefs ||= Rubinius::LookupTable.new
 
       if name.kind_of? Rubinius::NativeFunction or name.kind_of? FFI::Enum
-          return name
+        return name
       end
 
       if type = @typedefs[name]

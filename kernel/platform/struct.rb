@@ -6,6 +6,8 @@ module FFI
 
   class Struct
 
+    @offset_zero = false
+
     class InlineArray
       def initialize(type, ptr)
         @pointer = ptr
@@ -124,7 +126,7 @@ module FFI
 
           type = FFI::Type::Array.new(type_code, ary_size, klass)
           element_size = type_size * ary_size
-        elsif f.kind_of?(Class) and f < FFI::Struct
+        elsif f.kind_of?(Class) and (f < FFI::Struct || f < FFI::Union)
           type = FFI::Type::StructByValue.new(f)
           element_size = type_size = f.size
         else
@@ -143,12 +145,16 @@ module FFI
         if offset.kind_of?(Fixnum)
           i += 3
         else
-          offset = @size
+          if self < FFI::Union
+            offset = 0
+          else
+            offset = @size
 
-          mod = offset % type_size
-          unless mod == 0
-            # we need to align it.
-            offset += (type_size - mod)
+            mod = offset % type_size
+            unless mod == 0
+              # we need to align it.
+              offset += (type_size - mod)
+            end
           end
 
           i += 2
@@ -194,13 +200,23 @@ module FFI
     end
 
     def self.offset_of(name)
-      offset, type = @cspec[name]
-      return offset
+      @layout[name].first
     end
 
     def offset_of(name)
-      offset, type = @cspec[name]
-      return offset
+      @cspec[name].first
+    end
+
+    def self.offsets
+      members.map do |member|
+        [member, @layout[member].first]
+      end
+    end
+
+    def offsets
+      members.map do |member|
+        [member, @cspec[member].first]
+      end
     end
 
     def self.members

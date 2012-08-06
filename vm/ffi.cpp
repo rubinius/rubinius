@@ -53,5 +53,6 @@ namespace rubinius {
     mod->set_const(state, "TYPE_STATE",      Fixnum::from(RBX_FFI_TYPE_STATE));
     mod->set_const(state, "TYPE_STRPTR",     Fixnum::from(RBX_FFI_TYPE_STRPTR));
     mod->set_const(state, "TYPE_CHARARR",    Fixnum::from(RBX_FFI_TYPE_CHARARR));
+    mod->set_const(state, "TYPE_ENUM",       Fixnum::from(RBX_FFI_TYPE_ENUM));
   }
 };
