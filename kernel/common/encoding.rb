@@ -169,8 +169,3 @@ class Encoding
     find name
   end
 end
-
-# TODO: This psuedo variable should represent a scripts encoding.
-Object.send :define_method, :__ENCODING__ do
-  Encoding.new
-end
