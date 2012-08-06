@@ -121,13 +121,12 @@ class Encoding
   end
 
   def self.find(name)
-    key = StringValue(name).upcase
+    key = StringValue(name).upcase.to_sym
 
-    EncodingMap.each do |n, r|
-      if n.to_s.upcase == key
-        index = r.last
-        return index && EncodingList[index]
-      end
+    pair = EncodingMap[key]
+    if pair
+      index = pair.last
+      return index && EncodingList[index]
     end
 
     raise ArgumentError, "unknown encoding name - #{name}"
