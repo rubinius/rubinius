@@ -12,7 +12,7 @@ end
 
 File.open definitions, "wb" do |f|
   re = /^static\s*const\s*rb_transcoder\s*\n
-                      rb_(?:from|to)_\w+\s*=\s*\{\s*\n
+                      rb_\w+\s*=\s*\{\s*\n
                       \s*"([^"]+)",\s*"([^"]+)"/mx
 
   Dir["#{dir}/*.c"].sort.each do |name|
