@@ -9,7 +9,7 @@ with_feature :encoding do
 
     it "coerces non-String/Encoding objects with #to_str" do
       str = mock('string')
-      str.should_receive(:to_str).twice.and_return('string')
+      str.should_receive(:to_str).at_least(1).times.and_return('string')
       Encoding::Converter.asciicompat_encoding(str)
     end
 
