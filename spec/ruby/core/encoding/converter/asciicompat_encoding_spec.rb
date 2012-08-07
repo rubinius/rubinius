@@ -35,14 +35,5 @@ with_feature :encoding do
       Encoding::Converter.asciicompat_encoding('internal').should be_nil
       Encoding.default_internal = internal
     end
-
-    it "returns nil if called with an encoding it returned previously" do
-      internal = Encoding.default_internal
-      Encoding.name_list.each do |name|
-        asciicompat = Encoding::Converter.asciicompat_encoding(name)
-        next if asciicompat.nil?
-        Encoding::Converter.asciicompat_encoding(asciicompat).should be_nil
-      end
-    end
   end
 end
