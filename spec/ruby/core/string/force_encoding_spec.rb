@@ -24,6 +24,10 @@ with_feature :encoding do
       lambda { "abc".force_encoding(obj) }.should raise_error(TypeError)
     end
 
+    it "raises a TypeError if passed nil" do
+      lambda { "abc".force_encoding(nil) }.should raise_error(TypeError)
+    end
+
     it "returns self" do
       str = "abc"
       str.force_encoding('utf-8').should equal(str)
