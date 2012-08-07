@@ -141,8 +141,8 @@ def add_rbx_capi
   add_cflag "-g"
   add_cxxflag "-g"
   if ENV['DEV']
-    add_cflag "-O0 -ggdb3"
-    add_cxxflag "-O0 -ggdb3"
+    add_cflag "-O0"
+    add_cxxflag "-O0"
   else
     add_cflag "-O2"
     add_cxxflag "-O2"

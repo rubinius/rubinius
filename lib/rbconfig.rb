@@ -122,7 +122,7 @@ module RbConfig
   CONFIG["CFLAGS"]             = "-g -fPIC"
   CONFIG["LDFLAGS"]            = ""
   if ENV['DEV']
-    CONFIG["CFLAGS"] << " -O0 -ggdb3"
+    CONFIG["CFLAGS"] << " -O0 "
   else
     CONFIG["CFLAGS"] << " -O2"
   end
