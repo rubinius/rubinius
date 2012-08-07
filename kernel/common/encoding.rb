@@ -10,9 +10,10 @@ class Encoding
   class CompatibilityError < EncodingError
   end
 
-  EncodingMap   = Rubinius::EncodingClass::EncodingMap
-  EncodingList  = Rubinius::EncodingClass::EncodingList
-  LocaleCharmap = Rubinius::EncodingClass::LocaleCharmap
+  EncodingMap     = Rubinius::EncodingClass::EncodingMap
+  EncodingList    = Rubinius::EncodingClass::EncodingList
+  LocaleCharmap   = Rubinius::EncodingClass::LocaleCharmap
+  TranscodingMap  = Rubinius::EncodingClass::TranscodingMap
 
   class Transcoder
     attr_accessor :source
@@ -28,6 +29,18 @@ class Encoding
     attr_accessor :destination_encoding
     attr_accessor :replacement
     attr_accessor :convpath
+
+    def self.asciicompat_encoding(string_or_encoding)
+      encoding = Rubinius::Type.try_convert_to_encoding string_or_encoding
+
+      return if not encoding or encoding.equal? undefined
+      return if encoding.ascii_compatible?
+
+      transcoding = TranscodingMap[encoding.name]
+      return unless transcoding and transcoding.size == 1
+
+      Encoding.find transcoding.keys.first.to_s
+    end
 
     def initialize(from, to, options=undefined)
       @source_encoding = Rubinius::Type.coerce_to_encoding from
@@ -121,13 +134,8 @@ class Encoding
   end
 
   def self.find(name)
-    key = StringValue(name).upcase.to_sym
-
-    pair = EncodingMap[key]
-    if pair
-      index = pair.last
-      return index && EncodingList[index]
-    end
+    enc = Rubinius::Type.try_convert_to_encoding name
+    return enc unless enc.equal? undefined
 
     raise ArgumentError, "unknown encoding name - #{name}"
   end

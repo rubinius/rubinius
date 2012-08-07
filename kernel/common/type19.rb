@@ -8,11 +8,30 @@ module Rubinius
         return obj
       when String
         return Encoding.find obj
-      when nil
-        # TODO: temporary until __ENCODING__ is fixed
       else
         return Encoding.find StringValue(obj)
       end
+    end
+
+    def self.try_convert_to_encoding(obj)
+      case obj
+      when Encoding
+        return obj
+      when String
+        str = obj
+      else
+        str = StringValue obj
+      end
+
+      key = str.upcase.to_sym
+
+      pair = Encoding::EncodingMap[key]
+      if pair
+        index = pair.last
+        return index && Encoding::EncodingList[index]
+      end
+
+      return undefined
     end
 
     def self.compatible_encoding(a, b)
