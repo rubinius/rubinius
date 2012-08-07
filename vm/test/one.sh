@@ -10,4 +10,4 @@ fi
 
 vm/test/cxxtest/cxxtestgen.pl --error-printer --have-eh --abort-on-fail --include=string.h -o vm/test/one.cpp "$*"
 
-g++ $FLAGS -ggdb3 -g -Wall -Werror -Ivendor/libtommath -Ivm/test/cxxtest -I. -Ivm -o vm/test/one vm/test/one.cpp && ./vm/test/one
+g++ $FLAGS -g -Wall -Werror -Ivendor/libtommath -Ivm/test/cxxtest -I. -Ivm -o vm/test/one vm/test/one.cpp && ./vm/test/one

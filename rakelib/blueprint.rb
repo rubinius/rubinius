@@ -25,7 +25,7 @@ Daedalus.blueprint do |i|
   gcc.cflags << Rubinius::BUILD_CONFIG[:user_cflags]
 
   if ENV['DEV']
-    gcc.cflags << "-O0 -ggdb3"
+    gcc.cflags << "-O0"
     gcc.mtime_only = true
   else
     gcc.cflags << "-O2"
