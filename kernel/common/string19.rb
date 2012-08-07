@@ -28,6 +28,7 @@ class String
     # TODO
     if to.equal? undefined
       to = Encoding.default_internal
+      return self unless to
     else
       to = Rubinius::Type.coerce_to_encoding to
     end
