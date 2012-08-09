@@ -85,9 +85,6 @@ module FFI
 
   end
 
-  # Converts a Rubinius Object
-  add_typedef TYPE_OBJECT,  :object
-
   # Converts a char
   add_typedef TYPE_CHAR,    :char
 
@@ -138,9 +135,6 @@ module FFI
 
   # Converts NULL-terminated C strings
   add_typedef TYPE_STRING,  :string
-
-  # Converts the current Rubinius state
-  add_typedef TYPE_STATE,   :state
 
   # Use strptr when you need to free the result of some operation.
   add_typedef TYPE_STRPTR,  :strptr
@@ -201,7 +195,6 @@ module FFI
 
     Struct = StructByValue
 
-    OBJECT  = TYPE_OBJECT
     CHAR    = TYPE_CHAR
     UCHAR   = TYPE_UCHAR
     BOOL    = TYPE_BOOL
@@ -218,7 +211,6 @@ module FFI
     PTR     = TYPE_PTR
     VOID    = TYPE_VOID
     STRING  = TYPE_STRING
-    STATE   = TYPE_STATE
     STRPTR  = TYPE_STRPTR
     CHARARR = TYPE_CHARARR
     ENUM    = TYPE_ENUM

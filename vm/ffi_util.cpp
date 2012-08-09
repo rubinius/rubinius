@@ -105,9 +105,7 @@ int ffi_type_size(int type) {
 
     case RBX_FFI_TYPE_PTR:
     case RBX_FFI_TYPE_STRING:
-    case RBX_FFI_TYPE_STATE:
     case RBX_FFI_TYPE_STRPTR:
-    case RBX_FFI_TYPE_OBJECT:
     case RBX_FFI_TYPE_CALLBACK:
     case RBX_FFI_TYPE_ENUM:
     return sizeof(void*);

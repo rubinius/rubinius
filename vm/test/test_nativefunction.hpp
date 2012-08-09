@@ -109,9 +109,7 @@ public:
     TS_ASSERT(NativeFunction::type_size(RBX_FFI_TYPE_DOUBLE) >= 8);
     TS_ASSERT(NativeFunction::type_size(RBX_FFI_TYPE_PTR) >= 4);
     TS_ASSERT(NativeFunction::type_size(RBX_FFI_TYPE_STRING) >= 4);
-    TS_ASSERT(NativeFunction::type_size(RBX_FFI_TYPE_STATE) >= 4);
     TS_ASSERT(NativeFunction::type_size(RBX_FFI_TYPE_STRPTR) >= 4);
-    TS_ASSERT(NativeFunction::type_size(RBX_FFI_TYPE_OBJECT) >= 4);
   }
 
   void test_create() {
@@ -643,39 +641,6 @@ public:
 
     TS_ASSERT_EQUALS(out->get(state, 0), cNil);
     TS_ASSERT_EQUALS(out->get(state, 1), cNil);
-  }
-
-  void test_bind_with_object() {
-    Pointer* name = Pointer::create(state, (void*)dummy_ptr);
-
-    Array* args = Array::create(state, 1);
-    args->set(state, 0, Fixnum::from(RBX_FFI_TYPE_OBJECT));
-
-    Object* ret = Fixnum::from(RBX_FFI_TYPE_OBJECT);
-
-    NativeFunction *func = NativeFunction::generate(state, name, state->symbol("ffi"), args, ret);
-
-    TS_ASSERT(!func->nil_p());
-
-    Array* input = Array::create(state, 1);
-    Object* obj = state->new_object<Object>(G(object));
-    input->set(state, 0, obj);
-
-    Arguments args_obj(state->symbol("blah"), input);
-
-    Object* out = func->call(state, args_obj, NULL);
-
-    TS_ASSERT(kind_of<Object>(out));
-    TS_ASSERT_EQUALS(out, obj);
-
-    input = Array::create(state, 1);
-    input->set(state, 0, cNil);
-
-    Arguments args_obj2(state->symbol("blah"), input);
-
-    out = func->call(state, args_obj2, NULL);
-
-    TS_ASSERT_EQUALS(out, cNil);
   }
 
 };

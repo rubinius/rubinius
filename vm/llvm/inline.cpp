@@ -656,7 +656,6 @@ remember:
       case RBX_FFI_TYPE_DOUBLE:
         return ops_.state()->DoubleTy;
 
-      case RBX_FFI_TYPE_OBJECT:
       case RBX_FFI_TYPE_STRING:
       case RBX_FFI_TYPE_STRPTR:
       case RBX_FFI_TYPE_PTR:
@@ -793,16 +792,6 @@ remember:
         ops_.set_block(cont);
         break;
       }
-
-      case RBX_FFI_TYPE_STATE:
-        ffi_type.push_back(ops_.vm()->getType());
-        ffi_args.push_back(ops_.vm());
-        break;
-
-      case RBX_FFI_TYPE_OBJECT:
-        ffi_type.push_back(current_arg->getType());
-        ffi_args.push_back(current_arg);
-        break;
 
       case RBX_FFI_TYPE_PTR: {
         Type* type = llvm::PointerType::getUnqual(ops_.state()->Int8Ty);
@@ -945,10 +934,6 @@ remember:
                         ops_.b());
       break;
     }
-
-    case RBX_FFI_TYPE_OBJECT:
-      result = ffi_result;
-      break;
 
     case RBX_FFI_TYPE_STRING: {
       Signature sig(ops_.state(), ops_.ObjType);

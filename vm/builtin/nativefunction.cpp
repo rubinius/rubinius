@@ -74,7 +74,7 @@ namespace rubinius {
   {}
 
   FFIData::~FFIData() {
-    free(args_info);
+    XFREE(args_info);
     XFREE(cif.arg_types);
     if(closure) ffi_closure_free(closure);
   }
@@ -142,9 +142,7 @@ namespace rubinius {
 
       case RBX_FFI_TYPE_PTR:
       case RBX_FFI_TYPE_STRING:
-      case RBX_FFI_TYPE_STATE:
       case RBX_FFI_TYPE_STRPTR:
-      case RBX_FFI_TYPE_OBJECT:
         return sizeof(void*);
 
       default:
@@ -222,11 +220,9 @@ namespace rubinius {
       case RBX_FFI_TYPE_ULONG_LONG:
         types[i] = &ffi_type_uint64;
         break;
-      case RBX_FFI_TYPE_OBJECT:
       case RBX_FFI_TYPE_PTR:
       case RBX_FFI_TYPE_CALLBACK:
       case RBX_FFI_TYPE_STRING:
-      case RBX_FFI_TYPE_STATE:
         types[i] = &ffi_type_pointer;
         break;
       }
@@ -271,11 +267,9 @@ namespace rubinius {
     case RBX_FFI_TYPE_ULONG_LONG:
       rtype = &ffi_type_uint64;
       break;
-    case RBX_FFI_TYPE_OBJECT:
     case RBX_FFI_TYPE_PTR:
     case RBX_FFI_TYPE_CALLBACK:
     case RBX_FFI_TYPE_STRING:
-    case RBX_FFI_TYPE_STATE:
     case RBX_FFI_TYPE_STRPTR:
       rtype = &ffi_type_pointer;
       break;
@@ -326,18 +320,6 @@ namespace rubinius {
           args_info[i].type = as<Integer>(type)->to_native();
           args_info[i].enum_obj = NULL;
           args_info[i].callback = NULL;
-
-          /* State can only be passed as the first arg, and it's invisible,
-             ie doesn't get seen as in onbound arg by ruby. But it can ONLY
-             be the first arg. */
-          if(args_info[i].type == RBX_FFI_TYPE_STATE) {
-            if(i == 0) {
-              arg_count--;
-            } else {
-              XFREE(args_info);
-              return (NativeFunction*)Primitives::failure();
-            }
-          }
         } else if((cb = try_as<NativeFunction>(type))) {
           args_info[i].type = RBX_FFI_TYPE_CALLBACK;
           args_info[i].enum_obj = NULL;
@@ -436,13 +418,16 @@ namespace rubinius {
       case RBX_FFI_TYPE_ULONG_LONG:
         args->set(state, i, Fixnum::from(*(unsigned long long*)parameters[i]));
         break;
-      case RBX_FFI_TYPE_OBJECT:
-        args->set(state, i, *(Object**)parameters[i]);
-        break;
       case RBX_FFI_TYPE_ENUM:{
         Array* ary = Array::create(state, 1);
         ary->set(state, 0, Fixnum::from(*(int*)parameters[i]));
-        args->set(state, i, stub->args_info[i].enum_obj->send(state, env->current_call_frame(), state->symbol("symbol"), ary) );
+        Object* result = stub->args_info[i].enum_obj->send(state, env->current_call_frame(), state->symbol("symbol"), ary);
+        if(!result) {
+          std::cerr << "[WARNING] Exception raised by callback, ignoring.\n";
+          state->vm()->thread_state()->clear();
+          result = cNil;
+        }
+        args->set(state, i, result);
         break;
       }
       case RBX_FFI_TYPE_CALLBACK: {
@@ -574,9 +559,6 @@ namespace rubinius {
         *((ffi_arg*)retval) = 0;
       }
       break;
-    case RBX_FFI_TYPE_OBJECT:
-      *((Object**)retval) = obj;
-      break;
     case RBX_FFI_TYPE_PTR:
       if(Pointer* ptr = try_as<Pointer>(obj)) {
         *((void**)retval) = ptr->pointer;
@@ -588,6 +570,12 @@ namespace rubinius {
       Array* ary = Array::create(state, 1);
       ary->set(state, 0, obj);
       Object* value = stub->ret_info.enum_obj->send(state, env->current_call_frame(), state->symbol("[]"), ary);
+      if(!value) {
+        // For now, print out a warning to stderr and just eat it.
+        std::cerr << "[WARNING] Exception raised by callback, ignoring.\n";
+        state->vm()->thread_state()->clear();
+        value = cNil;
+      }
       if(value->nil_p()) {
         *((Object**)retval) = value;
       } else {
@@ -630,12 +618,6 @@ namespace rubinius {
           args_info[i].type = as<Integer>(type)->to_native();
           args_info[i].enum_obj = NULL;
           args_info[i].callback = NULL;
-
-          /* State can not be passed. */
-          if(args_info[i].type == RBX_FFI_TYPE_STATE) {
-            XFREE(args_info);
-            return nil<Array>();
-          }
         } else if((cb = try_as<NativeFunction>(type))) {
           args_info[i].type = RBX_FFI_TYPE_CALLBACK;
           args_info[i].enum_obj = NULL;
@@ -726,191 +708,197 @@ namespace rubinius {
 
     bool use_cb_block = false;
 
-    if(args.total() != ffi_data->arg_count) {
-      if(args.total() + 1 == ffi_data->arg_count &&
-          args.block() && !args.block()->nil_p())
-      {
-        use_cb_block = true;
-      } else {
-        Exception* exc =
-          Exception::make_argument_error(state, ffi_data->arg_count,
-                                         args.total(), args.name());
-        exc->locations(state, Location::from_call_stack(state, call_frame));
-        state->raise_exception(exc);
+    size_t given_args = args.total();
 
-        return NULL;
-      }
+    if(args.block() && !args.block()->nil_p()) {
+      given_args++;
+      use_cb_block = true;
+    }
+
+    if(given_args != ffi_data->arg_count) {
+      Exception* exc =
+        Exception::make_argument_error(state, ffi_data->arg_count,
+                                         args.total(), args.name());
+      exc->locations(state, Location::from_call_stack(state, call_frame));
+      state->raise_exception(exc);
+
+      return NULL;
     }
 
     // Because we call back into ruby to do conversions.
     RootBuffer vrf(state->vm()->root_buffers(), args.arguments(), args.total());
 
+    // Make sure we have this on the stack
+    NativeFunction* self = this;
+    OnStack<1> on(state, self);
+
+    // We need to have ffi_data on the stack since
+    // a GC might move this and there ffi_data will
+    // point at the wrong place in memory
+    FFIData* ffi_data_local = self->ffi_data;
+
     void* values[ffi_data->arg_count];
     void* heap_allocations[ffi_data->arg_count];
-    size_t i;
+    size_t ffi_index = 0;
+    size_t obj_index = 0;
 
-    for(i = 0; i < ffi_data->arg_count; i++) {
-      heap_allocations[i] = NULL;
+    for(; ffi_index < ffi_data_local->arg_count; ffi_index++) {
+      heap_allocations[ffi_index] = NULL;
+      FFIArgInfo& arg_info = ffi_data->args_info[ffi_index];
 
-      switch(ffi_data->args_info[i].type) {
+      // Handle cases where we don't use an argument from the argument list.
+      // This happens when we pass in STATE or use the given block as a
+      // callback for the FFI function.
+      if(arg_info.type == RBX_FFI_TYPE_CALLBACK && use_cb_block) {
+        obj = args.block();
+      } else {
+        obj = args.get_argument(obj_index);
+        obj_index++;
+      }
+>>>>>>> Fix some issues with FFI handling
+
+      switch(arg_info.type) {
       case RBX_FFI_TYPE_CHAR: {
         char* tmp = ALLOCA(char);
-        obj = args.get_argument(i);
         type_assert(state, obj, FixnumType, "converting to char");
         *tmp = (char)as<Fixnum>(obj)->to_native();
-        values[i] = tmp;
+        values[ffi_index] = tmp;
         break;
       }
       case RBX_FFI_TYPE_UCHAR: {
         unsigned char* tmp = ALLOCA(unsigned char);
-        obj = args.get_argument(i);
         type_assert(state, obj, FixnumType, "converting to uchar");
         *tmp = (unsigned char)as<Fixnum>(obj)->to_native();
-        values[i] = tmp;
+        values[ffi_index] = tmp;
         break;
       }
       case RBX_FFI_TYPE_BOOL: {
         unsigned char* tmp = ALLOCA(unsigned char);
-        obj = args.get_argument(i);
         *tmp = (unsigned char)CBOOL(obj);
-        values[i] = tmp;
+        values[ffi_index] = tmp;
         break;
       }
       case RBX_FFI_TYPE_SHORT: {
         short* tmp = ALLOCA(short);
-        obj = args.get_argument(i);
         type_assert(state, obj, FixnumType, "converting to short");
         *tmp = (short)as<Fixnum>(obj)->to_native();
-        values[i] = tmp;
+        values[ffi_index] = tmp;
         break;
       }
       case RBX_FFI_TYPE_USHORT: {
         unsigned short* tmp = ALLOCA(unsigned short);
-        obj = args.get_argument(i);
         type_assert(state, obj, FixnumType, "converting to ushort");
         *tmp = (unsigned short)as<Fixnum>(obj)->to_native();
-        values[i] = tmp;
+        values[ffi_index] = tmp;
         break;
       }
       case RBX_FFI_TYPE_INT: {
         int* tmp = ALLOCA(int);
-        obj = args.get_argument(i);
         if(obj->fixnum_p()) {
           *tmp = as<Fixnum>(obj)->to_int();
         } else {
           type_assert(state, obj, BignumType, "converting to int");
           *tmp = as<Bignum>(obj)->to_int();
         }
-        values[i] = tmp;
+        values[ffi_index] = tmp;
         break;
       }
       case RBX_FFI_TYPE_UINT: {
         unsigned int* tmp = ALLOCA(unsigned int);
-        obj = args.get_argument(i);
         if(obj->fixnum_p()) {
           *tmp = as<Fixnum>(obj)->to_uint();
         } else {
           type_assert(state, obj, BignumType, "converting to unsigned int");
           *tmp = as<Bignum>(obj)->to_uint();
         }
-        values[i] = tmp;
+        values[ffi_index] = tmp;
         break;
       }
       case RBX_FFI_TYPE_LONG: {
         long* tmp = ALLOCA(long);
-        obj = args.get_argument(i);
         if(obj->fixnum_p()) {
           *tmp = as<Fixnum>(obj)->to_long();
         } else {
           type_assert(state, obj, BignumType, "converting to long");
           *tmp = as<Bignum>(obj)->to_long();
         }
-        values[i] = tmp;
+        values[ffi_index] = tmp;
         break;
       }
       case RBX_FFI_TYPE_ULONG: {
         unsigned long* tmp = ALLOCA(unsigned long);
-        obj = args.get_argument(i);
         if(obj->fixnum_p()) {
           *tmp = as<Fixnum>(obj)->to_ulong();
         } else {
           type_assert(state, obj, BignumType, "converting to unsigned long");
           *tmp = as<Bignum>(obj)->to_ulong();
         }
-        values[i] = tmp;
+        values[ffi_index] = tmp;
         break;
       }
       case RBX_FFI_TYPE_FLOAT: {
         float* tmp = ALLOCA(float);
-        obj = args.get_argument(i);
         type_assert(state, obj, FloatType, "converting to float");
         *tmp = (float)as<Float>(obj)->to_double(state);
-        values[i] = tmp;
+        values[ffi_index] = tmp;
         break;
       }
       case RBX_FFI_TYPE_DOUBLE: {
         double* tmp = ALLOCA(double);
-        obj = args.get_argument(i);
         type_assert(state, obj, FloatType, "converting to double");
         *tmp = as<Float>(obj)->to_double(state);
-        values[i] = tmp;
+        values[ffi_index] = tmp;
         break;
       }
       case RBX_FFI_TYPE_LONG_LONG: {
         long long* tmp = ALLOCA(long long);
-        obj = args.get_argument(i);
         if(obj->fixnum_p()) {
           *tmp = as<Fixnum>(obj)->to_long_long();
         } else {
           type_assert(state, obj, BignumType, "converting to long long");
           *tmp = as<Bignum>(obj)->to_long_long();
         }
-        values[i] = tmp;
+        values[ffi_index] = tmp;
         break;
       }
       case RBX_FFI_TYPE_ULONG_LONG: {
         unsigned long long* tmp = ALLOCA(unsigned long long);
-        obj = args.get_argument(i);
         if(obj->fixnum_p()) {
           *tmp = as<Fixnum>(obj)->to_ulong_long();
         } else {
           type_assert(state, obj, BignumType, "converting to unsigned long long");
           *tmp = as<Bignum>(obj)->to_ulong_long();
         }
-        values[i] = tmp;
-        break;
-      }
-      case RBX_FFI_TYPE_STATE: {
-        VM** tmp = ALLOCA(VM*);
-        *tmp = state->vm();
-        values[i] = tmp;
-        break;
-      }
-      case RBX_FFI_TYPE_OBJECT: {
-        Object** tmp = ALLOCA(Object*);
-        obj = args.get_argument(i);
-        *tmp = obj;
-        values[i] = tmp;
+        values[ffi_index] = tmp;
         break;
       }
       case RBX_FFI_TYPE_PTR: {
         void** tmp = ALLOCA(void*);
-        obj = args.get_argument(i);
         if(obj->nil_p()) {
           *tmp = NULL;
         } else {
           Pointer* mp = try_as<Pointer>(obj);
           if(!mp) {
             if(String* so = try_as<String>(obj)) {
-              int size;
+              size_t size;
               size = so->byte_size();
 
               char data[size + 1];
               memcpy(data, so->byte_address(), size);
               data[size] = 0;
+
+              heap_allocations[ffi_index] = data;
               *tmp = data;
             } else if(CBOOL(obj->respond_to(state, state->symbol("to_ptr"), cTrue))) {
               Object* o2 = obj->send(state, call_frame, state->symbol("to_ptr"));
+              if(!o2) {
+                for(ffi_index = 0; ffi_index < ffi_data_local->arg_count; ffi_index++) {
+                  if (heap_allocations[ffi_index]) {
+                    XFREE(heap_allocations[ffi_index]);
+                  }
+                }
+                return 0;
+              }
               type_assert(state, o2, PointerType, "converting to pointer");
               mp = as<Pointer>(o2);
               *tmp = mp->pointer;
@@ -921,18 +909,25 @@ namespace rubinius {
             *tmp = mp->pointer;
           }
         }
-        values[i] = tmp;
+        values[ffi_index] = tmp;
         break;
       }
       case RBX_FFI_TYPE_ENUM: {
         int* tmp = ALLOCA(int);
-        obj = args.get_argument(i);
         if(obj->fixnum_p()) {
           *tmp = as<Fixnum>(obj)->to_int();
         } else {
           Array* ary = Array::create(state, 1);
           ary->set(state, 0, obj);
-          Object* val = ffi_data->args_info[i].enum_obj->send(state, call_frame, state->symbol("[]"), ary);
+          Object* val = arg_info.enum_obj->send(state, call_frame, state->symbol("[]"), ary);
+          if(!val) {
+            for(ffi_index = 0; ffi_index < ffi_data_local->arg_count; ffi_index++) {
+              if (heap_allocations[ffi_index]) {
+                XFREE(heap_allocations[ffi_index]);
+              }
+            }
+            return 0;
+          }
           if(val->nil_p()) {
             *tmp = 0;
           } else {
@@ -944,39 +939,32 @@ namespace rubinius {
             }
           }
         }
-        values[i] = tmp;
+        values[ffi_index] = tmp;
         break;
       }
       case RBX_FFI_TYPE_CALLBACK: {
         void** tmp = ALLOCA(void*);
-        if(use_cb_block) {
-          obj = args.block();
-        } else {
-          obj = args.get_argument(i);
-        }
         if(obj->reference_p()) {
-          Pointer* ptr = NativeFunction::adjust_tramp(state, obj, ffi_data->args_info[i].callback);
+          Pointer* ptr = NativeFunction::adjust_tramp(state, obj, arg_info.callback);
           *tmp = ptr->pointer;
         } else {
           *tmp = NULL;
         }
-        values[i] = tmp;
+        values[ffi_index] = tmp;
         break;
       }
       case RBX_FFI_TYPE_STRING: {
         char** tmp = ALLOCA(char*);
-        obj = args.get_argument(i);
-
         if(obj->nil_p()) {
           *tmp = NULL;
         } else {
-          int size;
+          size_t size;
           String* so;
 
           so = as<String>(obj);
           size = so->byte_size();
 
-          char* data = (char *)malloc(sizeof(char) * (size + 1));
+          char* data = ALLOC_N(char, size + 1);
 
           if (!data) {
             rubinius::bug("could not allocate memory for string");
@@ -985,10 +973,10 @@ namespace rubinius {
           memcpy(data, so->byte_address(), size);
           data[size] = 0;
 
-          heap_allocations[i] = data;
+          heap_allocations[ffi_index] = data;
           *tmp = data;
         }
-        values[i] = tmp;
+        values[ffi_index] = tmp;
         break;
       }
       }
@@ -999,15 +987,6 @@ namespace rubinius {
     env->set_current_call_frame(call_frame);
 
     state->set_call_frame(call_frame);
-
-    // Make sure we have this on the stack
-    NativeFunction* self = this;
-    OnStack<1> on(state, self);
-
-    // We need to have ffi_data on the stack since
-    // a GC might move this and there ffi_data will
-    // point at the wrong place in memory
-    FFIData* ffi_data_local = ffi_data;
     state->gc_independent(gct);
 
     switch(ffi_data_local->ret_info.type) {
@@ -1102,11 +1081,6 @@ namespace rubinius {
       ret = Integer::from(state, result);
       break;
     }
-    case RBX_FFI_TYPE_OBJECT: {
-      ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &ret, values);
-      state->gc_dependent();
-      break;
-    }
     case RBX_FFI_TYPE_PTR: {
       void* result;
       ffi_call(&ffi_data_local->cif, FFI_FN(ffi_data_local->ep), &result, values);
@@ -1190,9 +1164,9 @@ namespace rubinius {
 
     env->set_current_call_frame(saved_frame);
 
-    for(i = 0; i < ffi_data_local->arg_count; i++) {
-      if (heap_allocations[i]) {
-        free(heap_allocations[i]);
+    for(ffi_index = 0; ffi_index < ffi_data_local->arg_count; ffi_index++) {
+      if (heap_allocations[ffi_index]) {
+        XFREE(heap_allocations[ffi_index]);
       }
     }
 

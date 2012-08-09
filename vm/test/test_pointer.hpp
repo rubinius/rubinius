@@ -263,15 +263,6 @@ public:
     TS_ASSERT_EQUALS(as<Integer>(obj)->to_native(), 1);
   }
 
-  void test_get_field_object() {
-    Object* one = Fixnum::from(1);
-
-    Pointer* ptr = Pointer::create(state, &one);
-    Object* obj = ptr->get_field(state, 0, RBX_FFI_TYPE_OBJECT);
-
-    TS_ASSERT_EQUALS(one, obj);
-  }
-
   void test_get_field_ptr() {
     int thing = 1;
     void *val = &thing;
@@ -554,17 +545,6 @@ public:
     Pointer* ptr = Pointer::create(state, buffer);
     ptr->set_field(state, 0, RBX_FFI_TYPE_ULONG_LONG, one);
     TS_ASSERT_EQUALS(*buffer, 1ULL);
-  }
-
-  void test_set_field_object() {
-    Object* buffer[1024];
-    Object* one = Fixnum::from(1);
-
-    buffer[0] = cNil;
-
-    Pointer* ptr = Pointer::create(state, buffer);
-    ptr->set_field(state, 0, RBX_FFI_TYPE_OBJECT, one);
-    TS_ASSERT_EQUALS(*buffer, one);
   }
 
   void test_set_field_ptr() {

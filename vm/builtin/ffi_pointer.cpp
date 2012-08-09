@@ -329,9 +329,6 @@ namespace rubinius {
     case RBX_FFI_TYPE_ULONG_LONG:
       ret = Integer::from(state, READ(unsigned long long));
       break;
-    case RBX_FFI_TYPE_OBJECT:
-      ret = READ(Object*);
-      break;
     case RBX_FFI_TYPE_PTR: {
       void *lptr = READ(void*);
       if(!lptr) {
@@ -470,9 +467,6 @@ namespace rubinius {
         type_assert(state, val, BignumType, "converting to unsigned long long");
         WRITE(unsigned long long, as<Bignum>(val)->to_ulong_long());
       }
-      break;
-    case RBX_FFI_TYPE_OBJECT:
-      WRITE(Object*, val);
       break;
     case RBX_FFI_TYPE_PTR:
       if(val->nil_p()) {
