@@ -9,6 +9,10 @@ describe :regexp_quote, :shared => true do
   end
 
   ruby_version_is "1.9" do
+    it "works with symbols" do
+      Regexp.send(@method, :symbol).should == 'symbol'
+    end
+
     it "sets the encoding of the result to US-ASCII if there are only US-ASCII characters present in the input String" do
       str = encode("abc", "euc-jp")
       Regexp.send(@method, str).encoding.should == Encoding::US_ASCII
