@@ -7,6 +7,9 @@ class Encoding
   class UndefinedConversionError < EncodingError
   end
 
+  class ConverterNotFoundError < EncodingError
+  end
+
   class CompatibilityError < EncodingError
   end
 
@@ -28,7 +31,6 @@ class Encoding
     attr_accessor :source_encoding
     attr_accessor :destination_encoding
     attr_accessor :replacement
-    attr_accessor :convpath
 
     def self.asciicompat_encoding(string_or_encoding)
       encoding = Rubinius::Type.try_convert_to_encoding string_or_encoding
@@ -36,7 +38,7 @@ class Encoding
       return if not encoding or encoding.equal? undefined
       return if encoding.ascii_compatible?
 
-      transcoding = TranscodingMap[encoding.name]
+      transcoding = TranscodingMap[encoding.name.upcase]
       return unless transcoding and transcoding.size == 1
 
       Encoding.find transcoding.keys.first.to_s
@@ -47,10 +49,37 @@ class Encoding
       @destination_encoding = Rubinius::Type.coerce_to_encoding to
 
       if options.kind_of? Fixnum
+        @options = options
       elsif !options.equal? undefined
         options = Rubinius::Type.coerce_to options, Hash, :to_hash
 
-        replacement = options[:replace]
+        @options = 0
+        unless options.empty?
+          @options |= INVALID_REPLACE if options[:invalid] == :replace
+          @options |= UNDEF_REPLACE if options[:undef] == :replace
+
+          if options[:newline] == :universal or options[:universal_newline]
+            @options |= UNIVERSAL_NEWLINE_DECORATOR
+          end
+
+          if options[:newline] == :crlf or options[:crlf_newline]
+            @options |= CRLF_NEWLINE_DECORATOR
+          end
+
+          if options[:newline] == :cr or options[:cr_newline]
+            @options |= CR_NEWLINE_DECORATOR
+          end
+
+          @options |= XML_TEXT_DECORATOR if options[:xml] == :text
+          if options[:xml] == :attr
+            @options |= XML_ATTR_CONTENT_DECORATOR
+            @options |= XML_ATTR_QUOTE_DECORATOR
+          end
+
+          replacement = options[:replace]
+        end
+      else
+        @options = 0
       end
 
       if replacement.nil?
@@ -62,13 +91,71 @@ class Encoding
       else
         @replacement = Rubinius::Type.coerce_to replacement, String, :to_str
       end
+
+      source_name = @source_encoding.name.upcase
+      dest_name = @destination_encoding.name.upcase
+      found = false
+
+      if entry = TranscodingMap[source_name]
+        @convpath = [source_name]
+
+        if encoding = entry[dest_name]
+          @convpath << dest_name
+          found = true
+        else
+          visited = {source_name => true}
+          search = [entry]
+
+          until search.empty?
+            table = search.shift
+            table.each do |key, _|
+              next if visited.key? key
+              visited[key] = true
+
+              next unless entry = TranscodingMap[key]
+              if encoding = entry[dest_name]
+                @convpath << key << dest_name
+                found = true
+                break
+              end
+
+              search << entry
+            end
+          end
+        end
+      end
+
+      unless found
+        msg = "code converter not found (#{@source_encoding.name} to #{@destination_encoding.name}"
+        raise ConverterNotFoundError, msg
+      end
+    end
+
+    def convpath
+      path = []
+      a = 0
+      b = @convpath.size - 1
+
+      while a < b
+        path << [Encoding.find(@convpath[a].to_s), Encoding.find(@convpath[a + 1].to_s)]
+        a += 1
+      end
+
+      path << "xml_text_escape" if @options & XML_TEXT_DECORATOR != 0
+      path << "xml_attr_content_escape" if @options & XML_ATTR_CONTENT_DECORATOR != 0
+      path << "xml_attr_quote" if @options & XML_ATTR_QUOTE_DECORATOR != 0
+      path << "universal_newline" if @options & UNIVERSAL_NEWLINE_DECORATOR != 0
+      path << "crlf_newline" if @options & CRLF_NEWLINE_DECORATOR != 0
+      path << "cr_newline" if @options & CR_NEWLINE_DECORATOR != 0
+
+      path
     end
 
     def convert(str)
     end
 
-    # TODO: Add implementation for this method
-    def self.search_convpath(from, to, options={})
+    def self.search_convpath(from, to, options=undefined)
+      new(from, to, options).convpath
     end
   end
 
