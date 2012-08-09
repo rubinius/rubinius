@@ -124,6 +124,7 @@ class Regexp
   end
 
   def self.escape(str)
+    str = str.to_s if str.is_a?(Symbol)
     escaped = StringValue(str).transform(ESCAPE_TABLE, true)
     if escaped.ascii_only?
       escaped.force_encoding Encoding::US_ASCII
