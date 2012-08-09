@@ -381,6 +381,37 @@ module ModuleSpecs
     end
   end
 
+  module PrependModules
+    module M0
+      def m1; [:M0] end
+    end
+    module M1
+      def m1; [:M1, *super] end
+    end
+    module M2
+      def m1; [:M2, *super] end
+    end
+    M3 = Module.new do
+      def m1; [:M3, *super] end
+    end
+    module M4
+      def m1; [:M4, *super] end
+    end
+    class C
+      def m1; end
+    end
+    class C0 < C
+      include M0
+      prepend M1
+      def m1; [:C0, *super] end
+    end
+    class C1 < C0
+      prepend M2, M3
+      include M4
+      def m1; [:C1, *super] end
+    end
+  end
+
   module ModuleToPrepend
     def m
       result = super if defined?(super)
