@@ -2951,7 +2951,7 @@ f_block_arg     : blkarg_mark tIDENTIFIER
                   {
                     if(!is_local_id($2))
                       yy_error("block argument must be local variable");
-                    else if(local_id($2))
+                    else if(!in_block() && local_id($2))
                       yy_error("duplicate block argument name");
                     arg_var(shadowing_lvar(get_id($2)));
                     $$ = $2;

@@ -8057,7 +8057,7 @@ yyreduce:
     {
                     if(!is_local_id((yyvsp[(2) - (2)].id)))
                       yy_error("block argument must be local variable");
-                    else if(local_id((yyvsp[(2) - (2)].id)))
+                    else if(!in_block() && local_id((yyvsp[(2) - (2)].id)))
                       yy_error("duplicate block argument name");
                     arg_var(shadowing_lvar(get_id((yyvsp[(2) - (2)].id))));
                     (yyval.id) = (yyvsp[(2) - (2)].id);
