@@ -671,11 +671,14 @@ remember:
   bool Inliner::inline_ffi(Class* klass, NativeFunction* nf) {
 
     for(size_t i = 0; i < nf->ffi_data->arg_count; i++) {
-        if(nf->ffi_data->args_info[i].type==RBX_FFI_TYPE_ENUM || nf->ffi_data->args_info[i].type==RBX_FFI_TYPE_CALLBACK) {
+        if(nf->ffi_data->args_info[i].type==RBX_FFI_TYPE_ENUM ||
+           nf->ffi_data->args_info[i].type==RBX_FFI_TYPE_CALLBACK ||
+           nf->ffi_data->args_info[i].type == RBX_FFI_TYPE_VARARGS) {
             return false;
         }
     }
-    if(nf->ffi_data->ret_info.type==RBX_FFI_TYPE_ENUM || nf->ffi_data->ret_info.type==RBX_FFI_TYPE_CALLBACK) {
+    if(nf->ffi_data->ret_info.type==RBX_FFI_TYPE_ENUM ||
+       nf->ffi_data->ret_info.type==RBX_FFI_TYPE_CALLBACK) {
         return false;
     }
 

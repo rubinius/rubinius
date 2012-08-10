@@ -37,8 +37,7 @@
 namespace rubinius {
 
   void Pointer::init(STATE) {
-    Module* ffi = as<Module>(G(object)->get_const(state, "FFI"));
-    GO(ffi_pointer).set(ontology::new_class_under(state, "Pointer", ffi));
+    GO(ffi_pointer).set(ontology::new_class_under(state, "Pointer", G(ffi)));
     G(ffi_pointer)->set_object_type(state, PointerType);
 
     G(ffi_pointer)->set_const(state, "CURRENT_PROCESS",
@@ -67,7 +66,7 @@ namespace rubinius {
   #endif
 #endif
 
-    ffi->set_const(state, "LIB_SUFFIXES", suffix);
+    G(ffi)->set_const(state, "LIB_SUFFIXES", suffix);
 
     // Legacy. Fix the kernel to not need this.
     String* main_suffix;

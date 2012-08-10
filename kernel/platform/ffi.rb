@@ -151,6 +151,9 @@ module FFI
   add_typedef TYPE_INT,    :int32
   add_typedef TYPE_UINT,   :uint32
 
+  # Converts a varargs argument
+  add_typedef TYPE_VARARGS, :varargs
+
   if Rubinius::L64
     add_typedef TYPE_LONG,  :int64
     add_typedef TYPE_ULONG, :uint64
@@ -214,6 +217,7 @@ module FFI
     STRPTR  = TYPE_STRPTR
     CHARARR = TYPE_CHARARR
     ENUM    = TYPE_ENUM
+    VARARGS = TYPE_VARARGS
   end
 end
 

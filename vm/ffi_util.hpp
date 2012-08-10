@@ -21,5 +21,6 @@
 #define RBX_FFI_TYPE_CALLBACK   17
 #define RBX_FFI_TYPE_BOOL       18
 #define RBX_FFI_TYPE_ENUM       19
+#define RBX_FFI_TYPE_VARARGS    20
 
 #endif
