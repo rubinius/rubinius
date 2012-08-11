@@ -364,6 +364,15 @@ namespace rubinius {
 
     /**
      *  Returns an #inspect-like representation of an Object for
+     *  use in C++ code.
+     *
+     *  If address is true, uses the actual address of the object.
+     *  Otherwise, uses the object's id().
+     */
+    std::string to_string(STATE, bool address = false);
+
+    /**
+     *  Returns an #inspect-like representation of an Object for
      *  use in C++ code. Not called from Ruby code.
      *
      *  If address is true, uses the actual address of the object.

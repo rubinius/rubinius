@@ -707,6 +707,13 @@ namespace rubinius {
     ffi_type* rtype;
 
     if(CBOOL(varargs())) {
+      // If we have a varargs call, we need to copy the data. We can't
+      // modify this inline, since if we have multiple threads running
+      // the same native function it could corrupt data.
+      //
+      // Since these are pretty small memory structures, we allocate
+      // them on the stack so they are cleaned up automatically and we
+      // don't have to allocate heap memory on each call.
       rtype = cif->rtype;
       types = ALLOCA_N(ffi_type*, arg_count);
       for(unsigned i = 0; i < req_count; ++i) {
@@ -718,10 +725,18 @@ namespace rubinius {
     for(; ffi_index < arg_count; ffi_index++) {
       FFIArgInfo* arg_info;
       if(ffi_index >= req_count) {
+        // This happens when we handle the additional arguments
+        // for a varargs call. We need to retrieve the type
+        // information for the additional arguments and set those up.
         arg_info = ALLOCA(FFIArgInfo);
-        if(!ffi_arg_info(state, args.get_argument(obj_index), arg_info)) {
+        Object* type = args.get_argument(obj_index);
+        if(!ffi_arg_info(state, type, arg_info)) {
+          // Looks like we couldn't find the type
+          std::ostringstream msg;
+          msg << "Could not find type: " << type->to_string(state, true);
+
           Exception* exc =
-             Exception::make_exception(state, G(exc_arg), "Could not find type");
+             Exception::make_exception(state, G(exc_arg), msg.str().c_str());
           exc->locations(state, Location::from_call_stack(state, call_frame));
           state->raise_exception(exc);
           for(ffi_index = 0; ffi_index < arg_count; ffi_index++) {
@@ -975,6 +990,8 @@ namespace rubinius {
     }
 
     if(CBOOL(varargs())) {
+      // We need to call ffi_prep_cif_var for each call, since we need
+      // to provide the actual number of arguments for each call.
       int status = ffi_prep_cif_var(cif, FFI_DEFAULT_ABI, req_count, arg_count, rtype, types);
       if(status != FFI_OK) {
         rubinius::bug("ffi_prep_cif failed");

@@ -693,24 +693,32 @@ namespace rubinius {
   }
 
   String* Object::to_s(STATE, bool address) {
+    if(String* str = try_as<String>(this)) {
+      return str;
+    }
+    std::string name = to_string(state, address);
+    return String::create(state, name.c_str(), name.size());
+  }
+
+  std::string Object::to_string(STATE, bool address) {
     std::ostringstream name;
 
     if(!reference_p()) {
-      if(nil_p()) return String::create(state, "nil");
-      if(true_p()) return String::create(state, "true");
-      if(false_p()) return String::create(state, "false");
+      if(nil_p()) return "nil";
+      if(true_p()) return "true";
+      if(false_p()) return "false";
 
       if(Fixnum* fix = try_as<Fixnum>(this)) {
         name << fix->to_native();
-        return String::create(state, name.str().c_str(), name.str().size());
+        return name.str();
       } else if(Symbol* sym = try_as<Symbol>(this)) {
         name << ":\"" << sym->debug_str(state) << "\"";
-        return String::create(state, name.str().c_str(), name.str().size());
+        return name.str();
       }
     }
 
     if(String* str = try_as<String>(this)) {
-      return str;
+      return std::string(str->c_str(state), str->byte_size());
     } else {
       name << "#<";
       if(Module* mod = try_as<Module>(this)) {
@@ -743,7 +751,7 @@ namespace rubinius {
     }
     name << ">";
 
-    return String::create(state, name.str().c_str(), name.str().size());
+    return name.str();
   }
 
   Object* Object::show(STATE) {

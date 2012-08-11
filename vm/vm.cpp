@@ -258,7 +258,9 @@ namespace rubinius {
   void type_assert(STATE, Object* obj, object_type type, const char* reason) {
     if((obj->reference_p() && obj->type_id() != type)
         || (type == FixnumType && !obj->fixnum_p())) {
-      Exception::type_error(state, type, obj, reason);
+      std::ostringstream msg;
+      msg << reason << ": " << obj->to_string(state, true);
+      Exception::type_error(state, type, obj, msg.str().c_str());
     }
   }
 
