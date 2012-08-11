@@ -22,7 +22,7 @@ module FFI
           raise ArgumentError, "index out of range (#{idx} >= #{@size})"
         end
 
-        @pointer.get_at_offset(idx * @size, @type)
+        @pointer.get_at_offset(idx * @type, @type)
       end
 
       def []=(idx, val)
@@ -30,12 +30,12 @@ module FFI
           raise ArgumentError, "index out of range (#{idx} >= #{@size})"
         end
 
-        @pointer.set_at_offset(idx * @size, @type, val)
+        @pointer.set_at_offset(idx * @type, @type, val)
       end
 
       def each
         @size.times do |ele|
-          yield @pointer.get_at_offset(ele * @size, @type)
+          yield @pointer.get_at_offset(ele * @type, @type)
         end
       end
 
@@ -299,6 +299,10 @@ module FFI
 
     def values
       members.map { |m| self[m] }
+    end
+
+    def null?
+      @pointer == FFI::Pointer::NULL
     end
 
   end
