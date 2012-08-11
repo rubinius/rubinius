@@ -15,15 +15,32 @@
 #
 
 require File.expand_path(File.join(File.dirname(__FILE__), "spec_helper"))
-describe "FFI.errno" do
+
+describe "async callback" do
   module LibTest
     extend FFI::Library
     ffi_lib TestLibrary::PATH
-    attach_function :setLastError, [ :int ], :void
+    AsyncIntCallback = callback [ :int ], :void
+
+    @blocking = true
+    attach_function :testAsyncCallback, [ AsyncIntCallback, :int ], :void
   end
-  it "FFI.errno contains errno from last function" do
-    LibTest.setLastError(0)
-    LibTest.setLastError(0x12345678)
-    FFI.errno.should eq 0x12345678
+
+  it ":int (0x7fffffff) argument" do
+    v = 0xdeadbeef
+    called = false
+    cb = Proc.new {|i| v = i; called = true }
+    LibTest.testAsyncCallback(cb, 0x7fffffff) 
+    called.should be_true
+    v.should eq 0x7fffffff
+  end
+  
+  it "called a second time" do
+    v = 0xdeadbeef
+    called = false
+    cb = Proc.new {|i| v = i; called = true }
+    LibTest.testAsyncCallback(cb, 0x7fffffff) 
+    called.should be_true
+    v.should eq 0x7fffffff
   end
 end

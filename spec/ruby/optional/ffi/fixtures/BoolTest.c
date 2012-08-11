@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Wayne Meissner. All rights reserved.
+ * Copyright (c) 2009 Aman Gupta. All rights reserved.
  * 
  * All rights reserved.
  *
@@ -18,20 +18,28 @@
  * version 3 along with this work.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdint.h>
+#include <stdbool.h>
 
-#define REF(T) void ref_##T(T arg, T* result) { *result = arg; }
-#define ADD(T) void ref_add_##T(T arg1, T arg2, T* result) { *result = arg1 + arg2; }
-#define SUB(T) void ref_sub_##T(T arg1, T arg2, T* result) { *result = arg1 - arg2; }
-#define MUL(T) void ref_mul_##T(T arg1, T arg2, T* result) { *result = arg1 * arg2; }
-#define DIV(T) void ref_div_##T(T arg1, T arg2, T* result) { *result = arg1 / arg2; }
-#define TEST(T) ADD(T) SUB(T) MUL(T) DIV(T) REF(T)
+bool
+bool_return_true()
+{
+    return true;
+}
 
-TEST(int8_t);
-TEST(int16_t);
-TEST(int32_t);
-TEST(int64_t);
-TEST(float);
-TEST(double);
+bool
+bool_return_false()
+{
+    return false;
+}
 
+bool
+bool_return_val(bool value)
+{
+    return value;
+}
 
+bool
+bool_reverse_val(bool value)
+{
+    return value ? false : true;
+}

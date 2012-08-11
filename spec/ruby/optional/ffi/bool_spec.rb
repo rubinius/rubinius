@@ -15,15 +15,26 @@
 #
 
 require File.expand_path(File.join(File.dirname(__FILE__), "spec_helper"))
-describe "FFI.errno" do
+describe "Function with primitive boolean arguments and return values" do
   module LibTest
     extend FFI::Library
     ffi_lib TestLibrary::PATH
-    attach_function :setLastError, [ :int ], :void
+    attach_function :bool_return_true, [ ], :bool
+    attach_function :bool_return_false, [ ], :bool
+    attach_function :bool_return_val, [ :bool ], :bool
+    attach_function :bool_reverse_val, [ :bool ], :bool
   end
-  it "FFI.errno contains errno from last function" do
-    LibTest.setLastError(0)
-    LibTest.setLastError(0x12345678)
-    FFI.errno.should eq 0x12345678
+  it "bools" do
+    LibTest.bool_return_true.should eq true
+    LibTest.bool_return_false.should eq false
+
+    LibTest.bool_return_val(true).should eq true
+    LibTest.bool_return_val(false).should eq false
+
+    LibTest.bool_reverse_val(true).should eq false
+    LibTest.bool_reverse_val(false).should eq true
+  end
+  it "raise error on invalid types" do
+    lambda { LibTest.bool_return_val(nil) }.should raise_error(::TypeError)
   end
 end
