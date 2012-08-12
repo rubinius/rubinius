@@ -51,7 +51,7 @@ describe "functions returning :strptr" do
 
   it "should return the correct value" do
     result = StrPtr.strdup("test")
-    result[0].should eq "test"
+    result[0].should == "test"
   end
 
   it "should return non-NULL pointer" do

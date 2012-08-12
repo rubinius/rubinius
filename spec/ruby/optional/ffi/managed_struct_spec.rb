@@ -36,7 +36,7 @@ describe "Managed Struct" do
       end
     end    
 
-    WhatClassAmI.new(ManagedStructTestLib.ptr_from_address(0x12345678)).class.should eq WhatClassAmI
+    WhatClassAmI.new(ManagedStructTestLib.ptr_from_address(0x12345678)).class.should == WhatClassAmI
   end
 
   it "should release memory properly" do

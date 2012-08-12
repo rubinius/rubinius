@@ -37,20 +37,20 @@ describe FFI::Function do
   end
   it 'can be used as callback from C passing to it a block' do
     function_add = FFI::Function.new(:int, [:int, :int]) { |a, b| a + b }
-    LibTest.testFunctionAdd(10, 10, function_add).should eq 20
+    LibTest.testFunctionAdd(10, 10, function_add).should == 20
   end
   it 'can be used as callback from C passing to it a Proc object' do
     function_add = FFI::Function.new(:int, [:int, :int], Proc.new { |a, b| a + b })
-    LibTest.testFunctionAdd(10, 10, function_add).should eq 20
+    LibTest.testFunctionAdd(10, 10, function_add).should == 20
   end
   it 'can be used to wrap an existing function pointer' do
-    FFI::Function.new(:int, [:int, :int], @libtest.find_function('testAdd')).call(10, 10).should eq 20
+    FFI::Function.new(:int, [:int, :int], @libtest.find_function('testAdd')).call(10, 10).should == 20
   end
   it 'can be attached to a module' do
     module Foo; end
     fp = FFI::Function.new(:int, [:int, :int], @libtest.find_function('testAdd'))
     fp.attach(Foo, 'add')
-    Foo.add(10, 10).should eq 20
+    Foo.add(10, 10).should == 20
   end
   it 'can be used to extend an object' do
     fp = FFI::Function.new(:int, [:int, :int], @libtest.find_function('testAdd'))
@@ -61,7 +61,7 @@ describe FFI::Function do
       end
     end
     fp.attach(foo.singleton_class, 'add')
-    foo.add(10, 10).should eq 20    
+    foo.add(10, 10).should == 20    
   end
   it 'can wrap a blocking function' do
     fp = FFI::Function.new(:void, [ :int ], @libtest.find_function('testBlocking'), :blocking => true)

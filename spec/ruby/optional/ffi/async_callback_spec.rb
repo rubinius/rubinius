@@ -32,7 +32,7 @@ describe "async callback" do
     cb = Proc.new {|i| v = i; called = true }
     LibTest.testAsyncCallback(cb, 0x7fffffff) 
     called.should be_true
-    v.should eq 0x7fffffff
+    v.should == 0x7fffffff
   end
   
   it "called a second time" do
@@ -41,6 +41,6 @@ describe "async callback" do
     cb = Proc.new {|i| v = i; called = true }
     LibTest.testAsyncCallback(cb, 0x7fffffff) 
     called.should be_true
-    v.should eq 0x7fffffff
+    v.should == 0x7fffffff
   end
 end

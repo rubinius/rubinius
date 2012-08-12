@@ -25,14 +25,14 @@ describe "Function with primitive boolean arguments and return values" do
     attach_function :bool_reverse_val, [ :bool ], :bool
   end
   it "bools" do
-    LibTest.bool_return_true.should eq true
-    LibTest.bool_return_false.should eq false
+    LibTest.bool_return_true.should == true
+    LibTest.bool_return_false.should == false
 
-    LibTest.bool_return_val(true).should eq true
-    LibTest.bool_return_val(false).should eq false
+    LibTest.bool_return_val(true).should == true
+    LibTest.bool_return_val(false).should == false
 
-    LibTest.bool_reverse_val(true).should eq false
-    LibTest.bool_reverse_val(false).should eq true
+    LibTest.bool_reverse_val(true).should == false
+    LibTest.bool_reverse_val(false).should == true
   end
   it "raise error on invalid types" do
     lambda { LibTest.bool_return_val(nil) }.should raise_error(::TypeError)

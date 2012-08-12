@@ -24,7 +24,7 @@ describe "Pointer#dup" do
     p2 = p1.dup
     p1.put_string(0, "deadbeef")
     
-    p2.get_string(0).should eq "test123"
+    p2.get_string(0).should == "test123"
   end
   
   it "sliced pointer can be cloned" do
@@ -33,8 +33,8 @@ describe "Pointer#dup" do
     p2 = p1[1].dup
     
     # first char will be excised
-    p2.get_string(0).should eq "est123"
-    p1.get_string(0).should eq "test123"
+    p2.get_string(0).should == "est123"
+    p1.get_string(0).should == "test123"
   end
   
   it "sliced pointer when cloned is independent" do
@@ -44,7 +44,7 @@ describe "Pointer#dup" do
     
     p1.put_string(0, "deadbeef")
     # first char will be excised
-    p2.get_string(0).should eq "est123"
+    p2.get_string(0).should == "est123"
   end
 end
 
@@ -58,8 +58,8 @@ describe "Struct#dup" do
     s1[:i] = 0x12345
     s2 = s1.dup
     s1[:i] = 0x98765
-    s2[:i].should eq 0x12345
-    s1[:i].should eq 0x98765
+    s2[:i].should == 0x12345
+    s1[:i].should == 0x98765
   end
   
 end

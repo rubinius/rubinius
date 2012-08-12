@@ -53,7 +53,7 @@ describe FFI::Struct, ' with inline callback functions' do
     ts = CallbackMember2::TestStruct.new
     ts[:add] = StructCallbacks.method(:add)
 
-    CallbackMember2.struct_call_add_cb(ts, 1, 2).should eq 3
+    CallbackMember2.struct_call_add_cb(ts, 1, 2).should == 3
   end
 
   it 'should return callable object from []' do
@@ -74,7 +74,7 @@ describe FFI::Struct, ' with inline callback functions' do
     s[:add] = add
     fn = s[:add]
     fn.respond_to?(:call).should be_true
-    fn.call(1, 2).should eq 3
+    fn.call(1, 2).should == 3
   end
 end
 

@@ -23,7 +23,7 @@ describe "Custom type definitions" do
       typedef :uint, :fubar_t
       attach_function :ret_u32, [ :fubar_t ], :fubar_t
     end
-    CustomTypedef.ret_u32(0x12345678).should eq 0x12345678
+    CustomTypedef.ret_u32(0x12345678).should == 0x12345678
   end
   it "variadic invoker with custom typedef" do
     module VariadicCustomTypedef
@@ -34,7 +34,7 @@ describe "Custom type definitions" do
     end
     buf = FFI::Buffer.new :uint, 10
     VariadicCustomTypedef.pack_varargs(buf, "i", :fubar_t, 0x12345678)
-    buf.get_int64(0).should eq 0x12345678
+    buf.get_int64(0).should == 0x12345678
   end
   it "Callback with custom typedef parameter" do
     module CallbackCustomTypedef
@@ -46,7 +46,7 @@ describe "Custom type definitions" do
     end
     i = 0
     CallbackCustomTypedef.testCallbackU32rV(0xdeadbeef) { |v| i = v }
-    i.should eq 0xdeadbeef
+    i.should == 0xdeadbeef
   end
     module StructCustomTypedef
       extend FFI::Library
@@ -59,7 +59,7 @@ describe "Custom type definitions" do
   it "Struct with custom typedef field" do
     s = StructCustomTypedef::S.new
     s[:a] = 0x12345678
-    s.pointer.get_uint(0).should eq 0x12345678
+    s.pointer.get_uint(0).should == 0x12345678
   end
 
   it "attach_function after a typedef should not reject normal types" do

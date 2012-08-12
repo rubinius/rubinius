@@ -24,15 +24,15 @@ describe "FFI" do
     let(:suffix) { FFI::Platform::LIBSUFFIX }
     
     it "should add platform library extension if not present" do
-      FFI.map_library_name("#{prefix}dummy").should eq "#{prefix}dummy.#{suffix}"
+      FFI.map_library_name("#{prefix}dummy").should == "#{prefix}dummy.#{suffix}"
     end
 
     it "should add platform library extension even if lib suffix is present in name" do
-      FFI.map_library_name("#{prefix}dummy_with_#{suffix}").should eq "#{prefix}dummy_with_#{suffix}.#{suffix}"
+      FFI.map_library_name("#{prefix}dummy_with_#{suffix}").should == "#{prefix}dummy_with_#{suffix}.#{suffix}"
     end
 
     it "should return Platform::LIBC when called with 'c'" do
-      FFI.map_library_name('c').should eq FFI::Library::LIBC
+      FFI.map_library_name('c').should == FFI::Library::LIBC
     end
 
   end

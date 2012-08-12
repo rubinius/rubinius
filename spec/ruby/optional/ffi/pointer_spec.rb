@@ -40,7 +40,7 @@ describe "Pointer" do
     magic = 0x12345678
     memory.put_int32(0, magic)
     tp = ToPtrTest.new(memory)
-    PointerTestLib.ptr_ret_int32_t(tp, 0).should eq magic
+    PointerTestLib.ptr_ret_int32_t(tp, 0).should == magic
   end
   class PointerDelegate < DelegateClass(FFI::Pointer)
     def initialize(ptr)
@@ -55,7 +55,7 @@ describe "Pointer" do
     magic = 0x12345678
     memory.put_int32(0, magic)
     ptr = PointerDelegate.new(memory)
-    PointerTestLib.ptr_ret_int32_t(ptr, 0).should eq magic
+    PointerTestLib.ptr_ret_int32_t(ptr, 0).should == magic
   end
   it "Fixnum cannot be used as a Pointer argument" do
     lambda { PointerTestLib.ptr_ret_int32(0, 0) }.should raise_error
@@ -69,13 +69,13 @@ describe "Pointer" do
     it "#read_pointer" do
       memory = FFI::MemoryPointer.new :pointer
       PointerTestLib.ptr_set_pointer(memory, 0, PointerTestLib.ptr_from_address(0xdeadbeef))
-      memory.read_pointer.address.should eq 0xdeadbeef
+      memory.read_pointer.address.should == 0xdeadbeef
     end
 
     it "#write_pointer" do
       memory = FFI::MemoryPointer.new :pointer
       memory.write_pointer(PointerTestLib.ptr_from_address(0xdeadbeef))
-      PointerTestLib.ptr_ret_pointer(memory, 0).address.should eq 0xdeadbeef
+      PointerTestLib.ptr_ret_pointer(memory, 0).address.should == 0xdeadbeef
     end
 
     it "#read_array_of_pointer" do
@@ -86,7 +86,7 @@ describe "Pointer" do
       end
       array = memory.read_array_of_pointer(values.size)
       values.each_with_index do |address, j|
-        array[j].address.should eq address
+        array[j].address.should == address
       end
     end
     

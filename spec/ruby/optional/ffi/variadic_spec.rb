@@ -25,28 +25,28 @@ describe "Function with variadic arguments" do
     it "call variadic with (:char (#{i})) argument" do
       buf = FFI::Buffer.new :long_long
       LibTest.pack_varargs(buf, "c", :char, i)
-      buf.get_int64(0).should eq i
+      buf.get_int64(0).should == i
     end
   end
   [ 0, 0x7f, 0x80, 0xff ].each do |i|
     it "call variadic with (:uchar (#{i})) argument" do
       buf = FFI::Buffer.new :long_long
       LibTest.pack_varargs(buf, "C", :uchar, i)
-      buf.get_int64(0).should eq i
+      buf.get_int64(0).should == i
     end
   end
   [ 0, 1.234567, 9.87654321 ].each do |v|
     it "call variadic with (:float (#{v})) argument" do
       buf = FFI::Buffer.new :long_long
       LibTest.pack_varargs(buf, "f", :float, v.to_f)
-      buf.get_float64(0).should eq v
+      buf.get_float64(0).should == v
     end
   end
   [ 0, 1.234567, 9.87654321 ].each do |v|
     it "call variadic with (:double (#{v})) argument" do
       buf = FFI::Buffer.new :long_long
       LibTest.pack_varargs(buf, "f", :double, v.to_f)
-      buf.get_float64(0).should eq v
+      buf.get_float64(0).should == v
     end
   end
 
@@ -73,9 +73,9 @@ describe "Function with variadic arguments" do
 
   def verify(p, off, v)
     if v.kind_of?(Float)
-      p.get_float64(off).should eq v
+      p.get_float64(off).should == v
     else
-      p.get_int64(off).should eq v
+      p.get_int64(off).should == v
     end
   end
 
