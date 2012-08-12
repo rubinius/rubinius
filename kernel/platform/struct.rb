@@ -6,8 +6,6 @@ module FFI
 
   class Struct
 
-    @offset_zero = false
-
     class InlineArray
       def initialize(type, ptr)
         @pointer = ptr
