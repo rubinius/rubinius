@@ -1,0 +1,1 @@
+fails:Union should return a size equals to the size of the biggest field

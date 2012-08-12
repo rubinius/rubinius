@@ -1,0 +1,4 @@
+fails:Pointer#dup clone should be independent
+fails:Pointer#dup sliced pointer can be cloned
+fails:Pointer#dup sliced pointer when cloned is independent
+fails:Struct#dup clone should be independent

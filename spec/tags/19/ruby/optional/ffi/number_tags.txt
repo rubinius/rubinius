@@ -1,0 +1,12 @@
+fails:Function with primitive integer arguments int8.size
+fails:Function with primitive integer arguments uint8.size
+fails:Function with primitive integer arguments int16.size
+fails:Function with primitive integer arguments uint16.size
+fails:Function with primitive integer arguments int32.size
+fails:Function with primitive integer arguments uint32.size
+fails:Function with primitive integer arguments int64.size
+fails:Function with primitive integer arguments uint64.size
+fails:Function with primitive integer arguments float.size
+fails:Function with primitive integer arguments double.size
+fails:Function with primitive integer arguments :ushort call(:ushort (32768))
+fails:Function with primitive integer arguments :ushort call(:ushort (65535))

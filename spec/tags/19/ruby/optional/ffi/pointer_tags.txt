@@ -1,0 +1,2 @@
+fails:Pointer NULL should raise an error when attempting read/write operations on it
+fails:Pointer NULL returns true when compared with nil

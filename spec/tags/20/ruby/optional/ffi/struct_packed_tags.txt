@@ -1,0 +1,6 @@
+fails:FFI::Struct packed :char followed by :int should have size of 5
+fails:FFI::Struct packed :char followed by :int should have alignment of 1
+fails:FFI::Struct packed(2) :char followed by :int should have size of 6
+fails:FFI::Struct packed(2)  :char followed by :int should have alignment of 2
+fails:FFI::Struct packed :short followed by int should have size of 6
+fails:FFI::Struct packed :short followed by int should have alignment of 1
