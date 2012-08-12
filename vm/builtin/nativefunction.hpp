@@ -74,6 +74,7 @@ namespace rubinius {
   public:
     ffi_cif cif;
     ffi_closure* closure;
+    SharedState* shared;
     Object* callable;
     NativeFunction* function;
     FFIArgInfo* args_info;
@@ -82,12 +83,12 @@ namespace rubinius {
     size_t arg_count;
     void *ep;
 
-    FFIData(NativeFunction* func,  int count, FFIArgInfo* args, FFIArgInfo* ret);
+    FFIData(STATE, NativeFunction* func,  int count, FFIArgInfo* args, FFIArgInfo* ret);
 
     virtual ~FFIData();
     void cleanup(State* state, CodeManager* cm) { }
 
-    static FFIData* create(NativeFunction* func, int count, FFIArgInfo* args, FFIArgInfo* ret);
+    static FFIData* create(STATE, NativeFunction* func, int count, FFIArgInfo* args, FFIArgInfo* ret);
   };
 
 }

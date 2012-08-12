@@ -51,12 +51,12 @@ namespace rubinius {
     G(native_function)->set_object_type(state, NativeFunctionType);
   }
 
-  FFIData* FFIData::create(NativeFunction* func, int count, FFIArgInfo* args,
+  FFIData* FFIData::create(STATE, NativeFunction* func, int count, FFIArgInfo* args,
                            FFIArgInfo* ret)
   {
     void* ep;
 
-    FFIData* data = new FFIData(func, count, args, ret);
+    FFIData* data = new FFIData(state, func, count, args, ret);
     data->closure = reinterpret_cast<ffi_closure*>(
                       ffi_closure_alloc(sizeof(ffi_closure), &ep));
 
@@ -65,8 +65,9 @@ namespace rubinius {
     return data;
   }
 
-  FFIData::FFIData(NativeFunction* func,  int count, FFIArgInfo* args, FFIArgInfo* ret)
+  FFIData::FFIData(STATE, NativeFunction* func,  int count, FFIArgInfo* args, FFIArgInfo* ret)
     : closure(0)
+    , shared(&state->shared())
     , callable(0)
     , function(func)
     , args_info(args)
@@ -260,7 +261,7 @@ namespace rubinius {
     FFIArgInfo* out_args_info = ALLOC_N(FFIArgInfo, arg_count);
     memcpy(out_args_info, args, sizeof(FFIArgInfo) * arg_count);
 
-    FFIData* data = FFIData::create(this, arg_count, out_args_info, ret);
+    FFIData* data = FFIData::create(state, this, arg_count, out_args_info, ret);
 
     status = ffi_prep_cif(&data->cif, FFI_DEFAULT_ABI, arg_count, rtype, types);
 
@@ -337,6 +338,26 @@ namespace rubinius {
       reinterpret_cast<FFIData*>(user_data);
 
     GCTokenImpl gct;
+    VM* vm = 0;
+
+    int calculate_stack = 0;
+    if(!env) {
+      // Apparently we're running in a new thread here, setup
+      // everything we need here.
+      vm = stub->shared->new_vm();
+      // Detect the stack size and set it up in the VM object
+      size_t stack_size;
+      pthread_attr_t attr;
+      pthread_attr_init(&attr);
+      pthread_attr_getstacksize (&attr, &stack_size);
+      vm->set_root_stack(reinterpret_cast<uintptr_t>(&calculate_stack), stack_size);
+
+      // Setup nativemethod handles into thread local
+      State state(vm);
+      NativeMethod::init_thread(&state);
+      env = NativeMethodEnvironment::get();
+    }
+
     State* state = env->state();
 
     state->gc_dependent();
@@ -562,6 +583,11 @@ namespace rubinius {
     }
 
     state->gc_independent(gct);
+    if(vm) {
+      NativeMethod::cleanup_thread(state);
+      vm->set_call_frame(0);
+      VM::discard(state, vm);
+    }
   }
 
 
