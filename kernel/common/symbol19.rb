@@ -28,10 +28,10 @@ class Symbol
     str = to_s
 
     case str
-    when /^(\$|@@?)[a-z_][a-z_\d]*$/i,                      # Variable names
-         /^[a-z_][a-z_\d]*[=?!]?$/i,                        # Method names
-         /^\$(-[a-z_\d]|[+~:?<_\/'"$.,`!;\\=*>&@]|\d+)$/i,  # Special global variables
-         /^([|^&\/%~`!]|!=|!~|<<|>>|<=>|===?|=~|[<>]=?|[+-]@?|\*\*?|\[\]=?)$/ # Operators
+    when /\A(\$|@@?)[a-z_][a-z_\d]*\z/i,                      # Variable names
+         /\A[a-z_][a-z_\d]*[=?!]?\z/i,                        # Method names
+         /\A\$(-[a-z_\d]|[+~:?<_\/'"$.,`!;\\=*>&@]|\d+)\z/i,  # Special global variables
+         /\A([|^&\/%~`!]|!=|!~|<<|>>|<=>|===?|=~|[<>]=?|[+-]@?|\*\*?|\[\]=?)\z/ # Operators
       ":#{str}"
     else
       ":#{str.inspect}"
