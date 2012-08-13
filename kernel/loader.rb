@@ -235,7 +235,7 @@ module Rubinius
       options.doc "\nRuby options"
       options.on "-", "Read and evaluate code from STDIN" do
         @run_irb = false
-        $0 = "-"
+        set_program_name "-"
         CodeLoader.execute_script STDIN.read
       end
 
@@ -269,7 +269,7 @@ module Rubinius
 
       options.on "-e", "CODE", "Compile and execute CODE" do |code|
         @run_irb = false
-        $0 = "(eval)"
+        set_program_name "(eval)"
         @evals << code
       end
 
@@ -363,7 +363,7 @@ module Rubinius
           end
         end
 
-        $0 = script if file
+        set_program_name script if file
 
         # if missing, let it die a natural death
         @script = file ? file : script
@@ -470,6 +470,12 @@ VM Options
         check_syntax
       end
     end
+
+    # Sets $0 ($PROGRAM_NAME) without changing the process title
+    def set_program_name(name)
+      Rubinius::Globals.set! :$0, name
+    end
+    private :set_program_name
 
     def set_default_internal_encoding(encoding)
       if @default_internal_encoding_set && Encoding.default_internal.name != encoding
@@ -616,7 +622,7 @@ to rebuild the compiler.
         end
       end
 
-      $0 = @script
+      set_program_name @script
       CodeLoader.load_script @script, @debugging
     end
 
@@ -677,7 +683,7 @@ to rebuild the compiler.
 
       if Terminal
         repr = ENV['RBX_REPR'] || "bin/irb"
-        $0 = repr
+        set_program_name repr
         prog = File.join @main_lib, repr
         begin
           # HACK: this was load but load raises LoadError
@@ -691,7 +697,7 @@ to rebuild the compiler.
           exit 1
         end
       else
-        $0 = "(eval)"
+        set_program_name "(eval)"
         CodeLoader.execute_script "p #{STDIN.read}"
       end
     end
