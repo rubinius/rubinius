@@ -20,6 +20,12 @@ describe "Kernel.at_exit" do
     ruby_exe(code).should == "643"
   end
 
+  it "gives access to the last raised exception" do
+    code = 'at_exit{ puts $! == $exception }; begin; raise "foo"; rescue => e; $exception = e; raise; end'
+    # The true is embedded in the stack trace of the uncaught exception
+    ruby_exe("STDERR=STDOUT; #{code}", :escape => true).should =~ /true/
+  end
+
 end
 
 describe "Kernel#at_exit" do
