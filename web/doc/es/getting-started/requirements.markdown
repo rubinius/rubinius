@@ -26,6 +26,7 @@ operativo o su manejador de paquetes podría tener otros paquetes disponibles.
   * pthread - La libreria pthread debe encontrarse instalada como parte de su sistema operativo.
   * [gmake](http://savannah.gnu.org/projects/make/)
   * [rake](http://rake.rubyforge.org/) `[sudo] gem install rake`
+  * [libyaml](http://pyyaml.org/wiki/LibYAML)
 
 
 ### Apple OS X

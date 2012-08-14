@@ -27,6 +27,7 @@ next_url: getting-started/building
     системой.
   * [gmake](http://savannah.gnu.org/projects/make/)
   * [rake](http://rake.rubyforge.org/): `[sudo] gem install rake`
+  * [libyaml](http://pyyaml.org/wiki/LibYAML)
 
 
 ### Mac OS X
