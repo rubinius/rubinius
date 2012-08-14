@@ -74,7 +74,9 @@ namespace rubinius {
           ops_.out_args()
         };
 
-        set_result(ops_.b().CreateCall(execute, call_args, "ic_send"));
+        Value* res = ops_.b().CreateCall(execute, call_args, "ic_send");
+        ops_.check_for_exception(res);
+        set_result(res);
       }
 
       ops_.b().CreateBr(merge);
