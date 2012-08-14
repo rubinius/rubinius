@@ -26,6 +26,7 @@ pode ter outros pacotes disponíveis.
   * pthread - A biblioteca pthread deve estar instalada no seu sistema operacional
   * [gmake](http://savannah.gnu.org/projects/make/)
   * [rake](http://rake.rubyforge.org/) `[sudo] gem install rake`
+  * [libyaml](http://pyyaml.org/wiki/LibYAML)
 
 
 ### Apple OS X

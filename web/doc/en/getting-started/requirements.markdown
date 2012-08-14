@@ -26,6 +26,7 @@ manager may have other packages available.
   * pthread - The pthread library should be installed by your operating system
   * [gmake](http://savannah.gnu.org/projects/make/)
   * [rake](http://rake.rubyforge.org/) `[sudo] gem install rake`
+  * [libyaml](http://pyyaml.org/wiki/LibYAML)
 
 
 ### Apple OS X

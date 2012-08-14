@@ -27,6 +27,7 @@ system zarządzania pakietami może udostępniać inne odpowiedniki tych bibliot
     system operacyjny
   * [gmake](http://savannah.gnu.org/projects/make/)
   * [rake](http://rake.rubyforge.org/) `[sudo] gem install rake`
+  * [libyaml](http://pyyaml.org/wiki/LibYAML)
 
 
 ### Apple OS X
