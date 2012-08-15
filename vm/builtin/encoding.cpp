@@ -388,6 +388,10 @@ namespace rubinius {
     return as<Class>(G(encoding)->get_const(state, state->symbol("Transcoding")));
   }
 
+  Class* Encoding::converter_class(STATE) {
+    return as<Class>(G(encoding)->get_const(state, state->symbol("Converter")));
+  }
+
   LookupTable* Encoding::encoding_map(STATE) {
     return as<LookupTable>(internal_class(state)->get_const(
               state, state->symbol("EncodingMap")));
@@ -601,5 +605,31 @@ namespace rubinius {
                    Fixnum::from(CONVERTER_XML_ATTR_CONTENT_DECORATOR));
     cls->set_const(state, "XML_ATTR_QUOTE_DECORATOR",
                    Fixnum::from(CONVERTER_XML_ATTR_QUOTE_DECORATOR));
+  }
+
+  Converter* Converter::allocate(STATE, Object* self) {
+    Class* cls = Encoding::converter_class(state);
+    Converter* c = state->new_object<Converter>(cls);
+
+    c->klass(state, as<Class>(self));
+
+    return c;
+  }
+
+  Symbol* Converter::primitive_convert(STATE, String* source, String* target,
+                                       Object* offset, Object* size, Fixnum* options) {
+    return nil<Symbol>();
+  }
+
+  String* Converter::finish(STATE) {
+    return nil<String>();
+  }
+
+  Exception* Converter::last_error(STATE) {
+    return nil<Exception>();
+  }
+
+  String* Converter::putback(STATE, Object* maxbytes) {
+    return nil<String>();
   }
 }

@@ -32,6 +32,11 @@ class Encoding
     attr_accessor :destination_encoding
     attr_accessor :replacement
 
+    def self.allocate
+      Rubinius.primitive :encoding_converter_allocate
+      raise PrimitiveFailure, "Encoding::Converter.allocate primitive failed"
+    end
+
     def self.asciicompat_encoding(string_or_encoding)
       encoding = Rubinius::Type.try_convert_to_encoding string_or_encoding
 
@@ -131,6 +136,61 @@ class Encoding
       end
     end
 
+    def convert(str)
+      str = StringValue(str)
+
+      dest = ""
+      status = primitive_convert str, dest, nil, nil, PARTIAL_INPUT
+
+      if status == :invalid_byte_sequence or
+         status == :undefined_conversion or
+         status == :incomplete_input
+        # raise an exception
+      end
+
+      if status == :finished
+        raise ArgumentError, "converter already finished"
+      end
+
+      if status != :source_buffer_empty
+        raise RuntimeError, "unexpected result of Encoding::Converter#primitive_convert"
+      end
+
+      dest
+    end
+
+    def primitive_convert(source, target, offset=nil, size=nil, options=undefined)
+      Rubinius.primitive :encoding_converter_primitive_convert
+
+      if options.equal? undefined
+        options = 0
+      elsif !options.kind_of? Fixnum
+        opts = Rubinius::Type.coerce_to options, Hash, :to_hash
+
+        options = 0
+        options |= PARTIAL_INPUT if opts[:partial_input]
+        options |= AFTER_OUTPUT if opts[:after_output]
+      end
+
+      primitive_convert source, target, offset, size, options
+    end
+
+    def putback(maxbytes=nil)
+      Rubinius.primitive :encoding_converter_putback
+
+      putback maxbytes
+    end
+
+    def finish
+      Rubinius.primitive :encoding_converter_finish
+      raise PrimitiveFailure, "Encoding::Converter#finish primitive failed"
+    end
+
+    def last_error
+      Rubinius.primitive :encoding_converter_last_error
+      raise PrimitiveFailure, "Encoding::Converter#last_error primitive failed"
+    end
+
     def convpath
       path = []
       a = 0
@@ -149,9 +209,6 @@ class Encoding
       path << "cr_newline" if @options & CR_NEWLINE_DECORATOR != 0
 
       path
-    end
-
-    def convert(str)
     end
 
     def self.search_convpath(from, to, options=undefined)

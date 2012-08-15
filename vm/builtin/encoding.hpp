@@ -41,6 +41,7 @@ namespace rubinius {
 
     static Class* internal_class(STATE);
     static Class* transcoding_class(STATE);
+    static Class* converter_class(STATE);
     static LookupTable* encoding_map(STATE);
     static LookupTable* transcoding_map(STATE);
     static Array* encoding_list(STATE);
@@ -133,6 +134,21 @@ namespace rubinius {
     attr_accessor(convpath, Array);
 
     static void init(STATE);
+
+    // Rubinius.primitive :encoding_converter_allocate
+    static Converter* allocate(STATE, Object* self);
+
+    // Rubinius.primitive :encoding_converter_primitive_convert
+    Symbol* primitive_convert(STATE, String* source, String* target, Object* offset, Object* size, Fixnum* options);
+
+    // Rubinius.primitive :encoding_converter_finish
+    String* finish(STATE);
+
+    // Rubinius.primitive :encoding_converter_last_error
+    Exception* last_error(STATE);
+
+    // Rubinius.primitive :encoding_converter_putback
+    String* putback(STATE, Object* maxbytes);
 
     class Info : public TypeInfo {
     public:
