@@ -11,8 +11,6 @@ namespace rubinius {
   class Array;
   class String;
 
-  typedef time_t int64_t;
-
   class Time : public Object {
   public:
     const static object_type type = TimeType;
