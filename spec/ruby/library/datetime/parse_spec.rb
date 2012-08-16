@@ -75,7 +75,7 @@ describe "DateTime.parse" do
     it "truncates seconds down to 59" do
       d = DateTime.parse("2012-11-08T15:43:61")
 
-      d.strftime('%c').should == DateTime.civil(2012, 11, 8, 15, 43, 59).strftime('%c')
+      d.should == DateTime.civil(2012, 11, 8, 15, 43, 59)
     end
 
   end
