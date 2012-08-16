@@ -1,6 +1,6 @@
 ---
 layout: doc_es
-title: Appendix B - Reading List
+title: Apéndice B - Lista de lecturas
 previous: Appendix A - Glossary
 previous_url: appendix-a-glossary
 next: Terms Index
