@@ -622,7 +622,13 @@ module Rubinius
         pos(g)
 
         g.push_proc
-        g.set_local @variable.slot
+
+        if @variable.respond_to?(:depth) && @variable.depth != 0
+          g.set_local_depth @variable.depth, @variable.slot
+        else
+          g.set_local @variable.slot
+        end
+
         g.pop
       end
     end
