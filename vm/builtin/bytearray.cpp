@@ -250,40 +250,41 @@ namespace rubinius {
 
   // Ripped from 1.8.7 and cleaned up
 
-  static const long utf8_limits[] = {
-    0x0,			/* 1 */
-    0x80,			/* 2 */
-    0x800,			/* 3 */
-    0x10000,			/* 4 */
-    0x200000,			/* 5 */
-    0x4000000,			/* 6 */
-    0x80000000,			/* 7 */
+  static const uint32_t utf8_limits[] = {
+    0x0,        /* 1 */
+    0x80,       /* 2 */
+    0x800,      /* 3 */
+    0x10000,    /* 4 */
+    0x200000,   /* 5 */
+    0x4000000,  /* 6 */
+    0x80000000, /* 7 */
   };
 
-  static long utf8_to_uv(char* p, long* lenp) {
-    int c = *p++ & 0xff;
-    long uv = c;
-    long n;
+  static bool utf8_to_uv(char* p, uint32_t* uv, native_int* lenp) {
+    uint32_t c = *p++ & 0xff;
+    native_int n;
 
-    if (!(uv & 0x80)) {
+    *uv = c;
+
+    if (!(*uv & 0x80)) {
       *lenp = 1;
-      return uv;
+      return true;
     }
-    if (!(uv & 0x40)) {
+    if (!(*uv & 0x40)) {
       *lenp = 1;
-      return -1;
+      return false;
     }
 
-    if      (!(uv & 0x20)) { n = 2; uv &= 0x1f; }
-    else if (!(uv & 0x10)) { n = 3; uv &= 0x0f; }
-    else if (!(uv & 0x08)) { n = 4; uv &= 0x07; }
-    else if (!(uv & 0x04)) { n = 5; uv &= 0x03; }
-    else if (!(uv & 0x02)) { n = 6; uv &= 0x01; }
+    if      (!(*uv & 0x20)) { n = 2; *uv &= 0x1f; }
+    else if (!(*uv & 0x10)) { n = 3; *uv &= 0x0f; }
+    else if (!(*uv & 0x08)) { n = 4; *uv &= 0x07; }
+    else if (!(*uv & 0x04)) { n = 5; *uv &= 0x03; }
+    else if (!(*uv & 0x02)) { n = 6; *uv &= 0x01; }
     else {
       *lenp = 1;
-      return -1;
+      return false;
     }
-    if (n > *lenp) return -1;
+    if (n > *lenp) return false;
 
     *lenp = n--;
     if (n != 0) {
@@ -295,13 +296,13 @@ namespace rubinius {
         }
         else {
           c &= 0x3f;
-          uv = uv << 6 | c;
+          *uv = *uv << 6 | c;
         }
       }
     }
     n = *lenp - 1;
-    if (uv < utf8_limits[n]) return -1;
-    return uv;
+    if (*uv < utf8_limits[n]) return false;
+    return true;
   }
 
   Object* ByteArray::get_utf8_char(STATE, Fixnum* offset) {
@@ -310,12 +311,14 @@ namespace rubinius {
     if(o >= (native_int)size()) return Primitives::failure();
 
     char* start = (char*)bytes + o;
-    long len = size() - o;
+    native_int len = size() - o;
 
-    long res = utf8_to_uv(start, &len);
-    if(res == -1) return Primitives::failure();
-
-    return Tuple::from(state, 2, Integer::from(state, res), Fixnum::from(len));
+    uint32_t uv;
+    if(utf8_to_uv(start, &uv, &len)) {
+      return Tuple::from(state, 2, Integer::from(state, uv), Fixnum::from(len));
+    } else {
+      return Primitives::failure();
+    }
   }
 
   size_t ByteArray::Info::object_size(const ObjectHeader* obj) {
