@@ -50,17 +50,7 @@ module Rubinius
       TOPLEVEL_BINDING.variables.method_visibility = :private
 
       # set terminal width
-      width = 80
-      if Terminal and ENV['TERM'] and !ENV['RBX_NO_COLS']
-        begin
-          `which tput &> /dev/null`
-          if $?.exitstatus == 0
-            res = `tput cols`.to_i
-            width = res if res > 0
-          end
-        end
-      end
-      Rubinius.const_set 'TERMINAL_WIDTH', width
+      Rubinius.const_set 'TERMINAL_WIDTH', terminal_width
 
       $VERBOSE = false
 
@@ -71,6 +61,30 @@ module Rubinius
       unless options and options.include? language_mode
         ENV["RBXOPT"] = "#{options} #{language_mode}".strip
       end
+    end
+
+    def terminal_width
+      if Terminal and ENV['TERM'] and !ENV['RBX_NO_COLS']
+        if ENV["COLUMNS"]
+          width = ENV["COLUMNS"].to_i
+          return width if width > 0
+        end
+        begin
+          `which stty &> /dev/null`
+          if $?.exitstatus == 0
+            width = `stty size`.split.last.to_i
+            return width if width > 0
+          end
+        end
+        begin
+          `which tput &> /dev/null`
+          if $?.exitstatus == 0
+            res = `tput cols`.to_i
+            return width if width > 0
+          end
+        end
+      end
+      80
     end
 
     # Setup $LOAD_PATH.
