@@ -176,7 +176,8 @@ class File < IO
     mode = clamp_short mode
 
     paths.each do |path|
-      POSIX.chmod Rubinius::Type.coerce_to_path(path), mode
+      n = POSIX.chmod Rubinius::Type.coerce_to_path(path), mode
+      Errno.handle if n == -1
     end
     paths.size
   end
@@ -190,7 +191,8 @@ class File < IO
     mode = Rubinius::Type.coerce_to(mode, Integer, :to_int)
 
     paths.each do |path|
-      POSIX.lchmod Rubinius::Type.coerce_to_path(path), mode
+      n = POSIX.lchmod Rubinius::Type.coerce_to_path(path), mode
+      Errno.handle if n == -1
     end
 
     paths.size
@@ -221,7 +223,8 @@ class File < IO
     end
 
     paths.each do |path|
-      POSIX.chown Rubinius::Type.coerce_to_path(path), owner, group
+      n = POSIX.chown Rubinius::Type.coerce_to_path(path), owner, group
+      Errno.handle if n == -1
     end
 
     paths.size
@@ -229,7 +232,9 @@ class File < IO
 
   def chmod(mode)
     mode = Rubinius::Type.coerce_to(mode, Integer, :to_int)
-    POSIX.fchmod @descriptor, clamp_short(mode)
+    n = POSIX.fchmod @descriptor, clamp_short(mode)
+    Errno.handle if n == -1
+    n
   end
 
   def chown(owner, group)
@@ -245,7 +250,9 @@ class File < IO
       group = -1
     end
 
-    POSIX.fchown @descriptor, owner, group
+    n = POSIX.fchown @descriptor, owner, group
+    Errno.handle if n == -1
+    n
   end
 
   ##
@@ -268,7 +275,8 @@ class File < IO
     end
 
     paths.each do |path|
-      POSIX.lchown Rubinius::Type.coerce_to_path(path), owner, group
+      n = POSIX.lchown Rubinius::Type.coerce_to_path(path), owner, group
+      Errno.handle if n == -1
     end
 
     paths.size

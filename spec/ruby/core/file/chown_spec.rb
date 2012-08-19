@@ -1,16 +1,16 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 
-as_superuser do
-  describe "File.chown" do
-    before :each do
-      @fname = tmp('file_chown_test')
-      touch @fname
-    end
+describe "File.chown" do
+  before :each do
+    @fname = tmp('file_chown_test')
+    touch @fname
+  end
 
-    after :each do
-      rm_r @fname
-    end
+  after :each do
+    rm_r @fname
+  end
 
+  as_superuser do
     platform_is :windows do
       it "does not modify the owner id of the file" do
         File.chown 0, nil, @fname
@@ -57,20 +57,27 @@ as_superuser do
         File.chown nil, -1, @fname
         File.stat(@fname).gid.should == 501
       end
-
-      it "returns the number of files processed" do
-        File.chown(nil, nil, @fname, @fname).should == 2
-      end
-
-      ruby_version_is "1.9" do
-        it "accepts an object that has a #to_path method" do
-          File.chown(nil, nil, mock_to_path(@fname)).should == 1
-        end
-      end
     end
   end
 
-  describe "File#chown" do
+  it "returns the number of files processed" do
+    File.chown(nil, nil, @fname, @fname).should == 2
+  end
+
+  it "raises an error for a non existent path" do
+    lambda {
+      File.chown(nil, nil, "#{@fname}.not.existing")
+    }.should raise_error(Errno::ENOENT)
+  end
+
+  ruby_version_is "1.9" do
+    it "accepts an object that has a #to_path method" do
+      File.chown(nil, nil, mock_to_path(@fname)).should == 1
+    end
+  end
+end
+
+describe "File#chown" do
     before :each do
       @fname = tmp('file_chown_test')
       @file = File.open(@fname, 'w')
@@ -81,6 +88,7 @@ as_superuser do
       rm_r @fname
     end
 
+  as_superuser do
     platform_is :windows do
       it "does not modify the owner id of the file" do
         File.chown 0, nil, @fname
@@ -128,10 +136,10 @@ as_superuser do
         @file.stat.gid.should == 501
       end
     end
+  end
 
-    it "returns 0" do
-      @file.chown(nil, nil).should == 0
-    end
+  it "returns 0" do
+    @file.chown(nil, nil).should == 0
   end
 end
 
