@@ -628,6 +628,7 @@ module Daedalus
       Dir.chdir @base do
         return true unless File.exists? name
         @sources.each do |s|
+          return true unless File.exists? s.object_path
           return true if File.mtime(s.object_path) > File.mtime(name)
         end
         @sources.any? { |s| s.out_of_date? compiler }
