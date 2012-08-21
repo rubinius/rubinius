@@ -109,14 +109,15 @@ class Module
     mod = self
     changed = false
 
-    # Check for a cyclic include
-    if mod == klass
-      raise ArgumentError, "cyclic include detected"
-    end
-
     while mod
+
+      # Check for a cyclic prepend
+      if mod == klass
+        raise ArgumentError, "cyclic include detected"
+      end
+
       add = true
-      k = klass.direct_superclass
+      k = klass.superclass_root ? klass.superclass_root : klass
 
       while k
         if k.kind_of? Rubinius::IncludedModule
