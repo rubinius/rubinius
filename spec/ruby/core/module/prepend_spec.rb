@@ -1,7 +1,7 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
 
-ruby_version_is "1.9" do
+ruby_version_is "2.0" do
   describe "Module#prepend" do
     it "prepends module do class" do
       ModuleSpecs::ClassToPrepend.new.m.should == [:m, :c]
