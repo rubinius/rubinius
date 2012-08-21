@@ -414,13 +414,13 @@ module ModuleSpecs
 
   module ModuleToPrepend
     def m
-      result = super if defined?(super)
+      result = super
       [:m, result]
     end
   end
 
   class ClassToPrepend
-    prepend ModuleToPrepend if respond_to?(:prepend)
+    prepend ModuleToPrepend
     def m
       :c
     end
