@@ -37,6 +37,7 @@ class Regexp
       return nil
     end
 
+    str = str.to_s if str.is_a?(Symbol)
     str = StringValue(str)
     result = search_region(str, pos, str.bytesize, true)
     Regexp.last_match = result
@@ -45,6 +46,24 @@ class Regexp
       yield result
     else
       result
+    end
+  end
+
+  # Returns the index of the first character in the region that
+  # matched or nil if there was no match. See #match for returning
+  # the MatchData instead.
+  def =~(str)
+    str = str.to_s if str.is_a?(Symbol)
+    # unless str.nil? because it's nil and only nil, not false.
+    str = StringValue(str) unless str.nil?
+
+    match = match_from(str, 0)
+    if match
+      Regexp.last_match = match
+      return match.begin(0)
+    else
+      Regexp.last_match = nil
+      return nil
     end
   end
 
