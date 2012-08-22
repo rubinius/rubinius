@@ -17,7 +17,7 @@ describe "String#count_table" do
 
   it "returns a String with entries corresponding to characters set to 1" do
     t = "".count_table "-\\|*\030 abcde"
-    256.times { |i| t.getbyte(i).should == ("-|*\030 abcde".include?(i.chr) ? 1 : 0) }
+    256.times { |i| t.getbyte(i).should == ("-\\|*\030 abcde".include?(i.chr) ? 1 : 0) }
   end
 
   ruby_version_is "" ... "1.9" do

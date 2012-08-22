@@ -936,60 +936,25 @@ namespace rubinius {
     return this;
   }
 
-  struct tr_data {
-    uint8_t tr[256];
-    native_int set[256];
-    native_int steps;
-    native_int last;
-    native_int limit;
-
-    bool assign(native_int chr) {
-      int j, i = set[chr];
-
-      if(limit >= 0 && steps >= limit) return true;
-
-      if(i < 0) {
-        tr[last] = chr;
-      } else {
-        last--;
-        for(j = i + 1; j <= last; j++) {
-          set[tr[j]]--;
-          tr[j-1] = tr[j];
-        }
-        tr[last] = chr;
-      }
-      set[chr] = last++;
-      steps++;
-
-      return false;
-    }
-  };
-
   Fixnum* String::tr_expand(STATE, Object* limit, Object* invalid_as_empty) {
-    struct tr_data tr_data;
-
-    tr_data.last = 0;
-    tr_data.steps = 0;
-
-    if(Fixnum* lim = try_as<Fixnum>(limit)) {
-      tr_data.limit = lim->to_native();
-    } else {
-      tr_data.limit = -1;
+    native_int lim = -1;
+    if(Fixnum* l = try_as<Fixnum>(limit)) {
+      lim = l->to_native();
     }
 
     uint8_t* str = byte_address();
     native_int bytes = byte_size();
-    native_int start = bytes > 1 && str[0] == '^' ? 1 : 0;
-    memset(tr_data.set, -1, sizeof(native_int) * 256);
 
-    for(native_int i = start; i < bytes;) {
+    for(native_int i = 0; i < bytes;) {
       native_int chr = str[i];
       native_int seq = ++i < bytes ? str[i] : -1;
 
       if(chr == '\\' && seq >= 0) {
         continue;
       } else if(seq == '-') {
+        native_int start = i - 1;
         native_int max = ++i < bytes ? str[i] : -1;
+        native_int next = max >= 0 ? i + 1 : i;
         if(max >= 0 && chr > max && !LANGUAGE_18_ENABLED(state)) {
           std::ostringstream message;
           if (isprint(chr) && isprint(max)) {
@@ -1000,41 +965,51 @@ namespace rubinius {
             message << "invalid range in string transliteration";
           }
           Exception::argument_error(state, message.str().c_str());
-        } else if(max >= 0 && chr > max && CBOOL(invalid_as_empty)) {
-          i++;
         } else if(max >= 0) {
-          do {
-            if(tr_data.assign(chr)) return tr_replace(state, &tr_data);
-            chr++;
-          } while(chr <= max);
-          i++;
-        } else {
-          if(tr_data.assign(chr)) return tr_replace(state, &tr_data);
-          if(tr_data.assign(seq)) return tr_replace(state, &tr_data);
+          if(chr > max) {
+            max = CBOOL(invalid_as_empty) ? chr - 1 : chr;
+          }
+          i = tr_replace(state, chr, max + 1, start, next);
+          str = byte_address();
+          bytes = byte_size();
         }
-      } else {
-        if(tr_data.assign(chr)) return tr_replace(state, &tr_data);
       }
     }
 
-    return tr_replace(state, &tr_data);
+    if(lim > 0 && byte_size() > lim) {
+      num_bytes(state, Fixnum::from(lim));
+      byte_address()[byte_size()] = 0;
+    }
+    return num_bytes();
   }
 
-  Fixnum* String::tr_replace(STATE, struct tr_data* tr_data) {
-    if(tr_data->last + 1 > byte_size() || shared_->true_p()) {
-      ByteArray* ba = ByteArray::create(state, tr_data->last + 1);
+  native_int String::tr_replace(STATE, native_int first, native_int last, native_int start, native_int next) {
+    native_int replace_length = last - first;
+    native_int added_chars = replace_length - next + start;
+    native_int new_size = byte_size() + added_chars + 1;
+
+    if(new_size > byte_size() || shared_->true_p()) {
+      ByteArray* ba = ByteArray::create(state, new_size);
+      memcpy(ba->raw_bytes(), byte_address(), byte_size());
 
       data(state, ba);
       shared(state, cFalse);
     }
 
-    memcpy(byte_address(), tr_data->tr, tr_data->last);
-    byte_address()[tr_data->last] = 0;
+    memmove(byte_address() + start + replace_length,
+            byte_address() + next,
+            byte_size() - next);
 
-    num_bytes(state, Fixnum::from(tr_data->last));
+    uint8_t* address_start = byte_address() + start;
+    while(first < last) {
+      *address_start = first;
+      ++address_start;
+      ++first;
+    }
+
+    num_bytes(state, Fixnum::from(new_size - 1));
     num_chars(state, nil<Fixnum>());
-
-    return Fixnum::from(tr_data->steps);
+    return start + replace_length;
   }
 
   String* String::transform(STATE, Tuple* tbl, Object* respect_kcode) {

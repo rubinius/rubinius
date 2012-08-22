@@ -455,7 +455,7 @@ public:
   void test_tr_expand_duplicate_chars_last_position() {
     String* s = String::create(state, "a-cabdage");
     TS_ASSERT_EQUALS(s->tr_expand(state, cNil, cTrue), Fixnum::from(9));
-    TS_ASSERT_SAME_DATA(s->byte_address(), "cbdage", 6);
+    TS_ASSERT_SAME_DATA(s->byte_address(), "abcabdage", 9);
   }
 
   void test_tr_expand_leading_carat() {
@@ -464,8 +464,8 @@ public:
     TS_ASSERT_SAME_DATA(s->byte_address(), "^", 1);
 
     s = String::create(state, "^a-c");
-    TS_ASSERT_EQUALS(s->tr_expand(state, cNil, cTrue), Fixnum::from(3));
-    TS_ASSERT_SAME_DATA(s->byte_address(), "abc", 3);
+    TS_ASSERT_EQUALS(s->tr_expand(state, cNil, cTrue), Fixnum::from(4));
+    TS_ASSERT_SAME_DATA(s->byte_address(), "^abc", 4);
   }
 
   void test_tr_expand_limit_processing() {
@@ -477,7 +477,7 @@ public:
     s = String::create(state, "abc-ga-i");
     Fixnum* ten = Fixnum::from(10);
     TS_ASSERT_EQUALS(s->tr_expand(state, ten, cTrue), ten);
-    TS_ASSERT_SAME_DATA(s->byte_address(), "defgabc", 7);
+    TS_ASSERT_SAME_DATA(s->byte_address(), "abcdefgabc", 10);
 
     s = String::create(state, "abc-ga-i");
     Fixnum* three = Fixnum::from(3);
@@ -487,7 +487,7 @@ public:
     s = String::create(state, "^abcde");
     Fixnum* four = Fixnum::from(4);
     TS_ASSERT_EQUALS(s->tr_expand(state, four, cTrue), four);
-    TS_ASSERT_SAME_DATA(s->byte_address(), "abcd", 4);
+    TS_ASSERT_SAME_DATA(s->byte_address(), "^abc", 4);
   }
 
   void test_tr_expand_all() {

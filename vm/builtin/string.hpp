@@ -199,7 +199,7 @@ namespace rubinius {
 
     // Rubinius.primitive :string_tr_expand
     Fixnum* tr_expand(STATE, Object* limit, Object* invalid_as_empty);
-    Fixnum* tr_replace(STATE, struct tr_data* data);
+    native_int tr_replace(STATE, native_int first, native_int last, native_int start, native_int finish);
 
     // Rubinius.primitive :string_copy_from
     String* copy_from(STATE, String* other, Fixnum* start, Fixnum* size, Fixnum* dest);
