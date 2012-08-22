@@ -67,23 +67,6 @@ class Regexp
     return res ? res.begin(0) : nil
   end
 
-  # Returns the index of the first character in the region that
-  # matched or nil if there was no match. See #match for returning
-  # the MatchData instead.
-  def =~(str)
-    # unless str.nil? because it's nil and only nil, not false.
-    str = StringValue(str) unless str.nil?
-
-    match = match_from(str, 0)
-    if match
-      Regexp.last_match = match
-      return match.begin(0)
-    else
-      Regexp.last_match = nil
-      return nil
-    end
-  end
-
   def match_all(str)
     start = 0
     arr = []
