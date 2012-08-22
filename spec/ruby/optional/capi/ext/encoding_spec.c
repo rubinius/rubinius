@@ -104,13 +104,13 @@ static VALUE encoding_spec_rb_encdb_alias(VALUE self, VALUE alias, VALUE orig) {
 
 #if defined(HAVE_RB_ENC_ASSOCIATE) && defined(HAVE_RB_ENC_FIND)
 static VALUE encoding_spec_rb_enc_associate(VALUE self, VALUE obj, VALUE enc) {
-  return rb_enc_associate(obj, rb_enc_find(RSTRING_PTR(enc)));
+  return rb_enc_associate(obj, NIL_P(enc) ? NULL : rb_enc_find(RSTRING_PTR(enc)));
 }
 #endif
 
 #if defined(HAVE_RB_ENC_ASSOCIATE_INDEX) && defined(HAVE_RB_ENC_FIND_INDEX)
-static VALUE encoding_spec_rb_enc_associate_index(VALUE self, VALUE obj, VALUE enc) {
-  return rb_enc_associate_index(obj, rb_enc_find_index(RSTRING_PTR(enc)));
+static VALUE encoding_spec_rb_enc_associate_index(VALUE self, VALUE obj, VALUE index) {
+  return rb_enc_associate_index(obj, FIX2INT(index));
 }
 #endif
 
@@ -197,7 +197,7 @@ static VALUE encoding_spec_ENCODING_SET(VALUE self, VALUE obj, VALUE index) {
 
 #if defined(HAVE_RB_ENC_TO_INDEX) && defined(HAVE_RB_ENC_FIND)
 static VALUE encoding_spec_rb_enc_to_index(VALUE self, VALUE name) {
-  return INT2NUM(rb_enc_to_index(rb_enc_find(RSTRING_PTR(name))));
+  return INT2NUM(rb_enc_to_index(NIL_P(name) ? NULL : rb_enc_find(RSTRING_PTR(name))));
 }
 #endif
 

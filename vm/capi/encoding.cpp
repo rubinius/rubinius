@@ -204,7 +204,7 @@ extern "C" {
   }
 
   VALUE rb_enc_associate(VALUE obj, rb_encoding *enc) {
-    return rb_enc_associate_index(obj, rb_enc_find_index(rb_enc_name(enc)));
+    return rb_enc_associate_index(obj, rb_enc_to_index(enc));
   }
 
   VALUE rb_enc_associate_index(VALUE obj, int index) {
