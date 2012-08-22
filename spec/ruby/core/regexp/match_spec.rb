@@ -16,6 +16,12 @@ describe "Regexp#=~" do
   it "returns the index of the first character of the matching region" do
     (/(.)(.)(.)/ =~ "abc").should == 0
   end
+
+  ruby_version_is "1.9" do
+    it "returns the index too, when argument is a Symbol" do
+      (/(.)(.)(.)/ =~ :abc).should == 0
+    end
+  end
 end
 
 describe "Regexp#match" do
@@ -26,6 +32,10 @@ describe "Regexp#match" do
   end
 
   ruby_version_is "1.9" do
+    it "returns a MatchData object, when argument is a Symbol" do
+      /(.)(.)(.)/.match(:abc).should be_kind_of(MatchData)
+    end
+
     it "matches the input at a given position" do
       /./.match("abc", 1).begin(0).should == 1
     end
