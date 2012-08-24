@@ -59,6 +59,12 @@ describe "Kernel.rand" do
       rand l
     end
   end
+
+  ruby_version_is "1.9" do
+    it "returns a float for an range argument where max is < 1" do
+      rand(0.25..0.75).should be_kind_of(Float)
+    end
+  end
 end
 
 describe "Kernel#rand" do
