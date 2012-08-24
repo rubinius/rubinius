@@ -99,7 +99,7 @@ static VALUE transcode_string(VALUE src, int * parser_encoding)
     }
 
     src = rb_str_export_to_enc(src, rb_utf8_encoding());
-    RB_GC_GUARD(src);
+    RB_GC_GUARD(src) = src;
 
     *parser_encoding = YAML_UTF8_ENCODING;
     return src;

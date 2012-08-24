@@ -974,7 +974,7 @@ ossl_sslctx_flush_sessions(int argc, VALUE *argv, VALUE self)
 static void
 ossl_ssl_shutdown(SSL *ssl)
 {
-    int i, rc;
+    int i;
 
     if (ssl) {
 	/* 4 is from SSL_smart_shutdown() of mod_ssl.c (v2.2.19) */
@@ -984,7 +984,7 @@ ossl_ssl_shutdown(SSL *ssl)
 	     * Ignore the case SSL_shutdown returns -1. Empty handshake_func
 	     * must not happen.
 	     */
-	    if (rc = SSL_shutdown(ssl))
+	    if (SSL_shutdown(ssl) == -1)
 		break;
 	}
 	ERR_clear_error();

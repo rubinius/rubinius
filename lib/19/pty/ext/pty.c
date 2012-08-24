@@ -44,6 +44,24 @@
 #include <unistd.h>
 #endif
 
+#ifdef HAVE_OPENPTY
+/* Normally, the following header would be used:
+ * #include <util.h>
+ *
+ * but MRI has an include file "util.h" which may be picked up depending on the
+ * order of include directories. Rather than futz with that, we just add the
+ * prototype.
+ */
+#include <sys/termios.h>
+
+int openpty(int *amaster, int *aslave, char *name, struct termios *termp,
+         struct winsize *winp);
+#endif
+
+#ifdef TIOCSCTTY
+#include <sys/ioctl.h>
+#endif
+
 #define	DEVICELEN	16
 
 #if !defined(HAVE_OPENPTY)

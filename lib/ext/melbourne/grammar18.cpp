@@ -9696,10 +9696,10 @@ yylex(void *yylval_v, void *vstate)
             }
             else {
                 term = nextc();
-                if (ISALNUM(term) || ismbchar(term)) {
+                if (ISALNUM(term) /* || ismbchar(term) */) {
                     cur = tmpstr;
                     *cur++ = c;
-                    while(ISALNUM(term) || ismbchar(term)) {
+                    while(ISALNUM(term) /* || ismbchar(term) */) {
                         *cur++ = term;
                         term = nextc();
                     }

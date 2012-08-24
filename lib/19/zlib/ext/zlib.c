@@ -736,7 +736,7 @@ zstream_append_input(struct zstream *z, const Bytef *src, long len)
 }
 
 #define zstream_append_input2(z,v)\
-    RB_GC_GUARD(v),\
+    RB_GC_GUARD(v) = v,\
     zstream_append_input((z), (Bytef*)RSTRING_PTR(v), RSTRING_LEN(v))
 
 static void
@@ -850,7 +850,7 @@ zstream_run(struct zstream *z, Bytef *src, long len, int flush)
     for (;;) {
         /* VC allocates err and guard to same address.  accessing err and guard
            in same scope prevents it. */
-        RB_GC_GUARD(guard);
+        RB_GC_GUARD(guard) = guard;
         n = z->stream.avail_out;
         err = z->func->run(&z->stream, flush);
         z->buf_filled += n - z->stream.avail_out;
@@ -1927,9 +1927,6 @@ static VALUE cGzError, cNoFooter, cCRCError, cLengthError;
 
 
 /*-------- gzfile internal APIs --------*/
-
-/* TODO: Encodings */
-typedef void rb_econv_t;
 
 struct gzfile {
     struct zstream z;

@@ -2017,7 +2017,7 @@ BigDecimal_power(int argc, VALUE*argv, VALUE self)
 
     if (VpIsNaN(x)) {
 	y = VpCreateRbObject(n, "0#");
-	RB_GC_GUARD(y->obj);
+	RB_GC_GUARD(y->obj) = y->obj;
 	VpSetNaN(y);
 	return ToValue(y);
     }
@@ -2074,7 +2074,7 @@ retry:
     if (VpIsZero(x)) {
 	if (is_negative(vexp)) {
 	    y = VpCreateRbObject(n, "#0");
-	    RB_GC_GUARD(y->obj);
+	    RB_GC_GUARD(y->obj) = y->obj;
 	    if (VpGetSign(x) < 0) {
 		if (is_integer(vexp)) {
 		    if (is_even(vexp)) {
@@ -2468,7 +2468,7 @@ BigMath_s_exp(VALUE klass, VALUE x, VALUE vprec)
 	else {
 	    Real* vy;
 	    vy = VpCreateRbObject(prec, "#0");
-	    RB_GC_GUARD(vy->obj);
+	    RB_GC_GUARD(vy->obj) = vy->obj;
 	    VpSetInf(vy, VP_SIGN_POSITIVE_INFINITE);
 	    return ToValue(vy);
 	}
@@ -2476,14 +2476,14 @@ BigMath_s_exp(VALUE klass, VALUE x, VALUE vprec)
     else if (nan) {
 	Real* vy;
 	vy = VpCreateRbObject(prec, "#0");
-	RB_GC_GUARD(vy->obj);
+	RB_GC_GUARD(vy->obj) = vy->obj;
 	VpSetNaN(vy);
 	return ToValue(vy);
     }
     else if (vx == NULL) {
 	cannot_be_coerced_into_BigDecimal(rb_eArgError, x);
     }
-    RB_GC_GUARD(vx->obj);
+    RB_GC_GUARD(vx->obj) = vx->obj;
 
     n = prec + rmpd_double_figures();
     negative = VpGetSign(vx) < 0;
@@ -2620,14 +2620,14 @@ get_vp_value:
     if (infinite && !negative) {
 	Real* vy;
 	vy = VpCreateRbObject(prec, "#0");
-	RB_GC_GUARD(vy->obj);
+	RB_GC_GUARD(vy->obj) = vy->obj;
 	VpSetInf(vy, VP_SIGN_POSITIVE_INFINITE);
 	return ToValue(vy);
     }
     else if (nan) {
 	Real* vy;
 	vy = VpCreateRbObject(prec, "#0");
-	RB_GC_GUARD(vy->obj);
+	RB_GC_GUARD(vy->obj) = vy->obj;
 	VpSetNaN(vy);
 	return ToValue(vy);
     }
