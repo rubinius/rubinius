@@ -44,7 +44,7 @@
 #include <unistd.h>
 #endif
 
-#ifdef HAVE_OPENPTY
+#if defined(HAVE_OPENPTY) && !defined(HAVE_PTY_H)
 /* Normally, the following header would be used:
  * #include <util.h>
  *

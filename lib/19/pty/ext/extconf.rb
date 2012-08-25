@@ -5,6 +5,7 @@ if /mswin32|mingw|bccwin32/ !~ RUBY_PLATFORM
   have_header("sys/wait.h")
   have_func("setresuid")
   have_header("libutil.h")
+  have_header("unistd.h")
   have_header("pty.h")
   have_library("util", "openpty")
   if have_func("openpty") or
