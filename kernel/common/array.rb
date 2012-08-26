@@ -1136,17 +1136,18 @@ class Array
   # runs back together.
   def mergesort!
     width = 7
-    @scratch = Rubinius::Tuple.new @total
-    
+    @scratch = Rubinius::Tuple.new @tuple.size
+
     # do a pre-loop to create a bunch of short sorted runs; isort on these
     # 7-element sublists is more efficient than doing merge sort on 1-element
     # sublists
-    left = 0
-    while left < @total
+    left = @start
+    finish = @total + @start
+    while left < finish
       right = left + width
-      right = right < @total ? right : @total
+      right = right < finish ? right : finish
       last = left + (2 * width)
-      last = last < @total ? last : @total
+      last = last < finish ? last : finish
 
       isort!(left, right)
       isort!(right, last)
@@ -1157,12 +1158,12 @@ class Array
     # now just merge together those sorted lists from the prior loop
     width = 7
     while width < @total
-      left = 0
-      while left < @total
+      left = @start
+      while left < finish
         right = left + width
-        right = right < @total ? right : @total
+        right = right < finish ? right : finish
         last = left + (2 * width)
-        last = last < @total ? last : @total
+        last = last < finish ? last : finish
 
         bottom_up_merge(left, right, last)
         left += 2 * width
@@ -1198,14 +1199,15 @@ class Array
 
   def mergesort_block!(block)
     width = 7
-    @scratch = Rubinius::Tuple.new @total
+    @scratch = Rubinius::Tuple.new @tuple.size
 
-    left = 0
-    while left < @total
+    left = @start
+    finish = @total + @start
+    while left < finish
       right = left + width
-      right = right < @total ? right : @total
+      right = right < finish ? right : finish
       last = left + (2 * width)
-      last = last < @total ? last : @total
+      last = last < finish ? last : finish
 
       isort_block!(left, right, block)
       isort_block!(right, last, block)
@@ -1215,12 +1217,12 @@ class Array
 
     width = 7
     while width < @total
-      left = 0
-      while left < @total
+      left = @start
+      while left < finish
         right = left + width
-        right = right < @total ? right : @total
+        right = right < finish ? right : finish
         last = left + (2 * width)
-        last = last < @total ? last : @total
+        last = last < finish ? last : finish
 
         bottom_up_merge_block(left, right, last, block)
         left += 2 * width
