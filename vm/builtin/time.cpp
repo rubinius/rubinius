@@ -83,10 +83,6 @@ namespace rubinius {
       tm->nanoseconds_ = NMOD(tm->nanoseconds_, 1000000000);
     }
 
-    if(LANGUAGE_18_ENABLED(state)) {
-      tm->nanoseconds_ -= (tm->nanoseconds_ % 1000);
-    }
-
     tm->is_gmt(state, CBOOL(gmt) ? cTrue : cFalse);
     tm->offset(state, offset);
 
