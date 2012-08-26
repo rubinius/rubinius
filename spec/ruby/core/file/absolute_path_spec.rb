@@ -17,8 +17,15 @@ ruby_version_is "1.9" do
       end
     end
 
-    it "doesn't expand '~'" do
+    it "does not expand '~' to a home directory." do
       File.absolute_path('~').should_not == File.expand_path('~')
+    end
+
+    it "does not expand '~user' to a home directory." do
+      path = File.dirname(@abs)
+      Dir.chdir(path) do
+        File.absolute_path('~user').should == File.join(path, '~user') 
+      end
     end
 
     it "accepts a second argument of a directory from which to resolve the path" do
