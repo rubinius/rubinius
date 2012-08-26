@@ -133,6 +133,20 @@ describe "Array#sort" do
     }.should raise_error(ArgumentError)
   end
 
+  it "sorts an array that has a value shifted off without a block" do
+    a = Array.new(20, 1)
+    a.shift
+    a[0] = 2
+    a.sort.last.should == 2
+  end
+
+  it "sorts an array that has a value shifted off with a block" do
+    a = Array.new(20, 1)
+    a.shift
+    a[0] = 2
+    a.sort {|a, b| a <=> b }.last.should == 2
+  end
+
   it "raises an error if objects can't be compared" do
     a=[ArraySpecs::Uncomparable.new, ArraySpecs::Uncomparable.new]
     lambda {a.sort}.should raise_error(ArgumentError)
