@@ -19,7 +19,7 @@ class Rubinius::Backtrace
     locations ? new(locations) : new([Rubinius::Location::Missing.new])
   end
 
-  def initialize(locations, width = Rubinius::TERMINAL_WIDTH, min_width = MIN_WIDTH)
+  def initialize(locations, width = Rubinius.terminal_width, min_width = MIN_WIDTH)
     color_config = Rubinius::Config["rbx.colorize_backtraces"]
     if ENV['RBX_NOCOLOR'] or color_config == "no" or color_config == "NO"
       @colorize = false
