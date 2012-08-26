@@ -50,8 +50,9 @@ class File
   end
 
   def self.absolute_path(obj, dir = nil)
-    if dir.nil?
-      path(obj)
+    obj = path(obj) 
+    if obj[0] == "~"
+      File.join Dir.getwd, dir.to_s, obj
     else
       expand_path(obj, dir)
     end
