@@ -11,8 +11,9 @@ ruby_version_is "1.9" do
     end
 
     it "resolves paths relative to the current working directory" do
-      Dir.chdir(File.dirname(@abs)) do |dir|
-        File.absolute_path(File.expand_path('./' + File.basename(__FILE__))).should == @abs
+      path = File.dirname(@abs)
+      Dir.chdir(path) do
+        File.absolute_path('hello.txt').should == File.join(path, 'hello.txt')
       end
     end
 
