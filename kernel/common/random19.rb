@@ -14,6 +14,9 @@ class Rubinius::Randomizer
     else
       if limit.kind_of?(Range)
         random_range(limit)
+      elsif limit.kind_of?(Float)
+        raise ArgumentError, "invalid argument - #{limit}" if limit <= 0
+        random_float * limit
       else
         limit_int = Rubinius::Type.coerce_to limit, Integer, :to_int
         raise ArgumentError, "invalid argument - #{limit}" if limit_int <= 0
