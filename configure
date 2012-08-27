@@ -793,7 +793,7 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
 
       libs = (default_link_libs + link_libs).map { |l| "-l#{l}" }.join(" ")
 
-      cmd = "#{@cxx} #{env('CPPFLAGS')} #{env('CFLAGS')} #{env('LDFLAGS')} -o #{basename} #{source} #{c_includes} #{c_libs} -lstdc++ #{libs} >>#{@log.path} 2>&1"
+      cmd = "#{@cxx} #{env('CPPFLAGS')} #{env('CXXFLAGS')} #{env('LDFLAGS')} -o #{basename} #{source} #{c_includes} #{c_libs} -lstdc++ #{libs} >>#{@log.path} 2>&1"
       @log.log cmd
       system cmd
       return $?.exitstatus unless run
