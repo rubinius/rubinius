@@ -13,7 +13,7 @@
 namespace rubinius {
   class Arguments;
 
-  class VMMethod;
+  class MachineCode;
   class CompiledCode;
   class ObjectMemory;
 

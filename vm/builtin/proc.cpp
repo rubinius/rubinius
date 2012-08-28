@@ -13,7 +13,7 @@
 #include "arguments.hpp"
 #include "on_stack.hpp"
 
-#include "vmmethod.hpp"
+#include "machine_code.hpp"
 #include "arguments.hpp"
 #include "dispatch.hpp"
 #include "call_frame.hpp"

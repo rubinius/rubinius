@@ -408,7 +408,7 @@ instruction passed_arg(index) [ -- boolean ]
     RUN_EXCEPTION();
   }
 
-  stack_push(RBOOL(index < (int)call_frame->arguments->total() - vmm->post_args));
+  stack_push(RBOOL(index < (int)call_frame->arguments->total() - mcode->post_args));
 end
 
 section "Manipulate exceptions"
@@ -1164,7 +1164,7 @@ instruction create_block(literal) [ -- block ]
   // TODO: We do not need to be doing this everytime.
   cm->scope(state, call_frame->constant_scope());
 
-  Object* be = BlockEnvironment::under_call_frame(state, gct, cm, vmm, call_frame);
+  Object* be = BlockEnvironment::under_call_frame(state, gct, cm, mcode, call_frame);
 
   CHECK_AND_PUSH(be);
 end
@@ -1622,7 +1622,7 @@ instruction check_interrupts() [ -- ]
   flush_ip();
 
   // This is used in loops, and allows loops to heat a method up.
-  if(vmm->call_count >= 0) vmm->call_count++;
+  if(mcode->call_count >= 0) mcode->call_count++;
 
   if(!state->check_async(call_frame)) RUN_EXCEPTION();
 
@@ -2031,14 +2031,14 @@ instruction zsuper(literal) [ block -- value ]
   VariableScope* scope = call_frame->method_scope(state);
   interp_assert(scope);
 
-  VMMethod* v = scope->method()->backend_method();
+  MachineCode* mc = scope->method()->machine_code();
   Object* splat_obj = 0;
   Array* splat = 0;
 
-  size_t arg_count = v->total_args;
+  size_t arg_count = mc->total_args;
 
-  if(v->splat_position >= 0) {
-    splat_obj = scope->get_local(state, v->splat_position);
+  if(mc->splat_position >= 0) {
+    splat_obj = scope->get_local(state, mc->splat_position);
     splat = try_as<Array>(splat_obj);
     if(splat) {
       arg_count += splat->size();
@@ -2048,16 +2048,16 @@ instruction zsuper(literal) [ block -- value ]
   }
 
   Tuple* tup = Tuple::create(state, arg_count);
-  for(int i = 0; i < v->total_args; i++) {
+  for(int i = 0; i < mc->total_args; i++) {
     tup->put(state, i, scope->get_local(state, i));
   }
 
   if(splat) {
     for(size_t i = 0; i < splat->size(); i++) {
-      tup->put(state, i + v->total_args, splat->get(state, i));
+      tup->put(state, i + mc->total_args, splat->get(state, i));
     }
   } else if(splat_obj) {
-    tup->put(state, v->total_args, splat_obj);
+    tup->put(state, mc->total_args, splat_obj);
   }
 
   InlineCache* cache = reinterpret_cast<InlineCache*>(literal);

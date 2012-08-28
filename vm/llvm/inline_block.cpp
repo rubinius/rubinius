@@ -7,11 +7,11 @@
 
 namespace rubinius {
   JITInlineBlock::JITInlineBlock(LLVMState* ls, llvm::PHINode* phi, llvm::BasicBlock* brk,
-                   CompiledCode* cm, VMMethod* code,
+                   CompiledCode* cm, MachineCode* mcode,
                    JITMethodInfo* scope, int which)
       : block_break_result_(phi)
       , block_break_loc_(brk)
-      , code_(code)
+      , machine_code_(mcode)
       , method_(&ls->roots())
       , scope_(scope)
       , which_(which)

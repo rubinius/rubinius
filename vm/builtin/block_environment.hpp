@@ -9,7 +9,7 @@ namespace rubinius {
   class CompiledCode;
   class VariableScope;
   struct CallFrame;
-  class VMMethod;
+  class MachineCode;
   class VMExecutable;
 
   class BlockEnvironment;
@@ -52,7 +52,7 @@ namespace rubinius {
     /* interface */
 
     static void init(STATE);
-    VMMethod* vmmethod(STATE, GCToken gct);
+    MachineCode* machine_code(STATE, GCToken gct);
 
     // Rubinius.primitive :blockenvironment_allocate
     static BlockEnvironment* allocate(STATE);
@@ -62,7 +62,7 @@ namespace rubinius {
                             BlockInvocation& invocation);
 
     static BlockEnvironment* under_call_frame(STATE, GCToken gct, CompiledCode* cm,
-      VMMethod* caller, CallFrame* call_frame);
+      MachineCode* caller, CallFrame* call_frame);
 
     static Object* execute_interpreter(STATE, CallFrame* previous,
                             BlockEnvironment* env, Arguments& args,

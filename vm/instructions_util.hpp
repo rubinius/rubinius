@@ -18,8 +18,8 @@ namespace rubinius {
         size_ = size;
       }
 
-      void set_stream(VMMethod* vmm) {
-        set_stream(vmm->opcodes, vmm->total);
+      void set_stream(MachineCode* mcode) {
+        set_stream(mcode->opcodes, mcode->total);
       }
 
       void visit(opcode code, opcode arg1, opcode arg2) { }
@@ -122,8 +122,8 @@ namespace rubinius {
         }
       }
 
-      void drive(VMMethod* vmm) {
-        drive(vmm->opcodes, vmm->total);
+      void drive(MachineCode* mcode) {
+        drive(mcode->opcodes, mcode->total);
       }
     };
 }

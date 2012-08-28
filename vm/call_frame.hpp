@@ -1,7 +1,7 @@
 #ifndef RBX_CALL_FRAME_HPP
 #define RBX_CALL_FRAME_HPP
 
-#include "vmmethod.hpp"
+#include "machine_code.hpp"
 #include "unwind_info.hpp"
 #include "stack_variables.hpp"
 #include "builtin/variable_scope.hpp"
@@ -226,7 +226,7 @@ namespace rubinius {
     }
 
     void calculate_ip(void** pos) {
-      ip_ = pos - cm->backend_method()->addresses;
+      ip_ = pos - cm->machine_code()->addresses;
     }
 
     VariableScope* promote_scope_full(STATE);

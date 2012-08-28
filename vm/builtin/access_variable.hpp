@@ -7,7 +7,7 @@
 namespace rubinius {
 
   class InstructionSequence;
-  class VMMethod;
+  class MachineCode;
   class ConstantScope;
 
   class AccessVariable : public Executable {

@@ -186,7 +186,7 @@ namespace rubinius {
     }
 
     void init_policy() {
-      inline_policy_ = InlinePolicy::create_policy(vmmethod());
+      inline_policy_ = InlinePolicy::create_policy(machine_code());
       own_policy_ = true;
     }
 
@@ -202,19 +202,19 @@ namespace rubinius {
       return method_info_;
     }
 
-    VMMethod* vmmethod() {
-      return method_info_.vmm;
+    MachineCode* machine_code() {
+      return method_info_.machine_code;
     }
 
     Symbol* method_name() {
-      return vmmethod()->name();
+      return machine_code()->name();
     }
 
-    VMMethod* root_vmmethod() {
+    MachineCode* root_machine_code() {
       if(method_info_.root) {
-        return method_info_.root->vmm;
+        return method_info_.root->machine_code;
       } else {
-        return vmmethod();
+        return machine_code();
       }
     }
 
@@ -480,7 +480,7 @@ namespace rubinius {
     // Stack manipulations
     //
     Value* stack_slot_position(int which) {
-      assert(which >= 0 && which < vmmethod()->stack_size);
+      assert(which >= 0 && which < machine_code()->stack_size);
       return b().CreateConstGEP1_32(stack_, which, "stack_pos");
     }
 
@@ -490,7 +490,7 @@ namespace rubinius {
 
     void set_sp(int sp) {
       sp_ = sp;
-      assert(sp_ >= -1 && sp_ < vmmethod()->stack_size);
+      assert(sp_ >= -1 && sp_ < machine_code()->stack_size);
       hints_.clear();
     }
 
@@ -514,7 +514,7 @@ namespace rubinius {
 
     Value* stack_position(int amount) {
       int pos = sp_ + amount;
-      assert(pos >= 0 && pos < vmmethod()->stack_size);
+      assert(pos >= 0 && pos < machine_code()->stack_size);
 
       return b().CreateConstGEP1_32(stack_, pos, "stack_pos");
     }
@@ -535,12 +535,12 @@ namespace rubinius {
 
     void stack_ptr_adjust(int amount) {
       sp_ += amount;
-      assert(sp_ >= -1 && sp_ < vmmethod()->stack_size);
+      assert(sp_ >= -1 && sp_ < machine_code()->stack_size);
     }
 
     void stack_remove(int count=1) {
       sp_ -= count;
-      assert(sp_ >= -1 && sp_ < vmmethod()->stack_size);
+      assert(sp_ >= -1 && sp_ < machine_code()->stack_size);
     }
 
     void stack_push(Value* val) {

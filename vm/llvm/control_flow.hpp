@@ -10,16 +10,16 @@ namespace rubinius {
       typedef std::list<int> SectionList;
 
     private:
-      VMMethod* vmm_;
+      MachineCode* machine_code_;
       uint8_t* seen_;
       SectionList work_list_;
 
     public:
-      ControlFlowWalker(VMMethod* vmm)
-        : vmm_(vmm)
+      ControlFlowWalker(MachineCode* mcode)
+        : machine_code_(mcode)
       {
-        seen_ = new uint8_t[vmm->total];
-        memset(seen_, 0, vmm->total);
+        seen_ = new uint8_t[mcode->total];
+        memset(seen_, 0, mcode->total);
       }
 
       ~ControlFlowWalker() {
@@ -35,7 +35,7 @@ namespace rubinius {
       void run(EI& each) {
         work_list_.push_back(0);
 
-        OpcodeIterator iter(vmm_);
+        OpcodeIterator iter(machine_code_);
 
         while(!work_list_.empty()) {
           int ip = work_list_.back();
@@ -50,7 +50,7 @@ namespace rubinius {
 
             if(iter.goto_p()) {
               opcode target = iter.goto_target();
-              assert(target < vmm_->total);
+              assert(target < machine_code_->total);
 
               add_section(target);
 

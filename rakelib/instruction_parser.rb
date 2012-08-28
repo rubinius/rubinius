@@ -659,9 +659,9 @@ EOM
     def opcode_prototype
       name = opcode_name
       indent = " " * (name.size + 9)
-      prototype = "Object* #{name}(rubinius::VM* state, rubinius::VMMethod* vmm,
+      prototype = "Object* #{name}(rubinius::VM* state, rubinius::MachineCode* code,
 #{indent}rubinius::InterpreterCallFrame* const call_frame,
-#{indent}rubinius::VMMethod::InterpreterState& is"
+#{indent}rubinius::MachineCode::InterpreterState& is"
 
       unless @arguments.empty?
         prototype << ",\n#{indent}"

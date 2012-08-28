@@ -8,7 +8,7 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/symbol.hpp"
 
-#include "vmmethod.hpp"
+#include "machine_code.hpp"
 #include "object_utils.hpp"
 #include "instruments/timing.hpp"
 

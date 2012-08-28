@@ -136,7 +136,7 @@ namespace rubinius {
     scope->block_ = mark_object(scope->block());
     scope->module_ = (Module*)mark_object(scope->module());
 
-    int locals = call_frame->cm->backend_method()->number_of_locals;
+    int locals = call_frame->cm->machine_code()->number_of_locals;
     for(int i = 0; i < locals; i++) {
       Object* local = scope->get_local(i);
       if(local->reference_p()) {

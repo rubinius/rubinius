@@ -15,7 +15,7 @@ namespace llvm {
 namespace rubinius {
   class LLVMState;
   class JITMethodInfo;
-  class VMMethod;
+  class MachineCode;
   class BackgroundCompileRequest;
 
 
@@ -61,7 +61,7 @@ namespace jit {
 
     void compile(LLVMState* state, BackgroundCompileRequest* req);
     void compile_method(LLVMState*, BackgroundCompileRequest* req);
-    void compile_block(LLVMState*, CompiledCode* cm, VMMethod* vmm);
+    void compile_block(LLVMState*, CompiledCode* cm, MachineCode* mcode);
     void compile_builder(jit::Context& ctx, LLVMState*, JITMethodInfo&, rubinius::jit::Builder&);
 
     void* function_pointer();
@@ -69,7 +69,7 @@ namespace jit {
     void show_machine_code();
 
     void import_args(LLVMState* ls, llvm::Function* func,
-                   llvm::BasicBlock*& block, VMMethod* vmm,
+                   llvm::BasicBlock*& block, MachineCode* mcode,
                    llvm::Value* vars, llvm::Value* call_frame);
   };
 }

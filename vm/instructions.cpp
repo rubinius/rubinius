@@ -56,39 +56,39 @@ using namespace rubinius;
 #define stack_calculate_sp() (STACK_PTR - call_frame->stk)
 #define stack_back_position(count) (STACK_PTR - (count - 1))
 
-#define stack_local(which) call_frame->stk[vmm->stack_size - which - 1]
+#define stack_local(which) call_frame->stk[mcode->stack_size - which - 1]
 
 #define both_fixnum_p(_p1, _p2) ((uintptr_t)(_p1) & (uintptr_t)(_p2) & TAG_FIXNUM)
 
 #define JUMP_DEBUGGING \
-  return VMMethod::debugger_interpreter_continue(state, vmm, call_frame, \
+  return MachineCode::debugger_interpreter_continue(state, mcode, call_frame, \
          stack_calculate_sp(), is, current_unwind, unwinds)
 
 #define CHECK_AND_PUSH(val) \
    if(val == NULL) { goto exception; } \
-   else { stack_push(val); if(vmm->debugging) JUMP_DEBUGGING; }
+   else { stack_push(val); if(mcode->debugging) JUMP_DEBUGGING; }
 
 #define RUN_EXCEPTION() goto exception
 
 #define SET_CALL_FLAGS(val) is.call_flags = (val)
 #define CALL_FLAGS() is.call_flags
 
-Object* VMMethod::interpreter(STATE,
-                              VMMethod* const vmm,
+Object* MachineCode::interpreter(STATE,
+                              MachineCode* const mcode,
                               InterpreterCallFrame* const call_frame)
 {
 
 #include "vm/gen/instruction_locations.hpp"
 
   if(unlikely(state == 0)) {
-    VMMethod::instructions = const_cast<void**>(insn_locations);
+    MachineCode::instructions = const_cast<void**>(insn_locations);
     return NULL;
   }
 
   InterpreterState is;
   GCTokenImpl gct;
 
-  register void** ip_ptr = vmm->addresses;
+  register void** ip_ptr = mcode->addresses;
 
   Object** stack_ptr = call_frame->stk - 1;
 
@@ -104,7 +104,7 @@ continue_to_run:
 #undef next_int
 #define next_int ((opcode)(*ip_ptr++))
 
-#define cache_ip(which) ip_ptr = vmm->addresses + which
+#define cache_ip(which) ip_ptr = mcode->addresses + which
 #define flush_ip() call_frame->calculate_ip(ip_ptr)
 
 #include "vm/gen/instruction_implementations.hpp"
@@ -204,8 +204,8 @@ exception:
   return NULL;
 }
 
-Object* VMMethod::uncommon_interpreter(STATE,
-                                       VMMethod* const vmm,
+Object* MachineCode::uncommon_interpreter(STATE,
+                                       MachineCode* const mcode,
                                        CallFrame* const call_frame,
                                        int32_t entry_ip,
                                        native_int sp,
@@ -215,9 +215,9 @@ Object* VMMethod::uncommon_interpreter(STATE,
                                        int32_t* input_unwinds)
 {
 
-  VMMethod* method_vmm = method_call_frame->cm->backend_method();
+  MachineCode* mc = method_call_frame->cm->machine_code();
 
-  if(++method_vmm->uncommon_count > state->shared().config.jit_deoptimize_threshold) {
+  if(++mc->uncommon_count > state->shared().config.jit_deoptimize_threshold) {
     if(state->shared().config.jit_uncommon_print) {
       std::cerr << "[[[ Deoptimizing uncommon method ]]]\n";
       call_frame->print_backtrace(state);
@@ -226,13 +226,13 @@ Object* VMMethod::uncommon_interpreter(STATE,
       method_call_frame->print_backtrace(state);
     }
 
-    method_vmm->uncommon_count = 0;
-    method_vmm->deoptimize(state, method_call_frame->cm, rd);
+    mc->uncommon_count = 0;
+    mc->deoptimize(state, method_call_frame->cm, rd);
   }
 
 #include "vm/gen/instruction_locations.hpp"
 
-  opcode* stream = vmm->opcodes;
+  opcode* stream = mcode->opcodes;
   InterpreterState is;
   GCTokenImpl gct;
 
@@ -364,17 +364,17 @@ exception:
 
 /* The debugger interpreter loop is used to run a method when a breakpoint
  * has been set. It has additional overhead, since it needs to inspect
- * each opcode for the breakpoint flag. It is installed on the VMMethod when
+ * each opcode for the breakpoint flag. It is installed on the MachineCode when
  * a breakpoint is set on compiled method.
  */
-Object* VMMethod::debugger_interpreter(STATE,
-                                       VMMethod* const vmm,
+Object* MachineCode::debugger_interpreter(STATE,
+                                       MachineCode* const mcode,
                                        InterpreterCallFrame* const call_frame)
 {
 
 #include "vm/gen/instruction_locations.hpp"
 
-  opcode* stream = vmm->opcodes;
+  opcode* stream = mcode->opcodes;
   InterpreterState is;
   GCTokenImpl gct;
 
@@ -505,8 +505,8 @@ exception:
   return NULL;
 }
 
-Object* VMMethod::debugger_interpreter_continue(STATE,
-                                       VMMethod* const vmm,
+Object* MachineCode::debugger_interpreter_continue(STATE,
+                                       MachineCode* const mcode,
                                        CallFrame* const call_frame,
                                        int sp,
                                        InterpreterState& is,
@@ -517,7 +517,7 @@ Object* VMMethod::debugger_interpreter_continue(STATE,
 #include "vm/gen/instruction_locations.hpp"
 
   GCTokenImpl gct;
-  opcode* stream = vmm->opcodes;
+  opcode* stream = mcode->opcodes;
 
   Object** stack_ptr = call_frame->stk + sp;
 

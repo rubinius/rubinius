@@ -34,7 +34,7 @@
 #include "dispatch.hpp"
 #include "lookup_data.hpp"
 #include "inline_cache.hpp"
-#include "vmmethod.hpp"
+#include "machine_code.hpp"
 #include "configuration.hpp"
 
 #include <stdarg.h>
@@ -176,7 +176,7 @@ extern "C" {
     VariableScope* scope = call_frame->method_scope(state);
     assert(scope);
 
-    VMMethod* v = scope->method()->backend_method();
+    MachineCode* v = scope->method()->machine_code();
     Object* splat_obj = 0;
     Array* splat = 0;
 
@@ -258,9 +258,9 @@ extern "C" {
       cm->scope(state, call_frame->constant_scope());
     }
 
-    VMMethod* vmm = call_frame->cm->backend_method();
+    MachineCode* mcode = call_frame->cm->machine_code();
     GCTokenImpl gct;
-    return BlockEnvironment::under_call_frame(state, gct, cm, vmm, call_frame);
+    return BlockEnvironment::under_call_frame(state, gct, cm, mcode, call_frame);
 
     CPP_CATCH
   }
@@ -290,9 +290,9 @@ extern "C" {
     // TODO: We don't need to be doing this everytime.
     cm->scope(state, closest->constant_scope());
 
-    VMMethod* vmm = closest->cm->backend_method();
+    MachineCode* mcode = closest->cm->machine_code();
     GCTokenImpl gct;
-    return BlockEnvironment::under_call_frame(state, gct, cm, vmm, closest);
+    return BlockEnvironment::under_call_frame(state, gct, cm, mcode, closest);
   }
 
   Object* rbx_promote_variables(STATE, CallFrame* call_frame) {
@@ -1276,17 +1276,17 @@ extern "C" {
   {
     LLVMState::get(state)->add_uncommons_taken();
 
-    VMMethod* vmm = call_frame->cm->backend_method();
+    MachineCode* mcode = call_frame->cm->machine_code();
 
     /*
     InlineCache* cache = 0;
 
-    if(vmm->opcodes[call_frame->ip()] == InstructionSequence::insn_send_stack) {
-      cache = reinterpret_cast<InlineCache*>(vmm->opcodes[call_frame->ip() + 1]);
-    } else if(vmm->opcodes[call_frame->ip()] == InstructionSequence::insn_send_method) {
-      cache = reinterpret_cast<InlineCache*>(vmm->opcodes[call_frame->ip() + 1]);
-    } else if(vmm->opcodes[call_frame->ip()] == InstructionSequence::insn_send_stack_with_block) {
-      cache = reinterpret_cast<InlineCache*>(vmm->opcodes[call_frame->ip() + 1]);
+    if(mcode->opcodes[call_frame->ip()] == InstructionSequence::insn_send_stack) {
+      cache = reinterpret_cast<InlineCache*>(mcode->opcodes[call_frame->ip() + 1]);
+    } else if(mcode->opcodes[call_frame->ip()] == InstructionSequence::insn_send_method) {
+      cache = reinterpret_cast<InlineCache*>(mcode->opcodes[call_frame->ip() + 1]);
+    } else if(mcode->opcodes[call_frame->ip()] == InstructionSequence::insn_send_stack_with_block) {
+      cache = reinterpret_cast<InlineCache*>(mcode->opcodes[call_frame->ip() + 1]);
     }
 
     if(cache && cache->name->symbol_p()) {
@@ -1298,7 +1298,7 @@ extern "C" {
 
     if(call_frame->is_inline_frame()) {
       // Fix up this inlined block.
-      if(vmm->parent()) {
+      if(mcode->parent()) {
         CallFrame* creator = call_frame->previous->previous;
         assert(creator);
 
@@ -1306,18 +1306,18 @@ extern "C" {
         call_frame->scope->set_parent(parent);
 
         // Only support one depth!
-        assert(!creator->cm->backend_method()->parent());
+        assert(!creator->cm->machine_code()->parent());
       }
     }
 
-    return VMMethod::uncommon_interpreter(state, vmm, call_frame,
+    return MachineCode::uncommon_interpreter(state, mcode, call_frame,
                                           entry_ip, sp,
                                           method_call_frame, rd,
                                           unwind_count, unwinds);
   }
 
   Object* rbx_restart_interp(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args) {
-    return VMMethod::execute(state, call_frame, exec, mod, args);
+    return MachineCode::execute(state, call_frame, exec, mod, args);
   }
 
   Object* rbx_continue_debugging(STATE, CallFrame* call_frame,
@@ -1327,11 +1327,11 @@ extern "C" {
                                  int32_t* input_unwinds,
                                  Object* top_of_stack)
   {
-    VMMethod* vmm = call_frame->cm->backend_method();
+    MachineCode* mcode = call_frame->cm->machine_code();
 
     if(call_frame->is_inline_frame()) {
       // Fix up this inlined block.
-      if(vmm->parent()) {
+      if(mcode->parent()) {
         CallFrame* creator = call_frame->previous->previous;
         assert(creator);
 
@@ -1339,13 +1339,13 @@ extern "C" {
         call_frame->scope->set_parent(parent);
 
         // Only support one depth!
-        assert(!creator->cm->backend_method()->parent());
+        assert(!creator->cm->machine_code()->parent());
       }
     }
 
     call_frame->ip_ = entry_ip;
 
-    VMMethod::InterpreterState is;
+    MachineCode::InterpreterState is;
     UnwindInfo unwinds[kMaxUnwindInfos];
 
     for(int i = 0, j = 0; j < unwind_count; i += 3, j++) {
@@ -1362,7 +1362,7 @@ extern "C" {
       call_frame->stk[++sp] = top_of_stack;
     }
 
-    return VMMethod::debugger_interpreter_continue(state, vmm, call_frame,
+    return MachineCode::debugger_interpreter_continue(state, mcode, call_frame,
                                           sp, is, unwind_count, unwinds);
   }
 

@@ -125,7 +125,7 @@ namespace rubinius {
         inline_ivar_access(klass, acc);
       }
     } else if(CompiledCode* cm = try_as<CompiledCode>(meth)) {
-      VMMethod* vmm = cm->backend_method();
+      MachineCode* mcode = cm->machine_code();
 
       if(!cm->primitive()->nil_p()) {
         if(!inline_primitive(klass, cm, meth->execute)) return false;
@@ -134,9 +134,9 @@ namespace rubinius {
 
       // Not yet sure why we'd hit a CompiledCode that hasn't been
       // internalized, but protect against that case none the less.
-      if(!vmm) return false;
+      if(!mcode) return false;
 
-      if(detect_trivial_method(vmm, cm)) {
+      if(detect_trivial_method(mcode, cm)) {
         inline_trivial_method(klass, cm);
       } else if(int which = detect_jit_intrinsic(klass, cm)) {
         inline_intrinsic(klass, cm, which);
@@ -147,10 +147,10 @@ namespace rubinius {
         InlinePolicy* policy = ops_.inline_policy();
         assert(policy);
 
-        if(vmm->no_inline_p()) {
+        if(mcode->no_inline_p()) {
           decision = cInlineDisabled;
         } else {
-          decision = policy->inline_p(vmm, opts);
+          decision = policy->inline_p(mcode, opts);
         }
 
         if(decision != cInline) {
@@ -170,7 +170,7 @@ namespace rubinius {
               break;
             case cTooBig:
               ops_.state()->log() << policy->current_size() << " + "
-                << vmm->total << " > "
+                << mcode->total << " > "
                 << policy->max_size();
               break;
             case cTooComplex:
@@ -182,7 +182,7 @@ namespace rubinius {
             default:
               ops_.state()->log() << "no policy";
             }
-            if(vmm->jitted()) {
+            if(mcode->jitted()) {
               ops_.state()->log() << " (jitted)\n";
             } else {
               ops_.state()->log() << " (interp)\n";
@@ -212,10 +212,10 @@ namespace rubinius {
           ops_.state()->log() << "\n";
         }
 
-        policy->increase_size(vmm);
+        policy->increase_size(mcode);
         meth->add_inliner(ops_.state()->shared().om, ops_.root_method_info()->method());
 
-        inline_generic_method(klass, defined_in, cm, vmm);
+        inline_generic_method(klass, defined_in, cm, mcode);
         return true;
       } else {
         if(ops_.state()->config().jit_inline_debug) {
@@ -272,8 +272,8 @@ remember:
     emit_inline_block(ib, self);
   }
 
-  bool Inliner::detect_trivial_method(VMMethod* vmm, CompiledCode* cm) {
-    opcode* stream = vmm->opcodes;
+  bool Inliner::detect_trivial_method(MachineCode* mcode, CompiledCode* cm) {
+    opcode* stream = mcode->opcodes;
     size_t size_max = 2;
     switch(stream[0]) {
     case InstructionSequence::insn_push_int:
@@ -296,10 +296,10 @@ remember:
       return false;
     }
 
-    if(vmm->total == size_max &&
+    if(mcode->total == size_max &&
         count_ == 0 &&
-        vmm->required_args == vmm->total_args &&
-        vmm->total_args == 0) return true;
+        mcode->required_args == mcode->total_args &&
+        mcode->total_args == 0) return true;
     return false;
   }
 
@@ -314,14 +314,14 @@ remember:
         << " (" << ops_.state()->symbol_debug_str(klass->module_name()) << ") trivial\n";
     }
 
-    VMMethod* vmm = cm->backend_method();
+    MachineCode* mcode = cm->machine_code();
 
     if(klass) check_recv(klass);
 
     Value* val = 0;
     /////
 
-    opcode* stream = vmm->opcodes;
+    opcode* stream = mcode->opcodes;
     switch(stream[0]) {
     case InstructionSequence::insn_push_int:
       val = ops_.constant(Fixnum::from(stream[1]));
@@ -514,12 +514,12 @@ remember:
   }
 
   void Inliner::inline_generic_method(Class* klass, Module* defined_in,
-                                      CompiledCode* cm, VMMethod* vmm) {
+                                      CompiledCode* cm, MachineCode* mcode) {
     context_.enter_inline();
 
     check_recv(klass);
 
-    JITMethodInfo info(context_, cm, vmm);
+    JITMethodInfo info(context_, cm, mcode);
 
     prime_info(info);
 
@@ -548,7 +548,7 @@ remember:
       }
     }
 
-    if(vmm->call_count >= 0) vmm->call_count /= 2;
+    if(mcode->call_count >= 0) mcode->call_count /= 2;
 
     BasicBlock* entry = work.setup_inline(recv(), blk, args);
 
@@ -572,7 +572,7 @@ remember:
   void Inliner::emit_inline_block(JITInlineBlock* ib, Value* self) {
     context_.enter_inline();
 
-    JITMethodInfo info(context_, ib->method(), ib->code());
+    JITMethodInfo info(context_, ib->method(), ib->machine_code());
 
     prime_info(info);
 
@@ -597,7 +597,7 @@ remember:
 
     info.stack_args = &args;
 
-    if(ib->code()->call_count >= 0) ib->code()->call_count /= 2;
+    if(ib->machine_code()->call_count >= 0) ib->machine_code()->call_count /= 2;
 
     BasicBlock* entry = work.setup_inline_block(self,
         ops_.constant(cNil, ops_.state()->ptr_type("Module")), args);

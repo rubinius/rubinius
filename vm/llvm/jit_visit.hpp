@@ -108,7 +108,7 @@ namespace rubinius {
 
     JITBasicBlock* current_jbb_;
 
-    Value* vmm_debugging_;
+    Value* machine_code_debugging_;
 
   public:
 
@@ -189,7 +189,7 @@ namespace rubinius {
 
       init_out_args();
 
-      vmm_debugging_ = constant(&info().vmm->debugging, llvm::PointerType::getUnqual(ls_->Int32Ty));
+      machine_code_debugging_ = constant(&info().machine_code->debugging, llvm::PointerType::getUnqual(ls_->Int32Ty));
     }
 
     void set_has_side_effects() {
@@ -325,7 +325,7 @@ namespace rubinius {
         return check_active;
       }
 
-      Value* is_debugging = b().CreateLoad(vmm_debugging_, "loaded_debugging_flag");
+      Value* is_debugging = b().CreateLoad(machine_code_debugging_, "loaded_debugging_flag");
 
       BasicBlock* restart_in_interp = new_block("restart");
 
@@ -1141,12 +1141,12 @@ namespace rubinius {
     }
 
     void visit_push_stack_local(opcode which) {
-      Value* pos = stack_slot_position(vmmethod()->stack_size - which - 1);
+      Value* pos = stack_slot_position(machine_code()->stack_size - which - 1);
       stack_push(b().CreateLoad(pos, "stack_local"));
     }
 
     void visit_set_stack_local(opcode which) {
-      Value* pos = stack_slot_position(vmmethod()->stack_size - which - 1);
+      Value* pos = stack_slot_position(machine_code()->stack_size - which - 1);
       b().CreateStore(stack_top(), pos);
     }
 
@@ -1578,7 +1578,7 @@ namespace rubinius {
         nfo = *i;
 
         JITInlineBlock* ib = nfo->inline_block();
-        if(ib && ib->code() && (always || !ib->created_object_p())) {
+        if(ib && ib->machine_code() && (always || !ib->created_object_p())) {
           JITMethodInfo* creator = ib->creation_scope();
           assert(creator);
 
@@ -1723,7 +1723,7 @@ namespace rubinius {
           }
 
           InlineDecision decision = inline_policy()->inline_p(
-                                      block_code->backend_method(), opts);
+                                      block_code->machine_code(), opts);
           if(decision == cTooComplex) {
             if(state()->config().jit_inline_debug) {
               context().inline_log("NOT inlining")
@@ -1748,8 +1748,8 @@ namespace rubinius {
 
         Inliner inl(context(), *this, cache, args, failure);
 
-        VMMethod* code = 0;
-        if(block_code) code = block_code->backend_method();
+        MachineCode* code = 0;
+        if(block_code) code = block_code->machine_code();
         JITInlineBlock block_info(ls_, send_result, cleanup, block_code, code, &info(),
                                   current_block_);
 
@@ -1917,7 +1917,7 @@ use_send:
         //
         JITInlineBlock* ib = info().inline_block();
 
-        if(ib && ib->code()) {
+        if(ib && ib->machine_code()) {
           stack_push(constant(cTrue));
         } else {
           stack_push(constant(cFalse));
@@ -2722,14 +2722,14 @@ use_send:
 
       // Hey! Look at that! We know the block we'd be yielding to
       // statically! woo! ok, lets just emit the code for it here!
-      if(ib && ib->code()) {
+      if(ib && ib->machine_code()) {
         context().set_inlined_block(true);
 
         JITMethodInfo* creator = ib->creation_scope();
         assert(creator);
 
         // Count the block against the policy size total
-        inline_policy()->increase_size(ib->code());
+        inline_policy()->increase_size(ib->machine_code());
 
         // We inline unconditionally here, since we make the decision
         // wrt the block when we are considering inlining the send that
@@ -3211,7 +3211,7 @@ use_send:
 
         // Hey! Look at that! We know the block we'd be yielding to
         // statically! woo! ok, lets just emit the code for it here!
-        if(ib && ib->code()) {
+        if(ib && ib->machine_code()) {
           skip_yield_stack_ = true; // skip the yield_stack, we're doing the work here.
 
           context().set_inlined_block(true);
@@ -3220,7 +3220,7 @@ use_send:
           assert(creator);
 
           // Count the block against the policy size total
-          inline_policy()->increase_size(ib->code());
+          inline_policy()->increase_size(ib->machine_code());
 
           // We inline unconditionally here, since we make the decision
           // wrt the block when we are considering inlining the send that
@@ -3293,7 +3293,7 @@ use_send:
     }
 
     void visit_passed_arg(opcode count) {
-      count += vmmethod()->post_args;
+      count += machine_code()->post_args;
 
       if(called_args_ >= 0) {
         if((int)count < called_args_) {

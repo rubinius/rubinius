@@ -1051,10 +1051,10 @@ namespace rubinius {
 
     OnStack<2> os(state, env, show);
 
-    VMMethod* vmm = env->vmmethod(state, gct);
+    MachineCode* mcode = env->machine_code(state, gct);
 
     jit::Compiler jit(ls);
-    jit.compile_block(ls, env->code(), vmm);
+    jit.compile_block(ls, env->code(), mcode);
 
     if(show->true_p()) {
       jit.show_machine_code();
@@ -1084,8 +1084,8 @@ namespace rubinius {
 
     while(obj) {
       if(CompiledCode* cm = try_as<CompiledCode>(obj)) {
-        if(VMMethod* vmm = cm->backend_method()) {
-          vmm->deoptimize(state, cm, 0, disable);
+        if(MachineCode* mcode = cm->machine_code()) {
+          mcode->deoptimize(state, cm, 0, disable);
         }
         total++;
       }
@@ -1583,12 +1583,12 @@ namespace rubinius {
 #ifdef RBX_PROFILER
     if(unlikely(state->vm()->tooling())) {
       tooling::ScriptEntry me(state, cm);
-      return cm->backend_method()->execute_as_script(state, cm, calling_environment);
+      return cm->machine_code()->execute_as_script(state, cm, calling_environment);
     } else {
-      return cm->backend_method()->execute_as_script(state, cm, calling_environment);
+      return cm->machine_code()->execute_as_script(state, cm, calling_environment);
     }
 #else
-    return cm->backend_method()->execute_as_script(state, cm, calling_environment);
+    return cm->machine_code()->execute_as_script(state, cm, calling_environment);
 #endif
   }
 

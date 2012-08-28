@@ -1,6 +1,6 @@
 #ifdef ENABLE_LLVM
 
-#include "vmmethod.hpp"
+#include "machine_code.hpp"
 #include "llvm/jit_context.hpp"
 
 #include "builtin/fixnum.hpp"
@@ -136,15 +136,15 @@ namespace jit {
 
   void Compiler::compile(LLVMState* ls, BackgroundCompileRequest* req) {
     if(req->is_block()) {
-      compile_block(ls, req->method(), req->vmmethod());
+      compile_block(ls, req->method(), req->machine_code());
     } else {
       compile_method(ls, req);
     }
   }
 
-  void Compiler::compile_block(LLVMState* ls, CompiledCode* cm, VMMethod* vmm) {
+  void Compiler::compile_block(LLVMState* ls, CompiledCode* cm, MachineCode* mcode) {
     if(ls->config().jit_inline_debug) {
-      assert(vmm->parent());
+      assert(mcode->parent());
 
       struct timeval tv;
       gettimeofday(&tv, NULL);
@@ -157,7 +157,7 @@ namespace jit {
         << " (" << tv.tv_sec << "." << tv.tv_usec << ")\n";
     }
 
-    JITMethodInfo info(ctx_, cm, vmm);
+    JITMethodInfo info(ctx_, cm, mcode);
     info.is_block = true;
 
     ctx_.set_root(&info);
@@ -182,7 +182,7 @@ namespace jit {
         << " (" << tv.tv_sec << "." << tv.tv_usec << ")\n";
     }
 
-    JITMethodInfo info(ctx_, cm, cm->backend_method());
+    JITMethodInfo info(ctx_, cm, cm->machine_code());
     info.is_block = false;
 
     if(Class* cls = req->receiver_class()) {

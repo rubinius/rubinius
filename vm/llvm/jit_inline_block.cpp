@@ -29,7 +29,7 @@ namespace jit {
     BasicBlock* alloca_block = &info_.function()->getEntryBlock();
 
     Value* cfstk = new AllocaInst(obj_type,
-        cint((sizeof(CallFrame) / sizeof(Object*)) + vmm_->stack_size),
+        cint((sizeof(CallFrame) / sizeof(Object*)) + machine_code_->stack_size),
         "cfstk", alloca_block->getTerminator());
 
     call_frame = b().CreateBitCast(
@@ -43,7 +43,7 @@ namespace jit {
     info_.set_stack(stk);
 
     Value* var_mem = new AllocaInst(obj_type,
-        cint((sizeof(StackVariables) / sizeof(Object*)) + vmm_->number_of_locals),
+        cint((sizeof(StackVariables) / sizeof(Object*)) + machine_code_->number_of_locals),
         "var_mem", alloca_block->getTerminator());
 
     vars = b().CreateBitCast(
@@ -86,15 +86,15 @@ namespace jit {
     // scope
     b().CreateStore(vars, get_field(call_frame, offset::CallFrame::scope));
 
-    nil_stack(vmm_->stack_size, constant(cNil, obj_type));
+    nil_stack(machine_code_->stack_size, constant(cNil, obj_type));
 
     setup_inline_scope(self, constant(cNil, obj_type), mod);
 
     if(ls_->config().version >= 19) {
       // We don't support splat in an block method!
-      assert(vmm_->splat_position < 0);
+      assert(machine_code_->splat_position < 0);
 
-      if(stack_args.size() == 1 && vmm_->total_args > 1) {
+      if(stack_args.size() == 1 && machine_code_->total_args > 1) {
         Signature sig(ls_, "Object");
         sig << "State";
         sig << "CallFrame";
@@ -103,7 +103,7 @@ namespace jit {
         sig << ls_->Int32Ty;
 
         Value* call_args[] = { info_.vm(), info_.call_frame(),
-                               stack_args.at(0), vars, cint(vmm_->total_args) };
+                               stack_args.at(0), vars, cint(machine_code_->total_args) };
 
         Value* val = sig.call("rbx_destructure_inline_args", call_args, 5, "", b());
         Value* null = Constant::getNullValue(val->getType());
@@ -116,8 +116,8 @@ namespace jit {
         b().SetInsertPoint(cont);
       } else {
         // block logic has no arity checking, so we process
-        // up to the minimum of stack_args.size and vmm_->total_args;
-        size_t limit = MIN((int)stack_args.size(), (int)vmm_->total_args);
+        // up to the minimum of stack_args.size and machine_code_->total_args;
+        size_t limit = MIN((int)stack_args.size(), (int)machine_code_->total_args);
 
         for(size_t i = 0; i < limit; i++) {
           Value* int_pos = cint(i);

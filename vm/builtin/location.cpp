@@ -42,8 +42,8 @@ namespace rubinius {
       loc->name(state, call_frame->name());
     }
 
-    VMMethod* vmm = call_frame->cm->backend_method();
-    if(vmm && vmm->jitted()) {
+    MachineCode* mcode = call_frame->cm->machine_code();
+    if(mcode && mcode->jitted()) {
       loc->set_is_jit(state);
     }
 

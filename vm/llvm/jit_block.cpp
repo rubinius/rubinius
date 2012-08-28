@@ -55,9 +55,9 @@ namespace jit {
 
     alloc_frame("block_body");
 
-    initialize_frame(vmm_->stack_size);
+    initialize_frame(machine_code_->stack_size);
 
-    nil_stack(vmm_->stack_size, constant(cNil, obj_type));
+    nil_stack(machine_code_->stack_size, constant(cNil, obj_type));
 
     setup_block_scope();
 
@@ -208,7 +208,7 @@ namespace jit {
   }
 
   void BlockBuilder::import_args_19_style() {
-    if(vmm_->required_args > 1) {
+    if(machine_code_->required_args > 1) {
       Value* lambda_check =
         b().CreateICmpEQ(
           b().CreateAnd(
@@ -249,10 +249,10 @@ namespace jit {
                        "arg_ary");
 
     // The variables used in the 4 phases.
-    int P = vmm_->post_args;
+    int P = machine_code_->post_args;
     Value* Pv = cint(P);
 
-    int R = vmm_->required_args;
+    int R = machine_code_->required_args;
 
     int M = R - P;
     Value* Mv = cint(M);
@@ -261,13 +261,13 @@ namespace jit {
                  b().CreateConstGEP2_32(info_.args(), 0, offset::args_total),
                  "args.total");
 
-    int DT = vmm_->total_args;
+    int DT = machine_code_->total_args;
     Value* DTv = cint(DT);
 
     int O = DT - R;
     Value* Ov = cint(O);
 
-    int HS = vmm_->splat_position > 0 ? 1 : 0;
+    int HS = machine_code_->splat_position > 0 ? 1 : 0;
 
     Value* CT = HS ? T
                    : b().CreateSelect(b().CreateICmpSLT(T, DTv), T, DTv);
@@ -445,7 +445,7 @@ namespace jit {
     }
 
     // Phase 4 - splat
-    if(vmm_->splat_position >= 0) {
+    if(machine_code_->splat_position >= 0) {
       Signature sig(ls_, "Object");
       sig << "State";
       sig << "Arguments";
@@ -471,7 +471,7 @@ namespace jit {
       Value* idx3[] = {
         cint(0),
         cint(offset::vars_tuple),
-        cint(vmm_->splat_position)
+        cint(machine_code_->splat_position)
       };
 
       Value* pos = b().CreateGEP(vars, idx3, "splat_pos");

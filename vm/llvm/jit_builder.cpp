@@ -2,7 +2,7 @@
 
 #include "llvm/jit_builder.hpp"
 #include "call_frame.hpp"
-#include "vmmethod.hpp"
+#include "machine_code.hpp"
 
 #include "llvm/jit_visit.hpp"
 #include "llvm/control_flow.hpp"
@@ -16,7 +16,7 @@ namespace jit {
 
   Builder::Builder(LLVMState* ls, JITMethodInfo& i)
     : ls_(ls)
-    , vmm_(i.vmm)
+    , machine_code_(i.machine_code)
     , builder_(ls->ctx())
     , use_full_scope_(false)
     , import_args_(0)
@@ -73,7 +73,7 @@ namespace jit {
 
   void Builder::nil_locals() {
     Value* nil = constant(cNil, obj_type);
-    int size = vmm_->number_of_locals;
+    int size = machine_code_->number_of_locals;
 
     if(size == 0) return;
     // Stack size 5 or less, do 5 stores in a row rather than
@@ -470,12 +470,12 @@ namespace jit {
   };
 
   void Builder::pass_one(BasicBlock* body) {
-    CFGCalculator cfg(vmm_);
+    CFGCalculator cfg(machine_code_);
     cfg.build();
 
     // Pass 1, detect BasicBlock boundaries
     PassOne finder(ls_, block_map_, info_.function(), body, cfg, info_);
-    finder.drive(vmm_);
+    finder.drive(machine_code_);
 
     if(finder.creates_blocks() || finder.calls_evalish()) {
       info_.set_use_full_scope();
@@ -526,11 +526,11 @@ namespace jit {
     if(use_full_scope_) visitor.use_full_scope();
 
     visitor.initialize();
-    visitor.set_stream(info_.vmm);
+    visitor.set_stream(info_.machine_code);
 
     // Pass 2, compile!
     // Drive by following the control flow.
-    jit::ControlFlowWalker walker(info_.vmm);
+    jit::ControlFlowWalker walker(info_.machine_code);
     Walker cb(visitor, block_map_);
 
     try {
@@ -604,11 +604,11 @@ namespace jit {
     valid_flag = b().CreateAlloca(ls_->Int1Ty, 0, "valid_flag");
 
     Value* cfstk = b().CreateAlloca(obj_type,
-        cint((sizeof(CallFrame) / sizeof(Object*)) + vmm_->stack_size),
+        cint((sizeof(CallFrame) / sizeof(Object*)) + machine_code_->stack_size),
         "cfstk");
 
     Value* var_mem = b().CreateAlloca(obj_type,
-        cint((sizeof(StackVariables) / sizeof(Object*)) + vmm_->number_of_locals),
+        cint((sizeof(StackVariables) / sizeof(Object*)) + machine_code_->number_of_locals),
         "var_mem");
 
     call_frame = b().CreateBitCast(

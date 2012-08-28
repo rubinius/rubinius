@@ -85,7 +85,7 @@ namespace rubinius {
      * The primitive generator emits one 'executor' function per
      * primitive. This simply checks the argument types and then
      * calls the C++ code that implements the primitive.
-     * See VMMethod::execute for the version that handles 'regular'
+     * See MachineCode::execute for the version that handles 'regular'
      * Ruby code.
      */
     static executor resolve_primitive(STATE, Symbol* name, int* index = 0);

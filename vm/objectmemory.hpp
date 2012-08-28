@@ -119,7 +119,7 @@ namespace rubinius {
    * MarkSweepGC, which handles large objects.
    *
    * ObjectMemory also manages the memory used for CodeResources, which are
-   * internal objects used for executing Ruby code. This includes VMMethod,
+   * internal objects used for executing Ruby code. This includes MachineCode,
    * various JIT classes, and FFI data.
    *
    * Basic tasks:

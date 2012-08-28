@@ -150,9 +150,9 @@ namespace rubinius {
 
     void inline_block(JITInlineBlock* ib, Value* self);
 
-    void inline_generic_method(Class* klass, Module* mod, CompiledCode* cm, VMMethod* vmm);
+    void inline_generic_method(Class* klass, Module* mod, CompiledCode* cm, MachineCode* mcode);
 
-    bool detect_trivial_method(VMMethod* vmm, CompiledCode* cm = 0);
+    bool detect_trivial_method(MachineCode* mcode, CompiledCode* cm = 0);
 
     void inline_trivial_method(Class* klass, CompiledCode* cm);
 

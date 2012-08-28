@@ -80,7 +80,7 @@ namespace rubinius {
     for(std::list<CompiledCode*>::const_iterator i = inliners_->inliners().begin();
         i != inliners_->inliners().end();
         ++i) {
-      (*i)->backend_method()->deoptimize(state, *i, 0);
+      (*i)->machine_code()->deoptimize(state, *i, 0);
     }
 
     inliners_->inliners().clear();

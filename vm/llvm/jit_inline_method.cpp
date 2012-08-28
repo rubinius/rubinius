@@ -29,7 +29,7 @@ namespace jit {
 
     Value* cfstk = new AllocaInst(obj_type,
         ConstantInt::get(ls_->Int32Ty,
-          (sizeof(CallFrame) / sizeof(Object*)) + vmm_->stack_size),
+          (sizeof(CallFrame) / sizeof(Object*)) + machine_code_->stack_size),
         "cfstk", alloca_block->getTerminator());
 
     call_frame = b().CreateBitCast(
@@ -43,7 +43,7 @@ namespace jit {
 
     Value* var_mem = new AllocaInst(obj_type,
         ConstantInt::get(ls_->Int32Ty,
-          (sizeof(StackVariables) / sizeof(Object*)) + vmm_->number_of_locals),
+          (sizeof(StackVariables) / sizeof(Object*)) + machine_code_->number_of_locals),
         "var_mem", alloca_block->getTerminator());
 
     vars = b().CreateBitCast(
@@ -86,7 +86,7 @@ namespace jit {
     // scope
     b().CreateStore(vars, get_field(call_frame, offset::CallFrame::scope));
 
-    nil_stack(vmm_->stack_size, constant(cNil, obj_type));
+    nil_stack(machine_code_->stack_size, constant(cNil, obj_type));
 
     Value* mod = b().CreateLoad(
         b().CreateConstGEP2_32(rd, 0, offset::runtime_data_module, "module_pos"),
@@ -98,9 +98,9 @@ namespace jit {
     // in the right place.
     //
     // We don't support splat in an inlined method!
-    assert(vmm_->splat_position < 0);
+    assert(machine_code_->splat_position < 0);
 
-    assert(stack_args.size() <= (size_t)vmm_->total_args);
+    assert(stack_args.size() <= (size_t)machine_code_->total_args);
 
     for(size_t i = 0; i < stack_args.size(); i++) {
       Value* int_pos = cint(i);

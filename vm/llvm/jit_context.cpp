@@ -4,7 +4,7 @@
 #include "llvm/jit_context.hpp"
 #include "llvm/jit_runtime.hpp"
 
-#include "vmmethod.hpp"
+#include "machine_code.hpp"
 
 using namespace llvm;
 

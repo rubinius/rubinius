@@ -134,7 +134,7 @@ namespace rubinius {
 
     bootstrap_ontology(&state);
 
-    VMMethod::init(&state);
+    MachineCode::init(&state);
 
     // Setup the main Thread, which is wrapper of the main native thread
     // when the VM boots.

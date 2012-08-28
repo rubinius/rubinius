@@ -1,6 +1,6 @@
 #include "stack_variables.hpp"
 #include "builtin/variable_scope.hpp"
-#include "vmmethod.hpp"
+#include "machine_code.hpp"
 #include "call_frame.hpp"
 
 namespace rubinius {
@@ -10,7 +10,7 @@ namespace rubinius {
   {
     if(on_heap_) return on_heap_;
 
-    VMMethod* vmm = call_frame->cm->backend_method();
+    MachineCode* mcode = call_frame->cm->machine_code();
     VariableScope* scope = state->new_object<VariableScope>(G(variable_scope));
 
     if(parent_) {
@@ -23,11 +23,11 @@ namespace rubinius {
     scope->block(state, block_);
     scope->module(state, module_);
     scope->method(state, call_frame->cm);
-    scope->heap_locals(state, Tuple::create(state, vmm->number_of_locals));
+    scope->heap_locals(state, Tuple::create(state, mcode->number_of_locals));
     scope->last_match(state, last_match_);
     scope->fiber(state, state->vm()->current_fiber.get());
 
-    scope->number_of_locals_ = vmm->number_of_locals;
+    scope->number_of_locals_ = mcode->number_of_locals;
 
     if(full) {
       scope->isolated_ = false;

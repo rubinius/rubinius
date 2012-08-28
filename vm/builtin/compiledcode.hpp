@@ -9,7 +9,7 @@
 namespace rubinius {
 
   class InstructionSequence;
-  class VMMethod;
+  class MachineCode;
   class ConstantScope;
 
   namespace jit {
@@ -36,7 +36,7 @@ namespace rubinius {
     ConstantScope* scope_;        // slot
     LookupTable* breakpoints_;  // slot
 
-    VMMethod* backend_method_;
+    MachineCode* machine_code_;
 
     jit::RuntimeDataHolder* jit_data_;
 
@@ -45,8 +45,8 @@ namespace rubinius {
     Tuple* literals_;           // slot
 
     /* accessors */
-    VMMethod* backend_method() {
-      return backend_method_;
+    MachineCode* machine_code() {
+      return machine_code_;
     }
 
 #ifdef ENABLE_LLVM
@@ -95,7 +95,7 @@ namespace rubinius {
 
     void post_marshal(STATE);
     size_t number_of_locals();
-    VMMethod* internalize(STATE, GCToken gct, const char** failure_reason=0, int* ip=0);
+    MachineCode* internalize(STATE, GCToken gct, const char** failure_reason=0, int* ip=0);
     void specialize(STATE, TypeInfo* ti);
 
     static Object* default_executor(STATE, CallFrame*, Executable* exec, Module* mod, Arguments& args);

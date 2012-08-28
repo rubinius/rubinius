@@ -6,7 +6,7 @@
 #include "llvm/method_info.hpp"
 
 #include "call_frame.hpp"
-#include "vmmethod.hpp"
+#include "machine_code.hpp"
 #include "instruments/tooling.hpp"
 
 #include "builtin/constantscope.hpp"
@@ -61,9 +61,9 @@ namespace jit {
 
     // check_self_type();
 
-    initialize_frame(vmm_->stack_size);
+    initialize_frame(machine_code_->stack_size);
 
-    nil_stack(vmm_->stack_size, constant(cNil, obj_type));
+    nil_stack(machine_code_->stack_size, constant(cNil, obj_type));
 
     import_args();
 
@@ -83,13 +83,13 @@ namespace jit {
                        "arg_ary");
 
     // The variables used in the 4 phases.
-    int P = vmm_->post_args;
-    int M = vmm_->required_args - P;
+    int P = machine_code_->post_args;
+    int M = machine_code_->required_args - P;
     Value* T = arg_total;
-    int DT = vmm_->total_args;
-    int R = vmm_->required_args;
-    int O = vmm_->total_args - R;
-    int HS = vmm_->splat_position > 0 ? 1 : 0;
+    int DT = machine_code_->total_args;
+    int R = machine_code_->required_args;
+    int O = machine_code_->total_args - R;
+    int HS = machine_code_->splat_position > 0 ? 1 : 0;
 
 
     // Phase 1, the manditories
@@ -233,7 +233,7 @@ namespace jit {
     }
 
     // Phase 4 - splat
-    if(vmm_->splat_position >= 0) {
+    if(machine_code_->splat_position >= 0) {
       Signature sig(ls_, "Object");
       sig << "State";
       sig << "Arguments";
@@ -259,7 +259,7 @@ namespace jit {
       Value* idx3[] = {
         cint(0),
         cint(offset::vars_tuple),
-        cint(vmm_->splat_position)
+        cint(machine_code_->splat_position)
       };
 
       Value* pos = b().CreateGEP(vars, idx3, "splat_pos");
@@ -270,7 +270,7 @@ namespace jit {
   void MethodBuilder::import_args() {
     setup_scope();
 
-    if(vmm_->post_args > 0) {
+    if(machine_code_->post_args > 0) {
       import_args_19_style();
       return;
     }
@@ -281,8 +281,8 @@ namespace jit {
     Value* arg_ary = b().CreateLoad(offset, "arg_ary");
 
     // If there are a precise number of args, easy.
-    if(vmm_->required_args == vmm_->total_args) {
-      for(int i = 0; i < vmm_->required_args; i++) {
+    if(machine_code_->required_args == machine_code_->total_args) {
+      for(int i = 0; i < machine_code_->required_args; i++) {
         Value* int_pos = cint(i);
 
         Value* arg_val_offset = b().CreateConstGEP1_32(arg_ary, i, "arg_val_offset");
@@ -312,9 +312,10 @@ namespace jit {
       Value* limit;
 
       // Because of a splat, there can be more args given than
-      // vmm->total_args, so we need to use vmm->total_args as a max.
-      if(vmm_->splat_position >= 0) {
-        Value* static_total = cint(vmm_->total_args);
+      // machine_code->total_args, so we need to use machine_code->total_args
+      // as a max.
+      if(machine_code_->splat_position >= 0) {
+        Value* static_total = cint(machine_code_->total_args);
 
         limit = b().CreateSelect(
             b().CreateICmpSLT(static_total, arg_total),
@@ -322,7 +323,7 @@ namespace jit {
             arg_total);
       } else {
         // Because of arity checks, arg_total is less than or equal
-        // to vmm->total_args.
+        // to machine_code->total_args.
         limit = arg_total;
       }
 
@@ -365,7 +366,7 @@ namespace jit {
     }
 
     // Setup the splat.
-    if(vmm_->splat_position >= 0) {
+    if(machine_code_->splat_position >= 0) {
       Signature sig(ls_, "Object");
       sig << "State";
       sig << "Arguments";
@@ -375,8 +376,8 @@ namespace jit {
       Value* call_args[] = {
         info_.vm(),
         info_.args(),
-        cint(vmm_->total_args),
-        cint(vmm_->total_args)
+        cint(machine_code_->total_args),
+        cint(machine_code_->total_args)
       };
 
       Function* func = sig.function("rbx_construct_splat");
@@ -391,7 +392,7 @@ namespace jit {
       Value* idx3[] = {
         cint(0),
         cint(offset::vars_tuple),
-        cint(vmm_->splat_position)
+        cint(machine_code_->splat_position)
       };
 
       Value* pos = b().CreateGEP(vars, idx3, "splat_pos");
@@ -413,11 +414,11 @@ namespace jit {
     // Check arguments
     //
     // if there is a splat..
-    if(vmm_->splat_position >= 0) {
-      if(vmm_->required_args > 0) {
+    if(machine_code_->splat_position >= 0) {
+      if(machine_code_->required_args > 0) {
         // Make sure we got at least the required args
         Value* cmp = b().CreateICmpSLT(total,
-            cint(vmm_->required_args), "arg_cmp");
+            cint(machine_code_->required_args), "arg_cmp");
         b().CreateCondBr(cmp, arg_error, cont);
       } else {
         // Only splat or optionals, no handling!
@@ -425,18 +426,18 @@ namespace jit {
       }
 
       // No splat, a precise number of args
-    } else if(vmm_->required_args == vmm_->total_args) {
+    } else if(machine_code_->required_args == machine_code_->total_args) {
       // Make sure we got the exact number of arguments
       Value* cmp = b().CreateICmpNE(total,
-          cint(vmm_->required_args), "arg_cmp");
+          cint(machine_code_->required_args), "arg_cmp");
       b().CreateCondBr(cmp, arg_error, cont);
 
       // No splat, with optionals
     } else {
       Value* c1 = b().CreateICmpSLT(total,
-          cint(vmm_->required_args), "arg_cmp");
+          cint(machine_code_->required_args), "arg_cmp");
       Value* c2 = b().CreateICmpSGT(total,
-          cint(vmm_->total_args), "arg_cmp");
+          cint(machine_code_->total_args), "arg_cmp");
 
       Value* cmp = b().CreateOr(c1, c2, "arg_combine");
       b().CreateCondBr(cmp, arg_error, cont);
@@ -456,7 +457,7 @@ namespace jit {
       info_.vm(),
       info_.previous(),
       info_.args(),
-      cint(vmm_->total_args)
+      cint(machine_code_->total_args)
     };
 
     Value* val = sig.call("rbx_arg_error", call_args, 4, "ret", b());

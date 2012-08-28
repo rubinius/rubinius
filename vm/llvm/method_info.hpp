@@ -42,7 +42,7 @@ namespace rubinius {
     LocalMap local_info_;
 
   public:
-    VMMethod* vmm;
+    MachineCode* machine_code;
     bool is_block;
     llvm::BasicBlock* inline_return;
     llvm::Value* return_value;
@@ -55,7 +55,7 @@ namespace rubinius {
     type::KnownType self_type;
 
   public:
-    JITMethodInfo(jit::Context& ctx, CompiledCode* cm, VMMethod* v,
+    JITMethodInfo(jit::Context& ctx, CompiledCode* cm, MachineCode* mcode,
                   JITMethodInfo* parent = 0);
 
     jit::Context& context() {

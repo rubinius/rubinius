@@ -68,7 +68,7 @@ namespace rubinius {
 
 #ifdef TRACK_IC_LOCATION
     int ip_;
-    VMMethod* vmm_;
+    MachineCode* machine_code_;
 #endif
 
     int seen_classes_overflow_;
@@ -146,20 +146,20 @@ namespace rubinius {
     }
 
 #ifdef TRACK_IC_LOCATION
-    void set_location(int ip, VMMethod* vmm) {
+    void set_location(int ip, MachineCode* mcode) {
       ip_ = ip;
-      vmm_ = vmm;
+      machine_code_ = mcode;
     }
 
     int ip() {
       return ip_;
     }
 
-    VMMethod* vmmethod() {
-      return vmm_;
+    MachineCode* machine_code() {
+      return machine_code_;
     }
 #else
-    void set_location(int ip, VMMethod* vmm) { }
+    void set_location(int ip, MachineCode* mcode) { }
 #endif
 
     void print_location(STATE, std::ostream& stream);

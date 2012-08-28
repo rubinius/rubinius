@@ -20,14 +20,14 @@ namespace rubinius {
   typedef uintptr_t opcode;
 
   class CompiledCode;
-  class VMMethod;
+  class MachineCode;
   class InterpreterCallFrame;
   class InlineCache;
 
-  typedef Object* (*InterpreterRunner)(STATE, VMMethod* const vmm,
+  typedef Object* (*InterpreterRunner)(STATE, MachineCode* const mcode,
                                        InterpreterCallFrame* const call_frame);
 
-  class VMMethod : public CodeResource {
+  class MachineCode : public CodeResource {
   public:
     static void** instructions;
 
@@ -50,7 +50,7 @@ namespace rubinius {
     };
 
   private:
-    VMMethod* parent_;
+    MachineCode* parent_;
 
   public:
     InterpreterRunner run;
@@ -92,8 +92,8 @@ namespace rubinius {
   public: // Methods
     static void init(STATE);
 
-    VMMethod(STATE, CompiledCode* meth);
-    virtual ~VMMethod();
+    MachineCode(STATE, CompiledCode* meth);
+    virtual ~MachineCode();
     virtual void cleanup(STATE, CodeManager* cm);
     virtual int size();
 
@@ -124,11 +124,11 @@ namespace rubinius {
       return number_of_caches_;
     }
 
-    VMMethod* parent() {
+    MachineCode* parent() {
       return parent_;
     }
 
-    void set_parent(VMMethod* parent) {
+    void set_parent(MachineCode* parent) {
       parent_ = parent;
     }
 
@@ -174,20 +174,20 @@ namespace rubinius {
      *
      *  @see  vm/instructions.cpp for the code.
      */
-    static Object* interpreter(STATE, VMMethod* const vmm,
+    static Object* interpreter(STATE, MachineCode* const mcode,
                                InterpreterCallFrame* const call_frame);
 
-    static Object* debugger_interpreter(STATE, VMMethod* const vmm,
+    static Object* debugger_interpreter(STATE, MachineCode* const mcode,
                                         InterpreterCallFrame* const call_frame);
     static Object* debugger_interpreter_continue(STATE,
-                                       VMMethod* const vmm,
+                                       MachineCode* const mcode,
                                        CallFrame* const call_frame,
                                        int sp,
                                        InterpreterState& is,
                                        int current_unwind,
                                        UnwindInfo* unwinds);
 
-    static Object* uncommon_interpreter(STATE, VMMethod* const vmm,
+    static Object* uncommon_interpreter(STATE, MachineCode* const mcode,
       CallFrame* const call_frame, int32_t entry_ip, native_int sp,
       CallFrame* const method_call_frame, jit::RuntimeDataHolder* rd,
       int32_t unwind_count, int32_t* unwinds);
@@ -205,7 +205,7 @@ namespace rubinius {
 
     /*
      * Helper class for iterating over an Opcode array.  Used to convert a
-     * VMMethod to an LLVM method.
+     * MachineCode to an LLVM method.
      */
     class Iterator {
     public:
@@ -213,10 +213,10 @@ namespace rubinius {
       size_t position_;
       size_t size_;
 
-      Iterator(VMMethod* vmm)
-        : stream_(vmm->opcodes)
+      Iterator(MachineCode* mcode)
+        : stream_(mcode->opcodes)
         , position_(0)
-        , size_(vmm->total)
+        , size_(mcode->total)
       {}
 
       Iterator(opcode* stream, size_t size)

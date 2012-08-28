@@ -3,7 +3,7 @@
 #include "rbxti-internal.hpp"
 
 #include "vm/vm.hpp"
-#include "vmmethod.hpp"
+#include "machine_code.hpp"
 #include "configuration.hpp"
 #include "config_parser.hpp"
 
@@ -223,8 +223,8 @@ namespace rbxti {
   r_mint Env::method_id(rmethod meth) {
     CompiledCode* cm = i(meth);
 
-    if(VMMethod* vmm = cm->backend_method()) {
-      return (vmm->method_id() << 1) | 1;
+    if(MachineCode* mcode = cm->machine_code()) {
+      return (mcode->method_id() << 1) | 1;
     }
 
     return 0;

@@ -1,7 +1,7 @@
 #ifndef RBX_LLVM_INLINE_POLICY_HPP
 #define RBX_LLVM_INLINE_POLICY_HPP
 
-#include "vmmethod.hpp"
+#include "machine_code.hpp"
 #include "instructions_util.hpp"
 
 namespace rubinius {
@@ -44,15 +44,15 @@ namespace rubinius {
 
     class Unsupported {};
 
-    static bool can_inline_p(VMMethod* vmm, InlineOptions& opts) {
+    static bool can_inline_p(MachineCode* mcode, InlineOptions& opts) {
       // Reject methods with splat arguments
-      if(!opts.allow_splat && vmm->splat_position >= 0) return false;
-      if(vmm->post_args > 0) return false;
+      if(!opts.allow_splat && mcode->splat_position >= 0) return false;
+      if(mcode->post_args > 0) return false;
 
       InlineEvaluator eval(opts);
 
       try {
-        eval.drive(vmm);
+        eval.drive(mcode);
       } catch(Unsupported& e) {
         return false;
       }
@@ -121,16 +121,16 @@ namespace rubinius {
 
   class InlinePolicy {
   protected:
-    VMMethod* vmm_;
+    MachineCode* machine_code_;
     size_t current_size_;
     size_t max_size_;
 
   public:
-    static InlinePolicy* create_policy(VMMethod* vmm);
+    static InlinePolicy* create_policy(MachineCode* mcode);
 
-    InlinePolicy(VMMethod* vmm, int max)
-      : vmm_(vmm)
-      , current_size_(vmm->total)
+    InlinePolicy(MachineCode* mcode, int max)
+      : machine_code_(mcode)
+      , current_size_(mcode->total)
       , max_size_(max)
     {}
 
@@ -144,79 +144,79 @@ namespace rubinius {
       return max_size_;
     }
 
-    bool check_size_p(VMMethod* other) {
+    bool check_size_p(MachineCode* other) {
       if(other->total + current_size_ > max_size_) return false;
       return true;
     }
 
-    InlineDecision inline_p(VMMethod* vmm, InlineOptions& opts) {
-      if(!InlineEvaluator::can_inline_p(vmm, opts)) {
+    InlineDecision inline_p(MachineCode* mcode, InlineOptions& opts) {
+      if(!InlineEvaluator::can_inline_p(mcode, opts)) {
         return cTooComplex;
       }
 
-      if(opts.check_size && !check_size_p(vmm)) return cTooBig;
+      if(opts.check_size && !check_size_p(mcode)) return cTooBig;
       return cInline;
     }
 
-    void increase_size(VMMethod* vmm) {
-      current_size_ += vmm->total;
+    void increase_size(MachineCode* mcode) {
+      current_size_ += mcode->total;
     }
   };
 
   class SmallMethodInlinePolicy : public InlinePolicy {
   public:
-    static bool is_small_p(VMMethod* vmm) {
-      if(vmm->total < 100) return true;
+    static bool is_small_p(MachineCode* mcode) {
+      if(mcode->total < 100) return true;
       return false;
     }
 
-    SmallMethodInlinePolicy(VMMethod* vmm)
-      : InlinePolicy(vmm, 300) // Random number!
+    SmallMethodInlinePolicy(MachineCode* mcode)
+      : InlinePolicy(mcode, 300) // Random number!
     {}
 
   };
 
   class NormalMethodInlinePolicy : public InlinePolicy {
   public:
-    static bool is_normal_p(VMMethod* vmm) {
-      if(vmm->total < 300) return true;
+    static bool is_normal_p(MachineCode* mcode) {
+      if(mcode->total < 300) return true;
       return false;
     }
 
-    NormalMethodInlinePolicy(VMMethod* vmm)
-      : InlinePolicy(vmm, vmm->total * 3)
+    NormalMethodInlinePolicy(MachineCode* mcode)
+      : InlinePolicy(mcode, mcode->total * 3)
     {}
 
   };
 
   class LargeMethodInlinePolicy : public InlinePolicy {
   public:
-    static bool is_large_p(VMMethod* vmm) {
-      if(vmm->total < 2000) return true;
+    static bool is_large_p(MachineCode* mcode) {
+      if(mcode->total < 2000) return true;
       return false;
     }
 
-    LargeMethodInlinePolicy(VMMethod* vmm)
-      : InlinePolicy(vmm, vmm->total * 2)
+    LargeMethodInlinePolicy(MachineCode* mcode)
+      : InlinePolicy(mcode, mcode->total * 2)
     {}
   };
 
   class NoChangeInlinePolicy : public InlinePolicy {
   public:
-    NoChangeInlinePolicy(VMMethod* vmm)
-      : InlinePolicy(vmm, vmm->total)
+    NoChangeInlinePolicy(MachineCode* mcode)
+      : InlinePolicy(mcode, mcode->total)
     {}
   };
 
-  inline InlinePolicy* InlinePolicy::create_policy(VMMethod* vmm) {
-    if(SmallMethodInlinePolicy::is_small_p(vmm)) {
-      return new SmallMethodInlinePolicy(vmm);
-    } else if(NormalMethodInlinePolicy::is_normal_p(vmm)) {
-      return new NormalMethodInlinePolicy(vmm);
-    } else if(LargeMethodInlinePolicy::is_large_p(vmm)) {
-      return new LargeMethodInlinePolicy(vmm);
+  inline InlinePolicy* InlinePolicy::create_policy(MachineCode* mcode) {
+    if(SmallMethodInlinePolicy::is_small_p(mcode)) {
+      return new SmallMethodInlinePolicy(mcode);
+    } else if(NormalMethodInlinePolicy::is_normal_p(mcode)) {
+      return new NormalMethodInlinePolicy(mcode);
+    } else if(LargeMethodInlinePolicy::is_large_p(mcode)) {
+      return new LargeMethodInlinePolicy(mcode);
     } else {
-      return new NoChangeInlinePolicy(vmm);
+      return new NoChangeInlinePolicy(mcode);
     }
 
     return NULL;

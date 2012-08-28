@@ -1,6 +1,6 @@
 namespace rubinius {
   class OpcodeIterator {
-    VMMethod* vmm_;
+    MachineCode* machine_code_;
 
     opcode ip_;
     int width_;
@@ -10,7 +10,7 @@ namespace rubinius {
 
   private:
     void update() {
-      op_ = vmm_->opcodes[ip_];
+      op_ = machine_code_->opcodes[ip_];
 
       switch(op_) {
 #define HANDLE_INST0(code, name) \
@@ -42,8 +42,8 @@ namespace rubinius {
 #include "gen/instruction_names.hpp"
 
   public:
-    OpcodeIterator(VMMethod* vmm, int ip=0)
-      : vmm_(vmm)
+    OpcodeIterator(MachineCode* mcode, int ip=0)
+      : machine_code_(mcode)
       , ip_(ip)
       , width_(0)
     {
@@ -51,7 +51,7 @@ namespace rubinius {
     }
 
     opcode* stream() {
-      return vmm_->opcodes;
+      return machine_code_->opcodes;
     }
 
     opcode ip() {
@@ -63,7 +63,7 @@ namespace rubinius {
     }
 
     bool next_p() {
-      return ip_ < vmm_->total;
+      return ip_ < machine_code_->total;
     }
 
     void switch_to(int ip) {
@@ -88,7 +88,7 @@ namespace rubinius {
     }
 
     opcode operand(int which) {
-      return vmm_->opcodes[ip_ + which + 1];
+      return machine_code_->opcodes[ip_ + which + 1];
     }
 
     // flags

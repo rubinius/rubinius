@@ -1,5 +1,5 @@
 #include <list>
-#include "vmmethod.hpp"
+#include "machine_code.hpp"
 
 namespace rubinius {
 namespace jit {
@@ -89,11 +89,11 @@ namespace jit {
       , stream_size_(size)
     {}
 
-    CFGCalculator(VMMethod* vmm)
+    CFGCalculator(MachineCode* mcode)
       : root_(0)
       , current_(0)
-      , stream_(vmm->opcodes)
-      , stream_size_(vmm->total)
+      , stream_(mcode->opcodes)
+      , stream_size_(mcode->total)
     {}
 
     ~CFGCalculator() {
@@ -142,7 +142,7 @@ namespace jit {
     }
 
     void find_backward_gotos() {
-      VMMethod::Iterator iter(stream_, stream_size_);
+      MachineCode::Iterator iter(stream_, stream_size_);
 
       while(!iter.end()) {
         switch(iter.op()) {
@@ -162,13 +162,13 @@ namespace jit {
       }
     }
 
-    void close_current(VMMethod::Iterator& iter, CFGBlock* next) {
+    void close_current(MachineCode::Iterator& iter, CFGBlock* next) {
       current_->set_end_ip(iter.position());
       current_->add_child(next);
       current_ = next;
     }
 
-    CFGBlock* start_new_block(VMMethod::Iterator& iter) {
+    CFGBlock* start_new_block(MachineCode::Iterator& iter) {
       if(!iter.last_instruction()) {
         CFGBlock* blk = add_block(iter.next_position());
         close_current(iter, blk);
@@ -191,7 +191,7 @@ namespace jit {
 
       current_ = root_;
 
-      VMMethod::Iterator iter(stream_, stream_size_);
+      MachineCode::Iterator iter(stream_, stream_size_);
       for(;;) {
         if(CFGBlock* next_block = find_block(iter.position())) {
           if(next_block->loop_p() && current_ != next_block) {

@@ -10,7 +10,7 @@ namespace rubinius {
 
   /**
    * Manages memory for code-based resources that are owned by Ruby objects,
-   * such as VMMethod instances, JIT code, FFI resources etc.
+   * such as MachineCode instances, JIT code, FFI resources etc.
    *
    * These objects are not directly accessible via Ruby code, but are used by
    * the VM to support the running of Ruby code. As such, these objects also

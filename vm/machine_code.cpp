@@ -4,7 +4,7 @@
 #include "call_frame.hpp"
 #include "objectmemory.hpp"
 #include "prelude.hpp"
-#include "vmmethod.hpp"
+#include "machine_code.hpp"
 
 #include "vm/object_utils.hpp"
 
@@ -42,9 +42,9 @@
  */
 namespace rubinius {
 
-  void** VMMethod::instructions = 0;
+  void** MachineCode::instructions = 0;
 
-  void VMMethod::init(STATE) {
+  void MachineCode::init(STATE) {
     // Seed the instructions table
     interpreter(0, 0, 0);
   }
@@ -52,9 +52,9 @@ namespace rubinius {
   /*
    * Turns a CompiledCode's InstructionSequence into a C array of opcodes.
    */
-  VMMethod::VMMethod(STATE, CompiledCode* meth)
+  MachineCode::MachineCode(STATE, CompiledCode* meth)
     : parent_(NULL)
-    , run(VMMethod::interpreter)
+    , run(MachineCode::interpreter)
     , type(NULL)
     , uncommon_count(0)
     , number_of_caches_(0)
@@ -105,7 +105,7 @@ namespace rubinius {
     state->shared().om->add_code_resource(this);
   }
 
-  VMMethod::~VMMethod() {
+  MachineCode::~MachineCode() {
     delete[] opcodes;
     delete[] addresses;
 
@@ -114,21 +114,21 @@ namespace rubinius {
     }
   }
 
-  void VMMethod::cleanup(STATE, CodeManager* cm) {
+  void MachineCode::cleanup(STATE, CodeManager* cm) {
     for(size_t i = 0; i < number_of_caches_; i++) {
       InlineCache* cache = &caches[i];
       cm->shared()->ic_registry()->remove_cache(state, cache->name, cache);
     }
   }
 
-  int VMMethod::size() {
-    return sizeof(VMMethod) +
+  int MachineCode::size() {
+    return sizeof(MachineCode) +
       (total * sizeof(opcode)) + // opcodes
       (total * sizeof(void*)) + // addresses
       (number_of_caches_ * sizeof(InlineCache)); // caches
   }
 
-  void VMMethod::fill_opcodes(STATE, CompiledCode* original) {
+  void MachineCode::fill_opcodes(STATE, CompiledCode* original) {
     Tuple* ops = original->iseq()->opcodes();
     Object* val;
 
@@ -184,7 +184,7 @@ namespace rubinius {
     initialize_caches(state, original, sends);
   }
 
-  void VMMethod::initialize_caches(STATE, CompiledCode* original, int sends) {
+  void MachineCode::initialize_caches(STATE, CompiledCode* original, int sends) {
     number_of_caches_ = sends;
     caches = new InlineCache[sends];
 
@@ -274,7 +274,7 @@ namespace rubinius {
   // For when the method expects no arguments at all (no splat, nothing)
   class NoArguments {
   public:
-    static bool call(STATE, VMMethod* vmm, StackVariables* scope, Arguments& args) {
+    static bool call(STATE, MachineCode* mcode, StackVariables* scope, Arguments& args) {
       return args.total() == 0;
     }
   };
@@ -282,7 +282,7 @@ namespace rubinius {
   // For when the method expects 1 and only 1 argument
   class OneArgument {
   public:
-    static bool call(STATE, VMMethod* vmm, StackVariables* scope, Arguments& args) {
+    static bool call(STATE, MachineCode* mcode, StackVariables* scope, Arguments& args) {
       if(args.total() != 1) return false;
       scope->set_local(0, args.get_argument(0));
       return true;
@@ -292,7 +292,7 @@ namespace rubinius {
   // For when the method expects 2 and only 2 arguments
   class TwoArguments {
   public:
-    static bool call(STATE, VMMethod* vmm, StackVariables* scope, Arguments& args) {
+    static bool call(STATE, MachineCode* mcode, StackVariables* scope, Arguments& args) {
       if(args.total() != 2) return false;
       scope->set_local(0, args.get_argument(0));
       scope->set_local(1, args.get_argument(1));
@@ -303,7 +303,7 @@ namespace rubinius {
   // For when the method expects 3 and only 3 arguments
   class ThreeArguments {
   public:
-    static bool call(STATE, VMMethod* vmm, StackVariables* scope, Arguments& args) {
+    static bool call(STATE, MachineCode* mcode, StackVariables* scope, Arguments& args) {
       if(args.total() != 3) return false;
       scope->set_local(0, args.get_argument(0));
       scope->set_local(1, args.get_argument(1));
@@ -315,10 +315,10 @@ namespace rubinius {
   // For when the method expects a fixed number of arguments (no splat)
   class FixedArguments {
   public:
-    static bool call(STATE, VMMethod* vmm, StackVariables* scope, Arguments& args) {
-      if((native_int)args.total() != vmm->total_args) return false;
+    static bool call(STATE, MachineCode* mcode, StackVariables* scope, Arguments& args) {
+      if((native_int)args.total() != mcode->total_args) return false;
 
-      for(native_int i = 0; i < vmm->total_args; i++) {
+      for(native_int i = 0; i < mcode->total_args; i++) {
         scope->set_local(i, args.get_argument(i));
       }
 
@@ -329,7 +329,7 @@ namespace rubinius {
   // For when a method takes all arguments as a splat
   class SplatOnlyArgument {
   public:
-    static bool call(STATE, VMMethod* vmm, StackVariables* scope, Arguments& args) {
+    static bool call(STATE, MachineCode* mcode, StackVariables* scope, Arguments& args) {
       const size_t total = args.total();
       Array* ary = Array::create(state, total);
 
@@ -337,7 +337,7 @@ namespace rubinius {
         ary->set(state, i, args.get_argument(i));
       }
 
-      scope->set_local(vmm->splat_position, ary);
+      scope->set_local(mcode->splat_position, ary);
       return true;
     }
   };
@@ -345,24 +345,24 @@ namespace rubinius {
   // The fallback, can handle all cases
   class GenericArguments {
   public:
-    static bool call(STATE, VMMethod* vmm, StackVariables* scope, Arguments& args) {
-      const bool has_splat = (vmm->splat_position >= 0);
+    static bool call(STATE, MachineCode* mcode, StackVariables* scope, Arguments& args) {
+      const bool has_splat = (mcode->splat_position >= 0);
       native_int total_args = args.total();
 
       // expecting 0, got 0.
-      if(vmm->total_args == 0 && total_args == 0) {
+      if(mcode->total_args == 0 && total_args == 0) {
         if(has_splat) {
-          scope->set_local(vmm->splat_position, Array::create(state, 0));
+          scope->set_local(mcode->splat_position, Array::create(state, 0));
         }
 
         return true;
       }
 
       // Too few args!
-      if(total_args < vmm->required_args) return false;
+      if(total_args < mcode->required_args) return false;
 
       // Too many args (no splat!)
-      if(!has_splat && total_args > vmm->total_args) return false;
+      if(!has_splat && total_args > mcode->total_args) return false;
 
       /* There are 4 types of arguments, illustrated here:
        *    m(a, b=1, *c, d)
@@ -385,15 +385,15 @@ namespace rubinius {
        *  the rest (if any) go into an array for the splat.
        */
 
-      const native_int P = vmm->post_args;
-      const native_int R = vmm->required_args;
+      const native_int P = mcode->post_args;
+      const native_int R = mcode->required_args;
 
       // M is for mandatory
       const native_int M = R - P;
       const native_int T = total_args;
 
       // DT is for declared total
-      const native_int DT = vmm->total_args;
+      const native_int DT = mcode->total_args;
       const native_int O = DT - R;
 
       // HS is for has splat
@@ -446,7 +446,7 @@ namespace rubinius {
           ary = Array::create(state, 0);
         }
 
-        scope->set_local(vmm->splat_position, ary);
+        scope->set_local(mcode->splat_position, ary);
       }
 
       return true;
@@ -461,7 +461,7 @@ namespace rubinius {
    * index assigned.  Same for set_ivar/store_my_field.
    */
 
-  void VMMethod::specialize(STATE, CompiledCode* original, TypeInfo* ti) {
+  void MachineCode::specialize(STATE, CompiledCode* original, TypeInfo* ti) {
     type = ti;
     for(size_t i = 0; i < total;) {
       opcode op = opcodes[i];
@@ -496,7 +496,7 @@ namespace rubinius {
     find_super_instructions();
   }
 
-  void VMMethod::find_super_instructions() {
+  void MachineCode::find_super_instructions() {
     return;
     for(size_t index = 0; index < total;) {
       size_t width = InstructionSequence::instruction_width(opcodes[index]);
@@ -508,9 +508,9 @@ namespace rubinius {
     }
   }
 
-  void VMMethod::setup_argument_handler(CompiledCode* meth) {
+  void MachineCode::setup_argument_handler(CompiledCode* meth) {
     // Firstly, use the generic case that handles all cases
-    fallback = &VMMethod::execute_specialized<GenericArguments>;
+    fallback = &MachineCode::execute_specialized<GenericArguments>;
 
     // If there are no optionals, only a fixed number of positional arguments.
     if(total_args == required_args) {
@@ -518,26 +518,26 @@ namespace rubinius {
       if(total_args == 0) {
         // and there is no splat, use the fastest case.
         if(splat_position == -1) {
-          fallback = &VMMethod::execute_specialized<NoArguments>;
+          fallback = &MachineCode::execute_specialized<NoArguments>;
 
         // otherwise use the splat only case.
         } else {
-          fallback = &VMMethod::execute_specialized<SplatOnlyArgument>;
+          fallback = &MachineCode::execute_specialized<SplatOnlyArgument>;
         }
       // Otherwise use the few specialized cases iff there is no splat
       } else if(splat_position == -1) {
         switch(total_args) {
         case 1:
-          fallback= &VMMethod::execute_specialized<OneArgument>;
+          fallback= &MachineCode::execute_specialized<OneArgument>;
           break;
         case 2:
-          fallback = &VMMethod::execute_specialized<TwoArguments>;
+          fallback = &MachineCode::execute_specialized<TwoArguments>;
           break;
         case 3:
-          fallback = &VMMethod::execute_specialized<ThreeArguments>;
+          fallback = &MachineCode::execute_specialized<ThreeArguments>;
           break;
         default:
-          fallback = &VMMethod::execute_specialized<FixedArguments>;
+          fallback = &MachineCode::execute_specialized<FixedArguments>;
           break;
         }
       }
@@ -549,41 +549,41 @@ namespace rubinius {
   /* This is the execute implementation used by normal Ruby code,
    * as opposed to Primitives or FFI functions.
    * It prepares a Ruby method for execution.
-   * Here, +exec+ is a VMMethod instance accessed via the +vmm+ slot on
+   * Here, +exec+ is a MachineCode instance accessed via the +machine_code+ slot on
    * CompiledCode.
    *
    * This method works as a template even though it's here because it's never
    * called from outside of this file. Thus all the template expansions are done.
    */
   template <typename ArgumentHandler>
-    Object* VMMethod::execute_specialized(STATE, CallFrame* previous,
+    Object* MachineCode::execute_specialized(STATE, CallFrame* previous,
         Executable* exec, Module* mod, Arguments& args) {
 
       CompiledCode* cm = as<CompiledCode>(exec);
-      VMMethod* vmm = cm->backend_method();
+      MachineCode* mcode = cm->machine_code();
 
-      StackVariables* scope = ALLOCA_STACKVARIABLES(vmm->number_of_locals);
+      StackVariables* scope = ALLOCA_STACKVARIABLES(mcode->number_of_locals);
       // Originally, I tried using msg.module directly, but what happens is if
       // super is used, that field is read. If you combine that with the method
       // being called recursively, msg.module can change, causing super() to
       // look in the wrong place.
       //
       // Thus, we have to cache the value in the StackVariables.
-      scope->initialize(args.recv(), args.block(), mod, vmm->number_of_locals);
+      scope->initialize(args.recv(), args.block(), mod, mcode->number_of_locals);
 
-      InterpreterCallFrame* frame = ALLOCA_CALLFRAME(vmm->stack_size);
+      InterpreterCallFrame* frame = ALLOCA_CALLFRAME(mcode->stack_size);
 
       // If argument handling fails..
-      if(ArgumentHandler::call(state, vmm, scope, args) == false) {
+      if(ArgumentHandler::call(state, mcode, scope, args) == false) {
         Exception* exc =
-          Exception::make_argument_error(state, vmm->total_args, args.total(), args.name());
+          Exception::make_argument_error(state, mcode->total_args, args.total(), args.name());
         exc->locations(state, Location::from_call_stack(state, previous));
         state->raise_exception(exc);
 
         return NULL;
       }
 
-      frame->prepare(vmm->stack_size);
+      frame->prepare(mcode->stack_size);
 
       frame->previous = previous;
       frame->flags =    0;
@@ -595,12 +595,12 @@ namespace rubinius {
 #ifdef ENABLE_LLVM
       // A negative call_count means we've disabled usage based JIT
       // for this method.
-      if(vmm->call_count >= 0) {
-        if(vmm->call_count >= state->shared().config.jit_call_til_compile) {
+      if(mcode->call_count >= 0) {
+        if(mcode->call_count >= state->shared().config.jit_call_til_compile) {
           LLVMState* ls = LLVMState::get(state);
           ls->compile_callframe(state, cm, frame);
         } else {
-          vmm->call_count++;
+          mcode->call_count++;
         }
       }
 #endif
@@ -619,35 +619,35 @@ namespace rubinius {
 #ifdef RBX_PROFILER
       if(unlikely(state->vm()->tooling())) {
         tooling::MethodEntry method(state, exec, mod, args, cm);
-        return (*vmm->run)(state, vmm, frame);
+        return (*mcode->run)(state, mcode, frame);
       } else {
-        return (*vmm->run)(state, vmm, frame);
+        return (*mcode->run)(state, mcode, frame);
       }
 #else
-      return (*vmm->run)(state, vmm, frame);
+      return (*mcode->run)(state, mcode, frame);
 #endif
     }
 
   /** This is used as a fallback way of entering the interpreter */
-  Object* VMMethod::execute(STATE, CallFrame* previous, Executable* exec, Module* mod, Arguments& args) {
+  Object* MachineCode::execute(STATE, CallFrame* previous, Executable* exec, Module* mod, Arguments& args) {
     return execute_specialized<GenericArguments>(state, previous, exec, mod, args);
   }
 
-  Object* VMMethod::execute_as_script(STATE, CompiledCode* cm, CallFrame* previous) {
-    VMMethod* vmm = cm->backend_method();
+  Object* MachineCode::execute_as_script(STATE, CompiledCode* cm, CallFrame* previous) {
+    MachineCode* mcode = cm->machine_code();
 
-    StackVariables* scope = ALLOCA_STACKVARIABLES(vmm->number_of_locals);
+    StackVariables* scope = ALLOCA_STACKVARIABLES(mcode->number_of_locals);
     // Originally, I tried using msg.module directly, but what happens is if
     // super is used, that field is read. If you combine that with the method
     // being called recursively, msg.module can change, causing super() to
     // look in the wrong place.
     //
     // Thus, we have to cache the value in the StackVariables.
-    scope->initialize(G(main), cNil, G(object), vmm->number_of_locals);
+    scope->initialize(G(main), cNil, G(object), mcode->number_of_locals);
 
-    InterpreterCallFrame* frame = ALLOCA_CALLFRAME(vmm->stack_size);
+    InterpreterCallFrame* frame = ALLOCA_CALLFRAME(mcode->stack_size);
 
-    frame->prepare(vmm->stack_size);
+    frame->prepare(mcode->stack_size);
 
     Arguments args(state->symbol("__script__"), G(main), cNil, 0, 0);
 
@@ -674,15 +674,15 @@ namespace rubinius {
     // Don't generate profiling info here, it's expected
     // to be done by the caller.
 
-    return (*vmm->run)(state, vmm, frame);
+    return (*mcode->run)(state, mcode, frame);
   }
 
   /* This is a noop for this class. */
-  void VMMethod::compile(STATE) { }
+  void MachineCode::compile(STATE) { }
 
   // If +disable+ is set, then the method is tagged as not being
   // available for JIT.
-  void VMMethod::deoptimize(STATE, CompiledCode* original,
+  void MachineCode::deoptimize(STATE, CompiledCode* original,
                             jit::RuntimeDataHolder* rd,
                             bool disable)
   {
@@ -746,9 +746,9 @@ namespace rubinius {
   /*
    * Ensures the specified IP value is a valid address.
    */
-  bool VMMethod::validate_ip(STATE, size_t ip) {
+  bool MachineCode::validate_ip(STATE, size_t ip) {
     /* Ensure ip is valid */
-    VMMethod::Iterator iter(this);
+    MachineCode::Iterator iter(this);
     for(; !iter.end(); iter.inc()) {
       if(iter.position() >= ip) break;
     }

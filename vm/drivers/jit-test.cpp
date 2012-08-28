@@ -1,6 +1,6 @@
 #include "prelude.hpp"
 #include "object_utils.hpp"
-#include "vmmethod.hpp"
+#include "machine_code.hpp"
 #include "jit.hpp"
 #include "environment.hpp"
 #include "config_parser.hpp"
@@ -39,12 +39,12 @@ int main(int argc, char **argv) {
     cout << "Invalid file.\n";
   }
 
-  VMMethod* vmm = as<CompiledCode>(cf->body(state))->formalize(state, false);
+  MachineCode* mcode = as<CompiledCode>(cf->body(state))->formalize(state, false);
 
   delete cf;
 
-  compiler.compile(state, vmm);
-  MachineMethod* mm = MachineMethod::create(state, vmm, compiler);
+  compiler.compile(state, mcode);
+  MachineMethod* mm = MachineMethod::create(state, mcode, compiler);
   mm->show();
   return 0;
 }

@@ -27,8 +27,8 @@ namespace rubinius {
       , waiter_(0)
     {}
 
-    VMMethod* vmmethod() {
-      return method_->backend_method();
+    MachineCode* machine_code() {
+      return method_->machine_code();
     }
 
     CompiledCode* method() {
