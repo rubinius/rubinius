@@ -1323,6 +1323,11 @@ VALUE rb_uint2big(unsigned long number);
   NORETURN(void rb_throw(const char* symbol, VALUE result));
 
   /**
+   * Run the function and catch the possible throw value
+   */
+  VALUE rb_catch(const char*,VALUE(*)(ANYARGS),VALUE);
+
+  /**
    * Calls the function 'func', with arg1 as the argument.  If an exception
    * occurs during 'func', it calls 'raise_func' with arg2 as the argument.  The
    * return value of rb_rescue() is the return value from 'func' if no
