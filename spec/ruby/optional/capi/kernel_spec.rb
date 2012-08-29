@@ -72,6 +72,34 @@ describe "C-API Kernel function" do
     end
   end
 
+  ruby_version_is "1.9" do
+    describe "rb_throw_obj" do
+      before :each do
+        ScratchPad.record []
+        @tag = Object.new
+      end
+
+      it "sets the return value of the catch block to the specified value" do
+        catch(@tag) do
+          @s.rb_throw_obj(@tag, :thrown_value)
+        end.should == :thrown_value
+      end
+
+      it "terminates the function at the point it was called" do
+        catch(@tag) do
+          ScratchPad << :before_throw
+          @s.rb_throw_obj(@tag, :thrown_value)
+          ScratchPad << :after_throw
+        end.should == :thrown_value
+        ScratchPad.recorded.should == [:before_throw]
+      end
+
+      it "raises an ArgumentError if there is no catch block for the symbol" do
+        lambda { @s.rb_throw(nil) }.should raise_error(ArgumentError)
+      end
+    end
+  end
+
   describe "rb_warn" do
     before :each do
       @stderr, $stderr = $stderr, IOStub.new
@@ -243,6 +271,34 @@ describe "C-API Kernel function" do
     end
 
     ruby_version_is "1.9" do
+      it "raises a ArgumentError if the throw symbol isn't caught" do
+        lambda { @s.rb_catch("foo", lambda { throw :bar }) }.should raise_error(ArgumentError)
+      end
+    end
+  end
+
+  ruby_version_is "1.9" do
+    describe "rb_catch_obj" do
+
+      before :each do
+        ScratchPad.record []
+        @tag = Object.new
+      end
+
+      it "executes passed function" do
+        @s.rb_catch_obj(@tag, lambda { 1 }).should == 1
+      end
+
+      it "terminates the function at the point it was called" do
+        proc = lambda do
+          ScratchPad << :before_throw
+          throw @tag
+          ScratchPad << :after_throw
+        end
+        @s.rb_catch_obj(@tag, proc).should be_nil
+        ScratchPad.recorded.should == [:before_throw]
+      end
+
       it "raises a ArgumentError if the throw symbol isn't caught" do
         lambda { @s.rb_catch("foo", lambda { throw :bar }) }.should raise_error(ArgumentError)
       end

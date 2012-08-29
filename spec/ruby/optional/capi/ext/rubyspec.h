@@ -305,6 +305,10 @@
 #define HAVE_RB_SYS_FAIL                   1
 #define HAVE_RB_THROW                      1
 #define HAVE_RB_CATCH                      1
+#ifdef RUBY_VERSION_IS_1_9
+#define HAVE_RB_THROW_OBJ                  1
+#define HAVE_RB_CATCH_OBJ                  1
+#endif
 #define HAVE_RB_WARN                       1
 #define HAVE_RB_YIELD                      1
 #define HAVE_RB_YIELD_SPLAT                1
