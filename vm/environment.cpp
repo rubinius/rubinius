@@ -96,6 +96,8 @@ namespace rubinius {
     VM::init_stack_size();
 
     shared = new SharedState(this, config, config_parser);
+
+    load_vm_options(argc_, argv_);
     root_vm = shared->new_vm();
     state = new State(root_vm);
 
@@ -851,7 +853,6 @@ namespace rubinius {
     std::string runtime = system_prefix() + RBX_RUNTIME_PATH;
 
     load_platform_conf(runtime);
-    load_vm_options(argc_, argv_);
     boot_vm();
     load_argv(argc_, argv_);
 
