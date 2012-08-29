@@ -50,6 +50,16 @@ VALUE kernel_spec_rb_ensure(VALUE self, VALUE main_proc, VALUE arg,
 }
 #endif
 
+#ifdef HAVE_RB_CATCH
+VALUE kernel_spec_call_proc_with_catch(VALUE arg, VALUE data) {
+  return rb_funcall(data, rb_intern("call"), 0);
+}
+
+VALUE kernel_spec_rb_catch(VALUE self, VALUE sym, VALUE main_proc) {
+  return rb_catch(StringValuePtr(sym), kernel_spec_call_proc_with_catch, main_proc);
+}
+#endif
+
 #ifdef HAVE_RB_EVAL_STRING
 VALUE kernel_spec_rb_eval_string(VALUE self, VALUE str) {
   return rb_eval_string(RSTRING_PTR(str));
@@ -230,6 +240,10 @@ void Init_kernel_spec() {
 
 #ifdef HAVE_RB_RESCUE2
   rb_define_method(cls, "rb_rescue2", kernel_spec_rb_rescue2, -1);
+#endif
+
+#ifdef HAVE_RB_CATCH
+  rb_define_method(cls, "rb_catch", kernel_spec_rb_catch, 2);
 #endif
 
 #ifdef HAVE_RB_SYS_FAIL

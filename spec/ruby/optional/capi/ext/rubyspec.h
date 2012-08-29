@@ -304,6 +304,7 @@
 #define HAVE_RB_SET_END_PROC               1
 #define HAVE_RB_SYS_FAIL                   1
 #define HAVE_RB_THROW                      1
+#define HAVE_RB_CATCH                      1
 #define HAVE_RB_WARN                       1
 #define HAVE_RB_YIELD                      1
 #define HAVE_RB_YIELD_SPLAT                1

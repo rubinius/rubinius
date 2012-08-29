@@ -221,6 +221,34 @@ describe "C-API Kernel function" do
     end
   end
 
+  describe "rb_catch" do
+    it "executes passed function" do
+      @s.rb_catch("foo", lambda { 1 }).should == 1
+    end
+
+    it "terminates the function at the point it was called" do
+      proc = lambda do
+        ScratchPad << :before_throw
+        throw :thrown_value
+        ScratchPad << :after_throw
+      end
+      @s.rb_catch("thrown_value", proc).should be_nil
+      ScratchPad.recorded.should == [:before_throw]
+    end
+
+    ruby_version_is ""..."1.9" do
+      it "raises a NameError if the throw symbol isn't caught" do
+        lambda { @s.rb_catch("foo", lambda { throw :bar }) }.should raise_error(NameError)
+      end
+    end
+
+    ruby_version_is "1.9" do
+      it "raises a ArgumentError if the throw symbol isn't caught" do
+        lambda { @s.rb_catch("foo", lambda { throw :bar }) }.should raise_error(ArgumentError)
+      end
+    end
+  end
+
   describe "rb_ensure" do
     it "executes passed function and returns its value" do
       proc = lambda { |x| x }
