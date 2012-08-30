@@ -14,6 +14,7 @@
 #include "builtin/block_environment.hpp"
 #include "builtin/proc.hpp"
 
+#include "call_frame.hpp"
 #include "configuration.hpp"
 #include "lookup_data.hpp"
 #include "dispatch.hpp"
@@ -426,6 +427,12 @@ namespace rubinius {
       Class* cls = c_as<Class>(env->get_object(klass));
       Exception* exc = Exception::make_exception(env->state(), cls, reason);
       capi_raise_backend(exc);
+    }
+
+    void capi_raise_break(VALUE obj) {
+      NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+      env->state()->vm()->thread_state()->raise_break(env->get_object(obj), env->scope()->parent());
+      env->current_ep()->return_to(env);
     }
 
     Proc* wrap_c_function(void* cb, VALUE cb_data, int arity) {

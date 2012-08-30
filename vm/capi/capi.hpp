@@ -49,6 +49,8 @@ namespace rubinius {
 
     void capi_raise_backend(VALUE klass, const char* reason);
 
+    void capi_raise_break(VALUE obj);
+
     /** Get an Array object for a handle ensuring that any RARRAY data has
      * been flushed. */
     Array* capi_get_array(NativeMethodEnvironment* env, VALUE ary_handle);

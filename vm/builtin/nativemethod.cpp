@@ -177,6 +177,14 @@ namespace rubinius {
     current_native_frame_->update_cached_data();
   }
 
+  StackVariables* NativeMethodEnvironment::scope() {
+    CallFrame* cur = current_call_frame();
+    while(!cur->scope) {
+      cur = cur->previous;
+    }
+    return cur->scope;
+  }
+
   void NativeMethod::init(STATE) {
     GO(nmethod).set(ontology::new_class(state, "NativeMethod",
           G(executable), G(rubinius)));
@@ -629,6 +637,10 @@ namespace rubinius {
     cf.previous = call_frame;
     cf.cm = 0;
     cf.scope = 0;
+    cf.optional_jit_data = 0;
+    cf.arguments = 0;
+    cf.constant_scope_ = 0;
+    cf.top_scope_ = 0;
     cf.dispatch_data = (void*)&nmf;
     cf.flags = CallFrame::cNativeMethod;
 

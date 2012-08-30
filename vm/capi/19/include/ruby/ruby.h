@@ -1476,6 +1476,11 @@ VALUE rb_uint2big(unsigned long number);
   VALUE rb_protect(VALUE (*func)(VALUE), VALUE data, int* status);
 
   /**
+   * Break from iteration
+   */
+  NORETURN(void rb_iter_break(void));
+
+  /**
    * Continue raising a pending exception if status is not 0
    */
   void rb_jump_tag(int status);

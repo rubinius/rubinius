@@ -23,6 +23,7 @@ namespace rubinius {
   class ExceptionPoint;
   class NativeMethodFrame;
   class Pointer;
+  class StackVariables;
 
   /** Tracks RARRAY and RSTRING structs */
   typedef std::tr1::unordered_map<capi::Handle*, void*> CApiStructs;
@@ -148,6 +149,8 @@ namespace rubinius {
 
     /** Updates cached data with changes to the Ruby objects. */
     void update_cached_data();
+
+    StackVariables* scope();
   };
 
 

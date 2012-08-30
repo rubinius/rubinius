@@ -277,6 +277,11 @@ extern "C" {
     setenv(name, value, 1);
   }
 
+  void rb_iter_break() {
+    capi::capi_raise_break(Qnil);
+    exit(1); // compiler snack
+  }
+
   // Imported from MRI
   char *ruby_strdup(const char *str) {
     char *tmp;
