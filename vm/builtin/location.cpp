@@ -31,7 +31,7 @@ namespace rubinius {
     Location* loc = state->new_object<Location>(G(location));
     loc->method_module(state, call_frame->module());
     loc->receiver(state, call_frame->self());
-    loc->method(state, call_frame->cm);
+    loc->method(state, call_frame->compiled_code);
     loc->ip(state, Fixnum::from(call_frame->ip()));
     loc->flags(state, Fixnum::from(0));
 
@@ -42,7 +42,7 @@ namespace rubinius {
       loc->name(state, call_frame->name());
     }
 
-    MachineCode* mcode = call_frame->cm->machine_code();
+    MachineCode* mcode = call_frame->compiled_code->machine_code();
     if(mcode && mcode->jitted()) {
       loc->set_is_jit(state);
     }
@@ -95,7 +95,7 @@ namespace rubinius {
     if(!call_frame) return bt;
 
     // First the first normal frame
-    while(!call_frame->cm) {
+    while(!call_frame->compiled_code) {
       call_frame = call_frame->previous;
       // Weird edge case.
       if(!call_frame) return bt;
@@ -110,7 +110,7 @@ namespace rubinius {
 
     while(call_frame) {
       // Ignore synthetic frames
-      if(call_frame->cm) {
+      if(call_frame->compiled_code) {
         bt->append(state, Location::create(state, call_frame, include_vars));
       } else if(NativeMethodFrame* nmf = call_frame->native_method_frame()) {
         Location* loc = Location::create(state, nmf);
@@ -123,8 +123,8 @@ namespace rubinius {
     return bt;
   }
 
-  static bool kernel_method(STATE, CompiledCode* cm) {
-    std::string s = cm->file()->cpp_str(state);
+  static bool kernel_method(STATE, CompiledCode* code) {
+    std::string s = code->file()->cpp_str(state);
     if(s.size() >= 7 && strncmp(s.data(), "kernel/", 7) == 0) return true;
     return false;
   }
@@ -134,7 +134,7 @@ namespace rubinius {
 
     CallFrame* c = call_frame;
     while(c) {
-      if(c->cm) count++;
+      if(c->compiled_code) count++;
       c = c->previous;
     }
 
@@ -142,7 +142,8 @@ namespace rubinius {
 
     while(call_frame) {
       // Ignore synthetic frames
-      if(call_frame->cm && !kernel_method(state, call_frame->cm)) {
+      if(call_frame->compiled_code &&
+         !kernel_method(state, call_frame->compiled_code)) {
         Symbol* name;
         Object* block = cFalse;
         Fixnum* line = Fixnum::from(call_frame->line(state));
@@ -152,7 +153,7 @@ namespace rubinius {
           name = call_frame->top_scope(state)->method()->name();
         } else {
           Symbol* current_name = call_frame->name();
-          Symbol* method_name  = call_frame->cm->name();
+          Symbol* method_name  = call_frame->compiled_code->name();
 
           if(current_name->nil_p()) {
             if(method_name->nil_p()) {
@@ -166,7 +167,7 @@ namespace rubinius {
         }
 
         bt->append(state,
-            Tuple::from(state, 4, call_frame->cm, line, block, name));
+            Tuple::from(state, 4, call_frame->compiled_code, line, block, name));
       }
 
       call_frame = call_frame->previous;

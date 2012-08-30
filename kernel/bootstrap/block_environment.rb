@@ -29,27 +29,27 @@ module Rubinius
       end
 
       def arity
-        @block_env.code.arity
+        @block_env.compiled_code.arity
       end
 
       def local_names
-        @block_env.code.local_names
+        @block_env.compiled_code.local_names
       end
 
       def required_args
-        @block_env.code.required_args
+        @block_env.compiled_code.required_args
       end
 
       def total_args
-        @block_env.code.total_args
+        @block_env.compiled_code.total_args
       end
 
       def post_args
-        @block_env.code.post_args
+        @block_env.compiled_code.post_args
       end
 
       def splat
-        @block_env.code.splat
+        @block_env.compiled_code.splat
       end
 
       def file

@@ -21,14 +21,14 @@ module Rubinius
     # For example:
     #
     # def g
-    #   f_cm = Rubinius::CompiledCode.of_sender
+    #   f_code = Rubinius::CompiledCode.of_sender
     # end
     #
     # def f
     #   g
     # end
     #
-    # f_cm is the CompiledCode of f as requested by g.
+    # f_code is the CompiledCode of f as requested by g.
     #
     def self.of_sender
       Rubinius.primitive :compiledcode_of_sender
@@ -48,8 +48,8 @@ module Rubinius
     end
   end
 
-  # NOTE: Temporary alias for backwards compatibility. CompiledMethod will
-  # eventually be deprecated in favor of CompiledCode.
+  # NOTE: Temporary alias for backwards compatibility. CompiledMethod is
+  # deprecated. Client code should use CompiledCode.
   CompiledMethod = CompiledCode
 
 end

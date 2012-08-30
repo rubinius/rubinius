@@ -229,7 +229,7 @@ namespace rubinius {
     llvm::Type* ptr_type(std::string name);
     llvm::Type* type(std::string name);
 
-    void compile_soon(STATE, CompiledCode* cm, Object* extra, bool is_block=false);
+    void compile_soon(STATE, CompiledCode* code, Object* extra, bool is_block=false);
     void remove(llvm::Function* func);
 
     CallFrame* find_candidate(STATE, CompiledCode* start, CallFrame* call_frame);
@@ -239,7 +239,7 @@ namespace rubinius {
     Symbol* symbol(const std::string& sym);
     std::string symbol_debug_str(const Symbol* sym);
 
-    std::string enclosure_name(CompiledCode* cm);
+    std::string enclosure_name(CompiledCode* code);
 
     void shutdown(STATE);
     void before_exec(STATE);

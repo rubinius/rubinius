@@ -142,7 +142,7 @@ namespace jit {
     }
   }
 
-  void Compiler::compile_block(LLVMState* ls, CompiledCode* cm, MachineCode* mcode) {
+  void Compiler::compile_block(LLVMState* ls, CompiledCode* code, MachineCode* mcode) {
     if(ls->config().jit_inline_debug) {
       assert(mcode->parent());
 
@@ -150,14 +150,14 @@ namespace jit {
       gettimeofday(&tv, NULL);
 
       ls->log() << "JIT: compiling block in "
-        << ls->symbol_debug_str(cm->name())
+        << ls->symbol_debug_str(code->name())
         << " near "
-        << ls->symbol_debug_str(cm->file()) << ":"
-        << cm->start_line()
+        << ls->symbol_debug_str(code->file()) << ":"
+        << code->start_line()
         << " (" << tv.tv_sec << "." << tv.tv_usec << ")\n";
     }
 
-    JITMethodInfo info(ctx_, cm, mcode);
+    JITMethodInfo info(ctx_, code, mcode);
     info.is_block = true;
 
     ctx_.set_root(&info);
@@ -169,20 +169,20 @@ namespace jit {
   }
 
   void Compiler::compile_method(LLVMState* ls, BackgroundCompileRequest* req) {
-    CompiledCode* cm = req->method();
+    CompiledCode* code = req->method();
 
     if(ls->config().jit_inline_debug) {
       struct timeval tv;
       gettimeofday(&tv, NULL);
 
       ls->log() << "JIT: compiling "
-        << ls->enclosure_name(cm)
+        << ls->enclosure_name(code)
         << "#"
-        << ls->symbol_debug_str(cm->name())
+        << ls->symbol_debug_str(code->name())
         << " (" << tv.tv_sec << "." << tv.tv_usec << ")\n";
     }
 
-    JITMethodInfo info(ctx_, cm, cm->machine_code());
+    JITMethodInfo info(ctx_, code, code->machine_code());
     info.is_block = false;
 
     if(Class* cls = req->receiver_class()) {

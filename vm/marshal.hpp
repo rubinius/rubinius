@@ -37,7 +37,7 @@ namespace rubinius {
 
     Float* get_float();
     InstructionSequence* get_iseq();
-    CompiledCode* get_cmethod();
+    CompiledCode* get_compiled_code();
     Object* get_constant();
     Object* get_encoding();
 

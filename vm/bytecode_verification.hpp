@@ -41,7 +41,7 @@ namespace rubinius {
     };
 
   public:
-    BytecodeVerification(CompiledCode* cm);
+    BytecodeVerification(CompiledCode* code);
     ~BytecodeVerification();
 
     bool verify(STATE);

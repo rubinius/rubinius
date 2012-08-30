@@ -40,35 +40,35 @@
 namespace rubinius {
 
   void CompiledCode::init(STATE) {
-    GO(cmethod).set(ontology::new_class(state,
+    GO(compiled_code).set(ontology::new_class(state,
                       "CompiledCode", G(executable), G(rubinius)));
-    G(cmethod)->set_object_type(state, CompiledCodeType);
+    G(compiled_code)->set_object_type(state, CompiledCodeType);
   }
 
   CompiledCode* CompiledCode::create(STATE) {
-    CompiledCode* cm = state->new_object<CompiledCode>(G(cmethod));
-    cm->local_count(state, Fixnum::from(0));
-    cm->set_executor(CompiledCode::default_executor);
-    cm->machine_code_ = NULL;
-    cm->inliners_ = 0;
-    cm->prim_index_ = -1;
+    CompiledCode* code = state->new_object<CompiledCode>(G(compiled_code));
+    code->local_count(state, Fixnum::from(0));
+    code->set_executor(CompiledCode::default_executor);
+    code->machine_code_ = NULL;
+    code->inliners_ = 0;
+    code->prim_index_ = -1;
 
 #ifdef ENABLE_LLVM
-    cm->jit_data_ = NULL;
+    code->jit_data_ = NULL;
 #endif
 
-    return cm;
+    return code;
   }
 
-  CompiledCode* CompiledCode::dup_cm(STATE) {
-    CompiledCode* cm = CompiledCode::create(state);
-    cm->copy_object(state, this);
+  CompiledCode* CompiledCode::dup(STATE) {
+    CompiledCode* code = CompiledCode::create(state);
+    code->copy_object(state, this);
 
-    cm->set_executor(CompiledCode::default_executor);
-    cm->jit_data_ = NULL;
-    cm->machine_code_ = NULL;
+    code->set_executor(CompiledCode::default_executor);
+    code->jit_data_ = NULL;
+    code->machine_code_ = NULL;
 
-    return cm;
+    return code;
   }
 
   int CompiledCode::start_line(STATE) {
@@ -169,34 +169,34 @@ namespace rubinius {
   {
     LockableScopedLock lg(state, &state->shared(), __FILE__, __LINE__);
 
-    CompiledCode* cm = as<CompiledCode>(exec);
-    if(cm->execute == default_executor) {
+    CompiledCode* code = as<CompiledCode>(exec);
+    if(code->execute == default_executor) {
       const char* reason = 0;
       int ip = -1;
 
-      OnStack<4> os(state, cm, exec, mod, args.argument_container_location());
+      OnStack<4> os(state, code, exec, mod, args.argument_container_location());
       GCTokenImpl gct;
 
-      if(!cm->internalize(state, gct, &reason, &ip)) {
-        Exception::bytecode_error(state, call_frame, cm, ip, reason);
+      if(!code->internalize(state, gct, &reason, &ip)) {
+        Exception::bytecode_error(state, call_frame, code, ip, reason);
         return 0;
       }
     }
 
     lg.unlock();
 
-    return cm->execute(state, call_frame, exec, mod, args);
+    return code->execute(state, call_frame, exec, mod, args);
   }
 
   Object* CompiledCode::specialized_executor(STATE, CallFrame* call_frame,
                           Executable* exec, Module* mod, Arguments& args)
   {
-    CompiledCode* cm = as<CompiledCode>(exec);
+    CompiledCode* code = as<CompiledCode>(exec);
 
     Class* cls = args.recv()->class_object(state);
     int id = cls->class_id();
 
-    MachineCode* v = cm->machine_code();
+    MachineCode* v = code->machine_code();
 
     executor target = v->unspecialized;
 
@@ -363,8 +363,8 @@ namespace rubinius {
   CompiledCode* CompiledCode::of_sender(STATE, CallFrame* calling_environment) {
     CallFrame* caller = calling_environment->previous;
     if(caller) {
-      if(caller->cm) {
-        return caller->cm;
+      if(caller->compiled_code) {
+        return caller->compiled_code;
       }
     }
 
@@ -372,7 +372,7 @@ namespace rubinius {
   }
 
   CompiledCode* CompiledCode::current(STATE, CallFrame* calling_environment) {
-    return calling_environment->cm;
+    return calling_environment->compiled_code;
   }
 
   void CompiledCode::Info::mark(Object* obj, ObjectMark& mark) {
@@ -380,25 +380,25 @@ namespace rubinius {
 
     mark_inliners(obj, mark);
 
-    CompiledCode* cm = as<CompiledCode>(obj);
-    if(!cm->machine_code_) return;
+    CompiledCode* code = as<CompiledCode>(obj);
+    if(!code->machine_code_) return;
 
-    MachineCode* mcode = cm->machine_code_;
+    MachineCode* mcode = code->machine_code_;
     mcode->set_mark();
 
     Object* tmp;
 
 #ifdef ENABLE_LLVM
-    if(cm->jit_data()) {
-      cm->jit_data()->set_mark();
-      cm->jit_data()->mark_all(cm, mark);
+    if(code->jit_data()) {
+      code->jit_data()->set_mark();
+      code->jit_data()->mark_all(code, mark);
     }
 
 
     for(int i = 0; i < MachineCode::cMaxSpecializations; i++) {
       if(mcode->specializations[i].jit_data) {
         mcode->specializations[i].jit_data->set_mark();
-        mcode->specializations[i].jit_data->mark_all(cm, mark);
+        mcode->specializations[i].jit_data->mark_all(code, mark);
       }
     }
 #endif
@@ -428,30 +428,30 @@ namespace rubinius {
   }
 
   void CompiledCode::Info::show(STATE, Object* self, int level) {
-    CompiledCode* cm = as<CompiledCode>(self);
+    CompiledCode* code = as<CompiledCode>(self);
 
     class_header(state, self);
-    indent_attribute(++level, "file"); cm->file()->show(state, level);
-    indent_attribute(level, "iseq"); cm->iseq()->show(state, level);
-    indent_attribute(level, "lines"); cm->lines()->show_simple(state, level);
-    indent_attribute(level, "literals"); cm->literals()->show_simple(state, level);
-    indent_attribute(level, "local_count"); cm->local_count()->show(state, level);
-    indent_attribute(level, "local_names"); cm->local_names()->show_simple(state, level);
-    indent_attribute(level, "name"); cm->name()->show(state, level);
-    indent_attribute(level, "required_args"); cm->required_args()->show(state, level);
-    indent_attribute(level, "scope"); cm->scope()->show(state, level);
-    indent_attribute(level, "splat"); cm->splat()->show(state, level);
-    indent_attribute(level, "stack_size"); cm->stack_size()->show(state, level);
-    indent_attribute(level, "total_args"); cm->total_args()->show(state, level);
+    indent_attribute(++level, "file"); code->file()->show(state, level);
+    indent_attribute(level, "iseq"); code->iseq()->show(state, level);
+    indent_attribute(level, "lines"); code->lines()->show_simple(state, level);
+    indent_attribute(level, "literals"); code->literals()->show_simple(state, level);
+    indent_attribute(level, "local_count"); code->local_count()->show(state, level);
+    indent_attribute(level, "local_names"); code->local_names()->show_simple(state, level);
+    indent_attribute(level, "name"); code->name()->show(state, level);
+    indent_attribute(level, "required_args"); code->required_args()->show(state, level);
+    indent_attribute(level, "scope"); code->scope()->show(state, level);
+    indent_attribute(level, "splat"); code->splat()->show(state, level);
+    indent_attribute(level, "stack_size"); code->stack_size()->show(state, level);
+    indent_attribute(level, "total_args"); code->total_args()->show(state, level);
 
     indent_attribute(level, "internalized");
-    if(!cm->machine_code_) {
+    if(!code->machine_code_) {
       std::cout << "no\n";
     } else {
       std::cout << "yes\n";
 
 #ifdef ENABLE_LLVM
-      MachineCode* v = cm->machine_code();
+      MachineCode* v = code->machine_code();
 
       for(int i = 0; i < MachineCode::cMaxSpecializations; i++) {
         if(!v->specializations[i].jit_data) continue;

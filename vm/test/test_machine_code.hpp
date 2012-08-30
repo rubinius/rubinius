@@ -14,40 +14,40 @@ public:
   }
 
   void test_create() {
-    CompiledCode* cm = CompiledCode::create(state);
+    CompiledCode* code = CompiledCode::create(state);
     Tuple* tup = Tuple::from(state, 1, state->symbol("blah"));
-    cm->literals(state, tup);
+    code->literals(state, tup);
 
     InstructionSequence* iseq = InstructionSequence::create(state, 1);
     iseq->opcodes()->put(state, 0, Fixnum::from(0));
 
-    cm->iseq(state, iseq);
+    code->iseq(state, iseq);
 
-    MachineCode* mcode = new MachineCode(state, cm);
+    MachineCode* mcode = new MachineCode(state, code);
 
     TS_ASSERT_EQUALS(mcode->total, 1U);
     TS_ASSERT_EQUALS(mcode->opcodes[0], 0U);
   }
 
   void test_specialize_transforms_ivars_to_slots() {
-    CompiledCode* cm = CompiledCode::create(state);
+    CompiledCode* code = CompiledCode::create(state);
     Tuple* tup = Tuple::from(state, 1, state->symbol("@blah"));
-    cm->literals(state, tup);
+    code->literals(state, tup);
 
     InstructionSequence* iseq = InstructionSequence::create(state, 3);
     iseq->opcodes()->put(state, 0, Fixnum::from(InstructionSequence::insn_push_ivar));
     iseq->opcodes()->put(state, 1, Fixnum::from(0));
     iseq->opcodes()->put(state, 2, Fixnum::from(InstructionSequence::insn_push_nil));
 
-    cm->iseq(state, iseq);
+    code->iseq(state, iseq);
 
-    MachineCode* mcode = new MachineCode(state, cm);
+    MachineCode* mcode = new MachineCode(state, code);
 
     Object::Info ti(ObjectType);
     ti.slots[state->symbol("@blah")->index()] = 5;
     ti.slot_locations.resize(6);
     ti.slot_locations[5] = 33;
-    mcode->specialize(state, cm, &ti);
+    mcode->specialize(state, code, &ti);
 
     TS_ASSERT_EQUALS(mcode->total, 3U);
     TS_ASSERT_EQUALS(mcode->opcodes[0], static_cast<unsigned int>(InstructionSequence::insn_push_my_offset));
@@ -56,18 +56,18 @@ public:
   }
 
   void test_validate_ip() {
-    CompiledCode* cm = CompiledCode::create(state);
+    CompiledCode* code = CompiledCode::create(state);
     Tuple* tup = Tuple::from(state, 1, state->symbol("@blah"));
-    cm->literals(state, tup);
+    code->literals(state, tup);
 
     InstructionSequence* iseq = InstructionSequence::create(state, 3);
     iseq->opcodes()->put(state, 0, Fixnum::from(InstructionSequence::insn_push_ivar));
     iseq->opcodes()->put(state, 1, Fixnum::from(0));
     iseq->opcodes()->put(state, 2, Fixnum::from(InstructionSequence::insn_push_nil));
 
-    cm->iseq(state, iseq);
+    code->iseq(state, iseq);
 
-    MachineCode* mcode = new MachineCode(state, cm);
+    MachineCode* mcode = new MachineCode(state, code);
     TS_ASSERT_EQUALS(mcode->validate_ip(state, 0), true);
     TS_ASSERT_EQUALS(mcode->validate_ip(state, 1), false);
     TS_ASSERT_EQUALS(mcode->validate_ip(state, 2), true);

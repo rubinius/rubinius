@@ -10,7 +10,7 @@ namespace rubinius {
   {
     if(on_heap_) return on_heap_;
 
-    MachineCode* mcode = call_frame->cm->machine_code();
+    MachineCode* mcode = call_frame->compiled_code->machine_code();
     VariableScope* scope = state->new_object<VariableScope>(G(variable_scope));
 
     if(parent_) {
@@ -22,7 +22,7 @@ namespace rubinius {
     scope->self(state, self_);
     scope->block(state, block_);
     scope->module(state, module_);
-    scope->method(state, call_frame->cm);
+    scope->method(state, call_frame->compiled_code);
     scope->heap_locals(state, Tuple::create(state, mcode->number_of_locals));
     scope->last_match(state, last_match_);
     scope->fiber(state, state->vm()->current_fiber.get());

@@ -559,8 +559,8 @@ namespace rubinius {
     Object* MachineCode::execute_specialized(STATE, CallFrame* previous,
         Executable* exec, Module* mod, Arguments& args) {
 
-      CompiledCode* cm = as<CompiledCode>(exec);
-      MachineCode* mcode = cm->machine_code();
+      CompiledCode* code = as<CompiledCode>(exec);
+      MachineCode* mcode = code->machine_code();
 
       StackVariables* scope = ALLOCA_STACKVARIABLES(mcode->number_of_locals);
       // Originally, I tried using msg.module directly, but what happens is if
@@ -586,11 +586,11 @@ namespace rubinius {
       frame->prepare(mcode->stack_size);
 
       frame->previous = previous;
-      frame->flags =    0;
+      frame->flags = 0;
       frame->arguments = &args;
       frame->dispatch_data = 0;
-      frame->cm =       cm;
-      frame->scope =    scope;
+      frame->compiled_code = code;
+      frame->scope = scope;
 
 #ifdef ENABLE_LLVM
       // A negative call_count means we've disabled usage based JIT
@@ -598,7 +598,7 @@ namespace rubinius {
       if(mcode->call_count >= 0) {
         if(mcode->call_count >= state->shared().config.jit_call_til_compile) {
           LLVMState* ls = LLVMState::get(state);
-          ls->compile_callframe(state, cm, frame);
+          ls->compile_callframe(state, code, frame);
         } else {
           mcode->call_count++;
         }
@@ -618,7 +618,7 @@ namespace rubinius {
 
 #ifdef RBX_PROFILER
       if(unlikely(state->vm()->tooling())) {
-        tooling::MethodEntry method(state, exec, mod, args, cm);
+        tooling::MethodEntry method(state, exec, mod, args, code);
         return (*mcode->run)(state, mcode, frame);
       } else {
         return (*mcode->run)(state, mcode, frame);
@@ -633,8 +633,8 @@ namespace rubinius {
     return execute_specialized<GenericArguments>(state, previous, exec, mod, args);
   }
 
-  Object* MachineCode::execute_as_script(STATE, CompiledCode* cm, CallFrame* previous) {
-    MachineCode* mcode = cm->machine_code();
+  Object* MachineCode::execute_as_script(STATE, CompiledCode* code, CallFrame* previous) {
+    MachineCode* mcode = code->machine_code();
 
     StackVariables* scope = ALLOCA_STACKVARIABLES(mcode->number_of_locals);
     // Originally, I tried using msg.module directly, but what happens is if
@@ -652,11 +652,11 @@ namespace rubinius {
     Arguments args(state->symbol("__script__"), G(main), cNil, 0, 0);
 
     frame->previous = previous;
-    frame->flags =    0;
+    frame->flags = 0;
     frame->arguments = &args;
     frame->dispatch_data = 0;
-    frame->cm =       cm;
-    frame->scope =    scope;
+    frame->compiled_code = code;
+    frame->scope = scope;
 
     // Do NOT check if we should JIT this. We NEVER want to jit a script.
 

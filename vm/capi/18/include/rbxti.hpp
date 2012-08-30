@@ -36,11 +36,11 @@ namespace rbxti {
 
   typedef robject (*results_func)(Env* env);
   typedef void  (*enable_func)(Env* env);
-  typedef void* (*enter_method)(Env* env, robject recv, rsymbol name, rmodule mod, rmethod cm);
-  typedef void* (*enter_block)(Env* env, rsymbol name, rmodule module, rmethod cm);
+  typedef void* (*enter_method)(Env* env, robject recv, rsymbol name, rmodule mod, rmethod code);
+  typedef void* (*enter_block)(Env* env, rsymbol name, rmodule module, rmethod code);
   typedef void  (*leave_func)(Env* env, void* tag);
   typedef void* (*enter_gc)(Env* env, int level);
-  typedef void* (*enter_script)(Env* env, rmethod cm);
+  typedef void* (*enter_script)(Env* env, rmethod code);
   typedef void  (*shutdown_func)(Env* env);
 
   typedef void  (*thread_start_func)(Env* env);

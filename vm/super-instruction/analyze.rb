@@ -61,11 +61,11 @@ def update_data(stream, data, extra)
   end
 end
 
-def describe_compiled_code(cm, data, max)
-  extra = cm.literals.to_a.find_all { |l| l.kind_of? CompiledCode }
+def describe_compiled_code(code, data, max)
+  extra = code.literals.to_a.find_all { |l| l.kind_of? CompiledCode }
 
-  name = cm.name ? cm.name.inspect : 'anonymous'
-  stream = cm.iseq.decode
+  name = code.name ? code.name.inspect : 'anonymous'
+  stream = code.iseq.decode
 
   walk_stream stream, data
 =begin

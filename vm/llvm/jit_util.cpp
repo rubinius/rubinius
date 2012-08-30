@@ -81,15 +81,15 @@ extern "C" {
   }
 
   void rbx_begin_profiling(STATE, void* data, Executable* exec, Module* mod, Arguments& args,
-                           CompiledCode* cm)
+                           CompiledCode* code)
   {
     // Use placement new to stick the class into data, which is on the callers
     // stack.
-    new(data) tooling::MethodEntry(state, exec, mod, args, cm);
+    new(data) tooling::MethodEntry(state, exec, mod, args, code);
   }
 
   void rbx_begin_profiling_block(STATE, void* data, BlockEnvironment* env,
-                                 Module* mod, CompiledCode* cm)
+                                 Module* mod, CompiledCode* code)
   {
     // Use placement new to stick the class into data, which is on the callers
     // stack.
@@ -250,22 +250,22 @@ extern "C" {
   Object* rbx_create_block(STATE, CallFrame* call_frame, int index) {
     CPP_TRY
 
-    Object* _lit = call_frame->cm->literals()->at(state, index);
-    CompiledCode* cm = as<CompiledCode>(_lit);
+    Object* _lit = call_frame->compiled_code->literals()->at(state, index);
+    CompiledCode* code = as<CompiledCode>(_lit);
 
     // TODO: We don't need to be doing this everytime.
-    if(cm->scope()->nil_p()) {
-      cm->scope(state, call_frame->constant_scope());
+    if(code->scope()->nil_p()) {
+      code->scope(state, call_frame->constant_scope());
     }
 
-    MachineCode* mcode = call_frame->cm->machine_code();
+    MachineCode* mcode = call_frame->compiled_code->machine_code();
     GCTokenImpl gct;
-    return BlockEnvironment::under_call_frame(state, gct, cm, mcode, call_frame);
+    return BlockEnvironment::under_call_frame(state, gct, code, mcode, call_frame);
 
     CPP_CATCH
   }
 
-  Object* rbx_create_block_multi(STATE, CompiledCode* cm, int count, ...) {
+  Object* rbx_create_block_multi(STATE, CompiledCode* code, int count, ...) {
     va_list ap;
 
     CallFrame* closest = 0;
@@ -288,11 +288,11 @@ extern "C" {
     va_end(ap);
 
     // TODO: We don't need to be doing this everytime.
-    cm->scope(state, closest->constant_scope());
+    code->scope(state, closest->constant_scope());
 
-    MachineCode* mcode = closest->cm->machine_code();
+    MachineCode* mcode = closest->compiled_code->machine_code();
     GCTokenImpl gct;
-    return BlockEnvironment::under_call_frame(state, gct, cm, mcode, closest);
+    return BlockEnvironment::under_call_frame(state, gct, code, mcode, closest);
   }
 
   Object* rbx_promote_variables(STATE, CallFrame* call_frame) {
@@ -389,7 +389,7 @@ extern "C" {
     ConstantScope* scope = ConstantScope::create(state);
     scope->module(state, mod);
     scope->parent(state, call_frame->constant_scope());
-    call_frame->cm->scope(state, scope);
+    call_frame->compiled_code->scope(state, scope);
     // call_frame->constant_scope_ = scope;
 
     return cNil;
@@ -598,7 +598,7 @@ extern "C" {
     GCTokenImpl gct;
     bool found;
     Module* under = as<Module>(top);
-    Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
+    Symbol* sym = as<Symbol>(call_frame->compiled_code->literals()->at(state, index));
     Object* res = Helpers::const_get_under(state, under, sym, &found);
 
     if(!found) {
@@ -786,7 +786,7 @@ extern "C" {
                               int association_index) {
     Object* res = 0;
 
-    Object* val = call_frame->cm->literals()->at(state, association_index);
+    Object* val = call_frame->compiled_code->literals()->at(state, association_index);
 
     // See if the cache is present, if so, validate it and use the value
     GlobalCacheEntry* cache;
@@ -796,7 +796,7 @@ extern "C" {
       }
     } else {
       cache = GlobalCacheEntry::empty(state);
-      call_frame->cm->literals()->put(state, association_index, cache);
+      call_frame->compiled_code->literals()->put(state, association_index, cache);
     }
 
     if(!res) {
@@ -1065,7 +1065,7 @@ extern "C" {
   }
 
   Object* rbx_set_literal(STATE, CallFrame* call_frame, int which, Object* val) {
-    call_frame->cm->literals()->put(state, which, val);
+    call_frame->compiled_code->literals()->put(state, which, val);
     return cNil;
   }
 
@@ -1276,7 +1276,7 @@ extern "C" {
   {
     LLVMState::get(state)->add_uncommons_taken();
 
-    MachineCode* mcode = call_frame->cm->machine_code();
+    MachineCode* mcode = call_frame->compiled_code->machine_code();
 
     /*
     InlineCache* cache = 0;
@@ -1306,7 +1306,7 @@ extern "C" {
         call_frame->scope->set_parent(parent);
 
         // Only support one depth!
-        assert(!creator->cm->machine_code()->parent());
+        assert(!creator->compiled_code->machine_code()->parent());
       }
     }
 
@@ -1327,7 +1327,7 @@ extern "C" {
                                  int32_t* input_unwinds,
                                  Object* top_of_stack)
   {
-    MachineCode* mcode = call_frame->cm->machine_code();
+    MachineCode* mcode = call_frame->compiled_code->machine_code();
 
     if(call_frame->is_inline_frame()) {
       // Fix up this inlined block.
@@ -1339,7 +1339,7 @@ extern "C" {
         call_frame->scope->set_parent(parent);
 
         // Only support one depth!
-        assert(!creator->cm->machine_code()->parent());
+        assert(!creator->compiled_code->machine_code()->parent());
       }
     }
 

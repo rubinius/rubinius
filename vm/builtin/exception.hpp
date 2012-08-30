@@ -79,7 +79,7 @@ namespace rubinius {
     static Exception* make_lje(STATE, CallFrame* frame);
 
     static void internal_error(STATE, CallFrame* frame, const char* reason);
-    static void bytecode_error(STATE, CallFrame* frame, CompiledCode* cm,
+    static void bytecode_error(STATE, CallFrame* frame, CompiledCode* code,
                                int ip, const char* reason);
     static void frozen_error(STATE, CallFrame* frame);
 

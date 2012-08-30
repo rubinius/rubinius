@@ -68,11 +68,11 @@ namespace rubinius {
     return dis.send(state, call_frame, args);
   }
 
-  void Executable::add_inliner(ObjectMemory* om, CompiledCode* cm) {
+  void Executable::add_inliner(ObjectMemory* om, CompiledCode* code) {
     if(!inliners_ || inliners_ == (Inliners*)cNil) inliners_ = new Inliners(om);
-    inliners_->inliners().push_back(cm);
+    inliners_->inliners().push_back(code);
 
-    om->write_barrier(this, cm);
+    om->write_barrier(this, code);
   }
 
   void Executable::clear_inliners(STATE) {
@@ -103,9 +103,9 @@ namespace rubinius {
     for(std::list<CompiledCode*>::iterator i = inl->inliners().begin();
         i != inl->inliners().end();
         ++i) {
-      CompiledCode* cm = *i;
+      CompiledCode* code = *i;
 
-      Object* tmp = mark.call(cm);
+      Object* tmp = mark.call(code);
       if(tmp) {
         assert(kind_of<CompiledCode>(tmp));
         *i = (CompiledCode*)tmp;

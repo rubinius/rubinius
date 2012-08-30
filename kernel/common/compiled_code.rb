@@ -341,11 +341,11 @@ module Rubinius
     end
 
     def change_name(name)
-      cm = dup
-      cm.name = name
+      code = dup
+      code.name = name
 
-      lits = Tuple.new(cm.literals.size)
-      cm.literals.each_with_index do |lit, idx|
+      lits = Tuple.new(code.literals.size)
+      code.literals.each_with_index do |lit, idx|
         if lit.kind_of? CompiledCode and lit.is_block?
           lit = lit.change_name name
         end
@@ -353,8 +353,8 @@ module Rubinius
         lits[idx] = lit
       end
 
-      cm.literals = lits
-      return cm
+      code.literals = lits
+      return code
     end
 
     ##
@@ -516,7 +516,7 @@ module Rubinius
     # To generate VM opcodes documentation
     # use rake doc:vm task.
     class Instruction
-      def initialize(inst, cm, ip)
+      def initialize(inst, code, ip)
         @instruction = inst[0]
         @args = inst[1..-1]
         @comment = nil
@@ -524,17 +524,17 @@ module Rubinius
         @args.each_index do |i|
           case @instruction.args[i]
           when :literal
-            @args[i] = cm.literals[@args[i]]
+            @args[i] = code.literals[@args[i]]
           when :local
             # TODO: Blocks should be able to retrieve local names as well,
             # but need access to method corresponding to home context
-            if cm.local_names and !cm.is_block?
-              @comment = cm.local_names[args[i]].to_s
+            if code.local_names and !code.is_block?
+              @comment = code.local_names[args[i]].to_s
             end
           end
         end
 
-        @cm = cm
+        @compiled_code = code
         @ip = ip
       end
 
@@ -545,7 +545,7 @@ module Rubinius
       # Return the line that this instruction is on in the method
       #
       def line
-        @cm.line_from_ip(ip)
+        @compiled_code.line_from_ip(ip)
       end
 
       ##

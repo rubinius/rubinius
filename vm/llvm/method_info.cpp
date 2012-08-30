@@ -17,7 +17,7 @@ namespace rubinius {
         function()->getEntryBlock().getTerminator());
   }
 
-  JITMethodInfo::JITMethodInfo(jit::Context& ctx, CompiledCode* cm, MachineCode* mcode,
+  JITMethodInfo::JITMethodInfo(jit::Context& ctx, CompiledCode* code, MachineCode* mcode,
                   JITMethodInfo* parent)
     : context_(ctx)
     , entry_(0)
@@ -46,7 +46,7 @@ namespace rubinius {
     , stack_args(0)
     , root(0)
   {
-    method_.set(cm);
+    method_.set(code);
     self_class_.set(nil<Object>());
   }
 

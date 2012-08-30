@@ -2,7 +2,7 @@
 
 class Binding
   attr_accessor :variables
-  attr_accessor :code
+  attr_accessor :compiled_code
   attr_accessor :constant_scope
   attr_accessor :proc_environment
   attr_accessor :self
@@ -28,7 +28,7 @@ class Binding
 
     bind.self = recv || variables.self
     bind.variables = variables
-    bind.code = code
+    bind.compiled_code = code
     bind.constant_scope = constant_scope
     bind.location = location
 

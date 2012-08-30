@@ -212,18 +212,18 @@ namespace rbxti {
     return s(cNil);
   }
 
-  rsymbol Env::method_file(rmethod cm) {
-    return o(i(cm)->file());
+  rsymbol Env::method_file(rmethod code) {
+    return o(i(code)->file());
   }
 
-  r_mint Env::method_line(rmethod cm) {
-    return i(cm)->start_line(private_->state());
+  r_mint Env::method_line(rmethod code) {
+    return i(code)->start_line(private_->state());
   }
 
   r_mint Env::method_id(rmethod meth) {
-    CompiledCode* cm = i(meth);
+    CompiledCode* code = i(meth);
 
-    if(MachineCode* mcode = cm->machine_code()) {
+    if(MachineCode* mcode = code->machine_code()) {
       return (mcode->method_id() << 1) | 1;
     }
 

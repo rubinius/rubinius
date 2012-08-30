@@ -15,8 +15,8 @@
 #include "configuration.hpp"
 
 namespace rubinius {
-  BytecodeVerification::BytecodeVerification(CompiledCode* cm)
-    : method_(cm)
+  BytecodeVerification::BytecodeVerification(CompiledCode* code)
+    : method_(code)
     , max_stack_seen_(0)
     , stack_(0)
     , locals_(0)

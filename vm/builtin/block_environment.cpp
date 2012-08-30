@@ -53,14 +53,14 @@ namespace rubinius {
   }
 
   MachineCode* BlockEnvironment::machine_code(STATE, GCToken gct) {
-    return code_->internalize(state, gct);
+    return compiled_code_->internalize(state, gct);
   }
 
   Object* BlockEnvironment::invoke(STATE, CallFrame* previous,
                             BlockEnvironment* env, Arguments& args,
                             BlockInvocation& invocation)
   {
-    MachineCode* mcode = env->code_->machine_code();
+    MachineCode* mcode = env->compiled_code_->machine_code();
 
     if(!mcode) {
       OnStack<2> os(state, env, args.argument_container_location());
@@ -261,7 +261,7 @@ namespace rubinius {
   {
     // Don't use env->machine_code() because it might lock and the work should
     // already be done.
-    MachineCode* const mcode = env->code_->machine_code();
+    MachineCode* const mcode = env->compiled_code_->machine_code();
 
     if(!mcode) {
       Exception::internal_error(state, previous, "invalid bytecode method");
@@ -273,7 +273,7 @@ namespace rubinius {
       if(mcode->call_count >= state->shared().config.jit_call_til_compile) {
         LLVMState* ls = LLVMState::get(state);
 
-        ls->compile_soon(state, env->code(), env, true);
+        ls->compile_soon(state, env->compiled_code(), env, true);
 
       } else {
         mcode->call_count++;
@@ -298,12 +298,12 @@ namespace rubinius {
 
     frame->arguments = &args;
     frame->dispatch_data = reinterpret_cast<BlockEnvironment*>(env);
-    frame->cm =       env->code_;
-    frame->scope =    scope;
+    frame->compiled_code = env->compiled_code_;
+    frame->scope = scope;
     frame->top_scope_ = env->top_scope_;
-    frame->flags =    invocation.flags | CallFrame::cCustomConstantScope
-                                       | CallFrame::cMultipleScopes
-                                       | CallFrame::cBlock;
+    frame->flags = invocation.flags | CallFrame::cCustomConstantScope
+                                    | CallFrame::cMultipleScopes
+                                    | CallFrame::cBlock;
 
     // TODO: this is a quick hack to process block arguments in 1.9.
     if(!LANGUAGE_18_ENABLED(state)) {
@@ -345,7 +345,7 @@ namespace rubinius {
   Object* BlockEnvironment::call(STATE, CallFrame* call_frame,
                                  Arguments& args, int flags)
   {
-    BlockInvocation invocation(scope_->self(), code_->scope(), flags);
+    BlockInvocation invocation(scope_->self(), compiled_code_->scope(), flags);
     return invoke(state, call_frame, this, args, invocation);
   }
 
@@ -370,7 +370,7 @@ namespace rubinius {
 
     Object* recv = args.shift(state);
 
-    BlockInvocation invocation(recv, code_->scope(), flags);
+    BlockInvocation invocation(recv, compiled_code_->scope(), flags);
     return invoke(state, call_frame, this, args, invocation);
   }
 
@@ -396,14 +396,14 @@ namespace rubinius {
 
 
   BlockEnvironment* BlockEnvironment::under_call_frame(STATE, GCToken gct,
-      CompiledCode* cm, MachineCode* caller,
+      CompiledCode* ccode, MachineCode* caller,
       CallFrame* call_frame)
   {
-    OnStack<1> os(state, cm);
+    OnStack<1> os(state, ccode);
 
     state->set_call_frame(call_frame);
 
-    MachineCode* mcode = cm->internalize(state, gct);
+    MachineCode* mcode = ccode->internalize(state, gct);
     if(!mcode) {
       Exception::internal_error(state, call_frame, "invalid bytecode method");
       return 0;
@@ -414,7 +414,7 @@ namespace rubinius {
     BlockEnvironment* be = state->new_object<BlockEnvironment>(G(blokenv));
     be->scope(state, call_frame->promote_scope(state));
     be->top_scope(state, call_frame->top_scope(state));
-    be->code(state, cm);
+    be->compiled_code(state, ccode);
     be->module(state, call_frame->module());
     return be;
   }
@@ -424,7 +424,7 @@ namespace rubinius {
 
     be->scope(state, scope_);
     be->top_scope(state, top_scope_);
-    be->code(state, code_);
+    be->compiled_code(state, compiled_code_);
 
     return be;
   }
@@ -444,7 +444,7 @@ namespace rubinius {
       return cNil;
     }
 
-    target->cm->machine_code()->set_no_inline();
+    target->compiled_code->machine_code()->set_no_inline();
 
     if(target->scope) {
       return target->scope->block();
@@ -459,7 +459,7 @@ namespace rubinius {
     class_header(state, self);
     //indent_attribute(++level, "scope"); be->scope()->show(state, level);
     // indent_attribute(level, "top_scope"); be->top_scope()->show(state, level);
-    indent_attribute(level, "code"); be->code()->show(state, level);
+    indent_attribute(level, "compiled_code"); be->compiled_code()->show(state, level);
     close_body(level);
   }
 }

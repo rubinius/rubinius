@@ -64,13 +64,13 @@ namespace jit {
         b().CreatePointerCast(rd, ls_->Int8PtrTy),
         get_field(call_frame, offset::CallFrame::dispatch_data));
 
-    // cm
+    // compiled_code
     method = b().CreateLoad(
         b().CreateConstGEP2_32(rd, 0, offset::runtime_data_method, "method_pos"),
-        "cm");
+        "compiled_code");
 
-    Value* cm_gep = get_field(call_frame, offset::CallFrame::cm);
-    b().CreateStore(method, cm_gep);
+    Value* code_gep = get_field(call_frame, offset::CallFrame::compiled_code);
+    b().CreateStore(method, code_gep);
 
     // flags
     int flags = CallFrame::cInlineFrame | CallFrame::cInlineBlock;

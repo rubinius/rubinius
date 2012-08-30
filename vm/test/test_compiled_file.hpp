@@ -52,7 +52,7 @@ public:
     CompiledFile* cf = CompiledFile::load(stream);
     TS_ASSERT_EQUALS(cf->magic, "!RBIX");
 
-    CompiledCode* cm = try_as<CompiledCode>(cf->body(state));
-    TS_ASSERT(cm);
+    CompiledCode* code = try_as<CompiledCode>(cf->body(state));
+    TS_ASSERT(code);
   }
 };

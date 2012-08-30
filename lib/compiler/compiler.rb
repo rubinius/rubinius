@@ -285,8 +285,8 @@ module Rubinius
     def self.compile_eval(string, variable_scope, file="(eval)", line=1)
       if ec = @eval_cache
         layout = variable_scope.local_layout
-        if cm = ec.retrieve([string, layout, line])
-          return cm
+        if code = ec.retrieve([string, layout, line])
+          return code
         end
       end
 
@@ -299,31 +299,31 @@ module Rubinius
 
       compiler.generator.variable_scope = variable_scope
 
-      cm = compiler.run
+      code = compiler.run
 
-      cm.add_metadata :for_eval, true
+      code.add_metadata :for_eval, true
 
       if ec and parser.should_cache?
-        ec.set([string.dup, layout, line], cm)
+        ec.set([string.dup, layout, line], code)
       end
 
-      return cm
+      return code
     end
 
     def self.construct_block(string, binding, file="(eval)", line=1)
-      cm = compile_eval string, binding.variables, file, line
+      code = compile_eval string, binding.variables, file, line
 
-      cm.scope = binding.constant_scope
-      cm.name = binding.variables.method.name
+      code.scope = binding.constant_scope
+      code.name = binding.variables.method.name
 
       # This has to be setup so __FILE__ works in eval.
-      script = Rubinius::CompiledCode::Script.new(cm, file, true)
+      script = Rubinius::CompiledCode::Script.new(code, file, true)
       script.eval_source = string
 
-      cm.scope.script = script
+      code.scope.script = script
 
       be = Rubinius::BlockEnvironment.new
-      be.under_context binding.variables, cm
+      be.under_context binding.variables, code
 
       # Pass the BlockEnvironment this binding was created from
       # down into the new BlockEnvironment we just created.

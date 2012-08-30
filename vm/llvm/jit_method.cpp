@@ -527,9 +527,9 @@ namespace jit {
 
 
   void MethodBuilder::initialize_frame(int stack_size) {
-    Value* cm_gep = get_field(call_frame, offset::CallFrame::cm);
+    Value* code_gep = get_field(call_frame, offset::CallFrame::compiled_code);
     method = b().CreateBitCast(
-        exec, cast<llvm::PointerType>(cm_gep->getType())->getElementType(), "cm");
+        exec, cast<llvm::PointerType>(code_gep->getType())->getElementType(), "compiled_code");
 
     // previous
     b().CreateStore(info_.previous(), get_field(call_frame, offset::CallFrame::previous));
@@ -542,8 +542,8 @@ namespace jit {
         ConstantInt::getNullValue(ls_->Int8PtrTy),
         get_field(call_frame, offset::CallFrame::dispatch_data));
 
-    // cm
-    b().CreateStore(method, cm_gep);
+    // compiled_code
+    b().CreateStore(method, code_gep);
 
     // flags
     int flags = CallFrame::cJITed;

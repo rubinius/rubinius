@@ -37,16 +37,16 @@ namespace rubinius {
   }
 
   bool CompiledFile::execute(STATE) {
-    TypedRoot<CompiledCode*> cm(state, as<CompiledCode>(body(state)));
+    TypedRoot<CompiledCode*> code(state, as<CompiledCode>(body(state)));
 
     state->thread_state()->clear();
 
     Arguments args(state->symbol("script"), G(main), 0, 0);
 
-    cm.get()->scope(state, ConstantScope::create(state));
-    cm.get()->scope()->module(state, G(object));
+    code.get()->scope(state, ConstantScope::create(state));
+    code.get()->scope()->module(state, G(object));
 
-    cm->execute(state, NULL, cm.get(), G(object), args);
+    code->execute(state, NULL, code.get(), G(object), args);
 
     return true;
   }

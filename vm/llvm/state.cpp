@@ -636,8 +636,8 @@ namespace rubinius {
     return symbols_.lookup_debug_string(sym);
   }
 
-  std::string LLVMState::enclosure_name(CompiledCode* cm) {
-    ConstantScope* cs = cm->scope();
+  std::string LLVMState::enclosure_name(CompiledCode* code) {
+    ConstantScope* cs = code->scope();
     if(!kind_of<ConstantScope>(cs) || !kind_of<Module>(cs->module())) {
       return "ANONYMOUS";
     }
@@ -645,16 +645,16 @@ namespace rubinius {
     return symbol_debug_str(cs->module()->module_name());
   }
 
-  void LLVMState::compile_soon(STATE, CompiledCode* cm, Object* placement,
+  void LLVMState::compile_soon(STATE, CompiledCode* code, Object* placement,
                                bool is_block)
   {
     bool wait = config().jit_sync;
 
     // Ignore it!
-    if(cm->machine_code()->call_count <= 1) {
+    if(code->machine_code()->call_count <= 1) {
       // if(config().jit_inline_debug) {
         // log() << "JIT: ignoring candidate! "
-          // << symbol_debug_str(cm->name()) << "\n";
+          // << symbol_debug_str(code->name()) << "\n";
       // }
       return;
     }
@@ -662,19 +662,19 @@ namespace rubinius {
     if(debug_search) {
       if(is_block) {
         std::cout << "JIT: queueing block inside: "
-          << enclosure_name(cm) << "#" << symbol_debug_str(cm->name()) << std::endl;
+          << enclosure_name(code) << "#" << symbol_debug_str(code->name()) << std::endl;
       } else {
         std::cout << "JIT: queueing method: "
-          << enclosure_name(cm) << "#" << symbol_debug_str(cm->name()) << std::endl;
+          << enclosure_name(code) << "#" << symbol_debug_str(code->name()) << std::endl;
       }
     }
 
     // Don't do this because it prevents other class from heating
     // it up too!
-    cm->machine_code()->call_count = -1;
+    code->machine_code()->call_count = -1;
 
     BackgroundCompileRequest* req =
-      new BackgroundCompileRequest(state, cm, placement, is_block);
+      new BackgroundCompileRequest(state, code, placement, is_block);
 
     queued_methods_++;
 
@@ -693,10 +693,10 @@ namespace rubinius {
       // if(config().jit_inline_debug) {
         // if(block) {
           // log() << "JIT: compiled block inside: "
-                // << symbol_debug_str(cm->name()) << "\n";
+                // << symbol_debug_str(code->name()) << "\n";
         // } else {
           // log() << "JIT: compiled method: "
-                // << symbol_debug_str(cm->name()) << "\n";
+                // << symbol_debug_str(code->name()) << "\n";
         // }
       // }
     } else {
@@ -757,23 +757,23 @@ namespace rubinius {
       candidate->print_backtrace(state, 1);
     }
 
-    if(start && candidate->cm != start) {
+    if(start && candidate->compiled_code != start) {
       start->machine_code()->call_count = 0;
     }
 
-    if(candidate->cm->machine_code()->call_count <= 1) {
+    if(candidate->compiled_code->machine_code()->call_count <= 1) {
       if(!start || start->machine_code()->jitted()) return;
       // Ignore it. compile this one.
       candidate = call_frame;
     }
 
     if(candidate->block_p()) {
-      compile_soon(state, candidate->cm, candidate->block_env(), true);
+      compile_soon(state, candidate->compiled_code, candidate->block_env(), true);
     } else {
-      if(candidate->cm->can_specialize_p()) {
-        compile_soon(state, candidate->cm, candidate->self()->class_object(state));
+      if(candidate->compiled_code->can_specialize_p()) {
+        compile_soon(state, candidate->compiled_code, candidate->self()->class_object(state));
       } else {
-        compile_soon(state, candidate->cm, cNil);
+        compile_soon(state, candidate->compiled_code, cNil);
       }
     }
   }
@@ -789,15 +789,15 @@ namespace rubinius {
     if(!call_frame) rubinius::bug("null call_frame");
 
     // if(!start) {
-      // start = call_frame->cm;
+      // start = call_frame->compiled_code;
       // call_frame = call_frame->previous;
       // depth--;
     // }
 
     if(debug_search) {
-      std::cout << "> call_count: " << call_frame->cm->machine_code()->call_count
-            << " size: " << call_frame->cm->machine_code()->total
-            << " sends: " << call_frame->cm->machine_code()->inline_cache_count()
+      std::cout << "> call_count: " << call_frame->compiled_code->machine_code()->call_count
+            << " size: " << call_frame->compiled_code->machine_code()->total
+            << " sends: " << call_frame->compiled_code->machine_code()->inline_cache_count()
             << std::endl;
 
       call_frame->print_backtrace(state, 1);
@@ -840,7 +840,7 @@ namespace rubinius {
     // Now start looking at callers.
 
     while(depth-- > 0) {
-      CompiledCode* cur = call_frame->cm;
+      CompiledCode* cur = call_frame->compiled_code;
 
       if(!cur) {
         if(debug_search) {
@@ -939,7 +939,7 @@ namespace rubinius {
 
       // if(!next || cur->machine_code()->total > SMALL_METHOD_SIZE) return call_frame;
 
-      callee->cm->machine_code()->call_count = 0;
+      callee->compiled_code->machine_code()->call_count = 0;
 
       callee = call_frame;
       call_frame = prev;

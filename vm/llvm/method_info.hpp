@@ -55,7 +55,7 @@ namespace rubinius {
     type::KnownType self_type;
 
   public:
-    JITMethodInfo(jit::Context& ctx, CompiledCode* cm, MachineCode* mcode,
+    JITMethodInfo(jit::Context& ctx, CompiledCode* code, MachineCode* mcode,
                   JITMethodInfo* parent = 0);
 
     jit::Context& context() {

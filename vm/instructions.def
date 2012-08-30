@@ -70,7 +70,7 @@ section "Manipulate literals"
 #   then can the literal value be set, using the set_literal opcode.
 
 instruction set_literal(literal) [ value -- value ]
-  call_frame->cm->literals()->put(state, literal, stack_top());
+  call_frame->compiled_code->literals()->put(state, literal, stack_top());
 end
 
 # [Description]
@@ -81,7 +81,7 @@ end
 #   objects defined or used within a particular scope.
 
 instruction push_literal(literal) [ -- literal ]
-  stack_push(call_frame->cm->literals()->at(state, literal));
+  stack_push(call_frame->compiled_code->literals()->at(state, literal));
 end
 
 section "Flow control"
@@ -717,7 +717,7 @@ instruction set_ivar(index) [ value -- value ]
     Exception::frozen_error(state, call_frame);
     RUN_EXCEPTION();
   }
-  Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
+  Symbol* sym = as<Symbol>(call_frame->compiled_code->literals()->at(state, index));
   call_frame->self()->set_ivar(state, sym, stack_top());
 end
 
@@ -725,7 +725,7 @@ end
 #   Pushes the instance variable identified by _index_ onto the stack.
 
 instruction push_ivar(index) [ -- value ]
-  Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
+  Symbol* sym = as<Symbol>(call_frame->compiled_code->literals()->at(state, index));
   Object* ret = call_frame->self()->get_ivar(state, sym);
 
   CHECK_AND_PUSH(ret);
@@ -743,7 +743,7 @@ section "Manipulate constants"
 
 instruction push_const(literal) [ -- constant ]
   bool found;
-  Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, literal));
+  Symbol* sym = as<Symbol>(call_frame->compiled_code->literals()->at(state, literal));
   Object* res = Helpers::const_get(state, call_frame, sym, &found);
   if(!found) {
     flush_ip();
@@ -761,7 +761,7 @@ end
 #   by the literal _index_. The value is pushed back onto the stack.
 
 instruction set_const(index) [ value -- value ]
-  Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
+  Symbol* sym = as<Symbol>(call_frame->compiled_code->literals()->at(state, index));
   call_frame->constant_scope()->module()->set_const(state, sym, stack_top());
 end
 
@@ -778,7 +778,7 @@ end
 #   ...
 
 instruction set_const_at(index) [ value module -- value ]
-  Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
+  Symbol* sym = as<Symbol>(call_frame->compiled_code->literals()->at(state, index));
   Object* val = stack_pop();
   Module* under = as<Module>(stack_pop());
 
@@ -798,7 +798,7 @@ end
 instruction find_const(index) [ module -- constant ]
   bool found;
   Module* under = as<Module>(stack_pop());
-  Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, index));
+  Symbol* sym = as<Symbol>(call_frame->compiled_code->literals()->at(state, index));
   Object* res = Helpers::const_get_under(state, under, sym, &found);
   if(!found) {
     flush_ip();
@@ -831,7 +831,7 @@ end
 instruction push_const_fast(literal association) [ -- constant ]
   Object* res = 0;
 
-  Object* val = call_frame->cm->literals()->at(state, association);
+  Object* val = call_frame->compiled_code->literals()->at(state, association);
 
   // See if the cache is present, if so, validate it and use the value
   GlobalCacheEntry* cache;
@@ -842,14 +842,14 @@ instruction push_const_fast(literal association) [ -- constant ]
     }
   } else {
     cache = GlobalCacheEntry::empty(state);
-    call_frame->cm->literals()->put(state, association, cache);
+    call_frame->compiled_code->literals()->put(state, association, cache);
   }
 
   if(!res) {
     bool found = false;
     flush_ip();
 
-    Symbol* sym = as<Symbol>(call_frame->cm->literals()->at(state, literal));
+    Symbol* sym = as<Symbol>(call_frame->compiled_code->literals()->at(state, literal));
     res = Helpers::const_get(state, call_frame, sym, &found);
 
     if(found) {
@@ -1158,13 +1158,13 @@ end
 #   `BlockEnvironment`.  Push the new `BlockEnvironment` object on the stack.
 
 instruction create_block(literal) [ -- block ]
-  Object* _lit = call_frame->cm->literals()->at(state, literal);
-  CompiledCode* cm = as<CompiledCode>(_lit);
+  Object* _lit = call_frame->compiled_code->literals()->at(state, literal);
+  CompiledCode* code = as<CompiledCode>(_lit);
 
   // TODO: We do not need to be doing this everytime.
-  cm->scope(state, call_frame->constant_scope());
+  code->scope(state, call_frame->constant_scope());
 
-  Object* be = BlockEnvironment::under_call_frame(state, gct, cm, mcode, call_frame);
+  Object* be = BlockEnvironment::under_call_frame(state, gct, code, mcode, call_frame);
 
   CHECK_AND_PUSH(be);
 end
@@ -1599,7 +1599,7 @@ instruction add_scope() [ module -- ]
   ConstantScope* scope = ConstantScope::create(state);
   scope->module(state, mod);
   scope->parent(state, call_frame->constant_scope());
-  call_frame->cm->scope(state, scope);
+  call_frame->compiled_code->scope(state, scope);
   call_frame->constant_scope_ = scope;
 end
 

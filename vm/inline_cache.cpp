@@ -261,7 +261,7 @@ namespace rubinius {
 
     set_cache(mce);
 
-    call_frame->cm->write_barrier(state, mce);
+    call_frame->compiled_code->write_barrier(state, mce);
 
     return mce;
   }
@@ -280,7 +280,7 @@ namespace rubinius {
     }
 
     set_cache(mce);
-    call_frame->cm->write_barrier(state, mce);
+    call_frame->compiled_code->write_barrier(state, mce);
 
     return mce;
   }
@@ -311,10 +311,10 @@ namespace rubinius {
 
       cache->set_cache(mce);
 
-      call_frame->cm->write_barrier(state, mce);
+      call_frame->compiled_code->write_barrier(state, mce);
 
       cache->call_unit_ = cu;
-      call_frame->cm->write_barrier(state, cu);
+      call_frame->compiled_code->write_barrier(state, cu);
 
       cache->execute_backend_ = check_cache_custom;
 
@@ -382,7 +382,7 @@ namespace rubinius {
 
     cache->set_cache(mce);
 
-    call_frame->cm->write_barrier(state, mce);
+    call_frame->compiled_code->write_barrier(state, mce);
 
     Executable* meth = mce->method();
     Module* mod = mce->stored_module();
@@ -423,7 +423,7 @@ namespace rubinius {
 
     cache->set_cache(mce);
 
-    call_frame->cm->write_barrier(state, mce);
+    call_frame->compiled_code->write_barrier(state, mce);
 
     Executable* meth = mce->method();
     Module* mod = mce->stored_module();
@@ -464,7 +464,7 @@ namespace rubinius {
 
     cache->set_cache(mce);
 
-    call_frame->cm->write_barrier(state, mce);
+    call_frame->compiled_code->write_barrier(state, mce);
 
     Executable* meth = mce->method();
     Module* mod = mce->stored_module();
@@ -516,7 +516,7 @@ namespace rubinius {
 
     cache->set_cache(mce);
 
-    call_frame->cm->write_barrier(state, mce);
+    call_frame->compiled_code->write_barrier(state, mce);
 
     Executable* meth = mce->method();
     Module* mod = mce->stored_module();

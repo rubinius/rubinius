@@ -146,7 +146,7 @@ namespace jit {
   }
 
   void BlockBuilder::initialize_frame(int stack_size) {
-    Value* cm_gep = get_field(call_frame, offset::CallFrame::cm);
+    Value* code_gep = get_field(call_frame, offset::CallFrame::compiled_code);
 
     method = b().CreateLoad(get_field(block_env, offset::BlockEnvironment::code),
                             "env.code");
@@ -167,8 +167,8 @@ namespace jit {
     b().CreateStore(Constant::getNullValue(ls_->Int8PtrTy),
         get_field(call_frame, offset::CallFrame::dispatch_data));
 
-    // cm
-    b().CreateStore(method, cm_gep);
+    // compiled_code
+    b().CreateStore(method, code_gep);
 
     // flags
     inv_flags_ = b().CreateLoad(get_field(block_inv, offset::blockinv_flags),

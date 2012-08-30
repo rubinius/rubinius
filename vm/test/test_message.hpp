@@ -33,16 +33,16 @@ public:
     destroy();
   }
 
-  CompiledCode* create_cm() {
-    CompiledCode* cm = CompiledCode::create(state);
-    cm->iseq(state, InstructionSequence::create(state, 1));
-    cm->iseq()->opcodes()->put(state, 0, Fixnum::from(InstructionSequence::insn_ret));
-    cm->stack_size(state, Fixnum::from(10));
-    cm->total_args(state, Fixnum::from(0));
-    cm->required_args(state, cm->total_args());
-    cm->formalize(state);
+  CompiledCode* create_compiled_code() {
+    CompiledCode* code = CompiledCode::create(state);
+    code->iseq(state, InstructionSequence::create(state, 1));
+    code->iseq()->opcodes()->put(state, 0, Fixnum::from(InstructionSequence::insn_ret));
+    code->stack_size(state, Fixnum::from(10));
+    code->total_args(state, Fixnum::from(0));
+    code->required_args(state, code->total_args());
+    code->formalize(state);
 
-    return cm;
+    return code;
   }
 
 };

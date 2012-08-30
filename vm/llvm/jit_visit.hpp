@@ -1070,10 +1070,11 @@ namespace rubinius {
     }
 
     Value* get_literal(opcode which) {
-      Value* gep = b().CreateConstGEP2_32(call_frame_, 0, offset::CallFrame::cm, "cm_pos");
-      Value* cm =  b().CreateLoad(gep, "cm");
+      Value* gep = b().CreateConstGEP2_32(call_frame_, 0,
+          offset::CallFrame::compiled_code, "code_pos");
+      Value* code =  b().CreateLoad(gep, "code");
 
-      gep = b().CreateConstGEP2_32(cm, 0, offset::CompiledCode::literals, "literals_pos");
+      gep = b().CreateConstGEP2_32(code, 0, offset::CompiledCode::literals, "literals_pos");
       Value* lits = b().CreateLoad(gep, "literals");
 
       Value* idx2[] = {
@@ -2255,25 +2256,26 @@ use_send:
         Value* scope = b().CreateLoad(
             b().CreateConstGEP2_32(call_frame_, 0,
                                    offset::CallFrame::constant_scope, "scope_pos"),
-            "cm");
+            "compiled_code");
 
         stack_push(scope);
       } else {
-        Value* cm;
+        Value* code;
 
         if(in_inlined_block()) {
           JITMethodInfo* creator = info().creator_info();
           assert(creator);
-          cm = b().CreateLoad(
-              b().CreateConstGEP2_32(creator->call_frame(), 0, offset::CallFrame::cm, "cm_pos"),
-              "cm");
+          code = b().CreateLoad(
+              b().CreateConstGEP2_32(creator->call_frame(), 0,
+                  offset::CallFrame::compiled_code, "code_pos"), "compiled_code");
         } else {
-          cm = b().CreateLoad(
-              b().CreateConstGEP2_32(call_frame_, 0, offset::CallFrame::cm, "cm_pos"),
-              "cm");
+          code = b().CreateLoad(
+              b().CreateConstGEP2_32(call_frame_, 0,
+                  offset::CallFrame::compiled_code, "code_pos"), "compiled_code");
         }
 
-        Value* gep = b().CreateConstGEP2_32(cm, 0, offset::CompiledCode::scope, "scope_pos");
+        Value* gep = b().CreateConstGEP2_32(code, 0,
+            offset::CompiledCode::scope, "scope_pos");
         stack_push(b().CreateLoad(gep, "scope"));
       }
     }

@@ -20,8 +20,8 @@ namespace rubinius {
     utilities::thread::Condition* waiter_;
 
   public:
-    BackgroundCompileRequest(STATE, CompiledCode* cm, Object* extra, bool is_block=false)
-      : method_(cm)
+    BackgroundCompileRequest(STATE, CompiledCode* code, Object* extra, bool is_block=false)
+      : method_(code)
       , extra_(extra)
       , is_block_(is_block)
       , waiter_(0)

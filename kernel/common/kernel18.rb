@@ -3,10 +3,10 @@
 module Kernel
   def method(name)
     name = Rubinius::Type.coerce_to_symbol name
-    cm = Rubinius.find_method(self, name)
+    code = Rubinius.find_method(self, name)
 
-    if cm
-      Method.new(self, cm[1], cm[0], name)
+    if code
+      Method.new(self, code[1], code[0], name)
     else
       raise NameError, "undefined method `#{name}' for #{self.inspect}"
     end
@@ -155,10 +155,10 @@ module Kernel
 
   def method(name)
     name = Rubinius::Type.coerce_to_symbol name
-    cm = Rubinius.find_method(self, name)
+    code = Rubinius.find_method(self, name)
 
-    if cm
-      return Method.new(self, cm[1], cm[0], name)
+    if code
+      return Method.new(self, code[1], code[0], name)
     else
       raise NameError, "undefined method `#{name}' for #{self.inspect}"
     end

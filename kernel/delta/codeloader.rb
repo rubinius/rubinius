@@ -36,7 +36,7 @@ module Rubinius
 
       req = self.require
 
-      Rubinius.run_script self.cm
+      Rubinius.run_script self.compiled_code
 
       CodeLoader.loaded_hook.trigger!(@path)
 
@@ -65,7 +65,7 @@ module Rubinius
 
       script.make_main!
 
-      Rubinius.run_script self.cm
+      Rubinius.run_script self.compiled_code
 
       CodeLoader.loaded_hook.trigger!(@path)
     end
@@ -130,7 +130,7 @@ module Rubinius
       version = Rubinius::RUBY_LIB_VERSION
 
       if CodeLoader.load_compiled
-        cm = load_compiled_file @load_path, signature, version
+        code = load_compiled_file @load_path, signature, version
       else
         compiled_name = Compiler.compiled_name @load_path
 
@@ -139,32 +139,32 @@ module Rubinius
             compiled_stat = File::Stat.stat compiled_name
 
             if compiled_stat and @stat.mtime > compiled_stat.mtime
-              cm = compile_file @load_path, compiled_name
+              code = compile_file @load_path, compiled_name
             else
               begin
-                cm = load_compiled_file compiled_name, signature, version
+                code = load_compiled_file compiled_name, signature, version
               rescue TypeError, InvalidRBC
-                cm = compile_file @load_path, compiled_name
+                code = compile_file @load_path, compiled_name
               end
             end
           rescue Errno::ENOENT
-            cm = compile_file @load_path, compiled_name
+            code = compile_file @load_path, compiled_name
           end
         else
-          cm = compile_file @load_path, compiled_name
+          code = compile_file @load_path, compiled_name
         end
       end
 
-      script = cm.create_script(wrap)
+      script = code.create_script(wrap)
       script.file_path = @file_path
       script.data_path = @load_path
 
-      @cm = cm
+      @compiled_code = code
       CodeLoader.compiled_hook.trigger! script
       return script
     end
 
-    attr_reader :cm
+    attr_reader :compiled_code
 
     # Compile a Ruby source file and save the compiled file. Return the
     # internal representation (CompiledCode) of the Ruby source file.

@@ -136,7 +136,7 @@ namespace rubinius {
     scope->block_ = mark_object(scope->block());
     scope->module_ = (Module*)mark_object(scope->module());
 
-    int locals = call_frame->cm->machine_code()->number_of_locals;
+    int locals = call_frame->compiled_code->machine_code()->number_of_locals;
     for(int i = 0; i < locals; i++) {
       Object* local = scope->get_local(i);
       if(local->reference_p()) {
@@ -177,7 +177,7 @@ namespace rubinius {
       call_frame = displace(call_frame, offset);
 
       // Skip synthetic, non CompiledCode frames
-      if(!call_frame->cm) {
+      if(!call_frame->compiled_code) {
         call_frame = call_frame->previous;
         continue;
       }
@@ -189,12 +189,12 @@ namespace rubinius {
           (ConstantScope*)mark_object(call_frame->constant_scope_);
       }
 
-      if(call_frame->cm && call_frame->cm->reference_p()) {
-        call_frame->cm = (CompiledCode*)mark_object(call_frame->cm);
+      if(call_frame->compiled_code && call_frame->compiled_code->reference_p()) {
+        call_frame->compiled_code = (CompiledCode*)mark_object(call_frame->compiled_code);
       }
 
-      if(call_frame->cm && call_frame->stk) {
-        native_int stack_size = call_frame->cm->stack_size()->to_native();
+      if(call_frame->compiled_code && call_frame->stk) {
+        native_int stack_size = call_frame->compiled_code->stack_size()->to_native();
         for(native_int i = 0; i < stack_size; i++) {
           Object* obj = call_frame->stk[i];
           if(obj && obj->reference_p()) {

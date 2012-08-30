@@ -117,7 +117,7 @@ namespace rubinius {
     static CompiledCode* current(STATE, CallFrame* calling_environment);
 
     // Rubinius.primitive :compiledcode_dup
-    CompiledCode* dup_cm(STATE);
+    CompiledCode* dup(STATE);
 
     String* full_name(STATE);
 

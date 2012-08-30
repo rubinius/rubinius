@@ -150,24 +150,24 @@ namespace rubinius {
 
     void inline_block(JITInlineBlock* ib, Value* self);
 
-    void inline_generic_method(Class* klass, Module* mod, CompiledCode* cm, MachineCode* mcode);
+    void inline_generic_method(Class* klass, Module* mod, CompiledCode* code, MachineCode* mcode);
 
-    bool detect_trivial_method(MachineCode* mcode, CompiledCode* cm = 0);
+    bool detect_trivial_method(MachineCode* mcode, CompiledCode* code = 0);
 
-    void inline_trivial_method(Class* klass, CompiledCode* cm);
+    void inline_trivial_method(Class* klass, CompiledCode* code);
 
     void inline_ivar_write(Class* klass, AccessVariable* acc);
 
     void inline_ivar_access(Class* klass, AccessVariable* acc);
 
-    bool inline_primitive(Class* klass, CompiledCode* cm, executor prim);
+    bool inline_primitive(Class* klass, CompiledCode* code, executor prim);
 
     bool inline_ffi(Class* klass, NativeFunction* nf);
 
     void emit_inline_block(JITInlineBlock* ib, Value* val);
 
-    int detect_jit_intrinsic(Class* klass, CompiledCode* cm);
-    void inline_intrinsic(Class* klass, CompiledCode* cm, int which);
+    int detect_jit_intrinsic(Class* klass, CompiledCode* code);
+    void inline_intrinsic(Class* klass, CompiledCode* code, int which);
 
     void check_class(llvm::Value* recv, Class* klass, llvm::BasicBlock* bb=0);
     void check_recv(Class* klass, llvm::BasicBlock* bb=0);

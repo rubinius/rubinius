@@ -52,7 +52,7 @@ namespace tooling {
     }
 
   public:
-    void* enter_method(STATE, Executable* exec, Module* mod, Arguments& args, CompiledCode* cm);
+    void* enter_method(STATE, Executable* exec, Module* mod, Arguments& args, CompiledCode* code);
     void  leave_method(STATE, void* tag);
 
     void* enter_block(STATE, BlockEnvironment* env, Module* mod);
@@ -61,7 +61,7 @@ namespace tooling {
     void* enter_gc(STATE, int level);
     void  leave_gc(STATE, void* tag);
 
-    void* enter_script(STATE, CompiledCode* cm);
+    void* enter_script(STATE, CompiledCode* code);
     void  leave_script(STATE, void* tag);
 
     void shutdown(STATE);
@@ -113,10 +113,10 @@ namespace tooling {
 
   class MethodEntry : public Entry {
   public:
-    MethodEntry(STATE, Executable* exec, Module* mod, Arguments& args, CompiledCode* cm=0)
+    MethodEntry(STATE, Executable* exec, Module* mod, Arguments& args, CompiledCode* code=0)
       : Entry(state)
     {
-      tag_ = broker_->enter_method(state, exec, mod, args, cm);
+      tag_ = broker_->enter_method(state, exec, mod, args, code);
     }
 
     ~MethodEntry() {
@@ -156,10 +156,10 @@ namespace tooling {
 
   class ScriptEntry : public Entry {
   public:
-    ScriptEntry(STATE, CompiledCode* cm)
+    ScriptEntry(STATE, CompiledCode* code)
       : Entry(state)
     {
-      tag_ = broker_->enter_script(state, cm);
+      tag_ = broker_->enter_script(state, code);
     }
 
     ~ScriptEntry() {

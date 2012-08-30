@@ -3,10 +3,10 @@
 module Kernel
   def method(name)
     name = Rubinius::Type.coerce_to_symbol name
-    cm = Rubinius.find_method(self, name)
+    code = Rubinius.find_method(self, name)
 
-    if cm
-      Method.new(self, cm[1], cm[0], name)
+    if code
+      Method.new(self, code[1], code[0], name)
     elsif respond_to_missing?(name, true)
       Method.new(self, self.class, Rubinius::MissingMethod.new(self,  name), name)
     else
@@ -16,10 +16,10 @@ module Kernel
 
   def public_method(name)
     name = Rubinius::Type.coerce_to_symbol name
-    cm = Rubinius.find_public_method(self, name)
+    code = Rubinius.find_public_method(self, name)
 
-    if cm
-      Method.new(self, cm[1], cm[0], name)
+    if code
+      Method.new(self, code[1], code[0], name)
     elsif respond_to_missing?(name, false)
       Method.new(self, self.class, Rubinius::MissingMethod.new(self,  name), name)
     else

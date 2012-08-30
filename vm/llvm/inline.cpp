@@ -124,11 +124,11 @@ namespace rubinius {
       } else {
         inline_ivar_access(klass, acc);
       }
-    } else if(CompiledCode* cm = try_as<CompiledCode>(meth)) {
-      MachineCode* mcode = cm->machine_code();
+    } else if(CompiledCode* code = try_as<CompiledCode>(meth)) {
+      MachineCode* mcode = code->machine_code();
 
-      if(!cm->primitive()->nil_p()) {
-        if(!inline_primitive(klass, cm, meth->execute)) return false;
+      if(!code->primitive()->nil_p()) {
+        if(!inline_primitive(klass, code, meth->execute)) return false;
         goto remember;
       }
 
@@ -136,10 +136,10 @@ namespace rubinius {
       // internalized, but protect against that case none the less.
       if(!mcode) return false;
 
-      if(detect_trivial_method(mcode, cm)) {
-        inline_trivial_method(klass, cm);
-      } else if(int which = detect_jit_intrinsic(klass, cm)) {
-        inline_intrinsic(klass, cm, which);
+      if(detect_trivial_method(mcode, code)) {
+        inline_trivial_method(klass, code);
+      } else if(int which = detect_jit_intrinsic(klass, code)) {
+        inline_intrinsic(klass, code, which);
       } else if(ops_.state()->config().jit_inline_generic) {
         InlineDecision decision;
         InlineOptions opts;
@@ -157,9 +157,9 @@ namespace rubinius {
           if(ops_.state()->config().jit_inline_debug) {
 
             context_.inline_log("NOT inlining")
-              << ops_.state()->enclosure_name(cm)
+              << ops_.state()->enclosure_name(code)
               << "#"
-              << ops_.state()->symbol_debug_str(cm->name())
+              << ops_.state()->symbol_debug_str(code->name())
               << " into "
               << ops_.state()->symbol_debug_str(ops_.method_name())
               << ". ";
@@ -193,13 +193,13 @@ namespace rubinius {
 
         if(ops_.state()->config().jit_inline_debug) {
           context_.inline_log("inlining")
-            << ops_.state()->enclosure_name(cm)
+            << ops_.state()->enclosure_name(code)
             << "#"
-            << ops_.state()->symbol_debug_str(cm->name())
+            << ops_.state()->symbol_debug_str(code->name())
             << " into "
             << ops_.state()->symbol_debug_str(ops_.method_name());
 
-          ConstantScope* cs = cm->scope();
+          ConstantScope* cs = code->scope();
           if(kind_of<ConstantScope>(cs) && klass != cs->module() && !klass->module_name()->nil_p()) {
             ops_.state()->log() << " ("
               << ops_.state()->symbol_debug_str(klass->module_name()) << ")";
@@ -215,14 +215,14 @@ namespace rubinius {
         policy->increase_size(mcode);
         meth->add_inliner(ops_.state()->shared().om, ops_.root_method_info()->method());
 
-        inline_generic_method(klass, defined_in, cm, mcode);
+        inline_generic_method(klass, defined_in, code, mcode);
         return true;
       } else {
         if(ops_.state()->config().jit_inline_debug) {
           context_.inline_log("NOT inlining")
-            << ops_.state()->enclosure_name(cm)
+            << ops_.state()->enclosure_name(code)
             << "#"
-            << ops_.state()->symbol_debug_str(cm->name())
+            << ops_.state()->symbol_debug_str(code->name())
             << " into "
             << ops_.state()->symbol_debug_str(ops_.method_name())
             << ". generic inlining disabled\n";
@@ -272,7 +272,7 @@ remember:
     emit_inline_block(ib, self);
   }
 
-  bool Inliner::detect_trivial_method(MachineCode* mcode, CompiledCode* cm) {
+  bool Inliner::detect_trivial_method(MachineCode* mcode, CompiledCode* code) {
     opcode* stream = mcode->opcodes;
     size_t size_max = 2;
     switch(stream[0]) {
@@ -280,7 +280,7 @@ remember:
       size_max++;
       break;
     case InstructionSequence::insn_push_literal:
-      if(cm && kind_of<Symbol>(cm->literals()->at(stream[1]))) {
+      if(code && kind_of<Symbol>(code->literals()->at(stream[1]))) {
         size_max++;
       } else {
         return false;
@@ -303,18 +303,18 @@ remember:
     return false;
   }
 
-  void Inliner::inline_trivial_method(Class* klass, CompiledCode* cm) {
+  void Inliner::inline_trivial_method(Class* klass, CompiledCode* code) {
     if(ops_.state()->config().jit_inline_debug) {
       context_.inline_log("inlining")
-        << ops_.state()->enclosure_name(cm)
+        << ops_.state()->enclosure_name(code)
         << "#"
-        << ops_.state()->symbol_debug_str(cm->name())
+        << ops_.state()->symbol_debug_str(code->name())
         << " into "
         << ops_.state()->symbol_debug_str(ops_.method_name())
         << " (" << ops_.state()->symbol_debug_str(klass->module_name()) << ") trivial\n";
     }
 
-    MachineCode* mcode = cm->machine_code();
+    MachineCode* mcode = code->machine_code();
 
     if(klass) check_recv(klass);
 
@@ -327,7 +327,7 @@ remember:
       val = ops_.constant(Fixnum::from(stream[1]));
       break;
     case InstructionSequence::insn_push_literal: {
-      Symbol* sym = try_as<Symbol>(cm->literals()->at(stream[1]));
+      Symbol* sym = try_as<Symbol>(code->literals()->at(stream[1]));
       assert(sym);
 
       val = ops_.constant(sym);
@@ -514,12 +514,12 @@ remember:
   }
 
   void Inliner::inline_generic_method(Class* klass, Module* defined_in,
-                                      CompiledCode* cm, MachineCode* mcode) {
+                                      CompiledCode* code, MachineCode* mcode) {
     context_.enter_inline();
 
     check_recv(klass);
 
-    JITMethodInfo info(context_, cm, mcode);
+    JITMethodInfo info(context_, code, mcode);
 
     prime_info(info);
 
@@ -527,7 +527,7 @@ remember:
 
     info.set_self_class(klass);
 
-    jit::RuntimeData* rd = new jit::RuntimeData(cm, cache_->name, defined_in);
+    jit::RuntimeData* rd = new jit::RuntimeData(code, cache_->name, defined_in);
     context_.add_runtime_data(rd);
 
     jit::InlineMethodBuilder work(ops_.state(), info, rd);

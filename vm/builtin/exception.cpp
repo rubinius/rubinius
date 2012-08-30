@@ -94,10 +94,10 @@ namespace rubinius {
   }
 
   void Exception::bytecode_error(STATE, CallFrame* call_frame,
-                                 CompiledCode* cm, int ip, const char* reason)
+                                 CompiledCode* code, int ip, const char* reason)
   {
     Exception* exc = Exception::make_exception(state, G(exc_vm_bad_bytecode), reason);
-    exc->set_ivar(state, state->symbol("@compiled_code"), cm);
+    exc->set_ivar(state, state->symbol("@compiled_code"), code);
     exc->set_ivar(state, state->symbol("@ip"), Fixnum::from(ip));
     exc->locations(state, Location::from_call_stack(state, call_frame));
     state->raise_exception(exc);

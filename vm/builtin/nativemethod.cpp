@@ -635,7 +635,7 @@ namespace rubinius {
     NativeMethodFrame nmf(env->current_native_frame());
     CallFrame cf;
     cf.previous = call_frame;
-    cf.cm = 0;
+    cf.compiled_code = 0;
     cf.scope = 0;
     cf.optional_jit_data = 0;
     cf.arguments = 0;

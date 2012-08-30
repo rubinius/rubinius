@@ -129,14 +129,14 @@ public:
     check_const(string, "String");
   }
 
-  void test_cmethod() {
+  void test_compiled_code() {
     Class *cls;
 
-    cls = G(cmethod);
+    cls = G(compiled_code);
 
     TS_ASSERT_EQUALS(cls->class_object(state), G(klass));
     TS_ASSERT_EQUALS(cls->superclass(), G(executable));
-    TS_ASSERT_EQUALS(G(rubinius)->get_const(state, "CompiledCode"), G(cmethod));
+    TS_ASSERT_EQUALS(G(rubinius)->get_const(state, "CompiledCode"), G(compiled_code));
   }
 
   void test_dir() {

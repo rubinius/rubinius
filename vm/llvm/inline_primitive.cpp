@@ -13,23 +13,23 @@ namespace rubinius {
   struct InlinePrimitive {
     JITOperations& ops;
     Inliner& i;
-    CompiledCode* cm;
+    CompiledCode* compiled_code;
     Class* klass;
 
-    InlinePrimitive(JITOperations& _ops, Inliner& _i, CompiledCode* _cm,
+    InlinePrimitive(JITOperations& _ops, Inliner& _i, CompiledCode* _code,
                     Class* _klass)
       : ops(_ops)
       , i(_i)
-      , cm(_cm)
+      , compiled_code(_code)
       , klass(_klass)
     {}
 
     void log(const char* name) {
       if(ops.state()->config().jit_inline_debug) {
         i.context().inline_log("inlining")
-          << ops.state()->enclosure_name(cm)
+          << ops.state()->enclosure_name(compiled_code)
           << "#"
-          << ops.state()->symbol_debug_str(cm->name())
+          << ops.state()->symbol_debug_str(compiled_code->name())
           << " into "
           << ops.state()->symbol_debug_str(ops.method_name())
           << ". primitive " << name << "\n";
@@ -669,9 +669,9 @@ namespace rubinius {
 
   };
 
-  bool Inliner::inline_primitive(Class* klass, CompiledCode* cm, executor prim) {
+  bool Inliner::inline_primitive(Class* klass, CompiledCode* code, executor prim) {
 
-    InlinePrimitive ip(ops_, *this, cm, klass);
+    InlinePrimitive ip(ops_, *this, code, klass);
 
     if(prim == Primitives::tuple_at && count_ == 1) {
       ip.tuple_at();
@@ -755,13 +755,13 @@ namespace rubinius {
 
       JITStubResults stub_res;
 
-      if(Primitives::get_jit_stub(cm->prim_index(), stub_res)) {
+      if(Primitives::get_jit_stub(code->prim_index(), stub_res)) {
         if(stub_res.arg_count() == count_) {
           if(ops_.state()->config().jit_inline_debug) {
             context_.inline_log("inlining")
-              << ops_.state()->enclosure_name(cm)
+              << ops_.state()->enclosure_name(code)
               << "#"
-              << ops_.state()->symbol_debug_str(cm->name())
+              << ops_.state()->symbol_debug_str(code->name())
               << " into "
               << ops_.state()->symbol_debug_str(ops_.method_name())
               << ". generic primitive: " << stub_res.name() << "\n";
@@ -823,13 +823,13 @@ namespace rubinius {
         // Add more primitive inlining!
         if(ops_.state()->config().jit_inline_debug) {
           context_.inline_log("NOT inlining")
-            << ops_.state()->enclosure_name(cm)
+            << ops_.state()->enclosure_name(code)
             << "#"
-            << ops_.state()->symbol_debug_str(cm->name())
+            << ops_.state()->symbol_debug_str(code->name())
             << " into "
             << ops_.state()->symbol_debug_str(ops_.method_name())
             << ". No fast stub. primitive: "
-            << ops_.state()->symbol_debug_str(cm->primitive())
+            << ops_.state()->symbol_debug_str(code->primitive())
             << "\n";
         }
 
@@ -840,9 +840,9 @@ namespace rubinius {
     return true;
   }
 
-  int Inliner::detect_jit_intrinsic(Class* klass, CompiledCode* cm) {
+  int Inliner::detect_jit_intrinsic(Class* klass, CompiledCode* code) {
     if(klass->instance_type()->to_native() == rubinius::Tuple::type) {
-      if(count_ == 2 && cm->name() == ops_.state()->symbol("swap")) {
+      if(count_ == 2 && code->name() == ops_.state()->symbol("swap")) {
         return 1;
       }
     }
@@ -850,8 +850,8 @@ namespace rubinius {
     return 0;
   }
 
-  void Inliner::inline_intrinsic(Class* klass, CompiledCode* cm, int which) {
-    InlinePrimitive ip(ops_, *this, cm, klass);
+  void Inliner::inline_intrinsic(Class* klass, CompiledCode* code, int which) {
+    InlinePrimitive ip(ops_, *this, code, klass);
 
     switch(which) {
     case 1: // Tuple#swap

@@ -11,7 +11,7 @@ module Rubinius
     attr_reader :module
 
     # The CompiledCode that implements the code for the block
-    attr_reader :code
+    attr_reader :compiled_code
 
     attr_accessor :proc_environment
     attr_reader :metadata_container
@@ -20,37 +20,37 @@ module Rubinius
       @proc_environment
     end
 
-    def under_context(scope, cmethod)
+    def under_context(scope, code)
       @top_scope = scope
       @scope = scope
-      @code = cmethod
-      @module = cmethod.scope.module
+      @compiled_code = code
+      @module = code.scope.module
 
       return self
     end
 
     def change_name(name)
-      @code = @code.change_name name
+      @compiled_code = @compiled_code.change_name name
     end
 
     def repoint_scope(where)
-      @code.scope.using_current_as where
+      @compiled_code.scope.using_current_as where
     end
 
     def disable_scope!
-      @code.scope.using_disabled_scope
+      @compiled_code.scope.using_disabled_scope
     end
 
     def constant_scope
-      @code.scope
+      @compiled_code.scope
     end
 
     def to_binding
-      Binding.setup @scope, @code, @code.scope
+      Binding.setup @scope, @compiled_code, @compiled_code.scope
     end
 
     def set_eval_binding(bind)
-      @code.scope.script.eval_binding = bind
+      @compiled_code.scope.script.eval_binding = bind
     end
 
     ##
@@ -72,23 +72,24 @@ module Rubinius
     end
 
     def call_on_instance(obj, *args)
-      call_under obj, @code.scope, *args
+      call_under obj, @compiled_code.scope, *args
     end
 
     def arity
-      if @code.splat and (@code.splat >= 0 or @code.splat == -2)
-        -(@code.required_args + 1)
+      if @compiled_code.splat and
+         (@compiled_code.splat >= 0 or @compiled_code.splat == -2)
+        -(@compiled_code.required_args + 1)
       else
-        @code.required_args
+        @compiled_code.required_args
       end
     end
 
     def file
-      @code.file
+      @compiled_code.file
     end
 
     def line
-      @code.defined_line
+      @compiled_code.defined_line
     end
 
     class AsMethod < Executable
@@ -112,8 +113,8 @@ module Rubinius
         # The BEs are identical otherwise, except for the
         # name of the CompiledCode.
 
-        other_code = other.block_env.code
-        code = block_env.code
+        other_code = other.block_env.compiled_code
+        code = block_env.compiled_code
 
         block_env.scope     == other.block_env.scope      &&
         block_env.top_scope == other.block_env.top_scope  &&

@@ -1054,7 +1054,7 @@ namespace rubinius {
     MachineCode* mcode = env->machine_code(state, gct);
 
     jit::Compiler jit(ls);
-    jit.compile_block(ls, env->code(), mcode);
+    jit.compile_block(ls, env->compiled_code(), mcode);
 
     if(show->true_p()) {
       jit.show_machine_code();
@@ -1083,9 +1083,9 @@ namespace rubinius {
     bool disable = CBOOL(o_disable);
 
     while(obj) {
-      if(CompiledCode* cm = try_as<CompiledCode>(obj)) {
-        if(MachineCode* mcode = cm->machine_code()) {
-          mcode->deoptimize(state, cm, 0, disable);
+      if(CompiledCode* code = try_as<CompiledCode>(obj)) {
+        if(MachineCode* mcode = code->machine_code()) {
+          mcode->deoptimize(state, code, 0, disable);
         }
         total++;
       }
@@ -1570,25 +1570,25 @@ namespace rubinius {
     return tuple;
   }
 
-  Object* System::vm_run_script(STATE, GCToken gct, CompiledCode* cm,
+  Object* System::vm_run_script(STATE, GCToken gct, CompiledCode* code,
                                 CallFrame* calling_environment)
   {
-    Dispatch msg(state->symbol("__script__"), G(object), cm);
+    Dispatch msg(state->symbol("__script__"), G(object), code);
     Arguments args(state->symbol("__script__"), G(main), cNil, 0, 0);
 
-    OnStack<1> os(state, cm);
+    OnStack<1> os(state, code);
 
-    cm->internalize(state, gct, 0, 0);
+    code->internalize(state, gct, 0, 0);
 
 #ifdef RBX_PROFILER
     if(unlikely(state->vm()->tooling())) {
-      tooling::ScriptEntry me(state, cm);
-      return cm->machine_code()->execute_as_script(state, cm, calling_environment);
+      tooling::ScriptEntry me(state, code);
+      return code->machine_code()->execute_as_script(state, code, calling_environment);
     } else {
-      return cm->machine_code()->execute_as_script(state, cm, calling_environment);
+      return code->machine_code()->execute_as_script(state, code, calling_environment);
     }
 #else
-    return cm->machine_code()->execute_as_script(state, cm, calling_environment);
+    return code->machine_code()->execute_as_script(state, code, calling_environment);
 #endif
   }
 

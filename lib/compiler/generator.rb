@@ -311,28 +311,28 @@ module Rubinius
     def package(klass)
       @generators.each { |x| @literals[x] = @literals[x].package klass }
 
-      cm = klass.new
-      cm.iseq           = @iseq
-      cm.literals       = @literals.to_tuple
-      cm.lines          = @lines.to_tuple
+      code = klass.new
+      code.iseq           = @iseq
+      code.literals       = @literals.to_tuple
+      code.lines          = @lines.to_tuple
 
-      cm.required_args  = @required_args
-      cm.post_args      = @post_args
-      cm.total_args     = @total_args
-      cm.splat          = @splat_index
-      cm.local_count    = @local_count
-      cm.local_names    = @local_names.to_tuple if @local_names
+      code.required_args  = @required_args
+      code.post_args      = @post_args
+      code.total_args     = @total_args
+      code.splat          = @splat_index
+      code.local_count    = @local_count
+      code.local_names    = @local_names.to_tuple if @local_names
 
-      cm.stack_size     = max_stack_size
-      cm.file           = @file
-      cm.name           = @name
-      cm.primitive      = @primitive
+      code.stack_size     = max_stack_size
+      code.file           = @file
+      code.name           = @name
+      code.primitive      = @primitive
 
       if @for_block
-        cm.add_metadata :for_block, true
+        code.add_metadata :for_block, true
       end
 
-      cm
+      code
     end
 
     def use_detected

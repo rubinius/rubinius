@@ -61,7 +61,7 @@ namespace jit {
 
     void compile(LLVMState* state, BackgroundCompileRequest* req);
     void compile_method(LLVMState*, BackgroundCompileRequest* req);
-    void compile_block(LLVMState*, CompiledCode* cm, MachineCode* mcode);
+    void compile_block(LLVMState*, CompiledCode* code, MachineCode* mcode);
     void compile_builder(jit::Context& ctx, LLVMState*, JITMethodInfo&, rubinius::jit::Builder&);
 
     void* function_pointer();

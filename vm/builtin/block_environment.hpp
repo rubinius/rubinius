@@ -37,16 +37,16 @@ namespace rubinius {
     const static object_type type = BlockEnvironmentType;
 
   private:
-    VariableScope* scope_;      // slot
-    VariableScope* top_scope_;  // slot
-    CompiledCode* code_;      // slot
-    Module* module_;            // slot
+    VariableScope* scope_;        // slot
+    VariableScope* top_scope_;    // slot
+    CompiledCode* compiled_code_; // slot
+    Module* module_;              // slot
 
   public:
     /* accessors */
     attr_accessor(scope, VariableScope);
     attr_accessor(top_scope, VariableScope);
-    attr_accessor(code, CompiledCode);
+    attr_accessor(compiled_code, CompiledCode);
     attr_accessor(module, Module);
 
     /* interface */

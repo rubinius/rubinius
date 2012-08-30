@@ -73,7 +73,7 @@ namespace rubinius {
 
     bool resolve_primitive(STATE);
 
-    void add_inliner(ObjectMemory* om, CompiledCode* cm);
+    void add_inliner(ObjectMemory* om, CompiledCode* code);
     void clear_inliners(STATE);
 
     class Info : public TypeInfo {

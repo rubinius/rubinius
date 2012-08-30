@@ -18,7 +18,7 @@ namespace rubinius {
 
   public:
     JITInlineBlock(LLVMState* ls, llvm::PHINode* phi, llvm::BasicBlock* brk,
-                   CompiledCode* cm, MachineCode* mcode,
+                   CompiledCode* code, MachineCode* mcode,
                    JITMethodInfo* scope, int which);
 
     llvm::PHINode* block_break_result() {

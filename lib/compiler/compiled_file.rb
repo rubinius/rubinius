@@ -37,10 +37,10 @@ module Rubinius
     end
 
     ##
-    # Writes the CompiledFile +cm+ to +file+.
-    def self.dump(cm, file, signature, version)
+    # Writes the CompiledFile +code+ to +file+.
+    def self.dump(code, file, signature, version)
       File.open(file, "wb") do |f|
-        new("!RBIX", signature, version).encode_to(f, cm)
+        new("!RBIX", signature, version).encode_to(f, code)
       end
     rescue SystemCallError
       # just skip writing the compiled file if we don't have permissions
@@ -174,22 +174,22 @@ module Rubinius
           if version != 1
             raise "Unknown CompiledCode version #{version}"
           end
-          cm = CompiledCode.new
-          cm.metadata      = unmarshal_data
-          cm.primitive     = unmarshal_data
-          cm.name          = unmarshal_data
-          cm.iseq          = unmarshal_data
-          cm.stack_size    = unmarshal_data
-          cm.local_count   = unmarshal_data
-          cm.required_args = unmarshal_data
-          cm.post_args     = unmarshal_data
-          cm.total_args    = unmarshal_data
-          cm.splat         = unmarshal_data
-          cm.literals      = unmarshal_data
-          cm.lines         = unmarshal_data
-          cm.file          = unmarshal_data
-          cm.local_names   = unmarshal_data
-          return cm
+          code = CompiledCode.new
+          code.metadata      = unmarshal_data
+          code.primitive     = unmarshal_data
+          code.name          = unmarshal_data
+          code.iseq          = unmarshal_data
+          code.stack_size    = unmarshal_data
+          code.local_count   = unmarshal_data
+          code.required_args = unmarshal_data
+          code.post_args     = unmarshal_data
+          code.total_args    = unmarshal_data
+          code.splat         = unmarshal_data
+          code.literals      = unmarshal_data
+          code.lines         = unmarshal_data
+          code.file          = unmarshal_data
+          code.local_names   = unmarshal_data
+          return code
         else
           raise "Unknown type '#{kind.chr}'"
         end

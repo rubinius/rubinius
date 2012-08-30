@@ -37,14 +37,14 @@ module Rubinius
     end
 
     def initialize(format)
-      cm = Rubinius::Type.object_singleton_class(self).dynamic_method :call do |g|
+      code = Rubinius::Type.object_singleton_class(self).dynamic_method :call do |g|
         Builder.new(self, format, g).build
       end
 
       if false
         puts
         puts format.inspect
-        puts cm.decode
+        puts code.decode
         puts
       end
     end

@@ -79,7 +79,7 @@ namespace CallFrame {
   const static int previous = 0;
   const static int constant_scope = 1;
   const static int dispatch_data = 2;
-  const static int cm = 3;
+  const static int compiled_code = 3;
   const static int flags = 4;
   const static int ip = 5;
   const static int jit_data = 6;

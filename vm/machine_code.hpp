@@ -94,7 +94,7 @@ namespace rubinius {
 
     MachineCode(STATE, CompiledCode* meth);
     virtual ~MachineCode();
-    virtual void cleanup(STATE, CodeManager* cm);
+    virtual void cleanup(STATE, CodeManager* code);
     virtual int size();
 
     bool jitted() {
@@ -159,7 +159,7 @@ namespace rubinius {
     template <typename ArgumentHandler>
       static Object* execute_specialized(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
 
-    Object* execute_as_script(STATE, CompiledCode*cm, CallFrame* previous);
+    Object* execute_as_script(STATE, CompiledCode* code, CallFrame* previous);
 
     struct InterpreterState {
       int call_flags;

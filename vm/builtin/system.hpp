@@ -366,7 +366,7 @@ namespace rubinius {
     static Tuple* vm_thread_state(STATE);
 
     // Rubinius.primitive :vm_run_script
-    static Object* vm_run_script(STATE, GCToken gct, CompiledCode* cm, CallFrame* calling_environment);
+    static Object* vm_run_script(STATE, GCToken gct, CompiledCode* code, CallFrame* calling_environment);
 
     // Rubinius.primitive :vm_hash_trie_item_index
     static Fixnum* vm_hash_trie_item_index(STATE, Fixnum* hash, Fixnum* level, Integer* map);

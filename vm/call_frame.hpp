@@ -44,7 +44,7 @@ namespace rubinius {
     ConstantScope* constant_scope_;
 
     void* dispatch_data;
-    CompiledCode* cm;
+    CompiledCode* compiled_code;
 
     int flags;
     int ip_;
@@ -133,7 +133,7 @@ namespace rubinius {
 #endif
 
     Symbol* original_name() {
-      return cm->name();
+      return compiled_code->name();
     }
 
     bool custom_constant_scope_p() {
@@ -154,7 +154,7 @@ namespace rubinius {
 
     ConstantScope* constant_scope() {
       if(custom_constant_scope_p()) return constant_scope_;
-      return cm->scope();
+      return compiled_code->scope();
     }
 
     bool is_block_p(STATE) {
@@ -226,7 +226,7 @@ namespace rubinius {
     }
 
     void calculate_ip(void** pos) {
-      ip_ = pos - cm->machine_code()->addresses;
+      ip_ = pos - compiled_code->machine_code()->addresses;
     }
 
     VariableScope* promote_scope_full(STATE);

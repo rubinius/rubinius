@@ -215,7 +215,7 @@ Object* MachineCode::uncommon_interpreter(STATE,
                                        int32_t* input_unwinds)
 {
 
-  MachineCode* mc = method_call_frame->cm->machine_code();
+  MachineCode* mc = method_call_frame->compiled_code->machine_code();
 
   if(++mc->uncommon_count > state->shared().config.jit_deoptimize_threshold) {
     if(state->shared().config.jit_uncommon_print) {
@@ -227,7 +227,7 @@ Object* MachineCode::uncommon_interpreter(STATE,
     }
 
     mc->uncommon_count = 0;
-    mc->deoptimize(state, method_call_frame->cm, rd);
+    mc->deoptimize(state, method_call_frame->compiled_code, rd);
   }
 
 #include "vm/gen/instruction_locations.hpp"

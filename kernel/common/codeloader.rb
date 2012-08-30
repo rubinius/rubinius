@@ -209,7 +209,7 @@ module Rubinius
         case req.type
         when :ruby
           begin
-            Rubinius.run_script loader.cm
+            Rubinius.run_script loader.compiled_code
           else
             req.passed!
           ensure
