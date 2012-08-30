@@ -47,6 +47,13 @@ static VALUE util_spec_rb_long2int(VALUE self, VALUE n) {
 }
 #endif
 
+#ifdef HAVE_RB_ITER_BREAK
+static VALUE util_spec_rb_iter_break(VALUE self) {
+  rb_iter_break();
+  return Qnil;
+}
+#endif
+
 void Init_util_spec() {
   VALUE cls = rb_define_class("CApiUtilSpecs", rb_cObject);
 
@@ -56,6 +63,10 @@ void Init_util_spec() {
 
 #ifdef HAVE_RB_LONG2INT
   rb_define_method(cls, "rb_long2int", util_spec_rb_long2int, 1);
+#endif
+
+#ifdef HAVE_RB_ITER_BREAK
+  rb_define_method(cls, "rb_iter_break", util_spec_rb_iter_break, 0);
 #endif
 }
 
