@@ -16,6 +16,11 @@ describe "A block" do
     res.should == 1
   end
 
+  it "allows to define a block variable with the same name as the enclosing block" do
+    o = BlockSpecs::OverwriteBlockVariable.new
+    o.z { 1 }.should == 1
+  end
+
   ruby_version_is ""..."1.9" do
     it "overwrites a captured local when used as an argument" do
       var = 1
