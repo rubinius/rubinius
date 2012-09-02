@@ -1,6 +1,8 @@
 #ifndef RBX_BUILTIN_TIME_HPP
 #define RBX_BUILTIN_TIME_HPP
 
+#include "util/time64.h"
+
 #include "builtin/object.hpp"
 #include "type_info.hpp"
 
@@ -16,8 +18,8 @@ namespace rubinius {
     const static object_type type = TimeType;
 
   private:
-    time_t seconds_;
-    time_t nanoseconds_;
+    time64_t seconds_;
+    long nanoseconds_;
 
     Array* decomposed_; // slot
     Object* is_gmt_;  // slot
@@ -69,7 +71,7 @@ namespace rubinius {
     // Rubinius.primitive :time_strftime
     String* strftime(STATE, String* format);
 
-    struct tm get_tm();
+    struct tm64 get_tm();
 
     class Info : public TypeInfo {
     public:

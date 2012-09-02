@@ -5,363 +5,6 @@
  */
 #define _CTYPE_NOINLINE 1
 
-/*
- * This was lifted wholesale from MRI, 1.8.7. I've externalized it a little
- * bit.
- *  - emp
- */
-
-static int
-leap_year_p(long y)
-{
-  return ((y % 4 == 0) && (y % 100 != 0)) || (y % 400 == 0);
-}
-
-#define NDIV(x,y) (-(-((x)+1)/(y))-1)
-#define DIV(n,d) ((n)<0 ? NDIV((n),(d)) : (n)/(d))
-
-static time_t
-timegm_noleapsecond(struct tm* tm)
-{
-    static int common_year_yday_offset[] = {
-        -1,
-        -1 + 31,
-        -1 + 31 + 28,
-        -1 + 31 + 28 + 31,
-        -1 + 31 + 28 + 31 + 30,
-        -1 + 31 + 28 + 31 + 30 + 31,
-        -1 + 31 + 28 + 31 + 30 + 31 + 30,
-        -1 + 31 + 28 + 31 + 30 + 31 + 30 + 31,
-        -1 + 31 + 28 + 31 + 30 + 31 + 30 + 31 + 31,
-        -1 + 31 + 28 + 31 + 30 + 31 + 30 + 31 + 31 + 30,
-        -1 + 31 + 28 + 31 + 30 + 31 + 30 + 31 + 31 + 30 + 31,
-        -1 + 31 + 28 + 31 + 30 + 31 + 30 + 31 + 31 + 30 + 31 + 30
-          /* 1    2    3    4    5    6    7    8    9    10   11 */
-    };
-    static int leap_year_yday_offset[] = {
-        -1,
-        -1 + 31,
-        -1 + 31 + 29,
-        -1 + 31 + 29 + 31,
-        -1 + 31 + 29 + 31 + 30,
-        -1 + 31 + 29 + 31 + 30 + 31,
-        -1 + 31 + 29 + 31 + 30 + 31 + 30,
-        -1 + 31 + 29 + 31 + 30 + 31 + 30 + 31,
-        -1 + 31 + 29 + 31 + 30 + 31 + 30 + 31 + 31,
-        -1 + 31 + 29 + 31 + 30 + 31 + 30 + 31 + 31 + 30,
-        -1 + 31 + 29 + 31 + 30 + 31 + 30 + 31 + 31 + 30 + 31,
-        -1 + 31 + 29 + 31 + 30 + 31 + 30 + 31 + 31 + 30 + 31 + 30
-          /* 1    2    3    4    5    6    7    8    9    10   11 */
-    };
-
-    long tm_year = tm->tm_year;
-    int tm_yday = tm->tm_mday;
-    if (leap_year_p(tm_year + 1900))
-        tm_yday += leap_year_yday_offset[tm->tm_mon];
-    else
-        tm_yday += common_year_yday_offset[tm->tm_mon];
-
-    /*
-     *  `Seconds Since the Epoch' in SUSv3:
-     *  tm_sec + tm_min*60 + tm_hour*3600 + tm_yday*86400 +
-     *  (tm_year-70)*31536000 + ((tm_year-69)/4)*86400 -
-     *  ((tm_year-1)/100)*86400 + ((tm_year+299)/400)*86400
-     */
-    return tm->tm_sec + tm->tm_min*60 + tm->tm_hour*3600 +
-           (time_t)(tm_yday +
-                    (tm_year-70)*365 +
-                    DIV(tm_year-69,4) -
-                    DIV(tm_year-1,100) +
-                    DIV(tm_year+299,400))*86400;
-}
-
-static int
-tmcmp(struct tm* a, struct tm* b)
-{
-    if (a->tm_year != b->tm_year)
-        return a->tm_year < b->tm_year ? -1 : 1;
-    else if (a->tm_mon != b->tm_mon)
-        return a->tm_mon < b->tm_mon ? -1 : 1;
-    else if (a->tm_mday != b->tm_mday)
-        return a->tm_mday < b->tm_mday ? -1 : 1;
-    else if (a->tm_hour != b->tm_hour)
-        return a->tm_hour < b->tm_hour ? -1 : 1;
-    else if (a->tm_min != b->tm_min)
-        return a->tm_min < b->tm_min ? -1 : 1;
-    else if (a->tm_sec != b->tm_sec)
-        return a->tm_sec < b->tm_sec ? -1 : 1;
-    else
-        return 0;
-}
-
-// This code only works if sizeof(time_t) == sizeof(long)
-typedef unsigned long unsigned_time_t;
-
-// lifted from MRI's configure on OS X, probably right on most unix platforms?
-#define NEGATIVE_TIME_T 1
-
-const char* timezone_extended(const struct tm* tptr) {
-#ifdef HAVE_TM_ZONE
-  return tptr->tm_zone;
-#elif HAVE_TZNAME && HAVE_DAYLIGHT
-  return tzname[daylight && tptr->tm_isdst];
-#else
-  return NULL;
-#endif
-}
-
-time_t
-mktime_extended(struct tm* tptr, int utc_p, int* err) {
-    time_t guess, guess_lo, guess_hi;
-    struct tm *tm, tm_lo, tm_hi;
-    int d, have_guess;
-    int find_dst;
-
-    // Start off using there is no error.
-    *err = 0;
-
-    find_dst = 0 < tptr->tm_isdst;
-
-#ifdef NEGATIVE_TIME_T
-    guess_lo = (time_t)~((unsigned_time_t)~(time_t)0 >> 1);
-#else
-    guess_lo = 0;
-#endif
-    guess_hi = ((time_t)-1) < ((time_t)0) ?
-	       (time_t)((unsigned_time_t)~(time_t)0 >> 1) :
-	       ~(time_t)0;
-
-    guess = timegm_noleapsecond(tptr);
-    tm = (utc_p ? gmtime : localtime)(&guess);
-    if (tm) {
-        d = tmcmp(tptr, tm);
-        if (d == 0) return guess;
-        if (d < 0) {
-            guess_hi = guess;
-            guess -= 24 * 60 * 60;
-        }
-        else {
-            guess_lo = guess;
-            guess += 24 * 60 * 60;
-        }
-        if (guess_lo < guess && guess < guess_hi &&
-            (tm = (utc_p ? gmtime : localtime)(&guess)) != NULL) {
-            d = tmcmp(tptr, tm);
-            if (d == 0) return guess;
-            if (d < 0)
-                guess_hi = guess;
-            else
-                guess_lo = guess;
-        }
-    }
-
-    tm = (utc_p ? gmtime : localtime)(&guess_lo);
-    if (!tm) goto error;
-    d = tmcmp(tptr, tm);
-    if (d < 0) goto out_of_range;
-    if (d == 0) return guess_lo;
-    tm_lo = *tm;
-
-    tm = (utc_p ? gmtime : localtime)(&guess_hi);
-    if (!tm) goto error;
-    d = tmcmp(tptr, tm);
-    if (d > 0) goto out_of_range;
-    if (d == 0) return guess_hi;
-    tm_hi = *tm;
-
-    have_guess = 0;
-
-    while (guess_lo + 1 < guess_hi) {
-      /* there is a gap between guess_lo and guess_hi. */
-      unsigned long range = 0;
-      if (!have_guess) {
-	int a, b;
-	/*
-	  Try precious guess by a linear interpolation at first.
-	  `a' and `b' is a coefficient of guess_lo and guess_hi as:
-
-	    guess = (guess_lo * a + guess_hi * b) / (a + b)
-
-	  However this causes overflow in most cases, following assignment
-	  is used instead:
-
-	    guess = guess_lo / d * a + (guess_lo % d) * a / d
-		  + guess_hi / d * b + (guess_hi % d) * b / d
-	      where d = a + b
-
-	  To avoid overflow in this assignment, `d' is restricted to less than
-	  sqrt(2**31).  By this restriction and other reasons, the guess is
-	  not accurate and some error is expected.  `range' approximates 
-	  the maximum error.
-
-	  When these parameters are not suitable, i.e. guess is not within
-	  guess_lo and guess_hi, simple guess by binary search is used.
-	*/
-	range = 366 * 24 * 60 * 60;
-	a = (tm_hi.tm_year - tptr->tm_year);
-	b = (tptr->tm_year - tm_lo.tm_year);
-	/* 46000 is selected as `some big number less than sqrt(2**31)'. */
-	if (a + b <= 46000 / 12) {
-	  range = 31 * 24 * 60 * 60;
-	  a *= 12;
-	  b *= 12;
-	  a += tm_hi.tm_mon - tptr->tm_mon;
-	  b += tptr->tm_mon - tm_lo.tm_mon;
-	  if (a + b <= 46000 / 31) {
-	    range = 24 * 60 * 60;
-	    a *= 31;
-	    b *= 31;
-	    a += tm_hi.tm_mday - tptr->tm_mday;
-	    b += tptr->tm_mday - tm_lo.tm_mday;
-	    if (a + b <= 46000 / 24) {
-	      range = 60 * 60;
-	      a *= 24;
-	      b *= 24;
-	      a += tm_hi.tm_hour - tptr->tm_hour;
-	      b += tptr->tm_hour - tm_lo.tm_hour;
-	      if (a + b <= 46000 / 60) {
-		range = 60;
-		a *= 60;
-		b *= 60;
-		a += tm_hi.tm_min - tptr->tm_min;
-		b += tptr->tm_min - tm_lo.tm_min;
-		if (a + b <= 46000 / 60) {
-		  range = 1;
-		  a *= 60;
-		  b *= 60;
-		  a += tm_hi.tm_sec - tptr->tm_sec;
-		  b += tptr->tm_sec - tm_lo.tm_sec;
-		}
-	      }
-	    }
-	  }
-	}
-	if (a <= 0) a = 1;
-	if (b <= 0) b = 1;
-	d = a + b;
-	/*
-	  Although `/' and `%' may produce unexpected result with negative
-	  argument, it doesn't cause serious problem because there is a
-	  fail safe.
-	*/
-	guess = guess_lo / d * a + (guess_lo % d) * a / d
-	      + guess_hi / d * b + (guess_hi % d) * b / d;
-	have_guess = 1;
-      }
-
-      if (guess <= guess_lo || guess_hi <= guess) {
-	/* Precious guess is invalid. try binary search. */ 
-	guess = guess_lo / 2 + guess_hi / 2;
-	if (guess <= guess_lo)
-	  guess = guess_lo + 1;
-	else if (guess >= guess_hi)
-	  guess = guess_hi - 1;
-	range = 0;
-      }
-
-      tm = (utc_p ? gmtime : localtime)(&guess);
-      if (!tm) goto error;
-      have_guess = 0;
-
-      d = tmcmp(tptr, tm);
-      if (d < 0) {
-        guess_hi = guess;
-	tm_hi = *tm;
-	if (range) {
-	  guess = guess - range;
-	  range = 0;
-	  if (guess_lo < guess && guess < guess_hi)
-	    have_guess = 1;
-	}
-      }
-      else if (d > 0) {
-        guess_lo = guess;
-	tm_lo = *tm;
-	if (range) {
-	  guess = guess + range;
-	  range = 0;
-	  if (guess_lo < guess && guess < guess_hi)
-	    have_guess = 1;
-	}
-      }
-      else {
-	if (!utc_p) {
-	  /* If localtime is nonmonotonic, another result may exist. */
-	  time_t guess2;
-	  if (find_dst) {
-	    guess2 = guess - 2 * 60 * 60;
-	    tm = localtime(&guess2);
-	    if (tm) {
-	      if (tptr->tm_hour != (tm->tm_hour + 2) % 24 ||
-		  tptr->tm_min != tm->tm_min ||
-		  tptr->tm_sec != tm->tm_sec) {
-		guess2 -= (tm->tm_hour - tptr->tm_hour) * 60 * 60 +
-			  (tm->tm_min - tptr->tm_min) * 60 +
-			  (tm->tm_sec - tptr->tm_sec);
-		if (tptr->tm_mday != tm->tm_mday)
-		  guess2 += 24 * 60 * 60;
-		if (guess != guess2) {
-		  tm = localtime(&guess2);
-		  if (tmcmp(tptr, tm) == 0) {
-		    if (guess < guess2)
-		      return guess;
-		    else
-		      return guess2;
-		  }
-		}
-	      }
-	    }
-	  }
-	  else {
-	    guess2 = guess + 2 * 60 * 60;
-	    tm = localtime(&guess2);
-	    if (tm) {
-	      if ((tptr->tm_hour + 2) % 24 != tm->tm_hour ||
-		  tptr->tm_min != tm->tm_min ||
-		  tptr->tm_sec != tm->tm_sec) {
-		guess2 -= (tm->tm_hour - tptr->tm_hour) * 60 * 60 +
-			  (tm->tm_min - tptr->tm_min) * 60 +
-			  (tm->tm_sec - tptr->tm_sec);
-		if (tptr->tm_mday != tm->tm_mday)
-		  guess2 -= 24 * 60 * 60;
-		if (guess != guess2) {
-		  tm = localtime(&guess2);
-		  if (tmcmp(tptr, tm) == 0) {
-		    if (guess < guess2)
-		      return guess2;
-		    else
-		      return guess;
-		  }
-		}
-	      }
-	    }
-	  }
-	}
-	return guess;
-      }
-    }
-    /* Given argument has no corresponding time_t. Let's outerpolation. */
-    if (tm_lo.tm_year == tptr->tm_year && tm_lo.tm_mon == tptr->tm_mon) {
-      return guess_lo +
-        (tptr->tm_mday - tm_lo.tm_mday) * 24 * 60 * 60 +
-        (tptr->tm_hour - tm_lo.tm_hour) * 60 * 60 +
-        (tptr->tm_min - tm_lo.tm_min) * 60 +
-        (tptr->tm_sec - tm_lo.tm_sec);
-    }
-    else if (tm_hi.tm_year == tptr->tm_year && tm_hi.tm_mon == tptr->tm_mon) {
-      return guess_hi +
-        (tptr->tm_mday - tm_hi.tm_mday) * 24 * 60 * 60 +
-        (tptr->tm_hour - tm_hi.tm_hour) * 60 * 60 +
-        (tptr->tm_min - tm_hi.tm_min) * 60 +
-        (tptr->tm_sec - tm_hi.tm_sec);
-    }
-
-error:
-out_of_range:
-    *err = 1;
-    return 0;
-}
-
 /* -*- c-file-style: "linux" -*- */
 
 /*
@@ -412,6 +55,7 @@ out_of_range:
  */
 
 // Modernized and cleaned up by Evan Phoenix - 2010
+// Updated for our modified tm64 struct by Dirkjan Bussink - 2012
 
 #include <stdio.h>
 #include <ctype.h>
@@ -423,6 +67,7 @@ out_of_range:
 
 #include <math.h>
 
+#include "util/time64.h"
 #include "vm/config.h"
 
 /* defaults: season to taste */
@@ -459,8 +104,8 @@ out_of_range:
 
 #undef strchr	/* avoid AIX weirdness */
 
-static int weeknumber(const struct tm *timeptr, int firstweekday);
-adddecl(static int iso8601wknum(const struct tm *timeptr);)
+static int weeknumber(const struct tm64 *timeptr, int firstweekday);
+adddecl(static int iso8601wknum(const struct tm64 *timeptr);)
 
 #include <stdlib.h>
 #include <string.h>
@@ -505,7 +150,7 @@ static inline int max(int a, int b) {
 /* strftime --- produce formatted time */
 
 size_t
-strftime_extended(char *s, size_t maxsize, const char *format, const struct tm *timeptr, const struct timespec *ts, int gmt, int off)
+strftime_extended(char *s, size_t maxsize, const char *format, const struct tm64 *timeptr, const struct timespec64 *ts, int gmt, int off)
 {
 	char *endp = s + maxsize;
 	char *start = s;
@@ -750,7 +395,7 @@ strftime_extended(char *s, size_t maxsize, const char *format, const struct tm *
 			break;
 
 		case 's':
-			FMT('0', 1, "d", (int) ts->tv_sec);
+			FMT('0', 1, "lld", ts->tv_sec);
 			continue;
 
 		case 'S':	/* second, 00 - 60 */
@@ -785,7 +430,7 @@ strftime_extended(char *s, size_t maxsize, const char *format, const struct tm *
 			continue;
 
 		case 'Y':	/* year with century */
-			FMT('0', 1, "ld", 1900L + timeptr->tm_year);
+			FMT('0', 1, "lld", timeptr->tm_year);
 			continue;
 
 #ifdef MAILHEADER_EXT
@@ -860,7 +505,7 @@ strftime_extended(char *s, size_t maxsize, const char *format, const struct tm *
 				tp = "UTC";
 				break;
 			}
-			tp = timezone_extended(timeptr);
+			tp = timeptr->tm_zone;
 			if (!tp) {
 				tp = "";
 			}
@@ -918,10 +563,10 @@ strftime_extended(char *s, size_t maxsize, const char *format, const struct tm *
 
 #ifdef VMS_EXT
 		case 'v':	/* date as dd-bbb-YYYY */
-			w = snprintf(s, endp - s, "%2d-%3.3s-%4ld",
+			w = snprintf(s, endp - s, "%2d-%3.3s-%4lld",
 				     range(1, timeptr->tm_mday, 31),
 				     months_l[range(0, timeptr->tm_mon, 11)],
-				     timeptr->tm_year + 1900L);
+				     timeptr->tm_year);
 			if (w < 0) goto err;
 			for (i = 3; i < 6; i++)
 				if (islower((int)s[i]))
@@ -933,7 +578,7 @@ strftime_extended(char *s, size_t maxsize, const char *format, const struct tm *
 
 #ifdef POSIX2_DATE
 		case 'C':
-			FMT('0', 2, "ld", (timeptr->tm_year + 1900L) / 100);
+			FMT('0', 2, "lld", (timeptr->tm_year) / 100);
 			continue;
 
 
@@ -970,11 +615,11 @@ strftime_extended(char *s, size_t maxsize, const char *format, const struct tm *
 			 */
 			w = iso8601wknum(timeptr);
 			if (timeptr->tm_mon == 11 && w == 1)
-				y = 1900L + timeptr->tm_year + 1;
+				y = timeptr->tm_year + 1;
 			else if (timeptr->tm_mon == 0 && w >= 52)
-				y = 1900L + timeptr->tm_year - 1;
+				y = timeptr->tm_year - 1;
 			else
-				y = 1900L + timeptr->tm_year;
+				y = timeptr->tm_year;
 
 			if (*format == 'G')
 				FMT('0', 1, "ld", y);
@@ -1023,8 +668,8 @@ strftime_extended(char *s, size_t maxsize, const char *format, const struct tm *
 				int mon, mday;
 				mon = range(0, timeptr->tm_mon, 11) + 1;
 				mday = range(1, timeptr->tm_mday, 31);
-				i = snprintf(s, endp - s, "%ld-%02d-%02d",
-					     1900L + timeptr->tm_year, mon, mday);
+				i = snprintf(s, endp - s, "%lld-%02d-%02d",
+					     timeptr->tm_year, mon, mday);
 				if (i < 0)
 					goto err;
 				s += i;
@@ -1117,7 +762,7 @@ static int isleap(long year) {
 #ifdef POSIX2_DATE
 /* iso8601wknum --- compute week number according to ISO 8601 */
 
-static int iso8601wknum(const struct tm *timeptr) {
+static int iso8601wknum(const struct tm64 *timeptr) {
 	/*
 	 * From 1003.2:
 	 *	If the week (Monday to Sunday) containing January 1
@@ -1184,13 +829,13 @@ static int iso8601wknum(const struct tm *timeptr) {
 			weeknum = 53;
 #else
 			/* get week number of last week of last year */
-			struct tm dec31ly;	/* 12/31 last year */
+			struct tm64 dec31ly;	/* 12/31 last year */
 			dec31ly = *timeptr;
 			dec31ly.tm_year--;
 			dec31ly.tm_mon = 11;
 			dec31ly.tm_mday = 31;
 			dec31ly.tm_wday = (jan1day == 0) ? 6 : jan1day - 1;
-			dec31ly.tm_yday = 364 + isleap(dec31ly.tm_year + 1900L);
+			dec31ly.tm_yday = 364 + isleap(dec31ly.tm_year);
 			weeknum = iso8601wknum(& dec31ly);
 #endif
 		}
@@ -1227,7 +872,7 @@ static int iso8601wknum(const struct tm *timeptr) {
 
 /* With thanks and tip of the hatlo to ado@elsie.nci.nih.gov */
 
-static int weeknumber(const struct tm *timeptr, int firstweekday)
+static int weeknumber(const struct tm64 *timeptr, int firstweekday)
 {
 	int wday = timeptr->tm_wday;
 	int ret;
