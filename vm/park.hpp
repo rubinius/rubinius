@@ -5,6 +5,7 @@
 
 namespace rubinius {
   struct CallFrame;
+  class Object;
 
   class Park {
     utilities::thread::Condition cond_;
@@ -31,8 +32,8 @@ namespace rubinius {
       return sleeping_;
     }
 
-    void park(STATE, CallFrame* call_frame);
-    bool park_timed(STATE, CallFrame* call_frame, struct timespec* ts);
+    Object* park(STATE, CallFrame* call_frame);
+    Object* park_timed(STATE, CallFrame* call_frame, struct timespec* ts);
   };
 }
 

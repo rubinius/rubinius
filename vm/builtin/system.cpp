@@ -757,9 +757,9 @@ namespace rubinius {
       ts.tv_sec  += tv.tv_sec + nano / NANOSECONDS;
       ts.tv_nsec  = nano % NANOSECONDS;
 
-      state->park_timed(gct, calling_environment, &ts);
+      if(!state->park_timed(gct, calling_environment, &ts)) return NULL;
     } else {
-      state->park(gct, calling_environment);
+      if(!state->park(gct, calling_environment)) return NULL;
     }
 
     if(!state->check_async(calling_environment)) return NULL;

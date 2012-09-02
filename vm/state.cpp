@@ -78,11 +78,11 @@ namespace rubinius {
   }
 
 
-  void State::park(GCToken gct, CallFrame* call_frame) {
-    vm_->park_->park(this, call_frame);
+  Object* State::park(GCToken gct, CallFrame* call_frame) {
+    return vm_->park_->park(this, call_frame);
   }
 
-  void State::park_timed(GCToken gct, CallFrame* call_frame, struct timespec* ts) {
-    vm_->park_->park_timed(this, call_frame, ts);
+  Object* State::park_timed(GCToken gct, CallFrame* call_frame, struct timespec* ts) {
+    return vm_->park_->park_timed(this, call_frame, ts);
   }
 }
