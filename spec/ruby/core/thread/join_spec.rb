@@ -60,14 +60,4 @@ describe "Thread#join" do
       lambda { t.join }.should raise_error(NotImplementedError)
     end
   end
-
-  it "does not deadlock by killed threads which were going to sleep infinitely" do
-    100000.times do
-      t = Thread.new do
-        sleep
-      end
-      t.kill
-      t.join.should == t
-    end
-  end
 end
