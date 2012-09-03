@@ -337,6 +337,26 @@ namespace rubinius {
     return exc;
   }
 
+  Object* Thread::kill(STATE, GCToken gct) {
+    utilities::thread::SpinLock::LockGuard lg(init_lock_);
+    Thread* self = this;
+    OnStack<1> os(state, self);
+
+    VM* vm = self->vm_;
+    if(!vm) {
+      return cNil;
+    }
+
+    if(state->vm()->thread.get() == self) {
+      vm_->thread_state_.raise_thread_kill();
+      return NULL;
+    } else {
+      vm->register_kill(state);
+      vm->wakeup(state, gct);
+      return self;
+    }
+  }
+
   Object* Thread::set_priority(STATE, Fixnum* new_priority) {
     return new_priority;
   }

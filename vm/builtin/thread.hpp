@@ -167,6 +167,12 @@ namespace rubinius {
     Object* raise(STATE, GCToken gct, Exception* exc);
 
     /**
+     *  Kill this Thread.
+     */
+    // Rubinius.primitive :thread_kill
+    Object* kill(STATE, GCToken gct);
+
+    /**
      *  Set the priority for this Thread.
      *
      *  The value is numeric, higher being more important

@@ -76,6 +76,7 @@ namespace rubinius {
     , waiting_channel_(this, nil<Channel>())
     , interrupted_exception_(this, nil<Exception>())
     , interrupt_with_signal_(false)
+    , interrupt_by_kill_(false)
     , waiting_header_(0)
     , custom_wakeup_(0)
     , custom_wakeup_data_(0)
@@ -424,6 +425,13 @@ namespace rubinius {
   void VM::register_raise(STATE, Exception* exc) {
     SYNC(state);
     interrupted_exception_.set(exc);
+    check_local_interrupts = true;
+    get_attention();
+  }
+
+  void VM::register_kill(STATE) {
+    SYNC(state);
+    interrupt_by_kill_ = true;
     check_local_interrupts = true;
     get_attention();
   }

@@ -98,4 +98,8 @@ namespace rubinius {
     raise_value_.set(value);
     throw_dest_.set(dest);
   }
+
+  void ThreadState::raise_thread_kill() {
+    raise_reason_ = cThreadKill;
+  }
 }

@@ -80,8 +80,6 @@ class Thread
           @joins.each { |join| join.send self }
         end
       end
-    rescue Die
-      @exception = nil
     rescue Exception => e
       # I don't really get this, but this is MRI's behavior. If we're dying
       # by request, ignore any raised exception.
