@@ -148,27 +148,36 @@ describe :time_params, :shared => true do
       Time.send(@method, 1901, 12, 31, 23, 59, 59, 0).wday.should == 2
       Time.send(@method, 2037, 12, 31, 23, 59, 59, 0).wday.should == 4
 
-      platform_is :wordsize => 32 do
-        lambda {
-          Time.send(@method, 1900, 12, 31, 23, 59, 59, 0)
-        }.should raise_error(ArgumentError) # mon
+      not_compliant_on :rubinius do
+        platform_is :wordsize => 32 do
+          lambda {
+            Time.send(@method, 1900, 12, 31, 23, 59, 59, 0)
+          }.should raise_error(ArgumentError) # mon
 
-        lambda {
-          Time.send(@method, 2038, 12, 31, 23, 59, 59, 0)
-        }.should raise_error(ArgumentError) # mon
+          lambda {
+            Time.send(@method, 2038, 12, 31, 23, 59, 59, 0)
+          }.should raise_error(ArgumentError) # mon
+        end
+
+        platform_is :wordsize => 64 do
+          Time.send(@method, 1900, 12, 31, 23, 59, 59, 0).wday.should == 1
+          Time.send(@method, 2038, 12, 31, 23, 59, 59, 0).wday.should == 5
+        end
       end
 
-      platform_is :wordsize => 64 do
+      deviates_on :rubinius do
         Time.send(@method, 1900, 12, 31, 23, 59, 59, 0).wday.should == 1
         Time.send(@method, 2038, 12, 31, 23, 59, 59, 0).wday.should == 5
       end
     end
 
-    platform_is :wordsize => 32 do
-      it "raises an ArgumentError for out of range year" do
-        lambda {
-          Time.send(@method, 1111, 12, 31, 23, 59, 59)
-        }.should raise_error(ArgumentError)
+    not_compliant_on :rubinius do
+      platform_is :wordsize => 32 do
+        it "raises an ArgumentError for out of range year" do
+          lambda {
+            Time.send(@method, 1111, 12, 31, 23, 59, 59)
+          }.should raise_error(ArgumentError)
+        end
       end
     end
   end
@@ -260,10 +269,12 @@ describe :time_params_10_arg, :shared => true do
       }.should raise_error(ArgumentError) # month
 
       # Year range only fails on 32 bit archs
-      platform_is :wordsize => 32 do
-        lambda {
-          Time.send(@method, 59, 59, 23, 31, 12, 1111, :ignored, :ignored, :ignored, :ignored)
-        }.should raise_error(ArgumentError) # year
+      not_compliant_on :rubinius do
+        platform_is :wordsize => 32 do
+          lambda {
+            Time.send(@method, 59, 59, 23, 31, 12, 1111, :ignored, :ignored, :ignored, :ignored)
+          }.should raise_error(ArgumentError) # year
+        end
       end
     end
   end
