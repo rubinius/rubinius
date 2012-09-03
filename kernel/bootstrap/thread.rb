@@ -160,15 +160,6 @@ class Thread
     !alive? || @sleep
   end
 
-  def kill
-    @dying = true
-    @sleep = false
-    kill_prim
-  end
-
-  alias_method :exit, :kill
-  alias_method :terminate, :kill
-
   def sleeping?
     Rubinius.synchronize(self) do
       @sleep

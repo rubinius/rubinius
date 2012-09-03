@@ -98,6 +98,15 @@ class Thread
     @killed = false
   end
 
+  def kill
+    @dying = true
+    @sleep = false
+    kill_prim
+  end
+
+  alias_method :exit, :kill
+  alias_method :terminate, :kill
+
   def value
     join_inner do
       @killed ? nil : @result

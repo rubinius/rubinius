@@ -107,7 +107,25 @@ class Thread
     @critical = false
     @dying = false
     @joins = []
+    @killed = false
   end
+
+  def kill
+    @dying = true
+    Rubinius.synchronize(self) do
+      if @sleep and @killed
+        @sleep = false
+        wakeup
+      else
+        @sleep = false
+        @killed = true
+        kill_prim
+      end
+    end
+  end
+
+  alias_method :exit, :kill
+  alias_method :terminate, :kill
 
   def value
     join_inner { @result }

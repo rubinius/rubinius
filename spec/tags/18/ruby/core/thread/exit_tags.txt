@@ -1,1 +1,0 @@
-fails:Thread#exit killing dying sleeping thread wakes up thread
