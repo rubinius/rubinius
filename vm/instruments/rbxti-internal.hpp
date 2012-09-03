@@ -8,6 +8,7 @@ namespace rubinius {
   class Module;
   class Symbol;
   class CompiledCode;
+  class MachineCode;
   class String;
   class Integer;
   class LookupTable;
@@ -57,6 +58,10 @@ namespace rbxti {
 
   static inline rmethod o(rubinius::CompiledCode* m) {
     return (rmethod)m;
+  }
+
+  static inline rmachine_code o(rubinius::MachineCode* mcode) {
+    return (rmachine_code)mcode;
   }
 
   static inline rstring o(rubinius::String* s) {

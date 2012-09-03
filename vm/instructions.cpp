@@ -21,6 +21,8 @@
 #include "builtin/location.hpp"
 #include "builtin/cache.hpp"
 
+#include "instruments/tooling.hpp"
+
 #include "call_frame.hpp"
 
 #include "objectmemory.hpp"
@@ -74,8 +76,8 @@ using namespace rubinius;
 #define CALL_FLAGS() is.call_flags
 
 Object* MachineCode::interpreter(STATE,
-                              MachineCode* const mcode,
-                              InterpreterCallFrame* const call_frame)
+                                 MachineCode* const mcode,
+                                 InterpreterCallFrame* const call_frame)
 {
 
 #include "vm/gen/instruction_locations.hpp"
@@ -205,14 +207,14 @@ exception:
 }
 
 Object* MachineCode::uncommon_interpreter(STATE,
-                                       MachineCode* const mcode,
-                                       CallFrame* const call_frame,
-                                       int32_t entry_ip,
-                                       native_int sp,
-                                       CallFrame* const method_call_frame,
-                                       jit::RuntimeDataHolder* rd,
-                                       int32_t unwind_count,
-                                       int32_t* input_unwinds)
+                                          MachineCode* const mcode,
+                                          CallFrame* const call_frame,
+                                          int32_t entry_ip,
+                                          native_int sp,
+                                          CallFrame* const method_call_frame,
+                                          jit::RuntimeDataHolder* rd,
+                                          int32_t unwind_count,
+                                          int32_t* input_unwinds)
 {
 
   MachineCode* mc = method_call_frame->compiled_code->machine_code();
@@ -368,8 +370,8 @@ exception:
  * a breakpoint is set on compiled method.
  */
 Object* MachineCode::debugger_interpreter(STATE,
-                                       MachineCode* const mcode,
-                                       InterpreterCallFrame* const call_frame)
+                                          MachineCode* const mcode,
+                                          InterpreterCallFrame* const call_frame)
 {
 
 #include "vm/gen/instruction_locations.hpp"
@@ -506,12 +508,12 @@ exception:
 }
 
 Object* MachineCode::debugger_interpreter_continue(STATE,
-                                       MachineCode* const mcode,
-                                       CallFrame* const call_frame,
-                                       int sp,
-                                       InterpreterState& is,
-                                       int current_unwind,
-                                       UnwindInfo* unwinds)
+                                                   MachineCode* const mcode,
+                                                   CallFrame* const call_frame,
+                                                   int sp,
+                                                   InterpreterState& is,
+                                                   int current_unwind,
+                                                   UnwindInfo* unwinds)
 {
 
 #include "vm/gen/instruction_locations.hpp"
@@ -633,3 +635,140 @@ exception:
   rubinius::bug("Control flow error in interpreter");
   return NULL;
 }
+
+
+/* The tooling interpreter calls the registered tool for every instruction
+ * executed.
+ */
+Object* MachineCode::tooling_interpreter(STATE,
+                                         MachineCode* const mcode,
+                                         InterpreterCallFrame* const call_frame)
+{
+
+#include "vm/gen/instruction_locations.hpp"
+
+  opcode* stream = mcode->opcodes;
+  InterpreterState is;
+  GCTokenImpl gct;
+
+  int current_unwind = 0;
+  UnwindInfo unwinds[kMaxUnwindInfos];
+
+  Object** stack_ptr = call_frame->stk - 1;
+
+continue_to_run:
+  try {
+
+#undef DISPATCH
+#define DISPATCH \
+    if(unlikely(state->vm()->tooling())) { \
+      state->shared().tool_broker()->at_ip(state, mcode, call_frame->ip()); \
+    } \
+    goto *insn_locations[stream[call_frame->inc_ip()]];
+
+#undef next_int
+#undef cache_ip
+#undef flush_ip
+
+#define next_int ((opcode)(stream[call_frame->inc_ip()]))
+#define cache_ip(which)
+#define flush_ip()
+
+#include "vm/gen/instruction_implementations.hpp"
+
+  } catch(TypeError& e) {
+    flush_ip();
+    Exception* exc =
+      Exception::make_type_error(state, e.type, e.object, e.reason);
+    exc->locations(state, Location::from_call_stack(state, call_frame));
+
+    state->raise_exception(exc);
+    call_frame->scope->flush_to_heap(state);
+    return NULL;
+  } catch(const RubyException& exc) {
+    exc.exception->locations(state,
+          Location::from_call_stack(state, call_frame));
+    state->raise_exception(exc.exception);
+    return NULL;
+  }
+
+  // no reason to be here!
+  rubinius::bug("Control flow error in interpreter");
+
+  // If control finds it's way down here, there is an exception.
+exception:
+  ThreadState* th = state->vm()->thread_state();
+  //
+  switch(th->raise_reason()) {
+  case cException:
+    if(current_unwind > 0) {
+      UnwindInfo* info = &unwinds[--current_unwind];
+      stack_position(info->stack_depth);
+      call_frame->set_ip(info->target_ip);
+      cache_ip(info->target_ip);
+      goto continue_to_run;
+    } else {
+      call_frame->scope->flush_to_heap(state);
+      return NULL;
+    }
+
+  case cBreak:
+    // If we're trying to break to here, we're done!
+    if(th->destination_scope() == call_frame->scope->on_heap()) {
+      stack_push(th->raise_value());
+      th->clear_break();
+      goto continue_to_run;
+      // Don't return here, because we want to loop back to the top
+      // and keep running this method.
+    }
+
+    // Otherwise, fall through and run the unwinds
+  case cReturn:
+  case cCatchThrow:
+    // Otherwise, we're doing a long return/break unwind through
+    // here. We need to run ensure blocks.
+    while(current_unwind > 0) {
+      UnwindInfo* info = &unwinds[--current_unwind];
+      stack_position(info->stack_depth);
+
+      if(info->for_ensure()) {
+        stack_position(info->stack_depth);
+        call_frame->set_ip(info->target_ip);
+        cache_ip(info->target_ip);
+
+        // Don't reset ep here, we're still handling the return/break.
+        goto continue_to_run;
+      }
+    }
+
+    // Ok, no ensures to run.
+    if(th->raise_reason() == cReturn) {
+      call_frame->scope->flush_to_heap(state);
+
+      // If we're trying to return to here, we're done!
+      if(th->destination_scope() == call_frame->scope->on_heap()) {
+        Object* val = th->raise_value();
+        th->clear_return();
+        return val;
+      } else {
+        // Give control of this exception to the caller.
+        return NULL;
+      }
+
+    } else { // It's cBreak thats not for us!
+      call_frame->scope->flush_to_heap(state);
+      // Give control of this exception to the caller.
+      return NULL;
+    }
+
+  case cExit:
+    call_frame->scope->flush_to_heap(state);
+    return NULL;
+  default:
+    break;
+  } // switch
+
+  rubinius::bug("Control flow error in interpreter");
+  return NULL;
+}
+

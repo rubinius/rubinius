@@ -6,6 +6,7 @@
 namespace rubinius {
   class BlockEnvironment;
   class VM;
+  class MachineCode;
 namespace tooling {
 
   const static int cTotalToolDatas = 16;
@@ -33,6 +34,8 @@ namespace tooling {
     rbxti::thread_stop_func thread_stop_func_;
 
     rbxti::at_gc_func at_gc_func_;
+
+    rbxti::at_ip_func at_ip_func_;
 
     rbxti::shutdown_func shutdown_func_;
 
@@ -71,6 +74,8 @@ namespace tooling {
 
     void at_gc(STATE);
 
+    void at_ip(STATE, MachineCode* mcode, int ip);
+
     void set_tool_enter_method(rbxti::enter_method func);
     void set_tool_leave_method(rbxti::leave_func func);
 
@@ -92,6 +97,8 @@ namespace tooling {
     void set_tool_thread_stop(rbxti::thread_stop_func func);
 
     void set_tool_at_gc(rbxti::at_gc_func func);
+
+    void set_tool_at_ip(rbxti::at_ip_func func);
 
     Object* results(STATE);
     void enable(STATE);

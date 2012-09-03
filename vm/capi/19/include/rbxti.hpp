@@ -9,6 +9,7 @@ namespace rbxti {
   class InternalSymbol : public InternalObject {};
   class InternalTable : public InternalObject {};
   class InternalMethod : public InternalObject {};
+  class InternalMachineCode : public InternalObject {};
   class InternalModule : public InternalObject {};
   class InternalString : public InternalObject {};
   class InternalInteger : public InternalObject {};
@@ -19,6 +20,7 @@ namespace rbxti {
   typedef InternalSymbol* rsymbol;
   typedef InternalTable* rtable;
   typedef InternalMethod* rmethod;
+  typedef InternalMachineCode* rmachine_code;
   typedef InternalModule* rmodule;
   typedef InternalString* rstring;
   typedef InternalInteger* rinteger;
@@ -45,6 +47,10 @@ namespace rbxti {
 
   typedef void  (*thread_start_func)(Env* env);
   typedef void  (*thread_stop_func)(Env* env);
+
+  typedef void  (*at_gc_func)(Env* env);
+
+  typedef void  (*at_ip_func)(Env* env, rmachine_code code, int ip);
 
   class Env {
   public:
@@ -128,6 +134,10 @@ namespace rbxti {
 
     void set_tool_thread_start(thread_start_func func);
     void set_tool_thread_stop(thread_stop_func func);
+
+    void set_tool_at_gc(at_gc_func func);
+
+    void set_tool_at_ip(at_ip_func func);
   };
 }
 

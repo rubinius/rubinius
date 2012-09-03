@@ -347,6 +347,10 @@ namespace rbxti {
     private_->global()->set_tool_at_gc(func);
   }
 
+  void Env::set_tool_at_ip(at_ip_func func) {
+    private_->global()->set_tool_at_ip(func);
+  }
+
   Env* create_env(VM* state) {
     Env* env = new Env;
     env->private_ = new EnvPrivate(state);

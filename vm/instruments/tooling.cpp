@@ -30,6 +30,7 @@ namespace tooling {
     , thread_start_func_(0)
     , thread_stop_func_(0)
     , at_gc_func_(0)
+    , at_ip_func_(0)
     , shutdown_func_(0)
   {}
 
@@ -145,6 +146,11 @@ namespace tooling {
     at_gc_func_(state->vm()->tooling_env());
   }
 
+  void ToolBroker::at_ip(STATE, MachineCode* mcode, int ip) {
+    if(!at_ip_func_) return;
+    at_ip_func_(state->vm()->tooling_env(), rbxti::o(mcode), ip);
+  }
+
   void ToolBroker::set_tool_results(rbxti::results_func func) {
     results_func_ = func;
   }
@@ -205,6 +211,10 @@ namespace tooling {
 
   void ToolBroker::set_tool_at_gc(rbxti::at_gc_func func) {
     at_gc_func_ = func;
+  }
+
+  void ToolBroker::set_tool_at_ip(rbxti::at_ip_func func) {
+    at_ip_func_ = func;
   }
 }
 }
