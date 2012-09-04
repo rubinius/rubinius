@@ -215,7 +215,7 @@ namespace rubinius {
     }
   }
 
-  LockStatus ObjectHeader::lock(STATE, GCToken gct, size_t us) {
+  LockStatus ObjectHeader::lock(STATE, GCToken gct, size_t us, bool interrupt) {
     // #1 Attempt to lock an unlocked object using CAS.
 
     ObjectHeader* self = this;
@@ -255,7 +255,7 @@ step2:
     // The header is inflated, use the full lock.
     if(orig.f.inflated) {
       InflatedHeader* ih = ObjectHeader::header_to_inflated_header(orig);
-      return ih->lock_mutex(state, gct, us);
+      return ih->lock_mutex(state, gct, us, interrupt);
     }
 
     switch(orig.f.meaning) {
@@ -307,7 +307,7 @@ step2:
         // We weren't able to contend for it, probably because the header changed.
         // Do it all over again.
         bool error = false;
-        LockStatus ret = state->memory()->contend_for_lock(state, gct, self, &error, us);
+        LockStatus ret = state->memory()->contend_for_lock(state, gct, self, &error, us, interrupt);
         if(error) goto step1;
         return ret;
       }
@@ -706,8 +706,8 @@ step2:
     rec_lock_count_ = count;
   }
 
-  LockStatus InflatedHeader::lock_mutex(STATE, GCToken gct, size_t us) {
-    if(us == 0) return lock_mutex_timed(state, gct, 0);
+  LockStatus InflatedHeader::lock_mutex(STATE, GCToken gct, size_t us, bool interrupt) {
+    if(us == 0) return lock_mutex_timed(state, gct, 0, interrupt);
 
     struct timeval tv;
     struct timespec ts;
@@ -717,11 +717,12 @@ step2:
     ts.tv_sec = tv.tv_sec + (us / 1000000);
     ts.tv_nsec = (us % 10000000) * 1000;
 
-    return lock_mutex_timed(state, gct, &ts);
+    return lock_mutex_timed(state, gct, &ts, interrupt);
   }
 
   LockStatus InflatedHeader::lock_mutex_timed(STATE, GCToken gct,
-                                              const struct timespec* ts)
+                                              const struct timespec* ts,
+                                              bool interrupt)
   {
     OnStack<1> os(state, object_);
 
@@ -772,7 +773,7 @@ step2:
         }
 
         // Someone is interrupting us trying to lock.
-        if(state->vm()->check_local_interrupts) {
+        if(interrupt && state->vm()->check_local_interrupts) {
           state->vm()->check_local_interrupts = false;
 
           if(!state->vm()->interrupted_exception()->nil_p()) {
