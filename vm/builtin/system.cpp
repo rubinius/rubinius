@@ -1082,10 +1082,18 @@ namespace rubinius {
 
     bool disable = CBOOL(o_disable);
 
+    // TODO: this should be inside tooling
+    bool tooling_interpreter = state->shared().tool_broker()->tooling_interpreter_p();
+
     while(obj) {
       if(CompiledCode* code = try_as<CompiledCode>(obj)) {
         if(MachineCode* mcode = code->machine_code()) {
           mcode->deoptimize(state, code, 0, disable);
+          if(tooling_interpreter) {
+            mcode->run = MachineCode::tooling_interpreter;
+          } else {
+            mcode->run = MachineCode::interpreter;
+          }
         }
         total++;
       }

@@ -54,6 +54,8 @@ namespace rbxti {
 
   typedef void  (*at_ip_func)(Env* env, rmachine_code code, int ip);
 
+  typedef void  (*compiled_code_iterator)(Env* env, rcompiled_code code, void* data);
+
   class Env {
   public:
     EnvPrivate* private_;
@@ -105,6 +107,10 @@ namespace rbxti {
     rsymbol method_file(rcompiled_code code);
     r_mint method_line(rcompiled_code code);
     r_mint method_id(rcompiled_code code);
+
+    void find_all_compiled_code(compiled_code_iterator func, void* data);
+
+    r_mint machine_code_id(rmachine_code code);
 
     rtable table_new();
     robject table_fetch(rtable tbl, robject key, bool* fetched);

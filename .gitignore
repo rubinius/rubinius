@@ -32,7 +32,6 @@ TAGS
 \#*
 autom4te.cache
 code-cache
-coverage
 /config.rb
 cscope.files
 cscope.out

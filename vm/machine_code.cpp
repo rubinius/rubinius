@@ -54,7 +54,6 @@ namespace rubinius {
    */
   MachineCode::MachineCode(STATE, CompiledCode* meth)
     : parent_(NULL)
-    , run(MachineCode::interpreter)
     , type(NULL)
     , uncommon_count(0)
     , number_of_caches_(0)
@@ -65,6 +64,12 @@ namespace rubinius {
     , debugging(false)
     , flags(0)
   {
+    if(state->shared().tool_broker()->tooling_interpreter_p()) {
+      run = MachineCode::tooling_interpreter;
+    } else {
+      run = MachineCode::interpreter;
+    }
+
     total = meth->iseq()->opcodes()->num_fields();
 
     opcodes = new opcode[total];

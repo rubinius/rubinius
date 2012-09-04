@@ -32,6 +32,10 @@ namespace rbxti {
     return (rubinius::CompiledCode*)code;
   }
 
+  static inline rubinius::MachineCode* i(rmachine_code code) {
+    return (rubinius::MachineCode*)code;
+  }
+
   static inline rubinius::String* i(rstring s) {
     return (rubinius::String*)s;
   }

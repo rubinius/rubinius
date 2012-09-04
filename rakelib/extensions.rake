@@ -220,3 +220,6 @@ compile_ext "sdbm", :deps => ["Makefile"],
 
 compile_ext "profiler", :dir => "#{libprefixdir}/tooling/profiler",
                         :deps => ["Makefile"]
+
+compile_ext "coverage", :dir => "#{libprefixdir}/tooling/coverage/ext",
+                        :deps => ["Makefile"]

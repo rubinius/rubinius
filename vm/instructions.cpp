@@ -661,9 +661,7 @@ continue_to_run:
 
 #undef DISPATCH
 #define DISPATCH \
-    if(unlikely(state->vm()->tooling())) { \
-      state->shared().tool_broker()->at_ip(state, mcode, call_frame->ip()); \
-    } \
+    state->shared().tool_broker()->at_ip(state, mcode, call_frame->ip()); \
     goto *insn_locations[stream[call_frame->inc_ip()]];
 
 #undef next_int

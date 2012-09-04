@@ -16,6 +16,8 @@
 #include "builtin/class.hpp"
 #include "instruments/tooling.hpp"
 
+#include "gc/walker.hpp"
+
 #include "object_utils.hpp"
 
 using namespace rubinius;
@@ -228,6 +230,30 @@ namespace rbxti {
     }
 
     return 0;
+  }
+
+  void Env::find_all_compiled_code(compiled_code_iterator func, void* data) {
+    ObjectWalker walker(private_->state()->memory());
+    GCData gc_data(private_->state()->vm());
+
+    walker.seed(gc_data);
+
+    Env* env = private_->state()->vm()->tooling_env();
+    Object* obj = walker.next();
+
+    while(obj) {
+      if(CompiledCode* code = try_as<CompiledCode>(obj)) {
+        func(env, rbxti::o(code), data);
+      }
+
+      obj = walker.next();
+    }
+  }
+
+  r_mint Env::machine_code_id(rmachine_code code) {
+    MachineCode* mcode = i(code);
+
+    return (mcode->method_id() << 1) | 1;
   }
 
   rtable Env::table_new() {

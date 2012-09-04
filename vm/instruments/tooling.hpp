@@ -54,6 +54,10 @@ namespace tooling {
       global_tool_data_ = d;
     }
 
+    bool tooling_interpreter_p() {
+      return at_ip_func_ != NULL;
+    }
+
   public:
     void* enter_method(STATE, Executable* exec, Module* mod, Arguments& args, CompiledCode* code);
     void  leave_method(STATE, void* tag);

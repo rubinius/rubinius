@@ -1,0 +1,1 @@
+require 'tooling/coverage/coverage'
