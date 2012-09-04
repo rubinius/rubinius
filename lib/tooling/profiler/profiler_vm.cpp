@@ -9,7 +9,6 @@
 #include <stack>
 #include <tr1/unordered_map>
 #include <map>
-#include <iostream>
 
 #include <time.h>
 
@@ -402,14 +401,17 @@ namespace profiler {
       return id_;
     }
 
-    method_id create_id(Env* env, rmethod cm, rsymbol container, rsymbol name, Kind kind);
-    Method* find_method(Env* env, rmethod cm, rsymbol container, rsymbol name, Kind kind);
+    method_id create_id(Env* env, rcompiled_code ccode,
+                        rsymbol container, rsymbol name, Kind kind);
+    Method* find_method(Env* env, rcompiled_code ccode,
+                        rsymbol container, rsymbol name, Kind kind);
 
 
     Method* enter_method(Env* env, robject recv, rsymbol name, rmodule mod,
-                         rmethod cm);
-    Method* enter_block(Env* env, rsymbol name, rmodule module, rmethod cm);
-    Method* get_method(Env* env, rmethod cm, rsymbol name,
+                         rcompiled_code ccode);
+    Method* enter_block(Env* env, rsymbol name, rmodule module,
+                        rcompiled_code ccode);
+    Method* get_method(Env* env, rcompiled_code ccode, rsymbol name,
                        rsymbol container, Kind kind);
 
     void results(Env* env, rtable profile, rtable nodes, rtable methods,
@@ -539,46 +541,48 @@ namespace profiler {
     current_me_ = new MethodEntry(root_me, root_);
   }
 
-  Method* Profiler::enter_block(Env* env, rsymbol name, rmodule module, rmethod cm) {
-    return get_method(env, cm, name, env->module_name(module), kBlock);
+  Method* Profiler::enter_block(Env* env, rsymbol name, rmodule module,
+                                rcompiled_code ccode)
+  {
+    return get_method(env, ccode, name, env->module_name(module), kBlock);
   }
 
   Method* Profiler::enter_method(Env* env, robject recv, rsymbol name, rmodule mod,
-                                 rmethod cm)
+                                 rcompiled_code ccode)
   {
     if(env->module_is_metaclass(mod)) {
       robject attached = env->metaclass_attached_instance(mod);
 
       rmodule as_module = env->cast_to_rmodule(attached);
       if(as_module) {
-        return get_method(env, cm, name, env->module_name(as_module), kSingleton);
+        return get_method(env, ccode, name, env->module_name(as_module), kSingleton);
       } else {
         rstring str = env->to_s(mod);
-        return get_method(env, cm, name, env->string_to_symbol(str), kSingleton);
+        return get_method(env, ccode, name, env->string_to_symbol(str), kSingleton);
       }
     } else {
-      return get_method(env, cm, name, env->module_name(mod), kNormal);
+      return get_method(env, ccode, name, env->module_name(mod), kNormal);
     }
   }
 
-  Method* Profiler::get_method(Env* env, rmethod cm, rsymbol name,
+  Method* Profiler::get_method(Env* env, rcompiled_code ccode, rsymbol name,
                                rsymbol container, Kind kind)
   {
-    Method* method = find_method(env, cm, container, name, kind);
+    Method* method = find_method(env, ccode, container, name, kind);
 
-    if(!method->file() && cm && !env->is_nil(cm)) {
-      method->set_position(env->method_file(cm), env->method_line(cm));
+    if(!method->file() && ccode && !env->is_nil(ccode)) {
+      method->set_position(env->method_file(ccode), env->method_line(ccode));
     }
 
     return method;
   }
 
-  method_id Profiler::create_id(Env* env, rmethod cm, rsymbol name,
+  method_id Profiler::create_id(Env* env, rcompiled_code ccode, rsymbol name,
                                 rsymbol container, Kind kind)
   {
     // If we have a CompiledCode, use it's method id.
-    if(cm && !env->is_nil(cm)) {
-      r_mint i = env->method_id(cm);
+    if(ccode && !env->is_nil(ccode)) {
+      r_mint i = env->method_id(ccode);
       if(i) return i;
     }
 
@@ -593,10 +597,10 @@ namespace profiler {
            k << 1;
   }
 
-  Method* Profiler::find_method(Env* env, rmethod cm, rsymbol container,
+  Method* Profiler::find_method(Env* env, rcompiled_code ccode, rsymbol container,
                                 rsymbol name, Kind kind)
   {
-    method_id id = create_id(env, cm, container, name, kind);
+    method_id id = create_id(env, ccode, container, name, kind);
 
     Method* method;
 
@@ -795,14 +799,14 @@ namespace profiler {
     }
 
     void* tool_enter_method(Env* env, robject recv, rsymbol name, rmodule mod,
-                                 rmethod cm)
+                            rcompiled_code ccode)
     {
       Profiler* profiler = (Profiler*)env->thread_tool_data(cProfileToolID);
       if(!profiler) return 0;
 
       profiler->lock();
 
-      Method* method = profiler->enter_method(env, recv, name, mod, cm);
+      Method* method = profiler->enter_method(env, recv, name, mod, ccode);
       MethodEntry* me = new MethodEntry(method);
       me->start(profiler, env);
 
@@ -826,13 +830,13 @@ namespace profiler {
       delete me;
     }
 
-    void* tool_enter_block(Env* env, rsymbol name, rmodule module, rmethod cm) {
+    void* tool_enter_block(Env* env, rsymbol name, rmodule module, rcompiled_code ccode) {
       Profiler* profiler = (Profiler*)env->thread_tool_data(cProfileToolID);
       if(!profiler) return 0;
 
       profiler->lock();
 
-      Method* method = profiler->enter_block(env, name, module, cm);
+      Method* method = profiler->enter_block(env, name, module, ccode);
       MethodEntry* me = new MethodEntry(method);
       me->start(profiler, env);
 
@@ -880,7 +884,7 @@ namespace profiler {
       return me;
     }
 
-    void* tool_enter_script(Env* env, rmethod cm) {
+    void* tool_enter_script(Env* env, rcompiled_code ccode) {
       Profiler* profiler = (Profiler*)env->thread_tool_data(cProfileToolID);
       if(!profiler) return 0;
 
@@ -890,7 +894,7 @@ namespace profiler {
       rsymbol container = env->symbol("unknown");
       rsymbol name = container;
 
-      Method* method = profiler->get_method(env, cm, name, container, kind);
+      Method* method = profiler->get_method(env, ccode, name, container, kind);
       MethodEntry* me = new MethodEntry(method);
       me->start(profiler, env);
 
