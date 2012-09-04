@@ -28,8 +28,8 @@ namespace rbxti {
     return (rubinius::Symbol*)sym;
   }
 
-  static inline rubinius::CompiledCode* i(rmethod m) {
-    return (rubinius::CompiledCode*)m;
+  static inline rubinius::CompiledCode* i(rcompiled_code code) {
+    return (rubinius::CompiledCode*)code;
   }
 
   static inline rubinius::String* i(rstring s) {
@@ -56,8 +56,8 @@ namespace rbxti {
     return (rsymbol)sym;
   }
 
-  static inline rmethod o(rubinius::CompiledCode* m) {
-    return (rmethod)m;
+  static inline rcompiled_code o(rubinius::CompiledCode* code) {
+    return (rcompiled_code)code;
   }
 
   static inline rmachine_code o(rubinius::MachineCode* mcode) {

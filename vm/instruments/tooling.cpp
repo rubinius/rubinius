@@ -70,9 +70,9 @@ namespace tooling {
     rbxti::robject recv = rbxti::s(args.recv());
     rbxti::rsymbol name = rbxti::o(args.name());
     rbxti::rmodule mod =  rbxti::o(o_mod);
-    rbxti::rmethod meth = rbxti::o(code);
+    rbxti::rcompiled_code ccode = rbxti::o(code);
 
-    return enter_method_func_(state->vm()->tooling_env(), recv, name, mod, meth);
+    return enter_method_func_(state->vm()->tooling_env(), recv, name, mod, ccode);
   }
 
   void ToolBroker::leave_method(STATE, void* tag)
@@ -88,9 +88,9 @@ namespace tooling {
 
     rbxti::rsymbol name = rbxti::o(env->top_scope()->method()->name());
     rbxti::rmodule mod =  rbxti::o(i_mod);
-    rbxti::rmethod meth = rbxti::o(env->compiled_code());
+    rbxti::rcompiled_code ccode = rbxti::o(env->compiled_code());
 
-    return enter_block_func_(state->vm()->tooling_env(), name, mod, meth);
+    return enter_block_func_(state->vm()->tooling_env(), name, mod, ccode);
   }
 
   void ToolBroker::leave_block(STATE, void* tag)
@@ -115,9 +115,9 @@ namespace tooling {
   {
     if(!enter_script_func_) return 0;
 
-    rbxti::rmethod meth = rbxti::o(code);
+    rbxti::rcompiled_code ccode = rbxti::o(code);
 
-    return enter_script_func_(state->vm()->tooling_env(), meth);
+    return enter_script_func_(state->vm()->tooling_env(), ccode);
   }
 
   void  ToolBroker::leave_script(STATE, void* tag)

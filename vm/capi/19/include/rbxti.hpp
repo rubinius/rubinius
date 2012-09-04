@@ -8,7 +8,7 @@ namespace rbxti {
   class InternalObject {};
   class InternalSymbol : public InternalObject {};
   class InternalTable : public InternalObject {};
-  class InternalMethod : public InternalObject {};
+  class InternalCompiledCode : public InternalObject {};
   class InternalMachineCode : public InternalObject {};
   class InternalModule : public InternalObject {};
   class InternalString : public InternalObject {};
@@ -19,7 +19,7 @@ namespace rbxti {
   typedef InternalObject* robject;
   typedef InternalSymbol* rsymbol;
   typedef InternalTable* rtable;
-  typedef InternalMethod* rmethod;
+  typedef InternalCompiledCode* rcompiled_code;
   typedef InternalMachineCode* rmachine_code;
   typedef InternalModule* rmodule;
   typedef InternalString* rstring;
@@ -38,11 +38,13 @@ namespace rbxti {
 
   typedef robject (*results_func)(Env* env);
   typedef void  (*enable_func)(Env* env);
-  typedef void* (*enter_method)(Env* env, robject recv, rsymbol name, rmodule mod, rmethod code);
-  typedef void* (*enter_block)(Env* env, rsymbol name, rmodule module, rmethod code);
+  typedef void* (*enter_method)(Env* env, robject recv, rsymbol name,
+                                rmodule mod, rcompiled_code code);
+  typedef void* (*enter_block)(Env* env, rsymbol name,
+                               rmodule module, rcompiled_code code);
   typedef void  (*leave_func)(Env* env, void* tag);
   typedef void* (*enter_gc)(Env* env, int level);
-  typedef void* (*enter_script)(Env* env, rmethod code);
+  typedef void* (*enter_script)(Env* env, rcompiled_code code);
   typedef void  (*shutdown_func)(Env* env);
 
   typedef void  (*thread_start_func)(Env* env);
@@ -63,7 +65,7 @@ namespace rbxti {
 
     rsymbol  cast_to_rsymbol  (robject obj);
     rtable   cast_to_rtable   (robject obj);
-    rmethod  cast_to_rmethod  (robject obj);
+    rcompiled_code  cast_to_rcompiled_code  (robject obj);
     rmodule  cast_to_rmodule  (robject obj);
     rstring  cast_to_rstring  (robject obj);
     rinteger cast_to_rinteger (robject obj);
@@ -100,9 +102,9 @@ namespace rbxti {
     bool is_nil(robject obj);
     robject nil();
 
-    rsymbol method_file(rmethod cm);
-    r_mint method_line(rmethod cm);
-    r_mint method_id(rmethod cm);
+    rsymbol method_file(rcompiled_code code);
+    r_mint method_line(rcompiled_code code);
+    r_mint method_id(rcompiled_code code);
 
     rtable table_new();
     robject table_fetch(rtable tbl, robject key, bool* fetched);

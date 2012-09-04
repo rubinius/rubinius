@@ -89,9 +89,9 @@ namespace rbxti {
     return NULL;
   }
 
-  rmethod Env::cast_to_rmethod(robject obj) {
-    if(CompiledCode* c = try_as<CompiledCode>((Object*)obj)) {
-      return o(c);
+  rcompiled_code Env::cast_to_rcompiled_code(robject obj) {
+    if(CompiledCode* ccode = try_as<CompiledCode>((Object*)obj)) {
+      return o(ccode);
     }
 
     return NULL;
@@ -212,18 +212,18 @@ namespace rbxti {
     return s(cNil);
   }
 
-  rsymbol Env::method_file(rmethod code) {
+  rsymbol Env::method_file(rcompiled_code code) {
     return o(i(code)->file());
   }
 
-  r_mint Env::method_line(rmethod code) {
+  r_mint Env::method_line(rcompiled_code code) {
     return i(code)->start_line(private_->state());
   }
 
-  r_mint Env::method_id(rmethod meth) {
-    CompiledCode* code = i(meth);
+  r_mint Env::method_id(rcompiled_code code) {
+    CompiledCode* ccode = i(code);
 
-    if(MachineCode* mcode = code->machine_code()) {
+    if(MachineCode* mcode = ccode->machine_code()) {
       return (mcode->method_id() << 1) | 1;
     }
 
