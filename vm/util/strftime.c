@@ -395,7 +395,7 @@ strftime_extended(char *s, size_t maxsize, const char *format, const struct tm64
 			break;
 
 		case 's':
-			FMT('0', 1, "lld", ts->tv_sec);
+			FMT('0', 1, "lld", (long long) ts->tv_sec);
 			continue;
 
 		case 'S':	/* second, 00 - 60 */
@@ -430,7 +430,7 @@ strftime_extended(char *s, size_t maxsize, const char *format, const struct tm64
 			continue;
 
 		case 'Y':	/* year with century */
-			FMT('0', 1, "lld", timeptr->tm_year);
+			FMT('0', 1, "lld", (long long) timeptr->tm_year);
 			continue;
 
 #ifdef MAILHEADER_EXT
@@ -566,7 +566,7 @@ strftime_extended(char *s, size_t maxsize, const char *format, const struct tm64
 			w = snprintf(s, endp - s, "%2d-%3.3s-%4lld",
 				     range(1, timeptr->tm_mday, 31),
 				     months_l[range(0, timeptr->tm_mon, 11)],
-				     timeptr->tm_year);
+				     (long long) timeptr->tm_year);
 			if (w < 0) goto err;
 			for (i = 3; i < 6; i++)
 				if (islower((int)s[i]))
@@ -578,7 +578,7 @@ strftime_extended(char *s, size_t maxsize, const char *format, const struct tm64
 
 #ifdef POSIX2_DATE
 		case 'C':
-			FMT('0', 2, "lld", (timeptr->tm_year) / 100);
+			FMT('0', 2, "lld", (long long)(timeptr->tm_year) / 100);
 			continue;
 
 
@@ -669,7 +669,7 @@ strftime_extended(char *s, size_t maxsize, const char *format, const struct tm64
 				mon = range(0, timeptr->tm_mon, 11) + 1;
 				mday = range(1, timeptr->tm_mday, 31);
 				i = snprintf(s, endp - s, "%lld-%02d-%02d",
-					     timeptr->tm_year, mon, mday);
+					     (long long) timeptr->tm_year, mon, mday);
 				if (i < 0)
 					goto err;
 				s += i;
