@@ -148,10 +148,9 @@ class Thread
   end
 
   def alive?
-    @lock.receive
-    @alive
-  ensure
-    @lock.send nil
+    Rubinius.synchronize(self) do
+      @alive
+    end
   end
 
   def stop?
@@ -169,10 +168,9 @@ class Thread
   alias_method :terminate, :kill
 
   def sleeping?
-    @lock.receive
-    @sleep
-  ensure
-    @lock.send nil
+    Rubinius.synchronize(self) do
+      @sleep
+    end
   end
 
   def status
@@ -205,12 +203,12 @@ class Thread
 
   def join_inner(timeout = undefined)
     result = nil
-    @lock.receive
+    Rubinius.lock(self)
     begin
       if @alive
         jc = Rubinius::Channel.new
         @joins << jc
-        @lock.send nil
+        Rubinius.unlock(self)
         begin
           if timeout.equal? undefined
             while true
@@ -231,23 +229,23 @@ class Thread
             end
           end
         ensure
-          @lock.receive
+          Rubinius.lock(self)
         end
       end
       Kernel.raise @exception if @exception
       result = yield
     ensure
-      @lock.send nil
+      Rubinius.unlock(self)
     end
     result
   end
   private :join_inner
 
   def raise(exc=$!, msg=nil, trace=nil)
-    @lock.receive
+    Rubinius.lock(self)
 
     unless @alive
-      @lock.send nil
+      Rubinius.unlock(self)
       return self
     end
 
@@ -268,7 +266,7 @@ class Thread
 
       Kernel.raise exc if self == Thread.current
     ensure
-      @lock.send nil
+      Rubinius.unlock(self)
     end
 
     raise_prim exc
