@@ -4,14 +4,22 @@
 class Iconv
   extend FFI::Library
 
+  def self.iconv_attach(libsymbol, libname, par_array, return_type)
+    begin
+      attach_function libsymbol, libname, par_array, return_type
+    rescue
+      attach_function libsymbol, "lib"+libname, par_array, return_type
+    end
+  end
+  private_class_method :iconv_attach
+
   # Use libiconv if it exists, otherwise get the symbols from the current
   # process.
   ffi_lib ["libiconv.2.dylib", "libiconv.so.2", "libiconv", FFI::CURRENT_PROCESS]
-
-  attach_function :create,  "iconv_open", [:string, :string], :pointer
-  attach_function :close,   "iconv_close", [:pointer], :int
-  attach_function :convert, "iconv",
-                            [:pointer, :pointer, :pointer, :pointer, :pointer], :long
+  iconv_attach :create,  "iconv_open", [:string, :string], :pointer
+  iconv_attach :close,   "iconv_close", [:pointer], :int
+  iconv_attach :convert, "iconv",
+                         [:pointer, :pointer, :pointer, :pointer, :pointer], :long
 
   module Failure
     attr_reader :success
