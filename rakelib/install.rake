@@ -217,11 +217,11 @@ oppropriate command to elevate permissions (eg su, sudo).
         stagingdir = BUILD_CONFIG[:stagingdir]
         prefixdir = BUILD_CONFIG[:prefixdir]
 
-        install_capi_include "#{stagingdir}/vm/capi/18/include",
+        install_capi_include "#{stagingdir}#{BUILD_CONFIG[:include18dir]}",
                              "#{prefixdir}#{BUILD_CONFIG[:include18dir]}"
-        install_capi_include "#{stagingdir}/vm/capi/19/include",
+        install_capi_include "#{stagingdir}#{BUILD_CONFIG[:include19dir]}",
                              "#{prefixdir}#{BUILD_CONFIG[:include19dir]}"
-        install_capi_include "#{stagingdir}/vm/capi/20/include",
+        install_capi_include "#{stagingdir}#{BUILD_CONFIG[:include20dir]}",
                              "#{prefixdir}#{BUILD_CONFIG[:include20dir]}"
 
         install_runtime "#{stagingdir}#{BUILD_CONFIG[:runtimedir]}", prefixdir
