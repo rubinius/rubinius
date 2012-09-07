@@ -361,7 +361,7 @@ struct tm64* gmtime64_r(const time64_t* time64, struct tm64* tm64) {
 
   tm64->tm_isdst = 0;
   tm64->tm_gmtoff = 0;
-  tm64->tm_zone = "UTC";
+  tm64->tm_zone = (char *)"UTC";
 
   /*
    * Fallback because out of range of time_t or gmtime_r failed
