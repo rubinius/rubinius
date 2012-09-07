@@ -212,6 +212,9 @@ Daedalus.blueprint do |i|
     flags.delete_if { |x| x =~ /-D__STDC/ }
     flags.delete_if { |x| x == "-DNDEBUG" }
     flags.delete_if { |x| x == "-fomit-frame-pointer" }
+    flags.delete_if { |x| x == "-pedantic" }
+    flags.delete_if { |x| x == "-W" }
+    flags.delete_if { |x| x == "-Wextra" }
 
     flags << "-DENABLE_LLVM"
 
