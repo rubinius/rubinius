@@ -3,7 +3,7 @@
  * and is available at http://github.com/mschwern/y2038. That software is
  * originally derived from Paul Sheer's pivotal_gmtime_r.c.
  * The code has been modified by Dirkjan Bussink to incorporate several concepts
- * take from Ruby 1.9.3, regarding the mapping tables for years far in the future
+ * taken from Ruby 1.9.3, regarding the mapping tables for years far in the future
  * and far in the past.
  */
 
