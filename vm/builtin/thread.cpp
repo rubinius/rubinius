@@ -180,6 +180,28 @@ namespace rubinius {
     return cFalse;
   }
 
+  int Thread::start_new_thread(STATE, const pthread_attr_t &attrs) {
+    Thread* self = this;
+    OnStack<1> os(state, self);
+
+    int error = pthread_create(&vm_->os_thread(), &attrs, in_new_thread, (void*)vm_);
+    if(error) {
+      return error;
+    }
+
+    // We can't return from here until the new thread completes a minimal
+    // initialization. After the initialization, it unlocks init_lock_.
+    // So, wait here until we can lock init_lock_ after that.
+    self->init_lock_.lock();
+
+    // We locked init_lock_. And we are sure that the new thread completed
+    // the initialization.
+    // Locking init_lock_ isn't needed anymore, so unlock it.
+    self->init_lock_.unlock();
+
+    return 0;
+  }
+
   void* Thread::in_new_thread(void* ptr) {
     VM* vm = reinterpret_cast<VM*>(ptr);
 
@@ -194,7 +216,6 @@ namespace rubinius {
     utilities::thread::Thread::set_os_name(tn.str().c_str());
 
     state->set_call_frame(0);
-    vm->shared.gc_dependent(state);
 
     if(cDebugThreading) {
       std::cerr << "[THREAD " << vm->thread_id()
@@ -203,7 +224,17 @@ namespace rubinius {
 
     vm->set_root_stack(reinterpret_cast<uintptr_t>(&calculate_stack), THREAD_STACK_SIZE);
 
+    GCTokenImpl gct;
+
+    // Lock the thread object and unlock it at __run__ in the ruby land.
+    vm->thread->hard_lock(state, gct);
+
     vm->thread->init_lock_.unlock();
+
+    // Become GC-dependent after unlocking init_lock_ to avoid deadlocks.
+    // gc_dependent may lock when it detects GC is happening. Also the parent
+    // thread is locked until init_lock_ is unlocked by this child thread.
+    vm->shared.gc_dependent(state);
 
     vm->shared.tool_broker()->thread_start(state);
     Object* ret = vm->thread->runner_(state);
@@ -217,7 +248,6 @@ namespace rubinius {
 
     vm->thread->init_lock_.lock();
 
-    GCTokenImpl gct;
 
     std::list<ObjectHeader*>& los = vm->locked_objects();
     for(std::list<ObjectHeader*>::iterator i = los.begin();
@@ -253,7 +283,7 @@ namespace rubinius {
     pthread_attr_setstacksize(&attrs, THREAD_STACK_SIZE);
     pthread_attr_setdetachstate(&attrs, PTHREAD_CREATE_DETACHED);
 
-    int error = pthread_create(&vm_->os_thread(), &attrs, in_new_thread, (void*)vm_);
+    int error = start_new_thread(state, attrs);
 
     if(error) {
       Exception::thread_error(state, strerror(error));
@@ -266,7 +296,7 @@ namespace rubinius {
     pthread_attr_init(&attrs);
     pthread_attr_setstacksize(&attrs, THREAD_STACK_SIZE);
 
-    return pthread_create(&vm_->os_thread(), &attrs, in_new_thread, (void*)vm_);
+    return start_new_thread(state, attrs);
   }
 
   Object* Thread::pass(STATE, CallFrame* calling_environment) {

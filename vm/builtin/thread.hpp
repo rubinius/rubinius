@@ -249,6 +249,7 @@ namespace rubinius {
     static Thread* create(STATE, VM* target, Object* self, Run runner,
                           bool main_thread = false);
 
+    int start_new_thread(STATE, const pthread_attr_t &attrs);
     static void* in_new_thread(void*);
 
   public:   /* TypeInfo */
