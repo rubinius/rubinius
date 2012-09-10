@@ -190,7 +190,8 @@ exec #{BUILD_CONFIG[:stagingdir]}#{BUILD_CONFIG[:bindir]}/$EXE "$@"
 end
 
 namespace :install do
-  desc "Install all the Rubinius files"
+  desc "Install all the Rubinius files. I use DESTDIR environment variable to " \
+       "specify custom installation location."
   task :files do
     if BUILD_CONFIG[:stagingdir]
       if need_permission?
@@ -215,7 +216,7 @@ oppropriate command to elevate permissions (eg su, sudo).
         exit(1)
       else
         stagingdir = BUILD_CONFIG[:stagingdir]
-        prefixdir = BUILD_CONFIG[:prefixdir]
+        prefixdir = File.join(ENV['DESTDIR'], BUILD_CONFIG[:prefixdir])
 
         install_capi_include "#{stagingdir}#{BUILD_CONFIG[:include18dir]}",
                              "#{prefixdir}#{BUILD_CONFIG[:include18dir]}"
