@@ -166,6 +166,7 @@ namespace jit {
     work.setup();
 
     compile_builder(ctx_, ls, info, work);
+    ctx_.set_root(NULL);
   }
 
   void Compiler::compile_method(LLVMState* ls, BackgroundCompileRequest* req) {
