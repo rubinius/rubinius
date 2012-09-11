@@ -242,21 +242,21 @@ describe :process_spawn, :shared => true do
     end
 
     it "joins a new process group if :pgroup => true" do
-      lambda do
+      process = lambda do
         Process.wait @object.spawn(ruby_cmd("print Process.getpgid(Process.pid)"), :pgroup => true)
-      end.should_not output_to_fd(Process.getpgid(Process.pid).to_s)
-    end
+      end
 
-    it "joins a new process group if :pgroup => :true" do
-      lambda do
-        Process.wait @object.spawn(ruby_cmd("print Process.getpgid(Process.pid)"), :pgroup => :true)
-      end.should_not output_to_fd(Process.getpgid(Process.pid).to_s)
+      process.should_not output_to_fd(Process.getpgid(Process.pid).to_s)
+      process.should output_to_fd(/\d+/)
     end
 
     it "joins a new process group if :pgroup => 0" do
-      lambda do
+      process = lambda do
         Process.wait @object.spawn(ruby_cmd("print Process.getpgid(Process.pid)"), :pgroup => 0)
-      end.should_not output_to_fd(Process.getpgid(Process.pid).to_s)
+      end
+
+      process.should_not output_to_fd(Process.getpgid(Process.pid).to_s)
+      process.should output_to_fd(/\d+/)
     end
 
     it "joins the specified process group if :pgroup => pgid" do
@@ -267,6 +267,10 @@ describe :process_spawn, :shared => true do
 
     it "raises an ArgumentError if given a negative :pgroup option" do
       lambda { @object.spawn("echo", :pgroup => -1) }.should raise_error(ArgumentError)
+    end
+
+    it "raises an TypeError if given a symbol as :pgroup option" do
+      lambda { @object.spawn("echo", :pgroup => :true) }.should raise_error(TypeError)
     end
   end
 
