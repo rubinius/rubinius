@@ -295,7 +295,7 @@ module Rubinius
         end
       end
     end
-    @terminal_width = 80 if @terminal_width.zero?
+    @terminal_width = 80 if @terminal_width.nil? || @terminal_width.zero?
     @terminal_width
   end
 
