@@ -20,6 +20,8 @@ module Coverage
       code = attr[:code]
       file = code.file.to_s
 
+      next if file[0] == ?(
+
       code.lines.to_a.drop(1).each_slice(2) do |line, _|
         next unless line > 0
         next if coverage[file][line - 1]
