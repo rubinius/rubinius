@@ -190,8 +190,8 @@ exec #{BUILD_CONFIG[:stagingdir]}#{BUILD_CONFIG[:bindir]}/$EXE "$@"
 end
 
 namespace :install do
-  desc "Install all the Rubinius files. I use DESTDIR environment variable to " \
-       "specify custom installation location."
+  desc "Install all the Rubinius files. Use DESTDIR environment variable " \
+       "to specify custom installation location."
   task :files do
     if BUILD_CONFIG[:stagingdir]
       if need_permission?
