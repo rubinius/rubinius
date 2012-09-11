@@ -13,7 +13,7 @@ task :install => %w[build:build gems:install install:files install:done]
 # that path is writable. If not, we require explicit permission.
 def need_permission?
   FileList["#{BUILD_CONFIG[:stagingdir]}/*"].each do |name|
-    dir = File.expand_path "#{BUILD_CONFIG[:prefixdir]}/#{name}"
+    dir = File.expand_path(File.join(ENV['DESTDIR'], BUILD_CONFIG[:prefixdir], name))
 
     until dir == "/"
       if File.directory? dir
