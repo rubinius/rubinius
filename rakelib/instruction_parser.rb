@@ -659,7 +659,7 @@ EOM
     def opcode_prototype
       name = opcode_name
       indent = " " * (name.size + 9)
-      prototype = "Object* #{name}(rubinius::VM* state, rubinius::MachineCode* code,
+      prototype = "Object* #{name}(rubinius::VM* state, rubinius::MachineCode* mcode,
 #{indent}rubinius::InterpreterCallFrame* const call_frame,
 #{indent}rubinius::MachineCode::InterpreterState& is"
 
