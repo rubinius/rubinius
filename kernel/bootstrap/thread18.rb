@@ -53,11 +53,10 @@ class Thread
   def __run__()
     begin
       begin
-        @lock.send nil
+        Rubinius.unlock(self)
         @result = @block.call(*@args)
       ensure
-        @lock.receive
-        unlock_locks
+        Rubinius.lock(self)
         @joins.each { |join| join.send self }
       end
     rescue Die
@@ -68,7 +67,8 @@ class Thread
       @exception = e # unless @dying
     ensure
       @alive = false
-      @lock.send nil
+      Rubinius.unlock(self)
+      unlock_locks
     end
 
     if @exception
@@ -87,8 +87,6 @@ class Thread
     @exception = nil
     @critical = false
     @dying = false
-    @lock = Rubinius::Channel.new
-    @lock.send nil if prime_lock
     @joins = []
   end
 
