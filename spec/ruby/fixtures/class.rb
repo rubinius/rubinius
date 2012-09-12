@@ -108,6 +108,16 @@ module ClassSpecs
   class L; end
 
   class M < L; end
+
+  class Deep
+    class << self
+      class << self
+        def deep; end
+      end
+    end
+  end
+
+  class Deeper < Deep; end
 end
 
 class Class

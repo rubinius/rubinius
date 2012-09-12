@@ -282,6 +282,16 @@ describe "Class methods of a singleton class" do
       end
     end
   end
+
+  describe "for a deep singleton class" do
+    it "does not raise method error" do
+      @deeper_sc = ClassSpecs::Deeper.singleton_class
+
+      lambda {
+        @deeper_sc.deep
+      }.should_not raise_error(NoMethodError)
+    end
+  end
 end
 
 describe "Instantiating a singleton class" do
