@@ -13,6 +13,8 @@ module Coverage
 
     map = @coverage_tool.stop.results
 
+    kernel = File.dirname Rubinius::KERNEL_PATH
+
     coverage = Hash.new { |h, k| h[k] = [] }
 
     map.each do |id, attr|
@@ -22,6 +24,7 @@ module Coverage
 
       file = code.file.to_s
       next if file[0] == ?(
+      file = File.join kernel, file unless file[0] == ?/
 
       code.lines.to_a.drop(1).each_slice(2) do |line, _|
         next unless line > 0
