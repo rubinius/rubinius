@@ -227,7 +227,7 @@ namespace rubinius {
     // won't leak through. We need to use sigaction() here since signal()
     // provides no control over SA_RESTART and can use the wrong value causing
     // blocking I/O methods to become uninterruptable.
-    for(int i = 0; i < NSIG; i++) {
+    for(int i = 1; i < NSIG; i++) {
       struct sigaction action;
       struct sigaction old_action;
 
@@ -244,7 +244,7 @@ namespace rubinius {
 
     // Hmmm, execvp failed, we need to recover here.
 
-    for(int i = 0; i < NSIG; i++) {
+    for(int i = 1; i < NSIG; i++) {
       struct sigaction action;
 
       action.sa_handler = (void(*)(int))old_handlers[i];
@@ -714,7 +714,7 @@ namespace rubinius {
       native_int i = sig->to_native();
       if(i < 0) {
         h->add_signal(state, -i, SignalHandler::eDefault);
-      } else {
+      } else if(i > 0) {
         h->add_signal(state, i, ignored == cTrue ? SignalHandler::eIgnore : SignalHandler::eCustom);
       }
 
