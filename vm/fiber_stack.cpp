@@ -57,7 +57,9 @@ namespace rubinius {
         i != datas_.end();
         ++i)
     {
-      (*i)->die();
+      FiberData* data = *i;
+      data->die();
+      delete data;
     }
 
     for(Stacks::iterator i = stacks_.begin();
