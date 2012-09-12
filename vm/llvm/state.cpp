@@ -94,12 +94,12 @@ namespace rubinius {
   llvm::Type* LLVMState::ptr_type(std::string name) {
     std::string full_name = std::string("struct.rubinius::") + name;
     return llvm::PointerType::getUnqual(
-        module_->getTypeByName(full_name.c_str()));
+        module_->getTypeByName(full_name));
   }
 
   llvm::Type* LLVMState::type(std::string name) {
     std::string full_name = std::string("struct.rubinius::") + name;
-    return module_->getTypeByName(full_name.c_str());
+    return module_->getTypeByName(full_name);
   }
 
   class BackgroundCompilerThread : public utilities::thread::Thread {
@@ -351,7 +351,9 @@ namespace rubinius {
           ls_->shared().stats.jitted_methods++;
 
           if(ls_->config().jit_show_compiling) {
+            CompiledCode* code = req->method();
             llvm::outs() << "[[[ JIT finished background compiling "
+                      << ls_->enclosure_name(code) << "#" << ls_->symbol_debug_str(code->name())
                       << (req->is_block() ? " (block)" : " (method)")
                       << " ]]]\n";
           }
@@ -703,8 +705,10 @@ namespace rubinius {
       background_thread_->add(req);
 
       if(state->shared().config.jit_show_compiling) {
-        llvm::outs() << "[[[ JIT Queued"
-          << (is_block ? " block " : " method ")
+        CompiledCode* code = req->method();
+        llvm::outs() << "[[[ JIT queued "
+          << enclosure_name(code) << "#" << symbol_debug_str(code->name())
+          << (req->is_block() ? " (block)" : " (method)")
           << queued_methods() << "/"
           << jitted_methods() << " ]]]\n";
       }

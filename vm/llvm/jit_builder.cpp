@@ -314,7 +314,7 @@ namespace jit {
         std::ostringstream ss;
         ss << "ip" << ip;
         JITBasicBlock& jbb = map_[ip];
-        jbb.block = BasicBlock::Create(ls_->ctx(), ss.str().c_str(), function_);
+        jbb.block = BasicBlock::Create(ls_->ctx(), ss.str(), function_);
         jbb.start_ip = ip;
         jbb.sp = sp_;
 

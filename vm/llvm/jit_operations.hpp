@@ -259,12 +259,12 @@ namespace rubinius {
     llvm::Type* ptr_type(std::string name) {
       std::string full_name = std::string("struct.rubinius::") + name;
       return llvm::PointerType::getUnqual(
-          module_->getTypeByName(full_name.c_str()));
+          module_->getTypeByName(full_name));
     }
 
     llvm::Type* type(std::string name) {
       std::string full_name = std::string("struct.rubinius::") + name;
-      return module_->getTypeByName(full_name.c_str());
+      return module_->getTypeByName(full_name);
     }
 
     Value* ptr_gep(Value* ptr, int which, const char* name) {

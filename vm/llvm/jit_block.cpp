@@ -34,7 +34,7 @@ namespace jit {
        << "$block@" << ls_->add_jitted_method();
 
     llvm::Function* func = Function::Create(ft, GlobalValue::ExternalLinkage,
-                            ss.str().c_str(), ls_->module());
+                            ss.str(), ls_->module());
 
     Function::arg_iterator ai = func->arg_begin();
     llvm::Value* vm =   ai++; vm->setName("state");
