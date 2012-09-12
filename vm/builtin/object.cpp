@@ -480,7 +480,7 @@ namespace rubinius {
        * works properly. BUT we should not return that parent singleton
        * class, we need to only return a SingletonClass that is for this!
        */
-      if(!sc || sc->attached_instance() != this) {
+      if(!sc) {
         sc = SingletonClass::attach(state, this);
       }
 
