@@ -18,8 +18,9 @@ module Coverage
     map.each do |id, attr|
       counts = attr[:counts]
       code = attr[:code]
-      file = code.file.to_s
+      next unless code
 
+      file = code.file.to_s
       next if file[0] == ?(
 
       code.lines.to_a.drop(1).each_slice(2) do |line, _|
