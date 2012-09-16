@@ -41,25 +41,39 @@ describe :env_store, :shared => true do
     lambda { ENV.send(@method, "foo", Object.new) }.should raise_error(TypeError)
   end
 
-  ruby_version_is ""..."1.9" do
-    it "fails silently when the key contains the '=' character" do
-      ENV.send(@method, "foo=", "bar")
-      ENV.key?("foo=").should be_false
+  # The OpenBSD version of setenv allows a symbol to contain the '=' character, or to be the zero-length string.
+  platform_is_not :openbsd do
+    ruby_version_is ""..."1.9" do
+      it "fails silently when the key contains the '=' character" do
+	ENV.send(@method, "foo=", "bar")
+	ENV.key?("foo=").should be_false
+      end
+
+      it "fails silently when the key is an empty string" do
+	ENV.send(@method, "", "bar")
+	ENV.key?("").should be_false
+      end
     end
 
-    it "fails silently when the key is an empty string" do
-      ENV.send(@method, "", "bar")
-      ENV.key?("").should be_false
+    ruby_version_is "1.9" do
+      it "raises Errno::EINVAL when the key contains the '=' character" do
+	lambda { ENV.send(@method, "foo=", "bar") }.should raise_error(Errno::EINVAL)
+      end
+
+      it "raises Errno::EINVAL when the key is an empty string" do
+	lambda { ENV.send(@method, "", "bar") }.should raise_error(Errno::EINVAL)
+      end
     end
   end
-
-  ruby_version_is "1.9" do
-    it "raises Errno::EINVAL when the key contains the '=' character" do
-      lambda { ENV.send(@method, "foo=", "bar") }.should raise_error(Errno::EINVAL)
+  platform_is :openbsd do
+    it "correctly stores a value when the key contains the '=' character" do
+      ENV.send(@method, "foo=", "bar")
+      ENV["foo="].should == "bar"
     end
 
-    it "raises Errno::EINVAL when the key is an empty string" do
-      lambda { ENV.send(@method, "", "bar") }.should raise_error(Errno::EINVAL)
+    it "correctly stores a value when the key is the zero-length string" do
+      ENV.send(@method, "", "bar")
+      ENV[""].should == "bar"
     end
   end
 

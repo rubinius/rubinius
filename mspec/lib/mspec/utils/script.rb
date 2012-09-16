@@ -9,7 +9,7 @@ class MSpecScript
   # class method +set+.
   def self.config
     @config ||= {
-      :path => ['.', 'spec'],
+      :path => ['.', 'spec', 'spec/ruby'],
       :config_ext => '.mspec'
     }
   end
