@@ -16,8 +16,16 @@ describe :process_exec, :shared => true do
     lambda { @object.exec __FILE__ }.should raise_error(Errno::EACCES)
   end
 
-  it "raises Errno::EACCES when passed a directory" do
-    lambda { @object.exec File.dirname(__FILE__) }.should raise_error(Errno::EACCES)
+  platform_is_not :openbsd do
+    it "raises Errno::EACCES when passed a directory" do
+      lambda { @object.exec File.dirname(__FILE__) }.should raise_error(Errno::EACCES)
+    end
+  end
+
+  platform_is :openbsd do
+    it "raises Errno::EISDIR when passed a directory" do
+      lambda { @object.exec File.dirname(__FILE__) }.should raise_error(Errno::EISDIR)
+    end
   end
 
   it "runs the specified command, replacing current process" do
