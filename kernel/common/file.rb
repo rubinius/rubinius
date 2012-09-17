@@ -173,7 +173,7 @@ class File < IO
   #
   #  File.chmod(0644, "testfile", "out")   #=> 2
   def self.chmod(mode, *paths)
-    mode = clamp_short mode
+    mode = Rubinius::Type.coerce_to(mode, Integer, :to_int)
 
     paths.each do |path|
       n = POSIX.chmod Rubinius::Type.coerce_to_path(path), mode
@@ -232,7 +232,7 @@ class File < IO
 
   def chmod(mode)
     mode = Rubinius::Type.coerce_to(mode, Integer, :to_int)
-    n = POSIX.fchmod @descriptor, clamp_short(mode)
+    n = POSIX.fchmod @descriptor, mode
     Errno.handle if n == -1
     n
   end
