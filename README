@@ -8,8 +8,8 @@ Ruby core library is written almost entirely in Ruby. Rubinius provides the
 same standard libraries as Matz's Ruby implementation (MRI). Rubinius also
 provides C-API compatibility for native C extensions.
 
-Rubinius currently is compatible with Ruby version 1.8.7. Support for Ruby
-version 1.9.2 is coming soon.
+Rubinius currently is compatible with Ruby version 1.8.7. Full support for Ruby
+version 1.9.3 is coming soon.
 
 Rubinius runs on Mac OS X and many Unix/Linux operating systems. Support for
 Microsoft Windows is coming soon.
@@ -57,8 +57,7 @@ To make Rubinius the default interpreter in new shells, run:
 
 The documentation for RVM is available at:
 
-  https://rvm.beginrescueend.com
-
+  https://rvm.io
 
 5. Using RubyGems
 
@@ -82,5 +81,5 @@ Please file tickets for bugs or problems. The issue tracker is:
 
 8. Contributing
 
-The Rubinius team welcomes contributions. Run 'rake docs' and see the
-"Contributing" page.
+The Rubinius team welcomes contributions. For more information read the
+CONTRIBUTING file in the root directory of Rubinius.
