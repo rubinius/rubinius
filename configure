@@ -180,8 +180,8 @@ class Configure
     @prefixdir    = @sourcedir unless @prefixdir
     @bindir       = @prefixdir + "/bin" unless @bindir
     @libdir       = @prefixdir + "/lib" unless @libdir
-    @runtimedir   = @prefixdir + "/runtime" unless @runtimedir
-    @kerneldir    = @prefixdir + "/kernel" unless @kerneldir
+    @runtimedir   = File.expand_path "../runtime", @libdir
+    @kerneldir    = File.expand_path "../kernel", @libdir
     @sitedir      = @prefixdir + "/site" unless @sitedir
     @vendordir    = @prefixdir + "/vendor" unless @vendordir
     @mandir       = @prefixdir + "/man" unless @mandir
