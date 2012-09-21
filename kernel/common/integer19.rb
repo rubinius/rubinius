@@ -33,6 +33,9 @@ class Integer
       rescue TypeError => e
         raise RangeError, e.message
       end
+      if ndigits >= 1<<31
+        raise RangeError, "integer %d too big to convert to `int'" % ndigits
+      end
     end
 
     ndigits = Rubinius::Type.coerce_to(ndigits, Integer, :to_int)
