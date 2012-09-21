@@ -484,6 +484,18 @@ namespace rubinius {
         sc = SingletonClass::attach(state, this);
       }
 
+      /* We might have to fixup the chain further here. If we have inherited
+       * from another class with a singleton class, this might be incorrect.
+       * We have to correct this until we either find the correctly attached
+       * class or when we have hit the cycle of the class being the singleton
+       * class itself.
+       */
+      if(SingletonClass* sc_klass = try_as<SingletonClass>(sc->klass())) {
+        if(sc != sc_klass->attached_instance() && sc_klass != sc_klass->klass()) {
+          SingletonClass::attach(state, sc);
+        }
+      }
+
       infect(state, sc);
       sc->set_frozen(is_frozen_p());
 
