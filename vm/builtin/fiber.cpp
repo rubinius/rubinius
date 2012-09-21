@@ -290,6 +290,7 @@ namespace rubinius {
 
     if(fib->root_) fib->data_->die();
     delete fib->data_;
+    fib->data_ = NULL;
 #endif
   }
 
