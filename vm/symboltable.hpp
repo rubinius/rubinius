@@ -62,6 +62,13 @@ namespace rubinius {
     Symbol* lookup(const char* str, size_t length, uint32_t seed);
 
   public:
+
+    SymbolTable()
+      : bytes_used_(0)
+    {
+      lock_.init();
+    }
+
     size_t& bytes_used() {
       return bytes_used_;
     }
