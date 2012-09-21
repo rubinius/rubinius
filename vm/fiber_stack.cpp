@@ -9,6 +9,9 @@
 #include "gc/gc.hpp"
 
 #include <stdlib.h>
+#ifdef HAVE_VALGRIND_H
+#include <valgrind/valgrind.h>
+#endif
 
 namespace rubinius {
 
@@ -22,10 +25,16 @@ namespace rubinius {
   void FiberStack::allocate() {
     assert(!address_);
     address_ = malloc(size_);
+#ifdef HAVE_VALGRIND_H
+    valgrind_id_ = VALGRIND_STACK_REGISTER(address_, (char *)address_ + size_);
+#endif
   }
 
   void FiberStack::free() {
     if(!address_) return;
+#ifdef HAVE_VALGRIND_H
+    VALGRIND_STACK_DEREGISTER(valgrind_id_);
+#endif
     ::free(address_);
     address_ = 0;
   }

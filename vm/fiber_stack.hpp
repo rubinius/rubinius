@@ -10,6 +10,9 @@ namespace rubinius {
     size_t size_;
     int refs_;
     FiberData* user_;
+#ifdef HAVE_VALGRIND_H
+    unsigned valgrind_id_;
+#endif
 
   public:
     FiberStack(size_t size);

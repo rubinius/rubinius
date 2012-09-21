@@ -1164,6 +1164,10 @@ int main() { return tgetnum(""); }
     if has_header("sys/pstat.h")
       @defines << "HAVE_SYS_PSTAT_H"
     end
+
+    if has_header("valgrind/valgrind.h")
+      @defines << "HAVE_VALGRIND_H"
+    end
   end
 
   def process
