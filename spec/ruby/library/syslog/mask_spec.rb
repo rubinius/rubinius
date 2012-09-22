@@ -94,6 +94,20 @@ describe "Syslog.mask=" do
       end
     end
 
+    it "persists if the log is reopened" do
+      Syslog.open
+      Syslog.mask = 64
+
+      Syslog.reopen("rubyspec") do
+        Syslog.mask.should == 64
+        Syslog.mask = 255
+      end
+
+      Syslog.open do
+        Syslog.mask.should == 255
+      end
+    end
+
     it "raises an error if the log is closed" do
       lambda { Syslog.mask = 1337 }.should raise_error(RuntimeError)
     end

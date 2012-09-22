@@ -128,6 +128,8 @@ module Syslog
       raise RuntimeError, "must open syslog before setting log mask"
     end
 
+    @mask_before_reopen = nil
+
     @mask = Rubinius::Type.coerce_to mask, Fixnum, :to_int
 
     Foreign.set_mask(@mask)
