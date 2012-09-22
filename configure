@@ -28,6 +28,7 @@ class Configure
     @host = `sh -c ./rakelib/config.guess`.chomp
     /([^-]+)-([^-]+)-(.*)/ =~ @host
     @cpu, @vendor, @os = $1, $2, $3
+    @os.sub! /openbsd[0-9\.]*$/, "openbsd" # Discard OpenBSD version number
     @little_endian = false
     @sizeof = {}
 
