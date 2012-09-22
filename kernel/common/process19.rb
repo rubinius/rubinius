@@ -73,7 +73,12 @@ module Rubinius
           when :in, :out, :err, Fixnum, IO
             redirects[key] = adjust_redirect_value(key, value)
           when :pgroup
-            raise ArgumentError, "negative process group ID : #{value}" if value && value < 0
+            if value == true
+              value = 0
+            elsif value
+              value = Rubinius::Type.coerce_to value, Integer, :to_int 
+              raise ArgumentError, "negative process group ID : #{value}" if value < 0
+            end
             others[key] = value
           when :chdir
             others[key] = Rubinius::Type.coerce_to_path(value)
