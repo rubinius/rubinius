@@ -1,2 +1,0 @@
-fails:Kernel#spawn closes file descriptors >= 3 in the child process
-fails:Kernel.spawn closes file descriptors >= 3 in the child process
