@@ -454,11 +454,25 @@ class IO
       end
     end
 
+    update_max_open_fd(fd)
+
     io.descriptor = fd
     io.mode       = mode || cur_mode
     io.sync       = !!sync
     io.sync     ||= STDOUT.fileno == fd if STDOUT.respond_to?(:fileno)
     io.sync     ||= STDERR.fileno == fd if STDERR.respond_to?(:fileno)
+  end
+
+  @max_open_fd = 2
+
+  def self.update_max_open_fd(*fds)
+    fds.each do |fd|
+      @max_open_fd = fd if fd > @max_open_fd
+    end
+  end
+
+  def self.max_open_fd
+    @max_open_fd
   end
 
   ##

@@ -673,9 +673,11 @@ class IO
 
     begin
       connect_pipe(lhs, rhs)
+      ::IO.update_max_open_fd(lhs.fileno, rhs.fileno)
     rescue Errno::EMFILE
       GC.run(true)
       connect_pipe(lhs, rhs)
+      ::IO.update_max_open_fd(lhs.fileno, rhs.fileno)
     end
 
     external_encoding ||= Encoding.default_external
