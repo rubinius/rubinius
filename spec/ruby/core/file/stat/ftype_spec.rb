@@ -27,9 +27,11 @@ describe "File::Stat#ftype" do
   end
 
   platform_is_not :freebsd do  # FreeBSD does not have block devices
-    it "returns 'blockSpecial' when the file is a block" do
-      FileSpecs.block_device do |block|
-        File.lstat(block).ftype.should == 'blockSpecial'
+    with_block_device do
+      it "returns 'blockSpecial' when the file is a block" do
+        FileSpecs.block_device do |block|
+          File.lstat(block).ftype.should == 'blockSpecial'
+        end
       end
     end
   end
