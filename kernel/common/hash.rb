@@ -1,5 +1,6 @@
 # -*- encoding: us-ascii -*-
 
+unless Rubinius::Config['hash.hamt']
 class Hash
   attr_reader :size
   attr_reader :capacity
@@ -332,4 +333,5 @@ class Hash
 
   alias_method :indices, :values_at
   alias_method :indexes, :values_at
+end
 end
