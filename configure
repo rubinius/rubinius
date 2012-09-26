@@ -211,8 +211,10 @@ class Configure
 
     dirs.each { |d| d.replace d[size..-1] }
 
-    @stagingdir = "#{@sourcedir}/staging" unless @prefixdir == @sourcedir
-    @stagingdir = File.join @stagingdir, @prefixdir if @preserve_prefix
+    unless @prefixdir == @sourcedir
+      @stagingdir = "#{@sourcedir}/staging"
+      @stagingdir = File.join @stagingdir, @prefixdir if @preserve_prefix
+    end
   end
 
   def options
