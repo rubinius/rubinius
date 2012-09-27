@@ -551,7 +551,7 @@ namespace rubinius {
 
         /* A C function being used as a block */
       case ITERATE_BLOCK: {
-        VALUE cb = env->get_handle(nm->get_ivar(state, state->symbol("cb_data")));
+        VALUE cb_data = env->get_handle(nm->get_ivar(state, state->symbol("cb_data")));
 
         Object* ob = nm->get_ivar(state, state->symbol("original_block"));
         if(!ob->nil_p()) {
@@ -572,21 +572,41 @@ namespace rubinius {
           break;
         }
 
-        VALUE ret = nm->func()(val, cb, receiver);
+        VALUE ret = nm->func()(val, cb_data, receiver);
+        return env->get_object(ret);
+      }
+
+      case C_BLOCK_CALL: {
+        VALUE val;
+        VALUE* ary = (VALUE*)alloca(sizeof(VALUE) * args.total());
+        VALUE cb_data = env->get_handle(nm->get_ivar(state, state->symbol("cb_data")));
+
+        if(args.total() > 0) {
+          val = env->get_handle(args.get_argument(0));
+        } else {
+          val = env->get_handle(cNil);
+        }
+
+        for (std::size_t i = 0; i < args.total(); ++i) {
+          ary[i] = env->get_handle(args.get_argument(i));
+        }
+
+        VALUE ret = nm->func()(val, cb_data, args.total(), ary);
+
         return env->get_object(ret);
       }
 
       case C_LAMBDA: {
-        VALUE cb = env->get_handle(nm->get_ivar(state, state->symbol("cb_data")));
+        VALUE cb_data = env->get_handle(nm->get_ivar(state, state->symbol("cb_data")));
         VALUE val = env->get_handle(args.as_array(state));
-        VALUE ret = nm->func()(val, cb);
+        VALUE ret = nm->func()(val, cb_data);
         return env->get_object(ret);
       }
 
       case C_CALLBACK: {
-        VALUE cb = env->get_handle(nm->get_ivar(state, state->symbol("cb_data")));
+        VALUE cb_data = env->get_handle(nm->get_ivar(state, state->symbol("cb_data")));
 
-        nm->func()(cb);
+        nm->func()(cb_data);
 
         return cNil;
       }

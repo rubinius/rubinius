@@ -630,6 +630,20 @@ extern "C" {
     }
   }
 
+  VALUE rb_block_call(VALUE obj, ID meth, int argc, VALUE* argv,
+                      VALUE(*cb)(ANYARGS), VALUE cb_data) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    if(cb) {
+      Proc* prc = capi::wrap_c_function((void*)cb, cb_data, C_BLOCK_CALL);
+      env->set_outgoing_block(env->get_handle(prc));
+    } else {
+      env->set_outgoing_block(env->get_handle(env->block()));
+    }
+
+    return rb_funcall2(obj, meth, argc, argv);
+  }
+
   VALUE rb_apply(VALUE recv, ID mid, VALUE args) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     env->flush_cached_data();

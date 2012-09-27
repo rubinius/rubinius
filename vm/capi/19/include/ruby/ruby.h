@@ -415,6 +415,8 @@ struct RFile {
 // MRI checks also that it's not closed...
 #define GetOpenFile(val, ptr) (ptr) = (capi_rio_struct(val))
 #define rb_stdin              rb_const_get(rb_cObject, rb_intern("STDIN"))
+#define rb_stdout             rb_const_get(rb_cObject, rb_intern("STDOUT"))
+#define rb_stderr             rb_const_get(rb_cObject, rb_intern("STDERR"))
 
 #define GetReadFile(ptr)  (ptr->f)
 #define GetWriteFile(ptr) (ptr->f)
@@ -916,6 +918,9 @@ VALUE rb_uint2big(unsigned long number);
 
   /* Converts implicit block into a new Proc. */
   VALUE   rb_block_proc();
+
+  typedef VALUE rb_block_call_func(VALUE, VALUE, int, VALUE*);
+  VALUE rb_block_call(VALUE,ID,int,VALUE*,VALUE(*)(ANYARGS),VALUE);
 
   VALUE   rb_each(VALUE);
 
