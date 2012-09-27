@@ -17,9 +17,11 @@ describe "Module#const_missing" do
   end
 
   it "raises NameError and does not include toplevel Object" do
-    lambda {
+    begin
       Object.const_missing("HelloMissing")
-    }.should_not raise_error(NameError, /Object::HelloMissing/)
+    rescue NameError => e
+      e.message.should_not =~ / Object::/
+    end
   end
 
 end
