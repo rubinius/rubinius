@@ -296,6 +296,7 @@ module Rubinius
           end
         end
       else
+        options.on "-K", "Ignored $KCODE option for compatibility"
         options.on "-U", "Set Encoding.default_internal to UTF-8" do
           set_default_internal_encoding('UTF-8')
         end
