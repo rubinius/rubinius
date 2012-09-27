@@ -25,33 +25,26 @@ class Configure
     @defines = []
     @config = File.join(root, "config.rb")
 
-    @host = `sh -c ./rakelib/config.guess`.chomp
-    /([^-]+)-([^-]+)-(.*)/ =~ @host
-    @cpu, @vendor, @os = $1, $2, $3
+    @host = nil
+    @cpu = nil
+    @vendor = nil
+    @os = nil
     @little_endian = false
     @sizeof = {}
 
     # TODO: For better cross-compiling support, it may be necessary to
     # use the feature facility to check for a define in the compiler.
-    @windows = (@host =~ /mingw|mswin/) != nil
-    @darwin  = (@host =~ /darwin/) != nil
-    @bsd     = (@host =~ /bsd/) != nil
-    @linux   = (@host =~ /linux/) != nil
-
-    # Set up system commands to run in cmd.exe on Windows.
-    if @windows
-      alias :old_system    :system
-      alias :old_backquote :`
-      alias :system        :msys_system
-      alias :`             :msys_backquote
-    end
+    @windows = nil
+    @darwin  = nil
+    @bsd     = nil
+    @linux   = nil
 
     # Compiler / build settings
-    @cc = ENV['CC'] || 'gcc'
-    @cxx = ENV['CXX'] || 'g++'
-    @rake = ENV['RAKE'] || 'rake'
-    @tar = ENV['TAR'] || (@windows ? 'bsdtar' : 'tar')
-    @perl = ENV['PERL'] || 'perl'
+    @cc = nil
+    @cxx = nil
+    @rake = nil
+    @tar = nil
+    @perl = nil
     @default_version = "18"
     @version_list = ["18", "19"]
     @supported_versions = ["18", "19", "20"]
@@ -75,16 +68,8 @@ class Configure
     @llvm_asset_path        = "http://asset.rubini.us/prebuilt"
     @llvm_source_build      = false
 
-    check_tool_version @cc, '-dumpversion', [4, 1]
-    check_tool_version @cxx, '-dumpversion', [4, 1]
-    check_tool_version 'bison', '--version', [2, 3]
-
-    @gcc_major = `#{@cc} -dumpversion`.strip.split(".")[0,2].join(".")
-    if @host == "i686-pc-linux-gnu" || @host == "x86_64-unknown-linux-gnu"
-      @llvm_generic_prebuilt  = "llvm-#{@llvm_version}-#{@host}-#{@gcc_major}.tar.bz2"
-    else
-      @llvm_generic_prebuilt  = "llvm-#{@llvm_version}-#{@host}.tar.bz2"
-    end
+    @gcc_major = nil
+    @llvm_generic_prebuilt = nil
 
     @llvm_parent_path       = File.join(root, "vendor")
     @llvm_default           = File.join(@llvm_parent_path, "llvm")
@@ -132,12 +117,7 @@ class Configure
     @release_date = "yyyy-mm-dd"
     @config_version = 162
 
-    # TODO: add conditionals for platforms
-    if RbConfig::CONFIG["build_os"] =~ /darwin/
-      @ldshared = "#{@cc} -bundle -undefined suppress -flat_namespace"
-    else
-      @ldshared = "#{@cc} -shared"
-    end
+    @ldshared = nil
 
     import_env
   end
@@ -214,6 +194,52 @@ class Configure
     unless @prefixdir == @sourcedir
       @stagingdir = "#{@sourcedir}/staging"
       @stagingdir = File.join @stagingdir, @prefixdir if @preserve_prefix
+    end
+  end
+
+  def set_platform
+    @host = `sh -c ./rakelib/config.guess`.chomp
+    /([^-]+)-([^-]+)-(.*)/ =~ @host
+    @cpu, @vendor, @os = $1, $2, $3
+
+    # TODO: For better cross-compiling support, it may be necessary to
+    # use the feature facility to check for a define in the compiler.
+    @windows = (@host =~ /mingw|mswin/) != nil
+    @darwin  = (@host =~ /darwin/) != nil
+    @bsd     = (@host =~ /bsd/) != nil
+    @linux   = (@host =~ /linux/) != nil
+
+    # Set up system commands to run in cmd.exe on Windows.
+    if @windows
+      alias :old_system    :system
+      alias :old_backquote :`
+      alias :system        :msys_system
+      alias :`             :msys_backquote
+    end
+
+    # Compiler / build settings
+    @cc = ENV['CC'] || 'gcc'
+    @cxx = ENV['CXX'] || 'g++'
+    @rake = ENV['RAKE'] || 'rake'
+    @tar = ENV['TAR'] || (@windows ? 'bsdtar' : 'tar')
+    @perl = ENV['PERL'] || 'perl'
+
+    @gcc_major = `#{@cc} -dumpversion`.strip.split(".")[0,2].join(".")
+    if @host == "i686-pc-linux-gnu" || @host == "x86_64-unknown-linux-gnu"
+      @llvm_generic_prebuilt  = "llvm-#{@llvm_version}-#{@host}-#{@gcc_major}.tar.bz2"
+    else
+      @llvm_generic_prebuilt  = "llvm-#{@llvm_version}-#{@host}.tar.bz2"
+    end
+
+    check_tool_version @cc, '-dumpversion', [4, 1]
+    check_tool_version @cxx, '-dumpversion', [4, 1]
+    check_tool_version 'bison', '--version', [2, 3]
+
+    # TODO: add conditionals for platforms
+    if RbConfig::CONFIG["build_os"] =~ /darwin/
+      @ldshared = "#{@cc} -bundle -undefined suppress -flat_namespace"
+    else
+      @ldshared = "#{@cc} -shared"
     end
   end
 
@@ -399,7 +425,7 @@ class Configure
     feature "execinfo", default_on
     feature "C-readline", true
     feature "ruby-readline", false
-    feature "vendor-zlib", !!@windows
+    feature "vendor-zlib", RUBY_PLATFORM =~ /mingw|mswin/
     feature "alloc-tracking", false
     feature "fibers", true
 
@@ -1657,6 +1683,7 @@ end
     parse ARGV
 
     set_filesystem_paths
+    set_platform
 
     if File.join(@bindir, @program_name) == build_ruby
       @log.error "\nYou are attempting to build using the instance of Rubinius that you are building.\n\n"
