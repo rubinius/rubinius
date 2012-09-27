@@ -32,6 +32,41 @@ VALUE kernel_spec_rb_block_proc(VALUE self) {
 }
 #endif
 
+#ifdef HAVE_RB_BLOCK_CALL
+
+VALUE block_call_inject(VALUE yield_value, VALUE data2) {
+  // yield_value yields the first block argument
+  VALUE elem = yield_value;
+  VALUE elem_incr = INT2FIX(FIX2INT(elem) + 1);
+  return elem_incr;
+}
+
+VALUE kernel_spec_rb_block_call(VALUE self, VALUE ary) {
+  return rb_block_call(ary, rb_intern("map"), 0, NULL, block_call_inject, Qnil);
+}
+
+#ifdef RUBY_VERSION_IS_1_9
+VALUE block_call_inject_multi_arg(VALUE yield_value, VALUE data2, int argc, VALUE argv[]) {
+  // yield_value yields the first block argument
+  VALUE sum  = yield_value;
+  VALUE elem = argv[1];
+
+  return INT2FIX(FIX2INT(sum) + FIX2INT(elem));
+}
+
+VALUE kernel_spec_rb_block_call_multi_arg(VALUE self, VALUE ary) {
+  VALUE method_args[1];
+  method_args[0] = INT2FIX(0);
+  return rb_block_call(ary, rb_intern("inject"), 1, method_args, block_call_inject_multi_arg, Qnil);
+}
+
+VALUE kernel_spec_rb_block_call_no_func(VALUE self, VALUE ary) {
+  return rb_block_call(ary, rb_intern("map"), 0, NULL, NULL, Qnil);
+}
+
+#endif
+#endif
+
 #ifdef HAVE_RB_ENSURE
 VALUE kernel_spec_rb_ensure(VALUE self, VALUE main_proc, VALUE arg,
                             VALUE ensure_proc, VALUE arg2) {
@@ -229,6 +264,14 @@ void Init_kernel_spec() {
 
 #ifdef HAVE_RB_NEED_BLOCK
   rb_define_method(cls, "rb_need_block", kernel_spec_rb_need_block, 0);
+#endif
+
+#ifdef HAVE_RB_BLOCK_CALL
+  rb_define_method(cls, "rb_block_call", kernel_spec_rb_block_call, 1);
+#ifdef RUBY_VERSION_IS_1_9
+  rb_define_method(cls, "rb_block_call_multi_arg", kernel_spec_rb_block_call_multi_arg, 1);
+  rb_define_method(cls, "rb_block_call_no_func", kernel_spec_rb_block_call_no_func, 1);
+#endif
 #endif
 
 #ifdef HAVE_RB_BLOCK_PROC
