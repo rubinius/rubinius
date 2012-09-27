@@ -31,6 +31,11 @@ class Thread
     Kernel.raise PrimitiveFailure, "Thread#raise primitive failed"
   end
 
+  def kill_prim
+    Rubinius.primitive :thread_kill
+    Kernel.raise PrimitiveFailure, "Thread#kill primitive failed"
+  end
+
   def wakeup
     Rubinius.primitive :thread_wakeup
     Kernel.raise ThreadError, "Thread#wakeup primitive failed, thread may be dead"
@@ -65,8 +70,6 @@ class Thread
     Rubinius.primitive :thread_unlock_locks
     Kernel.raise PrimitiveFailure, "Thread#unlock_locks primitive failed"
   end
-
-  class Die < Exception; end # HACK
 
   @abort_on_exception = false
 
@@ -156,16 +159,6 @@ class Thread
   def stop?
     !alive? || @sleep
   end
-
-  def kill
-    @dying = true
-    @sleep = false
-    self.raise Die
-    self
-  end
-
-  alias_method :exit, :kill
-  alias_method :terminate, :kill
 
   def sleeping?
     Rubinius.synchronize(self) do

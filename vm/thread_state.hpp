@@ -58,6 +58,7 @@ namespace rubinius {
     void raise_break(Object* value, VariableScope* dest);
     void raise_exit(Object* code);
     void raise_throw(Object* dest, Object* value);
+    void raise_thread_kill();
   };
 };
 

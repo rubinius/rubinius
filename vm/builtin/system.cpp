@@ -1592,6 +1592,9 @@ namespace rubinius {
     case cCatchThrow:
       reason = state->symbol("catch_throw");
       break;
+    case cThreadKill:
+      reason = state->symbol("thread_kill");
+      break;
     default:
       reason = state->symbol("unknown");
     }

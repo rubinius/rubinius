@@ -1,2 +1,0 @@
-fails:Thread#terminate does not set $!
-fails:Thread#terminate cannot be rescued
