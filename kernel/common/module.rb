@@ -464,8 +464,10 @@ class Module
   # with the name.
 
   def const_missing(name)
-    mod_name = Rubinius::Type.module_name self
-    raise NameError, "Missing or uninitialized constant: #{mod_name}::#{name}"
+    unless self == Object
+      mod_name = "#{Rubinius::Type.module_name self}::"
+    end
+    raise NameError, "Missing or uninitialized constant: #{mod_name}#{name}"
   end
 
   def <(other)
