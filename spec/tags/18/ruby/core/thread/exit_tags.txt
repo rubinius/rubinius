@@ -1,3 +1,0 @@
-fails:Thread#exit does not set $!
-fails:Thread#exit cannot be rescued
-fails:Thread#exit killing dying sleeping thread wakes up thread

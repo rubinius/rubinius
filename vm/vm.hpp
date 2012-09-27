@@ -112,6 +112,7 @@ namespace rubinius {
     TypedRoot<Exception*> interrupted_exception_;
 
     bool interrupt_with_signal_;
+    bool interrupt_by_kill_;
     InflatedHeader* waiting_header_;
 
     void (*custom_wakeup_)(void*);
@@ -407,6 +408,7 @@ namespace rubinius {
     }
 
     void register_raise(STATE, Exception* exc);
+    void register_kill(STATE);
 
     void gc_scan(GarbageCollector* gc);
 

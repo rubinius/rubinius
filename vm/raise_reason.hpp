@@ -8,7 +8,8 @@ namespace rubinius {
     cReturn,
     cBreak,
     cExit,
-    cCatchThrow
+    cCatchThrow,
+    cThreadKill,
   };
 }
 

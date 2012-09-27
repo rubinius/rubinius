@@ -38,6 +38,11 @@ namespace rubinius {
       vm_->thread_state_.raise_exception(exc);
       return false;
     }
+    if(vm_->interrupt_by_kill_) {
+      vm_->interrupt_by_kill_ = false;
+      vm_->thread_state_.raise_thread_kill();
+      return false;
+    }
 
     return true;
   }

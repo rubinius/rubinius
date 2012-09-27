@@ -161,6 +161,7 @@ exception:
     // Otherwise, fall through and run the unwinds
   case cReturn:
   case cCatchThrow:
+  case cThreadKill:
     // Otherwise, we're doing a long return/break unwind through
     // here. We need to run ensure blocks.
     while(current_unwind > 0) {
@@ -314,6 +315,7 @@ exception:
     // Otherwise, fall through and run the unwinds
   case cReturn:
   case cCatchThrow:
+  case cThreadKill:
     // Otherwise, we're doing a long return/break unwind through
     // here. We need to run ensure blocks.
     while(current_unwind > 0) {
@@ -460,6 +462,7 @@ exception:
     // Otherwise, fall through and run the unwinds
   case cReturn:
   case cCatchThrow:
+  case cThreadKill:
     // Otherwise, we're doing a long return/break unwind through
     // here. We need to run ensure blocks.
     while(current_unwind > 0) {
@@ -591,6 +594,7 @@ exception:
     // Otherwise, fall through and run the unwinds
   case cReturn:
   case cCatchThrow:
+  case cThreadKill:
     // Otherwise, we're doing a long return/break unwind through
     // here. We need to run ensure blocks.
     while(current_unwind > 0) {

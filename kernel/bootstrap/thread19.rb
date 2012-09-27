@@ -65,14 +65,14 @@ class Thread
           @joins.each { |join| join.send self }
         end
       end
-    rescue Die
-      @killed = true
-      @exception = nil
     rescue Exception => e
       # I don't really get this, but this is MRI's behavior. If we're dying
       # by request, ignore any raised exception.
       @exception = e # unless @dying
     ensure
+      if Rubinius.thread_state[0] == :thread_kill
+        @killed = true
+      end
       @alive = false
       Rubinius.unlock(self)
       unlock_locks
@@ -97,6 +97,15 @@ class Thread
     @joins = []
     @killed = false
   end
+
+  def kill
+    @dying = true
+    @sleep = false
+    kill_prim
+  end
+
+  alias_method :exit, :kill
+  alias_method :terminate, :kill
 
   def value
     join_inner do
