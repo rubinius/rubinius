@@ -15,4 +15,11 @@ describe "Module#const_missing" do
       ConstantSpecs.const_missing("HelloMissing")
     }.should raise_error(NameError, /ConstantSpecs::HelloMissing/)
   end
+
+  it "raises NameError and does not include toplevel Object" do
+    lambda {
+      Object.const_missing("HelloMissing")
+    }.should_not raise_error(NameError, /Object::HelloMissing/)
+  end
+
 end
