@@ -154,7 +154,7 @@ namespace rubinius {
   }
 
   LockStatus ObjectMemory::contend_for_lock(STATE, GCToken gct, ObjectHeader* obj,
-                                            bool* error, size_t us)
+                                            bool* error, size_t us, bool interrupt)
   {
     bool timed = false;
     bool timeout = false;
@@ -233,7 +233,7 @@ step1:
         }
 
         // Someone is interrupting us trying to lock.
-        if(state->vm()->check_local_interrupts) {
+        if(interrupt && state->vm()->check_local_interrupts) {
           state->vm()->check_local_interrupts = false;
 
           if(!state->vm()->interrupted_exception()->nil_p()) {
@@ -273,9 +273,9 @@ step1:
     InflatedHeader* ih = obj->inflated_header();
 
     if(timed) {
-      return ih->lock_mutex_timed(state, gct, &ts);
+      return ih->lock_mutex_timed(state, gct, &ts, interrupt);
     } else {
-      return ih->lock_mutex(state, gct);
+      return ih->lock_mutex(state, gct, 0, interrupt);
     }
   }
 

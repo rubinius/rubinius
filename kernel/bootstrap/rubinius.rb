@@ -119,6 +119,11 @@ module Rubinius
     raise PrimitiveFailure, "Rubinius.lock primitive failed"
   end
 
+  def self.uninterrupted_lock(obj)
+    Rubinius.primitive :vm_object_uninterrupted_lock
+    raise PrimitiveFailure, "Rubinius.uninterrupted_lock primitive failed"
+  end
+
   def self.lock_timed(obj, duration)
     Rubinius.primitive :vm_object_lock_timed
     raise PrimitiveFailure, "Rubinius.lock primitive failed"
@@ -191,6 +196,11 @@ module Rubinius
   def self.thread_state
     Rubinius.primitive :vm_thread_state
     raise PrimitiveFailure, "Rubinius.thread_state primitive failed"
+  end
+
+  def self.check_interrupts
+    Rubinius.primitive :vm_check_interrupts
+    raise PrimitiveFailure, "Rubinius.check_interrupts primitive failed"
   end
 
   # Used to invoke a CompiledCode instance as a script body.  Sets up the MAIN

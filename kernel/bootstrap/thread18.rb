@@ -56,8 +56,29 @@ class Thread
         Rubinius.unlock(self)
         @result = @block.call(*@args)
       ensure
-        Rubinius.lock(self)
-        @joins.each { |join| join.send self }
+        begin
+          # We must lock self in a careful way.
+          #
+          # At this point, it's possible that an other thread does Thread#raise
+          # and then our execution is interrupted AT ANY GIVEN TIME. We
+          # absolutely must make sure to lock self as soon as possible to lock
+          # out interrupts from other threads.
+          #
+          # Rubinius.uninterrupted_lock(self) just does that.
+          #
+          # Notice that this can't be moved to other methods and there should be
+          # no preceding code before it in the enclosing ensure clause.
+          # These are to prevent any interrupted lock failures.
+          Rubinius.uninterrupted_lock(self)
+
+          # Now, we locked self. No other thread can interrupt this thread
+          # anymore.
+          # If there is any not-triggered interrupt, check and process it. In
+          # either case, we jump to the following ensure clause.
+          Rubinius.check_interrupts
+        ensure
+          @joins.each { |join| join.send self }
+        end
       end
     rescue Die
       @exception = nil

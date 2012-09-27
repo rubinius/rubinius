@@ -264,12 +264,14 @@ class Thread
         STDERR.puts "Exception: #{exc.message} (#{exc.class})"
       end
 
-      Kernel.raise exc if self == Thread.current
+      if self == Thread.current
+        Kernel.raise exc
+      else
+        raise_prim exc
+      end
     ensure
       Rubinius.unlock(self)
     end
-
-    raise_prim exc
   end
   private :raise_prim
 

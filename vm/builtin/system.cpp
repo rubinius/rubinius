@@ -767,6 +767,14 @@ namespace rubinius {
     return Fixnum::from(time(0) - start);
   }
 
+  Object* System::vm_check_interrupts(STATE, CallFrame* calling_environment) {
+    if(state->check_async(calling_environment)) {
+      return cNil;
+    } else {
+      return NULL;
+    }
+  }
+
   static inline double tv_to_dbl(struct timeval* tv) {
     return (double)tv->tv_sec + ((double)tv->tv_usec / 1000000.0);
   }
@@ -1407,6 +1415,25 @@ namespace rubinius {
         state->raise_exception(exc);
         return 0;
       }
+    }
+
+    return cNil;
+  }
+
+  Object* System::vm_object_uninterrupted_lock(STATE, GCToken gct, Object* obj,
+                                 CallFrame* call_frame)
+  {
+    if(!obj->reference_p()) return Primitives::failure();
+    state->set_call_frame(call_frame);
+
+    switch(obj->lock(state, gct, 0, false)) {
+    case eLocked:
+      return cTrue;
+    case eLockTimeout:
+    case eUnlocked:
+    case eLockError:
+    case eLockInterrupted:
+      return Primitives::failure();
     }
 
     return cNil;
