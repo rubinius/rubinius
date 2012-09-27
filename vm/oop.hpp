@@ -304,8 +304,8 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     bool update(STATE, HeaderWord header);
     void initialize_mutex(int thread_id, int count);
-    LockStatus lock_mutex(STATE, GCToken gct, size_t us=0);
-    LockStatus lock_mutex_timed(STATE, GCToken gct, const struct timespec* ts);
+    LockStatus lock_mutex(STATE, GCToken gct, size_t us, bool interrupt);
+    LockStatus lock_mutex_timed(STATE, GCToken gct, const struct timespec* ts, bool interrupt);
     LockStatus try_lock_mutex(STATE, GCToken gct);
     bool locked_mutex_p(STATE, GCToken gct);
     LockStatus unlock_mutex(STATE, GCToken gct);
@@ -638,7 +638,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     void set_object_id(STATE, ObjectMemory* om, uint32_t id);
 
-    LockStatus lock(STATE, GCToken gct, size_t us=0);
+    LockStatus lock(STATE, GCToken gct, size_t us=0, bool interrupt=true);
     LockStatus try_lock(STATE, GCToken gct);
     bool locked_p(STATE, GCToken gct);
     LockStatus unlock(STATE, GCToken gct);
