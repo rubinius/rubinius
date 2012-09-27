@@ -645,9 +645,62 @@ namespace rubinius {
     return c;
   }
 
+  static Symbol* converter_result_symbol(STATE, rb_econv_result_t status) {
+    switch(status) {
+    case econv_invalid_byte_sequence:
+      return state->symbol("invalid_byte_sequence");
+    case econv_undefined_conversion:
+      return state->symbol("undefined_conversion");
+    case econv_destination_buffer_full:
+      return state->symbol("destination_buffer_full");
+    case econv_source_buffer_empty:
+      return state->symbol("source_buffer_empty");
+    case econv_finished:
+      return state->symbol("finished");
+    case econv_after_output:
+      return state->symbol("after_output");
+    case econv_incomplete_input:
+      return state->symbol("incomplete_input");
+    default:
+      return state->symbol("unknown_converter_error");
+    }
+  }
+
   Symbol* Converter::primitive_convert(STATE, String* source, String* target,
                                        Object* offset, Object* size, Fixnum* options) {
-    return nil<Symbol>();
+    size_t num_converters = converters()->size();
+    rb_econv_t* ec = rb_econv_alloc(num_converters);
+
+    for(size_t i = 0; i < num_converters; i++) {
+      Transcoding* transcoding = as<Transcoding>(converters()->get(state, i));
+      rb_transcoder* tr = transcoding->get_transcoder();
+
+      if(rb_econv_add_transcoder_at(ec, tr, i) == -1) {
+        return force_as<Symbol>(Primitives::failure());
+      }
+    }
+
+    ByteArray* buffer = ByteArray::create_pinned(state,
+        (native_int)(source->byte_size() * 1.5));
+
+    int flags = options->to_native();
+    const unsigned char* source_ptr = (const unsigned char*)source->c_str(state);
+    const unsigned char* source_end = source_ptr + source->byte_size();
+    unsigned char* buffer_ptr = (unsigned char*)buffer->raw_bytes();
+    unsigned char* buffer_end = buffer_ptr + buffer->size();
+
+    rb_econv_result_t result = econv_convert(ec, &source_ptr, source_end,
+        &buffer_ptr, buffer_end, flags);
+
+    target->data(state, buffer);
+    target->shared(state, cFalse);
+    target->hash_value(state, nil<Fixnum>());
+    target->encoding(state, destination_encoding());
+
+    native_int output_size = buffer_ptr - (unsigned char*)buffer->raw_bytes();
+    target->num_bytes(state, Fixnum::from(output_size));
+
+    return converter_result_symbol(state, result);
   }
 
   String* Converter::finish(STATE) {

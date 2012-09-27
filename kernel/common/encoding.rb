@@ -97,8 +97,8 @@ class Encoding
         @replacement = Rubinius::Type.coerce_to replacement, String, :to_str
       end
 
-      source_name = @source_encoding.name.upcase
-      dest_name = @destination_encoding.name.upcase
+      source_name = @source_encoding.name.upcase.to_sym
+      dest_name = @destination_encoding.name.upcase.to_sym
       found = false
 
       if entry = TranscodingMap[source_name]
@@ -133,6 +133,22 @@ class Encoding
       unless found
         msg = "code converter not found (#{@source_encoding.name} to #{@destination_encoding.name}"
         raise ConverterNotFoundError, msg
+      end
+
+      @converters = []
+      total = @convpath.size - 1
+      i = 0
+      while i < total
+        entry = TranscodingMap[@convpath[i]][@convpath[i + 1]]
+
+        if entry.kind_of? String
+          require "19/encoding/converter/#{entry}"
+          entry = TranscodingMap[@convpath[i]][@convpath[i + 1]]
+        end
+
+        @converters << entry
+
+        i += 1
       end
     end
 

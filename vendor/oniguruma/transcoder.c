@@ -46,11 +46,6 @@ void* XCALLOC(size_t items, size_t bytes);
 
 #define ENABLE_ECONV_NEWLINE_OPTION 1
 
-// TODO: remove
-typedef intptr_t VALUE;
-
-typedef OnigEncodingType rb_encoding;
-
 /* dynamic structure, one per conversion (similar to iconv_t) */
 /* may carry conversion state (e.g. for iso-2022-jp) */
 typedef struct rb_transcoding {
@@ -101,54 +96,6 @@ typedef struct rb_transcoding {
     ((tc)->transcoder->state_size <= (int)sizeof((tc)->state) ? \
      (tc)->state.ary : \
      (tc)->state.ptr)
-
-typedef struct {
-    struct rb_transcoding *tc;
-    unsigned char *out_buf_start;
-    unsigned char *out_data_start;
-    unsigned char *out_data_end;
-    unsigned char *out_buf_end;
-    rb_econv_result_t last_result;
-} rb_econv_elem_t;
-
-struct rb_econv_t {
-    int flags;
-    const char *source_encoding_name;
-    const char *destination_encoding_name;
-
-    int started;
-
-    const unsigned char *replacement_str;
-    size_t replacement_len;
-    const char *replacement_enc;
-    int replacement_allocated;
-
-    unsigned char *in_buf_start;
-    unsigned char *in_data_start;
-    unsigned char *in_data_end;
-    unsigned char *in_buf_end;
-    rb_econv_elem_t *elems;
-    int num_allocated;
-    int num_trans;
-    int num_finished;
-    struct rb_transcoding *last_tc;
-
-    /* last error */
-    struct {
-        rb_econv_result_t result;
-        struct rb_transcoding *error_tc;
-        const char *source_encoding;
-        const char *destination_encoding;
-        const unsigned char *error_bytes_start;
-        size_t error_bytes_len;
-        size_t readagain_len;
-    } last_error;
-
-    /* The following fields are only for Encoding::Converter.
-     * rb_econv_open set them NULL. */
-    rb_encoding *source_encoding;
-    rb_encoding *destination_encoding;
-};
 
 /*
  *  Dispatch data and logic
@@ -615,7 +562,7 @@ rb_transcoding_memsize(rb_transcoding *tc)
     return size;
 }
 
-static rb_econv_t *
+rb_econv_t *
 rb_econv_alloc(int n_hint)
 {
     rb_econv_t *ec;
@@ -648,12 +595,10 @@ rb_econv_alloc(int n_hint)
     ec->last_error.error_bytes_start = NULL;
     ec->last_error.error_bytes_len = 0;
     ec->last_error.readagain_len = 0;
-    ec->source_encoding = NULL;
-    ec->destination_encoding = NULL;
     return ec;
 }
 
-static int
+int
 rb_econv_add_transcoder_at(rb_econv_t *ec, const rb_transcoder *tr, int i)
 {
     int n, j;
@@ -866,7 +811,7 @@ rb_trans_conv(rb_econv_t *ec,
 }
 
 static rb_econv_result_t
-rb_econv_convert0(rb_econv_t *ec,
+econv_convert0(rb_econv_t *ec,
     const unsigned char **input_ptr, const unsigned char *input_stop,
     unsigned char **output_ptr, unsigned char *output_stop,
     int flags)
@@ -988,7 +933,7 @@ rb_econv_convert0(rb_econv_t *ec,
 }
 
 rb_econv_result_t
-rb_econv_convert(rb_econv_t *ec,
+econv_convert(rb_econv_t *ec,
     const unsigned char **input_ptr, const unsigned char *input_stop,
     unsigned char **output_ptr, unsigned char *output_stop,
     int flags)
@@ -1011,7 +956,7 @@ rb_econv_convert(rb_econv_t *ec,
     }
 
   resume:
-    ret = rb_econv_convert0(ec, input_ptr, input_stop, output_ptr, output_stop, flags);
+    ret = econv_convert0(ec, input_ptr, input_stop, output_ptr, output_stop, flags);
 
     if (ret == econv_invalid_byte_sequence ||
         ret == econv_incomplete_input) {

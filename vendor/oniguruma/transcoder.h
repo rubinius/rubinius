@@ -153,12 +153,71 @@ struct rb_transcoder {
     ssize_t (*func_sio)(void*, const unsigned char*, size_t, unsigned int, unsigned char*, size_t); /* start -> output */
 };
 
+// TODO: remove
+#ifndef VALUE
+typedef intptr_t VALUE;
+#endif
+
+typedef struct {
+    struct rb_transcoding *tc;
+    unsigned char *out_buf_start;
+    unsigned char *out_data_start;
+    unsigned char *out_data_end;
+    unsigned char *out_buf_end;
+    rb_econv_result_t last_result;
+} rb_econv_elem_t;
+
+struct rb_econv_t {
+    int flags;
+    const char *source_encoding_name;
+    const char *destination_encoding_name;
+
+    int started;
+
+    const unsigned char *replacement_str;
+    size_t replacement_len;
+    const char *replacement_enc;
+    int replacement_allocated;
+
+    unsigned char *in_buf_start;
+    unsigned char *in_data_start;
+    unsigned char *in_data_end;
+    unsigned char *in_buf_end;
+    rb_econv_elem_t *elems;
+    int num_allocated;
+    int num_trans;
+    int num_finished;
+    struct rb_transcoding *last_tc;
+
+    /* last error */
+    struct {
+        rb_econv_result_t result;
+        struct rb_transcoding *error_tc;
+        const char *source_encoding;
+        const char *destination_encoding;
+        const unsigned char *error_bytes_start;
+        size_t error_bytes_len;
+        size_t readagain_len;
+    } last_error;
+};
+
 typedef struct rb_econv_t rb_econv_t;
 typedef struct rb_transcoder rb_transcoder;
 typedef struct rb_transcoder OnigTranscodingType;
 
 void rb_declare_transcoder(const char *enc1, const char *enc2, const char *lib);
 void rb_register_transcoder(const rb_transcoder *);
+
+rb_econv_t* rb_econv_alloc(int n_hint);
+
+rb_econv_result_t econv_convert(rb_econv_t *ec,
+                                const unsigned char **input_ptr,
+                                const unsigned char *input_stop,
+                                unsigned char **output_ptr,
+                                unsigned char *output_stop,
+                                int flags);
+
+int rb_econv_add_transcoder_at(rb_econv_t *ec, const rb_transcoder *tr, int i);
 
 #if defined __GNUC__ && __GNUC__ >= 4
 #pragma GCC visibility pop

@@ -137,12 +137,14 @@ namespace rubinius {
     Encoding* destination_encoding_;  // slot
     String* replacement_;             // slot
     Array* convpath_;                 // slot
+    Array* converters_;               // slot
 
   public:
     attr_accessor(source_encoding, Encoding);
     attr_accessor(destination_encoding, Encoding);
     attr_accessor(replacement, String);
     attr_accessor(convpath, Array);
+    attr_accessor(converters, Array);
 
     static void init(STATE);
 
@@ -186,6 +188,10 @@ namespace rubinius {
     static Transcoding* create(STATE, OnigTranscodingType* tr);
     static void declare(STATE, const char* from, const char* to, const char* lib);
     static void define(STATE, OnigTranscodingType* tr);
+
+    OnigTranscodingType* get_transcoder() {
+      return transcoder_;
+    }
 
     class Info : public TypeInfo {
     public:
