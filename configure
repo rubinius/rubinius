@@ -25,6 +25,7 @@ class Configure
     @defines = []
     @config = File.join(root, "config.rb")
 
+    @build = nil
     @host = nil
     @cpu = nil
     @vendor = nil
@@ -198,7 +199,8 @@ class Configure
   end
 
   def set_platform
-    @host = `sh -c ./rakelib/config.guess`.chomp
+    @build ||= `sh -c ./rakelib/config.guess`.chomp
+    @host ||= @build
     /([^-]+)-([^-]+)-(.*)/ =~ @host
     @cpu, @vendor, @os = $1, $2, $3
 
@@ -332,6 +334,16 @@ class Configure
 
     o.on "--update-prebuilt", "Update prebuilt LLVM packages from the internet" do
       update_prebuilt @llvm_generic_prebuilt, true
+    end
+
+    o.doc "\n System types"
+
+    o.on "--build", "BUILD", "configure for building on BUILD [guessed]" do |build|
+      @build = build
+    end
+
+    o.on "--host", "HOST", "build programs to run on HOST [BUILD]" do |host|
+      @host = host
     end
 
     o.doc "\n System settings"
