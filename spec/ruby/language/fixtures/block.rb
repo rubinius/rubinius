@@ -40,4 +40,18 @@ module BlockSpecs
       yield obj
     end
   end
+
+  class OverwriteBlockVariable
+    def initialize
+      @y = Yielder.new
+    end
+
+    def method_missing(method, *args, &block)
+      self.class.send :define_method, method do |*args, &block|
+        @y.send method, *args, &block
+      end
+
+      send method, *args, &block
+    end
+  end
 end
