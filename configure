@@ -104,6 +104,7 @@ class Configure
     @prefixdir    = nil
     @bindir       = nil
     @libdir       = nil
+    @libprefixdir = nil
     @runtimedir   = nil
     @kerneldir    = nil
     @sitedir      = nil
@@ -179,13 +180,22 @@ class Configure
   def set_filesystem_paths
     @prefixdir    = @sourcedir unless @prefixdir
     @bindir       = @prefixdir + "/bin" unless @bindir
-    @libdir       = @prefixdir + "/lib" unless @libdir
-    @runtimedir   = @prefixdir + "/runtime" unless @runtimedir
-    @kerneldir    = @prefixdir + "/kernel" unless @kerneldir
-    @sitedir      = @prefixdir + "/site" unless @sitedir
-    @vendordir    = @prefixdir + "/vendor" unless @vendordir
+    unless @libprefixdir
+      if @prefixdir == @sourcedir
+        @libprefixdir = @prefixdir
+      elsif @libdir
+        @libprefixdir = @libdir + "/rubinius"
+      else
+        @libprefixdir = @prefixdir
+      end
+    end
+    @libdir       = @libprefixdir + "/lib"
+    @runtimedir   = @libprefixdir + "/runtime"
+    @kerneldir    = @libprefixdir + "/kernel"
+    @sitedir      = @libprefixdir + "/site" unless @sitedir
+    @vendordir    = @libprefixdir + "/vendor" unless @vendordir
+    @gemsdir      = @libprefixdir + "/gems" unless @gemsdir
     @mandir       = @prefixdir + "/man" unless @mandir
-    @gemsdir      = @prefixdir + "/gems" unless @gemsdir
     @include18dir = @prefixdir + "/vm/capi/18/include" unless @include18dir
     @include19dir = @prefixdir + "/vm/capi/19/include" unless @include19dir
     @include20dir = @prefixdir + "/vm/capi/19/include" unless @include20dir
@@ -358,15 +368,12 @@ class Configure
       @include20dir = dir + "/20"
     end
 
-    o.on "-L", "--libdir", "PATH", "Install Ruby library in PATH" do |dir|
-      dir = expand_install_dir dir
+    o.on "-L", "--libdir", "PATH", "Object code libraries PATH" do |dir|
+      @libdir = expand_install_dir dir
+    end
 
-      @libdir       = dir
-      @runtime      = dir + "/runtime"
-      @kernel_path  = dir + "/kernel"
-      @lib_path     = dir + "/lib"
-      @sitedir      = dir + "/site"
-      @vendordir    = dir + "/vendor"
+    o.on "-R", "--libprefixdir", "PATH", "Install Rubinius library in PATH" do |dir|
+      @libprefixdir = expand_install_dir dir
     end
 
     o.on "-M", "--mandir", "PATH", "Install man pages in PATH" do |dir|
