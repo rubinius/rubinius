@@ -449,6 +449,7 @@
 #define HAVE_RB_STR_LEN                    1
 #ifdef RUBY_VERSION_IS_1_9
 #define HAVE_RB_STR_LENGTH                 1
+#define HAVE_RB_STR_EQUAL                  1
 #endif
 #define HAVE_RB_STR_NEW                    1
 #define HAVE_RB_STR_NEW2                   1

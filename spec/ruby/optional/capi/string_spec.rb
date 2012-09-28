@@ -580,6 +580,18 @@ ruby_version_is "1.9" do
     end
   end
 
+  describe "rb_str_equal" do
+    it "compares two same strings" do
+      s = "hello"
+      @s.rb_str_equal(s, "hello").should be_true
+    end
+
+    it "compares two different strings" do
+      s = "hello"
+      @s.rb_str_equal(s, "hella").should be_false
+    end
+  end
+
   describe :rb_external_str_new, :shared => true do
     it "returns a String in the default external encoding" do
       Encoding.default_external = "UTF-8"
