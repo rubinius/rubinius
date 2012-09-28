@@ -312,6 +312,7 @@
 #ifdef RUBY_VERSION_IS_1_9
 #define HAVE_RB_THROW_OBJ                  1
 #define HAVE_RB_CATCH_OBJ                  1
+#define HAVE_RB_MAKE_BACKTRACE             1
 #endif
 #define HAVE_RB_WARN                       1
 #define HAVE_RB_YIELD                      1

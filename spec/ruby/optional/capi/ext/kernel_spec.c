@@ -254,6 +254,12 @@ static VALUE kernel_spec_rb_f_sprintf(VALUE self, VALUE ary) {
 }
 #endif
 
+#ifdef HAVE_RB_MAKE_BACKTRACE
+static VALUE kernel_spec_rb_make_backtrace(VALUE self) {
+  return rb_make_backtrace();
+}
+#endif
+
 void Init_kernel_spec() {
   VALUE cls;
   cls = rb_define_class("CApiKernelSpecs", rb_cObject);
@@ -345,6 +351,11 @@ void Init_kernel_spec() {
 #ifdef HAVE_RB_F_SPRINTF
   rb_define_method(cls, "rb_f_sprintf", kernel_spec_rb_f_sprintf, 1);
 #endif
+
+#ifdef HAVE_RB_MAKE_BACKTRACE
+  rb_define_method(cls, "rb_make_backtrace", kernel_spec_rb_make_backtrace, 0);
+#endif
+
 }
 
 #ifdef __cplusplus

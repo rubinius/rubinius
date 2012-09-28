@@ -404,4 +404,14 @@ describe "C-API Kernel function" do
       @s.rb_f_sprintf(["%d %f %s", 10, 2.5, "test"]).should == "10 2.500000 test"
     end
   end
+
+  ruby_version_is "1.9" do
+    describe "rb_make_backtrace" do
+      it "returns a caller backtrace" do
+        backtrace = @s.rb_make_backtrace
+        lines = backtrace.select {|l| l =~ /#{__FILE__}/ }
+        lines.should_not be_empty
+      end
+    end
+  end
 end
