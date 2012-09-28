@@ -149,6 +149,12 @@ VALUE string_spec_rb_str_len(VALUE self, VALUE str) {
 }
 #endif
 
+#ifdef HAVE_RB_STR_LENGTH
+VALUE string_spec_rb_str_length(VALUE self, VALUE str) {
+  return rb_str_length(str);
+}
+#endif
+
 #ifdef HAVE_RB_STR_NEW
 VALUE string_spec_rb_str_new(VALUE self, VALUE str, VALUE len) {
   return rb_str_new(RSTRING_PTR(str), FIX2INT(len));
@@ -533,6 +539,10 @@ void Init_string_spec() {
 
 #ifdef HAVE_RB_STR_LEN
   rb_define_method(cls, "rb_str_len", string_spec_rb_str_len, 1);
+#endif
+
+#ifdef HAVE_RB_STR_LENGTH
+  rb_define_method(cls, "rb_str_length", string_spec_rb_str_length, 1);
 #endif
 
 #ifdef HAVE_RB_STR_NEW

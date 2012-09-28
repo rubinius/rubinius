@@ -1,3 +1,4 @@
+# encoding: UTF-8
 require File.expand_path('../spec_helper', __FILE__)
 
 load_extension('string')
@@ -564,6 +565,20 @@ describe "C-API String function" do
         @s.rb_str_len("dewdrops").should == 8
       end
     end
+
+    ruby_version_is "1.9" do
+
+      describe "rb_str_length" do
+        it "returns the string's length" do
+          @s.rb_str_length("dewdrops").should == 8
+        end
+
+        it "counts characters in multi byte encodings" do
+          @s.rb_str_length("düwdrops").should == 8
+        end
+      end
+    end
+
   end
 end
 
