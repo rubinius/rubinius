@@ -763,6 +763,9 @@ VALUE rb_uint2big(unsigned long number);
   /** Returns 1 if obj is tainted, 0 otherwise. @internal. */
   int     rb_obj_tainted(VALUE obj);
 
+  /** Builds a string based stack trace */
+  VALUE rb_make_backtrace();
+
   /** Returns the superclass of klass or NULL. This is not the same as
    * rb_class_superclass. See MRI's rb_class_s_alloc which returns a
    * class created with rb_class_boot(0), i.e. having a NULL superclass.

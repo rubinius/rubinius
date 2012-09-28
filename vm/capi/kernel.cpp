@@ -350,4 +350,8 @@ extern "C" {
     VALUE ary = rb_ary_new4(argc-1, argv+1);
     return rb_funcall(rb_mCAPI, rb_intern("sprintf"), 2, argv[0], ary);
   }
+
+  VALUE rb_make_backtrace() {
+    return rb_funcall(rb_mKernel, rb_intern("caller"), 0);
+  }
 }
