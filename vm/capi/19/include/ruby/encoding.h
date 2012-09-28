@@ -90,6 +90,7 @@ VALUE rb_enc_from_encoding(rb_encoding *enc);
 int rb_define_dummy_encoding(const char *);
 int rb_enc_find_index(const char *name);
 int rb_enc_to_index(rb_encoding* enc);
+char* rb_enc_nth(const char *p, const char *e, long nth, rb_encoding *enc);
 
 int rb_enc_dummy_p(rb_encoding *enc);
 VALUE rb_enc_associate(VALUE, rb_encoding*);

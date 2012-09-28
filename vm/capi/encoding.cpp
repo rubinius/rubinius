@@ -308,6 +308,18 @@ extern "C" {
     return n;
   }
 
+  char* rb_enc_nth(const char* p, const char* e, long nth, rb_encoding* enc) {
+    if (rb_enc_mbmaxlen(enc) == 1) {
+      p += nth;
+    } else if (rb_enc_mbmaxlen(enc) == rb_enc_mbminlen(enc)) {
+      p += nth * rb_enc_mbmaxlen(enc);
+    } else {
+      p += Encoding::find_character_byte_index((uint8_t*)p, (uint8_t*)e, nth, enc);
+    }
+    if (p > e) p = e;
+    return (char*)p;
+  }
+
 #define ctype_test(c, ctype)  (rb_isascii(c) && ONIGENC_IS_ASCII_CODE_CTYPE((c), ctype))
 
   int rb_isalnum(int c) {
