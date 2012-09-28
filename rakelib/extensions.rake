@@ -168,6 +168,9 @@ if enabled_18
   compile_ext "18/zlib", :deps => ["Makefile", "extconf.rb"],
                          :dir => "#{libprefixdir}/18/zlib/ext",
                          :env => "-X18"
+  compile_ext "18/iconv", :deps => ["Makefile", "extconf.rb"],
+                          :dir => "#{libprefixdir}/18/iconv/ext",
+                          :env => "-X18"
 end
 
 if enabled_19
@@ -207,6 +210,9 @@ if enabled_19
   compile_ext "19/zlib", :deps => ["Makefile", "extconf.rb"],
                          :dir => "#{libprefixdir}/19/zlib/ext",
                          :env => "-X19"
+  compile_ext "19/iconv", :deps => ["Makefile", "extconf.rb"],
+                          :dir => "#{libprefixdir}/19/iconv/ext",
+                          :env => "-X19"
 end
 
 compile_ext "dbm", :deps => ["Makefile"],
