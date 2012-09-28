@@ -213,6 +213,15 @@ static VALUE encoding_spec_rb_to_encoding_index(VALUE self, VALUE obj) {
 }
 #endif
 
+#ifdef HAVE_RB_ENC_NTH
+static VALUE encoding_spec_rb_enc_nth(VALUE self, VALUE str, VALUE index) {
+  char* start = RSTRING_PTR(str);
+  char* end = start + RSTRING_LEN(str);
+  char* ptr = rb_enc_nth(start, end, FIX2LONG(index), rb_enc_get(str));
+  return LONG2NUM(ptr - start);
+}
+#endif
+
 void Init_encoding_spec() {
   VALUE cls;
   cls = rb_define_class("CApiEncodingSpecs", rb_cObject);
@@ -340,6 +349,10 @@ void Init_encoding_spec() {
 
 #ifdef HAVE_RB_TO_ENCODING_INDEX
   rb_define_method(cls, "rb_to_encoding_index", encoding_spec_rb_to_encoding_index, 1);
+#endif
+
+#ifdef HAVE_RB_ENC_NTH
+  rb_define_method(cls, "rb_enc_nth", encoding_spec_rb_enc_nth, 2);
 #endif
 }
 

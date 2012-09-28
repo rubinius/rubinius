@@ -350,5 +350,12 @@ ruby_version_is "1.9" do
         @s.rb_enc_to_index("FTU-81").should == 0
       end
     end
+
+    describe "rb_enc_nth" do
+      it "returns the byte index of the given character index" do
+        @s.rb_enc_nth("hüllo", 3).should == 4
+      end
+    end
+
   end
 end

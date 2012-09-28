@@ -210,6 +210,7 @@
 
 #define HAVE_RB_TO_ENCODING                1
 #define HAVE_RB_TO_ENCODING_INDEX          1
+#define HAVE_RB_ENC_NTH                    1
 
 #define HAVE_RB_EENCCOMPATERROR            1
 
