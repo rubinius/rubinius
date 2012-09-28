@@ -1765,6 +1765,8 @@ VALUE rb_uint2big(unsigned long number);
 
   long    rb_str_hash(VALUE str);
 
+  VALUE   rb_str_equal(VALUE self, VALUE other);
+
   VALUE   rb_str_length(VALUE self);
 
   /** Raises an exception from the value of errno. */

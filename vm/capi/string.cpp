@@ -487,4 +487,15 @@ extern "C" {
 
     return string->hash_string(env->state());
   }
+
+  VALUE rb_str_equal(VALUE self, VALUE other) {
+    if(self == other) {
+      return Qtrue;
+    }
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    String* string = capi_get_string(env, self);
+    String* other_str = capi_get_string(env, other);
+
+    return env->get_handle(string->equal(env->state(), other_str));
+  }
 }
