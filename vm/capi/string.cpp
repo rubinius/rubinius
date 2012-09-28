@@ -460,6 +460,13 @@ extern "C" {
     return string->byte_size();
   }
 
+  VALUE rb_str_length(VALUE self) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    String* string = capi_get_string(env, self);
+    return LONG2FIX(string->char_size(env->state()));
+  }
+
   void rb_str_set_len(VALUE self, size_t len) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
