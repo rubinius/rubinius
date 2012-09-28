@@ -73,6 +73,17 @@ namespace rubinius {
     static Encoding* get_object_encoding(STATE, Object* obj);
     static void set_object_encoding(STATE, Object* obj, Encoding* enc);
 
+    /**
+     * Encoding handling methods that can are used by string but can
+     * also be used for implementing certain C-API methods
+     */
+    static native_int find_non_ascii_index(const uint8_t* start, const uint8_t* end);
+    static native_int find_byte_character_index(const uint8_t* start, const uint8_t* end, native_int index, OnigEncodingType* enc);
+    static native_int find_character_byte_index(const uint8_t* start, const uint8_t* end, native_int index, OnigEncodingType* enc);
+
+    static int mbclen(const uint8_t* start, const uint8_t* end, OnigEncodingType* enc);
+    static int precise_mbclen(const uint8_t* start, const uint8_t* end, OnigEncodingType* enc);
+
     OnigEncodingType* get_encoding() {
       return encoding_;
     }

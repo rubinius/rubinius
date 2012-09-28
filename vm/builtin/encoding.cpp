@@ -465,6 +465,67 @@ namespace rubinius {
     managed_ = true;
   }
 
+  native_int Encoding::find_non_ascii_index(const uint8_t* start, const uint8_t* end) {
+    uint8_t* p = (uint8_t*) start;
+    while(p < end) {
+      if(!ISASCII(*p)) {
+        return p - start;
+      }
+      ++p;
+    }
+    return -1;
+  }
+
+  native_int Encoding::find_byte_character_index(const uint8_t* start, const uint8_t* end, native_int index, OnigEncodingType* enc) {
+    uint8_t* p = (uint8_t*) start;
+    native_int char_index = 0;
+
+    while(p < end && index > 0) {
+      native_int char_len = mbclen(p, end, enc);
+      p += char_len;
+      index -= char_len;
+      char_index++;
+    }
+
+    return char_index;
+  }
+
+  native_int Encoding::find_character_byte_index(const uint8_t* start, const uint8_t* end, native_int index, OnigEncodingType* enc) {
+    uint8_t* p = (uint8_t*) start;
+    while(p < end && index--) {
+      p += mbclen(p, end, enc);
+    }
+
+    if(p > end) p = (uint8_t*) end;
+    return p - start;
+  }
+
+  int Encoding::mbclen(const uint8_t* p, const uint8_t* e, OnigEncodingType* enc) {
+    int n = ONIGENC_PRECISE_MBC_ENC_LEN(enc, (UChar*)p, (UChar*)e);
+
+    if (ONIGENC_MBCLEN_CHARFOUND_P(n) && ONIGENC_MBCLEN_CHARFOUND_LEN(n) <= e-p) {
+      return ONIGENC_MBCLEN_CHARFOUND_LEN(n);
+    } else {
+      int min = ONIGENC_MBC_MINLEN(enc);
+      return min <= e-p ? min : (int)(e-p);
+    }
+  }
+
+  int Encoding::precise_mbclen(const uint8_t* p, const uint8_t* e, OnigEncodingType* enc) {
+    int n;
+
+    if (e <= p) {
+      return ONIGENC_CONSTRUCT_MBCLEN_NEEDMORE(1);
+    }
+
+    n = ONIGENC_PRECISE_MBC_ENC_LEN(enc, (UChar*)p, (UChar*)e);
+    if (e-p < n) {
+      return ONIGENC_CONSTRUCT_MBCLEN_NEEDMORE(n-(int)(e-p));
+    }
+
+    return n;
+  }
+
   void Encoding::Info::mark(Object* obj, ObjectMark& mark) {
     auto_mark(obj, mark);
 
