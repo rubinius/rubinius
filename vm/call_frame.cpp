@@ -83,7 +83,7 @@ namespace rubinius {
 
       if(NativeMethodFrame* nmf = cf->native_method_frame()) {
         NativeMethod* nm = try_as<NativeMethod>(nmf->get_object(nmf->method()));
-        if(nm || !nm->name()->symbol_p()) {
+        if(nm && !nm->name()->symbol_p()) {
           stream << "capi:" << nm->name()->debug_str(state) << " at ";
           stream << nm->file()->c_str(state);
         } else {
