@@ -829,6 +829,7 @@ VALUE rb_uint2big(unsigned long number);
 
   typedef VALUE rb_block_call_func _((VALUE, VALUE));
   VALUE rb_block_call(VALUE, ID, int, VALUE*, VALUE (*)(ANYARGS), VALUE);
+#define HAVE_RB_BLOCK_CALL 1
 
   VALUE   rb_each(VALUE);
 
