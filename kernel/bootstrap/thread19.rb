@@ -101,7 +101,9 @@ class Thread
   def kill
     @dying = true
     @sleep = false
-    kill_prim
+    Rubinius.synchronize(self) do
+      kill_prim
+    end
   end
 
   alias_method :exit, :kill
