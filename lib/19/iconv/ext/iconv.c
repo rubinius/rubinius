@@ -1208,9 +1208,12 @@ Init_iconv(void)
 {
     VALUE rb_cIconv = rb_define_class("Iconv", rb_cData);
 
-    if (!NIL_P(ruby_verbose)) {
-	warn_deprecated();
-    }
+    /* The 'ruby_verbose' value is a broken MRI global variable that
+     * Rubinius doesn't support.
+     * if (!NIL_P(ruby_verbose)) {
+     *   warn_deprecated();
+     * }
+     */
     rb_define_alloc_func(rb_cIconv, iconv_s_allocate);
     rb_define_singleton_method(rb_cIconv, "open", iconv_s_open, -1);
     rb_define_singleton_method(rb_cIconv, "iconv", iconv_s_iconv, -1);
