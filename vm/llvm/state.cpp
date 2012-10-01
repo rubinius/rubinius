@@ -705,7 +705,6 @@ namespace rubinius {
       background_thread_->add(req);
 
       if(state->shared().config.jit_show_compiling) {
-        CompiledCode* code = req->method();
         llvm::outs() << "[[[ JIT queued "
           << enclosure_name(code) << "#" << symbol_debug_str(code->name())
           << (req->is_block() ? " (block)" : " (method)")
