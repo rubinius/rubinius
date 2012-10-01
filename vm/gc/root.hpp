@@ -91,7 +91,7 @@ namespace rubinius {
     }
 
     ~Root() {
-      if(roots_ && object_) roots_->remove(this);
+      if(roots_ && object_ && object_ != cUndef) roots_->remove(this);
     }
 
   public: /** Methods */
