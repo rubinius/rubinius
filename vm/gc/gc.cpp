@@ -280,7 +280,7 @@ namespace rubinius {
         Object** var = displace(buffer[idx], offset);
         Object* tmp = *var;
 
-        if(tmp->reference_p() && (!young_only || tmp->young_object_p())) {
+        if(tmp && tmp->reference_p() && (!young_only || tmp->young_object_p())) {
           *var = saw_object(tmp);
         }
       }
