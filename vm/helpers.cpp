@@ -237,7 +237,7 @@ namespace rubinius {
         TypedRoot<Object*> sup(state, super);
 
         if(Autoload* autoload = try_as<Autoload>(obj)) {
-          obj = autoload->resolve(state, gct, call_frame, true);
+          obj = autoload->resolve(state, gct, call_frame, under, true);
 
           // Check if an exception occurred
           if(!obj) return NULL;
@@ -276,7 +276,7 @@ namespace rubinius {
 
       if(found) {
         if(Autoload* autoload = try_as<Autoload>(obj)) {
-          obj = autoload->resolve(state, gct, call_frame, true);
+          obj = autoload->resolve(state, gct, call_frame, under, true);
         }
 
         // Check if an exception occurred
