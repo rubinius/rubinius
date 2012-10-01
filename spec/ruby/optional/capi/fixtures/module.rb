@@ -16,4 +16,5 @@ class CApiModuleSpecs
 
   class Super
   end
+  autoload :ModuleUnderAutoload, "#{extension_path}/module_under_autoload_spec"
 end
