@@ -210,20 +210,24 @@ extern "C" {
 
   /** @note   Shares code with rb_define_class_under, change there too. --rue */
   VALUE rb_define_module_under(VALUE parent_handle, const char* name) {
-
-    GCTokenImpl gct;
-
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     Module* parent = c_as<Module>(env->get_object(parent_handle));
     Symbol* constant = env->state()->symbol(name);
 
     LEAVE_CAPI(env->state());
+    Module* module = NULL;
 
-    OnStack<2> os(env->state(), parent, constant);
+    // Create a scope so we know that the OnStack variables are popped off
+    // before we possibly make a longjmp. Making a longjmp doesn't give
+    // any guarantees about destructors being run
+    {
+      GCTokenImpl gct;
+      OnStack<2> os(env->state(), parent, constant);
 
-    Module* module = rubinius::Helpers::open_module(env->state(), gct,
-        env->current_call_frame(), parent, constant);
+      module = rubinius::Helpers::open_module(env->state(), gct,
+          env->current_call_frame(), parent, constant);
+    }
 
     // The call above could have triggered an Autoload resolve, which may
     // raise an exception, so we have to check the value returned.

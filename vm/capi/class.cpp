@@ -143,7 +143,6 @@ extern "C" {
   /** @note   Shares code with rb_define_module_under, change there too. --rue */
   VALUE rb_define_class_under(VALUE outer, const char* name, VALUE super) {
 
-    GCTokenImpl gct;
 
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
@@ -154,11 +153,17 @@ extern "C" {
     bool created = false;
 
     LEAVE_CAPI(env->state());
+    Class* opened_class = NULL;
 
-    OnStack<3> os(env->state(), module, superclass, constant);
+    // Run in a block so OnStack is properly deallocated before we
+    // might do a longjmp because of an exception.
+    {
+      GCTokenImpl gct;
+      OnStack<3> os(env->state(), module, superclass, constant);
 
-    Class* opened_class = rubinius::Helpers::open_class(env->state(), gct,
-        env->current_call_frame(), module, superclass, constant, &created);
+      opened_class = rubinius::Helpers::open_class(env->state(), gct,
+          env->current_call_frame(), module, superclass, constant, &created);
+    }
 
     // The call above could have triggered an Autoload resolve, which may
     // raise an exception, so we have to check the value returned.

@@ -200,12 +200,18 @@ namespace rubinius {
       // Unlock, we're leaving extension code.
       LEAVE_CAPI(env->state());
 
-      LookupData lookup(recv, recv->lookup_begin(env->state()), env->state()->globals().sym_private.get());
-      Arguments args_o(method, recv, block, arg_count, args);
-      Dispatch dis(method);
+      Object* ret = cNil;
 
-      Object* ret = dis.send(env->state(), env->current_call_frame(),
-                             lookup, args_o);
+      // Run in a block so objects are properly deconstructed when we
+      // do a longjmp because of an exception.
+      {
+        LookupData lookup(recv, recv->lookup_begin(env->state()), env->state()->globals().sym_private.get());
+        Arguments args_o(method, recv, block, arg_count, args);
+        Dispatch dis(method);
+
+        ret = dis.send(env->state(), env->current_call_frame(),
+                      lookup, args_o);
+      }
 
       // We need to get the handle for the return value before getting
       // the GEL so that ret isn't accidentally GCd while we wait.
@@ -244,12 +250,17 @@ namespace rubinius {
       Object* recv = env->get_object(receiver);
       Symbol* method = (Symbol*)method_name;
 
-      LookupData lookup(recv, recv->lookup_begin(env->state()), env->state()->globals().sym_private.get());
-      Arguments args_o(method, recv, cNil, arg_count, args);
-      Dispatch dis(method);
+      Object* ret = cNil;
+      // Run in block so we properly deconstruct objects allocated
+      // on the stack if we do a longjmp because of an exception.
+      {
+        LookupData lookup(recv, recv->lookup_begin(env->state()), env->state()->globals().sym_private.get());
+        Arguments args_o(method, recv, cNil, arg_count, args);
+        Dispatch dis(method);
 
-      Object* ret = dis.send(env->state(), env->current_call_frame(),
-                             lookup, args_o);
+        ret = dis.send(env->state(), env->current_call_frame(),
+                       lookup, args_o);
+      }
 
       // We need to get the handle for the return value before getting
       // the GEL so that ret isn't accidentally GCd while we wait.
@@ -283,18 +294,23 @@ namespace rubinius {
       STATE = env->state();
 
       CallFrame* call_frame = env->current_call_frame();
-      Arguments args(G(sym_call), blk, arg_count, arg_vals);
 
-      if(BlockEnvironment* be = try_as<BlockEnvironment>(blk)) {
-        ret = be->call(state, call_frame, args);
-      } else if(Proc* proc = try_as<Proc>(blk)) {
-        ret = proc->yield(state, call_frame, args);
-      } else if(blk->nil_p()) {
-        state->raise_exception(Exception::make_lje(state, call_frame));
-        ret = NULL;
-      } else {
-        Dispatch dis(G(sym_call));
-        ret = dis.send(state, call_frame, args);
+      // Run in separate block so the arguments are destructed
+      // properly before we make a potential longjmp.
+      {
+        Arguments args(G(sym_call), blk, arg_count, arg_vals);
+
+        if(BlockEnvironment* be = try_as<BlockEnvironment>(blk)) {
+          ret = be->call(state, call_frame, args);
+        } else if(Proc* proc = try_as<Proc>(blk)) {
+          ret = proc->yield(state, call_frame, args);
+        } else if(blk->nil_p()) {
+          state->raise_exception(Exception::make_lje(state, call_frame));
+          ret = NULL;
+        } else {
+          Dispatch dis(G(sym_call));
+          ret = dis.send(state, call_frame, args);
+        }
       }
 
       // We need to get the handle for the return value before getting
@@ -332,12 +348,17 @@ namespace rubinius {
       // Unlock, we're leaving extension code.
       LEAVE_CAPI(env->state());
 
-      LookupData lookup(recv, mod->superclass(), env->state()->globals().sym_private.get());
-      Arguments args_o(name, recv, arg_count, args);
-      Dispatch dis(name);
+      Object* ret = cNil;
+      // Use a block objects on the stack are properly deconstructed when
+      // we do a potential longjmp.
+      {
+        LookupData lookup(recv, mod->superclass(), env->state()->globals().sym_private.get());
+        Arguments args_o(name, recv, arg_count, args);
+        Dispatch dis(name);
 
-      Object* ret = dis.send(env->state(), env->current_call_frame(),
-                             lookup, args_o);
+        ret = dis.send(env->state(), env->current_call_frame(),
+                       lookup, args_o);
+      }
 
       // We need to get the handle for the return value before getting
       // the GEL so that ret isn't accidentally GCd while we wait.
