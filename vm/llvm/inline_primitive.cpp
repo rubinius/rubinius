@@ -354,8 +354,8 @@ namespace rubinius {
       i.context().leave_inline();
     }
 
-    void fixnum_compare(MathOperation op) {
-      log("fixnum_compare");
+    void fixnum_compare_operation(MathOperation op) {
+      log("fixnum_compare_operation");
       i.context().enter_inline();
 
       Value* lint = ops.cast_int(i.recv());
@@ -506,8 +506,8 @@ namespace rubinius {
       i.context().leave_inline();
     }
 
-    void float_compare(MathOperation op) {
-      log("float_compare");
+    void float_compare_operation(MathOperation op) {
+      log("float_compare_operation");
       i.context().enter_inline();
 
       i.use_send_for_failure();
@@ -515,7 +515,7 @@ namespace rubinius {
       i.check_recv(klass);
 
       // Support compare against Floats and Fixnums inline
-      BasicBlock* do_compare = ops.new_block("float_compare");
+      BasicBlock* do_compare = ops.new_block("float_compare_operation");
       BasicBlock* check_fix =  ops.new_block("check_fixnum");
 
       Value* arg = i.arg(0);
@@ -684,15 +684,15 @@ namespace rubinius {
     } else if(prim == Primitives::fixnum_neg && count_ == 0) {
       ip.fixnum_neg();
     } else if(prim == Primitives::fixnum_equal && count_ == 1) {
-      ip.fixnum_compare(cEqual);
+      ip.fixnum_compare_operation(cEqual);
     } else if(prim == Primitives::fixnum_lt && count_ == 1) {
-      ip.fixnum_compare(cLessThan);
+      ip.fixnum_compare_operation(cLessThan);
     } else if(prim == Primitives::fixnum_le && count_ == 1) {
-      ip.fixnum_compare(cLessThanEqual);
+      ip.fixnum_compare_operation(cLessThanEqual);
     } else if(prim == Primitives::fixnum_gt && count_ == 1) {
-      ip.fixnum_compare(cGreaterThan);
+      ip.fixnum_compare_operation(cGreaterThan);
     } else if(prim == Primitives::fixnum_ge && count_ == 1) {
-      ip.fixnum_compare(cGreaterThanEqual);
+      ip.fixnum_compare_operation(cGreaterThanEqual);
     } else if(prim == Primitives::object_equal && count_ == 1) {
       ip.object_equal();
     } else if(prim == Primitives::float_add && count_ == 1) {
@@ -706,15 +706,15 @@ namespace rubinius {
     } else if(prim == Primitives::float_mod && count_ == 1) {
       ip.float_op(cMod);
     } else if(prim == Primitives::float_equal && count_ == 1) {
-      ip.float_compare(cEqual);
+      ip.float_compare_operation(cEqual);
     } else if(prim == Primitives::float_lt && count_ == 1) {
-      ip.float_compare(cLessThan);
+      ip.float_compare_operation(cLessThan);
     } else if(prim == Primitives::float_le && count_ == 1) {
-      ip.float_compare(cLessThanEqual);
+      ip.float_compare_operation(cLessThanEqual);
     } else if(prim == Primitives::float_gt && count_ == 1) {
-      ip.float_compare(cGreaterThan);
+      ip.float_compare_operation(cGreaterThan);
     } else if(prim == Primitives::float_ge && count_ == 1) {
-      ip.float_compare(cGreaterThanEqual);
+      ip.float_compare_operation(cGreaterThanEqual);
 
     } else if(prim == Primitives::fixnum_s_eqq && count_ == 1) {
       if(!ip.static_fixnum_s_eqq()) {
