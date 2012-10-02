@@ -170,6 +170,7 @@ namespace rubinius {
     add_fd(server_fd_);
 
     make_discoverable();
+    wakeup();
 
     return true;
   }
@@ -502,14 +503,14 @@ auth_error:
 
     thread_->stop();
 
-    wakeup(state);
+    wakeup();
 
     thread_->join();
     delete thread_;
     thread_ = NULL;
   }
 
-  void QueryAgent::wakeup(STATE) {
+  void QueryAgent::wakeup() {
     char buf = '!';
     if(write(write_control(), &buf, 1) < 0) {
       std::cerr << "[QA: Write error: " << strerror(errno) << "]\n";

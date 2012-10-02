@@ -171,7 +171,7 @@ namespace rubinius {
     void initialize(STATE);
     void start_thread(STATE);
     void stop_thread(STATE);
-    void wakeup(STATE);
+    void wakeup();
 
     bool setup_local();
     bool bind(int port);
