@@ -3,6 +3,15 @@
 #include "llvm/inline.hpp"
 #include "llvm/jit_context.hpp"
 
+// We use the i64 and i32 versions here. We do the bounds checking
+// manually later on, because using i63 / i31 is buggy in LLVM, also
+// see http://llvm.org/bugs/show_bug.cgi?id=13991
+#ifdef IS_X8664
+#define MUL_WITH_OVERFLOW "llvm.smul.with.overflow.i64"
+#else
+#define MUL_WITH_OVERFLOW "llvm.smul.with.overflow.i32"
+#endif
+
 namespace rubinius {
 
   enum MathOperation {
@@ -351,6 +360,90 @@ namespace rubinius {
 
       i.exception_safe();
       i.set_result(ops.as_obj(tagged));
+      i.context().leave_inline();
+    }
+
+    void fixnum_mul() {
+      log("fixnum_mul");
+      i.context().enter_inline();
+
+      Value* recv = ops.cast_int(i.recv());
+      Value* arg = ops.cast_int(i.arg(0));
+
+      Value* anded = BinaryOperator::CreateAnd(recv, arg, "fixnums_anded",
+          ops.current_block());
+
+      Value* fix_mask = ConstantInt::get(ops.NativeIntTy, TAG_FIXNUM_MASK);
+      Value* fix_tag  = ConstantInt::get(ops.NativeIntTy, TAG_FIXNUM);
+
+      Value* masked = BinaryOperator::CreateAnd(anded, fix_mask, "masked",
+          ops.current_block());
+
+      Value* cmp = ops.create_equal(masked, fix_tag, "is_fixnum");
+
+      BasicBlock* push = ops.new_block("push_mul");
+      BasicBlock* tagnow = ops.new_block("tagnow");
+      BasicBlock* less_max = ops.new_block("less_max");
+      BasicBlock* more_min = ops.new_block("more_min");
+      BasicBlock* send = i.failure();
+
+      ops.create_conditional_branch(push, send, cmp);
+
+      ops.set_block(push);
+
+      std::vector<Type*> types;
+      types.push_back(ops.NativeIntTy);
+      types.push_back(ops.NativeIntTy);
+
+      std::vector<Type*> struct_types;
+      struct_types.push_back(ops.NativeIntTy);
+      struct_types.push_back(ops.state()->Int1Ty);
+
+      StructType* st = StructType::get(ops.state()->ctx(), struct_types);
+
+      /*
+       * We use manual overflow checking here for the case where we do
+       * fit in a 64 bit value but overflow a 63 bit type. We can't
+       * directly use the LLVM types for this, because of a bug in
+       * LLVM:
+       *
+       * http://llvm.org/bugs/show_bug.cgi?id=13991
+       *
+       * In future versions this can be simplified if we depend on
+       * a version of LLVM that has incorporated this fix.
+       */
+      FunctionType* ft = FunctionType::get(st, types, false);
+      Function* func = cast<Function>(
+          ops.state()->module()->getOrInsertFunction(MUL_WITH_OVERFLOW, ft));
+
+      Value* recv_int = ops.tag_strip(recv, ops.NativeIntTy);
+      Value* arg_int = ops.tag_strip(arg, ops.NativeIntTy);
+      Value* call_args[] = { recv_int, arg_int };
+      Value* res = ops.b().CreateCall(func, call_args, "mul.overflow");
+
+      Value* sum = ops.b().CreateExtractValue(res, 0, "mul");
+      Value* dof = ops.b().CreateExtractValue(res, 1, "did_overflow");
+
+      ops.b().CreateCondBr(dof, send, tagnow);
+
+      ops.set_block(tagnow);
+
+      Value* fixnum_max = ConstantInt::get(ops.NativeIntTy, FIXNUM_MAX);
+      Value* smaller_max = ops.b().CreateICmpSLT(sum, fixnum_max, "fixnum.lt");
+      ops.create_conditional_branch(less_max, send, smaller_max);
+
+      ops.set_block(less_max);
+
+      Value* fixnum_min =  ConstantInt::get(ops.NativeIntTy, FIXNUM_MIN);
+      Value* bigger_min = ops.b().CreateICmpSGT(sum, fixnum_min, "fixnum.gt");
+      ops.create_conditional_branch(more_min, send, bigger_min);
+
+      ops.set_block(more_min);
+      Value* imm_value = ops.fixnum_tag(sum);
+
+      i.use_send_for_failure();
+      i.exception_safe();
+      i.set_result(ops.as_obj(imm_value));
       i.context().leave_inline();
     }
 
@@ -828,6 +921,8 @@ namespace rubinius {
       ip.fixnum_neg();
     } else if(prim == Primitives::fixnum_compare && count_ == 1) {
       ip.fixnum_compare();
+    } else if(prim == Primitives::fixnum_mul && count_ == 1) {
+      ip.fixnum_mul();
     } else if(prim == Primitives::fixnum_equal && count_ == 1) {
       ip.fixnum_compare_operation(cEqual);
     } else if(prim == Primitives::fixnum_lt && count_ == 1) {
