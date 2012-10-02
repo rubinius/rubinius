@@ -18,7 +18,7 @@ module Kernel
         exc = exc.exception msg
       end
       raise ::TypeError, 'exception class/object expected' unless exc.kind_of?(::Exception)
-    elsif exc.kind_of? String or !exc
+    elsif exc.kind_of? String
       exc = ::RuntimeError.exception exc
     else
       raise ::TypeError, 'exception class/object expected'
