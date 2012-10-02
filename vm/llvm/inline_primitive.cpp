@@ -354,6 +354,67 @@ namespace rubinius {
       i.context().leave_inline();
     }
 
+    void fixnum_compare() {
+      log("fixnum_compare");
+      i.context().enter_inline();
+
+      Value* lint = ops.cast_int(i.recv());
+      Value* rint = ops.cast_int(i.arg(0));
+
+      Value* anded = BinaryOperator::CreateAnd(lint, rint, "fixnums_anded",
+          ops.current_block());
+
+      Value* fix_mask = ConstantInt::get(ops.NativeIntTy, TAG_FIXNUM_MASK);
+      Value* fix_tag  = ConstantInt::get(ops.NativeIntTy, TAG_FIXNUM);
+
+      Value* masked = BinaryOperator::CreateAnd(anded, fix_mask, "masked",
+          ops.current_block());
+
+      Value* cmp = ops.create_equal(masked, fix_tag, "is_fixnum");
+
+      BasicBlock* push   = ops.new_block("push_compare");
+      BasicBlock* eq     = ops.new_block("equal");
+      BasicBlock* neq    = ops.new_block("not_equal");
+      BasicBlock* result = ops.new_block("result");
+      BasicBlock* send   = i.failure();
+
+      ops.create_conditional_branch(push, send, cmp);
+
+      ops.set_block(push);
+
+      Value* equal = ops.b().CreateICmpEQ(lint, rint, "fixnum.eq");
+      ops.create_conditional_branch(eq, neq, equal);
+
+      ops.set_block(eq);
+
+      Value* eq_result = ops.fixnum_tag(ops.Zero);
+
+      ops.b().CreateBr(result);
+
+      ops.set_block(neq);
+
+      Value* big = ops.b().CreateICmpSLT(lint, rint, "fixnum.lt");
+
+      Value* neq_result = ops.b().CreateSelect(big,
+                               ops.fixnum_tag(ops.NegOne),
+                               ops.fixnum_tag(ops.One),
+                               "select_bool");
+
+      ops.b().CreateBr(result);
+
+      ops.set_block(result);
+
+      PHINode* res = ops.b().CreatePHI(ops.ObjType, 2, "result");
+      res->addIncoming(eq_result, eq);
+      res->addIncoming(neq_result, neq);
+
+      i.use_send_for_failure();
+      i.exception_safe();
+      i.set_result(ops.as_obj(res));
+      i.context().leave_inline();
+
+    }
+
     void fixnum_compare_operation(MathOperation op) {
       log("fixnum_compare_operation");
       i.context().enter_inline();
@@ -503,6 +564,88 @@ namespace rubinius {
 
       i.exception_safe();
       i.set_result(ops.b().CreateBitCast(res, ops.ObjType));
+      i.context().leave_inline();
+    }
+
+    void float_compare() {
+      log("float_compare");
+      i.context().enter_inline();
+
+      i.use_send_for_failure();
+
+      i.check_recv(klass);
+
+      // Support compare against Floats and Fixnums inline
+      BasicBlock* do_compare = ops.new_block("float_compare_operation");
+      BasicBlock* check_fix =  ops.new_block("check_fixnum");
+
+      Value* arg = i.arg(0);
+      ops.check_class(arg, klass, check_fix);
+
+      Value* farg =  ops.b().CreateBitCast(arg, ops.state()->ptr_type("Float"),
+          "arg_float");
+
+      Value* unboxed_rhs = ops.b().CreateLoad(
+          ops.b().CreateConstGEP2_32(farg,  0, 1, "arg.value_pos"), "farg");
+
+      BasicBlock* unboxed_block = ops.current_block();
+
+      ops.b().CreateBr(do_compare);
+
+      ops.set_block(check_fix);
+      ops.verify_guard(ops.check_is_fixnum(arg), i.failure());
+      Value* converted_rhs = ops.b().CreateUIToFP(
+          ops.fixnum_to_native(arg), unboxed_rhs->getType());
+
+      BasicBlock* converted_block = ops.current_block();
+
+      ops.b().CreateBr(do_compare);
+
+      ops.set_block(do_compare);
+
+      do_compare->moveAfter(converted_block);
+
+      PHINode* rhs = ops.b().CreatePHI(converted_rhs->getType(), 2, "float_rhs");
+      rhs->addIncoming(unboxed_rhs, unboxed_block);
+      rhs->addIncoming(converted_rhs, converted_block);
+
+      Value* fself = ops.b().CreateBitCast(i.recv(), ops.state()->ptr_type("Float"),
+          "self_float");
+      Value* lhs = ops.b().CreateLoad(
+          ops.b().CreateConstGEP2_32(fself, 0, 1, "self.value_pos"), "fself");
+
+      BasicBlock* eq     = ops.new_block("equal");
+      BasicBlock* neq    = ops.new_block("not_equal");
+      BasicBlock* result = ops.new_block("result");
+
+      Value* equal = ops.b().CreateFCmpUEQ(lhs, rhs, "float.eq");
+      ops.create_conditional_branch(eq, neq, equal);
+
+      ops.set_block(eq);
+
+      Value* eq_result = ops.fixnum_tag(ops.Zero);
+
+      ops.b().CreateBr(result);
+
+      ops.set_block(neq);
+
+      Value* big = ops.b().CreateFCmpULT(lhs, rhs, "fixnum.lt");
+
+      Value* neq_result = ops.b().CreateSelect(big,
+                               ops.fixnum_tag(ops.NegOne),
+                               ops.fixnum_tag(ops.One),
+                               "select_bool");
+
+      ops.b().CreateBr(result);
+
+      ops.set_block(result);
+
+      PHINode* res = ops.b().CreatePHI(ops.ObjType, 2, "result");
+      res->addIncoming(eq_result, eq);
+      res->addIncoming(neq_result, neq);
+
+      i.exception_safe();
+      i.set_result(res);
       i.context().leave_inline();
     }
 
@@ -683,6 +826,8 @@ namespace rubinius {
       ip.fixnum_or();
     } else if(prim == Primitives::fixnum_neg && count_ == 0) {
       ip.fixnum_neg();
+    } else if(prim == Primitives::fixnum_compare && count_ == 1) {
+      ip.fixnum_compare();
     } else if(prim == Primitives::fixnum_equal && count_ == 1) {
       ip.fixnum_compare_operation(cEqual);
     } else if(prim == Primitives::fixnum_lt && count_ == 1) {
@@ -705,6 +850,8 @@ namespace rubinius {
       ip.float_op(cDivide);
     } else if(prim == Primitives::float_mod && count_ == 1) {
       ip.float_op(cMod);
+    } else if(prim == Primitives::float_compare && count_ == 1) {
+      ip.float_compare();
     } else if(prim == Primitives::float_equal && count_ == 1) {
       ip.float_compare_operation(cEqual);
     } else if(prim == Primitives::float_lt && count_ == 1) {

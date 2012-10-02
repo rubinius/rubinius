@@ -96,6 +96,7 @@ namespace rubinius {
     llvm::Type* CallFrameTy;
 
     // Commonly used constants
+    llvm::Value* NegOne;
     llvm::Value* Zero;
     llvm::Value* One;
 
@@ -126,6 +127,7 @@ namespace rubinius {
 
       One = ConstantInt::get(NativeIntTy, 1);
       Zero = ConstantInt::get(NativeIntTy, 0);
+      NegOne = ConstantInt::get(NativeIntTy, -1);
 
       ObjType = ptr_type("Object");
       ObjArrayTy = llvm::PointerType::getUnqual(ObjType);
