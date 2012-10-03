@@ -92,13 +92,14 @@ class Configure
     @sourcedir    = root
     @prefixdir    = nil
     @bindir       = nil
-    @libdir       = nil
+    @librarydir   = nil
     @runtimedir   = nil
     @kerneldir    = nil
     @sitedir      = nil
     @vendordir    = nil
     @mandir       = nil
     @gemsdir      = nil
+    @libdir       = nil
 
     # TODO: fix this
     @include18dir = nil # root + "/vm/capi/18/include"
@@ -144,7 +145,7 @@ class Configure
     dir = expand dir
     if File.directory?(dir) and dir !~ /(rubinius|rbx).*\/?$/
       original = dir
-      dir + "/rubinius/#{@libversion}"
+      dir += "/rubinius/#{@libversion}"
       @log.write "The directory #{original} already exists, installing to #{dir}"
     end
     dir
@@ -175,7 +176,7 @@ class Configure
   def set_filesystem_paths
     @prefixdir    = @sourcedir unless @prefixdir
     @bindir       = @prefixdir + "/bin" unless @bindir
-    @libdir       = @prefixdir + "/lib" unless @libdir
+    @librarydir   = @prefixdir + "/lib" unless @librarydir
     @runtimedir   = @prefixdir + "/runtime" unless @runtimedir
     @kerneldir    = @prefixdir + "/kernel" unless @kerneldir
     @sitedir      = @prefixdir + "/site" unless @sitedir
@@ -186,7 +187,7 @@ class Configure
     @include19dir = @prefixdir + "/vm/capi/19/include" unless @include19dir
     @include20dir = @prefixdir + "/vm/capi/19/include" unless @include20dir
 
-    dirs = [@bindir, @libdir, @runtimedir, @kerneldir, @sitedir, @vendordir,
+    dirs = [@bindir, @librarydir, @runtimedir, @kerneldir, @sitedir, @vendordir,
             @mandir, @gemsdir, @include18dir, @include19dir, @include20dir]
 
     parts = dirs.map { |d| d.split "/" }
@@ -365,15 +366,18 @@ class Configure
       @include20dir = dir + "/20"
     end
 
-    o.on "-L", "--libdir", "PATH", "Install Ruby library in PATH" do |dir|
+    o.on "-A", "--appdir", "PATH", "Install Ruby runtime and libraries in PATH" do |dir|
       dir = expand_install_dir dir
 
-      @libdir       = dir
-      @runtime      = dir + "/runtime"
-      @kernel_path  = dir + "/kernel"
-      @lib_path     = dir + "/lib"
-      @sitedir      = dir + "/site"
-      @vendordir    = dir + "/vendor"
+      @librarydir = dir + "/lib"
+      @runtimedir = dir + "/runtime"
+      @kerneldir  = dir + "/kernel"
+      @sitedir    = dir + "/site"
+      @vendordir  = dir + "/vendor"
+    end
+
+    o.on "-L", "--libdir", "PATH", "Install Rubinius shared library in PATH" do |dir|
+      @libdir = dir
     end
 
     o.on "-M", "--mandir", "PATH", "Install man pages in PATH" do |dir|
@@ -1405,7 +1409,7 @@ module Rubinius
     :stagingdir     => #{@stagingdir.inspect},
     :prefixdir      => "#{@prefixdir}",
     :bindir         => "#{@bindir}",
-    :libdir         => "#{@libdir}",
+    :libdir         => "#{@librarydir}",
     :runtimedir     => "#{@runtimedir}",
     :kerneldir      => "#{@kerneldir}",
     :sitedir        => "#{@sitedir}",
@@ -1453,7 +1457,7 @@ end
 #define RBX_GEMS_PATH        "#{@gemsdir}"
 #define RBX_RUNTIME_PATH     "#{@runtimedir}"
 #define RBX_KERNEL_PATH      "#{@kerneldir}"
-#define RBX_LIB_PATH         "#{@libdir}"
+#define RBX_LIB_PATH         "#{@librarydir}"
 #define RBX_HDR18_PATH       "#{@include18dir}"
 #define RBX_HDR19_PATH       "#{@include19dir}"
 #define RBX_HDR20_PATH       "#{@include20dir}"
@@ -1752,7 +1756,7 @@ Rubinius has been configured for the following paths:
 
 prefix:  #{@prefixdir}
 bin:     #{@bindir}
-lib:     #{@libdir}
+lib:     #{@librarydir}
 runtime: #{@runtimedir}
 kernel:  #{@kerneldir}
 site:    #{@sitedir}
