@@ -5,6 +5,8 @@
 #include <iostream>
 #include <tr1/unordered_map>
 
+using namespace rbxti;
+
 #ifndef RBX_HAVE_TR1_HASH
 namespace std {
   namespace tr1 {
@@ -17,7 +19,6 @@ namespace std {
   }
 }
 #endif
-using namespace rbxti;
 
 namespace coverage {
 
