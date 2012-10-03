@@ -148,6 +148,7 @@ namespace :build do
                      kernel:build
                      stage:runtime
                      stage:documentation
+                     stage:manpages
                      extensions
                    ]
 

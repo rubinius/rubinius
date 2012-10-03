@@ -117,6 +117,12 @@ def install_documentation(prefix, target)
   end
 end
 
+def install_manpages(prefix, target)
+  FileList["#{prefix}/**/*"].each do |name|
+    install_file name, prefix, "#{target}#{BUILD_CONFIG[:mandir]}"
+  end
+end
+
 def install_gems(prefix, target)
   FileList["#{prefix}/**/*.*", "#{prefix}/**/*"].each do |name|
     install_file name, prefix, "#{target}#{BUILD_CONFIG[:gemsdir]}"
@@ -188,6 +194,12 @@ exec #{BUILD_CONFIG[:stagingdir]}#{BUILD_CONFIG[:bindir]}/$EXE "$@"
       install_documentation "#{BUILD_CONFIG[:sourcedir]}/lib", BUILD_CONFIG[:stagingdir]
     end
   end
+
+  task :manpages do
+    if BUILD_CONFIG[:stagingdir]
+      install_manpages "#{BUILD_CONFIG[:sourcedir]}/doc/generated/vm/man", BUILD_CONFIG[:stagingdir]
+    end
+  end
 end
 
 namespace :install do
@@ -236,6 +248,8 @@ oppropriate command to elevate permissions (eg su, sudo).
         install_tooling "#{stagingdir}#{BUILD_CONFIG[:libdir]}", prefixdir
 
         install_documentation "#{stagingdir}#{BUILD_CONFIG[:libdir]}", prefixdir
+
+        install_manpages "#{stagingdir}#{BUILD_CONFIG[:mandir]}", prefixdir
 
         install_cext "#{stagingdir}#{BUILD_CONFIG[:libdir]}", prefixdir
 
