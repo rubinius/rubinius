@@ -799,62 +799,56 @@ to rebuild the compiler.
 
     # Orchestrate everything.
     def main
-      begin
-        begin
-          preamble
-          system_load_path
-          signals
-          load_compiler
-          preload
-          detect_alias
-          options
-          load_paths
-          debugger
-          rubygems
-          gemfile
-          requires
-          evals
-          script
-          irb
+      preamble
+      system_load_path
+      signals
+      load_compiler
+      preload
+      detect_alias
+      options
+      load_paths
+      debugger
+      rubygems
+      gemfile
+      requires
+      evals
+      script
+      irb
 
-        rescue SystemExit => e
-          # Let the outer rescue grab it
-          raise e
+    rescue SystemExit => e
+      @exit_code = e.status
 
-        rescue SyntaxError => e
-          @exit_code = 1
+      epilogue
+    rescue SyntaxError => e
+      @exit_code = 1
 
-          show_syntax_error(e)
+      show_syntax_error(e)
 
-          STDERR.puts "\nBacktrace:"
-          STDERR.puts e.awesome_backtrace.show
-        rescue Interrupt => e
-          @exit_code = 1
+      STDERR.puts "\nBacktrace:"
+      STDERR.puts e.awesome_backtrace.show
+      epilogue
+    rescue Interrupt => e
+      @exit_code = 1
 
-          write_last_error(e)
-          e.render "An exception occurred #{@stage}"
-        rescue SignalException => e
-          Signal.trap(e.signo, "SIG_DFL")
-          Process.kill e.signo, Process.pid
-        rescue Object => e
-          @exit_code = 1
+      write_last_error(e)
+      e.render "An exception occurred #{@stage}"
+      epilogue
+    rescue SignalException => e
+      Signal.trap(e.signo, "SIG_DFL")
+      Process.kill e.signo, Process.pid
+      epilogue
+    rescue Object => e
+      @exit_code = 1
 
-          write_last_error(e)
-          e.render "An exception occurred #{@stage}"
-        end
-
-      # We do this, run epilogue both on catching SystemExit and
-      # if there was no exception so that the at_exit handlers
-      # can see $! as the SystemExit object the system is going to
-      # exit with.
-      rescue SystemExit => e
-        @exit_code = e.status
-        epilogue
-      else
-        epilogue
-      ensure
-        done
-      end
+      write_last_error(e)
+      e.render "An exception occurred #{@stage}"
+      epilogue
+    else
+      # We do this, run epilogue both in the rescue blocks and also here,
+      # so that at_exit{} hooks can read $!.
+      epilogue
+    ensure
+      done
     end
 
     # Creates an instance of the Loader and runs it. We catch any uncaught
