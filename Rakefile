@@ -128,7 +128,7 @@ class SpecRunner
   def self.set_at_exit_handler
     return if @at_exit_handler_set
 
-    at_exit { exit @at_exit_status }
+    at_exit { exit SpecRunner.at_exit_status }
     @at_exit_handler_set = true
   end
 
