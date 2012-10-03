@@ -234,7 +234,7 @@ class Thread
   end
   private :join_inner
 
-  def raise(exc=$!, msg=nil, trace=nil)
+  def raise(exc=undefined, msg=nil, trace=nil)
     Rubinius.lock(self)
 
     unless @alive
@@ -243,11 +243,18 @@ class Thread
     end
 
     begin
+      if exc.equal?(undefined)
+        no_argument = true
+        exc = $!
+      end
+
       if exc.respond_to? :exception
         exc = exc.exception msg
         Kernel.raise TypeError, 'exception class/object expected' unless Exception === exc
         exc.set_backtrace trace if trace
-      elsif exc.kind_of? String or !exc
+      elsif no_argument
+        exc = RuntimeError.exception nil
+      elsif exc.kind_of? String
         exc = RuntimeError.exception exc
       else
         Kernel.raise TypeError, 'exception class/object expected'

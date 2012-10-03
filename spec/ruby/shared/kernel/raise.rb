@@ -16,6 +16,31 @@ describe :kernel_raise, :shared => true do
     lambda { @object.raise }.should raise_error(RuntimeError)
   end
 
+  it "raises a given Exception instance" do
+    error = RuntimeError.new
+    lambda { @object.raise(error) }.should raise_error(error)
+  end
+
+  it "raises a RuntimeError if string given" do
+    lambda { @object.raise("a bad thing") }.should raise_error(RuntimeError)
+  end
+
+  it "raises a TypeError when passed a non-Exception object" do
+    lambda { @object.raise(Object.new) }.should raise_error(TypeError)
+  end
+
+  it "raises a TypeError when passed true" do
+    lambda { @object.raise(true) }.should raise_error(TypeError)
+  end
+
+  it "raises a TypeError when passed false" do
+    lambda { @object.raise(false) }.should raise_error(TypeError)
+  end
+
+  it "raises a TypeError when passed nil" do
+    lambda { @object.raise(nil) }.should raise_error(TypeError)
+  end
+
   it "re-raises the rescued exception" do
     lambda do
       begin
