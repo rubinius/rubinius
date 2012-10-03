@@ -324,6 +324,16 @@ class Configure
       @libc = name
     end
 
+    o.on "--host", "HOST", "Override guessed platform with HOST specification" do |host|
+      @log.write "------------------------------------------------------"
+      @log.write "\nChanging the platform specification can cause Rubinius"
+      @log.write "to malfunction. The current platform specification is:"
+      @log.write "\n#{@host}"
+      @log.write "\n------------------------------------------------------"
+
+      @host = host
+    end
+
     o.doc "\n Program names"
 
     o.on "--program-name", "NAME", "Build Rubinius executable as NAME" do |name|
