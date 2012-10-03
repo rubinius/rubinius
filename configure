@@ -9,6 +9,8 @@ require 'rbconfig'
 require 'tempfile'
 require 'fileutils'
 require 'stringio'
+require 'digest/md5'
+require 'net/http'
 
 root = File.expand_path File.dirname(__FILE__)
 
@@ -16,42 +18,38 @@ require File.join(root, "kernel", "delta", "options")
 
 class Configure
 
+  # Default settings only. All code that may depend on user-selected options
+  # must run after options are processed.
   def initialize(root)
     @log = Logger.new "configure.log"
 
     @command_line = ARGV.dup
     @log.log "Command line: #{@command_line.join(" ").inspect}"
 
+    @features = {}
     @defines = []
     @config = File.join(root, "config.rb")
 
+    # Platform settings
     @host = `sh -c ./rakelib/config.guess`.chomp
-    /([^-]+)-([^-]+)-(.*)/ =~ @host
-    @cpu, @vendor, @os = $1, $2, $3
+    @cpu = nil
+    @vendor = nil
+    @os = nil
+    @windows = nil
+    @darwin = nil
+    @bsd = nil
+    @linux = nil
     @little_endian = false
     @sizeof = {}
 
-    # TODO: For better cross-compiling support, it may be necessary to
-    # use the feature facility to check for a define in the compiler.
-    @windows = (@host =~ /mingw|mswin/) != nil
-    @darwin  = (@host =~ /darwin/) != nil
-    @bsd     = (@host =~ /bsd/) != nil
-    @linux   = (@host =~ /linux/) != nil
+    # Build tools
+    @cc = nil
+    @cxx = nil
+    @rake = nil
+    @tar = nil
+    @pers = nil
 
-    # Set up system commands to run in cmd.exe on Windows.
-    if @windows
-      alias :old_system    :system
-      alias :old_backquote :`
-      alias :system        :msys_system
-      alias :`             :msys_backquote
-    end
-
-    # Compiler / build settings
-    @cc = ENV['CC'] || 'gcc'
-    @cxx = ENV['CXX'] || 'g++'
-    @rake = ENV['RAKE'] || 'rake'
-    @tar = ENV['TAR'] || (@windows ? 'bsdtar' : 'tar')
-    @perl = ENV['PERL'] || 'perl'
+    # Versions
     @default_version = "18"
     @version_list = ["18", "19"]
     @supported_versions = ["18", "19", "20"]
@@ -74,17 +72,8 @@ class Configure
     @llvm_source_url        = "http://llvm.org/releases/3.0/llvm-3.0.tar.gz"
     @llvm_asset_path        = "http://asset.rubini.us/prebuilt"
     @llvm_source_build      = false
-
-    check_tool_version @cc, '-dumpversion', [4, 1]
-    check_tool_version @cxx, '-dumpversion', [4, 1]
-    check_tool_version 'bison', '--version', [2, 3]
-
-    @gcc_major = `#{@cc} -dumpversion`.strip.split(".")[0,2].join(".")
-    if @host == "i686-pc-linux-gnu" || @host == "x86_64-unknown-linux-gnu"
-      @llvm_generic_prebuilt  = "llvm-#{@llvm_version}-#{@host}-#{@gcc_major}.tar.bz2"
-    else
-      @llvm_generic_prebuilt  = "llvm-#{@llvm_version}-#{@host}.tar.bz2"
-    end
+    @llvm_generic_prebuilt  = nil
+    @need_update_prebuilt   = false
 
     @llvm_parent_path       = File.join(root, "vendor")
     @llvm_default           = File.join(@llvm_parent_path, "llvm")
@@ -131,15 +120,6 @@ class Configure
     @version = "#{@libversion}.0dev"
     @release_date = "yyyy-mm-dd"
     @config_version = 162
-
-    # TODO: add conditionals for platforms
-    if RbConfig::CONFIG["build_os"] =~ /darwin/
-      @ldshared = "#{@cc} -bundle -undefined suppress -flat_namespace"
-    else
-      @ldshared = "#{@cc} -shared"
-    end
-
-    import_env
   end
 
   # Set up system commands to run in cmd.exe on Windows. Either Windows
@@ -156,12 +136,6 @@ class Configure
     old_backquote %[cmd.exe /C "#{cmd}"]
   end
 
-  def import_env
-    @user_cflags =   ENV['CFLAGS']
-    @user_cppflags = ENV['CPPFLAGS']
-    @user_ldflags =  ENV['LDFLAGS']
-  end
-
   def expand(path)
     File.expand_path(path)
   end
@@ -174,6 +148,28 @@ class Configure
       @log.write "The directory #{original} already exists, installing to #{dir}"
     end
     dir
+  end
+
+  def set_host
+    /([^-]+)-([^-]+)-(.*)/ =~ @host
+    @cpu, @vendor, @os = $1, $2, $3
+
+    # TODO: For better cross-compiling support, it may be necessary to
+    # use the feature facility to check for a define in the compiler.
+    @windows = (@host =~ /mingw|mswin/) != nil
+    @darwin  = (@host =~ /darwin/) != nil
+    @bsd     = (@host =~ /bsd/) != nil
+    @linux   = (@host =~ /linux/) != nil
+  end
+
+  def set_system_commands
+    # Set up system commands to run in cmd.exe on Windows.
+    if @windows
+      alias :old_system    :system
+      alias :old_backquote :`
+      alias :system        :msys_system
+      alias :`             :msys_backquote
+    end
   end
 
   def set_filesystem_paths
@@ -218,7 +214,8 @@ class Configure
   end
 
   def options
-    o = Rubinius::Options.new "Usage: configure [options]", 30
+    @options = Rubinius::Options.new "Usage: configure [options]", 30
+    o = @options
     o.left_align
 
     o.doc " Configure settings"
@@ -305,7 +302,7 @@ class Configure
     end
 
     o.on "--update-prebuilt", "Update prebuilt LLVM packages from the internet" do
-      update_prebuilt @llvm_generic_prebuilt, true
+      @need_update_prebuilt = true
     end
 
     o.doc "\n System settings"
@@ -391,15 +388,10 @@ class Configure
 
     o.doc "\n Optional features"
 
-    @options = o
-
-    @features = {}
-
-    default_on = RUBY_PLATFORM !~ /openbsd/i
-    feature "execinfo", default_on
+    feature "execinfo", true
     feature "C-readline", true
     feature "ruby-readline", false
-    feature "vendor-zlib", !!@windows
+    feature "vendor-zlib", false
     feature "alloc-tracking", false
     feature "fibers", true
 
@@ -420,15 +412,15 @@ class Configure
 
   end
 
-  def feature(name, on_by_default=true)
-    @features[name] = on_by_default
+  def feature(name, default_value=true)
+    @features[name] = ConfigurationToggle.new default_value
 
     @options.on "--with-#{name}", "Enable #{name}" do
-      @features[name] = true
+      @features[name].configured = true
     end
 
     @options.on "--without-#{name}", "Disable #{name}" do
-      @features[name] = false
+      @features[name].configured = false
     end
   end
 
@@ -448,13 +440,9 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
     versions
   end
 
-  require 'digest/md5'
-
   def md5_checksum(md5_path, full_path)
     return Digest::MD5.file(full_path).hexdigest == File.read(md5_path).strip.split(" ").first
   end
-
-  require 'net/http'
 
   def download(url, full_path)
     begin
@@ -666,6 +654,8 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
   end
 
   def setup_auto
+    update_prebuilt @llvm_generic_prebuilt, true if @need_update_prebuilt
+
     @log.print "  Checking for existing LLVM library tree: "
     if File.directory?("#{@llvm_default}/Release")
       config = llvm_config_cmd "#{@llvm_default}/Release/bin/llvm-config"
@@ -779,6 +769,37 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
 
     STDERR.puts "\n#{message} Please check configure.log for more details."
     exit 1
+  end
+
+  def check_tools
+    @cc = ENV['CC'] || 'gcc'
+    @cxx = ENV['CXX'] || 'g++'
+
+    check_tool_version @cc, '-dumpversion', [4, 1]
+    check_tool_version @cxx, '-dumpversion', [4, 1]
+    check_tool_version 'bison', '--version', [2, 3]
+
+    @rake = ENV['RAKE'] || 'rake'
+    @tar = ENV['TAR'] || (@windows ? 'bsdtar' : 'tar')
+    @perl = ENV['PERL'] || 'perl'
+
+    @gcc_major = `#{@cc} -dumpversion`.strip.split(".")[0,2].join(".")
+    if @host == "i686-pc-linux-gnu" || @host == "x86_64-unknown-linux-gnu"
+      @llvm_generic_prebuilt  = "llvm-#{@llvm_version}-#{@host}-#{@gcc_major}.tar.bz2"
+    else
+      @llvm_generic_prebuilt  = "llvm-#{@llvm_version}-#{@host}.tar.bz2"
+    end
+
+    @user_cflags =   ENV['CFLAGS']
+    @user_cppflags = ENV['CPPFLAGS']
+    @user_ldflags =  ENV['LDFLAGS']
+
+    # TODO: add conditionals for platforms
+    if RbConfig::CONFIG["build_os"] =~ /darwin/
+      @ldshared = "#{@cc} -bundle -undefined suppress -flat_namespace"
+    else
+      @ldshared = "#{@cc} -shared"
+    end
   end
 
   def check_program(run=true, link_libs=[])
@@ -1047,18 +1068,23 @@ int main() { return tgetnum(""); }
   end
 
   def detect_features
-    if @features["execinfo"] and has_function("backtrace", ["execinfo.h"])
+    # Default on OpenBSD is no execinfo
+    if RUBY_PLATFORM =~ /openbsd/i and @features["execinfo"].configured.nil?
+      @features["execinfo"].configured = false
+    end
+
+    if @features["execinfo"].value and has_function("backtrace", ["execinfo.h"])
       @defines << "HAS_EXECINFO"
     end
 
-    if @features["alloc-tracking"]
+    if @features["alloc-tracking"].value
       @defines << "RBX_ALLOC_TRACKING"
     end
 
-    if @features["ruby-readline"]
+    if @features["ruby-readline"].value
       @rb_readline = true
     else
-      if @features["C-readline"] and
+      if @features["C-readline"].value and
           (has_function("readline", ["stdio.h", "stdlib.h", "readline/readline.h"]) or
            has_function("readline", ["stdio.h", "stdlib.h", "editline/readline.h"]))
         @rb_readline = false
@@ -1067,11 +1093,16 @@ int main() { return tgetnum(""); }
       end
     end
 
-   if @features["fibers"]
-     @fibers = true if @x86_32 or @x86_64
-   end
+    if @features["fibers"].value
+      @fibers = true if @x86_32 or @x86_64
+    end
 
-    if @features["vendor-zlib"]
+    # Default on Windows is vendor-zlib
+    if @windows and @features["vendor-zlib"].configured.nil?
+      @features["vendor-zlib"].configured = true
+    end
+
+    if @features["vendor-zlib"].value
       @vendor_zlib = true
       # Our vendored zlib uses long as the crc_table type
       # If we update vendored zlib in the future, we have to
@@ -1081,6 +1112,7 @@ int main() { return tgetnum(""); }
       @include_dirs << "#{@vendordir}/zlib"
       @lib_dirs     << "#{@vendordir}/zlib"
     end
+
     @defines << "HAVE_SPT_REUSEARGV" if @linux || @darwin || @bsd
   end
 
@@ -1173,6 +1205,10 @@ int main() { return tgetnum(""); }
   end
 
   def process
+    set_host
+    set_system_commands
+    check_tools
+
     if @use_llvm
       @log.write "Configuring LLVM..."
       setup_auto
@@ -1736,6 +1772,29 @@ Available commands are:
 
 ------------------------------------------------------------------
     EOM
+  end
+
+
+  # Configuration item that has both a default and a configured value
+  class ConfigurationToggle
+    attr_reader :default, :configured
+
+    def initialize(default_value)
+      @default = !!default_value
+      @configured = nil
+    end
+
+    def configured=(value)
+      @configured = !!value
+    end
+
+    def value
+      unless @configured.nil?
+        @configured
+      else
+        @default
+      end
+    end
   end
 
   # Handles user output and logging while running configure.
