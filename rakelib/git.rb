@@ -94,7 +94,8 @@ end
 # Don't use -a (--archive) as it includes -t, --times which can
 # cause .rbc files to not be regenerated when they should.
 Rsync_options = "-rlpgoDvP --delete --exclude '*svn*' --exclude '.git' --exclude '*swp' " \
-                "--exclude '*rbc' --exclude '*.rej' --exclude '*.orig' --exclude 'tags'"
+                "--exclude '*rbc' --exclude '*.rej' --exclude '*.orig' --exclude 'tags' " \
+                "--exclude 'Gemfile.lock'"
 
 def rsync(left, right)
   sh "rsync #{Rsync_options} #{left} #{right}"
