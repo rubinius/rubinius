@@ -21,9 +21,20 @@ describe "Kernel.at_exit" do
   end
 
   it "gives access to the last raised exception" do
-    code = 'at_exit{ puts $! == $exception }; begin; raise "foo"; rescue => e; $exception = e; raise; end'
-    # The true is embedded in the stack trace of the uncaught exception
-    ruby_exe("STDERR=STDOUT; #{code}", :escape => true).should =~ /true/
+    code = <<-EOC
+      at_exit do
+        puts "The exception matches: #{$! == $exception}"
+      end
+
+      begin
+        raise "foo"
+      rescue => $exception
+        raise
+      end
+    EOC
+
+    result = ruby_exe(code, :args => "2>&1", :escape => true)
+    result.should =~ /The exception matches: true/
   end
 
 end
