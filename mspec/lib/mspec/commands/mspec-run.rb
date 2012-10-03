@@ -34,6 +34,7 @@ class MSpecRun < MSpecScript
     options.configure { |f| load f }
     options.name
     options.randomize
+    options.repeat
     options.pretend
     options.background
     options.interrupt
@@ -68,6 +69,9 @@ class MSpecRun < MSpecScript
     options.doc "\n     $ mspec -g fails path/to/the_file_spec.rb"
     options.doc "\n   3. To start the debugger before the spec matching 'this crashes'"
     options.doc "\n     $ mspec --spec-debug -S 'this crashes' path/to/the_file_spec.rb"
+    options.doc "\n   4. To run some specs matching 'this crashes'"
+    options.doc "\n     $ mspec -e 'this crashes' path/to/the_file_spec.rb"
+    
     options.doc ""
 
     patterns = options.parse argv

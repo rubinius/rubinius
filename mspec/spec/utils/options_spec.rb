@@ -1092,6 +1092,30 @@ describe "The -H, --random option" do
   end
 end
 
+describe "The -R, --repeat option" do
+  before :each do
+    @options, @config = new_option
+    @options.repeat
+  end
+
+  it "is enabled with #repeat" do
+    @options.should_receive(:on).with("-R", "--repeat", "NUMBER", an_instance_of(String))
+    @options.repeat
+  end
+
+  it "registers the MSpec repeat mode" do
+    ["-R", "--repeat"].each do |opt|
+      MSpec.repeat = 1
+      @options.parse [opt, "10"]
+      repeat_count = 0
+      MSpec.repeat do
+        repeat_count += 1
+      end
+      repeat_count.should == 10
+    end
+  end
+end
+
 describe "The -V, --verbose option" do
   before :each do
     @options, @config = new_option

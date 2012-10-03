@@ -1,5 +1,6 @@
 require 'mspec/utils/ruby_name'
 require 'mspec/guards/background'
+require 'mspec/guards/block_device'
 require 'mspec/guards/bug'
 require 'mspec/guards/compliance'
 require 'mspec/guards/conflict'

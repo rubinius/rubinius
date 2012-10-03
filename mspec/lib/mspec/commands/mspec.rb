@@ -82,6 +82,7 @@ class MSpecMain < MSpecScript
     options.doc "   ci  - Run the known good specs"
     options.doc "   tag - Add or remove tags\n"
     options.doc " mspec COMMAND -h for more options\n"
+    options.doc "   example: $ mspec run -h\n"
 
     options.on_extra { |o| config[:options] << o }
     config[:options].concat options.parse(argv)

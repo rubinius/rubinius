@@ -385,6 +385,13 @@ class MSpecOptions
     end
   end
 
+  def repeat
+    on("-R", "--repeat", "NUMBER",
+       "Repeatedly run an example NUMBER times") do |o|
+      MSpec.repeat = o.to_i
+    end
+  end
+
   def verbose
     on("-V", "--verbose", "Output the name of each file processed") do
       obj = Object.new

@@ -197,24 +197,26 @@ class ContextState
 
       if protect "before :all", pre(:all)
         @examples.each do |state|
-          @state  = state
-          example = state.example
-          MSpec.actions :before, state
+          MSpec.repeat do
+            @state  = state
+            example = state.example
+            MSpec.actions :before, state
 
-          if protect "before :each", pre(:each)
-            MSpec.clear_expectations
-            if example
-              passed = protect nil, example
-              MSpec.actions :example, state, example
-              protect nil, @expectation_missing unless MSpec.expectation? or not passed
+            if protect "before :each", pre(:each)
+              MSpec.clear_expectations
+              if example
+                passed = protect nil, example
+                MSpec.actions :example, state, example
+                protect nil, @expectation_missing unless MSpec.expectation? or not passed
+              end
+              protect "after :each", post(:each)
+              protect "Mock.verify_count", @mock_verify
             end
-            protect "after :each", post(:each)
-            protect "Mock.verify_count", @mock_verify
-          end
 
-          protect "Mock.cleanup", @mock_cleanup
-          MSpec.actions :after, state
-          @state = nil
+            protect "Mock.cleanup", @mock_cleanup
+            MSpec.actions :after, state
+            @state = nil
+          end
         end
         protect "after :all", post(:all)
       else

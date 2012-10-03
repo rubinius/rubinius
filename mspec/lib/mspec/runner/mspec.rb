@@ -24,6 +24,7 @@ module MSpec
   @features     = {}
   @exception    = nil
   @randomize    = nil
+  @repeat       = nil
   @expectation  = nil
   @expectations = false
 
@@ -227,6 +228,16 @@ module MSpec
 
   def self.randomize?
     @randomize == true
+  end
+
+  def self.repeat=(times)
+    @repeat = times
+  end
+
+  def self.repeat
+    (@repeat || 1).times do
+      yield
+    end
   end
 
   def self.shuffle(ary)
