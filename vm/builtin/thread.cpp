@@ -208,11 +208,10 @@ namespace rubinius {
 
     int calculate_stack = 0;
     NativeMethod::init_thread(state);
-    VM::set_current(vm);
-
     std::ostringstream tn;
     tn << "rbx.ruby." << vm->thread_id();
-    utilities::thread::Thread::set_os_name(tn.str().c_str());
+
+    VM::set_current(vm, tn.str());
 
     state->set_call_frame(0);
 

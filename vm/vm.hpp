@@ -295,7 +295,7 @@ namespace rubinius {
     static void init_stack_size();
 
     static VM* current();
-    static void set_current(VM* vm);
+    static void set_current(VM* vm, std::string name);
 
     static void discard(STATE, VM*);
 

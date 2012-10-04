@@ -221,9 +221,7 @@ namespace rubinius {
     }
 
     virtual void perform() {
-      set_name("rbx.jit");
-
-      ManagedThread::set_current(ls_);
+      ManagedThread::set_current(ls_, "rbx.jit");
 
 #ifndef RBX_WINDOWS
       sigset_t set;

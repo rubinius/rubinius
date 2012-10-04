@@ -113,8 +113,6 @@ namespace rubinius {
 
   void VM::initialize_as_root() {
 
-    utilities::thread::Thread::set_os_name("rbx.ruby.main");
-
     om = new ObjectMemory(this, shared.config);
     shared.om = om;
 
@@ -142,7 +140,7 @@ namespace rubinius {
     thread.set(Thread::create(&state, this, G(thread), 0, true), &globals().roots);
     thread->sleep(&state, cFalse);
 
-    VM::set_current(this);
+    VM::set_current(this, "rbx.ruby.main");
   }
 
   void VM::initialize_config() {
@@ -178,8 +176,8 @@ namespace rubinius {
   /**
    * Sets this VM instance as the current VM on this pthread.
    */
-  void VM::set_current(VM* vm) {
-    ManagedThread::set_current(vm);
+  void VM::set_current(VM* vm, std::string name) {
+    ManagedThread::set_current(vm, name);
   }
 
   Object* VM::new_object_typed(Class* cls, size_t size, object_type type) {

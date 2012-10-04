@@ -34,7 +34,7 @@ namespace rubinius {
     SharedState& shared_;
     Roots roots_;
     Kind kind_;
-    const char* name_;
+    std::string name_;
     VariableRootBuffers variable_root_buffers_;
     RootBuffers root_buffers_;
     RunState run_state_;
@@ -85,11 +85,11 @@ namespace rubinius {
       return 0;
     }
 
-    const char* name() {
+    std::string name() {
       return name_;
     }
 
-    void set_name(const char* name) {
+    void set_name(std::string name) {
       name_ = name;
     }
 
@@ -111,7 +111,7 @@ namespace rubinius {
 
   public:
     static ManagedThread* current();
-    static void set_current(ManagedThread* vm);
+    static void set_current(ManagedThread* vm, std::string name);
   };
 }
 

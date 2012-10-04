@@ -347,7 +347,7 @@ namespace agent {
         } else {
           output.e().write_tuple(2);
           output.e().write_atom("system");
-          output.e().write_binary(thr->name());
+          output.e().write_binary(thr->name().c_str());
         }
       }
 
