@@ -52,13 +52,32 @@ describe "Thread#raise on a sleeping thread" do
     lambda { t.value }.should raise_error(RuntimeError)
   end
 
-  ruby_version_is "1.9" do
-    it "raises a RuntimeError when called with no arguments" do
+  ruby_version_is "" ... "1.9" do
+    it "raises a ZeroDivisionError when called with no arguments inside rescue" do
       t = Thread.new do
         begin
           1/0
         rescue ZeroDivisionError
-          sleep 3
+          sleep
+        end
+      end
+      begin
+        raise RangeError
+      rescue
+        ThreadSpecs.spin_until_sleeping(t)
+        t.raise
+      end
+      lambda {t.value}.should raise_error(ZeroDivisionError)
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "raises a RuntimeError when called with no arguments inside rescue" do
+      t = Thread.new do
+        begin
+          1/0
+        rescue ZeroDivisionError
+          sleep
         end
       end
       begin
@@ -68,7 +87,6 @@ describe "Thread#raise on a sleeping thread" do
         t.raise
       end
       lambda {t.value}.should raise_error(RuntimeError)
-      t.kill
     end
   end
 end
@@ -127,14 +145,81 @@ describe "Thread#raise on a running thread" do
     begin
       raise "Create an active exception for the current thread too"
     rescue
-      Thread.pass until raised || !t.alive?
+      Thread.pass until raised
       t.raise RangeError
       lambda {t.value}.should raise_error(RangeError)
     end
   end
 
+  ruby_version_is "" ... "1.9" do
+    it "raises a ZeroDivisionError when called with no arguments inside rescue" do
+      raised = false
+      t = Thread.new do
+        begin
+          1/0
+        rescue ZeroDivisionError
+          raised = true
+          loop { }
+        end
+      end
+      begin
+        raise RangeError
+      rescue
+        Thread.pass until raised
+        t.raise
+      end
+      lambda {t.value}.should raise_error(ZeroDivisionError)
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "raises a RuntimeError when called with no arguments inside rescue" do
+      raised = false
+      t = Thread.new do
+        begin
+          1/0
+        rescue ZeroDivisionError
+          raised = true
+          loop { }
+        end
+      end
+      begin
+        raise RangeError
+      rescue
+        Thread.pass until raised
+        t.raise
+      end
+      lambda {t.value}.should raise_error(RuntimeError)
+    end
+  end
 end
 
 describe "Thread#raise on same thread" do
   it_behaves_like :kernel_raise, :raise, Thread.current
+
+  ruby_version_is "" ... "1.9" do
+    it "raises a ZeroDivisionError when called with no arguments inside rescue" do
+      t = Thread.new do
+        begin
+          1/0
+        rescue ZeroDivisionError
+          Thread.current.raise
+        end
+      end
+      lambda {t.value}.should raise_error(ZeroDivisionError)
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "raises a RuntimeError when called with no arguments inside rescue" do
+      t = Thread.new do
+        begin
+          1/0
+        rescue ZeroDivisionError
+          Thread.current.raise
+        end
+      end
+      lambda {t.value}.should raise_error(RuntimeError)
+    end
+  end
 end
