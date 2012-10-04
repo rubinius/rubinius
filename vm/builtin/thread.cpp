@@ -77,8 +77,6 @@ namespace rubinius {
 
     target->thread.set(thr);
 
-    if(!main_thread) thr->init_lock_.lock();
-
     return thr;
   }
 
@@ -184,6 +182,7 @@ namespace rubinius {
     Thread* self = this;
     OnStack<1> os(state, self);
 
+    self->init_lock_.lock();
     int error = pthread_create(&vm_->os_thread(), &attrs, in_new_thread, (void*)vm_);
     if(error) {
       return error;
