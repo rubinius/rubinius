@@ -80,6 +80,8 @@ namespace rubinius {
     bool type_optz_;
 
     utilities::thread::SpinLock method_update_lock_;
+    utilities::thread::Mutex wait_mutex;
+    utilities::thread::Condition wait_cond;
 
   public:
 
@@ -229,11 +231,12 @@ namespace rubinius {
     llvm::Type* ptr_type(std::string name);
     llvm::Type* type(std::string name);
 
-    void compile_soon(STATE, CompiledCode* code, Object* extra, bool is_block=false);
+    void compile_soon(STATE, GCToken gct, CompiledCode* code, CallFrame* call_frame,
+                      Object* extra, bool is_block=false);
     void remove(llvm::Function* func);
 
     CallFrame* find_candidate(STATE, CompiledCode* start, CallFrame* call_frame);
-    void compile_callframe(STATE, CompiledCode* start, CallFrame* call_frame,
+    void compile_callframe(STATE, GCToken gct, CompiledCode* start, CallFrame* call_frame,
                            int primitive = -1);
 
     Symbol* symbol(const std::string& sym);

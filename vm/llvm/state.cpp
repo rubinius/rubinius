@@ -647,8 +647,8 @@ namespace rubinius {
     return symbol_debug_str(cs->module()->module_name());
   }
 
-  void LLVMState::compile_soon(STATE, CompiledCode* code, Object* placement,
-                               bool is_block)
+  void LLVMState::compile_soon(STATE, GCToken gct, CompiledCode* code, CallFrame* call_frame,
+                               Object* placement, bool is_block)
   {
     bool wait = config().jit_sync;
 
@@ -681,17 +681,19 @@ namespace rubinius {
     queued_methods_++;
 
     if(wait) {
-      utilities::thread::Condition cond;
-      req->set_waiter(&cond);
+      wait_mutex.lock();
 
-      utilities::thread::Mutex mux;
-      mux.lock();
+      req->set_waiter(&wait_cond);
 
       background_thread_->add(req);
-      cond.wait(mux);
 
-      mux.unlock();
+      state->set_call_frame(call_frame);
+      state->gc_independent(gct);
 
+      wait_cond.wait(wait_mutex);
+
+      wait_mutex.unlock();
+      state->gc_dependent();
       // if(config().jit_inline_debug) {
         // if(block) {
           // log() << "JIT: compiled block inside: "
@@ -728,7 +730,7 @@ namespace rubinius {
   const static int cInlineMaxDepth = 2;
   const static size_t eMaxInlineSendCount = 10;
 
-  void LLVMState::compile_callframe(STATE, CompiledCode* start, CallFrame* call_frame,
+  void LLVMState::compile_callframe(STATE, GCToken gct, CompiledCode* start, CallFrame* call_frame,
                                     int primitive) {
 
     if(debug_search) {
@@ -771,12 +773,12 @@ namespace rubinius {
     }
 
     if(candidate->block_p()) {
-      compile_soon(state, candidate->compiled_code, candidate->block_env(), true);
+      compile_soon(state, gct, candidate->compiled_code, call_frame, candidate->block_env(), true);
     } else {
       if(candidate->compiled_code->can_specialize_p()) {
-        compile_soon(state, candidate->compiled_code, candidate->self()->class_object(state));
+        compile_soon(state, gct, candidate->compiled_code, call_frame, candidate->self()->class_object(state));
       } else {
-        compile_soon(state, candidate->compiled_code, cNil);
+        compile_soon(state, gct, candidate->compiled_code, call_frame, cNil);
       }
     }
   }

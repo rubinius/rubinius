@@ -25,6 +25,7 @@
 
 #include "raise_reason.hpp"
 #include "inline_cache.hpp"
+#include "on_stack.hpp"
 
 #include "configuration.hpp"
 
@@ -597,13 +598,16 @@ namespace rubinius {
       frame->compiled_code = code;
       frame->scope = scope;
 
+      GCTokenImpl gct;
+
 #ifdef ENABLE_LLVM
       // A negative call_count means we've disabled usage based JIT
       // for this method.
       if(mcode->call_count >= 0) {
         if(mcode->call_count >= state->shared().config.jit_call_til_compile) {
           LLVMState* ls = LLVMState::get(state);
-          ls->compile_callframe(state, code, frame);
+          OnStack<3> os(state, exec, mod, code);
+          ls->compile_callframe(state, gct, code, frame);
         } else {
           mcode->call_count++;
         }
@@ -612,9 +616,6 @@ namespace rubinius {
 
       // Check the stack and interrupts here rather than in the interpreter
       // loop itself.
-
-      GCTokenImpl gct;
-
       if(state->detect_stack_condition(frame)) {
         if(!state->check_interrupts(gct, frame, frame)) return NULL;
       }
