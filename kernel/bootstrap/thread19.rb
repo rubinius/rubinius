@@ -114,4 +114,8 @@ class Thread
       @killed ? nil : @result
     end
   end
+
+  def active_exception
+    nil
+  end
 end

@@ -130,4 +130,8 @@ class Thread
   def value
     join_inner { @result }
   end
+
+  def active_exception
+    current_exception
+  end
 end
