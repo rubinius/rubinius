@@ -181,6 +181,62 @@ namespace rubinius {
     }
   }
 
+  unsigned int ObjectHeader::inc_age() {
+    return flags().age++;
+  }
+
+  void ObjectHeader::set_age(unsigned int age) {
+    flags().age = age;
+  }
+
+  void ObjectHeader::mark(unsigned int which) {
+    flags().Marked = which;
+  }
+
+  bool ObjectHeader::pin() {
+    // Can't pin young objects!
+    if(young_object_p()) return false;
+
+    flags().Pinned = 1;
+    return true;
+  }
+
+  void ObjectHeader::unpin() {
+    flags().Pinned = 0;
+  }
+
+  void ObjectHeader::set_in_immix() {
+    flags().InImmix = 1;
+  }
+
+  void ObjectHeader::set_lock_contended() {
+    flags().LockContended = 1;
+  }
+
+  void ObjectHeader::clear_lock_contended() {
+    flags().LockContended = 0;
+  }
+
+  void ObjectHeader::set_remember() {
+    flags().Remember = 1;
+  }
+
+  void ObjectHeader::clear_remember() {
+    flags().Remember = 0;
+  }
+
+  void ObjectHeader::set_frozen(int val) {
+    flags().Frozen = val;
+  }
+
+  void ObjectHeader::set_tainted(int val) {
+    flags().Tainted = val;
+  }
+
+  void ObjectHeader::set_untrusted(int val) {
+    flags().Untrusted = val;
+  }
+
   void ObjectHeader::clear_handle(STATE) {
     for(;;) {
       if(inflated_header_p()) {

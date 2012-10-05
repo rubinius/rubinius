@@ -388,14 +388,14 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return flags().age;
     }
 
-    unsigned int inc_age() {
-      return flags().age++;
-    }
+    unsigned int inc_age();
+    void set_age(unsigned int age);
 
-    void set_age(unsigned int age) {
-      flags().age = age;
-    }
-
+    /*
+     * Method is only used on first object initialization so it's
+     * safe to not use an atomic swap here. Changing an object type
+     * after it was constructed is also not possible anyway.
+     */
     void set_obj_type(object_type type) {
       flags().obj_type = type;
     }
@@ -546,69 +546,41 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return flags().Marked == which;
     }
 
-    void mark(unsigned int which) {
-      flags().Marked = which;
-    }
+    void mark(unsigned int which);
 
     int which_mark() const {
       return flags().Marked;
     }
 
-    void clear_mark() {
-      flags().Marked = 0;
-    }
+    void clear_mark();
 
     bool pinned_p() const {
       return flags().Pinned == 1;
     }
 
-    bool pin() {
-      // Can't pin young objects!
-      if(young_object_p()) return false;
-
-      flags().Pinned = 1;
-      return true;
-    }
-
-    void unpin() {
-      flags().Pinned = 0;
-    }
+    bool pin();
+    void unpin();
 
     bool in_immix_p() const {
       return flags().InImmix == 1;
     }
 
-    void set_in_immix() {
-      flags().InImmix = 1;
-    }
+    void set_in_immix();
 
     bool remembered_p() const {
       return flags().Remember == 1;
     }
 
-    void set_remember() {
-      flags().Remember = 1;
-    }
-
-    void clear_remember() {
-      flags().Remember = 0;
-    }
-
-    void set_lock_contended() {
-      flags().LockContended = 1;
-    }
-
-    void clear_lock_contended() {
-      flags().LockContended = 0;
-    }
+    void set_remember();
+    void clear_remember();
+    void set_lock_contended();
+    void clear_lock_contended();
 
     bool is_frozen_p() const {
       return flags().Frozen == 1;
     }
 
-    void set_frozen(int val=1) {
-      flags().Frozen = val;
-    }
+    void set_frozen(int val=1);
 
     bool is_tainted_p() const {
       if(reference_p()) {
@@ -617,9 +589,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return false;
     }
 
-    void set_tainted(int val=1) {
-      flags().Tainted = val;
-    }
+    void set_tainted(int val=1);
 
     bool is_untrusted_p() const {
       if(reference_p()) {
@@ -628,9 +598,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return false;
     }
 
-    void set_untrusted(int val=1) {
-      flags().Untrusted = val;
-    }
+    void set_untrusted(int val=1);
 
     uint32_t object_id() {
       // Pull this out into a local so that we don't see any concurrent
