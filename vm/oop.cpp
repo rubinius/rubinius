@@ -28,9 +28,9 @@ namespace rubinius {
     HeaderWord orig = header;
 
     ih->reset_object(this);
-    if(!ih->update(state, header)) return false;
+    if(!ih->update(state, orig)) return false;
 
-    HeaderWord new_val = header;
+    HeaderWord new_val = orig;
     new_val.all_flags = ih;
     new_val.f.inflated = 1;
 
@@ -38,7 +38,7 @@ namespace rubinius {
     // we catch that and keep trying until we get our version in.
     while(!header.atomic_set(orig, new_val)) {
       orig = header;
-      if(!ih->update(state, header)) return false;
+      if(!ih->update(state, orig)) return false;
     }
 
     return true;

@@ -312,6 +312,10 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     void unlock_mutex_for_terminate(STATE, GCToken gct);
 
     void wakeup();
+
+    private:
+
+
   };
 
   class ObjectHeader {
@@ -588,6 +592,14 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     void clear_remember() {
       flags().Remember = 0;
+    }
+
+    void set_lock_contended() {
+      flags().LockContended = 1;
+    }
+
+    void clear_lock_contended() {
+      flags().LockContended = 0;
     }
 
     bool is_frozen_p() const {

@@ -95,8 +95,8 @@ namespace rubinius {
       obj->inflated_header()->set_object(obj);
     }
 
-    obj->flags().zone = MatureObjectZone;
-    obj->flags().age = 0;
+    obj->set_zone(MatureObjectZone);
+    obj->set_age(0);
 
     obj->set_in_immix();
 

@@ -400,13 +400,13 @@ step1:
         break;
       }
 
-      ih->flags().LockContended = 0;
-
       new_val.all_flags = ih;
       new_val.f.inflated = 1;
 
       // Try it all over again if it fails.
       if(!obj->header.atomic_set(orig, new_val)) continue;
+
+      obj->clear_lock_contended();
 
       if(cDebugThreading) {
         std::cerr << "[LOCK " << state->vm()->thread_id() << " inflated lock for contention.]" << std::endl;
