@@ -687,6 +687,7 @@ namespace rubinius {
 
       state->set_call_frame(call_frame);
       state->gc_independent(gct);
+      state->set_call_frame(0);
 
       wait_cond.wait(wait_mutex);
 
