@@ -685,4 +685,8 @@ class String
     end
     return replacement
   end
+
+  def inspect
+    "\"#{transform(Rubinius::CType::Printed, true)}\""
+  end
 end
