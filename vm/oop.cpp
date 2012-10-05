@@ -182,59 +182,215 @@ namespace rubinius {
   }
 
   unsigned int ObjectHeader::inc_age() {
-    return flags().age++;
+    for(;;) {
+      if(inflated_header_p()) {
+        return inflated_header()->inc_age();
+      } else {
+        HeaderWord copy = header;
+        unsigned int new_age = copy.f.age++;
+
+        if(header.atomic_set(header, copy)) return new_age;
+      }
+    }
   }
 
   void ObjectHeader::set_age(unsigned int age) {
-    flags().age = age;
+    for(;;) {
+      if(inflated_header_p()) {
+        inflated_header()->set_age(age);
+        return;
+      } else {
+        HeaderWord copy = header;
+        copy.f.age      = age;
+
+        if(header.atomic_set(header, copy)) return;
+      }
+    }
   }
 
   void ObjectHeader::mark(unsigned int which) {
-    flags().Marked = which;
+    for(;;) {
+      if(inflated_header_p()) {
+        inflated_header()->mark(which);
+        return;
+      } else {
+        HeaderWord copy = header;
+        copy.f.Marked   = which;
+
+        if(header.atomic_set(header, copy)) return;
+      }
+    }
+  }
+
+  void ObjectHeader::clear_mark() {
+    for(;;) {
+      if(inflated_header_p()) {
+        inflated_header()->clear_mark();
+        return;
+      } else {
+        HeaderWord copy = header;
+        copy.f.Marked   = 0;
+
+        if(header.atomic_set(header, copy)) return;
+      }
+    }
   }
 
   bool ObjectHeader::pin() {
     // Can't pin young objects!
     if(young_object_p()) return false;
 
-    flags().Pinned = 1;
+    for(;;) {
+      if(inflated_header_p()) {
+        return inflated_header()->pin();
+      } else {
+        HeaderWord copy = header;
+        copy.f.Pinned   = 1;
+
+        if(header.atomic_set(header, copy)) return true;
+      }
+    }
     return true;
   }
 
   void ObjectHeader::unpin() {
-    flags().Pinned = 0;
+    for(;;) {
+      if(inflated_header_p()) {
+        inflated_header()->unpin();
+        return;
+      } else {
+        HeaderWord copy = header;
+        copy.f.Pinned   = 0;
+
+        if(header.atomic_set(header, copy)) return;
+      }
+    }
   }
 
   void ObjectHeader::set_in_immix() {
-    flags().InImmix = 1;
+    for(;;) {
+      if(inflated_header_p()) {
+        inflated_header()->set_in_immix();
+        return;
+      } else {
+        HeaderWord copy = header;
+        copy.f.InImmix  = 1;
+
+        if(header.atomic_set(header, copy)) return;
+      }
+    }
+  }
+
+  void ObjectHeader::set_zone(gc_zone zone) {
+    for(;;) {
+      if(inflated_header_p()) {
+        inflated_header()->set_zone(zone);
+        return;
+      } else {
+        HeaderWord copy = header;
+        copy.f.zone     = zone;
+
+        if(header.atomic_set(header, copy)) return;
+      }
+    }
   }
 
   void ObjectHeader::set_lock_contended() {
-    flags().LockContended = 1;
+    for(;;) {
+      if(inflated_header_p()) {
+        inflated_header()->set_lock_contended();
+        return;
+      } else {
+        HeaderWord copy      = header;
+        copy.f.LockContended = 1;
+
+        if(header.atomic_set(header, copy)) return;
+      }
+    }
   }
 
   void ObjectHeader::clear_lock_contended() {
-    flags().LockContended = 0;
+    for(;;) {
+      if(inflated_header_p()) {
+        inflated_header()->clear_lock_contended();
+        return;
+      } else {
+        HeaderWord copy      = header;
+        copy.f.LockContended = 0;
+
+        if(header.atomic_set(header, copy)) return;
+      }
+    }
   }
 
   void ObjectHeader::set_remember() {
-    flags().Remember = 1;
+    for(;;) {
+      if(inflated_header_p()) {
+        inflated_header()->set_remember();
+        return;
+      } else {
+        HeaderWord copy = header;
+        copy.f.Remember = 1;
+
+        if(header.atomic_set(header, copy)) return;
+      }
+    }
   }
 
   void ObjectHeader::clear_remember() {
-    flags().Remember = 0;
+    for(;;) {
+      if(inflated_header_p()) {
+        inflated_header()->clear_remember();
+        return;
+      } else {
+        HeaderWord copy = header;
+        copy.f.Remember = 0;
+
+        if(header.atomic_set(header, copy)) return;
+      }
+    }
   }
 
   void ObjectHeader::set_frozen(int val) {
-    flags().Frozen = val;
+    for(;;) {
+      if(inflated_header_p()) {
+        inflated_header()->set_frozen(val);
+        return;
+      } else {
+        HeaderWord copy = header;
+        copy.f.Frozen = val;
+
+        if(header.atomic_set(header, copy)) return;
+      }
+    }
   }
 
   void ObjectHeader::set_tainted(int val) {
-    flags().Tainted = val;
+    for(;;) {
+      if(inflated_header_p()) {
+        inflated_header()->set_tainted(val);
+        return;
+      } else {
+        HeaderWord copy = header;
+        copy.f.Tainted = val;
+
+        if(header.atomic_set(header, copy)) return;
+      }
+    }
   }
 
   void ObjectHeader::set_untrusted(int val) {
-    flags().Untrusted = val;
+    for(;;) {
+      if(inflated_header_p()) {
+        inflated_header()->set_untrusted(val);
+        return;
+      } else {
+        HeaderWord copy = header;
+        copy.f.Untrusted = val;
+
+        if(header.atomic_set(header, copy)) return;
+      }
+    }
   }
 
   void ObjectHeader::clear_handle(STATE) {
@@ -678,8 +834,6 @@ step2:
     set_age(new_age);
     klass_ = other->klass_;
     ivars_ = other->ivars_;
-
-    clear_forwarded();
   }
 
   void ObjectHeader::initialize_full_state(VM* state, Object* other, unsigned int age) {
@@ -698,12 +852,6 @@ step2:
       header.f.aux_word = hdr.f.aux_word;
     }
 
-    //if(other->object_id() > 0) {
-   //   set_object_id(state, state->om, other->object_id());
-    //}
-
-    clear_forwarded();
-
     if(other->is_tainted_p()) set_tainted();
 
     copy_body(state, other);
@@ -713,8 +861,8 @@ step2:
 
     // This method is only used by the GC to move an object, so must retain
     // the settings flags.
-    flags().Frozen =  other->flags().Frozen;
-    flags().Tainted = other->flags().Tainted;
+    set_frozen(other->is_frozen_p());
+    set_tainted(other->is_tainted_p());
   }
 
   void ObjectHeader::copy_body(VM* state, Object* other) {
