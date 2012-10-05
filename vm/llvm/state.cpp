@@ -328,6 +328,7 @@ namespace rubinius {
 
           jit::RuntimeDataHolder* rd = jit.context().runtime_data_holder();
 
+          atomic::memory_barrier();
           ls_->start_method_update();
 
           if(!req->is_block()) {
@@ -687,12 +688,12 @@ namespace rubinius {
 
       state->set_call_frame(call_frame);
       state->gc_independent(gct);
-      state->set_call_frame(0);
 
       wait_cond.wait(wait_mutex);
 
       wait_mutex.unlock();
       state->gc_dependent();
+      state->set_call_frame(0);
       // if(config().jit_inline_debug) {
         // if(block) {
           // log() << "JIT: compiled block inside: "
