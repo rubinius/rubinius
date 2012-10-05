@@ -15,6 +15,7 @@ namespace rubinius {
       if(needs_gc) {
         state->memory()->collect_mature_now = true;
       }
+      atomic::memory_barrier();
       return handle;
     }
 
@@ -27,6 +28,7 @@ namespace rubinius {
       if(needs_gc) {
         state->memory()->collect_mature_now = true;
       }
+      atomic::memory_barrier();
       return handle_index;
     }
 

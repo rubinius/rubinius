@@ -299,7 +299,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     }
 
     void set_handle(STATE, capi::Handle* handle) {
-      handle_ = handle;
+      atomic::write(&handle_, handle);
     }
 
     unsigned int inc_age() {
