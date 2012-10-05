@@ -34,6 +34,9 @@ namespace rubinius {
     new_val.all_flags = ih;
     new_val.f.inflated = 1;
 
+    // Make sure to include a barrier to the header is all properly initialized
+    atomic::memory_barrier();
+
     // Do a spin update so if someone else is trying to update it at the same time
     // we catch that and keep trying until we get our version in.
     while(!header.atomic_set(orig, new_val)) {
