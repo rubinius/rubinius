@@ -144,7 +144,7 @@ class Configure
 
   def expand_install_dir(dir)
     dir = expand dir
-    if File.directory?(dir) and dir !~ /(rubinius|rbx).*\/?$/
+    if !@preserve_prefix and File.directory?(dir) and dir !~ /(rubinius|rbx).*\/?$/
       original = dir
       dir += "/rubinius/#{@libversion}"
       @log.write "The directory #{original} already exists, installing to #{dir}"
