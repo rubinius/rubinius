@@ -175,7 +175,7 @@ class Configure
   end
 
   def set_filesystem_paths
-    @prefixdir = expand_install_dir @prefixdir
+    @prefixdir = @prefixdir ? expand_install_dir(@prefixdir) : @sourcedir
 
     if @appdir
       dir = expand_install_dir @appdir
@@ -187,7 +187,6 @@ class Configure
       @vendordir  = dir + "/vendor"
     end
 
-    @prefixdir    = @sourcedir unless @prefixdir
     @bindir       = @prefixdir + "/bin" unless @bindir
     @librarydir   = @prefixdir + "/lib" unless @librarydir
     @runtimedir   = @prefixdir + "/runtime" unless @runtimedir
