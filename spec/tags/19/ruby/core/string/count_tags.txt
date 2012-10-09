@@ -1,2 +1,0 @@
-fails:String#count raises if the given sequences are invaid
-fails:String#count raises if the given sequences are invalid
