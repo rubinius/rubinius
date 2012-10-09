@@ -134,7 +134,6 @@ kernel_files = FileList[
 
 config_files = FileList[
   "Rakefile",
-  "config.rb",
   "rakelib/*.rb",
   "rakelib/*.rake"
 ]
