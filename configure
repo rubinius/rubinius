@@ -92,6 +92,7 @@ class Configure
     @sourcedir    = root
     @prefixdir    = nil
     @bindir       = nil
+    @appdir       = nil
     @librarydir   = nil
     @runtimedir   = nil
     @kerneldir    = nil
@@ -143,7 +144,7 @@ class Configure
 
   def expand_install_dir(dir)
     dir = expand dir
-    if File.directory?(dir) and dir !~ /(rubinius|rbx).*\/?$/
+    if !@preserve_prefix and File.directory?(dir) and dir !~ /(rubinius|rbx).*\/?$/
       original = dir
       dir += "/rubinius/#{@libversion}"
       @log.write "The directory #{original} already exists, installing to #{dir}"
@@ -174,7 +175,18 @@ class Configure
   end
 
   def set_filesystem_paths
-    @prefixdir    = @sourcedir unless @prefixdir
+    @prefixdir = @prefixdir ? expand_install_dir(@prefixdir) : @sourcedir
+
+    if @appdir
+      dir = expand_install_dir @appdir
+
+      @librarydir = dir + "/lib"
+      @runtimedir = dir + "/runtime"
+      @kerneldir  = dir + "/kernel"
+      @sitedir    = dir + "/site"
+      @vendordir  = dir + "/vendor"
+    end
+
     @bindir       = @prefixdir + "/bin" unless @bindir
     @librarydir   = @prefixdir + "/lib" unless @librarydir
     @runtimedir   = @prefixdir + "/runtime" unless @runtimedir
@@ -352,7 +364,7 @@ class Configure
     o.doc "\n File system paths for installing Rubinius"
 
     o.on "-P", "--prefix", "PATH", "Install Rubinius in subdirectories of PATH" do |dir|
-      @prefixdir = expand_install_dir dir
+      @prefixdir = dir
     end
 
     o.on "-B", "--bindir", "PATH", "Install Rubinius executable in PATH" do |dir|
@@ -367,13 +379,7 @@ class Configure
     end
 
     o.on "-A", "--appdir", "PATH", "Install Ruby runtime and libraries in PATH" do |dir|
-      dir = expand_install_dir dir
-
-      @librarydir = dir + "/lib"
-      @runtimedir = dir + "/runtime"
-      @kerneldir  = dir + "/kernel"
-      @sitedir    = dir + "/site"
-      @vendordir  = dir + "/vendor"
+      @appdir = dir
     end
 
     o.on "-L", "--libdir", "PATH", "Install Rubinius shared library in PATH" do |dir|
