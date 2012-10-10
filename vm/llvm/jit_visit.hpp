@@ -1685,25 +1685,14 @@ namespace rubinius {
     }
 
     void visit_create_block(opcode which) {
-      // If we're creating a block to pass directly to
-      // send_stack_with_block, delay doing so.
-      if(next_op() == InstructionSequence::insn_send_stack_with_block) {
-        // Push a placeholder and register which literal we would
-        // use for the block. The later send handles whether to actually
-        // emit the call to create the block (replacing the placeholder)
-        stack_push(constant(cNil));
-        current_block_ = (int)which;
-      } else {
-        current_block_ = -1;
-        emit_create_block(which, true);
-      }
+      emit_create_block(which, true);
+      current_block_ = (int) which;
     }
 
     void visit_send_stack_with_block(opcode which, opcode args) {
       set_has_side_effects();
 
       bool has_literal_block = (current_block_ >= 0);
-      bool block_on_stack = !has_literal_block;
 
       InlineCache* cache = reinterpret_cast<InlineCache*>(which);
       CompiledCode* block_code = 0;
@@ -1768,10 +1757,6 @@ namespace rubinius {
             b().CreateBr(cleanup);
 
             set_block(failure);
-            if(!block_on_stack) {
-              emit_create_block(current_block_);
-              block_on_stack = true;
-            }
             emit_uncommon();
 
             set_block(cleanup);
@@ -1797,10 +1782,6 @@ namespace rubinius {
             b().CreateBr(cleanup);
 
             set_block(failure);
-            if(!block_on_stack) {
-              emit_create_block(current_block_);
-              block_on_stack = true;
-            }
 
             Value* send_res = block_send(cache, args, allow_private_);
             b().CreateBr(cleanup);
@@ -1830,11 +1811,6 @@ namespace rubinius {
 
 use_send:
 
-      // Detect a literal block being created and passed here.
-      if(!block_on_stack) {
-        emit_create_block(current_block_);
-      }
-
       Value* ret = block_send(cache, args, allow_private_);
       stack_remove(args + 2);
       check_for_return(ret);
@@ -1846,10 +1822,6 @@ use_send:
 
     void visit_send_stack_with_splat(opcode which, opcode args) {
       set_has_side_effects();
-
-      if(current_block_ >= 0) {
-        emit_create_block(current_block_);
-      }
 
       InlineCache* cache = reinterpret_cast<InlineCache*>(which);
       Value* ret = splat_send(cache->name, args, allow_private_);
@@ -1953,10 +1925,6 @@ use_send:
     void visit_send_super_stack_with_block(opcode which, opcode args) {
       set_has_side_effects();
 
-      if(current_block_ >= 0) {
-        emit_create_block(current_block_);
-      }
-
       InlineCache* cache = reinterpret_cast<InlineCache*>(which);
 
       b().CreateStore(get_self(), out_args_recv_);
@@ -1979,10 +1947,6 @@ use_send:
     void visit_send_super_stack_with_splat(opcode which, opcode args) {
       set_has_side_effects();
 
-      if(current_block_ >= 0) {
-        emit_create_block(current_block_);
-      }
-
       InlineCache* cache = reinterpret_cast<InlineCache*>(which);
       Value* ret = super_send(cache->name, args, true);
       stack_remove(args + 2);
@@ -1994,10 +1958,6 @@ use_send:
 
     void visit_zsuper(opcode which) {
       set_has_side_effects();
-
-      if(current_block_ >= 0) {
-        emit_create_block(current_block_);
-      }
 
       InlineCache* cache = reinterpret_cast<InlineCache*>(which);
 
