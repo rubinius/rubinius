@@ -143,6 +143,8 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     Object* val = env->get_object(obj);
+    if(!val->reference_p() && !val->symbol_p()) return -1;
+
     Encoding* enc = Encoding::get_object_encoding(env->state(), val);
 
     if(enc->nil_p()) return 0;
