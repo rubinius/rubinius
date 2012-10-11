@@ -149,8 +149,12 @@ ruby_version_is "1.9" do
         @s.send(@method, :symbol).should >= 0
       end
 
-      it "returns the index of NULL" do
+      it "returns -1 as the index of nil" do
         @s.send(@method, nil).should == -1
+      end
+
+      it "returns -1 as the index for immediates" do
+        @s.send(@method, 1).should == -1
       end
     end
 
