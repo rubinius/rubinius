@@ -15,6 +15,7 @@
 #include "builtin/tuple.hpp"
 
 #include "object_utils.hpp"
+#include "objectmemory.hpp"
 
 #include "ontology.hpp"
 
@@ -642,6 +643,10 @@ namespace rubinius {
 
     c->klass(state, as<Class>(self));
 
+    c->set_converter(NULL);
+
+    state->memory()->needs_finalization(c, (FinalizerFunction)&Converter::finalize);
+
     return c;
   }
 
@@ -668,15 +673,18 @@ namespace rubinius {
 
   Symbol* Converter::primitive_convert(STATE, String* source, String* target,
                                        Object* offset, Object* size, Fixnum* options) {
-    size_t num_converters = converters()->size();
-    rb_econv_t* ec = rb_econv_alloc(num_converters);
+    if(!converter_) {
+      size_t num_converters = converters()->size();
 
-    for(size_t i = 0; i < num_converters; i++) {
-      Transcoding* transcoding = as<Transcoding>(converters()->get(state, i));
-      rb_transcoder* tr = transcoding->get_transcoder();
+      converter_ = rb_econv_alloc(num_converters);
 
-      if(rb_econv_add_transcoder_at(ec, tr, i) == -1) {
-        return force_as<Symbol>(Primitives::failure());
+      for(size_t i = 0; i < num_converters; i++) {
+        Transcoding* transcoding = as<Transcoding>(converters()->get(state, i));
+        rb_transcoder* tr = transcoding->get_transcoder();
+
+        if(rb_econv_add_transcoder_at(converter_, tr, i) == -1) {
+          return force_as<Symbol>(Primitives::failure());
+        }
       }
     }
 
@@ -689,7 +697,7 @@ namespace rubinius {
     unsigned char* buffer_ptr = (unsigned char*)buffer->raw_bytes();
     unsigned char* buffer_end = buffer_ptr + buffer->size();
 
-    rb_econv_result_t result = econv_convert(ec, &source_ptr, source_end,
+    rb_econv_result_t result = econv_convert(converter_, &source_ptr, source_end,
         &buffer_ptr, buffer_end, flags);
 
     target->data(state, buffer);
@@ -713,5 +721,11 @@ namespace rubinius {
 
   String* Converter::putback(STATE, Object* maxbytes) {
     return nil<String>();
+  }
+
+  void Converter::finalize(STATE, Converter* converter) {
+    if(rb_econv_t* ec = converter->get_converter()) {
+      rb_econv_free(ec);
+    }
   }
 }

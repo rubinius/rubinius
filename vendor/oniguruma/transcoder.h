@@ -209,6 +209,7 @@ void rb_declare_transcoder(const char *enc1, const char *enc2, const char *lib);
 void rb_register_transcoder(const rb_transcoder *);
 
 rb_econv_t* rb_econv_alloc(int n_hint);
+void rb_econv_free(rb_econv_t *ec);
 
 rb_econv_result_t econv_convert(rb_econv_t *ec,
                                 const unsigned char **input_ptr,

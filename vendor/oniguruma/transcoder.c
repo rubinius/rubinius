@@ -598,6 +598,24 @@ rb_econv_alloc(int n_hint)
     return ec;
 }
 
+void
+rb_econv_free(rb_econv_t *ec)
+{
+    int i;
+
+    if (ec->replacement_allocated) {
+        xfree((void *)ec->replacement_str);
+    }
+    for (i = 0; i < ec->num_trans; i++) {
+        rb_transcoding_close(ec->elems[i].tc);
+        if (ec->elems[i].out_buf_start)
+        xfree(ec->elems[i].out_buf_start);
+    }
+    xfree(ec->in_buf_start);
+    xfree(ec->elems);
+    xfree(ec);
+}
+
 int
 rb_econv_add_transcoder_at(rb_econv_t *ec, const rb_transcoder *tr, int i)
 {

@@ -8,6 +8,7 @@
 #ifndef ONIGURUMA_H
 struct OnigEncodingType;
 struct OnigTranscodingType;
+struct rb_econv_t;
 #endif
 
 namespace rubinius {
@@ -139,6 +140,8 @@ namespace rubinius {
     Array* convpath_;                 // slot
     Array* converters_;               // slot
 
+    rb_econv_t* converter_;
+
   public:
     attr_accessor(source_encoding, Encoding);
     attr_accessor(destination_encoding, Encoding);
@@ -146,7 +149,16 @@ namespace rubinius {
     attr_accessor(convpath, Array);
     attr_accessor(converters, Array);
 
+    void set_converter(rb_econv_t* c) {
+      converter_ = c;
+    }
+
+    rb_econv_t* get_converter() {
+      return converter_;
+    }
+
     static void init(STATE);
+    static void finalize(STATE, Converter* converter);
 
     // Rubinius.primitive :encoding_converter_allocate
     static Converter* allocate(STATE, Object* self);
