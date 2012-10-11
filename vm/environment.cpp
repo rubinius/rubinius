@@ -592,7 +592,10 @@ namespace rubinius {
 
     NativeMethod::cleanup_thread(state);
 
-    shared->auxiliary_threads()->shutdown(state);
+    {
+      GCIndependent guard(state);
+      shared->auxiliary_threads()->shutdown(state);
+    }
 
     // Hold everyone.
     while(!state->stop_the_world()) {
