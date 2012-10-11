@@ -5,6 +5,44 @@ end
 
 class Encoding
   class UndefinedConversionError < EncodingError
+    attr_accessor :source_encoding_name
+    attr_accessor :destination_encoding_name
+    attr_accessor :source_encoding
+    attr_accessor :destination_encoding
+    attr_accessor :error_char
+
+    private :source_encoding_name=
+    private :destination_encoding_name=
+    private :source_encoding=
+    private :destination_encoding=
+    private :error_char=
+  end
+
+  class InvalidByteSequenceError < EncodingError
+    attr_accessor :source_encoding_name
+    attr_accessor :destination_encoding_name
+    attr_accessor :source_encoding
+    attr_accessor :destination_encoding
+    attr_accessor :error_bytes
+    attr_accessor :readagain_bytes
+
+    private :source_encoding_name=
+    private :destination_encoding_name=
+    private :source_encoding=
+    private :destination_encoding=
+    private :error_bytes=
+    private :readagain_bytes=
+    private :incomplete_input=
+
+    def initialize(message)
+      super(message)
+
+      @incomplete_input = false
+    end
+
+    def incomplete_input?
+      @incomplete_input
+    end
   end
 
   class ConverterNotFoundError < EncodingError
@@ -156,7 +194,7 @@ class Encoding
       if status == :invalid_byte_sequence or
          status == :undefined_conversion or
          status == :incomplete_input
-        # raise an exception
+        raise last_error
       end
 
       if status == :finished
@@ -198,8 +236,61 @@ class Encoding
     end
 
     def last_error
-      Rubinius.primitive :encoding_converter_last_error
-      raise PrimitiveFailure, "Encoding::Converter#last_error primitive failed"
+      error = Rubinius.invoke_primitive :encoding_converter_last_error, self
+      return if error.nil?
+
+      error_string = error[:error_string].dump
+      source_encoding_name = error[:source_encoding_name]
+      destination_encoding_name = error[:destination_encoding_name]
+
+      case error[:result]
+      when :invalid_byte_sequence
+        read_again_string = error[:read_again_string]
+        if read_again_string
+          msg = "#{error_string} followed by #{read_again_string.dump} on #{source_encoding_name}"
+        else
+          msg = "#{error_string} on #{source_encoding_name}"
+        end
+
+        exc = InvalidByteSequenceError.new msg
+      when :incomplete_input
+        msg = "incomplete #{error_string} on #{source_encoding_name}"
+
+        exc = InvalidByteSequenceError.new msg
+      when :undefined_conversion
+        error_char = error_string
+        if codepoint = error[:codepoint]
+          error_string = "U+%04X" % codepoint
+        end
+
+        if source_encoding_name.to_sym == @source_encoding.name and
+           destination_encoding_name.to_sym == @destination_encoding.name
+          msg = "#{error_string} from #{source_encoding_name} to #{destination_encoding_name}"
+        else
+          msg = "#{error_string} to #{destination_encoding_name} in conversion from #{source_encoding_name}"
+          transcoder = @converters.first
+          msg << " to #{transcoder.target}"
+        end
+
+        exc = UndefinedConversionError.new msg
+      end
+
+      Rubinius.privately do
+        exc.source_encoding_name = source_encoding_name
+        src = Rubinius::Type.try_convert_to_encoding source_encoding_name
+        exc.source_encoding = src unless src.equal? undefined
+
+        exc.destination_encoding_name = destination_encoding_name
+        dst = Rubinius::Type.try_convert_to_encoding destination_encoding_name
+        exc.destination_encoding = dst unless dst.equal? undefined
+
+        if error_char
+          error_char.force_encoding src unless src.equal? undefined
+          exc.error_char = error_char
+        end
+      end
+
+      exc
     end
 
     def convpath

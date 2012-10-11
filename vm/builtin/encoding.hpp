@@ -16,6 +16,7 @@ namespace rubinius {
   class LookupTable;
   class Symbol;
   class String;
+  class LookupTable;
 
   class Encoding : public Object {
   public:
@@ -169,7 +170,7 @@ namespace rubinius {
     String* finish(STATE);
 
     // Rubinius.primitive :encoding_converter_last_error
-    Exception* last_error(STATE);
+    LookupTable* last_error(STATE);
 
     // Rubinius.primitive :encoding_converter_putback
     String* putback(STATE, Object* maxbytes);

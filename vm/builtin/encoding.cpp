@@ -7,6 +7,7 @@
 #include "builtin/class.hpp"
 #include "builtin/data.hpp"
 #include "builtin/encoding.hpp"
+#include "builtin/integer.hpp"
 #include "builtin/io.hpp"
 #include "builtin/lookuptable.hpp"
 #include "builtin/regexp.hpp"
@@ -25,6 +26,7 @@
 #include "gc/gc.hpp"
 
 #include <ctype.h>
+#include <string.h>
 
 #ifdef HAVE_NL_LANGINFO
 #include <locale.h>
@@ -717,8 +719,65 @@ namespace rubinius {
     return nil<String>();
   }
 
-  Exception* Converter::last_error(STATE) {
-    return nil<Exception>();
+  LookupTable* Converter::last_error(STATE) {
+    if(!converter_) return nil<LookupTable>();
+
+    size_t read_again_length = 0;
+    unsigned int codepoint = 0;
+    bool codepoint_set = false;
+
+    switch(converter_->last_error.result) {
+    case econv_invalid_byte_sequence:
+    case econv_incomplete_input:
+      read_again_length = converter_->last_error.readagain_len;
+      break;
+    case econv_undefined_conversion:
+      if(strncmp(converter_->last_error.source_encoding, "UTF-8", 5) == 0) {
+        const uint8_t* p = (const uint8_t*)converter_->last_error.error_bytes_start;
+        size_t len = converter_->last_error.error_bytes_len;
+        const uint8_t* e = p + len;
+        OnigEncodingType* utf8 = Encoding::utf8_encoding(state)->get_encoding();
+        int n = Encoding::precise_mbclen(p, e, utf8);
+
+        if(ONIGENC_MBCLEN_CHARFOUND_P(n) &&
+           (size_t)ONIGENC_MBCLEN_CHARFOUND_LEN(n) == len) {
+          codepoint = ONIGENC_MBC_TO_CODE(utf8, p, e);
+          codepoint_set = true;
+        }
+      }
+      break;
+    default:
+      return nil<LookupTable>();
+    }
+
+    LookupTable* error = LookupTable::create(state);
+
+    Symbol* result = converter_result_symbol(state, converter_->last_error.result);
+    error->store(state, state->symbol("result"), result);
+
+    String* src_enc = String::create(state, converter_->last_error.source_encoding);
+    error->store(state, state->symbol("source_encoding_name"), src_enc);
+
+    String* dst_enc = String::create(state, converter_->last_error.destination_encoding);
+    error->store(state, state->symbol("destination_encoding_name"), dst_enc);
+
+    const char* error_start = (const char*)converter_->last_error.error_bytes_start;
+    size_t error_length = converter_->last_error.error_bytes_len;
+
+    String* error_string = String::create(state, error_start, error_length);
+    error->store(state, state->symbol("error_string"), error_string);
+
+    if(read_again_length) {
+      String* read_again_string = String::create(state,
+          error_start + error_length, read_again_length);
+      error->store(state, state->symbol("read_again_string"), read_again_string);
+    }
+
+    if(codepoint_set) {
+      error->store(state, state->symbol("codepoint"), Integer::from(state, codepoint));
+    }
+
+    return error;
   }
 
   String* Converter::putback(STATE, Object* maxbytes) {
