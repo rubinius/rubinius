@@ -14,6 +14,13 @@ describe :rb_str_new2, :shared => true do
       lambda { @s.send(@method, nil) }.should raise_error(ArgumentError)
     end
   end
+
+  ruby_version_is "1.9" do
+    it "encodes the string with ASCII_8BIT" do
+      @s.send(@method, "hello").encoding.should == Encoding::ASCII_8BIT
+    end
+  end
+
 end
 
 describe "C-API String function" do
