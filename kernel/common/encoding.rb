@@ -13,12 +13,7 @@ class Encoding
   class CompatibilityError < EncodingError
   end
 
-  EncodingMap     = Rubinius::EncodingClass::EncodingMap
-  EncodingList    = Rubinius::EncodingClass::EncodingList
-  LocaleCharmap   = Rubinius::EncodingClass::LocaleCharmap
-  TranscodingMap  = Rubinius::EncodingClass::TranscodingMap
-
-  class Transcoder
+  class Transcoding
     attr_accessor :source
     attr_accessor :target
 

@@ -1,10 +1,5 @@
 # -*- encoding: us-ascii -*-
 
-# This stupidity is necessary to counter the stupidity of checking
-# 1.9 syntax support by checking if Encoding is defined. Who said
-# two stupids don't make a smart.
-Encoding = Rubinius::EncodingClass::Encoding
-
 class Encoding
   attr_reader :name
   attr_reader :dummy

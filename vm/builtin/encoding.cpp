@@ -16,6 +16,7 @@
 
 #include "object_utils.hpp"
 #include "objectmemory.hpp"
+#include "configuration.hpp"
 
 #include "ontology.hpp"
 
@@ -46,9 +47,18 @@ namespace rubinius {
   void Encoding::init(STATE) {
     onig_init();  // in regexp.cpp too, but idempotent.
 
-    Class* enc = ontology::new_class_under(state, "EncodingClass", G(rubinius));
+    Class* enc;
 
-    GO(encoding).set(ontology::new_class_under(state, "Encoding", enc));
+    if(LANGUAGE_18_ENABLED(state)) {
+      Class* ns = ontology::new_class_under(state, "EncodingClass", G(rubinius));
+      GO(encoding).set(ontology::new_class_under(state, "Encoding", ns));
+      enc = ns;
+    } else {
+      GO(encoding).set(ontology::new_class(state, "Encoding"));
+      G(rubinius)->set_const(state, "EncodingClass", G(encoding));
+      enc = G(encoding);
+    }
+
     G(encoding)->set_object_type(state, EncodingType);
 
     enc->set_const(state, "EncodingMap", LookupTable::create(state));
@@ -381,10 +391,6 @@ namespace rubinius {
 
   }
 
-  Class* Encoding::internal_class(STATE) {
-    return as<Class>(G(rubinius)->get_const(state, state->symbol("EncodingClass")));
-  }
-
   Class* Encoding::transcoding_class(STATE) {
     return as<Class>(G(encoding)->get_const(state, state->symbol("Transcoding")));
   }
@@ -394,18 +400,15 @@ namespace rubinius {
   }
 
   LookupTable* Encoding::encoding_map(STATE) {
-    return as<LookupTable>(internal_class(state)->get_const(
-              state, state->symbol("EncodingMap")));
+    return as<LookupTable>(G(encoding)->get_const(state, state->symbol("EncodingMap")));
   }
 
   Array* Encoding::encoding_list(STATE) {
-    return as<Array>(internal_class(state)->get_const(
-              state, state->symbol("EncodingList")));
+    return as<Array>(G(encoding)->get_const(state, state->symbol("EncodingList")));
   }
 
   LookupTable* Encoding::transcoding_map(STATE) {
-    return as<LookupTable>(internal_class(state)->get_const(
-              state, state->symbol("TranscodingMap")));
+    return as<LookupTable>(G(encoding)->get_const(state, state->symbol("TranscodingMap")));
   }
 
   Encoding* Encoding::from_index(STATE, int index) {
@@ -565,8 +568,7 @@ namespace rubinius {
   void Transcoding::init(STATE) {
     ontology::new_class_under(state, "Transcoding", G(encoding));
 
-    Class* cls = Encoding::internal_class(state);
-    cls->set_const(state, "TranscodingMap", LookupTable::create(state));
+    G(encoding)->set_const(state, "TranscodingMap", LookupTable::create(state));
 
 #include "vm/gen/transcoder_database.cpp"
   }

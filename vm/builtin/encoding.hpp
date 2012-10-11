@@ -40,7 +40,6 @@ namespace rubinius {
 
     static void init(STATE);
 
-    static Class* internal_class(STATE);
     static Class* transcoding_class(STATE);
     static Class* converter_class(STATE);
     static LookupTable* encoding_map(STATE);
