@@ -150,7 +150,7 @@ ruby_version_is "1.9" do
       end
 
       it "returns the index of NULL" do
-        @s.send(@method, nil).should == 0
+        @s.send(@method, nil).should == -1
       end
     end
 
@@ -285,28 +285,26 @@ ruby_version_is "1.9" do
       end
 
       it "sets the encoding of a String to a default when the encoding is NULL" do
-        @s.rb_enc_associate("string", nil).encoding.should == Encoding::US_ASCII
+        @s.rb_enc_associate("string", nil).encoding.should == Encoding::ASCII_8BIT
       end
     end
 
     describe "rb_enc_associate_index" do
       it "sets the encoding of a String to the encoding" do
-        enc = @s.rb_enc_associate_index("string", 1).encoding
+        index = @s.rb_enc_find_index("ASCII-8BIT")
+        enc = @s.rb_enc_associate_index("string", index).encoding
         enc.should == Encoding::ASCII_8BIT
       end
 
       it "sets the encoding of a Regexp to the encoding" do
-        enc = @s.rb_enc_associate_index(/regexp/, 1).encoding
-        enc.should == Encoding::ASCII_8BIT
+        index = @s.rb_enc_find_index("UTF-8")
+        enc = @s.rb_enc_associate_index(/regexp/, index).encoding
+        enc.should == Encoding::UTF_8
       end
 
       it "sets the encoding of a Symbol to the encoding" do
-        enc = @s.rb_enc_associate_index(:symbol, 0).encoding
-        enc.should == Encoding::US_ASCII
-      end
-
-      it "sets the encoding of a String to index 0" do
-        enc = @s.rb_enc_associate_index("string", 0).encoding
+        index = @s.rb_enc_find_index("US-ASCII")
+        enc = @s.rb_enc_associate_index(:symbol, index).encoding
         enc.should == Encoding::US_ASCII
       end
     end
