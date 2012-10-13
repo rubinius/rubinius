@@ -172,6 +172,9 @@ namespace rubinius {
     // Rubinius.primitive :encoding_converter_last_error
     LookupTable* last_error(STATE);
 
+    // Rubinius.primitive :encoding_converter_primitive_errinfo
+    Array* primitive_errinfo(STATE);
+
     // Rubinius.primitive :encoding_converter_putback
     String* putback(STATE, Object* maxbytes);
 

@@ -780,6 +780,40 @@ namespace rubinius {
     return error;
   }
 
+  Array* Converter::primitive_errinfo(STATE) {
+    Array* info = Array::create(state, 5);
+    info->set(state, 4, cNil);
+
+    if(!converter_) {
+      info->set(state, 0, state->symbol("source_buffer_empty"));
+      return info;
+    }
+
+    Symbol* result = converter_result_symbol(state, converter_->last_error.result);
+    info->set(state, 0, result);
+
+    if(converter_->last_error.source_encoding) {
+      info->set(state, 1,
+                String::create(state, converter_->last_error.source_encoding));
+    }
+
+    if(converter_->last_error.destination_encoding) {
+      info->set(state, 2,
+                String::create(state, converter_->last_error.destination_encoding));
+    }
+
+    if(converter_->last_error.error_bytes_start) {
+      const char* error_start = (const char*)converter_->last_error.error_bytes_start;
+      size_t error_length = converter_->last_error.error_bytes_len;
+
+      info->set(state, 3, String::create(state, error_start, error_length));
+      info->set(state, 4, String::create(state, error_start + error_length,
+                                         converter_->last_error.readagain_len));
+    }
+
+    return info;
+  }
+
   String* Converter::putback(STATE, Object* maxbytes) {
     return nil<String>();
   }

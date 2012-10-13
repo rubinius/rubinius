@@ -293,6 +293,11 @@ class Encoding
       exc
     end
 
+    def primitive_errinfo
+      Rubinius.primitive :encoding_converter_primitive_errinfo
+      raise PrimitiveFailure, "Encoding::Converter#primitive_errinfo primitive failed"
+    end
+
     def convpath
       path = []
       a = 0
