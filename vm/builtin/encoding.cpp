@@ -675,8 +675,16 @@ namespace rubinius {
     }
   }
 
-  Symbol* Converter::primitive_convert(STATE, String* source, String* target,
-                                       Object* offset, Object* size, Fixnum* options) {
+  Symbol* Converter::primitive_convert(STATE, Object* source, String* target,
+                                       Fixnum* offset, Fixnum* size, Fixnum* options) {
+    String* src = 0;
+
+    if(!source->nil_p()) {
+      if(!(src = try_as<String>(source))) {
+        return force_as<Symbol>(Primitives::failure());
+      }
+    }
+
     if(!converter_) {
       size_t num_converters = converters()->size();
 
@@ -692,14 +700,23 @@ namespace rubinius {
       }
     }
 
-    ByteArray* buffer = ByteArray::create_pinned(state,
-        (native_int)(source->byte_size() * 1.5));
+    const unsigned char* source_ptr;
+    const unsigned char* source_end;
+    if(src) {
+      source_ptr = (const unsigned char*)src->c_str(state);
+      source_end = source_ptr + src->byte_size();
+    } else {
+      source_ptr = source_end = NULL;
+    }
 
-    int flags = options->to_native();
-    const unsigned char* source_ptr = (const unsigned char*)source->c_str(state);
-    const unsigned char* source_end = source_ptr + source->byte_size();
+    // native_int byte_offset = offset->to_native();
+    // native_int byte_size = size->to_native();
+
+    ByteArray* buffer = ByteArray::create_pinned(state, 1024);
+
     unsigned char* buffer_ptr = (unsigned char*)buffer->raw_bytes();
     unsigned char* buffer_end = buffer_ptr + buffer->size();
+    int flags = options->to_native();
 
     rb_econv_result_t result = econv_convert(converter_, &source_ptr, source_end,
         &buffer_ptr, buffer_end, flags);

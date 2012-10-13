@@ -164,7 +164,7 @@ namespace rubinius {
     static Converter* allocate(STATE, Object* self);
 
     // Rubinius.primitive :encoding_converter_primitive_convert
-    Symbol* primitive_convert(STATE, String* source, String* target, Object* offset, Object* size, Fixnum* options);
+    Symbol* primitive_convert(STATE, Object* source, String* target, Fixnum* offset, Fixnum* size, Fixnum* options);
 
     // Rubinius.primitive :encoding_converter_finish
     String* finish(STATE);

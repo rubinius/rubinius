@@ -141,7 +141,7 @@ class Encoding
           @convpath << dest_name
           found = true
         else
-          visited = {source_name => true}
+          visited = { source_name => true }
           search = [entry]
 
           until search.empty?
@@ -189,7 +189,7 @@ class Encoding
       str = StringValue(str)
 
       dest = ""
-      status = primitive_convert str, dest, nil, nil, PARTIAL_INPUT
+      status = primitive_convert str, dest, 0, 0, PARTIAL_INPUT
 
       if status == :invalid_byte_sequence or
          status == :undefined_conversion or
@@ -208,12 +208,16 @@ class Encoding
       dest
     end
 
-    def primitive_convert(source, target, offset=nil, size=nil, options=undefined)
+    def primitive_convert(source, target, offset=0, size=0, options=0)
       Rubinius.primitive :encoding_converter_primitive_convert
 
-      if options.equal? undefined
-        options = 0
-      elsif !options.kind_of? Fixnum
+      source = StringValue(source) if source
+      target = StringValue(target)
+
+      offset = 0 unless offset
+      size = 0 unless size
+
+      if !options.kind_of? Fixnum
         opts = Rubinius::Type.coerce_to options, Hash, :to_hash
 
         options = 0
@@ -231,8 +235,20 @@ class Encoding
     end
 
     def finish
-      Rubinius.primitive :encoding_converter_finish
-      raise PrimitiveFailure, "Encoding::Converter#finish primitive failed"
+      dest = ""
+      status = primitive_convert nil, dest, 0, 0, 0
+
+      if status == :invalid_byte_sequence or
+         status == :undefined_conversion or
+         status == :incomplete_input
+        raise last_error
+      end
+
+      if status != :finished
+        raise RuntimeError, "unexpected result of Encoding::Converter#finish"
+      end
+
+      dest
     end
 
     def last_error
