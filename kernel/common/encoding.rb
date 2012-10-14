@@ -135,29 +135,31 @@ class Encoding
       found = false
 
       if entry = TranscodingMap[source_name]
-        @convpath = [source_name]
-
-        if encoding = entry[dest_name]
-          @convpath << dest_name
+        if entry[dest_name]
           found = true
+          @convpath = [source_name, dest_name]
         else
           visited = { source_name => true }
-          search = [entry]
+          search = { [source_name] => entry }
 
           until search.empty?
-            table = search.shift
+            path, table = search.shift
+
             table.each do |key, _|
               next if visited.key? key
-              visited[key] = true
-
               next unless entry = TranscodingMap[key]
-              if encoding = entry[dest_name]
-                @convpath << key << dest_name
-                found = true
-                break
-              end
 
-              search << entry
+              if entry[dest_name]
+                found = true
+                @convpath = path << key << dest_name
+
+                break
+              else
+                unless visited.key? key
+                  search[path.dup << key] = entry
+                  visited[key] = true
+                end
+              end
             end
           end
         end
