@@ -343,7 +343,7 @@ namespace rubinius {
         enc.write4(vs->number_of_locals());
 
         for(int i = 0; i < vs->number_of_locals(); i++) {
-          dump_reference(state, vs->get_local(i));
+          dump_reference(state, vs->get_local(state, i));
         }
       } else if(ByteArray* ba = try_as<ByteArray>(obj)) {
         enc.write2(syms.size() + 1);

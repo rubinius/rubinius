@@ -863,7 +863,7 @@ extern "C" {
 
     if(!scope || scope->nil_p()) {
       Exception::internal_error(state, call_frame,
-                                "illegal set_local_depth usage, no parent");
+                                "illegal set_local_from usage, no parent");
       return 0;
     }
 
@@ -871,7 +871,7 @@ extern "C" {
       scope = scope->parent();
       if(!scope || scope->nil_p()) {
         Exception::internal_error(state, call_frame,
-                                  "illegal set_local_depth usage, no parent");
+                                  "illegal set_local_from usage, no parent");
         return 0;
       }
 
@@ -912,7 +912,7 @@ extern "C" {
         return 0;
       }
 
-      return scope->get_local(index);
+      return scope->get_local(state, index);
     }
   }
 
@@ -922,7 +922,7 @@ extern "C" {
 
     if(!scope || scope->nil_p()) {
       Exception::internal_error(state, call_frame,
-                                "illegal push_local_depth usage, no parent");
+                                "illegal push_local_from usage, no parent");
       return 0;
     }
 
@@ -931,12 +931,12 @@ extern "C" {
 
       if(!scope || scope->nil_p()) {
         Exception::internal_error(state, call_frame,
-                                  "illegal push_local_depth usage, no parent");
+                                  "illegal push_local_from usage, no parent");
         return 0;
       }
     }
 
-    return scope->get_local(index);
+    return scope->get_local(state, index);
   }
 
   Object* rbx_prologue_check(STATE, CallFrame* call_frame) {

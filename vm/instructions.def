@@ -342,7 +342,7 @@ instruction push_local_depth(depth index) [ -- value ]
       RUN_EXCEPTION();
     }
 
-    stack_push(scope->get_local(index));
+    stack_push(scope->get_local(state, index));
   }
 end
 
