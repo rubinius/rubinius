@@ -82,6 +82,10 @@ class Encoding
       Encoding.find transcoding.keys.first.to_s
     end
 
+    def self.search_convpath(from, to, options=undefined)
+      new(from, to, options).convpath
+    end
+
     def initialize(from, to, options=undefined)
       @source_encoding = Rubinius::Type.coerce_to_encoding from
       @destination_encoding = Rubinius::Type.coerce_to_encoding to
@@ -132,40 +136,10 @@ class Encoding
 
       source_name = @source_encoding.name.upcase.to_sym
       dest_name = @destination_encoding.name.upcase.to_sym
-      found = false
 
-      if entry = TranscodingMap[source_name]
-        if entry[dest_name]
-          found = true
-          @convpath = [source_name, dest_name]
-        else
-          visited = { source_name => true }
-          search = { [source_name] => entry }
+      @convpath = TranscodingPath[source_name, dest_name]
 
-          until search.empty?
-            path, table = search.shift
-
-            table.each do |key, _|
-              next if visited.key? key
-              next unless entry = TranscodingMap[key]
-
-              if entry[dest_name]
-                found = true
-                @convpath = path << key << dest_name
-
-                break
-              else
-                unless visited.key? key
-                  search[path.dup << key] = entry
-                  visited[key] = true
-                end
-              end
-            end
-          end
-        end
-      end
-
-      unless found
+      unless @convpath
         msg = "code converter not found (#{@source_encoding.name} to #{@destination_encoding.name}"
         raise ConverterNotFoundError, msg
       end
@@ -336,8 +310,62 @@ class Encoding
       path
     end
 
-    def self.search_convpath(from, to, options=undefined)
-      new(from, to, options).convpath
+    class TranscodingPath
+      @paths = nil
+      @transcoders_count = TranscodingMap.size
+
+      def self.paths
+        unless @paths
+          begin
+            require "encoding/converter/paths"
+          rescue LoadError
+            @paths = {}
+          end
+        end
+
+        @paths
+      end
+
+      def self.[](source, target)
+        key = "[#{source}, #{target}]"
+
+        path = paths[key]
+
+        unless path
+          return if @transcoders_count == TranscodingMap.size
+          path = search source, target
+          paths[key] = path if path
+        end
+
+        path
+      end
+
+      def self.search(source, target)
+        if entry = TranscodingMap[source]
+          if entry[target]
+            return [source, target]
+          else
+            visited = { source => true }
+            search = { [source] => entry }
+
+            until search.empty?
+              path, table = search.shift
+
+              table.each do |key, _|
+                next if visited.key? key
+                next unless entry = TranscodingMap[key]
+
+                return path << key << target if entry[target]
+
+                unless visited.key? key
+                  search[path.dup << key] = entry
+                  visited[key] = true
+                end
+              end
+            end
+          end
+        end
+      end
     end
   end
 
