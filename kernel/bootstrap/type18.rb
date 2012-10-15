@@ -38,5 +38,8 @@ module Rubinius
     def self.external_encoding_string(string)
       string
     end
+
+    def self.check_encoding_compatible(a, b)
+    end
   end
 end

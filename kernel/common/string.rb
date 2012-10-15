@@ -62,7 +62,9 @@ class String
   end
 
   def +(other)
-    String.new(self) << StringValue(other)
+    other = StringValue(other)
+    Rubinius::Type.check_encoding_compatible self, other
+    String.new(self) << other
   end
 
   def <=>(other)

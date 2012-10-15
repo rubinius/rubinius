@@ -17,7 +17,7 @@ def kernel_clean
            "**/.*.rbc",
            "kernel/**/signature.rb",
            "spec/capi/ext/*.{o,sig,#{$dlext}}",
-           "runtime/**/load_order.txt",
+           "runtime/**/load_order*.txt",
            "runtime/platform.conf"],
     :verbose => $verbose
 end
@@ -222,7 +222,8 @@ BUILD_CONFIG[:version_list].each do |ver|
 
   [ signature_file,
     "kernel/alpha.rb",
-    "kernel/loader.rb"
+    "kernel/loader.rb",
+    "kernel/delta/converter_paths.rb"
   ].each do |name|
     kernel_file_task runtime, signature_file, ver, name
   end

@@ -106,6 +106,14 @@ module Rubinius
         new(name).require_compiled(check_version)
       end
 
+      # Loads and runs a compiled file from a concrete path. Does not search
+      # for a file or update $LOADED_FEATURES.
+      def load_compiled_file(path, check_version=true)
+        signature = check_version ? Signature : 0
+        code = Rubinius.invoke_primitive :compiledfile_load, path, signature, RUBY_LIB_VERSION
+        Rubinius.run_script code
+      end
+
       def load_script(name, debug=false)
         new(name).load_script(debug)
       end

@@ -1,1 +1,0 @@
-fails:String#force_encoding does not transcode self

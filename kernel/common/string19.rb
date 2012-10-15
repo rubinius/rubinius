@@ -25,42 +25,56 @@ class String
   def encode!(to=undefined, from=undefined, options=undefined)
     Rubinius.check_frozen
 
+    replace encode(to, from, options)
+  end
+
+  def encode(to=undefined, from=undefined, options=undefined)
     # TODO
     if to.equal? undefined
       to = Encoding.default_internal
-      return self unless to
+      return self.dup unless to
     else
       to = Rubinius::Type.coerce_to_encoding to
     end
 
-    if options.equal?(undefined)
-      if from.is_a?(Hash)
+    if from.equal? undefined
+      from = encoding
+      options = 0
+    end
+
+    if options.equal? undefined
+      if from.kind_of? Hash
         options = from
+        from = encoding
       else
-        options = {}
+        options = 0
       end
     end
 
-    force_encoding to
+    if from == to
+      str = self.dup
+    else
+      ec = Encoding::Converter.new from, to, options
+      str = ec.convert self
+    end
 
-    case xml = options[:xml]
+    # TODO: replace this hack with transcoders
+    if options.kind_of? Hash
+      case xml = options[:xml]
       when :text
-        gsub!(/[&><]/, '&' => '&amp;', '>' => '&gt;', '<' => '&lt;')
+        str.gsub!(/[&><]/, '&' => '&amp;', '>' => '&gt;', '<' => '&lt;')
       when :attr
-        gsub!(/[&><"]/, '&' => '&amp;', '>' => '&gt;', '<' => '&lt;', '"' => '&quot;')
-        insert(0, '"')
-        insert(-1, '"')
+        str.gsub!(/[&><"]/, '&' => '&amp;', '>' => '&gt;', '<' => '&lt;', '"' => '&quot;')
+        str.insert(0, '"')
+        str.insert(-1, '"')
       when nil
         # nothing
       else
         raise ArgumentError, "unexpected value for xml option: #{xml.inspect}"
+      end
     end
 
-    self
-  end
-
-  def encode(to=undefined, from=undefined, options=undefined)
-    dup.encode!(to, from, options)
+    str
   end
 
   def force_encoding(enc)

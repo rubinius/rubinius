@@ -50,10 +50,14 @@ module Rubinius
     end
 
     def self.external_encoding_string(string)
-      if !Encoding.compatible?(string, Encoding.default_external)
-        raise Encoding::CompatibilityError.new("#{string.encoding.name} and #{Encoding.default_external.name} are incompatible")
+      string.encode Encoding.default_external
+    end
+
+    def self.check_encoding_compatible(a, b)
+      unless Encoding.compatible? a, b
+        msg = "encodings for #{a.encoding.name} and #{b.encoding.name} are incompatible"
+        raise Encoding::CompatibilityError, msg
       end
-      string.encode(Encoding.default_external)
     end
   end
 end

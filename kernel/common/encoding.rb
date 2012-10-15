@@ -63,7 +63,7 @@ class Encoding
   class Converter
     attr_accessor :source_encoding
     attr_accessor :destination_encoding
-    attr_accessor :replacement
+    attr_reader :replacement
 
     def self.allocate
       Rubinius.primitive :encoding_converter_allocate
@@ -126,9 +126,9 @@ class Encoding
 
       if replacement.nil?
         if @destination_encoding == Encoding::UTF_8
-          @replacement = "\xef\xbf\xbd".force_encoding("utf-8")
+          @replacement = "\xef\xbf\xbd".force_encoding(Encoding::UTF_8)
         else
-          @replacement = "?".force_encoding("us-ascii")
+          @replacement = "?".force_encoding(Encoding::US_ASCII)
         end
       else
         @replacement = Rubinius::Type.coerce_to replacement, String, :to_str
@@ -140,7 +140,7 @@ class Encoding
       @convpath = TranscodingPath[source_name, dest_name]
 
       unless @convpath
-        msg = "code converter not found (#{@source_encoding.name} to #{@destination_encoding.name}"
+        msg = "code converter not found (#{@source_encoding.name} to #{@destination_encoding.name})"
         raise ConverterNotFoundError, msg
       end
 
@@ -151,7 +151,9 @@ class Encoding
         entry = TranscodingMap[@convpath[i]][@convpath[i + 1]]
 
         if entry.kind_of? String
-          require "19/encoding/converter/#{entry}"
+          path = "#{Rubinius::LIB_PATH}/19/encoding/converter/#{entry}"
+          Rubinius::NativeMethod.load_extension path, entry
+
           entry = TranscodingMap[@convpath[i]][@convpath[i + 1]]
         end
 
@@ -310,20 +312,60 @@ class Encoding
       path
     end
 
+    def replacement=(str)
+      str = StringValue(str)
+
+      @replacement = str.encode(@destination_encoding)
+    end
+
     class TranscodingPath
-      @paths = nil
+      @paths = {}
+      @load_cache = true
+      @cache_valid = false
       @transcoders_count = TranscodingMap.size
 
       def self.paths
-        unless @paths
+        if load_cache? and cache_threshold?
           begin
-            require "encoding/converter/paths"
-          rescue LoadError
-            @paths = {}
+            path = "#{Rubinius::RUNTIME_PATH}/delta/converter_paths.rbc"
+            Rubinius::CodeLoader.load_compiled_file path
+            cache_loaded
+          rescue Object
+            disable_cache
           end
         end
 
         @paths
+      end
+
+      def self.disable_cache
+        @cache_valid = false
+        @load_cache = false
+      end
+
+      def self.cache_loaded
+        @cache_valid = true
+        @load_cache = false
+      end
+
+      def self.load_cache?
+        @load_cache
+      end
+
+      def self.cache_loaded?
+        @load_cache == false and @cache_valid
+      end
+
+      def self.cache_threshold?
+        @paths.size > 5
+      end
+
+      def self.default_transcoders?
+        @transcoders_count == TranscodingMap.size
+      end
+
+      def self.cache_valid?
+        cache_loaded? and default_transcoders?
       end
 
       def self.[](source, target)
@@ -332,7 +374,7 @@ class Encoding
         path = paths[key]
 
         unless path
-          return if @transcoders_count == TranscodingMap.size
+          return if cache_valid?
           path = search source, target
           paths[key] = path if path
         end

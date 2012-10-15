@@ -1,5 +1,5 @@
 class Encoding::Converter::TranscodingPath
-  @paths = {}
+  @paths ||= {}
 
   @paths["[ASCII-8BIT, ASCII-8BIT]"] = [:"ASCII-8BIT", :"UTF-8", :"ASCII-8BIT"]
   @paths["[ASCII-8BIT, BIG5-HKSCS]"] = [:"ASCII-8BIT", :"UTF-8", :"BIG5-HKSCS"]
