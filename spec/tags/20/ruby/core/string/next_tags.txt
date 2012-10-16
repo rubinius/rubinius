@@ -1,1 +1,0 @@
-fails:String#next! raises a RuntimeError if self is frozen

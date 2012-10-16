@@ -1,2 +1,0 @@
-fails:String#delete raises if the given ranges are invalid
-fails:String#delete! raises a RuntimeError when self is frozen

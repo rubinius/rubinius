@@ -1,9 +1,0 @@
-fails:String#[] with Regexp, group returns the capture for the given name
-fails:String#[] with Regexp, group returns the last capture for duplicate names
-fails:String#[] with Regexp, group returns the innermost capture for nested duplicate names
-fails:String#[] with Regexp, group always taints resulting strings when self or regexp is tainted
-fails:String#[] with Regexp, group returns nil if there is no match
-fails:String#[] with Regexp, group raises an IndexError if there is no capture for the given name
-fails:String#[] with Regexp, group raises an IndexError when given the empty String as a group name
-fails:String#[] with Regexp, group returns subclass instances
-fails:String#[] with Regexp, group sets $~ to MatchData when there is a match and nil when there's none

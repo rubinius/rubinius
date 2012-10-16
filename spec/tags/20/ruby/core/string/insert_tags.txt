@@ -1,1 +1,0 @@
-fails:String#insert with index, other raises a RuntimeError if self is frozen

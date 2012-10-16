@@ -1,2 +1,0 @@
-fails:String#reverse! raises a RuntimeError on a frozen instance that is modified
-fails:String#reverse! raises a RuntimeError on a frozen instance that would not be modified

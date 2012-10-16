@@ -1,2 +1,0 @@
-fails:File.expand_path accepts objects that have a #to_path method
-fails:File.expand_path produces a String in the default external encoding

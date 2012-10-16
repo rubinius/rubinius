@@ -1,2 +1,0 @@
-fails:String#[]= with String allows assignment to the zero'th element of an empty String
-fails:String#[]= with String raises a RuntimeError when self is frozen
