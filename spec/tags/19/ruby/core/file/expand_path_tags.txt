@@ -1,0 +1,2 @@
+fails:File.expand_path produces a String in the default external encoding
+fails:File.expand_path raises a Encoding::CompatibilityError if the external encoding is not compatible

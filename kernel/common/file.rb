@@ -464,12 +464,12 @@ class File < IO
       start = index + 1
     end
 
-    return Rubinius::Type.external_encoding_string("/") if items.empty?
+    return "/" if items.empty?
 
     str = ""
     items.each { |x| str.append "/#{x}" }
 
-    return Rubinius::Type.external_encoding_string(str)
+    return str
   end
 
   ##
