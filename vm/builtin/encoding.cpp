@@ -777,13 +777,13 @@ namespace rubinius {
     const char* error_start = (const char*)converter_->last_error.error_bytes_start;
     size_t error_length = converter_->last_error.error_bytes_len;
 
-    String* error_string = String::create(state, error_start, error_length);
-    error->store(state, state->symbol("error_string"), error_string);
+    String* error_bytes = String::create(state, error_start, error_length);
+    error->store(state, state->symbol("error_bytes"), error_bytes);
 
     if(read_again_length) {
-      String* read_again_string = String::create(state,
+      String* read_again_bytes = String::create(state,
           error_start + error_length, read_again_length);
-      error->store(state, state->symbol("read_again_string"), read_again_string);
+      error->store(state, state->symbol("read_again_bytes"), read_again_bytes);
     }
 
     if(codepoint_set) {
