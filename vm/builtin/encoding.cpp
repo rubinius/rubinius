@@ -49,22 +49,18 @@ namespace rubinius {
   void Encoding::init(STATE) {
     onig_init();  // in regexp.cpp too, but idempotent.
 
-    Class* enc;
-
     if(LANGUAGE_18_ENABLED(state)) {
       Class* ns = ontology::new_class_under(state, "EncodingClass", G(rubinius));
       GO(encoding).set(ontology::new_class_under(state, "Encoding", ns));
-      enc = ns;
     } else {
       GO(encoding).set(ontology::new_class(state, "Encoding"));
       G(rubinius)->set_const(state, "EncodingClass", G(encoding));
-      enc = G(encoding);
     }
 
     G(encoding)->set_object_type(state, EncodingType);
 
-    enc->set_const(state, "EncodingMap", LookupTable::create(state));
-    enc->set_const(state, "EncodingList", Array::create(state, 3));
+    G(encoding)->set_const(state, "EncodingMap", LookupTable::create(state));
+    G(encoding)->set_const(state, "EncodingList", Array::create(state, 3));
 
     G(encoding)->set_ivar(state, state->symbol("@default_external"), G(undefined));
     G(encoding)->set_ivar(state, state->symbol("@default_internal"), G(undefined));
@@ -89,7 +85,7 @@ namespace rubinius {
     locale_charmap = "US-ASCII";
 #endif
 
-    enc->set_const(state, "LocaleCharmap", String::create(state, locale_charmap));
+    G(encoding)->set_const(state, "LocaleCharmap", String::create(state, locale_charmap));
 
     index = find_index(state, locale_charmap);
     if(index < 0) index = find_index(state, "US-ASCII");
