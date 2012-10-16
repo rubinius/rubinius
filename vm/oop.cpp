@@ -496,6 +496,9 @@ step2:
           }
           // The header is now set to inflated, and the current thread
           // is holding the inflated lock.
+          if(cDebugThreading) {
+            std::cerr << "[LOCK " << state->vm()->thread_id() << " inflated due to recursion overflow: " << count << " ]\n";
+          }
         } else {
           new_val = orig;
           new_val.f.aux_word = (state->vm()->thread_id() << cAuxLockTIDShift) | count;
@@ -508,7 +511,7 @@ step2:
           if(!self->header.atomic_set(orig, new_val)) goto step2;
 
           if(cDebugThreading) {
-            std::cerr << "[LOCK " << state->vm()->thread_id() << " recursively locked with CAS]\n";
+            std::cerr << "[LOCK " << state->vm()->thread_id() << " recursively locked with CAS: " << count << " ]\n";
           }
 
           // wonderful! Locked! weeeee!
