@@ -141,7 +141,6 @@ namespace rubinius {
     if(obj->inflated_header_p()) return false;
 
     InflatedHeader* ih = inflated_headers_->allocate(obj);
-    ih->initialize_mutex(state->vm()->thread_id(), count);
 
     if(!obj->set_inflated_header(state, ih)) {
       if(obj->inflated_header_p()) return false;
@@ -150,6 +149,7 @@ namespace rubinius {
       rubinius::bug("Massive header state confusion detected. Call a doctor.");
     }
 
+    ih->initialize_mutex(state->vm()->thread_id(), count);
     return true;
   }
 
