@@ -168,7 +168,7 @@ class Encoding
       str = StringValue(str)
 
       dest = ""
-      status = primitive_convert str, dest, 0, 0, PARTIAL_INPUT
+      status = primitive_convert str, dest, nil, nil, PARTIAL_INPUT
 
       if status == :invalid_byte_sequence or
          status == :undefined_conversion or
@@ -181,20 +181,39 @@ class Encoding
       end
 
       if status != :source_buffer_empty
-        raise RuntimeError, "unexpected result of Encoding::Converter#primitive_convert"
+        raise RuntimeError, "unexpected result of Encoding::Converter#primitive_convert: #{status}"
       end
 
       dest
     end
 
-    def primitive_convert(source, target, offset=0, size=0, options=0)
-      Rubinius.primitive :encoding_converter_primitive_convert
-
+    def primitive_convert(source, target, offset=nil, size=nil, options=0)
       source = StringValue(source) if source
       target = StringValue(target)
 
-      offset = 0 unless offset
-      size = 0 unless size
+      if offset.nil?
+        offset = target.bytesize
+      else
+        offset = Rubinius::Type.coerce_to offset, Fixnum, :to_int
+      end
+
+      if size.nil?
+        size = source.nil? ? -1 : source.bytesize
+      else
+        size = Rubinius::Type.coerce_to size, Fixnum, :to_int
+
+        if size < 0
+          raise ArgumentError, "byte size is negative"
+        end
+      end
+
+      if offset < 0
+        raise ArgumentError, "byte offset is negative"
+      end
+
+      if offset > target.bytesize
+        raise ArgumentError, "byte offset is greater than destination buffer size"
+      end
 
       if !options.kind_of? Fixnum
         opts = Rubinius::Type.coerce_to options, Hash, :to_hash
@@ -204,7 +223,8 @@ class Encoding
         options |= AFTER_OUTPUT if opts[:after_output]
       end
 
-      primitive_convert source, target, offset, size, options
+      Rubinius.invoke_primitive(:encoding_converter_primitive_convert,
+                                self, source, target, offset, size, options)
     end
 
     def putback(maxbytes=nil)
@@ -215,7 +235,7 @@ class Encoding
 
     def finish
       dest = ""
-      status = primitive_convert nil, dest, 0, 0, 0
+      status = primitive_convert nil, dest
 
       if status == :invalid_byte_sequence or
          status == :undefined_conversion or
@@ -224,7 +244,7 @@ class Encoding
       end
 
       if status != :finished
-        raise RuntimeError, "unexpected result of Encoding::Converter#finish"
+        raise RuntimeError, "unexpected result of Encoding::Converter#finish: #{status}"
       end
 
       dest

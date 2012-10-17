@@ -705,17 +705,33 @@ namespace rubinius {
       source_ptr = source_end = NULL;
     }
 
-    // native_int byte_offset = offset->to_native();
-    // native_int byte_size = size->to_native();
+    native_int byte_offset = offset->to_native();
+    native_int byte_size = size->to_native();
 
-    ByteArray* buffer = ByteArray::create_pinned(state, 1024);
+    if(byte_size == -1) {
+      if(src) {
+        byte_size = src->byte_size();
+      } else {
+        // TODO: Use a heuristic to calculate this based on the byte sizes of
+        // the encodings for the transcoders.
+        byte_size = 4096;
+      }
+    }
 
-    unsigned char* buffer_ptr = (unsigned char*)buffer->raw_bytes();
-    unsigned char* buffer_end = buffer_ptr + buffer->size();
+    native_int buffer_size = byte_offset + byte_size;
+    ByteArray* buffer = ByteArray::create_pinned(state, buffer_size);
+
+    unsigned char* buffer_ptr = (unsigned char*)buffer->raw_bytes() + byte_offset;
+    unsigned char* buffer_end = buffer_ptr + byte_size;
+
     int flags = options->to_native();
 
     rb_econv_result_t result = econv_convert(converter_, &source_ptr, source_end,
         &buffer_ptr, buffer_end, flags);
+
+    if(byte_offset > 0) {
+      memcpy(buffer->raw_bytes(), target->data()->raw_bytes(), byte_offset);
+    }
 
     target->data(state, buffer);
     target->shared(state, cFalse);
