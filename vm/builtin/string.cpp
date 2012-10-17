@@ -787,13 +787,13 @@ namespace rubinius {
     native_int current_size = byte_size();
     native_int data_size = as<ByteArray>(data_)->size();
 
-    // Clamp the string size the maximum underlying byte array size
+    // Clamp the string size to the maximum underlying byte array size
     if(unlikely(current_size > data_size)) {
       current_size = data_size;
     }
 
     native_int new_size = current_size + length;
-    native_int capacity = data_size;
+    native_int capacity = data_size == 0 ? 2 : data_size;
 
     if(capacity <= new_size) {
       // capacity needs one extra byte of room for the trailing null
