@@ -27,13 +27,23 @@ class Object
   # with any Ruby object). The file descriptor can safely be passed
   # to IO.new without creating a Ruby object alias to the fd.
   def new_fd(name, mode="w:utf-8")
+    mode = options_or_mode(mode)
+
+    if mode.kind_of? Hash
+      if mode.key? :mode
+        mode = mode[:mode]
+      else
+        raise ArgumentError, "new_fd options Hash must include :mode"
+      end
+    end
+
     IO.sysopen name, fmode(mode)
   end
 
   # Creates an IO instance for a temporary file name. The file
   # must be deleted.
   def new_io(name, mode="w:utf-8")
-    IO.new new_fd(name, fmode(mode)), fmode(mode)
+    IO.new new_fd(name, options_or_mode(mode)), options_or_mode(mode)
   end
 
   # This helper simplifies passing file access modes regardless of
@@ -58,7 +68,7 @@ class Object
     if FeatureGuard.enabled? :encoding
       oom
     else
-      fmode(oom[:mode]) || "r"
+      fmode(oom[:mode] || "r:utf-8")
     end
   end
 end

@@ -50,7 +50,7 @@ describe Object, "#new_fd" do
   end
 
   after :each do
-    @io.close unless @io.closed?
+    @io.close if @io and not @io.closed?
     rm_r @name
   end
 
@@ -63,6 +63,23 @@ describe Object, "#new_fd" do
     @io.print "io data"
 
     IO.read(@name).should == "io data"
+  end
+
+  it "accepts an options Hash" do
+    FeatureGuard.stub!(:enabled?).and_return(true)
+    fd = new_fd @name, { :mode => 'w:utf-8' }
+    fd.should be_an_instance_of(Fixnum)
+
+    @io = IO.new fd, fmode('w:utf-8')
+    @io.sync = true
+    @io.print "io data"
+
+    IO.read(@name).should == "io data"
+  end
+
+  it "raises an ArgumentError if the options Hash does not include :mode" do
+    FeatureGuard.stub!(:enabled?).and_return(true)
+    lambda { new_fd @name, { :encoding => "utf-8" } }.should raise_error(ArgumentError)
   end
 end
 
@@ -90,6 +107,21 @@ describe Object, "#new_io" do
 
   it "opens the IO for writing if passed 'w'" do
     @io = new_io @name, "w"
+    @io.sync = true
+
+    @io.print "io data"
+    IO.read(@name).should == "io data"
+  end
+
+  it "opens the IO for reading if passed { :mode => 'r' }" do
+    touch(@name) { |f| f.print "io data" }
+    @io = new_io @name, { :mode => "r" }
+    @io.read.should == "io data"
+    lambda { @io.puts "more data" }.should raise_error(IOError)
+  end
+
+  it "opens the IO for writing if passed { :mode => 'w' }" do
+    @io = new_io @name, { :mode => "w" }
     @io.sync = true
 
     @io.print "io data"
