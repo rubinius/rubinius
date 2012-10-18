@@ -294,7 +294,7 @@ platform_is :windows do
   end
 end
 
-describe "IO#read with encodings" do
+describe "IO#read with $KCODE set to UTF-8" do
   before :each do
     @kcode, $KCODE = $KCODE, "utf-8"
     @io = IOSpecs.io_fixture "lines.txt"
@@ -346,6 +346,56 @@ ruby_version_is "1.9" do
       name = fixture __FILE__, "bom_UTF-32BE.txt"
       result = File.read(name, :mode => "rb:BOM|utf-8")
       result.force_encoding("ascii-8bit").should == "\x00\x00\x00U\x00\x00\x00T\x00\x00\x00F\x00\x00\x00-\x00\x00\x003\x00\x00\x002\x00\x00\x00B\x00\x00\x00E\x00\x00\x00\n"
+    end
+  end
+
+  describe :io_read_internal_encoding, :shared => true do
+    it "returns a transcoded String" do
+      @io.read.should == "ありがとう\n"
+    end
+
+    it "sets the String encoding to the internal encoding" do
+      @io.read.encoding.should eql(Encoding::UTF_8)
+    end
+  end
+
+  describe "IO#read" do
+    describe "with internal encoding" do
+      describe "specified by open mode" do
+        before :each do
+          @io = IOSpecs.io_fixture "read_euc_jp.txt", "r:euc-jp:utf-8"
+        end
+
+        it_behaves_like :io_read_internal_encoding, nil
+      end
+
+      describe "specified by mode: option" do
+        before :each do
+          @io = IOSpecs.io_fixture "read_euc_jp.txt", :mode => "r:euc-jp:utf-8"
+        end
+
+        it_behaves_like :io_read_internal_encoding, nil
+      end
+
+      describe "specified by internal_encoding: option" do
+        before :each do
+          options = { :mode => "r",
+                      :internal_encoding => "utf-8",
+                      :external_encoding => "euc-jp" }
+          @io = IOSpecs.io_fixture "read_euc_jp.txt", options
+        end
+
+        it_behaves_like :io_read_internal_encoding, nil
+      end
+
+      describe "specified by encoding: option" do
+        before :each do
+          options = { :mode => "r", :encoding => "euc-jp:utf-8" }
+          @io = IOSpecs.io_fixture "read_euc_jp.txt", options
+        end
+
+        it_behaves_like :io_read_internal_encoding, nil
+      end
     end
   end
 end
