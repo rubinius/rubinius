@@ -198,7 +198,7 @@ class Encoding
       end
 
       if size.nil?
-        size = source.nil? ? -1 : source.bytesize
+        size = -1
       else
         size = Rubinius::Type.coerce_to size, Fixnum, :to_int
 

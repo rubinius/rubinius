@@ -696,10 +696,14 @@ namespace rubinius {
       }
     }
 
-    const unsigned char* source_ptr;
-    const unsigned char* source_end;
+    int flags = options->to_native();
+
+    const unsigned char* source_str = 0;
+    const unsigned char* source_ptr = 0;
+    const unsigned char* source_end = 0;
+
     if(src) {
-      source_ptr = (const unsigned char*)src->c_str(state);
+      source_str = source_ptr = (const unsigned char*)src->c_str(state);
       source_end = source_ptr + src->byte_size();
     } else {
       source_ptr = source_end = NULL;
@@ -708,15 +712,22 @@ namespace rubinius {
     native_int byte_offset = offset->to_native();
     native_int byte_size = size->to_native();
 
+    // TODO: Might it be possible to use a heuristic to calculate this based
+    // on the byte sizes of the encodings for the transcoders? It is very easy
+    // to cause a destination_buffer_full result by setting the size to the
+    // size of input, like MRI does. We set it to 1.5 * input size, but that
+    // is totally arbitrary based on behavior observed in specs.
     if(byte_size == -1) {
       if(src) {
-        byte_size = src->byte_size();
+        byte_size = src->byte_size() * 2;
       } else {
-        // TODO: Use a heuristic to calculate this based on the byte sizes of
-        // the encodings for the transcoders.
         byte_size = 4096;
       }
     }
+
+    Array* buffers = 0;
+
+  retry:
 
     native_int buffer_size = byte_offset + byte_size;
     ByteArray* buffer = ByteArray::create_pinned(state, buffer_size);
@@ -724,22 +735,62 @@ namespace rubinius {
     unsigned char* buffer_ptr = (unsigned char*)buffer->raw_bytes() + byte_offset;
     unsigned char* buffer_end = buffer_ptr + byte_size;
 
-    int flags = options->to_native();
-
     rb_econv_result_t result = econv_convert(converter_, &source_ptr, source_end,
         &buffer_ptr, buffer_end, flags);
 
-    if(byte_offset > 0) {
+    if(!buffers && byte_offset > 0) {
       memcpy(buffer->raw_bytes(), target->data()->raw_bytes(), byte_offset);
     }
 
-    target->data(state, buffer);
+    native_int output_size = buffer_ptr - (unsigned char*)buffer->raw_bytes();
+
+    if(result == econv_destination_buffer_full && size->to_native() == -1) {
+      // TODO: Current limitation in ByteArray. Formalize this somehow.
+      if(byte_size < (INT32_MAX / 2)) {
+        byte_size *= 2;
+        byte_offset = 0;
+
+        source_ptr += source_ptr - source_str;
+
+        if(!buffers) buffers = Array::create(state, 0);
+
+        buffers->append(state, buffer);
+        buffers->append(state, Fixnum::from(output_size));
+
+        goto retry;
+      }
+    }
+
+    if(buffers) {
+      size_t size = buffers->size();
+      native_int total_size = output_size;
+
+      for(size_t i = 1; i < size; i += 2) {
+        total_size += as<Fixnum>(buffers->get(state, i))->to_native();
+      }
+
+      ByteArray* data = ByteArray::create(state, total_size);
+
+      uint8_t* p = data->raw_bytes();
+      native_int n = 0;
+
+      for(size_t i = 0; i < size; i += 2, p += n) {
+        n = as<Fixnum>(buffers->get(state, i + 1))->to_native();
+        memcpy(p, as<ByteArray>(buffers->get(state, i))->raw_bytes(), n);
+      }
+
+      memcpy(p, buffer->raw_bytes(), output_size);
+
+      target->data(state, data);
+      target->num_bytes(state, Fixnum::from(total_size));
+    } else {
+      target->data(state, buffer);
+      target->num_bytes(state, Fixnum::from(output_size));
+    }
+
     target->shared(state, cFalse);
     target->hash_value(state, nil<Fixnum>());
     target->encoding(state, destination_encoding());
-
-    native_int output_size = buffer_ptr - (unsigned char*)buffer->raw_bytes();
-    target->num_bytes(state, Fixnum::from(output_size));
 
     return converter_result_symbol(state, result);
   }
