@@ -1,1 +1,0 @@
-fails:StringIO#read when passed length, buffer raises an error when passed a frozen String as buffer

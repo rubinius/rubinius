@@ -1,1 +1,0 @@
-fails:Matrix#each_with_index returns an Enumerator when called without a block

@@ -1,1 +1,0 @@
-fails:Module#autoload looks up the constant in the scope where it is referred

@@ -1,1 +1,0 @@
-fails:IO.open accepts an :autoclose option

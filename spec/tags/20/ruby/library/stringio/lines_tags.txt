@@ -1,1 +1,0 @@
-fails:StringIO#lines when passed no arguments returns an Enumerator when passed no block

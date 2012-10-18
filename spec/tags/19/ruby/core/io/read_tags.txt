@@ -1,1 +1,0 @@
-fails:IO#read with 1.9 encodings strips the BOM when given 'rb:utf-7-bom' as the mode

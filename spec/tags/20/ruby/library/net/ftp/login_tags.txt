@@ -1,1 +1,0 @@
-fails:Net::FTP#login when passed no arguments sends 'anonymous@' as a password when required

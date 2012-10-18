@@ -1,2 +1,0 @@
-fails:Etc.getpwuid returns a Etc::Passwd struct instance for the given user
-fails:Etc.getpwuid uses Process.uid as the default value for the argument

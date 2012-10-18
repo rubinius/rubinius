@@ -1,2 +1,0 @@
-fails:Range#max returns the maximum value in the Float range when called with no arguments
-fails:Range#max returns nil when the endpoint is less than the start point in a Float range

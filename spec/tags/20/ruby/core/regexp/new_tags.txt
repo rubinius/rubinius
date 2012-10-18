@@ -1,14 +1,1 @@
 fails:Regexp.new given a Regexp enables multibyte support if given in the literal
-fails:Regexp.new given a String with escaped characters accepts characters followed by \u{HHHH}
-fails:Regexp.new given a String with escaped characters accepts \u{HHHH} followed by characters
-fails:Regexp.new given a String with escaped characters accepts escaped hexadecimal digits followed by \u{HHHH}
-fails:Regexp.new given a String with escaped characters accepts escaped octal digits followed by \u{HHHH}
-fails:Regexp.new given a String with escaped characters accepts a combination of escaped octal and hexadecimal digits and \u{HHHH}
-fails:Regexp.new given a String with escaped characters accepts \uHHHH for a single Unicode codepoint
-fails:Regexp.new given a String with escaped characters accepts characters followed by \uHHHH
-fails:Regexp.new given a String with escaped characters accepts \uHHHH followed by characters
-fails:Regexp.new given a String with escaped characters accepts escaped hexadecimal digits followed by \uHHHH
-fails:Regexp.new given a String with escaped characters accepts escaped octal digits followed by \uHHHH
-fails:Regexp.new given a String with escaped characters accepts a combination of escaped octal and hexadecimal digits and \uHHHH
-fails:Regexp.new given a String with escaped characters returns a Regexp with UTF-8 encoding if any UTF-8 escape sequences outside 7-bit ASCII are present
-fails:Regexp.new given a String with escaped characters returns a Regexp with source String having UTF-8 encoding if any UTF-8 escape sequences outside 7-bit ASCII are present

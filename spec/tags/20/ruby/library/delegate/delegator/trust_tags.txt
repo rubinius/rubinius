@@ -1,3 +1,0 @@
-fails:Delegator#trust returns self
-fails:Delegator#trust trusts the delegator
-fails:Delegator#trust trusts the delegated object

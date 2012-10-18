@@ -1,1 +1,0 @@
-fails:Matrix#rect returns [receiver.real, receiver.imag]

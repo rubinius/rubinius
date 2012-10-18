@@ -1,2 +1,0 @@
-fails:DelegateClass.public_instance_methods includes all public methods of the delegated class
-fails:DelegateClass.public_instance_methods includes public instance methods of the DelegateClass class

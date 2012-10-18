@@ -1,2 +1,0 @@
-fails:StringIO#initialize when passed [Object, mode] raises a RuntimeError when passed a frozen String in truncate mode as StringIO backend
-fails:StringIO#initialize when passed no arguments is private
