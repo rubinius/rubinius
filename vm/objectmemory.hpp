@@ -281,8 +281,6 @@ namespace rubinius {
     Object* new_object_typed_mature(STATE, Class* cls, size_t bytes, object_type type);
     Object* new_object_typed_enduring(STATE, Class* cls, size_t bytes, object_type type);
 
-    Object* new_object_fast(STATE, Class* cls, size_t bytes, object_type type);
-
     template <class T>
       T* new_object_bytes(STATE, Class* cls, size_t& bytes) {
         bytes = ObjectHeader::align(sizeof(T) + bytes);

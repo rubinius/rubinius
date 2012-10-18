@@ -118,9 +118,9 @@ namespace rubinius {
      * them all at once */
 
     // Class's klass is Class
+    cls->set_obj_type(ClassType);
     cls->klass(state, cls);
     cls->ivars(state, cNil);
-    cls->set_obj_type(ClassType);
 
     cls->set_object_type(state, ClassType);
     cls->set_class_id(state->shared().inc_class_count(state));

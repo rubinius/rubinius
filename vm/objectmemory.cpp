@@ -417,23 +417,6 @@ step1:
     }
   }
 
-  // WARNING: This returns an object who's body may not have been initialized.
-  // It is the callers duty to initialize it.
-  Object* ObjectMemory::new_object_fast(STATE, Class* cls, size_t bytes, object_type type) {
-    utilities::thread::SpinLock::LockGuard guard(allocation_lock_);
-
-    if(Object* obj = young_->raw_allocate(bytes, &collect_young_now)) {
-      gc_stats.young_object_allocated(bytes);
-
-      if(collect_young_now) shared_.gc_soon();
-      obj->init_header(cls, YoungObjectZone, type);
-      return obj;
-    } else {
-      allocation_lock_.unlock();
-      return new_object_typed(state, cls, bytes, type);
-    }
-  }
-
   bool ObjectMemory::refill_slab(STATE, gc::Slab& slab) {
     utilities::thread::SpinLock::LockGuard guard(allocation_lock_);
 
@@ -718,7 +701,7 @@ step1:
   }
 
   void ObjectMemory::inflate_for_handle(STATE, ObjectHeader* obj, capi::Handle* handle) {
-    SYNC(state);
+    utilities::thread::SpinLock::LockGuard guard(inflation_lock_);
 
     HeaderWord orig = obj->header;
 
