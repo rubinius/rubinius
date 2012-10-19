@@ -63,11 +63,7 @@ namespace rubinius {
 
     // If this is true, stack_limit_ was just changed to get our attention, reset
     // it now.
-    if(vm_->stack_limit_ == vm_->stack_start_) {
-      vm_->reset_stack_limit();
-    } else {
-      if(!check_stack(call_frame, end)) return false;
-    }
+    if(!check_stack(call_frame, end)) return false;
 
     if(unlikely(vm_->check_local_interrupts)) {
       if(!process_async(call_frame)) return false;

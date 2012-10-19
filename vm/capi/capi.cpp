@@ -138,6 +138,17 @@ namespace rubinius {
       return map[type];
     }
 
+    bool capi_check_interrupts(STATE, CallFrame* call_frame, void* end) {
+      if(!state->check_stack(call_frame, end)) {
+        return false;
+      }
+
+      if(unlikely(state->vm()->check_local_interrupts)) {
+        if(!state->process_async(call_frame)) return false;
+      }
+      return true;
+    }
+
     /**
      *  Common implementation for rb_funcall*
      */
@@ -191,7 +202,7 @@ namespace rubinius {
                                       Object** args, Object* block)
     {
       int marker = 0;
-      if(!env->state()->check_stack(env->current_call_frame(), &marker)) {
+      if(!capi_check_interrupts(env->state(), env->current_call_frame(), &marker)) {
         env->current_ep()->return_to(env);
       }
 
@@ -281,7 +292,7 @@ namespace rubinius {
                               size_t arg_count, Object** arg_vals)
     {
       int marker = 0;
-      if(!env->state()->check_stack(env->current_call_frame(), &marker)) {
+      if(!capi_check_interrupts(env->state(), env->current_call_frame(), &marker)) {
         env->current_ep()->return_to(env);
       }
 
@@ -333,7 +344,7 @@ namespace rubinius {
                                  size_t arg_count, Object** args)
     {
       int marker = 0;
-      if(!env->state()->check_stack(env->current_call_frame(), &marker)) {
+      if(!capi_check_interrupts(env->state(), env->current_call_frame(), &marker)) {
         env->current_ep()->return_to(env);
       }
 
