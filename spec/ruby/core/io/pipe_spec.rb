@@ -121,8 +121,22 @@ describe "IO.pipe" do
       end
     end
 
+    it "accepts 'bom|' prefix for external encoding" do
+      IO.pipe("BOM|UTF-8") do |r, w|
+        r.external_encoding.should == Encoding::UTF_8
+        r.internal_encoding.should be_nil
+      end
+    end
+
     it "sets the external and internal encodings specified as a String and separated with a colon" do
       IO.pipe("UTF-8:ISO-8859-1") do |r, w|
+        r.external_encoding.should == Encoding::UTF_8
+        r.internal_encoding.should == Encoding::ISO_8859_1
+      end
+    end
+
+    it "accepts 'bom|' prefix for external encoding when specifying 'external:internal'" do
+      IO.pipe("BOM|UTF-8:ISO-8859-1") do |r, w|
         r.external_encoding.should == Encoding::UTF_8
         r.internal_encoding.should == Encoding::ISO_8859_1
       end
@@ -133,6 +147,26 @@ describe "IO.pipe" do
         r.external_encoding.should == Encoding::UTF_8
         r.internal_encoding.should == Encoding::UTF_16BE
       end
+    end
+
+    it "accepts an options Hash with one String encoding argument" do
+      IO.pipe("BOM|UTF-8:ISO-8859-1", :invalid => :replace) do |r, w|
+        r.external_encoding.should == Encoding::UTF_8
+        r.internal_encoding.should == Encoding::ISO_8859_1
+      end
+    end
+
+    it "accepts an options Hash with two String encoding arguments" do
+      IO.pipe("UTF-8", "ISO-8859-1", :invalid => :replace) do |r, w|
+        r.external_encoding.should == Encoding::UTF_8
+        r.internal_encoding.should == Encoding::ISO_8859_1
+      end
+    end
+
+    it "calls #to_hash to convert an options argument" do
+      options = mock("io pipe encoding options")
+      options.should_receive(:to_hash).and_return({ :invalid => :replace })
+      IO.pipe("UTF-8", "ISO-8859-1", options) { |r, w| }
     end
 
     it "calls #to_str to convert the first argument to a String" do
