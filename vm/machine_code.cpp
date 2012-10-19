@@ -592,11 +592,14 @@ namespace rubinius {
       frame->prepare(mcode->stack_size);
 
       frame->previous = previous;
-      frame->flags = 0;
-      frame->arguments = &args;
+      frame->constant_scope_ = 0;
       frame->dispatch_data = 0;
       frame->compiled_code = code;
+      frame->flags = 0;
+      frame->optional_jit_data = 0;
+      frame->top_scope_ = 0;
       frame->scope = scope;
+      frame->arguments = &args;
 
       GCTokenImpl gct;
 
@@ -658,11 +661,14 @@ namespace rubinius {
     Arguments args(state->symbol("__script__"), G(main), cNil, 0, 0);
 
     frame->previous = previous;
-    frame->flags = 0;
-    frame->arguments = &args;
+    frame->constant_scope_ = 0;
     frame->dispatch_data = 0;
     frame->compiled_code = code;
+    frame->flags = 0;
+    frame->optional_jit_data = 0;
+    frame->top_scope_ = 0;
     frame->scope = scope;
+    frame->arguments = &args;
 
     // Do NOT check if we should JIT this. We NEVER want to jit a script.
 

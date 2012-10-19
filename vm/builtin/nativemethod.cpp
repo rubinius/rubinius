@@ -655,14 +655,14 @@ namespace rubinius {
     NativeMethodFrame nmf(env->current_native_frame());
     CallFrame cf;
     cf.previous = call_frame;
-    cf.compiled_code = 0;
-    cf.scope = 0;
-    cf.optional_jit_data = 0;
-    cf.arguments = 0;
     cf.constant_scope_ = 0;
-    cf.top_scope_ = 0;
     cf.dispatch_data = (void*)&nmf;
+    cf.compiled_code = 0;
     cf.flags = CallFrame::cNativeMethod;
+    cf.optional_jit_data = 0;
+    cf.top_scope_ = 0;
+    cf.scope = 0;
+    cf.arguments = 0;
 
     CallFrame* saved_frame = env->current_call_frame();
     env->set_current_call_frame(&cf);
