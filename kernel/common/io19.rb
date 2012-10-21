@@ -18,7 +18,7 @@ class IO
   def self.binread(file, length=nil, offset=0)
     raise ArgumentError, "Negative length #{length} given" if !length.nil? && length < 0
 
-    File.open(file, "rb") do |f|
+    File.open(file, "r", :encoding => "ascii-8bit:-") do |f|
       f.seek(offset)
       f.read(length)
     end
