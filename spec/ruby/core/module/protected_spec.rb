@@ -36,5 +36,13 @@ describe "Module#protected" do
     Object.should_not have_protected_instance_method(
                   :module_specs_public_method_on_object_for_kernel_protected)
   end
+
+  it "returns self" do
+    (class << Object.new; self; end).class_eval do
+      def foo; end
+      protected(:foo).should equal(self)
+      protected.should equal(self)
+    end
+  end
 end
 
