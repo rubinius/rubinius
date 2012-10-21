@@ -11,12 +11,16 @@ class << MAIN
     Rubinius.privately do
       Object.public(*methods)
     end
+
+    Object
   end
 
   def private(*methods)
     Rubinius.privately do
       Object.private(*methods)
     end
+
+    Object
   end
 
   def to_s
