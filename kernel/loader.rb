@@ -779,7 +779,6 @@ to rebuild the compiler.
     end
 
     def write_last_error(e)
-      return
       unless path = Config['vm.crash_report_path']
         path = "#{ENV['HOME']}/.rubinius_last_error"
       end
