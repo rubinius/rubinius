@@ -1,6 +1,10 @@
 # -*- encoding: us-ascii -*-
 
 class IO
+  def self.read_encode(io, str)
+    str
+  end
+
   def self.for_fd(fd, mode = nil)
     new fd, mode
   end
@@ -68,6 +72,8 @@ class IO
   end
 
   private :initialize
+
+  alias_method :getbyte, :getc
 
   ##
   # Chains together buckets of input from the buffer until

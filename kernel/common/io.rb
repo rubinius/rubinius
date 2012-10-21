@@ -764,12 +764,6 @@ class IO
     return @ibuffer.get_first
   end
 
-  def getbyte
-    char = read 1
-    return nil if char.nil?
-    char.bytes.to_a[0]
-  end
-
   ##
   # Returns the current line number in ios. The
   # stream must be opened for reading. lineno
@@ -916,10 +910,10 @@ class IO
 
     unless length
       str = read_all
-      return str unless buffer
+      return IO.read_encode(self, str) unless buffer
 
       buffer.replace str
-      return buffer
+      return IO.read_encode(self, buffer)
     end
 
     return nil if @ibuffer.exhausted?
@@ -936,11 +930,11 @@ class IO
       needed -= count
     end
 
-    return str unless buffer
+    return IO.read_encode(self, str) unless buffer
 
     if str
       buffer.replace str
-      buffer
+      return IO.read_encode(self, buffer)
     else
       buffer.replace ''
       nil
