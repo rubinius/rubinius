@@ -45,12 +45,26 @@ TYPE_GEN    = %w[ vm/gen/includes.hpp
                   vm/gen/jit_resolver.cpp
                   vm/gen/invoke_resolver.cpp ]
 
+transcoders_src_dir = File.expand_path "../../vendor/oniguruma/enc/trans", __FILE__
+transcoders_lib_dir = File.expand_path "../../lib/19/encoding/converter", __FILE__
+directory transcoders_lib_dir
+
+TRANSCODING_LIBS = []
+
+Dir["#{transcoders_src_dir}/*#{$dlext}"].each do |name|
+  target = File.join transcoders_lib_dir, File.basename(name)
+  file target => name do |t|
+    cp t.prerequisites.first, t.name
+  end
+  TRANSCODING_LIBS << target
+end
+
 GENERATED = %W[ vm/gen/revision.h
                 vm/gen/config_variables.h
                 vm/gen/signature.h
                 #{encoding_database}
                 #{transcoders_database}
-              ] + TYPE_GEN + INSN_GEN
+              ] + TYPE_GEN + INSN_GEN + TRANSCODING_LIBS
 
 # Files are in order based on dependencies. For example,
 # CompactLookupTable inherits from Tuple, so the header
@@ -201,22 +215,7 @@ file encoding_database => encoding_extract do |t|
   ruby encoding_extract, dir, t.name
 end
 
-transcoders_lib_dir = File.expand_path "../../lib/19/encoding/converter", __FILE__
-directory transcoders_lib_dir
-
 transcoders_extract = 'vm/codegen/transcoders_extract.rb'
-
-transcoders_src_dir = File.expand_path "../../vendor/oniguruma/enc/trans", __FILE__
-
-TRANSCODING_LIBS = []
-
-Dir["#{transcoders_src_dir}/*#{$dlext}"].each do |name|
-  target = File.join transcoders_lib_dir, File.basename(name)
-  file target => name do |t|
-    cp t.prerequisites.first, t.name
-  end
-  TRANSCODING_LIBS << target
-end
 
 file transcoders_database => [transcoders_lib_dir, transcoders_extract] + TRANSCODING_LIBS do |t|
   ruby transcoders_extract, transcoders_src_dir, t.name
@@ -263,15 +262,6 @@ end
 task 'vm/test/runner' => GENERATED do
   blueprint = Daedalus.load "rakelib/blueprint.rb"
   blueprint.build "vm/test/runner", @parallel_jobs
-end
-
-task :transcoders => 'vendor/oniguruma/libonig.a' do
-  dir = "lib/19/encoding/converter"
-  mkdir_p dir
-
-  Dir["vendor/oniguruma/enc/trans/*#{$dlext}"].each do |lib|
-    cp lib, dir
-  end
 end
 
 # Generate files for instructions and interpreters
