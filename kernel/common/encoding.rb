@@ -138,10 +138,11 @@ class Encoding
       source_name = @source_encoding.name.upcase.to_sym
       dest_name = @destination_encoding.name.upcase.to_sym
 
-      @convpath = TranscodingPath[source_name, dest_name]
+      @convpath = TranscodingPath[source_name, dest_name] unless source_name == dest_name
 
       unless @convpath
-        msg = "code converter not found (#{@source_encoding.name} to #{@destination_encoding.name})"
+        conversion = "(#{@source_encoding.name} to #{@destination_encoding.name})"
+        msg = "code converter not found #{conversion}"
         raise ConverterNotFoundError, msg
       end
 
