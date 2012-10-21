@@ -10,4 +10,8 @@ describe "main#private" do
     eval "private :main_public_method", TOPLEVEL_BINDING
     Object.should have_private_method(:main_public_method)
   end
+
+  it "returns Object" do
+    eval("private :main_public_method", TOPLEVEL_BINDING).should equal(Object)
+  end
 end

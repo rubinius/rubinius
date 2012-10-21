@@ -59,10 +59,11 @@ class Module
   def private(*args)
     if args.empty?
       Rubinius::VariableScope.of_sender.method_visibility = :private
-      return
+    else
+      args.each { |meth| set_visibility(meth, :private) }
     end
 
-    args.each { |meth| set_visibility(meth, :private) }
+    self
   end
 
   # Invokes <code>Module#append_features</code> and
