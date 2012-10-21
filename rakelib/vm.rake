@@ -45,26 +45,12 @@ TYPE_GEN    = %w[ vm/gen/includes.hpp
                   vm/gen/jit_resolver.cpp
                   vm/gen/invoke_resolver.cpp ]
 
-transcoders_src_dir = File.expand_path "../../vendor/oniguruma/enc/trans", __FILE__
-transcoders_lib_dir = File.expand_path "../../lib/19/encoding/converter", __FILE__
-directory transcoders_lib_dir
-
-TRANSCODING_LIBS = []
-
-Dir["#{transcoders_src_dir}/*#{$dlext}"].each do |name|
-  target = File.join transcoders_lib_dir, File.basename(name)
-  file target => name do |t|
-    cp t.prerequisites.first, t.name
-  end
-  TRANSCODING_LIBS << target
-end
-
 GENERATED = %W[ vm/gen/revision.h
                 vm/gen/config_variables.h
                 vm/gen/signature.h
                 #{encoding_database}
                 #{transcoders_database}
-              ] + TYPE_GEN + INSN_GEN + TRANSCODING_LIBS
+              ] + TYPE_GEN + INSN_GEN
 
 # Files are in order based on dependencies. For example,
 # CompactLookupTable inherits from Tuple, so the header
@@ -125,6 +111,26 @@ field_extract_headers = %w[
   vm/builtin/atomic.hpp
 ]
 
+transcoders_src_dir = File.expand_path "../../vendor/oniguruma/enc/trans", __FILE__
+transcoders_lib_dir = File.expand_path "../../lib/19/encoding/converter", __FILE__
+directory transcoders_lib_dir
+
+TRANSCODING_LIBS = []
+
+Dir["#{transcoders_src_dir}/*.c"].each do |name|
+  name.sub!(/\.c$/, ".#{$dlext}")
+  target = File.join transcoders_lib_dir, File.basename(name)
+
+  task name do
+  end
+
+  file target => name do |t|
+    cp t.prerequisites.first, t.name, :preserve => true, :verbose => $verbose
+  end
+
+  TRANSCODING_LIBS << target
+end
+
 ############################################################
 # Other Tasks
 
@@ -164,7 +170,7 @@ namespace :build do
                      stage:documentation
                      stage:manpages
                      extensions
-                   ]
+                   ] + TRANSCODING_LIBS
 
   namespace :ffi do
 
@@ -217,7 +223,7 @@ end
 
 transcoders_extract = 'vm/codegen/transcoders_extract.rb'
 
-file transcoders_database => [transcoders_lib_dir, transcoders_extract] + TRANSCODING_LIBS do |t|
+file transcoders_database => [transcoders_lib_dir, transcoders_extract] do |t|
   ruby transcoders_extract, transcoders_src_dir, t.name
 end
 
