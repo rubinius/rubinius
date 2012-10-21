@@ -27,7 +27,7 @@ module Kernel
   def StringValue(obj)
     Rubinius::Type.coerce_to obj, String, :to_str
   end
-  private :StringValue
+  module_function :StringValue
 
   ##
   # MRI uses a macro named NUM2DBL which has essentially the same semantics as

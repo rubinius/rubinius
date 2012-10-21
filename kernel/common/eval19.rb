@@ -44,7 +44,7 @@ class BasicObject
 
       return env.call_under(self, constant_scope, self)
     elsif string
-      string = StringValue(string)
+      string = ::Kernel.StringValue(string)
 
       constant_scope = ::Rubinius::ConstantScope.of_sender
 

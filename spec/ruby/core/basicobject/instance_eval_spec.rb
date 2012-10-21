@@ -10,5 +10,10 @@ ruby_version_is "1.9" do
       a = BasicObject.new
       a.instance_eval { self }.equal?(a).should be_true
     end
+
+    it "evaluates strings" do
+      a = BasicObject.new
+      a.instance_eval('self').equal?(a).should be_true
+    end
   end
 end
