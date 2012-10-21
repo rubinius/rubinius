@@ -404,19 +404,21 @@ class Module
   def protected(*args)
     if args.empty?
       Rubinius::VariableScope.of_sender.method_visibility = :protected
-      return
+    else
+      args.each { |meth| set_visibility(meth, :protected) }
     end
 
-    args.each { |meth| set_visibility(meth, :protected) }
+    self
   end
 
   def public(*args)
     if args.empty?
       Rubinius::VariableScope.of_sender.method_visibility = nil
-      return
+    else
+      args.each { |meth| set_visibility(meth, :public) }
     end
 
-    args.each { |meth| set_visibility(meth, :public) }
+    self
   end
 
   def private_class_method(*args)

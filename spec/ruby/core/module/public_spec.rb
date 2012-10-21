@@ -23,4 +23,13 @@ describe "Module#public" do
     Object.should_not have_public_instance_method(
                   :module_specs_private_method_on_object_for_kernel_public)
   end
+
+  it "returns self" do
+    (class << Object.new; self; end).class_eval do
+      def foo; end
+      private :foo
+      public(:foo).should equal(self)
+      public.should equal(self)
+    end
+  end
 end
