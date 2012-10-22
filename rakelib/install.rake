@@ -98,7 +98,7 @@ def install_build_lib(prefix, target)
 end
 
 def install_lib(prefix, target)
-  FileList["#{prefix}/**/*.rb"].each do |name|
+  FileList["#{prefix}/**/*.rb", "#{prefix}/**/rubygems/**/*"].each do |name|
     install_file name, prefix, "#{target}#{BUILD_CONFIG[:libdir]}"
   end
 end
