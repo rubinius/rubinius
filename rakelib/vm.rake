@@ -163,6 +163,7 @@ namespace :build do
                      build:ffi:preprocessor
                      compiler:generate
                      stage:bin
+                     stage:extra_bins
                      stage:capi_include
                      stage:lib
                      stage:tooling
