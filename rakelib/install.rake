@@ -101,7 +101,6 @@ end
 
 def install_transcoders(prefix, target)
   FileList["#{prefix}/19/encoding/converter/*#{$dlext}"].each do |name|
-    STDERR.puts "installing #{name}"
     install_file name, prefix, "#{target}#{BUILD_CONFIG[:libdir]}", :mode => 0755
   end
 end
