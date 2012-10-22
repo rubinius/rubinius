@@ -4,7 +4,7 @@ module Rubinius
   module AST
     class Send < Node
       attr_accessor :receiver, :name, :privately, :block, :variable
-      attr_accessor :check_for_local
+      attr_accessor :check_for_local, :vcall_style
 
       def initialize(line, receiver, name, privately=false, vcall_style=false)
         @line = line
