@@ -47,7 +47,7 @@ class Configure
     @cxx = nil
     @rake = nil
     @tar = nil
-    @pers = nil
+    @perl = nil
 
     # Versions
     @default_version = "18"
@@ -792,8 +792,8 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
   end
 
   def check_tools
-    @cc = ENV['CC'] || 'gcc'
-    @cxx = ENV['CXX'] || 'g++'
+    @cc ||= ENV['CC'] || 'gcc'
+    @cxx ||= ENV['CXX'] || 'g++'
 
     check_tool_version @cc, '-dumpversion', [4, 1]
     check_tool_version @cxx, '-dumpversion', [4, 1]
