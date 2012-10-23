@@ -110,6 +110,12 @@ module KernelSpecs
     alias aliased_pub_method pub_method
   end
 
+  class VisibilityChange
+    class << self
+      private :new
+    end
+  end
+
   class Binding
     @@super_secret = "password"
 

@@ -72,6 +72,12 @@ describe "Kernel#respond_to?" do
     @a.respond_to?("private_method", true).should == true
   end
 
+  it "does not change method visibility when finding private method" do
+    KernelSpecs::VisibilityChange.respond_to?(:new, false).should == false
+    KernelSpecs::VisibilityChange.respond_to?(:new, true).should == true
+    lambda { KernelSpecs::VisibilityChange.new }.should raise_error(NoMethodError)
+  end
+
   it "indicates if an object responds to a particular message" do
     class KernelSpecs::Foo; def bar; 'done'; end; end
     KernelSpecs::Foo.new.respond_to?(:bar).should == true
