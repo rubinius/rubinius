@@ -74,6 +74,12 @@ ruby_version_is "1.9" do
     it "produces Procs that return nil for #source_location" do
       @proc_add.curry.source_location.should == nil
     end
+
+    it "produces Procs that can be passed as the block for instance_exec" do
+      curried = @proc_add.curry.call(1, 2)
+
+      instance_exec(3, &curried).should == 6
+    end
   end
 
   describe "Proc#curry with arity argument" do
