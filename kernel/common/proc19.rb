@@ -24,12 +24,14 @@ class Proc
 
     args = []
 
+    my_self = self
     m = lambda? ? :lambda : :proc
-    f = send(m) {|*x|
-      args += x
-      if args.length >= arity
-        self[*args]
+    f = __send__(m) {|*x|
+      call_args = args + x
+      if call_args.length >= my_self.arity
+        my_self[*call_args]
       else
+        args = call_args
         f
       end
     }
