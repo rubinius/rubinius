@@ -55,5 +55,12 @@ module Rubinius
     def self.sprintf(format, args)
       ::Rubinius::Sprinter.get(format).call(*args)
     end
+
+    def self.rb_str_encode(str, enc, flags, opts)
+      ec = Encoding::Converter.new str.encoding, enc, flags
+      ec.replacement = opts[:replace] if opts
+
+      ec.convert str
+    end
   end
 end

@@ -64,6 +64,11 @@ extern "C" {
     return rb_external_str_new_with_enc(string, strlen(string), rb_default_external_encoding());
   }
 
+  VALUE rb_str_encode(VALUE str, VALUE to, int ecflags, VALUE ecopts) {
+    return rb_funcall(rb_mCAPI, rb_intern("rb_str_encode"), 4,
+                      str, to, INT2FIX(ecflags), ecopts);
+  }
+
   int rb_enc_str_coderange(VALUE string) {
     // TODO
     return ENC_CODERANGE_7BIT;
