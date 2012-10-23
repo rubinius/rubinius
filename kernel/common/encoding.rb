@@ -125,20 +125,12 @@ class Encoding
         @options = 0
       end
 
-      if replacement.nil?
-        if @destination_encoding == Encoding::UTF_8
-          @replacement = "\xef\xbf\xbd".force_encoding(Encoding::UTF_8)
-        else
-          @replacement = "?".force_encoding(Encoding::US_ASCII)
-        end
-      else
-        @replacement = Rubinius::Type.coerce_to replacement, String, :to_str
-      end
-
       source_name = @source_encoding.name.upcase.to_sym
       dest_name = @destination_encoding.name.upcase.to_sym
 
-      @convpath = TranscodingPath[source_name, dest_name] unless source_name == dest_name
+      unless source_name == dest_name
+        @convpath, @converters = TranscodingPath[source_name, dest_name]
+      end
 
       unless @convpath
         conversion = "(#{@source_encoding.name} to #{@destination_encoding.name})"
@@ -146,22 +138,27 @@ class Encoding
         raise ConverterNotFoundError, msg
       end
 
-      @converters = []
-      total = @convpath.size - 1
-      i = 0
-      while i < total
-        entry = TranscodingMap[@convpath[i]][@convpath[i + 1]]
-
-        if entry.kind_of? String
-          path = "#{Rubinius::LIB_PATH}/19/encoding/converter/#{entry}"
-          Rubinius::NativeMethod.load_extension path, entry
-
-          entry = TranscodingMap[@convpath[i]][@convpath[i + 1]]
+      if @options & (INVALID_REPLACE | UNDEF_REPLACE | UNDEF_HEX_CHARREF)
+        if replacement.nil?
+          if @destination_encoding == Encoding::UTF_8
+            @replacement = "\xef\xbf\xbd".force_encoding(Encoding::UTF_8)
+          else
+            @replacement = "?".force_encoding(Encoding::US_ASCII)
+          end
+        else
+          @replacement = Rubinius::Type.coerce_to replacement, String, :to_str
         end
 
-        @converters << entry
+        replacement_encoding_name = @replacement.encoding.name.upcase
+        @replacement_converters = []
 
-        i += 1
+        @convpath.each do |enc|
+          name = enc.to_s.upcase
+          next if name == replacement_encoding_name
+
+          _, converters = TranscodingPath[replacement_encoding_name, enc]
+          @replacement_converters << name << converters
+        end
       end
     end
 
@@ -169,7 +166,7 @@ class Encoding
       str = StringValue(str)
 
       dest = ""
-      status = primitive_convert str, dest, nil, nil, PARTIAL_INPUT
+      status = primitive_convert str, dest, nil, nil, @options | PARTIAL_INPUT
 
       if status == :invalid_byte_sequence or
          status == :undefined_conversion or
@@ -408,15 +405,20 @@ class Encoding
       def self.[](source, target)
         key = "[#{source}, #{target}]"
 
-        path = paths[key]
+        path, converters = paths[key]
 
         unless path
           return if cache_valid?
-          path = search source, target
-          paths[key] = path if path
+          return unless path = search(source, target)
+          paths[key] = [path]
         end
 
-        path
+        unless converters
+          converters = get_converters path
+          paths[key][1] = converters
+        end
+
+        return path, converters
       end
 
       def self.search(source, target)
@@ -444,6 +446,29 @@ class Encoding
             end
           end
         end
+      end
+
+      def self.get_converters(path)
+        converters = []
+        total = path.size - 1
+        i = 0
+
+        while i < total
+          entry = TranscodingMap[path[i]][path[i + 1]]
+
+          if entry.kind_of? String
+            lib = "#{Rubinius::LIB_PATH}/19/encoding/converter/#{entry}"
+            Rubinius::NativeMethod.load_extension lib, entry
+
+            entry = TranscodingMap[path[i]][path[i + 1]]
+          end
+
+          converters << entry
+
+          i += 1
+        end
+
+        converters
       end
     end
   end

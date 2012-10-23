@@ -691,12 +691,56 @@ namespace rubinius {
         rb_transcoder* tr = transcoding->get_transcoder();
 
         if(rb_econv_add_transcoder_at(converter_, tr, i) == -1) {
+          rb_econv_free(converter_);
+          converter_ = NULL;
           return force_as<Symbol>(Primitives::failure());
         }
       }
     }
 
-    int flags = options->to_native();
+    if(!replacement()->nil_p()) {
+      native_int byte_size = replacement()->byte_size();
+      char* buf = (char*)XMALLOC(byte_size + 1);
+      strncpy(buf, replacement()->c_str(state), byte_size + 1);
+      converter_->replacement_str = (const unsigned char*)buf;
+      converter_->replacement_len = replacement()->byte_size();
+
+      String* name = replacement()->encoding()->name();
+      byte_size = name->byte_size();
+      buf = (char*)XMALLOC(byte_size + 1);
+      strncpy(buf, name->c_str(state), byte_size + 1);
+      converter_->replacement_enc = (const char*)buf;
+      converter_->replacement_allocated = 1;
+
+      size_t num_converters = replacement_converters()->size();
+      rb_econv_alloc_replacement_converters(converter_, num_converters / 2);
+
+      for(size_t i = 0, k = 0; i < num_converters; k++, i += 2) {
+        rb_econv_replacement_converters* repl_converter;
+        repl_converter = converter_->replacement_converters + k;
+
+        name = as<String>(replacement_converters()->get(state, i));
+        byte_size = name->byte_size();
+        buf = (char*)XMALLOC(byte_size + 1);
+        strncpy(buf, name->c_str(state), byte_size + 1);
+        repl_converter->destination_encoding_name = (const char*)buf;
+
+        Array* trs = as<Array>(replacement_converters()->get(state, i + 1));
+        size_t num_transcoders = trs->size();
+
+        repl_converter->num_transcoders = num_transcoders;
+        repl_converter->transcoders = ALLOC_N(rb_transcoder*, num_transcoders);
+
+        for(size_t j = 0; j < num_transcoders; j++) {
+          Transcoding* transcoding = as<Transcoding>(trs->get(state, j));
+          rb_transcoder* tr = transcoding->get_transcoder();
+
+          repl_converter->transcoders[j] = tr;
+        }
+      }
+    }
+
+    int flags = converter_->flags = options->to_native();
 
     const unsigned char* source_str = 0;
     const unsigned char* source_ptr = 0;

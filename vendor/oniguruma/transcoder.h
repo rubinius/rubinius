@@ -167,6 +167,12 @@ typedef struct {
     rb_econv_result_t last_result;
 } rb_econv_elem_t;
 
+typedef struct {
+  const char* destination_encoding_name;
+  int num_transcoders;
+  struct rb_transcoder** transcoders;
+} rb_econv_replacement_converters;
+
 struct rb_econv_t {
     int flags;
     const char *source_encoding_name;
@@ -178,6 +184,9 @@ struct rb_econv_t {
     size_t replacement_len;
     const char *replacement_enc;
     int replacement_allocated;
+
+    int num_replacement_converters;
+    rb_econv_replacement_converters* replacement_converters;
 
     unsigned char *in_buf_start;
     unsigned char *in_data_start;
@@ -209,6 +218,7 @@ void rb_declare_transcoder(const char *enc1, const char *enc2, const char *lib);
 void rb_register_transcoder(const rb_transcoder *);
 
 rb_econv_t* rb_econv_alloc(int n_hint);
+void rb_econv_alloc_replacement_converters(rb_econv_t* ec, int num);
 void rb_econv_free(rb_econv_t *ec);
 
 rb_econv_result_t econv_convert(rb_econv_t *ec,

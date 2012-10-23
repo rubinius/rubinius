@@ -139,6 +139,7 @@ namespace rubinius {
     String* replacement_;             // slot
     Array* convpath_;                 // slot
     Array* converters_;               // slot
+    Array* replacement_converters_;   // slot
 
     rb_econv_t* converter_;
 
@@ -148,6 +149,7 @@ namespace rubinius {
     attr_accessor(replacement, String);
     attr_accessor(convpath, Array);
     attr_accessor(converters, Array);
+    attr_accessor(replacement_converters, Array);
 
     void set_converter(rb_econv_t* c) {
       converter_ = c;

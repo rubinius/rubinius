@@ -579,6 +579,8 @@ rb_econv_alloc(int n_hint)
     ec->replacement_len = 0;
     ec->replacement_enc = NULL;
     ec->replacement_allocated = 0;
+    ec->num_replacement_converters = 0;
+    ec->replacement_converters = NULL;
     ec->in_buf_start = NULL;
     ec->in_data_start = NULL;
     ec->in_data_end = NULL;
@@ -598,6 +600,11 @@ rb_econv_alloc(int n_hint)
     return ec;
 }
 
+void rb_econv_alloc_replacement_converters(rb_econv_t* ec, int num) {
+    ec->num_replacement_converters = num;
+    ec->replacement_converters = ALLOC_N(rb_econv_replacement_converters, num);
+}
+
 void
 rb_econv_free(rb_econv_t *ec)
 {
@@ -605,6 +612,14 @@ rb_econv_free(rb_econv_t *ec)
 
     if (ec->replacement_allocated) {
         xfree((void *)ec->replacement_str);
+        xfree((void *)ec->replacement_enc);
+    }
+    if (ec->num_replacement_converters) {
+      for (i = 0; i < ec->num_replacement_converters; i++) {
+        xfree((void *)(ec->replacement_converters[i].destination_encoding_name));
+        xfree((void *)(ec->replacement_converters[i].transcoders));
+      }
+      xfree((void *)ec->replacement_converters);
     }
     for (i = 0; i < ec->num_trans; i++) {
         rb_transcoding_close(ec->elems[i].tc);
@@ -950,6 +965,309 @@ econv_convert0(rb_econv_t *ec,
     return res;
 }
 
+rb_econv_t* rb_econv_replacement_converter_open(rb_econv_t* main_ec,
+    const char* sname, const char* dname)
+{
+    rb_econv_t* ec;
+    int i, j;
+
+    for(i = 0; i < main_ec->num_replacement_converters; i++) {
+      rb_econv_replacement_converters* repl_converter;
+      repl_converter = main_ec->replacement_converters + i;
+
+      if(!encoding_equal(dname, repl_converter->destination_encoding_name))
+        continue;
+
+      int num = repl_converter->num_transcoders;
+      ec = rb_econv_alloc(num);
+
+      for(j = 0; j < num; j++) {
+        rb_transcoder* tr = repl_converter->transcoders[j];
+
+        if(rb_econv_add_transcoder_at(ec, tr, j) == -1) {
+          rb_econv_free(ec);
+          return NULL;
+        }
+      }
+
+      ec->flags = 0;
+      ec->source_encoding_name = sname;
+      ec->destination_encoding_name = dname;
+
+      return ec;
+    }
+
+    return NULL;
+}
+
+static unsigned char *
+allocate_converted_string(rb_econv_t* main_ec, const char *sname, const char *dname,
+        const unsigned char *str, size_t len,
+        unsigned char *caller_dst_buf, size_t caller_dst_bufsize,
+        size_t *dst_len_ptr)
+{
+    unsigned char *dst_str;
+    size_t dst_len;
+    size_t dst_bufsize;
+
+    rb_econv_t *ec;
+    rb_econv_result_t res;
+
+    const unsigned char *sp;
+    unsigned char *dp;
+
+    if (caller_dst_buf)
+        dst_bufsize = caller_dst_bufsize;
+    else if (len == 0)
+        dst_bufsize = 1;
+    else
+        dst_bufsize = len;
+
+    ec = rb_econv_replacement_converter_open(main_ec, sname, dname);
+    if (ec == NULL)
+        return NULL;
+    if (caller_dst_buf)
+        dst_str = caller_dst_buf;
+    else
+        dst_str = xmalloc(dst_bufsize);
+    dst_len = 0;
+    sp = str;
+    dp = dst_str+dst_len;
+    res = econv_convert(ec, &sp, str+len, &dp, dst_str+dst_bufsize, 0);
+    dst_len = dp - dst_str;
+    while (res == econv_destination_buffer_full) {
+        if (SIZE_MAX/2 < dst_bufsize) {
+            goto fail;
+        }
+        dst_bufsize *= 2;
+        if (dst_str == caller_dst_buf) {
+            unsigned char *tmp;
+            tmp = xmalloc(dst_bufsize);
+            memcpy(tmp, dst_str, dst_bufsize/2);
+            dst_str = tmp;
+        }
+        else {
+            dst_str = xrealloc(dst_str, dst_bufsize);
+        }
+        dp = dst_str+dst_len;
+        res = econv_convert(ec, &sp, str+len, &dp, dst_str+dst_bufsize, 0);
+        dst_len = dp - dst_str;
+    }
+    if (res != econv_finished) {
+        goto fail;
+    }
+    rb_econv_free(ec);
+    *dst_len_ptr = dst_len;
+    return dst_str;
+
+  fail:
+    if (dst_str != caller_dst_buf)
+        xfree(dst_str);
+    rb_econv_free(ec);
+    return NULL;
+}
+
+const char *
+rb_econv_encoding_to_insert_output(rb_econv_t *ec)
+{
+    rb_transcoding *tc = ec->last_tc;
+    const rb_transcoder *tr;
+
+    if (tc == NULL)
+        return "";
+
+    tr = tc->transcoder;
+
+    if (tr->asciicompat_type == asciicompat_encoder)
+        return tr->src_encoding;
+    return tr->dst_encoding;
+}
+
+/* result: 0:success -1:failure */
+int
+rb_econv_insert_output(rb_econv_t *ec,
+    const unsigned char *str, size_t len, const char *str_encoding)
+{
+    const char *insert_encoding = rb_econv_encoding_to_insert_output(ec);
+    unsigned char insert_buf[4096];
+    const unsigned char *insert_str = NULL;
+    size_t insert_len;
+
+    int last_trans_index;
+    rb_transcoding *tc;
+
+    unsigned char **buf_start_p;
+    unsigned char **data_start_p;
+    unsigned char **data_end_p;
+    unsigned char **buf_end_p;
+
+    size_t need;
+
+    ec->started = 1;
+
+    if (len == 0)
+        return 0;
+
+    if (encoding_equal(insert_encoding, str_encoding)) {
+        insert_str = str;
+        insert_len = len;
+    }
+    else {
+        insert_str = allocate_converted_string(ec, str_encoding, insert_encoding,
+                str, len, insert_buf, sizeof(insert_buf), &insert_len);
+        if (insert_str == NULL)
+            return -1;
+    }
+
+    need = insert_len;
+
+    last_trans_index = ec->num_trans-1;
+    if (ec->num_trans == 0) {
+        tc = NULL;
+        buf_start_p = &ec->in_buf_start;
+        data_start_p = &ec->in_data_start;
+        data_end_p = &ec->in_data_end;
+        buf_end_p = &ec->in_buf_end;
+    }
+    else if (ec->elems[last_trans_index].tc->transcoder->asciicompat_type == asciicompat_encoder) {
+        tc = ec->elems[last_trans_index].tc;
+        need += tc->readagain_len;
+        if (need < insert_len)
+            goto fail;
+        if (last_trans_index == 0) {
+            buf_start_p = &ec->in_buf_start;
+            data_start_p = &ec->in_data_start;
+            data_end_p = &ec->in_data_end;
+            buf_end_p = &ec->in_buf_end;
+        }
+        else {
+            rb_econv_elem_t *ee = &ec->elems[last_trans_index-1];
+            buf_start_p = &ee->out_buf_start;
+            data_start_p = &ee->out_data_start;
+            data_end_p = &ee->out_data_end;
+            buf_end_p = &ee->out_buf_end;
+        }
+    }
+    else {
+        rb_econv_elem_t *ee = &ec->elems[last_trans_index];
+        buf_start_p = &ee->out_buf_start;
+        data_start_p = &ee->out_data_start;
+        data_end_p = &ee->out_data_end;
+        buf_end_p = &ee->out_buf_end;
+        tc = ec->elems[last_trans_index].tc;
+    }
+
+    if (*buf_start_p == NULL) {
+        unsigned char *buf = xmalloc(need);
+        *buf_start_p = buf;
+        *data_start_p = buf;
+        *data_end_p = buf;
+        *buf_end_p = buf+need;
+    }
+    else if ((size_t)(*buf_end_p - *data_end_p) < need) {
+        MEMMOVE(*buf_start_p, *data_start_p, unsigned char, *data_end_p - *data_start_p);
+        *data_end_p = *buf_start_p + (*data_end_p - *data_start_p);
+        *data_start_p = *buf_start_p;
+        if ((size_t)(*buf_end_p - *data_end_p) < need) {
+            unsigned char *buf;
+            size_t s = (*data_end_p - *buf_start_p) + need;
+            if (s < need)
+                goto fail;
+            buf = xrealloc(*buf_start_p, s);
+            *data_start_p = buf;
+            *data_end_p = buf + (*data_end_p - *buf_start_p);
+            *buf_start_p = buf;
+            *buf_end_p = buf + s;
+        }
+    }
+
+    memcpy(*data_end_p, insert_str, insert_len);
+    *data_end_p += insert_len;
+    if (tc && tc->transcoder->asciicompat_type == asciicompat_encoder) {
+        memcpy(*data_end_p, TRANSCODING_READBUF(tc)+tc->recognized_len, tc->readagain_len);
+        *data_end_p += tc->readagain_len;
+        tc->readagain_len = 0;
+    }
+
+    if (insert_str != str && insert_str != insert_buf)
+        xfree((void*)insert_str);
+    return 0;
+
+  fail:
+    if (insert_str != str && insert_str != insert_buf)
+        xfree((void*)insert_str);
+    return -1;
+}
+
+static int
+output_replacement_character(rb_econv_t *ec)
+{
+    int ret;
+
+    ret = rb_econv_insert_output(ec, ec->replacement_str, ec->replacement_len, ec->replacement_enc);
+    if (ret == -1)
+        return -1;
+
+    return 0;
+}
+
+static int
+output_hex_charref(rb_econv_t *ec)
+{
+    int ret;
+    unsigned char utfbuf[1024];
+    const unsigned char *utf;
+    size_t utf_len;
+    int utf_allocated = 0;
+    char charef_buf[16];
+    const unsigned char *p;
+
+    if (encoding_equal(ec->last_error.source_encoding, "UTF-32BE")) {
+        utf = ec->last_error.error_bytes_start;
+        utf_len = ec->last_error.error_bytes_len;
+    }
+    else {
+        utf = allocate_converted_string(ec, ec->last_error.source_encoding, "UTF-32BE",
+                ec->last_error.error_bytes_start, ec->last_error.error_bytes_len,
+                utfbuf, sizeof(utfbuf),
+                &utf_len);
+        if (!utf)
+            return -1;
+        if (utf != utfbuf && utf != ec->last_error.error_bytes_start)
+            utf_allocated = 1;
+      return -1;
+    }
+
+    if (utf_len % 4 != 0)
+        goto fail;
+
+    p = utf;
+    while (4 <= utf_len) {
+        unsigned int u = 0;
+        u += p[0] << 24;
+        u += p[1] << 16;
+        u += p[2] << 8;
+        u += p[3];
+        snprintf(charef_buf, sizeof(charef_buf), "&#x%X;", u);
+
+        ret = rb_econv_insert_output(ec, (unsigned char *)charef_buf, strlen(charef_buf), "US-ASCII");
+        if (ret == -1)
+            goto fail;
+
+        p += 4;
+        utf_len -= 4;
+    }
+
+    if (utf_allocated)
+        xfree((void *)utf);
+    return 0;
+
+  fail:
+    if (utf_allocated)
+        xfree((void *)utf);
+    return -1;
+}
+
 rb_econv_result_t
 econv_convert(rb_econv_t *ec,
     const unsigned char **input_ptr, const unsigned char *input_stop,
@@ -982,8 +1300,7 @@ econv_convert(rb_econv_t *ec,
         /* todo: add more alternative behaviors */
         switch (ec->flags & ECONV_INVALID_MASK) {
           case ECONV_INVALID_REPLACE:
-            // TODO: fix
-            // if (output_replacement_character(ec) == 0)
+            if (output_replacement_character(ec) == 0)
                 goto resume;
         }
     }
@@ -994,36 +1311,18 @@ econv_convert(rb_econv_t *ec,
         /* todo: add more alternative behaviors */
         switch (ec->flags & ECONV_UNDEF_MASK) {
           case ECONV_UNDEF_REPLACE:
-            // TODO: fix
-            // if (output_replacement_character(ec) == 0)
+            if (output_replacement_character(ec) == 0)
                 goto resume;
             break;
 
           case ECONV_UNDEF_HEX_CHARREF:
-            // TODO: fix
-            // if (output_hex_charref(ec) == 0)
+            if (output_hex_charref(ec) == 0)
                 goto resume;
             break;
         }
     }
 
     return ret;
-}
-
-const char *
-rb_econv_encoding_to_insert_output(rb_econv_t *ec)
-{
-    rb_transcoding *tc = ec->last_tc;
-    const rb_transcoder *tr;
-
-    if (tc == NULL)
-        return "";
-
-    tr = tc->transcoder;
-
-    if (tr->asciicompat_type == asciicompat_encoder)
-        return tr->src_encoding;
-    return tr->dst_encoding;
 }
 
 size_t
