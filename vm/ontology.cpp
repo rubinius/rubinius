@@ -294,8 +294,6 @@ namespace rubinius {
     Array::init(state);
     ByteArray::init(state);
     String::init(state);
-    Encoding::init(state);
-    kcode::init(state);
     Executable::init(state);
     CompiledCode::init(state);
     IO::init(state);
@@ -331,6 +329,9 @@ namespace rubinius {
     Alias::init(state);
     Randomizer::init(state);
     AtomicReference::init(state);
+
+    Encoding::init(state);
+    kcode::init(state);
   }
 
   // @todo document all the sections of bootstrap_ontology
