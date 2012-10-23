@@ -617,6 +617,19 @@ The optional argument is which variable specificly to show the value of.
 
       end
     end
+
+    class Quit < Command
+      pattern "quit", "exit"
+      help "Quit the debugger"
+      ext_help <<-HELP
+Quits your current session and shuts down the complete process
+      HELP
+
+      def run(args)
+        Process.exit!(1)
+      end
+    end
+
   end
 
 end
