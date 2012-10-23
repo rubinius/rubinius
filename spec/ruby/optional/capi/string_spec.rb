@@ -155,6 +155,42 @@ describe "C-API String function" do
         result.encoding.should == Encoding::US_ASCII
       end
     end
+
+    describe "rb_str_encode" do
+      it "returns a String in the destination encoding" do
+        result = @s.rb_str_encode("abc", Encoding::ISO_8859_1, 0, nil)
+        result.encoding.should == Encoding::ISO_8859_1
+      end
+
+      it "transcodes the String" do
+        result = @s.rb_str_encode("ありがとう", "euc-jp", 0, nil)
+        result.should == "\xa4\xa2\xa4\xea\xa4\xac\xa4\xc8\xa4\xa6".force_encoding("euc-jp")
+        result.encoding.should == Encoding::EUC_JP
+      end
+
+      it "returns a dup of the original String" do
+        a = "abc"
+        b = @s.rb_str_encode("abc", "us-ascii", 0, nil)
+        a.should_not equal(b)
+      end
+
+      it "accepts encoding flags" do
+        result = @s.rb_str_encode("a\xffc", "us-ascii",
+                                  Encoding::Converter::INVALID_REPLACE, nil)
+        result.should == "a?c"
+        result.encoding.should == Encoding::US_ASCII
+      end
+
+      it "accepts an encoding options Hash specifying replacement String" do
+        # Yeah, MRI aborts with rb_bug() if the options Hash is not frozen
+        options = { :replace => "b" }.freeze
+        result = @s.rb_str_encode("a\xffc", "us-ascii",
+                                  Encoding::Converter::INVALID_REPLACE,
+                                  options)
+        result.should == "abc"
+        result.encoding.should == Encoding::US_ASCII
+      end
+    end
   end
 
   describe "rb_str_new3" do

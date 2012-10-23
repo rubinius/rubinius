@@ -171,6 +171,12 @@ VALUE string_spec_rb_str_new2(VALUE self, VALUE str) {
 }
 #endif
 
+#ifdef HAVE_RB_STR_ENCODE
+VALUE string_spec_rb_str_encode(VALUE self, VALUE str, VALUE enc, VALUE flags, VALUE opts) {
+  return rb_str_encode(str, enc, FIX2INT(flags), opts);
+}
+#endif
+
 #ifdef HAVE_RB_STR_NEW_CSTR
 VALUE string_spec_rb_str_new_cstr(VALUE self, VALUE str) {
   if(NIL_P(str)) {
@@ -557,6 +563,10 @@ void Init_string_spec() {
 
 #ifdef HAVE_RB_STR_NEW2
   rb_define_method(cls, "rb_str_new2", string_spec_rb_str_new2, 1);
+#endif
+
+#ifdef HAVE_RB_STR_ENCODE
+  rb_define_method(cls, "rb_str_encode", string_spec_rb_str_encode, 4);
 #endif
 
 #ifdef HAVE_RB_STR_NEW_CSTR
