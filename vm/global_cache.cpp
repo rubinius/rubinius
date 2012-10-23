@@ -5,6 +5,7 @@
 #include "lookup_data.hpp"
 #include "dispatch.hpp"
 
+#include "builtin/symbol.hpp"
 #include "builtin/class.hpp"
 #include "builtin/module.hpp"
 #include "builtin/object.hpp"
@@ -33,9 +34,19 @@ namespace rubinius {
       /* If this was a private send, then we can handle use
        * any method seen. */
       if(lookup.min_visibility == G(sym_private) || skip_vis_check) {
-        /* nil means that the actual method object is 'up' from here */
-        if(entry->method()->nil_p()) goto keep_looking;
-        *visibility = entry->visibility();
+        /* The method was callable, but we need to keep looking
+         * for the implementation, so make the invocation bypass all further
+         * visibility checks. If we are skipping visibility checks we
+         * shouldn't update visibility anymore because the implementation
+         * might have a different visibility than the original lookup.
+         */
+        if(!skip_vis_check) {
+          *visibility = entry->visibility();
+        }
+        if(entry->method()->nil_p()) {
+          skip_vis_check = true;
+          goto keep_looking;
+        }
 
         if(Alias* alias = try_as<Alias>(entry->method())) {
           msg.method = alias->original_exec();
@@ -59,7 +70,13 @@ namespace rubinius {
 
         /* The method was callable, but we need to keep looking
          * for the implementation, so make the invocation bypass all further
-         * visibility checks */
+         * visibility checks. If we are skipping visibility checks we
+         * shouldn't update visibility anymore because the implementation
+         * might have a different visibility than the original lookup.
+         */
+        if(!skip_vis_check) {
+          *visibility = entry->visibility();
+        }
         if(entry->method()->nil_p()) {
           skip_vis_check = true;
           goto keep_looking;
@@ -72,7 +89,6 @@ namespace rubinius {
           msg.method = entry->method();
           msg.module = module;
         }
-        *visibility = entry->visibility();
         break;
       }
 
@@ -130,7 +146,9 @@ keep_looking:
     CacheEntry* entry = this->lookup(state, klass, name);
 
     if(entry) {
-      if(lookup.min_visibility == G(sym_private) || entry->visibility == G(sym_public) || lookup.min_visibility == entry->visibility) {
+      if(lookup.min_visibility == G(sym_private) ||
+         entry->visibility     == G(sym_public)  ||
+         lookup.min_visibility == entry->visibility) {
         msg.method = entry->method;
         msg.module = entry->module;
         msg.method_missing = entry->method_missing;
@@ -141,8 +159,9 @@ keep_looking:
 
     Symbol* visibility = G(sym_protected);
     if(hierarchy_resolve(state, name, msg, lookup, &visibility)) {
-      retain_i(state, lookup.from, name,
+      retain_i(state, klass, name,
           msg.module, msg.method, msg.method_missing, visibility);
+
       return true;
     }
 

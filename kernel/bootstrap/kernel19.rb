@@ -42,7 +42,7 @@ module Kernel
   end
 
   def respond_to_prim?(meth, include_private)
-    Rubinius.primitive :object_respond_to_public
+    Rubinius.primitive :object_respond_to
     respond_to_all?(meth.to_sym, include_private);
   end
 
