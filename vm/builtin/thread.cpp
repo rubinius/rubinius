@@ -59,7 +59,7 @@ namespace rubinius {
   }
 
   Thread* Thread::create(STATE, VM* target, Object* self, Run runner,
-                         bool main_thread)
+                         bool main_thread, bool system_thread)
   {
     Thread* thr = state->new_object<Thread>(G(thread));
 
@@ -74,6 +74,7 @@ namespace rubinius {
     thr->klass(state, as<Class>(self));
     thr->runner_ = runner;
     thr->init_lock_.init();
+    thr->system_thread_ = system_thread;
 
     target->thread.set(thr);
 

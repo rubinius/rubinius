@@ -62,7 +62,7 @@ namespace rubinius {
     SYNC(state);
     if(self_) return;
     self_ = state->shared().new_vm();
-    thread_.set(Thread::create(state, self_, G(thread), handle_tramp, false));
+    thread_.set(Thread::create(state, self_, G(thread), handle_tramp, false, true));
     run(state);
 
   }

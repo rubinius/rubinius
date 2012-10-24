@@ -46,6 +46,11 @@ namespace rubinius {
 
     utilities::thread::SpinLock init_lock_;
 
+    /// Whether this is an internal VM thread that should
+    /// not be exposed in Ruby land but does need to be a
+    /// managed thread.
+    bool system_thread_;
+
     /// The VM state for this thread and this thread alone
     VM* vm_;
 
@@ -79,8 +84,8 @@ namespace rubinius {
       return vm_;
     }
 
-    bool signal_handler_thread_p() {
-      return runner_ == handle_tramp;
+    bool system_thread() {
+      return system_thread_;
     }
 
   public:
@@ -253,7 +258,7 @@ namespace rubinius {
      *  @see  Thread::allocate().
      */
     static Thread* create(STATE, VM* target, Object* self, Run runner,
-                          bool main_thread = false);
+                          bool main_thread = false, bool system_thread = false);
 
     int start_new_thread(STATE, const pthread_attr_t &attrs);
     static void* in_new_thread(void*);

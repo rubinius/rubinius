@@ -1178,7 +1178,7 @@ step1:
 
   void ObjectMemory::start_finalizer_thread(STATE) {
     VM* vm = state->shared().new_vm();
-    Thread* thr = Thread::create(state, vm, G(thread), in_finalizer);
+    Thread* thr = Thread::create(state, vm, G(thread), in_finalizer, false, true);
     finalizer_thread_.set(thr);
     thr->fork(state);
   }
