@@ -183,7 +183,7 @@ namespace rubinius {
 
     void reset_stack_limit() {
       // @TODO assumes stack growth direction
-      stack_limit_ = (stack_start_ - stack_size_) + (4096 * 3);
+      stack_limit_ = (stack_start_ - stack_size_) + (4096 * 10);
     }
 
     void set_stack_bounds(uintptr_t start, int length) {
