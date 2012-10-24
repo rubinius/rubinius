@@ -974,6 +974,9 @@ step1:
     CallFrame* call_frame = 0;
     utilities::thread::Thread::set_os_name("rbx.finalizer");
 
+    GCTokenImpl gct;
+    state->vm()->thread->hard_unlock(state, gct);
+
     // Forever
     for(;;) {
       FinalizeObject* fi;
@@ -1027,8 +1030,6 @@ step1:
 
       fi->status = FinalizeObject::eFinalized;
     }
-
-    GCTokenImpl gct;
 
     state->checkpoint(gct, 0);
   }

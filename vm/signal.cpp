@@ -143,6 +143,8 @@ namespace rubinius {
     GCTokenImpl gct;
     utilities::thread::Thread::set_os_name("rbx.signal-dispatch");
 
+    state->vm()->thread->hard_unlock(state, gct);
+
     for(;;) {
       fd_set fds;
       FD_ZERO(&fds);
