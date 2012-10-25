@@ -24,13 +24,13 @@ describe "Process.uid=" do
       lambda { Process.uid = "100"}.should raise_error(TypeError)
     end
     
-    if Process.uid != 0
+    as_user do
       it "raises Errno::ERPERM if run by a non privileged user trying to set the superuser id" do 
         lambda { (Process.uid = 0)}.should raise_error(Errno::EPERM)
       end
     end
     
-    if Process.uid == 0
+    as_superuser do 
       describe "if run by a superuser" do 
         with_feature :fork do 
           it "sets the real user id for the current process" do
