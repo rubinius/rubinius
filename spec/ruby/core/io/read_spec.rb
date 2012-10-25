@@ -311,7 +311,35 @@ describe "IO#read with $KCODE set to UTF-8" do
 end
 
 ruby_version_is "1.9" do
-  describe "IO#read with BOM" do
+  describe "IO#read in binary mode" do
+    before :each do
+      @internal = Encoding.default_internal
+      @name = fixture __FILE__, "read_binary.txt"
+    end
+
+    after :each do
+      Encoding.default_internal = @internal
+    end
+
+    it "does not transcode file contents when Encoding.default_internal is set" do
+      Encoding.default_internal = "utf-8"
+
+      result = File.open(@name, "rb") { |f| f.read }.chomp
+
+      result.encoding.should == Encoding::ASCII_8BIT
+      result.should == "abc\xE2def".force_encoding(Encoding::ASCII_8BIT)
+    end
+
+    it "does transcode file contents when an internal encoding is specified" do
+      Encoding.default_internal = "euc-jp"
+
+      lambda do
+        File.open(@name, "r:binary:utf-8") { |f| f.read }
+      end.should raise_error(Encoding::UndefinedConversionError)
+    end
+  end
+
+  describe "IO.read with BOM" do
     it "reads a file without a bom" do
       name = fixture __FILE__, "no_bom_UTF-8.txt"
       result = File.read(name, :mode => "rb:BOM|utf-8")
