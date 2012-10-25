@@ -633,7 +633,7 @@ class IO
     when String
       # do nothing
     when nil
-      internal = Encoding.default_internal
+      internal = Encoding.default_internal unless @binmode
     else
       internal = StringValue(internal)
     end
