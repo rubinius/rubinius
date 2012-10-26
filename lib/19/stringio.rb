@@ -53,6 +53,18 @@ class StringIO
     self
   end
 
+  def check_readable
+    raise IOError, "not opened for reading" unless @readable
+  end
+
+  private :check_readable
+
+  def check_writable
+    raise IOError, "not opened for writing" unless @writable
+  end
+
+  private :check_writable
+
   def set_encoding(external, internal=nil, options=nil)
     @string.force_encoding(external || Encoding.default_external)
   end
@@ -67,10 +79,12 @@ class StringIO
 
   def each_byte
     return to_enum :each_byte unless block_given?
-    raise IOError, "not opened for reading" unless @readable
+    check_readable
+
     if @pos < @string.length
       @string.byteslice(@pos..-1).each_byte { |b| @pos += 1; yield b}
     end
+
     self
   end
 
@@ -105,14 +119,30 @@ class StringIO
 
   alias_method :chars, :each_char
 
+  def each_codepoint(&block)
+    return to_enum :each_codepoint unless block_given?
+    check_readable
+
+    str = @pos > 0 ? @string.byteslice(@pos..-1) : @string
+
+    str.codepoints(&block)
+
+    self
+  end
+
+  alias_method :codepoints, :each_codepoint
+
   def each(*args)
     return to_enum :each, *args unless block_given?
-    raise IOError, "not opened for reading" unless @readable
+    check_readable
+
     while line = getline(*args)
       yield line
     end
+
     self
   end
+
   alias_method :each_line, :each
   alias_method :lines, :each
 
@@ -126,7 +156,7 @@ class StringIO
   end
 
   def write(str)
-    raise IOError, "not opened for writing" unless @writable
+    check_writable
 
     str = String(str)
 
@@ -159,7 +189,7 @@ class StringIO
   end
 
   def close_read
-    raise IOError, "closing non-duplex IO for reading" unless @readable
+    check_readable
     @readable = nil
   end
 
@@ -168,7 +198,7 @@ class StringIO
   end
 
   def close_write
-    raise IOError, "closing non-duplex IO for writing" unless @writable
+    check_writable
     @writable = nil
   end
 
@@ -198,7 +228,7 @@ class StringIO
   end
 
   def getc
-    raise IOError, "not opened for reading" unless @readable
+    check_readable
     char = @string[@pos]
     @pos += 1 unless eof?
     char
@@ -233,14 +263,14 @@ class StringIO
   end
 
   def print(*args)
-    raise IOError, "not opened for writing" unless @writable
+    check_writable
     args << $_ if args.empty?
     write((args << $\).flatten.join)
     nil
   end
 
   def printf(*args)
-    raise IOError, "not opened for writing" unless @writable
+    check_writable
 
     if args.size > 1
       write(args.shift % args)
@@ -252,7 +282,7 @@ class StringIO
   end
 
   def putc(obj)
-    raise IOError, "not opened for writing" unless @writable
+    check_writable
 
     if obj.is_a?(String)
       char = obj[0]
@@ -305,7 +335,7 @@ class StringIO
   end
 
   def read(length=nil, buffer=nil)
-    raise IOError, "not opened for reading" unless @readable
+    check_readable
 
     if length
       length = Rubinius::Type.coerce_to length, Integer, :to_int
@@ -344,11 +374,13 @@ class StringIO
   end
 
   def readlines(*args)
-    raise IOError, "not opened for reading" unless @readable
+    check_readable
+
     ary = []
     while line = getline(*args)
       ary << line
     end
+
     ary
   end
 
@@ -441,7 +473,7 @@ class StringIO
   end
 
   def truncate(length)
-    raise IOError, "not opened for writing" unless @writable
+    check_writable
     len = Rubinius::Type.coerce_to length, Integer, :to_int
     raise Errno::EINVAL, "negative length" if len < 0
     if len < @string.bytesize
@@ -453,7 +485,7 @@ class StringIO
   end
 
   def ungetc(char)
-    raise IOError, "not opened for reading" unless @readable
+    check_readable
     if char.kind_of? Integer
       char = Rubinius::Type.coerce_to char, String, :chr
     else
@@ -529,7 +561,7 @@ class StringIO
     end
 
     def getline(*args)
-      raise IOError unless @readable
+      check_readable
 
       sep = nil
       limit = nil
