@@ -59,14 +59,6 @@ describe :stringio_read_length, :shared => true do
   it "reads at most the whole content" do
     @io.send(@method, 999).should == "example"
   end
-
-  ruby_bug "redmine#156", "1.8.7" do
-    it "returns an empty String when passed 0 and no data remains" do
-      @io.send(@method, 8).should == "example"
-      @io.send(@method, 0).should == ""
-    end
-  end
-
   it "updates the position" do
     @io.send(@method, 3)
     @io.pos.should eql(3)

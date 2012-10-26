@@ -14,6 +14,23 @@ describe "StringIO#read when passed length" do
     @io.send(@method, 8).should == "example"
     @io.send(@method, 2).should be_nil
   end
+
+  # This was filed as a bug in redmine#156 but since MRI refused to change the
+  # 1.8 behavior, it's now considered a version difference by RubySpec since
+  # it could have a significant impact on user code.
+  ruby_version_is ""..."1.9" do
+    it "returns nil when passed 0 and no data remains" do
+      @io.send(@method, 8).should == "example"
+      @io.send(@method, 0).should be_nil
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "returns an empty String when passed 0 and no data remains" do
+      @io.send(@method, 8).should == "example"
+      @io.send(@method, 0).should == ""
+    end
+  end
 end
 
 describe "StringIO#read when passed no arguments" do
@@ -36,19 +53,4 @@ end
 
 describe "StringIO#read when self is not readable" do
   it_behaves_like :stringio_read_not_readable, :read
-end
-
-describe "StringIO#read when passed length" do
-  before(:each) do
-    @io = StringIO.new("example")
-  end
-
-  it "returns nil when self's position is at the end" do
-    @io.pos = 7
-    @io.read(10).should be_nil
-  end
-
-  it "returns an empty String when length is 0" do
-    @io.read(0).should == ""
-  end
 end
