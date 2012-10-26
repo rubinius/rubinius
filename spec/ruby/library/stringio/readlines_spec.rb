@@ -46,6 +46,37 @@ describe "StringIO#readlines when passed [separator]" do
   end
 end
 
+ruby_version_is "1.9" do
+  describe "StringIO#readlines" do
+    before :each do
+      @io = StringIO.new("ab\ncd")
+      ScratchPad.record []
+    end
+
+    it "returns at most limit characters when limit is positive" do
+      @io.readlines.should == ["ab\n", "cd"]
+    end
+
+    it "calls #to_int to convert the limit" do
+      limit = mock("stringio each limit")
+      limit.should_receive(:to_int).at_least(1).times.and_return(5)
+
+      @io.readlines(limit)
+    end
+
+    it "calls #to_int to convert the limit when passed separator and limit" do
+      limit = mock("stringio each limit")
+      limit.should_receive(:to_int).at_least(1).times.and_return(6)
+
+      @io.readlines($/, limit)
+    end
+
+    it "raises an ArgumentError when limit is 0" do
+      lambda { @io.readlines(0) }.should raise_error(ArgumentError)
+    end
+  end
+end
+
 describe "StringIO#readlines when passed no argument" do
   before(:each) do
     @io = StringIO.new("this is\nan example\nfor StringIO#readlines")
