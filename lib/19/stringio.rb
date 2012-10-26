@@ -304,25 +304,29 @@ class StringIO
     nil
   end
 
-  def read(length = nil, buffer = "")
+  def read(length=nil, buffer=nil)
     raise IOError, "not opened for reading" unless @readable
 
-    buffer = StringValue(buffer)
-
     if length
-      return nil if eof?
       length = Rubinius::Type.coerce_to length, Integer, :to_int
       raise ArgumentError if length < 0
-      buffer.replace @string.byteslice(@pos, length)
-      buffer.force_encoding Encoding::ASCII_8BIT
-      @pos += buffer.length
+
+      buffer = StringValue(buffer) if buffer
+
+      return length == 0 ? "".force_encoding(Encoding::ASCII_8BIT) : nil if eof?
+
+      str = @string.byteslice(@pos, length)
+      str.force_encoding Encoding::ASCII_8BIT
+
+      str = buffer.replace(str) if buffer
     else
-      return "" if eof?
-      buffer.replace @string.byteslice(@pos..-1)
-      @pos = @string.bytesize
+      return "".force_encoding(Encoding::ASCII_8BIT) if eof?
+
+      str = @string.byteslice(@pos..-1)
     end
 
-    return buffer
+    @pos += str.length
+    return str
   end
 
   def readchar
@@ -418,12 +422,14 @@ class StringIO
     val
   end
 
-  def sysread(length = nil, buffer = "")
+  def sysread(length=nil, buffer="")
     str = read(length, buffer)
+
     if str.nil?
       buffer.clear
       raise IO::EOFError, "end of file reached"
     end
+
     str
   end
 
