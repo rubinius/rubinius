@@ -73,7 +73,7 @@ class Rubinius::Debugger
     # As such, they're grouped by similar action.
 
     class Help < Command
-      pattern "help"
+      pattern "help", "h"
       help "Show information about debugger commands"
 
       def run(args)
@@ -619,7 +619,7 @@ The optional argument is which variable specificly to show the value of.
     end
 
     class Quit < Command
-      pattern "quit", "exit"
+      pattern "quit", "q", "exit", "ex"
       help "Quit the debugger"
       ext_help <<-HELP
 Quits your current session and shuts down the complete process

@@ -174,7 +174,10 @@ class Rubinius::Debugger
   def accept_commands
     cmd = Readline.readline "debug> "
 
-    if cmd.nil? || cmd.empty?
+    if cmd.nil?
+      # ^D was entered
+      cmd = "quit"
+    elsif cmd.empty?
       cmd = @last_command
     else
       @last_command = cmd
