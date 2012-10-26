@@ -1,83 +1,30 @@
 require File.expand_path('../../../spec_helper', __FILE__)
-require File.expand_path('../fixtures/classes', __FILE__)
+require "stringio"
+require File.expand_path('../shared/read', __FILE__)
+require File.expand_path('../shared/sysread', __FILE__)
 
 ruby_version_is "1.9" do
-  describe "StringIO#readpartial" do
-    before :each do
-      @string = StringIO.new('Stop, look, listen')
-    end
+  describe "StringIO#readpartial when passed length, buffer" do
+    it_behaves_like :stringio_read, :readpartial
+  end
 
-    after :each do
-      @string.close unless @string.closed?
-    end
+  describe "StringIO#readpartial when passed length" do
+    it_behaves_like :stringio_read_length, :readpartial
+  end
 
-    it "raises IOError on closed stream" do
-      @string.close
-      lambda { @string.readpartial(10) }.should raise_error(IOError)
-    end
+  describe "StringIO#readpartial when passed no arguments" do
+    it_behaves_like :stringio_read_no_arguments, :readpartial
+  end
 
-    it "reads at most the specified number of bytes" do
+  describe "StringIO#readpartial when self is not readable" do
+    it_behaves_like :stringio_read_not_readable, :readpartial
+  end
 
-      # buffered read
-      @string.read(1).should == 'S'
-      # return only specified number, not the whole buffer
-      @string.readpartial(1).should == "t"
-    end
+  describe "StringIO#readpartial when passed nil" do
+    it_behaves_like :stringio_read_nil, :readpartial
+  end
 
-    it "reads after ungetc with data in the buffer" do
-      c = @string.getc
-      @string.ungetc(c)
-      @string.readpartial(4).should == "Stop"
-      @string.readpartial(3).should == ", l"
-    end
-
-    it "reads after ungetc without data in the buffer" do
-      @string = StringIO.new
-      @string.write("f").should == 1
-      @string.rewind
-      c = @string.getc
-      c.should == 'f'
-      @string.ungetc(c).should == nil
-
-      @string.readpartial(2).should == "f"
-      @string.rewind
-      # now, also check that the ungot char is cleared and
-      # not returned again
-      @string.write("b").should == 1
-      @string.rewind
-      @string.readpartial(2).should == "b"
-    end
-
-    it "discards the existing buffer content upon successful read" do
-      buffer = "existing"
-      @string.readpartial(11, buffer)
-      buffer.should == "Stop, look,"
-    end
-
-    it "raises EOFError on EOF" do
-      @string.readpartial(18).should == 'Stop, look, listen'
-      lambda { @string.readpartial(10) }.should raise_error(EOFError)
-    end
-
-    it "discards the existing buffer content upon error" do
-      buffer = 'hello'
-      @string.readpartial(100)
-      lambda { @string.readpartial(1, buffer) }.should raise_error(EOFError)
-      buffer.should be_empty
-    end
-
-    it "raises IOError if the stream is closed" do
-      @string.close
-      lambda { @string.readpartial(1) }.should raise_error(IOError)
-    end
-
-    it "raises ArgumentError if the negative argument is provided" do
-      lambda { @string.readpartial(-1) }.should raise_error(ArgumentError)
-    end
-
-    it "immediately returns an empty string if the length argument is 0" do
-      @string.readpartial(0).should == ""
-    end
-
+  describe "StringIO#readpartial when passed length" do
+    it_behaves_like :stringio_sysread_length, :readpartial
   end
 end
