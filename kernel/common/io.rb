@@ -892,56 +892,6 @@ class IO
   end
 
   ##
-  # Reads at most _length_ bytes from the I/O stream, or to the
-  # end of file if _length_ is omitted or is +nil+. _length_
-  # must be a non-negative integer or +nil+. If the optional
-  # _buffer_ argument is present, it must reference a String,
-  # which will receive the data.
-  #
-  # At end of file, it returns +nil+ or +""+ depending on
-  # _length_. +_ios_.read()+ and +_ios_.read(nil)+ returns +""+.
-  # +_ios_.read(_positive-integer_)+ returns +nil+.
-  #
-  #   f = File.new("testfile")
-  #   f.read(16)   #=> "This is line one"
-  def read(length=nil, buffer=nil)
-    ensure_open_and_readable
-    buffer = StringValue(buffer) if buffer
-
-    unless length
-      str = read_all
-      return IO.read_encode(self, str) unless buffer
-
-      buffer.replace str
-      return IO.read_encode(self, buffer)
-    end
-
-    return nil if @ibuffer.exhausted?
-
-    str = ""
-    needed = length
-    while needed > 0 and not @ibuffer.exhausted?
-      available = @ibuffer.fill_from self
-
-      count = available > needed ? needed : available
-      str << @ibuffer.shift(count)
-      str = nil if str.empty?
-
-      needed -= count
-    end
-
-    return IO.read_encode(self, str) unless buffer
-
-    if str
-      buffer.replace str
-      return IO.read_encode(self, buffer)
-    else
-      buffer.replace ''
-      nil
-    end
-  end
-
-  ##
   # Reads all input until +#eof?+ is true. Returns the input read.
   # If the buffer is already exhausted, returns +""+.
   def read_all

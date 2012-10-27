@@ -280,12 +280,6 @@ class String
     end
   end
 
-  def clear
-    Rubinius.check_frozen
-    self.num_bytes = 0
-    self
-  end
-
   def downcase
     return dup if @num_bytes == 0
     transform(Rubinius::CType::Lowered, true)

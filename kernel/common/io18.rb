@@ -1,10 +1,6 @@
 # -*- encoding: us-ascii -*-
 
 class IO
-  def self.read_encode(io, str)
-    str
-  end
-
   def self.for_fd(fd, mode = nil)
     new fd, mode
   end
@@ -74,6 +70,46 @@ class IO
   private :initialize
 
   alias_method :getbyte, :getc
+
+  def read(length=nil, buffer=nil)
+    ensure_open_and_readable
+    buffer = StringValue(buffer) if buffer
+
+    unless length
+      str = read_all
+      return str unless buffer
+
+      buffer.replace str
+      return buffer
+    end
+
+    if @ibuffer.exhausted?
+      buffer.replace buffer[0, length] if buffer and length < buffer.size
+      return nil
+    end
+
+    str = ""
+    needed = length
+    while needed > 0 and not @ibuffer.exhausted?
+      available = @ibuffer.fill_from self
+
+      count = available > needed ? needed : available
+      str << @ibuffer.shift(count)
+      str = nil if str.empty?
+
+      needed -= count
+    end
+
+    return str unless buffer
+
+    if str
+      buffer.replace str
+      buffer
+    else
+      buffer.replace ''
+      nil
+    end
+  end
 
   ##
   # Chains together buckets of input from the buffer until

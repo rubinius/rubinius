@@ -396,6 +396,12 @@ class String
     return self
   end
 
+  def clear
+    Rubinius.check_frozen
+    self.num_bytes = 0
+    self
+  end
+
   def replace(other)
     Rubinius.check_frozen
 

@@ -43,9 +43,7 @@ class IO
   end
 
   def self.read_encode(io, str)
-    return unless str
-
-    if io.internal
+    if io.internal and io.external
       ec = Encoding::Converter.new io.external, io.internal
       ec.convert str
     elsif io.external
@@ -504,6 +502,46 @@ class IO
   end
 
   alias_method :each_line, :each
+
+  def read(length=nil, buffer=nil)
+    ensure_open_and_readable
+    buffer = StringValue(buffer) if buffer
+
+    unless length
+      str = IO.read_encode self, read_all
+      return str unless buffer
+
+      return buffer.replace(str)
+    end
+
+    if @ibuffer.exhausted?
+      buffer.clear if buffer
+      return nil
+    end
+
+    str = ""
+    needed = length
+    while needed > 0 and not @ibuffer.exhausted?
+      available = @ibuffer.fill_from self
+
+      count = available > needed ? needed : available
+      str << @ibuffer.shift(count)
+      str = nil if str.empty?
+
+      needed -= count
+    end
+
+    if str
+      if buffer
+        buffer.replace str.force_encoding(buffer.encoding)
+      else
+        str.force_encoding Encoding::ASCII_8BIT
+      end
+    else
+      buffer.clear if buffer
+      nil
+    end
+  end
 
   def getbyte
     ensure_open
