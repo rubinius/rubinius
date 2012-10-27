@@ -8,6 +8,19 @@ describe :stringio_read, :shared => true do
     ret.should equal(buffer)
   end
 
+  it "returns the remaining data when limit is nil" do
+    @io.send(@method, nil, buffer = "").should == "example"
+    buffer.should == "example"
+  end
+
+  ruby_version_is "1.9" do
+    it "truncates buffer when limit is nil and no data reamins" do
+      @io.send(@method)
+      @io.send(@method, nil, buffer = "abc").should == ""
+      buffer.should == ""
+    end
+  end
+
   it "reads length bytes and writes them to the buffer String" do
     @io.send(@method, 7, buffer = "")
     buffer.should == "example"

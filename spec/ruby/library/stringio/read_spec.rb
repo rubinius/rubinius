@@ -30,6 +30,12 @@ describe "StringIO#read when passed length" do
       @io.send(@method, 8).should == "example"
       @io.send(@method, 0).should == ""
     end
+
+    it "truncates the buffer when limit > 0 and no data remains" do
+      @io.send(@method)
+      @io.send(@method, 2, buffer = "abc").should be_nil
+      buffer.should == ""
+    end
   end
 end
 
