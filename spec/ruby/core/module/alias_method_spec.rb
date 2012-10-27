@@ -82,4 +82,8 @@ describe "Module#alias_method" do
     Kernel.should have_public_instance_method(:module_specs_alias_on_kernel)
     Object.should have_public_instance_method(:module_specs_alias_on_kernel)
   end
+
+  it "can call a method with super aliased twice" do
+    ModuleSpecs::AliasingSuper::Target.new.super_call(1).should == 1
+  end
 end

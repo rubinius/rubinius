@@ -202,6 +202,29 @@ module ModuleSpecs
     def protected_one; 1; end
   end
 
+  module AliasingSuper
+
+    module Parent
+      def super_call(arg)
+        arg
+      end
+    end
+
+    module Child
+      include Parent
+      def super_call(arg)
+        super(arg)
+      end
+    end
+
+    class Target
+      include Child
+      alias_method :alias_super_call, :super_call
+      alias_method :super_call, :alias_super_call
+    end
+  end
+
+
   module ReopeningModule
     def foo; true; end
     module_function :foo
