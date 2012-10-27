@@ -18,7 +18,7 @@ class StringIO
   attr_reader :string, :pos
   attr_accessor :lineno
 
-  def initialize(string = "", mode = nil)
+  def initialize(string="", mode=nil)
     @string = Rubinius::Type.coerce_to string, String, :to_str
     @pos = 0
     @lineno = 0
@@ -132,11 +132,11 @@ class StringIO
 
   alias_method :codepoints, :each_codepoint
 
-  def each(*args)
-    return to_enum :each, *args unless block_given?
+  def each(sep=$/, limit=nil)
+    return to_enum :each, sep, limit unless block_given?
     check_readable
 
-    while line = getline(*args)
+    while line = getline(true, sep, limit)
       yield line
     end
 
@@ -239,8 +239,10 @@ class StringIO
     char && char.ord
   end
 
-  def gets(*args)
-    $_ = getline(*args)
+  def gets(sep=$/, limit=nil)
+    check_readable
+
+    $_ = getline(false, sep, limit)
   end
 
   def isatty
@@ -368,16 +370,18 @@ class StringIO
     readchar.getbyte(0)
   end
 
-  def readline(*args)
+  def readline(sep=$/, limit=nil)
+    check_readable
     raise IO::EOFError, "end of file reached" if eof?
-    $_ = getline(*args)
+
+    $_ = getline(true, sep, limit)
   end
 
-  def readlines(*args)
+  def readlines(sep=$/, limit=nil)
     check_readable
 
     ary = []
-    while line = getline(*args)
+    while line = getline(true, sep, limit)
       ary << line
     end
 
@@ -505,127 +509,107 @@ class StringIO
   end
 
   protected
-    def finalize
-      close
-      @string = nil
-      self
+
+  def finalize
+    close
+    @string = nil
+    self
+  end
+
+  def mode_from_string(mode)
+    @append = truncate = false
+
+    if mode[0] == ?r
+      @readable = true
+      @writable = mode[-1] == ?+ ? true : false
     end
 
-    def mode_from_string(mode)
-      @readable = @writable = @append = truncate = false
+    if mode[0] == ?w
+      @writable = truncate = true
+      @readable = mode[-1] == ?+ ? true : false
+    end
 
-      case mode
-      when "r", "rb"
-        @readable = true
-      when "r+", "rb+"
-        @readable = true
-        @writable = true
-      when "w", "wb"
-        truncate = true
-        @writable = true
-      when "w+", "wb+"
-        truncate = true
-        @readable = true
-        @writable = true
-      when "a", "ab"
-        @writable = true
-        @append   = true
-      when "a+", "ab+"
-        @readable = true
-        @writable = true
-        @append   = true
+    if mode[0] == ?a
+      @append = @writable = true
+      @readable = mode[-1] == ?+ ? true : false
+    end
+
+    raise Errno::EACCES, "Permission denied" if @writable && @string.frozen?
+    @string.replace("") if truncate
+  end
+
+  def mode_from_integer(mode)
+    @readable = @writable = @append = false
+
+    if mode == 0 or mode & IO::RDWR != 0
+      @readable = true
+    end
+
+    if mode & (IO::WRONLY | IO::RDWR) != 0
+      raise Errno::EACCES, "Permission denied" if @string.frozen?
+      @writable = true
+    end
+
+    @append = true if (mode & IO::APPEND) != 0
+    @string.replace("") if (mode & IO::TRUNC) != 0
+  end
+
+  def getline(arg_error, sep, limit)
+    if limit
+      limit = Rubinius::Type.coerce_to limit, Fixnum, :to_int
+      sep = Rubinius::Type.coerce_to sep, String, :to_str if sep
+    else
+      unless sep == $/ or sep.nil?
+        osep = sep
+        sep = Rubinius::Type.check_convert_type sep, String, :to_str
+        limit = Rubinius::Type.coerce_to osep, Fixnum, :to_int unless sep
       end
-      raise Errno::EACCES, "Permission denied" if @writable && @string.frozen?
-      @string.replace("") if truncate
     end
 
-    def mode_from_integer(mode)
-      @readable = @writable = @append = false
+    raise ArgumentError if arg_error and limit == 0
 
-      case mode & (IO::RDONLY | IO::WRONLY | IO::RDWR)
-      when IO::RDONLY
-        @readable = true
-        @writable = false
-      when IO::WRONLY
-        raise Errno::EACCES, "Permission denied" if @string.frozen?
-        @readable = false
-        @writable = true
-      when IO::RDWR
-        raise Errno::EACCES, "Permission denied" if @string.frozen?
-        @readable = true
-        @writable = true
+    return nil if eof?
+
+    if sep.nil?
+      if limit
+        line = @string.byteslice(@pos...@pos + limit)
+      else
+        line = @string.byteslice(@pos..-1)
       end
-
-      @append = true if (mode & IO::APPEND) != 0
-      @string.replace("") if (mode & IO::TRUNC) != 0
-    end
-
-    def getline(*args)
-      check_readable
-
-      sep = nil
-      limit = nil
-
-      case args.size
-      when 0
-        sep = $/
-      when 1
-        if args[0]
-          if limit = Rubinius::Type.check_convert_type(args[0], Integer, :to_int)
-            return '' if limit == 0
-          else
-            sep = Rubinius::Type.coerce_to(args[0], String, :to_str)
-          end
+      @pos += line.bytesize
+    elsif sep.empty?
+      if stop = @string.index("\n\n", @pos)
+        stop += 2
+        line = @string.byteslice(@pos...stop)
+        while @string[stop] == ?\n
+          stop += 1
         end
-      when 2
-        sep = Rubinius::Type.check_convert_type(args[0], String, :to_str)
-        limit = Rubinius::Type.coerce_to(args[1], Integer, :to_int)
+        @pos = stop
+      else
+        line = @string.byteslice(@pos .. -1)
+        @pos = @string.bytesize
       end
-
-      sep = StringValue(sep) unless sep.nil?
-
-      return nil if eof?
-
-      if sep.nil?
+    else
+      if stop = @string.index(sep, @pos)
+        if limit && stop - @pos >= limit
+          stop = @pos + limit
+        else
+          stop += sep.length
+        end
+        line = @string.byteslice(@pos...stop)
+        @pos = stop
+      else
         if limit
           line = @string.byteslice(@pos...@pos + limit)
         else
           line = @string.byteslice(@pos..-1)
         end
         @pos += line.bytesize
-      elsif sep.empty?
-        if stop = @string.index("\n\n", @pos)
-          stop += 2
-          line = @string.byteslice(@pos...stop)
-          while @string[stop] == ?\n
-            stop += 1
-          end
-          @pos = stop
-        else
-          line = @string.byteslice(@pos .. -1)
-          @pos = @string.bytesize
-        end
-      else
-        if stop = @string.index(sep, @pos)
-          if limit && stop - @pos >= limit
-            stop = @pos + limit
-          else
-            stop += sep.length
-          end
-          line = @string.byteslice(@pos...stop)
-          @pos = stop
-        else
-          if limit
-            line = @string.byteslice(@pos...@pos + limit)
-          else
-            line = @string.byteslice(@pos..-1)
-          end
-          @pos += line.bytesize
-        end
       end
-
-      @lineno += 1
-
-      return line
     end
+
+    @lineno += 1
+
+    return line
+  end
 end
