@@ -120,8 +120,11 @@ namespace rubinius {
     if(exec->nil_p()) {
       method = nil<Executable>();
     } else {
-      if(Alias* alias = try_as<Alias>(exec)) {
-        method = alias->original_exec();
+      if(Alias* stored_alias = try_as<Alias>(exec)) {
+        return self->alias(state, gct, name, vis,
+                           stored_alias->original_name(),
+                           stored_alias->original_exec(),
+                           stored_alias->original_module());
       } else {
         method = as<Executable>(exec);
       }
