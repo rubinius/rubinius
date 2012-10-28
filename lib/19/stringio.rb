@@ -129,9 +129,16 @@ class StringIO
     return to_enum :each_codepoint unless block_given?
     check_readable
 
-    str = @pos > 0 ? @string.byteslice(@pos..-1) : @string
+    while @pos < @string.bytesize
+      char = @string.chr_at @pos
 
-    str.codepoints(&block)
+      unless char
+        raise ArgumentError, "invalid byte sequence in #{@string.encoding}"
+      end
+
+      @pos += char.bytesize
+      yield char.ord
+    end
 
     self
   end
@@ -544,7 +551,7 @@ class StringIO
       @string = "#{bytes}#{@string}"
     else
       size = bytes.bytesize
-      a = @string.byteslice(0, @pos - size)
+      a = @string.byteslice(0, @pos - size) if size < @pos
       b = @string.byteslice(@pos..-1)
       @string = "#{a}#{bytes}#{b}"
       @pos = @pos > size ? @pos - size : 0
