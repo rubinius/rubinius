@@ -64,6 +64,7 @@ class StringIO
 
   def check_writable
     raise IOError, "not opened for writing" unless @writable
+    raise IOError, "unable to modify data" if @string.frozen?
   end
 
   private :check_writable
@@ -84,8 +85,10 @@ class StringIO
     return to_enum :each_byte unless block_given?
     check_readable
 
-    if @pos < @string.length
-      @string.byteslice(@pos..-1).each_byte { |b| @pos += 1; yield b}
+    while @pos < @string.length
+      byte = @string.getbyte @pos
+      @pos += 1
+      yield byte
     end
 
     self
@@ -523,18 +526,31 @@ class StringIO
     nil
   end
 
-  def ungetbyte(byte)
+  def ungetbyte(bytes)
     check_readable
 
-    if @pos == 0
-      enc = @string.encoding
-      str = "" << byte
-      @string = "#{str}#{@string}".force_encoding enc
+    return unless bytes
+
+    if bytes.kind_of? Fixnum
+      bytes = "" << bytes
     else
-      @pos -= 1
-      @string.setbyte @pos, byte
+      bytes = StringValue(bytes)
+      return if bytes.bytesize == 0
     end
 
+    enc = @string.encoding
+
+    if @pos == 0
+      @string = "#{bytes}#{@string}"
+    else
+      size = bytes.bytesize
+      a = @string.byteslice(0, @pos - size)
+      b = @string.byteslice(@pos..-1)
+      @string = "#{a}#{bytes}#{b}"
+      @pos = @pos > size ? @pos - size : 0
+    end
+
+    @string.force_encoding enc
     nil
   end
 
