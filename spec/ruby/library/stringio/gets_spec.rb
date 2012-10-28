@@ -227,6 +227,10 @@ ruby_version_is "1.9" do
       obj.should_receive(:to_int).and_return(5)
       @io.gets('>', obj).should == "this>"
     end
+
+    it "raises a TypeError if both separator and limit are nil" do
+      lambda { @io.gets nil, nil }.should raise_error(TypeError)
+    end
   end
 end
 
