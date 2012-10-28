@@ -4,6 +4,9 @@ class StringIO
 
   DEFAULT_RECORD_SEPARATOR = "\n" unless defined?(::DEFAULT_RECORD_SEPARATOR)
 
+  # This is why we need undefined in Ruby
+  Undefined = Object.new
+
   def self.open(*args)
     io = new(*args)
     return io unless block_given?
@@ -132,7 +135,7 @@ class StringIO
 
   alias_method :codepoints, :each_codepoint
 
-  def each(sep=$/, limit=nil)
+  def each(sep=$/, limit=Undefined)
     return to_enum :each, sep, limit unless block_given?
     check_readable
 
@@ -178,6 +181,7 @@ class StringIO
     return str.length
   end
   alias_method :syswrite, :write
+  alias_method :write_nonblock, :write
 
   def close
     raise IOError, "closed stream" if closed?
@@ -239,7 +243,7 @@ class StringIO
     char && char.ord
   end
 
-  def gets(sep=$/, limit=nil)
+  def gets(sep=$/, limit=Undefined)
     check_readable
 
     $_ = getline(false, sep, limit)
@@ -250,10 +254,10 @@ class StringIO
   end
   alias_method :tty?, :isatty
 
-  def length
-    @string.length
+  def size
+    @string.bytesize
   end
-  alias_method :size, :length
+  alias_method :length, :size
 
   def pid
     nil
@@ -345,16 +349,27 @@ class StringIO
 
       buffer = StringValue(buffer) if buffer
 
-      return length == 0 ? "".force_encoding(Encoding::ASCII_8BIT) : nil if eof?
+      if eof?
+        buffer.clear if buffer
+        if length == 0
+          return "".force_encoding(Encoding::ASCII_8BIT)
+        else
+          return nil
+        end
+      end
 
       str = @string.byteslice(@pos, length)
       str.force_encoding Encoding::ASCII_8BIT
 
       str = buffer.replace(str) if buffer
     else
-      return "".force_encoding(Encoding::ASCII_8BIT) if eof?
+      if eof?
+        buffer.clear if buffer
+        return "".force_encoding(Encoding::ASCII_8BIT)
+      end
 
       str = @string.byteslice(@pos..-1)
+      buffer.replace str if buffer
     end
 
     @pos += str.length
@@ -370,14 +385,14 @@ class StringIO
     readchar.getbyte(0)
   end
 
-  def readline(sep=$/, limit=nil)
+  def readline(sep=$/, limit=Undefined)
     check_readable
     raise IO::EOFError, "end of file reached" if eof?
 
     $_ = getline(true, sep, limit)
   end
 
-  def readlines(sep=$/, limit=nil)
+  def readlines(sep=$/, limit=Undefined)
     check_readable
 
     ary = []
@@ -508,6 +523,21 @@ class StringIO
     nil
   end
 
+  def ungetbyte(byte)
+    check_readable
+
+    if @pos == 0
+      enc = @string.encoding
+      str = "" << byte
+      @string = "#{str}#{@string}".force_encoding enc
+    else
+      @pos -= 1
+      @string.setbyte @pos, byte
+    end
+
+    nil
+  end
+
   protected
 
   def finalize
@@ -555,10 +585,12 @@ class StringIO
   end
 
   def getline(arg_error, sep, limit)
-    if limit
+    if limit != Undefined
       limit = Rubinius::Type.coerce_to limit, Fixnum, :to_int
       sep = Rubinius::Type.coerce_to sep, String, :to_str if sep
     else
+      limit = nil
+
       unless sep == $/ or sep.nil?
         osep = sep
         sep = Rubinius::Type.check_convert_type sep, String, :to_str
