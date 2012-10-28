@@ -1682,6 +1682,30 @@ namespace rubinius {
     return force_as<Fixnum>(Primitives::failure());
   }
 
+  Object* String::chr_at(STATE, Fixnum* byte) {
+    native_int i = byte->to_native();
+    native_int size = byte_size();
+    int n = 1;
+
+    if(i < 0 || i >= size) return cNil;
+
+    if(!byte_compatible_p(encoding_)) {
+      OnigEncodingType* enc = encoding_->get_encoding();
+      uint8_t* p = byte_address() + i;
+      uint8_t* e = byte_address() + byte_size();
+
+      int c = Encoding::precise_mbclen(p, e, enc);
+
+      if(ONIGENC_MBCLEN_CHARFOUND_P(c)) {
+        n = ONIGENC_MBCLEN_CHARFOUND_LEN(c);
+      } else {
+        return cNil;
+      }
+    }
+
+    return byte_substring(state, i, n);
+  }
+
   void String::Info::show(STATE, Object* self, int level) {
     String* str = as<String>(self);
     std::cout << "\"" << str->c_str(state) << "\"" << std::endl;

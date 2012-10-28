@@ -26,6 +26,11 @@ class String
     raise ArgumentError, "invalid byte sequence in #{encoding}"
   end
 
+  def chr_at(byte)
+    Rubinius.primitive :string_chr_at
+    raise ArgumentError, "String#chr_at primitive failed"
+  end
+
   def valid_encoding?
     Rubinius.primitive :string_valid_encoding_p
     raise PrimitiveFailure, "String#valid_encoding? primitive failed"

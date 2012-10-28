@@ -271,6 +271,9 @@ namespace rubinius {
     // Rubinius.primitive :string_codepoint
     Fixnum* codepoint(STATE);
 
+    // Rubinius.primitive :string_chr_at
+    Object* chr_at(STATE, Fixnum* byte);
+
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)
