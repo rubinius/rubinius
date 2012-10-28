@@ -12,6 +12,13 @@ ruby_version_is "1.9" do
       @io.ungetbyte(65).should be_nil
     end
 
+    it "returns nil and does not modify data if passed nil" do
+      @io.read(2).should == "ab"
+      @io.ungetbyte(nil).should be_nil
+      @io.rewind
+      @io.read.should == "abcdef"
+    end
+
     it "prepends the byte to the data before data is read" do
       @io.ungetbyte(65)
       @io.read(2).should == "Aa"
@@ -24,7 +31,7 @@ ruby_version_is "1.9" do
       @io.read.should == "BAabcdef"
     end
 
-    it "prepends data to the byte at the current position" do
+    it "prepends byte to the data at the current position" do
       @io.read(3).should == "abc"
       @io.ungetbyte(65)
       @io.read(2).should == "Ad"
@@ -36,6 +43,27 @@ ruby_version_is "1.9" do
       @io.ungetbyte(65)
       @io.rewind
       @io.read.should == "aABdef"
+    end
+
+    it "prepends a string to data before data is read" do
+      @io.ungetbyte("ghi")
+      @io.read.should == "ghiabcdef"
+    end
+
+    it "prepends a string at the current position" do
+      @io.read(2).should == "ab"
+      @io.ungetbyte("dceb")
+      @io.read.should == "dcebcdef"
+    end
+
+    it "calls #to_str to convert an object to a String" do
+      bytes = mock("stringio ungetbyte")
+      bytes.should_receive(:to_str).and_return("xyz")
+
+      @io.read(3).should == "abc"
+      @io.ungetbyte(bytes).should be_nil
+      @io.rewind
+      @io.read.should == "xyzdef"
     end
 
     it "raises an IOError when the mode is not readable" do

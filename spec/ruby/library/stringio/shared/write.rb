@@ -9,6 +9,13 @@ describe :stringio_write, :shared => true do
     @io.send(@method, obj)
     @io.string.should == "to_s5"
   end
+
+  it "raises an IOError if the data String is frozen after creating the StringIO instance" do
+    s = "abcdef"
+    io = StringIO.new s, "w"
+    s.freeze
+    lambda { io.write "xyz" }.should raise_error(IOError)
+  end
 end
 
 describe :stringio_write_string, :shared => true do
