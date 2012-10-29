@@ -385,7 +385,7 @@ namespace rubinius {
         }
         ascii = false;
 
-        append_bytes(buf, n);
+        append_bytes(buf, i);
 
       } else {
         int n = snprintf(reinterpret_cast<char*>(buf),
