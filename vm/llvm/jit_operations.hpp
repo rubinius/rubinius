@@ -305,12 +305,12 @@ namespace rubinius {
       Value* word = create_load(gep, "flags");
       Value* flags = b().CreatePtrToInt(word, ls_->Int64Ty, "word2flags");
 
-      // 10 bits worth of mask
-      Value* mask = ConstantInt::get(ls_->Int64Ty, ((1 << 10) - 1));
+      // 9 bits worth of mask
+      Value* mask = ConstantInt::get(ls_->Int64Ty, ((1 << 9) - 1));
       Value* obj_type = b().CreateAnd(flags, mask, "mask");
 
-      // Compare all 10 bits.
-      Value* tag = ConstantInt::get(ls_->Int64Ty, type << 2);
+      // Compare all 9 bits.
+      Value* tag = ConstantInt::get(ls_->Int64Ty, type << 1);
 
       return b().CreateICmpEQ(obj_type, tag, name);
     }

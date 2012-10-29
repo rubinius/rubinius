@@ -166,8 +166,8 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 #ifdef RBX_LITTLE_ENDIAN
     // inflated MUST be first, because rest is used as a pointer
     unsigned int inflated        : 1;
-    unsigned int meaning         : 2;
     object_type  obj_type        : 8;
+    unsigned int meaning         : 2;
     gc_zone      zone            : 2;
     unsigned int age             : 4;
 
@@ -199,9 +199,9 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     unsigned int age             : 4;
     gc_zone      zone            : 2;
+    unsigned int meaning         : 2;
     object_type  obj_type        : 8;
     // inflated MUST be first, because rest is used as a pointer
-    unsigned int meaning         : 2;
     unsigned int inflated        : 1;
 #endif
 
