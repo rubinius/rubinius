@@ -20,6 +20,7 @@
 #endif
 
 #include "builtin/io.hpp"
+#include "builtin/atomic.hpp"
 #include "builtin/array.hpp"
 #include "builtin/bytearray.hpp"
 #include "builtin/channel.hpp"
@@ -51,6 +52,9 @@ namespace rubinius {
     GO(iobuffer).set(ontology::new_class(state, "InternalBuffer",
           G(object), G(io)));
     G(iobuffer)->set_object_type(state, IOBufferType);
+
+    AtomicReference* ref = AtomicReference::create(state, Fixnum::from(-1));
+    G(io)->set_ivar(state, state->symbol("@max_open_fd"), ref);
   }
 
   IO* IO::create(STATE, int fd) {
@@ -103,9 +107,19 @@ namespace rubinius {
 
   Fixnum* IO::open(STATE, String* path, Fixnum* mode, Fixnum* perm) {
     int fd = ::open(path->c_str_null_safe(state), mode->to_native(), perm->to_native());
+    update_max_fd(state, fd);
     return Fixnum::from(fd);
   }
 
+  void IO::update_max_fd(STATE, native_int new_fd) {
+    AtomicReference* ref = as<AtomicReference>(G(io)->get_ivar(state, state->symbol("@max_open_fd")));
+    Fixnum* old_fd = as<Fixnum>(ref->get(state));
+
+    while(old_fd->to_native() < new_fd &&
+          ref->compare_and_set(state, old_fd, Fixnum::from(new_fd)) == cFalse) {
+      old_fd = as<Fixnum>(ref->get(state));
+    }
+  }
 
   namespace {
     /** Utility function used by IO::select, returns highest descriptor. */
@@ -305,6 +319,7 @@ namespace rubinius {
     native_int cur_fd   = to_fd();
 
     int other_fd = ::open(path->c_str_null_safe(state), mode->to_native(), 0666);
+    update_max_fd(state, other_fd);
 
     if(other_fd == -1) {
       Exception::errno_error(state, "reopen");
@@ -347,6 +362,9 @@ namespace rubinius {
     if(pipe(fds) == -1) {
       Exception::errno_error(state, "creating pipe");
     }
+
+    update_max_fd(state, fds[0]);
+    update_max_fd(state, fds[1]);
 
     lhs->descriptor(state, Fixnum::from(fds[0]));
     rhs->descriptor(state, Fixnum::from(fds[1]));

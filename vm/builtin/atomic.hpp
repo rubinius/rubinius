@@ -21,6 +21,7 @@ namespace rubinius {
     static void init(STATE);
 
     static AtomicReference* allocate(STATE);
+    static AtomicReference* create(STATE, Object* val);
 
     // Rubinius.primitive :atomic_get
     Object* get(STATE) {

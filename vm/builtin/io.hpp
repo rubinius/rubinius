@@ -59,6 +59,8 @@ namespace rubinius {
     // Rubinius.primitive :io_open
     static Fixnum*  open(STATE, String* path, Fixnum* mode, Fixnum* perm);
 
+    static void update_max_fd(STATE, native_int fd);
+
     /**
      *  Perform select() on descriptors.
      *

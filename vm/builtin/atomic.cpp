@@ -15,6 +15,12 @@ namespace rubinius {
     return state->new_object<AtomicReference>(G(atomic_ref));
   }
 
+  AtomicReference* AtomicReference::create(STATE, Object* obj) {
+    AtomicReference* ref = AtomicReference::allocate(state);
+    ref->set(state, obj);
+    return ref;
+  }
+
   Object* AtomicReference::compare_and_set(STATE, Object* old, Object* new_) {
     Object** pp = &value_;
 
