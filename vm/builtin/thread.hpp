@@ -172,6 +172,12 @@ namespace rubinius {
     Object* raise(STATE, GCToken gct, Exception* exc);
 
     /**
+     *  Returns current exception
+     */
+    // Rubinius.primitive :thread_current_exception
+    Object* current_exception(STATE);
+
+    /**
      *  Kill this Thread.
      */
     // Rubinius.primitive :thread_kill

@@ -336,6 +336,11 @@ namespace rubinius {
     return exc;
   }
 
+  Object* Thread::current_exception(STATE) {
+    utilities::thread::SpinLock::LockGuard lg(init_lock_);
+    return vm_->thread_state()->current_exception();
+  }
+
   Object* Thread::kill(STATE, GCToken gct) {
     utilities::thread::SpinLock::LockGuard lg(init_lock_);
     Thread* self = this;
