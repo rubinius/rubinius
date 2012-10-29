@@ -32,12 +32,29 @@ class Struct::Group < FFI::Struct
 
     s.name "struct group"
     s.field :gr_name, :string
+    s.field :gr_passwd, :string
     s.field :gr_gid, :gid_t
+    s.field :gr_mem, :pointer
   end
   @@@
 
   def name; self[:gr_name]; end
   def gid; self[:gr_gid]; end
+  def passwd; self[:gr_passwd]; end
+  def mem
+    ptr = self[:gr_mem].read_pointer
+
+    ary = []
+    i = 1
+
+    while not ptr.null? do 
+      ary << ptr.read_string
+      ptr = (self[:gr_mem] + i * FFI::Pointer.size).read_pointer
+      i += 1
+    end
+    
+    ary
+  end
 end
 
 module Etc
