@@ -1,1 +1,0 @@
-incomplete:Actor#send needs to be reviewed for spec completeness

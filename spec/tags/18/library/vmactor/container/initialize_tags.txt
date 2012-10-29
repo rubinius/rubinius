@@ -1,1 +1,0 @@
-incomplete:VMActor::Container#initialize needs to be reviewed for spec completeness

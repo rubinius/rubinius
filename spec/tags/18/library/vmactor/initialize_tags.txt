@@ -1,1 +1,0 @@
-incomplete:VMActor#initialize needs to be reviewed for spec completeness

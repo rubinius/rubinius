@@ -1,3 +1,0 @@
-fails:VMActor::Container#spawn_actor creates Actors on remote VMs
-fails:VMActor::Container#spawn_actor allows Actors in different VMs to send messages to each other
-fails:VMActor::Container#spawn_actor evaluates strings passed to Container#spawn_actor in remote actor scope

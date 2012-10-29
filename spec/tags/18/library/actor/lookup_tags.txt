@@ -1,1 +1,0 @@
-incomplete:Actor.lookup needs to be reviewed for spec completeness

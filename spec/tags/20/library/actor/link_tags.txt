@@ -1,2 +1,0 @@
-unstable:Actor.link sends an exit message to linked Actors
-fails:Actor.link sends an exit message to linked Actors

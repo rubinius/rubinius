@@ -1,1 +1,0 @@
-incomplete:VMActor.register needs to be reviewed for spec completeness
