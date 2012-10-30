@@ -348,8 +348,10 @@ ruby_version_is "1.9" do
         @s.rb_enc_to_index("UTF-8").should >= 0
       end
 
-      it "returns 0 if the encoding is not defined" do
-        @s.rb_enc_to_index("FTU-81").should == 0
+      it "returns a non-negative int if the encoding is not defined" do
+        # Encoding indexes are an implementation detail and not guaranteed
+        # across implementations.
+        @s.rb_enc_to_index("FTU-81").should >= 0
       end
     end
 
