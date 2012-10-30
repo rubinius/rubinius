@@ -267,7 +267,7 @@ extern "C" {
     if(enc) {
       return rb_enc_find_index(rb_enc_name(enc));
     } else {
-      return 0;
+      return Encoding::eBinary;
     }
   }
 
