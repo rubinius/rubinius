@@ -7,6 +7,13 @@ DEFAULT_RECORD_SEPARATOR = "\n"
 class String
   include Comparable
 
+  def self.allocate
+    str = super()
+    str.__data__ = Rubinius::ByteArray.new(1)
+    str.num_bytes = 0
+    str
+  end
+
   attr_accessor :data
 
   alias_method :__data__, :data

@@ -619,7 +619,7 @@ namespace rubinius {
 
   Encoding* String::encoding(STATE) {
     if(encoding_->nil_p()) {
-      encoding(state, Encoding::usascii_encoding(state));
+      encoding(state, Encoding::ascii8bit_encoding(state));
     }
     return encoding_;
   }
