@@ -641,15 +641,21 @@ namespace rubinius {
     native_int f = fin->to_native();
     native_int b = beg->to_native();
 
+    String* string;
+
     if(!beg || !fin ||
         f > max || b > max || b < 0) {
-      return String::create(state, 0, 0);
+      string = String::create(state, 0, 0);
+    } else {
+      const char* str = (char*)source_->byte_address();
+      native_int sz = fin->to_native() - beg->to_native();
+
+      string = String::create(state, str + beg->to_native(), sz);
     }
 
-    const char* str = (char*)source_->byte_address();
-    native_int sz = fin->to_native() - beg->to_native();
+    string->encoding(state, source_->encoding());
 
-    return String::create(state, str + beg->to_native(), sz);
+    return string;
   }
 
   String* MatchData::pre_matched(STATE) {
@@ -658,15 +664,21 @@ namespace rubinius {
     native_int max = source_->byte_size();
     native_int sz = beg->to_native();
 
+    String* string;
+
     if(!beg || sz <= 0) {
-      return String::create(state, 0, 0);
+      string = String::create(state, 0, 0);
+    } else {
+      if(sz > max) sz = max;
+
+      const char* str = (char*)source_->byte_address();
+
+      string = String::create(state, str, sz);
     }
 
-    if(sz > max) sz = max;
+    string->encoding(state, source_->encoding());
 
-    const char* str = (char*)source_->byte_address();
-
-    return String::create(state, str, sz);
+    return string;
   }
 
   String* MatchData::post_matched(STATE) {
@@ -675,16 +687,22 @@ namespace rubinius {
     native_int f = fin->to_native();
     native_int max = source_->byte_size();
 
+    String* string;
+
     if(!fin || f >= max) {
-      return String::create(state, 0, 0);
+      string = String::create(state, 0, 0);
+    } else {
+      const char* str = (char*)source_->byte_address();
+      native_int sz = max - f;
+
+      if(sz > max) sz = max;
+
+      string = String::create(state, str + f, sz);
     }
 
-    const char* str = (char*)source_->byte_address();
-    native_int sz = max - f;
+    string->encoding(state, source_->encoding());
 
-    if(sz > max) sz = max;
-
-    return String::create(state, str + f, sz);
+    return string;
   }
 
   Object* MatchData::nth_capture(STATE, native_int which) {
@@ -711,7 +729,10 @@ namespace rubinius {
 
     if(sz > max) sz = max;
 
-    return String::create(state, str + b, sz);
+    String* string = String::create(state, str + b, sz);
+    string->encoding(state, source_->encoding());
+
+    return string;
   }
 
   Object* MatchData::last_capture(STATE) {
