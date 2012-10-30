@@ -628,6 +628,7 @@ namespace rubinius {
     if(likely(ic)) {
       args.unshift(state, cache->name);
 
+      state->vm()->set_method_missing_reason(entry->method_missing());
       Executable* meth = entry->method();
       Module* mod = entry->stored_module();
       ic->hit();
@@ -676,6 +677,7 @@ namespace rubinius {
     {
       args.unshift(state, cache->name);
 
+      state->vm()->set_method_missing_reason(entry->method_missing());
       Executable* meth = entry->method();
       Module* mod = entry->stored_module();
       ic->hit();
