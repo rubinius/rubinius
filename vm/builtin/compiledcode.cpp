@@ -141,7 +141,7 @@ namespace rubinius {
       // be sure that mcode is completely initialized before it's set.
       // Otherwise another thread might see a partially initialized
       // MachineCode.
-      atomic::write(&machine_code_, mcode);
+      atomic::write(&self->machine_code_, mcode);
     }
 
     self->hard_unlock(state, gct);
