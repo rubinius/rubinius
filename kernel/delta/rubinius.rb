@@ -276,27 +276,4 @@ module Rubinius
     return cs.absolute_active_path
   end
 
-  def self.terminal_width
-    return @terminal_width if @terminal_width
-    if Terminal and ENV['TERM'] and !ENV['RBX_NO_COLS']
-      if ENV["COLUMNS"]
-        @terminal_width = ENV["COLUMNS"].to_i
-      end
-      begin
-        `which stty &> /dev/null`
-        if $?.exitstatus == 0
-          @terminal_width = `stty size`.split.last.to_i
-        end
-      end
-      begin
-        `which tput &> /dev/null`
-        if $?.exitstatus == 0
-          @terminal_width = `tput cols`.to_i
-        end
-      end
-    end
-    @terminal_width = 80 if @terminal_width.nil? || @terminal_width.zero?
-    @terminal_width
-  end
-
 end

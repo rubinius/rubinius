@@ -1,3 +1,5 @@
+#include <sys/ioctl.h>
+#include <stdio.h>
 #include <errno.h>
 
 #include "objectmemory.hpp"
@@ -477,6 +479,12 @@ namespace rubinius {
     G(rubinius)->set_const(state, "SIZEOF_SHORT", Fixnum::from(sizeof(short)));
     G(rubinius)->set_const(state, "SIZEOF_INT", Fixnum::from(sizeof(int)));
     G(rubinius)->set_const(state, "SIZEOF_LONG", Fixnum::from(sizeof(long)));
+
+    struct winsize w;
+    if(ioctl(0, TIOCGWINSZ, &w)) {
+      w.ws_col = 80;
+    }
+    G(rubinius)->set_const(state, "TERMINAL_WIDTH", Fixnum::from(w.ws_col));
   }
 
   void VM::bootstrap_symbol(STATE) {
