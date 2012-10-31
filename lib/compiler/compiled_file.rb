@@ -255,9 +255,11 @@ module Rubinius
             # marshaling an Encoding name as a String.
             name = val.encoding.name
             enc_name = "E\n#{name.bytesize}\n#{name}\n"
+          else
+            # The kernel code is all US-ASCII. When building melbourne for 1.8
+            # Ruby, we fake a bunch of encoding stuff so force US-ASCII here.
+            enc_name = "E\n8\nUS-ASCII\n"
           end
-
-          enc_name ||= "E\n0\n\n"
 
           "s\n#{enc_name}#{val.bytesize}\n#{val}\n"
         when Symbol

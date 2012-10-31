@@ -13,7 +13,7 @@ class Integer
           raise RangeError, "#{self} is outside of the valid character range"
         end
       elsif self < 0x80
-        return String.pattern(1, self)
+        enc = Encoding::US_ASCII
       else
         enc = Encoding::ASCII_8BIT
       end
