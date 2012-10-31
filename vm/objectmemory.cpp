@@ -154,7 +154,7 @@ namespace rubinius {
   }
 
   LockStatus ObjectMemory::contend_for_lock(STATE, GCToken gct, ObjectHeader* obj,
-                                            bool* error, size_t us, bool interrupt)
+                                            size_t us, bool interrupt)
   {
     bool timed = false;
     bool timeout = false;
@@ -183,15 +183,22 @@ step1:
 
       orig.f.meaning = eAuxWordLock;
 
+      new_val.f.inflated      = 0;
       new_val.f.LockContended = 1;
 
       if(!obj->header.atomic_set(orig, new_val)) {
+        if(obj->inflated_header_p()) {
+          if(cDebugThreading) {
+            std::cerr << "[LOCK " << state->vm()->thread_id()
+              << " contend_for_lock error: object has been inflated.]" << std::endl;
+          }
+          return eLockError;
+        }
         if(new_val.f.meaning != eAuxWordLock) {
           if(cDebugThreading) {
             std::cerr << "[LOCK " << state->vm()->thread_id()
               << " contend_for_lock error: not thin locked.]" << std::endl;
           }
-          *error = true;
           return eLockError;
         }
 

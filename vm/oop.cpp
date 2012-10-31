@@ -189,10 +189,12 @@ namespace rubinius {
       if(inflated_header_p()) {
         return inflated_header()->inc_age();
       } else {
-        HeaderWord copy = header;
-        unsigned int new_age = copy.f.age++;
+        HeaderWord orig      = header;
+        orig.f.inflated      = 0;
+        HeaderWord new_val   = orig;
+        unsigned int new_age = new_val.f.age++;
 
-        if(header.atomic_set(header, copy)) return new_age;
+        if(header.atomic_set(orig, new_val)) return new_age;
       }
     }
   }
@@ -203,10 +205,12 @@ namespace rubinius {
         inflated_header()->set_age(age);
         return;
       } else {
-        HeaderWord copy = header;
-        copy.f.age      = age;
+        HeaderWord orig    = header;
+        orig.f.inflated    = 0;
+        HeaderWord new_val = orig;
+        new_val.f.age      = age;
 
-        if(header.atomic_set(header, copy)) return;
+        if(header.atomic_set(orig, new_val)) return;
       }
     }
   }
@@ -217,10 +221,12 @@ namespace rubinius {
         inflated_header()->mark(which);
         return;
       } else {
-        HeaderWord copy = header;
-        copy.f.Marked   = which;
+        HeaderWord orig    = header;
+        orig.f.inflated    = 0;
+        HeaderWord new_val = orig;
+        new_val.f.Marked   = which;
 
-        if(header.atomic_set(header, copy)) return;
+        if(header.atomic_set(orig, new_val)) return;
       }
     }
   }
@@ -231,10 +237,12 @@ namespace rubinius {
         inflated_header()->clear_mark();
         return;
       } else {
-        HeaderWord copy = header;
-        copy.f.Marked   = 0;
+        HeaderWord orig    = header;
+        orig.f.inflated    = 0;
+        HeaderWord new_val = orig;
+        new_val.f.Marked   = 0;
 
-        if(header.atomic_set(header, copy)) return;
+        if(header.atomic_set(orig, new_val)) return;
       }
     }
   }
@@ -247,10 +255,12 @@ namespace rubinius {
       if(inflated_header_p()) {
         return inflated_header()->pin();
       } else {
-        HeaderWord copy = header;
-        copy.f.Pinned   = 1;
+        HeaderWord orig    = header;
+        orig.f.inflated    = 0;
+        HeaderWord new_val = orig;
+        new_val.f.Pinned   = 1;
 
-        if(header.atomic_set(header, copy)) return true;
+        if(header.atomic_set(orig, new_val)) return true;
       }
     }
     return true;
@@ -262,10 +272,12 @@ namespace rubinius {
         inflated_header()->unpin();
         return;
       } else {
-        HeaderWord copy = header;
-        copy.f.Pinned   = 0;
+        HeaderWord orig    = header;
+        orig.f.inflated    = 0;
+        HeaderWord new_val = orig;
+        new_val.f.Pinned   = 0;
 
-        if(header.atomic_set(header, copy)) return;
+        if(header.atomic_set(orig, new_val)) return;
       }
     }
   }
@@ -276,10 +288,12 @@ namespace rubinius {
         inflated_header()->set_in_immix();
         return;
       } else {
-        HeaderWord copy = header;
-        copy.f.InImmix  = 1;
+        HeaderWord orig    = header;
+        orig.f.inflated    = 0;
+        HeaderWord new_val = orig;
+        new_val.f.InImmix  = 1;
 
-        if(header.atomic_set(header, copy)) return;
+        if(header.atomic_set(orig, new_val)) return;
       }
     }
   }
@@ -290,10 +304,12 @@ namespace rubinius {
         inflated_header()->set_zone(zone);
         return;
       } else {
-        HeaderWord copy = header;
-        copy.f.zone     = zone;
+        HeaderWord orig    = header;
+        orig.f.inflated    = 0;
+        HeaderWord new_val = orig;
+        new_val.f.zone     = zone;
 
-        if(header.atomic_set(header, copy)) return;
+        if(header.atomic_set(orig, new_val)) return;
       }
     }
   }
@@ -304,10 +320,12 @@ namespace rubinius {
         inflated_header()->set_lock_contended();
         return;
       } else {
-        HeaderWord copy      = header;
-        copy.f.LockContended = 1;
+        HeaderWord orig    = header;
+        orig.f.inflated    = 0;
+        HeaderWord new_val = orig;
+        new_val.f.LockContended = 1;
 
-        if(header.atomic_set(header, copy)) return;
+        if(header.atomic_set(orig, new_val)) return;
       }
     }
   }
@@ -318,10 +336,12 @@ namespace rubinius {
         inflated_header()->clear_lock_contended();
         return;
       } else {
-        HeaderWord copy      = header;
-        copy.f.LockContended = 0;
+        HeaderWord orig    = header;
+        orig.f.inflated    = 0;
+        HeaderWord new_val = orig;
+        new_val.f.LockContended = 0;
 
-        if(header.atomic_set(header, copy)) return;
+        if(header.atomic_set(orig, new_val)) return;
       }
     }
   }
@@ -332,10 +352,12 @@ namespace rubinius {
         inflated_header()->set_remember();
         return;
       } else {
-        HeaderWord copy = header;
-        copy.f.Remember = 1;
+        HeaderWord orig    = header;
+        orig.f.inflated    = 0;
+        HeaderWord new_val = orig;
+        new_val.f.Remember = 1;
 
-        if(header.atomic_set(header, copy)) return;
+        if(header.atomic_set(orig, new_val)) return;
       }
     }
   }
@@ -346,10 +368,12 @@ namespace rubinius {
         inflated_header()->clear_remember();
         return;
       } else {
-        HeaderWord copy = header;
-        copy.f.Remember = 0;
+        HeaderWord orig    = header;
+        orig.f.inflated    = 0;
+        HeaderWord new_val = orig;
+        new_val.f.Remember = 0;
 
-        if(header.atomic_set(header, copy)) return;
+        if(header.atomic_set(orig, new_val)) return;
       }
     }
   }
@@ -360,10 +384,12 @@ namespace rubinius {
         inflated_header()->set_frozen(val);
         return;
       } else {
-        HeaderWord copy = header;
-        copy.f.Frozen = val;
+        HeaderWord orig    = header;
+        orig.f.inflated    = 0;
+        HeaderWord new_val = orig;
+        new_val.f.Frozen   = val;
 
-        if(header.atomic_set(header, copy)) return;
+        if(header.atomic_set(orig, new_val)) return;
       }
     }
   }
@@ -374,10 +400,12 @@ namespace rubinius {
         inflated_header()->set_tainted(val);
         return;
       } else {
-        HeaderWord copy = header;
-        copy.f.Tainted = val;
+        HeaderWord orig    = header;
+        orig.f.inflated    = 0;
+        HeaderWord new_val = orig;
+        new_val.f.Tainted  = val;
 
-        if(header.atomic_set(header, copy)) return;
+        if(header.atomic_set(orig, new_val)) return;
       }
     }
   }
@@ -388,10 +416,12 @@ namespace rubinius {
         inflated_header()->set_untrusted(val);
         return;
       } else {
-        HeaderWord copy = header;
-        copy.f.Untrusted = val;
+        HeaderWord orig     = header;
+        orig.f.inflated     = 0;
+        HeaderWord new_val  = orig;
+        new_val.f.Untrusted = val;
 
-        if(header.atomic_set(header, copy)) return;
+        if(header.atomic_set(orig, new_val)) return;
       }
     }
   }
@@ -403,9 +433,11 @@ namespace rubinius {
         return;
       } else {
         HeaderWord orig = header;
+        orig.f.inflated = 0;
         orig.f.meaning  = eAuxWordHandle;
 
         HeaderWord new_val = orig;
+        new_val.f.inflated = 0;
         new_val.f.meaning  = eAuxWordEmpty;
         new_val.f.aux_word = 0;
 
@@ -524,9 +556,8 @@ step2:
       } else {
         // We weren't able to contend for it, probably because the header changed.
         // Do it all over again.
-        bool error = false;
-        LockStatus ret = state->memory()->contend_for_lock(state, gct, self, &error, us, interrupt);
-        if(error) goto step1;
+        LockStatus ret = state->memory()->contend_for_lock(state, gct, self, us, interrupt);
+        if(ret == eLockError) goto step1;
         return ret;
       }
 
