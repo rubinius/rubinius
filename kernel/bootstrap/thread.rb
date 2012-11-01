@@ -111,8 +111,7 @@ class Thread
       run obj
       dup
 
-      push_false
-      send :setup, 1, true
+      send :setup, 0, true
       pop
 
       run args
