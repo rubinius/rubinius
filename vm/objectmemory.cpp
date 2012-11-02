@@ -179,11 +179,10 @@ step1:
       // contention condvar until the object is unlocked.
 
       HeaderWord orig = obj->header;
-      HeaderWord new_val = orig;
+      orig.f.inflated = 0;
 
-      orig.f.meaning = eAuxWordLock;
-
-      new_val.f.inflated      = 0;
+      HeaderWord new_val      = orig;
+      orig.f.meaning          = eAuxWordLock;
       new_val.f.LockContended = 1;
 
       if(!obj->header.atomic_set(orig, new_val)) {
@@ -298,14 +297,14 @@ step1:
     int initial_count = 0;
 
     HeaderWord orig = obj->header;
-    HeaderWord tmp = orig;
+    HeaderWord new_val = orig;
 
-    if(tmp.f.inflated) {
+    if(orig.f.inflated) {
       // Already inflated. ERROR, let the caller sort it out.
       return false;
     }
 
-    switch(tmp.f.meaning) {
+    switch(new_val.f.meaning) {
     case eAuxWordEmpty:
       // ERROR, we can not be here because it's empty. This is only to
       // be called when the header is already in use.
@@ -314,11 +313,11 @@ step1:
       // We could be have made a header before trying again, so
       // keep using the original one.
       ih = inflated_headers_->allocate(obj);
-      ih->set_object_id(tmp.f.aux_word);
+      ih->set_object_id(new_val.f.aux_word);
       break;
     case eAuxWordLock:
       // We have to locking the object to inflate it, thats the law.
-      if(tmp.f.aux_word >> cAuxLockTIDShift != state->vm()->thread_id()) {
+      if(new_val.f.aux_word >> cAuxLockTIDShift != state->vm()->thread_id()) {
         return false;
       }
 
@@ -334,10 +333,10 @@ step1:
 
     ih->initialize_mutex(state->vm()->thread_id(), initial_count);
 
-    tmp.all_flags = ih;
-    tmp.f.inflated = 1;
+    new_val.all_flags = ih;
+    new_val.f.inflated = 1;
 
-    while(!obj->header.atomic_set(orig, tmp)) {
+    while(!obj->header.atomic_set(orig, new_val)) {
       // The header can't have been inflated by another thread, the
       // inflation process holds the OM lock.
       //
@@ -347,15 +346,19 @@ step1:
       // Sanity check that the meaning is still the same, if not, then
       // something is really wrong.
       orig = obj->header;
-      if(orig.f.meaning != tmp.f.meaning) {
+      if(orig.f.inflated) {
+        return false;
+      }
+      if(orig.f.meaning != new_val.f.meaning) {
         if(cDebugThreading) {
           std::cerr << "[LOCK object header consistence error detected.]" << std::endl;
         }
         return false;
       }
 
-      tmp.all_flags = ih;
-      tmp.f.inflated = 1;
+      new_val = orig;
+      new_val.all_flags = ih;
+      new_val.f.inflated = 1;
     }
 
     return true;

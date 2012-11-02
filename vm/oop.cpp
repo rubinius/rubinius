@@ -27,11 +27,13 @@ namespace rubinius {
   bool ObjectHeader::set_inflated_header(STATE, InflatedHeader* ih) {
     HeaderWord orig = header;
 
+    if(orig.f.inflated) return false;
+
     ih->reset_object(this);
     if(!ih->update(state, orig)) return false;
 
     HeaderWord new_val = orig;
-    new_val.all_flags = ih;
+    new_val.all_flags  = ih;
     new_val.f.inflated = 1;
 
     // Make sure to include a barrier to the header is all properly initialized
@@ -41,6 +43,7 @@ namespace rubinius {
     // we catch that and keep trying until we get our version in.
     while(!header.atomic_set(orig, new_val)) {
       orig = header;
+      if(orig.f.inflated) return false;
       if(!ih->update(state, orig)) return false;
     }
 
@@ -437,7 +440,6 @@ namespace rubinius {
         orig.f.meaning  = eAuxWordHandle;
 
         HeaderWord new_val = orig;
-        new_val.f.inflated = 0;
         new_val.f.meaning  = eAuxWordEmpty;
         new_val.f.aux_word = 0;
 
