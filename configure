@@ -119,8 +119,8 @@ class Configure
 
     # Essential settings (modify these for creating releases)
     @libversion = "2.0"
-    @version = "#{@libversion}.0dev"
-    @release_date = "yyyy-mm-dd"
+    @version = "#{@libversion}.0rc1"
+    @release_date = "2012-11-02"
     @config_version = 162
   end
 
