@@ -1547,7 +1547,10 @@ instruction string_build(count) [ +count -- string ]
     /* We had to set the size of the result String before every Encoding check
      * so we have to set it to the final size here.
      */
-    if(check_encoding) str->num_bytes(state, Fixnum::from(size));
+    if(check_encoding) {
+      str->num_bytes(state, Fixnum::from(size));
+      str->ascii_only(state, cNil);
+    }
     if(!enc->nil_p()) str->encoding(state, enc);
   }
 
