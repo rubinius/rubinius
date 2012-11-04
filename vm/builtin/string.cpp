@@ -1512,20 +1512,22 @@ namespace rubinius {
   }
 
   OnigEncodingType* String::get_encoding_kcode_fallback(STATE) {
-    if(encoding_->nil_p()) {
-      switch(state->shared().kcode_page()) {
-      default:
-      case kcode::eAscii:
-        return ONIG_ENCODING_ASCII;
-      case kcode::eEUC:
-        return ONIG_ENCODING_EUC_JP;
-      case kcode::eSJIS:
-        return ONIG_ENCODING_Shift_JIS;
-      case kcode::eUTF8:
-        return ONIG_ENCODING_UTF_8;
+    if(!LANGUAGE_18_ENABLED(state)) {
+      if(!encoding_->nil_p()) {
+        return encoding_->get_encoding();
       }
-    } else {
-      return encoding_->get_encoding();
+    }
+
+    switch(state->shared().kcode_page()) {
+    default:
+    case kcode::eAscii:
+      return ONIG_ENCODING_ASCII;
+    case kcode::eEUC:
+      return ONIG_ENCODING_EUC_JP;
+    case kcode::eSJIS:
+      return ONIG_ENCODING_Shift_JIS;
+    case kcode::eUTF8:
+      return ONIG_ENCODING_UTF_8;
     }
   }
 
