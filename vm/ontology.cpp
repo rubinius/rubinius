@@ -1,4 +1,5 @@
 #include <sys/ioctl.h>
+#include <termios.h>
 #include <stdio.h>
 #include <errno.h>
 
