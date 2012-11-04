@@ -70,8 +70,20 @@ extern "C" {
   }
 
   int rb_enc_str_coderange(VALUE string) {
-    // TODO
-    return ENC_CODERANGE_7BIT;
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    String *str = c_as<String>(env->get_object(string));
+
+    bool valid = str->valid_encoding_p(env->state()) == cTrue;
+    bool ascii = str->ascii_only_p(env->state()) == cTrue;
+
+    if(valid && ascii) {
+      return ENC_CODERANGE_7BIT;
+    } else if(valid) {
+      return ENC_CODERANGE_VALID;
+    } else {
+      return ENC_CODERANGE_BROKEN;
+    }
   }
 
   VALUE rb_locale_str_new_cstr(const char *ptr) {
