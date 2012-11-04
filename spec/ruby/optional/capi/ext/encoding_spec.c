@@ -114,6 +114,16 @@ static VALUE encoding_spec_rb_enc_associate_index(VALUE self, VALUE obj, VALUE i
 }
 #endif
 
+#ifdef HAVE_RB_ENC_COMPATIBLE
+static VALUE encoding_spec_rb_enc_compatible(VALUE self, VALUE a, VALUE b) {
+  rb_encoding* enc = rb_enc_compatible(a, b);
+
+  if(!enc) return INT2FIX(0);
+
+  return rb_enc_from_encoding(enc);
+}
+#endif
+
 #ifdef HAVE_RB_ENC_COPY
 static VALUE encoding_spec_rb_enc_copy(VALUE self, VALUE dest, VALUE src) {
   rb_enc_copy(dest, src);
@@ -316,6 +326,10 @@ void Init_encoding_spec() {
 
 #ifdef HAVE_RB_ENC_ASSOCIATE_INDEX
   rb_define_method(cls, "rb_enc_associate_index", encoding_spec_rb_enc_associate_index, 2);
+#endif
+
+#ifdef HAVE_RB_ENC_COMPATIBLE
+  rb_define_method(cls, "rb_enc_compatible", encoding_spec_rb_enc_compatible, 2);
 #endif
 
 #ifdef HAVE_RB_ENC_COPY

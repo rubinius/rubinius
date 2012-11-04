@@ -270,6 +270,23 @@ ruby_version_is "1.9" do
       end
     end
 
+    describe "rb_enc_compatible" do
+      it "returns 0 if the encodings of the Strings are not compatible" do
+        a = "\xff".force_encoding "ascii-8bit"
+        b = "\u3042".encode("utf-8")
+        @s.rb_enc_compatible(a, b).should == 0
+      end
+
+      # The coverage of this sucks, but there is not a simple way (yet?) to
+      # easily share the specs between rb_enc_compatible and
+      # Encoding.compatible?
+      it "returns the same value as Encoding.compatible? if the Strings have a compatible encoding" do
+        a = "abc".force_encoding("us-ascii")
+        b = "\u3042".encode("utf-8")
+        @s.rb_enc_compatible(a, b).should == Encoding.compatible?(a, b)
+      end
+    end
+
     describe "rb_enc_copy" do
       before :each do
         @obj = "rb_enc_copy".encode(Encoding::US_ASCII)
