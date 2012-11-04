@@ -142,15 +142,15 @@ class String
       start   = Rubinius::Type.coerce_to index.first, Fixnum, :to_int
       length  = Rubinius::Type.coerce_to index.last,  Fixnum, :to_int
 
-      start += @num_bytes if start < 0
+      start += size if start < 0
 
-      length += @num_bytes if length < 0
+      length += size if length < 0
       length += 1 unless index.exclude_end?
 
-      return "" if start == @num_bytes
-      return nil if start < 0 || start > @num_bytes
+      return "" if start == size
+      return nil if start < 0 || start > size
 
-      length = @num_bytes if length > @num_bytes
+      length = size if length > size
       length = length - start
       length = 0 if length < 0
 
