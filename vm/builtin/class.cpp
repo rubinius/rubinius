@@ -135,7 +135,9 @@ namespace rubinius {
   }
 
   Object* Class::allocate(STATE, GCToken gct, CallFrame* calling_environment) {
-    if(type_info_->type == PackedObject::type) {
+    object_type obj_type = type_info_->type;
+
+    if(obj_type == PackedObject::type) {
       Object* new_obj = allocate_packed(state, gct, this, calling_environment);
 #ifdef RBX_ALLOC_TRACKING
       if(unlikely(state->vm()->allocation_tracking())) {
@@ -146,7 +148,7 @@ namespace rubinius {
     } else if(!type_info_->allow_user_allocate || kind_of<SingletonClass>(this)) {
       Exception::type_error(state, "direct allocation disabled");
       return cNil;
-    } else if(type_info_->type == Object::type) {
+    } else if(obj_type == Object::type) {
       // transition all normal object classes to PackedObject
       Class* self = this;
       OnStack<1> os(state, self);
@@ -163,7 +165,7 @@ namespace rubinius {
       // type_info_->type is neither PackedObject nor Object, so use the
       // generic path.
       Object* new_obj = state->vm()->new_object_typed(this,
-          type_info_->instance_size, type_info_->type);
+          type_info_->instance_size, obj_type);
 #ifdef RBX_ALLOC_TRACKING
       if(unlikely(state->vm()->allocation_tracking())) {
         new_obj->setup_allocation_site(state, calling_environment);
@@ -275,7 +277,7 @@ namespace rubinius {
       slots = lt->entries()->to_native();
     }
 
-    self->packed_size_ = sizeof(Object) + (slots * sizeof(Object*));
+    self->set_packed_size(sizeof(Object) + (slots * sizeof(Object*)));
     self->packed_ivar_info(state, lt);
 
     atomic::memory_barrier();
