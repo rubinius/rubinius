@@ -21,22 +21,29 @@ Please include the following:
 MSpec provides several different scripts to run the specs under different
 conditions. The default behavior is to simply run all the specs. If you invoke
 the following command, it will run all the Ruby Array specs in the default
-language mode, which should be 1.8 unless you configured 1.9 to be the default:
+language mode, which should be 1.8 unless you configured a different mode to
+be the default:
 
-bin/mspec core/array To Run the specs in 1.9 mode, add the -tx19 option:
+  bin/mspec core/array
 
-bin/mspec -tx19 core/array The -t option specifies which target to run the
-specs under. The default in Rubinius is to run them with Rubinius, so -tx is
-implied. You can easily run with another target by giving the name of an
-executable on your PATH or the full path to an executable. Since the specs are
-intended to show the behavior of MRI, if you are writing new specs you need to
-run them under MRI 1.8.7 and 1.9.2. I have those on my PATH, so I can do the
-following:
+To Run the specs in 1.9 mode, add the -tx19 option:
 
-bin/mspec -t ruby1.8.7 core/array bin/mspec -t ruby1.9.2 core/array Finally, if
-you are running bin/mspec in the Rubinius source directory, the location of the
-RubySpecs are known (spec/ruby/), so you can use the full path or the shortened
-version core/array above.
+  bin/mspec -tx19 core/array
+
+The -t option specifies which Ruby implementation to run the specs under. The
+default in Rubinius is to run them with Rubinius, so -tx is implied. You can
+easily run with another target by giving the name of an executable on your
+PATH or the full path to an executable. Since the specs are intended to show
+the behavior of MRI, if you are writing new specs you need to run them under
+the current stable releases of MRI 1.8, 1.9, and 2.0. For example, if you have
+ruby1.8.7 and ruby1.9.3 executables on your PATH, you can do the following:
+
+  bin/mspec -t ruby1.8.7 core/array
+  bin/mspec -t ruby1.9.3 core/array
+
+Finally, if you are running bin/mspec in the Rubinius source directory, the
+location of the RubySpecs are known (spec/ruby/), so you can use the full path
+or the shortened version core/array above.
 
 3. Fixing a bug
 
