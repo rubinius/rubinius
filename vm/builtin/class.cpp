@@ -278,6 +278,7 @@ namespace rubinius {
     packed_size_ = sizeof(Object) + (slots * sizeof(Object*));
     self->packed_ivar_info(state, lt);
 
+    atomic::memory_barrier();
     self->set_object_type(state, PackedObject::type);
 
     self->hard_unlock(state, gct);
