@@ -177,6 +177,31 @@ static VALUE encoding_spec_rb_enc_set_index(VALUE self, VALUE obj, VALUE index) 
 }
 #endif
 
+#ifdef HAVE_RB_ENC_STR_CODERANGE
+static VALUE encoding_spec_rb_enc_str_coderange(VALUE self, VALUE str) {
+  int coderange = rb_enc_str_coderange(str);
+
+  switch(coderange) {
+  case ENC_CODERANGE_UNKNOWN:
+    return ID2SYM(rb_intern("coderange_unknown"));
+  case ENC_CODERANGE_7BIT:
+    return ID2SYM(rb_intern("coderange_7bit"));
+  case ENC_CODERANGE_VALID:
+    return ID2SYM(rb_intern("coderange_valid"));
+  case ENC_CODERANGE_BROKEN:
+    return ID2SYM(rb_intern("coderange_broken"));
+  default:
+    return ID2SYM(rb_intern("coderange_unrecognized"));
+  }
+}
+#endif
+
+#ifdef HAVE_RB_ENC_STR_NEW
+static VALUE encoding_spec_rb_enc_str_new(VALUE self, VALUE str, VALUE len, VALUE enc) {
+  return rb_enc_str_new(RSTRING_PTR(str), FIX2INT(len), rb_to_encoding(enc));
+}
+#endif
+
 #ifdef HAVE_ENCODING_GET
 static VALUE encoding_spec_ENCODING_GET(VALUE self, VALUE obj) {
   return INT2NUM(ENCODING_GET(obj));
@@ -329,6 +354,14 @@ void Init_encoding_spec() {
       && defined(HAVE_RB_ENC_FIND_INDEX) \
       && defined(HAVE_RB_ENC_FIND_INDEX)
   rb_define_method(cls, "rb_enc_set_index", encoding_spec_rb_enc_set_index, 2);
+#endif
+
+#ifdef HAVE_RB_ENC_STR_CODERANGE
+  rb_define_method(cls, "rb_enc_str_coderange", encoding_spec_rb_enc_str_coderange, 1);
+#endif
+
+#ifdef HAVE_RB_ENC_STR_NEW
+  rb_define_method(cls, "rb_enc_str_new", encoding_spec_rb_enc_str_new, 3);
 #endif
 
 #ifdef HAVE_ENCODING_GET

@@ -162,6 +162,56 @@ ruby_version_is "1.9" do
       it_behaves_like :rb_enc_set_index, :rb_enc_set_index
     end
 
+    describe "rb_enc_str_new" do
+      it "returns a String in US-ASCII encoding when high bits are set" do
+        result = @s.rb_enc_str_new("\xEE", 1, Encoding::US_ASCII)
+        result.encoding.should equal(Encoding::US_ASCII)
+      end
+    end
+
+    describe "rb_enc_str_coderange" do
+      describe "when the encoding is ASCII-8BIT" do
+        it "returns ENC_CODERANGE_7BIT if there are no high bits set" do
+          result = @s.rb_enc_str_coderange("abc".force_encoding("ascii-8bit"))
+          result.should == :coderange_7bit
+        end
+
+        it "returns ENC_CODERANGE_VALID if there are high bits set" do
+          result = @s.rb_enc_str_coderange("\xEE".force_encoding("ascii-8bit"))
+          result.should == :coderange_valid
+        end
+      end
+
+      describe "when the encoding is UTF-8" do
+        it "returns ENC_CODERANGE_7BIT if there are no high bits set" do
+          result = @s.rb_enc_str_coderange("abc".force_encoding("utf-8"))
+          result.should == :coderange_7bit
+        end
+
+        it "returns ENC_CODERANGE_VALID if there are high bits set in a valid string" do
+          result = @s.rb_enc_str_coderange("\xE3\x81\x82".force_encoding("utf-8"))
+          result.should == :coderange_valid
+        end
+
+        it "returns ENC_CODERANGE_BROKEN if there are high bits set in an invalid string" do
+          result = @s.rb_enc_str_coderange("\xEE".force_encoding("utf-8"))
+          result.should == :coderange_broken
+        end
+      end
+
+      describe "when the encoding is US-ASCII" do
+        it "returns ENC_CODERANGE_7BIT if there are no high bits set" do
+          result = @s.rb_enc_str_coderange("abc".force_encoding("us-ascii"))
+          result.should == :coderange_7bit
+        end
+
+        it "returns ENC_CODERANGE_BROKEN if there are high bits set" do
+          result = @s.rb_enc_str_coderange("\xEE".force_encoding("us-ascii"))
+          result.should == :coderange_broken
+        end
+      end
+    end
+
     describe "ENCODING_GET" do
       it_behaves_like :rb_enc_get_index, :ENCODING_GET
     end
