@@ -161,9 +161,14 @@ extern "C" {
     Encoding::set_object_encoding(env->state(), val, enc);
   }
 
-  rb_encoding* rb_enc_compatible(VALUE str1, VALUE str2) {
-    // TODO
-    return rb_enc_get(str1);
+  rb_encoding* rb_enc_compatible(VALUE a, VALUE b) {
+    VALUE result = rb_funcall(rb_cEncoding, rb_intern("compatible?"), 2, a, b);
+
+    if(result == Qnil) {
+      return 0;
+    } else {
+      return rb_to_encoding(result);
+    }
   }
 
   rb_encoding* rb_to_encoding(VALUE obj) {
