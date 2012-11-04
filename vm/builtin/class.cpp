@@ -152,7 +152,7 @@ namespace rubinius {
       OnStack<1> os(state, self);
 
       auto_pack(state, gct);
-      Object* new_obj = allocate_packed(state, gct, this, calling_environment);
+      Object* new_obj = allocate_packed(state, gct, self, calling_environment);
 #ifdef RBX_ALLOC_TRACKING
       if(unlikely(state->vm()->allocation_tracking())) {
         new_obj->setup_allocation_site(state, calling_environment);
@@ -231,7 +231,7 @@ namespace rubinius {
     // If another thread did this work while we were waiting on the lock,
     // don't redo it.
     if(self->type_info_->type == PackedObject::type) {
-      hard_unlock(state, gct);
+      self->hard_unlock(state, gct);
       return;
     }
 
@@ -275,7 +275,7 @@ namespace rubinius {
       slots = lt->entries()->to_native();
     }
 
-    packed_size_ = sizeof(Object) + (slots * sizeof(Object*));
+    self->packed_size_ = sizeof(Object) + (slots * sizeof(Object*));
     self->packed_ivar_info(state, lt);
 
     atomic::memory_barrier();
