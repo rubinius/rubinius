@@ -35,26 +35,8 @@ To install Rubinius, use the following steps:
 When the install process finishes, follow the directions printed to the
 terminal to add the Rubinius executable (bin) directory to your PATH.
 
-Language Modes
-
-Rubinius 2.0 (the master branch) implements both 1.8 and 1.9 language features
-in one executable. You can select the language mode at runtime by passing the
--X18 or -X19 flag, either as a command line option or by setting the RBXOPT
-environment variable. Both commands below should have the same effect:
-
-RBXOPT=-X19 bin/rbx -v bin/rbx -X19 -v If I run that on my system, I will see
-the following:
-
-rubinius 2.0.0dev (1.9.2 0f223599 yyyy-mm-dd JI) [x86_64-apple-darwin10.8.0]
-The default language mode is 1.8, so if you invoke rbx with no other options,
-you’ll be running in 1.8 mode. You can change the default mode with a configure
-time option as follows:
-
-./configure --default-version=1.9 If you configure Rubinius to have a default
-language mode of 1.9, you can access 1.8 mode with the -X18 runtime option as
-discussed above.
-
-For more information about building and running Rubinius, run 'rake docs'.
+See Section 6. Language Modes below for more information about configuring
+Rubinius for different Ruby language versions.
 
 
 4. Installing Rubinius with RVM
@@ -64,7 +46,7 @@ Rubinius can be installed using the Ruby Version Manager (RVM) project.
 To install Rubinius with RVM, use the following steps:
 
   1. Ensure the latest RVM is installed
-  2. rvm install rbx-head
+  2. rvm install rbx
 
 To use Rubinius in the current shell session, run:
 
@@ -78,6 +60,11 @@ The documentation for RVM is available at:
 
   https://rvm.io
 
+See Section 6. Language Modes below for more information about the supported
+Ruby language versions. See the RVM documentation for how to install Rubinius
+with different language modes using RVM.
+
+
 5. Using RubyGems
 
 Rubinius comes with RubyGems built-in. To install a gem, run the following:
@@ -85,20 +72,43 @@ Rubinius comes with RubyGems built-in. To install a gem, run the following:
   rbx -S gem install <gem_name>
 
 
-6. Documentation
+6. Language Modes
+
+Rubinius implements multiple Ruby language features in one executable. You can
+select the language mode at runtime by passing the -X18, -X19, or -X20 command
+line option or by setting the RBXOPT environment variable. The following two
+commands are equivalent:
+
+  RBXOPT=-X19 bin/rbx -v
+  bin/rbx -X19 -v
+
+The default language mode is 1.8. You can change which language modes are
+enabled and which one is the default mode with configure options.
+
+For example, to enable both 1.9 and 2.0 modes, with 1.9 the default, use the
+follwing configure options:
+
+./configure --enable-version=1.9,2.0 --default-version=1.9
+
+The --enable-version option takes a comma-separated list of versions. The
+--default-version option takes a single version. If only a single version is
+enabled, setting the default version is redundant.
+
+
+7. Documentation
 
 After installing Rubinius, run 'rbx docs' to access the built-in documentation
 at any time.
 
 
-7. Tickets
+8. Tickets
 
 Please file tickets for bugs or problems. The issue tracker is:
 
   http://github.com/rubinius/rubinius/issues
 
 
-8. Contributing
+9. Contributing
 
 The Rubinius team welcomes contributions. For more information read the
 CONTRIBUTING file in the root directory of Rubinius.
