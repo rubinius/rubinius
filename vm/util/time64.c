@@ -217,7 +217,7 @@ int tm_to_tm64(struct tm* tm, struct tm64* tm64) {
 #ifdef HAVE_TM_ZONE
   tm64->tm_zone   = (char*)tm->tm_zone;
 #elif HAVE_TZNAME && HAVE_DAYLIGHT
-  tm64->tm_zone   = tzname[daylight && tptr->tm_isdst];
+  tm64->tm_zone   = tzname[daylight && tm->tm_isdst];
 #else
   tm64->tm_zone   = NULL;
 #endif
