@@ -104,9 +104,11 @@ namespace rubinius {
   }
 
   void VM::discard(STATE, VM* vm) {
+    vm->lock(state->vm());
     rbxti::destroy_env(vm->tooling_env_);
     vm->saved_call_frame_ = 0;
     vm->shared.remove_vm(vm);
+    vm->unlock(state->vm());
 
     delete vm;
   }
@@ -346,9 +348,6 @@ namespace rubinius {
 
     check_local_interrupts = true;
 
-    // Wakeup any locks hanging around with contention
-    om->release_contention(state, gct);
-
     if(park_->parked_p()) {
       park_->unpark();
       return true;
@@ -358,6 +357,9 @@ namespace rubinius {
 #else
       pthread_kill(os_thread_, SIGVTALRM);
 #endif
+      UNSYNC;
+      // Wakeup any locks hanging around with contention
+      om->release_contention(state, gct);
       return true;
     } else if(InflatedHeader* ih = waiting_header_) {
       // We shouldn't hold the VM lock and the IH lock at the same time,
@@ -370,10 +372,12 @@ namespace rubinius {
 
       if(!chan->nil_p()) {
         UNSYNC;
+        om->release_contention(state, gct);
         chan->send(state, gct, cNil);
         return true;
       } else if(custom_wakeup_) {
         UNSYNC;
+        om->release_contention(state, gct);
         (*custom_wakeup_)(custom_wakeup_data_);
         return true;
       }
