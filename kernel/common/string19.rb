@@ -745,61 +745,6 @@ class String
     end
   end
 
-  def [](index, other = undefined)
-    Rubinius.primitive :string_aref
-
-    unless other.equal?(undefined)
-      if index.kind_of? Regexp
-        match, str = subpattern(index, other)
-        Regexp.last_match = match
-        return str
-      else
-        length = Rubinius::Type.coerce_to(other, Fixnum, :to_int)
-        start  = Rubinius::Type.coerce_to(index, Fixnum, :to_int)
-        return substring(start, length)
-      end
-    end
-
-    case index
-    when Regexp
-      match_data = index.search_region(self, 0, @num_bytes, true)
-      Regexp.last_match = match_data
-      if match_data
-        result = match_data.to_s
-        result.taint if index.tainted?
-        return result
-      end
-    when String
-      return include?(index) ? index.dup : nil
-    when Range
-      start   = Rubinius::Type.coerce_to index.first, Fixnum, :to_int
-      length  = Rubinius::Type.coerce_to index.last,  Fixnum, :to_int
-
-      start += size if start < 0
-
-      length += size if length < 0
-      length += 1 unless index.exclude_end?
-
-      return "" if start == size
-      return nil if start < 0 || start > size
-
-      length = size if length > size
-      length = length - start
-      length = 0 if length < 0
-
-      return substring(start, length)
-    # A really stupid case hit for rails. Either we define this or we define
-    # Symbol#to_int. We removed Symbol#to_int in late 2007 because it's evil,
-    # and do not want to re add it.
-    when Symbol
-      return nil
-    else
-      index = Rubinius::Type.coerce_to index, Fixnum, :to_int
-      return self[index]
-    end
-  end
-  alias_method :slice, :[]
-
   def []=(index, replacement, three=undefined)
     unless three.equal?(undefined)
       if index.kind_of? Regexp
