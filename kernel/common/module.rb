@@ -555,7 +555,7 @@ class Module
     Rubinius.inc_global_serial
 
     # Silly API compact. Shield Autoload instances
-    return nil if val.kind_of? Autoload
+    return nil if Rubinius::Type.object_kind_of?(val, Autoload)
     val
   end
 
