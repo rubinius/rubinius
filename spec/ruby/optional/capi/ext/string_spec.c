@@ -119,6 +119,42 @@ VALUE string_spec_rb_str_cmp(VALUE self, VALUE str1, VALUE str2) {
 }
 #endif
 
+#ifdef HAVE_RB_STR_CONV_ENC
+VALUE string_spec_rb_str_conv_enc(VALUE self, VALUE str, VALUE from, VALUE to) {
+  rb_encoding* from_enc;
+  rb_encoding* to_enc;
+
+  from_enc = rb_to_encoding(from);
+
+  if(NIL_P(to)) {
+    to_enc = 0;
+  } else {
+    to_enc = rb_to_encoding(to);
+  }
+
+  return rb_str_conv_enc(str, from_enc, to_enc);
+}
+#endif
+
+#ifdef HAVE_RB_STR_CONV_ENC_OPTS
+VALUE string_spec_rb_str_conv_enc_opts(VALUE self, VALUE str, VALUE from, VALUE to,
+                                       VALUE ecflags, VALUE ecopts)
+{
+  rb_encoding* from_enc;
+  rb_encoding* to_enc;
+
+  from_enc = rb_to_encoding(from);
+
+  if(NIL_P(to)) {
+    to_enc = 0;
+  } else {
+    to_enc = rb_to_encoding(to);
+  }
+
+  return rb_str_conv_enc_opts(str, from_enc, to_enc, FIX2INT(ecflags), ecopts);
+}
+#endif
+
 #ifdef HAVE_RB_STR_DUP
 VALUE string_spec_rb_str_dup(VALUE self, VALUE str) {
   return rb_str_dup(str);
@@ -162,6 +198,15 @@ VALUE string_spec_rb_str_new(VALUE self, VALUE str, VALUE len) {
 #endif
 
 #ifdef HAVE_RB_STR_NEW2
+#ifdef RUBY_VERSION_IS_2_0
+VALUE string_spec_rb_str_new2(VALUE self, VALUE str) {
+  if(NIL_P(str)) {
+    return rb_str_new2("");
+  } else {
+    return rb_str_new2(RSTRING_PTR(str));
+  }
+}
+#else
 VALUE string_spec_rb_str_new2(VALUE self, VALUE str) {
   if(NIL_P(str)) {
     return rb_str_new2(NULL);
@@ -169,6 +214,7 @@ VALUE string_spec_rb_str_new2(VALUE self, VALUE str) {
     return rb_str_new2(RSTRING_PTR(str));
   }
 }
+#endif
 #endif
 
 #ifdef HAVE_RB_STR_ENCODE
@@ -178,6 +224,15 @@ VALUE string_spec_rb_str_encode(VALUE self, VALUE str, VALUE enc, VALUE flags, V
 #endif
 
 #ifdef HAVE_RB_STR_NEW_CSTR
+#ifdef RUBY_VERSION_IS_2_0
+VALUE string_spec_rb_str_new_cstr(VALUE self, VALUE str) {
+  if(NIL_P(str)) {
+    return rb_str_new_cstr("");
+  } else {
+    return rb_str_new_cstr(RSTRING_PTR(str));
+  }
+}
+#else
 VALUE string_spec_rb_str_new_cstr(VALUE self, VALUE str) {
   if(NIL_P(str)) {
     return rb_str_new_cstr(NULL);
@@ -185,6 +240,7 @@ VALUE string_spec_rb_str_new_cstr(VALUE self, VALUE str) {
     return rb_str_new_cstr(RSTRING_PTR(str));
   }
 }
+#endif
 #endif
 
 #ifdef HAVE_RB_EXTERNAL_STR_NEW
@@ -528,6 +584,14 @@ void Init_string_spec() {
 
 #ifdef HAVE_RB_STR_CMP
   rb_define_method(cls, "rb_str_cmp", string_spec_rb_str_cmp, 2);
+#endif
+
+#ifdef HAVE_RB_STR_CONV_ENC
+  rb_define_method(cls, "rb_str_conv_enc", string_spec_rb_str_conv_enc, 3);
+#endif
+
+#ifdef HAVE_RB_STR_CONV_ENC_OPTS
+  rb_define_method(cls, "rb_str_conv_enc_opts", string_spec_rb_str_conv_enc_opts, 5);
 #endif
 
 #ifdef HAVE_RB_STR_DUP
