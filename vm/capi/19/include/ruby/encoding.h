@@ -107,6 +107,8 @@ int rb_enc_str_coderange(VALUE);
 VALUE rb_external_str_new_with_enc(const char *ptr, long len, rb_encoding *);
 VALUE rb_str_export_to_enc(VALUE, rb_encoding *);
 VALUE rb_str_conv_enc(VALUE str, rb_encoding *from, rb_encoding *to);
+VALUE rb_str_conv_enc_opts(VALUE str, rb_encoding *from, rb_encoding *to, int ecflags, VALUE ecopts);
+
 
 VALUE rb_str_encode(VALUE str, VALUE to, int ecflags, VALUE ecopts);
 

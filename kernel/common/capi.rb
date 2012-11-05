@@ -57,10 +57,33 @@ module Rubinius
     end
 
     def self.rb_str_encode(str, enc, flags, opts)
+      # TODO: set flags from opts
       ec = Encoding::Converter.new str.encoding, enc, flags
       ec.replacement = opts[:replace] if opts
 
       ec.convert str
+    end
+
+    def self.rb_str_conv_enc_opts(str, from, to, flags, opts)
+      return str if to.nil?
+      return str if from == to
+
+      if (to.ascii_compatible? and str.ascii_only?) or to == Encoding::ASCII_8BIT
+        if str.encoding != to
+          return str.dup.force_encoding(to)
+        else
+          return str
+        end
+      end
+
+      # TODO: set flags from opts
+      ec = Encoding::Converter.new from, to, flags
+      ec.replacement = opts[:replace] if opts
+
+      result = ""
+      status = ec.primitive_convert str, result, 0, nil, flags
+
+      return status == :finished ? result : str
     end
   end
 end

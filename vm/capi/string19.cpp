@@ -52,8 +52,8 @@ extern "C" {
       str->encoding(env->state(), enc);
     }
 
-    // TODO: handle transcoding if necessary
-    return env->get_handle(str);
+    return rb_str_conv_enc(env->get_handle(str), enc->get_encoding(),
+                           rb_default_internal_encoding());
   }
 
   VALUE rb_external_str_new(const char* string, long size) {
@@ -96,9 +96,18 @@ extern "C" {
     return rb_str_new(ptr, len);
   }
 
+  VALUE rb_str_conv_enc_opts(VALUE str, rb_encoding* from, rb_encoding* to,
+                             int ecflags, VALUE ecopts)
+  {
+    VALUE f = rb_enc_from_encoding(from);
+    VALUE t = to ? rb_enc_from_encoding(to) : Qnil;
+
+    return rb_funcall(rb_mCAPI, rb_intern("rb_str_conv_enc_opts"), 5,
+                      str, f, t, INT2FIX(ecflags), ecopts);
+  }
+
   VALUE rb_str_conv_enc(VALUE str, rb_encoding *from, rb_encoding *to) {
-    // TODO
-    return str;
+    return rb_str_conv_enc_opts(str, from, to, 0, Qnil);
   }
 
   VALUE rb_str_export_to_enc(VALUE str, rb_encoding *enc) {
