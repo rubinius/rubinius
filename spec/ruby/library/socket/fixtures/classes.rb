@@ -86,7 +86,7 @@ module SocketSpecs
         @server = TCPServer.new @hostname, @port
 
         wait_for @server do
-          socket = @server.accept
+          return unless socket = @server.accept
           log "SpecTCPServer accepted connection: #{socket}"
           service socket
 
