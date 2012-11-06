@@ -53,7 +53,7 @@ namespace rubinius {
 
       // bool is_tuple = recv->flags & mask;
 
-      Value* cmp = ops.check_type_bits(rec, rubinius::Tuple::type);
+      Value* cmp = ops.check_is_tuple(rec);
 
       BasicBlock* is_tuple = ops.new_block("is_tuple");
       BasicBlock* access =   ops.new_block("tuple_at");
@@ -100,7 +100,7 @@ namespace rubinius {
 
       Value* rec = i.recv();
 
-      Value* cmp = ops.check_type_bits(rec, rubinius::Tuple::type);
+      Value* cmp = ops.check_is_tuple(rec);
 
       BasicBlock* is_tuple = ops.new_block("is_tuple");
       BasicBlock* access =   ops.new_block("tuple_put");
