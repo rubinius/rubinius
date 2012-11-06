@@ -86,7 +86,7 @@ module SocketSpecs
         @server = TCPServer.new @hostname, @port
 
         wait_for @server do
-          return unless socket = @server.accept
+          socket = @server.accept
           log "SpecTCPServer accepted connection: #{socket}"
           service socket
 
@@ -110,7 +110,7 @@ module SocketSpecs
             socket.send data, 0
           end
         ensure
-          socket.close
+          socket.close unless socket.closed?
         end
       end
 
@@ -118,6 +118,8 @@ module SocketSpecs
     end
 
     def wait_for(io)
+      return unless io
+
       loop do
         read, _, _ = IO.select([io], [], [], 0.25)
         return false if shutdown?
@@ -135,7 +137,7 @@ module SocketSpecs
 
       @threads.each { |thr| thr.join }
       @main.join
-      @server.close if @accepted
+      @server.close if @accepted and !@server.closed?
     end
 
     def log(message)
