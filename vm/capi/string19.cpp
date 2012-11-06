@@ -87,13 +87,11 @@ extern "C" {
   }
 
   VALUE rb_locale_str_new_cstr(const char *ptr) {
-    // TODO
-    return rb_str_new2(ptr);
+    return rb_external_str_new_with_enc(ptr, strlen(ptr), rb_locale_encoding());
   }
 
   VALUE rb_locale_str_new(const char* ptr, long len) {
-    // TODO
-    return rb_str_new(ptr, len);
+    return rb_external_str_new_with_enc(ptr, len, rb_locale_encoding());
   }
 
   VALUE rb_str_conv_enc_opts(VALUE str, rb_encoding* from, rb_encoding* to,
@@ -111,7 +109,6 @@ extern "C" {
   }
 
   VALUE rb_str_export_to_enc(VALUE str, rb_encoding *enc) {
-    // TODO
     return rb_str_conv_enc(str, rb_enc_get(str), enc);
   }
 }
