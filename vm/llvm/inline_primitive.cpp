@@ -856,8 +856,8 @@ namespace rubinius {
       i.context().leave_inline();
     }
 
-    void type_object_equal() {
-      log("type_object_equal");
+    void vm_object_equal() {
+      log("Type.object_equal");
 
       Value* cmp = ops.create_equal(i.arg(0), i.arg(1), "identity_equal");
       Value* imm_value = SelectInst::Create(cmp, ops.constant(cTrue),
@@ -884,24 +884,75 @@ namespace rubinius {
       i.context().leave_inline();
     }
 
-    /*
-       void object_class(Class* klass, JITOperations& ops, Inliner& i) {
-       Value* self = i.recv();
+    void object_kind_of() {
+      log("Object#kind_of");
+      i.context().enter_inline();
 
-       ops.check_class(self, klass, i.failure());
+      Signature sig(ops.state(), ops.state()->ptr_type("Object"));
+      sig << "State";
+      sig << "Object";
+      sig << "Object";
 
-       Signature sig(ops.state(), "Class");
-       sig << "State";
-       sig << "Object";
+      Value* call_args[] = { ops.vm(), i.recv(), i.arg(0) };
 
-       Value* call_args[] = { ops.vm(), self };
+      Value* val = sig.call("rbx_kind_of", call_args, 3, "hash", ops.b());
 
-       Value* res = sig.call("rbx_class_of", call_args, 2, "object_class", ops.b());
+      i.exception_safe();
+      i.set_result(val);
+      i.context().leave_inline();
+    }
 
-       i.exception_safe();
-       i.set_result(ops.downcast(res));
-       }
-       */
+    void vm_object_kind_of() {
+      log("Type.object_kind_of");
+      i.context().enter_inline();
+
+      Signature sig(ops.state(), ops.state()->ptr_type("Object"));
+      sig << "State";
+      sig << "Object";
+      sig << "Object";
+
+      Value* call_args[] = { ops.vm(), i.arg(0), i.arg(1) };
+
+      Value* val = sig.call("rbx_kind_of", call_args, 3, "hash", ops.b());
+
+      i.exception_safe();
+      i.set_result(val);
+      i.context().leave_inline();
+    }
+
+    void object_class() {
+      log("Object#class");
+      i.context().enter_inline();
+
+      Signature sig(ops.state(), ops.state()->ptr_type("Object"));
+      sig << "State";
+      sig << "Object";
+
+      Value* call_args[] = { ops.vm(), i.recv() };
+
+      Value* val = sig.call("rbx_class_of", call_args, 2, "object_class", ops.b());
+
+      i.exception_safe();
+      i.set_result(val);
+      i.context().leave_inline();
+    }
+
+    void vm_object_class() {
+      log("Type.object_class");
+      i.context().enter_inline();
+
+      Signature sig(ops.state(), ops.state()->ptr_type("Object"));
+      sig << "State";
+      sig << "Object";
+
+      Value* call_args[] = { ops.vm(), i.arg(0) };
+
+      Value* val = sig.call("rbx_class_of", call_args, 2, "object_class", ops.b());
+
+      i.exception_safe();
+      i.set_result(val);
+      i.context().leave_inline();
+    }
 
   };
 
@@ -935,6 +986,16 @@ namespace rubinius {
       ip.fixnum_compare_operation(cGreaterThanEqual);
     } else if(prim == Primitives::object_equal && count_ == 1) {
       ip.object_equal();
+    } else if(prim == Primitives::vm_object_equal && count_ == 2) {
+      ip.vm_object_equal();
+    } else if(prim == Primitives::object_kind_of && count_ == 1) {
+      ip.object_kind_of();
+    } else if(prim == Primitives::vm_object_kind_of && count_ == 2) {
+      ip.vm_object_kind_of();
+    } else if(prim == Primitives::object_class && count_ == 0) {
+      ip.object_class();
+    } else if(prim == Primitives::vm_object_class && count_ == 1) {
+      ip.vm_object_class();
     } else if(prim == Primitives::float_add && count_ == 1) {
       ip.float_op(cAdd);
     } else if(prim == Primitives::float_sub && count_ == 1) {
@@ -966,9 +1027,6 @@ namespace rubinius {
       if(!ip.static_symbol_s_eqq()) {
         ip.symbol_s_eqq();
       }
-
-    } else if(prim == Primitives::vm_object_equal && count_ == 2) {
-      ip.type_object_equal();
 
     } else if(prim == Primitives::class_allocate && count_ == 0) {
       ip.class_allocate();
