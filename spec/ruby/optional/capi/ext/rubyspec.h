@@ -472,6 +472,8 @@
 #define HAVE_STRINGVALUE                   1
 
 #ifdef RUBY_VERSION_IS_1_9
+#define HAVE_RB_LOCALE_STR_NEW             1
+#define HAVE_RB_LOCALE_STR_NEW_CSTR        1
 #define HAVE_RB_STR_CONV_ENC               1
 #define HAVE_RB_STR_CONV_ENC_OPTS          1
 #define HAVE_RB_STR_LENGTH                 1

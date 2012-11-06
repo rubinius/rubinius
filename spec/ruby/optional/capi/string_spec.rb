@@ -698,6 +698,22 @@ ruby_version_is "1.9" do
       end
     end
 
+    describe "rb_locale_str_new" do
+      it "returns a String with 'locale' encoding" do
+        s = @s.rb_locale_str_new("abc", 3)
+        s.should == "abc".force_encoding(Encoding.find("locale"))
+        s.encoding.should equal(Encoding.find("locale"))
+      end
+    end
+
+    describe "rb_locale_str_new_cstr" do
+      it "returns a String with 'locale' encoding" do
+        s = @s.rb_locale_str_new_cstr("abc")
+        s.should == "abc".force_encoding(Encoding.find("locale"))
+        s.encoding.should equal(Encoding.find("locale"))
+      end
+    end
+
     describe "rb_str_conv_enc" do
       it "returns the original String when to encoding is not specified" do
         a = "abc".force_encoding("us-ascii")
