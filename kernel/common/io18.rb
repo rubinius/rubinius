@@ -1,6 +1,11 @@
 # -*- encoding: us-ascii -*-
 
 class IO
+
+  class InternalBuffer
+    alias_method :getchar, :getbyte
+  end
+
   def self.for_fd(fd, mode = nil)
     new fd, mode
   end
@@ -409,5 +414,12 @@ class IO
 
   def lines(*args)
     to_enum :each_line, *args
+  end
+
+  def ungetc(chr)
+    ensure_open
+
+    @ibuffer.put_back chr
+    nil
   end
 end

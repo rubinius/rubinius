@@ -162,8 +162,10 @@ class IO
     end
 
     ##
-    # Returns one Fixnum as the start byte, used for #getc
-    def get_first
+    # Returns one Fixnum as the start byte.
+    def getbyte(io)
+      return if size == 0 and fill_from(io) == 0
+
       Rubinius.synchronize(self) do
         byte = @storage[@start]
         @start += 1
@@ -759,13 +761,7 @@ class IO
   def getc
     ensure_open
 
-    if @ibuffer.size == 0
-      if @ibuffer.fill_from(self) == 0
-        return nil
-      end
-    end
-
-    return @ibuffer.get_first
+    return @ibuffer.getchar(self)
   end
 
   ##
@@ -1266,25 +1262,6 @@ class IO
 
   alias_method :prim_write, :write
   alias_method :prim_close, :close
-
-  ##
-  # Pushes back one character (passed as a parameter) onto ios,
-  # such that a subsequent buffered read will return it. Only one
-  # character may be pushed back before a subsequent read operation
-  # (that is, you will be able to read only the last of several
-  # characters that have been pushed back). Has no effect with
-  # unbuffered reads (such as IO#sysread).
-  #
-  #  f = File.new("testfile")   #=> #<File:testfile>
-  #  c = f.getc                 #=> 84
-  #  f.ungetc(c)                #=> nil
-  #  f.getc                     #=> 84
-  def ungetc(chr)
-    ensure_open
-
-    @ibuffer.put_back chr
-    nil
-  end
 
   def write(data)
     data = String data

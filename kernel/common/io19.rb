@@ -15,6 +15,31 @@ class IO
     include ::IO::WaitWritable
   end
 
+  class InternalBuffer
+    # TODO: fix this when IO buffering is re-written.
+    def getchar(io)
+      return if size == 0 and fill_from(io) == 0
+
+      Rubinius.synchronize(self) do
+        char = ""
+        while size > 0
+          char.force_encoding Encoding::ASCII_8BIT
+          char << @storage[@start]
+          @start += 1
+
+          char.force_encoding io.external_encoding
+          if char.chr_at(0)
+            if io.internal_encoding
+              return char.encode(io.internal_encoding)
+            else
+              return char
+            end
+          end
+        end
+      end
+    end
+  end
+
   def self.binread(file, length=nil, offset=0)
     raise ArgumentError, "Negative length #{length} given" if !length.nil? && length < 0
 
@@ -546,13 +571,7 @@ class IO
   def getbyte
     ensure_open
 
-    if @ibuffer.size == 0
-      if @ibuffer.fill_from(self) == 0
-        return nil
-      end
-    end
-
-    return @ibuffer.get_first
+    return @ibuffer.getbyte(self)
   end
 
   def ungetbyte(obj)
@@ -571,6 +590,26 @@ class IO
     end
 
     str.bytes.reverse_each { |byte| @ibuffer.put_back byte }
+
+    nil
+  end
+
+  def ungetc(obj)
+    ensure_open
+
+    case obj
+    when String
+      str = obj
+    when Integer
+      @ibuffer.put_back(obj)
+      return
+    when nil
+      return
+    else
+      str = StringValue(obj)
+    end
+
+    str.bytes.reverse_each { |b| @ibuffer.put_back b }
 
     nil
   end

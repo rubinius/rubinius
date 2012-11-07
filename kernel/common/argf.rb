@@ -128,7 +128,7 @@ module Rubinius
     #
     def each_byte
       return to_enum :each_byte unless block_given?
-      while ch = getc()
+      while ch = getbyte()
         yield ch
       end
       self
@@ -203,6 +203,19 @@ module Rubinius
       @stream
     end
 
+    def getbyte
+      while true
+        return nil unless advance!
+        if val = @stream.getbyte
+          return val
+        end
+
+        return nil if @use_stdin_only
+        @stream.close unless @stream.closed?
+        @advance = true
+      end
+    end
+
     #
     # Return one character from stream.
     #
@@ -221,7 +234,6 @@ module Rubinius
         @advance = true
       end
     end
-    alias_method :getbyte, :getc
 
     #
     # Return next line of text from stream.
