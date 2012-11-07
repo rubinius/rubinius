@@ -528,6 +528,17 @@ class IO
 
   alias_method :each_line, :each
 
+  def each_char
+    return to_enum :each_char unless block_given?
+    ensure_open_and_readable
+
+    while char = getc
+      yield char
+    end
+  end
+
+  alias_method :chars, :each_char
+
   def read(length=nil, buffer=nil)
     ensure_open_and_readable
     buffer = StringValue(buffer) if buffer
