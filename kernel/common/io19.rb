@@ -535,9 +535,24 @@ class IO
     while char = getc
       yield char
     end
+
+    self
   end
 
   alias_method :chars, :each_char
+
+  def each_codepoint
+    return to_enum :each_codepoint unless block_given?
+    ensure_open_and_readable
+
+    while char = getc
+      yield char.ord
+    end
+
+    self
+  end
+
+  alias_method :codepoints, :each_codepoint
 
   def read(length=nil, buffer=nil)
     ensure_open_and_readable
