@@ -110,10 +110,10 @@ describe "IO.foreach" do
     end
 
     ruby_version_is "1.9" do
-      it "calls #to_str once for each line read to convert it to a String" do
-        obj = mock("IO.foreach separator 'r'")
-        obj.should_receive(:to_str).exactly(6).times.and_return("r")
-        IO.foreach(@name, obj) { |l| ScratchPad << l }
+      it "calls #to_str to convert the separator to a String" do
+        sep = mock("IO.foreach separator 'r'")
+        sep.should_receive(:to_str).at_least(1).times.and_return("r")
+        IO.foreach(@name, sep) { |l| ScratchPad << l }
         ScratchPad.recorded.should == IOSpecs.lines_r_separator
       end
 
