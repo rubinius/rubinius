@@ -514,7 +514,7 @@ namespace rubinius {
     }
   }
 
-  void MachineCode::setup_argument_handler(CompiledCode* meth) {
+  void MachineCode::setup_argument_handler() {
     // Firstly, use the generic case that handles all cases
     fallback = &MachineCode::execute_specialized<GenericArguments>;
 
@@ -548,8 +548,6 @@ namespace rubinius {
         }
       }
     }
-
-    meth->set_executor(fallback);
   }
 
   /* This is the execute implementation used by normal Ruby code,

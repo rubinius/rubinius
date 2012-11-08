@@ -196,7 +196,7 @@ namespace rubinius {
                                        MachineCode* const mcode,
                                        InterpreterCallFrame* const call_frame);
 
-    void setup_argument_handler(CompiledCode* meth);
+    void setup_argument_handler();
 
     bool validate_ip(STATE, size_t ip);
 
