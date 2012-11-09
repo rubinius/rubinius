@@ -1,1 +1,0 @@
-fails:Module#module_function with specific method names makes the instance methods private

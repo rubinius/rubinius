@@ -1,3 +1,0 @@
-fails:MatchData#[Symbol] raises an IndexError if there is no named match corresponding to the Symbol
-fails:MatchData#[Symbol] raises an IndexError if there is no named match corresponding to the String
-fails:MatchData#[Symbol] returns matches in the String's encoding

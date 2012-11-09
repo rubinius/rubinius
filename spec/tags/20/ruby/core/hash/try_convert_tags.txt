@@ -1,3 +1,0 @@
-fails:Hash.try_convert returns the argument if passed a Hash
-fails:Hash.try_convert returns nil if the argument can't be coerced into a Hash
-fails:Hash.try_convert coerces the argument with #to_hash

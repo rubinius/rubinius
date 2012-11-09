@@ -1,2 +1,0 @@
-fails:Kernel#open is a private method
-fails:Kernel#open calls #to_open on argument

@@ -1,1 +1,0 @@
-fails:CGI::HtmlExtension#textarea when passed Hash should use the passed Hash as attributes

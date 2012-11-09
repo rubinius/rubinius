@@ -1,1 +1,0 @@
-fails:Math#sqrt should be private

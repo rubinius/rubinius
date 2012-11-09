@@ -1,1 +1,0 @@
-fails:Fixnum#quo raises a ZeroDivisionError when the given Integer is 0

@@ -1,1 +1,0 @@
-fails:Kernel.srand is a private method

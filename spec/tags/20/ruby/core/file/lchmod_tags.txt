@@ -1,3 +1,2 @@
-fails:File.lchmod changes the file mode of the link and not of the file
 fails:File.lchmod returns false from #respond_to?
 fails:File.lchmod raises a NotImplementedError when called

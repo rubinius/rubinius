@@ -1,1 +1,0 @@
-fails:Math#log should be private

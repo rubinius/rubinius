@@ -1,3 +1,0 @@
-fails:Hash#delete_if raises an RuntimeError if called on a frozen instance
-fails:Hash#delete_if returns an Enumerator if called on a non-empty hash without a block
-fails:Hash#delete_if returns an Enumerator if called on an empty hash without a block

@@ -1,3 +1,0 @@
-fails:Enumerator#each_with_object returns an enumerator when not given a block
-fails:Enumerator#each_with_object returns the given object when given a block
-fails:Enumerator#each_with_object iterates over the array adding the given object

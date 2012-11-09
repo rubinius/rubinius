@@ -1,2 +1,0 @@
-fails:Module#protected makes a public Object instance method protected in a new module
-fails:Module#protected makes a public Object instance method protected in Kernel

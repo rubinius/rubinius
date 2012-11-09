@@ -1,3 +1,0 @@
-fails:Complex#== with Complex returns true when self and other have numerical equality
-fails:Complex#== with Numeric returns true when self's imaginary part is 0 and the real part and other have numerical equality
-fails:Complex#== with Object calls other#== with self

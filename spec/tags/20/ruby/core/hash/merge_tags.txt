@@ -1,3 +1,0 @@
-fails:Hash#merge! raises a RuntimeError on a frozen instance that is modified
-fails:Hash#merge! raises a RuntimeError on a frozen instance that would not be modified
-fails:Hash#merge! raises a RuntimeError if a new key is added during iteration

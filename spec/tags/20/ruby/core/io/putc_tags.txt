@@ -1,5 +1,0 @@
-fails:IO#putc raises IOError on closed stream
-fails:IO#putc writes the first byte of a String
-fails:IO#putc calls #to_int on a non-Integer and writes the first byte of the value
-fails:IO#putc writes a Numeric that fits in a byte
-fails:IO#putc write the first byte of a Numeric that does not fit in a byte

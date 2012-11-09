@@ -1,4 +1,0 @@
-fails:The BEGIN keyword runs in a shared scope
-fails:The BEGIN keyword must appear in a top-level context
-fails:The BEGIN keyword runs first in a given code unit
-fails:The BEGIN keyword runs multiple begins in FIFO order

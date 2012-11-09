@@ -1,1 +1,0 @@
-fails:Date#valid_jd? should be able to determine if a day number is a valid Julian day number, true for all numbers

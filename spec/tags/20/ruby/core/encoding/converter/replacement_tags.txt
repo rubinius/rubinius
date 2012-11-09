@@ -1,1 +1,0 @@
-fails:Encoding::Converter#replacement returns u{fffd} when the destination encoding is UTF-8

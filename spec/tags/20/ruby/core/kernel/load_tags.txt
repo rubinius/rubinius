@@ -1,7 +1,0 @@
-fails:Kernel#load is a private method
-fails:Kernel#load (path resolution) calls #to_path on non-String objects
-fails:Kernel#load (path resolution) calls #to_path on a String
-fails:Kernel#load (path resolution) calls #to_str on non-String objects returned by #to_path
-fails:Kernel.load (path resolution) calls #to_path on non-String objects
-fails:Kernel.load (path resolution) calls #to_path on a String
-fails:Kernel.load (path resolution) calls #to_str on non-String objects returned by #to_path

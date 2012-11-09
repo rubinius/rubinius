@@ -1,1 +1,0 @@
-fails:String#gsub with pattern and Hash raises a TypeError if the hash has a default proc

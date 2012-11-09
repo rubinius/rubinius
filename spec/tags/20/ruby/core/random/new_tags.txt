@@ -1,1 +1,0 @@
-fails:Random.new accepts (and converts to Integer) a Complex (w/ imaginary part) seed value as an argument

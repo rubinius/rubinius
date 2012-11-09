@@ -1,1 +1,0 @@
-fails:Kernel#instance_variable_set raises a TypeError if the instance variable name is a Fixnum

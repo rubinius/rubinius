@@ -1,4 +1,0 @@
-fails:Encoding::Converter#primitive_convert raises an ArgumentError if the destination byte offset is greater than the bytesize of the destination buffer
-fails:Encoding::Converter#primitive_convert uses the destination byte offset to determine where to write the result in the destination buffer
-fails:Encoding::Converter#primitive_convert uses destination bytesize as the maximumn bytesize of the destination buffer
-fails:Encoding::Converter#primitive_convert returns :destination_buffer_full when the destination buffer is too small

@@ -1,2 +1,0 @@
-fails:Dir.foreach calls #to_path on non-String arguments
-fails:Dir.foreach returns an Enumerator if no block given

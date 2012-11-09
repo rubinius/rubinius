@@ -1,1 +1,0 @@
-fails:Array#+ does not infected even if an original array is untrusted

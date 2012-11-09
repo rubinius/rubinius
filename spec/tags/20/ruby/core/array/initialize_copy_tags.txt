@@ -1,2 +1,0 @@
-fails:Array#initialize_copy is private
-fails:Array#initialize_copy raises a RuntimeError on a frozen array

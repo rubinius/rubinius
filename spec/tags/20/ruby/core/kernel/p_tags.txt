@@ -1,1 +1,0 @@
-fails:Kernel#p is a private method

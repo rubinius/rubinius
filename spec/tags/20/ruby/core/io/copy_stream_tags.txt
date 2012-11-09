@@ -1,4 +1,0 @@
-fails:IO.copy_stream copies from an IO instance to a named file
-fails:IO.copy_stream copies from a named file to a named file
-fails:IO.copy_stream copies from a named file to an IO instance
-fails:IO.copy_stream copies from an IO instance to an IO instance

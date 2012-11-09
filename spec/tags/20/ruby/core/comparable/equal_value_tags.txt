@@ -1,2 +1,0 @@
-fails:Comparable#== returns false if calling #<=> on self returns nil or a non-Integer
-fails:Comparable#== returns false if calling #<=> on self raises an Exception

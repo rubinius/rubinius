@@ -1,2 +1,0 @@
-fails:ENV.each_pair returns an Enumerator if called without a block
-fails:ENV.each_pair uses the locale encoding

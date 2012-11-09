@@ -1,2 +1,0 @@
-fails:File::Stat.size? accepts an object that has a #to_path method
-fails:File::Stat.size accepts an object that has a #to_path method

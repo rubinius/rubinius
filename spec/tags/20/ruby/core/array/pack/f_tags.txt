@@ -1,4 +1,0 @@
-fails:Array#pack with format 'F' returns an ASCII-8BIT string
-fails:Array#pack with format 'F' raises a TypeError if a String does not represent a floating point number
-fails:Array#pack with format 'f' returns an ASCII-8BIT string
-fails:Array#pack with format 'f' raises a TypeError if a String does not represent a floating point number

@@ -1,6 +1,0 @@
-fails:Hash#reject returns an Enumerator if called on a non-empty hash without a block
-fails:Hash#reject returns an Enumerator if called on an empty hash without a block
-fails:Hash#reject! raises a RuntimeError if called on a frozen instance that is modified
-fails:Hash#reject! raises a RuntimeError if called on a frozen instance that would not be modified
-fails:Hash#reject! returns an Enumerator when called on a non-empty hash without a block
-fails:Hash#reject! returns an Enumerator when called on an empty hash without a block

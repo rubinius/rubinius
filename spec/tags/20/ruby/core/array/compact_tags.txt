@@ -1,3 +1,1 @@
 fails:Array#compact keeps untrusted status even if all elements are removed
-fails:Array#compact! keeps untrusted status even if all elements are removed
-fails:Array#compact! raises a RuntimeError on a frozen array

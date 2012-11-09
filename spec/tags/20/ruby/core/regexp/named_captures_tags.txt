@@ -1,1 +1,0 @@
-fails:Regexp#named_captures works with duplicate capture group names

@@ -1,2 +1,0 @@
-fails:Numeric#conj returns self
-fails:Numeric#conj raises an ArgumentError if given any arguments

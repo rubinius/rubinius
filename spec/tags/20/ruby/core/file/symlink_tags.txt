@@ -1,2 +1,0 @@
-fails:File.symlink accepts args that have #to_path methods
-fails:File.symlink? accepts an object that has a #to_path method

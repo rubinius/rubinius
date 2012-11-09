@@ -1,2 +1,0 @@
-fails:Array#delete_at raises a RuntimeError on a frozen array
-fails:Array#delete_at keeps untrusted status

@@ -1,2 +1,0 @@
-fails:Float#fdiv performs floating-point division between self and a Rational
-fails:Float#fdiv performs floating-point division between self and a Complex

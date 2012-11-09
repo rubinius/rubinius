@@ -1,2 +1,0 @@
-fails:Kernel#exit is a private method
-fails:Kernel#exit! is a private method

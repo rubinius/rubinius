@@ -1,4 +1,0 @@
-fails:Math.log raises a TypeError if the argument cannot be coerced with Float()
-fails:Math.log raises a TypeError for numerical values passed as string
-fails:Math.log accepts a second argument for the base
-fails:Math.log raises a TypeError when the numerical base cannot be coerced to a float

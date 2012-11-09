@@ -1,2 +1,0 @@
-fails:Kernel#untrusted? sets the untrusted bit on a target object
-fails:Kernel#untrusted? can not be called on frozen object

@@ -1,7 +1,0 @@
-fails:Complex#/ with Complex divides according to the usual rule for complex numbers
-fails:Complex#/ with Fixnum divides both parts of the Complex number
-fails:Complex#/ with Fixnum raises a ZeroDivisionError when given zero
-fails:Complex#/ with Bignum divides both parts of the Complex number
-fails:Complex#/ with Float divides both parts of the Complex number
-fails:Complex#/ with Float returns Complex(Infinity, Infinity) when given zero
-fails:Complex#/ with Object tries to coerce self into other

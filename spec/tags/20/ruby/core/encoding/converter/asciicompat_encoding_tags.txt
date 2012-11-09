@@ -1,1 +1,0 @@
-fails:Encoding::Converter.asciicompat_encoding returns nil if called with an encoding it returned previously

@@ -1,3 +1,0 @@
-fails:Kernel.lambda is a private method
-fails:Kernel.lambda checks the arity of the call when no args are specified
-fails:Kernel.lambda checks the arity when 1 arg is specified

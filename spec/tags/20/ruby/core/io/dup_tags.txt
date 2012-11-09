@@ -1,1 +1,0 @@
-fails:IO#dup raises IOError on closed stream

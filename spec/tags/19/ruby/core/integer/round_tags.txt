@@ -1,2 +1,1 @@
 fails:Integer#round raises a RangeError when passed a beyond signed int
-fails(patch in redmine 5271):Integer#round returns 0 if passed a big negative value

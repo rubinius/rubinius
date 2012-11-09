@@ -1,8 +1,0 @@
-fails:Kernel#methods returns singleton methods defined by obj.meth
-fails:Kernel#methods returns singleton methods defined in 'class << self'
-fails:Kernel#methods returns private singleton methods defined by obj.meth
-fails:Kernel#methods returns singleton methods defined in 'class << self' when it follows 'private'
-fails:Kernel#methods returns the publicly accessible methods of the object
-fails:Kernel#methods returns the publicly accessible methods in the object, its ancestors and mixed-in modules
-fails:Kernel#methods returns methods added to the metaclass through extend
-fails:Kernel#methods does not return undefined singleton methods defined by obj.meth

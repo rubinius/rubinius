@@ -1,5 +1,0 @@
-fails:Array#pop raises a RuntimeError on a frozen array
-fails:Array#pop keeps untrusted status
-fails:Array#pop passed a number n as an argument returns a trusted array even if the array is untrusted
-fails:Array#pop passed a number n as an argument raises a RuntimeError on a frozen array
-fails:Array#pop passed a number n as an argument keeps untrusted status

@@ -1,3 +1,0 @@
-fails:Complex#- with Complex subtracts both the real and imaginary components
-fails:Complex#- with Integer subtracts the real number from the real component of self
-fails:Complex#- with Object tries to coerce self into other

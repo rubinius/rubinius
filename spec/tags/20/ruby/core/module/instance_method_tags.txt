@@ -1,1 +1,0 @@
-fails:Module#instance_method raises a TypeError if not passed a symbol

@@ -1,2 +1,0 @@
-fails:Complex#to_s when self's real component is 0 returns both the real and imaginary component even when the real is 0
-fails:Complex#to_s returns self as String

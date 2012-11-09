@@ -1,15 +1,7 @@
 fails:String#encode raises an Encoding::InvalidByteSequenceError for invalid byte sequences
 fails:String#encode raises Encoding::ConverterNotFoundError for invalid target encodings
-fails:String#encode replaces invalid characters
-fails:String#encode replaces undefined characters
-fails:String#encode replaces xml characters
-fails:String#encode replaces xml characters and quotes the result
 fails:String#encode! raises an Encoding::InvalidByteSequenceError for invalid byte sequences
 fails:String#encode! raises Encoding::ConverterNotFoundError for invalid target encodings
-fails:String#encode! replaces invalid characters
-fails:String#encode! replaces undefined characters
-fails:String#encode! replaces xml characters
-fails:String#encode! replaces xml characters and quotes the result
 fails:String#encode given the :xml => :text option replaces undefined characters with their upper-case hexadecimal numeric character references
 fails:String#encode given the :xml => :attr option replaces undefined characters with their upper-case hexadecimal numeric character references
 fails:String#encode! given the :xml => :text option replaces undefined characters with their upper-case hexadecimal numeric character references

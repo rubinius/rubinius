@@ -1,2 +1,0 @@
-fails:Float#CONSTANTS the INFINITY is the positive infinity
-fails:Float#CONSTANTS the NAN is 'not a number'

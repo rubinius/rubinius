@@ -1,5 +1,0 @@
-fails:Array#map returns an Enumerator when no block given
-fails:Array#map does not copy untrusted status
-fails:Array#map! returns an Enumerator when no block given, and the enumerator can modify the original array
-fails:Array#map! keeps untrusted status
-fails:Array#map! raises a RuntimeError on a frozen array

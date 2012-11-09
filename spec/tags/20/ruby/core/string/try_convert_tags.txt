@@ -1,4 +1,0 @@
-fails:String.try_convert returns self for strings
-fails:String.try_convert converts using :to_str
-fails:String.try_convert returns nil when there is no :to_str
-fails:String.try_convert checks the result of the conversion

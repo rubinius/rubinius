@@ -1,1 +1,0 @@
-fails:IO#write_nonblock raises IOError on closed stream

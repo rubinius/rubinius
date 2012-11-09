@@ -1,1 +1,0 @@
-fails:Kernel#gets is a private method

@@ -1,3 +1,0 @@
-fails:String#encoding for Strings with \x escapes returns ASCII-8BIT when an escape creates a byte with the 8th bit set if the source encoding is US-ASCII
-fails:String#encoding for Strings with \x escapes is not affected by the default external encoding
-fails:String#encoding for Strings with \x escapes is not affected by both the default internal and external encoding being set at the same time

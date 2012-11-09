@@ -1,1 +1,0 @@
-fails:Hash#default= raises a RuntimeError if called on a frozen instance
