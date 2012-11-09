@@ -209,12 +209,15 @@ module FFI::Platform
   when Rubinius.windows?
     LIBSUFFIX = "dll"
     IS_WINDOWS = true
+    OS = 'windows'
   when Rubinius.darwin?
     LIBSUFFIX = "dylib"
     IS_WINDOWS = false
+    OS = 'darwin'
   else
     LIBSUFFIX = "so"
     IS_WINDOWS = false
+    OS = 'linux'
   end
 
   ARCH = Rubinius::CPU
