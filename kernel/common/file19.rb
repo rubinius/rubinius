@@ -143,3 +143,12 @@ class File::Stat
     end
   end
 end
+
+module File::Constants
+  NULL = case
+         when Rubinius.windows?
+           'NUL'
+         else
+           '/dev/null'
+         end
+end
