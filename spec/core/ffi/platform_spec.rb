@@ -46,3 +46,22 @@ describe "FFI::Platform::ARCH" do
   end
 end
 
+describe "FFI::Platform::OS" do
+  platform_is :linux do
+    it "returns 'linux' as a string" do
+      FFI::Platform::OS.should == 'linux'
+    end
+  end
+  
+  platform_is :windows do
+    it "returns 'windows' as a string" do
+      FFI::Platform::OS.should == 'windows'
+    end
+  end
+  
+  platform_is :darwin do
+    it "returns 'darwin' as a string" do
+      FFI::Platform::OS.should == 'darwin'
+    end
+  end
+end
