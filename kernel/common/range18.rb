@@ -1,6 +1,9 @@
 # -*- encoding: us-ascii -*-
 
 class Range
+  alias_method :include?, :__cover__?
+  public :include?
+  alias_method :member?, :include?
   alias_method :===, :include?
 
   def each
