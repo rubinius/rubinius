@@ -20,5 +20,6 @@ codeloader.rbc
 ffi.rbc
 ruby_constants19.rbc
 ruby_constants.rbc
+file19.rbc
 pack.rbc
 pack19.rbc
