@@ -145,10 +145,9 @@ class File::Stat
 end
 
 module File::Constants
-  NULL = case
-         when Rubinius.windows?
-           'NUL'
-         else
-           '/dev/null'
-         end
+  if Rubinius.windows?
+    NULL = 'NUL'
+  else
+    NULL = '/dev/null'
+  end
 end
