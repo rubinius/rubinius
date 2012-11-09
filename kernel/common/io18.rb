@@ -10,6 +10,55 @@ class IO
     new fd, mode
   end
 
+  def self.foreach(name, sep_string=$/)
+    return to_enum(:foreach, name, sep_string) unless block_given?
+
+    name = StringValue(name)
+
+    if name[0] == ?|
+      io = IO.popen(name[1..-1], "r")
+      return nil unless io
+    else
+      io = File.open(name, 'r')
+    end
+
+    if sep_string.nil?
+      sep = sep_string
+    else
+      sep = StringValue(sep_string)
+    end
+
+    saved_line = $_
+
+    begin
+      while line = io.gets(sep)
+        yield line
+      end
+    ensure
+      $_ = saved_line
+      io.close
+    end
+
+    return nil
+  end
+
+  def self.readlines(name, sep_string=$/)
+    name = StringValue name
+
+    if name[0] == ?|
+      io = IO.popen(name[1..-1], "r")
+      return nil unless io
+    else
+      io = File.open(name, 'r')
+    end
+
+    begin
+      io.readlines sep_string
+    ensure
+      io.close
+    end
+  end
+
   ##
   # Opens the file, optionally seeks to the given offset,
   # then returns length bytes (defaulting to the rest of

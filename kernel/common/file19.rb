@@ -14,6 +14,20 @@ class File
     else
       path = Rubinius::Type.coerce_to_path path_or_fd
 
+      # TODO: fix normalize_options
+      case mode
+      when String, Fixnum
+        # do nothing
+      when nil, undefined
+        mode = "r"
+      when Hash
+        options = mode
+        mode = nil
+      else
+        options = Rubinius::Type.coerce_to mode, Hash, :to_hash
+        mode = nil
+      end
+
       if options.equal?(undefined)
         options = Rubinius::Type.try_convert(perm, Hash, :to_hash)
         perm = undefined if options

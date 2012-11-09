@@ -207,47 +207,6 @@ class IO
   attr_accessor :descriptor
   attr_accessor :mode
 
-  def self.foreach(name, sep_string = $/)
-    return to_enum(:foreach, name, sep_string) unless block_given?
-
-    name = StringValue(name)
-
-    if name[0] == ?|
-      io = IO.popen(name[1..-1], "r")
-      return nil unless io
-    else
-      io = File.open(name, 'r')
-    end
-
-    if sep_string.nil?
-      sep = sep_string
-    else
-      sep = StringValue(sep_string)
-    end
-
-    begin
-      while line = io.gets(sep)
-        yield line
-      end
-    ensure
-      io.close
-    end
-
-    return nil
-  end
-
-  ##
-  # Creates a new IO object to access the existing stream referenced by the
-  # descriptor given. The stream is not copied in any way so anything done on
-  # one IO will affect any other IOs accessing the same descriptor.
-  #
-  # The mode string given must be compatible with the original one so going
-  # 'r' from 'w' cannot be done but it is possible to go from 'w+' to 'r', for
-  # example (since the stream is not being "widened".)
-  #
-  # The initialization will verify that the descriptor given is a valid one.
-  # Errno::EBADF will be raised if that is not the case. If the mode is
-  # incompatible, it will raise Errno::EINVAL instead.
   def self.open(*args)
     io = new(*args)
 
@@ -313,30 +272,6 @@ class IO
     end
 
     ret
-  end
-
-  ##
-  # Reads the entire file specified by name as individual
-  # lines, and returns those lines in an array. Lines are
-  # separated by sep_string.
-  #
-  #  a = IO.readlines("testfile")
-  #  a[0]   #=> "This is line one\n"
-  def self.readlines(name, sep_string=$/)
-    name = StringValue name
-
-    if name[0] == ?|
-      io = IO.popen(name[1..-1], "r")
-      return nil unless io
-    else
-      io = File.open(name, 'r')
-    end
-
-    begin
-      io.readlines sep_string
-    ensure
-      io.close
-    end
   end
 
   #

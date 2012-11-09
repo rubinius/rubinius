@@ -67,6 +67,79 @@ class IO
     end
   end
 
+  def self.foreach(name, separator=undefined, limit=undefined, options=undefined)
+    return to_enum(:foreach, name, separator, limit, options) unless block_given?
+
+    name = Rubinius::Type.coerce_to_path name
+
+    case separator
+    when Fixnum
+      options = limit
+      limit = separator
+      separator = $/
+    when undefined
+      separator = $/
+    when nil
+      # do nothing
+    else
+      separator = StringValue(separator)
+    end
+
+    case limit
+    when Fixnum, nil
+      # do nothing
+    when undefined
+      limit = nil
+    when Hash
+      options = limit
+      limit = nil
+    else
+      value = limit
+      limit = Rubinius::Type.try_convert limit, Fixnum, :to_int
+
+      unless limit
+        options = Rubinius::Type.coerce_to value, Hash, :to_hash
+      end
+    end
+
+    case options
+    when Hash
+      # do nothing
+    when undefined, nil
+      options = { }
+    else
+      options = Rubinius::Type.coerce_to options, Hash, :to_hash
+    end
+
+    saved_line = $_
+
+    if name[0] == ?|
+      io = IO.popen(name[1..-1], "r")
+      return nil unless io
+    else
+      options[:mode] = "r" unless options.key? :mode
+      io = File.open(name, options)
+    end
+
+    begin
+      while line = io.gets(separator, limit)
+        yield line
+      end
+    ensure
+      $_ = saved_line
+      io.close
+    end
+
+    return nil
+  end
+
+  def self.readlines(name, separator=undefined, limit=undefined, options=undefined)
+    lines = []
+    foreach(name, separator, limit, options) { |l| lines << l }
+
+    lines
+  end
+
   def self.read_encode(io, str)
     if io.internal and io.external
       ec = Encoding::Converter.new io.external, io.internal
