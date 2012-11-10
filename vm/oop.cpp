@@ -879,13 +879,8 @@ step2:
 
     HeaderWord hdr = other->header;
 
-    switch(hdr.f.meaning) {
-    case eAuxWordObjID:
-    case eAuxWordLock:
-    case eAuxWordHandle:
-      header.f.meaning = hdr.f.meaning;
-      header.f.aux_word = hdr.f.aux_word;
-    }
+    header.f.meaning = hdr.f.meaning;
+    header.f.aux_word = hdr.f.aux_word;
 
     if(other->is_tainted_p()) set_tainted();
 
