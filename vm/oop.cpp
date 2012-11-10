@@ -99,6 +99,7 @@ namespace rubinius {
     // Just ignore trying to reset it to 0 for now.
     if(id == 0) return;
 
+retry:
     // Construct 2 new headers: one is the version we hope that
     // is in use and the other is what we want it to be. The CAS
     // the new one into place.
@@ -124,7 +125,9 @@ namespace rubinius {
 
     switch(orig.f.meaning) {
     case eAuxWordEmpty:
-      rubinius::bug("ObjectHeader claimed to be empty");
+      // The header was used for something else but not anymore
+      // Therefore we can just retry here.
+      goto retry;
     case eAuxWordObjID:
       // Someone beat us to it, ignore it
       break;
@@ -143,6 +146,8 @@ namespace rubinius {
     // Construct 2 new headers: one is the version we hope that
     // is in use and the other is what we want it to be. The CAS
     // the new one into place.
+
+retry:
     HeaderWord orig = header;
 
     orig.f.inflated = 0;
@@ -167,7 +172,9 @@ namespace rubinius {
 
     switch(orig.f.meaning) {
     case eAuxWordEmpty:
-      rubinius::bug("ObjectHeader claimed to be empty");
+      // The header was used for something else but not anymore
+      // Therefore we can just retry here.
+      goto retry;
     case eAuxWordHandle:
       // Someone else has beaten us to it, clear the allocated
       // header so it can be cleaned up on the next GC
