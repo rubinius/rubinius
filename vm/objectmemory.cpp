@@ -134,22 +134,25 @@ namespace rubinius {
   {
     utilities::thread::SpinLock::LockGuard guard(inflation_lock_);
 
-    // Inflation always happens with the ObjectMemory lock held, so we don't
-    // need to worry about another thread concurrently inflating it.
-    //
-    // But we do need to check that it's not already inflated.
-    if(obj->inflated_header_p()) return false;
+    HeaderWord orig = obj->header;
 
-    InflatedHeader* ih = inflated_headers_->allocate(obj);
-
-    if(!obj->set_inflated_header(state, ih)) {
-      if(obj->inflated_header_p()) return false;
-
-      // Now things are really in a weird state, just abort.
-      rubinius::bug("Massive header state confusion detected. Call a doctor.");
+    if(orig.f.inflated) {
+      return false;
     }
 
-    ih->initialize_mutex(state->vm()->thread_id(), count);
+    InflatedHeader* header = inflated_headers_->allocate(obj);
+    header->update(state, orig);
+    header->initialize_mutex(state->vm()->thread_id(), count);
+
+    while(!obj->set_inflated_header(state, header, orig)) {
+      orig = obj->header;
+
+      if(orig.f.inflated) {
+        return false;
+      }
+      header->update(state, orig);
+      header->initialize_mutex(state->vm()->thread_id(), count);
+    }
     return true;
   }
 
@@ -664,48 +667,29 @@ step1:
 
   }
 
-  InflatedHeader* ObjectMemory::inflate_header(STATE, ObjectHeader* obj) {
-    if(obj->inflated_header_p()) return obj->inflated_header();
-
-    utilities::thread::SpinLock::LockGuard guard(inflation_lock_);
-
-    // Gotta check again because while waiting for the lock,
-    // the object could have been inflated!
-    if(obj->inflated_header_p()) return obj->inflated_header();
-
-    InflatedHeader* header = inflated_headers_->allocate(obj);
-
-    if(!obj->set_inflated_header(state, header)) {
-      if(obj->inflated_header_p()) return obj->inflated_header();
-
-      // Now things are really in a weird state, just abort.
-      rubinius::bug("Massive header state confusion detected. Call a doctor.");
-    }
-
-    return header;
-  }
-
   void ObjectMemory::inflate_for_id(STATE, ObjectHeader* obj, uint32_t id) {
     utilities::thread::SpinLock::LockGuard guard(inflation_lock_);
 
     HeaderWord orig = obj->header;
 
     if(orig.f.inflated) {
-      rubinius::bug("Massive header state confusion detected. Call a doctor.");
+      obj->inflated_header()->set_object_id(id);
+      return;
     }
 
     InflatedHeader* header = inflated_headers_->allocate(obj);
-    header->set_handle(state, obj->handle(state));
+    header->update(state, orig);
     header->set_object_id(id);
 
-    if(!obj->set_inflated_header(state, header)) {
-      if(obj->inflated_header_p()) {
+    while(!obj->set_inflated_header(state, header, orig)) {
+      orig = obj->header;
+
+      if(orig.f.inflated) {
         obj->inflated_header()->set_object_id(id);
         return;
       }
-
-      // Now things are really in a weird state, just abort.
-      rubinius::bug("Massive header state confusion detected. Call a doctor.");
+      header->update(state, orig);
+      header->set_object_id(id);
     }
 
   }
@@ -716,21 +700,23 @@ step1:
     HeaderWord orig = obj->header;
 
     if(orig.f.inflated) {
-      rubinius::bug("Massive header state confusion detected. Call a doctor.");
+      obj->inflated_header()->set_handle(state, handle);
+      return;
     }
 
     InflatedHeader* header = inflated_headers_->allocate(obj);
+    header->update(state, orig);
     header->set_handle(state, handle);
-    header->set_object_id(obj->object_id());
 
-    if(!obj->set_inflated_header(state, header)) {
-      if(obj->inflated_header_p()) {
+    while(!obj->set_inflated_header(state, header, orig)) {
+      orig = obj->header;
+
+      if(orig.f.inflated) {
         obj->inflated_header()->set_handle(state, handle);
         return;
       }
-
-      // Now things are really in a weird state, just abort.
-      rubinius::bug("Massive header state confusion detected. Call a doctor.");
+      header->update(state, orig);
+      header->set_handle(state, handle);
     }
 
   }

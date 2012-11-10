@@ -24,13 +24,9 @@ namespace rubinius {
                                      nw.flags64);
   }
 
-  bool ObjectHeader::set_inflated_header(STATE, InflatedHeader* ih) {
-    HeaderWord orig = header;
+  bool ObjectHeader::set_inflated_header(STATE, InflatedHeader* ih, HeaderWord orig) {
 
     if(orig.f.inflated) return false;
-
-    ih->reset_object(this);
-    if(!ih->update(state, orig)) return false;
 
     HeaderWord new_val = orig;
     new_val.all_flags  = ih;
@@ -38,16 +34,7 @@ namespace rubinius {
 
     // Make sure to include a barrier to the header is all properly initialized
     atomic::memory_barrier();
-
-    // Do a spin update so if someone else is trying to update it at the same time
-    // we catch that and keep trying until we get our version in.
-    while(!header.atomic_set(orig, new_val)) {
-      orig = header;
-      if(orig.f.inflated) return false;
-      if(!ih->update(state, orig)) return false;
-    }
-
-    return true;
+    return header.atomic_set(orig, new_val);
   }
 
   InflatedHeader* ObjectHeader::deflate_header() {
@@ -70,27 +57,36 @@ namespace rubinius {
 
     switch(flags_.meaning) {
     case eAuxWordEmpty:
+      owner_id_       = 0;
+      rec_lock_count_ = 0;
+      object_id_      = 0;
+      handle_         = NULL;
       return true;
 
     case eAuxWordObjID:
-      object_id_ = flags_.aux_word;
-      flags_.meaning = eAuxWordEmpty;
-      flags_.aux_word = 0;
+      owner_id_       = 0;
+      rec_lock_count_ = 0;
+      handle_         = NULL;
+
+      object_id_      = flags_.aux_word;
       return true;
     case eAuxWordLock:
       {
-        assert(owner_id_ == 0);
-        uint32_t tid = header.f.aux_word >> cAuxLockTIDShift;
-        uint32_t count = header.f.aux_word & cAuxLockRecCountMask;
+        object_id_     = 0;
+        handle_        = NULL;
 
+        uint32_t tid   = header.f.aux_word >> cAuxLockTIDShift;
+        uint32_t count = header.f.aux_word & cAuxLockRecCountMask;
         initialize_mutex(tid, count);
       }
 
       return true;
     case eAuxWordHandle:
+      owner_id_       = 0;
+      rec_lock_count_ = 0;
+      object_id_      = 0;
+
       handle_ = state->shared().global_handles()->find_index(state, flags_.aux_word);
-      flags_.meaning = eAuxWordEmpty;
-      flags_.aux_word = 0;
       return true;
     // Unsupported state, abort.
     default:
