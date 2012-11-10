@@ -188,17 +188,21 @@ describe "Marshal.dump" do
       Marshal.dump(encode(UserString.new.extend(Meths), "binary")).should == "\004\be:\nMethsC:\017UserString\"\000"
     end
 
-    ruby_version_is "1.9" do
+    with_feature :encoding do
       it "dumps a US-ASCII String" do
-        Marshal.dump("".encode("us-ascii")).should == "\x04\bI\"\x00\x06:\x06EF"
+        str = "abc".force_encoding("us-ascii")
+        Marshal.dump(str).should == "\x04\bI\"\babc\x06:\x06EF"
       end
 
       it "dumps a UTF-8 String" do
-        Marshal.dump("".encode("utf-8")).should == "\x04\bI\"\x00\x06:\x06ET"
+        str = "\x6d\xc3\xb6\x68\x72\x65".force_encoding("utf-8")
+        Marshal.dump(str).should == "\x04\bI\"\vm\xC3\xB6hre\x06:\x06ET"
       end
 
       it "dumps a String in another encoding" do
-        Marshal.dump("".encode("utf-16le")).should == "\x04\bI\"\x00\x06:\rencoding\"\rUTF-16LE"
+        str = "\x6d\x00\xf6\x00\x68\x00\x72\x00\x65\x00".force_encoding("utf-16le")
+        result = "\x04\bI\"\x0Fm\x00\xF6\x00h\x00r\x00e\x00\x06:\rencoding\"\rUTF-16LE"
+        Marshal.dump(str).should == result
       end
 
       it "dumps multiple strings using symlinks for the :E (encoding) symbol" do
