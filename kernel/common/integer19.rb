@@ -27,15 +27,13 @@ class Integer
   def round(ndigits=undefined)
     return self if ndigits.equal? undefined
 
-    if Rubinius::Type.object_kind_of?(ndigits, Numeric)
-      begin
-        Rubinius::Type.coerce_to(ndigits, Fixnum, :to_int)
-      rescue TypeError => e
-        raise RangeError, e.message
+    if ndigits.kind_of? Numeric
+      if ndigits > Fixnum::MAX or ndigits < Fixnum::MIN
+        raise RangeError, "precision is outside of the range of Fixnum"
       end
     end
 
-    ndigits = Rubinius::Type.coerce_to(ndigits, Integer, :to_int)
+    ndigits = Rubinius::Type.coerce_to ndigits, Integer, :to_int
 
     if ndigits > 0
       to_f
@@ -50,12 +48,22 @@ class Integer
       return 0 if 0.415241 * ndigits - 0.125 > size
 
       f = 10 ** ndigits
+
+      if kind_of? Fixnum and f.kind_of? Fixnum
+        x = self < 0 ? -self : self
+        x = (x + f / 2) / f * f
+        x = -x if self < 0
+        return x
+      end
+
+      return 0 if f.kind_of? Float
+
       h = f / 2
       r = self % f
       n = self - r
 
       unless self < 0 ? r <= h : r < h
-        n = n + f
+        n += f
       end
 
       n
