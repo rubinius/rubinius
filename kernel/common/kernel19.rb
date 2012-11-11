@@ -247,4 +247,12 @@ module Kernel
   def <=>(other)
     self == other ? 0 : nil
   end
+
+  def initialize_dup(other)
+    initialize_copy(other)
+  end
+
+  def initialize_clone(other)
+    initialize_copy(other)
+  end
 end
