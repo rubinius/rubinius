@@ -97,6 +97,7 @@ namespace rubinius {
     raise_reason_ = cCatchThrow;
     raise_value_.set(value);
     throw_dest_.set(dest);
+    current_exception_.set(cNil);
   }
 
   void ThreadState::raise_thread_kill() {
