@@ -135,5 +135,17 @@ module Rubinius
     def self.coerce_to_pid(obj)
       Rubinius::Type.coerce_to obj, Integer, :to_int
     end
+
+    def self.object_initialize_dup(obj, copy)
+      Rubinius.privately do
+        copy.initialize_dup obj
+      end
+    end
+
+    def self.object_initialize_clone(obj, copy)
+      Rubinius.privately do
+        copy.initialize_clone obj
+      end
+    end
   end
 end

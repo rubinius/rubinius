@@ -55,5 +55,17 @@ module Rubinius
 
       obj
     end
+
+    def self.object_initialize_dup(obj, copy)
+      Rubinius.privately do
+        copy.initialize_copy obj
+      end
+    end
+
+    def self.object_initialize_clone(obj, copy)
+      Rubinius.privately do
+        copy.initialize_copy obj
+      end
+    end
   end
 end

@@ -206,9 +206,7 @@ module Kernel
 
     Rubinius.invoke_primitive :object_copy_object, copy, self
 
-    Rubinius.privately do
-      copy.initialize_copy self
-    end
+    Rubinius::Type.object_initialize_dup self, copy
     copy
   end
 
@@ -236,9 +234,7 @@ module Kernel
     Rubinius.invoke_primitive :object_copy_object, copy, self
     Rubinius.invoke_primitive :object_copy_singleton_class, copy, self
 
-    Rubinius.privately do
-      copy.initialize_copy self
-    end
+    Rubinius::Type.object_initialize_clone self, copy
 
     copy.freeze if frozen?
     copy
