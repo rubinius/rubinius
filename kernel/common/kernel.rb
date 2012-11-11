@@ -503,8 +503,25 @@ module Kernel
   private :protected_singleton_methods
 
   def public_methods(all=true)
-    singleton_methods(all) | self.class.public_instance_methods(all)
+    public_singleton_methods | self.class.public_instance_methods(all)
   end
+
+  def public_singleton_methods
+    m = Rubinius::Type.object_singleton_class self
+    methods = m.method_table.public_names
+
+    while m = m.direct_superclass
+      unless Rubinius::Type.object_kind_of?(m, Rubinius::IncludedModule) or
+             Rubinius::Type.singleton_class_object(m)
+        break
+      end
+
+      methods.concat m.method_table.public_names
+    end
+
+    Rubinius::Type.convert_to_names methods
+  end
+  private :public_singleton_methods
 
   def singleton_methods(all=true)
     m = Rubinius::Type.object_singleton_class self
