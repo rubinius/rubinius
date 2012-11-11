@@ -264,6 +264,18 @@ module KernelSpecs
     end
   end
 
+  class Clone
+    def initialize_clone(other)
+      ScratchPad.record other.object_id
+    end
+  end
+
+  class Dup
+    def initialize_dup(other)
+      ScratchPad.record other.object_id
+    end
+  end
+
   module ParentMixin
     def parent_mixin_method; end
   end
