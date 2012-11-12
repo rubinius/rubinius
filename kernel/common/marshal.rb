@@ -851,11 +851,12 @@ module Marshal
 
     def serialize_symbol(obj)
       str = obj.to_s
-      Rubinius::Type.binary_string(":#{serialize_integer(str.length)}#{str}")
+      Rubinius::Type.binary_string(":#{serialize_integer(str.bytesize)}#{str}")
     end
 
     def serialize_string(str)
-      Rubinius::Type.binary_string("\"#{serialize_integer(str.length)}#{str}")
+      output = Rubinius::Type.binary_string("\"#{serialize_integer(str.bytesize)}")
+      output + Rubinius::Type.binary_string(str.dup)
     end
 
     def serialize_user_class(obj, cls)
@@ -889,14 +890,6 @@ module Marshal
       cls = Rubinius::Type.object_class obj
       name = Rubinius::Type.module_inspect cls
       Rubinius::Type.binary_string("U#{serialize(name.to_sym)}#{val.__marshal__(self)}")
-    end
-
-    def set_instance_variables(obj)
-      construct_integer.times do
-        ivar = get_symbol
-        value = construct
-        obj.__instance_variable_set__ prepare_ivar(ivar), value
-      end
     end
 
     def store_unique_object(obj)

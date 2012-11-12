@@ -36,5 +36,40 @@ module Marshal
           :encoding.__marshal__(self) + serialize_string(enc.name)
       end
     end
+
+    def set_object_encoding(obj, enc)
+      case obj
+      when String
+        obj.force_encoding enc
+      when Regexp
+        obj.source.force_encoding enc
+      when Symbol
+        # TODO
+      end
+    end
+
+    def set_instance_variables(obj)
+      construct_integer.times do
+        ivar = get_symbol
+        value = construct
+
+        case ivar
+        when :E
+          if value
+            set_object_encoding obj, Encoding::UTF_8
+          else
+            set_object_encoding obj, Encoding::US_ASCII
+          end
+          next
+        when :encoding
+          if enc = Encoding.find(value)
+            set_object_encoding obj, enc
+            next
+          end
+        end
+
+        obj.__instance_variable_set__ prepare_ivar(ivar), value
+      end
+    end
   end
 end

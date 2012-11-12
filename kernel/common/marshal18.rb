@@ -24,5 +24,13 @@ module Marshal
     def serialize_encoding?(obj)
       false
     end
+
+    def set_instance_variables(obj)
+      construct_integer.times do
+        ivar = get_symbol
+        value = construct
+        obj.__instance_variable_set__ prepare_ivar(ivar), value
+      end
+    end
   end
 end
