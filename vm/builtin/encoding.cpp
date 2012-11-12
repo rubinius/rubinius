@@ -217,22 +217,28 @@ namespace rubinius {
   }
 
   Encoding* Encoding::default_external(STATE) {
+    Encoding* enc;
     Symbol* default_external = state->symbol("default_external");
-    Encoding* enc = as<Encoding>(G(encoding)->get_ivar(state, default_external));
-    if(enc == G(undefined)) {
-      enc = Encoding::find(state, "external");
+    Object* obj = G(encoding)->get_ivar(state, default_external);
+
+    if(!(enc = try_as<Encoding>(obj))) {
+      enc = as<Encoding>(Encoding::find(state, "external"));
       G(encoding)->set_ivar(state, default_external, enc);
     }
+
     return enc;
   }
 
   Encoding* Encoding::default_internal(STATE) {
+    Encoding* enc;
     Symbol* default_internal = state->symbol("default_internal");
-    Encoding* enc = as<Encoding>(G(encoding)->get_ivar(state, default_internal));
-    if(enc == G(undefined)) {
+    Object* obj = G(encoding)->get_ivar(state, default_internal);
+
+    if(!(enc = try_as<Encoding>(obj))) {
       enc = Encoding::find(state, "internal");
       G(encoding)->set_ivar(state, default_internal, enc);
     }
+
     return enc;
   }
 
