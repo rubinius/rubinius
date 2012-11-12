@@ -1000,7 +1000,12 @@ int main() { return tgetnum(""); }
       end
     end
 
-    @log.write @curses ? @curses : "not found"
+    if @curses
+      @log.write(@curses)
+    else
+      @log.write("not found")
+      failure("Curses was not found, but is needed!")
+    end
   end
 
   def detect_include_dirs
