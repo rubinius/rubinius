@@ -5,6 +5,9 @@ module Rubinius
 
     class Builder
 
+      def encode_result
+      end
+
       class CharAtom < Atom
         def bytecode
           push_value

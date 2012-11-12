@@ -303,6 +303,7 @@ module Rubinius
         end
 
         @g.string_build @append_parts
+        encode_result
         @g.ret
       end
 

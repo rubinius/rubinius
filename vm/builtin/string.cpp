@@ -1095,6 +1095,8 @@ namespace rubinius {
     free(output);
 
     infect(state, result);
+    result->encoding(state, encoding());
+
     return result;
   }
 

@@ -5,6 +5,11 @@ module Rubinius
 
     class Builder
 
+      def encode_result
+        @g.push_literal @format.encoding
+        @g.send :force_encoding, 1
+      end
+
       class CharAtom < Atom
         def bytecode
           push_value
