@@ -796,12 +796,18 @@ namespace rubinius {
     native_int capacity = data_size == 0 ? 2 : data_size;
 
     if(capacity <= new_size) {
+      if (new_size >= INT32_MAX) {
+        Exception::argument_error(state, "string sizes too big");
+      }
       // capacity needs one extra byte of room for the trailing null
       do {
         // @todo growth should be more intelligent than doubling
         capacity *= 2;
       } while(capacity < new_size + 1);
 
+      if (capacity >= INT32_MAX) {
+        capacity = INT32_MAX - 1;
+      }
       // No need to call unshare and duplicate a ByteArray
       // just to throw it away.
       if(shared_ == cTrue) shared(state, cFalse);
