@@ -950,27 +950,9 @@ VALUE rb_uint2big(unsigned long number);
 #define RBIGNUM_POSITIVE_P(b) RBIGNUM_SIGN(b)
 #define RBIGNUM_NEGATIVE_P(b) (!RBIGNUM_SIGN(b))
 
-#if SIZEOF_INT*2 <= SIZEOF_LONG_LONG
-# define BDIGIT unsigned int
-# define SIZEOF_BDIGITS SIZEOF_INT
-# define BDIGIT_DBL unsigned LONG_LONG
-# define BDIGIT_DBL_SIGNED LONG_LONG
-#elif SIZEOF_INT*2 <= SIZEOF_LONG
-# define BDIGIT unsigned int
-# define SIZEOF_BDIGITS SIZEOF_INT
-# define BDIGIT_DBL unsigned long
-# define BDIGIT_DBL_SIGNED long
-#elif SIZEOF_SHORT*2 <= SIZEOF_LONG
-# define BDIGIT unsigned short
-# define SIZEOF_BDIGITS SIZEOF_SHORT
-# define BDIGIT_DBL unsigned long
-# define BDIGIT_DBL_SIGNED long
-#else
-# define BDIGIT unsigned short
-# define SIZEOF_BDIGITS (SIZEOF_LONG/2)
-# define BDIGIT_DBL unsigned long
-# define BDIGIT_DBL_SIGNED long
-#endif
+  // fake out, used with RBIGNUM_LEN anyway, which provides
+  // the full answer
+#define SIZEOF_BDIGITS 1
 
   /** Calls this method in a superclass. */
   VALUE rb_call_super(int argc, const VALUE *argv);
