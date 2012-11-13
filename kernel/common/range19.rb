@@ -7,6 +7,10 @@ class Range
 
   alias_method :cover?, :include?
 
+  def first(n=undefined)
+    n.equal?(undefined) ? @begin : super
+  end
+
   def max(&block)
     raise TypeError, "cannot exclude non Integer end value" if @end.kind_of?(Float) && @excl
 
