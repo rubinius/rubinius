@@ -1003,8 +1003,8 @@ int main() { return tgetnum(""); }
     if @curses
       @log.write(@curses)
     else
-      @log.write("not found")
-      failure("Curses was not found, but is needed!")
+      @log.write("using rb-readline")
+      @rb_readline = true
     end
   end
 
