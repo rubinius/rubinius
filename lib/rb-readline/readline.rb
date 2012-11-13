@@ -1,11 +1,11 @@
 # readline.rb -- GNU Readline module
-# Copyright (C) 1997-2001  Shugo Maed
+# Copyright (C) 1997-2001  Shugo Maeda
 #
 # Ruby translation by Park Heesob phasis@gmail.com
 
 module Readline
 
-   require 'rb-readline/rbreadline'
+   require 'rbreadline'
    include RbReadline
 
    @completion_proc = nil
@@ -35,7 +35,7 @@ module Readline
       RbReadline.rl_outstream = $stdout
 
       status = 0
-
+      
       begin
          buff = RbReadline.readline(prompt)
       rescue Exception => e
@@ -48,7 +48,7 @@ module Readline
       if add_history && buff
          RbReadline.add_history(buff)
       end
-
+      
       return buff ? buff.dup : nil
    end
 
@@ -82,7 +82,7 @@ module Readline
    #
    #    list = ['search', 'next', 'clear']
    #    Readline.completion_proc = proc{ |s| list.grep( /^#{Regexp.escape(s)}/) }
-   #
+   #    
    def self.completion_proc=(proc)
       unless defined? proc.call
          raise ArgumentError,"argument must respond to `call'"
@@ -110,6 +110,17 @@ module Readline
       @completion_case_fold
    end
 
+   # Returns nil if no matches are found or an array of strings:
+   #
+   #   [0] is the replacement for text
+   #   [1..n] the possible matches
+   #   [n+1] nil
+   #
+   # The possible matches should not include [0].
+   #
+   # If this method sets RbReadline.rl_attempted_completion_over to true,
+   # then the default completion function will not be called when this
+   # function returns nil.
    def self.readline_attempted_completion_function(text,start,_end)
       proc = @completion_proc
       return nil if proc.nil?
@@ -134,6 +145,7 @@ module Readline
 
       if(matches==1)
          result[0] = result[1].dup
+         result[1] = nil
       else
          i = 1
          low = 100000
@@ -298,7 +310,7 @@ module Readline
    # of all commands.
    class History
       extend Enumerable
-
+      
       # The History class, stringified in all caps.
       #--
       # Why?
@@ -352,7 +364,7 @@ module Readline
             RbReadline.add_history(str)
          end
       end
-
+      
       # Internal function that removes the item at +index+ from the history
       # buffer, performing necessary duplication in the process.
       #--
