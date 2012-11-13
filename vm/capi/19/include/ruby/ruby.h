@@ -953,6 +953,9 @@ VALUE rb_uint2big(unsigned long number);
   // fake out, used with RBIGNUM_LEN anyway, which provides
   // the full answer
 #define SIZEOF_BDIGITS 1
+#define BDIGIT_DBL unsigned short
+#define BDIGIT_DBL_SIGNED short
+#define BDIGIT unsigned char
 
   /** Calls this method in a superclass. */
   VALUE rb_call_super(int argc, const VALUE *argv);
