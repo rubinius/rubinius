@@ -106,7 +106,6 @@ class Range
   end
 
   attr_reader :begin
-  alias_method :first, :begin
 
   def hash
     excl = @excl ? 1 : 0
