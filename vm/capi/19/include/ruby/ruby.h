@@ -943,7 +943,6 @@ VALUE rb_uint2big(unsigned long number);
   double  rb_big2dbl(VALUE obj);
 
   int     rb_big_bytes_used(VALUE obj);
-#define RBIGNUM_LEN(obj) rb_big_bytes_used(obj)
 
   int rb_big_sign(VALUE obj);
 #define RBIGNUM_SIGN(obj) rb_big_sign(obj)
@@ -972,6 +971,7 @@ VALUE rb_uint2big(unsigned long number);
 # define BDIGIT_DBL_SIGNED long
 #endif
 
+#define RBIGNUM_LEN(obj) (rb_big_bytes_used(obj) / SIZEOF_BDIGITS)
   /** Calls this method in a superclass. */
   VALUE rb_call_super(int argc, const VALUE *argv);
 
