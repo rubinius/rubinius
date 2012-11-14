@@ -393,8 +393,16 @@ class IO
 
     binmode if binary
     set_encoding external, internal
-    @external = Encoding::ASCII_8BIT if @binmode and not @external
+
     @internal = Encoding.default_internal if @internal.nil? and @mode != RDONLY
+
+    unless @external
+      if @binmode
+        @external = Encoding::ASCII_8BIT
+      elsif @internal
+        @external = Encoding.default_external
+      end
+    end
   end
 
   private :initialize
