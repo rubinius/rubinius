@@ -7,15 +7,10 @@ with_feature :encoding do
       @io.external_encoding.should be_nil
     end
 
-    it "returns returns nil if the external encoding is not set regardless of Encoding.default_external changes" do
+    it "returns nil if the external encoding is not set regardless of Encoding.default_external changes" do
+      Encoding.default_external = Encoding::UTF_8
       @io = new_io @name, @object
       Encoding.default_external = Encoding::IBM437
-      @io.external_encoding.should be_nil
-    end
-
-    it "returns returns nil when Encoding.default_external is set when the instance is created" do
-      Encoding.default_external = Encoding::IBM437
-      @io = new_io @name, @object
       @io.external_encoding.should be_nil
     end
 
@@ -73,12 +68,36 @@ with_feature :encoding do
       end
     end
 
+    describe "with 'rb' mode" do
+      it "returns Encoding::ASCII_8BIT" do
+        @io = new_io @name, "rb"
+        @io.external_encoding.should equal(Encoding::ASCII_8BIT)
+      end
+
+      it "returns the external encoding specified by the mode argument" do
+        @io = new_io @name, "rb:ibm437"
+        @io.external_encoding.should equal(Encoding::IBM437)
+      end
+    end
+
     describe "with 'r+' mode" do
       it_behaves_like :io_external_encoding_write, nil, "r+"
     end
 
     describe "with 'w' mode" do
       it_behaves_like :io_external_encoding_write, nil, "w"
+    end
+
+    describe "with 'wb' mode" do
+      it "returns Encoding::ASCII_8BIT" do
+        @io = new_io @name, "wb"
+        @io.external_encoding.should equal(Encoding::ASCII_8BIT)
+      end
+
+      it "returns the external encoding specified by the mode argument" do
+        @io = new_io @name, "wb:ibm437"
+        @io.external_encoding.should equal(Encoding::IBM437)
+      end
     end
 
     describe "with 'w+' mode" do

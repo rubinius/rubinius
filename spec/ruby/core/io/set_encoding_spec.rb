@@ -54,7 +54,7 @@ with_feature :encoding do
         @io.internal_encoding.should equal(Encoding::IBM866)
       end
 
-      it "allows the #external_encoding to change when Encoding.default_external is changed" do
+      it "prevents the #internal_encoding from changing when Encoding.default_internal is changed" do
         @io = new_io @name, "r"
         @io.set_encoding nil, nil
 
@@ -63,13 +63,23 @@ with_feature :encoding do
         @io.internal_encoding.should be_nil
       end
 
-      it "prevents the #internal_encoding from changing when Encoding.default_internal is changed" do
+      it "allows the #external_encoding to change when Encoding.default_external is changed" do
         @io = new_io @name, "r"
         @io.set_encoding nil, nil
 
         Encoding.default_external = Encoding::IBM437
 
         @io.external_encoding.should equal(Encoding::IBM437)
+      end
+    end
+
+    describe "with 'rb' mode" do
+      it "returns Encoding.default_external" do
+        @io = new_io @name, "rb"
+        @io.external_encoding.should equal(Encoding::ASCII_8BIT)
+
+        @io.set_encoding nil, nil
+        @io.external_encoding.should equal(Encoding.default_external)
       end
     end
 
