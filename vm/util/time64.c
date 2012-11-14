@@ -355,6 +355,8 @@ struct tm64* gmtime64_r(const time64_t* time64, struct tm64* tm64) {
 
     if(gmtime_r(&time, &tm)) {
       tm_to_tm64(&tm, tm64);
+      /* Always set to UTC even if the platform returns GMT (eg: Linux) */
+      tm64->tm_zone = (char *)"UTC";
       return tm64;
     }
   }
