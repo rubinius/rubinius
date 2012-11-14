@@ -8,4 +8,16 @@ describe :socket_socketpair, :shared => true do
       s2.close
     end
   end
+
+  ruby_version_is "1.9" do
+    it "raises SocketError if given symbol is not a Socket constants reference" do
+      lambda { Socket.socketpair(Socket::AF_UNIX, :NO_EXIST, 0) }.should raise_error(SocketError)
+    end
+
+    it "not raises SocketError if given symbol references a Socket constant" do
+      [ :DGRAM, :RAW, :RDM, :SEQPACKET, :STREAM ].each do |socket_type|
+        lambda { Socket.socketpair(Socket::AF_UNIX, socket_type, 0) }.should_not raise_error(SocketError)
+      end
+    end
+  end
 end
