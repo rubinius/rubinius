@@ -393,6 +393,8 @@ class IO
 
     binmode if binary
     set_encoding external, internal
+    @external = Encoding::ASCII_8BIT if @binmode and not @external
+    @internal = Encoding.default_internal if @internal.nil? and @mode != RDONLY
   end
 
   private :initialize
@@ -773,13 +775,13 @@ class IO
     when String
       @external = nil
     when nil
-      @external = Encoding.default_external unless @binmode
+      @external = nil
     else
       @external = nil
       external = StringValue(external)
     end
 
-    unless @external
+    if @external.nil? and not external.nil?
       if index = external.index(":")
         internal = external[index+1..-1]
         external = external[0, index]
@@ -805,11 +807,15 @@ class IO
 
     case internal
     when Encoding
-      internal = nil if @external == internal
+      @internal = nil if @external == internal
     when String
       # do nothing
     when nil
-      internal = Encoding.default_internal unless @binmode
+      if @mode == RDONLY
+        @internal = Encoding.default_internal
+      else
+        @internal = nil
+      end
     else
       internal = StringValue(internal)
     end
@@ -888,7 +894,8 @@ class IO
   end
 
   def external_encoding
-    @external
+    return @external if @external
+    return Encoding.default_external if @mode == RDONLY
   end
 
   def internal_encoding
