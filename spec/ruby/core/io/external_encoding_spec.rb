@@ -7,6 +7,12 @@ with_feature :encoding do
       @io.external_encoding.should be_nil
     end
 
+    it "returns the value of Encoding.default_external when the instance was created if Encoding.default_internal is not nil" do
+      Encoding.default_internal = Encoding::ISO_8859_13
+      @io = new_io @name, @object
+      @io.external_encoding.should equal(Encoding.default_external)
+    end
+
     it "returns nil if the external encoding is not set regardless of Encoding.default_external changes" do
       Encoding.default_external = Encoding::UTF_8
       @io = new_io @name, @object
@@ -30,6 +36,7 @@ with_feature :encoding do
   describe "IO#external_encoding" do
     before :each do
       @external = Encoding.default_external
+      @internal = Encoding.default_internal
 
       @name = tmp("io_external_encoding")
       touch(@name)
@@ -37,6 +44,7 @@ with_feature :encoding do
 
     after :each do
       Encoding.default_external = @external
+      Encoding.default_internal = @internal
 
       @io.close if @io and not @io.closed?
       rm_r @name
