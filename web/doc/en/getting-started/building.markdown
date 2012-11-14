@@ -58,3 +58,11 @@ However, if you are developing Rubinius, you should NOT add the _bin_
 directory to your PATH because the Rubinius build system will pick up the
 `ruby` and `rake` links to the Rubinius executable. Rubinius needs a separate
 Ruby executable to bootstrap itself during the build process.
+
+### Development Mode for Debugging
+
+If you are trying to debug the VM and want to attach a debugger, such as GDB,
+then you will want to compile Rubinius without optimizations. You can do this
+by setting the 'DEV' environment variable and then building.
+
+For example: `DEV=1 rake build`
