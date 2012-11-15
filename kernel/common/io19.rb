@@ -27,13 +27,9 @@ class IO
           char << @storage[@start]
           @start += 1
 
-          char.force_encoding io.external_encoding
+          char.force_encoding(io.external_encoding || Encoding.default_external)
           if char.chr_at(0)
-            if io.internal_encoding
-              return char.encode(io.internal_encoding)
-            else
-              return char
-            end
+            return IO.read_encode io, char
           end
         end
       end
@@ -141,13 +137,16 @@ class IO
   end
 
   def self.read_encode(io, str)
-    if io.internal and io.external
-      ec = Encoding::Converter.new io.external, io.internal
+    internal = io.internal_encoding
+    external = io.external_encoding || Encoding.default_external
+
+    if external.equal? Encoding::ASCII_8BIT and not internal
+      str.force_encoding external
+    elsif internal and external
+      ec = Encoding::Converter.new external, internal
       ec.convert str
-    elsif io.external
-      str.force_encoding io.external
     else
-      str
+      str.force_encoding external
     end
   end
 
@@ -394,12 +393,20 @@ class IO
     binmode if binary
     set_encoding external, internal
 
-    @internal = Encoding.default_internal if @internal.nil? and @mode != RDONLY
+    if @internal
+      if Encoding.default_external == Encoding.default_internal
+        @internal = nil
+      end
+    elsif @mode != RDONLY
+      if Encoding.default_external != Encoding.default_internal
+        @internal = Encoding.default_internal
+      end
+    end
 
     unless @external
       if @binmode
         @external = Encoding::ASCII_8BIT
-      elsif @internal
+      elsif @internal or Encoding.default_internal
         @external = Encoding.default_external
       end
     end
