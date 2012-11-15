@@ -1,3 +1,0 @@
-fails:Rational() raises a TypeError if the arguments are not Integers
-fails:Rational() passed two arguments sets the numerator to the first argument
-fails:Rational() passed two arguments sets the denominator to the second argument
