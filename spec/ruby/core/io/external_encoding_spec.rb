@@ -2,34 +2,78 @@ require File.expand_path('../../../spec_helper', __FILE__)
 
 with_feature :encoding do
   describe :io_external_encoding_write, :shared => true do
-    it "returns nil if the external encoding is not set" do
-      @io = new_io @name, @object
-      @io.external_encoding.should be_nil
+    describe "when Encoding.default_internal is nil" do
+      before :each do
+        Encoding.default_internal = nil
+      end
+
+      it "returns nil" do
+        @io = new_io @name, @object
+        Encoding.default_external = Encoding::IBM437
+        @io.external_encoding.should be_nil
+      end
+
+      it "returns the external encoding specified when the instance was created" do
+        @io = new_io @name, "#{@object}:ibm866"
+        Encoding.default_external = Encoding::IBM437
+        @io.external_encoding.should equal(Encoding::IBM866)
+      end
+
+      it "returns the encoding set by #set_encoding" do
+        @io = new_io @name, "#{@object}:ibm866"
+        @io.set_encoding Encoding::EUC_JP, nil
+        @io.external_encoding.should equal(Encoding::EUC_JP)
+      end
     end
 
-    it "returns the value of Encoding.default_external when the instance was created if Encoding.default_internal is not nil" do
-      Encoding.default_internal = Encoding::ISO_8859_13
-      @io = new_io @name, @object
-      @io.external_encoding.should equal(Encoding.default_external)
+    describe "when Encoding.default_external != Encoding.default_internal" do
+      before :each do
+        Encoding.default_external = Encoding::IBM437
+        Encoding.default_internal = Encoding::IBM866
+      end
+
+      it "returns the value of Encoding.default_external when the instance was created" do
+        @io = new_io @name, @object
+        Encoding.default_external = Encoding::UTF_8
+        @io.external_encoding.should equal(Encoding::IBM437)
+      end
+
+      it "returns the external encoding specified when the instance was created" do
+        @io = new_io @name, "#{@object}:ibm866"
+        Encoding.default_external = Encoding::IBM437
+        @io.external_encoding.should equal(Encoding::IBM866)
+      end
+
+      it "returns the encoding set by #set_encoding" do
+        @io = new_io @name, "#{@object}:ibm866"
+        @io.set_encoding Encoding::EUC_JP, nil
+        @io.external_encoding.should equal(Encoding::EUC_JP)
+      end
     end
 
-    it "returns nil if the external encoding is not set regardless of Encoding.default_external changes" do
-      Encoding.default_external = Encoding::UTF_8
-      @io = new_io @name, @object
-      Encoding.default_external = Encoding::IBM437
-      @io.external_encoding.should be_nil
-    end
+    describe "when Encoding.default_external == Encoding.default_internal" do
+      before :each do
+        Encoding.default_external = Encoding::IBM866
+        Encoding.default_internal = Encoding::IBM866
+      end
 
-    it "returns the external encoding specified when the instance was created regardless of Encoding.default_external changes" do
-      @io = new_io @name, "#{@object}:ibm866"
-      Encoding.default_external = Encoding::IBM437
-      @io.external_encoding.should equal(Encoding::IBM866)
-    end
+      it "returns the value of Encoding.default_external when the instance was created" do
+        @io = new_io @name, @object
+        Encoding.default_external = Encoding::UTF_8
+        @io.external_encoding.should equal(Encoding::IBM866)
+      end
 
-    it "returns the encoding set by #set_encoding" do
-      @io = new_io @name, "#{@object}:ibm866"
-      @io.set_encoding Encoding::EUC_JP, nil
-      @io.external_encoding.should equal(Encoding::EUC_JP)
+      it "returns the external encoding specified when the instance was created" do
+        @io = new_io @name, "#{@object}:ibm866"
+        Encoding.default_external = Encoding::IBM437
+        @io.external_encoding.should equal(Encoding::IBM866)
+      end
+
+      it "returns the encoding set by #set_encoding" do
+        @io = new_io @name, "#{@object}:ibm866"
+        @io.set_encoding Encoding::EUC_JP, nil
+        @io.external_encoding.should equal(Encoding::EUC_JP)
+      end
     end
   end
 
@@ -51,28 +95,79 @@ with_feature :encoding do
     end
 
     describe "with 'r' mode" do
-      it "returns Encoding.default_external if the external encoding is not set" do
-        @io = new_io @name, "r"
-        @io.external_encoding.should equal(Encoding.default_external)
+      describe "when Encoding.default_internal is nil" do
+        before :each do
+          Encoding.default_internal = nil
+          Encoding.default_external = Encoding::IBM866
+        end
+
+        it "returns Encoding.default_external if the external encoding is not set" do
+          @io = new_io @name, "r"
+          @io.external_encoding.should equal(Encoding::IBM866)
+        end
+
+        it "returns Encoding.default_external when that encoding is changed after the instance is created" do
+          @io = new_io @name, "r"
+          Encoding.default_external = Encoding::IBM437
+          @io.external_encoding.should equal(Encoding::IBM437)
+        end
+
+        it "returns the external encoding specified when the instance was created" do
+          @io = new_io @name, "r:utf-8"
+          Encoding.default_external = Encoding::IBM437
+          @io.external_encoding.should equal(Encoding::UTF_8)
+        end
+
+        it "returns the encoding set by #set_encoding" do
+          @io = new_io @name, "r:utf-8"
+          @io.set_encoding Encoding::EUC_JP, nil
+          @io.external_encoding.should equal(Encoding::EUC_JP)
+        end
       end
 
-      it "returns Encoding.default_external when that encoding is changed after the instance is created" do
-        Encoding.default_external = Encoding::UTF_8
-        @io = new_io @name, "r"
-        Encoding.default_external = Encoding::IBM437
-        @io.external_encoding.should equal(Encoding::IBM437)
+      describe "when Encoding.default_external == Encoding.default_internal" do
+        before :each do
+          Encoding.default_external = Encoding::IBM866
+          Encoding.default_internal = Encoding::IBM866
+        end
+
+        it "returns the value of Encoding.default_external when the instance was created" do
+          @io = new_io @name, "r"
+          Encoding.default_external = Encoding::IBM437
+          @io.external_encoding.should equal(Encoding::IBM866)
+        end
+
+        it "returns the external encoding specified when the instance was created" do
+          @io = new_io @name, "r:utf-8"
+          Encoding.default_external = Encoding::IBM437
+          @io.external_encoding.should equal(Encoding::UTF_8)
+        end
+
+        it "returns the encoding set by #set_encoding" do
+          @io = new_io @name, "r:utf-8"
+          @io.set_encoding Encoding::EUC_JP, nil
+          @io.external_encoding.should equal(Encoding::EUC_JP)
+        end
       end
 
-      it "returns the external encoding specified when the instance was created regardless of Encoding.default_external changes" do
-        @io = new_io @name, "r:utf-8"
-        Encoding.default_external = Encoding::IBM437
-        @io.external_encoding.should equal(Encoding::UTF_8)
-      end
+      describe "when Encoding.default_external != Encoding.default_internal" do
+        before :each do
+          Encoding.default_external = Encoding::IBM437
+          Encoding.default_internal = Encoding::IBM866
+        end
 
-      it "returns the encoding set by #set_encoding" do
-        @io = new_io @name, "r:utf-8"
-        @io.set_encoding Encoding::EUC_JP, nil
-        @io.external_encoding.should equal(Encoding::EUC_JP)
+
+        it "returns the external encoding specified when the instance was created" do
+          @io = new_io @name, "r:utf-8"
+          Encoding.default_external = Encoding::IBM437
+          @io.external_encoding.should equal(Encoding::UTF_8)
+        end
+
+        it "returns the encoding set by #set_encoding" do
+          @io = new_io @name, "r:utf-8"
+          @io.set_encoding Encoding::EUC_JP, nil
+          @io.external_encoding.should equal(Encoding::EUC_JP)
+        end
       end
     end
 

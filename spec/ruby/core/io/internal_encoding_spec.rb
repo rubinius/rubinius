@@ -31,8 +31,27 @@ with_feature :encoding do
       end
     end
 
-    describe "when Encoding.default_internal is set" do
+    describe "when Encoding.default_internal == Encoding.default_external" do
       before :each do
+        Encoding.default_external = Encoding::IBM866
+        Encoding.default_internal = Encoding::IBM866
+      end
+
+      it "returns nil" do
+        @io = new_io @name, @object
+        @io.internal_encoding.should be_nil
+      end
+
+      it "returns nil regardless of Encoding.default_internal changes" do
+        @io = new_io @name, @object
+        Encoding.default_internal = Encoding::IBM437
+        @io.internal_encoding.should be_nil
+      end
+    end
+
+    describe "when Encoding.default_internal != Encoding.default_external" do
+      before :each do
+        Encoding.default_external = Encoding::IBM437
         Encoding.default_internal = Encoding::IBM866
       end
 
@@ -68,6 +87,7 @@ with_feature :encoding do
 
   describe "IO#internal_encoding" do
     before :each do
+      @external = Encoding.default_external
       @internal = Encoding.default_internal
 
       @name = tmp("io_internal_encoding")
@@ -75,6 +95,7 @@ with_feature :encoding do
     end
 
     after :each do
+      Encoding.default_external = @external
       Encoding.default_internal = @internal
 
       @io.close if @io and not @io.closed?
