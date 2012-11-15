@@ -8,6 +8,7 @@
 
 #include "llvm/stack_args.hpp"
 
+#include "builtin/alias.hpp"
 #include "builtin/methodtable.hpp"
 #include "builtin/nativefunction.hpp"
 #include "builtin/lookuptable.hpp"
@@ -116,6 +117,10 @@ namespace rubinius {
           << ". Inliner error, method missing.\n";
       }
       return false;
+    }
+
+    if(Alias* alias = try_as<Alias>(meth)) {
+      meth = alias->original_exec();
     }
 
     if(AccessVariable* acc = try_as<AccessVariable>(meth)) {
