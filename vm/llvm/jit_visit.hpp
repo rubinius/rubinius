@@ -102,7 +102,7 @@ namespace rubinius {
     bool has_side_effects_;
 
     int current_ip_;
-    int current_block_;
+    JITInlineBlock* current_block_;
     int block_arg_shift_;
     bool skip_yield_stack_;
 
@@ -133,11 +133,17 @@ namespace rubinius {
       , sends_done_(0)
       , has_side_effects_(false)
       , current_ip_(0)
-      , current_block_(-1)
+      , current_block_(NULL)
       , block_arg_shift_(0)
       , skip_yield_stack_(false)
       , current_jbb_(0)
     {}
+
+    ~JITVisit() {
+      if(current_block_) {
+        delete current_block_;
+      }
+    }
 
     bool for_inlined_method() {
       return info().for_inlined_method();
@@ -234,6 +240,13 @@ namespace rubinius {
 
     BasicBlock* exception_handler() {
       return current_jbb_->exception_handler->entry();
+    }
+
+    void clear_current_block() {
+      if(current_block_) {
+        delete current_block_;
+        current_block_ = NULL;
+      }
     }
 
     void check_for_return(Value* val) {
@@ -1325,7 +1338,7 @@ namespace rubinius {
     }
 
     void emit_uncommon() {
-      emit_delayed_create_block(true);
+      emit_delayed_create_block();
 
       Value* sp = last_sp_as_int();
 
@@ -1564,7 +1577,7 @@ namespace rubinius {
       return for_inlined_method() && info().is_block;
     }
 
-    void emit_delayed_create_block(bool always=false) {
+    void emit_delayed_create_block() {
       std::list<JITMethodInfo*> in_scope;
       JITMethodInfo* nfo = &info();
 
@@ -1579,7 +1592,7 @@ namespace rubinius {
         nfo = *i;
 
         JITInlineBlock* ib = nfo->inline_block();
-        if(ib && ib->machine_code() && (always || !ib->created_object_p())) {
+        if(ib && ib->machine_code()) {
           JITMethodInfo* creator = ib->creation_scope();
           assert(creator);
 
@@ -1602,13 +1615,11 @@ namespace rubinius {
               b().CreateConstGEP2_32(nfo->variables(), 0,
                 offset::vars_block),
               false);
-
-          if(!always) ib->set_created_object();
         }
       }
     }
 
-    void emit_create_block(opcode which, bool push=false) {
+    void emit_create_block(opcode which) {
       // if we're inside an inlined method that has a block
       // visible, that means that we've note yet emitted the code to
       // actually create the block for this inlined block.
@@ -1656,11 +1667,7 @@ namespace rubinius {
           call_args.push_back((*i)->call_frame());
         }
 
-        if(push) {
-          stack_push(b().CreateCall(func, call_args, "create_block"));
-        } else {
-          stack_set_top(b().CreateCall(func, call_args, "create_block"));
-        }
+        stack_set_top(b().CreateCall(func, call_args, "create_block"));
         return;
       };
 
@@ -1677,22 +1684,30 @@ namespace rubinius {
         cint(which)
       };
 
-      if(push) {
-        stack_push(b().CreateCall(func, call_args, "create_block"));
-      } else {
-        stack_set_top(b().CreateCall(func, call_args, "create_block"));
-      }
+      stack_set_top(b().CreateCall(func, call_args, "create_block"));
     }
 
     void visit_create_block(opcode which) {
-      emit_create_block(which, true);
-      current_block_ = (int) which;
+      stack_push(constant(cNil));
+      BasicBlock* block_emit = new_block("block_emit");
+      b().CreateBr(block_emit);
+      set_block(block_emit);
+
+      emit_create_block(which);
+
+      BasicBlock* block_continue = new_block("block_continue");
+      b().CreateBr(block_continue);
+      set_block(block_continue);
+
+      CompiledCode* block_code = as<CompiledCode>(literal(which));
+      MachineCode* code = block_code->machine_code();
+
+      current_block_ = new JITInlineBlock(ls_, block_code, code, &info(), which);
+      current_block_->set_block_emit_loc(block_emit);
     }
 
     void visit_send_stack_with_block(opcode which, opcode args) {
       set_has_side_effects();
-
-      bool has_literal_block = (current_block_ >= 0);
 
       InlineCache* cache = reinterpret_cast<InlineCache*>(which);
       CompiledCode* block_code = 0;
@@ -1700,8 +1715,8 @@ namespace rubinius {
       if(cache->classes_seen() &&
           ls_->config().jit_inline_blocks &&
           !context().inlined_block()) {
-        if(has_literal_block) {
-          block_code = try_as<CompiledCode>(literal(current_block_));
+        if(current_block_) {
+          block_code = current_block_->method();
 
           // Run the policy on the block code here, if we're not going to
           // inline it, don't inline this either.
@@ -1738,12 +1753,10 @@ namespace rubinius {
 
         Inliner inl(context(), *this, cache, args, failure);
 
-        MachineCode* code = 0;
-        if(block_code) code = block_code->machine_code();
-        JITInlineBlock block_info(ls_, send_result, cleanup, block_code, code, &info(),
-                                  current_block_);
+        current_block_->set_block_break_result(send_result);
+        current_block_->set_block_break_loc(cleanup);
 
-        inl.set_inline_block(&block_info);
+        inl.set_inline_block(current_block_);
 
         int stack_cleanup = args + 2;
 
@@ -1800,8 +1813,10 @@ namespace rubinius {
 
           allow_private_ = false;
 
+          current_block_->eraseBlockEmit();
+
           // Clear the current block
-          current_block_ = -1;
+          clear_current_block();
           return;
         }
 
@@ -1816,8 +1831,7 @@ use_send:
       check_for_return(ret);
       allow_private_ = false;
 
-      // Clear the current block
-      current_block_ = -1;
+      clear_current_block();
     }
 
     void visit_send_stack_with_splat(opcode which, opcode args) {
@@ -1830,8 +1844,7 @@ use_send:
       stack_push(ret);
       allow_private_ = false;
 
-      // Clear the current block
-      current_block_ = -1;
+      clear_current_block();
     }
 
     void visit_cast_array() {
@@ -1941,7 +1954,7 @@ use_send:
       stack_remove(args + 1);
       check_for_return(ret);
 
-      current_block_ = -1;
+      clear_current_block();
     }
 
     void visit_send_super_stack_with_splat(opcode which, opcode args) {
@@ -1953,7 +1966,7 @@ use_send:
       check_for_exception(ret);
       stack_push(ret);
 
-      current_block_ = -1;
+      clear_current_block();
     }
 
     void visit_zsuper(opcode which) {
@@ -1981,7 +1994,7 @@ use_send:
       check_for_exception(ret);
       stack_push(ret);
 
-      current_block_ = -1;
+      clear_current_block();
     }
 
     void visit_add_scope() {

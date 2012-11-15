@@ -6,11 +6,14 @@
 #include "builtin/compiledcode.hpp"
 
 namespace rubinius {
-  JITInlineBlock::JITInlineBlock(LLVMState* ls, llvm::PHINode* phi, llvm::BasicBlock* brk,
+
+  using namespace llvm;
+
+  JITInlineBlock::JITInlineBlock(LLVMState* ls,
                    CompiledCode* code, MachineCode* mcode,
                    JITMethodInfo* scope, int which)
-      : block_break_result_(phi)
-      , block_break_loc_(brk)
+      : block_break_result_(NULL)
+      , block_break_loc_(NULL)
       , machine_code_(mcode)
       , method_(&ls->roots())
       , scope_(scope)
@@ -19,6 +22,20 @@ namespace rubinius {
     {
       method_.set(code);
     }
+
+
+  void JITInlineBlock::eraseBlockEmit() {
+    if(!created_object_ && block_emit_loc_) {
+      BasicBlock* before = block_emit_loc_->getSinglePredecessor();
+      TerminatorInst* fromJump = before->getTerminator();
+      TerminatorInst* toJump   = block_emit_loc_->getTerminator();
+
+      fromJump->setSuccessor(0, toJump->getSuccessor(0));
+
+      block_emit_loc_->eraseFromParent();
+      block_emit_loc_ = NULL;
+    }
+  }
 }
 
 #endif

@@ -4,6 +4,7 @@
 #include "unwind_info.hpp"
 
 #include "llvm/basic_block.hpp"
+#include "llvm/inline_block.hpp"
 #include "llvm/offset.hpp"
 #include <llvm/Support/IRBuilder.h>
 
