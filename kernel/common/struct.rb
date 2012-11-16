@@ -68,6 +68,7 @@ class Struct
   def _attrs # :nodoc:
     return self.class::STRUCT_ATTRS
   end
+  private :_attrs
 
   def instance_variables
     # Hide the ivars used to store the struct fields
