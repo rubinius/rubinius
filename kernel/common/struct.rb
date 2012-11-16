@@ -197,7 +197,7 @@ class Struct
   end
 
   def self.members
-    return self::STRUCT_ATTRS.map { |member| member.to_s }
+    return Rubinius::Type.convert_to_names(self::STRUCT_ATTRS.dup)
   end
 
   def members
