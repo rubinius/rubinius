@@ -514,7 +514,7 @@ namespace jit {
     if(info_.inline_policy) {
       visitor.set_policy(info_.inline_policy);
     } else {
-      visitor.init_policy();
+      visitor.init_policy(ls_);
     }
 
     assert(visitor.inline_policy());

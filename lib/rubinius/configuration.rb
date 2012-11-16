@@ -83,6 +83,15 @@ Rubinius::ConfigurationVariables.define do |c|
 
       i.vm_variable "blocks", true,
         "Have the JIT try and inline methods and their literal blocks"
+
+      i.vm_variable "small_method_size", 100,
+        "The maximum size for a small method"
+
+      i.vm_variable "normal_method_size", 300,
+        "The maximum size for a normal method"
+
+      i.vm_variable "large_method_size", 2000,
+        "The maximum size for a large method"
     end
 
     s.vm_variable "log", :string,

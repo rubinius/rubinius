@@ -3,6 +3,7 @@
 
 #include "machine_code.hpp"
 #include "instructions_util.hpp"
+#include "llvm/state.hpp"
 
 namespace rubinius {
   struct InlineOptions {
@@ -126,7 +127,7 @@ namespace rubinius {
     size_t max_size_;
 
   public:
-    static InlinePolicy* create_policy(MachineCode* mcode);
+    static InlinePolicy* create_policy(LLVMState* state, MachineCode* mcode);
 
     InlinePolicy(MachineCode* mcode, int max)
       : machine_code_(mcode)
@@ -136,11 +137,11 @@ namespace rubinius {
 
     virtual ~InlinePolicy() {}
 
-    int current_size() {
+    size_t current_size() {
       return current_size_;
     }
 
-    int max_size() {
+    size_t max_size() {
       return max_size_;
     }
 
@@ -165,25 +166,25 @@ namespace rubinius {
 
   class SmallMethodInlinePolicy : public InlinePolicy {
   public:
-    static bool is_small_p(MachineCode* mcode) {
-      if(mcode->total < 100) return true;
+    static bool is_small_p(LLVMState* state, MachineCode* mcode) {
+      if(mcode->total < (size_t)state->config().jit_inline_small_method_size) return true;
       return false;
     }
 
-    SmallMethodInlinePolicy(MachineCode* mcode)
-      : InlinePolicy(mcode, 300) // Random number!
+    SmallMethodInlinePolicy(LLVMState* state, MachineCode* mcode)
+      : InlinePolicy(mcode, (size_t)state->config().jit_inline_normal_method_size)
     {}
 
   };
 
   class NormalMethodInlinePolicy : public InlinePolicy {
   public:
-    static bool is_normal_p(MachineCode* mcode) {
-      if(mcode->total < 300) return true;
+    static bool is_normal_p(LLVMState* state, MachineCode* mcode) {
+      if(mcode->total < (size_t)state->config().jit_inline_normal_method_size) return true;
       return false;
     }
 
-    NormalMethodInlinePolicy(MachineCode* mcode)
+    NormalMethodInlinePolicy(LLVMState* state, MachineCode* mcode)
       : InlinePolicy(mcode, mcode->total * 3)
     {}
 
@@ -191,32 +192,32 @@ namespace rubinius {
 
   class LargeMethodInlinePolicy : public InlinePolicy {
   public:
-    static bool is_large_p(MachineCode* mcode) {
-      if(mcode->total < 2000) return true;
+    static bool is_large_p(LLVMState* state, MachineCode* mcode) {
+      if(mcode->total < (size_t)state->config().jit_inline_large_method_size) return true;
       return false;
     }
 
-    LargeMethodInlinePolicy(MachineCode* mcode)
+    LargeMethodInlinePolicy(LLVMState* state, MachineCode* mcode)
       : InlinePolicy(mcode, mcode->total * 2)
     {}
   };
 
   class NoChangeInlinePolicy : public InlinePolicy {
   public:
-    NoChangeInlinePolicy(MachineCode* mcode)
+    NoChangeInlinePolicy(LLVMState* state, MachineCode* mcode)
       : InlinePolicy(mcode, mcode->total)
     {}
   };
 
-  inline InlinePolicy* InlinePolicy::create_policy(MachineCode* mcode) {
-    if(SmallMethodInlinePolicy::is_small_p(mcode)) {
-      return new SmallMethodInlinePolicy(mcode);
-    } else if(NormalMethodInlinePolicy::is_normal_p(mcode)) {
-      return new NormalMethodInlinePolicy(mcode);
-    } else if(LargeMethodInlinePolicy::is_large_p(mcode)) {
-      return new LargeMethodInlinePolicy(mcode);
+  inline InlinePolicy* InlinePolicy::create_policy(LLVMState* state, MachineCode* mcode) {
+    if(SmallMethodInlinePolicy::is_small_p(state, mcode)) {
+      return new SmallMethodInlinePolicy(state, mcode);
+    } else if(NormalMethodInlinePolicy::is_normal_p(state, mcode)) {
+      return new NormalMethodInlinePolicy(state, mcode);
+    } else if(LargeMethodInlinePolicy::is_large_p(state, mcode)) {
+      return new LargeMethodInlinePolicy(state, mcode);
     } else {
-      return new NoChangeInlinePolicy(mcode);
+      return new NoChangeInlinePolicy(state, mcode);
     }
 
     return NULL;

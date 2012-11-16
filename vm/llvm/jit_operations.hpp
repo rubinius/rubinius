@@ -187,8 +187,8 @@ namespace rubinius {
       inline_policy_ = policy;
     }
 
-    void init_policy() {
-      inline_policy_ = InlinePolicy::create_policy(machine_code());
+    void init_policy(LLVMState* state) {
+      inline_policy_ = InlinePolicy::create_policy(state, machine_code());
       own_policy_ = true;
     }
 
