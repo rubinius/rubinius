@@ -74,7 +74,7 @@ class Struct
   end
 
   def initialize(*args)
-    attrs = self.class::STRUCT_ATTRS
+    attrs = _attrs
 
     unless args.length <= attrs.length
       raise ArgumentError, "Expected #{attrs.size}, got #{args.size}"
