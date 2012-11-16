@@ -2,6 +2,13 @@
 
 module Enumerable
   class Enumerator
+    def initialize(obj, iter=:each, *args)
+      @object = obj
+      @iter = iter.to_sym
+      @args = args
+      @generator = nil
+    end
+
     def next
       unless @generator
         # Allow #to_generator to return nil, indicating it has none for
