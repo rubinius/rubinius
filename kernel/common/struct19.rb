@@ -1,14 +1,6 @@
 # -*- encoding: us-ascii -*-
 
 class Struct
-  def self.members
-    return self::STRUCT_ATTRS.map { |member| member.to_sym }
-  end
-
-  def members
-    return self.class.members
-  end
-
   def to_s
     return "[...]" if Thread.guarding? self
 
@@ -31,5 +23,4 @@ class Struct
   end
 
   alias_method :inspect, :to_s
-
 end
