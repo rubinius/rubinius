@@ -20,4 +20,10 @@ describe :socket_socketpair, :shared => true do
       end
     end
   end
+
+  ruby_version_is ""..."1.9" do
+    it "raises Errno::EPROTONOSUPPORT if socket type is not a String or Integer" do
+      lambda { Socket.socketpair(Socket::AF_UNIX, :DGRAM, 0) }.should raise_error(Errno::EPROTONOSUPPORT)
+    end
+  end
 end
