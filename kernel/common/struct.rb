@@ -1,7 +1,6 @@
 # -*- encoding: us-ascii -*-
 
 class Struct
-
   include Enumerable
 
   class << self
@@ -34,7 +33,6 @@ class Struct
     end
 
     klass = Class.new self do
-
       _specialize attrs
       attr_accessor(*attrs)
 
@@ -76,7 +74,7 @@ class Struct
   end
 
   def initialize(*args)
-    attrs = self.class::STRUCT_ATTRS
+    attrs = _attrs
 
     unless args.length <= attrs.length
       raise ArgumentError, "Expected #{attrs.size}, got #{args.size}"
@@ -199,7 +197,7 @@ class Struct
   end
 
   def self.members
-    return self::STRUCT_ATTRS.map { |member| member.to_s }
+    return Rubinius::Type.convert_to_names(self::STRUCT_ATTRS.dup)
   end
 
   def members
