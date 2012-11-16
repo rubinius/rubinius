@@ -977,6 +977,15 @@ with_feature :encoding do
         STDERR.internal_encoding.should be_nil
       end
     end
+
+    describe "ARGV" do
+      it "contains Strings encoded in locale Encoding" do
+        code = fixture __FILE__, "argv_encoding.rb"
+        result = ruby_exe(code, :args => "a b")
+        encoding = Encoding.default_external
+        result.chomp.should == %{["#{encoding}", "#{encoding}"]}
+      end
+    end
   end
 end
 
