@@ -4,13 +4,6 @@ module Enumerable
   class Enumerator
     include Enumerable
 
-    def initialize(obj, iter=:each, *args)
-      @object = obj
-      @iter = iter.to_sym
-      @args = args
-      @generator = nil
-    end
-
     def each(&block)
       @object.__send__(@iter, *@args, &block)
     end
