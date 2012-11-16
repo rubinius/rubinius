@@ -682,6 +682,8 @@ class Socket < BasicSocket
       else
         raise SocketError, "unknown socket type #{type}"
       end
+    elsif !type.kind_of? Integer
+      raise Errno::EPROTONOSUPPORT, type.inspect
     end
 
     FFI::MemoryPointer.new :int, 2 do |mp|
