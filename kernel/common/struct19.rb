@@ -31,5 +31,4 @@ class Struct
   end
 
   alias_method :inspect, :to_s
-
 end

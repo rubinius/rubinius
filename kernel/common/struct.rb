@@ -1,7 +1,6 @@
 # -*- encoding: us-ascii -*-
 
 class Struct
-
   include Enumerable
 
   class << self
@@ -34,7 +33,6 @@ class Struct
     end
 
     klass = Class.new self do
-
       _specialize attrs
       attr_accessor(*attrs)
 
