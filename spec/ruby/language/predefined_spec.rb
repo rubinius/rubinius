@@ -317,6 +317,101 @@ $stdout          IO              The current standard output. Assignment to $std
                                  $stdout.reopen instead.
 =end
 
+describe "Predefined global $/" do
+  before :each do
+    @dollar_slash = $/
+    @dollar_dash_zero = $-0
+  end
+
+  after :each do
+    $/ = @dollar_slash
+    $-0 = @dollar_dash_zero
+  end
+
+  it "can be assigned a String" do
+    str = "abc"
+    $/ = str
+    $/.should equal(str)
+  end
+
+  it "can be assigned nil" do
+    $/ = nil
+    $/.should be_nil
+  end
+
+  it "returns the value assigned" do
+    ($/ = "xyz").should == "xyz"
+  end
+
+
+  it "changes $-0" do
+    $/ = "xyz"
+    $-0.should equal($/)
+  end
+
+  it "does not call #to_str to convert the object to a String" do
+    obj = mock("$/ value")
+    obj.should_not_receive(:to_str)
+
+    lambda { $/ = obj }.should raise_error(TypeError)
+  end
+
+  it "raises a TypeError if assigned a Fixnum" do
+    lambda { $/ = 1 }.should raise_error(TypeError)
+  end
+
+  it "raises a TypeError if assigned a boolean" do
+    lambda { $/ = true }.should raise_error(TypeError)
+  end
+end
+
+describe "Predefined global $-0" do
+  before :each do
+    @dollar_slash = $/
+    @dollar_dash_zero = $-0
+  end
+
+  after :each do
+    $/ = @dollar_slash
+    $-0 = @dollar_dash_zero
+  end
+
+  it "can be assigned a String" do
+    str = "abc"
+    $-0 = str
+    $-0.should equal(str)
+  end
+
+  it "can be assigned nil" do
+    $-0 = nil
+    $-0.should be_nil
+  end
+
+  it "returns the value assigned" do
+    ($-0 = "xyz").should == "xyz"
+  end
+
+  it "changes $/" do
+    $-0 = "xyz"
+    $/.should equal($-0)
+  end
+
+  it "does not call #to_str to convert the object to a String" do
+    obj = mock("$-0 value")
+    obj.should_not_receive(:to_str)
+
+    lambda { $-0 = obj }.should raise_error(TypeError)
+  end
+
+  it "raises a TypeError if assigned a Fixnum" do
+    lambda { $-0 = 1 }.should raise_error(TypeError)
+  end
+
+  it "raises a TypeError if assigned a boolean" do
+    lambda { $-0 = true }.should raise_error(TypeError)
+  end
+end
+
 describe "Predefined global $," do
   it "defaults to nil" do
     $,.should be_nil
