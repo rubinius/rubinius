@@ -684,6 +684,14 @@ class Socket < BasicSocket
       end
     end
 
+    if type.kind_of? Symbol
+      begin
+        type = Socket::Constants.const_get("SOCK_#{type}")
+      rescue NameError
+        raise SocketError, "unknown socket type #{type}"
+      end
+    end
+
     FFI::MemoryPointer.new :int, 2 do |mp|
       Socket::Foreign.socketpair(domain, type, protocol, mp)
       fd0, fd1 = mp.read_array_of_int(2)
