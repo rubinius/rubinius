@@ -10,6 +10,7 @@
 
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
+#include "builtin/encoding.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
@@ -392,18 +393,26 @@ namespace rubinius {
   }
 
   void Environment::load_argv(int argc, char** argv) {
+    String* str = 0;
+    Encoding* enc = Encoding::default_external(state);
+
     Array* os_ary = Array::create(state, argc);
     for(int i = 0; i < argc; i++) {
-      os_ary->set(state, i, String::create(state, argv[i]));
+      str = String::create(state, argv[i]);
+      str->encoding(state, enc);
+      os_ary->set(state, i, str);
     }
 
     G(rubinius)->set_const(state, "OS_ARGV", os_ary);
 
     char buf[MAXPATHLEN];
-    G(rubinius)->set_const(state, "OS_STARTUP_DIR",
-        String::create(state, getcwd(buf, MAXPATHLEN)));
+    str = String::create(state, getcwd(buf, MAXPATHLEN));
+    str->encoding(state, enc);
+    G(rubinius)->set_const(state, "OS_STARTUP_DIR", str);
 
-    state->vm()->set_const("ARG0", String::create(state, argv[0]));
+    str = String::create(state, argv[0]);
+    str->encoding(state, enc);
+    state->vm()->set_const("ARG0", str);
 
     Array* ary = Array::create(state, argc - 1);
     int which_arg = 0;
@@ -420,7 +429,10 @@ namespace rubinius {
         skip_xflags = false;
       }
 
-      ary->set(state, which_arg++, String::create(state, arg)->taint(state));
+      str = String::create(state, arg);
+      str->taint(state);
+      str->encoding(state, enc);
+      ary->set(state, which_arg++, str);
     }
 
     state->vm()->set_const("ARGV", ary);
