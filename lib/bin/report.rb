@@ -5,6 +5,12 @@ require 'net/https'
 
 GistSubmissionError = Class.new(StandardError)
 
+class Rubinius::Loader
+  def write_last_error(e)
+    # don't overwrite last error report
+  end
+end
+
 module Gist
   extend self
 
