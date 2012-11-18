@@ -11,6 +11,7 @@
 #include "builtin/basicobject.hpp"
 #include "builtin/block_environment.hpp"
 #include "builtin/bytearray.hpp"
+#include "builtin/character.hpp"
 #include "builtin/class.hpp"
 #include "builtin/compactlookuptable.hpp"
 #include "builtin/compiledcode.hpp"
@@ -297,6 +298,7 @@ namespace rubinius {
     Array::init(state);
     ByteArray::init(state);
     String::init(state);
+    Character::init(state);
     Executable::init(state);
     CompiledCode::init(state);
     AtomicReference::init(state);
