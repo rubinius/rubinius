@@ -7,6 +7,10 @@ ruby_version_is "1.9" do
       @str = "∂φ/∂x = gaîté"
     end
 
+    it "returns an instance of Rubinius::Character" do
+      @str.chr_at(0).should be_an_instance_of(Rubinius::Character)
+    end
+
     it "returns the encoded character at a byte offset" do
       char = @str.chr_at(15)
       char.bytesize.should == 2
