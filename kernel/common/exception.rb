@@ -264,9 +264,6 @@ end
 class LocalJumpError < StandardError
 end
 
-class NotImplementedError < ScriptError
-end
-
 # For libraries that Rubinius does not support
 class UnsupportedLibraryError < StandardError
 end
