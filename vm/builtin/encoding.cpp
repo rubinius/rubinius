@@ -458,7 +458,7 @@ namespace rubinius {
     int size = strlen(name);
     if(size >= ENCODING_NAMELEN_MAX) size = ENCODING_NAMELEN_MAX-1;
 
-    ByteArray* name_ba = ByteArray::create(state, size);
+    ByteArray* name_ba = ByteArray::create(state, size + 1);
     memcpy(name_ba->raw_bytes(), name, size);
     name_ba->raw_bytes()[size] = 0;
     encoding_->name = reinterpret_cast<const char*>(name_ba->raw_bytes());
