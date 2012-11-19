@@ -744,8 +744,8 @@ namespace rubinius {
     // Because we call back into ruby to do conversions.
     RootBuffer vrf(state->vm()->root_buffers(), args.arguments(), args.total());
 
-    void** values = ALLOCA_N(void*, ffi_data->arg_count);
-    void** heap_allocations = ALLOCA_N(void*, ffi_data->arg_count);
+    void* values[ffi_data->arg_count];
+    void* heap_allocations[ffi_data->arg_count];
     size_t i;
 
     for(i = 0; i < ffi_data->arg_count; i++) {
@@ -904,7 +904,7 @@ namespace rubinius {
               int size;
               size = so->byte_size();
 
-              char* data = ALLOCA_N(char, size + 1);
+              char data[size + 1];
               memcpy(data, so->byte_address(), size);
               data[size] = 0;
               *tmp = data;
