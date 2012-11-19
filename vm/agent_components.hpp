@@ -13,7 +13,7 @@ namespace agent {
   class Tree;
 
   class Output {
-    bert::IOWriter& writer_;
+    bert::IOWriter& writer_ __attribute__((unused));
     bert::Encoder<bert::IOWriter> encoder_;
 
   public:

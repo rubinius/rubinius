@@ -80,8 +80,8 @@ namespace rubinius {
     opcode call_flags_;
 
     // Cached Function*s
-    llvm::Function* rbx_simple_send_;
-    llvm::Function* rbx_simple_send_private_;
+    llvm::Function* rbx_simple_send_ __attribute__((unused));
+    llvm::Function* rbx_simple_send_private_ __attribute__((unused));
 
     // bail out destinations
     llvm::BasicBlock* bail_out_;
