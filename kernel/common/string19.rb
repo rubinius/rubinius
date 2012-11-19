@@ -962,4 +962,34 @@ class String
     end
     return replacement
   end
+
+  def inspect
+    current_encoding = encoding
+    desired_encoding = Encoding.default_internal || Encoding.default_external
+
+    string = generate_inspected_string(current_encoding, desired_encoding)
+
+    "\"#{string}\""
+  end
+
+  def generate_inspected_string(current_encoding, desired_encoding)
+    if current_encoding == desired_encoding and
+       current_encoding == Encoding::UTF_8
+      table = Rubinius::CType::UTF8Printed
+
+      inspected_string = each_char.collect do |char|
+        if not char.valid_encoding? or char.ord < 256
+          table[char.force_encoding(Encoding::BINARY).ord]
+        else
+          char
+        end
+      end.join
+      inspected_string.gsub!(/(#[$@{])/, '\\\\\1')
+
+      Rubinius::Type.infect(inspected_string, self)
+      inspected_string
+    else
+      transform(Rubinius::CType::Printed, true)
+    end
+  end
 end
