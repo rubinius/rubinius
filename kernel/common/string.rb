@@ -449,10 +449,6 @@ class String
   ControlCharacters = [10, 9, 7, 11, 12, 13, 27, 8]
   ControlPrintValue = ["\\n", "\\t", "\\a", "\\v", "\\f", "\\r", "\\e", "\\b"]
 
-  def inspect
-    "\"#{transform(Rubinius::CType::Printed, true)}\""
-  end
-
   def ljust(width, padstr=" ")
     justify(width, :left, padstr)
   end

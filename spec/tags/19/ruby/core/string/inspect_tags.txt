@@ -1,2 +1,0 @@
-fails:String#inspect When default external is UTF-8 returns a string with non-printing characters replaced by \u notation for Unicode strings
-fails:String#inspect When default external is UTF-8 returns a string with extended characters for Unicode strings

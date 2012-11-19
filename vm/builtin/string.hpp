@@ -268,6 +268,8 @@ namespace rubinius {
     // Rubinius.primitive :string_valid_encoding_p
     Object* valid_encoding_p(STATE);
 
+    int codepoint(bool* found);
+
     // Rubinius.primitive :string_codepoint
     Fixnum* codepoint(STATE);
 

@@ -5,6 +5,10 @@ class String
 
   alias_method :bytesize, :size
 
+  def inspect
+    "\"#{transform(Rubinius::CType::Printed, true)}\""
+  end
+
   def upto(stop, exclusive=false)
     stop = StringValue(stop)
     return self if self > stop
