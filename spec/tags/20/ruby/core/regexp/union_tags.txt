@@ -1,4 +1,3 @@
-fails:Regexp.union returns a Regexp with the encoding of an ASCII-incompatible String argument
 fails:Regexp.union returns a Regexp with the encoding of multiple non-conflicting ASCII-incompatible String arguments
 fails:Regexp.union raises ArgumentError if the arguments include conflicting ASCII-incompatible Strings
 fails:Regexp.union raises ArgumentError if the arguments include conflicting ASCII-incompatible Regexps

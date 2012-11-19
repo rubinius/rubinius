@@ -1,12 +1,1 @@
-fails:Splat operator used to assign a splatted object to an object assigns an empty array when the splatted object is nil
-fails:Splat operator used to assign a splatted object to an object assigns an empty array when the splatted object is an empty array
-fails:Splat operator used to assign a splatted object to an object assigns the splatted object contained into an array when the splatted object doesn't respond to to_a
-fails:Splat operator used to assign a splatted object to an object assigns the returned value of to_a when the splatted object responds to to_a
-fails:Splat operator used to assign a splatted object to an object assigns an array with nil object if the content of the splatted array is nil
-fails:Splat operator used to assign a splatted object to an object assings an array with an empty array when the splatted array contains an empty array
-fails:Splat operator used to assign a splatted object to an object assigns an empty array when the content of the splatted array is an empty splatted array
-fails:Splat operator used to assign a splatted object to an object assigns the second array when the content of the splatted array is a non empty splatted array
-fails:Splat operator used to assign an object to a splatted reference assigns the object when the object is an array
-fails:Splat operator used to assign an object to a splatted reference assigns the splatted array when the object is an array that contains an splatted array
-fails:Splat operator used to assign a splatted object to a splatted reference assigns an empty array when the splatted object is nil
 fails:Splat operator used to assign a splatted object to an object assigns the splatted object contained into an array when the splatted object is a result of 'obj || []'

@@ -1,9 +1,2 @@
-fails:Basic assignment assigns [] to lhs when rhs is an empty splat expression
-fails:Basic assignment allows the assignment of the rhs to the lhs using the rhs splat operator
-fails:Basic assignment allows the assignment of the rhs to the lhs using the lhs splat operator
-fails:Basic assignment allows the assignment of rhs to the lhs using the lhs and rhs splat operators simultaneously
-fails:Assignment using expansion succeeds without conversion
 fails:Basic multiple assignment with a splatted single RHS value does not call #to_ary on an object
-fails:Basic multiple assignment with a splatted single RHS value does not call #to_a on a String
 fails:Assigning multiple values calls #to_ary on RHS arg if the corresponding LHS var is a splat
-fails:Multiple assignments with splats * on the LHS returns the Array on the RHS without enclosing it in an Array

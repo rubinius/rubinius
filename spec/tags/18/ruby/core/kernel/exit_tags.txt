@@ -1,1 +1,0 @@
-incomplete:Kernel.exit! needs to be reviewed for spec completeness
