@@ -793,13 +793,14 @@ namespace rubinius {
     }
 
     native_int new_size = current_size + length;
-    native_int capacity = data_size == 0 ? 2 : data_size;
+    native_int capacity = data_size;
 
     if(capacity <= new_size) {
       if (new_size >= INT32_MAX) {
         Exception::argument_error(state, "string sizes too big");
       }
       // capacity needs one extra byte of room for the trailing null
+      if(capacity == 0) capacity = 2;
       do {
         // @todo growth should be more intelligent than doubling
         capacity *= 2;
