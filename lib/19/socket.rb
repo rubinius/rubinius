@@ -758,8 +758,6 @@ class Socket < BasicSocket
     return status
   end
 
-  private
-
   def self.get_socket_type(type)
     if type.kind_of? String
       if type.prefix? "SOCK_"
@@ -783,6 +781,7 @@ class Socket < BasicSocket
 
     type
   end
+  private_class_method :get_socket_type
 end
 
 class UNIXSocket < BasicSocket
