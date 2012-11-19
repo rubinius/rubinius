@@ -515,8 +515,8 @@ namespace rubinius {
     state->vm()->initialize_as_root();
   }
 
-  static std::stringstream stream;
   void Environment::run_file(std::string path) {
+    std::stringstream stream;
     std::ifstream file(path.c_str(), std::ios::ate|std::ios::binary);
 
     if(!file) {
@@ -529,7 +529,6 @@ namespace rubinius {
     std::vector<char> buffer(length);
     file.seekg(0, std::ios::beg);
     file.read(&buffer[0], length);
-    stream.clear();
     stream.rdbuf()->pubsetbuf(&buffer[0], length);
 
     CompiledFile* cf = CompiledFile::load(stream);
