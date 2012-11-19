@@ -710,7 +710,7 @@ class Socket < BasicSocket
     end
   end
 
-  def initialize(family, socket_type, protocol)
+  def initialize(family, socket_type, protocol=0)
     @no_reverse_lookup = self.class.do_not_reverse_lookup
     socket_type = self.class.get_socket_type(socket_type)
     descriptor  = Socket::Foreign.socket family, socket_type, protocol
