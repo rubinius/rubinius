@@ -585,7 +585,7 @@ namespace rubinius {
       if(byte_compatible_p(encoding_)) {
         num_chars(state, num_bytes_);
       } else {
-        OnigEncodingType* enc = encoding()->get_encoding();
+        OnigEncodingType* enc = encoding(state)->get_encoding();
         native_int chars;
 
         if(fixed_width_p(encoding_)) {
@@ -1297,12 +1297,12 @@ namespace rubinius {
     if(byte_compatible_p(encoding_)) {
       return start + index;
     } else if(fixed_width_p(encoding_)) {
-      return start + index * ONIGENC_MBC_MINLEN(encoding()->get_encoding());
+      return start + index * ONIGENC_MBC_MINLEN(encoding(state)->get_encoding());
     } else {
       native_int offset = Encoding::find_character_byte_index(byte_address() + start,
                                                  byte_address() + byte_size(),
                                                  index,
-                                                 encoding()->get_encoding());
+                                                 encoding(state)->get_encoding());
       return start + offset;
     }
   }
@@ -1317,12 +1317,12 @@ namespace rubinius {
     if(byte_compatible_p(encoding_)) {
       return index;
     } else if(fixed_width_p(encoding_)) {
-      return index / ONIGENC_MBC_MINLEN(encoding()->get_encoding());
+      return index / ONIGENC_MBC_MINLEN(encoding(state)->get_encoding());
     } else {
       return Encoding::find_byte_character_index(byte_address() + start,
                                                  byte_address() + byte_size(),
                                                  index,
-                                                 encoding()->get_encoding());
+                                                 encoding(state)->get_encoding());
     }
   }
 
@@ -1372,7 +1372,7 @@ namespace rubinius {
     native_int e = find_character_byte_index(state, length - 1, i);
 
     int c = Encoding::precise_mbclen(byte_address() + e, byte_address() + byte_size(),
-                                     encoding()->get_encoding());
+                                     encoding(state)->get_encoding());
 
     if(ONIGENC_MBCLEN_CHARFOUND_P(c)) {
       e += ONIGENC_MBCLEN_CHARFOUND_LEN(c);
@@ -1658,7 +1658,7 @@ namespace rubinius {
         return valid_encoding_;
       }
 
-      OnigEncodingType* enc = encoding()->get_encoding();
+      OnigEncodingType* enc = encoding(state)->get_encoding();
 
       uint8_t* p = byte_address();
       uint8_t* e = p + byte_size();
@@ -1680,8 +1680,8 @@ namespace rubinius {
     return valid_encoding_;
   }
 
-  int String::codepoint(bool* found) {
-    OnigEncodingType* enc = encoding()->get_encoding();
+  int String::codepoint(STATE, bool* found) {
+    OnigEncodingType* enc = encoding(state)->get_encoding();
     uint8_t* p = byte_address();
     uint8_t* e = p + byte_size();
 
@@ -1698,7 +1698,7 @@ namespace rubinius {
 
   Fixnum* String::codepoint(STATE) {
     bool found;
-    int c = codepoint(&found);
+    int c = codepoint(state, &found);
 
     if(!found) {
       return force_as<Fixnum>(Primitives::failure());

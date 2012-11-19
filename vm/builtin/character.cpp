@@ -69,7 +69,7 @@ namespace rubinius {
 
   Object* Character::alphabetical_p(STATE) {
     bool found;
-    int c = codepoint(&found);
+    int c = codepoint(state, &found);
 
     OnigEncodingType* enc = encoding()->get_encoding();
     return RBOOL(found && ONIGENC_IS_CODE_ALPHA(enc, c));
@@ -77,14 +77,14 @@ namespace rubinius {
 
   Object* Character::ascii_p(STATE) {
     bool found;
-    int c = codepoint(&found);
+    int c = codepoint(state, &found);
 
     return RBOOL(found && ONIGENC_IS_CODE_ASCII(c));
   }
 
   Object* Character::digit_p(STATE) {
     bool found;
-    int c = codepoint(&found);
+    int c = codepoint(state, &found);
 
     OnigEncodingType* enc = encoding()->get_encoding();
     return RBOOL(found && ONIGENC_IS_CODE_DIGIT(enc, c));
@@ -92,7 +92,7 @@ namespace rubinius {
 
   Object* Character::lower_p(STATE) {
     bool found;
-    int c = codepoint(&found);
+    int c = codepoint(state, &found);
 
     OnigEncodingType* enc = encoding()->get_encoding();
     return RBOOL(found && ONIGENC_IS_CODE_LOWER(enc, c));
@@ -100,7 +100,7 @@ namespace rubinius {
 
   Object* Character::printable_p(STATE) {
     bool found;
-    int c = codepoint(&found);
+    int c = codepoint(state, &found);
 
     OnigEncodingType* enc = encoding()->get_encoding();
     return RBOOL(found && ONIGENC_IS_CODE_PRINT(enc, c));
@@ -108,7 +108,7 @@ namespace rubinius {
 
   Object* Character::punctuation_p(STATE) {
     bool found;
-    int c = codepoint(&found);
+    int c = codepoint(state, &found);
 
     OnigEncodingType* enc = encoding()->get_encoding();
     return RBOOL(found && ONIGENC_IS_CODE_PUNCT(enc, c));
@@ -116,7 +116,7 @@ namespace rubinius {
 
   Object* Character::space_p(STATE) {
     bool found;
-    int c = codepoint(&found);
+    int c = codepoint(state, &found);
 
     OnigEncodingType* enc = encoding()->get_encoding();
     return RBOOL(found && ONIGENC_IS_CODE_SPACE(enc, c));
@@ -124,7 +124,7 @@ namespace rubinius {
 
   Object* Character::upper_p(STATE) {
     bool found;
-    int c = codepoint(&found);
+    int c = codepoint(state, &found);
 
     OnigEncodingType* enc = encoding()->get_encoding();
     return RBOOL(found && ONIGENC_IS_CODE_UPPER(enc, c));
