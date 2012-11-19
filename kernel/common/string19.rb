@@ -39,6 +39,7 @@ class String
         options = from
         from = encoding
       else
+        from = Rubinius::Type.coerce_to_encoding from
         options = 0
       end
     end
