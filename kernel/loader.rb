@@ -9,6 +9,7 @@ module Rubinius
   class Loader
     def initialize
       @exit_code    = 0
+      @process_id   = Process.pid
       @load_paths   = []
       @requires     = []
       @evals        = []
@@ -780,7 +781,7 @@ to rebuild the compiler.
 
     def write_last_error(e)
       unless path = Config['vm.crash_report_path']
-        path = "#{ENV['HOME']}/.rubinius_last_error"
+        path = "#{ENV['HOME']}/.rbx/rubinius_last_error_#{@process_id}"
       end
 
       File.open(path, "wb") do |f|

@@ -53,6 +53,7 @@
 #include <dlfcn.h>
 #endif
 #include <fcntl.h>
+#include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/param.h>
@@ -73,8 +74,8 @@ namespace rubinius {
   // Used by the segfault reporter. Calculated up front to avoid
   // crashing inside the crash handler.
   static struct utsname machine_info;
-  static char report_path[1024];
-  static const char* report_file_name = ".rubinius_last_error";
+  static char report_path[PATH_MAX];
+  static const char* report_file_name = "rubinius_last_error";
 
   Environment::Environment(int argc, char** argv)
     : argc_(argc)
@@ -107,17 +108,22 @@ namespace rubinius {
 
     // Calculate the report_path
     if(char* home = getenv("HOME")) {
-      char* path = report_path;
+      snprintf(report_path, PATH_MAX, "%s/.rbx", home);
 
-      memcpy(path, home, strlen(home));
-      path += strlen(home);
+      pid_t pid = getpid();
 
-      *path++ = '/';
-
-      memcpy(path, report_file_name, strlen(report_file_name));
-      path += strlen(report_file_name);
-
-      *path = 0;
+      bool use_dir = false;
+      struct stat s;
+      if(stat(report_path, &s) != 0) {
+        if(mkdir(report_path, S_IRWXU) == 0) use_dir = true;
+      } else if(S_ISDIR(s.st_mode)) {
+        use_dir = true;
+      }
+      if(use_dir) {
+        snprintf(report_path, PATH_MAX, "%s/%s_%d", report_path, report_file_name, pid);
+      } else {
+        snprintf(report_path, PATH_MAX, "%s/.%s_%d", home, report_file_name, pid);
+      }
     } else {
       // We check and ignore the report_path if it's 'empty'
       report_path[0] = 0;
