@@ -58,6 +58,12 @@ with_feature :encoding do
       str.encoding.should == Encoding::UTF_8
     end
 
+    it "returns self when called when target encoding equals source encoding" do
+      str = "caf\xe9".force_encoding("iso-8859-1")
+      copy = str.encode "iso-8859-1", "iso-8859-1"
+      copy.encoding.should == Encoding::ISO_8859_1
+    end
+
     it "returns a copy of self even when no changes are made" do
       str = "strung".force_encoding('ASCII')
       str.encode(Encoding::UTF_8).object_id.should_not == str.object_id
