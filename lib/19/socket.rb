@@ -672,25 +672,7 @@ class Socket < BasicSocket
       end
     end
 
-    if type.kind_of? String
-      if type.prefix? "SOCK_"
-        begin
-          type = Socket::Constants.const_get(type)
-        rescue NameError
-          raise SocketError, "unknown socket type #{type}"
-        end
-      else
-        raise SocketError, "unknown socket type #{type}"
-      end
-    end
-
-    if type.kind_of? Symbol
-      begin
-        type = Socket::Constants.const_get("SOCK_#{type}")
-      rescue NameError
-        raise SocketError, "unknown socket type #{type}"
-      end
-    end
+    type = get_socket_type(type)
 
     FFI::MemoryPointer.new :int, 2 do |mp|
       Socket::Foreign.socketpair(domain, type, protocol, mp)
@@ -730,7 +712,8 @@ class Socket < BasicSocket
 
   def initialize(family, socket_type, protocol)
     @no_reverse_lookup = self.class.do_not_reverse_lookup
-    descriptor = Socket::Foreign.socket family, socket_type, protocol
+    socket_type = self.class.get_socket_type(socket_type)
+    descriptor  = Socket::Foreign.socket family, socket_type, protocol
 
     Errno.handle 'socket(2)' if descriptor < 0
 
@@ -773,6 +756,32 @@ class Socket < BasicSocket
     end
 
     return status
+  end
+
+  private
+
+  def self.get_socket_type(type)
+    if type.kind_of? String
+      if type.prefix? "SOCK_"
+        begin
+          type = Socket::Constants.const_get(type)
+        rescue NameError
+          raise SocketError, "unknown socket type #{type}"
+        end
+      else
+        raise SocketError, "unknown socket type #{type}"
+      end
+    end
+
+    if type.kind_of? Symbol
+      begin
+        type = Socket::Constants.const_get("SOCK_#{type}")
+      rescue NameError
+        raise SocketError, "unknown socket type #{type}"
+      end
+    end
+
+    type
   end
 end
 
