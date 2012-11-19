@@ -36,8 +36,6 @@ namespace rubinius {
     class Slab;
   }
 
-  typedef std::vector<Object*> ObjectArray;
-
   struct YoungCollectStats {
     int bytes_copied;
     double percentage_used;

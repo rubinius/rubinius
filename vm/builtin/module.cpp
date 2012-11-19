@@ -42,7 +42,7 @@ namespace rubinius {
   Module* Module::allocate(STATE, Object* self) {
     Module* module = Module::create(state);
 
-    module->klass(state, (Class*)self);
+    module->klass(state, as<Class>(self));
 
     return module;
   }
@@ -413,7 +413,7 @@ namespace rubinius {
   IncludedModule* IncludedModule::allocate(STATE, Object* self) {
     IncludedModule* imod = IncludedModule::create(state);
 
-    imod->klass(state, (Class*)self);
+    imod->klass(state, as<Class>(self));
 
     return imod;
   }

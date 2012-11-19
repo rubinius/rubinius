@@ -610,12 +610,10 @@ namespace rubinius {
   }
 
   Object* Object::set_ivar(STATE, Symbol* sym, Object* val) {
-    LookupTable* tbl;
-
     /* Implements the external ivars table for objects that don't
        have their own space for ivars. */
     if(!reference_p()) {
-      tbl = try_as<LookupTable>(G(external_ivars)->fetch(state, this));
+      LookupTable* tbl = try_as<LookupTable>(G(external_ivars)->fetch(state, this));
 
       if(!tbl) {
         tbl = LookupTable::create(state);

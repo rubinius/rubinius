@@ -306,7 +306,7 @@ namespace rubinius {
   NativeFunction* NativeFunction::generate(STATE, Pointer* ptr, Symbol* name,
                                            Array* args, Object* ret)
   {
-    int i, tot, arg_count;
+    int tot, arg_count;
     Object* type;
     FFIArgInfo ret_info;
     FFIArgInfo* args_info;
@@ -319,7 +319,7 @@ namespace rubinius {
     if(tot > 0) {
       args_info = ALLOC_N(FFIArgInfo, tot);
 
-      for(i = 0; i < tot; i++) {
+      for(int i = 0; i < tot; i++) {
         type = args->get(state, i);
         if(type->fixnum_p()) {
           args_info[i].type = as<Integer>(type)->to_native();
@@ -612,7 +612,7 @@ namespace rubinius {
   Array* NativeFunction::generate_tramp(STATE, Object* obj, Symbol* name,
                                         Array* args, Object* ret)
   {
-    int i, tot;
+    int tot;
     Object* type;
     FFIArgInfo ret_info;
     FFIArgInfo* args_info;
@@ -623,7 +623,7 @@ namespace rubinius {
     if(tot > 0) {
       args_info = ALLOC_N(FFIArgInfo, tot);
 
-      for(i = 0; i < tot; i++) {
+      for(int i = 0; i < tot; i++) {
         type = args->get(state, i);
         if(type->fixnum_p()) {
           args_info[i].type = as<Integer>(type)->to_native();

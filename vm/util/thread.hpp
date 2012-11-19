@@ -85,6 +85,7 @@ namespace thread {
     Thread(size_t stack_size = 0, bool delete_on_exit = true)
       : delete_on_exit_(delete_on_exit)
       , stack_size_(stack_size)
+      , name_(NULL)
     {}
 
     virtual ~Thread() { }
@@ -320,7 +321,8 @@ namespace thread {
       pthread_check(pthread_mutex_init(&native_, &attr));
     }
 
-    Mutex(bool rec=false) {
+    Mutex(bool rec=false)
+      : locked_(false) {
       init(rec);
     }
 

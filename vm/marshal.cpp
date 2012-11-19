@@ -227,19 +227,19 @@ namespace rubinius {
     CompiledCode* code = CompiledCode::create(state);
 
     code->metadata(state, unmarshal());
-    code->primitive(state, (Symbol*)unmarshal());
-    code->name(state, (Symbol*)unmarshal());
-    code->iseq(state, (InstructionSequence*)unmarshal());
-    code->stack_size(state, (Fixnum*)unmarshal());
-    code->local_count(state, (Fixnum*)unmarshal());
-    code->required_args(state, (Fixnum*)unmarshal());
-    code->post_args(state, (Fixnum*)unmarshal());
-    code->total_args(state, (Fixnum*)unmarshal());
+    code->primitive(state, reinterpret_cast<Symbol*>(unmarshal()));
+    code->name(state, reinterpret_cast<Symbol*>(unmarshal()));
+    code->iseq(state, reinterpret_cast<InstructionSequence*>(unmarshal()));
+    code->stack_size(state, reinterpret_cast<Fixnum*>(unmarshal()));
+    code->local_count(state, reinterpret_cast<Fixnum*>(unmarshal()));
+    code->required_args(state, reinterpret_cast<Fixnum*>(unmarshal()));
+    code->post_args(state, reinterpret_cast<Fixnum*>(unmarshal()));
+    code->total_args(state, reinterpret_cast<Fixnum*>(unmarshal()));
     code->splat(state, unmarshal());
-    code->literals(state, (Tuple*)unmarshal());
-    code->lines(state, (Tuple*)unmarshal());
-    code->file(state, (Symbol*)unmarshal());
-    code->local_names(state, (Tuple*)unmarshal());
+    code->literals(state, reinterpret_cast<Tuple*>(unmarshal()));
+    code->lines(state, reinterpret_cast<Tuple*>(unmarshal()));
+    code->file(state, reinterpret_cast<Symbol*>(unmarshal()));
+    code->local_names(state, reinterpret_cast<Tuple*>(unmarshal()));
 
     code->post_marshal(state);
 

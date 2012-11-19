@@ -119,6 +119,7 @@ namespace tooling {
     Entry(STATE)
       : state_(state)
       , broker_(state->shared().tool_broker())
+      , tag_(NULL)
     {}
   };
 

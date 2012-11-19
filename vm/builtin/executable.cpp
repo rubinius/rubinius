@@ -92,7 +92,7 @@ namespace rubinius {
   }
 
   void Executable::Info::mark_inliners(Object* obj, ObjectMark& mark) {
-    Executable* exc = (Executable*)obj;
+    Executable* exc = reinterpret_cast<Executable*>(obj);
     if(!exc->inliners_ || exc->inliners_ == (Inliners*)cNil) return;
 
     Inliners* inl = exc->inliners_;
@@ -108,7 +108,7 @@ namespace rubinius {
       Object* tmp = mark.call(code);
       if(tmp) {
         assert(kind_of<CompiledCode>(tmp));
-        *i = (CompiledCode*)tmp;
+        *i = reinterpret_cast<CompiledCode*>(tmp);
         mark.just_set(obj, tmp);
       }
     }

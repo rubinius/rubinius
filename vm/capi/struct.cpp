@@ -40,7 +40,7 @@ extern "C" {
     VALUE sz = rb_funcall2(klass, rb_intern("length"), 0, 0);
     int total = FIX2INT(sz);
 
-    VALUE* mem = (VALUE*)alloca(sizeof(VALUE) * total);
+    VALUE mem[total];
     for(int i = 0; i < total; i++) {
       mem[i] = va_arg(args, VALUE);
     }

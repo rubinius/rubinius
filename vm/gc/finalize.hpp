@@ -13,7 +13,9 @@ namespace rubinius {
 
   public:
     FinalizeObject()
-      : queue_count(0)
+      : object(NULL)
+      , status(eLive)
+      , queue_count(0)
       , finalizer(0)
       , ruby_finalizer(0)
     {}

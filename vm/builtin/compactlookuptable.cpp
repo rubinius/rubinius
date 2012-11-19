@@ -107,7 +107,7 @@ namespace rubinius {
   }
 
   LookupTable* CompactLookupTable::to_lookuptable(STATE) {
-    LookupTable* tbl = (LookupTable*)LookupTable::create(state);
+    LookupTable* tbl = LookupTable::create(state);
 
     for(unsigned int i = 0; i < COMPACTLOOKUPTABLE_SIZE; i += 2) {
       Object* key = at(state, i);

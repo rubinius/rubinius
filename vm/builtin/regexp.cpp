@@ -340,7 +340,7 @@ namespace rubinius {
   Regexp* Regexp::allocate(STATE, Object* self) {
     Regexp* re = Regexp::create(state);
     re->onig_data = NULL;
-    re->klass(state, (Class*)self);
+    re->klass(state, as<Class>(self));
     return re;
   }
 

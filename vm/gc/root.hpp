@@ -152,11 +152,11 @@ namespace rubinius {
       {}
       /** As Root::Root(STATE, Object*), but retains object's type. */
       TypedRoot(STATE, ObjType obj)
-        : Root(state, (Object*)obj)
+        : Root(state, reinterpret_cast<Object*>(obj))
       {}
 
       TypedRoot(VM* state, ObjType obj)
-        : Root(state, (Object*)obj)
+        : Root(state, reinterpret_cast<Object*>(obj))
       {}
 
       /** Transparently delegate dereferencing to enveloped object. */

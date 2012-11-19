@@ -1098,7 +1098,7 @@ namespace bert {
 
       for(ValueList::iterator i = val->elements()->begin();
           i != val->elements()->end();
-          i++) {
+          ++i) {
         write_value(*i);
       }
     }

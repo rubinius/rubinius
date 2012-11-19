@@ -22,9 +22,7 @@ namespace rubinius {
     if(!obj->reference_p()) return NULL;
 #ifdef RBX_DEBUG
       if(unlikely(obj->zone() == UnspecifiedZone)) {
-        std::cout << "USZ!\n";
-        char* bad = (char*)0;
-        if(*bad) exit(11);
+        rubinius::bug("Unspecified zone for object");
       }
 #endif
     return gc->saw_object(obj);

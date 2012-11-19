@@ -76,7 +76,7 @@ namespace rbxti {
   }
 
   rsymbol Env::cast_to_rsymbol(robject obj) {
-    if(Symbol* sym = try_as<Symbol>((Object*)obj)) {
+    if(Symbol* sym = try_as<Symbol>(s(obj))) {
       return o(sym);
     }
 
@@ -84,7 +84,7 @@ namespace rbxti {
   }
 
   rtable Env::cast_to_rtable(robject obj) {
-    if(LookupTable* c = try_as<LookupTable>((Object*)obj)) {
+    if(LookupTable* c = try_as<LookupTable>(s(obj))) {
       return o(c);
     }
 
@@ -92,7 +92,7 @@ namespace rbxti {
   }
 
   rcompiled_code Env::cast_to_rcompiled_code(robject obj) {
-    if(CompiledCode* ccode = try_as<CompiledCode>((Object*)obj)) {
+    if(CompiledCode* ccode = try_as<CompiledCode>(s(obj))) {
       return o(ccode);
     }
 
@@ -199,7 +199,7 @@ namespace rbxti {
   }
 
   rstring Env::to_s(robject obj) {
-    return o(((Object*)obj)->to_s(private_->state()));
+    return o(s(obj)->to_s(private_->state()));
   }
 
   rsymbol Env::string_to_symbol(rstring str) {
@@ -261,11 +261,11 @@ namespace rbxti {
   }
 
   robject Env::table_fetch(rtable tbl, robject key, bool* fetched) {
-    return s(i(tbl)->fetch(private_->state(), (Object*)key, fetched));
+    return s(i(tbl)->fetch(private_->state(), s(key), fetched));
   }
 
   void Env::table_store(rtable tbl, robject key, robject val) {
-    i(tbl)->store(private_->state(), (Object*)key, (Object*)val);
+    i(tbl)->store(private_->state(), s(key), s(val));
   }
 
   rarray Env::array_new(int size) {
@@ -273,7 +273,7 @@ namespace rbxti {
   }
 
   void Env::array_set(rarray ary, int idx, robject obj) {
-    i(ary)->set(private_->state(), idx, (Object*)obj);
+    i(ary)->set(private_->state(), idx, s(obj));
   }
 
   robject Env::array_get(rarray ary, int idx) {

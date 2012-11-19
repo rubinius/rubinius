@@ -45,7 +45,7 @@ namespace rubinius {
       if(r > FIXNUM_MAX || r < FIXNUM_MIN) {
         return Bignum::from(state, r);
       } else {
-        return Fixnum::from(r);
+        return from(r);
       }
     }
 
@@ -61,7 +61,7 @@ namespace rubinius {
       if(r > FIXNUM_MAX || r < FIXNUM_MIN) {
         return Bignum::from(state, r);
       } else {
-        return Fixnum::from(r);
+        return from(r);
       }
     }
 
@@ -236,7 +236,7 @@ namespace rubinius {
       key = (key + (key << 2)) + (key << 4); // key * 21
       key = key ^ (key >> 28);
       key = key + (key << 31);
-      return Fixnum::from(key & FIXNUM_MAX);
+      return from(key & FIXNUM_MAX);
 #else
       // See http://burtleburtle.net/bob/hash/integer.html
       uint32_t a = (uint32_t)this;
@@ -246,7 +246,7 @@ namespace rubinius {
       a = (a+0xd3a2646c) ^ (a<<9);
       a = (a+0xfd7046c5) + (a<<3);
       a = (a^0xb55a4f09) ^ (a>>16);
-      return Fixnum::from(a & FIXNUM_MAX);
+      return from(a & FIXNUM_MAX);
 #endif
     }
 

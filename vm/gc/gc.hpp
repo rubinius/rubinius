@@ -20,8 +20,6 @@ namespace rubinius {
     class Handles;
   }
 
-  typedef std::vector<Object*> ObjectArray;
-
   /**
    * Holds all the root pointers from which garbage collections will commence.
    * This includes the globally accessible Ruby objects such as class and
@@ -55,6 +53,7 @@ namespace rubinius {
       , global_cache_(cache)
       , threads_(ths)
       , global_handle_locations_(global_handle_locations)
+      , gc_token_(NULL)
 #ifdef ENABLE_LLVM
       , llvm_state_(0)
 #endif

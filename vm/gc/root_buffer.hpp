@@ -14,7 +14,7 @@ namespace rubinius {
     {}
 
     RootBuffer* front() {
-      return (RootBuffer*)head();
+      return reinterpret_cast<RootBuffer*>(head());
     }
 
     typedef LinkedList::Iterator<RootBuffers, RootBuffer> Iterator;

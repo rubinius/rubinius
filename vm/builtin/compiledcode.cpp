@@ -408,12 +408,12 @@ namespace rubinius {
     for(size_t i = 0; i < mcode->inline_cache_count(); i++) {
       InlineCache* cache = &mcode->caches[i];
 
-      for(int i = 0; i < cTrackedICHits; ++i) {
-        MethodCacheEntry* mce = cache->cache_[i].entry();
+      for(int j = 0; j < cTrackedICHits; ++j) {
+        MethodCacheEntry* mce = cache->cache_[j].entry();
         if(mce) {
           tmp = mark.call(mce);
           if(tmp) {
-            cache->cache_[i].assign((MethodCacheEntry*)tmp);
+            cache->cache_[j].assign(reinterpret_cast<MethodCacheEntry*>(tmp));
             mark.just_set(obj, tmp);
           }
         }
@@ -422,7 +422,7 @@ namespace rubinius {
       if(cache->call_unit_) {
         tmp = mark.call(cache->call_unit_);
         if(tmp) {
-          cache->call_unit_ = (CallUnit*)tmp;
+          cache->call_unit_ = reinterpret_cast<CallUnit*>(tmp);
           mark.just_set(obj, tmp);
         }
       }

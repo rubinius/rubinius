@@ -113,7 +113,6 @@ namespace rubinius {
     Bignum* big;
 
     size_t longs;
-    uint32_t* data;
 
     if(!seed->fixnum_p())
       seed = as<Bignum>(seed)->abs(state);
@@ -131,7 +130,7 @@ namespace rubinius {
       }
 
       longs = sizeof(native_uint) / 4;
-      data = (uint32_t*)alloca(longs * 4);
+      uint32_t data[longs];
       for(unsigned int i = 0; i < longs; i++) {
         data[i] = (uint32_t)(s >> (i * 32));
       }
@@ -142,7 +141,7 @@ namespace rubinius {
 
       longs = big->into_array(state, NULL, 0);
 
-      data = (uint32_t*)alloca(longs * 4);
+      uint32_t data[longs];
       big->into_array(state, data, longs);
 
       init_by_array(data, longs);
@@ -161,10 +160,10 @@ namespace rubinius {
     Bignum* max_big = as<Bignum>(max);
     size_t longs = max_big->into_array(state, NULL, 0);
 
-    uint32_t* max_data = (uint32_t*)alloca(longs * 4);
+    uint32_t max_data[longs];
     max_big->into_array(state, max_data, longs);
 
-    uint32_t* result_data = (uint32_t*)alloca(longs * 4);
+    uint32_t result_data[longs];
 
   retry:
     uint32_t mask = 0;

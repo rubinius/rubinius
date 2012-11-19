@@ -31,7 +31,8 @@ namespace rubinius {
   public:
 
     InlineCacheHit()
-      : hits_(0)
+      : entry_(NULL)
+      , hits_(0)
     {}
 
     void assign(MethodCacheEntry* entry) {
@@ -140,6 +141,10 @@ namespace rubinius {
       , call_unit_(0)
       , initial_backend_(empty_cache)
       , execute_backend_(empty_cache)
+#ifdef TRACK_IC_LOCATION
+      , ip_(0)
+      , machine_code_(NULL)
+#endif
       , seen_classes_overflow_(0)
     {
       clear();

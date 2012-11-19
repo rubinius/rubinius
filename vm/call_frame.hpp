@@ -191,7 +191,7 @@ namespace rubinius {
     }
 
     NativeMethodFrame* native_method_frame() {
-      if(native_method_p()) return (NativeMethodFrame*)dispatch_data;
+      if(native_method_p()) return reinterpret_cast<NativeMethodFrame*>(dispatch_data);
       return 0;
     }
 
@@ -268,7 +268,7 @@ namespace rubinius {
   };
 
 #define ALLOCA_CALLFRAME(stack_size) \
-  (InterpreterCallFrame*)alloca(sizeof(InterpreterCallFrame) + (sizeof(Object*) * stack_size))
+  reinterpret_cast<InterpreterCallFrame*>(alloca(sizeof(InterpreterCallFrame) + (sizeof(Object*) * stack_size)))
 };
 
 #endif

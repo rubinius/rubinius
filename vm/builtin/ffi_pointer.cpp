@@ -389,7 +389,7 @@ namespace rubinius {
 
     ptr += offset;
 
-#define WRITE(type, val) *((type*)ptr) = (type)val
+#define WRITE(type, val) *(reinterpret_cast<type*>(ptr)) = (type)val
 
     switch(type) {
     case RBX_FFI_TYPE_CHAR:

@@ -20,6 +20,9 @@ namespace rubinius {
     , size_(size)
     , refs_(0)
     , user_(0)
+#ifdef HAVE_VALGRIND_H
+    , valgrind_id_(0)
+#endif
   {}
 
   void FiberStack::allocate() {

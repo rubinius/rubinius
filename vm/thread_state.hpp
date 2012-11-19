@@ -26,7 +26,7 @@ namespace rubinius {
     }
 
     void set_current_exception(Exception* exc) {
-      current_exception_.set((Object*)exc);
+      current_exception_.set(reinterpret_cast<Object*>(exc));
     }
 
     Object* raise_value() {

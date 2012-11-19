@@ -214,7 +214,7 @@ namespace rubinius {
 
     for(SymbolMap::iterator s = symbols.begin(); s != symbols.end(); ++s) {
       for(SymbolIds::iterator i = s->second.begin(); i != s->second.end(); ++i) {
-        ary->set(state, idx++, (Object*)Symbol::from_index(state, *i));
+        ary->set(state, idx++, Symbol::from_index(state, *i));
       }
     }
 

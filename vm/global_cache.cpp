@@ -180,7 +180,7 @@ keep_looking:
 
       if(klass->young_object_p()) {
         if(klass->forwarded_p()) {
-          Module* fwd = (Module*)klass->forward();
+          Module* fwd = reinterpret_cast<Module*>(klass->forward());
           entry->klass = fwd;
         } else {
           clear = true;
@@ -190,7 +190,7 @@ keep_looking:
       Object* mod = reinterpret_cast<Object*>(entry->module);
       if(mod->young_object_p()) {
         if(mod->forwarded_p()) {
-          entry->module = (Module*)mod->forward();
+          entry->module = reinterpret_cast<Module*>(mod->forward());
         } else {
           clear = true;
         }
@@ -199,7 +199,7 @@ keep_looking:
       Object* exec = reinterpret_cast<Object*>(entry->method);
       if(exec->young_object_p()) {
         if(exec->forwarded_p()) {
-          entry->method = (Executable*)exec->forward();
+          entry->method = reinterpret_cast<Executable*>(exec->forward());
         } else {
           clear = true;
         }

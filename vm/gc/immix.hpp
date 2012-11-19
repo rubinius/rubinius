@@ -45,6 +45,7 @@ namespace rubinius {
     public:
       ObjectDescriber()
         : object_memory_(0)
+        , gc_(NULL)
       {}
 
       void set_object_memory(ObjectMemory* om, ImmixGC* gc) {

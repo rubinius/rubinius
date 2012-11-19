@@ -22,7 +22,7 @@ namespace rubinius {
     }
 
     ManagedThread* thread() {
-      return (ManagedThread*)vm_;
+      return reinterpret_cast<ManagedThread*>(vm_);
     }
 
     Object* raise_exception(Exception* exc) {

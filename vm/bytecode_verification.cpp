@@ -17,6 +17,9 @@
 namespace rubinius {
   BytecodeVerification::BytecodeVerification(CompiledCode* code)
     : method_(code)
+    , ops_(NULL)
+    , total_(0)
+    , max_stack_allowed_(0)
     , max_stack_seen_(0)
     , stack_(0)
     , locals_(0)

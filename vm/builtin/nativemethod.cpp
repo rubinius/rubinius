@@ -293,7 +293,7 @@ namespace rubinius {
       }
 
       case ARG_COUNT_ARGS_IN_C_ARRAY_PLUS_RECEIVER: {
-        VALUE* ary = (VALUE*)alloca(sizeof(VALUE) * args.total());
+        VALUE ary[args.total()];
 
         for (std::size_t i = 0; i < args.total(); ++i) {
           ary[i] = env->get_handle(args.get_argument(i));
@@ -578,7 +578,7 @@ namespace rubinius {
 
       case C_BLOCK_CALL: {
         VALUE val;
-        VALUE* ary = (VALUE*)alloca(sizeof(VALUE) * args.total());
+        VALUE ary[args.total()];
         VALUE cb_data = env->get_handle(nm->get_ivar(state, state->symbol("cb_data")));
 
         if(args.total() > 0) {
