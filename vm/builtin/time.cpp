@@ -130,7 +130,6 @@ namespace rubinius {
       seconds = ::timegm64(&tm);
     } else {
       tzset();
-      tm.tm_isdst = -1;
       seconds = ::timelocal64(&tm);
     }
 
