@@ -15,7 +15,7 @@ module RbReadline
 
    RL_LIBRARY_VERSION = "5.2"
    RL_READLINE_VERSION  = 0x0502
-   RB_READLINE_VERSION = "0.4.0"
+   RB_READLINE_VERSION = "0.4.2"
 
    EOF = "\xFF"
    ESC = "\C-["
@@ -1104,10 +1104,11 @@ module RbReadline
    :rl_readline_name,:history_length,:history_base
 
    module_function
+
    # Okay, now we write the entry_function for filename completion.  In the
-   #   general case.  Note that completion in the shell is a little different
-   #   because of all the pathnames that must be followed when looking up the
-   #   completion for a command.
+   # general case.  Note that completion in the shell is a little different
+   # because of all the pathnames that must be followed when looking up the
+   # completion for a command.
    def rl_filename_completion_function(text, state)
       # If we don't have any state, then do some initialization.
       if (state == 0)
@@ -1117,12 +1118,23 @@ module RbReadline
             @directory.close
             @directory = nil
          end
+
          text.delete!(0.chr)
-         @filename = text.dup
          if text.length == 0
-            text = "."
+            @dirname = "."
+            @filename = ""
+         elsif text.rindex(File::SEPARATOR) == text.length-1
+            @dirname = text
+            @filename = ""
+         else
+            @dirname, @filename = File.split(text)
+
+            # This preserves the "./" when the user types "./dirname<tab>".
+            if @dirname == "." && text[0,2] == ".#{File::SEPARATOR}"
+              @dirname += File::SEPARATOR
+            end
          end
-         @dirname = File.dirname(text)
+
          # We aren't done yet.  We also support the "~user" syntax.
 
          # Save the version of the directory that the user typed.
@@ -1138,16 +1150,20 @@ module RbReadline
             @users_dirname = @dirname.dup
          elsif (@rl_completion_found_quote && @rl_filename_dequoting_function)
             # delete single and double quotes
-            @temp = send(@rl_filename_dequoting_function,@users_dirname, @rl_completion_quote_character)
+            temp = send(@rl_filename_dequoting_function, @users_dirname, @rl_completion_quote_character)
             @users_dirname = temp
+            @dirname = @users_dirname.dup
          end
 
-         @directory = Dir.new(@dirname)
+         begin
+            @directory = Dir.new(@dirname)
+         rescue Errno::ENOENT, Errno::ENOTDIR
+         end
 
          # Now dequote a non-null filename.
          if (@filename && @filename.length>0 && @rl_completion_found_quote && @rl_filename_dequoting_function)
             # delete single and double quotes
-            temp = send(@rl_filename_dequoting_function,@filename, @rl_completion_quote_character)
+            temp = send(@rl_filename_dequoting_function, @filename, @rl_completion_quote_character)
             @filename = temp
          end
 
@@ -1197,13 +1213,13 @@ module RbReadline
          if (@dirname != '.')
             if (@rl_complete_with_tilde_expansion && @users_dirname[0,1] == "~")
                temp = @dirname
-               if(temp[-1,1] != '/')
-                  temp += '/'
+               if(temp[-1,1] != File::SEPARATOR)
+                  temp += File::SEPARATOR
                end
             else
                temp = @users_dirname
-               if(temp[-1,1] != '/')
-                  temp += '/'
+               if(temp[-1,1] != File::SEPARATOR)
+                  temp += File::SEPARATOR
                end
             end
             temp += entry
@@ -3789,7 +3805,12 @@ module RbReadline
 
    # Write COUNT characters from STRING to the output stream.
    def _rl_output_some_chars(string,start,count)
-      @_rl_out_stream.write(string[start,count])
+      case @encoding
+      when 'X'
+         @_rl_out_stream.write(string[start, count].force_encoding(@encoding_name))
+      else
+         @_rl_out_stream.write(string[start,count])
+      end
    end
 
    # Tell the update routines that we have moved onto a new line with the
@@ -6074,6 +6095,12 @@ module RbReadline
          scan = 0
          pass_next = false
          while scan < _end
+            if !@rl_byte_oriented
+               scan = _rl_find_next_mbchar(@rl_line_buffer, scan, 1, MB_FIND_ANY)
+            else
+               scan += 1
+            end
+
             if (pass_next)
                pass_next = false
                next
@@ -6110,11 +6137,6 @@ module RbReadline
                else
                   found_quote |= RL_QF_OTHER_QUOTE
                end
-            end
-            if !@rl_byte_oriented
-               scan = _rl_find_next_mbchar(@rl_line_buffer, scan, 1, MB_FIND_ANY)
-            else
-               scan += 1
             end
          end
       end
