@@ -24,5 +24,9 @@ describe "Socket#new" do
         lambda { Socket.new(Socket::PF_UNIX, socket_type, 0) }.should_not raise_error(SocketError)
       end
     end
+
+    it "protocol parameter should be optional" do
+      lambda { Socket.new(Socket::PF_UNIX, :DGRAM) }.should_not raise_error(ArgumentError)
+    end
   end
 end
