@@ -22,26 +22,28 @@ describe "TCPSocket#setsockopt" do
     end
   end
 
-  describe "using symbols" do
-    it "sets the TCP nodelay to 1" do
-      @sock.setsockopt(:IPPROTO_TCP, :TCP_NODELAY, 1).should == 0
-    end
-
-    context "without prefix" do
+  ruby_version_is "1.9" do
+    describe "using symbols" do
       it "sets the TCP nodelay to 1" do
-        @sock.setsockopt(:TCP, :NODELAY, 1).should == 0
+        @sock.setsockopt(:IPPROTO_TCP, :TCP_NODELAY, 1).should == 0
+      end
+
+      context "without prefix" do
+        it "sets the TCP nodelay to 1" do
+          @sock.setsockopt(:TCP, :NODELAY, 1).should == 0
+        end
       end
     end
-  end
 
-  describe "using strings" do
-    it "sets the TCP nodelay to 1" do
-      @sock.setsockopt('IPPROTO_TCP', 'TCP_NODELAY', 1).should == 0
-    end
-
-    context "without prefix" do
+    describe "using strings" do
       it "sets the TCP nodelay to 1" do
-        @sock.setsockopt('TCP', 'NODELAY', 1).should == 0
+        @sock.setsockopt('IPPROTO_TCP', 'TCP_NODELAY', 1).should == 0
+      end
+
+      context "without prefix" do
+        it "sets the TCP nodelay to 1" do
+          @sock.setsockopt('TCP', 'NODELAY', 1).should == 0
+        end
       end
     end
   end
