@@ -72,6 +72,9 @@ module FFI::Platform::POSIX
   attach_function :setregid, [:gid_t, :gid_t], :int
   attach_function :setreuid, [:uid_t, :uid_t], :int
 
+  attach_function :setresgid, [:gid_t, :gid_t, :gid_t], :int
+  attach_function :setresuid, [:uid_t, :uid_t, :uid_t], :int
+
   attach_function :getpriority, [:int, :id_t], :int
   attach_function :setpriority, [:int, :id_t, :int], :int
 
