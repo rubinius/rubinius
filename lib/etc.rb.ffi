@@ -9,6 +9,7 @@ class Struct::Passwd < FFI::Struct
     s.field :pw_passwd, :string
     s.field :pw_uid, :uid_t
     s.field :pw_gid, :gid_t
+    s.field :pw_gecos, :string
     s.field :pw_dir, :string
     s.field :pw_shell, :string
   end
@@ -18,6 +19,7 @@ class Struct::Passwd < FFI::Struct
   def passwd; self[:pw_passwd]; end
   def uid; self[:pw_uid]; end
   def gid; self[:pw_gid]; end
+  def gecos; self[:pw_gecos]; end
   def dir; self[:pw_dir]; end
   def shell; self[:pw_shell]; end
 end
@@ -30,12 +32,29 @@ class Struct::Group < FFI::Struct
 
     s.name "struct group"
     s.field :gr_name, :string
+    s.field :gr_passwd, :string
     s.field :gr_gid, :gid_t
+    s.field :gr_mem, :pointer
   end
   @@@
 
   def name; self[:gr_name]; end
   def gid; self[:gr_gid]; end
+  def passwd; self[:gr_passwd]; end
+  def mem
+    ptr = self[:gr_mem].read_pointer
+
+    ary = []
+    i = 1
+
+    while not ptr.null? do 
+      ary << ptr.read_string
+      ptr = (self[:gr_mem] + i * FFI::Pointer.size).read_pointer
+      i += 1
+    end
+    
+    ary
+  end
 end
 
 module Etc
