@@ -1560,6 +1560,10 @@ namespace rubinius {
 
     if(ONIGENC_MBC_MAXLEN(enc) == 1) {
       output = String::create(state, reinterpret_cast<const char*>(cur), 1);
+    } else if(LANGUAGE_18_ENABLED(state)) {
+      kcode::table* kcode_tbl = state->shared().kcode_table();
+      int len = kcode::mbclen(kcode_tbl, *cur);
+      output = String::create(state, reinterpret_cast<const char*>(cur), len);
     } else {
       int clen = Encoding::precise_mbclen(cur, cur + ONIGENC_MBC_MAXLEN(enc), enc);
       if(ONIGENC_MBCLEN_CHARFOUND_P(clen)) {
