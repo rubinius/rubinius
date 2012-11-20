@@ -35,6 +35,18 @@ ruby_version_is "1.8.7" do
       it "returns nil when the endpoint is less than the start point in a Float range" do
         (3003.20..908.1111).max.should be_nil
       end
+
+      it "returns end point when the range is Time..Time(included end point)" do
+        time_start = Time.now
+        time_end = Time.now + 1.0
+        (time_start..time_end).max.should equal(time_end)
+      end
+
+      it "raises TypeError when called on a Time...Time(excluded end point)" do
+        time_start = Time.now
+        time_end = Time.now + 1.0
+        lambda { (time_start...time_end).max  }.should raise_error(TypeError)
+      end
     end
   end
 

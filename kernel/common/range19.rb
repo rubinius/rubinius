@@ -12,19 +12,28 @@ class Range
   end
 
   def max(&block)
-    raise TypeError, "cannot exclude non Integer end value" if @end.kind_of?(Float) && @excl
+    return super(&block) if block_given? || (@excl && !@end.kind_of?(Numeric))
+    return nil unless @end > @begin
 
-    return super(&block) if block_given?
-    return nil if @end < @begin || (@excl && @end == @begin)
-    return @end if @end.kind_of?(Float) || (!@end.kind_of?(Float) && !@excl)
-    super
+    if @excl
+      unless @end.kind_of?(Integer)
+        raise TypeError, "cannot exclude non Integer end value" 
+      end
+
+      unless @begin.kind_of?(Integer)
+        raise TypeError, "cannot exclude end value with non Integer begin value" 
+      end
+
+      return @end - 1
+    end
+
+    @end
   end
 
   def min(&block)
     return super(&block) if block_given?
     return nil if @end < @begin || (@excl && @end == @begin)
-    return @begin if @begin.kind_of?(Float)
-    super
+    @begin
   end
 
   protected
