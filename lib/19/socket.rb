@@ -781,7 +781,6 @@ class Socket < BasicSocket
 
     type
   end
-  private_class_method :get_socket_type
 end
 
 class UNIXSocket < BasicSocket
