@@ -15,7 +15,7 @@ module Gist
     open(@@gist_url % gist_id).read
   end
 
-  def write(content, private_gist, name=nil)
+  def write(content, private_gist, name, report_file)
     url = URI.parse('https://gist.github.com/gists')
 
     http = Net::HTTP.new(url.host, url.port)
@@ -28,7 +28,7 @@ module Gist
     res = http.start {|h| h.request(req) }
 
     unless res.kind_of?(Net::HTTPRedirection)
-      raise GistSubmissionError, %Q{Could not submit gist (#{res.code} #{res.message}). Make sure you've set github.user and github.token in your Git config, or submit the crash report located at '#{ENV['HOME']}/.rubinius_last_error' manually.}
+      raise GistSubmissionError, %Q{Could not submit gist (#{res.code} #{res.message}). Make sure you've set github.user and github.token in your Git config, or submit the crash report located at '#{report_file}' manually.}
     end
 
     copy res['Location']
@@ -70,17 +70,29 @@ end
 
 ### Find the report and submit it.
 
-unless path = ARGV.shift
-  path = "#{ENV['HOME']}/.rubinius_last_error"
+unless report_file = ARGV.shift
+  # We search both locations that may contain crash reports and use the most
+  # recent one we find. This enables submitting crash reports for older
+  # versions of Rubinius.
+  files = []
+
+  path = "#{ENV['HOME']}/.rbx"
+  if File.directory? path
+    files.concat Dir["#{path}/rubinius_last_error*"]
+  end
+
+  files.concat Dir["#{ENV['HOME']}/.rubinius_last_error*"]
+
+  report_file = files.sort { |a, b| File.mtime(a) <=> File.mtime(b) }.last
 end
 
-unless File.exists?(path)
+unless File.exists?(report_file)
   puts "Unable to find last error report."
   puts "Please specify the file path to the report."
   exit 1
 end
 
-data = File.read(path)
+data = File.read(report_file)
 
 unless data.split("\n")[0].index("#rbxcrashreport")
   puts "This file does not appear to be a Rubinius crash report"
@@ -89,7 +101,7 @@ end
 
 puts "Submitting the crash report..."
 
-url = Gist.write(data, true, "crashreport.txt")
+url = Gist.write(data, true, "crashreport.txt", report_file)
 
 puts "Report submitted at: #{url}"
 puts "Please open a Rubinius issue and provide this url."
