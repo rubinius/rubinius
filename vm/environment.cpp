@@ -901,16 +901,18 @@ namespace rubinius {
 
     Object* loader = G(rubinius)->get_const(state, state->symbol("Loader"));
     if(loader->nil_p()) {
-      std::cout << "Unable to find loader!\n";
-      exit(127);
+      rubinius::bug("Unable to find loader");
     }
 
     OnStack<1> os(state, loader);
 
     Object* inst = loader->send(state, 0, state->symbol("new"));
+    if(inst) {
+      OnStack<1> os2(state, inst);
 
-    OnStack<1> os2(state, inst);
-
-    inst->send(state, 0, state->symbol("main"));
+      inst->send(state, 0, state->symbol("main"));
+    } else {
+      rubinius::bug("Unable to instantiate loader");
+    }
   }
 }
