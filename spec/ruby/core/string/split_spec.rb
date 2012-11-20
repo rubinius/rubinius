@@ -252,6 +252,17 @@ describe "String#split with Regexp" do
     ary.should == ["こ", "に", "ち", "わ"]
   end
 
+  ruby_version_is ""..."1.9" do
+    it "uses $KCODE when splitting invalid characters" do
+      str = [129, 0].pack('C*')
+
+      $KCODE = "SJIS"
+      ary = str.split(//)
+      ary.size.should == 1
+      ary.should == [str]
+    end
+  end
+
   it "respects the encoding of the regexp when splitting between characters" do
     str = "\303\202"
 
