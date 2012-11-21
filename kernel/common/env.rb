@@ -11,7 +11,7 @@ module Rubinius
     def [](key)
       value = getenv(StringValue(key))
       if value
-        set_encoding value
+        value = set_encoding value
         value.freeze
       end
       value
@@ -44,8 +44,8 @@ module Rubinius
         value.taint if value
         key.taint if key
 
-        set_encoding key
-        set_encoding value
+        key = set_encoding key
+        value = set_encoding value
 
         yield key, value
 
@@ -220,8 +220,8 @@ module Rubinius
 
       delete key
 
-      set_encoding key
-      set_encoding value
+      key = set_encoding key
+      value = set_encoding value
 
       return [key, value]
     end

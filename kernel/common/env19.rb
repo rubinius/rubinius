@@ -14,6 +14,8 @@ module Rubinius
 
     alias_method :store, :[]=
 
+    alias_method :to_h, :to_hash
+
     def keep_if(&block)
       return to_enum(:keep_if) unless block_given?
       select!(&block)
@@ -39,7 +41,11 @@ module Rubinius
 
     def set_encoding(value)
       return unless value.kind_of? String
-      value.force_encoding Encoding.find("locale")
+      if Encoding.default_internal
+        value.encode Encoding.default_internal, Encoding.find("locale")
+      else
+        value.force_encoding Encoding.find("locale")
+      end
     end
 
     private :set_encoding
