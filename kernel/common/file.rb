@@ -411,7 +411,7 @@ class File < IO
           raise ArgumentError, "couldn't find HOME environment variable when expanding '~'"
         end
 
-        path = ENV["HOME"] + path.byteslice(1, path.size - 1)
+        path = ENV["HOME"] + path.byteslice(1, path.bytesize - 1)
       when nil
         unless home = ENV["HOME"]
           raise ArgumentError, "couldn't find HOME environment variable when expanding '~'"
@@ -424,7 +424,7 @@ class File < IO
         return home
       else
         unless length = path.index("/", 1)
-          length = path.size
+          length = path.bytesize
         end
 
         name = path.byteslice 1, length - 1
@@ -432,7 +432,7 @@ class File < IO
           raise ArgumentError, "user #{name} does not exist"
         end
 
-        path = dir + path.byteslice(length, path.size - length)
+        path = dir + path.byteslice(length, path.bytesize - length)
       end
     elsif first != ?/
       if dir
@@ -446,7 +446,7 @@ class File < IO
 
     items = []
     start = 0
-    size = path.size
+    size = path.bytesize
 
     while index = path.index("/", start) or (start < size and index = size)
       length = index - start
