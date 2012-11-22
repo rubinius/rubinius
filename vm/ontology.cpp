@@ -1,6 +1,7 @@
 #include <sys/ioctl.h>
 #include <termios.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <errno.h>
 
 #include "objectmemory.hpp"
@@ -477,6 +478,8 @@ namespace rubinius {
 #else
     G(rubinius)->set_const(state, "ENDIAN", symbol("big"));
 #endif
+
+    G(rubinius)->set_const(state, "PATH_MAX", Fixnum::from(PATH_MAX));
 
     // Used in Array.pack
     G(rubinius)->set_const(state, "SIZEOF_SHORT", Fixnum::from(sizeof(short)));
