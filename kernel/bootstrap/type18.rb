@@ -30,12 +30,5 @@ module Rubinius
     def self.convert_to_name(sym)
       sym.to_s
     end
-
-    def self.binary_string(string)
-      string
-    end
-
-    def self.check_encoding_compatible(a, b)
-    end
   end
 end

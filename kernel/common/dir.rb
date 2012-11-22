@@ -8,14 +8,26 @@ class Dir
       patterns = Rubinius::Type.coerce_to_path(patterns[0]).split("\0")
     end
 
-    files = []
-
-    patterns.each do |pat|
-      Dir::Glob.glob pat, 0, files
-    end
-
-    files
+    glob patterns
   end
+
+  #   files = []
+  #   index = 0
+
+  #   patterns.each do |pat|
+  #     enc = Rubinius::Type.ascii_compatible_encoding pat
+
+  #     Dir::Glob.glob pat, 0, files
+
+  #     total = files.size
+  #     while index < total
+  #       Rubinius::Type.encode_string files[index], enc
+  #       index += 1
+  #     end
+  #   end
+
+  #   files
+  # end
 
   def self.glob(pattern, flags=0, &block)
     if pattern.kind_of? Array
@@ -29,9 +41,17 @@ class Dir
     end
 
     matches = []
+    index = 0
 
     patterns.each do |pat|
+      enc = Rubinius::Type.ascii_compatible_encoding pat
       Dir::Glob.glob pat, flags, matches
+
+      total = matches.size
+      while index < total
+        Rubinius::Type.encode_string matches[index], enc
+        index += 1
+      end
     end
 
     if block
@@ -100,8 +120,9 @@ class Dir
   end
 
   def self.getwd
-    buf = " " * 1024
-    FFI::Platform::POSIX.getcwd(buf, buf.length)
+    buf = String.pattern Rubinius::PATH_MAX, 0
+    wd = FFI::Platform::POSIX.getcwd(buf, buf.length)
+    Rubinius::Type.external_string wd
   end
 
   def self.chroot(path)

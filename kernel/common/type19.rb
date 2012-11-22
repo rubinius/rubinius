@@ -34,22 +34,6 @@ module Rubinius
       return undefined
     end
 
-    def self.compatible_encoding(a, b)
-      enc = Encoding.compatible? a, b
-
-      unless enc
-        enc_a = object_encoding a
-        enc_b = object_encoding b
-        message = "undefined conversion "
-        message << "for '#{a.inspect}' " if object_kind_of?(a, String)
-        message << "from #{enc_a} to #{enc_b}"
-
-        raise Encoding::CompatibilityError, message
-      end
-
-      enc
-    end
-
     def self.coerce_to_path(obj)
       if object_kind_of?(obj, String)
         obj
@@ -146,6 +130,38 @@ module Rubinius
       Rubinius.privately do
         copy.initialize_clone obj
       end
+    end
+
+    def self.binary_string(string)
+      string.force_encoding Encoding::BINARY
+    end
+
+    def self.external_string(string)
+      string.force_encoding Encoding.default_external
+    end
+
+    def self.encode_string(string, enc)
+      string.force_encoding enc
+    end
+
+    def self.ascii_compatible_encoding(string)
+      compatible_encoding string, Encoding::US_ASCII
+    end
+
+    def self.compatible_encoding(a, b)
+      enc = Encoding.compatible? a, b
+
+      unless enc
+        enc_a = object_encoding a
+        enc_b = object_encoding b
+        message = "undefined conversion "
+        message << "for '#{a.inspect}' " if object_kind_of?(a, String)
+        message << "from #{enc_a} to #{enc_b}"
+
+        raise Encoding::CompatibilityError, message
+      end
+
+      enc
     end
   end
 end

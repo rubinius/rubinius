@@ -70,7 +70,7 @@ class String
 
   def +(other)
     other = StringValue(other)
-    Rubinius::Type.check_encoding_compatible self, other
+    Rubinius::Type.compatible_encoding self, other
     String.new(self) << other
   end
 
