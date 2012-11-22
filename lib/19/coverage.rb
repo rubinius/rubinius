@@ -42,6 +42,8 @@ module Coverage
     end
 
     coverage.each do |file, counts|
+      next unless File.exists? file
+
       lines = File.open(file, "r") { |f| f.lines.count }
       next unless lines > 0
 
