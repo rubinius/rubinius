@@ -1,7 +1,7 @@
 
 %"struct.rubinius::State" = type opaque
 %"struct.rubinius::TypeInfo" = type opaque
-%"struct.rubinius::VMMethod" = type opaque
+%"struct.rubinius::MachineCode" = type opaque
 %"struct.rubinius::Fixnum" = type opaque
 %"struct.rubinius::Symbol" = type opaque
 %"struct.rubinius::Selector" = type opaque
@@ -181,7 +181,7 @@ declare void @output16(%"struct.rubinius::Class"*)
                   %"struct.rubinius::Symbol"*, ; file
            %"struct.rubinius::ConstantScope"*, ; scope
              %"struct.rubinius::LookupTable"*, ; breakpoints
-                %"struct.rubinius::VMMethod"*, ; backend_method
+                %"struct.rubinius::MachineCode"*, ; backend_method
   %"struct.rubinius::jit::RuntimeDataHolder"*, ; jit_data
                    %"struct.rubinius::Tuple"*  ; literals
 }

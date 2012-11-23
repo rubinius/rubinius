@@ -2,7 +2,7 @@
 
 #include "machine_code.hpp"
 
-class TestVMMethod : public CxxTest::TestSuite, public VMTest {
+class TestMachineCode : public CxxTest::TestSuite, public VMTest {
 public:
 
   void setUp() {

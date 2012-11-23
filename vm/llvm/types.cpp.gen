@@ -361,16 +361,16 @@ StructTy_struct_rubinius__CompiledCode_fields.push_back(PointerTy_10);
 StructTy_struct_rubinius__CompiledCode_fields.push_back(PointerTy_2);
 StructTy_struct_rubinius__CompiledCode_fields.push_back(PointerTy_23);
 StructTy_struct_rubinius__CompiledCode_fields.push_back(PointerTy_6);
-StructType *StructTy_struct_rubinius__VMMethod = mod->getTypeByName("struct.rubinius::VMMethod");
-if (!StructTy_struct_rubinius__VMMethod) {
-StructTy_struct_rubinius__VMMethod = StructType::create(mod->getContext(), "struct.rubinius::VMMethod");
+StructType *StructTy_struct_rubinius__MachineCode = mod->getTypeByName("struct.rubinius::MachineCode");
+if (!StructTy_struct_rubinius__MachineCode) {
+StructTy_struct_rubinius__MachineCode = StructType::create(mod->getContext(), "struct.rubinius::MachineCode");
 }
-std::vector<Type*>StructTy_struct_rubinius__VMMethod_fields;
-if (StructTy_struct_rubinius__VMMethod->isOpaque()) {
-StructTy_struct_rubinius__VMMethod->setBody(StructTy_struct_rubinius__VMMethod_fields, /*isPacked=*/false);
+std::vector<Type*>StructTy_struct_rubinius__MachineCode_fields;
+if (StructTy_struct_rubinius__MachineCode->isOpaque()) {
+StructTy_struct_rubinius__MachineCode->setBody(StructTy_struct_rubinius__MachineCode_fields, /*isPacked=*/false);
 }
 
-PointerType* PointerTy_29 = PointerType::get(StructTy_struct_rubinius__VMMethod, 0);
+PointerType* PointerTy_29 = PointerType::get(StructTy_struct_rubinius__MachineCode, 0);
 
 StructTy_struct_rubinius__CompiledCode_fields.push_back(PointerTy_29);
 StructType *StructTy_struct_rubinius__jit__RuntimeDataHolder = mod->getTypeByName("struct.rubinius::jit::RuntimeDataHolder");
