@@ -17,49 +17,73 @@ class String
   def encode!(to=undefined, from=undefined, options=undefined)
     Rubinius.check_frozen
 
-    replace encode(to, from, options)
-  end
-
-  def encode(to=undefined, from=undefined, options=undefined)
-    # TODO
-    if to.equal? undefined
-      to = Encoding.default_internal
-      return self.dup unless to
+    case to
+    when Encoding
+      to_enc = to
+    when Hash
+      options = to
+      to_enc = Encoding.default_internal
+    when undefined
+      to_enc = Encoding.default_internal
     else
-      to = Rubinius::Type.coerce_to_encoding to
-    end
+      opts = Rubinius::Type::check_convert_type to, Hash, :to_hash
 
-    if from.equal? undefined
-      from = encoding
-      options = 0
-    end
-
-    if options.equal? undefined
-      if from.kind_of? Hash
-        options = from
-        from = encoding
+      if opts
+        options = opts
+        to_enc = Encoding.default_internal
       else
-        from = Rubinius::Type.coerce_to_encoding from
-        options = 0
+        to_enc = Rubinius::Type.try_convert_to_encoding to
       end
     end
 
-    if from == to
-      str = self.dup
+    case from
+    when undefined
+      from_enc = encoding
+    when Encoding
+      from_enc = from
+    when Hash
+      options = from
+      from_enc = encoding
     else
-      ec = Encoding::Converter.new from, to, options
-      str = ec.convert self
+      opts = Rubinius::Type::check_convert_type from, Hash, :to_hash
+
+      if opts
+        options = opts
+        from_enc = encoding
+      else
+        from_enc = Rubinius::Type.coerce_to_encoding from
+      end
+    end
+
+    if from_enc.equal? undefined or to_enc.equal? undefined
+      raise Encoding::ConverterNotFoundError, "undefined code converter (#{from} to #{to})"
+    end
+
+    case options
+    when undefined
+      options = 0
+    when Hash
+      # do nothing
+    else
+      options = Rubinius::Type.coerce_to options, Hash, :to_hash
+    end
+
+    if ascii_only? and to_enc.ascii_compatible?
+      force_encoding to_enc
+    elsif to_enc and from_enc != to_enc
+      ec = Encoding::Converter.new from_enc, to_enc, options
+      replace ec.convert(self)
     end
 
     # TODO: replace this hack with transcoders
     if options.kind_of? Hash
       case xml = options[:xml]
       when :text
-        str.gsub!(/[&><]/, '&' => '&amp;', '>' => '&gt;', '<' => '&lt;')
+        gsub!(/[&><]/, '&' => '&amp;', '>' => '&gt;', '<' => '&lt;')
       when :attr
-        str.gsub!(/[&><"]/, '&' => '&amp;', '>' => '&gt;', '<' => '&lt;', '"' => '&quot;')
-        str.insert(0, '"')
-        str.insert(-1, '"')
+        gsub!(/[&><"]/, '&' => '&amp;', '>' => '&gt;', '<' => '&lt;', '"' => '&quot;')
+        insert(0, '"')
+        insert(-1, '"')
       when nil
         # nothing
       else
@@ -67,7 +91,11 @@ class String
       end
     end
 
-    str
+    self
+  end
+
+  def encode(to=undefined, from=undefined, options=undefined)
+    dup.encode! to, from, options
   end
 
   def force_encoding(enc)
