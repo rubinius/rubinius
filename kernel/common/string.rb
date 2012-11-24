@@ -1107,7 +1107,7 @@ class String
     # Clamp count to the end of the string
     count = @num_bytes - start if start + count > @num_bytes
 
-    rsize = replacement.size
+    rsize = replacement.bytesize
 
     if rsize == 0
       trailer_start = start + count

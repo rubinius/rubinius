@@ -955,7 +955,7 @@ class String
         raise IndexError, "string not matched"
       end
 
-      splice! start, index.length, replacement
+      splice! start, index.bytesize, replacement
     when Range
       start   = Rubinius::Type.coerce_to(index.first, Integer, :to_int)
       length  = Rubinius::Type.coerce_to(index.last, Integer, :to_int)
