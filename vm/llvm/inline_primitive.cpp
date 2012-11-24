@@ -82,7 +82,7 @@ namespace rubinius {
 
       Value* idx[] = {
         ConstantInt::get(ops.state()->Int32Ty, 0),
-        ConstantInt::get(ops.state()->Int32Ty, offset::tuple_field),
+        ConstantInt::get(ops.state()->Int32Ty, offset::Tuple::field),
         index
       };
 
@@ -129,7 +129,7 @@ namespace rubinius {
 
       Value* idx[] = {
         ConstantInt::get(ops.state()->Int32Ty, 0),
-        ConstantInt::get(ops.state()->Int32Ty, offset::tuple_field),
+        ConstantInt::get(ops.state()->Int32Ty, offset::Tuple::field),
         index
       };
 
@@ -175,7 +175,7 @@ namespace rubinius {
 
       Value* lidx[] = {
         ConstantInt::get(ops.state()->Int32Ty, 0),
-        ConstantInt::get(ops.state()->Int32Ty, offset::tuple_field),
+        ConstantInt::get(ops.state()->Int32Ty, offset::Tuple::field),
         lindex
       };
 
@@ -183,7 +183,7 @@ namespace rubinius {
 
       Value* ridx[] = {
         ConstantInt::get(ops.state()->Int32Ty, 0),
-        ConstantInt::get(ops.state()->Int32Ty, offset::tuple_field),
+        ConstantInt::get(ops.state()->Int32Ty, offset::Tuple::field),
         rindex
       };
 

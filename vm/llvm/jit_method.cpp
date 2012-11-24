@@ -78,7 +78,7 @@ namespace jit {
 
     Value* loop_i = info_.counter();
     Value* arg_ary = b().CreateLoad(
-                       b().CreateConstGEP2_32(info_.args(), 0, offset::args_ary,
+                       b().CreateConstGEP2_32(info_.args(), 0, offset::Arguments::arguments,
                                               "arg_ary_pos"),
                        "arg_ary");
 
@@ -104,7 +104,7 @@ namespace jit {
 
       Value* idx2[] = {
         cint(0),
-        cint(offset::vars_tuple),
+        cint(offset::StackVariables::locals),
         int_pos
       };
 
@@ -150,7 +150,7 @@ namespace jit {
 
       Value* idx2[] = {
         cint(0),
-        cint(offset::vars_tuple),
+        cint(offset::StackVariables::locals),
         local_val
       };
 
@@ -212,7 +212,7 @@ namespace jit {
 
       Value* idx2[] = {
         cint(0),
-        cint(offset::vars_tuple),
+        cint(offset::StackVariables::locals),
         loop_val
       };
 
@@ -258,7 +258,7 @@ namespace jit {
 
       Value* idx3[] = {
         cint(0),
-        cint(offset::vars_tuple),
+        cint(offset::StackVariables::locals),
         cint(machine_code_->splat_position)
       };
 
@@ -276,7 +276,7 @@ namespace jit {
     }
 
     // Import the arguments
-    Value* offset = b().CreateConstGEP2_32(info_.args(), 0, offset::args_ary, "arg_ary_pos");
+    Value* offset = b().CreateConstGEP2_32(info_.args(), 0, offset::Arguments::arguments, "arg_ary_pos");
 
     Value* arg_ary = b().CreateLoad(offset, "arg_ary");
 
@@ -291,7 +291,7 @@ namespace jit {
 
         Value* idx2[] = {
           cint(0),
-          cint(offset::vars_tuple),
+          cint(offset::StackVariables::locals),
           int_pos
         };
 
@@ -348,7 +348,7 @@ namespace jit {
 
       Value* idx2[] = {
         cint(0),
-        cint(offset::vars_tuple),
+        cint(offset::StackVariables::locals),
         loop_val
       };
 
@@ -391,7 +391,7 @@ namespace jit {
 
       Value* idx3[] = {
         cint(0),
-        cint(offset::vars_tuple),
+        cint(offset::StackVariables::locals),
         cint(machine_code_->splat_position)
       };
 
@@ -402,7 +402,7 @@ namespace jit {
 
   void MethodBuilder::check_arity() {
     Value* total_offset = b().CreateConstGEP2_32(info_.args(), 0,
-        offset::args_total, "total_pos");
+        offset::Arguments::total, "total_pos");
     Value* total = b().CreateLoad(total_offset, "arg.total");
 
     // For others to use.
@@ -502,24 +502,24 @@ namespace jit {
     llvm::Value* args = info_.args();
 
     Value* heap_null = ConstantExpr::getNullValue(llvm::PointerType::getUnqual(vars_type));
-    Value* heap_pos = get_field(vars, offset::vars_on_heap);
+    Value* heap_pos = get_field(vars, offset::StackVariables::on_heap);
 
     b().CreateStore(heap_null, heap_pos);
 
-    Value* self = b().CreateLoad(get_field(args, offset::args_recv),
+    Value* self = b().CreateLoad(get_field(args, offset::Arguments::recv),
         "args.recv");
-    b().CreateStore(self, get_field(vars, offset::vars_self));
+    b().CreateStore(self, get_field(vars, offset::StackVariables::self));
     Value* mod = module;
-    b().CreateStore(mod, get_field(vars, offset::vars_module));
+    b().CreateStore(mod, get_field(vars, offset::StackVariables::module));
 
-    Value* blk = b().CreateLoad(get_field(args, offset::args_block),
+    Value* blk = b().CreateLoad(get_field(args, offset::Arguments::block),
         "args.block");
-    b().CreateStore(blk, get_field(vars, offset::vars_block));
+    b().CreateStore(blk, get_field(vars, offset::StackVariables::block));
 
     b().CreateStore(Constant::getNullValue(ls_->ptr_type("VariableScope")),
-        get_field(vars, offset::vars_parent));
+        get_field(vars, offset::StackVariables::parent));
 
-    b().CreateStore(constant(cNil, obj_type), get_field(vars, offset::vars_last_match));
+    b().CreateStore(constant(cNil, obj_type), get_field(vars, offset::StackVariables::last_match));
 
     nil_locals();
   }

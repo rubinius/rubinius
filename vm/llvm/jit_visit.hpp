@@ -669,7 +669,7 @@ namespace rubinius {
 
       Value* execute_pos_idx[] = {
         cint(0),
-        cint(offset::ic_execute),
+        cint(offset::InlineCache::execute),
       };
 
       Value* execute_pos = b().CreateGEP(cache_const,
@@ -703,7 +703,7 @@ namespace rubinius {
 
       Value* execute_pos_idx[] = {
         cint(0),
-        cint(offset::ic_execute),
+        cint(offset::InlineCache::execute),
       };
 
       Value* execute_pos = b().CreateGEP(cache_const,
@@ -1092,7 +1092,7 @@ namespace rubinius {
 
       Value* idx2[] = {
         cint(0),
-        cint(offset::tuple_field),
+        cint(offset::Tuple::field),
         cint(which)
       };
 
@@ -1134,7 +1134,7 @@ namespace rubinius {
     }
 
     void push_scope_local(Value* scope, opcode which) {
-      Value* pos = b().CreateConstGEP2_32(scope, 0, offset::varscope_locals,
+      Value* pos = b().CreateConstGEP2_32(scope, 0, offset::VariableScope::locals,
                                      "locals_pos");
 
       Value* table = b().CreateLoad(pos, "locals");
@@ -1147,7 +1147,7 @@ namespace rubinius {
     Value* local_location(Value* vars, opcode which) {
       Value* idx2[] = {
         cint(0),
-        cint(offset::vars_tuple),
+        cint(offset::StackVariables::locals),
         cint(which)
       };
 
@@ -1167,7 +1167,7 @@ namespace rubinius {
     void visit_push_local(opcode which) {
       Value* idx2[] = {
         cint(0),
-        cint(offset::vars_tuple),
+        cint(offset::StackVariables::locals),
         cint(which)
       };
 
@@ -1206,7 +1206,7 @@ namespace rubinius {
     }
 
     void set_scope_local(Value* scope, opcode which) {
-      Value* pos = b().CreateConstGEP2_32(scope, 0, offset::varscope_locals,
+      Value* pos = b().CreateConstGEP2_32(scope, 0, offset::VariableScope::locals,
                                      "locals_pos");
 
       Value* table = b().CreateLoad(pos, "locals");
@@ -1223,7 +1223,7 @@ namespace rubinius {
     void visit_set_local(opcode which) {
       Value* idx2[] = {
         cint(0),
-        cint(offset::vars_tuple),
+        cint(offset::StackVariables::locals),
         cint(which)
       };
 
@@ -1273,13 +1273,13 @@ namespace rubinius {
       assert(vars);
 
       return b().CreateLoad(
-          b().CreateConstGEP2_32(vars, 0, offset::vars_self),
+          b().CreateConstGEP2_32(vars, 0, offset::StackVariables::self),
           "self");
     }
 
     Value* get_block() {
       return b().CreateLoad(
-          b().CreateConstGEP2_32(vars_, 0, offset::vars_block, "block_pos"));
+          b().CreateConstGEP2_32(vars_, 0, offset::StackVariables::block, "block_pos"));
     }
 
     void visit_push_self() {
@@ -1613,7 +1613,7 @@ namespace rubinius {
           b().CreateStore(
               blk,
               b().CreateConstGEP2_32(nfo->variables(), 0,
-                offset::vars_block),
+                offset::StackVariables::block),
               false);
         }
       }
@@ -2455,7 +2455,7 @@ use_send:
           /*
           Value* idx[] = {
             cint(0),
-            cint(offset::vars_parent)
+            cint(offset::StackVariables::parent)
           };
 
           Value* varscope = b().CreateLoad(
@@ -2491,7 +2491,7 @@ use_send:
       else if(depth == 1) {
         Value* idx[] = {
           cint(0),
-          cint(offset::vars_parent)
+          cint(offset::StackVariables::parent)
         };
 
         Value* gep = b().CreateGEP(vars_, idx, "parent_pos");
@@ -2567,7 +2567,7 @@ use_send:
           /*
           Value* idx[] = {
             cint(0),
-            cint(offset::vars_parent)
+            cint(offset::StackVariables::parent)
           };
 
           Value* varscope = b().CreateLoad(
@@ -2605,7 +2605,7 @@ use_send:
       else if(depth == 1) {
         Value* idx[] = {
           cint(0),
-          cint(offset::vars_parent)
+          cint(offset::StackVariables::parent)
         };
 
         Value* gep = b().CreateGEP(vars_, idx, "parent_pos");
@@ -2746,7 +2746,7 @@ use_send:
       sig << ObjArrayTy;
 
       Value* block_obj = b().CreateLoad(
-          b().CreateConstGEP2_32(vars, 0, offset::vars_block),
+          b().CreateConstGEP2_32(vars, 0, offset::StackVariables::block),
           "block");
 
       Value* call_args[] = {
@@ -2777,7 +2777,7 @@ use_send:
       sig << ObjArrayTy;
 
       Value* block_obj = b().CreateLoad(
-          b().CreateConstGEP2_32(vars_, 0, offset::vars_block),
+          b().CreateConstGEP2_32(vars_, 0, offset::StackVariables::block),
           "block");
 
       Value* call_args[] = {
@@ -2879,7 +2879,7 @@ use_send:
 
       Value* idx[] = {
         cint(0),
-        cint(offset::vars_self)
+        cint(offset::StackVariables::self)
       };
 
       Value* pos = b().CreateGEP(vars_, idx, "self_pos");

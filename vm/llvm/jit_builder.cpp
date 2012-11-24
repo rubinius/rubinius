@@ -82,7 +82,7 @@ namespace jit {
       for(int i = 0; i < size; i++) {
         Value* idx[] = {
           cint(0),
-          cint(offset::vars_tuple),
+          cint(offset::StackVariables::locals),
           cint(i)
         };
 
@@ -107,7 +107,7 @@ namespace jit {
     Value* cur = b().CreateLoad(info_.counter(), "counter");
     Value* idx[] = {
       cint(0),
-      cint(offset::vars_tuple),
+      cint(offset::StackVariables::locals),
       cur
     };
 
@@ -138,7 +138,7 @@ namespace jit {
     // Now, validate class_id
 
     Value* self = b().CreateLoad(
-        b().CreateConstGEP2_32(info_.args(), 0, offset::args_recv), "self");
+        b().CreateConstGEP2_32(info_.args(), 0, offset::Arguments::recv), "self");
 
     BasicBlock* restart_interp = info_.new_block("restart_interp");
     BasicBlock* check_class = info_.new_block("check_class");

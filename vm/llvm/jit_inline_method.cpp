@@ -66,7 +66,7 @@ namespace jit {
 
     // compiled_code
     method = b().CreateLoad(
-        b().CreateConstGEP2_32(rd, 0, offset::runtime_data_method, "method_pos"),
+        b().CreateConstGEP2_32(rd, 0, offset::jit_RuntimeData::method, "method_pos"),
         "compiled_code");
 
     Value* code_gep = get_field(call_frame, offset::CallFrame::compiled_code);
@@ -89,7 +89,7 @@ namespace jit {
     nil_stack(machine_code_->stack_size, constant(cNil, obj_type));
 
     Value* mod = b().CreateLoad(
-        b().CreateConstGEP2_32(rd, 0, offset::runtime_data_module, "module_pos"),
+        b().CreateConstGEP2_32(rd, 0, offset::jit_RuntimeData::module, "module_pos"),
         "module");
 
     setup_inline_scope(self, blk, mod);
@@ -107,7 +107,7 @@ namespace jit {
 
       Value* idx2[] = {
         cint(0),
-        cint(offset::vars_tuple),
+        cint(offset::StackVariables::locals),
         int_pos
       };
 
@@ -136,17 +136,17 @@ namespace jit {
 
   void InlineMethodBuilder::setup_inline_scope(Value* self, Value* blk, Value* mod) {
     Value* heap_null = ConstantExpr::getNullValue(llvm::PointerType::getUnqual(vars_type));
-    Value* heap_pos = get_field(vars, offset::vars_on_heap);
+    Value* heap_pos = get_field(vars, offset::StackVariables::on_heap);
     b().CreateStore(heap_null, heap_pos);
 
-    b().CreateStore(self, get_field(vars, offset::vars_self));
-    b().CreateStore(mod, get_field(vars, offset::vars_module));
+    b().CreateStore(self, get_field(vars, offset::StackVariables::self));
+    b().CreateStore(mod, get_field(vars, offset::StackVariables::module));
 
-    b().CreateStore(blk, get_field(vars, offset::vars_block));
+    b().CreateStore(blk, get_field(vars, offset::StackVariables::block));
 
     b().CreateStore(Constant::getNullValue(ls_->ptr_type("VariableScope")),
-        get_field(vars, offset::vars_parent));
-    b().CreateStore(constant(cNil, obj_type), get_field(vars, offset::vars_last_match));
+        get_field(vars, offset::StackVariables::parent));
+    b().CreateStore(constant(cNil, obj_type), get_field(vars, offset::StackVariables::last_match));
 
     nil_locals();
   }

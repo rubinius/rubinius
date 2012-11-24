@@ -103,15 +103,15 @@ namespace jit {
 
   void BlockBuilder::setup_block_scope() {
     b().CreateStore(ConstantExpr::getNullValue(llvm::PointerType::getUnqual(vars_type)),
-        get_field(vars, offset::vars_on_heap));
+        get_field(vars, offset::StackVariables::on_heap));
     Value* self = b().CreateLoad(
-        get_field(block_inv, offset::blockinv_self),
+        get_field(block_inv, offset::BlockInvocation::self),
         "invocation.self");
 
-    b().CreateStore(self, get_field(vars, offset::vars_self));
+    b().CreateStore(self, get_field(vars, offset::StackVariables::self));
 
     Value* inv_mod = b().CreateLoad(
-        get_field(block_inv, offset::blockinv_module),
+        get_field(block_inv, offset::BlockInvocation::module),
         "invocation.module");
 
     Value* creation_mod = b().CreateLoad(
@@ -125,11 +125,11 @@ namespace jit {
 
     module_ = mod;
 
-    b().CreateStore(mod, get_field(vars, offset::vars_module));
+    b().CreateStore(mod, get_field(vars, offset::StackVariables::module));
 
-    Value* blk = b().CreateLoad(get_field(top_scope, offset::varscope_block),
+    Value* blk = b().CreateLoad(get_field(top_scope, offset::VariableScope::block),
         "args.block");
-    b().CreateStore(blk, get_field(vars, offset::vars_block));
+    b().CreateStore(blk, get_field(vars, offset::StackVariables::block));
 
 
     // We don't use top_scope here because of nested blocks. Parent MUST be
@@ -139,8 +139,8 @@ namespace jit {
         get_field(block_env, offset::BlockEnvironment::scope),
         "env.scope");
 
-    b().CreateStore(be_scope, get_field(vars, offset::vars_parent));
-    b().CreateStore(constant(cNil, obj_type), get_field(vars, offset::vars_last_match));
+    b().CreateStore(be_scope, get_field(vars, offset::StackVariables::parent));
+    b().CreateStore(constant(cNil, obj_type), get_field(vars, offset::StackVariables::last_match));
 
     nil_locals();
   }
@@ -155,7 +155,7 @@ namespace jit {
     b().CreateStore(info_.previous(), get_field(call_frame, offset::CallFrame::previous));
 
     // constant_scope
-    Value* cs = b().CreateLoad(get_field(block_inv, offset::blockinv_constant_scope),
+    Value* cs = b().CreateLoad(get_field(block_inv, offset::BlockInvocation::constant_scope),
                                "invocation.constant_scope");
 
     b().CreateStore(cs, get_field(call_frame, offset::CallFrame::constant_scope));
@@ -171,7 +171,7 @@ namespace jit {
     b().CreateStore(method, code_gep);
 
     // flags
-    inv_flags_ = b().CreateLoad(get_field(block_inv, offset::blockinv_flags),
+    inv_flags_ = b().CreateLoad(get_field(block_inv, offset::BlockInvocation::flags),
         "invocation.flags");
 
     int block_flags = CallFrame::cCustomConstantScope |
@@ -245,7 +245,7 @@ namespace jit {
 
     Value* loop_i = info_.counter();
     Value* arg_ary = b().CreateLoad(
-                       b().CreateConstGEP2_32(info_.args(), 0, offset::args_ary),
+                       b().CreateConstGEP2_32(info_.args(), 0, offset::Arguments::arguments),
                        "arg_ary");
 
     // The variables used in the 4 phases.
@@ -258,7 +258,7 @@ namespace jit {
     Value* Mv = cint(M);
 
     Value* T = b().CreateLoad(
-                 b().CreateConstGEP2_32(info_.args(), 0, offset::args_total),
+                 b().CreateConstGEP2_32(info_.args(), 0, offset::Arguments::total),
                  "args.total");
 
     int DT = machine_code_->total_args;
@@ -308,7 +308,7 @@ namespace jit {
 
       Value* idx2[] = {
         cint(0),
-        cint(offset::vars_tuple),
+        cint(offset::StackVariables::locals),
         loop_val
       };
 
@@ -367,7 +367,7 @@ namespace jit {
 
       Value* idx2[] = {
         cint(0),
-        cint(offset::vars_tuple),
+        cint(offset::StackVariables::locals),
         local_val
       };
 
@@ -424,7 +424,7 @@ namespace jit {
 
       Value* idx2[] = {
         cint(0),
-        cint(offset::vars_tuple),
+        cint(offset::StackVariables::locals),
         loop_val
       };
 
@@ -470,7 +470,7 @@ namespace jit {
 
       Value* idx3[] = {
         cint(0),
-        cint(offset::vars_tuple),
+        cint(offset::StackVariables::locals),
         cint(machine_code_->splat_position)
       };
 

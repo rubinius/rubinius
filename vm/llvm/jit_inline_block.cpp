@@ -66,7 +66,7 @@ namespace jit {
 
     // compiled_code
     method = b().CreateLoad(
-        b().CreateConstGEP2_32(rd, 0, offset::runtime_data_method, "method_pos"),
+        b().CreateConstGEP2_32(rd, 0, offset::jit_RuntimeData::method, "method_pos"),
         "compiled_code");
 
     Value* code_gep = get_field(call_frame, offset::CallFrame::compiled_code);
@@ -124,7 +124,7 @@ namespace jit {
 
           Value* idx2[] = {
             cint(0),
-            cint(offset::vars_tuple),
+            cint(offset::StackVariables::locals),
             int_pos
           };
 
