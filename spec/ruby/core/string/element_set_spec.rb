@@ -3,13 +3,10 @@ require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes.rb', __FILE__)
 
 # TODO: Add missing String#[]= specs:
-#   String#[range] = obj
-#   String#[re] = obj
 #   String#[re, idx] = obj
-#   String#[str] = obj
 
 ruby_version_is ""..."1.9" do
-  describe "String#[]= with index" do
+  describe "String#[]= with Fixnum index" do
     it "sets the code of the character at idx to char modulo 256" do
       a = "hello"
       a[0] = ?b
@@ -86,7 +83,7 @@ ruby_version_is ""..."1.9" do
   end
 end
 
-describe "String#[]= with String" do
+describe "String#[]= with Fixnum index" do
   it "replaces the char at idx with other_str" do
     a = "hello"
     a[0] = "bam"
@@ -184,6 +181,82 @@ describe "String#[]= with String" do
   end
 
   with_feature :encoding do
+    it "raises a TypeError if passed a Fixnum replacement" do
+      lambda { "abc"[1] = 65 }.should raise_error(TypeError)
+    end
+
+    it "raises an IndexError if the index is greater than character size" do
+      lambda { "あれ"[4] = "a" }.should raise_error(IndexError)
+    end
+
+    it "calls #to_int to convert the index" do
+      index = mock("string element set")
+      index.should_receive(:to_int).and_return(1)
+
+      str = "あれ"
+      str[index] = "a"
+      str.should == "あa"
+    end
+
+    it "raises a TypeError if #to_int does not return an Fixnum" do
+      index = mock("string element set")
+      index.should_receive(:to_int).and_return('1')
+
+      lambda { "abc"[index] = "d" }.should raise_error(TypeError)
+    end
+
+    it "raises an IndexError if #to_int returns a value out of range" do
+      index = mock("string element set")
+      index.should_receive(:to_int).and_return(4)
+
+      lambda { "ab"[index] = "c" }.should raise_error(IndexError)
+    end
+
+    it "replaces a character with a multibyte character" do
+      str = "ありがとu"
+      str[4] = "う"
+      str.should == "ありがとう"
+    end
+
+    it "replaces a multibyte character with a character" do
+      str = "ありがとう"
+      str[4] = "u"
+      str.should == "ありがとu"
+    end
+
+    it "replaces a multibyte character with a multibyte character" do
+      str = "ありがとお"
+      str[4] = "う"
+      str.should == "ありがとう"
+    end
+  end
+end
+
+describe "String#[]= with String index" do
+  it "replaces fewer characters with more characters" do
+    str = "abcde"
+    str["cd"] = "ghi"
+    str.should == "abghie"
+  end
+
+  it "replaces more characters with fewer characters" do
+    str = "abcde"
+    str["bcd"] = "f"
+    str.should == "afe"
+  end
+
+  it "replaces characters with no characters" do
+    str = "abcde"
+    str["cd"] = ""
+    str.should == "abe"
+  end
+
+  it "raises an IndexError if the search String is not found" do
+    str = "abcde"
+    lambda { str["g"] = "h" }.should raise_error(IndexError)
+  end
+
+  with_feature :encoding do
     it "replaces characters with a multibyte character" do
       str = "ありgaとう"
       str["ga"] = "が"
@@ -204,7 +277,7 @@ describe "String#[]= with String" do
   end
 end
 
-describe "String#[]= with a Regexp" do
+describe "String#[]= with a Regexp index" do
   it "replaces the matched text with the rhs" do
     str = "hello"
     str[/lo/] = "x"
@@ -237,9 +310,80 @@ describe "String#[]= with a Regexp" do
     end
   end
 
+  with_feature :encoding do
+    it "replaces characters with a multibyte character" do
+      str = "ありgaとう"
+      str[/ga/] = "が"
+      str.should == "ありがとう"
+    end
+
+    it "replaces multibyte characters with characters" do
+      str = "ありがとう"
+      str[/が/] = "ga"
+      str.should == "ありgaとう"
+    end
+
+    it "replaces multibyte characters with multibyte characters" do
+      str = "ありがとう"
+      str[/が/] = "か"
+      str.should == "ありかとう"
+    end
+  end
 end
 
-describe "String#[]= with index, count" do
+describe "String#[]= with a Range index" do
+  it "replaces the contents with a shorter String" do
+    str = "abcde"
+    str[0..-1] = "hg"
+    str.should == "hg"
+  end
+
+  it "replaces the contents with a longer String" do
+    str = "abc"
+    str[0...4] = "uvwxyz"
+    str.should == "uvwxyz"
+  end
+
+  it "replaces a partial string" do
+    str = "abcde"
+    str[1..3] = "B"
+    str.should == "aBe"
+  end
+
+  with_feature :encoding do
+    it "replaces characters with a multibyte character" do
+      str = "ありgaとう"
+      str[2..3] = "が"
+      str.should == "ありがとう"
+    end
+
+    it "replaces multibyte characters with characters" do
+      str = "ありがとう"
+      str[2...3] = "ga"
+      str.should == "ありgaとう"
+    end
+
+    it "replaces multibyte characters with multibyte characters" do
+      str = "ありがとう"
+      str[2..2] = "か"
+      str.should == "ありかとう"
+    end
+
+    it "deletes a multibyte character" do
+      str = "ありとう"
+      str[2..3] = ""
+      str.should == "あり"
+    end
+
+    it "inserts a multibyte character" do
+      str = "ありとう"
+      str[2...2] = "が"
+      str.should == "ありがとう"
+    end
+  end
+end
+
+describe "String#[]= with Fixnum index, count" do
   it "starts at idx and overwrites count characters before inserting the rest of other_str" do
     a = "hello"
     a[0, 2] = "xx"
@@ -312,5 +456,41 @@ describe "String#[]= with index, count" do
     lambda { "hello"[0, 2] = nil  }.should raise_error(TypeError)
     lambda { "hello"[0, 2] = []   }.should raise_error(TypeError)
     lambda { "hello"[0, 2] = 33   }.should raise_error(TypeError)
+  end
+
+  with_feature :encoding do
+    it "replaces characters with a multibyte character" do
+      str = "ありgaとう"
+      str[2, 2] = "が"
+      str.should == "ありがとう"
+    end
+
+    it "replaces multibyte characters with characters" do
+      str = "ありがとう"
+      str[2, 1] = "ga"
+      str.should == "ありgaとう"
+    end
+
+    it "replaces multibyte characters with multibyte characters" do
+      str = "ありがとう"
+      str[2, 1] = "か"
+      str.should == "ありかとう"
+    end
+
+    it "deletes a multibyte character" do
+      str = "ありとう"
+      str[2, 2] = ""
+      str.should == "あり"
+    end
+
+    it "inserts a multibyte character" do
+      str = "ありとう"
+      str[2, 0] = "が"
+      str.should == "ありがとう"
+    end
+
+    it "raises an IndexError if the character index is out of range of a multibyte String" do
+      lambda { "あれ"[3] = "り" }.should raise_error(IndexError)
+    end
   end
 end
