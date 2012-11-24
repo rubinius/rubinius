@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes.rb', __FILE__)
 
@@ -181,9 +182,29 @@ describe "String#[]= with String" do
     lambda { "test"[1] = mock('x') }.should raise_error(TypeError)
     lambda { "test"[1] = nil       }.should raise_error(TypeError)
   end
+
+  with_feature :encoding do
+    it "replaces characters with a multibyte character" do
+      str = "ありgaとう"
+      str["ga"] = "が"
+      str.should == "ありがとう"
+    end
+
+    it "replaces multibyte characters with characters" do
+      str = "ありがとう"
+      str["が"] = "ga"
+      str.should == "ありgaとう"
+    end
+
+    it "replaces multibyte characters with multibyte characters" do
+      str = "ありがとう"
+      str["が"] = "か"
+      str.should == "ありかとう"
+    end
+  end
 end
 
-describe "String#[]= matching with a Regexp" do
+describe "String#[]= with a Regexp" do
   it "replaces the matched text with the rhs" do
     str = "hello"
     str[/lo/] = "x"
