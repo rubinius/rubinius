@@ -646,7 +646,7 @@ namespace rubinius {
       sig << "State";
 
       Function* func = sig.function("rbx_float_allocate");
-      func->setDoesNotAlias(0, true); // return value
+      func->setDoesNotAlias(0); // return value
 
       Value* call_args[] = { ops.vm() };
       CallInst* res = sig.call("rbx_float_allocate", call_args, 1, "result", ops.b());
@@ -1091,10 +1091,10 @@ namespace rubinius {
           }
 
           Function* func = sig.function(stub_res.name());
-          func->setDoesNotCapture(1, true);
+          func->setDoesNotCapture(1);
 
           if(stub_res.pass_callframe()) {
-            func->setDoesNotCapture(2, true);
+            func->setDoesNotCapture(2);
           }
 
           Value* res = sig.call(stub_res.name(), call_args, "prim_value", ops_.b());
