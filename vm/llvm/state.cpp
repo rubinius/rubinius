@@ -10,8 +10,6 @@
 #include "llvm/disassembler.hpp"
 #include "llvm/jit_context.hpp"
 
-#include "vm/config.h"
-
 #include "builtin/fixnum.hpp"
 #include "builtin/constantscope.hpp"
 #include "builtin/module.hpp"
@@ -28,7 +26,11 @@
 #include "configuration.hpp"
 #include "instruments/timing.hpp"
 
+#if RBX_LLVM_API_VER >= 302
+#include <llvm/DataLayout.h>
+#else
 #include <llvm/Target/TargetData.h>
+#endif
 // #include <llvm/LinkAllPasses.h>
 #include <llvm/Analysis/Verifier.h>
 #include <llvm/Transforms/Scalar.h>
@@ -524,7 +526,11 @@ namespace rubinius {
 
     passes_ = new llvm::FunctionPassManager(module_);
 
+#if RBX_LLVM_API_VER >= 302
+    passes_->add(new llvm::DataLayout(*engine_->getDataLayout()));
+#else
     passes_->add(new llvm::TargetData(*engine_->getTargetData()));
+#endif
 
     if(fast_code_passes) {
       add_fast_passes(passes_);

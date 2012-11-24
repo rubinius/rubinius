@@ -21,7 +21,11 @@
 #include <llvm/Value.h>
 #include <llvm/BasicBlock.h>
 #include <llvm/Function.h>
+#if RBX_LLVM_API_VER >= 302
+#include <llvm/IRBuilder.h>
+#else
 #include <llvm/Support/IRBuilder.h>
+#endif
 #include <llvm/CallingConv.h>
 
 using namespace llvm;

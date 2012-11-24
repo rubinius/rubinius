@@ -14,8 +14,11 @@
 
 #include "objectmemory.hpp"
 
+#if RBX_LLVM_API_VER >= 302
+#include <llvm/DataLayout.h>
+#else
 #include <llvm/Target/TargetData.h>
-// #include <llvm/LinkAllPasses.h>
+#endif
 #include <llvm/Analysis/Verifier.h>
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/CallingConv.h>

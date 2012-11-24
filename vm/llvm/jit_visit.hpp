@@ -2076,8 +2076,8 @@ use_send:
       Function* func = cast<Function>(
           module_->getOrInsertFunction("rbx_push_const_fast", ft));
 
-      func->setOnlyReadsMemory(true);
-      func->setDoesNotThrow(true);
+      func->setOnlyReadsMemory();
+      func->setDoesNotThrow();
 
       flush();
 
@@ -2091,8 +2091,8 @@ use_send:
       CallInst* ret = b().CreateCall(func, call_args,
                                        "push_const_fast");
 
-      ret->setOnlyReadsMemory(true);
-      ret->setDoesNotThrow(true);
+      ret->setOnlyReadsMemory();
+      ret->setDoesNotThrow();
 
       check_for_exception(ret);
 
@@ -2806,9 +2806,9 @@ use_send:
       Function* func = cast<Function>(
           module_->getOrInsertFunction("rbx_check_interrupts", ft));
 
-      func->setDoesNotCapture(0, true);
-      func->setDoesNotCapture(1, true);
-      func->setDoesNotCapture(2, true);
+      func->setDoesNotCapture(0);
+      func->setDoesNotCapture(1);
+      func->setDoesNotCapture(2);
 
       flush();
 

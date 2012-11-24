@@ -4,12 +4,18 @@
 #include <stdint.h>
 #include <unistd.h>
 
+#include "vm/config.h"
+
 #include <llvm/Module.h>
 #include <llvm/DerivedTypes.h>
 #include <llvm/Function.h>
 #include <llvm/Module.h>
 #include <llvm/Instructions.h>
+#if RBX_LLVM_API_VER >= 302
+#include <llvm/IRBuilder.h>
+#else
 #include <llvm/Support/IRBuilder.h>
+#endif
 #include <llvm/ExecutionEngine/JIT.h>
 #include <llvm/CodeGen/MachineCodeInfo.h>
 #include <llvm/Pass.h>
@@ -301,7 +307,7 @@ namespace rubinius {
     }
 
     void setDoesNotCapture(const char* name, int which) {
-      function(name)->setDoesNotCapture(which, true);
+      function(name)->setDoesNotCapture(which);
     }
 
     llvm::CallInst* call(const char* name, llvm::Value** start, int size,

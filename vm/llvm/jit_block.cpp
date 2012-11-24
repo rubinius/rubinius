@@ -460,13 +460,13 @@ namespace jit {
       };
 
       Function* func = sig.function("rbx_construct_splat");
-      func->setOnlyReadsMemory(true);
-      func->setDoesNotThrow(true);
+      func->setOnlyReadsMemory();
+      func->setDoesNotThrow();
 
       CallInst* splat_val = sig.call("rbx_construct_splat", call_args, 4, "splat_val", b());
 
-      splat_val->setOnlyReadsMemory(true);
-      splat_val->setDoesNotThrow(true);
+      splat_val->setOnlyReadsMemory();
+      splat_val->setDoesNotThrow();
 
       Value* idx3[] = {
         cint(0),
