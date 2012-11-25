@@ -16,8 +16,8 @@ def compile_file(file)
                   File.exists?(obj) and File.mtime(obj) > File.mtime(file)
 
   cc        = RbConfig::CONFIG["CC"]
-  cflags    = (ENV["CFLAGS"] || RbConfig::CONFIG["CFLAGS"]).dup
-  output = `#{cc} #{cflags} -fPIC -c #{file} -o #{obj}`
+  cflags    = RbConfig::CONFIG["CFLAGS"]
+  output    = `#{cc} #{cflags} #{ENV["CFLAGS"]} -c #{file} -o #{obj}`
 
   if $?.exitstatus != 0 or !File.exists?(obj)
     puts "ERROR:\n#{file}"
