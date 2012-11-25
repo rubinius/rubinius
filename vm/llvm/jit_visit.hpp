@@ -79,10 +79,6 @@ namespace rubinius {
     bool allow_private_;
     opcode call_flags_;
 
-    // Cached Function*s
-    llvm::Function* rbx_simple_send_;
-    llvm::Function* rbx_simple_send_private_;
-
     // bail out destinations
     llvm::BasicBlock* bail_out_;
     llvm::BasicBlock* bail_out_fast_;
@@ -123,8 +119,6 @@ namespace rubinius {
       , block_map_(bm)
       , allow_private_(false)
       , call_flags_(0)
-      , rbx_simple_send_(0)
-      , rbx_simple_send_private_(0)
       , method_entry_(info.profiling_entry())
       , args_(info.args())
       , vars_(info.variables())

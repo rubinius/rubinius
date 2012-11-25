@@ -17,10 +17,7 @@ namespace rubinius {
   class ObjectMemory;
   class ObjectHeader;
 
-  class GCTokenImpl {
-  private:
-    int dummy;
-  };
+  class GCTokenImpl {};
 
   typedef GCTokenImpl& GCToken;
 
