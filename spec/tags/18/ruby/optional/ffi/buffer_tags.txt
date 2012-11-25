@@ -1982,3 +1982,8 @@ fails:Reading/Writing ascii strings Buffer#get_string with string containing zer
 fails:Reading/Writing ascii strings Buffer#put_string without length should NUL terminate
 fails:Buffer#put_pointer put_pointer(0, p).get_pointer(0) == p
 fails:Buffer#size should return size
+fails:Reading/Writing binary strings Buffer#write_bytes
+fails:Reading/Writing binary strings Buffer#write_bytes with index and length
+fails:Reading/Writing binary strings Buffer#write_bytes with only index
+fails:Reading/Writing binary strings Buffer#write_bytes with index > str.length
+fails:Reading/Writing binary strings Buffer#write_bytes with negative index

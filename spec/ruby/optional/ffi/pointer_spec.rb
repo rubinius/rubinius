@@ -199,5 +199,22 @@ describe "AutoPointer" do
     end
 
   end
+
+  describe "#autorelease?" do
+    ptr_class = Class.new(FFI::AutoPointer) do
+      def self.release(ptr); end
+    end
+
+    it "should be true by default" do
+      ptr_class.new(FFI::Pointer.new(0xdeadbeef)).autorelease?.should be_true
+    end
+
+    it "should return false when autorelease=(false)" do
+      ptr = ptr_class.new(FFI::Pointer.new(0xdeadbeef))
+      ptr.autorelease = false
+      ptr.autorelease?.should be_false
+    end
+  end
+
 end
 

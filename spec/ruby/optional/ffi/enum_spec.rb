@@ -213,4 +213,8 @@ describe "All enums" do
     enum[42424241].should == nil
     enum[42424243].should == nil
   end
+
+  it "duplicate enum keys rejected" do
+    lambda { enum [ :a, 0xfee1dead, :b, 0xdeadbeef, :a, 0 ] }.should raise_error
+  end
 end

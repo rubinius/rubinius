@@ -91,14 +91,14 @@ describe "Callback" do
     LibTest.testCallbackVrS8 { 127 }.should == 127
   end
   it "returning :char (-128)" do
-    LibTest.testCallbackVrS8 { -128 }.should eq(-128)
+    LibTest.testCallbackVrS8 { -128 }.should == -128
   end
   # test wrap around
   it "returning :char (128)" do
-    LibTest.testCallbackVrS8 { 128 }.should eq(-128)
+    LibTest.testCallbackVrS8 { 128 }.should == -128
   end
   it "returning :char (255)" do
-    LibTest.testCallbackVrS8 { 0xff }.should eq(-1)
+    LibTest.testCallbackVrS8 { 0xff }.should == -1
   end
   it "returning :uchar (0)" do
     LibTest.testCallbackVrU8 { 0 }.should == 0
@@ -123,10 +123,10 @@ describe "Callback" do
   end
   # test wrap around
   it "returning :short (0x8000)" do
-    LibTest.testCallbackVrS16 { 0x8000 }.should eq(-0x8000)
+    LibTest.testCallbackVrS16 { 0x8000 }.should == -0x8000
   end
   it "returning :short (0xffff)" do
-    LibTest.testCallbackVrS16 { 0xffff }.should eq(-1)
+    LibTest.testCallbackVrS16 { 0xffff }.should == -1
   end
   it "returning :ushort (0)" do
     LibTest.testCallbackVrU16 { 0 }.should == 0
@@ -151,10 +151,10 @@ describe "Callback" do
   end
   # test wrap around
   it "returning :int (-0x80000000)" do
-    LibTest.testCallbackVrS32 { -0x80000000 }.should eq(-0x80000000)
+    LibTest.testCallbackVrS32 { -0x80000000 }.should == -0x80000000
   end
   it "returning :int (-1)" do
-    LibTest.testCallbackVrS32 { -1 }.should eq(-1)
+    LibTest.testCallbackVrS32 { -1 }.should == -1
   end
   it "returning :uint (0)" do
     LibTest.testCallbackVrU32 { 0 }.should == 0
@@ -180,10 +180,10 @@ describe "Callback" do
   end
   # test wrap around
   it "returning :long (-0x80000000)" do
-    LibTest.testCallbackVrL { -0x80000000 }.should eq(-0x80000000)
+    LibTest.testCallbackVrL { -0x80000000 }.should == -0x80000000
   end
   it "returning :long (-1)" do
-    LibTest.testCallbackVrL { -1 }.should eq(-1)
+    LibTest.testCallbackVrL { -1 }.should == -1
   end
   it "returning :ulong (0)" do
     LibTest.testCallbackVrUL { 0 }.should == 0
@@ -213,10 +213,10 @@ describe "Callback" do
   end
   # test wrap around
   it "returning :long_long (-0x8000000000000000)" do
-    LibTest.testCallbackVrS64 { -0x8000000000000000 }.should eq(-0x8000000000000000)
+    LibTest.testCallbackVrS64 { -0x8000000000000000 }.should == -0x8000000000000000
   end
   it "returning :long_long (-1)" do
-    LibTest.testCallbackVrS64 { -1 }.should eq(-1)
+    LibTest.testCallbackVrS64 { -1 }.should == -1
   end
   it "returning bool" do
     LibTest.testCallbackVrZ { true }.should be_true
@@ -445,12 +445,12 @@ describe "Callback with " do
   it ":char (-128) argument" do
     v = 0xdeadbeef
     LibTest.testCallbackCrV(-128) { |i| v = i }
-    v.should eq(-128)
+    v.should == -128
   end
   it ":char (-1) argument" do
     v = 0xdeadbeef
     LibTest.testCallbackCrV(-1) { |i| v = i }
-    v.should eq(-1)
+    v.should == -1
   end
   it ":uchar (0) argument" do
     v = 0xdeadbeef
@@ -486,12 +486,12 @@ describe "Callback with " do
   it ":short (-0x8000) argument" do
     v = 0xdeadbeef
     LibTest.testCallbackSrV(-0x8000) { |i| v = i }
-    v.should eq(-0x8000)
+    v.should == -0x8000
   end
   it ":short (-1) argument" do
     v = 0xdeadbeef
     LibTest.testCallbackSrV(-1) { |i| v = i }
-    v.should eq(-1)
+    v.should == -1
   end
   it ":ushort (0) argument" do
     v = 0xdeadbeef
@@ -531,12 +531,12 @@ describe "Callback with " do
   it ":int (-0x80000000) argument" do
     v = 0xdeadbeef
     LibTest.testCallbackIrV(-0x80000000) { |i| v = i }
-    v.should eq(-0x80000000)
+    v.should == -0x80000000
   end
   it ":int (-1) argument" do
     v = 0xdeadbeef
     LibTest.testCallbackIrV(-1) { |i| v = i }
-    v.should eq(-1)
+    v.should == -1
   end
   it ":uint (0) argument" do
     v = 0xdeadbeef
@@ -571,12 +571,12 @@ describe "Callback with " do
   it ":long (-0x80000000) argument" do
     v = 0xdeadbeef
     LibTest.testCallbackLrV(-0x80000000) { |i| v = i }
-    v.should eq(-0x80000000)
+    v.should == -0x80000000
   end
   it ":long (-1) argument" do
     v = 0xdeadbeef
     LibTest.testCallbackLrV(-1) { |i| v = i }
-    v.should eq(-1)
+    v.should == -1
   end
   it ":ulong (0) argument" do
     v = 0xdeadbeef
@@ -611,12 +611,12 @@ describe "Callback with " do
   it ":long_long (-0x8000000000000000) argument" do
     v = 0xdeadbeef
     LibTest.testCallbackLLrV(-0x8000000000000000) { |i| v = i }
-    v.should eq(-0x8000000000000000)
+    v.should == -0x8000000000000000
   end
   it ":long_long (-1) argument" do
     v = 0xdeadbeef
     LibTest.testCallbackLLrV(-1) { |i| v = i }
-    v.should eq(-1)
+    v.should == -1
   end
   it ":string argument" do
     v = nil
@@ -654,4 +654,14 @@ describe "Callback with " do
     v.pointer.should == FFI::Pointer::NULL
   end
 
-end # unless true
+  it "varargs parameters are rejected" do
+    lambda {
+      Module.new do
+        extend FFI::Library
+        ffi_lib TestLibrary::PATH
+        callback :cbVrL, [ :varargs ], :long
+      end
+    }.should raise_error(ArgumentError)
+  end
+
+end

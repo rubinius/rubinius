@@ -89,7 +89,7 @@ describe "Struct tests" do
       layout :a, :int, :b, :long_long
     end
     ll_off = (FFI::TYPE_UINT64.alignment == 4 ? 4 : 8)
-    PairLayout.size.should eq(ll_off + 8)
+    PairLayout.size.should == (ll_off + 8)
     mp = FFI::MemoryPointer.new(PairLayout.size)
     s = PairLayout.new mp
     s[:a] = 0x12345678
@@ -101,7 +101,7 @@ describe "Struct tests" do
     class PairLayout < FFI::Struct
       layout :a, :int, 0, :b, :long_long, 4
     end
-    PairLayout.size.should eq(FFI::TYPE_UINT64.alignment == 4 ? 12 : 16)
+    PairLayout.size.should == (FFI::TYPE_UINT64.alignment == 4 ? 12 : 16)
     mp = FFI::MemoryPointer.new(PairLayout.size)
     s = PairLayout.new mp
     s[:a] = 0x12345678
@@ -113,7 +113,7 @@ describe "Struct tests" do
     class MixedLayout < FFI::Struct
       layout :a, :int, :b, :long_long, 4
     end
-    MixedLayout.size.should eq(FFI::TYPE_UINT64.alignment == 4 ? 12 : 16)
+    MixedLayout.size.should == (FFI::TYPE_UINT64.alignment == 4 ? 12 : 16)
     mp = FFI::MemoryPointer.new(MixedLayout.size)
     s = MixedLayout.new mp
     s[:a] = 0x12345678
@@ -128,7 +128,7 @@ describe "Struct tests" do
         layout :a => :int, :b => :long_long
       end
       ll_off = (FFI::TYPE_UINT64.alignment == 4? 4 : 8)
-      HashLayout.size.should eq(ll_off + 8)
+      HashLayout.size.should == (ll_off + 8)
       mp = FFI::MemoryPointer.new(HashLayout.size)
       s = HashLayout.new mp
       s[:a] = 0x12345678
@@ -667,7 +667,7 @@ describe "Struct allocation" do
     p.type_size.should == 4
     p.put_uint(4, 0xdeadbeef)
     S.new(p[1])[:i].should == 0xdeadbeef
-    p[1].address.should == p[0].address + 4
+    p[1].address.should == (p[0].address + 4)
   end
 
   it "Buffer.new(Struct, 2)" do
@@ -705,4 +705,44 @@ describe "Struct allocation" do
     end.should_not raise_error
   end
 
+end
+
+describe "variable-length arrays" do
+  it "zero length array should be accepted as last field" do
+    lambda {
+      Class.new(FFI::Struct) do
+        layout :count, :int, :data, [ :char, 0 ]
+      end
+    }.should_not raise_error
+  end
+
+  it "zero length array before last element should raise error" do
+    lambda {
+      Class.new(FFI::Struct) do
+        layout :data, [ :char, 0 ], :count, :int
+      end
+    }.should raise_error
+  end
+
+  it "can access elements of array" do
+    struct_class = Class.new(FFI::Struct) do
+      layout :count, :int, :data, [ :long, 0 ]
+    end
+    s = struct_class.new(FFI::MemoryPointer.new(1024))
+    s[:data][0] = 0x1eadbeef
+    s[:data][1] = 0x12345678
+    s[:data][0].should == 0x1eadbeef
+    s[:data][1].should == 0x12345678
+  end
+
+  it "non-variable length array is bounds checked" do
+    struct_class = Class.new(FFI::Struct) do
+      layout :count, :int, :data, [ :long, 1 ]
+    end
+    s = struct_class.new(FFI::MemoryPointer.new(1024))
+    s[:data][0] = 0x1eadbeef
+    lambda { s[:data][1] = 0x12345678 }.should raise_error
+    s[:data][0].should == 0x1eadbeef
+    lambda { s[:data][1].should == 0x12345678 }.should raise_error
+  end
 end
