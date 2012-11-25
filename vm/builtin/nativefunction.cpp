@@ -728,9 +728,9 @@ namespace rubinius {
       heap_allocations[i] = 0;
     }
 
-    ffi_type** types;
+    ffi_type** types = NULL;
     ffi_cif* cif = &ffi_data_local->cif;
-    ffi_type* rtype;
+    ffi_type* rtype = NULL;
 
     if(CBOOL(varargs())) {
       // If we have a varargs call, we need to copy the data. We can't
