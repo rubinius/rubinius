@@ -1082,9 +1082,9 @@ class String
       capture += match.size
     end
 
-    start  = match.begin(capture)
-    length = match.end(capture) - start
-    splice! start, length, replacement
+    bi = byteindex match.begin(capture)
+    bs = byteindex(match.end(capture)) - bi
+    splice! bi, bs, replacement
   end
 
   def splice!(start, count, replacement)
