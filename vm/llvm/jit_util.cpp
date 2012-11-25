@@ -1268,10 +1268,7 @@ extern "C" {
   }
 
   void rbx_setup_unwind(STATE, int count, uint32_t target_ip, int stack_depth, UnwindType type) {
-    UnwindInfo& uw = state->vm()->unwinds()[count];
-    uw.target_ip   = target_ip;
-    uw.stack_depth = stack_depth;
-    uw.type        = type;
+    state->vm()->unwinds().set_unwind_info(count, target_ip, stack_depth, type);
   }
 
   Object* rbx_continue_uncommon(STATE, CallFrame* call_frame,
@@ -1316,10 +1313,11 @@ extern "C" {
       }
     }
 
+    state->vm()->unwinds().set_current(unwind_count);
     return MachineCode::uncommon_interpreter(state, mcode, call_frame,
                                           entry_ip, sp,
                                           method_call_frame, rd,
-                                          unwind_count, state->vm()->unwinds());
+                                          state->vm()->unwinds());
   }
 
   Object* rbx_restart_interp(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args) {
@@ -1359,8 +1357,9 @@ extern "C" {
       call_frame->stk[++sp] = top_of_stack;
     }
 
+    state->vm()->unwinds().set_current(unwind_count);
     return MachineCode::debugger_interpreter_continue(state, mcode, call_frame,
-                                          sp, is, unwind_count, state->vm()->unwinds());
+                                          sp, is, state->vm()->unwinds());
   }
 
   Object* rbx_flush_scope(STATE, StackVariables* vars) {

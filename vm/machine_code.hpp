@@ -184,13 +184,12 @@ namespace rubinius {
                                        CallFrame* const call_frame,
                                        int sp,
                                        InterpreterState& is,
-                                       int current_unwind,
-                                       UnwindInfo* unwinds);
+                                       UnwindInfoSet& unwinds);
 
     static Object* uncommon_interpreter(STATE, MachineCode* const mcode,
       CallFrame* const call_frame, int32_t entry_ip, native_int sp,
       CallFrame* const method_call_frame, jit::RuntimeDataHolder* rd,
-      int current_unwind, UnwindInfo* unwinds);
+      UnwindInfoSet& unwinds);
 
     static Object* tooling_interpreter(STATE,
                                        MachineCode* const mcode,

@@ -85,7 +85,7 @@ namespace rubinius {
     friend class State;
 
   private:
-    UnwindInfo unwinds_[kMaxUnwindInfos];
+    UnwindInfoSet unwinds_;
 
     CallFrame* saved_call_frame_;
     uintptr_t stack_start_;
@@ -140,7 +140,7 @@ namespace rubinius {
 
   public: /* Inline methods */
 
-    UnwindInfo* unwinds() {
+    UnwindInfoSet& unwinds() {
       return unwinds_;
     }
 

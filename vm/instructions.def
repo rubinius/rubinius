@@ -496,11 +496,7 @@ end
 #   pop_unwind
 
 instruction setup_unwind(ip type) [ -- ] => handler
-  interp_assert(current_unwind < kMaxUnwindInfos);
-  UnwindInfo& info = unwinds[current_unwind++];
-  info.target_ip = ip;
-  info.stack_depth = stack_calculate_sp();
-  info.type = (UnwindType)type;
+  unwinds.push(ip, stack_calculate_sp(), (UnwindType)type);
 end
 
 # [Description]
@@ -512,11 +508,11 @@ end
 #   setup_unwind
 
 instruction pop_unwind() [ -- ]
-  if(current_unwind <= 0) {
+  if(!unwinds.has_unwinds()) {
     Exception::internal_error(state, call_frame, "unbalanced pop_unwind");
     RUN_EXCEPTION();
   }
-  --current_unwind;
+  unwinds.drop();
 end
 
 # [Description]
