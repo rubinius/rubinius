@@ -190,7 +190,7 @@ namespace rubinius {
     static Object* uncommon_interpreter(STATE, MachineCode* const mcode,
       CallFrame* const call_frame, int32_t entry_ip, native_int sp,
       CallFrame* const method_call_frame, jit::RuntimeDataHolder* rd,
-      int32_t unwind_count, int32_t* unwinds);
+      int current_unwind, UnwindInfo* unwinds);
 
     static Object* tooling_interpreter(STATE,
                                        MachineCode* const mcode,

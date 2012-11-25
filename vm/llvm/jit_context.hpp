@@ -25,7 +25,6 @@ namespace jit {
     llvm::Value* vm_;
     llvm::Value* out_args_;
     llvm::Value* counter_;
-    llvm::Value* unwind_info_;
 
   public:
     Context(LLVMState* ls);
@@ -97,14 +96,6 @@ namespace jit {
 
     void set_counter(llvm::Value* counter) {
       counter_ = counter;
-    }
-
-    llvm::Value* unwind_info() {
-      return unwind_info_;
-    }
-
-    void set_unwind_info(llvm::Value* unwind) {
-      unwind_info_ = unwind;
     }
 
     void init_variables(llvm::IRBuilder<>& b);

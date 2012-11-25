@@ -170,6 +170,14 @@ namespace InlineCacheHit {
   const static int seen_class = 0;
   const static int hits = 1;
 }
+namespace State {
+  const static int vm = 0;
+  const static int shared = 1;
+}
+namespace VM {
+  const static int unwinds = 0;
+  const static int saved_call_frame = 1;
+}
 }
 
 #endif

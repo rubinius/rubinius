@@ -98,10 +98,6 @@ namespace rubinius {
       return profiling_entry_;
     }
 
-    llvm::Value* unwind_info() {
-      return context_.unwind_info();
-    }
-
     void set_entry(llvm::BasicBlock* entry) {
       entry_ = entry;
     }

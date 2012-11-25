@@ -356,7 +356,6 @@ namespace rubinius {
       sig << ls_->IntPtrTy;
       sig << "CallFrame";
       sig << ls_->Int32Ty;
-      sig << llvm::PointerType::getUnqual(ls_->Int32Ty);
 
       int unwinds = emit_unwinds();
 
@@ -369,11 +368,10 @@ namespace rubinius {
         sp,
         root_callframe,
         cint(unwinds),
-        info().unwind_info(),
         (pass_top ? val : Constant::getNullValue(val->getType()))
       };
 
-      Value* call = sig.call("rbx_continue_debugging", call_args, 8, "", b());
+      Value* call = sig.call("rbx_continue_debugging", call_args, 7, "", b());
 
       info().add_return_value(call, current_block());
       b().CreateBr(info().return_pad());
@@ -1305,26 +1303,24 @@ namespace rubinius {
       }
 
       jbb = current_jbb_->exception_handler;
-      Value* unwinds = info().unwind_info();
 
-      for(int slice = (count - 1) * 3; slice >= 0; slice -= 3) {
-        /*
-        std::cout << "unwind: " << jbb->start_ip
-                  << " sp: " << jbb->sp
-                  << " type: " << jbb->exception_type
-                  << "\n";
-        */
+      Signature sig(ls_, ls_->VoidTy);
 
-        b().CreateStore(
-            cint(jbb->start_ip),
-            b().CreateConstGEP1_32(unwinds, slice, "unwind_ip"));
-        b().CreateStore(
-            cint(jbb->sp),
-            b().CreateConstGEP1_32(unwinds, slice + 1, "unwind_sp"));
-        b().CreateStore(
-            cint(jbb->exception_type),
-            b().CreateConstGEP1_32(unwinds, slice + 2, "unwind_type"));
+      sig << "State";
+      sig << ls_->Int32Ty;
+      sig << ls_->Int32Ty;
+      sig << ls_->Int32Ty;
+      sig << ls_->Int32Ty;
 
+      for(int i = count - 1; i >= 0; --i) {
+        Value* call_args[] = {
+          vm_,
+          cint(i),
+          cint(jbb->start_ip),
+          cint(jbb->sp),
+          cint(jbb->exception_type)
+        };
+        sig.call("rbx_setup_unwind", call_args, 5, "", b());
         jbb = jbb->exception_handler;
       }
 
@@ -1347,7 +1343,6 @@ namespace rubinius {
       sig << "CallFrame";
       sig << ls_->VoidPtrTy;
       sig << ls_->Int32Ty;
-      sig << llvm::PointerType::getUnqual(ls_->Int32Ty);
 
       int unwinds = emit_unwinds();
 
@@ -1360,11 +1355,10 @@ namespace rubinius {
         sp,
         root_callframe,
         constant(info().context().runtime_data_holder(), ls_->VoidPtrTy),
-        cint(unwinds),
-        info().unwind_info()
+        cint(unwinds)
       };
 
-      Value* call = sig.call("rbx_continue_uncommon", call_args, 8, "", b());
+      Value* call = sig.call("rbx_continue_uncommon", call_args, 7, "", b());
 
       info().add_return_value(call, current_block());
       b().CreateBr(info().return_pad());

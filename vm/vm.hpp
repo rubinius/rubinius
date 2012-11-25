@@ -19,6 +19,7 @@
 
 #include "shared_state.hpp"
 
+#include "unwind_info.hpp"
 #include "fiber_stack.hpp"
 
 #include <vector>
@@ -84,6 +85,8 @@ namespace rubinius {
     friend class State;
 
   private:
+    UnwindInfo unwinds_[kMaxUnwindInfos];
+
     CallFrame* saved_call_frame_;
     uintptr_t stack_start_;
     uintptr_t stack_limit_;
@@ -136,6 +139,10 @@ namespace rubinius {
     static unsigned long cStackDepthMax;
 
   public: /* Inline methods */
+
+    UnwindInfo* unwinds() {
+      return unwinds_;
+    }
 
     uint32_t thread_id() {
       return id_;
