@@ -357,7 +357,7 @@ namespace agent {
 
   class ThreadCount : public DynamicVariable {
     SharedState& shared_;
-    State* state_;
+    State* state_ __attribute__((unused));
 
   public:
     ThreadCount(State* state, SharedState& ss, const char* name)

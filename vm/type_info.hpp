@@ -19,7 +19,7 @@ namespace rubinius {
 
   class GCTokenImpl {
   private:
-    int dummy;
+    int dummy __attribute__((unused));
   };
 
   typedef GCTokenImpl& GCToken;
