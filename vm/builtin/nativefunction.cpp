@@ -383,16 +383,16 @@ namespace rubinius {
         args->set(state, i, Fixnum::from(*(uint16_t*)parameters[i]));
         break;
       case RBX_FFI_TYPE_INT:
-        args->set(state, i, Fixnum::from(*(int*)parameters[i]));
+        args->set(state, i, Integer::from(state, *(int*)parameters[i]));
         break;
       case RBX_FFI_TYPE_UINT:
-        args->set(state, i, Fixnum::from(*(unsigned int*)parameters[i]));
+        args->set(state, i, Integer::from(state, *(unsigned int*)parameters[i]));
         break;
       case RBX_FFI_TYPE_LONG:
-        args->set(state, i, Fixnum::from(*(long*)parameters[i]));
+        args->set(state, i, Integer::from(state, *(long*)parameters[i]));
         break;
       case RBX_FFI_TYPE_ULONG:
-        args->set(state, i, Fixnum::from(*(unsigned long*)parameters[i]));
+        args->set(state, i, Integer::from(state, *(unsigned long*)parameters[i]));
         break;
       case RBX_FFI_TYPE_FLOAT:
         args->set(state, i, Float::create(state, *(float*)parameters[i]));
@@ -401,10 +401,10 @@ namespace rubinius {
         args->set(state, i, Float::create(state, *(double*)parameters[i]));
         break;
       case RBX_FFI_TYPE_LONG_LONG:
-        args->set(state, i, Fixnum::from(*(long long*)parameters[i]));
+        args->set(state, i, Integer::from(state, *(long long*)parameters[i]));
         break;
       case RBX_FFI_TYPE_ULONG_LONG:
-        args->set(state, i, Fixnum::from(*(unsigned long long*)parameters[i]));
+        args->set(state, i, Integer::from(state, *(unsigned long long*)parameters[i]));
         break;
       case RBX_FFI_TYPE_ENUM:{
         Array* ary = Array::create(state, 1);
