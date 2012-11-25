@@ -17,7 +17,7 @@ def compile_file(file)
 
   cc        = RbConfig::CONFIG["CC"]
   cflags    = (ENV["CFLAGS"] || RbConfig::CONFIG["CFLAGS"]).dup
-  output = `#{cc} #{cflags} -c #{file} -o #{obj}`
+  output = `#{cc} #{cflags} -fPIC -c #{file} -o #{obj}`
 
   if $?.exitstatus != 0 or !File.exists?(obj)
     puts "ERROR:\n#{file}"
@@ -32,9 +32,14 @@ def compile_library(path, lib)
 
   dir = File.expand_path("../#{path}", __FILE__)
   files = Dir["#{dir}/*.{c,cpp}"]
+  objs  = files.map do |f|
+    base      = f.gsub(/\.[^\.]+\Z/, "")
+    "#{base}.o"
+  end
   needs_compile = false
   files.each do |file|
-    needs_compile ||= compile_file(file)
+    file_compiled = compile_file(file)
+    needs_compile ||= file_compiled
   end
 
   lib = "#{dir}/#{lib}"
@@ -43,7 +48,7 @@ def compile_library(path, lib)
     libs      = RbConfig::CONFIG["LIBS"]
     dldflags  = RbConfig::CONFIG["DLDFLAGS"]
 
-    output = `#{ldshared} #{files.join(" ")} #{dldflags} #{libs} -o #{lib}`
+    output = `#{ldshared} #{objs.join(" ")} #{dldflags} #{libs} -o #{lib}`
 
     if $?.exitstatus != 0
       puts "ERROR:\n#{output}"
