@@ -50,7 +50,7 @@ namespace rubinius {
 
     if(i < 0 || i >= size) return nil<Character>();
 
-    OnigEncodingType* enc = str->encoding()->get_encoding();
+    OnigEncodingType* enc = str->encoding(state)->get_encoding();
     uint8_t* p = str->byte_address() + i;
     uint8_t* e = str->byte_address() + str->byte_size();
 

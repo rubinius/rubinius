@@ -58,6 +58,10 @@ class String
     byteslice index, length
   end
 
+  def byteindex(value, start=0)
+    Rubinius.invoke_primitive :string_byteindex, self, value, start
+  end
+
   def dup
     other = Rubinius.invoke_primitive :string_dup, self
     Rubinius.privately do

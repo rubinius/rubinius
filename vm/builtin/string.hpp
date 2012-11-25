@@ -241,6 +241,9 @@ namespace rubinius {
     // Rubinius.primitive :string_rindex
     Fixnum* rindex(STATE, String* pattern, Fixnum* start);
 
+    // Rubinius.primitive :string_byteindex
+    Fixnum* byteindex(STATE, Object* value, Fixnum* start);
+
     // Rubinius.primitive :string_transform
     String* transform(STATE, Tuple* table, Object* respect_kcode);
 

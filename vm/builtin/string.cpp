@@ -1527,6 +1527,84 @@ namespace rubinius {
     }
   }
 
+  Fixnum* String::byteindex(STATE, Object* value, Fixnum* start) {
+    native_int total = byte_size();
+    native_int offset = start->to_native();
+
+    if(String* pattern = try_as<String>(value)) {
+      native_int match_size = pattern->byte_size();
+
+      if(offset < 0) {
+        Exception::argument_error(state, "negative start given");
+      }
+
+      if(match_size == 0) return start;
+
+      if(!CBOOL(pattern->valid_encoding_p(state))) return nil<Fixnum>();
+
+      Encoding* encoding = Encoding::compatible_p(state, this, pattern);
+      if(encoding->nil_p()) {
+        Exception::argument_error(state, "encodings are incompatible");
+      }
+
+      OnigEncodingType* enc = encoding->get_encoding();
+      uint8_t* p = byte_address() + offset;
+      uint8_t* e = byte_address() + total;
+      uint8_t* pp = pattern->byte_address();
+      uint8_t* pe = pp + pattern->byte_size();
+      uint8_t* s;
+      uint8_t* ss;
+
+      for(s = p, ss = pp; p < e; s = ++p) {
+        if(*p != *pp) continue;
+
+        while(p < e && pp < pe && *(++p) == *(++pp))
+          ; // memcmp
+
+        if(pp < pe) {
+          p = s;
+          pp = ss;
+        } else {
+          int c = Encoding::precise_mbclen(s, e, enc);
+
+          if(ONIGENC_MBCLEN_CHARFOUND_P(c)) {
+            return Fixnum::from(s - byte_address());
+          } else {
+            return nil<Fixnum>();
+          }
+        }
+      }
+
+      return nil<Fixnum>();
+    } else if(Fixnum* index = try_as<Fixnum>(value)) {
+      OnigEncodingType* enc = encoding(state)->get_encoding();
+      uint8_t* p = byte_address();
+      uint8_t* e = p + total;
+      native_int i, k = index->to_native();
+
+      if(k < 0) {
+        Exception::argument_error(state, "character index is negative");
+      }
+
+      for(i = 0; i < k && p < e; i++) {
+        int c = Encoding::precise_mbclen(p, e, enc);
+
+        if(!ONIGENC_MBCLEN_CHARFOUND_P(c)) return nil<Fixnum>();
+
+        p += ONIGENC_MBCLEN_CHARFOUND_LEN(c);
+      }
+
+      if(i < k) {
+        return nil<Fixnum>();
+      } else {
+        return Fixnum::from(p - byte_address());
+      }
+    }
+
+    Exception::argument_error(state, "argument is not a String or Fixnum");
+    return nil<Fixnum>(); // satisfy compiler
+  }
+
   OnigEncodingType* String::get_encoding_kcode_fallback(STATE) {
     if(!LANGUAGE_18_ENABLED(state)) {
       if(!encoding_->nil_p()) {
