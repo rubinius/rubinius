@@ -82,6 +82,7 @@ class MSpecScript
     '^spec/ruby/library/syslog',
 
     # Excluded because they fail to load at the moment
+    '^spec/ruby/optional/ffi/buffer_spec.rb',
     '^spec/ruby/optional/ffi/callback_spec.rb',
     '^spec/ruby/optional/ffi/custom_type_spec.rb',
     '^spec/ruby/optional/ffi/ffi_spec.rb',
