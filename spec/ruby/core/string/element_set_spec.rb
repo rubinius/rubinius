@@ -291,6 +291,22 @@ describe "String#[]= with a Regexp index" do
   end
 
   describe "with 3 arguments" do
+    it "calls #to_int to convert the second object" do
+      ref = mock("string element set regexp ref")
+      ref.should_receive(:to_int).and_return(1)
+
+      str = "abc"
+      str[/a(b)/, ref] = "x"
+      str.should == "axc"
+    end
+
+    it "raises a TypeError if #to_int does not return a Fixnum" do
+      ref = mock("string element set regexp ref")
+      ref.should_receive(:to_int).and_return(nil)
+
+      lambda { "abc"[/a(b)/, ref] = "x" }.should raise_error(TypeError)
+    end
+
     it "uses the 2nd of 3 arguments as which capture should be replaced" do
       str = "aaa bbb ccc"
       str[/a (bbb) c/, 1] = "ddd"
@@ -332,6 +348,32 @@ describe "String#[]= with a Regexp index" do
 end
 
 describe "String#[]= with a Range index" do
+  describe "with an empty replacement" do
+    it "does not replace a character with a zero-index, zero exclude-end range" do
+      str = "abc"
+      str[0...0] = ""
+      str.should == "abc"
+    end
+
+    it "does not replace a character with a zero exclude-end range" do
+      str = "abc"
+      str[1...1] = ""
+      str.should == "abc"
+    end
+
+    it "replaces a character with zero-index, zero non-exclude-end range" do
+      str = "abc"
+      str[0..0] = ""
+      str.should == "bc"
+    end
+
+    it "replaces a character with a zero non-exclude-end range" do
+      str = "abc"
+      str[1..1] = ""
+      str.should == "ac"
+    end
+  end
+
   it "replaces the contents with a shorter String" do
     str = "abcde"
     str[0..-1] = "hg"
