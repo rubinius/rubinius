@@ -972,8 +972,8 @@ class String
       end
 
       stop = Rubinius::Type.coerce_to index.last, Fixnum, :to_int
-      stop -= 1 if index.exclude_end?
       stop += size if stop < 0
+      stop -= 1 if index.exclude_end?
 
       if stop < start
         bs = 0
@@ -985,6 +985,10 @@ class String
 
       splice! bi, bs, replacement
     when Regexp
+      if count
+        count = Rubinius::Type.coerce_to count, Fixnum, :to_int
+      end
+
       subpattern_set index, count || 0, replacement
     else
       index = Rubinius::Type.coerce_to index, Fixnum, :to_int
