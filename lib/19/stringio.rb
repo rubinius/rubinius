@@ -328,7 +328,8 @@ class StringIO
     if obj.is_a?(String)
       char = obj[0]
     else
-      char = Rubinius::Type.coerce_to obj, Integer, :to_int
+      c = Rubinius::Type.coerce_to obj, Integer, :to_int
+      char = (c & 0xff).chr
     end
 
     d = @__data__
