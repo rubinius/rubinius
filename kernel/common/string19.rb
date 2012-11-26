@@ -923,8 +923,6 @@ class String
 
     case index
     when Fixnum
-      # Handle this first because it's the most common.
-      # This is duplicated from the else branch, but don't dry it up.
       index += size if index < 0
 
       if index < 0 or index > size
