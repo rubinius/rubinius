@@ -69,7 +69,7 @@ namespace rubinius {
   void QueryAgent::initialize(STATE) {
     FD_ZERO(&fds_);
 
-    vars_ = new agent::VariableAccess(state, shared_);
+    vars_ = new agent::VariableAccess(state);
 
     tmp_path[0] = 0;
 

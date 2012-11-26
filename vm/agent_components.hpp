@@ -13,13 +13,11 @@ namespace agent {
   class Tree;
 
   class Output {
-    bert::IOWriter& writer_;
     bert::Encoder<bert::IOWriter> encoder_;
 
   public:
     Output(bert::IOWriter& writer_)
-      : writer_(writer_)
-      , encoder_(writer_)
+      : encoder_(writer_)
     {}
 
     bert::Encoder<bert::IOWriter>& e() {
@@ -44,7 +42,7 @@ namespace agent {
     Tree* system_;
 
   public:
-    VariableAccess(STATE, SharedState& ss);
+    VariableAccess(STATE);
     ~VariableAccess();
 
     Tree* root() {

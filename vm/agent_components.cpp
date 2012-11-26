@@ -221,20 +221,20 @@ namespace agent {
   };
 
   class VMConfig : public DynamicVariable {
-    SharedState& shared_;
+    State* state_;
 
   public:
-    VMConfig(SharedState& ss, const char* name)
+    VMConfig(State* state, const char* name)
       : DynamicVariable(name)
-      , shared_(ss)
+      , state_(state)
     {}
 
     virtual void read(Output& output) {
       output.ok("list");
-      output.e().write_tuple(shared_.config.items_size());
+      output.e().write_tuple(state_->shared().config.items_size());
 
-      for(config::Items::iterator i = shared_.config.items_begin();
-          i != shared_.config.items_end();
+      for(config::Items::iterator i = state_->shared().config.items_begin();
+          i != state_->shared().config.items_end();
           ++i) {
         config::ConfigItem* item = *i;
         output.e().write_binary(item->name());
@@ -242,7 +242,7 @@ namespace agent {
     }
 
     virtual bool read_path(Output& output, const char* path) {
-      if(config::ConfigItem* item = shared_.config.find(path)) {
+      if(config::ConfigItem* item = state_->shared().config.find(path)) {
         output.ok("value");
 
         std::ostringstream ss;
@@ -262,7 +262,7 @@ namespace agent {
     virtual bool set_path(Output& output, const char* path, bert::Value* val) {
       if(val->string_p()) {
         output.ok("value");
-        if(shared_.config.import(path, val->string())) {
+        if(state_->shared().config.import(path, val->string())) {
           output.e().write_atom("ok");
         } else {
           output.e().write_atom("unknown_key");
@@ -277,19 +277,17 @@ namespace agent {
 
   class Backtrace : public DynamicVariable {
     State* state_;
-    SharedState& shared_;
 
   public:
-    Backtrace(State* state, SharedState& ss, const char* name)
+    Backtrace(State* state, const char* name)
       : DynamicVariable(name)
       , state_(state)
-      , shared_(ss)
     {}
 
     virtual void read(Output& output) {
-      shared_.stop_threads_externally();
+      state_->shared().stop_threads_externally();
 
-      std::list<ManagedThread*>* threads = shared_.threads();
+      std::list<ManagedThread*>* threads = state_->shared().threads();
 
       output.ok("value");
 
@@ -307,27 +305,25 @@ namespace agent {
         }
       }
 
-      shared_.restart_threads_externally();
+      state_->shared().restart_threads_externally();
     }
   };
 
   class ThreadBacktrace : public DynamicVariable {
-    SharedState& shared_;
     State* state_;
 
   public:
-    ThreadBacktrace(State* state, SharedState& ss, const char* name)
+    ThreadBacktrace(State* state, const char* name)
       : DynamicVariable(name)
-      , shared_(ss)
       , state_(state)
     {}
 
     virtual void read(Output& output) {
-      shared_.stop_threads_externally();
+      state_->shared().stop_threads_externally();
 
       output.ok("list");
 
-      std::list<ManagedThread*>* thrs = shared_.threads();
+      std::list<ManagedThread*>* thrs = state_->shared().threads();
 
       output.e().write_tuple(thrs->size());
 
@@ -351,31 +347,29 @@ namespace agent {
         }
       }
 
-      shared_.restart_threads_externally();
+      state_->shared().restart_threads_externally();
     }
   };
 
   class ThreadCount : public DynamicVariable {
-    SharedState& shared_;
     State* state_;
 
   public:
-    ThreadCount(State* state, SharedState& ss, const char* name)
+    ThreadCount(State* state, const char* name)
       : DynamicVariable(name)
-      , shared_(ss)
       , state_(state)
     {}
 
     virtual void read(Output& output) {
-      shared_.stop_threads_externally();
+      state_->shared().stop_threads_externally();
 
       output.ok("value");
 
-      std::list<ManagedThread*>* thrs = shared_.threads();
+      std::list<ManagedThread*>* thrs = state_->shared().threads();
 
       output.e().write_integer(thrs->size());
 
-      shared_.restart_threads_externally();
+      state_->shared().restart_threads_externally();
     }
   };
   class DumpHeap: public DynamicVariable {
@@ -469,23 +463,23 @@ namespace agent {
     }
   };
 
-  VariableAccess::VariableAccess(State* state, SharedState& ss)
+  VariableAccess::VariableAccess(State* state)
     : root_(new Tree(""))
   {
     root_->add(new StaticInteger<int>("version", 2));
-    root_->add(new VMConfig(ss, "config"));
+    root_->add(new VMConfig(state, "config"));
 
     system_ = root_->get_tree("system");
     system_->add(new SystemName("name"));
     system_->add(new ProcessId("pid"));
-    system_->add(new Backtrace(state, ss, "backtrace"));
+    system_->add(new Backtrace(state, "backtrace"));
 
     Tree* mem = system_->get_tree("memory");
 
     mem->add(new DumpHeap(state, "dump"));
 
     Tree* young = mem->get_tree("young");
-    young->add(new StaticInteger<int>("bytes", ss.config.gc_bytes * 2));
+    young->add(new StaticInteger<int>("bytes", state->shared().config.gc_bytes * 2));
 
     Tree* mature = mem->get_tree("mature");
     mature->add(new ReadInteger<size_t>("bytes", &state->memory()->immix_usage()));
@@ -497,7 +491,7 @@ namespace agent {
     code->add(new ReadInteger<size_t>("bytes", &state->memory()->code_usage()));
 
     Tree* symbols = mem->get_tree("symbols");
-    symbols->add(new ReadInteger<size_t>("bytes", &ss.symbols.bytes_used()));
+    symbols->add(new ReadInteger<size_t>("bytes", &state->shared().symbols.bytes_used()));
 
     Tree* counter = mem->get_tree("counter");
     counter->add(new ReadAtomicInteger("young_objects",
@@ -531,12 +525,12 @@ namespace agent {
                        state->memory()->gc_stats.last_full_collection_time));
 
     Tree* jit = system_->get_tree("jit");
-    jit->add(new ReadAtomicInteger("methods", ss.stats.jitted_methods));
-    jit->add(new ReadAtomicInteger("time", ss.stats.jit_time_spent));
+    jit->add(new ReadAtomicInteger("methods", state->shared().stats.jitted_methods));
+    jit->add(new ReadAtomicInteger("time", state->shared().stats.jit_time_spent));
 
     Tree* threads = system_->get_tree("threads");
-    threads->add(new ThreadBacktrace(state, ss, "backtrace"));
-    threads->add(new ThreadCount(state, ss, "count"));
+    threads->add(new ThreadBacktrace(state, "backtrace"));
+    threads->add(new ThreadCount(state, "count"));
   }
 
   VariableAccess::~VariableAccess() {
