@@ -2,6 +2,10 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "String#byteindex with Fixnum" do
+  it "returns 0 for index 0 of an empty String" do
+    "".byteindex(0).should == 0
+  end
+
   it "returns the byte index of a character index" do
     "abcde".byteindex(1).should == 1
   end
