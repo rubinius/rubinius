@@ -350,6 +350,32 @@ describe "String#[]= with a Range index" do
     str.should == "aBe"
   end
 
+  it "raises a RangeError if negative Range begin is out of range" do
+    lambda { "abc"[-4..-2] = "x" }.should raise_error(RangeError)
+  end
+
+  it "raises a RangeError if positive Range begin is greater than String size" do
+    lambda { "abc"[4..2] = "x" }.should raise_error(RangeError)
+  end
+
+  it "uses the Range end as an index rather than a count" do
+    str = "abcdefg"
+    str[-5..3] = "xyz"
+    str.should == "abxyzefg"
+  end
+
+  it "treats a negative out-of-range Range end with a positive Range begin as a zero count" do
+    str = "abc"
+    str[1..-4] = "x"
+    str.should == "axbc"
+  end
+
+  it "treats a negative out-of-range Range end with a negative Range begin as a zero count" do
+    str = "abcd"
+    str[-1..-4] = "x"
+    str.should == "abcxd"
+  end
+
   with_feature :encoding do
     it "replaces characters with a multibyte character" do
       str = "ありgaとう"
@@ -360,6 +386,12 @@ describe "String#[]= with a Range index" do
     it "replaces multibyte characters with characters" do
       str = "ありがとう"
       str[2...3] = "ga"
+      str.should == "ありgaとう"
+    end
+
+    it "replaces multibyte characters by negative indexes" do
+      str = "ありがとう"
+      str[-3...-2] = "ga"
       str.should == "ありgaとう"
     end
 
@@ -440,6 +472,48 @@ describe "String#[]= with Fixnum index, count" do
     a = "hello"
     a[1, 4] = "x".taint
     a.tainted?.should == true
+  end
+
+  it "calls #to_int to convert the index and count objects" do
+    index = mock("string element set index")
+    index.should_receive(:to_int).and_return(-4)
+
+    count = mock("string element set count")
+    count.should_receive(:to_int).and_return(2)
+
+    str = "abcde"
+    str[index, count] = "xyz"
+    str.should == "axyzde"
+  end
+
+  it "raises a TypeError if #to_int for index does not return an Integer" do
+    index = mock("string element set index")
+    index.should_receive(:to_int).and_return("1")
+
+    lambda { "abc"[index, 2] = "xyz" }.should raise_error(TypeError)
+  end
+
+  it "raises a TypeError if #to_int for count does not return an Integer" do
+    count = mock("string element set count")
+    count.should_receive(:to_int).and_return("1")
+
+    lambda { "abc"[1, count] = "xyz" }.should raise_error(TypeError)
+  end
+
+  it "calls #to_str to convert the replacement object" do
+    r = mock("string element set replacement")
+    r.should_receive(:to_str).and_return("xyz")
+
+    str = "abcde"
+    str[2, 2] = r
+    str.should == "abxyze"
+  end
+
+  it "raises a TypeError of #to_str does not return a String" do
+    r = mock("string element set replacement")
+    r.should_receive(:to_str).and_return(nil)
+
+    lambda { "abc"[1, 1] = r }.should raise_error(TypeError)
   end
 
   it "raises an IndexError if |idx| is greater than the length of the string" do
