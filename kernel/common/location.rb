@@ -56,6 +56,10 @@ module Rubinius
       end
     end
 
+    def inspect
+      "#<Rubinius::Location #{describe}>"
+    end
+
     def describe_method
       if is_block or @name == @method.name
         @name.to_s
