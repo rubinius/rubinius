@@ -513,6 +513,9 @@
 
 /* Time */
 #define HAVE_RB_TIME_NEW                   1
+#ifdef RUBY_VERSION_IS_1_9
+#define HAVE_RB_TIME_NANO_NEW              1
+#endif
 
 /* Util */
 #define HAVE_RB_SCAN_ARGS                  1
