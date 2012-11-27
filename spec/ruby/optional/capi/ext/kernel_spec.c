@@ -260,6 +260,12 @@ static VALUE kernel_spec_rb_make_backtrace(VALUE self) {
 }
 #endif
 
+#ifdef HAVE_RB_OBJ_METHOD
+static VALUE kernel_spec_rb_obj_method(VALUE self, VALUE obj, VALUE method) {
+  return rb_obj_method(obj, method);
+}
+#endif
+
 void Init_kernel_spec() {
   VALUE cls;
   cls = rb_define_class("CApiKernelSpecs", rb_cObject);
@@ -356,6 +362,9 @@ void Init_kernel_spec() {
   rb_define_method(cls, "rb_make_backtrace", kernel_spec_rb_make_backtrace, 0);
 #endif
 
+#ifdef HAVE_RB_OBJ_METHOD
+  rb_define_method(cls, "rb_obj_method", kernel_spec_rb_obj_method, 2);
+#endif
 }
 
 #ifdef __cplusplus

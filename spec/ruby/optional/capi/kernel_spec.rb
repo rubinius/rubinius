@@ -414,4 +414,18 @@ describe "C-API Kernel function" do
       end
     end
   end
+
+  describe "rb_obj_method" do
+    it "returns the method object for a symbol" do
+      method = @s.rb_obj_method("test", :size)
+      method.owner.should == String
+      method.name.to_sym.should == :size
+    end
+
+    it "returns the method object for a string" do
+      method = @s.rb_obj_method("test", "size")
+      method.owner.should == String
+      method.name.to_sym.should == :size
+    end
+  end
 end
