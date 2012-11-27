@@ -73,4 +73,14 @@ extern "C" {
     std::cerr << "[FATAL] Out of memory. Game Over." << std::endl;
     exit(EXIT_FAILURE);
   }
+
+  VALUE rb_gc_enable() {
+    VALUE gc_class_handle = rb_const_get(rb_cObject, rb_intern("GC"));
+    return rb_funcall(gc_class_handle, rb_intern("enable"), 0);
+  }
+
+  VALUE rb_gc_disable() {
+    VALUE gc_class_handle = rb_const_get(rb_cObject, rb_intern("GC"));
+    return rb_funcall(gc_class_handle, rb_intern("disable"), 0);
+  }
 }

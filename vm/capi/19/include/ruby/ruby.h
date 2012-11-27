@@ -1331,6 +1331,12 @@ VALUE rb_uint2big(unsigned long number);
   /** Yet another way to request to run the GC */
   void    rb_gc();
 
+  /** Request to enable GC (is always enabled in Rubinius anyway) */
+  VALUE   rb_gc_enable();
+
+  /** Request to disable GC (doesn't actually happen) */
+  VALUE   rb_gc_disable();
+
   /** Mark variable global. Will not be GC'd. */
 #define rb_global_variable(address)   capi_gc_register_address(address, __FILE__, __LINE__)
 #define rb_gc_register_address(address)   capi_gc_register_address(address, __FILE__, __LINE__)
