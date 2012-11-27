@@ -1211,6 +1211,9 @@ VALUE rb_uint2big(unsigned long number);
   /** Taint an object and return it */
   VALUE rb_obj_taint(VALUE obj);
 
+  /** Returns Method object for given method name */
+  VALUE rb_obj_method(VALUE self, VALUE method);
+
   /** Returns a string formatted with Kernel#sprintf. */
   VALUE rb_f_sprintf(int argc, const VALUE* argv);
 

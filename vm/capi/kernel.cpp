@@ -354,4 +354,9 @@ extern "C" {
   VALUE rb_make_backtrace() {
     return rb_funcall(rb_mKernel, rb_intern("caller"), 0);
   }
+
+  VALUE rb_obj_method(VALUE self, VALUE method) {
+    return rb_funcall(self, rb_intern("method"), 1, method);
+  }
+
 }
