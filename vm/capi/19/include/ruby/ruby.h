@@ -690,6 +690,8 @@ VALUE rb_uint2big(unsigned long number);
 
 /** Return an integer type id for the object. @see rb_type() */
 #define TYPE(handle)      rb_type(handle)
+#define rb_type_p(obj, type) (rb_type(obj) == (type))
+#define RB_TYPE_P(obj, type) rb_type_p(obj, type)
 
 /** Alias to rb_type. This is not exactly the same as in MRI, but it makes sure
 + * that it won't segfault if you give BUILTIN_TYPE an immediate such as a Fixnum
