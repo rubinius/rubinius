@@ -1786,6 +1786,9 @@ VALUE rb_uint2big(unsigned long number);
   /** Raises an exception from the value of errno. */
   NORETURN(void rb_sys_fail(const char* mesg));
 
+  /** Raises an exception from the value of the given errno. */
+  NORETURN(void rb_syserr_fail(int err, const char* mesg));
+
   /** Evaluate the given string. */
   VALUE   rb_eval_string(const char* string);
 

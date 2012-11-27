@@ -234,6 +234,15 @@ extern "C" {
     exit(1);  // compiler snack.
   }
 
+  void rb_syserr_fail(int err, const char* mesg) {
+    if(!mesg) mesg = "system failure";
+
+    VALUE exc = rb_funcall(rb_eSystemCallError, rb_intern("new"), 2, rb_str_new2(mesg), INT2NUM(err));
+    rb_exc_raise(exc);
+    rubinius::bug("rb_syserr_fail failed");
+    exit(1);  // compiler snack.
+  }
+
   VALUE rb_eval_string(const char* str) {
     return rb_funcall(rb_mKernel, rb_intern("eval"), 1, rb_str_new2(str));
   }
