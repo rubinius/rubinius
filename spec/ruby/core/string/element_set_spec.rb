@@ -229,6 +229,19 @@ describe "String#[]= with Fixnum index" do
       str[4] = "う"
       str.should == "ありがとう"
     end
+
+    it "encodes the String in an encoding compatible with the replacement" do
+      str = " ".force_encoding Encoding::US_ASCII
+      rep = "\xA0".force_encoding Encoding::ASCII_8BIT
+      str[0] = rep
+      str.encoding.should equal(Encoding::ASCII_8BIT)
+    end
+
+    it "raises an Encoding::CompatibilityError if the replacement encoding is incompatible" do
+      str = "あれ"
+      rep = "が".encode Encoding::EUC_JP
+      lambda { str[0] = rep }.should raise_error(Encoding::CompatibilityError)
+    end
   end
 end
 
@@ -273,6 +286,19 @@ describe "String#[]= with String index" do
       str = "ありがとう"
       str["が"] = "か"
       str.should == "ありかとう"
+    end
+
+    it "encodes the String in an encoding compatible with the replacement" do
+      str = " ".force_encoding Encoding::US_ASCII
+      rep = "\xA0".force_encoding Encoding::ASCII_8BIT
+      str[" "] = rep
+      str.encoding.should equal(Encoding::ASCII_8BIT)
+    end
+
+    it "raises an Encoding::CompatibilityError if the replacement encoding is incompatible" do
+      str = "あれ"
+      rep = "が".encode Encoding::EUC_JP
+      lambda { str["れ"] = rep }.should raise_error(Encoding::CompatibilityError)
     end
   end
 end
@@ -343,6 +369,19 @@ describe "String#[]= with a Regexp index" do
       str = "ありがとう"
       str[/が/] = "か"
       str.should == "ありかとう"
+    end
+
+    it "encodes the String in an encoding compatible with the replacement" do
+      str = " ".force_encoding Encoding::US_ASCII
+      rep = "\xA0".force_encoding Encoding::ASCII_8BIT
+      str[/ /] = rep
+      str.encoding.should equal(Encoding::ASCII_8BIT)
+    end
+
+    it "raises an Encoding::CompatibilityError if the replacement encoding is incompatible" do
+      str = "あれ"
+      rep = "が".encode Encoding::EUC_JP
+      lambda { str[/れ/] = rep }.should raise_error(Encoding::CompatibilityError)
     end
   end
 end
@@ -453,6 +492,19 @@ describe "String#[]= with a Range index" do
       str = "ありとう"
       str[2...2] = "が"
       str.should == "ありがとう"
+    end
+
+    it "encodes the String in an encoding compatible with the replacement" do
+      str = " ".force_encoding Encoding::US_ASCII
+      rep = "\xA0".force_encoding Encoding::ASCII_8BIT
+      str[0..1] = rep
+      str.encoding.should equal(Encoding::ASCII_8BIT)
+    end
+
+    it "raises an Encoding::CompatibilityError if the replacement encoding is incompatible" do
+      str = "あれ"
+      rep = "が".encode Encoding::EUC_JP
+      lambda { str[0..1] = rep }.should raise_error(Encoding::CompatibilityError)
     end
   end
 end
@@ -606,7 +658,20 @@ describe "String#[]= with Fixnum index, count" do
     end
 
     it "raises an IndexError if the character index is out of range of a multibyte String" do
-      lambda { "あれ"[3] = "り" }.should raise_error(IndexError)
+      lambda { "あれ"[3, 0] = "り" }.should raise_error(IndexError)
+    end
+
+    it "encodes the String in an encoding compatible with the replacement" do
+      str = " ".force_encoding Encoding::US_ASCII
+      rep = "\xA0".force_encoding Encoding::ASCII_8BIT
+      str[0, 1] = rep
+      str.encoding.should equal(Encoding::ASCII_8BIT)
+    end
+
+    it "raises an Encoding::CompatibilityError if the replacement encoding is incompatible" do
+      str = "あれ"
+      rep = "が".encode Encoding::EUC_JP
+      lambda { str[0, 1] = rep }.should raise_error(Encoding::CompatibilityError)
     end
   end
 end
