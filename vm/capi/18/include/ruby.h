@@ -1713,7 +1713,7 @@ VALUE rb_uint2big(unsigned long number);
 #define RUBY_UBF_PROCESS ((rb_unblock_function_t *)-1)
 
   /** Return a new time object based on the given offset from the epoch */
-  VALUE   rb_time_new(time_t sec, time_t usec);
+  VALUE   rb_time_new(time_t sec, long usec);
 
   /** Returns an integer value representing the object's type. */
   int     rb_type(VALUE object);
