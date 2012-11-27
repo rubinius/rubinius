@@ -950,12 +950,18 @@ class String
         bs = index == size ? 0 : byteindex(index + 1) - bi
       end
 
+      replacement = StringValue replacement
+      enc = Rubinius::Type.compatible_encoding self, replacement
+
       splice! bi, bs, replacement
     when String
       # TODO: fix String#index
       unless start = self.index(index)
         raise IndexError, "string not matched"
       end
+
+      replacement = StringValue replacement
+      enc = Rubinius::Type.compatible_encoding self, replacement
 
       splice! start, index.bytesize, replacement
     when Range
@@ -983,11 +989,17 @@ class String
         bs = byteindex(stop + 1) - bi
       end
 
+      replacement = StringValue replacement
+      enc = Rubinius::Type.compatible_encoding self, replacement
+
       splice! bi, bs, replacement
     when Regexp
       if count
         count = Rubinius::Type.coerce_to count, Fixnum, :to_int
       end
+
+      replacement = StringValue replacement
+      enc = Rubinius::Type.compatible_encoding self, replacement
 
       subpattern_set index, count || 0, replacement
     else
@@ -998,7 +1010,11 @@ class String
       else
         self[index] = replacement
       end
+
+      enc = encoding
     end
+
+    force_encoding enc
 
     return replacement
   end
