@@ -325,6 +325,8 @@
 
 /* GC */
 #define HAVE_RB_GC_REGISTER_ADDRESS        1
+#define HAVE_RB_GC_ENABLE                  1
+#define HAVE_RB_GC_DISABLE                 1
 
 /* Marshal */
 #define HAVE_RB_MARSHAL_DUMP               1
