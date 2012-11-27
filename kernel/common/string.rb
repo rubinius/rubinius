@@ -216,10 +216,6 @@ class String
     return order < 0 ? -1 : 1
   end
 
-  def center(width, padstr = " ")
-    justify width, :center, padstr
-  end
-
   def chomp(separator=$/)
     str = dup
     str.chomp!(separator) || str
@@ -449,10 +445,6 @@ class String
   ControlCharacters = [10, 9, 7, 11, 12, 13, 27, 8]
   ControlPrintValue = ["\\n", "\\t", "\\a", "\\v", "\\f", "\\r", "\\e", "\\b"]
 
-  def ljust(width, padstr=" ")
-    justify(width, :left, padstr)
-  end
-
   def lstrip
     str = dup
     str.lstrip! || str
@@ -568,10 +560,6 @@ class String
       # Nothing worked out, this is the default.
       return ["", "", self]
     end
-  end
-
-  def rjust(width, padstr = " ")
-    justify(width, :right, padstr)
   end
 
   def rstrip
@@ -1002,43 +990,6 @@ class String
   def tr_expand!(limit, invalid_as_empty)
     Rubinius.primitive :string_tr_expand
     raise PrimitiveFailure, "String#tr_expand primitive failed"
-  end
-
-  def justify(width, direction, padstr=" ")
-    padstr = StringValue(padstr)
-    raise ArgumentError, "zero width padding" if padstr.size == 0
-
-    width = Rubinius::Type.coerce_to width, Fixnum, :to_int
-    if width > @num_bytes
-      padsize = width - @num_bytes
-    else
-      return dup
-    end
-
-    str = self.class.pattern(1, "\0") * (padsize + @num_bytes)
-    str.taint if tainted? or padstr.tainted?
-
-    case direction
-    when :right
-      pad = String.pattern padsize, padstr
-      str.copy_from pad, 0, padsize, 0
-      str.copy_from self, 0, @num_bytes, padsize
-    when :left
-      pad = String.pattern padsize, padstr
-      str.copy_from self, 0, @num_bytes, 0
-      str.copy_from pad, 0, padsize, @num_bytes
-    when :center
-      half = padsize / 2.0
-      lsize = half.floor
-      rsize = half.ceil
-      lpad = String.pattern lsize, padstr
-      rpad = String.pattern rsize, padstr
-      str.copy_from lpad, 0, lsize, 0
-      str.copy_from self, 0, @num_bytes, lsize
-      str.copy_from rpad, 0, rsize, lsize + @num_bytes
-    end
-
-    str
   end
 
   # Unshares shared strings.

@@ -687,4 +687,54 @@ class String
 
     return replacement
   end
+
+  def center(width, padstr = " ")
+    justify width, :center, padstr
+  end
+
+  def ljust(width, padstr=" ")
+    justify(width, :left, padstr)
+  end
+
+  def rjust(width, padstr = " ")
+    justify(width, :right, padstr)
+  end
+
+  def justify(width, direction, padstr=" ")
+    padstr = StringValue(padstr)
+    raise ArgumentError, "zero width padding" if padstr.size == 0
+
+    width = Rubinius::Type.coerce_to width, Fixnum, :to_int
+    if width > @num_bytes
+      padsize = width - @num_bytes
+    else
+      return dup
+    end
+
+    str = self.class.pattern(1, "\0") * (padsize + @num_bytes)
+    str.taint if tainted? or padstr.tainted?
+
+    case direction
+    when :right
+      pad = String.pattern padsize, padstr
+      str.copy_from pad, 0, padsize, 0
+      str.copy_from self, 0, @num_bytes, padsize
+    when :left
+      pad = String.pattern padsize, padstr
+      str.copy_from self, 0, @num_bytes, 0
+      str.copy_from pad, 0, padsize, @num_bytes
+    when :center
+      half = padsize / 2.0
+      lsize = half.floor
+      rsize = half.ceil
+      lpad = String.pattern lsize, padstr
+      rpad = String.pattern rsize, padstr
+      str.copy_from lpad, 0, lsize, 0
+      str.copy_from self, 0, @num_bytes, lsize
+      str.copy_from rpad, 0, rsize, lsize + @num_bytes
+    end
+
+    str
+  end
+
 end

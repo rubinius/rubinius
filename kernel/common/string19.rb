@@ -1002,4 +1002,129 @@ class String
 
     return replacement
   end
+
+  def center(width, padding=" ")
+    padding = StringValue(padding)
+    raise ArgumentError, "zero width padding" if padding.size == 0
+
+    enc = Rubinius::Type.compatible_encoding self, padding
+
+    width = Rubinius::Type.coerce_to width, Fixnum, :to_int
+    return dup if width <= size
+
+    width -= size
+    left = width / 2
+
+    bs = bytesize
+    pbs = padding.bytesize
+
+    if pbs > 1
+      ps = padding.size
+
+      x = left / ps
+      y = left % ps
+
+      lpbi = padding.byteindex(y)
+      lbytes = x * pbs + lpbi
+
+      right = left + (width & 0x1)
+
+      x = right / ps
+      y = right % ps
+
+      rpbi = padding.byteindex(y)
+      rbytes = x * pbs + rpbi
+
+      pad = self.class.pattern rbytes, padding
+      str = self.class.pattern lbytes + bs + rbytes, ""
+
+      str.copy_from self, 0, bs, lbytes
+      str.copy_from pad, 0, lbytes, 0
+      str.copy_from pad, 0, rbytes, lbytes + bs
+    else
+      str = self.class.pattern width + bs, padding
+      str.copy_from self, 0, bs, left
+    end
+
+    str.taint if tainted? or padding.tainted?
+    str.force_encoding enc
+  end
+
+  def ljust(width, padding=" ")
+    padding = StringValue(padding)
+    raise ArgumentError, "zero width padding" if padding.size == 0
+
+    enc = Rubinius::Type.compatible_encoding self, padding
+
+    width = Rubinius::Type.coerce_to width, Fixnum, :to_int
+    return dup if width <= size
+
+    width -= size
+
+    bs = bytesize
+    pbs = padding.bytesize
+
+    if pbs > 1
+      ps = padding.size
+
+      x = width / ps
+      y = width % ps
+
+      pbi = padding.byteindex(y)
+      bytes = x * pbs + pbi
+
+      str = self.class.pattern bytes + bs, self
+
+      i = 0
+      bi = bs
+
+      while i < x
+        str.copy_from padding, 0, pbs, bi
+
+        bi += pbs
+        i += 1
+      end
+
+      str.copy_from padding, 0, pbi, bi
+    else
+      str = self.class.pattern width + bs, padding
+      str.copy_from self, 0, bs, 0
+    end
+
+    str.taint if tainted? or padding.tainted?
+    str.force_encoding enc
+  end
+
+  def rjust(width, padding=" ")
+    padding = StringValue(padding)
+    raise ArgumentError, "zero width padding" if padding.size == 0
+
+    enc = Rubinius::Type.compatible_encoding self, padding
+
+    width = Rubinius::Type.coerce_to width, Fixnum, :to_int
+    return dup if width <= size
+
+    width -= size
+
+    bs = bytesize
+    pbs = padding.bytesize
+
+    if pbs > 1
+      ps = padding.size
+
+      x = width / ps
+      y = width % ps
+
+      bytes = x * pbs + padding.byteindex(y)
+    else
+      bytes = width
+    end
+
+    str = self.class.pattern bytes + bs, padding
+
+    str.copy_from self, 0, bs, bytes
+
+    str.taint if tainted? or padding.tainted?
+    str.force_encoding enc
+  end
 end
