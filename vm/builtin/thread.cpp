@@ -143,6 +143,20 @@ namespace rubinius {
     return fib->locals()->store(state, key, value);
   }
 
+  Object* Thread::locals_remove(STATE, Symbol* key) {
+    if(state->vm() != vm()) {
+      return locals()->remove(state, key);
+    }
+    Fiber* fib = state->vm()->current_fiber.get();
+    if(fib->nil_p() || fib->root_p()) {
+      return locals()->remove(state, key);
+    }
+    if(fib->locals()->nil_p()) {
+      return cNil;
+    }
+    return fib->locals()->remove(state, key);
+  }
+
   Array* Thread::locals_keys(STATE) {
     /*
      * If we're not trying to set values on the current thread,

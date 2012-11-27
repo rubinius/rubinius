@@ -235,6 +235,14 @@ namespace rubinius {
     Object* locals_store(STATE, Symbol* key, Object* value);
 
     /**
+     * Remove a value from the thread locals.
+     * This is done in a primitive because it also has
+     * to consider any running fibers.
+     */
+    // Rubinius.primitive :thread_locals_remove
+    Object* locals_remove(STATE, Symbol* key);
+
+    /**
      * Retrieve the keys for all thread locals.
      * This is done in a primitive because it also has
      * to consider any running fibers.

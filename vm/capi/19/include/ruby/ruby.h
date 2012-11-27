@@ -1320,6 +1320,8 @@ VALUE rb_uint2big(unsigned long number);
   void    rb_thread_wait_fd(int fd);
   void    rb_thread_fd_writable(int fd);
   void    rb_thread_wait_for(struct timeval time);
+#define rb_thread_create(func, arg) capi_thread_create(func, arg, #func, __FILE__)
+  VALUE   capi_thread_create(VALUE (*)(ANYARGS), void*, const char* name, const char* file);
 
   /** Mark ruby object ptr. */
   void    rb_gc_mark(VALUE ptr);

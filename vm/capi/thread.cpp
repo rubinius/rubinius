@@ -6,7 +6,13 @@
 
 #include "capi/capi.hpp"
 #include "capi/18/include/ruby.h"
+
+#include "on_stack.hpp"
+#include "call_frame.hpp"
+#include "exception_point.hpp"
 #include "builtin/thread.hpp"
+#include "builtin/nativemethod.hpp"
+#include "builtin/ffi_pointer.hpp"
 
 #include "windows_compat.h"
 
@@ -157,4 +163,85 @@ extern "C" {
 
     return ret;
   }
+
+  Object* run_function(STATE) {
+
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    NativeMethodFrame nmf(0);
+    CallFrame cf;
+    cf.previous = 0;
+    cf.constant_scope_ = 0;
+    cf.dispatch_data = (void*)&nmf;
+    cf.compiled_code = 0;
+    cf.flags = CallFrame::cNativeMethod;
+    cf.optional_jit_data = 0;
+    cf.top_scope_ = 0;
+    cf.scope = 0;
+    cf.arguments = 0;
+
+    CallFrame* saved_frame = env->current_call_frame();
+    env->set_current_call_frame(&cf);
+    env->set_current_native_frame(&nmf);
+
+    Thread* self = state->vm()->thread.get();
+    NativeMethod* nm = as<NativeMethod>(self->locals_aref(state, state->symbol("function")));
+    Pointer* ptr = as<Pointer>(self->locals_aref(state, state->symbol("argument")));
+
+    self->locals_remove(state, state->symbol("function"));
+    self->locals_remove(state, state->symbol("argument"));
+
+    nmf.setup(
+        env->get_handle(self),
+        env->get_handle(cNil),
+        env->get_handle(nm),
+        env->get_handle(nm->module()));
+
+    ENTER_CAPI(state);
+
+    Object* ret = NULL;
+
+    ExceptionPoint ep(env);
+
+    PLACE_EXCEPTION_POINT(ep);
+
+    if(unlikely(ep.jumped_to())) {
+      // Setup exception in thread so it's raised when joining
+      self->set_ivar(state, state->symbol("@exception"), self->current_exception(state));
+      return NULL;
+    } else {
+      ret = env->get_object(nm->func()(ptr->pointer));
+    }
+
+    env->set_current_call_frame(saved_frame);
+    env->set_current_native_frame(nmf.previous());
+    ep.pop(env);
+
+    LEAVE_CAPI(state);
+
+    return ret;
+  }
+
+  VALUE capi_thread_create(VALUE (*func)(ANYARGS), void* arg, const char* name, const char* file) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    State* state = env->state();
+
+    NativeMethod* nm = NativeMethod::create(state,
+                        String::create(state, file), G(thread),
+                        state->symbol(name), (void*)func,
+                        Fixnum::from(1));
+
+    Pointer* ptr = Pointer::create(state, arg);
+
+    VM* vm = state->shared().new_vm();
+    Thread* thr = Thread::create(env->state(), vm, G(thread), run_function);
+    vm->thread.set(thr);
+
+    thr->locals_store(state, state->symbol("function"), nm);
+    thr->locals_store(state, state->symbol("argument"), ptr);
+
+    thr->fork(state);
+    return env->get_handle(thr);
+  }
+
 }
