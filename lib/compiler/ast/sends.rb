@@ -834,7 +834,9 @@ module Rubinius
           g.push_local 0
         end
 
+        g.state.push_masgn
         @arguments.bytecode(g)
+        g.state.pop_masgn
         g.pop
       end
 
