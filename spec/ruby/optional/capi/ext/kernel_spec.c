@@ -196,6 +196,17 @@ VALUE kernel_spec_rb_sys_fail(VALUE self, VALUE msg) {
 }
 #endif
 
+#ifdef HAVE_RB_SYSERR_FAIL
+VALUE kernel_spec_rb_syserr_fail(VALUE self, VALUE err, VALUE msg) {
+  if(msg == Qnil) {
+    rb_syserr_fail(NUM2INT(err), NULL);
+  } else {
+    rb_syserr_fail(NUM2INT(err), StringValuePtr(msg));
+  }
+  return Qnil;
+}
+#endif
+
 #ifdef HAVE_RB_WARN
 VALUE kernel_spec_rb_warn(VALUE self, VALUE msg) {
   rb_warn("%s", StringValuePtr(msg));
@@ -328,6 +339,10 @@ void Init_kernel_spec() {
 
 #ifdef HAVE_RB_SYS_FAIL
   rb_define_method(cls, "rb_sys_fail", kernel_spec_rb_sys_fail, 1);
+#endif
+
+#ifdef HAVE_RB_SYSERR_FAIL
+  rb_define_method(cls, "rb_syserr_fail", kernel_spec_rb_syserr_fail, 2);
 #endif
 
 #ifdef HAVE_RB_WARN
