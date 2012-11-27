@@ -516,6 +516,7 @@
 #define HAVE_RB_THREAD_SELECT              1
 #define HAVE_RB_THREAD_WAIT_FOR            1
 #define HAVE_RB_THREAD_WAKEUP              1
+#define HAVE_RB_THREAD_CREATE              1
 
 /* Time */
 #define HAVE_RB_TIME_NEW                   1
