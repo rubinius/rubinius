@@ -308,6 +308,23 @@ describe "CApiObject" do
     end
   end
 
+  ruby_version_is "1.9" do
+    describe "rb_type_p" do
+      it "returns whether object is of the given type" do
+        class DescArray < Array
+        end
+        @o.rb_is_rb_type_p_nil(nil).should == true
+        @o.rb_is_rb_type_p_object([]).should == false
+        @o.rb_is_rb_type_p_object(ObjectTest.new).should == true
+        @o.rb_is_rb_type_p_array([]).should == true
+        @o.rb_is_rb_type_p_array(DescArray.new).should == true
+        @o.rb_is_rb_type_p_module(ObjectTest).should == false
+        @o.rb_is_rb_type_p_class(ObjectTest).should == true
+        @o.rb_is_rb_type_p_data(Time.now).should == true
+      end
+    end
+  end
+
   describe "BUILTIN_TYPE" do
     it "returns the type constant for the object" do
       class DescArray < Array

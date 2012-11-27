@@ -412,6 +412,9 @@
 #define HAVE_RB_TO_INT                     1
 #define HAVE_RTEST                         1
 #define HAVE_TYPE                          1
+#ifdef RUBY_VERSION_IS_1_9
+#define HAVE_RB_TYPE_P                     1
+#endif
 #define HAVE_BUILTIN_TYPE                  1
 
 /* Proc */
