@@ -54,6 +54,8 @@ namespace rubinius {
       }
     }
 
+    UnwindInfoSet(const UnwindInfoSet& other);
+
     int has_unwinds() {
       return current_ > 0;
     }

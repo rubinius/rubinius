@@ -213,7 +213,7 @@ Object* MachineCode::uncommon_interpreter(STATE,
                                           native_int sp,
                                           CallFrame* const method_call_frame,
                                           jit::RuntimeDataHolder* rd,
-                                          UnwindInfoSet& unwinds)
+                                          UnwindInfoSet& thread_unwinds)
 {
 
   MachineCode* mc = method_call_frame->compiled_code->machine_code();
@@ -239,6 +239,7 @@ Object* MachineCode::uncommon_interpreter(STATE,
 
   Object** stack_ptr = call_frame->stk + sp;
 
+  UnwindInfoSet unwinds(thread_unwinds);
 continue_to_run:
   try {
 
@@ -502,7 +503,7 @@ Object* MachineCode::debugger_interpreter_continue(STATE,
                                                    CallFrame* const call_frame,
                                                    int sp,
                                                    InterpreterState& is,
-                                                   UnwindInfoSet& unwinds)
+                                                   UnwindInfoSet& thread_unwinds)
 {
 
 #include "vm/gen/instruction_locations.hpp"
@@ -512,6 +513,7 @@ Object* MachineCode::debugger_interpreter_continue(STATE,
 
   Object** stack_ptr = call_frame->stk + sp;
 
+  UnwindInfoSet unwinds(thread_unwinds);
 continue_to_run:
   try {
 

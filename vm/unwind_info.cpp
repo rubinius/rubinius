@@ -2,6 +2,18 @@
 
 namespace rubinius {
 
+  UnwindInfoSet::UnwindInfoSet(const UnwindInfoSet& other) {
+    for(int i = 0; i < kMaxUnwindInfos; ++i) {
+      unwinds_[i] = other.unwinds_[i];
+    }
+    if(other.overflow_) {
+      overflow_ = new UnwindOverflow(*other.overflow_);
+    } else {
+      overflow_ = NULL;
+    }
+    current_ = other.current_;
+  }
+
   void UnwindInfoSet::overflow_set_unwind_info(int i, uint32_t target_ip, int stack_depth, UnwindType type) {
     if(!overflow_) {
       overflow_ = new UnwindOverflow();
