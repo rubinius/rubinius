@@ -1039,59 +1039,31 @@ class String
   end
 
   def splice!(start, count, replacement)
-    if start < 0
-      start += @num_bytes
-
-      if start < 0 or start > @num_bytes
-        raise IndexError, "index #{start} out of string"
-      end
-    elsif start > @num_bytes
-      raise IndexError, "index #{start} out of string"
-    end
-
-    raise IndexError, "negative length #{count}" if count < 0
-
     modify!
 
-    replacement = StringValue replacement
+    bs = @num_bytes
+    rbs = replacement.bytesize
 
-    # Clamp count to the end of the string
-    count = @num_bytes - start if start + count > @num_bytes
+    bytes = bs - count + rbs
 
-    rsize = replacement.bytesize
+    s = start + count
+    b = bs - s
+    d = start + rbs
 
-    if rsize == 0
-      trailer_start = start + count
-      trailer_size =  @num_bytes - trailer_start
+    # Always resize if the resulting size is different to prevent "leaking"
+    # bytes in large ByteArray instances when splicing out chunks.
 
-      copy_from self, trailer_start, trailer_size, start
-      self.num_bytes -= count
-    else
-      # Resize if necessary
-      new_size = @num_bytes - count + rsize
-      # We use >= here and not > so we don't use every byte for
-      # @data. We always want to have at least 1 character room
-      # in a ByteArray for creating a \0 terminated string.
-      resize_capacity new_size if new_size >= @data.size
-
-      # easy, fits right in.
-      if count == rsize
-        copy_from replacement, 0, rsize, start
-      else
-        # shift the bytes on the end in or out
-        trailer_start = start + count
-        trailer_size =  @num_bytes - trailer_start
-
-        copy_from self, trailer_start, trailer_size, start + rsize
-
-        # Then put the replacement in
-        copy_from replacement, 0, rsize, start
-
-        self.num_bytes += (rsize - count)
-      end
+    if rbs < count
+      copy_from self, s, b, d
+      resize_capacity bytes
+    elsif rbs > count
+      resize_capacity bytes
+      copy_from self, s, b, d
     end
 
-    taint if replacement.tainted?
+    copy_from replacement, 0, rbs, start if rbs > 0
+
+    self.num_bytes = bytes
 
     self
   end
