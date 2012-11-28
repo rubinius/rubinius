@@ -1,6 +1,7 @@
 #ifndef RBX_UNWIND_INFO_HPP
 #define RBX_UNWIND_INFO_HPP
 
+#include <stddef.h>
 #include <stdint.h>
 #include <vector>
 
