@@ -628,7 +628,7 @@ class String
           raise IndexError, "count is negative"
         end
 
-        count = @num_bytes - index if count >= @num_bytes
+        count = @num_bytes - index if index + count >= @num_bytes
       else
         if index < 0 or index >= @num_bytes
           raise IndexError, "index #{index} out of string"
@@ -639,12 +639,16 @@ class String
         modify!
         @data[index] = replacement
       else
+        replacement = StringValue replacement
+
         splice! index, count || 1, replacement
       end
     when String
       unless start = self.index(index)
         raise IndexError, "string not matched"
       end
+
+      replacement = StringValue replacement
 
       splice! start, index.bytesize, replacement
     when Range
@@ -668,22 +672,28 @@ class String
         bytes = stop + 1 - start
       end
 
+      replacement = StringValue replacement
+
       splice! start, bytes, replacement
     when Regexp
       if count
         count = Rubinius::Type.coerce_to count, Fixnum, :to_int
       end
 
+      replacement = StringValue replacement
+
       subpattern_set index, count || 0, replacement
     else
       index = Rubinius::Type.coerce_to index, Fixnum, :to_int
 
       if count
-        self[index, count] = replacement
+        return self[index, count] = replacement
       else
-        self[index] = replacement
+        return self[index] = replacement
       end
     end
+
+    Rubinius::Type.infect self, replacement
 
     return replacement
   end

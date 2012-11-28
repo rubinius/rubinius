@@ -244,7 +244,7 @@ class String
   end
 
   def prepend(other)
-    self[0,0] = other
+    self[0, 0] = other
     self
   end
 
@@ -1006,14 +1006,13 @@ class String
       index = Rubinius::Type.coerce_to index, Fixnum, :to_int
 
       if count
-        self[index, count] = replacement
+        return self[index, count] = replacement
       else
-        self[index] = replacement
+        return self[index] = replacement
       end
-
-      enc = encoding
     end
 
+    Rubinius::Type.infect self, replacement
     force_encoding enc
 
     return replacement
