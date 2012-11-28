@@ -3,7 +3,7 @@ compiler:
   - gcc
   - clang
 before_script:
-  - ./configure --enable-version=18,19,20
+  - ./configure --enable-version=18,19
 script: rake
 branches:
   only:
