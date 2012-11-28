@@ -1,6 +1,7 @@
 #include "vm/config.h"
 #include "windows_compat.h"
 
+#include "call_frame.hpp"
 #include "capi/capi.hpp"
 #include "capi/18/include/ruby.h"
 
@@ -300,4 +301,24 @@ extern "C" {
     return i;
   }
 #endif
+
+  const char* rb_sourcefile() {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    CallFrame* call_frame = env->current_call_frame()->top_ruby_frame();
+    if(call_frame->compiled_code) {
+      Symbol* name = try_as<Symbol>(call_frame->compiled_code->file());
+      if(name) {
+        VALUE str = env->get_handle(name->to_str(env->state()));
+        return rb_str_ptr_readonly(str);
+      }
+    }
+    return NULL;
+  }
+
+  int rb_sourceline() {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    CallFrame* call_frame = env->current_call_frame()->top_ruby_frame();
+    return call_frame->line(env->state());
+  }
+
 }

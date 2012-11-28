@@ -1503,6 +1503,18 @@ VALUE rb_uint2big(unsigned long number);
   NORETURN(void rb_iter_break(void));
 
   /**
+   * Return the last Ruby source file in the backtrace
+   */
+  const char* rb_sourcefile();
+#define HAVE_RB_SOURCEFILE 1
+
+  /**
+   * Return the line of the last Ruby code in the backtrace
+   */
+  int rb_sourceline();
+#define HAVE_RB_SOURCELINE 1
+
+  /**
    * Continue raising a pending exception if status is not 0
    */
   void rb_jump_tag(int status);
