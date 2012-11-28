@@ -363,6 +363,16 @@ extern "C" {
     capi_update_array(env, self);
   }
 
+  VALUE rb_ary_concat(VALUE self, VALUE second) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Array* array = capi_get_array(env, self);
+    Array* other = capi_get_array(env, second);
+    array->concat(env->state(), other);
+    capi_update_array(env, self);
+    return self;
+  }
+
   VALUE rb_ary_unshift(VALUE self, VALUE object) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 

@@ -887,6 +887,9 @@ VALUE rb_uint2big(unsigned long number);
   /** Store object at given index. Supports negative indexes. Returns object. */
   void    rb_ary_store(VALUE self, long int index, VALUE object);
 
+  /** Concat two arrays */
+  VALUE   rb_ary_concat(VALUE self, VALUE second);
+
   /** Add object to the front of Array. Changes old indexes +1. Returns object. */
   VALUE   rb_ary_unshift(VALUE self, VALUE object);
 
