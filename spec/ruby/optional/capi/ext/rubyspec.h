@@ -266,6 +266,8 @@
 #define HAVE_RB_GV_GET                     1
 #define HAVE_RB_GV_SET                     1
 #define HAVE_RB_RS                         1
+#define HAVE_RB_OUTPUT_RS                  1
+#define HAVE_RB_OUTPUT_FS                  1
 #define HAVE_RB_SET_KCODE                  1
 
 #define HAVE_RB_LASTLINE_SET               1
