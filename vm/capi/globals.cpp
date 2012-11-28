@@ -35,6 +35,14 @@ extern "C" {
     return rb_gv_get("$/");
   }
 
+  VALUE mri_global_rb_output_rs() {
+    return rb_gv_get("$\\");
+  }
+
+  VALUE mri_global_rb_output_fs() {
+    return rb_gv_get("$,");
+  }
+
   VALUE mri_global_rb_default_rs() {
     VALUE rs = rb_str_new2("\n");
     OBJ_FREEZE(rs);

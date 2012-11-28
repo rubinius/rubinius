@@ -427,6 +427,8 @@ struct RFile {
 
 #define rb_rs           mri_global_rb_rs()
 #define rb_default_rs   mri_global_rb_default_rs()
+#define rb_output_rs    mri_global_rb_output_rs()
+#define rb_output_fs    mri_global_rb_output_fs()
 
 /* Global Class objects */
 
@@ -740,12 +742,6 @@ VALUE rb_uint2big(unsigned long number);
 
   /** Retrieve a Handle to a globally available object. @internal. */
   VALUE   capi_get_constant(CApiConstant type);
-
-  /** Get the current value of the record separator. @internal. */
-  VALUE   capi_get_rb_rs();
-
-  /** Get the value of the default record separator. @internal. */
-  VALUE   capi_get_rb_default_rs();
 
   /** Returns the string associated with a symbol. */
   const char *rb_id2name(ID sym);
@@ -1867,6 +1863,12 @@ VALUE rb_uint2big(unsigned long number);
 
   /** Get the value of the default record separator. @internal. */
   VALUE   mri_global_rb_default_rs();
+
+  /** Get the value of the output record separator */
+  VALUE   mri_global_rb_output_rs();
+
+  /** Get the value of the output field separator */
+  VALUE   mri_global_rb_output_fs();
 
   void    rb_lastline_set(VALUE obj);
 
