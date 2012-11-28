@@ -231,6 +231,8 @@
 #endif
 
 #define HAVE_RB_ITER_BREAK                 1
+#define HAVE_RB_SOURCEFILE                 1
+#define HAVE_RB_SOURCELINE                 1
 
 /* Enumerable */
 #define HAVE_RB_ENUMERATORIZE              1

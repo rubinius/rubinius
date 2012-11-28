@@ -155,4 +155,16 @@ describe "C-API Util function" do
 
   end
 
+  describe "rb_sourcefile" do
+    it "returns the current ruby file" do
+      @o.rb_sourcefile.should == __FILE__
+    end
+  end
+
+  describe "rb_sourceline" do
+    it "returns the current ruby file" do
+      @o.rb_sourceline.should be_kind_of(Fixnum)
+    end
+  end
+
 end
