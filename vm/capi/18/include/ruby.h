@@ -1126,6 +1126,7 @@ VALUE rb_uint2big(unsigned long number);
 
   VALUE rb_exec_recursive(VALUE (*func)(VALUE, VALUE, int),
                           VALUE obj, VALUE arg);
+#define HAVE_RB_EXEC_RECURSIVE
 
   /** @todo define rb_funcall3, which is the same as rb_funcall2 but
    * will not call private methods.
