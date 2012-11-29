@@ -737,7 +737,14 @@ namespace rubinius {
 
   Object* MatchData::last_capture(STATE) {
     if(region_->num_fields() == 0) return cNil;
-    return nth_capture(state, region_->num_fields() - 1);
+    native_int captures = region_->num_fields();
+    while(captures--) {
+      Object* capture = nth_capture(state, captures);
+      if(!capture->nil_p()) {
+        return capture;
+      }
+    }
+    return cNil;
   }
 
   Object* Regexp::last_match_result(STATE, Fixnum* mode, Fixnum* which,
