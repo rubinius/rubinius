@@ -1128,8 +1128,14 @@ class TCPSocket < IPSocket
                 local_service = nil, server = false)
     status = nil
     syscall = nil
-    remote_host    = remote_host.to_s    if remote_host
-    remote_service = remote_service.to_s if remote_service
+    remote_host    = StringValue(remote_host)    if remote_host
+    if remote_service
+      if remote_service.kind_of? Fixnum
+        remote_service = remote_service.to_s
+      else
+        remote_service = StringValue(remote_service)
+      end
+    end
 
     flags = server ? Socket::AI_PASSIVE : 0
     @remote_addrinfo = Socket::Foreign.getaddrinfo(remote_host,
