@@ -671,21 +671,7 @@ class Array
     super
   end
 
-  def index(obj=undefined)
-    i = 0
-    if obj.equal? undefined
-      each do |x|
-        return i if yield(x)
-        i += 1
-      end
-    else
-      each do |x|
-        return i if x == obj
-        i += 1
-      end
-    end
-    nil
-  end
+  alias_method :index, :find_index
 
   def last(n=undefined)
     if size < 1
