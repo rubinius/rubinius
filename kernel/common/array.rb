@@ -667,6 +667,10 @@ class Array
     false
   end
 
+  def find_index(obj=undefined)
+    super
+  end
+
   def index(obj=undefined)
     i = 0
     if obj.equal? undefined
