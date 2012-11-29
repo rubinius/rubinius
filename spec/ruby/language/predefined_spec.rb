@@ -184,6 +184,11 @@ describe "Predefined global $+" do
     $+.should == 'o'
   end
 
+  it "captures the last non nil capture" do
+    /(a)|(b)/ =~ 'a'
+    $+.should == 'a'
+  end
+
   with_feature :encoding do
     it "sets the encoding to the encoding of the source String" do
       "abc".force_encoding(Encoding::EUC_JP) =~ /(b)/
