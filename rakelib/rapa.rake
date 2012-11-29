@@ -3,7 +3,7 @@
 require 'rakelib/git'
 
 namespace :rapa do
-  desc "Sync /projects/rapa with external repository"
+  desc "Synchronize ./projects/rapa with external repository"
   task :sync do
     unless dir = ENV['DIR']
       raise "Use DIR= to specify a clone of rapa"

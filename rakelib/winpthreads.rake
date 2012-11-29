@@ -3,7 +3,7 @@
 require 'rakelib/git'
 
 namespace :winpthreads do
-  desc "Synchronize vendor/winpthreads with current clone"
+  desc "Synchronize ./vendor/winpthreads with a current clone of winpthreads"
   task :sync do
     unless src_dir = ENV['DIR']
       raise "Use DIR= to specify a clone of winpthreads"

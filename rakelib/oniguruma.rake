@@ -3,7 +3,7 @@
 require 'rakelib/git'
 
 namespace :oniguruma do
-  desc "Synchronize vendor/oniguruma with a current clone of rubinius/oniguruma"
+  desc "Synchronize ./vendor/oniguruma with a current clone of rubinius/oniguruma"
   task :sync do
     unless dir = ENV['DIR']
       raise "Use DIR= to specify a clone of oniguruma"
