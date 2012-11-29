@@ -14,6 +14,10 @@ describe :tcpsocket_new, :shared => true do
     lambda { TCPSocket.send(@method) }.should raise_error(ArgumentError)
   end
 
+  it "throws a type error if the port is not a fixnum or string" do
+    lambda { TCPSocket.send(@method, @hostname, {}) }.should raise_error(TypeError)
+  end
+
   it "refuses the connection when there is no server to connect to" do
     lambda do
       TCPSocket.send(@method, @hostname, SocketSpecs.local_port)
