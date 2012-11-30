@@ -130,6 +130,10 @@ namespace rubinius {
     return Bignum::from(state, to_native())->div(state, other);
   }
 
+  Float* Fixnum::div(STATE, Float* other) {
+    return Float::create(state, to_native())->div(state, other);
+  }
+
   Integer* Fixnum::mod(STATE, Fixnum* other) {
     native_int numerator = to_native();
     native_int denominator = other->to_native();

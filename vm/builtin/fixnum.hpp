@@ -86,6 +86,9 @@ namespace rubinius {
     // Rubinius.primitive! :fixnum_div
     Integer* div(STATE, Bignum* other);
 
+    // Rubinius.primitive! :fixnum_div
+    Float* div(STATE, Float* other);
+
     // Rubinius.primitive! :fixnum_mod
     Integer* mod(STATE, Fixnum* other);
 
