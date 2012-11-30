@@ -447,6 +447,140 @@ namespace rubinius {
       i.context().leave_inline();
     }
 
+    void fixnum_div() {
+      log("fixnum_div");
+      i.context().enter_inline();
+
+      Value* recv = ops.cast_int(i.recv());
+      Value* arg = ops.cast_int(i.arg(0));
+
+      Value* anded = BinaryOperator::CreateAnd(recv, arg, "fixnums_anded",
+          ops.current_block());
+
+      Value* fix_mask = ConstantInt::get(ops.NativeIntTy, TAG_FIXNUM_MASK);
+      Value* fix_tag  = ConstantInt::get(ops.NativeIntTy, TAG_FIXNUM);
+
+      Value* masked = BinaryOperator::CreateAnd(anded, fix_mask, "masked",
+          ops.current_block());
+
+      Value* cmp = ops.create_equal(masked, fix_tag, "is_fixnum");
+
+      BasicBlock* positive = ops.new_block("check_positive");
+      BasicBlock* non_zero = ops.new_block("non_zero");
+      BasicBlock* divide = ops.new_block("divide");
+      BasicBlock* send = i.failure();
+
+      ops.create_conditional_branch(positive, send, cmp);
+
+      ops.set_block(positive);
+
+      /*
+       * Check whether both numbers are positive. Otherwise
+       * fallback to a regular send. Because of Ruby semantics, there
+       * is a difference for using negative numbers in division and remainder
+       * operations, they round down and not to 0.
+       */
+      Value* ored = BinaryOperator::CreateOr(recv, arg, "fixnums_ored",
+          ops.current_block());
+
+      Value* pos_mask = ConstantInt::get(ops.NativeIntTy,
+         1UL << (FIXNUM_WIDTH + TAG_FIXNUM_SHIFT));
+
+      Value* pos_masked = BinaryOperator::CreateAnd(ored, pos_mask, "pos_masked",
+          ops.current_block());
+
+      Value* pos_cmp = ops.create_equal(pos_masked, pos_mask, "is_positive");
+
+      /* Both high bits aren't set, so then divide direct */
+      ops.create_conditional_branch(send, non_zero, pos_cmp);
+      ops.set_block(non_zero);
+
+      Value* recv_int = ops.tag_strip(recv, ops.NativeIntTy);
+      Value* arg_int = ops.tag_strip(arg, ops.NativeIntTy);
+
+      Value* zero = ConstantInt::get(ops.NativeIntTy, 0);
+
+      Value* zero_cmp = ops.create_equal(arg_int, zero, "is_zero");
+      ops.create_conditional_branch(send, divide, zero_cmp);
+      ops.set_block(divide);
+
+      Value* div = ops.b().CreateSDiv(recv_int, arg_int, "fixnum.div");
+
+      Value* result = ops.fixnum_tag(div);
+
+      i.use_send_for_failure();
+      i.exception_safe();
+      i.set_result(ops.as_obj(result));
+      i.context().leave_inline();
+    }
+
+    void fixnum_mod() {
+      log("fixnum_mod");
+      i.context().enter_inline();
+
+      Value* recv = ops.cast_int(i.recv());
+      Value* arg = ops.cast_int(i.arg(0));
+
+      Value* anded = BinaryOperator::CreateAnd(recv, arg, "fixnums_anded",
+          ops.current_block());
+
+      Value* fix_mask = ConstantInt::get(ops.NativeIntTy, TAG_FIXNUM_MASK);
+      Value* fix_tag  = ConstantInt::get(ops.NativeIntTy, TAG_FIXNUM);
+
+      Value* masked = BinaryOperator::CreateAnd(anded, fix_mask, "masked",
+          ops.current_block());
+
+      Value* cmp = ops.create_equal(masked, fix_tag, "is_fixnum");
+
+      BasicBlock* positive = ops.new_block("check_positive");
+      BasicBlock* non_zero = ops.new_block("non_zero");
+      BasicBlock* modulo = ops.new_block("divide");
+      BasicBlock* send = i.failure();
+
+      ops.create_conditional_branch(positive, send, cmp);
+
+      ops.set_block(positive);
+
+      /*
+       * Check whether both numbers are positive. Otherwise
+       * fallback to a regular send. Because of Ruby semantics, there
+       * is a difference for using negative numbers in division and remainder
+       * operations, they round down and not to 0.
+       */
+      Value* ored = BinaryOperator::CreateOr(recv, arg, "fixnums_ored",
+          ops.current_block());
+
+      Value* pos_mask = ConstantInt::get(ops.NativeIntTy,
+          1UL << (FIXNUM_WIDTH + TAG_FIXNUM_SHIFT));
+
+      Value* pos_masked = BinaryOperator::CreateAnd(ored, pos_mask, "pos_masked",
+          ops.current_block());
+
+      Value* pos_cmp = ops.create_equal(pos_masked, pos_mask, "is_positive");
+
+      /* Both high bits aren't set, so then divide direct */
+      ops.create_conditional_branch(send, non_zero, pos_cmp);
+      ops.set_block(non_zero);
+
+      Value* recv_int = ops.tag_strip(recv, ops.NativeIntTy);
+      Value* arg_int = ops.tag_strip(arg, ops.NativeIntTy);
+
+      Value* zero = ConstantInt::get(ops.NativeIntTy, 0);
+
+      Value* zero_cmp = ops.create_equal(arg_int, zero, "is_zero");
+      ops.create_conditional_branch(send, modulo, zero_cmp);
+      ops.set_block(modulo);
+
+      Value* mod = ops.b().CreateSRem(recv_int, arg_int, "fixnum.mod");
+
+      Value* result = ops.fixnum_tag(mod);
+
+      i.use_send_for_failure();
+      i.exception_safe();
+      i.set_result(ops.as_obj(result));
+      i.context().leave_inline();
+    }
+
     void fixnum_compare() {
       log("fixnum_compare");
       i.context().enter_inline();
@@ -974,6 +1108,10 @@ namespace rubinius {
       ip.fixnum_compare();
     } else if(prim == Primitives::fixnum_mul && count_ == 1) {
       ip.fixnum_mul();
+    } else if(prim == Primitives::fixnum_div && count_ == 1) {
+      ip.fixnum_div();
+    } else if(prim == Primitives::fixnum_mod && count_ == 1) {
+      ip.fixnum_mod();
     } else if(prim == Primitives::fixnum_equal && count_ == 1) {
       ip.fixnum_compare_operation(cEqual);
     } else if(prim == Primitives::fixnum_lt && count_ == 1) {
