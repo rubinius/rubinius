@@ -1210,7 +1210,11 @@ class IO
     end
 
     if @pid and @pid != 0
-      Process.wait @pid
+      begin
+        Process.wait @pid
+      rescue Errno::ECHILD
+        # If the child already exited
+      end
       @pid = nil
     end
 
