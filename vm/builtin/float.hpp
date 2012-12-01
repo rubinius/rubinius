@@ -124,6 +124,9 @@ namespace rubinius {
     // Rubinius.primitive :float_to_s_minimal
     String* to_s_minimal(STATE);
 
+    // Rubinius.primitive :float_dtoa
+    Tuple* dtoa(STATE);
+
     // Rubinius.primitive :float_to_packed
     String* to_packed(STATE, Object* want_double);
 

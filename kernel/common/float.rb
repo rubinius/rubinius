@@ -164,6 +164,11 @@ class Float < Numeric
   end
   private :to_s_formatted
 
+  def dtoa
+    Rubinius.primitive :float_dtoa
+    raise PrimitiveFailure, "Fload#dtoa primitive failed"
+  end
+
   def to_packed(size)
     Rubinius.primitive :float_to_packed
     raise PrimitiveFailure, "Float#to_packed primitive failed"

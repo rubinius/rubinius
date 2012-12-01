@@ -19,6 +19,34 @@ class Module
   end
 end
 
+class Float
+  def __marshal__(ms)
+    if nan?
+      str = "nan"
+    elsif zero?
+      str = (1.0 / self) < 0 ? '-0' : '0'
+    elsif infinite?
+      str = self < 0 ? "-inf" : "inf"
+    else
+      s, decimal, sign, digits = dtoa
+
+      if decimal < -3 or decimal > digits
+        str = s.insert(1, ".") << "e#{decimal - 1}"
+      elsif decimal > 0
+        str = s[0, decimal]
+        digits -= decimal
+        str << ".#{s[decimal, digits]}" if digits > 0
+      else
+        str = "0."
+        str << "0" * -decimal if decimal != 0
+        str << s[0, digits]
+      end
+    end
+
+    Rubinius::Type.binary_string("f#{ms.serialize_integer(str.length)}#{str}")
+  end
+end
+
 module Marshal
   class State
     def serialize_encoding?(obj)

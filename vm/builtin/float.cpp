@@ -3,6 +3,7 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/float.hpp"
 #include "builtin/string.hpp"
+#include "builtin/tuple.hpp"
 
 #include "objectmemory.hpp"
 #include "vm.hpp"
@@ -434,6 +435,21 @@ namespace rubinius {
     if(is_tainted_p()) s->set_tainted();
 
     return s;
+  }
+
+  Tuple* Float::dtoa(STATE) {
+    int decpt, sign;
+    char *s, *se;
+
+    s = ::dtoa(val, 0, 0, &decpt, &sign, &se);
+
+    Tuple* result = Tuple::create(state, 4);
+    result->put(state, 0, String::create(state, s));
+    result->put(state, 1, Fixnum::from(decpt));
+    result->put(state, 2, Fixnum::from(sign));
+    result->put(state, 3, Fixnum::from((int)(se - s)));
+
+    return result;
   }
 
   String* Float::to_packed(STATE, Object* want_double) {
