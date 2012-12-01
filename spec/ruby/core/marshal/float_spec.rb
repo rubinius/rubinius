@@ -49,3 +49,53 @@ describe "Marshal.dump with Float" do
     end
   end
 end
+
+describe "Marshal.load with Float" do
+  it "loads NaN" do
+    Marshal.load("\004\bf\bnan").should be_nan
+  end
+
+  it "loads +Infinity" do
+    Marshal.load("\004\bf\binf").should == infinity_value
+  end
+
+  it "loads -Infinity" do
+    Marshal.load("\004\bf\t-inf").should == -infinity_value
+  end
+
+  it "loads zero" do
+    Marshal.load("\004\bf\0060").should == 0.0
+  end
+
+  ruby_version_is ""..."1.9" do
+    it "loads a Float less than 1" do
+      Marshal.load("\004\bf\e0.66666666699999999\000%u").should == 0.666666667
+    end
+
+    it "loads a Float greater than 1" do
+      Marshal.load("\004\bf\03242.666666667000001\000\f\226").should == 42.666666667
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "loads a Float less than 1" do
+      Marshal.load("\x04\bf\x100.666666667").should == 0.666666667
+    end
+
+    it "loads a Float much less than 1" do
+      Marshal.load("\x04\bf\x101.234697e-9").should == 0.000000001234697
+    end
+
+    it "loads a Float greater than 1" do
+      Marshal.load("\x04\bf\x1142.666666667").should == 42.666666667
+    end
+
+    it "loads a Float much greater than 1" do
+      Marshal.load("\x04\bf\x1398743561239011").should == 98743561239011.0
+    end
+
+    it "loads a Float much greater than 1 with a very small fractional part" do
+      Marshal.load("\x04\bf\x16793468359.0002999").should == 793468359.0002999
+    end
+  end
+end
