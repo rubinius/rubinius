@@ -14,6 +14,17 @@ module Rubinius
       end
     end
 
+    class MirrorConstant < Node
+      def initialize(line)
+        @line = line
+      end
+
+      def bytecode(g)
+        pos(g)
+        g.push_mirror
+      end
+    end
+
     class ScopedConstant < Node
       attr_accessor :parent, :name
 

@@ -2226,7 +2226,7 @@ instruction invoke_primitive(literal count) [ +count -- value ]
 end
 
 # [Description]
-#   Pushes the top-level global `Rubinius` constant onto the stack.  Generally
+#   Pushes the top-level global `Rubinius` constant onto the stack. Generally
 #   this is done to call a utility method.
 
 instruction push_rubinius() [ -- constant ]
@@ -2287,7 +2287,16 @@ instruction meta_to_s(literal) [ object -- string ] => send
   }
 end
 
+# [Description]
+#   Pushes the distinguished module `Rubinius::Type` onto the stack.
+
 instruction push_type() [ -- constant ]
   stack_push(G(type));
 end
 
+# [Description]
+#   Pushes the distinguished class `Rubinius::Mirror` onto the stack.
+
+instruction push_mirror() [ -- constant ]
+  stack_push(G(mirror));
+end

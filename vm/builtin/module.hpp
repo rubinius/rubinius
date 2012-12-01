@@ -14,11 +14,12 @@ namespace rubinius {
     const static object_type type = ModuleType;
 
   private:
-    MethodTable* method_table_; // slot
-    Symbol* module_name_;       // slot
-    LookupTable* constant_table_;    // slot
-    Module* superclass_;        // slot
-    Array* seen_ivars_;         // slot
+    MethodTable* method_table_;   // slot
+    Symbol* module_name_;         // slot
+    LookupTable* constant_table_; // slot
+    Module* superclass_;          // slot
+    Array* seen_ivars_;           // slot
+    Class* mirror_;               // slot
 
   public:
     /* accessors */
@@ -28,6 +29,7 @@ namespace rubinius {
     attr_accessor(constant_table, LookupTable);
     attr_accessor(superclass, Module);
     attr_accessor(seen_ivars, Array);
+    attr_accessor(mirror, Class);
 
     LookupTable* constants() {
       return constant_table();
@@ -69,6 +71,9 @@ namespace rubinius {
 
     // Rubinius.primitive :module_cvar_remove
     Object* cvar_remove(STATE, Symbol* name);
+
+    // Rubinius.primitive :module_mirror
+    Class* mirror(STATE, Object* obj);
 
     void setup(STATE);
     void setup(STATE, std::string name, Module* under = NULL);

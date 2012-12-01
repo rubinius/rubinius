@@ -1,4 +1,6 @@
 basicobject.rbc
+mirror.rbc
+string_mirror.rbc
 class.rbc
 class19.rbc
 binding.rbc

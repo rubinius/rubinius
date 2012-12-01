@@ -1,3 +1,5 @@
+mirror.rbc
+string_mirror.rbc
 class.rbc
 class18.rbc
 binding.rbc

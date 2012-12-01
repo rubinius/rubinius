@@ -379,6 +379,7 @@ namespace rubinius {
     GO(vm_class).set(ontology::new_class_under(state, "VM", G(rubinius)));
 
     GO(type).set(ontology::new_module(state, "Type", G(rubinius)));
+    GO(mirror).set(ontology::new_class(state, "Mirror", G(object), G(rubinius)));
 
     System::bootstrap_methods(state);
     Module::bootstrap_methods(state);

@@ -1026,6 +1026,8 @@ extern "C" {
       return G(rubinius);
     case 2:
       return G(type);
+    case 3:
+      return G(mirror);
     default:
       return cNil;
     }

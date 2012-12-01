@@ -418,8 +418,12 @@ namespace rubinius {
       flush_stack();
     }
 
-    /* push a global constant onto the stack */
-    /* 0:cpath_top, 1:rubinius */
+    /* push a global constant onto the stack
+    *  0 : cpath_top (Object)
+     * 1 : Rubinius module
+     * 2 : Rubinius::Type module
+     * 3 : Rubinius::Mirror class
+     */
     void push_system_object(int which) {
       // we're calling something that returns an Object
       Signature sig(ls_, ObjType);
@@ -3302,6 +3306,10 @@ use_send:
       // call the function we just described using the builder
       Value* val = sig.call("rbx_push_system_object", call_args, 2, "so", b());
       stack_push(val, type::KnownType::type());
+    }
+
+    void visit_push_mirror() {
+      push_system_object(3);
     }
 
     void visit_push_ivar(opcode which) {

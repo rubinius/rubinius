@@ -2147,7 +2147,7 @@
 </table>
 <h3><a class="instruction" name="push_rubinius">push_rubinius()</a></h3>
 
-   Pushes the top-level global `Rubinius` constant onto the stack.  Generally
+   Pushes the top-level global `Rubinius` constant onto the stack. Generally
    this is done to call a utility method.
 
 
@@ -2210,6 +2210,21 @@
 
 <h3><a class="instruction" name="push_type">push_type()</a></h3>
 
+   Pushes the distinguished module `Rubinius::Type` onto the stack.
+
+
+<table class="stack_effect">
+<thead>
+<tr><th>Before</th><th>After</th></tr>
+</thead>
+<tbody>
+<tr><td>...</td><td>constant</td></tr>
+<tr><td></td><td>...</td></tr>
+</tbody>
+</table>
+<h3><a class="instruction" name="push_mirror">push_mirror()</a></h3>
+
+   Pushes the distinguished class `Rubinius::Mirror` onto the stack.
 
 
 <table class="stack_effect">

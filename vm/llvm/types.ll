@@ -212,7 +212,8 @@ declare void @output19(%"struct.rubinius::Float"*)
        %"struct.rubinius::Symbol"*, ; module_name
   %"struct.rubinius::LookupTable"*, ; constants
        %"struct.rubinius::Module"*, ; superclass
-        %"struct.rubinius::Array"*  ; seen_ivars
+        %"struct.rubinius::Array"*, ; seen_ivars
+        %"struct.rubinius::Class"*  ; mirror
 }
 
 declare void @output20(%"struct.rubinius::Module"*)

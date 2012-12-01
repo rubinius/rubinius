@@ -127,10 +127,16 @@ module Rubinius
 
     def process_colon2(line, outer, name)
       if outer
-        if name == :Type and
-            outer.kind_of? AST::ConstantAccess and
-            outer.name == :Rubinius
-          AST::TypeConstant.new line
+        if outer.kind_of? AST::ConstantAccess and
+           outer.name == :Rubinius
+          case name
+          when :Type
+            AST::TypeConstant.new line
+          when :Mirror
+            AST::MirrorConstant.new line
+          else
+            AST::ScopedConstant.new line, outer, name
+          end
         else
           AST::ScopedConstant.new line, outer, name
         end

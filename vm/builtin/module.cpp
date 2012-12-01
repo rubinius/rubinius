@@ -18,6 +18,8 @@
 
 #include "on_stack.hpp"
 
+#include <string>
+
 namespace rubinius {
 
   void Module::bootstrap_methods(STATE) {
@@ -377,6 +379,26 @@ namespace rubinius {
           ss.str().c_str()));
 
     return NULL;
+  }
+
+  Class* Module::mirror(STATE, Object* obj) {
+    if(!mirror_->nil_p()) return mirror_;
+
+    Symbol* name = module_name();
+    if(name->nil_p()) return nil<Class>();
+
+    std::string class_name = name->cpp_str(state);
+    size_t k = class_name.rfind("::");
+    if(k != std::string::npos) {
+      class_name = class_name.substr(k);
+    }
+
+    bool found;
+    Object* klass = G(rubinius)->get_const(state, state->symbol(class_name), &found);
+
+    if(found) return as<Class>(klass);
+
+    return nil<Class>();
   }
 
   std::string Module::debug_str(STATE) {
