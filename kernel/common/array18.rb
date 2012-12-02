@@ -260,6 +260,25 @@ class Array
     nil
   end
 
+  def indexes(*args)
+    warn 'Array#indexes is deprecated, use Array#values_at instead'
+
+    out = []
+
+    args.each do |a|
+      if a.kind_of? Range
+        out << self[a]
+      else
+        idx = Rubinius::Type.coerce_to(a, Fixnum, :to_int)
+        out << at(idx)
+      end
+    end
+
+    out
+  end
+
+  alias_method :indices, :indexes
+
   def insert(idx, *items)
     return self if items.length == 0
 
