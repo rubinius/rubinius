@@ -396,6 +396,17 @@ describe "Struct tests" do
   end
 end
 
+describe FFI::Struct, ".layout" do
+  context 'when class name is blank' do
+    it 'should not raise a error' do
+      lambda {
+        klass = Class.new(FFI::Struct)
+        klass.layout :any, :int
+      }.should_not raise_error
+    end
+  end
+end
+
 describe FFI::Struct, ' with a nested struct field'  do
   module LibTest
     extend FFI::Library
