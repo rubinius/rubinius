@@ -245,4 +245,9 @@ module FFI::Platform
   # ruby-ffi compatible
   LONG_SIZE = Rubinius::SIZEOF_LONG * 8
   ADDRESS_SIZE = Rubinius::WORDSIZE
+
+  def self.windows?
+    Rubinius.windows?
+  end
+
 end
