@@ -465,6 +465,14 @@ class Module
     @superclass
   end
 
+  def superclass_root
+    @superclass_root
+  end
+
+  def superclass_root=(other)
+    @superclass_root = other
+  end
+
   # :internal:
   #
   # Perform actual work for including a Module in this one.
@@ -692,6 +700,20 @@ module Rubinius
     def attach_to(cls)
       @superclass = cls.direct_superclass
       cls.superclass = self
+    end
+
+    # :internal:
+    #
+    # Inject self before class
+    #
+    def attach_before(cls)
+      if old_parent = cls.superclass_root
+        @superclass = old_parent
+      else
+        @superclass = cls
+      end
+
+      cls.superclass_root = self
     end
 
     # :internal:

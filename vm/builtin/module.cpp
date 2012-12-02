@@ -50,6 +50,7 @@ namespace rubinius {
   void Module::setup(STATE) {
     constant_table(state, LookupTable::create(state));
     method_table(state, MethodTable::create(state));
+    superclass_root(state, nil<IncludedModule>());
   }
 
   void Module::setup(STATE, std::string name, Module* under) {

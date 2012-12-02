@@ -85,12 +85,19 @@ module Rubinius
     end
 
     def self.each_ancestor(mod)
-      unless object_kind_of?(mod, Class) and singleton_class_object(mod)
-        yield mod
-      end
+      sup       = mod
+      last_seen = nil
 
-      sup = mod.direct_superclass()
       while sup
+        if root = sup.superclass_root
+          if last_seen == sup
+            sup = last_seen
+          else
+            last_seen = sup
+            sup = root
+          end
+        end
+
         if object_kind_of?(sup, IncludedModule)
           yield sup.module
         elsif object_kind_of?(sup, Class)
@@ -98,7 +105,7 @@ module Rubinius
         else
           yield sup
         end
-        sup = sup.direct_superclass()
+        sup = sup.direct_superclass
       end
     end
 

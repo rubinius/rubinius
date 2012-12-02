@@ -17,4 +17,14 @@ describe "Module#ancestors" do
   it "has 1 entry per module or class" do
     ModuleSpecs::Parent.ancestors.should == ModuleSpecs::Parent.ancestors.uniq
   end
+
+  ruby_version_is "2.0" do
+    ModuleSpecs::PrependModules::C1.ancestors.should include(
+      ModuleSpecs::PrependModules::M2, ModuleSpecs::PrependModules::M3,
+      ModuleSpecs::PrependModules::C1, ModuleSpecs::PrependModules::M4,
+      ModuleSpecs::PrependModules::M1, ModuleSpecs::PrependModules::C0,
+      ModuleSpecs::PrependModules::M0, ModuleSpecs::PrependModules::C,
+      Object, Kernel, BasicObject
+    )
+  end
 end

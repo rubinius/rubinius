@@ -155,4 +155,10 @@ class Module
       raise NameError, "#{unknown_constants.size > 1 ? 'Constants' : 'Constant'} #{unknown_constants.map{|e| "#{name}::#{e}"}.join(', ')} undefined"
     end
   end
+
+  # Hook method called on Module when another Module is .prepend'd into it.
+  #
+  # Override for module-specific behaviour.
+  #
+  def prepended(mod); end
 end

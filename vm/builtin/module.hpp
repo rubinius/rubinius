@@ -8,6 +8,7 @@
 namespace rubinius {
   class LookupTable;
   class MethodTable;
+  class IncludedModule;
 
   class Module : public Object {
   public:
@@ -19,6 +20,7 @@ namespace rubinius {
     LookupTable* constant_table_;    // slot
     Module* superclass_;        // slot
     Array* seen_ivars_;         // slot
+    IncludedModule* superclass_root_;    // slot
 
   public:
     /* accessors */
@@ -28,6 +30,7 @@ namespace rubinius {
     attr_accessor(constant_table, LookupTable);
     attr_accessor(superclass, Module);
     attr_accessor(seen_ivars, Array);
+    attr_accessor(superclass_root, IncludedModule)
 
     LookupTable* constants() {
       return constant_table();
