@@ -34,7 +34,7 @@ describe "FFI::Platform::IS_WINDOWS" do
   end
 
   platform_is :darwin do
-    it "returns true" do
+    it "returns false" do
       FFI::Platform::IS_WINDOWS.should == false
     end
   end
@@ -79,7 +79,7 @@ describe "FFI::Platform::OS" do
     end
 
     platform_is :darwin do
-      it "returns true" do
+      it "returns false" do
         FFI::Platform.windows?.should == false
       end
     end
