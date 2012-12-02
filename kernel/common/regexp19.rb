@@ -167,7 +167,7 @@ class MatchData
     else
       start = @region.at(idx - 1).at(0)
     end
-    Rubinius.invoke_primitive :string_character_index, @source, start, 0
+    Rubinius.invoke_primitive :string_byte_character_index, @source, start, 0
   end
 
   def end(idx)
@@ -176,7 +176,7 @@ class MatchData
     else
       fin = @region.at(idx - 1).at(1)
     end
-    Rubinius.invoke_primitive :string_character_index, @source, fin, 0
+    Rubinius.invoke_primitive :string_byte_character_index, @source, fin, 0
   end
 
   def offset(idx)

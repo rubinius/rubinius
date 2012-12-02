@@ -955,8 +955,7 @@ class String
 
       splice! bi, bs, replacement
     when String
-      # TODO: fix String#index
-      unless start = self.index(index)
+      unless start = byteindex(index)
         raise IndexError, "string not matched"
       end
 
@@ -1141,5 +1140,38 @@ class String
 
     str.taint if tainted? or padding.tainted?
     str.force_encoding enc
+  end
+
+  def index(str, start=undefined)
+    if start.equal? undefined
+      start = 0
+    else
+      start = Rubinius::Type.coerce_to start, Fixnum, :to_int
+
+      start += size if start < 0
+      return if start < 0 or start > size
+    end
+
+    if str.kind_of? Regexp
+      Rubinius::Type.compatible_encoding self, str
+
+      if match = str.match_from(self, start)
+        Regexp.last_match = match
+        return match.begin(0)
+      else
+        Regexp.last_match = nil
+        return
+      end
+    end
+
+    str = StringValue(str)
+    return start if str == ""
+
+    Rubinius::Type.compatible_encoding self, str
+
+    return if str.size > size
+
+    m = Rubinius::Mirror.reflect self
+    m.character_index str, start
   end
 end

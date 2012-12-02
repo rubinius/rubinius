@@ -233,11 +233,14 @@ namespace rubinius {
     native_int find_character_byte_index(STATE, native_int index, native_int start = 0);
     native_int find_byte_character_index(STATE, native_int index, native_int start = 0);
 
-    // Rubinius.primitive :string_character_index
+    // Rubinius.primitive :string_byte_character_index
     Fixnum* find_byte_character_index_prim(STATE, Fixnum* index, Fixnum* start);
 
     // Rubinius.primitive :string_index
     Fixnum* index(STATE, String* pattern, Fixnum* start);
+
+    // Rubinius.primitive :string_character_index
+    Fixnum* character_index(STATE, String* pattern, Fixnum* start);
 
     // Rubinius.primitive :string_rindex
     Fixnum* rindex(STATE, String* pattern, Fixnum* start);

@@ -374,42 +374,6 @@ class String
     !!find_string(str_needle, 0)
   end
 
-  def index(needle, offset=0)
-    offset = Rubinius::Type.coerce_to offset, Integer, :to_int
-    offset = @num_bytes + offset if offset < 0
-
-    return nil if offset < 0 || offset > @num_bytes
-
-    needle = needle.to_str if !needle.instance_of?(String) && needle.respond_to?(:to_str)
-
-    # What are we searching for?
-    case needle
-    when Fixnum
-      return nil if needle > 255 or needle < 0
-      return find_string(needle.chr, offset)
-    when String
-      return offset if needle == ""
-
-      needle_size = needle.size
-
-      max = @num_bytes - needle_size
-      return if max < 0 # <= 0 maybe?
-
-      return find_string(needle, offset)
-    when Regexp
-      if match = needle.match_from(self, offset)
-        Regexp.last_match = match
-        return match.begin(0)
-      else
-        Regexp.last_match = nil
-      end
-    else
-      raise TypeError, "type mismatch: #{needle.class} given"
-    end
-
-    return nil
-  end
-
   def insert(index, other)
     other = StringValue(other)
     index = Rubinius::Type.coerce_to index, Fixnum, :to_int

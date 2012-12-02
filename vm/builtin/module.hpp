@@ -73,7 +73,7 @@ namespace rubinius {
     Object* cvar_remove(STATE, Symbol* name);
 
     // Rubinius.primitive :module_mirror
-    Class* mirror(STATE, Object* obj);
+    static Class* mirror(STATE, Object* obj);
 
     void setup(STATE);
     void setup(STATE, std::string name, Module* under = NULL);

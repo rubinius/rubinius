@@ -382,21 +382,42 @@ namespace rubinius {
   }
 
   Class* Module::mirror(STATE, Object* obj) {
-    if(!mirror_->nil_p()) return mirror_;
+    Class* object_class = obj->class_object(state);
+    Class* mirror = object_class->mirror();
 
-    Symbol* name = module_name();
-    if(name->nil_p()) return nil<Class>();
+    if(!mirror->nil_p()) return mirror;
 
-    std::string class_name = name->cpp_str(state);
-    size_t k = class_name.rfind("::");
-    if(k != std::string::npos) {
-      class_name = class_name.substr(k);
-    }
+    Class* klass = object_class;
 
-    bool found;
-    Object* klass = G(rubinius)->get_const(state, state->symbol(class_name), &found);
+    do {
+      Symbol* name = klass->module_name();
 
-    if(found) return as<Class>(klass);
+      if(!name->nil_p()) {
+        std::string class_name = name->cpp_str(state);
+        size_t k = class_name.rfind("::");
+        if(k != std::string::npos) {
+          class_name = class_name.substr(k);
+        }
+
+        bool found;
+        Object* obj = G(mirror)->get_const(state, state->symbol(class_name), &found);
+
+        if(found) {
+          if(Class* mirror_class = try_as<Class>(obj)) {
+            object_class->mirror(state, mirror_class);
+            return mirror_class;
+          }
+        }
+      }
+
+      Module* ancestor = klass->superclass();
+      klass = 0;
+
+      while(!ancestor->nil_p()) {
+        if((klass = try_as<Class>(ancestor))) break;
+        ancestor = ancestor->superclass();
+      }
+    } while(klass);
 
     return nil<Class>();
   }

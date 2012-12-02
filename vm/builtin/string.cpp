@@ -1505,6 +1505,82 @@ namespace rubinius {
     }
   }
 
+  Fixnum* String::character_index(STATE, String* pattern, Fixnum* start) {
+    native_int offset = start->to_native();
+    if(offset < 0) return nil<Fixnum>();
+
+    native_int total = byte_size();
+
+    uint8_t* p = byte_address();
+    uint8_t* e = byte_address() + total;
+    uint8_t* pp = pattern->byte_address();
+    uint8_t* pe = pp + pattern->byte_size();
+    uint8_t* s;
+    uint8_t* ss;
+
+    if(byte_compatible_p(encoding())) {
+      for(s = p += offset, ss = pp; p < e; s = ++p) {
+        if(*p != *pp) continue;
+
+        while(p < e && pp < pe && *(++p) == *(++pp))
+          ; // memcmp
+
+        if(pp < pe) {
+          p = s;
+          pp = ss;
+        } else {
+          return Fixnum::from(s - byte_address());
+        }
+      }
+
+      return nil<Fixnum>();
+    }
+
+    OnigEncodingType* enc = encoding(state)->get_encoding();
+    native_int sindex, index = 0;
+    int c;
+
+    while(p < e && index < offset) {
+      c = Encoding::precise_mbclen(p, e, enc);
+
+      if(ONIGENC_MBCLEN_CHARFOUND_P(c)) {
+        p += c;
+        index++;
+      } else {
+        return nil<Fixnum>();
+      }
+    }
+
+    for(sindex = index, s = p, ss = pp; p < e; s = p += c, sindex = ++index) {
+      c = Encoding::precise_mbclen(p, e, enc);
+      if(!ONIGENC_MBCLEN_CHARFOUND_P(c)) return nil<Fixnum>();
+
+      if(*p != *pp) continue;
+
+      while(p < e && pp < pe) {
+        for(uint8_t* pc = p + c; p < e && p < pc && pp < pe; ) {
+          if(*(++p) != *(++pp)) goto next_search;
+        }
+
+        c = Encoding::precise_mbclen(p, e, enc);
+        if(!ONIGENC_MBCLEN_CHARFOUND_P(c)) break;
+
+        index++;
+      }
+
+    next_search:
+
+      if(pp < pe) {
+        p = s;
+        pp = ss;
+      } else {
+        return Fixnum::from(sindex);
+      }
+    }
+
+    return nil<Fixnum>();
+  }
+
   Fixnum* String::rindex(STATE, String* pattern, Fixnum* start) {
     native_int total = byte_size();
     native_int match_size = pattern->byte_size();
