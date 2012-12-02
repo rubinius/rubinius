@@ -777,29 +777,11 @@ namespace rubinius {
       Value* i = b().CreatePtrToInt(
           obj, NativeIntTy, "as_int");
 
-      Value* more = b().CreateLShr(
+      Value* more = b().CreateAShr(
           i, ConstantInt::get(NativeIntTy, 1),
-          "lshr");
+          "ashr");
       return b().CreateIntCast(
           more, type, true, "stripped");
-    }
-
-    Value* tag_strip32(Value* obj) {
-      Value* i = b().CreatePtrToInt(
-          obj, ls_->Int32Ty, "as_int");
-
-      return b().CreateLShr(
-          i, one_,
-          "lshr");
-    }
-
-    Value* fixnum_to_native(Value* obj) {
-      Value* i = b().CreatePtrToInt(
-          obj, NativeIntTy, "as_int");
-
-      return b().CreateLShr(
-          i, ConstantInt::get(NativeIntTy, 1),
-          "lshr");
     }
 
     Value* fixnum_tag(Value* obj) {
@@ -820,7 +802,7 @@ namespace rubinius {
       Value* i = b().CreatePtrToInt(
           obj, NativeIntTy, "as_int");
 
-      return b().CreateLShr(i, One, "lshr");
+      return b().CreateAShr(i, One, "ashr");
     }
 
     Value* as_obj(Value* val) {
@@ -829,6 +811,21 @@ namespace rubinius {
 
     Value* check_if_fixnum(Value* val) {
       Value* fix_mask = ConstantInt::get(ls_->IntPtrTy, TAG_FIXNUM_MASK);
+      Value* fix_tag  = ConstantInt::get(ls_->IntPtrTy, TAG_FIXNUM);
+
+      Value* lint = cast_int(val);
+      Value* masked = b().CreateAnd(lint, fix_mask, "masked");
+
+      return b().CreateICmpEQ(masked, fix_tag, "is_fixnum");
+    }
+
+    Value* check_if_positive_fixnum(Value* val) {
+      /**
+       * Add the sign bit to the mask, when and'ed the result
+       * should be the default fixnum mask for a positive number
+       */
+      Value* fix_mask = ConstantInt::get(ls_->IntPtrTy,
+                        (1UL << (FIXNUM_WIDTH + 1)) | TAG_FIXNUM_MASK);
       Value* fix_tag  = ConstantInt::get(ls_->IntPtrTy, TAG_FIXNUM);
 
       Value* lint = cast_int(val);
@@ -848,6 +845,39 @@ namespace rubinius {
       Value* masked = b().CreateAnd(anded, fix_mask, "masked");
 
       return b().CreateICmpEQ(masked, fix_tag, "is_fixnum");
+    }
+
+    Value* check_if_positive_fixnums(Value* val, Value* val2) {
+      /**
+       * Add the sign bit to the mask, when and'ed the result
+       * should be the default fixnum mask for a positive number
+       */
+      Value* fix_mask = ConstantInt::get(ls_->IntPtrTy,
+                        (1UL << (FIXNUM_WIDTH + 1)) | TAG_FIXNUM_MASK);
+      Value* fix_tag  = ConstantInt::get(ls_->IntPtrTy, TAG_FIXNUM);
+
+      Value* lint = cast_int(val);
+      Value* rint = cast_int(val2);
+
+      /**
+       * And both numbers with the mask for positive numbers.
+       * Then OR them so if one of them is negative, the result
+       * is not equal to the fixnum tag obtained from both arguments
+       */
+      Value* masked1 = b().CreateAnd(lint, fix_mask, "masked");
+      Value* masked2 = b().CreateAnd(rint, fix_mask, "masked");
+      Value* anded   = b().CreateAnd(masked1, masked2, "fixnums_anded");
+      Value* same    = b().CreateAnd(anded, fix_tag, "are_fixnums");
+      Value* ored    = b().CreateOr(masked1, masked2, "fixnums_ored");
+
+      return b().CreateICmpEQ(same, ored, "is_fixnum");
+    }
+
+    Value* check_if_non_zero_fixnum(Value* val) {
+      Value* fix_tag  = ConstantInt::get(ls_->IntPtrTy, TAG_FIXNUM);
+
+      Value* lint = cast_int(val);
+      return b().CreateICmpNE(lint, fix_tag, "is_fixnum");
     }
 
     // Tuple access

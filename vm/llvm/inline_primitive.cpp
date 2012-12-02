@@ -65,12 +65,13 @@ namespace rubinius {
 
       Value* index_val = i.arg(0);
 
-      Value* fix_cmp = ops.check_if_fixnum(index_val);
+      Value* fix_cmp = ops.check_if_positive_fixnum(index_val);
       // Check that index is not over the end of the Tuple
 
       Value* tup = ops.upcast(rec, "Tuple");
 
-      Value* index = ops.fixnum_to_native(index_val);
+      Value* index = ops.fixnum_strip(index_val);
+
       Value* full_size = ops.get_tuple_size(tup);
       Value* size_cmp = ops.create_less_than(index, full_size, "is_in_bounds");
 
@@ -111,11 +112,11 @@ namespace rubinius {
       ops.set_block(is_tuple);
 
       Value* index_val = i.arg(0);
-      Value* fix_cmp = ops.check_if_fixnum(index_val);
+      Value* fix_cmp = ops.check_if_positive_fixnum(index_val);
 
       Value* tup = ops.upcast(rec, "Tuple");
 
-      Value* index = ops.fixnum_to_native(index_val);
+      Value* index = ops.fixnum_strip(index_val);
       Value* full_size = ops.get_tuple_size(tup);
       Value* size_cmp = ops.create_less_than(index, full_size, "is_in_bounds");
 
@@ -154,7 +155,7 @@ namespace rubinius {
       Value* left_index = i.arg(0);
       Value* right_index = i.arg(1);
 
-      Value* fix_cmp = ops.check_if_fixnums(left_index, right_index);
+      Value* fix_cmp = ops.check_if_positive_fixnums(left_index, right_index);
 
       ops.verify_guard(fix_cmp, i.failure());
 
@@ -163,10 +164,10 @@ namespace rubinius {
 
       Value* full_size = ops.get_tuple_size(tup);
 
-      Value* lindex = ops.fixnum_to_native(left_index);
+      Value* lindex = ops.fixnum_strip(left_index);
       Value* lsize_cmp = ops.create_less_than(lindex, full_size, "is_in_bounds");
 
-      Value* rindex = ops.fixnum_to_native(right_index);
+      Value* rindex = ops.fixnum_strip(right_index);
       Value* rsize_cmp = ops.create_less_than(rindex, full_size, "is_in_bounds");
 
       // Combine lsize_cmp and rsize_cmp to validate entry into access code
@@ -367,19 +368,8 @@ namespace rubinius {
       log("fixnum_mul");
       i.context().enter_inline();
 
-      Value* recv = ops.cast_int(i.recv());
-      Value* arg = ops.cast_int(i.arg(0));
-
-      Value* anded = BinaryOperator::CreateAnd(recv, arg, "fixnums_anded",
-          ops.current_block());
-
-      Value* fix_mask = ConstantInt::get(ops.NativeIntTy, TAG_FIXNUM_MASK);
-      Value* fix_tag  = ConstantInt::get(ops.NativeIntTy, TAG_FIXNUM);
-
-      Value* masked = BinaryOperator::CreateAnd(anded, fix_mask, "masked",
-          ops.current_block());
-
-      Value* cmp = ops.create_equal(masked, fix_tag, "is_fixnum");
+      Value* recv = i.recv();
+      Value* arg = i.arg(0);
 
       BasicBlock* push = ops.new_block("push_mul");
       BasicBlock* tagnow = ops.new_block("tagnow");
@@ -387,6 +377,7 @@ namespace rubinius {
       BasicBlock* more_min = ops.new_block("more_min");
       BasicBlock* send = i.failure();
 
+      Value* cmp = ops.check_if_fixnums(recv, arg);
       ops.create_conditional_branch(push, send, cmp);
 
       ops.set_block(push);
@@ -416,8 +407,8 @@ namespace rubinius {
       Function* func = cast<Function>(
           ops.state()->module()->getOrInsertFunction(MUL_WITH_OVERFLOW, ft));
 
-      Value* recv_int = ops.tag_strip(recv, ops.NativeIntTy);
-      Value* arg_int = ops.tag_strip(arg, ops.NativeIntTy);
+      Value* recv_int = ops.fixnum_strip(recv);
+      Value* arg_int = ops.fixnum_strip(arg);
       Value* call_args[] = { recv_int, arg_int };
       Value* res = ops.b().CreateCall(func, call_args, "mul.overflow");
 
@@ -451,61 +442,27 @@ namespace rubinius {
       log("fixnum_div");
       i.context().enter_inline();
 
-      Value* recv = ops.cast_int(i.recv());
-      Value* arg = ops.cast_int(i.arg(0));
+      Value* num = i.recv();
+      Value* den = i.arg(0);
 
-      Value* anded = BinaryOperator::CreateAnd(recv, arg, "fixnums_anded",
-          ops.current_block());
-
-      Value* fix_mask = ConstantInt::get(ops.NativeIntTy, TAG_FIXNUM_MASK);
-      Value* fix_tag  = ConstantInt::get(ops.NativeIntTy, TAG_FIXNUM);
-
-      Value* masked = BinaryOperator::CreateAnd(anded, fix_mask, "masked",
-          ops.current_block());
-
-      Value* cmp = ops.create_equal(masked, fix_tag, "is_fixnum");
-
-      BasicBlock* positive = ops.new_block("check_positive");
-      BasicBlock* non_zero = ops.new_block("non_zero");
+      BasicBlock* positive = ops.new_block("positive");
       BasicBlock* divide = ops.new_block("divide");
       BasicBlock* send = i.failure();
 
-      ops.create_conditional_branch(positive, send, cmp);
+      Value* positive_cmp = ops.check_if_positive_fixnums(num, den);
+      ops.create_conditional_branch(positive, send, positive_cmp);
 
       ops.set_block(positive);
 
-      /*
-       * Check whether both numbers are positive. Otherwise
-       * fallback to a regular send. Because of Ruby semantics, there
-       * is a difference for using negative numbers in division and remainder
-       * operations, they round down and not to 0.
-       */
-      Value* ored = BinaryOperator::CreateOr(recv, arg, "fixnums_ored",
-          ops.current_block());
+      Value* non_zero = ops.check_if_non_zero_fixnum(den);
 
-      Value* pos_mask = ConstantInt::get(ops.NativeIntTy,
-         1UL << (FIXNUM_WIDTH + TAG_FIXNUM_SHIFT));
+      ops.create_conditional_branch(divide, send, non_zero);
 
-      Value* pos_masked = BinaryOperator::CreateAnd(ored, pos_mask, "pos_masked",
-          ops.current_block());
-
-      Value* pos_cmp = ops.create_equal(pos_masked, pos_mask, "is_positive");
-
-      /* Both high bits aren't set, so then divide direct */
-      ops.create_conditional_branch(send, non_zero, pos_cmp);
-      ops.set_block(non_zero);
-
-      Value* recv_int = ops.tag_strip(recv, ops.NativeIntTy);
-      Value* arg_int = ops.tag_strip(arg, ops.NativeIntTy);
-
-      Value* zero = ConstantInt::get(ops.NativeIntTy, 0);
-
-      Value* zero_cmp = ops.create_equal(arg_int, zero, "is_zero");
-      ops.create_conditional_branch(send, divide, zero_cmp);
       ops.set_block(divide);
 
-      Value* div = ops.b().CreateSDiv(recv_int, arg_int, "fixnum.div");
-
+      Value* num_int = ops.fixnum_strip(num);
+      Value* den_int = ops.fixnum_strip(den);
+      Value* div = ops.b().CreateSDiv(num_int, den_int, "fixnum.div");
       Value* result = ops.fixnum_tag(div);
 
       i.use_send_for_failure();
@@ -518,62 +475,28 @@ namespace rubinius {
       log("fixnum_mod");
       i.context().enter_inline();
 
-      Value* recv = ops.cast_int(i.recv());
-      Value* arg = ops.cast_int(i.arg(0));
+      Value* num = i.recv();
+      Value* den = i.arg(0);
 
-      Value* anded = BinaryOperator::CreateAnd(recv, arg, "fixnums_anded",
-          ops.current_block());
-
-      Value* fix_mask = ConstantInt::get(ops.NativeIntTy, TAG_FIXNUM_MASK);
-      Value* fix_tag  = ConstantInt::get(ops.NativeIntTy, TAG_FIXNUM);
-
-      Value* masked = BinaryOperator::CreateAnd(anded, fix_mask, "masked",
-          ops.current_block());
-
-      Value* cmp = ops.create_equal(masked, fix_tag, "is_fixnum");
-
-      BasicBlock* positive = ops.new_block("check_positive");
-      BasicBlock* non_zero = ops.new_block("non_zero");
-      BasicBlock* modulo = ops.new_block("divide");
+      BasicBlock* positive = ops.new_block("positive");
+      BasicBlock* divide = ops.new_block("divide");
       BasicBlock* send = i.failure();
 
-      ops.create_conditional_branch(positive, send, cmp);
+      Value* positive_cmp = ops.check_if_positive_fixnums(num, den);
+      ops.create_conditional_branch(positive, send, positive_cmp);
 
       ops.set_block(positive);
 
-      /*
-       * Check whether both numbers are positive. Otherwise
-       * fallback to a regular send. Because of Ruby semantics, there
-       * is a difference for using negative numbers in division and remainder
-       * operations, they round down and not to 0.
-       */
-      Value* ored = BinaryOperator::CreateOr(recv, arg, "fixnums_ored",
-          ops.current_block());
+      Value* non_zero = ops.check_if_non_zero_fixnum(den);
 
-      Value* pos_mask = ConstantInt::get(ops.NativeIntTy,
-          1UL << (FIXNUM_WIDTH + TAG_FIXNUM_SHIFT));
+      ops.create_conditional_branch(divide, send, non_zero);
 
-      Value* pos_masked = BinaryOperator::CreateAnd(ored, pos_mask, "pos_masked",
-          ops.current_block());
+      ops.set_block(divide);
 
-      Value* pos_cmp = ops.create_equal(pos_masked, pos_mask, "is_positive");
-
-      /* Both high bits aren't set, so then divide direct */
-      ops.create_conditional_branch(send, non_zero, pos_cmp);
-      ops.set_block(non_zero);
-
-      Value* recv_int = ops.tag_strip(recv, ops.NativeIntTy);
-      Value* arg_int = ops.tag_strip(arg, ops.NativeIntTy);
-
-      Value* zero = ConstantInt::get(ops.NativeIntTy, 0);
-
-      Value* zero_cmp = ops.create_equal(arg_int, zero, "is_zero");
-      ops.create_conditional_branch(send, modulo, zero_cmp);
-      ops.set_block(modulo);
-
-      Value* mod = ops.b().CreateSRem(recv_int, arg_int, "fixnum.mod");
-
-      Value* result = ops.fixnum_tag(mod);
+      Value* num_int = ops.fixnum_strip(num);
+      Value* den_int = ops.fixnum_strip(den);
+      Value* rem = ops.b().CreateSRem(num_int, den_int, "fixnum.mod");
+      Value* result = ops.fixnum_tag(rem);
 
       i.use_send_for_failure();
       i.exception_safe();
@@ -733,7 +656,7 @@ namespace rubinius {
       ops.verify_guard(ops.check_if_fixnum(arg), i.failure());
 
       Value* fix_rhs = ops.b().CreateSIToFP(
-          ops.fixnum_to_native(arg), unboxed_rhs->getType());
+          ops.fixnum_strip(arg), unboxed_rhs->getType());
 
       BasicBlock* convert_block = ops.current_block();
 
@@ -822,7 +745,7 @@ namespace rubinius {
       ops.set_block(check_fix);
       ops.verify_guard(ops.check_is_fixnum(arg), i.failure());
       Value* converted_rhs = ops.b().CreateUIToFP(
-          ops.fixnum_to_native(arg), unboxed_rhs->getType());
+          ops.fixnum_strip(arg), unboxed_rhs->getType());
 
       BasicBlock* converted_block = ops.current_block();
 
@@ -904,7 +827,7 @@ namespace rubinius {
       ops.set_block(check_fix);
       ops.verify_guard(ops.check_is_fixnum(arg), i.failure());
       Value* converted_rhs = ops.b().CreateUIToFP(
-          ops.fixnum_to_native(arg), unboxed_rhs->getType());
+          ops.fixnum_strip(arg), unboxed_rhs->getType());
 
       BasicBlock* converted_block = ops.current_block();
 
