@@ -17,14 +17,6 @@
 
 #include <list>
 
-#ifdef IS_X8664
-#define ADD_WITH_OVERFLOW "llvm.sadd.with.overflow.i63"
-#define SUB_WITH_OVERFLOW "llvm.ssub.with.overflow.i63"
-#else
-#define ADD_WITH_OVERFLOW "llvm.sadd.with.overflow.i31"
-#define SUB_WITH_OVERFLOW "llvm.ssub.with.overflow.i31"
-#endif
-
 namespace rubinius {
   extern "C" Object* invoke_object_class(STATE, CallFrame* call_frame, Object** args, int arg_count);
 
@@ -955,10 +947,11 @@ namespace rubinius {
       Value* recv = stack_back(1);
       Value* arg =  stack_top();
 
-      BasicBlock* fast = new_block("fast");
+      BasicBlock* fast     = new_block("fast");
       BasicBlock* dispatch = new_block("dispatch");
-      BasicBlock* tagnow = new_block("tagnow");
-      BasicBlock* cont = new_block("cont");
+      BasicBlock* bignum   = new_block("bignum");
+      BasicBlock* tagnow   = new_block("tagnow");
+      BasicBlock* cont     = new_block("cont");
 
       check_fixnums(recv, arg, fast, dispatch);
 
@@ -969,40 +962,28 @@ namespace rubinius {
 
       set_block(fast);
 
-      std::vector<Type*> types;
-      types.push_back(FixnumTy);
-      types.push_back(FixnumTy);
+      Value* recv_int = fixnum_strip(recv);
+      Value* arg_int  = fixnum_strip(arg);
 
-      std::vector<Type*> struct_types;
-      struct_types.push_back(FixnumTy);
-      struct_types.push_back(ls_->Int1Ty);
+      Value* sum = b().CreateAdd(recv_int, arg_int, "fixnum.add");
 
-      StructType* st = StructType::get(ls_->ctx(), struct_types);
+      Value* cmp = check_if_fits_fixnum(sum);
 
-      FunctionType* ft = FunctionType::get(st, types, false);
-      Function* func = cast<Function>(
-          module_->getOrInsertFunction(ADD_WITH_OVERFLOW, ft));
+      create_conditional_branch(tagnow, bignum, cmp);
 
-      Value* recv_int = tag_strip(recv);
-      Value* arg_int = tag_strip(arg);
-      Value* call_args[] = { recv_int, arg_int };
-      Value* res = b().CreateCall(func, call_args, "add.overflow");
-
-      Value* sum = b().CreateExtractValue(res, 0, "sum");
-      Value* dof = b().CreateExtractValue(res, 1, "did_overflow");
-
-      b().CreateCondBr(dof, dispatch, tagnow);
+      set_block(bignum);
+      Value* big_value = promote_to_bignum(sum);
+      b().CreateBr(cont);
 
       set_block(tagnow);
-
       Value* imm_value = fixnum_tag(sum);
-
       b().CreateBr(cont);
 
       set_block(cont);
 
-      PHINode* phi = b().CreatePHI(ObjType, 2, "addition");
+      PHINode* phi = b().CreatePHI(ObjType, 3, "addition");
       phi->addIncoming(called_value, send_bb);
+      phi->addIncoming(big_value, bignum);
       phi->addIncoming(imm_value, tagnow);
 
       stack_remove(2);
@@ -1016,9 +997,11 @@ namespace rubinius {
       Value* recv = stack_back(1);
       Value* arg =  stack_top();
 
-      BasicBlock* fast = new_block("fast");
+      BasicBlock* fast     = new_block("fast");
       BasicBlock* dispatch = new_block("dispatch");
-      BasicBlock* cont = new_block("cont");
+      BasicBlock* tagnow   = new_block("tagnow");
+      BasicBlock* bignum   = new_block("bignum");
+      BasicBlock* cont     = new_block("cont");
 
       check_fixnums(recv, arg, fast, dispatch);
 
@@ -1029,41 +1012,28 @@ namespace rubinius {
 
       set_block(fast);
 
-      std::vector<Type*> types;
-      types.push_back(FixnumTy);
-      types.push_back(FixnumTy);
+      Value* recv_int = fixnum_strip(recv);
+      Value* arg_int  = fixnum_strip(arg);
 
-      std::vector<Type*> struct_types;
-      struct_types.push_back(FixnumTy);
-      struct_types.push_back(ls_->Int1Ty);
+      Value* sub = b().CreateSub(recv_int, arg_int, "fixnum.sub");
 
-      StructType* st = StructType::get(ls_->ctx(), struct_types);
+      Value* cmp = check_if_fits_fixnum(sub);
 
-      FunctionType* ft = FunctionType::get(st, types, false);
-      Function* func = cast<Function>(
-          module_->getOrInsertFunction(SUB_WITH_OVERFLOW, ft));
+      create_conditional_branch(tagnow, bignum, cmp);
 
-      Value* recv_int = tag_strip(recv);
-      Value* arg_int = tag_strip(arg);
-      Value* call_args[] = { recv_int, arg_int };
-      Value* res = b().CreateCall(func, call_args, "sub.overflow");
-
-      Value* sum = b().CreateExtractValue(res, 0, "sub");
-      Value* dof = b().CreateExtractValue(res, 1, "did_overflow");
-
-      BasicBlock* tagnow = new_block("tagnow");
-
-      b().CreateCondBr(dof, dispatch, tagnow);
+      set_block(bignum);
+      Value* big_value = promote_to_bignum(sub);
+      b().CreateBr(cont);
 
       set_block(tagnow);
-      Value* imm_value = fixnum_tag(sum);
-
+      Value* imm_value = fixnum_tag(sub);
       b().CreateBr(cont);
 
       set_block(cont);
 
-      PHINode* phi = b().CreatePHI(ObjType, 2, "subtraction");
+      PHINode* phi = b().CreatePHI(ObjType, 3, "subtraction");
       phi->addIncoming(called_value, send_bb);
+      phi->addIncoming(big_value, bignum);
       phi->addIncoming(imm_value, tagnow);
 
       stack_remove(2);

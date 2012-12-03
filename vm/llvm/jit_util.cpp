@@ -1542,6 +1542,11 @@ extern "C" {
 
     CPP_CATCH
   }
+
+  Object* rbx_create_bignum(STATE, native_int arg) {
+    return Bignum::from(state, arg);
+  }
+
 }
 
 #endif

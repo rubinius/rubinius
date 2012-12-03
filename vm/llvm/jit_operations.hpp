@@ -769,21 +769,6 @@ namespace rubinius {
           obj, NativeIntTy, "cast");
     }
 
-    // Fixnum manipulations
-    //
-    Value* tag_strip(Value* obj, Type* type = NULL) {
-      if(!type) type = FixnumTy;
-
-      Value* i = b().CreatePtrToInt(
-          obj, NativeIntTy, "as_int");
-
-      Value* more = b().CreateAShr(
-          i, ConstantInt::get(NativeIntTy, 1),
-          "ashr");
-      return b().CreateIntCast(
-          more, type, true, "stripped");
-    }
-
     Value* fixnum_tag(Value* obj) {
       Value* native_obj = b().CreateZExt(
           obj, NativeIntTy, "as_native_int");
@@ -878,6 +863,35 @@ namespace rubinius {
 
       Value* lint = cast_int(val);
       return b().CreateICmpNE(lint, fix_tag, "is_fixnum");
+    }
+
+    Value* check_if_fits_fixnum(Value* val) {
+      Value* fixnum_max = ConstantInt::get(ls_->IntPtrTy, FIXNUM_MAX);
+      Value* fixnum_min = ConstantInt::get(ls_->IntPtrTy, FIXNUM_MIN);
+      Value* val_int = cast_int(val);
+
+      Value* less = b().CreateICmpSLE(val_int, fixnum_max);
+      Value* more = b().CreateICmpSGE(val_int, fixnum_min);
+
+      return b().CreateAnd(less, more, "fits_fixnum");
+    }
+
+    Value* promote_to_bignum(Value* arg) {
+      std::vector<Type*> types;
+
+      types.push_back(StateTy);
+      types.push_back(NativeIntTy);
+
+      FunctionType* ft = FunctionType::get(ObjType, types, false);
+      Function* func = cast<Function>(
+          module_->getOrInsertFunction("rbx_create_bignum", ft));
+
+      Value* call_args[] = {
+        vm_,
+        arg
+      };
+
+      return b().CreateCall(func, call_args, "big_value");
     }
 
     // Tuple access

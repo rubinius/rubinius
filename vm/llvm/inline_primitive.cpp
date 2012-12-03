@@ -372,9 +372,8 @@ namespace rubinius {
       Value* arg = i.arg(0);
 
       BasicBlock* push = ops.new_block("push_mul");
+      BasicBlock* fits = ops.new_block("fits_fixnum");
       BasicBlock* tagnow = ops.new_block("tagnow");
-      BasicBlock* less_max = ops.new_block("less_max");
-      BasicBlock* more_min = ops.new_block("more_min");
       BasicBlock* send = i.failure();
 
       Value* cmp = ops.check_if_fixnums(recv, arg);
@@ -415,21 +414,14 @@ namespace rubinius {
       Value* sum = ops.b().CreateExtractValue(res, 0, "mul");
       Value* dof = ops.b().CreateExtractValue(res, 1, "did_overflow");
 
-      ops.b().CreateCondBr(dof, send, tagnow);
+      ops.create_conditional_branch(send, fits, dof);
+
+      ops.set_block(fits);
+      Value* check_fits = ops.check_if_fits_fixnum(sum);
+
+      ops.create_conditional_branch(tagnow, send, check_fits);
 
       ops.set_block(tagnow);
-
-      Value* fixnum_max = ConstantInt::get(ops.NativeIntTy, FIXNUM_MAX);
-      Value* smaller_max = ops.b().CreateICmpSLT(sum, fixnum_max, "fixnum.lt");
-      ops.create_conditional_branch(less_max, send, smaller_max);
-
-      ops.set_block(less_max);
-
-      Value* fixnum_min =  ConstantInt::get(ops.NativeIntTy, FIXNUM_MIN);
-      Value* bigger_min = ops.b().CreateICmpSGT(sum, fixnum_min, "fixnum.gt");
-      ops.create_conditional_branch(more_min, send, bigger_min);
-
-      ops.set_block(more_min);
       Value* imm_value = ops.fixnum_tag(sum);
 
       i.use_send_for_failure();
