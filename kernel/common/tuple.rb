@@ -97,10 +97,7 @@ module Rubinius
     end
 
     def to_a
-      ary = Array.allocate
-      ary.tuple = dup
-      ary.total = fields
-      return ary
+      Array.wrap dup , fields
     end
 
     def shift

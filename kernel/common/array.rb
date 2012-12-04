@@ -71,7 +71,7 @@ class Array
     other = Rubinius::Type.coerce_to other, Array, :to_ary
 
     @tuple = other.tuple.dup
-    @total = other.total
+    @total = other.size
     @start = other.start
 
     Rubinius::Type.infect(self, other)
@@ -220,7 +220,7 @@ class Array
     return 0 if equal? other
     return nil if other.nil?
 
-    other_total = other.total
+    other_total = other.size
     Thread.detect_recursion self, other do
       i = 0
       total = other_total < @total ? other_total : @total
@@ -1078,7 +1078,7 @@ class Array
     max_levels -= 1
     recursion = Thread.detect_recursion(array) do
       i = array.start
-      total = i + array.total
+      total = i + array.size
       tuple = array.tuple
 
       while i < total

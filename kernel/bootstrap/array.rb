@@ -1,16 +1,20 @@
 # -*- encoding: us-ascii -*-
 
 class Array
-  attr_accessor :total
   attr_accessor :tuple
   attr_accessor :start
 
-  alias_method :size,   :total
-  alias_method :length, :total
+  attr_reader_specific :total, :size
+  alias_method :length, :size
 
   def self.allocate
     Rubinius.primitive :array_allocate
     raise PrimitiveFailure, "Array.allocate primitive failed"
+  end
+
+  def self.wrap(tuple, total)
+    Rubinius.primitive :array_wrap
+    raise PrimitiveFailure, "Array.wrap primitive failed"
   end
 
   def new_range(start, count)

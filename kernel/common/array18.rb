@@ -193,9 +193,7 @@ class Array
       when 1
         # Easy case
         tuple = Rubinius::Tuple.pattern multiplier, at(0)
-        out = self.class.allocate
-        out.tuple = tuple
-        out.total = multiplier
+        out = self.class.wrap tuple, multiplier
         Rubinius::Type.infect(out, self) if multiplier != 0.0
         return out
       end
@@ -203,9 +201,7 @@ class Array
       new_total = multiplier * @total
       new_tuple = Rubinius::Tuple.new(new_total)
 
-      out = self.class.allocate
-      out.tuple = new_tuple
-      out.total = new_total
+      out = self.class.wrap new_tuple, new_total
       Rubinius::Type.infect(out, self) if multiplier != 0.0
 
       offset = 0
@@ -472,7 +468,7 @@ class Array
     array = im.to_array
     @tuple = array.tuple
     @start = array.start
-    @total = array.total
+    @total = array.size
 
     self
   end

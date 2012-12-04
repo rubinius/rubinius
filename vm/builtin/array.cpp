@@ -53,6 +53,14 @@ namespace rubinius {
     return ary;
   }
 
+  Array* Array::wrap(STATE, Object* self, Tuple* tup, Fixnum* siz) {
+    Array* ary = allocate(state, self);
+    ary->tuple(state, tup);
+    ary->total(state, siz);
+
+    return ary;
+  }
+
   Array* Array::new_range(STATE, Fixnum* start, Fixnum* count) {
     Array* ary = state->new_object<Array>(class_object(state));
     ary->total(state, count);
