@@ -17,6 +17,8 @@
 #include "builtin/tuple.hpp"
 
 #include "util/murmur_hash3.hpp"
+#include "util/siphash.h"
+#include "util/random.h"
 
 #include "configuration.hpp"
 #include "vm.hpp"
@@ -42,6 +44,25 @@
 #include <sstream>
 
 namespace rubinius {
+
+  static uint64_t siphash_key = 0;
+
+  void String::init_hash() {
+    uint32_t seed[4];
+    random_seed(seed, 4);
+
+    // It's important to pull these out into locals so that the compiler
+    // promotes them to 64bits before we do the OR + XOR dance below,
+    // otherwise if it's easy for the compiler to not promote and for
+    // us to just lose the high bits.
+
+    uint64_t s1 = (uint64_t)seed[0];
+    uint64_t s2 = (uint64_t)seed[1];
+    uint64_t s3 = (uint64_t)seed[2];
+    uint64_t s4 = (uint64_t)seed[3];
+
+    siphash_key = (s1 | (s2 << 32)) ^ (s3 | (s4 << 32));
+  }
 
   void String::init(STATE) {
     GO(string).set(ontology::new_class(state, "String", G(object)));
@@ -639,6 +660,7 @@ namespace rubinius {
   }
 
   hashval String::hash_str(const unsigned char *bp, unsigned int sz, uint32_t seed) {
+#ifdef USE_MURMUR3
 #ifdef IS_X8664
     hashval hv[2];
     MurmurHash3_x64_128(bp, sz, seed, hv);
@@ -647,6 +669,10 @@ namespace rubinius {
     MurmurHash3_x86_32(bp, sz, seed, hv);
 #endif
     return hv[0] & FIXNUM_MAX;
+#else
+    uint64_t v = siphash24(siphash_key, seed, bp, sz);
+    return ((hashval)v) & FIXNUM_MAX;
+#endif
   }
 
   Symbol* String::to_sym(STATE) {

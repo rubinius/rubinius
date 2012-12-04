@@ -96,6 +96,8 @@ namespace rubinius {
 #endif
 #endif
 
+    String::init_hash();
+
     VM::init_stack_size();
 
     shared = new SharedState(this, config, config_parser);

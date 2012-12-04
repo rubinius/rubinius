@@ -83,6 +83,7 @@ namespace rubinius {
 
     /* interface */
 
+    static void init_hash();
     static void init(STATE);
 
     static String* create(STATE, Fixnum* size);
