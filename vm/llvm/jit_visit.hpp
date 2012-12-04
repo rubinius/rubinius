@@ -1488,21 +1488,24 @@ namespace rubinius {
 
       } else {
         // Emit both the inlined code and a send for it
+        if(inl.check_for_exception()) {
+          check_for_exception(inl.result());
+        }
         BasicBlock* inline_block = b().GetInsertBlock();
-
         b().CreateBr(cont);
 
         set_block(failure);
         Value* send_res = inline_cache_send(args, cache);
-        b().CreateBr(cont);
+
+        BasicBlock* send_block =
+          check_for_exception_then(send_res, cont);
 
         set_block(cont);
         PHINode* phi = b().CreatePHI(ObjType, 2, "send_result");
         phi->addIncoming(inl.result(), inline_block);
-        phi->addIncoming(send_res, failure);
+        phi->addIncoming(send_res, send_block);
 
         stack_remove(args + 1);
-        check_for_exception(phi);
 
         stack_push(phi);
       }
@@ -1748,6 +1751,10 @@ namespace rubinius {
             set_block(cont);
           } else {
             // Emit both the inlined code and a send for it
+
+            if(inl.check_for_exception()) {
+              check_for_exception(inl.result());
+            }
             send_result->addIncoming(inl.result(), b().GetInsertBlock());
 
             b().CreateBr(cleanup);
@@ -1755,13 +1762,15 @@ namespace rubinius {
             set_block(failure);
 
             Value* send_res = block_send(cache, args, allow_private_);
-            b().CreateBr(cleanup);
+
+            BasicBlock* send_block =
+              check_for_exception_then(send_res, cleanup);
 
             set_block(cleanup);
             send_result->removeFromParent();
             cleanup->getInstList().push_back(send_result);
 
-            send_result->addIncoming(send_res, failure);
+            send_result->addIncoming(send_res, send_block);
 
             stack_remove(stack_cleanup);
             check_for_exception(send_result);
