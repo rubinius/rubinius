@@ -67,7 +67,7 @@ static inline uint64_t siplast(void const* data, size_t size)
         for(i = 0; i < size % 8; ++i) {
                 last |= (uint64_t)get8(data, size / 8 * 8 + i) << (i * 8);
         }
-        last |= (size % 0xff) << (7 * 8);
+        last |= ((uint64_t)(size % 0xff)) << (7 * 8);
 
         return last;
 }
