@@ -110,6 +110,7 @@ field_extract_headers = %w[
   vm/builtin/cache.hpp
   vm/builtin/atomic.hpp
   vm/builtin/character.hpp
+  vm/builtin/reflector.hpp
 ]
 
 transcoders_src_dir = File.expand_path "../../vendor/oniguruma/enc/trans", __FILE__

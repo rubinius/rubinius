@@ -34,8 +34,10 @@ class Array
       if size_or_array.respond_to? :to_ary
         ary = Rubinius::Type.coerce_to size_or_array, Array, :to_ary
 
-        @tuple = ary.tuple.dup
-        @start = ary.start
+        ref = Rubinius::Reflector.new ary
+
+        @tuple = ref.get(:@tuple).dup
+        @start = ref.get :@start
         @total = ary.size
 
         return self
@@ -70,9 +72,11 @@ class Array
 
     other = Rubinius::Type.coerce_to other, Array, :to_ary
 
-    @tuple = other.tuple.dup
+    ref = Rubinius::Reflector.new other
+
+    @tuple = ref.get(:@tuple).dup
+    @start = ref.get(:@start)
     @total = other.size
-    @start = other.start
 
     Rubinius::Type.infect(self, other)
     self
@@ -249,11 +253,13 @@ class Array
     return false unless size == other.size
 
     Thread.detect_recursion self, other do
+      ref = Rubinius::Reflector.new other
+
       md = @tuple
-      od = other.tuple
+      od = ref.get :@tuple
 
       i = @start
-      j = other.start
+      j = ref.get :@start
 
       total = i + @total
 
@@ -1077,9 +1083,11 @@ class Array
 
     max_levels -= 1
     recursion = Thread.detect_recursion(array) do
-      i = array.start
+      ref = Rubinius::Reflector.new array
+
+      i = ref.get :@start
       total = i + array.size
-      tuple = array.tuple
+      tuple = ref.get :@tuple
 
       while i < total
         o = tuple.at i

@@ -1,8 +1,7 @@
 # -*- encoding: us-ascii -*-
 
 class Array
-  attr_accessor :tuple
-  attr_accessor :start
+  attr_reader :tuple
 
   attr_reader_specific :total, :size
   alias_method :length, :size

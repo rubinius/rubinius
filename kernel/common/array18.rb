@@ -122,7 +122,8 @@ class Array
         when 0
           # nothing
         else
-          new_tuple.copy_from(replacement.tuple, replacement.start,
+          ref = Rubinius::Reflector.new replacement
+          new_tuple.copy_from(ref.get(:@tuple), ref.get(:@start),
                               replace_count, index)
         end
 
@@ -150,7 +151,8 @@ class Array
         when 0
           # nothing
         else
-          @tuple.copy_from(replacement.tuple, replacement.start,
+          ref = Rubinius::Reflector.new replacement
+          @tuple.copy_from(ref.get(:@tuple), ref.get(:@start),
                               replace_count, @start + index)
         end
 
@@ -466,8 +468,11 @@ class Array
     Rubinius.check_frozen
 
     array = im.to_array
-    @tuple = array.tuple
-    @start = array.start
+
+    ref = Rubinius::Reflector.new array
+
+    @tuple = ref.get :@tuple
+    @start = ref.get :@start
     @total = array.size
 
     self
@@ -496,19 +501,27 @@ class Array
 
     Rubinius.check_frozen
 
-    if @start > values.size
+    sz = values.size
+
+    if @start > sz
       # fit the new values in between 0 and @start if possible
-      @start -= values.size
-      @tuple.copy_from(values.tuple, 0, values.size, @start)
+      @start -= sz
+      if sz == 1
+        @tuple.put @start, values.at(0)
+      else
+        ref = Rubinius::Reflector.new values
+        @tuple.copy_from(ref.get(:@tuple), 0, sz, @start)
+      end
     else
-      new_tuple = Rubinius::Tuple.new @total + values.size
-      new_tuple.copy_from values.tuple, 0, values.size, 0
-      new_tuple.copy_from @tuple, @start, @total, values.size
+      ref = Rubinius::Reflector.new values
+      new_tuple = Rubinius::Tuple.new @total + sz
+      new_tuple.copy_from ref.get(:@tuple), 0, sz, 0
+      new_tuple.copy_from @tuple, @start, @total, sz
       @start = 0
       @tuple = new_tuple
     end
 
-    @total += values.size
+    @total += sz
     self
   end
 end
