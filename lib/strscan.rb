@@ -161,7 +161,7 @@ class StringScanner
   end
 
   def rest
-    @string.byteslice(@pos, rest_size)
+    @string.byteslice(@pos, @string.bytesize - @pos)
   end
 
   def rest?
