@@ -397,12 +397,46 @@ describe "Struct tests" do
 end
 
 describe FFI::Struct, ".layout" do
-  context 'when class name is blank' do
-    it 'should not raise a error' do
-      lambda {
-        klass = Class.new(FFI::Struct)
-        klass.layout :any, :int
-      }.should_not raise_error
+  module LibTest
+    extend FFI::Library
+    ffi_lib TestLibrary::PATH
+    attach_function :ptr_ret_int32_t, [ :pointer, :int ], :int
+  end
+
+  context 'when derived class is not assigned to any constant' do
+    it 'should be able to use built-in types' do
+      klass = Class.new(FFI::Struct)
+      klass.layout :number, :int
+
+      instance = klass.new
+      instance[:number] = 0xA1
+      LibTest.ptr_ret_int32_t(instance, 0).should == 0xA1
+    end
+  end
+
+  context 'when derived class is assigned to a constant' do
+    it 'should be able to use built-in types' do
+      class TestStruct < FFI::Struct
+        layout :number, :int
+      end
+
+      instance = TestStruct.new
+      instance[:number] = 0xA1
+      LibTest.ptr_ret_int32_t(instance, 0).should == 0xA1
+    end
+
+    it 'should be able to use custom types from enclosing module' do
+      module LibTest
+        typedef :uint, :custom_int
+
+        class TestStruct < FFI::Struct
+          layout :number, :custom_int
+        end
+      end
+
+      instance = LibTest::TestStruct.new
+      instance[:number] = 0xA1
+      LibTest.ptr_ret_int32_t(instance, 0).should == 0xA1
     end
   end
 end
