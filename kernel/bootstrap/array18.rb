@@ -5,21 +5,19 @@ class Array
   # each element in self to the supplied block.
   def map
     return dup unless block_given?
-    out = Array.new size
+    tup = Rubinius::Tuple.new size
 
     i = @start
     total = i + @total
     tuple = @tuple
 
-    out_tuple = out.tuple
-
     j = 0
     while i < total
-      out_tuple[j] = yield tuple.at(i)
+      tup[j] = yield tuple.at(i)
       i += 1
       j += 1
     end
 
-    out
+    Array.wrap tup, size
   end
 end

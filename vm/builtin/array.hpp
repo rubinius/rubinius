@@ -38,6 +38,9 @@ namespace rubinius {
     // Rubinius.primitive :array_allocate
     static Array* allocate(STATE, Object* self);
 
+    // Rubinius.primitive :array_wrap
+    static Array* wrap(STATE, Object* self, Tuple* tup, Fixnum* size);
+
     // Rubinius.primitive :array_new_range
     Array* new_range(STATE, Fixnum* start, Fixnum* count);
 

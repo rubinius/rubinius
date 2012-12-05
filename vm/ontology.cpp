@@ -51,6 +51,7 @@
 #include "builtin/module.hpp"
 #include "builtin/class.hpp"
 #include "builtin/atomic.hpp"
+#include "builtin/reflector.hpp"
 
 #include "environment.hpp"
 #include "configuration.hpp"
@@ -338,6 +339,8 @@ namespace rubinius {
 
     Encoding::init(state);
     kcode::init(state);
+
+    Reflector::init(state);
   }
 
   // @todo document all the sections of bootstrap_ontology

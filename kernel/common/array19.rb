@@ -97,7 +97,9 @@ class Array
         when 0
           # nothing
         else
-          new_tuple.copy_from(replacement.tuple, replacement.start,
+          ref = Rubinius::Reflector.new replacement
+
+          new_tuple.copy_from(ref.get(:@tuple), ref.get(:@start),
                               replace_count, index)
         end
 
@@ -125,7 +127,9 @@ class Array
         when 0
           # nothing
         else
-          @tuple.copy_from(replacement.tuple, replacement.start,
+          ref = Rubinius::Reflector.new(replacement)
+
+          @tuple.copy_from(ref.get(:@tuple), ref.get(:@start),
                               replace_count, @start + index)
         end
 
@@ -168,9 +172,7 @@ class Array
       when 1
         # Easy case
         tuple = Rubinius::Tuple.pattern multiplier, at(0)
-        out = self.class.allocate
-        out.tuple = tuple
-        out.total = multiplier
+        out = self.class.wrap tuple, multiplier
         Rubinius::Type.infect(out, self)
         return out
       end
@@ -178,9 +180,7 @@ class Array
       new_total = multiplier * @total
       new_tuple = Rubinius::Tuple.new(new_total)
 
-      out = self.class.allocate
-      out.tuple = new_tuple
-      out.total = new_total
+      out = self.class.wrap new_tuple, new_total
       Rubinius::Type.infect(out, self)
 
       offset = 0
@@ -465,11 +465,14 @@ class Array
     return at(random_generator.rand(size)) unless n
 
     n = size if n > size
+
     result = Array.new(self)
+    ref = Rubinius::Reflector.new(result)
+    tuple = ref.get(:@tuple)
 
     n.times do |i|
       r = i + random_generator.rand(size - i)
-      result.tuple.swap(i, r)
+      tuple.swap(i, r)
     end
 
     result[n..size] = []
@@ -633,9 +636,12 @@ class Array
     return if im.size == size
 
     array = im.to_array
-    @tuple = array.tuple
-    @start = array.start
-    @total = array.total
+
+    ref = Rubinius::Reflector.new array
+
+    @tuple = ref.get(:@tuple)
+    @start = ref.get(:@start)
+    @total = array.size
 
     self
   end
@@ -671,19 +677,27 @@ class Array
 
     return self if values.empty?
 
-    if @start > values.size
+    sz = values.size
+
+    if @start > sz
       # fit the new values in between 0 and @start if possible
-      @start -= values.size
-      @tuple.copy_from(values.tuple, 0, values.size, @start)
+      @start -= sz
+      if sz == 1
+        @tuple.put @start, values.at(0)
+      else
+        ref = Rubinius::Reflector.new values
+        @tuple.copy_from(ref.get(:@tuple), 0, sz, @start)
+      end
     else
-      new_tuple = Rubinius::Tuple.new @total + values.size
-      new_tuple.copy_from values.tuple, 0, values.size, 0
-      new_tuple.copy_from @tuple, @start, @total, values.size
+      ref = Rubinius::Reflector.new values
+      new_tuple = Rubinius::Tuple.new @total + sz
+      new_tuple.copy_from ref.get(:@tuple), 0, sz, 0
+      new_tuple.copy_from @tuple, @start, @total, sz
       @start = 0
       @tuple = new_tuple
     end
 
-    @total += values.size
+    @total += sz
     self
   end
 end

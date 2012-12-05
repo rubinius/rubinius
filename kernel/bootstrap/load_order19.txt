@@ -32,6 +32,7 @@ regexp.rbc
 regexp19.rbc
 rubinius.rbc
 constant_scope.rbc
+reflector.rbc
 string.rbc
 string19.rbc
 symbol.rbc
