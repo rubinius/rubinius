@@ -795,20 +795,22 @@ namespace rubinius {
     native_int output_size = buffer_ptr - (unsigned char*)buffer->raw_bytes();
 
     if(result == econv_destination_buffer_full && size->to_native() == -1) {
-      // TODO: Current limitation in ByteArray. Formalize this somehow.
-      if(byte_size < (INT32_MAX / 2)) {
-        byte_size *= 2;
-        byte_offset = 0;
+      byte_size *= 2;
 
-        source_ptr += source_ptr - source_str;
-
-        if(!buffers) buffers = Array::create(state, 0);
-
-        buffers->append(state, buffer);
-        buffers->append(state, Fixnum::from(output_size));
-
-        goto retry;
+      // Check if the size has overflown, then raise exception
+      if(byte_size < 0) {
+        Exception::argument_error(state, "string sizes too big");
       }
+      byte_offset = 0;
+
+      source_ptr += source_ptr - source_str;
+
+      if(!buffers) buffers = Array::create(state, 0);
+
+      buffers->append(state, buffer);
+      buffers->append(state, Fixnum::from(output_size));
+
+      goto retry;
     }
 
     if(buffers) {

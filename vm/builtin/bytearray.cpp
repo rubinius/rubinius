@@ -25,7 +25,7 @@ namespace rubinius {
   }
 
   ByteArray* ByteArray::create(STATE, native_int bytes) {
-    if(bytes < 0 || bytes >= INT32_MAX) {
+    if(bytes < 0) {
       rubinius::bug("Invalid byte array size");
     }
 
@@ -42,7 +42,7 @@ namespace rubinius {
   }
 
   ByteArray* ByteArray::create_pinned(STATE, native_int bytes) {
-    if(bytes < 0 || bytes >= INT32_MAX) {
+    if(bytes < 0) {
       rubinius::bug("Invalid byte array size");
     }
 
@@ -65,8 +65,6 @@ namespace rubinius {
     native_int size = bytes->to_native();
     if(size < 0) {
       Exception::argument_error(state, "negative byte array size");
-    } else if (size > INT32_MAX) {
-      Exception::argument_error(state, "too large byte array size");
     }
     return ByteArray::create(state, size);
   }

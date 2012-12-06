@@ -822,20 +822,23 @@ namespace rubinius {
     native_int new_size = current_size + length;
     native_int capacity = data_size;
 
+    // Check for overflow, too big if that happens
+    if(new_size < 0) {
+      Exception::argument_error(state, "string sizes too big");
+    }
+
     if(capacity <= new_size) {
-      if (new_size >= INT32_MAX) {
-        Exception::argument_error(state, "string sizes too big");
-      }
       // capacity needs one extra byte of room for the trailing null
       if(capacity == 0) capacity = 2;
       do {
         // @todo growth should be more intelligent than doubling
         capacity *= 2;
+        // Check for overflow, use max capacity then
+        if(capacity < 0) {
+          capacity = LONG_MAX - 1;
+        }
       } while(capacity < new_size + 1);
 
-      if (capacity >= INT32_MAX) {
-        capacity = INT32_MAX - 1;
-      }
       // No need to call unshare and duplicate a ByteArray
       // just to throw it away.
       if(shared_ == cTrue) shared(state, cFalse);
@@ -865,10 +868,6 @@ namespace rubinius {
 
     if(sz < 0) {
       Exception::argument_error(state, "negative byte array size");
-    } else if(sz >= INT32_MAX) {
-      // >= is used deliberately because we use a size of + 1
-      // for the byte array
-      Exception::argument_error(state, "too large byte array size");
     }
 
     ByteArray* ba = ByteArray::create(state, sz + 1);

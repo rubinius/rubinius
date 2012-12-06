@@ -62,7 +62,7 @@ namespace rubinius {
   }
 
   Tuple* Tuple::create(STATE, native_int fields) {
-    if(fields < 0 || fields >= INT32_MAX) {
+    if(fields < 0) {
       rubinius::bug("Invalid tuple size");
     }
 
@@ -95,15 +95,13 @@ namespace rubinius {
 
     if(size < 0) {
       Exception::argument_error(state, "negative tuple size");
-    } else if(size > INT32_MAX) {
-      Exception::argument_error(state, "too large tuple size");
     }
 
     return create(state, fields->to_native());
   }
 
   Tuple* Tuple::from(STATE, native_int fields, ...) {
-    if(fields < 0 || fields >= INT32_MAX) {
+    if(fields < 0) {
       rubinius::bug("Invalid tuple size");
     }
 
@@ -286,8 +284,6 @@ namespace rubinius {
 
     if(cnt < 0) {
       Exception::argument_error(state, "negative tuple size");
-    } else if (cnt > INT32_MAX) {
-      Exception::argument_error(state, "too large tuple size");
     }
 
     Tuple* tuple = Tuple::create(state, cnt);
