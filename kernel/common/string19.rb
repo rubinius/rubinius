@@ -232,10 +232,11 @@ class String
 
     size = array.inject(0) { |s, chr| s += chr.bytesize }
     result = String.pattern size + 2, ?".ord
+    m = Rubinius::Mirror.reflect result
 
     index = 1
     array.each do |chr|
-      result.copy_from chr, 0, chr.bytesize, index
+      m.copy_from chr, 0, chr.bytesize, index
       index += chr.bytesize
     end
 
@@ -411,7 +412,8 @@ class String
     end
 
     if start < 0
-      splice! last_alnum, 1, carry.chr + @data[last_alnum].chr
+      m = Rubinius::Mirror.reflect self
+      m.splice last_alnum, 1, carry.chr + @data[last_alnum].chr
     end
 
     return self
@@ -921,6 +923,8 @@ class String
       count = count_or_replacement
     end
 
+    m = Rubinius::Mirror.reflect self
+
     case index
     when Fixnum
       index += size if index < 0
@@ -929,7 +933,7 @@ class String
         raise IndexError, "index #{index} out of string"
       end
 
-      unless bi = byteindex(index)
+      unless bi = m.byte_index(index)
         raise IndexError, "unable to find character at: #{index}"
       end
 
@@ -944,25 +948,25 @@ class String
         if total >= size
           bs = bytesize - bi
         else
-          bs = byteindex(total) - bi
+          bs = m.byte_index(total) - bi
         end
       else
-        bs = index == size ? 0 : byteindex(index + 1) - bi
+        bs = index == size ? 0 : m.byte_index(index + 1) - bi
       end
 
       replacement = StringValue replacement
       enc = Rubinius::Type.compatible_encoding self, replacement
 
-      splice! bi, bs, replacement
+      m.splice bi, bs, replacement
     when String
-      unless start = byteindex(index)
+      unless start = m.byte_index(index)
         raise IndexError, "string not matched"
       end
 
       replacement = StringValue replacement
       enc = Rubinius::Type.compatible_encoding self, replacement
 
-      splice! start, index.bytesize, replacement
+      m.splice start, index.bytesize, replacement
     when Range
       start = Rubinius::Type.coerce_to index.first, Fixnum, :to_int
 
@@ -972,7 +976,7 @@ class String
         raise RangeError, "#{index.first} is out of range"
       end
 
-      unless bi = byteindex(start)
+      unless bi = m.byte_index(start)
         raise IndexError, "unable to find character at: #{start}"
       end
 
@@ -985,22 +989,35 @@ class String
       elsif stop >= size
         bs = bytesize - bi
       else
-        bs = byteindex(stop + 1) - bi
+        bs = m.byte_index(stop + 1) - bi
       end
 
       replacement = StringValue replacement
       enc = Rubinius::Type.compatible_encoding self, replacement
 
-      splice! bi, bs, replacement
+      m.splice bi, bs, replacement
     when Regexp
       if count
         count = Rubinius::Type.coerce_to count, Fixnum, :to_int
+      else
+        count = 0
       end
 
       replacement = StringValue replacement
-      enc = Rubinius::Type.compatible_encoding self, replacement
 
-      subpattern_set index, count || 0, replacement
+      if match = index.match(self)
+        ms = match.size
+        count += ms if count < 0
+      end
+
+      unless match and count < ms
+        raise IndexError, "regexp does not match"
+      end
+
+      bi = m.byte_index match.begin(count)
+      bs = m.byte_index(match.end(count)) - bi
+
+      m.splice bi, bs, replacement
     else
       index = Rubinius::Type.coerce_to index, Fixnum, :to_int
 
@@ -1034,11 +1051,12 @@ class String
 
     if pbs > 1
       ps = padding.size
+      pm = Rubinius::Mirror.reflect padding
 
       x = left / ps
       y = left % ps
 
-      lpbi = padding.byteindex(y)
+      lpbi = pm.byte_index(y)
       lbytes = x * pbs + lpbi
 
       right = left + (width & 0x1)
@@ -1046,21 +1064,23 @@ class String
       x = right / ps
       y = right % ps
 
-      rpbi = padding.byteindex(y)
+      rpbi = pm.byte_index(y)
       rbytes = x * pbs + rpbi
 
       pad = self.class.pattern rbytes, padding
       str = self.class.pattern lbytes + bs + rbytes, ""
+      m = Rubinius::Mirror.reflect str
 
-      str.copy_from self, 0, bs, lbytes
-      str.copy_from pad, 0, lbytes, 0
-      str.copy_from pad, 0, rbytes, lbytes + bs
+      m.copy_from self, 0, bs, lbytes
+      m.copy_from pad, 0, lbytes, 0
+      m.copy_from pad, 0, rbytes, lbytes + bs
     else
       str = self.class.pattern width + bs, padding
-      str.copy_from self, 0, bs, left
+      m = Rubinius::Mirror.reflect str
+      m.copy_from self, 0, bs, left
     end
 
-    str.taint if tainted? or padding.tainted?
+    Rubinius::Type.infect str, padding
     str.force_encoding enc
   end
 
@@ -1080,32 +1100,36 @@ class String
 
     if pbs > 1
       ps = padding.size
+      pm = Rubinius::Mirror.reflect padding
 
       x = width / ps
       y = width % ps
 
-      pbi = padding.byteindex(y)
+      pbi = pm.byte_index(y)
       bytes = x * pbs + pbi
 
       str = self.class.pattern bytes + bs, self
+      m = Rubinius::Mirror.reflect str
 
       i = 0
       bi = bs
 
       while i < x
-        str.copy_from padding, 0, pbs, bi
+        m.copy_from padding, 0, pbs, bi
 
         bi += pbs
         i += 1
       end
 
-      str.copy_from padding, 0, pbi, bi
+      m.copy_from padding, 0, pbi, bi
     else
       str = self.class.pattern width + bs, padding
-      str.copy_from self, 0, bs, 0
+      m = Rubinius::Mirror.reflect str
+
+      m.copy_from self, 0, bs, 0
     end
 
-    str.taint if tainted? or padding.tainted?
+    Rubinius::Type.infect str, padding
     str.force_encoding enc
   end
 
@@ -1125,20 +1149,22 @@ class String
 
     if pbs > 1
       ps = padding.size
+      pm = Rubinius::Mirror.reflect padding
 
       x = width / ps
       y = width % ps
 
-      bytes = x * pbs + padding.byteindex(y)
+      bytes = x * pbs + pm.byte_index(y)
     else
       bytes = width
     end
 
     str = self.class.pattern bytes + bs, padding
+    m = Rubinius::Mirror.reflect str
 
-    str.copy_from self, 0, bs, bytes
+    m.copy_from self, 0, bs, bytes
 
-    str.taint if tainted? or padding.tainted?
+    Rubinius::Type.infect str, padding
     str.force_encoding enc
   end
 

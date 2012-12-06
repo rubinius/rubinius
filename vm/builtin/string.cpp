@@ -1628,7 +1628,7 @@ namespace rubinius {
     }
   }
 
-  Fixnum* String::byteindex(STATE, Object* value, Fixnum* start) {
+  Fixnum* String::byte_index(STATE, Object* value, Fixnum* start) {
     native_int total = byte_size();
     native_int offset = start->to_native();
 

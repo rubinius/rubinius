@@ -58,21 +58,12 @@ class String
     byteslice index, length
   end
 
-  def byteindex(value, start=0)
-    Rubinius.invoke_primitive :string_byteindex, self, value, start
-  end
-
   def dup
     other = Rubinius.invoke_primitive :string_dup, self
     Rubinius.privately do
       other.initialize_copy self
     end
     other
-  end
-
-  def copy_from(other, start, size, dest)
-    Rubinius.primitive :string_copy_from
-    raise PrimitiveFailure, "String#copy_from primitive failed"
   end
 
   def substring(start, count)
@@ -131,10 +122,5 @@ class String
   def transform(tbl, respect_kcode)
     Rubinius.primitive :string_transform
     raise PrimitiveFailure, "String#transform primitive failed"
-  end
-
-  def resize_capacity(count)
-    Rubinius.primitive :string_resize_capacity
-    raise PrimitiveFailure, "String#resize_capacity primitive failed"
   end
 end

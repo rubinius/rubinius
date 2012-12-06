@@ -381,6 +381,7 @@ class String
     osize = other.size
     size = @num_bytes + osize
     str = self.class.pattern size, "\0"
+    m = Rubinius::Mirror.reflect str
 
     index = @num_bytes + 1 + index if index < 0
     if index > @num_bytes or index < 0 then
@@ -388,20 +389,20 @@ class String
     end
 
     Rubinius.check_frozen
-    hash_value = nil
+    @hash_value = nil
 
     if index == @num_bytes
-      str.copy_from self, 0, @num_bytes, 0
-      str.copy_from other, 0, osize, @num_bytes
+      m.copy_from self, 0, @num_bytes, 0
+      m.copy_from other, 0, osize, @num_bytes
     else
-      str.copy_from self, 0, index, 0 if index > 0
-      str.copy_from other, 0, osize, index
-      str.copy_from self, index, @num_bytes - index, index + osize
+      m.copy_from self, 0, index, 0 if index > 0
+      m.copy_from other, 0, osize, index
+      m.copy_from self, index, @num_bytes - index, index + osize
     end
 
     self.num_bytes = size
     @data = str.__data__
-    taint if other.tainted?
+    Rubinius::Type.infect self, other
 
     self
   end
@@ -984,53 +985,6 @@ class String
     [match, str]
   end
   private :subpattern
-
-  def subpattern_set(pattern, capture, replacement)
-    unless match = pattern.match(self)
-      raise IndexError, "regexp not matched"
-    end
-
-    raise IndexError, "index #{capture} out of regexp" if capture >= match.size
-
-    if capture < 0
-      raise IndexError, "index #{capture} out of regexp" if -capture >= match.size
-      capture += match.size
-    end
-
-    bi = byteindex match.begin(capture)
-    bs = byteindex(match.end(capture)) - bi
-    splice! bi, bs, replacement
-  end
-
-  def splice!(start, count, replacement)
-    modify!
-
-    bs = @num_bytes
-    rbs = replacement.bytesize
-
-    bytes = bs - count + rbs
-
-    s = start + count
-    b = bs - s
-    d = start + rbs
-
-    # Always resize if the resulting size is different to prevent "leaking"
-    # bytes in large ByteArray instances when splicing out chunks.
-
-    if rbs < count
-      copy_from self, s, b, d
-      resize_capacity bytes
-    elsif rbs > count
-      resize_capacity bytes
-      copy_from self, s, b, d
-    end
-
-    copy_from replacement, 0, rbs, start if rbs > 0
-
-    self.num_bytes = bytes
-
-    self
-  end
 
   def prefix?(other)
     size = other.size

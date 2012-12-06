@@ -155,7 +155,8 @@ class String
     end
 
     if start < 0
-      splice! last_alnum, 1, carry.chr + @data[last_alnum].chr
+      m = Rubinius::Mirror.reflect self
+      m.splice last_alnum, 1, carry.chr + @data[last_alnum].chr
     end
 
     return self
@@ -641,7 +642,8 @@ class String
       else
         replacement = StringValue replacement
 
-        splice! index, count || 1, replacement
+        m = Rubinius::Mirror.reflect self
+        m.splice index, count || 1, replacement
       end
     when String
       unless start = self.index(index)
@@ -650,7 +652,8 @@ class String
 
       replacement = StringValue replacement
 
-      splice! start, index.bytesize, replacement
+      m = Rubinius::Mirror.reflect self
+      m.splice start, index.bytesize, replacement
     when Range
       start = Rubinius::Type.coerce_to index.first, Fixnum, :to_int
 
@@ -674,15 +677,31 @@ class String
 
       replacement = StringValue replacement
 
-      splice! start, bytes, replacement
+      m = Rubinius::Mirror.reflect self
+      m.splice start, bytes, replacement
     when Regexp
       if count
         count = Rubinius::Type.coerce_to count, Fixnum, :to_int
+      else
+        count = 0
       end
 
       replacement = StringValue replacement
 
-      subpattern_set index, count || 0, replacement
+      if match = index.match(self)
+        ms = match.size
+        count += ms if count < 0
+      end
+
+      unless match and count < ms
+        raise IndexError, "regexp does not match"
+      end
+
+      m = Rubinius::Mirror.reflect self
+      bi = m.byte_index match.begin(count)
+      bs = m.byte_index(match.end(count)) - bi
+
+      m.splice bi, bs, replacement
     else
       index = Rubinius::Type.coerce_to index, Fixnum, :to_int
 
@@ -723,25 +742,26 @@ class String
 
     str = self.class.pattern(1, "\0") * (padsize + @num_bytes)
     str.taint if tainted? or padstr.tainted?
+    m = Rubinius::Mirror.reflect str
 
     case direction
     when :right
       pad = String.pattern padsize, padstr
-      str.copy_from pad, 0, padsize, 0
-      str.copy_from self, 0, @num_bytes, padsize
+      m.copy_from pad, 0, padsize, 0
+      m.copy_from self, 0, @num_bytes, padsize
     when :left
       pad = String.pattern padsize, padstr
-      str.copy_from self, 0, @num_bytes, 0
-      str.copy_from pad, 0, padsize, @num_bytes
+      m.copy_from self, 0, @num_bytes, 0
+      m.copy_from pad, 0, padsize, @num_bytes
     when :center
       half = padsize / 2.0
       lsize = half.floor
       rsize = half.ceil
       lpad = String.pattern lsize, padstr
       rpad = String.pattern rsize, padstr
-      str.copy_from lpad, 0, lsize, 0
-      str.copy_from self, 0, @num_bytes, lsize
-      str.copy_from rpad, 0, rsize, lsize + @num_bytes
+      m.copy_from lpad, 0, lsize, 0
+      m.copy_from self, 0, @num_bytes, lsize
+      m.copy_from rpad, 0, rsize, lsize + @num_bytes
     end
 
     str

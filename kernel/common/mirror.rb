@@ -13,6 +13,8 @@ module Rubinius
       klass.new obj if klass
     end
 
+    attr_reader :object
+
     def initialize(obj)
       @object = obj
     end
