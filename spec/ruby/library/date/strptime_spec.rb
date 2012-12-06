@@ -68,6 +68,11 @@ describe "Date#strptime" do
     DateTime.strptime("-86400", "%s").should == DateTime.civil(1969, 12, 31, 0, 0, 0)
   end
 
+  it "parses a millisecond number since the Unix Epoch" do
+    DateTime.strptime("-999", "%Q").should == DateTime.civil(1969, 12, 31, 23, 59, 59 + 1.to_r/10**3)
+    DateTime.strptime("-1000", "%Q").should == DateTime.civil(1969, 12, 31, 23, 59, 59)
+  end
+
   it "parses a year day with leading zeroes" do
     d = Date.today
     if Date.gregorian_leap?(Date.today.year)
