@@ -511,7 +511,7 @@ class Date
 	when 's'
 	  return unless str.sub!(/\A(-?\d{1,})/, '')
 	  val = $1.to_i
-	  e.seconds = val
+	  e[:seconds] = val
 	when 'T'
 	  return unless _strptime_i(str, '%H:%M:%S', e)
 	when 'U', 'W', 'OU', 'OW'
