@@ -403,39 +403,6 @@ namespace rubinius {
     }
   };
 
-  namespace {
-    void add_fast_passes(FunctionPassManager* passes) {
-      // Eliminate unnecessary alloca.
-      passes->add(createPromoteMemoryToRegisterPass());
-      // Do simple "peephole" optimizations and bit-twiddling optzns.
-      passes->add(createInstructionCombiningPass());
-      // Reassociate expressions.
-      passes->add(createReassociatePass());
-      // Eliminate Common SubExpressions.
-      passes->add(createGVNPass());
-      passes->add(createDeadStoreEliminationPass());
-
-      passes->add(createInstructionCombiningPass());
-
-      passes->add(createScalarReplAggregatesPass());
-      passes->add(createLICMPass());
-
-      passes->add(createSCCPPass());
-      passes->add(createInstructionCombiningPass());
-
-      // Simplify the control flow graph (deleting unreachable blocks, etc).
-      passes->add(createCFGSimplificationPass());
-
-      // passes->add(createGVNPass());
-      // passes->add(createCFGSimplificationPass());
-      passes->add(createDeadStoreEliminationPass());
-      passes->add(createAggressiveDCEPass());
-      // passes->add(createVerifierPass());
-      passes->add(create_overflow_folding_pass());
-      passes->add(create_guard_eliminator_pass());
-    }
-  }
-
   void LLVMState::add_internal_functions() { }
 
   static const bool debug_search = false;
@@ -505,8 +472,6 @@ namespace rubinius {
     Zero = llvm::ConstantInt::get(Int32Ty, 0);
     One = llvm::ConstantInt::get(Int32Ty, 1);
 
-    bool fast_code_passes = false;
-
     module_ = new llvm::Module("rubinius", ctx_);
 
     autogen_types::makeLLVMModuleContents(module_);
@@ -524,49 +489,51 @@ namespace rubinius {
 
     engine_ = factory.create();
 
+    builder_ = new llvm::PassManagerBuilder();
+    builder_->OptLevel = 2;
     passes_ = new llvm::FunctionPassManager(module_);
 
 #if RBX_LLVM_API_VER >= 302
+    module_->setDataLayout(engine_->getDataLayout()->getStringRepresentation());
     passes_->add(new llvm::DataLayout(*engine_->getDataLayout()));
 #else
+    module_->setDataLayout(engine_->getTargetData()->getStringRepresentation());
     passes_->add(new llvm::TargetData(*engine_->getTargetData()));
 #endif
 
-    if(fast_code_passes) {
-      add_fast_passes(passes_);
-    } else {
-      // Eliminate unnecessary alloca.
-      passes_->add(createPromoteMemoryToRegisterPass());
-      // Do simple "peephole" optimizations and bit-twiddling optzns.
-      passes_->add(createInstructionCombiningPass());
-      // Reassociate expressions.
-      passes_->add(createReassociatePass());
-      // Eliminate Common SubExpressions.
-      passes_->add(createGVNPass());
-      passes_->add(createDeadStoreEliminationPass());
+    builder_->populateFunctionPassManager(*passes_);
 
-      passes_->add(createInstructionCombiningPass());
+    // Eliminate unnecessary alloca.
+    passes_->add(createPromoteMemoryToRegisterPass());
+    // Do simple "peephole" optimizations and bit-twiddling optzns.
+    passes_->add(createInstructionCombiningPass());
+    // Reassociate expressions.
+    passes_->add(createReassociatePass());
+    // Eliminate Common SubExpressions.
+    passes_->add(createGVNPass());
+    passes_->add(createDeadStoreEliminationPass());
 
-      // Simplify the control flow graph (deleting unreachable blocks, etc).
-      passes_->add(createCFGSimplificationPass());
+    passes_->add(createInstructionCombiningPass());
 
-      passes_->add(create_rubinius_alias_analysis());
-      passes_->add(createGVNPass());
-      // passes_->add(createCFGSimplificationPass());
-      passes_->add(createDeadStoreEliminationPass());
-      // passes_->add(createVerifierPass());
-      passes_->add(createScalarReplAggregatesPass());
+    // Simplify the control flow graph (deleting unreachable blocks, etc).
+    passes_->add(createCFGSimplificationPass());
 
-      passes_->add(create_overflow_folding_pass());
-      passes_->add(create_guard_eliminator_pass());
+    passes_->add(create_rubinius_alias_analysis());
+    passes_->add(createGVNPass());
+    // passes_->add(createCFGSimplificationPass());
+    passes_->add(createDeadStoreEliminationPass());
+    // passes_->add(createVerifierPass());
+    passes_->add(createScalarReplAggregatesPass());
 
-      passes_->add(createCFGSimplificationPass());
-      passes_->add(createInstructionCombiningPass());
-      passes_->add(createScalarReplAggregatesPass());
-      passes_->add(createDeadStoreEliminationPass());
-      passes_->add(createCFGSimplificationPass());
-      passes_->add(createInstructionCombiningPass());
-    }
+    passes_->add(create_overflow_folding_pass());
+    passes_->add(create_guard_eliminator_pass());
+
+    passes_->add(createCFGSimplificationPass());
+    passes_->add(createInstructionCombiningPass());
+    passes_->add(createScalarReplAggregatesPass());
+    passes_->add(createDeadStoreEliminationPass());
+    passes_->add(createCFGSimplificationPass());
+    passes_->add(createInstructionCombiningPass());
 
     passes_->doInitialization();
 
@@ -596,6 +563,7 @@ namespace rubinius {
 
     shared_.remove_managed_thread(this);
     shared_.om->del_aux_barrier(&write_barrier_);
+    delete builder_;
     delete passes_;
     delete engine_;
     delete background_thread_;

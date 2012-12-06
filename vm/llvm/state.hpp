@@ -18,6 +18,7 @@
 #endif
 #include <llvm/ExecutionEngine/JIT.h>
 #include <llvm/CodeGen/MachineCodeInfo.h>
+#include <llvm/Transforms/IPO/PassManagerBuilder.h>
 #include <llvm/Pass.h>
 #include <llvm/PassManager.h>
 #include <llvm/Support/raw_ostream.h>
@@ -55,6 +56,7 @@ namespace rubinius {
     llvm::LLVMContext& ctx_;
     llvm::Module* module_;
     llvm::ExecutionEngine* engine_;
+    llvm::PassManagerBuilder* builder_;
     llvm::FunctionPassManager* passes_;
 
     llvm::Type* object_;
@@ -144,6 +146,7 @@ namespace rubinius {
 
     llvm::Module* module() { return module_; }
     llvm::ExecutionEngine* engine() { return engine_; }
+    llvm::PassManagerBuilder* builder() { return builder_; }
     llvm::FunctionPassManager* passes() { return passes_; }
     llvm::Type* object() { return object_; }
 
