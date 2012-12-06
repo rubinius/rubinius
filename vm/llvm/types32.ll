@@ -249,3 +249,10 @@ declare void @output22(%"struct.rubinius::Tuple"*)
 
 declare void @output23(%"struct.rubinius::VariableScope"*)
 
+%"struct.rubinius::ByteArray" = type {
+         %"struct.rubinius::Object", ; header
+                                i32, ; full_size
+                           [0 x i8]  ; field
+}
+
+declare void @output24(%"struct.rubinius::ByteArray"*)

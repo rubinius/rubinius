@@ -19,7 +19,11 @@
 using namespace llvm;
 
 namespace autogen_types {
-#include "llvm/types.cpp.gen"
+#ifdef IS_X8664
+#include "llvm/types64.cpp.gen"
+#else
+#include "llvm/types32.cpp.gen"
+#endif
 }
 
 #endif

@@ -1,13 +1,15 @@
 namespace :jit do
   task :generate_header do
-    puts "GEN vm/llvm/types.cpp.gen"
-    `vendor/llvm/Release/bin/llvm-as < vm/llvm/types.ll > vm/gen/types.bc`
-    `vendor/llvm/Release/bin/llc -march=cpp -cppgen=contents -o vm/llvm/types.cpp.gen vm/gen/types.bc`
+    puts "GEN vm/llvm/types{32|64}.cpp.gen"
+    `vendor/llvm/Release/bin/llvm-as < vm/llvm/types32.ll > vm/gen/types32.bc`
+    `vendor/llvm/Release/bin/llvm-as < vm/llvm/types64.ll > vm/gen/types64.bc`
+    `vendor/llvm/Release/bin/llc -march=cpp -cppgen=contents -o vm/llvm/types32.cpp.gen vm/gen/types32.bc`
+    `vendor/llvm/Release/bin/llc -march=cpp -cppgen=contents -o vm/llvm/types64.cpp.gen vm/gen/types64.bc`
   end
 
   task :generate_offsets do
     classes = {}
-    File.open "vm/llvm/types.ll" do |f|
+    File.open "vm/llvm/types64.ll" do |f|
       while line = f.gets
         if m1 = /%"?(struct|union)\.rubinius::([^"]*)"?\s*=\s*type\s*\{\n/.match(line)
           line = f.gets

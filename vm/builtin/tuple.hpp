@@ -10,10 +10,7 @@ namespace rubinius {
   public:
     const static object_type type = TupleType;
 
-    // Must NOT be a native_int, because that changes between sizes
-    // between 32 and 64bit, thusly types.gen.cpp will not
-    // be portable.
-    uint32_t full_size_;
+    native_int full_size_;
 
     /* Body access */
     Object* field[0];
