@@ -396,6 +396,53 @@ describe "Struct tests" do
   end
 end
 
+describe FFI::Struct, ".layout" do
+  module FFISpecs
+    module LibTest
+      extend FFI::Library
+      ffi_lib TestLibrary::PATH
+      attach_function :ptr_ret_int32_t, [ :pointer, :int ], :int
+    end
+  end
+
+  describe "when derived class is not assigned to any constant" do
+    it "resolves a built-in type" do
+      klass = Class.new FFI::Struct
+      klass.layout :number, :int
+
+      instance = klass.new
+      instance[:number] = 0xA1
+      FFISpecs::LibTest.ptr_ret_int32_t(instance, 0).should == 0xA1
+    end
+  end
+
+  describe "when derived class is assigned to a constant" do
+    it "resolves a built-in type" do
+      class FFISpecs::TestStruct < FFI::Struct
+        layout :number, :int
+      end
+
+      instance = FFISpecs::TestStruct.new
+      instance[:number] = 0xA1
+      FFISpecs::LibTest.ptr_ret_int32_t(instance, 0).should == 0xA1
+    end
+
+    it "resolves a type from the enclosing module" do
+      module FFISpecs::LibTest
+        typedef :uint, :custom_int
+
+        class TestStruct < FFI::Struct
+          layout :number, :custom_int
+        end
+      end
+
+      instance = FFISpecs::LibTest::TestStruct.new
+      instance[:number] = 0xA1
+      FFISpecs::LibTest.ptr_ret_int32_t(instance, 0).should == 0xA1
+    end
+  end
+end
+
 describe FFI::Struct, ' with a nested struct field'  do
   module LibTest
     extend FFI::Library
