@@ -406,7 +406,7 @@ describe FFI::Struct, ".layout" do
   end
 
   describe "when derived class is not assigned to any constant" do
-    it "is able to use built-in types" do
+    it "resolves a built-in type" do
       klass = Class.new FFI::Struct
       klass.layout :number, :int
 
@@ -417,7 +417,7 @@ describe FFI::Struct, ".layout" do
   end
 
   describe "when derived class is assigned to a constant" do
-    it "is able to use built-in types" do
+    it "resolves a built-in type" do
       class FFISpecs::TestStruct < FFI::Struct
         layout :number, :int
       end
@@ -427,7 +427,7 @@ describe FFI::Struct, ".layout" do
       FFISpecs::LibTest.ptr_ret_int32_t(instance, 0).should == 0xA1
     end
 
-    it "is able to use custom types from enclosing module" do
+    it "resolves a type from the enclosing module" do
       module FFISpecs::LibTest
         typedef :uint, :custom_int
 
