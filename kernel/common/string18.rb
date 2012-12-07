@@ -686,16 +686,18 @@ class String
         count = 0
       end
 
-      replacement = StringValue replacement
-
       if match = index.match(self)
         ms = match.size
-        count += ms if count < 0
-      end
-
-      unless match and count < ms
+      else
         raise IndexError, "regexp does not match"
       end
+
+      count += ms if count < 0 and -count < ms
+      unless count < ms and count >= 0
+        raise IndexError, "index #{count} out of match bounds"
+      end
+
+      replacement = StringValue replacement
 
       m = Rubinius::Mirror.reflect self
       bi = m.byte_index match.begin(count)

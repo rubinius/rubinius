@@ -1003,16 +1003,19 @@ class String
         count = 0
       end
 
-      replacement = StringValue replacement
-
       if match = index.match(self)
         ms = match.size
-        count += ms if count < 0
-      end
-
-      unless match and count < ms
+      else
         raise IndexError, "regexp does not match"
       end
+
+      count += ms if count < 0 and -count < ms
+      unless count < ms and count >= 0
+        raise IndexError, "index #{count} out of match bounds"
+      end
+
+      replacement = StringValue replacement
+      enc = Rubinius::Type.compatible_encoding self, replacement
 
       bi = m.byte_index match.begin(count)
       bs = m.byte_index(match.end(count)) - bi
@@ -1080,7 +1083,7 @@ class String
       m.copy_from self, 0, bs, left
     end
 
-    Rubinius::Type.infect str, padding
+    str.taint if tainted? or padding.tainted?
     str.force_encoding enc
   end
 
@@ -1129,7 +1132,7 @@ class String
       m.copy_from self, 0, bs, 0
     end
 
-    Rubinius::Type.infect str, padding
+    str.taint if tainted? or padding.tainted?
     str.force_encoding enc
   end
 
@@ -1164,7 +1167,7 @@ class String
 
     m.copy_from self, 0, bs, bytes
 
-    Rubinius::Type.infect str, padding
+    str.taint if tainted? or padding.tainted?
     str.force_encoding enc
   end
 
