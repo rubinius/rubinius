@@ -233,9 +233,9 @@ class String
 
   # NOTE: TypeError is raised in String#replace and not in String#chomp! when
   # self is frozen. This is intended behaviour.
-  def chomp!(sep=undefined)
+  def chomp!(sep=$/)
     # special case for performance. No seperator is by far the most common usage.
-    if sep.equal?(undefined)
+    if sep == DEFAULT_RECORD_SEPARATOR
       return if @num_bytes == 0
 
       Rubinius.check_frozen
