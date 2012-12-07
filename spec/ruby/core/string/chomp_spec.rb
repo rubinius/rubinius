@@ -1,7 +1,7 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes.rb', __FILE__)
 
-describe "String#chomp with separator" do
+describe "String#chomp" do
   it "returns a new string with the given record separator removed" do
     "hello".chomp("llo").should == "he"
     "hellollo".chomp("llo").should == "hello"
@@ -90,7 +90,7 @@ describe "String#chomp with separator" do
   end
 end
 
-describe "String#chomp! with separator" do
+describe "String#chomp!" do
   it "modifies self in place and returns self" do
     s = "one\n"
     s.chomp!.should equal(s)
