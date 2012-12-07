@@ -121,7 +121,7 @@ class Configure
     @libversion = "2.0"
     @version = "#{@libversion}.0rc1"
     @release_date = "2012-11-02"
-    @config_version = 162
+    @config_version = 163
   end
 
   # Set up system commands to run in cmd.exe on Windows. Either Windows
