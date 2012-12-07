@@ -134,12 +134,19 @@ compile_ext "melbourne", :task => "rbx",
                          :env => melbourne_env,
                          :doc => "for Rubinius"
 
-compile_ext "digest", :dir => "#{libprefixdir}/digest/ext"
-compile_ext "digest:md5", :dir => "#{libprefixdir}/digest/ext/md5"
-compile_ext "digest:rmd160", :dir => "#{libprefixdir}/digest/ext/rmd160"
-compile_ext "digest:sha1", :dir => "#{libprefixdir}/digest/ext/sha1"
-compile_ext "digest:sha2", :dir => "#{libprefixdir}/digest/ext/sha2"
-compile_ext "digest:bubblebabble", :dir => "#{libprefixdir}/digest/ext/bubblebabble"
+compile_ext "digest", :deps => ["Makefile", "extconf.rb"],
+                      :dir => "#{libprefixdir}/digest/ext"
+
+compile_ext "digest:md5", :deps => ["Makefile", "extconf.rb"],
+                          :dir => "#{libprefixdir}/digest/ext/md5"
+compile_ext "digest:rmd160", :deps => ["Makefile", "extconf.rb"],
+                             :dir => "#{libprefixdir}/digest/ext/rmd160"
+compile_ext "digest:sha1", :deps => ["Makefile", "extconf.rb"],
+                           :dir => "#{libprefixdir}/digest/ext/sha1"
+compile_ext "digest:sha2", :deps => ["Makefile", "extconf.rb"],
+                           :dir => "#{libprefixdir}/digest/ext/sha2"
+compile_ext "digest:bubblebabble", :deps => ["Makefile", "extconf.rb"],
+                                   :dir => "#{libprefixdir}/digest/ext/bubblebabble"
 
 if enabled_18
   compile_ext "18/bigdecimal", :dir => "#{libprefixdir}/18/bigdecimal/ext", :env => "-X18"
@@ -149,8 +156,8 @@ if enabled_18
 
   if BUILD_CONFIG[:readline] == :c_readline
     compile_ext "18/readline", :dir => "#{libprefixdir}/18/readline/ext",
-			       :deps => ["Makefile", "extconf.rb"],
-			       :env => "-X18"
+             :deps => ["Makefile", "extconf.rb"],
+             :env => "-X18"
   end
 
   # rbx must be able to run to build these because they use
