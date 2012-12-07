@@ -10,9 +10,7 @@ module Digest
     end
 
     begin
-      p "REQUIRING"
       require lib
-      p "BOOOO"
     rescue LoadError
       raise LoadError, "library not found for class Digest::#{name} -- #{lib}", caller(1)
     end
