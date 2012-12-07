@@ -65,6 +65,8 @@ module FFI
     end
 
     def self.find_nested_parent
+      return nil if self.name.nil?
+
       path = self.name.split("::")
       path.pop # remove ourself
 
@@ -77,9 +79,7 @@ module FFI
         return nil
       end
 
-      return mod if mod.respond_to?(:find_type)
-
-      nil
+      mod.respond_to?(:find_type) ? mod : nil
     end
 
     attr_reader :pointer
