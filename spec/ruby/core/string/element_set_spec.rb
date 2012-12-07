@@ -316,6 +316,22 @@ describe "String#[]= with a Regexp index" do
     str.should == "hello"
   end
 
+  it "calls #to_str to convert the replacement" do
+    rep = mock("string element set regexp")
+    rep.should_receive(:to_str).and_return("b")
+
+    str = "abc"
+    str[/ab/] = rep
+    str.should == "bc"
+  end
+
+  it "checks the match before calling #to_str to convert the replacement" do
+    rep = mock("string element set regexp")
+    rep.should_not_receive(:to_str)
+
+    lambda { "abc"[/def/] = rep }.should raise_error(IndexError)
+  end
+
   describe "with 3 arguments" do
     it "calls #to_int to convert the second object" do
       ref = mock("string element set regexp ref")
@@ -343,6 +359,13 @@ describe "String#[]= with a Regexp index" do
       str = "abcd"
       str[/(a)(b)(c)(d)/, -2] = "e"
       str.should == "abed"
+    end
+
+    it "checks the match index before calling #to_str to convert the replacement" do
+      rep = mock("string element set regexp")
+      rep.should_not_receive(:to_str)
+
+      lambda { "abc"[/a(b)/, 2] = rep }.should raise_error(IndexError)
     end
 
     it "raises IndexError if the specified capture isn't available" do
