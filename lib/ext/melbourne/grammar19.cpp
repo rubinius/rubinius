@@ -545,7 +545,7 @@ void push_start_line(rb_parser_state* parser_state, int line, const char* which)
   start_lines->push_back(StartPosition(line, which));
 }
 
-#define PUSH_LINE(which) push_start_line((rb_parser_state*)parser_state, ruby_sourceline, which)
+#define PUSH_LINE(which) push_start_line((rb_parser_state*)parser_state, sourceline, which)
 
 void pop_start_line(rb_parser_state* parser_state) {
   start_lines->pop_back();
@@ -611,11 +611,11 @@ static int scan_hex(const char *start, size_t len, size_t *retlen);
 #define local_pop()               parser_local_pop(parser_state)
 #define local_id(i)               parser_local_id(parser_state, i)
 
-#define rb_warn0(fmt)             rb_compile_warn(ruby_sourcefile, ruby_sourceline, fmt)
-#define rb_warnI(fmt,a)           rb_compile_warn(ruby_sourcefile, ruby_sourceline, fmt, a)
-#define rb_warnS(fmt,a)           rb_compile_warn(ruby_sourcefile, ruby_sourceline, fmt, a)
-#define rb_warning0(fmt)          rb_compile_warning(ruby_sourcefile, ruby_sourceline, fmt)
-#define rb_warningS(fmt,a)        rb_compile_warning(ruby_sourcefile, ruby_sourceline, fmt, a)
+#define rb_warn0(fmt)             rb_compile_warn(sourcefile, sourceline, fmt)
+#define rb_warnI(fmt,a)           rb_compile_warn(sourcefile, sourceline, fmt, a)
+#define rb_warnS(fmt,a)           rb_compile_warn(sourcefile, sourceline, fmt, a)
+#define rb_warning0(fmt)          rb_compile_warning(sourcefile, sourceline, fmt)
+#define rb_warningS(fmt,a)        rb_compile_warning(sourcefile, sourceline, fmt, a)
 
 
 #ifndef RE_OPTION_IGNORECASE
@@ -5161,7 +5161,7 @@ yyreduce:
 #line 883 "grammar19.y"
     {
                     (yyvsp[(1) - (1)].vars) = bv_push();
-                    (yyval.num) = ruby_sourceline;
+                    (yyval.num) = sourceline;
                   ;}
     break;
 
@@ -6334,7 +6334,7 @@ yyreduce:
   case 274:
 #line 1659 "grammar19.y"
     {
-                    (yyval.num) = ruby_sourceline;
+                    (yyval.num) = sourceline;
                   ;}
     break;
 
@@ -6587,7 +6587,7 @@ yyreduce:
                       yy_error("class definition in method body");
                     class_nest++;
                     local_push(0);
-                    (yyval.num) = ruby_sourceline;
+                    (yyval.num) = sourceline;
                   ;}
     break;
 
@@ -6638,7 +6638,7 @@ yyreduce:
                       yy_error("module definition in method body");
                     class_nest++;
                     local_push(0);
-                    (yyval.num) = ruby_sourceline;
+                    (yyval.num) = sourceline;
                   ;}
     break;
 
@@ -6803,7 +6803,7 @@ yyreduce:
 #line 1980 "grammar19.y"
     {
                     token_info_push("def");
-                    (yyval.num) = ruby_sourceline;
+                    (yyval.num) = sourceline;
                   ;}
     break;
 
@@ -7161,7 +7161,7 @@ yyreduce:
 #line 2240 "grammar19.y"
     {
                     (yyvsp[(1) - (1)].vars) = bv_push();
-                    (yyval.num) = ruby_sourceline;
+                    (yyval.num) = sourceline;
                   ;}
     break;
 
@@ -7279,7 +7279,7 @@ yyreduce:
 #line 2324 "grammar19.y"
     {
                     (yyvsp[(1) - (1)].vars) = bv_push();
-                    (yyval.num) = ruby_sourceline;
+                    (yyval.num) = sourceline;
                   ;}
     break;
 
@@ -7296,7 +7296,7 @@ yyreduce:
 #line 2336 "grammar19.y"
     {
                     (yyvsp[(1) - (1)].vars) = bv_push();
-                    (yyval.num) = ruby_sourceline;
+                    (yyval.num) = sourceline;
                   ;}
     break;
 
@@ -8463,7 +8463,7 @@ yycompile(rb_parser_state* parser_state, char *f, int line)
   heredoc_end = 0;
   lex_strterm = 0;
   ruby__end__seen = 0;
-  ruby_sourcefile = f;
+  sourcefile = f;
   command_start = TRUE;
   parser_prepare(parser_state);
   n = yyparse(parser_state);
@@ -8535,7 +8535,7 @@ string_to_ast(VALUE ptp, VALUE name, VALUE source, VALUE line)
   lex_gets_ptr = 0;
   processor = ptp;
   rb_funcall(ptp, rb_intern("references="), 1, references);
-  ruby_sourceline = l - 1;
+  sourceline = l - 1;
   compile_for_eval = 1;
 
   yycompile(parser_state, RSTRING_PTR(name), l);
@@ -8612,7 +8612,7 @@ file_to_ast(VALUE ptp, const char *f, int fd, int start)
   lex_gets = parse_io_gets;
   processor = ptp;
   rb_funcall(ptp, rb_intern("references="), 1, references);
-  ruby_sourceline = start - 1;
+  sourceline = start - 1;
 
   yycompile(parser_state, (char*)f, start);
 
@@ -8690,11 +8690,11 @@ parser_nextc(rb_parser_state* parser_state)
     }
 
     if(heredoc_end > 0) {
-      ruby_sourceline = heredoc_end;
+      sourceline = heredoc_end;
       heredoc_end = 0;
     }
 
-    ruby_sourceline++;
+    sourceline++;
     line_count++;
     lex_pbeg = lex_p = RSTRING_PTR(v);
     lex_pend = lex_p + RSTRING_LEN(v);
@@ -9232,7 +9232,7 @@ parser_parse_string(rb_parser_state* parser_state, NODE *quote)
   int c, space = 0;
   rb_encoding* enc = parser_state->enc;
 
-  long start_line = ruby_sourceline;
+  long start_line = sourceline;
 
   if(func == -1) return tSTRING_END;
   c = nextc();
@@ -9267,7 +9267,7 @@ parser_parse_string(rb_parser_state* parser_state, NODE *quote)
   }
   pushback(c);
   if(tokadd_string(func, term, paren, &quote->nd_nest, &enc) == -1) {
-    ruby_sourceline = nd_line(quote);
+    sourceline = nd_line(quote);
     if(func & STR_FUNC_REGEXP) {
       if(eofp)
         rb_compile_error(parser_state, "unterminated regexp meets end of file");
@@ -9367,7 +9367,7 @@ parser_heredoc_identifier(rb_parser_state* parser_state)
                              REF(STR_NEW(tok(), toklen())), /* nd_lit */
                              (VALUE)len,                    /* nd_nth */
                              (VALUE)lex_lastline);          /* nd_orig */
-  nd_set_line(lex_strterm, ruby_sourceline);
+  nd_set_line(lex_strterm, sourceline);
   return term == '`' ? tXSTRING_BEG : tSTRING_BEG;
 }
 
@@ -9381,8 +9381,8 @@ parser_heredoc_restore(rb_parser_state* parser_state, NODE *here)
   lex_pbeg = RSTRING_PTR(line);
   lex_pend = lex_pbeg + RSTRING_LEN(line);
   lex_p = lex_pbeg + here->nd_nth;
-  heredoc_end = ruby_sourceline;
-  ruby_sourceline = nd_line(here);
+  heredoc_end = sourceline;
+  sourceline = nd_line(here);
 }
 
 static int
@@ -9910,7 +9910,7 @@ retry:
         }
       }
       default:
-        --ruby_sourceline;
+        --sourceline;
         lex_nextline = lex_lastline;
       case -1:		/* EOF no decrement*/
         lex_goto_eol();
@@ -11084,8 +11084,8 @@ parser_node_newnode(rb_parser_state* parser_state, enum node_type type,
 
   n->flags = 0;
   nd_set_type(n, type);
-  nd_set_line(n, ruby_sourceline);
-  n->nd_file = ruby_sourcefile;
+  nd_set_line(n, sourceline);
+  n->nd_file = sourcefile;
 
   n->u1.value = a0;
   n->u2.value = a1;
@@ -11174,14 +11174,14 @@ rb_compile_warning(const char *file, int line, const char *fmt, ...)
 static void
 parser_warning(rb_parser_state* parser_state, NODE *node, const char *mesg)
 {
-  rb_compile_warning(ruby_sourcefile, nd_line(node), "%s", mesg);
+  rb_compile_warning(sourcefile, nd_line(node), "%s", mesg);
 }
 #define parser_warning(node, mesg) parser_warning(parser_state, node, mesg)
 
 static void
 parser_warn(rb_parser_state* parser_state, NODE *node, const char *mesg)
 {
-  rb_compile_warn(ruby_sourcefile, nd_line(node), "%s", mesg);
+  rb_compile_warn(sourcefile, nd_line(node), "%s", mesg);
 }
 #define parser_warn(node, mesg) parser_warn(parser_state, node, mesg)
 
@@ -11482,7 +11482,7 @@ parser_gettable(rb_parser_state* parser_state, ID id)
   } else if(id == keyword__FILE__) {
     return NEW_FILE();
   } else if(id == keyword__LINE__) {
-    return NEW_NUMBER(INT2FIX(ruby_sourceline));
+    return NEW_NUMBER(INT2FIX(sourceline));
   } else if(id == keyword__ENCODING__) {
     return NEW_ENCODING(STR_NEW2(parser_enc_name(parser_state->enc)));
   } else if(is_local_id(id)) {
@@ -11927,11 +11927,11 @@ parser_void_expr0(rb_parser_state* parser_state, NODE *node)
   }
 
   if(useless) {
-    int line = ruby_sourceline;
+    int line = sourceline;
 
-    ruby_sourceline = nd_line(node);
+    sourceline = nd_line(node);
     rb_warn("useless use of %s in void context", useless);
-    ruby_sourceline = line;
+    sourceline = line;
   }
 }
 
@@ -11992,7 +11992,7 @@ assign_in_cond(NODE *node, rb_parser_state* parser_state)
 static bool
 parser_e_option_supplied(rb_parser_state* parser_state)
 {
-  return strcmp(ruby_sourcefile, "-e") == 0;
+  return strcmp(sourcefile, "-e") == 0;
 }
 
 static void
@@ -12193,7 +12193,7 @@ arg_blk_pass(NODE *node1, NODE *node2)
 static NODE*
 parser_new_args(rb_parser_state* parser_state, NODE *m, NODE *o, ID r, NODE *p, ID b)
 {
-  int saved_line = ruby_sourceline;
+  int saved_line = sourceline;
   NODE *node;
   NODE *i1, *i2 = 0;
 
@@ -12210,7 +12210,7 @@ parser_new_args(rb_parser_state* parser_state, NODE *m, NODE *o, ID r, NODE *p, 
   if(i1 || i2) {
     node->nd_next->nd_next->nd_next = NEW_NODE(NODE_AND, i1, i2, 0);
   }
-  ruby_sourceline = saved_line;
+  sourceline = saved_line;
   return node;
 }
 
