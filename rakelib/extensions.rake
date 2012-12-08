@@ -123,13 +123,24 @@ File.open(build_ruby, "wb") do |f|
   f.puts build_version
 end
 
-enabled_18 = BUILD_CONFIG[:version_list].include?("18")
-enabled_19 = BUILD_CONFIG[:version_list].include?("19")
+if BUILD_CONFIG[:version_list].include?("18")
+  enabled_18 = true
+  melbourne_env = "-X18"
+end
+
+if BUILD_CONFIG[:version_list].include?("19")
+  enabled_19 = true
+  melbourne_env = "-X19"
+end
+
+if BUILD_CONFIG[:version_list].include?("20")
+  enabled_20 = true
+  melbourne_env = "-X20"
+end
 
 compile_ext "melbourne", :task => "build",
                          :doc => "for bootstrapping"
 
-melbourne_env = enabled_19 ? "-X19" : "-X18"
 compile_ext "melbourne", :task => "rbx",
                          :env => melbourne_env,
                          :doc => "for Rubinius"
@@ -180,7 +191,7 @@ if enabled_18
                           :env => "-X18"
 end
 
-if enabled_19
+if enabled_19 || enabled_20
   compile_ext "19/bigdecimal", :dir => "#{libprefixdir}/19/bigdecimal/ext",
                                :deps => ["Makefile", "extconf.rb"],
                                :env => "-X19"
