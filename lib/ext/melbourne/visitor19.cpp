@@ -52,7 +52,7 @@ namespace melbourne {
                rb_intern("process_parse_error"),4,
                err_msg,
                INT2FIX(col),
-               INT2FIX(ruby_sourceline),
+               INT2FIX(sourceline),
                lex_lastline);
 
     parse_error = true;

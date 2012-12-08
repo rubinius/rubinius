@@ -311,7 +311,7 @@ void push_start_line(rb_parser_state* parser_state, int line, const char* which)
   start_lines->push_back(StartPosition(line, which));
 }
 
-#define PUSH_LINE(which) push_start_line((rb_parser_state*)parser_state, ruby_sourceline, which)
+#define PUSH_LINE(which) push_start_line((rb_parser_state*)parser_state, sourceline, which)
 
 void pop_start_line(rb_parser_state* parser_state) {
   start_lines->pop_back();
@@ -838,7 +838,7 @@ block_command   : block_call
 
 cmd_brace_block : tLBRACE_ARG
                     {
-                        $<num>1 = ruby_sourceline;
+                        $<num>1 = sourceline;
                         reset_block(vps);
                     }
                   opt_block_var { $<vars>$ = variables->block_vars; }
@@ -1623,7 +1623,7 @@ primary         : literal
                     }
                 | kBEGIN
                     {
-                        $<num>1 = ruby_sourceline;
+                        $<num>1 = sourceline;
                         PUSH_LINE("begin");
                     }
                   bodystmt
@@ -1784,14 +1784,14 @@ primary         : literal
                         fixpos($$, $3);
                     }
                 | kCASE opt_terms { 
-                    push_start_line((rb_parser_state*)parser_state, ruby_sourceline - 1, "case");
+                    push_start_line((rb_parser_state*)parser_state, sourceline - 1, "case");
                   } case_body kEND
                     {
                         POP_LINE();
                         $$ = $4;
                     }
                 | kCASE opt_terms {
-                    push_start_line((rb_parser_state*)parser_state, ruby_sourceline - 1, "case");
+                    push_start_line((rb_parser_state*)parser_state, sourceline - 1, "case");
                   } kELSE compstmt kEND
                     {
                         POP_LINE();
@@ -1814,7 +1814,7 @@ primary         : literal
                             yyerror("class definition in method body");
                         class_nest++;
                         local_push(0);
-                        $<num>$ = ruby_sourceline;
+                        $<num>$ = sourceline;
                     }
                   bodystmt
                   kEND
@@ -1856,7 +1856,7 @@ primary         : literal
                             yyerror("module definition in method body");
                         class_nest++;
                         local_push(0);
-                        $<num>$ = ruby_sourceline;
+                        $<num>$ = sourceline;
                     }
                   bodystmt
                   kEND
@@ -2044,7 +2044,7 @@ opt_block_var   : none
 do_block        : kDO_BLOCK
                     {
                         PUSH_LINE("do");
-                        $<num>1 = ruby_sourceline;
+                        $<num>1 = sourceline;
                         reset_block(vps);
                     }
                   opt_block_var
@@ -2120,7 +2120,7 @@ method_call     : operation paren_args
 
 brace_block     : '{'
                     {
-                        $<num>1 = ruby_sourceline;
+                        $<num>1 = sourceline;
                         reset_block(vps);
                     }
                   opt_block_var { $<vars>$ = variables->block_vars; }
@@ -2132,7 +2132,7 @@ brace_block     : '{'
                 | kDO
                     {
                         PUSH_LINE("do");
-                        $<num>1 = ruby_sourceline;
+                        $<num>1 = sourceline;
                         reset_block(vps);
                     }
                   opt_block_var { $<vars>$ = variables->block_vars; }
@@ -2775,7 +2775,7 @@ yycompile(rb_parser_state *parser_state, char *f, int line)
     heredoc_end = 0;
     lex_strterm = 0;
     end_seen = 0;
-    ruby_sourcefile = f;
+    sourcefile = f;
     command_start = TRUE;
     n = yyparse(parser_state);
     ruby_debug_lines = 0;
@@ -2846,7 +2846,7 @@ string_to_ast(VALUE ptp, const char *f, bstring s, int line)
     lex_string = s;
     lex_gets = lex_get_str;
     processor = ptp;
-    ruby_sourceline = line - 1;
+    sourceline = line - 1;
     compile_for_eval = 1;
 
     yycompile(parser_state, (char*)f, line);
@@ -2902,7 +2902,7 @@ file_to_ast(VALUE ptp, const char *f, FILE *file, int start)
     lex_io = file;
     lex_gets = parse_io_gets;
     processor = ptp;
-    ruby_sourceline = start - 1;
+    sourceline = start - 1;
 
     yycompile(parser_state, (char*)f, start);
 
@@ -2941,10 +2941,10 @@ ps_nextc(rb_parser_state *parser_state)
         v = line_buffer;
 
         if (heredoc_end > 0) {
-            ruby_sourceline = heredoc_end;
+            sourceline = heredoc_end;
             heredoc_end = 0;
         }
-        ruby_sourceline++;
+        sourceline++;
 
         /* This code is setup so that lex_pend can be compared to
            the data in lex_lastline. Thats important, otherwise
@@ -3368,7 +3368,7 @@ parse_string(NODE *quote, rb_parser_state *parser_state)
     int paren = nd_paren(quote);
     int c, space = 0;
 
-    long start_line = ruby_sourceline;
+    long start_line = sourceline;
 
     if (func == -1) return tSTRING_END;
     c = nextc();
@@ -3403,7 +3403,7 @@ parse_string(NODE *quote, rb_parser_state *parser_state)
     }
     pushback(c, parser_state);
     if (tokadd_string(func, term, paren, &quote->nd_nest, parser_state) == -1) {
-        ruby_sourceline = nd_line(quote);
+        sourceline = nd_line(quote);
         rb_compile_error(parser_state, "unterminated string meets end of file");
         return tSTRING_END;
     }
@@ -3515,8 +3515,8 @@ heredoc_restore(NODE *here, rb_parser_state *parser_state)
     lex_pbeg = bdata(line);
     lex_pend = lex_pbeg + blength(line);
     lex_p = lex_pbeg + here->nd_nth;
-    heredoc_end = ruby_sourceline;
-    ruby_sourceline = nd_line(here);
+    heredoc_end = sourceline;
+    sourceline = nd_line(here);
     bdestroy((bstring)here->nd_lit);
 }
 
@@ -4856,8 +4856,8 @@ parser_node_newnode(rb_parser_state *parser_state, enum node_type type,
 
     n->flags = 0;
     nd_set_type(n, type);
-    nd_set_line(n, ruby_sourceline);
-    n->nd_file = ruby_sourcefile;
+    nd_set_line(n, sourceline);
+    n->nd_file = sourcefile;
 
     n->u1.value = a0;
     n->u2.value = a1;
@@ -4892,11 +4892,11 @@ fixpos(NODE *node, NODE *orig)
 static void
 parser_warning(rb_parser_state *parser_state, NODE *node, const char *mesg)
 {
-    int line = ruby_sourceline;
+    int line = sourceline;
     if(emit_warnings) {
-      ruby_sourceline = nd_line(node);
-      printf("%s:%i: warning: %s\n", ruby_sourcefile, ruby_sourceline, mesg);
-      ruby_sourceline = line;
+      sourceline = nd_line(node);
+      printf("%s:%i: warning: %s\n", sourcefile, sourceline, mesg);
+      sourceline = line;
     }
 }
 
@@ -5214,7 +5214,7 @@ mel_gettable(rb_parser_state *parser_state, QUID id)
         return NEW_FILE();
     }
     else if (id == k__LINE__) {
-        return NEW_FIXNUM(ruby_sourceline);
+        return NEW_FIXNUM(sourceline);
     }
     else if (is_local_id(id)) {
         if (local_id(id)) return NEW_LVAR(id);
@@ -5556,11 +5556,11 @@ void_expr0(NODE *node, rb_parser_state *parser_state)
     }
 
     if (useless) {
-        int line = ruby_sourceline;
+        int line = sourceline;
 
-        ruby_sourceline = nd_line(node);
+        sourceline = nd_line(node);
         rb_warn("useless use of %s in void context", useless);
-        ruby_sourceline = line;
+        sourceline = line;
     }
 }
 
@@ -5637,7 +5637,7 @@ assign_in_cond(NODE *node, rb_parser_state *parser_state)
 static int
 parser_e_option_supplied(rb_parser_state* parser_state)
 {
-    if (strcmp(ruby_sourcefile, "-e") == 0)
+    if (strcmp(sourcefile, "-e") == 0)
         return TRUE;
     return FALSE;
 }

@@ -123,8 +123,8 @@ typedef VALUE stack_type;
       int line_count;
       bool has_shebang;
 
-      char *ruby_sourcefile;
-      int ruby_sourceline;
+      char *sourcefile;
+      int sourceline;
 
       rb_encoding *enc;
       rb_encoding *utf8;
@@ -189,8 +189,8 @@ typedef VALUE stack_type;
 #define processor           PARSER_VAR(processor)
 #define references          PARSER_VAR(references)
 #define start_lines         PARSER_VAR(start_lines)
-#define ruby_sourcefile     PARSER_VAR(ruby_sourcefile)
-#define ruby_sourceline     PARSER_VAR(ruby_sourceline)
+#define sourcefile          PARSER_VAR(sourcefile)
+#define sourceline          PARSER_VAR(sourceline)
 
 #define node_newnode(t, a, b, c)  \
     parser_node_newnode((rb_parser_state*)parser_state, t, a, b, c)

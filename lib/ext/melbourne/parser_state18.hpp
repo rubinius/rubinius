@@ -100,8 +100,8 @@ typedef VALUE stack_type;
       bool parse_error;
       VALUE processor;
 
-      char *ruby_sourcefile;
-      int ruby_sourceline;
+      char *sourcefile;
+      int sourceline;
 
       // Keeps track of lines that 'end' starters are on, to enable
       // better error reporting.
@@ -167,8 +167,8 @@ typedef VALUE stack_type;
 #define parse_error         PARSER_VAR(parse_error)
 #define processor           PARSER_VAR(processor)
 #define start_lines         PARSER_VAR(start_lines)
-#define ruby_sourcefile     PARSER_VAR(ruby_sourcefile)
-#define ruby_sourceline     PARSER_VAR(ruby_sourceline)
+#define sourcefile          PARSER_VAR(sourcefile)
+#define sourceline          PARSER_VAR(sourceline)
 #define quark_indexes       PARSER_VAR(quark_indexes)
 #define quarks              PARSER_VAR(quarks)
 
