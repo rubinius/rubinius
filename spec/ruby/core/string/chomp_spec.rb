@@ -44,19 +44,44 @@ describe "String#chomp" do
     "".chomp(nil).should == ""
   end
 
-  it "uses $/ as the separator when none is given" do
-    ["", "x", "x\n", "x\r", "x\r\n", "x\n\r\r\n", "hello"].each do |str|
-      ["", "llo", "\n", "\r", nil].each do |sep|
-        begin
-          expected = str.chomp(sep)
-
-          old_rec_sep, $/ = $/, sep
-
-          str.chomp.should == expected
-        ensure
-          $/ = old_rec_sep
-        end
+  describe "with a different $/ separator" do
+    before :each do
+      @old_rec_sep = $/
+      @expectation = lambda do |sep|
+        $/ = sep
+        [ ["", "".chomp(sep)],
+          ["x", "x".chomp(sep)],
+          ["x\n", "x\n".chomp(sep)],
+          ["x\r", "x\r".chomp(sep)],
+          ["x\r\n", "x\r\n".chomp(sep)],
+          ["x\n\r\r\n", "x\n\r\r\n".chomp(sep)],
+          ["hello", "hello".chomp(sep)]
+        ].should be_computed_by(:'chomp')
       end
+    end
+
+    after :each do
+      $/ = @old_rec_sep
+    end
+
+    it "uses separator #{"".inspect} for $/ as the separator when none is given" do
+      @expectation.call("")
+    end
+
+    it "uses separator #{"llo".inspect} for $/ as the separator when none is given" do
+      @expectation.call("llo")
+    end
+
+    it "uses separator #{"\n".inspect} for $/ as the separator when none is given" do
+      @expectation.call("\n")
+    end
+
+    it "uses separator #{"\r".inspect} for $/ as the separator when none is given" do
+      @expectation.call("\r")
+    end
+
+    it "uses separator #{nil.inspect} for $/ as the separator when none is given" do
+      @expectation.call(nil)
     end
   end
 
