@@ -1910,6 +1910,7 @@ VALUE rb_uint2big(unsigned long number);
   VALUE   rb_marshal_load(VALUE string);
 
   VALUE   rb_float_new(double val);
+#define DBL2NUM(dbl) rb_float_new(dbl)
 
   VALUE   rb_Float(VALUE object);
 
