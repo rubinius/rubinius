@@ -1,0 +1,1 @@
+require 'bigdecimal/ext/bigdecimal'
