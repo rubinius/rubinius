@@ -250,4 +250,11 @@ module FFI::Platform
     Rubinius.windows?
   end
 
+  def self.mac?
+    Rubinius.darwin?
+  end
+
+  def self.unix?
+    ! windows?
+  end
 end
