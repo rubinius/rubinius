@@ -283,6 +283,12 @@ describe "A block" do
     end
   end
 
+  describe "taking |(*)| arguments" do
+    it "does not raise an exception when no values are yielded" do
+      @y.z { |(*)| 1 }.should == 1
+    end
+  end
+
   describe "taking |*a| arguments" do
     it "assigns '[]' to the argument when no values are yielded" do
       @y.z { |*a| a }.should == []
