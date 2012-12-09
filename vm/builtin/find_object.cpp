@@ -27,6 +27,9 @@ namespace rubinius {
   public:
     virtual ~QueryCondition() { }
     virtual bool perform(STATE, Object* obj) = 0;
+    virtual Object* immediate() {
+      return 0;
+    }
   };
 
   class AndCondition : public QueryCondition {
@@ -97,12 +100,15 @@ namespace rubinius {
       return id_;
     }
 
-    Object* immediate() {
+    virtual bool perform(STATE, Object* obj) {
+      return obj->has_id(state) && obj->id(state) == id_;
+    }
+
+    virtual Object* immediate() {
       native_int id = id_->to_native();
 
-      // immediates have an odd object id, references even
-      if((id & 1) == 1) {
-        Object* obj = reinterpret_cast<Object*>(id >> 1);
+      if(id & TAG_REF_MASK) {
+        Object* obj = reinterpret_cast<Object*>(id);
 
         // Be sure to not leak a bad reference leak out here.
         if(obj->reference_p()) return cNil;
@@ -110,10 +116,6 @@ namespace rubinius {
       }
 
       return 0;
-    }
-
-    virtual bool perform(STATE, Object* obj) {
-      return obj->has_id(state) && obj->id(state) == id_;
     }
   };
 
@@ -276,21 +278,28 @@ namespace rubinius {
 
     Object* ret = cNil;
 
-    // Special case for looking for an object_id of an immediate
-    if(ObjectIdCondition* oic = dynamic_cast<ObjectIdCondition*>(condition)) {
-      if(Object* obj = oic->immediate()) {
-        if(!ary->nil_p()) {
-          ary->append(state, obj);
-        } else {
-          args->set(state, 0, obj);
-          ret = callable->send(state, calling_environment, G(sym_call),
-                               args, cNil, false);
+    // Special case for looking for an immediate
+    if(Object* obj = condition->immediate()) {
+      if(Symbol* sym = try_as<Symbol>(obj)) {
+        // Check whether this is actually a valid symbol, not
+        // some random non existing symbol.
+        if(!state->shared().symbols.lookup_string(state, sym)) {
+          std::ostringstream msg;
+          msg << "Invalid symbol 0x" << std::hex << reinterpret_cast<uintptr_t>(sym);
+          Exception::range_error(state, msg.str().c_str());
         }
-
-        delete condition;
-        if(!ret) return 0;
-        return Fixnum::from(1);
       }
+      if(!ary->nil_p()) {
+        ary->append(state, obj);
+      } else {
+        args->set(state, 0, obj);
+        ret = callable->send(state, calling_environment, G(sym_call),
+                             args, cNil, false);
+      }
+
+      delete condition;
+      if(!ret) return 0;
+      return Fixnum::from(1);
     }
 
     OnStack<2> os(state, ary, args);

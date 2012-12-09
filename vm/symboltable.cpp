@@ -168,7 +168,11 @@ namespace rubinius {
       return NULL;
     }
 
-    std::string& str = strings[sym->index()];
+    size_t sym_index = sym->index();
+    if(sym_index >= strings.size()) {
+      return NULL;
+    }
+    std::string& str = strings[sym_index];
     return String::create(state, str.data(), str.size());
   }
 

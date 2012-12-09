@@ -36,7 +36,13 @@ namespace rubinius {
   }
 
   String* Symbol::to_str(STATE) {
-    return state->shared().symbols.lookup_string(state, this);
+    String* str = state->shared().symbols.lookup_string(state, this);
+    if(!str) {
+      std::ostringstream msg;
+      msg << "Invalid symbol 0x" << std::hex << reinterpret_cast<uintptr_t>(this);
+      Exception::range_error(state, msg.str().c_str());
+    }
+    return str;
   }
 
   std::string& Symbol::cpp_str(STATE) {
