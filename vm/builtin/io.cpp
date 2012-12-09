@@ -379,7 +379,7 @@ namespace rubinius {
 
     if(Bignum* big = try_as<Bignum>(amount)) {
       if((size_t)mp_count_bits(big->mp_val()) > (sizeof(off_t) * 8)) {
-        return reinterpret_cast<Integer*>(Primitives::failure());
+        return static_cast<Integer*>(Primitives::failure());
       }
     }
 

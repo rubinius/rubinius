@@ -97,7 +97,7 @@ namespace rubinius {
   }
 
   void PackedObject::Info::mark(Object* obj, ObjectMark& mark) {
-    PackedObject* po = reinterpret_cast<PackedObject*>(obj);
+    PackedObject* po = static_cast<PackedObject*>(obj);
 
     size_t fields = to_fields(object_size(obj));
     Object** body = po->body_as_array();

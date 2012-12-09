@@ -22,7 +22,7 @@ namespace rubinius {
     }
 
     ManagedThread* thread() {
-      return reinterpret_cast<ManagedThread*>(vm_);
+      return static_cast<ManagedThread*>(vm_);
     }
 
     Object* raise_exception(Exception* exc) {
@@ -60,7 +60,7 @@ namespace rubinius {
 
     template <class T>
       T* new_object(Class *cls) {
-        return reinterpret_cast<T*>(vm_->new_object_typed(cls, sizeof(T), T::type));
+        return static_cast<T*>(vm_->new_object_typed(cls, sizeof(T), T::type));
       }
 
     ThreadState* thread_state() {

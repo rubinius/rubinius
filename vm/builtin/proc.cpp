@@ -48,7 +48,7 @@ namespace rubinius {
       return proc;
     }
 
-    return reinterpret_cast<Proc*>(Primitives::failure());
+    return static_cast<Proc*>(Primitives::failure());
   }
 
   Object* Proc::call(STATE, CallFrame* call_frame, Arguments& args) {

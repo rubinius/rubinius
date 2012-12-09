@@ -299,7 +299,7 @@ namespace rubinius {
     frame->constant_scope_ = invocation.constant_scope;
 
     frame->arguments = &args;
-    frame->dispatch_data = reinterpret_cast<BlockEnvironment*>(env);
+    frame->dispatch_data = env;
     frame->compiled_code = env->compiled_code_;
     frame->scope = scope;
     frame->top_scope_ = env->top_scope_;

@@ -320,7 +320,7 @@ namespace rubinius {
   }
 
   size_t ByteArray::Info::object_size(const ObjectHeader* obj) {
-    const ByteArray *ba = reinterpret_cast<const ByteArray*>(obj);
+    const ByteArray *ba = static_cast<const ByteArray*>(obj);
     assert(ba);
 
     return ba->full_size_;

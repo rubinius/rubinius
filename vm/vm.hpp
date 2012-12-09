@@ -332,32 +332,29 @@ namespace rubinius {
 
     template <class T>
       T* new_object(Class *cls) {
-        return reinterpret_cast<T*>(new_object_typed(cls, sizeof(T), T::type));
+        return static_cast<T*>(new_object_typed(cls, sizeof(T), T::type));
       }
 
     template <class T>
       T* new_struct(Class* cls, size_t bytes = 0) {
-        T* obj = reinterpret_cast<T*>(new_object_typed(cls, sizeof(T) + bytes, T::type));
-        return obj;
+        return static_cast<T*>(new_object_typed(cls, sizeof(T) + bytes, T::type));
       }
 
     template <class T>
       T* new_object_mature(Class *cls) {
-        return reinterpret_cast<T*>(new_object_typed_mature(cls, sizeof(T), T::type));
+        return static_cast<T*>(new_object_typed_mature(cls, sizeof(T), T::type));
       }
 
     template <class T>
       T* new_object_bytes(Class* cls, size_t& bytes) {
         bytes = ObjectHeader::align(sizeof(T) + bytes);
-        T* obj = reinterpret_cast<T*>(new_object_typed(cls, bytes, T::type));
-
-        return obj;
+        return static_cast<T*>(new_object_typed(cls, bytes, T::type));
       }
 
     template <class T>
       T* new_object_variable(Class* cls, size_t fields, size_t& bytes) {
         bytes = sizeof(T) + (fields * sizeof(Object*));
-        return reinterpret_cast<T*>(new_object_typed(cls, bytes, T::type));
+        return static_cast<T*>(new_object_typed(cls, bytes, T::type));
       }
 
     /// Create a Tuple in the young GC space, return NULL if not possible.

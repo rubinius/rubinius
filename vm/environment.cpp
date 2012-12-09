@@ -635,7 +635,7 @@ namespace rubinius {
     if(LLVMState* ls = shared->llvm_state) {
       std::ostream& jit_log = ls->log();
       if(jit_log != std::cerr) {
-        dynamic_cast<std::ofstream&>(jit_log).close();
+        static_cast<std::ofstream&>(jit_log).close();
       }
     }
 #endif

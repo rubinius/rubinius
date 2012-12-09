@@ -122,7 +122,7 @@ namespace rubinius {
 
     return fib;
 #else
-    return reinterpret_cast<Fiber*>(Primitives::failure());
+    return static_cast<Fiber*>(Primitives::failure());
 #endif
   }
 

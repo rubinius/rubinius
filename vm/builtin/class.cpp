@@ -81,7 +81,7 @@ namespace rubinius {
       if(likely(obj)) {
         obj->init_header(self, YoungObjectZone, PackedObject::type);
       } else {
-        obj = reinterpret_cast<PackedObject*>(
+        obj = static_cast<PackedObject*>(
             state->memory()->new_object_typed(state, self, size, PackedObject::type));
       }
 

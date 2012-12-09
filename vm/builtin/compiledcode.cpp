@@ -413,7 +413,7 @@ namespace rubinius {
         if(mce) {
           tmp = mark.call(mce);
           if(tmp) {
-            cache->cache_[j].assign(reinterpret_cast<MethodCacheEntry*>(tmp));
+            cache->cache_[j].assign(static_cast<MethodCacheEntry*>(tmp));
             mark.just_set(obj, tmp);
           }
         }
@@ -422,7 +422,7 @@ namespace rubinius {
       if(cache->call_unit_) {
         tmp = mark.call(cache->call_unit_);
         if(tmp) {
-          cache->call_unit_ = reinterpret_cast<CallUnit*>(tmp);
+          cache->call_unit_ = static_cast<CallUnit*>(tmp);
           mark.just_set(obj, tmp);
         }
       }

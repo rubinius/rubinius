@@ -282,7 +282,7 @@ namespace rubinius {
     template <class T>
       T* new_object_bytes(STATE, Class* cls, size_t& bytes) {
         bytes = ObjectHeader::align(sizeof(T) + bytes);
-        T* obj = reinterpret_cast<T*>(new_object_typed(state, cls, bytes, T::type));
+        T* obj = static_cast<T*>(new_object_typed(state, cls, bytes, T::type));
 
         return obj;
       }
@@ -290,7 +290,7 @@ namespace rubinius {
     template <class T>
       T* new_object_bytes_mature(STATE, Class* cls, size_t& bytes) {
         bytes = ObjectHeader::align(sizeof(T) + bytes);
-        T* obj = reinterpret_cast<T*>(new_object_typed_mature(state, cls, bytes, T::type));
+        T* obj = static_cast<T*>(new_object_typed_mature(state, cls, bytes, T::type));
 
         return obj;
       }
@@ -298,12 +298,12 @@ namespace rubinius {
     template <class T>
       T* new_object_variable(STATE, Class* cls, size_t fields, size_t& bytes) {
         bytes = sizeof(T) + (fields * sizeof(Object*));
-        return reinterpret_cast<T*>(new_object_typed(state, cls, bytes, T::type));
+        return static_cast<T*>(new_object_typed(state, cls, bytes, T::type));
       }
 
     template <class T>
       T* new_object_enduring(STATE, Class* cls) {
-        return reinterpret_cast<T*>(
+        return static_cast<T*>(
             new_object_typed_enduring(state, cls, sizeof(T), T::type));
       }
 
