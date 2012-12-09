@@ -62,6 +62,10 @@ namespace config {
       return true;
     }
 
+    virtual bool integer_p() {
+      return false;
+    }
+
     const char* name() const {
       return name_;
     }
@@ -104,6 +108,10 @@ namespace config {
 
     virtual void print_value(std::ostream& stream) {
       stream << value;
+    }
+
+    virtual bool integer_p() {
+      return true;
     }
 
     operator long() const {

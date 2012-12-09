@@ -248,7 +248,8 @@ namespace agent {
         std::ostringstream ss;
         item->print_value(ss);
 
-        if(config::Integer* i = dynamic_cast<config::Integer*>(item)) {
+        if(item->integer_p()) {
+          config::Integer* i = static_cast<config::Integer*>(item);
           output.e().write_integer(i->value);
         } else {
           output.e().write_binary(ss.str().c_str());

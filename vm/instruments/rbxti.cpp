@@ -63,7 +63,8 @@ namespace rbxti {
 
   long Env::config_get_int(const char* name) {
     config::ConfigItem* item = private_->state()->vm()->shared.config.find(name);
-    if(config::Integer* cint = dynamic_cast<config::Integer*>(item)) {
+    if(item->integer_p()) {
+      config::Integer* cint = static_cast<config::Integer*>(item);
       return cint->value;
     }
     return 0;
