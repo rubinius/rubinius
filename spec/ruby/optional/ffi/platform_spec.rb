@@ -85,4 +85,43 @@ describe "FFI::Platform::OS" do
     end
   end
 
+  describe "FFI::Platform.mac?" do
+    platform_is :linux do
+      it "returns false" do
+        FFI::Platform.mac?.should == false
+      end
+    end
+
+    platform_is :windows do
+      it "returns false" do
+        FFI::Platform.mac?.should == false
+      end
+    end
+
+    platform_is :darwin do
+      it "returns true" do
+        FFI::Platform.mac?.should == true
+      end
+    end
+  end
+
+  describe "FFI::Platform.unix?" do
+    platform_is :linux do
+      it "returns true" do
+        FFI::Platform.unix?.should == true
+      end
+    end
+
+    platform_is :windows do
+      it "returns false" do
+        FFI::Platform.unix?.should == false
+      end
+    end
+
+    platform_is :darwin do
+      it "returns true" do
+        FFI::Platform.unix?.should == true
+      end
+    end
+  end
 end
