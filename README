@@ -9,7 +9,7 @@ same standard libraries as Matz's Ruby implementation (MRI). Rubinius also
 provides C-API compatibility for native C extensions.
 
 Rubinius currently is compatible with Ruby version 1.8.7. Full support for Ruby
-version 1.9.3 is coming soon.
+version 1.9.3 is in progress.
 
 Rubinius runs on Mac OS X and many Unix/Linux operating systems. Support for
 Microsoft Windows is coming soon.
@@ -35,44 +35,18 @@ To install Rubinius, use the following steps:
 When the install process finishes, follow the directions printed to the
 terminal to add the Rubinius executable (bin) directory to your PATH.
 
-See Section 6. Language Modes below for more information about configuring
+See Section 5. Language Modes below for more information about configuring
 Rubinius for different Ruby language versions.
 
 
-4. Installing Rubinius with RVM
-
-Rubinius can be installed using the Ruby Version Manager (RVM) project.
-
-To install Rubinius with RVM, use the following steps:
-
-  1. Ensure the latest RVM is installed
-  2. rvm install rbx
-
-To use Rubinius in the current shell session, run:
-
-  rvm use rbx
-
-To make Rubinius the default interpreter in new shells, run:
-
-  rvm use rbx --default
-
-The documentation for RVM is available at:
-
-  https://rvm.io
-
-See Section 6. Language Modes below for more information about the supported
-Ruby language versions. See the RVM documentation for how to install Rubinius
-with different language modes using RVM.
-
-
-5. Using RubyGems
+4. Using RubyGems
 
 Rubinius comes with RubyGems built-in. To install a gem, run the following:
 
   rbx -S gem install <gem_name>
 
 
-6. Language Modes
+5. Language Modes
 
 Rubinius implements multiple Ruby language features in one executable. You can
 select the language mode at runtime by passing the -X18, -X19, or -X20 command
@@ -88,27 +62,27 @@ enabled and which one is the default mode with configure options.
 For example, to enable both 1.9 and 2.0 modes, with 1.9 the default, use the
 follwing configure options:
 
-./configure --enable-version=1.9,2.0 --default-version=1.9
+  ./configure --enable-version=1.9,2.0 --default-version=1.9
 
 The --enable-version option takes a comma-separated list of versions. The
 --default-version option takes a single version. If only a single version is
 enabled, setting the default version is redundant.
 
 
-7. Documentation
+6. Documentation
 
 After installing Rubinius, run 'rbx docs' to access the built-in documentation
 at any time.
 
 
-8. Tickets
+7. Tickets
 
 Please file tickets for bugs or problems. The issue tracker is:
 
   http://github.com/rubinius/rubinius/issues
 
 
-9. Contributing
+8. Contributing
 
 The Rubinius team welcomes contributions. For more information read the
 CONTRIBUTING file in the root directory of Rubinius.
