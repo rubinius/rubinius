@@ -23,7 +23,7 @@ class Thread
 
   def fork
     Rubinius.primitive :thread_fork
-    Kernel.raise PrimitiveFailure, "Thread#fork primitive failed"
+    Kernel.raise ThreadError, "Thread#fork failed, thread already started or dead"
   end
 
   def raise_prim(exc)
@@ -140,12 +140,7 @@ class Thread
 
     th_group.add self
 
-    begin
-      fork
-    rescue Exception => e
-      th_group.remove self
-      raise e
-    end
+    fork
   end
 
   alias_method :__thread_initialize__, :initialize

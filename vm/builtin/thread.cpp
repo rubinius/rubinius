@@ -64,7 +64,6 @@ namespace rubinius {
     Thread* thr = state->new_object<Thread>(G(thread));
 
     thr->thread_id(state, Fixnum::from(target->thread_id()));
-    thr->alive(state, cTrue);
     thr->sleep(state, cFalse);
     thr->control_channel(state, nil<Channel>());
     thr->locals(state, LookupTable::create(state));
@@ -241,7 +240,7 @@ namespace rubinius {
 
     // Lock the thread object and unlock it at __run__ in the ruby land.
     vm->thread->hard_lock(state, gct);
-
+    vm->thread->alive(state, cTrue);
     vm->thread->init_lock_.unlock();
 
     // Become GC-dependent after unlocking init_lock_ to avoid deadlocks.
@@ -291,6 +290,12 @@ namespace rubinius {
   }
 
   Object* Thread::fork(STATE) {
+    // If the thread is already alive or already ran,
+    // we can't use it anymore.
+    if(CBOOL(alive()) || !vm_) {
+      return Primitives::failure();
+    }
+
     pthread_attr_t attrs;
     pthread_attr_init(&attrs);
     pthread_attr_setstacksize(&attrs, THREAD_STACK_SIZE);

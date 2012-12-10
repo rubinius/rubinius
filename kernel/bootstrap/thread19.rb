@@ -88,7 +88,6 @@ class Thread
 
   def setup
     @group = nil
-    @alive = true
     @result = false
     @exception = nil
     @critical = false
