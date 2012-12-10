@@ -159,5 +159,9 @@ module Rubinius
       # The default, let the caller sort it out.
       return nil
     end
+
+    def inspect
+      "#<#{self.class.name}:0x#{self.object_id.to_s(16)} module=#{@module} method=#{@method.inspect}>"
+    end
   end
 end
