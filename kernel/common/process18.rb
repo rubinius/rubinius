@@ -8,12 +8,7 @@ module Process
   def self.exec(cmd, *args)
     if args.empty? and cmd.kind_of? String
       raise Errno::ENOENT if cmd.empty?
-      if /([*?{}\[\]<>()~&|$;'`"\n])/o.match(cmd)
-        Process.perform_exec "/bin/sh", ["sh", "-c", cmd]
-      else
-        args = cmd.split(' ')
-        Process.perform_exec args.first, args
-      end
+      Process.perform_exec cmd, []
     else
       if ary = Rubinius::Type.try_convert(cmd, Array, :to_ary)
         raise ArgumentError, "wrong first argument" unless ary.size == 2

@@ -451,7 +451,7 @@ class IO
           return nil
         end
       else
-        Process.perform_exec "/bin/sh", ["sh", "-c", str]
+        Process.perform_exec str, []
       end
     end
 

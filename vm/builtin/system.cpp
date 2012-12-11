@@ -190,6 +190,54 @@ namespace rubinius {
     return obj;
   }
 
+  void exec_sh_fallback(STATE, const char* c_str, size_t c_len) {
+    char* s = const_cast<char*>(c_str);
+    bool use_sh = false;
+
+    for(;*s;s++) {
+      if(*s != ' ' && !ISALPHA(*s) && strchr("*?{}[]<>()~&|\\$;'`\"\n\t\r\f\v",*s)) {
+        use_sh = true;
+        break;
+      }
+    }
+
+    if(use_sh) {
+      execl("/bin/sh", "sh", "-c", c_str, (char*)0);
+    } else {
+      size_t max_spaces = (c_len / 2) + 2;
+      char** args = new char*[max_spaces];
+
+      // Now put nulls for spaces into c_str and assign each bit
+      // to args to create the array of char*s that execv wants.
+
+      s = const_cast<char*>(c_str);
+      const char* s_end = c_str + c_len;
+      int idx = 0;
+
+      for(;;) {
+        // turn the next group of spaces into nulls.
+        while(s < s_end && *s == ' ') {
+          *s = 0;
+          s++;
+        }
+
+        // Hit the end, bail.
+        if(s == s_end) break;
+
+        // Write the address of the next chunk here.
+        args[idx++] = s;
+
+        // Skip to the next space
+        while(s < s_end && *s != ' ') s++;
+      }
+
+      args[idx] = 0;
+
+      // If we added anything, then exec, otherwise fall through and fail.
+      if(idx > 0) execvp(args[0], args);
+    }
+  }
+
   Object* System::vm_exec(STATE, String* path, Array* args,
                           CallFrame* calling_environment) {
 
@@ -238,7 +286,12 @@ namespace rubinius {
       old_handlers[i] = (void*)old_action.sa_handler;
     }
 
-    (void)::execvp(c_path, argv);
+    if(argc) {
+      (void)::execvp(c_path, argv);
+    } else {
+      exec_sh_fallback(state, c_path, path->byte_size());
+    }
+
     int erno = errno;
 
     // Hmmm, execvp failed, we need to recover here.
@@ -299,53 +352,7 @@ namespace rubinius {
       dup2(fds[1], STDOUT_FILENO);
       close(fds[1]);
 
-      // detect and decide to use sh or not.
-      char* s = const_cast<char*>(c_str);
-      bool use_sh = false;
-
-      for(;*s;s++) {
-        if(*s != ' ' && !ISALPHA(*s) && strchr("*?{}[]<>()~&|\\$;'`\"\n",*s)) {
-          use_sh = true;
-          break;
-        }
-      }
-
-      if(use_sh) {
-        execl("/bin/sh", "sh", "-c", c_str, (char*)0);
-      } else {
-        size_t c_size = str->byte_size();
-        size_t max_spaces = (c_size / 2) + 2;
-        char** args = new char*[max_spaces];
-
-        // Now put nulls for spaces into c_str and assign each bit
-        // to args to create the array of char*s that execv wants.
-
-        s = const_cast<char*>(c_str);
-        const char* s_end = c_str + c_size;
-        int idx = 0;
-
-        for(;;) {
-          // turn the next group of spaces into nulls.
-          while(s < s_end && *s == ' ') {
-            *s = 0;
-            s++;
-          }
-
-          // Hit the end, bail.
-          if(s == s_end) break;
-
-          // Write the address of the next chunk here.
-          args[idx++] = s;
-
-          // Skip to the next space
-          while(s < s_end && *s != ' ') s++;
-        }
-
-        args[idx] = 0;
-
-        // If we added anything, then exec, otherwise fall through and fail.
-        if(idx > 0) execvp(args[0], args);
-      }
+      exec_sh_fallback(state, c_str, str->byte_size());
 
       // bad news, shouldn't be here.
       std::cerr << "execvp failed: " << strerror(errno) << std::endl;

@@ -188,11 +188,8 @@ module Rubinius
       if args.empty? and cmd = Rubinius::Type.try_convert(first, String, :to_str)
         if cmd.empty?
           raise Errno::ENOENT
-        elsif /([*?{}\[\]<>()~&|$;'`"\n])/o.match(cmd)
-          return ["/bin/sh", ["sh", "-c", cmd]]
         else
-          args = cmd.split(' ')
-          return [args.first, args]
+          return [cmd, []]
         end
       elsif cmd = Rubinius::Type.try_convert(first, Array, :to_ary)
         raise ArgumentError, "wrong first argument" unless cmd.size == 2

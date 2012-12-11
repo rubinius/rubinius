@@ -1068,7 +1068,7 @@ class IO
 
         Process.perform_exec cmd.first, cmd.map(&:to_s)
       else
-        Process.perform_exec "/bin/sh", ["sh", "-c", str]
+        Process.perform_exec str, []
       end
     end
 
