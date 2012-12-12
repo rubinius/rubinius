@@ -153,6 +153,10 @@ extern "C" {
     return rb_funcall(io, rb_intern("close"), 0);
   }
 
+  VALUE rb_io_binmode(VALUE io) {
+    return rb_funcall(io, rb_intern("binmode"), 0);
+  }
+
   int rb_io_fd(VALUE io_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 

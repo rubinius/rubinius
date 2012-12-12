@@ -1304,6 +1304,8 @@ VALUE rb_uint2big(unsigned long number);
   /** Close an IO */
   VALUE   rb_io_close(VALUE io);
 
+  VALUE   rb_io_binmode(VALUE io);
+
   int     rb_io_fd(VALUE io);
 #define HAVE_RB_IO_FD 1
 
