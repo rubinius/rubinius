@@ -13,6 +13,7 @@
 #define HAVE_RUBY_ST_H          1
 #define HAVE_RUBY_UTIL_H        1
 #define HAVE_RUBY_VERSION_H     1
+#define HAVE_RUBY_VM_H          1
 #ifdef RBX_WINDOWS
 #define HAVE_RUBY_WIN32_H       1
 #endif
