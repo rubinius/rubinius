@@ -1184,6 +1184,8 @@ class String
     if str.kind_of? Regexp
       Rubinius::Type.compatible_encoding self, str
 
+      m = Rubinius::Mirror.reflect self
+      start = m.character_to_byte_index start
       if match = str.match_from(self, start)
         Regexp.last_match = match
         return match.begin(0)
@@ -1203,4 +1205,59 @@ class String
     m = Rubinius::Mirror.reflect self
     m.character_index str, start
   end
+
+  def rindex(sub, finish=undefined)
+    if finish.equal?(undefined)
+      finish = size
+    else
+      finish = Rubinius::Type.coerce_to(finish, Integer, :to_int)
+      finish += size if finish < 0
+      return nil if finish < 0
+      finish = size if finish >= size
+    end
+
+    m = Rubinius::Mirror.reflect self
+    byte_finish = m.character_to_byte_index finish
+
+    case sub
+    when Fixnum
+      if finish == size
+        return nil if finish == 0
+        finish -= 1
+      end
+
+      begin
+        str = sub.chr
+      rescue RangeError
+        return nil
+      end
+
+      return find_string_reverse(str, byte_finish)
+
+    when Regexp
+      Rubinius::Type.compatible_encoding self, sub
+
+      match_data = sub.search_region(self, 0, byte_finish, false)
+      Regexp.last_match = match_data
+      return match_data.begin(0) if match_data
+
+    else
+      needle = StringValue(sub)
+      needle_size = needle.size
+
+      # needle is bigger that haystack
+      return nil if size < needle_size
+
+      # Boundary case
+      return finish if needle_size == 0
+
+      Rubinius::Type.compatible_encoding self, needle
+      if byte_index = find_string_reverse(needle, byte_finish)
+        return m.byte_to_character_index byte_index
+      end
+    end
+
+    return nil
+  end
+
 end

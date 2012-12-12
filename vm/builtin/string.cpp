@@ -1332,6 +1332,16 @@ namespace rubinius {
     }
   }
 
+  /* Returns the byte index of the character at char index 'index'. The 'start'
+   * parameter is the byte index of a character at which to start searching.
+   * Returns the byte index of the first character starting at or after the
+   * given index.
+   */
+  Fixnum* String::find_character_byte_index_prim(STATE, Fixnum* index,
+                                                        Fixnum* start) {
+    return Fixnum::from(this->find_character_byte_index(state, index->to_native(), start->to_native()));
+  }
+
   /* Returns the char index of the character at byte index 'index'. The 'start'
    * parameter is the byte index of a character at which to start searching.
    * Returns the char index of the first character starting at or after the

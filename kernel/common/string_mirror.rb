@@ -3,6 +3,14 @@ module Rubinius
     class String < Mirror
       subject = ::String
 
+      def character_to_byte_index(idx, start=0)
+        Rubinius.invoke_primitive :string_character_byte_index, @object, idx, start
+      end
+
+      def byte_to_character_index(idx, start=0)
+        Rubinius.invoke_primitive :string_byte_character_index, @object, idx, start
+      end
+
       def character_index(str, start)
         Rubinius.invoke_primitive :string_character_index, @object, str, start
       end

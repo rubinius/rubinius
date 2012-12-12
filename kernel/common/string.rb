@@ -435,52 +435,6 @@ class String
     dup.reverse!
   end
 
-  def rindex(sub, finish=undefined)
-    if finish.equal?(undefined)
-      finish = size
-    else
-      finish = Rubinius::Type.coerce_to(finish, Integer, :to_int)
-      finish += @num_bytes if finish < 0
-      return nil if finish < 0
-      finish = @num_bytes if finish >= @num_bytes
-    end
-
-    case sub
-    when Fixnum
-      if finish == size
-        return nil if finish == 0
-        finish -= 1
-      end
-
-      begin
-        str = sub.chr
-      rescue RangeError
-        return nil
-      end
-
-      return find_string_reverse(str, finish)
-
-    when Regexp
-      match_data = sub.search_region(self, 0, finish, false)
-      Regexp.last_match = match_data
-      return match_data.begin(0) if match_data
-
-    else
-      needle = StringValue(sub)
-      needle_size = needle.size
-
-      # needle is bigger that haystack
-      return nil if size < needle_size
-
-      # Boundary case
-      return finish if needle_size == 0
-
-      return find_string_reverse(needle, finish)
-    end
-
-    return nil
-  end
-
   def partition(pattern=nil)
     return super() if pattern == nil && block_given?
 

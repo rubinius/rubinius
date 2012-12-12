@@ -167,7 +167,8 @@ class MatchData
     else
       start = @region.at(idx - 1).at(0)
     end
-    Rubinius.invoke_primitive :string_byte_character_index, @source, start, 0
+    m = Rubinius::Mirror.reflect @source
+    m.byte_to_character_index start
   end
 
   def end(idx)
@@ -176,7 +177,8 @@ class MatchData
     else
       fin = @region.at(idx - 1).at(1)
     end
-    Rubinius.invoke_primitive :string_byte_character_index, @source, fin, 0
+    m = Rubinius::Mirror.reflect @source
+    m.byte_to_character_index fin
   end
 
   def offset(idx)
