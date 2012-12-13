@@ -257,4 +257,8 @@ module FFI::Platform
   def self.unix?
     ! windows?
   end
+
+  LITTLE_ENDIAN = :little
+  BIG_ENDIAN = :big
+  BYTE_ORDER = Rubinius::ENDIAN == :little ? LITTLE_ENDIAN : BIG_ENDIAN
 end
