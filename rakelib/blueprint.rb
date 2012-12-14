@@ -15,6 +15,10 @@ Daedalus.blueprint do |i|
   # platforms, -mno-omit-leaf-frame-pointer is added explicitly.
   gcc.cflags << "-mno-omit-leaf-frame-pointer" if Rubinius::BUILD_CONFIG[:cc] == "clang"
 
+  # We don't need RTTI information, so disable it. This makes it possible
+  # to link Rubinius to an LLVM build with RTTI disabled.
+  gcc.cxxflags << "-fno-rtti"
+
   gcc.cflags << "-Wno-unused-function"
   gcc.cflags << "-g -Werror"
   gcc.cflags << "-DRBX_PROFILER"

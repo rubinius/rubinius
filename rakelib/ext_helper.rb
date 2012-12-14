@@ -139,7 +139,7 @@ end
 
 def add_rbx_capi
   add_cflag "-g"
-  add_cxxflag "-g"
+  add_cxxflag "-g -fno-rtti"
   if ENV['DEV']
     add_cflag "-O0"
     add_cxxflag "-O0"
