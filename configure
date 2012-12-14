@@ -683,22 +683,16 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
       parts = version.sub(/svn$/, "").split(".").map { |i| i.to_i }
       api_version = ("%d%02d" % parts[0..1]).to_i
       if version >= "3.0"
-        # See if this has rtti turned off and reject it.
-        if `#{config} --cxxflags`.index("-fno-rtti")
-          @log.write "incorrectly configure (rtti is off)"
-          remove_default
+        @log.write "found!"
+        if File.exists?(File.join(@llvm_default, "Makefile.common"))
+          @llvm = :svn
         else
-          @log.write "found!"
-          if File.exists?(File.join(@llvm_default, "Makefile.common"))
-            @llvm = :svn
-          else
-            @llvm = :prebuilt
-          end
-          @llvm_version     = version
-          @llvm_api_version = api_version
-          @llvm_configure   = config
-          return
+          @llvm = :prebuilt
         end
+        @llvm_version     = version
+        @llvm_api_version = api_version
+        @llvm_configure   = config
+        return
       else
         @log.write "outdated (version #{version})"
         remove_default
@@ -741,9 +735,7 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
       version = `#{llvm_config_cmd config} --version`.strip
       parts = version.sub(/svn$/, "").split(".").map { |i| i.to_i }
       api_version = ("%d%02d" % parts[0..1]).to_i
-      if `#{llvm_config_cmd config} --cxxflags`.index("-fno-rtti")
-        @log.write "incorrectly configured llvm (rtti is off)"
-      elsif api_version < 300
+      if api_version < 300
         @log.write "only LLVM 3.x is supported"
       else
         @log.write "found! (version #{version} - api: #{api_version})"
