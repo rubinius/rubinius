@@ -139,10 +139,12 @@ module Daedalus
   end
 
   class Compiler
-    def initialize(compiler, linker, logger, blueprint)
-      @compiler = compiler
+    def initialize(c_compiler, cxx_compiler, linker, logger, blueprint)
+      @c_compiler = c_compiler
+      @cxx_compiler = cxx_compiler
       @linker = linker
       @cflags = []
+      @cxxflags = []
       @ldflags = []
       @libraries = []
       @log = logger
@@ -194,7 +196,7 @@ module Daedalus
         if $CC == "cc" and `cc -flags 2>&1` =~ /Sun/ # detect SUNWspro compiler
           # SUN CHAIN
           @cflags << "-DCC_SUNWspro" << "-KPIC"
-          @ldshared = "#{@compiler} -G -KPIC -lCstd"
+          @ldshared = "#{@linker} -G -KPIC -lCstd"
         else
           # GNU CHAIN
           # on Unix we need a g++ link, not gcc.
@@ -236,7 +238,7 @@ module Daedalus
       dirs
     end
 
-    attr_reader :path, :cflags, :ldflags, :log
+    attr_reader :path, :cflags, :cxxflags, :ldflags, :log
 
     def add_library(lib)
       if f = lib.cflags
@@ -263,8 +265,21 @@ module Daedalus
     end
 
     def compile(source, object)
+      if source =~ /\.cpp$/
+        cxx_compile(source, object)
+      else
+        c_compile(source, object)
+      end
+    end
+
+    def c_compile(source, object)
       @log.show "CC", source
-      @log.command "#{@compiler} #{@cflags.join(' ')} -c -o #{object} #{source}"
+      @log.command "#{@c_compiler} #{@cflags.join(' ')} -c -o #{object} #{source}"
+    end
+
+    def cxx_compile(source, object)
+      @log.show "CXX", source
+      @log.command "#{@cxx_compiler} #{@cflags.join(' ')} #{@cxxflags.join(' ')} -c -o #{object} #{source}"
     end
 
     def link(path, files)
@@ -691,6 +706,7 @@ module Daedalus
       @shared_libraries = []
       @compiler = Compiler.new(ENV['CC'] || "gcc",
                                ENV['CXX'] || "g++",
+                               ENV['CXX'] || "g++",
                                compiler.log, nil)
 
       yield self
@@ -962,6 +978,7 @@ module Daedalus
 
     def gcc!
       @compiler = Compiler.new(ENV['CC'] || "gcc",
+                               ENV['CXX'] || "g++",
                                ENV['CXX'] || "g++",
                                Logger.new, self)
     end
