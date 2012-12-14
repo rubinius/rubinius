@@ -37,6 +37,7 @@ VALUE melbourne18_file_to_ast(VALUE self, VALUE fname, VALUE start) {
     return result;
   } else {
     rb_raise(rb_eLoadError, "%s -- %s", strerror(errno), c_name);
+    return Qnil;
   }
 }
 
@@ -60,6 +61,7 @@ VALUE melbourne19_file_to_ast(VALUE self, VALUE fname, VALUE start) {
     return result;
   } else {
     rb_raise(rb_eLoadError, "no such file to load -- %s", RSTRING_PTR(fname));
+    return Qnil;
   }
 }
 
