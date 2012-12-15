@@ -1,5 +1,8 @@
+# -*- encoding: utf-8 -*-
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes.rb', __FILE__)
+
+language_version __FILE__, "match"
 
 describe "String#=~" do
   it "behaves the same way as index() when given a regexp" do
@@ -41,6 +44,8 @@ describe "String#match" do
   end
 
   ruby_version_is "1.9" do
+    it_behaves_like :string_match_escaped_literal, :match
+
     it "matches the pattern against self starting at an optional index" do
       "hello".match(/(.+)/,2)[0].should == 'llo'
     end
