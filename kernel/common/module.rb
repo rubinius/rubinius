@@ -582,6 +582,12 @@ class Module
   private :method_undefined
 
   def initialize_copy(other)
+    # If the method table is already different, we already
+    # initialized this module.
+    unless @method_table == other.method_table
+      raise TypeError, "already initialized module"
+    end
+
     @method_table = other.method_table.dup
 
     sc_s = Rubinius::Type.object_singleton_class self
