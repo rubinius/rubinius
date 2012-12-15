@@ -144,7 +144,6 @@ namespace :build do
   task :llvm do
     if Rubinius::BUILD_CONFIG[:llvm] == :svn
       unless File.file?("vendor/llvm/Release/bin/llvm-config")
-        ENV["REQUIRES_RTTI"] = "1"
         Dir.chdir "vendor/llvm" do
           host = Rubinius::BUILD_CONFIG[:host]
           llvm_config_flags = "--build=#{host} --host=#{host} " \
