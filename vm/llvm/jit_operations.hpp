@@ -6,6 +6,7 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
+#include "builtin/bytearray.hpp"
 #include "inline_cache.hpp"
 
 #include "llvm/offset.hpp"
@@ -361,6 +362,10 @@ namespace rubinius {
 
     Value* check_is_tuple(Value* obj) {
       return check_type_bits(obj, rubinius::Tuple::type);
+    }
+
+    Value* check_is_bytearray(Value* obj) {
+      return check_type_bits(obj, rubinius::ByteArray::type);
     }
 
     void verify_guard(Value* cmp, BasicBlock* failure) {
@@ -914,6 +919,27 @@ namespace rubinius {
 
       Value* ptr_size = ConstantInt::get(NativeIntTy, sizeof(Object*));
       return b().CreateSDiv(body_bytes, ptr_size);
+    }
+
+    // Tuple access
+    Value* get_bytearray_size(Value* bytearray) {
+      Value* idx[] = {
+        zero_,
+        cint(offset::ByteArray::full_size)
+      };
+
+      Value* pos = create_gep(bytearray, idx, 2, "bytearray_size_pos");
+
+      Value* bytes = b().CreateIntCast(
+                        create_load(pos, "bytearray_size"),
+                        NativeIntTy,
+                        true,
+                        "to_native_int");
+
+      Value* header = ConstantInt::get(NativeIntTy, sizeof(ByteArray));
+      Value* body_bytes = b().CreateSub(bytes, header);
+
+      return body_bytes;
     }
 
     // Object access

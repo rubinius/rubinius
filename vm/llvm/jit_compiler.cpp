@@ -146,8 +146,8 @@ namespace jit {
   }
 
   void Compiler::compile_block(LLVMState* ls, CompiledCode* code, MachineCode* mcode) {
+    if(!mcode->parent()) return;
     if(ls->config().jit_inline_debug) {
-      assert(mcode->parent());
 
       struct timeval tv;
       gettimeofday(&tv, NULL);

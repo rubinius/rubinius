@@ -201,6 +201,42 @@ namespace rubinius {
       i.context().leave_inline();
     }
 
+    void tuple_fields() {
+      log("tuple_fields");
+      i.context().enter_inline();
+
+      Value* rec = i.recv();
+
+      ops.verify_guard(ops.check_is_tuple(rec), i.failure());
+
+      Value* tup = ops.upcast(rec, "Tuple");
+
+      Value* full_size = ops.get_tuple_size(tup);
+      Value* imm_value = ops.fixnum_tag(full_size);
+
+      i.exception_safe();
+      i.set_result(imm_value);
+      i.context().leave_inline();
+    }
+
+    void bytearray_size() {
+      log("bytearray_size");
+      i.context().enter_inline();
+
+      Value* rec = i.recv();
+
+      ops.verify_guard(ops.check_is_bytearray(rec), i.failure());
+
+      Value* ba = ops.upcast(rec, "ByteArray");
+
+      Value* full_size = ops.get_bytearray_size(ba);
+      Value* imm_value = ops.fixnum_tag(full_size);
+
+      i.exception_safe();
+      i.set_result(imm_value);
+      i.context().leave_inline();
+    }
+
     bool static_fixnum_s_eqq() {
       Value* arg = i.arg(0);
 
@@ -1013,6 +1049,10 @@ namespace rubinius {
       ip.tuple_at();
     } else if(prim == Primitives::tuple_put && count_ == 2) {
       ip.tuple_put();
+    } else if(prim == Primitives::tuple_fields && count_ == 0) {
+      ip.tuple_fields();
+    } else if(prim == Primitives::bytearray_size && count_ == 0) {
+      ip.bytearray_size();
     } else if(prim == Primitives::fixnum_and && count_ == 1) {
       ip.fixnum_and();
     } else if(prim == Primitives::fixnum_or && count_ == 1) {
