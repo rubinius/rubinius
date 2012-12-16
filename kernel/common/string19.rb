@@ -25,6 +25,7 @@ class String
       to_enc = Encoding.default_internal
     when undefined
       to_enc = Encoding.default_internal
+      return self unless to_enc
     else
       opts = Rubinius::Type::check_convert_type to, Hash, :to_hash
 
