@@ -46,7 +46,7 @@ module Kernel
   private :FloatValue
 
   def initialize_copy(source)
-    unless instance_of?(source.class)
+    unless instance_of?(Rubinius::Type.object_class(source))
       raise TypeError, "initialize_copy should take same class object"
     end
   end
@@ -344,12 +344,13 @@ module Kernel
   def instance_of?(cls)
     Rubinius.primitive :object_instance_of
 
-    if cls.class != Class and cls.class != Module
+    arg_class = Rubinius::Type.object_class(cls)
+    if arg_class != Class and arg_class != Module
       # We can obviously compare against Modules but result is always false
       raise TypeError, "instance_of? requires a Class argument"
     end
 
-    self.class == cls
+    Rubinius::Type.object_class(self) == cls
   end
 
   alias_method :__instance_of__, :instance_of?
@@ -442,7 +443,7 @@ module Kernel
       # Type.object_singleton_class raises a TypeError.
       case self
       when Fixnum, Symbol
-        methods |= self.class.instance_methods(true)
+        methods |= Rubinius::Type.object_class(self).instance_methods(true)
       else
         methods |= Rubinius::Type.object_singleton_class(self).instance_methods(true)
       end
@@ -459,7 +460,7 @@ module Kernel
   end
 
   def private_methods(all=true)
-    private_singleton_methods() | self.class.private_instance_methods()
+    private_singleton_methods() | Rubinius::Type.object_class(self).private_instance_methods()
   end
 
   def private_singleton_methods
@@ -482,7 +483,7 @@ module Kernel
   private :private_singleton_methods
 
   def protected_methods(all=true)
-    protected_singleton_methods() | self.class.protected_instance_methods(all)
+    protected_singleton_methods() | Rubinius::Type.object_class(self).protected_instance_methods(all)
   end
 
   def protected_singleton_methods
@@ -503,7 +504,7 @@ module Kernel
   private :protected_singleton_methods
 
   def public_methods(all=true)
-    public_singleton_methods | self.class.public_instance_methods(all)
+    public_singleton_methods | Rubinius::Type.object_class(self).public_instance_methods(all)
   end
 
   def public_singleton_methods

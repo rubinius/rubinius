@@ -53,7 +53,7 @@ module Rubinius
     end
 
     def dup(cls=nil)
-      cls ||= self.class
+      cls ||= Rubinius::Type.object_class(self)
       obj = cls.new(self.size)
 
       Rubinius.invoke_primitive :object_copy_object, obj, self
