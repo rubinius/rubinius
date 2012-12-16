@@ -160,7 +160,7 @@ module Kernel
   #
   def kind_of?(cls)
     Rubinius.primitive :object_kind_of
-    raise TypeError, "Kernel#kind_of? primitive failed"
+    raise TypeError, "Kernel#kind_of? requires a Class or Module argument"
   end
 
   # Hook method invoked when object is sent a message it cannot handle.
