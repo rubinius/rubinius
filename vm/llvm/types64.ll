@@ -141,7 +141,7 @@ declare void @output14(%"struct.rubinius::BlockInvocation"*)
        %"struct.rubinius::CallFrame"*, ; previous
    %"struct.rubinius::ConstantScope"*, ; constant_scope
                                   i8*, ; dispatch_data
-  %"struct.rubinius::CompiledCode"*, ; cm
+  %"struct.rubinius::CompiledCode"*,   ; compiled_code
                                   i32, ; flags
                                   i32, ; ip
                                   i8*, ; jit_data
