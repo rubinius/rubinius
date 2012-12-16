@@ -587,15 +587,16 @@ class String
   def <<(other)
     modify!
 
-    if other.kind_of? Integer
-      if encoding == Encoding::US_ASCII and other >= 128 and other < 256
-        force_encoding(Encoding::ASCII_8BIT)
-      end
-
-      other = other.chr(encoding)
-    end
     unless other.kind_of? String
-      other = StringValue(other)
+      if other.kind_of? Integer
+        if encoding == Encoding::US_ASCII and other >= 128 and other < 256
+          force_encoding(Encoding::ASCII_8BIT)
+        end
+
+        other = other.chr(encoding)
+      else
+        other = StringValue(other)
+      end
     end
 
     unless other.encoding == encoding
