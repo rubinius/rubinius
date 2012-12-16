@@ -28,6 +28,7 @@ namespace rubinius {
     Module*         module_;  // slot
     VariableScope*  parent_;  // slot
     Tuple*          heap_locals_; // slot
+    LookupTable*    dynamic_locals_; // slot
     Object*         last_match_; // slot
 
     // The Fiber that the scope was created on
@@ -49,6 +50,7 @@ namespace rubinius {
     attr_accessor(self, Object);
     attr_accessor(heap_locals, Tuple);
     attr_accessor(last_match, Object);
+    attr_accessor(dynamic_locals, LookupTable);
     attr_accessor(fiber, Fiber);
 
     static void init(STATE);
