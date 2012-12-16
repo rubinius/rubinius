@@ -30,7 +30,10 @@ namespace :jit do
       end
     end
 
-    File.open "vm/llvm/offset_specific.hpp", "w" do |f|
+    File.open "vm/llvm/offset.hpp", "w" do |f|
+      f.puts "#ifndef RBX_LLVM_OFFSET_HPP"
+      f.puts "#define RBX_LLVM_OFFSET_HPP"
+      f.puts ""
       f.puts "namespace offset {"
 
       classes.each do |name, fields|
@@ -44,6 +47,7 @@ namespace :jit do
       end
 
       f.puts "}"
+      f.puts "#endif"
     end
   end
 end
