@@ -22,6 +22,12 @@ with_feature :encoding do
         str = "あ"
         str.encode.should_not equal(str)
       end
+
+      it "returns a copy for a ASCII-only String when Encoding.default_internal is nil" do
+        Encoding.default_internal = nil
+        str = "abc"
+        str.encode.should_not equal(str)
+      end
     end
 
     describe "when passed to encoding" do
@@ -87,6 +93,12 @@ with_feature :encoding do
       it "returns self when Encoding.default_internal is nil" do
         Encoding.default_internal = nil
         str = "あ"
+        str.encode!.should equal(str)
+      end
+
+      it "returns self for a ASCII-only String when Encoding.default_internal is nil" do
+        Encoding.default_internal = nil
+        str = "abc"
         str.encode!.should equal(str)
       end
     end
