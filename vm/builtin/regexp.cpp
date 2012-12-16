@@ -214,8 +214,10 @@ namespace rubinius {
 
     if(enc == onig_data->enc) return true;
 
-    pat = (UChar*)source()->byte_address();
-    end = pat + source()->byte_size();
+    Encoding* source_enc = source()->encoding(state);
+    String* converted = source()->convert_escaped(state, source_enc, fixed_encoding_);
+    pat = (UChar*)converted->byte_address();
+    end = pat + converted->byte_size();
 
     int options = onig_data->options;
     OnigEncoding orig_enc = onig_data->enc;
