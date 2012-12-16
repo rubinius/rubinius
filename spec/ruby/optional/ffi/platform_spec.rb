@@ -48,14 +48,34 @@ describe "FFI::Platform::IS_MAC" do
   end
 
   platform_is :windows do
-    it "returns true" do
+    it "returns false" do
       FFI::Platform::IS_MAC.should == false
     end
   end
 
   platform_is :darwin do
-    it "returns false" do
+    it "returns true" do
       FFI::Platform::IS_MAC.should == true
+    end
+  end
+end
+
+describe "FFI::Platform::IS_LINUX" do
+  platform_is :linux do
+    it "returns true" do
+      FFI::Platform::IS_LINUX.should == true
+    end
+  end
+
+  platform_is :windows do
+    it "returns false" do
+      FFI::Platform::IS_LINUX.should == false
+    end
+  end
+
+  platform_is :darwin do
+    it "returns false" do
+      FFI::Platform::IS_LINUX.should == false
     end
   end
 end

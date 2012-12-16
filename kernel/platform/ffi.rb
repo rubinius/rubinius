@@ -223,6 +223,7 @@ end
 
 ##
 # Namespace for holding platform-specific C constants.
+##
 
 module FFI::Platform
   case
@@ -230,20 +231,29 @@ module FFI::Platform
     LIBSUFFIX = "dll"
     IS_WINDOWS = true
     IS_MAC = false
+    IS_LINUX = false
     OS = 'windows'
   when Rubinius.darwin?
     LIBSUFFIX = "dylib"
     IS_WINDOWS = false
     IS_MAC = true
+    IS_LINUX = false
     OS = 'darwin'
   else
     LIBSUFFIX = "so"
     IS_WINDOWS = false
     IS_MAC = false
+    IS_LINUX = true
     OS = 'linux'
   end
 
   ARCH = Rubinius::CPU
+
+  NAME = "#{ARCH}-#{OS}"
+  IS_GNU = defined?(FFI::Library::LIBC)
+  IS_FREEBSD = OS == "freebsd"
+  IS_OPENBSD = OS == "openbsd"
+  IS_BSD = IS_MAC || IS_FREEBSD || IS_OPENBSD
 
   # ruby-ffi compatible
   LONG_SIZE = Rubinius::SIZEOF_LONG * 8
