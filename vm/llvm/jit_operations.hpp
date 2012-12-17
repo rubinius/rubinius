@@ -7,6 +7,7 @@
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/bytearray.hpp"
+#include "builtin/regexp.hpp"
 #include "inline_cache.hpp"
 
 #include "llvm/offset.hpp"
@@ -419,6 +420,14 @@ namespace rubinius {
 
     Value* check_is_bytearray(Value* obj) {
       return check_type_bits(obj, rubinius::ByteArray::type);
+    }
+
+    Value* check_is_matchdata(Value* obj) {
+      return check_type_bits(obj, rubinius::MatchData::type);
+    }
+
+    Value* check_is_regexp(Value* obj) {
+      return check_type_bits(obj, rubinius::Regexp::type);
     }
 
     void verify_guard(Value* cmp, BasicBlock* failure) {

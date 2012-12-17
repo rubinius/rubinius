@@ -1510,6 +1510,13 @@ extern "C" {
     return Bignum::from(state, arg);
   }
 
+  Object* rbx_regexp_set_last_match(STATE, Object* obj, CallFrame* call_frame) {
+    if(CallFrame* parent = call_frame->previous) {
+      parent->set_last_match(state, obj);
+    }
+    return obj;
+  }
+
 }
 
 #endif

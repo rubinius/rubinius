@@ -1075,6 +1075,55 @@ namespace rubinius {
       i.context().leave_inline();
     }
 
+    void regexp_set_last_match() {
+      log("Regexp#set_last_match");
+      i.context().enter_inline();
+
+      BasicBlock* reference = ops.new_block("reference");
+      BasicBlock* nil = ops.new_block("nil");
+      BasicBlock* set = ops.new_block("set");
+
+      Value* val = i.recv();
+
+      ops.verify_guard(ops.check_is_regexp(val), i.failure());
+
+      Value* matchdata = i.arg(0);
+
+      Value* is_ref = ops.check_is_reference(matchdata);
+      ops.create_conditional_branch(reference, nil, is_ref);
+
+      ops.set_block(nil);
+
+      Value* is_nil = ops.create_equal(matchdata, ops.constant(cNil), "is_nil");
+      ops.create_conditional_branch(set, i.failure(), is_nil);
+
+      ops.set_block(reference);
+
+      Value* is_matchdata = ops.check_is_matchdata(val);
+      ops.create_conditional_branch(set, i.failure(), is_matchdata);
+
+      ops.set_block(set);
+
+      Value* call_frame = ops.call_frame();
+
+      Signature sig(ops.state(), ops.ObjType);
+      sig << ops.StateTy;
+      sig << ops.ObjType;
+      sig << "CallFrame";
+
+      Value* call_args[] = {
+        ops.vm(),
+        val,
+        call_frame
+      };
+
+      Value* res = sig.call("rbx_regexp_set_last_match", call_args, 3, "set_last_match", ops.b());
+
+      i.set_result(res);
+      i.exception_safe();
+      i.context().leave_inline();
+    }
+
   };
 
   bool Inliner::inline_primitive(Class* klass, CompiledCode* code, executor prim) {
@@ -1127,6 +1176,8 @@ namespace rubinius {
       ip.object_class();
     } else if(prim == Primitives::vm_object_class && count_ == 1) {
       ip.vm_object_class();
+    } else if(prim == Primitives::regexp_set_last_match && count_ == 1) {
+      ip.regexp_set_last_match();
     } else if(prim == Primitives::float_add && count_ == 1) {
       ip.float_op(cAdd);
     } else if(prim == Primitives::float_sub && count_ == 1) {
