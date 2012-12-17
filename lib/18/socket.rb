@@ -8,6 +8,7 @@ end
 # @todo   UDPSocket#recvfrom
 
 class BasicSocket < IO
+  FFI = Rubinius::FFI
 
   class << self
     def from_descriptor(fixnum)
@@ -159,6 +160,7 @@ class BasicSocket < IO
 end
 
 class Socket < BasicSocket
+  FFI = Rubinius::FFI
 
   # @todo   Is omitting empty-value constants reasonable? --rue
   module Constants
@@ -927,6 +929,7 @@ class IPSocket < BasicSocket
 end
 
 class UDPSocket < IPSocket
+  FFI = Rubinius::FFI
 
   def initialize(socktype = Socket::AF_INET)
     @socktype = socktype
@@ -1000,6 +1003,7 @@ class UDPSocket < IPSocket
 end
 
 class TCPSocket < IPSocket
+  FFI = Rubinius::FFI
 
   def self.gethostbyname(hostname)
     addrinfos = Socket.getaddrinfo(hostname, nil)
