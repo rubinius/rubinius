@@ -3,4 +3,3 @@
 # Rubinius, FFI is a part of the kernel code and thus
 # already loaded.
 
-FFI = Rubinius::FFI
