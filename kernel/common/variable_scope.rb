@@ -15,6 +15,10 @@ module Rubinius
       @self = obj
     end
 
+    def has_dynamic_locals?
+      @dynamic_locals
+    end
+
     def dynamic_locals
       @dynamic_locals ||= Rubinius::LookupTable.new
     end
@@ -49,7 +53,7 @@ module Rubinius
     def get_eval_local(name)
       scope = self
       while scope
-        if scope.dynamic_locals.key? name
+        if scope.has_dynamic_locals? && scope.dynamic_locals.key?(name)
           return scope.dynamic_locals[name]
         end
 
