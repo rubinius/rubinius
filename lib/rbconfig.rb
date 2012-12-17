@@ -120,7 +120,6 @@ module RbConfig
   # used by mkmf to compile extensions, be sure PIC is in
   # there
   CONFIG["CFLAGS"]             = "-g -fPIC"
-  CONFIG["CXXFLAGS"]           = "-fno-rtti"
   CONFIG["LDFLAGS"]            = ""
   if ENV['DEV']
     CONFIG["CFLAGS"] << " -O0 "
