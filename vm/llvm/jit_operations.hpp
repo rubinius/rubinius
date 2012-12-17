@@ -356,7 +356,7 @@ namespace rubinius {
       Value* flags = b().CreatePtrToInt(word, ls_->Int64Ty, "word2flags");
 
       Value* mask = ConstantInt::get(ls_->Int64Ty, ((1 << OBJECT_FLAGS_FROZEN) +
-                                                     1 << OBJECT_FLAGS_INFLATED));
+                                                    (1 << OBJECT_FLAGS_INFLATED)));
 
       Value* frozen_obj = b().CreateAnd(flags, mask, "mask");
       Value* frozen_tag = ConstantInt::get(ls_->Int64Ty, 1 << OBJECT_FLAGS_FROZEN);
