@@ -1,4 +1,5 @@
 require File.expand_path('../../../../spec_helper', __FILE__)
+require 'ffi'
 
 describe "FFI::MemoryPointer#write_array_of_pointer" do
   it "writes an array of pointers to self" do

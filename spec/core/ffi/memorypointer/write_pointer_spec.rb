@@ -1,4 +1,5 @@
 require File.expand_path('../../../../spec_helper', __FILE__)
+require 'ffi'
 
 describe "FFI::MemoryPointer#write_pointer" do
   it "writes another pointer to self" do

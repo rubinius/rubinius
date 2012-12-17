@@ -1,4 +1,5 @@
 require File.expand_path('../../../../spec_helper', __FILE__)
+require 'ffi'
 
 module FFIStructSpecs
   DummyLayout = [:a, :int, 0]

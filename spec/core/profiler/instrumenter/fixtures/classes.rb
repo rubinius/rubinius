@@ -1,5 +1,5 @@
 module ProfilerSpecs
-  extend FFI::Library
+  extend Rubinius::FFI::Library
 
   attach_function :rand, [], :int
 

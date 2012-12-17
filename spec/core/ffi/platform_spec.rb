@@ -1,4 +1,5 @@
 require File.expand_path('../../../spec_helper', __FILE__)
+require 'ffi'
 
 describe "FFI::Platform::LIBSUFFIX" do
   platform_is :linux do

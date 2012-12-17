@@ -1,4 +1,5 @@
 require File.expand_path('../../spec_helper', __FILE__)
+require 'ffi'
 
 # TODO: Obsolete. Rework if appropriate for FFI::Library#attach_function
 

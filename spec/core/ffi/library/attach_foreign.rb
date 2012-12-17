@@ -1,4 +1,5 @@
 require File.expand_path('../../spec_helper', __FILE__)
+require 'ffi'
 
 # TODO: This method no longer exists. Rework appropriate specs for
 # #attach_function and remove this file

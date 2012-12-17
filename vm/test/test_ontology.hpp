@@ -185,7 +185,7 @@ public:
     TS_ASSERT_EQUALS(cls->class_object(state), G(klass));
     TS_ASSERT_EQUALS(cls->superclass(), G(object));
 
-    Module* ffi = as<Module>(G(object)->get_const(state, "FFI"));
+    Module* ffi = as<Module>(G(rubinius)->get_const(state, "FFI"));
     TS_ASSERT_EQUALS(cls, ffi->get_const(state, "Pointer"));
   }
 
