@@ -162,6 +162,21 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
   const static bool cDebugThreading = false;
 
+#define OBJECT_FLAGS_INFLATED        0
+#define OBJECT_FLAGS_OBJ_TYPE        8
+#define OBJECT_FLAGS_MEANING        10
+#define OBJECT_FLAGS_GC_ZONE        12
+#define OBJECT_FLAGS_AGE            16
+#define OBJECT_FLAGS_FORWARDED      17
+#define OBJECT_FLAGS_REMEMBER       18
+#define OBJECT_FLAGS_MARKED         20
+#define OBJECT_FLAGS_INIMMIX        21
+#define OBJECT_FLAGS_PINNED         22
+#define OBJECT_FLAGS_FROZEN         23
+#define OBJECT_FLAGS_TAINTED        24
+#define OBJECT_FLAGS_UNTRUSTED      25
+#define OBJECT_FLAGS_LOCK_CONTENDED 26
+
   struct ObjectFlags {
 #ifdef RBX_LITTLE_ENDIAN
     // inflated MUST be first, because rest is used as a pointer

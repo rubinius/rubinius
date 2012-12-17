@@ -311,7 +311,7 @@ namespace rubinius {
       Value* flags = b().CreatePtrToInt(word, ls_->Int64Ty, "word2flags");
 
       // 9 bits worth of mask
-      Value* mask = ConstantInt::get(ls_->Int64Ty, ((1 << 9) - 1));
+      Value* mask = ConstantInt::get(ls_->Int64Ty, ((1 << (OBJECT_FLAGS_OBJ_TYPE + 1)) - 1));
       Value* obj_type = b().CreateAnd(flags, mask, "mask");
 
       // Compare all 9 bits.
@@ -326,6 +326,59 @@ namespace rubinius {
 
       Value* lint = create_and(cast_int(obj), mask, "masked");
       return create_equal(lint, zero, "is_reference");
+    }
+
+    void check_is_frozen(Value* obj) {
+
+      Value* is_ref = check_is_reference(obj);
+      BasicBlock* done = new_block("done");
+      BasicBlock* cont = new_block("reference");
+      BasicBlock* failure = new_block("use_call");
+
+      create_conditional_branch(cont, done, is_ref);
+
+      set_block(cont);
+
+      if(obj->getType() != ObjType) {
+        obj = b().CreateBitCast(obj, ObjType);
+      }
+
+      Value* word_idx[] = {
+        zero_,
+        zero_,
+        zero_,
+        zero_
+      };
+
+      Value* gep = create_gep(obj, word_idx, 4, "word_pos");
+      Value* word = create_load(gep, "flags");
+      Value* flags = b().CreatePtrToInt(word, ls_->Int64Ty, "word2flags");
+
+      Value* mask = ConstantInt::get(ls_->Int64Ty, ((1 << OBJECT_FLAGS_FROZEN) +
+                                                     1 << OBJECT_FLAGS_INFLATED));
+
+      Value* frozen_obj = b().CreateAnd(flags, mask, "mask");
+      Value* frozen_tag = ConstantInt::get(ls_->Int64Ty, 1 << OBJECT_FLAGS_FROZEN);
+
+      Value* is_frozen  = b().CreateICmpEQ(frozen_obj, frozen_tag, "is_frozen");
+      create_conditional_branch(failure, done, is_frozen);
+
+      set_block(failure);
+
+      Signature sig(ls_, "Object");
+
+      sig << "State";
+      sig << "CallFrame";
+      sig << "Object";
+
+      Value* call_args[] = { vm_, call_frame_, stack_top() };
+
+      Value* res = sig.call("rbx_check_frozen", call_args, 3, "", b());
+
+      check_for_exception(res, false);
+
+      b().CreateBr(done);
+      set_block(done);
     }
 
     Value* reference_class(Value* obj) {

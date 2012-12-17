@@ -77,7 +77,7 @@ extern "C" {
       return NULL;
     }
 
-    return obj;
+    return cNil;
   }
 
   void rbx_begin_profiling(STATE, void* data, Executable* exec, Module* mod, Arguments& args,

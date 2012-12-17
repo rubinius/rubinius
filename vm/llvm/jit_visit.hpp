@@ -582,17 +582,9 @@ namespace rubinius {
     }
 
     void visit_check_frozen() {
-      Signature sig(ls_, "Object");
+      Value* recv = stack_top();
 
-      sig << "State";
-      sig << "CallFrame";
-      sig << "Object";
-
-      Value* call_args[] = { vm_, call_frame_, stack_top() };
-
-      Value* res = sig.call("rbx_check_frozen", call_args, 3, "", b());
-
-      check_for_exception(res, false);
+      check_is_frozen(recv);
     }
 
     void check_fixnums(Value* left, Value* right, BasicBlock* if_true,
