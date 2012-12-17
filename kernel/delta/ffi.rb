@@ -1,5 +1,6 @@
 # -*- encoding: us-ascii -*-
 
+module Rubinius
 module FFI
 
   module Library
@@ -17,4 +18,5 @@ module FFI
     end
   end
 
+end
 end

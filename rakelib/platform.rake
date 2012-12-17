@@ -8,7 +8,7 @@ file 'runtime/platform.conf' => deps do |task|
   puts "GEN runtime/platform.conf"
 
   File.open task.name, "wb" do |f|
-    FFI::Generators::Structures.new 'addrinfo' do |s|
+    Rubinius::FFI::Generators::Structures.new 'addrinfo' do |s|
       if BUILD_CONFIG[:windows]
         s.include "ws2tcpip.h"
       else
@@ -26,7 +26,7 @@ file 'runtime/platform.conf' => deps do |task|
       s.field :ai_next, :pointer
     end.write_config(f)
 
-    FFI::Generators::Structures.new 'dirent' do |s|
+    Rubinius::FFI::Generators::Structures.new 'dirent' do |s|
       s.include "sys/types.h"
       s.include "dirent.h"
       s.name 'struct dirent'
@@ -35,14 +35,14 @@ file 'runtime/platform.conf' => deps do |task|
       s.field :d_name, :char_array
     end.write_config(f)
 
-    FFI::Generators::Structures.new 'timeval' do |s|
+    Rubinius::FFI::Generators::Structures.new 'timeval' do |s|
       s.include "sys/time.h"
       s.name 'struct timeval'
       s.field :tv_sec, :time_t
       s.field :tv_usec, :suseconds_t
     end.write_config(f)
 
-    FFI::Generators::Structures.new 'sockaddr_in' do |s|
+    Rubinius::FFI::Generators::Structures.new 'sockaddr_in' do |s|
       if BUILD_CONFIG[:windows]
         s.include "ws2tcpip.h"
       else
@@ -59,7 +59,7 @@ file 'runtime/platform.conf' => deps do |task|
     end.write_config(f)
 
     unless BUILD_CONFIG[:windows]
-      sockaddr_un = FFI::Generators::Structures.new 'sockaddr_un' do |s|
+      sockaddr_un = Rubinius::FFI::Generators::Structures.new 'sockaddr_un' do |s|
         s.include "sys/un.h"
         s.name 'struct sockaddr_un'
         s.field :sun_family, :sa_family_t
@@ -69,7 +69,7 @@ file 'runtime/platform.conf' => deps do |task|
       sockaddr_un.write_config f if sockaddr_un.found?
     end
 
-    FFI::Generators::Structures.new 'servent' do |s|
+    Rubinius::FFI::Generators::Structures.new 'servent' do |s|
       if BUILD_CONFIG[:windows]
         s.include "winsock2.h"
       else
@@ -82,7 +82,7 @@ file 'runtime/platform.conf' => deps do |task|
       s.field :s_proto, :pointer
     end.write_config(f)
 
-    FFI::Generators::Structures.new 'stat' do |s|
+    Rubinius::FFI::Generators::Structures.new 'stat' do |s|
       unless BUILD_CONFIG[:windows]
         s.include "sys/types.h"
         s.include "unistd.h"
@@ -114,7 +114,7 @@ file 'runtime/platform.conf' => deps do |task|
     end.write_config(f)
 
     unless BUILD_CONFIG[:windows]
-      FFI::Generators::Structures.new 'rlimit' do |s|
+      Rubinius::FFI::Generators::Structures.new 'rlimit' do |s|
         s.include "sys/types.h"
         s.include "sys/time.h"
         s.include "sys/resource.h"
@@ -136,7 +136,7 @@ file 'runtime/platform.conf' => deps do |task|
     #   BINARY
     # }
 
-    FFI::Generators::Constants.new 'rbx.platform.file' do |cg|
+    Rubinius::FFI::Generators::Constants.new 'rbx.platform.file' do |cg|
       cg.include 'stdio.h'
       cg.include 'fcntl.h'
       cg.include 'sys/stat.h'
@@ -178,7 +178,7 @@ file 'runtime/platform.conf' => deps do |task|
       file_constants.each { |c| cg.const c }
     end.write_constants(f)
 
-    FFI::Generators::Constants.new 'rbx.platform.io' do |cg|
+    Rubinius::FFI::Generators::Constants.new 'rbx.platform.io' do |cg|
       cg.include 'stdio.h'
 
       io_constants = %w[
@@ -191,7 +191,7 @@ file 'runtime/platform.conf' => deps do |task|
     end.write_constants(f)
 
     # Only constants needed by core are added here
-    FFI::Generators::Constants.new 'rbx.platform.fcntl' do |cg|
+    Rubinius::FFI::Generators::Constants.new 'rbx.platform.fcntl' do |cg|
       cg.include 'fcntl.h'
 
       fcntl_constants = %w[
@@ -206,7 +206,7 @@ file 'runtime/platform.conf' => deps do |task|
       fcntl_constants.each { |c| cg.const c }
     end.write_constants(f)
 
-    FFI::Generators::Constants.new 'rbx.platform.socket' do |cg|
+    Rubinius::FFI::Generators::Constants.new 'rbx.platform.socket' do |cg|
       cg.include 'sys/types.h'
       if BUILD_CONFIG[:windows]
         cg.include "winsock2.h"
@@ -461,7 +461,7 @@ file 'runtime/platform.conf' => deps do |task|
     end.write_constants(f)
 
     unless BUILD_CONFIG[:windows]
-      FFI::Generators::Constants.new 'rbx.platform.process' do |cg|
+      Rubinius::FFI::Generators::Constants.new 'rbx.platform.process' do |cg|
         cg.include 'sys/wait.h'
         cg.include 'sys/resource.h'
         cg.include 'stdlib.h'
@@ -505,7 +505,7 @@ file 'runtime/platform.conf' => deps do |task|
     # The constants come from MRI's signal.c. This means that some of them might
     # be missing.
 
-    FFI::Generators::Constants.new 'rbx.platform.signal' do |cg|
+    Rubinius::FFI::Generators::Constants.new 'rbx.platform.signal' do |cg|
       cg.include 'signal.h'
       unless BUILD_CONFIG[:windows]
         cg.include 'sys/signal.h'
@@ -561,7 +561,7 @@ file 'runtime/platform.conf' => deps do |task|
       signal_constants.each { |c| cg.const c }
     end.write_constants(f)
 
-    FFI::Generators::Constants.new 'rbx.platform.zlib' do |cg|
+    Rubinius::FFI::Generators::Constants.new 'rbx.platform.zlib' do |cg|
       cg.include_dir 'vendor/zlib' if BUILD_CONFIG[:vendor_zlib]
       cg.include 'zlib.h'
 
@@ -571,7 +571,7 @@ file 'runtime/platform.conf' => deps do |task|
     end.write_constants(f)
 
     unless BUILD_CONFIG[:windows]
-      FFI::Generators::Constants.new 'rbx.platform.dlopen' do |cg|
+      Rubinius::FFI::Generators::Constants.new 'rbx.platform.dlopen' do |cg|
         cg.include 'dlfcn.h'
 
         dlopen_constants = %w[
@@ -585,6 +585,6 @@ file 'runtime/platform.conf' => deps do |task|
       end.write_constants(f)
     end
 
-    f.puts FFI::Generators::Types.new.generate
+    f.puts Rubinius::FFI::Generators::Types.new.generate
   end
 end

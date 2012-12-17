@@ -3,6 +3,7 @@
 ##
 # Namespace for various POSIX functions.
 
+module Rubinius
 module FFI::Platform::POSIX
   extend FFI::Library
 
@@ -116,4 +117,4 @@ module FFI::Platform::POSIX
   attach_function :fstat, 'ffi_fstat', [:int,    :pointer], :int
   attach_function :lstat, 'ffi_lstat', [:string, :pointer], :int
 end
-
+end

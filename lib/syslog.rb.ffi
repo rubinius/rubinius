@@ -14,6 +14,7 @@
 # platform.
 
 module Syslog
+  FFI = Rubinius::FFI
 
   module Constants
     @@@

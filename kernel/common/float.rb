@@ -4,6 +4,8 @@ class Float < Numeric
 
   include Precision
 
+  FFI = Rubinius::FFI
+
   def self.induced_from(obj)
     case obj
     when Float, Bignum, Fixnum

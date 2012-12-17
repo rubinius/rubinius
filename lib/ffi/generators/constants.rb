@@ -1,3 +1,4 @@
+module Rubinius
 module FFI
   module Generators
     ##
@@ -176,4 +177,5 @@ module FFI
   end
 
   ConstGenerator = Generators::Constants
+end
 end

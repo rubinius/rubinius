@@ -1,5 +1,6 @@
 # -*- encoding: us-ascii -*-
 
+module Rubinius
 module FFI
   ##
   # Represents a C struct as ruby class.
@@ -305,4 +306,4 @@ module FFI
 
   end
 end
-
+end

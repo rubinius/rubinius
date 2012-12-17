@@ -1,6 +1,8 @@
 # -*- encoding: us-ascii -*-
 
 module Math
+  FFI = Rubinius::FFI
+
   # Constants
   PI = 3.14159_26535_89793_23846
   E  = 2.71828_18284_59045_23536

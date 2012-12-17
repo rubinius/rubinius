@@ -4,6 +4,7 @@
 # modified manually. Due to the vast amount of very similar
 # methods in this module, it is automatically generated.
 
+module Rubinius
 module FFI
   ##
   # This module provides accessors for various different types. It
@@ -835,4 +836,5 @@ module FFI
     end
 
   end
+end
 end

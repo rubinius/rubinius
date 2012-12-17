@@ -30,6 +30,8 @@ module Process
   end
   include Constants
 
+  FFI = Rubinius::FFI
+
   class Rlimit < FFI::Struct
     config "rbx.platform.rlimit", :rlim_cur, :rlim_max
   end

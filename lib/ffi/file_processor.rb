@@ -1,5 +1,6 @@
 require File.expand_path('../generators', __FILE__)
 
+module Rubinius
 module FFI
 
   # Processes a file containing Ruby code with blocks of FFI definitions
@@ -84,4 +85,5 @@ module FFI
       proc { |obj| obj.to_s.inspect }
     end
   end
+end
 end

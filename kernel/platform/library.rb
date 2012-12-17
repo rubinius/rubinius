@@ -5,6 +5,7 @@ class Rubinius::NativeFunction
   attr_accessor :argument_types
 end
 
+module Rubinius
 module FFI
   def self.generate_function(ptr, name, args, ret)
     Rubinius.primitive :nativefunction_generate
@@ -405,4 +406,4 @@ module FFI
     CURRENT_PROCESS = DynamicLibrary.new(nil)
   end
 end
-
+end

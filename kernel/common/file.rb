@@ -1,5 +1,6 @@
 # -*- encoding: us-ascii -*-
 
+module Rubinius
 module FFI::Platform::POSIX
   #--
   # Internal class for accessing timevals
@@ -7,6 +8,7 @@ module FFI::Platform::POSIX
   class TimeVal < FFI::Struct
     config 'rbx.platform.timeval', :tv_sec, :tv_usec
   end
+end
 end
 
 class File < IO
@@ -58,6 +60,8 @@ class File < IO
     FNM_DOTMATCH = 0x04
     FNM_CASEFOLD = 0x08
   end
+
+  FFI = Rubinius::FFI
 
   SEPARATOR = FFI::Platform::File::SEPARATOR
   Separator = FFI::Platform::File::SEPARATOR
@@ -1065,6 +1069,8 @@ class IO
 end
 
 class File::Stat
+  FFI = Rubinius::FFI
+
   class Struct < FFI::Struct
     config "rbx.platform.stat", :st_dev, :st_ino, :st_mode, :st_nlink,
            :st_uid, :st_gid, :st_rdev, :st_size, :st_blksize, :st_blocks,

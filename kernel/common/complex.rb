@@ -9,6 +9,8 @@
 #
 
 class Complex < Numeric
+  FFI = Rubinius::FFI
+
   undef_method :%
   undef_method :<
   undef_method :<=

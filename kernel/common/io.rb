@@ -1,6 +1,7 @@
 # -*- encoding: us-ascii -*-
 
 class IO
+  FFI = Rubinius::FFI
 
   include Enumerable
 

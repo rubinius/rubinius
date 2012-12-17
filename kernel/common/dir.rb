@@ -3,6 +3,8 @@
 class Dir
   include Enumerable
 
+  FFI = Rubinius::FFI
+
   def self.[](*patterns)
     if patterns.size == 1
       patterns = Rubinius::Type.coerce_to_path(patterns[0]).split("\0")

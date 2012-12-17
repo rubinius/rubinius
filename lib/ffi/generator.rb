@@ -1,5 +1,6 @@
 require File.expand_path('../file_processor', __FILE__)
 
+module Rubinius
 module FFI
   class Generator
     def initialize(ffi_name, rb_name)
@@ -9,4 +10,5 @@ module FFI
       FileProcessor.new ffi_name, rb_name
     end
   end
+end
 end

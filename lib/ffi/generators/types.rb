@@ -1,3 +1,4 @@
+module Rubinius
 module FFI
   module Generators
     class Types
@@ -139,4 +140,5 @@ module FFI
   end
 
   TypesGenerator = Generators::Types
+end
 end

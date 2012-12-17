@@ -32,7 +32,7 @@
 namespace rubinius {
 
   void VM::init_ffi(STATE) {
-    GO(ffi).set(ontology::new_module(state, "FFI"));
+    GO(ffi).set(ontology::new_module(state, "FFI", G(rubinius)));
     Module* mod = G(ffi);
     mod->set_const(state, "TYPE_CHAR",       Fixnum::from(RBX_FFI_TYPE_CHAR));
     mod->set_const(state, "TYPE_UCHAR",      Fixnum::from(RBX_FFI_TYPE_UCHAR));

@@ -1,3 +1,4 @@
+module Rubinius
 module FFI
   module Generators
     ##
@@ -196,4 +197,5 @@ module FFI
   end
 
   StructGenerator = Generators::Structures
+end
 end

@@ -1,5 +1,6 @@
 # -*- encoding: us-ascii -*-
 
+module Rubinius
 module FFI
 
   ##
@@ -443,4 +444,4 @@ module FFI
     end
   end
 end
-
+end

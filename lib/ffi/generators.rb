@@ -6,6 +6,7 @@ require base + '/generators/structures'
 require base + '/generators/constants'
 require base + '/generators/types'
 
+module Rubinius
 module FFI
   module Generators
 
@@ -125,4 +126,5 @@ module FFI
       end
     end
   end
+end
 end

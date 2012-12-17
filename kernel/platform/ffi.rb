@@ -3,6 +3,7 @@
 ##
 # A Foreign Function Interface used to bind C libraries to ruby.
 
+module Rubinius
 module FFI
 
   #  Specialised error classes
@@ -257,4 +258,5 @@ module FFI::Platform
   def self.unix?
     ! windows?
   end
+end
 end

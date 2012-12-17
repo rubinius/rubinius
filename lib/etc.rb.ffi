@@ -1,4 +1,4 @@
-class Struct::Passwd < FFI::Struct
+class Struct::Passwd < Rubinius::FFI::Struct
   @@@
   struct do |s|
     s.include "sys/types.h"
@@ -24,7 +24,7 @@ class Struct::Passwd < FFI::Struct
   def shell; self[:pw_shell]; end
 end
 
-class Struct::Group < FFI::Struct
+class Struct::Group < Rubinius::FFI::Struct
   @@@
   struct do |s|
     s.include "sys/types.h"
@@ -37,6 +37,8 @@ class Struct::Group < FFI::Struct
     s.field :gr_mem, :pointer
   end
   @@@
+
+  FFI = Rubinius::FFI
 
   def name; self[:gr_name]; end
   def gid; self[:gr_gid]; end
@@ -58,6 +60,7 @@ class Struct::Group < FFI::Struct
 end
 
 module Etc
+  FFI = Rubinius::FFI
 
   const_set(:Passwd, Struct::Passwd)
   const_set(:Group, Struct::Group)

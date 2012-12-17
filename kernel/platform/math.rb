@@ -3,6 +3,7 @@
 ##
 # Platform specific behavior for Math.
 
+module Rubinius
 module FFI::Platform::Math
   extend FFI::Library
 
@@ -42,4 +43,4 @@ module FFI::Platform::Math
     log10(x) / log10(2.0)
   end
 end
-
+end
