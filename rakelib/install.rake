@@ -29,6 +29,7 @@ def need_permission?
   return false
 end
 
+
 def install_file(source, prefix, dest, name=nil, options={})
   return if File.directory? source
 
@@ -92,13 +93,19 @@ def install_capi_include(prefix, destination)
 end
 
 def install_build_lib(prefix, target)
-  FileList["#{prefix}/**/*.*", "#{prefix}/**/*"].each do |name|
+  list = FileList["#{prefix}/**/*.*", "#{prefix}/**/*"]
+  list.exclude("#{prefix}/**/ext/melbourne/build/*.*")
+
+  list.each do |name|
     install_file name, prefix, "#{target}#{BUILD_CONFIG[:libdir]}"
   end
 end
 
 def install_lib(prefix, target)
-  FileList["#{prefix}/**/*.rb", "#{prefix}/**/rubygems/**/*"].each do |name|
+  list = FileList["#{prefix}/**/*.rb", "#{prefix}/**/rubygems/**/*"]
+  list.exclude("#{prefix}/**/ext/melbourne/build/*.*")
+
+  list.each do |name|
     install_file name, prefix, "#{target}#{BUILD_CONFIG[:libdir]}"
   end
 end
@@ -116,7 +123,10 @@ def install_tooling(prefix, target)
 end
 
 def install_cext(prefix, target)
-  FileList["#{prefix}/**/ext/**/*.#{$dlext}"].each do |name|
+  list = FileList["#{prefix}/**/ext/**/*.#{$dlext}"]
+  list.exclude("**/melbourne/build/*.*")
+
+  list.each do |name|
     install_file name, prefix, "#{target}#{BUILD_CONFIG[:libdir]}"
   end
 end

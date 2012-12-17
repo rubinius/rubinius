@@ -169,6 +169,7 @@ namespace :build do
                      stage:tooling
                      stage:kernel
                      kernel:build
+                     extensions:melbourne_build_clean
                      stage:runtime
                      stage:documentation
                      stage:manpages

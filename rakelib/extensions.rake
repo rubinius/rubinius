@@ -24,6 +24,12 @@ namespace :extensions do
     rm_f FileList["lib/tooling/**/Makefile"], :verbose => $verbose
     rm_f FileList["lib/ext/dl/*.func"], :verbose => $verbose
   end
+
+  task :melbourne_build_clean do
+    if BUILD_CONFIG[:stagingdir]
+      rm_rf FileList["#{BUILD_CONFIG[:stagingdir]}/**/melbourne/build"], :verbose => true
+    end
+  end
 end
 
 def rbx_build
