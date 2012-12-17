@@ -375,6 +375,42 @@ namespace rubinius {
       i.context().leave_inline();
     }
 
+    void fixnum_xor() {
+      log("fixnum_xor");
+      i.context().enter_inline();
+
+      Value* lint = ops.cast_int(i.recv());
+      Value* rint = ops.cast_int(i.arg(0));
+
+      Value* anded = BinaryOperator::CreateAnd(lint, rint, "fixnums_anded",
+          ops.current_block());
+
+      Value* fix_mask = ConstantInt::get(ops.NativeIntTy, TAG_FIXNUM_MASK);
+      Value* fix_tag  = ConstantInt::get(ops.NativeIntTy, TAG_FIXNUM);
+
+      Value* masked = BinaryOperator::CreateAnd(anded, fix_mask, "masked",
+          ops.current_block());
+
+      Value* cmp = ops.create_equal(masked, fix_tag, "is_fixnum");
+
+      BasicBlock* push = ops.new_block("push_bit_or");
+      BasicBlock* send = i.failure();
+
+      ops.create_conditional_branch(push, send, cmp);
+
+      ops.set_block(push);
+
+      Value* xored = BinaryOperator::CreateXor(lint, rint, "fixnums_xored",
+          ops.current_block());
+
+      Value* ored  = BinaryOperator::CreateOr(xored, fix_tag, "fixnums_ored",
+          ops.current_block());
+
+      i.exception_safe();
+      i.set_result(ops.as_obj(ored));
+      i.context().leave_inline();
+    }
+
     void fixnum_neg() {
       log("fixnum_neg");
       i.context().enter_inline();
@@ -1057,6 +1093,8 @@ namespace rubinius {
       ip.fixnum_and();
     } else if(prim == Primitives::fixnum_or && count_ == 1) {
       ip.fixnum_or();
+    } else if(prim == Primitives::fixnum_xor && count_ == 1) {
+      ip.fixnum_xor();
     } else if(prim == Primitives::fixnum_neg && count_ == 0) {
       ip.fixnum_neg();
     } else if(prim == Primitives::fixnum_compare && count_ == 1) {
