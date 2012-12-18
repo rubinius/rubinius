@@ -342,10 +342,8 @@ namespace rubinius {
 
       GetElementPtrInst* gep = ops.create_gep(bytearray, idx, 3, "field_pos");
 
-      Type* ptr_type = gep->getType();
-
       Value* byte = ops.b().CreateIntCast(ops.fixnum_strip(value),
-                                          ptr_type->getPointerElementType(),
+                                          ops.state()->Int8Ty,
                                           true, "cast_byte");
 
       ops.create_store(byte, gep);
