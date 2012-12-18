@@ -7,8 +7,13 @@ DEFAULT_RECORD_SEPARATOR = "\n"
 class String
   include Comparable
 
+  def self.__allocate__
+    Rubinius.primitive :string_allocate
+    raise PrimitiveFailure, "String.allocate primitive failed"
+  end
+
   def self.allocate
-    str = super()
+    str = __allocate__
     str.__data__ = Rubinius::ByteArray.new(1)
     str.num_bytes = 0
     str
@@ -36,7 +41,7 @@ class String
   end
 
   def initialize(arg = undefined)
-    replace StringValue(arg) unless arg.equal?(undefined)
+    replace arg unless arg.equal?(undefined)
     self
   end
 

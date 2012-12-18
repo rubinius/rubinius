@@ -10,6 +10,9 @@ namespace rubinius {
 
     static void init(STATE);
 
+    // Rubinius.primitive :character_allocate
+    static Character* allocate(STATE, Object* self);
+
     static Character* create(STATE, native_int size);
     static Character* create(STATE, const char* bytes, native_int size);
     static Character* create_from(STATE, String* str, Fixnum* byte);

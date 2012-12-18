@@ -1,5 +1,18 @@
 module Rubinius
   class Character < ::String
+
+    def self.__allocate__
+      Rubinius.primitive :character_allocate
+      raise PrimitiveFailure, "Rubinius::Character.allocate primitive failed"
+    end
+
+    def self.allocate
+      chr = __allocate__
+      chr.__data__ = Rubinius::ByteArray.new(1)
+      chr.num_bytes = 0
+      chr
+    end
+
     def alphabetical?
       Rubinius.primitive :character_alphabetical_p
       raise PrimitiveFailure, "Rubinius::Character#alphabetical? primitive failed"

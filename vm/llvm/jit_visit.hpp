@@ -2095,7 +2095,10 @@ use_send:
         constant(as<Symbol>(literal(name)))
       };
 
-      Value* ret = b().CreateCall(func, call_args, "push_const_fast");
+      CallInst* ret = b().CreateCall(func, call_args, "push_const_fast");
+      ret->setOnlyReadsMemory();
+      ret->setDoesNotThrow();
+
       check_for_exception(ret);
       stack_push(ret);
     }

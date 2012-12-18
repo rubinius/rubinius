@@ -49,7 +49,7 @@ namespace rubinius {
     TypedRoot<Class*> compiled_code, tuple, module, basicobject, object, array;
     TypedRoot<Class*> klass, methtbl, bytearray;
     TypedRoot<Class*> blokenv, bignum, regexp, matchdata;
-    TypedRoot<Class*> string, symbol, io;
+    TypedRoot<Class*> string, character, symbol, io;
     TypedRoot<Class*> nil_class, true_class, false_class, fixnum_class, undef_class;
     TypedRoot<Class*> floatpoint, nmc, list, list_node;
     TypedRoot<Class*> channel, thread, constantscope, lookuptable;
@@ -135,6 +135,7 @@ namespace rubinius {
       regexp(&roots),
       matchdata(&roots),
       string(&roots),
+      character(&roots),
       symbol(&roots),
       io(&roots),
       nil_class(&roots),

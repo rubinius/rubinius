@@ -15,14 +15,18 @@
 
 namespace rubinius {
   void Character::init(STATE) {
-    Class* cls = ontology::new_class(state, "Character", G(string), G(rubinius));
-    cls->set_object_type(state, CharacterType);
-    G(rubinius)->set_const(state, "Character", cls);
+    GO(character).set(ontology::new_class(state, "Character", G(string), G(rubinius)));
+    G(character)->set_object_type(state, CharacterType);
+  }
+
+  Character* Character::allocate(STATE, Object* self) {
+    Character* chr = state->new_object<Character>(G(character));
+    chr->klass(state, as<Class>(self));
+    return chr;
   }
 
   Character* Character::create(STATE, native_int size) {
-    Class* cls = as<Class>(G(rubinius)->get_const(state, "Character"));
-    Character* chr = state->new_object<Character>(cls);
+    Character* chr = state->new_object<Character>(G(character));
 
     chr->num_bytes(state, Fixnum::from(size));
     chr->hash_value(state, nil<Fixnum>());

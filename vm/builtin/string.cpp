@@ -69,6 +69,12 @@ namespace rubinius {
     G(string)->set_object_type(state, StringType);
   }
 
+  String* String::allocate(STATE, Object* self) {
+    String* str = state->new_object<String>(G(string));
+    str->klass(state, as<Class>(self));
+    return str;
+  }
+
   /* Creates a String instance with +num_bytes+ == +size+ and
    * having a ByteArray with at least (size + 1) bytes.
    */
