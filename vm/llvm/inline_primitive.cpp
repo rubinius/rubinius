@@ -237,6 +237,126 @@ namespace rubinius {
       i.context().leave_inline();
     }
 
+    void bytearray_get_byte() {
+      log("bytearray_get_byte");
+      i.context().enter_inline();
+
+      Value* rec = i.recv();
+
+      // bool is_tuple = recv->flags & mask;
+
+      Value* cmp = ops.check_is_bytearray(rec);
+
+      BasicBlock* is_bytearray = ops.new_block("is_bytearray");
+      BasicBlock* access =   ops.new_block("bytearray_get_byte");
+      BasicBlock* is_other = i.failure();
+
+      ops.create_conditional_branch(is_bytearray, is_other, cmp);
+
+      ops.set_block(is_bytearray);
+
+      Value* index_val = i.arg(0);
+
+      Value* fix_cmp = ops.check_if_positive_fixnum(index_val);
+      // Check that index is not over the end of the Tuple
+
+      Value* bytearray = ops.upcast(rec, "ByteArray");
+
+      Value* index = ops.fixnum_strip(index_val);
+
+      Value* full_size = ops.get_bytearray_size(bytearray);
+      Value* size_cmp = ops.create_less_than(index, full_size, "is_in_bounds");
+
+      // Combine fix_cmp and size_cmp to validate entry into access code
+      Value* access_cmp = ops.create_and(fix_cmp, size_cmp, "access_cmp");
+      ops.create_conditional_branch(access, is_other, access_cmp);
+
+      ops.set_block(access);
+
+      Value* idx[] = {
+        ConstantInt::get(ops.state()->Int32Ty, 0),
+        ConstantInt::get(ops.state()->Int32Ty, offset::ByteArray::field),
+        index
+      };
+
+      Value* gep = ops.create_gep(bytearray, idx, 3, "field_pos");
+
+      Value* result = ops.create_load(gep, "bytearray_get_byte");
+
+      i.set_result(ops.fixnum_tag(result));
+
+      i.exception_safe();
+      i.context().leave_inline();
+    }
+
+    void bytearray_set_byte() {
+      log("bytearray_set_byte");
+      i.context().enter_inline();
+
+      Value* rec = i.recv();
+
+      // bool is_tuple = recv->flags & mask;
+
+      Value* cmp = ops.check_is_bytearray(rec);
+
+      BasicBlock* is_bytearray  = ops.new_block("is_bytearray");
+      BasicBlock* is_arg_fixnum = ops.new_block("is_arg_fixnum");
+      BasicBlock* access        = ops.new_block("bytearray_set_byte");
+
+      BasicBlock* is_other = i.failure();
+
+      ops.create_conditional_branch(is_bytearray, is_other, cmp);
+
+      ops.set_block(is_bytearray);
+
+      Value* index_val = i.arg(0);
+
+      Value* fix_cmp = ops.check_if_positive_fixnum(index_val);
+      // Check that index is not over the end of the ByteArray
+
+      Value* bytearray = ops.upcast(rec, "ByteArray");
+
+      Value* index = ops.fixnum_strip(index_val);
+
+      Value* full_size = ops.get_bytearray_size(bytearray);
+      Value* size_cmp = ops.create_less_than(index, full_size, "is_in_bounds");
+
+      // Combine fix_cmp and size_cmp to validate entry into access code
+      Value* access_cmp = ops.create_and(fix_cmp, size_cmp, "access_cmp");
+      ops.create_conditional_branch(is_arg_fixnum, is_other, access_cmp);
+
+      ops.set_block(is_arg_fixnum);
+
+      Value* value = i.arg(1);
+
+      Value* val_cmp = ops.check_if_fixnum(value);
+      ops.create_conditional_branch(access, is_other, val_cmp);
+
+      ops.set_block(access);
+
+      Value* idx[] = {
+        ConstantInt::get(ops.state()->Int32Ty, 0),
+        ConstantInt::get(ops.state()->Int32Ty, offset::Tuple::field),
+        index
+      };
+
+      GetElementPtrInst* gep = ops.create_gep(bytearray, idx, 3, "field_pos");
+
+      Type* ptr_type = gep->getType();
+
+      Value* byte = ops.b().CreateIntCast(ops.fixnum_strip(value),
+                                          ptr_type->getPointerElementType(),
+                                          true, "cast_byte");
+
+      ops.create_store(byte, gep);
+
+      i.set_result(value);
+
+      i.exception_safe();
+      i.context().leave_inline();
+    }
+
+
     bool static_fixnum_s_eqq() {
       Value* arg = i.arg(0);
 
@@ -428,11 +548,72 @@ namespace rubinius {
           ops.Zero, native, "to_neg",
           ops.current_block());
 
-      Value* more = BinaryOperator::CreateShl(neg, ops.One, "shl", ops.current_block());
-      Value* tagged = BinaryOperator::CreateOr(more, ops.One, "or", ops.current_block());
+      i.exception_safe();
+      i.set_result(ops.fixnum_tag(neg));
+      i.context().leave_inline();
+    }
+
+    void fixnum_add() {
+      log("fixnum_add");
+      i.context().enter_inline();
+
+      Value* recv = i.recv();
+      Value* arg = i.arg(0);
+
+      BasicBlock* push = ops.new_block("push_mul");
+      BasicBlock* tagnow = ops.new_block("tagnow");
+      BasicBlock* send = i.failure();
+
+      Value* cmp = ops.check_if_fixnums(recv, arg);
+      ops.create_conditional_branch(push, send, cmp);
+
+      ops.set_block(push);
+
+      Value* recv_int = ops.fixnum_strip(recv);
+      Value* arg_int = ops.fixnum_strip(arg);
+      Value* sum = ops.b().CreateAdd(recv_int, arg_int, "fixnum.add");
+
+      Value* check_fits = ops.check_if_fits_fixnum(sum);
+
+      ops.create_conditional_branch(tagnow, i.failure(), check_fits);
+
+      ops.set_block(tagnow);
 
       i.exception_safe();
-      i.set_result(ops.as_obj(tagged));
+      i.set_result(ops.fixnum_tag(sum));
+      i.use_send_for_failure();
+      i.context().leave_inline();
+    }
+
+    void fixnum_sub() {
+      log("fixnum_sub");
+      i.context().enter_inline();
+
+      Value* recv = i.recv();
+      Value* arg = i.arg(0);
+
+      BasicBlock* push = ops.new_block("push_mul");
+      BasicBlock* tagnow = ops.new_block("tagnow");
+      BasicBlock* send = i.failure();
+
+      Value* cmp = ops.check_if_fixnums(recv, arg);
+      ops.create_conditional_branch(push, send, cmp);
+
+      ops.set_block(push);
+
+      Value* recv_int = ops.fixnum_strip(recv);
+      Value* arg_int = ops.fixnum_strip(arg);
+      Value* sub = ops.b().CreateSub(recv_int, arg_int, "fixnum.add");
+
+      Value* check_fits = ops.check_if_fits_fixnum(sub);
+
+      ops.create_conditional_branch(tagnow, i.failure(), check_fits);
+
+      ops.set_block(tagnow);
+
+      i.exception_safe();
+      i.set_result(ops.fixnum_tag(sub));
+      i.use_send_for_failure();
       i.context().leave_inline();
     }
 
@@ -1159,6 +1340,10 @@ namespace rubinius {
       ip.tuple_fields();
     } else if(prim == Primitives::bytearray_size && count_ == 0) {
       ip.bytearray_size();
+    } else if(prim == Primitives::bytearray_get_byte && count_ == 1) {
+      ip.bytearray_get_byte();
+    } else if(prim == Primitives::bytearray_set_byte && count_ == 2) {
+      ip.bytearray_set_byte();
     } else if(prim == Primitives::fixnum_and && count_ == 1) {
       ip.fixnum_and();
     } else if(prim == Primitives::fixnum_or && count_ == 1) {
@@ -1169,6 +1354,10 @@ namespace rubinius {
       ip.fixnum_neg();
     } else if(prim == Primitives::fixnum_compare && count_ == 1) {
       ip.fixnum_compare();
+    } else if(prim == Primitives::fixnum_add && count_ == 1) {
+      ip.fixnum_add();
+    } else if(prim == Primitives::fixnum_sub && count_ == 1) {
+      ip.fixnum_sub();
     } else if(prim == Primitives::fixnum_mul && count_ == 1) {
       ip.fixnum_mul();
     } else if(prim == Primitives::fixnum_div && count_ == 1) {
