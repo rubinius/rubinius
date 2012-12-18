@@ -523,8 +523,7 @@ class Module
   end
 
   def ===(inst)
-    Rubinius.primitive :module_case_compare
-    raise PrimitiveFailure, "Module#=== primitive failed"
+    Rubinius::Type.object_kind_of?(inst, self)
   end
 
   # Is an autoload trigger defined for the given path?

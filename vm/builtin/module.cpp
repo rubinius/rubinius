@@ -62,10 +62,6 @@ namespace rubinius {
     set_name(state, name, under);
   }
 
-  Object* Module::case_compare(STATE, Object* obj) {
-    return obj->kind_of_p(state, this) ? cTrue : cFalse;
-  }
-
   void Module::set_name(STATE, Symbol* name, Module* under) {
     if(!module_name()->nil_p()) return;
 

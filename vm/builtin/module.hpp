@@ -48,9 +48,6 @@ namespace rubinius {
 
     String* get_name(STATE);
 
-    // Rubinius.primitive :module_case_compare
-    Object* case_compare(STATE, Object* obj);
-
     // Rubinius.primitive :module_const_set
     Object* const_set(STATE, Object* name, Object* value);
 
