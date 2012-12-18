@@ -102,7 +102,7 @@ class Class
       # allowed to leak a stack value
     end
 
-    return obj
+    obj
   end
 end
 

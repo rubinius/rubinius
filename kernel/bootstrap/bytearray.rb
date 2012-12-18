@@ -14,12 +14,11 @@ module Rubinius
     def self.new(cnt)
       obj = allocate_sized cnt
       Rubinius.asm(obj) do |obj|
-        push_block
         run obj
-        send_with_block :initialize, 0, true
+        send :initialize, 0, true
       end
 
-      return obj
+      obj
     end
 
     def fetch_bytes(start, count)
