@@ -771,6 +771,8 @@ namespace rubinius {
 
       Value* call_args[] = { ops.vm() };
       CallInst* res = sig.call("rbx_float_allocate", call_args, 1, "result", ops.b());
+      res->setOnlyReadsMemory();
+      res->setDoesNotThrow();
 
       ops.b().CreateStore(
           performed,
@@ -970,8 +972,14 @@ namespace rubinius {
 
       Value* call_args[] = { ops.vm(), ops.call_frame(), V };
 
-      Value* out = sig.call("rbx_create_instance", call_args, 3,
-                            "instance", ops.b());
+      CallInst* out = sig.call("rbx_create_instance", call_args, 3,
+                               "instance", ops.b());
+      // Even though an allocation actually modifies memory etc, it does
+      // not have the semantics that it does. Allocation of this object
+      // can be removed if this value is never used afterwards and the
+      // allocation can be elided in that case.
+      out->setOnlyReadsMemory();
+      out->setDoesNotThrow();
 
       i.set_result(out);
       i.context().leave_inline();
@@ -998,7 +1006,12 @@ namespace rubinius {
 
       Value* call_args[] = { ops.vm(), i.recv() };
 
-      Value* val = sig.call("rbx_string_hash", call_args, 2, "hash", ops.b());
+      CallInst* val = sig.call("rbx_string_hash", call_args, 2, "hash", ops.b());
+      // Computing the string hash only reads memory. Even though it has the side
+      // effect of storing this hash value, we handle that situation fine anyway
+      // by computing it when needed.
+      val->setOnlyReadsMemory();
+      val->setDoesNotThrow();
 
       i.exception_safe();
       i.set_result(val);
@@ -1016,7 +1029,9 @@ namespace rubinius {
 
       Value* call_args[] = { ops.vm(), i.recv(), i.arg(0) };
 
-      Value* val = sig.call("rbx_kind_of", call_args, 3, "hash", ops.b());
+      CallInst* val = sig.call("rbx_kind_of", call_args, 3, "hash", ops.b());
+      val->setOnlyReadsMemory();
+      val->setDoesNotThrow();
 
       i.exception_safe();
       i.set_result(val);
@@ -1034,7 +1049,9 @@ namespace rubinius {
 
       Value* call_args[] = { ops.vm(), i.arg(0), i.arg(1) };
 
-      Value* val = sig.call("rbx_kind_of", call_args, 3, "hash", ops.b());
+      CallInst* val = sig.call("rbx_kind_of", call_args, 3, "hash", ops.b());
+      val->setOnlyReadsMemory();
+      val->setDoesNotThrow();
 
       i.exception_safe();
       i.set_result(val);
@@ -1051,7 +1068,9 @@ namespace rubinius {
 
       Value* call_args[] = { ops.vm(), i.recv() };
 
-      Value* val = sig.call("rbx_class_of", call_args, 2, "object_class", ops.b());
+      CallInst* val = sig.call("rbx_class_of", call_args, 2, "object_class", ops.b());
+      val->setOnlyReadsMemory();
+      val->setDoesNotThrow();
 
       i.exception_safe();
       i.set_result(val);
@@ -1068,7 +1087,9 @@ namespace rubinius {
 
       Value* call_args[] = { ops.vm(), i.arg(0) };
 
-      Value* val = sig.call("rbx_class_of", call_args, 2, "object_class", ops.b());
+      CallInst* val = sig.call("rbx_class_of", call_args, 2, "object_class", ops.b());
+      val->setOnlyReadsMemory();
+      val->setDoesNotThrow();
 
       i.exception_safe();
       i.set_result(val);
