@@ -706,7 +706,7 @@ namespace rubinius {
           "arg_float");
 
       Value* unboxed_rhs = ops.b().CreateLoad(
-          ops.b().CreateConstGEP2_32(farg,  0, 1, "arg.value_pos"), "farg");
+          ops.b().CreateConstGEP2_32(farg,  0, offset::Float::val, "arg.value_pos"), "farg");
 
       BasicBlock* perform = ops.new_block();
 
@@ -739,7 +739,7 @@ namespace rubinius {
           "self_float");
 
       Value* lhs = ops.b().CreateLoad(
-          ops.b().CreateConstGEP2_32(fself, 0, 1, "self.value_pos"), "fself");
+          ops.b().CreateConstGEP2_32(fself, 0, offset::Float::val, "self.value_pos"), "fself");
 
       Value* performed = 0;
 
@@ -774,7 +774,7 @@ namespace rubinius {
 
       ops.b().CreateStore(
           performed,
-          ops.b().CreateConstGEP2_32(res, 0, 1));
+          ops.b().CreateConstGEP2_32(res, 0, offset::Float::val));
 
       i.exception_safe();
       i.set_result(ops.b().CreateBitCast(res, ops.ObjType));
@@ -800,7 +800,7 @@ namespace rubinius {
           "arg_float");
 
       Value* unboxed_rhs = ops.b().CreateLoad(
-          ops.b().CreateConstGEP2_32(farg,  0, 1, "arg.value_pos"), "farg");
+          ops.b().CreateConstGEP2_32(farg,  0, offset::Float::val, "arg.value_pos"), "farg");
 
       BasicBlock* unboxed_block = ops.current_block();
 
@@ -826,7 +826,7 @@ namespace rubinius {
       Value* fself = ops.b().CreateBitCast(i.recv(), ops.state()->ptr_type("Float"),
           "self_float");
       Value* lhs = ops.b().CreateLoad(
-          ops.b().CreateConstGEP2_32(fself, 0, 1, "self.value_pos"), "fself");
+          ops.b().CreateConstGEP2_32(fself, 0, offset::Float::val, "self.value_pos"), "fself");
 
       BasicBlock* eq     = ops.new_block("equal");
       BasicBlock* neq    = ops.new_block("not_equal");
@@ -882,7 +882,7 @@ namespace rubinius {
           "arg_float");
 
       Value* unboxed_rhs = ops.b().CreateLoad(
-          ops.b().CreateConstGEP2_32(farg,  0, 1, "arg.value_pos"), "farg");
+          ops.b().CreateConstGEP2_32(farg,  0, offset::Float::val, "arg.value_pos"), "farg");
 
       BasicBlock* unboxed_block = ops.current_block();
 
@@ -908,7 +908,7 @@ namespace rubinius {
       Value* fself = ops.b().CreateBitCast(i.recv(), ops.state()->ptr_type("Float"),
           "self_float");
       Value* lhs = ops.b().CreateLoad(
-          ops.b().CreateConstGEP2_32(fself, 0, 1, "self.value_pos"), "fself");
+          ops.b().CreateConstGEP2_32(fself, 0, offset::Float::val, "self.value_pos"), "fself");
 
       Value* performed = 0;
 
