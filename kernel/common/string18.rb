@@ -316,8 +316,9 @@ class String
 
     Rubinius::Type.infect(self, other)
   end
-  alias_method :initialize_copy, :replace
-  # private :initialize_copy
+
+  def initialize_copy(other)
+  end
 
   def <<(other)
     modify!
