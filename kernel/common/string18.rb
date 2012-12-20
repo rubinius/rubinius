@@ -311,7 +311,7 @@ class String
     @shared = true
     other.shared!
     @data = other.__data__
-    self.num_bytes = other.num_bytes
+    @num_bytes = other.num_bytes
     @hash_value = nil
 
     Rubinius::Type.infect(self, other)
@@ -420,8 +420,10 @@ class String
   alias_method :each, :lines
 
   def gsub(pattern, replacement=undefined)
-    unless block_given? or replacement != undefined
-      return to_enum(:gsub, pattern, replacement)
+    if undefined.equal? replacement
+      unless block_given?
+        return to_enum(:gsub, pattern, replacement)
+      end
     end
 
     tainted = false
@@ -435,7 +437,7 @@ class String
       use_yield = false
     end
 
-    pattern = Rubinius::Type.coerce_to_regexp(pattern, true)
+    pattern = Rubinius::Type.coerce_to_regexp(pattern, true) unless pattern.kind_of? Regexp
     orig_len = @num_bytes
     orig_data = @data
 
@@ -602,9 +604,10 @@ class String
   end
 
   def match(pattern)
-    match_data = Rubinius::Type.coerce_to_regexp(pattern).search_region(self, 0, @num_bytes, true)
+    pattern = Rubinius::Type.coerce_to_regexp(pattern) unless pattern.kind_of? Regexp
+    match_data = pattern.search_region(self, 0, @num_bytes, true)
     Regexp.last_match = match_data
-    return match_data
+    match_data
   end
 
   def []=(index, count_or_replacement, replacement=undefined)
