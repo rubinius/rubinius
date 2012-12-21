@@ -92,12 +92,8 @@ class Delegator < BasicObject
   # Returns the methods available to this delegate object as the union
   # of this object's and \_\_getobj\_\_ methods.
   #
-  def methods(all=true)
-    if all
-      __getobj__.methods | super
-    else
-      __getobj__.singleton_methods | singleton_methods
-    end
+  def methods
+    __getobj__.methods | super
   end
 
   #
@@ -158,7 +154,7 @@ class Delegator < BasicObject
   # Serialization support for the object returned by \_\_getobj\_\_.
   #
   def marshal_dump
-    ivars = instance_variables.reject {|var| /\A@delegate_/ =~ var.to_s}
+    ivars = instance_variables.reject {|var| /\A@delegate_/ =~ var}
     [
       :__v2__,
       ivars, ivars.map{|var| instance_variable_get(var)},

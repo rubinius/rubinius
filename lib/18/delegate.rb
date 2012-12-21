@@ -115,6 +115,7 @@
 # implementation, see SimpleDelegator.
 #
 class Delegator
+  IgnoreBacktracePat = %r"\A#{Regexp.quote(__FILE__)}:\d+:in `"
 
   #
   # Pass in the _obj_ to delegate method calls to.  All methods supported by
@@ -133,11 +134,15 @@ class Delegator
     for method in obj.methods
       next if preserved.include? method
       begin
-        eval <<-EOS
-        def self.#{method}(*args, &block)
-           __getobj__.__send__(:#{method}, *args, &block)
-        end
-        EOS
+	eval <<-EOS, nil, __FILE__, __LINE__+1
+	  def self.#{method}(*args, &block)
+	    begin
+	      __getobj__.__send__(:#{method}, *args, &block)
+	    ensure
+	      $@.delete_if{|s|IgnoreBacktracePat=~s} if $@
+	    end
+	  end
+	EOS
       rescue SyntaxError
         raise NameError, "invalid identifier %s" % method, caller(4)
       end
@@ -146,19 +151,19 @@ class Delegator
   alias initialize_methods initialize
 
   # Handles the magic of delegation through \_\_getobj\_\_.
-  def method_missing(m, *args)
+  def method_missing(m, *args, &block)
     target = self.__getobj__
     unless target.respond_to?(m)
-      super(m, *args)
+      super(m, *args, &block)
     end
-    target.__send__(m, *args)
+    target.__send__(m, *args, &block)
   end
 
   # 
   # Checks for a method provided by this the delegate object by fowarding the 
   # call through \_\_getobj\_\_.
   # 
-  def respond_to?(m, include_private=false)
+  def respond_to?(m, include_private = false)
     return true if super
     return self.__getobj__.respond_to?(m, include_private)
   end
@@ -227,9 +232,9 @@ class SimpleDelegator<Delegator
     new
   end
   # Duplication support for the object returned by \_\_getobj\_\_.
-  def dup(obj)
+  def dup
     new = super
-    new.__setobj__(__getobj__.dup)
+    new.__setobj__(__getobj__.clone)
     new
   end
 end
@@ -254,62 +259,52 @@ def DelegateClass(superclass)
   klass = Class.new
   methods = superclass.public_instance_methods(true)
   methods -= ::Kernel.public_instance_methods(false)
-  methods -= %w[
-    __verify_metaclass__
-    copy_from
-    singleton_class
-    to_marshal
-  ]
   methods |= ["to_s","to_a","inspect","==","=~","==="]
-
-  klass.module_eval do
+  klass.module_eval {
     def initialize(obj)  # :nodoc:
       @_dc_obj = obj
     end
-
-    def method_missing(m, *args)  # :nodoc:
+    def method_missing(m, *args, &block)  # :nodoc:
       unless @_dc_obj.respond_to?(m)
-        super(m, *args)
+        super(m, *args, &block)
       end
-      @_dc_obj.__send__(m, *args)
+      @_dc_obj.__send__(m, *args, &block)
     end
-
-    def respond_to?(m, include_private=false)  # :nodoc:
+    def respond_to?(m, include_private = false)  # :nodoc:
       return true if super
       return @_dc_obj.respond_to?(m, include_private)
     end
-
     def __getobj__  # :nodoc:
       @_dc_obj
     end
-
     def __setobj__(obj)  # :nodoc:
       raise ArgumentError, "cannot delegate to self" if self.equal?(obj)
       @_dc_obj = obj
     end
-
     def clone  # :nodoc:
       new = super
       new.__setobj__(__getobj__.clone)
       new
     end
-
     def dup  # :nodoc:
       new = super
-      new.__setobj__(__getobj__.dup)
+      new.__setobj__(__getobj__.clone)
       new
     end
-  end
-
-  methods.each do |method|
+  }
+  for method in methods
     begin
-      klass.module_eval <<-EOS
+      klass.module_eval <<-EOS, __FILE__, __LINE__+1
         def #{method}(*args, &block)
-          @_dc_obj.__send__(:#{method}, *args, &block)
-        end
+	  begin
+	    @_dc_obj.__send__(:#{method}, *args, &block)
+	  ensure
+	    $@.delete_if{|s| ::Delegator::IgnoreBacktracePat =~ s} if $@
+	  end
+	end
       EOS
     rescue SyntaxError
-      raise NameError, "invalid identifier #{method}"
+      raise NameError, "invalid identifier %s" % method, caller(3)
     end
   end
   return klass

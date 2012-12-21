@@ -576,7 +576,7 @@ class String
     @shared = true
     other.shared!
     @data = other.__data__
-    self.num_bytes = other.num_bytes
+    @num_bytes = other.num_bytes
     @hash_value = nil
     force_encoding(other.encoding)
 
@@ -694,26 +694,26 @@ class String
   alias_method :each_line, :lines
 
   def gsub(pattern, replacement=undefined)
-    unless block_given? or replacement != undefined
-      return to_enum(:gsub, pattern, replacement)
-    end
-
-    tainted = false
     untrusted = untrusted?
-
-    if replacement.equal?(undefined)
+    if undefined.equal?(replacement)
+      unless block_given?
+        return to_enum(:gsub, pattern, replacement)
+      end
       use_yield = true
+      tainted = false
     else
       tainted = replacement.tainted?
       untrusted ||= replacement.untrusted?
-      hash = Rubinius::Type.check_convert_type(replacement, Hash, :to_hash)
-      replacement = StringValue(replacement) unless hash
+      unless replacement.kind_of?(String)
+        hash = Rubinius::Type.check_convert_type(replacement, Hash, :to_hash)
+        replacement = StringValue(replacement) unless hash
+      end
       tainted ||= replacement.tainted?
       untrusted ||= replacement.untrusted?
       use_yield = false
     end
 
-    pattern = Rubinius::Type.coerce_to_regexp(pattern, true)
+    pattern = Rubinius::Type.coerce_to_regexp(pattern, true) unless pattern.kind_of? Regexp
     orig_len = @num_bytes
     orig_data = @data
 
@@ -798,28 +798,29 @@ class String
   end
 
   def gsub!(pattern, replacement=undefined)
-    unless block_given? or replacement != undefined
-      return to_enum(:gsub, pattern, replacement)
-    end
-
-    Rubinius.check_frozen
-
-    tainted = false
     untrusted = untrusted?
-
-    if replacement.equal?(undefined)
+    if undefined.equal?(replacement)
+      unless block_given?
+        return to_enum(:gsub, pattern, replacement)
+      end
+      Rubinius.check_frozen
       use_yield = true
+      tainted = false
     else
+      Rubinius.check_frozen
+
       tainted = replacement.tainted?
       untrusted ||= replacement.untrusted?
-      hash = Rubinius::Type.check_convert_type(replacement, Hash, :to_hash)
-      replacement = StringValue(replacement) unless hash
+      unless replacement.kind_of?(String)
+        hash = Rubinius::Type.check_convert_type(replacement, Hash, :to_hash)
+        replacement = StringValue(replacement) unless hash
+      end
       tainted ||= replacement.tainted?
       untrusted ||= replacement.untrusted?
       use_yield = false
     end
 
-    pattern = Rubinius::Type.coerce_to_regexp(pattern, true)
+    pattern = Rubinius::Type.coerce_to_regexp(pattern, true) unless pattern.kind_of? Regexp
     orig_len = @num_bytes
     orig_data = @data
 
@@ -909,7 +910,8 @@ class String
   end
 
   def match(pattern, pos=0)
-    match_data = Rubinius::Type.coerce_to_regexp(pattern).search_region(self, pos, @num_bytes, true)
+    pattern = Rubinius::Type.coerce_to_regexp(pattern) unless pattern.kind_of? Regexp
+    match_data = pattern.search_region(self, pos, @num_bytes, true)
     Regexp.last_match = match_data
     if match_data && block_given?
       yield match_data
