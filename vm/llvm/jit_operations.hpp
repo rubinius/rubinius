@@ -344,7 +344,7 @@ namespace rubinius {
 
       Value* bit_obj = b().CreateAnd(flags, mask, "mask");
 
-      Value* not_bit  = b().CreateICmpEQ(bit_obj, Zero, "not_bit");
+      Value* not_bit  = b().CreateICmpEQ(bit_obj, ConstantInt::get(ls_->Int64Ty, 0), "not_bit");
 
       create_conditional_branch(done, check_inflated, not_bit);
 
