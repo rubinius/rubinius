@@ -420,57 +420,46 @@ class String
   alias_method :each, :lines
 
   def gsub(pattern, replacement=undefined)
+    # Because of the behavior of $~, this is duplicated from gsub! because
+    # if we call gsub! from gsub, the last_match can't be updated properly.
+
     if undefined.equal? replacement
       unless block_given?
         return to_enum(:gsub, pattern, replacement)
       end
-    end
 
-    tainted = false
-
-    if replacement.equal?(undefined)
-      use_yield = true
+      tainted = false
     else
       tainted = replacement.tainted?
-      replacement = StringValue(replacement)
-      tainted ||= replacement.tainted?
-      use_yield = false
+      unless replacement.kind_of? String
+        replacement = StringValue(replacement)
+        tainted ||= replacement.tainted?
+      end
     end
 
     pattern = Rubinius::Type.coerce_to_regexp(pattern, true) unless pattern.kind_of? Regexp
+    match = pattern.search_region(self, 0, @num_bytes, true)
+
     orig_len = @num_bytes
     orig_data = @data
 
     last_end = 0
     offset = nil
-    ret = byteslice(0, 0) # Empty string and string subclass
 
     last_match = nil
-    match = pattern.match_from self, last_end
 
-    if match
-      ma_range = match.full
-      ma_start = ma_range.at(0)
-      ma_end   = ma_range.at(1)
-
-      offset = ma_start
-    end
+    ret = byteslice(0, 0) # Empty string and string subclass
+    offset = match.full.at(0) if match
 
     while match
-      nd = ma_start - 1
-      pre_len = nd-last_end+1
-
-      if pre_len > 0
-        ret.append byteslice(last_end, pre_len)
+      if str = match.pre_match_from(last_end)
+        ret.append str
       end
 
-      if use_yield
+      if replacement.equal?(undefined)
         Regexp.last_match = match
 
-        val = yield match.to_s
-
-        val = val.to_s unless val.kind_of?(String)
-
+        val = yield(match[0]).to_s
         tainted ||= val.tainted?
         ret.append val
 
@@ -483,16 +472,16 @@ class String
 
       tainted ||= val.tainted?
 
-      last_end = ma_end
+      last_end = match.full.at(1)
 
-      if ma_start == ma_end
+      if match.collapsing?
         if char = find_character(offset)
-          offset += char.size
+          offset += char.bytesize
         else
           offset += 1
         end
       else
-        offset = ma_end
+        offset = match.full.at(1)
       end
 
       last_match = match
@@ -500,11 +489,7 @@ class String
       match = pattern.match_from self, offset
       break unless match
 
-      ma_range = match.full
-      ma_start = ma_range.at(0)
-      ma_end   = ma_range.at(1)
-
-      offset = ma_start
+      offset = match.full.at(0)
     end
 
     Regexp.last_match = last_match
@@ -513,7 +498,8 @@ class String
     ret.append str if str
 
     ret.taint if tainted || self.tainted?
-    return ret
+
+    ret
   end
 
   def gsub!(pattern, replacement=undefined)
@@ -540,6 +526,7 @@ class String
     return nil unless match
 
     orig_len = @num_bytes
+    orig_data = @data
 
     last_end = 0
     offset = nil
@@ -547,7 +534,7 @@ class String
     last_match = nil
 
     ret = byteslice(0, 0) # Empty string and string subclass
-    offset = match.begin 0 if match
+    offset = match.full.at(0)
 
     while match
       if str = match.pre_match_from(last_end)
@@ -561,23 +548,25 @@ class String
         tainted ||= val.tainted?
         ret.append val
 
-        raise RuntimeError, "string modified" unless @num_bytes == orig_len
+        if !@data.equal?(orig_data) or @num_bytes != orig_len
+          raise RuntimeError, "string modified"
+        end
       else
         replacement.to_sub_replacement(ret, match)
       end
 
       tainted ||= val.tainted?
 
-      last_end = match.end(0)
+      last_end = match.full.at(1)
 
       if match.collapsing?
         if char = find_character(offset)
-          offset += char.size
+          offset += char.bytesize
         else
           offset += 1
         end
       else
-        offset = match.end(0)
+        offset = match.full.at(1)
       end
 
       last_match = match
@@ -585,7 +574,7 @@ class String
       match = pattern.match_from self, offset
       break unless match
 
-      offset = match.begin 0
+      offset = match.full.at(0)
     end
 
     Regexp.last_match = last_match
@@ -595,12 +584,8 @@ class String
 
     ret.taint if tainted || self.tainted?
 
-    if last_match
-      replace(ret)
-      return self
-    else
-      return nil
-    end
+    replace(ret)
+    self
   end
 
   def match(pattern)

@@ -694,8 +694,10 @@ class String
   alias_method :each_line, :lines
 
   def gsub(pattern, replacement=undefined)
-    untrusted = untrusted?
-    if undefined.equal?(replacement)
+    # Because of the behavior of $~, this is duplicated from gsub! because
+    # if we call gsub! from gsub, the last_match can't be updated properly.
+
+    if undefined.equal? replacement
       unless block_given?
         return to_enum(:gsub, pattern, replacement)
       end
@@ -703,41 +705,38 @@ class String
       tainted = false
     else
       tainted = replacement.tainted?
-      untrusted ||= replacement.untrusted?
+      untrusted = replacement.untrusted?
+
       unless replacement.kind_of?(String)
         hash = Rubinius::Type.check_convert_type(replacement, Hash, :to_hash)
         replacement = StringValue(replacement) unless hash
+        tainted ||= replacement.tainted?
+        untrusted ||= replacement.untrusted?
       end
-      tainted ||= replacement.tainted?
-      untrusted ||= replacement.untrusted?
       use_yield = false
     end
 
     pattern = Rubinius::Type.coerce_to_regexp(pattern, true) unless pattern.kind_of? Regexp
+    match = pattern.search_region(self, 0, @num_bytes, true)
+
+    unless match
+      Regexp.last_match = nil
+    end
+
     orig_len = @num_bytes
     orig_data = @data
 
     last_end = 0
     offset = nil
-    ret = byteslice 0, 0 # Empty string and string subclass
 
     last_match = nil
-    match = pattern.match_from self, last_end
 
-    if match
-      ma_range = match.full
-      ma_start = ma_range.at(0)
-      ma_end   = ma_range.at(1)
-
-      offset = ma_start
-    end
+    ret = byteslice(0, 0) # Empty string and string subclass
+    offset = match.full.at(0) if match
 
     while match
-      nd = ma_start - 1
-      pre_len = nd-last_end+1
-
-      if pre_len > 0
-        ret.append byteslice(last_end, pre_len)
+      if str = match.pre_match_from(last_end)
+        ret.append str
       end
 
       if use_yield || hash
@@ -763,16 +762,16 @@ class String
 
       tainted ||= val.tainted?
 
-      last_end = ma_end
+      last_end = match.full.at(1)
 
-      if ma_start == ma_end
+      if match.collapsing?
         if char = find_character(offset)
           offset += char.bytesize
         else
           offset += 1
         end
       else
-        offset = ma_end
+        offset = match.full.at(1)
       end
 
       last_match = match
@@ -780,26 +779,25 @@ class String
       match = pattern.match_from self, offset
       break unless match
 
-      ma_range = match.full
-      ma_start = ma_range.at(0)
-      ma_end   = ma_range.at(1)
-
-      offset = ma_start
+      offset = match.full.at(0)
     end
 
     Regexp.last_match = last_match
 
-    str = byteslice last_end, @num_bytes-last_end+1
+    str = byteslice(last_end, @num_bytes-last_end+1)
     ret.append str if str
 
-    ret.taint if tainted || self.tainted?
+    ret.taint if tainted
     ret.untrust if untrusted
-    return ret
+
+    ret
   end
 
   def gsub!(pattern, replacement=undefined)
-    untrusted = untrusted?
-    if undefined.equal?(replacement)
+    # Because of the behavior of $~, this is duplicated from gsub! because
+    # if we call gsub! from gsub, the last_match can't be updated properly.
+
+    if undefined.equal? replacement
       unless block_given?
         return to_enum(:gsub, pattern, replacement)
       end
@@ -808,46 +806,40 @@ class String
       tainted = false
     else
       Rubinius.check_frozen
-
       tainted = replacement.tainted?
-      untrusted ||= replacement.untrusted?
+      untrusted = replacement.untrusted?
+
       unless replacement.kind_of?(String)
         hash = Rubinius::Type.check_convert_type(replacement, Hash, :to_hash)
         replacement = StringValue(replacement) unless hash
+        tainted ||= replacement.tainted?
+        untrusted ||= replacement.untrusted?
       end
-      tainted ||= replacement.tainted?
-      untrusted ||= replacement.untrusted?
       use_yield = false
     end
 
     pattern = Rubinius::Type.coerce_to_regexp(pattern, true) unless pattern.kind_of? Regexp
-    orig_len = @num_bytes
-    orig_data = @data
+    match = pattern.search_region(self, 0, @num_bytes, true)
 
-    last_end = 0
-    offset = nil
-    ret = byteslice 0, 0 # Empty string and string subclass
-
-    last_match = nil
-    match = pattern.match_from self, last_end
-
-    if match
-      ma_range = match.full
-      ma_start = ma_range.at(0)
-      ma_end   = ma_range.at(1)
-
-      offset = ma_start
-    else
+    unless match
       Regexp.last_match = nil
       return nil
     end
 
-    while match
-      nd = ma_start - 1
-      pre_len = nd-last_end+1
+    orig_len = @num_bytes
+    orig_data = @data
 
-      if pre_len > 0
-        ret.append byteslice(last_end, pre_len)
+    last_end = 0
+    offset = nil
+
+    last_match = nil
+
+    ret = byteslice(0, 0) # Empty string and string subclass
+    offset = match.full.at(0)
+
+    while match
+      if str = match.pre_match_from(last_end)
+        ret.append str
       end
 
       if use_yield || hash
@@ -873,16 +865,16 @@ class String
 
       tainted ||= val.tainted?
 
-      last_end = ma_end
+      last_end = match.full.at(1)
 
-      if ma_start == ma_end
+      if match.collapsing?
         if char = find_character(offset)
           offset += char.bytesize
         else
           offset += 1
         end
       else
-        offset = ma_end
+        offset = match.full.at(1)
       end
 
       last_match = match
@@ -890,23 +882,19 @@ class String
       match = pattern.match_from self, offset
       break unless match
 
-      ma_range = match.full
-      ma_start = ma_range.at(0)
-      ma_end   = ma_range.at(1)
-
-      offset = ma_start
+      offset = match.full.at(0)
     end
 
     Regexp.last_match = last_match
 
-    str = byteslice last_end, @num_bytes-last_end+1
+    str = byteslice(last_end, @num_bytes-last_end+1)
     ret.append str if str
 
-    self.taint if tainted
-    self.untrust if untrusted
+    ret.taint if tainted
+    ret.untrust if untrusted
 
     replace(ret)
-    return self
+    self
   end
 
   def match(pattern, pos=0)
