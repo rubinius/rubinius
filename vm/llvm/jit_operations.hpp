@@ -418,7 +418,7 @@ namespace rubinius {
 
       Value* frozen_obj = b().CreateAnd(flags, mask, "mask");
 
-      Value* not_frozen  = b().CreateICmpEQ(frozen_obj, Zero, "not_frozen");
+      Value* not_frozen  = b().CreateICmpEQ(frozen_obj, ConstantInt::get(ls_->Int64Ty, 0), "not_frozen");
       create_conditional_branch(done, failure, not_frozen);
 
       set_block(failure);
