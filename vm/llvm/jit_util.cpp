@@ -80,6 +80,18 @@ extern "C" {
     return cNil;
   }
 
+  Object* rbx_is_frozen(STATE, Object* obj) {
+    return obj->frozen_p(state);
+  }
+
+  Object* rbx_is_untrusted(STATE, Object* obj) {
+    return obj->untrusted_p(state);
+  }
+
+  Object* rbx_is_tainted(STATE, Object* obj) {
+    return obj->tainted_p(state);
+  }
+
   void rbx_begin_profiling(STATE, void* data, Executable* exec, Module* mod, Arguments& args,
                            CompiledCode* code)
   {

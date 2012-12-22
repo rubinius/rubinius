@@ -1324,6 +1324,30 @@ namespace rubinius {
       i.context().leave_inline();
     }
 
+    void object_frozen_p() {
+      log("Object#frozen?");
+      i.context().enter_inline();
+      i.set_result(ops.get_header_value(i.recv(), OBJECT_FLAGS_FROZEN, "rbx_is_frozen"));
+      i.exception_safe();
+      i.context().leave_inline();
+    }
+
+    void object_tainted_p() {
+      log("Object#tainted?");
+      i.context().enter_inline();
+      i.set_result(ops.get_header_value(i.recv(), OBJECT_FLAGS_TAINTED, "rbx_is_tainted"));
+      i.exception_safe();
+      i.context().leave_inline();
+    }
+
+    void object_untrusted_p() {
+      log("Object#untrusted?");
+      i.context().enter_inline();
+      i.set_result(ops.get_header_value(i.recv(), OBJECT_FLAGS_UNTRUSTED, "rbx_is_untrusted"));
+      i.exception_safe();
+      i.context().leave_inline();
+    }
+
   };
 
   bool Inliner::inline_primitive(Class* klass, CompiledCode* code, executor prim) {
@@ -1386,6 +1410,12 @@ namespace rubinius {
       ip.vm_object_class();
     } else if(prim == Primitives::regexp_set_last_match && count_ == 1) {
       ip.regexp_set_last_match();
+    } else if(prim == Primitives::object_frozen_p && count_ == 0) {
+      ip.object_frozen_p();
+    } else if(prim == Primitives::object_tainted_p && count_ == 0) {
+      ip.object_tainted_p();
+    } else if(prim == Primitives::object_untrusted_p && count_ == 0) {
+      ip.object_untrusted_p();
     } else if(prim == Primitives::float_add && count_ == 1) {
       ip.float_op(cAdd);
     } else if(prim == Primitives::float_sub && count_ == 1) {
