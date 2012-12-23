@@ -89,4 +89,69 @@ namespace :package do
     write_md5_digest_file package_name
     write_sha1_digest_file package_name
   end
+
+  task :binary_builder do
+    pkg = RubiniusPackager.new(
+      :ruby_version => ENV["RBX_BINARY_LANGUAGE"],
+      :release      => ENV["RBX_BINARY_RELEASE"],
+      :prefix       => ENV["RBX_BINARY_PREFIX"],
+      :bin          => ENV["RBX_BINARY_BIN"],
+      :config       => ENV["RBX_BINARY_CONFIG"],
+      :archive      => ENV["RBX_BINARY_ARCHIVE"],
+      :package      => ENV["RBX_BINARY_PACKAGE"]
+    )
+
+    pkg.build
+  end
+
+  namespace :nightly do
+    desc "Build a general Unix/Linux nightly binary package for 1.8"
+    task :"18" do
+      sh "rake package:binary_builder RBX_BINARY_LANGUAGE=18"
+    end
+
+    desc "Build a general Unix/Linux nightly binary package for 1.9"
+    task :"19" do
+      sh "rake package:binary_builder RBX_BINARY_LANGUAGE=19"
+    end
+
+    desc "Build a general Unix/Linux nightly binary package for 2.0"
+    task :"20" do
+      sh "rake package:binary_builder RBX_BINARY_LANGUAGE=20"
+    end
+  end
+
+  namespace :weekly do
+    desc "Build a general Unix/Linux weekly binary package for 1.8"
+    task :"18" do
+      sh "rake package:binary_builder RBX_BINARY_LANGUAGE=18 RBX_BINARY_RELEASE=weekly"
+    end
+
+    desc "Build a general Unix/Linux weekly binary package for 1.9"
+    task :"19" do
+      sh "rake package:binary_builder RBX_BINARY_LANGUAGE=19 RBX_BINARY_RELEASE=weekly"
+    end
+
+    desc "Build a general Unix/Linux weekly binary package for 2.0"
+    task :"20" do
+      sh "rake package:binary_builder RBX_BINARY_LANGUAGE=20 RBX_BINARY_RELEASE=weekly"
+    end
+  end
+
+  namespace :rc do
+    desc "Build a general Unix/Linux RC binary package for 1.8"
+    task :"18" do
+      sh "rake package:binary_builder RBX_BINARY_LANGUAGE=18 RBX_BINARY_RELEASE=rc"
+    end
+
+    desc "Build a general Unix/Linux RC binary package for 1.9"
+    task :"19" do
+      sh "rake package:binary_builder RBX_BINARY_LANGUAGE=19 RBX_BINARY_RELEASE=rc"
+    end
+
+    desc "Build a general Unix/Linux RC binary package for 2.0"
+    task :"20" do
+      sh "rake package:binary_builder RBX_BINARY_LANGUAGE=20 RBX_BINARY_RELEASE=rc"
+    end
+  end
 end

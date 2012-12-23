@@ -34,3 +34,128 @@ def write_sha1_digest_file(filename)
 
   puts "Computed SHA1 to #{digest_file}"
 end
+
+class RubiniusPackager
+  attr_writer :ruby_version, :release, :prefix, :root, :bin, :config, :archive, :package
+
+  def initialize(options={})
+    @ruby_version = options[:ruby_version]
+    @release = options[:release]
+    @prefix = options[:prefix]
+    @root = options[:root]
+    @bin = options[:bin]
+    @config = options[:config]
+    @archive = options[:archive]
+    @package = options[:package]
+  end
+
+  # eg "18", "1.8", "18,19", "1.8,1.9"
+  def ruby_version
+    (@ruby_version || "18").gsub(/\s|\./, "")
+  end
+
+  def single_version?
+    not ruby_version.index(",")
+  end
+
+  # "nightly", "weekly", "rcN"
+  def release
+    @release || "nightly"
+  end
+
+  # passed verbatim to --prefix
+  def prefix
+    default = "/usr/local/rubinius/#{RBX_VERSION}"
+    default += "-#{ruby_version}" if single_version?
+    @prefix || default
+  end
+
+  # root directory of the build
+  def root
+    if BUILD_CONFIG[:stagingdir]
+      default = BUILD_CONFIG[:stagingdir][0...-BUILD_CONFIG[:prefixdir].size]
+    else
+      default = BUILD_CONFIG[:sourcedir]
+    end
+    @root || default
+  end
+
+  # path for a binary symlink
+  def bin
+    @bin
+  end
+
+  # any configure options
+  def config
+    default = ["--prefix=#{prefix} --preserve-prefix"]
+    default << ["--enable-version=#{ruby_version}"] if single_version?
+    @config || default.join(" ")
+  end
+
+  # "zip", "tar.gz", "tar.bz2"
+  def archive
+    @archive || "tar.gz"
+  end
+
+  # name of the final package file minus #archive
+  def package
+    RBX_VERSION =~ /^(\d+\.\d+\.\d+)(.*)$/
+    default = "rubinius-#{$1}"
+    if release[0, 2] == "rc"
+      default += "-#{$2}"
+    else
+      default += "-#{release}#{date_stamp}"
+    end
+    default += "-d#{ruby_version}" if single_version?
+    @package || default
+  end
+
+  def date_stamp
+    Time.now.strftime("%Y%m%d")
+  end
+
+  def create_archive(package_name)
+    case archive
+    when "zip"
+      sh "zip --symlinks -r #{package_name} *"
+    when "tar.gz"
+      sh "tar -c -f - * | gzip > #{package_name}"
+    when "tar.bz2"
+      sh "tar -c -f - * | bzip2 -9 > #{package_name}"
+    else
+      raise RuntimeError, "unknown archive format: #{archive}"
+    end
+
+    sh "mv #{root}/#{package_name} #{BUILD_CONFIG[:sourcedir]}"
+  end
+
+  def build
+    sh "rm -rf #{BUILD_CONFIG[:sourcedir]}/staging"
+
+    package_name = package + "." + archive
+    sh "rm -rf #{package_name}"
+
+    ENV["RELEASE"] = "1"
+    sh "./configure #{config}"
+    load_configuration
+
+    sh "rake -q clean; rake -q build"
+
+    if bin
+      sh "mkdir -p #{root}#{File.dirname(bin)}"
+
+      bin = "#{prefix}#{BUILD_CONFIG[:bindir]}"
+      bin_link = "#{root}#{bin}"
+
+      sh "ln -sf #{bin} #{bin_link}"
+    end
+
+    Dir.chdir(root) { create_archive package_name }
+
+    write_md5_digest_file package_name
+    write_sha1_digest_file package_name
+  rescue Object => e
+    # Some rake versions swallow the backtrace, so we do it explicitly.
+    STDERR.puts e.message, e.backtrace
+  end
+end
