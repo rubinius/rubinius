@@ -66,30 +66,28 @@ namespace rubinius {
   VM::VM(uint32_t id, SharedState& shared)
     : ManagedThread(id, shared, ManagedThread::eRuby)
     , saved_call_frame_(0)
+    , fiber_stacks_(this, shared)
+    , park_(new Park)
     , stack_start_(0)
     , run_signals_(false)
     , thread_step_(false)
-    , fiber_stacks_(this, shared)
-    , park_(new Park)
 
     , shared(shared)
     , waiting_channel_(this, nil<Channel>())
     , interrupted_exception_(this, nil<Exception>())
-    , interrupt_with_signal_(false)
-    , interrupt_by_kill_(false)
+    , thread(this, nil<Thread>())
+    , current_fiber(this, nil<Fiber>())
+    , root_fiber(this, nil<Fiber>())
     , waiting_header_(0)
     , custom_wakeup_(0)
     , custom_wakeup_data_(0)
     , om(shared.om)
-    , check_local_interrupts(false)
     , thread_state_(this)
-    , thread(this, nil<Thread>())
-    , current_fiber(this, nil<Fiber>())
-    , root_fiber(this, nil<Fiber>())
+    , interrupt_with_signal_(false)
+    , interrupt_by_kill_(false)
+    , check_local_interrupts(false)
   {
     if(shared.om) {
-      young_start_ = shared.om->young_start();
-      young_end_ = shared.om->yound_end();
       local_slab_.refill(0, 0);
     }
 
@@ -119,9 +117,6 @@ namespace rubinius {
     shared.om = om;
 
     allocation_tracking_ = shared.config.allocation_tracking;
-
-    young_start_ = shared.om->young_start();
-    young_end_ = shared.om->yound_end();
 
     local_slab_.refill(0, 0);
 

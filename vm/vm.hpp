@@ -88,6 +88,10 @@ namespace rubinius {
     UnwindInfoSet unwinds_;
 
     CallFrame* saved_call_frame_;
+    FiberStacks fiber_stacks_;
+    Park* park_;
+    rbxti::Env* tooling_env_;
+
     uintptr_t stack_start_;
     uintptr_t stack_limit_;
     int stack_size_;
@@ -95,38 +99,17 @@ namespace rubinius {
     uintptr_t root_stack_start_;
     uintptr_t root_stack_size_;
 
-    bool run_signals_;
-
     MethodMissingReason method_missing_reason_;
-    void* young_start_;
-    void* young_end_;
+    bool run_signals_;
     bool thread_step_;
-
-    rbxti::Env* tooling_env_;
     bool tooling_;
     bool allocation_tracking_;
-    FiberStacks fiber_stacks_;
-    Park* park_;
 
   public:
     /* Data members */
     SharedState& shared;
     TypedRoot<Channel*> waiting_channel_;
     TypedRoot<Exception*> interrupted_exception_;
-
-    bool interrupt_with_signal_;
-    bool interrupt_by_kill_;
-    InflatedHeader* waiting_header_;
-
-    void (*custom_wakeup_)(void*);
-    void* custom_wakeup_data_;
-
-    ObjectMemory* om;
-
-    bool check_local_interrupts;
-
-    ThreadState thread_state_;
-
     /// The Thread object for this VM state
     TypedRoot<Thread*> thread;
 
@@ -135,6 +118,19 @@ namespace rubinius {
 
     /// Root fiber, if any (lazily initialized)
     TypedRoot<Fiber*> root_fiber;
+
+    InflatedHeader* waiting_header_;
+
+    void (*custom_wakeup_)(void*);
+    void* custom_wakeup_data_;
+
+    ObjectMemory* om;
+
+    ThreadState thread_state_;
+
+    bool interrupt_with_signal_;
+    bool interrupt_by_kill_;
+    bool check_local_interrupts;
 
     static unsigned long cStackDepthMax;
 
@@ -226,10 +222,6 @@ namespace rubinius {
 
     void set_method_missing_reason(MethodMissingReason reason) {
       method_missing_reason_ = reason;
-    }
-
-    bool young_object_p(Object* obj) {
-      return obj >= young_start_ && obj <= young_end_;
     }
 
     bool thread_step() {

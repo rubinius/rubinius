@@ -459,8 +459,8 @@ namespace rubinius {
   inline void Object::write_barrier(STATE, void* ptr) {
     Object* obj = reinterpret_cast<Object*>(ptr);
     if(!obj->reference_p() ||
-        state->vm()->young_object_p(this) ||
-        !state->vm()->young_object_p(obj)) return;
+        this->young_object_p() ||
+        !obj->young_object_p()) return;
 
     inline_write_barrier_passed(state, ptr);
   }
@@ -468,8 +468,8 @@ namespace rubinius {
   inline void Object::write_barrier(VM* vm, void* ptr) {
     Object* obj = reinterpret_cast<Object*>(ptr);
     if(!obj->reference_p() ||
-         vm->young_object_p(this) ||
-        !vm->young_object_p(obj)) return;
+        this->young_object_p() ||
+        !obj->young_object_p()) return;
 
     inline_write_barrier_passed(vm, ptr);
   }
