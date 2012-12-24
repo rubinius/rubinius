@@ -238,7 +238,7 @@ namespace rubinius {
       return &method_info_;
     }
 
-    LLVMState* state() {
+    LLVMState* llvm_state() {
       return ls_;
     }
 

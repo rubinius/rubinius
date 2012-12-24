@@ -34,13 +34,13 @@ namespace rubinius {
     {}
 
     void log(const char* name) {
-      if(ops.state()->config().jit_inline_debug) {
+      if(ops.llvm_state()->config().jit_inline_debug) {
         i.context().inline_log("inlining")
-          << ops.state()->enclosure_name(compiled_code)
+          << ops.llvm_state()->enclosure_name(compiled_code)
           << "#"
-          << ops.state()->symbol_debug_str(compiled_code->name())
+          << ops.llvm_state()->symbol_debug_str(compiled_code->name())
           << " into "
-          << ops.state()->symbol_debug_str(ops.method_name())
+          << ops.llvm_state()->symbol_debug_str(ops.method_name())
           << ". primitive " << name << "\n";
       }
     }
@@ -82,8 +82,8 @@ namespace rubinius {
       ops.set_block(access);
 
       Value* idx[] = {
-        ConstantInt::get(ops.state()->Int32Ty, 0),
-        ConstantInt::get(ops.state()->Int32Ty, offset::Tuple::field),
+        ConstantInt::get(ops.llvm_state()->Int32Ty, 0),
+        ConstantInt::get(ops.llvm_state()->Int32Ty, offset::Tuple::field),
         index
       };
 
@@ -129,8 +129,8 @@ namespace rubinius {
       Value* value = i.arg(1);
 
       Value* idx[] = {
-        ConstantInt::get(ops.state()->Int32Ty, 0),
-        ConstantInt::get(ops.state()->Int32Ty, offset::Tuple::field),
+        ConstantInt::get(ops.llvm_state()->Int32Ty, 0),
+        ConstantInt::get(ops.llvm_state()->Int32Ty, offset::Tuple::field),
         index
       };
 
@@ -175,16 +175,16 @@ namespace rubinius {
       ops.verify_guard(access_cmp, i.failure());
 
       Value* lidx[] = {
-        ConstantInt::get(ops.state()->Int32Ty, 0),
-        ConstantInt::get(ops.state()->Int32Ty, offset::Tuple::field),
+        ConstantInt::get(ops.llvm_state()->Int32Ty, 0),
+        ConstantInt::get(ops.llvm_state()->Int32Ty, offset::Tuple::field),
         lindex
       };
 
       Value* lgep = ops.create_gep(tup, lidx, 3, "field_pos");
 
       Value* ridx[] = {
-        ConstantInt::get(ops.state()->Int32Ty, 0),
-        ConstantInt::get(ops.state()->Int32Ty, offset::Tuple::field),
+        ConstantInt::get(ops.llvm_state()->Int32Ty, 0),
+        ConstantInt::get(ops.llvm_state()->Int32Ty, offset::Tuple::field),
         rindex
       };
 
@@ -274,8 +274,8 @@ namespace rubinius {
       ops.set_block(access);
 
       Value* idx[] = {
-        ConstantInt::get(ops.state()->Int32Ty, 0),
-        ConstantInt::get(ops.state()->Int32Ty, offset::ByteArray::field),
+        ConstantInt::get(ops.llvm_state()->Int32Ty, 0),
+        ConstantInt::get(ops.llvm_state()->Int32Ty, offset::ByteArray::field),
         index
       };
 
@@ -335,15 +335,15 @@ namespace rubinius {
       ops.set_block(access);
 
       Value* idx[] = {
-        ConstantInt::get(ops.state()->Int32Ty, 0),
-        ConstantInt::get(ops.state()->Int32Ty, offset::Tuple::field),
+        ConstantInt::get(ops.llvm_state()->Int32Ty, 0),
+        ConstantInt::get(ops.llvm_state()->Int32Ty, offset::Tuple::field),
         index
       };
 
       GetElementPtrInst* gep = ops.create_gep(bytearray, idx, 3, "field_pos");
 
       Value* byte = ops.b().CreateIntCast(ops.fixnum_strip(value),
-                                          ops.state()->Int8Ty,
+                                          ops.llvm_state()->Int8Ty,
                                           true, "cast_byte");
 
       ops.create_store(byte, gep);
@@ -358,7 +358,7 @@ namespace rubinius {
     bool static_fixnum_s_eqq() {
       Value* arg = i.arg(0);
 
-      type::KnownType kt = type::KnownType::extract(ops.state(), arg);
+      type::KnownType kt = type::KnownType::extract(ops.llvm_state(), arg);
       if(kt.fixnum_p()) {
         log("static_fixnum_s_eqq: true");
 
@@ -393,7 +393,7 @@ namespace rubinius {
     bool static_symbol_s_eqq() {
       Value* arg = i.arg(0);
 
-      type::KnownType kt = type::KnownType::extract(ops.state(), arg);
+      type::KnownType kt = type::KnownType::extract(ops.llvm_state(), arg);
       if(kt.symbol_p()) {
         log("static_symbol_s_eqq: true");
 
@@ -415,8 +415,8 @@ namespace rubinius {
       log("symbol_s_eqq");
       i.context().enter_inline();
 
-      Value* sym_mask = ConstantInt::get(ops.state()->IntPtrTy, TAG_SYMBOL_MASK);
-      Value* sym_tag  = ConstantInt::get(ops.state()->IntPtrTy, TAG_SYMBOL);
+      Value* sym_mask = ConstantInt::get(ops.llvm_state()->IntPtrTy, TAG_SYMBOL_MASK);
+      Value* sym_tag  = ConstantInt::get(ops.llvm_state()->IntPtrTy, TAG_SYMBOL);
 
       Value* lint = ops.cast_int(i.arg(0));
       Value* masked = ops.b().CreateAnd(lint, sym_mask, "masked");
@@ -638,9 +638,9 @@ namespace rubinius {
 
       std::vector<Type*> struct_types;
       struct_types.push_back(ops.NativeIntTy);
-      struct_types.push_back(ops.state()->Int1Ty);
+      struct_types.push_back(ops.llvm_state()->Int1Ty);
 
-      StructType* st = StructType::get(ops.state()->ctx(), struct_types);
+      StructType* st = StructType::get(ops.llvm_state()->ctx(), struct_types);
 
       /*
        * We use manual overflow checking here for the case where we do
@@ -655,7 +655,7 @@ namespace rubinius {
        */
       FunctionType* ft = FunctionType::get(st, types, false);
       Function* func = cast<Function>(
-          ops.state()->module()->getOrInsertFunction(MUL_WITH_OVERFLOW, ft));
+          ops.llvm_state()->module()->getOrInsertFunction(MUL_WITH_OVERFLOW, ft));
 
       Value* recv_int = ops.fixnum_strip(recv);
       Value* arg_int = ops.fixnum_strip(arg);
@@ -881,7 +881,7 @@ namespace rubinius {
       ops.check_class(arg, klass, not_float);
 
       // Float#*(Float)
-      Value* farg  = ops.b().CreateBitCast(arg, ops.state()->ptr_type("Float"),
+      Value* farg  = ops.b().CreateBitCast(arg, ops.llvm_state()->ptr_type("Float"),
           "arg_float");
 
       Value* unboxed_rhs = ops.b().CreateLoad(
@@ -914,7 +914,7 @@ namespace rubinius {
       rhs->addIncoming(unboxed_rhs, unbox_block);
       rhs->addIncoming(fix_rhs, convert_block);
 
-      Value* fself = ops.b().CreateBitCast(i.recv(), ops.state()->ptr_type("Float"),
+      Value* fself = ops.b().CreateBitCast(i.recv(), ops.llvm_state()->ptr_type("Float"),
           "self_float");
 
       Value* lhs = ops.b().CreateLoad(
@@ -942,7 +942,7 @@ namespace rubinius {
           rubinius::bug("Unknown float operation in JIT");
       }
 
-      Signature sig(ops.state(), ops.state()->ptr_type("Float"));
+      Signature sig(ops.llvm_state(), ops.llvm_state()->ptr_type("Float"));
       sig << "State";
 
       Function* func = sig.function("rbx_float_allocate");
@@ -977,7 +977,7 @@ namespace rubinius {
       Value* arg = i.arg(0);
       ops.check_class(arg, klass, check_fix);
 
-      Value* farg =  ops.b().CreateBitCast(arg, ops.state()->ptr_type("Float"),
+      Value* farg =  ops.b().CreateBitCast(arg, ops.llvm_state()->ptr_type("Float"),
           "arg_float");
 
       Value* unboxed_rhs = ops.b().CreateLoad(
@@ -1004,7 +1004,7 @@ namespace rubinius {
       rhs->addIncoming(unboxed_rhs, unboxed_block);
       rhs->addIncoming(converted_rhs, converted_block);
 
-      Value* fself = ops.b().CreateBitCast(i.recv(), ops.state()->ptr_type("Float"),
+      Value* fself = ops.b().CreateBitCast(i.recv(), ops.llvm_state()->ptr_type("Float"),
           "self_float");
       Value* lhs = ops.b().CreateLoad(
           ops.b().CreateConstGEP2_32(fself, 0, offset::Float::val, "self.value_pos"), "fself");
@@ -1059,7 +1059,7 @@ namespace rubinius {
       Value* arg = i.arg(0);
       ops.check_class(arg, klass, check_fix);
 
-      Value* farg =  ops.b().CreateBitCast(arg, ops.state()->ptr_type("Float"),
+      Value* farg =  ops.b().CreateBitCast(arg, ops.llvm_state()->ptr_type("Float"),
           "arg_float");
 
       Value* unboxed_rhs = ops.b().CreateLoad(
@@ -1086,7 +1086,7 @@ namespace rubinius {
       rhs->addIncoming(unboxed_rhs, unboxed_block);
       rhs->addIncoming(converted_rhs, converted_block);
 
-      Value* fself = ops.b().CreateBitCast(i.recv(), ops.state()->ptr_type("Float"),
+      Value* fself = ops.b().CreateBitCast(i.recv(), ops.llvm_state()->ptr_type("Float"),
           "self_float");
       Value* lhs = ops.b().CreateLoad(
           ops.b().CreateConstGEP2_32(fself, 0, offset::Float::val, "self.value_pos"), "fself");
@@ -1144,7 +1144,7 @@ namespace rubinius {
 
       Value* V = i.recv();
 
-      Signature sig(ops.state(), "Object");
+      Signature sig(ops.llvm_state(), "Object");
       sig << "State";
       sig << "CallFrame";
       sig << "Object";
@@ -1179,7 +1179,7 @@ namespace rubinius {
       log("String#hash");
       i.context().enter_inline();
 
-      Signature sig(ops.state(), ops.state()->ptr_type("Object"));
+      Signature sig(ops.llvm_state(), ops.llvm_state()->ptr_type("Object"));
       sig << "State";
       sig << "Object";
 
@@ -1201,7 +1201,7 @@ namespace rubinius {
       log("Object#kind_of");
       i.context().enter_inline();
 
-      Signature sig(ops.state(), ops.state()->ptr_type("Object"));
+      Signature sig(ops.llvm_state(), ops.llvm_state()->ptr_type("Object"));
       sig << "State";
       sig << "Object";
       sig << "Object";
@@ -1221,7 +1221,7 @@ namespace rubinius {
       log("Type.object_kind_of");
       i.context().enter_inline();
 
-      Signature sig(ops.state(), ops.state()->ptr_type("Object"));
+      Signature sig(ops.llvm_state(), ops.llvm_state()->ptr_type("Object"));
       sig << "State";
       sig << "Object";
       sig << "Object";
@@ -1241,7 +1241,7 @@ namespace rubinius {
       log("Object#class");
       i.context().enter_inline();
 
-      Signature sig(ops.state(), ops.state()->ptr_type("Object"));
+      Signature sig(ops.llvm_state(), ops.llvm_state()->ptr_type("Object"));
       sig << "State";
       sig << "Object";
 
@@ -1260,7 +1260,7 @@ namespace rubinius {
       log("Type.object_class");
       i.context().enter_inline();
 
-      Signature sig(ops.state(), ops.state()->ptr_type("Object"));
+      Signature sig(ops.llvm_state(), ops.llvm_state()->ptr_type("Object"));
       sig << "State";
       sig << "Object";
 
@@ -1306,7 +1306,7 @@ namespace rubinius {
 
       Value* call_frame = ops.call_frame();
 
-      Signature sig(ops.state(), ops.ObjType);
+      Signature sig(ops.llvm_state(), ops.ObjType);
       sig << ops.StateTy;
       sig << ops.ObjType;
       sig << "CallFrame";
@@ -1452,21 +1452,21 @@ namespace rubinius {
       ip.class_allocate();
 
     } else {
-      if(ops_.state()->type_optz()) {
+      if(ops_.llvm_state()->type_optz()) {
         if(prim == Primitives::object_hash && count_ == 0) {
           Value* V = recv();
-          type::KnownType kt = type::KnownType::extract(ops_.state(), V);
+          type::KnownType kt = type::KnownType::extract(ops_.llvm_state(), V);
           if(kt.static_fixnum_p()) {
             exception_safe();
             set_result(ops_.constant(Fixnum::from(kt.value())->fixnum_hash()));
 
-            if(ops_.state()->config().jit_inline_debug) {
+            if(ops_.llvm_state()->config().jit_inline_debug) {
               context_.inline_log("inlining")
                 << "static hash value of " << kt.value() << "\n";
             }
 
             return true;
-          } else if(kt.class_id() == ops_.state()->string_class_id()) {
+          } else if(kt.class_id() == ops_.llvm_state()->string_class_id()) {
             ip.known_string_hash();
             return true;
           }
@@ -1477,13 +1477,13 @@ namespace rubinius {
 
       if(Primitives::get_jit_stub(code->prim_index(), stub_res)) {
         if(stub_res.arg_count() == count_) {
-          if(ops_.state()->config().jit_inline_debug) {
+          if(ops_.llvm_state()->config().jit_inline_debug) {
             context_.inline_log("inlining")
-              << ops_.state()->enclosure_name(code)
+              << ops_.llvm_state()->enclosure_name(code)
               << "#"
-              << ops_.state()->symbol_debug_str(code->name())
+              << ops_.llvm_state()->symbol_debug_str(code->name())
               << " into "
-              << ops_.state()->symbol_debug_str(ops_.method_name())
+              << ops_.llvm_state()->symbol_debug_str(ops_.method_name())
               << ". generic primitive: " << stub_res.name() << "\n";
           }
 
@@ -1493,7 +1493,7 @@ namespace rubinius {
 
           std::vector<Value*> call_args;
 
-          Signature sig(ops_.state(), "Object");
+          Signature sig(ops_.llvm_state(), "Object");
           sig << "State";
           call_args.push_back(ops_.vm());
 
@@ -1525,7 +1525,7 @@ namespace rubinius {
 
           Value* as_i = ops_.ptrtoint(res);
           Value* icmp = ops_.b().CreateICmpEQ(as_i,
-              ConstantInt::get(ops_.state()->IntPtrTy, reinterpret_cast<intptr_t>(cUndef)));
+              ConstantInt::get(ops_.llvm_state()->IntPtrTy, reinterpret_cast<intptr_t>(cUndef)));
 
           use_send_for_failure();
 
@@ -1541,15 +1541,15 @@ namespace rubinius {
         }
       } else {
         // Add more primitive inlining!
-        if(ops_.state()->config().jit_inline_debug) {
+        if(ops_.llvm_state()->config().jit_inline_debug) {
           context_.inline_log("NOT inlining")
-            << ops_.state()->enclosure_name(code)
+            << ops_.llvm_state()->enclosure_name(code)
             << "#"
-            << ops_.state()->symbol_debug_str(code->name())
+            << ops_.llvm_state()->symbol_debug_str(code->name())
             << " into "
-            << ops_.state()->symbol_debug_str(ops_.method_name())
+            << ops_.llvm_state()->symbol_debug_str(ops_.method_name())
             << ". No fast stub. primitive: "
-            << ops_.state()->symbol_debug_str(code->primitive())
+            << ops_.llvm_state()->symbol_debug_str(code->primitive())
             << "\n";
         }
 
@@ -1562,7 +1562,7 @@ namespace rubinius {
 
   int Inliner::detect_jit_intrinsic(Class* klass, CompiledCode* code) {
     if(klass->instance_type()->to_native() == rubinius::Tuple::type) {
-      if(count_ == 2 && code->name() == ops_.state()->symbol("swap")) {
+      if(count_ == 2 && code->name() == ops_.llvm_state()->symbol("swap")) {
         return 1;
       }
     }

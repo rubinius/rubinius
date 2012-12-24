@@ -319,7 +319,7 @@ namespace rubinius {
 
       set_block(check_active);
 
-      if(!state()->config().jit_check_debugging) {
+      if(!llvm_state()->config().jit_check_debugging) {
         b().CreateBr(cont);
         return check_active;
       }
@@ -1342,9 +1342,9 @@ namespace rubinius {
       if(invoker == invoke_object_class && args == 1) {
         Value* obj = stack_back(0);
 
-        type::KnownType kt = type::KnownType::extract(state(), obj);
+        type::KnownType kt = type::KnownType::extract(llvm_state(), obj);
         if(kt.instance_p() && !kt.singleton_instance_p()) {
-          if(state()->config().jit_inline_debug) {
+          if(llvm_state()->config().jit_inline_debug) {
             context().inline_log("inlining") << "direct class of reference\n";
           }
 
@@ -1355,7 +1355,7 @@ namespace rubinius {
           return;
         }
 
-        if(state()->config().jit_inline_debug) {
+        if(llvm_state()->config().jit_inline_debug) {
           context().inline_log("inlining") << "custom object_class invoker\n";
         }
 
@@ -1450,7 +1450,7 @@ namespace rubinius {
       // If we have tried to reoptimize here a few times and failed, we use
       // a regular send as the fallback so we don't try to keep reoptimizing in
       // the future.
-      if(cache->seen_classes_overflow() > state()->shared().config.jit_deoptimize_overflow_threshold) {
+      if(cache->seen_classes_overflow() > llvm_state()->shared().config.jit_deoptimize_overflow_threshold) {
         inl.use_send_for_failure();
       }
 
@@ -1512,7 +1512,7 @@ namespace rubinius {
     }
 
     void visit_call_custom(opcode which, opcode args) {
-      if(state()->config().jit_inline_debug) {
+      if(llvm_state()->config().jit_inline_debug) {
         ls_->log() << "generate: call_custom\n";
       }
 
@@ -1689,7 +1689,7 @@ namespace rubinius {
           InlineDecision decision = inline_policy()->inline_p(
                                       block_code->machine_code(), opts);
           if(decision == cTooComplex) {
-            if(state()->config().jit_inline_debug) {
+            if(llvm_state()->config().jit_inline_debug) {
               context().inline_log("NOT inlining")
                         << "block was too complex\n";
             }

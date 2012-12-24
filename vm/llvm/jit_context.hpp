@@ -30,7 +30,7 @@ namespace jit {
     Context(LLVMState* ls);
 
 
-    LLVMState* state() {
+    LLVMState* llvm_state() {
       return ls_;
     }
 
