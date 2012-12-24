@@ -69,7 +69,7 @@ namespace rubinius {
         ops_.setup_out_args(count_);
 
         Value* call_args[] = {
-          ops_.vm(),
+          ops_.state(),
           cache_const,
           ops_.call_frame(),
           ops_.out_args()
@@ -406,7 +406,7 @@ remember:
       sig2 << "Object";
 
       Value* call_args2[] = {
-        ops_.vm(),
+        ops_.state(),
         ops_.call_frame(),
         self,
         ops_.constant(acc->name()),
@@ -488,7 +488,7 @@ remember:
         sig2 << "Object";
 
         Value* call_args2[] = {
-          ops_.vm(),
+          ops_.state(),
           self,
           ops_.constant(acc->name())
         };
@@ -695,7 +695,7 @@ remember:
 
     for(size_t i = 0; i < nf->ffi_data->arg_count; i++) {
       Value* current_arg = arg(i);
-      Value* call_args[] = { ops_.vm(), current_arg, ops_.valid_flag() };
+      Value* call_args[] = { ops_.state(), current_arg, ops_.valid_flag() };
 
       switch(nf->ffi_data->args_info[i].type) {
       case RBX_FFI_TYPE_CHAR:
@@ -851,7 +851,7 @@ remember:
     check << "State";
     check << "CallFrame";
 
-    Value* check_args[] = { ops_.vm(), ops_.call_frame() };
+    Value* check_args[] = { ops_.state(), ops_.call_frame() };
     check.call("rbx_enter_unmanaged", check_args, 2, "unused", ops_.b());
 
     Type* return_type = find_type(ops_, nf->ffi_data->ret_info.type);
@@ -865,7 +865,7 @@ remember:
 
     check.call("rbx_exit_unmanaged", check_args, 2, "unused", ops_.b());
 
-    Value* res_args[] = { ops_.vm(), ffi_result };
+    Value* res_args[] = { ops_.state(), ffi_result };
 
     Value* result;
     switch(nf->ffi_data->ret_info.type) {

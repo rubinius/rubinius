@@ -948,7 +948,7 @@ namespace rubinius {
       Function* func = sig.function("rbx_float_allocate");
       func->setDoesNotAlias(0); // return value
 
-      Value* call_args[] = { ops.vm() };
+      Value* call_args[] = { ops.state() };
       CallInst* res = sig.call("rbx_float_allocate", call_args, 1, "result", ops.b());
       res->setOnlyReadsMemory();
       res->setDoesNotThrow();
@@ -1149,7 +1149,7 @@ namespace rubinius {
       sig << "CallFrame";
       sig << "Object";
 
-      Value* call_args[] = { ops.vm(), ops.call_frame(), V };
+      Value* call_args[] = { ops.state(), ops.call_frame(), V };
 
       CallInst* out = sig.call("rbx_create_instance", call_args, 3,
                                "instance", ops.b());
@@ -1183,7 +1183,7 @@ namespace rubinius {
       sig << "State";
       sig << "Object";
 
-      Value* call_args[] = { ops.vm(), i.recv() };
+      Value* call_args[] = { ops.state(), i.recv() };
 
       CallInst* val = sig.call("rbx_string_hash", call_args, 2, "hash", ops.b());
       // Computing the string hash only reads memory. Even though it has the side
@@ -1206,7 +1206,7 @@ namespace rubinius {
       sig << "Object";
       sig << "Object";
 
-      Value* call_args[] = { ops.vm(), i.recv(), i.arg(0) };
+      Value* call_args[] = { ops.state(), i.recv(), i.arg(0) };
 
       CallInst* val = sig.call("rbx_kind_of", call_args, 3, "hash", ops.b());
       val->setOnlyReadsMemory();
@@ -1226,7 +1226,7 @@ namespace rubinius {
       sig << "Object";
       sig << "Object";
 
-      Value* call_args[] = { ops.vm(), i.arg(0), i.arg(1) };
+      Value* call_args[] = { ops.state(), i.arg(0), i.arg(1) };
 
       CallInst* val = sig.call("rbx_kind_of", call_args, 3, "hash", ops.b());
       val->setOnlyReadsMemory();
@@ -1245,7 +1245,7 @@ namespace rubinius {
       sig << "State";
       sig << "Object";
 
-      Value* call_args[] = { ops.vm(), i.recv() };
+      Value* call_args[] = { ops.state(), i.recv() };
 
       CallInst* val = sig.call("rbx_class_of", call_args, 2, "object_class", ops.b());
       val->setOnlyReadsMemory();
@@ -1264,7 +1264,7 @@ namespace rubinius {
       sig << "State";
       sig << "Object";
 
-      Value* call_args[] = { ops.vm(), i.arg(0) };
+      Value* call_args[] = { ops.state(), i.arg(0) };
 
       CallInst* val = sig.call("rbx_class_of", call_args, 2, "object_class", ops.b());
       val->setOnlyReadsMemory();
@@ -1312,7 +1312,7 @@ namespace rubinius {
       sig << "CallFrame";
 
       Value* call_args[] = {
-        ops.vm(),
+        ops.state(),
         val,
         call_frame
       };
@@ -1495,7 +1495,7 @@ namespace rubinius {
 
           Signature sig(ops_.llvm_state(), "Object");
           sig << "State";
-          call_args.push_back(ops_.vm());
+          call_args.push_back(ops_.state());
 
           if(stub_res.pass_callframe()) {
             sig << "CallFrame";

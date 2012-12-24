@@ -80,7 +80,7 @@ namespace rubinius {
     llvm::Module* module_;
     llvm::Function* function_;
 
-    llvm::Value* vm_;
+    llvm::Value* state_;
     llvm::Value* call_frame_;
 
     llvm::Value* zero_;
@@ -142,7 +142,7 @@ namespace rubinius {
       CallFrameTy = ptr_type("CallFrame");
 
       Function::arg_iterator input = function_->arg_begin();
-      vm_ = input++;
+      state_ = input++;
 
       builder_.SetInsertPoint(start);
     }
@@ -242,8 +242,8 @@ namespace rubinius {
       return ls_;
     }
 
-    Value* vm() {
-      return vm_;
+    Value* state() {
+      return state_;
     }
 
     Function* function() {
@@ -386,7 +386,7 @@ namespace rubinius {
       Function* func = sig.function(fallback);
       func->setDoesNotAlias(0); // return value
 
-      Value* call_args[] = { vm_, recv };
+      Value* call_args[] = { state_, recv };
       CallInst* call_res = sig.call(fallback, call_args, 2, "result", b());
       call_res->setOnlyReadsMemory();
       call_res->setDoesNotThrow();
@@ -429,7 +429,7 @@ namespace rubinius {
       sig << "CallFrame";
       sig << "Object";
 
-      Value* call_args[] = { vm_, call_frame_, stack_top() };
+      Value* call_args[] = { state_, call_frame_, stack_top() };
 
       CallInst* res = sig.call("rbx_check_frozen", call_args, 3, "", b());
       res->setOnlyReadsMemory();
@@ -850,7 +850,7 @@ namespace rubinius {
       sig << "State";
       sig << "StackVariables";
 
-      Value* call_args[] = { vm_, vars };
+      Value* call_args[] = { state_, vars };
 
       sig.call("rbx_flush_scope", call_args, 2, "", b());
 
@@ -1013,7 +1013,7 @@ namespace rubinius {
           module_->getOrInsertFunction("rbx_create_bignum", ft));
 
       Value* call_args[] = {
-        vm_,
+        state_,
         arg
       };
 
@@ -1154,7 +1154,7 @@ namespace rubinius {
         obj = b().CreateBitCast(obj, ObjType, "casted");
       }
 
-      Value* call_args[] = { vm_, obj, val };
+      Value* call_args[] = { state_, obj, val };
       wb.call("rbx_write_barrier", call_args, 3, "", b());
     }
 
