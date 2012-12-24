@@ -431,7 +431,9 @@ namespace rubinius {
 
       Value* call_args[] = { vm_, call_frame_, stack_top() };
 
-      Value* res = sig.call("rbx_check_frozen", call_args, 3, "", b());
+      CallInst* res = sig.call("rbx_check_frozen", call_args, 3, "", b());
+      res->setOnlyReadsMemory();
+      res->setDoesNotThrow();
 
       check_for_exception(res, false);
 
@@ -1015,7 +1017,10 @@ namespace rubinius {
         arg
       };
 
-      return b().CreateCall(func, call_args, "big_value");
+      CallInst* result = b().CreateCall(func, call_args, "big_value");
+      result->setOnlyReadsMemory();
+      result->setDoesNotThrow();
+      return result;
     }
 
     // Tuple access

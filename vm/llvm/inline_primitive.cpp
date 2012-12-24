@@ -677,7 +677,7 @@ namespace rubinius {
 
       i.use_send_for_failure();
       i.exception_safe();
-      i.set_result(ops.as_obj(imm_value));
+      i.set_result(imm_value);
       i.context().leave_inline();
     }
 
@@ -710,7 +710,7 @@ namespace rubinius {
 
       i.use_send_for_failure();
       i.exception_safe();
-      i.set_result(ops.as_obj(result));
+      i.set_result(result);
       i.context().leave_inline();
     }
 
@@ -722,7 +722,7 @@ namespace rubinius {
       Value* den = i.arg(0);
 
       BasicBlock* positive = ops.new_block("positive");
-      BasicBlock* divide = ops.new_block("divide");
+      BasicBlock* modulo = ops.new_block("modulo");
       BasicBlock* send = i.failure();
 
       Value* positive_cmp = ops.check_if_positive_fixnums(num, den);
@@ -732,9 +732,9 @@ namespace rubinius {
 
       Value* non_zero = ops.check_if_non_zero_fixnum(den);
 
-      ops.create_conditional_branch(divide, send, non_zero);
+      ops.create_conditional_branch(modulo, send, non_zero);
 
-      ops.set_block(divide);
+      ops.set_block(modulo);
 
       Value* num_int = ops.fixnum_strip(num);
       Value* den_int = ops.fixnum_strip(den);
@@ -743,7 +743,7 @@ namespace rubinius {
 
       i.use_send_for_failure();
       i.exception_safe();
-      i.set_result(ops.as_obj(result));
+      i.set_result(result);
       i.context().leave_inline();
     }
 
