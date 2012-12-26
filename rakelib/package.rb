@@ -41,6 +41,7 @@ class RubiniusPackager
   def initialize(options={})
     @ruby_version = options[:ruby_version]
     @release = options[:release]
+    @release_date = options[:release_date]
     @prefix = options[:prefix]
     @root = options[:root]
     @bin = options[:bin]
@@ -58,9 +59,13 @@ class RubiniusPackager
     not ruby_version.index(",")
   end
 
-  # "nightly", "weekly", "rcN"
+  # "nightly", "weekly", "rcN". no value indicates standard release
   def release
-    @release || "nightly"
+    @release
+  end
+
+  def release_date
+    @release_date || DateTime.now.strftime("%F")
   end
 
   # passed verbatim to --prefix
@@ -89,6 +94,7 @@ class RubiniusPackager
   def config
     default = ["--prefix=#{prefix} --preserve-prefix"]
     default << ["--enable-version=#{ruby_version}"] if single_version?
+    default << ["--release=#{release} --release-date=#{release_date}"] if release
     @config || default.join(" ")
   end
 

@@ -1,4 +1,5 @@
 require 'rakelib/package'
+require 'date'
 
 namespace :package do
   desc "Package up the LLVM build into a tar.gz"
@@ -94,6 +95,7 @@ namespace :package do
     pkg = RubiniusPackager.new(
       :ruby_version => ENV["RBX_BINARY_LANGUAGE"],
       :release      => ENV["RBX_BINARY_RELEASE"],
+      :release_date => ENV["RBX_BINARY_RELEASE_DATE"],
       :prefix       => ENV["RBX_BINARY_PREFIX"],
       :bin          => ENV["RBX_BINARY_BIN"],
       :config       => ENV["RBX_BINARY_CONFIG"],
@@ -107,17 +109,17 @@ namespace :package do
   namespace :nightly do
     desc "Build a general Unix/Linux nightly binary package for 1.8"
     task :"18" do
-      sh "rake package:binary_builder RBX_BINARY_LANGUAGE=18"
+      sh "rake package:binary_builder RBX_BINARY_LANGUAGE=18 RBX_BINARY_RELEASE=nightly"
     end
 
     desc "Build a general Unix/Linux nightly binary package for 1.9"
     task :"19" do
-      sh "rake package:binary_builder RBX_BINARY_LANGUAGE=19"
+      sh "rake package:binary_builder RBX_BINARY_LANGUAGE=19 RBX_BINARY_RELEASE=nightly"
     end
 
     desc "Build a general Unix/Linux nightly binary package for 2.0"
     task :"20" do
-      sh "rake package:binary_builder RBX_BINARY_LANGUAGE=20"
+      sh "rake package:binary_builder RBX_BINARY_LANGUAGE=20 RBX_BINARY_RELEASE=nightly"
     end
   end
 
