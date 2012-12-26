@@ -33,12 +33,12 @@ namespace rubinius {
   private:
     SharedState& shared_;
     Roots roots_;
-    Kind kind_;
     std::string name_;
     VariableRootBuffers variable_root_buffers_;
     RootBuffers root_buffers_;
-    RunState run_state_;
     std::list<ObjectHeader*> locked_objects_;
+    RunState run_state_;
+    Kind kind_;
 
   protected:
     gc::Slab local_slab_;

@@ -9,9 +9,9 @@ namespace rubinius {
 
   ManagedThread::ManagedThread(uint32_t id, SharedState& ss, ManagedThread::Kind kind)
     : shared_(ss)
-    , kind_(kind)
     , name_(kind == eRuby ? "<ruby>" : "<system>")
     , run_state_(eIndependent)
+    , kind_(kind)
     , id_(id)
   {}
 
