@@ -9,6 +9,7 @@ require 'rbconfig'
 require 'tempfile'
 require 'fileutils'
 require 'stringio'
+require 'date'
 require 'digest/md5'
 require 'net/http'
 
@@ -119,9 +120,10 @@ class Configure
 
     # Essential settings (modify these for creating releases)
     @libversion = "2.0"
-    @version = "#{@libversion}.0rc1"
-    @release_date = "2012-11-02"
-    @config_version = 163
+    @patch_version = "0"
+    @release = "rc1"
+    @release_date = "yyyy-mm-dd"
+    @config_version = 164
   end
 
   # Set up system commands to run in cmd.exe on Windows. Either Windows
@@ -249,6 +251,16 @@ class Configure
 
     o.on "--perl", "NAME", "Use NAME as 'perl' during build" do |name|
       @perl = name
+    end
+
+    o.doc "\n Release Settings"
+
+    o.on "--release", "NAME", "Set version to X.Y.Z.NAME" do |name|
+      @release = name
+    end
+
+    o.on "--release-date", "DATE", "Set release date to DATE in yyyy-mm-dd format" do |date|
+      @release_date = validate_release_date date
     end
 
     o.doc "\n Language version settings"
@@ -446,6 +458,14 @@ class Configure
 
   def parse(ary)
     @options.parse ary
+  end
+
+  def version
+    "#{@libversion}.#{@patch_version}.#{@release}"
+  end
+
+  def validate_release_date(str)
+    Date.parse(str).strftime
   end
 
   def normalize_versions(str)
@@ -1425,7 +1445,7 @@ module Rubinius
     :program_name   => "#{@program_name}",
     :bin_links      => #{@bin_links.inspect},
     :use_bin_links  => #{@use_bin_links},
-    :version        => "#{@version}",
+    :version        => "#{version}",
     :libversion     => "#{@libversion}",
     :release_date   => "#{@release_date}",
     :config_version => #{@config_version},
@@ -1466,7 +1486,7 @@ end
 #define RBX_HDR20_PATH       "#{@include20dir}"
 #define RBX_SITE_PATH        "#{@sitedir}"
 #define RBX_VENDOR_PATH      "#{@vendordir}"
-#define RBX_VERSION          "#{@version}"
+#define RBX_VERSION          "#{version}"
 #define RBX_LIB_VERSION      "#{@libversion}"
 #define RBX_LDSHARED         "#{@ldshared}"
 #define RBX_RELEASE_DATE     "#{@release_date}"
