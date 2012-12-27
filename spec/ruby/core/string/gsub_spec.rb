@@ -693,4 +693,32 @@ describe "String#gsub! with pattern and block" do
       lambda { s.gsub!(/[aeiou]/) { '*' } }.should raise_error(RuntimeError)
     end
   end
+
+  ruby_version_is "1.9" do
+    it "uses the better fitting encoding, if they are compatible" do
+      s  = "hello"
+      s2 = "#{195.chr}#{192.chr}#{195.chr}"
+
+      s.gsub!(/l/) { |bar| 195.chr }.encoding.should == Encoding::ASCII_8BIT
+      s2.gsub!("#{192.chr}") { |bar| "hello" }.encoding.should == Encoding::ASCII_8BIT
+    end
+
+    it "raises an Encoding::CompatibilityError, if the encodings are not compatible" do
+      s  = "ћello"
+      s2 = "hllëllo"
+      s3 = "hellö"
+      s4 = 'Русский'.force_encoding("iso-8859-5")
+
+      lambda { s.gsub!(/l/) { |bar| "Русский".force_encoding("iso-8859-5") } }.should raise_error(Encoding::CompatibilityError)
+      lambda { s2.gsub!(/l/) { |bar| "Русский".force_encoding("iso-8859-5") } }.should raise_error(Encoding::CompatibilityError)
+      lambda { s3.gsub!(/l/) { |bar| "Русский".force_encoding("iso-8859-5") } }.should raise_error(Encoding::CompatibilityError)
+      lambda { s4.gsub!(/с/) { |bar| "ћallö" } }.should raise_error(Encoding::CompatibilityError)
+    end
+
+    it "works, if inconpatible part is replaced" do
+      s = "hllëllo"
+
+      s.gsub!(/ë/) { |bar| "Русский".force_encoding("iso-8859-5") }.encoding.should == Encoding::ISO_8859_5
+    end
+  end
 end
