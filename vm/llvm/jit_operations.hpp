@@ -1083,6 +1083,71 @@ namespace rubinius {
       return create_load(pos, "field");
     }
 
+    void set_object_type_slot(Value* obj, int field, int offset, object_type type, Value* val) {
+      BasicBlock* not_nil = new_block("not_nil");
+      BasicBlock* cont    = new_block("type_verified");
+      BasicBlock* failure = new_block("type_unverified");
+      BasicBlock* done    = new_block("done");
+      BasicBlock* ref     = new_block("is_reference");
+
+
+      create_conditional_branch(cont, not_nil, check_is_immediate(val, cNil));
+      set_block(not_nil);
+
+      switch(type) {
+        case Fixnum::type:
+        case Integer::type:
+          // Optimize here for the common case that the integer is a fixnum
+          create_conditional_branch(cont, failure, check_is_fixnum(val));
+          break;
+        case Symbol::type:
+          create_conditional_branch(cont, failure, check_is_symbol(val));
+          break;
+        case Object::type:
+          // Any type here is a valid type, so no need for a type check
+          create_branch(cont);
+          break;
+        default:
+          create_conditional_branch(ref, failure, check_is_reference(val));
+          set_block(ref);
+          create_conditional_branch(cont, failure, check_type_bits(val, type));
+          break;
+      }
+
+      set_block(cont);
+      set_object_slot(obj, offset, val);
+      create_branch(done);
+
+      set_block(failure);
+
+      Signature sig(ls_, ObjType);
+
+      sig << StateTy;
+      sig << ObjType;
+      sig << ls_->Int32Ty;
+      sig << ObjType;
+
+      Value* call_args[] = {
+        state_,
+        obj,
+        cint(field),
+        val
+      };
+
+      Value* ret = sig.call("rbx_set_my_field", call_args, 4, "field", b());
+      check_for_exception(ret, false);
+
+      failure = current_block();
+
+      create_branch(done);
+
+      set_block(done);
+
+      PHINode* phi = b().CreatePHI(ObjType, 2, "push_ivar");
+      phi->addIncoming(val, cont);
+      phi->addIncoming(ret, failure);
+    }
+
     void set_object_slot(Value* obj, int offset, Value* val) {
       assert(offset % sizeof(Object*) == 0);
 

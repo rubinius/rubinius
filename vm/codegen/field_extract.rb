@@ -1107,8 +1107,10 @@ write_if_new "vm/gen/typechecks.gen.cpp" do |f|
 
     fields = cpp.all_fields
     f.puts "    ti->slot_accessors.resize(#{fields.size});\n"
+    f.puts "    ti->slot_types.resize(#{fields.size});\n"
     fields.each do |name, type, idx|
       f.puts "    ti->slots[state->symbol(\"@#{name}\")->index()] = #{idx};"
+      f.puts "    ti->slot_types[#{idx}] = #{type}::type;"
       f.puts "    ti->slot_accessors[#{idx}] = Primitives::resolve_primitive(state, state->symbol(\"access_#{n}_#{name}\"));"
     end
     f.puts "  ti->populate_slot_locations();"

@@ -3384,8 +3384,11 @@ use_send:
     }
 
     void visit_set_ivar(opcode which) {
+      Value* self = get_self();
+      Value* ivar = stack_top();
       Symbol* name = as<Symbol>(literal(which));
 
+      set_has_side_effects();
       if(Class* klass = try_as<Class>(info().self_class())) {
 
         if(ls_->config().jit_inline_debug) {
@@ -3393,11 +3396,19 @@ use_send:
             << ls_->symbol_debug_str(name);
         }
 
-        // slot ivars (Array#@size for example) have type checks, so use the slow
-        // path for now.
+        TypeInfo* ti = klass->type_info();
+        TypeInfo::Slots::iterator it = ti->slots.find(name->index());
 
-        Value* self = get_self();
+        if(it != ti->slots.end()) {
+          int field = it->second;
+          int offset = ti->slot_locations[field];
+          set_object_type_slot(self, field, offset, ti->slot_types[field], ivar);
+          if(ls_->config().jit_inline_debug) {
+            ls_->log() << " (slot: " << it->second << ")\n";
+          }
 
+          return;
+        }
         LookupTable* pii = klass->packed_ivar_info();
         if(!pii->nil_p()) {
           bool found = false;
@@ -3407,7 +3418,7 @@ use_send:
             int index = which->to_native();
             int offset = sizeof(Object) + (sizeof(Object*) * index);
 
-            set_object_slot(self, offset, stack_top());
+            set_object_slot(self, offset, ivar);
 
             if(ls_->config().jit_inline_debug) {
               ls_->log() << " (packed index: " << index << ", " << offset << ")\n";
@@ -3426,7 +3437,6 @@ use_send:
           << ls_->symbol_debug_str(name) << "\n";
       }
 
-      set_has_side_effects();
 
       Signature sig(ls_, ObjType);
 
@@ -3436,14 +3446,12 @@ use_send:
       sig << ObjType;
       sig << ObjType;
 
-      Value* self = get_self();
-
       Value* call_args[] = {
         state_,
         call_frame_,
         self,
-        constant(as<Symbol>(literal(which))),
-        stack_top()
+        constant(name),
+        ivar
       };
 
       Value* ret = sig.call("rbx_set_ivar", call_args, 5, "ivar", b());
@@ -3451,45 +3459,80 @@ use_send:
     }
 
     void visit_push_my_field(opcode which) {
-      Signature sig(ls_, ObjType);
-
-      sig << StateTy;
-      sig << ObjType;
-      sig << ls_->Int32Ty;
-
       Value* self = get_self();
 
-      Value* call_args[] = {
-        state_,
-        self,
-        cint(which)
-      };
+      if(Class* klass = try_as<Class>(info().self_class())) {
 
-      Value* val = sig.call("rbx_push_my_field", call_args, 3, "field", b());
-      check_for_exception(val);
-      stack_push(val);
+        if(ls_->config().jit_inline_debug) {
+          context().inline_log("inline field read");
+          ls_->log() << " (slot: " << which << ")\n";
+        }
+
+        TypeInfo* ti = klass->type_info();
+        int offset = ti->slot_locations[which];
+        stack_push(get_object_slot(self, offset));
+      } else {
+
+        if(ls_->config().jit_inline_debug) {
+          context().inline_log("inline field read slow path");
+          ls_->log() << " (slot: " << which << ")\n";
+        }
+        Signature sig(ls_, ObjType);
+
+        sig << StateTy;
+        sig << ObjType;
+        sig << ls_->Int32Ty;
+
+        Value* call_args[] = {
+          state_,
+          self,
+          cint(which)
+        };
+
+        Value* val = sig.call("rbx_push_my_field", call_args, 3, "field", b());
+        check_for_exception(val);
+        stack_push(val);
+      }
     }
 
     void visit_store_my_field(opcode which) {
       set_has_side_effects();
 
-      Signature sig(ls_, ObjType);
-
-      sig << StateTy;
-      sig << ObjType;
-      sig << ls_->Int32Ty;
-      sig << ObjType;
-
       Value* self = get_self();
+      Value* ivar = stack_top();
 
-      Value* call_args[] = {
-        state_,
-        self,
-        cint(which),
-        stack_top()
-      };
+      if(Class* klass = try_as<Class>(info().self_class())) {
 
-      sig.call("rbx_set_my_field", call_args, 4, "field", b());
+        if(ls_->config().jit_inline_debug) {
+          context().inline_log("inline field write");
+          ls_->log() << " (slot: " << which << ")\n";
+        }
+
+        TypeInfo* ti = klass->type_info();
+        int offset = ti->slot_locations[which];
+        set_object_type_slot(self, which, offset, ti->slot_types[which], ivar);
+      } else {
+
+        if(ls_->config().jit_inline_debug) {
+          context().inline_log("inline write slow path");
+          ls_->log() << " (slot: " << which << ")\n";
+        }
+        Signature sig(ls_, ObjType);
+
+        sig << StateTy;
+        sig << ObjType;
+        sig << ls_->Int32Ty;
+        sig << ObjType;
+
+        Value* call_args[] = {
+          state_,
+          self,
+          cint(which),
+          ivar
+        };
+
+        sig.call("rbx_set_my_field", call_args, 4, "field", b());
+      }
     }
 
     void visit_shift_array() {

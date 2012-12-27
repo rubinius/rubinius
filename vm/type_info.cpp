@@ -26,8 +26,8 @@ namespace rubinius {
     : state_(NULL)
     , instance_size(sizeof(Object))
     , slots()
-    , type(type)
     , type_name()
+    , type(type)
     , allow_user_allocate(true)
   {}
 

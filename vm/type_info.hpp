@@ -38,6 +38,7 @@ namespace rubinius {
   public: // Types
 
     typedef std::map<native_int, long> Slots;
+    typedef std::vector<object_type> SlotTypes;
     typedef std::vector<executor> AccessorPrimitives;
     typedef std::vector<uintptr_t> SlotLocations;
 
@@ -49,10 +50,11 @@ namespace rubinius {
     size_t      instance_size;
     static size_t instance_sizes[(int)LastObjectType];
     Slots       slots;
+    SlotTypes   slot_types;
     AccessorPrimitives slot_accessors;
     SlotLocations slot_locations;
-    object_type type;
     std::string type_name;
+    object_type type;
     bool        allow_user_allocate;
 
   public: /* Class initializers */
