@@ -311,7 +311,7 @@ class String
     @shared = true
     other.shared!
     @data = other.__data__
-    @num_bytes = other.num_bytes
+    self.num_bytes = other.num_bytes
     @hash_value = nil
 
     Rubinius::Type.infect(self, other)
