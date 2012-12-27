@@ -319,6 +319,7 @@ namespace rubinius {
 
     void set_current_fiber(Fiber* fib);
 
+    Object* new_object_typed_dirty(Class* cls, size_t bytes, object_type type);
     Object* new_object_typed(Class* cls, size_t bytes, object_type type);
     Object* new_object_typed_mature(Class* cls, size_t bytes, object_type type);
 
@@ -330,6 +331,12 @@ namespace rubinius {
     template <class T>
       T* new_object_mature(Class *cls) {
         return static_cast<T*>(new_object_typed_mature(cls, sizeof(T), T::type));
+      }
+
+    template <class T>
+      T* new_object_bytes_dirty(Class* cls, size_t& bytes) {
+        bytes = ObjectHeader::align(sizeof(T) + bytes);
+        return static_cast<T*>(new_object_typed_dirty(cls, bytes, T::type));
       }
 
     template <class T>

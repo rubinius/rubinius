@@ -776,7 +776,6 @@ step1:
     }
 #endif
 
-    obj->clear_fields(bytes);
     return obj;
   }
 
@@ -805,11 +804,10 @@ step1:
     }
 #endif
 
-    obj->clear_fields(bytes);
     return obj;
   }
 
-  Object* ObjectMemory::new_object_typed(STATE, Class* cls, size_t bytes, object_type type) {
+  Object* ObjectMemory::new_object_typed_dirty(STATE, Class* cls, size_t bytes, object_type type) {
     utilities::thread::SpinLock::LockGuard guard(allocation_lock_);
 
     Object* obj;
@@ -818,13 +816,19 @@ step1:
     if(unlikely(!obj)) return NULL;
 
     obj->klass(this, cls);
-
+    obj->ivars(this, cNil);
     obj->set_obj_type(type);
 
     return obj;
   }
 
-  Object* ObjectMemory::new_object_typed_mature(STATE, Class* cls, size_t bytes, object_type type) {
+  Object* ObjectMemory::new_object_typed(STATE, Class* cls, size_t bytes, object_type type) {
+    Object* obj = new_object_typed_dirty(state, cls, bytes, type);
+    obj->clear_fields(bytes);
+    return obj;
+  }
+
+  Object* ObjectMemory::new_object_typed_mature_dirty(STATE, Class* cls, size_t bytes, object_type type) {
     utilities::thread::SpinLock::LockGuard guard(allocation_lock_);
 
     Object* obj;
@@ -833,9 +837,15 @@ step1:
     if(unlikely(!obj)) return NULL;
 
     obj->klass(this, cls);
-
+    obj->ivars(this, cNil);
     obj->set_obj_type(type);
 
+    return obj;
+  }
+
+  Object* ObjectMemory::new_object_typed_mature(STATE, Class* cls, size_t bytes, object_type type) {
+    Object* obj = new_object_typed_mature_dirty(state, cls, bytes, type);
+    obj->clear_fields(bytes);
     return obj;
   }
 
@@ -848,7 +858,7 @@ step1:
     return obj;
   }
 
-  Object* ObjectMemory::new_object_typed_enduring(STATE, Class* cls, size_t bytes, object_type type) {
+  Object* ObjectMemory::new_object_typed_enduring_dirty(STATE, Class* cls, size_t bytes, object_type type) {
     utilities::thread::SpinLock::LockGuard guard(allocation_lock_);
 
     Object* obj = mark_sweep_->allocate(bytes, &collect_mature_now);
@@ -862,12 +872,16 @@ step1:
     }
 #endif
 
-    obj->clear_fields(bytes);
-
     obj->klass(this, cls);
-
+    obj->ivars(this, cNil);
     obj->set_obj_type(type);
 
+    return obj;
+  }
+
+  Object* ObjectMemory::new_object_typed_enduring(STATE, Class* cls, size_t bytes, object_type type) {
+    Object* obj = new_object_typed_enduring_dirty(state, cls, bytes, type);
+    obj->clear_fields(bytes);
     return obj;
   }
 

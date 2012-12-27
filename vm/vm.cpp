@@ -178,11 +178,11 @@ namespace rubinius {
     ManagedThread::set_current(vm, name);
   }
 
-  Object* VM::new_object_typed(Class* cls, size_t size, object_type type) {
+  Object* VM::new_object_typed_dirty(Class* cls, size_t size, object_type type) {
     State state(this);
 
     if(unlikely(size > om->large_object_threshold)) {
-      return om->new_object_typed_enduring(&state, cls, size, type);
+      return om->new_object_typed_enduring_dirty(&state, cls, size, type);
     }
 
     Object* obj = local_slab().allocate(size).as<Object>();
@@ -195,13 +195,18 @@ namespace rubinius {
       // If refill_slab fails, obj will still be NULL.
 
       if(!obj) {
-        return om->new_object_typed(&state, cls, size, type);
+        return om->new_object_typed_dirty(&state, cls, size, type);
       }
     }
 
     obj->init_header(cls, YoungObjectZone, type);
-    obj->clear_fields(size);
 
+    return obj;
+  }
+
+  Object* VM::new_object_typed(Class* cls, size_t size, object_type type) {
+    Object* obj = new_object_typed_dirty(cls, size, type);
+    obj->clear_fields(size);
     return obj;
   }
 

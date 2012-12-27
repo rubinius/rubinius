@@ -30,7 +30,7 @@ namespace rubinius {
     }
 
     size_t body = bytes;
-    ByteArray* ba = state->vm()->new_object_bytes<ByteArray>(G(bytearray), body);
+    ByteArray* ba = state->vm()->new_object_bytes_dirty<ByteArray>(G(bytearray), body);
 
     if(unlikely(!ba)) {
       Exception::memory_error(state);
@@ -47,7 +47,7 @@ namespace rubinius {
     }
 
     size_t body = bytes;
-    ByteArray* ba = state->memory()->new_object_bytes_mature<ByteArray>(state, G(bytearray), body);
+    ByteArray* ba = state->memory()->new_object_bytes_mature_dirty<ByteArray>(state, G(bytearray), body);
     if(unlikely(!ba)) {
       Exception::memory_error(state);
     }

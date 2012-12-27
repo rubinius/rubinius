@@ -275,14 +275,35 @@ namespace rubinius {
 
     void on_fork(STATE);
 
+    Object* new_object_typed_dirty(STATE, Class* cls, size_t bytes, object_type type);
     Object* new_object_typed(STATE, Class* cls, size_t bytes, object_type type);
+
+    Object* new_object_typed_mature_dirty(STATE, Class* cls, size_t bytes, object_type type);
     Object* new_object_typed_mature(STATE, Class* cls, size_t bytes, object_type type);
+
+    Object* new_object_typed_enduring_dirty(STATE, Class* cls, size_t bytes, object_type type);
     Object* new_object_typed_enduring(STATE, Class* cls, size_t bytes, object_type type);
+
+    template <class T>
+      T* new_object_bytes_dirty(STATE, Class* cls, size_t& bytes) {
+        bytes = ObjectHeader::align(sizeof(T) + bytes);
+        T* obj = static_cast<T*>(new_object_typed_dirty(state, cls, bytes, T::type));
+
+        return obj;
+      }
 
     template <class T>
       T* new_object_bytes(STATE, Class* cls, size_t& bytes) {
         bytes = ObjectHeader::align(sizeof(T) + bytes);
         T* obj = static_cast<T*>(new_object_typed(state, cls, bytes, T::type));
+
+        return obj;
+      }
+
+    template <class T>
+      T* new_object_bytes_mature_dirty(STATE, Class* cls, size_t& bytes) {
+        bytes = ObjectHeader::align(sizeof(T) + bytes);
+        T* obj = static_cast<T*>(new_object_typed_mature_dirty(state, cls, bytes, T::type));
 
         return obj;
       }

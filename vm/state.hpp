@@ -63,6 +63,11 @@ namespace rubinius {
         return static_cast<T*>(vm_->new_object_typed(cls, sizeof(T), T::type));
       }
 
+    template <class T>
+      T* new_object_dirty(Class *cls) {
+        return static_cast<T*>(vm_->new_object_typed_dirty(cls, sizeof(T), T::type));
+      }
+
     ThreadState* thread_state() {
       return vm_->thread_state();
     }

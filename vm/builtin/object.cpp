@@ -53,7 +53,7 @@ namespace rubinius {
   Object* Object::duplicate(STATE) {
     if(!reference_p()) return this;
 
-    Object* other = state->vm()->new_object_typed(
+    Object* other = state->vm()->new_object_typed_dirty(
         class_object(state), this->total_size(state->vm()), type_id());
     return other->copy_object(state, this);
   }
