@@ -143,17 +143,17 @@ namespace :package do
   namespace :rc do
     desc "Build a general Unix/Linux RC binary package for 1.8"
     task :"18" do
-      sh "rake package:binary_builder RBX_BINARY_LANGUAGE=18 RBX_BINARY_RELEASE=rc"
+      sh "rake package:binary_builder RBX_BINARY_LANGUAGE=18"
     end
 
     desc "Build a general Unix/Linux RC binary package for 1.9"
     task :"19" do
-      sh "rake package:binary_builder RBX_BINARY_LANGUAGE=19 RBX_BINARY_RELEASE=rc"
+      sh "rake package:binary_builder RBX_BINARY_LANGUAGE=19"
     end
 
     desc "Build a general Unix/Linux RC binary package for 2.0"
     task :"20" do
-      sh "rake package:binary_builder RBX_BINARY_LANGUAGE=20 RBX_BINARY_RELEASE=rc"
+      sh "rake package:binary_builder RBX_BINARY_LANGUAGE=20"
     end
   end
 end

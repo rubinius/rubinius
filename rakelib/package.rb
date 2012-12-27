@@ -59,6 +59,10 @@ class RubiniusPackager
     not ruby_version.index(",")
   end
 
+  def rbx_version
+    BUILD_CONFIG[:version].match(/^(\d+\.\d+\.\d+)/)[0]
+  end
+
   # "nightly", "weekly", "rcN". no value indicates standard release
   def release
     @release
@@ -70,7 +74,8 @@ class RubiniusPackager
 
   # passed verbatim to --prefix
   def prefix
-    default = "/usr/local/rubinius/#{RBX_VERSION}"
+    default = "/usr/local/rubinius/#{rbx_version}"
+    default += ".#{release}" if release
     default += "-#{ruby_version}" if single_version?
     @prefix || default
   end
@@ -105,10 +110,9 @@ class RubiniusPackager
 
   # name of the final package file minus #archive
   def package
-    RBX_VERSION =~ /^(\d+\.\d+\.\d+)(.*)$/
-    default = "rubinius-#{$1}"
+    default = "rubinius-#{rbx_version}"
     if release[0, 2] == "rc"
-      default += "-#{$2}"
+      default += "-#{release}"
     else
       default += "-#{release}#{date_stamp}"
     end
@@ -139,7 +143,7 @@ class RubiniusPackager
     sh "rm -rf #{BUILD_CONFIG[:sourcedir]}/staging"
 
     package_name = package + "." + archive
-    sh "rm -rf #{package_name}"
+    sh "rm -rf #{package_name}*"
 
     ENV["RELEASE"] = "1"
     sh "./configure #{config}"
