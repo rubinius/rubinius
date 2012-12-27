@@ -328,11 +328,6 @@ namespace rubinius {
       }
 
     template <class T>
-      T* new_struct(Class* cls, size_t bytes = 0) {
-        return static_cast<T*>(new_object_typed(cls, sizeof(T) + bytes, T::type));
-      }
-
-    template <class T>
       T* new_object_mature(Class *cls) {
         return static_cast<T*>(new_object_typed_mature(cls, sizeof(T), T::type));
       }

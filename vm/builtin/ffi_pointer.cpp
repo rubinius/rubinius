@@ -84,7 +84,7 @@ namespace rubinius {
   }
 
   Pointer* Pointer::create(STATE, void* ptr) {
-    Pointer* obj = state->vm()->new_struct<Pointer>(G(ffi_pointer));
+    Pointer* obj = state->new_object<Pointer>(G(ffi_pointer));
     obj->pointer = ptr;
     obj->autorelease = false;
     obj->set_finalizer = false;
@@ -92,7 +92,7 @@ namespace rubinius {
   }
 
   Pointer* Pointer::allocate(STATE, Object* self) {
-    Pointer* obj = state->vm()->new_struct<Pointer>(as<Class>(self));
+    Pointer* obj = state->new_object<Pointer>(as<Class>(self));
     obj->pointer = 0;
     obj->autorelease = false;
     obj->set_finalizer = false;
@@ -100,7 +100,7 @@ namespace rubinius {
   }
 
   Pointer* Pointer::allocate_memory(STATE, Object* self, Fixnum* size) {
-    Pointer* obj = state->vm()->new_struct<Pointer>(as<Class>(self));
+    Pointer* obj = state->vm()->new_object<Pointer>(as<Class>(self));
     obj->pointer = malloc(size->to_native());;
     obj->autorelease = false;
     obj->set_finalizer = false;
