@@ -736,6 +736,8 @@ class String
 
     while match
       if str = match.pre_match_from(last_end)
+        enc = Rubinius::Type.compatible_encoding ret, str
+        ret.force_encoding enc
         ret.append str
       end
 
@@ -751,6 +753,9 @@ class String
         val = val.to_s unless val.kind_of?(String)
 
         tainted ||= val.tainted?
+
+        enc = Rubinius::Type.compatible_encoding ret, val
+        ret.force_encoding enc
         ret.append val
 
         if !@data.equal?(orig_data) or @num_bytes != orig_len
@@ -785,7 +790,11 @@ class String
     Regexp.last_match = last_match
 
     str = byteslice(last_end, @num_bytes-last_end+1)
-    ret.append str if str
+    if str
+      enc = Rubinius::Type.compatible_encoding ret, str
+      ret.force_encoding enc
+      ret.append str
+    end
 
     ret.taint if tainted
     ret.untrust if untrusted
