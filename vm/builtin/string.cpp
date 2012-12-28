@@ -980,7 +980,9 @@ namespace rubinius {
     }
 
     if(lim > 0 && byte_size() > lim) {
+      unshare(state);
       num_bytes(state, Fixnum::from(lim));
+      num_chars(state, nil<Fixnum>());
       byte_address()[byte_size()] = 0;
     }
     return num_bytes();
