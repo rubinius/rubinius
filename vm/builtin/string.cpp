@@ -1706,9 +1706,12 @@ namespace rubinius {
       for(i = 0; i < k && p < e; i++) {
         int c = Encoding::precise_mbclen(p, e, enc);
 
-        if(!ONIGENC_MBCLEN_CHARFOUND_P(c)) return nil<Fixnum>();
-
-        p += ONIGENC_MBCLEN_CHARFOUND_LEN(c);
+        // If it's an invalid byte, just treat it as a single byte
+        if(!ONIGENC_MBCLEN_CHARFOUND_P(c)) {
+          ++p;
+        } else {
+          p += ONIGENC_MBCLEN_CHARFOUND_LEN(c);
+        }
       }
 
       if(i < k) {
