@@ -92,9 +92,18 @@ def install_capi_include(prefix, destination)
   end
 end
 
+def install_lib_excludes(prefix, list)
+  list.exclude("#{prefix}/**/ext/melbourne/build/*.*")
+  ["18", "19", "20"].each do |ver|
+    unless BUILD_CONFIG[:version_list].include? ver
+      list.exclude("#{prefix}/#{ver}")
+    end
+  end
+end
+
 def install_build_lib(prefix, target)
   list = FileList["#{prefix}/**/*.*", "#{prefix}/**/*"]
-  list.exclude("#{prefix}/**/ext/melbourne/build/*.*")
+  install_lib_excludes prefix, list
 
   list.each do |name|
     install_file name, prefix, "#{target}#{BUILD_CONFIG[:libdir]}"
@@ -103,7 +112,7 @@ end
 
 def install_lib(prefix, target)
   list = FileList["#{prefix}/**/*.rb", "#{prefix}/**/rubygems/**/*"]
-  list.exclude("#{prefix}/**/ext/melbourne/build/*.*")
+  install_lib_excludes prefix, list
 
   list.each do |name|
     install_file name, prefix, "#{target}#{BUILD_CONFIG[:libdir]}"
