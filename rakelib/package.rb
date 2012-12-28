@@ -74,7 +74,7 @@ class RubiniusPackager
 
   # passed verbatim to --prefix
   def prefix
-    default = "/usr/local/rubinius/#{rbx_version}"
+    default = "/rubinius/#{rbx_version}"
     default += ".#{release}" if release
     default += "-#{ruby_version}" if single_version?
     @prefix || default
@@ -105,7 +105,7 @@ class RubiniusPackager
 
   # "zip", "tar.gz", "tar.bz2"
   def archive
-    @archive || "tar.gz"
+    @archive || "tar.bz2"
   end
 
   # name of the final package file minus #archive
@@ -125,18 +125,20 @@ class RubiniusPackager
   end
 
   def create_archive(package_name)
-    case archive
-    when "zip"
-      sh "zip --symlinks -r #{package_name} *"
-    when "tar.gz"
-      sh "tar -c -f - * | gzip > #{package_name}"
-    when "tar.bz2"
-      sh "tar -c -f - * | bzip2 -9 > #{package_name}"
-    else
-      raise RuntimeError, "unknown archive format: #{archive}"
-    end
+    name = "#{BUILD_CONFIG[:sourcedir]}/#{package_name}"
 
-    sh "mv #{root}/#{package_name} #{BUILD_CONFIG[:sourcedir]}"
+    Dir.chdir root do
+      case archive
+      when "zip"
+        sh "zip --symlinks -r #{name} *"
+      when "tar.gz"
+        sh "tar -c -f - * | gzip > #{name}"
+      when "tar.bz2"
+        sh "tar -c -f - * | bzip2 -9 > #{name}"
+      else
+        raise RuntimeError, "unknown archive format: #{archive}"
+      end
+    end
   end
 
   def build
@@ -160,8 +162,7 @@ class RubiniusPackager
       sh "ln -sf #{bin} #{bin_link}"
     end
 
-    Dir.chdir(root) { create_archive package_name }
-
+    create_archive package_name
     write_md5_digest_file package_name
     write_sha1_digest_file package_name
   rescue Object => e
