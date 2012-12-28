@@ -545,15 +545,11 @@ describe "String#gsub with pattern and block" do
     end
 
     it "raises an Encoding::CompatibilityError if the encodings are not compatible" do
-      s  = "ћello"
-      s2 = "hllëllo"
-      s3 = "hellö"
-      s4 = 'Русский'.force_encoding("iso-8859-5")
+      s = "hllëllo"
+      s2 = "hellö"
 
       lambda { s.gsub(/l/) { |bar| "Русский".force_encoding("iso-8859-5") } }.should raise_error(Encoding::CompatibilityError)
       lambda { s2.gsub(/l/) { |bar| "Русский".force_encoding("iso-8859-5") } }.should raise_error(Encoding::CompatibilityError)
-      lambda { s3.gsub(/l/) { |bar| "Русский".force_encoding("iso-8859-5") } }.should raise_error(Encoding::CompatibilityError)
-      lambda { s4.gsub(/с/) { |bar| "ћallö" } }.should raise_error(Encoding::CompatibilityError)
     end
 
     it "replaces the incompatible part properly even if the encodings are not compatible" do
@@ -704,15 +700,11 @@ describe "String#gsub! with pattern and block" do
     end
 
     it "raises an Encoding::CompatibilityError if the encodings are not compatible" do
-      s  = "ћello"
-      s2 = "hllëllo"
-      s3 = "hellö"
-      s4 = 'Русский'.force_encoding("iso-8859-5")
+      s = "hllëllo"
+      s2 = "hellö"
 
       lambda { s.gsub!(/l/) { |bar| "Русский".force_encoding("iso-8859-5") } }.should raise_error(Encoding::CompatibilityError)
       lambda { s2.gsub!(/l/) { |bar| "Русский".force_encoding("iso-8859-5") } }.should raise_error(Encoding::CompatibilityError)
-      lambda { s3.gsub!(/l/) { |bar| "Русский".force_encoding("iso-8859-5") } }.should raise_error(Encoding::CompatibilityError)
-      lambda { s4.gsub!(/с/) { |bar| "ћallö" } }.should raise_error(Encoding::CompatibilityError)
     end
 
     it "replaces the incompatible part properly even if the encodings are not compatible" do
