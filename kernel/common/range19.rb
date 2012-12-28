@@ -13,7 +13,7 @@ class Range
 
   def max(&block)
     return super(&block) if block_given? || (@excl && !@end.kind_of?(Numeric))
-    return nil unless @end > @begin
+    return nil if @end < @begin || (@excl && @end == @begin)
 
     if @excl
       unless @end.kind_of?(Integer)
