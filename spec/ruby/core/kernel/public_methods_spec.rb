@@ -28,6 +28,10 @@ describe "Kernel#public_methods" do
       m.extend(KernelSpecs::Methods::MetaclassMethods)
       m.public_methods.should include('peekaboo')
     end
+
+    it "returns public methods for immediates" do
+      10.public_methods.should include('divmod')
+    end
   end
 
   ruby_version_is "1.9" do
@@ -53,6 +57,10 @@ describe "Kernel#public_methods" do
       m = KernelSpecs::Methods.new
       m.extend(KernelSpecs::Methods::MetaclassMethods)
       m.public_methods.should include(:peekaboo)
+    end
+
+    it "returns public methods for immediates" do
+      10.public_methods.should include(:divmod)
     end
   end
 end
