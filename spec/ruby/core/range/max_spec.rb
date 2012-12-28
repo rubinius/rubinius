@@ -28,7 +28,14 @@ ruby_version_is "1.8.7" do
     it "returns nil when the endpoint is less than the start point" do
       (100..10).max.should be_nil
       ('z'..'l').max.should be_nil
+    end
+
+    it "returns nil when the endpoint equals the start point and the range is exclusive" do
       (5...5).max.should be_nil
+    end
+
+    it "returns the endpoint when the endpoint equals the start point and the range is inclusive" do
+      (5..5).max.should equal(5)
     end
 
     ruby_version_is "1.9" do
