@@ -173,6 +173,10 @@ describe "String#slice! with index, length" do
       "hellö there".send(@method, 1,9).should == "ellö ther"
     end
 
+    it "treats invalid bytes as single bytes" do
+      "a\xE6\xCBb".send(@method, 1, 2).should == "\xe6\xcb"
+    end
+
   end
 end
 
