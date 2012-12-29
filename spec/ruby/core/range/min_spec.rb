@@ -22,7 +22,14 @@ ruby_version_is "1.8.7" do
     it "returns nil when the start point is greater than the endpoint" do
       (100..10).min.should be_nil
       ('z'..'l').min.should be_nil
+    end
+
+    it "returns nil when the endpoint equals the start point and the range is exclusive" do
       (7...7).min.should be_nil
+    end
+
+    it "returns the start point when the endpoint equals the start point and the range is inclusive" do
+      (7..7).min.should equal(7)
     end
 
     ruby_version_is "1.9" do
