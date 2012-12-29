@@ -1327,6 +1327,8 @@ VALUE rb_uint2big(unsigned long number);
 
   /** Mark ruby object ptr. */
   void    rb_gc_mark(VALUE ptr);
+  /** Mark a list of Ruby object ptr's. */
+  void    rb_gc_mark_locations(VALUE*, VALUE*);
 
   /**
    * Marks an object if it is in the heap. Equivalent to rb_gc_mark in

@@ -55,6 +55,13 @@ extern "C" {
     }
   }
 
+  void rb_gc_mark_locations(VALUE *start, VALUE *end) {
+    VALUE *v = start;
+    while (v < end) {
+      rb_gc_mark(*v++);
+    }
+  }
+
   /* In MRI, this function marks an object if it can be determined
    * to be in the heap.
    */
