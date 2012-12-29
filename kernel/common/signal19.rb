@@ -28,7 +28,7 @@ module Signal
       old = @handlers.delete(number)
 
       if number != Names["EXIT"]
-        Rubinius.watch_signal(-number, prc.nil?)
+        Rubinius.watch_signal(-number, prc.nil? || prc == 'IGNORE')
       end
 
       return "DEFAULT" unless had_old
