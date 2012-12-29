@@ -23,7 +23,7 @@ describe "Socket#connect_nonblock" do
       rescue Errno::EINPROGRESS
         IO.select(nil, [@socket])
         r = @socket.getsockopt(Socket::SOL_SOCKET, Socket::SO_ERROR)
-        if r.int == Errno::ECONNREFUSED::Errno
+        if r == [Errno::ECONNREFUSED::Errno].pack('i')
           raise Errno::ECONNREFUSED.new
         else
           raise r.inspect
