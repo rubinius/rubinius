@@ -1044,56 +1044,6 @@ step1:
     state->checkpoint(gct, 0);
   }
 
-  void ObjectMemory::run_finalizers(STATE, CallFrame* call_frame) {
-    {
-      SCOPE_LOCK(state->vm(), finalizer_lock_);
-      if(running_finalizers_) return;
-      running_finalizers_ = true;
-    }
-
-    for(std::list<FinalizeObject*>::iterator i = to_finalize_.begin();
-        i != to_finalize_.end(); ) {
-      FinalizeObject* fi = *i;
-
-      if(fi->finalizer) {
-        (*fi->finalizer)(state, fi->object);
-        // Unhook any handle used by fi->object so that we don't accidentally
-        // try and mark it later (after we've finalized it)
-        if(capi::Handle* handle = fi->object->handle(state)) {
-          handle->forget_object();
-          fi->object->clear_handle(state);
-        }
-
-        // If the object was remembered, unremember it.
-        if(fi->object->remembered_p()) {
-          unremember_object(fi->object);
-        }
-      } else if(fi->ruby_finalizer) {
-        // Rubinius specific code. If the finalizer is cTrue, then
-        // send the object the finalize message
-        if(fi->ruby_finalizer == cTrue) {
-          fi->object->send(state, call_frame, state->symbol("__finalize__"));
-        } else {
-          Array* ary = Array::create(state, 1);
-          ary->set(state, 0, fi->object->id(state));
-
-          OnStack<1> os(state, ary);
-
-          fi->ruby_finalizer->send(state, call_frame, G(sym_call), ary);
-        }
-      } else {
-        std::cerr << "Unsupported object to be finalized: "
-                  << fi->object->to_s(state)->c_str(state) << std::endl;
-      }
-
-      fi->status = FinalizeObject::eFinalized;
-
-      i = to_finalize_.erase(i);
-    }
-
-    running_finalizers_ = false;
-  }
-
   void ObjectMemory::run_all_finalizers(STATE) {
     {
       SCOPE_LOCK(state->vm(), finalizer_lock_);

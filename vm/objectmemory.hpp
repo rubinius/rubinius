@@ -361,7 +361,6 @@ namespace rubinius {
 
     void needs_finalization(Object* obj, FinalizerFunction func);
     void set_ruby_finalizer(Object* obj, Object* fin);
-    void run_finalizers(STATE, CallFrame* call_frame);
     void run_all_finalizers(STATE);
     void run_all_io_finalizers(STATE);
 
