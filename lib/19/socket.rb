@@ -357,7 +357,7 @@ class Socket < BasicSocket
       hints[:ai_protocol] = protocol
       hints[:ai_flags] = flags
 
-      if host && host.empty?
+      if host && (host.empty? || host == '<any>')
         host = "0.0.0.0"
       end
 
@@ -686,6 +686,16 @@ class Socket < BasicSocket
     addrinfos.each do |a|
       alternatives << a[2] unless a[2] == hostname
       addresses    << a[3] if a[4] == family
+    end
+
+    addresses.map! do |addr|
+      if addr =~ /(\d+)\.(\d+)\.(\d+)\.(\d+)/
+        s = ''
+        $~[1..4].each { |v| s << v.to_i.chr }
+        s
+      else
+        addr
+      end
     end
 
     [hostname, alternatives.uniq, family] + addresses.uniq
