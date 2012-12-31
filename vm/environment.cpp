@@ -609,8 +609,6 @@ namespace rubinius {
       state->checkpoint(gct, 0);
     }
 
-    NativeMethod::cleanup_thread(state);
-
     {
       GCIndependent guard(state);
       shared->auxiliary_threads()->shutdown(state);
@@ -620,10 +618,9 @@ namespace rubinius {
     while(!state->stop_the_world()) {
       state->checkpoint(gct, 0);
     }
-    shared->om->run_all_io_finalizers(state);
+    shared->om->run_all_finalizers(state);
 
-    // TODO: temporarily disable to sort out finalizing Pointer objects
-    // shared->om->run_all_finalizers(state);
+    NativeMethod::cleanup_thread(state);
   }
 
   /**
