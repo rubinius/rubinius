@@ -288,7 +288,6 @@ namespace rubinius {
     if(!fib->data_) return;
     fib->data_->orphan(state);
 
-    if(fib->root_) fib->data_->die();
     delete fib->data_;
     fib->data_ = NULL;
 #endif
