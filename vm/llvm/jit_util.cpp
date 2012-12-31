@@ -249,6 +249,7 @@ extern "C" {
     if(kind_of<String>(obj)) return obj;
 
     Arguments args(cache->name, obj, cNil, 0, 0);
+    OnStack<1> os(state, obj);
     Object* ret = cache->execute(state, call_frame, args);
     if(!ret) return 0;
 
