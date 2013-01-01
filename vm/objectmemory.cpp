@@ -1087,51 +1087,6 @@ step1:
     running_finalizers_ = false;
   }
 
-  void ObjectMemory::run_all_io_finalizers(STATE) {
-    {
-      SCOPE_LOCK(state->vm(), finalizer_lock_);
-      if(running_finalizers_) return;
-      running_finalizers_ = true;
-    }
-
-    for(std::list<FinalizeObject>::iterator i = finalize_.begin();
-        i != finalize_.end(); )
-    {
-      FinalizeObject& fi = *i;
-
-      if(!kind_of<IO>(fi.object)) { ++i; continue; }
-
-      // Only finalize things that haven't been finalized.
-      if(fi.status != FinalizeObject::eFinalized) {
-        if(fi.finalizer) {
-          (*fi.finalizer)(state, fi.object);
-        } else if(fi.ruby_finalizer) {
-          // Rubinius specific code. If the finalizer is cTrue, then
-          // send the object the finalize message
-          if(fi.ruby_finalizer == cTrue) {
-            fi.object->send(state, 0, state->symbol("__finalize__"));
-          } else {
-            Array* ary = Array::create(state, 1);
-            ary->set(state, 0, fi.object->id(state));
-
-            OnStack<1> os(state, ary);
-
-            fi.ruby_finalizer->send(state, 0, G(sym_call), ary);
-          }
-        } else {
-          std::cerr << "During shutdown, unsupported object to be finalized: "
-                    << fi.object->to_s(state)->c_str(state) << std::endl;
-        }
-      }
-
-      fi.status = FinalizeObject::eFinalized;
-
-      i = finalize_.erase(i);
-    }
-
-    running_finalizers_ = false;
-  }
-
   Object* in_finalizer(STATE) {
     state->shared().om->in_finalizer_thread(state);
     return cNil;
