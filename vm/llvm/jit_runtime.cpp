@@ -15,6 +15,10 @@ namespace rubinius {
 namespace jit {
 
   RuntimeDataHolder::~RuntimeDataHolder() {
+    for(std::list<RuntimeData*>::iterator i = runtime_data_.begin();
+          i != runtime_data_.end(); ++i) {
+      delete *i;
+    }
     runtime_data_.clear();
   }
 

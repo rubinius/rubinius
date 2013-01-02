@@ -84,11 +84,10 @@ namespace rubinius {
     }
 
     for(std::list<capi::GlobalHandle*>::iterator i = global_handle_locations_.begin();
-          i != global_handle_locations_.end();
-          ++i) {
-      capi::GlobalHandle* global_handle = *i;
-      delete global_handle;
+          i != global_handle_locations_.end(); ++i) {
+      delete *i;
     }
+    global_handle_locations_.clear();
 
     delete global_handles_;
     delete tool_broker_;
