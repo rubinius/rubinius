@@ -445,8 +445,6 @@ namespace rubinius {
 
     state->vm()->set_const("ARGV", ary);
 
-    ruby_init_setproctitle(argc, argv);
-
     // Now finish up with the config
     if(config.print_config > 1) {
       std::cout << "========= Configuration =========\n";
