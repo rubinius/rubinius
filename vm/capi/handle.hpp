@@ -87,12 +87,14 @@ namespace rubinius {
         if(update_) (*update_)(env, this);
       }
 
+#define RBX_CAPI_HANDLE_CHECKSUM    0xffff
+
       bool valid_p() const {
-        return checksum_ & 0xffff;
+        return checksum_ == RBX_CAPI_HANDLE_CHECKSUM;
       }
 
       void validate() {
-        checksum_ = 0xffff;
+        checksum_ = RBX_CAPI_HANDLE_CHECKSUM;
       }
 
       void invalidate() {
