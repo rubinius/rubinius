@@ -235,6 +235,8 @@ namespace rubinius {
 
       // If we added anything, then exec, otherwise fall through and fail.
       if(idx > 0) execvp(args[0], args);
+      // If we failed, clean up the args.
+      delete[] args;
     }
   }
 
