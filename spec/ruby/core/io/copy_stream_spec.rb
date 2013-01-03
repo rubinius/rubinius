@@ -20,11 +20,6 @@ ruby_version_is "1.9" do
       @to_name.should have_data("Line one")
     end
 
-    it "copies only length bytes from the offset" do
-      IO.copy_stream(@object.from, @to_name, 8, 4).should == 8
-      @to_name.should have_data(" one\n\nLi")
-    end
-
     it "calls #to_path to convert on object to a file name" do
       obj = mock("io_copy_stream_to")
       obj.should_receive(:to_path).and_return(@to_name)
@@ -38,6 +33,13 @@ ruby_version_is "1.9" do
       obj.should_receive(:to_path).and_return(1)
 
       lambda { IO.copy_stream(@object.from, obj) }.should raise_error(TypeError)
+    end
+  end
+
+  describe :io_copy_stream_to_file_with_offset, :shared => true do
+    it "copies only length bytes from the offset" do
+      IO.copy_stream(@object.from, @to_name, 8, 4).should == 8
+      @to_name.should have_data(" one\n\nLi")
     end
   end
 
@@ -80,7 +82,9 @@ ruby_version_is "1.9" do
       IO.copy_stream(@object.from, @to_io, 8).should == 8
       @to_name.should have_data("Line one")
     end
+  end
 
+  describe :io_copy_stream_to_io_with_offset, :shared => true do
     it "copies only length bytes from the offset" do
       IO.copy_stream(@object.from, @to_io, 8, 4).should == 8
       @to_name.should have_data(" one\n\nLi")
@@ -140,6 +144,7 @@ ruby_version_is "1.9" do
 
       describe "to a file name" do
         it_behaves_like :io_copy_stream_to_file, nil, IOSpecs::CopyStream
+        it_behaves_like :io_copy_stream_to_file_with_offset, nil, IOSpecs::CopyStream
       end
 
       describe "to an IO" do
@@ -152,6 +157,7 @@ ruby_version_is "1.9" do
         end
 
         it_behaves_like :io_copy_stream_to_io, nil, IOSpecs::CopyStream
+        it_behaves_like :io_copy_stream_to_io_with_offset, nil, IOSpecs::CopyStream
       end
     end
 
@@ -173,6 +179,50 @@ ruby_version_is "1.9" do
         obj.should_receive(:to_path).and_return(1)
 
         lambda { IO.copy_stream(obj, @to_name) }.should raise_error(TypeError)
+      end
+
+      describe "to a file name" do
+        it_behaves_like :io_copy_stream_to_file, nil, IOSpecs::CopyStream
+        it_behaves_like :io_copy_stream_to_file_with_offset, nil, IOSpecs::CopyStream
+      end
+
+      describe "to an IO" do
+        before :each do
+          @to_io = File.open @to_name, "wb"
+        end
+
+        after :each do
+          @to_io.close
+        end
+
+        it_behaves_like :io_copy_stream_to_io, nil, IOSpecs::CopyStream
+        it_behaves_like :io_copy_stream_to_io_with_offset, nil, IOSpecs::CopyStream
+      end
+    end
+
+    describe "from a pipe IO" do
+      before :each do
+        @from_io = IO.popen "cat #{@from_name}"
+        IOSpecs::CopyStream.from = @from_io
+      end
+
+      after :each do
+        @from_io.close
+      end
+
+      it "raises an IOError if the source IO is not open for reading" do
+        @from_io.close
+        @from_io = File.open @from_name, "a"
+        lambda { IO.copy_stream @from_io, @to_name }.should raise_error(IOError)
+      end
+
+      it "does not close the source IO" do
+        IO.copy_stream(@from_io, @to_name)
+        @from_io.closed?.should be_false
+      end
+
+      it "raises an error when an offset is specified" do
+        lambda { IO.copy_stream(@from_io, @to_name, 8, 4) }.should raise_error(Errno::ESPIPE)
       end
 
       describe "to a file name" do

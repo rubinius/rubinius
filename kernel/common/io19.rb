@@ -274,7 +274,11 @@ class IO
       @from.ensure_open_and_readable
       @to.ensure_open_and_writable
 
-      saved_pos = @from.pos if @from_io
+      begin
+        saved_pos = @from.pos if @from_io
+      rescue Errno::ESPIPE
+        saved_pos = 0
+      end
 
       @from.seek @offset, IO::SEEK_CUR if @offset
 
