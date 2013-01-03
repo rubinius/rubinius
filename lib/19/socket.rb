@@ -691,12 +691,28 @@ class Socket < BasicSocket
     end
 
     addresses.map! do |addr|
-      if addr =~ /(\d+)\.(\d+)\.(\d+)\.(\d+)/
-        s = ''
-        $~[1..4].each { |v| s << v.to_i.chr }
-        s
+      case addr
+      when /^\d+\.\d+\.\d+\.\d+$/
+        # IPv4 address
+        addr.split('.').map(&:to_i).pack('C*')
+      when /^::(ffff:)?(\d+\.\d+\.\d+\.\d+)$/i
+        # IPv4-mapped and IPv4-compatible IPv6 address
+        constant_bytes = "\x00" * 10
+        if $1
+          constant_bytes += "\xff" * 2
+        else
+          constant_bytes += "\x00" * 2
+        end
+        constant_bytes + $2.split('.').map(&:to_i).pack('C*')
       else
-        addr
+        # IPv6 address
+        left, right = addr.split('::')
+        right ||= ''
+        l = left.split(':')
+        r = right.split(':')
+        rest = 8 - l.size - r.size
+        ary = l + ['0'] * rest + r
+        ary.map { |v| v.to_i(16) }.pack('n8')
       end
     end
 
