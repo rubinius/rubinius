@@ -305,7 +305,7 @@ class IO
         @from.close
       end
 
-      @to.close unless @to_io
+      @to.close unless @to_io || @to.closed?
     end
   end
 

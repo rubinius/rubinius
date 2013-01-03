@@ -1,5 +1,6 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
+require 'stringio'
 
 ruby_version_is "1.9" do
   describe :io_copy_stream_to_file, :shared => true do
@@ -226,6 +227,29 @@ ruby_version_is "1.9" do
       describe "to an IO" do
         before :each do
           @to_io = new_io @to_name, "wb"
+        end
+
+        after :each do
+          @to_io.close
+        end
+
+        it_behaves_like :io_copy_stream_to_io, nil, IOSpecs::CopyStream
+      end
+    end
+
+    describe "from a string IO" do
+      before :each do
+        @from_io = StringIO.new(@content)
+        IOSpecs::CopyStream.from = @from_io
+      end
+
+      describe "to a file name" do
+        it_behaves_like :io_copy_stream_to_file, nil, IOSpecs::CopyStream
+      end
+
+      describe "to an IO" do
+        before :each do
+          @to_io = new_io @to_name, "w:utf-8"
         end
 
         after :each do
