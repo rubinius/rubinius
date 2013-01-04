@@ -40,13 +40,7 @@ namespace rubinius {
   }
 
   Object* MarkSweepGC::allocate(size_t bytes, bool *collect_now) {
-    Object* obj;
-
-#ifdef USE_DLMALLOC
-    obj = reinterpret_cast<Object*>(malloc_.allocate(bytes));
-#else
-    obj = reinterpret_cast<Object*>(malloc(bytes));
-#endif
+    Object* obj = reinterpret_cast<Object*>(malloc(bytes));
 
     // If the allocation failed, we return a NULL pointer
     if(unlikely(!obj)) {
@@ -81,11 +75,7 @@ namespace rubinius {
 
     obj->set_zone(UnspecifiedZone);
 
-#ifdef USE_DLMALLOC
-    malloc_.release(reinterpret_cast<void*>(obj));
-#else
     free(reinterpret_cast<void*>(obj));
-#endif
   }
 
   Object* MarkSweepGC::move_object(Object* orig, size_t bytes,

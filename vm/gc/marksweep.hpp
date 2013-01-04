@@ -9,10 +9,6 @@
 
 #include "call_frame_list.hpp"
 
-#ifdef USE_DLMALLOC
-#include "util/dlmalloc_cpp.hpp"
-#endif
-
 namespace rubinius {
 
   /* Forwards */
@@ -26,10 +22,6 @@ namespace rubinius {
 
   private:
       MarkStack mark_stack_;
-
-#ifdef USE_DLMALLOC
-      DLMalloc malloc_;
-#endif
 
   public:
     /* Data members */
