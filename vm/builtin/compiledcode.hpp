@@ -121,6 +121,8 @@ namespace rubinius {
 
     String* full_name(STATE);
 
+    bool kernel_method(STATE);
+
     void set_interpreter(executor interp);
 
     class Info : public Executable::Info {

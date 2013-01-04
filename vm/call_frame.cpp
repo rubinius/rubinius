@@ -66,11 +66,11 @@ namespace rubinius {
     return 0;
   }
 
-  void CallFrame::print_backtrace(STATE, int total) {
-    print_backtrace(state, std::cout, total);
+  void CallFrame::print_backtrace(STATE, int total, bool filter) {
+    print_backtrace(state, std::cout, total, filter);
   }
 
-  void CallFrame::print_backtrace(STATE, std::ostream& stream, int total) {
+  void CallFrame::print_backtrace(STATE, std::ostream& stream, int total, bool filter) {
     CallFrame* cf = this;
 
     int i = -1;
@@ -79,9 +79,9 @@ namespace rubinius {
       i++;
 
       if(total > 0 && i == total) return;
-      stream << static_cast<void*>(cf) << ": ";
 
       if(NativeMethodFrame* nmf = cf->native_method_frame()) {
+        stream << static_cast<void*>(cf) << ": ";
         NativeMethod* nm = try_as<NativeMethod>(nmf->get_object(nmf->method()));
         if(nm && nm->name()->symbol_p()) {
           stream << "capi:" << nm->name()->debug_str(state) << " at ";
@@ -99,6 +99,13 @@ namespace rubinius {
         cf = cf->previous;
         continue;
       }
+
+      if(filter && cf->compiled_code->kernel_method(state)) {
+        cf = cf->previous;
+        continue;
+      }
+
+      stream << static_cast<void*>(cf) << ": ";
 
       if(cf->is_block_p(state)) {
         stream << "__block__";

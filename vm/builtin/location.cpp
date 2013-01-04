@@ -123,12 +123,6 @@ namespace rubinius {
     return bt;
   }
 
-  static bool kernel_method(STATE, CompiledCode* code) {
-    std::string s = code->file()->cpp_str(state);
-    if(s.size() >= 7 && strncmp(s.data(), "kernel/", 7) == 0) return true;
-    return false;
-  }
-
   Array* Location::mri_backtrace(STATE, CallFrame* call_frame) {
     size_t count = 0;
 
@@ -143,7 +137,7 @@ namespace rubinius {
     while(call_frame) {
       // Ignore synthetic frames
       if(call_frame->compiled_code &&
-         !kernel_method(state, call_frame->compiled_code)) {
+         !call_frame->compiled_code->kernel_method(state)) {
         Symbol* name;
         Object* block = cFalse;
         Fixnum* line = Fixnum::from(call_frame->line(state));
