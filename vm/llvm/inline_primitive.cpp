@@ -950,7 +950,6 @@ namespace rubinius {
 
       Value* call_args[] = { ops.state() };
       CallInst* res = sig.call("rbx_float_allocate", call_args, 1, "result", ops.b());
-      res->setOnlyReadsMemory();
       res->setDoesNotThrow();
 
       ops.b().CreateStore(
@@ -1157,7 +1156,6 @@ namespace rubinius {
       // not have the semantics that it does. Allocation of this object
       // can be removed if this value is never used afterwards and the
       // allocation can be elided in that case.
-      out->setOnlyReadsMemory();
       out->setDoesNotThrow();
 
       i.set_result(out);
