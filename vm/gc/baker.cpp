@@ -266,10 +266,6 @@ namespace rubinius {
     Heap *x = next;
     next = current;
     current = x;
-    next->reset();
-
-    // Reset eden to empty
-    eden.reset();
 
     if(stats) {
       stats->lifetime = lifetime_;

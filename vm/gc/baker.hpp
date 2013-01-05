@@ -19,6 +19,10 @@
 
 #include "util/thread.hpp"
 
+#ifdef HAVE_VALGRIND_H
+#include <valgrind/memcheck.h>
+#endif
+
 namespace rubinius {
 
   class GCData;
@@ -259,6 +263,16 @@ namespace rubinius {
     /// Returns the last address in the young generation
     void* last_address() {
       return full.last();
+    }
+
+    void reset() {
+      next->reset();
+      eden.reset();
+
+#ifdef HAVE_VALGRIND_H
+      VALGRIND_MAKE_MEM_NOACCESS(next->start().as_int(), next->size());
+      VALGRIND_MAKE_MEM_DEFINED(current->start().as_int(), current->size());
+#endif
     }
 
   public:

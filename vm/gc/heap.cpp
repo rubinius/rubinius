@@ -58,8 +58,10 @@ namespace rubinius {
   void Heap::reset() {
     current_ = start_;
     scan_ = start_;
+#ifdef BAKER_DEBUG
+    memset(start_, 0xff, size_);
+#endif
   }
-
 
   /**
    * Moves +orig+ Object into this Heap, and sets a forwarding pointer to the

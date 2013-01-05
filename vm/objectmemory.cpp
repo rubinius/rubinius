@@ -626,6 +626,7 @@ step1:
       }
     }
 
+    young_->reset();
   }
 
   void ObjectMemory::collect_mature(GCData& data) {
