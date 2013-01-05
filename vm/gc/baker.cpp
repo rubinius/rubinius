@@ -139,6 +139,11 @@ namespace rubinius {
    */
   void BakerGC::collect(GCData& data, YoungCollectStats* stats) {
 
+#ifdef HAVE_VALGRIND_H
+    VALGRIND_MAKE_MEM_DEFINED(next->start().as_int(), next->size());
+    VALGRIND_MAKE_MEM_DEFINED(current->start().as_int(), current->size());
+#endif
+
     Object* tmp;
     ObjectArray *current_rs = object_memory_->swap_remember_set();
 
