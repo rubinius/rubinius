@@ -202,7 +202,7 @@ module Kernel
   # if defined.
   #
   def dup
-    copy = Rubinius.invoke_primitive(:object_class, self).allocate
+    copy = Rubinius::Type.object_class(self).allocate
 
     Rubinius.invoke_primitive :object_copy_object, copy, self
 
@@ -228,8 +228,7 @@ module Kernel
   def clone
     # Do not implement in terms of dup. It breaks rails.
     #
-    cls = Rubinius.invoke_primitive :object_class, self
-    copy = cls.allocate
+    copy = Rubinius::Type.object_class(self).allocate
 
     Rubinius.invoke_primitive :object_copy_object, copy, self
     Rubinius.invoke_primitive :object_copy_singleton_class, copy, self
