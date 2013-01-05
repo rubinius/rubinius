@@ -122,7 +122,7 @@ namespace rubinius {
         use_dir = true;
       }
       if(use_dir) {
-        snprintf(report_path, PATH_MAX, "%s/%s_%d", report_path, report_file_name, pid);
+        snprintf(report_path + strlen(report_path), PATH_MAX, "/%s_%d", report_file_name, pid);
       } else {
         snprintf(report_path, PATH_MAX, "%s/.%s_%d", home, report_file_name, pid);
       }
