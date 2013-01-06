@@ -39,6 +39,7 @@ namespace rubinius {
     rdata->dfree = free;
 
     data->internal_ = rdata;
+    data->freed_    = false;
 
     // If this Data requires a free function, register this object
     // as needing finalization.
@@ -73,7 +74,7 @@ namespace rubinius {
     // MRI only calls free if the data_ptr is not NULL.
     void* data_ptr = data->data(state);
 
-    if(data_ptr) {
+    if(data_ptr && !data->freed_p()) {
       Data::FreeFunctor f = data->free(state);
       if(f) {
         // If the user specifies -1, then we call free. We check here rather
@@ -85,6 +86,7 @@ namespace rubinius {
           f(data_ptr);
         }
       }
+      data->set_freed();
     }
   }
 
@@ -92,6 +94,8 @@ namespace rubinius {
     auto_mark(t, mark);
 
     Data* data = force_as<Data>(t);
+
+    if(data->freed_p()) return;
 
     RDataShadow* rdata = data->rdata();
 

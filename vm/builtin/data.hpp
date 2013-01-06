@@ -26,6 +26,7 @@ namespace rubinius {
 
   private:
     RDataShadow* internal_;
+    bool freed_;
 
   public:   /* Interface */
 
@@ -36,6 +37,14 @@ namespace rubinius {
     static Data*  create(STATE, void* data, MarkFunctor mark, FreeFunctor free);
 
     static void finalize(STATE, Data* data);
+
+    bool freed_p() {
+      return freed_;
+    }
+
+    void set_freed() {
+      freed_ = true;
+    }
 
     RDataShadow* rdata(STATE) {
       return internal_;
