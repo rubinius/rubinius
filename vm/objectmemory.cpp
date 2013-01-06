@@ -929,7 +929,7 @@ step1:
     fi.finalizer = func;
 
     // Makes a copy of fi.
-    finalize_.push_back(fi);
+    finalize_.push_front(fi);
   }
 
   void ObjectMemory::set_ruby_finalizer(Object* obj, Object* fin) {
@@ -972,7 +972,7 @@ step1:
     }
 
     // Makes a copy of fi.
-    finalize_.push_back(fi);
+    finalize_.push_front(fi);
   }
 
   void ObjectMemory::add_to_finalize(FinalizeObject* fi) {
