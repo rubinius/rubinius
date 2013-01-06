@@ -360,18 +360,11 @@ namespace rubinius {
         case FinalizeObject::eLive:
           if(!i->object->forwarded_p()) {
             // Run C finalizers now rather that queue them.
-            if(i->finalizer) {
-              State state_obj(state());
-              (*i->finalizer)(&state_obj, i->object);
-              i->status = FinalizeObject::eFinalized;
-              remove = true;
-            } else {
-              i->queued();
-              object_memory_->add_to_finalize(&fi);
+            i->queued();
+            object_memory_->add_to_finalize(&fi);
 
-              // We need to keep it alive still.
-              i->object = saw_object(orig);
-            }
+            // We need to keep it alive still.
+            i->object = saw_object(orig);
           } else {
             // Still alive, update the reference.
             i->object = saw_object(orig);
