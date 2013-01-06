@@ -1010,17 +1010,6 @@ step1:
 
       if(fi->finalizer) {
         (*fi->finalizer)(state, fi->object);
-        // Unhook any handle used by fi->object so that we don't accidentally
-        // try and mark it later (after we've finalized it)
-        if(capi::Handle* handle = fi->object->handle(state)) {
-          handle->forget_object();
-          fi->object->clear_handle(state);
-        }
-
-        // If the object was remembered, unremember it.
-        if(fi->object->remembered_p()) {
-          unremember_object(fi->object);
-        }
       } else if(fi->ruby_finalizer) {
         // Rubinius specific code. If the finalizer is cTrue, then
         // send the object the finalize message
@@ -1037,6 +1026,17 @@ step1:
       } else {
         std::cerr << "Unsupported object to be finalized: "
                   << fi->object->to_s(state)->c_str(state) << std::endl;
+      }
+      // Unhook any handle used by fi->object so that we don't accidentally
+      // try and mark it later (after we've finalized it)
+      if(capi::Handle* handle = fi->object->handle(state)) {
+        handle->forget_object();
+        fi->object->clear_handle(state);
+      }
+
+      // If the object was remembered, unremember it.
+      if(fi->object->remembered_p()) {
+        unremember_object(fi->object);
       }
 
       fi->status = FinalizeObject::eFinalized;
