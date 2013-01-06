@@ -357,8 +357,10 @@ class Socket < BasicSocket
       hints[:ai_protocol] = protocol
       hints[:ai_flags] = flags
 
-      if host && host.empty?
+      if host && (host.empty? || host == '<any>')
         host = "0.0.0.0"
+      elsif host == '<broadcast>'
+        host = '255.255.255.255'
       end
 
       res_p = FFI::MemoryPointer.new :pointer
