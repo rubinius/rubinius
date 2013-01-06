@@ -1008,9 +1008,7 @@ step1:
         to_finalize_.pop_front();
       }
 
-      if(fi->finalizer) {
-        (*fi->finalizer)(state, fi->object);
-      } else if(fi->ruby_finalizer) {
+      if(fi->ruby_finalizer) {
         // Rubinius specific code. If the finalizer is cTrue, then
         // send the object the finalize message
         if(fi->ruby_finalizer == cTrue) {
@@ -1023,9 +1021,10 @@ step1:
 
           fi->ruby_finalizer->send(state, call_frame, G(sym_call), ary);
         }
-      } else {
-        std::cerr << "Unsupported object to be finalized: "
-                  << fi->object->to_s(state)->c_str(state) << std::endl;
+      }
+
+      if(fi->finalizer) {
+        (*fi->finalizer)(state, fi->object);
       }
       // Unhook any handle used by fi->object so that we don't accidentally
       // try and mark it later (after we've finalized it)
