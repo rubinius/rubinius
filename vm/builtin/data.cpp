@@ -70,9 +70,9 @@ namespace rubinius {
 
   void Data::finalize(STATE, Data* data) {
     // MRI only calls free if the data_ptr is not NULL.
-    void* data_ptr = data->data(state);
+    void* data_ptr;
 
-    if(data_ptr && !data->freed_p()) {
+    if(!data->freed_p() && (data_ptr = data->data(state))) {
       Data::FreeFunctor f = data->free(state);
       if(f) {
         // If the user specifies -1, then we call free. We check here rather
