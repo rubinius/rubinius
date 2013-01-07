@@ -6,7 +6,7 @@ require 'socket'
 describe "Socket#gethostbyname" do
   it "returns broadcast address info for '<broadcast>'" do
     addr = Socket.gethostbyname('<broadcast>').first;
-    addr.should == "255.255.255.255"
+    ["broadcasthost", "255.255.255.255"].should include(addr)
   end
 
   it "returns broadcast address info for '<any>'" do
