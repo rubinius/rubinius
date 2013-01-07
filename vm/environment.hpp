@@ -13,6 +13,7 @@ namespace rubinius {
   class ConfigParser;
   class QueryAgent;
   class SignalHandler;
+  class FinalizerHandler;
 
   /**
    * Thrown when unable to find Rubinius runtime directories.
@@ -56,7 +57,8 @@ namespace rubinius {
     // The Ruby library version with which the .rbc file is compatible.
     int version_;
 
-    SignalHandler* sig_handler_;
+    SignalHandler* signal_handler_;
+    FinalizerHandler* finalizer_handler_;
 
     std::string system_prefix_;
 
@@ -108,6 +110,7 @@ namespace rubinius {
     int exit_code(STATE);
 
     void start_signals();
+    void start_finalizer();
     void start_agent(int port);
   };
 
