@@ -1,6 +1,3 @@
-#ifndef RBX_GC_FINALIZE_HPP
-#define RBX_GC_FINALIZE_HPP
-
 namespace rubinius {
 
   class Object;
@@ -34,5 +31,3 @@ namespace rubinius {
     }
   };
 }
-
-#endif

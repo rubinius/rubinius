@@ -32,7 +32,6 @@
 #endif
 
 #include "signal.hpp"
-#include "finalizer.hpp"
 #include "object_utils.hpp"
 
 #include "inline_cache.hpp"
@@ -83,8 +82,7 @@ namespace rubinius {
     , argv_(argv)
     , signature_(0)
     , version_(0)
-    , signal_handler_(NULL)
-    , finalizer_handler_(NULL)
+    , sig_handler_(NULL)
   {
 #ifdef ENABLE_LLVM
     if(!llvm::llvm_start_multithreaded()) {
@@ -135,8 +133,7 @@ namespace rubinius {
   }
 
   Environment::~Environment() {
-    delete signal_handler_;
-    delete finalizer_handler_;
+    delete sig_handler_;
 
     VM::discard(state, root_vm);
     SharedState::discard(shared);
@@ -315,7 +312,7 @@ namespace rubinius {
 #endif
 
     state->vm()->set_run_signals(true);
-    signal_handler_ = new SignalHandler(state);
+    sig_handler_ = new SignalHandler(state);
 
 #ifndef RBX_WINDOWS
     // Ignore sigpipe.
@@ -350,10 +347,6 @@ namespace rubinius {
 #endif  // ifndef RBX_WINDOWS
 
     signal(SIGTERM, quit_handler);
-  }
-
-  void Environment::start_finalizer() {
-    finalizer_handler_ = new FinalizerHandler(state);
   }
 
   void Environment::load_vm_options(int argc, char**argv) {
@@ -899,7 +892,6 @@ namespace rubinius {
     load_kernel(runtime);
 
     start_signals();
-    start_finalizer();
     run_file(runtime + "/loader.rbc");
 
     state->vm()->thread_state()->clear();

@@ -21,11 +21,11 @@
 #include "windows_compat.h"
 
 namespace rubinius {
-  static SignalHandler* signal_handler_ = 0;
+  static SignalHandler* handler_ = 0;
   pthread_t main_thread;
 
-  Object* signal_handler_tramp(STATE) {
-    state->shared().signal_handler()->perform(state);
+  Object* handle_tramp(STATE) {
+    handler_->perform(state);
     return cNil;
   }
 
@@ -38,7 +38,7 @@ namespace rubinius {
     , exit_(false)
     , thread_(state)
   {
-    signal_handler_ = this;
+    handler_ = this;
     main_thread = pthread_self();
 
     shared_.auxiliary_threads()->register_thread(this);
@@ -62,7 +62,7 @@ namespace rubinius {
     SYNC(state);
     if(self_) return;
     self_ = state->shared().new_vm();
-    thread_.set(Thread::create(state, self_, G(thread), signal_handler_tramp, false, true));
+    thread_.set(Thread::create(state, self_, G(thread), handle_tramp, false, true));
     run(state);
 
   }
@@ -180,7 +180,7 @@ namespace rubinius {
   }
 
   void SignalHandler::signal_tramp(int sig) {
-    signal_handler_->handle_signal(sig);
+    handler_->handle_signal(sig);
   }
 
   void SignalHandler::handle_signal(int sig) {

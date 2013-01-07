@@ -37,7 +37,6 @@ namespace rubinius {
   }
 
   class SignalHandler;
-  class FinalizerHandler;
   class ObjectMemory;
   class GlobalCache;
   class ConfigParser;
@@ -66,7 +65,6 @@ namespace rubinius {
     bool initialized_;
     AuxiliaryThreads* auxiliary_threads_;
     SignalHandler* signal_handler_;
-    FinalizerHandler* finalizer_handler_;
 
     capi::Handles* global_handles_;
     std::list<capi::Handle*> cached_handles_;
@@ -139,14 +137,7 @@ namespace rubinius {
       signal_handler_ = thr;
     }
 
-    FinalizerHandler* finalizer_handler() {
-      return finalizer_handler_;
-    }
-
-    void set_finalizer_handler(FinalizerHandler* thr) {
-      finalizer_handler_ = thr;
-    }
-
+    static SharedState* standalone(VM*);
     VM* new_vm();
     void remove_vm(VM*);
 

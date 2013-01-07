@@ -33,7 +33,6 @@ namespace rubinius {
     : initialized_(false)
     , auxiliary_threads_(0)
     , signal_handler_(0)
-    , finalizer_handler_(0)
     , global_handles_(new capi::Handles)
     , global_serial_(0)
     , world_(new WorldState)
