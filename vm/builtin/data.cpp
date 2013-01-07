@@ -41,9 +41,7 @@ namespace rubinius {
     data->internal_ = rdata;
     data->freed_    = false;
 
-    // If this Data requires a free function, register this object
-    // as needing finalization.
-    if(free) {
+    if(mark || free) {
       state->memory()->needs_finalization(data, (FinalizerFunction)&Data::finalize);
     }
 
