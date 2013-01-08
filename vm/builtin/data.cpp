@@ -69,10 +69,13 @@ namespace rubinius {
   }
 
   void Data::finalize(STATE, Data* data) {
-    // MRI only calls free if the data_ptr is not NULL.
-    void* data_ptr;
+    if(data->freed_p()) {
+      std::cerr << "Data::finalize called for already freed object" << std::endl;
+      return;
+    }
 
-    if(!data->freed_p() && (data_ptr = data->data(state))) {
+    // MRI only calls free if the data_ptr is not NULL.
+    if(void* data_ptr = data->data(state)) {
       Data::FreeFunctor f = data->free(state);
       if(f) {
         // If the user specifies -1, then we call free. We check here rather
@@ -93,7 +96,10 @@ namespace rubinius {
 
     Data* data = force_as<Data>(t);
 
-    if(data->freed_p()) return;
+    if(data->freed_p()) {
+      std::cerr << "Data::Info::mark called for already freed object" << std::endl;
+      return;
+    }
 
     RDataShadow* rdata = data->rdata();
 
