@@ -119,6 +119,8 @@ namespace rubinius {
         }
       }
 
+      state->vm()->set_call_frame(0);
+
       if(!fi) {
         utilities::thread::Mutex::LockGuard lg(lock_);
         GCIndependent indy(state);
@@ -126,8 +128,6 @@ namespace rubinius {
         if(exit_) return;
         continue;
       }
-
-      state->vm()->set_call_frame(0);
 
       if(fi->ruby_finalizer) {
         /*
