@@ -258,8 +258,7 @@ namespace rubinius {
       }
     }
 
-    vm->thread->init_lock_.lock();
-
+    vm->set_call_frame(0);
 
     std::list<ObjectHeader*>& los = vm->locked_objects();
     for(std::list<ObjectHeader*>::iterator i = los.begin();
@@ -268,6 +267,7 @@ namespace rubinius {
       (*i)->unlock_for_terminate(state, gct);
     }
 
+    vm->thread->init_lock_.lock();
     NativeMethod::cleanup_thread(state);
 
     vm->thread->alive(state, cFalse);
@@ -276,7 +276,6 @@ namespace rubinius {
 
     // Clear the call_frame, so that if we wait for GC going independent,
     // the GC doesn't see pointers into now-unallocated CallFrames
-    vm->set_call_frame(0);
     vm->shared.gc_independent(state);
     vm->shared.clear_critical(state);
 
