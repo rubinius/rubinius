@@ -24,6 +24,7 @@ namespace rubinius {
 
     TypedRoot<Thread*> thread_;
     std::list<FinalizeObject*> queue_;
+    utilities::thread::Mutex queue_guard_;
     utilities::thread::Mutex lock_;
     utilities::thread::Condition cond_;
     bool exit_;

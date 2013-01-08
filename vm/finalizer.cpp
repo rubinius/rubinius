@@ -33,6 +33,7 @@ namespace rubinius {
     shared_.auxiliary_threads()->register_thread(this);
     shared_.set_finalizer_handler(this);
 
+    queue_guard_.init();
     lock_.init();
     cond_.init();
 
@@ -105,21 +106,25 @@ namespace rubinius {
     state->vm()->thread->hard_unlock(state, gct);
 
     while(!exit_) {
-      FinalizeObject* fi;
+      FinalizeObject* fi = 0;
 
       // Take the lock, remove the first one from the list,
       // then process it.
       {
-        utilities::thread::Mutex::LockGuard lg(lock_);
+        utilities::thread::Mutex::LockGuard lg(queue_guard_);
 
-        while(queue_.empty()) {
-          GCIndependent indy(state);
-          cond_.wait(lock_);
-          if(exit_) return;
+        if(!queue_.empty()) {
+          fi = queue_.front();
+          queue_.pop_front();
         }
+      }
 
-        fi = queue_.front();
-        queue_.pop_front();
+      if(!fi) {
+        utilities::thread::Mutex::LockGuard lg(lock_);
+        GCIndependent indy(state);
+        cond_.wait(lock_);
+        if(exit_) return;
+        continue;
       }
 
       state->vm()->set_call_frame(0);
@@ -171,8 +176,9 @@ namespace rubinius {
   }
 
   void FinalizerHandler::schedule(FinalizeObject* fi) {
-    utilities::thread::Mutex::LockGuard lg(lock_);
+    utilities::thread::Mutex::LockGuard lg(queue_guard_);
     queue_.push_back(fi);
+    cond_.signal();
   }
 
   void FinalizerHandler::signal() {
