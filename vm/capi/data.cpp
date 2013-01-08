@@ -15,7 +15,7 @@ namespace rubinius {
       Data* data = as<Data>(object_);
 
       if(data->freed_p()) {
-        // rb_raise(rb_eArgError, "Data object has already been freed");
+        rb_raise(rb_eArgError, "Data object has already been freed");
       }
 
       if(type_ == cRData) {

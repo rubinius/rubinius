@@ -20,6 +20,7 @@ namespace rubinius {
     Data* data;
 
     data = state->new_object<Data>(G(data));
+    data->freed_ = false;
 
     // Data is just a heap alias for the handle, so go ahead and create
     // the handle and populate it as an RData now.
@@ -39,7 +40,6 @@ namespace rubinius {
     rdata->dfree = free;
 
     data->internal_ = rdata;
-    data->freed_    = false;
 
     if(mark || free) {
       state->memory()->needs_finalization(data, (FinalizerFunction)&Data::finalize);
