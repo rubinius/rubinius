@@ -74,7 +74,6 @@ namespace rubinius {
         handle->update(NativeMethodEnvironment::get());
       }
     } else {
-      assert(!try_as<Data>(obj));
       handle = state->shared().add_global_handle(state, obj);
       handles_.add_if_absent(handle);
     }

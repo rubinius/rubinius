@@ -190,15 +190,7 @@ namespace rubinius {
         as_.next_index_ = next_index;
       }
 
-      RData*  create_rdata(NativeMethodEnvironment* env);
-      RData*  as_rdata(NativeMethodEnvironment* env) {
-        if(type_ == cRData) {
-          return as_.rdata;
-        } else {
-          return create_rdata(env);
-        }
-      }
-
+      RData*  as_rdata(NativeMethodEnvironment* env);
       RArray* as_rarray(NativeMethodEnvironment* env);
       RString* as_rstring(NativeMethodEnvironment* env, int cache_level);
       RFloat* as_rfloat(NativeMethodEnvironment* env);
