@@ -104,8 +104,6 @@ namespace rubinius {
 
     state->vm()->thread->hard_unlock(state, gct);
 
-    CallFrame* call_frame = 0;
-
     while(!exit_) {
       FinalizeObject* fi;
 
@@ -125,19 +123,32 @@ namespace rubinius {
       }
 
       state->vm()->set_call_frame(0);
+
       if(fi->ruby_finalizer) {
-        // Rubinius specific code. If the finalizer is cTrue, then
-        // send the object the finalize message
-        if(fi->ruby_finalizer == cTrue) {
-          fi->object->send(state, call_frame, state->symbol("__finalize__"));
-        } else {
-          Array* ary = Array::create(state, 1);
-          ary->set(state, 0, fi->object->id(state));
+        /*
+         * TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
+         * TODO
+         * TODO Temporarily disabling running Ruby finalizers until issues
+         * TODO can be resolved. Yes, this will cause memory leaks. Memory
+         * TODO leaks are better than segfaults.
+         * TODO
+         * TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
+         */
 
-          OnStack<1> os(state, ary);
+        // CallFrame* call_frame = 0;
 
-          fi->ruby_finalizer->send(state, call_frame, G(sym_call), ary);
-        }
+        // // Rubinius specific code. If the finalizer is cTrue, then
+        // // send the object the finalize message
+        // if(fi->ruby_finalizer == cTrue) {
+        //   fi->object->send(state, call_frame, state->symbol("__finalize__"));
+        // } else {
+        //   Array* ary = Array::create(state, 1);
+        //   ary->set(state, 0, fi->object->id(state));
+
+        //   OnStack<1> os(state, ary);
+
+        //   fi->ruby_finalizer->send(state, call_frame, G(sym_call), ary);
+        // }
       }
 
       if(fi->finalizer) {
@@ -157,7 +168,6 @@ namespace rubinius {
 
       fi->status = FinalizeObject::eFinalized;
     }
-
   }
 
   void FinalizerHandler::schedule(FinalizeObject* fi) {
