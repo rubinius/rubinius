@@ -134,13 +134,13 @@ namespace rubinius {
 
         // Rubinius specific code. If the finalizer is cTrue, then
         // send the object the finalize message
-        //if(fi->ruby_finalizer == cTrue) {
-        //  fi->object->send(state, call_frame, state->symbol("__finalize__"));
-        //} else {
-        //  Array* ary = Array::create(state, 1);
-        //  ary->set(state, 0, fi->object->id(state));
-        //  fi->ruby_finalizer->send(state, call_frame, G(sym_call), ary);
-        //}
+        if(fi->ruby_finalizer == cTrue) {
+          fi->object->send(state, call_frame, state->symbol("__finalize__"));
+        } else {
+          Array* ary = Array::create(state, 1);
+          ary->set(state, 0, fi->object->id(state));
+          fi->ruby_finalizer->send(state, call_frame, G(sym_call), ary);
+        }
       }
 
       if(fi->finalizer) {
