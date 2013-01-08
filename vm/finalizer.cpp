@@ -140,20 +140,17 @@ namespace rubinius {
          * TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
          */
 
-        // CallFrame* call_frame = 0;
+        CallFrame* call_frame = 0;
 
-        // // Rubinius specific code. If the finalizer is cTrue, then
-        // // send the object the finalize message
-        // if(fi->ruby_finalizer == cTrue) {
-        //   fi->object->send(state, call_frame, state->symbol("__finalize__"));
-        // } else {
-        //   Array* ary = Array::create(state, 1);
-        //   ary->set(state, 0, fi->object->id(state));
-
-        //   OnStack<1> os(state, ary);
-
-        //   fi->ruby_finalizer->send(state, call_frame, G(sym_call), ary);
-        // }
+        // Rubinius specific code. If the finalizer is cTrue, then
+        // send the object the finalize message
+        if(fi->ruby_finalizer == cTrue) {
+          fi->object->send(state, call_frame, state->symbol("__finalize__"));
+        } else {
+          Array* ary = Array::create(state, 1);
+          ary->set(state, 0, fi->object->id(state));
+          fi->ruby_finalizer->send(state, call_frame, G(sym_call), ary);
+        }
       }
 
       if(fi->finalizer) {
