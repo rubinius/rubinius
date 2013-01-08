@@ -167,23 +167,14 @@ namespace rubinius {
     /// True if finalizers are currently being run.
     bool running_finalizers_;
 
-    /// True if finalizers were added in this GC cycle.
-    bool added_finalizers_;
-
-    /// A mutex which protects running the finalizers
+    /// A mutex which protects registering finalizers
     rubinius::Mutex finalizer_lock_;
-
-    /// A condition variable used to control access to
-    /// to_finalize_
-    utilities::thread::Condition finalizer_var_;
 
     /// Mutex used to manage lock contention
     utilities::thread::Mutex contention_lock_;
 
     /// Condition variable used to manage lock contention
     utilities::thread::Condition contention_var_;
-
-    TypedRoot<Thread*> finalizer_thread_;
 
     SharedState& shared_;
 
@@ -381,9 +372,6 @@ namespace rubinius {
     InflatedHeader* inflate_header(STATE, ObjectHeader* obj);
     void inflate_for_id(STATE, ObjectHeader* obj, uint32_t id);
     void inflate_for_handle(STATE, ObjectHeader* obj, capi::Handle* handle);
-
-    void in_finalizer_thread(STATE);
-    void start_finalizer_thread(STATE);
 
     /// This only has one use! Don't use it!
     Object* allocate_object_raw(size_t bytes);
