@@ -130,16 +130,6 @@ namespace rubinius {
       }
 
       if(fi->ruby_finalizer) {
-        /*
-         * TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-         * TODO
-         * TODO Temporarily disabling running Ruby finalizers until issues
-         * TODO can be resolved. Yes, this will cause memory leaks. Memory
-         * TODO leaks are better than segfaults.
-         * TODO
-         * TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-         */
-
         CallFrame* call_frame = 0;
 
         // Rubinius specific code. If the finalizer is cTrue, then
