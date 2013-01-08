@@ -70,7 +70,8 @@ namespace rubinius {
 
   void Data::finalize(STATE, Data* data) {
     if(data->freed_p()) {
-      std::cerr << "Data::finalize called for already freed object" << std::endl;
+      // TODO: Fix the issue of finalizer ordering.
+      // std::cerr << "Data::finalize called for already freed object" << std::endl;
       return;
     }
 
@@ -97,7 +98,8 @@ namespace rubinius {
     Data* data = force_as<Data>(t);
 
     if(data->freed_p()) {
-      std::cerr << "Data::Info::mark called for already freed object" << std::endl;
+      // TODO: Fix the issue of finalizer ordering.
+      // std::cerr << "Data::Info::mark called for already freed object" << std::endl;
       return;
     }
 
