@@ -14,6 +14,7 @@
 #include "on_stack.hpp"
 
 #include "builtin/array.hpp"
+#include "builtin/data.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/nativemethod.hpp"
 #include "builtin/string.hpp"
@@ -73,6 +74,7 @@ namespace rubinius {
         handle->update(NativeMethodEnvironment::get());
       }
     } else {
+      assert(!try_as<Data>(obj));
       handle = state->shared().add_global_handle(state, obj);
       handles_.add_if_absent(handle);
     }
