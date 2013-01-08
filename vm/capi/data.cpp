@@ -15,9 +15,9 @@ namespace rubinius {
       type_ = cRData;
 
       RData* rdata = new RData;
-      // Yes, we initialize it with garbage data. This is because when
-      // Data creates this, it makes sure to initialize it before
-      // anyone sees it.
+      rdata->data = 0;
+      rdata->dmark = 0;
+      rdata->dfree = 0;
 
       as_.rdata = rdata;
 
