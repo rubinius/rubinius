@@ -40,6 +40,46 @@ describe "FFI::Platform::IS_WINDOWS" do
   end
 end
 
+describe "FFI::Platform::IS_MAC" do
+  platform_is :linux do
+    it "returns false" do
+      FFI::Platform::IS_MAC.should == false
+    end
+  end
+
+  platform_is :windows do
+    it "returns false" do
+      FFI::Platform::IS_MAC.should == false
+    end
+  end
+
+  platform_is :darwin do
+    it "returns true" do
+      FFI::Platform::IS_MAC.should == true
+    end
+  end
+end
+
+describe "FFI::Platform::IS_LINUX" do
+  platform_is :linux do
+    it "returns true" do
+      FFI::Platform::IS_LINUX.should == true
+    end
+  end
+
+  platform_is :windows do
+    it "returns false" do
+      FFI::Platform::IS_LINUX.should == false
+    end
+  end
+
+  platform_is :darwin do
+    it "returns false" do
+      FFI::Platform::IS_LINUX.should == false
+    end
+  end
+end
+
 describe "FFI::Platform::ARCH" do
   it "returns the architecture type" do
     FFI::Platform::ARCH.should == Rubinius::CPU
