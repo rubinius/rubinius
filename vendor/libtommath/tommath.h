@@ -547,7 +547,7 @@ int mp_read_radix MPA(mp_int *a, const char *str, int radix);
 int mp_toradix MPA(mp_int *a, char *str, int radix);
 int mp_toradix_n MPA(mp_int * a, char *str, int radix, int maxlen);
 int mp_toradix_nd MPA(mp_int * a, char *str, int radix, int maxlen, int *digits);
-int mp_radix_size MPA(mp_int *a, int radix, int *size);
+int mp_radix_size(mp_int *a, int radix, int *size);
 int mp_radix_bits_size(int bits, int radix, int *size);
 
 int mp_fread MPA(mp_int *a, int radix, FILE *stream);
