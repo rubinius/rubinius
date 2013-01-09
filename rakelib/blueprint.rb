@@ -16,8 +16,10 @@ Daedalus.blueprint do |i|
   gcc.cflags << "-mno-omit-leaf-frame-pointer" if Rubinius::BUILD_CONFIG[:cc] == "clang"
 
   # We don't need RTTI information, so disable it. This makes it possible
-  # to link Rubinius to an LLVM build with RTTI disabled.
-  gcc.cxxflags << "-fno-rtti"
+  # to link Rubinius to an LLVM build with RTTI disabled. We also enable
+  # visibility-inlines-hidden for slightly smaller code size and prevents
+  # warnings when LLVM is also built with this flag.
+  gcc.cxxflags << "-fno-rtti -fvisibility-inlines-hidden"
 
   gcc.cflags << "-Wno-unused-function"
   gcc.cflags << "-g -Werror"
