@@ -130,6 +130,8 @@ module FFI
 
   # Converts a pointer to opaque data
   add_typedef TYPE_PTR,     :pointer
+  add_typedef TYPE_PTR,     :buffer_in
+  add_typedef TYPE_PTR,     :buffer_out
 
   # For when a function has no return value
   add_typedef TYPE_VOID,    :void
