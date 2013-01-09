@@ -23,9 +23,7 @@ extern "C" {
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
-#ifdef __OpenBSD__
 #include <inttypes.h>
-#endif
 
 
 #define WORDINDEX_SHIFT_BITS 2
