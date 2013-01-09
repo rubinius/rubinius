@@ -551,10 +551,6 @@ namespace jit {
       sig << "State";
       sig << "CallFrame";
 
-      Function* func_ci = sig.function("rbx_check_interrupts");
-      func_ci->setDoesNotCapture(1);
-      func_ci->setDoesNotCapture(2);
-
       Value* call_args[] = { info_.vm(), call_frame };
 
       BasicBlock* ret_null = info_.new_block("ret_null");
