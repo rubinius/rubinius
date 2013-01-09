@@ -139,7 +139,6 @@ static NODE *block_append(rb_parser_state*,NODE*,NODE*);
 static NODE *list_append(rb_parser_state*,NODE*,NODE*);
 static NODE *list_concat(NODE*,NODE*);
 static NODE *arg_concat(rb_parser_state*,NODE*,NODE*);
-static NODE *arg_prepend(rb_parser_state*,NODE*,NODE*);
 static NODE *literal_concat(rb_parser_state*,NODE*,NODE*);
 static NODE *new_evstr(rb_parser_state*,NODE*);
 static NODE *evstr2dstr(rb_parser_state*,NODE*);
@@ -5844,27 +5843,6 @@ arg_blk_pass(NODE *node1, NODE *node2)
         return node2;
     }
     return node1;
-}
-
-static NODE*
-arg_prepend(rb_parser_state *parser_state, NODE *node1, NODE *node2)
-{
-    switch (nd_type(node2)) {
-      case NODE_ARRAY:
-        return list_concat(NEW_LIST(node1), node2);
-
-      case NODE_SPLAT:
-        return arg_concat(parser_state, node1, node2->nd_head);
-
-      case NODE_BLOCK_PASS:
-        node2->nd_body = arg_prepend(parser_state, node1, node2->nd_body);
-        return node2;
-
-      default:
-        printf("unknown nodetype(%d) for arg_prepend", nd_type(node2));
-        abort();
-    }
-    return 0;                   /* not reached */
 }
 
 static NODE*
