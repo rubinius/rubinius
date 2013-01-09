@@ -125,3 +125,17 @@ describe "FFI::Platform::OS" do
     end
   end
 end
+
+describe "FFI::Platform::BYTE_ORDER" do
+  little_endian do
+    it "should be equal to LITTLE_ENDIAN" do
+      FFI::Platform::BYTE_ORDER.should == FFI::Platform::LITTLE_ENDIAN
+    end
+  end
+
+  big_endian do
+    it "should be equal to BIG_ENDIAN" do
+      FFI::Platform::BYTE_ORDER.should == FFI::Platform::BIG_ENDIAN
+    end
+  end
+end
