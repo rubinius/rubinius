@@ -354,7 +354,7 @@ namespace rubinius {
 
       // Process a few commands...
       if(ret == state->symbol("step")) {
-        state->vm()->get_attention();
+        state->vm()->check_local_interrupts = true;
         state->vm()->set_thread_step();
       }
 

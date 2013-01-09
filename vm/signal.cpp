@@ -171,7 +171,6 @@ namespace rubinius {
 
         {
           target_->check_local_interrupts = true;
-          target_->get_attention();
           target_->wakeup(state, gct);
 
         }

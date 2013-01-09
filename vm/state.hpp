@@ -95,13 +95,9 @@ namespace rubinius {
 
     bool check_stack(CallFrame* call_frame, void* end) {
       // @TODO assumes stack growth direction
-      if(vm_->stack_limit_ == vm_->stack_start_) {
-        vm_->reset_stack_limit();
-      } else {
-        if(unlikely(reinterpret_cast<uintptr_t>(end) < vm_->stack_limit_)) {
-          raise_stack_error(call_frame);
-          return false;
-        }
+      if(unlikely(vm_->detect_stack_condition(end))) {
+        raise_stack_error(call_frame);
+        return false;
       }
       return true;
     }
