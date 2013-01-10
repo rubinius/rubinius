@@ -9,9 +9,9 @@ class StringScanner
   def pos=(n)
     n = Integer(n)
 
-    n += @string.size if n < 0
+    n += @string.bytesize if n < 0
 
-    if n < 0 or n > @string.size
+    if n < 0 or n > @string.bytesize
       raise RangeError, "index out of range (#{n})"
     end
 
@@ -94,10 +94,10 @@ class StringScanner
       if eos?
         str = "#<StringScanner fin>"
       else
-        if string.size - pos > 5
+        if string.bytesize - pos > 5
           rest = "#{string[pos..pos+4]}..."
         else
-          rest = string[pos..string.size]
+          rest = string[pos..string.bytesize]
         end
 
         if pos > 0
@@ -107,9 +107,9 @@ class StringScanner
             prev = string[0...pos]
           end
 
-          str = "#<StringScanner #{pos}/#{string.size} #{prev.inspect} @ #{rest.inspect}>"
+          str = "#<StringScanner #{pos}/#{string.bytesize} #{prev.inspect} @ #{rest.inspect}>"
         else
-          str = "#<StringScanner #{pos}/#{string.size} @ #{rest.inspect}>"
+          str = "#<StringScanner #{pos}/#{string.bytesize} @ #{rest.inspect}>"
         end
       end
 
@@ -223,7 +223,7 @@ class StringScanner
 
   def terminate
     @match = nil
-    @pos = string.size
+    @pos = string.bytesize
     self
   end
 
