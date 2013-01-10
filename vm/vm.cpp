@@ -68,10 +68,7 @@ namespace rubinius {
     , saved_call_frame_(0)
     , fiber_stacks_(this, shared)
     , park_(new Park)
-    , stack_start_(0)
     , run_signals_(false)
-    , thread_step_(false)
-
     , shared(shared)
     , waiting_channel_(this, nil<Channel>())
     , interrupted_exception_(this, nil<Exception>())
@@ -83,9 +80,6 @@ namespace rubinius {
     , custom_wakeup_data_(0)
     , om(shared.om)
     , thread_state_(this)
-    , interrupt_with_signal_(false)
-    , interrupt_by_kill_(false)
-    , check_local_interrupts(false)
   {
     if(shared.om) {
       local_slab_.refill(0, 0);
@@ -343,18 +337,18 @@ namespace rubinius {
   }
 
   void VM::interrupt_with_signal() {
-    interrupt_with_signal_ = true;
+    vm_jit_.interrupt_with_signal_ = true;
   }
 
   bool VM::wakeup(STATE, GCToken gct) {
     SYNC(state);
 
-    check_local_interrupts = true;
+    set_check_local_interrupts();
 
     if(park_->parked_p()) {
       park_->unpark();
       return true;
-    } else if(interrupt_with_signal_) {
+    } else if(vm_jit_.interrupt_with_signal_) {
 #ifdef RBX_WINDOWS
       // TODO: wake up the thread
 #else
@@ -391,7 +385,7 @@ namespace rubinius {
 
   void VM::clear_waiter() {
     SYNC_TL;
-    interrupt_with_signal_ = false;
+    vm_jit_.interrupt_with_signal_ = false;
     waiting_channel_.set(nil<Channel>());
     waiting_header_ = 0;
     custom_wakeup_ = 0;
@@ -416,7 +410,7 @@ namespace rubinius {
   }
 
   bool VM::waiting_p() {
-    return park_->parked_p() || interrupt_with_signal_ || !waiting_channel_->nil_p();
+    return park_->parked_p() || vm_jit_.interrupt_with_signal_ || !waiting_channel_->nil_p();
   }
 
   void VM::set_sleeping() {
@@ -430,13 +424,13 @@ namespace rubinius {
   void VM::register_raise(STATE, Exception* exc) {
     SYNC(state);
     interrupted_exception_.set(exc);
-    check_local_interrupts = true;
+    set_check_local_interrupts();
   }
 
   void VM::register_kill(STATE) {
     SYNC(state);
-    interrupt_by_kill_ = true;
-    check_local_interrupts = true;
+    set_interrupt_by_kill();
+    set_check_local_interrupts();
   }
 
   void VM::set_current_fiber(Fiber* fib) {

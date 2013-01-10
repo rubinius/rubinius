@@ -18,7 +18,7 @@ namespace rubinius {
   }
 
   bool State::process_async(CallFrame* call_frame) {
-    vm_->check_local_interrupts = false;
+    vm_->clear_check_local_interrupts();
 
     if(vm_->run_signals_) {
       if(!vm_->shared.signal_handler()->deliver_signals(this, call_frame)) {
@@ -38,8 +38,8 @@ namespace rubinius {
       vm_->thread_state_.raise_exception(exc);
       return false;
     }
-    if(vm_->interrupt_by_kill_) {
-      vm_->interrupt_by_kill_ = false;
+    if(vm_->interrupt_by_kill()) {
+      vm_->clear_interrupt_by_kill();
       vm_->thread_state_.raise_thread_kill();
       return false;
     }
@@ -65,7 +65,7 @@ namespace rubinius {
     // it now.
     if(!check_stack(call_frame, end)) return false;
 
-    if(unlikely(vm_->check_local_interrupts)) {
+    if(unlikely(check_local_interrupts())) {
       if(!process_async(call_frame)) return false;
     }
 

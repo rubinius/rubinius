@@ -3,6 +3,7 @@
 
 #include "missing/time.h"
 
+#include "vm_jit.hpp"
 #include "globals.hpp"
 #include "gc/object_mark.hpp"
 #include "gc/managed.hpp"
@@ -83,6 +84,7 @@ namespace rubinius {
 
   class VM : public ManagedThread {
     friend class State;
+    friend class VMJIT;
 
   private:
     UnwindInfoSet unwinds_;
@@ -92,16 +94,13 @@ namespace rubinius {
     Park* park_;
     rbxti::Env* tooling_env_;
 
-    uintptr_t stack_start_;
-    uintptr_t stack_limit_;
-    int stack_size_;
-
     uintptr_t root_stack_start_;
     uintptr_t root_stack_size_;
 
+    VMJIT vm_jit_;
+
     MethodMissingReason method_missing_reason_;
     bool run_signals_;
-    bool thread_step_;
     bool tooling_;
     bool allocation_tracking_;
 
@@ -127,10 +126,6 @@ namespace rubinius {
     ObjectMemory* om;
 
     ThreadState thread_state_;
-
-    bool interrupt_with_signal_;
-    bool interrupt_by_kill_;
-    bool check_local_interrupts;
 
     static unsigned long cStackDepthMax;
 
@@ -177,16 +172,16 @@ namespace rubinius {
     }
 
     void* stack_start() {
-      return reinterpret_cast<void*>(stack_start_);
+      return reinterpret_cast<void*>(vm_jit_.stack_start_);
     }
 
     int stack_size() {
-      return stack_size_;
+      return vm_jit_.stack_size_;
     }
 
     void reset_stack_limit() {
       // @TODO assumes stack growth direction
-      stack_limit_ = (stack_start_ - stack_size_) + (4096 * 10);
+      vm_jit_.stack_limit_ = (vm_jit_.stack_start_ - vm_jit_.stack_size_) + (4096 * 10);
     }
 
     void set_stack_bounds(uintptr_t start, int length) {
@@ -195,8 +190,8 @@ namespace rubinius {
         length = root_stack_size_;
       }
 
-      stack_start_ = start;
-      stack_size_ = length;
+      vm_jit_.stack_start_ = start;
+      vm_jit_.stack_size_ = length;
       reset_stack_limit();
     }
 
@@ -209,7 +204,7 @@ namespace rubinius {
 
     bool detect_stack_condition(void* end) {
       // @TODO assumes stack growth direction
-      return reinterpret_cast<uintptr_t>(end) < stack_limit_;
+      return reinterpret_cast<uintptr_t>(end) < vm_jit_.stack_limit_;
     }
 
     MethodMissingReason method_missing_reason() {
@@ -221,15 +216,39 @@ namespace rubinius {
     }
 
     bool thread_step() {
-      return thread_step_;
+      return vm_jit_.thread_step_;
     }
 
     void clear_thread_step() {
-      thread_step_ = false;
+      vm_jit_.thread_step_ = false;
     }
 
     void set_thread_step() {
-      thread_step_ = true;
+      vm_jit_.thread_step_ = true;
+    }
+
+    bool check_local_interrupts() {
+      return vm_jit_.check_local_interrupts_;
+    }
+
+    void clear_check_local_interrupts() {
+      vm_jit_.check_local_interrupts_ = false;
+    }
+
+    void set_check_local_interrupts() {
+      vm_jit_.check_local_interrupts_ = true;
+    }
+
+    bool interrupt_by_kill() {
+      return vm_jit_.interrupt_by_kill_;
+    }
+
+    void clear_interrupt_by_kill() {
+      vm_jit_.interrupt_by_kill_ = false;
+    }
+
+    void set_interrupt_by_kill() {
+      vm_jit_.interrupt_by_kill_ = true;
     }
 
     Exception* interrupted_exception() {
@@ -398,7 +417,7 @@ namespace rubinius {
 
     void interrupt_with_signal();
     bool should_interrupt_with_signal() {
-      return interrupt_with_signal_;
+      return vm_jit_.interrupt_with_signal_;
     }
 
     void register_raise(STATE, Exception* exc);

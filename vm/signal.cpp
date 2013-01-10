@@ -170,7 +170,7 @@ namespace rubinius {
         }
 
         {
-          target_->check_local_interrupts = true;
+          target_->set_check_local_interrupts();
           target_->wakeup(state, gct);
 
         }
@@ -188,7 +188,7 @@ namespace rubinius {
     queued_signals_ = 1;
     pending_signals_[sig] = 1;
 
-    target_->check_local_interrupts = true;
+    target_->set_check_local_interrupts();
 
     if(target_->should_interrupt_with_signal()) {
       if(!pthread_equal(pthread_self(), main_thread)) {

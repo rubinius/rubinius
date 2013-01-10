@@ -143,7 +143,7 @@ namespace rubinius {
         return false;
       }
 
-      if(unlikely(state->vm()->check_local_interrupts)) {
+      if(unlikely(state->check_local_interrupts())) {
         if(!state->process_async(call_frame)) return false;
       }
       return true;
