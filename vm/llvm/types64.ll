@@ -1,5 +1,6 @@
 
-%"struct.rubinius::State" = type opaque
+%"struct.rubinius::VM" = type opaque
+%"struct.rubinius::Shared" = type opaque
 %"struct.rubinius::TypeInfo" = type opaque
 %"struct.rubinius::MachineCode" = type opaque
 %"struct.rubinius::Fixnum" = type opaque
@@ -13,6 +14,26 @@
 %"struct.rubinius::InstructionSequence" = type opaque
 %"struct.rubinius::MethodCacheEntry" = type opaque
 %"struct.rubinius::ConstantScope" = type opaque
+
+%"struct.rubinius::VMJIT" = type {
+  i64, ; stack_start
+  i64, ; stack_limit
+  i32, ; stack_size
+   i8, ; interrupt_with_signal
+   i8, ; interrupt_by_kill
+   i8, ; check_local_interrupts
+   i8  ; thread_step
+}
+
+declare void @outputVMJIT(%"struct.rubinius::VMJIT"*)
+
+%"struct.rubinius::State" = type {
+   %"struct.rubinius::VM"*,     ; vm
+   %"struct.rubinius::VMJIT"*,  ; vm_jit
+   %"struct.rubinius::Shared"*  ; shared
+}
+
+declare void @outputState(%"struct.rubinius::State"*)
 
 %"struct.rubinius::Arguments" = type {
    %"struct.rubinius::Symbol"*, ; name
