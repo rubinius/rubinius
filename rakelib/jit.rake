@@ -1,10 +1,10 @@
 namespace :jit do
   task :generate_header do
     puts "GEN vm/llvm/types{32|64}.cpp.gen"
-    `vendor/llvm/Release/bin/llvm-as < vm/llvm/types32.ll > vm/gen/types32.bc`
-    `vendor/llvm/Release/bin/llvm-as < vm/llvm/types64.ll > vm/gen/types64.bc`
-    `vendor/llvm/Release/bin/llc -march=cpp -cppgen=contents -o vm/llvm/types32.cpp.gen vm/gen/types32.bc`
-    `vendor/llvm/Release/bin/llc -march=cpp -cppgen=contents -o vm/llvm/types64.cpp.gen vm/gen/types64.bc`
+    `llvm-as < vm/llvm/types32.ll > vm/gen/types32.bc`
+    `llvm-as < vm/llvm/types64.ll > vm/gen/types64.bc`
+    `llc -march=cpp -cppgen=contents -o vm/llvm/types32.cpp.gen vm/gen/types32.bc`
+    `llc -march=cpp -cppgen=contents -o vm/llvm/types64.cpp.gen vm/gen/types64.bc`
   end
 
   task :generate_offsets do
