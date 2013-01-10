@@ -129,7 +129,8 @@ namespace rubinius {
         continue;
       }
 
-      if(fi->ruby_finalizer) {
+      // TODO: Fix Ruby finalizers.
+      if(fi->ruby_finalizer && 0) {
         CallFrame* call_frame = 0;
 
         // Rubinius specific code. If the finalizer is cTrue, then

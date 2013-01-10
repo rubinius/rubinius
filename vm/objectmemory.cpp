@@ -985,7 +985,8 @@ step1:
 
       // Only finalize things that haven't been finalized.
       if(fi.status != FinalizeObject::eFinalized) {
-        if(fi.ruby_finalizer) {
+        // TODO: Fix Ruby finalizers.
+        if(fi.ruby_finalizer && 0) {
           // Rubinius specific code. If the finalizer is cTrue, then
           // send the object the finalize message
           if(fi.ruby_finalizer == cTrue) {
