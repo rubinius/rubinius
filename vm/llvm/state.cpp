@@ -145,6 +145,14 @@ namespace rubinius {
       pause_condition_.init();
     }
 
+    ~BackgroundCompilerThread() {
+      for(std::list<BackgroundCompileRequest*>::iterator i = pending_requests_.begin();
+          i != pending_requests_.end(); ++i) {
+        delete *i;
+      }
+      pending_requests_.clear();
+    }
+
     void add(BackgroundCompileRequest* req) {
       utilities::thread::Mutex::LockGuard guard(mutex_);
       pending_requests_.push_back(req);
