@@ -395,7 +395,7 @@ namespace rubinius {
           class_name = class_name.substr(k);
         }
 
-        bool found;
+        bool found = false;
         Object* obj = G(mirror)->get_const(state, state->symbol(class_name), &found);
 
         if(found) {

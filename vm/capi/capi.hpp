@@ -37,10 +37,10 @@ namespace rubinius {
     std::string& capi_get_constant_name(int type);
 
     /** Raise a RuntimeError error */
-    void capi_raise_runtime_error(const char* reason);
+    NORETURN(void capi_raise_runtime_error(const char* reason));
 
     /** Raise a TypeError (convenience method). */
-    void capi_raise_type_error(object_type type, Object* object);
+    NORETURN(void capi_raise_type_error(object_type type, Object* object));
 
     /** Raise backend */
     void capi_raise_backend(Exception* exception);

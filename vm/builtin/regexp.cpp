@@ -842,8 +842,6 @@ namespace rubinius {
     if(ByteArray* reg_tmp = force_as<ByteArray>(mark.call(reg_ba))) {
       reg_o->onig_data = reinterpret_cast<regex_t*>(reg_tmp->raw_bytes());
       mark.just_set(obj, reg_tmp);
-
-      reg_ba = reg_tmp;
       reg = reg_o->onig_data;
     }
 

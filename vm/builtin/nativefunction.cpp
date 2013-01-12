@@ -722,8 +722,8 @@ namespace rubinius {
     size_t ffi_index = 0;
     size_t obj_index = 0;
 
-    void* values[ffi_data->arg_count];
-    void* heap_allocations[ffi_data->arg_count];
+    void* values[arg_count];
+    void* heap_allocations[arg_count];
     for(size_t i = 0; i < arg_count; i++) {
       heap_allocations[i] = 0;
     }
@@ -765,9 +765,9 @@ namespace rubinius {
              Exception::make_exception(state, G(exc_arg), msg.str().c_str());
           exc->locations(state, Location::from_call_stack(state, call_frame));
           state->raise_exception(exc);
-          for(ffi_index = 0; ffi_index < arg_count; ffi_index++) {
-            if (heap_allocations[ffi_index]) {
-              XFREE(heap_allocations[ffi_index]);
+          for(size_t i = 0; i < arg_count; i++) {
+            if (heap_allocations[i]) {
+              XFREE(heap_allocations[i]);
             }
           }
           return NULL;
@@ -925,9 +925,9 @@ namespace rubinius {
             } else if(CBOOL(obj->respond_to(state, state->symbol("to_ptr"), cTrue))) {
               Object* o2 = obj->send(state, call_frame, state->symbol("to_ptr"));
               if(!o2) {
-                for(ffi_index = 0; ffi_index < arg_count; ffi_index++) {
-                  if (heap_allocations[ffi_index]) {
-                    XFREE(heap_allocations[ffi_index]);
+                for(size_t i = 0; i < arg_count; i++) {
+                  if (heap_allocations[i]) {
+                    XFREE(heap_allocations[i]);
                   }
                 }
                 return 0;
@@ -954,9 +954,9 @@ namespace rubinius {
           ary->set(state, 0, obj);
           Object* val = arg_info->enum_obj->send(state, call_frame, state->symbol("[]"), ary);
           if(!val) {
-            for(ffi_index = 0; ffi_index < arg_count; ffi_index++) {
-              if (heap_allocations[ffi_index]) {
-                XFREE(heap_allocations[ffi_index]);
+            for(size_t i = 0; i < arg_count; i++) {
+              if (heap_allocations[i]) {
+                XFREE(heap_allocations[i]);
               }
             }
             return 0;
@@ -1206,9 +1206,9 @@ namespace rubinius {
 
     env->set_current_call_frame(saved_frame);
 
-    for(ffi_index = 0; ffi_index < ffi_data_local->arg_count; ffi_index++) {
-      if (heap_allocations[ffi_index]) {
-        XFREE(heap_allocations[ffi_index]);
+    for(size_t i = 0; i < arg_count; i++) {
+      if (heap_allocations[i]) {
+        XFREE(heap_allocations[i]);
       }
     }
 

@@ -2950,8 +2950,6 @@ use_send:
         // Now, change jbb to point to code, so anyone branching there hits
         // the check first.
         jbb.prologue = code;
-      } else {
-        code = jbb.block;
       }
     }
 
