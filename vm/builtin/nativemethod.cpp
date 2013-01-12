@@ -78,6 +78,11 @@ namespace rubinius {
       handles_.add_if_absent(handle);
     }
 
+    if(!handle->valid_p()) {
+      handle->debug_print();
+      rubinius::abort();
+    }
+
     return handle->as_value();
   }
 

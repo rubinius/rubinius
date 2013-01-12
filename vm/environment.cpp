@@ -31,8 +31,9 @@
 #include <execinfo.h>
 #endif
 
+#include "gc/finalize.hpp"
+
 #include "signal.hpp"
-#include "finalizer.hpp"
 #include "object_utils.hpp"
 
 #include "inline_cache.hpp"
@@ -84,7 +85,6 @@ namespace rubinius {
     , signature_(0)
     , version_(0)
     , signal_handler_(NULL)
-    , finalizer_handler_(NULL)
   {
 #ifdef ENABLE_LLVM
     if(!llvm::llvm_start_multithreaded()) {
@@ -136,7 +136,6 @@ namespace rubinius {
 
   Environment::~Environment() {
     delete signal_handler_;
-    delete finalizer_handler_;
 
     VM::discard(state, root_vm);
     SharedState::discard(shared);
@@ -353,7 +352,7 @@ namespace rubinius {
   }
 
   void Environment::start_finalizer() {
-    finalizer_handler_ = new FinalizerHandler(state);
+    new FinalizerHandler(state);
   }
 
   void Environment::load_vm_options(int argc, char**argv) {
@@ -614,6 +613,8 @@ namespace rubinius {
       state->checkpoint(gct, 0);
     }
 
+    shared->om->finalizer_handler()->finish(state);
+
     {
       GCIndependent guard(state);
       shared->auxiliary_threads()->shutdown(state);
@@ -623,7 +624,6 @@ namespace rubinius {
     while(!state->stop_the_world()) {
       state->checkpoint(gct, 0);
     }
-    shared->om->run_all_finalizers(state);
 
     NativeMethod::cleanup_thread(state);
   }
@@ -896,10 +896,11 @@ namespace rubinius {
     G(rubinius)->set_const(state, "RUNTIME_PATH", String::create(state,
                            runtime.c_str(), runtime.size()));
 
+    start_finalizer();
     load_kernel(runtime);
+    shared->finalizer_handler()->start_thread(state);
 
     start_signals();
-    start_finalizer();
     run_file(runtime + "/loader.rbc");
 
     state->vm()->thread_state()->clear();

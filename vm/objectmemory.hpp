@@ -31,6 +31,7 @@ namespace rubinius {
   class ImmixGC;
   class InflatedHeaders;
   class Thread;
+  class FinalizerHandler;
 
   namespace gc {
     class Slab;
@@ -150,8 +151,6 @@ namespace rubinius {
 
     /// Garbage collector for CodeResource objects.
     CodeManager code_manager_;
-    std::list<FinalizeObject> finalize_;
-    std::list<FinalizeObject*> to_finalize_;
 
     /// Flag controlling whether garbage collections are allowed
     bool allow_gc_;
@@ -163,12 +162,6 @@ namespace rubinius {
     /// Size of slabs to be allocated to threads for lockless thread-local
     /// allocations.
     size_t slab_size_;
-
-    /// True if finalizers are currently being run.
-    bool running_finalizers_;
-
-    /// A mutex which protects registering finalizers
-    rubinius::Mutex finalizer_lock_;
 
     /// Mutex used to manage lock contention
     utilities::thread::Mutex contention_lock_;
@@ -212,14 +205,6 @@ namespace rubinius {
       mark_ = (mark_ == 1 ? 2 : 1);
     }
 
-    std::list<FinalizeObject>& finalize() {
-      return finalize_;
-    }
-
-    std::list<FinalizeObject*>& to_finalize() {
-      return to_finalize_;
-    }
-
     bool can_gc() {
       return allow_gc_;
     }
@@ -230,6 +215,10 @@ namespace rubinius {
 
     void inhibit_gc() {
       allow_gc_ = false;
+    }
+
+    FinalizerHandler* finalizer_handler() {
+      return shared_.finalizer_handler();
     }
 
     /**
@@ -254,10 +243,6 @@ namespace rubinius {
 
     std::list<gc::WriteBarrier*>& aux_barriers() {
       return aux_barriers_;
-    }
-
-    bool running_finalizers() {
-      return running_finalizers_;
     }
 
   public:
@@ -351,10 +336,7 @@ namespace rubinius {
     void collect_maybe(STATE, GCToken gct, CallFrame* call_frame);
 
     void needs_finalization(Object* obj, FinalizerFunction func);
-    void set_ruby_finalizer(Object* obj, Object* fin);
-    void run_all_finalizers(STATE);
-
-    void add_to_finalize(FinalizeObject* fi);
+    void set_ruby_finalizer(Object* obj, Object* finalizer);
 
     void find_referers(Object* obj, ObjectArray& result);
 

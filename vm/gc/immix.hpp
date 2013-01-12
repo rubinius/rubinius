@@ -115,7 +115,7 @@ namespace rubinius {
     virtual Object* saw_object(Object*);
     void collect(GCData& data);
 
-    void check_finalize();
+    void walk_finalizers();
 
     ObjectPosition validate_object(Object*);
 

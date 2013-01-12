@@ -69,6 +69,18 @@ namespace rubinius {
   }
 
   void Data::finalize(STATE, Data* data) {
+    capi::Handle* handle = data->handle(state);
+
+    if(!handle->valid_p()) {
+      std::cerr << "Data::finalize: object has invalid handle!" << std::endl;
+      return;
+    }
+
+    if(handle->object() != data) {
+      std::cerr << "Data::finalize: handle does not reference object!" << std::endl;
+      return;
+    }
+
     if(data->freed_p()) {
       // TODO: Fix the issue of finalizer ordering.
       // std::cerr << "Data::finalize called for already freed object" << std::endl;

@@ -299,7 +299,7 @@ namespace rubinius {
 
     /// Scans the finalizers for young generation objects that need to be kept
     /// alive.
-    void    check_finalize();
+    void    walk_finalizers();
 
     /// Scans any references held by objects that have been promoted to the
     /// mature generation.

@@ -252,13 +252,11 @@ namespace rubinius {
     // We're now done seeing the entire object graph of normal, live references.
     // Now we get to handle the unusual references, like finalizers and such.
 
-    // Update finalizers. Doing so can cause objects that would have just died
-    // to continue life until we can get around to running the finalizer. That
-    // means more promoted objects, etc.
-    check_finalize();
+    // Objects with finalizers must be kept alive until the finalizers have
+    // run.
+    walk_finalizers();
 
-    // Run promotions again, because checking finalizers can keep more objects
-    // alive (and thus promoted).
+    // Process possible promotions from processing objects with finalizers.
     handle_promotions();
 
     if(!promoted_stack_.empty()) rubinius::bug("promote stack has elements!");
@@ -326,74 +324,28 @@ namespace rubinius {
     return true;
   }
 
-  void BakerGC::check_finalize() {
-    // If finalizers are running right now, just fixup any finalizer references
-    if(object_memory_->running_finalizers()) {
-      for(std::list<FinalizeObject>::iterator i = object_memory_->finalize().begin();
-          i != object_memory_->finalize().end();
-          ++i) {
-        if(i->object) {
-          i->object = saw_object(i->object);
-        }
+  void BakerGC::walk_finalizers() {
+    FinalizerHandler* fh = object_memory_->finalizer_handler();
+    if(!fh) return;
 
-        if(i->ruby_finalizer) {
-          i->ruby_finalizer = saw_object(i->ruby_finalizer);
-        }
-      }
-      return;
-    }
-
-    for(std::list<FinalizeObject>::iterator i = object_memory_->finalize().begin();
-        i != object_memory_->finalize().end(); )
+    for(FinalizerHandler::iterator i = fh->begin();
+        !i.end();
+        /* advance is handled in the loop */)
     {
-      FinalizeObject& fi = *i;
+      FinalizeObject& fi = i.current();
+      bool live = true;
 
-      if(i->ruby_finalizer) {
-        i->ruby_finalizer = saw_object(i->ruby_finalizer);
-      }
+      if(fi.object->young_object_p()) {
+        live = fi.object->forwarded_p();
 
-      bool remove = false;
-
-      if(i->object->young_object_p()) {
-        Object* orig = i->object;
-        switch(i->status) {
-        case FinalizeObject::eLive:
-          if(!i->object->forwarded_p()) {
-            // Run C finalizers now rather that queue them.
-            i->queued();
-            object_memory_->add_to_finalize(&fi);
-
-            // We need to keep it alive still.
-            i->object = saw_object(orig);
-          } else {
-            // Still alive, update the reference.
-            i->object = saw_object(orig);
-          }
-          break;
-        case FinalizeObject::eQueued:
-          // Nothing, we haven't gotten to it yet.
-          // Keep waiting and keep i->object updated.
-          i->object = saw_object(i->object);
-          i->queue_count++;
-          break;
-        case FinalizeObject::eFinalized:
-          if(!i->object->forwarded_p()) {
-            // finalized and done with.
-            remove = true;
-          } else {
-            // RESURRECTION!
-            i->queued();
-            i->object = saw_object(i->object);
-          }
-          break;
+        if(fi.ruby_finalizer) {
+          fi.ruby_finalizer = saw_object(fi.ruby_finalizer);
         }
+
+        fi.object = saw_object(fi.object);
       }
 
-      if(remove) {
-        i = object_memory_->finalize().erase(i);
-      } else {
-        ++i;
-      }
+      i.next(live);
     }
   }
 

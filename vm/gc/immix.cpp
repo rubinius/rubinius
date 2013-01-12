@@ -204,13 +204,11 @@ namespace rubinius {
 
     // We've now finished marking the entire object graph.
 
-    check_finalize();
-
-    // Finalize can cause more things to continue to live, so we must
-    // check the mark_stack again.
-    while(gc_.process_mark_stack(allocator_)) {
-      check_finalize();
-    }
+    // Marking objects to be Finalized can cause more things to continue to
+    // live, so we must check the mark_stack again.
+    do {
+      walk_finalizers();
+    } while(gc_.process_mark_stack(allocator_));
 
     // Sweep up the garbage
     gc_.sweep_blocks();
@@ -317,73 +315,28 @@ namespace rubinius {
 #endif
   }
 
-  void ImmixGC::check_finalize() {
-    // If finalizers are running right now, just fixup any finalizer references
-    if(object_memory_->running_finalizers()) {
-      for(std::list<FinalizeObject>::iterator i = object_memory_->finalize().begin();
-          i != object_memory_->finalize().end();
-          ++i) {
-        if(i->object) {
-          i->object = saw_object(i->object);
-        }
+  void ImmixGC::walk_finalizers() {
+    FinalizerHandler* fh = object_memory_->finalizer_handler();
+    if(!fh) return;
 
-        if(i->ruby_finalizer) {
-          i->ruby_finalizer = saw_object(i->ruby_finalizer);
-        }
-      }
-      return;
-    }
-
-    for(std::list<FinalizeObject>::iterator i = object_memory_->finalize().begin();
-        i != object_memory_->finalize().end(); )
+    for(FinalizerHandler::iterator i = fh->begin();
+        !i.end();
+        /* advance is handled in the loop */)
     {
+      FinalizeObject& fi = i.current();
+      bool live = true;
 
-      FinalizeObject& fi = *i;
+      if(fi.object->mature_object_p()) {
+        live = fi.object->marked_p(object_memory_->mark());
 
-      if(i->ruby_finalizer) {
-        i->ruby_finalizer = saw_object(i->ruby_finalizer);
-      }
-
-      bool remove = false;
-
-      switch(i->status) {
-      case FinalizeObject::eLive:
-        if(!i->object->marked_p(object_memory_->mark())) {
-          i->queued();
-          object_memory_->add_to_finalize(&fi);
-
-          // We have to still keep it alive though until we finish with it.
-          i->object = saw_object(i->object);
-        } else {
-          // Update the reference
-          i->object = saw_object(i->object);
+        if(fi.ruby_finalizer) {
+          fi.ruby_finalizer = saw_object(fi.ruby_finalizer);
         }
 
-        break;
-      case FinalizeObject::eQueued:
-        // Nothing, we haven't gotten to it yet.
-        // Keep waiting and keep i->object updated.
-        i->object = saw_object(i->object);
-        i->queue_count++;
-        break;
-      case FinalizeObject::eFinalized:
-        if(!i->object->marked_p(object_memory_->mark())) {
-          // finalized and done with.
-          remove = true;
-        } else {
-          // RESURRECTION!
-          i->queued();
-          i->object = saw_object(i->object);
-        }
-        break;
+        fi.object = saw_object(fi.object);
       }
 
-      if(remove) {
-        i = object_memory_->finalize().erase(i);
-      } else {
-        ++i;
-      }
+      i.next(live);
     }
   }
-
 }

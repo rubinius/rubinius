@@ -33,7 +33,11 @@ namespace rubinius {
     }
 
     Handle* Handles::find_index(STATE, uintptr_t index) {
-      return allocator_->from_index(index);
+      Handle* handle = allocator_->from_index(index);
+
+      assert(validate(handle));
+
+      return handle;
     }
 
     bool Handles::validate(Handle* handle) {
