@@ -76,8 +76,8 @@ namespace rubinius {
   {}
 
   FFIData::~FFIData() {
-    XFREE(args_info);
-    XFREE(cif.arg_types);
+    if(args_info) XFREE(args_info);
+    if(cif.arg_types) XFREE(cif.arg_types);
     if(closure) ffi_closure_free(closure);
   }
 
@@ -245,28 +245,31 @@ namespace rubinius {
   void NativeFunction::prep(STATE, int arg_count, FFIArgInfo* args,
                             FFIArgInfo* ret) {
 
-    ffi_type** types;
     ffi_status status;
     ffi_type* rtype;
+    ffi_type** types = 0;
+    FFIArgInfo* out_args_info = 0;
     int i;
 
-    types = ALLOC_N(ffi_type*, arg_count);
+    if(arg_count > 0) {
+      types = ALLOC_N(ffi_type*, arg_count);
 
-    for(i = 0; i < arg_count; i++) {
-      types[i] = ffi_type_info(&args[i]);
+      for(i = 0; i < arg_count; i++) {
+        types[i] = ffi_type_info(&args[i]);
+      }
+
+      out_args_info = ALLOC_N(FFIArgInfo, arg_count);
+      memcpy(out_args_info, args, sizeof(FFIArgInfo) * arg_count);
     }
 
     rtype = ffi_type_info(ret);
-
-    FFIArgInfo* out_args_info = ALLOC_N(FFIArgInfo, arg_count);
-    memcpy(out_args_info, args, sizeof(FFIArgInfo) * arg_count);
 
     FFIData* data = FFIData::create(state, this, arg_count, out_args_info, ret);
 
     status = ffi_prep_cif(&data->cif, FFI_DEFAULT_ABI, arg_count, rtype, types);
 
     if(status != FFI_OK) {
-      XFREE(out_args_info);
+      delete data;
       rubinius::bug("ffi_prep_cif failed");
     }
 
