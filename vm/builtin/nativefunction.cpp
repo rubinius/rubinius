@@ -76,8 +76,8 @@ namespace rubinius {
   {}
 
   FFIData::~FFIData() {
-    XFREE(args_info);
-    XFREE(cif.arg_types);
+    if(args_info) XFREE(args_info);
+    if(cif.arg_types) XFREE(cif.arg_types);
     if(closure) ffi_closure_free(closure);
   }
 
@@ -245,28 +245,31 @@ namespace rubinius {
   void NativeFunction::prep(STATE, int arg_count, FFIArgInfo* args,
                             FFIArgInfo* ret) {
 
-    ffi_type** types;
     ffi_status status;
     ffi_type* rtype;
+    ffi_type** types = 0;
+    FFIArgInfo* out_args_info = 0;
     int i;
 
-    types = ALLOC_N(ffi_type*, arg_count);
+    if(arg_count > 0) {
+      types = ALLOC_N(ffi_type*, arg_count);
 
-    for(i = 0; i < arg_count; i++) {
-      types[i] = ffi_type_info(&args[i]);
+      for(i = 0; i < arg_count; i++) {
+        types[i] = ffi_type_info(&args[i]);
+      }
+
+      out_args_info = ALLOC_N(FFIArgInfo, arg_count);
+      memcpy(out_args_info, args, sizeof(FFIArgInfo) * arg_count);
     }
 
     rtype = ffi_type_info(ret);
-
-    FFIArgInfo* out_args_info = ALLOC_N(FFIArgInfo, arg_count);
-    memcpy(out_args_info, args, sizeof(FFIArgInfo) * arg_count);
 
     FFIData* data = FFIData::create(state, this, arg_count, out_args_info, ret);
 
     status = ffi_prep_cif(&data->cif, FFI_DEFAULT_ABI, arg_count, rtype, types);
 
     if(status != FFI_OK) {
-      XFREE(out_args_info);
+      delete data;
       rubinius::bug("ffi_prep_cif failed");
     }
 
@@ -722,8 +725,8 @@ namespace rubinius {
     size_t ffi_index = 0;
     size_t obj_index = 0;
 
-    void* values[ffi_data->arg_count];
-    void* heap_allocations[ffi_data->arg_count];
+    void* values[arg_count];
+    void* heap_allocations[arg_count];
     for(size_t i = 0; i < arg_count; i++) {
       heap_allocations[i] = 0;
     }
@@ -765,9 +768,9 @@ namespace rubinius {
              Exception::make_exception(state, G(exc_arg), msg.str().c_str());
           exc->locations(state, Location::from_call_stack(state, call_frame));
           state->raise_exception(exc);
-          for(ffi_index = 0; ffi_index < arg_count; ffi_index++) {
-            if (heap_allocations[ffi_index]) {
-              XFREE(heap_allocations[ffi_index]);
+          for(size_t i = 0; i < arg_count; i++) {
+            if (heap_allocations[i]) {
+              XFREE(heap_allocations[i]);
             }
           }
           return NULL;
@@ -925,9 +928,9 @@ namespace rubinius {
             } else if(CBOOL(obj->respond_to(state, state->symbol("to_ptr"), cTrue))) {
               Object* o2 = obj->send(state, call_frame, state->symbol("to_ptr"));
               if(!o2) {
-                for(ffi_index = 0; ffi_index < arg_count; ffi_index++) {
-                  if (heap_allocations[ffi_index]) {
-                    XFREE(heap_allocations[ffi_index]);
+                for(size_t i = 0; i < arg_count; i++) {
+                  if (heap_allocations[i]) {
+                    XFREE(heap_allocations[i]);
                   }
                 }
                 return 0;
@@ -954,9 +957,9 @@ namespace rubinius {
           ary->set(state, 0, obj);
           Object* val = arg_info->enum_obj->send(state, call_frame, state->symbol("[]"), ary);
           if(!val) {
-            for(ffi_index = 0; ffi_index < arg_count; ffi_index++) {
-              if (heap_allocations[ffi_index]) {
-                XFREE(heap_allocations[ffi_index]);
+            for(size_t i = 0; i < arg_count; i++) {
+              if (heap_allocations[i]) {
+                XFREE(heap_allocations[i]);
               }
             }
             return 0;
@@ -1206,9 +1209,9 @@ namespace rubinius {
 
     env->set_current_call_frame(saved_frame);
 
-    for(ffi_index = 0; ffi_index < ffi_data_local->arg_count; ffi_index++) {
-      if (heap_allocations[ffi_index]) {
-        XFREE(heap_allocations[ffi_index]);
+    for(size_t i = 0; i < arg_count; i++) {
+      if (heap_allocations[i]) {
+        XFREE(heap_allocations[i]);
       }
     }
 

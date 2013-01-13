@@ -608,7 +608,10 @@ namespace rubinius {
       return NULL;
     }
 
-    if(bytes_read == 0) return cNil;
+    if(bytes_read == 0) {
+      if(malloc_buf) free(malloc_buf);
+      return cNil;
+    }
 
     String* str = String::create(state, buf, bytes_read);
     if(malloc_buf) free(malloc_buf);

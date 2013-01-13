@@ -21,8 +21,6 @@ namespace rubinius {
   namespace capi {
 
     Array* capi_get_array(NativeMethodEnvironment* env, VALUE val) {
-      if(!env) env = NativeMethodEnvironment::get();
-
       Handle* handle = Handle::from(val);
       Array* array = c_as<Array>(handle->object());
       handle->flush(env);
@@ -31,8 +29,6 @@ namespace rubinius {
     }
 
     void capi_update_array(NativeMethodEnvironment* env, VALUE array) {
-      if(!env) env = NativeMethodEnvironment::get();
-
       Handle::from(array)->update(env);
     }
 

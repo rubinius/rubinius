@@ -182,6 +182,10 @@ namespace rubinius {
       return bytes;
     }
 
+    size_t size() {
+      return size_;
+    }
+
     /**
      * Returns the percentage of the heap that is currently used.
      */

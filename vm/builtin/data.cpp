@@ -20,6 +20,7 @@ namespace rubinius {
     Data* data;
 
     data = state->new_object<Data>(G(data));
+    data->freed_ = false;
 
     // Data is just a heap alias for the handle, so go ahead and create
     // the handle and populate it as an RData now.
@@ -40,9 +41,7 @@ namespace rubinius {
 
     data->internal_ = rdata;
 
-    // If this Data requires a free function, register this object
-    // as needing finalization.
-    if(free) {
+    if(mark || free) {
       state->memory()->needs_finalization(data, (FinalizerFunction)&Data::finalize);
     }
 
@@ -70,10 +69,14 @@ namespace rubinius {
   }
 
   void Data::finalize(STATE, Data* data) {
-    // MRI only calls free if the data_ptr is not NULL.
-    void* data_ptr = data->data(state);
+    if(data->freed_p()) {
+      // TODO: Fix the issue of finalizer ordering.
+      // std::cerr << "Data::finalize called for already freed object" << std::endl;
+      return;
+    }
 
-    if(data_ptr) {
+    // MRI only calls free if the data_ptr is not NULL.
+    if(void* data_ptr = data->data(state)) {
       Data::FreeFunctor f = data->free(state);
       if(f) {
         // If the user specifies -1, then we call free. We check here rather
@@ -85,6 +88,7 @@ namespace rubinius {
           f(data_ptr);
         }
       }
+      data->set_freed();
     }
   }
 
@@ -92,6 +96,12 @@ namespace rubinius {
     auto_mark(t, mark);
 
     Data* data = force_as<Data>(t);
+
+    if(data->freed_p()) {
+      // TODO: Fix the issue of finalizer ordering.
+      // std::cerr << "Data::Info::mark called for already freed object" << std::endl;
+      return;
+    }
 
     RDataShadow* rdata = data->rdata();
 

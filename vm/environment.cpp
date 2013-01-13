@@ -32,6 +32,7 @@
 #endif
 
 #include "signal.hpp"
+#include "finalizer.hpp"
 #include "object_utils.hpp"
 
 #include "inline_cache.hpp"
@@ -82,7 +83,8 @@ namespace rubinius {
     , argv_(argv)
     , signature_(0)
     , version_(0)
-    , sig_handler_(NULL)
+    , signal_handler_(NULL)
+    , finalizer_handler_(NULL)
   {
 #ifdef ENABLE_LLVM
     if(!llvm::llvm_start_multithreaded()) {
@@ -122,7 +124,7 @@ namespace rubinius {
         use_dir = true;
       }
       if(use_dir) {
-        snprintf(report_path, PATH_MAX, "%s/%s_%d", report_path, report_file_name, pid);
+        snprintf(report_path + strlen(report_path), PATH_MAX, "/%s_%d", report_file_name, pid);
       } else {
         snprintf(report_path, PATH_MAX, "%s/.%s_%d", home, report_file_name, pid);
       }
@@ -133,7 +135,8 @@ namespace rubinius {
   }
 
   Environment::~Environment() {
-    delete sig_handler_;
+    delete signal_handler_;
+    delete finalizer_handler_;
 
     VM::discard(state, root_vm);
     SharedState::discard(shared);
@@ -312,7 +315,7 @@ namespace rubinius {
 #endif
 
     state->vm()->set_run_signals(true);
-    sig_handler_ = new SignalHandler(state);
+    signal_handler_ = new SignalHandler(state);
 
 #ifndef RBX_WINDOWS
     // Ignore sigpipe.
@@ -347,6 +350,10 @@ namespace rubinius {
 #endif  // ifndef RBX_WINDOWS
 
     signal(SIGTERM, quit_handler);
+  }
+
+  void Environment::start_finalizer() {
+    finalizer_handler_ = new FinalizerHandler(state);
   }
 
   void Environment::load_vm_options(int argc, char**argv) {
@@ -892,6 +899,7 @@ namespace rubinius {
     load_kernel(runtime);
 
     start_signals();
+    start_finalizer();
     run_file(runtime + "/loader.rbc");
 
     state->vm()->thread_state()->clear();

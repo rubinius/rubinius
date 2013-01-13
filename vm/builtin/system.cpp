@@ -590,11 +590,19 @@ namespace rubinius {
     return ary;
   }
 
-  Object* System::vm_reset_method_cache(STATE, Symbol* name) {
+  Object* System::vm_reset_method_cache(STATE, Symbol* name, CallFrame* calling_environment) {
     // 1. clear the global cache
     state->vm()->global_cache()->clear(state, name);
 
     state->shared().ic_registry()->clear(state, name);
+    state->shared().stats.methods_cache_resets++;
+
+    if(state->shared().config.ic_debug) {
+      std::cout << "[IC Reset method cache for " << name->debug_str(state).c_str() << "]" << std::endl;
+      CallFrame* call_frame = calling_environment->previous;
+      call_frame->print_backtrace(state, 6, true);
+    }
+
     return name;
   }
 
@@ -948,7 +956,8 @@ namespace rubinius {
 
   Object* System::vm_add_method(STATE, GCToken gct, Symbol* name,
                                 CompiledCode* method,
-                                ConstantScope* scope, Object* vis)
+                                ConstantScope* scope, Object* vis,
+                                CallFrame* calling_environment)
   {
     Module* mod = scope->for_method_definition();
 
@@ -1000,14 +1009,15 @@ namespace rubinius {
       }
     }
 
-    vm_reset_method_cache(state, name);
+    vm_reset_method_cache(state, name, calling_environment);
 
     return method;
   }
 
   Object* System::vm_attach_method(STATE, GCToken gct, Symbol* name,
                                    CompiledCode* method,
-                                   ConstantScope* scope, Object* recv)
+                                   ConstantScope* scope, Object* recv,
+                                   CallFrame* calling_environment)
   {
     Module* mod = recv->singleton_class(state);
 
@@ -1018,7 +1028,7 @@ namespace rubinius {
 
     mod->add_method(state, gct, name, method);
 
-    vm_reset_method_cache(state, name);
+    vm_reset_method_cache(state, name, calling_environment);
 
     return method;
   }

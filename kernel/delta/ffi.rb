@@ -20,6 +20,3 @@ module FFI
 
 end
 end
-
-# Temporarily still map the global FFI constant
-FFI = Rubinius::FFI

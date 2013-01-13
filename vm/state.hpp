@@ -3,17 +3,20 @@
 
 namespace rubinius {
   class VM;
+  class VMJIT;
   class ManagedThread;
   class ThreadState;
   class SharedState;
 
   class State {
     VM* vm_;
+    VMJIT& vm_jit_;
     SharedState& shared_;
 
   public:
     State(VM* vm)
       : vm_(vm)
+      , vm_jit_(vm->vm_jit_)
       , shared_(vm->shared)
     {}
 
@@ -84,8 +87,12 @@ namespace rubinius {
       return vm_->detect_stack_condition(end);
     }
 
+    bool check_local_interrupts() {
+      return vm_->check_local_interrupts();
+    }
+
     bool check_async(CallFrame* call_frame) {
-      if(vm_->check_local_interrupts) {
+      if(vm_->check_local_interrupts()) {
         return process_async(call_frame);
       }
       return true;
@@ -95,13 +102,9 @@ namespace rubinius {
 
     bool check_stack(CallFrame* call_frame, void* end) {
       // @TODO assumes stack growth direction
-      if(vm_->stack_limit_ == vm_->stack_start_) {
-        vm_->reset_stack_limit();
-      } else {
-        if(unlikely(reinterpret_cast<uintptr_t>(end) < vm_->stack_limit_)) {
-          raise_stack_error(call_frame);
-          return false;
-        }
+      if(unlikely(vm_->detect_stack_condition(end))) {
+        raise_stack_error(call_frame);
+        return false;
       }
       return true;
     }

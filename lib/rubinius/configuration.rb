@@ -161,6 +161,9 @@ Rubinius::ConfigurationVariables.define do |c|
   c.vm_variable "ic.stats", false,
     "Print out stats about the InlineCaches before exiting"
 
+  c.vm_variable "ic.debug", false,
+    "Print out when inline caches are reset"
+
   c.vm_variable "allocation_tracking", false,
     "Enable allocation tracking for new objects"
 

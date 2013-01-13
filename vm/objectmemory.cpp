@@ -6,6 +6,7 @@
 #include "config.h"
 #include "vm.hpp"
 #include "objectmemory.hpp"
+#include "finalizer.hpp"
 #include "gc/marksweep.hpp"
 #include "gc/baker.hpp"
 #include "gc/immix.hpp"
@@ -54,8 +55,6 @@ namespace rubinius {
     , allow_gc_(true)
     , slab_size_(4096)
     , running_finalizers_(false)
-    , added_finalizers_(false)
-    , finalizer_thread_(state, nil<Thread>())
     , shared_(state->shared)
 
     , collect_young_now(false)
@@ -106,8 +105,6 @@ namespace rubinius {
     lock_init(state->vm());
     contention_lock_.init();
     finalizer_lock_.init();
-    finalizer_var_.init();
-    finalizer_thread_.set(nil<Thread>());
   }
 
   void ObjectMemory::assign_object_id(STATE, Object* obj) {
@@ -242,8 +239,8 @@ step1:
         }
 
         // Someone is interrupting us trying to lock.
-        if(interrupt && state->vm()->check_local_interrupts) {
-          state->vm()->check_local_interrupts = false;
+        if(interrupt && state->check_local_interrupts()) {
+          state->vm()->clear_check_local_interrupts();
 
           if(!state->vm()->interrupted_exception()->nil_p()) {
             if(cDebugThreading) {
@@ -582,16 +579,11 @@ step1:
     }
 
     state->restart_world();
-    bool added = added_finalizers_;
-    added_finalizers_ = false;
 
     UNSYNC;
-
-    if(added) {
-      if(finalizer_thread_.get() == cNil) {
-        start_finalizer_thread(state);
-      }
-      finalizer_var_.signal();
+    FinalizerHandler* finalizer = state->shared().finalizer_handler();
+    if(finalizer) {
+      finalizer->signal();
     }
   }
 
@@ -626,6 +618,7 @@ step1:
       }
     }
 
+    young_->reset();
   }
 
   void ObjectMemory::collect_mature(GCData& data) {
@@ -928,7 +921,7 @@ step1:
     fi.finalizer = func;
 
     // Makes a copy of fi.
-    finalize_.push_back(fi);
+    finalize_.push_front(fi);
   }
 
   void ObjectMemory::set_ruby_finalizer(Object* obj, Object* fin) {
@@ -971,77 +964,11 @@ step1:
     }
 
     // Makes a copy of fi.
-    finalize_.push_back(fi);
+    finalize_.push_front(fi);
   }
 
   void ObjectMemory::add_to_finalize(FinalizeObject* fi) {
-    SCOPE_LOCK(ManagedThread::current(), finalizer_lock_);
-    to_finalize_.push_back(fi);
-    added_finalizers_ = true;
-  }
-
-  void ObjectMemory::in_finalizer_thread(STATE) {
-    CallFrame* call_frame = 0;
-    utilities::thread::Thread::set_os_name("rbx.finalizer");
-
-    GCTokenImpl gct;
-    state->vm()->thread->hard_unlock(state, gct);
-
-    // Forever
-    for(;;) {
-      FinalizeObject* fi;
-
-      // Take the lock, remove the first one from the list,
-      // then process it.
-      {
-        SCOPE_LOCK(state->vm(), finalizer_lock_);
-
-        state->vm()->set_call_frame(0);
-
-        while(to_finalize_.empty()) {
-          GCIndependent indy(state);
-          finalizer_var_.wait(finalizer_lock_);
-        }
-
-        fi = to_finalize_.front();
-        to_finalize_.pop_front();
-      }
-
-      if(fi->finalizer) {
-        (*fi->finalizer)(state, fi->object);
-        // Unhook any handle used by fi->object so that we don't accidentally
-        // try and mark it later (after we've finalized it)
-        if(capi::Handle* handle = fi->object->handle(state)) {
-          handle->forget_object();
-          fi->object->clear_handle(state);
-        }
-
-        // If the object was remembered, unremember it.
-        if(fi->object->remembered_p()) {
-          unremember_object(fi->object);
-        }
-      } else if(fi->ruby_finalizer) {
-        // Rubinius specific code. If the finalizer is cTrue, then
-        // send the object the finalize message
-        if(fi->ruby_finalizer == cTrue) {
-          fi->object->send(state, call_frame, state->symbol("__finalize__"));
-        } else {
-          Array* ary = Array::create(state, 1);
-          ary->set(state, 0, fi->object->id(state));
-
-          OnStack<1> os(state, ary);
-
-          fi->ruby_finalizer->send(state, call_frame, G(sym_call), ary);
-        }
-      } else {
-        std::cerr << "Unsupported object to be finalized: "
-                  << fi->object->to_s(state)->c_str(state) << std::endl;
-      }
-
-      fi->status = FinalizeObject::eFinalized;
-    }
-
-    state->checkpoint(gct, 0);
+    shared_.finalizer_handler()->schedule(fi);
   }
 
   void ObjectMemory::run_all_finalizers(STATE) {
@@ -1058,9 +985,8 @@ step1:
 
       // Only finalize things that haven't been finalized.
       if(fi.status != FinalizeObject::eFinalized) {
-        if(fi.finalizer) {
-          (*fi.finalizer)(state, fi.object);
-        } else if(fi.ruby_finalizer) {
+        // TODO: Fix Ruby finalizers.
+        if(fi.ruby_finalizer && 0) {
           // Rubinius specific code. If the finalizer is cTrue, then
           // send the object the finalize message
           if(fi.ruby_finalizer == cTrue) {
@@ -1068,14 +994,11 @@ step1:
           } else {
             Array* ary = Array::create(state, 1);
             ary->set(state, 0, fi.object->id(state));
-
-            OnStack<1> os(state, ary);
-
             fi.ruby_finalizer->send(state, 0, G(sym_call), ary);
           }
-        } else {
-          std::cerr << "During shutdown, unsupported object to be finalized: "
-                    << fi.object->to_s(state)->c_str(state) << std::endl;
+        }
+        if(fi.finalizer) {
+          (*fi.finalizer)(state, fi.object);
         }
       }
 
@@ -1085,18 +1008,6 @@ step1:
     }
 
     running_finalizers_ = false;
-  }
-
-  Object* in_finalizer(STATE) {
-    state->shared().om->in_finalizer_thread(state);
-    return cNil;
-  }
-
-  void ObjectMemory::start_finalizer_thread(STATE) {
-    VM* vm = state->shared().new_vm();
-    Thread* thr = Thread::create(state, vm, G(thread), in_finalizer, false, true);
-    finalizer_thread_.set(thr);
-    thr->fork(state);
   }
 
   size_t& ObjectMemory::loe_usage() {

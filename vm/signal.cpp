@@ -21,11 +21,11 @@
 #include "windows_compat.h"
 
 namespace rubinius {
-  static SignalHandler* handler_ = 0;
+  static SignalHandler* signal_handler_ = 0;
   pthread_t main_thread;
 
-  Object* handle_tramp(STATE) {
-    handler_->perform(state);
+  Object* signal_handler_tramp(STATE) {
+    state->shared().signal_handler()->perform(state);
     return cNil;
   }
 
@@ -38,7 +38,7 @@ namespace rubinius {
     , exit_(false)
     , thread_(state)
   {
-    handler_ = this;
+    signal_handler_ = this;
     main_thread = pthread_self();
 
     shared_.auxiliary_threads()->register_thread(this);
@@ -62,7 +62,7 @@ namespace rubinius {
     SYNC(state);
     if(self_) return;
     self_ = state->shared().new_vm();
-    thread_.set(Thread::create(state, self_, G(thread), handle_tramp, false, true));
+    thread_.set(Thread::create(state, self_, G(thread), signal_handler_tramp, false, true));
     run(state);
 
   }
@@ -170,8 +170,7 @@ namespace rubinius {
         }
 
         {
-          target_->check_local_interrupts = true;
-          target_->get_attention();
+          target_->set_check_local_interrupts();
           target_->wakeup(state, gct);
 
         }
@@ -180,7 +179,7 @@ namespace rubinius {
   }
 
   void SignalHandler::signal_tramp(int sig) {
-    handler_->handle_signal(sig);
+    signal_handler_->handle_signal(sig);
   }
 
   void SignalHandler::handle_signal(int sig) {
@@ -189,7 +188,7 @@ namespace rubinius {
     queued_signals_ = 1;
     pending_signals_[sig] = 1;
 
-    target_->check_local_interrupts = true;
+    target_->set_check_local_interrupts();
 
     if(target_->should_interrupt_with_signal()) {
       if(!pthread_equal(pthread_self(), main_thread)) {

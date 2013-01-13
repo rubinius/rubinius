@@ -186,7 +186,7 @@ extern "C" {
 
   int rb_to_encoding_index(VALUE obj) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    Encoding* enc = nil<Encoding>();
+    Encoding* enc;
 
     switch(TYPE(obj)) {
     case T_ENCODING:

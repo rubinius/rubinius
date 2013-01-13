@@ -20,7 +20,7 @@ int mp_fwrite MPA(mp_int *a, int radix, FILE *stream)
    char *buf;
    int err, len, x;
    
-   if ((err = mp_radix_size(MPST, a, radix, &len)) != MP_OKAY) {
+   if ((err = mp_radix_size(a, radix, &len)) != MP_OKAY) {
       return err;
    }
 

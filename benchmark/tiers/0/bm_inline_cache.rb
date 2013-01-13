@@ -35,9 +35,7 @@ Benchmark.ips do |x|
       i += 1
     end
   end
-end
 
-Benchmark.ips do |x|
   x.report "bimorphic call site" do |times|
     i = 0
     while i < times
@@ -46,9 +44,7 @@ Benchmark.ips do |x|
       i += 1
     end
   end
-end
 
-Benchmark.ips do |x|
   x.report "polymorphic call site with 3 entrie" do |times|
     i = 0
     while i < times
@@ -58,9 +54,7 @@ Benchmark.ips do |x|
       i += 1
     end
   end
-end
 
-Benchmark.ips do |x|
   x.report "polymorphic call site with 6 entrie" do |times|
     i = 0
     while i < times
@@ -73,9 +67,7 @@ Benchmark.ips do |x|
       i += 1
     end
   end
-end
 
-Benchmark.ips do |x|
   x.report "megamorphic call site with 10 entrie" do |times|
     i = 0
     while i < times

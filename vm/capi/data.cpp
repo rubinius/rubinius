@@ -11,17 +11,27 @@ using namespace rubinius::capi;
 
 namespace rubinius {
   namespace capi {
-    RData* Handle::create_rdata(NativeMethodEnvironment* env) {
-      type_ = cRData;
+    RData*  Handle::as_rdata(NativeMethodEnvironment* env) {
+      Data* data = as<Data>(object_);
 
-      RData* rdata = new RData;
-      // Yes, we initialize it with garbage data. This is because when
-      // Data creates this, it makes sure to initialize it before
-      // anyone sees it.
+      if(data->freed_p()) {
+        rb_raise(rb_eArgError, "Data object has already been freed");
+      }
 
-      as_.rdata = rdata;
+      if(type_ == cRData) {
+        return as_.rdata;
+      } else {
+        type_ = cRData;
 
-      return rdata;
+        RData* rdata = new RData;
+        rdata->data = 0;
+        rdata->dmark = 0;
+        rdata->dfree = 0;
+
+        as_.rdata = rdata;
+
+        return rdata;
+      }
     }
   }
 }

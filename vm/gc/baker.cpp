@@ -139,6 +139,11 @@ namespace rubinius {
    */
   void BakerGC::collect(GCData& data, YoungCollectStats* stats) {
 
+#ifdef HAVE_VALGRIND_H
+    VALGRIND_MAKE_MEM_DEFINED(next->start().as_int(), next->size());
+    VALGRIND_MAKE_MEM_DEFINED(current->start().as_int(), current->size());
+#endif
+
     Object* tmp;
     ObjectArray *current_rs = object_memory_->swap_remember_set();
 
@@ -266,10 +271,6 @@ namespace rubinius {
     Heap *x = next;
     next = current;
     current = x;
-    next->reset();
-
-    // Reset eden to empty
-    eden.reset();
 
     if(stats) {
       stats->lifetime = lifetime_;
@@ -359,18 +360,11 @@ namespace rubinius {
         case FinalizeObject::eLive:
           if(!i->object->forwarded_p()) {
             // Run C finalizers now rather that queue them.
-            if(i->finalizer) {
-              State state_obj(state());
-              (*i->finalizer)(&state_obj, i->object);
-              i->status = FinalizeObject::eFinalized;
-              remove = true;
-            } else {
-              i->queued();
-              object_memory_->add_to_finalize(&fi);
+            i->queued();
+            object_memory_->add_to_finalize(&fi);
 
-              // We need to keep it alive still.
-              i->object = saw_object(orig);
-            }
+            // We need to keep it alive still.
+            i->object = saw_object(orig);
           } else {
             // Still alive, update the reference.
             i->object = saw_object(orig);

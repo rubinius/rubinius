@@ -214,7 +214,7 @@ strftime_extended(char *s, size_t maxsize, const char *format, const struct tm64
 			savetz = (char *) malloc(tzlen + 1);
 			if (savetz != NULL) {
 				savetzlen = tzlen + 1;
-				strcpy(savetz, tz);
+				strncpy(savetz, tz, tzlen);
 			}
 		}
 		tzset();
@@ -227,10 +227,10 @@ strftime_extended(char *s, size_t maxsize, const char *format, const struct tm64
 			savetz = (char *) realloc(savetz, i);
 			if (savetz) {
 				savetzlen = i;
-				strcpy(savetz, tz);
+				strncpy(savetz, tz, i);
 			}
 		} else
-			strcpy(savetz, tz);
+			strncpy(savetz, tz, i);
 		tzset();
 	}
 #endif	/* POSIX_SEMANTICS */

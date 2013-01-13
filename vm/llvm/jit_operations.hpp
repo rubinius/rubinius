@@ -1018,7 +1018,6 @@ namespace rubinius {
       };
 
       CallInst* result = b().CreateCall(func, call_args, "big_value");
-      result->setOnlyReadsMemory();
       result->setDoesNotThrow();
       return result;
     }

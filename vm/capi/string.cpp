@@ -17,8 +17,6 @@ namespace rubinius {
   namespace capi {
 
     String* capi_get_string(NativeMethodEnvironment* env, VALUE string) {
-      if(!env) env = NativeMethodEnvironment::get();
-
       Handle* handle = Handle::from(string);
       String* str = c_as<String>(handle->object());
       handle->flush(env);
@@ -27,8 +25,6 @@ namespace rubinius {
     }
 
     void capi_update_string(NativeMethodEnvironment* env, VALUE string) {
-      if(!env) env = NativeMethodEnvironment::get();
-
       Handle* handle = Handle::from(string);
       handle->update(env);
     }

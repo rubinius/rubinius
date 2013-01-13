@@ -14,6 +14,7 @@
 #include "on_stack.hpp"
 
 #include "builtin/array.hpp"
+#include "builtin/data.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/nativemethod.hpp"
 #include "builtin/string.hpp"

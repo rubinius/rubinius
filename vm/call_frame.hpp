@@ -239,8 +239,8 @@ namespace rubinius {
 
     VariableScope* method_scope(STATE);
 
-    void print_backtrace(STATE, int count=0);
-    void print_backtrace(STATE, std::ostream& stream, int count=0);
+    void print_backtrace(STATE, int count=0, bool filter=false);
+    void print_backtrace(STATE, std::ostream& stream, int count=0, bool filter=false);
 
     int line(STATE);
 

@@ -87,12 +87,14 @@ namespace rubinius {
         if(update_) (*update_)(env, this);
       }
 
+#define RBX_CAPI_HANDLE_CHECKSUM    0xffff
+
       bool valid_p() const {
-        return checksum_ & 0xffff;
+        return checksum_ == RBX_CAPI_HANDLE_CHECKSUM;
       }
 
       void validate() {
-        checksum_ = 0xffff;
+        checksum_ = RBX_CAPI_HANDLE_CHECKSUM;
       }
 
       void invalidate() {
@@ -188,15 +190,7 @@ namespace rubinius {
         as_.next_index_ = next_index;
       }
 
-      RData*  create_rdata(NativeMethodEnvironment* env);
-      RData*  as_rdata(NativeMethodEnvironment* env) {
-        if(type_ == cRData) {
-          return as_.rdata;
-        } else {
-          return create_rdata(env);
-        }
-      }
-
+      RData*  as_rdata(NativeMethodEnvironment* env);
       RArray* as_rarray(NativeMethodEnvironment* env);
       RString* as_rstring(NativeMethodEnvironment* env, int cache_level);
       RFloat* as_rfloat(NativeMethodEnvironment* env);

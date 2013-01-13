@@ -37,6 +37,7 @@ namespace rubinius {
   }
 
   class SignalHandler;
+  class FinalizerHandler;
   class ObjectMemory;
   class GlobalCache;
   class ConfigParser;
@@ -62,26 +63,31 @@ namespace rubinius {
 
   class SharedState : public RefCount, public Lockable {
   private:
-    bool initialized_;
     AuxiliaryThreads* auxiliary_threads_;
     SignalHandler* signal_handler_;
+    FinalizerHandler* finalizer_handler_;
 
     capi::Handles* global_handles_;
     std::list<capi::Handle*> cached_handles_;
     std::list<capi::GlobalHandle*> global_handle_locations_;
 
-    int global_serial_;
     WorldState* world_;
     InlineCacheRegistry* ic_registry_;
-    unsigned int class_count_;
-    uint64_t method_count_;
     std::list<ManagedThread*> threads_;
+
+    uint64_t method_count_;
+    unsigned int class_count_;
+    int global_serial_;
     int thread_ids_;
+
+    bool initialized_;
+    bool ruby_critical_set_;
+    bool use_capi_lock_;
+    bool check_gc_;
 
     kcode::CodePage kcode_page_;
     kcode::table* kcode_table_;
 
-    int primitive_hits_[Primitives::cTotalPrimitives];
     QueryAgent* agent_;
     VM* root_vm_;
     Environment* env_;
@@ -93,14 +99,12 @@ namespace rubinius {
     // the name would make it sound.
     utilities::thread::Mutex ruby_critical_lock_;
     pthread_t ruby_critical_thread_;
-    bool ruby_critical_set_;
 
-    bool use_capi_lock_;
     Mutex capi_lock_;
 
     utilities::thread::SpinLock capi_ds_lock_;
 
-    bool check_gc_;
+    int primitive_hits_[Primitives::cTotalPrimitives];
 
   public:
     Globals globals;
@@ -137,7 +141,14 @@ namespace rubinius {
       signal_handler_ = thr;
     }
 
-    static SharedState* standalone(VM*);
+    FinalizerHandler* finalizer_handler() {
+      return finalizer_handler_;
+    }
+
+    void set_finalizer_handler(FinalizerHandler* thr) {
+      finalizer_handler_ = thr;
+    }
+
     VM* new_vm();
     void remove_vm(VM*);
 
@@ -254,6 +265,10 @@ namespace rubinius {
 
     void gc_soon() {
       check_gc_ = true;
+    }
+
+    bool* check_gc_address() {
+      return &check_gc_;
     }
 
     void set_use_capi_lock(bool s) {

@@ -84,6 +84,7 @@ namespace rubinius {
     bool use_full_scope_;
 
     Value* global_serial_pos;
+    Value* check_gc_pos;
 
     int called_args_;
     int sends_done_;
@@ -177,7 +178,11 @@ namespace rubinius {
 
       global_serial_pos = b().CreateIntToPtr(
           clong((intptr_t)ls_->shared().global_serial_address()),
-          llvm::PointerType::getUnqual(ls_->IntPtrTy), "cast_to_intptr");
+          llvm::PointerType::getUnqual(ls_->Int32Ty), "cast_to_intptr");
+
+      check_gc_pos = b().CreateIntToPtr(
+          clong((intptr_t)ls_->shared().check_gc_address()),
+          llvm::PointerType::getUnqual(ls_->Int8Ty), "cast_to_intptr");
 
       init_out_args();
 
@@ -2004,7 +2009,7 @@ use_send:
 
         Value* current_serial_pos = b().CreateIntToPtr(
             clong((intptr_t)entry->serial_location()),
-            llvm::PointerType::getUnqual(ls_->IntPtrTy), "cast_to_intptr");
+            llvm::PointerType::getUnqual(ls_->Int32Ty), "cast_to_intptr");
 
         Value* current_serial = b().CreateLoad(current_serial_pos, "serial");
 
@@ -2765,6 +2770,39 @@ use_send:
     }
 
     void visit_check_interrupts() {
+
+      BasicBlock* cont = new_block("continue");
+      BasicBlock* interrupts = new_block("interrupts");
+      BasicBlock* done = new_block("done");
+
+      Value* idx_jit[] = {
+        cint(0),
+        cint(offset::State::vm_jit)
+      };
+
+      Value* vm_jit = b().CreateLoad(b().CreateGEP(state_, idx_jit), "vm_jit");
+
+      Value* idx_check[] = {
+        cint(0),
+        cint(offset::VMJIT::check_local_interrupts)
+      };
+
+      Value* check_interrupts = b().CreateLoad(b().CreateGEP(vm_jit, idx_check),
+                                               "check_interrupts");
+
+      Value* check_gc = b().CreateLoad(check_gc_pos, "check_gc");
+      Value* checkpoint = b().CreateOr(check_interrupts, check_gc, "or");
+
+      Value* zero = ConstantInt::get(ls_->Int8Ty, 0);
+      Value* is_zero = b().CreateICmpEQ(checkpoint, zero, "needs_interrupts");
+
+      create_conditional_branch(cont, interrupts, is_zero);
+
+      set_block(cont);
+      create_branch(done);
+
+      set_block(interrupts);
+
       std::vector<Type*> types;
 
       types.push_back(StateTy);
@@ -2787,6 +2825,9 @@ use_send:
 
       Value* ret = b().CreateCall(func, call_args, "ci");
       check_for_exception(ret, false);
+      create_branch(done);
+
+      set_block(done);
     }
 
     void visit_check_serial(opcode index, opcode serial) {
@@ -2909,8 +2950,6 @@ use_send:
         // Now, change jbb to point to code, so anyone branching there hits
         // the check first.
         jbb.prologue = code;
-      } else {
-        code = jbb.block;
       }
     }
 

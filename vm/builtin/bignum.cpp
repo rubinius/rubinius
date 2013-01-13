@@ -999,7 +999,7 @@ namespace rubinius {
 
     int sz = 0;
     int digits;
-    mp_radix_size(state, self, b, &sz);
+    mp_radix_size(self, b, &sz);
     if(sz == 0) {
       Exception::runtime_error(state, "couldn't convert bignum to string");
     }

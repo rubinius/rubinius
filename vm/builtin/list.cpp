@@ -102,7 +102,7 @@ namespace rubinius {
 
     ListNode* node = first_;
     ListNode* lst =  nil<ListNode>();
-    ListNode* nxt =  nil<ListNode>();
+    ListNode* nxt;
 
     while(!node->nil_p()) {
       nxt = node->next();

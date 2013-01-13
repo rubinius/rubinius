@@ -77,11 +77,13 @@ class MSpecScript
     'spec/compiler',
     'spec/command_line',
     'spec/ruby/optional/capi',
-    'spec/ruby/optional/ffi',
     'spec/ruby/library',
     'spec/library',
 
     'spec/build',
+
+    # We use the FFI gem now
+    '^spec/ruby/optional/ffi',
 
     # Excluded because the specs are extremely system dependent.
     '^spec/ruby/library/syslog',

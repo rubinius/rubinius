@@ -1,5 +1,5 @@
 require File.expand_path('../../../../spec_helper', __FILE__)
-require 'ffi'
+require 'rubinius/ffi'
 
 describe "FFI::MemoryPointer.from_string" do
   it "creates a new FFI::MemoryPointer from a String" do

@@ -526,6 +526,7 @@ namespace agent {
                        state->memory()->gc_stats.last_full_collection_time));
 
     Tree* jit = system_->get_tree("jit");
+    jit->add(new ReadAtomicInteger("cache_resets", state->shared().stats.methods_cache_resets));
     jit->add(new ReadAtomicInteger("methods", state->shared().stats.jitted_methods));
     jit->add(new ReadAtomicInteger("time", state->shared().stats.jit_time_spent));
 

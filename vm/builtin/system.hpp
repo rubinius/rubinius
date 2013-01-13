@@ -135,7 +135,7 @@ namespace rubinius {
      *  will be picked up from calls.
      */
     // Rubinius.primitive :vm_reset_method_cache
-    static Object*  vm_reset_method_cache(STATE, Symbol* name);
+    static Object*  vm_reset_method_cache(STATE, Symbol* name, CallFrame* calling_environment);
 
     /**
      *  Backtrace as an Array.
@@ -215,10 +215,10 @@ namespace rubinius {
     static Tuple* vm_find_public_method(STATE, Object* recv, Symbol* name);
 
     // Rubinius.primitive :vm_add_method
-    static Object* vm_add_method(STATE, GCToken gct, Symbol* name, CompiledCode* meth, ConstantScope* scope, Object* vis);
+    static Object* vm_add_method(STATE, GCToken gct, Symbol* name, CompiledCode* meth, ConstantScope* scope, Object* vis, CallFrame* calling_environment);
 
     // Rubinius.primitive :vm_attach_method
-    static Object* vm_attach_method(STATE, GCToken gct, Symbol* name, CompiledCode* meth, ConstantScope* scope, Object* recv);
+    static Object* vm_attach_method(STATE, GCToken gct, Symbol* name, CompiledCode* meth, ConstantScope* scope, Object* recv, CallFrame* calling_environment);
 
     // A robust way to get the class of an object, since Object#class can be redefined.
     // Rubinius.primitive :vm_object_class
