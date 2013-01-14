@@ -58,6 +58,23 @@ file 'runtime/platform.conf' => deps do |task|
       s.field :sin_zero, :char_array
     end.write_config(f)
 
+    Rubinius::FFI::Generators::Structures.new 'sockaddr_in6' do |s|
+      if BUILD_CONFIG[:windows]
+        s.include "ws2tcpip.h"
+      else
+        s.include "netinet/in.h"
+        s.include "sys/socket.h"
+      end
+      s.include "fcntl.h"
+      s.include "sys/stat.h"
+      s.name 'struct sockaddr_in6'
+      s.field :sin6_family, :sa_family_t
+      s.field :sin6_port, :ushort
+      s.field :sin6_flowinfo
+      s.field :sin6_addr, :char_array
+      s.field :sin6_scope_id
+    end.write_config(f)
+
     unless BUILD_CONFIG[:windows]
       sockaddr_un = Rubinius::FFI::Generators::Structures.new 'sockaddr_un' do |s|
         s.include "sys/un.h"
