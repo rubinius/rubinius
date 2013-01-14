@@ -687,7 +687,23 @@ class Socket < BasicSocket
     alternatives = []
     addrinfos.each do |a|
       alternatives << a[2] unless a[2] == hostname
-      addresses    << a[3] if a[4] == family
+      # transform addresses to packed strings
+      if a[4] == family
+        sockaddr = Socket.sockaddr_in(1, a[3])
+        if family == AF_INET
+          # IPv4 address
+          offset = FFI.config("sockaddr_in.sin_addr.offset")
+          size = FFI.config("sockaddr_in.sin_addr.size")
+          addresses << sockaddr.byteslice(offset, size)
+        elsif family == AF_INET6
+          # Ipv6 address
+          offset = FFI.config("sockaddr_in6.sin6_addr.offset")
+          size = FFI.config("sockaddr_in6.sin6_addr.size")
+          addresses << sockaddr.byteslice(offset, size)
+        else
+          addresses << a[3]
+        end
+      end
     end
 
     [hostname, alternatives.uniq, family] + addresses.uniq
