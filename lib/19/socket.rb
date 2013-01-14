@@ -687,7 +687,17 @@ class Socket < BasicSocket
     alternatives = []
     addrinfos.each do |a|
       alternatives << a[2] unless a[2] == hostname
-      addresses    << a[3] if a[4] == family
+      # transform addresses to packed strings
+      if a[4] == family
+        sockaddr = Socket.sockaddr_in(1, a[3])
+        if sockaddr.length == 16
+          # IPv4 address
+          addresses << sockaddr[4, 4]
+        else
+          # Ipv6 address
+          addresses << sockaddr[8, 16]
+        end
+      end
     end
 
     [hostname, alternatives.uniq, family] + addresses.uniq
