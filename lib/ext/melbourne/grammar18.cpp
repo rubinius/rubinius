@@ -11182,7 +11182,7 @@ rb_parser_sym(rb_parser_state *parser_state, const char *name)
             }
         }
 
-        if (name[last] == '=') {
+        if (last >= 0 && name[last] == '=') {
             id = ID_ATTRSET;
         }
         else if (ISUPPER(name[0])) {
