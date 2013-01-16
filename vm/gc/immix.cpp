@@ -326,15 +326,13 @@ namespace rubinius {
       FinalizeObject& fi = i.current();
       bool live = true;
 
-      if(fi.object->mature_object_p()) {
-        live = fi.object->marked_p(object_memory_->mark());
+      live = fi.object->marked_p(object_memory_->mark());
 
-        if(fi.ruby_finalizer) {
-          fi.ruby_finalizer = saw_object(fi.ruby_finalizer);
-        }
-
-        fi.object = saw_object(fi.object);
+      if(fi.ruby_finalizer) {
+        fi.ruby_finalizer = saw_object(fi.ruby_finalizer);
       }
+
+      fi.object = saw_object(fi.object);
 
       i.next(live);
     }

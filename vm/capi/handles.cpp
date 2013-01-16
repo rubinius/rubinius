@@ -59,7 +59,6 @@ namespace rubinius {
     }
 
     void Handles::deallocate_handles(std::list<Handle*>* cached, int mark, BakerGC* young) {
-
       std::vector<bool> chunk_marks(allocator_->chunks_.size(), false);
 
       for(std::vector<int>::size_type i = 0; i < allocator_->chunks_.size(); ++i) {
@@ -82,7 +81,6 @@ namespace rubinius {
 
           if(young) {
             if(obj->young_object_p()) {
-
               // A weakref pointing to a valid young object
               //
               // TODO this only works because we run prune_handles right after
@@ -103,6 +101,10 @@ namespace rubinius {
               chunk_marks[i] = true;
             }
 
+          // A young collection was not run, assume any young objects are
+          // alive
+          } else if(obj->young_object_p()) {
+            chunk_marks[i] = true;
           // A weakref pointing to a dead mature object
           } else if(!obj->marked_p(mark)) {
             handle->clear();
@@ -115,6 +117,7 @@ namespace rubinius {
       // Cleanup cached handles
       for(std::list<Handle*>::iterator it = cached->begin(); it != cached->end();) {
         Handle* handle = *it;
+
         if(handle->in_use_p()) {
           ++it;
         } else {

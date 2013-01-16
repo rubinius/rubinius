@@ -460,7 +460,7 @@ step1:
     if(obj->young_object_p()) {
       return young_->validate_object(obj) == cValid;
     } else if(obj->mature_object_p()) {
-      return true;
+      return immix_->validate_object(obj) == cInImmix;
     } else {
       return false;
     }
