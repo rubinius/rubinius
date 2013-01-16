@@ -275,9 +275,8 @@ namespace rubinius {
   void FinalizerHandler::record(Object* obj, FinalizerFunction func) {
     utilities::thread::Mutex::LockGuard lg(live_guard_);
 
-    if(finishing_) {
-      rubinius::bug("FinalizerHandler::record called when finishing finalizers for halt");
-    }
+    // Ignore finalizers created when finishing running finalizers.
+    if(finishing_) return;
 
     FinalizeObject fi;
     fi.object = obj;
