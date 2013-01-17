@@ -324,9 +324,8 @@ namespace rubinius {
         /* advance is handled in the loop */)
     {
       FinalizeObject& fi = i.current();
-      bool live = true;
 
-      live = fi.object->marked_p(object_memory_->mark());
+      bool live = fi.object->marked_p(object_memory_->mark());
 
       if(fi.ruby_finalizer) {
         fi.ruby_finalizer = saw_object(fi.ruby_finalizer);

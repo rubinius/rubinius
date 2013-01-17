@@ -337,7 +337,6 @@ namespace rubinius {
 
       if(fi.object->young_object_p()) {
         live = fi.object->forwarded_p();
-
         fi.object = saw_object(fi.object);
       }
 

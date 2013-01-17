@@ -30,14 +30,9 @@ namespace rubinius {
 
   void FinalizerHandler::iterator::next(bool live) {
     if(current_list_ == handler_->live_list_) {
-      if(live) {
-        ++current_;
-      } else {
-        handler_->dead_list_->push_back(*current_);
-        current_ = current_list_->erase(current_);
-      }
+      if(!live) current_->queued();
 
-      if(current_ == current_list_->end()) {
+      if(++current_ == current_list_->end()) {
         if(!handler_->lists_->empty()) {
           current_list_ = *lists_iterator_;
           current_ = current_list_->begin();
@@ -72,7 +67,6 @@ namespace rubinius {
     , thread_(state)
     , lists_(NULL)
     , live_list_(NULL)
-    , dead_list_(NULL)
     , process_list_(NULL)
     , iterator_(NULL)
     , process_item_kind_(eRuby)
@@ -100,7 +94,6 @@ namespace rubinius {
     if(iterator_) delete iterator_;
     if(process_list_) delete process_list_;
     if(live_list_) delete live_list_;
-    if(dead_list_) delete dead_list_;
     if(lists_) delete lists_;
   }
 
@@ -275,9 +268,6 @@ namespace rubinius {
   void FinalizerHandler::record(Object* obj, FinalizerFunction func) {
     utilities::thread::Mutex::LockGuard lg(live_guard_);
 
-    // Ignore finalizers created when finishing running finalizers.
-    if(finishing_) return;
-
     FinalizeObject fi;
     fi.object = obj;
     fi.status = FinalizeObject::eLive;
@@ -289,6 +279,9 @@ namespace rubinius {
 
   void FinalizerHandler::set_ruby_finalizer(Object* obj, Object* finalizer) {
     utilities::thread::Mutex::LockGuard lg(live_guard_);
+
+    // Ignore Ruby finalizers created when finishing running finalizers.
+    if(finishing_) return;
 
     // Check if the object is already in the finalizer list.
     for(FinalizeObjects::iterator i = live_list_->begin();
@@ -337,14 +330,27 @@ namespace rubinius {
         next_process_item();
       }
     }
-
-    if(!dead_list_) dead_list_ = new FinalizeObjects();
   }
 
   void FinalizerHandler::finish_collection(STATE) {
-    if(!dead_list_->empty()) {
-      lists_->push_front(dead_list_);
-      dead_list_ = NULL;
+    FinalizeObjects* dead_list = new FinalizeObjects();
+
+    for(FinalizeObjects::iterator i = live_list_->begin();
+        i != live_list_->end();
+        /* advance is handled in the loop */)
+    {
+      if(i->queued_p()) {
+        dead_list->push_front(*i);
+        i = live_list_->erase(i);
+      } else {
+        ++i;
+      }
+    }
+
+    if(!dead_list->empty()) {
+      lists_->push_front(dead_list);
+    } else {
+      delete dead_list;
     }
 
     if(iterator_) {

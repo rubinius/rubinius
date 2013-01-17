@@ -30,19 +30,21 @@ namespace rubinius {
     FinalizeObject()
       : object(NULL)
       , status(eLive)
-      , queue_count(0)
       , finalizer(0)
       , ruby_finalizer(0)
     {}
 
     Object* object;
     FinalizationStatus status;
-    int queue_count;
     FinalizerFunction finalizer;
     Object* ruby_finalizer;
 
     void queued() {
       status = eQueued;
+    }
+
+    bool queued_p() {
+      return status == eQueued;
     }
   };
 
@@ -85,7 +87,6 @@ namespace rubinius {
     TypedRoot<Thread*> thread_;
     FinalizeObjectsList* lists_;
     FinalizeObjects* live_list_;
-    FinalizeObjects* dead_list_;
     FinalizeObjects* process_list_;
     FinalizeObjects::iterator process_item_;
     FinalizerHandler::iterator* iterator_;
@@ -108,10 +109,11 @@ namespace rubinius {
     void next_process_item(bool release = true);
     void finish(STATE);
 
-    void start_collection(STATE);
-    void finish_collection(STATE);
     void record(Object* obj, FinalizerFunction func);
     void set_ruby_finalizer(Object* obj, Object* finalizer);
+
+    void start_collection(STATE);
+    void finish_collection(STATE);
 
     FinalizerHandler::iterator& begin();
 
