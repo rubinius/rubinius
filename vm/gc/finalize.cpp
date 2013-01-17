@@ -94,6 +94,11 @@ namespace rubinius {
     if(iterator_) delete iterator_;
     if(process_list_) delete process_list_;
     if(live_list_) delete live_list_;
+
+    for(FinalizeObjectsList::iterator i = lists_->begin(); i != lists_->end(); ++i) {
+      delete *i;
+    }
+
     if(lists_) delete lists_;
   }
 
