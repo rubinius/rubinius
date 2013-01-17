@@ -101,10 +101,6 @@ namespace rubinius {
               chunk_marks[i] = true;
             }
 
-          // A young collection was not run, assume any young objects are
-          // alive
-          } else if(obj->young_object_p()) {
-            chunk_marks[i] = true;
           // A weakref pointing to a dead mature object
           } else if(!obj->marked_p(mark)) {
             handle->clear();

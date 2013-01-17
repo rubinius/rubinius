@@ -338,11 +338,11 @@ namespace rubinius {
       if(fi.object->young_object_p()) {
         live = fi.object->forwarded_p();
 
-        if(fi.ruby_finalizer) {
-          fi.ruby_finalizer = saw_object(fi.ruby_finalizer);
-        }
-
         fi.object = saw_object(fi.object);
+      }
+
+      if(fi.ruby_finalizer && fi.ruby_finalizer->young_object_p()) {
+        fi.ruby_finalizer = saw_object(fi.ruby_finalizer);
       }
 
       i.next(live);
