@@ -1694,7 +1694,7 @@ VALUE rb_uint2big(unsigned long number);
 
   VALUE rb_thread_wakeup(VALUE thread);
 
-  /** Release the GIL and let func run in a parallel.
+  /** Marks the call as GC independent.
    *
    * Seriously, crazy restriction here. While the return value is the
    * value returned by func, it MUST not be a VALUE for a reference
@@ -1708,7 +1708,7 @@ VALUE rb_uint2big(unsigned long number);
   VALUE rb_thread_blocking_region(rb_blocking_function_t* func, void* data,
                                   rb_unblock_function_t* ubf, void* ubf_data);
 
-  /* Experimental API. Call +func+ with the GIL locked. */
+  /* Experimental API. Call +func+ while being GC dependent. */
   typedef void* (*rb_thread_call_func)(void*);
 
   void* rb_thread_call_with_gvl(void* (*func)(void*), void* data);

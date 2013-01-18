@@ -95,7 +95,7 @@ namespace rubinius {
 
     add_fd(r2a_agent());
 
-    // This class is always created with the GIL locked, so it's ok
+    // This class is always created in GC dependent code, so it's ok
     // to access ruby stuff here.
     IO* from = IO::create(state, a2r_ruby());
     from->sync(state, cTrue);
