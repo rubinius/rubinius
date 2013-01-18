@@ -85,6 +85,7 @@ namespace rubinius {
     , signature_(0)
     , version_(0)
     , signal_handler_(NULL)
+    , finalizer_handler_(NULL)
   {
 #ifdef ENABLE_LLVM
     if(!llvm::llvm_start_multithreaded()) {
@@ -136,6 +137,7 @@ namespace rubinius {
 
   Environment::~Environment() {
     delete signal_handler_;
+    delete finalizer_handler_;
 
     VM::discard(state, root_vm);
     SharedState::discard(shared);
@@ -352,7 +354,7 @@ namespace rubinius {
   }
 
   void Environment::start_finalizer() {
-    new FinalizerHandler(state);
+    finalizer_handler_ = new FinalizerHandler(state);
   }
 
   void Environment::load_vm_options(int argc, char**argv) {
