@@ -85,10 +85,6 @@ namespace rubinius {
   }
 
   FinalizerHandler::~FinalizerHandler() {
-    if(self_) {
-      rubinius::bug("deleting FinalizerHandler with worker thread active");
-    }
-
     shared_.auxiliary_threads()->unregister_thread(this);
 
     if(iterator_) delete iterator_;
