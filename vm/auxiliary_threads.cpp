@@ -3,11 +3,11 @@
 
 namespace rubinius {
   void AuxiliaryThreads::register_thread(AuxiliaryThread* thread) {
-    threads_.insert(thread);
+    threads_.push_back(thread);
   }
 
   void AuxiliaryThreads::unregister_thread(AuxiliaryThread* thread) {
-    threads_.erase(thread);
+    threads_.remove(thread);
   }
 
   void AuxiliaryThreads::shutdown(STATE) {
@@ -16,8 +16,8 @@ namespace rubinius {
     if(shutdown_in_progress_) return;
     shutdown_in_progress_ = true;
 
-    for(std::set<AuxiliaryThread*>::iterator i = threads_.begin();
-        i != threads_.end();
+    for(std::list<AuxiliaryThread*>::reverse_iterator i = threads_.rbegin();
+        i != threads_.rend();
         ++i) {
       (*i)->shutdown(state);
     }
@@ -31,8 +31,8 @@ namespace rubinius {
     if(exec_in_progress_) return;
     exec_in_progress_ = true;
 
-    for(std::set<AuxiliaryThread*>::iterator i = threads_.begin();
-        i != threads_.end();
+    for(std::list<AuxiliaryThread*>::reverse_iterator i = threads_.rbegin();
+        i != threads_.rend();
         ++i) {
       (*i)->before_exec(state);
     }
@@ -41,7 +41,7 @@ namespace rubinius {
   void AuxiliaryThreads::after_exec(STATE) {
     // We don't guard here on the assumption that only one thread is running
     // after execvp() call.
-    for(std::set<AuxiliaryThread*>::iterator i = threads_.begin();
+    for(std::list<AuxiliaryThread*>::iterator i = threads_.begin();
         i != threads_.end();
         ++i) {
       (*i)->after_exec(state);
@@ -56,8 +56,8 @@ namespace rubinius {
     if(fork_in_progress_) return;
     fork_in_progress_ = true;
 
-    for(std::set<AuxiliaryThread*>::iterator i = threads_.begin();
-        i != threads_.end();
+    for(std::list<AuxiliaryThread*>::reverse_iterator i = threads_.rbegin();
+        i != threads_.rend();
         ++i) {
       (*i)->before_fork(state);
     }
@@ -66,7 +66,7 @@ namespace rubinius {
   void AuxiliaryThreads::after_fork_parent(STATE) {
     // We don't guard here on the assumption that only one thread is running
     // after fork() call.
-    for(std::set<AuxiliaryThread*>::iterator i = threads_.begin();
+    for(std::list<AuxiliaryThread*>::iterator i = threads_.begin();
         i != threads_.end();
         ++i) {
       (*i)->after_fork_parent(state);
@@ -78,7 +78,7 @@ namespace rubinius {
   void AuxiliaryThreads::after_fork_child(STATE) {
     // We don't guard here on the assumption that only one thread is running
     // after fork() call.
-    for(std::set<AuxiliaryThread*>::iterator i = threads_.begin();
+    for(std::list<AuxiliaryThread*>::iterator i = threads_.begin();
         i != threads_.end();
         ++i) {
       (*i)->after_fork_child(state);

@@ -881,6 +881,8 @@ namespace rubinius {
 
     load_platform_conf(runtime);
     boot_vm();
+    start_finalizer();
+
     load_argv(argc_, argv_);
 
     state->vm()->initialize_config();
@@ -899,7 +901,6 @@ namespace rubinius {
     G(rubinius)->set_const(state, "RUNTIME_PATH", String::create(state,
                            runtime.c_str(), runtime.size()));
 
-    start_finalizer();
     load_kernel(runtime);
     shared->finalizer_handler()->start_thread(state);
 

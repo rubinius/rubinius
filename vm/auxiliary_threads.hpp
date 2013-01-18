@@ -3,7 +3,7 @@
 
 #include "util/thread.hpp"
 
-#include <set>
+#include <list>
 
 namespace rubinius {
   class AuxiliaryThread {
@@ -24,7 +24,7 @@ namespace rubinius {
     bool exec_in_progress_;
     bool shutdown_in_progress_;
     utilities::thread::Mutex mutex_;
-    std::set<AuxiliaryThread*> threads_;
+    std::list<AuxiliaryThread*> threads_;
 
   public:
     AuxiliaryThreads()
