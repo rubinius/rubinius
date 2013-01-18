@@ -742,6 +742,7 @@ namespace rubinius {
 
   std::string Environment::executable_name() {
     char name[PATH_MAX];
+    memset(name, 0, PATH_MAX);
 
 #ifdef __APPLE__
     uint32_t size = PATH_MAX;
