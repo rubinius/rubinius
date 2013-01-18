@@ -42,7 +42,6 @@ namespace rubinius {
         if(header->in_use_p()) {
           if(header->marked_p(mark)) {
             chunk_marks[i] = true;
-            break;
           } else {
             header->clear();
           }
