@@ -694,12 +694,12 @@ class Socket < BasicSocket
           # IPv4 address
           offset = FFI.config("sockaddr_in.sin_addr.offset")
           size = FFI.config("sockaddr_in.sin_addr.size")
-          addresses << sockaddr[offset, size]
+          addresses << sockaddr.byteslice(offset, size)
         elsif family == AF_INET6
           # Ipv6 address
           offset = FFI.config("sockaddr_in6.sin6_addr.offset")
           size = FFI.config("sockaddr_in6.sin6_addr.size")
-          addresses << sockaddr[8,16]
+          addresses << sockaddr.byteslice(offset, size)
         else
           addresses << a[3]
         end
