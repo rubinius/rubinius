@@ -23,7 +23,9 @@ namespace rubinius {
     enum FinalizationStatus {
       eLive,
       eQueued,
-      eFinalized
+      eRubyFinalized,
+      eNativeFinalized,
+      eReleased
     };
 
   public:
@@ -92,8 +94,10 @@ namespace rubinius {
     FinalizerHandler::iterator* iterator_;
     ProcessItemKind process_item_kind_;
     utilities::thread::Mutex live_guard_;
-    utilities::thread::Mutex lock_;
-    utilities::thread::Condition cond_;
+    utilities::thread::Mutex worker_lock_;
+    utilities::thread::Condition worker_cond_;
+    utilities::thread::Mutex supervisor_lock_;
+    utilities::thread::Condition supervisor_cond_;
     bool exit_;
     bool finishing_;
 
@@ -106,18 +110,23 @@ namespace rubinius {
     void perform(STATE);
     void finalize(STATE);
     void first_process_item();
-    void next_process_item(bool release = true);
-    void finish(STATE);
+    void next_process_item();
+    void finish(STATE, GCToken gct);
 
     void record(Object* obj, FinalizerFunction func);
     void set_ruby_finalizer(Object* obj, Object* finalizer);
+
+    void queue_objects();
 
     void start_collection(STATE);
     void finish_collection(STATE);
 
     FinalizerHandler::iterator& begin();
 
-    void signal();
+    void worker_signal();
+    void worker_wait();
+    void supervisor_signal();
+    void supervisor_wait();
 
     void start_thread(STATE);
     void stop_thread(STATE);

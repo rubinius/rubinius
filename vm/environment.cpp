@@ -615,12 +615,12 @@ namespace rubinius {
       state->checkpoint(gct, 0);
     }
 
-    shared->om->finalizer_handler()->finish(state);
-
     {
       GCIndependent guard(state);
       shared->auxiliary_threads()->shutdown(state);
     }
+
+    shared->finalizer_handler()->finish(state, gct);
 
     // Hold everyone.
     while(!state->stop_the_world()) {
