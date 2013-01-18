@@ -183,6 +183,11 @@ namespace rubinius {
 
     switch(process_item_kind_) {
     case eRuby: {
+      // Running Ruby finalizers at halt needs more thought. The FFI gem creates
+      // a few objects each method call. This can trigger new GC runs. And a
+      // cascade of shit.
+      if(finishing_) break;
+
       CallFrame* call_frame = 0;
 
       if(process_item_->ruby_finalizer) {
