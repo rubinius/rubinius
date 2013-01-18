@@ -690,12 +690,18 @@ class Socket < BasicSocket
       # transform addresses to packed strings
       if a[4] == family
         sockaddr = Socket.sockaddr_in(1, a[3])
-        if sockaddr.length == 16
+        if family == AF_INET
           # IPv4 address
-          addresses << sockaddr[4, 4]
-        else
+          offset = FFI.config("sockaddr_in.sin_addr.offset")
+          size = FFI.config("sockaddr_in.sin_addr.size")
+          addresses << sockaddr[offset, size]
+        elsif family == AF_INET6
           # Ipv6 address
-          addresses << sockaddr[8, 16]
+          offset = FFI.config("sockaddr_in6.sin6_addr.offset")
+          size = FFI.config("sockaddr_in6.sin6_addr.size")
+          addresses << sockaddr[8,16]
+        else
+          addresses << a[3]
         end
       end
     end
