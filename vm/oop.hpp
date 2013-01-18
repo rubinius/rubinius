@@ -260,7 +260,13 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
   public:
 
     InflatedHeader()
-      : mutex_(false)
+      : next_index_(0)
+      , object_(NULL)
+      , handle_(NULL)
+      , object_id_(0)
+      , mutex_(false)
+      , owner_id_(0)
+      , rec_lock_count_(0)
     {}
 
     ObjectFlags flags() {
