@@ -9,6 +9,7 @@
 #include "llvm/background_compile_request.hpp"
 #include "llvm/disassembler.hpp"
 #include "llvm/jit_context.hpp"
+#include "llvm/jit_memory_manager.hpp"
 
 #include "builtin/fixnum.hpp"
 #include "builtin/constantscope.hpp"
@@ -419,7 +420,6 @@ namespace rubinius {
     : AuxiliaryThread()
     , ManagedThread(state->shared().new_thread_id(),
                     state->shared(), ManagedThread::eSystem)
-    , ctx_(llvm::getGlobalContext())
     , config_(state->shared().config)
     , symbols_(state->shared().symbols)
     , jitted_methods_(0)
@@ -486,6 +486,9 @@ namespace rubinius {
 
     llvm::EngineBuilder factory(module_);
     factory.setAllocateGVsWithCode(false);
+
+    memory_ = new jit::RubiniusJITMemoryManager();
+    factory.setJITMemoryManager(memory_);
 
 #if RBX_LLVM_API_VER > 300
     llvm::TargetOptions opts;
@@ -698,15 +701,23 @@ namespace rubinius {
     }
   }
 
-  void LLVMState::remove(llvm::Function* func) {
-    shared_.stats.jitted_methods.dec();
-
-    // Deallocate the JITed code
+  void LLVMState::cleanup_function(llvm::Function* func) {
     engine_->freeMachineCodeForFunction(func);
 
     // Nuke the Function from the module
     func->replaceAllUsesWith(UndefValue::get(func->getType()));
-    func->eraseFromParent();
+    func->removeFromParent();
+  }
+
+  void* LLVMState::last_function() {
+    void* addr = memory_->getLastFunctionStart();
+    memory_->resetLastFunctionStart();
+    return addr;
+  }
+
+  void LLVMState::remove(void* func) {
+    shared_.stats.jitted_methods.dec();
+    memory_->deallocateBlock(func);
   }
 
   const static int cInlineMaxDepth = 2;

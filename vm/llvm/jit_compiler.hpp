@@ -36,6 +36,7 @@ namespace jit {
     {}
 
     ~Compiler() {
+      if(function_) delete function_;
       delete mci_;
     }
 

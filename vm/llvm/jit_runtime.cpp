@@ -29,12 +29,12 @@ namespace jit {
     if(ls->config().jit_removal_print) {
       void* fin = (void*)((intptr_t)native_func_ + native_size_);
 
-      std::cout << "Remove function: " << function_ << " / "
+      std::cout << "Remove function: "
                 << native_func_ << "-" << fin
                 << "\n";
     }
 
-    ls->remove(function_);
+    ls->remove(function_allocation_);
   }
 
   void RuntimeDataHolder::mark_all(Object* obj, ObjectMark& mark) {

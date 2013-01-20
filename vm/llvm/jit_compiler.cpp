@@ -127,7 +127,9 @@ namespace jit {
 
       // Inject the RuntimeData objects used into the original CompiledCode
       // Do this way after we've validated the IR so things are consistent.
-      ctx_.runtime_data_holder()->set_function(function_,
+
+      ls->cleanup_function(function_);
+      ctx_.runtime_data_holder()->set_function(ls->last_function(),
                                    mci_->address(), mci_->size());
 
       // info.method()->set_jit_data(ctx.runtime_data_holder());

@@ -56,13 +56,13 @@ namespace rubinius {
 
     class RuntimeDataHolder : public CodeResource {
       std::list<RuntimeData*> runtime_data_;
-      llvm::Function* function_;
+      void* function_allocation_;
       void* native_func_;
       int  native_size_;
 
     public:
       RuntimeDataHolder()
-        : function_(0)
+        : function_allocation_(0)
         , native_func_(0)
         , native_size_(0)
       {}
@@ -83,14 +83,14 @@ namespace rubinius {
         runtime_data_.push_back(rd);
       }
 
-      void set_function(llvm::Function* func, void* native, int size) {
-        function_ = func;
+      void set_function(void* func, void* native, int size) {
+        function_allocation_ = func;
         native_func_ = native;
         native_size_ = size;
       }
 
-      llvm::Function* llvm_function() {
-        return function_;
+      void* function_allocation() {
+        return function_allocation_;
       }
 
       void* native_func() {

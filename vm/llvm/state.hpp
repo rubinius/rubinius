@@ -41,6 +41,7 @@ namespace rubinius {
   namespace jit {
     class Builder;
     class Context;
+    class RubiniusJITMemoryManager;
   }
 
   class BackgroundCompilerThread;
@@ -53,9 +54,11 @@ namespace rubinius {
   };
 
   class LLVMState : public AuxiliaryThread, public ManagedThread {
-    llvm::LLVMContext& ctx_;
+    llvm::LLVMContext ctx_;
     llvm::Module* module_;
     llvm::ExecutionEngine* engine_;
+    jit::RubiniusJITMemoryManager* memory_;
+
     llvm::PassManagerBuilder* builder_;
     llvm::FunctionPassManager* passes_;
 
@@ -242,7 +245,10 @@ namespace rubinius {
 
     void compile_soon(STATE, GCToken gct, CompiledCode* code, CallFrame* call_frame,
                       Object* extra, bool is_block=false);
-    void remove(llvm::Function* func);
+
+    void cleanup_function(llvm::Function* func);
+    void* last_function();
+    void remove(void* func);
 
     CallFrame* find_candidate(STATE, CompiledCode* start, CallFrame* call_frame);
     void compile_callframe(STATE, GCToken gct, CompiledCode* start, CallFrame* call_frame,

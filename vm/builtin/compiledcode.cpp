@@ -463,12 +463,7 @@ namespace rubinius {
 
       for(int i = 0; i < MachineCode::cMaxSpecializations; i++) {
         if(!v->specializations[i].jit_data) continue;
-
-        llvm::Function* func = v->specializations[i].jit_data->llvm_function();
-
-        llvm::outs() << "<LLVM>\n"
-                     << *func
-                     << "</LLVM>\n<MachineCode>\n";
+        llvm::outs() << "<MachineCode>\n";
 
         LLVMState::show_machine_code(
             v->specializations[i].jit_data->native_func(),
