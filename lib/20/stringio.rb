@@ -357,7 +357,7 @@ class StringIO
     else
       args.each do |arg|
         if arg.nil?
-          line = "nil"
+          line = ""
         elsif Thread.guarding? arg
           line = "[...]"
         else
