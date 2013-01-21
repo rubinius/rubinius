@@ -3,6 +3,7 @@
 
 #include "unwind_info.hpp"
 
+#include "llvm/jit_context.hpp"
 #include "llvm/basic_block.hpp"
 #include "llvm/inline_block.hpp"
 #include "llvm/offset.hpp"
@@ -22,7 +23,7 @@ namespace jit {
 
   class Builder {
   public:
-    LLVMState* ls_;
+    Context* ctx_;
     MachineCode* machine_code_;
     llvm::Type* cf_type;
     llvm::Type* vars_type;
@@ -71,7 +72,7 @@ namespace jit {
 
     llvm::IRBuilder<>& b() { return builder_; }
 
-    Builder(LLVMState* ls, JITMethodInfo& info);
+    Builder(Context* ctx, JITMethodInfo& info);
 
     void pass_one(llvm::BasicBlock* body);
 
@@ -91,18 +92,18 @@ namespace jit {
     template <typename T>
     llvm::Value* constant(T obj, llvm::Type* obj_type) {
       return b().CreateIntToPtr(
-        llvm::ConstantInt::get(ls_->Int64Ty, (intptr_t)obj),
+        llvm::ConstantInt::get(ctx_->Int64Ty, (intptr_t)obj),
         obj_type, "constant");
     }
 
     llvm::Value* cint(int num) {
       switch(num) {
       case 0:
-        return ls_->Zero;
+        return ctx_->Zero;
       case 1:
-        return ls_->One;
+        return ctx_->One;
       default:
-        return llvm::ConstantInt::get(ls_->Int32Ty, num);
+        return llvm::ConstantInt::get(ctx_->Int32Ty, num);
       }
     }
 

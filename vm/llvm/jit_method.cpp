@@ -20,23 +20,23 @@ namespace jit {
 
   void MethodBuilder::setup() {
     std::vector<Type*> ftypes;
-    ftypes.push_back(ls_->ptr_type("State"));
-    ftypes.push_back(ls_->ptr_type("CallFrame"));
-    ftypes.push_back(ls_->ptr_type("Executable"));
-    ftypes.push_back(ls_->ptr_type("Module"));
-    ftypes.push_back(ls_->ptr_type("Arguments"));
+    ftypes.push_back(ctx_->ptr_type("State"));
+    ftypes.push_back(ctx_->ptr_type("CallFrame"));
+    ftypes.push_back(ctx_->ptr_type("Executable"));
+    ftypes.push_back(ctx_->ptr_type("Module"));
+    ftypes.push_back(ctx_->ptr_type("Arguments"));
 
-    FunctionType* ft = FunctionType::get(ls_->ptr_type("Object"), ftypes, false);
+    FunctionType* ft = FunctionType::get(ctx_->ptr_type("Object"), ftypes, false);
 
     std::ostringstream ss;
     ss << std::string("_X_")
-       << ls_->enclosure_name(info_.method())
+       << ctx_->llvm_state()->enclosure_name(info_.method())
        << "#"
-       << ls_->symbol_debug_str(info_.method()->name())
-       << "@" << ls_->add_jitted_method();
+       << ctx_->llvm_state()->symbol_debug_str(info_.method()->name())
+       << "@" << ctx_->llvm_state()->add_jitted_method();
 
     llvm::Function* func = Function::Create(ft, GlobalValue::ExternalLinkage,
-                            ss.str(), ls_->module());
+                            ss.str(), ctx_->module());
 
     Function::arg_iterator ai = func->arg_begin();
     llvm::Value* vm =   ai++; vm->setName("state");
@@ -45,10 +45,10 @@ namespace jit {
     module = ai++; module->setName("mod");
     llvm::Value* args = ai++; args->setName("args");
 
-    BasicBlock* block = BasicBlock::Create(ls_->ctx(), "entry", func);
+    BasicBlock* block = BasicBlock::Create(ctx_->llvm_context(), "entry", func);
     builder_.SetInsertPoint(block);
 
-    info_.context().set_function(func);
+    info_.context()->set_function(func);
 
     info_.set_vm(vm);
     info_.set_args(args);
@@ -179,7 +179,7 @@ namespace jit {
     // M ... M + min(O, T-R)
 
     Value* Oval = cint(O);
-    Value* left = b().CreateSub(T, ConstantInt::get(ls_->Int32Ty, R));
+    Value* left = b().CreateSub(T, ConstantInt::get(ctx_->Int32Ty, R));
 
     Value* limit =
       b().CreateAdd(
@@ -234,11 +234,11 @@ namespace jit {
 
     // Phase 4 - splat
     if(machine_code_->splat_position >= 0) {
-      Signature sig(ls_, "Object");
+      Signature sig(ctx_, "Object");
       sig << "State";
       sig << "Arguments";
-      sig << ls_->Int32Ty;
-      sig << ls_->Int32Ty;
+      sig << ctx_->Int32Ty;
+      sig << ctx_->Int32Ty;
 
       Value* call_args[] = {
         info_.vm(),
@@ -367,11 +367,11 @@ namespace jit {
 
     // Setup the splat.
     if(machine_code_->splat_position >= 0) {
-      Signature sig(ls_, "Object");
+      Signature sig(ctx_, "Object");
       sig << "State";
       sig << "Arguments";
-      sig << ls_->Int32Ty;
-      sig << ls_->Int32Ty;
+      sig << ctx_->Int32Ty;
+      sig << ctx_->Int32Ty;
 
       Value* call_args[] = {
         info_.vm(),
@@ -446,12 +446,12 @@ namespace jit {
     b().SetInsertPoint(arg_error);
 
     // Call our arg_error helper
-    Signature sig(ls_, "Object");
+    Signature sig(ctx_, "Object");
 
     sig << "State";
     sig << "CallFrame";
     sig << "Arguments";
-    sig << ls_->Int32Ty;
+    sig << ctx_->Int32Ty;
 
     Value* call_args[] = {
       info_.vm(),
@@ -468,8 +468,8 @@ namespace jit {
   }
 
   void MethodBuilder::return_value(Value* ret, BasicBlock* cont) {
-    if(ls_->include_profiling()) {
-      Value* test = b().CreateLoad(ls_->profiling(), "profiling");
+    if(ctx_->llvm_state()->include_profiling()) {
+      Value* test = b().CreateLoad(ctx_->profiling(), "profiling");
       BasicBlock* end_profiling = info_.new_block("end_profiling");
       if(!cont) {
         cont = info_.new_block("continue");
@@ -479,8 +479,8 @@ namespace jit {
 
       b().SetInsertPoint(end_profiling);
 
-      Signature sig(ls_, ls_->VoidTy);
-      sig << llvm::PointerType::getUnqual(ls_->Int8Ty);
+      Signature sig(ctx_, ctx_->VoidTy);
+      sig << llvm::PointerType::getUnqual(ctx_->Int8Ty);
 
       Value* call_args[] = {
         method_entry_
@@ -516,7 +516,7 @@ namespace jit {
         "args.block");
     b().CreateStore(blk, get_field(vars, offset::StackVariables::block));
 
-    b().CreateStore(Constant::getNullValue(ls_->ptr_type("VariableScope")),
+    b().CreateStore(Constant::getNullValue(ctx_->ptr_type("VariableScope")),
         get_field(vars, offset::StackVariables::parent));
 
     b().CreateStore(constant(cNil, obj_type), get_field(vars, offset::StackVariables::last_match));
@@ -539,7 +539,7 @@ namespace jit {
 
     // msg
     b().CreateStore(
-        ConstantInt::getNullValue(ls_->Int8PtrTy),
+        ConstantInt::getNullValue(ctx_->Int8PtrTy),
         get_field(call_frame, offset::CallFrame::dispatch_data));
 
     // compiled_code
@@ -563,11 +563,11 @@ namespace jit {
 
     // jit_data
     b().CreateStore(
-        constant(info_.context().runtime_data_holder(), ls_->Int8PtrTy),
+        constant(ctx_->runtime_data_holder(), ctx_->Int8PtrTy),
         get_field(call_frame, offset::CallFrame::jit_data));
 
-    if(ls_->include_profiling()) {
-      Value* test = b().CreateLoad(ls_->profiling(), "profiling");
+    if(ctx_->llvm_state()->include_profiling()) {
+      Value* test = b().CreateLoad(ctx_->profiling(), "profiling");
 
       BasicBlock* setup_profiling = info_.new_block("setup_profiling");
       BasicBlock* cont = info_.new_block("continue");
@@ -576,9 +576,9 @@ namespace jit {
 
       b().SetInsertPoint(setup_profiling);
 
-      Signature sig(ls_, ls_->VoidTy);
+      Signature sig(ctx_, ctx_->VoidTy);
       sig << "State";
-      sig << llvm::PointerType::getUnqual(ls_->Int8Ty);
+      sig << llvm::PointerType::getUnqual(ctx_->Int8Ty);
       sig << "Executable";
       sig << "Module";
       sig << "Arguments";

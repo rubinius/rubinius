@@ -21,7 +21,7 @@ namespace rubinius {
     if(!bb) bb = failure();
 
     guarded_type_ = ops_.check_class(recv, klass, bb);
-    guarded_type_.inherit_source(ops_.llvm_state(), recv);
+    guarded_type_.inherit_source(ops_.context(), recv);
   }
 
   void Inliner::check_recv(Class* klass, llvm::BasicBlock* bb) {
@@ -54,12 +54,12 @@ namespace rubinius {
       if(!inline_for_class(klass)) {
         // If we fail to inline this, emit a send to the method
         Value* cache_const = ops_.b().CreateIntToPtr(
-          ConstantInt::get(ops_.llvm_state()->IntPtrTy, (reinterpret_cast<uintptr_t>(cache_))),
+          ConstantInt::get(ops_.context()->IntPtrTy, (reinterpret_cast<uintptr_t>(cache_))),
           ops_.ptr_type("InlineCache"), "cast_to_ptr");
 
         Value* execute_pos_idx[] = {
-          ops_.llvm_state()->cint(0),
-          ops_.llvm_state()->cint(offset::InlineCache::execute),
+          ops_.context()->cint(0),
+          ops_.context()->cint(offset::InlineCache::execute),
         };
 
         Value* execute_pos = ops_.b().CreateGEP(cache_const,
@@ -112,7 +112,7 @@ namespace rubinius {
 
     if(!meth) {
       if(ops_.llvm_state()->config().jit_inline_debug) {
-        context_.inline_log("NOT inlining")
+        ctx_->inline_log("NOT inlining")
           << ops_.llvm_state()->symbol_debug_str(cache_->name)
           << ". Inliner error, method missing.\n";
       }
@@ -161,7 +161,7 @@ namespace rubinius {
         if(decision != cInline) {
           if(ops_.llvm_state()->config().jit_inline_debug) {
 
-            context_.inline_log("NOT inlining")
+            ctx_->inline_log("NOT inlining")
               << ops_.llvm_state()->enclosure_name(code)
               << "#"
               << ops_.llvm_state()->symbol_debug_str(code->name())
@@ -197,7 +197,7 @@ namespace rubinius {
         }
 
         if(ops_.llvm_state()->config().jit_inline_debug) {
-          context_.inline_log("inlining")
+          ctx_->inline_log("inlining")
             << ops_.llvm_state()->enclosure_name(code)
             << "#"
             << ops_.llvm_state()->symbol_debug_str(code->name())
@@ -224,7 +224,7 @@ namespace rubinius {
         return true;
       } else {
         if(ops_.llvm_state()->config().jit_inline_debug) {
-          context_.inline_log("NOT inlining")
+          ctx_->inline_log("NOT inlining")
             << ops_.llvm_state()->enclosure_name(code)
             << "#"
             << ops_.llvm_state()->symbol_debug_str(code->name())
@@ -238,7 +238,7 @@ namespace rubinius {
     } else if(NativeFunction* nf = try_as<NativeFunction>(meth)) {
       if(inline_ffi(klass, nf)) {
         if(ops_.llvm_state()->config().jit_inline_debug) {
-          context_.inline_log("inlining")
+          ctx_->inline_log("inlining")
             << "FFI call to "
             << ops_.llvm_state()->symbol_debug_str(nf->name())
             << "() into "
@@ -250,7 +250,7 @@ namespace rubinius {
       }
     } else {
       if(ops_.llvm_state()->config().jit_inline_debug) {
-        context_.inline_log("NOT inlining")
+        ctx_->inline_log("NOT inlining")
           << ops_.llvm_state()->symbol_debug_str(klass->module_name())
           << "#"
           << ops_.llvm_state()->symbol_debug_str(cache_->name)
@@ -269,7 +269,7 @@ remember:
 
   void Inliner::inline_block(JITInlineBlock* ib, Value* self) {
     if(ops_.llvm_state()->config().jit_inline_debug) {
-      context_.inline_log("inlining block into")
+      ctx_->inline_log("inlining block into")
         << ops_.llvm_state()->symbol_debug_str(ops_.method_name())
         << "\n";
     }
@@ -310,7 +310,7 @@ remember:
 
   void Inliner::inline_trivial_method(Class* klass, CompiledCode* code) {
     if(ops_.llvm_state()->config().jit_inline_debug) {
-      context_.inline_log("inlining")
+      ctx_->inline_log("inlining")
         << ops_.llvm_state()->enclosure_name(code)
         << "#"
         << ops_.llvm_state()->symbol_debug_str(code->name())
@@ -368,7 +368,7 @@ remember:
     if(count_ != 1) return;
 
     if(ops_.llvm_state()->config().jit_inline_debug) {
-      context_.inline_log("inlining")
+      ctx_->inline_log("inlining")
         << "writer to '"
         << ops_.llvm_state()->symbol_debug_str(acc->name())
         << "' on "
@@ -379,7 +379,7 @@ remember:
         << "\n";
     }
 
-    context_.enter_inline();
+    ctx_->enter_inline();
     ops_.llvm_state()->add_accessor_inlined();
 
     check_recv(klass);
@@ -398,7 +398,7 @@ remember:
       int offset = ti->slot_locations[it->second];
       ops_.set_object_slot(self, offset, val);
     } else {
-      Signature sig2(ops_.llvm_state(), "Object");
+      Signature sig2(ops_.context(), "Object");
       sig2 << "State";
       sig2 << "CallFrame";
       sig2 << "Object";
@@ -420,14 +420,14 @@ remember:
     exception_safe();
     set_result(val);
 
-    context_.leave_inline();
+    ctx_->leave_inline();
   }
 
   void Inliner::inline_ivar_access(Class* klass, AccessVariable* acc) {
     if(count_ != 0) return;
 
     if(ops_.llvm_state()->config().jit_inline_debug) {
-      context_.inline_log("inlining")
+      ctx_->inline_log("inlining")
         << "read to '"
         << ops_.llvm_state()->symbol_debug_str(acc->name())
         << "' on "
@@ -437,7 +437,7 @@ remember:
         << ops_.llvm_state()->symbol_debug_str(ops_.method_name());
     }
 
-    context_.enter_inline();
+    ctx_->enter_inline();
     ops_.llvm_state()->add_accessor_inlined();
 
     Value* self = recv();
@@ -482,7 +482,7 @@ remember:
       }
 
       if(!ivar) {
-        Signature sig2(ops_.llvm_state(), "Object");
+        Signature sig2(ops_.context(), "Object");
         sig2 << "State";
         sig2 << "Object";
         sig2 << "Object";
@@ -505,7 +505,7 @@ remember:
       ops_.llvm_state()->log() << "\n";
     }
 
-    context_.leave_inline();
+    ctx_->leave_inline();
 
   }
 
@@ -520,11 +520,11 @@ remember:
 
   void Inliner::inline_generic_method(Class* klass, Module* defined_in,
                                       CompiledCode* code, MachineCode* mcode) {
-    context_.enter_inline();
+    ctx_->enter_inline();
 
     check_recv(klass);
 
-    JITMethodInfo info(context_, code, mcode);
+    JITMethodInfo info(ctx_, code, mcode);
 
     prime_info(info);
 
@@ -533,9 +533,9 @@ remember:
     info.set_self_class(klass);
 
     jit::RuntimeData* rd = new jit::RuntimeData(code, cache_->name, defined_in);
-    context_.add_runtime_data(rd);
+    ctx_->add_runtime_data(rd);
 
-    jit::InlineMethodBuilder work(ops_.llvm_state(), info, rd);
+    jit::InlineMethodBuilder work(ops_.context(), info, rd);
     work.valid_flag = ops_.valid_flag();
 
     Value* blk = 0;
@@ -571,13 +571,13 @@ remember:
     // check and use.
     set_result(info.return_phi());
 
-    context_.leave_inline();
+    ctx_->leave_inline();
   }
 
   void Inliner::emit_inline_block(JITInlineBlock* ib, Value* self) {
-    context_.enter_inline();
+    ctx_->enter_inline();
 
-    JITMethodInfo info(context_, ib->method(), ib->machine_code());
+    JITMethodInfo info(ctx_, ib->method(), ib->machine_code());
 
     prime_info(info);
 
@@ -588,9 +588,9 @@ remember:
     info.self_type = ops_.info().self_type;
 
     jit::RuntimeData* rd = new jit::RuntimeData(ib->method(), nil<Symbol>(), nil<Module>());
-    context_.add_runtime_data(rd);
+    ctx_->add_runtime_data(rd);
 
-    jit::InlineBlockBuilder work(ops_.llvm_state(), info, rd);
+    jit::InlineBlockBuilder work(ops_.context(), info, rd);
     work.valid_flag = ops_.valid_flag();
 
     JITStackArgs args(count_);
@@ -605,7 +605,7 @@ remember:
     if(ib->machine_code()->call_count >= 0) ib->machine_code()->call_count /= 2;
 
     BasicBlock* entry = work.setup_inline_block(self,
-        ops_.constant(cNil, ops_.llvm_state()->ptr_type("Module")), args);
+        ops_.constant(cNil, ops_.context()->ptr_type("Module")), args);
 
     if(!work.generate_body()) {
       rubinius::bug("LLVM failed to compile a function");
@@ -621,46 +621,46 @@ remember:
     // check and use.
     set_result(info.return_phi());
 
-    context_.leave_inline();
+    ctx_->leave_inline();
   }
 
   Type* find_type(JITOperations& ops_, size_t type) {
     switch(type) {
       case RBX_FFI_TYPE_CHAR:
       case RBX_FFI_TYPE_UCHAR:
-        return ops_.llvm_state()->Int8Ty;
+        return ops_.context()->Int8Ty;
 
       case RBX_FFI_TYPE_SHORT:
       case RBX_FFI_TYPE_USHORT:
-        return ops_.llvm_state()->Int16Ty;
+        return ops_.context()->Int16Ty;
 
       case RBX_FFI_TYPE_INT:
       case RBX_FFI_TYPE_UINT:
-        return ops_.llvm_state()->Int32Ty;
+        return ops_.context()->Int32Ty;
 
       case RBX_FFI_TYPE_LONG:
       case RBX_FFI_TYPE_ULONG:
 #ifdef IS_X8664
-        return ops_.llvm_state()->Int64Ty;
+        return ops_.context()->Int64Ty;
 #else
-        return ops_.llvm_state()->Int32Ty;
+        return ops_.context()->Int32Ty;
 #endif
 
       case RBX_FFI_TYPE_LONG_LONG:
       case RBX_FFI_TYPE_ULONG_LONG:
-        return ops_.llvm_state()->Int64Ty;
+        return ops_.context()->Int64Ty;
 
       case RBX_FFI_TYPE_FLOAT:
-        return ops_.llvm_state()->FloatTy;
+        return ops_.context()->FloatTy;
 
       case RBX_FFI_TYPE_DOUBLE:
-        return ops_.llvm_state()->DoubleTy;
+        return ops_.context()->DoubleTy;
 
       case RBX_FFI_TYPE_STRING:
       case RBX_FFI_TYPE_STRPTR:
       case RBX_FFI_TYPE_PTR:
       case RBX_FFI_TYPE_VOID:
-        return llvm::PointerType::getUnqual(ops_.llvm_state()->Int8Ty);
+        return llvm::PointerType::getUnqual(ops_.context()->Int8Ty);
     }
 
     assert(0 && "unknown type to return!");
@@ -690,8 +690,8 @@ remember:
     std::vector<Type*> ffi_type;
 
     std::vector<Type*> struct_types;
-    struct_types.push_back(ops_.llvm_state()->Int32Ty);
-    struct_types.push_back(ops_.llvm_state()->Int1Ty);
+    struct_types.push_back(ops_.context()->Int32Ty);
+    struct_types.push_back(ops_.context()->Int1Ty);
 
     for(size_t i = 0; i < nf->ffi_data->arg_count; i++) {
       Value* current_arg = arg(i);
@@ -706,10 +706,10 @@ remember:
       case RBX_FFI_TYPE_UINT:
       case RBX_FFI_TYPE_LONG:
       case RBX_FFI_TYPE_ULONG: {
-        Signature sig(ops_.llvm_state(), ops_.NativeIntTy);
+        Signature sig(ops_.context(), ops_.NativeIntTy);
         sig << "State";
         sig << "Object";
-        sig << llvm::PointerType::getUnqual(ops_.llvm_state()->Int1Ty);
+        sig << llvm::PointerType::getUnqual(ops_.context()->Int1Ty);
 
         Value* val = sig.call("rbx_ffi_to_int", call_args, 3, "to_int",
                               ops_.b());
@@ -733,10 +733,10 @@ remember:
       }
 
       case RBX_FFI_TYPE_FLOAT: {
-        Signature sig(ops_.llvm_state(), ops_.llvm_state()->FloatTy);
+        Signature sig(ops_.context(), ops_.context()->FloatTy);
         sig << "State";
         sig << "Object";
-        sig << llvm::PointerType::getUnqual(ops_.llvm_state()->Int1Ty);
+        sig << llvm::PointerType::getUnqual(ops_.context()->Int1Ty);
 
         Value* val = sig.call("rbx_ffi_to_float", call_args, 3, "to_float",
                               ops_.b());
@@ -754,10 +754,10 @@ remember:
       }
 
       case RBX_FFI_TYPE_DOUBLE: {
-        Signature sig(ops_.llvm_state(), ops_.llvm_state()->DoubleTy);
+        Signature sig(ops_.context(), ops_.context()->DoubleTy);
         sig << "State";
         sig << "Object";
-        sig << llvm::PointerType::getUnqual(ops_.llvm_state()->Int1Ty);
+        sig << llvm::PointerType::getUnqual(ops_.context()->Int1Ty);
 
         Value* val = sig.call("rbx_ffi_to_double", call_args, 3, "to_double",
                               ops_.b());
@@ -776,10 +776,10 @@ remember:
 
       case RBX_FFI_TYPE_LONG_LONG:
       case RBX_FFI_TYPE_ULONG_LONG: {
-        Signature sig(ops_.llvm_state(), ops_.llvm_state()->Int64Ty);
+        Signature sig(ops_.context(), ops_.context()->Int64Ty);
         sig << "State";
         sig << "Object";
-        sig << llvm::PointerType::getUnqual(ops_.llvm_state()->Int1Ty);
+        sig << llvm::PointerType::getUnqual(ops_.context()->Int1Ty);
 
         Value* val = sig.call("rbx_ffi_to_int64", call_args, 3, "to_int64",
                               ops_.b());
@@ -797,12 +797,12 @@ remember:
       }
 
       case RBX_FFI_TYPE_PTR: {
-        Type* type = llvm::PointerType::getUnqual(ops_.llvm_state()->Int8Ty);
+        Type* type = llvm::PointerType::getUnqual(ops_.context()->Int8Ty);
 
-        Signature sig(ops_.llvm_state(), type);
+        Signature sig(ops_.context(), type);
         sig << "State";
         sig << "Object";
-        sig << llvm::PointerType::getUnqual(ops_.llvm_state()->Int1Ty);
+        sig << llvm::PointerType::getUnqual(ops_.context()->Int1Ty);
 
         Value* val = sig.call("rbx_ffi_to_ptr", call_args, 3, "to_ptr",
                               ops_.b());
@@ -820,12 +820,12 @@ remember:
       }
 
       case RBX_FFI_TYPE_STRING: {
-        Type* type = llvm::PointerType::getUnqual(ops_.llvm_state()->Int8Ty);
+        Type* type = llvm::PointerType::getUnqual(ops_.context()->Int8Ty);
 
-        Signature sig(ops_.llvm_state(), type);
+        Signature sig(ops_.context(), type);
         sig << "State";
         sig << "Object";
-        sig << llvm::PointerType::getUnqual(ops_.llvm_state()->Int1Ty);
+        sig << llvm::PointerType::getUnqual(ops_.context()->Int1Ty);
 
         Value* val = sig.call("rbx_ffi_to_string", call_args, 3, "to_string",
                               ops_.b());
@@ -847,7 +847,7 @@ remember:
       }
     }
 
-    Signature check(ops_.llvm_state(), ops_.NativeIntTy);
+    Signature check(ops_.context(), ops_.NativeIntTy);
     check << "State";
     check << "CallFrame";
 
@@ -858,7 +858,7 @@ remember:
 
     FunctionType* ft = FunctionType::get(return_type, ffi_type, false);
     Value* ep_ptr = ops_.b().CreateIntToPtr(
-            ConstantInt::get(ops_.llvm_state()->IntPtrTy, (intptr_t)nf->ffi_data->ep),
+            ConstantInt::get(ops_.context()->IntPtrTy, (intptr_t)nf->ffi_data->ep),
             llvm::PointerType::getUnqual(ft), "cast_to_function");
 
     Value* ffi_result = ops_.b().CreateCall(ep_ptr, ffi_args, "ffi_result");
@@ -880,12 +880,12 @@ remember:
     case RBX_FFI_TYPE_ULONG:
 #endif
     {
-      Signature sig(ops_.llvm_state(), ops_.ObjType);
+      Signature sig(ops_.context(), ops_.ObjType);
       sig << "State";
-      sig << ops_.llvm_state()->Int32Ty;
+      sig << ops_.context()->Int32Ty;
 
       res_args[1] = ops_.b().CreateSExtOrBitCast(res_args[1],
-                               ops_.llvm_state()->Int32Ty);
+                               ops_.context()->Int32Ty);
 
       result = sig.call("rbx_ffi_from_int32", res_args, 2, "to_obj",
                         ops_.b());
@@ -899,9 +899,9 @@ remember:
     case RBX_FFI_TYPE_ULONG:
 #endif
     {
-      Signature sig(ops_.llvm_state(), ops_.ObjType);
+      Signature sig(ops_.context(), ops_.ObjType);
       sig << "State";
-      sig << ops_.llvm_state()->Int64Ty;
+      sig << ops_.context()->Int64Ty;
 
       result = sig.call("rbx_ffi_from_int64", res_args, 2, "to_obj",
                         ops_.b());
@@ -909,9 +909,9 @@ remember:
     }
 
     case RBX_FFI_TYPE_FLOAT: {
-      Signature sig(ops_.llvm_state(), ops_.ObjType);
+      Signature sig(ops_.context(), ops_.ObjType);
       sig << "State";
-      sig << ops_.llvm_state()->FloatTy;
+      sig << ops_.context()->FloatTy;
 
       result = sig.call("rbx_ffi_from_float", res_args, 2, "to_obj",
                         ops_.b());
@@ -919,9 +919,9 @@ remember:
     }
 
     case RBX_FFI_TYPE_DOUBLE: {
-      Signature sig(ops_.llvm_state(), ops_.ObjType);
+      Signature sig(ops_.context(), ops_.ObjType);
       sig << "State";
-      sig << ops_.llvm_state()->DoubleTy;
+      sig << ops_.context()->DoubleTy;
 
       result = sig.call("rbx_ffi_from_double", res_args, 2, "to_obj",
                         ops_.b());
@@ -929,9 +929,9 @@ remember:
     }
 
     case RBX_FFI_TYPE_PTR: {
-      Signature sig(ops_.llvm_state(), ops_.ObjType);
+      Signature sig(ops_.context(), ops_.ObjType);
       sig << "State";
-      sig << llvm::PointerType::getUnqual(ops_.llvm_state()->Int8Ty);
+      sig << llvm::PointerType::getUnqual(ops_.context()->Int8Ty);
 
       result = sig.call("rbx_ffi_from_ptr", res_args, 2, "to_obj",
                         ops_.b());
@@ -939,9 +939,9 @@ remember:
     }
 
     case RBX_FFI_TYPE_STRING: {
-      Signature sig(ops_.llvm_state(), ops_.ObjType);
+      Signature sig(ops_.context(), ops_.ObjType);
       sig << "State";
-      sig << llvm::PointerType::getUnqual(ops_.llvm_state()->Int8Ty);
+      sig << llvm::PointerType::getUnqual(ops_.context()->Int8Ty);
 
       result = sig.call("rbx_ffi_from_string", res_args, 2, "to_obj",
                         ops_.b());
@@ -949,9 +949,9 @@ remember:
     }
 
     case RBX_FFI_TYPE_STRPTR: {
-      Signature sig(ops_.llvm_state(), ops_.ObjType);
+      Signature sig(ops_.context(), ops_.ObjType);
       sig << "State";
-      sig << llvm::PointerType::getUnqual(ops_.llvm_state()->Int8Ty);
+      sig << llvm::PointerType::getUnqual(ops_.context()->Int8Ty);
 
       result = sig.call("rbx_ffi_from_string_with_pointer", res_args, 2, "to_obj",
                         ops_.b());

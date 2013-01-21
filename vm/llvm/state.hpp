@@ -40,12 +40,12 @@ namespace rubinius {
 
   namespace jit {
     class Builder;
-    class Context;
     class RubiniusJITMemoryManager;
   }
 
   class BackgroundCompilerThread;
   class BlockEnvironment;
+  class Context;
 
   enum JitDebug {
     cSimple = 1,
@@ -54,15 +54,8 @@ namespace rubinius {
   };
 
   class LLVMState : public AuxiliaryThread, public ManagedThread {
-    llvm::LLVMContext ctx_;
-    llvm::Module* module_;
-    llvm::ExecutionEngine* engine_;
     jit::RubiniusJITMemoryManager* memory_;
 
-    llvm::PassManagerBuilder* builder_;
-    llvm::FunctionPassManager* passes_;
-
-    llvm::Type* object_;
     Configuration& config_;
 
     BackgroundCompilerThread* background_thread_;
@@ -75,14 +68,12 @@ namespace rubinius {
 
     SharedState& shared_;
     bool include_profiling_;
-    llvm::GlobalVariable* profiling_;
 
     int code_bytes_;
 
     std::ostream* log_;
 
     gc::WriteBarrier write_barrier_;
-    unsigned int metadata_id_;
 
     int fixnum_class_id_;
     int symbol_class_id_;
@@ -97,24 +88,6 @@ namespace rubinius {
   public:
 
     uint64_t time_spent;
-
-    llvm::Type* VoidTy;
-
-    llvm::Type* Int1Ty;
-    llvm::Type* Int8Ty;
-    llvm::Type* Int16Ty;
-    llvm::Type* Int32Ty;
-    llvm::Type* Int64Ty;
-    llvm::Type* IntPtrTy;
-    llvm::Type* VoidPtrTy;
-
-    llvm::Type* FloatTy;
-    llvm::Type* DoubleTy;
-
-    llvm::Type* Int8PtrTy;
-
-    llvm::Value* Zero;
-    llvm::Value* One;
 
     static LLVMState* get(STATE);
     static LLVMState* get_if_set(STATE);
@@ -139,19 +112,11 @@ namespace rubinius {
       return config_;
     }
 
-    llvm::GlobalVariable* profiling() {
-      return profiling_;
-    }
-
     bool include_profiling() {
       return include_profiling_;
     }
 
-    llvm::Module* module() { return module_; }
-    llvm::ExecutionEngine* engine() { return engine_; }
-    llvm::PassManagerBuilder* builder() { return builder_; }
-    llvm::FunctionPassManager* passes() { return passes_; }
-    llvm::Type* object() { return object_; }
+    jit::RubiniusJITMemoryManager* memory() { return memory_; }
 
     int jitted_methods() {
       return jitted_methods_;
@@ -191,18 +156,12 @@ namespace rubinius {
 
     SharedState& shared() { return shared_; }
 
-    llvm::LLVMContext& ctx() { return ctx_; }
-
     std::ostream& log() {
       return *log_;
     }
 
     gc::WriteBarrier* write_barrier() {
       return &write_barrier_;
-    }
-
-    unsigned int metadata_id() {
-      return metadata_id_;
     }
 
     int fixnum_class_id() {
@@ -221,17 +180,6 @@ namespace rubinius {
       return type_optz_;
     }
 
-    llvm::Value* cint(int num) {
-      switch(num) {
-      case 0:
-        return Zero;
-      case 1:
-        return One;
-      default:
-        return llvm::ConstantInt::get(Int32Ty, num);
-      }
-    }
-
     void start_method_update() {
       method_update_lock_.lock();
     }
@@ -240,14 +188,9 @@ namespace rubinius {
       method_update_lock_.unlock();
     }
 
-    llvm::Type* ptr_type(std::string name);
-    llvm::Type* type(std::string name);
-
     void compile_soon(STATE, GCToken gct, CompiledCode* code, CallFrame* call_frame,
                       Object* extra, bool is_block=false);
 
-    void cleanup_function(llvm::Function* func);
-    void* last_function();
     void remove(void* func);
 
     CallFrame* find_candidate(STATE, CompiledCode* start, CallFrame* call_frame);
@@ -269,71 +212,6 @@ namespace rubinius {
     void gc_scan(GarbageCollector* gc);
 
     static void show_machine_code(void* impl, size_t bytes);
-  };
-
-
-  class Signature {
-  protected:
-    LLVMState* ls_;
-    std::vector<llvm::Type*> types_;
-    llvm::Type* ret_type_;
-
-  public:
-    Signature(LLVMState* ls, llvm::Type* rt)
-      : ls_(ls)
-      , ret_type_(rt)
-    {}
-
-    Signature(LLVMState* ls, const char* rt)
-      : ls_(ls)
-      , ret_type_(ls->ptr_type(rt))
-    {}
-
-    std::vector<llvm::Type*>& types() {
-      return types_;
-    }
-
-    Signature& operator<<(const char* name) {
-      types_.push_back(ls_->ptr_type(name));
-
-      return *this;
-    }
-
-    Signature& operator<<(llvm::Type* type) {
-      types_.push_back(type);
-
-      return *this;
-    }
-
-    llvm::FunctionType* type() {
-      return llvm::FunctionType::get(ret_type_, types_, false);
-    }
-
-    operator llvm::FunctionType*() { return type(); }
-
-    llvm::Function* function(const char* name) {
-      return llvm::cast<llvm::Function>(ls_->module()->getOrInsertFunction(name, type()));
-    }
-
-    void setDoesNotCapture(const char* name, int which) {
-      function(name)->setDoesNotCapture(which);
-    }
-
-    llvm::CallInst* call(const char* name, llvm::Value** start, int size,
-                      const char* inst_name, llvm::BasicBlock* block) {
-      return llvm::CallInst::Create(function(name), llvm::ArrayRef<llvm::Value*>(start, size), inst_name, block);
-    }
-
-    llvm::CallInst* call(const char* name, llvm::Value** start, int size,
-                      const char* inst_name, llvm::IRBuilder<>& builder) {
-      return builder.CreateCall(function(name), llvm::ArrayRef<llvm::Value*>(start, size), inst_name);
-    }
-
-    llvm::CallInst* call(const char* name, std::vector<llvm::Value*> args,
-                      const char* inst_name, llvm::IRBuilder<>& builder) {
-      return builder.CreateCall(function(name), args, inst_name);
-    }
-
   };
 
 }

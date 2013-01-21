@@ -7,8 +7,8 @@ namespace rubinius {
 namespace jit {
   class MethodBuilder : public Builder {
   public:
-    MethodBuilder(LLVMState* ls, JITMethodInfo& info)
-      : Builder(ls, info)
+    MethodBuilder(Context* ctx, JITMethodInfo& info)
+      : Builder(ctx, info)
     {}
 
     void check_arity();

@@ -7,7 +7,7 @@ namespace llvm {
 }
 
 namespace rubinius {
-  class LLVMState;
+  class Context;
 
   namespace type {
     enum Kind {
@@ -174,15 +174,15 @@ namespace rubinius {
 
       const char* describe();
 
-      void associate(LLVMState* ls, llvm::Instruction* I);
-      void associate(LLVMState* ls, llvm::Value* V);
+      void associate(Context* ctx, llvm::Instruction* I);
+      void associate(Context* ctx, llvm::Value* V);
 
-      static KnownType extract(LLVMState* ls, llvm::Instruction* I);
-      static KnownType extract(LLVMState* ls, llvm::Value* I);
+      static KnownType extract(Context* ctx, llvm::Instruction* I);
+      static KnownType extract(Context* ctx, llvm::Value* I);
 
-      static bool has_hint(LLVMState* ls, llvm::Value* V);
+      static bool has_hint(Context* ctx, llvm::Value* V);
 
-      void inherit_source(LLVMState* ls, llvm::Value* V);
+      void inherit_source(Context* ctx, llvm::Value* V);
       void inherit_source(type::KnownType kt);
     };
   }

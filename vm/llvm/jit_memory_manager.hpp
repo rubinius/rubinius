@@ -1,6 +1,58 @@
 #ifndef RUBINIUS_JIT_MEMORY_BARRIER
 #define RUBINIUS_JIT_MEMORY_BARRIER
 
+/*
+
+The code for this memory manager is based of the default jit memory manager
+from the LLVM project. This falls under the LLVM license as described here.
+
+==============================================================================
+LLVM Release License
+==============================================================================
+University of Illinois/NCSA
+Open Source License
+
+Copyright (c) 2003-2012 University of Illinois at Urbana-Champaign.
+All rights reserved.
+
+Developed by:
+
+    LLVM Team
+
+    University of Illinois at Urbana-Champaign
+
+    http://llvm.org
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal with
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+of the Software, and to permit persons to whom the Software is furnished to do
+so, subject to the following conditions:
+
+    * Redistributions of source code must retain the above copyright notice,
+      this list of conditions and the following disclaimers.
+
+    * Redistributions in binary form must reproduce the above copyright notice,
+      this list of conditions and the following disclaimers in the
+      documentation and/or other materials provided with the distribution.
+
+    * Neither the names of the LLVM Team, University of Illinois at
+      Urbana-Champaign, nor the names of its contributors may be used to
+      endorse or promote products derived from this Software without specific
+      prior written permission.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+CONTRIBUTORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE
+SOFTWARE.
+
+*/
+
+
 #include <llvm/Support/Memory.h>
 #include <llvm/Support/Allocator.h>
 #include <llvm/ExecutionEngine/JITMemoryManager.h>
@@ -11,6 +63,7 @@ namespace jit {
   using namespace llvm;
 
   class RubiniusJITMemoryManager;
+  class RubiniusRequestJITMemoryManager;
 
   class JITSlabAllocator : public SlabAllocator {
     RubiniusJITMemoryManager &JMM;
@@ -116,10 +169,11 @@ namespace jit {
   /// have to do this because we may need to emit a function stub while in the
   /// middle of emitting a function, and we don't know how large the function we
   /// are emitting is.
-  class RubiniusJITMemoryManager : public JITMemoryManager {
+  class RubiniusJITMemoryManager {
+
+    friend class RubiniusRequestJITMemoryManager;
 
     // Whether to poison freed memory.
-    bool PoisonMemory;
 
     /// LastSlab - This points to the last slab allocated and is used as the
     /// NearBlock parameter to AllocateRWX so that we can attempt to lay out all
@@ -141,9 +195,7 @@ namespace jit {
     // When emitting code into a memory block, this is the block.
     MemoryRangeHeader *CurBlock;
 
-    uint8_t *GOTBase;     // Target Specific reserved memory
-
-    void* LastFunctionStart;
+    bool PoisonMemory;
 
   public:
     RubiniusJITMemoryManager();
@@ -170,8 +222,6 @@ namespace jit {
     virtual void *getPointerToNamedFunction(const std::string &Name,
                                             bool AbortOnFailure = true);
 
-    void AllocateGOT();
-
     // Testing methods.
     virtual bool CheckInvariants(std::string &ErrorStr);
     size_t GetDefaultCodeSlabSize() { return DefaultCodeSlabSize; }
@@ -185,7 +235,6 @@ namespace jit {
     /// executable memory, returning a pointer to it and its actual size.
     uint8_t *startFunctionBody(const Function *F, uintptr_t &ActualSize) {
 
-      LastFunctionStart = NULL;
       FreeRangeHeader* candidateBlock = FreeMemoryList;
       FreeRangeHeader* head = FreeMemoryList;
       FreeRangeHeader* iter = head->Next;
@@ -266,8 +315,6 @@ namespace jit {
 
       // Release the memory at the end of this block that isn't needed.
       FreeMemoryList =CurBlock->TrimAllocationToSize(FreeMemoryList, BlockSize);
-
-      LastFunctionStart = FunctionStart;
     }
 
     /// allocateSpace - Allocate a memory block of the given size.  This method
@@ -365,10 +412,6 @@ namespace jit {
       FreeMemoryList =CurBlock->TrimAllocationToSize(FreeMemoryList, BlockSize);
     }
 
-    uint8_t *getGOTBase() const {
-      return GOTBase;
-    }
-
     void deallocateBlock(void *Block) {
       // Find the block that is allocated for this function.
       MemoryRangeHeader *MemRange = static_cast<MemoryRangeHeader*>(Block) - 1;
@@ -386,7 +429,7 @@ namespace jit {
     /// deallocateFunctionBody - Deallocate all memory for the specified
     /// function body.
     void deallocateFunctionBody(void *Body) {
-      if(!LastFunctionStart && Body) {
+      if(Body) {
         deallocateBlock(Body);
       }
     }
@@ -417,16 +460,119 @@ namespace jit {
     void setPoisonMemory(bool poison) {
       PoisonMemory = poison;
     }
-
-    void* getLastFunctionStart() {
-      return LastFunctionStart;
-    }
-
-    void resetLastFunctionStart() {
-      LastFunctionStart = NULL;
-    }
   };
 
+  /// RubiniusRequestJITMemoryManager - Wrapper for memory manager
+  /// for a single request. This is needed because LLVM cleans this object
+  /// up when the engine associated is also removed.
+  class RubiniusRequestJITMemoryManager : public JITMemoryManager {
+
+    friend class RubiniusJITMemoryManager;
+
+    RubiniusJITMemoryManager* mgr_;
+    void* GeneratedFunction;
+    uint8_t *GOTBase;     // Target Specific reserved memory
+
+  public:
+    RubiniusRequestJITMemoryManager(RubiniusJITMemoryManager* mgr)
+      : mgr_(mgr)
+      , GeneratedFunction(NULL)
+      , GOTBase(NULL)
+    {}
+
+    ~RubiniusRequestJITMemoryManager() {
+      if(GOTBase) delete[] GOTBase;
+    }
+
+    void *getPointerToNamedFunction(const std::string &Name,
+                                            bool AbortOnFailure = true) {
+      return mgr_->getPointerToNamedFunction(Name, AbortOnFailure);
+    }
+
+    uint8_t *allocateCodeSection(uintptr_t Size, unsigned Alignment,
+                                 unsigned SectionID) {
+      return mgr_->allocateCodeSection(Size, Alignment, SectionID);
+    }
+
+    /// allocateDataSection - Allocate memory for a data section.
+    uint8_t *allocateDataSection(uintptr_t Size, unsigned Alignment,
+                                 unsigned SectionID) {
+      return mgr_->allocateDataSection(Size, Alignment, SectionID);
+    }
+
+    void AllocateGOT() {
+      GOTBase = new uint8_t[sizeof(void*) * 8192];
+      HasGOT = true;
+    }
+
+    bool CheckInvariants(std::string &ErrorStr) { return mgr_->CheckInvariants(ErrorStr); }
+    size_t GetDefaultCodeSlabSize() { return mgr_->DefaultCodeSlabSize; }
+    size_t GetDefaultDataSlabSize() { return mgr_->DefaultSlabSize; }
+    size_t GetDefaultStubSlabSize() { return mgr_->DefaultSlabSize; }
+    unsigned GetNumCodeSlabs() { return mgr_->CodeSlabs.size(); }
+    unsigned GetNumDataSlabs() { return mgr_->DataAllocator.GetNumSlabs(); }
+    unsigned GetNumStubSlabs() { return mgr_->StubAllocator.GetNumSlabs(); }
+
+    uint8_t *startFunctionBody(const Function *F, uintptr_t &ActualSize) {
+      GeneratedFunction = NULL;
+      return mgr_->startFunctionBody(F, ActualSize);
+    }
+
+    void endFunctionBody(const Function *F, uint8_t *FunctionStart,
+                         uint8_t *FunctionEnd) {
+      GeneratedFunction = FunctionStart;
+      return mgr_->endFunctionBody(F, FunctionStart, FunctionEnd);
+    }
+
+    uint8_t *allocateSpace(intptr_t Size, unsigned Alignment) {
+      return mgr_->allocateSpace(Size, Alignment);
+    }
+
+    uint8_t *allocateStub(const GlobalValue* F, unsigned StubSize,
+                          unsigned Alignment) {
+      return mgr_->allocateStub(F, StubSize, Alignment);
+    }
+
+    uint8_t *allocateGlobal(uintptr_t Size, unsigned Alignment) {
+      return mgr_->allocateGlobal(Size, Alignment);
+    }
+
+    uint8_t* startExceptionTable(const Function* F, uintptr_t &ActualSize) {
+      return mgr_->startExceptionTable(F, ActualSize);
+    }
+
+    void endExceptionTable(const Function *F, uint8_t *TableStart,
+                           uint8_t *TableEnd, uint8_t* FrameRegister) {
+      mgr_->endExceptionTable(F, TableStart, TableEnd, FrameRegister);
+    }
+
+    uint8_t *getGOTBase() const {
+      return GOTBase;
+    }
+
+    void deallocateFunctionBody(void *Body) {
+      if(GeneratedFunction) {
+        mgr_->deallocateFunctionBody(Body);
+      }
+    }
+
+    void deallocateExceptionTable(void *ET) {
+      mgr_->deallocateExceptionTable(ET);
+    }
+
+    void setMemoryWritable() { mgr_->setMemoryWritable(); }
+    void setMemoryExecutable() { mgr_->setMemoryExecutable(); }
+
+    void setPoisonMemory(bool poison) { mgr_->setPoisonMemory(poison); }
+
+    void* generatedFunction() {
+      return GeneratedFunction;
+    }
+
+    void resetGeneratedFunction() {
+      GeneratedFunction = NULL;
+    }
+  };
 
 
 }

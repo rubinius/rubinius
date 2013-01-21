@@ -18,23 +18,23 @@ namespace jit {
 
   void BlockBuilder::setup() {
     std::vector<Type*> ftypes;
-    ftypes.push_back(ls_->ptr_type("State"));
-    ftypes.push_back(ls_->ptr_type("CallFrame"));
-    ftypes.push_back(ls_->ptr_type("BlockEnvironment"));
-    ftypes.push_back(ls_->ptr_type("Arguments"));
-    ftypes.push_back(ls_->ptr_type("BlockInvocation"));
+    ftypes.push_back(ctx_->ptr_type("State"));
+    ftypes.push_back(ctx_->ptr_type("CallFrame"));
+    ftypes.push_back(ctx_->ptr_type("BlockEnvironment"));
+    ftypes.push_back(ctx_->ptr_type("Arguments"));
+    ftypes.push_back(ctx_->ptr_type("BlockInvocation"));
 
-    FunctionType* ft = FunctionType::get(ls_->ptr_type("Object"), ftypes, false);
+    FunctionType* ft = FunctionType::get(ctx_->ptr_type("Object"), ftypes, false);
 
     std::ostringstream ss;
     ss << std::string("_X_")
-       << ls_->enclosure_name(info_.method())
+       << ctx_->llvm_state()->enclosure_name(info_.method())
        << "#"
-       << ls_->symbol_debug_str(info_.method()->name())
-       << "$block@" << ls_->add_jitted_method();
+       << ctx_->llvm_state()->symbol_debug_str(info_.method()->name())
+       << "$block@" << ctx_->llvm_state()->add_jitted_method();
 
     llvm::Function* func = Function::Create(ft, GlobalValue::ExternalLinkage,
-                            ss.str(), ls_->module());
+                            ss.str(), ctx_->module());
 
     Function::arg_iterator ai = func->arg_begin();
     llvm::Value* vm =   ai++; vm->setName("state");
@@ -43,10 +43,10 @@ namespace jit {
     llvm::Value* args = ai++; args->setName("args");
     block_inv = ai++; block_inv->setName("invocation");
 
-    BasicBlock* block = BasicBlock::Create(ls_->ctx(), "entry", func);
+    BasicBlock* block = BasicBlock::Create(ctx_->llvm_context(), "entry", func);
     b().SetInsertPoint(block);
 
-    info_.context().set_function(func);
+    ctx_->set_function(func);
 
     info_.set_vm(vm);
     info_.set_args(args);
@@ -61,23 +61,23 @@ namespace jit {
 
     setup_block_scope();
 
-    if(ls_->config().version >= 19) {
+    if(ctx_->llvm_state()->config().version >= 19) {
       import_args_19_style();
     }
 
-    if(ls_->include_profiling()) {
-      Value* test = b().CreateLoad(ls_->profiling(), "profiling");
+    if(ctx_->llvm_state()->include_profiling()) {
+      Value* test = b().CreateLoad(ctx_->profiling(), "profiling");
 
-      BasicBlock* setup_profiling = BasicBlock::Create(ls_->ctx(), "setup_profiling", func);
-      BasicBlock* cont = BasicBlock::Create(ls_->ctx(), "continue", func);
+      BasicBlock* setup_profiling = BasicBlock::Create(ctx_->llvm_context(), "setup_profiling", func);
+      BasicBlock* cont = BasicBlock::Create(ctx_->llvm_context(), "continue", func);
 
       b().CreateCondBr(test, setup_profiling, cont);
 
       b().SetInsertPoint(setup_profiling);
 
-      Signature sig(ls_, ls_->VoidTy);
+      Signature sig(ctx_, ctx_->VoidTy);
       sig << "State";
-      sig << llvm::PointerType::getUnqual(ls_->Int8Ty);
+      sig << llvm::PointerType::getUnqual(ctx_->Int8Ty);
       sig << "BlockEnvironment";
       sig << "Module";
       sig << "CompiledCode";
@@ -164,7 +164,7 @@ namespace jit {
     b().CreateStore(info_.args(), get_field(call_frame, offset::CallFrame::arguments));
 
     // msg
-    b().CreateStore(Constant::getNullValue(ls_->Int8PtrTy),
+    b().CreateStore(Constant::getNullValue(ctx_->Int8PtrTy),
         get_field(call_frame, offset::CallFrame::dispatch_data));
 
     // compiled_code
@@ -202,7 +202,7 @@ namespace jit {
 
     // jit_data
     b().CreateStore(
-        constant(info_.context().runtime_data_holder(), ls_->Int8PtrTy),
+        constant(ctx_->runtime_data_holder(), ctx_->Int8PtrTy),
         get_field(call_frame, offset::CallFrame::jit_data));
 
   }
@@ -216,14 +216,14 @@ namespace jit {
             ConstantInt::get(inv_flags_->getType(), CallFrame::cIsLambda)),
           ConstantInt::get(inv_flags_->getType(), 0));
 
-      BasicBlock* destruct = BasicBlock::Create(ls_->ctx(), "destructure", info_.function());
-      BasicBlock* cont = BasicBlock::Create(ls_->ctx(), "arg_loop_body", info_.function());
+      BasicBlock* destruct = BasicBlock::Create(ctx_->llvm_context(), "destructure", info_.function());
+      BasicBlock* cont = BasicBlock::Create(ctx_->llvm_context(), "arg_loop_body", info_.function());
 
       b().CreateCondBr(lambda_check, destruct, cont);
 
       b().SetInsertPoint(destruct);
 
-      Signature sig(ls_, "Object");
+      Signature sig(ctx_, "Object");
       sig << "State";
       sig << "CallFrame";
       sig << "Arguments";
@@ -446,11 +446,11 @@ namespace jit {
 
     // Phase 4 - splat
     if(machine_code_->splat_position >= 0) {
-      Signature sig(ls_, "Object");
+      Signature sig(ctx_, "Object");
       sig << "State";
       sig << "Arguments";
-      sig << ls_->Int32Ty;
-      sig << ls_->Int32Ty;
+      sig << ctx_->Int32Ty;
+      sig << ctx_->Int32Ty;
 
       Value* call_args[] = {
         info_.vm(),

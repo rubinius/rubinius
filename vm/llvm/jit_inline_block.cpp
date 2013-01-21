@@ -14,16 +14,16 @@ namespace jit {
                                     JITStackArgs& stack_args)
   {
     llvm::Value* prev = info_.parent_call_frame();
-    llvm::Value* args = ConstantExpr::getNullValue(ls_->ptr_type("Arguments"));
+    llvm::Value* args = ConstantExpr::getNullValue(ctx_->ptr_type("Arguments"));
 
-    BasicBlock* entry = BasicBlock::Create(ls_->ctx(), "inline_entry", info_.function());
+    BasicBlock* entry = BasicBlock::Create(ctx_->llvm_context(), "inline_entry", info_.function());
     b().SetInsertPoint(entry);
 
     info_.set_args(args);
     info_.set_previous(prev);
     info_.set_entry(entry);
 
-    BasicBlock* body = BasicBlock::Create(ls_->ctx(), "block_body", info_.function());
+    BasicBlock* body = BasicBlock::Create(ctx_->llvm_context(), "block_body", info_.function());
     pass_one(body);
 
     BasicBlock* alloca_block = &info_.function()->getEntryBlock();
@@ -52,7 +52,7 @@ namespace jit {
 
     info_.set_variables(vars);
 
-    Value* rd = constant(runtime_data_, ls_->ptr_type("jit::RuntimeData"));
+    Value* rd = constant(runtime_data_, ctx_->ptr_type("jit::RuntimeData"));
 
     //  Setup the CallFrame
     //
@@ -61,7 +61,7 @@ namespace jit {
 
     // msg
     b().CreateStore(
-        b().CreatePointerCast(rd, ls_->Int8PtrTy),
+        b().CreatePointerCast(rd, ctx_->Int8PtrTy),
         get_field(call_frame, offset::CallFrame::dispatch_data));
 
     // compiled_code
@@ -90,17 +90,17 @@ namespace jit {
 
     setup_inline_scope(self, constant(cNil, obj_type), mod);
 
-    if(ls_->config().version >= 19) {
+    if(ctx_->llvm_state()->config().version >= 19) {
       // We don't support splat in an block method!
       assert(machine_code_->splat_position < 0);
 
       if(stack_args.size() == 1 && machine_code_->total_args > 1) {
-        Signature sig(ls_, "Object");
+        Signature sig(ctx_, "Object");
         sig << "State";
         sig << "CallFrame";
         sig << "Object";
         sig << vars->getType();
-        sig << ls_->Int32Ty;
+        sig << ctx_->Int32Ty;
 
         Value* call_args[] = { info_.vm(), info_.call_frame(),
                                stack_args.at(0), vars, cint(machine_code_->total_args) };

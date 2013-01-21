@@ -76,6 +76,7 @@
 
 #ifdef ENABLE_LLVM
 #include "llvm/state.hpp"
+#include "llvm/jit_context.hpp"
 #include "llvm/jit_compiler.hpp"
 #endif
 
@@ -1079,8 +1080,9 @@ namespace rubinius {
 
     MachineCode* mcode = env->machine_code(state, gct);
 
-    jit::Compiler jit(ls);
-    jit.compile_block(ls, env->compiled_code(), mcode);
+    Context ctx(ls);
+    jit::Compiler jit(&ctx);
+    jit.compile_block(env->compiled_code(), mcode);
 
     if(show->true_p()) {
       jit.show_machine_code();

@@ -16,7 +16,7 @@ namespace rubinius {
   }
 
   class JITMethodInfo {
-    jit::Context& context_;
+    Context* context_;
     llvm::BasicBlock* entry_;
     llvm::Value* call_frame_;
     llvm::Value* stack_;
@@ -55,23 +55,23 @@ namespace rubinius {
     type::KnownType self_type;
 
   public:
-    JITMethodInfo(jit::Context& ctx, CompiledCode* code, MachineCode* mcode,
+    JITMethodInfo(Context* ctx, CompiledCode* code, MachineCode* mcode,
                   JITMethodInfo* parent = 0);
 
-    jit::Context& context() {
+    Context* context() {
       return context_;
     }
 
     llvm::Function* function() {
-      return context_.function();
+      return context_->function();
     }
 
     void set_vm(llvm::Value* vm) {
-      context_.set_vm(vm);
+      context_->set_vm(vm);
     }
 
     llvm::Value* vm() {
-      return context_.vm();
+      return context_->vm();
     }
 
     void set_args(llvm::Value* args) {
@@ -227,7 +227,7 @@ namespace rubinius {
     }
 
     llvm::Value* out_args() {
-      return context_.out_args();
+      return context_->out_args();
     }
 
     bool use_full_scope() {
@@ -239,7 +239,7 @@ namespace rubinius {
     }
 
     llvm::Value* counter() {
-      return context_.counter();
+      return context_->counter();
     }
 
     Class* self_class() {

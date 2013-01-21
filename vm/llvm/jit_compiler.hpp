@@ -18,21 +18,19 @@ namespace rubinius {
   class MachineCode;
   class BackgroundCompileRequest;
 
-
 namespace jit {
-  class Context;
   class Builder;
 
   class Compiler {
+    Context* ctx_;
     llvm::Function* function_;
     llvm::MachineCodeInfo* mci_;
-    jit::Context ctx_;
 
   public:
-    Compiler(LLVMState* ls)
-      : function_(0)
+    Compiler(Context* ctx)
+      : ctx_(ctx)
+      , function_(0)
       , mci_(0)
-      , ctx_(ls)
     {}
 
     ~Compiler() {
@@ -48,25 +46,25 @@ namespace jit {
       return function_;
     }
 
-    jit::Context& context() {
+    Context* context() {
       return ctx_;
     }
 
     JITMethodInfo* info() {
-      return ctx_.root();
+      return ctx_->root();
     }
 
     void initialize_call_frame(llvm::Function* func,
       llvm::BasicBlock* block, llvm::Value* call_frame,
       int stack_size, llvm::Value* stack, llvm::Value* vars);
 
-    void compile(LLVMState* state, BackgroundCompileRequest* req);
-    void compile_method(LLVMState*, BackgroundCompileRequest* req);
-    void compile_block(LLVMState*, CompiledCode* code, MachineCode* mcode);
-    void compile_builder(jit::Context& ctx, LLVMState*, JITMethodInfo&, rubinius::jit::Builder&);
+    void compile(BackgroundCompileRequest* req);
+    void compile_method(BackgroundCompileRequest* req);
+    void compile_block(CompiledCode* code, MachineCode* mcode);
+    void compile_builder(JITMethodInfo&, rubinius::jit::Builder&);
 
     void* function_pointer();
-    void* generate_function(LLVMState* ls, bool indy=true);
+    void* generate_function(bool indy=true);
     void show_machine_code();
 
     void import_args(LLVMState* ls, llvm::Function* func,

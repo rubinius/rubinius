@@ -4,6 +4,7 @@
 #include "call_frame.hpp"
 #include "machine_code.hpp"
 
+#include "llvm/jit_context.hpp"
 #include "llvm/jit_visit.hpp"
 #include "llvm/control_flow.hpp"
 #include "llvm/cfg.hpp"
@@ -14,21 +15,21 @@
 namespace rubinius {
 namespace jit {
 
-  Builder::Builder(LLVMState* ls, JITMethodInfo& i)
-    : ls_(ls)
+  Builder::Builder(Context* ctx, JITMethodInfo& i)
+    : ctx_(ctx)
     , machine_code_(i.machine_code)
-    , builder_(ls->ctx())
+    , builder_(ctx->llvm_context())
     , use_full_scope_(false)
     , import_args_(0)
     , body_(0)
     , info_(i)
     , runtime_data_(0)
   {
-    llvm::Module* mod = ls->module();
+    llvm::Module* mod = ctx->module();
     cf_type = mod->getTypeByName("struct.rubinius::CallFrame");
     vars_type = mod->getTypeByName("struct.rubinius::VariableScope");
     stack_vars_type = mod->getTypeByName("struct.rubinius::StackVariables");
-    obj_type = ls->ptr_type("Object");
+    obj_type = ctx->ptr_type("Object");
     obj_ary_type = llvm::PointerType::getUnqual(obj_type);
   }
 
@@ -95,7 +96,7 @@ namespace jit {
     Value* max = cint(size);
     Value* one = cint(1);
 
-    BasicBlock* top = info_.new_block("locals_nil");
+    BasicBlock* top = info_.new_block("locactx_nil");
     BasicBlock* cont = info_.new_block("bottom");
 
     b().CreateStore(cint(0), info_.counter());
@@ -148,7 +149,7 @@ namespace jit {
     Value* zero = cint(TAG_REF);
 
     Value* lint = b().CreateAnd(
-        b().CreatePtrToInt(self, ls_->Int32Ty),
+        b().CreatePtrToInt(self, ctx_->Int32Ty),
         mask, "masked");
 
     Value* is_ref = b().CreateICmpEQ(lint, zero, "is_reference");
@@ -179,7 +180,7 @@ namespace jit {
 
     Value* call_args[] = { info_.vm(), info_.previous(), exec, module, info_.args() };
 
-    Signature sig(ls_, "Object");
+    Signature sig(ctx_, "Object");
     sig << "State";
     sig << "CallFrame";
     sig << "Executable";
@@ -192,7 +193,7 @@ namespace jit {
   }
 
   class PassOne : public VisitInstructions<PassOne> {
-    LLVMState* ls_;
+    Context* ctx_;
     BlockMap& map_;
     Function* function_;
     opcode current_ip_;
@@ -202,7 +203,7 @@ namespace jit {
     bool loops_;
     int sp_;
     JITBasicBlock* current_block_;
-    bool calls_evalish_;
+    bool calctx_evalish_;
 
     Symbol* s_eval_;
     Symbol* s_binding_;
@@ -214,9 +215,9 @@ namespace jit {
 
   public:
 
-    PassOne(LLVMState* ls, BlockMap& map, Function* func, BasicBlock* start,
+    PassOne(Context* ctx, BlockMap& map, Function* func, BasicBlock* start,
             CFGCalculator& cfg, JITMethodInfo& info)
-      : ls_(ls)
+      : ctx_(ctx)
       , map_(map)
       , function_(func)
       , current_ip_(0)
@@ -225,7 +226,7 @@ namespace jit {
       , number_of_sends_(0)
       , loops_(false)
       , sp_(-1)
-      , calls_evalish_(false)
+      , calctx_evalish_(false)
       , cfg_(cfg)
       , info_(info)
     {
@@ -235,14 +236,14 @@ namespace jit {
 
       current_block_ = &jbb;
 
-      s_eval_ = ls->symbol("eval");
-      s_binding_ = ls->symbol("binding");
-      s_class_eval_ = ls->symbol("class_eval");
-      s_module_eval_ = ls->symbol("module_eval");
+      s_eval_ = ctx->llvm_state()->symbol("eval");
+      s_binding_ = ctx->llvm_state()->symbol("binding");
+      s_class_eval_ = ctx->llvm_state()->symbol("class_eval");
+      s_module_eval_ = ctx->llvm_state()->symbol("module_eval");
     }
 
-    bool calls_evalish() {
-      return calls_evalish_;
+    bool calctx_evalish() {
+      return calctx_evalish_;
     }
 
     bool creates_blocks() {
@@ -314,7 +315,7 @@ namespace jit {
         std::ostringstream ss;
         ss << "ip" << ip;
         JITBasicBlock& jbb = map_[ip];
-        jbb.block = BasicBlock::Create(ls_->ctx(), ss.str(), function_);
+        jbb.block = BasicBlock::Create(ctx_->llvm_context(), ss.str(), function_);
         jbb.start_ip = ip;
         jbb.sp = sp_;
 
@@ -422,7 +423,7 @@ namespace jit {
           ic->name == s_binding_ ||
           ic->name == s_class_eval_ ||
           ic->name == s_module_eval_) {
-        calls_evalish_ = true;
+        calctx_evalish_ = true;
       }
     }
 
@@ -454,7 +455,7 @@ namespace jit {
 
     void visit_zsuper(opcode which) {
       // HACK. zsuper accesses scope.
-      calls_evalish_ = true;
+      calctx_evalish_ = true;
       number_of_sends_++;
     }
 
@@ -474,10 +475,10 @@ namespace jit {
     cfg.build();
 
     // Pass 1, detect BasicBlock boundaries
-    PassOne finder(ls_, block_map_, info_.function(), body, cfg, info_);
+    PassOne finder(ctx_, block_map_, info_.function(), body, cfg, info_);
     finder.drive(machine_code_);
 
-    if(finder.creates_blocks() || finder.calls_evalish()) {
+    if(finder.creates_blocks() || finder.calctx_evalish()) {
       info_.set_use_full_scope();
       use_full_scope_ = true;
     }
@@ -509,12 +510,12 @@ namespace jit {
   };
 
   bool Builder::generate_body() {
-    JITVisit visitor(ls_, info_, block_map_, b().GetInsertBlock());
+    JITVisit visitor(ctx_, info_, block_map_, b().GetInsertBlock());
 
     if(info_.inline_policy) {
       visitor.set_policy(info_.inline_policy);
     } else {
-      visitor.init_policy(ls_);
+      visitor.init_policy(ctx_);
     }
 
     assert(visitor.inline_policy());
@@ -547,7 +548,7 @@ namespace jit {
       import_args_->back().eraseFromParent();
 
       b().SetInsertPoint(import_args_);
-      Signature sig(ls_, obj_type);
+      Signature sig(ctx_, obj_type);
       sig << "State";
       sig << "CallFrame";
 
@@ -593,11 +594,11 @@ namespace jit {
 
     pass_one(body_);
 
-    info_.context().init_variables(b());
+    info_.context()->init_variables(b());
 
-    counter2_ = b().CreateAlloca(ls_->Int32Ty, 0, "counter2");
+    counter2_ = b().CreateAlloca(ctx_->Int32Ty, 0, "counter2");
 
-    valid_flag = b().CreateAlloca(ls_->Int1Ty, 0, "valid_flag");
+    valid_flag = b().CreateAlloca(ctx_->Int1Ty, 0, "valid_flag");
 
     Value* cfstk = b().CreateAlloca(obj_type,
         cint((sizeof(CallFrame) / sizeof(Object*)) + machine_code_->stack_size),
@@ -611,8 +612,8 @@ namespace jit {
         cfstk,
         llvm::PointerType::getUnqual(cf_type), "call_frame");
 
-    if(ls_->include_profiling()) {
-      method_entry_ = b().CreateAlloca(ls_->Int8Ty,
+    if(ctx_->llvm_state()->include_profiling()) {
+      method_entry_ = b().CreateAlloca(ctx_->Int8Ty,
           cint(sizeof(tooling::MethodEntry)),
           "method_entry");
 

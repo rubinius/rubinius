@@ -5,47 +5,47 @@
 
 namespace rubinius {
 namespace type {
-  void KnownType::associate(LLVMState* ls, llvm::Instruction* I) {
+  void KnownType::associate(Context* ctx, llvm::Instruction* I) {
     if(kind_ == eUnknown && source_ == eUnknownSource) return;
 
     llvm::MDNode* node;
     if(source_ != eUnknownSource) {
       llvm::Value *impMD[] = {
-        ls->cint(kind_),
-        ls->cint(value_),
-        ls->cint(source_),
-        ls->cint(source_id_)
+        ctx->cint(kind_),
+        ctx->cint(value_),
+        ctx->cint(source_),
+        ctx->cint(source_id_)
       };
 
-      node = llvm::MDNode::get(ls->ctx(), impMD);
+      node = llvm::MDNode::get(ctx->llvm_context(), impMD);
     } else {
       llvm::Value *impMD[] = {
-        ls->cint(kind_),
-        ls->cint(value_)
+        ctx->cint(kind_),
+        ctx->cint(value_)
       };
 
-      node = llvm::MDNode::get(ls->ctx(), impMD);
+      node = llvm::MDNode::get(ctx->llvm_context(), impMD);
     }
 
-    I->setMetadata(ls->metadata_id(), node);
+    I->setMetadata(ctx->metadata_id(), node);
   }
 
-  void KnownType::associate(LLVMState* ls, llvm::Value* V) {
+  void KnownType::associate(Context* ctx, llvm::Value* V) {
     if(Instruction* I = dyn_cast<Instruction>(V)) {
-      associate(ls, I);
+      associate(ctx, I);
     }
   }
 
-  KnownType KnownType::extract(LLVMState* ls, llvm::Value* V) {
+  KnownType KnownType::extract(Context* ctx, llvm::Value* V) {
     if(Instruction* I = dyn_cast<Instruction>(V)) {
-      return extract(ls, I);
+      return extract(ctx, I);
     }
 
     return KnownType::unknown();
   }
 
-  KnownType KnownType::extract(LLVMState* ls, llvm::Instruction* I) {
-    if(llvm::MDNode* md = I->getMetadata(ls->metadata_id())) {
+  KnownType KnownType::extract(Context* ctx, llvm::Instruction* I) {
+    if(llvm::MDNode* md = I->getMetadata(ctx->metadata_id())) {
       if(md->getNumOperands() == 2) {
         ConstantInt* kind = dyn_cast<ConstantInt>(md->getOperand(0));
         ConstantInt* value = dyn_cast<ConstantInt>(md->getOperand(1));
@@ -72,9 +72,9 @@ namespace type {
     return KnownType::unknown();
   }
 
-  bool KnownType::has_hint(LLVMState* ls, llvm::Value* V) {
+  bool KnownType::has_hint(Context* ctx, llvm::Value* V) {
     if(Instruction* I = dyn_cast<Instruction>(V)) {
-      if(I->getMetadata(ls->metadata_id())) {
+      if(I->getMetadata(ctx->metadata_id())) {
         return true;
       }
     }
@@ -82,8 +82,8 @@ namespace type {
     return false;
   }
 
-  void KnownType::inherit_source(LLVMState* ls, llvm::Value* V) {
-    inherit_source(extract(ls, V));
+  void KnownType::inherit_source(Context* ctx, llvm::Value* V) {
+    inherit_source(extract(ctx, V));
   }
 
   void KnownType::inherit_source(KnownType kt) {

@@ -27,8 +27,8 @@ namespace rubinius {
     llvm::Function* func_;
 
   public:
-    JITFunction(LLVMState* ls)
-      : Signature(ls, ls->VoidTy)
+    JITFunction(Context* ctx)
+      : Signature(ctx, ctx->VoidTy)
       , func_(0)
     {}
 
@@ -47,20 +47,20 @@ namespace rubinius {
     JITFunction return_to_here;
     JITFunction clear_raise_value;
 
-    JITFunctions(LLVMState* ls)
-      : return_to_here(ls)
-      , clear_raise_value(ls)
+    JITFunctions(Context* ctx)
+      : return_to_here(ctx)
+      , clear_raise_value(ctx)
     {
       return_to_here
         << "State"
         << "CallFrame";
 
-      return_to_here.resolve("rbx_return_to_here", ls->Int1Ty);
+      return_to_here.resolve("rbx_return_to_here", ctx->Int1Ty);
 
       clear_raise_value
         << "State";
 
-      clear_raise_value.resolve("rbx_clear_raise_value", ls->object());
+      clear_raise_value.resolve("rbx_clear_raise_value", ctx->ObjTy);
     }
   };
 
@@ -105,10 +105,10 @@ namespace rubinius {
 
     class Unsupported {};
 
-    JITVisit(LLVMState* ls, JITMethodInfo& info, BlockMap& bm,
+    JITVisit(Context* ctx, JITMethodInfo& info, BlockMap& bm,
              llvm::BasicBlock* start)
-      : JITOperations(ls, info, start)
-      , f(ls)
+      : JITOperations(ctx, info, start)
+      , f(ctx)
       , block_map_(bm)
       , allow_private_(false)
       , call_flags_(0)
@@ -177,16 +177,16 @@ namespace rubinius {
       ip_pos_ = b().CreateConstGEP2_32(call_frame_, 0, offset::CallFrame::ip, "ip_pos");
 
       global_serial_pos = b().CreateIntToPtr(
-          clong((intptr_t)ls_->shared().global_serial_address()),
-          llvm::PointerType::getUnqual(ls_->Int32Ty), "cast_to_intptr");
+          clong((intptr_t)llvm_state()->shared().global_serial_address()),
+          llvm::PointerType::getUnqual(ctx_->Int32Ty), "cast_to_intptr");
 
       check_gc_pos = b().CreateIntToPtr(
-          clong((intptr_t)ls_->shared().check_gc_address()),
-          llvm::PointerType::getUnqual(ls_->Int8Ty), "cast_to_intptr");
+          clong((intptr_t)llvm_state()->shared().check_gc_address()),
+          llvm::PointerType::getUnqual(ctx_->Int8Ty), "cast_to_intptr");
 
       init_out_args();
 
-      machine_code_debugging_ = constant(&info().machine_code->debugging, llvm::PointerType::getUnqual(ls_->Int32Ty));
+      machine_code_debugging_ = constant(&info().machine_code->debugging, llvm::PointerType::getUnqual(ctx_->Int32Ty));
     }
 
     void set_has_side_effects() {
@@ -255,7 +255,7 @@ namespace rubinius {
       /////
       set_block(is_break);
 
-      Signature brk(ls_, ls_->Int1Ty);
+      Signature brk(ctx_, ctx_->Int1Ty);
       brk << StateTy;
       brk << CallFrameTy;
 
@@ -281,7 +281,7 @@ namespace rubinius {
       ////
       set_block(push_break_val);
 
-      Signature clear(ls_, ObjType);
+      Signature clear(ctx_, ObjType);
       clear << StateTy;
       Value* crv = clear.call("rbx_clear_raise_value", &state_, 1, "crv", b());
 
@@ -345,14 +345,14 @@ namespace rubinius {
 
       flush();
 
-      Signature sig(ls_, "Object");
+      Signature sig(ctx_, "Object");
 
       sig << "State";
       sig << "CallFrame";
-      sig << ls_->Int32Ty;
-      sig << ls_->IntPtrTy;
+      sig << ctx_->Int32Ty;
+      sig << ctx_->IntPtrTy;
       sig << "CallFrame";
-      sig << ls_->Int32Ty;
+      sig << ctx_->Int32Ty;
 
       int unwinds = emit_unwinds();
 
@@ -431,10 +431,10 @@ namespace rubinius {
      */
     void push_system_object(int which) {
       // we're calling something that returns an Object
-      Signature sig(ls_, ObjType);
+      Signature sig(ctx_, ObjType);
       // given a system state and a 32bit int
       sig << StateTy;
-      sig << ls_->Int32Ty;
+      sig << ctx_->Int32Ty;
 
       // the actual values of which are the calling arguments
       Value* call_args[] = {
@@ -475,7 +475,7 @@ namespace rubinius {
     }
 
     void visit_push_undef() {
-      Object** addr = ls_->shared().globals.undefined.object_address();
+      Object** addr = llvm_state()->shared().globals.undefined.object_address();
       Value* l_addr = constant(addr, ObjArrayTy);
 
       stack_push(b().CreateLoad(l_addr, "undefined"));
@@ -507,8 +507,8 @@ namespace rubinius {
     }
 
     void visit_ret() {
-      if(ls_->include_profiling() && method_entry_) {
-        Value* test = b().CreateLoad(ls_->profiling(), "profiling");
+      if(llvm_state()->include_profiling() && method_entry_) {
+        Value* test = b().CreateLoad(ctx_->profiling(), "profiling");
         BasicBlock* end_profiling = new_block("end_profiling");
         BasicBlock* cont = new_block("continue");
 
@@ -516,8 +516,8 @@ namespace rubinius {
 
         set_block(end_profiling);
 
-        Signature sig(ls_, ls_->VoidTy);
-        sig << llvm::PointerType::getUnqual(ls_->Int8Ty);
+        Signature sig(ctx_, ctx_->VoidTy);
+        sig << llvm::PointerType::getUnqual(ctx_->Int8Ty);
 
         Value* call_args[] = {
           method_entry_
@@ -633,7 +633,7 @@ namespace rubinius {
       sig << StateTy;
       sig << CallFrameTy;
       sig << ObjType;
-      sig << ls_->IntPtrTy;
+      sig << ctx_->IntPtrTy;
       sig << ObjArrayTy;
     }
 
@@ -713,12 +713,12 @@ namespace rubinius {
 
     Value* splat_send(Symbol* name, int args, bool priv=false) {
       sends_done_++;
-      Signature sig(ls_, ObjType);
+      Signature sig(ctx_, ObjType);
 
       sig << StateTy;
       sig << CallFrameTy;
       sig << ObjType;
-      sig << ls_->IntPtrTy;
+      sig << ctx_->IntPtrTy;
       sig << ObjArrayTy;
 
       const char* func_name;
@@ -741,11 +741,11 @@ namespace rubinius {
     }
 
     Value* super_send(Symbol* name, int args, bool splat=false) {
-      Signature sig(ls_, ObjType);
+      Signature sig(ctx_, ObjType);
       sig << StateTy;
       sig << CallFrameTy;
       sig << ObjType;
-      sig << ls_->IntPtrTy;
+      sig << ctx_->IntPtrTy;
       sig << ObjArrayTy;
 
       const char* func_name;
@@ -775,7 +775,7 @@ namespace rubinius {
 
       Value* recv = stack_top();
 
-      Signature sig(ls_, "Object");
+      Signature sig(ctx_, "Object");
       sig << "State";
       sig << "CallFrame";
       sig << "InlineCache";
@@ -1095,7 +1095,7 @@ namespace rubinius {
 
       Value* dup = b().CreateCall(func, call_args, "string_dup");
       check_for_exception(dup);
-      stack_push(dup, type::KnownType::instance(ls_->string_class_id()));
+      stack_push(dup, type::KnownType::instance(llvm_state()->string_class_id()));
     }
 
     void push_scope_local(Value* scope, opcode which) {
@@ -1199,12 +1199,12 @@ namespace rubinius {
       JITStackArgs* inline_args = incoming_args();
       if(inline_args && current_hint() == cHintLazyBlockArgs) {
         std::vector<Type*> types;
-        types.push_back(ls_->ptr_type("State"));
-        types.push_back(ls_->Int32Ty);
+        types.push_back(ctx_->ptr_type("State"));
+        types.push_back(ctx_->Int32Ty);
 
-        FunctionType* ft = FunctionType::get(ls_->ptr_type("Object"), types, true);
+        FunctionType* ft = FunctionType::get(ctx_->ptr_type("Object"), types, true);
         Function* func = cast<Function>(
-            ls_->module()->getOrInsertFunction("rbx_create_array", ft));
+            ctx_->module()->getOrInsertFunction("rbx_create_array", ft));
 
         std::vector<Value*> outgoing_args;
         outgoing_args.push_back(state_);
@@ -1250,7 +1250,7 @@ namespace rubinius {
     void visit_push_self() {
       Instruction* val = get_self();
 
-      info().self_type.associate(ls_, val);
+      info().self_type.associate(ctx_, val);
 
       stack_push(val);
     }
@@ -1277,13 +1277,13 @@ namespace rubinius {
 
       jbb = current_jbb_->exception_handler;
 
-      Signature sig(ls_, ls_->VoidTy);
+      Signature sig(ctx_, ctx_->VoidTy);
 
       sig << "State";
-      sig << ls_->Int32Ty;
-      sig << ls_->Int32Ty;
-      sig << ls_->Int32Ty;
-      sig << ls_->Int32Ty;
+      sig << ctx_->Int32Ty;
+      sig << ctx_->Int32Ty;
+      sig << ctx_->Int32Ty;
+      sig << ctx_->Int32Ty;
 
       for(int i = count - 1; i >= 0; --i) {
         Value* call_args[] = {
@@ -1307,15 +1307,15 @@ namespace rubinius {
 
       flush();
 
-      Signature sig(ls_, "Object");
+      Signature sig(ctx_, "Object");
 
       sig << "State";
       sig << "CallFrame";
-      sig << ls_->Int32Ty;
-      sig << ls_->IntPtrTy;
+      sig << ctx_->Int32Ty;
+      sig << ctx_->IntPtrTy;
       sig << "CallFrame";
-      sig << ls_->VoidPtrTy;
-      sig << ls_->Int32Ty;
+      sig << ctx_->VoidPtrTy;
+      sig << ctx_->Int32Ty;
 
       int unwinds = emit_unwinds();
 
@@ -1327,7 +1327,7 @@ namespace rubinius {
         cint(current_ip_),
         sp,
         root_callframe,
-        constant(info().context().runtime_data_holder(), ls_->VoidPtrTy),
+        constant(ctx_->runtime_data_holder(), ctx_->VoidPtrTy),
         cint(unwinds)
       };
 
@@ -1347,10 +1347,10 @@ namespace rubinius {
       if(invoker == invoke_object_class && args == 1) {
         Value* obj = stack_back(0);
 
-        type::KnownType kt = type::KnownType::extract(llvm_state(), obj);
+        type::KnownType kt = type::KnownType::extract(ctx_, obj);
         if(kt.instance_p() && !kt.singleton_instance_p()) {
           if(llvm_state()->config().jit_inline_debug) {
-            context().inline_log("inlining") << "direct class of reference\n";
+            ctx_->inline_log("inlining") << "direct class of reference\n";
           }
 
           stack_remove(1);
@@ -1361,7 +1361,7 @@ namespace rubinius {
         }
 
         if(llvm_state()->config().jit_inline_debug) {
-          context().inline_log("inlining") << "custom object_class invoker\n";
+          ctx_->inline_log("inlining") << "custom object_class invoker\n";
         }
 
         Value* is_ref = check_is_reference(obj);
@@ -1389,11 +1389,11 @@ namespace rubinius {
         failure->moveAfter(inline_body);
       }
 
-      Signature sig(ls_, "Object");
+      Signature sig(ctx_, "Object");
       sig << "State";
       sig << "CallFrame";
       sig << ObjArrayTy;
-      sig << ls_->Int32Ty;
+      sig << ctx_->Int32Ty;
 
       Value* arg_ary = stack_objects(args);
 
@@ -1449,7 +1449,7 @@ namespace rubinius {
       BasicBlock* failure = new_block("fallback");
       BasicBlock* cont = new_block("continue");
 
-      Inliner inl(context(), *this, cache, args, failure);
+      Inliner inl(ctx_, *this, cache, args, failure);
       bool res = classes_seen > 1 ? inl.consider_poly() : inl.consider_mono();
 
       // If we have tried to reoptimize here a few times and failed, we use
@@ -1518,7 +1518,7 @@ namespace rubinius {
 
     void visit_call_custom(opcode which, opcode args) {
       if(llvm_state()->config().jit_inline_debug) {
-        ls_->log() << "generate: call_custom\n";
+        ctx_->log() << "generate: call_custom\n";
       }
 
       InlineCache* cache = reinterpret_cast<InlineCache*>(which);
@@ -1560,10 +1560,10 @@ namespace rubinius {
           JITMethodInfo* creator = ib->creation_scope();
           assert(creator);
 
-          Signature sig(ls_, ObjType);
+          Signature sig(ctx_, ObjType);
           sig << StateTy;
           sig << CallFrameTy;
-          sig << ls_->Int32Ty;
+          sig << ctx_->Int32Ty;
 
           Value* call_args[] = {
             state_,
@@ -1605,7 +1605,7 @@ namespace rubinius {
 
       if(in_inlined_block()) {
         types.push_back(ObjType);
-        types.push_back(ls_->Int32Ty);
+        types.push_back(ctx_->Int32Ty);
 
         FunctionType* ft = FunctionType::get(ObjType, types, true);
         Function* func = cast<Function>(
@@ -1636,7 +1636,7 @@ namespace rubinius {
       };
 
       types.push_back(CallFrameTy);
-      types.push_back(ls_->Int32Ty);
+      types.push_back(ctx_->Int32Ty);
 
       FunctionType* ft = FunctionType::get(ObjType, types, false);
       Function* func = cast<Function>(
@@ -1666,7 +1666,7 @@ namespace rubinius {
       CompiledCode* block_code = as<CompiledCode>(literal(which));
       MachineCode* code = block_code->machine_code();
 
-      current_block_ = new JITInlineBlock(ls_, block_code, code, &info(), which);
+      current_block_ = new JITInlineBlock(ctx_, block_code, code, &info(), which);
       current_block_->set_block_emit_loc(block_emit);
     }
 
@@ -1677,15 +1677,15 @@ namespace rubinius {
       CompiledCode* block_code = 0;
 
       if(cache->classes_seen() &&
-          ls_->config().jit_inline_blocks &&
-          !context().inlined_block()) {
+          llvm_state()->config().jit_inline_blocks &&
+          !ctx_->inlined_block()) {
         if(current_block_) {
           block_code = current_block_->method();
 
           // Run the policy on the block code here, if we're not going to
           // inline it, don't inline this either.
           InlineOptions opts;
-          if(ls_->config().version >= 19) {
+          if(llvm_state()->config().version >= 19) {
             opts.inlining_block_19();
           } else {
             opts.inlining_block();
@@ -1695,7 +1695,7 @@ namespace rubinius {
                                       block_code->machine_code(), opts);
           if(decision == cTooComplex) {
             if(llvm_state()->config().jit_inline_debug) {
-              context().inline_log("NOT inlining")
+              ctx_->inline_log("NOT inlining")
                         << "block was too complex\n";
             }
             goto use_send;
@@ -1715,7 +1715,7 @@ namespace rubinius {
         BasicBlock* cleanup = new_block("send_done");
         PHINode* send_result = b().CreatePHI(ObjType, 1, "send_result");
 
-        Inliner inl(context(), *this, cache, args, failure);
+        Inliner inl(ctx_, *this, cache, args, failure);
 
         current_block_->set_block_break_result(send_result);
         current_block_->set_block_break_loc(cleanup);
@@ -1891,7 +1891,7 @@ use_send:
     void visit_push_proc() {
       set_has_side_effects();
 
-      Signature sig(ls_, ObjType);
+      Signature sig(ctx_, ObjType);
       sig << "State";
       sig << "CallFrame";
 
@@ -1944,7 +1944,7 @@ use_send:
 
       InlineCache* cache = reinterpret_cast<InlineCache*>(which);
 
-      Signature sig(ls_, ObjType);
+      Signature sig(ctx_, ObjType);
       sig << StateTy;
       sig << CallFrameTy;
       sig << ObjType;
@@ -2009,7 +2009,7 @@ use_send:
 
         Value* current_serial_pos = b().CreateIntToPtr(
             clong((intptr_t)entry->serial_location()),
-            llvm::PointerType::getUnqual(ls_->Int32Ty), "cast_to_intptr");
+            llvm::PointerType::getUnqual(ctx_->Int32Ty), "cast_to_intptr");
 
         Value* current_serial = b().CreateLoad(current_serial_pos, "serial");
 
@@ -2040,7 +2040,7 @@ use_send:
       types.push_back(StateTy);
       types.push_back(CallFrameTy);
       types.push_back(ObjType);
-      types.push_back(ls_->Int32Ty);
+      types.push_back(ctx_->Int32Ty);
 
       FunctionType* ft = FunctionType::get(ObjType, types, false);
       Function* func = cast<Function>(
@@ -2165,7 +2165,7 @@ use_send:
 
       types.push_back(StateTy);
       types.push_back(CallFrameTy);
-      types.push_back(ls_->Int32Ty);
+      types.push_back(ctx_->Int32Ty);
       types.push_back(ObjType);
 
       FunctionType* ft = FunctionType::get(ObjType, types, false);
@@ -2185,7 +2185,7 @@ use_send:
     void visit_push_variables() {
       set_has_side_effects();
 
-      Signature sig(ls_, ObjType);
+      Signature sig(ctx_, ObjType);
       sig << "State";
       sig << "CallFrame";
 
@@ -2238,12 +2238,12 @@ use_send:
           break;
         default: {
           std::vector<Type*> types;
-          types.push_back(ls_->ptr_type("State"));
-          types.push_back(ls_->Int32Ty);
+          types.push_back(ctx_->ptr_type("State"));
+          types.push_back(ctx_->Int32Ty);
 
-          FunctionType* ft = FunctionType::get(ls_->ptr_type("Object"), types, true);
+          FunctionType* ft = FunctionType::get(ctx_->ptr_type("Object"), types, true);
           Function* func = cast<Function>(
-              ls_->module()->getOrInsertFunction("rbx_create_array", ft));
+              ctx_->module()->getOrInsertFunction("rbx_create_array", ft));
 
           std::vector<Value*> outgoing_args;
           outgoing_args.push_back(state_);
@@ -2282,13 +2282,13 @@ use_send:
       if(inline_args) {
         if(inline_args->size() == 1) {
           std::vector<Type*> types;
-          types.push_back(ls_->ptr_type("State"));
+          types.push_back(ctx_->ptr_type("State"));
           types.push_back(CallFrameTy);
-          types.push_back(ls_->Int32Ty);
+          types.push_back(ctx_->Int32Ty);
 
-          FunctionType* ft = FunctionType::get(ls_->ptr_type("Object"), types, true);
+          FunctionType* ft = FunctionType::get(ctx_->ptr_type("Object"), types, true);
           Function* func = cast<Function>(
-              ls_->module()->getOrInsertFunction("rbx_cast_for_multi_block_arg_varargs", ft));
+              ctx_->module()->getOrInsertFunction("rbx_cast_for_multi_block_arg_varargs", ft));
 
           std::vector<Value*> outgoing_args;
           outgoing_args.push_back(state_);
@@ -2308,7 +2308,7 @@ use_send:
           set_hint(cHintLazyBlockArgs);
         }
       } else {
-        Signature sig(ls_, ObjType);
+        Signature sig(ctx_, ObjType);
         sig << StateTy;
         sig << CallFrameTy;
         sig << ptr_type("Arguments");
@@ -2333,12 +2333,12 @@ use_send:
         // back in the array before splatting them.
         if(inline_args->from_unboxed_array()) {
           std::vector<Type*> types;
-          types.push_back(ls_->ptr_type("State"));
-          types.push_back(ls_->Int32Ty);
+          types.push_back(ctx_->ptr_type("State"));
+          types.push_back(ctx_->Int32Ty);
 
-          FunctionType* ft = FunctionType::get(ls_->ptr_type("Object"), types, true);
+          FunctionType* ft = FunctionType::get(ctx_->ptr_type("Object"), types, true);
           Function* func = cast<Function>(
-              ls_->module()->getOrInsertFunction("rbx_create_array", ft));
+              ctx_->module()->getOrInsertFunction("rbx_create_array", ft));
 
           std::vector<Value*> outgoing_args;
           outgoing_args.push_back(state_);
@@ -2361,13 +2361,13 @@ use_send:
           stack_push(wrapped);
         } else {
           std::vector<Type*> types;
-          types.push_back(ls_->ptr_type("State"));
+          types.push_back(ctx_->ptr_type("State"));
           types.push_back(CallFrameTy);
-          types.push_back(ls_->Int32Ty);
+          types.push_back(ctx_->Int32Ty);
 
-          FunctionType* ft = FunctionType::get(ls_->ptr_type("Object"), types, true);
+          FunctionType* ft = FunctionType::get(ctx_->ptr_type("Object"), types, true);
           Function* func = cast<Function>(
-              ls_->module()->getOrInsertFunction("rbx_cast_for_splat_block_arg_varargs", ft));
+              ctx_->module()->getOrInsertFunction("rbx_cast_for_splat_block_arg_varargs", ft));
 
           std::vector<Value*> outgoing_args;
           outgoing_args.push_back(state_);
@@ -2384,7 +2384,7 @@ use_send:
           stack_push(ary);
         }
       } else {
-        Signature sig(ls_, ObjType);
+        Signature sig(ctx_, ObjType);
         sig << StateTy;
         sig << CallFrameTy;
         sig << ptr_type("Arguments");
@@ -2435,12 +2435,12 @@ use_send:
               b().CreateGEP(vars_, idx), "scope.parent");
           */
 
-          Signature sig(ls_, ObjType);
+          Signature sig(ctx_, ObjType);
           sig << StateTy;
           sig << "CallFrame";
           sig << ObjType;
-          sig << ls_->Int32Ty;
-          sig << ls_->Int32Ty;
+          sig << ctx_->Int32Ty;
+          sig << ctx_->Int32Ty;
 
           Value* call_args[] = {
             state_,
@@ -2482,8 +2482,8 @@ use_send:
       types.push_back(StateTy);
       types.push_back(CallFrameTy);
       types.push_back(ObjType);
-      types.push_back(ls_->Int32Ty);
-      types.push_back(ls_->Int32Ty);
+      types.push_back(ctx_->Int32Ty);
+      types.push_back(ctx_->Int32Ty);
 
       FunctionType* ft = FunctionType::get(ObjType, types, false);
       Function* func = cast<Function>(
@@ -2547,11 +2547,11 @@ use_send:
               b().CreateGEP(vars_, idx), "scope.parent");
               */
 
-          Signature sig(ls_, ObjType);
+          Signature sig(ctx_, ObjType);
           sig << StateTy;
           sig << "CallFrame";
-          sig << ls_->Int32Ty;
-          sig << ls_->Int32Ty;
+          sig << ctx_->Int32Ty;
+          sig << ctx_->Int32Ty;
 
           Value* call_args[] = {
             state_,
@@ -2594,8 +2594,8 @@ use_send:
 
       types.push_back(StateTy);
       types.push_back(CallFrameTy);
-      types.push_back(ls_->Int32Ty);
-      types.push_back(ls_->Int32Ty);
+      types.push_back(ctx_->Int32Ty);
+      types.push_back(ctx_->Int32Ty);
 
       FunctionType* ft = FunctionType::get(ObjType, types, false);
       Function* func = cast<Function>(
@@ -2623,7 +2623,7 @@ use_send:
     void visit_goto_if_true(opcode ip) {
       Value* cond = stack_pop();
       Value* i = b().CreatePtrToInt(
-          cond, ls_->IntPtrTy, "as_int");
+          cond, ctx_->IntPtrTy, "as_int");
 
       Value* anded = b().CreateAnd(i,
           clong(FALSE_MASK), "and");
@@ -2642,7 +2642,7 @@ use_send:
     void visit_goto_if_false(opcode ip) {
       Value* cond = stack_pop();
       Value* i = b().CreatePtrToInt(
-          cond, ls_->IntPtrTy, "as_int");
+          cond, ctx_->IntPtrTy, "as_int");
 
       Value* anded = b().CreateAnd(i,
           clong(FALSE_MASK), "and");
@@ -2671,7 +2671,7 @@ use_send:
       // Hey! Look at that! We know the block we'd be yielding to
       // statically! woo! ok, lets just emit the code for it here!
       if(ib && ib->machine_code()) {
-        context().set_inlined_block(true);
+        ctx_->set_inlined_block(true);
 
         JITMethodInfo* creator = ib->creation_scope();
         assert(creator);
@@ -2682,7 +2682,7 @@ use_send:
         // We inline unconditionally here, since we make the decision
         // wrt the block when we are considering inlining the send that
         // has the block on it.
-        Inliner inl(context(), *this, count);
+        Inliner inl(ctx_, *this, count);
 
         // Propagate the creator's inlined block into the inlined block.
         // This is so that if the inlined block yields, it can see the outer
@@ -2710,12 +2710,12 @@ use_send:
         vars = home->variables();
       }
 
-      Signature sig(ls_, ObjType);
+      Signature sig(ctx_, ObjType);
 
       sig << StateTy;
       sig << CallFrameTy;
       sig << "Object";
-      sig << ls_->Int32Ty;
+      sig << ctx_->Int32Ty;
       sig << ObjArrayTy;
 
       Value* block_obj = b().CreateLoad(
@@ -2741,12 +2741,12 @@ use_send:
     void visit_yield_splat(opcode count) {
       set_has_side_effects();
 
-      Signature sig(ls_, ObjType);
+      Signature sig(ctx_, ObjType);
 
       sig << StateTy;
       sig << CallFrameTy;
       sig << "Object";
-      sig << ls_->Int32Ty;
+      sig << ctx_->Int32Ty;
       sig << ObjArrayTy;
 
       Value* block_obj = b().CreateLoad(
@@ -2793,7 +2793,7 @@ use_send:
       Value* check_gc = b().CreateLoad(check_gc_pos, "check_gc");
       Value* checkpoint = b().CreateOr(check_interrupts, check_gc, "or");
 
-      Value* zero = ConstantInt::get(ls_->Int8Ty, 0);
+      Value* zero = ConstantInt::get(ctx_->Int8Ty, 0);
       Value* is_zero = b().CreateICmpEQ(checkpoint, zero, "needs_interrupts");
 
       create_conditional_branch(cont, interrupts, is_zero);
@@ -2831,11 +2831,11 @@ use_send:
     }
 
     void visit_check_serial(opcode index, opcode serial) {
-      Signature sig(ls_, "Object");
+      Signature sig(ctx_, "Object");
       sig << "State";
       sig << "CallFrame";
       sig << "InlineCache";
-      sig << ls_->Int32Ty;
+      sig << ctx_->Int32Ty;
       sig << "Object";
 
       Value* cache_const = b().CreateIntToPtr(
@@ -2856,11 +2856,11 @@ use_send:
     }
 
     void visit_check_serial_private(opcode index, opcode serial) {
-      Signature sig(ls_, "Object");
+      Signature sig(ctx_, "Object");
       sig << "State";
       sig << "CallFrame";
       sig << "InlineCache";
-      sig << ls_->Int32Ty;
+      sig << ctx_->Int32Ty;
       sig << "Object";
 
       Value* cache_const = b().CreateIntToPtr(
@@ -2881,8 +2881,8 @@ use_send:
     }
 
     void visit_push_my_offset(opcode i) {
-      if(ls_->config().jit_inline_debug) {
-        context().inline_log("inline slot read")
+      if(llvm_state()->config().jit_inline_debug) {
+        ctx_->inline_log("inline slot read")
              << "offset: " << i << "\n";
       }
 
@@ -2928,7 +2928,7 @@ use_send:
         std::vector<Type*> types;
         types.push_back(StateTy);
 
-        FunctionType* ft = FunctionType::get(ls_->Int1Ty, types, false);
+        FunctionType* ft = FunctionType::get(ctx_->Int1Ty, types, false);
         Function* func = cast<Function>(
             module_->getOrInsertFunction("rbx_raising_exception", ft));
 
@@ -2990,7 +2990,7 @@ use_send:
         return;
       }
 
-      Signature sig(ls_, ObjType);
+      Signature sig(ctx_, ObjType);
 
       sig << StateTy;
       sig << CallFrameTy;
@@ -3007,7 +3007,7 @@ use_send:
     }
 
     void visit_ensure_return() {
-      Signature sig(ls_, ObjType);
+      Signature sig(ctx_, ObjType);
 
       sig << StateTy;
       sig << CallFrameTy;
@@ -3040,7 +3040,7 @@ use_send:
         return;
       }
 
-      Signature sig(ls_, ObjType);
+      Signature sig(ctx_, ObjType);
 
       sig << StateTy;
       sig << CallFrameTy;
@@ -3117,11 +3117,11 @@ use_send:
     }
 
     void visit_find_const(opcode which) {
-      Signature sig(ls_, ObjType);
+      Signature sig(ctx_, ObjType);
 
       sig << StateTy;
       sig << CallFrameTy;
-      sig << ls_->Int32Ty;
+      sig << ctx_->Int32Ty;
       sig << ObjType;
 
       Value* call_args[] = {
@@ -3139,7 +3139,7 @@ use_send:
     }
 
     void visit_instance_of() {
-      Signature sig(ls_, ObjType);
+      Signature sig(ctx_, ObjType);
 
       sig << StateTy;
       sig << ObjType;
@@ -3158,7 +3158,7 @@ use_send:
     }
 
     void visit_kind_of() {
-      Signature sig(ls_, ObjType);
+      Signature sig(ctx_, ObjType);
 
       sig << StateTy;
       sig << ObjType;
@@ -3196,7 +3196,7 @@ use_send:
         if(ib && ib->machine_code()) {
           skip_yield_stack_ = true; // skip the yield_stack, we're doing the work here.
 
-          context().set_inlined_block(true);
+          ctx_->set_inlined_block(true);
 
           JITMethodInfo* creator = ib->creation_scope();
           assert(creator);
@@ -3207,7 +3207,7 @@ use_send:
           // We inline unconditionally here, since we make the decision
           // wrt the block when we are considering inlining the send that
           // has the block on it.
-          Inliner inl(context(), *this, count);
+          Inliner inl(ctx_, *this, count);
           inl.set_inline_block(creator->inline_block());
           inl.set_from_unboxed_array();
 
@@ -3228,10 +3228,10 @@ use_send:
 
       }
 
-      Signature sig(ls_, ObjType);
+      Signature sig(ctx_, ObjType);
 
       sig << StateTy;
-      sig << ls_->Int32Ty;
+      sig << ctx_->Int32Ty;
       sig << ObjArrayTy;
 
       Value* call_args[] = {
@@ -3250,11 +3250,11 @@ use_send:
       if(cache->classes_seen() == 0) {
         set_has_side_effects();
 
-        Signature sig(ls_, ObjType);
+        Signature sig(ctx_, ObjType);
 
         sig << StateTy;
         sig << CallFrameTy;
-        sig << ls_->Int32Ty;
+        sig << ctx_->Int32Ty;
         sig << ObjArrayTy;
 
         Value* call_args[] = {
@@ -3284,11 +3284,11 @@ use_send:
           stack_push(constant(cFalse));
         }
       } else {
-        Signature sig(ls_, ObjType);
+        Signature sig(ctx_, ObjType);
 
         sig << StateTy;
         sig << "Arguments";
-        sig << ls_->Int32Ty;
+        sig << ctx_->Int32Ty;
 
         Value* call_args[] = {
           state_,
@@ -3302,11 +3302,11 @@ use_send:
     }
 
     void visit_passed_blockarg(opcode count) {
-      Signature sig(ls_, ObjType);
+      Signature sig(ctx_, ObjType);
 
       sig << StateTy;
       sig << "Arguments";
-      sig << ls_->Int32Ty;
+      sig << ctx_->Int32Ty;
 
       Value* call_args[] = {
         state_,
@@ -3339,9 +3339,9 @@ use_send:
 
       if(Class* klass = try_as<Class>(info().self_class())) {
 
-        if(ls_->config().jit_inline_debug) {
-          context().inline_log("inline ivar read")
-            << ls_->symbol_debug_str(name);
+        if(llvm_state()->config().jit_inline_debug) {
+          ctx_->inline_log("inline ivar read")
+            << llvm_state()->symbol_debug_str(name);
         }
 
         // Figure out if we should use the table ivar lookup or
@@ -3357,8 +3357,8 @@ use_send:
         if(it != ti->slots.end()) {
           int offset = ti->slot_locations[it->second];
           ivar = get_object_slot(self, offset);
-          if(ls_->config().jit_inline_debug) {
-            ls_->log() << " (slot: " << it->second << ")";
+          if(llvm_state()->config().jit_inline_debug) {
+            ctx_->log() << " (slot: " << it->second << ")";
           }
         } else {
           LookupTable* pii = klass->packed_ivar_info();
@@ -3375,8 +3375,8 @@ use_send:
 
               ivar = b().CreateSelect(cmp, constant(cNil), slot_val, "select ivar");
 
-              if(ls_->config().jit_inline_debug) {
-                ls_->log() << " (packed index: " << index << ", " << offset << ")";
+              if(llvm_state()->config().jit_inline_debug) {
+                ctx_->log() << " (packed index: " << index << ", " << offset << ")";
               }
             }
           }
@@ -3385,24 +3385,24 @@ use_send:
         if(ivar) {
           stack_push(ivar);
 
-          if(ls_->config().jit_inline_debug) {
-            ls_->log() << "\n";
+          if(llvm_state()->config().jit_inline_debug) {
+            ctx_->log() << "\n";
           }
 
           return;
         } else {
-          if(ls_->config().jit_inline_debug) {
-            ls_->log() << " (abort, using slow lookup)\n";
+          if(llvm_state()->config().jit_inline_debug) {
+            ctx_->log() << " (abort, using slow lookup)\n";
           }
         }
       }
 
-      if(ls_->config().jit_inline_debug) {
-        context().inline_log("slow ivar read")
-          << ls_->symbol_debug_str(name) << "\n";
+      if(llvm_state()->config().jit_inline_debug) {
+        ctx_->inline_log("slow ivar read")
+          << llvm_state()->symbol_debug_str(name) << "\n";
       }
 
-      Signature sig(ls_, ObjType);
+      Signature sig(ctx_, ObjType);
 
       sig << StateTy;
       sig << ObjType;
@@ -3430,9 +3430,9 @@ use_send:
       set_has_side_effects();
       if(Class* klass = try_as<Class>(info().self_class())) {
 
-        if(ls_->config().jit_inline_debug) {
-          context().inline_log("inline ivar write")
-            << ls_->symbol_debug_str(name);
+        if(llvm_state()->config().jit_inline_debug) {
+          ctx_->inline_log("inline ivar write")
+            << llvm_state()->symbol_debug_str(name);
         }
 
         TypeInfo* ti = klass->type_info();
@@ -3442,8 +3442,8 @@ use_send:
           int field = it->second;
           int offset = ti->slot_locations[field];
           set_object_type_slot(self, field, offset, ti->slot_types[field], ivar);
-          if(ls_->config().jit_inline_debug) {
-            ls_->log() << " (slot: " << it->second << ")\n";
+          if(llvm_state()->config().jit_inline_debug) {
+            ctx_->log() << " (slot: " << it->second << ")\n";
           }
 
           return;
@@ -3459,25 +3459,25 @@ use_send:
 
             set_object_slot(self, offset, ivar);
 
-            if(ls_->config().jit_inline_debug) {
-              ls_->log() << " (packed index: " << index << ", " << offset << ")\n";
+            if(llvm_state()->config().jit_inline_debug) {
+              ctx_->log() << " (packed index: " << index << ", " << offset << ")\n";
             }
             return;
           }
         }
 
-        if(ls_->config().jit_inline_debug) {
-          ls_->log() << " (abort, using slow write)\n";
+        if(llvm_state()->config().jit_inline_debug) {
+          ctx_->log() << " (abort, using slow write)\n";
         }
       }
 
-      if(ls_->config().jit_inline_debug) {
-        context().inline_log("slow ivar write")
-          << ls_->symbol_debug_str(name) << "\n";
+      if(llvm_state()->config().jit_inline_debug) {
+        ctx_->inline_log("slow ivar write")
+          << llvm_state()->symbol_debug_str(name) << "\n";
       }
 
 
-      Signature sig(ls_, ObjType);
+      Signature sig(ctx_, ObjType);
 
       sig << StateTy;
       sig << "CallFrame";
@@ -3502,9 +3502,9 @@ use_send:
 
       if(Class* klass = try_as<Class>(info().self_class())) {
 
-        if(ls_->config().jit_inline_debug) {
-          context().inline_log("inline field read");
-          ls_->log() << " (slot: " << which << ")\n";
+        if(llvm_state()->config().jit_inline_debug) {
+          ctx_->inline_log("inline field read");
+          ctx_->log() << " (slot: " << which << ")\n";
         }
 
         TypeInfo* ti = klass->type_info();
@@ -3512,15 +3512,15 @@ use_send:
         stack_push(get_object_slot(self, offset));
       } else {
 
-        if(ls_->config().jit_inline_debug) {
-          context().inline_log("inline field read slow path");
-          ls_->log() << " (slot: " << which << ")\n";
+        if(llvm_state()->config().jit_inline_debug) {
+          ctx_->inline_log("inline field read slow path");
+          ctx_->log() << " (slot: " << which << ")\n";
         }
-        Signature sig(ls_, ObjType);
+        Signature sig(ctx_, ObjType);
 
         sig << StateTy;
         sig << ObjType;
-        sig << ls_->Int32Ty;
+        sig << ctx_->Int32Ty;
 
         Value* call_args[] = {
           state_,
@@ -3542,9 +3542,9 @@ use_send:
 
       if(Class* klass = try_as<Class>(info().self_class())) {
 
-        if(ls_->config().jit_inline_debug) {
-          context().inline_log("inline field write");
-          ls_->log() << " (slot: " << which << ")\n";
+        if(llvm_state()->config().jit_inline_debug) {
+          ctx_->inline_log("inline field write");
+          ctx_->log() << " (slot: " << which << ")\n";
         }
 
         TypeInfo* ti = klass->type_info();
@@ -3552,15 +3552,15 @@ use_send:
         set_object_type_slot(self, which, offset, ti->slot_types[which], ivar);
       } else {
 
-        if(ls_->config().jit_inline_debug) {
-          context().inline_log("inline write slow path");
-          ls_->log() << " (slot: " << which << ")\n";
+        if(llvm_state()->config().jit_inline_debug) {
+          ctx_->inline_log("inline write slow path");
+          ctx_->log() << " (slot: " << which << ")\n";
         }
-        Signature sig(ls_, ObjType);
+        Signature sig(ctx_, ObjType);
 
         sig << StateTy;
         sig << ObjType;
-        sig << ls_->Int32Ty;
+        sig << ctx_->Int32Ty;
         sig << ObjType;
 
         Value* call_args[] = {
@@ -3586,7 +3586,7 @@ use_send:
         return;
       }
 
-      Signature sig(ls_, ObjType);
+      Signature sig(ctx_, ObjType);
 
       sig << StateTy;
       sig << CallFrameTy;
@@ -3605,7 +3605,7 @@ use_send:
     void visit_string_append() {
       set_has_side_effects();
 
-      Signature sig(ls_, ObjType);
+      Signature sig(ctx_, ObjType);
 
       sig << StateTy;
       sig << ObjType;
@@ -3627,11 +3627,11 @@ use_send:
     void visit_string_build(opcode count) {
       set_has_side_effects();
 
-      Signature sig(ls_, ObjType);
+      Signature sig(ctx_, ObjType);
 
       sig << StateTy;
       sig << CallFrameTy;
-      sig << ls_->Int32Ty;
+      sig << ctx_->Int32Ty;
       sig << ObjArrayTy;
 
       Value* call_args[] = {

@@ -56,12 +56,12 @@ namespace jit {
     LLVMState::show_machine_code(mci_->address(), mci_->size());
   }
 
-  void* Compiler::generate_function(LLVMState* ls, bool indy) {
+  void* Compiler::generate_function(bool indy) {
     if(!mci_) {
       if(!function_) return NULL;
 
-      if(indy) ls->shared().gc_independent(ls);
-      if(ls->jit_dump_code() & cSimple) {
+      if(indy) ctx_->llvm_state()->shared().gc_independent(ctx_->llvm_state());
+      if(ctx_->llvm_state()->jit_dump_code() & cSimple) {
         llvm::outs() << "[[[ LLVM Simple IR ]]]\n";
         llvm::outs() << *function_ << "\n";
       }
@@ -101,63 +101,64 @@ namespace jit {
         llvm::outs() << "       code below to http://github.com/rubinius/rubinius/issues\n";
         llvm::outs() << *function_ << "\n";
         function_ = NULL;
-        if(indy) ls->shared().gc_dependent(ls);
+        if(indy) ctx_->llvm_state()->shared().gc_dependent(ctx_->llvm_state());
         return NULL;
       }
 
-      ls->passes()->run(*function_);
+      ctx_->passes()->run(*function_);
 
-      if(ls->jit_dump_code() & cOptimized) {
+      if(ctx_->llvm_state()->jit_dump_code() & cOptimized) {
         llvm::outs() << "[[[ LLVM Optimized IR: ]]]\n";
         llvm::outs() << *function_ << "\n";
       }
 
       mci_ = new llvm::MachineCodeInfo();
-      ls->engine()->runJITOnFunction(function_, mci_);
-      ls->add_code_bytes(mci_->size());
+      ctx_->engine()->runJITOnFunction(function_, mci_);
+      ctx_->llvm_state()->add_code_bytes(mci_->size());
 
       // If we're not in JIT debug mode, delete the body IR, now that we're
       // done with it.
       // This saves us 100M+ of memory in a full spec run.
-      if(!ls->debug_p()) {
+      if(!ctx_->llvm_state()->debug_p()) {
         function_->dropAllReferences();
       }
 
-      if(indy) ls->shared().gc_dependent(ls);
+      if(indy) ctx_->llvm_state()->shared().gc_dependent(ctx_->llvm_state());
 
       // Inject the RuntimeData objects used into the original CompiledCode
       // Do this way after we've validated the IR so things are consistent.
 
-      ls->cleanup_function(function_);
-      ctx_.runtime_data_holder()->set_function(ls->last_function(),
+      void* native_function = ctx_->native_function();
+
+      ctx_->runtime_data_holder()->set_function(native_function,
                                    mci_->address(), mci_->size());
 
       // info.method()->set_jit_data(ctx.runtime_data_holder());
-      ls->shared().om->add_code_resource(ctx_.runtime_data_holder());
+      ctx_->llvm_state()->shared().om->add_code_resource(ctx_->runtime_data_holder());
     }
 
     return mci_->address();
   }
 
-  void Compiler::compile(LLVMState* ls, BackgroundCompileRequest* req) {
+  void Compiler::compile(BackgroundCompileRequest* req) {
     if(req->is_block()) {
-      compile_block(ls, req->method(), req->machine_code());
+      compile_block(req->method(), req->machine_code());
     } else {
-      compile_method(ls, req);
+      compile_method(req);
     }
   }
 
-  void Compiler::compile_block(LLVMState* ls, CompiledCode* code, MachineCode* mcode) {
+  void Compiler::compile_block(CompiledCode* code, MachineCode* mcode) {
     if(!mcode->parent()) return;
-    if(ls->config().jit_inline_debug) {
+    if(ctx_->llvm_state()->config().jit_inline_debug) {
 
       struct timeval tv;
       gettimeofday(&tv, NULL);
 
-      ls->log() << "JIT: compiling block in "
-        << ls->symbol_debug_str(code->name())
+      ctx_->llvm_state()->log() << "JIT: compiling block in "
+        << ctx_->llvm_state()->symbol_debug_str(code->name())
         << " near "
-        << ls->symbol_debug_str(code->file()) << ":"
+        << ctx_->llvm_state()->symbol_debug_str(code->file()) << ":"
         << code->start_line()
         << " (" << tv.tv_sec << "." << tv.tv_usec << ")\n";
     }
@@ -165,26 +166,26 @@ namespace jit {
     JITMethodInfo info(ctx_, code, mcode);
     info.is_block = true;
 
-    ctx_.set_root(&info);
+    ctx_->set_root(&info);
 
-    jit::BlockBuilder work(ls, info);
+    jit::BlockBuilder work(ctx_, info);
     work.setup();
 
-    compile_builder(ctx_, ls, info, work);
-    ctx_.set_root(NULL);
+    compile_builder(info, work);
+    ctx_->set_root(NULL);
   }
 
-  void Compiler::compile_method(LLVMState* ls, BackgroundCompileRequest* req) {
+  void Compiler::compile_method(BackgroundCompileRequest* req) {
     CompiledCode* code = req->method();
 
-    if(ls->config().jit_inline_debug) {
+    if(ctx_->llvm_state()->config().jit_inline_debug) {
       struct timeval tv;
       gettimeofday(&tv, NULL);
 
-      ls->log() << "JIT: compiling "
-        << ls->enclosure_name(code)
+      ctx_->llvm_state()->log() << "JIT: compiling "
+        << ctx_->llvm_state()->enclosure_name(code)
         << "#"
-        << ls->symbol_debug_str(code->name())
+        << ctx_->llvm_state()->symbol_debug_str(code->name())
         << " (" << tv.tv_sec << "." << tv.tv_usec << ")\n";
     }
 
@@ -195,17 +196,17 @@ namespace jit {
       info.set_self_class(cls);
     }
 
-    ctx_.set_root(&info);
+    ctx_->set_root(&info);
 
-    jit::MethodBuilder work(ls, info);
+    jit::MethodBuilder work(ctx_, info);
     work.setup();
 
-    compile_builder(ctx_, ls, info, work);
-    ctx_.set_root(NULL);
+    compile_builder(info, work);
+    ctx_->set_root(NULL);
   }
 
-  void Compiler::compile_builder(jit::Context& ctx, LLVMState* ls, JITMethodInfo& info,
-                                     jit::Builder& work)
+  void Compiler::compile_builder(JITMethodInfo& info,
+                                 jit::Builder& work)
   {
     function_ = info.function();
 

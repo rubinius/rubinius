@@ -94,17 +94,6 @@ namespace rubinius {
     return vm->shared.llvm_state;
   }
 
-  llvm::Type* LLVMState::ptr_type(std::string name) {
-    std::string full_name = std::string("struct.rubinius::") + name;
-    return llvm::PointerType::getUnqual(
-        module_->getTypeByName(full_name));
-  }
-
-  llvm::Type* LLVMState::type(std::string name) {
-    std::string full_name = std::string("struct.rubinius::") + name;
-    return module_->getTypeByName(full_name);
-  }
-
   class BackgroundCompilerThread : public utilities::thread::Thread {
     enum State {
       cUnknown,
@@ -280,6 +269,9 @@ namespace rubinius {
           state = cRunning;
         }
 
+        Context ctx(ls_);
+        jit::Compiler jit(&ctx);
+
         // This isn't ideal, but it's the safest. Keep the GC from
         // running while we're building the IR.
         ls_->shared().gc_dependent(ls_);
@@ -288,8 +280,6 @@ namespace rubinius {
         //
 
         current_req_ = req;
-
-        jit::Compiler jit(ls_);
         current_compiler_ = &jit;
 
         int spec_id = 0;
@@ -301,7 +291,7 @@ namespace rubinius {
         {
           timer::Running<1000000> timer(ls_->shared().stats.jit_time_spent);
 
-          jit.compile(ls_, req);
+          jit.compile(req);
 
           func = jit.generate_function(ls_);
         }
@@ -337,7 +327,7 @@ namespace rubinius {
         // JIT'ing it, discard our work.
         if(!req->machine_code()->jit_disabled()) {
 
-          jit::RuntimeDataHolder* rd = jit.context().runtime_data_holder();
+          jit::RuntimeDataHolder* rd = ctx.runtime_data_holder();
 
           atomic::memory_barrier();
           ls_->start_method_update();
@@ -403,7 +393,7 @@ namespace rubinius {
       }
 
       if(current_compiler_) {
-        jit::RuntimeDataHolder* rd = current_compiler_->context().runtime_data_holder();
+        jit::RuntimeDataHolder* rd = current_compiler_->context()->runtime_data_holder();
         rd->set_mark();
 
         ObjectMark mark(gc);
@@ -411,8 +401,6 @@ namespace rubinius {
       }
     }
   };
-
-  void LLVMState::add_internal_functions() { }
 
   static const bool debug_search = false;
 
@@ -456,108 +444,7 @@ namespace rubinius {
 #endif
     llvm::InitializeNativeTarget();
 
-    VoidTy = Type::getVoidTy(ctx_);
-
-    Int1Ty = Type::getInt1Ty(ctx_);
-    Int8Ty = Type::getInt8Ty(ctx_);
-    Int16Ty = Type::getInt16Ty(ctx_);
-    Int32Ty = Type::getInt32Ty(ctx_);
-    Int64Ty = Type::getInt64Ty(ctx_);
-
-#ifdef IS_X8664
-    IntPtrTy = Int64Ty;
-#else
-    IntPtrTy = Int32Ty;
-#endif
-
-    VoidPtrTy = llvm::PointerType::getUnqual(Int8Ty);
-
-    FloatTy = Type::getFloatTy(ctx_);
-    DoubleTy = Type::getDoubleTy(ctx_);
-
-    Int8PtrTy = llvm::PointerType::getUnqual(Int8Ty);
-
-    Zero = llvm::ConstantInt::get(Int32Ty, 0);
-    One = llvm::ConstantInt::get(Int32Ty, 1);
-
-    module_ = new llvm::Module("rubinius", ctx_);
-
-    autogen_types::makeLLVMModuleContents(module_);
-
-    llvm::EngineBuilder factory(module_);
-    factory.setAllocateGVsWithCode(false);
-
     memory_ = new jit::RubiniusJITMemoryManager();
-    factory.setJITMemoryManager(memory_);
-
-#if RBX_LLVM_API_VER > 300
-    llvm::TargetOptions opts;
-    opts.NoFramePointerElim = true;
-    opts.NoFramePointerElimNonLeaf = true;
-
-    factory.setTargetOptions(opts);
-#endif
-
-    engine_ = factory.create();
-
-    builder_ = new llvm::PassManagerBuilder();
-    builder_->OptLevel = 2;
-    passes_ = new llvm::FunctionPassManager(module_);
-
-#if RBX_LLVM_API_VER >= 302
-    module_->setDataLayout(engine_->getDataLayout()->getStringRepresentation());
-    passes_->add(new llvm::DataLayout(*engine_->getDataLayout()));
-#else
-    module_->setDataLayout(engine_->getTargetData()->getStringRepresentation());
-    passes_->add(new llvm::TargetData(*engine_->getTargetData()));
-#endif
-
-    builder_->populateFunctionPassManager(*passes_);
-
-    // Eliminate unnecessary alloca.
-    passes_->add(createPromoteMemoryToRegisterPass());
-    // Do simple "peephole" optimizations and bit-twiddling optzns.
-    passes_->add(createInstructionCombiningPass());
-    // Reassociate expressions.
-    passes_->add(createReassociatePass());
-    // Eliminate Common SubExpressions.
-    passes_->add(createGVNPass());
-    passes_->add(createDeadStoreEliminationPass());
-
-    passes_->add(createInstructionCombiningPass());
-
-    // Simplify the control flow graph (deleting unreachable blocks, etc).
-    passes_->add(createCFGSimplificationPass());
-
-    passes_->add(create_rubinius_alias_analysis());
-    passes_->add(createGVNPass());
-    // passes_->add(createCFGSimplificationPass());
-    passes_->add(createDeadStoreEliminationPass());
-    // passes_->add(createVerifierPass());
-    passes_->add(createScalarReplAggregatesPass());
-
-    passes_->add(create_overflow_folding_pass());
-    passes_->add(create_guard_eliminator_pass());
-
-    passes_->add(createCFGSimplificationPass());
-    passes_->add(createInstructionCombiningPass());
-    passes_->add(createScalarReplAggregatesPass());
-    passes_->add(createDeadStoreEliminationPass());
-    passes_->add(createCFGSimplificationPass());
-    passes_->add(createInstructionCombiningPass());
-
-    passes_->doInitialization();
-
-    object_ = ptr_type("Object");
-
-    profiling_ = new GlobalVariable(
-        *module_, Int1Ty, false,
-        GlobalVariable::ExternalLinkage,
-        0, "profiling_flag");
-
-    add_internal_functions();
-
-    metadata_id_ = ctx_.getMDKindID("rbx-classid");
 
     fixnum_class_id_ = G(fixnum_class)->class_id();
     symbol_class_id_ = G(symbol)->class_id();
@@ -574,10 +461,8 @@ namespace rubinius {
 
     shared_.remove_managed_thread(this);
     shared_.om->del_aux_barrier(&write_barrier_);
-    delete builder_;
-    delete passes_;
-    delete engine_;
     delete background_thread_;
+    delete memory_;
   }
 
   bool LLVMState::debug_p() {
@@ -699,20 +584,6 @@ namespace rubinius {
           << jitted_methods() << " ]]]\n";
       }
     }
-  }
-
-  void LLVMState::cleanup_function(llvm::Function* func) {
-    engine_->freeMachineCodeForFunction(func);
-
-    // Nuke the Function from the module
-    func->replaceAllUsesWith(UndefValue::get(func->getType()));
-    func->removeFromParent();
-  }
-
-  void* LLVMState::last_function() {
-    void* addr = memory_->getLastFunctionStart();
-    memory_->resetLastFunctionStart();
-    return addr;
   }
 
   void LLVMState::remove(void* func) {

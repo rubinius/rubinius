@@ -13,22 +13,22 @@ namespace jit {
       std::vector<Value*>& stack_args)
   {
     llvm::Value* prev = info_.parent_call_frame();
-    llvm::Value* args = ConstantExpr::getNullValue(ls_->ptr_type("Arguments"));
+    llvm::Value* args = ConstantExpr::getNullValue(ctx_->ptr_type("Arguments"));
 
-    BasicBlock* entry = BasicBlock::Create(ls_->ctx(), "inline_entry", info_.function());
+    BasicBlock* entry = BasicBlock::Create(ctx_->llvm_context(), "inline_entry", info_.function());
     b().SetInsertPoint(entry);
 
     info_.set_args(args);
     info_.set_previous(prev);
     info_.set_entry(entry);
 
-    BasicBlock* body = BasicBlock::Create(ls_->ctx(), "method_body", info_.function());
+    BasicBlock* body = BasicBlock::Create(ctx_->llvm_context(), "method_body", info_.function());
     pass_one(body);
 
     BasicBlock* alloca_block = &info_.function()->getEntryBlock();
 
     Value* cfstk = new AllocaInst(obj_type,
-        ConstantInt::get(ls_->Int32Ty,
+        ConstantInt::get(ctx_->Int32Ty,
           (sizeof(CallFrame) / sizeof(Object*)) + machine_code_->stack_size),
         "cfstk", alloca_block->getTerminator());
 
@@ -42,7 +42,7 @@ namespace jit {
     info_.set_stack(stk);
 
     Value* var_mem = new AllocaInst(obj_type,
-        ConstantInt::get(ls_->Int32Ty,
+        ConstantInt::get(ctx_->Int32Ty,
           (sizeof(StackVariables) / sizeof(Object*)) + machine_code_->number_of_locals),
         "var_mem", alloca_block->getTerminator());
 
@@ -52,7 +52,7 @@ namespace jit {
 
     info_.set_variables(vars);
 
-    Value* rd = constant(runtime_data_, ls_->ptr_type("jit::RuntimeData"));
+    Value* rd = constant(runtime_data_, ctx_->ptr_type("jit::RuntimeData"));
 
     //  Setup the CallFrame
     //
@@ -61,7 +61,7 @@ namespace jit {
 
     // msg
     b().CreateStore(
-        b().CreatePointerCast(rd, ls_->Int8PtrTy),
+        b().CreatePointerCast(rd, ctx_->Int8PtrTy),
         get_field(call_frame, offset::CallFrame::dispatch_data));
 
     // compiled_code
@@ -118,9 +118,9 @@ namespace jit {
       LocalInfo* li = info_.get_local(i);
       li->make_argument();
 
-      if(ls_->type_optz()) {
-        if(type::KnownType::has_hint(ls_, arg_val)) {
-          type::KnownType kt = type::KnownType::extract(ls_, arg_val);
+      if(ctx_->llvm_state()->type_optz()) {
+        if(type::KnownType::has_hint(ctx_, arg_val)) {
+          type::KnownType kt = type::KnownType::extract(ctx_, arg_val);
           li->set_known_type(kt);
         }
       }
@@ -144,7 +144,7 @@ namespace jit {
 
     b().CreateStore(blk, get_field(vars, offset::StackVariables::block));
 
-    b().CreateStore(Constant::getNullValue(ls_->ptr_type("VariableScope")),
+    b().CreateStore(Constant::getNullValue(ctx_->ptr_type("VariableScope")),
         get_field(vars, offset::StackVariables::parent));
     b().CreateStore(constant(cNil, obj_type), get_field(vars, offset::StackVariables::last_match));
 

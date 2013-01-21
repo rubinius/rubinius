@@ -6,8 +6,8 @@ namespace jit {
     llvm::Value* module_;
 
   public:
-    BlockBuilder(LLVMState* ls, JITMethodInfo& info)
-      : Builder(ls, info)
+    BlockBuilder(Context* ctx, JITMethodInfo& info)
+      : Builder(ctx, info)
     {}
 
     void initialize_frame(int stack_size);

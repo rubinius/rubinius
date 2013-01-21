@@ -2,6 +2,7 @@
 #define VM_LLVM_INLINE_BLOCK_HPP
 
 #include "llvm/state.hpp"
+#include "llvm/jit_context.hpp"
 
 namespace rubinius {
   class JITMethodInfo;
@@ -18,7 +19,7 @@ namespace rubinius {
     bool created_object_;
 
   public:
-    JITInlineBlock(LLVMState* ls, CompiledCode* code, MachineCode* mcode,
+    JITInlineBlock(Context* ctx, CompiledCode* code, MachineCode* mcode,
                    JITMethodInfo* scope, int which);
 
     llvm::PHINode* block_break_result() {

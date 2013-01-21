@@ -9,13 +9,13 @@ namespace rubinius {
 
   using namespace llvm;
 
-  JITInlineBlock::JITInlineBlock(LLVMState* ls,
+  JITInlineBlock::JITInlineBlock(Context* ctx,
                    CompiledCode* code, MachineCode* mcode,
                    JITMethodInfo* scope, int which)
       : block_break_result_(NULL)
       , block_break_loc_(NULL)
       , machine_code_(mcode)
-      , method_(&ls->roots())
+      , method_(&ctx->llvm_state()->roots())
       , scope_(scope)
       , which_(which)
       , created_object_(false)

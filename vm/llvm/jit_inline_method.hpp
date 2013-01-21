@@ -9,8 +9,8 @@ namespace jit {
 
   class InlineMethodBuilder : public MethodBuilder {
   public:
-    InlineMethodBuilder(LLVMState* ls, JITMethodInfo& info, jit::RuntimeData* rd)
-      : MethodBuilder(ls, info)
+    InlineMethodBuilder(Context* ctx, JITMethodInfo& info, jit::RuntimeData* rd)
+      : MethodBuilder(ctx, info)
     {
       runtime_data_ = rd;
     }

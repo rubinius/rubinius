@@ -17,6 +17,7 @@
 #include "llvm/jit_context.hpp"
 #include "llvm/types.hpp"
 
+#include "llvm/jit_context.hpp"
 #include "llvm/method_info.hpp"
 #include "llvm/jit_runtime.hpp"
 
@@ -35,10 +36,7 @@ using namespace llvm;
 namespace rubinius {
 
   class JITStackArgs;
-
-  namespace jit {
-    class Context;
-  }
+  class Context;
 
   struct ValueHint {
     int hint;
@@ -75,7 +73,7 @@ namespace rubinius {
 
   protected:
     JITMethodInfo& method_info_;
-    LLVMState* ls_;
+    Context* ctx_;
 
     llvm::Module* module_;
     llvm::Function* function_;
@@ -107,29 +105,29 @@ namespace rubinius {
     llvm::Value* One;
 
   public:
-    JITOperations(LLVMState* ls, JITMethodInfo& info, llvm::BasicBlock* start)
+    JITOperations(Context* ctx, JITMethodInfo& info, llvm::BasicBlock* start)
       : stack_(info.stack())
       , sp_(-1)
       , last_sp_(-1)
-      , builder_(ls->ctx())
+      , builder_(ctx->llvm_context())
       , method_info_(info)
-      , ls_(ls)
-      , module_(ls->module())
+      , ctx_(ctx)
+      , module_(ctx->module())
       , function_(info.function())
       , call_frame_(info.call_frame())
       , inline_policy_(0)
       , own_policy_(false)
     {
-      zero_ = ConstantInt::get(ls_->Int32Ty, 0);
-      one_ =  ConstantInt::get(ls_->Int32Ty, 1);
+      zero_ = ConstantInt::get(ctx_->Int32Ty, 0);
+      one_ =  ConstantInt::get(ctx_->Int32Ty, 1);
 
 #ifdef IS_X8664
-      FixnumTy = llvm::IntegerType::get(ls_->ctx(), 63);
+      FixnumTy = llvm::IntegerType::get(ctx_->llvm_context(), 63);
 #else
-      FixnumTy = llvm::IntegerType::get(ls_->ctx(), 31);
+      FixnumTy = llvm::IntegerType::get(ctx_->llvm_context(), 31);
 #endif
 
-      NativeIntTy = ls_->IntPtrTy;
+      NativeIntTy = ctx_->IntPtrTy;
 
       One = ConstantInt::get(NativeIntTy, 1);
       Zero = ConstantInt::get(NativeIntTy, 0);
@@ -193,17 +191,13 @@ namespace rubinius {
       inline_policy_ = policy;
     }
 
-    void init_policy(LLVMState* state) {
-      inline_policy_ = InlinePolicy::create_policy(state, machine_code());
+    void init_policy(Context* ctx) {
+      inline_policy_ = InlinePolicy::create_policy(ctx, machine_code());
       own_policy_ = true;
     }
 
     InlinePolicy* inline_policy() {
       return inline_policy_;
-    }
-
-    jit::Context& context() {
-      return method_info_.context();
     }
 
     JITMethodInfo& info() {
@@ -238,8 +232,12 @@ namespace rubinius {
       return &method_info_;
     }
 
+    Context* context() {
+      return ctx_;
+    }
+
     LLVMState* llvm_state() {
-      return ls_;
+      return ctx_->llvm_state();
     }
 
     Value* state() {
@@ -255,11 +253,11 @@ namespace rubinius {
     }
 
     llvm::Value* cint(int num) {
-      return ls_->cint(num);
+      return ctx_->cint(num);
     }
 
     llvm::Value* clong(uintptr_t num) {
-      return llvm::ConstantInt::get(ls_->IntPtrTy, num);
+      return llvm::ConstantInt::get(ctx_->IntPtrTy, num);
     }
 
     // Type resolution and manipulation
@@ -303,7 +301,7 @@ namespace rubinius {
 
       Value* gep = create_gep(obj, word_idx, 4, "word_pos");
       Value* word = create_load(gep, "flags");
-      return b().CreatePtrToInt(word, ls_->Int64Ty, "word2flags");
+      return b().CreatePtrToInt(word, ctx_->Int64Ty, "word2flags");
     }
 
     Value* check_type_bits(Value* obj, int type, const char* name = "is_type") {
@@ -311,18 +309,18 @@ namespace rubinius {
       Value* flags = object_flags(obj);
 
       // 9 bits worth of mask
-      Value* mask = ConstantInt::get(ls_->Int64Ty, ((1 << (OBJECT_FLAGS_OBJ_TYPE + 1)) - 1));
+      Value* mask = ConstantInt::get(ctx_->Int64Ty, ((1 << (OBJECT_FLAGS_OBJ_TYPE + 1)) - 1));
       Value* obj_type = b().CreateAnd(flags, mask, "mask");
 
       // Compare all 9 bits.
-      Value* tag = ConstantInt::get(ls_->Int64Ty, type << 1);
+      Value* tag = ConstantInt::get(ctx_->Int64Ty, type << 1);
 
       return b().CreateICmpEQ(obj_type, tag, name);
     }
 
     Value* check_is_reference(Value* obj) {
-      Value* mask = ConstantInt::get(ls_->IntPtrTy, TAG_REF_MASK);
-      Value* zero = ConstantInt::get(ls_->IntPtrTy, TAG_REF);
+      Value* mask = ConstantInt::get(ctx_->IntPtrTy, TAG_REF_MASK);
+      Value* zero = ConstantInt::get(ctx_->IntPtrTy, TAG_REF);
 
       Value* lint = create_and(cast_int(obj), mask, "masked");
       return create_equal(lint, zero, "is_reference");
@@ -339,18 +337,18 @@ namespace rubinius {
       set_block(cont);
 
       Value* flags = object_flags(obj);
-      Value* mask = ConstantInt::get(ls_->Int64Ty, ((1 << bit) +
+      Value* mask = ConstantInt::get(ctx_->Int64Ty, ((1 << bit) +
                                                     (1 << OBJECT_FLAGS_INFLATED)));
 
       Value* bit_obj = b().CreateAnd(flags, mask, "mask");
 
-      Value* not_bit  = b().CreateICmpEQ(bit_obj, ConstantInt::get(ls_->Int64Ty, 0), "not_bit");
+      Value* not_bit  = b().CreateICmpEQ(bit_obj, ConstantInt::get(ctx_->Int64Ty, 0), "not_bit");
 
       create_conditional_branch(done, check_inflated, not_bit);
 
       set_block(check_inflated);
 
-      Value* bit_tag = ConstantInt::get(ls_->Int64Ty, 1 << bit);
+      Value* bit_tag = ConstantInt::get(ctx_->Int64Ty, 1 << bit);
       Value* is_bit  = b().CreateICmpEQ(bit_obj, bit_tag, "is_bit");
 
       create_conditional_branch(failure, done, is_bit);
@@ -379,7 +377,7 @@ namespace rubinius {
       create_branch(done);
       set_block(failure);
 
-      Signature sig(ls_, "Object");
+      Signature sig(ctx_, "Object");
       sig << "State";
       sig << "Object";
 
@@ -413,17 +411,17 @@ namespace rubinius {
       set_block(cont);
 
       Value* flags = object_flags(obj);
-      Value* mask = ConstantInt::get(ls_->Int64Ty, ((1 << OBJECT_FLAGS_FROZEN) +
+      Value* mask = ConstantInt::get(ctx_->Int64Ty, ((1 << OBJECT_FLAGS_FROZEN) +
                                                     (1 << OBJECT_FLAGS_INFLATED)));
 
       Value* frozen_obj = b().CreateAnd(flags, mask, "mask");
 
-      Value* not_frozen  = b().CreateICmpEQ(frozen_obj, ConstantInt::get(ls_->Int64Ty, 0), "not_frozen");
+      Value* not_frozen  = b().CreateICmpEQ(frozen_obj, ConstantInt::get(ctx_->Int64Ty, 0), "not_frozen");
       create_conditional_branch(done, failure, not_frozen);
 
       set_block(failure);
 
-      Signature sig(ls_, "Object");
+      Signature sig(ctx_, "Object");
 
       sig << "State";
       sig << "CallFrame";
@@ -454,16 +452,16 @@ namespace rubinius {
     }
 
     Value* check_is_symbol(Value* obj) {
-      Value* mask = ConstantInt::get(ls_->IntPtrTy, TAG_SYMBOL_MASK);
-      Value* zero = ConstantInt::get(ls_->IntPtrTy, TAG_SYMBOL);
+      Value* mask = ConstantInt::get(ctx_->IntPtrTy, TAG_SYMBOL_MASK);
+      Value* zero = ConstantInt::get(ctx_->IntPtrTy, TAG_SYMBOL);
 
       Value* lint = create_and(cast_int(obj), mask, "masked");
       return create_equal(lint, zero, "is_symbol");
     }
 
     Value* check_is_fixnum(Value* obj) {
-      Value* mask = ConstantInt::get(ls_->IntPtrTy, TAG_FIXNUM_MASK);
-      Value* zero = ConstantInt::get(ls_->IntPtrTy, TAG_FIXNUM);
+      Value* mask = ConstantInt::get(ctx_->IntPtrTy, TAG_FIXNUM_MASK);
+      Value* zero = ConstantInt::get(ctx_->IntPtrTy, TAG_FIXNUM);
 
       Value* lint = create_and(cast_int(obj), mask, "masked");
       return create_equal(lint, zero, "is_fixnum");
@@ -503,11 +501,11 @@ namespace rubinius {
 
       switch(type) {
       case rubinius::Symbol::type:
-        if(ls_->type_optz()) {
-          type::KnownType kt = type::KnownType::extract(ls_, obj);
+        if(ctx_->llvm_state()->type_optz()) {
+          type::KnownType kt = type::KnownType::extract(ctx_, obj);
 
           if(kt.symbol_p()) {
-            context().info("eliding guard: detected symbol");
+            ctx_->info("eliding guard: detected symbol");
             return kt;
           } else {
             verify_guard(check_is_symbol(obj), failure);
@@ -519,11 +517,11 @@ namespace rubinius {
         return type::KnownType::symbol();
       case rubinius::Fixnum::type:
         {
-          if(ls_->type_optz()) {
-            type::KnownType kt = type::KnownType::extract(ls_, obj);
+          if(ctx_->llvm_state()->type_optz()) {
+            type::KnownType kt = type::KnownType::extract(ctx_, obj);
 
             if(kt.static_fixnum_p()) {
-              context().info("eliding guard: detected static fixnum");
+              ctx_->info("eliding guard: detected static fixnum");
               return kt;
             } else {
               verify_guard(check_is_fixnum(obj), failure);
@@ -544,19 +542,19 @@ namespace rubinius {
         return type::KnownType::false_();
       default:
         {
-          type::KnownType kt = type::KnownType::extract(ls_, obj);
+          type::KnownType kt = type::KnownType::extract(ctx_, obj);
 
           if(kt.type_p()) {
-            if(ls_->config().jit_inline_debug) {
-              context().info_log("eliding guard") << "Type object used statically\n";
+            if(ctx_->llvm_state()->config().jit_inline_debug) {
+              ctx_->info_log("eliding guard") << "Type object used statically\n";
             }
 
             return kt;
 
           } else if(kt.class_id() == klass->class_id()) {
-            if(ls_->config().jit_inline_debug) {
-              context().info_log("eliding redundant guard")
-                << "class " << ls_->symbol_debug_str(klass->module_name())
+            if(ctx_->llvm_state()->config().jit_inline_debug) {
+              ctx_->info_log("eliding redundant guard")
+                << "class " << ctx_->llvm_state()->symbol_debug_str(klass->module_name())
                 << " (" << klass->class_id() << ")\n";
             }
 
@@ -601,7 +599,7 @@ namespace rubinius {
     }
 
     BasicBlock* new_block(const char* name = "continue") {
-      return BasicBlock::Create(ls_->ctx(), name, function_);
+      return BasicBlock::Create(ctx_->llvm_context(), name, function_);
     }
 
     void set_block(BasicBlock* bb) {
@@ -690,13 +688,13 @@ namespace rubinius {
 
       clear_hint();
 
-      if(type::KnownType::has_hint(ls_, val)) {
-        set_known_type(type::KnownType::extract(ls_, val));
+      if(type::KnownType::has_hint(ctx_, val)) {
+        set_known_type(type::KnownType::extract(ctx_, val));
       }
     }
 
     void stack_push(Value* val, type::KnownType kt) {
-      kt.associate(ls_, val);
+      kt.associate(ctx_, val);
 
       stack_ptr_adjust(1);
       Value* stack_pos = stack_ptr();
@@ -803,7 +801,7 @@ namespace rubinius {
     llvm::Value* stack_back(int back) {
       Instruction* I = b().CreateLoad(stack_back_position(back), "stack_load");
       type::KnownType kt = hint_known_type(back);
-      kt.associate(ls_, I);
+      kt.associate(ctx_, I);
 
       return I;
     }
@@ -817,8 +815,8 @@ namespace rubinius {
 
       clear_hint();
 
-      if(type::KnownType::has_hint(ls_, val)) {
-        set_known_type(type::KnownType::extract(ls_, val));
+      if(type::KnownType::has_hint(ctx_, val)) {
+        set_known_type(type::KnownType::extract(ctx_, val));
       }
     }
 
@@ -846,7 +844,7 @@ namespace rubinius {
 
       set_block(do_flush);
 
-      Signature sig(ls_, "Object");
+      Signature sig(ctx_, "Object");
       sig << "State";
       sig << "StackVariables";
 
@@ -863,18 +861,18 @@ namespace rubinius {
     //
     Value* constant(Object* obj) {
       return b().CreateIntToPtr(
-          ConstantInt::get(ls_->IntPtrTy, (intptr_t)obj),
+          ConstantInt::get(ctx_->IntPtrTy, (intptr_t)obj),
           ObjType, "const_obj");
     }
 
     Value* constant(void* obj, Type* type) {
       return b().CreateIntToPtr(
-          ConstantInt::get(ls_->IntPtrTy, (intptr_t)obj),
+          ConstantInt::get(ctx_->IntPtrTy, (intptr_t)obj),
           type, "const_of_type");
     }
 
     Value* ptrtoint(Value* ptr) {
-      return b().CreatePtrToInt(ptr, ls_->IntPtrTy, "ptr2int");
+      return b().CreatePtrToInt(ptr, ctx_->IntPtrTy, "ptr2int");
     }
 
     Value* subtract_pointers(Value* ptra, Value* ptrb) {
@@ -883,7 +881,7 @@ namespace rubinius {
 
       Value* sub = b().CreateSub(inta, intb, "ptr_diff");
 
-      Value* size_of = ConstantInt::get(ls_->IntPtrTy, sizeof(uintptr_t));
+      Value* size_of = ConstantInt::get(ctx_->IntPtrTy, sizeof(uintptr_t));
 
       return b().CreateSDiv(sub, size_of, "ptr_diff_adj");
     }
@@ -921,8 +919,8 @@ namespace rubinius {
     }
 
     Value* check_if_fixnum(Value* val) {
-      Value* fix_mask = ConstantInt::get(ls_->IntPtrTy, TAG_FIXNUM_MASK);
-      Value* fix_tag  = ConstantInt::get(ls_->IntPtrTy, TAG_FIXNUM);
+      Value* fix_mask = ConstantInt::get(ctx_->IntPtrTy, TAG_FIXNUM_MASK);
+      Value* fix_tag  = ConstantInt::get(ctx_->IntPtrTy, TAG_FIXNUM);
 
       Value* lint = cast_int(val);
       Value* masked = b().CreateAnd(lint, fix_mask, "masked");
@@ -935,9 +933,9 @@ namespace rubinius {
        * Add the sign bit to the mask, when and'ed the result
        * should be the default fixnum mask for a positive number
        */
-      Value* fix_mask = ConstantInt::get(ls_->IntPtrTy,
+      Value* fix_mask = ConstantInt::get(ctx_->IntPtrTy,
                         (1UL << (FIXNUM_WIDTH + 1)) | TAG_FIXNUM_MASK);
-      Value* fix_tag  = ConstantInt::get(ls_->IntPtrTy, TAG_FIXNUM);
+      Value* fix_tag  = ConstantInt::get(ctx_->IntPtrTy, TAG_FIXNUM);
 
       Value* lint = cast_int(val);
       Value* masked = b().CreateAnd(lint, fix_mask, "masked");
@@ -946,8 +944,8 @@ namespace rubinius {
     }
 
     Value* check_if_fixnums(Value* val, Value* val2) {
-      Value* fix_mask = ConstantInt::get(ls_->IntPtrTy, TAG_FIXNUM_MASK);
-      Value* fix_tag  = ConstantInt::get(ls_->IntPtrTy, TAG_FIXNUM);
+      Value* fix_mask = ConstantInt::get(ctx_->IntPtrTy, TAG_FIXNUM_MASK);
+      Value* fix_tag  = ConstantInt::get(ctx_->IntPtrTy, TAG_FIXNUM);
 
       Value* lint = cast_int(val);
       Value* rint = cast_int(val2);
@@ -963,9 +961,9 @@ namespace rubinius {
        * Add the sign bit to the mask, when and'ed the result
        * should be the default fixnum mask for a positive number
        */
-      Value* fix_mask = ConstantInt::get(ls_->IntPtrTy,
+      Value* fix_mask = ConstantInt::get(ctx_->IntPtrTy,
                         (1UL << (FIXNUM_WIDTH + 1)) | TAG_FIXNUM_MASK);
-      Value* fix_tag  = ConstantInt::get(ls_->IntPtrTy, TAG_FIXNUM);
+      Value* fix_tag  = ConstantInt::get(ctx_->IntPtrTy, TAG_FIXNUM);
 
       Value* lint = cast_int(val);
       Value* rint = cast_int(val2);
@@ -985,15 +983,15 @@ namespace rubinius {
     }
 
     Value* check_if_non_zero_fixnum(Value* val) {
-      Value* fix_tag  = ConstantInt::get(ls_->IntPtrTy, TAG_FIXNUM);
+      Value* fix_tag  = ConstantInt::get(ctx_->IntPtrTy, TAG_FIXNUM);
 
       Value* lint = cast_int(val);
       return b().CreateICmpNE(lint, fix_tag, "is_fixnum");
     }
 
     Value* check_if_fits_fixnum(Value* val) {
-      Value* fixnum_max = ConstantInt::get(ls_->IntPtrTy, FIXNUM_MAX);
-      Value* fixnum_min = ConstantInt::get(ls_->IntPtrTy, FIXNUM_MIN);
+      Value* fixnum_max = ConstantInt::get(ctx_->IntPtrTy, FIXNUM_MAX);
+      Value* fixnum_min = ConstantInt::get(ctx_->IntPtrTy, FIXNUM_MIN);
       Value* val_int = cast_int(val);
 
       Value* less = b().CreateICmpSLE(val_int, fixnum_max);
@@ -1119,11 +1117,11 @@ namespace rubinius {
 
       set_block(failure);
 
-      Signature sig(ls_, ObjType);
+      Signature sig(ctx_, ObjType);
 
       sig << StateTy;
       sig << ObjType;
-      sig << ls_->Int32Ty;
+      sig << ctx_->Int32Ty;
       sig << ObjType;
 
       Value* call_args[] = {
@@ -1209,7 +1207,7 @@ namespace rubinius {
     }
 
     void write_barrier(Value* obj, Value* val) {
-      Signature wb(ls_, ObjType);
+      Signature wb(ctx_, ObjType);
       wb << StateTy;
       wb << ObjType;
       wb << ObjType;
@@ -1223,8 +1221,8 @@ namespace rubinius {
     }
 
     void call_debug_spot(int spot) {
-      Signature sig(ls_, ObjType);
-      sig << ls_->Int32Ty;
+      Signature sig(ctx_, ObjType);
+      sig << ctx_->Int32Ty;
 
       Value* call_args[] = { cint(spot) };
 
@@ -1232,7 +1230,7 @@ namespace rubinius {
     }
 
     void call_debug_spot(Value* val) {
-      Signature sig(ls_, ObjType);
+      Signature sig(ctx_, ObjType);
       sig << val->getType();
 
       Value* call_args[] = { val };
