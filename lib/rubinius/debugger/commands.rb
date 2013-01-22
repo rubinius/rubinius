@@ -341,7 +341,7 @@ at the current position of the caller.
       help "Step into next method call or to next line"
       ext_help <<-HELP
 Behaves like next, but if there is a method call on the current line,
-execption is stopped in the called method.
+execution is stopped in the called method.
       HELP
 
       def run(args)
