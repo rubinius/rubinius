@@ -109,7 +109,6 @@ namespace rubinius {
 
         unset = type_ != cRString;
         if(unset) {
-          type_ = cRString;
 
           string->unshare(env->state());
 
@@ -123,6 +122,8 @@ namespace rubinius {
           } else {
             env->check_tracked_handle(this, false);
           }
+          atomic::memory_barrier();
+          type_ = cRString;
         }
 
         env->shared().capi_ds_lock().unlock();
