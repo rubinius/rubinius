@@ -113,6 +113,7 @@ namespace rubinius {
   void FinalizerHandler::start_thread(STATE) {
     SYNC(state);
     if(self_) return;
+    utilities::thread::Mutex::LockGuard lg(worker_lock_);
     self_ = state->shared().new_vm();
     exit_ = false;
     thread_.set(Thread::create(state, self_, G(thread), finalizer_handler_tramp, false, true));
@@ -123,11 +124,14 @@ namespace rubinius {
     SYNC(state);
     if(!self_) return;
 
-    // Thread might have already been stopped
     pthread_t os = self_->os_thread();
-    exit_ = true;
+    {
+      utilities::thread::Mutex::LockGuard lg(worker_lock_);
+      // Thread might have already been stopped
+      exit_ = true;
+      worker_signal();
+    }
 
-    worker_signal();
     void* return_value;
     pthread_join(os, &return_value);
     self_ = NULL;
@@ -183,8 +187,12 @@ namespace rubinius {
 
         if(finishing_) supervisor_signal();
 
-        GCIndependent indy(state);
-        worker_wait();
+        // exit_ might have been set in the mean while after
+        // we grabbed the worker_lock
+        if(!exit_) {
+          GCIndependent indy(state);
+          worker_wait();
+        }
 
         continue;
       }
