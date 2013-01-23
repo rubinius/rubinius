@@ -202,6 +202,10 @@ namespace rubinius {
       set_stack_bounds(root_stack_start_, root_stack_size_);
     }
 
+    void get_attention() {
+      stack_limit_ = stack_start_;
+    }
+
     bool detect_stack_condition(void* end) {
       // @TODO assumes stack growth direction
       return reinterpret_cast<uintptr_t>(end) < vm_jit_.stack_limit_;

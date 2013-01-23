@@ -425,12 +425,14 @@ namespace rubinius {
     SYNC(state);
     interrupted_exception_.set(exc);
     set_check_local_interrupts();
+    get_attention();
   }
 
   void VM::register_kill(STATE) {
     SYNC(state);
     set_interrupt_by_kill();
     set_check_local_interrupts();
+    get_attention();
   }
 
   void VM::set_current_fiber(Fiber* fib) {
