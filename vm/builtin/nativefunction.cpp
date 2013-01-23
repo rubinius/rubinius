@@ -1032,6 +1032,7 @@ namespace rubinius {
     env->set_current_call_frame(call_frame);
 
     state->set_call_frame(call_frame);
+    state->vm()->interrupt_with_signal();
     state->gc_independent(gct);
 
     switch(ffi_data_local->ret_info.type) {
