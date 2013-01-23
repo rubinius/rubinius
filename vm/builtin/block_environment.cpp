@@ -319,9 +319,7 @@ namespace rubinius {
 
     GCTokenImpl gct;
 
-    if(state->detect_stack_condition(frame)) {
-      if(!state->check_interrupts(gct, frame, frame)) return NULL;
-    }
+    if(!state->check_interrupts(gct, frame, frame)) return NULL;
 
     state->checkpoint(gct, frame);
 
