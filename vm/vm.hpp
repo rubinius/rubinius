@@ -203,7 +203,11 @@ namespace rubinius {
     }
 
     void get_attention() {
-      stack_limit_ = stack_start_;
+      vm_jit_.stack_limit_ = vm_jit_.stack_start_;
+    }
+
+    bool at_stack_limit() {
+      return vm_jit_.stack_limit_ == vm_jit_.stack_start_;
     }
 
     bool detect_stack_condition(void* end) {
