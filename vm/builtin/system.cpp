@@ -358,7 +358,6 @@ namespace rubinius {
       exec_sh_fallback(state, c_str, str->byte_size());
 
       // bad news, shouldn't be here.
-      std::cerr << "execvp failed: " << strerror(errno) << std::endl;
       exit(1);
     } else {
       state->shared().auxiliary_threads()->after_fork_parent(state);
