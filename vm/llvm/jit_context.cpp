@@ -1,12 +1,5 @@
 #ifdef ENABLE_LLVM
 
-#if RBX_LLVM_API_VER >= 302
-#include <llvm/DataLayout.h>
-#else
-#include <llvm/Target/TargetData.h>
-#endif
-#include <llvm/Transforms/Scalar.h>
-
 #include "llvm/state.hpp"
 #include "llvm/jit_context.hpp"
 #include "llvm/jit_runtime.hpp"
@@ -14,6 +7,13 @@
 #include "llvm/passes.hpp"
 
 #include "machine_code.hpp"
+
+#if RBX_LLVM_API_VER >= 302
+#include <llvm/DataLayout.h>
+#else
+#include <llvm/Target/TargetData.h>
+#endif
+#include <llvm/Transforms/Scalar.h>
 
 using namespace llvm;
 
