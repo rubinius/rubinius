@@ -219,11 +219,11 @@ namespace jit {
 
     /// getPointerToNamedFunction - This method returns the address of the
     /// specified function by using the dlsym function call.
-    virtual void *getPointerToNamedFunction(const std::string &Name,
+    void *getPointerToNamedFunction(const std::string &Name,
                                             bool AbortOnFailure = true);
 
     // Testing methods.
-    virtual bool CheckInvariants(std::string &ErrorStr);
+    bool CheckInvariants(std::string &ErrorStr);
     size_t GetDefaultCodeSlabSize() { return DefaultCodeSlabSize; }
     size_t GetDefaultDataSlabSize() { return DefaultSlabSize; }
     size_t GetDefaultStubSlabSize() { return DefaultSlabSize; }
