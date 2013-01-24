@@ -278,7 +278,13 @@ namespace rubinius {
   }
 
   void FinalizerHandler::finish(STATE, GCToken gct) {
-    if(!self_) rubinius::bug("FinalizerHandler worker thread dead during halt");
+    if(!self_) {
+      if(process_list_ || !lists_->empty() || !live_list_->empty()) {
+        rubinius::bug("FinalizerHandler worker thread dead during halt");
+      } else {
+        return;
+      }
+    }
 
     finishing_ = true;
 
