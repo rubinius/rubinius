@@ -624,11 +624,6 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
      */
 
     void set_forward(ObjectHeader* fwd) {
-      assert(flags().meaning == fwd->flags().meaning);
-
-      // Wipe out the meaning since the only thing that matters
-      // now is the forwarded bit
-      header.f.meaning = eAuxWordEmpty;
       header.f.Forwarded = 1;
 
       // DO NOT USE klass() because we need to get around the
