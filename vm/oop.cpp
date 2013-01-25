@@ -550,9 +550,6 @@ step2:
           if(cDebugThreading) {
             std::cerr << "[LOCK " << state->vm()->thread_id() << " recursively locked with CAS: " << count << " ]\n";
           }
-
-          // wonderful! Locked! weeeee!
-          state->vm()->add_locked_object(self);
         }
         return eLocked;
 
@@ -656,9 +653,6 @@ step2:
           // be inflated. So if we can't swap in the new header, we'll start
           // this step over.
           if(!self->header.atomic_set(orig, new_val)) goto step2;
-
-          // wonderful! Locked! weeeee!
-          state->vm()->add_locked_object(self);
         }
 
         return eLocked;
