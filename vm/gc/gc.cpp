@@ -265,7 +265,7 @@ namespace rubinius {
     for(std::list<ObjectHeader*>::iterator i = los.begin();
         i != los.end();
         ++i) {
-      *i = saw_object((Object*)*i);
+      *i = saw_object(static_cast<Object*>(*i));
     }
   }
 
