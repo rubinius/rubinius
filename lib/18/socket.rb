@@ -731,7 +731,8 @@ class Socket < BasicSocket
   end
 
   def initialize(family, socket_type, protocol)
-    socket_type = self.class.get_socket_type(socket_type)
+    family = self.class.get_protocol_family family
+    socket_type = self.class.get_socket_type socket_type
     descriptor  = Socket::Foreign.socket family, socket_type, protocol
 
     Errno.handle 'socket(2)' if descriptor < 0
@@ -775,6 +776,19 @@ class Socket < BasicSocket
     end
 
     return status
+  end
+
+  def self.get_protocol_family(family)
+    case family
+    when Fixnum
+      return family
+    when String
+      # do nothing
+    else
+      family = StringValue(family)
+    end
+
+    return Socket::Constants.const_get family
   end
 
   def self.get_socket_type(type)

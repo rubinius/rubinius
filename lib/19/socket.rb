@@ -858,13 +858,18 @@ class Socket < BasicSocket
 
   def self.get_protocol_family(family)
     case family
-    when Symbol
-      return Socket::Constants.const_get "PF_#{family}"
-    else
+    when Fixnum
       return family
+    when String
+      # do nothing
+    when Symbol
+      family = family.to_s
+    else
+      family = StringValue(family)
     end
 
-    raise SocketError, "unknown protocol family: #{family}"
+    family = "PF_#{family}" unless family[0, 3] == "PF_"
+    Socket::Constants.const_get family
   end
 
   def self.get_socket_type(type)
