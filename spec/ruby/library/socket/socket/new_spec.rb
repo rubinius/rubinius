@@ -22,7 +22,7 @@ describe "Socket.new" do
     end
   end
 
-  describe "with a :UNIX family" do
+  describe "with a Socket::PF_UNIX family" do
     it "creates a socket with a :DGRAM type specifier" do
       @socket = Socket.new Socket::PF_UNIX, "SOCK_DGRAM", 0
       @socket.should be_an_instance_of(Socket)
@@ -32,6 +32,19 @@ describe "Socket.new" do
       @socket = Socket.new Socket::PF_UNIX, "SOCK_STREAM", 0
       @socket.should be_an_instance_of(Socket)
     end
+  end
+
+  it "calls #to_str to convert the family to a String" do
+    family = mock("socket new family")
+    family.should_receive(:to_str).and_return("PF_UNIX")
+    @socket = Socket.new family, "SOCK_STREAM", 0
+    @socket.should be_an_instance_of(Socket)
+  end
+
+  it "raises a TypeError if #to_str does not return a String" do
+    family = mock("socket new family")
+    family.should_receive(:to_str).and_return(1)
+    lambda { @socket = Socket.new family, "SOCK_STREAM", 0 }.should raise_error(TypeError)
   end
 
   ruby_version_is ""..."1.9" do
@@ -50,8 +63,18 @@ describe "Socket.new" do
       @socket.should be_an_instance_of(Socket)
     end
 
+    it "creates a socket with an 'INET' family specifier" do
+      @socket = Socket.new "INET", :STREAM
+      @socket.should be_an_instance_of(Socket)
+    end
+
     it "creates a socket with a :UNIX family specifier" do
       @socket = Socket.new :UNIX, :STREAM
+      @socket.should be_an_instance_of(Socket)
+    end
+
+    it "creates a socket with a 'UNIX' family specifier" do
+      @socket = Socket.new "UNIX", :STREAM
       @socket.should be_an_instance_of(Socket)
     end
 
