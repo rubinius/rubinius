@@ -32,6 +32,7 @@ class MSpecScript
     '^library/ripper',
     '^library/rake',
     '^library/rubygems',
+    '^library/socket/addrinfo',
   ]
 
   set :capi, [
@@ -59,6 +60,7 @@ class MSpecScript
     '^spec/ruby/library/ripper',
     '^spec/ruby/library/rake',
     '^spec/ruby/library/rubygems',
+    '^spec/ruby/library/socket/addrinfo',
   ]
 
   # An ordered list of the directories containing specs to run
@@ -108,6 +110,7 @@ class MSpecScript
     '^spec/ruby/library/ripper',
     '^spec/ruby/library/rake',
     '^spec/ruby/library/rubygems',
+    '^spec/ruby/library/socket/addrinfo',
     '^spec/ruby/optional/capi/encoding',
   ]
 
