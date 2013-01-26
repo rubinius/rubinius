@@ -630,8 +630,6 @@ step1:
 
     immix_->collect(data);
 
-    immix_->clean_weakrefs();
-
     code_manager_.sweep();
 
     data.global_cache()->prune_unmarked(mark());

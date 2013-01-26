@@ -260,13 +260,6 @@ namespace rubinius {
     if(VM* vm = thr->as_vm()) {
       vm->gc_scan(this);
     }
-
-    std::list<ObjectHeader*>& los = thr->locked_objects();
-    for(std::list<ObjectHeader*>::iterator i = los.begin();
-        i != los.end();
-        ++i) {
-      *i = saw_object(static_cast<Object*>(*i));
-    }
   }
 
   void GarbageCollector::scan(VariableRootBuffers& buffers,
@@ -333,5 +326,32 @@ namespace rubinius {
     delete weak_refs_;
     weak_refs_ = NULL;
   }
+
+  void GarbageCollector::clean_locked_objects(ManagedThread* thr, bool young_only) {
+    std::list<ObjectHeader*>& los = thr->locked_objects();
+    for(std::list<ObjectHeader*>::iterator i = los.begin();
+        i != los.end();) {
+      Object* obj = static_cast<Object*>(*i);
+      if(young_only) {
+        if(obj->young_object_p()) {
+          if(obj->forwarded_p()) {
+            *i = obj->forward();
+            ++i;
+          } else {
+            i = los.erase(i);
+          }
+        } else {
+          ++i;
+        }
+      } else {
+        if(!obj->marked_p(object_memory_->mark())) {
+          i = los.erase(i);
+        } else {
+          ++i;
+        }
+      }
+    }
+  }
+
 
 }

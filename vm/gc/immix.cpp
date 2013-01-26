@@ -210,6 +210,17 @@ namespace rubinius {
       walk_finalizers();
     } while(gc_.process_mark_stack(allocator_));
 
+    clean_weakrefs();
+
+    // Remove unreachable locked objects still in the list
+    if(data.threads()) {
+      for(std::list<ManagedThread*>::iterator i = data.threads()->begin();
+          i != data.threads()->end();
+          ++i) {
+        clean_locked_objects(*i, false);
+      }
+    }
+
     // Sweep up the garbage
     gc_.sweep_blocks();
 

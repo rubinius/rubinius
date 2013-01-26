@@ -165,6 +165,8 @@ namespace rubinius {
     }
 
     void clean_weakrefs(bool check_forwards=false);
+    void clean_locked_objects(ManagedThread* thr, bool young_only);
+
     // Scans the thread for object references
     void scan(ManagedThread* thr, bool young_only);
     void scan(VariableRootBuffers& buffers, bool young_only, AddressDisplacement* offset=0);

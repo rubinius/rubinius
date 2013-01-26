@@ -265,6 +265,15 @@ namespace rubinius {
     // Check any weakrefs and replace dead objects with nil
     clean_weakrefs(true);
 
+    // Remove unreachable locked objects still in the list
+    if(data.threads()) {
+      for(std::list<ManagedThread*>::iterator i = data.threads()->begin();
+          i != data.threads()->end();
+          ++i) {
+        clean_locked_objects(*i, true);
+      }
+    }
+
     // Swap the 2 halves
     Heap *x = next;
     next = current;
