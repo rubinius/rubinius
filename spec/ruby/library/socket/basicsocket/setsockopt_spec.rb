@@ -310,4 +310,152 @@ describe "BasicSocket#setsockopt" do
       end
     end
   end
+
+  ruby_version_is "1.9.2" do
+    describe "using Socket::Option" do
+      it "sets the socket linger to 0" do
+        @sock.setsockopt(Socket::Option.linger(0, 0)).should == 0
+        n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_LINGER).to_s
+
+        if (n.size == 8) # linger struct on some platforms, not just a value
+          n.should == [0, 0].pack("ii")
+        else
+          n.should == [0].pack("i")
+        end
+      end
+
+        it "sets the socket linger to some positive value" do
+          @sock.setsockopt(Socket::Option.linger(64, 64)).should == 0
+          n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_LINGER).to_s
+          if (n.size == 8) # linger struct on some platforms, not just a value
+            a = n.unpack('ii')
+            a[0].should_not == 0
+            a[1].should == 64
+          else
+            n.should == [64].pack("i")
+          end
+        end
+
+        it "sets the socket option Socket::SO_OOBINLINE" do
+          @sock.setsockopt(Socket::Option.bool(:AF_UNSPEC, :SOCKET, :OOBINLINE, true)).should == 0
+          n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE).to_s
+          n.should_not == [0].pack("i")
+
+          @sock.setsockopt(Socket::Option.bool(:AF_UNSPEC, :SOCKET, :OOBINLINE, false)).should == 0
+          n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE).to_s
+          n.should == [0].pack("i")
+
+          @sock.setsockopt(Socket::Option.int(:AF_UNSPEC, :SOCKET, :OOBINLINE, 1)).should == 0
+          n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE).to_s
+          n.should_not == [0].pack("i")
+
+          @sock.setsockopt(Socket::Option.int(:AF_UNSPEC, :SOCKET, :OOBINLINE, 0)).should == 0
+          n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE).to_s
+          n.should == [0].pack("i")
+
+          @sock.setsockopt(Socket::Option.int(:AF_UNSPEC, :SOCKET, :OOBINLINE, 2)).should == 0
+          n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE).to_s
+          n.should_not == [0].pack("i")
+
+          platform_is_not :os => :windows do
+            lambda {
+              @sock.setsockopt(Socket::Option.new(:AF_UNSPEC, :SOCKET, :OOBINLINE, ""))
+            }.should raise_error(SystemCallError)
+          end
+
+          @sock.setsockopt(Socket::Option.new(:AF_UNSPEC, :SOCKET, :OOBINLINE, "blah")).should == 0
+          n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE).to_s
+          n.should_not == [0].pack("i")
+
+          platform_is_not :os => :windows do
+            lambda {
+              @sock.setsockopt(Socket::Option.new(:AF_UNSPEC, :SOCKET, :OOBINLINE, "0"))
+            }.should raise_error(SystemCallError)
+          end
+
+          @sock.setsockopt(Socket::Option.new(:AF_UNSPEC, :SOCKET, :OOBINLINE, "\x00\x00\x00\x00")).should == 0
+          n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE).to_s
+          n.should == [0].pack("i")
+
+          platform_is_not :os => :windows do
+            lambda {
+              @sock.setsockopt(Socket::Option.new(:AF_UNSPEC, :SOCKET, :OOBINLINE, "1"))
+            }.should raise_error(SystemCallError)
+          end
+
+          platform_is_not :os => :windows do
+            lambda {
+              @sock.setsockopt(Socket::Option.new(:AF_UNSPEC, :SOCKET, :OOBINLINE, "\x00\x00\x00"))
+            }.should raise_error(SystemCallError)
+          end
+
+          @sock.setsockopt(Socket::Option.new(:AF_UNSPEC, :SOCKET, :OOBINLINE, [1].pack('i'))).should == 0
+          n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE).to_s
+          n.should_not == [0].pack("i")
+
+          @sock.setsockopt(Socket::Option.new(:AF_UNSPEC, :SOCKET, :OOBINLINE, [0].pack('i'))).should == 0
+          n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE).to_s
+          n.should == [0].pack("i")
+
+          @sock.setsockopt(Socket::Option.new(:AF_UNSPEC, :SOCKET, :OOBINLINE, [1000].pack('i'))).should == 0
+          n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_OOBINLINE).to_s
+          n.should_not == [0].pack("i")
+        end
+
+        it "sets the socket option Socket::SO_SNDBUF" do
+          @sock.setsockopt(Socket::Option.int(:UNSPEC, :SOCKET, :SNDBUF, 4000)).should == 0
+          sndbuf = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_SNDBUF).to_s
+          # might not always be possible to set to exact size
+          sndbuf.unpack('i')[0].should >= 4000
+
+          @sock.setsockopt(Socket::Option.bool(:UNSPEC, :SOCKET, :SNDBUF, true)).should == 0
+          n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_SNDBUF).to_s
+          n.unpack('i')[0].should >= 1
+
+          lambda {
+            @sock.setsockopt(Socket::Option.new(:UNSPEC, :SOCKET, :SNDBUF, nil)).should == 0
+          }.should raise_error(TypeError)
+
+          @sock.setsockopt(Socket::Option.int(:UNSPEC, :SOCKET, :SNDBUF, 1)).should == 0
+          n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_SNDBUF).to_s
+          n.unpack('i')[0].should >= 1
+
+          @sock.setsockopt(Socket::Option.int(:UNSPEC, :SOCKET, :SNDBUF, 2)).should == 0
+          n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_SNDBUF).to_s
+          n.unpack('i')[0].should >= 2
+
+          lambda {
+            @sock.setsockopt(Socket::Option.new(:UNSPEC, :SOCKET, :SNDBUF, ""))
+          }.should raise_error(SystemCallError)
+
+          lambda {
+            @sock.setsockopt(Socket::Option.new(:UNSPEC, :SOCKET, :SNDBUF, "bla"))
+          }.should raise_error(SystemCallError)
+
+          lambda {
+            @sock.setsockopt(Socket::Option.new(:UNSPEC, :SOCKET, :SNDBUF, "0"))
+          }.should raise_error(SystemCallError)
+
+          lambda {
+            @sock.setsockopt(Socket::Option.new(:UNSPEC, :SOCKET, :SNDBUF, "1"))
+          }.should raise_error(SystemCallError)
+
+          lambda {
+            @sock.setsockopt(Socket::Option.new(:UNSPEC, :SOCKET, :SNDBUF, "\x00\x00\x00"))
+          }.should raise_error(SystemCallError)
+
+          @sock.setsockopt(Socket::Option.new(:UNSPEC, :SOCKET, :SNDBUF, "\x00\x00\x01\x00")).should == 0
+          n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_SNDBUF).to_s
+          n.unpack('i')[0].should >= "\x00\x00\x01\x00".unpack('i')[0]
+
+          @sock.setsockopt(Socket::Option.new(:UNSPEC, :SOCKET, :SNDBUF, [4000].pack('i'))).should == 0
+          n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_SNDBUF).to_s
+          n.unpack('i')[0].should >= 4000
+
+          @sock.setsockopt(Socket::Option.new(:UNSPEC, :SOCKET, :SNDBUF, [1000].pack('i'))).should == 0
+          n = @sock.getsockopt(Socket::SOL_SOCKET, Socket::SO_SNDBUF).to_s
+          n.unpack('i')[0].should >= 1000
+        end
+    end
+  end
 end
