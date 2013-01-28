@@ -1091,12 +1091,13 @@ extern "C" {
     // Figure out the total size
     for(int i = 0; i < count; i++) {
       Object* obj = parts[i];
-      String* str = try_as<String>(obj);
 
       if(obj->reference_p()) {
         tainted |= obj->is_tainted_p();
         untrusted |= obj->is_untrusted_p();
       }
+
+      String* str = try_as<String>(obj);
 
       if(str) {
         native_int cur_size = str->byte_size();
@@ -1162,7 +1163,7 @@ extern "C" {
 
       if(!LANGUAGE_18_ENABLED(state)) {
         if(check_encoding) {
-          if(i < count - 1) {
+          if(i > 0) {
             str->num_bytes(state, Fixnum::from(str_size));
 
             Encoding* enc = Encoding::compatible_p(state, str, sub);
@@ -1187,7 +1188,10 @@ extern "C" {
       /* We had to set the size of the result String before every Encoding check
        * so we have to set it to the final size here.
        */
-      if(check_encoding) str->num_bytes(state, Fixnum::from(size));
+      if(check_encoding) {
+        str->num_bytes(state, Fixnum::from(size));
+        str->ascii_only(state, cNil);
+      }
       if(!enc->nil_p()) str->encoding(state, enc);
     }
 
