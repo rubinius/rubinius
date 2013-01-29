@@ -202,18 +202,12 @@ ruby_version_is "1.9" do
 
     describe "from a pipe IO" do
       before :each do
-        @from_io = IO.popen "cat #{@from_name}"
+        @from_io = IOSpecs.pipe_fixture(@content)
         IOSpecs::CopyStream.from = @from_io
       end
 
       after :each do
         @from_io.close
-      end
-
-      it "raises an IOError if the source IO is not open for reading" do
-        @from_io.close
-        @from_io = File.open @from_name, "a"
-        lambda { IO.copy_stream @from_io, @to_name }.should raise_error(IOError)
       end
 
       it "does not close the source IO" do
