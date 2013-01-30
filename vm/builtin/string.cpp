@@ -81,11 +81,15 @@ namespace rubinius {
   String* String::create(STATE, Fixnum* size) {
     String *so;
 
-    so = state->new_object<String>(G(string));
+    so = state->new_object_dirty<String>(G(string));
 
     so->num_bytes(state, size);
+    so->num_chars(state, nil<Fixnum>());
     so->hash_value(state, nil<Fixnum>());
     so->shared(state, cFalse);
+    so->encoding(state, nil<Encoding>());
+    so->ascii_only(state, cNil);
+    so->valid_encoding(state, cNil);
 
     native_int bytes = size->to_native() + 1;
     ByteArray* ba = ByteArray::create(state, bytes);
@@ -99,11 +103,15 @@ namespace rubinius {
   String* String::create_reserved(STATE, native_int bytes) {
     String *so;
 
-    so = state->new_object<String>(G(string));
+    so = state->new_object_dirty<String>(G(string));
 
     so->num_bytes(state, Fixnum::from(0));
+    so->num_chars(state, nil<Fixnum>());
     so->hash_value(state, nil<Fixnum>());
     so->shared(state, cFalse);
+    so->encoding(state, nil<Encoding>());
+    so->ascii_only(state, cNil);
+    so->valid_encoding(state, cNil);
 
     ByteArray* ba = ByteArray::create(state, bytes+1);
     ba->raw_bytes()[bytes] = 0;

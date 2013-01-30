@@ -30,7 +30,7 @@ namespace rubinius {
   }
 
   Time* Time::now(STATE, Object* self) {
-    Time* tm = state->new_object<Time>(as<Class>(self));
+    Time* tm = state->new_object_dirty<Time>(as<Class>(self));
 
 #ifdef HAVE_CLOCK_GETTIME
     struct timespec ts;
@@ -51,7 +51,9 @@ namespace rubinius {
     tm->nanoseconds_ = tv.tv_usec * 1000;
 #endif
 
+    tm->decomposed(state, nil<Array>());
     tm->is_gmt(state, cFalse);
+    tm->offset(state, nil<Fixnum>());
 
     return tm;
   }
@@ -63,7 +65,7 @@ namespace rubinius {
   Time* Time::specific(STATE, Object* self, Integer* sec, Integer* nsec,
                        Object* gmt, Object* offset)
   {
-    Time* tm = state->new_object<Time>(as<Class>(self));
+    Time* tm = state->new_object_dirty<Time>(as<Class>(self));
 
     tm->seconds_ = sec->to_long_long();
     tm->nanoseconds_ = nsec->to_native();
@@ -79,6 +81,7 @@ namespace rubinius {
       tm->nanoseconds_ = NMOD(tm->nanoseconds_, 1000000000);
     }
 
+    tm->decomposed(state, nil<Array>());
     tm->is_gmt(state, CBOOL(gmt) ? cTrue : cFalse);
     tm->offset(state, offset);
 
@@ -133,7 +136,7 @@ namespace rubinius {
       seconds = ::timelocal64(&tm);
     }
 
-    Time* obj = state->new_object<Time>(as<Class>(self));
+    Time* obj = state->new_object_dirty<Time>(as<Class>(self));
     obj->seconds_ = seconds;
     obj->nanoseconds_ = nsec->to_native();
     obj->is_gmt(state, CBOOL(from_gmt) ? cTrue : cFalse);
@@ -149,16 +152,23 @@ namespace rubinius {
       }
 
       obj->offset(state, offset);
+    } else {
+      obj->offset(state, nil<Fixnum>());
     }
+
+    obj->decomposed(state, nil<Array>());
 
     return obj;
   }
 
   Time* Time::dup(STATE, Object* self, Time* other) {
-    Time* tm = state->new_object<Time>(as<Class>(self));
+    Time* tm = state->new_object_dirty<Time>(as<Class>(self));
     tm->seconds_ = other->seconds_;
     tm->nanoseconds_ = other->nanoseconds_;
+    tm->decomposed(state, other->decomposed_);
     tm->is_gmt(state, other->is_gmt_);
+    tm->offset(state, other->offset_);
+
     return tm;
   }
 

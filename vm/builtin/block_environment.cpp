@@ -411,7 +411,7 @@ namespace rubinius {
 
     mcode->set_parent(caller);
 
-    BlockEnvironment* be = state->new_object<BlockEnvironment>(G(blokenv));
+    BlockEnvironment* be = state->new_object_dirty<BlockEnvironment>(G(blokenv));
     be->scope(state, call_frame->promote_scope(state));
     be->top_scope(state, call_frame->top_scope(state));
     be->compiled_code(state, ccode);
@@ -420,11 +420,12 @@ namespace rubinius {
   }
 
   BlockEnvironment* BlockEnvironment::dup(STATE) {
-    BlockEnvironment* be = state->new_object<BlockEnvironment>(G(blokenv));
+    BlockEnvironment* be = state->new_object_dirty<BlockEnvironment>(G(blokenv));
 
     be->scope(state, scope_);
     be->top_scope(state, top_scope_);
     be->compiled_code(state, compiled_code_);
+    be->module(state, nil<Module>());
 
     return be;
   }

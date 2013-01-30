@@ -8,7 +8,7 @@ namespace rubinius {
                                              bool super)
   {
     MethodCacheEntry* cache =
-      state->new_object<MethodCacheEntry>(G(object));
+      state->new_object_dirty<MethodCacheEntry>(G(object));
 
     cache->stored_module(state, mod);
     cache->receiver_class(state, klass);

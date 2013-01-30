@@ -28,7 +28,7 @@ namespace rubinius {
       return create(state, nmf);
     }
 
-    Location* loc = state->new_object<Location>(G(location));
+    Location* loc = state->new_object_dirty<Location>(G(location));
     loc->method_module(state, call_frame->module());
     loc->receiver(state, call_frame->self());
     loc->method(state, call_frame->compiled_code);
@@ -52,6 +52,8 @@ namespace rubinius {
       // VariableScope should be isolated by default (true atm for JITd
       // frames)
       loc->variables(state, call_frame->promote_scope(state));
+    } else {
+      loc->variables(state, nil<VariableScope>());
     }
 
     loc->constant_scope(state, call_frame->constant_scope());

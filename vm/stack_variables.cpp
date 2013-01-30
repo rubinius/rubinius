@@ -1,5 +1,6 @@
 #include "stack_variables.hpp"
 #include "builtin/variable_scope.hpp"
+#include "builtin/lookuptable.hpp"
 #include "machine_code.hpp"
 #include "call_frame.hpp"
 
@@ -11,7 +12,7 @@ namespace rubinius {
     if(on_heap_) return on_heap_;
 
     MachineCode* mcode = call_frame->compiled_code->machine_code();
-    VariableScope* scope = state->new_object<VariableScope>(G(variable_scope));
+    VariableScope* scope = state->new_object_dirty<VariableScope>(G(variable_scope));
 
     if(parent_) {
       scope->parent(state, parent_);
@@ -36,6 +37,7 @@ namespace rubinius {
     }
 
     scope->locals_ = locals_;
+    scope->dynamic_locals(state, nil<LookupTable>());
 
     scope->set_block_as_method(call_frame->block_as_method_p());
 

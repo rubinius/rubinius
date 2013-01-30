@@ -39,7 +39,7 @@ namespace rubinius {
 
   Array* Array::create(STATE, size_t idx) {
     Array* ary;
-    ary = state->new_object<Array>(G(array));
+    ary = state->new_object_dirty<Array>(G(array));
 
     ary->setup(state, idx);
 
@@ -54,7 +54,7 @@ namespace rubinius {
   }
 
   Array* Array::new_range(STATE, Fixnum* start, Fixnum* count) {
-    Array* ary = state->new_object<Array>(class_object(state));
+    Array* ary = state->new_object_dirty<Array>(class_object(state));
     ary->total(state, count);
     ary->start(state, Fixnum::from(0));
 
@@ -76,7 +76,7 @@ namespace rubinius {
   }
 
   Array* Array::new_reserved(STATE, Fixnum* count) {
-    Array* ary = state->new_object<Array>(class_object(state));
+    Array* ary = state->new_object_dirty<Array>(class_object(state));
     ary->start(state, Fixnum::from(0));
     ary->total(state, Fixnum::from(0));
 
