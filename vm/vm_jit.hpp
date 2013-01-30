@@ -9,6 +9,7 @@ namespace rubinius {
 
   class VMJIT {
     friend class VM;
+    friend class State;
 
   private:
     uintptr_t stack_start_;

@@ -10,13 +10,13 @@ namespace rubinius {
 
   class State {
     VM* vm_;
-    VMJIT& vm_jit_;
+    VMJIT* vm_jit_;
     SharedState& shared_;
 
   public:
     State(VM* vm)
       : vm_(vm)
-      , vm_jit_(vm->vm_jit_)
+      , vm_jit_(&vm->vm_jit_)
       , shared_(vm->shared)
     {}
 
@@ -88,7 +88,7 @@ namespace rubinius {
     }
 
     bool check_local_interrupts() {
-      return vm_->check_local_interrupts();
+      return vm_jit_->check_local_interrupts_;
     }
 
     bool check_async(CallFrame* call_frame) {
