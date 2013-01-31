@@ -12,6 +12,7 @@
 
 #include "object_utils.hpp"
 
+#include "capi/capi_constants.h"
 #include "capi/tag.hpp"
 
 #define ENTER_CAPI(state) (state->vm()->shared.enter_capi(state, __FILE__, __LINE__))
