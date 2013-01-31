@@ -264,6 +264,8 @@ namespace rubinius {
     onig_lock_.init();
     ruby_critical_lock_.init();
     capi_lock_.init();
+    capi_ds_lock_.init();
+    auxiliary_threads_->init();
 
     world_->reinit();
   }

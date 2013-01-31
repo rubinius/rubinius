@@ -37,6 +37,7 @@ namespace rubinius {
     void register_thread(AuxiliaryThread* thread);
     void unregister_thread(AuxiliaryThread* thread);
 
+    void init();
     void shutdown(STATE);
     void before_exec(STATE);
     void after_exec(STATE);

@@ -86,4 +86,8 @@ namespace rubinius {
 
     fork_in_progress_ = false;
   }
+
+  void AuxiliaryThreads::init() {
+    mutex_.init();
+  }
 }
