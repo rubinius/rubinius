@@ -21,6 +21,8 @@
 
 #include "util/thread.hpp"
 
+#include "capi/capi_constants.h"
+
 #ifdef RBX_WINDOWS
 #include <winsock2.h>
 #endif
@@ -51,6 +53,9 @@ namespace rubinius {
   class QueryAgent;
   class Environment;
 
+  typedef std::vector<std::string> CApiConstantNameMap;
+  typedef std::tr1::unordered_map<int, capi::Handle*> CApiConstantHandleMap;
+
   /**
    * SharedState represents the global shared state that needs to be shared
    * across all VM instances.
@@ -70,6 +75,8 @@ namespace rubinius {
     capi::Handles* global_handles_;
     std::list<capi::Handle*> cached_handles_;
     std::list<capi::GlobalHandle*> global_handle_locations_;
+    CApiConstantNameMap capi_constant_name_map_;
+    CApiConstantHandleMap capi_constant_handle_map_;
 
     WorldState* world_;
     InlineCacheRegistry* ic_registry_;
@@ -103,6 +110,7 @@ namespace rubinius {
     Mutex capi_lock_;
 
     utilities::thread::SpinLock capi_ds_lock_;
+    utilities::thread::SpinLock capi_constant_lock_;
 
     int primitive_hits_[Primitives::cTotalPrimitives];
 
@@ -279,6 +287,10 @@ namespace rubinius {
       return capi_ds_lock_;
     }
 
+    utilities::thread::SpinLock& capi_constant_lock() {
+      return capi_constant_lock_;
+    }
+
     void scheduler_loop();
 
     void reinit(STATE);
@@ -303,6 +315,16 @@ namespace rubinius {
 
     void enter_capi(STATE, const char* file, int line);
     void leave_capi(STATE);
+
+    void setup_capi_constant_names();
+    CApiConstantNameMap& capi_constant_name_map() {
+      return capi_constant_name_map_;
+    }
+
+    CApiConstantHandleMap& capi_constant_handle_map() {
+      return capi_constant_handle_map_;
+    }
+
   };
 }
 

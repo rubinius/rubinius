@@ -65,6 +65,9 @@ namespace rubinius {
     }
 
     hash_seed = Randomizer::random_uint32();
+
+    setup_capi_constant_names();
+
   }
 
   SharedState::~SharedState() {
@@ -265,6 +268,7 @@ namespace rubinius {
     ruby_critical_lock_.init();
     capi_lock_.init();
     capi_ds_lock_.init();
+    capi_constant_lock_.init();
     auxiliary_threads_->init();
 
     world_->reinit();
@@ -345,5 +349,84 @@ namespace rubinius {
     if(use_capi_lock_) {
       capi_lock_.unlock(state->vm());
     }
+  }
+
+  void SharedState::setup_capi_constant_names() {
+    capi_constant_name_map_.resize(cCApiMaxConstant + 1);
+
+    capi_constant_name_map_[cCApiArray]      = "Array";
+    capi_constant_name_map_[cCApiBignum]     = "Bignum";
+    capi_constant_name_map_[cCApiClass]      = "Class";
+    capi_constant_name_map_[cCApiComparable] = "Comparable";
+    capi_constant_name_map_[cCApiData]       = "Data";
+    capi_constant_name_map_[cCApiEnumerable] = "Enumerable";
+    capi_constant_name_map_[cCApiFalse]      = "FalseClass";
+    capi_constant_name_map_[cCApiFile]       = "File";
+    capi_constant_name_map_[cCApiFixnum]     = "Fixnum";
+    capi_constant_name_map_[cCApiFloat]      = "Float";
+    capi_constant_name_map_[cCApiHash]       = "Hash";
+    capi_constant_name_map_[cCApiInteger]    = "Integer";
+    capi_constant_name_map_[cCApiIO]         = "IO";
+    capi_constant_name_map_[cCApiKernel]     = "Kernel";
+    capi_constant_name_map_[cCApiMatch]      = "MatchData";
+    capi_constant_name_map_[cCApiModule]     = "Module";
+    capi_constant_name_map_[cCApiNil]        = "NilClass";
+    capi_constant_name_map_[cCApiNumeric]    = "Numeric";
+    capi_constant_name_map_[cCApiObject]     = "Object";
+    capi_constant_name_map_[cCApiRange]      = "Range";
+    capi_constant_name_map_[cCApiRegexp]     = "Regexp";
+    capi_constant_name_map_[cCApiRubinius]   = "Rubinius";
+    capi_constant_name_map_[cCApiString]     = "String";
+    capi_constant_name_map_[cCApiStruct]     = "Struct";
+    capi_constant_name_map_[cCApiSymbol]     = "Symbol";
+    capi_constant_name_map_[cCApiThread]     = "Thread";
+    capi_constant_name_map_[cCApiTime]       = "Time";
+    capi_constant_name_map_[cCApiTrue]       = "TrueClass";
+    capi_constant_name_map_[cCApiProc]       = "Proc";
+    capi_constant_name_map_[cCApiGC]         = "GC";
+    capi_constant_name_map_[cCApiCAPI]       = "Rubinius::CAPI";
+    capi_constant_name_map_[cCApiMethod]     = "Method";
+    capi_constant_name_map_[cCApiRational]   = "Rational";
+    capi_constant_name_map_[cCApiComplex]    = "Complex";
+    capi_constant_name_map_[cCApiEnumerator] = "Enumerable::Enumerator";
+
+    capi_constant_name_map_[cCApiArgumentError]       = "ArgumentError";
+    capi_constant_name_map_[cCApiEOFError]            = "EOFError";
+    capi_constant_name_map_[cCApiErrno]               = "Errno";
+    capi_constant_name_map_[cCApiException]           = "Exception";
+    capi_constant_name_map_[cCApiFatal]               = "FatalError";
+    capi_constant_name_map_[cCApiFloatDomainError]    = "FloatDomainError";
+    capi_constant_name_map_[cCApiIndexError]          = "IndexError";
+    capi_constant_name_map_[cCApiInterrupt]           = "Interrupt";
+    capi_constant_name_map_[cCApiIOError]             = "IOError";
+    capi_constant_name_map_[cCApiLoadError]           = "LoadError";
+    capi_constant_name_map_[cCApiLocalJumpError]      = "LocalJumpError";
+    capi_constant_name_map_[cCApiNameError]           = "NameError";
+    capi_constant_name_map_[cCApiNoMemoryError]       = "NoMemoryError";
+    capi_constant_name_map_[cCApiNoMethodError]       = "NoMethodError";
+    capi_constant_name_map_[cCApiNotImplementedError] = "NotImplementedError";
+    capi_constant_name_map_[cCApiRangeError]          = "RangeError";
+    capi_constant_name_map_[cCApiRegexpError]         = "RegexpError";
+    capi_constant_name_map_[cCApiRuntimeError]        = "RuntimeError";
+    capi_constant_name_map_[cCApiScriptError]         = "ScriptError";
+    capi_constant_name_map_[cCApiSecurityError]       = "SecurityError";
+    capi_constant_name_map_[cCApiSignalException]     = "SignalException";
+    capi_constant_name_map_[cCApiStandardError]       = "StandardError";
+    capi_constant_name_map_[cCApiSyntaxError]         = "SyntaxError";
+    capi_constant_name_map_[cCApiSystemCallError]     = "SystemCallError";
+    capi_constant_name_map_[cCApiSystemExit]          = "SystemExit";
+    capi_constant_name_map_[cCApiSystemStackError]    = "SystemStackError";
+    capi_constant_name_map_[cCApiTypeError]           = "TypeError";
+    capi_constant_name_map_[cCApiThreadError]         = "ThreadError";
+    capi_constant_name_map_[cCApiZeroDivisionError]   = "ZeroDivisionError";
+
+    if(config.version != 18) {
+      capi_constant_name_map_[cCApiMathDomainError]     = "Math::DomainError";
+      capi_constant_name_map_[cCApiEncoding]            = "Encoding";
+      capi_constant_name_map_[cCApiEncCompatError]      = "Encoding::CompatibilityError";
+      capi_constant_name_map_[cCApiWaitReadable]        = "IO::WaitReadable";
+      capi_constant_name_map_[cCApiWaitWritable]        = "IO::WaitWritable";
+    }
+
   }
 }

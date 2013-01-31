@@ -38,103 +38,21 @@
 namespace rubinius {
   namespace capi {
 
-    typedef std::vector<std::string> CApiConstantNameMap;
-    typedef std::tr1::unordered_map<int, VALUE> CApiConstantHandleMap;
-
     /**
      * This looks like a complicated scheme but there is a reason for
      * doing it this way. In MRI, rb_cObject, etc. are all global data.
      * We need to avoid global data to better support embedding and
      * other features like MVM. @see capi_get_constant().
      */
-    std::string& capi_get_constant_name(int type) {
-      static CApiConstantNameMap map;
-
+    std::string capi_get_constant_name(int type) {
       NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-      if(map.empty()) {
-        map.resize(cCApiMaxConstant + 1);
-
-        map[cCApiArray]      = "Array";
-        map[cCApiBignum]     = "Bignum";
-        map[cCApiClass]      = "Class";
-        map[cCApiComparable] = "Comparable";
-        map[cCApiData]       = "Data";
-        map[cCApiEnumerable] = "Enumerable";
-        map[cCApiFalse]      = "FalseClass";
-        map[cCApiFile]       = "File";
-        map[cCApiFixnum]     = "Fixnum";
-        map[cCApiFloat]      = "Float";
-        map[cCApiHash]       = "Hash";
-        map[cCApiInteger]    = "Integer";
-        map[cCApiIO]         = "IO";
-        map[cCApiKernel]     = "Kernel";
-        map[cCApiMatch]      = "MatchData";
-        map[cCApiModule]     = "Module";
-        map[cCApiNil]        = "NilClass";
-        map[cCApiNumeric]    = "Numeric";
-        map[cCApiObject]     = "Object";
-        map[cCApiRange]      = "Range";
-        map[cCApiRegexp]     = "Regexp";
-        map[cCApiRubinius]   = "Rubinius";
-        map[cCApiString]     = "String";
-        map[cCApiStruct]     = "Struct";
-        map[cCApiSymbol]     = "Symbol";
-        map[cCApiThread]     = "Thread";
-        map[cCApiTime]       = "Time";
-        map[cCApiTrue]       = "TrueClass";
-        map[cCApiProc]       = "Proc";
-        map[cCApiGC]         = "GC";
-        map[cCApiCAPI]       = "Rubinius::CAPI";
-        map[cCApiMethod]     = "Method";
-        map[cCApiRational]   = "Rational";
-        map[cCApiComplex]    = "Complex";
-        map[cCApiEnumerator] = "Enumerable::Enumerator";
-
-        map[cCApiArgumentError]       = "ArgumentError";
-        map[cCApiEOFError]            = "EOFError";
-        map[cCApiErrno]               = "Errno";
-        map[cCApiException]           = "Exception";
-        map[cCApiFatal]               = "FatalError";
-        map[cCApiFloatDomainError]    = "FloatDomainError";
-        map[cCApiIndexError]          = "IndexError";
-        map[cCApiInterrupt]           = "Interrupt";
-        map[cCApiIOError]             = "IOError";
-        map[cCApiLoadError]           = "LoadError";
-        map[cCApiLocalJumpError]      = "LocalJumpError";
-        map[cCApiNameError]           = "NameError";
-        map[cCApiNoMemoryError]       = "NoMemoryError";
-        map[cCApiNoMethodError]       = "NoMethodError";
-        map[cCApiNotImplementedError] = "NotImplementedError";
-        map[cCApiRangeError]          = "RangeError";
-        map[cCApiRegexpError]         = "RegexpError";
-        map[cCApiRuntimeError]        = "RuntimeError";
-        map[cCApiScriptError]         = "ScriptError";
-        map[cCApiSecurityError]       = "SecurityError";
-        map[cCApiSignalException]     = "SignalException";
-        map[cCApiStandardError]       = "StandardError";
-        map[cCApiSyntaxError]         = "SyntaxError";
-        map[cCApiSystemCallError]     = "SystemCallError";
-        map[cCApiSystemExit]          = "SystemExit";
-        map[cCApiSystemStackError]    = "SystemStackError";
-        map[cCApiTypeError]           = "TypeError";
-        map[cCApiThreadError]         = "ThreadError";
-        map[cCApiZeroDivisionError]   = "ZeroDivisionError";
-
-        if(!LANGUAGE_18_ENABLED(env->state())) {
-          map[cCApiMathDomainError]     = "Math::DomainError";
-          map[cCApiEncoding]            = "Encoding";
-          map[cCApiEncCompatError]      = "Encoding::CompatibilityError";
-          map[cCApiWaitReadable]        = "IO::WaitReadable";
-          map[cCApiWaitWritable]        = "IO::WaitWritable";
-        }
-      }
 
       if(type < 0 || type >= cCApiMaxConstant) {
         rb_raise(env->get_handle(env->state()->globals().exception.get()),
               "C-API: invalid constant index");
       }
 
+      CApiConstantNameMap map = env->state()->shared().capi_constant_name_map();
       return map[type];
     }
 
@@ -496,16 +414,25 @@ using namespace rubinius::capi;
 extern "C" {
 
   VALUE capi_get_constant(CApiConstant type) {
-    static CApiConstantHandleMap map;
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    env->shared().capi_constant_lock().lock();
+    CApiConstantHandleMap map = env->state()->shared().capi_constant_handle_map();
 
     CApiConstantHandleMap::iterator entry = map.find(type);
     if(entry == map.end()) {
-      VALUE val = rb_path2class(capi_get_constant_name(type).c_str());
-      capi::Handle::from(val)->ref(); // Extra ref, since we save it in the map
-      map[type] = val;
+      std::string constant_name = capi_get_constant_name(type);
+
+      VALUE val = rb_path2class(constant_name.c_str());
+      capi::Handle* hdl = capi::Handle::from(val);
+      hdl->ref(); // Extra ref, since we save it in the map
+      map[type] = hdl;
+      env->shared().capi_constant_lock().unlock();
       return val;
     } else {
-      return entry->second;
+      VALUE val = entry->second->as_value();
+      env->shared().capi_constant_lock().unlock();
+      return val;
     }
   }
 
