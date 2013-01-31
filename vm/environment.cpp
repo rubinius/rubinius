@@ -620,6 +620,7 @@ namespace rubinius {
       shared->auxiliary_threads()->shutdown(state);
     }
 
+    root_vm->set_call_frame(0);
     shared->finalizer_handler()->finish(state, gct);
 
     // Hold everyone.
