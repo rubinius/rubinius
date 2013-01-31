@@ -73,7 +73,6 @@ namespace rubinius {
   FinalizerHandler::FinalizerHandler(STATE)
     : AuxiliaryThread()
     , shared_(state->shared())
-    , target_(state->vm())
     , self_(NULL)
     , thread_(state)
     , lists_(NULL)

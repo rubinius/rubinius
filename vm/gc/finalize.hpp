@@ -83,7 +83,6 @@ namespace rubinius {
 
   private:
     SharedState& shared_;
-    VM* target_;
     VM* self_;
 
     TypedRoot<Thread*> thread_;
