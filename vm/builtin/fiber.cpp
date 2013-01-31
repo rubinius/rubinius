@@ -81,6 +81,10 @@ namespace rubinius {
     fib->set_ivar(&state, state.symbol("@dead"), cTrue);
 
     Fiber* dest = fib->prev();
+
+    // If this fiber has already been cleaned up, just ignore this
+    if(!dest->data()) return;
+
     assert(!dest->nil_p());
 
     // Box this up so it's in a standard format at the point

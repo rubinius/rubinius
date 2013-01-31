@@ -112,11 +112,13 @@ namespace rubinius {
     if(Fiber* fib = try_as<Fiber>(fiber_)) {
       FiberData* data = fib->data();
 
-      AddressDisplacement dis(data->data_offset(),
-                              data->data_lower_bound(),
-                              data->data_upper_bound());
+      if(data) {
+        AddressDisplacement dis(data->data_offset(),
+                                data->data_lower_bound(),
+                                data->data_upper_bound());
 
-      ary = dis.displace(ary);
+        ary = dis.displace(ary);
+      }
     }
     ary[pos] = val;
   }
@@ -129,12 +131,13 @@ namespace rubinius {
     Object** ary = locals_;
     if(Fiber* fib = try_as<Fiber>(fiber_)) {
       FiberData* data = fib->data();
+      if(data) {
+        AddressDisplacement dis(data->data_offset(),
+                                data->data_lower_bound(),
+                                data->data_upper_bound());
 
-      AddressDisplacement dis(data->data_offset(),
-                              data->data_lower_bound(),
-                              data->data_upper_bound());
-
-      ary = dis.displace(ary);
+        ary = dis.displace(ary);
+      }
     }
     return ary[pos];
   }
@@ -152,11 +155,13 @@ namespace rubinius {
       if(Fiber* fib = try_as<Fiber>(vs->fiber())) {
         FiberData* data = fib->data();
 
-        AddressDisplacement dis(data->data_offset(),
-                                data->data_lower_bound(),
-                                data->data_upper_bound());
+        if(data) {
+          AddressDisplacement dis(data->data_offset(),
+                                  data->data_lower_bound(),
+                                  data->data_upper_bound());
 
-        ary = dis.displace(ary);
+          ary = dis.displace(ary);
+        }
       }
 
       size_t locals = vs->number_of_locals();
