@@ -32,8 +32,7 @@ namespace rubinius {
    * Thread-local info about native method calls. @see NativeMethodFrame.
    */
   class NativeMethodEnvironment {
-    State state_obj_;
-    State* state_;
+    State state_;
 
     /** Current callframe in Ruby-land. */
     CallFrame*          current_call_frame_;
@@ -45,8 +44,7 @@ namespace rubinius {
 
   public:   /* Class Interface */
     NativeMethodEnvironment(STATE)
-      : state_obj_(state->vm())
-      , state_(&state_obj_)
+      : state_(state->vm())
       , current_call_frame_(0)
       , current_native_frame_(0)
       , current_ep_(0)
@@ -108,7 +106,7 @@ namespace rubinius {
     Object* block();
 
     State* state() {
-      return state_;
+      return &state_;
     }
 
     CallFrame* current_call_frame() {
@@ -136,7 +134,7 @@ namespace rubinius {
     }
 
     SharedState& shared() {
-      return state_->shared();
+      return state_.shared();
     }
 
     /** Set of Handles available in current Frame (convenience.) */

@@ -132,7 +132,7 @@ namespace rubinius {
         rubinius::bug("Unable to create handles with no NMF");
       }
 
-      return current_native_frame_->get_handle(state_, obj);
+      return current_native_frame_->get_handle(&state_, obj);
     } else if(obj->fixnum_p() || obj->symbol_p()) {
       return reinterpret_cast<VALUE>(obj);
     } else if(obj->nil_p()) {
