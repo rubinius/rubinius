@@ -176,8 +176,6 @@ namespace rubinius {
   }
 
   void SignalHandler::handle_signal(int sig) {
-    utilities::thread::Mutex::LockGuard lg(worker_lock_);
-
     if(exit_) return;
 
     queued_signals_ = 1;
@@ -200,6 +198,7 @@ namespace rubinius {
   }
 
   void SignalHandler::add_signal(STATE, int sig, HandlerType type) {
+    SYNC(state);
     utilities::thread::Mutex::LockGuard lg(worker_lock_);
 
 #ifndef RBX_WINDOWS
@@ -224,8 +223,6 @@ namespace rubinius {
   }
 
   bool SignalHandler::deliver_signals(STATE, CallFrame* call_frame) {
-    utilities::thread::Mutex::LockGuard lg(worker_lock_);
-
     queued_signals_ = 0;
 
     for(int i = 0; i < NSIG; i++) {
