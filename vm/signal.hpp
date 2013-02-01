@@ -23,14 +23,15 @@ namespace rubinius {
 
     int pending_signals_[NSIG];
     int queued_signals_;
-    utilities::thread::SpinLock lock_;
-    int read_fd_;
-    int write_fd_;
+
     bool exit_;
 
     TypedRoot<Thread*> thread_;
 
     std::list<int> watched_signals_;
+
+    utilities::thread::Condition worker_cond_;
+    utilities::thread::Mutex worker_lock_;
 
   public:
     enum HandlerType {

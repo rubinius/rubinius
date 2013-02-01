@@ -188,10 +188,12 @@ namespace rubinius {
 
         // exit_ might have been set in the mean while after
         // we grabbed the worker_lock
-        if(!exit_) {
-          GCIndependent indy(state);
-          worker_wait();
-        }
+        if(exit_) break;
+        state->gc_independent(gct);
+        worker_wait();
+        if(exit_) break;
+        state->gc_dependent();
+        if(exit_) break;
 
         continue;
       }

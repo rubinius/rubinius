@@ -48,49 +48,41 @@ namespace rubinius {
       pending_signals_[i] = 0;
     }
 
-    open_pipes();
+    worker_lock_.init();
+    worker_cond_.init();
+
     start_thread(state);
   }
 
   SignalHandler::~SignalHandler() {
     shared_.auxiliary_threads()->unregister_thread(this);
-    close(write_fd_);
-    close(read_fd_);
   }
 
   void SignalHandler::start_thread(STATE) {
     SYNC(state);
     if(self_) return;
+    utilities::thread::Mutex::LockGuard lg(worker_lock_);
     self_ = state->shared().new_vm();
+    exit_ = false;
     thread_.set(Thread::create(state, self_, G(thread), signal_handler_tramp, false, true));
     run(state);
-
   }
 
   void SignalHandler::stop_thread(STATE) {
     SYNC(state);
     if(!self_) return;
 
-    // Thread might have already been stopped
     pthread_t os = self_->os_thread();
-
-    exit_ = true;
-    if(write(write_fd_, "!", 1) < 0) {
-      perror("SignalHandler::stop_thread failed to write");
+    {
+      utilities::thread::Mutex::LockGuard lg(worker_lock_);
+      // Thread might have already been stopped
+      exit_ = true;
+      worker_cond_.signal();
     }
 
     void* return_value;
     pthread_join(os, &return_value);
     self_ = NULL;
-  }
-
-  void SignalHandler::open_pipes() {
-    int f[2];
-    if(pipe(f) < 0) {
-      perror("SignalHandler::open_pipes failed");
-    }
-    read_fd_ = f[0];
-    write_fd_ = f[1];
   }
 
   void SignalHandler::shutdown(STATE) {
@@ -109,7 +101,6 @@ namespace rubinius {
   }
 
   void SignalHandler::after_exec(STATE) {
-    exit_ = false;
     start_thread(state);
   }
 
@@ -118,13 +109,13 @@ namespace rubinius {
   }
 
   void SignalHandler::after_fork_parent(STATE) {
-    exit_ = false;
     start_thread(state);
   }
 
   void SignalHandler::after_fork_child(STATE) {
-    exit_ = false;
-    open_pipes();
+    worker_lock_.init();
+    worker_cond_.init();
+
     start_thread(state);
   }
 
@@ -141,39 +132,23 @@ namespace rubinius {
 #endif
 
     GCTokenImpl gct;
-    utilities::thread::Thread::set_os_name("rbx.signal-dispatch");
+    utilities::thread::Thread::set_os_name("rbx.signal");
 
     state->vm()->thread->hard_unlock(state, gct);
 
-    for(;;) {
-      fd_set fds;
-      FD_ZERO(&fds);
-      FD_SET((int_fd_t)read_fd_, &fds);
+    while(!exit_) {
+      utilities::thread::Mutex::LockGuard lg(worker_lock_);
+      if(exit_) break;
+      state->gc_independent(gct);
+      worker_cond_.wait(worker_lock_);
+      // If we should exit now, don't try to become
+      // dependent first but break and exit the thread
+      if(exit_) break;
+      state->gc_dependent();
+      if(exit_) break;
 
-      int n;
-
-      {
-        GCIndependent indy(state, 0);
-        n = select(read_fd_ + 1, &fds, NULL, NULL, NULL);
-      }
-
-      if(n == 1) {
-        // drain a bunch
-        char buf[512];
-        if(read(read_fd_, buf, sizeof(buf)) < 0) {
-          perror("SignalHandler::perform failed to read");
-        }
-
-        if(exit_) {
-          self_ = 0;
-          return;
-        }
-
-        {
-          target_->set_check_local_interrupts();
-          target_->wakeup(state, gct);
-        }
-      }
+      target_->set_check_local_interrupts();
+      target_->wakeup(state, gct);
     }
   }
 
@@ -182,6 +157,8 @@ namespace rubinius {
   }
 
   void SignalHandler::handle_signal(int sig) {
+    utilities::thread::Mutex::LockGuard lg(worker_lock_);
+
     if(exit_) return;
 
     queued_signals_ = 1;
@@ -200,13 +177,11 @@ namespace rubinius {
       return;
     }
 
-    if(write(write_fd_, "!", 1) < 0) {
-      perror("SignalHandler::handle_signal failed to write");
-    }
+    worker_cond_.signal();
   }
 
   void SignalHandler::add_signal(STATE, int sig, HandlerType type) {
-    SYNC(state);
+    utilities::thread::Mutex::LockGuard lg(worker_lock_);
 
 #ifndef RBX_WINDOWS
     struct sigaction action;
@@ -230,6 +205,8 @@ namespace rubinius {
   }
 
   bool SignalHandler::deliver_signals(STATE, CallFrame* call_frame) {
+    utilities::thread::Mutex::LockGuard lg(worker_lock_);
+
     queued_signals_ = 0;
 
     for(int i = 0; i < NSIG; i++) {
