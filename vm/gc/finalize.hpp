@@ -95,8 +95,10 @@ namespace rubinius {
     utilities::thread::Mutex live_guard_;
     utilities::thread::Mutex worker_lock_;
     utilities::thread::Condition worker_cond_;
+    utilities::thread::Condition pause_cond_;
     utilities::thread::Mutex supervisor_lock_;
     utilities::thread::Condition supervisor_cond_;
+    bool paused_;
     bool exit_;
     bool finishing_;
 

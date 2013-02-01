@@ -24,6 +24,7 @@ namespace rubinius {
     int pending_signals_[NSIG];
     int queued_signals_;
 
+    bool paused_;
     bool exit_;
 
     TypedRoot<Thread*> thread_;
@@ -31,6 +32,7 @@ namespace rubinius {
     std::list<int> watched_signals_;
 
     utilities::thread::Condition worker_cond_;
+    utilities::thread::Condition pause_cond_;
     utilities::thread::Mutex worker_lock_;
 
   public:

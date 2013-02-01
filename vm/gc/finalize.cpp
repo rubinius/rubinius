@@ -80,6 +80,7 @@ namespace rubinius {
     , process_list_(NULL)
     , iterator_(NULL)
     , process_item_kind_(eRuby)
+    , paused_(false)
     , exit_(false)
     , finishing_(false)
   {
@@ -92,6 +93,8 @@ namespace rubinius {
     live_guard_.init();
     worker_lock_.init();
     worker_cond_.init();
+    pause_cond_.init();
+
     supervisor_lock_.init();
     supervisor_cond_.init();
   }
@@ -114,6 +117,7 @@ namespace rubinius {
     if(self_) return;
     utilities::thread::Mutex::LockGuard lg(worker_lock_);
     self_ = state->shared().new_vm();
+    paused_ = false;
     exit_ = false;
     thread_.set(Thread::create(state, self_, G(thread), finalizer_handler_tramp, false, true));
     run(state);
@@ -150,19 +154,27 @@ namespace rubinius {
   }
 
   void FinalizerHandler::before_fork(STATE) {
-    stop_thread(state);
+    utilities::thread::Mutex::LockGuard lg(worker_lock_);
+    while(!paused_) {
+      pause_cond_.wait(worker_lock_);
+    }
   }
 
   void FinalizerHandler::after_fork_parent(STATE) {
-    start_thread(state);
+    utilities::thread::Mutex::LockGuard lg(worker_lock_);
+    pause_cond_.signal();
   }
 
   void FinalizerHandler::after_fork_child(STATE) {
     live_guard_.init();
     worker_lock_.init();
     worker_cond_.init();
+    pause_cond_.init();
     supervisor_lock_.init();
     supervisor_cond_.init();
+
+    VM::discard(state, self_);
+    self_ = NULL;
 
     start_thread(state);
   }
@@ -182,18 +194,26 @@ namespace rubinius {
       if(!process_list_) first_process_item();
 
       if(!process_list_) {
-        utilities::thread::Mutex::LockGuard lg(worker_lock_);
+        {
+          utilities::thread::Mutex::LockGuard lg(worker_lock_);
 
-        if(finishing_) supervisor_signal();
+          if(finishing_) supervisor_signal();
 
-        // exit_ might have been set in the mean while after
-        // we grabbed the worker_lock
-        if(exit_) break;
-        state->gc_independent(gct);
-        worker_wait();
-        if(exit_) break;
+          // exit_ might have been set in the mean while after
+          // we grabbed the worker_lock
+          if(exit_) break;
+          state->gc_independent(gct);
+          paused_ = true;
+          pause_cond_.signal();
+          worker_wait();
+          if(exit_) break;
+        }
         state->gc_dependent();
-        if(exit_) break;
+        {
+          utilities::thread::Mutex::LockGuard lg(worker_lock_);
+          paused_ = false;
+          if(exit_) break;
+        }
 
         continue;
       }

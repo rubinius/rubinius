@@ -35,6 +35,7 @@ namespace rubinius {
     , target_(state->vm())
     , self_(NULL)
     , queued_signals_(0)
+    , paused_(false)
     , exit_(false)
     , thread_(state)
   {
@@ -50,6 +51,7 @@ namespace rubinius {
 
     worker_lock_.init();
     worker_cond_.init();
+    pause_cond_.init();
 
     start_thread(state);
   }
@@ -63,6 +65,7 @@ namespace rubinius {
     if(self_) return;
     utilities::thread::Mutex::LockGuard lg(worker_lock_);
     self_ = state->shared().new_vm();
+    paused_ = false;
     exit_ = false;
     thread_.set(Thread::create(state, self_, G(thread), signal_handler_tramp, false, true));
     run(state);
@@ -105,16 +108,24 @@ namespace rubinius {
   }
 
   void SignalHandler::before_fork(STATE) {
-    stop_thread(state);
+    utilities::thread::Mutex::LockGuard lg(worker_lock_);
+    while(!paused_) {
+      pause_cond_.wait(worker_lock_);
+    }
   }
 
   void SignalHandler::after_fork_parent(STATE) {
-    start_thread(state);
+    utilities::thread::Mutex::LockGuard lg(worker_lock_);
+    pause_cond_.signal();
   }
 
   void SignalHandler::after_fork_child(STATE) {
     worker_lock_.init();
     worker_cond_.init();
+    pause_cond_.init();
+
+    VM::discard(state, self_);
+    self_ = NULL;
 
     start_thread(state);
   }
@@ -137,15 +148,23 @@ namespace rubinius {
     state->vm()->thread->hard_unlock(state, gct);
 
     while(!exit_) {
-      utilities::thread::Mutex::LockGuard lg(worker_lock_);
-      if(exit_) break;
-      state->gc_independent(gct);
-      worker_cond_.wait(worker_lock_);
-      // If we should exit now, don't try to become
-      // dependent first but break and exit the thread
-      if(exit_) break;
+      {
+        utilities::thread::Mutex::LockGuard lg(worker_lock_);
+        if(exit_) break;
+        state->gc_independent(gct);
+        paused_ = true;
+        pause_cond_.signal();
+        worker_cond_.wait(worker_lock_);
+        // If we should exit now, don't try to become
+        // dependent first but break and exit the thread
+        if(exit_) break;
+      }
       state->gc_dependent();
-      if(exit_) break;
+      {
+        utilities::thread::Mutex::LockGuard lg(worker_lock_);
+        if(exit_) break;
+        paused_ = false;
+      }
 
       target_->set_check_local_interrupts();
       target_->wakeup(state, gct);
