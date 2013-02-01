@@ -65,9 +65,6 @@ namespace rubinius {
     }
 
     hash_seed = Randomizer::random_uint32();
-
-    setup_capi_constant_names();
-
   }
 
   SharedState::~SharedState() {
