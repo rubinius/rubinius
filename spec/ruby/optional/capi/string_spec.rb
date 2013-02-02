@@ -789,5 +789,21 @@ ruby_version_is "1.9" do
         end
       end
     end
+
+    describe "rb_str_export" do
+      it "returns the original String with the external encoding" do
+        Encoding.default_external = Encoding::ISO_8859_1
+        s = @s.rb_str_export("Hëllo")
+        s.encoding.should equal(Encoding::ISO_8859_1)
+      end
+    end
+
+    describe "rb_str_export_locale" do
+      it "returns the original String with the locale encoding" do
+        s = @s.rb_str_export_locale("abc")
+        s.should == "abc".force_encoding(Encoding.find("locale"))
+        s.encoding.should equal(Encoding.find("locale"))
+      end
+    end
   end
 end

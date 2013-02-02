@@ -155,6 +155,18 @@ VALUE string_spec_rb_str_conv_enc_opts(VALUE self, VALUE str, VALUE from, VALUE 
 }
 #endif
 
+#ifdef HAVE_RB_STR_EXPORT
+VALUE string_spec_rb_str_export(VALUE self, VALUE str) {
+  return rb_str_export(str);
+}
+#endif
+
+#ifdef HAVE_RB_STR_EXPORT_LOCALE
+VALUE string_spec_rb_str_export_locale(VALUE self, VALUE str) {
+  return rb_str_export_locale(str);
+}
+#endif
+
 #ifdef HAVE_RB_STR_DUP
 VALUE string_spec_rb_str_dup(VALUE self, VALUE str) {
   return rb_str_dup(str);
@@ -604,6 +616,14 @@ void Init_string_spec() {
 
 #ifdef HAVE_RB_STR_CONV_ENC_OPTS
   rb_define_method(cls, "rb_str_conv_enc_opts", string_spec_rb_str_conv_enc_opts, 5);
+#endif
+
+#ifdef HAVE_RB_STR_EXPORT
+  rb_define_method(cls, "rb_str_export", string_spec_rb_str_export, 1);
+#endif
+
+#ifdef HAVE_RB_STR_EXPORT_LOCALE
+  rb_define_method(cls, "rb_str_export_locale", string_spec_rb_str_export_locale, 1);
 #endif
 
 #ifdef HAVE_RB_STR_DUP
