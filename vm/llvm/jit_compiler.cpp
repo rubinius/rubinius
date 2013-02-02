@@ -60,7 +60,6 @@ namespace jit {
     if(!mci_) {
       if(!function_) return NULL;
 
-      if(indy) ctx_->llvm_state()->shared().gc_independent(ctx_->llvm_state());
       if(ctx_->llvm_state()->jit_dump_code() & cSimple) {
         llvm::outs() << "[[[ LLVM Simple IR ]]]\n";
         llvm::outs() << *function_ << "\n";
@@ -101,7 +100,6 @@ namespace jit {
         llvm::outs() << "       code below to http://github.com/rubinius/rubinius/issues\n";
         llvm::outs() << *function_ << "\n";
         function_ = NULL;
-        if(indy) ctx_->llvm_state()->shared().gc_dependent(ctx_->llvm_state());
         return NULL;
       }
 
@@ -122,8 +120,6 @@ namespace jit {
       if(!ctx_->llvm_state()->debug_p()) {
         function_->dropAllReferences();
       }
-
-      if(indy) ctx_->llvm_state()->shared().gc_dependent(ctx_->llvm_state());
 
       // Inject the RuntimeData objects used into the original CompiledCode
       // Do this way after we've validated the IR so things are consistent.

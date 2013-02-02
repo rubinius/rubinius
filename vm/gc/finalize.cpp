@@ -155,7 +155,7 @@ namespace rubinius {
 
   void FinalizerHandler::before_fork(STATE) {
     utilities::thread::Mutex::LockGuard lg(worker_lock_);
-    while(!paused_) {
+    while(!paused_ && self_->run_state() == ManagedThread::eRunning) {
       pause_cond_.wait(worker_lock_);
     }
   }

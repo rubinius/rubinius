@@ -484,18 +484,18 @@ namespace rubinius {
 #else
     int result = 0;
 
-    {
-      // TODO: Make this guard unnecessary
-      GCIndependent guard(state, calling_environment);
-      state->shared().auxiliary_threads()->before_fork(state);
-    }
-
     /*
      * We have to bring all the threads to a safe point before we can
      * fork the process so any internal locks are unlocked before we fork
      */
 
     StopTheWorld stw(state, gct, calling_environment);
+
+    {
+      // TODO: Make this guard unnecessary
+      GCIndependent guard(state, calling_environment);
+      state->shared().auxiliary_threads()->before_fork(state);
+    }
 
     // ok, now fork!
     result = ::fork();

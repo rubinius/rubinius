@@ -191,7 +191,7 @@ namespace rubinius {
 
       pause_ = true;
 
-      while(!paused_) {
+      while(!paused_ && ls_->run_state() == ManagedThread::eRunning) {
         pause_condition_.wait(mutex_);
       }
     }
@@ -269,12 +269,12 @@ namespace rubinius {
           state = cRunning;
         }
 
-        Context ctx(ls_);
-        jit::Compiler jit(&ctx);
-
         // This isn't ideal, but it's the safest. Keep the GC from
         // running while we're building the IR.
         ls_->shared().gc_dependent(ls_);
+
+        Context ctx(ls_);
+        jit::Compiler jit(&ctx);
 
         // mutex now unlock, allowing others to push more requests
         //
