@@ -195,122 +195,150 @@ if enabled_18
   compile_ext "18/iconv", :deps => ["Makefile", "extconf.rb"],
                           :dir => "#{libprefixdir}/18/iconv/ext",
                           :env => "-X18"
+
+  compile_ext "18/dbm", :deps => ["Makefile"],
+                   :dir => "#{libprefixdir}/18/dbm/ext",
+                   :env => "-X18",
+                   :ignore_fail => true
+  compile_ext "18/gdbm", :deps => ["Makefile"],
+                   :dir => "#{libprefixdir}/18/gdbm/ext",
+                   :env => "-X18",
+                   :ignore_fail => true
+  compile_ext "18/sdbm", :deps => ["Makefile"],
+                   :dir => "#{libprefixdir}/18/sdbm/ext",
+                   :env => "-X18"
 end
 
 if enabled_19
   compile_ext "19/bigdecimal",
       :dir => "#{libprefixdir}/19/bigdecimal/ext",
       :deps => ["Makefile", "extconf.rb"],
-      :env => lang_env
+      :env => "-X19"
   compile_ext "19/nkf",
       :dir => "#{libprefixdir}/19/nkf/ext",
       :deps => ["Makefile", "extconf.rb"],
-      :env => lang_env
+      :env => "-X19"
   if BUILD_CONFIG[:readline] == :c_readline
     compile_ext "19/readline",
         :dir => "#{libprefixdir}/19/readline/ext",
         :deps => ["Makefile", "extconf.rb"],
-        :env => lang_env
+        :env => "-X19"
   end
 
   compile_ext "19/psych",
       :dir => "#{libprefixdir}/19/psych/ext",
       :deps => ["Makefile"],
-      :env => lang_env
+      :env => "-X19"
 
   compile_ext "19/syck",
       :dir => "#{libprefixdir}/19/syck/ext",
       :deps => ["Makefile"],
-      :env => lang_env
+      :env => "-X19"
 
   compile_ext "json/parser",
       :dir => "#{libprefixdir}/19/json/ext/parser",
       :deps => ["Makefile", "extconf.rb"],
-      :env => lang_env
+      :env => "-X19"
   compile_ext "json/generator",
       :dir => "#{libprefixdir}/19/json/ext/generator",
       :deps => ["Makefile", "extconf.rb"],
-      :env => lang_env
+      :env => "-X19"
 
   compile_ext "19/openssl",
       :dir => "#{libprefixdir}/19/openssl/ext",
       :deps => ["Makefile", "extconf.h"],
-      :env => lang_env
+      :env => "-X19"
   compile_ext "19/pty",
       :dir => "#{libprefixdir}/19/pty/ext",
       :deps => ["Makefile"],
-      :env => lang_env
+      :env => "-X19"
   compile_ext "19/zlib",
       :dir => "#{libprefixdir}/19/zlib/ext",
       :deps => ["Makefile", "extconf.rb"],
-      :env => lang_env
+      :env => "-X19"
   compile_ext "19/iconv",
       :dir => "#{libprefixdir}/19/iconv/ext",
       :deps => ["Makefile", "extconf.rb"],
-      :env => lang_env
+      :env => "-X19"
+
+  compile_ext "19/dbm", :deps => ["Makefile"],
+                   :dir => "#{libprefixdir}/19/dbm/ext",
+                   :env => "-X19",
+                   :ignore_fail => true
+  compile_ext "19/gdbm", :deps => ["Makefile"],
+                   :dir => "#{libprefixdir}/19/gdbm/ext",
+                   :env => "-X19",
+                   :ignore_fail => true
+  compile_ext "19/sdbm", :deps => ["Makefile"],
+                   :dir => "#{libprefixdir}/19/sdbm/ext",
+                   :env => "-X19"
 end
 
 if enabled_20
   compile_ext "20/bigdecimal",
       :dir => "#{libprefixdir}/20/bigdecimal/ext",
       :deps => ["Makefile", "extconf.rb"],
-      :env => lang_env
+      :env => "-X20"
   compile_ext "20/nkf",
       :dir => "#{libprefixdir}/20/nkf/ext",
       :deps => ["Makefile", "extconf.rb"],
-      :env => lang_env
+      :env => "-X20"
   if BUILD_CONFIG[:readline] == :c_readline
     compile_ext "20/readline",
         :dir => "#{libprefixdir}/20/readline/ext",
         :deps => ["Makefile", "extconf.rb"],
-        :env => lang_env
+        :env => "-X20"
   end
 
   compile_ext "20/psych",
       :dir => "#{libprefixdir}/20/psych/ext",
       :deps => ["Makefile"],
-      :env => lang_env
+      :env => "-X20"
 
   compile_ext "20/syck",
       :dir => "#{libprefixdir}/20/syck/ext",
       :deps => ["Makefile"],
-      :env => lang_env
+      :env => "-X20"
 
   compile_ext "json/parser",
       :dir => "#{libprefixdir}/20/json/ext/parser",
       :deps => ["Makefile", "extconf.rb"],
-      :env => lang_env
+      :env => "-X20"
   compile_ext "json/generator",
       :dir => "#{libprefixdir}/20/json/ext/generator",
       :deps => ["Makefile", "extconf.rb"],
-      :env => lang_env
+      :env => "-X20"
 
   compile_ext "20/openssl",
       :dir => "#{libprefixdir}/20/openssl/ext",
       :deps => ["Makefile", "extconf.h"],
-      :env => lang_env
+      :env => "-X20"
   compile_ext "20/pty",
       :dir => "#{libprefixdir}/20/pty/ext",
       :deps => ["Makefile"],
-      :env => lang_env
+      :env => "-X20"
   compile_ext "20/zlib",
       :dir => "#{libprefixdir}/20/zlib/ext",
       :deps => ["Makefile", "extconf.rb"],
-      :env => lang_env
+      :env => "-X20"
   compile_ext "20/iconv",
       :dir => "#{libprefixdir}/20/iconv/ext",
       :deps => ["Makefile", "extconf.rb"],
-      :env => lang_env
-end
+      :env => "-X20"
 
-compile_ext "dbm", :deps => ["Makefile"],
-                   :dir => "#{libprefixdir}/dbm/ext",
+
+  compile_ext "20/dbm", :deps => ["Makefile"],
+                   :dir => "#{libprefixdir}/20/dbm/ext",
+                   :env => "-X20",
                    :ignore_fail => true
-compile_ext "gdbm", :deps => ["Makefile"],
-                    :dir => "#{libprefixdir}/gdbm/ext",
-                    :ignore_fail => true
-compile_ext "sdbm", :deps => ["Makefile"],
-                    :dir => "#{libprefixdir}/sdbm/ext"
+  compile_ext "20/gdbm", :deps => ["Makefile"],
+                   :dir => "#{libprefixdir}/20/gdbm/ext",
+                   :env => "-X20",
+                   :ignore_fail => true
+  compile_ext "20/sdbm", :deps => ["Makefile"],
+                   :dir => "#{libprefixdir}/20/sdbm/ext",
+                   :env => "-X20"
+end
 
 compile_ext "profiler", :dir => "#{libprefixdir}/tooling/profiler",
                         :deps => ["Makefile"]

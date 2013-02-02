@@ -1,0 +1,1 @@
+require "dbm/ext/dbm"

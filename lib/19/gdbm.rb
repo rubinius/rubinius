@@ -1,0 +1,1 @@
+require 'gdbm/ext/gdbm'

@@ -1,0 +1,1 @@
+require 'sdbm/ext/sdbm'
