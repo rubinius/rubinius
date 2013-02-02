@@ -123,7 +123,7 @@ class Configure
     @patch_version = "0"
     @release = "rc1"
     @release_date = "yyyy-mm-dd"
-    @config_version = 165
+    @config_version = 166
   end
 
   # Set up system commands to run in cmd.exe on Windows. Either Windows
@@ -1554,6 +1554,7 @@ end
 
       EOC
 
+      write_have_defines f
       write_have_sizeof_defines f
       write_sizeof_defines f
 
