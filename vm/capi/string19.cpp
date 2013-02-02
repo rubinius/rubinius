@@ -111,4 +111,13 @@ extern "C" {
   VALUE rb_str_export_to_enc(VALUE str, rb_encoding *enc) {
     return rb_str_conv_enc(str, rb_enc_get(str), enc);
   }
+
+  VALUE rb_str_export(VALUE str) {
+    return rb_str_conv_enc(str, rb_enc_get(str), rb_default_external_encoding());
+  }
+
+  VALUE rb_str_export_locale(VALUE str) {
+    return rb_str_conv_enc(str, rb_enc_get(str), rb_locale_encoding());
+  }
+
 }
