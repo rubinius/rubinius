@@ -544,6 +544,7 @@ VALUE rb_uint2big(unsigned long number);
 
 /** The length of the array. */
 #define RARRAY_LEN(ary)   rb_ary_size(ary)
+#define RARRAY_LENINT(str) rb_ary_size(str)
 
 /** The pointer to the array's data. */
 #define RARRAY_PTR(ary)   (RARRAY(ary)->ptr)
