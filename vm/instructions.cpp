@@ -132,7 +132,7 @@ continue_to_run:
 
   // If control finds it's way down here, there is an exception.
 exception:
-  ThreadState* th = state->vm()->thread_state();
+  VMThreadState* th = state->vm()->thread_state();
   //
   switch(th->raise_reason()) {
   case cException:
@@ -276,7 +276,7 @@ continue_to_run:
   rubinius::bug("Control flow error in interpreter");
 
 exception:
-  ThreadState* th = state->vm()->thread_state();
+  VMThreadState* th = state->vm()->thread_state();
   //
   switch(th->raise_reason()) {
   case cException:
@@ -422,7 +422,7 @@ continue_to_run:
 
   // If control finds it's way down here, there is an exception.
 exception:
-  ThreadState* th = state->vm()->thread_state();
+  VMThreadState* th = state->vm()->thread_state();
   //
   switch(th->raise_reason()) {
   case cException:
@@ -554,7 +554,7 @@ continue_to_run:
   rubinius::bug("Control flow error in interpreter");
 
 exception:
-  ThreadState* th = state->vm()->thread_state();
+  VMThreadState* th = state->vm()->thread_state();
   //
   switch(th->raise_reason()) {
   case cException:
@@ -686,7 +686,7 @@ continue_to_run:
 
   // If control finds it's way down here, there is an exception.
 exception:
-  ThreadState* th = state->vm()->thread_state();
+  VMThreadState* th = state->vm()->thread_state();
   //
   switch(th->raise_reason()) {
   case cException:

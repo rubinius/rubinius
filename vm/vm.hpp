@@ -7,7 +7,7 @@
 #include "globals.hpp"
 #include "gc/object_mark.hpp"
 #include "gc/managed.hpp"
-#include "thread_state.hpp"
+#include "vm_thread_state.hpp"
 
 #include "util/refcount.hpp"
 #include "util/thread.hpp"
@@ -125,7 +125,7 @@ namespace rubinius {
 
     ObjectMemory* om;
 
-    ThreadState thread_state_;
+    VMThreadState thread_state_;
 
     static unsigned long cStackDepthMax;
 
@@ -147,7 +147,7 @@ namespace rubinius {
       run_signals_ = val;
     }
 
-    ThreadState* thread_state() {
+    VMThreadState* thread_state() {
       return &thread_state_;
     }
 

@@ -1588,7 +1588,7 @@ namespace rubinius {
   }
 
   Tuple* System::vm_thread_state(STATE) {
-    ThreadState* ts = state->vm()->thread_state();
+    VMThreadState* ts = state->vm()->thread_state();
     Tuple* tuple = Tuple::create(state, 5);
 
     Symbol* reason = 0;

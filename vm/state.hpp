@@ -5,7 +5,7 @@ namespace rubinius {
   class VM;
   class VMJIT;
   class ManagedThread;
-  class ThreadState;
+  class VMThreadState;
   class SharedState;
 
   class State {
@@ -71,7 +71,7 @@ namespace rubinius {
         return static_cast<T*>(vm_->new_object_typed_dirty(cls, sizeof(T), T::type));
       }
 
-    ThreadState* thread_state() {
+    VMThreadState* thread_state() {
       return vm_->thread_state();
     }
 

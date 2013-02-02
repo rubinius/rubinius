@@ -11,7 +11,7 @@ namespace rubinius {
   class VariableScope;
   class VM;
 
-  class ThreadState {
+  class VMThreadState {
     TypedRoot<Exception*> current_exception_;
     TypedRoot<Object*> raise_value_;
     TypedRoot<Object*> throw_dest_;
@@ -19,7 +19,7 @@ namespace rubinius {
     TypedRoot<VariableScope*> destination_scope_;
 
   public:
-    ThreadState(VM* state);
+    VMThreadState(VM* state);
 
     Exception* current_exception() {
       return current_exception_.get();

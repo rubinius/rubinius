@@ -950,14 +950,14 @@ extern "C" {
   }
 
   bool rbx_return_to_here(STATE, CallFrame* call_frame) {
-    ThreadState* th = state->vm()->thread_state();
+    VMThreadState* th = state->vm()->thread_state();
     if(th->raise_reason() != cReturn) return false;
     if(th->destination_scope() == call_frame->scope->on_heap()) return true;
     return false;
   }
 
   bool rbx_break_to_here(STATE, CallFrame* call_frame) {
-    ThreadState* th = state->vm()->thread_state();
+    VMThreadState* th = state->vm()->thread_state();
     if(th->raise_reason() != cBreak) return false;
     if(th->destination_scope() == call_frame->scope->on_heap()) return true;
     return false;

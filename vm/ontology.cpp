@@ -316,6 +316,7 @@ namespace rubinius {
     List::init(state);
     init_ffi(state);
     Thread::init(state);
+    ThreadState::init(state);
     AccessVariable::init(state);
     Pointer::init(state);
     NativeFunction::init(state);
