@@ -458,7 +458,7 @@ instruction restore_exception_state() [ exception -- ]
     if(top->nil_p()) {
       state->vm()->thread_state()->clear();
     } else {
-      state->vm()->thread_state()->set_state(state, top);
+      state->vm()->thread_state()->set_state(state, as<ThreadState>(top));
     }
 end
 

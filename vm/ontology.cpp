@@ -51,6 +51,7 @@
 #include "builtin/module.hpp"
 #include "builtin/class.hpp"
 #include "builtin/atomic.hpp"
+#include "builtin/thread_state.hpp"
 
 #include "environment.hpp"
 #include "configuration.hpp"

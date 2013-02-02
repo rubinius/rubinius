@@ -20,6 +20,7 @@
 #include "builtin/global_cache_entry.hpp"
 #include "builtin/location.hpp"
 #include "builtin/cache.hpp"
+#include "builtin/thread_state.hpp"
 
 #include "instruments/tooling.hpp"
 

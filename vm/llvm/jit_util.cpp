@@ -25,6 +25,7 @@
 #include "builtin/location.hpp"
 #include "builtin/cache.hpp"
 #include "builtin/encoding.hpp"
+#include "builtin/thread_state.hpp"
 
 #include "instruments/tooling.hpp"
 
@@ -990,7 +991,7 @@ extern "C" {
     if(top->nil_p()) {
       state->vm()->thread_state()->clear();
     } else {
-      state->vm()->thread_state()->set_state(state, top);
+      state->vm()->thread_state()->set_state(state, as<ThreadState>(top));
     }
 
     return cNil;

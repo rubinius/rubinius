@@ -5,6 +5,7 @@
 #include "builtin/class.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/exception.hpp"
+#include "builtin/thread_state.hpp"
 
 namespace rubinius {
   VMThreadState::VMThreadState(VM* state)
@@ -15,33 +16,24 @@ namespace rubinius {
     , destination_scope_(state, nil<VariableScope>())
   {}
 
-  Object* VMThreadState::state_as_object(STATE) {
-    if(raise_reason_ == cNone && current_exception_.get()->nil_p()) return cNil;
+  ThreadState* VMThreadState::state_as_object(STATE) {
+    if(raise_reason_ == cNone && current_exception_.get()->nil_p()) return nil<ThreadState>();
 
-    Exception* exc = Exception::create(state);
-    exc->klass(state, G(exc_vm_internal));
-    exc->set_ivar(state, G(sym_reason), Fixnum::from(raise_reason_));
-    exc->set_ivar(state, G(sym_destination), destination_scope());
-    exc->set_ivar(state, G(sym_throw_dest), throw_dest());
-
-    exc->set_ivar(state, G(sym_exception),  current_exception());
-    exc->set_ivar(state, G(sym_value),  raise_value());
-    return exc;
+    ThreadState* thread_state = ThreadState::create(state);
+    thread_state->raise_reason(state, Fixnum::from(raise_reason_));
+    thread_state->destination_scope(state, destination_scope());
+    thread_state->throw_dest(state, throw_dest());
+    thread_state->current_exception(state, current_exception());
+    thread_state->raise_value(state, raise_value());
+    return thread_state;
   }
 
-  void VMThreadState::set_state(STATE, Object* obj) {
-    if(!obj->kind_of_p(state, G(exc_vm_internal))) return;
-
-    Object* reason = obj->get_ivar(state, state->symbol("reason"));
-    raise_reason_ = (RaiseReason)as<Fixnum>(reason)->to_native();
-
-    current_exception_.set(obj->get_ivar(state, state->symbol("exception")));
-    raise_value_.set(obj->get_ivar(state, state->symbol("value")));
-
-    Object* vs = try_as<VariableScope>(
-        obj->get_ivar(state, state->symbol("destination")));
-    destination_scope_.set(vs ? vs : cNil);
-    throw_dest_.set(obj->get_ivar(state, state->symbol("throw_dest")));
+  void VMThreadState::set_state(STATE, ThreadState* thread_state) {
+    raise_reason_ = (RaiseReason)thread_state->raise_reason()->to_native();
+    current_exception_.set(thread_state->current_exception());
+    raise_value_.set(thread_state->raise_value());
+    destination_scope_.set(thread_state->destination_scope());
+    throw_dest_.set(thread_state->throw_dest());
   }
 
   void VMThreadState::clear() {

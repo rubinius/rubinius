@@ -10,6 +10,7 @@ namespace rubinius {
   class Exception;
   class VariableScope;
   class VM;
+  class ThreadState;
 
   class VMThreadState {
     TypedRoot<Exception*> current_exception_;
@@ -50,8 +51,8 @@ namespace rubinius {
     void clear_raise();
     void clear();
 
-    Object* state_as_object(STATE);
-    void set_state(STATE, Object* obj);
+    ThreadState* state_as_object(STATE);
+    void set_state(STATE, ThreadState* obj);
 
     void raise_exception(Exception* exc);
     void raise_return(Object* value, VariableScope* dest);
