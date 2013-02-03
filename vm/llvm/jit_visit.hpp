@@ -3184,50 +3184,6 @@ use_send:
     }
 
     void visit_make_array(opcode count) {
-      // Detect if we're passing an array as the arguments to an inlined
-      // block, so that we can avoid the array boxing.
-      if(next_op() == InstructionSequence::insn_yield_stack &&
-          next_op_operand(0) == 1)
-      {
-        JITInlineBlock* ib = info().inline_block();
-
-        // Hey! Look at that! We know the block we'd be yielding to
-        // statically! woo! ok, lets just emit the code for it here!
-        if(ib && ib->machine_code()) {
-          skip_yield_stack_ = true; // skip the yield_stack, we're doing the work here.
-
-          ctx_->set_inlined_block(true);
-
-          JITMethodInfo* creator = ib->creation_scope();
-          assert(creator);
-
-          // Count the block against the policy size total
-          inline_policy()->increase_size(ib->machine_code());
-
-          // We inline unconditionally here, since we make the decision
-          // wrt the block when we are considering inlining the send that
-          // has the block on it.
-          Inliner inl(ctx_, *this, count);
-          inl.set_inline_block(creator->inline_block());
-          inl.set_from_unboxed_array();
-
-          // Make it's inlining info available to itself
-          inl.set_block_info(ib);
-
-          inl.set_creator(creator);
-
-          inl.inline_block(ib, get_self(creator->variables()));
-
-          stack_remove(count);
-          if(inl.check_for_exception()) {
-            check_for_exception(inl.result());
-          }
-          stack_push(inl.result());
-          return;
-        }
-
-      }
-
       Signature sig(ctx_, ObjType);
 
       sig << StateTy;
