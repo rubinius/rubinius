@@ -956,7 +956,7 @@ class IO
   end
 
   def pipe?
-    @pipe || stat.pipe?
+    @pipe
   end
 
   def self.pipe(external=nil, internal=nil, options=nil)
