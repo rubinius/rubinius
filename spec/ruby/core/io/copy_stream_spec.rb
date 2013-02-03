@@ -48,7 +48,7 @@ ruby_version_is "1.9" do
       IO.copy_stream(@object.from, @to_io)
       @to_name.should have_data(@content)
       IO.copy_stream(@from_bigfile, @to_io)
-      @to_io.should have_data(@content + @content_bigfile)
+      @to_name.should have_data(@content + @content_bigfile)
     end
 
     it "returns the number of bytes copied" do
@@ -69,7 +69,7 @@ ruby_version_is "1.9" do
 
     it "raises an IOError if the destination IO is not open for writing" do
       @to_io.close
-      @to_io = File.open @to_name, "r"
+      @to_io = new_io @to_name, "r"
       lambda { IO.copy_stream @object.from, @to_io }.should raise_error(IOError)
     end
 
@@ -111,7 +111,7 @@ ruby_version_is "1.9" do
 
     describe "from an IO" do
       before :each do
-        @from_io = File.open @from_name, "rb"
+        @from_io = new_io @from_name, "rb"
         IOSpecs::CopyStream.from = @from_io
       end
 
@@ -121,7 +121,7 @@ ruby_version_is "1.9" do
 
       it "raises an IOError if the source IO is not open for reading" do
         @from_io.close
-        @from_io = File.open @from_name, "a"
+        @from_io = new_io @from_name, "a"
         lambda { IO.copy_stream @from_io, @to_name }.should raise_error(IOError)
       end
 
@@ -149,7 +149,7 @@ ruby_version_is "1.9" do
 
       describe "to an IO" do
         before :each do
-          @to_io = File.open @to_name, "wb"
+          @to_io = new_io @to_name, "wb"
         end
 
         after :each do
@@ -188,7 +188,7 @@ ruby_version_is "1.9" do
 
       describe "to an IO" do
         before :each do
-          @to_io = File.open @to_name, "wb"
+          @to_io = new_io @to_name, "wb"
         end
 
         after :each do
@@ -225,7 +225,7 @@ ruby_version_is "1.9" do
 
       describe "to an IO" do
         before :each do
-          @to_io = File.open @to_name, "wb"
+          @to_io = new_io @to_name, "wb"
         end
 
         after :each do
