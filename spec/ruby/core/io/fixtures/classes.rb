@@ -121,7 +121,9 @@ module IOSpecs
     io.close
     io
   end
-
+  
+  # Creates a pipe-based IO fixture containing the specified
+  # contents
   def self.pipe_fixture(content)
     source, sink = IO.pipe
     sink.write content
