@@ -243,8 +243,11 @@ namespace rubinius {
             paused_ = true;
             pause_condition_.broadcast();
 
+            if(stop_) return;
+
             while(pause_) {
               condition_.wait(mutex_);
+              if(stop_) return;
             }
 
             state = cUnknown;
