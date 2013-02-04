@@ -1,4 +1,5 @@
 #include "builtin/array.hpp"
+#include "builtin/encoding.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/float.hpp"
@@ -425,16 +426,17 @@ namespace rubinius {
   }
 
   String* Float::to_s_minimal(STATE) {
-    char str[FLOAT_TO_S_STRLEN];
+    char buffer[FLOAT_TO_S_STRLEN];
 
-    if(g_dfmt(str, &val, 0, FLOAT_TO_S_STRLEN) == 0) {
+    if(g_dfmt(buffer, &val, 0, FLOAT_TO_S_STRLEN) == 0) {
       return force_as<String>(Primitives::failure());
     }
 
-    String* s = String::create(state, str);
-    if(is_tainted_p()) s->set_tainted();
+    String* str = String::create(state, buffer);
+    if(is_tainted_p()) str->set_tainted();
+    str->encoding(state, Encoding::usascii_encoding(state));
 
-    return s;
+    return str;
   }
 
   Tuple* Float::dtoa(STATE) {

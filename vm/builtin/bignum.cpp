@@ -11,6 +11,7 @@
 #include "objectmemory.hpp"
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
+#include "builtin/encoding.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/float.hpp"
@@ -1004,12 +1005,13 @@ namespace rubinius {
       Exception::runtime_error(state, "couldn't convert bignum to string");
     }
 
-    String* obj = String::create(state, Fixnum::from(sz));
-    mp_toradix_nd(XST, mp_val(), (char*)obj->byte_address(), b, sz, &digits);
+    String* str = String::create(state, Fixnum::from(sz));
+    mp_toradix_nd(XST, mp_val(), (char*)str->byte_address(), b, sz, &digits);
     if(self->sign == MP_NEG) { digits++; }
-    obj->num_bytes(state, Fixnum::from(digits));
+    str->num_bytes(state, Fixnum::from(digits));
+    str->encoding(state, Encoding::usascii_encoding(state));
 
-    return obj;
+    return str;
   }
 
   Integer* Bignum::from_string_detect(STATE, const char *str) {
