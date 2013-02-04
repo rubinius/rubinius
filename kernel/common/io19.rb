@@ -274,7 +274,11 @@ class IO
       @from.ensure_open_and_readable
       @to.ensure_open_and_writable
 
-      saved_pos = @from.pos if @from_io
+      if @from_io && !@from.pipe?
+        saved_pos = @from.pos
+      else
+        saved_pos = 0
+      end
 
       @from.seek @offset, IO::SEEK_CUR if @offset
 
@@ -410,6 +414,8 @@ class IO
         @external = Encoding.default_external
       end
     end
+
+    @pipe = false
   end
 
   private :initialize
@@ -945,6 +951,14 @@ class IO
     (fcntl(F_GETFD) & FD_CLOEXEC) != 0
   end
 
+  def pipe=(v)
+    @pipe = !!v
+  end
+
+  def pipe?
+    @pipe
+  end
+
   def self.pipe(external=nil, internal=nil, options=nil)
     lhs = allocate
     rhs = allocate
@@ -960,6 +974,9 @@ class IO
 
     lhs.sync = true
     rhs.sync = true
+
+    lhs.pipe = true
+    rhs.pipe = true
 
     if block_given?
       begin
