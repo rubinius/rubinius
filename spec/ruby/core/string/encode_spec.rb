@@ -35,6 +35,11 @@ with_feature :encoding do
         str = "あ"
         str.encode(Encoding::UTF_8).should_not equal(str)
       end
+
+      it "round trips a String" do
+        str = "abc def".force_encoding Encoding::US_ASCII
+        str.encode("utf-32be").encode("ascii").should == "abc def"
+      end
     end
 
     describe "when passed options" do
