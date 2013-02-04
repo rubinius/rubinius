@@ -121,6 +121,15 @@ module IOSpecs
     io.close
     io
   end
+  
+  # Creates a pipe-based IO fixture containing the specified
+  # contents
+  def self.pipe_fixture(content)
+    source, sink = IO.pipe
+    sink.write content
+    sink.close
+    source
+  end
 
   # Defines +method+ on +obj+ using the provided +block+. This
   # special helper is needed for e.g. IO.open specs to avoid

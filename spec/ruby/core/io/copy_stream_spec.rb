@@ -20,11 +20,6 @@ ruby_version_is "1.9" do
       @to_name.should have_data("Line one")
     end
 
-    it "copies only length bytes from the offset" do
-      IO.copy_stream(@object.from, @to_name, 8, 4).should == 8
-      @to_name.should have_data(" one\n\nLi")
-    end
-
     it "calls #to_path to convert on object to a file name" do
       obj = mock("io_copy_stream_to")
       obj.should_receive(:to_path).and_return(@to_name)
@@ -41,12 +36,19 @@ ruby_version_is "1.9" do
     end
   end
 
+  describe :io_copy_stream_to_file_with_offset, :shared => true do
+    it "copies only length bytes from the offset" do
+      IO.copy_stream(@object.from, @to_name, 8, 4).should == 8
+      @to_name.should have_data(" one\n\nLi")
+    end
+  end
+
   describe :io_copy_stream_to_io, :shared => true do
     it "copies the entire IO contents to the IO" do
       IO.copy_stream(@object.from, @to_io)
       @to_name.should have_data(@content)
       IO.copy_stream(@from_bigfile, @to_io)
-      @to_io.should have_data(@content + @content_bigfile)
+      @to_name.should have_data(@content + @content_bigfile)
     end
 
     it "returns the number of bytes copied" do
@@ -67,7 +69,7 @@ ruby_version_is "1.9" do
 
     it "raises an IOError if the destination IO is not open for writing" do
       @to_io.close
-      @to_io = File.open @to_name, "r"
+      @to_io = new_io @to_name, "r"
       lambda { IO.copy_stream @object.from, @to_io }.should raise_error(IOError)
     end
 
@@ -80,7 +82,9 @@ ruby_version_is "1.9" do
       IO.copy_stream(@object.from, @to_io, 8).should == 8
       @to_name.should have_data("Line one")
     end
+  end
 
+  describe :io_copy_stream_to_io_with_offset, :shared => true do
     it "copies only length bytes from the offset" do
       IO.copy_stream(@object.from, @to_io, 8, 4).should == 8
       @to_name.should have_data(" one\n\nLi")
@@ -107,7 +111,7 @@ ruby_version_is "1.9" do
 
     describe "from an IO" do
       before :each do
-        @from_io = File.open @from_name, "rb"
+        @from_io = new_io @from_name, "rb"
         IOSpecs::CopyStream.from = @from_io
       end
 
@@ -117,7 +121,7 @@ ruby_version_is "1.9" do
 
       it "raises an IOError if the source IO is not open for reading" do
         @from_io.close
-        @from_io = File.open @from_name, "a"
+        @from_io = new_io @from_name, "a"
         lambda { IO.copy_stream @from_io, @to_name }.should raise_error(IOError)
       end
 
@@ -140,11 +144,12 @@ ruby_version_is "1.9" do
 
       describe "to a file name" do
         it_behaves_like :io_copy_stream_to_file, nil, IOSpecs::CopyStream
+        it_behaves_like :io_copy_stream_to_file_with_offset, nil, IOSpecs::CopyStream
       end
 
       describe "to an IO" do
         before :each do
-          @to_io = File.open @to_name, "wb"
+          @to_io = new_io @to_name, "wb"
         end
 
         after :each do
@@ -152,6 +157,7 @@ ruby_version_is "1.9" do
         end
 
         it_behaves_like :io_copy_stream_to_io, nil, IOSpecs::CopyStream
+        it_behaves_like :io_copy_stream_to_io_with_offset, nil, IOSpecs::CopyStream
       end
     end
 
@@ -177,11 +183,49 @@ ruby_version_is "1.9" do
 
       describe "to a file name" do
         it_behaves_like :io_copy_stream_to_file, nil, IOSpecs::CopyStream
+        it_behaves_like :io_copy_stream_to_file_with_offset, nil, IOSpecs::CopyStream
       end
 
       describe "to an IO" do
         before :each do
-          @to_io = File.open @to_name, "wb"
+          @to_io = new_io @to_name, "wb"
+        end
+
+        after :each do
+          @to_io.close
+        end
+
+        it_behaves_like :io_copy_stream_to_io, nil, IOSpecs::CopyStream
+        it_behaves_like :io_copy_stream_to_io_with_offset, nil, IOSpecs::CopyStream
+      end
+    end
+
+    describe "from a pipe IO" do
+      before :each do
+        @from_io = IOSpecs.pipe_fixture(@content)
+        IOSpecs::CopyStream.from = @from_io
+      end
+
+      after :each do
+        @from_io.close
+      end
+
+      it "does not close the source IO" do
+        IO.copy_stream(@from_io, @to_name)
+        @from_io.closed?.should be_false
+      end
+
+      it "raises an error when an offset is specified" do
+        lambda { IO.copy_stream(@from_io, @to_name, 8, 4) }.should raise_error(Errno::ESPIPE)
+      end
+
+      describe "to a file name" do
+        it_behaves_like :io_copy_stream_to_file, nil, IOSpecs::CopyStream
+      end
+
+      describe "to an IO" do
+        before :each do
+          @to_io = new_io @to_name, "wb"
         end
 
         after :each do
