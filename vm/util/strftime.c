@@ -149,6 +149,18 @@ static inline int max(int a, int b) {
 
 /* strftime --- produce formatted time */
 
+/* various tables, useful in North America */
+static const char days_l[][10] = {
+	"Sunday", "Monday", "Tuesday", "Wednesday",
+	"Thursday", "Friday", "Saturday",
+};
+static const char months_l[][10] = {
+	"January", "February", "March", "April",
+	"May", "June", "July", "August", "September",
+	"October", "November", "December",
+};
+static const char ampm[][3] = { "AM", "PM", };
+
 size_t
 strftime_extended(char *s, size_t maxsize, const char *format, const struct tm64 *timeptr, const struct timespec64 *ts, int gmt, int off)
 {
@@ -158,10 +170,10 @@ strftime_extended(char *s, size_t maxsize, const char *format, const struct tm64
 	auto char tbuf[100];
 	int i, w;
 	long y;
-	static short first = 1;
+	short first = 1;
 #ifdef POSIX_SEMANTICS
-	static char *savetz = NULL;
-	static int savetzlen = 0;
+	char *savetz = NULL;
+	int savetzlen = 0;
 	char *tz;
 #endif /* POSIX_SEMANTICS */
 #ifndef HAVE_TM_ZONE
@@ -177,18 +189,6 @@ strftime_extended(char *s, size_t maxsize, const char *format, const struct tm64
 	char padding;
 	enum {LEFT, CHCASE, LOWER, UPPER, LOCALE_O, LOCALE_E};
 #define BIT_OF(n) (1U<<(n))
-
-	/* various tables, useful in North America */
-	static const char days_l[][10] = {
-		"Sunday", "Monday", "Tuesday", "Wednesday",
-		"Thursday", "Friday", "Saturday",
-	};
-	static const char months_l[][10] = {
-		"January", "February", "March", "April",
-		"May", "June", "July", "August", "September",
-		"October", "November", "December",
-	};
-	static const char ampm[][3] = { "AM", "PM", };
 
 	if (s == NULL || format == NULL || timeptr == NULL || maxsize == 0)
 		return 0;

@@ -107,7 +107,7 @@ static const int julian_days_by_month[2][12] = {
  * These tables are only used when the standard
  * system functions fail.
  */
-static int lower_common_month_table[12][7] = {
+static const int lower_common_month_table[12][7] = {
   { 1905, 1906, 1907, 1902, 1903, 1904, 1910,},
   { 1903, 1909, 1910, 1905, 1906, 1907, 1902,},
   { 1903, 1909, 1904, 1905, 1906, 1907, 1902,},
@@ -122,7 +122,7 @@ static int lower_common_month_table[12][7] = {
   { 1907, 1902, 1903, 1909, 1904, 1905, 1906,},
 };
 
-static int lower_leap_month_table[7] = {
+static const int lower_leap_month_table[7] = {
   1920, 1904, 1916, 1928, 1912, 1924, 1908,
 };
 
@@ -136,7 +136,7 @@ static int lower_leap_month_table[7] = {
  * These tables are only used when the standard
  * system functions fail.*
  */
-static int higher_common_month_table[12][7] = {
+static const int higher_common_month_table[12][7] = {
   /* Sun   Mon   Tue   Wed   Thu   Fri   Sat */
   { 2034, 2035, 2036, 2031, 2032, 2027, 2033 }, /* January */
   { 2026, 2027, 2033, 2034, 2035, 2030, 2031 }, /* February */
@@ -152,7 +152,7 @@ static int higher_common_month_table[12][7] = {
   { 2030, 2036, 2026, 2032, 2033, 2034, 2035 }, /* December */
 };
 
-static int higher_leap_month_table[7] = {
+static const int higher_leap_month_table[7] = {
 /* Sun   Mon   Tue   Wed   Thu   Fri   Sat */
   2032, 2016, 2028, 2012, 2024, 2036, 2020, /* February */
 };
@@ -229,10 +229,11 @@ int tm_to_tm64(struct tm* tm, struct tm64* tm64) {
 /* Compute the day of the week for a date. This is the
  * Sakamoto algorithm
  */
+
+static const int month_offsets[] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
 int day_of_week(int64_t y, int m, int d) {
-   static int t[] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
    y -= m < 3;
-   return (y + y/4 - y/100 + y/400 + t[m-1] + d) % 7;
+   return (y + y/4 - y/100 + y/400 + month_offsets[m-1] + d) % 7;
 }
 
 /* Whether the given year is a leap year or not.

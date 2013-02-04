@@ -1143,6 +1143,8 @@ failed: /* try next '*' position */
     return Fixnum::from(new_fd);
   }
 
+  static const int cmsg_space = CMSG_SPACE(sizeof(int));
+
   Object* IO::send_io(STATE, IO* io) {
 #ifdef _WIN32
     return Primitives::failure();
@@ -1152,7 +1154,6 @@ failed: /* try next '*' position */
     struct iovec vec[1];
     char buf[1];
 
-    static const int cmsg_space = CMSG_SPACE(sizeof(int));
     struct cmsghdr *cmsg;
     char cmsg_buf[cmsg_space];
 
@@ -1197,7 +1198,6 @@ failed: /* try next '*' position */
     struct iovec vec[1];
     char buf[1];
 
-    static const int cmsg_space = CMSG_SPACE(sizeof(int));
     struct cmsghdr *cmsg;
     char cmsg_buf[cmsg_space];
 

@@ -424,9 +424,9 @@ namespace rubinius {
     return to_s(state, Fixnum::from(10));
   }
 
+  static const char digitmap[] = "0123456789abcdefghijklmnopqrstuvwxyz";
+
   String* Fixnum::to_s(STATE, Fixnum* base) {
-    // algorithm adapted from shotgun
-    static const char digitmap[] = "0123456789abcdefghijklmnopqrstuvwxyz";
     // Base 2 fixnum with a minus sign and null byte is the maximum length
     char buf[FIXNUM_WIDTH + 2];
     char *b = buf + sizeof(buf);
