@@ -15,6 +15,7 @@
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
 
+#include "on_stack.hpp"
 #include "object_utils.hpp"
 #include "objectmemory.hpp"
 #include "configuration.hpp"
@@ -679,6 +680,7 @@ namespace rubinius {
 
   Symbol* Converter::primitive_convert(STATE, Object* source, String* target,
                                        Fixnum* offset, Fixnum* size, Fixnum* options) {
+
     String* src = 0;
 
     if(!source->nil_p()) {
@@ -686,6 +688,17 @@ namespace rubinius {
         return force_as<Symbol>(Primitives::failure());
       }
     }
+
+    OnStack<3> os(state, source, src, target);
+
+    const unsigned char* source_str = 0;
+    const unsigned char* source_ptr = 0;
+    const unsigned char* source_end = 0;
+
+    native_int byte_offset = offset->to_native();
+    native_int byte_size = size->to_native();
+
+  retry:
 
     if(!converter_) {
       size_t num_converters = converters()->size();
@@ -703,6 +716,18 @@ namespace rubinius {
         }
       }
     }
+
+    /* It would be nice to have a heuristic that avoids having to reconvert
+     * after growing the destination buffer. This is complicated, however, as
+     * a converter may contain more than one transcoder. So, the heuristic
+     * would need to be transitive. This requires getting the encoding objects
+     * for every stage of the converter to check the min/max byte values.
+     */
+    if(byte_size == -1) {
+      byte_size = src ? src->byte_size() : 4096;
+    }
+
+    int flags = converter_->flags = options->to_native();
 
     if(!replacement()->nil_p()) {
       native_int byte_size = replacement()->byte_size();
@@ -746,12 +771,6 @@ namespace rubinius {
       }
     }
 
-    int flags = converter_->flags = options->to_native();
-
-    const unsigned char* source_str = 0;
-    const unsigned char* source_ptr = 0;
-    const unsigned char* source_end = 0;
-
     if(src) {
       source_str = source_ptr = (const unsigned char*)src->c_str(state);
       source_end = source_ptr + src->byte_size();
@@ -759,28 +778,8 @@ namespace rubinius {
       source_ptr = source_end = NULL;
     }
 
-    native_int byte_offset = offset->to_native();
-    native_int byte_size = size->to_native();
-
-    // TODO: Might it be possible to use a heuristic to calculate this based
-    // on the byte sizes of the encodings for the transcoders? It is very easy
-    // to cause a destination_buffer_full result by setting the size to the
-    // size of input, like MRI does. We set it to 1.5 * input size, but that
-    // is totally arbitrary based on behavior observed in specs.
-    if(byte_size == -1) {
-      if(src) {
-        byte_size = src->byte_size() * 2;
-      } else {
-        byte_size = 4096;
-      }
-    }
-
-    Array* buffers = 0;
-
-  retry:
-
     native_int buffer_size = byte_offset + byte_size;
-    ByteArray* buffer = ByteArray::create_pinned(state, buffer_size);
+    ByteArray* buffer = ByteArray::create(state, buffer_size);
 
     unsigned char* buffer_ptr = (unsigned char*)buffer->raw_bytes() + byte_offset;
     unsigned char* buffer_end = buffer_ptr + byte_size;
@@ -788,58 +787,28 @@ namespace rubinius {
     rb_econv_result_t result = econv_convert(converter_, &source_ptr, source_end,
         &buffer_ptr, buffer_end, flags);
 
-    if(!buffers && byte_offset > 0) {
-      memcpy(buffer->raw_bytes(), target->data()->raw_bytes(), byte_offset);
-    }
-
     native_int output_size = buffer_ptr - (unsigned char*)buffer->raw_bytes();
 
     if(result == econv_destination_buffer_full && size->to_native() == -1) {
-      byte_size *= 2;
+      rb_econv_free(converter_);
+      converter_ = NULL;
+
+      byte_size = byte_size < 2 ? 2 : byte_size * 2;
 
       // Check if the size has overflown, then raise exception
       if(byte_size < 0) {
         Exception::argument_error(state, "string sizes too big");
       }
-      byte_offset = 0;
-
-      source_ptr += source_ptr - source_str;
-
-      if(!buffers) buffers = Array::create(state, 0);
-
-      buffers->append(state, buffer);
-      buffers->append(state, Fixnum::from(output_size));
 
       goto retry;
     }
 
-    if(buffers) {
-      size_t size = buffers->size();
-      native_int total_size = output_size;
-
-      for(size_t i = 1; i < size; i += 2) {
-        total_size += as<Fixnum>(buffers->get(state, i))->to_native();
-      }
-
-      ByteArray* data = ByteArray::create(state, total_size);
-
-      uint8_t* p = data->raw_bytes();
-      native_int n = 0;
-
-      for(size_t i = 0; i < size; i += 2, p += n) {
-        n = as<Fixnum>(buffers->get(state, i + 1))->to_native();
-        memcpy(p, as<ByteArray>(buffers->get(state, i))->raw_bytes(), n);
-      }
-
-      memcpy(p, buffer->raw_bytes(), output_size);
-
-      target->data(state, data);
-      target->num_bytes(state, Fixnum::from(total_size));
-    } else {
-      target->data(state, buffer);
-      target->num_bytes(state, Fixnum::from(output_size));
+    if(byte_offset > 0) {
+      memcpy(buffer->raw_bytes(), target->data()->raw_bytes(), byte_offset);
     }
 
+    target->data(state, buffer);
+    target->num_bytes(state, Fixnum::from(output_size));
     target->shared(state, cFalse);
     target->hash_value(state, nil<Fixnum>());
     target->encoding(state, destination_encoding());
