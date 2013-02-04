@@ -680,7 +680,6 @@ namespace rubinius {
 
   Symbol* Converter::primitive_convert(STATE, Object* source, String* target,
                                        Fixnum* offset, Fixnum* size, Fixnum* options) {
-
     String* src = 0;
 
     if(!source->nil_p()) {
@@ -691,7 +690,6 @@ namespace rubinius {
 
     OnStack<3> os(state, source, src, target);
 
-    const unsigned char* source_str = 0;
     const unsigned char* source_ptr = 0;
     const unsigned char* source_end = 0;
 
@@ -772,7 +770,7 @@ namespace rubinius {
     }
 
     if(src) {
-      source_str = source_ptr = (const unsigned char*)src->c_str(state);
+      source_ptr = (const unsigned char*)src->c_str(state);
       source_end = source_ptr + src->byte_size();
     } else {
       source_ptr = source_end = NULL;
