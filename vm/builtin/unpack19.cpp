@@ -136,6 +136,25 @@ namespace rubinius {
       return str;
     }
 
+    static signed const char b64_xtable[] = {
+      -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+      -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+      -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 62, -1, -1, -1, 63,
+      52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, -1, -1, -1,
+      -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,
+      15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, -1,
+      -1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+      41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -1, -1, -1, -1, -1,
+      -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+      -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+      -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+      -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+      -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+      -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+      -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+      -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
+    };
+
     String* base64_decode(STATE, const char*& bytes,
                           const char* bytes_end, native_int remainder)
     {
@@ -145,23 +164,6 @@ namespace rubinius {
         str->encoding(state, Encoding::ascii8bit_encoding(state));
 
         return str;
-      }
-
-      static bool initialized = false;
-      static signed char b64_xtable[256];
-
-      if(!initialized) {
-        initialized = true;
-
-        for(int i = 0; i < 256; i++) {
-          b64_xtable[i] = -1;
-        }
-
-        for(int i = 0; i < 64; i++) {
-          static const char table[] =
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-          b64_xtable[(int)(table[i])] = i;
-        }
       }
 
       native_int num_bytes = (bytes_end - bytes) * 3 / 4;
@@ -359,12 +361,12 @@ namespace rubinius {
       }
     }
 
+    static const unsigned long ber_mask = 0xfeUL << ((sizeof(unsigned long) - 1) * 8);
     void ber_decode(STATE, Array* array,
                      const char*& bytes, const char* bytes_end,
                      native_int count, native_int& index)
     {
-      static unsigned long mask = 0xfeUL << ((sizeof(unsigned long) - 1) * 8);
-      static Fixnum* base = Fixnum::from(128);
+      Fixnum* base = Fixnum::from(128);
       unsigned long value = 0;
 
       while(count > 0 && bytes < bytes_end) {
@@ -374,7 +376,7 @@ namespace rubinius {
           array->append(state, Integer::from(state, value));
           count--;
           value = 0;
-        } else if(value & mask) {
+        } else if(value & ber_mask) {
           Integer* result = Integer::from(state, value);
 
           while(bytes < bytes_end) {
