@@ -1,26 +1,38 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
 
-# FIXME: These methods exist on 1.9 only when the -n or -p option is passed to
-# ruby, but we currently don't have a way of specifying that.
+describe "Kernel.chop" do
+  it "removes the final character of $_" do
+    KernelSpecs.chop("abc", "Kernel.chop").should == "ab"
+  end
+end
+
 ruby_version_is ""..."1.9" do
-  describe "Kernel#chop" do
-    it "is a private method" do
-      Kernel.should have_private_instance_method(:chop)
+  describe ".chop!" do
+    it "removes the final character of $_" do
+      KernelSpecs.chop("abc", "Kernel.chop!").should == "ab"
     end
   end
+end
 
-  describe "Kernel#chop!" do
+describe "#chop" do
+  it "is a private method" do
+    KernelSpecs.has_private_method(:chop).should be_true
+  end
+
+  it "removes the final character of $_" do
+    KernelSpecs.chop("abc", "chop").should == "ab"
+  end
+end
+
+ruby_version_is ""..."1.9" do
+  describe "#chop!" do
     it "is a private method" do
-      Kernel.should have_private_instance_method(:chop!)
+      KernelSpecs.has_private_method(:chop!).should be_true
     end
-  end
 
-  describe "Kernel.chop" do
-    it "needs to be reviewed for spec completeness"
-  end
-
-  describe "Kernel.chop!" do
-    it "needs to be reviewed for spec completeness"
+    it "removes the final character of $_" do
+      KernelSpecs.chop("abc", "chop!").should == "ab"
+    end
   end
 end
