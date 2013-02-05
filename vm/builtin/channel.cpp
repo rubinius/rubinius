@@ -179,6 +179,8 @@ namespace rubinius {
 
     self->waiters_++;
 
+    bool exception = false;
+
     for(;;) {
       {
         GCIndependent gc_guard(state, call_frame);
@@ -192,6 +194,10 @@ namespace rubinius {
 
       // or there are values available.
       if(self->semaphore_count_ > 0 || !self->value()->empty_p()) break;
+      if(!state->check_async(call_frame)) {
+        exception = true;
+        break;
+      }
     }
 
     state->vm()->clear_waiter();
@@ -200,7 +206,7 @@ namespace rubinius {
     self->unpin();
     self->waiters_--;
 
-    if(!state->check_async(call_frame)) return NULL;
+    if(exception || !state->check_async(call_frame)) return NULL;
 
     if(self->semaphore_count_ > 0) {
       self->semaphore_count_--;

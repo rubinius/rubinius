@@ -11,15 +11,22 @@ namespace rubinius {
     sleeping_ = true;
     state->vm()->thread->sleep(state, cTrue);
 
+    Object* result = cNil;
     while(!wake_) {
-      GCIndependent gc_guard(state, call_frame);
+      {
+        GCIndependent gc_guard(state, call_frame);
 
-      cond_.wait(mutex_);
+        cond_.wait(mutex_);
+      }
+      if(!state->check_async(call_frame)) {
+        result = NULL;
+        break;
+      }
     }
 
     sleeping_ = false;
     state->vm()->thread->sleep(state, cFalse);
-    return cNil;
+    return result;
   }
 
   Object* Park::park_timed(STATE, CallFrame* call_frame, struct timespec* ts) {
@@ -33,10 +40,17 @@ namespace rubinius {
     Object* timeout = cFalse;
 
     while(!wake_) {
-      GCIndependent gc_guard(state, call_frame);
+      {
+        GCIndependent gc_guard(state, call_frame);
 
-      if(cond_.wait_until(mutex_, ts) == utilities::thread::cTimedOut) {
-        timeout = cTrue;
+        utilities::thread::Code status = cond_.wait_until(mutex_, ts);
+        if(status == utilities::thread::cTimedOut) {
+          timeout = cTrue;
+          break;
+        }
+      }
+      if(!state->check_async(call_frame)) {
+        timeout = NULL;
         break;
       }
     }
