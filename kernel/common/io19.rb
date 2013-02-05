@@ -970,7 +970,8 @@ class IO
       connect_pipe(lhs, rhs)
     end
 
-    lhs.set_encoding external, internal, options
+    lhs.set_encoding external || Encoding.default_external,
+                     internal || Encoding.default_internal, options
 
     lhs.sync = true
     rhs.sync = true
