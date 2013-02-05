@@ -1,7 +1,7 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes.rb', __FILE__)
 
-describe "String#chomp with separator" do
+describe "String#chomp" do
   it "returns a new string with the given record separator removed" do
     "hello".chomp("llo").should == "he"
     "hellollo".chomp("llo").should == "hello"
@@ -44,19 +44,44 @@ describe "String#chomp with separator" do
     "".chomp(nil).should == ""
   end
 
-  it "uses $/ as the separator when none is given" do
-    ["", "x", "x\n", "x\r", "x\r\n", "x\n\r\r\n", "hello"].each do |str|
-      ["", "llo", "\n", "\r", nil].each do |sep|
-        begin
-          expected = str.chomp(sep)
-
-          old_rec_sep, $/ = $/, sep
-
-          str.chomp.should == expected
-        ensure
-          $/ = old_rec_sep
-        end
+  describe "with a different $/ separator" do
+    before :each do
+      @old_rec_sep = $/
+      @expectation = lambda do |sep|
+        $/ = sep
+        [ ["", "".chomp(sep)],
+          ["x", "x".chomp(sep)],
+          ["x\n", "x\n".chomp(sep)],
+          ["x\r", "x\r".chomp(sep)],
+          ["x\r\n", "x\r\n".chomp(sep)],
+          ["x\n\r\r\n", "x\n\r\r\n".chomp(sep)],
+          ["hello", "hello".chomp(sep)]
+        ].should be_computed_by(:'chomp')
       end
+    end
+
+    after :each do
+      $/ = @old_rec_sep
+    end
+
+    it "uses separator #{"".inspect} for $/ as the separator when none is given" do
+      @expectation.call("")
+    end
+
+    it "uses separator #{"llo".inspect} for $/ as the separator when none is given" do
+      @expectation.call("llo")
+    end
+
+    it "uses separator #{"\n".inspect} for $/ as the separator when none is given" do
+      @expectation.call("\n")
+    end
+
+    it "uses separator #{"\r".inspect} for $/ as the separator when none is given" do
+      @expectation.call("\r")
+    end
+
+    it "uses separator #{nil.inspect} for $/ as the separator when none is given" do
+      @expectation.call(nil)
     end
   end
 
@@ -90,7 +115,7 @@ describe "String#chomp with separator" do
   end
 end
 
-describe "String#chomp! with separator" do
+describe "String#chomp!" do
   it "modifies self in place and returns self" do
     s = "one\n"
     s.chomp!.should equal(s)
@@ -132,6 +157,47 @@ describe "String#chomp! with separator" do
     "hello\n".chomp!("x").should == nil
     "hello".chomp!("").should == nil
     "hello".chomp!(nil).should == nil
+  end
+
+  describe "with a different $/ separator" do
+    before :each do
+      @old_rec_sep = $/
+      @expectation = lambda do |sep|
+        $/ = sep
+        [ ["", "".chomp!(sep)],
+          ["x", "x".chomp!(sep)],
+          ["x\n", "x\n".chomp!(sep)],
+          ["x\r", "x\r".chomp!(sep)],
+          ["x\r\n", "x\r\n".chomp!(sep)],
+          ["x\n\r\r\n", "x\n\r\r\n".chomp!(sep)],
+          ["hello", "hello".chomp!(sep)]
+        ].should be_computed_by(:'chomp!')
+      end
+    end
+
+    after :each do
+      $/ = @old_rec_sep
+    end
+
+    it "uses separator #{"".inspect} for $/ as the separator when none is given" do
+      @expectation.call("")
+    end
+
+    it "uses separator #{"llo".inspect} for $/ as the separator when none is given" do
+      @expectation.call("llo")
+    end
+
+    it "uses separator #{"\n".inspect} for $/ as the separator when none is given" do
+      @expectation.call("\n")
+    end
+
+    it "uses separator #{"\r".inspect} for $/ as the separator when none is given" do
+      @expectation.call("\r")
+    end
+
+    it "uses separator #{nil.inspect} for $/ as the separator when none is given" do
+      @expectation.call(nil)
+    end
   end
 
   ruby_version_is ""..."1.9" do
