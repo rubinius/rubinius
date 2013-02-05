@@ -119,6 +119,7 @@ describe :regexp_new_string, :shared => true do
       Regexp.send(@method, 'Hi', nil, 'N').kcode.should == 'none'
       Regexp.send(@method, 'Hi', nil, 'n').kcode.should == 'none'
       Regexp.send(@method, 'Hi', nil, 'nONE').kcode.should == 'none'
+      Regexp.send(@method, '[^\\x0d\\x22\\x5c\\x80-\\xff]', nil, 'n').kcode.should == 'none'
     end
   end
 
@@ -158,6 +159,7 @@ describe :regexp_new_string, :shared => true do
       Regexp.send(@method, "\xff", nil, 'N').encoding.should     == Encoding::ASCII_8BIT
       Regexp.send(@method, "\xff", nil, 'n').encoding.should     == Encoding::ASCII_8BIT
       Regexp.send(@method, "\xff", nil, 'nONE').encoding.should  == Encoding::ASCII_8BIT
+      Regexp.send(@method, '[^\\x0d\\x22\\x5c\\x80-\\xff]', nil, 'n').encoding.should  == Encoding::ASCII_8BIT
     end
   end
 
