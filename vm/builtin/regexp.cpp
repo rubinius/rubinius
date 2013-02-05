@@ -283,7 +283,6 @@ namespace rubinius {
 
       switch(opts & KCODE_MASK) {
       case KCODE_NONE:
-        source_enc = 0;
         no_encoding_ = true;
         break;
       case KCODE_EUC:
@@ -300,6 +299,7 @@ namespace rubinius {
         break;
       }
 
+      if(no_encoding_) source_enc = 0;
       String* converted = pattern->convert_escaped(state, source_enc, fixed_encoding_);
 
       pat = (UChar*)converted->byte_address();
