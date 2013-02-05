@@ -155,4 +155,38 @@ class Module
       raise NameError, "#{unknown_constants.size > 1 ? 'Constants' : 'Constant'} #{unknown_constants.map{|e| "#{name}::#{e}"}.join(', ')} undefined"
     end
   end
+
+  ##
+  # Returns an UnboundMethod corresponding to the given name. The name will be
+  # searched for in this Module as well as any included Modules or
+  # superclasses. The UnboundMethod is populated with the method name and the
+  # Module that the method was located in.
+  #
+  # Raises a TypeError if the given name.to_sym fails and a NameError if the
+  # name cannot be located.
+
+  def instance_method(name)
+    name = Rubinius::Type.coerce_to_symbol name
+
+    mod = self
+    while mod
+      if entry = mod.method_table.lookup(name)
+        break if entry.visibility == :undef
+
+        if meth = entry.method
+          if meth.kind_of? Rubinius::Alias
+            meth = meth.original_exec
+          end
+
+          mod = mod.module if mod.class == Rubinius::IncludedModule
+
+          return UnboundMethod.new(mod, meth, self, name)
+        end
+      end
+
+      mod = mod.direct_superclass
+    end
+
+    raise NameError, "undefined method `#{name}' for #{self}"
+  end
 end
