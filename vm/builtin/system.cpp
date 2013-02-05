@@ -1200,9 +1200,9 @@ namespace rubinius {
   Object* System::vm_method_missing_reason(STATE) {
     switch(state->vm()->method_missing_reason()) {
     case ePrivate:
-      return state->symbol("private");
+      return G(sym_private);
     case eProtected:
-      return state->symbol("protected");
+      return G(sym_protected);
     case eSuper:
       return state->symbol("super");
     case eVCall:

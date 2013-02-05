@@ -348,8 +348,8 @@ extern "C" {
       Object* obj = args.get_argument(0);
       if(Array* ary = try_as<Array>(obj)) {
         args.use_array(ary);
-      } else if(CBOOL(obj->respond_to(state, state->symbol("to_ary"), cFalse))) {
-        obj = obj->send(state, call_frame, state->symbol("to_ary"));
+      } else if(CBOOL(obj->respond_to(state, G(sym_to_ary), cFalse))) {
+        obj = obj->send(state, call_frame, G(sym_to_ary));
         if(Array* ary2 = try_as<Array>(obj)) {
           args.use_array(ary2);
         } else {
@@ -367,8 +367,8 @@ extern "C" {
   {
     Array* ary = try_as<Array>(obj);
 
-    if(!ary && CBOOL(obj->respond_to(state, state->symbol("to_ary"), cFalse))) {
-      obj = obj->send(state, call_frame, state->symbol("to_ary"));
+    if(!ary && CBOOL(obj->respond_to(state, G(sym_to_ary), cFalse))) {
+      obj = obj->send(state, call_frame, G(sym_to_ary));
       if(Array* ary2 = try_as<Array>(obj)) {
         ary = ary2;
       } else {
@@ -421,9 +421,9 @@ extern "C" {
          * to be called and its return value ignored. Ultimately, the original
          * object itself is wrapped in an Array and passed to the block.
          */
-        if(CBOOL(obj->respond_to(state, state->symbol("to_ary"), cFalse))) {
+        if(CBOOL(obj->respond_to(state, G(sym_to_ary), cFalse))) {
           OnStack<1> os(state, obj);
-          Object* ignored = obj->send(state, call_frame, state->symbol("to_ary"));
+          Object* ignored = obj->send(state, call_frame, G(sym_to_ary));
           if(!ignored->nil_p() && !kind_of<Array>(ignored)) {
             Exception::type_error(state, "to_ary must return an Array", call_frame);
             return 0;
@@ -450,8 +450,8 @@ extern "C" {
       Object* obj = args.get_argument(0);
       if(kind_of<Array>(obj)) {
         return obj;
-      } else if(CBOOL(obj->respond_to(state, state->symbol("to_ary"), cFalse))) {
-        obj = obj->send(state, call_frame, state->symbol("to_ary"));
+      } else if(CBOOL(obj->respond_to(state, G(sym_to_ary), cFalse))) {
+        obj = obj->send(state, call_frame, G(sym_to_ary));
         if(kind_of<Array>(obj)) {
           return obj;
         } else {
@@ -493,9 +493,9 @@ extern "C" {
          * to be called and its return value ignored. Ultimately, the original
          * object itself is wrapped in an Array and passed to the block.
          */
-        if(CBOOL(obj->respond_to(state, state->symbol("to_ary"), cFalse))) {
+        if(CBOOL(obj->respond_to(state, G(sym_to_ary), cFalse))) {
           OnStack<1> os(state, obj);
-          Object* ignored = obj->send(state, call_frame, state->symbol("to_ary"));
+          Object* ignored = obj->send(state, call_frame, G(sym_to_ary));
           if(!kind_of<Array>(ignored)) {
             Exception::type_error(state, "to_ary must return an Array", call_frame);
             obj = 0;
@@ -535,8 +535,8 @@ extern "C" {
 
       if(kind_of<Array>(obj)) {
         // Nothing! it's good.
-      } else if(CBOOL(obj->respond_to(state, state->symbol("to_ary"), cFalse))) {
-        obj = obj->send(state, call_frame, state->symbol("to_ary"));
+      } else if(CBOOL(obj->respond_to(state, G(sym_to_ary), cFalse))) {
+        obj = obj->send(state, call_frame, G(sym_to_ary));
         if(!kind_of<Array>(obj)) {
           Exception::type_error(state, "to_ary must return an Array", call_frame);
           obj = 0;

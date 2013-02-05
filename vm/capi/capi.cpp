@@ -688,15 +688,15 @@ extern "C" {
 
     switch(kind) {
     case cCApiPrivateMethod:
-      visibility = state->symbol("private");
+      visibility = G(sym_private);
       break;
 
     case cCApiProtectedMethod:
-      visibility = state->symbol("protected");
+      visibility = G(sym_protected);
       break;
 
     default:  /* Also catches singletons for now. @todo Verify OK. --rue */
-      visibility = state->symbol("public");
+      visibility = G(sym_public);
       break;
     }
 
