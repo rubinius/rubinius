@@ -694,15 +694,15 @@ module Kernel
   end
   module_function :chomp!
 
-  def chop(string=$/)
+  def chop
     raise TypeError, "$_ must be a String" unless $_.kind_of? String
-    $_ = $_.chop(string)
+    $_ = $_.chop
   end
   module_function :chop
 
-  def chop!(string=$/)
+  def chop!
     raise TypeError, "$_ must be a String" unless $_.kind_of? String
-    $_.chop!(string)
+    $_.chop!
   end
   module_function :chop!
 
