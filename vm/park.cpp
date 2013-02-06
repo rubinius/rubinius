@@ -18,10 +18,13 @@ namespace rubinius {
 
         cond_.wait(mutex_);
       }
+      mutex_.unlock();
       if(!state->check_async(call_frame)) {
+        mutex_.lock();
         result = NULL;
         break;
       }
+      mutex_.lock();
     }
 
     sleeping_ = false;
@@ -49,10 +52,13 @@ namespace rubinius {
           break;
         }
       }
+      mutex_.unlock();
       if(!state->check_async(call_frame)) {
+        mutex_.lock();
         timeout = NULL;
         break;
       }
+      mutex_.lock();
     }
 
     sleeping_ = false;
