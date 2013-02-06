@@ -106,6 +106,20 @@ describe "CApiObject" do
     end
   end
 
+  describe "rb_method_boundp" do
+    it "returns true when the given method is bound" do
+      @o.rb_method_boundp(Object, :class, true).should == true
+      @o.rb_method_boundp(Object, :class, false).should == true
+      @o.rb_method_boundp(Object, :initialize, true).should == false
+      @o.rb_method_boundp(Object, :initialize, false).should == true
+    end
+
+    it "returns false when the given method is not bound" do
+      @o.rb_method_boundp(Object, :foo, true).should == false
+      @o.rb_method_boundp(Object, :foo, false).should == false
+    end
+  end
+
   describe "rb_to_id" do
     it "returns a symbol representation of the object" do
       @o.rb_to_id("foo").should == :foo

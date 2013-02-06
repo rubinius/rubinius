@@ -183,6 +183,13 @@ static VALUE so_obj_respond_to(VALUE self, VALUE obj, VALUE sym, VALUE priv) {
 }
 #endif
 
+#ifdef HAVE_RB_METHOD_BOUNDP
+static VALUE object_spec_rb_method_boundp(VALUE self, VALUE obj, VALUE method, VALUE exclude_private) {
+  ID id = SYM2ID(method);
+  return rb_method_boundp(obj, id, exclude_private == Qtrue ? 1 : 0) ? Qtrue : Qfalse;
+}
+#endif
+
 #ifdef HAVE_RB_SPECIAL_CONST_P
 static VALUE object_spec_rb_special_const_p(VALUE self, VALUE value) {
   return rb_special_const_p(value);
@@ -487,6 +494,10 @@ void Init_object_spec() {
 
 #ifdef HAVE_RB_RESPOND_TO
   rb_define_method(cls, "rb_respond_to", so_respond_to, 2);
+#endif
+
+#ifdef HAVE_RB_METHOD_BOUNDP
+  rb_define_method(cls, "rb_method_boundp", object_spec_rb_method_boundp, 3);
 #endif
 
 #ifdef HAVE_RB_OBJ_RESPOND_TO
