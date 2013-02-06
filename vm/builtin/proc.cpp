@@ -34,11 +34,6 @@ namespace rubinius {
 
   Proc* Proc::from_env(STATE, Object* self, Object* env) {
     if(Proc* p = try_as<Proc>(env)) {
-      if(p->klass() != self &&
-         p->klass() != G(proc)->get_const(state, "Method")) {
-        p = as<Proc>(p->duplicate(state));
-        p->klass(state, as<Class>(self));
-      }
       return p;
     }
 
@@ -48,7 +43,15 @@ namespace rubinius {
       return proc;
     }
 
-    return static_cast<Proc*>(Primitives::failure());
+    return NULL;
+  }
+
+  Proc* Proc::from_env_prim(STATE, Object* self, Object* env) {
+    if(Proc* p = from_env(state, self, env)) {
+      return p;
+    } else {
+      return static_cast<Proc*>(Primitives::failure());
+    }
   }
 
   Object* Proc::call(STATE, CallFrame* call_frame, Arguments& args) {

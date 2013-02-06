@@ -38,6 +38,11 @@ class Proc
 
     block = __from_block__(env)
 
+    if block.class != self and block.class != Method
+      block = block.dup
+      Rubinius::Unsafe.set_class(block, self)
+    end
+
     Rubinius.asm(block, args) do |b, a|
       run b
       run a
