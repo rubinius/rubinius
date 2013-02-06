@@ -662,8 +662,9 @@ namespace rubinius {
   }
 
   Object* IO::write(STATE, String* buf, CallFrame* call_frame) {
-    native_int left = buf->byte_size();
+    native_int buf_size = buf->byte_size();
     native_int data_size = as<ByteArray>(buf->data())->size();
+    native_int left = buf_size;
     if(unlikely(left > data_size)) {
       left = data_size;
     }
@@ -711,7 +712,7 @@ namespace rubinius {
       return NULL;
     }
 
-    return Integer::from(state, buf->byte_size() - left);
+    return Integer::from(state, buf_size - left);
   }
 
   Object* IO::write_nonblock(STATE, String* buf) {
