@@ -21,6 +21,7 @@ class Proc
 
     Rubinius.asm do
       push_block
+      # assign a pushed block to the above local variable "env"
       set_local 1
     end
 

@@ -62,7 +62,7 @@ class Proc
 
   alias_method :inspect, :to_s
 
-  class Method < Proc 
+  class Method < Proc
     def self.__from_method__(meth)
       obj = __allocate__
       obj.bound_method = meth
