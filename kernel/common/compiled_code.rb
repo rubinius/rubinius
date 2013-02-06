@@ -526,6 +526,18 @@ module Rubinius
         end
       end
 
+      class Location
+        FORMAT = "%04d:"
+
+        def initialize(location)
+          @location = location
+        end
+
+        def inspect
+          FORMAT % @location
+        end
+      end
+
       def initialize(inst, code, ip)
         @instruction = inst[0]
         @args = inst[1..-1]
@@ -543,6 +555,8 @@ module Rubinius
             end
           when :association
             @args[i] = Association.new(args[i])
+          when :location
+            @args[i] = Location.new(args[i])
           end
         end
 
@@ -588,7 +602,7 @@ module Rubinius
       ##
       # A nice human readable interpretation of this set of instructions
       def to_s
-        str = "%04d:  %-27s" % [@ip, opcode]
+        str = "#{Location::FORMAT}  %-27s" % [@ip, opcode]
         str << @args.map{ |a| a.inspect }.join(', ')
         if @comment
           str << "    # #{@comment}"
