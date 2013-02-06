@@ -147,6 +147,36 @@ describe "Proc.new with a block argument" do
   end
 end
 
+describe "Proc.new with a block argument called indirectly from a subclass" do
+  it "returns the passed proc created from a block" do
+    passed_prc = ProcSpecs::MyProc.new { "hello".size }
+    passed_prc.class.should == ProcSpecs::MyProc
+    prc = ProcSpecs::MyProc.new(&passed_prc)
+
+    prc.should equal(passed_prc)
+    prc.call.should == 5
+  end
+
+  it "returns the passed proc created from a method" do
+    method = "hello".method(:size)
+    passed_prc = ProcSpecs::MyProc.new(&method)
+    passed_prc.class.should == ProcSpecs::MyProc
+    prc = ProcSpecs::MyProc.new(&passed_prc)
+
+    prc.should equal(passed_prc)
+    prc.call.should == 5
+  end
+
+  it "returns the passed proc created from a symbol" do
+    passed_prc = ProcSpecs::MyProc.new(&:size)
+    passed_prc.class.should == ProcSpecs::MyProc
+    prc = ProcSpecs::MyProc.new(&passed_prc)
+
+    prc.should equal(passed_prc)
+    prc.call("hello").should == 5
+  end
+end
+
 describe "Proc.new without a block" do
   it "raises an ArgumentError" do
     lambda { Proc.new }.should raise_error(ArgumentError)
