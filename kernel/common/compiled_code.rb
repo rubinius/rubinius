@@ -516,6 +516,16 @@ module Rubinius
     # To generate VM opcodes documentation
     # use rake doc:vm task.
     class Instruction
+      class Association
+        def initialize(index)
+          @index = index
+        end
+
+        def inspect
+          "literals[#{@index}]"
+        end
+      end
+
       def initialize(inst, code, ip)
         @instruction = inst[0]
         @args = inst[1..-1]
@@ -531,6 +541,8 @@ module Rubinius
             if code.local_names and !code.is_block?
               @comment = code.local_names[args[i]].to_s
             end
+          when :association
+            @args[i] = Association.new(args[i])
           end
         end
 
