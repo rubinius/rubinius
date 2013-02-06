@@ -404,4 +404,13 @@ extern "C" {
     VALUE include_private = priv == 1 ? Qtrue : Qfalse;
     return RTEST(rb_funcall(obj, rb_intern("respond_to?"), 2, ID2SYM(method_name), include_private));
   }
+
+  int rb_method_boundp(VALUE cls, ID method_name, int exclude_priv) {
+    VALUE public_defined = rb_funcall(cls, rb_intern("method_defined?"), 1, ID2SYM(method_name));
+    if(RTEST(public_defined)) return 1;
+    if(!exclude_priv) {
+      return RTEST(rb_funcall(cls, rb_intern("private_method_defined?"), 1, ID2SYM(method_name)));
+    }
+    return 0;
+  }
 }
