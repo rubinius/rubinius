@@ -815,10 +815,10 @@
 </td></tr>
 </tbody>
 </table>
-<h3><a class="instruction" name="set_ivar">set_ivar(index)</a></h3>
+<h3><a class="instruction" name="set_ivar">set_ivar(literal)</a></h3>
 
    Pops a value off the stack, and uses it to set the value of the instance
-   variable identifies by the literal specified by operand _index_.  The
+   variable identifies by the literal specified by operand _literal_.  The
    value popped off the stack is then pushed back on again.
 
 
@@ -866,10 +866,10 @@
 #### Example
      engine = RUBY_ENGINE # RUBY_ENGINE is a constant defined by Rubinius
 
-<h3><a class="instruction" name="set_const">set_const(index)</a></h3>
+<h3><a class="instruction" name="set_const">set_const(literal)</a></h3>
 
    Pops an object off the stack, and uses value to set a constant named
-   by the literal _index_. The value is pushed back onto the stack.
+   by the _literal_. The value is pushed back onto the stack.
 
 
 <table class="stack_effect">
@@ -881,9 +881,9 @@
 <tr><td>...</td><td>...</td></tr>
 </tbody>
 </table>
-<h3><a class="instruction" name="set_const_at">set_const_at(index)</a></h3>
+<h3><a class="instruction" name="set_const_at">set_const_at(literal)</a></h3>
 
-   Pop a value from the literals table specified by the operand _index_ and
+   Pop a value from the literals table specified by the operand _literal_ and
    use it as the value of a constant named inside a Module object popped from
    the stack.  The _value_ is pushed back on the stack.
 
@@ -903,10 +903,10 @@
 </td><td></td></tr>
 </tbody>
 </table>
-<h3><a class="instruction" name="find_const">find_const(index)</a></h3>
+<h3><a class="instruction" name="find_const">find_const(literal)</a></h3>
 
    Pops _module_ off the stack, and searches within its namespace for the
-   constant named by the literal specified by the operand _index_. If found,
+   constant named by the literal specified by the operand _literal_. If found,
    it is pushed onto the stack; otherwise, nothing is pushed onto the stack,
    and a `NameError` exception is raised.
 

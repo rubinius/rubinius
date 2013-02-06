@@ -705,15 +705,15 @@ section "Manipulate instance variables"
 
 # [Description]
 #   Pops a value off the stack, and uses it to set the value of the instance
-#   variable identifies by the literal specified by operand _index_.  The
+#   variable identifies by the literal specified by operand _literal_.  The
 #   value popped off the stack is then pushed back on again.
 
-instruction set_ivar(index) [ value -- value ]
+instruction set_ivar(literal) [ value -- value ]
   if(CBOOL(call_frame->self()->frozen_p(state))) {
     Exception::frozen_error(state, call_frame);
     RUN_EXCEPTION();
   }
-  Symbol* sym = as<Symbol>(call_frame->compiled_code->literals()->at(state, index));
+  Symbol* sym = as<Symbol>(call_frame->compiled_code->literals()->at(state, literal));
   call_frame->self()->set_ivar(state, sym, stack_top());
 end
 
@@ -754,15 +754,15 @@ end
 
 # [Description]
 #   Pops an object off the stack, and uses value to set a constant named
-#   by the literal _index_. The value is pushed back onto the stack.
+#   by the _literal_. The value is pushed back onto the stack.
 
-instruction set_const(index) [ value -- value ]
-  Symbol* sym = as<Symbol>(call_frame->compiled_code->literals()->at(state, index));
+instruction set_const(literal) [ value -- value ]
+  Symbol* sym = as<Symbol>(call_frame->compiled_code->literals()->at(state, literal));
   call_frame->constant_scope()->module()->set_const(state, sym, stack_top());
 end
 
 # [Description]
-#   Pop a value from the literals table specified by the operand _index_ and
+#   Pop a value from the literals table specified by the operand _literal_ and
 #   use it as the value of a constant named inside a Module object popped from
 #   the stack.  The _value_ is pushed back on the stack.
 # [Stack Before]
@@ -773,8 +773,8 @@ end
 #   value
 #   ...
 
-instruction set_const_at(index) [ value module -- value ]
-  Symbol* sym = as<Symbol>(call_frame->compiled_code->literals()->at(state, index));
+instruction set_const_at(literal) [ value module -- value ]
+  Symbol* sym = as<Symbol>(call_frame->compiled_code->literals()->at(state, literal));
   Object* val = stack_pop();
   Module* under = as<Module>(stack_pop());
 
@@ -784,17 +784,17 @@ end
 
 # [Description]
 #   Pops _module_ off the stack, and searches within its namespace for the
-#   constant named by the literal specified by the operand _index_. If found,
+#   constant named by the literal specified by the operand _literal_. If found,
 #   it is pushed onto the stack; otherwise, nothing is pushed onto the stack,
 #   and a `NameError` exception is raised.
 # [Example]
 #     str = "abc"
 #     enum = Enumerable::Enumerator(str, :each_byte)
 
-instruction find_const(index) [ module -- constant ]
+instruction find_const(literal) [ module -- constant ]
   bool found;
   Module* under = as<Module>(stack_pop());
-  Symbol* sym = as<Symbol>(call_frame->compiled_code->literals()->at(state, index));
+  Symbol* sym = as<Symbol>(call_frame->compiled_code->literals()->at(state, literal));
   Object* res = Helpers::const_get_under(state, under, sym, &found);
   if(!found) {
     flush_ip();
