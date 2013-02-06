@@ -54,6 +54,16 @@ module Rubinius
         print "Locals:      #{code.local_count}"
         print code.local_count > 0 ? ": #{code.local_names.join ", "}\n" : "\n"
         puts "Stack size:  #{code.stack_size}"
+        literals = code.literals.collect do |literal|
+          case literal
+          when CompiledCode
+            "<compiled code>"
+          else
+            literal.inspect
+          end
+        end
+        print "Literals:    #{literals.size}"
+        print code.literals.size > 0 ? ": #{literals.join ", "}\n" : "\n"
         print_lines code
         puts
       end
