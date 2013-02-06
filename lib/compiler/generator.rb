@@ -531,7 +531,8 @@ module Rubinius
     # was used in the compiler before the push_const_fast instruction. Rather
     # than changing the compiler code, this helper was used.
     def push_const(name)
-      push_const_fast find_literal(name), add_literal(nil)
+      allocated_asscociation_slot = add_literal(nil)
+      push_const_fast find_literal(name), allocated_asscociation_slot
     end
 
     def push_local(idx)
