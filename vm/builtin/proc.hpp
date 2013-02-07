@@ -36,8 +36,10 @@ namespace rubinius {
     // Rubinius.primitive? :proc_call_on_object
     Object* call_on_object(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
 
-    // Rubinius.primitive :proc_from_env
     static Proc* from_env(STATE, Object* self, Object* env);
+
+    // Rubinius.primitive :proc_from_env
+    static Proc* from_env_prim(STATE, Object* self, Object* env);
 
     class Info : public TypeInfo {
     public:

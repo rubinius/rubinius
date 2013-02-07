@@ -1494,13 +1494,8 @@ extern "C" {
   Object* rbx_make_proc(STATE, CallFrame* call_frame) {
     Object* obj = call_frame->scope->block();
     if(CBOOL(obj)) {
-      Proc* prc;
-      if(BlockEnvironment *env = try_as<BlockEnvironment>(obj)) {
-        prc = Proc::create(state, G(proc));
-        prc->block(state, env);
-      } else if(Proc* p = try_as<Proc>(obj)) {
-        prc = p;
-      } else {
+      Proc* prc = Proc::from_env(state, G(proc), obj);
+      if(!prc) {
         Exception::internal_error(state, call_frame, "invalid block type");
         return 0;
       }
