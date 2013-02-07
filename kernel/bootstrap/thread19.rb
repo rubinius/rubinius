@@ -34,7 +34,7 @@ class Thread
 
   # Called by Thread#fork in the new thread
   #
-  def __run__()
+  def __run__
     begin
       begin
         Rubinius.unlock(self)
