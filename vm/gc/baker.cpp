@@ -143,6 +143,8 @@ namespace rubinius {
     VALGRIND_MAKE_MEM_DEFINED(next->start().as_int(), next->size());
     VALGRIND_MAKE_MEM_DEFINED(current->start().as_int(), current->size());
 #endif
+    mprotect(next->start(), next->size(), PROT_READ | PROT_WRITE);
+    mprotect(current->start(), current->size(), PROT_READ | PROT_WRITE);
 
     Object* tmp;
     ObjectArray *current_rs = object_memory_->swap_remember_set();

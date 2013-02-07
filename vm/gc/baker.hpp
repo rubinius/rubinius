@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string.h>
+#include <sys/mman.h>
 
 #include "gc/heap.hpp"
 #include "gc/gc.hpp"
@@ -273,6 +274,8 @@ namespace rubinius {
       VALGRIND_MAKE_MEM_NOACCESS(next->start().as_int(), next->size());
       VALGRIND_MAKE_MEM_DEFINED(current->start().as_int(), current->size());
 #endif
+      mprotect(next->start(), next->size(), PROT_NONE);
+      mprotect(current->start(), current->size(), PROT_READ | PROT_WRITE);
     }
 
   public:
