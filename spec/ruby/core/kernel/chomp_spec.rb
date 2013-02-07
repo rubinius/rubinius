@@ -23,6 +23,12 @@ describe :kernel_chomp, :shared => true do
   end
 end
 
+describe :kernel_chomp_private, :shared => true do
+  it "is a private method" do
+    KernelSpecs.has_private_method(@method).should be_true
+  end
+end
+
 describe "Kernel.chomp" do
   it_behaves_like :kernel_chomp, "Kernel.chomp"
 end
@@ -36,17 +42,13 @@ end
 describe "Kernel#chomp" do
   it_behaves_like :kernel_chomp, "chomp"
 
-  it "is a private method" do
-    KernelSpecs.has_private_method(:chomp).should be_true
-  end
+  it_behaves_like :kernel_chomp_private, :chomp
 end
 
 ruby_version_is ""..."1.9" do
   describe "Kernel#chomp!" do
     it_behaves_like :kernel_chomp, "chomp!"
 
-    it "is a private method" do
-      KernelSpecs.has_private_method(:chomp!).should be_true
-    end
+    it_behaves_like :kernel_chomp_private, :chomp!
   end
 end
