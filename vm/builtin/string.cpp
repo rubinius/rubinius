@@ -83,13 +83,13 @@ namespace rubinius {
 
     so = state->new_object_dirty<String>(G(string));
 
-    so->num_bytes(state, size);
-    so->num_chars(state, nil<Fixnum>());
-    so->hash_value(state, nil<Fixnum>());
-    so->shared(state, cFalse);
-    so->encoding(state, nil<Encoding>());
-    so->ascii_only(state, cNil);
-    so->valid_encoding(state, cNil);
+    so->num_bytes_      = size;
+    so->num_chars_      = nil<Fixnum>();
+    so->hash_value_     = nil<Fixnum>();
+    so->shared_         = cFalse;
+    so->encoding_       = nil<Encoding>();
+    so->ascii_only_     = cNil;
+    so->valid_encoding_ = cNil;
 
     native_int bytes = size->to_native() + 1;
     ByteArray* ba = ByteArray::create(state, bytes);
