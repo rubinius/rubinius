@@ -200,9 +200,9 @@ class Time
   end
 
   #
-  # Rounds sub seconds to a given precision in decimal digits 
+  # Rounds sub seconds to a given precision in decimal digits
   #
-  # Returns a new time object. 
+  # Returns a new time object.
   #
   # places should be nonnegative, it is 0 by default.
   #
@@ -212,7 +212,7 @@ class Time
     roundable_time = (to_i + subsec.to_r).round(places)
 
     sec = roundable_time.floor
-    nano = ((roundable_time - sec) * 1_000_000_000).floor 
+    nano = ((roundable_time - sec) * 1_000_000_000).floor
 
     Time.specific(sec, nano, gmt?, utc_offset)
   end

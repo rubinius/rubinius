@@ -64,7 +64,7 @@ class File
   end
 
   def self.absolute_path(obj, dir = nil)
-    obj = path(obj) 
+    obj = path(obj)
     if obj[0] == "~"
       File.join Dir.getwd, dir.to_s, obj
     else

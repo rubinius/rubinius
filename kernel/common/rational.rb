@@ -388,7 +388,7 @@ class Rational < Numeric
 
     value = if self > 0
       (value + Rational(1,2)).floor
-    else 
+    else
       (value - Rational(1,2)).ceil
     end
 

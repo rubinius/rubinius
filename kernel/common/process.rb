@@ -222,7 +222,7 @@ module Process
         end
       end
     end
-    
+
     Errno.handle if ret == -1
 
     uid
@@ -255,7 +255,7 @@ module Process
         end
       end
     end
-    
+
     Errno.handle if ret == -1
 
     uid

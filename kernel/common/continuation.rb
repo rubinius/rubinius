@@ -6,12 +6,12 @@ class Continuation
 #    cont.setup(task)
 #    cont
 #  end
-#  
+#
 #  def setup(task=nil)
 #    @task = task
 #    @value = nil
 #  end
-#  
+#
 #  def call(*value)
 #    task = @task.dup
 #    if value.empty?

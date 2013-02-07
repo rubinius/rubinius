@@ -92,7 +92,7 @@ module Kernel
     File.open(path, *rest, &block)
   end
   module_function :open
-  
+
   alias_method :proc, :lambda
   module_function :proc
 

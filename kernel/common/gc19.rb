@@ -38,7 +38,7 @@ module GC
         :mature => {:bytes => @agent.get("system.memory.mature.bytes")[1]},
         :large => {:bytes => @agent.get("system.memory.large.bytes")[1]},
         :code => {:bytes => @agent.get("system.memory.code.bytes")[1]},
-        :symbols => {:bytes => @agent.get("system.memory.symbols.bytes")[1]} 
+        :symbols => {:bytes => @agent.get("system.memory.symbols.bytes")[1]}
       }
     }
 

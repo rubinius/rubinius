@@ -17,11 +17,11 @@ class Range
 
     if @excl
       unless @end.kind_of?(Integer)
-        raise TypeError, "cannot exclude non Integer end value" 
+        raise TypeError, "cannot exclude non Integer end value"
       end
 
       unless @begin.kind_of?(Integer)
-        raise TypeError, "cannot exclude end value with non Integer begin value" 
+        raise TypeError, "cannot exclude end value with non Integer begin value"
       end
 
       return @end - 1

@@ -76,7 +76,7 @@ module Rubinius
             if value == true
               value = 0
             elsif value
-              value = Rubinius::Type.coerce_to value, Integer, :to_int 
+              value = Rubinius::Type.coerce_to value, Integer, :to_int
               raise ArgumentError, "negative process group ID : #{value}" if value < 0
             end
             others[key] = value

@@ -93,7 +93,7 @@ class Float
     if ndigits < -(exp > 0 ? exp / 3 + 1 : exp / 4)
       return 0.0
     end
-      
+
     f = 10**ndigits
     Rubinius.invoke_primitive(:float_round, self * f) / f.to_f
   end
