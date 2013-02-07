@@ -293,7 +293,7 @@ class Array
     return @tuple.at(idx)
   end
 
-  def clear()
+  def clear
     Rubinius.check_frozen
 
     @tuple = Rubinius::Tuple.new(1)
