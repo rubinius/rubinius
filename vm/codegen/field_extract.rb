@@ -70,6 +70,7 @@ class BasicPrimitive
     str << "  try {\n"
     str << "#ifdef RBX_PROFILER\n"
     str << "    if(unlikely(state->vm()->tooling())) {\n"
+    str << "      OnStack<2> os(state, exec, mod);\n"
     str << "      tooling::MethodEntry method(state, exec, mod, args);\n"
     str << "      ret = #{call}(#{args.join(', ')});\n"
     str << "    } else {\n"

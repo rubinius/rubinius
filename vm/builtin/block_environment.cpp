@@ -314,15 +314,6 @@ namespace rubinius {
       }
     }
 
-    // Check the stack and interrupts here rather than in the interpreter
-    // loop itself.
-
-    GCTokenImpl gct;
-
-    if(!state->check_interrupts(gct, frame, frame)) return NULL;
-
-    state->checkpoint(gct, frame);
-
 #ifdef RBX_PROFILER
     if(unlikely(state->vm()->tooling())) {
       Module* mod = scope->module();
@@ -332,12 +323,39 @@ namespace rubinius {
         }
       }
 
+      OnStack<2> os(state, env, mod);
+
+      // Check the stack and interrupts here rather than in the interpreter
+      // loop itself.
+
+      GCTokenImpl gct;
+
+      if(!state->check_interrupts(gct, frame, frame)) return NULL;
+
+      state->checkpoint(gct, frame);
+
       tooling::BlockEntry method(state, env, mod);
       return (*mcode->run)(state, mcode, frame);
     } else {
+      // Check the stack and interrupts here rather than in the interpreter
+      // loop itself.
+
+      GCTokenImpl gct;
+
+      if(!state->check_interrupts(gct, frame, frame)) return NULL;
+
+      state->checkpoint(gct, frame);
       return (*mcode->run)(state, mcode, frame);
     }
 #else
+    // Check the stack and interrupts here rather than in the interpreter
+    // loop itself.
+
+    GCTokenImpl gct;
+
+    if(!state->check_interrupts(gct, frame, frame)) return NULL;
+
+    state->checkpoint(gct, frame);
     return (*mcode->run)(state, mcode, frame);
 #endif
   }

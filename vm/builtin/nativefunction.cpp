@@ -93,6 +93,7 @@ namespace rubinius {
 
 #ifdef RBX_PROFILER
       if(unlikely(state->vm()->tooling())) {
+        OnStack<2> os(state, exec, mod);
         tooling::MethodEntry method(state, exec, mod, args);
         return nfunc->call(state, args, call_frame);
       } else {

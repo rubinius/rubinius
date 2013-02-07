@@ -4,6 +4,7 @@
 #include "gen/includes.hpp"
 #include "arguments.hpp"
 #include "call_frame.hpp"
+#include "on_stack.hpp"
 
 #include "instruments/tooling.hpp"
 

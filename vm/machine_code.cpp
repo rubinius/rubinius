@@ -615,20 +615,27 @@ namespace rubinius {
       }
 #endif
 
-      // Check the stack and interrupts here rather than in the interpreter
-      // loop itself.
-      if(!state->check_interrupts(gct, frame, frame)) return NULL;
-
-      state->checkpoint(gct, frame);
-
 #ifdef RBX_PROFILER
       if(unlikely(state->vm()->tooling())) {
+        OnStack<3> os(state, exec, mod, code);
+        // Check the stack and interrupts here rather than in the interpreter
+        // loop itself.
+        //if(!state->check_interrupts(gct, frame, frame)) return NULL;
+
+        //state->checkpoint(gct, frame);
+
         tooling::MethodEntry method(state, exec, mod, args, code);
         return (*mcode->run)(state, mcode, frame);
       } else {
+        if(!state->check_interrupts(gct, frame, frame)) return NULL;
+
+        state->checkpoint(gct, frame);
         return (*mcode->run)(state, mcode, frame);
       }
 #else
+      if(!state->check_interrupts(gct, frame, frame)) return NULL;
+
+      state->checkpoint(gct, frame);
       return (*mcode->run)(state, mcode, frame);
 #endif
     }

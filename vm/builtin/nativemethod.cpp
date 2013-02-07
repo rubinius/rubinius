@@ -695,6 +695,7 @@ namespace rubinius {
     // trying to de-dup it.
 
     if(unlikely(state->vm()->tooling())) {
+      OnStack<2> os(state, exec, mod);
       tooling::MethodEntry method(state, exec, mod, args);
       PLACE_EXCEPTION_POINT(ep);
 
