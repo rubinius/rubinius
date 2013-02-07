@@ -41,3 +41,20 @@ ruby_version_is ""..."1.9" do
     it_behaves_like :kernel_chop, "chop!"
   end
 end
+
+with_feature :encoding do
+  describe :kernel_chop_encoded, :shared => true do
+    it "removes the final multi-byte character from $_" do
+      script = fixture __FILE__, "#{@method}.rb"
+      KernelSpecs.encoded_chop(script).should == "あ"
+    end
+  end
+
+  describe "Kernel.chop" do
+    it_behaves_like :kernel_chop_encoded, "chop"
+  end
+
+  describe "Kernel#chop" do
+    it_behaves_like :kernel_chop_encoded, "chop_f"
+  end
+end

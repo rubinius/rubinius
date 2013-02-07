@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
 
@@ -14,7 +15,7 @@ describe :kernel_chomp, :shared => true do
     KernelSpecs.chomp("abc\r\n", @method).should == "abc"
   end
 
-  it "removes only the last newline of $_" do
+  it "removes only the final newline of $_" do
     KernelSpecs.chomp("abc\n\n", @method).should == "abc\n"
   end
 
@@ -50,5 +51,22 @@ ruby_version_is ""..."1.9" do
     it_behaves_like :kernel_chomp, "chomp!"
 
     it_behaves_like :kernel_chomp_private, :chomp!
+  end
+end
+
+with_feature :encoding do
+  describe :kernel_chomp_encoded, :shared => true do
+    it "removes the final carriage return, newline from a multi-byte $_" do
+      script = fixture __FILE__, "#{@method}.rb"
+      KernelSpecs.encoded_chomp(script).should == "あれ"
+    end
+  end
+
+  describe "Kernel.chomp" do
+    it_behaves_like :kernel_chomp_encoded, "chomp"
+  end
+
+  describe "Kernel#chomp" do
+    it_behaves_like :kernel_chomp_encoded, "chomp_f"
   end
 end
