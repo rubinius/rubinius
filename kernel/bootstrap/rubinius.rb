@@ -26,11 +26,6 @@ module Rubinius
     raise PrimitiveFailure, "Rubinius.vm_inc_global_serial primitive failed"
   end
 
-  def self.jit_block(be, show)
-    Rubinius.primitive :vm_jit_block
-    raise PrimitiveFailure, "Rubinius.vm_jit_block primitive failed"
-  end
-
   def self.deoptimize_inliners(exec)
     Rubinius.primitive :vm_deoptimize_inliners
     raise PrimitiveFailure, "Rubinius.vm_deoptimize_inliners primitive failed"

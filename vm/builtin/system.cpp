@@ -1069,28 +1069,6 @@ namespace rubinius {
     return Fixnum::from(state->shared().inc_global_serial(state));
   }
 
-  Object* System::vm_jit_block(STATE, GCToken gct, BlockEnvironment* env,
-                               Object* show)
-  {
-#ifdef ENABLE_LLVM
-    LLVMState* ls = LLVMState::get(state);
-
-    OnStack<2> os(state, env, show);
-
-    MachineCode* mcode = env->machine_code(state, gct);
-
-    Context ctx(ls);
-    jit::Compiler jit(&ctx);
-    jit.compile_block(env->compiled_code(), mcode);
-
-    if(show->true_p()) {
-      jit.show_machine_code();
-    }
-#endif
-
-    return show;
-  }
-
   Object* System::vm_deoptimize_inliners(STATE, Executable* exec) {
     exec->clear_inliners(state);
     return cTrue;

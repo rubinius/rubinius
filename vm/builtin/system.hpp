@@ -255,10 +255,6 @@ namespace rubinius {
     // Rubinius.primitive :vm_show_backtrace
     static Object* vm_show_backtrace(STATE, CallFrame* calling_environment);
 
-    // Compile a block with the JIT
-    // Rubinius.primitive :vm_jit_block
-    static Object* vm_jit_block(STATE, GCToken gct, BlockEnvironment* env, Object* show);
-
     // Deoptimze any method that inlined exec
     // Rubinius.primitive :vm_deoptimize_inliners
     static Object* vm_deoptimize_inliners(STATE, Executable* exec);
