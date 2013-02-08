@@ -188,6 +188,9 @@ namespace rubinius {
       method_update_lock_.unlock();
     }
 
+    void gc_dependent();
+    void gc_independent();
+
     void compile_soon(STATE, GCToken gct, CompiledCode* code, CallFrame* call_frame,
                       Object* extra, bool is_block=false);
 

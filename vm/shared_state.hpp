@@ -308,7 +308,7 @@ namespace rubinius {
     void gc_dependent(STATE);
     void gc_independent(STATE);
 
-    void gc_dependent(THREAD);
+    void gc_dependent(THREAD, utilities::thread::Condition* = NULL);
     void gc_independent(THREAD);
 
     void set_critical(STATE);

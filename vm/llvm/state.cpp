@@ -191,7 +191,8 @@ namespace rubinius {
 
       pause_ = true;
 
-      while(!paused_ && ls_->run_state() == ManagedThread::eRunning) {
+      while(!paused_ && (ls_->run_state() == ManagedThread::eRunning ||
+                         ls_->run_state() == ManagedThread::eIndependent)) {
         pause_condition_.wait(mutex_);
       }
     }
@@ -220,8 +221,14 @@ namespace rubinius {
       run();
     }
 
+    utilities::thread::Condition* pause_condition() {
+      return &pause_condition_;
+    }
+
     virtual void perform() {
       ManagedThread::set_current(ls_, "rbx.jit");
+
+      ls_->set_run_state(ManagedThread::eIndependent);
 
 #ifndef RBX_WINDOWS
       sigset_t set;
@@ -274,7 +281,7 @@ namespace rubinius {
 
         // This isn't ideal, but it's the safest. Keep the GC from
         // running while we're building the IR.
-        ls_->shared().gc_dependent(ls_);
+        ls_->gc_dependent();
 
         Context ctx(ls_);
         jit::Compiler jit(&ctx);
@@ -317,7 +324,7 @@ namespace rubinius {
 
           // We don't depend on the GC here, so let it run independent
           // of us.
-          ls_->shared().gc_independent(ls_);
+          ls_->gc_independent();
 
           continue;
         }
@@ -374,7 +381,7 @@ namespace rubinius {
 
         // We don't depend on the GC here, so let it run independent
         // of us.
-        ls_->shared().gc_independent(ls_);
+        ls_->gc_independent();
       }
     }
 
@@ -501,6 +508,14 @@ namespace rubinius {
     background_thread_->gc_scan(gc);
   }
 
+  void LLVMState::gc_dependent() {
+    shared_.gc_dependent(this, background_thread_->pause_condition());
+  }
+
+  void LLVMState::gc_independent() {
+    shared_.gc_independent(this);
+  }
+
   Symbol* LLVMState::symbol(const std::string& sym) {
     return symbols_.lookup(&shared_, sym);
   }
@@ -560,12 +575,12 @@ namespace rubinius {
       background_thread_->add(req);
 
       state->set_call_frame(call_frame);
-      state->gc_independent(gct);
+      gc_independent();
 
       wait_cond.wait(wait_mutex);
 
       wait_mutex.unlock();
-      state->gc_dependent();
+      gc_dependent();
       state->set_call_frame(0);
       // if(config().jit_inline_debug) {
         // if(block) {

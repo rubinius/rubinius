@@ -66,7 +66,7 @@ namespace rubinius {
       }
     }
 
-    void become_dependent(THREAD) {
+    void become_dependent(THREAD, utilities::thread::Condition* cond = NULL) {
       switch(state->run_state()) {
       case ManagedThread::eAlone:
         // Running alone, ignore.
@@ -82,6 +82,8 @@ namespace rubinius {
         // If the GC is running, wait here...
         if(should_stop_) {
           utilities::thread::Mutex::LockGuard guard(mutex_);
+          state->run_state_ = ManagedThread::eSuspended;
+          if(cond) cond->broadcast();
           // We need to grab the mutex because we might want
           // to wait here.
           while(should_stop_) {

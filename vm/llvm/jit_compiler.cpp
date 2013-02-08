@@ -60,6 +60,7 @@ namespace jit {
     if(!mci_) {
       if(!function_) return NULL;
 
+      if(indy) ctx_->llvm_state()->gc_independent();
       if(ctx_->llvm_state()->jit_dump_code() & cSimple) {
         llvm::outs() << "[[[ LLVM Simple IR ]]]\n";
         llvm::outs() << *function_ << "\n";
@@ -100,6 +101,7 @@ namespace jit {
         llvm::outs() << "       code below to http://github.com/rubinius/rubinius/issues\n";
         llvm::outs() << *function_ << "\n";
         function_ = NULL;
+        if(indy) ctx_->llvm_state()->gc_dependent();
         return NULL;
       }
 
@@ -112,7 +114,6 @@ namespace jit {
 
       mci_ = new llvm::MachineCodeInfo();
       ctx_->engine()->runJITOnFunction(function_, mci_);
-      ctx_->llvm_state()->add_code_bytes(mci_->size());
 
       // If we're not in JIT debug mode, delete the body IR, now that we're
       // done with it.
@@ -121,6 +122,9 @@ namespace jit {
         function_->dropAllReferences();
       }
 
+      if(indy) ctx_->llvm_state()->gc_dependent();
+
+      ctx_->llvm_state()->add_code_bytes(mci_->size());
       // Inject the RuntimeData objects used into the original CompiledCode
       // Do this way after we've validated the IR so things are consistent.
 

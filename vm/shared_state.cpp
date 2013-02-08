@@ -303,8 +303,8 @@ namespace rubinius {
     world_->become_independent(state->vm());
   }
 
-  void SharedState::gc_dependent(THREAD) {
-    world_->become_dependent(state);
+  void SharedState::gc_dependent(THREAD, utilities::thread::Condition* cond) {
+    world_->become_dependent(state, cond);
   }
 
   void SharedState::gc_independent(THREAD) {
