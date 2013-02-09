@@ -375,8 +375,7 @@ remember:
         << ops_.llvm_state()->symbol_debug_str(klass->module_name())
         << " in "
         << "#"
-        << ops_.llvm_state()->symbol_debug_str(ops_.method_name())
-        << "\n";
+        << ops_.llvm_state()->symbol_debug_str(ops_.method_name());
     }
 
     ctx_->enter_inline();
@@ -394,31 +393,59 @@ remember:
     TypeInfo* ti = klass->type_info();
     TypeInfo::Slots::iterator it = ti->slots.find(acc->name()->index());
 
+    bool found = false;
+
     if(it != ti->slots.end()) {
-      int offset = ti->slot_locations[it->second];
-      ops_.set_object_slot(self, offset, val);
+      int field = it->second;
+      int offset = ti->slot_locations[field];
+      ops_.set_object_type_slot(self, field, offset, ti->slot_types[field], val);
+      found = true;
+      if(ops_.llvm_state()->config().jit_inline_debug) {
+        ops_.llvm_state()->log() << " (slot: " << it->second << ")\n";
+      }
     } else {
-      Signature sig2(ops_.context(), "Object");
-      sig2 << "State";
-      sig2 << "CallFrame";
-      sig2 << "Object";
-      sig2 << "Object";
-      sig2 << "Object";
+      LookupTable* pii = klass->packed_ivar_info();
+      if(!pii->nil_p()) {
+        Fixnum* which = try_as<Fixnum>(pii->fetch(0, acc->name(), &found));
+        if(found) {
+          int index = which->to_native();
+          int offset = sizeof(Object) + (sizeof(Object*) * index);
 
-      Value* call_args2[] = {
-        ops_.state(),
-        ops_.call_frame(),
-        self,
-        ops_.constant(acc->name()),
-        val
-      };
+          ops_.set_object_slot(self, offset, val);
 
-      sig2.call("rbx_set_ivar", call_args2, 5, "ivar",
-          ops_.b());
+          if(ops_.llvm_state()->config().jit_inline_debug) {
+            ops_.llvm_state()->log() << " (packed index: " << index << ", " << offset << ")";
+          }
+        }
+      }
+
+      if(!found) {
+        Signature sig2(ops_.context(), "Object");
+        sig2 << "State";
+        sig2 << "CallFrame";
+        sig2 << "Object";
+        sig2 << "Object";
+        sig2 << "Object";
+
+        Value* call_args2[] = {
+          ops_.state(),
+          ops_.call_frame(),
+          self,
+          ops_.constant(acc->name()),
+          val
+        };
+
+        sig2.call("rbx_set_ivar", call_args2, 5, "ivar",
+            ops_.b());
+      }
     }
 
     exception_safe();
     set_result(val);
+
+    if(ops_.llvm_state()->config().jit_inline_debug) {
+      ops_.llvm_state()->log() << "\n";
+    }
 
     ctx_->leave_inline();
   }
