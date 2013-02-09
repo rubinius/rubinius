@@ -1530,6 +1530,28 @@ extern "C" {
     return obj;
   }
 
+  Object* rbx_proc_call(STATE, CallFrame* call_frame, Proc* proc, int count, Object** stk) {
+
+    Arguments args(G(sym_call), cNil, count, stk);
+
+    return proc->call(state, call_frame, args);
+  }
+
+  VariableScope* rbx_variable_scope_of_sender(STATE, CallFrame* call_frame) {
+    return VariableScope::of_sender(state, call_frame);
+  }
+
+  CompiledCode* rbx_compiledcode_of_sender(STATE, CallFrame* call_frame) {
+    return CompiledCode::of_sender(state, call_frame);
+  }
+
+  ConstantScope* rbx_constant_scope_of_sender(STATE, CallFrame* call_frame) {
+    return ConstantScope::of_sender(state, call_frame);
+  }
+
+  Location* rbx_location_of_closest_ruby_method(STATE, CallFrame* call_frame) {
+    return Location::of_closest_ruby_method(state, call_frame);
+  }
 }
 
 #endif

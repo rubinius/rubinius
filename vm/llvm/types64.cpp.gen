@@ -804,6 +804,27 @@ FunctionType* FuncTy_73 = FunctionType::get(
  /*Params=*/FuncTy_73_args,
  /*isVarArg=*/false);
 
+std::vector<Type*>FuncTy_76_args;
+StructType *StructTy_struct_rubinius__Proc = mod->getTypeByName("struct.rubinius::Proc");
+if (!StructTy_struct_rubinius__Proc) {
+StructTy_struct_rubinius__Proc = StructType::create(mod->getContext(), "struct.rubinius::Proc");
+}
+std::vector<Type*>StructTy_struct_rubinius__Proc_fields;
+StructTy_struct_rubinius__Proc_fields.push_back(StructTy_struct_rubinius__BlockEnvironment);
+StructTy_struct_rubinius__Proc_fields.push_back(StructTy_struct_rubinius__Object);
+StructTy_struct_rubinius__Proc_fields.push_back(StructTy_struct_rubinius__Object);
+if (StructTy_struct_rubinius__Proc->isOpaque()) {
+StructTy_struct_rubinius__Proc->setBody(StructTy_struct_rubinius__Proc_fields, /*isPacked=*/false);
+}
+
+PointerType* PointerTy_77 = PointerType::get(StructTy_struct_rubinius__Proc, 0);
+
+FuncTy_76_args.push_back(PointerTy_77);
+FunctionType* FuncTy_76 = FunctionType::get(
+ /*Result=*/Type::getVoidTy(mod->getContext()),
+ /*Params=*/FuncTy_76_args,
+ /*isVarArg=*/false);
+
 
 // Function Declarations
 
@@ -1092,6 +1113,17 @@ func_output24->setCallingConv(CallingConv::C);
 }
 AttrListPtr func_output24_PAL;
 func_output24->setAttributes(func_output24_PAL);
+
+Function* func_outputProc = mod->getFunction("outputProc");
+if (!func_outputProc) {
+func_outputProc = Function::Create(
+ /*Type=*/FuncTy_76,
+ /*Linkage=*/GlobalValue::ExternalLinkage,
+ /*Name=*/"outputProc", mod); // (external, no body)
+func_outputProc->setCallingConv(CallingConv::C);
+}
+AttrListPtr func_outputProc_PAL;
+func_outputProc->setAttributes(func_outputProc_PAL);
 
 // Global Variable Declarations
 

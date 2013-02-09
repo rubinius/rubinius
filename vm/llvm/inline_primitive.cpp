@@ -1346,6 +1346,111 @@ namespace rubinius {
       i.context()->leave_inline();
     }
 
+    void proc_call(int count) {
+      log("Proc#call");
+      i.context()->enter_inline();
+
+      Signature sig(ops.context(), ops.ObjType);
+      sig << "State";
+      sig << "CallFrame";
+      sig << "Object";
+      sig << ops.context()->Int32Ty;
+      sig << ops.ObjArrayTy;
+
+      Value* call_args[] = {
+        ops.state(),
+        ops.call_frame(),
+        i.recv(),
+        ops.cint(count),
+        ops.stack_objects(count)
+      };
+
+      CallInst* res = sig.call("rbx_proc_call", call_args, 5, "result", ops.b());
+
+      i.set_result(res);
+      i.context()->leave_inline();
+    }
+
+    void variable_scope_of_sender() {
+      log("VariableScope.of_sender");
+      i.context()->enter_inline();
+
+      Signature sig(ops.context(), ops.ObjType);
+      sig << "State";
+      sig << "CallFrame";
+
+      Value* call_args[] = {
+        ops.state(),
+        ops.call_frame()
+      };
+
+      CallInst* res = sig.call("rbx_variable_scope_of_sender", call_args, 2, "result", ops.b());
+
+      i.set_result(res);
+      i.exception_safe();
+      i.context()->leave_inline();
+    }
+
+    void compiledcode_of_sender() {
+      log("CompiledCode.of_sender");
+      i.context()->enter_inline();
+
+      Signature sig(ops.context(), ops.ObjType);
+      sig << "State";
+      sig << "CallFrame";
+
+      Value* call_args[] = {
+        ops.state(),
+        ops.call_frame()
+      };
+
+      CallInst* res = sig.call("rbx_compiledcode_of_sender", call_args, 2, "result", ops.b());
+
+      i.set_result(res);
+      i.exception_safe();
+      i.context()->leave_inline();
+    }
+
+    void constant_scope_of_sender() {
+      log("ConstantScope.of_sender");
+      i.context()->enter_inline();
+
+      Signature sig(ops.context(), ops.ObjType);
+      sig << "State";
+      sig << "CallFrame";
+
+      Value* call_args[] = {
+        ops.state(),
+        ops.call_frame()
+      };
+
+      CallInst* res = sig.call("rbx_constant_scope_of_sender", call_args, 2, "result", ops.b());
+
+      i.set_result(res);
+      i.exception_safe();
+      i.context()->leave_inline();
+    }
+
+    void location_of_closest_ruby_method() {
+      log("Location.of_closest_ruby_method");
+      i.context()->enter_inline();
+
+      Signature sig(ops.context(), ops.ObjType);
+      sig << "State";
+      sig << "CallFrame";
+
+      Value* call_args[] = {
+        ops.state(),
+        ops.call_frame()
+      };
+
+      CallInst* res = sig.call("rbx_location_of_closest_ruby_method", call_args, 2, "result", ops.b());
+
+      i.set_result(res);
+      i.exception_safe();
+      i.context()->leave_inline();
+    }
+
   };
 
   bool Inliner::inline_primitive(Class* klass, CompiledCode* code, executor prim) {
@@ -1436,7 +1541,6 @@ namespace rubinius {
       ip.float_compare_operation(cGreaterThan);
     } else if(prim == Primitives::float_ge && count_ == 1) {
       ip.float_compare_operation(cGreaterThanEqual);
-
     } else if(prim == Primitives::fixnum_s_eqq && count_ == 1) {
       if(!ip.static_fixnum_s_eqq()) {
         ip.fixnum_s_eqq();
@@ -1445,10 +1549,18 @@ namespace rubinius {
       if(!ip.static_symbol_s_eqq()) {
         ip.symbol_s_eqq();
       }
-
     } else if(prim == Primitives::class_allocate && count_ == 0) {
       ip.class_allocate();
-
+    } else if(prim == Primitives::proc_call) {
+      ip.proc_call(count_);
+    } else if(prim == Primitives::variable_scope_of_sender && count_ == 0) {
+      ip.variable_scope_of_sender();
+    } else if(prim == Primitives::compiledcode_of_sender && count_ == 0) {
+      ip.compiledcode_of_sender();
+    } else if(prim == Primitives::constant_scope_of_sender && count_ == 0) {
+      ip.constant_scope_of_sender();
+    } else if(prim == Primitives::location_of_closest_ruby_method && count_ == 0) {
+      ip.location_of_closest_ruby_method();
     } else {
       if(ops_.llvm_state()->type_optz()) {
         if(prim == Primitives::object_hash && count_ == 0) {

@@ -277,3 +277,11 @@ declare void @output23(%"struct.rubinius::VariableScope"*)
 }
 
 declare void @output24(%"struct.rubinius::ByteArray"*)
+
+%"struct.rubinius::Proc" = type {
+  %"struct.rubinius::BlockEnvironment", ; block
+            %"struct.rubinius::Object", ; lambda
+            %"struct.rubinius::Object"  ; bound_method
+}
+
+declare void @outputProc(%"struct.rubinius::Proc"*)
