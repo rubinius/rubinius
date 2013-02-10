@@ -421,10 +421,13 @@ namespace rubinius {
 
     state->set_call_frame(call_frame);
 
-    MachineCode* mcode = ccode->internalize(state, gct);
+    MachineCode* mcode = ccode->machine_code();
     if(!mcode) {
-      Exception::internal_error(state, call_frame, "invalid bytecode method");
-      return 0;
+      mcode = ccode->internalize(state, gct);
+      if(!mcode) {
+        Exception::internal_error(state, call_frame, "invalid bytecode method");
+        return 0;
+      }
     }
 
     mcode->set_parent(caller);
