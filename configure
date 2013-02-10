@@ -123,7 +123,7 @@ class Configure
     @patch_version = "0"
     @release = "rc1"
     @release_date = "yyyy-mm-dd"
-    @config_version = 166
+    @config_version = 167
   end
 
   # Set up system commands to run in cmd.exe on Windows. Either Windows
@@ -761,6 +761,7 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
         @log.write "found! (version #{version} - api: #{api_version})"
         @llvm = :config
         @llvm_configure = llvm_config_cmd config
+        @llvm_version = version
         @llvm_api_version = api_version
         return true
       end
