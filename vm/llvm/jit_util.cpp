@@ -626,6 +626,50 @@ extern "C" {
     CPP_CATCH
   }
 
+  Object* rbx_find_const_fast(STATE, CallFrame* call_frame, Symbol* sym,
+                              int association_index, Object* top) {
+    CPP_TRY
+
+    Object* res = 0;
+
+    Module* under = as<Module>(top);
+    Object* val = call_frame->compiled_code->literals()->at(state, association_index);
+
+    // See if the cache is present, if so, validate it and use the value
+    GlobalCacheEntry* cache;
+    if((cache = try_as<GlobalCacheEntry>(val)) != NULL) {
+      if(cache->valid_p(state, under, call_frame->constant_scope())) {
+        res = cache->value();
+      }
+    } else {
+      cache = GlobalCacheEntry::empty(state);
+      call_frame->compiled_code->literals()->put(state, association_index, cache);
+    }
+
+    if(!res) {
+      bool found = false;
+      res = Helpers::const_get_under(state, under, sym, &found);
+
+      if(found) {
+        GCTokenImpl gct;
+        OnStack<2> os(state, cache, res);
+        if(Autoload* autoload = try_as<Autoload>(res)) {
+          res = autoload->resolve(state, gct, call_frame, under);
+        }
+
+        if(res) {
+          cache->update(state, res, under, call_frame->constant_scope());
+        }
+      } else {
+        res = Helpers::const_missing_under(state, under, sym, call_frame);
+      }
+    }
+
+    return res;
+
+    CPP_CATCH
+  }
+
   Object* rbx_instance_of(STATE, CallFrame* call_frame, Object* top, Object* b1) {
     CPP_TRY
 

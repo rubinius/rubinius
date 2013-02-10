@@ -965,6 +965,32 @@
 <ul class="insn_cross_ref">
 <li><a href="#push_const">push_const</a></li>
 </ul>
+<h3><a class="instruction" name="find_const_fast">find_const_fast(literal, association)</a></h3>
+
+   Pushes a constant onto the stack scoped under the module on the top of
+   the stack. Caches the lookup to provide faster future lookup. This
+   instruction is normally emitted only by the Generator.
+
+
+<table class="stack_effect">
+<thead>
+<tr><th>Before</th><th>After</th></tr>
+</thead>
+<tbody>
+<tr><td>module</td><td>constant</td></tr>
+<tr><td>...</td><td>...</td></tr>
+</tbody>
+</table>
+
+#### Example
+     str = "abc"
+     enum = Enumerable::Enumerator(str, :each_byte)
+
+
+<h4>See Also</h4>
+<ul class="insn_cross_ref">
+<li><a href="#find_const">find_const</a></li>
+</ul>
 <h3><a class="instruction" name="set_call_flags">set_call_flags(flags)</a></h3>
 
    The call flags on the current execution context are set to the opcode

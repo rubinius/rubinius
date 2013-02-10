@@ -535,6 +535,15 @@ module Rubinius
       push_const_fast find_literal(name), allocated_asscociation_slot
     end
 
+    # The find_const instruction itself is unused right now. The instruction
+    # parser does not emit a GeneratorMethods#find_const. This method/opcode
+    # was used in the compiler before the find_const_fast instruction. Rather
+    # than changing the compiler code, this helper was used.
+    def find_const(name)
+      allocated_asscociation_slot = add_literal(nil)
+      find_const_fast find_literal(name), allocated_asscociation_slot
+    end
+
     def push_local(idx)
       if @detected_locals <= idx
         @detected_locals = idx + 1

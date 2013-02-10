@@ -2100,7 +2100,7 @@ use_send:
         constant(as<Symbol>(literal(name)))
       };
 
-      CallInst* ret = b().CreateCall(func, call_args, "push_const_fast");
+      CallInst* ret = b().CreateCall(func, call_args, "push_const");
       ret->setOnlyReadsMemory();
       ret->setDoesNotThrow();
 
@@ -3136,6 +3136,101 @@ use_send:
       Value* val = sig.call("rbx_find_const", call_args, 4, "constant", b());
       check_for_exception(val);
       stack_push(val);
+    }
+
+    void visit_find_const_fast(opcode name, opcode cache) {
+      BasicBlock* cont = 0;
+
+      Value* cached_value = 0;
+      BasicBlock* cached_block = 0;
+
+      Object* lit = literal(cache);
+
+      Value* under = stack_pop();
+
+      GlobalCacheEntry* entry = try_as<GlobalCacheEntry>(lit);
+      if(entry) {
+        assert(entry->pin());
+
+        Value* global_serial = b().CreateLoad(global_serial_pos, "global_serial");
+
+        Value* current_serial_pos = b().CreateIntToPtr(
+            clong((intptr_t)entry->serial_location()),
+            llvm::PointerType::getUnqual(ctx_->Int32Ty), "cast_to_intptr");
+
+        Value* current_serial = b().CreateLoad(current_serial_pos, "serial");
+
+        Value* cache_cmp = b().CreateICmpEQ(global_serial, current_serial, "use_under");
+
+        BasicBlock* check_under = new_block("check_under");
+        BasicBlock* use_cache   = new_block("use_cache");
+        BasicBlock* use_call    = new_block("use_call");
+        cont =      new_block("continue");
+
+        b().CreateCondBr(cache_cmp, check_under, use_call);
+
+        set_block(check_under);
+
+        Value* under_pos = b().CreateIntToPtr(
+            clong((intptr_t)entry->under_location()),
+            llvm::PointerType::getUnqual(ObjType), "cast_to_objptr");
+
+        Value* cached_under = b().CreateLoad(under_pos, "cached_value");
+
+        Value* under_cmp = b().CreateICmpEQ(cached_under, under, "use_cache");
+
+        b().CreateCondBr(under_cmp, use_cache, use_call);
+
+        set_block(use_cache);
+
+        Value* value_pos = b().CreateIntToPtr(
+            clong((intptr_t)entry->value_location()),
+            llvm::PointerType::getUnqual(ObjType), "cast_to_objptr");
+
+        cached_value = b().CreateLoad(value_pos, "cached_value");
+        cached_block = b().GetInsertBlock();
+
+        b().CreateBr(cont);
+
+        set_block(use_call);
+      }
+
+      Signature sig(ctx_, ObjType);
+
+      sig << StateTy;
+      sig << CallFrameTy;
+      sig << ObjType;
+      sig << ctx_->Int32Ty;
+      sig << ObjType;
+
+      Value* call_args[] = {
+        state_,
+        call_frame_,
+        constant(as<Symbol>(literal(name))),
+        cint(cache),
+        under
+      };
+
+      flush();
+
+      CallInst* ret = sig.call("rbx_find_const_fast", call_args, 5, "constant", b());
+      ret->setOnlyReadsMemory();
+      ret->setDoesNotThrow();
+      check_for_exception(ret);
+
+      if(entry) {
+        BasicBlock* ret_block = b().GetInsertBlock();
+        b().CreateBr(cont);
+        set_block(cont);
+
+        PHINode* phi = b().CreatePHI(ObjType, 2, "constant");
+        phi->addIncoming(cached_value, cached_block);
+        phi->addIncoming(ret, ret_block);
+
+        stack_push(phi);
+      } else {
+        stack_push(ret);
+      }
     }
 
     void visit_instance_of() {
