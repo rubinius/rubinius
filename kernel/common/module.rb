@@ -592,7 +592,9 @@ class Module
       end
     when Rubinius::AccessVariable
       if @seen_ivars
-        @seen_ivars << code.name
+        unless @seen_ivars.include?(code.name)
+          @seen_ivars << code.name
+        end
       else
         @seen_ivars = [code.name]
       end
@@ -627,5 +629,38 @@ class Module
   def freeze
     @method_table.freeze
     super
+  end
+
+  def attr_reader(name)
+    meth = Rubinius::AccessVariable.get_ivar name
+    @method_table.store name, meth, :public
+    Rubinius::VM.reset_method_cache name
+    ivar_name = "@#{name}".to_sym
+    if @seen_ivars
+      @seen_ivars.each do |ivar|
+        return nil if ivar == ivar_name
+      end
+      @seen_ivars[@seen_ivars.size] = ivar_name
+    else
+      @seen_ivars = [ivar_name]
+    end
+    nil
+  end
+
+  def attr_writer(name)
+    meth = Rubinius::AccessVariable.set_ivar name
+    writer_name = "#{name}=".to_sym
+    @method_table.store writer_name, meth, :public
+    Rubinius::VM.reset_method_cache writer_name
+    ivar_name = "@#{name}".to_sym
+    if @seen_ivars
+      @seen_ivars.each do |ivar|
+        return nil if ivar == ivar_name
+      end
+      @seen_ivars[@seen_ivars.size] = ivar_name
+    else
+      @seen_ivars = [ivar_name]
+    end
+    nil
   end
 end

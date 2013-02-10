@@ -3,12 +3,12 @@ mirror.rbc
 string_mirror.rbc
 class.rbc
 class19.rbc
-binding.rbc
-proc.rbc
-proc19.rbc
 autoload.rbc
 module.rbc
 module19.rbc
+binding.rbc
+proc.rbc
+proc19.rbc
 enumerable19.rbc
 enumerable.rbc
 enumerator.rbc
