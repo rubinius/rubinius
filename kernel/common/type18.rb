@@ -33,7 +33,9 @@ module Rubinius
     end
 
     def self.coerce_to_binding(obj)
-      if obj.kind_of? Proc
+      if obj.kind_of? Binding
+        binding = obj
+      elsif obj.kind_of? Proc
         binding = obj.binding
       elsif obj.respond_to? :to_binding
         binding = obj.to_binding

@@ -30,10 +30,16 @@ class Array
 
     if obj.equal? undefined
       obj = nil
-
-      if size_or_array.respond_to? :to_ary
+      ary = nil
+      if size_or_array.kind_of? Integer
+        # Do nothing, fall through to later case.
+      elsif size_or_array.kind_of? Array
+        ary = size_or_array
+      elsif size_or_array.respond_to? :to_ary
         ary = Rubinius::Type.coerce_to size_or_array, Array, :to_ary
+      end
 
+      if ary
         @tuple = ary.tuple.dup
         @start = ary.start
         @total = ary.size
