@@ -70,9 +70,7 @@ class Range
       end
 
     when String
-      first.upto(last) do |s|
-        yield s unless @excl && s == last
-      end
+      first.upto(last, @excl, &block)
     when Symbol
       first.to_s.upto(last.to_s, @excl) do |str|
         yield str.to_sym
