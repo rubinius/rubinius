@@ -74,18 +74,8 @@ class Range
         yield s unless @excl && s == last
       end
     when Symbol
-      current = first
-      if @excl
-        while (current <=> last) < 0
-          yield current
-          current = (current.to_s.bytes.to_a.last + 1).chr.to_sym
-        end
-      else
-        while (c = current <=> last) && c <= 0
-          yield current
-          break if c == 0
-          current = (current.to_s.bytes.to_a.last + 1).chr.to_sym
-        end
+      first.to_s.upto(last.to_s, @excl) do |str|
+        yield str.to_sym
       end
     else
       current = first
