@@ -149,7 +149,6 @@ namespace jit {
   }
 
   void Compiler::compile_block(CompiledCode* code, MachineCode* mcode) {
-    if(!mcode->parent()) return;
     if(ctx_->llvm_state()->config().jit_inline_debug) {
 
       struct timeval tv;
