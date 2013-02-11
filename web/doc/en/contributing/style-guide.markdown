@@ -17,6 +17,7 @@ irc.freenode.net.
   * Configure your editor for soft tabs, not hard tabs
   * Expand tabs to two spaces
   * Leave a trailing newline at the end of each file
+  * Don't leave spaces at the end of each line
 
 
 ## C++ Code
@@ -77,6 +78,12 @@ irc.freenode.net.
         module Rubinius::Profiler
           class Sampler
           end
+        end
+
+  * Method definitions: don't add empty parentheses when there is no parameter.
+
+        def clear
+          @total = 0
         end
 
 ## Kernel Code
