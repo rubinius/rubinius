@@ -310,7 +310,11 @@ namespace rubinius {
         // because it's got something we don't support.
         if(!func) {
           if(ls_->config().jit_show_compiling) {
-            llvm::outs() << "[[[ JIT error in background compiling ]]]\n";
+            CompiledCode* code = req->method();
+            llvm::outs() << "[[[ JIT error background compiling "
+                      << ls_->enclosure_name(code) << "#" << ls_->symbol_debug_str(code->name())
+                      << (req->is_block() ? " (block)" : " (method)")
+                      << " ]]]\n";
           }
           // If someone was waiting on this, wake them up.
           if(utilities::thread::Condition* cond = req->waiter()) {
@@ -548,16 +552,6 @@ namespace rubinius {
       return;
     }
 
-    if(debug_search) {
-      if(is_block) {
-        std::cout << "JIT: queueing block inside: "
-          << enclosure_name(code) << "#" << symbol_debug_str(code->name()) << std::endl;
-      } else {
-        std::cout << "JIT: queueing method: "
-          << enclosure_name(code) << "#" << symbol_debug_str(code->name()) << std::endl;
-      }
-    }
-
     // Don't do this because it prevents other class from heating
     // it up too!
     code->machine_code()->call_count = -1;
@@ -597,7 +591,7 @@ namespace rubinius {
       if(state->shared().config.jit_show_compiling) {
         llvm::outs() << "[[[ JIT queued "
           << enclosure_name(code) << "#" << symbol_debug_str(code->name())
-          << (req->is_block() ? " (block)" : " (method)")
+          << (req->is_block() ? " (block) " : " (method) ")
           << queued_methods() << "/"
           << jitted_methods() << " ]]]\n";
       }
