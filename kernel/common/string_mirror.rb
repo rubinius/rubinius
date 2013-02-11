@@ -19,6 +19,10 @@ module Rubinius
         Rubinius.invoke_primitive :string_byte_index, @object, value, start
       end
 
+      def previous_byte_index(index)
+        Rubinius.invoke_primitive :string_previous_byte_index, @object, index
+      end
+
       def copy_from(other, start, size, dest)
         Rubinius.invoke_primitive :string_copy_from, @object, other, start, size, dest
       end

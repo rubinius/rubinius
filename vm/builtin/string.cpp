@@ -1731,6 +1731,26 @@ namespace rubinius {
     return nil<Fixnum>(); // satisfy compiler
   }
 
+  Fixnum* String::previous_byte_index(STATE, Fixnum* index) {
+    native_int i = index->to_native();
+
+    if(i < 0) {
+      Exception::argument_error(state, "negative index given");
+    }
+
+    OnigEncodingType* enc = encoding(state)->get_encoding();
+
+    uint8_t* s = byte_address();
+    uint8_t* p = s + i;
+    uint8_t* e = s + byte_size();
+
+    uint8_t* b = onigenc_get_prev_char_head(enc, s, p, e);
+
+    if(!b) return nil<Fixnum>();
+
+    return Fixnum::from(b - s);
+  }
+
   OnigEncodingType* String::get_encoding_kcode_fallback(STATE) {
     if(!LANGUAGE_18_ENABLED(state)) {
       if(!encoding_->nil_p()) {

@@ -254,6 +254,9 @@ namespace rubinius {
     // Rubinius.primitive :string_byte_index
     Fixnum* byte_index(STATE, Object* value, Fixnum* start);
 
+    // Rubinius.primitive :string_previous_byte_index
+    Fixnum* previous_byte_index(STATE, Fixnum* index);
+
     // Rubinius.primitive :string_transform
     String* transform(STATE, Tuple* table, Object* respect_kcode);
 

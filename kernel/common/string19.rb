@@ -482,81 +482,96 @@ class String
 
   def chop!
     Rubinius.check_frozen
-    return if @num_bytes == 0
 
-    self.modify!
+    m = Rubinius::Mirror.reflect self
 
-    if @num_bytes > 1 and
-        @data[@num_bytes-1] == 10 and @data[@num_bytes-2] == 13
-      self.num_bytes -= 2
-    else
-      self.num_bytes -= 1
+    bytes = m.previous_byte_index @num_bytes
+    return unless bytes
+
+    chr = chr_at bytes
+    if chr.ord == 10 and chr.ascii?
+      if i = m.previous_byte_index(bytes)
+        chr = chr_at i
+
+        bytes = i if chr.ord == 13 and chr.ascii?
+      end
     end
+
+    self.num_bytes = bytes
+
+    # We do not need to dup the data, so don't use #modify!
+    @hash_value = nil
 
     self
   end
 
-  # NOTE: TypeError is raised in String#replace and not in String#chomp! when
-  # self is frozen. This is intended behaviour.
   def chomp!(sep=undefined)
     Rubinius.check_frozen
 
-    # special case for performance. No seperator is by far the most common usage.
-    if sep.equal?(undefined)
-      return if @num_bytes == 0
-
-      c = @data[@num_bytes-1]
-      if c == 10 # ?\n
-        self.num_bytes -= 1 if @num_bytes > 1 && @data[@num_bytes-2] == 13 # ?\r
-      elsif c != 13 # ?\r
-        return
-      end
-
-      # don't use modify! because it will dup the data when we don't need to.
-      @hash_value = nil
-      self.num_bytes -= 1
-      return self
+    if sep.equal? undefined
+      sep = $/
+    elsif sep
+      sep = StringValue(sep)
     end
 
-    return if sep.nil? || @num_bytes == 0
-    sep = StringValue sep
+    return if sep.nil?
 
-    if (sep == $/ && sep == DEFAULT_RECORD_SEPARATOR) || sep == "\n"
-      c = @data[@num_bytes-1]
-      if c == 10 # ?\n
-        self.num_bytes -= 1 if @num_bytes > 1 && @data[@num_bytes-2] == 13 # ?\r
-      elsif c != 13 # ?\r
+    m = Rubinius::Mirror.reflect self
+
+    if sep == DEFAULT_RECORD_SEPARATOR
+      return unless bytes = m.previous_byte_index(@num_bytes)
+
+      chr = chr_at bytes
+      return unless chr.ascii?
+
+      code = chr.ord
+      case chr.ord
+      when 13
+        # do nothing
+      when 10
+        if j = m.previous_byte_index(bytes)
+          chr = chr_at j
+
+          if chr.ord == 13 and chr.ascii?
+            bytes = j
+          end
+        end
+      else
         return
       end
-
-      # don't use modify! because it will dup the data when we don't need to.
-      @hash_value = nil
-      self.num_bytes -= 1
     elsif sep.size == 0
-      size = @num_bytes
-      while size > 0 && @data[size-1] == 10 # ?\n
-        if size > 1 && @data[size-2] == 13 # ?\r
-          size -= 2
-        else
-          size -= 1
+      return if @num_bytes == 0
+      bytes = @num_bytes
+
+      while i = m.previous_byte_index(bytes)
+        chr = chr_at i
+        break unless chr.ord == 10 and chr.ascii?
+
+        bytes = i
+
+        if j = m.previous_byte_index(i)
+          chr = chr_at j
+          if chr.ord == 13 and chr.ascii?
+            bytes = j
+          end
         end
       end
 
-      return if size == @num_bytes
-
-      # don't use modify! because it will dup the data when we don't need to.
-      @hash_value = nil
-      self.num_bytes = size
+      return if bytes == @num_bytes
     else
       size = sep.size
-      return if size > @num_bytes || sep.compare_substring(self, -size, size) != 0
+      return if size > @num_bytes
 
-      # don't use modify! because it will dup the data when we don't need to.
-      @hash_value = nil
-      self.num_bytes -= size
+      # TODO: Move #compare_substring to mirror.
+      return unless sep.compare_substring(self, -size, size) == 0
+      bytes = @num_bytes - size
     end
 
-    return self
+    # We do not need to dup the data, so don't use #modify!
+    @hash_value = nil
+    self.num_bytes = bytes
+
+    self
   end
 
   def clear
