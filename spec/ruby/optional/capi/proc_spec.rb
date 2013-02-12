@@ -53,6 +53,10 @@ describe "C-API Proc function" do
     it "returns a Proc instance with #aricy == -1" do
       @prc.arity.should == -1
     end
+
+    it "shouldn't be equal to another one" do
+      @prc.should_not == @p.rb_proc_new
+    end
   end
 end
 
