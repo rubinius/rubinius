@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes.rb', __FILE__)
 
@@ -88,6 +89,7 @@ describe "String#chomp with separator" do
     StringSpecs::MyString.new("hello").chomp.should be_kind_of(StringSpecs::MyString)
     StringSpecs::MyString.new("").chomp.should be_kind_of(StringSpecs::MyString)
   end
+
 end
 
 describe "String#chomp! with separator" do
@@ -185,6 +187,38 @@ describe "String#chomp! with separator" do
       a.freeze
       lambda { a.chomp!(nil) }.should raise_error(RuntimeError)
       lambda { a.chomp!("x") }.should raise_error(RuntimeError)
+    end
+  end
+end
+
+with_feature :encoding do
+  describe "String#chomp" do
+    it "does not modify a multi-byte character" do
+      "あれ".chomp.should == "あれ"
+    end
+
+    it "removes the final carriage return, newline from a multibyte String" do
+      "あれ\r\n".chomp.should == "あれ"
+    end
+
+    it "removes the final carriage return, newline from a non-ASCII String" do
+      str = "abc\r\n".encode "utf-32be"
+      str.chomp.should == "abc".encode("utf-32be")
+    end
+  end
+
+  describe "String#chomp!" do
+    it "returns nil when the String is not modified" do
+      "あれ".chomp!.should be_nil
+    end
+
+    it "removes the final carriage return, newline from a multibyte String" do
+      "あれ\r\n".chomp!.should == "あれ"
+    end
+
+    it "removes the final carriage return, newline from a non-ASCII String" do
+      str = "abc\r\n".encode "utf-32be"
+      str.chomp!.should == "abc".encode("utf-32be")
     end
   end
 end
