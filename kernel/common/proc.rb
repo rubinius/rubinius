@@ -168,7 +168,7 @@ class Proc
         file = "(unknown)"
       end
 
-      "#<#{self.class}:0x#{self.object_id.to_s(16)} @ #{file}:#{line}>"
+      "#<#{self.class}:0x#{self.object_id.to_s(16)}@#{file}:#{line}>"
     end
 
     alias_method :to_s, :inspect
