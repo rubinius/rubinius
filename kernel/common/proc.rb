@@ -53,7 +53,6 @@ class Proc
     return block
   end
 
-  # Expose @block because MRI does. Do not expose @bound_method
   attr_accessor :block
 
   def binding
