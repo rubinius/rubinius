@@ -976,10 +976,12 @@ namespace rubinius {
       Value* masked1 = b().CreateAnd(lint, fix_mask, "masked");
       Value* masked2 = b().CreateAnd(rint, fix_mask, "masked");
       Value* anded   = b().CreateAnd(masked1, masked2, "fixnums_anded");
-      Value* same    = b().CreateAnd(anded, fix_tag, "are_fixnums");
       Value* ored    = b().CreateOr(masked1, masked2, "fixnums_ored");
 
-      return b().CreateICmpEQ(same, ored, "is_fixnum");
+      Value* and_fix = b().CreateICmpEQ(anded, fix_tag, "is_fixnum_and");
+      Value* ored_fix = b().CreateICmpEQ(ored, fix_tag, "is_fixnum_ored");
+
+      return b().CreateAnd(and_fix, ored_fix, "is_fixnum");
     }
 
     Value* check_if_non_zero_fixnum(Value* val) {
