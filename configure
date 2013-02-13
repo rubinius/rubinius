@@ -124,7 +124,7 @@ class Configure
     @patch_version = "0"
     @release = "rc1"
     @release_date = "yyyy-mm-dd"
-    @config_version = 168
+    @config_version = 169
   end
 
   # Set up system commands to run in cmd.exe on Windows. Either Windows
@@ -427,7 +427,7 @@ class Configure
     feature "vendor-zlib", false
     feature "alloc-tracking", false
     feature "fibers", true
-    feature "dtrace", true
+    feature "dtrace", false
 
     o.doc "\n Help!"
 
