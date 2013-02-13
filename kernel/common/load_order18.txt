@@ -99,6 +99,7 @@ random.rbc
 regexp.rbc
 regexp18.rbc
 signal.rbc
+signal18.rbc
 splitter.rbc
 splitter18.rbc
 sprinter.rbc
