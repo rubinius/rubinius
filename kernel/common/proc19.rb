@@ -114,5 +114,4 @@ class Proc
       @bound_method.call(*args, &block)
     end
   end
-
 end
