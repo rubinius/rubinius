@@ -52,12 +52,26 @@ class Proc
   end
 
   def source_location
-    [@block.file.to_s, @block.line]
+    if @bound_method
+      if @bound_method.respond_to?(:source_location)
+        @bound_method.source_location
+      else
+        nil
+      end
+    else
+      @block.source_location
+    end
   end
 
   def to_s
+    file, line = source_location
+
     l = " (lambda)" if lambda?
-    "#<#{self.class}:0x#{self.object_id.to_s(16)}@#{@block.file}:#{@block.line}#{l}>"
+    if file and line
+      "#<#{self.class}:0x#{self.object_id.to_s(16)}@#{file}:#{line}#{l}>"
+    else
+      "#<#{self.class}:0x#{self.object_id.to_s(16)}#{l}>"
+    end
   end
 
   alias_method :inspect, :to_s
