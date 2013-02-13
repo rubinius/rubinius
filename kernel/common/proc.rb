@@ -53,8 +53,8 @@ class Proc
     return block
   end
 
-  # Expose @block because MRI does. Do not expose @bound_method
   attr_accessor :block
+  attr_accessor :bound_method
 
   def binding
     bind = @block.to_binding
@@ -64,7 +64,7 @@ class Proc
 
   def ==(other)
     return false unless other.kind_of? self.class
-    @block == other.block
+    @block == other.block and @bound_method == other.bound_method
   end
 
   def arity
@@ -153,25 +153,6 @@ class Proc
         raise ArgumentError, "tried to create a Proc::Method object without a Method"
       end
     end
-
-    def inspect
-      code = @bound_method.executable
-      if code.respond_to? :file
-        if code.lines
-          line = code.first_line
-        else
-          line = "-1"
-        end
-        file = code.file
-      else
-        line = "-1"
-        file = "(unknown)"
-      end
-
-      "#<#{self.class}:0x#{self.object_id.to_s(16)} @ #{file}:#{line}>"
-    end
-
-    alias_method :to_s, :inspect
 
     def ==(other)
       return false unless other.kind_of? self.class
