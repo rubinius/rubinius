@@ -490,7 +490,16 @@ class String
         @data[@num_bytes-1] == 10 and @data[@num_bytes-2] == 13
       self.num_bytes -= 2
     else
-      self.num_bytes -= 1
+      if @data[@num_bytes-1] & 128 == 0
+        self.num_bytes -= 1
+      elsif @data[@num_bytes-2] & (128|64) == (128|64)
+        self.num_bytes -= 2
+      elsif @data[@num_bytes-3] & (128|64|32) == (128|64|32)
+        self.num_bytes -= 3
+      elsif @data[@num_bytes-4] & (128|64|32|16) == (128|64|32|16)
+        self.num_bytes -= 4
+      end
+
     end
 
     self

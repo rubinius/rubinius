@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes.rb', __FILE__)
 
@@ -45,6 +46,10 @@ describe "String#chop" do
     it "untrusts result when self is untrusted" do
       "hello".untrust.chop.untrusted?.should == true
       "".untrust.chop.untrusted?.should == true
+    end
+
+    it "works with multi-byte characters" do
+      "日本語".chop.should == "日本"
     end
   end
 
