@@ -71,6 +71,31 @@ class Proc
       return obj
     end
 
+    def source_location
+      code = @bound_method.executable
+      if code.respond_to? :file
+        file = code.file
+        if code.lines
+          line = code.first_line
+        else
+          line = -1
+        end
+      else
+        file = "(unknown)"
+        line = -1
+      end
+
+      [file.to_s, line]
+    end
+
+    def inspect
+      file, line = source_location
+
+      "#<#{self.class}:0x#{self.object_id.to_s(16)}@#{file}:#{line}>"
+    end
+
+    alias_method :to_s, :inspect
+
     def __yield__(*args, &block)
       @bound_method.call(*args, &block)
     end
