@@ -69,6 +69,7 @@
 #include "util/sha1.h"
 
 #include "instruments/tooling.hpp"
+#include "dtrace/dtrace.h"
 
 #include "gc/walker.hpp"
 
@@ -1724,5 +1725,17 @@ namespace rubinius {
   String* System::vm_set_process_title(STATE, String* title) {
     setproctitle("%s", title->c_str_null_safe(state));
     return title;
+  }
+
+  Object* System::vm_dtrace_fire(STATE, String* payload) {
+#if HAVE_DTRACE
+    if(RUBINIUS_RUBY_PROBE_ENABLED()) {
+      RUBINIUS_RUBY_PROBE((const char*)payload->byte_address(), payload->byte_size());
+      return cTrue;
+    }
+    return cFalse;
+#else
+    return cNil;
+#endif
   }
 }

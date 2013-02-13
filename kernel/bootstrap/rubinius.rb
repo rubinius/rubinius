@@ -206,6 +206,11 @@ module Rubinius
     raise PrimitiveFailure, "Rubinius.run_script primitive failed"
   end
 
+  def self.dtrace_fire(payload)
+    Rubinius.primitive :vm_dtrace_fire
+    raise PrimitiveFailure, "Rubinius.dtrace_fire primitive failed"
+  end
+
   module Tooling
     def self.raw_load(str)
       Rubinius.primitive :vm_load_tool

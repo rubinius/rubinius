@@ -388,6 +388,9 @@ namespace rubinius {
     // Rubinius.primitive :vm_set_process_title
     static String* vm_set_process_title(STATE, String* name);
 
+    // Rubinius.primitive :vm_dtrace_fire
+    static Object* vm_dtrace_fire(STATE, String* payload);
+
   public:   /* Type info */
 
     class Info : public TypeInfo {

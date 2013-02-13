@@ -173,6 +173,14 @@ namespace rubinius {
 
   }
 
+  Symbol* CallFrame::file(STATE) {
+    if(compiled_code) {
+      return compiled_code->file();
+    } else {
+      return nil<Symbol>();
+    }
+  }
+
   int CallFrame::line(STATE) {
     if(!compiled_code) return -2;        // trampoline context
     return compiled_code->line(state, ip());

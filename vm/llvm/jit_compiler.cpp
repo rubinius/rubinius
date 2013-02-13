@@ -41,6 +41,7 @@
 
 #include "llvm/passes.hpp"
 #include "instructions_util.hpp"
+#include "dtrace/dtrace.h"
 
 using namespace llvm;
 
@@ -162,6 +163,16 @@ namespace jit {
         << " (" << tv.tv_sec << "." << tv.tv_usec << ")\n";
     }
 
+#ifdef HAVE_DTRACE
+    if(RUBINIUS_JIT_FUNCTION_BEGIN_ENABLED()) {
+      const char* class_name = ctx_->llvm_state()->enclosure_name(code).c_str();
+      const char* method_name = "<block>";
+      const char* file_name = ctx_->llvm_state()->symbol_debug_str(code->file()).c_str();
+      int line = code->start_line();
+      RUBINIUS_JIT_FUNCTION_BEGIN(class_name, method_name, file_name, line);
+    }
+#endif
+
     JITMethodInfo info(ctx_, code, mcode);
     info.is_block = true;
 
@@ -172,6 +183,16 @@ namespace jit {
 
     compile_builder(info, work);
     ctx_->set_root(NULL);
+
+#ifdef HAVE_DTRACE
+    if(RUBINIUS_JIT_FUNCTION_END_ENABLED()) {
+      const char* class_name = ctx_->llvm_state()->enclosure_name(code).c_str();
+      const char* method_name = "<block>";
+      const char* file_name = ctx_->llvm_state()->symbol_debug_str(code->file()).c_str();
+      int line = code->start_line();
+      RUBINIUS_JIT_FUNCTION_END(class_name, method_name, file_name, line);
+    }
+#endif
   }
 
   void Compiler::compile_method(BackgroundCompileRequest* req) {
@@ -188,6 +209,16 @@ namespace jit {
         << " (" << tv.tv_sec << "." << tv.tv_usec << ")\n";
     }
 
+#ifdef HAVE_DTRACE
+    if(RUBINIUS_JIT_FUNCTION_BEGIN_ENABLED()) {
+      const char* class_name = ctx_->llvm_state()->enclosure_name(code).c_str();
+      const char* method_name = ctx_->llvm_state()->symbol_debug_str(code->name()).c_str();
+      const char* file_name = ctx_->llvm_state()->symbol_debug_str(code->file()).c_str();
+      int line = code->start_line();
+      RUBINIUS_JIT_FUNCTION_BEGIN(class_name, method_name, file_name, line);
+    }
+#endif
+
     JITMethodInfo info(ctx_, code, code->machine_code());
     info.is_block = false;
 
@@ -202,6 +233,16 @@ namespace jit {
 
     compile_builder(info, work);
     ctx_->set_root(NULL);
+
+#ifdef HAVE_DTRACE
+    if(RUBINIUS_JIT_FUNCTION_END_ENABLED()) {
+      const char* class_name = ctx_->llvm_state()->enclosure_name(code).c_str();
+      const char* method_name = ctx_->llvm_state()->symbol_debug_str(code->name()).c_str();
+      const char* file_name = ctx_->llvm_state()->symbol_debug_str(code->file()).c_str();
+      int line = code->start_line();
+      RUBINIUS_JIT_FUNCTION_END(class_name, method_name, file_name, line);
+    }
+#endif
   }
 
   void Compiler::compile_builder(JITMethodInfo& info,

@@ -48,6 +48,7 @@ TYPE_GEN    = %w[ vm/gen/includes.hpp
 GENERATED = %W[ vm/gen/revision.h
                 vm/gen/config_variables.h
                 vm/gen/signature.h
+                vm/dtrace/probes.h
                 #{encoding_database}
                 #{transcoders_database}
               ] + TYPE_GEN + INSN_GEN
@@ -249,6 +250,12 @@ end
 file 'vm/gen/config_variables.h' => %w[lib/rubinius/configuration.rb config.rb] do |t|
   puts "GEN #{t.name}"
   ruby 'vm/codegen/config_vars.rb', t.name
+end
+
+file 'vm/dtrace/probes.h' do |t|
+  if Rubinius::BUILD_CONFIG[:dtrace]
+    sh %[dtrace -h -o vm/dtrace/probes.h -s vm/dtrace/probes.d]
+  end
 end
 
 require 'projects/daedalus/daedalus'

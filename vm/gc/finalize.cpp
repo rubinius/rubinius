@@ -12,6 +12,8 @@
 
 #include "gc/finalize.hpp"
 
+#include "dtrace/dtrace.h"
+
 namespace rubinius {
   FinalizerHandler::iterator::iterator(FinalizerHandler* fh)
     : handler_(fh)
@@ -186,7 +188,9 @@ namespace rubinius {
 
   void FinalizerHandler::perform(STATE) {
     GCTokenImpl gct;
-    utilities::thread::Thread::set_os_name("rbx.finalizer");
+    const char* thread_name = "rbx.finalizer";
+    utilities::thread::Thread::set_os_name(thread_name);
+    RUBINIUS_THREAD_START(thread_name, state->vm()->thread_id(), 1);
 
     state->vm()->thread->hard_unlock(state, gct);
 
@@ -221,6 +225,7 @@ namespace rubinius {
       finalize(state);
       next_process_item();
     }
+    RUBINIUS_THREAD_STOP(thread_name, state->vm()->thread_id(), 1);
   }
 
   void FinalizerHandler::finalize(STATE) {

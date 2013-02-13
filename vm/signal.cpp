@@ -14,6 +14,8 @@
 
 #include "builtin/thread.hpp"
 
+#include "dtrace/dtrace.h"
+
 #ifndef RBX_WINDOWS
 #include <sys/select.h>
 #endif
@@ -143,7 +145,10 @@ namespace rubinius {
 #endif
 
     GCTokenImpl gct;
-    utilities::thread::Thread::set_os_name("rbx.signal");
+    const char* thread_name = "rbx.signal";
+    utilities::thread::Thread::set_os_name(thread_name);
+
+    RUBINIUS_THREAD_START(thread_name, state->vm()->thread_id(), 1);
 
     state->vm()->thread->hard_unlock(state, gct);
 
@@ -169,6 +174,7 @@ namespace rubinius {
       target_->set_check_local_interrupts();
       target_->wakeup(state, gct);
     }
+    RUBINIUS_THREAD_STOP(thread_name, state->vm()->thread_id(), 1);
   }
 
   void SignalHandler::signal_tramp(int sig) {

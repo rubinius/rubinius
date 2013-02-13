@@ -30,6 +30,8 @@
 #include "capi/capi.hpp"
 #include "capi/handle.hpp"
 
+#include "dtrace/dtrace.h"
+
 #ifdef RBX_WINDOWS
 #include <malloc.h>
 #endif
@@ -694,9 +696,11 @@ namespace rubinius {
     // MethodEntry. It's duplicated, but it's much easier to understand than
     // trying to de-dup it.
 
+    OnStack<2> os(state, exec, mod);
     if(unlikely(state->vm()->tooling())) {
-      OnStack<2> os(state, exec, mod);
       tooling::MethodEntry method(state, exec, mod, args);
+      RUBINIUS_METHOD_NATIVE_ENTRY_HOOK(state, mod, args.name(), call_frame);
+
       PLACE_EXCEPTION_POINT(ep);
 
       if(unlikely(ep.jumped_to())) {
@@ -704,7 +708,10 @@ namespace rubinius {
       } else {
         ret = ArgumentHandler::invoke(state, nm, env, args);
       }
+      RUBINIUS_METHOD_NATIVE_RETURN_HOOK(state, mod, args.name(), call_frame);
     } else {
+      RUBINIUS_METHOD_NATIVE_ENTRY_HOOK(state, mod, args.name(), call_frame);
+
       PLACE_EXCEPTION_POINT(ep);
 
       if(unlikely(ep.jumped_to())) {
@@ -712,8 +719,11 @@ namespace rubinius {
       } else {
         ret = ArgumentHandler::invoke(state, nm, env, args);
       }
+      RUBINIUS_METHOD_NATIVE_RETURN_HOOK(state, mod, args.name(), call_frame);
     }
 #else
+    RUBINIUS_METHOD_NATIVE_ENTRY_HOOK(state, mod, args.name(), call_frame);
+
     PLACE_EXCEPTION_POINT(ep);
 
     if(unlikely(ep.jumped_to())) {
@@ -721,6 +731,7 @@ namespace rubinius {
     } else {
       ret = ArgumentHandler::invoke(state, nm, env, args);
     }
+    RUBINIUS_METHOD_NATIVE_RETURN_HOOK(state, mod, args.name(), call_frame);
 #endif
 
     env->set_current_call_frame(saved_frame);
@@ -728,7 +739,7 @@ namespace rubinius {
     ep.pop(env);
 
     LEAVE_CAPI(state);
-    OnStack<1> os(state, ret);
+    OnStack<1> os_ret(state, ret);
 
     // Handle any signals that occurred while the native method
     // was running.

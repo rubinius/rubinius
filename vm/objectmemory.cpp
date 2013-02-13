@@ -34,6 +34,7 @@
 #include "global_cache.hpp"
 
 #include "instruments/tooling.hpp"
+#include "dtrace/dtrace.h"
 
 // Used by XMALLOC at the bottom
 static long gc_malloc_threshold = 0;
@@ -521,6 +522,7 @@ step1:
 
       YoungCollectStats stats;
 
+      RUBINIUS_GC_BEGIN(0);
 #ifdef RBX_PROFILER
       if(unlikely(state->vm()->tooling())) {
         tooling::GCEntry method(state, tooling::GCYoung);
@@ -531,6 +533,8 @@ step1:
 #else
       collect_young(gc_data, &stats);
 #endif
+
+      RUBINIUS_GC_END(0);
 
       if(state->shared().config.gc_show) {
         uint64_t fin_time = get_current_time();
@@ -554,6 +558,7 @@ step1:
         before_kb = mature_bytes_allocated() / 1024;
       }
 
+      RUBINIUS_GC_BEGIN(1);
 #ifdef RBX_PROFILER
       if(unlikely(state->vm()->tooling())) {
         tooling::GCEntry method(state, tooling::GCMature);
@@ -564,6 +569,8 @@ step1:
 #else
       collect_mature(gc_data);
 #endif
+
+      RUBINIUS_GC_END(1);
 
       if(state->shared().config.gc_show) {
         uint64_t fin_time = get_current_time();

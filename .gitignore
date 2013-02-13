@@ -88,3 +88,5 @@ doc/generated/vm
 web/doc/*/*.bak
 web/doc/*/*.new
 
+# Ignore generated DTrace header
+vm/dtrace/probes.h

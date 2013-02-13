@@ -18,6 +18,7 @@
 #include "environment.hpp"
 
 #include "instruments/tooling.hpp"
+#include "dtrace/dtrace.h"
 
 #include "vm/object_utils.hpp"
 #include "vm.hpp"
@@ -227,6 +228,8 @@ namespace rubinius {
 
     VM::set_current(vm, tn.str());
 
+    RUBINIUS_THREAD_START(tn.str().c_str(), vm->thread_id(), 0);
+
     state->set_call_frame(0);
 
     if(cDebugThreading) {
@@ -285,6 +288,7 @@ namespace rubinius {
       std::cerr << "[LOCK thread " << vm->thread_id() << " exited]\n";
     }
 
+    RUBINIUS_THREAD_STOP(tn.str().c_str(), vm->thread_id(), 0);
     return 0;
   }
 

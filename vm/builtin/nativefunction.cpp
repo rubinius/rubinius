@@ -42,6 +42,8 @@
 #include "builtin/nativefunction.hpp"
 
 #include "instruments/tooling.hpp"
+#include "call_frame.hpp"
+#include "dtrace/dtrace.h"
 
 namespace rubinius {
 
@@ -90,17 +92,25 @@ namespace rubinius {
     state->set_call_frame(call_frame);
 
     try {
-
+      OnStack<2> os(state, exec, mod);
 #ifdef RBX_PROFILER
       if(unlikely(state->vm()->tooling())) {
-        OnStack<2> os(state, exec, mod);
         tooling::MethodEntry method(state, exec, mod, args);
-        return nfunc->call(state, args, call_frame);
+        RUBINIUS_METHOD_FFI_ENTRY_HOOK(state, mod, args.name(), call_frame);
+        Object* ret = nfunc->call(state, args, call_frame);
+        RUBINIUS_METHOD_FFI_RETURN_HOOK(state, mod, args.name(), call_frame);
+        return ret;
       } else {
-        return nfunc->call(state, args, call_frame);
+        RUBINIUS_METHOD_FFI_ENTRY_HOOK(state, mod, args.name(), call_frame);
+        Object* ret = nfunc->call(state, args, call_frame);
+        RUBINIUS_METHOD_FFI_RETURN_HOOK(state, mod, args.name(), call_frame);
+        return ret;
       }
 #else
-      return nfunc->call(state, args, msg, call_frame);
+      RUBINIUS_METHOD_FFI_ENTRY_HOOK(state, mod, args.name(), call_frame);
+      Object* ret = nfunc->call(state, args, call_frame);
+      RUBINIUS_METHOD_FFI_RETURN_HOOK(state, mod, args.name(), call_frame);
+      return ret;
 #endif
 
     } catch(TypeError &e) {
@@ -109,6 +119,7 @@ namespace rubinius {
       exc->locations(state, Location::from_call_stack(state, call_frame));
 
       state->raise_exception(exc);
+      RUBINIUS_METHOD_FFI_RETURN_HOOK(state, mod, args.name(), call_frame);
       return NULL;
     }
   }

@@ -26,6 +26,7 @@
 #include "call_frame.hpp"
 #include "configuration.hpp"
 #include "instruments/timing.hpp"
+#include "dtrace/dtrace.h"
 
 #if RBX_LLVM_API_VER >= 302
 #include <llvm/DataLayout.h>
@@ -226,9 +227,12 @@ namespace rubinius {
     }
 
     virtual void perform() {
-      ManagedThread::set_current(ls_, "rbx.jit");
+      const char* thread_name = "rbx.jit";
+      ManagedThread::set_current(ls_, thread_name);
 
       ls_->set_run_state(ManagedThread::eIndependent);
+
+      RUBINIUS_THREAD_START(thread_name, ls_->thread_id(), 1);
 
 #ifndef RBX_WINDOWS
       sigset_t set;
@@ -250,11 +254,11 @@ namespace rubinius {
             paused_ = true;
             pause_condition_.broadcast();
 
-            if(stop_) return;
+            if(stop_) goto halt;
 
             while(pause_) {
               condition_.wait(mutex_);
-              if(stop_) return;
+              if(stop_) goto halt;
             }
 
             state = cUnknown;
@@ -262,7 +266,8 @@ namespace rubinius {
           }
 
           // If we've been asked to stop, do so now.
-          if(stop_) return;
+          if(stop_) goto halt;
+
 
           while(pending_requests_.empty()) {
             state = cIdle;
@@ -270,7 +275,7 @@ namespace rubinius {
             // unlock and wait...
             condition_.wait(mutex_);
 
-            if(stop_) return;
+            if(stop_) goto halt;
           }
 
           // now locked again, shift a request
@@ -387,6 +392,9 @@ namespace rubinius {
         // of us.
         ls_->gc_independent();
       }
+
+halt:
+      RUBINIUS_THREAD_STOP(thread_name, ls_->thread_id(), 1);
     }
 
     void gc_scan(GarbageCollector* gc) {

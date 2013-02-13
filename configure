@@ -86,6 +86,7 @@ class Configure
     @x86_32       = false
     @x86_64       = false
     @fibers       = false
+    @dtrace       = false
     @include_dirs = []
     @lib_dirs     = []
 
@@ -123,7 +124,7 @@ class Configure
     @patch_version = "0"
     @release = "rc1"
     @release_date = "yyyy-mm-dd"
-    @config_version = 167
+    @config_version = 168
   end
 
   # Set up system commands to run in cmd.exe on Windows. Either Windows
@@ -426,6 +427,7 @@ class Configure
     feature "vendor-zlib", false
     feature "alloc-tracking", false
     feature "fibers", true
+    feature "dtrace", true
 
     o.doc "\n Help!"
 
@@ -1079,6 +1081,27 @@ int main() { return tgetnum(""); }
     success
   end
 
+  def has_dtrace
+    @log.print "Checking for dtrace: "
+
+    begin
+      basename = "rbx-configure-dtrace-test"
+      source   = basename + ".d"
+      File.open source, "wb" do |f|
+        f.write "provider conftest{ probe fire(); };"
+      end
+
+      cmd = "dtrace -h -o #{basename}.h -s #{source}"
+      @log.log cmd
+      system cmd
+      @dtrace = $?.exitstatus == 0
+      puts @dtrace ? "yes" : "no"
+      @dtrace
+    ensure
+      File.delete(*Dir["#{basename}*"])
+    end
+  end
+
   def compile_check(logpart, &block)
     @log.print "Checking for #{logpart}: "
 
@@ -1133,6 +1156,10 @@ int main() { return tgetnum(""); }
 
     if @features["fibers"].value
       @fibers = true if @x86_32 or @x86_64
+    end
+
+    if @features["dtrace"].value and has_dtrace
+      @defines << "HAVE_DTRACE"
     end
 
     # Default on Windows is vendor-zlib
@@ -1428,6 +1455,7 @@ module Rubinius
     :sizeof_long    => #{sizeof("long")},
     :x86_32         => #{@x86_32},
     :x86_64         => #{@x86_64},
+    :dtrace         => #{@dtrace},
     :fibers         => #{@fibers},
     :sourcedir      => "#{@sourcedir}",
     :stagingdir     => #{@stagingdir.inspect},
