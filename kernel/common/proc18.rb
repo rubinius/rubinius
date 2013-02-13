@@ -12,7 +12,11 @@ class Proc
       file, line = @block.source_location
     end
 
-    "#<#{self.class}:0x#{self.object_id.to_s(16)}@#{file}:#{line}>"
+    if file and line
+      "#<#{self.class}:0x#{self.object_id.to_s(16)}@#{file}:#{line}>"
+    else
+      "#<#{self.class}:0x#{self.object_id.to_s(16)}>"
+    end
   end
 
   alias_method :inspect, :to_s
