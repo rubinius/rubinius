@@ -105,7 +105,8 @@ class Proc
     def inspect
       file, line = source_location
 
-      "#<#{self.class}:0x#{self.object_id.to_s(16)}@#{file}:#{line}>"
+      l = " (lambda)" if lambda?
+      "#<#{self.class}:0x#{self.object_id.to_s(16)}@#{file}:#{line}#{l}>"
     end
 
     alias_method :to_s, :inspect
@@ -114,5 +115,4 @@ class Proc
       @bound_method.call(*args, &block)
     end
   end
-
 end
