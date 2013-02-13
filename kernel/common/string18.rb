@@ -231,73 +231,60 @@ class String
     self
   end
 
-  # NOTE: TypeError is raised in String#replace and not in String#chomp! when
-  # self is frozen. This is intended behaviour.
   def chomp!(sep=undefined)
-    # special case for performance. No seperator is by far the most common usage.
-    if sep.equal?(undefined)
-      return if @num_bytes == 0
+    return if @num_bytes == 0
 
-      Rubinius.check_frozen
-
-      c = @data[@num_bytes-1]
-      if c == 10 # ?\n
-        self.num_bytes -= 1 if @num_bytes > 1 && @data[@num_bytes-2] == 13 # ?\r
-      elsif c != 13 # ?\r
-        return
-      end
-
-      # don't use modify! because it will dup the data when we don't need to.
-      @hash_value = nil
-      self.num_bytes -= 1
-      return self
+    if sep.equal? undefined
+      sep = $/
+    elsif sep
+      sep = StringValue(sep)
     end
 
-    return if sep.nil? || @num_bytes == 0
-    sep = StringValue sep
+    return if sep.nil?
 
-    if (sep == $/ && sep == DEFAULT_RECORD_SEPARATOR) || sep == "\n"
-      c = @data[@num_bytes-1]
-      if c == 10 # ?\n
-        @num_bytes -= 1 if @num_bytes > 1 && @data[@num_bytes-2] == 13 # ?\r
-      elsif c != 13 # ?\r
+    if sep == DEFAULT_RECORD_SEPARATOR
+      bytes = @num_bytes - 1
+      case @data[bytes]
+      when 13
+        # do nothing
+      when 10
+        j = bytes - 1
+        bytes = j if j >= 0 and @data[j] == 13
+      else
+        Rubinius.check_frozen
         return
       end
-
-      Rubinius.check_frozen
-
-      # don't use modify! because it will dup the data when we don't need to.
-      @hash_value = nil
-      self.num_bytes -= 1
     elsif sep.size == 0
-      size = @num_bytes
-      while size > 0 && @data[size-1] == 10 # ?\n
-        if size > 1 && @data[size-2] == 13 # ?\r
-          size -= 2
-        else
-          size -= 1
+      bytes = @num_bytes
+      i = bytes - 1
+
+      while i >= 0
+        break unless @data[i] == 10
+        bytes = i
+        j = i -= 1
+        if j >= 0 and @data[j] == 13
+          bytes = j
+          i -= 1
         end
       end
 
-      return if size == @num_bytes
-
-      Rubinius.check_frozen
-
-      # don't use modify! because it will dup the data when we don't need to.
-      @hash_value = nil
-      self.num_bytes = size
+      return if bytes == @num_bytes
     else
       size = sep.size
-      return if size > @num_bytes || sep.compare_substring(self, -size, size) != 0
+      return if size > @num_bytes
 
-      Rubinius.check_frozen
-
-      # don't use modify! because it will dup the data when we don't need to.
-      @hash_value = nil
-      self.num_bytes -= size
+      # TODO: Move #compare_substring to mirror.
+      return unless sep.compare_substring(self, -size, size) == 0
+      bytes = @num_bytes - size
     end
 
-    return self
+    Rubinius.check_frozen
+
+    # We do not need to dup the data, so don't use #modify!
+    @hash_value = nil
+    self.num_bytes = bytes
+
+    self
   end
 
   def replace(other)
