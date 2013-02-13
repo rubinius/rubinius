@@ -53,58 +53,6 @@ class Range
 
   attr_reader_specific :excl, :exclude_end?
 
-  def each(&block)
-    return to_enum unless block_given?
-    first, last = @begin, @end
-
-    raise TypeError, "can't iterate from #{first.class}" unless can_iterate_from?(first)
-
-    case first
-    when Fixnum
-      last -= 1 if @excl
-
-      i = first
-      while i <= last
-        yield i
-        i += 1
-      end
-
-    when String
-      first.upto(last) do |s|
-        yield s unless @excl && s == last
-      end
-    when Symbol
-      current = first
-      if @excl
-        while (current <=> last) < 0
-          yield current
-          current = (current.to_s.bytes.to_a.last + 1).chr.to_sym
-        end
-      else
-        while (c = current <=> last) && c <= 0
-          yield current
-          break if c == 0
-          current = (current.to_s.bytes.to_a.last + 1).chr.to_sym
-        end
-      end
-    else
-      current = first
-      if @excl
-        while (current <=> last) < 0
-          yield current
-          current = current.succ
-        end
-      else
-        while (c = current <=> last) && c <= 0
-          yield current
-          break if c == 0
-          current = current.succ
-        end
-      end
-    end
-    return self
-  end
-
   attr_reader :begin
 
   def hash
