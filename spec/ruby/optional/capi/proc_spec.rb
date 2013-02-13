@@ -54,8 +54,8 @@ describe "C-API Proc function" do
       @prc.arity.should == -1
     end
 
-    it "returns a Proc instance correctly described in #ispect" do
-      @prc.inspect.should =~ /^#<Proc:([^ ]*?)>$/
+    it "returns a Proc instance correctly described in #inspect without source location" do
+      @prc.inspect.should =~ /^#<Proc:([^ :@]*?)>$/
     end
 
     it "shouldn't be equal to another one" do
