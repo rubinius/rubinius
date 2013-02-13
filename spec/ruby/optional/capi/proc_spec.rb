@@ -53,6 +53,20 @@ describe "C-API Proc function" do
     it "returns a Proc instance with #aricy == -1" do
       @prc.arity.should == -1
     end
+
+    it "returns a Proc instance correctly described in #ispect" do
+      @prc.inspect.should =~ /^#<Proc:([^ ]*?)>$/
+    end
+
+    it "shouldn't be equal to another one" do
+      @prc.should_not == @p.rb_proc_new
+    end
+
+    ruby_version_is "1.9" do
+      it "returns a Proc instance with #source_location == nil" do
+        @prc.source_location.should == nil
+      end
+    end
   end
 end
 

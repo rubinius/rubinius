@@ -52,12 +52,26 @@ class Proc
   end
 
   def source_location
-    [@block.file.to_s, @block.line]
+    if @bound_method
+      if @bound_method.respond_to?(:source_location)
+        @bound_method.source_location
+      else
+        nil
+      end
+    else
+      @block.source_location
+    end
   end
 
   def to_s
+    file, line = source_location
+
     l = " (lambda)" if lambda?
-    "#<#{self.class}:0x#{self.object_id.to_s(16)}@#{@block.file}:#{@block.line}#{l}>"
+    if file and line
+      "#<#{self.class}:0x#{self.object_id.to_s(16)}@#{file}:#{line}#{l}>"
+    else
+      "#<#{self.class}:0x#{self.object_id.to_s(16)}#{l}>"
+    end
   end
 
   alias_method :inspect, :to_s
@@ -70,6 +84,31 @@ class Proc
 
       return obj
     end
+
+    def source_location
+      code = @bound_method.executable
+      if code.respond_to? :file
+        file = code.file
+        if code.lines
+          line = code.first_line
+        else
+          line = -1
+        end
+      else
+        file = "(unknown)"
+        line = -1
+      end
+
+      [file.to_s, line]
+    end
+
+    def inspect
+      file, line = source_location
+
+      "#<#{self.class}:0x#{self.object_id.to_s(16)}@#{file}:#{line}>"
+    end
+
+    alias_method :to_s, :inspect
 
     def __yield__(*args, &block)
       @bound_method.call(*args, &block)

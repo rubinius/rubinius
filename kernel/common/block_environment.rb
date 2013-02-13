@@ -92,6 +92,10 @@ module Rubinius
       @compiled_code.defined_line
     end
 
+    def source_location
+      [file.to_s, line]
+    end
+
     class AsMethod < Executable
       attr_reader :block_env
 
