@@ -270,13 +270,15 @@ class Module
     name = Rubinius::Type.coerce_to_symbol name
 
     case meth
-    when Proc::Method
-      code = Rubinius::DelegatedMethod.new(name, :call, meth, false)
     when Proc
-      be = meth.block.dup
-      be.change_name name
-      code = Rubinius::BlockEnvironment::AsMethod.new(be)
-      meth = lambda(&meth)
+      if meth.ruby_method
+        code = Rubinius::DelegatedMethod.new(name, :call, meth, false)
+      else
+        be = meth.block.dup
+        be.change_name name
+        code = Rubinius::BlockEnvironment::AsMethod.new(be)
+        meth = lambda(&meth)
+      end
     when Method
       exec = meth.executable
       # We see through delegated methods because code creates these crazy calls

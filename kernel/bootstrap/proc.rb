@@ -10,9 +10,17 @@ class Proc
     raise PrimitiveFailure, "Proc#allocate primitive failed"
   end
 
-  def call(*args)
+  def call_prim(*args)
     Rubinius.primitive :proc_call
     raise PrimitiveFailure, "Proc#call primitive failed"
+  end
+
+  def call(*args, &block)
+    if @ruby_method
+      @ruby_method.call(*args, &block)
+    else
+      call_prim(*args, &block)
+    end
   end
 
   def call_on_object(*args)

@@ -1,1 +1,0 @@
-fails:Proc.new with a block argument called indirectly from a subclass returns the passed proc created from a method

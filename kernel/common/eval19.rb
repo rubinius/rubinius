@@ -90,9 +90,7 @@ class BasicObject
     raise ::LocalJumpError, "Missing block" unless block_given?
     env = prc.block
 
-    if prc.kind_of? ::Proc::Method
-      return prc.bound_method.call(*args)
-    end
+    return prc.ruby_method.call(*args) if prc.ruby_method
 
     constant_scope = env.constant_scope
     if ::ImmediateValue === self
