@@ -245,6 +245,7 @@ module FFI
     end
 
     def ==(other)
+      return false unless other.is_a?(self.class)
       @pointer == other.pointer
     end
 

@@ -49,12 +49,12 @@ class Struct::Group < Rubinius::FFI::Struct
     ary = []
     i = 1
 
-    while not ptr.null? do 
+    while not ptr.null? do
       ary << ptr.read_string
       ptr = (self[:gr_mem] + i * FFI::Pointer.size).read_pointer
       i += 1
     end
-    
+
     ary
   end
 end
