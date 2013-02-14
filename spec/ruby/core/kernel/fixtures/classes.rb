@@ -367,7 +367,7 @@ print m.map { |x| x.to_s }.join("")
     end
   end
 
-  class Ivar
+  class InstanceVariable
     def initialize
       @greeting = "hello"
     end
