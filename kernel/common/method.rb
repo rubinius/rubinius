@@ -123,7 +123,7 @@ class Method
   # Returns a Proc object corresponding to this Method.
 
   def to_proc
-    Proc::Method.new self
+    Proc.from_method self
   end
 
   ##

@@ -38,7 +38,7 @@ class Proc
 
     block = __from_block__(env)
 
-    if block.class != self and block.class != Method
+    if block.class != self
       block = block.dup
       Rubinius::Unsafe.set_class(block, self)
     end
@@ -55,6 +55,7 @@ class Proc
 
   attr_accessor :block
   attr_accessor :bound_method
+  attr_accessor :ruby_method
 
   def binding
     bind = @block.to_binding
@@ -64,11 +65,20 @@ class Proc
 
   def ==(other)
     return false unless other.kind_of? self.class
-    @block == other.block and @bound_method == other.bound_method
+
+    if @ruby_method
+      @ruby_method == other.ruby_method
+    elsif @bound_method
+      @bound_method == other.bound_method
+    else
+      @block == other.block
+    end
   end
 
   def arity
-    if @bound_method
+    if @ruby_method
+      return @ruby_method.arity
+    elsif @bound_method
       arity = @bound_method.arity
       return arity < 0 ? -1 : arity
     end
@@ -77,7 +87,9 @@ class Proc
   end
 
   def parameters
-    if @bound_method
+    if @ruby_method
+      return @ruby_method.parameters
+    elsif @bound_method
       return @bound_method.parameters
     end
 
@@ -138,29 +150,11 @@ class Proc
     copy
   end
 
-  class Method < Proc
-    attr_accessor :bound_method
-
-    def call(*args, &block)
-      @bound_method.call(*args, &block)
-    end
-    alias_method :[], :call
-
-    def self.new(meth)
-      if meth.kind_of? ::Method
-        return __from_method__(meth)
-      else
-        raise ArgumentError, "tried to create a Proc::Method object without a Method"
-      end
-    end
-
-    def ==(other)
-      return false unless other.kind_of? self.class
-      @bound_method == other.bound_method
-    end
-
-    def arity
-      @bound_method.arity
+  def self.from_method(meth)
+    if meth.kind_of? Method
+      return __from_method__(meth)
+    else
+      raise ArgumentError, "tried to create a Proc object without a Method"
     end
   end
 end
