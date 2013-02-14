@@ -156,7 +156,7 @@ class CPPPrimitive < BasicPrimitive
   end
 
   def generate_jit_stub
-    return if @raw or @pass_call_frame or @pass_message or @pass_arguments
+    return if @raw or @pass_message or @pass_arguments
 
     # Default value, overriden below
     @can_fail = true
@@ -170,7 +170,7 @@ class CPPPrimitive < BasicPrimitive
       arg_list = ", " + list.join(", ")
     end
 
-    if @safe
+    if @safe && !@pass_call_frame
       str << "extern \"C\" Object* jit_stub_#{@name}(STATE, Object* recv #{arg_list}) {\n"
     else
       str << "extern \"C\" Object* jit_stub_#{@name}(STATE, CallFrame* call_frame, Object* recv #{arg_list}) {\n"
@@ -212,6 +212,7 @@ class CPPPrimitive < BasicPrimitive
     args.unshift "gct" if @pass_gctoken
     args.unshift "recv" if @pass_self
     args.unshift "state" if @pass_state
+    args.push "call_frame" if @pass_call_frame
 
     if @safe
       str << "  ret = self->#{@cpp_name}(#{args.join(', ')});\n"
@@ -347,7 +348,7 @@ class CPPStaticPrimitive < CPPPrimitive
   end
 
   def generate_jit_stub
-    return if @raw or @pass_call_frame or @pass_arguments
+    return if @raw or @pass_arguments
 
     # Default value, overriden below
     @can_fail = true
@@ -361,7 +362,7 @@ class CPPStaticPrimitive < CPPPrimitive
       arg_list = ", " + list.join(", ")
     end
 
-    if @safe
+    if @safe && !@pass_call_frame
       str << "extern \"C\" Object* jit_stub_#{@name}(STATE, Object* recv #{arg_list}) {\n"
     else
       str << "extern \"C\" Object* jit_stub_#{@name}(STATE, CallFrame* call_frame, Object* recv #{arg_list}) {\n"
@@ -391,6 +392,7 @@ class CPPStaticPrimitive < CPPPrimitive
     args.unshift "gct" if @pass_gctoken
     args.unshift "recv" if @pass_self
     args.unshift "state" if @pass_state
+    args.push "call_frame" if @pass_call_frame
 
     if @safe
       str << "  ret = #{@type}::#{@cpp_name}(#{args.join(', ')});\n"
@@ -1305,7 +1307,7 @@ class PrimitiveCodeGenerator
         f.puts "  case #{@indexes[n]}: // #{n}"
         f.puts "    res.set_arg_count(#{p.arg_count});"
         f.puts "    res.set_name(\"jit_stub_#{n}\");"
-        f.puts "    res.set_pass_callframe(false);" if p.safe
+        f.puts "    res.set_pass_callframe(false);" if p.safe && !p.pass_call_frame
         f.puts "    res.set_can_fail(false);" unless p.can_fail
         f.puts "    return true;"
       end

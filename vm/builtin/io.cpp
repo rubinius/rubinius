@@ -1234,7 +1234,7 @@ failed: /* try next '*' position */
     state->vm()->thread->sleep(state, cTrue);
 
     {
-      GCIndependent guard(state);
+      GCIndependent guard(state, calling_environment);
       code = recvmsg(read_fd, &msg, 0);
     }
 
