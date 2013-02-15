@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#include <unistd.h>
 #include <fcntl.h>
 #ifdef RBX_WINDOWS
 #include <winsock2.h>
@@ -692,6 +693,12 @@ namespace rubinius {
 
             continue;
           }
+          case EPIPE:
+            if(fd == STDOUT_FILENO || fd == STDERR_FILENO) {
+              left = 0;
+              goto done;
+            }
+            // fall through
           default:
             error = true;
             break;
@@ -712,6 +719,7 @@ namespace rubinius {
       return NULL;
     }
 
+  done:
     return Integer::from(state, buf_size - left);
   }
 
