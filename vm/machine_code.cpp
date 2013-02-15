@@ -217,6 +217,7 @@ namespace rubinius {
         allow_private = true;
         break;
       case InstructionSequence::insn_push_const_fast:
+      case InstructionSequence::insn_find_const_fast:
         original->literals()->put(state, opcodes[ip + 2], GlobalCacheEntry::empty(state));
         break;
       case InstructionSequence::insn_send_super_stack_with_block:
