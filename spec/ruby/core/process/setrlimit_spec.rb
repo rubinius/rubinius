@@ -92,5 +92,73 @@ describe "Process.setrlimit and Process.getrlimit" do
         Process.setrlimit(Process::RLIMIT_SBSIZE , lim, max).should be_nil
       end
     end
+
+    ruby_version_is "1.9" do
+      describe "symbol to constant coerction" do
+        platform_is_not :openbsd do
+          it "coerces :AS into RLIMIT_AS" do
+            Process.setrlimit(:AS, *Process.getrlimit(Process::RLIMIT_AS)).should be_nil
+          end
+        end
+
+        it "coerces :CORE into RLIMIT_CORE" do
+          Process.setrlimit(:CORE, *Process.getrlimit(Process::RLIMIT_CORE)).should be_nil
+        end
+
+        it "coerces :CPU into RLIMIT_CPU" do
+          Process.setrlimit(:CPU, *Process.getrlimit(Process::RLIMIT_CPU)).should be_nil
+        end
+
+        it "coerces :DATA into RLIMIT_DATA" do
+          Process.setrlimit(:DATA, *Process.getrlimit(Process::RLIMIT_DATA)).should be_nil
+        end
+
+        it "coerces :FSIZE into RLIMIT_FSIZE" do
+          Process.setrlimit(:FSIZE, *Process.getrlimit(Process::RLIMIT_FSIZE)).should be_nil
+        end
+
+        it "coerces :NOFILE into RLIMIT_NOFILE" do
+          Process.setrlimit(:NOFILE, *Process.getrlimit(Process::RLIMIT_NOFILE)).should be_nil
+        end
+
+        it "coerces :STACK into RLIMIT_STACK" do
+          Process.setrlimit(:STACK, *Process.getrlimit(Process::RLIMIT_STACK)).should be_nil
+        end
+
+        platform_is_not :solaris do
+          it "coerces :MEMLOCK into RLIMIT_MEMLOCK" do
+            Process.setrlimit(:MEMLOCK, *Process.getrlimit(Process::RLIMIT_MEMLOCK)).should be_nil
+          end
+
+          it "coerces :NPROC into RLIMIT_NPROC" do
+            Process.setrlimit(:NPROC, *Process.getrlimit(Process::RLIMIT_NPROC)).should be_nil
+          end
+
+          it "coerces :RSS into RLIMIT_RSS" do
+            Process.setrlimit(:RSS, *Process.getrlimit(Process::RLIMIT_RSS)).should be_nil
+          end
+        end
+
+        platform_is :os => [:netbsd, :freebsd] do
+          it "coerces :SBSIZE into RLIMIT_SBSIZE" do
+            Process.setrlimit(:SBSIZE, *Process.getrlimit(Process::RLIMIT_SBSIZE)).should be_nil
+          end
+        end
+
+        describe "not present in Rubinius" do
+          it "coerces :RTPRIO into RLIMIT_RTPRIO"
+          it "coerces :RTTIME into RLIMIT_RTTIME"
+          it "coerces :SIGPENDING into RLIMIT_SIGPENDING"
+          it "coerces :MSGQUEUE into RLIMIT_MSGQUEUE"
+          it "coerces :NICE into RLIMIT_NICE"
+        end
+
+        context "when passed an unknown resource" do
+          it "raises ArgumentError" do
+            lambda { Process.getrlimit(:FOO) }.should raise_error(ArgumentError)
+          end
+        end
+      end
+    end
   end
 end
