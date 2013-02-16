@@ -64,11 +64,6 @@ module Process
     [rlimit[:rlim_cur], rlimit[:rlim_max]]
   end
 
-  def self.coerce_rlimit_resource(resource)
-    Rubinius::Type.coerce_to resource, Integer, :to_int
-  end
-  private_class_method :coerce_rlimit_resource
-
   def self.setsid
     pgid = FFI::Platform::POSIX.setsid
     Errno.handle if pgid == -1
