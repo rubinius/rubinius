@@ -244,42 +244,6 @@ module Rubinius
     end
 
     ##
-    # Emits fast VM instructions for certain methods.
-    #
-    class SendFastMath < SendWithArguments
-      transform :default, :fast_math, "VM instructions for math, relational methods"
-
-      Operators = {
-        :+    => :meta_send_op_plus,
-        :-    => :meta_send_op_minus,
-        :==   => :meta_send_op_equal,
-        :===  => :meta_send_op_tequal,
-        :<    => :meta_send_op_lt,
-        :>    => :meta_send_op_gt
-      }
-
-      def self.match?(line, receiver, name, arguments, privately)
-        return false unless op = Operators[name]
-        if match_arguments? arguments, 1
-          node = new line, receiver, name, arguments
-          node.operator = op
-          node
-        end
-      end
-
-      attr_accessor :operator
-
-      def bytecode(g)
-        pos(g)
-
-        @receiver.bytecode(g)
-        @arguments.bytecode(g)
-
-        g.__send__ @operator, g.find_literal(@name)
-      end
-    end
-
-    ##
     # Emits a fast path for #new
     #
     class SendFastNew < SendWithArguments

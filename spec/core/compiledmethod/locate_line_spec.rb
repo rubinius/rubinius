@@ -18,7 +18,7 @@ end
 describe "Rubinius::CompiledCode#locate_line" do
   it "finds the ip for a line" do
     cm, ip = CompiledCodeSpec::LineTest.locate_line(4)
-    ip.should == 5
+    ip.should == 6
   end
 
   it "returns the CompiledCode the ip is in" do
