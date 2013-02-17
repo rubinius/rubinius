@@ -9,7 +9,7 @@ Benchmark.ips do |x|
   bignum       = Benchmark::Helpers.fixnum_max + 1
   float        = 10000.0
 
-  x.report "Fixnum > Fixnum" do |times|
+  x.report "Fixnum >= Fixnum" do |times|
     i = 0
     while i < times
       big_fixnum >= small_fixnum
@@ -17,7 +17,7 @@ Benchmark.ips do |x|
     end
   end
 
-  x.report "Fixnum > Bignum" do |times|
+  x.report "Fixnum >= Bignum" do |times|
     i = 0
     while i < times
       big_fixnum >= bignum
@@ -25,7 +25,7 @@ Benchmark.ips do |x|
     end
   end
 
-  x.report "Fixnum > Float" do |times|
+  x.report "Fixnum >= Float" do |times|
     i = 0
     while i < times
       big_fixnum >= float
