@@ -67,7 +67,6 @@ extern "C" {
   }
 
   Object* rbx_write_barrier(STATE, Object* obj, Object* val) {
-    if(obj->zone() == UnspecifiedZone) return val;
     obj->write_barrier(state, val);
     return val;
   }

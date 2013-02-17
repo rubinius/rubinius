@@ -1115,6 +1115,7 @@ namespace rubinius {
 
       set_block(cont);
       set_object_slot(obj, offset, val);
+      cont = current_block();
       create_branch(done);
 
       set_block(failure);
@@ -1209,6 +1210,27 @@ namespace rubinius {
     }
 
     void write_barrier(Value* obj, Value* val) {
+
+      Value* is_ref = check_is_reference(val);
+
+      BasicBlock* cont = new_block("reference");
+      BasicBlock* not_young = new_block("not_young");
+      BasicBlock* done = new_block("done");
+
+      create_conditional_branch(cont, done, is_ref);
+
+      set_block(cont);
+
+      Value* flags = object_flags(obj);
+      Value* zone_mask  = ConstantInt::get(ctx_->Int64Ty, (3UL << (OBJECT_FLAGS_GC_ZONE - 1)) + 1);
+      Value* young_mask = ConstantInt::get(ctx_->Int64Ty, YoungObjectZone << (OBJECT_FLAGS_GC_ZONE - 1));
+
+      Value* zone_masked = b().CreateAnd(flags, zone_mask, "zone_mask");
+      Value* is_young = b().CreateICmpEQ(zone_masked, young_mask, "is_young");
+
+      create_conditional_branch(done, not_young, is_young);
+      set_block(not_young);
+
       Signature wb(ctx_, ObjType);
       wb << StateTy;
       wb << ObjType;
@@ -1220,6 +1242,10 @@ namespace rubinius {
 
       Value* call_args[] = { state_, obj, val };
       wb.call("rbx_write_barrier", call_args, 3, "", b());
+
+      create_branch(done);
+      set_block(done);
+
     }
 
     void call_debug_spot(int spot) {
