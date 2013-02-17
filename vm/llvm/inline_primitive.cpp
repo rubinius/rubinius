@@ -558,8 +558,10 @@ namespace rubinius {
       Value* recv = i.recv();
       Value* arg = i.arg(0);
 
-      BasicBlock* push = ops.new_block("push_mul");
+      BasicBlock* push = ops.new_block("push_add");
       BasicBlock* tagnow = ops.new_block("tagnow");
+      BasicBlock* bignum = ops.new_block("bignum");
+      BasicBlock* cont   = ops.new_block("cont");
       BasicBlock* send = i.failure();
 
       Value* cmp = ops.check_if_fixnums(recv, arg);
@@ -573,12 +575,24 @@ namespace rubinius {
 
       Value* check_fits = ops.check_if_fits_fixnum(sum);
 
-      ops.create_conditional_branch(tagnow, i.failure(), check_fits);
+      ops.create_conditional_branch(tagnow, bignum, check_fits);
+
+      ops.set_block(bignum);
+      Value* big_value = ops.promote_to_bignum(sum);
+      ops.create_branch(cont);
 
       ops.set_block(tagnow);
+      Value* imm_value = ops.fixnum_tag(sum);
+      ops.create_branch(cont);
+
+      ops.set_block(cont);
+
+      PHINode* res = ops.b().CreatePHI(ops.ObjType, 2, "result");
+      res->addIncoming(big_value, bignum);
+      res->addIncoming(imm_value, tagnow);
 
       i.exception_safe();
-      i.set_result(ops.fixnum_tag(sum));
+      i.set_result(res);
       i.use_send_for_failure();
       i.context()->leave_inline();
     }
@@ -590,8 +604,10 @@ namespace rubinius {
       Value* recv = i.recv();
       Value* arg = i.arg(0);
 
-      BasicBlock* push = ops.new_block("push_mul");
+      BasicBlock* push = ops.new_block("push_sub");
       BasicBlock* tagnow = ops.new_block("tagnow");
+      BasicBlock* bignum = ops.new_block("bignum");
+      BasicBlock* cont   = ops.new_block("cont");
       BasicBlock* send = i.failure();
 
       Value* cmp = ops.check_if_fixnums(recv, arg);
@@ -601,16 +617,28 @@ namespace rubinius {
 
       Value* recv_int = ops.fixnum_strip(recv);
       Value* arg_int = ops.fixnum_strip(arg);
-      Value* sub = ops.b().CreateSub(recv_int, arg_int, "fixnum.add");
+      Value* sum = ops.b().CreateSub(recv_int, arg_int, "fixnum.sub");
 
-      Value* check_fits = ops.check_if_fits_fixnum(sub);
+      Value* check_fits = ops.check_if_fits_fixnum(sum);
 
-      ops.create_conditional_branch(tagnow, i.failure(), check_fits);
+      ops.create_conditional_branch(tagnow, bignum, check_fits);
+
+      ops.set_block(bignum);
+      Value* big_value = ops.promote_to_bignum(sum);
+      ops.create_branch(cont);
 
       ops.set_block(tagnow);
+      Value* imm_value = ops.fixnum_tag(sum);
+      ops.create_branch(cont);
+
+      ops.set_block(cont);
+
+      PHINode* res = ops.b().CreatePHI(ops.ObjType, 2, "result");
+      res->addIncoming(big_value, bignum);
+      res->addIncoming(imm_value, tagnow);
 
       i.exception_safe();
-      i.set_result(ops.fixnum_tag(sub));
+      i.set_result(res);
       i.use_send_for_failure();
       i.context()->leave_inline();
     }
