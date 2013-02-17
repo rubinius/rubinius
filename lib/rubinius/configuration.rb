@@ -87,7 +87,7 @@ Rubinius::ConfigurationVariables.define do |c|
       i.vm_variable "small_method_size", 100,
         "The maximum size for a small method"
 
-      i.vm_variable "normal_method_size", 300,
+      i.vm_variable "normal_method_size", 500,
         "The maximum size for a normal method"
 
       i.vm_variable "large_method_size", 2000,
