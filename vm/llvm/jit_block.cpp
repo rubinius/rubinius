@@ -37,7 +37,7 @@ namespace jit {
                             ss.str(), ctx_->module());
 
     Function::arg_iterator ai = func->arg_begin();
-    llvm::Value* vm =   ai++; vm->setName("state");
+    llvm::Value* state = ai++; state->setName("state");
     llvm::Value* prev = ai++; prev->setName("previous");
     block_env = ai++; block_env->setName("env");
     llvm::Value* args = ai++; args->setName("args");
@@ -48,7 +48,7 @@ namespace jit {
 
     ctx_->set_function(func);
 
-    info_.set_vm(vm);
+    info_.set_state(state);
     info_.set_args(args);
     info_.set_previous(prev);
     info_.set_entry(block);
@@ -83,7 +83,7 @@ namespace jit {
       sig << "CompiledCode";
 
       Value* call_args[] = {
-        vm,
+        state,
         method_entry_,
         block_env,
         module_,
@@ -228,7 +228,7 @@ namespace jit {
       sig << "CallFrame";
       sig << "Arguments";
 
-      Value* call_args[] = { info_.vm(), info_.call_frame(), info_.args() };
+      Value* call_args[] = { info_.state(), info_.call_frame(), info_.args() };
 
       Value* val = sig.call("rbx_destructure_args", call_args, 3, "", b());
 
@@ -453,7 +453,7 @@ namespace jit {
       sig << ctx_->Int32Ty;
 
       Value* call_args[] = {
-        info_.vm(),
+        info_.state(),
         info_.args(),
         cint(M + O),
         cint(DT)

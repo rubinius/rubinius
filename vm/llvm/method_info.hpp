@@ -66,12 +66,12 @@ namespace rubinius {
       return context_->function();
     }
 
-    void set_vm(llvm::Value* vm) {
-      context_->set_vm(vm);
+    void set_state(llvm::Value* state) {
+      context_->set_state(state);
     }
 
-    llvm::Value* vm() {
-      return context_->vm();
+    llvm::Value* state() {
+      return context_->state();
     }
 
     void set_args(llvm::Value* args) {

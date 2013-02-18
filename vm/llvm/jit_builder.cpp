@@ -178,7 +178,7 @@ namespace jit {
 
     b().SetInsertPoint(restart_interp);
 
-    Value* call_args[] = { info_.vm(), info_.previous(), exec, module, info_.args() };
+    Value* call_args[] = { info_.state(), info_.previous(), exec, module, info_.args() };
 
     Signature sig(ctx_, "Object");
     sig << "State";
@@ -552,7 +552,7 @@ namespace jit {
       sig << "State";
       sig << "CallFrame";
 
-      Value* call_args[] = { info_.vm(), call_frame };
+      Value* call_args[] = { info_.state(), call_frame };
 
       BasicBlock* ret_null = info_.new_block("ret_null");
 

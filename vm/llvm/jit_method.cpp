@@ -39,7 +39,7 @@ namespace jit {
                             ss.str(), ctx_->module());
 
     Function::arg_iterator ai = func->arg_begin();
-    llvm::Value* vm =   ai++; vm->setName("state");
+    llvm::Value* state = ai++; state->setName("state");
     llvm::Value* prev = ai++; prev->setName("previous");
     exec = ai++; exec->setName("exec");
     module = ai++; module->setName("mod");
@@ -50,7 +50,7 @@ namespace jit {
 
     info_.context()->set_function(func);
 
-    info_.set_vm(vm);
+    info_.set_state(state);
     info_.set_args(args);
     info_.set_previous(prev);
     info_.set_entry(block);
@@ -241,7 +241,7 @@ namespace jit {
       sig << ctx_->Int32Ty;
 
       Value* call_args[] = {
-        info_.vm(),
+        info_.state(),
         info_.args(),
         cint(M + O),
         cint(DT)
@@ -374,7 +374,7 @@ namespace jit {
       sig << ctx_->Int32Ty;
 
       Value* call_args[] = {
-        info_.vm(),
+        info_.state(),
         info_.args(),
         cint(machine_code_->total_args),
         cint(machine_code_->total_args)
@@ -454,7 +454,7 @@ namespace jit {
     sig << ctx_->Int32Ty;
 
     Value* call_args[] = {
-      info_.vm(),
+      info_.state(),
       info_.previous(),
       info_.args(),
       cint(machine_code_->total_args)
@@ -585,7 +585,7 @@ namespace jit {
       sig << "CompiledCode";
 
       Value* call_args[] = {
-        info_.vm(),
+        info_.state(),
         method_entry_,
         exec,
         module,

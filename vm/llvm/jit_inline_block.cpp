@@ -102,7 +102,7 @@ namespace jit {
         sig << vars->getType();
         sig << ctx_->Int32Ty;
 
-        Value* call_args[] = { info_.vm(), info_.call_frame(),
+        Value* call_args[] = { info_.state(), info_.call_frame(),
                                stack_args.at(0), vars, cint(machine_code_->total_args) };
 
         Value* val = sig.call("rbx_destructure_inline_args", call_args, 5, "", b());

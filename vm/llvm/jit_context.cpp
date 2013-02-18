@@ -30,7 +30,7 @@ namespace rubinius {
     , inline_depth_(0)
     , rds_(new jit::RuntimeDataHolder)
     , function_(0)
-    , vm_(0)
+    , state_(0)
     , out_args_(0)
     , counter_(0)
   {

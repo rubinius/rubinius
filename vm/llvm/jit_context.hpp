@@ -32,7 +32,7 @@ namespace rubinius {
 
     llvm::Module* module_;
     llvm::Function* function_;
-    llvm::Value* vm_;
+    llvm::Value* state_;
     llvm::Value* out_args_;
     llvm::Value* counter_;
 
@@ -148,12 +148,12 @@ namespace rubinius {
       return function_;
     }
 
-    llvm::Value* vm() {
-      return vm_;
+    llvm::Value* state() {
+      return state_;
     }
 
-    void set_vm(llvm::Value* vm) {
-      vm_ = vm;
+    void set_state(llvm::Value* state) {
+      state_ = state;
     }
 
     void set_out_args(llvm::Value* out_args) {
