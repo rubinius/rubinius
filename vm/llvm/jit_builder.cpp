@@ -31,6 +31,9 @@ namespace jit {
     stack_vars_type = mod->getTypeByName("struct.rubinius::StackVariables");
     obj_type = ctx->ptr_type("Object");
     obj_ary_type = llvm::PointerType::getUnqual(obj_type);
+    check_global_interrupts_pos = b().CreateIntToPtr(
+          llvm::ConstantInt::get(ctx_->IntPtrTy, (intptr_t)ctx_->llvm_state()->shared().check_global_interrupts_address()),
+          llvm::PointerType::getUnqual(ctx_->Int8Ty), "cast_to_intptr");
   }
 
   Value* Builder::get_field(Value* val, int which) {
@@ -555,6 +558,49 @@ namespace jit {
       Value* call_args[] = { info_.state(), call_frame };
 
       BasicBlock* ret_null = info_.new_block("ret_null");
+
+      Value* idx_jit[] = {
+        cint(0),
+        cint(offset::State::vm_jit)
+      };
+      Value* vm_jit = b().CreateLoad(b().CreateGEP(info_.state(), idx_jit), "vm_jit");
+
+      // Check stack overflow
+      Value* idx_stk_limit[] = {
+        cint(0),
+        cint(offset::VMJIT::stack_limit)
+      };
+
+      Value* stack_limit = b().CreateLoad(b().CreateGEP(vm_jit, idx_stk_limit),
+                                               "stack_limit");
+      Value* stack_end = b().CreatePtrToInt(
+        call_frame, ctx_->IntPtrTy, "stack_end");
+
+      Value* stack_overflow = b().CreateICmpULT(stack_end, stack_limit);
+
+      // Check local interrupts (signals, thread step etc.)
+      Value* idx_interrupts[] = {
+        cint(0),
+        cint(offset::VMJIT::check_local_interrupts)
+      };
+
+      Value* check_interrupts = b().CreateLoad(b().CreateGEP(vm_jit, idx_interrupts),
+                                               "check_interrupts");
+
+      // Check global interrupts (GC, stop the world etc.)
+      Value* check_global_interrupts = b().CreateLoad(check_global_interrupts_pos, "check_global_interrupts");
+
+      Value* interrupts = b().CreateOr(check_interrupts, check_global_interrupts, "has_interrupts");
+
+      Value* zero = ConstantInt::get(ctx_->Int8Ty, 0);
+      Value* is_zero = b().CreateICmpNE(interrupts, zero, "needs_interrupts");
+
+      Value* check = b().CreateOr(is_zero, stack_overflow, "needs_check");
+
+      BasicBlock* prologue_check = info_.new_block("prologue_check");
+
+      b().CreateCondBr(check, prologue_check, body_);
+      b().SetInsertPoint(prologue_check);
 
       Value* ret = sig.call("rbx_prologue_check", call_args, 2, "ci", b());
       b().CreateCondBr(

@@ -50,6 +50,8 @@ namespace jit {
 
     llvm::Value* counter;
 
+    llvm::Value* check_global_interrupts_pos;
+
     llvm::IRBuilder<> builder_;
 
     llvm::Value* call_frame_flags;
