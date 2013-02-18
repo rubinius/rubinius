@@ -21,8 +21,9 @@ gems.each do |gem|
   name_re = /#{gem_name}/
   version_req = Gem::Requirement.create "=#{gem_version}"
   unless Gem::Specification.any? { |s| s.name =~ name_re and version_req =~ s.version }
-    options[:args]    = gem
-    options[:version] = version_req
+    options[:args]        = gem
+    options[:version]     = version_req
+    options[:env_shebang] = true
     inst = Gem::DependencyInstaller.new options
     inst.install gem, version_req
 
