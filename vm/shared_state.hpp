@@ -89,7 +89,7 @@ namespace rubinius {
 
     bool initialized_;
     bool ruby_critical_set_;
-    bool use_capi_lock_;
+    bool check_global_interrupts_;
     bool check_gc_;
 
     kcode::CodePage kcode_page_;
@@ -108,6 +108,7 @@ namespace rubinius {
     pthread_t ruby_critical_thread_;
 
     Mutex capi_lock_;
+    bool use_capi_lock_;
 
     utilities::thread::SpinLock capi_ds_lock_;
     utilities::thread::SpinLock capi_constant_lock_;
@@ -267,17 +268,31 @@ namespace rubinius {
     bool check_gc_p() {
       bool c = check_gc_;
       if (unlikely(c)) {
+        check_global_interrupts_ = false;
         check_gc_ = false;
       }
       return c;
     }
 
     void gc_soon() {
+      check_global_interrupts_ = true;
       check_gc_ = true;
     }
 
-    bool* check_gc_address() {
-      return &check_gc_;
+    bool check_global_interrupts() {
+      return check_global_interrupts_;
+    }
+
+    void set_check_global_interrupts() {
+      check_global_interrupts_ = true;
+    }
+
+    void clear_check_global_interrupts() {
+      check_global_interrupts_ = false;
+    }
+
+    bool* check_global_interrupts_address() {
+      return &check_global_interrupts_;
     }
 
     void set_use_capi_lock(bool s) {

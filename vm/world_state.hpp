@@ -8,13 +8,15 @@ namespace rubinius {
     utilities::thread::Condition waiting_to_run_;
     int pending_threads_;
     int should_stop_;
+    bool* check_global_interrupts_;
 
     atomic::integer time_waiting_;
 
   public:
-    WorldState()
+    WorldState(bool* check_global_interrupts)
       : pending_threads_(0)
       , should_stop_(0)
+      , check_global_interrupts_(check_global_interrupts)
       , time_waiting_(0)
     {
       mutex_.init();
@@ -106,6 +108,7 @@ namespace rubinius {
         return false;
       }
 
+      *check_global_interrupts_ = true;
       if(cDebugThreading) {
         std::cerr << "[" << VM::current() << " WORLD waiting until alone]\n";
       }
@@ -156,6 +159,7 @@ namespace rubinius {
         std::cerr << "[WORLD stopping all threads (as external event)]\n";
       }
 
+      *check_global_interrupts_ = true;
       // We need a write barrier so we're sure we're seeing an up to
       // date version of pending_threads_ in each loop.
       while(atomic::read(&pending_threads_) > 0) {
@@ -192,6 +196,7 @@ namespace rubinius {
         rubinius::bug("A non-alone thread is trying to wake all");
       }
 
+      *check_global_interrupts_ = false;
       // For ourself..
       atomic::fetch_and_add(&pending_threads_, 1);
 
@@ -212,6 +217,7 @@ namespace rubinius {
         std::cerr << "[" << VM::current() << " WORLD waking all threads (externally)]\n";
       }
 
+      *check_global_interrupts_ = false;
       waiting_to_run_.broadcast();
     }
 

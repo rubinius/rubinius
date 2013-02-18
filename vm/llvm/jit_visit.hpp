@@ -84,7 +84,7 @@ namespace rubinius {
     bool use_full_scope_;
 
     Value* global_serial_pos;
-    Value* check_gc_pos;
+    Value* check_global_interrupts_pos;
 
     int called_args_;
     int sends_done_;
@@ -180,8 +180,8 @@ namespace rubinius {
           clong((intptr_t)llvm_state()->shared().global_serial_address()),
           llvm::PointerType::getUnqual(ctx_->Int32Ty), "cast_to_intptr");
 
-      check_gc_pos = b().CreateIntToPtr(
-          clong((intptr_t)llvm_state()->shared().check_gc_address()),
+      check_global_interrupts_pos = b().CreateIntToPtr(
+          clong((intptr_t)llvm_state()->shared().check_global_interrupts_address()),
           llvm::PointerType::getUnqual(ctx_->Int8Ty), "cast_to_intptr");
 
       init_out_args();
@@ -2790,8 +2790,8 @@ use_send:
       Value* check_interrupts = b().CreateLoad(b().CreateGEP(vm_jit, idx_check),
                                                "check_interrupts");
 
-      Value* check_gc = b().CreateLoad(check_gc_pos, "check_gc");
-      Value* checkpoint = b().CreateOr(check_interrupts, check_gc, "or");
+      Value* check_global_interrupts = b().CreateLoad(check_global_interrupts_pos, "check_global_interrupts");
+      Value* checkpoint = b().CreateOr(check_interrupts, check_global_interrupts, "or");
 
       Value* zero = ConstantInt::get(ctx_->Int8Ty, 0);
       Value* is_zero = b().CreateICmpEQ(checkpoint, zero, "needs_interrupts");
