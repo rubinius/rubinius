@@ -220,10 +220,12 @@ namespace rubinius {
     }
 
     void clear_thread_step() {
+      clear_check_local_interrupts();
       vm_jit_.thread_step_ = false;
     }
 
     void set_thread_step() {
+      set_check_local_interrupts();
       vm_jit_.thread_step_ = true;
     }
 
