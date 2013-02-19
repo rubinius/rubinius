@@ -174,6 +174,16 @@ namespace rubinius {
     bool lambda_style = !lambda_->nil_p();
     int flags = 0;
 
+    // Since we allow Proc's to be created without setting block_, we need to check
+    // it.
+    if(block_->nil_p()) {
+      Exception* exc =
+        Exception::make_type_error(state, BlockEnvironment::type, block_, "Invalid proc style");
+      exc->locations(state, Location::from_call_stack(state, call_frame));
+      state->raise_exception(exc);
+      return NULL;
+    }
+
     // Check the arity in lambda mode
     if(lambda_style) {
       flags = CallFrame::cIsLambda;
@@ -186,16 +196,6 @@ namespace rubinius {
         state->raise_exception(exc);
         return NULL;
       }
-    }
-
-    // Since we allow Proc's to be created without setting block_, we need to check
-    // it.
-    if(block_->nil_p()) {
-      Exception* exc =
-        Exception::make_type_error(state, BlockEnvironment::type, block_, "Invalid proc style");
-      exc->locations(state, Location::from_call_stack(state, call_frame));
-      state->raise_exception(exc);
-      return NULL;
     }
 
     return block_->call_on_object(state, call_frame, args, flags);
