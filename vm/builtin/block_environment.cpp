@@ -380,7 +380,7 @@ namespace rubinius {
     if(args.total() < 1) {
       Exception* exc =
         Exception::make_argument_error(state, 1, args.total(),
-                                       state->symbol("__block__"));
+                                       compiled_code_->name());
       exc->locations(state, Location::from_call_stack(state, call_frame));
       state->raise_exception(exc);
       return NULL;
@@ -399,7 +399,7 @@ namespace rubinius {
     if(args.total() < 2) {
       Exception* exc =
         Exception::make_argument_error(state, 2, args.total(),
-                                       state->symbol("__block__"));
+                                       compiled_code_->name());
       exc->locations(state, Location::from_call_stack(state, call_frame));
       state->raise_exception(exc);
       return NULL;
