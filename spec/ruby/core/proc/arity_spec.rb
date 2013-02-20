@@ -1,6 +1,9 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/common', __FILE__)
-language_version __FILE__, "arity"
+
+ruby_bug "#5694", "1.9.3" do
+  language_version __FILE__, "arity"
+end
 
 describe "Proc#arity" do
   before :each do
@@ -106,8 +109,4 @@ describe "Proc#arity" do
   it "returns 2 for a block taking |(a, *b), c| arguments" do
     @p.arity_check { |(a, *b), c| }.should == 2
   end
-end
-
-ruby_bug "#5694", "1.9.3" do
-  require File.expand_path('../shared/arity', __FILE__)
 end
