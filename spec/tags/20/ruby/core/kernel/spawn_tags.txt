@@ -1,0 +1,2 @@
+fails:Kernel#spawn closes file descriptors >= 3 in the child process even if given a false :close_others option because they are set close_on_exec
+fails:Kernel.spawn closes file descriptors >= 3 in the child process even if given a false :close_others option because they are set close_on_exec

@@ -1,0 +1,1 @@
+fails:Dir.glob matches paths with glob patterns

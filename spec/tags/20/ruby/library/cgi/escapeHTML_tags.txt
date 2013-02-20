@@ -1,0 +1,1 @@
+fails:CGI.escapeHTML escapes special HTML characters (&"<>') in the passed argument

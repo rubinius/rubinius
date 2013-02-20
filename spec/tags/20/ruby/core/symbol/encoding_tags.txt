@@ -1,0 +1,1 @@
+fails:Symbol#encoding for ASCII symbols should be US-ASCII after converting to string

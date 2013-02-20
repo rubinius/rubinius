@@ -1,0 +1,5 @@
+fails:Process.exec sets environment variables in the child environment
+fails:Process.exec unsets environment variables whose value is nil
+fails:Process.exec coerces environment argument using to_hash
+fails:Process.exec unsets other environment variables when given a true :unsetenv_others option
+fails:Process.exec sets the current directory when given the :chdir option

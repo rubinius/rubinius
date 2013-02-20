@@ -9,3 +9,5 @@ fails:String#% when format string contains %{} sections replaces %{} sections wi
 fails:String#% when format string contains %{} sections raises KeyError if key is missing from passed-in hash
 fails:String#% supports negative integers using %d, giving priority to `-`
 fails:String#% supports negative integers using %i, giving priority to `-`
+fails:String#% when format string contains %<> formats uses the named argument for the format's value
+fails:String#% when format string contains %<> formats raises KeyError if key is missing from passed-in hash

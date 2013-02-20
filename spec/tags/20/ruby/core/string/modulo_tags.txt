@@ -9,3 +9,5 @@ fails:String#% formats zero without prefix using %#x
 fails:String#% formats zero without prefix using %#X
 fails:String#% when format string contains %{} sections replaces %{} sections with values from passed-in hash
 fails:String#% when format string contains %{} sections raises KeyError if key is missing from passed-in hash
+fails:String#% when format string contains %<> formats uses the named argument for the format's value
+fails:String#% when format string contains %<> formats raises KeyError if key is missing from passed-in hash

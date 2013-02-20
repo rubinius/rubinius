@@ -1,0 +1,1 @@
+fails:Array#delete returns the last element in the array for which object is equal under #==

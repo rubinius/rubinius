@@ -1,0 +1,10 @@
+fails:Kernel#exec sets environment variables in the child environment
+fails:Kernel#exec unsets environment variables whose value is nil
+fails:Kernel#exec coerces environment argument using to_hash
+fails:Kernel#exec unsets other environment variables when given a true :unsetenv_others option
+fails:Kernel#exec sets the current directory when given the :chdir option
+fails:Kernel.exec sets environment variables in the child environment
+fails:Kernel.exec unsets environment variables whose value is nil
+fails:Kernel.exec coerces environment argument using to_hash
+fails:Kernel.exec unsets other environment variables when given a true :unsetenv_others option
+fails:Kernel.exec sets the current directory when given the :chdir option
