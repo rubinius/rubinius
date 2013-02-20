@@ -1,0 +1,1 @@
+fails:Dir.[] matches paths with glob patterns
