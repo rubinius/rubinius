@@ -189,7 +189,7 @@ describe :marshal_load, :shared => true do
       lambda { Marshal.send(@method, file) }.should raise_error(EOFError)
     ensure
       file.close
-      File.unlink(temp_file)
+      rm_r temp_file
     end
   end
 

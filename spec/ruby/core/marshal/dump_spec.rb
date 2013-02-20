@@ -1,3 +1,4 @@
+# -*- encoding: US-ASCII -*-
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/marshal_data', __FILE__)
 
@@ -61,6 +62,19 @@ describe "Marshal.dump" do
         Marshal.dump("\u2192".encode("utf-8").to_sym).should == "\x04\bI:\b\xE2\x86\x92\x06:\x06ET"
       end
     end
+  end
+
+  it "dumps an extended_object" do
+    Marshal.dump(Object.new.extend(Meths)).should == "\x04\be:\nMethso:\vObject\x00"
+  end
+  
+  it "dumps an object that has had an ivar added and removed as though the ivar never was set" do
+    obj = Object.new
+    initial = Marshal.dump(obj)
+    obj.instance_variable_set(:@ivar, 1)
+    Marshal.dump(obj).should == "\004\bo:\vObject\006:\n@ivari\006"
+    obj.send :remove_instance_variable, :@ivar
+    Marshal.dump(obj).should == initial
   end
 
   describe "with an object responding to #marshal_dump" do

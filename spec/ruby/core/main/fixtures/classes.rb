@@ -4,6 +4,8 @@ module MainSpecs
 
   module WrapIncludeModule
   end
+
+  DATA = {}
 end
 
 def main_public_method

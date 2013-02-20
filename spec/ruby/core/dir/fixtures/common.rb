@@ -80,6 +80,8 @@ module DirSpecs
         special/]
         special/{
         special/}
+
+        special/test{1}/file[1]
       ]
 
       platform_is_not :windows do

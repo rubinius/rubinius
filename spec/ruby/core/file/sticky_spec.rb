@@ -7,27 +7,28 @@ describe "File.sticky?" do
 end
 
 describe "File.sticky?" do
-  before(:each) do
-    @filename = tmp("i_exist")
-    touch(@filename)
-  end
-
-  after(:each) do
-    rm_r @filename
-  end
-
   it "returns false if file does not exist" do
     File.sticky?("I_am_a_bogus_file").should == false
   end
 
   it "returns false if the file has not sticky bit set" do
-    File.sticky?(@filename).should == false
+    filename = tmp("i_exist")
+    touch(filename)
+
+    File.sticky?(filename).should == false
+
+    rm_r filename
   end
 
   platform_is :linux, :darwin do
     it "returns true if the file has sticky bit set" do
-      system "chmod +t #{@filename}"
-      File.sticky?(@filename).should == true
+      filename = tmp("i_exist")
+      touch(filename)
+      system "chmod +t #{filename}"
+    
+      File.sticky?(filename).should == true
+
+      rm_r filename
     end
   end
 

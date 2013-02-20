@@ -18,7 +18,7 @@ describe "Time#_load" do
              t.sec  << 20 |
                    t.usec
 
-      Time._load([high, low].pack("VV")).should == t
+      Time.send(:_load, [high, low].pack("VV")).should == t
     end
   end
 
@@ -30,7 +30,7 @@ describe "Time#_load" do
 
     low =  t.usec
 
-    Time._load([high, low].pack("VV")).should == t
+    Time.send(:_load, [high, low].pack("VV")).should == t
   end
 
   ruby_version_is ''...'1.9' do

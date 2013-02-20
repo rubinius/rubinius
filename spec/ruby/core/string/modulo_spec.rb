@@ -666,7 +666,12 @@ describe "String#%" do
   it "taints result for %s when argument is tainted" do
     ("%s" % "x".taint).tainted?.should == true
     ("%s" % mock('x').taint).tainted?.should == true
-    ("%s" % 5.0.taint).tainted?.should == true
+  end
+
+  ruby_version_is ""..."2.0" do
+    it "taints result for %s when argument is tainted float" do
+      ("%s" % 0.0.taint).tainted?.should == true # float is frozen on 2.0
+    end
   end
 
   # MRI crashes on this one.
@@ -947,6 +952,20 @@ describe "String#%" do
       
       it "should raise ArgumentError if no hash given" do
         lambda {"%{foo}" % []}.should raise_error(ArgumentError)
+      end
+    end
+    
+    describe "when format string contains %<> formats" do
+      it "uses the named argument for the format's value" do
+        ("%<foo>d" % {:foo => 1}).should == "1"
+      end
+      
+      it "raises KeyError if key is missing from passed-in hash" do
+        lambda {"%<foo>d" % {}}.should raise_error(KeyError)
+      end
+      
+      it "should raise ArgumentError if no hash given" do
+        lambda {"%<foo>" % []}.should raise_error(ArgumentError)
       end
     end
   end

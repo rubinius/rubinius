@@ -29,12 +29,12 @@ describe "Module#attr_accessor" do
   end
 
   it "allows creating an attr_accessor on an immediate class" do
-    class Integer
+    class TrueClass
       attr_accessor :spec_attr_accessor
     end
 
-    1.spec_attr_accessor = "a"
-    1.spec_attr_accessor.should == "a"
+    true.spec_attr_accessor = "a"
+    true.spec_attr_accessor.should == "a"
   end
 
   it "converts non string/symbol/fixnum names to strings using to_str" do

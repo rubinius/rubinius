@@ -14,8 +14,8 @@ describe "IO#readlines" do
 
   ruby_version_is "1.9" do
     before :each do
-      Encoding.default_external = Encoding::UTF_8
       @orig_exteenc = Encoding.default_external
+      Encoding.default_external = Encoding::UTF_8
     end
 
     after :each do

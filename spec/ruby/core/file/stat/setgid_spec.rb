@@ -7,26 +7,5 @@ describe "File::Stat#setgid?" do
 end
 
 describe "File::Stat#setgid?" do
-  before(:each) do
-    @name = tmp('test.txt')
-    touch @name
-  end
-
-  after(:each) do
-    rm_r @name
-  end
-
-  it "returns false if the file was just made" do
-    st = File.stat(@name)
-    st.setgid?.should == false
-  end
-
-  platform_is_not :windows do
-    it "returns true when the gid bit is set" do
-      system "chmod g+s #{@name}"
-
-      st = File.stat(@name)
-      st.setgid?.should == true
-    end
-  end
+  it "needs to be reviewed for spec completeness"
 end

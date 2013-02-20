@@ -7,25 +7,5 @@ describe "File::Stat#sticky?" do
 end
 
 describe "File::Stat#sticky?" do
-  before(:each) do
-    @filename = tmp("i_exist")
-    touch(@filename)
-  end
-
-  after(:each) do
-    rm_r @filename
-  end
-
-  it "returns false if the file has not sticky bit set" do
-    st = File.stat(@filename)
-    st.sticky?.should == false
-  end
-
-  platform_is_not :windows do
-    it "returns true if the file has sticky bit set" do
-      system "chmod +t #{@filename}"
-      st = File.stat(@filename)
-      st.sticky?.should == true
-    end
-  end
+  it "needs to be reviewed for spec completeness"
 end

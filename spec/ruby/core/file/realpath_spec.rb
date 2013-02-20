@@ -17,8 +17,7 @@ ruby_version_is "1.9" do
     end
 
     after :each do
-      File.unlink @link, @link_dir
-      rm_r @file, @real_dir
+      rm_r @file, @link, @real_dir, @link_dir
     end
 
     it "returns '/' when passed '/'" do

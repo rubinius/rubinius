@@ -101,6 +101,10 @@ describe :dir_glob, :shared => true do
     Dir.send(@method, 'special/\}').should == ['special/}']
   end
 
+  it "matches paths with glob patterns" do
+    Dir.send(@method, 'special/test\{1\}/*').should == ['special/test{1}/file[1]']
+  end
+
   it "matches dotfiles with '.*'" do
     Dir.send(@method, '.*').sort.should == %w|. .. .dotfile .dotsubdir|.sort
   end
@@ -159,6 +163,7 @@ describe :dir_glob, :shared => true do
       deeply/nested/directory/structure/
       dir/
       special/
+      special/test{1}/
       subdir_one/
       subdir_two/
     ]
@@ -249,6 +254,8 @@ describe :dir_glob, :shared => true do
          file_two.ext
 
          nondotfile
+
+         special/test{1}/file[1]
 
          subdir_one/nondotfile
          subdir_two/nondotfile

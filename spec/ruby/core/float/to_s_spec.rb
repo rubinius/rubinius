@@ -70,12 +70,12 @@ describe "Float#to_s" do
   end
 
   ruby_version_is "1.9" do
-    it "uses non-e format for a positive value with whole part having 17 significant figures" do
-      1000000000000000.0.to_s.should == "1000000000000000.0"
+    it "uses non-e format for a positive value with whole part having 16 significant figures" do
+      100000000000000.0.to_s.should == "100000000000000.0"
     end
 
-    it "uses non-e format for a negative value with whole part having 17 significant figures" do
-      -1000000000000000.0.to_s.should == "-1000000000000000.0"
+    it "uses non-e format for a negative value with whole part having 16 significant figures" do
+      -100000000000000.0.to_s.should == "-100000000000000.0"
     end
 
     it "uses e format for a positive value with whole part having 18 significant figures" do
@@ -84,6 +84,26 @@ describe "Float#to_s" do
 
     it "uses e format for a negative value with whole part having 18 significant figures" do
       -10000000000000000.0.to_s.should == "-1.0e+16"
+    end
+  end
+
+  ruby_version_is "1.9"..."2.0" do
+    it "uses non-e format for a positive value with whole part having 17 significant figures" do
+      1000000000000000.0.to_s.should == "1000000000000000.0"
+    end
+
+    it "uses non-e format for a negative value with whole part having 17 significant figures" do
+      -1000000000000000.0.to_s.should == "-1000000000000000.0"
+    end
+  end
+
+  ruby_version_is "2.0" do
+    it "uses non-e format for a positive value with whole part having 17 significant figures" do
+      1000000000000000.0.to_s.should == "1.0e+15"
+    end
+
+    it "uses non-e format for a negative value with whole part having 17 significant figures" do
+      -1000000000000000.0.to_s.should == "-1.0e+15"
     end
   end
 

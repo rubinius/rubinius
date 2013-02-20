@@ -96,7 +96,7 @@ ruby_version_is "1.9" do
           file.size.should == 8
         ensure
           file.close if file && !file.closed?
-          File.unlink(ln_file) if File.exists?(ln_file)
+          rm_r ln_file
         end
       end
     end

@@ -12,6 +12,11 @@ describe "Ruby character strings" do
     @@ip = 'xxx'
   end
 
+  after :all do
+    Object.remove_class_variable :@@ip rescue nil
+  end
+
+
   it "don't get interpolated when put in single quotes" do
     '#{@ip}'.should == '#{@ip}'
   end

@@ -107,3 +107,7 @@ describe "Proc#arity" do
     @p.arity_check { |(a, *b), c| }.should == 2
   end
 end
+
+ruby_bug "#5694", "1.9.3" do
+  require File.expand_path('../shared/arity', __FILE__)
+end

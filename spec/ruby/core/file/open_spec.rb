@@ -540,6 +540,41 @@ describe "File.open" do
   ruby_version_is "1.9" do
     it "needs to be completed for hash argument"
   end
+
+  platform_is_not :windows do
+    if `which mkfifo`.chomp != ""
+      describe "on a FIFO" do
+        before :each do
+          @fifo = tmp("File_open_fifo")
+          system "mkfifo #{@fifo}"
+        end
+
+        after :each do
+          rm_r @fifo
+        end
+
+        it "opens it as a normal file" do
+          file_w, file_r, read_bytes, written_length = nil
+          
+          # open in threads, due to blocking open and writes
+          Thread.new do
+            file_w = File.open(@fifo, 'w')
+            written_length = file_w.syswrite('hello')
+          end
+          Thread.new do
+            file_r = File.open(@fifo, 'r')
+            read_bytes = file_r.sysread(5)
+          end
+          
+          Thread.pass until read_bytes && written_length
+
+          written_length.should == 5
+          read_bytes.should == 'hello'
+        end
+      end
+    end
+  end
+    
 end
 
 describe "File.open" do
