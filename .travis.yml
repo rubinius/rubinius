@@ -11,7 +11,7 @@ branches:
 notifications:
   recipients:
     - evan+notify@phx.io
-    - bford@engineyard.com
+    - brixen@gmail.com
     - d.bussink@gmail.com
   email:
     on_success: change
