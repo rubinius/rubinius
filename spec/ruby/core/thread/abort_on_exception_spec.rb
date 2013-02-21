@@ -87,6 +87,14 @@ describe "Thread#abort_on_exception=" do
 end
 
 describe "Thread.abort_on_exception" do
+  before do
+    @abort_on_exception = Thread.abort_on_exception
+  end
+
+  after do
+     Thread.abort_on_exception = @abort_on_exception
+  end
+
   it "is false by default" do
     Thread.abort_on_exception.should == false
   end
