@@ -1,1 +1,0 @@
-unstable:Thread#raise on a running thread raises a RuntimeError if no exception class is given
