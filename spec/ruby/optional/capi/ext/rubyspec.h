@@ -320,15 +320,15 @@
 #define HAVE_RB_RESCUE2                    1
 #define HAVE_RB_SET_END_PROC               1
 #define HAVE_RB_SYS_FAIL                   1
-#ifdef RUBY_VERSION_IS_1_9
+#ifdef RUBY_VERSION_IS_1_9_3
 #define HAVE_RB_SYSERR_FAIL                1
+#define HAVE_RB_MAKE_BACKTRACE             1
 #endif
 #define HAVE_RB_THROW                      1
 #define HAVE_RB_CATCH                      1
 #ifdef RUBY_VERSION_IS_1_9
 #define HAVE_RB_THROW_OBJ                  1
 #define HAVE_RB_CATCH_OBJ                  1
-#define HAVE_RB_MAKE_BACKTRACE             1
 #endif
 #define HAVE_RB_WARN                       1
 #define HAVE_RB_YIELD                      1

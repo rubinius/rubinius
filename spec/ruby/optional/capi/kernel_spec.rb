@@ -27,32 +27,34 @@ describe "C-API Kernel function" do
     end
   end
 
-  describe "rb_block_call" do
-    before :each do
-      ScratchPad.record []
-    end
-
-    it "calls the block with a single argument" do
-      ary = [1, 3, 5]
-      @s.rb_block_call(ary).should == [2, 4, 6]
-    end
-
-    ruby_version_is "1.9" do
-      it "calls the block with multiple arguments in argc / argv" do
-        ary = [1, 3, 5]
-        @s.rb_block_call_multi_arg(ary).should == 9
+  ruby_version_is "1.8.7" do
+    describe "rb_block_call" do
+      before :each do
+        ScratchPad.record []
       end
 
-      it "calls the method with no function callback and no block" do
+      it "calls the block with a single argument" do
         ary = [1, 3, 5]
-        @s.rb_block_call_no_func(ary).should be_kind_of(Enumerator)
+        @s.rb_block_call(ary).should == [2, 4, 6]
       end
 
-      it "calls the method with no function callback and a block" do
-        ary = [1, 3, 5]
-        @s.rb_block_call_no_func(ary) do |i|
-          i + 1
-        end.should == [2, 4, 6]
+      ruby_version_is "1.9" do
+        it "calls the block with multiple arguments in argc / argv" do
+          ary = [1, 3, 5]
+          @s.rb_block_call_multi_arg(ary).should == 9
+        end
+
+        it "calls the method with no function callback and no block" do
+          ary = [1, 3, 5]
+          @s.rb_block_call_no_func(ary).should be_kind_of(Enumerator)
+        end
+
+        it "calls the method with no function callback and a block" do
+          ary = [1, 3, 5]
+          @s.rb_block_call_no_func(ary) do |i|
+            i + 1
+          end.should == [2, 4, 6]
+        end
       end
     end
   end
@@ -168,7 +170,7 @@ describe "C-API Kernel function" do
     end
   end
 
-  ruby_version_is "1.9" do
+  ruby_version_is "1.9.3" do
     describe "rb_syserr_fail" do
       it "raises an exception from the given error" do
         lambda do
@@ -421,7 +423,7 @@ describe "C-API Kernel function" do
     end
   end
 
-  ruby_version_is "1.9" do
+  ruby_version_is "1.9.3" do
     describe "rb_make_backtrace" do
       it "returns a caller backtrace" do
         backtrace = @s.rb_make_backtrace
@@ -431,17 +433,19 @@ describe "C-API Kernel function" do
     end
   end
 
-  describe "rb_obj_method" do
-    it "returns the method object for a symbol" do
-      method = @s.rb_obj_method("test", :size)
-      method.owner.should == String
-      method.name.to_sym.should == :size
-    end
+  ruby_version_is "1.8.7" do
+    describe "rb_obj_method" do
+      it "returns the method object for a symbol" do
+        method = @s.rb_obj_method("test", :size)
+        method.owner.should == String
+        method.name.to_sym.should == :size
+      end
 
-    it "returns the method object for a string" do
-      method = @s.rb_obj_method("test", "size")
-      method.owner.should == String
-      method.name.to_sym.should == :size
+      it "returns the method object for a string" do
+        method = @s.rb_obj_method("test", "size")
+        method.owner.should == String
+        method.name.to_sym.should == :size
+      end
     end
   end
 end

@@ -24,6 +24,10 @@ describe "C-API Proc function" do
         @prc[:foo_bar].should == "[:foo_bar]"
         @prc[[:foo, :bar]].should == "[:foo, :bar]"
       end
+
+      it "returns a Proc instance correctly described in #inspect with source location" do
+        @prc.inspect.should =~ /^#<Proc:0x[0-9a-f]*@.*:\d+>$/
+      end
     end
 
     ruby_version_is "1.8.7" ... "1.9" do
@@ -48,14 +52,14 @@ describe "C-API Proc function" do
         @prc[:foo_bar].should == ":foo_bar"
         @prc[[:foo, :bar]].should == "[:foo, :bar]"
       end
+
+      it "returns a Proc instance correctly described in #inspect without source location" do
+        @prc.inspect.should =~ /^#<Proc:([^ :@]*?)>$/
+      end
     end
 
     it "returns a Proc instance with #aricy == -1" do
       @prc.arity.should == -1
-    end
-
-    it "returns a Proc instance correctly described in #inspect without source location" do
-      @prc.inspect.should =~ /^#<Proc:([^ :@]*?)>$/
     end
 
     it "shouldn't be equal to another one" do

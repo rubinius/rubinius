@@ -223,6 +223,7 @@ ruby_version_is "1.9" do
     describe "ENC_CODERANGE_ASCIIONLY" do
       it "returns true if the object encoding is only ASCII" do
         str = encode("abc", "us-ascii")
+        str.valid_encoding? # make sure to set the coderange
         @s.ENC_CODERANGE_ASCIIONLY(str).should be_true
       end
 
