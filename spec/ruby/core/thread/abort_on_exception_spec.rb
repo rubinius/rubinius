@@ -2,52 +2,87 @@ require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "Thread#abort_on_exception" do
-  before :each do
-    @thread = Thread.new { sleep }
+  before do
+    ThreadSpecs.clear_state
+    @thread = Thread.new { Thread.pass until ThreadSpecs.state == :exit }
   end
 
-  after :each do
-    @thread.kill
+  after do
+    ThreadSpecs.state = :exit
   end
 
   it "is false by default" do
-    @thread.abort_on_exception.should == false
+    @thread.abort_on_exception.should be_false
   end
 
-  it "is changeable to true or false" do
+  it "returns true when #abort_on_exception= is passed true" do
     @thread.abort_on_exception = true
-    @thread.abort_on_exception.should == true
-    @thread.abort_on_exception = false
-    @thread.abort_on_exception.should == false
+    @thread.abort_on_exception.should be_true
+  end
+end
+
+describe :thread_abort_on_exception, :shared => true do
+  before do
+    @thread = Thread.new do
+      Thread.pass until ThreadSpecs.state == :run
+      raise RuntimeError, "Thread#abort_on_exception= specs"
+    end
+  end
+
+  ruby_version_is ""..."1.9" do
+    it "causes the main thread to raise a SystemExit" do
+      begin
+        ScratchPad << :before
+
+        lambda do
+          @thread.abort_on_exception = true if @object
+          ThreadSpecs.state = :run
+          @thread.join
+        end.should raise_error(SystemExit)
+
+        ScratchPad << :after
+      rescue Object
+        ScratchPad << :rescue
+      end
+
+      ScratchPad.recorded.should == [:before, :after]
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "causes the main thread to raise the exception raised in the thread" do
+      begin
+        ScratchPad << :before
+
+        lambda do
+          @thread.abort_on_exception = true if @object
+          ThreadSpecs.state = :run
+          @thread.join
+        end.should raise_error(RuntimeError)
+
+        ScratchPad << :after
+      rescue Object
+        ScratchPad << :rescue
+      end
+
+      ScratchPad.recorded.should == [:before, :after]
+    end
   end
 end
 
 describe "Thread#abort_on_exception=" do
   describe "when enabled and the thread dies due to an exception" do
-    before :each do
-      @saved_stderr = $stderr
-      $stderr = IOStub.new
+    before do
+      ScratchPad.record []
+      ThreadSpecs.clear_state
+      @stderr, $stderr = $stderr, IOStub.new
     end
 
-    after :each do
-      $stderr = @saved_stderr
+    after do
+      $stderr = @stderr
     end
 
-    ruby_version_is ""..."1.9.2" do
-      it "causes the main thread to raise a SystemExit" do
-	go = false
-	t = Thread.new { 1 until go; raise }
-	lambda {t.abort_on_exception = true; go = true; t.join}.should raise_error(SystemExit)
-      end
-    end
-
-    ruby_version_is "1.9.2" do
-      it "causes the main thread to raise that exception" do
-	go = false
-	t = Thread.new { 1 until go; raise }
-	lambda {t.abort_on_exception = true; go = true; t.join}.should raise_error(RuntimeError)
-      end
-    end
+    it_behaves_like :thread_abort_on_exception, nil, true
   end
 end
 
@@ -56,42 +91,28 @@ describe "Thread.abort_on_exception" do
     Thread.abort_on_exception.should == false
   end
 
-  it "is changeable to true or false" do
+  it "returns true when .abort_on_exception= is passed true" do
     Thread.abort_on_exception = true
-    Thread.abort_on_exception.should == true
-    Thread.abort_on_exception = false
-    Thread.abort_on_exception.should == false
+    Thread.abort_on_exception.should be_true
   end
 end
 
 describe "Thread.abort_on_exception=" do
   describe "when enabled and a non-main thread dies due to an exception" do
     before :each do
+      ScratchPad.record []
+      ThreadSpecs.clear_state
+      @stderr, $stderr = $stderr, IOStub.new
+
       @abort_on_exception = Thread.abort_on_exception
       Thread.abort_on_exception = true
-      @saved_stderr = $stderr
-      $stderr = IOStub.new
     end
 
     after :each do
       Thread.abort_on_exception = @abort_on_exception
-      $stderr = @saved_stderr
+      $stderr = @stderr
     end
 
-    ruby_version_is ""..."1.9.2" do
-      it "causes the main thread to raise a SystemExit" do
-	go = false
-	t = Thread.new { 1 until go; raise }
-	lambda { go = true; t.join }.should raise_error(SystemExit)
-      end
-    end
-
-    ruby_version_is "1.9.2" do
-      it "causes the main thread to raise that exception" do
-	go = false
-	t = Thread.new { 1 until go; raise }
-	lambda { go = true; t.join }.should raise_error(RuntimeError)
-      end
-    end
+    it_behaves_like :thread_abort_on_exception, nil, false
   end
 end
