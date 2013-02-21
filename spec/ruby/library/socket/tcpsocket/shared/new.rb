@@ -6,6 +6,10 @@ describe :tcpsocket_new, :shared => true do
     SocketSpecs::SpecTCPServer.start
   end
 
+  after :all do
+    SocketSpecs::SpecTCPServer.cleanup
+  end
+
   before :each do
     @hostname = SocketSpecs::SpecTCPServer.get.hostname
   end

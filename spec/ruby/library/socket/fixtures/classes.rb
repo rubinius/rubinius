@@ -52,19 +52,31 @@ module SocketSpecs
   # from the socket is echoed back. The server is shutdown when
   # the spec process exits.
   class SpecTCPServer
-    def self.start(host=nil, port=nil, logger=nil)
-      return if @server
+    @spec_server = nil
 
-      @server = new host, port, logger
-      @server.start
+    def self.start(host=nil, port=nil, logger=nil)
+      return if @spec_server
+
+      @spec_server = new host, port, logger
+      @spec_server.start
 
       at_exit do
-        @server.shutdown
+        SocketSpecs::SpecTCPServer.shutdown
       end
     end
 
     def self.get
-      @server
+      @spec_server
+    end
+
+    # Clean up any waiting handlers.
+    def self.cleanup
+      @spec_server.cleanup if @spec_server
+    end
+
+    # Exit completely.
+    def self.shutdown
+      @spec_server.shutdown if @spec_server
     end
 
     attr_accessor :hostname, :port, :logger
@@ -73,6 +85,7 @@ module SocketSpecs
       @hostname = host || SocketSpecs.hostname
       @port = port || SocketSpecs.port
       @logger = logger
+      @cleanup = false
       @shutdown = false
       @accepted = false
       @main = nil
@@ -101,6 +114,8 @@ module SocketSpecs
       thr = Thread.new do
         begin
           wait_for socket do
+            break if cleanup?
+
             data = socket.recv(1024)
             break if data.empty?
             log "SpecTCPServer received: #{data.inspect}"
@@ -129,6 +144,18 @@ module SocketSpecs
 
     def shutdown?
       @shutdown
+    end
+
+    def cleanup?
+      @cleanup
+    end
+
+    def cleanup
+      @cleanup = true
+      log "SpecTCPServer cleaning up"
+
+      @threads.each { |thr| thr.join }
+      @cleanup = false
     end
 
     def shutdown
