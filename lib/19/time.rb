@@ -36,7 +36,7 @@
 #   but it is not portable.
 #
 
-require 'date/format'
+require 'date'
 
 #
 # Implements the extensions to the Time class that are described in the
