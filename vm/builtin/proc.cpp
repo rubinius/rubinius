@@ -116,7 +116,7 @@ namespace rubinius {
       if(!arity_ok) {
         Exception* exc =
           Exception::make_argument_error(state, required, args.total(),
-              state->symbol("__block__"));
+              block_->compiled_code()->name());
         exc->locations(state, Location::from_call_stack(state, call_frame));
         state->raise_exception(exc);
         return NULL;
@@ -174,20 +174,6 @@ namespace rubinius {
     bool lambda_style = !lambda_->nil_p();
     int flags = 0;
 
-    // Check the arity in lambda mode
-    if(lambda_style) {
-      flags = CallFrame::cIsLambda;
-      int required = block_->compiled_code()->required_args()->to_native();
-
-      if(args.total() < 1 || (required >= 0 && (size_t)required != args.total() - 1)) {
-        Exception* exc =
-          Exception::make_argument_error(state, required, args.total(), state->symbol("__block__"));
-        exc->locations(state, Location::from_call_stack(state, call_frame));
-        state->raise_exception(exc);
-        return NULL;
-      }
-    }
-
     // Since we allow Proc's to be created without setting block_, we need to check
     // it.
     if(block_->nil_p()) {
@@ -196,6 +182,21 @@ namespace rubinius {
       exc->locations(state, Location::from_call_stack(state, call_frame));
       state->raise_exception(exc);
       return NULL;
+    }
+
+    // Check the arity in lambda mode
+    if(lambda_style) {
+      flags = CallFrame::cIsLambda;
+      int required = block_->compiled_code()->required_args()->to_native();
+
+      if(args.total() < 1 || (required >= 0 && (size_t)required != args.total() - 1)) {
+        Exception* exc =
+          Exception::make_argument_error(state, required, args.total(),
+              block_->compiled_code()->name());
+        exc->locations(state, Location::from_call_stack(state, call_frame));
+        state->raise_exception(exc);
+        return NULL;
+      }
     }
 
     return block_->call_on_object(state, call_frame, args, flags);
