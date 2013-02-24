@@ -277,7 +277,7 @@ class Module
         be = meth.block.dup
         be.change_name name
         code = Rubinius::BlockEnvironment::AsMethod.new(be)
-        meth = lambda(&meth)
+        meth.lambda_style!
       end
     when Method
       exec = meth.executable

@@ -155,14 +155,6 @@ module Kernel
   alias_method :iterator?, :block_given?
   module_function :iterator?
 
-  def lambda(&prc)
-    raise ArgumentError, "block required" unless prc
-    prc.lambda_style!
-    return prc
-  end
-
-  module_function :lambda
-
   def caller(start=1, exclude_kernel=true)
     # The + 1 is to skip this frame
     Rubinius.mri_backtrace(start + 1).map do |tup|
