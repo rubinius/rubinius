@@ -112,4 +112,9 @@ describe "Hash#[]" do
 
     new_hash(x => :x)[x].should == :x
   end
+
+  it "supports keys with private #hash method" do
+    key = HashSpecs::KeyWithPrivateHash.new
+    new_hash(key => 42)[key].should == 42
+  end
 end
