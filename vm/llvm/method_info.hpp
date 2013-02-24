@@ -49,6 +49,7 @@ namespace rubinius {
     InlinePolicy* inline_policy;
     llvm::BasicBlock* fin_block;
     int called_args;
+    int hits;
     JITStackArgs* stack_args;
 
     JITMethodInfo* root;

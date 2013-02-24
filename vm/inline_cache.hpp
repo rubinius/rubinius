@@ -301,9 +301,10 @@ namespace rubinius {
       return NULL;
     }
 
-    Class* get_class(int idx) {
-       MethodCacheEntry* entry = cache_[idx].entry();
+    Class* get_class(int idx, int* hits) {
+      MethodCacheEntry* entry = cache_[idx].entry();
       if(entry) {
+        *hits = cache_[idx].hits();
         return entry->receiver_class();
       } else {
         return NULL;

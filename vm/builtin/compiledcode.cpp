@@ -254,11 +254,7 @@ namespace rubinius {
 
     // Must happen only on the first specialization
     if(!v->unspecialized) {
-      if(execute == specialized_executor) {
-        rubinius::bug("cant setup unspecialized from specialized");
-      }
-
-      v->unspecialized = execute;
+      v->unspecialized = v->fallback;
     }
 
     for(int i = 0; i < MachineCode::cMaxSpecializations; i++) {

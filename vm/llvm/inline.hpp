@@ -143,11 +143,11 @@ namespace rubinius {
 
     bool consider_poly();
 
-    bool inline_for_class(Class* klass);
+    bool inline_for_class(Class* klass, int hits);
 
     void inline_block(JITInlineBlock* ib, Value* self);
 
-    void inline_generic_method(Class* klass, Module* mod, CompiledCode* code, MachineCode* mcode);
+    void inline_generic_method(Class* klass, Module* mod, CompiledCode* code, MachineCode* mcode, int hits);
 
     bool detect_trivial_method(MachineCode* mcode, CompiledCode* code = 0);
 

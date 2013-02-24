@@ -117,7 +117,8 @@ namespace rubinius {
     cInline,
     cTooComplex,
     cTooBig,
-    cInlineDisabled
+    cInlineDisabled,
+    cTooFewSends
   };
 
   class InlinePolicy {

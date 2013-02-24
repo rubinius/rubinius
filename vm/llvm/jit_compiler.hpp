@@ -60,7 +60,7 @@ namespace jit {
 
     void compile(BackgroundCompileRequest* req);
     void compile_method(BackgroundCompileRequest* req);
-    void compile_block(CompiledCode* code, MachineCode* mcode);
+    void compile_block(BackgroundCompileRequest* req);
     void compile_builder(JITMethodInfo&, rubinius::jit::Builder&);
 
     void* function_pointer();

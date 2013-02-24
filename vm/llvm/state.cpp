@@ -361,6 +361,8 @@ namespace rubinius {
             req->method()->set_unspecialized(reinterpret_cast<executor>(func), rd);
           }
 
+          req->machine_code()->clear_compiling();
+
           // assert(req->method()->jit_data());
 
           ls_->end_method_update();
@@ -560,12 +562,17 @@ halt:
       return;
     }
 
+    if(code->machine_code()->compiling_p()) {
+      return;
+    }
+
     // Don't do this because it prevents other class from heating
     // it up too!
-    code->machine_code()->call_count = -1;
+    int hits = code->machine_code()->call_count;
+    code->machine_code()->set_compiling();
 
     BackgroundCompileRequest* req =
-      new BackgroundCompileRequest(state, code, placement, is_block);
+      new BackgroundCompileRequest(state, code, placement, hits, is_block);
 
     queued_methods_++;
 
@@ -644,10 +651,6 @@ halt:
     if(debug_search) {
       std::cout << "! ";
       candidate->print_backtrace(state, 1);
-    }
-
-    if(start && candidate->compiled_code != start) {
-      start->machine_code()->call_count = 0;
     }
 
     if(candidate->compiled_code->machine_code()->call_count <= 1) {
@@ -827,8 +830,6 @@ halt:
       // }
 
       // if(!next || cur->machine_code()->total > SMALL_METHOD_SIZE) return call_frame;
-
-      callee->compiled_code->machine_code()->call_count = 0;
 
       callee = call_frame;
       call_frame = prev;

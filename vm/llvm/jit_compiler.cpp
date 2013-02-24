@@ -143,13 +143,17 @@ namespace jit {
 
   void Compiler::compile(BackgroundCompileRequest* req) {
     if(req->is_block()) {
-      compile_block(req->method(), req->machine_code());
+      compile_block(req);
     } else {
       compile_method(req);
     }
   }
 
-  void Compiler::compile_block(CompiledCode* code, MachineCode* mcode) {
+  void Compiler::compile_block(BackgroundCompileRequest* req) {
+
+    CompiledCode* code = req->method();
+    MachineCode* mcode = req->machine_code();
+
     if(ctx_->llvm_state()->config().jit_inline_debug) {
 
       struct timeval tv;
@@ -175,6 +179,7 @@ namespace jit {
 
     JITMethodInfo info(ctx_, code, mcode);
     info.is_block = true;
+    info.hits = req->hits();
 
     ctx_->set_root(&info);
 
@@ -221,6 +226,7 @@ namespace jit {
 
     JITMethodInfo info(ctx_, code, code->machine_code());
     info.is_block = false;
+    info.hits = req->hits();
 
     if(Class* cls = req->receiver_class()) {
       info.set_self_class(cls);

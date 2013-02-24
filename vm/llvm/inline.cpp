@@ -30,8 +30,9 @@ namespace rubinius {
 
   bool Inliner::consider_mono() {
     if(cache_->classes_seen() != 1) return false;
-    Class* klass = cache_->get_class(0);
-    return inline_for_class(klass);
+    int hits = 0;
+    Class* klass = cache_->get_class(0, &hits);
+    return inline_for_class(klass, hits);
   }
 
   bool Inliner::consider_poly() {
@@ -47,11 +48,12 @@ namespace rubinius {
     ops_.set_block(current);
 
     for(int i = 0; i < classes_seen; ++i) {
-      Class* klass = cache_->get_class(i);
+      int hits = 0;
+      Class* klass = cache_->get_class(i, &hits);
       // Fallback to the next for failure
       set_failure(fallback);
 
-      if(!inline_for_class(klass)) {
+      if(!inline_for_class(klass, hits)) {
         // If we fail to inline this, emit a send to the method
         Value* cache_const = ops_.b().CreateIntToPtr(
           ConstantInt::get(ops_.context()->IntPtrTy, (reinterpret_cast<uintptr_t>(cache_))),
@@ -104,7 +106,7 @@ namespace rubinius {
     return true;
   }
 
-  bool Inliner::inline_for_class(Class* klass) {
+  bool Inliner::inline_for_class(Class* klass, int hits) {
     if(!klass) return false;
 
     Module* defined_in = 0;
@@ -154,6 +156,8 @@ namespace rubinius {
 
         if(mcode->no_inline_p()) {
           decision = cInlineDisabled;
+        } else if(ops_.info().hits / 10 > hits) {
+          decision = cTooFewSends;
         } else {
           decision = policy->inline_p(mcode, opts);
         }
@@ -183,6 +187,9 @@ namespace rubinius {
               if(!opts.allow_blocks) {
                 ops_.llvm_state()->log() << " (block not allowed)";
               }
+              break;
+            case cTooFewSends:
+              ops_.llvm_state()->log() << "too few sends: (" << hits << " / " << ops_.info().hits << ")";
               break;
             default:
               ops_.llvm_state()->log() << "no policy";
@@ -220,7 +227,7 @@ namespace rubinius {
         policy->increase_size(mcode);
         meth->add_inliner(ops_.llvm_state()->shared().om, ops_.root_method_info()->method());
 
-        inline_generic_method(klass, defined_in, code, mcode);
+        inline_generic_method(klass, defined_in, code, mcode, hits);
         return true;
       } else {
         if(ops_.llvm_state()->config().jit_inline_debug) {
@@ -546,7 +553,7 @@ remember:
   }
 
   void Inliner::inline_generic_method(Class* klass, Module* defined_in,
-                                      CompiledCode* code, MachineCode* mcode) {
+                                      CompiledCode* code, MachineCode* mcode, int hits) {
     ctx_->enter_inline();
 
     check_recv(klass);
@@ -554,6 +561,7 @@ remember:
     JITMethodInfo info(ctx_, code, mcode);
 
     prime_info(info);
+    info.hits = hits;
 
     info.self_type = guarded_type_;
 

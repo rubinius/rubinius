@@ -16,15 +16,17 @@ namespace rubinius {
     CompiledCode* method_;
     Object* extra_;
 
-    bool is_block_;
     utilities::thread::Condition* waiter_;
+    int hits_;
+    bool is_block_;
 
   public:
-    BackgroundCompileRequest(STATE, CompiledCode* code, Object* extra, bool is_block=false)
+    BackgroundCompileRequest(STATE, CompiledCode* code, Object* extra, int hits, bool is_block=false)
       : method_(code)
       , extra_(extra)
-      , is_block_(is_block)
       , waiter_(0)
+      , hits_(hits)
+      , is_block_(is_block)
     {}
 
     MachineCode* machine_code() {
@@ -49,6 +51,10 @@ namespace rubinius {
 
     bool is_block() {
       return is_block_;
+    }
+
+    int hits() {
+      return hits_;
     }
 
     void set_waiter(utilities::thread::Condition* cond) {

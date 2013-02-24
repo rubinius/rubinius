@@ -32,7 +32,8 @@ namespace rubinius {
     static void** instructions;
 
     enum Flags {
-      eNoInline = 1 << 0
+      eNoInline  = 1 << 0,
+      eCompiling = 1 << 1
     };
 
     const static int cMaxSpecializations = 3;
@@ -103,6 +104,18 @@ namespace rubinius {
 
     bool jit_disabled() {
       return execute_status_ == eJITDisable;
+    }
+
+    bool compiling_p() {
+      return (flags & eCompiling) == eCompiling;
+    }
+
+    void set_compiling() {
+      flags |= eCompiling;
+    }
+
+    void clear_compiling() {
+      flags &= ~eCompiling;
     }
 
     void set_execute_status(ExecuteStatus s) {
