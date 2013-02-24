@@ -67,7 +67,7 @@ class Hash
 
     redistribute @entries if @size > @max_entries
 
-    key_hash = key.hash
+    key_hash = Rubinius.privately { key.hash }
     index = key_hash & @mask
 
     item = @entries[index]
@@ -116,8 +116,7 @@ class Hash
 
   def delete(key)
     Rubinius.check_frozen
-
-    key_hash = key.hash
+    key_hash = Rubinius.privately { key.hash }
 
     ents = @entries
 
@@ -201,7 +200,7 @@ class Hash
   # Searches for an item matching +key+. Returns the item
   # if found. Otherwise returns +nil+.
   def find_item(key)
-    key_hash = key.hash
+    key_hash = Rubinius.privately { key.hash }
 
     item = @entries[key_index(key_hash)]
     while item
