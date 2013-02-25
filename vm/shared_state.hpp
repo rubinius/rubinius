@@ -112,6 +112,7 @@ namespace rubinius {
 
     utilities::thread::SpinLock capi_ds_lock_;
     utilities::thread::SpinLock capi_constant_lock_;
+    utilities::thread::SpinLock llvm_state_lock_;
 
     int primitive_hits_[Primitives::cTotalPrimitives];
 
@@ -305,6 +306,10 @@ namespace rubinius {
 
     utilities::thread::SpinLock& capi_constant_lock() {
       return capi_constant_lock_;
+    }
+
+    utilities::thread::SpinLock& llvm_state_lock() {
+      return llvm_state_lock_;
     }
 
     void scheduler_loop();
