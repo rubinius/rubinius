@@ -203,6 +203,10 @@ namespace rubinius {
     gc_.process_mark_stack(allocator_);
 
     // We've now finished marking the entire object graph.
+    // Clean weakrefs before keeping additional objects alive
+    // for finalization, so people don't get a hold of finalized
+    // objects through weakrefs.
+    clean_weakrefs();
 
     // Marking objects to be Finalized can cause more things to continue to
     // live, so we must check the mark_stack again.
@@ -210,7 +214,6 @@ namespace rubinius {
       walk_finalizers();
     } while(gc_.process_mark_stack(allocator_));
 
-    clean_weakrefs();
 
     // Remove unreachable locked objects still in the list
     if(data.threads()) {

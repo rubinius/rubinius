@@ -254,6 +254,11 @@ namespace rubinius {
     // We're now done seeing the entire object graph of normal, live references.
     // Now we get to handle the unusual references, like finalizers and such.
 
+    // Check any weakrefs and replace dead objects with nil
+    // We need to do this before checking finalizers so people can't access
+    // objects kept alive for finalization through weakrefs.
+    clean_weakrefs(true);
+
     // Objects with finalizers must be kept alive until the finalizers have
     // run.
     walk_finalizers();
@@ -263,9 +268,6 @@ namespace rubinius {
 
     if(!promoted_stack_.empty()) rubinius::bug("promote stack has elements!");
     if(!fully_scanned_p()) rubinius::bug("more young refs");
-
-    // Check any weakrefs and replace dead objects with nil
-    clean_weakrefs(true);
 
     // Remove unreachable locked objects still in the list
     if(data.threads()) {
