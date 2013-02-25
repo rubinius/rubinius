@@ -1527,7 +1527,7 @@ extern "C" {
   }
 
   Float* rbx_float_allocate(STATE) {
-    return Float::create(state, 0.0);
+    return state->new_object_dirty<Float>(G(floatpoint));
   }
 
   Class* rbx_class_of(STATE, Object* obj) {
