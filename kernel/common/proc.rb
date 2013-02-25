@@ -22,6 +22,7 @@ class Proc
     Rubinius.asm do
       push_block
       # assign a pushed block to the above local variable "env"
+      # Note that "env" is indexed at 1, not 0. "args" is indexed at 0.
       set_local 1
     end
 

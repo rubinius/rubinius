@@ -140,12 +140,6 @@ module Kernel
     raise PrimitiveFailure, "Kernel#object_id primitive failed"
   end
 
-  def proc(&prc)
-    raise ArgumentError, "block required" unless prc
-    return prc
-  end
-  module_function :proc
-
   def open(obj, *rest, &block)
     if obj.respond_to?(:to_open)
       obj = obj.to_open(*rest)
@@ -176,6 +170,35 @@ module Kernel
     Rubinius::CodeLoader.require_relative(name, scope)
   end
   module_function :require_relative
+
+  def lambda
+    env = nil
+
+    Rubinius.asm do
+      push_block
+      # assign a pushed block to the above local variable "env"
+      # Note that "env" is indexed at 0.
+      set_local 0
+    end
+
+    raise ArgumentError, "block required" unless env
+
+    prc = Proc.__from_block__(env)
+
+    # Make a proc lambda only when passed an actual block (ie, not using the
+    # "&block" notation), otherwise don't modify it at all.
+    prc.lambda_style! if env.is_a?(Rubinius::BlockEnvironment)
+
+    return prc
+  end
+
+  module_function :lambda
+
+  def proc(&prc)
+    raise ArgumentError, "block required" unless prc
+    return prc
+  end
+  module_function :proc
 
   def String(obj)
     return obj if obj.kind_of? String
