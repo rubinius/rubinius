@@ -718,10 +718,10 @@ instruction set_ivar(literal) [ value -- value ]
 end
 
 # [Description]
-#   Pushes the instance variable identified by _index_ onto the stack.
+#   Pushes the instance variable identified by _literal_ onto the stack.
 
-instruction push_ivar(index) [ -- value ]
-  Symbol* sym = as<Symbol>(call_frame->compiled_code->literals()->at(state, index));
+instruction push_ivar(literal) [ -- value ]
+  Symbol* sym = as<Symbol>(call_frame->compiled_code->literals()->at(state, literal));
   Object* ret = call_frame->self()->get_ivar(state, sym);
 
   CHECK_AND_PUSH(ret);
