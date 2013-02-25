@@ -663,7 +663,7 @@ halt:
       compile_soon(state, gct, candidate->compiled_code, call_frame, candidate->block_env(), true);
     } else {
       if(candidate->compiled_code->can_specialize_p()) {
-        compile_soon(state, gct, candidate->compiled_code, call_frame, candidate->self()->class_object(state));
+        compile_soon(state, gct, candidate->compiled_code, call_frame, candidate->self()->lookup_begin(state));
       } else {
         compile_soon(state, gct, candidate->compiled_code, call_frame, cNil);
       }

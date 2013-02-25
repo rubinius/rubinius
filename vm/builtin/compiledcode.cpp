@@ -195,7 +195,7 @@ namespace rubinius {
   {
     CompiledCode* code = as<CompiledCode>(exec);
 
-    Class* cls = args.recv()->class_object(state);
+    Class* cls = args.recv()->lookup_begin(state);
     int id = cls->class_id();
 
     MachineCode* v = code->machine_code();
