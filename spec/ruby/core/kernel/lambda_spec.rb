@@ -31,7 +31,7 @@ describe "Kernel.lambda" do
       l.call(1, 2).should == :called
     end
 
-    it "does nost check the arity when passing a Proc with &" do
+    it "checks the arity when passing a Proc with &" do
       l = lambda { || :called }
       p = proc { || :called }
 
@@ -57,7 +57,7 @@ describe "Kernel.lambda" do
       lambda { l.call(1, 2) }.should raise_error(ArgumentError)
     end
 
-    it "checks the arity when passing a Proc with &" do
+    it "does not check the arity when passing a Proc with &" do
       l = lambda { || :called }
       p = proc { || :called }
 
