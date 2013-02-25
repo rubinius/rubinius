@@ -93,6 +93,13 @@ module Kernel
   end
   module_function :open
 
+  def lambda(&prc)
+    raise ArgumentError, "block required" unless prc
+    prc.lambda_style!
+    return prc
+  end
+
+  module_function :lambda
   alias_method :proc, :lambda
   module_function :proc
 
