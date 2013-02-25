@@ -831,9 +831,9 @@
 <tr><td>...</td><td>...</td></tr>
 </tbody>
 </table>
-<h3><a class="instruction" name="push_ivar">push_ivar(index)</a></h3>
+<h3><a class="instruction" name="push_ivar">push_ivar(literal)</a></h3>
 
-   Pushes the instance variable identified by _index_ onto the stack.
+   Pushes the instance variable identified by _literal_ onto the stack.
 
 
 <table class="stack_effect">
