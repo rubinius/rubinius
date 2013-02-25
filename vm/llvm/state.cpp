@@ -549,12 +549,7 @@ halt:
   {
     bool wait = config().jit_sync;
 
-    // Ignore it!
     if(code->machine_code()->call_count <= 1) {
-      // if(config().jit_inline_debug) {
-        // log() << "JIT: ignoring candidate! "
-          // << symbol_debug_str(code->name()) << "\n";
-      // }
       return;
     }
 
@@ -562,8 +557,6 @@ halt:
       return;
     }
 
-    // Don't do this because it prevents other class from heating
-    // it up too!
     int hits = code->machine_code()->call_count;
     code->machine_code()->set_compiling();
 
@@ -587,15 +580,14 @@ halt:
       wait_mutex.unlock();
       gc_dependent();
       state->set_call_frame(0);
-      // if(config().jit_inline_debug) {
-        // if(block) {
-          // log() << "JIT: compiled block inside: "
-                // << symbol_debug_str(code->name()) << "\n";
-        // } else {
-          // log() << "JIT: compiled method: "
-                // << symbol_debug_str(code->name()) << "\n";
-        // }
-      // }
+
+      if(state->shared().config.jit_show_compiling) {
+        llvm::outs() << "[[[ JIT compiled "
+          << enclosure_name(code) << "#" << symbol_debug_str(code->name())
+          << (req->is_block() ? " (block) " : " (method) ")
+          << queued_methods() << "/"
+          << jitted_methods() << " ]]]\n";
+      }
     } else {
       background_thread_->add(req);
 
@@ -626,21 +618,23 @@ halt:
             << symbol_debug_str(start->name()) << std::endl;
     }
 
-    // if(config().jit_inline_debug) {
-      // if(start) {
-        // std::cout << "JIT: target search from "
-          // << symbol_debug_str(start->name()) << "\n";
-      // } else {
-        // std::cout << "JIT: target search from primitive\n";
-      // }
-    // }
-
     CallFrame* candidate = find_candidate(state, start, call_frame);
     if(!candidate || candidate->jitted_p() || candidate->inline_method_p()) {
-      if(debug_search) {
-        std::cout << "JIT: invalid candidate returned" << std::endl;
-      }
+      if(config().jit_show_compiling) {
+        llvm::outs() << "[[[ JIT error finding call frame "
+                      << enclosure_name(start) << "#" << symbol_debug_str(start->name());
+        if(!candidate) {
+          llvm::outs() << " no candidate";
+        }
+        if(candidate->jitted_p()) {
+          llvm::outs() << " candidate is jitted";
+        }
+        if(candidate->inline_method_p()) {
+          llvm::outs() << " candidate is inlined";
+        }
 
+        llvm::outs() << " ]]]\n";
+      }
       return;
     }
 
