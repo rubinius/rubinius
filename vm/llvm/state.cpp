@@ -785,6 +785,10 @@ halt:
         return callee;
       }
 
+      if(call_frame->jitted_p() || call_frame->inline_method_p()) {
+        return callee;
+      }
+
       if(mcode->inline_cache_count() > eMaxInlineSendCount) {
         if(debug_search) {
           std::cout << "JIT: STOP. reason: high send count" << std::endl;
