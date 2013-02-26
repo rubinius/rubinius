@@ -48,9 +48,18 @@ namespace rubinius {
     static Array* encoding_list(STATE);
     static void add_constant(STATE, const char* name, Encoding* enc);
 
-    static Encoding* usascii_encoding(STATE);
-    static Encoding* utf8_encoding(STATE);
-    static Encoding* ascii8bit_encoding(STATE);
+    static Encoding* usascii_encoding(STATE) {
+      return G(usascii_encoding);
+    }
+
+    static Encoding* utf8_encoding(STATE) {
+      return G(utf8_encoding);
+    }
+
+    static Encoding* ascii8bit_encoding(STATE) {
+      return G(ascii8bit_encoding);
+    }
+
     static Encoding* default_external(STATE);
     static Encoding* default_internal(STATE);
 

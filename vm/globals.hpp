@@ -36,6 +36,7 @@ namespace rubinius {
   class Class;
   class Symbol;
   class Exception;
+  class Encoding;
 
   struct Globals {
 
@@ -114,6 +115,8 @@ namespace rubinius {
     TypedRoot<Class*> vm_class;
     TypedRoot<Class*> atomic_ref;
     TypedRoot<Class*> mirror;
+
+    TypedRoot<Encoding*> usascii_encoding, utf8_encoding, ascii8bit_encoding;
 
     /* Add new globals above this line. */
 
@@ -228,7 +231,10 @@ namespace rubinius {
       type(&roots),
       vm_class(&roots),
       atomic_ref(&roots),
-      mirror(&roots)
+      mirror(&roots),
+      usascii_encoding(&roots),
+      utf8_encoding(&roots),
+      ascii8bit_encoding(&roots)
 
       /* Add initialize of globals above this line. */
     { }

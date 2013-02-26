@@ -74,6 +74,10 @@ namespace rubinius {
     binary->name(state, String::create(state, "ASCII-8BIT"));
     utf8->name(state, String::create(state, "UTF-8"));
 
+    GO(usascii_encoding).set(ascii);
+    GO(ascii8bit_encoding).set(binary);
+    GO(utf8_encoding).set(utf8);
+
 #include "vm/gen/encoding_database.cpp"
 
     int index = -1;
@@ -203,18 +207,6 @@ namespace rubinius {
     add_constant(state, name, from_index(state, index));
 
     return as<Encoding>(encoding_list(state)->get(state, index));
-  }
-
-  Encoding* Encoding::usascii_encoding(STATE) {
-    return as<Encoding>(encoding_list(state)->get(state, eAscii));
-  }
-
-  Encoding* Encoding::utf8_encoding(STATE) {
-    return as<Encoding>(encoding_list(state)->get(state, eUtf8));
-  }
-
-  Encoding* Encoding::ascii8bit_encoding(STATE) {
-    return as<Encoding>(encoding_list(state)->get(state, eBinary));
   }
 
   Encoding* Encoding::default_external(STATE) {
