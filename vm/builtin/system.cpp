@@ -1066,7 +1066,11 @@ namespace rubinius {
     return obj->kind_of_p(state, mod) ? cTrue : cFalse;
   }
 
-  Object* System::vm_inc_global_serial(STATE) {
+  Object* System::vm_inc_global_serial(STATE, CallFrame* calling_environment) {
+    if(state->shared().config.serial_debug) {
+      std::cout << "[Global serial increased from " << state->shared().global_serial() << "]" << std::endl;
+      calling_environment->print_backtrace(state, 6, true);
+    }
     return Fixnum::from(state->shared().inc_global_serial(state));
   }
 

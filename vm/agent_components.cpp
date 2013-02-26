@@ -527,6 +527,7 @@ namespace agent {
 
     Tree* jit = system_->get_tree("jit");
     jit->add(new ReadAtomicInteger("cache_resets", state->shared().stats.methods_cache_resets));
+    jit->add(new ReadInteger<int>("global_serial", state->shared().global_serial_address()));
     jit->add(new ReadAtomicInteger("methods", state->shared().stats.jitted_methods));
     jit->add(new ReadAtomicInteger("time", state->shared().stats.jit_time_spent));
 

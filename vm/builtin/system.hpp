@@ -249,7 +249,7 @@ namespace rubinius {
 
     // Increment the internal global serial number, used for caching
     // Rubinius.primitive :vm_inc_global_serial
-    static Object* vm_inc_global_serial(STATE);
+    static Object* vm_inc_global_serial(STATE, CallFrame* calling_environment);
 
     // Print out the current backtrace of ruby code
     // Rubinius.primitive :vm_show_backtrace
