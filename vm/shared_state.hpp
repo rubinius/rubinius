@@ -195,8 +195,8 @@ namespace rubinius {
     }
 
     int inc_global_serial(STATE) {
-      SYNC(state);
-      return ++global_serial_;
+      atomic::fetch_and_add(&global_serial_, (int)1);
+      return global_serial_;
     }
 
     uint32_t new_thread_id();
@@ -210,13 +210,13 @@ namespace rubinius {
     }
 
     unsigned int inc_class_count(STATE) {
-      SYNC(state);
-      return ++class_count_;
+      atomic::fetch_and_add(&class_count_, (unsigned int)1);
+      return class_count_;
     }
 
     uint64_t inc_method_count(STATE) {
-      SYNC(state);
-      return ++method_count_;
+      atomic::fetch_and_add(&method_count_, (uint64_t)1);
+      return method_count_;
     }
 
     int inc_primitive_hit(int primitive) {
