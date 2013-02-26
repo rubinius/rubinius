@@ -1309,10 +1309,6 @@ namespace rubinius {
       BasicBlock* nil = ops.new_block("nil");
       BasicBlock* set = ops.new_block("set");
 
-      Value* val = i.recv();
-
-      ops.verify_guard(ops.check_is_regexp(val), i.failure());
-
       Value* matchdata = i.arg(0);
 
       Value* is_ref = ops.check_is_reference(matchdata);
@@ -1325,7 +1321,7 @@ namespace rubinius {
 
       ops.set_block(reference);
 
-      Value* is_matchdata = ops.check_is_matchdata(val);
+      Value* is_matchdata = ops.check_is_matchdata(matchdata);
       ops.create_conditional_branch(set, i.failure(), is_matchdata);
 
       ops.set_block(set);
@@ -1339,7 +1335,7 @@ namespace rubinius {
 
       Value* call_args[] = {
         ops.state(),
-        val,
+        matchdata,
         call_frame
       };
 
