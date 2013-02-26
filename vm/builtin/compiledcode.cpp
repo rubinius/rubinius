@@ -153,13 +153,30 @@ namespace rubinius {
   Object* CompiledCode::primitive_failed(STATE, CallFrame* call_frame,
               Executable* exec, Module* mod, Arguments& args)
   {
-    if(try_as<CompiledCode>(exec)) {
-      return MachineCode::execute(state, call_frame, exec, mod, args);
+    CompiledCode* code = as<CompiledCode>(exec);
+
+    Class* cls = args.recv()->lookup_begin(state);
+    int id = cls->class_id();
+
+    MachineCode* v = code->machine_code();
+
+    executor target = v->unspecialized;
+
+    for(int i = 0; i < MachineCode::cMaxSpecializations; i++) {
+      int c_id = v->specializations[i].class_id;
+      executor x = v->specializations[i].execute;
+
+      if(c_id == id && x != 0) {
+        target = x;
+        break;
+      }
     }
 
-    // TODO fix me to raise an exception
-    assert(0);
-    return cNil;
+    if(target) {
+      return target(state, call_frame, exec, mod, args);
+    } else {
+      return MachineCode::execute(state, call_frame, exec, mod, args);
+    }
   }
 
   void CompiledCode::specialize(STATE, TypeInfo* ti) {
@@ -242,7 +259,9 @@ namespace rubinius {
       if(machine_code_->specializations[i].class_id > 0) return;
     }
 
-    execute = exec;
+    if(primitive()->nil_p()) {
+      execute = exec;
+    }
   }
 
   void CompiledCode::add_specialized(int spec_id, executor exec,
@@ -252,11 +271,6 @@ namespace rubinius {
 
     MachineCode* v = machine_code_;
 
-    // Must happen only on the first specialization
-    if(!v->unspecialized) {
-      v->unspecialized = v->fallback;
-    }
-
     for(int i = 0; i < MachineCode::cMaxSpecializations; i++) {
       int id = v->specializations[i].class_id;
       if(id == 0 || id == spec_id) {
@@ -265,7 +279,9 @@ namespace rubinius {
         v->specializations[i].jit_data = rd;
 
         v->set_execute_status(MachineCode::eJIT);
-        execute = specialized_executor;
+        if(primitive()->nil_p()) {
+          execute = specialized_executor;
+        }
         return;
       }
     }
