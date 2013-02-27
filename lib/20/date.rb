@@ -193,7 +193,7 @@
 #
 #     puts secs_to_new_year()
 
-require 'date'
+require 'date/format'
 
 # Class representing a date.
 #
