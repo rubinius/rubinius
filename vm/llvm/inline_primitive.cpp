@@ -1226,40 +1226,16 @@ namespace rubinius {
     void object_kind_of() {
       log("Object#kind_of");
       i.context()->enter_inline();
-
-      Signature sig(ops.context(), ops.context()->ptr_type("Object"));
-      sig << "State";
-      sig << "Object";
-      sig << "Object";
-
-      Value* call_args[] = { ops.state(), i.recv(), i.arg(0) };
-
-      CallInst* val = sig.call("rbx_kind_of", call_args, 3, "hash", ops.b());
-      val->setOnlyReadsMemory();
-      val->setDoesNotThrow();
-
+      i.set_result(ops.check_kind_of(i.recv(), i.arg(0)));
       i.exception_safe();
-      i.set_result(val);
       i.context()->leave_inline();
     }
 
     void vm_object_kind_of() {
       log("Type.object_kind_of");
       i.context()->enter_inline();
-
-      Signature sig(ops.context(), ops.context()->ptr_type("Object"));
-      sig << "State";
-      sig << "Object";
-      sig << "Object";
-
-      Value* call_args[] = { ops.state(), i.arg(0), i.arg(1) };
-
-      CallInst* val = sig.call("rbx_kind_of", call_args, 3, "hash", ops.b());
-      val->setOnlyReadsMemory();
-      val->setDoesNotThrow();
-
+      i.set_result(ops.check_kind_of(i.arg(0), i.arg(1)));
       i.exception_safe();
-      i.set_result(val);
       i.context()->leave_inline();
     }
 

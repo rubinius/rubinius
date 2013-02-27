@@ -3253,21 +3253,9 @@ use_send:
     }
 
     void visit_kind_of() {
-      Signature sig(ctx_, ObjType);
-
-      sig << StateTy;
-      sig << ObjType;
-      sig << ObjType;
-
-      Value* top = stack_pop();
-      Value* call_args[] = {
-        state_,
-        top,
-        stack_pop()
-      };
-
-      Value* val = sig.call("rbx_kind_of", call_args, 3, "constant", b());
-      stack_push(val);
+      Value* obj = stack_pop();
+      Value* klass = stack_pop();
+      stack_push(check_kind_of(obj, klass));
     }
 
     void visit_is_nil() {

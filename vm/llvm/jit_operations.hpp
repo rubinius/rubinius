@@ -8,6 +8,7 @@
 #include "builtin/tuple.hpp"
 #include "builtin/bytearray.hpp"
 #include "builtin/regexp.hpp"
+#include "builtin/global_cache_entry.hpp"
 #include "inline_cache.hpp"
 
 #include "llvm/offset.hpp"
@@ -485,6 +486,234 @@ namespace rubinius {
 
     Value* check_is_regexp(Value* obj) {
       return check_type_bits(obj, rubinius::Regexp::type);
+    }
+
+    Value* check_is_class(Value* obj) {
+      return check_type_bits(obj, rubinius::Class::type);
+    }
+
+    void check_direct_class(Value* obj, Value* klass, BasicBlock* success, BasicBlock* failure, bool allow_integer = false) {
+
+      BasicBlock* verify_class_block = new_block("class_verified_block");
+      BasicBlock* reference_block = new_block("reference_block");
+      BasicBlock* check_symbol_block = new_block("check_symbol_block");
+      BasicBlock* is_symbol_block = new_block("is_symbol_block");
+      BasicBlock* check_fixnum_block = new_block("check_fixnum_block");
+      BasicBlock* is_fixnum_block = new_block("is_fixnum_block");
+      BasicBlock* is_integer_block = new_block("is_integer_block");
+
+      BasicBlock* check_nil_block = new_block("check_nil_block");
+      BasicBlock* is_nil_block = new_block("is_nil_block");
+      BasicBlock* check_true_block = new_block("check_true_block");
+      BasicBlock* is_true_block = new_block("is_true_block");
+      BasicBlock* check_false_block = new_block("check_false_block");
+      BasicBlock* is_false_block = new_block("is_false_block");
+
+      Value* is_ref = check_is_reference(obj);
+
+      create_conditional_branch(reference_block, verify_class_block, is_ref);
+      set_block(reference_block);
+
+      Value* obj_klass = b().CreateBitCast(reference_class(obj), ptr_type("Object"), "downcast");
+      Value* check_class = create_equal(obj_klass, klass, "check_class");
+
+      create_conditional_branch(success, failure, check_class);
+
+      set_block(verify_class_block);
+
+      Value* is_class = check_is_class(klass);
+      create_conditional_branch(check_symbol_block, failure, is_class);
+      set_block(check_symbol_block);
+
+      Value* cast_klass = b().CreateBitCast(klass, ptr_type("Class"), "upcast");
+      Value* class_id = get_class_id(cast_klass);
+
+      Value* is_symbol = check_is_symbol(obj);
+      create_conditional_branch(is_symbol_block, check_fixnum_block, is_symbol);
+      set_block(is_symbol_block);
+      Value* is_symbol_class = create_equal(class_id, cint(llvm_state()->symbol_class_id()), "check_class_id");
+      create_conditional_branch(success, failure, is_symbol_class);
+
+      set_block(check_fixnum_block);
+      Value* is_fixnum = check_is_fixnum(obj);
+      create_conditional_branch(is_fixnum_block, check_nil_block, is_fixnum);
+      set_block(is_fixnum_block);
+      Value* is_fixnum_class = create_equal(class_id, cint(llvm_state()->fixnum_class_id()), "check_class_id");
+
+      if(allow_integer) {
+        create_conditional_branch(success, is_integer_block, is_fixnum_class);
+        set_block(is_integer_block);
+        Value* is_integer_class = create_equal(class_id, cint(llvm_state()->integer_class_id()), "check_class_id");
+        create_conditional_branch(success, failure, is_integer_class);
+      } else {
+        create_conditional_branch(success, failure, is_fixnum_class);
+      }
+
+      set_block(check_nil_block);
+      Value* is_nil = check_is_immediate(obj, cNil);
+      create_conditional_branch(is_nil_block, check_true_block, is_nil);
+      set_block(is_nil_block);
+      Value* is_nil_class = create_equal(class_id, cint(llvm_state()->nil_class_id()), "check_class_id");
+      create_conditional_branch(success, failure, is_nil_class);
+
+      set_block(check_true_block);
+      Value* is_true = check_is_immediate(obj, cTrue);
+      create_conditional_branch(is_true_block, check_false_block, is_true);
+      set_block(is_true_block);
+      Value* is_true_class = create_equal(class_id, cint(llvm_state()->true_class_id()), "check_class_id");
+      create_conditional_branch(success, failure, is_true_class);
+
+      set_block(check_false_block);
+      Value* is_false = check_is_immediate(obj, cFalse);
+      create_conditional_branch(is_false_block, failure, is_false);
+      set_block(is_false_block);
+      Value* is_false_class = create_equal(class_id, cint(llvm_state()->false_class_id()), "check_class_id");
+      create_conditional_branch(success, failure, is_false_class);
+    }
+
+    Value* check_kind_of(Value* obj, Value* check_klass) {
+      type::KnownType kt = type::KnownType::extract(ctx_, check_klass);
+
+      BasicBlock* cont = new_block("continue");
+      Value* immediate_value = 0;
+      BasicBlock* immediate_block = 0;
+      Class* klass = 0;
+      BasicBlock* use_call  = new_block("use_call");
+      BasicBlock* positive  = new_block("positive");
+
+      if(kt.global_cache_entry_p()) {
+        if(llvm_state()->config().jit_inline_debug) {
+          ctx_->inline_log("inlining") << "direct class used for kind_of ";
+        }
+        GlobalCacheEntry* entry = kt.global_cache_entry();
+
+        klass = try_as<Class>(entry->value());
+
+        if(klass) {
+
+          BasicBlock* use_cache = new_block("use_cache");
+
+          TypeInfo* type_info = klass->type_info();
+          switch(type_info->type) {
+          case ObjectType:
+          case PackedObjectType:
+            {
+              // Do a direct check as the fast path and fallback to JIT helper
+              if(llvm_state()->config().jit_inline_debug) {
+                ctx_->log() << "(regular Ruby class)\n";
+              }
+              check_direct_class(obj, check_klass, positive, use_call, true);
+            }
+            break;
+          case FixnumType:
+          case IntegerType:
+            {
+              // Do a fast check against it being a fixnum otherwise fallback
+              if(llvm_state()->config().jit_inline_debug) {
+                ctx_->log() << "(against Fixnum / Integer)\n";
+              }
+              Value* is_fixnum = check_is_fixnum(obj);
+              create_conditional_branch(positive, use_call, is_fixnum);
+            }
+            break;
+          case SymbolType:
+            {
+              // Check against symbol tag
+              if(llvm_state()->config().jit_inline_debug) {
+                ctx_->log() << "(against Symbol)\n";
+              }
+              Value* is_symbol = check_is_symbol(obj);
+              create_conditional_branch(positive, use_call, is_symbol);
+            }
+            break;
+          case TrueType:
+            {
+              // Check whether it's the direct true value
+              if(llvm_state()->config().jit_inline_debug) {
+                ctx_->log() << "(against TrueClass)\n";
+              }
+              Value* is_true = create_equal(obj, constant(cTrue), "is_true");
+              create_conditional_branch(positive, use_call, is_true);
+            }
+            break;
+          case FalseType:
+            {
+              // Check whether it's the direct false value
+              if(llvm_state()->config().jit_inline_debug) {
+                ctx_->log() << "(against FalseClass)\n";
+              }
+              Value* is_false = create_equal(obj, constant(cFalse), "is_false");
+              create_conditional_branch(positive, use_call, is_false);
+            }
+            break;
+          case NilType:
+            {
+              // Check whether it's the direct nil value
+              if(llvm_state()->config().jit_inline_debug) {
+                ctx_->log() << "(against NilClass)\n";
+              }
+              Value* is_nil = create_equal(obj, constant(cNil), "is_nil");
+              create_conditional_branch(positive, use_call, is_nil);
+            }
+            break;
+          case InvalidType:
+          case LastObjectType:
+            rubinius::bug("Invalid type information");
+            break;
+          default:
+            {
+              // Handle all other types the VM knows about as a fast path and
+              // fallback to JIT helper if type_info doesn't match.
+              if(llvm_state()->config().jit_inline_debug) {
+                ctx_->log() << "(against VM class "
+                  << llvm_state()->symbol_debug_str(klass->module_name()) << ")\n";
+              }
+
+              Value* is_ref = check_is_reference(obj);
+              create_conditional_branch(use_cache, use_call, is_ref);
+              set_block(use_cache);
+
+              Value* is_type = check_type_bits(obj, type_info->type);
+              create_conditional_branch(positive, use_call, is_type);
+            }
+            break;
+          }
+        }
+      }
+
+      if(!klass) {
+        if(llvm_state()->config().jit_inline_debug) {
+          ctx_->inline_log("inlining") << "no cache for kind_of fast path\n";
+        }
+        check_direct_class(obj, check_klass, positive, use_call, true);
+      }
+
+      set_block(positive);
+      immediate_block = current_block();
+      immediate_value = constant(cTrue);
+
+      create_branch(cont);
+      set_block(use_call);
+
+      Signature sig(ctx_, ctx_->ptr_type("Object"));
+      sig << "State";
+      sig << "Object";
+      sig << "Object";
+
+      Value* call_args[] = { state_, obj, check_klass };
+
+      CallInst* val = sig.call("rbx_kind_of", call_args, 3, "kind_of", b());
+      val->setOnlyReadsMemory();
+      val->setDoesNotThrow();
+
+      BasicBlock* ret_block = current_block();
+      create_branch(cont);
+      set_block(cont);
+
+      PHINode* phi = b().CreatePHI(ObjType, 2, "constant");
+      phi->addIncoming(immediate_value, immediate_block);
+      phi->addIncoming(val, ret_block);
+      return phi;
     }
 
     void verify_guard(Value* cmp, BasicBlock* failure) {

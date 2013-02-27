@@ -466,9 +466,13 @@ halt:
 
     memory_ = new jit::RubiniusJITMemoryManager();
 
-    fixnum_class_id_ = G(fixnum_class)->class_id();
-    symbol_class_id_ = G(symbol)->class_id();
-    string_class_id_ = G(string)->class_id();
+    fixnum_class_id_  = G(fixnum_class)->class_id();
+    integer_class_id_ = G(integer)->class_id();
+    symbol_class_id_  = G(symbol)->class_id();
+    string_class_id_  = G(string)->class_id();
+    nil_class_id_     = G(nil_class)->class_id();
+    true_class_id_    = G(true_class)->class_id();
+    false_class_id_   = G(false_class)->class_id();
 
     type_optz_ = state->shared().config.jit_type_optz;
 

@@ -76,8 +76,12 @@ namespace rubinius {
     gc::WriteBarrier write_barrier_;
 
     int fixnum_class_id_;
+    int integer_class_id_;
     int symbol_class_id_;
     int string_class_id_;
+    int nil_class_id_;
+    int true_class_id_;
+    int false_class_id_;
 
     bool type_optz_;
 
@@ -168,12 +172,28 @@ namespace rubinius {
       return fixnum_class_id_;
     }
 
+    int integer_class_id() {
+      return integer_class_id_;
+    }
+
     int symbol_class_id() {
       return symbol_class_id_;
     }
 
     int string_class_id() {
       return string_class_id_;
+    }
+
+    int nil_class_id() {
+      return nil_class_id_;
+    }
+
+    int true_class_id() {
+      return true_class_id_;
+    }
+
+    int false_class_id() {
+      return false_class_id_;
     }
 
     bool type_optz() {
