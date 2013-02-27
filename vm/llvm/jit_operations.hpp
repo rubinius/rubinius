@@ -257,7 +257,7 @@ namespace rubinius {
     }
 
     llvm::Value* clong(uintptr_t num) {
-      return llvm::ConstantInt::get(ctx_->IntPtrTy, num);
+      return ctx_->clong(num);
     }
 
     // Type resolution and manipulation

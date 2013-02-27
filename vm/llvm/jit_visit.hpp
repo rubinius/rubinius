@@ -2075,7 +2075,7 @@ use_send:
         phi->addIncoming(cached_value, cached_block);
         phi->addIncoming(ret, ret_block);
 
-        stack_push(phi);
+        stack_push(phi, type::KnownType::global_cache_entry(entry));
       } else {
         stack_push(ret);
       }
@@ -3227,7 +3227,7 @@ use_send:
         phi->addIncoming(cached_value, cached_block);
         phi->addIncoming(ret, ret_block);
 
-        stack_push(phi);
+        stack_push(phi, type::KnownType::global_cache_entry(entry));
       } else {
         stack_push(ret);
       }

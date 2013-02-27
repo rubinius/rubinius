@@ -100,6 +100,10 @@ namespace rubinius {
       }
     }
 
+    llvm::Value* clong(uintptr_t num) {
+      return llvm::ConstantInt::get(IntPtrTy, num);
+    }
+
     void set_root(JITMethodInfo* info) {
       root_info_ = info;
     }

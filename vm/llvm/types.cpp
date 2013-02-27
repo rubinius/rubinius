@@ -3,6 +3,8 @@
 #include "llvm/jit_operations.hpp"
 #include "llvm/types.hpp"
 
+#include "builtin/global_cache_entry.hpp"
+
 namespace rubinius {
 namespace type {
   void KnownType::associate(Context* ctx, llvm::Instruction* I) {
@@ -12,7 +14,7 @@ namespace type {
     if(source_ != eUnknownSource) {
       llvm::Value *impMD[] = {
         ctx->cint(kind_),
-        ctx->cint(value_),
+        ctx->clong(value_),
         ctx->cint(source_),
         ctx->cint(source_id_)
       };
@@ -21,7 +23,7 @@ namespace type {
     } else {
       llvm::Value *impMD[] = {
         ctx->cint(kind_),
-        ctx->cint(value_)
+        ctx->clong(value_)
       };
 
       node = llvm::MDNode::get(ctx->llvm_context(), impMD);
@@ -117,6 +119,8 @@ namespace type {
       return "<obj: Rubinius::Type>";
     case eClassObject:
       return "<obj: class>";
+    case eGlobalCacheEntry:
+      return "<obj: global cache entry>";
     }
 
     return "Confused type info!";

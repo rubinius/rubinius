@@ -8,6 +8,7 @@ namespace llvm {
 
 namespace rubinius {
   class Context;
+  class GlobalCacheEntry;
 
   namespace type {
     enum Kind {
@@ -21,7 +22,8 @@ namespace rubinius {
       eSingletonInstance,
       eSymbol,
       eType,
-      eClassObject
+      eClassObject,
+      eGlobalCacheEntry
     };
 
     enum Source {
@@ -31,7 +33,7 @@ namespace rubinius {
 
     class KnownType {
       Kind kind_;
-      int value_;
+      uintptr_t value_;
 
       Source source_;
       int source_id_;
@@ -44,7 +46,7 @@ namespace rubinius {
         , source_id_(0)
       {}
 
-      KnownType(Kind kind, int value=0, Source s=eUnknownSource, int sid=0)
+      KnownType(Kind kind, uintptr_t value=0, Source s=eUnknownSource, int sid=0)
         : kind_(kind)
         , value_(value)
         , source_(s)
@@ -95,6 +97,10 @@ namespace rubinius {
         return KnownType(eClassObject, class_id);
       }
 
+      static KnownType global_cache_entry(GlobalCacheEntry* entry) {
+        return KnownType(eGlobalCacheEntry, reinterpret_cast<uintptr_t>(entry));
+      }
+
       bool known_p() {
         return kind_ != eUnknown;
       }
@@ -123,6 +129,10 @@ namespace rubinius {
         return kind_ == eClassObject;
       }
 
+      bool global_cache_entry_p() {
+        return kind_ == eGlobalCacheEntry;
+      }
+
       int class_id() {
         switch(kind_) {
         case eInstance:
@@ -132,6 +142,13 @@ namespace rubinius {
         default:
           return -1;
         }
+      }
+
+      GlobalCacheEntry* global_cache_entry() {
+        if(global_cache_entry_p()) {
+          return reinterpret_cast<GlobalCacheEntry*>(value_);
+        }
+        return NULL;
       }
 
       bool fixnum_p() {
