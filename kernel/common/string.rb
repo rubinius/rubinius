@@ -121,7 +121,9 @@ class String
     Rubinius.primitive :string_aref
 
     unless other.equal?(undefined)
-      if index.kind_of? Regexp
+      if index.kind_of?(Fixnum) && other.kind_of?(Fixnum)
+        return substring(index, other)
+      elsif index.kind_of? Regexp
         match, str = subpattern(index, other)
         Regexp.last_match = match
         return str

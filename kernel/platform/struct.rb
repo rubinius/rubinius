@@ -258,6 +258,8 @@ module FFI
       raise "Unknown field #{field}" unless offset
 
       case type
+      when Fixnum
+        @pointer.set_at_offset(offset, type, val)
       when FFI::Type::Array
         if type.implementation == InlineCharArray
           (@pointer + offset).write_string StringValue(val), type.size
@@ -281,6 +283,8 @@ module FFI
       case type
       when FFI::TYPE_CHARARR
         (@pointer + offset).read_string
+      when Fixnum
+        @pointer.get_at_offset(offset, type)
       when FFI::Type::Array
         type.implementation.new(type, @pointer + offset)
       when FFI::Type::StructByValue
