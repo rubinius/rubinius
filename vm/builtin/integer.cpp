@@ -6,9 +6,25 @@
 #include "builtin/bignum.hpp"
 #include "builtin/float.hpp"
 
+#include "ontology.hpp"
+
 #include "configuration.hpp"
 
 namespace rubinius {
+
+  void Numeric::init(STATE) {
+    GO(numeric).set(ontology::new_class(state, "Numeric"));
+    // We inherit from this type in for example Rational
+    // and that class shouldn't have NumericType set since
+    // that can cause problems.
+    G(numeric)->set_object_type(state, ObjectType);
+  }
+
+  void Integer::init(STATE) {
+    GO(integer).set(ontology::new_class(state, "Integer", G(numeric)));
+    G(integer)->set_object_type(state, IntegerType);
+  }
+
   native_int Integer::slow_to_native() {
     if(fixnum_p()) {
       return (force_as<Fixnum>(this))->to_native();

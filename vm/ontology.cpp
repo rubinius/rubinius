@@ -267,10 +267,8 @@ namespace rubinius {
     G(false_class)->set_object_type(state, FalseType);
     GO(false_class)->type_info()->allow_user_allocate = false;
 
-    Class* numeric = ontology::new_class(state, "Numeric");
-    GO(numeric).set(numeric);
-    Class* integer = ontology::new_class(state, "Integer", numeric);
-    GO(integer).set(integer);
+    Numeric::init(state);
+    Integer::init(state);
     Fixnum::init(state);
     Symbol::init(state);
 
