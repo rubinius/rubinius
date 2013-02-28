@@ -9,6 +9,79 @@
 
   
   <entry>
+    <title>Heroku (Cedar) + Rubinius 2 + Puma 2 in Three Easy Steps</title>
+    <id>http://rubini.us/2013/02/26/heroku-cedar-rubinius-2-puma-2-in-three-easy-steps/</id>
+    <link rel="alternate" type="text/html" href="http://rubini.us/2013/02/26/heroku-cedar-rubinius-2-puma-2-in-three-easy-steps/" />
+    <updated>2013-02-26T00:00:00+00:00</updated>
+    <author>
+      <name>Shane Becker</name>
+    </author>
+    
+    <content type="html">&lt;h3 id=&quot;tldr&quot;&gt;tl;dr&lt;/h3&gt;
+
+&lt;p&gt;It&amp;rsquo;s now &lt;strong&gt;&lt;a href=&quot;https://github.com/rubinius/heroku-rbx-puma-rails-app&quot;&gt;very easy&lt;/a&gt;&lt;/strong&gt; to get a &lt;a href=&quot;https://devcenter.heroku.com/articles/rails3&quot;&gt;Rails app&lt;/a&gt; on &lt;a href=&quot;https://devcenter.heroku.com/articles/cedar&quot;&gt;Heroku&amp;rsquo;s Cedar Stack&lt;/a&gt; running on &lt;a href=&quot;http://rubini.us&quot; title=&quot;Rubinius : Use Ruby&amp;#8482;&quot;&gt;Rubinius 2.0&lt;/a&gt; and &lt;a href=&quot;http://puma.io&quot; title=&quot;A Modern, Concurrent Web Server for Ruby - Puma&quot;&gt;Puma 2.0&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;the-backstory&quot;&gt;The Backstory&lt;/h3&gt;
+
+&lt;p&gt;The fine folks at Heroku have been adding support for using &lt;a href=&quot;http://gembundler.com&quot; title=&quot;Bundler: The best way to manage a Ruby application's gems&quot;&gt;Bundler&lt;/a&gt; to &lt;a href=&quot;https://devcenter.heroku.com/articles/ruby-versions&quot;&gt;specify which version of Ruby&lt;/a&gt; your app uses and even &lt;a href=&quot;https://blog.heroku.com/archives/2012/12/13/run_jruby_on_heroku_right_now&quot;&gt;to specify which Ruby&lt;/a&gt; it uses.&lt;/p&gt;
+
+&lt;p&gt;I&amp;rsquo;ve checked in on the progress of using Rubinius with this same method every couple few months for the past year or so. I was always met with the same results&amp;hellip; &lt;q&gt;&amp;ldquo;not quite yet, we&amp;rsquo;re working on it&amp;rdquo;&lt;/q&gt;.&lt;/p&gt;
+
+&lt;p&gt;Last night I was getting mentally packed for &lt;a href=&quot;https://waza.heroku.com/2013&quot;&gt;Waza&lt;/a&gt; later this week and decided to check in on the state of things so I could ask the right people the right questions in person when we&amp;rsquo;re all together. Turns out that sometime between last time and this time, they&amp;rsquo;ve got things working. Boom diggity! And it&amp;rsquo;s pretty ding-dang easy too! Double boom diggity!&lt;/p&gt;
+
+&lt;h3 id=&quot;the-build-up&quot;&gt;The Build Up&lt;/h3&gt;
+
+&lt;p&gt;I&amp;rsquo;m going to assume that if you want to use Rubinius 2.0 that you also have the good sense to want to use Puma 2.0. There are three very simple steps to get up and running with Rubinius 2.0 + Puma 2.0.&lt;/p&gt;
+
+&lt;h4 id=&quot;step-1&quot;&gt;Step 1&lt;/h4&gt;
+
+&lt;p&gt;Add the Puma gem to your &lt;code&gt;Gemfile&lt;/code&gt;.&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/veganstraightedge/5041441.js&quot;&gt;&lt;/script&gt;
+
+&lt;h4 id=&quot;step-2&quot;&gt;Step 2&lt;/h4&gt;
+
+&lt;p&gt;Tell Heroku to use Puma as your web server in your &lt;code&gt;Procfile&lt;/code&gt;.&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/veganstraightedge/0135a61335bc76b1d9d5.js&quot;&gt;&lt;/script&gt;
+
+&lt;h4 id=&quot;step-3&quot;&gt;Step 3&lt;/h4&gt;
+
+&lt;p&gt;Specify Rubinius as your Ruby engine in your &lt;code&gt;Gemfile&lt;/code&gt;.&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/veganstraightedge/1fb7ff88e74567c6e2e6.js&quot;&gt;&lt;/script&gt;
+
+&lt;h3 id=&quot;the-breakdown&quot;&gt;The Breakdown&lt;/h3&gt;
+
+&lt;p&gt;Once you&amp;rsquo;ve done those things, your workflow is the same as before.
+&lt;code&gt;bundle update &amp;amp;&amp;amp; git commit -am &quot;Double boom diggity!&quot; &amp;amp;&amp;amp; git push heroku master&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;If you&amp;rsquo;re changing an existing app from Heroku&amp;rsquo;s default Ruby (MRI 1.9.x) to Rubinius, you&amp;rsquo;ll see a message like this when you &lt;code&gt;git push heroku master&lt;/code&gt;.&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/veganstraightedge/5041986.js&quot;&gt;&lt;/script&gt;
+
+&lt;p&gt;The important lines are &lt;code&gt;Old: ruby 1.9.3&lt;/code&gt; and &lt;code&gt;New: rubinius 2.0.0dev&lt;/code&gt;. After that, everything the same as before. The bundling starts, etc.&lt;/p&gt;
+
+&lt;h3 id=&quot;the-outro&quot;&gt;The Outro&lt;/h3&gt;
+
+&lt;p&gt;That&amp;rsquo;s it. You should now be up and running with Rubinius and Puma!&lt;/p&gt;
+
+&lt;p&gt;If you have problems, say something in the comments with a link to a gist with your problem output. If you succeed and get up and running in production, let us in the comments too. Tell the world that you love Rubinius/Puma.&lt;/p&gt;
+
+&lt;p&gt;I threw together this &lt;a href=&quot;https://github.com/rubinius/heroku-rbx-puma-rails-app&quot;&gt;quick and dirty Rails app&lt;/a&gt; from scratch deployed to Heroku to show all this in action. &lt;a href=&quot;http://heroku-rbx-puma-rails-app.herokuapp.com&quot; title=&quot;Using Rubinius &amp;amp; Puma on Heroku&quot;&gt;http://heroku-rbx-puma-rails-app.herokuapp.com&lt;/a&gt;. I also migrated an existing MRI 1.9.3 app ( &lt;a href=&quot;http://farmhouse.la&quot; title=&quot;The Farmhouse in Hollywood, California&quot;&gt;The Farmhouse site&lt;/a&gt; ) to Rubinius 2.0 to show the migration is easy too.&lt;/p&gt;
+
+&lt;h3 id=&quot;the-thank-yous&quot;&gt;The Thank Yous&lt;/h3&gt;
+
+&lt;p&gt;None of this would be possible without the hard work of &lt;a href=&quot;https://github.com/carllerche&quot;&gt;Carl Lerche&lt;/a&gt;, &lt;a href=&quot;https://github.com/wycats/&quot;&gt;Yehuda Katz&lt;/a&gt;, &lt;a href=&quot;https://github.com/indirect/&quot;&gt;André Arko&lt;/a&gt;, &lt;a href=&quot;https://github.com/hone&quot;&gt;Terrence Lee&lt;/a&gt; and the other contributors to &lt;a href=&quot;https://github.com/carlhuda/bundler&quot;&gt;Bundler&lt;/a&gt;. And a special thanks to Terrence Lee for his dutiful stewardship of the &lt;a href=&quot;https://github.com/heroku/heroku-buildpack-ruby/&quot;&gt;Heroku Ruby Buildpack&lt;/a&gt;. Once again, the awesome powers of Open Source make great things possible.&lt;/p&gt;
+
+&lt;h3 id=&quot;the-footnotes&quot;&gt;The Footnotes&lt;/h3&gt;
+
+&lt;p&gt;As of this writing &amp;ldquo;Rubinius 2.0&amp;rdquo; actually means &amp;ldquo;Rubinius 2.0.0.dev&amp;rdquo; and &amp;ldquo;Puma 2.0&amp;rdquo; actually means &amp;ldquo;Puma 2.0.0b6&amp;rdquo;. The net result is the same though.&lt;/p&gt;
+
+</content>
+  </entry>
+  
+  <entry>
     <title>Debugging scary crashes of Rubinius</title>
     <id>http://rubini.us/2012/01/04/debugging-rubinius/</id>
     <link rel="alternate" type="text/html" href="http://rubini.us/2012/01/04/debugging-rubinius/" />

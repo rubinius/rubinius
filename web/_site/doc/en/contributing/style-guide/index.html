@@ -160,6 +160,7 @@ irc.freenode.net.</p>
   <li>Configure your editor for soft tabs, not hard tabs</li>
   <li>Expand tabs to two spaces</li>
   <li>Leave a trailing newline at the end of each file</li>
+  <li>Don&rsquo;t leave spaces at the end of each line</li>
 </ul>
 
 <h2 id="c-code">C++ Code</h2>
@@ -236,6 +237,14 @@ end
     <pre><code>module Rubinius::Profiler
   class Sampler
   end
+end
+</code></pre>
+  </li>
+  <li>
+    <p>Method definitions: don&rsquo;t add empty parentheses when there is no parameter.</p>
+
+    <pre><code>def clear
+  @total = 0
 end
 </code></pre>
   </li>

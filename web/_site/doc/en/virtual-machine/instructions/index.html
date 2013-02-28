@@ -930,10 +930,10 @@ tuple data.</li>
 </td></tr>
 </tbody>
 </table>
-<h3><a class="instruction" name="set_ivar">set_ivar(index)</a></h3>
+<h3><a class="instruction" name="set_ivar">set_ivar(literal)</a></h3>
 
 <p>Pops a value off the stack, and uses it to set the value of the instance
-   variable identifies by the literal specified by operand <em>index</em>.  The
+   variable identifies by the literal specified by operand <em>literal</em>.  The
    value popped off the stack is then pushed back on again.</p>
 
 <table class="stack_effect">
@@ -945,9 +945,9 @@ tuple data.</li>
 <tr><td>...</td><td>...</td></tr>
 </tbody>
 </table>
-<h3><a class="instruction" name="push_ivar">push_ivar(index)</a></h3>
+<h3><a class="instruction" name="push_ivar">push_ivar(literal)</a></h3>
 
-<p>Pushes the instance variable identified by <em>index</em> onto the stack.</p>
+<p>Pushes the instance variable identified by <em>literal</em> onto the stack.</p>
 
 <table class="stack_effect">
 <thead>
@@ -979,10 +979,10 @@ tuple data.</li>
 <pre><code> engine = RUBY_ENGINE # RUBY_ENGINE is a constant defined by Rubinius
 </code></pre>
 
-<h3><a class="instruction" name="set_const">set_const(index)</a></h3>
+<h3><a class="instruction" name="set_const">set_const(literal)</a></h3>
 
 <p>Pops an object off the stack, and uses value to set a constant named
-   by the literal <em>index</em>. The value is pushed back onto the stack.</p>
+   by the <em>literal</em>. The value is pushed back onto the stack.</p>
 
 <table class="stack_effect">
 <thead>
@@ -993,9 +993,9 @@ tuple data.</li>
 <tr><td>...</td><td>...</td></tr>
 </tbody>
 </table>
-<h3><a class="instruction" name="set_const_at">set_const_at(index)</a></h3>
+<h3><a class="instruction" name="set_const_at">set_const_at(literal)</a></h3>
 
-<p>Pop a value from the literals table specified by the operand <em>index</em> and
+<p>Pop a value from the literals table specified by the operand <em>literal</em> and
    use it as the value of a constant named inside a Module object popped from
    the stack.  The <em>value</em> is pushed back on the stack.</p>
 
@@ -1014,10 +1014,10 @@ tuple data.</li>
 </td><td /></tr>
 </tbody>
 </table>
-<h3><a class="instruction" name="find_const">find_const(index)</a></h3>
+<h3><a class="instruction" name="find_const">find_const(literal)</a></h3>
 
 <p>Pops <em>module</em> off the stack, and searches within its namespace for the
-   constant named by the literal specified by the operand <em>index</em>. If found,
+   constant named by the literal specified by the operand <em>literal</em>. If found,
    it is pushed onto the stack; otherwise, nothing is pushed onto the stack,
    and a <code>NameError</code> exception is raised.</p>
 
@@ -1073,6 +1073,31 @@ tuple data.</li>
 <h4>See Also</h4>
 <ul class="insn_cross_ref">
 <li><a href="#push_const">push_const</a></li>
+</ul>
+<h3><a class="instruction" name="find_const_fast">find_const_fast(literal, association)</a></h3>
+
+<p>Pushes a constant onto the stack scoped under the module on the top of
+   the stack. Caches the lookup to provide faster future lookup. This
+   instruction is normally emitted only by the Generator.</p>
+
+<table class="stack_effect">
+<thead>
+<tr><th>Before</th><th>After</th></tr>
+</thead>
+<tbody>
+<tr><td>module</td><td>constant</td></tr>
+<tr><td>...</td><td>...</td></tr>
+</tbody>
+</table>
+
+<h4 id="example-6">Example</h4>
+<pre><code> str = "abc"
+ enum = Enumerable::Enumerator(str, :each_byte)
+</code></pre>
+
+<h4>See Also</h4>
+<ul class="insn_cross_ref">
+<li><a href="#find_const">find_const</a></li>
 </ul>
 <h3><a class="instruction" name="set_call_flags">set_call_flags(flags)</a></h3>
 
@@ -1385,7 +1410,7 @@ tuple data.</li>
 </tbody>
 </table>
 
-<h4 id="example-6">Example</h4>
+<h4 id="example-7">Example</h4>
 <pre><code> [[1,2,3]].each do |i,j,k|
    # do something
  end
@@ -2196,7 +2221,7 @@ tuple data.</li>
 </table>
 <h3><a class="instruction" name="push_rubinius">push_rubinius()</a></h3>
 
-<p>Pushes the top-level global <code>Rubinius</code> constant onto the stack.  Generally
+<p>Pushes the top-level global <code>Rubinius</code> constant onto the stack. Generally
    this is done to call a utility method.</p>
 
 <table class="stack_effect">
@@ -2255,6 +2280,21 @@ tuple data.</li>
    to indicate for flexibility.</p>
 
 <h3><a class="instruction" name="push_type">push_type()</a></h3>
+
+<p>Pushes the distinguished module <code>Rubinius::Type</code> onto the stack.</p>
+
+<table class="stack_effect">
+<thead>
+<tr><th>Before</th><th>After</th></tr>
+</thead>
+<tbody>
+<tr><td>...</td><td>constant</td></tr>
+<tr><td /><td>...</td></tr>
+</tbody>
+</table>
+<h3><a class="instruction" name="push_mirror">push_mirror()</a></h3>
+
+<p>Pushes the distinguished class <code>Rubinius::Mirror</code> onto the stack.</p>
 
 <table class="stack_effect">
 <thead>

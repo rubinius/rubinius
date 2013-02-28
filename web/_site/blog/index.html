@@ -70,6 +70,86 @@
   
     <div class="post">
       <h2 class="post_title">
+        <a href="/2013/02/26/heroku-cedar-rubinius-2-puma-2-in-three-easy-steps/" title="Heroku (Cedar) + Rubinius 2 + Puma 2 in Three Easy Steps" class="post_title">
+        Heroku (Cedar) + Rubinius 2 + Puma 2 in Three Easy Steps
+        </a>
+      </h2>
+      <div class="by_line">
+  <p><span class="author">Shane Becker</span>
+    <span class="date">26 February 2013</span>
+    
+      <a href="http://rubini.us/2013/02/26/heroku-cedar-rubinius-2-puma-2-in-three-easy-steps/#disqus_thread" data-disqus-identifier="/2013/02/26/heroku-cedar-rubinius-2-puma-2-in-three-easy-steps/"></a>
+
+    
+  </p>
+</div>
+
+      <h3 id="tldr">tl;dr</h3>
+
+<p>It&rsquo;s now <strong><a href="https://github.com/rubinius/heroku-rbx-puma-rails-app">very easy</a></strong> to get a <a href="https://devcenter.heroku.com/articles/rails3">Rails app</a> on <a href="https://devcenter.heroku.com/articles/cedar">Heroku&rsquo;s Cedar Stack</a> running on <a href="http://rubini.us" title="Rubinius : Use Ruby&#8482;">Rubinius 2.0</a> and <a href="http://puma.io" title="A Modern, Concurrent Web Server for Ruby - Puma">Puma 2.0</a>.</p>
+
+<h3 id="the-backstory">The Backstory</h3>
+
+<p>The fine folks at Heroku have been adding support for using <a href="http://gembundler.com" title="Bundler: The best way to manage a Ruby application's gems">Bundler</a> to <a href="https://devcenter.heroku.com/articles/ruby-versions">specify which version of Ruby</a> your app uses and even <a href="https://blog.heroku.com/archives/2012/12/13/run_jruby_on_heroku_right_now">to specify which Ruby</a> it uses.</p>
+
+<p>I&rsquo;ve checked in on the progress of using Rubinius with this same method every couple few months for the past year or so. I was always met with the same results&hellip; <q>&ldquo;not quite yet, we&rsquo;re working on it&rdquo;</q>.</p>
+
+<p>Last night I was getting mentally packed for <a href="https://waza.heroku.com/2013">Waza</a> later this week and decided to check in on the state of things so I could ask the right people the right questions in person when we&rsquo;re all together. Turns out that sometime between last time and this time, they&rsquo;ve got things working. Boom diggity! And it&rsquo;s pretty ding-dang easy too! Double boom diggity!</p>
+
+<h3 id="the-build-up">The Build Up</h3>
+
+<p>I&rsquo;m going to assume that if you want to use Rubinius 2.0 that you also have the good sense to want to use Puma 2.0. There are three very simple steps to get up and running with Rubinius 2.0 + Puma 2.0.</p>
+
+<h4 id="step-1">Step 1</h4>
+
+<p>Add the Puma gem to your <code>Gemfile</code>.</p>
+
+<script src="https://gist.github.com/veganstraightedge/5041441.js"></script>
+
+<h4 id="step-2">Step 2</h4>
+
+<p>Tell Heroku to use Puma as your web server in your <code>Procfile</code>.</p>
+
+<script src="https://gist.github.com/veganstraightedge/0135a61335bc76b1d9d5.js"></script>
+
+<h4 id="step-3">Step 3</h4>
+
+<p>Specify Rubinius as your Ruby engine in your <code>Gemfile</code>.</p>
+
+<script src="https://gist.github.com/veganstraightedge/1fb7ff88e74567c6e2e6.js"></script>
+
+<h3 id="the-breakdown">The Breakdown</h3>
+
+<p>Once you&rsquo;ve done those things, your workflow is the same as before.
+<code>bundle update &amp;&amp; git commit -am "Double boom diggity!" &amp;&amp; git push heroku master</code></p>
+
+<p>If you&rsquo;re changing an existing app from Heroku&rsquo;s default Ruby (MRI 1.9.x) to Rubinius, you&rsquo;ll see a message like this when you <code>git push heroku master</code>.</p>
+
+<script src="https://gist.github.com/veganstraightedge/5041986.js"></script>
+
+<p>The important lines are <code>Old: ruby 1.9.3</code> and <code>New: rubinius 2.0.0dev</code>. After that, everything the same as before. The bundling starts, etc.</p>
+
+<h3 id="the-outro">The Outro</h3>
+
+<p>That&rsquo;s it. You should now be up and running with Rubinius and Puma!</p>
+
+<p>If you have problems, say something in the comments with a link to a gist with your problem output. If you succeed and get up and running in production, let us in the comments too. Tell the world that you love Rubinius/Puma.</p>
+
+<p>I threw together this <a href="https://github.com/rubinius/heroku-rbx-puma-rails-app">quick and dirty Rails app</a> from scratch deployed to Heroku to show all this in action. <a href="http://heroku-rbx-puma-rails-app.herokuapp.com" title="Using Rubinius &amp; Puma on Heroku">http://heroku-rbx-puma-rails-app.herokuapp.com</a>. I also migrated an existing MRI 1.9.3 app ( <a href="http://farmhouse.la" title="The Farmhouse in Hollywood, California">The Farmhouse site</a> ) to Rubinius 2.0 to show the migration is easy too.</p>
+
+<h3 id="the-thank-yous">The Thank Yous</h3>
+
+<p>None of this would be possible without the hard work of <a href="https://github.com/carllerche">Carl Lerche</a>, <a href="https://github.com/wycats/">Yehuda Katz</a>, <a href="https://github.com/indirect/">André Arko</a>, <a href="https://github.com/hone">Terrence Lee</a> and the other contributors to <a href="https://github.com/carlhuda/bundler">Bundler</a>. And a special thanks to Terrence Lee for his dutiful stewardship of the <a href="https://github.com/heroku/heroku-buildpack-ruby/">Heroku Ruby Buildpack</a>. Once again, the awesome powers of Open Source make great things possible.</p>
+
+<h3 id="the-footnotes">The Footnotes</h3>
+
+<p>As of this writing &ldquo;Rubinius 2.0&rdquo; actually means &ldquo;Rubinius 2.0.0.dev&rdquo; and &ldquo;Puma 2.0&rdquo; actually means &ldquo;Puma 2.0.0b6&rdquo;. The net result is the same though.</p>
+
+
+    </div>
+  
+    <div class="post">
+      <h2 class="post_title">
         <a href="/2012/01/04/debugging-rubinius/" title="Debugging scary crashes of Rubinius" class="post_title">
         Debugging scary crashes of Rubinius
         </a>
@@ -638,51 +718,6 @@ Installer.</p>
 </blockquote>
 
 <p><a href="http://www.infoq.com/interviews/drnic-rails-ruby-vm" title="InfoQ: Dr Nic Williams on Rails, RailsInstaller and the Future of Ruby VMs">Watch and listen on InfoQ</a>.</p>
-
-    </div>
-  
-    <div class="post">
-      <h2 class="post_title">
-        <a href="/2011/09/02/retiring-some-rubinius-rewards/" title="Retiring (Some) Rubinius Rewards" class="post_title">
-        Retiring (Some) Rubinius Rewards
-        </a>
-      </h2>
-      <div class="by_line">
-  <p><span class="author">Shane Becker</span>
-    <span class="date">02 September 2011</span>
-    
-      <a href="http://rubini.us/2011/09/02/retiring-some-rubinius-rewards/#disqus_thread" data-disqus-identifier="/2011/09/02/retiring-some-rubinius-rewards/"></a>
-
-    
-  </p>
-</div>
-
-      <h3 id="bad-news-first">Bad News First</h3>
-
-<p>The <a href="http://www.flickr.com/photos/veganstraightedge/5709097384" title="Rubinius &quot;Use Ruby™&quot; TShirts at the Farmhouse in Hollywood, CA">General Availability shirts</a> are retired. We gave out about 1,000 to people all over the world. That&rsquo;s very awesome. We&rsquo;re really happy with the excitement about Rubinius from you all. Thank you, again. But it&rsquo;s time to move on from these shirts. If you&rsquo;ve already got one, good on you. If you haven&rsquo;t yet, sorry. There will be other chances in the future, though.</p>
-
-<p>Likewise, the <a href="http://asset.rubini.us/web/images/blog/rubinius_square_sticker.png">Square</a> and <a href="http://asset.rubini.us/web/images/blog/rubinius_bumper_sticker.png">Bumper Stickers</a> have been retired, too.</p>
-
-<h3 id="good-news-next">Good News Next</h3>
-
-<p>The <a href="http://asset.rubini.us/web/images/blog/rubinius_diecut_sticker.png">Diecut R stickers</a> are still available. Just email us at <a href="&#109;&#097;&#105;&#108;&#116;&#111;:&#099;&#111;&#109;&#109;&#117;&#110;&#105;&#116;&#121;&#064;&#114;&#117;&#098;&#105;&#110;&#105;&#046;&#117;&#115;">&#099;&#111;&#109;&#109;&#117;&#110;&#105;&#116;&#121;&#064;&#114;&#117;&#098;&#105;&#110;&#105;&#046;&#117;&#115;</a> if you want one. <a href="http://asset.rubini.us/web/images/blog/rubinius_alumni_sticker.png">Committers stickers</a> are still available too. If you committed to Rubinius before May 16, 2011 and haven&rsquo;t received one of these, <a href="&#109;&#097;&#105;&#108;&#116;&#111;:&#099;&#111;&#109;&#109;&#117;&#110;&#105;&#116;&#121;&#064;&#114;&#117;&#098;&#105;&#110;&#105;&#046;&#117;&#115;">&#101;&#109;&#097;&#105;&#108;&#032;&#117;&#115;</a> to get yours. The 2011 Q2 committers stickers are also available.</p>
-
-<p>As <a href="http://rubini.us/2011/05/26/rubinius-rewards/#tenth-commit-shirt" title="Announcing Rubinius Rewards - Rubinius">promised</a>, we have made a special t-shirt for people who have committed 10 or more times. They&rsquo;re at the printer right now, so no pictures yet. Here&rsquo;s a hint though: black on black.</p>
-
-<p>We&rsquo;ll continue to do free stuff in the future, but it will always be changing. Keep an eye on this blog for updates to what&rsquo;s available.</p>
-
-<h3 id="one-more-thing">One More Thing</h3>
-
-<p>Rubinius friend of the family, <a href="http://hrrrthrrr.com" title="hrrrthrrr">Heather Peterson</a> (<a href="http://twitter.com/hrrrthrrr">@hrrrthrrr</a>) drew up some Rubinius sketches for us to use on upcoming t-shirts and stickers. As a little thing, we&rsquo;re giving away her original artwork as prize.</p>
-
-<p><a href="http://flickr.com/veganstraightedge/6106800183" title="Rubinius sketch by Heather Peterson (@hrrrthrrr)"><img src="http://farm7.static.flickr.com/6186/6106800183_f6bd6918f4_z.jpg" alt="Rubinius sketch by Heather Peterson (@hrrrthrrr) on Flickr" /></a>
-<a href="http://flickr.com/veganstraightedge/6106803145" title="Rubinius sketch by Heather Peterson (@hrrrthrrr)"><img src="http://farm7.static.flickr.com/6072/6106803145_f565d6738e_z.jpg" alt="Rubinius sketch by Heather Peterson (@hrrrthrrr) on Flickr" /></a></p>
-
-<p>To enter, write a blog post about Rubinius and tweet at <a href="http://twitter.com/rubinius">@rubinius</a> with a link to your post by Wednesday, September 7, 2011 Midnight PDT. Posts will be judged by me (Shane Becker), Evan Phoenix and Brian Ford. The winner will be announced on Friday September 9, 2011. All entrants will be linked to from <a href="http://rubini.us/blog" title="Rubinius : Use Ruby&#8482;">the Rubinius blog</a> and <a href="http://twitter.com/rubinius">@rubinius</a> Twitter account.</p>
-
-<p>Get blogging.</p>
-
-<p><em>&mdash; XOXO RBX</em></p>
 
     </div>
   

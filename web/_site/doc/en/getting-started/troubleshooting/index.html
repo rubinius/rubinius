@@ -208,6 +208,25 @@ directory but you have not run 'rake install' yet.
 <pre><code>./configure --without-execinfo
 </code></pre>
 
+<h3 id="fail-to-install-rubinius-with-ruby-build">Fail to install rubinius with ruby-build</h3>
+
+<p>Sometimes, you may have some trouble using
+  <a href="https://github.com/sstephenson/ruby-build">ruby-build</a> to install Rubinius.</p>
+
+<h4 id="solution-2">Solution</h4>
+
+<p>Please compile Rubinius yourself (ensuring that you have the required dependencies):</p>
+
+<pre><code>$ git clone https://github.com/rubinius/rubinius
+$ cd rubinius
+$ ./configure --prefix=/path/to/rubinius/location
+$ rake install
+</code></pre>
+
+<p>You don&rsquo;t have to specify the <code>--prefix</code> option. Just specify it if you want to put
+  Rubinius into a specific directory. The best to do is to put Rubinius into a
+  directory which is in your <code>PATH</code>.</p>
+
 
 </div>
 

@@ -206,6 +206,14 @@ directory to your PATH because the Rubinius build system will pick up the
 <code>ruby</code> and <code>rake</code> links to the Rubinius executable. Rubinius needs a separate
 Ruby executable to bootstrap itself during the build process.</p>
 
+<h3 id="development-mode-for-debugging">Development Mode for Debugging</h3>
+
+<p>If you are trying to debug the VM and want to attach a debugger, such as GDB,
+then you will want to compile Rubinius without optimizations. You can do this
+by setting the &lsquo;DEV&rsquo; environment variable and then building.</p>
+
+<p>For example: <code>DEV=1 rake build</code></p>
+
 
 </div>
 
