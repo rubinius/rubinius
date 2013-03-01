@@ -218,7 +218,6 @@ typedef VALUE stack_type;
     char* parser_id2name(ID);
 
 #undef ID2SYM
-#undef SYMBOL_FLAG
 
 /* ID_SCOPE_SHIFT must be at least 4 because at 3 the values will overlap
  * the values of the tokens, causing the parser to mistake the symbol for
@@ -237,13 +236,9 @@ typedef VALUE stack_type;
 #define ID_INTERNAL     ID_JUNK
 
 #ifdef RUBINIUS
+#undef SYMBOL_FLAG
 #define ID2SYM(id)  (VALUE)((long)(id >> ID_SCOPE_SHIFT))
 #else
-#ifdef RUBY_SYMBOL_FLAG
-#define SYMBOL_FLAG  RUBY_SYMBOL_FLAG
-#else
-#define SYMBOL_FLAG  0xe
-#endif
 #define ID2SYM(id)  ((VALUE)(((long)(id >> ID_SCOPE_SHIFT))<<8|SYMBOL_FLAG))
 #endif
 
