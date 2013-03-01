@@ -139,18 +139,17 @@ module Daedalus
   end
 
   class Compiler
-    def initialize(c_compiler, cxx_compiler, linker, logger, blueprint)
-      @c_compiler = c_compiler
-      @cxx_compiler = cxx_compiler
-      @linker = linker
+    def initialize(cc, cxx, ldshared, ldsharedxx, logger, blueprint)
+      @cc = cc
+      @cxx = cxx
+      @ldshared = ldshared
+      @ldsharedxx = ldsharedxx
       @cflags = []
       @cxxflags = []
       @ldflags = []
       @libraries = []
       @log = logger
       @blueprint = blueprint
-
-      set_ldshared
 
       @mod_times = Hash.new do |h,k|
         h[k] = (File.exists?(k) ? File.mtime(k) : Time.at(0))
@@ -172,60 +171,6 @@ module Daedalus
 
     attr_accessor :mtime_only
 
-    def set_ldshared
-      # TODO: This should flow from the configure step.
-      #
-      # Extracted from rakelib/ext_helper.rb
-      # (Adapted from EventMachine. Thank you EventMachine and tmm1 !)
-      #
-      case RUBY_PLATFORM
-      when /mswin/, /mingw/, /bccwin32/
-        # TODO: discovery helpers
-        #check_heads(%w[windows.h winsock.h], true)
-        #check_libs(%w[kernel32 rpcrt4 gdi32], true)
-
-        if RUBY_PLATFORM =~ /mingw/
-          @ldshared = "#{@linker} -shared -lstdc++"
-        else
-          @cflags << "-EHs" << "-GR"
-        end
-
-      when /solaris/
-        @cflags << "-DOS_SOLARIS8" << "-fPIC"
-
-        if $CC == "cc" and `cc -flags 2>&1` =~ /Sun/ # detect SUNWspro compiler
-          # SUN CHAIN
-          @cflags << "-DCC_SUNWspro" << "-KPIC"
-          @ldshared = "#{@linker} -G -KPIC -lCstd"
-        else
-          # GNU CHAIN
-          # on Unix we need a g++ link, not gcc.
-          @ldshared = "#{@linker} -shared -G -fPIC"
-        end
-
-      when /openbsd/
-        # OpenBSD branch contributed by Guillaume Sellier.
-
-        # on Unix we need a g++ link, not gcc. On OpenBSD, linking against
-        # libstdc++ have to be explicitly done for shared libs
-        @ldshared = "#{@linker} -shared -lstdc++ -fPIC"
-        @cflags << "-fPIC"
-
-      when /darwin/
-        # on Unix we need a g++ link, not gcc.
-        # Ff line contributed by Daniel Harple.
-        @ldshared = "#{@linker} -bundle -undefined suppress -flat_namespace -lstdc++"
-
-      when /aix/
-        @ldshared = "#{@linker} -shared -Wl,-G -Wl,-brtl"
-
-      else
-        # on Unix we need a g++ link, not gcc.
-        @ldshared = "#{@linker} -shared -lstdc++"
-        @cflags << "-fPIC"
-      end
-    end
-
     def header_directories
       dirs = []
       @cflags.each do |fl|
@@ -238,7 +183,7 @@ module Daedalus
       dirs
     end
 
-    attr_reader :path, :cflags, :cxxflags, :ldflags, :log
+    attr_reader :cc, :cxx, :ldshared, :ldsharedxx, :path, :cflags, :cxxflags, :ldflags, :log
 
     def add_library(lib)
       if f = lib.cflags
@@ -274,17 +219,17 @@ module Daedalus
 
     def c_compile(source, object)
       @log.show "CC", source
-      @log.command "#{@c_compiler} #{@cflags.join(' ')} -c -o #{object} #{source}"
+      @log.command "#{@cc} #{@cflags.join(' ')} -c -o #{object} #{source}"
     end
 
     def cxx_compile(source, object)
       @log.show "CXX", source
-      @log.command "#{@cxx_compiler} #{@cflags.join(' ')} #{@cxxflags.join(' ')} -c -o #{object} #{source}"
+      @log.command "#{@cxx} #{@cflags.join(' ')} #{@cxxflags.join(' ')} -c -o #{object} #{source}"
     end
 
     def link(path, files)
       @log.show "LD", path
-      @log.command "#{@linker} -o #{path} #{files.join(' ')} #{@libraries.join(' ')} #{@ldflags.join(' ')}"
+      @log.command "#{@cxx} -o #{path} #{files.join(' ')} #{@libraries.join(' ')} #{@ldflags.join(' ')}"
     end
 
     def ar(library, objects)
@@ -293,9 +238,9 @@ module Daedalus
       @log.command "ranlib #{library}"
     end
 
-    def ldshared(library, objects)
+    def link_shared(library, objects)
       @log.show "LDSHARED", library
-      @log.command "#{@ldshared} #{objects.join(' ')} -o #{library}"
+      @log.command "#{@ldsharedxx} #{objects.join(' ')} -o #{library}"
     end
 
     def calculate_deps(path)
@@ -685,7 +630,7 @@ module Daedalus
       Dir.chdir @base do
         # TODO: out of date checking should be subsumed in building
         @sources.each { |s| s.build @compiler if s.out_of_date? @compiler }
-        @compiler.ldshared name, object_files
+        @compiler.link_shared name, object_files
       end
     end
   end
@@ -704,9 +649,10 @@ module Daedalus
       @base = base
       @static_libraries = []
       @shared_libraries = []
-      @compiler = Compiler.new(ENV['CC'] || "gcc",
-                               ENV['CXX'] || "g++",
-                               ENV['CXX'] || "g++",
+      @compiler = Compiler.new(compiler.cc,
+                               compiler.cxx,
+                               compiler.ldshared,
+                               compiler.ldsharedxx,
                                compiler.log, nil)
 
       yield self
@@ -976,10 +922,11 @@ module Daedalus
       LibraryGroup.new(path, @compiler, &block)
     end
 
-    def gcc!
-      @compiler = Compiler.new(ENV['CC'] || "gcc",
-                               ENV['CXX'] || "g++",
-                               ENV['CXX'] || "g++",
+    def gcc!(cc, cxx, ldshared, ldsharedxx)
+      @compiler = Compiler.new(cc,
+                               cxx,
+                               ldshared,
+                               ldsharedxx,
                                Logger.new, self)
     end
 

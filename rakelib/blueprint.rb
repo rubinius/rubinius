@@ -1,5 +1,8 @@
 Daedalus.blueprint do |i|
-  gcc = i.gcc!
+  gcc = i.gcc!(Rubinius::BUILD_CONFIG[:cc],
+               Rubinius::BUILD_CONFIG[:cxx],
+               Rubinius::BUILD_CONFIG[:ldshared],
+               Rubinius::BUILD_CONFIG[:ldsharedxx])
 
   gcc.cflags << "-Ivm -Ivm/test/cxxtest -I. "
 
