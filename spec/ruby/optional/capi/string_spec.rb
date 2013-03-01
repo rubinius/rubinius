@@ -805,5 +805,18 @@ ruby_version_is "1.9" do
         s.encoding.should equal(Encoding.find("locale"))
       end
     end
+
+    describe "rb_sprintf" do
+      it "replaces the parts like sprintf" do
+        s = "Awesome %s is replaced"
+        @s.rb_sprintf1(s, "string").should == "Awesome string is replaced"
+      end
+
+      it "accepts multiple arguments" do
+        s = "Awesome %s is here with %s"
+        @s.rb_sprintf2(s, "string", "content").should == "Awesome string is here with content"
+      end
+    end
+
   end
 end

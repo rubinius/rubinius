@@ -543,6 +543,15 @@ static VALUE string_spec_rb_str_hash(VALUE self, VALUE str) {
 }
 #endif
 
+#ifdef HAVE_RB_SPRINTF
+static VALUE string_spec_rb_sprintf1(VALUE self, VALUE str, VALUE repl) {
+  return rb_sprintf(RSTRING_PTR(str), RSTRING_PTR(repl));
+}
+static VALUE string_spec_rb_sprintf2(VALUE self, VALUE str, VALUE repl1, VALUE repl2) {
+  return rb_sprintf(RSTRING_PTR(str), RSTRING_PTR(repl1), RSTRING_PTR(repl2));
+}
+#endif
+
 #ifdef HAVE_RB_STR_EQUAL
 VALUE string_spec_rb_str_equal(VALUE self, VALUE str1, VALUE str2) {
   return rb_str_equal(str1, str2);
@@ -783,6 +792,11 @@ void Init_string_spec() {
 
 #ifdef HAVE_RB_STR_HASH
   rb_define_method(cls, "rb_str_hash", string_spec_rb_str_hash, 1);
+#endif
+
+#ifdef HAVE_RB_SPRINTF
+  rb_define_method(cls, "rb_sprintf1", string_spec_rb_sprintf1, 2);
+  rb_define_method(cls, "rb_sprintf2", string_spec_rb_sprintf2, 3);
 #endif
 
 #ifdef HAVE_RB_STR_EQUAL
