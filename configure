@@ -842,17 +842,11 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
       if RUBY_PLATFORM =~ /mingw/
         @ldsharedxx = "#{@cxx} -shared -lstdc++"
         @ldshared   = "#{@cc} -shared"
-      else
-        add_define "-EHs", "-GR"
       end
 
     when /solaris/
-      add_define "OS_SOLARIS8"
-      add_flag "-fPIC"
-
       if $CC == "cc" and `cc -flags 2>&1` =~ /Sun/ # detect SUNWspro compiler
         # SUN CHAIN
-        add_define "CC_SUNWspro", "-KPIC"
         @ldsharedxx = "#{@cxx} -G -KPIC -lCstd"
         @ldshared   = "#{@cc} -G -KPIC -lCstd"
       else
@@ -868,7 +862,6 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
       # libstdc++ have to be explicitly done for shared libs
       @ldsharedxx = "#{@cxx} -shared -lstdc++ -fPIC"
       @ldshared   = "#{@cc} -shared -fPIC"
-      add_flag "-fPIC"
     when /darwin/
       # on Unix we need a g++ link, not gcc.
       # Ff line contributed by Daniel Harple.
@@ -881,7 +874,6 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
       # on Unix we need a g++ link, not gcc.
       @ldsharedxx = "#{@cxx} -shared -lstdc++"
       @ldshared   = "#{@cc} -shared"
-      add_flag "-fPIC"
     end
 
   end
