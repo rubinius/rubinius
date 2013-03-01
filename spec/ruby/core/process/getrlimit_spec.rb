@@ -73,6 +73,12 @@ describe "Process.getrlimit" do
           end
         end
       end
+
+      describe "string to constant coercion as symbol" do
+        it "coerces 'CORE' into same value of :CORE" do
+          Process.getrlimit("CORE").should == Process.getrlimit(:CORE)
+        end
+      end
     end
   end
 end

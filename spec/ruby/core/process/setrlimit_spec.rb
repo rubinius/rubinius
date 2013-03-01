@@ -159,6 +159,13 @@ describe "Process.setrlimit and Process.getrlimit" do
           end
         end
       end
+
+      describe "string to constant coercion as symbol" do
+        it "coerces 'CORE' into same value of :CORE" do
+          rlimit = Process.getrlimit(Process::RLIMIT_CORE)
+          Process.setrlimit("CORE", *rlimit).should == Process.setrlimit(:CORE, *rlimit)
+        end
+      end
     end
   end
 end

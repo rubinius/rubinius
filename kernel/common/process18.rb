@@ -40,6 +40,11 @@ module Process
     # The evented system does not need a loop
     Thread.new { Process.wait pid; $? }
   end
+
+  def self.coerce_rlimit_resource(resource)
+    Rubinius::Type.coerce_to resource, Integer, :to_int
+  end
+  private_class_method :coerce_rlimit_resource
 end
 
 module Kernel
