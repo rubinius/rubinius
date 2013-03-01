@@ -356,4 +356,9 @@ extern "C" {
       rb_raise(rb_eIOError, "not opened for writing");
     }
   }
+
+  void rb_update_max_fd(int fd) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    IO::update_max_fd(env->state(), fd);
+  }
 }
