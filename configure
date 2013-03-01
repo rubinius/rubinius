@@ -829,12 +829,61 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
     @user_cppflags = ENV['CPPFLAGS']
     @user_ldflags =  ENV['LDFLAGS']
 
-    # TODO: add conditionals for platforms
-    if RbConfig::CONFIG["build_os"] =~ /darwin/
-      @ldshared = "#{@cc} -bundle -undefined suppress -flat_namespace"
+    check_ldshared
+  end
+
+  def check_ldshared
+    case RUBY_PLATFORM
+    when /mswin/, /mingw/, /bccwin32/
+      # TODO: discovery helpers
+      #check_heads(%w[windows.h winsock.h], true)
+      #check_libs(%w[kernel32 rpcrt4 gdi32], true)
+
+      if RUBY_PLATFORM =~ /mingw/
+        @ldsharedxx = "#{@cxx} -shared -lstdc++"
+        @ldshared   = "#{@cc} -shared"
+      else
+        add_define "-EHs", "-GR"
+      end
+
+    when /solaris/
+      add_define "OS_SOLARIS8"
+      add_flag "-fPIC"
+
+      if $CC == "cc" and `cc -flags 2>&1` =~ /Sun/ # detect SUNWspro compiler
+        # SUN CHAIN
+        add_define "CC_SUNWspro", "-KPIC"
+        @ldsharedxx = "#{@cxx} -G -KPIC -lCstd"
+        @ldshared   = "#{@cc} -G -KPIC -lCstd"
+      else
+        # GNU CHAIN
+        # on Unix we need a g++ link, not gcc.
+        @ldsharedxx = "#{@cxx} -shared -G -fPIC -lstdc++"
+        @ldshared   = "#{@cc} -shared -G -fPIC"
+      end
+    when /openbsd/
+      # OpenBSD branch contributed by Guillaume Sellier.
+
+      # on Unix we need a g++ link, not gcc. On OpenBSD, linking against
+      # libstdc++ have to be explicitly done for shared libs
+      @ldsharedxx = "#{@cxx} -shared -lstdc++ -fPIC"
+      @ldshared   = "#{@cc} -shared -fPIC"
+      add_flag "-fPIC"
+    when /darwin/
+      # on Unix we need a g++ link, not gcc.
+      # Ff line contributed by Daniel Harple.
+      @ldsharedxx = "#{@cxx} -bundle -undefined suppress -flat_namespace -lstdc++"
+      @ldshared   = "#{@cc} -bundle -undefined suppress -flat_namespace"
+    when /aix/
+      @ldsharedxx = "#{@cxx} -shared -Wl,-G -Wl,-brtl"
+      @ldshared   = "#{@cc} -shared -Wl,-G -Wl,-brtl"
     else
-      @ldshared = "#{@cc} -shared"
+      # on Unix we need a g++ link, not gcc.
+      @ldsharedxx = "#{@cxx} -shared -lstdc++"
+      @ldshared   = "#{@cc} -shared"
+      add_flag "-fPIC"
     end
+
   end
 
   def check_program(run=true, link_libs=[])
@@ -1439,6 +1488,8 @@ module Rubinius
     :llvm_version   => "#{@llvm_version}",
     :cc             => "#{@cc}",
     :cxx            => "#{@cxx}",
+    :ldshared       => "#{@ldshared}",
+    :ldsharedxx     => "#{@ldsharedxx}",
     :gcc_major      => "#{@gcc_major}",
     :user_cflags    => "#{@user_cflags}",
     :user_cppflags  => "#{@user_cppflags}",
@@ -1518,6 +1569,7 @@ end
 #define RBX_VERSION          "#{version}"
 #define RBX_LIB_VERSION      "#{@libversion}"
 #define RBX_LDSHARED         "#{@ldshared}"
+#define RBX_LDSHAREDXX       "#{@ldsharedxx}"
 #define RBX_RELEASE_DATE     "#{@release_date}"
 #define RBX_SIZEOF_LONG      #{sizeof("long")}
 #define RBX_LLVM_API_VER     #{@llvm_api_version}
