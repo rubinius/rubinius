@@ -459,6 +459,7 @@ namespace rubinius {
     G(rubinius)->set_const(state, "BUILD_REV", String::create(state, RBX_BUILD_REV));
     G(rubinius)->set_const(state, "RELEASE_DATE", String::create(state, RBX_RELEASE_DATE));
     G(rubinius)->set_const(state, "LDSHARED", String::create(state, RBX_LDSHARED));
+    G(rubinius)->set_const(state, "LDSHAREDXX", String::create(state, RBX_LDSHAREDXX));
 
     G(rubinius)->set_const(state, "HOST", String::create(state, RBX_HOST));
     G(rubinius)->set_const(state, "CPU", String::create(state, RBX_CPU));

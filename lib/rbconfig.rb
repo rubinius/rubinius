@@ -209,6 +209,7 @@ module RbConfig
   CONFIG["PACKAGE_BUGREPORT"]  = ""
   CONFIG["LDSHARED"]           = Rubinius::LDSHARED
   CONFIG["LIBRUBY_LDSHARED"]   = Rubinius::LDSHARED
+  CONFIG["LDSHAREDXX"]         = Rubinius::LDSHAREDXX
 
   # absolute path to ruby executable (pulled directly from MRI's mkconfig.rb)
   def RbConfig.ruby
