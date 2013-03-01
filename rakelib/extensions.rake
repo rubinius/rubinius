@@ -272,6 +272,10 @@ if enabled_19
   compile_ext "19/sdbm", :deps => ["Makefile"],
                    :dir => "#{libprefixdir}/19/sdbm/ext",
                    :env => "-X19"
+  compile_ext "19/io/console", :deps => ["Makefile"],
+                   :dir => "#{libprefixdir}/19/io/console/ext",
+                   :env => "-X19"
+
 end
 
 if enabled_20
@@ -337,6 +341,10 @@ if enabled_20
                    :ignore_fail => true
   compile_ext "20/sdbm", :deps => ["Makefile"],
                    :dir => "#{libprefixdir}/20/sdbm/ext",
+                   :env => "-X20"
+
+  compile_ext "20/io/console", :deps => ["Makefile"],
+                   :dir => "#{libprefixdir}/20/io/console/ext",
                    :env => "-X20"
 end
 
