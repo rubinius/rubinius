@@ -51,7 +51,7 @@ If you're changing an existing app from Heroku's default Ruby (MRI 1.9.x) to Rub
 
 <script src="https://gist.github.com/veganstraightedge/5041986.js"></script>
 
-The important lines are `Old: ruby 1.9.3` and `New: rubinius 2.0.0dev`. After that, everything the same as before. The bundling starts, etc.
+The important lines are `Old: ruby 1.9.3` and `New: rubinius 2.0.0.rc1`. After that, everything the same as before. The bundling starts, etc.
 
 
 ### The Outro

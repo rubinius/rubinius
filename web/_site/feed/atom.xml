@@ -60,7 +60,7 @@
 
 &lt;script src=&quot;https://gist.github.com/veganstraightedge/5041986.js&quot;&gt;&lt;/script&gt;
 
-&lt;p&gt;The important lines are &lt;code&gt;Old: ruby 1.9.3&lt;/code&gt; and &lt;code&gt;New: rubinius 2.0.0dev&lt;/code&gt;. After that, everything the same as before. The bundling starts, etc.&lt;/p&gt;
+&lt;p&gt;The important lines are &lt;code&gt;Old: ruby 1.9.3&lt;/code&gt; and &lt;code&gt;New: rubinius 2.0.0.rc1&lt;/code&gt;. After that, everything the same as before. The bundling starts, etc.&lt;/p&gt;
 
 &lt;h3 id=&quot;the-outro&quot;&gt;The Outro&lt;/h3&gt;
 
@@ -336,7 +336,7 @@ bin/rbx -X19 -v
 
 &lt;p&gt;If I run that on my system, I will see the following:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code&gt;rubinius 2.0.0dev (1.9.2 0f223599 yyyy-mm-dd JI) [x86_64-apple-darwin10.8.0]
+&lt;pre&gt;&lt;code&gt;rubinius 2.0.0.rc1 (1.9.2 0f223599 yyyy-mm-dd JI) [x86_64-apple-darwin10.8.0]
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;The default language mode is 1.8, so if you invoke &lt;code&gt;rbx&lt;/code&gt; with no other
