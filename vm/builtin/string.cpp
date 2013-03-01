@@ -1282,7 +1282,9 @@ namespace rubinius {
   }
 
   String* String::crypt(STATE, String* salt) {
-    return String::create(state, ::crypt(this->c_str(state), salt->c_str(state)));
+    char* result = ::crypt(this->c_str(state), salt->c_str(state));
+    if(!result) Exception::errno_error(state, "crypt(3) failed");
+    return String::create(state, result);
   }
 
   Integer* String::to_i(STATE, Fixnum* fix_base, Object* strict) {
