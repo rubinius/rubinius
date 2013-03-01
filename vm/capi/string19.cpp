@@ -11,6 +11,7 @@
 #include "builtin/object.hpp"
 #include "builtin/string.hpp"
 #include "capi/capi.hpp"
+#include "util/vsnprintf.h"
 
 #include <string.h>
 
@@ -118,6 +119,24 @@ extern "C" {
 
   VALUE rb_str_export_locale(VALUE str) {
     return rb_str_conv_enc(str, rb_enc_get(str), rb_locale_encoding());
+  }
+
+  VALUE rb_sprintf(const char* format, ...) {
+    va_list varargs;
+    va_start(varargs, format);
+
+    size_t length = strlen(format) * 2;
+    int err = 0;
+    VALUE result = Qnil;
+
+    do {
+      result = rb_str_buf_new(length);
+      err = ruby_vsnprintf(RSTRING_PTR(result), length, format, varargs);
+    } while(err < 0);
+
+    rb_str_set_len(result, err);
+    va_end(varargs);
+    return result;
   }
 
 }
