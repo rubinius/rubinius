@@ -8,7 +8,7 @@ rule ".o" do |t|
   source = t.prerequisites.first
 
   report_command "CXX #{source}"
-  qsh "#{$CXX} -c -o #{t.name} #{$CXXFLAGS} #{$DEBUGFLAGS} #{File.expand_path(source)}"
+  qsh "#{$CXX} -c -o #{t.name} #{$CFLAGS} #{$CXXFLAGS} #{$DEBUGFLAGS} #{File.expand_path(source)}"
 end
 
 def set_ext_dir(dir)

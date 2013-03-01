@@ -825,55 +825,73 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
       @llvm_generic_prebuilt  = "llvm-#{@llvm_version}-#{@host}.tar.bz2"
     end
 
+    @system_cflags =   ""
+    @system_cppflags = ""
+    @system_ldflags =  ""
+
     @user_cflags =   ENV['CFLAGS']
     @user_cppflags = ENV['CPPFLAGS']
     @user_ldflags =  ENV['LDFLAGS']
 
-    check_ldshared
+    setup_platform
   end
 
-  def check_ldshared
+  def setup_platform
+    @ldsharedxx = "#{@cxx} -shared -lstdc++"
+    @ldshared   = "#{@cc} -shared"
+    @make       = "make"
     case RUBY_PLATFORM
-    when /mswin/, /mingw/, /bccwin32/
+    when /mswin/i, /mingw/i, /bccwin32/i
       # TODO: discovery helpers
       #check_heads(%w[windows.h winsock.h], true)
       #check_libs(%w[kernel32 rpcrt4 gdi32], true)
 
-      if RUBY_PLATFORM =~ /mingw/
-        @ldsharedxx = "#{@cxx} -shared -lstdc++"
-        @ldshared   = "#{@cc} -shared"
+      unless RUBY_PLATFORM =~ /mingw/
+        @system_cflags << "-EHs -GR"
       end
-
-    when /solaris/
-      if $CC == "cc" and `cc -flags 2>&1` =~ /Sun/ # detect SUNWspro compiler
-        # SUN CHAIN
-        @ldsharedxx = "#{@cxx} -G -KPIC -lCstd"
-        @ldshared   = "#{@cc} -G -KPIC -lCstd"
-      else
-        # GNU CHAIN
-        # on Unix we need a g++ link, not gcc.
-        @ldsharedxx = "#{@cxx} -shared -G -fPIC -lstdc++"
-        @ldshared   = "#{@cc} -shared -G -fPIC"
-      end
-    when /openbsd/
+      @system_ldflags << "-lws2_32"
+    when /solaris/i
+      # GNU CHAIN only supported
+      @ldsharedxx = "#{@cxx} -shared -G -fPIC -lstdc++"
+      @ldshared   = "#{@cc} -shared -G -fPIC"
+      @system_cflags << "-fPIC -Wno-strict-aliasing"
+      @system_ldflags << "-lsocket -lnsl -fPIC"
+      @make = "gmake"
+    when /freebsd/i
+      @ldsharedxx = "#{@cxx} -shared -lstdc++ -fPIC"
+      @ldshared   = "#{@cc} -shared -fPIC"
+      @system_cflags << "-fPIC"
+      @system_ldflags << "-lcrypt -pthread -rdynamic"
+      @make = "gmake"
+    when /openbsd|netbsd/i
       # OpenBSD branch contributed by Guillaume Sellier.
 
       # on Unix we need a g++ link, not gcc. On OpenBSD, linking against
       # libstdc++ have to be explicitly done for shared libs
       @ldsharedxx = "#{@cxx} -shared -lstdc++ -fPIC"
       @ldshared   = "#{@cc} -shared -fPIC"
-    when /darwin/
+      @system_cflags << "-fPIC"
+      @system_ldflags << "-lcrypto -pthread -lssl -rdynamic -Wl,--export-dynamic"
+      @make = "gmake"
+    when /darwin/i
       # on Unix we need a g++ link, not gcc.
       # Ff line contributed by Daniel Harple.
       @ldsharedxx = "#{@cxx} -bundle -undefined suppress -flat_namespace -lstdc++"
       @ldshared   = "#{@cc} -bundle -undefined suppress -flat_namespace"
-    when /aix/
+      @system_cflags << "-fPIC -D_DARWIN_USE_64_BIT_INODE"
+    when /haiku/i
+      @system_cflags << "-fPIC"
+      @system_ldflags << "-ldl -lnetwork"
+    when /aix/i
       @ldsharedxx = "#{@cxx} -shared -Wl,-G -Wl,-brtl"
       @ldshared   = "#{@cc} -shared -Wl,-G -Wl,-brtl"
+    when /linux/i
+      @system_cflags << "-fPIC"
+      @system_ldflags << "-Wl,--export-dynamic -lrt -lcrypt -ldl -lpthread"
     else
       # on Unix we need a g++ link, not gcc.
-      @ldsharedxx = "#{@cxx} -shared -lstdc++"
-      @ldshared   = "#{@cc} -shared"
+      @system_cflags << "-fPIC"
+      @system_ldflags << "-ldl -lpthread"
     end
 
   end
@@ -1486,6 +1504,10 @@ module Rubinius
     :user_cflags    => "#{@user_cflags}",
     :user_cppflags  => "#{@user_cppflags}",
     :user_ldflags   => "#{@user_ldflags}",
+    :system_cflags   => "#{@system_cflags}",
+    :system_cppflags => "#{@system_cppflags}",
+    :system_ldflags  => "#{@system_ldflags}",
+    :make           => "#{@make}",
     :include_dirs   => #{@include_dirs.inspect},
     :lib_dirs       => #{@lib_dirs.inspect},
     :defines        => #{@defines.inspect},

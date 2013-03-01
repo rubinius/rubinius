@@ -16,13 +16,13 @@ DEFAULT_CONFIG = RbConfig::CONFIG.dup
 # Don't like the globals? Too bad, they are simple and the
 # duration of this process is supposed to be short.
 
-$CC       = env "CC", "gcc"
-$CXX      = env "CXX", "g++"
-$LDSHARED = env "LDSHARED", $CXX
+$CC       = env "CC", DEFAULT_CONFIG["CC"]
+$CXX      = env "CXX", DEFAULT_CONFIG["CXX"] || "g++"
+$LDSHARED = env "LDSHARED", Rubinius::BUILD_CONFIG[:ldsharedxx]
 $YACC     = env "YACC", "bison"
 
-$CFLAGS   = env "CFLAGS", Rubinius::BUILD_CONFIG[:user_cflags]
-$CXXFLAGS = env "CXXFLAGS", Rubinius::BUILD_CONFIG[:user_cppflags]
+$CFLAGS   = env "CFLAGS", Rubinius::BUILD_CONFIG[:user_cflags] || ""
+$CXXFLAGS = env "CXXFLAGS", Rubinius::BUILD_CONFIG[:user_cxxflags] || ""
 
 $DEBUGFLAGS = "-O0" if ENV["DEV"]
 
@@ -42,7 +42,6 @@ def add_define(*defines)
   defines.each do |d|
     define = "-D#{d}"
     add_cflag define
-    add_cxxflag define
   end
 end
 
@@ -50,7 +49,6 @@ def add_include_dir(*dirs)
   dirs.each do |f|
     incl = "-I#{f}"
     add_cflag incl
-    add_cxxflag incl
   end
 end
 
@@ -60,13 +58,6 @@ end
 
 def add_cxxflag(*flags)
   flags.each { |f| $CXXFLAGS << " #{f}" }
-end
-
-def add_flag(*flags)
-  flags.each do |f|
-    add_cflag f
-    add_cxxflag f
-  end
 end
 
 def add_ldflag(*flags)
@@ -92,9 +83,6 @@ end
 def add_mri_capi
   add_cflag DEFAULT_CONFIG["DEFS"]
   add_cflag DEFAULT_CONFIG["CFLAGS"]
-
-  add_cxxflag DEFAULT_CONFIG["DEFS"]
-  add_cxxflag DEFAULT_CONFIG["CFLAGS"]
 
   $LIBS << " #{DEFAULT_CONFIG["LIBS"]}"
   $LIBS << " #{DEFAULT_CONFIG["DLDLIBS"]}"
@@ -138,14 +126,14 @@ def include19_dir
 end
 
 def add_rbx_capi
+  add_cflag Rubinius::BUILD_CONFIG[:system_cflags]
+  add_cxxflag Rubinius::BUILD_CONFIG[:system_cxxflags]
   add_cflag "-g"
-  add_cxxflag "-g -fno-rtti"
+  add_cxxflag "-fno-rtti"
   if ENV['DEV']
     add_cflag "-O0"
-    add_cxxflag "-O0"
   else
     add_cflag "-O2"
-    add_cxxflag "-O2"
   end
 
   if ENV['BUILD_VERSION'] == "18"
@@ -169,59 +157,6 @@ Rubinius::BUILD_CONFIG[:lib_dirs].each do |l|
 end
 
 add_define *Rubinius::BUILD_CONFIG[:defines]
-
-# Setup platform-specific values
-#
-# (Adapted from EventMachine. Thank you EventMachine and tmm1 !)
-#
-case RUBY_PLATFORM
-when /mswin/, /mingw/, /bccwin32/
-  # TODO: discovery helpers
-  #check_heads(%w[windows.h winsock.h], true)
-  #check_libs(%w[kernel32 rpcrt4 gdi32], true)
-
-  if RUBY_PLATFORM =~ /mingw/
-    $LDSHARED = "#{$CXX} -shared -lstdc++"
-  else
-    add_define "-EHs", "-GR"
-  end
-
-when /solaris/
-  add_define "OS_SOLARIS8"
-  add_flag "-fPIC"
-
-  if $CC == "cc" and `cc -flags 2>&1` =~ /Sun/ # detect SUNWspro compiler
-    # SUN CHAIN
-    add_define "CC_SUNWspro", "-KPIC"
-    $CXX = $CC
-    $LDSHARED = "#{$CXX} -G -KPIC -lCstd"
-  else
-    # GNU CHAIN
-    # on Unix we need a g++ link, not gcc.
-    $LDSHARED = "#{$CXX} -shared -G -fPIC"
-  end
-
-when /openbsd/
-  # OpenBSD branch contributed by Guillaume Sellier.
-
-  # on Unix we need a g++ link, not gcc. On OpenBSD, linking against
-  # libstdc++ have to be explicitly done for shared libs
-  $LDSHARED = "#{$CXX} -shared -lstdc++ -fPIC"
-  add_flag "-fPIC"
-
-when /darwin/
-  # on Unix we need a g++ link, not gcc.
-  # Ff line contributed by Daniel Harple.
-  $LDSHARED = "#{$CXX} -bundle -undefined suppress -flat_namespace -lstdc++"
-
-when /aix/
-  $LDSHARED = "#{$CXX} -shared -Wl,-G -Wl,-brtl"
-
-else
-  # on Unix we need a g++ link, not gcc.
-  $LDSHARED = "#{$CXX} -shared -lstdc++"
-  add_flag "-fPIC"
-end
 
 # To quiet MRI's warnings about ivars being uninitialized.
 # Doesn't need to be a method, but it's nicely encapsulated.
@@ -546,7 +481,7 @@ end
 
 rule ".o" => ".cpp" do |t|
   report_command "CXX #{t.source}"
-  qsh "#{$CXX} -c -o #{t.name} #{$CXXFLAGS} #{$DEBUGFLAGS} #{t.source}"
+  qsh "#{$CXX} -c -o #{t.name} #{$CFLAGS} #{$CXXFLAGS} #{$DEBUGFLAGS} #{t.source}"
 end
 
 rule ".#{$DLEXT}" do |t|

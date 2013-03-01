@@ -1,7 +1,10 @@
 Daedalus.blueprint do |i|
-  gcc = i.gcc!
+  gcc = i.gcc!(Rubinius::BUILD_CONFIG[:cc],
+               Rubinius::BUILD_CONFIG[:cxx],
+               Rubinius::BUILD_CONFIG[:ldshared],
+               Rubinius::BUILD_CONFIG[:ldsharedxx])
 
-  gcc.cflags << "-Ivm -Ivm/test/cxxtest -I. "
+  # First define all flags that all code needs to be build with.
 
   # -fno-omit-frame-pointer is needed to get a backtrace on FreeBSD.
   # It is enabled by default on OS X, on the other hand, not on Linux.
@@ -21,14 +24,10 @@ Daedalus.blueprint do |i|
   # warnings when LLVM is also built with this flag.
   gcc.cxxflags << "-fno-rtti -fvisibility-inlines-hidden"
 
-  gcc.cflags << "-Wno-unused-function"
-  gcc.cflags << "-g -Werror"
-  gcc.cflags << "-DRBX_PROFILER"
-  gcc.cflags << "-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS"
-  gcc.cflags << "-D_LARGEFILE_SOURCE"
-  gcc.cflags << "-D_FILE_OFFSET_BITS=64"
-
+  gcc.cflags << Rubinius::BUILD_CONFIG[:system_cflags]
   gcc.cflags << Rubinius::BUILD_CONFIG[:user_cflags]
+  gcc.cxxflags << Rubinius::BUILD_CONFIG[:system_cxxflags]
+  gcc.cxxflags << Rubinius::BUILD_CONFIG[:user_cxxflags]
 
   if ENV['DEV']
     gcc.cflags << "-O0"
@@ -50,59 +49,20 @@ Daedalus.blueprint do |i|
     gcc.cflags << "-D#{flag}"
   end
 
-  if RUBY_PLATFORM =~ /darwin/i
-    gcc.cflags << "-D_DARWIN_USE_64_BIT_INODE"
-
-    if `sw_vers` =~ /10\.4/
-      gcc.cflags << "-DHAVE_STRLCAT -DHAVE_STRLCPY"
-    end
-
-    # This flag makes the executable non-relocatable (and
-    # slightly faster), but 4.3 does not support it.
-    # TODO: Look for workarounds.
-    unless `gcc -v 2>&1` =~ /gcc version 4\.3/i
-      gcc.cflags << "-mdynamic-no-pic"
-    end
-  end
-
   gcc.ldflags << "-lstdc++" << "-lm"
 
   Rubinius::BUILD_CONFIG[:lib_dirs].each do |path|
     gcc.ldflags << "-L#{path}" if File.exists? path
   end
 
-  make = "make"
-
-  # TODO: Fix with Platform object
-  case RUBY_PLATFORM
-  when /linux/i
-    gcc.ldflags << '-Wl,--export-dynamic' << "-lrt" << "-lcrypt" << "-ldl" << "-lpthread"
-  when /freebsd/i
-    gcc.ldflags << '-lcrypt' << '-pthread' << '-rdynamic'
-    make = "gmake"
-  when /openbsd|netbsd/i
-    gcc.ldflags << '-lcrypto' << '-pthread' << '-lssl' << "-rdynamic" << "-Wl,--export-dynamic"
-    make = "gmake"
-  when /haiku/i
-    gcc.ldflags << "-ldl" << "-lnetwork"
-  when /bsd/i
-    gcc.ldflags << "-ldl" << "-lcrypt" << "-rdynamic"
-    make = "gmake"
-  when /mingw|win32/i
-    gcc.ldflags << "-lws2_32"
-  when /solaris/
-    gcc.cflags << "-fPIC -Wno-strict-aliasing"
-    gcc.ldflags << "-lsocket" << "-lnsl" << "-fPIC"
-    make = "gmake"
-  else
-    gcc.ldflags << "-ldl" << "-lpthread"
-  end
+  make = Rubinius::BUILD_CONFIG[:make]
 
   if RUBY_PLATFORM =~ /bsd/ and
       Rubinius::BUILD_CONFIG[:defines].include?('HAS_EXECINFO')
     gcc.ldflags << "-lexecinfo"
   end
 
+  gcc.ldflags << Rubinius::BUILD_CONFIG[:system_ldflags]
   gcc.ldflags << Rubinius::BUILD_CONFIG[:user_ldflags]
 
   # Files
@@ -116,7 +76,7 @@ Daedalus.blueprint do |i|
 
   # Libraries
   ltm = i.external_lib "vendor/libtommath" do |l|
-    l.cflags = ["-Ivendor/libtommath"]
+    l.cflags = gcc.cflags + ["-Ivendor/libtommath"]
     l.objects = [l.file("libtommath.a")]
     l.to_build do |x|
       x.command make
@@ -129,7 +89,7 @@ Daedalus.blueprint do |i|
     g.depends_on "config.h", "configure"
 
     gcc.cflags << "-Ivendor/oniguruma"
-    g.cflags = ["-DHAVE_CONFIG_H", "-I.", "-I../../vm/capi/19/include"]
+    g.cflags = gcc.cflags + ["-DHAVE_CONFIG_H", "-I.", "-I../../vm/capi/19/include"]
 
     g.static_library "libonig" do |l|
       l.source_files "*.c", "enc/*.c"
@@ -158,7 +118,7 @@ Daedalus.blueprint do |i|
   files << oniguruma
 
   gdtoa = i.external_lib "vendor/libgdtoa" do |l|
-    l.cflags = ["-Ivendor/libgdtoa"]
+    l.cflags = gcc.cflags + ["-Ivendor/libgdtoa"]
     l.objects = [l.file("libgdtoa.a")]
     l.to_build do |x|
       x.command make
@@ -168,7 +128,7 @@ Daedalus.blueprint do |i|
   files << gdtoa
 
   ffi = i.external_lib "vendor/libffi" do |l|
-    l.cflags = ["-Ivendor/libffi/include"]
+    l.cflags = gcc.cflags + ["-Ivendor/libffi/include"]
     l.objects = [l.file(".libs/libffi.a")]
     l.to_build do |x|
       x.command "sh -c './configure --disable-builddir'" unless File.exists?("Makefile")
@@ -179,7 +139,7 @@ Daedalus.blueprint do |i|
   files << ffi
 
   udis = i.external_lib "vendor/udis86" do |l|
-    l.cflags = ["-Ivendor/udis86"]
+    l.cflags = gcc.cflags + ["-Ivendor/udis86"]
     l.objects = [l.file("libudis86/.libs/libudis86.a")]
     l.to_build do |x|
       unless File.exists?("Makefile") and File.exists?("libudis86/Makefile")
@@ -193,7 +153,7 @@ Daedalus.blueprint do |i|
 
   if Rubinius::BUILD_CONFIG[:vendor_zlib]
     zlib = i.external_lib "vendor/zlib" do |l|
-      l.cflags = ["-Ivendor/zlib"]
+      l.cflags = gcc.cflags + ["-Ivendor/zlib"]
       l.objects = []
       l.to_build do |x|
         unless File.exists?("Makefile") and File.exists?("zconf.h")
@@ -213,7 +173,7 @@ Daedalus.blueprint do |i|
 
   if Rubinius::BUILD_CONFIG[:windows]
     winp = i.external_lib "vendor/winpthreads" do |l|
-      l.cflags = ["-Ivendor/winpthreads/include"]
+      l.cflags = gcc.cflags + ["-Ivendor/winpthreads/include"]
       l.objects = [l.file("libpthread.a")]
       l.to_build do |x|
         x.command "sh -c ./configure" unless File.exists?("Makefile")
@@ -229,7 +189,7 @@ Daedalus.blueprint do |i|
   case Rubinius::BUILD_CONFIG[:llvm]
   when :prebuilt, :svn
     llvm = i.external_lib "vendor/llvm" do |l|
-      l.cflags = ["-Ivendor/llvm/include"]
+      l.cflags = gcc.cflags + ["-Ivendor/llvm/include"]
       l.objects = []
     end
 
@@ -276,6 +236,16 @@ Daedalus.blueprint do |i|
   Rubinius::BUILD_CONFIG[:include_dirs].each do |path|
     gcc.cflags << "-I#{path} " if File.exists? path
   end
+
+  # Add these flags after building the libraries
+  gcc.cflags << "-Ivm -Ivm/test/cxxtest -I. "
+
+  gcc.cflags << "-Wno-unused-function"
+  gcc.cflags << "-g -Werror"
+  gcc.cflags << "-DRBX_PROFILER"
+  gcc.cflags << "-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS"
+  gcc.cflags << "-D_LARGEFILE_SOURCE"
+  gcc.cflags << "-D_FILE_OFFSET_BITS=64"
 
   cli = files.dup
   cli << i.source_file("vm/drivers/cli.cpp")
