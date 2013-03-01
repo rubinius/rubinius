@@ -18,8 +18,7 @@ DEFAULT_CONFIG = RbConfig::CONFIG.dup
 
 $CC       = env "CC", "gcc"
 $CXX      = env "CXX", "g++"
-# We need to link extensions with C++ by default, so pick ldsharedxx here
-$LDSHARED = env "LDSHARED", Rubinius::BUILD_CONFIG[:ldsharedxx]
+$LDSHARED = env "LDSHARED", $CXX
 $YACC     = env "YACC", "bison"
 
 $CFLAGS   = env "CFLAGS", Rubinius::BUILD_CONFIG[:user_cflags]
@@ -170,6 +169,59 @@ Rubinius::BUILD_CONFIG[:lib_dirs].each do |l|
 end
 
 add_define *Rubinius::BUILD_CONFIG[:defines]
+
+# Setup platform-specific values
+#
+# (Adapted from EventMachine. Thank you EventMachine and tmm1 !)
+#
+case RUBY_PLATFORM
+when /mswin/, /mingw/, /bccwin32/
+  # TODO: discovery helpers
+  #check_heads(%w[windows.h winsock.h], true)
+  #check_libs(%w[kernel32 rpcrt4 gdi32], true)
+
+  if RUBY_PLATFORM =~ /mingw/
+    $LDSHARED = "#{$CXX} -shared -lstdc++"
+  else
+    add_define "-EHs", "-GR"
+  end
+
+when /solaris/
+  add_define "OS_SOLARIS8"
+  add_flag "-fPIC"
+
+  if $CC == "cc" and `cc -flags 2>&1` =~ /Sun/ # detect SUNWspro compiler
+    # SUN CHAIN
+    add_define "CC_SUNWspro", "-KPIC"
+    $CXX = $CC
+    $LDSHARED = "#{$CXX} -G -KPIC -lCstd"
+  else
+    # GNU CHAIN
+    # on Unix we need a g++ link, not gcc.
+    $LDSHARED = "#{$CXX} -shared -G -fPIC"
+  end
+
+when /openbsd/
+  # OpenBSD branch contributed by Guillaume Sellier.
+
+  # on Unix we need a g++ link, not gcc. On OpenBSD, linking against
+  # libstdc++ have to be explicitly done for shared libs
+  $LDSHARED = "#{$CXX} -shared -lstdc++ -fPIC"
+  add_flag "-fPIC"
+
+when /darwin/
+  # on Unix we need a g++ link, not gcc.
+  # Ff line contributed by Daniel Harple.
+  $LDSHARED = "#{$CXX} -bundle -undefined suppress -flat_namespace -lstdc++"
+
+when /aix/
+  $LDSHARED = "#{$CXX} -shared -Wl,-G -Wl,-brtl"
+
+else
+  # on Unix we need a g++ link, not gcc.
+  $LDSHARED = "#{$CXX} -shared -lstdc++"
+  add_flag "-fPIC"
+end
 
 # To quiet MRI's warnings about ivars being uninitialized.
 # Doesn't need to be a method, but it's nicely encapsulated.
