@@ -12,7 +12,6 @@
 %"struct.rubinius::Inliners" = type opaque
 %"struct.rubinius::CallUnit" = type opaque
 %"struct.rubinius::InstructionSequence" = type opaque
-%"struct.rubinius::MethodCacheEntry" = type opaque
 %"struct.rubinius::ConstantScope" = type opaque
 
 %"struct.rubinius::VMJIT" = type {
@@ -73,6 +72,15 @@ declare void @output3(%"struct.rubinius::Dispatch"*)
 }
 
 declare void @output4(%"struct.rubinius::InlineCache"*)
+
+%"struct.rubinius::MethodCacheEntry" = type {
+   %"struct.rubinius::Object", ; header
+  %"struct.rubinius::Module"*, ; stored_module
+   %"struct.rubinius::Class"*, ; receiver_class
+  %"struct.rubinius::Executable"* ; method
+}
+
+declare void @outputMethodCacheEntry(%"struct.rubinius::MethodCacheEntry"*)
 
 %"struct.rubinius::InlineCacheHit" = type {
   %"struct.rubinius::MethodCacheEntry"*, ; entry
