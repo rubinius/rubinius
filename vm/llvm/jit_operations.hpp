@@ -572,23 +572,142 @@ namespace rubinius {
     }
 
     Value* check_kind_of(Value* obj, Value* check_klass) {
+      type::KnownType kt = type::KnownType::extract(ctx_, check_klass);
 
       BasicBlock* cont = new_block("continue");
-      Value* immediate_value = 0;
-      BasicBlock* immediate_block = 0;
+      BasicBlock* immediate_positive_block = 0;
+      BasicBlock* immediate_negative_block = 0;
+      Class* klass = 0;
       BasicBlock* use_call  = new_block("use_call");
       BasicBlock* positive  = new_block("positive");
+      BasicBlock* negative  = new_block("negative");
 
-      if(llvm_state()->config().jit_inline_debug) {
-        ctx_->inline_log("inlining") << "no cache for kind_of fast path\n";
+      if(kt.global_cache_entry_p()) {
+        if(llvm_state()->config().jit_inline_debug) {
+          ctx_->inline_log("inlining") << "direct class used for kind_of ";
+        }
+        GlobalCacheEntry* entry = kt.global_cache_entry();
+
+        klass = try_as<Class>(entry->value());
+
+        if(klass) {
+
+          int class_id = klass->class_id();
+          BasicBlock* use_cache = new_block("use_cache");
+
+          if(class_id == llvm_state()->fixnum_class_id()) {
+            if(llvm_state()->config().jit_inline_debug) {
+              ctx_->log() << "(against Fixnum)\n";
+            }
+            Value* is_fixnum = check_is_fixnum(obj);
+            create_conditional_branch(positive, negative, is_fixnum);
+          } else if(class_id == llvm_state()->integer_class_id() ||
+                    class_id == llvm_state()->numeric_class_id()) {
+            if(llvm_state()->config().jit_inline_debug) {
+              ctx_->log() << "(against Integer / Numeric)\n";
+            }
+            Value* is_fixnum = check_is_fixnum(obj);
+            create_conditional_branch(positive, use_call, is_fixnum);
+          } else if(class_id == llvm_state()->symbol_class_id()) {
+            if(llvm_state()->config().jit_inline_debug) {
+              ctx_->log() << "(against Symbol)\n";
+            }
+            Value* is_symbol = check_is_symbol(obj);
+            create_conditional_branch(positive, negative, is_symbol);
+          } else if(class_id == llvm_state()->string_class_id()) {
+            if(llvm_state()->config().jit_inline_debug) {
+              ctx_->log() << "(against String)\n";
+            }
+            Value* is_ref = check_is_reference(obj);
+            create_conditional_branch(use_cache, negative, is_ref);
+            set_block(use_cache);
+
+            Value* is_type = check_type_bits(obj, StringType);
+            create_conditional_branch(positive, negative, is_type);
+          } else if(class_id == llvm_state()->regexp_class_id()) {
+            if(llvm_state()->config().jit_inline_debug) {
+              ctx_->log() << "(against Regexp)\n";
+            }
+            Value* is_ref = check_is_reference(obj);
+            create_conditional_branch(use_cache, negative, is_ref);
+            set_block(use_cache);
+
+            Value* is_type = check_type_bits(obj, RegexpType);
+            create_conditional_branch(positive, negative, is_type);
+          } else if(class_id == llvm_state()->encoding_class_id()) {
+            if(llvm_state()->config().jit_inline_debug) {
+              ctx_->log() << "(against Encoding)\n";
+            }
+            Value* is_ref = check_is_reference(obj);
+            create_conditional_branch(use_cache, negative, is_ref);
+            set_block(use_cache);
+
+            Value* is_type = check_type_bits(obj, EncodingType);
+            create_conditional_branch(positive, negative, is_type);
+          } else if(class_id == llvm_state()->module_class_id()) {
+            if(llvm_state()->config().jit_inline_debug) {
+              ctx_->log() << "(against Module)\n";
+            }
+            Value* is_ref = check_is_reference(obj);
+            create_conditional_branch(use_cache, negative, is_ref);
+            set_block(use_cache);
+
+            Value* is_type = check_type_bits(obj, ModuleType);
+            // Use call here since Class has a different VM type
+            // but still is a Module.
+            create_conditional_branch(positive, use_call, is_type);
+          } else if(class_id == llvm_state()->class_class_id()) {
+            if(llvm_state()->config().jit_inline_debug) {
+              ctx_->log() << "(against Class)\n";
+            }
+            Value* is_ref = check_is_reference(obj);
+            create_conditional_branch(use_cache, negative, is_ref);
+            set_block(use_cache);
+
+            Value* is_type = check_type_bits(obj, ClassType);
+            create_conditional_branch(positive, use_call, is_type);
+          } else if(class_id == llvm_state()->true_class_id()) {
+            if(llvm_state()->config().jit_inline_debug) {
+              ctx_->log() << "(against TrueClass)\n";
+            }
+            Value* is_true = create_equal(obj, constant(cTrue), "is_true");
+            create_conditional_branch(positive, negative, is_true);
+          } else if(class_id == llvm_state()->false_class_id()) {
+            if(llvm_state()->config().jit_inline_debug) {
+              ctx_->log() << "(against FalseClass)\n";
+            }
+            Value* is_false = create_equal(obj, constant(cFalse), "is_false");
+            create_conditional_branch(positive, negative, is_false);
+          } else if(class_id == llvm_state()->nil_class_id()) {
+            if(llvm_state()->config().jit_inline_debug) {
+              ctx_->log() << "(against NilClass)\n";
+            }
+            Value* is_nil = create_equal(obj, constant(cNil), "is_nil");
+            create_conditional_branch(positive, negative, is_nil);
+          } else {
+            if(llvm_state()->config().jit_inline_debug) {
+              ctx_->log() << "(regular Ruby class)\n";
+            }
+            check_direct_class(obj, check_klass, positive, use_call, true);
+          }
+        }
       }
-      check_direct_class(obj, check_klass, positive, use_call, true);
+
+      if(!klass) {
+        if(llvm_state()->config().jit_inline_debug) {
+          ctx_->inline_log("inlining") << "no cache for kind_of fast path\n";
+        }
+        check_direct_class(obj, check_klass, positive, use_call, true);
+      }
 
       set_block(positive);
-      immediate_block = current_block();
-      immediate_value = constant(cTrue);
-
+      immediate_positive_block = current_block();
       create_branch(cont);
+
+      set_block(negative);
+      immediate_negative_block = current_block();
+      create_branch(cont);
+
       set_block(use_call);
 
       Signature sig(ctx_, ctx_->ptr_type("Object"));
@@ -606,8 +725,9 @@ namespace rubinius {
       create_branch(cont);
       set_block(cont);
 
-      PHINode* phi = b().CreatePHI(ObjType, 2, "constant");
-      phi->addIncoming(immediate_value, immediate_block);
+      PHINode* phi = b().CreatePHI(ObjType, 3, "constant");
+      phi->addIncoming(constant(cTrue), immediate_positive_block);
+      phi->addIncoming(constant(cFalse), immediate_negative_block);
       phi->addIncoming(val, ret_block);
       return phi;
     }

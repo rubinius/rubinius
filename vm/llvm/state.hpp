@@ -77,8 +77,13 @@ namespace rubinius {
 
     int fixnum_class_id_;
     int integer_class_id_;
+    int numeric_class_id_;
     int symbol_class_id_;
     int string_class_id_;
+    int regexp_class_id_;
+    int encoding_class_id_;
+    int module_class_id_;
+    int class_class_id_;
     int nil_class_id_;
     int true_class_id_;
     int false_class_id_;
@@ -176,12 +181,32 @@ namespace rubinius {
       return integer_class_id_;
     }
 
+    int numeric_class_id() {
+      return numeric_class_id_;
+    }
+
     int symbol_class_id() {
       return symbol_class_id_;
     }
 
     int string_class_id() {
       return string_class_id_;
+    }
+
+    int regexp_class_id() {
+      return regexp_class_id_;
+    }
+
+    int encoding_class_id() {
+      return encoding_class_id_;
+    }
+
+    int module_class_id() {
+      return module_class_id_;
+    }
+
+    int class_class_id() {
+      return class_class_id_;
     }
 
     int nil_class_id() {
