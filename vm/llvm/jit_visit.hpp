@@ -2830,7 +2830,83 @@ use_send:
       set_block(done);
     }
 
-    void visit_check_serial(opcode index, opcode serial) {
+    void emit_check_serial(opcode index, opcode serial, const char* function) {
+      Value* cache_const = b().CreateIntToPtr(
+          clong(index),
+          ptr_type("InlineCache"), "cast_to_ptr");
+
+      Value* recv = stack_pop();
+
+      BasicBlock* cont = new_block("cont");
+      BasicBlock* fallback = new_block("fallback");
+      BasicBlock* done = new_block("done");
+
+      Value* is_ref = check_is_reference(recv);
+      create_conditional_branch(cont, fallback, is_ref);
+
+      set_block(cont);
+      Value* recv_class = reference_class(recv);
+
+      BasicBlock* blocks[cTrackedICHits];
+
+      for(int i = 0; i < cTrackedICHits; ++i) {
+        Value* ich_idx[] = {
+          cint(0),
+          cint(offset::InlineCache::cache),
+          cint(i)
+        };
+
+        Value* ich = b().CreateGEP(cache_const, ich_idx, "ich");
+
+        Value* mce_idx[] = {
+          cint(0),
+          cint(offset::InlineCacheHit::entry)
+        };
+        Value* mce = b().CreateLoad(b().CreateGEP(ich, mce_idx, "mce"));
+
+        BasicBlock* has_mce = new_block("has_mce");
+        BasicBlock* class_match = new_block("class_match");
+        BasicBlock* next =        new_block("next");
+
+        Value* check_mce = b().CreateICmpNE(mce, Constant::getNullValue(ctx_->ptr_type("MethodCacheEntry")), "check_mce");
+        create_conditional_branch(has_mce, next, check_mce);
+
+        set_block(has_mce);
+        Value* receiver_class_idx[] = {
+          cint(0),
+          cint(offset::MethodCacheEntry::receiver_class)
+        };
+        Value* receiver_class = b().CreateLoad(b().CreateGEP(mce, receiver_class_idx, "receiver_class"));
+
+        Value* check_class = b().CreateICmpEQ(recv_class, receiver_class, "check_class");
+
+        create_conditional_branch(class_match, next, check_class);
+        set_block(class_match);
+
+        Value* method_idx[] = {
+          cint(0),
+          cint(offset::MethodCacheEntry::method)
+        };
+        Value* method = b().CreateLoad(b().CreateGEP(mce, method_idx, "method"));
+
+        Value* executable_serial_idx[] = {
+          cint(0),
+          cint(offset::Executable::serial)
+        };
+        Value* executable_serial = b().CreateLoad(b().CreateGEP(method, executable_serial_idx, "executable_serial"));
+        Value* check_serial = b().CreateICmpEQ(fixnum_strip(executable_serial), clong(serial), "check_serial");
+
+        blocks[i] = current_block();
+        create_conditional_branch(done, fallback, check_serial);
+
+
+        set_block(next);
+      }
+
+      create_branch(fallback);
+
+      set_block(fallback);
+
       Signature sig(ctx_, "Object");
       sig << "State";
       sig << "CallFrame";
@@ -2838,46 +2914,38 @@ use_send:
       sig << ctx_->Int32Ty;
       sig << "Object";
 
-      Value* cache_const = b().CreateIntToPtr(
-          clong(index),
-          ptr_type("InlineCache"), "cast_to_ptr");
 
       Value* call_args[] = {
         state_,
         call_frame_,
         cache_const,
         cint(serial),
-        stack_pop()
+        recv
       };
 
-      sig.setDoesNotCapture("rbx_check_serial", 2);
+      sig.setDoesNotCapture(function, 2);
+      Value* fallback_result = sig.call(function, call_args, 5, "cs", b());
 
-      stack_push(sig.call("rbx_check_serial", call_args, 5, "cs", b()));
+      create_branch(done);
+      set_block(done);
+
+      PHINode* phi = b().CreatePHI(ObjType, 1 + cTrackedICHits, "constant");
+
+      for(int i = 0; i < cTrackedICHits; ++i) {
+        phi->addIncoming(constant(cTrue), blocks[i]);
+      }
+
+      phi->addIncoming(fallback_result, fallback);
+
+      stack_push(phi);
+    }
+
+    void visit_check_serial(opcode index, opcode serial) {
+      emit_check_serial(index, serial, "rbx_check_serial");
     }
 
     void visit_check_serial_private(opcode index, opcode serial) {
-      Signature sig(ctx_, "Object");
-      sig << "State";
-      sig << "CallFrame";
-      sig << "InlineCache";
-      sig << ctx_->Int32Ty;
-      sig << "Object";
-
-      Value* cache_const = b().CreateIntToPtr(
-          clong(index),
-          ptr_type("InlineCache"), "cast_to_ptr");
-
-      Value* call_args[] = {
-        state_,
-        call_frame_,
-        cache_const,
-        cint(serial),
-        stack_pop()
-      };
-
-      sig.setDoesNotCapture("rbx_check_serial_private", 2);
-
-      stack_push(sig.call("rbx_check_serial_private", call_args, 5, "cs", b()));
+      emit_check_serial(index, serial, "rbx_check_serial_private");
     }
 
     void visit_push_my_offset(opcode i) {
