@@ -572,121 +572,17 @@ namespace rubinius {
     }
 
     Value* check_kind_of(Value* obj, Value* check_klass) {
-      type::KnownType kt = type::KnownType::extract(ctx_, check_klass);
 
       BasicBlock* cont = new_block("continue");
       Value* immediate_value = 0;
       BasicBlock* immediate_block = 0;
-      Class* klass = 0;
       BasicBlock* use_call  = new_block("use_call");
       BasicBlock* positive  = new_block("positive");
 
-      if(kt.global_cache_entry_p()) {
-        if(llvm_state()->config().jit_inline_debug) {
-          ctx_->inline_log("inlining") << "direct class used for kind_of ";
-        }
-        GlobalCacheEntry* entry = kt.global_cache_entry();
-
-        klass = try_as<Class>(entry->value());
-
-        if(klass) {
-
-          BasicBlock* use_cache = new_block("use_cache");
-
-          TypeInfo* type_info = klass->type_info();
-          switch(type_info->type) {
-          case ObjectType:
-          case PackedObjectType:
-            {
-              // Do a direct check as the fast path and fallback to JIT helper
-              if(llvm_state()->config().jit_inline_debug) {
-                ctx_->log() << "(regular Ruby class)\n";
-              }
-              check_direct_class(obj, check_klass, positive, use_call, true);
-            }
-            break;
-          case FixnumType:
-          case IntegerType:
-            {
-              // Do a fast check against it being a fixnum otherwise fallback
-              if(llvm_state()->config().jit_inline_debug) {
-                ctx_->log() << "(against Fixnum / Integer)\n";
-              }
-              Value* is_fixnum = check_is_fixnum(obj);
-              create_conditional_branch(positive, use_call, is_fixnum);
-            }
-            break;
-          case SymbolType:
-            {
-              // Check against symbol tag
-              if(llvm_state()->config().jit_inline_debug) {
-                ctx_->log() << "(against Symbol)\n";
-              }
-              Value* is_symbol = check_is_symbol(obj);
-              create_conditional_branch(positive, use_call, is_symbol);
-            }
-            break;
-          case TrueType:
-            {
-              // Check whether it's the direct true value
-              if(llvm_state()->config().jit_inline_debug) {
-                ctx_->log() << "(against TrueClass)\n";
-              }
-              Value* is_true = create_equal(obj, constant(cTrue), "is_true");
-              create_conditional_branch(positive, use_call, is_true);
-            }
-            break;
-          case FalseType:
-            {
-              // Check whether it's the direct false value
-              if(llvm_state()->config().jit_inline_debug) {
-                ctx_->log() << "(against FalseClass)\n";
-              }
-              Value* is_false = create_equal(obj, constant(cFalse), "is_false");
-              create_conditional_branch(positive, use_call, is_false);
-            }
-            break;
-          case NilType:
-            {
-              // Check whether it's the direct nil value
-              if(llvm_state()->config().jit_inline_debug) {
-                ctx_->log() << "(against NilClass)\n";
-              }
-              Value* is_nil = create_equal(obj, constant(cNil), "is_nil");
-              create_conditional_branch(positive, use_call, is_nil);
-            }
-            break;
-          case InvalidType:
-          case LastObjectType:
-            rubinius::bug("Invalid type information");
-            break;
-          default:
-            {
-              // Handle all other types the VM knows about as a fast path and
-              // fallback to JIT helper if type_info doesn't match.
-              if(llvm_state()->config().jit_inline_debug) {
-                ctx_->log() << "(against VM class "
-                  << llvm_state()->symbol_debug_str(klass->module_name()) << ")\n";
-              }
-
-              Value* is_ref = check_is_reference(obj);
-              create_conditional_branch(use_cache, use_call, is_ref);
-              set_block(use_cache);
-
-              Value* is_type = check_type_bits(obj, type_info->type);
-              create_conditional_branch(positive, use_call, is_type);
-            }
-            break;
-          }
-        }
+      if(llvm_state()->config().jit_inline_debug) {
+        ctx_->inline_log("inlining") << "no cache for kind_of fast path\n";
       }
-
-      if(!klass) {
-        if(llvm_state()->config().jit_inline_debug) {
-          ctx_->inline_log("inlining") << "no cache for kind_of fast path\n";
-        }
-        check_direct_class(obj, check_klass, positive, use_call, true);
-      }
+      check_direct_class(obj, check_klass, positive, use_call, true);
 
       set_block(positive);
       immediate_block = current_block();
