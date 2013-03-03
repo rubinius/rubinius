@@ -37,6 +37,12 @@ static VALUE so_attr_get(VALUE self, VALUE obj, VALUE attr) {
 }
 #endif
 
+#ifdef HAVE_RB_OBJ_INSTANCE_VARIABLES
+static VALUE object_spec_rb_obj_instance_variables(VALUE self, VALUE obj) {
+  return rb_obj_instance_variables(obj);
+}
+#endif
+
 #ifdef HAVE_RB_CHECK_ARRAY_TYPE
 static VALUE so_check_array_type(VALUE self, VALUE ary) {
   return rb_check_array_type(ary);
@@ -410,6 +416,10 @@ void Init_object_spec() {
 
 #ifdef HAVE_RB_ATTR_GET
   rb_define_method(cls, "rb_attr_get", so_attr_get, 2);
+#endif
+
+#ifdef HAVE_RB_OBJ_INSTANCE_VARIABLES
+  rb_define_method(cls, "rb_obj_instance_variables", object_spec_rb_obj_instance_variables, 1);
 #endif
 
 #ifdef HAVE_RB_CHECK_ARRAY_TYPE

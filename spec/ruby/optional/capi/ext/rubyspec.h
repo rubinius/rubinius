@@ -386,6 +386,7 @@
 #define HAVE_OBJ_INFECT                    1
 #define HAVE_RB_ANY_TO_S                   1
 #define HAVE_RB_ATTR_GET                   1
+#define HAVE_RB_OBJ_INSTANCE_VARIABLES	   1
 #define HAVE_RB_CHECK_ARRAY_TYPE           1
 #define HAVE_RB_CHECK_CONVERT_TYPE         1
 #ifdef RUBY_VERSION_IS_1_8_7
