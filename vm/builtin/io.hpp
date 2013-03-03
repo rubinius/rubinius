@@ -57,7 +57,7 @@ namespace rubinius {
     static Object*  connect_pipe(STATE, IO* lhs, IO* rhs);
 
     // Rubinius.primitive :io_open
-    static Fixnum*  open(STATE, String* path, Fixnum* mode, Fixnum* perm);
+    static Fixnum*  open(STATE, String* path, Fixnum* mode, Fixnum* perm, CallFrame* calling_environment);
 
     static void update_max_fd(STATE, native_int fd);
 
@@ -101,7 +101,7 @@ namespace rubinius {
     Object* reopen(STATE, IO* other);
 
     // Rubinius.primitive :io_reopen_path
-    Object* reopen_path(STATE, String* other, Fixnum * mode);
+    Object* reopen_path(STATE, String* other, Fixnum * mode, CallFrame* calling_environment);
 
     // Rubinius.primitive :io_close
     Object* close(STATE);

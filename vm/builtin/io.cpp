@@ -106,8 +106,22 @@ namespace rubinius {
     return io;
   }
 
-  Fixnum* IO::open(STATE, String* path, Fixnum* mode, Fixnum* perm) {
-    int fd = ::open(path->c_str_null_safe(state), mode->to_native(), perm->to_native());
+  Fixnum* IO::open(STATE, String* p, Fixnum* m, Fixnum* perm, CallFrame* calling_environment) {
+    char* path = strdup(p->c_str_null_safe(state));
+    int mode = m->to_int();
+    int permissions = perm->to_int();
+    int fd = -1;
+
+    {
+      GCIndependent guard(state, calling_environment);
+      fd = ::open(path, mode, permissions);
+    }
+
+    free(path);
+
+    if(fd < 0) {
+      Exception::errno_error(state, "open");
+    }
     update_max_fd(state, fd);
     return Fixnum::from(fd);
   }
@@ -316,15 +330,24 @@ namespace rubinius {
     return cTrue;
   }
 
-  Object* IO::reopen_path(STATE, String* path, Fixnum* mode) {
+  Object* IO::reopen_path(STATE, String* p, Fixnum* m, CallFrame* calling_environment) {
     native_int cur_fd   = to_fd();
 
-    int other_fd = ::open(path->c_str_null_safe(state), mode->to_native(), 0666);
-    update_max_fd(state, other_fd);
+    char* path = strdup(p->c_str_null_safe(state));
+    int mode = m->to_int();
+    int other_fd = -1;
 
-    if(other_fd == -1) {
+    {
+      GCIndependent guard(state, calling_environment);
+      other_fd = ::open(path, mode, 0666);
+    }
+
+    free(path);
+
+    if(other_fd < 0) {
       Exception::errno_error(state, "reopen");
     }
+    update_max_fd(state, other_fd);
 
     if(dup2(other_fd, cur_fd) == -1) {
       if(errno == EBADF) { // this means cur_fd is closed
