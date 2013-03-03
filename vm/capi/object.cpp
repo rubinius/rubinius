@@ -321,6 +321,10 @@ extern "C" {
     return rb_ivar_get(obj_handle, attr_name);
   }
 
+  VALUE rb_obj_instance_variables(VALUE obj_handle) {
+    return rb_funcall(obj_handle, rb_intern("instance_variables"), 0);
+  }
+
   int rb_respond_to(VALUE obj_handle, ID method_name) {
     return RTEST(rb_funcall(obj_handle, rb_intern("respond_to?"),
           1, ID2SYM(method_name)));
