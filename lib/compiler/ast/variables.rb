@@ -392,17 +392,7 @@ module Rubinius
       def bytecode(g)
         pos(g)
 
-        assign = g.new_label
-
-        g.dup
-        g.push_cpath_top
-        g.find_const :Array
-        g.swap
-        g.kind_of
-        g.git assign
-        g.make_array 1
-
-        assign.set!
+        g.cast_multi_value
         @value.bytecode(g)
       end
 
