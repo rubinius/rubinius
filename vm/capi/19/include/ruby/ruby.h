@@ -818,6 +818,9 @@ VALUE rb_uint2big(unsigned long number);
   /** @see rb_ivar_get */
   VALUE   rb_attr_get(VALUE object, ID attr_name);
 
+  /** Return Array with names of object's instance variables */
+  VALUE   rb_obj_instance_variables(VALUE object);
+
   void    rb_attr(VALUE klass, ID id, int read, int write, int ex);
 
   /** Return 1 if this send has a block, 0 otherwise. */
