@@ -143,6 +143,22 @@ describe "CApiObject" do
     end
   end
 
+  describe "rb_obj_instance_variables" do
+    ruby_version_is "1.9" do
+      it "returns an array with instance variable names as symbols" do
+        o = ObjectTest.new
+        @o.rb_obj_instance_variables(o).should include(:@foo)
+      end
+    end
+
+    ruby_version_is ""..."1.9" do
+      it "returns an array with instance variable names as strings" do
+        o = ObjectTest.new
+        @o.rb_obj_instance_variables(o).should include("@foo")
+      end
+    end
+  end
+
   describe "rb_check_convert_type" do
     it "tries to coerce to a type, otherwise returns nil" do
       ac = AryChild.new
