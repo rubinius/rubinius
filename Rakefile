@@ -89,7 +89,7 @@ def build_ruby
 end
 
 unless BUILD_CONFIG[:build_ruby] == build_ruby
-  STDERR.puts "\nUnable to build using the running Ruby executable.\n\n"
+  STDERR.puts "\nUnable to build using the running Ruby executable (#{build_ruby}). Expected #{BUILD_CONFIG[:build_ruby]}\n\n"
 
   STDERR.puts "To resolve this issue:"
   if ENV['PATH'] =~ /#{BUILD_CONFIG[:bindir]}/
