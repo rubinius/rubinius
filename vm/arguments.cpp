@@ -20,7 +20,7 @@ namespace rubinius {
   void Arguments::prepend(STATE, Array* ary) {
     Tuple* tup = Tuple::create(state, ary->size() + total());
 
-    for(uint32_t i = 0; i < ary->size(); i++) {
+    for(native_int i = 0; i < ary->size(); i++) {
       tup->put(state, i, ary->get(state, i));
     }
 
