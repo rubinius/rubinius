@@ -62,8 +62,13 @@ module Rubinius
     #
     def ==(other)
       return false unless other.kind_of? CompiledCode
+      equivalent_body?(other) and
+        @lines == other.lines and
+        @name == other.name
+    end
+
+    def equivalent_body?(other)
       @primitive       == other.primitive     and
-        @name          == other.name          and
         @iseq          == other.iseq          and
         @stack_size    == other.stack_size    and
         @local_count   == other.local_count   and
@@ -71,7 +76,6 @@ module Rubinius
         @total_args    == other.total_args    and
         @splat         == other.splat         and
         @literals      == other.literals      and
-        @lines         == other.lines         and
         @file          == other.file          and
         @local_names   == other.local_names
     end
