@@ -29,15 +29,15 @@ namespace rubinius {
     G(array)->set_object_type(state, ArrayType);
   }
 
-  size_t Array::size() {
+  native_int Array::size() {
     return total_->to_native();
   }
 
-  size_t Array::offset() {
+  native_int Array::offset() {
     return start_->to_native();
   }
 
-  Array* Array::create(STATE, size_t idx) {
+  Array* Array::create(STATE, native_int idx) {
     Array* ary;
     ary = state->new_object_dirty<Array>(G(array));
 
@@ -122,7 +122,7 @@ namespace rubinius {
     }
   }
 
-  void Array::setup(STATE, size_t size) {
+  void Array::setup(STATE, native_int size) {
     this->tuple(state, Tuple::create(state, size));
     this->start(state, Fixnum::from(0));
     this->total(state, Fixnum::from(0));
@@ -168,7 +168,7 @@ namespace rubinius {
       if(is_frozen_p()) return force_as<Array>(Primitives::failure());
     }
 
-    size_t osize = other->size();
+    native_int osize = other->size();
 
     if(osize == 0) return this;
     if(LANGUAGE_18_ENABLED(state)) {
@@ -180,7 +180,7 @@ namespace rubinius {
       return this;
     }
 
-    size_t new_size = size() + osize;
+    native_int new_size = size() + osize;
     Tuple* nt = Tuple::create(state, new_size);
     nt->copy_from(state, tuple_, start_, total_, Fixnum::from(0));
     nt->copy_from(state, other->tuple(), other->start(), other->total(), total_);
@@ -192,8 +192,8 @@ namespace rubinius {
     return this;
   }
 
-  Object* Array::get(STATE, size_t idx) {
-    if(idx >= (size_t)total_->to_native()) {
+  Object* Array::get(STATE, native_int idx) {
+    if(idx >= total_->to_native()) {
       return cNil;
     }
 
@@ -202,7 +202,7 @@ namespace rubinius {
     return tuple_->at(state, idx);
   }
 
-  Object* Array::set(STATE, size_t idx, Object* val) {
+  Object* Array::set(STATE, native_int idx, Object* val) {
     native_int tuple_size = tuple_->num_fields();
     native_int oidx = idx;
     idx += start_->to_native();
@@ -213,7 +213,7 @@ namespace rubinius {
         tuple_->lshift_inplace(state, start_);
       } else {
         // Uses the same algo as 1.8 to resize the tuple
-        size_t new_size = tuple_size / 2;
+        native_int new_size = tuple_size / 2;
         if(new_size < 3) {
           new_size = 3;
         }
@@ -234,8 +234,8 @@ namespace rubinius {
   }
 
   void Array::unshift(STATE, Object* val) {
-    size_t new_size = total_->to_native() + 1;
-    size_t lend = start_->to_native();
+    native_int new_size = total_->to_native() + 1;
+    native_int lend = start_->to_native();
 
     if(lend > 0) {
       tuple_->put(state, lend-1, val);
@@ -254,7 +254,7 @@ namespace rubinius {
   }
 
   Object* Array::shift(STATE) {
-    size_t cnt = total_->to_native();
+    native_int cnt = total_->to_native();
 
     if(cnt == 0) return cNil;
     Object* obj = get(state, 0);
@@ -265,14 +265,14 @@ namespace rubinius {
   }
 
   Object* Array::append(STATE, Object* val) {
-    set(state, (size_t)total_->to_native(), val);
+    set(state, total_->to_native(), val);
     return val;
   }
 
   bool Array::includes_p(STATE, Object* val) {
-    size_t cnt = total_->to_native();
+    native_int cnt = total_->to_native();
 
-    for(size_t i = 0; i < cnt; i++) {
+    for(native_int i = 0; i < cnt; i++) {
       if(get(state, i) == val) return true;
     }
 
@@ -280,7 +280,7 @@ namespace rubinius {
   }
 
   Object* Array::pop(STATE) {
-    size_t cnt = total_->to_native();
+    native_int cnt = total_->to_native();
 
     if(cnt == 0) return cNil;
     Object *obj = get(state, cnt - 1);
@@ -291,8 +291,8 @@ namespace rubinius {
 
   void Array::Info::show(STATE, Object* self, int level) {
     Array* ary = as<Array>(self);
-    size_t size = ary->size();
-    size_t stop = size < 5 ? size : 5;
+    native_int size = ary->size();
+    native_int stop = size < 5 ? size : 5;
 
     if(size == 0) {
       class_info(state, self, true);
@@ -302,7 +302,7 @@ namespace rubinius {
     class_info(state, self);
     std::cout << ": " << size << std::endl;
     ++level;
-    for(size_t i = 0; i < stop; i++) {
+    for(native_int i = 0; i < stop; i++) {
       indent(level);
       Object* obj = ary->get(state, i);
       if(obj == ary) {

@@ -26,14 +26,14 @@ namespace rubinius {
 
     /* interface */
 
-    size_t size();
-    size_t offset();
+    native_int size();
+    native_int offset();
     static void init(STATE);
-    static Array* create(STATE, size_t size);
+    static Array* create(STATE, native_int size);
     static Array* from_tuple(STATE, Tuple* tup);
     static Array* to_ary(STATE, Object* obj, CallFrame* frame);
 
-    void   setup(STATE, size_t size);
+    void   setup(STATE, native_int size);
 
     // Rubinius.primitive :array_allocate
     static Array* allocate(STATE, Object* self);
@@ -59,8 +59,8 @@ namespace rubinius {
     // Rubinius.primitive :array_pack19
     String* pack19(STATE, String* directives, CallFrame* calling_environment);
 
-    Object* get(STATE, size_t idx);
-    Object* set(STATE, size_t idx, Object* val);
+    Object* get(STATE, native_int idx);
+    Object* set(STATE, native_int idx, Object* val);
     void   unshift(STATE, Object* val);
     Object* shift(STATE);
     Object* append(STATE, Object* val);
