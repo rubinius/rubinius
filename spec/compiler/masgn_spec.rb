@@ -1012,18 +1012,7 @@ describe "A Masgn node" do
       g.set_local 1
       g.pop
 
-      ary = g.new_label
-      assign = g.new_label
-
-      g.dup
-      g.push_cpath_top
-      g.find_const :Array
-      g.swap
-      g.kind_of
-      g.git assign
-      g.make_array 1
-
-      assign.set!
+      g.cast_multi_value
       g.set_local 2
       g.pop
 
@@ -1081,17 +1070,7 @@ describe "A Masgn node" do
       g.set_local 1
       g.pop
 
-      assign = g.new_label
-
-      g.dup
-      g.push_cpath_top
-      g.find_const :Array
-      g.swap
-      g.kind_of
-      g.git assign
-      g.make_array 1
-
-      assign.set!
+      g.cast_multi_value
       g.set_local 2
 
       g.pop
@@ -1115,17 +1094,7 @@ describe "A Masgn node" do
       g.set_local 1
       g.pop
 
-      assign = g.new_label
-
-      g.dup
-      g.push_cpath_top
-      g.find_const :Array
-      g.swap
-      g.kind_of
-      g.git assign
-      g.make_array 1
-
-      assign.set!
+      g.cast_multi_value
       g.set_local 2
 
       g.pop
@@ -1149,17 +1118,7 @@ describe "A Masgn node" do
       g.set_local 1
       g.pop
 
-      assign = g.new_label
-
-      g.dup
-      g.push_cpath_top
-      g.find_const :Array
-      g.swap
-      g.kind_of
-      g.git assign
-      g.make_array 1
-
-      assign.set!
+      g.cast_multi_value
       g.set_local 2
       g.pop
 
@@ -1189,17 +1148,7 @@ describe "A Masgn node" do
       g.set_local 1
       g.pop
 
-      assign = g.new_label
-
-      g.dup
-      g.push_cpath_top
-      g.find_const :Array
-      g.swap
-      g.kind_of
-      g.git assign
-      g.make_array 1
-
-      assign.set!
+      g.cast_multi_value
       g.set_local 2
       g.pop
 
@@ -1217,18 +1166,8 @@ describe "A Masgn node" do
       g.set_local 0
       g.pop
 
-      assign = g.new_label
-
       g.shift_array
-      g.dup
-      g.push_cpath_top
-      g.find_const :Array
-      g.swap
-      g.kind_of
-      g.git assign
-      g.make_array 1
-
-      assign.set!
+      g.cast_multi_value
       g.set_local 1
       g.pop
 
@@ -1247,17 +1186,7 @@ describe "A Masgn node" do
       g.set_local 0
       g.pop
 
-      assign = g.new_label
-
-      g.dup
-      g.push_cpath_top
-      g.find_const :Array
-      g.swap
-      g.kind_of
-      g.git assign
-      g.make_array 1
-
-      assign.set!
+      g.cast_multi_value
       g.set_local 1
       g.pop
 
@@ -1274,18 +1203,8 @@ describe "A Masgn node" do
       g.set_local 0
       g.pop
 
-      assign = g.new_label
-
       g.shift_array
-      g.dup
-      g.push_cpath_top
-      g.find_const :Array
-      g.swap
-      g.kind_of
-      g.git assign
-      g.make_array 1
-
-      assign.set!
+      g.cast_multi_value
       g.set_local 1
       g.pop
 
@@ -1309,17 +1228,7 @@ describe "A Masgn node" do
 
       g.shift_array
 
-      assign = g.new_label
-
-      g.dup
-      g.push_cpath_top
-      g.find_const :Array
-      g.swap
-      g.kind_of
-      g.git assign
-      g.make_array 1
-
-      assign.set!
+      g.cast_multi_value
       g.set_local 1
       g.pop
 
@@ -1411,17 +1320,8 @@ describe "A Masgn node" do
       g.shift_array
       g.set_local 1
       g.pop
-      g.dup
-      g.push_cpath_top
-      g.find_const :Array
-      g.swap
-      g.kind_of
 
-      is_array = g.new_label
-      g.git is_array
-      g.make_array 1
-      is_array.set!
-
+      g.cast_multi_value
       g.set_local 2
       g.pop
       g.set_local 3
