@@ -315,7 +315,7 @@ public:
     TS_ASSERT(obj->check_type(ArrayType));
 
     Array* ary = as<Array>(obj);
-    TS_ASSERT_EQUALS(ary->size(), 2UL);
+    TS_ASSERT_EQUALS(ary->size(), 2);
 
     TS_ASSERT(ary->get(state, 0)->check_type(StringType));
     String *so = as<String>(ary->get(state, 0));
@@ -335,7 +335,7 @@ public:
     TS_ASSERT(obj->check_type(ArrayType));
 
     Array* ary = as<Array>(obj);
-    TS_ASSERT_EQUALS(ary->size(), 2U);
+    TS_ASSERT_EQUALS(ary->size(), 2);
 
     TS_ASSERT(ary->get(state, 0)->nil_p());
     TS_ASSERT(ary->get(state, 1)->nil_p());

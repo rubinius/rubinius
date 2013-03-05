@@ -1123,7 +1123,7 @@ class TestBignum : public CxxTest::TestSuite, public VMTest {
     Bignum* a = try_as<Bignum>(ary->get(state, 0));
     Bignum* b = try_as<Bignum>(ary->get(state, 1));
 
-    TS_ASSERT_EQUALS(2U, ary->size());
+    TS_ASSERT_EQUALS(2, ary->size());
     TS_ASSERT(a);
     TS_ASSERT(b);
     TS_ASSERT_EQUALS(cTrue, b2->equal(state, a));
@@ -1137,7 +1137,7 @@ class TestBignum : public CxxTest::TestSuite, public VMTest {
     Fixnum* e = try_as<Fixnum>(ary->get(state, 0));
     Fixnum* f = try_as<Fixnum>(ary->get(state, 1));
 
-    TS_ASSERT_EQUALS(2U, ary->size());
+    TS_ASSERT_EQUALS(2, ary->size());
     TS_ASSERT(e);
     TS_ASSERT(f);
     TS_ASSERT_EQUALS(two, e);
@@ -1148,7 +1148,7 @@ class TestBignum : public CxxTest::TestSuite, public VMTest {
     Bignum* c = try_as<Bignum>(ary->get(state, 0));
     Bignum* d = try_as<Bignum>(ary->get(state, 1));
 
-    TS_ASSERT_EQUALS(2U, ary->size());
+    TS_ASSERT_EQUALS(2, ary->size());
     TS_ASSERT(c);
     TS_ASSERT(d);
     TS_ASSERT_EQUALS(cTrue, Bignum::create(state, two)->equal(state, c));

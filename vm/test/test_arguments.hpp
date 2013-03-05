@@ -190,20 +190,20 @@ public:
     Arguments args(state->symbol("blah"), 1, static_args);
 
     Array* ary = args.as_array(state);
-    TS_ASSERT_EQUALS(ary->size(), 1U);
+    TS_ASSERT_EQUALS(ary->size(), 1);
     TS_ASSERT_EQUALS(ary->get(state, 0), three);
 
     args.unshift(state, four);
 
     ary = args.as_array(state);
-    TS_ASSERT_EQUALS(ary->size(), 2U);
+    TS_ASSERT_EQUALS(ary->size(), 2);
     TS_ASSERT_EQUALS(ary->get(state, 0), four);
     TS_ASSERT_EQUALS(ary->get(state, 1), three);
 
     args.shift(state);
 
     ary = args.as_array(state);
-    TS_ASSERT_EQUALS(ary->size(), 1U);
+    TS_ASSERT_EQUALS(ary->size(), 1);
     TS_ASSERT_EQUALS(ary->get(state, 0), three);
 
   }

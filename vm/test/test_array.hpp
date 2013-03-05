@@ -94,7 +94,7 @@ class TestArray : public CxxTest::TestSuite, public VMTest {
     ary->set(state, 0, cTrue);
     ary->unshift(state, cFalse);
 
-    TS_ASSERT_EQUALS(ary->size(), 2U);
+    TS_ASSERT_EQUALS(ary->size(), 2);
     TS_ASSERT_EQUALS(ary->get(state, 0), cFalse);
     TS_ASSERT_EQUALS(ary->get(state, 1), cTrue);
 

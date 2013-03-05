@@ -59,7 +59,7 @@ public:
     tbl->store(state, Fixnum::from(2), Fixnum::from(3));
     Array* ary = tbl->keys(state);
 
-    TS_ASSERT_EQUALS(ary->size(), (unsigned)2);
+    TS_ASSERT_EQUALS(ary->size(), 2);
     TS_ASSERT_EQUALS(ary->get(state, 0), Fixnum::from(0));
     TS_ASSERT_EQUALS(ary->get(state, 1), Fixnum::from(2));
   }
@@ -69,7 +69,7 @@ public:
     tbl->store(state, Fixnum::from(2), Fixnum::from(3));
     Array* ary = tbl->values(state);
 
-    TS_ASSERT_EQUALS(ary->size(), (unsigned)2);
+    TS_ASSERT_EQUALS(ary->size(), 2);
     TS_ASSERT_EQUALS(ary->get(state, 0), Fixnum::from(1));
     TS_ASSERT_EQUALS(ary->get(state, 1), Fixnum::from(3));
   }

@@ -167,9 +167,9 @@ public:
     syms.push_back(symbols->lookup(state, "starts"));
 
     Array* ary = symbols->all_as_array(state);
-    TS_ASSERT_EQUALS(ary->size(), 6U);
+    TS_ASSERT_EQUALS(ary->size(), 6);
 
-    for(size_t i = 0; i < ary->size(); i++) {
+    for(native_int i = 0; i < ary->size(); i++) {
       TS_ASSERT(std::find(syms.begin(), syms.end(), ary->get(state, i)) != syms.end());
     }
   }
