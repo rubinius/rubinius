@@ -90,8 +90,8 @@ namespace rubinius {
   int CompiledCode::line(STATE, int ip) {
     if(lines_->nil_p()) return -3;
 
-    size_t fin = lines_->num_fields() - 2;
-    for(size_t i = 0; i < fin; i += 2) {
+    native_int fin = lines_->num_fields() - 2;
+    for(native_int i = 0; i < fin; i += 2) {
       Fixnum* start_ip = as<Fixnum>(lines_->at(state, i));
       Fixnum* end_ip   = as<Fixnum>(lines_->at(state, i+2));
 

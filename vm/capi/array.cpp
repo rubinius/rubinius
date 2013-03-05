@@ -48,8 +48,8 @@ namespace rubinius {
         Tuple* tuple = array->tuple();
         RArray* rarray = handle->as_rarray(env);
 
-        size_t size = tuple->num_fields();
-        size_t num = 0;
+        native_int size = tuple->num_fields();
+        native_int num = 0;
 
         if(rarray->ptr != rarray->dmwmb) {
           // This is a very bad C extension. Assume len is valid.
@@ -66,7 +66,7 @@ namespace rubinius {
         array->start(env->state(), Fixnum::from(0));
         array->total(env->state(), Fixnum::from(rarray->len));
 
-        for(size_t i = 0; i < num; i++) {
+        for(native_int i = 0; i < num; i++) {
           tuple->put(env->state(), i, env->get_object(rarray->ptr[i]));
         }
       }
@@ -91,9 +91,9 @@ namespace rubinius {
         Tuple* tuple = array->tuple();
         RArray* rarray = handle->as_rarray(env);
 
-        ssize_t size = tuple->num_fields();
-        ssize_t start = array->start()->to_native();
-        ssize_t num = 0;
+        native_int size = tuple->num_fields();
+        native_int start = array->start()->to_native();
+        native_int num = 0;
 
         if(rarray->ptr != rarray->dmwmb) {
           // This is a very bad C extension. Assume len is valid
@@ -113,7 +113,7 @@ namespace rubinius {
           env->shared().capi_ds_lock().unlock();
         }
 
-        for(ssize_t i = 0, j = start; i < num && j < size; i++, j++) {
+        for(native_int i = 0, j = start; i < num && j < size; i++, j++) {
           rarray->ptr[i] = env->get_handle(tuple->at(j));
         }
       }
@@ -139,11 +139,11 @@ namespace rubinius {
         // have changed since we asked for the lock.
         if(type_ != cRArray) {
           Array* array = c_as<Array>(object());
-          size_t size = array->tuple()->num_fields();
+          native_int size = array->tuple()->num_fields();
 
           RArray* ary = new RArray;
           VALUE* ptr = new VALUE[size];
-          for(size_t i = 0; i < size; i++) {
+          for(native_int i = 0; i < size; i++) {
             ptr[i] = env->get_handle(array->get(env->state(), i));
           }
 

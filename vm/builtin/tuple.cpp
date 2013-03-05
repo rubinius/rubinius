@@ -124,9 +124,9 @@ namespace rubinius {
     native_int osize = other->num_fields();
     native_int size = this->num_fields();
 
-    int src_start = start->to_native();
-    int dst_start = dest->to_native();
-    int len = length->to_native();
+    native_int src_start = start->to_native();
+    native_int dst_start = dest->to_native();
+    native_int len = length->to_native();
 
     // left end should be within range
     if(src_start < 0 || src_start > osize) {
@@ -189,10 +189,10 @@ namespace rubinius {
   }
 
   Fixnum* Tuple::delete_inplace(STATE, Fixnum *start, Fixnum *length, Object *obj) {
-    int size = this->num_fields();
-    int len  = length->to_native();
-    int lend = start->to_native();
-    int rend = lend + len;
+    native_int size = this->num_fields();
+    native_int len  = length->to_native();
+    native_int lend = start->to_native();
+    native_int rend = lend + len;
 
     if(size == 0 || len == 0) return Fixnum::from(0);
     if(lend < 0 || lend >= size) {
@@ -203,10 +203,10 @@ namespace rubinius {
       return force_as<Fixnum>(bounds_exceeded_error(state, "Tuple::delete_inplace", rend));
     }
 
-    int i = lend;
+    native_int i = lend;
     while(i < rend) {
-      if(this->at(state,i) == obj) {
-        int j = i;
+      if(this->at(i) == obj) {
+        native_int j = i;
         ++i;
         while(i < rend) {
           Object *val = this->field[i];
@@ -236,7 +236,7 @@ namespace rubinius {
    */
   Tuple* Tuple::lshift_inplace(STATE, Fixnum* shift) {
     native_int size = this->num_fields();
-    const int start = shift->to_native();
+    const native_int start = shift->to_native();
 
     assert(start >= 0);
 
