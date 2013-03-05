@@ -12,7 +12,7 @@ describe :enum_with_object, :shared => true do
 
   it "iterates over the array adding the given object" do
     expected = ''
-    %w|wadus wadus|.each.send(@method, ' ') {|e, o| expected += e + o}
+    %w|wadus wadus|.to_enum.send(@method, ' ') {|e, o| expected += e + o}
 
     expected.should == 'wadus wadus '
   end

@@ -63,7 +63,7 @@ ruby_version_is "1.9" do
         ary[0] = 5
       end
 
-      accum.should ==
+      accum.sort.should ==
         [[1, 1, 1], [1, 1, 2], [1, 2, 1],
          [1, 2, 2], [2, 1, 1], [2, 1, 2],
          [2, 2, 1], [2, 2, 2]]

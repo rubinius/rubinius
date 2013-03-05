@@ -26,7 +26,7 @@ describe :io_chars, :shared => true do
   it "returns an Enumerator when passed no block" do
     enum = @io.send(@method)
     enum.should be_an_instance_of(enumerator_class)
-    enum.each.first(5).should == ["V", "o", "i", "c", "i"]
+    enum.first(5).should == ["V", "o", "i", "c", "i"]
   end
 
   it "returns itself" do
