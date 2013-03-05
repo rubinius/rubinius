@@ -178,7 +178,7 @@ namespace rubinius {
 
       obj->ivar_names(state, tmp_);
 
-      for(size_t i = 0; i < tmp_->size(); i++) {
+      for(native_int i = 0; i < tmp_->size(); i++) {
         if(Symbol* sym = try_as<Symbol>(tmp_->get(state, i))) {
           if(obj->get_ivar(state, sym) == target_) return true;
         }

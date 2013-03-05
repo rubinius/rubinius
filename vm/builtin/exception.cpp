@@ -36,7 +36,7 @@ namespace rubinius {
   }
 
   void Exception::print_locations(STATE) {
-    for(size_t i = 0; i < locations_->size(); i++) {
+    for(native_int i = 0; i < locations_->size(); i++) {
       if(Location* loc = try_as<Location>(locations_->get(state, i))) {
         if(CompiledCode* meth = try_as<CompiledCode>(loc->method())) {
           if(Symbol* file_sym = try_as<Symbol>(meth->file())) {

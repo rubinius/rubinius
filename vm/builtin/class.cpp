@@ -257,7 +257,7 @@ namespace rubinius {
         }
 
         if(info && !info->nil_p()) {
-          for(size_t i = 0; i < info->size(); i++) {
+          for(native_int i = 0; i < info->size(); i++) {
             if(Symbol* sym = try_as<Symbol>(info->get(state, i))) {
               bool found = false;
               lt->fetch(state, sym, &found);

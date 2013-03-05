@@ -221,7 +221,7 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     Array* array = capi_get_array(env, self);
-    for(size_t i = 0; i < array->size(); i++) {
+    for(native_int i = 0; i < array->size(); i++) {
       rb_yield(env->get_handle(array->get(env->state(), i)));
     }
 
@@ -343,7 +343,7 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     Array* array = capi_get_array(env, self);
-    size_t total = array->size();
+    native_int total = array->size();
 
     if(index < 0) {
       index += total;

@@ -210,7 +210,7 @@ extern "C" {
     }
 
     if(splat) {
-      for(size_t i = 0; i < splat->size(); i++) {
+      for(native_int i = 0; i < splat->size(); i++) {
         tup->put(state, i + v->total_args, splat->get(state, i));
       }
     } else if(splat_obj) {

@@ -682,17 +682,17 @@ end
 
 instruction shift_array() [ array -- array value ]
   Array* array = as<Array>(stack_pop());
-  size_t size = (size_t)array->size();
+  native_int size = array->size();
 
   if(size == 0) {
     stack_push(array);
     stack_push(cNil);
   } else {
-    size_t j = size - 1;
+    native_int j = size - 1;
     Object* shifted_value = array->get(state, 0);
     Array* smaller_array = Array::create(state, j);
 
-    for(size_t i = 0; i < j; i++) {
+    for(native_int i = 0; i < j; i++) {
       smaller_array->set(state, i, array->get(state, i+1));
     }
 
@@ -2106,7 +2106,7 @@ instruction zsuper(literal) [ block -- value ]
   }
 
   if(splat) {
-    for(size_t i = 0; i < splat->size(); i++) {
+    for(native_int i = 0; i < splat->size(); i++) {
       tup->put(state, i + mc->total_args, splat->get(state, i));
     }
   } else if(splat_obj) {

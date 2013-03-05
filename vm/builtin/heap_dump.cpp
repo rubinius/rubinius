@@ -240,7 +240,7 @@ namespace rubinius {
     ary->total(state, Fixnum::from(0));
 
     obj->ivar_names(state, ary);
-    for(size_t i = 0; i < ary->size(); i++) {
+    for(native_int i = 0; i < ary->size(); i++) {
       if(Symbol* sym = try_as<Symbol>(ary->get(state, i))) {
         syms.push_back(sym);
       }

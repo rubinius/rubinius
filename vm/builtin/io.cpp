@@ -150,7 +150,7 @@ namespace rubinius {
       FD_ZERO(set);
       native_int highest = -1;
 
-      for(std::size_t i = 0; i < descriptors->size(); ++i) {
+      for(native_int i = 0; i < descriptors->size(); ++i) {
         Object* elem = descriptors->get(state, i);
         IO* io;
 
@@ -184,7 +184,7 @@ namespace rubinius {
       // A single value is the most common, so prime for that.
       Array* selected = Array::create(state, 1);
 
-      for(std::size_t i = 0; i < originals->size(); ++i) {
+      for(native_int i = 0; i < originals->size(); ++i) {
         Object* elem = originals->get(state, i);
         Object* key;
         IO* io;
