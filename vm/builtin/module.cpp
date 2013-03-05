@@ -12,6 +12,7 @@
 #include "builtin/system.hpp"
 #include "builtin/array.hpp"
 #include "builtin/compactlookuptable.hpp"
+#include "builtin/weakref.hpp"
 
 #include "configuration.hpp"
 #include "global_cache.hpp"
@@ -35,6 +36,7 @@ namespace rubinius {
 
     mod->module_name(state, nil<Symbol>());
     mod->superclass(state, nil<Module>());
+    mod->hierarchy_subclasses(state, nil<Array>());
 
     mod->setup(state);
 
@@ -52,6 +54,9 @@ namespace rubinius {
   void Module::setup(STATE) {
     constant_table(state, LookupTable::create(state));
     method_table(state, MethodTable::create(state));
+    if(!superclass()->nil_p()) {
+      superclass()->track_subclass(state, this);
+    }
   }
 
   void Module::setup(STATE, std::string name, Module* under) {
@@ -156,6 +161,22 @@ namespace rubinius {
     if(!vis) vis = G(sym_public);
     method_table_->store(state, gct, name, exec, vis, call_frame);
     state->vm()->global_cache()->clear(state, self, name);
+  }
+
+  Object* Module::increase_serial(STATE, Symbol* name) {
+    if(Class* self = try_as<Class>(this)) {
+      self->increment_serial();
+    }
+    if(!hierarchy_subclasses_->nil_p()) {
+      for(native_int i = 0; i < hierarchy_subclasses_->size(); ++i) {
+        WeakRef* ref = try_as<WeakRef>(hierarchy_subclasses_->get(state, i));
+        if(ref && ref->alive_p()) {
+          Module* mod = as<Module>(ref->object());
+          mod->increase_serial(state, name);
+        }
+      }
+    }
+    return cNil;
   }
 
   Executable* Module::find_method(Symbol* name, Module** defined_in) {
@@ -417,6 +438,14 @@ namespace rubinius {
     return nil<Class>();
   }
 
+  Object* Module::track_subclass(STATE, Module* mod) {
+    if(hierarchy_subclasses_->nil_p()) {
+      hierarchy_subclasses(state, Array::create(state, 4));
+    }
+    hierarchy_subclasses_->append(state, WeakRef::create(state, mod));
+    return cNil;
+  }
+
   std::string Module::debug_str(STATE) {
     Symbol* name = module_name();
 
@@ -436,6 +465,26 @@ namespace rubinius {
     indent_attribute(level, "constants"); mod->constants()->show(state, level);
     indent_attribute(level, "method_table"); mod->method_table()->show(state, level);
     close_body(level);
+  }
+
+  void Module::Info::mark(Object* obj, ObjectMark& mark) {
+    auto_mark(obj, mark);
+
+    Array* subclasses = as<Module>(obj)->hierarchy_subclasses_;
+    if(subclasses->nil_p()) return;
+
+    native_int offset = subclasses->offset();
+    native_int size = subclasses->size();
+    Tuple* tup = subclasses->tuple();
+
+    for(native_int i = offset; i < size + offset; ++i) {
+      if(WeakRef* ref = try_as<WeakRef>(tup->field[i])) {
+        if(!ref->alive_p()) {
+          tup->field[i] = cNil;
+        }
+      }
+    }
+    subclasses->set_size(size - tup->delete_inplace(offset, size, cNil));
   }
 
   IncludedModule* IncludedModule::create(STATE) {

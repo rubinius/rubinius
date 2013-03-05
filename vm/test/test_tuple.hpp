@@ -145,7 +145,7 @@ public:
     Tuple *tuple = new_tuple();
 
     tuple->put(state, 1, cNil);
-    Integer *count = tuple->delete_inplace(state, Fixnum::from(0), Fixnum::from(3), cNil);
+    Integer *count = tuple->delete_inplace_prim(state, Fixnum::from(0), Fixnum::from(3), cNil);
 
     TS_ASSERT_EQUALS(1, count->to_native());
     TS_ASSERT_EQUALS(Fixnum::from(1), as<Fixnum>(tuple->at(state, 0)));
@@ -156,23 +156,23 @@ public:
   void test_delete_inplace_bounds() {
     Tuple *tuple = new_tuple();
 
-    TS_ASSERT_THROWS_ASSERT(tuple->delete_inplace(state, Fixnum::from(0), Fixnum::from(4), cNil),
+    TS_ASSERT_THROWS_ASSERT(tuple->delete_inplace_prim(state, Fixnum::from(0), Fixnum::from(4), cNil),
 			    const RubyException &e,
 			    TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
 
-    TS_ASSERT_THROWS_ASSERT(tuple->delete_inplace(state, Fixnum::from(1), Fixnum::from(3), cNil),
+    TS_ASSERT_THROWS_ASSERT(tuple->delete_inplace_prim(state, Fixnum::from(1), Fixnum::from(3), cNil),
 			    const RubyException &e,
 			    TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
 
-    TS_ASSERT_THROWS_ASSERT(tuple->delete_inplace(state, Fixnum::from(-1), Fixnum::from(3), cNil),
+    TS_ASSERT_THROWS_ASSERT(tuple->delete_inplace_prim(state, Fixnum::from(-1), Fixnum::from(3), cNil),
 			    const RubyException &e,
 			    TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
 
-    TS_ASSERT_THROWS_ASSERT(tuple->delete_inplace(state, Fixnum::from(0), Fixnum::from(-1), cNil),
+    TS_ASSERT_THROWS_ASSERT(tuple->delete_inplace_prim(state, Fixnum::from(0), Fixnum::from(-1), cNil),
 			    const RubyException &e,
 			    TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
 
-    TS_ASSERT_THROWS_ASSERT(tuple->delete_inplace(state, Fixnum::from(3), Fixnum::from(1), cNil),
+    TS_ASSERT_THROWS_ASSERT(tuple->delete_inplace_prim(state, Fixnum::from(3), Fixnum::from(1), cNil),
 			    const RubyException &e,
 			    TS_ASSERT(Exception::object_bounds_exceeded_error_p(state, e.exception)));
   }

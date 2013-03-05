@@ -201,6 +201,7 @@ StructTy_struct_rubinius__Module_fields.push_back(PointerTy_14);
 PointerType* PointerTy_10 = PointerType::get(StructTy_struct_rubinius__Class, 0);
 
 StructTy_struct_rubinius__Module_fields.push_back(PointerTy_10);
+StructTy_struct_rubinius__Module_fields.push_back(PointerTy_14);
 if (StructTy_struct_rubinius__Module->isOpaque()) {
 StructTy_struct_rubinius__Module->setBody(StructTy_struct_rubinius__Module_fields, /*isPacked=*/false);
 }

@@ -616,6 +616,11 @@ class Module
       private name
     end
   end
+
+  def track_subclass(cls)
+    Rubinius.primitive :module_track_subclass
+    raise PrimitiveFailure, "Module.track_subclass primitive failed"
+  end
 end
 
 
@@ -692,6 +697,8 @@ module Rubinius
     def attach_to(cls)
       @superclass = cls.direct_superclass
       cls.superclass = self
+      @module.track_subclass(cls)
+      self
     end
 
     # :internal:

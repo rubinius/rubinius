@@ -260,7 +260,8 @@ declare void @output19(%"struct.rubinius::Float"*)
   %"struct.rubinius::LookupTable"*, ; constants
        %"struct.rubinius::Module"*, ; superclass
         %"struct.rubinius::Array"*, ; seen_ivars
-        %"struct.rubinius::Class"*  ; mirror
+        %"struct.rubinius::Class"*, ; mirror
+        %"struct.rubinius::Array"*  ; subclasses
 }
 
 declare void @output20(%"struct.rubinius::Module"*)

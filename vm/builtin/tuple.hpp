@@ -50,8 +50,9 @@ namespace rubinius {
     // Rubinius.primitive :tuple_copy_from
     Tuple* copy_from(STATE, Tuple* other, Fixnum *start, Fixnum *length, Fixnum *dest);
 
+    native_int delete_inplace(native_int start, native_int length, Object* obj);
     // Rubinius.primitive :tuple_delete_inplace
-    Fixnum* delete_inplace(STATE, Fixnum *start, Fixnum *length, Object *obj);
+    Fixnum* delete_inplace_prim(STATE, Fixnum *start, Fixnum *length, Object *obj);
 
     // Rubinius.primitive :tuple_reverse
     Object* reverse(STATE, Fixnum* start, Fixnum* total);

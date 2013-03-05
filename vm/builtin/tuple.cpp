@@ -188,21 +188,8 @@ namespace rubinius {
     return this;
   }
 
-  Fixnum* Tuple::delete_inplace(STATE, Fixnum *start, Fixnum *length, Object *obj) {
-    native_int size = this->num_fields();
-    native_int len  = length->to_native();
-    native_int lend = start->to_native();
+  native_int Tuple::delete_inplace(native_int lend, native_int len, Object* obj) {
     native_int rend = lend + len;
-
-    if(size == 0 || len == 0) return Fixnum::from(0);
-    if(lend < 0 || lend >= size) {
-      return force_as<Fixnum>(bounds_exceeded_error(state, "Tuple::delete_inplace", lend));
-    }
-
-    if(rend < 0 || rend > size) {
-      return force_as<Fixnum>(bounds_exceeded_error(state, "Tuple::delete_inplace", rend));
-    }
-
     native_int i = lend;
     while(i < rend) {
       if(this->at(i) == obj) {
@@ -224,11 +211,29 @@ namespace rubinius {
           this->field[i] = cNil;
           ++i;
         }
-        return Fixnum::from(rend-j);
+        return rend-j;
       }
       ++i;
     }
-    return Fixnum::from(0);
+    return 0;
+  }
+
+  Fixnum* Tuple::delete_inplace_prim(STATE, Fixnum *start, Fixnum *length, Object *obj) {
+    native_int size = this->num_fields();
+    native_int len  = length->to_native();
+    native_int lend = start->to_native();
+    native_int rend = lend + len;
+
+    if(size == 0 || len == 0) return Fixnum::from(0);
+    if(lend < 0 || lend >= size) {
+      return force_as<Fixnum>(bounds_exceeded_error(state, "Tuple::delete_inplace", lend));
+    }
+
+    if(rend < 0 || rend > size) {
+      return force_as<Fixnum>(bounds_exceeded_error(state, "Tuple::delete_inplace", rend));
+    }
+
+    return Fixnum::from(delete_inplace(lend, len, obj));
   }
 
   /** @todo Add some error checking/handling and

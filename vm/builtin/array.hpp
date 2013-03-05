@@ -28,7 +28,7 @@ namespace rubinius {
 
     native_int size();
     native_int offset();
-    static void init(STATE);
+    void set_size(native_int size);
     static Array* create(STATE, native_int size);
     static Array* from_tuple(STATE, Tuple* tup);
     static Array* to_ary(STATE, Object* obj, CallFrame* frame);

@@ -24,13 +24,12 @@
 
 namespace rubinius {
 
-  void Array::init(STATE) {
-    GO(array).set(ontology::new_class(state, "Array", G(object)));
-    G(array)->set_object_type(state, ArrayType);
-  }
-
   native_int Array::size() {
     return total_->to_native();
+  }
+
+  void Array::set_size(native_int size) {
+    total_ = Fixnum::from(size);
   }
 
   native_int Array::offset() {

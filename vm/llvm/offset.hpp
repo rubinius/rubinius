@@ -136,6 +136,7 @@ namespace Module {
   const static int superclass = 4;
   const static int seen_ivars = 5;
   const static int mirror = 6;
+  const static int subclasses = 7;
 }
 namespace Numeric {
   const static int header = 0;

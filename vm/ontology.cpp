@@ -162,6 +162,18 @@ namespace rubinius {
     GO(tuple).set(ontology::new_basic_class(state, object));
     G(tuple)->set_object_type(state, TupleType);
 
+    // Create Array
+    GO(array).set(ontology::new_basic_class(state, object));
+    G(array)->set_object_type(state, ArrayType);
+
+    // Create WeakRef
+    if(!LANGUAGE_18_ENABLED(state)) {
+      GO(cls_weakref).set(ontology::new_basic_class(state, basicobject));
+    } else {
+      GO(cls_weakref).set(ontology::new_basic_class(state, object));
+    }
+    G(cls_weakref)->set_object_type(state, WeakRefType);
+
     // Create LookupTable
     GO(lookuptable).set(ontology::new_basic_class(state, object));
     G(lookuptable)->set_object_type(state, LookupTableType);
@@ -183,6 +195,7 @@ namespace rubinius {
      *  Module
      *  Object
      *  Tuple
+     *  Array
      *  LookupTable
      *  LookupTableBucket
      *  MethodTable
@@ -227,6 +240,8 @@ namespace rubinius {
     // The other builtin classes get SingletonClasses wired to Object's singleton class
     sc = G(object)->singleton_class(state);
     SingletonClass::attach(state, G(tuple), sc);
+    SingletonClass::attach(state, G(array), sc);
+    SingletonClass::attach(state, G(cls_weakref), sc);
     SingletonClass::attach(state, G(lookuptable), sc);
     SingletonClass::attach(state, G(lookuptablebucket), sc);
     SingletonClass::attach(state, G(methtbl), sc);
@@ -245,6 +260,8 @@ namespace rubinius {
 
     // Finish initializing the rest of the special 8
     G(tuple)->setup(state, "Tuple", G(rubinius));
+    G(array)->setup(state, "Array");
+    G(cls_weakref)->setup(state, "WeakRef");
 
     G(lookuptable)->setup(state, "LookupTable", G(rubinius));
     G(lookuptablebucket)->setup(state, "Bucket", G(lookuptable));
@@ -296,7 +313,6 @@ namespace rubinius {
     // Let all the builtin classes initialize themselves. this
     // typically means creating a Ruby class.
     CompactLookupTable::init(state);
-    Array::init(state);
     ByteArray::init(state);
     String::init(state);
     Character::init(state);

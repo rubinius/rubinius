@@ -20,6 +20,7 @@ namespace rubinius {
     Module* superclass_;          // slot
     Array* seen_ivars_;           // slot
     Class* mirror_;               // slot
+    Array* hierarchy_subclasses_; // slot
 
   public:
     /* accessors */
@@ -30,6 +31,7 @@ namespace rubinius {
     attr_accessor(superclass, Module);
     attr_accessor(seen_ivars, Array);
     attr_accessor(mirror, Class);
+    attr_accessor(hierarchy_subclasses, Array);
 
     LookupTable* constants() {
       return constant_table();
@@ -72,6 +74,9 @@ namespace rubinius {
     // Rubinius.primitive :module_mirror
     static Class* mirror(STATE, Object* obj);
 
+    // Rubinius.primitive :module_track_subclass
+    Object* track_subclass(STATE, Module* mod);
+
     void setup(STATE);
     void setup(STATE, std::string name, Module* under = NULL);
     void set_const(STATE, Object* sym, Object* val);
@@ -83,6 +88,7 @@ namespace rubinius {
     void del_const(STATE, Symbol* sym);
 
     void add_method(STATE, GCToken gct, CallFrame* call_frame, Symbol* name, Executable* exec, Symbol* vis = 0);
+    Object* clear_inline_cache(STATE, Symbol* name);
 
     Executable* find_method(Symbol* name, Module** defined_in = 0);
 
@@ -92,6 +98,7 @@ namespace rubinius {
     public:
       BASIC_TYPEINFO(TypeInfo)
       virtual void show(STATE, Object* self, int level);
+      virtual void mark(Object* obj, ObjectMark& mark);
     };
   };
 
