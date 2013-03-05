@@ -54,8 +54,9 @@ namespace Class {
   const static int packed_ivar_info = 2;
   const static int type_info = 3;
   const static int class_id = 4;
-  const static int packed_size = 5;
-  const static int building = 6;
+  const static int serial_id = 5;
+  const static int packed_size = 6;
+  const static int building = 7;
 }
 namespace CompiledCode {
   const static int header = 0;
@@ -127,6 +128,8 @@ namespace MethodCacheEntry {
   const static int stored_module = 1;
   const static int receiver_class = 2;
   const static int method = 3;
+  const static int receiver_class_id = 4;
+  const static int receiver_serial_id = 5;
 }
 namespace Module {
   const static int header = 0;

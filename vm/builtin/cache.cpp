@@ -13,6 +13,8 @@ namespace rubinius {
     cache->stored_module(state, mod);
     cache->receiver_class(state, klass);
     cache->method(state, exec);
+    cache->receiver_.f.class_id = klass->class_id();
+    cache->receiver_.f.serial_id = klass->serial_id();
     cache->method_missing_ = method_missing;
     cache->super_ = super;
 

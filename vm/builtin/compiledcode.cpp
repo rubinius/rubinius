@@ -158,14 +158,14 @@ namespace rubinius {
     CompiledCode* code = as<CompiledCode>(exec);
 
     Class* cls = args.recv()->lookup_begin(state);
-    int id = cls->class_id();
+    uint32_t id = cls->class_id();
 
     MachineCode* v = code->machine_code();
 
     executor target = v->unspecialized;
 
     for(int i = 0; i < MachineCode::cMaxSpecializations; i++) {
-      int c_id = v->specializations[i].class_id;
+      uint32_t c_id = v->specializations[i].class_id;
       executor x = v->specializations[i].execute;
 
       if(c_id == id && x != 0) {
@@ -215,14 +215,14 @@ namespace rubinius {
     CompiledCode* code = as<CompiledCode>(exec);
 
     Class* cls = args.recv()->lookup_begin(state);
-    int id = cls->class_id();
+    uint32_t id = cls->class_id();
 
     MachineCode* v = code->machine_code();
 
     executor target = v->unspecialized;
 
     for(int i = 0; i < MachineCode::cMaxSpecializations; i++) {
-      int c_id = v->specializations[i].class_id;
+      uint32_t c_id = v->specializations[i].class_id;
       executor x = v->specializations[i].execute;
 
       if(c_id == id && x != 0) {
@@ -268,7 +268,7 @@ namespace rubinius {
     }
   }
 
-  void CompiledCode::add_specialized(int spec_id, executor exec,
+  void CompiledCode::add_specialized(uint32_t spec_id, executor exec,
                                        jit::RuntimeDataHolder* rd)
   {
     if(!machine_code_) rubinius::bug("specializing with no backend");
@@ -276,7 +276,7 @@ namespace rubinius {
     MachineCode* v = machine_code_;
 
     for(int i = 0; i < MachineCode::cMaxSpecializations; i++) {
-      int id = v->specializations[i].class_id;
+      uint32_t id = v->specializations[i].class_id;
       if(id == 0 || id == spec_id) {
         v->specializations[i].class_id = spec_id;
         v->specializations[i].execute = exec;
@@ -294,7 +294,7 @@ namespace rubinius {
     std::cerr << "No room for specialization!\n";
   }
 
-  executor CompiledCode::find_specialized(int spec_id) {
+  executor CompiledCode::find_specialized(uint32_t spec_id) {
     MachineCode* v = machine_code_;
 
     if(!v) return 0;

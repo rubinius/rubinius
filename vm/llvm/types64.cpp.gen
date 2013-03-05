@@ -223,6 +223,7 @@ PointerType* PointerTy_18 = PointerType::get(StructTy_struct_rubinius__TypeInfo,
 StructTy_struct_rubinius__Class_fields.push_back(PointerTy_18);
 StructTy_struct_rubinius__Class_fields.push_back(IntegerType::get(mod->getContext(), 32));
 StructTy_struct_rubinius__Class_fields.push_back(IntegerType::get(mod->getContext(), 32));
+StructTy_struct_rubinius__Class_fields.push_back(IntegerType::get(mod->getContext(), 32));
 StructTy_struct_rubinius__Class_fields.push_back(IntegerType::get(mod->getContext(), 8));
 if (StructTy_struct_rubinius__Class->isOpaque()) {
 StructTy_struct_rubinius__Class->setBody(StructTy_struct_rubinius__Class_fields, /*isPacked=*/false);
@@ -509,6 +510,8 @@ StructTy_struct_rubinius__MethodCacheEntry_fields.push_back(StructTy_struct_rubi
 StructTy_struct_rubinius__MethodCacheEntry_fields.push_back(PointerTy_13);
 StructTy_struct_rubinius__MethodCacheEntry_fields.push_back(PointerTy_10);
 StructTy_struct_rubinius__MethodCacheEntry_fields.push_back(PointerTy_31);
+StructTy_struct_rubinius__MethodCacheEntry_fields.push_back(IntegerType::get(mod->getContext(), 32));
+StructTy_struct_rubinius__MethodCacheEntry_fields.push_back(IntegerType::get(mod->getContext(), 32));
 if (StructTy_struct_rubinius__MethodCacheEntry->isOpaque()) {
 StructTy_struct_rubinius__MethodCacheEntry->setBody(StructTy_struct_rubinius__MethodCacheEntry_fields, /*isPacked=*/false);
 }

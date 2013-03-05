@@ -39,7 +39,7 @@ namespace rubinius {
     const static int cMaxSpecializations = 3;
 
     struct Specialization {
-      int class_id;
+      uint32_t class_id;
       executor execute;
       jit::RuntimeDataHolder* jit_data;
     };

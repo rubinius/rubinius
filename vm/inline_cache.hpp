@@ -216,18 +216,20 @@ namespace rubinius {
       }
     }
 
-    MethodCacheEntry* get_cache(Object* const recv_class) {
+    MethodCacheEntry* get_cache(Class* const recv_class) {
+      register uint64_t recv_data = recv_class->data_id();
       for(int i = 0; i < cTrackedICHits; ++i) {
         MethodCacheEntry* mce = cache_[i].entry();
-        if(likely(mce && mce->receiver_class() == recv_class)) return mce;
+        if(likely(mce && mce->receiver_data() == recv_data)) return mce;
       }
       return NULL;
     }
 
-    InlineCacheHit* get_inline_cache(Object* const recv_class, MethodCacheEntry*& mce) {
+    InlineCacheHit* get_inline_cache(Class* const recv_class, MethodCacheEntry*& mce) {
+      register uint64_t recv_data = recv_class->data_id();
       for(int i = 0; i < cTrackedICHits; ++i) {
         mce = cache_[i].entry();
-        if(likely(mce && mce->receiver_class() == recv_class)) return &cache_[i];
+        if(likely(mce && mce->receiver_data() == recv_data)) return &cache_[i];
       }
       return NULL;
     }
@@ -246,17 +248,25 @@ namespace rubinius {
       return cTrackedICHits;
     }
 
+    MethodCacheEntry* get_cache(int idx, int* hits) {
+      MethodCacheEntry* entry = cache_[idx].entry();
+      if(entry) {
+        *hits = cache_[idx].hits();
+      }
+      return entry;
+    }
+
     void set_cache(MethodCacheEntry* mce) {
       // Make sure we sync here, so the MethodCacheEntry mce is
       // guaranteed completely initialized. Otherwise another thread
       // might see an incompletely initialized MethodCacheEntry.
       int least_used = cTrackedICHits - 1;
       for(int i = 0; i < cTrackedICHits; ++i) {
-        if(!cache_[i].entry()) {
+        MethodCacheEntry* current = cache_[i].entry();
+        if(!current || current->receiver_class_id() == mce->receiver_class_id()) {
           cache_[i].assign(mce);
           return;
         }
-        if(cache_[i].entry()->receiver_class() == mce->receiver_class()) return;
         if(cache_[i].hits() < cache_[least_used].hits()) {
           least_used = i;
         }
@@ -272,37 +282,6 @@ namespace rubinius {
 
     int classes_seen() {
       return cache_size();
-    }
-
-    Class* tracked_class(int which) {
-      return cache_[which].entry()->receiver_class();
-    }
-
-    Class* find_class_by_id(int64_t id) {
-      for(int i = 0; i < cTrackedICHits; i++) {
-        if(cache_[i].entry()) {
-          Class* cls = cache_[i].entry()->receiver_class();
-          if(cls && cls->class_id() == id) return cls;
-        }
-      }
-
-      return NULL;
-    }
-
-    Class* find_singletonclass(int64_t id) {
-      for(int i = 0; i < cTrackedICHits; i++) {
-        if(cache_[i].entry()) {
-          if(Class* cls = cache_[i].entry()->receiver_class()) {
-            if(SingletonClass* sc = try_as<SingletonClass>(cls)) {
-              if(Class* ref = try_as<Class>(sc->attached_instance())) {
-                if(ref->class_id() == id) return cls;
-              }
-            }
-          }
-        }
-      }
-
-      return NULL;
     }
 
     Class* get_class(int idx, int* hits) {

@@ -77,7 +77,10 @@ declare void @output4(%"struct.rubinius::InlineCache"*)
    %"struct.rubinius::Object", ; header
   %"struct.rubinius::Module"*, ; stored_module
    %"struct.rubinius::Class"*, ; receiver_class
-  %"struct.rubinius::Executable"* ; method
+  %"struct.rubinius::Executable"*, ; method
+                          i32, ; receiver_class_id
+                          i32  ; receiver_serial_id
+
 }
 
 declare void @outputMethodCacheEntry(%"struct.rubinius::MethodCacheEntry"*)
@@ -206,6 +209,7 @@ declare void @output15(%"struct.rubinius::CallFrame"*)
   %"struct.rubinius::LookupTable"*, ; packed_ivar_info
      %"struct.rubinius::TypeInfo"*, ; type_info
                                i32, ; class_id
+                               i32, ; serial_id
                                i32, ; packed_size
                                i8   ; building
 }

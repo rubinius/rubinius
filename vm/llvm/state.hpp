@@ -89,18 +89,18 @@ namespace rubinius {
 
     gc::WriteBarrier write_barrier_;
 
-    int fixnum_class_id_;
-    int integer_class_id_;
-    int numeric_class_id_;
-    int symbol_class_id_;
-    int string_class_id_;
-    int regexp_class_id_;
-    int encoding_class_id_;
-    int module_class_id_;
-    int class_class_id_;
-    int nil_class_id_;
-    int true_class_id_;
-    int false_class_id_;
+    uint32_t fixnum_class_id_;
+    uint32_t integer_class_id_;
+    uint32_t numeric_class_id_;
+    uint32_t symbol_class_id_;
+    uint32_t string_class_id_;
+    uint32_t regexp_class_id_;
+    uint32_t encoding_class_id_;
+    uint32_t module_class_id_;
+    uint32_t class_class_id_;
+    uint32_t nil_class_id_;
+    uint32_t true_class_id_;
+    uint32_t false_class_id_;
 
     bool type_optz_;
 
@@ -188,51 +188,51 @@ namespace rubinius {
       return &write_barrier_;
     }
 
-    int fixnum_class_id() {
+    uint32_t fixnum_class_id() {
       return fixnum_class_id_;
     }
 
-    int integer_class_id() {
+    uint32_t integer_class_id() {
       return integer_class_id_;
     }
 
-    int numeric_class_id() {
+    uint32_t numeric_class_id() {
       return numeric_class_id_;
     }
 
-    int symbol_class_id() {
+    uint32_t symbol_class_id() {
       return symbol_class_id_;
     }
 
-    int string_class_id() {
+    uint32_t string_class_id() {
       return string_class_id_;
     }
 
-    int regexp_class_id() {
+    uint32_t regexp_class_id() {
       return regexp_class_id_;
     }
 
-    int encoding_class_id() {
+    uint32_t encoding_class_id() {
       return encoding_class_id_;
     }
 
-    int module_class_id() {
+    uint32_t module_class_id() {
       return module_class_id_;
     }
 
-    int class_class_id() {
+    uint32_t class_class_id() {
       return class_class_id_;
     }
 
-    int nil_class_id() {
+    uint32_t nil_class_id() {
       return nil_class_id_;
     }
 
-    int true_class_id() {
+    uint32_t true_class_id() {
       return true_class_id_;
     }
 
-    int false_class_id() {
+    uint32_t false_class_id() {
       return false_class_id_;
     }
 

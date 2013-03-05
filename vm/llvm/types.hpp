@@ -57,11 +57,11 @@ namespace rubinius {
         return KnownType(eUnknown);
       }
 
-      static KnownType instance(int class_id) {
+      static KnownType instance(uint32_t class_id) {
         return KnownType(eInstance, class_id);
       }
 
-      static KnownType singleton_instance(int class_id) {
+      static KnownType singleton_instance(uint32_t class_id) {
         return KnownType(eSingletonInstance, class_id);
       }
 
@@ -93,7 +93,7 @@ namespace rubinius {
         return KnownType(eType);
       }
 
-      static KnownType class_object(int class_id) {
+      static KnownType class_object(uint32_t class_id) {
         return KnownType(eClassObject, class_id);
       }
 
@@ -133,7 +133,7 @@ namespace rubinius {
         return kind_ == eConstantCache;
       }
 
-      int class_id() {
+      uint32_t class_id() {
         switch(kind_) {
         case eInstance:
         case eSingletonInstance:

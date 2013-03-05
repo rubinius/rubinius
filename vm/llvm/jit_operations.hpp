@@ -607,7 +607,7 @@ namespace rubinius {
 
         if(klass) {
 
-          int class_id = klass->class_id();
+          uint32_t class_id = klass->class_id();
           BasicBlock* use_cache = new_block("use_cache");
 
           if(class_id == llvm_state()->fixnum_class_id()) {
@@ -756,7 +756,9 @@ namespace rubinius {
       failure->moveAfter(cont);
     }
 
-    type::KnownType check_class(Value* obj, Class* klass, BasicBlock* failure) {
+    type::KnownType check_class(Value* obj, MethodCacheEntry* mce, BasicBlock* failure) {
+
+      Class* klass = mce->receiver_class();
       object_type type = (object_type)klass->instance_type()->to_native();
 
       switch(type) {
@@ -821,7 +823,7 @@ namespace rubinius {
             return kt;
           }
 
-          check_reference_class(obj, klass->class_id(), failure);
+          check_reference_class(obj, mce, failure);
           if(kind_of<SingletonClass>(klass)) {
             return type::KnownType::singleton_instance(klass->class_id());
           } else {
@@ -831,7 +833,7 @@ namespace rubinius {
       }
     }
 
-    void check_reference_class(Value* obj, int needed_id, BasicBlock* failure) {
+    void check_reference_class(Value* obj, MethodCacheEntry* mce, BasicBlock* failure) {
       Value* is_ref = check_is_reference(obj);
       BasicBlock* cont = new_block("check_class_id");
       BasicBlock* body = new_block("correct_class");
@@ -843,7 +845,7 @@ namespace rubinius {
       Value* klass = reference_class(obj);
       Value* class_id = get_class_id(klass);
 
-      Value* cmp = create_equal(class_id, cint(needed_id), "check_class_id");
+      Value* cmp = create_equal(class_id, cint(mce->receiver_class_id()), "check_class_id");
 
       create_conditional_branch(body, failure, cmp);
 

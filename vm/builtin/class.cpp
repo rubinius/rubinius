@@ -58,8 +58,9 @@ namespace rubinius {
     return cls;
   }
 
-  void Class::init(int id) {
-    class_id_ = id;
+  void Class::init(uint32_t id) {
+    data_.f.class_id = id;
+    data_.f.serial_id = 0;
     set_packed_size(0);
   }
 

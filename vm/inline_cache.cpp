@@ -599,7 +599,7 @@ namespace rubinius {
                                    Arguments& args)
   {
     args.set_name(cache->name);
-    Object* const recv_class = args.recv()->lookup_begin(state);
+    Class* const recv_class = args.recv()->lookup_begin(state);
 
     MethodCacheEntry* entry;
     InlineCacheHit* ic = cache->get_inline_cache(recv_class, entry);
@@ -620,7 +620,7 @@ namespace rubinius {
   {
 
     args.set_name(cache->name);
-    Object* const recv_class = args.recv()->lookup_begin(state);
+    Class* const recv_class = args.recv()->lookup_begin(state);
 
     MethodCacheEntry* entry;
     InlineCacheHit* ic = cache->get_inline_cache(recv_class, entry);
@@ -644,7 +644,7 @@ namespace rubinius {
   {
     Symbol* current_name = call_frame->original_name();
     args.set_name(cache->name);
-    Object* const recv_class = args.recv()->lookup_begin(state);
+    Class* const recv_class = args.recv()->lookup_begin(state);
 
     MethodCacheEntry* entry;
     InlineCacheHit* ic = cache->get_inline_cache(recv_class, entry);
@@ -668,7 +668,7 @@ namespace rubinius {
   {
     Symbol* current_name = call_frame->original_name();
     args.set_name(cache->name);
-    Object* const recv_class = args.recv()->lookup_begin(state);
+    Class* const recv_class = args.recv()->lookup_begin(state);
 
     MethodCacheEntry* entry;
     InlineCacheHit* ic = cache->get_inline_cache(recv_class, entry);
@@ -695,7 +695,7 @@ namespace rubinius {
                                    Arguments& args)
   {
     args.set_name(cache->name);
-    Object* const recv_class = args.recv()->lookup_begin(state);
+    Class* const recv_class = args.recv()->lookup_begin(state);
 
     MethodCacheEntry* entry;
     InlineCacheHit* ic = cache->get_inline_cache(recv_class, entry);

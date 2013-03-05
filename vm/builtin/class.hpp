@@ -9,6 +9,16 @@
 namespace rubinius {
   class LookupTable;
 
+  struct ClassFlags {
+    uint32_t class_id;
+    uint32_t serial_id;
+  };
+
+  union ClassData {
+    struct ClassFlags f;
+    uint64_t raw;
+  };
+
   class Class : public Module {
   public:
     const static object_type type = ClassType;
@@ -19,7 +29,7 @@ namespace rubinius {
 
     TypeInfo* type_info_;
 
-    int class_id_;
+    ClassData data_;
     uint32_t packed_size_;
 
   public:
@@ -36,12 +46,24 @@ namespace rubinius {
       type_info_ = ti;
     }
 
-    int class_id() {
-      return class_id_;
+    uint64_t data_id() {
+      return data_.raw;
     }
 
-    void set_class_id(int id) {
-      class_id_ = id;
+    uint32_t class_id() {
+      return data_.f.class_id;
+    }
+
+    uint32_t serial_id() {
+      return data_.f.serial_id;
+    }
+
+    void increment_serial() {
+      atomic::fetch_and_add(&data_.f.serial_id, 1U);
+    }
+
+    void set_class_id(uint32_t id) {
+      data_.f.class_id = id;
     }
 
     uint32_t packed_size() {
@@ -54,7 +76,7 @@ namespace rubinius {
 
     /* interface */
 
-    void init(int id);
+    void init(uint32_t id);
 
     /** Returns actual superclass, skipping over IncludedModules */
     Class* true_superclass(STATE);
