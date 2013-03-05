@@ -76,6 +76,26 @@ describe :method_equal, :shared => true do
         block1.send(@method, block2).should be_true
         proc1.send(@method, block1).should be_true
       end
+
+      it "returns true for methods defined using equivalent blocks" do
+        class MethodSpecs::Methods
+          p1 = Proc.new { :cool }
+          p2 = Proc.new { :cool }
+          define_method :proc1, p1
+          define_method :proc2, p2
+
+          define_method :block1, &p1
+          define_method :block2, &p2
+        end
+        proc1 = @m.method :proc1
+        proc2 = @m.method :proc2
+        block1 = @m.method :proc1
+        block2 = @m.method :proc2
+
+        proc1.send(@method, proc2).should be_true
+        block1.send(@method, block2).should be_true
+        proc1.send(@method, block1).should be_true
+      end
     end
 
     describe 'missing methods' do
