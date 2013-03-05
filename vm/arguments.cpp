@@ -9,7 +9,8 @@ namespace rubinius {
       tup->put(state, i, get_argument(i));
     }
 
-    for(uint32_t i = 0, n = total(); i < ary->size(); i++, n++) {
+    uint32_t n = total();
+    for(native_int i = 0; i < ary->size(); i++, n++) {
       tup->put(state, n, ary->get(state, i));
     }
 
@@ -23,7 +24,8 @@ namespace rubinius {
       tup->put(state, i, ary->get(state, i));
     }
 
-    for(uint32_t i = 0, n = ary->size(); i < total(); i++, n++) {
+    native_int n = ary->size();
+    for(uint32_t i = 0; i < total(); i++, n++) {
       tup->put(state, n, get_argument(i));
     }
 
