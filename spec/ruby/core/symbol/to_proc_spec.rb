@@ -12,20 +12,30 @@ ruby_version_is "1.8.7" do
       obj.should_receive(:to_s).and_return("Received #to_s")
       :to_s.to_proc.call(obj).should == "Received #to_s"
     end
+  end
 
-    ruby_version_is "1.9" do
-      it "yields to the passed block when calling #call on the Proc" do
-        klass = Class.new do
-          def m
-            yield
-          end
-
-          def to_proc
-            :m.to_proc.call(self) { :value }
-          end
+  describe "Symbol#to_proc" do
+    before :all do
+      @klass = Class.new do
+        def m
+          yield
         end
 
-        klass.new.to_proc.should == :value
+        def to_proc
+          :m.to_proc.call(self) { :value }
+        end
+      end
+    end
+
+    ruby_version_is ""..."1.9" do
+      it "does not pass along the block passed to Proc#call" do
+        lambda { @klass.new.to_proc }.should raise_error(LocalJumpError)
+      end
+    end
+
+    ruby_version_is "1.9" do
+      it "passes along the block passed to Proc#call" do
+        @klass.new.to_proc.should == :value
       end
     end
   end
