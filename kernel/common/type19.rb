@@ -47,6 +47,8 @@ module Rubinius
     end
 
     def self.coerce_to_symbol(obj)
+      return obj if object_kind_of? obj, Symbol
+
       obj = obj.to_str if obj.respond_to?(:to_str)
       coerce_to(obj, Symbol, :to_sym)
     end

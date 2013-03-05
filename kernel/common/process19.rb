@@ -332,23 +332,26 @@ module Process
   end
 
   def self.coerce_rlimit_resource(resource)
-    case
-    when resource.kind_of?(Symbol)
-      rlimit_from_resource_name(resource)
-    when resource.respond_to?(:to_str)
-      rlimit_from_resource_name(StringValue(resource))
+    case resource
+    when Integer
+      return resource
+    when Symbol, String
+      # do nothing
     else
-      Rubinius::Type.coerce_to resource, Integer, :to_int
+      unless r = Rubinius::Type.check_convert_type(resource, String, :to_str)
+        return Rubinius::Type.coerce_to resource, Integer, :to_int
+      end
+
+      resource = r
     end
+
+    constant = "RLIMIT_#{resource}"
+    unless const_defined? constant
+      raise ArgumentError, "invalid resource name: #{constant}"
+    end
+    const_get constant
   end
   private_class_method :coerce_rlimit_resource
-
-  def self.rlimit_from_resource_name(resource_name)
-    constant_name = "RLIMIT_#{resource_name}"
-    raise ArgumentError, "invalid resource name: #{constant_name}" unless const_defined? constant_name
-    const_get constant_name
-  end
-  private_class_method :rlimit_from_resource_name
 end
 
 module Kernel
