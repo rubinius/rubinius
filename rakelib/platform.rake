@@ -514,6 +514,11 @@ file 'runtime/platform.conf' => deps do |task|
           RLIMIT_MEMLOCK
           RLIMIT_AS
           RLIMIT_SBSIZE
+          RLIMIT_RTPRIO
+          RLIMIT_RTTIME
+          RLIMIT_SIGPENDING
+          RLIMIT_MSGQUEUE
+          RLIMIT_NICE
         }
 
         process_constants.each { |c| cg.const c }
