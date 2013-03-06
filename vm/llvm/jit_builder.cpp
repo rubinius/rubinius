@@ -51,9 +51,15 @@ namespace jit {
     DIType dummy_subroutine_type = debug_builder().createSubroutineType(file,
         debug_builder().getOrCreateArray(dummy_signature));
 
+#if RBX_LLVM_API_VER <= 300
+    DISubprogram subprogram = debug_builder().createFunction(file, "", "",
+        file, info_.method()->start_line(), dummy_subroutine_type, false, false, 0,
+        false, info_.function());
+#else
     DISubprogram subprogram = debug_builder().createFunction(file, "", "",
         file, info_.method()->start_line(), dummy_subroutine_type, false, false, 0, 0,
         false, info_.function());
+#endif
 
     b().SetCurrentDebugLocation(llvm::DebugLoc::get(info_.method()->start_line(), 0,
                                 subprogram));
