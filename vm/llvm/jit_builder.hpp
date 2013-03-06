@@ -52,7 +52,7 @@ namespace jit {
 
     llvm::Value* check_global_interrupts_pos;
 
-    llvm::IRBuilder<> builder_;
+    IRBuilder builder_;
 
     llvm::Value* call_frame_flags;
     bool use_full_scope_;
@@ -72,7 +72,7 @@ namespace jit {
 
   public:
 
-    llvm::IRBuilder<>& b() { return builder_; }
+    IRBuilder& b() { return builder_; }
 
     Builder(Context* ctx, JITMethodInfo& info);
 

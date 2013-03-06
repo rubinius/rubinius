@@ -166,7 +166,7 @@ namespace rubinius {
     return module_->getTypeByName(full_name);
   }
 
-  void Context::init_variables(llvm::IRBuilder<>& b) {
+  void Context::init_variables(IRBuilder& b) {
     counter_ = b.CreateAlloca(Int32Ty, 0, "counter_alloca");
     out_args_ = b.CreateAlloca(type("Arguments"), 0, "out_args");
   }
