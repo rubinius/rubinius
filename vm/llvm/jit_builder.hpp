@@ -13,7 +13,11 @@
 #else
 #include <llvm/Support/IRBuilder.h>
 #endif
+#if RBX_LLVM_API_VER <= 301
 #include <llvm/Analysis/DIBuilder.h>
+#else
+#include <llvm/DIBuilder.h>
+#endif
 
 namespace rubinius {
   class InlinePolicy;

@@ -11,8 +11,11 @@
 
 #include "instruments/tooling.hpp"
 #include <llvm/Analysis/CaptureTracking.h>
-#include <llvm/Analysis/DIBuilder.h>
+#if RBX_LLVM_API_VER <= 301
 #include <llvm/Analysis/DebugInfo.h>
+#else
+#include <llvm/DebugInfo.h>
+#endif
 
 namespace rubinius {
 namespace jit {
