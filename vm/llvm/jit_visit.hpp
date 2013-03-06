@@ -37,7 +37,7 @@ namespace rubinius {
       func_ = function(name);
     }
 
-    Value* call(Value** start, int size, const char* inst_name, IRBuilder<>& b) {
+    Value* call(Value** start, int size, const char* inst_name, IRBuilder& b) {
       return b.CreateCall(func_, ArrayRef<Value*>(start, size), inst_name);
     }
   };

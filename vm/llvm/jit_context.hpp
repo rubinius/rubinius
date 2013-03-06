@@ -15,6 +15,8 @@ namespace rubinius {
     class RuntimeDataHolder;
   }
 
+  typedef llvm::IRBuilder<> IRBuilder;
+
   // Represents compiling into a single llvm::Function. Because of
   // inlining, this Context spans multiple MethodInfo's.
   class Context {
@@ -176,7 +178,7 @@ namespace rubinius {
       counter_ = counter;
     }
 
-    void init_variables(llvm::IRBuilder<>& b);
+    void init_variables(IRBuilder& b);
 
     void add_runtime_data(jit::RuntimeData* rd);
 
@@ -242,12 +244,12 @@ namespace rubinius {
     }
 
     llvm::CallInst* call(const char* name, llvm::Value** start, int size,
-                      const char* inst_name, llvm::IRBuilder<>& builder) {
+                      const char* inst_name, IRBuilder& builder) {
       return builder.CreateCall(function(name), llvm::ArrayRef<llvm::Value*>(start, size), inst_name);
     }
 
     llvm::CallInst* call(const char* name, std::vector<llvm::Value*> args,
-                      const char* inst_name, llvm::IRBuilder<>& builder) {
+                      const char* inst_name, IRBuilder& builder) {
       return builder.CreateCall(function(name), args, inst_name);
     }
 

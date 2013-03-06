@@ -57,7 +57,7 @@ namespace rubinius {
     int sp_;
     int last_sp_;
 
-    llvm::IRBuilder<> builder_;
+    IRBuilder builder_;
     std::vector<ValueHint> hints_;
 
   protected:
@@ -178,7 +178,7 @@ namespace rubinius {
       return out_args_;
     }
 
-    IRBuilder<>& b() { return builder_; }
+    IRBuilder& b() { return builder_; }
 
     void set_valid_flag(llvm::Value* val) {
       valid_flag_ = val;
