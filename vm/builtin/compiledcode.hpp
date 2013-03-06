@@ -92,6 +92,7 @@ namespace rubinius {
     int start_line(STATE);
     int start_line();
     int line(STATE, int ip);
+    int line(int ip);
 
     void post_marshal(STATE);
     size_t number_of_locals();
