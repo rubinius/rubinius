@@ -2125,7 +2125,7 @@ instruction zsuper(literal) [ block -- value ]
     cache->name = current_name;
   }
 
-  ret = InlineCache::empty_cache_super(state, cache, call_frame, new_args);
+  ret = cache->execute(state, call_frame, new_args);
 
   CHECK_AND_PUSH(ret);
 end

@@ -711,13 +711,13 @@ namespace rubinius {
       return b().CreateCall(execute, call_args, "ic_send");
     }
 
-    Value* splat_send(Symbol* name, int args, bool priv=false) {
+    Value* splat_send(InlineCache* cache, int args, bool priv=false) {
       sends_done_++;
       Signature sig(ctx_, ObjType);
 
       sig << StateTy;
       sig << CallFrameTy;
-      sig << ObjType;
+      sig << "InlineCache";
       sig << ctx_->IntPtrTy;
       sig << ObjArrayTy;
 
@@ -728,10 +728,14 @@ namespace rubinius {
         func_name = "rbx_splat_send";
       }
 
+      Value* cache_const = b().CreateIntToPtr(
+          clong(reinterpret_cast<uintptr_t>(cache)),
+          ptr_type("InlineCache"), "cast_to_ptr");
+
       Value* call_args[] = {
         state_,
         call_frame_,
-        constant(name),
+        cache_const,
         clong(args),
         stack_objects(args + 3),   // 3 == recv + block + splat
       };
@@ -740,11 +744,11 @@ namespace rubinius {
       return sig.call(func_name, call_args, 5, "splat_send", b());
     }
 
-    Value* super_send(Symbol* name, int args, bool splat=false) {
+    Value* super_send(InlineCache* cache, int args, bool splat=false) {
       Signature sig(ctx_, ObjType);
       sig << StateTy;
       sig << CallFrameTy;
-      sig << ObjType;
+      sig << "InlineCache";
       sig << ctx_->IntPtrTy;
       sig << ObjArrayTy;
 
@@ -757,10 +761,14 @@ namespace rubinius {
         func_name = "rbx_super_send";
       }
 
+      Value* cache_const = b().CreateIntToPtr(
+          clong(reinterpret_cast<uintptr_t>(cache)),
+          ptr_type("InlineCache"), "cast_to_ptr");
+
       Value* call_args[] = {
         state_,
         call_frame_,
-        constant(name),
+        cache_const,
         clong(args),
         stack_objects(args + extra),
       };
@@ -1808,7 +1816,7 @@ use_send:
       set_has_side_effects();
 
       InlineCache* cache = reinterpret_cast<InlineCache*>(which);
-      Value* ret = splat_send(cache->name, args, allow_private_);
+      Value* ret = splat_send(cache, args, allow_private_);
       stack_remove(args + 3);
       check_for_exception(ret);
       stack_push(ret);
@@ -1931,7 +1939,7 @@ use_send:
       set_has_side_effects();
 
       InlineCache* cache = reinterpret_cast<InlineCache*>(which);
-      Value* ret = super_send(cache->name, args, true);
+      Value* ret = super_send(cache, args, true);
       stack_remove(args + 2);
       check_for_exception(ret);
       stack_push(ret);
@@ -1947,13 +1955,17 @@ use_send:
       Signature sig(ctx_, ObjType);
       sig << StateTy;
       sig << CallFrameTy;
+      sig << "InlineCache";
       sig << ObjType;
-      sig << ObjType;
+
+      Value* cache_const = b().CreateIntToPtr(
+          clong(reinterpret_cast<uintptr_t>(cache)),
+          ptr_type("InlineCache"), "cast_to_ptr");
 
       Value* call_args[] = {
         state_,
         call_frame_,
-        constant(cache->name),
+        cache_const,
         stack_top()
       };
 
@@ -3361,18 +3373,24 @@ use_send:
 
         sig << StateTy;
         sig << CallFrameTy;
+        sig << "InlineCache";
         sig << ctx_->Int32Ty;
         sig << ObjArrayTy;
+
+        Value* cache_const = b().CreateIntToPtr(
+          clong(reinterpret_cast<uintptr_t>(cache)),
+          ptr_type("InlineCache"), "cast_to_ptr");
 
         Value* call_args[] = {
           state_,
           call_frame_,
+          cache_const,
           cint(count),
           stack_objects(count + 1)
         };
 
         flush_ip();
-        Value* val = sig.call("rbx_meta_send_call", call_args, 4, "constant", b());
+        Value* val = sig.call("rbx_meta_send_call", call_args, 5, "constant", b());
         stack_remove(count+1);
         check_for_exception(val);
         stack_push(val);

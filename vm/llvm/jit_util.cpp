@@ -112,77 +112,50 @@ extern "C" {
     entry->~MethodEntry();
   }
 
-  Object* rbx_simple_send(STATE, CallFrame* call_frame, Symbol* name,
+  Object* rbx_splat_send(STATE, CallFrame* call_frame, InlineCache* cache,
                           int count, Object** args) {
     Object* recv = args[0];
-    Arguments out_args(name, recv, count, args+1);
-    Dispatch dis(name);
-
-    return dis.send(state, call_frame, out_args);
-  }
-
-  Object* rbx_simple_send_private(STATE, CallFrame* call_frame, Symbol* name,
-                                  int count, Object** args) {
-    Object* recv = args[0];
-    Arguments out_args(name, recv, count, args+1);
-    LookupData lookup(recv, recv->lookup_begin(state), G(sym_private));
-    Dispatch dis(name);
-
-    return dis.send(state, call_frame, lookup, out_args);
-  }
-
-  Object* rbx_splat_send(STATE, CallFrame* call_frame, Symbol* name,
-                          int count, Object** args) {
-    Object* recv = args[0];
-    Arguments out_args(name, recv, args[count+2], count, args+1);
-    Dispatch dis(name);
+    Arguments out_args(cache->name, recv, args[count+2], count, args+1);
 
     if(Array* ary = try_as<Array>(args[count+1])) {
       out_args.append(state, ary);
     }
 
-    return dis.send(state, call_frame, out_args);
+    return cache->execute(state, call_frame, out_args);
   }
 
-  Object* rbx_splat_send_private(STATE, CallFrame* call_frame, Symbol* name,
+  Object* rbx_splat_send_private(STATE, CallFrame* call_frame, InlineCache* cache,
                                   int count, Object** args) {
     Object* recv = args[0];
-    Arguments out_args(name, recv, args[count+2], count, args+1);
-    LookupData lookup(recv, recv->lookup_begin(state), G(sym_private));
-    Dispatch dis(name);
+    Arguments out_args(cache->name, recv, args[count+2], count, args+1);
 
     if(Array* ary = try_as<Array>(args[count+1])) {
       out_args.append(state, ary);
     }
 
-    return dis.send(state, call_frame, lookup, out_args);
+    return cache->execute(state, call_frame, out_args);
   }
 
-  Object* rbx_super_send(STATE, CallFrame* call_frame, Symbol* name,
+  Object* rbx_super_send(STATE, CallFrame* call_frame, InlineCache* cache,
                           int count, Object** args) {
     Object* recv = call_frame->self();
-    Arguments out_args(name, recv, args[count], count, args);
-    LookupData lookup(recv, call_frame->module()->superclass(), G(sym_private));
-    Dispatch dis(name);
-
-    return dis.send(state, call_frame, lookup, out_args);
+    Arguments out_args(cache->name, recv, args[count], count, args);
+    return cache->execute(state, call_frame, out_args);
   }
 
-  Object* rbx_super_splat_send(STATE, CallFrame* call_frame, Symbol* name,
+  Object* rbx_super_splat_send(STATE, CallFrame* call_frame, InlineCache* cache,
                           int count, Object** args) {
     Object* recv = call_frame->self();
-    Arguments out_args(name, recv, args[count+1], count, args);
-    LookupData lookup(recv, call_frame->module()->superclass(), G(sym_private));
-    Dispatch dis(name);
+    Arguments out_args(cache->name, recv, args[count+1], count, args);
 
     if(Array* ary = try_as<Array>(args[count])) {
       out_args.append(state, ary);
     }
 
-    return dis.send(state, call_frame, lookup, out_args);
+    return cache->execute(state, call_frame, out_args);
   }
 
-  Object* rbx_zsuper_send(STATE, CallFrame* call_frame, Symbol* name, Object* block) {
+  Object* rbx_zsuper_send(STATE, CallFrame* call_frame, InlineCache* cache, Object* block) {
     Object* const recv = call_frame->self();
 
     VariableScope* scope = call_frame->method_scope(state);
@@ -217,13 +190,10 @@ extern "C" {
       tup->put(state, v->total_args, splat_obj);
     }
 
-    Arguments out_args(name, recv, block, arg_count, 0);
+    Arguments out_args(cache->name, recv, block, arg_count, 0);
     out_args.use_tuple(tup, arg_count);
 
-    LookupData lookup(recv, call_frame->module()->superclass(), G(sym_private));
-    Dispatch dis(name);
-
-    return dis.send(state, call_frame, lookup, out_args, eSuper);
+    return cache->execute(state, call_frame, out_args);
   }
 
   Object* rbx_arg_error(STATE, CallFrame* call_frame, Arguments& args, int required) {
@@ -694,7 +664,7 @@ extern "C" {
     return ary;
   }
 
-  Object* rbx_meta_send_call(STATE, CallFrame* call_frame, int count, Object** args) {
+  Object* rbx_meta_send_call(STATE, CallFrame* call_frame, InlineCache* cache, int count, Object** args) {
     Object* t1 = args[0];
 
     Arguments out_args(G(sym_call), cNil, count, args+1);
@@ -705,7 +675,7 @@ extern "C" {
       return proc->call(state, call_frame, out_args);
     }
 
-    return rbx_simple_send(state, call_frame, G(sym_call), count, args);
+    return cache->execute(state, call_frame, out_args);
   }
 
   Object* rbx_yield_stack(STATE, CallFrame* call_frame, Object* block,
@@ -749,22 +719,6 @@ extern "C" {
 
     Dispatch dis(G(sym_call));
     return dis.send(state, call_frame, args);
-  }
-
-  Object* rbx_meta_send_op_gt(STATE, CallFrame* call_frame, Object** stk) {
-    CPP_TRY
-
-    Object* t1 = stk[0];
-    Object* t2 = stk[1];
-    if(both_fixnum_p(t1, t2)) {
-      native_int j = as<Integer>(t1)->to_native();
-      native_int k = as<Integer>(t2)->to_native();
-      return (j > k) ? cTrue : cFalse;
-    }
-
-    return rbx_simple_send(state, call_frame, G(sym_gt), 1, stk);
-
-    CPP_CATCH
   }
 
   Object* rbx_passed_arg(STATE, Arguments& args, int index) {
