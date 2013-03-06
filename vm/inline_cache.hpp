@@ -241,6 +241,17 @@ namespace rubinius {
       return NULL;
     }
 
+    int growth_cache_size(uint32_t class_id) {
+      int count = 0;
+      for(int i = 0; i < cTrackedICHits; ++i) {
+        MethodCacheEntry* current = cache_[i].entry();
+        if(current && current->receiver_class_id() != class_id) {
+          ++count;
+        }
+      }
+      return count;
+    }
+
     int cache_size() {
       for(int i = 0; i < cTrackedICHits; ++i) {
         if(!cache_[i].entry()) return i;

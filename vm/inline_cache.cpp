@@ -255,7 +255,7 @@ namespace rubinius {
       fill_public(state, call_frame->self(), name, recv_class, mce);
     if(reason != eNone) return 0;
 
-    if(unlikely(cache_size() > 0)) {
+    if(unlikely(growth_cache_size(mce->receiver_class_id()) > 0)) {
       execute_backend_ = check_cache_poly;
     }
 
@@ -275,7 +275,7 @@ namespace rubinius {
 
     if(!fill_private(state, name, recv_class, recv_class, mce)) return 0;
 
-    if(unlikely(cache_size() > 0)) {
+    if(unlikely(growth_cache_size(mce->receiver_class_id()) > 0)) {
       execute_backend_ = check_cache_poly;
     }
 
@@ -359,13 +359,13 @@ namespace rubinius {
       }
 
       args.unshift(state, cache->name);
-      if(unlikely(cache->cache_size() > 0)) {
+      if(unlikely(cache->growth_cache_size(mce->receiver_class_id()) > 0)) {
         cache->execute_backend_ = check_cache_poly;
       } else {
         cache->execute_backend_ = check_cache_mm;
       }
     } else {
-      if(unlikely(cache->cache_size() > 0)) {
+      if(unlikely(cache->growth_cache_size(mce->receiver_class_id()) > 0)) {
         cache->execute_backend_ = check_cache_poly;
       } else {
         if(recv->fixnum_p()) {
@@ -408,13 +408,13 @@ namespace rubinius {
       }
 
       args.unshift(state, cache->name);
-      if(unlikely(cache->cache_size() > 0)) {
+      if(unlikely(cache->growth_cache_size(mce->receiver_class_id()) > 0)) {
         cache->execute_backend_ = check_cache_poly;
       } else {
         cache->execute_backend_ = check_cache_mm;
       }
     } else {
-      if(unlikely(cache->cache_size() > 0)) {
+      if(unlikely(cache->growth_cache_size(mce->receiver_class_id()) > 0)) {
         cache->execute_backend_ = check_cache_poly;
       } else {
         cache->execute_backend_ = check_cache;
@@ -449,13 +449,13 @@ namespace rubinius {
       }
 
       args.unshift(state, cache->name);
-      if(unlikely(cache->cache_size() > 0)) {
+      if(unlikely(cache->growth_cache_size(mce->receiver_class_id()) > 0)) {
         cache->execute_backend_ = check_cache_poly;
       } else {
         cache->execute_backend_ = check_cache_mm;
       }
     } else {
-      if(unlikely(cache->cache_size() > 0)) {
+      if(unlikely(cache->growth_cache_size(mce->receiver_class_id()) > 0)) {
         cache->execute_backend_ = check_cache_poly;
       } else {
         cache->execute_backend_ = check_cache;
@@ -501,13 +501,13 @@ namespace rubinius {
 
       args.unshift(state, cache->name);
 
-      if(unlikely(cache->cache_size() > 0)) {
+      if(unlikely(cache->growth_cache_size(mce->receiver_class_id()) > 0)) {
         cache->execute_backend_ = check_cache_poly;
       } else {
         cache->execute_backend_ = check_cache_super_mm;
       }
     } else {
-      if(unlikely(cache->cache_size() > 0)) {
+      if(unlikely(cache->growth_cache_size(mce->receiver_class_id()) > 0)) {
         cache->execute_backend_ = check_cache_poly;
       } else {
         cache->execute_backend_ = check_cache_super;
