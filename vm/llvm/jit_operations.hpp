@@ -16,6 +16,7 @@
 #include "llvm/inline_policy.hpp"
 
 #include "llvm/jit_context.hpp"
+#include "llvm/jit_builder.hpp"
 #include "llvm/types.hpp"
 
 #include "llvm/jit_context.hpp"
@@ -106,14 +107,14 @@ namespace rubinius {
     llvm::Value* One;
 
   public:
-    JITOperations(Context* ctx, JITMethodInfo& info, llvm::BasicBlock* start)
+    JITOperations(jit::Builder* builder, JITMethodInfo& info, llvm::BasicBlock* start)
       : stack_(info.stack())
       , sp_(-1)
       , last_sp_(-1)
-      , builder_(ctx->llvm_context())
+      , builder_(builder->ctx_->llvm_context(), llvm::ConstantFolder(), IRBuilderInserterWithDebug(builder))
       , method_info_(info)
-      , ctx_(ctx)
-      , module_(ctx->module())
+      , ctx_(builder->ctx_)
+      , module_(builder->ctx_->module())
       , function_(info.function())
       , call_frame_(info.call_frame())
       , inline_policy_(0)

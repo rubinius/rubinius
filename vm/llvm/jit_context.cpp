@@ -5,6 +5,7 @@
 #include "llvm/jit_runtime.hpp"
 #include "llvm/jit_memory_manager.hpp"
 #include "llvm/passes.hpp"
+#include "llvm/jit_builder.hpp"
 
 #include "machine_code.hpp"
 
@@ -22,6 +23,13 @@ namespace autogen_types {
 }
 
 namespace rubinius {
+
+  void IRBuilderInserterWithDebug::InsertHelper(llvm::Instruction *I, const llvm::Twine &Name,
+                    llvm::BasicBlock *BB, llvm::BasicBlock::iterator InsertPt) const {
+    I->setDebugLoc(builder_->b().getCurrentDebugLocation());
+    if (BB) BB->getInstList().insert(InsertPt, I);
+    I->setName(Name);
+  }
 
   Context::Context(LLVMState* ls)
     : ls_(ls)
@@ -77,6 +85,9 @@ namespace rubinius {
 #endif
 
     engine_ = factory.create();
+    if(ls_->jit_event_listener()) {
+      engine_->RegisterJITEventListener(ls_->jit_event_listener());
+    }
 
     builder_ = new llvm::PassManagerBuilder();
     builder_->OptLevel = 2;

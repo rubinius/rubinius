@@ -105,10 +105,10 @@ namespace rubinius {
 
     class Unsupported {};
 
-    JITVisit(Context* ctx, JITMethodInfo& info, BlockMap& bm,
+    JITVisit(jit::Builder* builder, JITMethodInfo& info, BlockMap& bm,
              llvm::BasicBlock* start)
-      : JITOperations(ctx, info, start)
-      , f(ctx)
+      : JITOperations(builder, info, start)
+      , f(builder->ctx_)
       , block_map_(bm)
       , allow_private_(false)
       , call_flags_(0)

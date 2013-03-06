@@ -2,6 +2,7 @@
 #define RBX_LLVM_BUILDER_HPP
 
 #include "unwind_info.hpp"
+#include "machine_code.hpp"
 
 #include "llvm/jit_context.hpp"
 #include "llvm/basic_block.hpp"
@@ -12,6 +13,7 @@
 #else
 #include <llvm/Support/IRBuilder.h>
 #endif
+#include <llvm/Analysis/DIBuilder.h>
 
 namespace rubinius {
   class InlinePolicy;
@@ -69,12 +71,18 @@ namespace jit {
   protected:
     llvm::Value* counter2_;
     jit::RuntimeData* runtime_data_;
+    llvm::DIBuilder debug_builder_;
 
   public:
 
     IRBuilder& b() { return builder_; }
 
+    llvm::DIBuilder& debug_builder() { return debug_builder_; }
+
     Builder(Context* ctx, JITMethodInfo& info);
+
+    void set_definition_location();
+    void set_current_location(opcode ip);
 
     void pass_one(llvm::BasicBlock* body);
 
