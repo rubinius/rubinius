@@ -593,6 +593,7 @@ namespace rubinius {
 
   Object* System::vm_reset_method_cache(STATE, Symbol* name, CallFrame* calling_environment) {
     // 1. clear the global cache
+
     state->vm()->global_cache()->clear(state, name);
 
     state->shared().ic_registry()->clear(state, name);
@@ -606,6 +607,12 @@ namespace rubinius {
 
     return name;
   }
+
+  Object* System::vm_increment_serial(STATE, Module* mod, CallFrame* calling_environment) {
+    mod->increase_serial(state, nil<Symbol>());
+    return mod;
+  }
+
 
    /*  @todo Could possibly capture the system backtrace at this
    *        point. --rue

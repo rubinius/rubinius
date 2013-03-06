@@ -161,6 +161,7 @@ namespace rubinius {
     if(!vis) vis = G(sym_public);
     method_table_->store(state, gct, name, exec, vis, call_frame);
     state->vm()->global_cache()->clear(state, self, name);
+    increase_serial(state, name);
   }
 
   Object* Module::increase_serial(STATE, Symbol* name) {

@@ -21,6 +21,7 @@ class Module
       end
 
       Rubinius::VM.reset_method_cache(new_name)
+      Rubinius::VM.increment_serial(self)
     else
       if Rubinius::Type.object_kind_of?(self, Class) and
          ai = Rubinius::Type.singleton_class_object(self)
@@ -49,6 +50,7 @@ class Module
         mod, method = lookup_method(method_name)
         sc.method_table.store method_name, method.method, :public
         Rubinius::VM.reset_method_cache method_name
+        Rubinius::VM.increment_serial(self)
         set_visibility method_name, :private
       end
     end
@@ -159,6 +161,7 @@ class Module
       method_table.each do |meth, obj, vis|
         Rubinius::VM.reset_method_cache meth
       end
+      Rubinius::VM.increment_serial(klass)
     end
 
     return self

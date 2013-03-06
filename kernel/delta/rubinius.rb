@@ -129,6 +129,7 @@ module Rubinius
 
     mod.method_table.store name, executable, visibility
     Rubinius::VM.reset_method_cache(name)
+    Rubinius::VM.increment_serial(mod)
 
     Rubinius.privately do
       mod.module_function name if vis == :module

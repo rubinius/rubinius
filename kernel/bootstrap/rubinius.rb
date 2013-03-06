@@ -70,6 +70,7 @@ module Rubinius
   def self.add_method(name, executable, mod, vis)
     mod.method_table.store name, executable, :public
     Rubinius::VM.reset_method_cache name
+    Rubinius::VM.increment_serial(mod)
   end
 
   module Unsafe

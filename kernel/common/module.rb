@@ -136,7 +136,7 @@ class Module
     name = Rubinius::Type.coerce_to_symbol(name)
     @method_table.store name, nil, :undef
     Rubinius::VM.reset_method_cache(name)
-
+    Rubinius::VM.increment_serial(self)
     if Rubinius::Type.object_kind_of?(self, Class) and obj = Rubinius::Type.singleton_class_object(self)
       Rubinius.privately do
         obj.singleton_method_undefined(name)
@@ -158,6 +158,7 @@ class Module
       @method_table.delete name
 
       Rubinius::VM.reset_method_cache(name)
+      Rubinius::VM.increment_serial(self)
 
       if Rubinius::Type.object_kind_of?(self, Class) and obj = Rubinius::Type.singleton_class_object(self)
         Rubinius.privately do
@@ -360,6 +361,7 @@ class Module
     end
 
     Rubinius::VM.reset_method_cache name
+    Rubinius::VM.increment_serial(self)
 
     return name
   end
@@ -637,6 +639,7 @@ class Module
     meth = Rubinius::AccessVariable.get_ivar name
     @method_table.store name, meth, :public
     Rubinius::VM.reset_method_cache name
+    Rubinius::VM.increment_serial(self)
     ivar_name = "@#{name}".to_sym
     if @seen_ivars
       @seen_ivars.each do |ivar|
@@ -654,6 +657,7 @@ class Module
     writer_name = "#{name}=".to_sym
     @method_table.store writer_name, meth, :public
     Rubinius::VM.reset_method_cache writer_name
+    Rubinius::VM.increment_serial(self)
     ivar_name = "@#{name}".to_sym
     if @seen_ivars
       @seen_ivars.each do |ivar|

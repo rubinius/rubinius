@@ -138,6 +138,17 @@ namespace rubinius {
     static Object*  vm_reset_method_cache(STATE, Symbol* name, CallFrame* calling_environment);
 
     /**
+     *  Bumps the serial for the given class
+     *
+     *  Clears both the global cache and the SendSite caches.
+     *  Typically used when e.g. a method is added to a Module's
+     *  MethodTable in order to ensure that the correct method
+     *  will be picked up from calls.
+     */
+    // Rubinius.primitive :vm_increment_serial
+    static Object*  vm_increment_serial(STATE, Module* klass, CallFrame* calling_environment);
+
+    /**
      *  Backtrace as an Array.
      */
     // Rubinius.primitive :vm_backtrace

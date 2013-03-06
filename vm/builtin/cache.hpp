@@ -46,6 +46,10 @@ namespace rubinius {
       return receiver_.f.serial_id;
     }
 
+    void set_method_missing(MethodMissingReason reason) {
+      method_missing_ = reason;
+    }
+
     MethodMissingReason method_missing() {
       return method_missing_;
     }

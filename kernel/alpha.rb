@@ -54,6 +54,13 @@ class Rubinius::VM
     Rubinius.primitive :vm_reset_method_cache
     raise PrimitiveFailure, "Rubinius::VM.reset_method_cache primitive failed"
   end
+
+  # Reset the method cache globally for given method name.
+  #
+  def self.increment_serial(sym)
+    Rubinius.primitive :vm_increment_serial
+    raise PrimitiveFailure, "Rubinius::VM.increment_serial primitive failed"
+  end
 end
 
 
@@ -505,6 +512,7 @@ class Module
     meth = Rubinius::AccessVariable.get_ivar name
     @method_table.store name, meth, :public
     Rubinius::VM.reset_method_cache name
+    Rubinius::VM.increment_serial(self)
     nil
   end
 
@@ -512,6 +520,7 @@ class Module
     meth = Rubinius::AccessVariable.get_ivar name
     @method_table.store method_name, meth, :public
     Rubinius::VM.reset_method_cache method_name
+    Rubinius::VM.increment_serial(self)
     nil
   end
 
@@ -526,6 +535,7 @@ class Module
     writer_name = "#{name}=".to_sym
     @method_table.store writer_name, meth, :public
     Rubinius::VM.reset_method_cache writer_name
+    Rubinius::VM.increment_serial(self)
     nil
   end
 
@@ -599,6 +609,7 @@ class Module
     end
 
     Rubinius::VM.reset_method_cache(new_name)
+    Rubinius::VM.increment_serial(self)
   end
 
   # :internal:
@@ -613,6 +624,7 @@ class Module
       sc = class << self; self; end
       sc.method_table.store name, entry.method, :public
       Rubinius::VM.reset_method_cache name
+      Rubinius::VM.increment_serial(self)
       private name
     end
   end
