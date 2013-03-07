@@ -11,10 +11,10 @@
 
 #include "instruments/tooling.hpp"
 #include <llvm/Analysis/CaptureTracking.h>
-#if RBX_LLVM_API_VER <= 301
-#include <llvm/Analysis/DebugInfo.h>
-#else
+#if RBX_LLVM_API_VER > 301
 #include <llvm/DebugInfo.h>
+#else
+#include <llvm/Analysis/DebugInfo.h>
 #endif
 
 namespace rubinius {
@@ -58,13 +58,13 @@ namespace jit {
     DIType dummy_subroutine_type = debug_builder().createSubroutineType(file,
         debug_builder().getOrCreateArray(dummy_signature));
 
-#if RBX_LLVM_API_VER <= 300
+#if RBX_LLVM_API_VER > 300
     DISubprogram subprogram = debug_builder().createFunction(file, "", "",
-        file, info_.method()->start_line(), dummy_subroutine_type, false, false, 0,
+        file, info_.method()->start_line(), dummy_subroutine_type, false, false, 0, 0,
         false, info_.function());
 #else
     DISubprogram subprogram = debug_builder().createFunction(file, "", "",
-        file, info_.method()->start_line(), dummy_subroutine_type, false, false, 0, 0,
+        file, info_.method()->start_line(), dummy_subroutine_type, false, false, 0,
         false, info_.function());
 #endif
 

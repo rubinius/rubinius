@@ -465,10 +465,10 @@ halt:
     llvm::InitializeNativeTarget();
 
     memory_ = new jit::RubiniusJITMemoryManager();
-#if RBX_LLVM_API_VER <= 300
-    jit_event_listener_ = llvm::createOProfileJITEventListener();
-#else
+#if RBX_LLVM_API_VER > 300
     jit_event_listener_ = llvm::JITEventListener::createOProfileJITEventListener();
+#else
+    jit_event_listener_ = llvm::createOProfileJITEventListener();
 #endif
 
     fixnum_class_id_   = G(fixnum_class)->class_id();

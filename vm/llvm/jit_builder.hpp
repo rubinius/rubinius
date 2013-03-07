@@ -13,10 +13,10 @@
 #else
 #include <llvm/Support/IRBuilder.h>
 #endif
-#if RBX_LLVM_API_VER <= 301
-#include <llvm/Analysis/DIBuilder.h>
-#else
+#if RBX_LLVM_API_VER > 301
 #include <llvm/DIBuilder.h>
+#else
+#include <llvm/Analysis/DIBuilder.h>
 #endif
 
 namespace rubinius {
