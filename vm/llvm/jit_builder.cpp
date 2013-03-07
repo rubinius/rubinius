@@ -17,6 +17,13 @@
 #include <llvm/Analysis/DebugInfo.h>
 #endif
 
+// There is no official language identifier for Ruby.
+// Define it as an user-defined one.
+// Check that this constant isn't conflicted any other recognized user-defined
+// language identifier:
+//   http://llvm.org/docs/doxygen/html/namespacellvm_1_1dwarf.html#a85bda042c02722848a3411b67924eb47a8f16e9a8f3582985075ffd88f363d616
+#define DW_LANG_Ruby (llvm::dwarf::DW_LANG_lo_user + 2)
+
 namespace rubinius {
 namespace jit {
 
@@ -46,9 +53,8 @@ namespace jit {
   void Builder::set_definition_location() {
     llvm::StringRef file_str(
       ctx_->llvm_state()->symbol_debug_str(info_.method()->file()));
-    debug_builder_.createCompileUnit(
-        llvm::dwarf::DW_LANG_Python, // no constant for Ruby.
-        file_str, "", "rubinius", true, "", 0);
+    debug_builder_.createCompileUnit(DW_LANG_Ruby, file_str,
+        "", "rubinius", true, "", 0);
     DIFile file = debug_builder().createFile(file_str, "");
 
     DIType dummy_return_type = debug_builder().createTemporaryType();
