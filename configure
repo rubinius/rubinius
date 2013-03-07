@@ -606,7 +606,12 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
     if File.exists?(path)
       @log.print "  Unpacking LLVM source: "
       Dir.chdir @llvm_parent_path do
-        system "#{@tar} xzf #{path}"
+        succeeded = system "#{@tar} xzf #{path}"
+        unless succeeded
+          @log.write "Error failed unpacking: #{path}"
+          return false
+        end
+
         FileUtils.mv @llvm_source_dir, "llvm"
       end
       @log.write "done!"
