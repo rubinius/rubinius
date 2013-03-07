@@ -11,6 +11,18 @@
 
 #include "instruments/tooling.hpp"
 #include <llvm/Analysis/CaptureTracking.h>
+#if RBX_LLVM_API_VER > 301
+#include <llvm/DebugInfo.h>
+#else
+#include <llvm/Analysis/DebugInfo.h>
+#endif
+
+// There is no official language identifier for Ruby.
+// Define it as an user-defined one.
+// Check that this constant isn't conflicted any other recognized user-defined
+// language identifier:
+//   http://llvm.org/docs/doxygen/html/namespacellvm_1_1dwarf.html#a85bda042c02722848a3411b67924eb47a8f16e9a8f3582985075ffd88f363d616
+#define DW_LANG_Ruby (llvm::dwarf::DW_LANG_lo_user + 2)
 
 namespace rubinius {
 namespace jit {
@@ -18,12 +30,13 @@ namespace jit {
   Builder::Builder(Context* ctx, JITMethodInfo& i)
     : ctx_(ctx)
     , machine_code_(i.machine_code)
-    , builder_(ctx->llvm_context())
+    , builder_(ctx->llvm_context(), llvm::ConstantFolder(), IRBuilderInserterWithDebug(this))
     , use_full_scope_(false)
     , import_args_(0)
     , body_(0)
     , info_(i)
     , runtime_data_(0)
+    , debug_builder_(*ctx->module())
   {
     llvm::Module* mod = ctx->module();
     cf_type = mod->getTypeByName("struct.rubinius::CallFrame");
@@ -34,6 +47,41 @@ namespace jit {
     check_global_interrupts_pos = b().CreateIntToPtr(
           llvm::ConstantInt::get(ctx_->IntPtrTy, (intptr_t)ctx_->llvm_state()->shared().check_global_interrupts_address()),
           llvm::PointerType::getUnqual(ctx_->Int8Ty), "cast_to_intptr");
+    set_definition_location();
+  }
+
+  void Builder::set_definition_location() {
+    llvm::StringRef file_str(
+      ctx_->llvm_state()->symbol_debug_str(info_.method()->file()));
+    debug_builder_.createCompileUnit(DW_LANG_Ruby, file_str,
+        "", "rubinius", true, "", 0);
+    DIFile file = debug_builder().createFile(file_str, "");
+
+    DIType dummy_return_type = debug_builder().createTemporaryType();
+    Value* dummy_signature[] = {
+      &*dummy_return_type,
+    };
+    DIType dummy_subroutine_type = debug_builder().createSubroutineType(file,
+        debug_builder().getOrCreateArray(dummy_signature));
+
+#if RBX_LLVM_API_VER > 300
+    DISubprogram subprogram = debug_builder().createFunction(file, "", "",
+        file, info_.method()->start_line(), dummy_subroutine_type, false, false, 0, 0,
+        false, info_.function());
+#else
+    DISubprogram subprogram = debug_builder().createFunction(file, "", "",
+        file, info_.method()->start_line(), dummy_subroutine_type, false, false, 0,
+        false, info_.function());
+#endif
+
+    b().SetCurrentDebugLocation(llvm::DebugLoc::get(info_.method()->start_line(), 0,
+                                subprogram));
+  }
+
+  void Builder::set_current_location(opcode ip) {
+    int line = info_.method()->line(ip);
+    DISubprogram subprogram(b().getCurrentDebugLocation().getScope(ctx_->llvm_context()));
+    b().SetCurrentDebugLocation(llvm::DebugLoc::get(line, 0, subprogram));
   }
 
   Value* Builder::get_field(Value* val, int which) {
@@ -493,14 +541,17 @@ namespace jit {
   class Walker {
     JITVisit& v_;
     BlockMap& map_;
+    Builder& builder_;
 
   public:
-    Walker(JITVisit& v, BlockMap& map)
+    Walker(JITVisit& v, BlockMap& map, Builder& builder)
       : v_(v)
       , map_(map)
+      , builder_(builder)
     {}
 
     void call(OpcodeIterator& iter) {
+      builder_.set_current_location(iter.ip());
       v_.dispatch(iter.ip());
 
       if(v_.b().GetInsertBlock()->getTerminator() == NULL) {
@@ -513,7 +564,7 @@ namespace jit {
   };
 
   bool Builder::generate_body() {
-    JITVisit visitor(ctx_, info_, block_map_, b().GetInsertBlock());
+    JITVisit visitor(this, info_, block_map_, b().GetInsertBlock());
 
     if(info_.inline_policy) {
       visitor.set_policy(info_.inline_policy);
@@ -535,7 +586,7 @@ namespace jit {
     // Pass 2, compile!
     // Drive by following the control flow.
     jit::ControlFlowWalker walker(info_.machine_code);
-    Walker cb(visitor, block_map_);
+    Walker cb(visitor, block_map_, *this);
 
     try {
       walker.run<Walker>(cb);
