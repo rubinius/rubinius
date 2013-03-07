@@ -1,3 +1,5 @@
+#ifdef ENABLE_LLVM
+
 /*
 
 The code for this memory manager is based of the default jit memory manager
@@ -538,3 +540,5 @@ const size_t RubiniusJITMemoryManager::DefaultSizeThreshold = 16 * 1024;
 
 }
 }
+
+#endif

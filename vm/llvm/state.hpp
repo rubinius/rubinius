@@ -23,6 +23,7 @@
 #include <llvm/PassManager.h>
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/LLVMContext.h>
+#include <llvm/ExecutionEngine/JITEventListener.h>
 
 #include "llvm/local_info.hpp"
 
@@ -55,6 +56,7 @@ namespace rubinius {
 
   class LLVMState : public AuxiliaryThread, public ManagedThread {
     jit::RubiniusJITMemoryManager* memory_;
+    llvm::JITEventListener* jit_event_listener_;
 
     Configuration& config_;
 
@@ -126,6 +128,7 @@ namespace rubinius {
     }
 
     jit::RubiniusJITMemoryManager* memory() { return memory_; }
+    llvm::JITEventListener* jit_event_listener() { return jit_event_listener_; }
 
     int jitted_methods() {
       return jitted_methods_;
