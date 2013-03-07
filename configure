@@ -520,7 +520,10 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
         end
         @log.write ": done!"
       end
-    rescue Exception => e
+    rescue Interrupt
+      File.unlink full_path if File.exists?(full_path)
+      raise
+    rescue StandardError => e
       File.unlink full_path if File.exists?(full_path)
       @log.write " ERROR: #{e.message}"
       return false
