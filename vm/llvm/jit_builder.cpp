@@ -44,8 +44,12 @@ namespace jit {
   }
 
   void Builder::set_definition_location() {
-    DIFile file = debug_builder().createFile(
-        ctx_->llvm_state()->symbol_debug_str(info_.method()->file()), "");
+    llvm::StringRef file_str(
+      ctx_->llvm_state()->symbol_debug_str(info_.method()->file()));
+    debug_builder_.createCompileUnit(
+        llvm::dwarf::DW_LANG_Python, // no constant for Ruby.
+        file_str, "", "rubinius", true, "", 0);
+    DIFile file = debug_builder().createFile(file_str, "");
 
     DIType dummy_return_type = debug_builder().createTemporaryType();
     Value* dummy_signature[] = {
