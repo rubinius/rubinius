@@ -42,12 +42,13 @@ module Kernel
     "#<#{self.class.name}"
   end
 
-  def respond_to_all?(meth, include)
+  def respond_to_prim?(meth, visibility)
     Rubinius.primitive :object_respond_to
-    raise PrimitiveFailure, "Kernel#respond_to_all? primiive failed"
+    meth = Rubinius::Type.coerce_to_symbol meth
+    respond_to_prim?(meth, visibility)
   end
 
-  private :respond_to_all?
+  private :respond_to_prim?
 
   def taint
     Rubinius.primitive :object_taint
