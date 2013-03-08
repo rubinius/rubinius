@@ -315,13 +315,23 @@ namespace rubinius {
     int err = onig_new(&this->onig_data, pat, end, opts & OPTION_MASK, enc, ONIG_SYNTAX_RUBY, &err_info);
 
     if(err != ONIG_NORMAL) {
-      UChar onig_err_buf[ONIG_MAX_ERROR_MESSAGE_LEN];
-      char err_buf[REGEXP_ONIG_ERROR_MESSAGE_LEN];
-      onig_error_code_to_str(onig_err_buf, err, &err_info);
-      snprintf(err_buf, REGEXP_ONIG_ERROR_MESSAGE_LEN, "%s: %s", onig_err_buf, pat);
 
-      Exception::regexp_error(state, err_buf);
-      return 0;
+      if(LANGUAGE_18_ENABLED(state)) {
+        // Retry with the encoding of the pattern in 1.8 mode here
+        enc = ONIG_ENCODING_ASCII;
+        fixed_encoding_ = true;
+        err = onig_new(&this->onig_data, pat, end, opts & OPTION_MASK, enc, ONIG_SYNTAX_RUBY, &err_info);
+      }
+
+      if(err != ONIG_NORMAL) {
+        UChar onig_err_buf[ONIG_MAX_ERROR_MESSAGE_LEN];
+        char err_buf[REGEXP_ONIG_ERROR_MESSAGE_LEN];
+        onig_error_code_to_str(onig_err_buf, err, &err_info);
+        snprintf(err_buf, REGEXP_ONIG_ERROR_MESSAGE_LEN, "%s: %s", onig_err_buf, pat);
+
+        Exception::regexp_error(state, err_buf);
+        return 0;
+      }
     }
 
     this->source(state, pattern);
