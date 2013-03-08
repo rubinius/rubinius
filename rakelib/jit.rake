@@ -36,8 +36,7 @@ namespace :jit do
       f.puts ""
       f.puts "namespace offset {"
 
-      classes.keys.sort.each do |name|
-        fields = classes[name]
+      classes.sort.each do |name, fields|
         f.puts "namespace #{name.gsub('::', '_')} {"
         fields.each_with_index do |n, idx|
           if n
