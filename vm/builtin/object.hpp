@@ -387,9 +387,6 @@ namespace rubinius {
     // Rubinius.primitive :object_respond_to
     Object* respond_to(STATE, Symbol* name, Object* priv);
 
-    // Rubinius.primitive :object_respond_to_public
-    Object* respond_to_public(STATE, Object* obj);
-
     /**
      * Checks if object is frozen and raises RuntimeError if it is.
      * Similar to CRuby rb_check_frozen

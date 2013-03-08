@@ -831,27 +831,6 @@ namespace rubinius {
     return cTrue;
   }
 
-  Object* Object::respond_to_public(STATE, Object* obj) {
-    Symbol* name;
-
-    if(Symbol* sym = try_as<Symbol>(obj)) {
-      name = sym;
-    } else if(String* str = try_as<String>(obj)) {
-      name = str->to_sym(state);
-    } else {
-      return Primitives::failure();
-    }
-
-    LookupData lookup(this, lookup_begin(state), G(sym_protected));
-    Dispatch dis(name);
-
-    if(!GlobalCache::resolve(state, name, dis, lookup)) {
-      return cFalse;
-    }
-
-    return cTrue;
-  }
-
   /**
    *  We use void* as the type for obj to work around C++'s type system
    *  that requires full definitions of classes to be present for it
