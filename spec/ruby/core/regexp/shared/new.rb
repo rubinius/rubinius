@@ -570,6 +570,23 @@ describe :regexp_new_regexp, :shared => true do
       Regexp.send(@method, /Hi/s).kcode.should == 'sjis'
       Regexp.send(@method, /Hi/n).kcode.should == 'none'
     end
+
+    describe "with $KCODE set" do
+
+      before :each do
+        @kcode = $KCODE
+        $KCODE = 'u'
+      end
+
+      after :each do
+        $KCODE = @kcode
+      end
+
+      it "falls back to ASCII for an invalid UTF-8 regexp" do
+        (Regexp.send(@method, /^([\x00-\x7F]|[\xC2-\xDF][\x80-\xBF])*$/) =~ "hellø").should == 0
+      end
+
+    end
   end
 
   ruby_version_is "1.9" do
