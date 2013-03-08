@@ -604,10 +604,6 @@ namespace rubinius {
   void Environment::halt(STATE) {
     state->shared().tool_broker()->shutdown(state);
 
-    if(state->shared().config.ic_stats) {
-      state->shared().ic_registry()->print_stats(state);
-    }
-
     GCTokenImpl gct;
 
     root_vm->set_call_frame(0);

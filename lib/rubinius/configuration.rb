@@ -158,9 +158,6 @@ Rubinius::ConfigurationVariables.define do |c|
     :as => "print_config",
     :description => "blank or 1 == names and values, 2 == description as well"
 
-  c.vm_variable "ic.stats", false,
-    "Print out stats about the InlineCaches before exiting"
-
   c.vm_variable "ic.debug", false,
     "Print out when inline caches are reset"
 

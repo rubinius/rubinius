@@ -32,7 +32,6 @@ namespace rubinius {
     , signal_handler_(0)
     , finalizer_handler_(0)
     , world_(new WorldState(&check_global_interrupts_))
-    , ic_registry_(new InlineCacheRegistry)
     , method_count_(0)
     , class_count_(0)
     , global_serial_(0)
@@ -84,7 +83,6 @@ namespace rubinius {
 
     delete tool_broker_;
     delete global_cache;
-    delete ic_registry_;
     delete world_;
     delete om;
     delete auxiliary_threads_;
@@ -180,7 +178,6 @@ namespace rubinius {
     // Reinit the locks for this object
     lock_init(state->vm());
     global_cache->lock_init(state->vm());
-    ic_registry_->lock_init(state->vm());
     onig_lock_.init();
     ruby_critical_lock_.init();
     capi_lock_.init();

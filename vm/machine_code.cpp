@@ -125,13 +125,6 @@ namespace rubinius {
     }
   }
 
-  void MachineCode::cleanup(STATE, CodeManager* cm) {
-    for(size_t i = 0; i < number_of_inline_caches_; i++) {
-      InlineCache* cache = &inline_caches[i];
-      cm->shared()->ic_registry()->remove_cache(state, cache->name, cache);
-    }
-  }
-
   int MachineCode::size() {
     return sizeof(MachineCode) +
       (total * sizeof(opcode)) + // opcodes
@@ -269,8 +262,6 @@ namespace rubinius {
             cache->set_is_vcall();
           }
         }
-
-        state->shared().ic_registry()->add_cache(state, name, cache);
 
         opcodes[ip + 1] = reinterpret_cast<intptr_t>(cache);
         update_addresses(ip, 1);

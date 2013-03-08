@@ -98,7 +98,7 @@ namespace rubinius {
 
     MachineCode(STATE, CompiledCode* meth);
     virtual ~MachineCode();
-    virtual void cleanup(STATE, CodeManager* code);
+    virtual void cleanup(STATE, CodeManager* code) {}
     virtual int size();
 
     bool jitted() {

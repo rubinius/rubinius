@@ -48,7 +48,6 @@ namespace rubinius {
   class Configuration;
   class LLVMState;
   class WorldState;
-  class InlineCacheRegistry;
   class ManagedThread;
   class QueryAgent;
   class Environment;
@@ -76,7 +75,6 @@ namespace rubinius {
     CApiConstantHandleMap capi_constant_handle_map_;
 
     WorldState* world_;
-    InlineCacheRegistry* ic_registry_;
     std::list<ManagedThread*> threads_;
 
     uint64_t method_count_;
@@ -182,10 +180,6 @@ namespace rubinius {
 
     int* global_serial_address() {
       return &global_serial_;
-    }
-
-    InlineCacheRegistry* ic_registry() {
-      return ic_registry_;
     }
 
     unsigned int inc_class_count(STATE) {

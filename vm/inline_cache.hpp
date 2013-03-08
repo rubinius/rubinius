@@ -306,21 +306,6 @@ namespace rubinius {
     }
 
   };
-
-  // Registry, used to clear ICs by method name
-  class InlineCacheRegistry : public Lockable {
-    typedef std::tr1::unordered_set<InlineCache*> CacheSet;
-    typedef std::tr1::unordered_map<native_int, CacheSet> CacheHash;
-
-    CacheHash caches_;
-
-  public:
-    void add_cache(STATE, Symbol* sym, InlineCache* cache);
-    void remove_cache(STATE, Symbol* sym, InlineCache* cache);
-    void clear(STATE, Symbol* sym);
-
-    void print_stats(STATE);
-  };
 }
 
 #endif

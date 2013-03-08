@@ -596,11 +596,10 @@ namespace rubinius {
 
     state->vm()->global_cache()->clear(state, name);
 
-    state->shared().ic_registry()->clear(state, name);
     state->shared().stats.methods_cache_resets++;
 
     if(state->shared().config.ic_debug) {
-      std::cout << "[IC Reset method cache for " << name->debug_str(state).c_str() << "]" << std::endl;
+      std::cout << "[IC Reset global method cache for " << name->debug_str(state).c_str() << "]" << std::endl;
       CallFrame* call_frame = calling_environment->previous;
       call_frame->print_backtrace(state, 6, true);
     }
@@ -610,6 +609,13 @@ namespace rubinius {
 
   Object* System::vm_increment_serial(STATE, Module* mod, CallFrame* calling_environment) {
     mod->increase_serial(state, nil<Symbol>());
+
+    if(state->shared().config.ic_debug) {
+      std::cout << "[IC Increase serial for " << mod->get_name(state)->c_str(state) << "]" << std::endl;
+      CallFrame* call_frame = calling_environment->previous;
+      call_frame->print_backtrace(state, 6, true);
+    }
+
     return mod;
   }
 
