@@ -345,8 +345,6 @@ module Kernel
     Rubinius::Type.object_class(self) == cls
   end
 
-  alias_method :__instance_of__, :instance_of?
-
   def instance_variable_get(sym)
     Rubinius.primitive :object_get_ivar
 
@@ -424,8 +422,6 @@ module Kernel
   def nil?
     false
   end
-
-  alias_method :__nil__, :nil?
 
   def methods(all=true)
     methods = singleton_methods(all)

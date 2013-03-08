@@ -65,7 +65,7 @@ module Kernel
 
     object_class = Rubinius::Type.object_class(self)
 
-    if __kind_of__(Module)
+    if Rubinius::Type.object_kind_of?(self, Module)
       msg << " on #{self} (#{object_class})"
 
     # A separate case for nil, because people like to patch methods to

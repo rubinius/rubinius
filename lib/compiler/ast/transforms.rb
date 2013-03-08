@@ -329,40 +329,6 @@ module Rubinius
     end
 
     ##
-    # Maps various methods to VM instructions
-    #
-    class SendInstructionMethod < SendWithArguments
-      transform :default, :fast_system, "VM instructions for certain methods"
-
-      Methods = {
-        :__kind_of__     => :kind_of,
-        :__instance_of__ => :instance_of,
-        :__nil__         => :is_nil,
-      }
-
-      Arguments = {
-        :__kind_of__     => 1,
-        :__instance_of__ => 1,
-        :__nil__         => 0,
-      }
-
-      def self.match?(line, receiver, name, arguments, privately)
-        return false unless rename = Methods[name]
-        if match_arguments? arguments, Arguments[name]
-          new line, receiver, rename, arguments, privately
-        end
-      end
-
-      def bytecode(g)
-        pos(g)
-        @arguments.bytecode(g)
-        @receiver.bytecode(g)
-
-        g.__send__ @name
-      end
-    end
-
-    ##
     # Speeds up certain forms of Type.coerce_to
     #
     class SendFastCoerceTo < SendWithArguments
