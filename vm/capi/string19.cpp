@@ -123,19 +123,26 @@ extern "C" {
 
   VALUE rb_sprintf(const char* format, ...) {
     va_list varargs;
-    va_start(varargs, format);
 
-    size_t length = strlen(format) * 2;
+    size_t length = strlen(format) << 1;
     int err = 0;
     VALUE result = Qnil;
 
     do {
       result = rb_str_buf_new(length);
-      err = ruby_vsnprintf(RSTRING_PTR(result), length, format, varargs);
+      char* buf = RSTRING_PTR(result);
+      va_start(varargs, format);
+      err = ruby_vsnprintf(buf, length, format, varargs);
+      va_end(varargs);
+      if(err >= length) {
+        length = err + 1;
+        err = -1;
+      } else if(err < 0) {
+        length <<= 1;
+      }
     } while(err < 0);
 
     rb_str_set_len(result, err);
-    va_end(varargs);
     return result;
   }
 
