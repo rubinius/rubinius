@@ -124,8 +124,8 @@ extern "C" {
   VALUE rb_sprintf(const char* format, ...) {
     va_list varargs;
 
-    size_t length = strlen(format) << 1;
-    int err = 0;
+    ssize_t length = strlen(format) << 1;
+    ssize_t err = 0;
     VALUE result = Qnil;
 
     do {
