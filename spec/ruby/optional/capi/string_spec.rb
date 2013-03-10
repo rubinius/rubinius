@@ -808,8 +808,8 @@ ruby_version_is "1.9" do
 
     describe "rb_sprintf" do
       it "replaces the parts like sprintf" do
-        s = "Awesome %s is replaced"
-        @s.rb_sprintf1(s, "string").should == "Awesome string is replaced"
+        @s.rb_sprintf1("Awesome %s is replaced", "string").should == "Awesome string is replaced"
+        @s.rb_sprintf1("%s", "TestFoobarTest").should == "TestFoobarTest"
       end
 
       it "accepts multiple arguments" do
