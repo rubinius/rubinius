@@ -5953,7 +5953,7 @@ static QUID
 rb_parser_sym(rb_parser_state *parser_state, const char *name)
 {
     const char *m = name;
-    QUID id, pre, qrk, bef;
+    QUID id, pre, qrk;
     int last;
 
     id = 0;
@@ -6008,7 +6008,6 @@ rb_parser_sym(rb_parser_state *parser_state, const char *name)
     if (*m) id = ID_JUNK;
     qrk = (QUID)quark_from_string(parser_state, name);
     pre = qrk + tLAST_TOKEN;
-    bef = id;
     id |= ( pre << ID_SCOPE_SHIFT );
     return id;
 }
