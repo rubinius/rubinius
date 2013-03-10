@@ -81,6 +81,9 @@ def add_external_lib(*libs)
 end
 
 def add_mri_capi
+  add_cflag Rubinius::BUILD_CONFIG[:system_cflags]
+  add_cxxflag Rubinius::BUILD_CONFIG[:system_cxxflags]
+
   add_cflag DEFAULT_CONFIG["DEFS"]
   add_cflag DEFAULT_CONFIG["CFLAGS"]
 
