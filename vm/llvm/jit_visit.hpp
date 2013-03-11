@@ -2582,26 +2582,6 @@ use_send:
         return;
       }
 
-      if(depth == 0) {
-        visit_push_local(index);
-        return;
-      }
-      /*
-      else if(depth == 1) {
-        Value* idx[] = {
-          cint(0),
-          cint(offset::StackVariables::parent)
-        };
-
-        Value* gep = b().CreateGEP(vars_, idx, "parent_pos");
-
-        Value* parent = b().CreateLoad(gep, "scope.parent");
-        push_scope_local(parent, index);
-        return;
-      }
-      */
-
-      // Handle depth > 1
       std::vector<Type*> types;
 
       types.push_back(StateTy);
