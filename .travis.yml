@@ -1,7 +1,7 @@
 language: cpp
 compiler:
   - gcc
-#  - clang
+  - clang
 before_script:
   - ./configure --enable-version=18,19
 script: rake
