@@ -51,8 +51,7 @@ namespace jit {
   }
 
   void Builder::set_definition_location() {
-    llvm::StringRef file_str(
-      ctx_->llvm_state()->symbol_debug_str(info_.method()->file()));
+    std::string file_str = ctx_->llvm_state()->symbol_debug_str(info_.method()->file());
     debug_builder_.createCompileUnit(DW_LANG_Ruby, file_str,
         "", "rubinius", true, "", 0);
     DIFile file = debug_builder().createFile(file_str, "");
