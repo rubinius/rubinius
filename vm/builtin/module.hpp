@@ -88,7 +88,7 @@ namespace rubinius {
     void del_const(STATE, Symbol* sym);
 
     void add_method(STATE, GCToken gct, CallFrame* call_frame, Symbol* name, Executable* exec, Symbol* vis = 0);
-    Object* increase_serial(STATE, Symbol* name);
+    Object* reset_method_cache(STATE, Symbol* name);
 
     Executable* find_method(Symbol* name, Module** defined_in = 0);
 

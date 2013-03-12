@@ -591,34 +591,23 @@ namespace rubinius {
     return ary;
   }
 
-  Object* System::vm_reset_method_cache(STATE, Symbol* name, CallFrame* calling_environment) {
-    // 1. clear the global cache
-
+  Object* System::vm_reset_method_cache(STATE, Module* mod, Symbol* name, CallFrame* calling_environment) {
     state->vm()->global_cache()->clear(state, name);
+    mod->reset_method_cache(state, name);
 
     state->shared().stats.methods_cache_resets++;
 
     if(state->shared().config.ic_debug) {
-      std::cout << "[IC Reset global method cache for " << name->debug_str(state).c_str() << "]" << std::endl;
-      CallFrame* call_frame = calling_environment->previous;
-      call_frame->print_backtrace(state, 6, true);
-    }
-
-    return name;
-  }
-
-  Object* System::vm_increment_serial(STATE, Module* mod, CallFrame* calling_environment) {
-    mod->increase_serial(state, nil<Symbol>());
-
-    if(state->shared().config.ic_debug) {
       std::cout << "[IC Increase serial for " << mod->get_name(state)->c_str(state) << "]" << std::endl;
+
+      std::cout << "[IC Reset method cache for " << mod->get_name(state)->c_str(state)
+                << "#" << name->debug_str(state).c_str() << "]" << std::endl;
       CallFrame* call_frame = calling_environment->previous;
       call_frame->print_backtrace(state, 6, true);
     }
 
-    return mod;
+    return cTrue;
   }
-
 
    /*  @todo Could possibly capture the system backtrace at this
    *        point. --rue
@@ -1024,7 +1013,7 @@ namespace rubinius {
       }
     }
 
-    vm_reset_method_cache(state, name, calling_environment);
+    vm_reset_method_cache(state, mod, name, calling_environment);
 
     return method;
   }
@@ -1043,7 +1032,7 @@ namespace rubinius {
 
     mod->add_method(state, gct, calling_environment, name, method);
 
-    vm_reset_method_cache(state, name, calling_environment);
+    vm_reset_method_cache(state, mod, name, calling_environment);
 
     return method;
   }
@@ -1086,11 +1075,6 @@ namespace rubinius {
       calling_environment->print_backtrace(state, 6, true);
     }
     return Fixnum::from(state->shared().inc_global_serial(state));
-  }
-
-  Object* System::vm_deoptimize_inliners(STATE, Executable* exec) {
-    exec->clear_inliners(state);
-    return cTrue;
   }
 
   Object* System::vm_deoptimize_all(STATE, Object* o_disable) {

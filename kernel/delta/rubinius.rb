@@ -123,13 +123,8 @@ module Rubinius
       visibility = vis
     end
 
-    if entry = mod.method_table.lookup(name)
-      Rubinius.deoptimize_inliners entry.method if entry.method
-    end
-
     mod.method_table.store name, executable, visibility
-    Rubinius::VM.reset_method_cache(name)
-    Rubinius::VM.increment_serial(mod)
+    Rubinius::VM.reset_method_cache mod, name
 
     Rubinius.privately do
       mod.module_function name if vis == :module

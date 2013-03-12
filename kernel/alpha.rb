@@ -50,16 +50,9 @@ class Rubinius::VM
 
   # Reset the method cache globally for given method name.
   #
-  def self.reset_method_cache(sym)
+  def self.reset_method_cache(mod, sym)
     Rubinius.primitive :vm_reset_method_cache
     raise PrimitiveFailure, "Rubinius::VM.reset_method_cache primitive failed"
-  end
-
-  # Reset the method cache globally for given method name.
-  #
-  def self.increment_serial(sym)
-    Rubinius.primitive :vm_increment_serial
-    raise PrimitiveFailure, "Rubinius::VM.increment_serial primitive failed"
   end
 end
 
@@ -511,16 +504,14 @@ class Module
   def attr_reader(name)
     meth = Rubinius::AccessVariable.get_ivar name
     @method_table.store name, meth, :public
-    Rubinius::VM.reset_method_cache name
-    Rubinius::VM.increment_serial(self)
+    Rubinius::VM.reset_method_cache self, name
     nil
   end
 
   def attr_reader_specific(name, method_name)
     meth = Rubinius::AccessVariable.get_ivar name
     @method_table.store method_name, meth, :public
-    Rubinius::VM.reset_method_cache method_name
-    Rubinius::VM.increment_serial(self)
+    Rubinius::VM.reset_method_cache self, method_name
     nil
   end
 
@@ -534,8 +525,7 @@ class Module
     meth = Rubinius::AccessVariable.set_ivar name
     writer_name = "#{name}=".to_sym
     @method_table.store writer_name, meth, :public
-    Rubinius::VM.reset_method_cache writer_name
-    Rubinius::VM.increment_serial(self)
+    Rubinius::VM.reset_method_cache self, writer_name
     nil
   end
 
@@ -608,8 +598,7 @@ class Module
                           entry.method, mod
     end
 
-    Rubinius::VM.reset_method_cache(new_name)
-    Rubinius::VM.increment_serial(self)
+    Rubinius::VM.reset_method_cache self, new_name
   end
 
   # :internal:
@@ -623,8 +612,7 @@ class Module
     if entry = @method_table.lookup(name)
       sc = class << self; self; end
       sc.method_table.store name, entry.method, :public
-      Rubinius::VM.reset_method_cache name
-      Rubinius::VM.increment_serial(self)
+      Rubinius::VM.reset_method_cache self, name
       private name
     end
   end

@@ -135,18 +135,7 @@ namespace rubinius {
      *  will be picked up from calls.
      */
     // Rubinius.primitive :vm_reset_method_cache
-    static Object*  vm_reset_method_cache(STATE, Symbol* name, CallFrame* calling_environment);
-
-    /**
-     *  Bumps the serial for the given class
-     *
-     *  Clears both the global cache and the SendSite caches.
-     *  Typically used when e.g. a method is added to a Module's
-     *  MethodTable in order to ensure that the correct method
-     *  will be picked up from calls.
-     */
-    // Rubinius.primitive :vm_increment_serial
-    static Object*  vm_increment_serial(STATE, Module* klass, CallFrame* calling_environment);
+    static Object*  vm_reset_method_cache(STATE, Module* mod, Symbol* name, CallFrame* calling_environment);
 
     /**
      *  Backtrace as an Array.
@@ -265,10 +254,6 @@ namespace rubinius {
     // Print out the current backtrace of ruby code
     // Rubinius.primitive :vm_show_backtrace
     static Object* vm_show_backtrace(STATE, CallFrame* calling_environment);
-
-    // Deoptimze any method that inlined exec
-    // Rubinius.primitive :vm_deoptimize_inliners
-    static Object* vm_deoptimize_inliners(STATE, Executable* exec);
 
     // Deoptimize all methods.
     // +disable+ indicates if the methods should also be pulled from being

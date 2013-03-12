@@ -26,11 +26,6 @@ module Rubinius
     raise PrimitiveFailure, "Rubinius.vm_inc_global_serial primitive failed"
   end
 
-  def self.deoptimize_inliners(exec)
-    Rubinius.primitive :vm_deoptimize_inliners
-    raise PrimitiveFailure, "Rubinius.vm_deoptimize_inliners primitive failed"
-  end
-
   # Deoptimize all methods in the system.
   def self.deoptimize_all(disable)
     Rubinius.primitive :vm_deoptimize_all
@@ -69,8 +64,7 @@ module Rubinius
 
   def self.add_method(name, executable, mod, vis)
     mod.method_table.store name, executable, :public
-    Rubinius::VM.reset_method_cache name
-    Rubinius::VM.increment_serial(mod)
+    Rubinius::VM.reset_method_cache mod, name
   end
 
   module Unsafe

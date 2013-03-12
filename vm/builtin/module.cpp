@@ -161,19 +161,27 @@ namespace rubinius {
     if(!vis) vis = G(sym_public);
     method_table_->store(state, gct, name, exec, vis, call_frame);
     state->vm()->global_cache()->clear(state, self, name);
-    increase_serial(state, name);
+    reset_method_cache(state, name);
   }
 
-  Object* Module::increase_serial(STATE, Symbol* name) {
+  Object* Module::reset_method_cache(STATE, Symbol* name) {
     if(Class* self = try_as<Class>(this)) {
       self->increment_serial();
+    }
+    if(!name->nil_p()) {
+      if(MethodTableBucket* b = method_table_->find_entry(state, name)) {
+        Executable* exec = b->method();
+        if(!exec->nil_p()) {
+          exec->clear_inliners(state);
+        }
+      }
     }
     if(!hierarchy_subclasses_->nil_p()) {
       for(native_int i = 0; i < hierarchy_subclasses_->size(); ++i) {
         WeakRef* ref = try_as<WeakRef>(hierarchy_subclasses_->get(state, i));
         if(ref && ref->alive_p()) {
           Module* mod = as<Module>(ref->object());
-          mod->increase_serial(state, name);
+          mod->reset_method_cache(state, name);
         }
       }
     }

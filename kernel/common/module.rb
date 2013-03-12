@@ -135,8 +135,7 @@ class Module
   def undef_method!(name)
     name = Rubinius::Type.coerce_to_symbol(name)
     @method_table.store name, nil, :undef
-    Rubinius::VM.reset_method_cache(name)
-    Rubinius::VM.increment_serial(self)
+    Rubinius::VM.reset_method_cache self, name
     if Rubinius::Type.object_kind_of?(self, Class) and obj = Rubinius::Type.singleton_class_object(self)
       Rubinius.privately do
         obj.singleton_method_undefined(name)
@@ -157,8 +156,7 @@ class Module
       end
       @method_table.delete name
 
-      Rubinius::VM.reset_method_cache(name)
-      Rubinius::VM.increment_serial(self)
+      Rubinius::VM.reset_method_cache self, name
 
       if Rubinius::Type.object_kind_of?(self, Class) and obj = Rubinius::Type.singleton_class_object(self)
         Rubinius.privately do
@@ -360,8 +358,7 @@ class Module
       raise NoMethodError, "Unknown #{where}method '#{name}' to make #{vis.to_s} (#{self})"
     end
 
-    Rubinius::VM.reset_method_cache name
-    Rubinius::VM.increment_serial(self)
+    Rubinius::VM.reset_method_cache self, name
 
     return name
   end
@@ -638,8 +635,7 @@ class Module
   def attr_reader(name)
     meth = Rubinius::AccessVariable.get_ivar name
     @method_table.store name, meth, :public
-    Rubinius::VM.reset_method_cache name
-    Rubinius::VM.increment_serial(self)
+    Rubinius::VM.reset_method_cache self, name
     ivar_name = "@#{name}".to_sym
     if @seen_ivars
       @seen_ivars.each do |ivar|
@@ -656,8 +652,7 @@ class Module
     meth = Rubinius::AccessVariable.set_ivar name
     writer_name = "#{name}=".to_sym
     @method_table.store writer_name, meth, :public
-    Rubinius::VM.reset_method_cache writer_name
-    Rubinius::VM.increment_serial(self)
+    Rubinius::VM.reset_method_cache self, writer_name
     ivar_name = "@#{name}".to_sym
     if @seen_ivars
       @seen_ivars.each do |ivar|

@@ -199,8 +199,7 @@ module Rubinius
 
       sc = Rubinius::Type.object_singleton_class(MAIN)
       sc.method_table.store :__script__, self, :public
-      VM.reset_method_cache :__script__
-      VM.increment_serial(sc)
+      VM.reset_method_cache sc, :__script__
 
       script
     end

@@ -20,8 +20,7 @@ class Module
                             entry.method, mod
       end
 
-      Rubinius::VM.reset_method_cache(new_name)
-      Rubinius::VM.increment_serial(self)
+      Rubinius::VM.reset_method_cache self, new_name
     else
       if Rubinius::Type.object_kind_of?(self, Class) and
          ai = Rubinius::Type.singleton_class_object(self)
@@ -49,8 +48,7 @@ class Module
         method_name = Rubinius::Type.coerce_to_symbol meth
         mod, method = lookup_method(method_name)
         sc.method_table.store method_name, method.method, :public
-        Rubinius::VM.reset_method_cache method_name
-        Rubinius::VM.increment_serial(self)
+        Rubinius::VM.reset_method_cache self, method_name
         set_visibility method_name, :private
       end
     end
@@ -159,9 +157,8 @@ class Module
 
     if changed
       method_table.each do |meth, obj, vis|
-        Rubinius::VM.reset_method_cache meth
+        Rubinius::VM.reset_method_cache klass, meth
       end
-      Rubinius::VM.increment_serial(klass)
     end
 
     return self
