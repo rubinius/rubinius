@@ -140,8 +140,8 @@ namespace rubinius {
   void BakerGC::collect(GCData& data, YoungCollectStats* stats) {
 
 #ifdef HAVE_VALGRIND_H
-    VALGRIND_MAKE_MEM_DEFINED(next->start().as_int(), next->size());
-    VALGRIND_MAKE_MEM_DEFINED(current->start().as_int(), current->size());
+    (void)VALGRIND_MAKE_MEM_DEFINED(next->start().as_int(), next->size());
+    (void)VALGRIND_MAKE_MEM_DEFINED(current->start().as_int(), current->size());
 #endif
     mprotect(next->start(), next->size(), PROT_READ | PROT_WRITE);
     mprotect(current->start(), current->size(), PROT_READ | PROT_WRITE);

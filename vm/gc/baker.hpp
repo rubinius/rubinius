@@ -271,8 +271,8 @@ namespace rubinius {
       eden.reset();
 
 #ifdef HAVE_VALGRIND_H
-      VALGRIND_MAKE_MEM_NOACCESS(next->start().as_int(), next->size());
-      VALGRIND_MAKE_MEM_DEFINED(current->start().as_int(), current->size());
+      (void)VALGRIND_MAKE_MEM_NOACCESS(next->start().as_int(), next->size());
+      (void)VALGRIND_MAKE_MEM_DEFINED(current->start().as_int(), current->size());
 #endif
       mprotect(next->start(), next->size(), PROT_NONE);
       mprotect(current->start(), current->size(), PROT_READ | PROT_WRITE);
