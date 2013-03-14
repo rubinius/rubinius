@@ -464,6 +464,12 @@ namespace rubinius {
       return create_load(gep, "class_id");
     }
 
+    Value* get_serial_id(Value* cls) {
+      Value* idx[] = { zero_, cint(offset::Class::serial_id) };
+      Value* gep = create_gep(cls, idx, 2, "serial_id_pos");
+      return create_load(gep, "serial_id");
+    }
+
     Value* check_is_symbol(Value* obj) {
       Value* mask = ConstantInt::get(ctx_->IntPtrTy, TAG_SYMBOL_MASK);
       Value* zero = ConstantInt::get(ctx_->IntPtrTy, TAG_SYMBOL);
@@ -843,11 +849,11 @@ namespace rubinius {
       set_block(cont);
 
       Value* klass = reference_class(obj);
-      Value* class_id = get_class_id(klass);
+      Value* class_id = create_equal(get_class_id(klass), cint(mce->receiver_class_id()), "check_class_id");
+      Value* serial_id = create_equal(get_serial_id(klass), cint(mce->receiver_serial_id()), "check_serial_id");
+      Value* match = b().CreateAnd(class_id, serial_id, "class_and_serial");
 
-      Value* cmp = create_equal(class_id, cint(mce->receiver_class_id()), "check_class_id");
-
-      create_conditional_branch(body, failure, cmp);
+      create_conditional_branch(body, failure, match);
 
       set_block(body);
 
