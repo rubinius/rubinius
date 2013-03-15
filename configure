@@ -1299,6 +1299,10 @@ int main() { return tgetnum(""); }
   end
 
   def detect_headers
+    unless has_header("zlib.h")
+      failure "zlib.h is required"
+    end
+
     if has_header("alloca.h")
       @defines << "HAVE_ALLOCA_H"
     end
