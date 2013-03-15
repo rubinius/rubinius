@@ -37,10 +37,13 @@ reporting at: /Developer/Applications/Utilities/CrashReporterPrefs.app
 
 ### Debian/Ubuntu
 
-  * ruby-dev or ruby1.8-dev
-  * libreadline5-dev
-  * zlib1g-dev
-  * libssl-dev
+Just run this to install required packages:
+
+    $ sudo apt-get install -y build-essential bison ruby-dev rake zlib1g-dev \
+        libyaml-dev libssl-dev libreadline-dev libncurses5-dev
+
+This is tested using fresh-installed Ubuntu 12.10. There may be minor differences with older
+Ubuntu, Debian or other Debian-based distributions.
 
 ### Fedora/CentOS
 
