@@ -1303,6 +1303,10 @@ int main() { return tgetnum(""); }
       failure "zlib.h is required"
     end
 
+    unless has_header("openssl/ssl.h")
+      failure "openssl/ssl.h is required"
+    end
+
     if has_header("alloca.h")
       @defines << "HAVE_ALLOCA_H"
     end
