@@ -703,11 +703,16 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
     end
   end
 
+  def llvm_options_exist?
+    !@llvm_skip_system and @llvm_configure
+  end
+
   def setup_auto
     update_prebuilt @llvm_generic_prebuilt, true if @need_update_prebuilt
 
     @log.print "  Checking for existing LLVM library tree: "
-    if File.directory?("#{@llvm_default}/Release")
+    if File.directory?("#{@llvm_default}/Release") and
+       not llvm_options_exist?
       config = llvm_config_cmd "#{@llvm_default}/Release/bin/llvm-config"
       version = `#{config} --version`.strip
       parts = version.sub(/svn$/, "").split(".").map { |i| i.to_i }
@@ -728,7 +733,11 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
         remove_default
       end
     else
-      @log.write "not found."
+      if llvm_options_exist?
+        @log.write "skipping due to explicit LLVM options."
+      else
+        @log.write "not found."
+      end
     end
 
     # If they explicitly said where LLVM is, use that and fail hard.
@@ -762,7 +771,21 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
     end
 
     if config
-      version = `#{llvm_config_cmd config} --version`.strip
+      config_cmd = llvm_config_cmd config
+      begin
+        version = `#{config_cmd} --version`.strip
+
+        # Ruby 1.8 returns an empty string
+        failed = true if version.empty?
+      rescue Errno::ENOENT
+        # Ruby 1.9 raises this error
+        failed = true
+      end
+      if failed
+        @log.write "Executing #{config_cmd.inspect} failed"
+        return false
+      end
+
       parts = version.sub(/svn$/, "").split(".").map { |i| i.to_i }
       api_version = ("%d%02d" % parts[0..1]).to_i
       if api_version < 300
@@ -770,7 +793,7 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
       else
         @log.write "found! (version #{version} - api: #{api_version})"
         @llvm = :config
-        @llvm_configure = llvm_config_cmd config
+        @llvm_configure = config_cmd
         @llvm_version = version
         @llvm_api_version = api_version
         return true
