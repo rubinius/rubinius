@@ -223,8 +223,8 @@ Daedalus.blueprint do |i|
     end
 
     gcc.cflags.concat flags
-    gcc.ldflags.concat ldflags
     gcc.ldflags.concat objects
+    gcc.ldflags.concat ldflags
   when :no
     # nothing, not using LLVM
   else
