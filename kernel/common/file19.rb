@@ -124,6 +124,10 @@ class File
       end
     end
 
+    unless exists? real
+      raise Errno::ENOENT, real
+    end
+
     real
   end
 end
