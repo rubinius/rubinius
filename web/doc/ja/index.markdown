@@ -1,10 +1,9 @@
-﻿---
+---
 layout: doc_ja
 title: 目次
 toc: true
 next: Rubiniusとは？
 next_url: what-is-rubinius
-translated: true
 ---
 
 1. [Rubiniusとは？](/doc/ja/what-is-rubinius/)
