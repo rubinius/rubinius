@@ -43,17 +43,17 @@ ruby_version_is "1.9" do
       end
     end
 
-    it "raises a Errno::ELOOP if symlink points itself" do
+    it "raises a Errno::ELOOP if the symlink points to itself" do
       File.unlink @link
       File.symlink(@link, @link)
       lambda { File.realpath(@link) }.should raise_error(Errno::ELOOP)
     end
 
-    it "raises Errno::ENOENT if file is absent" do
+    it "raises Errno::ENOENT if the file is absent" do
       lambda { File.realpath(@fake_file) }.should raise_error(Errno::ENOENT)
     end
 
-    it "raises Errno::ENOENT if symlink points an absent file" do
+    it "raises Errno::ENOENT if the symlink points to an absent file" do
       lambda { File.realpath(@fake_link) }.should raise_error(Errno::ENOENT)
     end
   end
