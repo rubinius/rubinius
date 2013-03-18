@@ -177,7 +177,7 @@ module Rubinius
       # Otherwise, returns false. Called by both Kernel#require and when an
       # autoload constant is being registered by Module#autoload.
       def feature_provided?(name)
-        if name.suffix?(".rb") or name.suffix?(LIBSUFFIX)
+        if name.suffix?(CodeLoader.source_extension) or name.suffix?(LIBSUFFIX)
           return loaded? name
         elsif name.suffix? ".so"
           # This handles cases like 'require "openssl.so"' on
@@ -185,7 +185,7 @@ module Rubinius
           # is not ".so".
           return loaded?(name[0..-4] + LIBSUFFIX)
         else
-          return true if loaded?(name + ".rb")
+          return true if loaded?(name + CodeLoader.source_extension)
           return loaded?(name + LIBSUFFIX)
         end
 
