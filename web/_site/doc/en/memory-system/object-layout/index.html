@@ -401,9 +401,9 @@ C++ classes:</p>
 
 <div class="highlight"><pre><code class="cpp"><span class="k">namespace</span> <span class="n">rubinius</span> <span class="p">{</span>
   <span class="k">class</span> <span class="nc">String</span> <span class="o">:</span> <span class="k">public</span> <span class="n">Object</span> <span class="p">{</span>
-  <span class="k">private</span><span class="o">:</span>
+  <span class="nl">private:</span>
     <span class="n">Fixnum</span><span class="o">*</span> <span class="n">hash_value_</span><span class="p">;</span>       <span class="c1">// slot</span>
-  <span class="k">public</span><span class="o">:</span>
+  <span class="nl">public:</span>
     <span class="n">attr_accessor</span><span class="p">(</span><span class="n">hash_value</span><span class="p">,</span> <span class="n">Fixnum</span><span class="p">);</span>
   <span class="p">}</span>
 <span class="p">}</span>
@@ -461,7 +461,7 @@ Class, as can be seen in this code snippet.</p>
   <span class="k">end</span>
 <span class="k">end</span>
 
-<span class="no">Foo</span><span class="o">.</span><span class="n">instance_variable_get</span><span class="p">(</span><span class="s2">&quot;@seen_ivars&quot;</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="o">[</span><span class="p">:</span><span class="vi">@str</span><span class="o">]</span>
+<span class="no">Foo</span><span class="o">.</span><span class="n">instance_variable_get</span><span class="p">(</span><span class="s2">&quot;@seen_ivars&quot;</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="o">[</span><span class="ss">:@str</span><span class="o">]</span>
 </code></pre>
 </div>
 

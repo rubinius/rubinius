@@ -180,12 +180,14 @@ reporting at: /Developer/Applications/Utilities/CrashReporterPrefs.app</p>
 
 <h3 id="debianubuntu">Debian/Ubuntu</h3>
 
-<ul>
-  <li>ruby-dev or ruby1.8-dev</li>
-  <li>libreadline5-dev</li>
-  <li>zlib1g-dev</li>
-  <li>libssl-dev</li>
-</ul>
+<p>Just run this to install required packages:</p>
+
+<pre><code>$ sudo apt-get install -y build-essential bison ruby-dev rake zlib1g-dev \
+    libyaml-dev libssl-dev libreadline-dev libncurses5-dev
+</code></pre>
+
+<p>This is tested using fresh-installed Ubuntu 12.10. There may be minor differences with older
+Ubuntu, Debian or other Debian-based distributions.</p>
 
 <h3 id="fedoracentos">Fedora/CentOS</h3>
 

@@ -136,7 +136,7 @@ thrashing when many different types are seen.&lt;/p&gt;
 types, VM operations that result from the method call, the kind of data cached
 and cache invalidation, and the cardinality of the method call site. We&amp;rsquo;ll be
 taking the results of our discussion and implementing changes to our inline
-caching over the next few weeks. &lt;/p&gt;
+caching over the next few weeks.&lt;/p&gt;
 
 &lt;p&gt;If you get a chance, pop into the #rubinius IRC channel on freenode.net and
 say hello to Dirkjan!&lt;/p&gt;
@@ -429,7 +429,7 @@ operation is appropriate, the method should raise an exception.&lt;/p&gt;
 &lt;code&gt;vm/builtin/fixnum.hpp&lt;/code&gt;:&lt;/p&gt;
 
 &lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;cpp&quot;&gt;&lt;span class=&quot;lineno&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// Rubinius.primitive :fixnum_to_f&lt;/span&gt;
-&lt;span class=&quot;lineno&quot;&gt;2&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Float&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;to_f&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;STATE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;2&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Float&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;to_f&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;STATE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;
 &lt;/div&gt;
 
