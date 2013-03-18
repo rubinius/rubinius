@@ -254,7 +254,7 @@ namespace rubinius {
       return call_frame_;
     }
 
-    llvm::Value* cint(int num) {
+    llvm::Constant* cint(int num) {
       return ctx_->cint(num);
     }
 

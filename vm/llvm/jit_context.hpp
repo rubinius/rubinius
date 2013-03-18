@@ -73,8 +73,8 @@ namespace rubinius {
 
     llvm::Type* Int8PtrTy;
 
-    llvm::Value* Zero;
-    llvm::Value* One;
+    llvm::Constant* Zero;
+    llvm::Constant* One;
 
   public:
     Context(LLVMState* ls);
@@ -105,7 +105,7 @@ namespace rubinius {
     llvm::Type* ptr_type(std::string name);
     llvm::Type* type(std::string name);
 
-    llvm::Value* cint(int num) {
+    llvm::Constant* cint(int num) {
       switch(num) {
       case 0:
         return Zero;
@@ -116,7 +116,7 @@ namespace rubinius {
       }
     }
 
-    llvm::Value* clong(uintptr_t num) {
+    llvm::Constant* clong(uintptr_t num) {
       return llvm::ConstantInt::get(IntPtrTy, num);
     }
 
