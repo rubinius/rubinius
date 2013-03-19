@@ -39,6 +39,9 @@ class Regexp
 
     str = str.to_s if str.is_a?(Symbol)
     str = StringValue(str)
+
+    m = Rubinius::Mirror.reflect str
+    pos = m.character_to_byte_index pos
     result = search_region(str, pos, str.bytesize, true)
     Regexp.last_match = result
 
