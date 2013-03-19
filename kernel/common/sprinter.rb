@@ -40,13 +40,6 @@ module Rubinius
       code = Rubinius::Type.object_singleton_class(self).dynamic_method :call do |g|
         Builder.new(self, format, g).build
       end
-
-      if false
-        puts
-        puts format.inspect
-        puts code.decode
-        puts
-      end
     end
 
     def debug_print
@@ -367,27 +360,6 @@ module Rubinius
         end
       end
 
-      RE = /
-        ([^%]+|%(?:[\n\0]|\z)) # 1
-        |
-        %
-        ( # 2
-          ([0# +-]*) # 3
-          (?:([0-9]+)\$)? # 4
-          ([0# +-]*) # 5
-          (?:
-            (\*(?:([0-9]+)\$)?|([1-9][0-9]*))? # 6 7 8
-            (?:\.(\*(?:([0-9]+)\$)?|([0-9][0-9]*))?)? # 9 10 11
-          )
-          (?:([0-9]+)\$)? # 12
-          ([BbcdEefGgiopsuXx]) # 13
-        )
-        |
-        (%)(?:%|[-+0-9# *.$]+\$[0-9.]*\z) # 14
-        |
-        (%) # 15
-      /x
-
       def append_literal(str)
         @g.push_unique_literal str
         append_str
@@ -398,9 +370,10 @@ module Rubinius
       end
 
       class Atom
-        def initialize(b, g, format_code, flags)
+        def initialize(b, g, format_code, flags, name = nil)
           @b, @g = b, g
           @format_code, @flags = format_code, flags
+          @name = name
 
           @f_alt = flags.index(?#)
           @f_zero = flags.index(?0)
@@ -425,12 +398,14 @@ module Rubinius
         end
 
         def set_value(ref)
-          @field_index = @b.next_index(ref)
+          unless @name
+            @field_index = @b.next_index(ref)
+          end
         end
 
         def set_width(full, ref, static)
           @width_static = static && static.to_i
-          if full && !static
+          if !@name && full && !static
             @width_index = @b.next_index(ref)
           end
 
@@ -439,7 +414,7 @@ module Rubinius
 
         def set_precision(full, ref, static)
           @prec_static = static && static.to_i
-          if full && !static
+          if !@name && full && !static
             @prec_index = @b.next_index(ref)
           end
 
@@ -447,7 +422,13 @@ module Rubinius
         end
 
         def push_value
-          @g.push_local @field_index
+          if @name
+            @g.push_local 0
+            @g.push_unique_literal @name
+            @g.send(:fetch, 1)
+          else
+            @g.push_local @field_index
+          end
         end
 
         def push_width_value
@@ -1015,6 +996,16 @@ module Rubinius
         end
       end
 
+      class LiteralAtom < Atom
+        def set_value(ref)
+          @value = ref
+        end
+
+        def bytecode
+          @b.append_literal(@value)
+        end
+      end
+
       def push_Kernel
         @lit_Kernel ||= @g.add_literal(:Kernel)
         @slot_Kernel ||= @g.add_literal(nil)
@@ -1034,6 +1025,13 @@ module Rubinius
         @slot_String ||= @g.add_literal(nil)
 
         @g.push_const_fast @lit_String, @slot_String
+      end
+
+      def push_Hash
+        @lit_Hash ||= @g.add_literal(:Hash)
+        @slot_Hash ||= @g.add_literal(nil)
+
+        @g.push_const_fast @lit_Hash, @slot_Hash
       end
 
       def raise_ArgumentError(msg)
@@ -1114,6 +1112,7 @@ module Rubinius
         @index_mode = nil
 
         bignum_width = bignum_precision = nil
+        atoms = []
 
         pos = 0
         while match = RE.match_start(@format, pos)
@@ -1122,6 +1121,7 @@ module Rubinius
           _,
           plain_string,
           whole_format,
+          name_format,
           flags_a,
           field_ref_a,
           flags_b,
@@ -1130,17 +1130,32 @@ module Rubinius
           field_ref_b,
           format_code,
           literal_char,
+          name_reference,
           invalid_format = *match
 
+          flags = "#{flags_a}#{flags_b}"
+
           if plain_string
-            append_literal plain_string
+            atom = LiteralAtom.new(self, @g, format_code, flags)
+            atom.set_value(plain_string)
+            atoms << atom
           elsif literal_char
-            append_literal literal_char
+            atom = LiteralAtom.new(self, @g, format_code, flags)
+            atom.set_value(literal_char)
+            atoms << atom
           elsif invalid_format || (field_ref_a && field_ref_b)
             raise ArgumentError, "malformed format string: #{@format.inspect}"
           else
             field_ref = field_ref_a || field_ref_b
-            flags = "#{flags_a}#{flags_b}"
+
+            if name_reference
+              format_code = "s"
+              @index_mode = :name
+              name = name_reference[2...-1].to_sym
+            elsif name_format
+              @index_mode = :name
+              name = name_format[1...-1].to_sym
+            end
 
             klass = AtomMap[format_code[0]]
 
@@ -1148,16 +1163,33 @@ module Rubinius
               raise ArgumentError, "unknown format type - #{format_code}"
             end
 
-            atom = klass.new(self, @g, format_code, flags)
+            atom = klass.new(self, @g, format_code, flags, name)
             atom.set_width width_full, width_ref, width_static
             atom.set_precision prec_full, prec_ref, prec_static
             atom.set_value field_ref
-
-            atom.bytecode
+            atoms << atom
           end
         end
 
-        if @index_mode != :absolute
+        if @index_mode == :name
+          exception = @g.new_label
+          continue  = @g.new_label
+
+          @arg_count = 1
+          @g.passed_arg @arg_count
+          @g.git exception
+          push_Hash
+          @g.push_local 0
+          @g.kind_of
+          @g.gif exception
+          @g.goto continue
+
+          exception.set!
+
+          raise_ArgumentError "named format string needs single Hash argument"
+
+          continue.set!
+        elsif @index_mode != :absolute
           no_exception = @g.new_label
 
           # If we've used relative arguments, and $DEBUG is true, we
@@ -1174,7 +1206,12 @@ module Rubinius
 
           no_exception.set!
         end
+
+        atoms.each do |atom|
+          atom.bytecode
+        end
       end
+
     end
   end
 end
