@@ -50,6 +50,10 @@ describe "String#match" do
       "hello".match(/(.+)/,2)[0].should == 'llo'
     end
 
+    it "uses the start as a character offset" do
+      "hüllo".match(/(.+)/, 2)[0].should == 'llo'
+    end
+
     describe "when passed a block" do
       it "yields the MatchData" do
         "abc".match(/./) {|m| ScratchPad.record m }
