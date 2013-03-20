@@ -417,12 +417,11 @@ namespace rubinius {
       CompiledCode* ccode, MachineCode* caller,
       CallFrame* call_frame)
   {
-    OnStack<1> os(state, ccode);
-
-    state->set_call_frame(call_frame);
 
     MachineCode* mcode = ccode->machine_code();
     if(!mcode) {
+      OnStack<1> os(state, ccode);
+      state->set_call_frame(call_frame);
       mcode = ccode->internalize(state, gct);
       if(!mcode) {
         Exception::internal_error(state, call_frame, "invalid bytecode method");
