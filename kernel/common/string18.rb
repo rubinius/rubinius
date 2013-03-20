@@ -826,4 +826,80 @@ class String
 
     return nil
   end
+
+  def tr_trans(source, replacement, squeeze)
+    source = StringValue(source).dup
+    replacement = StringValue(replacement).dup
+
+    self.modify!
+
+    return self.delete!(source) if replacement.empty?
+    return if @num_bytes == 0
+
+    invert = source[0] == ?^ && source.length > 1
+    if invert
+      source.slice!(0)
+    end
+    expanded = source.tr_expand! nil, true
+    size = source.size
+    src = source.__data__
+
+    if invert
+      replacement.tr_expand! nil, false
+      r = replacement.__data__[replacement.size-1]
+      table = Rubinius::Tuple.pattern 256, r
+
+      i = 0
+      while i < size
+        table[src[i]] = -1
+        i += 1
+      end
+    else
+      table = Rubinius::Tuple.pattern 256, -1
+
+      replacement.tr_expand! expanded, false
+      repl = replacement.__data__
+      rsize = replacement.size
+      i = 0
+      while i < size
+        r = repl[i] if i < rsize
+        table[src[i]] = r
+        i += 1
+      end
+    end
+
+    self.modify!
+    modified = false
+
+    if squeeze
+      i, j, last = -1, -1, nil
+      while (i += 1) < @num_bytes
+        s = @data[i]
+        c = table[s]
+        if c >= 0
+          next if last == c
+          @data[j+=1] = last = c
+          modified = true
+        else
+          @data[j+=1] = s
+          last = nil
+        end
+      end
+
+      self.num_bytes = j if (j += 1) < @num_bytes
+    else
+      i = 0
+      while i < @num_bytes
+        c = table[@data[i]]
+        if c >= 0
+          @data[i] = c
+          modified = true
+        end
+        i += 1
+      end
+    end
+
+    return modified ? self : nil
+  end
+
 end
