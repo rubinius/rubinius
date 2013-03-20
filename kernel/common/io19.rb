@@ -583,7 +583,7 @@ class IO
           wanted = limit
         else
           str << @buffer.shift
-          wanted -= evailable
+          wanted -= available
         end
       end
     end
