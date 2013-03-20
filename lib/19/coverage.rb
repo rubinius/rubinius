@@ -11,7 +11,7 @@ module Coverage
   def self.result
     return unless @coverage_tool
 
-    map = @coverage_tool.stop.results
+    return {} unless map = @coverage_tool.stop.results
 
     kernel = File.dirname Rubinius::KERNEL_PATH
 
