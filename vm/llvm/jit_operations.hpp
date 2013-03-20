@@ -624,7 +624,7 @@ namespace rubinius {
             set_block(use_cache);
 
             Value* is_type = check_type_bits(obj, StringType);
-            create_conditional_branch(positive, negative, is_type);
+            create_conditional_branch(positive, use_call, is_type);
           } else if(class_id == llvm_state()->regexp_class_id()) {
             if(llvm_state()->config().jit_inline_debug) {
               ctx_->log() << "(against Regexp)\n";
@@ -634,7 +634,7 @@ namespace rubinius {
             set_block(use_cache);
 
             Value* is_type = check_type_bits(obj, RegexpType);
-            create_conditional_branch(positive, negative, is_type);
+            create_conditional_branch(positive, use_call, is_type);
           } else if(class_id == llvm_state()->encoding_class_id()) {
             if(llvm_state()->config().jit_inline_debug) {
               ctx_->log() << "(against Encoding)\n";
@@ -644,7 +644,7 @@ namespace rubinius {
             set_block(use_cache);
 
             Value* is_type = check_type_bits(obj, EncodingType);
-            create_conditional_branch(positive, negative, is_type);
+            create_conditional_branch(positive, use_call, is_type);
           } else if(class_id == llvm_state()->module_class_id()) {
             if(llvm_state()->config().jit_inline_debug) {
               ctx_->log() << "(against Module)\n";
