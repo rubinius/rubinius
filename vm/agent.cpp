@@ -83,29 +83,6 @@ namespace rubinius {
     loopback_[0] = -1;
     loopback_[1] = -1;
 
-    if(pipe(a2r_) != 0) {
-      perror("pipe");
-      rubinius::abort();
-    }
-
-    if(pipe(r2a_) != 0) {
-      perror("pipe");
-      rubinius::abort();
-    }
-
-    add_fd(r2a_agent());
-
-    // This class is always created in GC dependent code, so it's ok
-    // to access ruby stuff here.
-    IO* from = IO::create(state, a2r_ruby());
-    from->sync(state, cTrue);
-
-    IO* to = IO::create(state, r2a_ruby());
-    to->sync(state, cTrue);
-
-    shared_.globals.rubinius.get()->set_const(state, "FROM_AGENT", from);
-    shared_.globals.rubinius.get()->set_const(state, "TO_AGENT", to);
-
     if(shared_.config.agent_password.set_p()) {
       local_only_ = false;
       use_password_ = true;
@@ -176,64 +153,6 @@ namespace rubinius {
   }
 
   namespace {
-    bool get_ruby(QueryAgent* agent, int client, const char* k) {
-      bert::IOWriter writer(agent->a2r_agent());
-      bert::Encoder<bert::IOWriter> e(writer);
-
-      e.write_tuple(3);
-      e.write_integer(client);
-      e.write_atom("get");
-      e.write_binary(k);
-
-      return true;
-    }
-
-    bool set_ruby(QueryAgent* agent, int client, const char* k,
-        bert::Value* val)
-    {
-      bert::IOWriter writer(agent->a2r_agent());
-      bert::Encoder<bert::IOWriter> e(writer);
-
-      e.write_tuple(4);
-      e.write_integer(client);
-      e.write_atom("set");
-      e.write_binary(k);
-      e.write_value(val);
-
-      return true;
-    }
-
-    void respond_from_ruby(QueryAgent* agent) {
-      bert::IOReader reader(agent->r2a_agent());
-      bert::Decoder<bert::IOReader> d(reader);
-
-      bert::Value* val = d.next_value();
-
-      if(val->type() == bert::Tuple && val->total_elements() == 3) {
-        bert::Value* who = val->get_element(0);
-        bert::Value* code = val->get_element(1);
-
-        if(code->type() == bert::Atom && who->integer_p()) {
-          int client = who->integer();
-
-          bert::IOWriter writer(client);
-          bert::Encoder<bert::IOWriter> e(writer);
-
-          if(code->equal_atom("ok")) {
-            e.write_tuple(3);
-            e.write_atom("ok");
-            e.write_atom("value");
-            e.write_value(val->get_element(2));
-          } else {
-            e.write_tuple(2);
-            e.write_value(code);
-            e.write_value(val->get_element(2));
-          }
-        }
-      }
-
-      delete val;
-    }
 
     void write_welcome(int client) {
       bert::IOWriter writer(client);
@@ -428,7 +347,7 @@ auth_error:
           if(key->type() == bert::Binary) {
             agent::Output output(writer);
             if(!vars_->set_path(output, key->string(), value)) {
-              set_ruby(this, client.socket, key->string(), value);
+              encoder.write_atom("error");
             }
             delete val;
             return true;
@@ -445,7 +364,7 @@ auth_error:
             agent::Output output(writer);
 
             if(!vars_->read_path(output, key->string())) {
-              get_ruby(this, client.socket, key->string());
+              encoder.write_atom("error");
             }
 
             delete val;
@@ -636,8 +555,6 @@ auth_error:
         if(read(agent_->read_control(), &buf, 1) < 0) {
           std::cerr << "[QA: Read error: " << strerror(errno) << "]\n";
         }
-      } else if(FD_ISSET(agent_->r2a_agent(), &read_fds)) {
-        respond_from_ruby(agent_);
       } else if(agent_->server_fd() > 0 && FD_ISSET(agent_->server_fd(), &read_fds)) {
         // now accept an incoming connection
         struct sockaddr_in sin;

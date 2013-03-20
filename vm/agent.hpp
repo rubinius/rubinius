@@ -73,9 +73,6 @@ namespace rubinius {
     int control_[2];
     int loopback_[2];
 
-    int a2r_[2];
-    int r2a_[2];
-
     std::vector<Client> sockets_;
 
     agent::VariableAccess* vars_;
@@ -150,22 +147,6 @@ namespace rubinius {
 
     int write_control() {
       return control_[1];
-    }
-
-    int a2r_agent() {
-      return a2r_[1];
-    }
-
-    int a2r_ruby() {
-      return a2r_[0];
-    }
-
-    int r2a_agent() {
-      return r2a_[0];
-    }
-
-    int r2a_ruby() {
-      return r2a_[1];
     }
 
     void initialize(STATE);
