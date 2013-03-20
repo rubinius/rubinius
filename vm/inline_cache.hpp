@@ -40,6 +40,10 @@ namespace rubinius {
       atomic::write(&entry_, entry);
     }
 
+    void update(MethodCacheEntry* entry) {
+      atomic::write(&entry_, entry);
+    }
+
     void hit() {
       ++hits_;
     }

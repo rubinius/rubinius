@@ -431,7 +431,7 @@ namespace rubinius {
         if(mce) {
           tmp = mark.call(mce);
           if(tmp) {
-            cache->cache_[j].assign(static_cast<MethodCacheEntry*>(tmp));
+            cache->cache_[j].update(static_cast<MethodCacheEntry*>(tmp));
             mark.just_set(obj, tmp);
           }
         }
