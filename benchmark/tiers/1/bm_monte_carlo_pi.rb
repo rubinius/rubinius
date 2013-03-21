@@ -1,9 +1,13 @@
 # Monte Carlo Pi
 # Submitted by Seo Sanghyeon
 
-def Bench.run
+
+require 'benchmark'
+require 'benchmark/ips'
+
+def monte_carlo_pi
   count = 0
-  sample = 1_000_000
+  sample = 100_000
 
   sample.times do
     x = rand
@@ -13,6 +17,11 @@ def Bench.run
     end
   end
 
-  pi = 4.0 * count / sample
-  puts pi
+  4.0 * count / sample
+end
+
+Benchmark.ips do |x|
+  x.report "monte carlo pi" do
+    monte_carlo_pi
+  end
 end

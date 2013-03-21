@@ -1,3 +1,6 @@
+require 'benchmark'
+require 'benchmark/ips'
+
 # The Computer Language Shootout
 # http://shootout.alioth.debian.org/
 #
@@ -23,16 +26,22 @@ def sieve(m)
   count
 end
 
-$iterations = m = 7
-Flags = [1] * (2 ** m * 10_000)
 
-def Bench.run
-  n = $iterations
-  n.downto(n-2) do |exponent|
+def sieve_iterations(iterations)
+  m = iterations
+  iterations.downto(iterations-2) do |exponent|
     break if exponent < 0
-    m = (1 << exponent) * 10_000
+    m = (1 << exponent) * 1_000
     # m = (2 ** exponent) * 10_000
     count = sieve(m)
-    printf "Primes up to %8d %8d\n", m, count
+  end
+end
+
+iterations = 7
+Flags = [1] * (2 ** iterations * 10_000)
+
+Benchmark.ips do |x|
+  x.report "nsieve" do
+    sieve_iterations(iterations)
   end
 end

@@ -1,3 +1,6 @@
+require 'benchmark'
+require 'benchmark/ips'
+
 # The Computer Language Shootout
 # http://shootout.alioth.debian.org
 #
@@ -124,14 +127,14 @@ BODIES = [
 ]
 
 
-def Bench.run
+def nbody
   offset_momentum(BODIES)
   start = energy(BODIES)
 
   nbodies = BODIES.size
   dt = 0.01
 
-  100_000.times do
+  10_000.times do
     i = 0
     while i < nbodies
       b = BODIES[i]
@@ -140,5 +143,11 @@ def Bench.run
     end
   end
 
-  fin = energy(BODIES)
+  energy(BODIES)
+end
+
+Benchmark.ips do |x|
+  x.report "nbody" do
+    nbody
+  end
 end

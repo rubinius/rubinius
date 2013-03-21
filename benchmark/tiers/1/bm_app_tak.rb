@@ -23,12 +23,20 @@ end
 
 
 Benchmark.ips do |x|
-  x.report "tak" do
-    tak 6, 3, 0
+  x.report "tak" do |times|
+    i = 0
+    while i < times
+      tak 6, 3, 0
+      i += 1
+    end
   end
 
-  x.report "tak notail" do
-    tak_no_tail 6, 3, 0
+  x.report "tak notail" do |times|
+    i = 0
+    while i < times
+      tak_no_tail 6, 3, 0
+      i += 1
+    end
   end
 end
 
