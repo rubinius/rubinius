@@ -3446,6 +3446,7 @@ use_send:
 
         if(llvm_state()->config().jit_inline_debug) {
           ctx_->inline_log("inline ivar read")
+            << llvm_state()->symbol_debug_str(klass->module_name()) << "#"
             << llvm_state()->symbol_debug_str(name);
         }
 
