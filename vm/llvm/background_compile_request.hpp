@@ -16,7 +16,6 @@ namespace rubinius {
     CompiledCode* method_;
     Class* receiver_class_;
     BlockEnvironment* block_env_;
-    Object* extra_;
 
     utilities::thread::Condition* waiter_;
     int hits_;
