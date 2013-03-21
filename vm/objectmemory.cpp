@@ -902,7 +902,7 @@ step1:
   void ObjectMemory::add_code_resource(CodeResource* cr) {
     SYNC_TL;
 
-    code_manager_.add_resource(cr);
+    code_manager_.add_resource(cr, &collect_mature_now);
   }
 
   void* ObjectMemory::young_start() {
