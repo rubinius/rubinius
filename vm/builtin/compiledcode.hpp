@@ -38,7 +38,9 @@ namespace rubinius {
 
     MachineCode* machine_code_;
 
+#ifdef ENABLE_LLVM
     jit::RuntimeDataHolder* jit_data_;
+#endif
 
   public:
     // Access directly from assembly, so has to be public.
