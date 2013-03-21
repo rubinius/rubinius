@@ -9,6 +9,410 @@
 
   
   <entry>
+    <title>Profiling JIT-ted Ruby code with OProfile</title>
+    <id>http://rubini.us/2013/03/20/profiling-jitted-ruby-code-with-oprofile/</id>
+    <link rel="alternate" type="text/html" href="http://rubini.us/2013/03/20/profiling-jitted-ruby-code-with-oprofile/" />
+    <updated>2013-03-20T00:00:00+00:00</updated>
+    <author>
+      <name>Ryo Onodera</name>
+    </author>
+    
+    <content type="html">&lt;p&gt;You can now profile JIT-ted Ruby code!&lt;/p&gt;
+
+&lt;p&gt;Before:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;samples  %        linenr info                 app name                 symbol name
+497      28.7117  instructions.cpp:82         rbx                      rubinius::MachineCode::interpreter(rubinius::State*, rubinius::MachineCode*, rubinius::InterpreterCallFrame*)
+460      26.5742  (no location information)   anon (tgid:4118 range:0xb581c000-0xb589c000) anon (tgid:4118 range:0xb581c000-0xb589c000)
+  # =&amp;gt; The dark world of JIT-ted Ruby code
+158       9.1277  jit_util.cpp:787            rbx                      rbx_set_local_depth
+113       6.5280  block_environment.cpp:365   rbx                      rubinius::BlockEnvironment::call(rubinius::State*, rubinius::CallFrame*, rubinius::Arguments&amp;amp;, int)
+102       5.8925  (no location information)   rbx                      __x86.get_pc_thunk.bx
+93        5.3726  jit_util.cpp:848            rbx                      rbx_push_local_depth
+71        4.1017  variable_scope.cpp:108      rbx                      rubinius::VariableScope::set_local(int, rubinius::Object*)
+68        3.9284  block_environment.cpp:62    rbx                      rubinius::BlockEnvironment::invoke(rubinius::State*, rubinius::CallFrame*, rubinius::BlockEnvironment*, rubinius::Arguments&amp;amp;, rubinius::BlockInvocation&amp;amp;)
+52        3.0040  variable_scope.cpp:126      rbx                      rubinius::VariableScope::get_local(int)
+47        2.7152  variable_scope.cpp:100      rbx                      rubinius::VariableScope::set_local(rubinius::State*, int, rubinius::Object*)
+45        2.5997  kind_of.hpp:153             rbx                      bool rubinius::kind_of&amp;lt;rubinius::Fiber&amp;gt;(rubinius::Object const*)
+24        1.3865  shared_state.cpp:295        rbx                      rubinius::SharedState::checkpoint(rubinius::ManagedThread*)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;After:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;samples  %        linenr info                 app name                 symbol name
+3468     27.0388  instructions.cpp:82         rbx                      rubinius::MachineCode::interpreter(rubinius::State*, rubinius::MachineCode*, rubinius::InterpreterCallFrame*)
+3048     23.7642  loop.rb:7                   5060.jo                  _X_Object#forever$block@1
+  # =&amp;gt; Wow, the name of JIT-ted Ruby code is shown along side C++ function symbols!
+1044      8.1397  jit_util.cpp:848            rbx                      rbx_push_local_depth
+947       7.3834  (no location information)   rbx                      __x86.get_pc_thunk.bx
+916       7.1417  jit_util.cpp:787            rbx                      rbx_set_local_depth
+781       6.0892  block_environment.cpp:365   rbx                      rubinius::BlockEnvironment::call(rubinius::State*, rubinius::CallFrame*, rubinius::Arguments&amp;amp;, int)
+639       4.9821  block_environment.cpp:62    rbx                      rubinius::BlockEnvironment::invoke(rubinius::State*, rubinius::CallFrame*, rubinius::BlockEnvironment*, rubinius::Arguments&amp;amp;, rubinius::BlockInvocation&amp;amp;)
+421       3.2824  variable_scope.cpp:108      rbx                      rubinius::VariableScope::set_local(int, rubinius::Object*)
+389       3.0329  variable_scope.cpp:126      rbx                      rubinius::VariableScope::get_local(int)
+326       2.5417  variable_scope.cpp:100      rbx                      rubinius::VariableScope::set_local(rubinius::State*, int, rubinius::Object*)
+288       2.2454  shared_state.cpp:295        rbx                      rubinius::SharedState::checkpoint(rubinius::ManagedThread*)
+283       2.2065  kind_of.hpp:153             rbx                      bool rubinius::kind_of&amp;lt;rubinius::Fiber&amp;gt;(rubinius::Object const*)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;In short, you can tell how the machine code that the Rubinius JIT generates
+performs.&lt;/p&gt;
+
+&lt;p&gt;Not satisfied yet? Even annotated profile is supported! That means you can even
+know how much time it spends on each line of Ruby code or even on each CPU
+instruction:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;/* 
+ * Total samples for file : &quot;/tmp/loop.rb&quot;
+ * 
+ *   5658 19.9436
+ */
+
+
+   718  2.5308 :def increment(i)
+   482  1.6990 :  i + 1
+               :end
+               :
+               :def forever
+               :  i = 0
+  2933 10.3384 :  loop do /* _X_Object#forever$block@1 total:   6990 24.6387 */
+  1525  5.3754 :    i = increment(i)
+               :  end
+               :end
+               :
+               :forever
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;We&amp;rsquo;re using &lt;a href=&quot;http://oprofile.sourceforge.net/news/&quot;&gt;OProfile&lt;/a&gt;, a profiling
+software. In this blog post, I&amp;rsquo;ll show you how to profile using it!&lt;/p&gt;
+
+&lt;h3 id=&quot;whats-oprofile&quot;&gt;What&amp;rsquo;s OProfile?&lt;/h3&gt;
+
+&lt;p&gt;It&amp;rsquo;s a very useful profiling tool available on Linux. It&amp;rsquo;s a sampling-based
+one. That means there is absolutely no change to Rubinius and your Ruby code to
+profile. Just run it as you normally do. Also, the overhead of profiling is
+minimal.&lt;/p&gt;
+
+&lt;p&gt;This is contrasted to measuring-based profiling. Rubinius&amp;rsquo;s built-in profiler
+and ruby-prof are both examples of measuring profilers. This means the overhead
+is much bigger and can skew results because of that.&lt;/p&gt;
+
+&lt;p&gt;Basically, it works by reporting how many individual profiled items are sampled
+compared to the overall total samples. It doesn&amp;rsquo;t measure elapsed time. It&amp;rsquo;s
+much like top command&amp;rsquo;s individual processes&amp;rsquo; CPU % usage with far greater
+flexibility. The actual profiled items can be any of C/C++ libraries, C/C++
+functions, C/C++ source code lines, or CPU instructions.&lt;/p&gt;
+
+&lt;p&gt;So, OProfile can&amp;rsquo;t usually profile Ruby code because it works on CPU
+instruction level. From OProfile, it can&amp;rsquo;t tell which Ruby source code line
+Rubinius currently executing from the CPU instructions. However, it can profile
+JIT-ted Ruby code because Rubinius compiles it very down into the CPU
+instructions by definition.&lt;/p&gt;
+
+&lt;p&gt;OProfile works as a Linux kernel module. So, it&amp;rsquo;s supported only for Linux.
+Sadly, Ubuntu&amp;rsquo;s OProfile and LLVM have bugs relating to this feature.
+Apparently, there is no one using this. So you can say, we are really on the
+cutting edge. ;)&lt;/p&gt;
+
+&lt;p&gt;Anyway, we must work around these problems. But how? There are a few options.
+:)&lt;/p&gt;
+
+&lt;h3 id=&quot;setup-ppa-the-super-simple-way-ubuntu-1210-only&quot;&gt;Setup (PPA: the super simple way; Ubuntu 12.10 only)&lt;/h3&gt;
+
+&lt;p&gt;I prepared a &lt;a href=&quot;https://launchpad.net/~ryoqun/+archive/ppa&quot;&gt;PPA&lt;/a&gt; just for you.
+Add it to your system. To be specific, run this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ sudo add-apt-repository ppa:ryoqun/ppa
+$ sudo apt-get update
+$ sudo apt-get install oprofile llvm-3.1
+$ sudo apt-get dist-upgrade # Upgrade preinstalled libllvm3.1 to the PPA
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;By default, Rubinius doesn&amp;rsquo;t use system-provided LLVM, so re-configure Rubinius
+to use it and re-build Rubinius:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ cd /path/to/rubinius-git-repository
+$ rake clean
+$ ./configure --llvm-config llvm-config-3.1
+$ rake
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Done!&lt;/p&gt;
+
+&lt;h3 id=&quot;setup-manual-build-the-hard-way&quot;&gt;Setup (manual build: the hard way)&lt;/h3&gt;
+
+&lt;p&gt;If you really want to build LLVM and OProfile manually or if you&amp;rsquo;re using an
+other Linux distribution and the distribution doesn&amp;rsquo;t provide OProfile-enabled
+ LLVM packages, manually build LLVM and OProfile like this:&lt;/p&gt;
+
+&lt;p&gt;(I tested this on Ubuntu 12.10. Minor adjustments may be needed to build on
+your environment)&lt;/p&gt;
+
+&lt;p&gt;Build and Install OProfile:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ sudo apt-get build-dep oprofile # do equivalent thing on your distro.
+$ cd /path/to/working-dir-to-build-things
+$ wget http://prdownloads.sourceforge.net/oprofile/oprofile-0.9.8.tar.gz
+$ tar -xf oprofile-0.9.8.tar.gz
+$ cd oprofile-0.9.8
+$ ./autogen.sh
+$ ./configure --prefix /usr # LLVM has a build issue. So install to /usr
+$ make
+$ sudo make install
+$ adduser oprofile # this is needed for profiling JITted code
+$ opreport --version
+  # =&amp;gt; opreport: oprofile 0.9.8 compiled on Mar  8 2013 00:57:08
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Build LLVM with OProfile support enabled and rebuild Rubinius:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ sudo apt-get build-dep llvm # do equivalent thing on your distro.
+$ cd /path/to/working-dir-to-build-things
+$ wget http://llvm.org/releases/3.2/llvm-3.2.src.tar.gz
+$ tar -xf llvm-3.2.src.tar.gz
+$ cd llvm-3.2.src
+$ ./configure --enable-optimized --disable-assertions --with-oprofile
+$ make
+$ sudo make install
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;If the compilation of &lt;code&gt;OProfileWrapper.cpp&lt;/code&gt; fails like this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;OProfileWrapper.cpp: In member function ‘bool llvm::OProfileWrapper::checkForOProfileProcEntry()’:
+OProfileWrapper.cpp:141:62: error: ‘read’ was not declared in this scope
+OProfileWrapper.cpp:142:24: error: ‘close’ was not declared in this scope
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Apply this patch, then, re-&lt;code&gt;make&lt;/code&gt; and continue:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;diff --git a/lib/ExecutionEngine/OProfileJIT/OProfileWrapper.cpp b/lib/ExecutionEngine/OProfileJIT/OProfileWrapper.cpp
+index d67f537..7c0d395 100644
+--- a/llvm-3.1-3.1/lib/ExecutionEngine/OProfileJIT/OProfileWrapper.cpp
++++ b/llvm-3.1-3.1/lib/ExecutionEngine/OProfileJIT/OProfileWrapper.cpp
+@@ -29,6 +29,7 @@
+ #include &amp;lt;dirent.h&amp;gt;
+ #include &amp;lt;sys/stat.h&amp;gt;
+ #include &amp;lt;fcntl.h&amp;gt;
++#include &amp;lt;unistd.h&amp;gt;
+ 
+ namespace {
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Phew, finally rebuild Rubinius!:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ cd /path/to/rubinius-git-repository
+$ rake clean
+$ rm -rf vendor/llvm # If you build Rubinius with vendorized LLVM.
+$ ./configure
+$ rake
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&quot;start-oprofile&quot;&gt;Start OProfile&lt;/h3&gt;
+
+&lt;p&gt;OProfile can be configured by a command called &lt;code&gt;opcontrol&lt;/code&gt;, not by a
+configuration file, which are common.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ sudo opcontrol --deinit
+$ sudo modprobe oprofile timer=1      # Needed only inside VirtualBox VMs
+$ echo 0 | sudo tee /proc/sys/kernel/nmi_watchdog
+$ sudo opcontrol --no-vmlinux
+$ sudo opcontrol --separete all
+$ sudo opcontrol --start
+$ sudo opcontrol --dump               # Flushes buffered raw profile data
+$ opreport --merge all --threshold 1  # Prints the report of profile
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Setup is complete if you see an output from &lt;code&gt;opreport&lt;/code&gt; like this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;CPU: CPU with timer interrupt, speed 1858.39 MHz (estimated)
+Profiling through timer interrupt
+          TIMER:0|
+  samples|      %|
+------------------
+    92127 67.6157 no-vmlinux
+    21920 16.0880 rbx
+     7950  5.8348 libc-2.15.so
+     4068  2.9857 runner
+     3429  2.5167 libstdc++.so.6.0.17
+     2139  1.5699 cc1
+     1416  1.0393 vm
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Congratulations!&lt;/p&gt;
+
+&lt;h3 id=&quot;run-ruby-code&quot;&gt;Run Ruby code!&lt;/h3&gt;
+
+&lt;p&gt;To annotate Ruby code correctly, your current directory must be the top
+directory of the Rubinius git repository:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ cd /path/to/rubinius-git-repository
+$ ./bin/benchmark ./benchmark/core/hash/bench_access.rb
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&quot;generate-profile-report&quot;&gt;Generate profile report&lt;/h3&gt;
+
+&lt;p&gt;Let&amp;rsquo;s check the profile report of the above benchmark.&lt;/p&gt;
+
+&lt;p&gt;NOTE: try to run &lt;code&gt;opcontrol --dump&lt;/code&gt; at least once while running Rubinius if
+JIT-ted Ruby code doesn&amp;rsquo;t show in the profile report. OProfile automatically
+dumps periodically, but if your Ruby process terminates too quickly, you
+should manually run &lt;code&gt;opcontrol --dump&lt;/code&gt; while it&amp;rsquo;s still alive.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ sudo opcontrol --dump &amp;amp;&amp;amp; sudo opjitconv /var/lib/oprofile/ 0 0
+$ opreport --merge all --threshold 1 image:./bin/rbx --symbols --debug-info \
+    &amp;gt; /tmp/hash-access-symbols
+$ opannotate --merge all --threshold 0.5 image:./bin/rbx --source \
+    &amp;gt; /tmp/hash-access-source
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;I&amp;rsquo;ll omit but you can generate profile report of annotated assembly by passing
+&lt;code&gt;--assembly&lt;/code&gt; to &lt;code&gt;opannotate&lt;/code&gt; instead of &lt;code&gt;--source&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;reset-current-profile&quot;&gt;Reset current profile&lt;/h3&gt;
+
+&lt;p&gt;By default, OProfile keeps the profile data indefinitely. To reset it, run
+this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ sudo opcontrol --reset
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&quot;how-to-read-the-profile-result&quot;&gt;How to read the profile result&lt;/h3&gt;
+
+&lt;p&gt;Open &lt;code&gt;/tmp/hash-access-symbols&lt;/code&gt;, the content should be like this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;CPU: CPU with timer interrupt, speed 1860.42 MHz (estimated)
+Profiling through timer interrupt
+samples  %        linenr info                 app name                 symbol name
+3571     31.5990  (no location information)   no-vmlinux               /no-vmlinux
+619       5.4774  bench_access.rb:16          8295.jo                  _X_Object#__block__$block@7
+599       5.3004  bench_access.rb:24          8295.jo                  _X_Object#__block__$block@11
+531       4.6987  bench_access.rb:8           8295.jo                  _X_Object#__block__$block@1
+457       4.0439  (no location information)   rbx                      __x86.get_pc_thunk.bx
+318       2.8139  jit_util.cpp:787            rbx                      rbx_set_local_depth
+298       2.6369  bench_access.rb:42          8295.jo                  _X_Object#__block__$block@20
+277       2.4511  object.cpp:362              rbx                      rubinius::Object::hash(rubinius::State*)
+236       2.0883  jit_primitives.cpp:4494     rbx                      jit_stub_object_hash
+236       2.0883  tuple.cpp:36                rbx                      rubinius::Tuple::put(rubinius::State*, int, rubinius::Object*)
+222       1.9644  inline_cache.cpp:696        rbx                      rubinius::InlineCache::check_cache_poly(rubinius::State*, rubinius::InlineCache*, rubinius::CallFrame*, rubinius::Arguments&amp;amp;)
+197       1.7432  jit_util.cpp:848            rbx                      rbx_push_local_depth
+187       1.6547  variable_scope.cpp:126      rbx                      rubinius::VariableScope::get_local(int)
+179       1.5839  compiledcode.cpp:212        rbx                      rubinius::CompiledCode::specialized_executor(rubinius::State*, rubinius::CallFrame*, rubinius::Executable*, rubinius::Module*, rubinius::Arguments&amp;amp;)
+162       1.4335  hash.rb:220                 8295.jo                  _X_Hash#key_index@15
+147       1.3008  hash.rb:325                 8295.jo                  _X_Hash#values_at$block@13
+143       1.2654  object.cpp:400              rbx                      rubinius::Object::hash_prim(rubinius::State*)
+137       1.2123  (no location information)   libc-2.15.so             /lib/i386-linux-gnu/libc-2.15.so
+127       1.1238  variable_scope.cpp:100      rbx                      rubinius::VariableScope::set_local(rubinius::State*, int, rubinius::Object*)
+111       0.9822  inline_cache.cpp:576        rbx                      rubinius::InlineCache::check_cache_reference(rubinius::State*, rubinius::InlineCache*, rubinius::CallFrame*, rubinius::Arguments&amp;amp;)
+108       0.9557  vm.cpp:175                  rbx                      rubinius::VM::new_object_typed_dirty(rubinius::Class*, unsigned int, rubinius::object_type)
+99        0.8760  vm.cpp:207                  rbx                      rubinius::VM::new_young_tuple_dirty(unsigned int)
+97        0.8583  array18.rb:6                8295.jo                  _X_Array#map@12
+93        0.8229  integer.cpp:84              rbx                      rubinius::Integer::from(rubinius::State*, int)
+90        0.7964  hash.rb:137                 8295.jo                  _X_Hash#[]@23
+76        0.6725  array.cpp:205               rbx                      rubinius::Array::set(rubinius::State*, int, rubinius::Object*)
+72        0.6371  linkedlist.cpp:27           rbx                      LinkedList::remove(LinkedList::Node*)
+68        0.6017  tuple.cpp:64                rbx                      rubinius::Tuple::create(rubinius::State*, int)
+57        0.5044  method_primitives.cpp:12327 rbx                      rubinius::Primitives::object_hash(rubinius::State*, rubinius::CallFrame*, rubinius::Executable*, rubinius::Module*, rubinius::Arguments&amp;amp;)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;As you can guess, symbol names beginning with &lt;code&gt;_X_&lt;/code&gt; is the JIT-ted Ruby code.
+Many Ruby benchmark blocks are JIT-ted (like
+&lt;code&gt;_X_Object#__block__$block@7&lt;/code&gt; at &lt;code&gt;bench_access.rb:16&lt;/code&gt;) and listed near the top.
+Also, &lt;code&gt;_X_Array#map@12&lt;/code&gt; is a JIT-ted code of &lt;code&gt;Array#map&lt;/code&gt;. I&amp;rsquo;ll explain the
+format of the report using it as an example:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;97        0.8583  array18.rb:6                8295.jo                  _X_Array#map@12
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;97&lt;/code&gt; is the number of counts OProfile found what Rubinius was executing, while
+periodically sampling it.&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;0.8583&lt;/code&gt; is the percentage to the total number of samples OProfile collected.
+Note that summing all entries up doesn&amp;rsquo;t equal to 100%, because &lt;code&gt;opreport&lt;/code&gt; only
+reported the top part of whole profile result (by &lt;code&gt;--threshold 0.5&lt;/code&gt;).&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://github.com/rubinius/rubinius/blob/1d7d7b2e2880478776476089d4dd93fd97aff122/kernel/bootstrap/array18.rb#L6&quot;&gt;&lt;code&gt;array18.rb:6&lt;/code&gt;&lt;/a&gt;
+is the source location where this method is defined (this is same as
+&lt;code&gt;Method#source_location&lt;/code&gt;).&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;8295.jo&lt;/code&gt; is a special &lt;code&gt;app name&lt;/code&gt; for JIT-ted code. Usually &lt;code&gt;app name&lt;/code&gt; is the
+name of file C/C++ functions reside in (shared libraries or executables).
+So, for normal Rubinius&amp;rsquo; C++ functions, &lt;code&gt;app name&lt;/code&gt; is just &lt;code&gt;rbx&lt;/code&gt; because they
+reside in &lt;code&gt;./bin/rbx&lt;/code&gt;. For JIT-ted Ruby code, there can be no meaningful &lt;code&gt;app
+name&lt;/code&gt;, because JIT-ted Ruby code is generated at runtime and they reside in no
+file, but only in memory. So, OProfile uses &lt;code&gt;*.jo&lt;/code&gt; as &lt;code&gt;app name&lt;/code&gt; in such cases.
+And, &lt;code&gt;8295&lt;/code&gt; means this is profiled when running the process of PID 8295.&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;_X_Array#map@12&lt;/code&gt; is the name of symbol for this entry of profile report
+(duh!).&lt;/p&gt;
+
+&lt;p&gt;Open &lt;code&gt;/tmp/hash-access-source&lt;/code&gt;, the content should be like this (I&amp;rsquo;ll omit some
+unimportant part, because this file is big):&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;/* 
+ * Total samples for file : &quot;kernel/common/hash18.rb&quot;
+ * 
+ *   4870 12.8904
+ */
+
+&amp;lt;credited to line zero&amp;gt;     19  0.0503 :
+               :# -*- encoding: us-ascii -*-
+               :
+               :class Hash
+               :
+               :  include Enumerable
+               :
+...
+               :
+               :  class Bucket
+               :    attr_accessor :key
+               :
+   633  1.6755 :    def match?(key, key_hash) /* _X_Hash::Bucket#match?@16     75  0.1985, _X_Hash::Bucket#match?@16     45  0.1191, total:    120  0.3176 */
+    40  0.1059 :      case key
+   218  0.5770 :      when Symbol, Fixnum
+   319  0.8444 :        return key.equal?(@key)
+               :      end
+               :
+               :      @key_hash == key_hash and (Rubinius::Type::object_equal(key, @key) or key.eql?(@key))
+               :    end
+               :  end
+...
+               :end
+...
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;You might wonder why &lt;code&gt;Hash::Bucket#match?&lt;/code&gt; has so many counts while this didn&amp;rsquo;t
+appear in the report for symbols. The reason is that the method is inlined to
+each its callers (maybe many top-appearing JIT-ted Ruby blocks). How cool this
+is! You can really know which Ruby code is actually taking too much time.&lt;/p&gt;
+
+&lt;h3 id=&quot;my-last-favor&quot;&gt;My last favor&lt;/h3&gt;
+
+&lt;p&gt;I wish the official Ubuntu packages are fixed and there is no need to add any
+PPA. I want it-just-works. I reported affecting bugs to Ubuntu&amp;rsquo;s bug tracking
+system. So, please vote it up for fixing (vote them with &amp;ldquo;affects you?&amp;rdquo;,
+please!!):&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://launchpad.net/bugs/1154025&quot;&gt;Bug 1154025&lt;/a&gt; Install PIC version of libbfd.a&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://launchpad.net/bugs/1148682&quot;&gt;Bug 1148682&lt;/a&gt; symbol lookup error: /usr/lib/libopagent.so: undefined symbol: bfd_init&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://launchpad.net/bugs/1148529&quot;&gt;Bug 1148529&lt;/a&gt; OProfile support is disabled&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;further-profiling&quot;&gt;Further profiling&lt;/h3&gt;
+
+&lt;p&gt;There is new profiling tool on Linux: &lt;code&gt;perf&lt;/code&gt; and &lt;code&gt;operf&lt;/code&gt; (OProfile&amp;rsquo;s new
+command). I don&amp;rsquo;t know them well, but certainly they will be useful for
+profiling Rubinius.&lt;/p&gt;
+
+&lt;p&gt;As a last note, this is partially based on &lt;a href=&quot;http://code.google.com/p/unladen-swallow/wiki/UsingOProfile&quot;&gt;Unladen Swallow&amp;rsquo;s
+information&lt;/a&gt;
+of profiling LLVM-based JIT-ted code by OProfile.&lt;/p&gt;
+
+&lt;p&gt;Happy profiling!&lt;/p&gt;
+</content>
+  </entry>
+  
+  <entry>
     <title>PDX Summit Recap</title>
     <id>http://rubini.us/2013/03/19/pdx-summit-recap/</id>
     <link rel="alternate" type="text/html" href="http://rubini.us/2013/03/19/pdx-summit-recap/" />
@@ -198,7 +602,7 @@ challenges. Let&amp;rsquo;s consider some of the components of Rubinius:&lt;/p&g
 
 &lt;ul&gt;
   &lt;li&gt;Ruby language itself in one of three language modes: 1.8, 1.9, and 2.0&lt;/li&gt;
-  &lt;li&gt;Ruby core classes &lt;/li&gt;
+  &lt;li&gt;Ruby core classes&lt;/li&gt;
   &lt;li&gt;Ruby standard library&lt;/li&gt;
   &lt;li&gt;MRI compatibility &amp;ldquo;C-API&amp;rdquo; for supporting C-extensions&lt;/li&gt;
   &lt;li&gt;Supporting core classes like ByteArray and Tuple&lt;/li&gt;
