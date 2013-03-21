@@ -33,6 +33,9 @@ def compile_extension(name)
   elsif RUBY_NAME == 'jruby'
     require 'mkmf'
     hdrdir = $hdrdir
+  elsif RUBY_NAME == "maglev"
+    require 'mkmf'
+    hdrdir = $hdrdir
   else
     raise "Don't know how to build C extensions with #{RUBY_NAME}"
   end

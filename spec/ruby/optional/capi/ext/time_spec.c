@@ -46,7 +46,7 @@ void Init_time_spec() {
   rb_define_method(cls, "TIMET2NUM", time_spec_TIMET2NUM, 0);
 #endif
 
-#ifdef HAVE_TIMET2NUM
+#ifdef HAVE_RB_TIME_NANO_NEW
   rb_define_method(cls, "rb_time_nano_new", time_spec_rb_time_nano_new, 2);
 #endif
 }

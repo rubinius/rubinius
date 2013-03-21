@@ -67,14 +67,12 @@ describe :array_inspect, :shared => true do
       result.should == "[euc_jp, utf_8]".encode(Encoding::EUC_JP)
     end
 
-    ruby_bug "5848", "2.0" do
-      it "copies the ASCII-incompatible encoding of the result of inspecting the first element" do
+    ruby_version_is "2.0" do
+      it "raises if inspected result is not default external encoding" do
         utf_16be = mock("utf_16be")
         utf_16be.should_receive(:inspect).and_return("utf_16be".encode!(Encoding::UTF_16BE))
 
-        result = [utf_16be].send(@method)
-        result.encoding.should == Encoding::UTF_16BE
-        result.should == "[utf_16be]".encode(Encoding::UTF_16BE)
+        lambda { [utf_16be].send(@method) }.should raise_error(Encoding::CompatibilityError)
       end
     end
 

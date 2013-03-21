@@ -347,7 +347,7 @@ void Init_array_spec() {
   rb_define_method(cls, "rb_ary_join", array_spec_rb_ary_join, 2);
 #endif
 
-#ifdef HAVE_RB_ARY_JOIN
+#ifdef HAVE_RB_ARY_TO_S
   rb_define_method(cls, "rb_ary_to_s", array_spec_rb_ary_to_s, 1);
 #endif
 
