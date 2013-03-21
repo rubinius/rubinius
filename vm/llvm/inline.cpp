@@ -527,8 +527,10 @@ remember:
           ops_.constant(acc->name())
         };
 
-        ivar = sig2.call("rbx_push_ivar", call_args2, 3, "ivar",
-            ops_.b());
+        CallInst* ivar_call = sig2.call("rbx_push_ivar", call_args2, 3, "ivar", ops_.b());
+        ivar_call->setOnlyReadsMemory();
+        ivar_call->setDoesNotThrow();
+        ivar = ivar_call;
       }
     }
 

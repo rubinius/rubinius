@@ -3521,7 +3521,9 @@ use_send:
         constant(as<Symbol>(literal(which)))
       };
 
-      Value* val = sig.call("rbx_push_ivar", call_args, 3, "ivar", b());
+      CallInst* val = sig.call("rbx_push_ivar", call_args, 3, "ivar", b());
+      val->setOnlyReadsMemory();
+      val->setDoesNotThrow();
       // TODO: why would rbx_push_ivar raise an exception?
       // check_for_exception(val);
       stack_push(val);
