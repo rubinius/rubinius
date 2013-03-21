@@ -623,6 +623,7 @@ remember:
     info.set_creator_info(creator_info_);
     info.set_block_info(block_info_);
     info.self_type = ops_.info().self_type;
+    info.set_self_class(creator_info_->self_class());
 
     jit::RuntimeData* rd = new jit::RuntimeData(ib->method(), nil<Symbol>(), nil<Module>());
     ctx_->add_runtime_data(rd);
