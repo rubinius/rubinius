@@ -47,20 +47,19 @@ module Kernel
   module_function :loop
 
   def rand(limit=0)
-    if limit.kind_of?(Range)
-      Thread.current.randomizer.random_range(limit)
-    else
-      unless limit == 0
-        limit = Integer(limit).abs
-      end
+    if limit == 0
+      return Thread.current.randomizer.random_float
+    end
 
-      case limit
-      when 0
+    if limit.kind_of?(Range)
+      return Thread.current.randomizer.random_range(limit)
+    else
+      limit = Integer(limit).abs
+
+      if limit == 0
         Thread.current.randomizer.random_float
-      when Integer
-        Thread.current.randomizer.random_integer(limit - 1)
       else
-        raise TypeError, "Integer() returned a non-integer"
+        Thread.current.randomizer.random_integer(limit - 1)
       end
     end
   end
