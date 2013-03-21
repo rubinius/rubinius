@@ -33,7 +33,7 @@ namespace rubinius {
     Tuple* lines_;              // slot
     Tuple* local_names_;        // slot
     Symbol* file_;              // slot
-    ConstantScope* scope_;        // slot
+    ConstantScope* scope_;      // slot
     LookupTable* breakpoints_;  // slot
 
     MachineCode* machine_code_;
