@@ -294,7 +294,8 @@ namespace rubinius {
         current_compiler_ = &jit;
 
         int spec_id = 0;
-        if(Class* cls = req->receiver_class()) {
+        Class* cls = req->receiver_class();
+        if(cls && !cls->nil_p()) {
           spec_id = cls->class_id();
         }
 
@@ -407,8 +408,12 @@ halt:
           req->set_method(force_as<CompiledCode>(obj));
         }
 
-        if(Object* obj = gc->saw_object(req->extra())) {
-          req->set_extra(obj);
+        if(Class* receiver_class = req->receiver_class()) {
+          req->set_receiver_class(as<Class>(gc->saw_object(receiver_class)));
+        }
+
+        if(BlockEnvironment* block_env = req->block_env()) {
+          req->set_block_env(as<BlockEnvironment>(gc->saw_object(block_env)));
         }
       }
 
@@ -560,7 +565,7 @@ halt:
   }
 
   void LLVMState::compile_soon(STATE, GCToken gct, CompiledCode* code, CallFrame* call_frame,
-                               Object* placement, bool is_block)
+                               Class* receiver_class, BlockEnvironment* block_env, bool is_block)
   {
     bool wait = config().jit_sync;
 
@@ -576,7 +581,7 @@ halt:
     code->machine_code()->set_compiling();
 
     BackgroundCompileRequest* req =
-      new BackgroundCompileRequest(state, code, placement, hits, is_block);
+      new BackgroundCompileRequest(state, code, receiver_class, hits, block_env, is_block);
 
     queued_methods_++;
 
@@ -665,12 +670,14 @@ halt:
     }
 
     if(candidate->block_p()) {
-      compile_soon(state, gct, candidate->compiled_code, call_frame, candidate->block_env(), true);
+      compile_soon(state, gct, candidate->compiled_code, call_frame,
+                   candidate->self()->lookup_begin(state), candidate->block_env(), true);
     } else {
       if(candidate->compiled_code->can_specialize_p()) {
-        compile_soon(state, gct, candidate->compiled_code, call_frame, candidate->self()->lookup_begin(state));
+        compile_soon(state, gct, candidate->compiled_code, call_frame,
+                     candidate->self()->lookup_begin(state));
       } else {
-        compile_soon(state, gct, candidate->compiled_code, call_frame, cNil);
+        compile_soon(state, gct, candidate->compiled_code, call_frame, NULL);
       }
     }
   }

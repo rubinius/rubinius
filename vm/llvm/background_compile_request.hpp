@@ -14,6 +14,8 @@ namespace rubinius {
 
   class BackgroundCompileRequest {
     CompiledCode* method_;
+    Class* receiver_class_;
+    BlockEnvironment* block_env_;
     Object* extra_;
 
     utilities::thread::Condition* waiter_;
@@ -21,9 +23,11 @@ namespace rubinius {
     bool is_block_;
 
   public:
-    BackgroundCompileRequest(STATE, CompiledCode* code, Object* extra, int hits, bool is_block=false)
+    BackgroundCompileRequest(STATE, CompiledCode* code, Class* receiver_class,
+                             int hits, BlockEnvironment* block_env = NULL, bool is_block=false)
       : method_(code)
-      , extra_(extra)
+      , receiver_class_(receiver_class)
+      , block_env_(block_env)
       , waiter_(0)
       , hits_(hits)
       , is_block_(is_block)
@@ -38,15 +42,11 @@ namespace rubinius {
     }
 
     BlockEnvironment* block_env() {
-      return try_as<BlockEnvironment>(extra_);
+      return block_env_;
     }
 
     Class* receiver_class() {
-      return try_as<Class>(extra_);
-    }
-
-    Object* extra() {
-      return extra_;
+      return receiver_class_;
     }
 
     bool is_block() {
@@ -69,8 +69,12 @@ namespace rubinius {
       method_ = meth;
     }
 
-    void set_extra(Object* x) {
-      extra_ = x;
+    void set_receiver_class(Class* receiver_class) {
+      receiver_class_ = receiver_class;
+    }
+
+    void set_block_env(BlockEnvironment* block_env) {
+      block_env_ = block_env;
     }
   };
 

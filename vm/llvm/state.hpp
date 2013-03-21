@@ -240,7 +240,7 @@ namespace rubinius {
     void gc_independent();
 
     void compile_soon(STATE, GCToken gct, CompiledCode* code, CallFrame* call_frame,
-                      Object* extra, bool is_block=false);
+                      Class* receiver_class, BlockEnvironment* block_env = NULL, bool is_block=false);
 
     void remove(void* func);
 

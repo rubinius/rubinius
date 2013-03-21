@@ -181,6 +181,10 @@ namespace jit {
     info.is_block = true;
     info.hits = req->hits();
 
+    if(Class* cls = req->receiver_class()) {
+      info.set_self_class(cls);
+    }
+
     ctx_->set_root(&info);
 
     jit::BlockBuilder work(ctx_, info);
