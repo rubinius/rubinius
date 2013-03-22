@@ -11,13 +11,14 @@ namespace rubinius {
 
   JITInlineBlock::JITInlineBlock(Context* ctx,
                    CompiledCode* code, MachineCode* mcode,
-                   JITMethodInfo* scope, int which)
+                   JITMethodInfo* scope, int which, Value* stack_ptr)
       : block_break_result_(NULL)
       , block_break_loc_(NULL)
       , machine_code_(mcode)
       , method_(&ctx->llvm_state()->roots())
       , scope_(scope)
       , which_(which)
+      , stack_ptr_(stack_ptr)
       , created_object_(false)
     {
       method_.set(code);

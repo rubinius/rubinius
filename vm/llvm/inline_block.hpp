@@ -16,11 +16,12 @@ namespace rubinius {
     TypedRoot<CompiledCode*> method_;
     JITMethodInfo* scope_;
     int which_;
+    llvm::Value* stack_ptr_;
     bool created_object_;
 
   public:
     JITInlineBlock(Context* ctx, CompiledCode* code, MachineCode* mcode,
-                   JITMethodInfo* scope, int which);
+                   JITMethodInfo* scope, int which, llvm::Value* stack_ptr);
 
     llvm::PHINode* block_break_result() {
       return block_break_result_;
@@ -68,6 +69,10 @@ namespace rubinius {
 
     void set_created_object() {
       created_object_ = true;
+    }
+
+    llvm::Value* stack_ptr() {
+      return stack_ptr_;
     }
 
     void eraseBlockEmit();

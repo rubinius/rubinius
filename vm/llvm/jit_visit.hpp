@@ -1311,6 +1311,26 @@ namespace rubinius {
     void emit_uncommon() {
       emit_delayed_create_block();
 
+      if(current_block_) {
+        Signature sig(ctx_, ObjType);
+        sig << StateTy;
+        sig << CallFrameTy;
+        sig << ctx_->Int32Ty;
+
+        Value* call_args[] = {
+          state_,
+          call_frame_,
+          cint(current_block_->which())
+        };
+
+        Value* blk = sig.call("rbx_create_block", call_args, 3,
+            "delayed_create_block", b());
+
+        b().CreateStore(
+            blk,
+            current_block_->stack_ptr());
+      }
+
       Value* sp = last_sp_as_int();
 
       flush();
@@ -1674,7 +1694,7 @@ namespace rubinius {
       CompiledCode* block_code = as<CompiledCode>(literal(which));
       MachineCode* code = block_code->machine_code();
 
-      current_block_ = new JITInlineBlock(ctx_, block_code, code, &info(), which);
+      current_block_ = new JITInlineBlock(ctx_, block_code, code, &info(), which, stack_ptr());
       current_block_->set_block_emit_loc(block_emit);
     }
 
@@ -1760,6 +1780,8 @@ namespace rubinius {
             b().CreateBr(cont);
 
             set_block(cont);
+
+            current_block_->eraseBlockEmit();
           } else {
             // Emit both the inlined code and a send for it
 
@@ -1790,8 +1812,6 @@ namespace rubinius {
           }
 
           allow_private_ = false;
-
-          current_block_->eraseBlockEmit();
 
           // Clear the current block
           clear_current_block();
