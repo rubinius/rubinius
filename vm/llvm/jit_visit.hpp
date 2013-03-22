@@ -3462,6 +3462,14 @@ use_send:
     void visit_push_ivar(opcode which) {
       Symbol* name = as<Symbol>(literal(which));
 
+      BasicBlock* failure = new_block("visit_push_ivar_fallback");
+      BasicBlock* cont = new_block("continue");
+
+      // Reserve room on stack for result
+      stack_push(constant(cNil));
+
+      bool handled = false;
+
       if(Class* klass = try_as<Class>(info().self_class())) {
 
         if(llvm_state()->config().jit_inline_debug) {
@@ -3473,12 +3481,14 @@ use_send:
         // Figure out if we should use the table ivar lookup or
         // the slot ivar lookup.
 
+        Value* self = get_self();
+
+        check_reference_class(self, klass->class_id(), failure);
+
         TypeInfo* ti = klass->type_info();
         TypeInfo::Slots::iterator it = ti->slots.find(name->index());
 
         Value* ivar = 0;
-
-        Value* self = get_self();
 
         if(it != ti->slots.end()) {
           int offset = ti->slot_locations[it->second];
@@ -3509,19 +3519,24 @@ use_send:
         }
 
         if(ivar) {
-          stack_push(ivar);
+          stack_set_top(ivar);
 
           if(llvm_state()->config().jit_inline_debug) {
             ctx_->log() << "\n";
           }
 
-          return;
+          handled = true;
+          create_branch(cont);
         } else {
           if(llvm_state()->config().jit_inline_debug) {
             ctx_->log() << " (abort, using slow lookup)\n";
           }
         }
       }
+
+      if(!handled) create_branch(failure);
+
+      set_block(failure);
 
       if(llvm_state()->config().jit_inline_debug) {
         ctx_->inline_log("slow ivar read")
@@ -3545,15 +3560,20 @@ use_send:
       CallInst* val = sig.call("rbx_push_ivar", call_args, 3, "ivar", b());
       val->setOnlyReadsMemory();
       val->setDoesNotThrow();
-      // TODO: why would rbx_push_ivar raise an exception?
-      // check_for_exception(val);
-      stack_push(val);
+      stack_set_top(val);
+
+      create_branch(cont);
+      set_block(cont);
     }
 
     void visit_set_ivar(opcode which) {
       Value* self = get_self();
       Value* ivar = stack_top();
       Symbol* name = as<Symbol>(literal(which));
+      bool handled = false;
+
+      BasicBlock* failure = new_block("visit_push_ivar_fallback");
+      BasicBlock* cont = new_block("continue");
 
       set_has_side_effects();
       if(Class* klass = try_as<Class>(info().self_class())) {
@@ -3566,6 +3586,8 @@ use_send:
         TypeInfo* ti = klass->type_info();
         TypeInfo::Slots::iterator it = ti->slots.find(name->index());
 
+        check_reference_class(self, klass->class_id(), failure);
+
         if(it != ti->slots.end()) {
           int field = it->second;
           int offset = ti->slot_locations[field];
@@ -3574,23 +3596,26 @@ use_send:
             ctx_->log() << " (slot: " << it->second << ")\n";
           }
 
-          return;
-        }
-        LookupTable* pii = klass->packed_ivar_info();
-        if(!pii->nil_p()) {
-          bool found = false;
+          handled = true;
+          create_branch(cont);
+        } else {
+          LookupTable* pii = klass->packed_ivar_info();
+          if(!pii->nil_p()) {
+            bool found = false;
 
-          Fixnum* which = try_as<Fixnum>(pii->fetch(0, name, &found));
-          if(found) {
-            int index = which->to_native();
-            int offset = sizeof(Object) + (sizeof(Object*) * index);
+            Fixnum* which = try_as<Fixnum>(pii->fetch(0, name, &found));
+            if(found) {
+              int index = which->to_native();
+              int offset = sizeof(Object) + (sizeof(Object*) * index);
 
-            set_object_slot(self, offset, ivar);
+              set_object_slot(self, offset, ivar);
 
-            if(llvm_state()->config().jit_inline_debug) {
-              ctx_->log() << " (packed index: " << index << ", " << offset << ")\n";
+              if(llvm_state()->config().jit_inline_debug) {
+                ctx_->log() << " (packed index: " << index << ", " << offset << ")\n";
+              }
+              handled = true;
+              create_branch(cont);
             }
-            return;
           }
         }
 
@@ -3599,11 +3624,14 @@ use_send:
         }
       }
 
+      if(!handled) create_branch(failure);
+
       if(llvm_state()->config().jit_inline_debug) {
         ctx_->inline_log("slow ivar write")
           << llvm_state()->symbol_debug_str(name) << "\n";
       }
 
+      set_block(failure);
 
       Signature sig(ctx_, ObjType);
 
@@ -3623,6 +3651,9 @@ use_send:
 
       Value* ret = sig.call("rbx_set_ivar", call_args, 5, "ivar", b());
       check_for_exception(ret, false);
+
+      create_branch(cont);
+      set_block(cont);
     }
 
     void visit_push_my_field(opcode which) {
