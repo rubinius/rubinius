@@ -38,7 +38,8 @@ module Rubinius
     attr_accessor :flip_flops
 
     def inspect
-      "#<#{self.class.name}:0x#{self.object_id.to_s(16)} parent=#{@parent.inspect} module=#{@module}>"
+      current = " current=#{@current_module}" if @current_module
+      "#<#{self.class.name}:0x#{self.object_id.to_s(16)} parent=#{@parent.inspect} module=#{@module}#{current}>"
     end
 
     def to_s
