@@ -11,13 +11,13 @@ review: true
 ## Introduction
 
 Rubinius implements a [Generational Garbage Collector (GC)][gc].
-The Rubinus Generational GC manages the dynamic allocation and deallocation in
+The Rubinius Generational GC manages the dynamic allocation and deallocation in
 the heap space of a running Rubinius process.
 
 ## Nursery
 
-The first generation in Rubinius's generational GC is the nursery.
-An object's lifcycle begins in the nursery where it is created (allocated).
+The first generation in Rubinius' generational GC is the nursery.
+An object's lifecycle begins in the nursery where it is created (allocated).
 
 Objects live in the nursery until the very next collection. If an object
 is still alive after one GC cycle then it is moved to the Young generation.
@@ -44,7 +44,7 @@ Mature objects are objects that have been promoted from the Young
 generation after living past the promotion threshold 'X'.
 
 Autotune is the mechanism that is used to dynamic adjust the GC cycles before
-mature collection occurrs. This can be turned off or a static number may be used
+mature collection occurs. This can be turned off or a static number may be used
 via gc.lifetime. gc.lifetime is used by autotune which sets the initial value.
 
 For more information on configuration variables available read the
@@ -54,7 +54,7 @@ For more information on configuration variables available read the
 
 Large objects are born in a birthing tank rather than in the nursery.
 
-Any object that exceedes the defined byte size for a large object upon
+Any object that exceeds the defined byte size for a large object upon
 allocation is allocated directly into the large objects space.  This is done to
 avoid copying since copying large objects is an expensive operation.
 
