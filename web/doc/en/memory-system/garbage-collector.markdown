@@ -10,7 +10,7 @@ review: true
 
 ## Introduction
 
-Rubinius implements a [Generational Garbage Collector (GC)](http://en.wikipedia.org/wiki/Garbage_collection_&#40;computer_science&#41;#Generational_GC_.28ephemeral_GC.29).
+Rubinius implements a [Generational Garbage Collector (GC)](http://en.wikipedia.org/wiki/Garbage_collection_(computer_science)#Generational_GC_.28ephemeral_GC.29).
 The Rubinus Generational GC manages the dynamic allocation and deallocation in
 the heap space of a running Rubinius process.
 
