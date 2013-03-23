@@ -70,7 +70,6 @@ class Range
   end
 
   attr_reader :end
-  alias_method :last, :end
 
   def step(step_size=1) # :yields: object
     return to_enum(:step, step_size) unless block_given?

@@ -51,6 +51,10 @@ class Range
     n.equal?(undefined) ? @begin : super
   end
 
+  def last(n=undefined)
+    n.equal?(undefined) ? @end : to_a.last(n)
+  end
+
   def max(&block)
     return super(&block) if block_given? || (@excl && !@end.kind_of?(Numeric))
     return nil if @end < @begin || (@excl && @end == @begin)

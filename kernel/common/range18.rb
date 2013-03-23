@@ -40,6 +40,7 @@ class Range
   end
 
   alias_method :first, :begin
+  alias_method :last, :end
 
   protected
 
