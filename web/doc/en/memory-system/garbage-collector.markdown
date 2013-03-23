@@ -10,7 +10,7 @@ review: true
 
 ## Introduction
 
-Rubinius implements a [Generational Garbage Collector (GC)](http://en.wikipedia.org/wiki/Garbage_collection_(computer_science)#Generational_GC_.28ephemeral_GC.29).
+Rubinius implements a [Generational Garbage Collector (GC)][gc].
 The Rubinus Generational GC manages the dynamic allocation and deallocation in
 the heap space of a running Rubinius process.
 
@@ -65,3 +65,5 @@ object* which by default is 2700 (such a good baud rate eh?) bytes.
 
 For more information on configuration variables available read the
 [vm configuration source file ](https://github.com/rubinius/rubinius/blob/master/vm/configuration.hpp)
+
+[gc]: http://en.wikipedia.org/wiki/Garbage_collection_(computer_science)#Generational_GC_.28ephemeral_GC.29
