@@ -1,1 +1,0 @@
-fails:String#rindex with Regexp reverse matches multibyte UTF-8 chars
