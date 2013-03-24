@@ -75,6 +75,7 @@ module Rubinius
         @required_args == other.required_args and
         @total_args    == other.total_args    and
         @splat         == other.splat         and
+        @block         == other.block         and
         @literals      == other.literals      and
         @file          == other.file          and
         @local_names   == other.local_names
@@ -89,6 +90,24 @@ module Rubinius
         return slot if @local_names[slot] == name
         slot += 1
       end
+    end
+
+    ##
+    # Stores the index of the block argument in the metadata storage.
+    #
+    # @param [Fixnum] position
+    #
+    def block=(position)
+      if position
+        add_metadata(:block_index, position)
+      end
+    end
+
+    ##
+    # @return [Fixnum|NilClass]
+    #
+    def block
+      return get_metadata(:block_index)
     end
 
     ##
@@ -496,7 +515,7 @@ module Rubinius
       p = o + post_args
       p += 1 if splat
 
-      local_names.each_with_index.map do |name, i|
+      params = local_names.each_with_index.map do |name, i|
         if i < m
           [:req, name]
         elsif i < o
@@ -505,10 +524,12 @@ module Rubinius
           [:rest, name]
         elsif i < p
           [:req, name]
-        else
+        elsif block == i
           [:block, name]
         end
       end
+
+      return params.compact
     end
 
     ##

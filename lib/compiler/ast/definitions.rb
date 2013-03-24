@@ -292,12 +292,13 @@ module Rubinius
 
     class FormalArguments < Node
       attr_accessor :names, :required, :optional, :defaults, :splat
-      attr_reader :block_arg
+      attr_reader :block_arg, :block_index
 
       def initialize(line, args, defaults, splat)
         @line = line
         @defaults = nil
         @block_arg = nil
+        @block_index = nil
 
         if defaults
           defaults = DefaultArguments.new line, defaults
@@ -324,6 +325,8 @@ module Rubinius
 
       def block_arg=(node)
         @names << node.name
+
+        @block_index = @names.length - 1
         @block_arg = node
       end
 
@@ -410,6 +413,7 @@ module Rubinius
         @defaults = nil
         @block_arg = nil
         @splat_index = nil
+        @block_index = nil
 
         @required = []
         names = []
@@ -456,6 +460,7 @@ module Rubinius
         if block
           @block_arg = BlockArgument.new line, block
           names << block
+          @block_index = names.length - 1
         end
 
         @splat = splat

@@ -269,7 +269,7 @@ class UnboundMethod
     p = o + @executable.post_args
     p += 1 if @executable.splat
 
-    @executable.local_names.each_with_index.map do |name, i|
+    params = @executable.local_names.each_with_index.map do |name, i|
       if i < m
         [:req, name]
       elsif i < o
@@ -278,10 +278,12 @@ class UnboundMethod
         [:rest, name]
       elsif i < p
         [:req, name]
-      else
+      elsif @executable.block == i
         [:block, name]
       end
     end
+
+    return params.compact
   end
 
   def owner

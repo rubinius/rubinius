@@ -52,6 +52,10 @@ module Rubinius
         @block_env.compiled_code.splat
       end
 
+      def block
+        @block_env.compiled_code.block
+      end
+
       def file
         @block_env.file
       end
