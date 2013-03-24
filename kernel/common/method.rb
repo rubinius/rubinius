@@ -262,28 +262,7 @@ class UnboundMethod
   end
 
   def parameters
-    return [] unless @executable.respond_to? :local_names
-
-    m = @executable.required_args - @executable.post_args
-    o = m + @executable.total_args - @executable.required_args
-    p = o + @executable.post_args
-    p += 1 if @executable.splat
-
-    params = @executable.local_names.each_with_index.map do |name, i|
-      if i < m
-        [:req, name]
-      elsif i < o
-        [:opt, name]
-      elsif @executable.splat == i
-        [:rest, name]
-      elsif i < p
-        [:req, name]
-      elsif @executable.block == i
-        [:block, name]
-      end
-    end
-
-    return params.compact
+    return @executable.respond_to?(:parameters) ? @executable.parameters : []
   end
 
   def owner

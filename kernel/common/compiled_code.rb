@@ -510,26 +510,30 @@ module Rubinius
     ##
     # For Method#parameters
     def parameters
+      params = []
+
+      return params unless respond_to?(:local_names)
+
       m = required_args - post_args
       o = m + total_args - required_args
       p = o + post_args
       p += 1 if splat
 
-      params = local_names.each_with_index.map do |name, i|
+      local_names.each_with_index do |name, i|
         if i < m
-          [:req, name]
+          params << [:req, name]
         elsif i < o
-          [:opt, name]
+          params << [:opt, name]
         elsif splat == i
-          [:rest, name]
+          params << [:rest, name]
         elsif i < p
-          [:req, name]
+          params << [:req, name]
         elsif block == i
-          [:block, name]
+          params << [:block, name]
         end
       end
 
-      return params.compact
+      return params
     end
 
     ##
