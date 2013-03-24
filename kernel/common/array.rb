@@ -373,37 +373,6 @@ class Array
     nil
   end
 
-  def delete(obj)
-    key = undefined
-    i = @start
-    total = i + @total
-    tuple = @tuple
-
-    while i < total
-      if tuple.at(i) == obj
-        # We MUST check frozen here, not at the top, because MRI
-        # requires that #delete not raise unless an element would
-        # be deleted.
-        Rubinius.check_frozen
-        tuple.put i, key
-      end
-      i += 1
-    end
-
-    deleted = @tuple.delete @start, @total, key
-    if deleted > 0
-      @total -= deleted
-      reallocate_shrink()
-      return obj
-    end
-
-    if block_given?
-      yield
-    else
-      nil
-    end
-  end
-
   def delete_at(idx)
     Rubinius.check_frozen
 
