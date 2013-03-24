@@ -235,7 +235,7 @@ namespace rubinius {
     code->required_args(state, reinterpret_cast<Fixnum*>(unmarshal()));
     code->post_args(state, reinterpret_cast<Fixnum*>(unmarshal()));
     code->total_args(state, reinterpret_cast<Fixnum*>(unmarshal()));
-    code->splat(state, unmarshal());
+    code->splat(state, reinterpret_cast<Fixnum*>(unmarshal()));
     code->literals(state, reinterpret_cast<Tuple*>(unmarshal()));
     code->lines(state, reinterpret_cast<Tuple*>(unmarshal()));
     code->file(state, reinterpret_cast<Symbol*>(unmarshal()));

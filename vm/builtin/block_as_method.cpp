@@ -26,7 +26,7 @@ namespace rubinius {
   {
     BlockAsMethod* bm = as<BlockAsMethod>(exec);
 
-    Object* splat = bm->block_env()->compiled_code()->splat();
+    Fixnum* splat = bm->block_env()->compiled_code()->splat();
     size_t required = bm->block_env()->compiled_code()->required_args()->to_native();
     size_t total_args = bm->block_env()->compiled_code()->total_args()->to_native();
 

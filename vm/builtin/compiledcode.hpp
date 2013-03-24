@@ -29,7 +29,7 @@ namespace rubinius {
     Fixnum* required_args_;     // slot
     Fixnum* post_args_;         // slot
     Fixnum* total_args_;        // slot
-    Object* splat_;             // slot
+    Fixnum* splat_;             // slot
     Tuple* lines_;              // slot
     Tuple* local_names_;        // slot
     Symbol* file_;              // slot
@@ -72,7 +72,7 @@ namespace rubinius {
     attr_accessor(required_args, Fixnum);
     attr_accessor(post_args, Fixnum);
     attr_accessor(total_args, Fixnum);
-    attr_accessor(splat, Object);
+    attr_accessor(splat, Fixnum);
     attr_accessor(literals, Tuple);
     attr_accessor(lines, Tuple);
     attr_accessor(local_names, Tuple);

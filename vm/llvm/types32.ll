@@ -204,7 +204,7 @@ declare void @output16(%"struct.rubinius::Class"*)
                   %"struct.rubinius::Fixnum"*, ; required_args
                   %"struct.rubinius::Fixnum"*, ; post_args
                   %"struct.rubinius::Fixnum"*, ; total_args
-                  %"struct.rubinius::Object"*, ; splat
+                  %"struct.rubinius::Fixnum"*, ; splat
                    %"struct.rubinius::Tuple"*, ; lines
                    %"struct.rubinius::Tuple"*, ; local_names
                   %"struct.rubinius::Symbol"*, ; file
