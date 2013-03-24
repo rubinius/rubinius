@@ -1,1 +1,0 @@
-fails:String#chop returns a new string with the last character removed
