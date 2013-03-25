@@ -327,9 +327,9 @@ StructTy_struct_rubinius__VariableScope_fields.push_back(PointerTy_29);
 StructTy_struct_rubinius__VariableScope_fields.push_back(PointerTy_16);
 StructTy_struct_rubinius__VariableScope_fields.push_back(PointerTy_9);
 StructTy_struct_rubinius__VariableScope_fields.push_back(PointerTy_9);
-StructTy_struct_rubinius__VariableScope_fields.push_back(IntegerType::get(mod->getContext(), 32));
-StructTy_struct_rubinius__VariableScope_fields.push_back(IntegerType::get(mod->getContext(), 8));
 StructTy_struct_rubinius__VariableScope_fields.push_back(PointerTy_21);
+StructTy_struct_rubinius__VariableScope_fields.push_back(IntegerType::get(mod->getContext(), 32));
+StructTy_struct_rubinius__VariableScope_fields.push_back(IntegerType::get(mod->getContext(), 32));
 StructTy_struct_rubinius__VariableScope_fields.push_back(IntegerType::get(mod->getContext(), 32));
 if (StructTy_struct_rubinius__VariableScope->isOpaque()) {
 StructTy_struct_rubinius__VariableScope->setBody(StructTy_struct_rubinius__VariableScope_fields, /*isPacked=*/false);

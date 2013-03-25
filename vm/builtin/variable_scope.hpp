@@ -37,9 +37,9 @@ namespace rubinius {
   public:
     Object* self_;    // slot
 
-    int number_of_locals_;
-    bool isolated_;
     Object** locals_;
+    int number_of_locals_;
+    int isolated_;
     int block_as_method_;
 
   public: /* Accessors */
@@ -59,7 +59,7 @@ namespace rubinius {
     void fixup() { }
 
     bool isolated() {
-      return isolated_;
+      return isolated_ == 1;
     }
 
     bool block_as_method_p() {
@@ -81,6 +81,8 @@ namespace rubinius {
     int number_of_locals() {
       return number_of_locals_;
     }
+
+    void flush_to_heap(STATE);
 
     VariableScope* promote(STATE);
 

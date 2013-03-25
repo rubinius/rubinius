@@ -24,22 +24,21 @@ namespace rubinius {
     scope->block(state, block_);
     scope->module(state, module_);
     scope->method(state, call_frame->compiled_code);
-    scope->heap_locals(state, Tuple::create(state, mcode->number_of_locals));
+    scope->heap_locals(state, nil<Tuple>());
     scope->last_match(state, last_match_);
     scope->fiber(state, state->vm()->current_fiber.get());
 
     scope->number_of_locals_ = mcode->number_of_locals;
-
-    if(full) {
-      scope->isolated_ = false;
-    } else {
-      scope->isolated_ = true;
-    }
+    scope->isolated_ = 0;
 
     scope->locals_ = locals_;
     scope->dynamic_locals(state, nil<LookupTable>());
 
     scope->set_block_as_method(call_frame->block_as_method_p());
+
+    if(!full) {
+      flush_to_heap(state);
+    }
 
     on_heap_ = scope;
 
@@ -94,12 +93,8 @@ namespace rubinius {
   }
 
   void StackVariables::flush_to_heap(STATE) {
-    if(!on_heap_) return;
-
-    on_heap_->isolated_ = true;
-
-    for(int i = 0; i < on_heap_->number_of_locals_; i++) {
-      on_heap_->set_local(state, i, locals_[i]);
+    if(on_heap_) {
+      on_heap_->flush_to_heap(state);
     }
   }
 }

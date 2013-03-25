@@ -270,9 +270,9 @@ declare void @output22(%"struct.rubinius::Tuple"*)
            %"struct.rubinius::Tuple"*, ; heap_locals
           %"struct.rubinius::Object"*, ; last_match
           %"struct.rubinius::Object"*, ; self
-                                  i32, ; number_of_locals
-                                   i8, ; isolated
          %"struct.rubinius::Object"**, ; locals
+                                  i32, ; number_of_locals
+                                  i32, ; isolated
                                   i32  ; block_as_method
 }
 

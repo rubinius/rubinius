@@ -188,9 +188,9 @@ namespace VariableScope {
   const static int heap_locals = 5;
   const static int last_match = 6;
   const static int self = 7;
-  const static int number_of_locals = 8;
-  const static int isolated = 9;
-  const static int locals = 10;
+  const static int locals = 8;
+  const static int number_of_locals = 9;
+  const static int isolated = 10;
   const static int block_as_method = 11;
 }
 namespace jit_RuntimeData {

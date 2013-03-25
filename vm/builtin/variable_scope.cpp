@@ -99,6 +99,7 @@ namespace rubinius {
 
   void VariableScope::set_local(STATE, int pos, Object* val) {
     if(isolated_) {
+      while(heap_locals_->nil_p()) atomic::pause();
       heap_locals_->put(state, pos, val);
     } else {
       set_local(pos, val);
@@ -106,7 +107,7 @@ namespace rubinius {
   }
 
   void VariableScope::set_local(int pos, Object* val) {
-    assert(isolated_ == false);
+    assert(!isolated_);
     Object** ary = locals_;
 
     if(Fiber* fib = try_as<Fiber>(fiber_)) {
@@ -125,6 +126,7 @@ namespace rubinius {
 
   Object* VariableScope::get_local(int pos) {
     if(isolated_) {
+      while(heap_locals_->nil_p()) atomic::pause();
       return heap_locals_->at(pos);
     }
 
@@ -140,6 +142,18 @@ namespace rubinius {
       }
     }
     return ary[pos];
+  }
+
+  void VariableScope::flush_to_heap(STATE) {
+    if(isolated_) return;
+    if(!atomic::compare_and_swap(&isolated_, 0, 1)) return;
+
+    Tuple* new_locals = Tuple::create(state, number_of_locals_);
+    for(int i = 0; i < number_of_locals_; i++) {
+      new_locals->put(state, i, locals_[i]);
+    }
+    atomic::memory_barrier();
+    heap_locals(state, new_locals);
   }
 
   void VariableScope::Info::mark(Object* obj, ObjectMark& mark) {
