@@ -1261,7 +1261,9 @@ class String
         return nil
       end
 
-      return find_string_reverse(str, byte_finish)
+      if byte_index = find_string_reverse(str, byte_finish)
+        return m.byte_to_character_index byte_index
+      end
 
     when Regexp
       Rubinius::Type.compatible_encoding self, sub

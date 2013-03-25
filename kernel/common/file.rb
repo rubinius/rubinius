@@ -105,9 +105,9 @@ class File < IO
 
     ext_not_present = ext.equal?(undefined)
 
-    if pos = path.find_string_reverse(slash, path.size)
+    if pos = path.find_string_reverse(slash, path.bytesize)
       # special case. If the string ends with a /, ignore it.
-      if pos == path.size - 1
+      if pos == path.bytesize - 1
 
         # Find the first non-/ from the right
         data = path.data
@@ -124,14 +124,14 @@ class File < IO
         return slash unless found
 
         # Now that we've trimmed the /'s at the end, search again
-        pos = path.find_string_reverse(slash, path.size)
+        pos = path.find_string_reverse(slash, path.bytesize)
         if ext_not_present and !pos
           # No /'s found and ext not present, return path.
           return path
         end
       end
 
-      path = path.byteslice(pos + 1, path.size - pos) if pos
+      path = path.byteslice(pos + 1, path.bytesize - pos) if pos
     end
 
     return path if ext_not_present
@@ -141,12 +141,12 @@ class File < IO
     ext = StringValue(ext)
 
     if ext == ".*"
-      if pos = path.rindex(?.)
+      if pos = path.find_string_reverse(".", path.bytesize)
         return path.byteslice(0, pos)
       end
-    elsif pos = path.rindex(ext)
+    elsif pos = path.find_string_reverse(ext, path.bytesize)
       # Check that ext is the last thing in the string
-      if pos == path.size - ext.size
+      if pos == path.bytesize - ext.size
         return path.byteslice(0, pos)
       end
     end
@@ -427,7 +427,7 @@ class File < IO
 
         return home
       else
-        unless length = path.index("/", 1)
+        unless length = path.find_string("/", 1)
           length = path.bytesize
         end
 
@@ -452,7 +452,7 @@ class File < IO
     start = 0
     size = path.bytesize
 
-    while index = path.index("/", start) or (start < size and index = size)
+    while index = path.find_string("/", start) or (start < size and index = size)
       length = index - start
 
       if length > 0
@@ -486,7 +486,7 @@ class File < IO
   #  File.extname(".profile")        #=> ""
   def self.extname(path)
     path = Rubinius::Type.coerce_to_path(path)
-    path_size = path.size
+    path_size = path.bytesize
 
     dot_idx = path.find_string_reverse(".", path_size)
 
