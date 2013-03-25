@@ -52,8 +52,8 @@ module Rubinius
         @block_env.compiled_code.splat
       end
 
-      def block
-        @block_env.compiled_code.block
+      def block_index
+        @block_env.compiled_code.block_index
       end
 
       def file

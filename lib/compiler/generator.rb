@@ -322,7 +322,7 @@ module Rubinius
       code.post_args      = @post_args
       code.total_args     = @total_args
       code.splat          = @splat_index
-      code.block          = @block_index
+      code.block_index    = @block_index
       code.local_count    = @local_count
       code.local_names    = @local_names.to_tuple if @local_names
 

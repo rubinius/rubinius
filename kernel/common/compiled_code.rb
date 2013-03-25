@@ -75,7 +75,7 @@ module Rubinius
         @required_args == other.required_args and
         @total_args    == other.total_args    and
         @splat         == other.splat         and
-        @block         == other.block         and
+        @block_index   == other.block_index   and
         @literals      == other.literals      and
         @file          == other.file          and
         @local_names   == other.local_names
@@ -97,7 +97,7 @@ module Rubinius
     #
     # @param [Fixnum] position
     #
-    def block=(position)
+    def block_index=(position)
       if position
         add_metadata(:block_index, position)
       end
@@ -106,7 +106,7 @@ module Rubinius
     ##
     # @return [Fixnum|NilClass]
     #
-    def block
+    def block_index
       return get_metadata(:block_index)
     end
 
@@ -528,7 +528,7 @@ module Rubinius
           params << [:rest, name]
         elsif i < p
           params << [:req, name]
-        elsif block == i
+        elsif block_index == i
           params << [:block, name]
         end
       end
