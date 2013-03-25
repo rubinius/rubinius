@@ -13,6 +13,7 @@
 #include "fiber_data.hpp"
 
 #include "ontology.hpp"
+#include "on_stack.hpp"
 
 namespace rubinius {
   void VariableScope::init(STATE) {
@@ -72,8 +73,11 @@ namespace rubinius {
 
   Tuple* VariableScope::locals(STATE) {
     Tuple* tup = Tuple::create(state, number_of_locals_);
+    VariableScope* self = this;
+    OnStack<1> os(state, self);
+
     for(int i = 0; i < number_of_locals_; i++) {
-      tup->put(state, i, get_local(state, i));
+      tup->put(state, i, self->get_local(state, i));
     }
 
     return tup;
@@ -99,8 +103,12 @@ namespace rubinius {
 
   void VariableScope::set_local(STATE, int pos, Object* val) {
     if(isolated_) {
-      while(heap_locals_->nil_p()) atomic::pause();
-      heap_locals_->put(state, pos, val);
+      VariableScope* self = this;
+      while(heap_locals_->nil_p()) {
+        OnStack<2> os(state, self, val);
+        atomic::pause();
+      }
+      self->heap_locals_->put(state, pos, val);
     } else {
       set_local(pos, val);
     }
@@ -124,11 +132,21 @@ namespace rubinius {
     ary[pos] = val;
   }
 
-  Object* VariableScope::get_local(int pos) {
+  Object* VariableScope::get_local(STATE, int pos) {
     if(isolated_) {
-      while(heap_locals_->nil_p()) atomic::pause();
-      return heap_locals_->at(pos);
+      VariableScope* self = this;
+      while(heap_locals_->nil_p()) {
+        OnStack<1> os(state, self);
+        atomic::pause();
+      }
+      return self->heap_locals_->at(pos);
+    } else {
+      return get_local(pos);
     }
+  }
+
+  Object* VariableScope::get_local(int pos) {
+    assert(!isolated_);
 
     Object** ary = locals_;
     if(Fiber* fib = try_as<Fiber>(fiber_)) {
@@ -148,12 +166,15 @@ namespace rubinius {
     if(isolated_) return;
     if(!atomic::compare_and_swap(&isolated_, 0, 1)) return;
 
+    VariableScope* self = this;
+
+    OnStack<1> os(state, self);
     Tuple* new_locals = Tuple::create(state, number_of_locals_);
     for(int i = 0; i < number_of_locals_; i++) {
-      new_locals->put(state, i, locals_[i]);
+      new_locals->put(state, i, self->locals_[i]);
     }
     atomic::memory_barrier();
-    heap_locals(state, new_locals);
+    self->heap_locals(state, new_locals);
   }
 
   void VariableScope::Info::mark(Object* obj, ObjectMark& mark) {

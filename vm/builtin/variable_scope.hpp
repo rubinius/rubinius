@@ -74,9 +74,7 @@ namespace rubinius {
     void set_local(STATE, int pos, Object* val);
 
     Object* get_local(int pos);
-    Object* get_local(STATE, int pos) {
-      return get_local(pos);
-    }
+    Object* get_local(STATE, int pos);
 
     int number_of_locals() {
       return number_of_locals_;

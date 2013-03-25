@@ -3,6 +3,7 @@
 #include "builtin/lookuptable.hpp"
 #include "machine_code.hpp"
 #include "call_frame.hpp"
+#include "on_stack.hpp"
 
 namespace rubinius {
 
@@ -14,6 +15,7 @@ namespace rubinius {
     MachineCode* mcode = call_frame->compiled_code->machine_code();
     VariableScope* scope = state->new_object_dirty<VariableScope>(G(variable_scope));
 
+    OnStack<1> os(state, scope);
     if(parent_) {
       scope->parent(state, parent_);
     } else {
@@ -31,14 +33,18 @@ namespace rubinius {
     scope->number_of_locals_ = mcode->number_of_locals;
     scope->isolated_ = 0;
 
+    if(!full) {
+      scope->isolated_ = 1;
+      scope->heap_locals(state, Tuple::create(state, mcode->number_of_locals));
+      for(int i = 0; i < scope->number_of_locals_; i++) {
+        scope->set_local(state, i, locals_[i]);
+      }
+    }
+
     scope->locals_ = locals_;
     scope->dynamic_locals(state, nil<LookupTable>());
 
     scope->set_block_as_method(call_frame->block_as_method_p());
-
-    if(!full) {
-      flush_to_heap(state);
-    }
 
     on_heap_ = scope;
 
