@@ -96,14 +96,14 @@ module Rubinius
       [file.to_s, line]
     end
 
-      def ==(other)
-        return false unless other.kind_of? BlockEnvironment
+    def ==(other)
+      return false unless other.kind_of? BlockEnvironment
 
-        @top_scope       == other.top_scope and
-          @scope         == other.scope and
-          @module        == other.module and
-          @compiled_code.equivalent_body?(other.compiled_code)
-      end
+      @top_scope       == other.top_scope and
+        @scope         == other.scope and
+        @module        == other.module and
+        @compiled_code.equivalent_body?(other.compiled_code)
+    end
 
     class AsMethod < Executable
       attr_reader :block_env
