@@ -1528,21 +1528,16 @@ instruction string_build(count) [ +count -- string ]
     }
 
     if(!LANGUAGE_18_ENABLED(state)) {
-      /* The String::encoding() accessor (without state) returns the raw
-       * Encoding attribute. If it is only ever cNil or all values are the
-       * same, we don't need to check Encoding compatibility later.
-       *
+      /*
        * TODO: Consider the case when -K is set (not implemented yet).
        */
       if(!check_encoding) {
-        Encoding* str_enc = str->encoding();
-        if(!str_enc->nil_p()) {
-          if(enc->nil_p()) {
-            enc = str_enc;
-          } else if(str_enc != enc) {
-            check_encoding = true;
-            enc = nil<Encoding>();
-          }
+        Encoding* str_enc = str->encoding(state);
+        if(enc->nil_p()) {
+          enc = str_enc;
+        } else if(str_enc != enc) {
+          check_encoding = true;
+          enc = nil<Encoding>();
         }
       }
     }
