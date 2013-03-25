@@ -25,6 +25,7 @@ namespace rubinius {
 
   class CodeManager {
     const static int cDefaultChunkSize = 64;
+    const static int cGCTriggerThreshold = 64 * 1024 * 1024;
 
     /**
      * A chunk of memory used to store an array of references to CodeResource
@@ -55,6 +56,7 @@ namespace rubinius {
     int freed_resources_;
     int total_allocated_;
     int total_freed_;
+    int gc_triggered_;
 
     size_t bytes_used_;
 
@@ -83,7 +85,7 @@ namespace rubinius {
     CodeManager(SharedState* shared, int chunk_size=cDefaultChunkSize);
     ~CodeManager();
 
-    void add_resource(CodeResource* cr);
+    void add_resource(CodeResource* cr, bool* collect_now);
     void clear_marks();
     void sweep();
     int  calculate_size();

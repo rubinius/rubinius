@@ -48,11 +48,11 @@ namespace rubinius {
   CompiledCode* CompiledCode::create(STATE) {
     CompiledCode* code = state->new_object<CompiledCode>(G(compiled_code));
     code->local_count(state, Fixnum::from(0));
-    code->set_executor(CompiledCode::default_executor);
-    code->machine_code_ = NULL;
     code->inliners_ = 0;
     code->prim_index_ = -1;
 
+    code->set_executor(CompiledCode::default_executor);
+    code->machine_code_ = NULL;
 #ifdef ENABLE_LLVM
     code->jit_data_ = NULL;
 #endif
@@ -65,8 +65,10 @@ namespace rubinius {
     code->copy_object(state, this);
 
     code->set_executor(CompiledCode::default_executor);
-    code->jit_data_ = NULL;
     code->machine_code_ = NULL;
+#ifdef ENABLE_LLVM
+    code->jit_data_ = NULL;
+#endif
 
     return code;
   }
@@ -251,7 +253,9 @@ namespace rubinius {
 
     machine_code_->set_execute_status(MachineCode::eJIT);
 
+#ifdef ENABLE_LLVM
     jit_data_ = rd;
+#endif
     machine_code_->unspecialized = exec;
 
     // See if we can also just make this the normal execute
