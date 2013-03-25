@@ -237,9 +237,7 @@ extern "C" {
     CompiledCode* code = as<CompiledCode>(_lit);
 
     // TODO: We don't need to be doing this everytime.
-    if(code->scope()->nil_p()) {
-      code->scope(state, call_frame->constant_scope());
-    }
+    code->scope(state, call_frame->constant_scope());
 
     MachineCode* mcode = call_frame->compiled_code->machine_code();
     GCTokenImpl gct;
