@@ -106,13 +106,13 @@ public:
   }
 
   void test_lookup_nil() {
-    TS_ASSERT_THROWS_ASSERT(symbols->lookup(state, reinterpret_cast<String*>(cNil)),
+    TS_ASSERT_THROWS_ASSERT(symbols->lookup(state, nil<String>()),
                             const RubyException &e,
                             TS_ASSERT(Exception::argument_error_p(state, e.exception)));
   }
 
   void test_lookup_string_nil() {
-    TS_ASSERT_THROWS_ASSERT(symbols->lookup_string(state, reinterpret_cast<Symbol*>(cNil)),
+    TS_ASSERT_THROWS_ASSERT(symbols->lookup_string(state, nil<Symbol>()),
                             const RubyException &e,
                             TS_ASSERT(Exception::argument_error_p(state, e.exception)));
   }

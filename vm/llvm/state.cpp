@@ -551,7 +551,7 @@ halt:
   }
 
   std::string LLVMState::symbol_debug_str(const Symbol* sym) {
-    if(sym == reinterpret_cast<const Symbol*>(cNil)) return "<nil>";
+    if(sym == nil<Symbol>()) return "<nil>";
     return symbols_.lookup_debug_string(sym);
   }
 

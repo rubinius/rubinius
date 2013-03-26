@@ -7,6 +7,7 @@
 #include "builtin/variable_scope.hpp"
 #include "dispatch.hpp"
 #include "arguments.hpp"
+#include "builtin/symbol.hpp"
 
 #include <ostream>
 
@@ -15,8 +16,6 @@
 #endif
 
 namespace rubinius {
-  class Object;
-  class Symbol;
   class Module;
   class VariableScope;
   class NativeMethodFrame;
@@ -87,12 +86,12 @@ namespace rubinius {
       if(inline_method_p() && dispatch_data) {
         return reinterpret_cast<jit::RuntimeData*>(dispatch_data)->name();
       } else if(block_p()) {
-        return reinterpret_cast<Symbol*>(cNil);
+        return nil<Symbol>();
       } else if(arguments) {
         return arguments->name();
       }
 
-      return reinterpret_cast<Symbol*>(cNil);
+      return nil<Symbol>();
     }
 #else
     Symbol* name() {
@@ -100,7 +99,7 @@ namespace rubinius {
         return arguments->name();
       }
 
-      return reinterpret_cast<Symbol*>(cNil);
+      return nil<Symbol>();
     }
 #endif
 
