@@ -593,12 +593,10 @@ halt:
       background_thread_->add(req);
 
       state->set_call_frame(call_frame);
-      gc_independent();
 
       wait_cond.wait(wait_mutex);
 
       wait_mutex.unlock();
-      gc_dependent();
       state->set_call_frame(0);
 
       if(state->shared().config.jit_show_compiling) {
