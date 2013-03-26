@@ -353,7 +353,8 @@ namespace rubinius {
         fi.object = saw_object(fi.object);
       }
 
-      if(fi.ruby_finalizer && fi.ruby_finalizer->young_object_p()) {
+      Object *fin = fi.ruby_finalizer;
+      if(fin && fin != cTrue && fin->young_object_p()) {
         fi.ruby_finalizer = saw_object(fi.ruby_finalizer);
       }
 
