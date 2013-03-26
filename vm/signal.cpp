@@ -197,7 +197,6 @@ namespace rubinius {
         pthread_kill(main_thread, SIGVTALRM);
 #endif
       }
-      return;
     }
 
     worker_cond_.signal();
