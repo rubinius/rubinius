@@ -781,7 +781,7 @@ namespace rubinius {
           exc->locations(state, Location::from_call_stack(state, call_frame));
           state->raise_exception(exc);
           for(size_t i = 0; i < arg_count; i++) {
-            if (heap_allocations[i]) {
+            if(heap_allocations[i]) {
               XFREE(heap_allocations[i]);
             }
           }
@@ -941,7 +941,7 @@ namespace rubinius {
               Object* o2 = obj->send(state, call_frame, state->symbol("to_ptr"));
               if(!o2) {
                 for(size_t i = 0; i < arg_count; i++) {
-                  if (heap_allocations[i]) {
+                  if(heap_allocations[i]) {
                     XFREE(heap_allocations[i]);
                   }
                 }
@@ -970,7 +970,7 @@ namespace rubinius {
           Object* val = arg_info->enum_obj->send(state, call_frame, state->symbol("[]"), ary);
           if(!val) {
             for(size_t i = 0; i < arg_count; i++) {
-              if (heap_allocations[i]) {
+              if(heap_allocations[i]) {
                 XFREE(heap_allocations[i]);
               }
             }
@@ -1014,7 +1014,7 @@ namespace rubinius {
 
           char* data = ALLOC_N(char, size + 1);
 
-          if (!data) {
+          if(!data) {
             rubinius::bug("could not allocate memory for string");
           }
 
@@ -1223,7 +1223,7 @@ namespace rubinius {
     env->set_current_call_frame(saved_frame);
 
     for(size_t i = 0; i < arg_count; i++) {
-      if (heap_allocations[i]) {
+      if(heap_allocations[i]) {
         XFREE(heap_allocations[i]);
       }
     }

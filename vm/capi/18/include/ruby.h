@@ -1725,11 +1725,11 @@ VALUE rb_uint2big(unsigned long number);
   /** New Enumerator. */
   VALUE   rb_enumeratorize(VALUE obj, VALUE meth, int argc, VALUE *argv);
 
-#define RETURN_ENUMERATOR(obj, argc, argv) do {				\
-	if (!rb_block_given_p())					\
-	    return rb_enumeratorize((obj), ID2SYM(rb_frame_this_func()),\
-				    (argc), (argv));			\
-    } while (0)
+#define RETURN_ENUMERATOR(obj, argc, argv) do {                 \
+  if(!rb_block_given_p())                                       \
+    return rb_enumeratorize((obj), ID2SYM(rb_frame_this_func()),\
+                            (argc), (argv));                    \
+} while (0)
 
   // include an extconf.h if one is provided
 #ifdef RUBY_EXTCONF_H

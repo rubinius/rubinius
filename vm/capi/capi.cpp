@@ -583,7 +583,7 @@ extern "C" {
   }
 
   void rb_need_block() {
-    if (!rb_block_given_p()) {
+    if(!rb_block_given_p()) {
       rb_raise(rb_eLocalJumpError, "no block given", 0);
     }
   }

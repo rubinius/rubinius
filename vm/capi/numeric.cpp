@@ -193,23 +193,23 @@ extern "C" {
     int w;
 #define OutOfRange() (((w = end - p) > 20) ? (w = 20, ellipsis = "...") : (ellipsis = ""))
 
-    if (!p) return 0.0;
+    if(!p) return 0.0;
     q = p;
     while (ISSPACE(*p)) p++;
     d = ::ruby_strtod(p, &end);
-    if (errno == ERANGE) {
+    if(errno == ERANGE) {
       OutOfRange();
       rb_warning("Float %.*s%s out of range", w, p, ellipsis);
       errno = 0;
     }
-    if (p == end) {
-      if (badcheck) {
+    if(p == end) {
+      if(badcheck) {
         bad:
           rb_invalid_str(q, "Float()");
       }
       return d;
     }
-    if (*end) {
+    if(*end) {
       char buf[DBL_DIG * 4 + 10];
       char *n = buf;
       char *e = buf + sizeof(buf) - 1;
@@ -217,35 +217,35 @@ extern "C" {
 
       while (p < end && n < e) prev = *n++ = *p++;
       while (*p) {
-        if (*p == '_') {
+        if(*p == '_') {
           /* remove underscores between digits */
-          if (badcheck) {
-            if (n == buf || !ISDIGIT(prev)) goto bad;
+          if(badcheck) {
+            if(n == buf || !ISDIGIT(prev)) goto bad;
             ++p;
-            if (!ISDIGIT(*p)) goto bad;
+            if(!ISDIGIT(*p)) goto bad;
           } else {
             while (*++p == '_');
             continue;
           }
         }
         prev = *p++;
-        if (n < e) *n++ = prev;
+        if(n < e) *n++ = prev;
       }
       *n = '\0';
       p = buf;
       d = ::ruby_strtod(p, &end);
-      if (errno == ERANGE) {
+      if(errno == ERANGE) {
         OutOfRange();
         rb_warning("Float %.*s%s out of range", w, p, ellipsis);
         errno = 0;
       }
-      if (badcheck) {
-        if (!end || p == end) goto bad;
+      if(badcheck) {
+        if(!end || p == end) goto bad;
         while (*end && ISSPACE(*end)) end++;
-        if (*end) goto bad;
+        if(*end) goto bad;
       }
     }
-    if (errno == ERANGE) {
+    if(errno == ERANGE) {
       errno = 0;
       OutOfRange();
       rb_raise(rb_eArgError, "Float %.*s%s out of range", w, q, ellipsis);

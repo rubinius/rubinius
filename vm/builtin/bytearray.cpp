@@ -264,31 +264,31 @@ namespace rubinius {
 
     *uv = c;
 
-    if (!(*uv & 0x80)) {
+    if(!(*uv & 0x80)) {
       *lenp = 1;
       return true;
     }
-    if (!(*uv & 0x40)) {
+    if(!(*uv & 0x40)) {
       *lenp = 1;
       return false;
     }
 
     if      (!(*uv & 0x20)) { n = 2; *uv &= 0x1f; }
-    else if (!(*uv & 0x10)) { n = 3; *uv &= 0x0f; }
-    else if (!(*uv & 0x08)) { n = 4; *uv &= 0x07; }
-    else if (!(*uv & 0x04)) { n = 5; *uv &= 0x03; }
-    else if (!(*uv & 0x02)) { n = 6; *uv &= 0x01; }
+    else if(!(*uv & 0x10)) { n = 3; *uv &= 0x0f; }
+    else if(!(*uv & 0x08)) { n = 4; *uv &= 0x07; }
+    else if(!(*uv & 0x04)) { n = 5; *uv &= 0x03; }
+    else if(!(*uv & 0x02)) { n = 6; *uv &= 0x01; }
     else {
       *lenp = 1;
       return false;
     }
-    if (n > *lenp) return false;
+    if(n > *lenp) return false;
 
     *lenp = n--;
-    if (n != 0) {
+    if(n != 0) {
       while (n--) {
         c = *p++ & 0xff;
-        if ((c & 0xc0) != 0x80) {
+        if((c & 0xc0) != 0x80) {
           *lenp -= n + 1;
           return -1;
         }
@@ -299,7 +299,7 @@ namespace rubinius {
       }
     }
     n = *lenp - 1;
-    if (*uv < utf8_limits[n]) return false;
+    if(*uv < utf8_limits[n]) return false;
     return true;
   }
 

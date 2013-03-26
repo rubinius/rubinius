@@ -105,13 +105,13 @@ extern "C" {
   VALUE rb_cvar_defined(VALUE module_handle, ID name) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    if (((Symbol *)name)->is_cvar_p(env->state())->true_p()) {
-       return rb_funcall(module_handle, rb_intern("class_variable_defined?"),
-                         1, name);
-     } else {
+    if(((Symbol *)name)->is_cvar_p(env->state())->true_p()) {
+      return rb_funcall(module_handle, rb_intern("class_variable_defined?"),
+                        1, name);
+    } else {
       return rb_funcall(module_handle, rb_intern("instance_variable_defined?"),
                         1, name);
-     }
+    }
   }
 
   VALUE rb_cvar_get(VALUE module_handle, ID name) {

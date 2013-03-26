@@ -387,7 +387,7 @@ namespace rubinius {
           return convert_meta(ctrl);
 
         case 'C': /* \C-X, \C-\M-X */
-          if (p == e || *p++ != '-') {
+          if(p == e || *p++ != '-') {
               raise_error("control escape is too short");
           }
           // fall through
@@ -548,13 +548,13 @@ namespace rubinius {
           break;
 
         case 'u':
-          if (ces.p == ces.e) {
+          if(ces.p == ces.e) {
             ces.raise_error("escape sequence is too short");
           }
 
           ces.copy_bytes(-2);
 
-          if (*ces.p == '{') {  // \u{H HH HHH HHHH HHHHH HHHHHH ...}
+          if(*ces.p == '{') {  // \u{H HH HHH HHHH HHHHH HHHHHH ...}
             ces.p++;
 
             int value = -1;
@@ -585,7 +585,7 @@ namespace rubinius {
         case 'p': /* \p{Hiragana} */
         case 'P':
           /* TODO
-          if (!*encp) {
+          if(!*encp) {
             *has_property = 1;
           }
           */
@@ -966,7 +966,7 @@ namespace rubinius {
         native_int next = max >= 0 ? i + 1 : i;
         if(max >= 0 && chr > max && !LANGUAGE_18_ENABLED(state)) {
           std::ostringstream message;
-          if (isprint(chr) && isprint(max)) {
+          if(isprint(chr) && isprint(max)) {
             message << "invalid range \"";
             message << (char)chr << "-" << (char)max;
             message << "\" in string transliteration";

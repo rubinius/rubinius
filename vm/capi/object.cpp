@@ -81,22 +81,22 @@ extern "C" {
   void rb_check_type(VALUE x, int t) {
     struct types *type = builtin_types;
 
-    if (x == Qundef) {
+    if(x == Qundef) {
       rb_bug("undef leaked to the Ruby space");
     }
 
-    if (TYPE(x) != t) {
+    if(TYPE(x) != t) {
       while (type->type >= 0) {
-        if (type->type == t) {
+        if(type->type == t) {
           const char *etype;
 
-          if (NIL_P(x)) {
+          if(NIL_P(x)) {
             etype = "nil";
-          } else if (FIXNUM_P(x)) {
+          } else if(FIXNUM_P(x)) {
             etype = "Fixnum";
-          } else if (SYMBOL_P(x)) {
+          } else if(SYMBOL_P(x)) {
             etype = "Symbol";
-          } else if (rb_special_const_p(x)) {
+          } else if(rb_special_const_p(x)) {
             etype = RSTRING_PTR(rb_obj_as_string(x));
           } else {
             etype = rb_obj_classname(x);
@@ -173,12 +173,12 @@ extern "C" {
   }
 
   int rb_type(VALUE obj) {
-    if (FIXNUM_P(obj)) return T_FIXNUM;
-    if (obj == Qnil) return T_NIL;
-    if (obj == Qfalse) return T_FALSE;
-    if (obj == Qtrue) return T_TRUE;
-    if (obj == Qundef) return T_UNDEF;
-    if (SYMBOL_P(obj)) return T_SYMBOL;
+    if(FIXNUM_P(obj)) return T_FIXNUM;
+    if(obj == Qnil) return T_NIL;
+    if(obj == Qfalse) return T_FALSE;
+    if(obj == Qtrue) return T_TRUE;
+    if(obj == Qundef) return T_UNDEF;
+    if(SYMBOL_P(obj)) return T_SYMBOL;
 
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     Object* object = env->get_object(obj);
@@ -238,7 +238,7 @@ extern "C" {
 
     Object* object = env->get_object(obj_handle);
 
-    if (kind_of<String>(object)) {
+    if(kind_of<String>(object)) {
       return obj_handle;
     }
 

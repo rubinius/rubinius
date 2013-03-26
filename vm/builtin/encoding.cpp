@@ -503,7 +503,7 @@ namespace rubinius {
   int Encoding::mbclen(const uint8_t* p, const uint8_t* e, OnigEncodingType* enc) {
     int n = ONIGENC_PRECISE_MBC_ENC_LEN(enc, (UChar*)p, (UChar*)e);
 
-    if (ONIGENC_MBCLEN_CHARFOUND_P(n) && ONIGENC_MBCLEN_CHARFOUND_LEN(n) <= e-p) {
+    if(ONIGENC_MBCLEN_CHARFOUND_P(n) && ONIGENC_MBCLEN_CHARFOUND_LEN(n) <= e-p) {
       return ONIGENC_MBCLEN_CHARFOUND_LEN(n);
     } else {
       int min = ONIGENC_MBC_MINLEN(enc);
@@ -514,12 +514,12 @@ namespace rubinius {
   int Encoding::precise_mbclen(const uint8_t* p, const uint8_t* e, OnigEncodingType* enc) {
     int n;
 
-    if (e <= p) {
+    if(e <= p) {
       return ONIGENC_CONSTRUCT_MBCLEN_NEEDMORE(1);
     }
 
     n = ONIGENC_PRECISE_MBC_ENC_LEN(enc, (UChar*)p, (UChar*)e);
-    if (e-p < n) {
+    if(e-p < n) {
       return ONIGENC_CONSTRUCT_MBCLEN_NEEDMORE(n-(int)(e-p));
     }
 

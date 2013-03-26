@@ -375,7 +375,7 @@ namespace rubinius {
         }
       }
 
-      if (count & 7) {
+      if(count & 7) {
         byte <<= 7 - (count & 7);
         str.push_back(byte & 0xff);
       }

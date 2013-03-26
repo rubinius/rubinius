@@ -208,7 +208,7 @@ namespace rubinius {
     idx += start_->to_native();
 
     if(idx >= tuple_size) {
-      if (oidx < tuple_size) {
+      if(oidx < tuple_size) {
         // There is enough space in the tuple for this element
         tuple_->lshift_inplace(state, start_);
       } else {

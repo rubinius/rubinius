@@ -130,7 +130,7 @@ extern "C" {
     State* state = env->state();
     VALUE ret = Qnil;
 
-    if (ubf == RUBY_UBF_IO || ubf == RUBY_UBF_PROCESS) {
+    if(ubf == RUBY_UBF_IO || ubf == RUBY_UBF_PROCESS) {
       state->vm()->interrupt_with_signal();
     } else {
       state->vm()->wait_on_custom_function(ubf, ubf_data);

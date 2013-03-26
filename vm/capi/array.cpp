@@ -183,7 +183,7 @@ extern "C" {
 
     Object* obj = env->get_object(object);
 
-    if (kind_of<Array>(obj)) {
+    if(kind_of<Array>(obj)) {
       return object;
     }
 
@@ -287,7 +287,7 @@ extern "C" {
     array->start(env->state(), Fixnum::from(0));
     array->total(env->state(), Fixnum::from(length));
 
-    if (objects) {
+    if(objects) {
       for(std::size_t i = 0; i < length; ++i) {
         // @todo determine if we need to check these objects for whether
         // they are arrays and flush any caches
@@ -493,7 +493,7 @@ extern "C" {
 
     Object* obj = env->get_object(object);
 
-    if (kind_of<Array>(obj)) {
+    if(kind_of<Array>(obj)) {
       return object;
     }
 

@@ -12,7 +12,7 @@ extern "C" {
 
     argv[0] = obj;
 
-    if (!NIL_P(io)) {
+    if(!NIL_P(io)) {
       argv[1] = io;
       argc = 2;
     }

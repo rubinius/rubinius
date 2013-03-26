@@ -284,7 +284,7 @@ extern "C" {
 
   int rb_enc_mbclen(const char *p, const char *e, rb_encoding *enc) {
     int n = ONIGENC_PRECISE_MBC_ENC_LEN(enc, (UChar*)p, (UChar*)e);
-    if (ONIGENC_MBCLEN_CHARFOUND_P(n) && ONIGENC_MBCLEN_CHARFOUND_LEN(n) <= e-p)
+    if(ONIGENC_MBCLEN_CHARFOUND_P(n) && ONIGENC_MBCLEN_CHARFOUND_LEN(n) <= e-p)
       return ONIGENC_MBCLEN_CHARFOUND_LEN(n);
     else {
       int min = rb_enc_mbminlen(enc);
@@ -309,21 +309,21 @@ extern "C" {
   int rb_enc_codelen(int c, rb_encoding* enc)
   {
     int n = ONIGENC_CODE_TO_MBCLEN(enc, c);
-    if (n == 0) {
+    if(n == 0) {
       rb_raise(rb_eArgError, "invalid codepoint 0x%x in %s", c, rb_enc_name(enc));
     }
     return n;
   }
 
   char* rb_enc_nth(const char* p, const char* e, long nth, rb_encoding* enc) {
-    if (rb_enc_mbmaxlen(enc) == 1) {
+    if(rb_enc_mbmaxlen(enc) == 1) {
       p += nth;
-    } else if (rb_enc_mbmaxlen(enc) == rb_enc_mbminlen(enc)) {
+    } else if(rb_enc_mbmaxlen(enc) == rb_enc_mbminlen(enc)) {
       p += nth * rb_enc_mbmaxlen(enc);
     } else {
       p += Encoding::find_character_byte_index((uint8_t*)p, (uint8_t*)e, nth, enc);
     }
-    if (p > e) p = e;
+    if(p > e) p = e;
     return (char*)p;
   }
 

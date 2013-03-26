@@ -580,9 +580,9 @@ namespace rubinius {
         }
       }
 
-      if (LANGUAGE_18_ENABLED(state)) {
+      if(LANGUAGE_18_ENABLED(state)) {
         ::close(fd);
-      } else if (io->autoclose_ != cFalse) {
+      } else if(io->autoclose_ != cFalse) {
         ::close(fd);
       }
     }
@@ -765,17 +765,17 @@ namespace rubinius {
 #ifdef HAVE_POSIX_FADVISE
     int advice = 0;
 
-    if (advice_name == state->symbol("normal")) {
+    if(advice_name == state->symbol("normal")) {
       advice = POSIX_FADV_NORMAL;
-    } else if (advice_name == state->symbol("sequential")) {
+    } else if(advice_name == state->symbol("sequential")) {
       advice = POSIX_FADV_SEQUENTIAL;
-    } else if (advice_name == state->symbol("random")) {
+    } else if(advice_name == state->symbol("random")) {
       advice = POSIX_FADV_RANDOM;
-    } else if (advice_name == state->symbol("willneed")) {
+    } else if(advice_name == state->symbol("willneed")) {
       advice = POSIX_FADV_WILLNEED;
-    } else if (advice_name == state->symbol("dontneed")) {
+    } else if(advice_name == state->symbol("dontneed")) {
       advice = POSIX_FADV_DONTNEED;
-    } else if (advice_name == state->symbol("noreuse")) {
+    } else if(advice_name == state->symbol("noreuse")) {
       advice = POSIX_FADV_NOREUSE;
     } else {
       return Primitives::failure();
@@ -783,7 +783,7 @@ namespace rubinius {
 
     int erno = posix_fadvise(to_fd(), offset->to_long_long(), len->to_long_long(), advice);
 
-    if (erno) {
+    if(erno) {
       Exception::errno_error(state, "posfix_fadvise(2) failed", erno);
     }
 
@@ -849,7 +849,7 @@ namespace rubinius {
 
 #ifndef RBX_WINDOWS
   static const char* unixpath(struct sockaddr_un *sockaddr, socklen_t len) {
-    if (sockaddr->sun_path < (char*)sockaddr + len) {
+    if(sockaddr->sun_path < (char*)sockaddr + len) {
       return sockaddr->sun_path;
     }
     return "";
@@ -1032,7 +1032,7 @@ namespace rubinius {
       const char *p = *pcur;
       const char *s = *scur;
 
-      if (period && *s == '.' && *UNESCAPE(p) != '.') /* leading period */
+      if(period && *s == '.' && *UNESCAPE(p) != '.') /* leading period */
         RETURN(false);
 
       while(1) {
@@ -1078,7 +1078,7 @@ namespace rubinius {
         continue;
 
 failed: /* try next '*' position */
-        if (ptmp && stmp) {
+        if(ptmp && stmp) {
           p = ptmp;
           Inc(stmp); /* !ISEND(*stmp) */
           s = stmp;

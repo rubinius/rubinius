@@ -88,7 +88,7 @@ namespace rubinius {
 
     if(num < 0) {
       Exception::argument_error(state, "negative local index");
-    } else if (num >= number_of_locals_) {
+    } else if(num >= number_of_locals_) {
       Exception::argument_error(state, "index larger than number of locals");
     }
 

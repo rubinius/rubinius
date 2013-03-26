@@ -1142,7 +1142,7 @@ namespace rubinius {
                       as<Bignum>(rest_i);
 
     for(;;) {
-      if (ary && n < sz) {
+      if(ary && n < sz) {
         ary[n] = rest->to_ulong() & 0xffffffff;
       }
 

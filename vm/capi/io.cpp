@@ -35,11 +35,11 @@ namespace rubinius {
 # define MODE_BINARY(a,b) (a)
 #endif
       int accmode = oflags & (O_RDONLY|O_WRONLY|O_RDWR);
-      if (oflags & O_APPEND) {
-        if (accmode == O_WRONLY) {
+      if(oflags & O_APPEND) {
+        if(accmode == O_WRONLY) {
           return MODE_BINARY("a", "ab");
         }
-        if (accmode == O_RDWR) {
+        if(accmode == O_RDWR) {
           return MODE_BINARY("a+", "ab+");
         }
       }
@@ -342,7 +342,7 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     IO* io = c_as<IO>(env->get_object(io_handle));
     int io_mode = io->mode()->to_native() & O_ACCMODE;
-    if (!(O_RDONLY == io_mode || O_RDWR == io_mode)) {
+    if(!(O_RDONLY == io_mode || O_RDWR == io_mode)) {
       rb_raise(rb_eIOError, "not opened for reading");
     }
   }
@@ -352,7 +352,7 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     IO* io = c_as<IO>(env->get_object(io_handle));
     int io_mode = io->mode()->to_native() & O_ACCMODE;
-    if (!(O_WRONLY == io_mode || O_RDWR == io_mode)) {
+    if(!(O_WRONLY == io_mode || O_RDWR == io_mode)) {
       rb_raise(rb_eIOError, "not opened for writing");
     }
   }

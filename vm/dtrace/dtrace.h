@@ -6,7 +6,7 @@
 
 #define RUBINIUS_METHOD_HOOK(probe, state, mod, method, previous) \
 { \
-  if (RUBINIUS_METHOD_##probe##_ENABLED()) { \
+  if(RUBINIUS_METHOD_##probe##_ENABLED()) { \
     const char* module_name = mod->debug_str(state).c_str(); \
     const char* code_name = method->debug_str(state).c_str(); \
     const char* file_name = "<unknown>"; \

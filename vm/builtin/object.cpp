@@ -775,7 +775,7 @@ namespace rubinius {
   Object* Object::taint(STATE) {
     if(!is_tainted_p()) {
       check_frozen(state);
-      if (reference_p()) set_tainted();
+      if(reference_p()) set_tainted();
     }
     return this;
   }

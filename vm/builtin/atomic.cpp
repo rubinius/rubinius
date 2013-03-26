@@ -24,7 +24,7 @@ namespace rubinius {
   Object* AtomicReference::compare_and_set(STATE, Object* old, Object* new_) {
     Object** pp = &value_;
 
-    if (atomic::compare_and_swap((void**)pp, old, new_)) {
+    if(atomic::compare_and_swap((void**)pp, old, new_)) {
       if(mature_object_p()) this->write_barrier(state, new_);
       return cTrue;
     } else {

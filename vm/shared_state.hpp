@@ -268,7 +268,7 @@ namespace rubinius {
 
     bool check_gc_p() {
       bool c = check_gc_;
-      if (unlikely(c)) {
+      if(unlikely(c)) {
         check_global_interrupts_ = false;
         check_gc_ = false;
       }

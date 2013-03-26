@@ -91,10 +91,10 @@ namespace rubinius {
 
   int get_kcode_from_enc(OnigEncoding enc) {
     int r = 0;
-    if (enc == ONIG_ENCODING_ASCII)       r = KCODE_NONE;
-    if (enc == ONIG_ENCODING_EUC_JP)      r = KCODE_EUC;
-    if (enc == ONIG_ENCODING_Shift_JIS)   r = KCODE_SJIS;
-    if (enc == ONIG_ENCODING_UTF_8)       r = KCODE_UTF8;
+    if(enc == ONIG_ENCODING_ASCII)       r = KCODE_NONE;
+    if(enc == ONIG_ENCODING_EUC_JP)      r = KCODE_EUC;
+    if(enc == ONIG_ENCODING_Shift_JIS)   r = KCODE_SJIS;
+    if(enc == ONIG_ENCODING_UTF_8)       r = KCODE_UTF8;
     return r;
   }
 

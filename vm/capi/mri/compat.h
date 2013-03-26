@@ -110,7 +110,7 @@ rb_hash_lookup(hash, key)
 {
   VALUE val;
 
-  if (!st_lookup(RHASH(hash)->tbl, key, &val)) {
+  if(!st_lookup(RHASH(hash)->tbl, key, &val)) {
     return Qnil; /* without Hash#default */
   }
   return val;
@@ -141,7 +141,7 @@ static VALUE
 rb_hash_clear(hash)
     VALUE hash;
 {
-  if (RHASH(hash)->tbl->num_entries > 0) {
+  if(RHASH(hash)->tbl->num_entries > 0) {
     rb_hash_foreach(hash, __rb_hash_clear_clear_i, 0);
   }
 

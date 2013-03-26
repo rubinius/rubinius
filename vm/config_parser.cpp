@@ -135,7 +135,7 @@ namespace rubinius {
     for(ConfigParser::ConfigVector::iterator i = variables.begin();
         i != variables.end();
         ++i) {
-        if (i->first == name) return i->second;
+        if(i->first == name) return i->second;
     }
 
     return NULL;
@@ -145,7 +145,7 @@ namespace rubinius {
     for(ConfigParser::ConfigVector::iterator i = variables.begin();
         i != variables.end();
         ++i) {
-        if (i->first == name) {
+        if(i->first == name) {
           i->second->value = val;
           return;
         }

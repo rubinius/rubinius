@@ -23,7 +23,7 @@ extern "C" {
   }
 
   VALUE rb_reg_nth_match(long nth, VALUE match_data) {
-    if (NIL_P(match_data)) {
+    if(NIL_P(match_data)) {
       return Qnil;
     }
     return rb_funcall(match_data, rb_intern("[]"), 1, Fixnum::from(nth));

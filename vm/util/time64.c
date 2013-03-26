@@ -393,11 +393,11 @@ struct tm64* gmtime64_r(const time64_t* time64, struct tm64* tm64) {
    * Week day is easy since we know the day that the epoch occured
    */
   tm64->tm_wday = (int)((days + 4) % 7);
-  if (tm64->tm_wday < 0) {
+  if(tm64->tm_wday < 0) {
     tm64->tm_wday += 7;
   }
 
-  if (days >= 0) {
+  if(days >= 0) {
     /* Gregorian cycles */
     int64_t cycles = days / DAYS_IN_GREGORIAN_CYCLE;
     if(cycles) {
