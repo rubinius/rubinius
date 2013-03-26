@@ -71,7 +71,7 @@ others learn about the implementation details.
 
 ## Cleanup Code
 
-Review the [Style Guide](/doc/en/contributing/style-guide/) for coding
+Review the [Style Guide](contributing/style-guide.markdown) for coding
 guidelines.
 
 

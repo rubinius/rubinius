@@ -8,8 +8,8 @@ next_url: systems/primitives
 review: true
 ---
 
-1. [Primitives](/doc/en/systems/primitives/)
-1. [FFI](/doc/en/systems/ffi/)
-1. [Concurrency](/doc/en/systems/concurrency/)
-1. [IO](/doc/en/systems/io/)
-1. [C-API](/doc/en/systems/c-api/)
+1. [Primitives](systems/primitives.markdown)
+1. [FFI](systems/ffi.markdown)
+1. [Concurrency](systems/concurrency.markdown)
+1. [IO](systems/io.markdown)
+1. [C-API](systems/c-api.markdown)
