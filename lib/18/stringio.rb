@@ -230,7 +230,17 @@ class StringIO
     d.pos += 1 unless eof?
     char
   end
-  alias_method :getbyte, :getc
+
+  def getbyte
+    check_readable
+    d = @__data__
+
+    return nil if eof?
+
+    byte = d.string.getbyte(d.pos)
+    d.pos += 1
+    byte
+  end
 
   def gets(sep = $/)
     check_readable
