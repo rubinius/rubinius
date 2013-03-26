@@ -227,19 +227,19 @@ namespace rubinius {
     CompiledCode* code = CompiledCode::create(state);
 
     code->metadata(state, unmarshal());
-    code->primitive(state, reinterpret_cast<Symbol*>(unmarshal()));
-    code->name(state, reinterpret_cast<Symbol*>(unmarshal()));
-    code->iseq(state, reinterpret_cast<InstructionSequence*>(unmarshal()));
-    code->stack_size(state, reinterpret_cast<Fixnum*>(unmarshal()));
-    code->local_count(state, reinterpret_cast<Fixnum*>(unmarshal()));
-    code->required_args(state, reinterpret_cast<Fixnum*>(unmarshal()));
-    code->post_args(state, reinterpret_cast<Fixnum*>(unmarshal()));
-    code->total_args(state, reinterpret_cast<Fixnum*>(unmarshal()));
-    code->splat(state, reinterpret_cast<Fixnum*>(unmarshal()));
-    code->literals(state, reinterpret_cast<Tuple*>(unmarshal()));
-    code->lines(state, reinterpret_cast<Tuple*>(unmarshal()));
-    code->file(state, reinterpret_cast<Symbol*>(unmarshal()));
-    code->local_names(state, reinterpret_cast<Tuple*>(unmarshal()));
+    code->primitive(state, force_as<Symbol>(unmarshal()));
+    code->name(state, force_as<Symbol>(unmarshal()));
+    code->iseq(state, force_as<InstructionSequence>(unmarshal()));
+    code->stack_size(state, force_as<Fixnum>(unmarshal()));
+    code->local_count(state, force_as<Fixnum>(unmarshal()));
+    code->required_args(state, force_as<Fixnum>(unmarshal()));
+    code->post_args(state, force_as<Fixnum>(unmarshal()));
+    code->total_args(state, force_as<Fixnum>(unmarshal()));
+    code->splat(state, force_as<Fixnum>(unmarshal()));
+    code->literals(state, force_as<Tuple>(unmarshal()));
+    code->lines(state, force_as<Tuple>(unmarshal()));
+    code->file(state, force_as<Symbol>(unmarshal()));
+    code->local_names(state, force_as<Tuple>(unmarshal()));
 
     code->post_marshal(state);
 
