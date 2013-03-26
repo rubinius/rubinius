@@ -51,12 +51,11 @@ namespace rubinius {
   Object* Executable::invoke(STATE, Symbol* name, Module* mod, Object* recv, Array* ary,
                              Object* block, CallFrame* call_frame)
   {
-    Dispatch disp(name, mod, this);
     Arguments args(name, recv, 0, 0);
     args.use_array(ary);
     args.set_block(block);
 
-    return execute(state, call_frame, disp.method, disp.module, args);
+    return execute(state, call_frame, this, mod, args);
   }
 
   Object* Executable::default_executor(STATE, CallFrame* call_frame, Executable* exec, Module* mod,

@@ -84,8 +84,6 @@ extern "C" {
 
 class TestNativeFunction : public CxxTest::TestSuite, public VMTest {
 public:
-  Dispatch null_dispatch;
-
   void setUp() {
     create();
   }

@@ -18,24 +18,10 @@ namespace rubinius {
     Executable* method;
     bool method_missing;
 
-    Dispatch()
-      : name(0)
-      , module(0)
-      , method(0)
-      , method_missing(false)
-    {}
-
     Dispatch(Symbol* name)
       : name(name)
-      , module(reinterpret_cast<Module*>(cNil))
-      , method(reinterpret_cast<Executable*>(cNil))
-      , method_missing(false)
-    {}
-
-    Dispatch(Symbol* name, Module* mod, Executable* meth)
-      : name(name)
-      , module(mod)
-      , method(meth)
+      , module(0)
+      , method(0)
       , method_missing(false)
     {}
 

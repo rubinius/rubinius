@@ -1614,7 +1614,6 @@ namespace rubinius {
   Object* System::vm_run_script(STATE, GCToken gct, CompiledCode* code,
                                 CallFrame* calling_environment)
   {
-    Dispatch msg(state->symbol("__script__"), G(object), code);
     Arguments args(state->symbol("__script__"), G(main), cNil, 0, 0);
 
     OnStack<1> os(state, code);
