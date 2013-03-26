@@ -117,13 +117,12 @@ namespace rubinius {
         if(table_[i] == handle) return false;
       }
 
-      SlowHandleSet::iterator pos = slow_->find(handle);
-      if(pos != slow_->end()) return false;
+      std::pair<SlowHandleSet::iterator, bool> ret = slow_->insert(handle);
 
-      slow_->insert(handle);
-      handle->ref();
-
-      return true;
+      if(ret.second) {
+        handle->ref();
+      }
+      return ret.second;
     }
 
     void HandleSet::make_slow_and_add(Handle* handle) {
