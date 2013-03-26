@@ -273,8 +273,14 @@ class StringIO
   end
 
   def getbyte
-    char = getc
-    char && char.ord
+    check_readable
+    d = @__data__
+
+    return nil if eof?
+
+    byte = d.string.getbyte(d.pos)
+    d.pos += 1
+    byte
   end
 
   def gets(sep=$/, limit=Undefined)
