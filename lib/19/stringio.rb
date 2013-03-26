@@ -190,20 +190,26 @@ class StringIO
     pos = d.pos
     string = d.string
 
-    if @append || pos == string.length
-      string << str
-      d.pos = string.length
+    if @append || pos == string.bytesize
+      string.append str
+      d.pos = string.bytesize
     elsif pos > string.bytesize
-      string[string.bytesize..pos] = "\000" * (pos - string.bytesize)
-      string << str
+      m = Rubinius::Mirror.reflect string
+      m.splice string.bytesize, 0, "\000" * (pos - string.bytesize)
+      string.append str
       d.pos = string.bytesize
     else
-      string[pos, str.length] = str
-      d.pos += str.length
+      stop = string.bytesize - pos
+      if str.bytesize < stop
+        stop = str.bytesize
+      end
+      m = Rubinius::Mirror.reflect string
+      m.splice pos, stop, str
+      d.pos += str.bytesize
       string.taint if str.tainted?
     end
 
-    return str.length
+    str.bytesize
   end
   alias_method :syswrite, :write
   alias_method :write_nonblock, :write
@@ -336,16 +342,18 @@ class StringIO
     pos = d.pos
     string = d.string
 
-    if @append || pos == string.length
-      string << char
-      d.pos = string.length
-    elsif pos > string.length
-      string[string.length..pos] = "\000" * (pos - string.length)
-      string << char
-      d.pos = string.length
+    if @append || pos == string.bytesize
+      string.append char
+      d.pos = string.bytesize
+    elsif pos > string.bytesize
+      m = Rubinius::Mirror.reflect string
+      m.splice string.bytesize, 0, "\000" * (pos - string.bytesize)
+      string.append char
+      d.pos = string.bytesize
     else
-      string[pos] = char
-      d.pos += 1
+      m = Rubinius::Mirror.reflect string
+      m.splice pos, char.bytesize, char
+      d.pos += char.bytesize
     end
 
     obj
