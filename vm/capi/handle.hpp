@@ -14,7 +14,7 @@
 
 #include "capi/value.hpp"
 
-#include <tr1/unordered_set>
+#include <set>
 
 #ifndef RIO
 #define RIO rb_io_t
@@ -233,7 +233,7 @@ namespace rubinius {
       }
     };
 
-    typedef std::tr1::unordered_set<Handle*> SlowHandleSet;
+    typedef std::set<Handle*> SlowHandleSet;
 
     class HandleSet {
     public:
