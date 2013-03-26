@@ -101,7 +101,7 @@ namespace rubinius {
     }
 
     if(Module* mod = try_as<Module>(unit->value())) {
-      return obj->kind_of_p(state, mod) ? cTrue : cFalse;
+      return RBOOL(obj->kind_of_p(state, mod));
     } else {
       return cFalse;
     }

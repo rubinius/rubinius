@@ -368,7 +368,7 @@ namespace rubinius {
       }
     }
 
-    return removed ? cTrue : cFalse;
+    return RBOOL(removed);
   }
 
   Object* CompiledCode::is_breakpoint(STATE, Fixnum* ip) {
@@ -380,8 +380,7 @@ namespace rubinius {
     bool found = false;
     breakpoints_->fetch(state, ip, &found);
 
-    if(found) return cTrue;
-    return cFalse;
+    return RBOOL(found);
   }
 
   CompiledCode* CompiledCode::of_sender(STATE, CallFrame* calling_environment) {

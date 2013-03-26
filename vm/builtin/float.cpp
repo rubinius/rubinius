@@ -76,7 +76,7 @@ namespace rubinius {
     while(isspace(*str) || *str == '_') {
       if(*str == '_') {
         // Leading underscores are not allowed in strict mode.
-        if(strict == cTrue) {
+        if(CBOOL(strict)) {
           return nil<Float>();
         }
 
@@ -97,7 +97,7 @@ namespace rubinius {
     while(*str) {
       // Remove underscores between digits.
       if(*str == '_') {
-        if(strict == cTrue) {
+        if(CBOOL(strict)) {
           // Underscores are only allowed to be used as separators in strict mode.
           char next = *++str;
 
@@ -112,7 +112,7 @@ namespace rubinius {
       }
 
       // Ensure there is a digit to the right side of the decimal in strict mode.
-      if(*str == '.' && !isdigit(str[1]) && strict == cTrue)  {
+      if(*str == '.' && !isdigit(str[1]) && CBOOL(strict))  {
         return nil<Float>();
       }
 
@@ -125,7 +125,7 @@ namespace rubinius {
 
     // Check for the hex prefix.
     if(p[0] == '0' && (p[1] == 'x' || p[1] == 'X')) {
-      if(strict == cTrue) {
+      if(CBOOL(strict)) {
         // Only allow hex in Ruby > 1.8.
         if(LANGUAGE_18_ENABLED(state)) {
           return nil<Float>();
@@ -166,7 +166,7 @@ namespace rubinius {
 
       // Disallow if the string is indeed a special value.
       if(special) {
-        if(strict == cTrue) {
+        if(CBOOL(strict)) {
           return nil<Float>();
         } else {
           return Float::create(state, 0.0);
@@ -179,7 +179,7 @@ namespace rubinius {
     char *rest;
     double value = ruby_strtod(p, &rest);
 
-    if(strict == cTrue) {
+    if(CBOOL(strict)) {
       // Disallow empty strings in strict mode.
       if(p == rest) {
         return nil<Float>();
@@ -282,25 +282,16 @@ namespace rubinius {
   }
 
   Object* Float::equal(STATE, Float* other) {
-    if(this->val == other->val) {
-      return cTrue;
-    }
-    return cFalse;
+    return RBOOL(this->val == other->val);
   }
 
   Object* Float::equal(STATE, Integer* other) {
     Float* o = Float::coerce(state, other);
-    if(this->val == o->val) {
-      return cTrue;
-    }
-    return cFalse;
+    return RBOOL(this->val == o->val);
   }
 
   Object* Float::eql(STATE, Float* other) {
-    if(this->val == other->val) {
-      return cTrue;
-    }
-    return cFalse;
+    return RBOOL(this->val == other->val);
   }
 
   Object* Float::eql(STATE, Integer* other) {
@@ -322,7 +313,7 @@ namespace rubinius {
   Object* Float::compare(STATE, Integer* other) {
     if(isinf(this->val)) {
       if(this->val > 0) {
-          return Fixnum::from(1);
+        return Fixnum::from(1);
       } else {
         return Fixnum::from(-1);
       }
@@ -340,35 +331,35 @@ namespace rubinius {
   }
 
   Object* Float::gt(STATE, Float* other) {
-    return this->val > other->val ? cTrue : cFalse;
+    return RBOOL(this->val > other->val);
   }
 
   Object* Float::gt(STATE, Integer* other) {
-    return this->val > Float::coerce(state, other)->val ? cTrue : cFalse;
+    return RBOOL(this->val > Float::coerce(state, other)->val);
   }
 
   Object* Float::ge(STATE, Float* other) {
-    return this->val >= other->val ? cTrue : cFalse;
+    return RBOOL(this->val >= other->val);
   }
 
   Object* Float::ge(STATE, Integer* other) {
-    return this->val >= Float::coerce(state, other)->val ? cTrue : cFalse;
+    return RBOOL(this->val >= Float::coerce(state, other)->val);
   }
 
   Object* Float::lt(STATE, Float* other) {
-    return this->val < other->val ? cTrue : cFalse;
+    return RBOOL(this->val < other->val);
   }
 
   Object* Float::lt(STATE, Integer* other) {
-    return this->val < Float::coerce(state, other)->val ? cTrue : cFalse;
+    return RBOOL(this->val < Float::coerce(state, other)->val);
   }
 
   Object* Float::le(STATE, Float* other) {
-    return this->val <= other->val ? cTrue : cFalse;
+    return RBOOL(this->val <= other->val);
   }
 
   Object* Float::le(STATE, Integer* other) {
-    return this->val <= Float::coerce(state, other)->val ? cTrue : cFalse;
+    return RBOOL(this->val <= Float::coerce(state, other)->val);
   }
 
   Object* Float::fisinf(STATE) {
@@ -380,7 +371,7 @@ namespace rubinius {
   }
 
   Object* Float::fisnan(STATE) {
-    return isnan(this->val) == 1 ? cTrue : cFalse;
+    return RBOOL(isnan(this->val));
   }
 
   Integer* Float::fround(STATE) {
@@ -458,7 +449,7 @@ namespace rubinius {
     char str[sizeof(double)];
     int sz;
 
-    if (want_double == cTrue) {
+    if(CBOOL(want_double)) {
       double* p = (double *)str;
       *p = this->val;
       sz = 8;

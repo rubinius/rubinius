@@ -349,7 +349,7 @@ namespace rubinius {
       mod = as<Module>(sc->attached_instance());
     }
 
-    if (this->cvar_defined(state, name) == cTrue) {
+    if(CBOOL(this->cvar_defined(state, name))) {
       ss << "cannot remove ";
       ss << name->debug_str(state);
       ss << " for ";

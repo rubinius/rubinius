@@ -148,7 +148,7 @@ namespace rubinius {
   }
 
   Object* Object::equal(STATE, Object* other) {
-    return this == other ? cTrue : cFalse;
+    return RBOOL(this == other);
   }
 
   Object* Object::freeze(STATE) {
@@ -169,16 +169,16 @@ namespace rubinius {
 
   Object* Object::frozen_p(STATE) {
     if(reference_p()) {
-      if(is_frozen_p()) return cTrue;
+      return RBOOL(is_frozen_p());
     } else if(!LANGUAGE_18_ENABLED(state)) {
       LookupTable* tbl = try_as<LookupTable>(G(external_ivars)->fetch(state, this));
-      if(tbl && tbl->is_frozen_p()) return cTrue;
+      return RBOOL(tbl && tbl->is_frozen_p());
     }
     return cFalse;
   }
 
   void Object::check_frozen(STATE) {
-    if(frozen_p(state) == cTrue) {
+    if(CBOOL(frozen_p(state))) {
       const char* reason = "can't modify frozen object";
       if(LANGUAGE_18_ENABLED(state)) {
         Exception::type_error(state, reason);
@@ -210,8 +210,7 @@ namespace rubinius {
       tbl->fetch(state, sym, &found);
     }
 
-    if(found) return cTrue;
-    return cFalse;
+    return RBOOL(found);
   }
 
   Object* Object::get_ivar_prim(STATE, Symbol* sym) {
@@ -292,7 +291,7 @@ namespace rubinius {
       if(tbl) {
         bool found = false;
         tbl->fetch(state, sym, &found);
-        if(found) return cTrue;
+        return RBOOL(found);
       }
 
       return cFalse;
@@ -464,11 +463,11 @@ namespace rubinius {
   }
 
   Object* Object::kind_of_prim(STATE, Module* klass) {
-    return kind_of_p(state, klass) ? cTrue : cFalse;
+    return RBOOL(kind_of_p(state, klass));
   }
 
   Object* Object::instance_of_prim(STATE, Module* klass) {
-    return class_object(state) == klass ? cTrue : cFalse;
+    return RBOOL(class_object(state) == klass);
   }
 
   Class* Object::singleton_class(STATE) {
@@ -584,7 +583,7 @@ namespace rubinius {
     }
 
     if(CompactLookupTable* tbl = try_as<CompactLookupTable>(ivars())) {
-      if(tbl->store(state, sym, val) == cTrue) {
+      if(CBOOL(tbl->store(state, sym, val))) {
         return val;
       }
 
@@ -782,8 +781,7 @@ namespace rubinius {
   }
 
   Object* Object::tainted_p(STATE) {
-    if(is_tainted_p()) return cTrue;
-    return cFalse;
+    return RBOOL(is_tainted_p());
   }
 
   Object* Object::trust(STATE) {
@@ -803,8 +801,7 @@ namespace rubinius {
   }
 
   Object* Object::untrusted_p(STATE) {
-    if(is_untrusted_p()) return cTrue;
-    return cFalse;
+    return RBOOL(is_untrusted_p());
   }
 
   TypeInfo* Object::type_info(STATE) const {
@@ -824,11 +821,7 @@ namespace rubinius {
 
     Dispatch dis(name);
 
-    if(!GlobalCache::resolve(state, name, dis, lookup)) {
-      return cFalse;
-    }
-
-    return cTrue;
+    return RBOOL(GlobalCache::resolve(state, name, dis, lookup));
   }
 
   /**

@@ -245,7 +245,7 @@ namespace rubinius {
   }
 
   Object* Fixnum::equal(STATE, Fixnum* other) {
-    return to_native() == other->to_native() ? cTrue : cFalse;
+    return RBOOL(to_native() == other->to_native());
   }
 
   Object* Fixnum::equal(STATE, Bignum* other) {
@@ -253,7 +253,7 @@ namespace rubinius {
   }
 
   Object* Fixnum::equal(STATE, Float* other) {
-    return (double)to_native() == other->val ? cTrue : cFalse;
+    return RBOOL((double)to_native() == other->val);
   }
 
   Object* Fixnum::compare(STATE, Fixnum* other) {
@@ -296,11 +296,11 @@ namespace rubinius {
   }
 
   Object* Fixnum::gt(STATE, Float* other) {
-    return (double) to_native() > other->val ? cTrue : cFalse;
+    return RBOOL((double) to_native() > other->val);
   }
 
   Object* Fixnum::ge(STATE, Fixnum* other) {
-    return to_native() >= other->to_native() ? cTrue : cFalse;
+    return RBOOL(to_native() >= other->to_native());
   }
 
   Object* Fixnum::ge(STATE, Bignum* other) {
@@ -308,7 +308,7 @@ namespace rubinius {
   }
 
   Object* Fixnum::ge(STATE, Float* other) {
-    return (double) to_native() >= other->val ? cTrue : cFalse;
+    return RBOOL((double) to_native() >= other->val);
   }
 
   Object* Fixnum::lt(STATE, Bignum* other) {
@@ -316,11 +316,11 @@ namespace rubinius {
   }
 
   Object* Fixnum::lt(STATE, Float* other) {
-    return (double) to_native() < other->val ? cTrue : cFalse;
+    return RBOOL((double) to_native() < other->val);
   }
 
   Object* Fixnum::le(STATE, Fixnum* other) {
-    return to_native() <= other->to_native() ? cTrue : cFalse;
+    return RBOOL(to_native() <= other->to_native());
   }
 
   Object* Fixnum::le(STATE, Bignum* other) {
@@ -328,7 +328,7 @@ namespace rubinius {
   }
 
   Object* Fixnum::le(STATE, Float* other) {
-    return (double) to_native() <= other->val ? cTrue : cFalse;
+    return RBOOL((double) to_native() <= other->val);
   }
 
   Integer* Fixnum::left_shift(STATE, Fixnum* bits) {

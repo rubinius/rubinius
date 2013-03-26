@@ -296,7 +296,7 @@ namespace rubinius {
       ret = Fixnum::from((unsigned int)(READ(unsigned char)));
       break;
     case RBX_FFI_TYPE_BOOL:
-      ret = (READ(unsigned char)) ? cTrue : cFalse;
+      ret = RBOOL(READ(unsigned char));
       break;
     case RBX_FFI_TYPE_SHORT:
       ret = Fixnum::from((int)(READ(short)));

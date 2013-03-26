@@ -938,7 +938,7 @@ namespace rubinius {
     native_int fd = to_fd();
 
     if(op == state->symbol("tty?")) {
-      return isatty(fd) ? cTrue : cFalse;
+      return RBOOL(isatty(fd));
 #ifndef RBX_WINDOWS
     } else if(op == state->symbol("ttyname")) {
       return String::create(state, ttyname(fd));
@@ -1131,11 +1131,7 @@ failed: /* try next '*' position */
   }
 
   Object* IO::fnmatch(STATE, String* pattern, String* path, Fixnum* flags) {
-    if(mri_fnmatch(pattern->c_str(state), path->c_str(state), flags->to_native())) {
-      return cTrue;
-    }
-
-    return cFalse;
+    return RBOOL(mri_fnmatch(pattern->c_str(state), path->c_str(state), flags->to_native()));
   }
 
 

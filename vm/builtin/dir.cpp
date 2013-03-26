@@ -80,7 +80,7 @@ namespace rubinius {
   }
 
   Object* Dir::closed_p(STATE) {
-    return os_ ? cFalse : cTrue;
+    return RBOOL(!os_);
   }
 
   Object* Dir::read(STATE) {

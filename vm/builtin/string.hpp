@@ -114,7 +114,7 @@ namespace rubinius {
           other->byte_address(),
           this->num_bytes()->to_native());
 
-      return comp == 0 ? cTrue : cFalse;
+      return RBOOL(comp == 0);
     }
 
 

@@ -342,18 +342,18 @@ public:
   void test_taint() {
     Object* obj = util_new_object();
 
-    TS_ASSERT(obj->tainted_p(state) == cFalse);
+    TS_ASSERT_EQUALS(obj->tainted_p(state), cFalse);
     obj->taint(state);
-    TS_ASSERT(obj->tainted_p(state) == cTrue);
+    TS_ASSERT_EQUALS(obj->tainted_p(state), cTrue);
   }
 
   void test_untaint() {
     Object* obj = util_new_object();
 
     obj->taint(state);
-    TS_ASSERT(obj->tainted_p(state) == cTrue);
+    TS_ASSERT_EQUALS(obj->tainted_p(state), cTrue);
     obj->untaint(state);
-    TS_ASSERT(obj->tainted_p(state) == cFalse);
+    TS_ASSERT_EQUALS(obj->tainted_p(state), cFalse);
   }
 
   void test_frozen_p() {
@@ -367,7 +367,7 @@ public:
   void test_freeze() {
     Object* obj = util_new_object();
 
-    TS_ASSERT(obj->frozen_p(state) == cFalse);
+    TS_ASSERT_EQUALS(obj->frozen_p(state), cFalse);
     obj->freeze(state);
     TS_ASSERT(obj->frozen_p(state));
   }

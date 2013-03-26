@@ -36,7 +36,7 @@ namespace rubinius {
 
     // Rubinius.primitive :fixnum_s_eqq
     static Object* is_fixnum(STATE, Object* obj) {
-      return obj->fixnum_p() ? cTrue : cFalse;
+      return RBOOL(obj->fixnum_p());
     }
 
     // Rubinius.primitive! :fixnum_add
@@ -139,7 +139,7 @@ namespace rubinius {
 
     // Rubinius.primitive! :fixnum_gt
     Object* gt(STATE, Fixnum* other) {
-      return to_native() > other->to_native() ? cTrue : cFalse;
+      return RBOOL(to_native() > other->to_native());
     }
 
     // Rubinius.primitive! :fixnum_gt
@@ -159,7 +159,7 @@ namespace rubinius {
 
     // Rubinius.primitive! :fixnum_lt
     Object* lt(STATE, Fixnum* other) {
-      return to_native() < other->to_native() ? cTrue : cFalse;
+      return RBOOL(to_native() < other->to_native());
     }
 
     // Rubinius.primitive! :fixnum_lt

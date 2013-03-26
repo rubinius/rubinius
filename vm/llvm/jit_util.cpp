@@ -627,14 +627,13 @@ extern "C" {
     CPP_TRY
 
     Class* cls = as<Class>(b1);
-    if(top->class_object(state) == cls) return cTrue;
-    return cFalse;
+    return RBOOL(top->class_object(state) == cls);
 
     CPP_CATCH
   }
 
   Object* rbx_kind_of(STATE, Object* top, Object* b1) {
-    return top->kind_of_p(state, b1) ? cTrue : cFalse;
+    return RBOOL(top->kind_of_p(state, b1));
   }
 
   Object* rbx_make_array(STATE, int count, Object** args) {
@@ -720,12 +719,12 @@ extern "C" {
   }
 
   Object* rbx_passed_arg(STATE, Arguments& args, int index) {
-    return (index < (int)args.total()) ? cTrue : cFalse;
+    return RBOOL(index < (int)args.total());
   }
 
   // TODO remove this and use passed_arg
   Object* rbx_passed_blockarg(STATE, Arguments& args, int index) {
-    return (index == (int)args.total()) ? cTrue : cFalse;
+    return RBOOL(index == (int)args.total());
   }
 
   Object* rbx_push_const(STATE, CallFrame* call_frame, Symbol* sym) {

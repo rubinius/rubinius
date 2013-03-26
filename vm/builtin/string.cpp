@@ -710,7 +710,7 @@ namespace rubinius {
       ByteArray* ba = ByteArray::create(state, current_size + 1);
       memcpy(ba->raw_bytes(), byte_address(), current_size);
       data(state, ba);
-      if(shared_ == cTrue) shared(state, cFalse);
+      if(CBOOL(shared_)) shared(state, cFalse);
       // We need to read it again since we have a new ByteArray
       c_string = (char*)byte_address();
       c_string[current_size] = 0;
@@ -773,7 +773,7 @@ namespace rubinius {
       sum |= (b1 ^ b2);
     }
 
-    return (sum == 0) ? cTrue : cFalse;
+    return RBOOL(sum == 0);
   }
 
   String* String::string_dup(STATE) {
@@ -800,7 +800,7 @@ namespace rubinius {
   }
 
   void String::unshare(STATE) {
-    if(shared_ == cTrue) {
+    if(CBOOL(shared_)) {
       if(data_->reference_p()) {
         data(state, as<ByteArray>(data_->duplicate(state)));
       }
@@ -855,13 +855,13 @@ namespace rubinius {
 
       // No need to call unshare and duplicate a ByteArray
       // just to throw it away.
-      if(shared_ == cTrue) shared(state, cFalse);
+      if(CBOOL(shared_)) shared(state, cFalse);
 
       ByteArray* ba = ByteArray::create(state, capacity);
       memcpy(ba->raw_bytes(), byte_address(), current_size);
       data(state, ba);
     } else {
-      if(shared_ == cTrue) unshare(state);
+      if(CBOOL(shared_)) unshare(state);
     }
 
     // Append on top of the null byte at the end of s1, not after it
@@ -918,7 +918,7 @@ namespace rubinius {
   Float* String::to_f(STATE, Object* strict) {
     const char* str = c_str(state);
 
-    if(strict == cTrue && byte_size() > (native_int)strlen(str)) {
+    if(CBOOL(strict) && byte_size() > (native_int)strlen(str)) {
       return nil<Float>();
     }
 
@@ -1291,7 +1291,7 @@ namespace rubinius {
     const char* str = c_str(state);
     int base = fix_base->to_native();
 
-    if(strict == cTrue) {
+    if(CBOOL(strict)) {
       // In strict mode the string can't have null bytes.
       if(byte_size() > (native_int)strlen(str)) return nil<Integer>();
     }

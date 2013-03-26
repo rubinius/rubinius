@@ -443,8 +443,7 @@ namespace rubinius {
   }
 
   Object* Encoding::ascii_compatible_p(STATE) {
-    bool v = encoding_->min_enc_len == 1 && dummy_ == cFalse;
-    return v ? cTrue : cFalse;
+    return RBOOL(encoding_->min_enc_len == 1 && dummy_ == cFalse);
   }
 
   void Encoding::make_managed(STATE, const char* name, OnigEncodingType* enc) {

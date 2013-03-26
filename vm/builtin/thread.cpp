@@ -393,7 +393,7 @@ namespace rubinius {
     OnStack<1> os(state, self);
 
     VM* vm = self->vm_;
-    if(alive() == cFalse || !vm) {
+    if(!CBOOL(alive()) || !vm) {
       return force_as<Thread>(Primitives::failure());
     }
 

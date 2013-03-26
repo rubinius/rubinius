@@ -82,7 +82,7 @@ namespace rubinius {
     }
 
     tm->decomposed(state, nil<Array>());
-    tm->is_gmt(state, CBOOL(gmt) ? cTrue : cFalse);
+    tm->is_gmt(state, RBOOL(CBOOL(gmt)));
     tm->offset(state, offset);
 
     return tm;
@@ -139,7 +139,7 @@ namespace rubinius {
     Time* obj = state->new_object_dirty<Time>(as<Class>(self));
     obj->seconds_ = seconds;
     obj->nanoseconds_ = nsec->to_native();
-    obj->is_gmt(state, CBOOL(from_gmt) ? cTrue : cFalse);
+    obj->is_gmt(state, RBOOL(CBOOL(from_gmt)));
 
     if(!offset->nil_p()) {
       obj->seconds_ -= offset_sec->to_long_long();
@@ -252,7 +252,7 @@ namespace rubinius {
     ary->set(state, 5, Integer::from(state, tm.tm_year));
     ary->set(state, 6, Integer::from(state, tm.tm_wday));
     ary->set(state, 7, Integer::from(state, tm.tm_yday + 1));
-    ary->set(state, 8, tm.tm_isdst ? cTrue : cFalse);
+    ary->set(state, 8, RBOOL(tm.tm_isdst));
 
     if(offset_->nil_p() && tm.tm_zone) {
       ary->set(state, 9, String::create(state, tm.tm_zone));

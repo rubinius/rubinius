@@ -416,7 +416,7 @@ namespace rubinius {
     int status;
     pid_t pid;
 
-    if(no_hang == cTrue) {
+    if(CBOOL(no_hang)) {
       options |= WNOHANG;
     }
 
@@ -452,7 +452,7 @@ namespace rubinius {
       return cFalse;
     }
 
-    if(no_hang == cTrue && pid == 0) {
+    if(CBOOL(no_hang) && pid == 0) {
       return cNil;
     }
 
@@ -642,14 +642,14 @@ namespace rubinius {
 
   Object* System::vm_tooling_available_p(STATE) {
 #ifdef RBX_PROFILER
-    return state->shared().tool_broker()->available(state) ? cTrue : cFalse;
+    return RBOOL(state->shared().tool_broker()->available(state));
 #else
     return cFalse;
 #endif
   }
 
   Object* System::vm_tooling_active_p(STATE) {
-    return state->vm()->tooling() ? cTrue : cFalse;
+    return RBOOL(state->vm()->tooling());
   }
 
   Object* System::vm_tooling_enable(STATE) {
@@ -732,7 +732,7 @@ namespace rubinius {
       if(i < 0) {
         h->add_signal(state, -i, SignalHandler::eDefault);
       } else if(i > 0) {
-        h->add_signal(state, i, ignored == cTrue ? SignalHandler::eIgnore : SignalHandler::eCustom);
+        h->add_signal(state, i, CBOOL(ignored) ? SignalHandler::eIgnore : SignalHandler::eCustom);
       }
 
       return cTrue;
@@ -1059,11 +1059,11 @@ namespace rubinius {
   }
 
   Object* System::vm_object_equal(STATE, Object* a, Object* b) {
-    return a == b ? cTrue : cFalse;
+    return RBOOL(a == b);
   }
 
   Object* System::vm_object_kind_of(STATE, Object* obj, Module* mod) {
-    return obj->kind_of_p(state, mod) ? cTrue : cFalse;
+    return RBOOL(obj->kind_of_p(state, mod));
   }
 
   Object* System::vm_inc_global_serial(STATE, CallFrame* calling_environment) {
@@ -1475,14 +1475,12 @@ namespace rubinius {
   {
     if(!obj->reference_p()) return Primitives::failure();
     state->set_call_frame(call_frame);
-    if(obj->try_lock(state, gct) == eLocked) return cTrue;
-    return cFalse;
+    return RBOOL(obj->try_lock(state, gct) == eLocked);
   }
 
   Object* System::vm_object_locked_p(STATE, GCToken gct, Object* obj) {
     if(!obj->reference_p()) return cFalse;
-    if(obj->locked_p(state, gct)) return cTrue;
-    return cFalse;
+    return RBOOL(obj->locked_p(state, gct));
   }
 
   Object* System::vm_object_unlock(STATE, GCToken gct, Object* obj,
@@ -1504,15 +1502,15 @@ namespace rubinius {
   }
 
   Object* System::vm_ruby18_p(STATE) {
-    return LANGUAGE_18_ENABLED(state) ? cTrue : cFalse;
+    return RBOOL(LANGUAGE_18_ENABLED(state));
   }
 
   Object* System::vm_ruby19_p(STATE) {
-    return LANGUAGE_19_ENABLED(state) ? cTrue : cFalse;
+    return RBOOL(LANGUAGE_19_ENABLED(state));
   }
 
   Object* System::vm_ruby20_p(STATE) {
-    return LANGUAGE_20_ENABLED(state) ? cTrue : cFalse;
+    return RBOOL(LANGUAGE_20_ENABLED(state));
   }
 
   Object* System::vm_windows_p(STATE) {

@@ -75,8 +75,8 @@ extern "C" {
 
     String *str = c_as<String>(env->get_object(string));
 
-    bool valid = str->valid_encoding_p(env->state()) == cTrue;
-    bool ascii = str->ascii_only_p(env->state()) == cTrue;
+    bool valid = CBOOL(str->valid_encoding_p(env->state()));
+    bool ascii = CBOOL(str->ascii_only_p(env->state()));
 
     if(valid && ascii) {
       return ENC_CODERANGE_7BIT;

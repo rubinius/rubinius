@@ -25,7 +25,7 @@ namespace rubinius {
 
     // Rubinius.primitive :symbol_s_eqq
     static Object* is_symbol(STATE, Object* obj) {
-      return obj->symbol_p() ? cTrue : cFalse;
+      return RBOOL(obj->symbol_p());
     }
 
     // Rubinius.primitive :symbol_index

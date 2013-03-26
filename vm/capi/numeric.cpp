@@ -138,7 +138,7 @@ extern "C" {
   VALUE rb_cstr_to_inum(const char* str, int base, int badcheck) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     Integer* i = Integer::from_cstr(env->state(), str, base,
-                                    badcheck ? cTrue : cFalse);
+                                    RBOOL(badcheck));
     if(i->nil_p()) {
       rb_raise(rb_eArgError, "invalid string for Integer");
     }

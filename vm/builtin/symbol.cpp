@@ -62,15 +62,15 @@ namespace rubinius {
   }
 
   Object* Symbol::is_ivar_p(STATE) {
-    return state->shared().symbols.kind(state, this) == SymbolTable::IVar ? cTrue : cFalse;
+    return RBOOL(state->shared().symbols.kind(state, this) == SymbolTable::IVar);
   }
 
   Object* Symbol::is_cvar_p(STATE) {
-    return state->shared().symbols.kind(state, this) == SymbolTable::CVar ? cTrue : cFalse;
+    return RBOOL(state->shared().symbols.kind(state, this) == SymbolTable::CVar);
   }
 
   Object* Symbol::is_constant_p(STATE) {
-    return state->shared().symbols.kind(state, this) == SymbolTable::Constant ? cTrue : cFalse;
+    return RBOOL(state->shared().symbols.kind(state, this) == SymbolTable::Constant);
   }
 
   Encoding* Symbol::encoding(STATE) {

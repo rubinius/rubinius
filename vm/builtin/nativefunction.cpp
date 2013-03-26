@@ -389,7 +389,7 @@ namespace rubinius {
         args->set(state, i, Fixnum::from(*(uint8_t*)parameters[i]));
         break;
       case RBX_FFI_TYPE_BOOL:
-        args->set(state, i, (*(uint8_t*)parameters[i]) ? cTrue : cFalse);
+        args->set(state, i, RBOOL(*(uint8_t*)parameters[i]));
         break;
       case RBX_FFI_TYPE_SHORT:
         args->set(state, i, Fixnum::from(*(int16_t*)parameters[i]));
@@ -1066,7 +1066,7 @@ namespace rubinius {
       ffi_arg result;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
       state->gc_dependent();
-      ret = (result != 0) ? cTrue : cFalse;
+      ret = RBOOL(result);
       break;
     }
     case RBX_FFI_TYPE_SHORT: {
