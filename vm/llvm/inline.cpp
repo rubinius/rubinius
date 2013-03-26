@@ -619,6 +619,7 @@ remember:
     prime_info(info);
 
     info.is_block = true;
+    info.hits = 0;
 
     info.set_creator_info(creator_info_);
     info.set_block_info(block_info_);
