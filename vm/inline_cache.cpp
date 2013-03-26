@@ -2,7 +2,7 @@
 
 #ifdef OS_X_10_5
 #ifndef RBX_HAVE_TR1_HASH
-#include "missing/leopard_hashtable"
+#include "missing/leopard_hashtable.hpp"
 #endif
 #endif
 
