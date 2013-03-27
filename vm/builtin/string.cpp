@@ -146,11 +146,16 @@ namespace rubinius {
   }
 
   String* String::from_bytearray(STATE, ByteArray* ba, native_int size) {
-    String* s = state->new_object<String>(G(string));
+    String* s = state->new_object_dirty<String>(G(string));
 
-    s->num_bytes(state, Fixnum::from(size));
-    s->hash_value(state, nil<Fixnum>());
-    s->shared(state, cFalse);
+    s->num_bytes_      = Fixnum::from(size);
+    s->num_chars_      = nil<Fixnum>();
+    s->hash_value_     = nil<Fixnum>();
+    s->shared_         = cFalse;
+    s->encoding_       = nil<Encoding>();
+    s->ascii_only_     = cNil;
+    s->valid_encoding_ = cNil;
+
     s->data(state, ba);
 
     return s;
