@@ -76,6 +76,7 @@ module Rubinius
           meth.post_args = arguments.post_args
           meth.total_args = arguments.total_args
           meth.splat_index = arguments.splat_index
+          meth.block_index = arguments.block_index
         end
 
         meth

@@ -84,6 +84,10 @@ module Rubinius
       end
     end
 
+    def parameters
+      @compiled_code.parameters
+    end
+
     def file
       @compiled_code.file
     end
@@ -126,6 +130,10 @@ module Rubinius
         # The methods are equal if the BEs are equal.
 
         @block_env == other.block_env
+      end
+
+      def parameters
+        @block_env.parameters
       end
     end
   end
