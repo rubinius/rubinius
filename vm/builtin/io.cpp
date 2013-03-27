@@ -1349,8 +1349,8 @@ failed: /* try next '*' position */
     IOBuffer* self = this;
     OnStack<1> os(state, self);
 
-    char temp_buffer[512];
-    size_t count = 512;
+    char temp_buffer[STACK_BUF_SZ];
+    size_t count = STACK_BUF_SZ;
 
     if(self->left() < count) count = self->left();
 
