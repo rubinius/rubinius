@@ -215,6 +215,7 @@ strftime_extended(char *s, size_t maxsize, const char *format, const struct tm64
 			if (savetz != NULL) {
 				savetzlen = tzlen + 1;
 				strncpy(savetz, tz, tzlen);
+				savetz[tzlen] = 0;
 			}
 		}
 		tzset();
