@@ -61,6 +61,30 @@ namespace rubinius {
     return ba;
   }
 
+  ByteArray* ByteArray::create_dirty(STATE, native_int bytes) {
+    if(bytes < 0) {
+      rubinius::bug("Invalid byte array size");
+    }
+
+    size_t body = bytes;
+    ByteArray* ba = state->vm()->new_object_bytes_dirty<ByteArray>(G(bytearray), body);
+
+    if(unlikely(!ba)) {
+      Exception::memory_error(state);
+    } else {
+      ba->full_size_ = body;
+      // Ensure to zero the last bytes that might be more
+      // because we always pad the size to a machine word.
+      // The caller is responsible to fill either the
+      // requested bytes or clear it all if it needs to
+      if(bytes > 0) {
+        size_t last = bytes_to_fields(body);
+        ba->pointer_to_body()[last - 1] = 0;
+      }
+    }
+    return ba;
+  }
+
   ByteArray* ByteArray::allocate(STATE, Fixnum* bytes) {
     native_int size = bytes->to_native();
     if(size < 0) {
@@ -147,7 +171,7 @@ namespace rubinius {
       Exception::object_bounds_exceeded_error(state, "fetch is more than available bytes");
     }
 
-    ByteArray* ba = ByteArray::create(state, cnt + 1);
+    ByteArray* ba = ByteArray::create_dirty(state, cnt + 1);
     memcpy(ba->bytes, this->bytes + src, cnt);
     ba->bytes[cnt] = 0;
 

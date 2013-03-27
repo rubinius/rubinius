@@ -138,10 +138,29 @@ namespace rubinius {
    * +bytes+ is the number of 'real' characters in the string
    */
   String* String::create(STATE, const char* str, native_int bytes) {
-    String* so = String::create(state, Fixnum::from(bytes));
 
-    if(str) memcpy(so->byte_address(), str, bytes);
+    String *so;
 
+    so = state->new_object_dirty<String>(G(string));
+
+    so->num_bytes_      = Fixnum::from(bytes);
+    so->num_chars_      = nil<Fixnum>();
+    so->hash_value_     = nil<Fixnum>();
+    so->shared_         = cFalse;
+    so->encoding_       = nil<Encoding>();
+    so->ascii_only_     = cNil;
+    so->valid_encoding_ = cNil;
+
+    ByteArray* ba = ByteArray::create_dirty(state, bytes + 1);
+
+    if(str) {
+      memcpy(ba->raw_bytes(), str, bytes);
+      ba->raw_bytes()[bytes] = 0;
+    } else {
+      memset(ba->raw_bytes(), 0, bytes + 1);
+    }
+
+    so->data(state, ba);
     return so;
   }
 
@@ -691,7 +710,7 @@ namespace rubinius {
      * put the VM in a state with corrupted memory.
      */
     if(current_size >= as<ByteArray>(data_)->size()) {
-      ByteArray* ba = ByteArray::create(state, current_size + 1);
+      ByteArray* ba = ByteArray::create_dirty(state, current_size + 1);
       memcpy(ba->raw_bytes(), byte_address(), current_size);
       data(state, ba);
       if(CBOOL(shared_)) shared(state, cFalse);
@@ -841,8 +860,9 @@ namespace rubinius {
       // just to throw it away.
       if(CBOOL(shared_)) shared(state, cFalse);
 
-      ByteArray* ba = ByteArray::create(state, capacity);
+      ByteArray* ba = ByteArray::create_dirty(state, capacity);
       memcpy(ba->raw_bytes(), byte_address(), current_size);
+      memset(ba->raw_bytes() + new_size, 0, capacity - new_size);
       data(state, ba);
     } else {
       if(CBOOL(shared_)) unshare(state);
@@ -867,7 +887,7 @@ namespace rubinius {
       Exception::argument_error(state, "negative byte array size");
     }
 
-    ByteArray* ba = ByteArray::create(state, sz + 1);
+    ByteArray* ba = ByteArray::create_dirty(state, sz + 1);
     native_int copy_size = sz;
     native_int data_size = as<ByteArray>(data_)->size();
 
@@ -876,6 +896,7 @@ namespace rubinius {
       copy_size = data_size;
     }
     memcpy(ba->raw_bytes(), byte_address(), copy_size);
+    memset(ba->raw_bytes() + copy_size, 0, sz + 1 - copy_size);
 
     // We've unshared
     shared(state, cFalse);

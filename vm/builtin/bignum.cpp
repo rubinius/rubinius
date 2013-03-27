@@ -214,7 +214,7 @@ namespace rubinius {
   namespace {
     // Cripped and modified from bn_mp_init.c
     void mp_init_managed(STATE, mp_int* a) {
-      ByteArray* storage = ByteArray::create(state, sizeof (mp_digit) * MP_PREC);
+      ByteArray* storage = ByteArray::create_dirty(state, sizeof (mp_digit) * MP_PREC);
       a->managed = reinterpret_cast<void*>(storage);
 
       /* allocate memory required and clear it */
@@ -1292,7 +1292,7 @@ namespace rubinius {
     assert(s);
     State* state = reinterpret_cast<State*>(s);
 
-    ByteArray* storage = ByteArray::create(state, bytes);
+    ByteArray* storage = ByteArray::create_dirty(state, bytes);
     a->managed = reinterpret_cast<void*>(storage);
 
     // Be sure to use the smaller value!

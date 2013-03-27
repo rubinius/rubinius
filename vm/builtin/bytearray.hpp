@@ -21,6 +21,7 @@ namespace rubinius {
     static void init(STATE);
     static ByteArray* create(STATE, native_int bytes);
     static ByteArray* create_pinned(STATE, native_int bytes);
+    static ByteArray* create_dirty(STATE, native_int bytes);
 
     template <typename Any>
       static ByteArray* from_body(Any obj) {
