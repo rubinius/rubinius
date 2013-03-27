@@ -97,7 +97,6 @@ namespace rubinius {
     static String* create(STATE, const char* str);
     static String* create(STATE, const char* str, native_int bytes);
     static String* create_pinned(STATE, Fixnum* size);
-    static String* create_reserved(STATE, native_int bytes);
 
     // Hash the byte array _bp_ which contains _sz_ bytes.
     static hashval hash_str(const unsigned char *bp, unsigned int sz, uint32_t seed);

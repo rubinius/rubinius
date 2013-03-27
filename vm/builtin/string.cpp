@@ -100,27 +100,6 @@ namespace rubinius {
     return so;
   }
 
-  String* String::create_reserved(STATE, native_int bytes) {
-    String *so;
-
-    so = state->new_object_dirty<String>(G(string));
-
-    so->num_bytes(state, Fixnum::from(0));
-    so->num_chars(state, nil<Fixnum>());
-    so->hash_value(state, nil<Fixnum>());
-    so->shared(state, cFalse);
-    so->encoding(state, nil<Encoding>());
-    so->ascii_only(state, cNil);
-    so->valid_encoding(state, cNil);
-
-    ByteArray* ba = ByteArray::create(state, bytes+1);
-    ba->raw_bytes()[bytes] = 0;
-
-    so->data(state, ba);
-
-    return so;
-  }
-
   /*
    * Creates a String instance with +num_bytes+ bytes of storage.
    * It also pins the ByteArray used for storage, so it can be passed
