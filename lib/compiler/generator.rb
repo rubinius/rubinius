@@ -266,6 +266,7 @@ module Rubinius
 
       @splat_index = nil
       @local_names = nil
+      @block_index = nil
       @local_count = 0
 
       @state = []
@@ -282,7 +283,8 @@ module Rubinius
     attr_accessor :break, :redo, :next, :retry, :file, :name,
                   :required_args, :post_args, :total_args, :splat_index,
                   :local_count, :local_names, :primitive, :for_block,
-                  :current_block, :detected_args, :detected_locals
+                  :current_block, :detected_args, :detected_locals,
+                  :block_index
 
     def execute(node)
       node.bytecode self
@@ -320,6 +322,7 @@ module Rubinius
       code.post_args      = @post_args
       code.total_args     = @total_args
       code.splat          = @splat_index
+      code.block_index    = @block_index
       code.local_count    = @local_count
       code.local_names    = @local_names.to_tuple if @local_names
 

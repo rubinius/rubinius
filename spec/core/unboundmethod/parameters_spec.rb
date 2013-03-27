@@ -7,6 +7,12 @@ describe "Method#parameters" do
     MethodSpecs::Methods.instance_method(:zero).parameters.should == []
   end
 
+  it "returns an empty Array when the method expects no arguments but does have local variables" do
+    m = MethodSpecs::Methods.instance_method(:zero_with_locals)
+
+    m.parameters.should == []
+  end
+
   it "returns [[:req,:name]] for a method expecting one required argument called 'name'" do
     MethodSpecs::Methods.instance_method(:one_req).parameters.should == [[:req,:a]]
   end
@@ -18,6 +24,12 @@ describe "Method#parameters" do
 
   it "returns [[:block,:a]] for a method expecting one block argument called 'a'" do
     m = MethodSpecs::Methods.instance_method(:zero_with_block)
+    m.parameters.should == [[:block,:block]]
+  end
+
+  it "returns [[:block,:block]] for a method expecting one block argument with local variables" do
+    m = MethodSpecs::Methods.instance_method(:zero_with_block_and_locals)
+
     m.parameters.should == [[:block,:block]]
   end
 
