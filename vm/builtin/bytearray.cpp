@@ -36,7 +36,7 @@ namespace rubinius {
       Exception::memory_error(state);
     } else {
       ba->full_size_ = body;
-      memset(ba->bytes, 0, bytes);
+      memset(ba->bytes, 0, body - sizeof(ByteArray));
     }
     return ba;
   }
@@ -56,7 +56,7 @@ namespace rubinius {
       rubinius::bug("unable to allocate pinned ByteArray");
     } else {
       ba->full_size_ = body;
-      memset(ba->bytes, 0, bytes);
+      memset(ba->bytes, 0, body - sizeof(ByteArray));
     }
     return ba;
   }
