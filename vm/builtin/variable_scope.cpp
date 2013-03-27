@@ -13,7 +13,6 @@
 #include "fiber_data.hpp"
 
 #include "ontology.hpp"
-#include "on_stack.hpp"
 
 namespace rubinius {
   void VariableScope::init(STATE) {
@@ -73,11 +72,8 @@ namespace rubinius {
 
   Tuple* VariableScope::locals(STATE) {
     Tuple* tup = Tuple::create(state, number_of_locals_);
-    VariableScope* self = this;
-    OnStack<1> os(state, self);
-
     for(int i = 0; i < number_of_locals_; i++) {
-      tup->put(state, i, self->get_local(state, i));
+      tup->put(state, i, get_local(state, i));
     }
 
     return tup;
@@ -105,7 +101,6 @@ namespace rubinius {
     if(isolated_) {
       VariableScope* self = this;
       while(heap_locals_->nil_p()) {
-        OnStack<2> os(state, self, val);
         atomic::pause();
       }
       self->heap_locals_->put(state, pos, val);
@@ -136,7 +131,6 @@ namespace rubinius {
     if(isolated_) {
       VariableScope* self = this;
       while(heap_locals_->nil_p()) {
-        OnStack<1> os(state, self);
         atomic::pause();
       }
       return self->heap_locals_->at(pos);
@@ -166,15 +160,12 @@ namespace rubinius {
     if(isolated_) return;
     if(!atomic::compare_and_swap(&isolated_, 0, 1)) return;
 
-    VariableScope* self = this;
-
-    OnStack<1> os(state, self);
     Tuple* new_locals = Tuple::create(state, number_of_locals_);
     for(int i = 0; i < number_of_locals_; i++) {
-      new_locals->put(state, i, self->locals_[i]);
+      new_locals->put(state, i, locals_[i]);
     }
     atomic::memory_barrier();
-    self->heap_locals(state, new_locals);
+    heap_locals(state, new_locals);
   }
 
   void VariableScope::Info::mark(Object* obj, ObjectMark& mark) {
