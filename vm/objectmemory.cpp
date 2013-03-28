@@ -295,14 +295,13 @@ step1:
     int initial_count = 0;
 
     HeaderWord orig = obj->header;
-    HeaderWord new_val = orig;
 
     if(orig.f.inflated) {
       // Already inflated. ERROR, let the caller sort it out.
       return false;
     }
 
-    switch(new_val.f.meaning) {
+    switch(orig.f.meaning) {
     case eAuxWordEmpty:
       // ERROR, we can not be here because it's empty. This is only to
       // be called when the header is already in use.
@@ -311,11 +310,11 @@ step1:
       // We could be have made a header before trying again, so
       // keep using the original one.
       ih = inflated_headers_->allocate(obj);
-      ih->set_object_id(new_val.f.aux_word);
+      ih->set_object_id(orig.f.aux_word);
       break;
     case eAuxWordLock:
       // We have to locking the object to inflate it, thats the law.
-      if(new_val.f.aux_word >> cAuxLockTIDShift != state->vm()->thread_id()) {
+      if(orig.f.aux_word >> cAuxLockTIDShift != state->vm()->thread_id()) {
         return false;
       }
 
@@ -331,10 +330,7 @@ step1:
 
     ih->initialize_mutex(state->vm()->thread_id(), initial_count);
 
-    new_val.all_flags = ih;
-    new_val.f.inflated = 1;
-
-    while(!obj->header.atomic_set(orig, new_val)) {
+    while(!obj->set_inflated_header(state, ih, orig)) {
       // The header can't have been inflated by another thread, the
       // inflation process holds the OM lock.
       //
@@ -343,20 +339,16 @@ step1:
 
       // Sanity check that the meaning is still the same, if not, then
       // something is really wrong.
-      orig = obj->header;
-      if(orig.f.inflated) {
-        return false;
-      }
-      if(orig.f.meaning != new_val.f.meaning) {
+      if(orig.f.meaning != obj->header.f.meaning) {
         if(cDebugThreading) {
           std::cerr << "[LOCK object header consistence error detected.]" << std::endl;
         }
         return false;
       }
-
-      new_val = orig;
-      new_val.all_flags = ih;
-      new_val.f.inflated = 1;
+      orig = obj->header;
+      if(orig.f.inflated) {
+        return false;
+      }
     }
 
     return true;
@@ -367,7 +359,6 @@ step1:
 
     for(;;) {
       HeaderWord orig = obj->header;
-      HeaderWord new_val = orig;
 
       InflatedHeader* ih = 0;
 
@@ -394,7 +385,7 @@ step1:
         break;
       case eAuxWordLock:
         // We have to be locking the object to inflate it, thats the law.
-        if(new_val.f.aux_word >> cAuxLockTIDShift != state->vm()->thread_id()) {
+        if(orig.f.aux_word >> cAuxLockTIDShift != state->vm()->thread_id()) {
           if(cDebugThreading) {
             std::cerr << "[LOCK " << state->vm()->thread_id() << " object locked by another thread while inflating for contention]" << std::endl;
           }
@@ -408,11 +399,8 @@ step1:
         break;
       }
 
-      new_val.all_flags = ih;
-      new_val.f.inflated = 1;
-
       // Try it all over again if it fails.
-      if(!obj->header.atomic_set(orig, new_val)) continue;
+      if(!obj->set_inflated_header(state, ih, orig)) continue;
 
       obj->clear_lock_contended();
 
