@@ -66,11 +66,11 @@ class Configure
     @llvm_prebuilt_name     = nil
     @llvm_system_name       = get_system_name
 
-    @llvm_version           = "3.0"
-    @llvm_api_version       = 300
-    @llvm_source            = "llvm-3.0.tgz"
-    @llvm_source_dir        = "llvm-3.0.src"
-    @llvm_source_url        = "http://llvm.org/releases/3.0/llvm-3.0.tar.gz"
+    @llvm_version           = "3.2"
+    @llvm_api_version       = 302
+    @llvm_source            = "llvm-3.2.tgz"
+    @llvm_source_dir        = "llvm-3.2.src"
+    @llvm_source_url        = "http://llvm.org/releases/3.2/llvm-3.2.src.tar.gz"
     @llvm_asset_path        = "http://asset.rubini.us/prebuilt"
     @llvm_source_build      = false
     @llvm_generic_prebuilt  = nil
