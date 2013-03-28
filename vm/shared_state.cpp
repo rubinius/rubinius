@@ -215,6 +215,15 @@ namespace rubinius {
         std::cerr << "| rb_gc_register_address(&ptr);                                               |" << std::endl;
         std::cerr << "| ptr = rb_str_new(\"test\");                                                   |" << std::endl;
         std::cerr << "|                                                                             |" << std::endl;
+        std::cerr << "| Please note that this is NOT a problem in Rubinius, but in the extension    |" << std::endl;
+        std::cerr << "| that contains the given file above. A very common source of this problem is |" << std::endl;
+        std::cerr << "| using older versions of therubyracer before 0.11.x. Please upgrade to at    |" << std::endl;
+        std::cerr << "| least version 0.11.x if you're using therubyracer and encounter this        |" << std::endl;
+        std::cerr << "| problem. For some more background information on why this is a problem      |" << std::endl;
+        std::cerr << "| with therubyracer, you can read the following blog post:                    |" << std::endl;
+        std::cerr << "|                                                                             |" << std::endl;
+        std::cerr << "| http://blog.thefrontside.net/2012/12/04/therubyracer-rides-again/           |" << std::endl;
+        std::cerr << "|                                                                             |" << std::endl;
         std::cerr << "================================== ERROR ======================================" << std::endl;
         rubinius::bug("Halting due to invalid handle");
       }
