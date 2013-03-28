@@ -506,7 +506,7 @@ step2:
     // The header is inflated, use the full lock.
     if(orig.f.inflated) {
       InflatedHeader* ih = ObjectHeader::header_to_inflated_header(orig);
-      return ih->lock_mutex(state, gct, us, interrupt);
+      return ih->lock_mutex(state, gct, self, us, interrupt);
     }
 
     switch(orig.f.meaning) {
@@ -616,7 +616,7 @@ step2:
     // The header is inflated, use the full lock.
     if(orig.f.inflated) {
       InflatedHeader* ih = ObjectHeader::header_to_inflated_header(orig);
-      return ih->try_lock_mutex(state, gct);
+      return ih->try_lock_mutex(state, gct, self);
     }
 
     switch(orig.f.meaning) {
@@ -705,7 +705,7 @@ step2:
 
       if(orig.f.inflated) {
         InflatedHeader* ih = ObjectHeader::header_to_inflated_header(orig);
-        return ih->unlock_mutex(state, gct);
+        return ih->unlock_mutex(state, gct, this);
       }
 
       switch(orig.f.meaning) {
@@ -809,7 +809,7 @@ step2:
 
       if(orig.f.inflated) {
         InflatedHeader* ih = ObjectHeader::header_to_inflated_header(orig);
-        ih->unlock_mutex_for_terminate(state, gct);
+        ih->unlock_mutex_for_terminate(state, gct, this);
         return;
       }
 
@@ -927,12 +927,11 @@ step2:
 
   }
 
-  void InflatedHeader::set_object(ObjectHeader* obj) {
-    flags_ = obj->flags();
-    object_ = obj;
-
+  void InflatedHeader::set_flags(ObjectFlags flags) {
+    flags_ = flags;
     flags_.meaning = eAuxWordEmpty;
     flags_.aux_word = 0;
+    rec_lock_count_ = 0;
   }
 
   void InflatedHeader::initialize_mutex(int thread_id, int count) {
@@ -940,8 +939,8 @@ step2:
     rec_lock_count_ = count;
   }
 
-  LockStatus InflatedHeader::lock_mutex(STATE, GCToken gct, size_t us, bool interrupt) {
-    if(us == 0) return lock_mutex_timed(state, gct, 0, interrupt);
+  LockStatus InflatedHeader::lock_mutex(STATE, GCToken gct, ObjectHeader* obj, size_t us, bool interrupt) {
+    if(us == 0) return lock_mutex_timed(state, gct, obj, 0, interrupt);
 
     struct timeval tv;
     struct timespec ts;
@@ -951,14 +950,15 @@ step2:
     ts.tv_sec = tv.tv_sec + (us / 1000000);
     ts.tv_nsec = (us % 10000000) * 1000;
 
-    return lock_mutex_timed(state, gct, &ts, interrupt);
+    return lock_mutex_timed(state, gct, obj, &ts, interrupt);
   }
 
   LockStatus InflatedHeader::lock_mutex_timed(STATE, GCToken gct,
+                                              ObjectHeader* obj,
                                               const struct timespec* ts,
                                               bool interrupt)
   {
-    OnStack<1> os(state, object_);
+    OnStack<1> os(state, obj);
 
     // Gain exclusive access to the insides of the InflatedHeader.
     GCLockGuard lg(state, gct, mutex_);
@@ -1036,7 +1036,7 @@ step2:
     // OWNED.
 
     owner_id_ = state->vm()->thread_id();
-    state->vm()->add_locked_object(object_);
+    state->vm()->add_locked_object(obj);
 
     if(cDebugThreading) {
       std::cerr << "[LOCK " << state->vm()->thread_id() << " locked inflated header: " << this << "]\n";
@@ -1045,8 +1045,8 @@ step2:
     return eLocked;
   }
 
-  LockStatus InflatedHeader::try_lock_mutex(STATE, GCToken gct) {
-    OnStack<1> os(state, object_);
+  LockStatus InflatedHeader::try_lock_mutex(STATE, GCToken gct, ObjectHeader* obj) {
+    OnStack<1> os(state, obj);
 
     // Gain exclusive access to the insides of the InflatedHeader.
     GCLockGuard lg(state, gct, mutex_);
@@ -1075,7 +1075,7 @@ step2:
     } else if(owner_id_ == 0) {
       owner_id_ = state->vm()->thread_id();
       locked = true;
-      state->vm()->add_locked_object(object_);
+      state->vm()->add_locked_object(obj);
 
       // OWNED.
 
@@ -1088,16 +1088,14 @@ step2:
   }
 
   bool InflatedHeader::locked_mutex_p(STATE, GCToken gct) {
-    OnStack<1> os(state, object_);
-
     // Gain exclusive access to the insides of the InflatedHeader.
     GCLockGuard lg(state, gct, mutex_);
 
     return owner_id_ != 0;
   }
 
-  LockStatus InflatedHeader::unlock_mutex(STATE, GCToken gct) {
-    OnStack<1> os(state, object_);
+  LockStatus InflatedHeader::unlock_mutex(STATE, GCToken gct, ObjectHeader* obj) {
+    OnStack<1> os(state, obj);
 
     // Gain exclusive access to the insides of the InflatedHeader.
     GCLockGuard lg(state, gct, mutex_);
@@ -1113,7 +1111,7 @@ step2:
     // If the count has dropped to 0, we're truly done, so tell anyone
     // blocking on mutex_.
     if(rec_lock_count_ == 0) {
-      state->vm()->del_locked_object(object_);
+      state->vm()->del_locked_object(obj);
 
       owner_id_ = 0;
       if(cDebugThreading) {
@@ -1133,8 +1131,8 @@ step2:
     return eUnlocked;
   }
 
-  void InflatedHeader::unlock_mutex_for_terminate(STATE, GCToken gct) {
-    OnStack<1> os(state, object_);
+  void InflatedHeader::unlock_mutex_for_terminate(STATE, GCToken gct, ObjectHeader* obj) {
+    OnStack<1> os(state, obj);
 
     // Gain exclusive access to the insides of the InflatedHeader.
     GCLockGuard lg(state, gct, mutex_);

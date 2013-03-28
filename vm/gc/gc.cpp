@@ -83,11 +83,6 @@ namespace rubinius {
     }
 #endif
 
-    // Check and update an inflated header
-    if(obj->inflated_header_p()) {
-      obj->inflated_header()->reset_object(obj);
-    }
-
     slot = saw_object(obj->klass());
     if(slot) obj->klass(object_memory_, force_as<Class>(slot));
 

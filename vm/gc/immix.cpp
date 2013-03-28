@@ -92,7 +92,6 @@ namespace rubinius {
     // If the header is inflated, repoint it.
     if(obj->inflated_header_p()) {
       orig->deflate_header();
-      obj->inflated_header()->set_object(obj);
     }
 
     obj->set_zone(MatureObjectZone);
@@ -118,13 +117,11 @@ namespace rubinius {
     Object* copy = fwd.as<Object>();
 
     // Check and update an inflated header
-    if(copy && copy != obj && obj->inflated_header_p()) {
-      InflatedHeader* ih = obj->deflate_header();
-      ih->reset_object(copy);
-      State state_obj(state());
-      if(!copy->set_inflated_header(&state_obj, ih, obj->current_header())) {
-        rubinius::bug("Massive IMMIX inflated header screwup.");
+    if(copy && copy != obj) {
+      if(obj->inflated_header_p()) {
+        obj->deflate_header();
       }
+      obj->set_forward(copy);
     }
 
     return copy;

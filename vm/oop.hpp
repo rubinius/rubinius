@@ -248,7 +248,6 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       uintptr_t next_index_;
     };
 
-    ObjectHeader* object_;
     capi::Handle* handle_;
     uint32_t object_id_;
 
@@ -261,12 +260,11 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     InflatedHeader()
       : next_index_(0)
-      , object_(NULL)
       , handle_(NULL)
       , object_id_(0)
       , mutex_(false)
       , owner_id_(0)
-      , rec_lock_count_(0)
+      , rec_lock_count_(-1)
     {}
 
     ObjectFlags flags() {
@@ -275,10 +273,6 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     uintptr_t next() const {
       return next_index_;
-    }
-
-    ObjectHeader* object() const {
-      return object_;
     }
 
     uint32_t object_id() const {
@@ -295,21 +289,17 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     void clear() {
       next_index_ = 0;
-      object_ = 0;
       handle_ = 0;
       object_id_ = 0;
-      rec_lock_count_ = 0;
+      rec_lock_count_ = -1;
       owner_id_ = 0;
     }
 
     bool in_use_p() const {
-      return object_ != 0;
+      return rec_lock_count_ != -1;
     }
 
-    void set_object(ObjectHeader* obj);
-    void reset_object(ObjectHeader* obj) {
-      object_ = obj;
-    }
+    void set_flags(ObjectFlags flags);
 
     bool marked_p(unsigned int which) const {
       return flags_.Marked == which;
@@ -386,12 +376,12 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     bool update(STATE, HeaderWord header);
     void initialize_mutex(int thread_id, int count);
-    LockStatus lock_mutex(STATE, GCToken gct, size_t us, bool interrupt);
-    LockStatus lock_mutex_timed(STATE, GCToken gct, const struct timespec* ts, bool interrupt);
-    LockStatus try_lock_mutex(STATE, GCToken gct);
+    LockStatus lock_mutex(STATE, GCToken gct, ObjectHeader* obj, size_t us, bool interrupt);
+    LockStatus lock_mutex_timed(STATE, GCToken gct, ObjectHeader* obj, const struct timespec* ts, bool interrupt);
+    LockStatus try_lock_mutex(STATE, GCToken gct, ObjectHeader* obj);
     bool locked_mutex_p(STATE, GCToken gct);
-    LockStatus unlock_mutex(STATE, GCToken gct);
-    void unlock_mutex_for_terminate(STATE, GCToken gct);
+    LockStatus unlock_mutex(STATE, GCToken gct, ObjectHeader* obj);
+    void unlock_mutex_for_terminate(STATE, GCToken gct, ObjectHeader* obj);
 
     void wakeup();
 

@@ -15,7 +15,7 @@ namespace rubinius {
   InflatedHeader* InflatedHeaders::allocate(ObjectHeader* obj) {
     bool needs_gc = false;
     InflatedHeader* header = allocator_->allocate(&needs_gc);
-    header->set_object(obj);
+    header->set_flags(obj->flags());
     if(needs_gc) {
       state_->om->collect_mature_now = true;
     }

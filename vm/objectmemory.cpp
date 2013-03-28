@@ -277,9 +277,9 @@ step1:
     InflatedHeader* ih = obj->inflated_header();
 
     if(timed) {
-      return ih->lock_mutex_timed(state, gct, &ts, interrupt);
+      return ih->lock_mutex_timed(state, gct, obj, &ts, interrupt);
     } else {
-      return ih->lock_mutex(state, gct, 0, interrupt);
+      return ih->lock_mutex(state, gct, obj, 0, interrupt);
     }
   }
 

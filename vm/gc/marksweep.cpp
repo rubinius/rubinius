@@ -87,7 +87,6 @@ namespace rubinius {
     // If the header is inflated, repoint it.
     if(obj->inflated_header_p()) {
       orig->deflate_header();
-      obj->inflated_header()->set_object(obj);
     }
 
     obj->set_zone(MatureObjectZone);

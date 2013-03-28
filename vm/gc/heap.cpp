@@ -78,7 +78,6 @@ namespace rubinius {
     // If the header is inflated, repoint it.
     if(tmp->inflated_header_p()) {
       orig->deflate_header();
-      tmp->inflated_header()->set_object(tmp);
     }
 
     orig->set_forward(tmp);
