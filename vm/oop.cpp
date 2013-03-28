@@ -94,8 +94,7 @@ namespace rubinius {
     }
   }
 
-  // Run only while om's lock is held.
-  void ObjectHeader::set_object_id(STATE, ObjectMemory* om, uint32_t id) {
+  void ObjectHeader::set_object_id(STATE, uint32_t id) {
     // Just ignore trying to reset it to 0 for now.
     if(id == 0) return;
 
@@ -137,7 +136,7 @@ retry:
       // or a handle.
       // Inflate!
 
-      om->inflate_for_id(state, this, id);
+      state->memory()->inflate_for_id(state, this, id);
     }
   }
 
@@ -159,7 +158,7 @@ retry:
     new_val.f.meaning = eAuxWordHandle;
     new_val.f.aux_word = (uint32_t) handle_index;
 
-    if(handle_index < UINT32_MAX && header.atomic_set(orig, new_val)) return;
+    if(header.atomic_set(orig, new_val)) return;
 
     capi::Handle* handle = state->shared().global_handles()->find_index(state, handle_index);
 

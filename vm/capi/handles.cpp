@@ -29,11 +29,12 @@ namespace rubinius {
         state->memory()->collect_mature_now = true;
       }
       atomic::memory_barrier();
-      return handle_index;
-    }
 
-    Handle* Handles::find_index(STATE, uintptr_t index) {
-      return allocator_->from_index(index);
+      if(handle_index > UINT32_MAX) {
+        rubinius::bug("Rubinius can't handle more than 4G C-API handles active at the same time");
+      }
+
+      return handle_index;
     }
 
     bool Handles::validate(Handle* handle) {

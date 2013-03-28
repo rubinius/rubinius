@@ -424,7 +424,7 @@ namespace rubinius {
 
   void Object::reset_id(STATE) {
     if(reference_p()) {
-      set_object_id(state, state->memory(), 0);
+      set_object_id(state, 0);
     }
   }
 

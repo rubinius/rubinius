@@ -705,7 +705,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       }
     }
 
-    void set_object_id(STATE, ObjectMemory* om, uint32_t id);
+    void set_object_id(STATE, uint32_t id);
 
     LockStatus lock(STATE, GCToken gct, size_t us=0, bool interrupt=true);
     LockStatus try_lock(STATE, GCToken gct);

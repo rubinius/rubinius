@@ -29,7 +29,10 @@ namespace rubinius {
       Handle* allocate(STATE, Object* obj);
 
       uintptr_t allocate_index(STATE, Object* obj);
-      Handle* find_index(STATE, uintptr_t index);
+
+      Handle* find_index(STATE, uintptr_t index) {
+        return allocator_->from_index(index);
+      }
 
       bool validate(Handle* handle);
 
