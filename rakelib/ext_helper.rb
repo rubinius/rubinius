@@ -223,7 +223,7 @@ end
 def qsh(cmd)
   cmd << " > #{DEV_NULL}" unless $verbose
   puts cmd if $verbose
-  unless result = rake_system(cmd)
+  unless result = system(cmd)
     fail "Command failed with status (#{$?.exitstatus}): [#{cmd}]"
   end
   result

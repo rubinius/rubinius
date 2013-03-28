@@ -488,8 +488,10 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
 
   def download(url, full_path)
     begin
+      dir = File.dirname full_path
+      Dir.mkdir dir unless File.exists? dir
 
-     if ENV['http_proxy']
+      if ENV['http_proxy']
         protocol, userinfo, host, port  = URI::split(ENV['http_proxy'])
         proxy_user, proxy_pass = userinfo.split(/:/) if userinfo
         http = Net::HTTP::Proxy(host, port, proxy_user, proxy_pass)
