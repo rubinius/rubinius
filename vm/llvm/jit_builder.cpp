@@ -56,7 +56,7 @@ namespace jit {
         "", "rubinius", true, "", 0);
     DIFile file = debug_builder().createFile(file_str, "");
 
-    DIType dummy_return_type = debug_builder().createTemporaryType();
+    DIType dummy_return_type = debug_builder().createNullPtrType("dummy type");
     Value* dummy_signature[] = {
       &*dummy_return_type,
     };
@@ -65,16 +65,20 @@ namespace jit {
 
 #if RBX_LLVM_API_VER > 300
     DISubprogram subprogram = debug_builder().createFunction(file, "", "",
-        file, info_.method()->start_line(), dummy_subroutine_type, false, false, 0, 0,
+        file, info_.method()->start_line(), dummy_subroutine_type, false, true, 0, 0,
         false, info_.function());
 #else
     DISubprogram subprogram = debug_builder().createFunction(file, "", "",
-        file, info_.method()->start_line(), dummy_subroutine_type, false, false, 0,
+        file, info_.method()->start_line(), dummy_subroutine_type, false, true, 0,
         false, info_.function());
 #endif
+    // FnSpecificMDNode is used in finalize(), so to avoid memory leak,
+    // initialize it with empty one by inserting here.
+    llvm::getOrInsertFnSpecificMDNode(*ctx_->module(), subprogram);
 
     b().SetCurrentDebugLocation(llvm::DebugLoc::get(info_.method()->start_line(), 0,
                                 subprogram));
+    debug_builder_.finalize();
   }
 
   void Builder::set_current_location(opcode ip) {
