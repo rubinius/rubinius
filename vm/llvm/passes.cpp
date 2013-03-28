@@ -6,12 +6,12 @@
 #include <llvm/BasicBlock.h>
 #include <llvm/Function.h>
 #include <llvm/Instructions.h>
-#include <llvm/Transforms/Utils/Cloning.h>
-#include <llvm/Support/CallSite.h>
-#include <llvm/ADT/APInt.h>
 #include <llvm/Constants.h>
 #include <llvm/Module.h>
 #include <llvm/Intrinsics.h>
+#include <llvm/Transforms/Utils/Cloning.h>
+#include <llvm/Support/CallSite.h>
+#include <llvm/ADT/APInt.h>
 #include <llvm/Analysis/SparsePropagation.h>
 #include <llvm/Analysis/AliasAnalysis.h>
 #include <llvm/Support/raw_ostream.h>
