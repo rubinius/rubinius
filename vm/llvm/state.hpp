@@ -9,7 +9,6 @@
 #include <llvm/Module.h>
 #include <llvm/DerivedTypes.h>
 #include <llvm/Function.h>
-#include <llvm/Module.h>
 #include <llvm/Instructions.h>
 #if RBX_LLVM_API_VER >= 302
 #include <llvm/IRBuilder.h>
