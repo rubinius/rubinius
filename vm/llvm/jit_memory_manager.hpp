@@ -495,10 +495,24 @@ namespace jit {
     }
 
     /// allocateDataSection - Allocate memory for a data section.
+#if RBX_LLVM_API_VER >= 303
+    uint8_t *allocateDataSection(uintptr_t Size, unsigned Alignment,
+                                 unsigned SectionID, bool IsReadOnly) {
+      // TODO: currently IsReadOnly is ignored.
+      return mgr_->allocateDataSection(Size, Alignment, SectionID);
+    }
+#else
     uint8_t *allocateDataSection(uintptr_t Size, unsigned Alignment,
                                  unsigned SectionID) {
       return mgr_->allocateDataSection(Size, Alignment, SectionID);
     }
+#endif
+
+#if RBX_LLVM_API_VER >= 303
+    virtual bool applyPermissions(std::string* ErrMsg = 0) {
+      return false;
+    };
+#endif
 
     void AllocateGOT() {
       GOTBase = new uint8_t[sizeof(void*) * 8192];

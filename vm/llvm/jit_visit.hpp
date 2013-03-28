@@ -13,7 +13,11 @@
 
 #include "llvm/stack_args.hpp"
 
+#if RBX_LLVM_API_VER >= 303
+#include <llvm/IR/DerivedTypes.h>
+#else
 #include <llvm/DerivedTypes.h>
+#endif
 
 #include <list>
 

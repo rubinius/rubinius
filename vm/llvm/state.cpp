@@ -28,7 +28,9 @@
 #include "instruments/timing.hpp"
 #include "dtrace/dtrace.h"
 
-#if RBX_LLVM_API_VER >= 302
+#if RBX_LLVM_API_VER >= 303
+#include <llvm/IR/DataLayout.h>
+#elif RBX_LLVM_API_VER >= 302
 #include <llvm/DataLayout.h>
 #else
 #include <llvm/Target/TargetData.h>
@@ -36,7 +38,11 @@
 // #include <llvm/LinkAllPasses.h>
 #include <llvm/Analysis/Verifier.h>
 #include <llvm/Transforms/Scalar.h>
+#if RBX_LLVM_API_VER >= 303
+#include <llvm/IR/CallingConv.h>
+#else
 #include <llvm/CallingConv.h>
+#endif
 #include <llvm/Support/CFG.h>
 #include <llvm/Analysis/Passes.h>
 #include <llvm/Support/TargetSelect.h>

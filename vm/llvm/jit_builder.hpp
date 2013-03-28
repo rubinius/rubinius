@@ -8,7 +8,9 @@
 #include "llvm/basic_block.hpp"
 #include "llvm/inline_block.hpp"
 #include "llvm/offset.hpp"
-#if RBX_LLVM_API_VER >= 302
+#if RBX_LLVM_API_VER >= 303
+#include <llvm/IR/IRBuilder.h>
+#elif RBX_LLVM_API_VER >= 302
 #include <llvm/IRBuilder.h>
 #else
 #include <llvm/Support/IRBuilder.h>
