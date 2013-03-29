@@ -310,12 +310,12 @@ namespace rubinius {
 
       Value* flags = object_flags(obj);
 
-      // 9 bits worth of mask
+      // 8 bits worth of mask
       Value* mask = ConstantInt::get(ctx_->Int64Ty, ((1 << (OBJECT_FLAGS_OBJ_TYPE + 1)) - 1));
       Value* obj_type = b().CreateAnd(flags, mask, "mask");
 
-      // Compare all 9 bits.
-      Value* tag = ConstantInt::get(ctx_->Int64Ty, type << 1);
+      // Compare all 8 bits.
+      Value* tag = ConstantInt::get(ctx_->Int64Ty, type);
 
       return b().CreateICmpEQ(obj_type, tag, name);
     }
@@ -330,36 +330,33 @@ namespace rubinius {
 
     Value* check_header_bit(Value* obj, BasicBlock* failure, int bit) {
       Value* is_ref = check_is_reference(obj);
-      BasicBlock* done = new_block("done");
       BasicBlock* cont = new_block("reference");
-      BasicBlock* check_inflated = new_block("check_inflated");
+      BasicBlock* positive = new_block("positive");
+      BasicBlock* negative = new_block("negative");
+      BasicBlock* done     = new_block("done");
 
       create_conditional_branch(cont, failure, is_ref);
 
       set_block(cont);
 
       Value* flags = object_flags(obj);
-      Value* mask = ConstantInt::get(ctx_->Int64Ty, ((1 << bit) +
-                                                    (1 << OBJECT_FLAGS_INFLATED)));
+      Value* mask = ConstantInt::get(ctx_->Int64Ty, 1 << bit);
 
       Value* bit_obj = b().CreateAnd(flags, mask, "mask");
+      Value* is_bit  = b().CreateICmpEQ(bit_obj, mask, "is_bit");
 
-      Value* not_bit  = b().CreateICmpEQ(bit_obj, ConstantInt::get(ctx_->Int64Ty, 0), "not_bit");
+      create_conditional_branch(positive, negative, is_bit);
+      set_block(positive);
+      create_branch(done);
 
-      create_conditional_branch(done, check_inflated, not_bit);
-
-      set_block(check_inflated);
-
-      Value* bit_tag = ConstantInt::get(ctx_->Int64Ty, 1 << bit);
-      Value* is_bit  = b().CreateICmpEQ(bit_obj, bit_tag, "is_bit");
-
-      create_conditional_branch(failure, done, is_bit);
+      set_block(negative);
+      create_branch(done);
 
       set_block(done);
 
       PHINode* phi = b().CreatePHI(ObjType, 2, "equal_value");
-      phi->addIncoming(constant(cTrue), check_inflated);
-      phi->addIncoming(constant(cFalse), cont);
+      phi->addIncoming(constant(cTrue), positive);
+      phi->addIncoming(constant(cFalse), negative);
 
       return phi;
     }
@@ -413,8 +410,7 @@ namespace rubinius {
       set_block(cont);
 
       Value* flags = object_flags(obj);
-      Value* mask = ConstantInt::get(ctx_->Int64Ty, ((1 << OBJECT_FLAGS_FROZEN) +
-                                                    (1 << OBJECT_FLAGS_INFLATED)));
+      Value* mask = ConstantInt::get(ctx_->Int64Ty, 1 << OBJECT_FLAGS_FROZEN);
 
       Value* frozen_obj = b().CreateAnd(flags, mask, "mask");
 

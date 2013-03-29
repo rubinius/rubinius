@@ -162,11 +162,11 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
   const static bool cDebugThreading = false;
 
-#define OBJECT_FLAGS_INFLATED        0
-#define OBJECT_FLAGS_OBJ_TYPE        8
-#define OBJECT_FLAGS_MEANING        10
-#define OBJECT_FLAGS_GC_ZONE        12
-#define OBJECT_FLAGS_AGE            16
+#define OBJECT_FLAGS_OBJ_TYPE        7
+#define OBJECT_FLAGS_MEANING         9
+#define OBJECT_FLAGS_GC_ZONE        11
+#define OBJECT_FLAGS_AGE            15
+#define OBJECT_FLAGS_INFLATED       16
 #define OBJECT_FLAGS_FORWARDED      17
 #define OBJECT_FLAGS_REMEMBER       18
 #define OBJECT_FLAGS_MARKED         20
@@ -178,13 +178,11 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 #define OBJECT_FLAGS_LOCK_CONTENDED 26
 
   struct ObjectFlags {
-#ifdef RBX_LITTLE_ENDIAN
-    // inflated MUST be first, because rest is used as a pointer
-    unsigned int inflated        : 1;
     object_type  obj_type        : 8;
     aux_meaning  meaning         : 2;
     gc_zone      zone            : 2;
     unsigned int age             : 4;
+    unsigned int inflated        : 1;
 
     unsigned int Forwarded       : 1;
     unsigned int Remember        : 1;
@@ -198,27 +196,6 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     unsigned int Untrusted       : 1;
     unsigned int LockContended   : 1;
     unsigned int unused          : 5;
-#else
-    unsigned int unused          : 5;
-    unsigned int LockContended   : 1;
-    unsigned int Untrusted       : 1;
-    unsigned int Tainted         : 1;
-    unsigned int Frozen          : 1;
-
-    unsigned int Pinned          : 1;
-    unsigned int InImmix         : 1;
-
-    unsigned int Marked          : 2;
-    unsigned int Remember        : 1;
-    unsigned int Forwarded       : 1;
-
-    unsigned int age             : 4;
-    gc_zone      zone            : 2;
-    aux_meaning  meaning         : 2;
-    object_type  obj_type        : 8;
-    // inflated MUST be first, because rest is used as a pointer
-    unsigned int inflated        : 1;
-#endif
 
     uint32_t aux_word;
   };
