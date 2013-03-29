@@ -442,6 +442,8 @@ namespace rubinius {
     result->put(state, 2, Fixnum::from(sign));
     result->put(state, 3, Fixnum::from((int)(se - s)));
 
+    ::freedtoa(s);
+
     return result;
   }
 
