@@ -140,7 +140,7 @@ namespace rubinius {
     ih->update(state, orig);
     ih->initialize_mutex(state->vm()->thread_id(), count);
 
-    while(!obj->set_inflated_header(state, ih, ih_header, orig)) {
+    while(!obj->set_inflated_header(state, ih_header, orig)) {
       orig = obj->header;
 
       if(orig.f.inflated) {
@@ -332,7 +332,7 @@ step1:
 
     ih->initialize_mutex(state->vm()->thread_id(), initial_count);
 
-    while(!obj->set_inflated_header(state, ih, ih_index, orig)) {
+    while(!obj->set_inflated_header(state, ih_index, orig)) {
       // The header can't have been inflated by another thread, the
       // inflation process holds the OM lock.
       //
@@ -403,7 +403,7 @@ step1:
       }
 
       // Try it all over again if it fails.
-      if(!obj->set_inflated_header(state, ih, ih_header, orig)) continue;
+      if(!obj->set_inflated_header(state, ih_header, orig)) continue;
 
       obj->clear_lock_contended();
 
@@ -667,7 +667,7 @@ step1:
     ih->update(state, orig);
     ih->set_object_id(id);
 
-    while(!obj->set_inflated_header(state, ih, ih_index, orig)) {
+    while(!obj->set_inflated_header(state, ih_index, orig)) {
       orig = obj->header;
 
       if(orig.f.inflated) {
@@ -695,7 +695,7 @@ step1:
     ih->update(state, orig);
     ih->set_handle(state, handle);
 
-    while(!obj->set_inflated_header(state, ih, ih_index, orig)) {
+    while(!obj->set_inflated_header(state, ih_index, orig)) {
       orig = obj->header;
 
       if(orig.f.inflated) {

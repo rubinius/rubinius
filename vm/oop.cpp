@@ -25,7 +25,7 @@ namespace rubinius {
                                      nw.flags64);
   }
 
-  bool ObjectHeader::set_inflated_header(STATE, InflatedHeader* ih, uint32_t ih_index, HeaderWord orig) {
+  bool ObjectHeader::set_inflated_header(STATE, uint32_t ih_index, HeaderWord orig) {
 
     if(orig.f.inflated) return false;
 

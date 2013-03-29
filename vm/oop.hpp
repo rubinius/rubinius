@@ -350,7 +350,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return header_to_inflated_header(state, header);
     }
 
-    bool set_inflated_header(STATE, InflatedHeader* ih, uint32_t ih_header, HeaderWord orig);
+    bool set_inflated_header(STATE, uint32_t ih_header, HeaderWord orig);
 
     HeaderWord current_header() {
       return header;
