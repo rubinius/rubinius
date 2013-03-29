@@ -306,7 +306,6 @@ namespace thread {
   private:
     pthread_mutex_t native_;
     pthread_t owner_;
-    bool locked_;
 
   public:
     void init(bool rec=false) {
@@ -321,8 +320,7 @@ namespace thread {
       pthread_check(pthread_mutex_init(&native_, &attr));
     }
 
-    Mutex(bool rec=false)
-      : locked_(false) {
+    Mutex(bool rec=false) {
       init(rec);
     }
 
@@ -364,7 +362,6 @@ namespace thread {
       }
 
       owner_ = pthread_self();
-      locked_ = true;
 
       if(cDebugLockGuard) {
         std::cout << "[[ " << thread_debug_self() << "    MLocked " << describe() << " ]]\n";
@@ -379,7 +376,6 @@ namespace thread {
       }
 
       owner_ = pthread_self();
-      locked_ = true;
 
       return cLocked;
     }
@@ -388,8 +384,6 @@ namespace thread {
       if(cDebugLockGuard) {
         std::cout << "[[ " << thread_debug_self() << "   MUnlocking " << describe() << " ]]\n";
       }
-
-      locked_ = false;
 
       int err = pthread_mutex_unlock(&native_);
       if(err != 0) {
