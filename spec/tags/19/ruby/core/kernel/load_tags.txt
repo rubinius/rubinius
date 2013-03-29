@@ -1,0 +1,2 @@
+fails:Kernel#load (path resolution) does not load file twice after $LOAD_PATH change
+fails:Kernel.load (path resolution) does not load file twice after $LOAD_PATH change
