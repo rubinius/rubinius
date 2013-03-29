@@ -13,7 +13,7 @@ namespace rubinius {
     if(header_index > UINT32_MAX) {
       rubinius::bug("Rubinius can't handle more than 4G inflated headers active at the same time");
     }
-    if(index) *index = (uint32_t)header_index;
+    *index = (uint32_t)header_index;
     InflatedHeader* header = allocator_->from_index(header_index);
     header->clear_mark();
     if(needs_gc) {
