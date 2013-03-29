@@ -275,7 +275,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return next_index_;
     }
 
-    uint32_t object_id() const {
+    uint32_t object_id(STATE) const {
       return object_id_;
     }
 
@@ -683,12 +683,12 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     void set_untrusted(int val=1);
 
-    uint32_t object_id() {
+    uint32_t object_id(STATE) {
       // Pull this out into a local so that we don't see any concurrent
       // changes to header.
       HeaderWord tmp = header;
       if(tmp.f.inflated) {
-        return header_to_inflated_header(tmp)->object_id();
+        return header_to_inflated_header(tmp)->object_id(state);
       }
 
       switch(tmp.f.meaning) {

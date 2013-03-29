@@ -402,7 +402,7 @@ namespace rubinius {
 
   Integer* Object::id(STATE) {
     if(reference_p()) {
-      if(object_id() == 0) {
+      if(object_id(state) == 0) {
         state->memory()->assign_object_id(state, this);
       }
 
@@ -410,7 +410,7 @@ namespace rubinius {
       // storage, but still present the id as always modulo 4, so it doesn't
       // collide with the immediates, since immediates never have a tag
       // ending in 00.
-      return Integer::from(state, object_id() << TAG_REF_WIDTH);
+      return Integer::from(state, object_id(state) << TAG_REF_WIDTH);
     } else {
       /* All non-references have the pointer directly as the object id */
       return Integer::from(state, (uintptr_t)this);
@@ -419,7 +419,7 @@ namespace rubinius {
 
   bool Object::has_id(STATE) {
     if(!reference_p()) return true;
-    return object_id() > 0;
+    return object_id(state) > 0;
   }
 
   void Object::reset_id(STATE) {
