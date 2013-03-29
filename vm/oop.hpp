@@ -424,18 +424,20 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return header.f.inflated;
     }
 
-    static InflatedHeader* header_to_inflated_header(HeaderWord header) {
+    static InflatedHeader* header_to_inflated_header(STATE, HeaderWord header) {
       uintptr_t untagged =
         reinterpret_cast<uintptr_t>(header.all_flags) & ~InflatedMask;
       return reinterpret_cast<InflatedHeader*>(untagged);
     }
 
     InflatedHeader* inflated_header() const {
-      return header_to_inflated_header(header);
+      uintptr_t untagged =
+        reinterpret_cast<uintptr_t>(header.all_flags) & ~InflatedMask;
+      return reinterpret_cast<InflatedHeader*>(untagged);
     }
 
     InflatedHeader* inflated_header(STATE) const {
-      return header_to_inflated_header(header);
+      return header_to_inflated_header(state, header);
     }
 
     bool set_inflated_header(STATE, InflatedHeader* ih, uint32_t ih_header, HeaderWord orig);
@@ -688,7 +690,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       // changes to header.
       HeaderWord tmp = header;
       if(tmp.f.inflated) {
-        return header_to_inflated_header(tmp)->object_id(state);
+        return header_to_inflated_header(state, tmp)->object_id(state);
       }
 
       switch(tmp.f.meaning) {

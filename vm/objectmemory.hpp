@@ -221,6 +221,10 @@ namespace rubinius {
       return shared_.finalizer_handler();
     }
 
+    InflatedHeaders* inflated_headers() {
+      return inflated_headers_;
+    }
+
     /**
      * Adds an additional write-barrier to the auxiliary write-barriers list.
      */

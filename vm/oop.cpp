@@ -118,7 +118,7 @@ retry:
     orig = header;
 
     if(orig.f.inflated) {
-      ObjectHeader::header_to_inflated_header(orig)->set_object_id(id);
+      ObjectHeader::header_to_inflated_header(state, orig)->set_object_id(id);
       return;
     }
 
@@ -165,7 +165,7 @@ retry:
     orig = header;
 
     if(orig.f.inflated) {
-      ObjectHeader::header_to_inflated_header(orig)->set_handle(state, handle);
+      ObjectHeader::header_to_inflated_header(state, orig)->set_handle(state, handle);
       return;
     }
 
@@ -453,7 +453,7 @@ retry:
   capi::Handle* ObjectHeader::handle(STATE) {
     HeaderWord tmp = header;
     if(tmp.f.inflated) {
-      return header_to_inflated_header(tmp)->handle(state);
+      return header_to_inflated_header(state, tmp)->handle(state);
     }
 
     capi::Handle* h = NULL;
@@ -505,7 +505,7 @@ step2:
 
     // The header is inflated, use the full lock.
     if(orig.f.inflated) {
-      InflatedHeader* ih = ObjectHeader::header_to_inflated_header(orig);
+      InflatedHeader* ih = ObjectHeader::header_to_inflated_header(state, orig);
       return ih->lock_mutex(state, gct, self, us, interrupt);
     }
 
@@ -615,7 +615,7 @@ step2:
 
     // The header is inflated, use the full lock.
     if(orig.f.inflated) {
-      InflatedHeader* ih = ObjectHeader::header_to_inflated_header(orig);
+      InflatedHeader* ih = ObjectHeader::header_to_inflated_header(state, orig);
       return ih->try_lock_mutex(state, gct, self);
     }
 
@@ -682,7 +682,7 @@ step2:
     HeaderWord orig = header;
 
     if(orig.f.inflated) {
-      InflatedHeader* ih = ObjectHeader::header_to_inflated_header(orig);
+      InflatedHeader* ih = ObjectHeader::header_to_inflated_header(state, orig);
       return ih->locked_mutex_p(state, gct);
     }
 
@@ -704,7 +704,7 @@ step2:
       HeaderWord orig = header;
 
       if(orig.f.inflated) {
-        InflatedHeader* ih = ObjectHeader::header_to_inflated_header(orig);
+        InflatedHeader* ih = ObjectHeader::header_to_inflated_header(state, orig);
         return ih->unlock_mutex(state, gct, this);
       }
 
@@ -808,7 +808,7 @@ step2:
       HeaderWord orig = header;
 
       if(orig.f.inflated) {
-        InflatedHeader* ih = ObjectHeader::header_to_inflated_header(orig);
+        InflatedHeader* ih = ObjectHeader::header_to_inflated_header(state, orig);
         ih->unlock_mutex_for_terminate(state, gct, this);
         return;
       }
