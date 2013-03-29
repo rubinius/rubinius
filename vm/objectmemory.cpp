@@ -275,7 +275,7 @@ step1:
     // not access this if there is chance that a call blocked and GC'd
     // (which is true in the case of this function).
 
-    InflatedHeader* ih = obj->inflated_header();
+    InflatedHeader* ih = obj->inflated_header(state);
 
     if(timed) {
       return ih->lock_mutex_timed(state, gct, obj, &ts, interrupt);
@@ -658,7 +658,7 @@ step1:
     HeaderWord orig = obj->header;
 
     if(orig.f.inflated) {
-      obj->inflated_header()->set_object_id(id);
+      obj->inflated_header(state)->set_object_id(id);
       return;
     }
 
@@ -671,7 +671,7 @@ step1:
       orig = obj->header;
 
       if(orig.f.inflated) {
-        obj->inflated_header()->set_object_id(id);
+        obj->inflated_header(state)->set_object_id(id);
         return;
       }
       ih->update(state, orig);
@@ -686,7 +686,7 @@ step1:
     HeaderWord orig = obj->header;
 
     if(orig.f.inflated) {
-      obj->inflated_header()->set_handle(state, handle);
+      obj->inflated_header(state)->set_handle(state, handle);
       return;
     }
 
@@ -699,7 +699,7 @@ step1:
       orig = obj->header;
 
       if(orig.f.inflated) {
-        obj->inflated_header()->set_handle(state, handle);
+        obj->inflated_header(state)->set_handle(state, handle);
         return;
       }
       ih->update(state, orig);

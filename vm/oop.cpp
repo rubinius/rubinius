@@ -434,7 +434,7 @@ retry:
   void ObjectHeader::clear_handle(STATE) {
     for(;;) {
       if(inflated_header_p()) {
-        inflated_header()->set_handle(state, NULL);
+        inflated_header(state)->set_handle(state, NULL);
         return;
       } else {
         HeaderWord orig = header;
