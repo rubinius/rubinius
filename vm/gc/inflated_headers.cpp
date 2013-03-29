@@ -15,7 +15,7 @@ namespace rubinius {
     }
     if(index) *index = (uint32_t)header_index;
     InflatedHeader* header = allocator_->from_index(header_index);
-    header->set_flags(obj->flags());
+    header->clear_mark();
     if(needs_gc) {
       state_->om->collect_mature_now = true;
     }

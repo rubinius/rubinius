@@ -89,11 +89,6 @@ namespace rubinius {
 
     memcpy(obj, orig, bytes);
 
-    // If the header is inflated, repoint it.
-    if(obj->inflated_header_p()) {
-      orig->deflate_header();
-    }
-
     obj->set_zone(MatureObjectZone);
     obj->set_age(0);
 
@@ -118,9 +113,6 @@ namespace rubinius {
 
     // Check and update an inflated header
     if(copy && copy != obj) {
-      if(obj->inflated_header_p()) {
-        obj->deflate_header();
-      }
       obj->set_forward(copy);
     }
 

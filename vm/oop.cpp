@@ -7,6 +7,7 @@
 #include "builtin/exception.hpp"
 
 #include "capi/handles.hpp"
+#include "gc/inflated_headers.hpp"
 
 #include "objectmemory.hpp"
 #include "configuration.hpp"
@@ -29,7 +30,8 @@ namespace rubinius {
     if(orig.f.inflated) return false;
 
     HeaderWord new_val = orig;
-    new_val.all_flags  = ih;
+    new_val.f.aux_word = ih_index;
+    new_val.f.meaning  = eAuxWordEmpty;
     new_val.f.inflated = 1;
 
     // Make sure to include a barrier to the header is all properly initialized
@@ -37,25 +39,19 @@ namespace rubinius {
     return header.atomic_set(orig, new_val);
   }
 
-  InflatedHeader* ObjectHeader::deflate_header() {
-    // Probably needs to CAS, but this only used by immix and in a place
-    // we don't hit currently, so don't worry about it for now.
-    InflatedHeader* ih = inflated_header();
-    header.f = ih->flags();
-    header.f.inflated = 0;
-    header.f.meaning = eAuxWordEmpty;
-    header.f.aux_word = 0;
+  InflatedHeader* ObjectHeader::header_to_inflated_header(STATE, HeaderWord header) {
+    return state->memory()->inflated_headers()->find_index(header.f.aux_word);
+  }
 
-    return ih;
+  InflatedHeader* ObjectHeader::header_to_inflated_header(ObjectMemory* om, HeaderWord header) {
+    return om->inflated_headers()->find_index(header.f.aux_word);
   }
 
   bool InflatedHeader::update(STATE, HeaderWord header) {
     // Gain exclusive access to the insides of the InflatedHeader.
     utilities::thread::Mutex::LockGuard lg(mutex_);
 
-    flags_ = header.f;
-
-    switch(flags_.meaning) {
+    switch(header.f.meaning) {
     case eAuxWordEmpty:
       owner_id_       = 0;
       rec_lock_count_ = 0;
@@ -68,7 +64,7 @@ namespace rubinius {
       rec_lock_count_ = 0;
       handle_         = NULL;
 
-      object_id_      = flags_.aux_word;
+      object_id_      = header.f.aux_word;
       return true;
     case eAuxWordLock:
       {
@@ -86,7 +82,7 @@ namespace rubinius {
       rec_lock_count_ = 0;
       object_id_      = 0;
 
-      handle_ = state->shared().global_handles()->find_index(state, flags_.aux_word);
+      handle_ = state->shared().global_handles()->find_index(header.f.aux_word);
       return true;
     // Unsupported state, abort.
     default:
@@ -160,7 +156,7 @@ retry:
 
     if(header.atomic_set(orig, new_val)) return;
 
-    capi::Handle* handle = state->shared().global_handles()->find_index(state, handle_index);
+    capi::Handle* handle = state->shared().global_handles()->find_index(handle_index);
 
     orig = header;
 
@@ -191,64 +187,46 @@ retry:
 
   unsigned int ObjectHeader::inc_age() {
     for(;;) {
-      if(inflated_header_p()) {
-        return inflated_header()->inc_age();
-      } else {
-        HeaderWord orig      = header;
-        orig.f.inflated      = 0;
-        HeaderWord new_val   = orig;
-        unsigned int new_age = new_val.f.age++;
+      HeaderWord orig      = header;
+      HeaderWord new_val   = orig;
+      unsigned int new_age = new_val.f.age++;
 
-        if(header.atomic_set(orig, new_val)) return new_age;
-      }
+      if(header.atomic_set(orig, new_val)) return new_age;
     }
   }
 
   void ObjectHeader::set_age(unsigned int age) {
     for(;;) {
-      if(inflated_header_p()) {
-        inflated_header()->set_age(age);
-        return;
-      } else {
-        HeaderWord orig    = header;
-        orig.f.inflated    = 0;
-        HeaderWord new_val = orig;
-        new_val.f.age      = age;
+      HeaderWord orig    = header;
+      HeaderWord new_val = orig;
+      new_val.f.age      = age;
 
-        if(header.atomic_set(orig, new_val)) return;
-      }
+      if(header.atomic_set(orig, new_val)) return;
     }
   }
 
-  void ObjectHeader::mark(unsigned int which) {
+  void ObjectHeader::mark(ObjectMemory* om, unsigned int which) {
     for(;;) {
-      if(inflated_header_p()) {
-        inflated_header()->mark(which);
-        return;
-      } else {
-        HeaderWord orig    = header;
-        orig.f.inflated    = 0;
-        HeaderWord new_val = orig;
-        new_val.f.Marked   = which;
+      HeaderWord orig    = header;
+      HeaderWord new_val = orig;
+      new_val.f.Marked   = which;
 
-        if(header.atomic_set(orig, new_val)) return;
+      if(header.atomic_set(orig, new_val)) {
+        if(new_val.f.inflated) {
+          header_to_inflated_header(om, new_val)->mark(om, which);
+        }
+        return;
       }
     }
   }
 
   void ObjectHeader::clear_mark() {
     for(;;) {
-      if(inflated_header_p()) {
-        inflated_header()->clear_mark();
-        return;
-      } else {
-        HeaderWord orig    = header;
-        orig.f.inflated    = 0;
-        HeaderWord new_val = orig;
-        new_val.f.Marked   = 0;
+      HeaderWord orig    = header;
+      HeaderWord new_val = orig;
+      new_val.f.Marked   = 0;
 
-        if(header.atomic_set(orig, new_val)) return;
-      }
+      if(header.atomic_set(orig, new_val)) return;
     }
   }
 
@@ -257,196 +235,129 @@ retry:
     if(young_object_p()) return false;
 
     for(;;) {
-      if(inflated_header_p()) {
-        return inflated_header()->pin();
-      } else {
-        HeaderWord orig    = header;
-        orig.f.inflated    = 0;
-        HeaderWord new_val = orig;
-        new_val.f.Pinned   = 1;
+      HeaderWord orig    = header;
+      HeaderWord new_val = orig;
+      new_val.f.Pinned   = 1;
 
-        if(header.atomic_set(orig, new_val)) return true;
-      }
+      if(header.atomic_set(orig, new_val)) return true;
     }
     return true;
   }
 
   void ObjectHeader::unpin() {
     for(;;) {
-      if(inflated_header_p()) {
-        inflated_header()->unpin();
-        return;
-      } else {
-        HeaderWord orig    = header;
-        orig.f.inflated    = 0;
-        HeaderWord new_val = orig;
-        new_val.f.Pinned   = 0;
+      HeaderWord orig    = header;
+      HeaderWord new_val = orig;
+      new_val.f.Pinned   = 0;
 
-        if(header.atomic_set(orig, new_val)) return;
-      }
+      if(header.atomic_set(orig, new_val)) return;
     }
   }
 
   void ObjectHeader::set_in_immix() {
     for(;;) {
-      if(inflated_header_p()) {
-        inflated_header()->set_in_immix();
-        return;
-      } else {
-        HeaderWord orig    = header;
-        orig.f.inflated    = 0;
-        HeaderWord new_val = orig;
-        new_val.f.InImmix  = 1;
+      HeaderWord orig    = header;
+      HeaderWord new_val = orig;
+      new_val.f.InImmix  = 1;
 
-        if(header.atomic_set(orig, new_val)) return;
-      }
+      if(header.atomic_set(orig, new_val)) return;
     }
   }
 
   void ObjectHeader::set_zone(gc_zone zone) {
     for(;;) {
-      if(inflated_header_p()) {
-        inflated_header()->set_zone(zone);
-        return;
-      } else {
-        HeaderWord orig    = header;
-        orig.f.inflated    = 0;
-        HeaderWord new_val = orig;
-        new_val.f.zone     = zone;
+      HeaderWord orig    = header;
+      HeaderWord new_val = orig;
+      new_val.f.zone     = zone;
 
-        if(header.atomic_set(orig, new_val)) return;
-      }
+      if(header.atomic_set(orig, new_val)) return;
     }
   }
 
   void ObjectHeader::set_lock_contended() {
     for(;;) {
-      if(inflated_header_p()) {
-        inflated_header()->set_lock_contended();
-        return;
-      } else {
-        HeaderWord orig    = header;
-        orig.f.inflated    = 0;
-        HeaderWord new_val = orig;
-        new_val.f.LockContended = 1;
+      HeaderWord orig    = header;
+      HeaderWord new_val = orig;
+      new_val.f.LockContended = 1;
 
-        if(header.atomic_set(orig, new_val)) return;
-      }
+      if(header.atomic_set(orig, new_val)) return;
     }
   }
 
   void ObjectHeader::clear_lock_contended() {
     for(;;) {
-      if(inflated_header_p()) {
-        inflated_header()->clear_lock_contended();
-        return;
-      } else {
-        HeaderWord orig    = header;
-        orig.f.inflated    = 0;
-        HeaderWord new_val = orig;
-        new_val.f.LockContended = 0;
+      HeaderWord orig    = header;
+      HeaderWord new_val = orig;
+      new_val.f.LockContended = 0;
 
-        if(header.atomic_set(orig, new_val)) return;
-      }
+      if(header.atomic_set(orig, new_val)) return;
     }
   }
 
   void ObjectHeader::set_remember() {
     for(;;) {
-      if(inflated_header_p()) {
-        inflated_header()->set_remember();
-        return;
-      } else {
-        HeaderWord orig    = header;
-        orig.f.inflated    = 0;
-        HeaderWord new_val = orig;
-        new_val.f.Remember = 1;
+      HeaderWord orig    = header;
+      HeaderWord new_val = orig;
+      new_val.f.Remember = 1;
 
-        if(header.atomic_set(orig, new_val)) return;
-      }
+      if(header.atomic_set(orig, new_val)) return;
     }
   }
 
   void ObjectHeader::clear_remember() {
     for(;;) {
-      if(inflated_header_p()) {
-        inflated_header()->clear_remember();
-        return;
-      } else {
-        HeaderWord orig    = header;
-        orig.f.inflated    = 0;
-        HeaderWord new_val = orig;
-        new_val.f.Remember = 0;
+      HeaderWord orig    = header;
+      HeaderWord new_val = orig;
+      new_val.f.Remember = 0;
 
-        if(header.atomic_set(orig, new_val)) return;
-      }
+      if(header.atomic_set(orig, new_val)) return;
     }
   }
 
   void ObjectHeader::set_frozen(int val) {
     for(;;) {
-      if(inflated_header_p()) {
-        inflated_header()->set_frozen(val);
-        return;
-      } else {
-        HeaderWord orig    = header;
-        orig.f.inflated    = 0;
-        HeaderWord new_val = orig;
-        new_val.f.Frozen   = val;
+      HeaderWord orig    = header;
+      HeaderWord new_val = orig;
+      new_val.f.Frozen   = val;
 
-        if(header.atomic_set(orig, new_val)) return;
-      }
+      if(header.atomic_set(orig, new_val)) return;
     }
   }
 
   void ObjectHeader::set_tainted(int val) {
     for(;;) {
-      if(inflated_header_p()) {
-        inflated_header()->set_tainted(val);
-        return;
-      } else {
-        HeaderWord orig    = header;
-        orig.f.inflated    = 0;
-        HeaderWord new_val = orig;
-        new_val.f.Tainted  = val;
+      HeaderWord orig    = header;
+      HeaderWord new_val = orig;
+      new_val.f.Tainted  = val;
 
-        if(header.atomic_set(orig, new_val)) return;
-      }
+      if(header.atomic_set(orig, new_val)) return;
     }
   }
 
   void ObjectHeader::set_untrusted(int val) {
     for(;;) {
-      if(inflated_header_p()) {
-        inflated_header()->set_untrusted(val);
-        return;
-      } else {
-        HeaderWord orig     = header;
-        orig.f.inflated     = 0;
-        HeaderWord new_val  = orig;
-        new_val.f.Untrusted = val;
+      HeaderWord orig     = header;
+      HeaderWord new_val  = orig;
+      new_val.f.Untrusted = val;
 
-        if(header.atomic_set(orig, new_val)) return;
-      }
+      if(header.atomic_set(orig, new_val)) return;
     }
   }
 
   void ObjectHeader::clear_handle(STATE) {
     for(;;) {
-      if(inflated_header_p()) {
-        inflated_header(state)->set_handle(state, NULL);
+      HeaderWord orig = header;
+      if(orig.f.inflated) {
+        header_to_inflated_header(state, orig)->clear_handle(state);
         return;
-      } else {
-        HeaderWord orig = header;
-        orig.f.inflated = 0;
-        orig.f.meaning  = eAuxWordHandle;
-
-        HeaderWord new_val = orig;
-        new_val.f.meaning  = eAuxWordEmpty;
-        new_val.f.aux_word = 0;
-
-        if(header.atomic_set(orig, new_val)) return;
       }
+      orig.f.meaning  = eAuxWordHandle;
+
+      HeaderWord new_val = orig;
+      new_val.f.meaning  = eAuxWordEmpty;
+      new_val.f.aux_word = 0;
+
+      if(header.atomic_set(orig, new_val)) return;
     }
   }
 
@@ -459,7 +370,7 @@ retry:
     capi::Handle* h = NULL;
     switch(tmp.f.meaning) {
     case eAuxWordHandle:
-      h = state->shared().global_handles()->find_index(state, tmp.f.aux_word);
+      h = state->shared().global_handles()->find_index(tmp.f.aux_word);
       return h;
     default:
       return NULL;
@@ -925,13 +836,6 @@ step2:
       dst[counter] = 0;
     }
 
-  }
-
-  void InflatedHeader::set_flags(ObjectFlags flags) {
-    flags_ = flags;
-    flags_.meaning = eAuxWordEmpty;
-    flags_.aux_word = 0;
-    rec_lock_count_ = 0;
   }
 
   void InflatedHeader::initialize_mutex(int thread_id, int count) {

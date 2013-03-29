@@ -30,7 +30,7 @@ namespace rubinius {
 
       uintptr_t allocate_index(STATE, Object* obj);
 
-      Handle* find_index(STATE, uintptr_t index) {
+      Handle* find_index(uintptr_t index) {
         return allocator_->from_index(index);
       }
 

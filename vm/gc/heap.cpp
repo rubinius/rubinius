@@ -74,12 +74,6 @@ namespace rubinius {
     Object* tmp = allocate(bytes).as<Object>();
 
     memcpy(tmp, orig, bytes);
-
-    // If the header is inflated, repoint it.
-    if(tmp->inflated_header_p()) {
-      orig->deflate_header();
-    }
-
     orig->set_forward(tmp);
 
     return tmp;

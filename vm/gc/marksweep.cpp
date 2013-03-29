@@ -84,11 +84,6 @@ namespace rubinius {
     Object* obj = allocate(bytes, collect_now);
     memcpy(obj, orig, bytes);
 
-    // If the header is inflated, repoint it.
-    if(obj->inflated_header_p()) {
-      orig->deflate_header();
-    }
-
     obj->set_zone(MatureObjectZone);
     obj->set_age(0);
 
@@ -108,7 +103,7 @@ namespace rubinius {
 
   Object* MarkSweepGC::saw_object(Object* obj) {
     if(obj->marked_p(object_memory_->mark())) return NULL;
-    obj->mark(object_memory_->mark());
+    obj->mark(object_memory_, object_memory_->mark());
 
     // Add the object to the mark stack, to be scanned later.
     mark_stack_.push_back(obj);

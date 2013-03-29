@@ -226,7 +226,6 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
   union HeaderWord {
     struct ObjectFlags f;
     uint64_t flags64;
-    void* all_flags;
 
     bool atomic_set(HeaderWord& old, HeaderWord& nw);
   };
@@ -244,32 +243,28 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     // Treat the header as either storage for the ObjectFlags, or as a pointer
     // to the next free InflatedHeader in the InflatedHeaders free list.
     union {
-      ObjectFlags flags_;
+      capi::Handle* handle_;
       uintptr_t next_index_;
     };
-
-    capi::Handle* handle_;
-    uint32_t object_id_;
 
     utilities::thread::Mutex mutex_;
     utilities::thread::Condition condition_;
     uint32_t owner_id_;
     int rec_lock_count_;
 
+    uint32_t object_id_;
+    int mark_;
+
   public:
 
     InflatedHeader()
-      : next_index_(0)
-      , handle_(NULL)
-      , object_id_(0)
+      : handle_(NULL)
       , mutex_(false)
       , owner_id_(0)
-      , rec_lock_count_(-1)
+      , rec_lock_count_(0)
+      , object_id_(0)
+      , mark_(-1)
     {}
-
-    ObjectFlags flags() {
-      return flags_;
-    }
 
     uintptr_t next() const {
       return next_index_;
@@ -288,21 +283,15 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     }
 
     void clear() {
-      next_index_ = 0;
       handle_ = 0;
-      object_id_ = 0;
-      rec_lock_count_ = -1;
       owner_id_ = 0;
+      rec_lock_count_ = 0;
+      object_id_ = 0;
+      mark_ = -1;
     }
 
     bool in_use_p() const {
-      return rec_lock_count_ != -1;
-    }
-
-    void set_flags(ObjectFlags flags);
-
-    bool marked_p(unsigned int which) const {
-      return flags_.Marked == which;
+      return mark_ >= 0;
     }
 
     capi::Handle* handle(STATE) const {
@@ -313,65 +302,20 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       atomic::write(&handle_, handle);
     }
 
-    unsigned int inc_age() {
-      return flags_.age++;
+    void clear_handle(STATE) {
+      handle_ = NULL;
     }
 
-    void set_age(unsigned int age) {
-      flags_.age = age;
+    bool marked_p(unsigned int which) const {
+      return mark_ == which;
     }
 
-    void mark(unsigned int which) {
-      flags_.Marked = which;
+    void mark(ObjectMemory* om, unsigned int which) {
+      mark_ = which;
     }
 
     void clear_mark() {
-      flags_.Marked = 0;
-    }
-
-    bool pin() {
-      flags_.Pinned = 1;
-      return true;
-    }
-
-    void unpin() {
-      flags_.Pinned = 0;
-    }
-
-    void set_in_immix() {
-      flags_.InImmix = 1;
-    }
-
-    void set_zone(gc_zone zone) {
-      flags_.zone = zone;
-    }
-
-    void set_lock_contended() {
-      flags_.LockContended = 1;
-    }
-
-    void clear_lock_contended() {
-      flags_.LockContended = 0;
-    }
-
-    void set_remember() {
-      flags_.Remember = 1;
-    }
-
-    void clear_remember() {
-      flags_.Remember = 0;
-    }
-
-    void set_frozen(int val = 1) {
-      flags_.Frozen = val;
-    }
-
-    void set_tainted(int val = 1) {
-      flags_.Tainted = val;
-    }
-
-    void set_untrusted(int val = 1) {
-      flags_.Untrusted = val;
+      mark_ = 0;
     }
 
     bool update(STATE, HeaderWord header);
@@ -386,8 +330,6 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     void wakeup();
 
     private:
-
-
   };
 
   class ObjectHeader {
@@ -424,17 +366,8 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return header.f.inflated;
     }
 
-    static InflatedHeader* header_to_inflated_header(STATE, HeaderWord header) {
-      uintptr_t untagged =
-        reinterpret_cast<uintptr_t>(header.all_flags) & ~InflatedMask;
-      return reinterpret_cast<InflatedHeader*>(untagged);
-    }
-
-    InflatedHeader* inflated_header() const {
-      uintptr_t untagged =
-        reinterpret_cast<uintptr_t>(header.all_flags) & ~InflatedMask;
-      return reinterpret_cast<InflatedHeader*>(untagged);
-    }
+    static InflatedHeader* header_to_inflated_header(STATE, HeaderWord header);
+    static InflatedHeader* header_to_inflated_header(ObjectMemory* om, HeaderWord header);
 
     InflatedHeader* inflated_header(STATE) const {
       return header_to_inflated_header(state, header);
@@ -445,8 +378,6 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     HeaderWord current_header() {
       return header;
     }
-
-    InflatedHeader* deflate_header();
 
     /*
      * We return a copy here for safe reading. This means that
@@ -464,19 +395,11 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
      * has been inflated in the mean while.
      */
     ObjectFlags flags() const {
-      HeaderWord copy = header;
-      if(copy.f.inflated) {
-        return inflated_header()->flags();
-      }
-      return copy.f;
+      return header.f;
     }
 
     ObjectFlags flags() {
-      HeaderWord copy = header;
-      if(copy.f.inflated) {
-        return inflated_header()->flags();
-      }
-      return copy.f;
+      return header.f;
     }
 
     gc_zone zone() const {
@@ -505,7 +428,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     void set_handle(STATE, capi::Handle* handle) {
       if(inflated_header_p()) {
-        inflated_header()->set_handle(state, handle);
+        inflated_header(state)->set_handle(state, handle);
       } else {
         rubinius::bug("Setting handle directly on not inflated header");
       }
@@ -631,7 +554,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return flags().Marked == which;
     }
 
-    void mark(unsigned int which);
+    void mark(ObjectMemory* om, unsigned int which);
 
     int which_mark() const {
       return flags().Marked;

@@ -25,6 +25,10 @@ namespace rubinius {
 
     InflatedHeader* allocate(ObjectHeader* obj, uint32_t* index);
 
+    InflatedHeader* find_index(uintptr_t index) {
+      return allocator_->from_index(index);
+    }
+
     void deallocate_headers(int mark);
     void allocate_chunk();
   };

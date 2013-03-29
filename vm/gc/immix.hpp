@@ -88,7 +88,7 @@ namespace rubinius {
         Object* obj = addr.as<Object>();
 
         if(obj->marked_p(object_memory_->mark())) return false;
-        obj->mark(object_memory_->mark());
+        obj->mark(object_memory_, object_memory_->mark());
         gc_->inc_marked_objects();
 
         ms.push_back(addr);
