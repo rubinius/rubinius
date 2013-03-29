@@ -135,18 +135,19 @@ namespace rubinius {
       return false;
     }
 
-    InflatedHeader* header = inflated_headers_->allocate(obj);
-    header->update(state, orig);
-    header->initialize_mutex(state->vm()->thread_id(), count);
+    uint32_t ih_header = 0;
+    InflatedHeader* ih = inflated_headers_->allocate(obj, &ih_header);
+    ih->update(state, orig);
+    ih->initialize_mutex(state->vm()->thread_id(), count);
 
-    while(!obj->set_inflated_header(state, header, orig)) {
+    while(!obj->set_inflated_header(state, ih, ih_header, orig)) {
       orig = obj->header;
 
       if(orig.f.inflated) {
         return false;
       }
-      header->update(state, orig);
-      header->initialize_mutex(state->vm()->thread_id(), count);
+      ih->update(state, orig);
+      ih->initialize_mutex(state->vm()->thread_id(), count);
     }
     return true;
   }
@@ -292,6 +293,7 @@ step1:
     utilities::thread::SpinLock::LockGuard guard(inflation_lock_);
 
     InflatedHeader* ih = 0;
+    uint32_t ih_index = 0;
     int initial_count = 0;
 
     HeaderWord orig = obj->header;
@@ -309,7 +311,7 @@ step1:
     case eAuxWordObjID:
       // We could be have made a header before trying again, so
       // keep using the original one.
-      ih = inflated_headers_->allocate(obj);
+      ih = inflated_headers_->allocate(obj, &ih_index);
       ih->set_object_id(orig.f.aux_word);
       break;
     case eAuxWordLock:
@@ -318,19 +320,19 @@ step1:
         return false;
       }
 
-      ih = inflated_headers_->allocate(obj);
+      ih = inflated_headers_->allocate(obj, &ih_index);
       initial_count = orig.f.aux_word & cAuxLockRecCountMask;
       break;
     case eAuxWordHandle:
       // Handle in use so inflate and update handle
-      ih = inflated_headers_->allocate(obj);
+      ih = inflated_headers_->allocate(obj, &ih_index);
       ih->set_handle(state, obj->handle(state));
       break;
     }
 
     ih->initialize_mutex(state->vm()->thread_id(), initial_count);
 
-    while(!obj->set_inflated_header(state, ih, orig)) {
+    while(!obj->set_inflated_header(state, ih, ih_index, orig)) {
       // The header can't have been inflated by another thread, the
       // inflation process holds the OM lock.
       //
@@ -361,6 +363,7 @@ step1:
       HeaderWord orig = obj->header;
 
       InflatedHeader* ih = 0;
+      uint32_t ih_header = 0;
 
       if(orig.f.inflated) {
         if(cDebugThreading) {
@@ -371,16 +374,16 @@ step1:
 
       switch(orig.f.meaning) {
       case eAuxWordEmpty:
-        ih = inflated_headers_->allocate(obj);
+        ih = inflated_headers_->allocate(obj, &ih_header);
         break;
       case eAuxWordObjID:
         // We could be have made a header before trying again, so
         // keep using the original one.
-        ih = inflated_headers_->allocate(obj);
+        ih = inflated_headers_->allocate(obj, &ih_header);
         ih->set_object_id(orig.f.aux_word);
         break;
       case eAuxWordHandle:
-        ih = inflated_headers_->allocate(obj);
+        ih = inflated_headers_->allocate(obj, &ih_header);
         ih->set_handle(state, obj->handle(state));
         break;
       case eAuxWordLock:
@@ -395,12 +398,12 @@ step1:
           std::cerr << "[LOCK " << state->vm()->thread_id() << " being unlocked and inflated atomicly]" << std::endl;
         }
 
-        ih = inflated_headers_->allocate(obj);
+        ih = inflated_headers_->allocate(obj, &ih_header);
         break;
       }
 
       // Try it all over again if it fails.
-      if(!obj->set_inflated_header(state, ih, orig)) continue;
+      if(!obj->set_inflated_header(state, ih, ih_header, orig)) continue;
 
       obj->clear_lock_contended();
 
@@ -659,19 +662,20 @@ step1:
       return;
     }
 
-    InflatedHeader* header = inflated_headers_->allocate(obj);
-    header->update(state, orig);
-    header->set_object_id(id);
+    uint32_t ih_index = 0;
+    InflatedHeader* ih = inflated_headers_->allocate(obj, &ih_index);
+    ih->update(state, orig);
+    ih->set_object_id(id);
 
-    while(!obj->set_inflated_header(state, header, orig)) {
+    while(!obj->set_inflated_header(state, ih, ih_index, orig)) {
       orig = obj->header;
 
       if(orig.f.inflated) {
         obj->inflated_header()->set_object_id(id);
         return;
       }
-      header->update(state, orig);
-      header->set_object_id(id);
+      ih->update(state, orig);
+      ih->set_object_id(id);
     }
 
   }
@@ -686,19 +690,20 @@ step1:
       return;
     }
 
-    InflatedHeader* header = inflated_headers_->allocate(obj);
-    header->update(state, orig);
-    header->set_handle(state, handle);
+    uint32_t ih_index = 0;
+    InflatedHeader* ih = inflated_headers_->allocate(obj, &ih_index);
+    ih->update(state, orig);
+    ih->set_handle(state, handle);
 
-    while(!obj->set_inflated_header(state, header, orig)) {
+    while(!obj->set_inflated_header(state, ih, ih_index, orig)) {
       orig = obj->header;
 
       if(orig.f.inflated) {
         obj->inflated_header()->set_handle(state, handle);
         return;
       }
-      header->update(state, orig);
-      header->set_handle(state, handle);
+      ih->update(state, orig);
+      ih->set_handle(state, handle);
     }
 
   }

@@ -6,31 +6,23 @@
 #include <iostream>
 
 namespace rubinius {
-  /**
-   * Allocates a new InflatedHeader object for the specified obj ObjectHeader.
-   *
-   * /param obj The ObjectHeader that is to be inflated.
-   * /returns the InflatedHeader representing the new inflated object header.
-   */
-  InflatedHeader* InflatedHeaders::allocate(ObjectHeader* obj) {
+
+  InflatedHeader* InflatedHeaders::allocate(ObjectHeader* obj, uint32_t* index) {
     bool needs_gc = false;
-    InflatedHeader* header = allocator_->allocate(&needs_gc);
+    uintptr_t header_index = allocator_->allocate_index(&needs_gc);
+    if(header_index > UINT32_MAX) {
+      rubinius::bug("Rubinius can't handle more than 4G inflated headers active at the same time");
+    }
+    if(index) *index = (uint32_t)header_index;
+    InflatedHeader* header = allocator_->from_index(header_index);
     header->set_flags(obj->flags());
     if(needs_gc) {
       state_->om->collect_mature_now = true;
     }
+    atomic::memory_barrier();
     return header;
   }
 
-  /**
-   * Scans the list of InflatedHeader objects checking to see which are in use.
-   * Those that do not have the appropriate mark value set are cleared and
-   * added back to the free list. Chunks that are completely unused are removed
-   * from the linked list.
-   *
-   * /param mark The current value of the mark; only InflatedHeaders that bear
-   *             this mark will be retained.
-   */
   void InflatedHeaders::deallocate_headers(int mark) {
     std::vector<bool> chunk_marks(allocator_->chunks_.size(), false);
     for(std::vector<int>::size_type i = 0; i < allocator_->chunks_.size(); ++i) {
