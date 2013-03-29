@@ -3534,15 +3534,15 @@ use_send:
         }
       }
 
-      if(!handled) create_branch(failure);
-
-      set_block(failure);
-
-      if(llvm_state()->config().jit_inline_debug) {
-        ctx_->inline_log("slow ivar read")
-          << llvm_state()->symbol_debug_str(name) << "\n";
+      if(!handled) {
+        create_branch(failure);
+        if(llvm_state()->config().jit_inline_debug) {
+          ctx_->inline_log("slow ivar read")
+            << llvm_state()->symbol_debug_str(name) << "\n";
+        }
       }
 
+      set_block(failure);
       Signature sig(ctx_, ObjType);
 
       sig << StateTy;
@@ -3619,16 +3619,19 @@ use_send:
           }
         }
 
-        if(llvm_state()->config().jit_inline_debug) {
-          ctx_->log() << " (abort, using slow write)\n";
+        if(!handled) {
+          if(llvm_state()->config().jit_inline_debug) {
+            ctx_->log() << " (abort, using slow write)\n";
+          }
         }
       }
 
-      if(!handled) create_branch(failure);
-
-      if(llvm_state()->config().jit_inline_debug) {
-        ctx_->inline_log("slow ivar write")
-          << llvm_state()->symbol_debug_str(name) << "\n";
+      if(!handled) {
+        create_branch(failure);
+        if(llvm_state()->config().jit_inline_debug) {
+          ctx_->inline_log("slow ivar write")
+            << llvm_state()->symbol_debug_str(name) << "\n";
+        }
       }
 
       set_block(failure);
