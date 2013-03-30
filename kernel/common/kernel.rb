@@ -6,9 +6,10 @@ module Kernel
 
     name = scope.method.name
 
+    return nil if scope.method.for_module_body?
     # If the name is still __block__, then it's in a script, so return nil
     return nil if name == :__block__ or name == :__script__
-    return name
+    name
   end
   module_function :__method__
 

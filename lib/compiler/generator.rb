@@ -256,6 +256,7 @@ module Rubinius
       @primitive = nil
       @instruction = nil
       @for_block = nil
+      @for_module_body = nil
 
       @required_args = 0
       @post_args = 0
@@ -282,7 +283,7 @@ module Rubinius
     attr_reader   :ip, :stream, :iseq, :literals
     attr_accessor :break, :redo, :next, :retry, :file, :name,
                   :required_args, :post_args, :total_args, :splat_index,
-                  :local_count, :local_names, :primitive, :for_block,
+                  :local_count, :local_names, :primitive, :for_block, :for_module_body,
                   :current_block, :detected_args, :detected_locals,
                   :block_index
 
@@ -333,6 +334,10 @@ module Rubinius
 
       if @for_block
         code.add_metadata :for_block, true
+      end
+
+      if @for_module_body
+        code.add_metadata :for_module_body, true
       end
 
       code

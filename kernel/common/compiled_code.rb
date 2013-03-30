@@ -346,6 +346,10 @@ module Rubinius
       get_metadata(:for_eval)
     end
 
+    def for_module_body?
+      get_metadata(:for_module_body)
+    end
+
     def describe
       str = "method #{@name}: #{@total_args} arg(s), #{@required_args} required"
       if @splat

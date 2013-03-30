@@ -149,6 +149,7 @@ module Rubinius
         meth = new_generator(g, name)
 
         meth.push_state self
+        meth.for_module_body = true
 
         if scoped
           meth.push_self

@@ -89,7 +89,7 @@ module Rubinius
     # utility methods below clearer
     attr_reader   :g
     attr_accessor :stream, :ip, :redo, :break, :next, :retry,
-                  :name, :file, :line, :primitive, :for_block,
+                  :name, :file, :line, :primitive, :for_block, :for_module_body,
                   :required_args, :post_args, :total_args, :splat_index,
                   :local_count, :local_names, :block_index
 

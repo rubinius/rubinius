@@ -1,1 +1,0 @@
-fails:Kernel.__method__ returns nil from inside a class body
