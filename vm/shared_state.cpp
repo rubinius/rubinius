@@ -7,8 +7,6 @@
 #include "instruments/tooling.hpp"
 #include "instruments/timing.hpp"
 #include "global_cache.hpp"
-#include "capi/handles.hpp"
-#include "capi/tag.hpp"
 
 #include "util/thread.hpp"
 #include "inline_cache.hpp"
@@ -33,7 +31,6 @@ namespace rubinius {
     : auxiliary_threads_(0)
     , signal_handler_(0)
     , finalizer_handler_(0)
-    , global_handles_(new capi::Handles)
     , world_(new WorldState(&check_global_interrupts_))
     , ic_registry_(new InlineCacheRegistry)
     , method_count_(0)
@@ -85,13 +82,6 @@ namespace rubinius {
       delete agent_;
     }
 
-    for(std::list<capi::GlobalHandle*>::iterator i = global_handle_locations_.begin();
-          i != global_handle_locations_.end(); ++i) {
-      delete *i;
-    }
-    global_handle_locations_.clear();
-
-    delete global_handles_;
     delete tool_broker_;
     delete global_cache;
     delete ic_registry_;
@@ -165,86 +155,6 @@ namespace rubinius {
       }
     }
     return threads;
-  }
-
-  capi::Handle* SharedState::add_global_handle(STATE, Object* obj) {
-    if(!obj->reference_p()) {
-      rubinius::bug("Trying to add a handle for a non reference");
-    }
-    uintptr_t handle_index = global_handles_->allocate_index(state, obj);
-    obj->set_handle_index(state, handle_index);
-    return obj->handle(state);
-  }
-
-  void SharedState::make_handle_cached(STATE, capi::Handle* handle) {
-    SYNC(state);
-    cached_handles_.push_back(handle);
-  }
-
-  void SharedState::add_global_handle_location(capi::Handle** loc,
-                                               const char* file, int line)
-  {
-    SYNC_TL;
-    if(*loc && REFERENCE_P(*loc)) {
-      if(!global_handles_->validate(*loc)) {
-        std::cerr << std::endl << "==================================== ERROR ====================================" << std::endl;
-        std::cerr << "| An extension is trying to add an invalid handle at the following location:  |" << std::endl;
-        std::ostringstream out;
-        out << file << ":" << line;
-        std::cerr << "| " << std::left << std::setw(75) << out.str() << " |" << std::endl;
-        std::cerr << "|                                                                             |" << std::endl;
-        std::cerr << "| An invalid handle means that it points to an invalid VALUE. This can happen |" << std::endl;
-        std::cerr << "| when you haven't initialized the VALUE pointer yet, in which case we        |" << std::endl;
-        std::cerr << "| suggest either initializing it properly or otherwise first initialize it to |" << std::endl;
-        std::cerr << "| NULL if you can only set it to a proper VALUE pointer afterwards. Consider  |" << std::endl;
-        std::cerr << "| the following example that could cause this problem:                        |" << std::endl;
-        std::cerr << "|                                                                             |" << std::endl;
-        std::cerr << "| VALUE ptr;                                                                  |" << std::endl;
-        std::cerr << "| rb_gc_register_address(&ptr);                                               |" << std::endl;
-        std::cerr << "| ptr = rb_str_new(\"test\");                                                   |" << std::endl;
-        std::cerr << "|                                                                             |" << std::endl;
-        std::cerr << "| Either change this register after initializing                              |" << std::endl;
-        std::cerr << "|                                                                             |" << std::endl;
-        std::cerr << "| VALUE ptr;                                                                  |" << std::endl;
-        std::cerr << "| ptr = rb_str_new(\"test\");                                                   |" << std::endl;
-        std::cerr << "| rb_gc_register_address(&ptr);                                               |" << std::endl;
-        std::cerr << "|                                                                             |" << std::endl;
-        std::cerr << "| Or initialize it with NULL:                                                 |" << std::endl;
-        std::cerr << "|                                                                             |" << std::endl;
-        std::cerr << "| VALUE ptr = NULL;                                                           |" << std::endl;
-        std::cerr << "| rb_gc_register_address(&ptr);                                               |" << std::endl;
-        std::cerr << "| ptr = rb_str_new(\"test\");                                                   |" << std::endl;
-        std::cerr << "|                                                                             |" << std::endl;
-        std::cerr << "| Please note that this is NOT a problem in Rubinius, but in the extension    |" << std::endl;
-        std::cerr << "| that contains the given file above. A very common source of this problem is |" << std::endl;
-        std::cerr << "| using older versions of therubyracer before 0.11.x. Please upgrade to at    |" << std::endl;
-        std::cerr << "| least version 0.11.x if you're using therubyracer and encounter this        |" << std::endl;
-        std::cerr << "| problem. For some more background information on why this is a problem      |" << std::endl;
-        std::cerr << "| with therubyracer, you can read the following blog post:                    |" << std::endl;
-        std::cerr << "|                                                                             |" << std::endl;
-        std::cerr << "| http://blog.thefrontside.net/2012/12/04/therubyracer-rides-again/           |" << std::endl;
-        std::cerr << "|                                                                             |" << std::endl;
-        std::cerr << "================================== ERROR ======================================" << std::endl;
-        rubinius::bug("Halting due to invalid handle");
-      }
-    }
-
-    capi::GlobalHandle* global_handle = new capi::GlobalHandle(loc, file, line);
-    global_handle_locations_.push_back(global_handle);
-  }
-
-  void SharedState::del_global_handle_location(capi::Handle** loc) {
-    SYNC_TL;
-
-    for(std::list<capi::GlobalHandle*>::iterator i = global_handle_locations_.begin();
-        i != global_handle_locations_.end(); ++i) {
-      if((*i)->handle() == loc) {
-        delete *i;
-        global_handle_locations_.erase(i);
-        return;
-      }
-    }
-    rubinius::bug("Removing handle not in the list");
   }
 
   QueryAgent* SharedState::start_agent(STATE) {

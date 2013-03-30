@@ -1,3 +1,4 @@
+#include "objectmemory.hpp"
 #include "capi/capi.hpp"
 #include "capi/18/include/ruby.h"
 
@@ -35,7 +36,7 @@ namespace rubinius {
 
         flush_ = flush_cached_rfloat;
 
-        env->state()->vm()->shared.make_handle_cached(env->state(), this);
+        env->state()->memory()->make_capi_handle_cached(env->state(), this);
       }
 
       return as_.rfloat;

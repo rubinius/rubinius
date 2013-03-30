@@ -146,6 +146,12 @@ namespace rubinius {
     /// Storage for all InflatedHeader instances.
     InflatedHeaders* inflated_headers_;
 
+    /// Storage for C-API handle allocator, cached C-API handles
+    /// and global handle locations.
+    capi::Handles* capi_handles_;
+    std::list<capi::Handle*> cached_capi_handles_;
+    std::list<capi::GlobalHandle*> global_capi_handle_locations_;
+
     /// The current mark value used when marking objects.
     unsigned int mark_;
 
@@ -224,6 +230,24 @@ namespace rubinius {
     InflatedHeaders* inflated_headers() {
       return inflated_headers_;
     }
+
+    capi::Handles* capi_handles() {
+      return capi_handles_;
+    }
+
+    capi::Handle* add_capi_handle(STATE, Object* obj);
+    void make_capi_handle_cached(State*, capi::Handle* handle);
+
+    std::list<capi::Handle*>* cached_capi_handles() {
+      return &cached_capi_handles_;
+    }
+
+    std::list<capi::GlobalHandle*>* global_capi_handle_locations() {
+      return &global_capi_handle_locations_;
+    }
+
+    void add_global_capi_handle_location(STATE, capi::Handle** loc, const char* file, int line);
+    void del_global_capi_handle_location(STATE, capi::Handle** loc);
 
     /**
      * Adds an additional write-barrier to the auxiliary write-barriers list.

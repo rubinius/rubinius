@@ -76,7 +76,7 @@ namespace rubinius {
         handle->update(NativeMethodEnvironment::get());
       }
     } else {
-      handle = state->shared().add_global_handle(state, obj);
+      handle = state->memory()->add_capi_handle(state, obj);
       handles_.add_if_absent(handle);
     }
 
@@ -100,7 +100,7 @@ namespace rubinius {
     }
 
     if(env->state()->shared().config.capi_global_flush) {
-      std::list<capi::Handle*>* handles = env->state()->shared().cached_handles();
+      std::list<capi::Handle*>* handles = env->state()->memory()->cached_capi_handles();
 
       for(std::list<capi::Handle*>::iterator i = handles->begin();
           i != handles->end();
@@ -118,7 +118,7 @@ namespace rubinius {
     }
 
     if(env->state()->shared().config.capi_global_flush) {
-      std::list<capi::Handle*>* handles = env->state()->shared().cached_handles();
+      std::list<capi::Handle*>* handles = env->state()->memory()->cached_capi_handles();
 
       for(std::list<capi::Handle*>::iterator i = handles->begin();
           i != handles->end();
@@ -648,7 +648,7 @@ namespace rubinius {
 
     // Optionally get the handles back to the proper state.
     if(state->shared().config.capi_global_flush) {
-      std::list<capi::Handle*>* handles = state->shared().cached_handles();
+      std::list<capi::Handle*>* handles = env->state()->memory()->cached_capi_handles();
 
       for(std::list<capi::Handle*>::iterator i = handles->begin();
           i != handles->end();

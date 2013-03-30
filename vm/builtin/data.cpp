@@ -28,7 +28,7 @@ namespace rubinius {
 
     assert(!handle && "can't already have a handle, it's brand new!");
 
-    handle = state->shared().add_global_handle(state, data);
+    handle = state->memory()->add_capi_handle(state, data);
 
     // Don't call ->ref() on handle! We don't want the handle to keep the object
     // alive by default. The handle needs to have the lifetime of the object.

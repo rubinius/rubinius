@@ -81,7 +81,7 @@ namespace rubinius {
       rec_lock_count_ = 0;
       object_id_      = 0;
 
-      handle_ = state->shared().global_handles()->find_index(header.f.aux_word);
+      handle_ = state->memory()->capi_handles()->find_index(header.f.aux_word);
       return true;
     // Unsupported state, abort.
     default:
@@ -153,7 +153,7 @@ retry:
 
     if(header.atomic_set(orig, new_val)) return;
 
-    capi::Handle* handle = state->shared().global_handles()->find_index(handle_index);
+    capi::Handle* handle = state->memory()->capi_handles()->find_index(handle_index);
 
     orig = header;
 
@@ -364,7 +364,7 @@ retry:
 
     switch(orig.f.meaning) {
     case eAuxWordHandle:
-      return state->shared().global_handles()->find_index(orig.f.aux_word);
+      return state->memory()->capi_handles()->find_index(orig.f.aux_word);
     case eAuxWordInflated:
       return header_to_inflated_header(state, orig)->handle(state);
     default:

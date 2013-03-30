@@ -4,6 +4,7 @@
 #include "builtin/proc.hpp"
 #include "builtin/thread.hpp"
 #include "builtin/lookuptable.hpp"
+#include "objectmemory.hpp"
 
 #include "arguments.hpp"
 #include "dispatch.hpp"
@@ -158,7 +159,7 @@ namespace rubinius {
           flush_ = flush_cached_rarray;
           update_ = update_cached_rarray;
 
-          env->state()->vm()->shared.make_handle_cached(env->state(), this);
+          env->state()->memory()->make_capi_handle_cached(env->state(), this);
         }
 
         env->shared().capi_ds_lock().unlock();

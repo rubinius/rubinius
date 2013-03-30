@@ -11,8 +11,8 @@ namespace rubinius {
   namespace capi {
 
     bool Handle::valid_handle_p(STATE, Handle* handle) {
-      Handles* global_handles = state->shared().global_handles();
-      for(Allocator<Handle>::Iterator i(global_handles->allocator()); i.more(); i.advance()) {
+      Handles* capi_handles = state->memory()->capi_handles();
+      for(Allocator<Handle>::Iterator i(capi_handles->allocator()); i.more(); i.advance()) {
         if(i.current() == handle) return true;
       }
       return false;

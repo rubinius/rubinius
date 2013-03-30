@@ -72,9 +72,6 @@ namespace rubinius {
     SignalHandler* signal_handler_;
     FinalizerHandler* finalizer_handler_;
 
-    capi::Handles* global_handles_;
-    std::list<capi::Handle*> cached_handles_;
-    std::list<capi::GlobalHandle*> global_handle_locations_;
     CApiConstantNameMap capi_constant_name_map_;
     CApiConstantHandleMap capi_constant_handle_map_;
 
@@ -171,24 +168,6 @@ namespace rubinius {
 
     void add_managed_thread(ManagedThread* thr);
     void remove_managed_thread(ManagedThread* thr);
-
-    capi::Handles* global_handles() {
-      return global_handles_;
-    }
-
-    capi::Handle* add_global_handle(State*, Object* obj);
-    void make_handle_cached(State*, capi::Handle* handle);
-
-    std::list<capi::Handle*>* cached_handles() {
-      return &cached_handles_;
-    }
-
-    std::list<capi::GlobalHandle*>* global_handle_locations() {
-      return &global_handle_locations_;
-    }
-
-    void add_global_handle_location(capi::Handle** loc, const char* file, int line);
-    void del_global_handle_location(capi::Handle** loc);
 
     int global_serial() {
       return global_serial_;

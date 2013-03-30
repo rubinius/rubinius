@@ -1,6 +1,7 @@
 #include "builtin/object.hpp"
 #include "builtin/system.hpp"
 #include "builtin/regexp.hpp"
+#include "objectmemory.hpp"
 
 #include "capi/capi.hpp"
 #include "capi/18/include/ruby.h"
@@ -67,13 +68,13 @@ extern "C" {
   void capi_gc_register_address(VALUE* address, const char* file, int line) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     capi::Handle** loc = reinterpret_cast<capi::Handle**>(address);
-    env->state()->vm()->shared.add_global_handle_location(loc, file, line);
+    env->state()->memory()->add_global_capi_handle_location(env->state(), loc, file, line);
   }
 
   void rb_gc_unregister_address(VALUE* address) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     capi::Handle** loc = reinterpret_cast<capi::Handle**>(address);
-    env->state()->vm()->shared.del_global_handle_location(loc);
+    env->state()->memory()->del_global_capi_handle_location(env->state(), loc);
   }
 
   VALUE rb_gv_get(const char* name) {
