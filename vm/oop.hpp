@@ -149,13 +149,13 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
   };
 
   typedef enum {
-    eAuxWordEmpty  = 0,
-    eAuxWordObjID  = 1,
-    eAuxWordLock   = 2,
-    eAuxWordHandle = 3
+    eAuxWordEmpty    = 0,
+    eAuxWordObjID    = 1,
+    eAuxWordLock     = 2,
+    eAuxWordHandle   = 3,
+    eAuxWordInflated = 4
   } aux_meaning;
 
-  const static int InflatedMask  = 1;
   const static int cAuxLockTIDShift = 8;
   const static int cAuxLockRecCountMask = 0xff;
   const static int cAuxLockRecCountMax  = 0xff - 1;
@@ -163,10 +163,9 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
   const static bool cDebugThreading = false;
 
 #define OBJECT_FLAGS_OBJ_TYPE        7
-#define OBJECT_FLAGS_MEANING         9
-#define OBJECT_FLAGS_GC_ZONE        11
-#define OBJECT_FLAGS_AGE            15
-#define OBJECT_FLAGS_INFLATED       16
+#define OBJECT_FLAGS_GC_ZONE         9
+#define OBJECT_FLAGS_AGE            13
+#define OBJECT_FLAGS_MEANING        16
 #define OBJECT_FLAGS_FORWARDED      17
 #define OBJECT_FLAGS_REMEMBER       18
 #define OBJECT_FLAGS_MARKED         20
@@ -179,10 +178,9 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
   struct ObjectFlags {
     object_type  obj_type        : 8;
-    aux_meaning  meaning         : 2;
     gc_zone      zone            : 2;
     unsigned int age             : 4;
-    unsigned int inflated        : 1;
+    aux_meaning  meaning         : 3;
 
     unsigned int Forwarded       : 1;
     unsigned int Remember        : 1;
@@ -340,7 +338,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
   public: // accessors for header members
 
     bool inflated_header_p() const {
-      return header.f.inflated;
+      return header.f.meaning == eAuxWordInflated;
     }
 
     static InflatedHeader* header_to_inflated_header(STATE, HeaderWord header);
@@ -589,13 +587,12 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       // Pull this out into a local so that we don't see any concurrent
       // changes to header.
       HeaderWord tmp = header;
-      if(tmp.f.inflated) {
-        return header_to_inflated_header(state, tmp)->object_id(state);
-      }
 
       switch(tmp.f.meaning) {
       case eAuxWordObjID:
         return tmp.f.aux_word;
+      case eAuxWordInflated:
+        return header_to_inflated_header(state, tmp)->object_id(state);
       default:
         return 0;
       }

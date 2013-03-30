@@ -27,12 +27,11 @@ namespace rubinius {
 
   bool ObjectHeader::set_inflated_header(STATE, uint32_t ih_index, HeaderWord orig) {
 
-    if(orig.f.inflated) return false;
+    if(orig.f.meaning == eAuxWordInflated) return false;
 
     HeaderWord new_val = orig;
     new_val.f.aux_word = ih_index;
-    new_val.f.meaning  = eAuxWordEmpty;
-    new_val.f.inflated = 1;
+    new_val.f.meaning  = eAuxWordInflated;
 
     // Make sure to include a barrier to the header is all properly initialized
     atomic::memory_barrier();
@@ -100,7 +99,6 @@ retry:
     // the new one into place.
     HeaderWord orig = header;
 
-    orig.f.inflated = 0;
     orig.f.meaning  = eAuxWordEmpty;
     orig.f.aux_word = 0;
 
@@ -112,11 +110,6 @@ retry:
     if(header.atomic_set(orig, new_val)) return;
 
     orig = header;
-
-    if(orig.f.inflated) {
-      ObjectHeader::header_to_inflated_header(state, orig)->set_object_id(id);
-      return;
-    }
 
     switch(orig.f.meaning) {
     case eAuxWordEmpty:
@@ -133,6 +126,11 @@ retry:
       // Inflate!
 
       state->memory()->inflate_for_id(state, this, id);
+      break;
+    case eAuxWordInflated:
+      // Already inflated, just set it in the inflated header
+      ObjectHeader::header_to_inflated_header(state, orig)->set_object_id(id);
+      break;
     }
   }
 
@@ -145,7 +143,6 @@ retry:
 retry:
     HeaderWord orig = header;
 
-    orig.f.inflated = 0;
     orig.f.meaning  = eAuxWordEmpty;
     orig.f.aux_word = 0;
 
@@ -159,11 +156,6 @@ retry:
     capi::Handle* handle = state->shared().global_handles()->find_index(handle_index);
 
     orig = header;
-
-    if(orig.f.inflated) {
-      ObjectHeader::header_to_inflated_header(state, orig)->set_handle(state, handle);
-      return;
-    }
 
     switch(orig.f.meaning) {
     case eAuxWordEmpty:
@@ -182,6 +174,11 @@ retry:
       // Inflate!
 
       state->memory()->inflate_for_handle(state, this, handle);
+      break;
+    case eAuxWordInflated:
+      // Already inflated, set the handle in the inflated header
+      ObjectHeader::header_to_inflated_header(state, orig)->set_handle(state, handle);
+      break;
     }
   }
 
@@ -212,7 +209,8 @@ retry:
       new_val.f.Marked   = which;
 
       if(header.atomic_set(orig, new_val)) {
-        if(new_val.f.inflated) {
+        // Mark the inflated header so the GC can see it's used
+        if(new_val.f.meaning == eAuxWordInflated) {
           header_to_inflated_header(om, new_val)->mark(om, which);
         }
         return;
@@ -347,7 +345,7 @@ retry:
   void ObjectHeader::clear_handle(STATE) {
     for(;;) {
       HeaderWord orig = header;
-      if(orig.f.inflated) {
+      if(orig.f.meaning == eAuxWordInflated) {
         header_to_inflated_header(state, orig)->clear_handle(state);
         return;
       }
@@ -362,16 +360,13 @@ retry:
   }
 
   capi::Handle* ObjectHeader::handle(STATE) {
-    HeaderWord tmp = header;
-    if(tmp.f.inflated) {
-      return header_to_inflated_header(state, tmp)->handle(state);
-    }
+    HeaderWord orig = header;
 
-    capi::Handle* h = NULL;
-    switch(tmp.f.meaning) {
+    switch(orig.f.meaning) {
     case eAuxWordHandle:
-      h = state->shared().global_handles()->find_index(tmp.f.aux_word);
-      return h;
+      return state->shared().global_handles()->find_index(orig.f.aux_word);
+    case eAuxWordInflated:
+      return header_to_inflated_header(state, orig)->handle(state);
     default:
       return NULL;
     }
@@ -389,7 +384,6 @@ step1:
     // the new one into place.
     HeaderWord orig = self->header;
 
-    orig.f.inflated = 0;
     orig.f.meaning  = eAuxWordEmpty;
     orig.f.aux_word = 0;
 
@@ -413,12 +407,6 @@ step1:
     // #2 See if we're locking the object recursively.
 step2:
     orig = self->header;
-
-    // The header is inflated, use the full lock.
-    if(orig.f.inflated) {
-      InflatedHeader* ih = ObjectHeader::header_to_inflated_header(state, orig);
-      return ih->lock_mutex(state, gct, self, us, interrupt);
-    }
 
     switch(orig.f.meaning) {
     case eAuxWordEmpty:
@@ -482,9 +470,14 @@ step2:
       // the whole locking procedure again.
       if(!state->memory()->inflate_and_lock(state, self)) goto step1;
       return eLocked;
+    case eAuxWordInflated:
+      // The header is inflated, use the full lock.
+      InflatedHeader* ih = ObjectHeader::header_to_inflated_header(state, orig);
+      return ih->lock_mutex(state, gct, self, us, interrupt);
     }
 
-    return eUnlocked;
+    rubinius::bug("Invalid header meaning");
+    return eLockError;
   }
 
   void ObjectHeader::hard_lock(STATE, GCToken gct, size_t us) {
@@ -503,7 +496,6 @@ step1:
     // the new one into place.
     HeaderWord orig = self->header;
 
-    orig.f.inflated = 0;
     orig.f.meaning  = eAuxWordEmpty;
     orig.f.aux_word = 0;
 
@@ -523,12 +515,6 @@ step1:
     // #2 See if we're locking the object recursively.
 step2:
     orig = self->header;
-
-    // The header is inflated, use the full lock.
-    if(orig.f.inflated) {
-      InflatedHeader* ih = ObjectHeader::header_to_inflated_header(state, orig);
-      return ih->try_lock_mutex(state, gct, self);
-    }
 
     switch(orig.f.meaning) {
     case eAuxWordEmpty:
@@ -569,7 +555,7 @@ step2:
 
       // Our thread id isn't in the field, then we can't lock it.
       } else {
-        return eUnlocked;
+        return eLockError;
       }
 
     // The header is being used for something other than locking, so we need to
@@ -581,9 +567,14 @@ step2:
       // the whole locking procedure again.
       if(!state->memory()->inflate_and_lock(state, self)) goto step1;
       return eLocked;
+    case eAuxWordInflated:
+      // The header is inflated, use the full lock.
+      InflatedHeader* ih = ObjectHeader::header_to_inflated_header(state, orig);
+      return ih->try_lock_mutex(state, gct, self);
     }
 
-    return eUnlocked;
+    rubinius::bug("Invalid header meaning");
+    return eLockError;
   }
 
   bool ObjectHeader::locked_p(STATE, GCToken gct) {
@@ -592,11 +583,6 @@ step2:
     // the new one into place.
     HeaderWord orig = header;
 
-    if(orig.f.inflated) {
-      InflatedHeader* ih = ObjectHeader::header_to_inflated_header(state, orig);
-      return ih->locked_mutex_p(state, gct);
-    }
-
     switch(orig.f.meaning) {
     case eAuxWordLock:
       return true;
@@ -604,7 +590,12 @@ step2:
     case eAuxWordObjID:
     case eAuxWordHandle:
       return false;
+    case eAuxWordInflated:
+      InflatedHeader* ih = ObjectHeader::header_to_inflated_header(state, orig);
+      return ih->locked_mutex_p(state, gct);
     }
+
+    rubinius::bug("Invalid header meaning");
     return false;
   }
 
@@ -613,11 +604,6 @@ step2:
 
     for(;;) {
       HeaderWord orig = header;
-
-      if(orig.f.inflated) {
-        InflatedHeader* ih = ObjectHeader::header_to_inflated_header(state, orig);
-        return ih->unlock_mutex(state, gct, this);
-      }
 
       switch(orig.f.meaning) {
       case eAuxWordEmpty:
@@ -698,13 +684,13 @@ step2:
 
         return eUnlocked;
       }
+      case eAuxWordInflated:
+        InflatedHeader* ih = ObjectHeader::header_to_inflated_header(state, orig);
+        return ih->unlock_mutex(state, gct, this);
       }
     }
 
-    // We shouldn't even get here, all cases are handled.
-    if(state->shared().config.thread_debug) {
-      std::cerr << "[THREAD] Detected unknown header lock state.\n";
-    }
+    rubinius::bug("Invalid header meaning");
     return eLockError;
   }
 
@@ -717,12 +703,6 @@ step2:
 
     for(;;) {
       HeaderWord orig = header;
-
-      if(orig.f.inflated) {
-        InflatedHeader* ih = ObjectHeader::header_to_inflated_header(state, orig);
-        ih->unlock_mutex_for_terminate(state, gct, this);
-        return;
-      }
 
       switch(orig.f.meaning) {
       case eAuxWordEmpty:
@@ -749,15 +729,17 @@ step2:
         // the iterators. Plus, we don't need to cleanup the list anyway, this
         // is only used when the Thread is exiting.
 
-
         if(new_val.f.LockContended == 1) {
           // If we couldn't inflate for contention, redo.
           if(!state->memory()->inflate_for_contention(state, this)) continue;
           state->memory()->release_contention(state, gct);
         }
-
         return;
       }
+      case eAuxWordInflated:
+        InflatedHeader* ih = ObjectHeader::header_to_inflated_header(state, orig);
+        ih->unlock_mutex_for_terminate(state, gct, this);
+        return;
       }
     }
   }

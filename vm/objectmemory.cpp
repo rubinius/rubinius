@@ -131,7 +131,7 @@ namespace rubinius {
 
     HeaderWord orig = obj->header;
 
-    if(orig.f.inflated) {
+    if(orig.f.meaning == eAuxWordInflated) {
       return false;
     }
 
@@ -143,7 +143,7 @@ namespace rubinius {
     while(!obj->set_inflated_header(state, ih_header, orig)) {
       orig = obj->header;
 
-      if(orig.f.inflated) {
+      if(orig.f.meaning == eAuxWordInflated) {
         return false;
       }
       ih->update(state, orig);
@@ -177,9 +177,7 @@ step1:
       // that the object is being contended for and then wait on the
       // contention condvar until the object is unlocked.
 
-      HeaderWord orig = obj->header;
-      orig.f.inflated = 0;
-
+      HeaderWord orig         = obj->header;
       HeaderWord new_val      = orig;
       orig.f.meaning          = eAuxWordLock;
       new_val.f.LockContended = 1;
@@ -298,11 +296,6 @@ step1:
 
     HeaderWord orig = obj->header;
 
-    if(orig.f.inflated) {
-      // Already inflated. ERROR, let the caller sort it out.
-      return false;
-    }
-
     switch(orig.f.meaning) {
     case eAuxWordEmpty:
       // ERROR, we can not be here because it's empty. This is only to
@@ -328,6 +321,12 @@ step1:
       ih = inflated_headers_->allocate(obj, &ih_index);
       ih->set_handle(state, obj->handle(state));
       break;
+    case eAuxWordInflated:
+      // Already inflated. ERROR, let the caller sort it out.
+      if(cDebugThreading) {
+        std::cerr << "[LOCK " << state->vm()->thread_id() << " asked to inflated already inflated lock]" << std::endl;
+      }
+      return false;
     }
 
     ih->initialize_mutex(state->vm()->thread_id(), initial_count);
@@ -348,7 +347,7 @@ step1:
         return false;
       }
       orig = obj->header;
-      if(orig.f.inflated) {
+      if(orig.f.meaning == eAuxWordInflated) {
         return false;
       }
     }
@@ -364,13 +363,6 @@ step1:
 
       InflatedHeader* ih = 0;
       uint32_t ih_header = 0;
-
-      if(orig.f.inflated) {
-        if(cDebugThreading) {
-          std::cerr << "[LOCK " << state->vm()->thread_id() << " asked to inflated already inflated lock]" << std::endl;
-        }
-        return false;
-      }
 
       switch(orig.f.meaning) {
       case eAuxWordEmpty:
@@ -400,6 +392,11 @@ step1:
 
         ih = inflated_headers_->allocate(obj, &ih_header);
         break;
+      case eAuxWordInflated:
+        if(cDebugThreading) {
+          std::cerr << "[LOCK " << state->vm()->thread_id() << " asked to inflated already inflated lock]" << std::endl;
+        }
+        return false;
       }
 
       // Try it all over again if it fails.
@@ -657,7 +654,7 @@ step1:
 
     HeaderWord orig = obj->header;
 
-    if(orig.f.inflated) {
+    if(orig.f.meaning == eAuxWordInflated) {
       obj->inflated_header(state)->set_object_id(id);
       return;
     }
@@ -670,8 +667,9 @@ step1:
     while(!obj->set_inflated_header(state, ih_index, orig)) {
       orig = obj->header;
 
-      if(orig.f.inflated) {
+      if(orig.f.meaning == eAuxWordInflated) {
         obj->inflated_header(state)->set_object_id(id);
+        ih->clear();
         return;
       }
       ih->update(state, orig);
@@ -685,7 +683,7 @@ step1:
 
     HeaderWord orig = obj->header;
 
-    if(orig.f.inflated) {
+    if(orig.f.meaning == eAuxWordInflated) {
       obj->inflated_header(state)->set_handle(state, handle);
       return;
     }
@@ -698,8 +696,9 @@ step1:
     while(!obj->set_inflated_header(state, ih_index, orig)) {
       orig = obj->header;
 
-      if(orig.f.inflated) {
+      if(orig.f.meaning == eAuxWordInflated) {
         obj->inflated_header(state)->set_handle(state, handle);
+        ih->clear();
         return;
       }
       ih->update(state, orig);
