@@ -22,6 +22,9 @@ namespace rubinius {
     uintptr_t Handles::allocate_index(STATE, Object* obj) {
       bool needs_gc = false;
       uintptr_t handle_index = allocator_->allocate_index(&needs_gc);
+      if(handle_index > UINT32_MAX) {
+        rubinius::bug("Rubinius can't handle more than 4G C-API handles active at the same time");
+      }
       Handle* handle = allocator_->from_index(handle_index);
       handle->set_object(obj);
       handle->validate();
