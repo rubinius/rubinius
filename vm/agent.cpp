@@ -208,7 +208,7 @@ namespace rubinius {
       if(cmd->equal_atom("password")) {
         bert::Value* pass = val->get_element(1);
 
-        if(pass->type() == bert::Binary) {
+        if(pass && pass->type() == bert::Binary) {
           if(password_ == std::string(pass->string())) return true;
         }
       }

@@ -268,6 +268,7 @@ extern "C" {
     }
     va_end(ap);
 
+    assert(closest);
     // TODO: We don't need to be doing this everytime.
     code->scope(state, closest->constant_scope());
 

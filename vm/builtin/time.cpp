@@ -299,7 +299,13 @@ namespace rubinius {
 
       while (chars == 0 && format->byte_size() > 0) {
         buf_size *= 2;
-        malloc_str = (char*)realloc(malloc_str, buf_size);
+        char* new_malloc_str = (char*)realloc(malloc_str, buf_size);
+        if(!new_malloc_str) {
+          free(malloc_str);
+          Exception::memory_error(state);
+          return NULL;
+        }
+        malloc_str = new_malloc_str;
 
         chars = ::strftime_extended(malloc_str, buf_size,
                     format->c_str(state), &tm, &ts, CBOOL(is_gmt_) ? 1 : 0,

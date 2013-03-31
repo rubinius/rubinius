@@ -103,6 +103,7 @@ namespace agent {
         return reinterpret_cast<Tree*>(i->second);
       }
 
+      rubinius::bug("failed to create or find tree");
       return 0;
     }
 
