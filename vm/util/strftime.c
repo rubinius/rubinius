@@ -211,12 +211,15 @@ strftime_extended(char *s, size_t maxsize, const char *format, const struct tm64
 		if (tz != NULL) {
 			int tzlen = strlen(tz);
 
-			savetz = (char *) malloc(tzlen + 1);
-			if (savetz != NULL) {
-				savetzlen = tzlen + 1;
-				strncpy(savetz, tz, tzlen);
-				savetz[tzlen] = 0;
+			char* newsavetz = (char *) malloc(tzlen + 1);
+			if(!newsavetz) {
+				errno = ENOMEM;
+				return 0;
 			}
+			savetz = newsavetz;
+			savetzlen = tzlen + 1;
+			strncpy(savetz, tz, tzlen);
+			savetz[tzlen] = 0;
 		}
 		tzset();
 		first = 0;
