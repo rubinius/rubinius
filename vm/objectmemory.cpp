@@ -408,7 +408,10 @@ step1:
       }
 
       // Try it all over again if it fails.
-      if(!obj->set_inflated_header(state, ih_header, orig)) continue;
+      if(!obj->set_inflated_header(state, ih_header, orig)) {
+        ih->clear();
+        continue;
+      }
 
       obj->clear_lock_contended();
 
