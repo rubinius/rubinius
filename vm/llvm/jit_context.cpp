@@ -9,7 +9,9 @@
 
 #include "machine_code.hpp"
 
-#if RBX_LLVM_API_VER >= 302
+#if RBX_LLVM_API_VER >= 303
+#include <llvm/IR/DataLayout.h>
+#elif RBX_LLVM_API_VER >= 302
 #include <llvm/DataLayout.h>
 #else
 #include <llvm/Target/TargetData.h>
