@@ -81,7 +81,9 @@ namespace rubinius {
   }
 
   void VariableScope::set_local(int pos, Object* val) {
-    assert(!isolated_);
+    if(isolated_) {
+      rubinius::bug("storing stack local while on heap");
+    }
     Object** ary = locals_;
 
     if(Fiber* fib = try_as<Fiber>(fiber_)) {
@@ -111,7 +113,9 @@ namespace rubinius {
   }
 
   Object* VariableScope::get_local(int pos) {
-    assert(!isolated_);
+    if(isolated_) {
+      rubinius::bug("retrieving stack local while on heap");
+    }
 
     Object** ary = locals_;
     if(Fiber* fib = try_as<Fiber>(fiber_)) {
