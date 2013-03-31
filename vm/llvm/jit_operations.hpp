@@ -23,15 +23,30 @@
 #include "llvm/method_info.hpp"
 #include "llvm/jit_runtime.hpp"
 
+#if RBX_LLVM_API_VER >= 303
+#include <llvm/IR/Value.h>
+#elif RBX_LLVM_API_VER >= 302
 #include <llvm/Value.h>
+#endif
+#if RBX_LLVM_API_VER >= 303
+#include <llvm/IR/BasicBlock.h>
+#include <llvm/IR/Function.h>
+#else
 #include <llvm/BasicBlock.h>
 #include <llvm/Function.h>
-#if RBX_LLVM_API_VER >= 302
+#endif
+#if RBX_LLVM_API_VER >= 303
+#include <llvm/IR/IRBuilder.h>
+#elif RBX_LLVM_API_VER >= 302
 #include <llvm/IRBuilder.h>
 #else
 #include <llvm/Support/IRBuilder.h>
 #endif
+#if RBX_LLVM_API_VER >= 303
+#include <llvm/IR/CallingConv.h>
+#else
 #include <llvm/CallingConv.h>
+#endif
 
 using namespace llvm;
 

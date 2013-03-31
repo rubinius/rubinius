@@ -1,7 +1,17 @@
 #ifdef ENABLE_LLVM
 
 #include "llvm/passes.hpp"
+#include "vm/config.h"
 
+#if RBX_LLVM_API_VER >= 303
+#include <llvm/IR/Attributes.h>
+#include <llvm/IR/BasicBlock.h>
+#include <llvm/IR/Function.h>
+#include <llvm/IR/Instructions.h>
+#include <llvm/IR/Constants.h>
+#include <llvm/IR/Module.h>
+#include <llvm/IR/Intrinsics.h>
+#else
 #include <llvm/Attributes.h>
 #include <llvm/BasicBlock.h>
 #include <llvm/Function.h>
@@ -9,6 +19,7 @@
 #include <llvm/Constants.h>
 #include <llvm/Module.h>
 #include <llvm/Intrinsics.h>
+#endif
 #include <llvm/Transforms/Utils/Cloning.h>
 #include <llvm/Support/CallSite.h>
 #include <llvm/ADT/APInt.h>

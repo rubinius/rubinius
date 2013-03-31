@@ -51,11 +51,17 @@ SOFTWARE.
 
 */
 
+#include "vm/config.h"
+
 #include <llvm/ExecutionEngine/JITMemoryManager.h>
 #include <llvm/ADT/SmallPtrSet.h>
 #include <llvm/ADT/Statistic.h>
 #include <llvm/ADT/Twine.h>
+#if RBX_LLVM_API_VER >= 303
+#include <llvm/IR/GlobalValue.h>
+#else
 #include <llvm/GlobalValue.h>
+#endif
 #include <llvm/Support/Allocator.h>
 #include <llvm/Support/Compiler.h>
 #include <llvm/Support/Debug.h>

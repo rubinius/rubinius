@@ -3,7 +3,11 @@
 #include "vm/config.h"
 #include "llvm/disassembler.hpp"
 #include <llvm/Support/Host.h>
+#if RBX_LLVM_API_VER >= 303
+#include <llvm/IR/Instructions.h>
+#else
 #include <llvm/Instructions.h>
+#endif
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/Support/TargetRegistry.h>
 #include <llvm/Target/TargetMachine.h>
