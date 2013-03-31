@@ -62,19 +62,17 @@ namespace rubinius {
       ++digits;
     } while((tmp >>= DIGIT_BIT) > MP_DIGIT_MAX);
 
-    for(; digits > 0; --digits) {
-      int digit_bits = DIGIT_BIT * digits;
-
-      a->dp[0] |= (b >> digit_bits);
+    while(b > MP_DIGIT_MAX) {
+      a->dp[0] |= (b >> DIGIT_BIT);
       a->used += 1;
       if((err = mp_mul_2d(MPST, a, DIGIT_BIT, a)) != MP_OKAY) {
         return err;
       }
 
-      b &= (1UL << digit_bits) - 1;
+      b &= MP_MASK;
     }
 
-    a->dp[0] |= (b & MP_MASK);
+    a->dp[0] |= b;
     a->used += 1;
 
     mp_clamp(a);
