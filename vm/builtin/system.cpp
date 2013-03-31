@@ -490,13 +490,13 @@ namespace rubinius {
      * fork the process so any internal locks are unlocked before we fork
      */
 
-    StopTheWorld stw(state, gct, calling_environment);
-
     {
       // TODO: Make this guard unnecessary
       GCIndependent guard(state, calling_environment);
       state->shared().auxiliary_threads()->before_fork(state);
     }
+
+    StopTheWorld stw(state, gct, calling_environment);
 
     // ok, now fork!
     result = ::fork();
