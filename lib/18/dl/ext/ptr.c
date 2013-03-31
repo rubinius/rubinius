@@ -545,7 +545,7 @@ rb_dlptr_define_data_type(int argc, VALUE argv[], VALUE self)
   t = NUM2INT(data_type);
   StringValue(type);
   Check_Type(rest, T_ARRAY);
-  num = RARRAY(rest)->len;
+  num = RARRAY_LEN(rest);
   for (i=0; i<num; i++) {
     rb_to_id(rb_ary_entry(rest,i));
   }

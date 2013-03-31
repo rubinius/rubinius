@@ -403,7 +403,7 @@ fsdbm_delete_if(obj)
   }
 
   if(status) rb_jump_tag(status);
-  if(n > 0) dbmp->di_size = n - RARRAY(ary)->len;
+  if(n > 0) dbmp->di_size = n - RARRAY_LEN(ary);
 
   return obj;
 }

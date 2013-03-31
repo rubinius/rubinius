@@ -565,7 +565,7 @@ readline_attempted_completion_function(const char *text, int start, int end)
 	return NULL;
     result = ALLOC_N(char *, matches + 2);
     for (i = 0; i < matches; i++) {
-	temp = rb_obj_as_string(RARRAY_PTR(ary)[i]);
+	temp = rb_obj_as_string(rb_ary_entry(ary, i));
 	result[i + 1] = ALLOC_N(char, RSTRING_LEN(temp) + 1);
 	strcpy(result[i + 1], RSTRING_PTR(temp));
     }

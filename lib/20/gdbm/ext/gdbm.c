@@ -589,7 +589,7 @@ fgdbm_delete_if(VALUE obj)
     }
 
     for (i = 0; i < RARRAY_LEN(ary); i++)
-        rb_gdbm_delete(obj, RARRAY_PTR(ary)[i]);
+        rb_gdbm_delete(obj, rb_ary_entry(ary, i));
     if (status) rb_jump_tag(status);
     if (n > 0) dbmp->di_size = n - (int)RARRAY_LEN(ary);
 
@@ -705,7 +705,7 @@ update_i(VALUE pair, VALUE dbm)
     if (RARRAY_LEN(pair) < 2) {
         rb_raise(rb_eArgError, "pair must be [key, value]");
     }
-    fgdbm_store(dbm, RARRAY_PTR(pair)[0], RARRAY_PTR(pair)[1]);
+    fgdbm_store(dbm, rb_ary_entry(pair, 0), rb_ary_entry(pair, 1));
     return Qnil;
 }
 

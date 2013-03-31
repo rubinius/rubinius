@@ -440,7 +440,7 @@ iconv_convert(iconv_t cd, VALUE str, long start, long length, int toidx, struct 
 	    unsigned int i;
 	    rescue = iconv_fail_retry(error, Qnil, Qnil, env, 0);
 	    if (TYPE(rescue) == T_ARRAY) {
-		str = RARRAY_LEN(rescue) > 0 ? RARRAY_PTR(rescue)[0] : Qnil;
+		str = RARRAY_LEN(rescue) > 0 ? rb_ary_entry(rescue, 0) : Qnil;
 	    }
 	    if (FIXNUM_P(str) && (i = FIX2INT(str)) <= 0xff) {
 		char c = i;
@@ -529,8 +529,8 @@ iconv_convert(iconv_t cd, VALUE str, long start, long length, int toidx, struct 
 	    rescue = iconv_fail_retry(error, ret, str, env, errmsg);
 	    if (TYPE(rescue) == T_ARRAY) {
 		if ((len = RARRAY_LEN(rescue)) > 0)
-		    rb_str_concat(ret, RARRAY_PTR(rescue)[0]);
-		if (len > 1 && !NIL_P(str = RARRAY_PTR(rescue)[1])) {
+		    rb_str_concat(ret, rb_ary_entry(rescue, 0));
+		if (len > 1 && !NIL_P(str = rb_ary_entry(rescue, 1))) {
 		    StringValue(str);
 		    inlen = length = RSTRING_LEN(str);
 		    instart = inptr = RSTRING_PTR(str);
@@ -844,7 +844,7 @@ iconv_s_list(void)
     if (!rb_block_given_p())
 	return ary;
     for (i = 0; i < RARRAY_LEN(ary); i++) {
-	rb_yield(RARRAY_PTR(ary)[i]);
+	rb_yield(rb_ary_entry(ary, i));
     }
 #endif
     return Qnil;
@@ -1188,7 +1188,7 @@ warn_deprecated(void)
     long i;
 
     for (i = 1; i < RARRAY_LEN(caller); ++i) {
-	VALUE s = RARRAY_PTR(caller)[i];
+	VALUE s = rb_ary_entry(caller, i);
 	if (strncmp(RSTRING_PTR(s), "<internal:", 10) != 0) {
 	    msg = s;
 	    break;

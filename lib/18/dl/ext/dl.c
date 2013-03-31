@@ -237,7 +237,7 @@ c_farray(VALUE v, long *size)
   float *ary;
   VALUE e;
 
-  len = RARRAY(v)->len;
+  len = RARRAY_LEN(v);
   *size = sizeof(float) * len;
   ary = dlmalloc(*size);
   for (i=0; i < len; i++) {
@@ -265,7 +265,7 @@ c_darray(VALUE v, long *size)
   double *ary;
   VALUE e;
 
-  len = RARRAY(v)->len;
+  len = RARRAY_LEN(v);
   *size = sizeof(double) * len;
   ary = dlmalloc(*size);
   for (i=0; i < len; i++) {
@@ -293,7 +293,7 @@ c_larray(VALUE v, long *size)
   long *ary;
   VALUE e;
 
-  len = RARRAY(v)->len;
+  len = RARRAY_LEN(v);
   *size = sizeof(long) * len;
   ary = dlmalloc(*size);
   for (i=0; i < len; i++) {
@@ -322,7 +322,7 @@ c_iarray(VALUE v, long *size)
   int *ary;
   VALUE e;
 
-  len = RARRAY(v)->len;
+  len = RARRAY_LEN(v);
   *size = sizeof(int) * len;
   ary = dlmalloc(*size);
   for (i=0; i < len; i++) {
@@ -351,7 +351,7 @@ c_harray(VALUE v, long *size)
   short *ary;
   VALUE e;
 
-  len = RARRAY(v)->len;
+  len = RARRAY_LEN(v);
   *size = sizeof(short) * len;
   ary = dlmalloc(*size);
   for (i=0; i < len; i++) {
@@ -380,7 +380,7 @@ c_carray(VALUE v, long *size)
   char *ary;
   VALUE e;
 
-  len = RARRAY(v)->len;
+  len = RARRAY_LEN(v);
   *size = sizeof(char) * len;
   ary = dlmalloc(*size);
   for (i=0; i < len; i++) {
@@ -409,7 +409,7 @@ c_parray(VALUE v, long *size)
   void **ary;
   VALUE e, tmp;
 
-  len = RARRAY(v)->len;
+  len = RARRAY_LEN(v);
   *size = sizeof(void*) * len;
   ary = dlmalloc(*size);
   for (i=0; i < len; i++) {
@@ -470,7 +470,7 @@ rb_ary2cary(char t, VALUE v, long *size)
   }
   v = val0;
 
-  len = RARRAY(v)->len;
+  len = RARRAY_LEN(v);
   if (len == 0) {
     return NULL;
   }
