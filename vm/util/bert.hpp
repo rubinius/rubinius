@@ -866,10 +866,12 @@ namespace bert {
       // This is always nil if it's a good list, so make sure.
       Term* tail = tzr_.next_term();
       if(tail->type() != Term::Nil) {
+        delete tail;
         delete vect;
         return new_invalid();
       }
 
+      delete tail;
       return new Value(List, vect);
     }
 

@@ -209,11 +209,15 @@ namespace rubinius {
         bert::Value* pass = val->get_element(1);
 
         if(pass && pass->type() == bert::Binary) {
-          if(password_ == std::string(pass->string())) return true;
+          if(password_ == std::string(pass->string())) {
+            delete val;
+            return true;
+          }
         }
       }
     }
 
+    delete val;
     return false;
   }
 
@@ -248,9 +252,13 @@ namespace rubinius {
     char key[PATH_MAX];
     file.getline(key, PATH_MAX);
 
-    if(strcmp(key, "agent start") != 0) goto auth_error;
+    if(strcmp(key, "agent start") != 0) {
+      delete val;
+      goto auth_error;
+    }
 
     unlink(name.str().c_str());
+    delete val;
     return true;
 
 auth_error:
