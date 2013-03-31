@@ -71,10 +71,6 @@
 #define ANYARGS
 #endif
 
-#ifndef NORETURN
-#define NORETURN(x) x
-#endif
-
 #ifdef __STDC__
 # include <limits.h>
 #else
