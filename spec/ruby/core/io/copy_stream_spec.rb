@@ -47,6 +47,7 @@ ruby_version_is "1.9" do
   describe :io_copy_stream_to_io, :shared => true do
     it "copies the entire IO contents to the IO" do
       IO.copy_stream(@object.from, @to_io)
+      @to_io.flush if @object.flush?
       @to_name.should have_data(@content)
       IO.copy_stream(@from_bigfile, @to_io)
       @to_name.should have_data(@content + @content_bigfile)
@@ -60,6 +61,7 @@ ruby_version_is "1.9" do
     it "starts writing at the destination IO's current position" do
       @to_io.write("prelude ")
       IO.copy_stream(@object.from, @to_io)
+      @to_io.flush if @object.flush?
       @to_name.should have_data("prelude " + @content)
     end
 
@@ -81,6 +83,7 @@ ruby_version_is "1.9" do
 
     it "copies only length bytes when specified" do
       IO.copy_stream(@object.from, @to_io, 8).should == 8
+      @to_io.flush if @object.flush?
       @to_name.should have_data("Line one")
     end
   end
@@ -241,10 +244,15 @@ ruby_version_is "1.9" do
       before :each do
         @from_io = StringIO.new(@content)
         IOSpecs::CopyStream.from = @from_io
+        IOSpecs::CopyStream.flush = true
       end
 
       describe "to a file name" do
         it_behaves_like :io_copy_stream_to_file, nil, IOSpecs::CopyStream
+
+        it "raises an error when an offset is specified" do
+          lambda { IO.copy_stream(@from_io, @to_name, 8, 4) }.should raise_error(ArgumentError)
+        end
       end
 
       describe "to an IO" do
@@ -257,6 +265,10 @@ ruby_version_is "1.9" do
         end
 
         it_behaves_like :io_copy_stream_to_io, nil, IOSpecs::CopyStream
+
+        it "raises an error when an offset is specified" do
+          lambda { IO.copy_stream(@from_io, @to_io, 8, 4) }.should raise_error(ArgumentError)
+        end
       end
     end
   end

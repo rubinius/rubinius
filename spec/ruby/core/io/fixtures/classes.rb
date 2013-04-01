@@ -121,7 +121,7 @@ module IOSpecs
     io.close
     io
   end
-  
+
   # Creates a pipe-based IO fixture containing the specified
   # contents
   def self.pipe_fixture(content)
@@ -145,6 +145,14 @@ module IOSpecs
 
     def self.from
       @from
+    end
+
+    def self.flush=(flush)
+      @flush = true
+    end
+
+    def self.flush?
+      @flush
     end
   end
 end
