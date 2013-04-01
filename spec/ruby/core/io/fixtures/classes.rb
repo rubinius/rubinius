@@ -148,7 +148,7 @@ module IOSpecs
     end
 
     def self.flush=(flush)
-      @flush = true
+      @flush = flush
     end
 
     def self.flush?
