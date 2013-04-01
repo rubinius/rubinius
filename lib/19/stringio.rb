@@ -69,7 +69,6 @@ class StringIO
   alias_method :ensure_open_and_readable, :check_readable
   private :check_readable
 
-
   def check_writable
     raise IOError, "not opened for writing" unless @writable
     raise IOError, "unable to modify data" if @__data__.string.frozen?
