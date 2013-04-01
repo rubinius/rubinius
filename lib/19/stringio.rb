@@ -309,10 +309,6 @@ class StringIO
     nil
   end
 
-  def pipe?
-    true
-  end
-
   def pos
     @__data__.pos
   end
