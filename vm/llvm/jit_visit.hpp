@@ -2037,17 +2037,25 @@ use_send:
 
       Object* lit = literal(cache);
 
-      ConstantCache* entry = try_as<ConstantCache>(lit);
-      if(entry) {
-        assert(entry->pin());
+      ConstantCache* constant_cache = try_as<ConstantCache>(lit);
+      if(constant_cache) {
+        assert(constant_cache->pin());
 
         Value* global_serial = b().CreateLoad(global_serial_pos, "global_serial");
 
-        Value* current_serial_pos = b().CreateIntToPtr(
-            clong((intptr_t)entry->serial_location()),
-            llvm::PointerType::getUnqual(ctx_->Int32Ty), "cast_to_intptr");
+        Value* constant_cache_ptr = b().CreateIntToPtr(
+          ConstantInt::get(context()->IntPtrTy, (reinterpret_cast<uintptr_t>(constant_cache))),
+          ptr_type("ConstantCache"), "cast_to_ptr");
 
-        Value* current_serial = b().CreateLoad(current_serial_pos, "serial");
+        Value* serial_pos_idx[] = {
+          context()->cint(0),
+          context()->cint(offset::ConstantCache::serial),
+        };
+
+        Value* serial_pos = b().CreateGEP(constant_cache_ptr,
+            serial_pos_idx, "serial_pos");
+
+        Value* current_serial = b().CreateLoad(serial_pos, "serial");
 
         Value* cmp = b().CreateICmpEQ(global_serial, current_serial, "use_cache");
 
@@ -2059,9 +2067,23 @@ use_send:
 
         set_block(use_cache);
 
-        Value* value_pos = b().CreateIntToPtr(
-            clong((intptr_t)entry->value_location()),
-            llvm::PointerType::getUnqual(ObjType), "cast_to_objptr");
+        Value* entry_pos_idx[] = {
+          context()->cint(0),
+          context()->cint(offset::ConstantCache::entry),
+        };
+
+        Value* entry_pos = b().CreateGEP(constant_cache_ptr,
+            entry_pos_idx, "entry_pos");
+
+        Value* entry = b().CreateLoad(entry_pos, "entry");
+
+        Value* value_pos_idx[] = {
+          context()->cint(0),
+          context()->cint(offset::ConstantCacheEntry::value),
+        };
+
+        Value* value_pos = b().CreateGEP(entry,
+            value_pos_idx, "value_pos");
 
         cached_value = b().CreateLoad(value_pos, "cached_value");
         cached_block = b().GetInsertBlock();
@@ -2102,7 +2124,7 @@ use_send:
 
       check_for_exception(ret);
 
-      if(entry) {
+      if(constant_cache) {
         BasicBlock* ret_block = b().GetInsertBlock();
         b().CreateBr(cont);
         set_block(cont);
@@ -2111,7 +2133,7 @@ use_send:
         phi->addIncoming(cached_value, cached_block);
         phi->addIncoming(ret, ret_block);
 
-        stack_push(phi, type::KnownType::constant_cache(entry));
+        stack_push(phi, type::KnownType::constant_cache(constant_cache));
       } else {
         stack_push(ret);
       }
@@ -3232,17 +3254,26 @@ use_send:
 
       Value* under = stack_pop();
 
-      ConstantCache* entry = try_as<ConstantCache>(lit);
-      if(entry) {
-        assert(entry->pin());
+      ConstantCache* constant_cache = try_as<ConstantCache>(lit);
+      if(constant_cache) {
+        assert(constant_cache->pin());
+
 
         Value* global_serial = b().CreateLoad(global_serial_pos, "global_serial");
 
-        Value* current_serial_pos = b().CreateIntToPtr(
-            clong((intptr_t)entry->serial_location()),
-            llvm::PointerType::getUnqual(ctx_->Int32Ty), "cast_to_intptr");
+        Value* constant_cache_ptr = b().CreateIntToPtr(
+          ConstantInt::get(context()->IntPtrTy, (reinterpret_cast<uintptr_t>(constant_cache))),
+          ptr_type("ConstantCache"), "cast_to_ptr");
 
-        Value* current_serial = b().CreateLoad(current_serial_pos, "serial");
+        Value* serial_pos_idx[] = {
+          context()->cint(0),
+          context()->cint(offset::ConstantCache::serial),
+        };
+
+        Value* serial_pos = b().CreateGEP(constant_cache_ptr,
+            serial_pos_idx, "serial_pos");
+
+        Value* current_serial = b().CreateLoad(serial_pos, "serial");
 
         Value* cache_cmp = b().CreateICmpEQ(global_serial, current_serial, "use_under");
 
@@ -3255,11 +3286,27 @@ use_send:
 
         set_block(check_under);
 
-        Value* under_pos = b().CreateIntToPtr(
-            clong((intptr_t)entry->under_location()),
-            llvm::PointerType::getUnqual(ObjType), "cast_to_objptr");
 
-        Value* cached_under = b().CreateLoad(under_pos, "cached_value");
+        Value* entry_pos_idx[] = {
+          context()->cint(0),
+          context()->cint(offset::ConstantCache::entry),
+        };
+
+        Value* entry_pos = b().CreateGEP(constant_cache_ptr,
+            entry_pos_idx, "entry_pos");
+
+        Value* entry = b().CreateLoad(entry_pos, "entry");
+
+        Value* under_pos_idx[] = {
+          context()->cint(0),
+          context()->cint(offset::ConstantCacheEntry::under),
+        };
+
+        Value* under_pos = b().CreateGEP(entry,
+            under_pos_idx, "value_pos");
+
+        Value* cached_under = b().CreateBitCast(b().CreateLoad(under_pos, "cached_under"),
+                                                ptr_type("Object"), "downcast");
 
         Value* under_cmp = b().CreateICmpEQ(cached_under, under, "use_cache");
 
@@ -3267,9 +3314,13 @@ use_send:
 
         set_block(use_cache);
 
-        Value* value_pos = b().CreateIntToPtr(
-            clong((intptr_t)entry->value_location()),
-            llvm::PointerType::getUnqual(ObjType), "cast_to_objptr");
+        Value* value_pos_idx[] = {
+          context()->cint(0),
+          context()->cint(offset::ConstantCacheEntry::value),
+        };
+
+        Value* value_pos = b().CreateGEP(entry,
+            value_pos_idx, "value_pos");
 
         cached_value = b().CreateLoad(value_pos, "cached_value");
         cached_block = b().GetInsertBlock();
@@ -3302,7 +3353,7 @@ use_send:
       ret->setDoesNotThrow();
       check_for_exception(ret);
 
-      if(entry) {
+      if(constant_cache) {
         BasicBlock* ret_block = b().GetInsertBlock();
         b().CreateBr(cont);
         set_block(cont);
@@ -3311,7 +3362,7 @@ use_send:
         phi->addIncoming(cached_value, cached_block);
         phi->addIncoming(ret, ret_block);
 
-        stack_push(phi, type::KnownType::constant_cache(entry));
+        stack_push(phi, type::KnownType::constant_cache(constant_cache));
       } else {
         stack_push(ret);
       }

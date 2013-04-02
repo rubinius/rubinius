@@ -598,9 +598,12 @@ namespace rubinius {
         if(llvm_state()->config().jit_inline_debug) {
           ctx_->inline_log("inlining") << "direct class used for kind_of ";
         }
-        ConstantCache* entry = kt.constant_cache();
-
-        klass = try_as<Class>(entry->value());
+        ConstantCache* constant_cache = kt.constant_cache();
+        if(ConstantCacheEntry* entry = constant_cache->entry()) {
+          if(!entry->nil_p()) {
+            klass = try_as<Class>(entry->value());
+          }
+        }
 
         if(klass) {
 

@@ -7,34 +7,42 @@
 namespace rubinius {
   class ConstantScope;
 
+
+  class ConstantCacheEntry: public Object {
+  public:
+    const static object_type type = ConstantCacheEntryType;
+
+  private:
+    Object* value_;  // slot
+    Module* under_; // slot
+    ConstantScope* scope_; // slot
+
+  public:
+    attr_accessor(value, Object);
+    attr_accessor(under, Module);
+    attr_accessor(scope, ConstantScope);
+
+    static ConstantCacheEntry* create(STATE, Object* value, Module* under, ConstantScope* scope);
+
+    class Info : public TypeInfo {
+    public:
+      BASIC_TYPEINFO(TypeInfo)
+    };
+  };
+
+
   class ConstantCache : public Object {
   public:
     const static object_type type = ConstantCacheType;
 
   private:
-    Object* value_;  // slot
-    ConstantScope* scope_; // slot
-    Module* under_; // slot
+    ConstantCacheEntry* entry_; // slot
     int serial_;
 
   public:
-    attr_accessor(value, Object);
-    attr_accessor(scope, ConstantScope);
-    attr_accessor(under, Module);
+    attr_accessor(entry, ConstantCacheEntry);
 
     int serial() { return serial_; }
-
-    int* serial_location() {
-      return &serial_;
-    }
-
-    Object** value_location() {
-      return &value_;
-    }
-
-    Module** under_location() {
-      return &under_;
-    }
 
     static void init(STATE);
     static ConstantCache* create(STATE, Object* value, ConstantScope* scope);
@@ -43,8 +51,9 @@ namespace rubinius {
 
     void update(STATE, Object* value, ConstantScope* scope);
     void update(STATE, Object* value, Module* under, ConstantScope* scope);
-    bool valid_p(STATE, ConstantScope* scope);
-    bool valid_p(STATE, Module* under, ConstantScope* scope);
+
+    Object* retrieve(STATE, ConstantScope* scope);
+    Object* retrieve(STATE, Module* under, ConstantScope* scope);
 
     class Info : public TypeInfo {
     public:

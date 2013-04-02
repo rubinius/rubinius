@@ -77,6 +77,17 @@ namespace CompiledCode {
   const static int jit_data = 16;
   const static int literals = 17;
 }
+namespace ConstantCache {
+  const static int header = 0;
+  const static int entry = 1;
+  const static int serial = 2;
+}
+namespace ConstantCacheEntry {
+  const static int header = 0;
+  const static int value = 1;
+  const static int under = 2;
+  const static int scope = 3;
+}
 namespace Dispatch {
   const static int name = 0;
   const static int module = 1;

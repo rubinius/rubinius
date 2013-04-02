@@ -592,9 +592,7 @@ extern "C" {
     // See if the cache is present, if so, validate it and use the value
     ConstantCache* cache;
     if((cache = try_as<ConstantCache>(val)) != NULL) {
-      if(cache->valid_p(state, under, call_frame->constant_scope())) {
-        res = cache->value();
-      }
+      res = cache->retrieve(state, under, call_frame->constant_scope());
     } else {
       cache = ConstantCache::empty(state);
       call_frame->compiled_code->literals()->put(state, association_index, cache);
@@ -751,9 +749,7 @@ extern "C" {
     // See if the cache is present, if so, validate it and use the value
     ConstantCache* cache;
     if((cache = try_as<ConstantCache>(val)) != NULL) {
-      if(cache->valid_p(state, call_frame->constant_scope())) {
-        res = cache->value();
-      }
+      res = cache->retrieve(state, call_frame->constant_scope());
     } else {
       cache = ConstantCache::empty(state);
       call_frame->compiled_code->literals()->put(state, association_index, cache);
