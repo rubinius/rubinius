@@ -830,14 +830,14 @@ instruction push_const_fast(literal association) [ -- constant ]
   Object* val = call_frame->compiled_code->literals()->at(state, association);
 
   // See if the cache is present, if so, validate it and use the value
-  GlobalCacheEntry* cache;
+  ConstantCache* cache;
 
-  if((cache = try_as<GlobalCacheEntry>(val)) != NULL) {
+  if((cache = try_as<ConstantCache>(val)) != NULL) {
     if(cache->valid_p(state, call_frame->constant_scope())) {
       res = cache->value();
     }
   } else {
-    cache = GlobalCacheEntry::empty(state);
+    cache = ConstantCache::empty(state);
     call_frame->compiled_code->literals()->put(state, association, cache);
   }
 
@@ -884,14 +884,14 @@ instruction find_const_fast(literal association) [ module -- constant ]
   Object* val = call_frame->compiled_code->literals()->at(state, association);
 
   // See if the cache is present, if so, validate it and use the value
-  GlobalCacheEntry* cache;
+  ConstantCache* cache;
 
-  if((cache = try_as<GlobalCacheEntry>(val)) != NULL) {
+  if((cache = try_as<ConstantCache>(val)) != NULL) {
     if(cache->valid_p(state, under, call_frame->constant_scope())) {
       res = cache->value();
     }
   } else {
-    cache = GlobalCacheEntry::empty(state);
+    cache = ConstantCache::empty(state);
     call_frame->compiled_code->literals()->put(state, association, cache);
   }
 

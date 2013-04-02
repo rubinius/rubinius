@@ -14,7 +14,6 @@
 #include "builtin/system.hpp"
 #include "builtin/thread.hpp"
 #include "builtin/channel.hpp"
-#include "builtin/global_cache_entry.hpp"
 #include "builtin/methodtable.hpp"
 #include "builtin/location.hpp"
 

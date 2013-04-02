@@ -102,7 +102,7 @@ field_extract_headers = %w[
   vm/builtin/proc.hpp
   vm/builtin/variable_scope.hpp
   vm/builtin/location.hpp
-  vm/builtin/global_cache_entry.hpp
+  vm/builtin/constant_cache.hpp
   vm/builtin/weakref.hpp
   vm/builtin/fiber.hpp
   vm/builtin/thunk.hpp

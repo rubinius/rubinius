@@ -17,7 +17,7 @@
 #include "builtin/constantscope.hpp"
 #include "builtin/proc.hpp"
 #include "builtin/autoload.hpp"
-#include "builtin/global_cache_entry.hpp"
+#include "builtin/constant_cache.hpp"
 #include "builtin/iseq.hpp"
 #include "builtin/ffi_pointer.hpp"
 #include "builtin/integer.hpp"
@@ -590,13 +590,13 @@ extern "C" {
     Object* val = call_frame->compiled_code->literals()->at(state, association_index);
 
     // See if the cache is present, if so, validate it and use the value
-    GlobalCacheEntry* cache;
-    if((cache = try_as<GlobalCacheEntry>(val)) != NULL) {
+    ConstantCache* cache;
+    if((cache = try_as<ConstantCache>(val)) != NULL) {
       if(cache->valid_p(state, under, call_frame->constant_scope())) {
         res = cache->value();
       }
     } else {
-      cache = GlobalCacheEntry::empty(state);
+      cache = ConstantCache::empty(state);
       call_frame->compiled_code->literals()->put(state, association_index, cache);
     }
 
@@ -749,13 +749,13 @@ extern "C" {
     Object* val = call_frame->compiled_code->literals()->at(state, association_index);
 
     // See if the cache is present, if so, validate it and use the value
-    GlobalCacheEntry* cache;
-    if((cache = try_as<GlobalCacheEntry>(val)) != NULL) {
+    ConstantCache* cache;
+    if((cache = try_as<ConstantCache>(val)) != NULL) {
       if(cache->valid_p(state, call_frame->constant_scope())) {
         res = cache->value();
       }
     } else {
-      cache = GlobalCacheEntry::empty(state);
+      cache = ConstantCache::empty(state);
       call_frame->compiled_code->literals()->put(state, association_index, cache);
     }
 

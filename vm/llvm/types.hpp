@@ -8,7 +8,7 @@ namespace llvm {
 
 namespace rubinius {
   class Context;
-  class GlobalCacheEntry;
+  class ConstantCache;
 
   namespace type {
     enum Kind {
@@ -23,7 +23,7 @@ namespace rubinius {
       eSymbol,
       eType,
       eClassObject,
-      eGlobalCacheEntry
+      eConstantCache
     };
 
     enum Source {
@@ -97,8 +97,8 @@ namespace rubinius {
         return KnownType(eClassObject, class_id);
       }
 
-      static KnownType global_cache_entry(GlobalCacheEntry* entry) {
-        return KnownType(eGlobalCacheEntry, reinterpret_cast<uintptr_t>(entry));
+      static KnownType constant_cache(ConstantCache* entry) {
+        return KnownType(eConstantCache, reinterpret_cast<uintptr_t>(entry));
       }
 
       bool known_p() {
@@ -129,8 +129,8 @@ namespace rubinius {
         return kind_ == eClassObject;
       }
 
-      bool global_cache_entry_p() {
-        return kind_ == eGlobalCacheEntry;
+      bool constant_cache_p() {
+        return kind_ == eConstantCache;
       }
 
       int class_id() {
@@ -144,9 +144,9 @@ namespace rubinius {
         }
       }
 
-      GlobalCacheEntry* global_cache_entry() {
-        if(global_cache_entry_p()) {
-          return reinterpret_cast<GlobalCacheEntry*>(value_);
+      ConstantCache* constant_cache() {
+        if(constant_cache_p()) {
+          return reinterpret_cast<ConstantCache*>(value_);
         }
         return NULL;
       }

@@ -1,5 +1,5 @@
-#ifndef RBX_BULITIN_GLOBAL_CACHE_ENTRY_HPP
-#define RBX_BULITIN_GLOBAL_CACHE_ENTRY_HPP
+#ifndef RBX_BUILTIN_CONSTANT_CACHE_HPP
+#define RBX_BUILTIN_CONSTANT_CACHE_HPP
 
 #include "builtin/object.hpp"
 #include "builtin/fixnum.hpp"
@@ -7,9 +7,9 @@
 namespace rubinius {
   class ConstantScope;
 
-  class GlobalCacheEntry : public Object {
+  class ConstantCache : public Object {
   public:
-    const static object_type type = GlobalCacheEntryType;
+    const static object_type type = ConstantCacheType;
 
   private:
     Object* value_;  // slot
@@ -37,9 +37,9 @@ namespace rubinius {
     }
 
     static void init(STATE);
-    static GlobalCacheEntry* create(STATE, Object* value, ConstantScope* scope);
-    static GlobalCacheEntry* create(STATE, Object* value, Module* under, ConstantScope* scope);
-    static GlobalCacheEntry* empty(STATE);
+    static ConstantCache* create(STATE, Object* value, ConstantScope* scope);
+    static ConstantCache* create(STATE, Object* value, Module* under, ConstantScope* scope);
+    static ConstantCache* empty(STATE);
 
     void update(STATE, Object* value, ConstantScope* scope);
     void update(STATE, Object* value, Module* under, ConstantScope* scope);

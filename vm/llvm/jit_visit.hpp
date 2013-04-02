@@ -2,7 +2,7 @@
 
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
-#include "builtin/global_cache_entry.hpp"
+#include "builtin/constant_cache.hpp"
 #include "inline_cache.hpp"
 #include "builtin/cache.hpp"
 #include "builtin/lookuptable.hpp"
@@ -2037,7 +2037,7 @@ use_send:
 
       Object* lit = literal(cache);
 
-      GlobalCacheEntry* entry = try_as<GlobalCacheEntry>(lit);
+      ConstantCache* entry = try_as<ConstantCache>(lit);
       if(entry) {
         assert(entry->pin());
 
@@ -2111,7 +2111,7 @@ use_send:
         phi->addIncoming(cached_value, cached_block);
         phi->addIncoming(ret, ret_block);
 
-        stack_push(phi, type::KnownType::global_cache_entry(entry));
+        stack_push(phi, type::KnownType::constant_cache(entry));
       } else {
         stack_push(ret);
       }
@@ -3232,7 +3232,7 @@ use_send:
 
       Value* under = stack_pop();
 
-      GlobalCacheEntry* entry = try_as<GlobalCacheEntry>(lit);
+      ConstantCache* entry = try_as<ConstantCache>(lit);
       if(entry) {
         assert(entry->pin());
 
@@ -3311,7 +3311,7 @@ use_send:
         phi->addIncoming(cached_value, cached_block);
         phi->addIncoming(ret, ret_block);
 
-        stack_push(phi, type::KnownType::global_cache_entry(entry));
+        stack_push(phi, type::KnownType::constant_cache(entry));
       } else {
         stack_push(ret);
       }
