@@ -1,0 +1,90 @@
+#include "builtin/constant_cache.hpp"
+#include "builtin/class.hpp"
+#include "builtin/constantscope.hpp"
+#include "builtin/module.hpp"
+
+#include "object_utils.hpp"
+#include "ontology.hpp"
+
+namespace rubinius {
+  void ConstantCache::init(STATE) {
+    GO(constant_cache_entry).set(
+        ontology::new_class(state, "ConstantCacheEntry",
+          G(object), G(rubinius)));
+    GO(constant_cache).set(
+        ontology::new_class(state, "ConstantCache",
+          G(object), G(rubinius)));
+
+  }
+
+  ConstantCacheEntry* ConstantCacheEntry::create(STATE, Object* value,
+                                                 Module* under,
+                                                 ConstantScope* scope) {
+    ConstantCacheEntry* cache_entry = state->new_object_dirty<ConstantCacheEntry>(G(constant_cache_entry));
+
+    cache_entry->value(state, value);
+    cache_entry->under(state, under);
+    cache_entry->scope(state, scope);
+
+    return cache_entry;
+  }
+
+  ConstantCache* ConstantCache::create(STATE, Object* value,
+                                             ConstantScope* scope)
+  {
+    ConstantCache* cache =
+      state->vm()->new_object_mature<ConstantCache>(G(constant_cache));
+
+    cache->update(state, value, scope);
+    return cache;
+  }
+
+  ConstantCache* ConstantCache::create(STATE, Object* value, Module* under,
+                                             ConstantScope* scope)
+  {
+    ConstantCache* cache =
+      state->vm()->new_object_mature<ConstantCache>(G(constant_cache));
+
+    cache->update(state, value, under, scope);
+    return cache;
+  }
+
+  ConstantCache* ConstantCache::empty(STATE) {
+    ConstantCache* cache =
+      state->vm()->new_object_mature<ConstantCache>(G(constant_cache));
+
+    cache->serial_ = -1;
+    return cache;
+  }
+
+  Object* ConstantCache::retrieve(STATE, ConstantScope* scope) {
+    ConstantCacheEntry* cache_entry = entry_;
+    if(serial_ == state->shared().global_serial() &&
+       cache_entry->scope() == scope) {
+      return cache_entry->value();
+    }
+    return NULL;
+  }
+
+  Object* ConstantCache::retrieve(STATE, Module* under, ConstantScope* scope) {
+    ConstantCacheEntry* cache_entry = entry_;
+    if(serial_ == state->shared().global_serial() &&
+       cache_entry->scope() == scope &&
+       cache_entry->under() == under) {
+      return cache_entry->value();
+    }
+    return NULL;
+  }
+
+  void ConstantCache::update(STATE, Object* val, ConstantScope* sc) {
+    update(state, val, nil<Module>(), sc);
+  }
+
+  void ConstantCache::update(STATE, Object* val, Module* mc, ConstantScope* sc) {
+    ConstantCacheEntry* cache_entry = ConstantCacheEntry::create(state, val, mc, sc);
+    atomic::memory_barrier();
+    entry(state, cache_entry);
+    serial_ = state->shared().global_serial();
+  }
+}
+

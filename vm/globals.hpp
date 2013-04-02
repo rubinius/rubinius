@@ -106,7 +106,8 @@ namespace rubinius {
     TypedRoot<Class*> jump_error;
     TypedRoot<Class*> exc_vm_internal;
     TypedRoot<Class*> exc_vm_bad_bytecode;
-    TypedRoot<Class*> global_cache_entry;
+    TypedRoot<Class*> constant_cache;
+    TypedRoot<Class*> constant_cache_entry;
     TypedRoot<Class*> cls_weakref;
     TypedRoot<Class*> fiber;
     TypedRoot<Class*> alias;
@@ -223,7 +224,8 @@ namespace rubinius {
       jump_error(&roots),
       exc_vm_internal(&roots),
       exc_vm_bad_bytecode(&roots),
-      global_cache_entry(&roots),
+      constant_cache(&roots),
+      constant_cache_entry(&roots),
       cls_weakref(&roots),
       fiber(&roots),
       alias(&roots),

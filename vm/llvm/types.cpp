@@ -3,7 +3,7 @@
 #include "llvm/jit_operations.hpp"
 #include "llvm/types.hpp"
 
-#include "builtin/global_cache_entry.hpp"
+#include "builtin/constant_cache.hpp"
 
 namespace rubinius {
 namespace type {
@@ -119,7 +119,7 @@ namespace type {
       return "<obj: Rubinius::Type>";
     case eClassObject:
       return "<obj: class>";
-    case eGlobalCacheEntry:
+    case eConstantCache:
       return "<obj: global cache entry>";
     }
 

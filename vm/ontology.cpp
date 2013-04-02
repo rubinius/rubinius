@@ -43,7 +43,7 @@
 #include "builtin/proc.hpp"
 #include "builtin/variable_scope.hpp"
 #include "builtin/location.hpp"
-#include "builtin/global_cache_entry.hpp"
+#include "builtin/constant_cache.hpp"
 #include "builtin/weakref.hpp"
 #include "builtin/fiber.hpp"
 #include "builtin/alias.hpp"
@@ -330,7 +330,7 @@ namespace rubinius {
 
     NativeMethod::init(state);
 
-    GlobalCacheEntry::init(state);
+    ConstantCache::init(state);
     WeakRef::init(state);
     Fiber::init(state);
     Alias::init(state);

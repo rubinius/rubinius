@@ -8,7 +8,7 @@
 #include "builtin/tuple.hpp"
 #include "builtin/bytearray.hpp"
 #include "builtin/regexp.hpp"
-#include "builtin/global_cache_entry.hpp"
+#include "builtin/constant_cache.hpp"
 #include "inline_cache.hpp"
 
 #include "llvm/offset.hpp"
@@ -594,13 +594,16 @@ namespace rubinius {
       BasicBlock* positive  = new_block("positive");
       BasicBlock* negative  = new_block("negative");
 
-      if(kt.global_cache_entry_p()) {
+      if(kt.constant_cache_p()) {
         if(llvm_state()->config().jit_inline_debug) {
           ctx_->inline_log("inlining") << "direct class used for kind_of ";
         }
-        GlobalCacheEntry* entry = kt.global_cache_entry();
-
-        klass = try_as<Class>(entry->value());
+        ConstantCache* constant_cache = kt.constant_cache();
+        if(ConstantCacheEntry* entry = constant_cache->entry()) {
+          if(!entry->nil_p()) {
+            klass = try_as<Class>(entry->value());
+          }
+        }
 
         if(klass) {
 

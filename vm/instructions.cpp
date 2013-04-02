@@ -17,7 +17,7 @@
 #include "builtin/proc.hpp"
 #include "builtin/thread.hpp"
 #include "builtin/system.hpp"
-#include "builtin/global_cache_entry.hpp"
+#include "builtin/constant_cache.hpp"
 #include "builtin/location.hpp"
 #include "builtin/cache.hpp"
 #include "builtin/thread_state.hpp"

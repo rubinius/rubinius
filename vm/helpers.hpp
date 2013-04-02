@@ -9,7 +9,6 @@ namespace rubinius {
   class CompiledCode;
   class State;
   class Object;
-  class GlobalCacheEntry;
   class Tuple;
 
   namespace Helpers {

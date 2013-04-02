@@ -89,6 +89,23 @@ declare void @outputMethodCacheEntry(%"struct.rubinius::MethodCacheEntry"*)
 
 declare void @output5(%"struct.rubinius::InlineCacheHit"*)
 
+%"struct.rubinius::ConstantCache" = type {
+               %"struct.rubinius::Object", ; header
+  %"struct.rubinius::ConstantCacheEntry"*, ; entry
+                                      i32  ; serial
+}
+
+declare void @outputConstantCache(%"struct.rubinius::ConstantCache"*)
+
+%"struct.rubinius::ConstantCacheEntry" = type {
+          %"struct.rubinius::Object", ; header
+         %"struct.rubinius::Object"*, ; value
+         %"struct.rubinius::Module"*, ; under
+  %"struct.rubinius::ConstantScope"*  ; scope
+}
+
+declare void @outputConstantCacheEntry(%"struct.rubinius::ConstantCacheEntry"*)
+
 %"struct.rubinius::StackVariables" = type {
   %"struct.rubinius::VariableScope"*, ; on_heap
   %"struct.rubinius::VariableScope"*, ; parent

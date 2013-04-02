@@ -16,7 +16,7 @@
 #include "builtin/tuple.hpp"
 #include "builtin/class.hpp"
 #include "builtin/location.hpp"
-#include "builtin/global_cache_entry.hpp"
+#include "builtin/constant_cache.hpp"
 
 #include "instructions.hpp"
 
@@ -217,7 +217,7 @@ namespace rubinius {
         break;
       case InstructionSequence::insn_push_const_fast:
       case InstructionSequence::insn_find_const_fast:
-        original->literals()->put(state, opcodes[ip + 2], GlobalCacheEntry::empty(state));
+        original->literals()->put(state, opcodes[ip + 2], ConstantCache::empty(state));
         break;
       case InstructionSequence::insn_send_super_stack_with_block:
       case InstructionSequence::insn_send_super_stack_with_splat:
