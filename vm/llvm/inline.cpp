@@ -55,9 +55,12 @@ namespace rubinius {
 
       if(!inline_for_class(klass, hits)) {
         // If we fail to inline this, emit a send to the method
-        Value* cache_const = ops_.b().CreateIntToPtr(
-          ConstantInt::get(ops_.context()->IntPtrTy, (reinterpret_cast<uintptr_t>(cache_))),
-          ops_.ptr_type("InlineCache"), "cast_to_ptr");
+
+        Value* cache_ptr_const = ops_.b().CreateIntToPtr(
+          ConstantInt::get(ops_.context()->IntPtrTy, (reinterpret_cast<uintptr_t>(cache_ptr_))),
+          ops_.ptr_type(ops_.ptr_type("InlineCache")), "cast_to_cache_ptr");
+
+        Value* cache_const = ops_.b().CreateLoad(cache_ptr_const, "cache_const");
 
         Value* execute_pos_idx[] = {
           ops_.context()->cint(0),

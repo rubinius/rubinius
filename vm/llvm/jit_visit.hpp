@@ -653,10 +653,14 @@ namespace rubinius {
       }
     }
 
-    Value* invoke_inline_cache(InlineCache* cache) {
-      Value* cache_const = b().CreateIntToPtr(
-          clong(reinterpret_cast<uintptr_t>(cache)),
-          ptr_type("InlineCache"), "cast_to_ptr");
+    Value* invoke_inline_cache(opcode& which) {
+      InlineCache** cache_ptr = reinterpret_cast<InlineCache**>(&which);
+
+      Value* cache_ptr_const = b().CreateIntToPtr(
+          clong(reinterpret_cast<uintptr_t>(cache_ptr)),
+          ptr_type(ptr_type("InlineCache")), "cast_to_ptr");
+
+      Value* cache_const = b().CreateLoad(cache_ptr_const, "cache_const");
 
       Value* execute_pos_idx[] = {
         cint(0),
@@ -679,18 +683,24 @@ namespace rubinius {
       return b().CreateCall(execute, call_args, "ic_send");
     }
 
-    Value* inline_cache_send(int args, InlineCache* cache) {
+    Value* inline_cache_send(int args, opcode& cache) {
       sends_done_++;
 
       setup_out_args(args);
       return invoke_inline_cache(cache);
     }
 
-    Value* block_send(InlineCache* cache, int args, bool priv=false) {
+    Value* block_send(opcode& which, int args, bool priv=false) {
+
       sends_done_++;
-      Value* cache_const = b().CreateIntToPtr(
-          clong(reinterpret_cast<uintptr_t>(cache)),
-          ptr_type("InlineCache"), "cast_to_ptr");
+
+      InlineCache** cache_ptr = reinterpret_cast<InlineCache**>(&which);
+
+      Value* cache_ptr_const = b().CreateIntToPtr(
+          clong(reinterpret_cast<uintptr_t>(cache_ptr)),
+          ptr_type(ptr_type("InlineCache")), "cast_to_cache_ptr");
+
+      Value* cache_const = b().CreateLoad(cache_ptr_const, "cache_const");
 
       Value* execute_pos_idx[] = {
         cint(0),
@@ -715,7 +725,8 @@ namespace rubinius {
       return b().CreateCall(execute, call_args, "ic_send");
     }
 
-    Value* splat_send(InlineCache* cache, int args, bool priv=false) {
+    Value* splat_send(opcode& which, int args, bool priv=false) {
+
       sends_done_++;
       Signature sig(ctx_, ObjType);
 
@@ -732,9 +743,13 @@ namespace rubinius {
         func_name = "rbx_splat_send";
       }
 
-      Value* cache_const = b().CreateIntToPtr(
-          clong(reinterpret_cast<uintptr_t>(cache)),
-          ptr_type("InlineCache"), "cast_to_ptr");
+      InlineCache** cache_ptr = reinterpret_cast<InlineCache**>(&which);
+
+      Value* cache_ptr_const = b().CreateIntToPtr(
+          clong(reinterpret_cast<uintptr_t>(cache_ptr)),
+          ptr_type(ptr_type("InlineCache")), "cast_to_ptr");
+
+      Value* cache_const = b().CreateLoad(cache_ptr_const, "cache_const");
 
       Value* call_args[] = {
         state_,
@@ -748,7 +763,8 @@ namespace rubinius {
       return sig.call(func_name, call_args, 5, "splat_send", b());
     }
 
-    Value* super_send(InlineCache* cache, int args, bool splat=false) {
+    Value* super_send(opcode& which, int args, bool splat=false) {
+
       Signature sig(ctx_, ObjType);
       sig << StateTy;
       sig << CallFrameTy;
@@ -765,9 +781,13 @@ namespace rubinius {
         func_name = "rbx_super_send";
       }
 
-      Value* cache_const = b().CreateIntToPtr(
-          clong(reinterpret_cast<uintptr_t>(cache)),
-          ptr_type("InlineCache"), "cast_to_ptr");
+      InlineCache** cache_ptr = reinterpret_cast<InlineCache**>(&which);
+
+      Value* cache_ptr_const = b().CreateIntToPtr(
+          clong(reinterpret_cast<uintptr_t>(cache_ptr)),
+          ptr_type(ptr_type("InlineCache")), "cast_to_ptr");
+
+      Value* cache_const = b().CreateLoad(cache_ptr_const, "cache_const");
 
       Value* call_args[] = {
         state_,
@@ -781,8 +801,7 @@ namespace rubinius {
       return sig.call(func_name, call_args, 5, "super_send", b());
     }
 
-    void visit_meta_to_s(opcode name) {
-      InlineCache* cache = reinterpret_cast<InlineCache*>(name);
+    void visit_meta_to_s(opcode& name) {
       set_has_side_effects();
 
       Value* recv = stack_top();
@@ -793,9 +812,13 @@ namespace rubinius {
       sig << "InlineCache";
       sig << "Object";
 
-      Value* cache_const = b().CreateIntToPtr(
-          clong(reinterpret_cast<uintptr_t>(cache)),
-          ptr_type("InlineCache"), "cast_to_ptr");
+      InlineCache** cache_ptr = reinterpret_cast<InlineCache**>(&name);
+
+      Value* cache_ptr_const = b().CreateIntToPtr(
+          clong(reinterpret_cast<uintptr_t>(cache_ptr)),
+          ptr_type(ptr_type("InlineCache")), "cast_to_ptr");
+
+      Value* cache_const = b().CreateLoad(cache_ptr_const, "cache_const");
 
       Value* args[] = {
         state_,
@@ -810,8 +833,7 @@ namespace rubinius {
       stack_push(ret);
     }
 
-    void visit_meta_send_op_equal(opcode name) {
-      InlineCache* cache = reinterpret_cast<InlineCache*>(name);
+    void visit_meta_send_op_equal(opcode& name) {
       set_has_side_effects();
 
       Value* recv = stack_back(1);
@@ -825,7 +847,7 @@ namespace rubinius {
 
       set_block(dispatch);
 
-      Value* called_value = inline_cache_send(1, cache);
+      Value* called_value = inline_cache_send(1, name);
       BasicBlock* send_block =
         check_for_exception_then(called_value, cont);
 
@@ -847,8 +869,7 @@ namespace rubinius {
       stack_push(phi);
     }
 
-    void visit_meta_send_op_tequal(opcode name) {
-      InlineCache* cache = reinterpret_cast<InlineCache*>(name);
+    void visit_meta_send_op_tequal(opcode& name) {
       set_has_side_effects();
 
       Value* recv = stack_back(1);
@@ -862,7 +883,7 @@ namespace rubinius {
 
       set_block(dispatch);
 
-      Value* called_value = inline_cache_send(1, cache);
+      Value* called_value = inline_cache_send(1, name);
       BasicBlock* send_block =
         check_for_exception_then(called_value, cont);
 
@@ -884,8 +905,7 @@ namespace rubinius {
       stack_push(phi);
     }
 
-    void visit_meta_send_op_lt(opcode name) {
-      InlineCache* cache = reinterpret_cast<InlineCache*>(name);
+    void visit_meta_send_op_lt(opcode& name) {
       set_has_side_effects();
 
       Value* recv = stack_back(1);
@@ -899,7 +919,7 @@ namespace rubinius {
 
       set_block(dispatch);
 
-      Value* called_value = inline_cache_send(1, cache);
+      Value* called_value = inline_cache_send(1, name);
       BasicBlock* send_bb = check_for_exception_then(called_value, cont);
 
       set_block(fast);
@@ -920,8 +940,7 @@ namespace rubinius {
       stack_push(phi);
     }
 
-    void visit_meta_send_op_gt(opcode name) {
-      InlineCache* cache = reinterpret_cast<InlineCache*>(name);
+    void visit_meta_send_op_gt(opcode& name) {
       set_has_side_effects();
 
       Value* recv = stack_back(1);
@@ -935,7 +954,7 @@ namespace rubinius {
 
       set_block(dispatch);
 
-      Value* called_value = inline_cache_send(1, cache);
+      Value* called_value = inline_cache_send(1, name);
       BasicBlock* send_bb = check_for_exception_then(called_value, cont);
 
       set_block(fast);
@@ -956,8 +975,7 @@ namespace rubinius {
       stack_push(phi);
     }
 
-    void visit_meta_send_op_plus(opcode name) {
-      InlineCache* cache = reinterpret_cast<InlineCache*>(name);
+    void visit_meta_send_op_plus(opcode& name) {
       set_has_side_effects();
       Value* recv = stack_back(1);
       Value* arg =  stack_top();
@@ -972,7 +990,7 @@ namespace rubinius {
 
       set_block(dispatch);
 
-      Value* called_value = inline_cache_send(1, cache);
+      Value* called_value = inline_cache_send(1, name);
       BasicBlock* send_bb = check_for_exception_then(called_value, cont);
 
       set_block(fast);
@@ -1005,8 +1023,7 @@ namespace rubinius {
       stack_push(phi);
     }
 
-    void visit_meta_send_op_minus(opcode name) {
-      InlineCache* cache = reinterpret_cast<InlineCache*>(name);
+    void visit_meta_send_op_minus(opcode& name) {
       set_has_side_effects();
 
       Value* recv = stack_back(1);
@@ -1022,7 +1039,7 @@ namespace rubinius {
 
       set_block(dispatch);
 
-      Value* called_value = inline_cache_send(1, cache);
+      Value* called_value = inline_cache_send(1, name);
       BasicBlock* send_bb = check_for_exception_then(called_value, cont);
 
       set_block(fast);
@@ -1457,7 +1474,7 @@ namespace rubinius {
       }
     }
 
-    void invoke_inline_cache(InlineCache* cache, opcode args) {
+    void invoke_inline_cache(opcode& cache, opcode args) {
       set_has_side_effects();
 
       Value* ret = inline_cache_send(args, cache);
@@ -1468,20 +1485,21 @@ namespace rubinius {
       allow_private_ = false;
     }
 
-    void visit_send_stack(opcode which, opcode args) {
-      InlineCache* cache = reinterpret_cast<InlineCache*>(which);
+    void visit_send_stack(opcode& which, opcode args) {
+      InlineCache** cache_ptr = reinterpret_cast<InlineCache**>(&which);
+      InlineCache*  cache = *cache_ptr;
 
       int classes_seen = cache->classes_seen();
 
       if(!classes_seen) {
-        invoke_inline_cache(cache, args);
+        invoke_inline_cache(which, args);
         return;
       }
 
       BasicBlock* failure = new_block("fallback");
       BasicBlock* cont = new_block("continue");
 
-      Inliner inl(ctx_, *this, cache, args, failure);
+      Inliner inl(ctx_, *this, cache_ptr, args, failure);
       bool res = classes_seen > 1 ? inl.consider_poly() : inl.consider_mono();
 
       // If we have tried to reoptimize here a few times and failed, we use
@@ -1492,7 +1510,7 @@ namespace rubinius {
       }
 
       if(!res) {
-        invoke_inline_cache(cache, args);
+        invoke_inline_cache(which, args);
         return;
       }
 
@@ -1530,7 +1548,7 @@ namespace rubinius {
         b().CreateBr(cont);
 
         set_block(failure);
-        Value* send_res = inline_cache_send(args, cache);
+        Value* send_res = inline_cache_send(args, which);
 
         BasicBlock* send_block =
           check_for_exception_then(send_res, cont);
@@ -1548,16 +1566,14 @@ namespace rubinius {
       allow_private_ = false;
     }
 
-    void visit_call_custom(opcode which, opcode args) {
+    void visit_call_custom(opcode& which, opcode args) {
       if(llvm_state()->config().jit_inline_debug) {
         ctx_->log() << "generate: call_custom\n";
       }
 
-      InlineCache* cache = reinterpret_cast<InlineCache*>(which);
-
       set_has_side_effects();
 
-      Value* ret = inline_cache_send(args, cache);
+      Value* ret = inline_cache_send(args, which);
       stack_remove(args + 1);
       check_for_exception(ret);
       stack_push(ret);
@@ -1565,7 +1581,7 @@ namespace rubinius {
       allow_private_ = false;
     }
 
-    void visit_send_method(opcode which) {
+    void visit_send_method(opcode& which) {
       visit_send_stack(which, 0);
     }
 
@@ -1702,10 +1718,11 @@ namespace rubinius {
       current_block_->set_block_emit_loc(block_emit);
     }
 
-    void visit_send_stack_with_block(opcode which, opcode args) {
+    void visit_send_stack_with_block(opcode& which, opcode args) {
       set_has_side_effects();
 
-      InlineCache* cache = reinterpret_cast<InlineCache*>(which);
+      InlineCache** cache_ptr = reinterpret_cast<InlineCache**>(&which);
+      InlineCache*  cache = *cache_ptr;
       CompiledCode* block_code = 0;
 
       if(cache->classes_seen() &&
@@ -1747,7 +1764,7 @@ namespace rubinius {
         BasicBlock* cleanup = new_block("send_done");
         PHINode* send_result = b().CreatePHI(ObjType, 1, "send_result");
 
-        Inliner inl(ctx_, *this, cache, args, failure);
+        Inliner inl(ctx_, *this, cache_ptr, args, failure);
 
         current_block_->set_block_break_result(send_result);
         current_block_->set_block_break_loc(cleanup);
@@ -1798,7 +1815,7 @@ namespace rubinius {
 
             set_block(failure);
 
-            Value* send_res = block_send(cache, args, allow_private_);
+            Value* send_res = block_send(which, args, allow_private_);
 
             BasicBlock* send_block =
               check_for_exception_then(send_res, cleanup);
@@ -1828,7 +1845,7 @@ namespace rubinius {
 
 use_send:
 
-      Value* ret = block_send(cache, args, allow_private_);
+      Value* ret = block_send(which, args, allow_private_);
       stack_remove(args + 2);
       check_for_return(ret);
       allow_private_ = false;
@@ -1836,11 +1853,10 @@ use_send:
       clear_current_block();
     }
 
-    void visit_send_stack_with_splat(opcode which, opcode args) {
+    void visit_send_stack_with_splat(opcode& which, opcode args) {
       set_has_side_effects();
 
-      InlineCache* cache = reinterpret_cast<InlineCache*>(which);
-      Value* ret = splat_send(cache, args, allow_private_);
+      Value* ret = splat_send(which, args, allow_private_);
       stack_remove(args + 3);
       check_for_exception(ret);
       stack_push(ret);
@@ -1937,10 +1953,8 @@ use_send:
       stack_push(prc);
     }
 
-    void visit_send_super_stack_with_block(opcode which, opcode args) {
+    void visit_send_super_stack_with_block(opcode& which, opcode args) {
       set_has_side_effects();
-
-      InlineCache* cache = reinterpret_cast<InlineCache*>(which);
 
       b().CreateStore(get_self(), out_args_recv_);
       b().CreateStore(stack_top(), out_args_block_);
@@ -1952,18 +1966,17 @@ use_send:
         b().CreateStore(stack_objects(args + 1), out_args_arguments_);
       }
 
-      Value* ret = invoke_inline_cache(cache);
+      Value* ret = invoke_inline_cache(which);
       stack_remove(args + 1);
       check_for_return(ret);
 
       clear_current_block();
     }
 
-    void visit_send_super_stack_with_splat(opcode which, opcode args) {
+    void visit_send_super_stack_with_splat(opcode& which, opcode args) {
       set_has_side_effects();
 
-      InlineCache* cache = reinterpret_cast<InlineCache*>(which);
-      Value* ret = super_send(cache, args, true);
+      Value* ret = super_send(which, args, true);
       stack_remove(args + 2);
       check_for_exception(ret);
       stack_push(ret);
@@ -1971,10 +1984,8 @@ use_send:
       clear_current_block();
     }
 
-    void visit_zsuper(opcode which) {
+    void visit_zsuper(opcode& which) {
       set_has_side_effects();
-
-      InlineCache* cache = reinterpret_cast<InlineCache*>(which);
 
       Signature sig(ctx_, ObjType);
       sig << StateTy;
@@ -1982,9 +1993,13 @@ use_send:
       sig << "InlineCache";
       sig << ObjType;
 
-      Value* cache_const = b().CreateIntToPtr(
-          clong(reinterpret_cast<uintptr_t>(cache)),
-          ptr_type("InlineCache"), "cast_to_ptr");
+      InlineCache** cache_ptr = reinterpret_cast<InlineCache**>(&which);
+
+      Value* cache_ptr_const = b().CreateIntToPtr(
+          clong(reinterpret_cast<uintptr_t>(cache_ptr)),
+          ptr_type(ptr_type("InlineCache")), "cast_to_ptr");
+
+      Value* cache_const = b().CreateLoad(cache_ptr_const, "cache_const");
 
       Value* call_args[] = {
         state_,
@@ -3419,7 +3434,7 @@ use_send:
       stack_push(val);
     }
 
-    void visit_meta_send_call(opcode name, opcode count) {
+    void visit_meta_send_call(opcode& name, opcode count) {
       InlineCache* cache = reinterpret_cast<InlineCache*>(name);
       if(cache->classes_seen() == 0) {
         set_has_side_effects();
@@ -3432,9 +3447,13 @@ use_send:
         sig << ctx_->Int32Ty;
         sig << ObjArrayTy;
 
-        Value* cache_const = b().CreateIntToPtr(
-          clong(reinterpret_cast<uintptr_t>(cache)),
-          ptr_type("InlineCache"), "cast_to_ptr");
+        InlineCache** cache_ptr = reinterpret_cast<InlineCache**>(&name);
+
+        Value* cache_ptr_const = b().CreateIntToPtr(
+            clong(reinterpret_cast<uintptr_t>(cache_ptr)),
+            ptr_type(ptr_type("InlineCache")), "cast_to_ptr");
+
+        Value* cache_const = b().CreateLoad(cache_ptr_const, "cache_const");
 
         Value* call_args[] = {
           state_,
@@ -3450,7 +3469,7 @@ use_send:
         check_for_exception(val);
         stack_push(val);
       } else {
-        invoke_inline_cache(cache, count);
+        invoke_inline_cache(name, count);
       }
     }
 

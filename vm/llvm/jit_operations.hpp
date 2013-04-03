@@ -277,12 +277,12 @@ namespace rubinius {
       return ctx_->clong(num);
     }
 
-    // Type resolution and manipulation
-    //
+    llvm::Type* ptr_type(llvm::Type* type) {
+      return ctx_->ptr_type(type);
+    }
+
     llvm::Type* ptr_type(std::string name) {
-      std::string full_name = std::string("struct.rubinius::") + name;
-      return llvm::PointerType::getUnqual(
-          module_->getTypeByName(full_name));
+      return ctx_->ptr_type(name);
     }
 
     llvm::Type* type(std::string name) {

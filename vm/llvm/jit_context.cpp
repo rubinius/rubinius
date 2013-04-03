@@ -168,6 +168,10 @@ namespace rubinius {
     return addr;
   }
 
+  llvm::Type* Context::ptr_type(llvm::Type* type) {
+    return llvm::PointerType::getUnqual(type);
+  }
+
   llvm::Type* Context::ptr_type(std::string name) {
     std::string full_name = std::string("struct.rubinius::") + name;
     return llvm::PointerType::getUnqual(

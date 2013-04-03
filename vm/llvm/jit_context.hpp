@@ -107,6 +107,7 @@ namespace rubinius {
 
     void* native_function();
 
+    llvm::Type* ptr_type(llvm::Type* type);
     llvm::Type* ptr_type(std::string name);
     llvm::Type* type(std::string name);
 
