@@ -73,8 +73,8 @@ namespace rubinius {
     native_int call_count;
     native_int uncommon_count;
 
-    size_t number_of_caches_;
-    InlineCache* caches;
+    size_t number_of_inline_caches_;
+    InlineCache* inline_caches;
 
     Specialization specializations[cMaxSpecializations];
     executor unspecialized;
@@ -134,7 +134,7 @@ namespace rubinius {
     }
 
     size_t inline_cache_count() {
-      return number_of_caches_;
+      return number_of_inline_caches_;
     }
 
     MachineCode* parent() {
@@ -213,7 +213,7 @@ namespace rubinius {
     bool validate_ip(STATE, size_t ip);
 
     void fill_opcodes(STATE, CompiledCode* original);
-    void initialize_caches(STATE, CompiledCode* original, int sends);
+    void initialize_inline_caches(STATE, CompiledCode* original, int sends);
     void find_super_instructions();
 
     void deoptimize(STATE, CompiledCode* original, jit::RuntimeDataHolder* rd,

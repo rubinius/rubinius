@@ -427,7 +427,7 @@ namespace rubinius {
 #endif
 
     for(size_t i = 0; i < mcode->inline_cache_count(); i++) {
-      InlineCache* cache = &mcode->caches[i];
+      InlineCache* cache = &mcode->inline_caches[i];
 
       for(int j = 0; j < cTrackedICHits; ++j) {
         MethodCacheEntry* mce = cache->cache_[j].entry();

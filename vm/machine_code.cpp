@@ -58,8 +58,8 @@ namespace rubinius {
     : parent_(NULL)
     , type(NULL)
     , uncommon_count(0)
-    , number_of_caches_(0)
-    , caches(0)
+    , number_of_inline_caches_(0)
+    , inline_caches(0)
     , execute_status_(eInterpret)
     , name_(meth->name())
     , method_id_(state->shared().inc_method_count(state))
@@ -115,14 +115,14 @@ namespace rubinius {
     delete[] opcodes;
     delete[] addresses;
 
-    if(caches) {
-      delete[] caches;
+    if(inline_caches) {
+      delete[] inline_caches;
     }
   }
 
   void MachineCode::cleanup(STATE, CodeManager* cm) {
-    for(size_t i = 0; i < number_of_caches_; i++) {
-      InlineCache* cache = &caches[i];
+    for(size_t i = 0; i < number_of_inline_caches_; i++) {
+      InlineCache* cache = &inline_caches[i];
       cm->shared()->ic_registry()->remove_cache(state, cache->name, cache);
     }
   }
@@ -131,7 +131,7 @@ namespace rubinius {
     return sizeof(MachineCode) +
       (total * sizeof(opcode)) + // opcodes
       (total * sizeof(void*)) + // addresses
-      (number_of_caches_ * sizeof(InlineCache)); // caches
+      (number_of_inline_caches_ * sizeof(InlineCache)); // caches
   }
 
   void MachineCode::fill_opcodes(STATE, CompiledCode* original) {
@@ -187,12 +187,12 @@ namespace rubinius {
       }
     }
 
-    initialize_caches(state, original, sends);
+    initialize_inline_caches(state, original, sends);
   }
 
-  void MachineCode::initialize_caches(STATE, CompiledCode* original, int sends) {
-    number_of_caches_ = sends;
-    caches = new InlineCache[sends];
+  void MachineCode::initialize_inline_caches(STATE, CompiledCode* original, int sends) {
+    number_of_inline_caches_ = sends;
+    inline_caches = new InlineCache[sends];
 
     int which = 0;
     bool allow_private = false;
@@ -241,7 +241,7 @@ namespace rubinius {
       case InstructionSequence::insn_meta_to_s:
         {
         assert(which < sends);
-        InlineCache* cache = &caches[which++];
+        InlineCache* cache = &inline_caches[which++];
         cache->set_location(ip, this);
 
         Symbol* name = try_as<Symbol>(original->literals()->at(opcodes[ip + 1]));
