@@ -116,9 +116,9 @@ class File
         raise Errno::ELOOP if symlinks[real]
         symlinks[real] = true
         if path.empty?
-          path = expand_path(readlink(real))
+          path = expand_path(readlink(real), dirname(real))
         else
-          path = expand_path(join(readlink(real), path))
+          path = expand_path(join(readlink(real), path), dirname(real))
         end
         real = ''
       end
