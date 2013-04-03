@@ -36,18 +36,20 @@ namespace rubinius {
     const static object_type type = ConstantCacheType;
 
   private:
+    Symbol* name_; // slot
     ConstantCacheEntry* entry_; // slot
     int serial_;
 
   public:
+    attr_accessor(name, Symbol);
     attr_accessor(entry, ConstantCacheEntry);
 
     int serial() { return serial_; }
 
     static void init(STATE);
-    static ConstantCache* create(STATE, Object* value, ConstantScope* scope);
-    static ConstantCache* create(STATE, Object* value, Module* under, ConstantScope* scope);
-    static ConstantCache* empty(STATE);
+    static ConstantCache* create(STATE, Symbol* name, Object* value, ConstantScope* scope);
+    static ConstantCache* create(STATE, Symbol* name, Object* value, Module* under, ConstantScope* scope);
+    static ConstantCache* empty(STATE, Symbol* name);
 
     void update(STATE, Object* value, ConstantScope* scope);
     void update(STATE, Object* value, Module* under, ConstantScope* scope);

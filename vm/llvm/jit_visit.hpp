@@ -2042,7 +2042,7 @@ use_send:
       return info().method()->literals()->at(which);
     }
 
-    void visit_push_const_fast(opcode name, opcode cache) {
+    void visit_push_const_fast(opcode& name) {
       set_has_side_effects();
 
       BasicBlock* cont = 0;
@@ -2050,9 +2050,7 @@ use_send:
       Value* cached_value = 0;
       BasicBlock* cached_block = 0;
 
-      Object* lit = literal(cache);
-
-      ConstantCache* constant_cache = try_as<ConstantCache>(lit);
+      ConstantCache* constant_cache = reinterpret_cast<ConstantCache*>(name);
       if(constant_cache) {
         assert(constant_cache->pin());
 
@@ -2113,7 +2111,6 @@ use_send:
       types.push_back(StateTy);
       types.push_back(CallFrameTy);
       types.push_back(ObjType);
-      types.push_back(ctx_->Int32Ty);
 
       FunctionType* ft = FunctionType::get(ObjType, types, false);
       Function* func = cast<Function>(
@@ -2127,8 +2124,7 @@ use_send:
       Value* call_args[] = {
         state_,
         call_frame_,
-        constant(as<Symbol>(literal(name))),
-        cint(cache)
+        constant(constant_cache)
       };
 
       CallInst* ret = b().CreateCall(func, call_args,
@@ -3259,17 +3255,15 @@ use_send:
       stack_push(val);
     }
 
-    void visit_find_const_fast(opcode name, opcode cache) {
+    void visit_find_const_fast(opcode& name) {
       BasicBlock* cont = 0;
 
       Value* cached_value = 0;
       BasicBlock* cached_block = 0;
 
-      Object* lit = literal(cache);
-
       Value* under = stack_pop();
 
-      ConstantCache* constant_cache = try_as<ConstantCache>(lit);
+      ConstantCache* constant_cache = reinterpret_cast<ConstantCache*>(name);
       if(constant_cache) {
         assert(constant_cache->pin());
 
@@ -3350,20 +3344,18 @@ use_send:
       sig << StateTy;
       sig << CallFrameTy;
       sig << ObjType;
-      sig << ctx_->Int32Ty;
       sig << ObjType;
 
       Value* call_args[] = {
         state_,
         call_frame_,
-        constant(as<Symbol>(literal(name))),
-        cint(cache),
+        constant(constant_cache),
         under
       };
 
       flush();
 
-      CallInst* ret = sig.call("rbx_find_const_fast", call_args, 5, "constant", b());
+      CallInst* ret = sig.call("rbx_find_const_fast", call_args, 4, "constant", b());
       ret->setOnlyReadsMemory();
       ret->setDoesNotThrow();
       check_for_exception(ret);

@@ -1008,39 +1008,29 @@ module Rubinius
 
       def push_Kernel
         @lit_Kernel ||= @g.add_literal(:Kernel)
-        @slot_Kernel ||= @g.add_literal(nil)
-
-        @g.push_const_fast @lit_Kernel, @slot_Kernel
+        @g.push_const_fast @lit_Kernel
       end
 
       def push_Fixnum
         @lit_Fixnum ||= @g.add_literal(:Fixnum)
-        @slot_Fixnum ||= @g.add_literal(nil)
-
-        @g.push_const_fast @lit_Fixnum, @slot_Fixnum
+        @g.push_const_fast @lit_Fixnum
       end
 
       def push_String
         @lit_String ||= @g.add_literal(:String)
-        @slot_String ||= @g.add_literal(nil)
-
-        @g.push_const_fast @lit_String, @slot_String
+        @g.push_const_fast @lit_String
       end
 
       def push_Hash
         @lit_Hash ||= @g.add_literal(:Hash)
-        @slot_Hash ||= @g.add_literal(nil)
-
-        @g.push_const_fast @lit_Hash, @slot_Hash
+        @g.push_const_fast @lit_Hash
       end
 
       def raise_ArgumentError(msg)
         @lit_ArgumentError ||= @g.add_literal(:ArgumentError)
-        @slot_ArgumentError ||= @g.add_literal(nil)
-
         @lit_new ||= @g.add_literal(:new)
 
-        @g.push_const_fast @lit_ArgumentError, @slot_ArgumentError
+        @g.push_const_fast @lit_ArgumentError
         @g.push_unique_literal msg
         @g.send_stack @lit_new, 1
         @g.raise_exc

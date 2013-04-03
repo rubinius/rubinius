@@ -76,6 +76,9 @@ namespace rubinius {
     size_t number_of_inline_caches_;
     InlineCache* inline_caches;
 
+    size_t number_of_constant_caches_;
+    size_t* constant_cache_offsets_;
+
     Specialization specializations[cMaxSpecializations];
     executor unspecialized;
     executor fallback;
@@ -135,6 +138,14 @@ namespace rubinius {
 
     size_t inline_cache_count() {
       return number_of_inline_caches_;
+    }
+
+    size_t constant_cache_count() {
+      return number_of_constant_caches_;
+    }
+
+    size_t* constant_cache_offsets() {
+      return constant_cache_offsets_;
     }
 
     MachineCode* parent() {
@@ -214,6 +225,7 @@ namespace rubinius {
 
     void fill_opcodes(STATE, CompiledCode* original);
     void initialize_inline_caches(STATE, CompiledCode* original, int sends);
+    void initialize_constant_caches(STATE, CompiledCode* original, int constants);
     void find_super_instructions();
 
     void deoptimize(STATE, CompiledCode* original, jit::RuntimeDataHolder* rd,

@@ -539,8 +539,7 @@ module Rubinius
     # was used in the compiler before the push_const_fast instruction. Rather
     # than changing the compiler code, this helper was used.
     def push_const(name)
-      allocated_asscociation_slot = add_literal(nil)
-      push_const_fast find_literal(name), allocated_asscociation_slot
+      push_const_fast find_literal(name)
     end
 
     # The find_const instruction itself is unused right now. The instruction
@@ -548,8 +547,7 @@ module Rubinius
     # was used in the compiler before the find_const_fast instruction. Rather
     # than changing the compiler code, this helper was used.
     def find_const(name)
-      allocated_asscociation_slot = add_literal(nil)
-      find_const_fast find_literal(name), allocated_asscociation_slot
+      find_const_fast find_literal(name)
     end
 
     def push_local(idx)

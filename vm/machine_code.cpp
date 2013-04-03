@@ -60,6 +60,8 @@ namespace rubinius {
     , uncommon_count(0)
     , number_of_inline_caches_(0)
     , inline_caches(0)
+    , number_of_constant_caches_(0)
+    , constant_cache_offsets_(0)
     , execute_status_(eInterpret)
     , name_(meth->name())
     , method_id_(state->shared().inc_method_count(state))
@@ -139,6 +141,7 @@ namespace rubinius {
     Object* val;
 
     int sends = 0;
+    int constants = 0;
 
     for(size_t index = 0; index < total;) {
       val = ops->at(state, index);
@@ -181,6 +184,11 @@ namespace rubinius {
         case InstructionSequence::insn_check_serial_private:
         case InstructionSequence::insn_call_custom:
           sends++;
+          break;
+        case InstructionSequence::insn_push_const_fast:
+        case InstructionSequence::insn_find_const_fast:
+          constants++;
+          break;
         }
 
         index += width;
@@ -188,6 +196,7 @@ namespace rubinius {
     }
 
     initialize_inline_caches(state, original, sends);
+    initialize_constant_caches(state, original, constants);
   }
 
   void MachineCode::initialize_inline_caches(STATE, CompiledCode* original, int sends) {
@@ -214,10 +223,6 @@ namespace rubinius {
       }
       case InstructionSequence::insn_allow_private:
         allow_private = true;
-        break;
-      case InstructionSequence::insn_push_const_fast:
-      case InstructionSequence::insn_find_const_fast:
-        original->literals()->put(state, opcodes[ip + 2], ConstantCache::empty(state));
         break;
       case InstructionSequence::insn_send_super_stack_with_block:
       case InstructionSequence::insn_send_super_stack_with_splat:
@@ -274,6 +279,31 @@ namespace rubinius {
 
       ip += InstructionSequence::instruction_width(op);
     }
+  }
+
+  void MachineCode::initialize_constant_caches(STATE, CompiledCode* original, int constants) {
+    number_of_constant_caches_ = constants;
+    constant_cache_offsets_ = new size_t[constants];
+
+    int constant_index = 0;
+    for(size_t ip = 0; ip < total;) {
+      opcode op = opcodes[ip];
+      switch(op) {
+      case InstructionSequence::insn_push_const_fast:
+      case InstructionSequence::insn_find_const_fast: {
+        Symbol* name = as<Symbol>(original->literals()->at(opcodes[ip + 1]));
+        ConstantCache* cache = ConstantCache::empty(state, name);
+        opcodes[ip + 1] = reinterpret_cast<intptr_t>(cache);
+        constant_cache_offsets_[constant_index] = ip;
+        constant_index++;
+        update_addresses(ip, 1);
+        break;
+      }
+      }
+
+      ip += InstructionSequence::instruction_width(op);
+    }
+
   }
 
   // Argument handler implementations

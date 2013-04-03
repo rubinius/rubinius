@@ -580,27 +580,16 @@ extern "C" {
     CPP_CATCH
   }
 
-  Object* rbx_find_const_fast(STATE, CallFrame* call_frame, Symbol* sym,
-                              int association_index, Object* top) {
+  Object* rbx_find_const_fast(STATE, CallFrame* call_frame, ConstantCache* cache, Object* top) {
     CPP_TRY
 
-    Object* res = 0;
-
     Module* under = as<Module>(top);
-    Object* val = call_frame->compiled_code->literals()->at(state, association_index);
 
-    // See if the cache is present, if so, validate it and use the value
-    ConstantCache* cache;
-    if((cache = try_as<ConstantCache>(val)) != NULL) {
-      res = cache->retrieve(state, under, call_frame->constant_scope());
-    } else {
-      cache = ConstantCache::empty(state);
-      call_frame->compiled_code->literals()->put(state, association_index, cache);
-    }
+    Object* res = cache->retrieve(state, under, call_frame->constant_scope());
 
     if(!res) {
       bool found = false;
-      res = Helpers::const_get_under(state, under, sym, &found);
+      res = Helpers::const_get_under(state, under, cache->name(), &found);
 
       if(found) {
         GCTokenImpl gct;
@@ -613,7 +602,7 @@ extern "C" {
           cache->update(state, res, under, call_frame->constant_scope());
         }
       } else {
-        res = Helpers::const_missing_under(state, under, sym, call_frame);
+        res = Helpers::const_missing_under(state, under, cache->name(), call_frame);
       }
     }
 
@@ -740,24 +729,12 @@ extern "C" {
     return res;
   }
 
-  Object* rbx_push_const_fast(STATE, CallFrame* call_frame, Symbol* sym,
-                              int association_index) {
-    Object* res = 0;
-
-    Object* val = call_frame->compiled_code->literals()->at(state, association_index);
-
-    // See if the cache is present, if so, validate it and use the value
-    ConstantCache* cache;
-    if((cache = try_as<ConstantCache>(val)) != NULL) {
-      res = cache->retrieve(state, call_frame->constant_scope());
-    } else {
-      cache = ConstantCache::empty(state);
-      call_frame->compiled_code->literals()->put(state, association_index, cache);
-    }
+  Object* rbx_push_const_fast(STATE, CallFrame* call_frame, ConstantCache* cache) {
+    Object* res = cache->retrieve(state, call_frame->constant_scope());
 
     if(!res) {
       bool found = false;
-      res = Helpers::const_get(state, call_frame, sym, &found);
+      res = Helpers::const_get(state, call_frame, cache->name(), &found);
 
       if(found) {
         GCTokenImpl gct;
@@ -770,7 +747,7 @@ extern "C" {
           cache->update(state, res, call_frame->constant_scope());
         }
       } else {
-        res = Helpers::const_missing(state, sym, call_frame);
+        res = Helpers::const_missing(state, cache->name(), call_frame);
       }
     }
 

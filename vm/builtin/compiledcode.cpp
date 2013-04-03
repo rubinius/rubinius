@@ -426,6 +426,7 @@ namespace rubinius {
     }
 #endif
 
+
     for(size_t i = 0; i < mcode->inline_cache_count(); i++) {
       InlineCache* cache = &mcode->inline_caches[i];
 
@@ -447,6 +448,13 @@ namespace rubinius {
           mark.just_set(obj, tmp);
         }
       }
+    }
+
+    for(size_t i = 0; i < mcode->constant_cache_count(); i++) {
+      size_t index = mcode->constant_cache_offsets()[i];
+      Object* cur = reinterpret_cast<Object*>(mcode->opcodes[index + 1]);
+      mcode->opcodes[index + 1] = reinterpret_cast<intptr_t>(mark.call(cur));
+      mcode->update_addresses(index, 1);
     }
   }
 

@@ -824,26 +824,17 @@ end
 # [Example]
 #     engine = RUBY_ENGINE # RUBY_ENGINE is a constant defined by Rubinius
 
-instruction push_const_fast(literal association) [ -- constant ]
-  Object* res = 0;
+instruction push_const_fast(literal) [ -- constant ]
 
-  Object* val = call_frame->compiled_code->literals()->at(state, association);
+  ConstantCache* cache = reinterpret_cast<ConstantCache*>(literal);
 
-  // See if the cache is present, if so, validate it and use the value
-  ConstantCache* cache;
-
-  if((cache = try_as<ConstantCache>(val)) != NULL) {
-    res = cache->retrieve(state, call_frame->constant_scope());
-  } else {
-    cache = ConstantCache::empty(state);
-    call_frame->compiled_code->literals()->put(state, association, cache);
-  }
+  Object* res = cache->retrieve(state, call_frame->constant_scope());
 
   if(!res) {
     bool found = false;
     flush_ip();
 
-    Symbol* sym = as<Symbol>(call_frame->compiled_code->literals()->at(state, literal));
+    Symbol* sym = cache->name();
     res = Helpers::const_get(state, call_frame, sym, &found);
 
     if(found) {
@@ -875,27 +866,19 @@ end
 #     str = "abc"
 #     enum = Enumerable::Enumerator(str, :each_byte)
 
-instruction find_const_fast(literal association) [ module -- constant ]
-  Object* res = 0;
+instruction find_const_fast(literal) [ module -- constant ]
 
   Module* under = as<Module>(stack_pop());
-  Object* val = call_frame->compiled_code->literals()->at(state, association);
 
-  // See if the cache is present, if so, validate it and use the value
-  ConstantCache* cache;
+  ConstantCache* cache = reinterpret_cast<ConstantCache*>(literal);
 
-  if((cache = try_as<ConstantCache>(val)) != NULL) {
-    res = cache->retrieve(state, under, call_frame->constant_scope());
-  } else {
-    cache = ConstantCache::empty(state);
-    call_frame->compiled_code->literals()->put(state, association, cache);
-  }
+  Object* res = cache->retrieve(state, under, call_frame->constant_scope());
 
   if(!res) {
     bool found = false;
     flush_ip();
 
-    Symbol* sym = as<Symbol>(call_frame->compiled_code->literals()->at(state, literal));
+    Symbol* sym = cache->name();
     res = Helpers::const_get_under(state, under, sym, &found);
 
     if(found) {

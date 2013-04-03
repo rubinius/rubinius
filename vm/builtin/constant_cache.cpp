@@ -29,30 +29,33 @@ namespace rubinius {
     return cache_entry;
   }
 
-  ConstantCache* ConstantCache::create(STATE, Object* value,
+  ConstantCache* ConstantCache::create(STATE, Symbol* name, Object* value,
                                              ConstantScope* scope)
   {
     ConstantCache* cache =
       state->vm()->new_object_mature<ConstantCache>(G(constant_cache));
 
+    cache->name(state, name);
     cache->update(state, value, scope);
     return cache;
   }
 
-  ConstantCache* ConstantCache::create(STATE, Object* value, Module* under,
+  ConstantCache* ConstantCache::create(STATE, Symbol* name, Object* value, Module* under,
                                              ConstantScope* scope)
   {
     ConstantCache* cache =
       state->vm()->new_object_mature<ConstantCache>(G(constant_cache));
 
+    cache->name(state, name);
     cache->update(state, value, under, scope);
     return cache;
   }
 
-  ConstantCache* ConstantCache::empty(STATE) {
+  ConstantCache* ConstantCache::empty(STATE, Symbol* name) {
     ConstantCache* cache =
       state->vm()->new_object_mature<ConstantCache>(G(constant_cache));
 
+    cache->name(state, name);
     cache->serial_ = -1;
     return cache;
   }
