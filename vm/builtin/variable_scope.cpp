@@ -70,25 +70,20 @@ namespace rubinius {
 
   void VariableScope::set_local(STATE, int pos, Object* val) {
     if(isolated_) {
-      VariableScope* self = this;
       while(heap_locals_->nil_p()) {
         atomic::pause();
       }
-      self->heap_locals_->put(state, pos, val);
+      heap_locals_->put(state, pos, val);
     } else {
       set_local(pos, val);
     }
   }
 
   void VariableScope::set_local(int pos, Object* val) {
-    if(isolated_) {
-      rubinius::bug("storing stack local while on heap");
-    }
     Object** ary = locals_;
 
     if(Fiber* fib = try_as<Fiber>(fiber_)) {
       FiberData* data = fib->data();
-
       if(data) {
         AddressDisplacement dis(data->data_offset(),
                                 data->data_lower_bound(),
@@ -102,21 +97,16 @@ namespace rubinius {
 
   Object* VariableScope::get_local(STATE, int pos) {
     if(isolated_) {
-      VariableScope* self = this;
       while(heap_locals_->nil_p()) {
         atomic::pause();
       }
-      return self->heap_locals_->at(pos);
+      return heap_locals_->at(pos);
     } else {
       return get_local(pos);
     }
   }
 
   Object* VariableScope::get_local(int pos) {
-    if(isolated_) {
-      rubinius::bug("retrieving stack local while on heap");
-    }
-
     Object** ary = locals_;
     if(Fiber* fib = try_as<Fiber>(fiber_)) {
       FiberData* data = fib->data();
