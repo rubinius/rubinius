@@ -19,6 +19,13 @@ ruby_version_is "1.9" do
       @fake_link = File.join(@link_dir, 'fake_link')
 
       File.symlink(@fake_file, @fake_link)
+
+      @dir_for_relative_link = File.join(@real_dir, 'dir1')
+      mkdir_p @dir_for_relative_link
+
+      @relative_path_to_file = File.join('..', 'file')
+      @relative_symlink = File.join(@dir_for_relative_link, 'link')
+      File.symlink(@relative_path_to_file, @relative_symlink)
     end
 
     after :each do
@@ -41,6 +48,10 @@ ruby_version_is "1.9" do
       Dir.chdir @link_dir do
         File.realpath(File.basename(@link)).should == @file
       end
+    end
+
+    it "uses link directory for expanding relative links" do
+      File.realpath(@relative_symlink).should == @file
     end
 
     it "raises a Errno::ELOOP if the symlink points to itself" do
