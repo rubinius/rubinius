@@ -2050,67 +2050,68 @@ use_send:
       Value* cached_value = 0;
       BasicBlock* cached_block = 0;
 
-      ConstantCache* constant_cache = reinterpret_cast<ConstantCache*>(name);
-      if(constant_cache) {
-        assert(constant_cache->pin());
+      ConstantCache** constant_cache_ptr = reinterpret_cast<ConstantCache**>(&name);
+      ConstantCache* constant_cache = *constant_cache_ptr;
 
-        Value* global_serial = b().CreateLoad(global_serial_pos, "global_serial");
+      Value* global_serial = b().CreateLoad(global_serial_pos, "global_serial");
 
-        Value* constant_cache_ptr = b().CreateIntToPtr(
-          ConstantInt::get(context()->IntPtrTy, (reinterpret_cast<uintptr_t>(constant_cache))),
-          ptr_type("ConstantCache"), "cast_to_ptr");
 
-        Value* serial_pos_idx[] = {
-          context()->cint(0),
-          context()->cint(offset::ConstantCache::serial),
-        };
+      Value* cache_ptr = b().CreateIntToPtr(
+        ConstantInt::get(context()->IntPtrTy, (reinterpret_cast<uintptr_t>(constant_cache_ptr))),
+        ptr_type(ptr_type("ConstantCache")), "cast_to_ptr");
 
-        Value* serial_pos = b().CreateGEP(constant_cache_ptr,
-            serial_pos_idx, "serial_pos");
+      Value* cache = b().CreateLoad(cache_ptr, "constant_cache");
 
-        Value* current_serial = b().CreateLoad(serial_pos, "serial");
+      Value* serial_pos_idx[] = {
+        context()->cint(0),
+        context()->cint(offset::ConstantCache::serial),
+      };
 
-        Value* cmp = b().CreateICmpEQ(global_serial, current_serial, "use_cache");
+      Value* serial_pos = b().CreateGEP(cache,
+          serial_pos_idx, "serial_pos");
 
-        BasicBlock* use_cache = new_block("use_cache");
-        BasicBlock* use_call  = new_block("use_call");
-        cont =      new_block("continue");
+      Value* current_serial = b().CreateLoad(serial_pos, "serial");
 
-        b().CreateCondBr(cmp, use_cache, use_call);
+      Value* cmp = b().CreateICmpEQ(global_serial, current_serial, "use_cache");
 
-        set_block(use_cache);
+      BasicBlock* use_cache = new_block("use_cache");
+      BasicBlock* use_call  = new_block("use_call");
+      cont =      new_block("continue");
 
-        Value* entry_pos_idx[] = {
-          context()->cint(0),
-          context()->cint(offset::ConstantCache::entry),
-        };
+      b().CreateCondBr(cmp, use_cache, use_call);
 
-        Value* entry_pos = b().CreateGEP(constant_cache_ptr,
-            entry_pos_idx, "entry_pos");
+      set_block(use_cache);
 
-        Value* entry = b().CreateLoad(entry_pos, "entry");
+      Value* entry_pos_idx[] = {
+        context()->cint(0),
+        context()->cint(offset::ConstantCache::entry),
+      };
 
-        Value* value_pos_idx[] = {
-          context()->cint(0),
-          context()->cint(offset::ConstantCacheEntry::value),
-        };
+      Value* entry_pos = b().CreateGEP(cache,
+          entry_pos_idx, "entry_pos");
 
-        Value* value_pos = b().CreateGEP(entry,
-            value_pos_idx, "value_pos");
+      Value* entry = b().CreateLoad(entry_pos, "entry");
 
-        cached_value = b().CreateLoad(value_pos, "cached_value");
-        cached_block = b().GetInsertBlock();
+      Value* value_pos_idx[] = {
+        context()->cint(0),
+        context()->cint(offset::ConstantCacheEntry::value),
+      };
 
-        b().CreateBr(cont);
+      Value* value_pos = b().CreateGEP(entry,
+          value_pos_idx, "value_pos");
 
-        set_block(use_call);
-      }
+      cached_value = b().CreateLoad(value_pos, "cached_value");
+      cached_block = b().GetInsertBlock();
+
+      b().CreateBr(cont);
+
+      set_block(use_call);
 
       std::vector<Type*> types;
 
       types.push_back(StateTy);
       types.push_back(CallFrameTy);
-      types.push_back(ObjType);
+      types.push_back(ptr_type(ptr_type("ConstantCache")));
 
       FunctionType* ft = FunctionType::get(ObjType, types, false);
       Function* func = cast<Function>(
@@ -2124,7 +2125,7 @@ use_send:
       Value* call_args[] = {
         state_,
         call_frame_,
-        constant(constant_cache)
+        constant(constant_cache_ptr, ptr_type(ptr_type("ConstantCache")))
       };
 
       CallInst* ret = b().CreateCall(func, call_args,
@@ -2135,19 +2136,15 @@ use_send:
 
       check_for_exception(ret);
 
-      if(constant_cache) {
-        BasicBlock* ret_block = b().GetInsertBlock();
-        b().CreateBr(cont);
-        set_block(cont);
+      BasicBlock* ret_block = b().GetInsertBlock();
+      b().CreateBr(cont);
+      set_block(cont);
 
-        PHINode* phi = b().CreatePHI(ObjType, 2, "constant");
-        phi->addIncoming(cached_value, cached_block);
-        phi->addIncoming(ret, ret_block);
+      PHINode* phi = b().CreatePHI(ObjType, 2, "constant");
+      phi->addIncoming(cached_value, cached_block);
+      phi->addIncoming(ret, ret_block);
 
-        stack_push(phi, type::KnownType::constant_cache(constant_cache));
-      } else {
-        stack_push(ret);
-      }
+      stack_push(phi, type::KnownType::constant_cache(constant_cache));
     }
 
     void visit_push_const(opcode name) {
@@ -3263,93 +3260,93 @@ use_send:
 
       Value* under = stack_pop();
 
-      ConstantCache* constant_cache = reinterpret_cast<ConstantCache*>(name);
-      if(constant_cache) {
-        assert(constant_cache->pin());
+      ConstantCache** constant_cache_ptr = reinterpret_cast<ConstantCache**>(&name);
+      ConstantCache* constant_cache = *constant_cache_ptr;
+
+      Value* global_serial = b().CreateLoad(global_serial_pos, "global_serial");
 
 
-        Value* global_serial = b().CreateLoad(global_serial_pos, "global_serial");
+      Value* cache_ptr = b().CreateIntToPtr(
+        ConstantInt::get(context()->IntPtrTy, (reinterpret_cast<uintptr_t>(constant_cache_ptr))),
+        ptr_type(ptr_type("ConstantCache")), "cast_to_ptr");
 
-        Value* constant_cache_ptr = b().CreateIntToPtr(
-          ConstantInt::get(context()->IntPtrTy, (reinterpret_cast<uintptr_t>(constant_cache))),
-          ptr_type("ConstantCache"), "cast_to_ptr");
+      Value* cache = b().CreateLoad(cache_ptr, "constant_cache");
 
-        Value* serial_pos_idx[] = {
-          context()->cint(0),
-          context()->cint(offset::ConstantCache::serial),
-        };
+      Value* serial_pos_idx[] = {
+        context()->cint(0),
+        context()->cint(offset::ConstantCache::serial),
+      };
 
-        Value* serial_pos = b().CreateGEP(constant_cache_ptr,
-            serial_pos_idx, "serial_pos");
+      Value* serial_pos = b().CreateGEP(cache,
+          serial_pos_idx, "serial_pos");
 
-        Value* current_serial = b().CreateLoad(serial_pos, "serial");
+      Value* current_serial = b().CreateLoad(serial_pos, "serial");
 
-        Value* cache_cmp = b().CreateICmpEQ(global_serial, current_serial, "use_under");
+      Value* cache_cmp = b().CreateICmpEQ(global_serial, current_serial, "use_under");
 
-        BasicBlock* check_under = new_block("check_under");
-        BasicBlock* use_cache   = new_block("use_cache");
-        BasicBlock* use_call    = new_block("use_call");
-        cont =      new_block("continue");
+      BasicBlock* check_under = new_block("check_under");
+      BasicBlock* use_cache   = new_block("use_cache");
+      BasicBlock* use_call    = new_block("use_call");
+      cont =      new_block("continue");
 
-        b().CreateCondBr(cache_cmp, check_under, use_call);
+      b().CreateCondBr(cache_cmp, check_under, use_call);
 
-        set_block(check_under);
+      set_block(check_under);
 
 
-        Value* entry_pos_idx[] = {
-          context()->cint(0),
-          context()->cint(offset::ConstantCache::entry),
-        };
+      Value* entry_pos_idx[] = {
+        context()->cint(0),
+        context()->cint(offset::ConstantCache::entry),
+      };
 
-        Value* entry_pos = b().CreateGEP(constant_cache_ptr,
-            entry_pos_idx, "entry_pos");
+      Value* entry_pos = b().CreateGEP(cache,
+          entry_pos_idx, "entry_pos");
 
-        Value* entry = b().CreateLoad(entry_pos, "entry");
+      Value* entry = b().CreateLoad(entry_pos, "entry");
 
-        Value* under_pos_idx[] = {
-          context()->cint(0),
-          context()->cint(offset::ConstantCacheEntry::under),
-        };
+      Value* under_pos_idx[] = {
+        context()->cint(0),
+        context()->cint(offset::ConstantCacheEntry::under),
+      };
 
-        Value* under_pos = b().CreateGEP(entry,
-            under_pos_idx, "value_pos");
+      Value* under_pos = b().CreateGEP(entry,
+          under_pos_idx, "value_pos");
 
-        Value* cached_under = b().CreateBitCast(b().CreateLoad(under_pos, "cached_under"),
-                                                ptr_type("Object"), "downcast");
+      Value* cached_under = b().CreateBitCast(b().CreateLoad(under_pos, "cached_under"),
+                                              ptr_type("Object"), "downcast");
 
-        Value* under_cmp = b().CreateICmpEQ(cached_under, under, "use_cache");
+      Value* under_cmp = b().CreateICmpEQ(cached_under, under, "use_cache");
 
-        b().CreateCondBr(under_cmp, use_cache, use_call);
+      b().CreateCondBr(under_cmp, use_cache, use_call);
 
-        set_block(use_cache);
+      set_block(use_cache);
 
-        Value* value_pos_idx[] = {
-          context()->cint(0),
-          context()->cint(offset::ConstantCacheEntry::value),
-        };
+      Value* value_pos_idx[] = {
+        context()->cint(0),
+        context()->cint(offset::ConstantCacheEntry::value),
+      };
 
-        Value* value_pos = b().CreateGEP(entry,
-            value_pos_idx, "value_pos");
+      Value* value_pos = b().CreateGEP(entry,
+          value_pos_idx, "value_pos");
 
-        cached_value = b().CreateLoad(value_pos, "cached_value");
-        cached_block = b().GetInsertBlock();
+      cached_value = b().CreateLoad(value_pos, "cached_value");
+      cached_block = b().GetInsertBlock();
 
-        b().CreateBr(cont);
+      b().CreateBr(cont);
 
-        set_block(use_call);
-      }
+      set_block(use_call);
 
       Signature sig(ctx_, ObjType);
 
       sig << StateTy;
       sig << CallFrameTy;
-      sig << ObjType;
+      sig << ptr_type(ptr_type("ConstantCache"));
       sig << ObjType;
 
       Value* call_args[] = {
         state_,
         call_frame_,
-        constant(constant_cache),
+        constant(constant_cache_ptr, ptr_type(ptr_type("ConstantCache"))),
         under
       };
 
@@ -3360,19 +3357,15 @@ use_send:
       ret->setDoesNotThrow();
       check_for_exception(ret);
 
-      if(constant_cache) {
-        BasicBlock* ret_block = b().GetInsertBlock();
-        b().CreateBr(cont);
-        set_block(cont);
+      BasicBlock* ret_block = b().GetInsertBlock();
+      b().CreateBr(cont);
+      set_block(cont);
 
-        PHINode* phi = b().CreatePHI(ObjType, 2, "constant");
-        phi->addIncoming(cached_value, cached_block);
-        phi->addIncoming(ret, ret_block);
+      PHINode* phi = b().CreatePHI(ObjType, 2, "constant");
+      phi->addIncoming(cached_value, cached_block);
+      phi->addIncoming(ret, ret_block);
 
-        stack_push(phi, type::KnownType::constant_cache(constant_cache));
-      } else {
-        stack_push(ret);
-      }
+      stack_push(phi, type::KnownType::constant_cache(constant_cache));
     }
 
     void visit_instance_of() {

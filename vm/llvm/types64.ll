@@ -91,6 +91,7 @@ declare void @output5(%"struct.rubinius::InlineCacheHit"*)
 
 %"struct.rubinius::ConstantCache" = type {
                %"struct.rubinius::Object", ; header
+              %"struct.rubinius::Symbol"*, ; name
   %"struct.rubinius::ConstantCacheEntry"*, ; entry
                                       i32  ; serial
 }

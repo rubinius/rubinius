@@ -79,8 +79,9 @@ namespace CompiledCode {
 }
 namespace ConstantCache {
   const static int header = 0;
-  const static int entry = 1;
-  const static int serial = 2;
+  const static int name = 1;
+  const static int entry = 2;
+  const static int serial = 3;
 }
 namespace ConstantCacheEntry {
   const static int header = 0;

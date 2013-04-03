@@ -580,10 +580,11 @@ extern "C" {
     CPP_CATCH
   }
 
-  Object* rbx_find_const_fast(STATE, CallFrame* call_frame, ConstantCache* cache, Object* top) {
+  Object* rbx_find_const_fast(STATE, CallFrame* call_frame, ConstantCache** cache_ptr, Object* top) {
     CPP_TRY
 
     Module* under = as<Module>(top);
+    ConstantCache* cache = *cache_ptr;
 
     Object* res = cache->retrieve(state, under, call_frame->constant_scope());
 
@@ -729,7 +730,9 @@ extern "C" {
     return res;
   }
 
-  Object* rbx_push_const_fast(STATE, CallFrame* call_frame, ConstantCache* cache) {
+  Object* rbx_push_const_fast(STATE, CallFrame* call_frame, ConstantCache** cache_ptr) {
+
+    ConstantCache* cache = *cache_ptr;
     Object* res = cache->retrieve(state, call_frame->constant_scope());
 
     if(!res) {
