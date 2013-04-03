@@ -1007,30 +1007,25 @@ module Rubinius
       end
 
       def push_Kernel
-        @lit_Kernel ||= @g.add_literal(:Kernel)
-        @g.push_const_fast @lit_Kernel
+        @g.push_const :Kernel
       end
 
       def push_Fixnum
-        @lit_Fixnum ||= @g.add_literal(:Fixnum)
-        @g.push_const_fast @lit_Fixnum
+        @g.push_const :Fixnum
       end
 
       def push_String
-        @lit_String ||= @g.add_literal(:String)
-        @g.push_const_fast @lit_String
+        @g.push_const :String
       end
 
       def push_Hash
-        @lit_Hash ||= @g.add_literal(:Hash)
-        @g.push_const_fast @lit_Hash
+        @g.push_const :Hash
       end
 
       def raise_ArgumentError(msg)
-        @lit_ArgumentError ||= @g.add_literal(:ArgumentError)
         @lit_new ||= @g.add_literal(:new)
 
-        @g.push_const_fast @lit_ArgumentError
+        @g.push_const :ArgumentError
         @g.push_unique_literal msg
         @g.send_stack @lit_new, 1
         @g.raise_exc
