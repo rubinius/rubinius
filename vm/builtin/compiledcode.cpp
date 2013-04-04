@@ -198,6 +198,7 @@ namespace rubinius {
       OnStack<4> os(state, code, exec, mod, args.argument_container_location());
       GCTokenImpl gct;
 
+      state->set_call_frame(call_frame);
       if(!code->internalize(state, gct, &reason, &ip)) {
         Exception::bytecode_error(state, call_frame, code, ip, reason);
         return 0;
@@ -330,12 +331,13 @@ namespace rubinius {
     machine_code_->fallback = interp;
   }
 
-  Object* CompiledCode::set_breakpoint(STATE, GCToken gct, Fixnum* ip, Object* bp) {
+  Object* CompiledCode::set_breakpoint(STATE, GCToken gct, Fixnum* ip, Object* bp, CallFrame* calling_environment) {
     CompiledCode* self = this;
     OnStack<3> os(state, self, ip, bp);
 
     int i = ip->to_native();
     if(self->machine_code_ == NULL) {
+      state->set_call_frame(calling_environment);
       if(!self->internalize(state, gct)) return Primitives::failure();
     }
 

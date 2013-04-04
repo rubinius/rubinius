@@ -65,6 +65,8 @@ namespace rubinius {
     if(!mcode) {
       OnStack<2> os(state, env, args.argument_container_location());
       GCTokenImpl gct;
+
+      state->set_call_frame(previous);
       mcode = env->machine_code(state, gct);
 
       if(!mcode) {

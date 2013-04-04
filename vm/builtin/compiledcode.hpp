@@ -105,7 +105,7 @@ namespace rubinius {
     static Object* specialized_executor(STATE, CallFrame*, Executable* exec, Module* mod, Arguments& args);
 
     // Rubinius.primitive :compiledcode_set_breakpoint
-    Object* set_breakpoint(STATE, GCToken gct, Fixnum* ip, Object* bp);
+    Object* set_breakpoint(STATE, GCToken gct, Fixnum* ip, Object* bp, CallFrame* calling_environment);
 
     // Rubinius.primitive :compiledcode_clear_breakpoint
     Object* clear_breakpoint(STATE, Fixnum* ip);

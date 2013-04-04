@@ -43,6 +43,8 @@ namespace rubinius {
     Module* module_;              // slot
     Tuple* metadata_container_;   // slot
 
+    MachineCode* machine_code(STATE, GCToken gct);
+
   public:
     /* accessors */
     attr_accessor(scope, VariableScope);
@@ -54,7 +56,6 @@ namespace rubinius {
     /* interface */
 
     static void init(STATE);
-    MachineCode* machine_code(STATE, GCToken gct);
 
     // Rubinius.primitive :blockenvironment_allocate
     static BlockEnvironment* allocate(STATE);

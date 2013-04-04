@@ -1616,6 +1616,7 @@ namespace rubinius {
 
     OnStack<1> os(state, code);
 
+    state->set_call_frame(calling_environment);
     code->internalize(state, gct, 0, 0);
 
 #ifdef RBX_PROFILER
