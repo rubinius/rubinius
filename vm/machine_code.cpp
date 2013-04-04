@@ -646,28 +646,28 @@ namespace rubinius {
       }
 #endif
 
-      OnStack<3> os(state, exec, mod, code);
 #ifdef RBX_PROFILER
       if(unlikely(state->vm()->tooling())) {
         // Check the stack and interrupts here rather than in the interpreter
         // loop itself.
+        OnStack<3> os(state, exec, code);
         if(!state->check_interrupts(gct, frame, frame)) return NULL;
 
         state->checkpoint(gct, frame);
 
-        tooling::MethodEntry method(state, exec, mod, args, code);
+        tooling::MethodEntry method(state, exec, scope->module(), args, code);
 
-        RUBINIUS_METHOD_ENTRY_HOOK(state, mod, args.name(), previous);
+        RUBINIUS_METHOD_ENTRY_HOOK(state, scope->module(), args.name(), previous);
         Object* result = (*mcode->run)(state, mcode, frame);
-        RUBINIUS_METHOD_RETURN_HOOK(state, mod, args.name(), previous);
+        RUBINIUS_METHOD_RETURN_HOOK(state, scope->module(), args.name(), previous);
         return result;
       } else {
         if(!state->check_interrupts(gct, frame, frame)) return NULL;
 
         state->checkpoint(gct, frame);
-        RUBINIUS_METHOD_ENTRY_HOOK(state, mod, args.name(), previous);
+        RUBINIUS_METHOD_ENTRY_HOOK(state, scope->module(), args.name(), previous);
         Object* result = (*mcode->run)(state, mcode, frame);
-        RUBINIUS_METHOD_RETURN_HOOK(state, mod, args.name(), previous);
+        RUBINIUS_METHOD_RETURN_HOOK(state, scope->module(), args.name(), previous);
         return result;
       }
 #else
@@ -675,9 +675,9 @@ namespace rubinius {
 
       state->checkpoint(gct, frame);
 
-      RUBINIUS_METHOD_ENTRY_HOOK(state, mod, args.name(), previous);
+      RUBINIUS_METHOD_ENTRY_HOOK(state, scope->module(), args.name(), previous);
       Object* result = (*mcode->run)(state, mcode, frame);
-      RUBINIUS_METHOD_RETURN_HOOK(state, mod, args.name(), previous);
+      RUBINIUS_METHOD_RETURN_HOOK(state, scope->module(), args.name(), previous);
       return result;
 #endif
     }
