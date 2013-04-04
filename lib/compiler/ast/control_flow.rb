@@ -184,7 +184,7 @@ module Rubinius
         if @single
           conditions_sexp = [:array, @single.to_sexp]
         else
-          conditions_sexp = @conditions.to_sexp
+          conditions_sexp = @conditions ? @conditions.to_sexp : []
           conditions_sexp << @splat.to_sexp if @splat
         end
         [:when, conditions_sexp, @body.to_sexp]
