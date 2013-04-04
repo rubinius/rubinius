@@ -68,7 +68,6 @@ class BasicPrimitive
   def output_call(str, call, args)
     str << "\n"
     str << "  try {\n"
-    str << "    OnStack<2> os(state, exec, mod);\n"
     str << "#ifdef RBX_PROFILER\n"
     str << "    if(unlikely(state->vm()->tooling())) {\n"
     str << "      tooling::MethodEntry method(state, exec, mod, args);\n"
