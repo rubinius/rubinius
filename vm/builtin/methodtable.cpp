@@ -121,6 +121,7 @@ namespace rubinius {
       method = nil<Executable>();
     } else {
       if(Alias* stored_alias = try_as<Alias>(exec)) {
+        self->hard_unlock(state, gct);
         return self->alias(state, gct, name, vis,
                            stored_alias->original_name(),
                            stored_alias->original_exec(),
