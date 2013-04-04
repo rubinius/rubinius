@@ -230,10 +230,8 @@ namespace rubinius {
 
       Object* obj = under->get_const(state, name, &found);
 
-      OnStack<4> os(state, under, super, name, obj);
-
       if(found) {
-        TypedRoot<Object*> sup(state, super);
+        OnStack<4> os(state, under, super, name, obj);
 
         if(Autoload* autoload = try_as<Autoload>(obj)) {
           obj = autoload->resolve(state, gct, call_frame, under, true);
@@ -245,7 +243,7 @@ namespace rubinius {
         // Autoload::resolve will return nil if code loading failed, in which
         // case we ignore the autoload.
         if(!obj->nil_p()) {
-          return check_superclass(state, call_frame, as<Class>(obj), sup.get());
+          return check_superclass(state, call_frame, as<Class>(obj), super);
         }
       }
 
@@ -271,9 +269,9 @@ namespace rubinius {
 
       Object* obj = under->get_const(state, name, &found);
 
-      OnStack<3> os(state, under, name, obj);
-
       if(found) {
+        OnStack<3> os(state, under, name, obj);
+
         if(Autoload* autoload = try_as<Autoload>(obj)) {
           obj = autoload->resolve(state, gct, call_frame, under, true);
         }
