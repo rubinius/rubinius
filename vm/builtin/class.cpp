@@ -152,6 +152,7 @@ namespace rubinius {
       // transition all normal object classes to PackedObject
       Class* self = this;
       OnStack<1> os(state, self);
+      state->set_call_frame(calling_environment);
 
       auto_pack(state, gct);
       Object* new_obj = allocate_packed(state, gct, self, calling_environment);

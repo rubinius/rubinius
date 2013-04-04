@@ -195,6 +195,8 @@ namespace rubinius {
     state->vm()->thread->hard_unlock(state, gct);
 
     while(!exit_) {
+      state->vm()->set_call_frame(0);
+
       if(!process_list_) first_process_item();
 
       if(!process_list_) {
@@ -229,7 +231,6 @@ namespace rubinius {
   }
 
   void FinalizerHandler::finalize(STATE) {
-    state->vm()->set_call_frame(0);
 
     switch(process_item_kind_) {
     case eRuby: {

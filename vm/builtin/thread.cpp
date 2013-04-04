@@ -223,10 +223,12 @@ namespace rubinius {
 
     int calculate_stack = 0;
     NativeMethod::init_thread(state);
-    std::ostringstream tn;
-    tn << "rbx.ruby." << vm->thread_id();
 
-    VM::set_current(vm, tn.str());
+    {
+      std::ostringstream tn;
+      tn << "rbx.ruby." << vm->thread_id();
+      VM::set_current(vm, tn.str());
+    }
 
     RUBINIUS_THREAD_START(tn.str().c_str(), vm->thread_id(), 0);
 
@@ -478,7 +480,8 @@ namespace rubinius {
     return cTrue;
   }
 
-  Object* Thread::set_critical(STATE, Object* obj) {
+  Object* Thread::set_critical(STATE, Object* obj, CallFrame* calling_environment) {
+    state->set_call_frame(calling_environment);
     if(CBOOL(obj)) {
       state->shared().set_critical(state);
       return cTrue;
