@@ -82,7 +82,7 @@ namespace rubinius {
       if(obj == last) {
         locked_objects_.pop_back();
       } else {
-        LockedObjects::iterator f = find(locked_objects_.begin(), locked_objects_.end(), obj);
+        LockedObjects::iterator f = std::find(locked_objects_.begin(), locked_objects_.end(), obj);
         if(f != locked_objects_.end()) {
           locked_objects_.erase(f);
         }
