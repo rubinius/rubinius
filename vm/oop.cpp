@@ -376,7 +376,6 @@ retry:
     // #1 Attempt to lock an unlocked object using CAS.
 
     ObjectHeader* self = this;
-    OnStack<1> os(state, self);
 
 step1:
     // Construct 2 new headers: one is the version we hope that
@@ -425,6 +424,7 @@ step2:
         // We've recursively locked this object more than we can handle.
         // Inflate the lock then.
         if(++count > cAuxLockRecCountMax) {
+          OnStack<1> os(state, self);
           // If we can't inflate the lock, try the whole thing over again.
           if(!state->memory()->inflate_lock_count_overflow(state, self, count)) {
             goto step1;
@@ -456,6 +456,7 @@ step2:
       } else {
         // We weren't able to contend for it, probably because the header changed.
         // Do it all over again.
+        OnStack<1> os(state, self);
         LockStatus ret = state->memory()->contend_for_lock(state, gct, self, us, interrupt);
         if(ret == eLockError) goto step1;
         return ret;
@@ -464,16 +465,20 @@ step2:
     // The header is being used for something other than locking, so we need to
     // inflate it.
     case eAuxWordObjID:
-    case eAuxWordHandle:
+    case eAuxWordHandle: {
       // If we couldn't inflate the lock, that means the header was in some
       // weird state that we didn't detect and handle properly. So redo
       // the whole locking procedure again.
+      OnStack<1> os(state, self);
       if(!state->memory()->inflate_and_lock(state, self)) goto step1;
       return eLocked;
-    case eAuxWordInflated:
+    }
+    case eAuxWordInflated: {
       // The header is inflated, use the full lock.
+      OnStack<1> os(state, self);
       InflatedHeader* ih = ObjectHeader::header_to_inflated_header(state, orig);
       return ih->lock_mutex(state, gct, self, us, interrupt);
+    }
     }
 
     rubinius::bug("Invalid header meaning");
@@ -487,7 +492,6 @@ step2:
   LockStatus ObjectHeader::try_lock(STATE, GCToken gct) {
 
     ObjectHeader* self = this;
-    OnStack<1> os(state, self);
     // #1 Attempt to lock an unlocked object using CAS.
 
 step1:
@@ -533,6 +537,7 @@ step2:
         // We've recursively locked this object more than we can handle.
         // Inflate the lock then.
         if(++count > cAuxLockRecCountMax) {
+          OnStack<1> os(state, self);
           // If we can't inflate the lock, try the whole thing over again.
           if(!state->memory()->inflate_lock_count_overflow(state, self, count)) {
             goto step1;
@@ -561,16 +566,20 @@ step2:
     // The header is being used for something other than locking, so we need to
     // inflate it.
     case eAuxWordObjID:
-    case eAuxWordHandle:
+    case eAuxWordHandle: {
       // If we couldn't inflate the lock, that means the header was in some
       // weird state that we didn't detect and handle properly. So redo
       // the whole locking procedure again.
+      OnStack<1> os(state, self);
       if(!state->memory()->inflate_and_lock(state, self)) goto step1;
       return eLocked;
-    case eAuxWordInflated:
+    }
+    case eAuxWordInflated: {
       // The header is inflated, use the full lock.
+      OnStack<1> os(state, self);
       InflatedHeader* ih = ObjectHeader::header_to_inflated_header(state, orig);
       return ih->try_lock_mutex(state, gct, self);
+    }
     }
 
     rubinius::bug("Invalid header meaning");
