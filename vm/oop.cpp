@@ -471,6 +471,7 @@ step2:
       // the whole locking procedure again.
       OnStack<1> os(state, self);
       if(!state->memory()->inflate_and_lock(state, self)) goto step1;
+      state->vm()->add_locked_object(self);
       return eLocked;
     }
     case eAuxWordInflated: {
