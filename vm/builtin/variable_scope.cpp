@@ -41,6 +41,35 @@ namespace rubinius {
     return call_frame->promote_scope(state);
   }
 
+  VariableScope* VariableScope::synthesize(STATE, CompiledCode* method,
+                                           Module* module, Object* parent,
+                                           Object* self, Object* block,
+                                           Tuple* locals)
+  {
+    VariableScope* scope = state->new_object<VariableScope>(G(variable_scope));
+
+    scope->block(state, block);
+    scope->module(state, module);
+    scope->method(state, method);
+
+    if(VariableScope* vs = try_as<VariableScope>(parent)) {
+      scope->parent(state, vs);
+    } else {
+      scope->parent(state, nil<VariableScope>());
+    }
+
+    scope->heap_locals(state, locals);
+    scope->last_match(state, cNil);
+
+    scope->self(state, self);
+    scope->number_of_locals_ = locals->num_fields();
+    scope->isolated_ = true;
+    scope->locals_ = 0;
+    scope->block_as_method_ = 0;
+
+    return scope;
+  }
+
   Tuple* VariableScope::locals(STATE) {
     Tuple* tup = Tuple::create(state, number_of_locals_);
     for(int i = 0; i < number_of_locals_; i++) {

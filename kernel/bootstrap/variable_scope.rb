@@ -12,6 +12,11 @@ module Rubinius
       raise PrimitiveFailure, "Rubinius::VariableScope.current primitive failed"
     end
 
+    def self.synthesize(method, module_, parent, self_, block, locals)
+      Rubinius.primitive :variable_scope_synthesize
+      raise PrimitiveFailure, "Rubinius::VariableScope.synthesize primitive failed"
+    end
+
     def set_local(slot, obj)
       Rubinius.primitive :variable_scope_set_local
       raise PrimitiveFailure, "Rubinius::VariableScope#set_local primitive failed"
