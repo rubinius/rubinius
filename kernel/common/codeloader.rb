@@ -216,7 +216,9 @@ module Rubinius
             req.remove!
           end
         when :library
+          req.remove!
         when false
+          req.remove!
           return false
         else
           raise "received unknown type from #{loader.class}#require"
