@@ -97,8 +97,8 @@ namespace rubinius {
   }
 
   Object* Thread::unlock_locks(STATE, GCToken gct) {
-    std::list<ObjectHeader*>& los = vm_->locked_objects();
-    for(std::list<ObjectHeader*>::iterator i = los.begin();
+    LockedObjects& los = vm_->locked_objects();
+    for(LockedObjects::iterator i = los.begin();
         i != los.end();
         ++i) {
       (*i)->unlock_for_terminate(state, gct);
@@ -265,8 +265,8 @@ namespace rubinius {
     // the GC doesn't see pointers into now-unallocated CallFrames
     vm->set_call_frame(0);
 
-    std::list<ObjectHeader*>& los = vm->locked_objects();
-    for(std::list<ObjectHeader*>::iterator i = los.begin();
+    LockedObjects& los = vm->locked_objects();
+    for(LockedObjects::iterator i = los.begin();
         i != los.end();
         ++i) {
       (*i)->unlock_for_terminate(state, gct);

@@ -323,8 +323,8 @@ namespace rubinius {
   }
 
   void GarbageCollector::clean_locked_objects(ManagedThread* thr, bool young_only) {
-    std::list<ObjectHeader*>& los = thr->locked_objects();
-    for(std::list<ObjectHeader*>::iterator i = los.begin();
+    LockedObjects& los = thr->locked_objects();
+    for(LockedObjects::iterator i = los.begin();
         i != los.end();) {
       Object* obj = static_cast<Object*>(*i);
       if(young_only) {

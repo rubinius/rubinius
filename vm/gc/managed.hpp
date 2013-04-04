@@ -7,12 +7,14 @@
 #include "gc/root.hpp"
 #include "lock.hpp"
 
-#include <list>
+#include <vector>
 
 namespace rubinius {
   class SharedState;
   class VM;
   class WorldState;
+
+  typedef std::vector<ObjectHeader*> LockedObjects;
 
   class ManagedThread : public Lockable {
   public:
@@ -36,7 +38,7 @@ namespace rubinius {
     std::string name_;
     VariableRootBuffers variable_root_buffers_;
     RootBuffers root_buffers_;
-    std::list<ObjectHeader*> locked_objects_;
+    LockedObjects locked_objects_;
     RunState run_state_;
     Kind kind_;
 
@@ -64,7 +66,7 @@ namespace rubinius {
       return local_slab_;
     }
 
-    std::list<ObjectHeader*>& locked_objects() {
+    LockedObjects& locked_objects() {
       return locked_objects_;
     }
 
@@ -73,7 +75,18 @@ namespace rubinius {
     }
 
     void del_locked_object(ObjectHeader* obj) {
-      locked_objects_.remove(obj);
+      // Often we will remove the last locked object
+      // because how locks are used in a stack wise manner.
+      // Therefore we optimize here for this case and have a fast path
+      ObjectHeader* last = locked_objects_.back();
+      if(obj == last) {
+        locked_objects_.pop_back();
+      } else {
+        LockedObjects::iterator f = find(locked_objects_.begin(), locked_objects_.end(), obj);
+        if(f != locked_objects_.end()) {
+          locked_objects_.erase(f);
+        }
+      }
     }
 
     Kind kind() {
