@@ -7,6 +7,7 @@
 #include "gc/root.hpp"
 #include "lock.hpp"
 
+#include <algorithm>
 #include <vector>
 
 namespace rubinius {
