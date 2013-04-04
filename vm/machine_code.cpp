@@ -120,6 +120,9 @@ namespace rubinius {
     if(inline_caches) {
       delete[] inline_caches;
     }
+    if(constant_cache_offsets_) {
+      delete[] constant_cache_offsets_;
+    }
   }
 
   void MachineCode::cleanup(STATE, CodeManager* cm) {
