@@ -727,17 +727,15 @@ module Rubinius
 
       class IntegerAtom < Atom
         def bytecode
-          # A fast, common case.
-          wid = @width_static
-          if @f_zero and wid and !@f_space and !@f_plus
+          if fast_common_case?
             @g.push :self
 
             push_value
 
-            if wid == 2
+            if @width_static == 2
               @g.send :zero_two_expand_integer, 1
             else
-              @g.push_int wid
+              @g.push_int @width_static
               @g.send :zero_expand_integer, 2
             end
 
@@ -793,27 +791,7 @@ module Rubinius
 
               push_width_value
 
-              if @f_zero
-                if @f_space or @f_plus
-                  @g.send :zero_expand_leader, 2
-                else
-                  @g.send :zero_expand_integer, 2
-                end
-              else
-                if @f_space or @f_plus
-                  if @f_ljust
-                    @g.send :space_expand_leader_left, 2
-                  else
-                    @g.send :space_expand_leader, 2
-                  end
-                else
-                  if @f_ljust
-                    @g.send :space_expand_integer_left, 2
-                  else
-                    @g.send :space_expand_integer, 2
-                  end
-                end
-              end
+              expand_with_width
 
               @b.append_str
             else
