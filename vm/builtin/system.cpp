@@ -966,6 +966,7 @@ namespace rubinius {
     method->serial(state, Fixnum::from(0));
 
     OnStack<4> os(state, mod, method, scope, vis);
+    state->set_call_frame(calling_environment);
 
     mod->add_method(state, gct, name, method);
 
