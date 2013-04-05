@@ -812,9 +812,9 @@ step1:
     obj = allocate_object(bytes);
     if(unlikely(!obj)) return NULL;
 
+    obj->set_obj_type(type);
     obj->klass(this, cls);
     obj->ivars(this, cNil);
-    obj->set_obj_type(type);
 
     return obj;
   }
@@ -833,9 +833,9 @@ step1:
     obj = allocate_object_mature(bytes);
     if(unlikely(!obj)) return NULL;
 
+    obj->set_obj_type(type);
     obj->klass(this, cls);
     obj->ivars(this, cNil);
-    obj->set_obj_type(type);
 
     return obj;
   }
@@ -869,9 +869,9 @@ step1:
     }
 #endif
 
+    obj->set_obj_type(type);
     obj->klass(this, cls);
     obj->ivars(this, cNil);
-    obj->set_obj_type(type);
 
     return obj;
   }
