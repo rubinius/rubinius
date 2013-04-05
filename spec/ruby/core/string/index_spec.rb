@@ -230,6 +230,10 @@ describe "String#index with String" do
       "われわれ".index("わ", 1).should == 2
     end
 
+    it "returns the character index after a partial first match" do
+      "</</h".index("</h").should == 2
+    end
+
     it "raises an Encoding::CompatibilityError if the encodings are incompatible" do
       char = "れ".encode Encoding::EUC_JP
       lambda do
