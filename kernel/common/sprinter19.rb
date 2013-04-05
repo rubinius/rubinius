@@ -50,6 +50,36 @@ module Rubinius
 
       AtomMap[?c] = CharAtom
 
+      class IntegerAtom < Atom
+        def fast_common_case?
+          @f_zero and @width_static and !@f_space and !@f_plus and !@f_ljust
+        end
+
+        def expand_with_width
+          if @f_ljust
+            if @f_space or @f_plus
+              @g.send :space_expand_leader_left, 2
+            else
+              @g.send :space_expand_integer_left, 2
+            end
+          else
+            if @f_zero
+              if @f_space or @f_plus
+                @g.send :zero_expand_leader, 2
+              else
+                @g.send :zero_expand_integer, 2
+              end
+            else
+              if @f_space or @f_plus
+                @g.send :space_expand_leader, 2
+              else
+                @g.send :space_expand_integer, 2
+              end
+            end
+          end
+        end
+      end
+
       RE = /
         ([^%]+|%(?:[\n\0]|\z)) # 1
         |
