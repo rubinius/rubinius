@@ -554,7 +554,7 @@ namespace thread {
     typedef StackUnlockGuard<SpinLock> UnlockGuard;
 
   private:
-    atomic::atomic_int_t lock_;
+    int lock_;
 
   public:
     SpinLock()
@@ -566,17 +566,19 @@ namespace thread {
     }
 
     void lock() {
-      while(atomic::test_and_set(&lock_)) {
-        atomic::pause();
+      while(!atomic::compare_and_swap(&lock_, 0, 1)) {
+        while(lock_) {
+          atomic::pause();
+        }
       }
     }
 
     void unlock() {
-      atomic::test_and_clear(&lock_);
+      atomic::compare_and_swap(&lock_, 1, 0);
     }
 
     Code try_lock() {
-      if(!atomic::test_and_set(&lock_)) {
+      if(atomic::compare_and_swap(&lock_, 0, 1)) {
         return cLocked;
       }
 
