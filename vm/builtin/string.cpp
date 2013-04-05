@@ -1571,7 +1571,7 @@ namespace rubinius {
     }
 
     OnigEncodingType* enc = encoding(state)->get_encoding();
-    native_int sindex, index = 0;
+    native_int index = 0;
     int c;
 
     while(p < e && index < offset) {
@@ -1585,7 +1585,7 @@ namespace rubinius {
       }
     }
 
-    for(sindex = index, s = p, ss = pp; p < e; s = p += c, sindex = ++index) {
+    for(s = p, ss = pp; p < e; s = p += c, ++index) {
       c = Encoding::precise_mbclen(p, e, enc);
       if(!ONIGENC_MBCLEN_CHARFOUND_P(c)) return nil<Fixnum>();
 
@@ -1598,8 +1598,6 @@ namespace rubinius {
 
         c = Encoding::precise_mbclen(p, e, enc);
         if(!ONIGENC_MBCLEN_CHARFOUND_P(c)) break;
-
-        index++;
       }
 
     next_search:
@@ -1608,7 +1606,7 @@ namespace rubinius {
         p = s;
         pp = ss;
       } else {
-        return Fixnum::from(sindex);
+        return Fixnum::from(index);
       }
     }
 
