@@ -12,6 +12,7 @@
 #include "builtin/symbol.hpp"
 #include "builtin/weakref.hpp"
 #include "builtin/compiledcode.hpp"
+#include "builtin/nativemethod.hpp"
 #include "call_frame.hpp"
 #include "builtin/variable_scope.hpp"
 #include "builtin/constantscope.hpp"
@@ -171,12 +172,6 @@ namespace rubinius {
     while(call_frame) {
       call_frame = displace(call_frame, offset);
 
-      // Skip synthetic, non CompiledCode frames
-      if(!call_frame->compiled_code) {
-        call_frame = call_frame->previous;
-        continue;
-      }
-
       if(call_frame->custom_constant_scope_p() &&
           call_frame->constant_scope_ &&
           call_frame->constant_scope_->reference_p()) {
@@ -222,6 +217,9 @@ namespace rubinius {
         }
       }
 
+      if(NativeMethodFrame* nmf = call_frame->native_method_frame()) {
+        nmf->handles().gc_scan(this);
+      }
 
 #ifdef ENABLE_LLVM
       if(jit::RuntimeDataHolder* jd = call_frame->jit_data()) {
@@ -238,7 +236,9 @@ namespace rubinius {
       }
 #endif
 
-      saw_variable_scope(call_frame, displace(call_frame->scope, offset));
+      if(call_frame->scope) {
+        saw_variable_scope(call_frame, displace(call_frame->scope, offset));
+      }
 
       call_frame = call_frame->previous;
     }

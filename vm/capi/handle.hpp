@@ -252,6 +252,7 @@ namespace rubinius {
       void deref_all();
       void flush_all(NativeMethodEnvironment* env);
       void update_all(NativeMethodEnvironment* env);
+      void gc_scan(GarbageCollector* gc);
 
       bool add_if_absent(Handle* handle) {
         // ref() ONLY if it's not already in there!

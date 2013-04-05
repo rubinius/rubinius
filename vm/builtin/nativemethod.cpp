@@ -670,7 +670,7 @@ namespace rubinius {
     cf.optional_jit_data = 0;
     cf.top_scope_ = 0;
     cf.scope = 0;
-    cf.arguments = 0;
+    cf.arguments = &args;
 
     CallFrame* saved_frame = env->current_call_frame();
     env->set_current_call_frame(&cf);

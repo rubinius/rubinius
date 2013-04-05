@@ -112,6 +112,23 @@ namespace rubinius {
       }
     }
 
+    void HandleSet::gc_scan(GarbageCollector* gc) {
+      for(int i = 0; i < cFastHashSize; i++) {
+        if(capi::Handle* handle = table_[i]) {
+          handle->set_object(gc->mark_object(handle->object()));
+        }
+      }
+
+      if(slow_) {
+        for(SlowHandleSet::iterator i = slow_->begin();
+            i != slow_->end();
+            ++i) {
+          capi::Handle* handle = *i;
+          handle->set_object(gc->mark_object(handle->object()));
+        }
+      }
+    }
+
     bool HandleSet::slow_add_if_absent(Handle* handle) {
       for(int i = 0; i < cFastHashSize; i++) {
         if(table_[i] == handle) return false;
