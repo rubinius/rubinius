@@ -448,13 +448,13 @@ struct RFile {
 /** Convert a VALUE into a long int. */
 #define NUM2LONG(x)       (FIXNUM_P(x)?FIX2LONG(x):rb_num2long((VALUE)x))
 
-/** Convert a VALUE into a long int. */
+/** Convert a VALUE into an unsigned long int. */
 #define NUM2ULONG(x)      rb_num2ulong((VALUE)x)
 
 /** Convert a VALUE into an int. */
 #define NUM2INT(x)        ((int)NUM2LONG(x))
 
-/** Convert a VALUE into a long int. */
+/** Convert a VALUE into an unsigned int. */
 #define NUM2UINT(x)       ((unsigned int)NUM2ULONG(x))
 
 /** Convert a Fixnum into an int. */
