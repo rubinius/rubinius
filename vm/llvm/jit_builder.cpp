@@ -605,11 +605,6 @@ namespace jit {
       import_args_->back().eraseFromParent();
 
       b().SetInsertPoint(import_args_);
-      Signature sig(ctx_, obj_type);
-      sig << "State";
-      sig << "CallFrame";
-
-      Value* call_args[] = { info_.state(), call_frame };
 
       BasicBlock* ret_null = info_.new_block("ret_null");
 
@@ -655,6 +650,12 @@ namespace jit {
 
       b().CreateCondBr(check, prologue_check, body_);
       b().SetInsertPoint(prologue_check);
+
+      Signature sig(ctx_, obj_type);
+      sig << "State";
+      sig << "CallFrame";
+
+      Value* call_args[] = { info_.state(), call_frame };
 
       Value* ret = sig.call("rbx_prologue_check", call_args, 2, "ci", b());
       b().CreateCondBr(
