@@ -92,6 +92,7 @@ namespace rubinius {
     }
 
     bool check_async(CallFrame* call_frame) {
+      state->set_call_frame(state);
       if(vm_->check_local_interrupts()) {
         return process_async(call_frame);
       }
