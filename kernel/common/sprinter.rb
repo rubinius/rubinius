@@ -390,11 +390,9 @@ module Rubinius
         end
 
         def prepend_prefix
-          if @prefix
-            @g.push_literal @prefix
-            @g.string_dup
-            @g.string_append
-          end
+          @g.push_literal @prefix
+          @g.string_dup
+          @g.string_append
         end
 
         def set_value(ref)
@@ -881,7 +879,9 @@ module Rubinius
 
           zero_pad
 
-          prepend_prefix
+          if @prefix
+            prepend_prefix_bytecode
+          end
 
           if @f_plus || @f_space
             append_sign = @g.new_label

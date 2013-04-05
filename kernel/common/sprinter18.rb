@@ -69,6 +69,12 @@ module Rubinius
         end
       end
 
+      class ExtIntegerAtom < Atom
+        def prepend_prefix_bytecode
+          prepend_prefix
+        end
+      end
+
       RE = /
         ([^%]+|%(?:[\n\0]|\z)) # 1
         |
