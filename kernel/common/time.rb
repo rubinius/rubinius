@@ -13,7 +13,7 @@ class Time
   #++
 
   def self._load(data)
-    raise TypeError, 'marshaled time format differ' unless data.length == 8
+    raise TypeError, 'marshaled time format differ' unless data.bytesize == 8
 
     major, minor = data.unpack 'VV'
 
