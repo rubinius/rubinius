@@ -503,6 +503,8 @@ step1:
 
     SYNC(state);
 
+    state->set_call_frame(call_frame);
+
     state->shared().finalizer_handler()->start_collection(state);
 
     if(cDebugThreading) {
