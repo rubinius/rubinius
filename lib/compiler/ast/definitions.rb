@@ -557,6 +557,7 @@ module Rubinius
           node = arguments.first
           if node.kind_of? PatternVariable
             @argument = node
+            scope.new_local node.name
             scope.assign_local_reference node
             return
           end
