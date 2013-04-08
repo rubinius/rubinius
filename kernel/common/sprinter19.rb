@@ -10,6 +10,11 @@ module Rubinius
         @g.send :force_encoding, 1
       end
 
+      def is_zero
+        @g.meta_push_0
+        @g.meta_send_op_equal @g.find_literal(:==)
+      end
+
       class CharAtom < Atom
         def bytecode
           push_value
@@ -77,6 +82,24 @@ module Rubinius
               end
             end
           end
+        end
+      end
+
+      class ExtIntegerAtom < Atom
+        def prepend_prefix_bytecode
+          skip_prefix = @g.new_label
+
+          # For 'x' and 'X', don't prepend the "0x" prefix
+          # if the value is zero
+          if @format_code == 'x' || @format_code == 'X'
+            push_value
+            @b.is_zero
+            @g.git skip_prefix
+          end
+
+          prepend_prefix
+
+          skip_prefix.set!
         end
       end
 
