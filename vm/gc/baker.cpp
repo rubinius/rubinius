@@ -46,6 +46,7 @@ namespace rubinius {
   {
     current = &heap_a;
     next = &heap_b;
+    reset();
   }
 
   BakerGC::~BakerGC() { }
@@ -353,9 +354,24 @@ namespace rubinius {
         fi.object = saw_object(fi.object);
       }
 
+      // If this object is mature, handle it as if promoted. This
+      // means that any young objects it refers to are properly
+      // GC'ed and kept alive if necessary
+      if(fi.object->mature_object_p()) {
+        promoted_push(fi.object);
+      }
+
       Object *fin = fi.ruby_finalizer;
-      if(fin && fin->reference_p() && fin->young_object_p()) {
-        fi.ruby_finalizer = saw_object(fi.ruby_finalizer);
+      if(fin && fin->reference_p()) {
+        if(fin->young_object_p()) {
+          fi.ruby_finalizer = saw_object(fin);
+        }
+        // If this object is mature, handle it as if promoted. This
+        // means that any young objects it refers to are properly
+        // GC'ed and kept alive if necessary
+        if(fin->mature_object_p()) {
+          promoted_push(fin);
+        }
       }
 
       i.next(live);
