@@ -630,7 +630,7 @@ namespace rubinius {
 
   template <class ArgumentHandler>
   Object* NativeMethod::executor_implementation(STATE,
-      CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args) {
+      CallFrame* previous, Executable* exec, Module* mod, Arguments& args) {
     NativeMethod* nm = as<NativeMethod>(exec);
 
     int arity = nm->arity()->to_int();
@@ -638,7 +638,7 @@ namespace rubinius {
     if(arity >= 0 && (size_t)arity != args.total()) {
       Exception* exc = Exception::make_argument_error(
           state, arity, args.total(), args.name());
-      exc->locations(state, Location::from_call_stack(state, call_frame));
+      exc->locations(state, Location::from_call_stack(state, previous));
       state->raise_exception(exc);
 
       return NULL;
@@ -659,23 +659,23 @@ namespace rubinius {
 
 
     NativeMethodFrame nmf(env->current_native_frame());
-    CallFrame cf;
-    cf.previous = call_frame;
-    cf.constant_scope_ = 0;
-    cf.dispatch_data = (void*)&nmf;
-    cf.compiled_code = 0;
-    cf.flags = CallFrame::cNativeMethod;
-    cf.optional_jit_data = 0;
-    cf.top_scope_ = 0;
-    cf.scope = 0;
-    cf.arguments = &args;
+    CallFrame* call_frame = ALLOCA_CALLFRAME(0);
+    call_frame->previous = previous;
+    call_frame->constant_scope_ = 0;
+    call_frame->dispatch_data = (void*)&nmf;
+    call_frame->compiled_code = 0;
+    call_frame->flags = CallFrame::cNativeMethod;
+    call_frame->optional_jit_data = 0;
+    call_frame->top_scope_ = 0;
+    call_frame->scope = 0;
+    call_frame->arguments = &args;
 
     CallFrame* saved_frame = env->current_call_frame();
-    env->set_current_call_frame(&cf);
+    env->set_current_call_frame(call_frame);
     env->set_current_native_frame(&nmf);
 
     // Register the CallFrame, because we might GC below this.
-    state->set_call_frame(&cf);
+    state->set_call_frame(call_frame);
 
     // Be sure to do this after installing nmf as the current
     // native frame.
