@@ -42,6 +42,12 @@
 
 #endif
 
+#if defined(_LP64) || defined(__LP64__) || defined(__x86_64__) || defined(__amd64__)
+#define X86_PAUSE 1
+#elif defined(i386) || defined(__i386) || defined(__i386__)
+#define X86_PAUSE 1
+#endif
+
 #if defined(APPLE_SYNC) || defined(APPLE_BARRIER)
 #include <libkern/OSAtomic.h>
 #endif
@@ -60,6 +66,15 @@ namespace atomic {
     __asm__ __volatile__ ("mfence" ::: "memory");
 #else
 #error "no memory barrier implementation"
+#endif
+  }
+
+  inline void pause() {
+#if defined(X86_PAUSE)
+    __asm__ __volatile__ ("rep; nop" ::: "memory");
+#else
+    struct timespec ts = {0, 0};
+    nanosleep(&ts, NULL);
 #endif
   }
 
@@ -206,7 +221,7 @@ namespace atomic {
 
 class SpinLock {
 private:
-  atomic::atomic_int_t lock_;
+  int lock_;
 
 public:
   SpinLock()
@@ -218,15 +233,19 @@ public:
   }
 
   void lock() {
-    while(atomic::test_and_set(&lock_));
+    while(!atomic::compare_and_swap(&lock_, 0, 1)) {
+      while(lock_) {
+        atomic::pause();
+      }
+    }
   }
 
   void unlock() {
-    atomic::test_and_clear(&lock_);
+    atomic::compare_and_swap(&lock_, 1, 0);
   }
 
   bool try_lock() {
-    if(!atomic::test_and_set(&lock_)) {
+    if(atomic::compare_and_swap(&lock_, 0, 1)) {
       return true;
     }
 

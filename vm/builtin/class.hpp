@@ -74,7 +74,7 @@ namespace rubinius {
     // Rubinius.primitive :class_set_superclass
     Object* set_superclass(STATE, Object* sup);
 
-    void auto_pack(STATE, GCToken gct);
+    void auto_pack(STATE, GCToken gct, CallFrame* call_frame);
 
     class Info : public Module::Info {
     public:

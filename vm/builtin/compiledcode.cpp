@@ -105,7 +105,7 @@ namespace rubinius {
     return as<Fixnum>(lines_->at(fin+1))->to_native();
   }
 
-  MachineCode* CompiledCode::internalize(STATE, GCToken gct,
+  MachineCode* CompiledCode::internalize(STATE, GCToken gct, CallFrame* call_frame,
                                         const char** reason, int* ip)
   {
     MachineCode* mcode = machine_code_;
@@ -117,7 +117,7 @@ namespace rubinius {
     CompiledCode* self = this;
     OnStack<1> os(state, self);
 
-    self->hard_lock(state, gct);
+    self->hard_lock(state, gct, call_frame);
 
     mcode = self->machine_code_;
     if(!mcode) {
@@ -148,7 +148,7 @@ namespace rubinius {
       set_executor(mcode->fallback);
     }
 
-    self->hard_unlock(state, gct);
+    self->hard_unlock(state, gct, call_frame);
     return mcode;
   }
 
@@ -198,8 +198,7 @@ namespace rubinius {
       OnStack<4> os(state, code, exec, mod, args.argument_container_location());
       GCTokenImpl gct;
 
-      state->set_call_frame(call_frame);
-      if(!code->internalize(state, gct, &reason, &ip)) {
+      if(!code->internalize(state, gct, call_frame, &reason, &ip)) {
         Exception::bytecode_error(state, call_frame, code, ip, reason);
         return 0;
       }
@@ -337,8 +336,7 @@ namespace rubinius {
 
     int i = ip->to_native();
     if(self->machine_code_ == NULL) {
-      state->set_call_frame(calling_environment);
-      if(!self->internalize(state, gct)) return Primitives::failure();
+      if(!self->internalize(state, gct, calling_environment)) return Primitives::failure();
     }
 
     if(!self->machine_code_->validate_ip(state, i)) return Primitives::failure();

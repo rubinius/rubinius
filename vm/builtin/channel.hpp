@@ -47,13 +47,13 @@ namespace rubinius {
     void    cancel_waiter(STATE, const Thread* waiter);
 
     // Rubinius.primitive :channel_send
-    Object* send(STATE, GCToken gct, Object*);
+    Object* send(STATE, GCToken gct, Object* val, CallFrame* calling_environment);
 
     // Rubinius.primitive :channel_receive
     Object* receive(STATE, GCToken gct, CallFrame* calling_environment);
 
     // Rubinius.primitive :channel_try_receive
-    Object* try_receive(STATE, GCToken gct);
+    Object* try_receive(STATE, GCToken gct, CallFrame* calling_environment);
 
     // Rubinius.primitive :channel_receive_timeout
     Object* receive_timeout(STATE, GCToken gct, Object* duration, CallFrame* calling_environment);

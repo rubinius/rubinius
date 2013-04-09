@@ -332,7 +332,7 @@ namespace rubinius {
     static Object* vm_object_trylock(STATE, GCToken gct, Object* obj, CallFrame* calling_environment);
 
     // Rubinius.primitive :vm_object_locked_p
-    static Object* vm_object_locked_p(STATE, GCToken gct, Object* obj);
+    static Object* vm_object_locked_p(STATE, GCToken gct, Object* obj, CallFrame* calling_environment);
 
     // Rubinius.primitive :vm_object_unlock
     static Object* vm_object_unlock(STATE, GCToken gct, Object* obj, CallFrame* calling_environment);

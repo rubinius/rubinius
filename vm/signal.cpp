@@ -150,13 +150,13 @@ namespace rubinius {
 
     RUBINIUS_THREAD_START(thread_name, state->vm()->thread_id(), 1);
 
-    state->vm()->thread->hard_unlock(state, gct);
+    state->vm()->thread->hard_unlock(state, gct, 0);
 
     while(!exit_) {
       {
         utilities::thread::Mutex::LockGuard lg(worker_lock_);
         if(exit_) break;
-        state->gc_independent(gct);
+        state->gc_independent(gct, 0);
         paused_ = true;
         pause_cond_.signal();
         worker_cond_.wait(worker_lock_);
@@ -172,7 +172,7 @@ namespace rubinius {
       }
 
       target_->set_check_local_interrupts();
-      target_->wakeup(state, gct);
+      target_->wakeup(state, gct, 0);
     }
     RUBINIUS_THREAD_STOP(thread_name, state->vm()->thread_id(), 1);
   }

@@ -169,7 +169,7 @@ namespace rubinius {
      *  Process an exception raised for this Thread.
      */
     // Rubinius.primitive :thread_raise
-    Object* raise(STATE, GCToken gct, Exception* exc);
+    Object* raise(STATE, GCToken gct, Exception* exc, CallFrame* calling_environment);
 
     /**
      *  Returns current exception
@@ -181,7 +181,7 @@ namespace rubinius {
      *  Kill this Thread.
      */
     // Rubinius.primitive :thread_kill
-    Object* kill(STATE, GCToken gct);
+    Object* kill(STATE, GCToken gct, CallFrame* calling_environment);
 
     /**
      *  Set the priority for this Thread.
@@ -201,7 +201,7 @@ namespace rubinius {
      *  is queued to be run, although not necessarily immediately.
      */
     // Rubinius.primitive :thread_wakeup
-    Thread* wakeup(STATE, GCToken gct);
+    Thread* wakeup(STATE, GCToken gct, CallFrame* calling_environment);
 
     // Rubinius.primitive :thread_context
     Tuple* context(STATE);
@@ -216,7 +216,7 @@ namespace rubinius {
     static Object* set_critical(STATE, Object* obj, CallFrame* calling_environment);
 
     // Rubinius.primitive :thread_unlock_locks
-    Object* unlock_locks(STATE, GCToken gct);
+    Object* unlock_locks(STATE, GCToken gct, CallFrame* calling_environment);
 
     /**
      * Retrieve a value store in the thread locals.

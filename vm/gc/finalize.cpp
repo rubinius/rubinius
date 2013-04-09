@@ -192,7 +192,7 @@ namespace rubinius {
     utilities::thread::Thread::set_os_name(thread_name);
     RUBINIUS_THREAD_START(thread_name, state->vm()->thread_id(), 1);
 
-    state->vm()->thread->hard_unlock(state, gct);
+    state->vm()->thread->hard_unlock(state, gct, 0);
 
     while(!exit_) {
       state->vm()->set_call_frame(0);
@@ -208,7 +208,7 @@ namespace rubinius {
           // exit_ might have been set in the mean while after
           // we grabbed the worker_lock
           if(exit_) break;
-          state->gc_independent(gct);
+          state->gc_independent(gct, 0);
           paused_ = true;
           pause_cond_.signal();
           worker_wait();
@@ -345,8 +345,7 @@ namespace rubinius {
       {
         utilities::thread::Mutex::LockGuard lg(supervisor_lock_);
 
-        state->vm()->set_call_frame(0);
-        GCIndependent indy(state);
+        GCIndependent indy(state, 0);
         if(process_list_) supervisor_wait();
       }
     }

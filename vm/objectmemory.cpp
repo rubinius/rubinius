@@ -160,8 +160,8 @@ namespace rubinius {
     return true;
   }
 
-  LockStatus ObjectMemory::contend_for_lock(STATE, GCToken gct, ObjectHeader* obj,
-                                            size_t us, bool interrupt)
+  LockStatus ObjectMemory::contend_for_lock(STATE, GCToken gct, CallFrame* call_frame,
+                                            ObjectHeader* obj, size_t us, bool interrupt)
   {
     bool timed = false;
     bool timeout = false;
@@ -170,7 +170,7 @@ namespace rubinius {
     OnStack<1> os(state, obj);
 
     {
-      GCLockGuard lg(state, gct, contention_lock_);
+      GCLockGuard lg(state, gct, call_frame, contention_lock_);
 
       // We want to lock obj, but someone else has it locked.
       //
@@ -230,7 +230,7 @@ step1:
       state->vm()->set_sleeping();
 
       while(!obj->inflated_header_p()) {
-        GCIndependent gc_guard(state);
+        GCIndependent gc_guard(state, call_frame);
 
         if(timed) {
           timeout = (contention_var_.wait_until(contention_lock_, &ts) == utilities::thread::cTimedOut);
@@ -284,14 +284,14 @@ step1:
     InflatedHeader* ih = obj->inflated_header(state);
 
     if(timed) {
-      return ih->lock_mutex_timed(state, gct, obj, &ts, interrupt);
+      return ih->lock_mutex_timed(state, gct, call_frame, obj, &ts, interrupt);
     } else {
-      return ih->lock_mutex(state, gct, obj, 0, interrupt);
+      return ih->lock_mutex(state, gct, call_frame, obj, 0, interrupt);
     }
   }
 
-  void ObjectMemory::release_contention(STATE, GCToken gct) {
-    GCLockGuard lg(state, gct, contention_lock_);
+  void ObjectMemory::release_contention(STATE, GCToken gct, CallFrame* call_frame) {
+    GCLockGuard lg(state, gct, call_frame, contention_lock_);
     contention_var_.broadcast();
   }
 
@@ -500,10 +500,7 @@ step1:
     }
 
     // Ok, everyone in stopped! LET'S GC!
-
     SYNC(state);
-
-    state->set_call_frame(call_frame);
 
     state->shared().finalizer_handler()->start_collection(state);
 

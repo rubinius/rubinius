@@ -43,7 +43,7 @@ namespace rubinius {
     Module* module_;              // slot
     Tuple* metadata_container_;   // slot
 
-    MachineCode* machine_code(STATE, GCToken gct);
+    MachineCode* machine_code(STATE, GCToken gct, CallFrame* call_frame);
 
   public:
     /* accessors */

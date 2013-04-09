@@ -52,8 +52,8 @@ namespace rubinius {
     return env;
   }
 
-  MachineCode* BlockEnvironment::machine_code(STATE, GCToken gct) {
-    return compiled_code_->internalize(state, gct);
+  MachineCode* BlockEnvironment::machine_code(STATE, GCToken gct, CallFrame* call_frame) {
+    return compiled_code_->internalize(state, gct, call_frame);
   }
 
   Object* BlockEnvironment::invoke(STATE, CallFrame* previous,
@@ -66,8 +66,7 @@ namespace rubinius {
       OnStack<2> os(state, env, args.argument_container_location());
       GCTokenImpl gct;
 
-      state->set_call_frame(previous);
-      mcode = env->machine_code(state, gct);
+      mcode = env->machine_code(state, gct, previous);
 
       if(!mcode) {
         Exception::internal_error(state, previous, "invalid bytecode method");
@@ -424,8 +423,7 @@ namespace rubinius {
     MachineCode* mcode = ccode->machine_code();
     if(!mcode) {
       OnStack<1> os(state, ccode);
-      state->set_call_frame(call_frame);
-      mcode = ccode->internalize(state, gct);
+      mcode = ccode->internalize(state, gct, call_frame);
       if(!mcode) {
         Exception::internal_error(state, call_frame, "invalid bytecode method");
         return 0;

@@ -96,12 +96,12 @@ namespace rubinius {
     return state->vm()->thread.get();
   }
 
-  Object* Thread::unlock_locks(STATE, GCToken gct) {
+  Object* Thread::unlock_locks(STATE, GCToken gct, CallFrame* calling_environment) {
     LockedObjects& los = vm_->locked_objects();
     for(LockedObjects::iterator i = los.begin();
         i != los.end();
         ++i) {
-      (*i)->unlock_for_terminate(state, gct);
+      (*i)->unlock_for_terminate(state, gct, calling_environment);
     }
     los.clear();
     return cNil;
@@ -244,7 +244,7 @@ namespace rubinius {
     GCTokenImpl gct;
 
     // Lock the thread object and unlock it at __run__ in the ruby land.
-    vm->thread->hard_lock(state, gct);
+    vm->thread->hard_lock(state, gct, 0);
     vm->thread->alive(state, cTrue);
     vm->thread->init_lock_.unlock();
 
@@ -271,7 +271,7 @@ namespace rubinius {
     for(LockedObjects::iterator i = los.begin();
         i != los.end();
         ++i) {
-      (*i)->unlock_for_terminate(state, gct);
+      (*i)->unlock_for_terminate(state, gct, 0);
     }
 
     vm->thread->init_lock_.lock();
@@ -281,7 +281,7 @@ namespace rubinius {
     vm->thread->cleanup();
     vm->thread->init_lock_.unlock();
 
-    vm->shared.gc_independent(state);
+    vm->shared.gc_independent(state, 0);
     vm->shared.clear_critical(state);
 
     VM::discard(state, vm);
@@ -344,7 +344,7 @@ namespace rubinius {
     return cNil;
   }
 
-  Object* Thread::raise(STATE, GCToken gct, Exception* exc) {
+  Object* Thread::raise(STATE, GCToken gct, Exception* exc, CallFrame* calling_environment) {
     utilities::thread::SpinLock::LockGuard lg(init_lock_);
     Thread* self = this;
     OnStack<2> os(state, self, exc);
@@ -356,7 +356,7 @@ namespace rubinius {
 
     vm->register_raise(state, exc);
 
-    vm->wakeup(state, gct);
+    vm->wakeup(state, gct, calling_environment);
     return exc;
   }
 
@@ -365,7 +365,7 @@ namespace rubinius {
     return vm_->thread_state()->current_exception();
   }
 
-  Object* Thread::kill(STATE, GCToken gct) {
+  Object* Thread::kill(STATE, GCToken gct, CallFrame* calling_environment) {
     utilities::thread::SpinLock::LockGuard lg(init_lock_);
     Thread* self = this;
     OnStack<1> os(state, self);
@@ -380,7 +380,7 @@ namespace rubinius {
       return NULL;
     } else {
       vm->register_kill(state);
-      vm->wakeup(state, gct);
+      vm->wakeup(state, gct, calling_environment);
       return self;
     }
   }
@@ -389,7 +389,7 @@ namespace rubinius {
     return new_priority;
   }
 
-  Thread* Thread::wakeup(STATE, GCToken gct) {
+  Thread* Thread::wakeup(STATE, GCToken gct, CallFrame* calling_environment) {
     utilities::thread::SpinLock::LockGuard lg(init_lock_);
     Thread* self = this;
     OnStack<1> os(state, self);
@@ -399,7 +399,7 @@ namespace rubinius {
       return force_as<Thread>(Primitives::failure());
     }
 
-    vm->wakeup(state, gct);
+    vm->wakeup(state, gct, calling_environment);
 
     return self;
   }
@@ -457,7 +457,7 @@ namespace rubinius {
 
     init_lock_.unlock();
 
-    state->gc_independent(gct);
+    state->gc_independent(gct, calling_environment);
     void* val;
     int err = pthread_join(id, &val);
     state->gc_dependent();
@@ -483,7 +483,7 @@ namespace rubinius {
   Object* Thread::set_critical(STATE, Object* obj, CallFrame* calling_environment) {
     state->set_call_frame(calling_environment);
     if(CBOOL(obj)) {
-      state->shared().set_critical(state);
+      state->shared().set_critical(state, calling_environment);
       return cTrue;
     } else {
       state->shared().clear_critical(state);

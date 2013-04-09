@@ -295,12 +295,12 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     bool update(STATE, HeaderWord header);
     void initialize_mutex(int thread_id, int count);
-    LockStatus lock_mutex(STATE, GCToken gct, ObjectHeader* obj, size_t us, bool interrupt);
-    LockStatus lock_mutex_timed(STATE, GCToken gct, ObjectHeader* obj, const struct timespec* ts, bool interrupt);
-    LockStatus try_lock_mutex(STATE, GCToken gct, ObjectHeader* obj);
-    bool locked_mutex_p(STATE, GCToken gct);
-    LockStatus unlock_mutex(STATE, GCToken gct, ObjectHeader* obj);
-    void unlock_mutex_for_terminate(STATE, GCToken gct, ObjectHeader* obj);
+    LockStatus lock_mutex(STATE, GCToken gct, CallFrame* call_frame, ObjectHeader* obj, size_t us, bool interrupt);
+    LockStatus lock_mutex_timed(STATE, GCToken gct, CallFrame* call_frame, ObjectHeader* obj, const struct timespec* ts, bool interrupt);
+    LockStatus try_lock_mutex(STATE, GCToken gct, CallFrame* call_frame, ObjectHeader* obj);
+    bool locked_mutex_p(STATE, GCToken gct, CallFrame* call_frame);
+    LockStatus unlock_mutex(STATE, GCToken gct, CallFrame* call_frame, ObjectHeader* obj);
+    void unlock_mutex_for_terminate(STATE, GCToken gct, CallFrame* call_frame, ObjectHeader* obj);
 
     void wakeup();
 
@@ -600,17 +600,17 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     void set_object_id(STATE, uint32_t id);
 
-    LockStatus lock(STATE, GCToken gct, size_t us=0, bool interrupt=true);
-    LockStatus try_lock(STATE, GCToken gct);
-    bool locked_p(STATE, GCToken gct);
-    LockStatus unlock(STATE, GCToken gct);
-    void unlock_for_terminate(STATE, GCToken gct);
+    LockStatus lock(STATE, GCToken gct, CallFrame* call_frame, size_t us=0, bool interrupt=true);
+    LockStatus try_lock(STATE, GCToken gct, CallFrame* call_frame);
+    bool locked_p(STATE, GCToken gct, CallFrame* call_frame);
+    LockStatus unlock(STATE, GCToken gct, CallFrame* call_frame);
+    void unlock_for_terminate(STATE, GCToken gct, CallFrame* call_frame);
 
     // Abort if unable to lock
-    void hard_lock(STATE, GCToken gct, size_t us=0);
+    void hard_lock(STATE, GCToken gct, CallFrame* call_frame, size_t us=0);
 
     // Abort if unable to unlock
-    void hard_unlock(STATE, GCToken gct);
+    void hard_unlock(STATE, GCToken gct, CallFrame* call_frame);
 
     void wait(STATE);
 

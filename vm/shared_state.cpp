@@ -219,7 +219,8 @@ namespace rubinius {
     world_->become_dependent(state->vm());
   }
 
-  void SharedState::gc_independent(STATE) {
+  void SharedState::gc_independent(STATE, CallFrame* call_frame) {
+    state->set_call_frame(call_frame);
     world_->become_independent(state->vm());
   }
 
@@ -231,14 +232,14 @@ namespace rubinius {
     world_->become_independent(state);
   }
 
-  void SharedState::set_critical(STATE) {
+  void SharedState::set_critical(STATE, CallFrame* call_frame) {
     SYNC(state);
 
     if(!ruby_critical_set_ ||
          !pthread_equal(ruby_critical_thread_, pthread_self())) {
 
       UNSYNC;
-      GCIndependent gc_guard(state);
+      GCIndependent gc_guard(state, call_frame);
       ruby_critical_lock_.lock();
       ruby_critical_thread_ = pthread_self();
       ruby_critical_set_ = true;

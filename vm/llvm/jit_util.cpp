@@ -897,7 +897,7 @@ extern "C" {
   int rbx_enter_unmanaged(STATE, CallFrame* call_frame) {
     GCTokenImpl gct;
     state->set_call_frame(call_frame);
-    state->gc_independent(gct);
+    state->gc_independent(gct, call_frame);
     return 0;
   }
 

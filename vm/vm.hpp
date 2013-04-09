@@ -408,7 +408,7 @@ namespace rubinius {
     void wait_on_inflated_lock(InflatedHeader* ih);
     void wait_on_custom_function(void (*func)(void*), void* data);
     void clear_waiter();
-    bool wakeup(STATE, GCToken gct);
+    bool wakeup(STATE, GCToken gct, CallFrame* call_frame);
     bool waiting_p();
 
     void set_parked();
@@ -471,15 +471,7 @@ namespace rubinius {
       : state_(state)
     {
       GCTokenImpl gct;
-      state_->set_call_frame(call_frame);
-      state_->gc_independent(gct);
-    }
-
-    GCIndependent(STATE)
-      : state_(state)
-    {
-      GCTokenImpl gct;
-      state_->gc_independent(gct);
+      state_->gc_independent(gct, call_frame);
     }
 
     GCIndependent(NativeMethodEnvironment* env);
@@ -493,11 +485,11 @@ namespace rubinius {
   class GCIndependentLockGuard : public utilities::thread::LockGuardTemplate<T> {
     State* state_;
   public:
-    GCIndependentLockGuard(STATE, GCToken gct, T& in_lock)
+    GCIndependentLockGuard(STATE, GCToken gct, CallFrame* call_frame, T& in_lock)
       : utilities::thread::LockGuardTemplate<T>(in_lock, false)
       , state_(state)
     {
-      state_->shared().gc_independent(state_);
+      state_->shared().gc_independent(state_, call_frame);
       this->lock();
       state->shared().gc_dependent(state_);
     }

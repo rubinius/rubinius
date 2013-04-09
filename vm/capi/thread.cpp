@@ -158,7 +158,7 @@ extern "C" {
 
     void* ret = (*func)(data);
 
-    env->state()->gc_independent(gct);
+    env->state()->gc_independent(gct, env->current_call_frame());
     LEAVE_CAPI(env->state());
 
     return ret;

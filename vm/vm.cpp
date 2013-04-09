@@ -340,7 +340,7 @@ namespace rubinius {
     vm_jit_.interrupt_with_signal_ = true;
   }
 
-  bool VM::wakeup(STATE, GCToken gct) {
+  bool VM::wakeup(STATE, GCToken gct, CallFrame* call_frame) {
     SYNC(state);
 
     set_check_local_interrupts();
@@ -356,7 +356,7 @@ namespace rubinius {
 #endif
       UNSYNC;
       // Wakeup any locks hanging around with contention
-      om->release_contention(state, gct);
+      om->release_contention(state, gct, call_frame);
       return true;
     } else if(InflatedHeader* ih = waiting_header_) {
       // We shouldn't hold the VM lock and the IH lock at the same time,
@@ -369,12 +369,12 @@ namespace rubinius {
 
       if(!chan->nil_p()) {
         UNSYNC;
-        om->release_contention(state, gct);
-        chan->send(state, gct, cNil);
+        om->release_contention(state, gct, call_frame);
+        chan->send(state, gct, cNil, call_frame);
         return true;
       } else if(custom_wakeup_) {
         UNSYNC;
-        om->release_contention(state, gct);
+        om->release_contention(state, gct, call_frame);
         (*custom_wakeup_)(custom_wakeup_data_);
         return true;
       }
@@ -462,8 +462,7 @@ namespace rubinius {
     : state_(env->state())
   {
     GCTokenImpl gct;
-    state_->set_call_frame(env->current_call_frame());
-    state_->gc_independent(gct);
+    state_->gc_independent(gct, env->current_call_frame());
   };
 
 };

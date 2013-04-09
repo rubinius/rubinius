@@ -166,6 +166,7 @@ namespace rubinius {
     // can't be accessed.
 
     cur = Fiber::current(state);
+    state->set_call_frame(cur->call_frame());
 
     if(!cur->exception()->nil_p()) {
       state->raise_exception(cur->exception());
@@ -222,6 +223,7 @@ namespace rubinius {
     // can't be accessed.
 
     cur = Fiber::current(state);
+    state->set_call_frame(cur->call_frame());
 
     if(!cur->exception()->nil_p()) {
       state->raise_exception(cur->exception());
@@ -271,6 +273,7 @@ namespace rubinius {
     // can't be accessed.
 
     cur = Fiber::current(state);
+    state->set_call_frame(cur->call_frame());
 
     Array* ret = cur->value();
 

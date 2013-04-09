@@ -152,9 +152,8 @@ namespace rubinius {
       // transition all normal object classes to PackedObject
       Class* self = this;
       OnStack<1> os(state, self);
-      state->set_call_frame(calling_environment);
 
-      auto_pack(state, gct);
+      auto_pack(state, gct, calling_environment);
       Object* new_obj = allocate_packed(state, gct, self, calling_environment);
 #ifdef RBX_ALLOC_TRACKING
       if(unlikely(state->vm()->allocation_tracking())) {
@@ -225,16 +224,16 @@ namespace rubinius {
    *
    * This locks the class so that construction is serialized.
    */
-  void Class::auto_pack(STATE, GCToken gct) {
+  void Class::auto_pack(STATE, GCToken gct, CallFrame* call_frame) {
     Class* self = this;
     OnStack<1> os(state, self);
 
-    hard_lock(state, gct);
+    hard_lock(state, gct, call_frame);
 
     // If another thread did this work while we were waiting on the lock,
     // don't redo it.
     if(self->type_info_->type == PackedObject::type) {
-      self->hard_unlock(state, gct);
+      self->hard_unlock(state, gct, call_frame);
       return;
     }
 
@@ -284,7 +283,7 @@ namespace rubinius {
     atomic::memory_barrier();
     self->set_object_type(state, PackedObject::type);
 
-    self->hard_unlock(state, gct);
+    self->hard_unlock(state, gct, call_frame);
   }
 
   Class* Class::real_class(STATE, Class* klass) {

@@ -144,7 +144,7 @@ namespace rubinius {
     oc->primitive(state, prim);
     oc->resolve_primitive(state);
 
-    tbl->store(state, gct, name, oc, G(sym_public));
+    tbl->store(state, gct, name, oc, G(sym_public), 0);
   }
 
 /* Primitives */
@@ -968,12 +968,12 @@ namespace rubinius {
     OnStack<4> os(state, mod, method, scope, vis);
     state->set_call_frame(calling_environment);
 
-    mod->add_method(state, gct, name, method);
+    mod->add_method(state, gct, calling_environment, name, method);
 
     if(Class* cls = try_as<Class>(mod)) {
       OnStack<1> o2(state, cls);
 
-      if(!method->internalize(state, gct)) {
+      if(!method->internalize(state, gct, calling_environment)) {
         Exception::argument_error(state, "invalid bytecode method");
         return 0;
       }
@@ -1028,7 +1028,7 @@ namespace rubinius {
 
     OnStack<2> os(state, mod, method);
 
-    mod->add_method(state, gct, name, method);
+    mod->add_method(state, gct, calling_environment, name, method);
 
     vm_reset_method_cache(state, name, calling_environment);
 
@@ -1400,9 +1400,8 @@ namespace rubinius {
                                  CallFrame* call_frame)
   {
     if(!obj->reference_p()) return Primitives::failure();
-    state->set_call_frame(call_frame);
 
-    switch(obj->lock(state, gct)) {
+    switch(obj->lock(state, gct, call_frame)) {
     case eLocked:
       return cTrue;
     case eLockTimeout:
@@ -1429,7 +1428,7 @@ namespace rubinius {
     if(!obj->reference_p()) return Primitives::failure();
     state->set_call_frame(call_frame);
 
-    switch(obj->lock(state, gct, 0, false)) {
+    switch(obj->lock(state, gct, call_frame, false)) {
     case eLocked:
       return cTrue;
     case eLockTimeout:
@@ -1448,7 +1447,7 @@ namespace rubinius {
     if(!obj->reference_p()) return Primitives::failure();
     state->set_call_frame(call_frame);
 
-    switch(obj->lock(state, gct, time->to_native())) {
+    switch(obj->lock(state, gct, call_frame, time->to_native())) {
     case eLocked:
       return cTrue;
     case eLockTimeout:
@@ -1476,21 +1475,21 @@ namespace rubinius {
   {
     if(!obj->reference_p()) return Primitives::failure();
     state->set_call_frame(call_frame);
-    return RBOOL(obj->try_lock(state, gct) == eLocked);
+    return RBOOL(obj->try_lock(state, gct, call_frame) == eLocked);
   }
 
-  Object* System::vm_object_locked_p(STATE, GCToken gct, Object* obj) {
+  Object* System::vm_object_locked_p(STATE, GCToken gct, Object* obj,
+                                     CallFrame* call_frame) {
     if(!obj->reference_p()) return cFalse;
-    return RBOOL(obj->locked_p(state, gct));
+    return RBOOL(obj->locked_p(state, gct, call_frame));
   }
 
   Object* System::vm_object_unlock(STATE, GCToken gct, Object* obj,
                                    CallFrame* call_frame)
   {
     if(!obj->reference_p()) return Primitives::failure();
-    state->set_call_frame(call_frame);
 
-    if(obj->unlock(state, gct) == eUnlocked) return cNil;
+    if(obj->unlock(state, gct, call_frame) == eUnlocked) return cNil;
     if(cDebugThreading) {
       std::cerr << "[LOCK " << state->vm()->thread_id() << " unlock failed]" << std::endl;
     }
@@ -1617,8 +1616,7 @@ namespace rubinius {
 
     OnStack<1> os(state, code);
 
-    state->set_call_frame(calling_environment);
-    code->internalize(state, gct, 0, 0);
+    code->internalize(state, gct, calling_environment, 0, 0);
 
 #ifdef RBX_PROFILER
     if(unlikely(state->vm()->tooling())) {

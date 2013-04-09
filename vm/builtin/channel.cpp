@@ -64,12 +64,12 @@ namespace rubinius {
     // waiting_->remove(state, waiter);
   }
 
-  Object* Channel::send(STATE, GCToken gct, Object* val) {
+  Object* Channel::send(STATE, GCToken gct, Object* val, CallFrame* calling_environment) {
     Channel* self = this;
 
     OnStack<2> os(state, val, self);
 
-    GCLockGuard lg(state, gct, mutex_);
+    GCLockGuard lg(state, gct, calling_environment, mutex_);
 
     if(val->nil_p()) {
       self->semaphore_count_++;
@@ -91,11 +91,11 @@ namespace rubinius {
     return cNil;
   }
 
-  Object* Channel::try_receive(STATE, GCToken gct) {
+  Object* Channel::try_receive(STATE, GCToken gct, CallFrame* calling_environment) {
     Channel* self = this;
     OnStack<1> os(state, self);
 
-    GCLockGuard lg(state, gct, mutex_);
+    GCLockGuard lg(state, gct, calling_environment, mutex_);
 
     if(self->semaphore_count_ > 0) {
       self->semaphore_count_--;
@@ -124,7 +124,7 @@ namespace rubinius {
     Channel* self = this;
     OnStack<2> os(state, self, duration);
 
-    GCLockGuard lg(state, gct, mutex_);
+    GCLockGuard lg(state, gct, call_frame, mutex_);
 
     if(self->semaphore_count_ > 0) {
       self->semaphore_count_--;
@@ -166,7 +166,7 @@ namespace rubinius {
     // We lock to manipulate the wait condition on the VM* so that
     // we can sync up properly with another thread trying to wake us
     // up right as we're trying to go to sleep.
-    state->lock(gct);
+    state->lock(gct, call_frame);
 
     if(!state->check_async(call_frame)) {
       state->unlock();
@@ -224,30 +224,4 @@ namespace rubinius {
     return waiters_ > 0;
   }
 
-  class SendToChannel : public ObjectCallback {
-  public:
-    TypedRoot<Channel*> chan;
-
-    SendToChannel(STATE, Channel* chan) : ObjectCallback(state), chan(state, chan) { }
-
-    virtual Object* object() {
-      return chan.get();
-    }
-
-    virtual void call(Object* obj) {
-      GCTokenImpl gct;
-      chan->send(state, gct, obj);
-    }
-  };
-
-/* ChannelCallback */
-
-  ChannelCallback::ChannelCallback(STATE, Channel* chan) : ObjectCallback(state) {
-    channel.set(chan, &GO(roots));
-  }
-
-  void ChannelCallback::call(Object* obj) {
-    GCTokenImpl gct;
-    channel->send(state, gct, obj);
-  }
 }

@@ -337,7 +337,7 @@ namespace rubinius {
       OnStack<1> os(state, my_control);
 
       debugger_chan->send(state, gct,
-          Tuple::from(state, 4, bp, cur, my_control, locs));
+          Tuple::from(state, 4, bp, cur, my_control, locs), call_frame);
 
       // Block until the debugger wakes us back up.
       Object* ret = my_control->receive(state, gct, call_frame);

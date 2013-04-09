@@ -49,7 +49,7 @@ namespace rubinius {
     return tbl;
   }
 
-  MethodTable* MethodTable::duplicate(STATE, GCToken gct) {
+  MethodTable* MethodTable::duplicate(STATE, GCToken gct, CallFrame* call_frame) {
     size_t size, i;
     MethodTable* dup = 0;
 
@@ -70,7 +70,7 @@ namespace rubinius {
       entry = try_as<MethodTableBucket>(self->values_->at(state, i));
 
       while(entry) {
-        dup->store(state, gct, entry->name(), entry->method(), entry->visibility());
+        dup->store(state, gct, entry->name(), entry->method(), entry->visibility(), call_frame);
         entry = try_as<MethodTableBucket>(entry->next());
       }
     }
@@ -107,25 +107,26 @@ namespace rubinius {
   }
 
   Object* MethodTable::store(STATE, GCToken gct, Symbol* name, Object* exec,
-                             Symbol* vis)
+                             Symbol* vis, CallFrame* calling_environment)
   {
     check_frozen(state);
 
     MethodTable* self = this;
 
     OnStack<2> os(state, self, exec);
-    hard_lock(state, gct);
+    hard_lock(state, gct, calling_environment);
 
     Executable* method;
     if(exec->nil_p()) {
       method = nil<Executable>();
     } else {
       if(Alias* stored_alias = try_as<Alias>(exec)) {
-        self->hard_unlock(state, gct);
+        self->hard_unlock(state, gct, calling_environment);
         return self->alias(state, gct, name, vis,
                            stored_alias->original_name(),
                            stored_alias->original_exec(),
-                           stored_alias->original_module());
+                           stored_alias->original_module(),
+                           calling_environment);
       } else {
         method = as<Executable>(exec);
       }
@@ -147,7 +148,7 @@ namespace rubinius {
       if(entry->name() == name) {
         entry->method(state, method);
         entry->visibility(state, vis);
-        self->hard_unlock(state, gct);
+        self->hard_unlock(state, gct, calling_environment);
         return name;
       }
 
@@ -164,20 +165,20 @@ namespace rubinius {
 
     self->entries(state, Fixnum::from(num_entries + 1));
 
-    self->hard_unlock(state, gct);
+    self->hard_unlock(state, gct, calling_environment);
     return name;
   }
 
   Object* MethodTable::alias(STATE, GCToken gct, Symbol* name, Symbol* vis,
                              Symbol* orig_name, Object* orig_method,
-                             Module* orig_mod)
+                             Module* orig_mod, CallFrame* calling_environment)
   {
     check_frozen(state);
 
     MethodTable* self = this;
 
     OnStack<3> os(state, self, orig_method, orig_mod);
-    hard_lock(state, gct);
+    hard_lock(state, gct, calling_environment);
 
     Executable* orig_exec;
 
@@ -209,7 +210,7 @@ namespace rubinius {
       if(entry->name() == name) {
         entry->method(state, method);
         entry->visibility(state, vis);
-        self->hard_unlock(state, gct);
+        self->hard_unlock(state, gct, calling_environment);
         return name;
       }
 
@@ -226,7 +227,7 @@ namespace rubinius {
 
     self->entries(state, Fixnum::from(num_entries + 1));
 
-    self->hard_unlock(state, gct);
+    self->hard_unlock(state, gct, calling_environment);
     return name;
   }
 
@@ -270,14 +271,14 @@ namespace rubinius {
     return nil<MethodTableBucket>();
   }
 
-  Executable* MethodTable::remove(STATE, GCToken gct, Symbol* name) {
+  Executable* MethodTable::remove(STATE, GCToken gct, Symbol* name, CallFrame* calling_environment) {
     check_frozen(state);
 
     MethodTable* self = this;
 
     OnStack<1> os(state, self);
 
-    self->hard_lock(state, gct);
+    self->hard_lock(state, gct, calling_environment);
 
     native_int num_entries = self->entries_->to_native();
     native_int num_bins = self->bins_->to_native();
@@ -301,7 +302,7 @@ namespace rubinius {
         }
 
         self->entries(state, Fixnum::from(entries_->to_native() - 1));
-        self->hard_unlock(state, gct);
+        self->hard_unlock(state, gct, calling_environment);
         return val;
       }
 
@@ -309,7 +310,7 @@ namespace rubinius {
       entry = try_as<MethodTableBucket>(entry->next());
     }
 
-    self->hard_unlock(state, gct);
+    self->hard_unlock(state, gct, calling_environment);
 
     return nil<Executable>();
   }

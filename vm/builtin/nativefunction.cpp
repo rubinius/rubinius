@@ -597,7 +597,7 @@ namespace rubinius {
       break;
     }
 
-    state->gc_independent(gct);
+    state->gc_independent(gct, env->current_call_frame());
     if(vm) {
       NativeMethod::cleanup_thread(state);
       vm->set_call_frame(0);
@@ -1043,9 +1043,8 @@ namespace rubinius {
     CallFrame* saved_frame = env->current_call_frame();
     env->set_current_call_frame(call_frame);
 
-    state->set_call_frame(call_frame);
     state->vm()->interrupt_with_signal();
-    state->gc_independent(gct);
+    state->gc_independent(gct, call_frame);
 
     switch(ffi_data_local->ret_info.type) {
     case RBX_FFI_TYPE_CHAR: {

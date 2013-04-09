@@ -304,12 +304,12 @@ namespace rubinius {
 
     bool checkpoint(THREAD);
     void gc_dependent(STATE);
-    void gc_independent(STATE);
+    void gc_independent(STATE, CallFrame* call_frame);
 
     void gc_dependent(THREAD, utilities::thread::Condition* = NULL);
     void gc_independent(THREAD);
 
-    void set_critical(STATE);
+    void set_critical(STATE, CallFrame* call_frame);
     void clear_critical(STATE);
 
     void enter_capi(STATE, const char* file, int line);
