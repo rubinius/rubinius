@@ -2,6 +2,7 @@
 #include <string.h>
 #include "gc/heap.hpp"
 #include "instruments/stats.hpp"
+#include "util/valloc.hpp"
 
 namespace rubinius {
 
@@ -12,7 +13,7 @@ namespace rubinius {
     : size_(bytes)
     , owner_(true)
   {
-    start_ = Address(malloc(size_));
+    start_ = Address(valloc(size_));
     last_ = start_ + bytes - 1;
 
     int red_zone = bytes / 1024;
@@ -45,7 +46,7 @@ namespace rubinius {
    */
   Heap::~Heap() {
     if(owner_) {
-      free(start_);
+      vfree(start_, size_);
     }
   }
 
