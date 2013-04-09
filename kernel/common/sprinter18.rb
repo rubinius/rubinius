@@ -8,6 +8,12 @@ module Rubinius
       def encode_result
       end
 
+      class Atom
+        def zero_pad?
+          @has_precision || (@has_width && @f_zero)
+        end
+      end
+
       class CharAtom < Atom
         def bytecode
           push_value
@@ -70,6 +76,17 @@ module Rubinius
       end
 
       class ExtIntegerAtom < Atom
+        def pad_negative_int(padding)
+          if zero_pad?
+            zero_pad(padding)
+
+          elsif !@has_precision && !@f_zero
+            @g.push_literal ".."
+            @g.string_dup
+            @g.string_append
+          end
+        end
+
         def prepend_prefix_bytecode
           prepend_prefix
         end
