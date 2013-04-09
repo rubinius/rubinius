@@ -440,21 +440,12 @@ module Rubinius
         end
 
         def push_width(adjust=true)
-          yield if block_given?
           if @width_static
             raise ArgumentError, "width too big" unless @width_static.class == Fixnum
             if adjust && @full_leader_size > 0
               @g.push(@width_static - @full_leader_size)
             else
               @g.push @width_static
-            end
-
-            if block_given?
-              @g.swap
-              @b.if_true do
-                @g.meta_push_1
-                @b.meta_op_minus
-              end
             end
 
           elsif @width_index
@@ -473,30 +464,6 @@ module Rubinius
               end
             end
 
-            n = adjust ? @full_leader_size : 0
-            if block_given?
-              adjusted = @g.new_label
-
-              @g.swap
-              @b.if_true do
-                @g.push n + 1
-                @b.meta_op_minus
-                if n > 0
-                  @g.goto adjusted
-                end
-              end
-
-              if n > 0
-                @g.push n
-                @b.meta_op_minus
-                adjusted.set!
-              end
-
-            elsif n > 0
-              @g.push n
-              @b.meta_op_minus
-            end
-
           else
             raise "push without a width"
 
@@ -512,7 +479,6 @@ module Rubinius
         end
 
         def push_precision
-          yield if block_given?
           if @prec_static
             raise ArgumentError, "precision too big" unless @prec_static.class == Fixnum
             @g.push @prec_static
@@ -536,14 +502,6 @@ module Rubinius
           else
             raise "push without a precision"
 
-          end
-
-          if block_given?
-            @g.swap
-            @b.if_true do
-              @g.meta_push_1
-              @b.meta_op_minus
-            end
           end
         end
 
@@ -607,31 +565,23 @@ module Rubinius
           end
         end
 
-        def zero_pad?
-          @has_precision || (@has_width && @f_zero)
-        end
-
-        def zero_pad(pad="0", &readjust)
+        def zero_pad(pad="0")
           if @has_precision
-            push_precision(&readjust)
+            push_precision
+
+            # let the caller adjust the width if needed
+            yield if block_given?
+
             @g.push_literal pad
             @g.send :rjust, 2
           elsif @has_width && @f_zero
-            push_width true, &readjust
+            push_width true
             @g.push_literal pad
             @g.send :rjust, 2
           end
         end
 
-        def width?
-          @has_width
-        end
-
         attr_reader :width_static
-
-        def precision?
-          @has_precision
-        end
 
         def leader?
           @full_leader_size > 0
@@ -650,7 +600,7 @@ module Rubinius
 
           justify_width
 
-          if precision?
+          if @has_precision
             @g.meta_push_0
             push_precision
             @g.send :[], 2
@@ -761,7 +711,7 @@ module Rubinius
               @b.append_str
             end
 
-            if precision?
+            if @has_precision
               @g.push :self
               @g.push_stack_local val_idx
 
@@ -769,7 +719,7 @@ module Rubinius
 
               @g.send :digit_expand_precision, 2
 
-              if width?
+              if @has_width
                 @g.push :self
                 @g.swap
                 push_width_value
@@ -783,7 +733,7 @@ module Rubinius
 
               @b.append_str
 
-            elsif width?
+            elsif @has_width
               @g.push :self
               @g.push_stack_local val_idx
 
@@ -857,15 +807,7 @@ module Rubinius
             end
 
             padding = format_negative_int(radix)
-
-            if zero_pad?
-              zero_pad padding
-
-            elsif !precision? && !@f_zero
-              @g.push_literal ".."
-              @g.string_dup
-              @g.string_append
-            end
+            pad_negative_int(padding)
 
             have_formatted.set!
           end
@@ -901,7 +843,7 @@ module Rubinius
           end
 
 
-          if precision? || !@f_zero
+          if @has_precision || !@f_zero
             justify_width false
           end
 

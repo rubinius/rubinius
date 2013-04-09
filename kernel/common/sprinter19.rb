@@ -86,6 +86,18 @@ module Rubinius
       end
 
       class ExtIntegerAtom < Atom
+        def pad_negative_int(padding)
+          zero_pad(padding) do
+            # decrease the width by 2 to account for the ".." below
+            @g.meta_push_2
+            @b.meta_op_minus
+          end
+
+          @g.push_literal ".."
+          @g.string_dup
+          @g.string_append
+        end
+
         def prepend_prefix_bytecode
           skip_prefix = @g.new_label
 
