@@ -653,7 +653,7 @@ namespace rubinius {
       if(unlikely(state->vm()->tooling())) {
         // Check the stack and interrupts here rather than in the interpreter
         // loop itself.
-        OnStack<3> os(state, exec, code);
+        OnStack<2> os(state, exec, code);
         if(!state->check_interrupts(gct, frame, frame)) return NULL;
 
         state->checkpoint(gct, frame);
