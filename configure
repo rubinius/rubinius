@@ -334,16 +334,22 @@ class Configure
     o.doc "\n System settings"
 
     o.on "--with-include-dir", "DIR", "Add DIR to the default include search paths" do |dir|
-      @include_dirs << dir
+      dir.split(File::PATH_SEPARATOR).each do |d|
+        @include_dirs << d
+      end
     end
 
     o.on "--with-lib-dir", "DIR", "Add DIR to the default library search paths" do |dir|
-      @lib_dirs << dir
+      dir.split(File::PATH_SEPARATOR).each do |d|
+        @lib_dirs << d
+      end
     end
 
     o.on "--with-opt-dir", "DIR", "Add DIR/include and DIR/lib to include and library search paths" do |dir|
-      @include_dirs << "#{dir}/include"
-      @lib_dirs     << "#{dir}/lib" << "#{dir}/lib64"
+      dir.split(File::PATH_SEPARATOR).each do |d|
+        @include_dirs << "#{d}/include"
+        @lib_dirs     << "#{d}/lib" << "#{d}/lib64"
+      end
     end
 
     o.on "--libc", "NAME", "Use NAME as the libc for FFI" do |name|
