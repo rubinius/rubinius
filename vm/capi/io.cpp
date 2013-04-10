@@ -262,7 +262,7 @@ extern "C" {
       GCIndependent guard(env);
 
       while(count == 0) {
-        count = select(fd+1, &fds, 0, 0, 0);
+        count = select(fd+1, 0, &fds, 0, 0);
         if(!retry) break;
       }
     }
