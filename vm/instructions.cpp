@@ -214,12 +214,13 @@ Object* MachineCode::uncommon_interpreter(STATE,
                                           native_int sp,
                                           CallFrame* const method_call_frame,
                                           jit::RuntimeDataHolder* rd,
-                                          UnwindInfoSet& thread_unwinds)
+                                          UnwindInfoSet& thread_unwinds,
+                                          bool force_deoptimize)
 {
 
   MachineCode* mc = method_call_frame->compiled_code->machine_code();
 
-  if(++mc->uncommon_count > state->shared().config.jit_deoptimize_threshold) {
+  if(force_deoptimize || ++mc->uncommon_count > state->shared().config.jit_deoptimize_threshold) {
     if(state->shared().config.jit_uncommon_print) {
       std::cerr << "[[[ Deoptimizing uncommon method ]]]\n";
       call_frame->print_backtrace(state);
@@ -229,6 +230,7 @@ Object* MachineCode::uncommon_interpreter(STATE,
     }
 
     mc->uncommon_count = 0;
+    mc->call_count = 1;
     mc->deoptimize(state, method_call_frame->compiled_code, rd);
   }
 

@@ -1204,7 +1204,8 @@ extern "C" {
                                 int32_t entry_ip, native_int sp,
                                 CallFrame* method_call_frame,
                                 jit::RuntimeDataHolder* rd,
-                                int32_t unwind_count)
+                                int32_t unwind_count,
+                                bool force_deoptimization)
   {
     LLVMState::get(state)->add_uncommons_taken();
 
@@ -1249,7 +1250,8 @@ extern "C" {
     return MachineCode::uncommon_interpreter(state, mcode, call_frame,
                                           entry_ip, sp,
                                           method_call_frame, rd,
-                                          state->vm()->unwinds());
+                                          state->vm()->unwinds(),
+                                          force_deoptimization);
   }
 
   Object* rbx_restart_interp(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args) {

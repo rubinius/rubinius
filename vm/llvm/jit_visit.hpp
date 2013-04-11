@@ -1329,7 +1329,7 @@ namespace rubinius {
       return count;
     }
 
-    void emit_uncommon() {
+    void emit_uncommon(bool force_deoptimization = false) {
       emit_delayed_create_block();
 
       if(current_block_) {
@@ -1365,6 +1365,7 @@ namespace rubinius {
       sig << "CallFrame";
       sig << ctx_->VoidPtrTy;
       sig << ctx_->Int32Ty;
+      sig << ctx_->Int8Ty;
 
       int unwinds = emit_unwinds();
 
@@ -1377,10 +1378,11 @@ namespace rubinius {
         sp,
         root_callframe,
         constant(ctx_->runtime_data_holder(), ctx_->VoidPtrTy),
-        cint(unwinds)
+        cint(unwinds),
+        llvm::ConstantInt::get(ctx_->Int8Ty, force_deoptimization)
       };
 
-      Value* call = sig.call("rbx_continue_uncommon", call_args, 7, "", b());
+      Value* call = sig.call("rbx_continue_uncommon", call_args, 8, "", b());
 
       info().add_return_value(call, current_block());
       b().CreateBr(info().return_pad());
@@ -1496,10 +1498,11 @@ namespace rubinius {
         return;
       }
 
-      BasicBlock* failure = new_block("fallback");
+      BasicBlock* class_failure = new_block("class_fallback");
+      BasicBlock* serial_failure = new_block("serial_fallback");
       BasicBlock* cont = new_block("continue");
 
-      Inliner inl(ctx_, *this, cache_ptr, args, failure, failure);
+      Inliner inl(ctx_, *this, cache_ptr, args, class_failure, serial_failure);
       bool res = classes_seen > 1 ? inl.consider_poly() : inl.consider_mono();
 
       // If we have tried to reoptimize here a few times and failed, we use
@@ -1514,11 +1517,15 @@ namespace rubinius {
         return;
       }
 
-      if(!inl.fail_to_send() && !in_inlined_block()) {
-        BasicBlock* cur = b().GetInsertBlock();
+      BasicBlock* cur = b().GetInsertBlock();
 
-        set_block(failure);
+      if(!inl.fail_to_send() && !in_inlined_block()) {
+
+        set_block(class_failure);
         emit_uncommon();
+
+        set_block(serial_failure);
+        emit_uncommon(true);
 
         set_block(cur);
         stack_remove(args+1);
@@ -1540,6 +1547,11 @@ namespace rubinius {
         set_block(cont);
 
       } else {
+        set_block(serial_failure);
+        emit_uncommon(true);
+
+        set_block(cur);
+
         // Emit both the inlined code and a send for it
         if(inl.check_for_exception()) {
           check_for_exception(inl.result());
@@ -1547,7 +1559,7 @@ namespace rubinius {
         BasicBlock* inline_block = b().GetInsertBlock();
         b().CreateBr(cont);
 
-        set_block(failure);
+        set_block(class_failure);
         Value* send_res = inline_cache_send(args, which);
 
         BasicBlock* send_block =
@@ -1759,12 +1771,14 @@ namespace rubinius {
         }
 
         // Ok, we decision was cInline, so lets do this!
-        BasicBlock* failure = new_block("fallback");
+        BasicBlock* class_failure = new_block("class_fallback");
+        BasicBlock* serial_failure = new_block("serial_fallback");
+
         BasicBlock* cont = new_block("continue");
         BasicBlock* cleanup = new_block("send_done");
         PHINode* send_result = b().CreatePHI(ObjType, 1, "send_result");
 
-        Inliner inl(ctx_, *this, cache_ptr, args, failure, failure);
+        Inliner inl(ctx_, *this, cache_ptr, args, class_failure, serial_failure);
 
         current_block_->set_block_break_result(send_result);
         current_block_->set_block_break_loc(cleanup);
@@ -1782,8 +1796,11 @@ namespace rubinius {
 
             b().CreateBr(cleanup);
 
-            set_block(failure);
+            set_block(class_failure);
             emit_uncommon();
+
+            set_block(serial_failure);
+            emit_uncommon(true);
 
             set_block(cleanup);
             send_result->removeFromParent();
@@ -1813,12 +1830,15 @@ namespace rubinius {
 
             b().CreateBr(cleanup);
 
-            set_block(failure);
+            set_block(class_failure);
 
             Value* send_res = block_send(which, args, allow_private_);
 
             BasicBlock* send_block =
               check_for_exception_then(send_res, cleanup);
+
+            set_block(serial_failure);
+            emit_uncommon(true);
 
             set_block(cleanup);
             send_result->removeFromParent();
