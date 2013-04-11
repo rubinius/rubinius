@@ -1270,7 +1270,7 @@ namespace rubinius {
   }
 
   String* String::from_codepoint(STATE, Object* self, Integer* code, Encoding* enc) {
-    String* s = state->new_object<String>(G(string));
+    String* s = state->new_object_dirty<String>(G(string));
 
     unsigned int c = code->to_uint();
     int n = ONIGENC_CODE_TO_MBCLEN(enc->get_encoding(), c);
@@ -1278,11 +1278,14 @@ namespace rubinius {
     if(n <= 0) invalid_codepoint_error(state, c);
 
     s->num_bytes(state, Fixnum::from(n));
+    s->num_chars(state, nil<Fixnum>());
     s->hash_value(state, nil<Fixnum>());
     s->shared(state, cFalse);
     s->encoding(state, enc);
+    s->ascii_only(state, cNil);
+    s->valid_encoding(state, cNil);
 
-    ByteArray* ba = ByteArray::create(state, n);
+    ByteArray* ba = ByteArray::create_dirty(state, n);
 
     n = ONIGENC_CODE_TO_MBC(enc->get_encoding(), c, (UChar*)ba->raw_bytes());
     if(n <= 0) invalid_codepoint_error(state, c);
