@@ -1,1 +1,0 @@
-fails:Kernel#sprintf with negative values with format %x precedes the number with '..'
