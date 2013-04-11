@@ -18,15 +18,13 @@
 
 namespace rubinius {
 
-  void Inliner::check_class(llvm::Value* recv, MethodCacheEntry* mce, llvm::BasicBlock* bb) {
-    if(!bb) bb = failure();
-
-    guarded_type_ = ops_.check_class(recv, mce, bb);
+  void Inliner::check_class(llvm::Value* recv, MethodCacheEntry* mce) {
+    guarded_type_ = ops_.check_class(recv, mce, class_id_failure(), serial_id_failure());
     guarded_type_.inherit_source(ops_.context(), recv);
   }
 
-  void Inliner::check_recv(MethodCacheEntry* mce, llvm::BasicBlock* bb) {
-    check_class(recv(), mce, bb);
+  void Inliner::check_recv(MethodCacheEntry* mce) {
+    check_class(recv(), mce);
   }
 
   bool Inliner::consider_mono() {
@@ -38,7 +36,7 @@ namespace rubinius {
 
   bool Inliner::consider_poly() {
     int classes_seen = cache_->classes_seen();
-    BasicBlock* fail = failure();
+    BasicBlock* fail = class_id_failure();
     BasicBlock* fallback = ops_.new_block("poly_fallback");
     BasicBlock* merge = ops_.new_block("merge");
     BasicBlock* current = ops_.current_block();
@@ -53,7 +51,7 @@ namespace rubinius {
       MethodCacheEntry* mce = cache_->get_cache(i, &hits);
 
       // Fallback to the next for failure
-      set_failure(fallback);
+      set_class_id_failure(fallback);
 
       if(!inline_for_class(mce, hits)) {
         // If we fail to inline this, emit a send to the method
@@ -104,7 +102,7 @@ namespace rubinius {
     ops_.b().CreateBr(fail);
 
     ops_.set_block(merge);
-    set_failure(fail);
+    set_class_id_failure(fail);
 
     set_result(phi);
 
@@ -486,7 +484,7 @@ remember:
 
     Value* self = recv();
 
-    ops_.check_reference_class(self, mce, failure());
+    ops_.check_reference_class(self, mce, class_id_failure(), serial_id_failure());
 
     // Figure out if we should use the table ivar lookup or
     // the slot ivar lookup.
@@ -777,7 +775,7 @@ remember:
         Value* valid = ops_.create_load(ops_.valid_flag());
 
         BasicBlock* cont = ops_.new_block("ffi_continue");
-        ops_.create_conditional_branch(cont, failure(), valid);
+        ops_.create_conditional_branch(cont, class_id_failure(), valid);
 
         ops_.set_block(cont);
         break;
@@ -798,7 +796,7 @@ remember:
         Value* valid = ops_.create_load(ops_.valid_flag());
 
         BasicBlock* cont = ops_.new_block("ffi_continue");
-        ops_.create_conditional_branch(cont, failure(), valid);
+        ops_.create_conditional_branch(cont, class_id_failure(), valid);
 
         ops_.set_block(cont);
         break;
@@ -819,7 +817,7 @@ remember:
         Value* valid = ops_.create_load(ops_.valid_flag());
 
         BasicBlock* cont = ops_.new_block("ffi_continue");
-        ops_.create_conditional_branch(cont, failure(), valid);
+        ops_.create_conditional_branch(cont, class_id_failure(), valid);
 
         ops_.set_block(cont);
         break;
@@ -841,7 +839,7 @@ remember:
         Value* valid = ops_.create_load(ops_.valid_flag());
 
         BasicBlock* cont = ops_.new_block("ffi_continue");
-        ops_.create_conditional_branch(cont, failure(), valid);
+        ops_.create_conditional_branch(cont, class_id_failure(), valid);
 
         ops_.set_block(cont);
         break;
@@ -864,7 +862,7 @@ remember:
         Value* valid = ops_.create_load(ops_.valid_flag());
 
         BasicBlock* cont = ops_.new_block("ffi_continue");
-        ops_.create_conditional_branch(cont, failure(), valid);
+        ops_.create_conditional_branch(cont, class_id_failure(), valid);
 
         ops_.set_block(cont);
         break;
@@ -887,7 +885,7 @@ remember:
         Value* valid = ops_.create_load(ops_.valid_flag());
 
         BasicBlock* cont = ops_.new_block("ffi_continue");
-        ops_.create_conditional_branch(cont, failure(), valid);
+        ops_.create_conditional_branch(cont, class_id_failure(), valid);
 
         ops_.set_block(cont);
         break;

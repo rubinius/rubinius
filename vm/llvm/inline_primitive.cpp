@@ -57,7 +57,7 @@ namespace rubinius {
 
       BasicBlock* is_tuple = ops.new_block("is_tuple");
       BasicBlock* access =   ops.new_block("tuple_at");
-      BasicBlock* is_other = i.failure();
+      BasicBlock* is_other = i.class_id_failure();
 
       ops.create_conditional_branch(is_tuple, is_other, cmp);
 
@@ -105,7 +105,7 @@ namespace rubinius {
 
       BasicBlock* is_tuple = ops.new_block("is_tuple");
       BasicBlock* access =   ops.new_block("tuple_put");
-      BasicBlock* is_other = i.failure();
+      BasicBlock* is_other = i.class_id_failure();
 
       ops.create_conditional_branch(is_tuple, is_other, cmp);
 
@@ -150,14 +150,14 @@ namespace rubinius {
 
       Value* rec = i.recv();
 
-      ops.verify_guard(ops.check_is_tuple(rec), i.failure());
+      ops.verify_guard(ops.check_is_tuple(rec), i.class_id_failure());
 
       Value* left_index = i.arg(0);
       Value* right_index = i.arg(1);
 
       Value* fix_cmp = ops.check_if_positive_fixnums(left_index, right_index);
 
-      ops.verify_guard(fix_cmp, i.failure());
+      ops.verify_guard(fix_cmp, i.class_id_failure());
 
       // Check that index is not over the end of the Tuple
       Value* tup = ops.upcast(rec, "Tuple");
@@ -172,7 +172,7 @@ namespace rubinius {
 
       // Combine lsize_cmp and rsize_cmp to validate entry into access code
       Value* access_cmp = ops.create_and(lsize_cmp, rsize_cmp, "access_cmp");
-      ops.verify_guard(access_cmp, i.failure());
+      ops.verify_guard(access_cmp, i.class_id_failure());
 
       Value* lidx[] = {
         ConstantInt::get(ops.context()->Int32Ty, 0),
@@ -207,7 +207,7 @@ namespace rubinius {
 
       Value* rec = i.recv();
 
-      ops.verify_guard(ops.check_is_tuple(rec), i.failure());
+      ops.verify_guard(ops.check_is_tuple(rec), i.class_id_failure());
 
       Value* tup = ops.upcast(rec, "Tuple");
 
@@ -225,7 +225,7 @@ namespace rubinius {
 
       Value* rec = i.recv();
 
-      ops.verify_guard(ops.check_is_bytearray(rec), i.failure());
+      ops.verify_guard(ops.check_is_bytearray(rec), i.class_id_failure());
 
       Value* ba = ops.upcast(rec, "ByteArray");
 
@@ -249,7 +249,7 @@ namespace rubinius {
 
       BasicBlock* is_bytearray = ops.new_block("is_bytearray");
       BasicBlock* access =   ops.new_block("bytearray_get_byte");
-      BasicBlock* is_other = i.failure();
+      BasicBlock* is_other = i.class_id_failure();
 
       ops.create_conditional_branch(is_bytearray, is_other, cmp);
 
@@ -303,7 +303,7 @@ namespace rubinius {
       BasicBlock* is_arg_fixnum = ops.new_block("is_arg_fixnum");
       BasicBlock* access        = ops.new_block("bytearray_set_byte");
 
-      BasicBlock* is_other = i.failure();
+      BasicBlock* is_other = i.class_id_failure();
 
       ops.create_conditional_branch(is_bytearray, is_other, cmp);
 
@@ -448,7 +448,7 @@ namespace rubinius {
       Value* cmp = ops.create_equal(masked, fix_tag, "is_fixnum");
 
       BasicBlock* push = ops.new_block("push_bit_and");
-      BasicBlock* send = i.failure();
+      BasicBlock* send = i.class_id_failure();
 
       ops.create_conditional_branch(push, send, cmp);
 
@@ -478,7 +478,7 @@ namespace rubinius {
       Value* cmp = ops.create_equal(masked, fix_tag, "is_fixnum");
 
       BasicBlock* push = ops.new_block("push_bit_or");
-      BasicBlock* send = i.failure();
+      BasicBlock* send = i.class_id_failure();
 
       ops.create_conditional_branch(push, send, cmp);
 
@@ -512,7 +512,7 @@ namespace rubinius {
       Value* cmp = ops.create_equal(masked, fix_tag, "is_fixnum");
 
       BasicBlock* push = ops.new_block("push_bit_or");
-      BasicBlock* send = i.failure();
+      BasicBlock* send = i.class_id_failure();
 
       ops.create_conditional_branch(push, send, cmp);
 
@@ -533,7 +533,7 @@ namespace rubinius {
       log("fixnum_neg");
       i.context()->enter_inline();
 
-      BasicBlock* use_send = i.failure();
+      BasicBlock* use_send = i.class_id_failure();
       BasicBlock* inlined = ops.new_block("fixnum_neg");
 
       Value* self = i.recv();
@@ -562,7 +562,7 @@ namespace rubinius {
       BasicBlock* tagnow = ops.new_block("tagnow");
       BasicBlock* bignum = ops.new_block("bignum");
       BasicBlock* cont   = ops.new_block("cont");
-      BasicBlock* send = i.failure();
+      BasicBlock* send = i.class_id_failure();
 
       Value* cmp = ops.check_if_fixnums(recv, arg);
       ops.create_conditional_branch(push, send, cmp);
@@ -608,7 +608,7 @@ namespace rubinius {
       BasicBlock* tagnow = ops.new_block("tagnow");
       BasicBlock* bignum = ops.new_block("bignum");
       BasicBlock* cont   = ops.new_block("cont");
-      BasicBlock* send = i.failure();
+      BasicBlock* send = i.class_id_failure();
 
       Value* cmp = ops.check_if_fixnums(recv, arg);
       ops.create_conditional_branch(push, send, cmp);
@@ -653,7 +653,7 @@ namespace rubinius {
       BasicBlock* push = ops.new_block("push_mul");
       BasicBlock* fits = ops.new_block("fits_fixnum");
       BasicBlock* tagnow = ops.new_block("tagnow");
-      BasicBlock* send = i.failure();
+      BasicBlock* send = i.class_id_failure();
 
       Value* cmp = ops.check_if_fixnums(recv, arg);
       ops.create_conditional_branch(push, send, cmp);
@@ -718,7 +718,7 @@ namespace rubinius {
 
       BasicBlock* positive = ops.new_block("positive");
       BasicBlock* divide = ops.new_block("divide");
-      BasicBlock* send = i.failure();
+      BasicBlock* send = i.class_id_failure();
 
       Value* positive_cmp = ops.check_if_positive_fixnums(num, den);
       ops.create_conditional_branch(positive, send, positive_cmp);
@@ -751,7 +751,7 @@ namespace rubinius {
 
       BasicBlock* positive = ops.new_block("positive");
       BasicBlock* modulo = ops.new_block("modulo");
-      BasicBlock* send = i.failure();
+      BasicBlock* send = i.class_id_failure();
 
       Value* positive_cmp = ops.check_if_positive_fixnums(num, den);
       ops.create_conditional_branch(positive, send, positive_cmp);
@@ -797,7 +797,7 @@ namespace rubinius {
       BasicBlock* eq     = ops.new_block("equal");
       BasicBlock* neq    = ops.new_block("not_equal");
       BasicBlock* result = ops.new_block("result");
-      BasicBlock* send   = i.failure();
+      BasicBlock* send   = i.class_id_failure();
 
       ops.create_conditional_branch(push, send, cmp);
 
@@ -855,7 +855,7 @@ namespace rubinius {
       Value* cmp = ops.create_equal(masked, fix_tag, "is_fixnum");
 
       BasicBlock* push = ops.new_block("push_le");
-      BasicBlock* send = i.failure();
+      BasicBlock* send = i.class_id_failure();
 
       ops.create_conditional_branch(push, send, cmp);
 
@@ -906,7 +906,7 @@ namespace rubinius {
 
       BasicBlock* not_float = ops.new_block();
 
-      ops.check_class(arg, mce, not_float);
+      ops.check_class(arg, mce->receiver_class(), not_float);
 
       // Float#*(Float)
       Value* farg  = ops.b().CreateBitCast(arg, ops.context()->ptr_type("Float"),
@@ -924,7 +924,7 @@ namespace rubinius {
       // Float#*(Fixnum)
       ops.set_block(not_float);
 
-      ops.verify_guard(ops.check_if_fixnum(arg), i.failure());
+      ops.verify_guard(ops.check_if_fixnum(arg), i.class_id_failure());
 
       Value* fix_rhs = ops.b().CreateSIToFP(
           ops.fixnum_strip(arg), unboxed_rhs->getType());
@@ -1002,7 +1002,7 @@ namespace rubinius {
       BasicBlock* check_fix =  ops.new_block("check_fixnum");
 
       Value* arg = i.arg(0);
-      ops.check_class(arg, mce, check_fix);
+      ops.check_class(arg, mce->receiver_class(), check_fix);
 
       Value* farg =  ops.b().CreateBitCast(arg, ops.context()->ptr_type("Float"),
           "arg_float");
@@ -1015,7 +1015,7 @@ namespace rubinius {
       ops.b().CreateBr(do_compare);
 
       ops.set_block(check_fix);
-      ops.verify_guard(ops.check_is_fixnum(arg), i.failure());
+      ops.verify_guard(ops.check_is_fixnum(arg), i.class_id_failure());
       Value* converted_rhs = ops.b().CreateUIToFP(
           ops.fixnum_strip(arg), unboxed_rhs->getType());
 
@@ -1084,7 +1084,7 @@ namespace rubinius {
       BasicBlock* check_fix =  ops.new_block("check_fixnum");
 
       Value* arg = i.arg(0);
-      ops.check_class(arg, mce, check_fix);
+      ops.check_class(arg, mce->receiver_class(), check_fix);
 
       Value* farg =  ops.b().CreateBitCast(arg, ops.context()->ptr_type("Float"),
           "arg_float");
@@ -1097,7 +1097,7 @@ namespace rubinius {
       ops.b().CreateBr(do_compare);
 
       ops.set_block(check_fix);
-      ops.verify_guard(ops.check_is_fixnum(arg), i.failure());
+      ops.verify_guard(ops.check_is_fixnum(arg), i.class_id_failure());
       Value* converted_rhs = ops.b().CreateUIToFP(
           ops.fixnum_strip(arg), unboxed_rhs->getType());
 
@@ -1293,12 +1293,12 @@ namespace rubinius {
       ops.set_block(nil);
 
       Value* is_nil = ops.create_equal(matchdata, ops.constant(cNil), "is_nil");
-      ops.create_conditional_branch(set, i.failure(), is_nil);
+      ops.create_conditional_branch(set, i.class_id_failure(), is_nil);
 
       ops.set_block(reference);
 
       Value* is_matchdata = ops.check_is_matchdata(matchdata);
-      ops.create_conditional_branch(set, i.failure(), is_matchdata);
+      ops.create_conditional_branch(set, i.class_id_failure(), is_matchdata);
 
       ops.set_block(set);
 
@@ -1639,7 +1639,7 @@ namespace rubinius {
 
           use_send_for_failure();
 
-          ops_.b().CreateCondBr(icmp, failure(), cont);
+          ops_.b().CreateCondBr(icmp, class_id_failure(), cont);
           ops_.set_block(cont);
 
           set_result(res);

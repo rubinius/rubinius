@@ -1499,7 +1499,7 @@ namespace rubinius {
       BasicBlock* failure = new_block("fallback");
       BasicBlock* cont = new_block("continue");
 
-      Inliner inl(ctx_, *this, cache_ptr, args, failure);
+      Inliner inl(ctx_, *this, cache_ptr, args, failure, failure);
       bool res = classes_seen > 1 ? inl.consider_poly() : inl.consider_mono();
 
       // If we have tried to reoptimize here a few times and failed, we use
@@ -1764,7 +1764,7 @@ namespace rubinius {
         BasicBlock* cleanup = new_block("send_done");
         PHINode* send_result = b().CreatePHI(ObjType, 1, "send_result");
 
-        Inliner inl(ctx_, *this, cache_ptr, args, failure);
+        Inliner inl(ctx_, *this, cache_ptr, args, failure, failure);
 
         current_block_->set_block_break_result(send_result);
         current_block_->set_block_break_loc(cleanup);

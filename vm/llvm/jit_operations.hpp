@@ -762,9 +762,87 @@ namespace rubinius {
       failure->moveAfter(cont);
     }
 
-    type::KnownType check_class(Value* obj, MethodCacheEntry* mce, BasicBlock* failure) {
+    type::KnownType check_class(Value* obj, MethodCacheEntry* mce,
+                                BasicBlock* class_id_failure, BasicBlock* serial_id_failure) {
 
       Class* klass = mce->receiver_class();
+      object_type type = (object_type)klass->instance_type()->to_native();
+
+      switch(type) {
+      case rubinius::Symbol::type:
+        if(ctx_->llvm_state()->type_optz()) {
+          type::KnownType kt = type::KnownType::extract(ctx_, obj);
+
+          if(kt.symbol_p()) {
+            ctx_->info("eliding guard: detected symbol");
+            return kt;
+          } else {
+            verify_guard(check_is_symbol(obj), class_id_failure);
+          }
+        } else {
+          verify_guard(check_is_symbol(obj), class_id_failure);
+        }
+
+        return type::KnownType::symbol();
+      case rubinius::Fixnum::type:
+        {
+          if(ctx_->llvm_state()->type_optz()) {
+            type::KnownType kt = type::KnownType::extract(ctx_, obj);
+
+            if(kt.static_fixnum_p()) {
+              ctx_->info("eliding guard: detected static fixnum");
+              return kt;
+            } else {
+              verify_guard(check_is_fixnum(obj), class_id_failure);
+            }
+          } else {
+            verify_guard(check_is_fixnum(obj), class_id_failure);
+          }
+        }
+        return type::KnownType::fixnum();
+      case NilType:
+        verify_guard(check_is_immediate(obj, cNil), class_id_failure);
+        return type::KnownType::nil();
+      case TrueType:
+        verify_guard(check_is_immediate(obj, cTrue), class_id_failure);
+        return type::KnownType::true_();
+      case FalseType:
+        verify_guard(check_is_immediate(obj, cFalse), class_id_failure);
+        return type::KnownType::false_();
+      default:
+        {
+          type::KnownType kt = type::KnownType::extract(ctx_, obj);
+
+          if(kt.type_p()) {
+            if(ctx_->llvm_state()->config().jit_inline_debug) {
+              ctx_->info_log("eliding guard") << "Type object used statically\n";
+            }
+
+            return kt;
+
+          } else if(kt.class_id() == klass->class_id()) {
+            if(ctx_->llvm_state()->config().jit_inline_debug) {
+              ctx_->info_log("eliding redundant guard")
+                << "class " << ctx_->llvm_state()->symbol_debug_str(klass->module_name())
+                << " (" << klass->class_id() << ")\n";
+            }
+
+            return kt;
+          }
+
+          check_reference_class(obj, mce, class_id_failure, serial_id_failure);
+          if(kind_of<SingletonClass>(klass)) {
+            return type::KnownType::singleton_instance(klass->class_id());
+          } else {
+            return type::KnownType::instance(klass->class_id());
+          }
+        }
+      }
+    }
+
+    type::KnownType check_class(Value* obj, Class* klass,
+                                BasicBlock* failure) {
+
       object_type type = (object_type)klass->instance_type()->to_native();
 
       switch(type) {
@@ -829,7 +907,7 @@ namespace rubinius {
             return kt;
           }
 
-          check_reference_class(obj, mce, failure);
+          check_reference_class(obj, klass, failure);
           if(kind_of<SingletonClass>(klass)) {
             return type::KnownType::singleton_instance(klass->class_id());
           } else {
@@ -858,25 +936,32 @@ namespace rubinius {
       failure->moveAfter(body);
     }
 
-    void check_reference_class(Value* obj, MethodCacheEntry* mce, BasicBlock* failure) {
+    void check_reference_class(Value* obj, MethodCacheEntry* mce,
+                               BasicBlock* class_id_failure, BasicBlock* serial_id_failure) {
       Value* is_ref = check_is_reference(obj);
       BasicBlock* cont = new_block("check_class_id");
       BasicBlock* body = new_block("correct_class");
+      BasicBlock* serial = new_block("correct_serial");
 
-      create_conditional_branch(cont, failure, is_ref);
+      create_conditional_branch(cont, class_id_failure, is_ref);
 
       set_block(cont);
 
       Value* klass = reference_class(obj);
-      Value* class_id = create_equal(get_class_id(klass), cint(mce->receiver_class_id()), "check_class_id");
-      Value* serial_id = create_equal(get_serial_id(klass), cint(mce->receiver_serial_id()), "check_serial_id");
-      Value* match = b().CreateAnd(class_id, serial_id, "class_and_serial");
+      Value* class_match = create_equal(get_class_id(klass), cint(mce->receiver_class_id()), "check_class_id");
 
-      create_conditional_branch(body, failure, match);
+      create_conditional_branch(body, class_id_failure, class_match);
 
       set_block(body);
+      class_id_failure->moveAfter(body);
 
-      failure->moveAfter(body);
+      Value* serial_match = create_equal(get_serial_id(klass), cint(mce->receiver_serial_id()), "check_serial_id");
+
+      create_conditional_branch(serial, serial_id_failure, serial_match);
+
+      set_block(serial);
+
+      serial_id_failure->moveAfter(serial);
     }
 
     // BasicBlock management

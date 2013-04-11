@@ -17,7 +17,8 @@ namespace rubinius {
     InlineCache* cache_;
     int count_;
     int self_pos_;
-    BasicBlock* failure_;
+    BasicBlock* class_id_failure_;
+    BasicBlock* serial_id_failure_;
     Value* result_;
     bool check_for_exception_;
     JITInlineBlock* inline_block_;
@@ -35,14 +36,16 @@ namespace rubinius {
   public:
 
     Inliner(Context* ctx,
-            JITOperations& ops, InlineCache** cache_ptr, int count, BasicBlock* failure)
+            JITOperations& ops, InlineCache** cache_ptr, int count,
+            BasicBlock* class_id_failure, BasicBlock* serial_id_failure)
       : ctx_(ctx)
       , ops_(ops)
       , cache_ptr_(cache_ptr)
       , cache_(*cache_ptr)
       , count_(count)
       , self_pos_(count)
-      , failure_(failure)
+      , class_id_failure_(class_id_failure)
+      , serial_id_failure_(serial_id_failure)
       , result_(0)
       , check_for_exception_(true)
       , inline_block_(0)
@@ -58,7 +61,8 @@ namespace rubinius {
       , ops_(ops)
       , cache_(0)
       , count_(count)
-      , failure_(0)
+      , class_id_failure_(0)
+      , serial_id_failure_(0)
       , result_(0)
       , check_for_exception_(true)
       , inline_block_(0)
@@ -80,8 +84,12 @@ namespace rubinius {
       return ops_.stack_back(self_pos_ - (which + 1));
     }
 
-    BasicBlock* failure() {
-      return failure_;
+    BasicBlock* class_id_failure() {
+      return class_id_failure_;
+    }
+
+    BasicBlock* serial_id_failure() {
+      return serial_id_failure_;
     }
 
     Value* result() {
@@ -92,8 +100,12 @@ namespace rubinius {
       result_ = val;
     }
 
-    void set_failure(BasicBlock* failure) {
-      failure_ = failure;
+    void set_class_id_failure(BasicBlock* class_id_failure) {
+      class_id_failure_ = class_id_failure;
+    }
+
+    void set_serial_id_failure(BasicBlock* serial_id_failure) {
+      serial_id_failure_ = serial_id_failure;
     }
 
     void exception_safe() {
@@ -168,8 +180,8 @@ namespace rubinius {
     int detect_jit_intrinsic(MethodCacheEntry* mce, CompiledCode* code);
     void inline_intrinsic(MethodCacheEntry* mce, CompiledCode* code, int which);
 
-    void check_class(llvm::Value* recv, MethodCacheEntry* mce, llvm::BasicBlock* bb=0);
-    void check_recv(MethodCacheEntry* mce, llvm::BasicBlock* bb=0);
+    void check_class(llvm::Value* recv, MethodCacheEntry* mce);
+    void check_recv(MethodCacheEntry* mce);
 
     void prime_info(JITMethodInfo& info);
   };
