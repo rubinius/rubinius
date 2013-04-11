@@ -839,6 +839,25 @@ namespace rubinius {
       }
     }
 
+    void check_reference_class(Value* obj, Class* klass, BasicBlock* failure) {
+      Value* is_ref = check_is_reference(obj);
+      BasicBlock* cont = new_block("check_class_id");
+      BasicBlock* body = new_block("correct_class");
+
+      create_conditional_branch(cont, failure, is_ref);
+
+      set_block(cont);
+
+      Value* target = reference_class(obj);
+      Value* match = create_equal(get_class_id(target), cint(klass->class_id()), "check_class_id");
+
+      create_conditional_branch(body, failure, match);
+
+      set_block(body);
+
+      failure->moveAfter(body);
+    }
+
     void check_reference_class(Value* obj, MethodCacheEntry* mce, BasicBlock* failure) {
       Value* is_ref = check_is_reference(obj);
       BasicBlock* cont = new_block("check_class_id");

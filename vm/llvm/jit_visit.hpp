@@ -3542,7 +3542,7 @@ use_send:
 
         Value* self = get_self();
 
-        check_reference_class(self, klass->class_id(), failure);
+        check_reference_class(self, klass, failure);
 
         TypeInfo* ti = klass->type_info();
         TypeInfo::Slots::iterator it = ti->slots.find(name->index());
@@ -3645,7 +3645,7 @@ use_send:
         TypeInfo* ti = klass->type_info();
         TypeInfo::Slots::iterator it = ti->slots.find(name->index());
 
-        check_reference_class(self, klass->class_id(), failure);
+        check_reference_class(self, klass, failure);
 
         if(it != ti->slots.end()) {
           int field = it->second;
