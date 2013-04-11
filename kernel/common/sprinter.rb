@@ -568,17 +568,18 @@ module Rubinius
         def zero_pad(pad="0")
           if @has_precision
             push_precision
-
-            # let the caller adjust the width if needed
-            yield if block_given?
-
-            @g.push_literal pad
-            @g.send :rjust, 2
           elsif @has_width && @f_zero
             push_width true
-            @g.push_literal pad
-            @g.send :rjust, 2
+          else
+            # exit early if no width has been pushed
+            return
           end
+
+          # let the caller adjust the width if needed
+          yield if block_given?
+
+          @g.push_literal pad
+          @g.send :rjust, 2
         end
 
         attr_reader :width_static
