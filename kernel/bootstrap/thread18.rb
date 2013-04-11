@@ -50,6 +50,7 @@ class Thread
   # Called by Thread#fork in the new thread
   #
   def __run__
+    exception = nil
     begin
       begin
         Rubinius.unlock(self)
@@ -82,19 +83,21 @@ class Thread
     rescue Exception => e
       # I don't really get this, but this is MRI's behavior. If we're dying
       # by request, ignore any raised exception.
-      @exception = e # unless @dying
+      exception = e # unless @dying
     ensure
+      unless exception && (abort_on_exception || Thread.abort_on_exception)
+        @exception = exception
+        if $DEBUG
+          STDERR.puts "Exception in thread: #{@exception.message} (#{@exception.class})"
+        end
+      end
       @alive = false
       Rubinius.unlock(self)
       unlock_locks
     end
 
-    if @exception
-      if abort_on_exception or Thread.abort_on_exception
-        Thread.main.raise @exception
-      elsif $DEBUG
-        STDERR.puts "Exception in thread: #{@exception.message} (#{@exception.class})"
-      end
+    unless @exception
+      Thread.main.raise exception
     end
   end
 
