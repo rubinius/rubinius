@@ -311,7 +311,7 @@ namespace rubinius {
 
           jit.compile(req);
 
-          func = jit.generate_function(ls_);
+          func = jit.generate_function();
         }
 
         // We were unable to compile this function, likely
