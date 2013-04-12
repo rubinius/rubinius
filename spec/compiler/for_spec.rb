@@ -49,10 +49,13 @@ describe "A For node" do
     compile do |g|
       g.push_cpath_top
       g.find_const :Range
+      g.send :allocate, 0, true
+      g.dup
       g.push 0
       g.push :self
       g.send :max, 0, true
-      g.send :new, 2
+      g.send :initialize, 2, true
+      g.pop
 
       d = new_block_generator(g)
 

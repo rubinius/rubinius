@@ -235,9 +235,12 @@ module Rubinius
 
         g.push_cpath_top
         g.find_const :Range
+        g.send :allocate, 0, true
+        g.dup
         @start.bytecode(g)
         @finish.bytecode(g)
-        g.send :new, 2
+        g.send :initialize, 2, true
+        g.pop
       end
 
       def defined(g)
@@ -261,11 +264,13 @@ module Rubinius
 
         g.push_cpath_top
         g.find_const :Range
+        g.send :allocate, 0, true
+        g.dup
         @start.bytecode(g)
         @finish.bytecode(g)
         g.push :true
-
-        g.send :new, 3
+        g.send :initialize, 3, true
+        g.pop
       end
 
       def to_sexp
