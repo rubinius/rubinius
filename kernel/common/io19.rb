@@ -280,7 +280,14 @@ class IO
         saved_pos = 0
       end
 
-      @from.seek @offset, IO::SEEK_CUR if @offset
+      if @offset
+        if @from.respond_to?(:descriptor) && @from.descriptor != -1
+          @from.seek @offset, IO::SEEK_CUR
+        else
+          raise ArgumentError, "cannot specify src_offset for non-IO"
+        end
+      end
+
 
       size = @length ? @length : 16384
       bytes = 0
@@ -296,7 +303,9 @@ class IO
         # done reading
       end
 
-      @to.flush
+      # Should only flush if @from and @to are both descended from IO
+      # in other words, MRI does not flush copy_stream from/to a StringIO
+      @to.flush if @from.kind_of?(IO) && @to.kind_of?(IO)
       return bytes
     ensure
       if @from_io
@@ -305,7 +314,7 @@ class IO
         @from.close
       end
 
-      @to.close unless @to_io
+      @to.close unless @to_io || @to.closed?
     end
   end
 

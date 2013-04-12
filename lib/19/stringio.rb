@@ -66,6 +66,7 @@ class StringIO
     raise IOError, "not opened for reading" unless @readable
   end
 
+  alias_method :ensure_open_and_readable, :check_readable
   private :check_readable
 
   def check_writable
@@ -73,6 +74,7 @@ class StringIO
     raise IOError, "unable to modify data" if @__data__.string.frozen?
   end
 
+  alias_method :ensure_open_and_writable, :check_writable
   private :check_writable
 
   def set_encoding(external, internal=nil, options=nil)
