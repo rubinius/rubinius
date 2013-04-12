@@ -1,6 +1,7 @@
 # -*- encoding: us-ascii -*-
 
 class Range
+  # Don't use `alias_method` for #===. `Delegate to #include?` is a spec.
   def ===(value)
     include?(value)
   end
