@@ -1231,7 +1231,10 @@ extern "C" {
     if(call_frame->is_inline_frame()) {
       // Fix up this inlined block.
       if(mcode->parent()) {
-        CallFrame* creator = call_frame->previous->previous;
+        CallFrame* creator = call_frame->previous;
+        while(creator && mcode->parent() != creator->compiled_code->machine_code()) {
+          creator = creator->previous;
+        }
         assert(creator);
 
         VariableScope* parent = creator->promote_scope(state);
