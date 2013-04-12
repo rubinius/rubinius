@@ -83,6 +83,6 @@ class Range
   protected
 
   def can_iterate_from?(object)
-    first.respond_to?(:succ) && !object.kind_of?(Time)
+    object.respond_to?(:succ) && !object.kind_of?(Time)
   end
 end
