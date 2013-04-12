@@ -592,6 +592,9 @@ namespace rubinius {
   }
 
   Object* System::vm_reset_method_cache(STATE, Module* mod, Symbol* name, CallFrame* calling_environment) {
+
+    if(!state->vm()->global_cache()->has_seen(state, name)) return cTrue;
+
     state->vm()->global_cache()->clear(state, name);
     mod->reset_method_cache(state, name);
 

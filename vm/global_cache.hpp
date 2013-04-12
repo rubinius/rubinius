@@ -3,8 +3,11 @@
 
 #include "vm/oop.hpp"
 #include "vm/object_utils.hpp"
-
 #include "builtin/compiledcode.hpp"
+#include "builtin/symbol.hpp"
+
+#include <tr1/unordered_map>
+#include <tr1/unordered_set>
 
 namespace rubinius {
   #define CPU_CACHE_SIZE 0x1000
@@ -13,6 +16,8 @@ namespace rubinius {
 
   struct LookupData;
   class Dispatch;
+
+  typedef std::tr1::unordered_set<native_int> SeenMethodSet;
 
   class GlobalCache : public Lockable {
   public:
@@ -34,6 +39,7 @@ namespace rubinius {
 
     Symbol *entry_names[CPU_CACHE_SIZE];
     CacheEntry entries[CPU_CACHE_SIZE];
+    SeenMethodSet seen_methods;
     utilities::thread::SpinLock lock_;
 
   public:
@@ -70,6 +76,8 @@ namespace rubinius {
 
     void prune_young();
 
+    bool has_seen(STATE, Symbol* sym);
+
     void prune_unmarked(int mark);
 
     void retain(STATE, Module* cls, Symbol* name, Module* mod, Executable* meth,
@@ -82,6 +90,9 @@ namespace rubinius {
 
     void retain_i(STATE, Module* cls, Symbol* name, Module* mod, Executable* meth,
                 bool missing, Symbol* visibility) {
+
+      seen_methods.insert(name->index());
+
       CacheEntry* entry;
 
       entry = entries + CPU_CACHE_HASH(cls, name);

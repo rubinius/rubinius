@@ -168,6 +168,12 @@ keep_looking:
     return false;
   }
 
+  bool GlobalCache::has_seen(STATE, Symbol* sym) {
+    utilities::thread::SpinLock::LockGuard guard(lock_);
+    SeenMethodSet::const_iterator seen = seen_methods.find(sym->index());
+    return seen != seen_methods.end();
+  }
+
   void GlobalCache::prune_young() {
     CacheEntry* entry;
 
