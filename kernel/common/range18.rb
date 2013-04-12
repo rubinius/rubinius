@@ -42,9 +42,8 @@ class Range
   alias_method :first, :begin
   alias_method :last, :end
 
-  protected
-
   def can_iterate_from?(object)
     object.respond_to? :succ
   end
+  private :can_iterate_from
 end
