@@ -83,5 +83,5 @@ class Range
   def can_iterate_from?(object)
     object.respond_to?(:succ) && !object.kind_of?(Time)
   end
-  private :can_iterate_from
+  private :can_iterate_from?
 end
