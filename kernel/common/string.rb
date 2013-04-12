@@ -384,20 +384,23 @@ class String
   def insert(index, other)
     other = StringValue(other)
     index = Rubinius::Type.coerce_to index, Fixnum, :to_int
+    index = length + 1 + index if index < 0
 
-    osize = other.size
-    size = @num_bytes + osize
-    str = self.class.pattern size, "\0"
-    m = Rubinius::Mirror.reflect str
-
-    index = @num_bytes + 1 + index if index < 0
-    if index > @num_bytes or index < 0 then
+    if index > length or index < 0 then
       raise IndexError, "index #{index} out of string"
     end
+
+    osize = other.bytesize
+    size = @num_bytes + osize
+    str = self.class.pattern size, "\0"
+
+    self_m = Rubinius::Mirror.reflect self
+    index = self_m.character_to_byte_index index
 
     Rubinius.check_frozen
     @hash_value = nil
 
+    m = Rubinius::Mirror.reflect str
     if index == @num_bytes
       m.copy_from self, 0, @num_bytes, 0
       m.copy_from other, 0, osize, @num_bytes
