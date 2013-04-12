@@ -65,7 +65,7 @@ class Console
   def help
     puts <<-STR
 set <var> <value> - Set a variable
-get <var>         - Get a variable
+get <var>         - Get a variable, use "get ." to see the root
 backtrace         - Show backtraces of all Threads
 gdb               - Connect to process via gdb
 pid               - Show process ID
