@@ -45,10 +45,10 @@ module Rubinius
         g.is_nil
         g.git f
 
-        if Rubinius.ruby19?
-          g.push_literal "global-variable"
-        else
+        if Rubinius.ruby18?
           g.push_literal "$#{@kind}"
+        else
+          g.push_literal "global-variable"
         end
         g.string_dup
 
@@ -91,10 +91,10 @@ module Rubinius
         g.is_nil
         g.git f
 
-        if Rubinius.ruby19?
-          g.push_literal "global-variable"
-        else
+        if Rubinius.ruby18?
           g.push_literal "$#{@which}"
+        else
+          g.push_literal "global-variable"
         end
         g.string_dup
 

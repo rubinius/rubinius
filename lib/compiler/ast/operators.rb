@@ -28,7 +28,7 @@ module Rubinius
       end
 
       def defined(g)
-        if Rubinius.ruby19?
+        unless Rubinius.ruby18?
           g.push_literal "expression"
           g.string_dup
           return
