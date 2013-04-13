@@ -1,7 +1,0 @@
-fails:Iconv#iconv keeps context between calls
-fails:Iconv#iconv when given a positive length
-fails:Iconv#iconv when given a negative length
-fails:Iconv.iconv converts a series of strings with a single converter
-fails:The 'utf-16' encoder emits a byte-order mark on first non-empty output
-fails:The 'utf-16be' decoder does not emit a byte-order mark
-fails:The 'utf-16le' decoder does not emit a byte-order mark

@@ -135,6 +135,12 @@ describe "RbConfig#ruby" do
     end
   end
 
+  ruby_version_is "2.0" do
+    before :each do
+      @version_switch = "-X20"
+    end
+  end
+
   it "returns the path to the running Ruby executable" do
     rb_path = RbConfig.ruby
     rb_path.should be_kind_of(String)

@@ -1,1 +1,0 @@
-fails:C-API IO function GetOpenFile allows access to the system fileno

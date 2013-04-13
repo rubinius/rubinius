@@ -1,1 +1,0 @@
-fails:C-API Encoding function rb_enc_associate sets the encoding of a String to a default when the encoding is NULL
