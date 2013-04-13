@@ -12,19 +12,6 @@
 #include "objectmemory.hpp"
 
 namespace rubinius {
-  Object* PackedObject::get_packed_ivar(STATE, Symbol* sym) {
-    LookupTable* tbl = this->reference_class()->packed_ivar_info();
-    bool found = false;
-
-    Fixnum* which = try_as<Fixnum>(tbl->fetch(state, sym, &found));
-    if(!found) {
-      return get_table_ivar(state, sym);
-    }
-
-    Object* obj = body_as_array()[which->to_native()];
-    if(obj == cUndef) return cNil;
-    return obj;
-  }
 
   Object* PackedObject::packed_ivar_defined(STATE, Symbol* sym) {
     LookupTable* tbl = this->reference_class()->packed_ivar_info();
@@ -38,20 +25,6 @@ namespace rubinius {
     Object* obj = body_as_array()[which->to_native()];
     if(obj == cUndef) return cFalse;
     return cTrue;
-  }
-
-  Object* PackedObject::set_packed_ivar(STATE, Symbol* sym, Object* val) {
-    LookupTable* tbl = this->reference_class()->packed_ivar_info();
-    bool found = false;
-
-    Fixnum* which = try_as<Fixnum>(tbl->fetch(state, sym, &found));
-    if(!found) {
-      return set_table_ivar(state, sym, val);
-    }
-
-    body_as_array()[which->to_native()] = val;
-    if(val->reference_p()) write_barrier(state, val);
-    return val;
   }
 
   Object* PackedObject::packed_ivar_delete(STATE, Symbol* sym, bool* removed) {

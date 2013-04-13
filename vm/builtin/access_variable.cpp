@@ -40,13 +40,7 @@ namespace rubinius {
     }
 
     Object* recv = args.recv();
-
-    // Handle packed objects in a unique way.
-    if(PackedObject* po = try_as<PackedObject>(recv)) {
-      return po->get_packed_ivar(state, access->name());
-    }
-
-    return recv->get_table_ivar(state, access->name());
+    return recv->get_ivar(state, access->name());
   }
 
   Object* AccessVariable::access_write_regular_ivar(STATE, CallFrame* call_frame, Executable* exec, Module* mod,
@@ -64,12 +58,7 @@ namespace rubinius {
       return 0;
     }
 
-    // Handle packed objects in a unique way.
-    if(PackedObject* po = try_as<PackedObject>(recv)) {
-      return po->set_packed_ivar(state, access->name(), args.get_argument(0));
-    }
-
-    return recv->set_table_ivar(state, access->name(), args.get_argument(0));
+    return recv->set_ivar(state, access->name(), args.get_argument(0));
   }
 
   /* Run when an AccessVariable is executed. Uses the details in exec

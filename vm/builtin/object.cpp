@@ -254,13 +254,6 @@ namespace rubinius {
       break;
     }
 
-    /*
-    // Handle packed objects in a unique way.
-    if(PackedObject* po = try_as<PackedObject>(this)) {
-      return po->get_packed_ivar(state, sym);
-    }
-    */
-
     // We might be trying to access a slot, so try that first.
 
     TypeInfo* ti = state->memory()->find_type_info(this);
@@ -622,11 +615,26 @@ namespace rubinius {
       return val;
     }
 
-    if(type_id() == Object::type) return set_table_ivar(state, sym, val);
+    switch(type_id()) {
+    case Object::type:
+      return set_table_ivar(state, sym, val);
+    case PackedObject::type:
+      {
+        LookupTable* tbl = this->reference_class()->packed_ivar_info();
+        bool found = false;
 
-    // Handle packed objects in a unique way.
-    if(PackedObject* po = try_as<PackedObject>(this)) {
-      return po->set_packed_ivar(state, sym, val);
+        Fixnum* which = try_as<Fixnum>(tbl->fetch(state, sym, &found));
+        if(!found) {
+          return set_table_ivar(state, sym, val);
+        }
+
+        Object** baa = reinterpret_cast<Object**>(pointer_to_body());
+        baa[which->to_native()] = val;
+        if(val->reference_p()) write_barrier(state, val);
+        return val;
+      }
+    default:
+      break;
     }
 
     /* We might be trying to access a field, so check there first. */
