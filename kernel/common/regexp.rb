@@ -488,7 +488,7 @@ class MatchData
   end
 
   def values_at(*indexes)
-    indexes.map { |i| self[i] }
+    indexes.map { |i| self[i] }.flatten(1)
   end
 
   def matched_area
