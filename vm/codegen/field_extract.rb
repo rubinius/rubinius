@@ -1118,9 +1118,10 @@ write_if_new "vm/gen/typechecks.gen.cpp" do |f|
     f.puts "    ti->slot_accessors.resize(#{fields.size});\n"
     f.puts "    ti->slot_types.resize(#{fields.size});\n"
     fields.each do |name, type, idx|
+      symbol_name = "access_#{n}_#{name}"
       f.puts "    ti->slots[state->symbol(\"@#{name}\")->index()] = #{idx};"
       f.puts "    ti->slot_types[#{idx}] = #{type}::type;"
-      f.puts "    ti->slot_accessors[#{idx}] = Primitives::resolve_primitive(state, state->symbol(\"access_#{n}_#{name}\"));"
+      f.puts "    ti->slot_accessors[#{idx}] = Primitives::resolve_primitive(state, state->symbol(\"#{symbol_name}\", #{symbol_name.bytesize}));"
     end
     f.puts "  ti->populate_slot_locations();"
     f.puts "  }"
@@ -1277,7 +1278,7 @@ class PrimitiveCodeGenerator
         @indexes[name] = index
 
         f.puts <<-EOC
-  if(name == state->symbol("#{name}")) {
+  if(name == state->symbol("#{name}", #{name.bytesize})) {
     if(index) *index = #{index};
     return &Primitives::#{name};
   }
@@ -1323,7 +1324,7 @@ class PrimitiveCodeGenerator
 
       @invoke_functions.each do |n, |
         f.puts <<-EOC
-  if(name == state->symbol("#{n}")) {
+  if(name == state->symbol("#{n}", #{n.bytesize})) {
     return &invoke_#{n};
   }
         EOC

@@ -46,15 +46,19 @@ namespace rubinius {
     }
 
     Symbol* symbol(const char* str) {
-      return vm_->symbol(str);
+      return shared_.symbols.lookup(this, str, strlen(str));
+    }
+
+    Symbol* symbol(const char* str, size_t len) {
+      return shared_.symbols.lookup(this, str, len);
     }
 
     Symbol* symbol(std::string str) {
-      return vm_->symbol(str);
+      return shared_.symbols.lookup(this, str);
     }
 
     Symbol* symbol(String* str) {
-      return vm_->symbol(str);
+      return shared_.symbols.lookup(this, str);
     }
 
     uint32_t hash_seed() {

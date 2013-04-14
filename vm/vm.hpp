@@ -371,10 +371,6 @@ namespace rubinius {
     /// Create a Tuple in the young GC space, return NULL if not possible.
     Tuple* new_young_tuple_dirty(size_t fields);
 
-    Symbol* symbol(const char* str);
-    Symbol* symbol(std::string str);
-    Symbol* symbol(String* str);
-
     TypeInfo* find_type(int type);
 
     void init_ffi(STATE);

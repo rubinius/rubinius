@@ -476,9 +476,9 @@ namespace rubinius {
     G(rubinius)->set_const(state, "LIBC", String::create(state, RBX_LIBC));
 
 #ifdef RBX_LITTLE_ENDIAN
-    G(rubinius)->set_const(state, "ENDIAN", symbol("little"));
+    G(rubinius)->set_const(state, "ENDIAN", state->symbol("little"));
 #else
-    G(rubinius)->set_const(state, "ENDIAN", symbol("big"));
+    G(rubinius)->set_const(state, "ENDIAN", state->symbol("big"));
 #endif
 
     G(rubinius)->set_const(state, "PATH_MAX", Fixnum::from(PATH_MAX));
@@ -496,7 +496,7 @@ namespace rubinius {
   }
 
   void VM::bootstrap_symbol(STATE) {
-#define add_sym(name) GO(sym_ ## name).set(symbol(#name))
+#define add_sym(name) GO(sym_ ## name).set(state->symbol(#name))
     add_sym(object_id);
     add_sym(method_missing);
     add_sym(inherited);
@@ -513,16 +513,16 @@ namespace rubinius {
     add_sym(coerce_to_array);
     add_sym(to_ary);
 #undef add_sym
-    GO(sym_s_method_added).set(symbol("singleton_method_added"));
-    GO(sym_init_copy).set(symbol("initialize_copy"));
-    GO(sym_plus).set(symbol("+"));
-    GO(sym_minus).set(symbol("-"));
-    GO(sym_equal).set(symbol("=="));
-    GO(sym_nequal).set(symbol("!="));
-    GO(sym_tequal).set(symbol("==="));
-    GO(sym_lt).set(symbol("<"));
-    GO(sym_gt).set(symbol(">"));
-    GO(sym_allocation_site).set(symbol("@__allocation_site__"));
+    GO(sym_s_method_added).set(state->symbol("singleton_method_added"));
+    GO(sym_init_copy).set(state->symbol("initialize_copy"));
+    GO(sym_plus).set(state->symbol("+"));
+    GO(sym_minus).set(state->symbol("-"));
+    GO(sym_equal).set(state->symbol("=="));
+    GO(sym_nequal).set(state->symbol("!="));
+    GO(sym_tequal).set(state->symbol("==="));
+    GO(sym_lt).set(state->symbol("<"));
+    GO(sym_gt).set(state->symbol(">"));
+    GO(sym_allocation_site).set(state->symbol("@__allocation_site__"));
   }
 
   void VM::setup_errno(STATE, int num, const char* name, Class* sce, Module* ern) {
@@ -532,7 +532,7 @@ namespace rubinius {
 
     Object* current = state->globals().errno_mapping->fetch(state, key, &found);
     if(found) {
-      ern->set_const(state, symbol(name), current);
+      ern->set_const(state, state->symbol(name), current);
     } else {
       Class* cls = ontology::new_class(state, name, sce, ern);
 
@@ -540,8 +540,8 @@ namespace rubinius {
       // being not under Object. So we set it again using the smart method.
       cls->set_name(state, name, ern);
 
-      cls->set_const(state, symbol("Errno"), key);
-      cls->set_const(state, symbol("Strerror"), String::create(state, strerror(num)));
+      cls->set_const(state, state->symbol("Errno"), key);
+      cls->set_const(state, state->symbol("Strerror"), String::create(state, strerror(num)));
       state->globals().errno_mapping->store(state, key, cls);
     }
   }
@@ -607,7 +607,7 @@ namespace rubinius {
 
     GO(errno_mapping).set(LookupTable::create(state));
 
-    ern->set_const(state, symbol("Mapping"), G(errno_mapping));
+    ern->set_const(state, state->symbol("Mapping"), G(errno_mapping));
 
 #define set_syserr(num, name) setup_errno(state, num, name, sce, ern)
 

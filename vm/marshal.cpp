@@ -125,7 +125,7 @@ namespace rubinius {
     stream.read(data, count + 1);
     data[count] = 0; // clamp
 
-    Symbol* sym = state->symbol(data);
+    Symbol* sym = state->symbol(data, count);
 
     if(malloc_data) {
       free(malloc_data);

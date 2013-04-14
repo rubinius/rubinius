@@ -141,13 +141,13 @@ namespace rubinius {
 #ifdef ENABLE_LLVM
     if(!shared.config.jit_disabled) {
       Array* ary = Array::create(&state, 3);
-      ary->append(&state, symbol("usage"));
+      ary->append(&state, state.symbol("usage"));
       if(shared.config.jit_inline_generic) {
-        ary->append(&state, symbol("inline_generic"));
+        ary->append(&state, state.symbol("inline_generic"));
       }
 
       if(shared.config.jit_inline_blocks) {
-        ary->append(&state, symbol("inline_blocks"));
+        ary->append(&state, state.symbol("inline_blocks"));
       }
       G(rubinius)->set_const(&state, "JIT", ary);
     } else {
@@ -235,21 +235,6 @@ namespace rubinius {
     return om->new_object_typed_mature(&state, cls, bytes, type);
   }
 
-  Symbol* VM::symbol(const char* str) {
-    State state(this);
-    return shared.symbols.lookup(&state, str, strlen(str));
-  }
-
-  Symbol* VM::symbol(std::string str) {
-    State state(this);
-    return shared.symbols.lookup(&state, str);
-  }
-
-  Symbol* VM::symbol(String* str) {
-    State state(this);
-    return shared.symbols.lookup(&state, str);
-  }
-
   void type_assert(STATE, Object* obj, object_type type, const char* reason) {
     if((obj->reference_p() && obj->type_id() != type)
         || (type == FixnumType && !obj->fixnum_p())) {
@@ -314,7 +299,7 @@ namespace rubinius {
       char* pos = strstr(cur, "::");
       if(pos) *pos = 0;
 
-      Object* obj = mod->get_const(&state, symbol(cur));
+      Object* obj = mod->get_const(&state, state.symbol(cur));
 
       if(pos) {
         if(Module* m = try_as<Module>(obj)) {
