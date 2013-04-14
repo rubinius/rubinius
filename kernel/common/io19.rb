@@ -75,6 +75,9 @@ class IO
       separator = $/
     when undefined
       separator = $/
+    when Hash
+      options = separator
+      separator = $/
     when nil
       # do nothing
     else
@@ -87,8 +90,12 @@ class IO
     when undefined
       limit = nil
     when Hash
-      options = limit
-      limit = nil
+      if options == undefined
+        options = limit
+        limit = nil
+      else
+        raise TypeError, "can't convert Hash into Integer"
+      end
     else
       value = limit
       limit = Rubinius::Type.try_convert limit, Fixnum, :to_int
