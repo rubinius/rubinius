@@ -60,25 +60,6 @@ namespace rubinius {
     return cache;
   }
 
-  Object* ConstantCache::retrieve(STATE, ConstantScope* scope) {
-    ConstantCacheEntry* cache_entry = entry_;
-    if(serial_ == state->shared().global_serial() &&
-       cache_entry->scope() == scope) {
-      return cache_entry->value();
-    }
-    return NULL;
-  }
-
-  Object* ConstantCache::retrieve(STATE, Module* under, ConstantScope* scope) {
-    ConstantCacheEntry* cache_entry = entry_;
-    if(serial_ == state->shared().global_serial() &&
-       cache_entry->scope() == scope &&
-       cache_entry->under() == under) {
-      return cache_entry->value();
-    }
-    return NULL;
-  }
-
   void ConstantCache::update(STATE, Object* val, ConstantScope* sc) {
     update(state, val, nil<Module>(), sc);
   }
