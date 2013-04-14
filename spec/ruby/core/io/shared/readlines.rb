@@ -114,6 +114,13 @@ describe :io_readlines_options_19, :shared => true do
         (result ? result : ScratchPad.recorded).should == IOSpecs.lines_arbitrary_separator
       end
     end
+
+    describe "when the object is a Hash" do
+      it "uses the value as the options hash" do
+        result = IO.send(@method, @name, :mode => "r", &@object)
+        (result ? result : ScratchPad.recorded).should == IOSpecs.lines
+      end
+    end
   end
 
   describe "when passed name, object, object" do
