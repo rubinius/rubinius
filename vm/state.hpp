@@ -1,6 +1,8 @@
 #ifndef RBX_STATE_HPP
 #define RBX_STATE_HPP
 
+#include <string.h>
+
 namespace rubinius {
   class VM;
   class VMJIT;
