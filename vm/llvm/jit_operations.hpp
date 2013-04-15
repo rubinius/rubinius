@@ -9,7 +9,7 @@
 #include "builtin/bytearray.hpp"
 #include "builtin/regexp.hpp"
 #include "builtin/constant_cache.hpp"
-#include "inline_cache.hpp"
+#include "builtin/inline_cache.hpp"
 
 #include "llvm/offset.hpp"
 

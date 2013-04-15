@@ -74,7 +74,7 @@ namespace rubinius {
     native_int uncommon_count;
 
     size_t number_of_inline_caches_;
-    InlineCache* inline_caches;
+    size_t* inline_cache_offsets_;
 
     size_t number_of_constant_caches_;
     size_t* constant_cache_offsets_;
@@ -138,6 +138,10 @@ namespace rubinius {
 
     size_t inline_cache_count() {
       return number_of_inline_caches_;
+    }
+
+    size_t* inline_cache_offsets() {
+      return inline_cache_offsets_;
     }
 
     size_t constant_cache_count() {

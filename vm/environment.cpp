@@ -16,6 +16,7 @@
 #include "builtin/symbol.hpp"
 #include "builtin/module.hpp"
 #include "builtin/nativemethod.hpp"
+#include "builtin/inline_cache.hpp"
 
 #ifdef ENABLE_LLVM
 #include "llvm/state.hpp"
@@ -35,8 +36,6 @@
 
 #include "signal.hpp"
 #include "object_utils.hpp"
-
-#include "inline_cache.hpp"
 
 #include "agent.hpp"
 

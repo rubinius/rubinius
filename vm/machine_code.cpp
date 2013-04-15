@@ -17,6 +17,7 @@
 #include "builtin/class.hpp"
 #include "builtin/location.hpp"
 #include "builtin/constant_cache.hpp"
+#include "builtin/inline_cache.hpp"
 
 #include "instructions.hpp"
 
@@ -24,7 +25,6 @@
 #include "instruments/timing.hpp"
 
 #include "raise_reason.hpp"
-#include "inline_cache.hpp"
 #include "on_stack.hpp"
 
 #include "configuration.hpp"
@@ -59,7 +59,7 @@ namespace rubinius {
     , type(NULL)
     , uncommon_count(0)
     , number_of_inline_caches_(0)
-    , inline_caches(0)
+    , inline_cache_offsets_(0)
     , number_of_constant_caches_(0)
     , constant_cache_offsets_(0)
     , execute_status_(eInterpret)
@@ -117,8 +117,8 @@ namespace rubinius {
     delete[] opcodes;
     delete[] addresses;
 
-    if(inline_caches) {
-      delete[] inline_caches;
+    if(inline_cache_offsets_) {
+      delete[] inline_cache_offsets_;
     }
     if(constant_cache_offsets_) {
       delete[] constant_cache_offsets_;
@@ -128,8 +128,7 @@ namespace rubinius {
   int MachineCode::size() {
     return sizeof(MachineCode) +
       (total * sizeof(opcode)) + // opcodes
-      (total * sizeof(void*)) + // addresses
-      (number_of_inline_caches_ * sizeof(InlineCache)); // caches
+      (total * sizeof(void*));
   }
 
   void MachineCode::fill_opcodes(STATE, CompiledCode* original) {
@@ -197,11 +196,12 @@ namespace rubinius {
 
   void MachineCode::initialize_inline_caches(STATE, CompiledCode* original, int sends) {
     number_of_inline_caches_ = sends;
-    inline_caches = new InlineCache[sends];
+    inline_cache_offsets_ = new size_t[sends];
 
     int which = 0;
     bool allow_private = false;
     bool is_super = false;
+    int inline_index = 0;
 
     for(size_t ip = 0; ip < total;) {
       opcode op = opcodes[ip];
@@ -242,15 +242,18 @@ namespace rubinius {
       case InstructionSequence::insn_meta_to_s:
         {
         assert(which < sends);
-        InlineCache* cache = &inline_caches[which++];
-        cache->set_location(ip, this);
 
         Symbol* name = try_as<Symbol>(original->literals()->at(opcodes[ip + 1]));
         if(!name) {
           name = state->symbol("__unknown__");
         }
 
-        cache->set_name(name);
+        InlineCache* cache = InlineCache::empty(state, name);
+        original->write_barrier(state, cache);
+        cache->set_location(ip, this);
+
+        inline_cache_offsets_[inline_index] = ip;
+        inline_index++;
 
         if(op == InstructionSequence::insn_call_custom) {
           cache->set_call_custom();
@@ -287,9 +290,11 @@ namespace rubinius {
       case InstructionSequence::insn_find_const_fast: {
         Symbol* name = as<Symbol>(original->literals()->at(opcodes[ip + 1]));
         ConstantCache* cache = ConstantCache::empty(state, name);
-        opcodes[ip + 1] = reinterpret_cast<intptr_t>(cache);
+        original->write_barrier(state, cache);
+
         constant_cache_offsets_[constant_index] = ip;
         constant_index++;
+        opcodes[ip + 1] = reinterpret_cast<intptr_t>(cache);
         update_addresses(ip, 1);
         break;
       }

@@ -21,6 +21,7 @@
 #include "builtin/location.hpp"
 #include "builtin/cache.hpp"
 #include "builtin/thread_state.hpp"
+#include "builtin/inline_cache.hpp"
 
 #include "instruments/tooling.hpp"
 
@@ -34,7 +35,6 @@
 #include "on_stack.hpp"
 
 #include "helpers.hpp"
-#include "inline_cache.hpp"
 
 #include "vm/gen/instruction_defines.hpp"
 

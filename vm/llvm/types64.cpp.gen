@@ -495,7 +495,20 @@ if (!StructTy_struct_rubinius__InlineCache) {
 StructTy_struct_rubinius__InlineCache = StructType::create(mod->getContext(), "struct.rubinius::InlineCache");
 }
 std::vector<Type*>StructTy_struct_rubinius__InlineCache_fields;
+StructTy_struct_rubinius__InlineCache_fields.push_back(StructTy_struct_rubinius__Object);
 StructTy_struct_rubinius__InlineCache_fields.push_back(PointerTy_8);
+StructType *StructTy_struct_rubinius__CallUnit = mod->getTypeByName("struct.rubinius::CallUnit");
+if (!StructTy_struct_rubinius__CallUnit) {
+StructTy_struct_rubinius__CallUnit = StructType::create(mod->getContext(), "struct.rubinius::CallUnit");
+}
+std::vector<Type*>StructTy_struct_rubinius__CallUnit_fields;
+if (StructTy_struct_rubinius__CallUnit->isOpaque()) {
+StructTy_struct_rubinius__CallUnit->setBody(StructTy_struct_rubinius__CallUnit_fields, /*isPacked=*/false);
+}
+
+PointerType* PointerTy_40 = PointerType::get(StructTy_struct_rubinius__CallUnit, 0);
+
+StructTy_struct_rubinius__InlineCache_fields.push_back(PointerTy_40);
 StructType *StructTy_struct_rubinius__InlineCacheHit = mod->getTypeByName("struct.rubinius::InlineCacheHit");
 if (!StructTy_struct_rubinius__InlineCacheHit) {
 StructTy_struct_rubinius__InlineCacheHit = StructType::create(mod->getContext(), "struct.rubinius::InlineCacheHit");
@@ -516,29 +529,17 @@ if (StructTy_struct_rubinius__MethodCacheEntry->isOpaque()) {
 StructTy_struct_rubinius__MethodCacheEntry->setBody(StructTy_struct_rubinius__MethodCacheEntry_fields, /*isPacked=*/false);
 }
 
-PointerType* PointerTy_41 = PointerType::get(StructTy_struct_rubinius__MethodCacheEntry, 0);
+PointerType* PointerTy_42 = PointerType::get(StructTy_struct_rubinius__MethodCacheEntry, 0);
 
-StructTy_struct_rubinius__InlineCacheHit_fields.push_back(PointerTy_41);
+StructTy_struct_rubinius__InlineCacheHit_fields.push_back(PointerTy_42);
 StructTy_struct_rubinius__InlineCacheHit_fields.push_back(IntegerType::get(mod->getContext(), 32));
 if (StructTy_struct_rubinius__InlineCacheHit->isOpaque()) {
 StructTy_struct_rubinius__InlineCacheHit->setBody(StructTy_struct_rubinius__InlineCacheHit_fields, /*isPacked=*/false);
 }
 
-ArrayType* ArrayTy_40 = ArrayType::get(StructTy_struct_rubinius__InlineCacheHit, 3);
+ArrayType* ArrayTy_41 = ArrayType::get(StructTy_struct_rubinius__InlineCacheHit, 3);
 
-StructTy_struct_rubinius__InlineCache_fields.push_back(ArrayTy_40);
-StructType *StructTy_struct_rubinius__CallUnit = mod->getTypeByName("struct.rubinius::CallUnit");
-if (!StructTy_struct_rubinius__CallUnit) {
-StructTy_struct_rubinius__CallUnit = StructType::create(mod->getContext(), "struct.rubinius::CallUnit");
-}
-std::vector<Type*>StructTy_struct_rubinius__CallUnit_fields;
-if (StructTy_struct_rubinius__CallUnit->isOpaque()) {
-StructTy_struct_rubinius__CallUnit->setBody(StructTy_struct_rubinius__CallUnit_fields, /*isPacked=*/false);
-}
-
-PointerType* PointerTy_42 = PointerType::get(StructTy_struct_rubinius__CallUnit, 0);
-
-StructTy_struct_rubinius__InlineCache_fields.push_back(PointerTy_42);
+StructTy_struct_rubinius__InlineCache_fields.push_back(ArrayTy_41);
 std::vector<Type*>FuncTy_44_args;
 FuncTy_44_args.push_back(PointerTy_3);
 PointerType* PointerTy_39 = PointerType::get(StructTy_struct_rubinius__InlineCache, 0);
@@ -568,7 +569,7 @@ FunctionType* FuncTy_38 = FunctionType::get(
  /*isVarArg=*/false);
 
 std::vector<Type*>FuncTy_45_args;
-FuncTy_45_args.push_back(PointerTy_41);
+FuncTy_45_args.push_back(PointerTy_42);
 FunctionType* FuncTy_45 = FunctionType::get(
  /*Result=*/Type::getVoidTy(mod->getContext()),
  /*Params=*/FuncTy_45_args,

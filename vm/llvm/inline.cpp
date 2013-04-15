@@ -114,12 +114,12 @@ namespace rubinius {
 
     Module* defined_in = 0;
     Class* klass = mce->receiver_class();
-    Executable* meth = klass->find_method(cache_->name, &defined_in);
+    Executable* meth = klass->find_method(cache_->name(), &defined_in);
 
     if(!meth) {
       if(ops_.llvm_state()->config().jit_inline_debug) {
         ctx_->inline_log("NOT inlining")
-          << ops_.llvm_state()->symbol_debug_str(cache_->name)
+          << ops_.llvm_state()->symbol_debug_str(cache_->name())
           << ". Inliner error, method missing.\n";
       }
       return false;
@@ -264,7 +264,7 @@ namespace rubinius {
         ctx_->inline_log("NOT inlining")
           << ops_.llvm_state()->symbol_debug_str(klass->module_name())
           << "#"
-          << ops_.llvm_state()->symbol_debug_str(cache_->name)
+          << ops_.llvm_state()->symbol_debug_str(cache_->name())
           << " into "
           << ops_.llvm_state()->symbol_debug_str(ops_.method_name())
           << ". unhandled executable type\n";
@@ -579,7 +579,7 @@ remember:
 
     info.set_self_class(klass);
 
-    jit::RuntimeData* rd = new jit::RuntimeData(code, cache_->name, defined_in);
+    jit::RuntimeData* rd = new jit::RuntimeData(code, cache_->name(), defined_in);
     ctx_->add_runtime_data(rd);
 
     jit::InlineMethodBuilder work(ops_.context(), info, rd);

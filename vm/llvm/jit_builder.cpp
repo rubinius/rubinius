@@ -473,10 +473,10 @@ namespace jit {
 
     void check_for_eval(opcode which) {
       InlineCache* ic = reinterpret_cast<InlineCache*>(which);
-      if(ic->name == s_eval_ ||
-          ic->name == s_binding_ ||
-          ic->name == s_class_eval_ ||
-          ic->name == s_module_eval_) {
+      if(ic->name() == s_eval_ ||
+          ic->name() == s_binding_ ||
+          ic->name() == s_class_eval_ ||
+          ic->name() == s_module_eval_) {
         calctx_evalish_ = true;
       }
     }

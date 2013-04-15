@@ -26,6 +26,7 @@
 #include "builtin/cache.hpp"
 #include "builtin/encoding.hpp"
 #include "builtin/thread_state.hpp"
+#include "builtin/inline_cache.hpp"
 
 #include "instruments/tooling.hpp"
 
@@ -34,7 +35,6 @@
 #include "arguments.hpp"
 #include "dispatch.hpp"
 #include "lookup_data.hpp"
-#include "inline_cache.hpp"
 #include "machine_code.hpp"
 #include "configuration.hpp"
 
@@ -115,7 +115,7 @@ extern "C" {
   Object* rbx_splat_send(STATE, CallFrame* call_frame, InlineCache* cache,
                           int count, Object** args) {
     Object* recv = args[0];
-    Arguments out_args(cache->name, recv, args[count+2], count, args+1);
+    Arguments out_args(cache->name(), recv, args[count+2], count, args+1);
 
     if(Array* ary = try_as<Array>(args[count+1])) {
       out_args.append(state, ary);
@@ -127,7 +127,7 @@ extern "C" {
   Object* rbx_splat_send_private(STATE, CallFrame* call_frame, InlineCache* cache,
                                   int count, Object** args) {
     Object* recv = args[0];
-    Arguments out_args(cache->name, recv, args[count+2], count, args+1);
+    Arguments out_args(cache->name(), recv, args[count+2], count, args+1);
 
     if(Array* ary = try_as<Array>(args[count+1])) {
       out_args.append(state, ary);
@@ -139,14 +139,14 @@ extern "C" {
   Object* rbx_super_send(STATE, CallFrame* call_frame, InlineCache* cache,
                           int count, Object** args) {
     Object* recv = call_frame->self();
-    Arguments out_args(cache->name, recv, args[count], count, args);
+    Arguments out_args(cache->name(), recv, args[count], count, args);
     return cache->execute(state, call_frame, out_args);
   }
 
   Object* rbx_super_splat_send(STATE, CallFrame* call_frame, InlineCache* cache,
                           int count, Object** args) {
     Object* recv = call_frame->self();
-    Arguments out_args(cache->name, recv, args[count+1], count, args);
+    Arguments out_args(cache->name(), recv, args[count+1], count, args);
 
     if(Array* ary = try_as<Array>(args[count])) {
       out_args.append(state, ary);
@@ -190,7 +190,7 @@ extern "C" {
       tup->put(state, v->total_args, splat_obj);
     }
 
-    Arguments out_args(cache->name, recv, block, arg_count, 0);
+    Arguments out_args(cache->name(), recv, block, arg_count, 0);
     out_args.use_tuple(tup, arg_count);
 
     return cache->execute(state, call_frame, out_args);
@@ -218,7 +218,7 @@ extern "C" {
   {
     if(kind_of<String>(obj)) return obj;
 
-    Arguments args(cache->name, obj, cNil, 0, 0);
+    Arguments args(cache->name(), obj, cNil, 0, 0);
     OnStack<1> os(state, obj);
     Object* ret = cache->execute(state, call_frame, args);
     if(!ret) return 0;
@@ -1222,8 +1222,8 @@ extern "C" {
       cache = reinterpret_cast<InlineCache*>(mcode->opcodes[call_frame->ip() + 1]);
     }
 
-    if(cache && cache->name->symbol_p()) {
-      std::cout << "Uncommon trap for send: " << cache->name->c_str(state) << "\n";
+    if(cache && cache->name()->symbol_p()) {
+      std::cout << "Uncommon trap for send: " << cache->name()->c_str(state) << "\n";
     } else {
       std::cout << "Unknown uncommon try reason.\n";
     }

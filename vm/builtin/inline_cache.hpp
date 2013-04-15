@@ -57,14 +57,15 @@ namespace rubinius {
     }
   };
 
-  class InlineCache {
+  class InlineCache : public Object {
   public:
-    Symbol* name;
+    const static object_type type = InlineCacheType;
 
   private:
-    InlineCacheHit cache_[cTrackedICHits];
+    Symbol* name_; // slot
+    CallUnit* call_unit_; // slot
 
-    CallUnit* call_unit_;
+    InlineCacheHit cache_[cTrackedICHits];
 
     typedef Object* (*CacheExecutor)(STATE, InlineCache*, CallFrame*, Arguments& args);
 
@@ -79,6 +80,11 @@ namespace rubinius {
     int seen_classes_overflow_;
 
   public:
+    attr_accessor(name, Symbol);
+    attr_accessor(call_unit, CallUnit);
+
+    static void init(STATE);
+    static InlineCache* empty(STATE, Symbol* name);
 
     friend class CompiledCode::Info;
 
@@ -140,20 +146,6 @@ namespace rubinius {
     MethodCacheEntry* update_and_validate(STATE, CallFrame* call_frame, Object* recv);
     MethodCacheEntry* update_and_validate_private(STATE, CallFrame* call_frame, Object* recv);
 
-    InlineCache()
-      : name(0)
-      , call_unit_(0)
-      , initial_backend_(empty_cache)
-      , execute_backend_(empty_cache)
-#ifdef TRACK_IC_LOCATION
-      , ip_(0)
-      , machine_code_(NULL)
-#endif
-      , seen_classes_overflow_(0)
-    {
-      clear();
-    }
-
 #ifdef TRACK_IC_LOCATION
     void set_location(int ip, MachineCode* mcode) {
       ip_ = ip;
@@ -173,10 +165,6 @@ namespace rubinius {
 
     void print_location(STATE, std::ostream& stream);
     void print(STATE, std::ostream& stream);
-
-    void set_name(Symbol* sym) {
-      name = sym;
-    }
 
     InlineCacheHit* caches() {
       return cache_;
@@ -304,6 +292,17 @@ namespace rubinius {
         return NULL;
       }
     }
+
+  public: // Rubinius Type stuff
+    class Info : public TypeInfo {
+    public:
+      Info(object_type type) : TypeInfo(type) { }
+      virtual void mark(Object* t, ObjectMark& mark);
+      virtual void set_field(STATE, Object*, size_t, Object*);
+      virtual Object* get_field(STATE, Object*, size_t);
+      virtual void auto_mark(Object*, ObjectMark&);
+      virtual void populate_slot_locations();
+    };
 
   };
 }

@@ -112,12 +112,13 @@ namespace HeaderWord {
   const static int flags64 = 0;
 }
 namespace InlineCache {
-  const static int name = 0;
-  const static int cache = 1;
+  const static int header = 0;
+  const static int name = 1;
   const static int call_unit = 2;
-  const static int initial = 3;
-  const static int execute = 4;
-  const static int seen_classes_overflow = 5;
+  const static int cache = 3;
+  const static int initial = 4;
+  const static int execute = 5;
+  const static int seen_classes_overflow = 6;
 }
 namespace InlineCacheHit {
   const static int entry = 0;

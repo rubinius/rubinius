@@ -11,6 +11,7 @@
 #include "builtin/lookuptable.hpp"
 #include "builtin/call_unit.hpp"
 #include "builtin/cache.hpp"
+#include "builtin/inline_cache.hpp"
 
 #include "ffi.hpp"
 #include "marshal.hpp"
@@ -23,7 +24,6 @@
 #include "vm/object_utils.hpp"
 #include "configuration.hpp"
 
-#include "inline_cache.hpp"
 #include "bytecode_verification.hpp"
 #include "instruments/timing.hpp"
 
@@ -409,8 +409,6 @@ namespace rubinius {
     MachineCode* mcode = code->machine_code_;
     mcode->set_mark();
 
-    Object* tmp;
-
 #ifdef ENABLE_LLVM
     if(code->jit_data()) {
       code->jit_data()->set_mark();
@@ -426,35 +424,20 @@ namespace rubinius {
     }
 #endif
 
-
     for(size_t i = 0; i < mcode->inline_cache_count(); i++) {
-      InlineCache* cache = &mcode->inline_caches[i];
-
-      for(int j = 0; j < cTrackedICHits; ++j) {
-        MethodCacheEntry* mce = cache->cache_[j].entry();
-        if(mce) {
-          tmp = mark.call(mce);
-          if(tmp) {
-            cache->cache_[j].update(static_cast<MethodCacheEntry*>(tmp));
-            mark.just_set(obj, tmp);
-          }
-        }
-      }
-
-      if(cache->call_unit_) {
-        tmp = mark.call(cache->call_unit_);
-        if(tmp) {
-          cache->call_unit_ = static_cast<CallUnit*>(tmp);
-          mark.just_set(obj, tmp);
-        }
-      }
+      size_t index = mcode->inline_cache_offsets()[i];
+      Object* new_cache = mark.call(reinterpret_cast<Object*>(mcode->opcodes[index + 1]));
+      mcode->opcodes[index + 1] = reinterpret_cast<intptr_t>(new_cache);
+      mcode->update_addresses(index, 1);
+      mark.just_set(code, new_cache);
     }
 
     for(size_t i = 0; i < mcode->constant_cache_count(); i++) {
       size_t index = mcode->constant_cache_offsets()[i];
-      Object* cur = reinterpret_cast<Object*>(mcode->opcodes[index + 1]);
-      mcode->opcodes[index + 1] = reinterpret_cast<intptr_t>(mark.call(cur));
+      Object* new_cache = mark.call(reinterpret_cast<Object*>(mcode->opcodes[index + 1]));
+      mcode->opcodes[index + 1] = reinterpret_cast<intptr_t>(new_cache);
       mcode->update_addresses(index, 1);
+      mark.just_set(code, new_cache);
     }
   }
 

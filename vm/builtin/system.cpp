@@ -54,14 +54,13 @@
 
 #include "builtin/constantscope.hpp"
 #include "builtin/block_environment.hpp"
+#include "builtin/inline_cache.hpp"
 
 #include "builtin/system.hpp"
 #include "signal.hpp"
 #include "lookup_data.hpp"
 
 #include "configuration.hpp"
-
-#include "inline_cache.hpp"
 
 #include "agent.hpp"
 

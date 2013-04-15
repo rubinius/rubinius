@@ -3,7 +3,7 @@
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/constant_cache.hpp"
-#include "inline_cache.hpp"
+#include "builtin/inline_cache.hpp"
 #include "builtin/cache.hpp"
 #include "builtin/lookuptable.hpp"
 
