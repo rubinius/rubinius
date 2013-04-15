@@ -427,9 +427,9 @@ class Hash
   end
 
   def select!
-    Rubinius.check_frozen
-
     return to_enum(:select!) unless block_given?
+
+    Rubinius.check_frozen
 
     return nil if empty?
 
