@@ -61,6 +61,7 @@ describe "Hash#select" do
     end
   end
 
+  it_behaves_like(:hash_iteration_no_block, :select)
 end
 
 ruby_version_is "1.9" do
