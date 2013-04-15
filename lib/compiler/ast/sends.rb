@@ -441,7 +441,8 @@ module Rubinius
             @array = []
           end
 
-          @splat = CollectSplat.new line, arguments.arguments, arguments.value
+          node = ArrayLiteral.new line, [arguments.value]
+          @splat = CollectSplat.new line, arguments.arguments, node
         when ArrayLiteral
           @array = arguments.body
         when nil
