@@ -61,6 +61,7 @@ describe "Hash#select" do
     end
   end
 
+  it_behaves_like(:hash_iteration_no_block, :select)
 end
 
 ruby_version_is "1.9" do
@@ -91,5 +92,7 @@ ruby_version_is "1.9" do
     it "raises a RuntimeError if called on a frozen instance that would not be modified" do
       lambda { HashSpecs.frozen_hash.select! { true } }.should raise_error(RuntimeError)
     end
+
+    it_behaves_like(:hash_iteration_no_block, :select!)
   end
 end
