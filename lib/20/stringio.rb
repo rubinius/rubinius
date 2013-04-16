@@ -267,8 +267,10 @@ class StringIO
     check_readable
     d = @__data__
 
-    char = d.string[d.pos]
-    d.pos += 1 unless eof?
+    return nil if eof?
+
+    char = d.string.find_character(d.pos)
+    d.pos += char.bytesize
     char
   end
 
