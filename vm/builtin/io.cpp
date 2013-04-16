@@ -117,12 +117,13 @@ namespace rubinius {
       fd = ::open(path, mode, permissions);
     }
 
-    free(path);
-
     if(fd < 0) {
-      Exception::errno_error(state, "open");
+      Exception::errno_error(state, path);
     }
     update_max_fd(state, fd);
+
+    free(path);
+
     return Fixnum::from(fd);
   }
 
