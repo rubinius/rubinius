@@ -514,7 +514,7 @@ class String
 
       if match.collapsing?
         if char = find_character(fin)
-          index = fin + char.size
+          index = fin + char.bytesize
         else
           index = fin + 1
         end

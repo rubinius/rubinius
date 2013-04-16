@@ -1812,6 +1812,7 @@ namespace rubinius {
     }
 
     output->klass(state, class_object(state));
+    output->encoding(state, encoding());
     if(CBOOL(tainted_p(state))) output->taint(state);
 
     return output;
