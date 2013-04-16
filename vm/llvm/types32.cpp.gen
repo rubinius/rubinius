@@ -514,22 +514,22 @@ if (!StructTy_struct_rubinius__InlineCacheHit) {
 StructTy_struct_rubinius__InlineCacheHit = StructType::create(mod->getContext(), "struct.rubinius::InlineCacheHit");
 }
 std::vector<Type*>StructTy_struct_rubinius__InlineCacheHit_fields;
-StructType *StructTy_struct_rubinius__MethodCacheEntry = mod->getTypeByName("struct.rubinius::MethodCacheEntry");
-if (!StructTy_struct_rubinius__MethodCacheEntry) {
-StructTy_struct_rubinius__MethodCacheEntry = StructType::create(mod->getContext(), "struct.rubinius::MethodCacheEntry");
+StructType *StructTy_struct_rubinius__InlineCacheEntry = mod->getTypeByName("struct.rubinius::InlineCacheEntry");
+if (!StructTy_struct_rubinius__InlineCacheEntry) {
+StructTy_struct_rubinius__InlineCacheEntry = StructType::create(mod->getContext(), "struct.rubinius::InlineCacheEntry");
 }
-std::vector<Type*>StructTy_struct_rubinius__MethodCacheEntry_fields;
-StructTy_struct_rubinius__MethodCacheEntry_fields.push_back(StructTy_struct_rubinius__Object);
-StructTy_struct_rubinius__MethodCacheEntry_fields.push_back(PointerTy_13);
-StructTy_struct_rubinius__MethodCacheEntry_fields.push_back(PointerTy_10);
-StructTy_struct_rubinius__MethodCacheEntry_fields.push_back(PointerTy_31);
-StructTy_struct_rubinius__MethodCacheEntry_fields.push_back(IntegerType::get(mod->getContext(), 32));
-StructTy_struct_rubinius__MethodCacheEntry_fields.push_back(IntegerType::get(mod->getContext(), 32));
-if (StructTy_struct_rubinius__MethodCacheEntry->isOpaque()) {
-StructTy_struct_rubinius__MethodCacheEntry->setBody(StructTy_struct_rubinius__MethodCacheEntry_fields, /*isPacked=*/false);
+std::vector<Type*>StructTy_struct_rubinius__InlineCacheEntry_fields;
+StructTy_struct_rubinius__InlineCacheEntry_fields.push_back(StructTy_struct_rubinius__Object);
+StructTy_struct_rubinius__InlineCacheEntry_fields.push_back(PointerTy_13);
+StructTy_struct_rubinius__InlineCacheEntry_fields.push_back(PointerTy_10);
+StructTy_struct_rubinius__InlineCacheEntry_fields.push_back(PointerTy_31);
+StructTy_struct_rubinius__InlineCacheEntry_fields.push_back(IntegerType::get(mod->getContext(), 32));
+StructTy_struct_rubinius__InlineCacheEntry_fields.push_back(IntegerType::get(mod->getContext(), 32));
+if (StructTy_struct_rubinius__InlineCacheEntry->isOpaque()) {
+StructTy_struct_rubinius__InlineCacheEntry->setBody(StructTy_struct_rubinius__InlineCacheEntry_fields, /*isPacked=*/false);
 }
 
-PointerType* PointerTy_42 = PointerType::get(StructTy_struct_rubinius__MethodCacheEntry, 0);
+PointerType* PointerTy_42 = PointerType::get(StructTy_struct_rubinius__InlineCacheEntry, 0);
 
 StructTy_struct_rubinius__InlineCacheHit_fields.push_back(PointerTy_42);
 StructTy_struct_rubinius__InlineCacheHit_fields.push_back(IntegerType::get(mod->getContext(), 32));
@@ -954,16 +954,16 @@ func_output4->setCallingConv(CallingConv::C);
 AttrListPtr func_output4_PAL;
 func_output4->setAttributes(func_output4_PAL);
 
-Function* func_outputMethodCacheEntry = mod->getFunction("outputMethodCacheEntry");
-if (!func_outputMethodCacheEntry) {
-func_outputMethodCacheEntry = Function::Create(
+Function* func_outputInlineCacheEntry = mod->getFunction("outputInlineCacheEntry");
+if (!func_outputInlineCacheEntry) {
+func_outputInlineCacheEntry = Function::Create(
  /*Type=*/FuncTy_45,
  /*Linkage=*/GlobalValue::ExternalLinkage,
- /*Name=*/"outputMethodCacheEntry", mod); // (external, no body)
-func_outputMethodCacheEntry->setCallingConv(CallingConv::C);
+ /*Name=*/"outputInlineCacheEntry", mod); // (external, no body)
+func_outputInlineCacheEntry->setCallingConv(CallingConv::C);
 }
-AttrListPtr func_outputMethodCacheEntry_PAL;
-func_outputMethodCacheEntry->setAttributes(func_outputMethodCacheEntry_PAL);
+AttrListPtr func_outputInlineCacheEntry_PAL;
+func_outputInlineCacheEntry->setAttributes(func_outputInlineCacheEntry_PAL);
 
 Function* func_output5 = mod->getFunction("output5");
 if (!func_output5) {

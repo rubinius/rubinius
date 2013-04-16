@@ -1700,10 +1700,10 @@ instruction check_serial(literal serial) [ receiver -- boolean ]
   Object* recv = stack_pop();
   InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
 
-  MethodCacheEntry* mce =
+  InlineCacheEntry* ice =
       cache->update_and_validate(state, call_frame, recv);
 
-  stack_push(RBOOL(mce && mce->method()->serial()->to_native() == serial));
+  stack_push(RBOOL(ice && ice->method()->serial()->to_native() == serial));
 end
 
 # [Description]
@@ -1716,10 +1716,10 @@ instruction check_serial_private(literal serial) [ receiver -- boolean ]
   Object* recv = stack_pop();
   InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
 
-  MethodCacheEntry* mce =
+  InlineCacheEntry* ice =
       cache->update_and_validate_private(state, call_frame, recv);
 
-  stack_push(RBOOL(mce && mce->method()->serial()->to_native() == serial));
+  stack_push(RBOOL(ice && ice->method()->serial()->to_native() == serial));
 end
 
 section "Access object fields"

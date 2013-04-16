@@ -762,10 +762,10 @@ namespace rubinius {
       failure->moveAfter(cont);
     }
 
-    type::KnownType check_class(Value* obj, MethodCacheEntry* mce,
+    type::KnownType check_class(Value* obj, InlineCacheEntry* ice,
                                 BasicBlock* class_id_failure, BasicBlock* serial_id_failure) {
 
-      Class* klass = mce->receiver_class();
+      Class* klass = ice->receiver_class();
       object_type type = (object_type)klass->instance_type()->to_native();
 
       switch(type) {
@@ -830,7 +830,7 @@ namespace rubinius {
             return kt;
           }
 
-          check_reference_class(obj, mce, class_id_failure, serial_id_failure);
+          check_reference_class(obj, ice, class_id_failure, serial_id_failure);
           if(kind_of<SingletonClass>(klass)) {
             return type::KnownType::singleton_instance(klass->class_id());
           } else {
@@ -936,7 +936,7 @@ namespace rubinius {
       failure->moveAfter(body);
     }
 
-    void check_reference_class(Value* obj, MethodCacheEntry* mce,
+    void check_reference_class(Value* obj, InlineCacheEntry* ice,
                                BasicBlock* class_id_failure, BasicBlock* serial_id_failure) {
       Value* is_ref = check_is_reference(obj);
       BasicBlock* cont = new_block("check_class_id");
@@ -948,14 +948,14 @@ namespace rubinius {
       set_block(cont);
 
       Value* klass = reference_class(obj);
-      Value* class_match = create_equal(get_class_id(klass), cint(mce->receiver_class_id()), "check_class_id");
+      Value* class_match = create_equal(get_class_id(klass), cint(ice->receiver_class_id()), "check_class_id");
 
       create_conditional_branch(body, class_id_failure, class_match);
 
       set_block(body);
       class_id_failure->moveAfter(body);
 
-      Value* serial_match = create_equal(get_serial_id(klass), cint(mce->receiver_serial_id()), "check_serial_id");
+      Value* serial_match = create_equal(get_serial_id(klass), cint(ice->receiver_serial_id()), "check_serial_id");
 
       create_conditional_branch(serial, serial_id_failure, serial_match);
 

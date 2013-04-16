@@ -23,7 +23,6 @@
 #include "builtin/integer.hpp"
 #include "builtin/float.hpp"
 #include "builtin/location.hpp"
-#include "builtin/cache.hpp"
 #include "builtin/encoding.hpp"
 #include "builtin/thread_state.hpp"
 #include "builtin/inline_cache.hpp"
@@ -549,15 +548,15 @@ extern "C" {
   Object* rbx_check_serial(STATE, CallFrame* call_frame, InlineCache* cache,
                            int serial, Object* recv)
   {
-    MethodCacheEntry* mce = cache->update_and_validate(state, call_frame, recv);
-    return RBOOL(mce && mce->method()->serial()->to_native() == serial);
+    InlineCacheEntry* ice = cache->update_and_validate(state, call_frame, recv);
+    return RBOOL(ice && ice->method()->serial()->to_native() == serial);
   }
 
   Object* rbx_check_serial_private(STATE, CallFrame* call_frame, InlineCache* cache,
                            int serial, Object* recv)
   {
-    MethodCacheEntry* mce = cache->update_and_validate_private(state, call_frame, recv);
-    return RBOOL(mce && mce->method()->serial()->to_native() == serial);
+    InlineCacheEntry* ice = cache->update_and_validate_private(state, call_frame, recv);
+    return RBOOL(ice && ice->method()->serial()->to_native() == serial);
   }
 
   Object* rbx_find_const(STATE, CallFrame* call_frame, int index, Object* top) {

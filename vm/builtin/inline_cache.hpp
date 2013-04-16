@@ -6,7 +6,6 @@
 #include "builtin/module.hpp"
 #include "builtin/class.hpp"
 #include "builtin/compiledcode.hpp"
-#include "builtin/cache.hpp"
 #include "lock.hpp"
 #include "object_utils.hpp"
 
@@ -21,11 +20,65 @@ namespace rubinius {
   class Arguments;
   class CallUnit;
 
+  class InlineCacheEntry : public Object {
+  public:
+    const static object_type type = InlineCacheEntryType;
+
+  private:
+    Module* stored_module_;  // slot
+    Class*  receiver_class_; // slot
+    Executable* method_;     // slot
+
+    ClassData receiver_;
+
+    MethodMissingReason method_missing_;
+    bool super_;
+
+  public:
+    attr_accessor(stored_module, Module);
+    attr_accessor(receiver_class, Class);
+    attr_accessor(method, Executable);
+
+    uint64_t receiver_data() {
+      return receiver_.raw;
+    }
+
+    uint32_t receiver_class_id() {
+      return receiver_.f.class_id;
+    }
+
+    uint32_t receiver_serial_id() {
+      return receiver_.f.serial_id;
+    }
+
+    void set_method_missing(MethodMissingReason reason) {
+      method_missing_ = reason;
+    }
+
+    MethodMissingReason method_missing() {
+      return method_missing_;
+    }
+
+    bool super() {
+      return super_;
+    }
+
+  public:
+    static InlineCacheEntry* create(STATE, Class* klass, Module* mod,
+                                    Executable* method, MethodMissingReason method_missing,
+                                    bool super);
+
+    class Info : public TypeInfo {
+    public:
+      BASIC_TYPEINFO(TypeInfo);
+    };
+  };
+
   // How many receiver class have been seen to keep track of inside an IC
   const static int cTrackedICHits = 3;
 
   class InlineCacheHit {
-    MethodCacheEntry* entry_;
+    InlineCacheEntry* entry_;
     int hits_;
 
   public:
@@ -35,12 +88,12 @@ namespace rubinius {
       , hits_(0)
     {}
 
-    void assign(MethodCacheEntry* entry) {
+    void assign(InlineCacheEntry* entry) {
       hits_ = 0;
       atomic::write(&entry_, entry);
     }
 
-    void update(MethodCacheEntry* entry) {
+    void update(InlineCacheEntry* entry) {
       atomic::write(&entry_, entry);
     }
 
@@ -52,7 +105,7 @@ namespace rubinius {
       return hits_;
     }
 
-    MethodCacheEntry* entry() {
+    InlineCacheEntry* entry() {
       return entry_;
     }
   };
@@ -138,13 +191,13 @@ namespace rubinius {
                                   Arguments& args);
 
     MethodMissingReason fill_public(STATE, Object* self, Symbol* name, Class* klass,
-                                    MethodCacheEntry*& mce, bool super = false);
+                                    InlineCacheEntry*& ice, bool super = false);
     bool fill_private(STATE, Symbol* name, Module* start, Class* klass,
-                      MethodCacheEntry*& mce, bool super = false);
-    bool fill_method_missing(STATE, Class* klass, MethodMissingReason reason, MethodCacheEntry*& mce);
+                      InlineCacheEntry*& ice, bool super = false);
+    bool fill_method_missing(STATE, Class* klass, MethodMissingReason reason, InlineCacheEntry*& ice);
 
-    MethodCacheEntry* update_and_validate(STATE, CallFrame* call_frame, Object* recv);
-    MethodCacheEntry* update_and_validate_private(STATE, CallFrame* call_frame, Object* recv);
+    InlineCacheEntry* update_and_validate(STATE, CallFrame* call_frame, Object* recv);
+    InlineCacheEntry* update_and_validate_private(STATE, CallFrame* call_frame, Object* recv);
 
 #ifdef TRACK_IC_LOCATION
     void set_location(int ip, MachineCode* mcode) {
@@ -204,25 +257,25 @@ namespace rubinius {
       }
     }
 
-    MethodCacheEntry* get_cache(Class* const recv_class) {
+    InlineCacheEntry* get_cache(Class* const recv_class) {
       register uint64_t recv_data = recv_class->data_id();
       for(int i = 0; i < cTrackedICHits; ++i) {
-        MethodCacheEntry* mce = cache_[i].entry();
-        if(likely(mce && mce->receiver_data() == recv_data)) return mce;
+        InlineCacheEntry* ice = cache_[i].entry();
+        if(likely(ice && ice->receiver_data() == recv_data)) return ice;
       }
       return NULL;
     }
 
-    InlineCacheHit* get_inline_cache(Class* const recv_class, MethodCacheEntry*& mce) {
+    InlineCacheHit* get_inline_cache(Class* const recv_class, InlineCacheEntry*& ice) {
       register uint64_t recv_data = recv_class->data_id();
       for(int i = 0; i < cTrackedICHits; ++i) {
-        mce = cache_[i].entry();
-        if(likely(mce && mce->receiver_data() == recv_data)) return &cache_[i];
+        ice = cache_[i].entry();
+        if(likely(ice && ice->receiver_data() == recv_data)) return &cache_[i];
       }
       return NULL;
     }
 
-    MethodCacheEntry* get_single_cache() {
+    InlineCacheEntry* get_single_cache() {
       if(cache_size() == 1) {
         return cache_[0].entry();
       }
@@ -232,7 +285,7 @@ namespace rubinius {
     int growth_cache_size(uint32_t class_id) {
       int count = 0;
       for(int i = 0; i < cTrackedICHits; ++i) {
-        MethodCacheEntry* current = cache_[i].entry();
+        InlineCacheEntry* current = cache_[i].entry();
         if(current && current->receiver_class_id() != class_id) {
           ++count;
         }
@@ -247,23 +300,23 @@ namespace rubinius {
       return cTrackedICHits;
     }
 
-    MethodCacheEntry* get_cache(int idx, int* hits) {
-      MethodCacheEntry* entry = cache_[idx].entry();
+    InlineCacheEntry* get_cache(int idx, int* hits) {
+      InlineCacheEntry* entry = cache_[idx].entry();
       if(entry) {
         *hits = cache_[idx].hits();
       }
       return entry;
     }
 
-    void set_cache(MethodCacheEntry* mce) {
-      // Make sure we sync here, so the MethodCacheEntry mce is
+    void set_cache(InlineCacheEntry* ice) {
+      // Make sure we sync here, so the InlineCacheEntry ice is
       // guaranteed completely initialized. Otherwise another thread
-      // might see an incompletely initialized MethodCacheEntry.
+      // might see an incompletely initialized InlineCacheEntry.
       int least_used = cTrackedICHits - 1;
       for(int i = 0; i < cTrackedICHits; ++i) {
-        MethodCacheEntry* current = cache_[i].entry();
-        if(!current || current->receiver_class_id() == mce->receiver_class_id()) {
-          cache_[i].assign(mce);
+        InlineCacheEntry* current = cache_[i].entry();
+        if(!current || current->receiver_class_id() == ice->receiver_class_id()) {
+          cache_[i].assign(ice);
           return;
         }
         if(cache_[i].hits() < cache_[least_used].hits()) {
@@ -272,7 +325,7 @@ namespace rubinius {
       }
 
       seen_classes_overflow_++;
-      cache_[least_used].assign(mce);
+      cache_[least_used].assign(ice);
     }
 
     int seen_classes_overflow() {
@@ -284,7 +337,7 @@ namespace rubinius {
     }
 
     Class* get_class(int idx, int* hits) {
-      MethodCacheEntry* entry = cache_[idx].entry();
+      InlineCacheEntry* entry = cache_[idx].entry();
       if(entry) {
         *hits = cache_[idx].hits();
         return entry->receiver_class();

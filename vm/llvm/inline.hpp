@@ -157,31 +157,31 @@ namespace rubinius {
 
     bool consider_poly();
 
-    bool inline_for_class(MethodCacheEntry* mce, int hits);
+    bool inline_for_class(InlineCacheEntry* ice, int hits);
 
     void inline_block(JITInlineBlock* ib, Value* self);
 
-    void inline_generic_method(MethodCacheEntry* mce, Module* mod, CompiledCode* code, MachineCode* mcode, int hits);
+    void inline_generic_method(InlineCacheEntry* ice, Module* mod, CompiledCode* code, MachineCode* mcode, int hits);
 
     bool detect_trivial_method(MachineCode* mcode, CompiledCode* code = 0);
 
-    void inline_trivial_method(MethodCacheEntry* mce, CompiledCode* code);
+    void inline_trivial_method(InlineCacheEntry* ice, CompiledCode* code);
 
-    void inline_ivar_write(MethodCacheEntry* mce, AccessVariable* acc);
+    void inline_ivar_write(InlineCacheEntry* ice, AccessVariable* acc);
 
-    void inline_ivar_access(MethodCacheEntry* mce, AccessVariable* acc);
+    void inline_ivar_access(InlineCacheEntry* ice, AccessVariable* acc);
 
-    bool inline_primitive(MethodCacheEntry* mce, CompiledCode* code, executor prim);
+    bool inline_primitive(InlineCacheEntry* ice, CompiledCode* code, executor prim);
 
-    bool inline_ffi(MethodCacheEntry* klass, NativeFunction* nf);
+    bool inline_ffi(InlineCacheEntry* klass, NativeFunction* nf);
 
     void emit_inline_block(JITInlineBlock* ib, Value* val);
 
-    int detect_jit_intrinsic(MethodCacheEntry* mce, CompiledCode* code);
-    void inline_intrinsic(MethodCacheEntry* mce, CompiledCode* code, int which);
+    int detect_jit_intrinsic(InlineCacheEntry* ice, CompiledCode* code);
+    void inline_intrinsic(InlineCacheEntry* ice, CompiledCode* code, int which);
 
-    void check_class(llvm::Value* recv, MethodCacheEntry* mce);
-    void check_recv(MethodCacheEntry* mce);
+    void check_class(llvm::Value* recv, InlineCacheEntry* ice);
+    void check_recv(InlineCacheEntry* ice);
 
     void prime_info(JITMethodInfo& info);
   };

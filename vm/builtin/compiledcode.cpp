@@ -10,7 +10,6 @@
 #include "builtin/string.hpp"
 #include "builtin/lookuptable.hpp"
 #include "builtin/call_unit.hpp"
-#include "builtin/cache.hpp"
 #include "builtin/inline_cache.hpp"
 
 #include "ffi.hpp"

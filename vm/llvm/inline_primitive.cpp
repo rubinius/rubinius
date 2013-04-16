@@ -23,14 +23,14 @@ namespace rubinius {
     JITOperations& ops;
     Inliner& i;
     CompiledCode* compiled_code;
-    MethodCacheEntry* mce;
+    InlineCacheEntry* ice;
 
     InlinePrimitive(JITOperations& _ops, Inliner& _i, CompiledCode* _code,
-                    MethodCacheEntry* _mce)
+                    InlineCacheEntry* _ice)
       : ops(_ops)
       , i(_i)
       , compiled_code(_code)
-      , mce(_mce)
+      , ice(_ice)
     {}
 
     void log(const char* name) {
@@ -900,13 +900,13 @@ namespace rubinius {
 
       i.use_send_for_failure();
 
-      i.check_recv(mce);
+      i.check_recv(ice);
 
       Value* arg = i.arg(0);
 
       BasicBlock* not_float = ops.new_block();
 
-      ops.check_class(arg, mce->receiver_class(), not_float);
+      ops.check_class(arg, ice->receiver_class(), not_float);
 
       // Float#*(Float)
       Value* farg  = ops.b().CreateBitCast(arg, ops.context()->ptr_type("Float"),
@@ -995,14 +995,14 @@ namespace rubinius {
 
       i.use_send_for_failure();
 
-      i.check_recv(mce);
+      i.check_recv(ice);
 
       // Support compare against Floats and Fixnums inline
       BasicBlock* do_compare = ops.new_block("float_compare_operation");
       BasicBlock* check_fix =  ops.new_block("check_fixnum");
 
       Value* arg = i.arg(0);
-      ops.check_class(arg, mce->receiver_class(), check_fix);
+      ops.check_class(arg, ice->receiver_class(), check_fix);
 
       Value* farg =  ops.b().CreateBitCast(arg, ops.context()->ptr_type("Float"),
           "arg_float");
@@ -1077,14 +1077,14 @@ namespace rubinius {
 
       i.use_send_for_failure();
 
-      i.check_recv(mce);
+      i.check_recv(ice);
 
       // Support compare against Floats and Fixnums inline
       BasicBlock* do_compare = ops.new_block("float_compare_operation");
       BasicBlock* check_fix =  ops.new_block("check_fixnum");
 
       Value* arg = i.arg(0);
-      ops.check_class(arg, mce->receiver_class(), check_fix);
+      ops.check_class(arg, ice->receiver_class(), check_fix);
 
       Value* farg =  ops.b().CreateBitCast(arg, ops.context()->ptr_type("Float"),
           "arg_float");
@@ -1152,7 +1152,7 @@ namespace rubinius {
       log("object_equal");
       i.context()->enter_inline();
 
-      i.check_recv(mce);
+      i.check_recv(ice);
 
       Value* cmp = ops.create_equal(i.recv(), i.arg(0), "identity_equal");
       Value* imm_value = SelectInst::Create(cmp, ops.constant(cTrue),
@@ -1167,7 +1167,7 @@ namespace rubinius {
       log("class_allocate");
       i.context()->enter_inline();
 
-      i.check_recv(mce);
+      i.check_recv(ice);
 
       Value* V = i.recv();
 
@@ -1453,9 +1453,9 @@ namespace rubinius {
 
   };
 
-  bool Inliner::inline_primitive(MethodCacheEntry* mce, CompiledCode* code, executor prim) {
+  bool Inliner::inline_primitive(InlineCacheEntry* ice, CompiledCode* code, executor prim) {
 
-    InlinePrimitive ip(ops_, *this, code, mce);
+    InlinePrimitive ip(ops_, *this, code, ice);
 
     if(prim == Primitives::tuple_at && count_ == 1) {
       ip.tuple_at();
@@ -1599,7 +1599,7 @@ namespace rubinius {
 
           ops_.context()->enter_inline();
 
-          check_recv(mce);
+          check_recv(ice);
 
           std::vector<Value*> call_args;
 
@@ -1670,8 +1670,8 @@ namespace rubinius {
     return true;
   }
 
-  int Inliner::detect_jit_intrinsic(MethodCacheEntry* mce, CompiledCode* code) {
-    Class* klass = mce->receiver_class();
+  int Inliner::detect_jit_intrinsic(InlineCacheEntry* ice, CompiledCode* code) {
+    Class* klass = ice->receiver_class();
     if(klass->instance_type()->to_native() == rubinius::Tuple::type) {
       if(count_ == 2 && code->name() == ops_.llvm_state()->symbol("swap")) {
         return 1;
@@ -1681,8 +1681,8 @@ namespace rubinius {
     return 0;
   }
 
-  void Inliner::inline_intrinsic(MethodCacheEntry* mce, CompiledCode* code, int which) {
-    InlinePrimitive ip(ops_, *this, code, mce);
+  void Inliner::inline_intrinsic(InlineCacheEntry* ice, CompiledCode* code, int which) {
+    InlinePrimitive ip(ops_, *this, code, ice);
 
     switch(which) {
     case 1: // Tuple#swap

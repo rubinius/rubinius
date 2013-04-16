@@ -74,7 +74,7 @@ declare void @output3(%"struct.rubinius::Dispatch"*)
 
 declare void @output4(%"struct.rubinius::InlineCache"*)
 
-%"struct.rubinius::MethodCacheEntry" = type {
+%"struct.rubinius::InlineCacheEntry" = type {
    %"struct.rubinius::Object", ; header
   %"struct.rubinius::Module"*, ; stored_module
    %"struct.rubinius::Class"*, ; receiver_class
@@ -83,10 +83,10 @@ declare void @output4(%"struct.rubinius::InlineCache"*)
                           i32  ; receiver_serial_id
 }
 
-declare void @outputMethodCacheEntry(%"struct.rubinius::MethodCacheEntry"*)
+declare void @outputInlineCacheEntry(%"struct.rubinius::InlineCacheEntry"*)
 
 %"struct.rubinius::InlineCacheHit" = type {
-  %"struct.rubinius::MethodCacheEntry"*, ; entry
+  %"struct.rubinius::InlineCacheEntry"*, ; entry
                          i32  ; hits
 }
 

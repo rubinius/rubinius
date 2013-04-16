@@ -109,7 +109,6 @@ field_extract_headers = %w[
   vm/builtin/thunk.hpp
   vm/builtin/call_unit.hpp
   vm/builtin/call_unit_adapter.hpp
-  vm/builtin/cache.hpp
   vm/builtin/atomic.hpp
   vm/builtin/character.hpp
   vm/builtin/thread_state.hpp

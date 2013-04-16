@@ -52,8 +52,8 @@ namespace rubinius {
       clear();
     }
 
-    MethodCacheEntry* lookup_public(STATE, Module* mod, Class* cls, Symbol* name);
-    MethodCacheEntry* lookup_private(STATE, Module* mod, Class* cls, Symbol* name);
+    InlineCacheEntry* lookup_public(STATE, Module* mod, Class* cls, Symbol* name);
+    InlineCacheEntry* lookup_private(STATE, Module* mod, Class* cls, Symbol* name);
 
     void clear(STATE, Symbol* name) {
       utilities::thread::SpinLock::LockGuard guard(lock_);

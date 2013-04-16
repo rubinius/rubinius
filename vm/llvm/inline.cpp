@@ -12,26 +12,26 @@
 #include "builtin/methodtable.hpp"
 #include "builtin/nativefunction.hpp"
 #include "builtin/lookuptable.hpp"
-#include "builtin/cache.hpp"
+#include "builtin/inline_cache.hpp"
 
 #include "ffi_util.hpp"
 
 namespace rubinius {
 
-  void Inliner::check_class(llvm::Value* recv, MethodCacheEntry* mce) {
-    guarded_type_ = ops_.check_class(recv, mce, class_id_failure(), serial_id_failure());
+  void Inliner::check_class(llvm::Value* recv, InlineCacheEntry* ice) {
+    guarded_type_ = ops_.check_class(recv, ice, class_id_failure(), serial_id_failure());
     guarded_type_.inherit_source(ops_.context(), recv);
   }
 
-  void Inliner::check_recv(MethodCacheEntry* mce) {
-    check_class(recv(), mce);
+  void Inliner::check_recv(InlineCacheEntry* ice) {
+    check_class(recv(), ice);
   }
 
   bool Inliner::consider_mono() {
     if(cache_->classes_seen() != 1) return false;
     int hits = 0;
-    MethodCacheEntry* mce = cache_->get_cache(0, &hits);
-    return inline_for_class(mce, hits);
+    InlineCacheEntry* ice = cache_->get_cache(0, &hits);
+    return inline_for_class(ice, hits);
   }
 
   bool Inliner::consider_poly() {
@@ -48,12 +48,12 @@ namespace rubinius {
 
     for(int i = 0; i < classes_seen; ++i) {
       int hits = 0;
-      MethodCacheEntry* mce = cache_->get_cache(i, &hits);
+      InlineCacheEntry* ice = cache_->get_cache(i, &hits);
 
       // Fallback to the next for failure
       set_class_id_failure(fallback);
 
-      if(!inline_for_class(mce, hits)) {
+      if(!inline_for_class(ice, hits)) {
         // If we fail to inline this, emit a send to the method
 
         Value* cache_ptr_const = ops_.b().CreateIntToPtr(
@@ -109,11 +109,11 @@ namespace rubinius {
     return true;
   }
 
-  bool Inliner::inline_for_class(MethodCacheEntry* mce, int hits) {
-    if(!mce) return false;
+  bool Inliner::inline_for_class(InlineCacheEntry* ice, int hits) {
+    if(!ice) return false;
 
     Module* defined_in = 0;
-    Class* klass = mce->receiver_class();
+    Class* klass = ice->receiver_class();
     Executable* meth = klass->find_method(cache_->name(), &defined_in);
 
     if(!meth) {
@@ -131,15 +131,15 @@ namespace rubinius {
 
     if(AccessVariable* acc = try_as<AccessVariable>(meth)) {
       if(acc->write()->true_p()) {
-        inline_ivar_write(mce, acc);
+        inline_ivar_write(ice, acc);
       } else {
-        inline_ivar_access(mce, acc);
+        inline_ivar_access(ice, acc);
       }
     } else if(CompiledCode* code = try_as<CompiledCode>(meth)) {
       MachineCode* mcode = code->machine_code();
 
       if(!code->primitive()->nil_p()) {
-        if(!inline_primitive(mce, code, meth->execute)) return false;
+        if(!inline_primitive(ice, code, meth->execute)) return false;
         goto remember;
       }
 
@@ -148,9 +148,9 @@ namespace rubinius {
       if(!mcode) return false;
 
       if(detect_trivial_method(mcode, code)) {
-        inline_trivial_method(mce, code);
-      } else if(int which = detect_jit_intrinsic(mce, code)) {
-        inline_intrinsic(mce, code, which);
+        inline_trivial_method(ice, code);
+      } else if(int which = detect_jit_intrinsic(ice, code)) {
+        inline_intrinsic(ice, code, which);
       } else if(ops_.llvm_state()->config().jit_inline_generic) {
         InlineDecision decision;
         InlineOptions opts;
@@ -231,7 +231,7 @@ namespace rubinius {
         policy->increase_size(mcode);
         meth->add_inliner(ops_.llvm_state()->shared().om, ops_.root_method_info()->method());
 
-        inline_generic_method(mce, defined_in, code, mcode, hits);
+        inline_generic_method(ice, defined_in, code, mcode, hits);
         return true;
       } else {
         if(ops_.llvm_state()->config().jit_inline_debug) {
@@ -247,7 +247,7 @@ namespace rubinius {
         return false;
       }
     } else if(NativeFunction* nf = try_as<NativeFunction>(meth)) {
-      if(inline_ffi(mce, nf)) {
+      if(inline_ffi(ice, nf)) {
         if(ops_.llvm_state()->config().jit_inline_debug) {
           ctx_->inline_log("inlining")
             << "FFI call to "
@@ -319,8 +319,8 @@ remember:
     return false;
   }
 
-  void Inliner::inline_trivial_method(MethodCacheEntry* mce, CompiledCode* code) {
-    Class* klass = mce->receiver_class();
+  void Inliner::inline_trivial_method(InlineCacheEntry* ice, CompiledCode* code) {
+    Class* klass = ice->receiver_class();
     if(ops_.llvm_state()->config().jit_inline_debug) {
       ctx_->inline_log("inlining")
         << ops_.llvm_state()->enclosure_name(code)
@@ -333,7 +333,7 @@ remember:
 
     MachineCode* mcode = code->machine_code();
 
-    check_recv(mce);
+    check_recv(ice);
 
     Value* val = 0;
 
@@ -375,10 +375,10 @@ remember:
     set_result(val);
   }
 
-  void Inliner::inline_ivar_write(MethodCacheEntry* mce, AccessVariable* acc) {
+  void Inliner::inline_ivar_write(InlineCacheEntry* ice, AccessVariable* acc) {
     if(count_ != 1) return;
 
-    Class* klass = mce->receiver_class();
+    Class* klass = ice->receiver_class();
 
     if(ops_.llvm_state()->config().jit_inline_debug) {
       ctx_->inline_log("inlining")
@@ -394,7 +394,7 @@ remember:
     ctx_->enter_inline();
     ops_.llvm_state()->add_accessor_inlined();
 
-    check_recv(mce);
+    check_recv(ice);
 
     Value* val  = arg(0);
 
@@ -463,10 +463,10 @@ remember:
     ctx_->leave_inline();
   }
 
-  void Inliner::inline_ivar_access(MethodCacheEntry* mce, AccessVariable* acc) {
+  void Inliner::inline_ivar_access(InlineCacheEntry* ice, AccessVariable* acc) {
     if(count_ != 0) return;
 
-    Class* klass = mce->receiver_class();
+    Class* klass = ice->receiver_class();
 
     if(ops_.llvm_state()->config().jit_inline_debug) {
       ctx_->inline_log("inlining")
@@ -484,7 +484,7 @@ remember:
 
     Value* self = recv();
 
-    ops_.check_reference_class(self, mce, class_id_failure(), serial_id_failure());
+    ops_.check_reference_class(self, ice, class_id_failure(), serial_id_failure());
 
     // Figure out if we should use the table ivar lookup or
     // the slot ivar lookup.
@@ -562,13 +562,13 @@ remember:
     info.set_inline_block(inline_block_);
   }
 
-  void Inliner::inline_generic_method(MethodCacheEntry* mce, Module* defined_in,
+  void Inliner::inline_generic_method(InlineCacheEntry* ice, Module* defined_in,
                                       CompiledCode* code, MachineCode* mcode, int hits) {
     ctx_->enter_inline();
 
-    check_recv(mce);
+    check_recv(ice);
 
-    Class* klass = mce->receiver_class();
+    Class* klass = ice->receiver_class();
 
     JITMethodInfo info(ctx_, code, mcode);
 
@@ -717,7 +717,7 @@ remember:
     return 0;
   }
 
-  bool Inliner::inline_ffi(MethodCacheEntry* mce, NativeFunction* nf) {
+  bool Inliner::inline_ffi(InlineCacheEntry* ice, NativeFunction* nf) {
 
     for(size_t i = 0; i < nf->ffi_data->arg_count; i++) {
         if(nf->ffi_data->args_info[i].type==RBX_FFI_TYPE_ENUM ||
@@ -731,7 +731,7 @@ remember:
         return false;
     }
 
-    check_recv(mce);
+    check_recv(ice);
 
     ///
 

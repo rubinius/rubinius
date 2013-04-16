@@ -4,7 +4,6 @@
 #include "builtin/tuple.hpp"
 #include "builtin/constant_cache.hpp"
 #include "builtin/inline_cache.hpp"
-#include "builtin/cache.hpp"
 #include "builtin/lookuptable.hpp"
 
 #include "llvm/jit_operations.hpp"
@@ -2924,25 +2923,25 @@ use_send:
 
         Value* ich = b().CreateGEP(cache_const, ich_idx, "ich");
 
-        Value* mce_idx[] = {
+        Value* ice_idx[] = {
           cint(0),
           cint(offset::InlineCacheHit::entry)
         };
-        Value* mce = b().CreateLoad(b().CreateGEP(ich, mce_idx, "mce"));
+        Value* ice = b().CreateLoad(b().CreateGEP(ich, ice_idx, "ice"));
 
-        BasicBlock* has_mce = new_block("has_mce");
+        BasicBlock* has_ice = new_block("has_ice");
         BasicBlock* class_match = new_block("class_match");
         BasicBlock* next =        new_block("next");
 
-        Value* check_mce = b().CreateICmpNE(mce, Constant::getNullValue(ctx_->ptr_type("MethodCacheEntry")), "check_mce");
-        create_conditional_branch(has_mce, next, check_mce);
+        Value* check_ice = b().CreateICmpNE(ice, Constant::getNullValue(ctx_->ptr_type("InlineCacheEntry")), "check_ice");
+        create_conditional_branch(has_ice, next, check_ice);
 
-        set_block(has_mce);
+        set_block(has_ice);
         Value* receiver_class_idx[] = {
           cint(0),
-          cint(offset::MethodCacheEntry::receiver_class)
+          cint(offset::InlineCacheEntry::receiver_class)
         };
-        Value* receiver_class = b().CreateLoad(b().CreateGEP(mce, receiver_class_idx, "receiver_class"));
+        Value* receiver_class = b().CreateLoad(b().CreateGEP(ice, receiver_class_idx, "receiver_class"));
 
         Value* check_class = b().CreateICmpEQ(recv_class, receiver_class, "check_class");
 
@@ -2951,9 +2950,9 @@ use_send:
 
         Value* method_idx[] = {
           cint(0),
-          cint(offset::MethodCacheEntry::method)
+          cint(offset::InlineCacheEntry::method)
         };
-        Value* method = b().CreateLoad(b().CreateGEP(mce, method_idx, "method"));
+        Value* method = b().CreateLoad(b().CreateGEP(ice, method_idx, "method"));
 
         Value* executable_serial_idx[] = {
           cint(0),

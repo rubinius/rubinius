@@ -120,17 +120,17 @@ namespace InlineCache {
   const static int execute = 5;
   const static int seen_classes_overflow = 6;
 }
-namespace InlineCacheHit {
-  const static int entry = 0;
-  const static int hits = 1;
-}
-namespace MethodCacheEntry {
+namespace InlineCacheEntry {
   const static int header = 0;
   const static int stored_module = 1;
   const static int receiver_class = 2;
   const static int method = 3;
   const static int receiver_class_id = 4;
   const static int receiver_serial_id = 5;
+}
+namespace InlineCacheHit {
+  const static int entry = 0;
+  const static int hits = 1;
 }
 namespace Module {
   const static int header = 0;

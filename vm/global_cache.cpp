@@ -11,7 +11,7 @@
 #include "builtin/object.hpp"
 #include "builtin/methodtable.hpp"
 #include "builtin/alias.hpp"
-#include "builtin/cache.hpp"
+#include "builtin/inline_cache.hpp"
 
 namespace rubinius {
   static bool hierarchy_resolve(STATE, Symbol* name, Dispatch& msg, LookupData& lookup,
@@ -102,7 +102,7 @@ keep_looking:
     return true;
   }
 
-  MethodCacheEntry* GlobalCache::lookup_public(STATE, Module* mod, Class* cls, Symbol* name) {
+  InlineCacheEntry* GlobalCache::lookup_public(STATE, Module* mod, Class* cls, Symbol* name) {
     utilities::thread::SpinLock::LockGuard guard(lock_);
 
     Symbol* entry_name = entry_names[CPU_CACHE_HASH(mod, name)];
@@ -112,14 +112,14 @@ keep_looking:
          entry->visibility != G(sym_private) &&
         !entry->method_missing) {
 
-      return MethodCacheEntry::create(state, cls, entry->module,
+      return InlineCacheEntry::create(state, cls, entry->module,
                                       entry->method, eNone, false);
     }
 
     return NULL;
   }
 
-  MethodCacheEntry* GlobalCache::lookup_private(STATE, Module* mod, Class* cls, Symbol* name) {
+  InlineCacheEntry* GlobalCache::lookup_private(STATE, Module* mod, Class* cls, Symbol* name) {
     utilities::thread::SpinLock::LockGuard guard(lock_);
 
     Symbol* entry_name = entry_names[CPU_CACHE_HASH(mod, name)];
@@ -128,7 +128,7 @@ keep_looking:
          entry->klass == mod &&
         !entry->method_missing) {
 
-      return MethodCacheEntry::create(state, cls, entry->module,
+      return InlineCacheEntry::create(state, cls, entry->module,
                                       entry->method, eNone, false);
     }
 
