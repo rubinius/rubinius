@@ -343,10 +343,8 @@ namespace rubinius {
       other_fd = ::open(path, mode, 0666);
     }
 
-    free(path);
-
     if(other_fd < 0) {
-      Exception::errno_error(state, "reopen");
+      Exception::errno_error(state, path);
     }
     update_max_fd(state, other_fd);
 
@@ -355,10 +353,12 @@ namespace rubinius {
         // Just set ourselves to use the new fd and go on with life.
         descriptor(state, Fixnum::from(other_fd));
       } else {
-        Exception::errno_error(state, "reopen");
+        Exception::errno_error(state, path);
         return NULL;
       }
     }
+
+    free(path);
 
     set_mode(state);
     if(IOBuffer* ibuf = try_as<IOBuffer>(ibuffer())) {
