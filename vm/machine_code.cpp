@@ -234,7 +234,8 @@ namespace rubinius {
         Symbol* name = try_as<Symbol>(original->literals()->at(opcodes[ip + 1]));
         if(!name) name = nil<Symbol>();
 
-        InlineCache* cache = InlineCache::empty(state, name);
+        CallSite** location = reinterpret_cast<CallSite**>(&opcodes[ip + 1]);
+        InlineCache* cache = InlineCache::empty(state, name, location);
         original->write_barrier(state, cache);
 
         inline_cache_offsets_[inline_index] = ip;
@@ -543,7 +544,7 @@ namespace rubinius {
       } else if(splat_position == -1) {
         switch(total_args) {
         case 1:
-          fallback= &MachineCode::execute_specialized<OneArgument>;
+          fallback = &MachineCode::execute_specialized<OneArgument>;
           break;
         case 2:
           fallback = &MachineCode::execute_specialized<TwoArguments>;

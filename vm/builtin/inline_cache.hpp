@@ -2,10 +2,9 @@
 #define RBX_INLINE_CACHE_HPP
 
 #include "dispatch.hpp"
-#include "builtin/object.hpp"
-#include "builtin/module.hpp"
-#include "builtin/class.hpp"
 #include "builtin/compiledcode.hpp"
+#include "builtin/call_site.hpp"
+#include "builtin/class.hpp"
 #include "lock.hpp"
 #include "object_utils.hpp"
 
@@ -17,6 +16,7 @@ namespace rubinius {
   struct CallFrame;
   class Arguments;
   class CallUnit;
+  class Module;
 
   class InlineCacheEntry : public Object {
   public:
@@ -102,20 +102,14 @@ namespace rubinius {
     }
   };
 
-  class InlineCache : public Object {
+  class InlineCache : public CallSite {
   public:
     const static object_type type = InlineCacheType;
 
   private:
-    Symbol* name_; // slot
     CallUnit* call_unit_; // slot
 
     InlineCacheHit cache_[cTrackedICHits];
-
-    typedef Object* (*CacheExecutor)(STATE, InlineCache*, CallFrame*, Arguments& args);
-
-    CacheExecutor initial_backend_;
-    CacheExecutor execute_backend_;
 
     int seen_classes_overflow_;
 
@@ -124,35 +118,35 @@ namespace rubinius {
     attr_accessor(call_unit, CallUnit);
 
     static void init(STATE);
-    static InlineCache* empty(STATE, Symbol* name);
+    static InlineCache* empty(STATE, Symbol* name, CallSite** location);
 
     friend class CompiledCode::Info;
 
-    static Object* empty_cache(STATE, InlineCache* cache, CallFrame* call_frame,
+    static Object* empty_cache(STATE, CallSite* cache, CallFrame* call_frame,
                                Arguments& args);
 
-    static Object* empty_cache_private(STATE, InlineCache* cache, CallFrame* call_frame,
+    static Object* empty_cache_private(STATE, CallSite* cache, CallFrame* call_frame,
                                Arguments& args);
 
-    static Object* empty_cache_vcall(STATE, InlineCache* cache, CallFrame* call_frame,
+    static Object* empty_cache_vcall(STATE, CallSite* cache, CallFrame* call_frame,
                                Arguments& args);
 
-    static Object* empty_cache_super(STATE, InlineCache* cache, CallFrame* call_frame,
+    static Object* empty_cache_super(STATE, CallSite* cache, CallFrame* call_frame,
                                Arguments& args);
 
-    static Object* empty_cache_custom(STATE, InlineCache* cache, CallFrame* call_frame,
+    static Object* empty_cache_custom(STATE, CallSite* cache, CallFrame* call_frame,
                                           Arguments& args);
 
-    static Object* check_cache(STATE, InlineCache* cache, CallFrame* call_frame,
+    static Object* check_cache(STATE, CallSite* cache, CallFrame* call_frame,
                                Arguments& args);
 
-    static Object* check_cache_mm(STATE, InlineCache* cache, CallFrame* call_frame,
+    static Object* check_cache_mm(STATE, CallSite* cache, CallFrame* call_frame,
                                   Arguments& args);
 
-    static Object* check_cache_custom(STATE, InlineCache* cache, CallFrame* call_frame,
+    static Object* check_cache_custom(STATE, CallSite* cache, CallFrame* call_frame,
                                Arguments& args);
 
-    static Object* check_cache_poly(STATE, InlineCache* cache, CallFrame* call_frame,
+    static Object* check_cache_poly(STATE, CallSite* cache, CallFrame* call_frame,
                                   Arguments& args);
 
     MethodMissingReason fill(STATE, Object* self, Class* klass, Symbol* name, Module* start,
@@ -186,14 +180,6 @@ namespace rubinius {
     void set_call_custom() {
       initial_backend_ = empty_cache_custom;
       execute_backend_ = empty_cache_custom;
-    }
-
-    Object* execute(STATE, CallFrame* call_frame, Arguments& args) {
-      return (*execute_backend_)(state, this, call_frame, args);
-    }
-
-    Object* initialize(STATE, CallFrame* call_frame, Arguments& args) {
-      return (*initial_backend_)(state, this, call_frame, args);
     }
 
     void clear() {
@@ -292,14 +278,10 @@ namespace rubinius {
     }
 
   public: // Rubinius Type stuff
-    class Info : public TypeInfo {
+    class Info : public CallSite::Info {
     public:
-      Info(object_type type) : TypeInfo(type) { }
+      BASIC_TYPEINFO(CallSite::Info)
       virtual void mark(Object* t, ObjectMark& mark);
-      virtual void set_field(STATE, Object*, size_t, Object*);
-      virtual Object* get_field(STATE, Object*, size_t);
-      virtual void auto_mark(Object*, ObjectMark&);
-      virtual void populate_slot_locations();
     };
 
   };

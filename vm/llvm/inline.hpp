@@ -13,8 +13,8 @@ namespace rubinius {
   class Inliner {
     Context* ctx_;
     JITOperations& ops_;
-    InlineCache** cache_ptr_;
-    InlineCache* cache_;
+    CallSite** call_site_ptr_;
+    CallSite* call_site_;
     int count_;
     int self_pos_;
     BasicBlock* class_id_failure_;
@@ -36,12 +36,12 @@ namespace rubinius {
   public:
 
     Inliner(Context* ctx,
-            JITOperations& ops, InlineCache** cache_ptr, int count,
+            JITOperations& ops, CallSite** call_site_ptr, int count,
             BasicBlock* class_id_failure, BasicBlock* serial_id_failure)
       : ctx_(ctx)
       , ops_(ops)
-      , cache_ptr_(cache_ptr)
-      , cache_(*cache_ptr)
+      , call_site_ptr_(call_site_ptr)
+      , call_site_(*call_site_ptr)
       , count_(count)
       , self_pos_(count)
       , class_id_failure_(class_id_failure)
@@ -59,7 +59,8 @@ namespace rubinius {
     Inliner(Context* ctx, JITOperations& ops, int count)
       : ctx_(ctx)
       , ops_(ops)
-      , cache_(0)
+      , call_site_ptr_(0)
+      , call_site_(0)
       , count_(count)
       , class_id_failure_(0)
       , serial_id_failure_(0)

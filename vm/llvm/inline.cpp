@@ -28,14 +28,20 @@ namespace rubinius {
   }
 
   bool Inliner::consider_mono() {
-    if(cache_->classes_seen() != 1) return false;
+    InlineCache* cache = try_as<InlineCache>(call_site_);
+    if(!cache) return false;
+    if(cache->classes_seen() != 1) return false;
     int hits = 0;
-    InlineCacheEntry* ice = cache_->get_cache(0, &hits);
+    InlineCacheEntry* ice = cache->get_cache(0, &hits);
     return inline_for_class(ice, hits);
   }
 
   bool Inliner::consider_poly() {
-    int classes_seen = cache_->classes_seen();
+    InlineCache* cache = try_as<InlineCache>(call_site_);
+
+    if(!cache) return false;
+
+    int classes_seen = cache->classes_seen();
     BasicBlock* fail = class_id_failure();
     BasicBlock* fallback = ops_.new_block("poly_fallback");
     BasicBlock* merge = ops_.new_block("merge");
@@ -48,7 +54,7 @@ namespace rubinius {
 
     for(int i = 0; i < classes_seen; ++i) {
       int hits = 0;
-      InlineCacheEntry* ice = cache_->get_cache(i, &hits);
+      InlineCacheEntry* ice = cache->get_cache(i, &hits);
 
       // Fallback to the next for failure
       set_class_id_failure(fallback);
@@ -56,26 +62,26 @@ namespace rubinius {
       if(!inline_for_class(ice, hits)) {
         // If we fail to inline this, emit a send to the method
 
-        Value* cache_ptr_const = ops_.b().CreateIntToPtr(
-          ConstantInt::get(ops_.context()->IntPtrTy, (reinterpret_cast<uintptr_t>(cache_ptr_))),
-          ops_.ptr_type(ops_.ptr_type("InlineCache")), "cast_to_cache_ptr");
+        Value* call_site_ptr_const = ops_.b().CreateIntToPtr(
+          ConstantInt::get(ops_.context()->IntPtrTy, (reinterpret_cast<uintptr_t>(call_site_ptr_))),
+          ops_.ptr_type(ops_.ptr_type("CallSite")), "cast_to_call_site_ptr");
 
-        Value* cache_const = ops_.b().CreateLoad(cache_ptr_const, "cache_const");
+        Value* call_site_const = ops_.b().CreateLoad(call_site_ptr_const, "call_site_const");
 
         Value* execute_pos_idx[] = {
           ops_.context()->cint(0),
-          ops_.context()->cint(offset::InlineCache::execute),
+          ops_.context()->cint(offset::CallSite::execute),
         };
 
-        Value* execute_pos = ops_.b().CreateGEP(cache_const,
+        Value* execute_pos = ops_.b().CreateGEP(call_site_const,
             execute_pos_idx, "execute_pos");
 
         Value* execute = ops_.b().CreateLoad(execute_pos, "execute");
-        ops_.setup_out_args(cache_->name(), count_);
+        ops_.setup_out_args(cache->name(), count_);
 
         Value* call_args[] = {
           ops_.state(),
-          cache_const,
+          call_site_const,
           ops_.call_frame(),
           ops_.out_args()
         };
@@ -110,16 +116,18 @@ namespace rubinius {
   }
 
   bool Inliner::inline_for_class(InlineCacheEntry* ice, int hits) {
+    InlineCache* cache = try_as<InlineCache>(call_site_);
+    if(!cache) return false;
     if(!ice) return false;
 
     Module* defined_in = 0;
     Class* klass = ice->receiver_class();
-    Executable* meth = klass->find_method(cache_->name(), &defined_in);
+    Executable* meth = klass->find_method(cache->name(), &defined_in);
 
     if(!meth) {
       if(ops_.llvm_state()->config().jit_inline_debug) {
         ctx_->inline_log("NOT inlining")
-          << ops_.llvm_state()->symbol_debug_str(cache_->name())
+          << ops_.llvm_state()->symbol_debug_str(cache->name())
           << ". Inliner error, method missing.\n";
       }
       return false;
@@ -264,7 +272,7 @@ namespace rubinius {
         ctx_->inline_log("NOT inlining")
           << ops_.llvm_state()->symbol_debug_str(klass->module_name())
           << "#"
-          << ops_.llvm_state()->symbol_debug_str(cache_->name())
+          << ops_.llvm_state()->symbol_debug_str(cache->name())
           << " into "
           << ops_.llvm_state()->symbol_debug_str(ops_.method_name())
           << ". unhandled executable type\n";
@@ -564,6 +572,9 @@ remember:
 
   void Inliner::inline_generic_method(InlineCacheEntry* ice, Module* defined_in,
                                       CompiledCode* code, MachineCode* mcode, int hits) {
+
+    InlineCache* cache = try_as<InlineCache>(call_site_);
+
     ctx_->enter_inline();
 
     check_recv(ice);
@@ -579,7 +590,7 @@ remember:
 
     info.set_self_class(klass);
 
-    jit::RuntimeData* rd = new jit::RuntimeData(code, cache_->name(), defined_in);
+    jit::RuntimeData* rd = new jit::RuntimeData(code, cache->name(), defined_in);
     ctx_->add_runtime_data(rd);
 
     jit::InlineMethodBuilder work(ops_.context(), info, rd);

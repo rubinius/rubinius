@@ -653,72 +653,73 @@ namespace rubinius {
       }
     }
 
-    Value* invoke_inline_cache(opcode& which) {
-      InlineCache** cache_ptr = reinterpret_cast<InlineCache**>(&which);
+    Value* invoke_call_site(opcode& which) {
+      CallSite** call_site_ptr = reinterpret_cast<CallSite**>(&which);
 
-      Value* cache_ptr_const = b().CreateIntToPtr(
-          clong(reinterpret_cast<uintptr_t>(cache_ptr)),
-          ptr_type(ptr_type("InlineCache")), "cast_to_ptr");
+      Value* call_site_ptr_const = b().CreateIntToPtr(
+          clong(reinterpret_cast<uintptr_t>(call_site_ptr)),
+          ptr_type(ptr_type("CallSite")), "cast_to_ptr");
 
-      Value* cache_const = b().CreateLoad(cache_ptr_const, "cache_const");
+      Value* call_site_const = b().CreateLoad(call_site_ptr_const, "cache_const");
 
       Value* execute_pos_idx[] = {
         cint(0),
-        cint(offset::InlineCache::execute),
+        cint(offset::CallSite::execute),
       };
 
-      Value* execute_pos = b().CreateGEP(cache_const,
+      Value* execute_pos = b().CreateGEP(call_site_const,
           execute_pos_idx, "execute_pos");
 
       Value* execute = b().CreateLoad(execute_pos, "execute");
 
       Value* call_args[] = {
         state_,
-        cache_const,
+        call_site_const,
         call_frame_,
         out_args_
       };
 
       flush_ip();
-      return b().CreateCall(execute, call_args, "ic_send");
+      return b().CreateCall(execute, call_args, "call_site_execute");
     }
 
-    Value* inline_cache_send(int args, opcode& which) {
+    Value* inline_call_site_execute(int args, opcode& which) {
       sends_done_++;
 
-      InlineCache* cache = reinterpret_cast<InlineCache*>(which);
-      setup_out_args(cache->name(), args);
-      return invoke_inline_cache(which);
+      CallSite* call_site = reinterpret_cast<InlineCache*>(which);
+
+      setup_out_args(call_site->name(), args);
+      return invoke_call_site(which);
     }
 
     Value* block_send(opcode& which, int args, bool priv=false) {
 
       sends_done_++;
 
-      InlineCache** cache_ptr = reinterpret_cast<InlineCache**>(&which);
-      InlineCache* cache = *cache_ptr;
+      CallSite** call_site_ptr = reinterpret_cast<CallSite**>(&which);
+      CallSite* call_site = *call_site_ptr;
 
-      Value* cache_ptr_const = b().CreateIntToPtr(
-          clong(reinterpret_cast<uintptr_t>(cache_ptr)),
-          ptr_type(ptr_type("InlineCache")), "cast_to_cache_ptr");
+      Value* call_site_ptr_const = b().CreateIntToPtr(
+          clong(reinterpret_cast<uintptr_t>(call_site_ptr)),
+          ptr_type(ptr_type("CallSite")), "cast_to_cache_ptr");
 
-      Value* cache_const = b().CreateLoad(cache_ptr_const, "cache_const");
+      Value* call_site_const = b().CreateLoad(call_site_ptr_const, "cache_const");
 
       Value* execute_pos_idx[] = {
         cint(0),
-        cint(offset::InlineCache::execute),
+        cint(offset::CallSite::execute),
       };
 
-      Value* execute_pos = b().CreateGEP(cache_const,
+      Value* execute_pos = b().CreateGEP(call_site_const,
           execute_pos_idx, "execute_pos");
 
       Value* execute = b().CreateLoad(execute_pos, "execute");
 
-      setup_out_args_with_block(cache->name(), args);
+      setup_out_args_with_block(call_site->name(), args);
 
       Value* call_args[] = {
         state_,
-        cache_const,
+        call_site_const,
         call_frame_,
         out_args_
       };
@@ -734,7 +735,7 @@ namespace rubinius {
 
       sig << StateTy;
       sig << CallFrameTy;
-      sig << "InlineCache";
+      sig << "CallSite";
       sig << ctx_->Int32Ty;
       sig << ctx_->Int32Ty;
       sig << ObjArrayTy;
@@ -746,18 +747,18 @@ namespace rubinius {
         func_name = "rbx_splat_send";
       }
 
-      InlineCache** cache_ptr = reinterpret_cast<InlineCache**>(&which);
+      CallSite** call_site_ptr = reinterpret_cast<CallSite**>(&which);
 
-      Value* cache_ptr_const = b().CreateIntToPtr(
-          clong(reinterpret_cast<uintptr_t>(cache_ptr)),
-          ptr_type(ptr_type("InlineCache")), "cast_to_ptr");
+      Value* call_site_ptr_const = b().CreateIntToPtr(
+          clong(reinterpret_cast<uintptr_t>(call_site_ptr)),
+          ptr_type(ptr_type("CallSite")), "cast_to_ptr");
 
-      Value* cache_const = b().CreateLoad(cache_ptr_const, "cache_const");
+      Value* call_site_const = b().CreateLoad(call_site_ptr_const, "cache_const");
 
       Value* call_args[] = {
         state_,
         call_frame_,
-        cache_const,
+        call_site_const,
         cint(args),
         cint(call_flags_),
         stack_objects(args + 3),   // 3 == recv + block + splat
@@ -773,7 +774,7 @@ namespace rubinius {
       Signature sig(ctx_, ObjType);
       sig << StateTy;
       sig << CallFrameTy;
-      sig << "InlineCache";
+      sig << "CallSite";
       sig << ctx_->Int32Ty;
       sig << ctx_->Int32Ty;
       sig << ObjArrayTy;
@@ -787,18 +788,18 @@ namespace rubinius {
         func_name = "rbx_super_send";
       }
 
-      InlineCache** cache_ptr = reinterpret_cast<InlineCache**>(&which);
+      CallSite** call_site_ptr = reinterpret_cast<CallSite**>(&which);
 
-      Value* cache_ptr_const = b().CreateIntToPtr(
-          clong(reinterpret_cast<uintptr_t>(cache_ptr)),
-          ptr_type(ptr_type("InlineCache")), "cast_to_ptr");
+      Value* call_site_ptr_const = b().CreateIntToPtr(
+          clong(reinterpret_cast<uintptr_t>(call_site_ptr)),
+          ptr_type(ptr_type("CallSite")), "cast_to_ptr");
 
-      Value* cache_const = b().CreateLoad(cache_ptr_const, "cache_const");
+      Value* call_site_const = b().CreateLoad(call_site_ptr_const, "cache_const");
 
       Value* call_args[] = {
         state_,
         call_frame_,
-        cache_const,
+        call_site_const,
         cint(args),
         cint(call_flags_),
         stack_objects(args + extra),
@@ -817,21 +818,21 @@ namespace rubinius {
       Signature sig(ctx_, "Object");
       sig << "State";
       sig << "CallFrame";
-      sig << "InlineCache";
+      sig << "CallSite";
       sig << "Object";
 
-      InlineCache** cache_ptr = reinterpret_cast<InlineCache**>(&name);
+      CallSite** call_site_ptr = reinterpret_cast<CallSite**>(&name);
 
-      Value* cache_ptr_const = b().CreateIntToPtr(
-          clong(reinterpret_cast<uintptr_t>(cache_ptr)),
-          ptr_type(ptr_type("InlineCache")), "cast_to_ptr");
+      Value* call_site_ptr_const = b().CreateIntToPtr(
+          clong(reinterpret_cast<uintptr_t>(call_site_ptr)),
+          ptr_type(ptr_type("CallSite")), "cast_to_ptr");
 
-      Value* cache_const = b().CreateLoad(cache_ptr_const, "cache_const");
+      Value* call_site_const = b().CreateLoad(call_site_ptr_const, "cache_const");
 
       Value* args[] = {
         state_,
         call_frame_,
-        cache_const,
+        call_site_const,
         recv
       };
 
@@ -855,7 +856,7 @@ namespace rubinius {
 
       set_block(dispatch);
 
-      Value* called_value = inline_cache_send(1, name);
+      Value* called_value = inline_call_site_execute(1, name);
       BasicBlock* send_block =
         check_for_exception_then(called_value, cont);
 
@@ -891,7 +892,7 @@ namespace rubinius {
 
       set_block(dispatch);
 
-      Value* called_value = inline_cache_send(1, name);
+      Value* called_value = inline_call_site_execute(1, name);
       BasicBlock* send_block =
         check_for_exception_then(called_value, cont);
 
@@ -927,7 +928,7 @@ namespace rubinius {
 
       set_block(dispatch);
 
-      Value* called_value = inline_cache_send(1, name);
+      Value* called_value = inline_call_site_execute(1, name);
       BasicBlock* send_bb = check_for_exception_then(called_value, cont);
 
       set_block(fast);
@@ -962,7 +963,7 @@ namespace rubinius {
 
       set_block(dispatch);
 
-      Value* called_value = inline_cache_send(1, name);
+      Value* called_value = inline_call_site_execute(1, name);
       BasicBlock* send_bb = check_for_exception_then(called_value, cont);
 
       set_block(fast);
@@ -998,7 +999,7 @@ namespace rubinius {
 
       set_block(dispatch);
 
-      Value* called_value = inline_cache_send(1, name);
+      Value* called_value = inline_call_site_execute(1, name);
       BasicBlock* send_bb = check_for_exception_then(called_value, cont);
 
       set_block(fast);
@@ -1047,7 +1048,7 @@ namespace rubinius {
 
       set_block(dispatch);
 
-      Value* called_value = inline_cache_send(1, name);
+      Value* called_value = inline_call_site_execute(1, name);
       BasicBlock* send_bb = check_for_exception_then(called_value, cont);
 
       set_block(fast);
@@ -1484,10 +1485,10 @@ namespace rubinius {
       }
     }
 
-    void invoke_inline_cache(opcode& cache, opcode args) {
+    void invoke_call_site(opcode& call_site, opcode args) {
       set_has_side_effects();
 
-      Value* ret = inline_cache_send(args, cache);
+      Value* ret = inline_call_site_execute(args, call_site);
       stack_remove(args + 1);
       check_for_exception(ret);
       stack_push(ret);
@@ -1496,13 +1497,20 @@ namespace rubinius {
     }
 
     void visit_send_stack(opcode& which, opcode args) {
-      InlineCache** cache_ptr = reinterpret_cast<InlineCache**>(&which);
-      InlineCache*  cache = *cache_ptr;
+      CallSite** call_site_ptr = reinterpret_cast<CallSite**>(&which);
+      CallSite*  call_site = *call_site_ptr;
+
+      InlineCache* cache = try_as<InlineCache>(call_site);
+
+      if(!cache) {
+        invoke_call_site(which, args);
+        return;
+      }
 
       int classes_seen = cache->classes_seen();
 
       if(!classes_seen) {
-        invoke_inline_cache(which, args);
+        invoke_call_site(which, args);
         return;
       }
 
@@ -1510,7 +1518,7 @@ namespace rubinius {
       BasicBlock* serial_failure = new_block("serial_fallback");
       BasicBlock* cont = new_block("continue");
 
-      Inliner inl(ctx_, *this, cache_ptr, args, class_failure, serial_failure);
+      Inliner inl(ctx_, *this, call_site_ptr, args, class_failure, serial_failure);
       bool res = classes_seen > 1 ? inl.consider_poly() : inl.consider_mono();
 
       // If we have tried to reoptimize here a few times and failed, we use
@@ -1521,7 +1529,7 @@ namespace rubinius {
       }
 
       if(!res) {
-        invoke_inline_cache(which, args);
+        invoke_call_site(which, args);
         return;
       }
 
@@ -1568,7 +1576,7 @@ namespace rubinius {
         b().CreateBr(cont);
 
         set_block(class_failure);
-        Value* send_res = inline_cache_send(args, which);
+        Value* send_res = inline_call_site_execute(args, which);
 
         BasicBlock* send_block =
           check_for_exception_then(send_res, cont);
@@ -1593,7 +1601,7 @@ namespace rubinius {
 
       set_has_side_effects();
 
-      Value* ret = inline_cache_send(args, which);
+      Value* ret = inline_call_site_execute(args, which);
       stack_remove(args + 1);
       check_for_exception(ret);
       stack_push(ret);
@@ -1741,11 +1749,13 @@ namespace rubinius {
     void visit_send_stack_with_block(opcode& which, opcode args) {
       set_has_side_effects();
 
-      InlineCache** cache_ptr = reinterpret_cast<InlineCache**>(&which);
-      InlineCache*  cache = *cache_ptr;
+      CallSite** call_site_ptr = reinterpret_cast<CallSite**>(&which);
+      CallSite*  call_site = *call_site_ptr;
       CompiledCode* block_code = 0;
 
-      if(cache->classes_seen() &&
+      InlineCache* cache = try_as<InlineCache>(call_site);
+
+      if(cache && cache->classes_seen() &&
           llvm_state()->config().jit_inline_blocks &&
           !ctx_->inlined_block()) {
         if(current_block_) {
@@ -1786,7 +1796,7 @@ namespace rubinius {
         BasicBlock* cleanup = new_block("send_done");
         PHINode* send_result = b().CreatePHI(ObjType, 1, "send_result");
 
-        Inliner inl(ctx_, *this, cache_ptr, args, class_failure, serial_failure);
+        Inliner inl(ctx_, *this, call_site_ptr, args, class_failure, serial_failure);
 
         current_block_->set_block_break_result(send_result);
         current_block_->set_block_break_loc(cleanup);
@@ -1997,7 +2007,7 @@ use_send:
         b().CreateStore(stack_objects(args + 1), out_args_arguments_);
       }
 
-      Value* ret = invoke_inline_cache(which);
+      Value* ret = invoke_call_site(which);
       stack_remove(args + 1);
       check_for_return(ret);
 
@@ -2021,21 +2031,21 @@ use_send:
       Signature sig(ctx_, ObjType);
       sig << StateTy;
       sig << CallFrameTy;
-      sig << "InlineCache";
+      sig << "CallSite";
       sig << ObjType;
 
-      InlineCache** cache_ptr = reinterpret_cast<InlineCache**>(&which);
+      CallSite** call_site_ptr = reinterpret_cast<CallSite**>(&which);
 
-      Value* cache_ptr_const = b().CreateIntToPtr(
-          clong(reinterpret_cast<uintptr_t>(cache_ptr)),
-          ptr_type(ptr_type("InlineCache")), "cast_to_ptr");
+      Value* call_site_ptr_const = b().CreateIntToPtr(
+          clong(reinterpret_cast<uintptr_t>(call_site_ptr)),
+          ptr_type(ptr_type("CallSite")), "cast_to_ptr");
 
-      Value* cache_const = b().CreateLoad(cache_ptr_const, "cache_const");
+      Value* call_site_const = b().CreateLoad(call_site_ptr_const, "cache_const");
 
       Value* call_args[] = {
         state_,
         call_frame_,
-        cache_const,
+        call_site_const,
         stack_top()
       };
 
@@ -3456,30 +3466,32 @@ use_send:
     }
 
     void visit_meta_send_call(opcode& name, opcode count) {
-      InlineCache* cache = reinterpret_cast<InlineCache*>(name);
-      if(cache->classes_seen() == 0) {
+      CallSite* call_site = reinterpret_cast<CallSite*>(name);
+      InlineCache* cache = try_as<InlineCache>(call_site);
+
+      if(cache && cache->classes_seen() == 0) {
         set_has_side_effects();
 
         Signature sig(ctx_, ObjType);
 
         sig << StateTy;
         sig << CallFrameTy;
-        sig << "InlineCache";
+        sig << "CallSite";
         sig << ctx_->Int32Ty;
         sig << ObjArrayTy;
 
-        InlineCache** cache_ptr = reinterpret_cast<InlineCache**>(&name);
+        CallSite** call_site_ptr = reinterpret_cast<CallSite**>(&name);
 
-        Value* cache_ptr_const = b().CreateIntToPtr(
-            clong(reinterpret_cast<uintptr_t>(cache_ptr)),
-            ptr_type(ptr_type("InlineCache")), "cast_to_ptr");
+        Value* call_site_ptr_const = b().CreateIntToPtr(
+            clong(reinterpret_cast<uintptr_t>(call_site_ptr)),
+            ptr_type(ptr_type("CallSite")), "cast_to_ptr");
 
-        Value* cache_const = b().CreateLoad(cache_ptr_const, "cache_const");
+        Value* call_site_const = b().CreateLoad(call_site_ptr_const, "cache_const");
 
         Value* call_args[] = {
           state_,
           call_frame_,
-          cache_const,
+          call_site_const,
           cint(count),
           stack_objects(count + 1)
         };
@@ -3490,7 +3502,7 @@ use_send:
         check_for_exception(val);
         stack_push(val);
       } else {
-        invoke_inline_cache(name, count);
+        invoke_call_site(name, count);
       }
     }
 

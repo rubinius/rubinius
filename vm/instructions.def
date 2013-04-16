@@ -929,10 +929,10 @@ end
 instruction send_method(literal) [ receiver -- value ] => send
   flush_ip();
   Object* recv = stack_top();
-  InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
+  CallSite* call_site = reinterpret_cast<CallSite*>(literal);
 
-  Arguments args(cache->name(), recv, cNil, 0, 0);
-  Object* ret = cache->execute(state, call_frame, args);
+  Arguments args(call_site->name(), recv, cNil, 0, 0);
+  Object* ret = call_site->execute(state, call_frame, args);
 
   (void)stack_pop();
 
@@ -966,12 +966,12 @@ end
 instruction send_stack(literal count) [ receiver +count -- value ] => send
   flush_ip();
   Object* recv = stack_back(count);
-  InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
+  CallSite* call_site = reinterpret_cast<CallSite*>(literal);
 
-  Arguments args(cache->name(), recv, cNil, count,
+  Arguments args(call_site->name(), recv, cNil, count,
                  stack_back_position(count));
 
-  Object* ret = cache->execute(state, call_frame, args);
+  Object* ret = call_site->execute(state, call_frame, args);
 
   stack_clear(count + 1);
 
@@ -1007,12 +1007,12 @@ instruction send_stack_with_block(literal count) [ block receiver +count -- valu
   flush_ip();
   Object* block = stack_pop();
   Object* recv = stack_back(count);
-  InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
+  CallSite* call_site = reinterpret_cast<CallSite*>(literal);
 
-  Arguments args(cache->name(), recv, block, count,
+  Arguments args(call_site->name(), recv, block, count,
                  stack_back_position(count));
 
-  Object* ret = cache->execute(state, call_frame, args);
+  Object* ret = call_site->execute(state, call_frame, args);
 
   stack_clear(count + 1);
 
@@ -1050,9 +1050,9 @@ instruction send_stack_with_splat(literal count) [ block array receiver +count -
   Object* block = stack_pop();
   Object* ary   = stack_pop();
   Object* recv =  stack_back(count);
-  InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
+  CallSite* call_site = reinterpret_cast<CallSite*>(literal);
 
-  Arguments args(cache->name(), recv, block, count,
+  Arguments args(call_site->name(), recv, block, count,
                  stack_back_position(count));
 
   if(!ary->nil_p()) {
@@ -1065,7 +1065,7 @@ instruction send_stack_with_splat(literal count) [ block array receiver +count -
 
   SET_CALL_FLAGS(0);
 
-  Object* ret = cache->execute(state, call_frame, args);
+  Object* ret = call_site->execute(state, call_frame, args);
 
   stack_clear(count + 1);
 
@@ -1091,13 +1091,13 @@ end
 instruction send_super_stack_with_block(literal count) [ block +count -- value ] => send
   flush_ip();
   Object* block = stack_pop();
-  InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
+  CallSite* call_site = reinterpret_cast<CallSite*>(literal);
   Object* const recv = call_frame->self();
 
-  Arguments new_args(cache->name(), recv, block, count,
+  Arguments new_args(call_site->name(), recv, block, count,
                      stack_back_position(count));
 
-  Object* ret = cache->execute(state, call_frame, new_args);
+  Object* ret = call_site->execute(state, call_frame, new_args);
 
   stack_clear(count);
 
@@ -1125,9 +1125,9 @@ instruction send_super_stack_with_splat(literal count) [ block array +count -- v
   Object* block = stack_pop();
   Object* ary   = stack_pop();
   Object* const recv = call_frame->self();
-  InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
+  CallSite* call_site = reinterpret_cast<CallSite*>(literal);
 
-  Arguments new_args(cache->name(), recv, block, count,
+  Arguments new_args(call_site->name(), recv, block, count,
                      stack_back_position(count));
 
   if(!ary->nil_p()) {
@@ -1140,7 +1140,7 @@ instruction send_super_stack_with_splat(literal count) [ block array +count -- v
 
   SET_CALL_FLAGS(0);
 
-  Object* ret = cache->execute(state, call_frame, new_args);
+  Object* ret = call_site->execute(state, call_frame, new_args);
 
   stack_clear(count);
 
@@ -1830,8 +1830,8 @@ instruction meta_send_op_plus(literal) [ value1 value2 -- sum ] => send
   } else {
     flush_ip();
     Arguments out_args(G(sym_plus), left, 1, stack_back_position(1));
-    InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
-    Object* ret = cache->execute(state, call_frame, out_args);
+    CallSite* call_site = reinterpret_cast<CallSite*>(literal);
+    Object* ret = call_site->execute(state, call_frame, out_args);
     stack_clear(2);
 
     CHECK_AND_PUSH(ret);
@@ -1856,8 +1856,8 @@ instruction meta_send_op_minus(literal) [ value1 value2 -- difference ] => send
   } else {
     flush_ip();
     Arguments out_args(G(sym_minus), left, 1, stack_back_position(1));
-    InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
-    Object* ret = cache->execute(state, call_frame, out_args);
+    CallSite* call_site = reinterpret_cast<CallSite*>(literal);
+    Object* ret = call_site->execute(state, call_frame, out_args);
     stack_clear(2);
 
     CHECK_AND_PUSH(ret);
@@ -1873,8 +1873,6 @@ end
 #   is called on _value1_, passing _value2_ as the argument.
 
 instruction meta_send_op_equal(literal) [ value1 value2 -- boolean ] => send
-  InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
-
   Object* t1 = stack_back(1);
   Object* t2 = stack_back(0);
 
@@ -1886,7 +1884,8 @@ instruction meta_send_op_equal(literal) [ value1 value2 -- boolean ] => send
     flush_ip();
 
     Arguments out_args(G(sym_equal), t1, 1, stack_back_position(1));
-    Object* ret = cache->execute(state, call_frame, out_args);
+    CallSite* call_site = reinterpret_cast<CallSite*>(literal);
+    Object* ret = call_site->execute(state, call_frame, out_args);
     stack_clear(2);
 
     CHECK_AND_PUSH(ret);
@@ -1911,9 +1910,9 @@ instruction meta_send_op_lt(literal) [ value1 value2 -- boolean ]
     stack_set_top(RBOOL(j < k));
   } else {
     flush_ip();
-    InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
-    Arguments out_args(cache->name(), t1, 1, stack_back_position(1));
-    Object* ret = cache->execute(state, call_frame, out_args);
+    CallSite* call_site = reinterpret_cast<CallSite*>(literal);
+    Arguments out_args(call_site->name(), t1, 1, stack_back_position(1));
+    Object* ret = call_site->execute(state, call_frame, out_args);
     stack_clear(2);
 
     CHECK_AND_PUSH(ret);
@@ -1938,9 +1937,9 @@ instruction meta_send_op_gt(literal) [ value1 value2 -- boolean ]
     stack_set_top(RBOOL(j > k));
   } else {
     flush_ip();
-    InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
-    Arguments out_args(cache->name(), t1, 1, stack_back_position(1));
-    Object* ret = cache->execute(state, call_frame, out_args);
+    CallSite* call_site = reinterpret_cast<CallSite*>(literal);
+    Arguments out_args(call_site->name(), t1, 1, stack_back_position(1));
+    Object* ret = call_site->execute(state, call_frame, out_args);
     stack_clear(2);
 
     CHECK_AND_PUSH(ret);
@@ -1967,9 +1966,9 @@ instruction meta_send_op_tequal(literal) [ value1 value2 -- boolean ] => send
     stack_set_top(RBOOL(t1 == t2));
   } else {
     flush_ip();
-    InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
-    Arguments out_args(cache->name(), t1, 1, stack_back_position(1));
-    Object* ret = cache->execute(state, call_frame, out_args);
+    CallSite* call_site = reinterpret_cast<CallSite*>(literal);
+    Arguments out_args(call_site->name(), t1, 1, stack_back_position(1));
+    Object* ret = call_site->execute(state, call_frame, out_args);
     stack_clear(2);
 
     CHECK_AND_PUSH(ret);
@@ -1999,8 +1998,8 @@ instruction meta_send_call(literal count) [ receiver +count -- value ] => send
   } else if(Proc* proc = try_as<Proc>(t1)) {
     ret = proc->call(state, call_frame, out_args);
   } else {
-    InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
-    ret = cache->execute(state, call_frame, out_args);
+    CallSite* call_site = reinterpret_cast<CallSite*>(literal);
+    ret = call_site->execute(state, call_frame, out_args);
   }
 
   stack_clear(count + 1);
@@ -2079,19 +2078,19 @@ instruction zsuper(literal) [ block -- value ]
     tup->put(state, mc->total_args, splat_obj);
   }
 
-  InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
+  CallSite* call_site = reinterpret_cast<CallSite*>(literal);
 
-  Arguments new_args(cache->name(), recv, block, arg_count, 0);
+  Arguments new_args(call_site->name(), recv, block, arg_count, 0);
   new_args.use_tuple(tup, arg_count);
 
   Object* ret;
 
   Symbol* current_name = call_frame->original_name();
-  if(cache->name() != current_name) {
-    cache->name(state, current_name);
+  if(call_site->name() != current_name) {
+    call_site->name(state, current_name);
   }
 
-  ret = cache->execute(state, call_frame, new_args);
+  ret = call_site->execute(state, call_frame, new_args);
 
   CHECK_AND_PUSH(ret);
 end
@@ -2266,12 +2265,12 @@ end
 instruction call_custom(literal count) [ receiver +count -- value ] => send
   flush_ip();
   Object* recv = stack_back(count);
-  InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
+  CallSite* call_site = reinterpret_cast<CallSite*>(literal);
 
-  Arguments args(cache->name(), recv, cNil, count,
+  Arguments args(call_site->name(), recv, cNil, count,
                  stack_back_position(count));
 
-  Object* ret = cache->execute(state, call_frame, args);
+  Object* ret = call_site->execute(state, call_frame, args);
 
   stack_clear(count + 1);
 
@@ -2289,10 +2288,10 @@ end
 instruction meta_to_s(literal) [ object -- string ] => send
   if(!kind_of<String>(stack_top())) {
     flush_ip();
-    InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
+    CallSite* call_site = reinterpret_cast<CallSite*>(literal);
 
-    Arguments args(cache->name(), stack_top(), cNil, 0, 0);
-    Object* ret = cache->execute(state, call_frame, args);
+    Arguments args(call_site->name(), stack_top(), cNil, 0, 0);
+    Object* ret = call_site->execute(state, call_frame, args);
     if(ret && !kind_of<String>(ret)) {
       ret = stack_top()->to_s(state, false);
     }

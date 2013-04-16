@@ -44,6 +44,7 @@
 #include "builtin/variable_scope.hpp"
 #include "builtin/location.hpp"
 #include "builtin/inline_cache.hpp"
+#include "builtin/respond_to_cache.hpp"
 #include "builtin/constant_cache.hpp"
 #include "builtin/weakref.hpp"
 #include "builtin/fiber.hpp"
@@ -347,8 +348,10 @@ namespace rubinius {
 
     NativeMethod::init(state);
 
+    CallSite::init(state);
     InlineCache::init(state);
     ConstantCache::init(state);
+    RespondToCache::init(state);
     WeakRef::init(state);
     Fiber::init(state);
     Alias::init(state);

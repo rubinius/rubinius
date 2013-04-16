@@ -63,17 +63,24 @@ declare void @output2(%"struct.rubinius::jit::RuntimeData"*)
 
 declare void @output3(%"struct.rubinius::Dispatch"*)
 
+%"struct.rubinius::CallSite" = type {
+   %"struct.rubinius::Object", ; header
+  %"struct.rubinius::Symbol"*, ; name
+  %"struct.rubinius::Object"* (%"struct.rubinius::State"*, %"struct.rubinius::CallSite"*, %"struct.rubinius::CallFrame"*, %"struct.rubinius::Arguments"*)*, ; initial
+  %"struct.rubinius::Object"* (%"struct.rubinius::State"*, %"struct.rubinius::CallSite"*, %"struct.rubinius::CallFrame"*, %"struct.rubinius::Arguments"*)*, ; execute
+  %"struct.rubinius::CallSite"**
+}
+
+declare void @outputCallSite(%"struct.rubinius::CallSite"*)
+
 %"struct.rubinius::InlineCache" = type {
-             %"struct.rubinius::Object", ; header
-            %"struct.rubinius::Symbol"*, ; name
+             %"struct.rubinius::CallSite", ; header
           %"struct.rubinius::CallUnit"*, ; call_unit
   [3 x %"struct.rubinius::InlineCacheHit"], ; cache
-  %"struct.rubinius::Object"* (%"struct.rubinius::State"*, %"struct.rubinius::InlineCache"*, %"struct.rubinius::CallFrame"*, %"struct.rubinius::Arguments"*)*, ; initial
-  %"struct.rubinius::Object"* (%"struct.rubinius::State"*, %"struct.rubinius::InlineCache"*, %"struct.rubinius::CallFrame"*, %"struct.rubinius::Arguments"*)*, ; execute
                                        i32 ; seen_classes_overflow
 }
 
-declare void @output4(%"struct.rubinius::InlineCache"*)
+declare void @outputInlineCache(%"struct.rubinius::InlineCache"*)
 
 %"struct.rubinius::InlineCacheEntry" = type {
    %"struct.rubinius::Object", ; header

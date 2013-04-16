@@ -54,7 +54,7 @@ namespace rubinius {
     TypedRoot<Class*> nil_class, true_class, false_class, fixnum_class, undef_class;
     TypedRoot<Class*> floatpoint, nmc, list, list_node;
     TypedRoot<Class*> channel, thread, thread_state, constantscope, lookuptable;
-    TypedRoot<Class*> iseq, executable, native_function, iobuffer;
+    TypedRoot<Class*> iseq, executable, call_site, native_function, iobuffer;
     TypedRoot<Class*> included_module;
 
     /* the primary symbol table */
@@ -107,6 +107,7 @@ namespace rubinius {
     TypedRoot<Class*> exc_vm_internal;
     TypedRoot<Class*> exc_vm_bad_bytecode;
     TypedRoot<Class*> inline_cache;
+    TypedRoot<Class*> respond_to_cache;
     TypedRoot<Class*> constant_cache;
     TypedRoot<Class*> constant_cache_entry;
     TypedRoot<Class*> cls_weakref;
@@ -160,6 +161,7 @@ namespace rubinius {
       lookuptable(&roots),
       iseq(&roots),
       executable(&roots),
+      call_site(&roots),
       native_function(&roots),
       iobuffer(&roots),
       included_module(&roots),
@@ -227,6 +229,7 @@ namespace rubinius {
       exc_vm_internal(&roots),
       exc_vm_bad_bytecode(&roots),
       inline_cache(&roots),
+      respond_to_cache(&roots),
       constant_cache(&roots),
       constant_cache_entry(&roots),
       cls_weakref(&roots),

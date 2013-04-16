@@ -26,17 +26,18 @@ namespace rubinius {
   void InlineCache::init(STATE) {
     GO(inline_cache).set(
         ontology::new_class(state, "InlineCache",
-          G(object), G(rubinius)));
+          G(call_site), G(rubinius)));
 
   }
 
-  InlineCache* InlineCache::empty(STATE, Symbol* name) {
+  InlineCache* InlineCache::empty(STATE, Symbol* name, CallSite** location) {
     InlineCache* cache =
       state->vm()->new_object_mature<InlineCache>(G(inline_cache));
     cache->name_ = name;
-    cache->call_unit_ = nil<CallUnit>();
     cache->initial_backend_ = empty_cache;
     cache->execute_backend_ = empty_cache;
+    cache->location_ = location;
+    cache->call_unit_ = nil<CallUnit>();
     cache->seen_classes_overflow_ = 0;
     cache->clear();
     return cache;
@@ -104,7 +105,7 @@ namespace rubinius {
     return ice;
   }
 
-  Object* InlineCache::empty_cache_custom(STATE, InlineCache* cache, CallFrame* call_frame,
+  Object* InlineCache::empty_cache_custom(STATE, CallSite* call_site, CallFrame* call_frame,
                                           Arguments& args)
   {
     Object* const recv = args.recv();
@@ -112,7 +113,7 @@ namespace rubinius {
 
     Array*  ary = Array::create(state, args.total() + 2);
     ary->set(state, 0, recv);
-    ary->set(state, 1, cache->name_);
+    ary->set(state, 1, call_site->name_);
 
     for(size_t i = 0; i < args.total(); i++) {
       ary->set(state, i + 2, args.get_argument(i));
@@ -123,6 +124,7 @@ namespace rubinius {
     if(!ret) return 0;
 
     if(CallUnit* cu = try_as<CallUnit>(ret)) {
+      InlineCache* cache = static_cast<InlineCache*>(call_site);
       InlineCacheEntry* ice = 0;
 
       ice = InlineCacheEntry::create(state, recv_class, cu->module(), cu->executable(), eNone);
@@ -139,9 +141,10 @@ namespace rubinius {
     }
   }
 
-  Object* InlineCache::check_cache_custom(STATE, InlineCache* cache,
+  Object* InlineCache::check_cache_custom(STATE, CallSite* call_site,
       CallFrame* call_frame, Arguments& args)
   {
+    InlineCache* cache = static_cast<InlineCache*>(call_site);
     InlineCacheEntry* ice = cache->get_single_cache();
 
     return cache->call_unit_->execute(state, call_frame, cache->call_unit_,
@@ -150,13 +153,14 @@ namespace rubinius {
 
 
 
-  Object* InlineCache::empty_cache(STATE, InlineCache* cache, CallFrame* call_frame,
+  Object* InlineCache::empty_cache(STATE, CallSite* call_site, CallFrame* call_frame,
                                    Arguments& args)
   {
     Object* const recv = args.recv();
     Class* const recv_class = recv->lookup_begin(state);
 
     InlineCacheEntry* ice = NULL;
+    InlineCache* cache = static_cast<InlineCache*>(call_site);
 
     MethodMissingReason reason =
       cache->fill(state, call_frame->self(), recv_class,
@@ -193,13 +197,14 @@ namespace rubinius {
     return meth->execute(state, call_frame, meth, mod, args);
   }
 
-  Object* InlineCache::empty_cache_private(STATE, InlineCache* cache, CallFrame* call_frame,
+  Object* InlineCache::empty_cache_private(STATE, CallSite* call_site, CallFrame* call_frame,
                                    Arguments& args)
   {
     Object* const recv = args.recv();
     Class* const recv_class = recv->lookup_begin(state);
 
     InlineCacheEntry* ice = 0;
+    InlineCache* cache = static_cast<InlineCache*>(call_site);
 
     MethodMissingReason reason =
       cache->fill(state, call_frame->self(), recv_class,
@@ -236,13 +241,14 @@ namespace rubinius {
     return meth->execute(state, call_frame, meth, mod, args);
   }
 
-  Object* InlineCache::empty_cache_vcall(STATE, InlineCache* cache, CallFrame* call_frame,
+  Object* InlineCache::empty_cache_vcall(STATE, CallSite* call_site, CallFrame* call_frame,
                                          Arguments& args)
   {
     Object* const recv = args.recv();
     Class* const recv_class = recv->lookup_begin(state);
 
     InlineCacheEntry* ice = NULL;
+    InlineCache* cache = static_cast<InlineCache*>(call_site);
 
     MethodMissingReason reason =
       cache->fill(state, call_frame->self(), recv_class,
@@ -279,12 +285,12 @@ namespace rubinius {
     return meth->execute(state, call_frame, meth, mod, args);
   }
 
-  Object* InlineCache::empty_cache_super(STATE, InlineCache* cache, CallFrame* call_frame,
+  Object* InlineCache::empty_cache_super(STATE, CallSite* call_site, CallFrame* call_frame,
                                    Arguments& args)
   {
     Symbol* original_name = call_frame->original_name();
-    if(cache->name_ != original_name) {
-      cache->name_ = original_name;
+    if(call_site->name_ != original_name) {
+      call_site->name_ = original_name;
       args.set_name(original_name);
     }
 
@@ -292,6 +298,7 @@ namespace rubinius {
     Class* const recv_class = recv->lookup_begin(state);
 
     InlineCacheEntry* ice = 0;
+    InlineCache* cache = static_cast<InlineCache*>(call_site);
 
     Module* const start = call_frame->module()->superclass();
 
@@ -337,12 +344,13 @@ namespace rubinius {
     return meth->execute(state, call_frame, meth, mod, args);
   }
 
-  Object* InlineCache::check_cache(STATE, InlineCache* cache, CallFrame* call_frame,
+  Object* InlineCache::check_cache(STATE, CallSite* call_site, CallFrame* call_frame,
                                    Arguments& args)
   {
     Class* const recv_class = args.recv()->lookup_begin(state);
 
     InlineCacheEntry* entry;
+    InlineCache* cache = static_cast<InlineCache*>(call_site);
     InlineCacheHit* ic = cache->get_inline_cache(recv_class, entry);
 
     if(likely(ic)) {
@@ -353,19 +361,20 @@ namespace rubinius {
       return meth->execute(state, call_frame, meth, mod, args);
     }
 
-    return cache->initialize(state, call_frame, args);
+    return call_site->initialize(state, call_frame, args);
   }
 
-  Object* InlineCache::check_cache_mm(STATE, InlineCache* cache, CallFrame* call_frame,
+  Object* InlineCache::check_cache_mm(STATE, CallSite* call_site, CallFrame* call_frame,
                                    Arguments& args)
   {
     Class* const recv_class = args.recv()->lookup_begin(state);
 
     InlineCacheEntry* entry;
+    InlineCache* cache = static_cast<InlineCache*>(call_site);
     InlineCacheHit* ic = cache->get_inline_cache(recv_class, entry);
 
     if(likely(ic)) {
-      args.unshift(state, cache->name_);
+      args.unshift(state, call_site->name_);
 
       state->vm()->set_method_missing_reason(entry->method_missing());
       Executable* meth = entry->method();
@@ -375,20 +384,21 @@ namespace rubinius {
       return meth->execute(state, call_frame, meth, mod, args);
     }
 
-    return cache->initialize(state, call_frame, args);
+    return call_site->initialize(state, call_frame, args);
   }
 
-  Object* InlineCache::check_cache_poly(STATE, InlineCache* cache, CallFrame* call_frame,
+  Object* InlineCache::check_cache_poly(STATE, CallSite* call_site, CallFrame* call_frame,
                                    Arguments& args)
   {
     Class* const recv_class = args.recv()->lookup_begin(state);
 
     InlineCacheEntry* entry;
+    InlineCache* cache = static_cast<InlineCache*>(call_site);
     InlineCacheHit* ic = cache->get_inline_cache(recv_class, entry);
 
     if(likely(ic)) {
       if(entry->method_missing() != eNone) {
-        args.unshift(state, cache->name_);
+        args.unshift(state, call_site->name_);
       }
       state->vm()->set_method_missing_reason(entry->method_missing());
       Executable* meth = entry->method();
@@ -398,7 +408,7 @@ namespace rubinius {
       return meth->execute(state, call_frame, meth, mod, args);
     }
 
-    return cache->initialize(state, call_frame, args);
+    return call_site->initialize(state, call_frame, args);
   }
 
   void InlineCache::print(STATE, std::ostream& stream) {

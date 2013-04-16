@@ -113,10 +113,10 @@ extern "C" {
     entry->~MethodEntry();
   }
 
-  Object* rbx_splat_send(STATE, CallFrame* call_frame, InlineCache* cache,
+  Object* rbx_splat_send(STATE, CallFrame* call_frame, CallSite* call_site,
                           int count, int call_flags, Object** args) {
     Object* recv = args[0];
-    Arguments out_args(cache->name(), recv, args[count+2], count, args+1);
+    Arguments out_args(call_site->name(), recv, args[count+2], count, args+1);
 
     if(Array* ary = try_as<Array>(args[count+1])) {
       if(call_flags & CALL_FLAG_CONCAT) {
@@ -126,13 +126,13 @@ extern "C" {
       }
     }
 
-    return cache->execute(state, call_frame, out_args);
+    return call_site->execute(state, call_frame, out_args);
   }
 
-  Object* rbx_splat_send_private(STATE, CallFrame* call_frame, InlineCache* cache,
+  Object* rbx_splat_send_private(STATE, CallFrame* call_frame, CallSite* call_site,
                                   int count, int call_flags, Object** args) {
     Object* recv = args[0];
-    Arguments out_args(cache->name(), recv, args[count+2], count, args+1);
+    Arguments out_args(call_site->name(), recv, args[count+2], count, args+1);
 
     if(Array* ary = try_as<Array>(args[count+1])) {
       if(call_flags & CALL_FLAG_CONCAT) {
@@ -142,20 +142,20 @@ extern "C" {
       }
     }
 
-    return cache->execute(state, call_frame, out_args);
+    return call_site->execute(state, call_frame, out_args);
   }
 
-  Object* rbx_super_send(STATE, CallFrame* call_frame, InlineCache* cache,
+  Object* rbx_super_send(STATE, CallFrame* call_frame, CallSite* call_site,
                           int count, int call_flags, Object** args) {
     Object* recv = call_frame->self();
-    Arguments out_args(cache->name(), recv, args[count], count, args);
-    return cache->execute(state, call_frame, out_args);
+    Arguments out_args(call_site->name(), recv, args[count], count, args);
+    return call_site->execute(state, call_frame, out_args);
   }
 
-  Object* rbx_super_splat_send(STATE, CallFrame* call_frame, InlineCache* cache,
+  Object* rbx_super_splat_send(STATE, CallFrame* call_frame, CallSite* call_site,
                           int count, int call_flags, Object** args) {
     Object* recv = call_frame->self();
-    Arguments out_args(cache->name(), recv, args[count+1], count, args);
+    Arguments out_args(call_site->name(), recv, args[count+1], count, args);
 
     if(Array* ary = try_as<Array>(args[count])) {
       if(call_flags & CALL_FLAG_CONCAT) {
@@ -165,10 +165,10 @@ extern "C" {
       }
     }
 
-    return cache->execute(state, call_frame, out_args);
+    return call_site->execute(state, call_frame, out_args);
   }
 
-  Object* rbx_zsuper_send(STATE, CallFrame* call_frame, InlineCache* cache, Object* block) {
+  Object* rbx_zsuper_send(STATE, CallFrame* call_frame, CallSite* call_site, Object* block) {
     Object* const recv = call_frame->self();
 
     VariableScope* scope = call_frame->method_scope(state);
@@ -203,10 +203,10 @@ extern "C" {
       tup->put(state, v->total_args, splat_obj);
     }
 
-    Arguments out_args(cache->name(), recv, block, arg_count, 0);
+    Arguments out_args(call_site->name(), recv, block, arg_count, 0);
     out_args.use_tuple(tup, arg_count);
 
-    return cache->execute(state, call_frame, out_args);
+    return call_site->execute(state, call_frame, out_args);
   }
 
   Object* rbx_arg_error(STATE, CallFrame* call_frame, Arguments& args, int required) {
@@ -226,14 +226,14 @@ extern "C" {
     CPP_CATCH
   }
 
-  Object* rbx_meta_to_s(STATE, CallFrame* call_frame, InlineCache* cache,
+  Object* rbx_meta_to_s(STATE, CallFrame* call_frame, CallSite* call_site,
                         Object* obj)
   {
     if(kind_of<String>(obj)) return obj;
 
-    Arguments args(cache->name(), obj, cNil, 0, 0);
+    Arguments out_args(call_site->name(), obj, cNil, 0, 0);
     OnStack<1> os(state, obj);
-    Object* ret = cache->execute(state, call_frame, args);
+    Object* ret = call_site->execute(state, call_frame, out_args);
     if(!ret) return 0;
 
     if(!kind_of<String>(ret)) {
@@ -663,7 +663,7 @@ extern "C" {
     return ary;
   }
 
-  Object* rbx_meta_send_call(STATE, CallFrame* call_frame, InlineCache* cache, int count, Object** args) {
+  Object* rbx_meta_send_call(STATE, CallFrame* call_frame, CallSite* call_site, int count, Object** args) {
     Object* t1 = args[0];
 
     Arguments out_args(G(sym_call), cNil, count, args+1);
@@ -674,7 +674,7 @@ extern "C" {
       return proc->call(state, call_frame, out_args);
     }
 
-    return cache->execute(state, call_frame, out_args);
+    return call_site->execute(state, call_frame, out_args);
   }
 
   Object* rbx_yield_stack(STATE, CallFrame* call_frame, Object* block,
