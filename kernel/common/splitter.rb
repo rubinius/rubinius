@@ -117,8 +117,9 @@ module Rubinius
       ret = []
 
       pat_size = pattern.size
+      str_size = string.num_bytes
 
-      while pos < string.num_bytes
+      while pos < str_size
         nxt = string.find_string(pattern, pos)
         break unless nxt
 
@@ -129,9 +130,11 @@ module Rubinius
       end
 
       # No more separators, but we need to grab the last part still.
-      ret << string.byteslice(pos, string.num_bytes - pos)
+      ret << string.byteslice(pos, str_size - pos)
 
-      ret.pop while !ret.empty? and ret.last.empty?
+      while s = ret.at(-1) and s.empty?
+        ret.pop
+      end
 
       ret
     end
