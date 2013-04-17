@@ -76,7 +76,11 @@ module Rubinius
 
         unless collapsed && (match.full.at(0) == last_match_end)
           ret << match.pre_match_from(last_match_end)
-          ret.push(*match.captures.compact)
+
+          # length > 1 means there are captures
+          if match.length > 1
+            ret.concat(match.captures.compact)
+          end
         end
 
         if collapsed
@@ -98,8 +102,8 @@ module Rubinius
       end
 
       # Trim from end
-      if !ret.empty? and (limit.equal?(undefined) || limit == 0)
-        while s = ret.last and s.empty?
+      if limit.equal?(undefined) || limit == 0
+        while s = ret.at(-1) and s.empty?
           ret.pop
         end
       end
