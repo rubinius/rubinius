@@ -235,5 +235,36 @@ ruby_version_is "1.9" do
         it_behaves_like :io_copy_stream_to_io, nil, IOSpecs::CopyStream
       end
     end
+
+    describe "with non-IO Objects" do
+      before do
+        @io = new_io @from_name, "rb"
+      end
+
+      after do
+        @io.close unless @io.closed?
+      end
+
+      it "calls #readpartial on the source Object if defined" do
+        from = IOSpecs::CopyStreamReadPartial.new @io
+
+        IO.copy_stream(from, @to_name)
+        @to_name.should have_data(@content)
+      end
+
+      it "calls #read on the source Object" do
+        from = IOSpecs::CopyStreamRead.new @io
+
+        IO.copy_stream(from, @to_name)
+        @to_name.should have_data(@content)
+      end
+
+      it "calls #write on the destination Object" do
+        to = mock("io_copy_stream_to_object")
+        to.should_receive(:write).with(@content).and_return(@content.size)
+
+        IO.copy_stream(@from_name, to)
+      end
+    end
   end
 end

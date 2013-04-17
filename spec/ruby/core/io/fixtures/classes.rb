@@ -147,4 +147,24 @@ module IOSpecs
       @from
     end
   end
+
+  class CopyStreamRead
+    def initialize(io)
+      @io = io
+    end
+
+    def read(size, buf=nil)
+      @io.read size, buf
+    end
+  end
+
+  class CopyStreamReadPartial
+    def initialize(io)
+      @io = io
+    end
+
+    def readpartial(size, buf=nil)
+      @io.readpartial size, buf
+    end
+  end
 end
