@@ -56,7 +56,7 @@ opt = OptionParser.new do |o|
     extra << "-Xprofile"
   end
 
-  o.on("-e", "--end", "Report all stats after all suitse have run") do
+  o.on("-e", "--end", "Report all stats after all suites have run") do
     at_end = true
   end
 
