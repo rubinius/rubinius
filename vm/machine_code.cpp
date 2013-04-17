@@ -44,11 +44,7 @@
  */
 namespace rubinius {
 
-  void** MachineCode::instructions = 0;
-
   void MachineCode::init(STATE) {
-    // Seed the instructions table
-    interpreter(0, 0, 0);
   }
 
   /*
@@ -77,7 +73,6 @@ namespace rubinius {
     total = meth->iseq()->opcodes()->num_fields();
 
     opcodes = new opcode[total];
-    addresses = new void*[total];
 
     fill_opcodes(state, meth);
     stack_size = meth->stack_size()->to_native();
@@ -115,7 +110,6 @@ namespace rubinius {
 
   MachineCode::~MachineCode() {
     delete[] opcodes;
-    delete[] addresses;
 
     if(inline_cache_offsets_) {
       delete[] inline_cache_offsets_;
@@ -156,8 +150,6 @@ namespace rubinius {
           opcodes[index + 2] = as<Fixnum>(ops->at(state, index + 2))->to_native();
           break;
         }
-
-        update_addresses(index, width - 1);
 
         switch(opcodes[index]) {
         case InstructionSequence::insn_send_method:
@@ -214,7 +206,6 @@ namespace rubinius {
 
         InvokePrimitive invoker = Primitives::get_invoke_stub(state, name);
         opcodes[ip + 1] = reinterpret_cast<intptr_t>(invoker);
-        update_addresses(ip, 1);
         break;
       }
       case InstructionSequence::insn_allow_private:
@@ -267,7 +258,6 @@ namespace rubinius {
         }
 
         opcodes[ip + 1] = reinterpret_cast<intptr_t>(cache);
-        update_addresses(ip, 1);
 
         is_super = false;
         allow_private = false;
@@ -295,7 +285,6 @@ namespace rubinius {
         constant_cache_offsets_[constant_index] = ip;
         constant_index++;
         opcodes[ip + 1] = reinterpret_cast<intptr_t>(cache);
-        update_addresses(ip, 1);
         break;
       }
       }
@@ -510,8 +499,6 @@ namespace rubinius {
         if(it != ti->slots.end()) {
           opcodes[i] = InstructionSequence::insn_push_my_offset;
           opcodes[i + 1] = ti->slot_locations[it->second];
-
-          update_addresses(i, 1);
         }
       } else if(op == InstructionSequence::insn_set_ivar) {
         native_int idx = opcodes[i + 1];
@@ -521,8 +508,6 @@ namespace rubinius {
         if(it != ti->slots.end()) {
           opcodes[i] = InstructionSequence::insn_store_my_field;
           opcodes[i + 1] = it->second;
-
-          update_addresses(i, 1);
         }
       }
 

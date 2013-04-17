@@ -82,17 +82,11 @@ Object* MachineCode::interpreter(STATE,
 
 #include "vm/gen/instruction_locations.hpp"
 
-  if(unlikely(state == 0)) {
-    MachineCode::instructions = const_cast<void**>(insn_locations);
-    return NULL;
-  }
-
   InterpreterState is;
   GCTokenImpl gct;
 
-  register void** ip_ptr = mcode->addresses;
-
-  Object** stack_ptr = call_frame->stk - 1;
+  register opcode* ip_ptr = mcode->opcodes;
+  register Object** stack_ptr = call_frame->stk - 1;
 
   UnwindInfoSet unwinds;
 
@@ -100,13 +94,15 @@ continue_to_run:
   try {
 
 #undef DISPATCH
-#define DISPATCH goto **ip_ptr++
+#define DISPATCH goto *insn_locations[*ip_ptr++];
 
 #undef next_int
-#define next_int ((opcode)(*ip_ptr++))
+#undef store_ip
+#undef flush_ip
 
-#define cache_ip(which) ip_ptr = mcode->addresses + which
-#define flush_ip() call_frame->calculate_ip(ip_ptr)
+#define next_int ((opcode)(*ip_ptr++))
+#define store_ip(which) ip_ptr = mcode->opcodes + which
+#define flush_ip() call_frame->set_ip(ip_ptr - mcode->opcodes)
 
 #include "vm/gen/instruction_implementations.hpp"
 
@@ -140,7 +136,7 @@ exception:
       UnwindInfo info = unwinds.pop();
       stack_position(info.stack_depth);
       call_frame->set_ip(info.target_ip);
-      cache_ip(info.target_ip);
+      store_ip(info.target_ip);
       goto continue_to_run;
     } else {
       call_frame->scope->flush_to_heap(state);
@@ -168,7 +164,7 @@ exception:
       if(info.for_ensure()) {
         stack_position(info.stack_depth);
         call_frame->set_ip(info.target_ip);
-        cache_ip(info.target_ip);
+        store_ip(info.target_ip);
 
         // Don't reset ep here, we're still handling the return/break.
         goto continue_to_run;
@@ -249,11 +245,11 @@ continue_to_run:
 #define DISPATCH goto *insn_locations[stream[call_frame->inc_ip()]];
 
 #undef next_int
-#undef cache_ip
+#undef store_ip
 #undef flush_ip
 
 #define next_int ((opcode)(stream[call_frame->inc_ip()]))
-#define cache_ip(which)
+#define store_ip(which) call_frame->set_ip(which)
 #define flush_ip()
 
 #include "vm/gen/instruction_implementations.hpp"
@@ -286,7 +282,7 @@ exception:
       UnwindInfo info = unwinds.pop();
       stack_position(info.stack_depth);
       call_frame->set_ip(info.target_ip);
-      cache_ip(info.target_ip);
+      store_ip(info.target_ip);
       goto continue_to_run;
     } else {
       call_frame->scope->flush_to_heap(state);
@@ -314,7 +310,7 @@ exception:
       if(info.for_ensure()) {
         stack_position(info.stack_depth);
         call_frame->set_ip(info.target_ip);
-        cache_ip(info.target_ip);
+        store_ip(info.target_ip);
 
         // Don't reset ep here, we're still handling the return/break.
         goto continue_to_run;
@@ -394,11 +390,11 @@ continue_to_run:
     goto *insn_locations[stream[call_frame->inc_ip()]];
 
 #undef next_int
-#undef cache_ip
+#undef store_ip
 #undef flush_ip
 
 #define next_int ((opcode)(stream[call_frame->inc_ip()]))
-#define cache_ip(which)
+#define store_ip(which) call_frame->set_ip(which)
 #define flush_ip()
 
 #include "vm/gen/instruction_implementations.hpp"
@@ -432,7 +428,7 @@ exception:
       UnwindInfo info = unwinds.pop();
       stack_position(info.stack_depth);
       call_frame->set_ip(info.target_ip);
-      cache_ip(info.target_ip);
+      store_ip(info.target_ip);
       goto continue_to_run;
     } else {
       call_frame->scope->flush_to_heap(state);
@@ -462,7 +458,7 @@ exception:
       if(info.for_ensure()) {
         stack_position(info.stack_depth);
         call_frame->set_ip(info.target_ip);
-        cache_ip(info.target_ip);
+        store_ip(info.target_ip);
 
         // Don't reset ep here, we're still handling the return/break.
         goto continue_to_run;
@@ -527,11 +523,11 @@ continue_to_run:
     goto *insn_locations[stream[call_frame->inc_ip()]];
 
 #undef next_int
-#undef cache_ip
+#undef store_ip
 #undef flush_ip
 
 #define next_int ((opcode)(stream[call_frame->inc_ip()]))
-#define cache_ip(which)
+#define store_ip(which) call_frame->set_ip(which)
 #define flush_ip()
 
 #include "vm/gen/instruction_implementations.hpp"
@@ -564,7 +560,7 @@ exception:
       UnwindInfo info = unwinds.pop();
       stack_position(info.stack_depth);
       call_frame->set_ip(info.target_ip);
-      cache_ip(info.target_ip);
+      store_ip(info.target_ip);
       goto continue_to_run;
     } else {
       call_frame->scope->flush_to_heap(state);
@@ -592,7 +588,7 @@ exception:
       if(info.for_ensure()) {
         stack_position(info.stack_depth);
         call_frame->set_ip(info.target_ip);
-        cache_ip(info.target_ip);
+        store_ip(info.target_ip);
 
         // Don't reset ep here, we're still handling the return/break.
         goto continue_to_run;
@@ -658,11 +654,11 @@ continue_to_run:
     goto *insn_locations[stream[call_frame->inc_ip()]];
 
 #undef next_int
-#undef cache_ip
+#undef store_ip
 #undef flush_ip
 
 #define next_int ((opcode)(stream[call_frame->inc_ip()]))
-#define cache_ip(which)
+#define store_ip(which) call_frame->set_ip(which)
 #define flush_ip()
 
 #include "vm/gen/instruction_implementations.hpp"
@@ -696,7 +692,7 @@ exception:
       UnwindInfo info = unwinds.pop();
       stack_position(info.stack_depth);
       call_frame->set_ip(info.target_ip);
-      cache_ip(info.target_ip);
+      store_ip(info.target_ip);
       goto continue_to_run;
     } else {
       call_frame->scope->flush_to_heap(state);
@@ -726,7 +722,7 @@ exception:
       if(info.for_ensure()) {
         stack_position(info.stack_depth);
         call_frame->set_ip(info.target_ip);
-        cache_ip(info.target_ip);
+        store_ip(info.target_ip);
 
         // Don't reset ep here, we're still handling the return/break.
         goto continue_to_run;

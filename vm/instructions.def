@@ -98,8 +98,7 @@ section "Flow control"
 #   goto_if_false
 
 instruction goto(location) [ -- ] => branch
-  call_frame->set_ip(location);
-  cache_ip(location);
+  store_ip(location);
 end
 
 # [Description]
@@ -112,8 +111,7 @@ end
 instruction goto_if_false(location) [ value -- ] => branch
   Object* t1 = stack_pop();
   if(!CBOOL(t1)) {
-    call_frame->set_ip(location);
-    cache_ip(location);
+    store_ip(location);
   }
 end
 
@@ -127,8 +125,7 @@ end
 instruction goto_if_true(location) [ value -- ] => branch
   Object* t1 = stack_pop();
   if(CBOOL(t1)) {
-    call_frame->set_ip(location);
-    cache_ip(location);
+    store_ip(location);
   }
 end
 

@@ -29,7 +29,6 @@ namespace rubinius {
 
   class MachineCode : public CodeResource {
   public:
-    static void** instructions;
 
     enum Flags {
       eNoInline  = 1 << 0,
@@ -57,7 +56,6 @@ namespace rubinius {
     InterpreterRunner run;
 
     opcode* opcodes;
-    void** addresses;
 
     std::size_t total;
     TypeInfo* type;
@@ -123,17 +121,6 @@ namespace rubinius {
 
     void set_execute_status(ExecuteStatus s) {
       execute_status_ = s;
-    }
-
-    void update_addresses(int index, int operands=0) {
-      addresses[index] = instructions[opcodes[index]];
-      switch(operands) {
-      case 2:
-        addresses[index + 2] = reinterpret_cast<void*>(opcodes[index + 2]);
-        // fall through
-      case 1:
-        addresses[index + 1] = reinterpret_cast<void*>(opcodes[index + 1]);
-      }
     }
 
     size_t inline_cache_count() {

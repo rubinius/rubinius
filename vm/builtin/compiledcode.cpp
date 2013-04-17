@@ -427,7 +427,6 @@ namespace rubinius {
       size_t index = mcode->inline_cache_offsets()[i];
       Object* new_cache = mark.call(reinterpret_cast<Object*>(mcode->opcodes[index + 1]));
       mcode->opcodes[index + 1] = reinterpret_cast<intptr_t>(new_cache);
-      mcode->update_addresses(index, 1);
       mark.just_set(code, new_cache);
     }
 
@@ -435,7 +434,6 @@ namespace rubinius {
       size_t index = mcode->constant_cache_offsets()[i];
       Object* new_cache = mark.call(reinterpret_cast<Object*>(mcode->opcodes[index + 1]));
       mcode->opcodes[index + 1] = reinterpret_cast<intptr_t>(new_cache);
-      mcode->update_addresses(index, 1);
       mark.just_set(code, new_cache);
     }
   }
