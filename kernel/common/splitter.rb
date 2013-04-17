@@ -39,19 +39,24 @@ module Rubinius
       else
         pattern = StringValue(pattern) unless pattern.kind_of?(String)
 
-        if !limited and limit.equal?(undefined)
+        trim_end = !tail_empty || limit == 0
+
+        unless limited
           if pattern.empty?
-            ret = []
-            pos = 0
+            if trim_end
+              ret = []
+              pos = 0
+              str_size = string.num_bytes
 
-            while pos < string.num_bytes
-              ret << string.byteslice(pos, 1)
-              pos += 1
+              while pos < str_size
+                ret << string.byteslice(pos, 1)
+                pos += 1
+              end
+
+              return ret
             end
-
-            return ret
           else
-            return split_on_string(string, pattern)
+            return split_on_string(string, pattern, trim_end)
           end
         end
 
@@ -111,7 +116,7 @@ module Rubinius
       ret
     end
 
-    def self.split_on_string(string, pattern)
+    def self.split_on_string(string, pattern, trim_end)
       pos = 0
 
       ret = []
@@ -132,8 +137,10 @@ module Rubinius
       # No more separators, but we need to grab the last part still.
       ret << string.byteslice(pos, str_size - pos)
 
-      while s = ret.at(-1) and s.empty?
-        ret.pop
+      if trim_end
+        while s = ret.at(-1) and s.empty?
+          ret.pop
+        end
       end
 
       ret
