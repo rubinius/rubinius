@@ -649,12 +649,11 @@ class Array
   alias_method :index, :find_index
 
   def last(n=undefined)
-    if size < 1
-      return nil if n.equal? undefined
+    if n.equal? undefined
+      return at(-1)
+    elsif size < 1
       return []
     end
-
-    return at(-1) if n.equal? undefined
 
     n = Rubinius::Type.coerce_to n, Fixnum, :to_int
     return [] if n == 0
