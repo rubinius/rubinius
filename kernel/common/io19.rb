@@ -278,8 +278,8 @@ class IO
     end
 
     def run
-      @from.ensure_open_and_readable
-      @to.ensure_open_and_writable
+      @from.ensure_open_and_readable if @from.kind_of? IO
+      @to.ensure_open_and_writable if @to.kind_of? IO
 
       if @from_io && !@from.pipe?
         saved_pos = @from.pos
@@ -303,16 +303,16 @@ class IO
         # done reading
       end
 
-      @to.flush
+      @to.flush if @to.kind_of? IO
       return bytes
     ensure
       if @from_io
         @from.pos = saved_pos if @offset
       else
-        @from.close
+        @from.close if @from.kind_of? IO
       end
 
-      @to.close unless @to_io
+      @to.close if @to.kind_of? IO unless @to_io
     end
   end
 
