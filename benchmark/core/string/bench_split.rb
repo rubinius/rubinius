@@ -8,10 +8,14 @@ Benchmark.ips do |x|
     string.split('|')
   end
 
+  x.report "matching delimiter with negative limit" do
+    string.split('|', -1)
+  end
+
   x.report "mismatched delimiter" do
     string.split('.')
   end
-  
+
   x.report "matching delimiter regexp" do
     string.split(/\|/)
   end
