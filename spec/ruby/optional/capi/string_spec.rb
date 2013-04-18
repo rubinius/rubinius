@@ -477,22 +477,12 @@ describe "C-API String function" do
       @s.rb_str_resize_RSTRING_LEN("test", 2).should == 2
     end
 
-    ruby_version_is ""..."1.9" do
-      it "increases the size of the string" do
-        str = @s.rb_str_resize("test", 12)
-        str.size.should == 12
-        @s.RSTRING_LEN(str).should == 12
-        str[0, 4].should == "test"
-      end
-    end
-
-    ruby_version_is "1.9" do
-      it "increases the size of the string" do
-        str = @s.rb_str_resize("test", 12)
-        str.bytesize.should == 12
-        @s.RSTRING_LEN(str).should == 12
-        str[0, 4].should == "test"
-      end
+    it "increases the size of the string" do
+      expected = Object.encode("test", "US-ASCII")
+      str = @s.rb_str_resize(expected.dup, 12)
+      str.size.should == 12
+      @s.RSTRING_LEN(str).should == 12
+      str[0, 4].should == expected
     end
   end
 

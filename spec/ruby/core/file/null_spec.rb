@@ -1,7 +1,7 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "File::NULL" do
-  ruby_version_is "1.9" do
+  ruby_version_is "1.9.3" do
     platform_is :windows do
       it "returns NUL as a string" do
         File::NULL.should == 'NUL'

@@ -67,7 +67,7 @@ describe "Array#sample" do
       end
 
       it "does not return subclass instances with Array subclass" do
-        ArraySpecs::MyArray[1, 2, 3].sample(2).should be_kind_of(Array)
+        ArraySpecs::MyArray[1, 2, 3].sample(2).should be_an_instance_of(Array)
       end
     end
   end

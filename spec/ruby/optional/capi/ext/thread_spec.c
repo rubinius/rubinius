@@ -40,7 +40,6 @@ static void unblock_func(void *data) {
 }
 
 /* Returns true if the thread is interrupted. */
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 static VALUE thread_spec_rb_thread_blocking_region(VALUE self) {
   int fds[2];
   VALUE ret;
@@ -54,7 +53,6 @@ static VALUE thread_spec_rb_thread_blocking_region(VALUE self) {
   close(fds[1]);
   return ret;
 }
-#pragma GCC diagnostic warning "-Wdeprecated-declarations"
 
 /* This is unblocked by a signal. */
 static VALUE blocking_func_for_udf_io(void *data) {
@@ -69,7 +67,6 @@ static VALUE blocking_func_for_udf_io(void *data) {
 }
 
 /* Returns true if the thread is interrupted. */
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 static VALUE thread_spec_rb_thread_blocking_region_with_ubf_io(VALUE self) {
   int fds[2];
   VALUE ret;
@@ -84,7 +81,6 @@ static VALUE thread_spec_rb_thread_blocking_region_with_ubf_io(VALUE self) {
   close(fds[1]);
   return ret;
 }
-#pragma GCC diagnostic warning "-Wdeprecated-declarations"
 #endif
 
 #ifdef HAVE_RB_THREAD_CURRENT
@@ -106,7 +102,6 @@ static VALUE thread_spec_rb_thread_local_aset(VALUE self, VALUE thr, VALUE sym, 
 #endif
 
 #ifdef HAVE_RB_THREAD_SELECT
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 static VALUE thread_spec_rb_thread_select_fd(VALUE self, VALUE fd_num, VALUE msec) {
   int fd = NUM2INT(fd_num);
   struct timeval tv;
@@ -130,7 +125,6 @@ static VALUE thread_spec_rb_thread_select(VALUE self, VALUE msec) {
   rb_thread_select(0, NULL, NULL, NULL, &tv);
   return Qnil;
 }
-#pragma GCC diagnostic warning "-Wdeprecated-declarations"
 #endif
 
 #ifdef HAVE_RB_THREAD_WAKEUP

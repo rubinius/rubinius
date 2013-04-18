@@ -16,22 +16,6 @@ describe "Socket#connect_nonblock" do
     @thread.join if @thread
   end
 
-  it "takes an encoded socket address and starts the connection to it" do
-    lambda {
-      begin
-        @socket.connect_nonblock(@addr)
-      rescue Errno::EINPROGRESS
-        IO.select(nil, [@socket])
-        r = @socket.getsockopt(Socket::SOL_SOCKET, Socket::SO_ERROR)
-        if r.int == Errno::ECONNREFUSED::Errno
-          raise Errno::ECONNREFUSED.new
-        else
-          raise r.inspect
-        end
-      end
-    }.should raise_error(Errno::ECONNREFUSED)
-  end
-
   it "connects the socket to the remote side" do
     ready = false
     @thread = Thread.new do

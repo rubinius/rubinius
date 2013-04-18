@@ -120,7 +120,7 @@ end
 
 describe "A singleton method definition" do
   after :all do
-    Object.remove_class_variable :@@a rescue nil
+    Object.__send__(:remove_class_variable, :@@a)
   end
 
   it "can be declared for a local variable" do

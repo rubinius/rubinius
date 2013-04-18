@@ -96,10 +96,10 @@ describe "String#upto" do
       enum.count.should == 26**2
     end
 
-    it "uses the ASCII map for single letters" do
-      a = []
-      "9".upto("A"){ |s| a << s}
-      a.should == ["9", ":", ";", "<", "=", ">", "?", "@", "A"]
+    it "returns non-alphabetic characters in the ASCII range for single letters" do
+      "9".upto("A").to_a.should == ["9", ":", ";", "<", "=", ">", "?", "@", "A"]
+      "Z".upto("a").to_a.should == ["Z", "[", "\\", "]", "^", "_", "`", "a"]
+      "z".upto("~").to_a.should == ["z", "{", "|", "}", "~"]
     end
   end
 

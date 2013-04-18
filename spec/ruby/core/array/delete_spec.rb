@@ -64,13 +64,13 @@ describe "Array#delete" do
     a.delete(nil).should == nil
   end
 
+  it "returns nil on a frozen array if a modification does not take place" do
+    [1, 2, 3].freeze.delete(0).should == nil
+  end
+
   ruby_version_is '' ... '1.9' do
     it "raises a TypeError on a frozen array if a modification would take place" do
       lambda { [1, 2, 3].freeze.delete(1) }.should raise_error(TypeError)
-    end
-
-    it "returns false on a frozen array if a modification does not take place" do
-      [1, 2, 3].freeze.delete(0).should == nil
     end
   end
 

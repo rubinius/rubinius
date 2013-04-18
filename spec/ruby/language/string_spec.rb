@@ -13,7 +13,7 @@ describe "Ruby character strings" do
   end
 
   after :all do
-    Object.remove_class_variable :@@ip rescue nil
+    Object.__send__(:remove_class_variable, :@@ip)
   end
 
 

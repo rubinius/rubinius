@@ -1,6 +1,19 @@
 require File.expand_path('../../fixtures/marshal_data', __FILE__)
+require 'stringio'
 
 describe :marshal_load, :shared => true do
+  ruby_version_is ""..."2.1" do
+    before :all do
+      @num_self_class = 0
+    end
+  end
+
+  ruby_version_is "2.1" do
+    before :all do
+      @num_self_class = 1
+    end
+  end
+
   it "raises an ArgumentError when the dumped data is truncated" do
     obj = {:first => 1, :second => 2, :third => 3}
     lambda { Marshal.send(@method, Marshal.dump(obj)[0, 5]) }.should raise_error(ArgumentError)
@@ -301,8 +314,8 @@ describe :marshal_load, :shared => true do
 
       new_obj.should == obj
       new_obj_metaclass_ancestors = class << new_obj; ancestors; end
-      new_obj_metaclass_ancestors[0].should == Meths
-      new_obj_metaclass_ancestors[1].should == UserHashInitParams
+      new_obj_metaclass_ancestors[@num_self_class].should == Meths
+      new_obj_metaclass_ancestors[@num_self_class+1].should == UserHashInitParams
     end
 
     it "preserves hash ivars when hash contains a string having ivar" do
@@ -419,7 +432,7 @@ describe :marshal_load, :shared => true do
 
       new_obj.should == obj
       new_obj_metaclass_ancestors = class << new_obj; ancestors; end
-      new_obj_metaclass_ancestors.first.should == UserMarshal
+      new_obj_metaclass_ancestors[@num_self_class].should == UserMarshal
     end
 
     it "loads a user_object" do
@@ -444,7 +457,7 @@ describe :marshal_load, :shared => true do
 
       new_obj.class.should == obj.class
       new_obj_metaclass_ancestors = class << new_obj; ancestors; end
-      new_obj_metaclass_ancestors.first(2).should == [Meths, Object]
+      new_obj_metaclass_ancestors[@num_self_class, 2].should == [Meths, Object]
     end
 
     describe "that extends a core type other than Object or BasicObject" do
@@ -484,7 +497,7 @@ describe :marshal_load, :shared => true do
 
       new_obj.should == obj
       new_obj_metaclass_ancestors = class << new_obj; ancestors; end
-      new_obj_metaclass_ancestors.first(3).should ==
+      new_obj_metaclass_ancestors[@num_self_class, 3].should ==
         [Meths, MethsMore, Regexp]
     end
 
@@ -497,7 +510,7 @@ describe :marshal_load, :shared => true do
       new_obj.should == obj
       new_obj.instance_variable_get(:@noise).should == 'much'
       new_obj_metaclass_ancestors = class << new_obj; ancestors; end
-      new_obj_metaclass_ancestors.first(3).should ==
+      new_obj_metaclass_ancestors[@num_self_class, 3].should ==
         [Meths, UserRegexp, Regexp]
     end
   end

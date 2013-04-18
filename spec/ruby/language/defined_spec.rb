@@ -1133,7 +1133,7 @@ end
 
 describe "The defined? keyword for a variable scoped constant" do
   after :all do
-    Object.remove_class_variable :@@defined_specs_obj rescue nil
+    Object.__send__(:remove_class_variable, :@@defined_specs_obj)
   end
 
   it "returns nil if the scoped constant is not defined" do

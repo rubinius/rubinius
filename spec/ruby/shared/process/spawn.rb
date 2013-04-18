@@ -397,7 +397,7 @@ describe :process_spawn, :shared => true do
   it "closes file descriptors >= 3 in the child process" do
     IO.pipe do |r, w|
       begin
-        pid = @object.spawn(ruby_cmd("sleep"))
+        pid = @object.spawn(ruby_cmd(""))
         w.close
         lambda { r.read_nonblock(1) }.should raise_error(EOFError)
       ensure
@@ -411,7 +411,7 @@ describe :process_spawn, :shared => true do
     it "does not close file descriptors >= 3 in the child process when given a false :close_others option" do
       IO.pipe do |r, w|
         begin
-          pid = @object.spawn(ruby_cmd("sleep"), :close_others => false)
+          pid = @object.spawn(ruby_cmd(""), :close_others => false)
           w.close
           lambda { r.read_nonblock(1) }.should raise_error(Errno::EAGAIN)
         ensure
@@ -426,7 +426,7 @@ describe :process_spawn, :shared => true do
     it "closes file descriptors >= 3 in the child process even if given a false :close_others option because they are set close_on_exec" do
       IO.pipe do |r, w|
         begin
-          pid = @object.spawn(ruby_cmd("sleep"), :close_others => false)
+          pid = @object.spawn(ruby_cmd(""), :close_others => false)
           w.close
           lambda { r.read_nonblock(1) }.should raise_error(EOFError)
         ensure
@@ -442,7 +442,7 @@ describe :process_spawn, :shared => true do
       r.close_on_exec = false
       w.close_on_exec = false
       begin
-        pid = @object.spawn(ruby_cmd("sleep"), :close_others => false)
+        pid = @object.spawn(ruby_cmd(""), :close_others => false)
         w.close
         lambda { r.read_nonblock(1) }.should raise_error(Errno::EAGAIN)
       ensure

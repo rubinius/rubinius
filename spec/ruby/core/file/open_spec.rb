@@ -4,7 +4,7 @@ require File.expand_path('../shared/open', __FILE__)
 
 describe "File.open" do
   before :all do
-    @file = tmp("test.txt")
+    @file = tmp("core-file-open.txt")
     @nonexistent = tmp("fake.txt")
     rm_r @file, @nonexistent
   end
@@ -141,17 +141,22 @@ describe "File.open" do
   end
 
   it "opens the file when call with fd" do
-    # store in an ivar so it doesn't GC before we go to close it in 'after'
-    @fh_orig = File.open(@file)
-    @fh = File.open(@fh_orig.fileno)
+    fh_orig = File.open(@file)
+    @fh = File.open(fh_orig.fileno)
+    (@fh.autoclose = false) rescue nil
     @fh.should be_kind_of(File)
     File.exist?(@file).should == true
+    # don't close fh_orig here to adjust closing cycle between fh_orig and @fh
+    # see also c02c78b3899fcf769084a88777c63de0fcebb48d
   end
 
   it "opens a file with a file descriptor d and a block" do
     @fh = File.open(@file)
     @fh.should be_kind_of(File)
-    File.open(@fh.fileno) { |fh| @fd = fh.fileno; @fh.close }
+    File.open(@fh.fileno) do |fh|
+      @fd = fh.fileno
+      @fh.close
+    end
     lambda { File.open(@fd) }.should raise_error(SystemCallError)
     File.exist?(@file).should == true
   end
