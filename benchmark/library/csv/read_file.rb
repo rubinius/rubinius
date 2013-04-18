@@ -4,7 +4,7 @@ require 'benchmark'
 require 'benchmark/ips'
 require 'csv'
 
-CSV_SIZE       = 1_000_000 # around 4.3MB
+CSV_SIZE       = 100_000 # around 4.3MB
 CSV_FILE_PATH  = '/tmp/ruby_benchmark_csv_bench'
 CSV_LINE       = "this is a string;72;1234567.9;another string\n"
 
@@ -37,3 +37,5 @@ Benchmark.ips do |x|
     end
   end
 end
+
+File.delete(CSV_FILE_PATH)
