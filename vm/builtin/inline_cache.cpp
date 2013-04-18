@@ -144,8 +144,7 @@ namespace rubinius {
             if(!vis_entry) vis_entry = entry;
 
             state->vm()->global_cache()->retain(state, klass, name, ice->stored_module(),
-                  ice->method(), false,
-                  vis_entry->visibility());
+                  ice->method(), eNone, vis_entry->visibility());
 
             return eNone;
           }
@@ -206,8 +205,7 @@ namespace rubinius {
           if(!vis_entry) vis_entry = entry;
 
           state->vm()->global_cache()->retain(state, start, name, ice->stored_module(),
-                ice->method(), false,
-                vis_entry->visibility());
+                ice->method(), eNone, vis_entry->visibility());
 
           return true;
         } else {

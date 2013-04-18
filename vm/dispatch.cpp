@@ -25,14 +25,14 @@ namespace rubinius {
     if(!GlobalCache::resolve(state, name, *this, lookup)) {
       state->vm()->set_method_missing_reason(reason);
 
-      method_missing = true;
+      method_missing = reason;
       lookup.min_visibility = G(sym_private);
       if(!GlobalCache::resolve(state, G(sym_method_missing), *this, lookup)) {
         Exception::internal_error(state, call_frame, "no method_missing");
         return 0;
       }
 
-      method_missing = true;
+      method_missing = reason;
     }
 
     if(method_missing) {

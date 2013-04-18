@@ -26,14 +26,14 @@ namespace rubinius {
       Module* module;
       Executable* method;
       Symbol* visibility;
-      bool method_missing;
+      MethodMissingReason method_missing;
 
       void clear() {
         klass = NULL;
         module = NULL;
         method = NULL;
         visibility = NULL;
-        method_missing = false;
+        method_missing = eNone;
       }
     };
 
@@ -81,7 +81,7 @@ namespace rubinius {
     void prune_unmarked(int mark);
 
     void retain(STATE, Module* cls, Symbol* name, Module* mod, Executable* meth,
-                bool missing, Symbol* visibility) {
+                MethodMissingReason missing, Symbol* visibility) {
       utilities::thread::SpinLock::LockGuard guard(lock_);
       retain_i(state, cls, name, mod, meth, missing, visibility);
     }
@@ -89,7 +89,7 @@ namespace rubinius {
     private:
 
     void retain_i(STATE, Module* cls, Symbol* name, Module* mod, Executable* meth,
-                bool missing, Symbol* visibility) {
+                MethodMissingReason missing, Symbol* visibility) {
 
       seen_methods.insert(name->index());
 

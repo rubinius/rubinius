@@ -14,9 +14,7 @@
 #include "builtin/inline_cache.hpp"
 
 namespace rubinius {
-  static bool hierarchy_resolve(STATE, Symbol* name, Dispatch& msg, LookupData& lookup,
-                                  Symbol** visibility)
-  {
+  static bool hierarchy_resolve(STATE, Symbol* name, Dispatch& msg, LookupData& lookup) {
     Module* module = lookup.from;
     MethodTableBucket* entry;
     bool skip_vis_check = false;
@@ -41,7 +39,7 @@ namespace rubinius {
          * might have a different visibility than the original lookup.
          */
         if(!skip_vis_check) {
-          *visibility = entry->visibility();
+          msg.visibility = entry->visibility();
         }
         if(entry->method()->nil_p()) {
           skip_vis_check = true;
@@ -75,7 +73,7 @@ namespace rubinius {
          * might have a different visibility than the original lookup.
          */
         if(!skip_vis_check) {
-          *visibility = entry->visibility();
+          msg.visibility = entry->visibility();
         }
         if(entry->method()->nil_p()) {
           skip_vis_check = true;
@@ -151,16 +149,16 @@ keep_looking:
          lookup.min_visibility == entry->visibility) {
         msg.method = entry->method;
         msg.module = entry->module;
+        msg.visibility = entry->visibility;
         msg.method_missing = entry->method_missing;
 
         return true;
       }
     }
 
-    Symbol* visibility = G(sym_protected);
-    if(hierarchy_resolve(state, name, msg, lookup, &visibility)) {
+    if(hierarchy_resolve(state, name, msg, lookup)) {
       retain_i(state, klass, name,
-          msg.module, msg.method, msg.method_missing, visibility);
+          msg.module, msg.method, msg.method_missing, msg.visibility);
 
       return true;
     }

@@ -16,13 +16,15 @@ namespace rubinius {
     Symbol* name;
     Module* module;
     Executable* method;
-    bool method_missing;
+    Symbol* visibility;
+    MethodMissingReason method_missing;
 
     Dispatch(Symbol* name)
       : name(name)
       , module(0)
       , method(0)
-      , method_missing(false)
+      , visibility(0)
+      , method_missing(eNone)
     {}
 
     Object* send(STATE, CallFrame* call_frame, Arguments& args,

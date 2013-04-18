@@ -57,7 +57,8 @@ declare void @output2(%"struct.rubinius::jit::RuntimeData"*)
       %"struct.rubinius::Symbol"*, ; name
       %"struct.rubinius::Module"*, ; module
   %"struct.rubinius::Executable"*, ; method
-                               i8  ; method_missing
+      %"struct.rubinius::Symbol"*, ; visibility
+                              i32  ; method_missing
 }
 
 declare void @output3(%"struct.rubinius::Dispatch"*)

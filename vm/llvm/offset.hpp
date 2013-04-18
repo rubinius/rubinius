@@ -94,7 +94,8 @@ namespace Dispatch {
   const static int name = 0;
   const static int module = 1;
   const static int method = 2;
-  const static int method_missing = 3;
+  const static int visibility = 3;
+  const static int method_missing = 4;
 }
 namespace Executable {
   const static int header = 0;
