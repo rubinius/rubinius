@@ -37,7 +37,7 @@ module Rubinius
     end
 
     def initialize(format)
-      code = Rubinius::Type.object_singleton_class(self).dynamic_method :call do |g|
+      Rubinius::Type.object_singleton_class(self).dynamic_method :call do |g|
         Builder.new(self, format, g).build
       end
     end
@@ -951,7 +951,6 @@ module Rubinius
         @arg_count = 0
         @index_mode = nil
 
-        bignum_width = bignum_precision = nil
         atoms = []
 
         pos = 0
@@ -1051,7 +1050,6 @@ module Rubinius
           atom.bytecode
         end
       end
-
     end
   end
 end
