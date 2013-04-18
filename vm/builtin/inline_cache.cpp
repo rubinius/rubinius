@@ -37,10 +37,6 @@ namespace rubinius {
     cache->call_unit_ = nil<CallUnit>();
     cache->initial_backend_ = empty_cache;
     cache->execute_backend_ = empty_cache;
-#ifdef TRACK_IC_LOCATION
-    cache->ip_ = 0;
-    cache->machine_code_ = NULL;
-#endif
     cache->seen_classes_overflow_ = 0;
     cache->clear();
     return cache;
@@ -751,15 +747,6 @@ namespace rubinius {
     }
 
     return cache->initialize(state, call_frame, args);
-  }
-
-  void InlineCache::print_location(STATE, std::ostream& stream) {
-#ifdef TRACK_IC_LOCATION
-    stream << vmm_->original->file()->c_str(state)
-           << ":" << vmm_->original->line(state, ip_);
-#else
-    stream << "(unknown)";
-#endif
   }
 
   void InlineCache::print(STATE, std::ostream& stream) {

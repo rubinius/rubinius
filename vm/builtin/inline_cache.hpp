@@ -12,8 +12,6 @@
 #include <tr1/unordered_map>
 #include <tr1/unordered_set>
 
-// #define TRACK_IC_LOCATION
-
 namespace rubinius {
   class InlineCache;
   struct CallFrame;
@@ -125,11 +123,6 @@ namespace rubinius {
     CacheExecutor initial_backend_;
     CacheExecutor execute_backend_;
 
-#ifdef TRACK_IC_LOCATION
-    int ip_;
-    MachineCode* machine_code_;
-#endif
-
     int seen_classes_overflow_;
 
   public:
@@ -198,23 +191,6 @@ namespace rubinius {
 
     InlineCacheEntry* update_and_validate(STATE, CallFrame* call_frame, Object* recv);
     InlineCacheEntry* update_and_validate_private(STATE, CallFrame* call_frame, Object* recv);
-
-#ifdef TRACK_IC_LOCATION
-    void set_location(int ip, MachineCode* mcode) {
-      ip_ = ip;
-      machine_code_ = mcode;
-    }
-
-    int ip() {
-      return ip_;
-    }
-
-    MachineCode* machine_code() {
-      return machine_code_;
-    }
-#else
-    void set_location(int ip, MachineCode* mcode) { }
-#endif
 
     void print_location(STATE, std::ostream& stream);
     void print(STATE, std::ostream& stream);

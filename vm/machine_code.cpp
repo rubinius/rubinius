@@ -241,7 +241,6 @@ namespace rubinius {
 
         InlineCache* cache = InlineCache::empty(state, name);
         original->write_barrier(state, cache);
-        cache->set_location(ip, this);
 
         inline_cache_offsets_[inline_index] = ip;
         inline_index++;
