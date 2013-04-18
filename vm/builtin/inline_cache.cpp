@@ -59,222 +59,32 @@ namespace rubinius {
     return cache;
   }
 
-  MethodMissingReason InlineCache::fill_public(STATE, Object* self, Symbol* name,
-                                               Class* klass, InlineCacheEntry*& ice,
-                                               bool super)
+  MethodMissingReason InlineCache::fill(STATE, Object* self, Class* klass,
+                                        Symbol* name, Module* start, Symbol* vis,
+                                        InlineCacheEntry*& ice,
+                                        bool super)
   {
-    MethodTableBucket* entry;
+    LookupData lookup(self, start, vis);
+    Dispatch dis(name);
 
-    Module* module = klass;
-
-    // Check the global cache first!
-    ice = state->vm()->global_cache()->lookup_public(state, module, klass, name);
-
-    if(ice) return eNone;
-
-    bool skip_vis_check = false;
-
-    MethodTableBucket* vis_entry = 0;
-
-    Symbol* target_name = name;
-
-    do {
-      entry = module->method_table()->find_entry(state, target_name);
-
-      /* Nothing, there? Ok, keep looking. */
-      if(entry) {
-        /* A 'false' method means to terminate method lookup.
-         * (eg. undef_method) */
-        if(entry->undef_p(state)) return eNormal;
-
-        if(!skip_vis_check) {
-          /* The method is private, but this wasn't a private send. */
-          if(entry->private_p(state)) {
-            return ePrivate;
-          } else if(entry->protected_p(state)) {
-            /* The method is protected, but it's not being called from
-             * the same module */
-            Module* check_mod;
-            if(IncludedModule* im = try_as<IncludedModule>(module)) {
-              check_mod = im->module();
-            } else {
-              check_mod = module;
-            }
-
-            if(!self->kind_of_p(state, check_mod)) {
-              return eProtected;
-            }
-          }
-        }
-
-        /* The method was callable, but we need to keep looking
-         * for the implementation, so make the invocation bypass all further
-         * visibility checks.
-         *
-         * This is pretty much always where a subclass marks a superclass
-         * method as public. We don't move the method, we just put this
-         * marker into the method table. */
-        if(entry->method()->nil_p()) {
-          vis_entry = entry;
-          skip_vis_check = true;
-        } else {
-          Module* use_module;
-          Executable* use_exec;
-
-          if(Alias* alias = try_as<Alias>(entry->method())) {
-            // Same check as above, allow an alias to be for a superclass
-            // method.
-            if(alias->original_exec()->nil_p()) {
-              vis_entry = entry;
-              skip_vis_check = true;
-              use_exec = 0;
-              target_name = alias->original_name();
-            } else {
-              use_exec = alias->original_exec();
-              use_module = alias->original_module();
-            }
-          } else {
-            use_module = module;
-            use_exec = entry->method();
-          }
-
-          if(use_exec) {
-            ice = InlineCacheEntry::create(state, klass, use_module, use_exec, eNone, super);
-
-            if(!vis_entry) vis_entry = entry;
-
-            state->vm()->global_cache()->retain(state, klass, name, ice->stored_module(),
-                  ice->method(), eNone, vis_entry->visibility());
-
-            return eNone;
-          }
-        }
-      }
-
-      module = module->superclass();
-
-      /* No more places to look, we couldn't find it. */
-      if(module->nil_p()) return eNormal;
-    } while(1);
-
-    // Shouldn't be here!
-    rubinius::bug("Control flow bug in method lookup");
+    if(GlobalCache::resolve(state, name, dis, lookup)) {
+      ice = InlineCacheEntry::create(state, klass, dis.module, dis.method, dis.method_missing, super);
+    }
+    return dis.method_missing;
   }
 
-  bool InlineCache::fill_private(STATE, Symbol* name, Module* start,
-                                 Class* klass,
-                                 InlineCacheEntry*& ice, bool super)
-  {
-    MethodTableBucket* entry;
-
-    Module* module = start;
-
-    // Check the global cache first!
-    ice = state->vm()->global_cache()->lookup_private(state, start, klass, name);
-    if(ice) return true;
-
-    MethodTableBucket* vis_entry = 0;
-
-    do {
-      entry = module->method_table()->find_entry(state, name);
-
-      /* Nothing, there? Ok, keep looking. */
-      if(entry) {
-
-        /* A 'false' method means to terminate method lookup.
-         * (eg. undef_method) */
-        if(entry->undef_p(state)) return false;
-
-        /* The method was callable, but we need to keep looking
-         * for the implementation, so make the invocation bypass all further
-         * visibility checks.
-         *
-         * This is pretty much always where a subclass marks a superclass
-         * method as public. We don't move the method, we just put this
-         * marker into the method table. */
-        if(!entry->method()->nil_p()) {
-          if(Alias* alias = try_as<Alias>(entry->method())) {
-            ice = InlineCacheEntry::create(state, klass,
-                                           alias->original_module(),
-                                           alias->original_exec(),
-                                           eNone, super);
-          } else {
-            ice = InlineCacheEntry::create(state, klass, module, entry->method(), eNone, super);
-          }
-
-          if(!vis_entry) vis_entry = entry;
-
-          state->vm()->global_cache()->retain(state, start, name, ice->stored_module(),
-                ice->method(), eNone, vis_entry->visibility());
-
-          return true;
-        } else {
-          // Remember this entry as defining the visibility
-          vis_entry = entry;
-        }
-      }
-
-      module = module->superclass();
-
-      /* No more places to look, we couldn't find it. */
-      if(module->nil_p()) return false;
-    } while(1);
-
-    // Shouldn't be here!
-    rubinius::bug("Control flow bug in method lookup");
-  }
-
-  bool InlineCache::fill_method_missing(STATE, Class* klass,
+  bool InlineCache::fill_method_missing(STATE, Object* self, Class* klass,
                                         MethodMissingReason reason,
                                         InlineCacheEntry*& ice)
   {
-    MethodTableBucket* entry;
 
-    Module* module = klass;
+    LookupData lookup(self, klass, G(sym_private));
+    Dispatch dis(G(sym_method_missing));
 
-    Symbol* name = G(sym_method_missing);
-
-    do {
-      entry = module->method_table()->find_entry(state, name);
-
-      /* Nothing, there? Ok, keep looking. */
-      if(entry) {
-
-        /* A 'false' method means to terminate method lookup.
-         * (eg. undef_method) */
-        if(entry->undef_p(state)) return false;
-
-        /* The method was callable, but we need to keep looking
-         * for the implementation, so make the invocation bypass all further
-         * visibility checks.
-         *
-         * This is pretty much always where a subclass marks a superclass
-         * method as public. We don't move the method, we just put this
-         * marker into the method table. */
-        if(!entry->method()->nil_p()) {
-          if(Alias* alias = try_as<Alias>(entry->method())) {
-            ice = InlineCacheEntry::create(state, klass,
-                                           alias->original_module(),
-                                           alias->original_exec(),
-                                           reason, reason == eSuper);
-          } else {
-            ice = InlineCacheEntry::create(state, klass,
-                                           module,
-                                           entry->method(),
-                                           reason, reason == eSuper);
-          }
-          return true;
-        }
-      }
-
-      module = module->superclass();
-
-      /* No more places to look, we couldn't find it. */
-      if(module->nil_p()) return false;
-    } while(1);
-
-    // Shouldn't be here!
-    rubinius::bug("Control flow bug in method lookup");
+    if(GlobalCache::resolve(state, G(sym_method_missing), dis, lookup)) {
+      ice = InlineCacheEntry::create(state, klass, dis.module, dis.method, reason, false);
+    }
+    return dis.method_missing == eNone;
   }
 
   InlineCacheEntry* InlineCache::update_and_validate(STATE, CallFrame* call_frame, Object* recv) {
@@ -285,7 +95,7 @@ namespace rubinius {
     if(likely(ice)) return ice;
 
     MethodMissingReason reason =
-      fill_public(state, call_frame->self(), name_, recv_class, ice);
+      fill(state, call_frame->self(), recv_class, name_, recv_class, G(sym_public), ice);
     if(reason != eNone) return 0;
 
     if(unlikely(growth_cache_size(ice->receiver_class_id()) > 0)) {
@@ -305,7 +115,9 @@ namespace rubinius {
 
     if(likely(ice)) return ice;
 
-    if(!fill_private(state, name_, recv_class, recv_class, ice)) return 0;
+    MethodMissingReason reason =
+      fill(state, call_frame->self(), recv_class, name_, recv_class, G(sym_private), ice);
+    if(reason != eNone) return 0;
 
     if(unlikely(growth_cache_size(ice->receiver_class_id()) > 0)) {
       execute_backend_ = check_cache_poly;
@@ -375,13 +187,13 @@ namespace rubinius {
     InlineCacheEntry* ice = NULL;
 
     MethodMissingReason reason =
-      cache->fill_public(state, call_frame->self(), cache->name_,
-                         recv_class, ice);
+      cache->fill(state, call_frame->self(), recv_class,
+                         cache->name_, recv_class, G(sym_public), ice);
 
     if(reason != eNone) {
       state->vm()->set_method_missing_reason(reason);
 
-      if(!cache->fill_method_missing(state, recv_class, reason, ice)) {
+      if(!cache->fill_method_missing(state, call_frame->self(), recv_class, reason, ice)) {
         Exception::internal_error(state, call_frame, "no method_missing");
         return 0;
       }
@@ -426,10 +238,14 @@ namespace rubinius {
 
     InlineCacheEntry* ice = 0;
 
-    if(!cache->fill_private(state, cache->name_, recv_class, recv_class, ice)) {
+    MethodMissingReason reason =
+      cache->fill(state, call_frame->self(), recv_class,
+                         cache->name_, recv_class, G(sym_private), ice);
+
+    if(reason != eNone) {
       state->vm()->set_method_missing_reason(eNormal);
 
-      if(!cache->fill_method_missing(state, recv_class, eNormal, ice)) {
+      if(!cache->fill_method_missing(state, call_frame->self(), recv_class, reason, ice)) {
         Exception::internal_error(state, call_frame, "no method_missing");
         return 0;
       }
@@ -466,10 +282,14 @@ namespace rubinius {
 
     InlineCacheEntry* ice = NULL;
 
-    if(!cache->fill_private(state, cache->name_, recv_class, recv_class, ice)) {
+    MethodMissingReason reason =
+      cache->fill(state, call_frame->self(), recv_class,
+                         cache->name_, recv_class, G(sym_private), ice);
+
+    if(reason != eNone) {
       state->vm()->set_method_missing_reason(eVCall);
 
-      if(!cache->fill_method_missing(state, recv_class, eVCall, ice)) {
+      if(!cache->fill_method_missing(state, call_frame->self(), recv_class, reason, ice)) {
         Exception::internal_error(state, call_frame, "no method_missing");
         return 0;
       }
@@ -513,13 +333,21 @@ namespace rubinius {
 
     Module* const start = call_frame->module()->superclass();
 
-    if(start->nil_p() || !cache->fill_private(state, cache->name_, start, recv_class, ice, true)) {
+    bool parent_found = !start->nil_p();
+    MethodMissingReason reason = eSuper;
+    if(parent_found) {
+      reason = cache->fill(state, call_frame->self(), recv_class,
+                          cache->name_, start, G(sym_private), ice, true);
+
+    }
+
+    if(!parent_found || reason != eNone) {
       state->vm()->set_method_missing_reason(eSuper);
 
       // Don't use start when looking up method_missing!
       // Always completely redispatch for method_missing.
       // github#157
-      if(!cache->fill_method_missing(state, recv_class, eSuper, ice)) {
+      if(!cache->fill_method_missing(state, call_frame->self(), recv_class, reason, ice)) {
         Exception::internal_error(state, call_frame, "no method_missing");
         return 0;
       }

@@ -27,7 +27,10 @@ namespace rubinius {
 
       /* A 'false' method means to terminate method lookup.
        * (eg. undef_method) */
-      if(entry->undef_p(state)) return false;
+      if(entry->undef_p(state)) {
+        msg.method_missing = eNormal;
+        return false;
+      }
 
       /* If this was a private send, then we can handle use
        * any method seen. */
@@ -47,21 +50,36 @@ namespace rubinius {
         }
 
         if(Alias* alias = try_as<Alias>(entry->method())) {
-          msg.method = alias->original_exec();
-          msg.module = alias->original_module();
+          if(alias->original_exec()->nil_p()) {
+            name           = alias->original_name();
+            msg.visibility = entry->visibility();
+            skip_vis_check = true;
+          } else {
+            msg.method = alias->original_exec();
+            msg.module = alias->original_module();
+          }
         } else {
           msg.method = entry->method();
           msg.module = module;
         }
-        break;
+        if(msg.method) return true;
       } else {
         /* The method is private, but this wasn't a private send. */
         if(entry->private_p(state)) {
+          msg.method_missing = ePrivate;
           return false;
         } else if(entry->protected_p(state)) {
           /* The method is protected, but it's not being called from
            * the same module, or we only want public methods. */
-          if(lookup.min_visibility == G(sym_public) || !lookup.recv->kind_of_p(state, module)) {
+          Module* check_mod;
+          if(IncludedModule* im = try_as<IncludedModule>(module)) {
+            check_mod = im->module();
+          } else {
+            check_mod = module;
+          }
+
+          if(lookup.min_visibility == G(sym_public) && !lookup.recv->kind_of_p(state, check_mod)) {
+            msg.method_missing = eProtected;
             return false;
           }
         }
@@ -81,56 +99,32 @@ namespace rubinius {
         }
 
         if(Alias* alias = try_as<Alias>(entry->method())) {
-          msg.method = alias->original_exec();
-          msg.module = alias->original_module();
+          if(alias->original_exec()->nil_p()) {
+            name           = alias->original_name();
+            msg.visibility = entry->visibility();
+            skip_vis_check = true;
+          } else {
+            msg.method = alias->original_exec();
+            msg.module = alias->original_module();
+          }
         } else {
           msg.method = entry->method();
           msg.module = module;
         }
-        break;
+        if(msg.method) return true;
       }
 
 keep_looking:
       module = module->superclass();
 
       /* No more places to look, we couldn't find it. */
-      if(module->nil_p()) return false;
+      if(module->nil_p()) {
+        msg.method_missing = eNormal;
+        return false;
+      }
     } while(1);
 
-    return true;
-  }
-
-  InlineCacheEntry* GlobalCache::lookup_public(STATE, Module* mod, Class* cls, Symbol* name) {
-    utilities::thread::SpinLock::LockGuard guard(lock_);
-
-    Symbol* entry_name = entry_names[CPU_CACHE_HASH(mod, name)];
-    CacheEntry* entry = entries + CPU_CACHE_HASH(mod, name);
-    if(entry_name == name &&
-         entry->klass == mod &&
-         entry->visibility != G(sym_private) &&
-        !entry->method_missing) {
-
-      return InlineCacheEntry::create(state, cls, entry->module,
-                                      entry->method, eNone, false);
-    }
-
-    return NULL;
-  }
-
-  InlineCacheEntry* GlobalCache::lookup_private(STATE, Module* mod, Class* cls, Symbol* name) {
-    utilities::thread::SpinLock::LockGuard guard(lock_);
-
-    Symbol* entry_name = entry_names[CPU_CACHE_HASH(mod, name)];
-    CacheEntry* entry = entries + CPU_CACHE_HASH(mod, name);
-    if(entry_name == name &&
-         entry->klass == mod &&
-        !entry->method_missing) {
-
-      return InlineCacheEntry::create(state, cls, entry->module,
-                                      entry->method, eNone, false);
-    }
-
-    return NULL;
+    rubinius::bug("Control flow bug in method lookup");
   }
 
   bool GlobalCache::resolve(STATE, Symbol* name, Dispatch& msg, LookupData& lookup) {
@@ -150,7 +144,6 @@ keep_looking:
         msg.method = entry->method;
         msg.module = entry->module;
         msg.visibility = entry->visibility;
-        msg.method_missing = entry->method_missing;
 
         return true;
       }
@@ -158,7 +151,7 @@ keep_looking:
 
     if(hierarchy_resolve(state, name, msg, lookup)) {
       retain_i(state, klass, name,
-          msg.module, msg.method, msg.method_missing, msg.visibility);
+          msg.module, msg.method, msg.visibility);
 
       return true;
     }

@@ -183,11 +183,10 @@ namespace rubinius {
     static Object* disabled_cache_super(STATE, InlineCache* cache, CallFrame* call_frame,
                                   Arguments& args);
 
-    MethodMissingReason fill_public(STATE, Object* self, Symbol* name, Class* klass,
-                                    InlineCacheEntry*& ice, bool super = false);
-    bool fill_private(STATE, Symbol* name, Module* start, Class* klass,
-                      InlineCacheEntry*& ice, bool super = false);
-    bool fill_method_missing(STATE, Class* klass, MethodMissingReason reason, InlineCacheEntry*& ice);
+    MethodMissingReason fill(STATE, Object* self, Class* klass, Symbol* name, Module* start,
+                             Symbol* vis, InlineCacheEntry*& ice, bool super = false);
+
+    bool fill_method_missing(STATE, Object* self, Class* klass, MethodMissingReason reason, InlineCacheEntry*& ice);
 
     InlineCacheEntry* update_and_validate(STATE, CallFrame* call_frame, Object* recv);
     InlineCacheEntry* update_and_validate_private(STATE, CallFrame* call_frame, Object* recv);

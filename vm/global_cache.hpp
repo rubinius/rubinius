@@ -26,14 +26,12 @@ namespace rubinius {
       Module* module;
       Executable* method;
       Symbol* visibility;
-      MethodMissingReason method_missing;
 
       void clear() {
         klass = NULL;
         module = NULL;
         method = NULL;
         visibility = NULL;
-        method_missing = eNone;
       }
     };
 
@@ -51,9 +49,6 @@ namespace rubinius {
       lock_.init();
       clear();
     }
-
-    InlineCacheEntry* lookup_public(STATE, Module* mod, Class* cls, Symbol* name);
-    InlineCacheEntry* lookup_private(STATE, Module* mod, Class* cls, Symbol* name);
 
     void clear(STATE, Symbol* name) {
       utilities::thread::SpinLock::LockGuard guard(lock_);
@@ -81,15 +76,15 @@ namespace rubinius {
     void prune_unmarked(int mark);
 
     void retain(STATE, Module* cls, Symbol* name, Module* mod, Executable* meth,
-                MethodMissingReason missing, Symbol* visibility) {
+                Symbol* visibility) {
       utilities::thread::SpinLock::LockGuard guard(lock_);
-      retain_i(state, cls, name, mod, meth, missing, visibility);
+      retain_i(state, cls, name, mod, meth, visibility);
     }
 
     private:
 
     void retain_i(STATE, Module* cls, Symbol* name, Module* mod, Executable* meth,
-                MethodMissingReason missing, Symbol* visibility) {
+                  Symbol* visibility) {
 
       seen_methods.insert(name->index());
 
@@ -99,7 +94,6 @@ namespace rubinius {
       entry_names[CPU_CACHE_HASH(cls, name)] = name;
       entry->klass = cls;
       entry->module = mod;
-      entry->method_missing = missing;
 
       entry->method = meth;
       entry->visibility = visibility;
