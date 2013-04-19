@@ -29,6 +29,7 @@
 
 #include "vm/object_utils.hpp"
 #include "on_stack.hpp"
+#include "call_frame.hpp"
 
 #include "configuration.hpp"
 
@@ -548,8 +549,11 @@ namespace rubinius {
     args.shift(state);
     args.set_name(sym);
 
+    // We have to send it with self from the current frame as the
+    // source, not this object to have correct visibility checks
+    // for protected.
     Dispatch dis(sym);
-    LookupData lookup(this, this->lookup_begin(state), min_visibility);
+    LookupData lookup(call_frame->self(), this->lookup_begin(state), min_visibility);
 
     return dis.send(state, call_frame, lookup, args);
   }

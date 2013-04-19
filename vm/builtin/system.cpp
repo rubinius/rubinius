@@ -939,8 +939,10 @@ namespace rubinius {
     return module;
   }
 
-  static Tuple* find_method(STATE, Object* recv, Symbol* name, Symbol* min_visibility) {
-    LookupData lookup(recv, recv->lookup_begin(state), min_visibility);
+  static Tuple* find_method(STATE, Class* klass, Symbol* name, Symbol* min_visibility) {
+    // Use cUndef for the self type so protected checks never pass
+    // and work as expected.
+    LookupData lookup(cUndef, klass, min_visibility);
 
     Dispatch dis(name);
 
@@ -952,11 +954,12 @@ namespace rubinius {
   }
 
   Tuple* System::vm_find_method(STATE, Object* recv, Symbol* name) {
-    return find_method(state, recv, name, G(sym_private));
+    return find_method(state, recv->lookup_begin(state), name, G(sym_private));
   }
 
   Tuple* System::vm_find_public_method(STATE, Object* recv, Symbol* name) {
-    return find_method(state, recv, name, G(sym_public));
+
+    return find_method(state, recv->lookup_begin(state), name, G(sym_public));
   }
 
   Object* System::vm_add_method(STATE, GCToken gct, Symbol* name,
