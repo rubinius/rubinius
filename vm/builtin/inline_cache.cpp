@@ -194,7 +194,14 @@ namespace rubinius {
     Executable* meth = ice->method();
     Module* mod = ice->stored_module();
 
-    return meth->execute(state, call_frame, meth, mod, args);
+    if(meth->custom_call_site_p()) {
+      state->set_call_site_location(cache->location_);
+      Object* res = meth->execute(state, call_frame, meth, mod, args);
+      state->set_call_site_location(NULL);
+      return res;
+    } else {
+      return meth->execute(state, call_frame, meth, mod, args);
+    }
   }
 
   Object* InlineCache::empty_cache_private(STATE, CallSite* call_site, CallFrame* call_frame,
@@ -238,7 +245,14 @@ namespace rubinius {
     Executable* meth = ice->method();
     Module* mod = ice->stored_module();
 
-    return meth->execute(state, call_frame, meth, mod, args);
+    if(meth->custom_call_site_p()) {
+      state->set_call_site_location(cache->location_);
+      Object* res = meth->execute(state, call_frame, meth, mod, args);
+      state->set_call_site_location(NULL);
+      return res;
+    } else {
+      return meth->execute(state, call_frame, meth, mod, args);
+    }
   }
 
   Object* InlineCache::empty_cache_vcall(STATE, CallSite* call_site, CallFrame* call_frame,
@@ -282,7 +296,14 @@ namespace rubinius {
     Executable* meth = ice->method();
     Module* mod = ice->stored_module();
 
-    return meth->execute(state, call_frame, meth, mod, args);
+    if(meth->custom_call_site_p()) {
+      state->set_call_site_location(cache->location_);
+      Object* res = meth->execute(state, call_frame, meth, mod, args);
+      state->set_call_site_location(NULL);
+      return res;
+    } else {
+      return meth->execute(state, call_frame, meth, mod, args);
+    }
   }
 
   Object* InlineCache::empty_cache_super(STATE, CallSite* call_site, CallFrame* call_frame,
@@ -341,7 +362,14 @@ namespace rubinius {
     Executable* meth = ice->method();
     Module* mod = ice->stored_module();
 
-    return meth->execute(state, call_frame, meth, mod, args);
+    if(meth->custom_call_site_p()) {
+      state->set_call_site_location(cache->location_);
+      Object* res = meth->execute(state, call_frame, meth, mod, args);
+      state->set_call_site_location(NULL);
+      return res;
+    } else {
+      return meth->execute(state, call_frame, meth, mod, args);
+    }
   }
 
   Object* InlineCache::check_cache(STATE, CallSite* call_site, CallFrame* call_frame,

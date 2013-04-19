@@ -43,6 +43,10 @@ namespace rubinius {
       vm_->set_call_frame(cf);
     }
 
+    void set_call_site_location(CallSite** location) {
+      vm_->set_call_site_location(location);
+    }
+
     Globals& globals() {
       return shared_.globals;
     }

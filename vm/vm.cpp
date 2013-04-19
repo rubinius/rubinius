@@ -66,6 +66,7 @@ namespace rubinius {
   VM::VM(uint32_t id, SharedState& shared)
     : ManagedThread(id, shared, ManagedThread::eRuby)
     , saved_call_frame_(0)
+    , saved_call_site_location_(0)
     , fiber_stacks_(this, shared)
     , park_(new Park)
     , run_signals_(false)

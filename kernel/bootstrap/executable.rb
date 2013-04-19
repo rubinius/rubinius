@@ -14,5 +14,10 @@ module Rubinius
       Rubinius.primitive :executable_invoke
       raise PrimitiveFailure, "Executable#invoke primitive failed"
     end
+
+    def custom_call_site
+      Rubinius.primitive :executable_set_custom_call_site
+      raise PrimitiveFailure, "Executable#set_custom_call_site primitive failed"
+    end
   end
 end

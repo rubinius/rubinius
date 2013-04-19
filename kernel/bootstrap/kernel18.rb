@@ -43,5 +43,5 @@ module Kernel
 
   def respond_to?(meth, include_private=false)
     respond_to_prim?(meth, include_private)
-  end
+  end.custom_call_site
 end

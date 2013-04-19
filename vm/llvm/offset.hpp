@@ -53,6 +53,7 @@ namespace CallSite {
   const static int name = 1;
   const static int initial = 2;
   const static int execute = 3;
+  const static int location = 4;
 }
 namespace Class {
   const static int header = 0;

@@ -574,6 +574,7 @@ remember:
                                       CompiledCode* code, MachineCode* mcode, int hits) {
 
     InlineCache* cache = try_as<InlineCache>(call_site_);
+    assert(cache);
 
     ctx_->enter_inline();
 

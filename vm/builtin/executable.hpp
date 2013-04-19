@@ -43,8 +43,9 @@ namespace rubinius {
     executor execute;
 
   protected:
-    int prim_index_;
     Inliners* inliners_;
+    int prim_index_;
+    bool custom_call_site_;
 
   public:
     /* accessors */
@@ -60,6 +61,10 @@ namespace rubinius {
       return prim_index_;
     }
 
+    bool custom_call_site_p() {
+      return custom_call_site_;
+    }
+
     /* interface */
 
     // Rubinius.primitive :executable_allocate
@@ -70,6 +75,12 @@ namespace rubinius {
 
     // Rubinius.primitive :executable_invoke
     Object* invoke(STATE, Symbol* name, Module* mod, Object* recv, Array* args, Object* block, CallFrame* calling_environment);
+
+    // Rubinius.primitive :executable_set_custom_call_site
+    Object* set_custom_call_site(STATE) {
+      custom_call_site_ = true;
+      return cNil;
+    }
 
     bool resolve_primitive(STATE);
 

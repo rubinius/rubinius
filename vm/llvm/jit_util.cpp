@@ -1224,24 +1224,6 @@ extern "C" {
 
     MachineCode* mcode = call_frame->compiled_code->machine_code();
 
-    /*
-    InlineCache* cache = 0;
-
-    if(mcode->opcodes[call_frame->ip()] == InstructionSequence::insn_send_stack) {
-      cache = reinterpret_cast<InlineCache*>(mcode->opcodes[call_frame->ip() + 1]);
-    } else if(mcode->opcodes[call_frame->ip()] == InstructionSequence::insn_send_method) {
-      cache = reinterpret_cast<InlineCache*>(mcode->opcodes[call_frame->ip() + 1]);
-    } else if(mcode->opcodes[call_frame->ip()] == InstructionSequence::insn_send_stack_with_block) {
-      cache = reinterpret_cast<InlineCache*>(mcode->opcodes[call_frame->ip() + 1]);
-    }
-
-    if(cache && cache->name()->symbol_p()) {
-      std::cout << "Uncommon trap for send: " << cache->name()->c_str(state) << "\n";
-    } else {
-      std::cout << "Unknown uncommon try reason.\n";
-    }
-    */
-
     if(call_frame->is_inline_frame()) {
       // Fix up this inlined block.
       if(mcode->parent()) {

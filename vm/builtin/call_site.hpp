@@ -1,6 +1,10 @@
 #ifndef RBX_BUILTIN_CALL_SITE_HPP
 #define RBX_BUILTIN_CALL_SITE_HPP
 
+#include "builtin/object.hpp"
+#include "builtin/exception.hpp"
+#include "type_info.hpp"
+
 namespace rubinius {
 
   class CallSite : public Object {

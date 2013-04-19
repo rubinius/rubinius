@@ -19,6 +19,8 @@
 #include "builtin/methodtable.hpp"
 #include "builtin/packed_object.hpp"
 #include "builtin/location.hpp"
+#include "builtin/inline_cache.hpp"
+#include "builtin/respond_to_cache.hpp"
 
 #include "objectmemory.hpp"
 #include "arguments.hpp"
@@ -833,7 +835,21 @@ namespace rubinius {
 
     Dispatch dis(name);
 
-    return RBOOL(dis.resolve(state, name, lookup));
+    Object* res = RBOOL(dis.resolve(state, name, lookup));
+    CallSite** location = state->vm()->saved_call_site_location();
+
+    if(location && res) {
+      CallSite* existing = *location;
+      RespondToCache* cache = try_as<RespondToCache>(existing);
+      if(!cache) {
+        cache = RespondToCache::empty(state, existing, location);
+      }
+      cache->update(state, this, name, priv, res);
+      atomic::memory_barrier();
+      *location = cache;
+    }
+
+    return res;
   }
 
   /**

@@ -68,7 +68,7 @@ declare void @output3(%"struct.rubinius::Dispatch"*)
   %"struct.rubinius::Symbol"*, ; name
   %"struct.rubinius::Object"* (%"struct.rubinius::State"*, %"struct.rubinius::CallSite"*, %"struct.rubinius::CallFrame"*, %"struct.rubinius::Arguments"*)*, ; initial
   %"struct.rubinius::Object"* (%"struct.rubinius::State"*, %"struct.rubinius::CallSite"*, %"struct.rubinius::CallFrame"*, %"struct.rubinius::Arguments"*)*, ; execute
-  %"struct.rubinius::CallSite"**
+  %"struct.rubinius::CallSite"** ; location
 }
 
 declare void @outputCallSite(%"struct.rubinius::CallSite"*)
