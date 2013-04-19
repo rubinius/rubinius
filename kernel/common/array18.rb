@@ -425,6 +425,10 @@ class Array
     dup.delete_if(&block)
   end
 
+  def reverse
+    dup.reverse!
+  end
+
   def shuffle
     dup.shuffle!
   end
@@ -484,6 +488,10 @@ class Array
     end
 
     out
+  end
+
+  def sort(&block)
+    dup.sort_inplace(&block)
   end
 
   def to_s

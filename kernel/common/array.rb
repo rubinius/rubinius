@@ -562,7 +562,7 @@ class Array
     n = Rubinius::Type.coerce_to n, Fixnum, :to_int
     raise ArgumentError, "Size must be positive" if n < 0
 
-    self[0, n]
+    Array.new self[0, n]
   end
 
   def hash
@@ -661,7 +661,7 @@ class Array
     raise ArgumentError, "count must be positive" if n < 0
 
     n = size if n > size
-    self[-n..-1]
+    Array.new self[-n..-1]
   end
 
   alias_method :collect, :map
@@ -756,7 +756,7 @@ class Array
       first = @total - many
       first = 0 if first < 0
 
-      out = self[first, many]
+      out = Array.new self[first, many]
 
       if many > @total
         @total = 0
@@ -788,10 +788,6 @@ class Array
 
     return nil if was == size()
     self
-  end
-
-  def reverse
-    dup.reverse!
   end
 
   def reverse!
@@ -864,7 +860,7 @@ class Array
       n = Rubinius::Type.coerce_to(n, Fixnum, :to_int)
       raise ArgumentError, "negative array size" if n < 0
 
-      slice!(0, n)
+      Array.new slice!(0, n)
     end
   end
 
@@ -878,10 +874,6 @@ class Array
     return [] if new_size <= 0
 
     new_range n, new_size
-  end
-
-  def sort(&block)
-    dup.sort_inplace(&block)
   end
 
   # Sorts this Array in-place. See #sort.

@@ -409,7 +409,7 @@ class Array
     out.untaint if out.tainted?
     out.trust if out.untrusted?
 
-    out.compact! || out
+    Array.new(out.compact! || out)
   end
 
   def compile_repeated_combinations(combination_size, place, index, depth, &block)
@@ -461,6 +461,10 @@ class Array
   end
 
   private :compile_repeated_permutations
+
+  def reverse
+    Array.new dup.reverse!
+  end
 
   def rotate(n=1)
     n = Rubinius::Type.coerce_to(n, Integer, :to_int)
@@ -640,6 +644,10 @@ class Array
   end
 
   private :delete_range
+
+  def sort(&block)
+    Array.new dup.sort_inplace(&block)
+  end
 
   def sort_by!(&block)
     Rubinius.check_frozen
