@@ -462,7 +462,7 @@ static int scan_hex(const char *start, size_t len, size_t *retlen);
 
 %type <node> singleton strings string string1 xstring regexp
 %type <node> string_contents xstring_contents regexp_contents string_content
-%type <node> words qwords word_list qword_list word
+%type <node> words symbols symbol_list qwords qsymbols word_list qword_list qsym_list word
 %type <node> literal numeric dsym cpath
 %type <node> top_compstmt top_stmts top_stmt
 %type <node> bodystmt compstmt stmts stmt expr arg primary command command_call method_call
@@ -510,7 +510,7 @@ static int scan_hex(const char *start, size_t len, size_t *retlen);
 %token tSTAR            /* * */
 %token tAMPER           /* & */
 %token tLAMBDA          /* -> */
-%token tSYMBEG tSTRING_BEG tXSTRING_BEG tREGEXP_BEG tWORDS_BEG tQWORDS_BEG
+%token tSYMBEG tSTRING_BEG tXSTRING_BEG tREGEXP_BEG tWORDS_BEG tQWORDS_BEG tSYMBOLS_BEG tQSYMBOLS_BEG
 %token tSTRING_DBEG tSTRING_DVAR tSTRING_END tLAMBEG
 
 /*
@@ -1649,6 +1649,8 @@ primary         : literal
                 | regexp
                 | words
                 | qwords
+                | symbols
+                | qsymbols
                 | var_ref
                 | backref
                 | tFID
@@ -2541,6 +2543,45 @@ word            : string_content
                   }
                 ;
 
+symbols         : tSYMBOLS_BEG ' ' tSTRING_END
+                {
+                  /*%%%*/
+                  $$ = NEW_ZARRAY();
+                  /*%
+                    $$ = dispatch0(symbols_new);
+                    $$ = dispatch1(array, $$);
+                  %*/
+                }
+                | tSYMBOLS_BEG symbol_list tSTRING_END
+                {
+                  /*%%%*/
+                    $$ = $2;
+                  /*%
+                    $$ = dispatch1(array, $2);
+                  %*/
+                }
+                ;
+
+symbol_list     : /* none */
+                {
+                  /*%%%*/
+                    $$ = 0;
+                  /*%
+                    $$ = dispatch0(symbols_new);
+                  %*/
+                }
+                | symbol_list word ' '
+                {
+                  /*%%%*/
+                    $2 = evstr2dstr($2);
+                    nd_set_type($2, NODE_DSYM);
+                    $$ = list_append($1, $2);
+                    /*%
+                      $$ = dispatch2(symbols_add, $1, $2);
+                    %*/
+                }
+                ;
+
 qwords          : tQWORDS_BEG ' ' tSTRING_END
                   {
                     $$ = NEW_ZARRAY();
@@ -2551,6 +2592,25 @@ qwords          : tQWORDS_BEG ' ' tSTRING_END
                   }
                 ;
 
+qsymbols        : tQSYMBOLS_BEG ' ' tSTRING_END
+                {
+                  /*%%%*/
+                    $$ = NEW_ZARRAY();
+                  /*%
+                    $$ = dispatch0(qsymbols_new);
+                    $$ = dispatch1(array, $$);
+                  %*/
+                }
+                | tQSYMBOLS_BEG qsym_list tSTRING_END
+                {
+                  /*%%%*/
+                    $$ = $2;
+                  /*%
+                    $$ = dispatch1(array, $2);
+                  %*/
+                }
+                ;
+
 qword_list      : /* none */
                   {
                     $$ = 0;
@@ -2559,6 +2619,28 @@ qword_list      : /* none */
                   {
                     $$ = list_append($1, $2);
                   }
+                ;
+
+qsym_list       : /* none */
+                {
+                  /*%%%*/
+                    $$ = 0;
+                  /*%
+                    $$ = dispatch0(qsymbols_new);
+                  %*/
+                }
+                | qsym_list tSTRING_CONTENT ' '
+                {
+                  /*%%%*/
+                    VALUE lit;
+                    lit = $2->nd_lit;
+                    $2->nd_lit = ID2SYM(parser_intern_str(lit));
+                    nd_set_type($2, NODE_LIT);
+                    $$ = list_append($1, $2);
+                  /*%
+                    $$ = dispatch2(qsymbols_add, $1, $2);
+                  %*/
+                }
                 ;
 
 string_contents : /* none */
@@ -5452,6 +5534,18 @@ retry:
         do {c = nextc();} while(ISSPACE(c));
         pushback(c);
         return tQWORDS_BEG;
+
+      case 'I':
+        lex_strterm = NEW_STRTERM(str_dword, term, paren);
+        do {c = nextc();} while (ISSPACE(c));
+        pushback(c);
+        return tSYMBOLS_BEG;
+
+      case 'i':
+        lex_strterm = NEW_STRTERM(str_sword, term, paren);
+        do {c = nextc();} while (ISSPACE(c));
+        pushback(c);
+        return tQSYMBOLS_BEG;
 
       case 'x':
         lex_strterm = NEW_STRTERM(str_xquote, term, paren);

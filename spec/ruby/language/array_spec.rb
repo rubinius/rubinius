@@ -54,6 +54,19 @@ c d).should == ["a", "b\nc", "d"]
     %W(a\  b\tc).should == ["a ", "b\tc"]
     %W(white\  \  \ \  \ space).should == ["white ", " ", "  ", " space"]
   end
+
+  ruby_version_is "2.0" do
+    it "%i() transforms unquoted barewords into an array of symbols" do
+      %i(a b c).should == [:a, :b, :c]
+      %i("foo).should == [:"\"foo"]
+    end
+
+    it "%I() transforms unquoted barewords into an array of symbols, supporting interpolation" do
+      x = 10
+      %I(a b#{x}).should == [:a, :b10]
+      %I("a#{x}).should == [:"\"a10"]
+    end
+  end
 end
 
 describe "The unpacking splat operator (*)" do
