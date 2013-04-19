@@ -1,0 +1,1 @@
+fails:Thread.new doesn't call #initialize

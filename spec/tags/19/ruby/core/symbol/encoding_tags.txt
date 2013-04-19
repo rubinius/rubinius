@@ -1,3 +1,6 @@
 fails:Symbol#encoding for UTF-8 symbols should be UTF-8
 fails:Symbol#encoding for UTF-8 symbols should be UTF-8 after converting to string
 fails:Symbol#encoding for ASCII symbols should be US-ASCII after converting to string
+fails:Symbol#encoding for UTF-8 symbols is UTF-8
+fails:Symbol#encoding for UTF-8 symbols is UTF-8 after converting to string
+fails:Symbol#encoding for ASCII symbols is US-ASCII after converting to string

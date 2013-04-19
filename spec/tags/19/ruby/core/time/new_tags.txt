@@ -1,0 +1,1 @@
+fails:Time.new with a utc_offset argument raises ArgumentError if the minute value is greater than 59
