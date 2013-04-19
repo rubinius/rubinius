@@ -246,6 +246,7 @@ module Rubinius
       end
 
       options.on "-d", "Enable debugging output and set $DEBUG to true" do
+        $VERBOSE = true
         $DEBUG = true
       end
 
