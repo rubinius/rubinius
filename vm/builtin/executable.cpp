@@ -76,7 +76,7 @@ namespace rubinius {
 
   void Executable::clear_inliners(STATE) {
     if(!inliners_ || inliners_ == (Inliners*)cNil) return;
-    for(std::list<CompiledCode*>::const_iterator i = inliners_->inliners().begin();
+    for(std::vector<CompiledCode*>::const_iterator i = inliners_->inliners().begin();
         i != inliners_->inliners().end();
         ++i) {
       (*i)->machine_code()->deoptimize(state, *i, 0);
@@ -99,7 +99,7 @@ namespace rubinius {
 
     // std::cout << "Marking inliners: " << inl->inliners().size() << "\n";
 
-    for(std::list<CompiledCode*>::iterator i = inl->inliners().begin();
+    for(std::vector<CompiledCode*>::iterator i = inl->inliners().begin();
         i != inl->inliners().end();
         ++i) {
       CompiledCode* code = *i;

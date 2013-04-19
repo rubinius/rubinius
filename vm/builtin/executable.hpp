@@ -8,7 +8,7 @@
 #include "executor.hpp"
 #include "gc/code_resource.hpp"
 
-#include <list>
+#include <vector>
 
 namespace rubinius {
   class Arguments;
@@ -18,12 +18,12 @@ namespace rubinius {
   class ObjectMemory;
 
   class Inliners : public CodeResource {
-    std::list<CompiledCode*> inliners_;
+    std::vector<CompiledCode*> inliners_;
 
   public:
     Inliners(ObjectMemory* om);
 
-    std::list<CompiledCode*>& inliners() {
+    std::vector<CompiledCode*>& inliners() {
       return inliners_;
     }
 

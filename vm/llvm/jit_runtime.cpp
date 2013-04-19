@@ -15,7 +15,7 @@ namespace rubinius {
 namespace jit {
 
   RuntimeDataHolder::~RuntimeDataHolder() {
-    for(std::list<RuntimeData*>::iterator i = runtime_data_.begin();
+    for(std::vector<RuntimeData*>::iterator i = runtime_data_.begin();
           i != runtime_data_.end(); ++i) {
       delete *i;
     }
@@ -40,7 +40,7 @@ namespace jit {
   void RuntimeDataHolder::mark_all(Object* obj, ObjectMark& mark) {
     Object* tmp;
 
-    for(std::list<jit::RuntimeData*>::iterator i = runtime_data_.begin();
+    for(std::vector<jit::RuntimeData*>::iterator i = runtime_data_.begin();
         i != runtime_data_.end();
         ++i) {
       jit::RuntimeData* rd = *i;
@@ -72,7 +72,7 @@ namespace jit {
   }
 
   void RuntimeDataHolder::run_write_barrier(gc::WriteBarrier* wb, Object* obj) {
-    for(std::list<jit::RuntimeData*>::iterator i = runtime_data_.begin();
+    for(std::vector<jit::RuntimeData*>::iterator i = runtime_data_.begin();
         i != runtime_data_.end();
         ++i) {
       jit::RuntimeData* rd = *i;

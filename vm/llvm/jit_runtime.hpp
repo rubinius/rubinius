@@ -2,7 +2,7 @@
 #define RBX_LLVM_JIT_RUNTIME
 
 #include "gc/code_resource.hpp"
-#include <list>
+#include <vector>
 
 namespace llvm {
   class Function;
@@ -55,7 +55,7 @@ namespace rubinius {
     };
 
     class RuntimeDataHolder : public CodeResource {
-      std::list<RuntimeData*> runtime_data_;
+      std::vector<RuntimeData*> runtime_data_;
       void* function_allocation_;
       void* native_func_;
       int  native_size_;
@@ -75,7 +75,7 @@ namespace rubinius {
         return "jit-runtime";
       }
 
-      std::list<RuntimeData*>& runtime_data() {
+      std::vector<RuntimeData*>& runtime_data() {
         return runtime_data_;
       }
 
