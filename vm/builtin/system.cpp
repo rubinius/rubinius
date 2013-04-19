@@ -946,7 +946,7 @@ namespace rubinius {
 
     Dispatch dis(name);
 
-    if(!GlobalCache::resolve(state, name, dis, lookup)) {
+    if(!dis.resolve(state, name, lookup)) {
       return nil<Tuple>();
     }
 

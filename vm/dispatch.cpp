@@ -22,12 +22,12 @@ namespace rubinius {
   {
     Symbol* original_name = name;
 
-    if(!GlobalCache::resolve(state, name, *this, lookup)) {
+    if(!resolve(state, name, lookup)) {
       state->vm()->set_method_missing_reason(reason);
 
       method_missing = reason;
       lookup.min_visibility = G(sym_private);
-      if(!GlobalCache::resolve(state, G(sym_method_missing), *this, lookup)) {
+      if(!resolve(state, G(sym_method_missing), lookup)) {
         Exception::internal_error(state, call_frame, "no method_missing");
         return 0;
       }
@@ -40,5 +40,9 @@ namespace rubinius {
     }
 
     return method->execute(state, call_frame, method, module, args);
+  }
+
+  bool Dispatch::resolve(STATE, Symbol* name, LookupData& lookup) {
+    return GlobalCache::resolve(state, name, *this, lookup);
   }
 }

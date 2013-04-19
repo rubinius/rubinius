@@ -31,6 +31,7 @@ namespace rubinius {
                  MethodMissingReason reason = eNormal);
     Object* send(STATE, CallFrame* call_frame, LookupData& lookup, Arguments& args,
                  MethodMissingReason reason = eNormal);
+    bool resolve(STATE, Symbol* name, LookupData& lookup);
   };
 }
 

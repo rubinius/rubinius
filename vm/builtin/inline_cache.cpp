@@ -67,7 +67,7 @@ namespace rubinius {
     LookupData lookup(self, start, vis);
     Dispatch dis(name);
 
-    if(GlobalCache::resolve(state, name, dis, lookup)) {
+    if(dis.resolve(state, name, lookup)) {
       ice = InlineCacheEntry::create(state, klass, dis.module, dis.method, dis.method_missing, super);
     }
     return dis.method_missing;
@@ -81,7 +81,7 @@ namespace rubinius {
     LookupData lookup(self, klass, G(sym_private));
     Dispatch dis(G(sym_method_missing));
 
-    if(GlobalCache::resolve(state, G(sym_method_missing), dis, lookup)) {
+    if(dis.resolve(state, G(sym_method_missing), lookup)) {
       ice = InlineCacheEntry::create(state, klass, dis.module, dis.method, reason, false);
     }
     return dis.method_missing == eNone;

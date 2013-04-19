@@ -169,18 +169,6 @@ namespace rubinius {
       return under->send(state, call_frame, G(sym_const_missing), args);
     }
 
-    /** @todo Remove redundancy between this and sends. --rue */
-    Tuple* locate_method_on(STATE, CallFrame* call_frame, Object* recv, Symbol* name, Object* priv) {
-      LookupData lookup(recv, recv->lookup_begin(state), CBOOL(priv) ? G(sym_private) : G(sym_protected));
-      Dispatch dis(name);
-
-      if(!GlobalCache::resolve(state, dis.name, dis, lookup)) {
-        return nil<Tuple>();
-      }
-
-      return Tuple::from(state, 2, dis.method, dis.module);
-    }
-
     Class* open_class(STATE, GCToken gct, CallFrame* call_frame, Object* super, Symbol* name, bool* created) {
       Module* under;
 

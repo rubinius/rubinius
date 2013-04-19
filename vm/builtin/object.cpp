@@ -833,7 +833,7 @@ namespace rubinius {
 
     Dispatch dis(name);
 
-    return RBOOL(GlobalCache::resolve(state, name, dis, lookup));
+    return RBOOL(dis.resolve(state, name, lookup));
   }
 
   /**
