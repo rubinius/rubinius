@@ -96,22 +96,14 @@ namespace rubinius {
 
           // Ok, we're running again.
           state->run_state_ = ManagedThread::eRunning;
-          int pending = atomic::fetch_and_add(&pending_threads_, 1);
-          // If the previous value was 0, we have to check whether
-          // we actually have to stop or not. This is basically because
+          atomic::fetch_and_add(&pending_threads_, 1);
+          // After decreasing the thread count, we have to check whether
+          // we might have to stop. This is basically because
           // there is a race condition here that should_stop isn't true
           // yet the first time before incrementing. However, another thread
           // waiting to GC could have set should_stop and not seen the
           // increment of this thread yet, thinking it's safe to GC.
           //
-          // Rather than having to do locking for this case, we can do a safety
-          // check. Since this can only happen when we actually increment when
-          // the pending_thread count is 0, we can check the return value here
-          // to see if we have to do an additional check.
-          if(pending > 0) return;
-          // If we still don't have to stop even if pending == 0, we can
-          // return safely as well. Make sure to setup a read barrier for this
-          // case so everything is flushed here and we don't see an old value.
           if(!atomic::read(&should_stop_)) return;
           // If we do have to stop, subtract one from the thread count
           // and retry again. This will make the thread go into the wait.
