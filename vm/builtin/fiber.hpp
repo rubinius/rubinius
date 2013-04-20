@@ -26,6 +26,7 @@ namespace rubinius {
     Fiber* prev_; // slot
     Exception* exception_; // slot
     LookupTable* locals_; // slot
+    Object* dead_; // slot
     Status status_;
 
     bool root_;
@@ -38,6 +39,7 @@ namespace rubinius {
     attr_accessor(prev, Fiber);
     attr_accessor(exception, Exception);
     attr_accessor(locals, LookupTable);
+    attr_accessor(dead, Object);
 
     bool root_p() {
       return root_;
