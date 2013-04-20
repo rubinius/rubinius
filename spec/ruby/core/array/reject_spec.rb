@@ -112,6 +112,10 @@ describe "Array#reject!" do
     a.reject! { true }.should == nil
   end
 
+  it "returns an Enumerator if no block given, and the array is frozen" do
+    ArraySpecs.frozen_array.reject!.should be_an_instance_of(enumerator_class)
+  end
+
   ruby_version_is "" ... "1.9" do
     it "raises a TypeError on a frozen array" do
       lambda { ArraySpecs.frozen_array.reject! {} }.should raise_error(TypeError)
