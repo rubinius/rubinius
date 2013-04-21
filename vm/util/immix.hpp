@@ -10,7 +10,7 @@
 #include <vector>
 
 #include "util/address.hpp"
-#include "util/valloc.hpp"
+#include "util/gc_alloc.hpp"
 
 using memory::Address;
 
@@ -422,7 +422,7 @@ namespace immix {
       : system_base_(0)
       , base_(0)
     {
-      base_ = valloc(cChunkSize);
+      base_ = memory::gc_alloc(cChunkSize);
 
       if(base_ == Block::align(base_)) {
         // Best case scenario - returned memory block is aligned as needed
@@ -430,9 +430,9 @@ namespace immix {
         system_size_ = cChunkSize;
       } else {
         // Ask for a larger chunk so we can align it as needed ourselves
-        vfree(base_, cChunkSize);
+        memory::gc_free(base_, cChunkSize);
         system_size_ = cChunkSize + cBlockSize;
-        system_base_ = valloc(system_size_);
+        system_base_ = memory::gc_alloc(system_size_);
 
         base_ = Block::align(system_base_ + cBlockSize);
       }
@@ -441,7 +441,7 @@ namespace immix {
     }
 
     void free() {
-      vfree(system_base_, system_size_);
+      memory::gc_free(system_base_, system_size_);
     }
 
     Address base() const {

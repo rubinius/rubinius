@@ -2,7 +2,7 @@
 #include <string.h>
 #include "gc/heap.hpp"
 #include "instruments/stats.hpp"
-#include "util/valloc.hpp"
+#include "util/gc_alloc.hpp"
 
 namespace rubinius {
 
@@ -13,7 +13,7 @@ namespace rubinius {
     : size_(bytes)
     , owner_(true)
   {
-    start_ = Address(valloc(size_));
+    start_ = Address(memory::gc_alloc(size_));
     last_ = start_ + bytes - 1;
 
     int red_zone = bytes / 1024;
@@ -46,7 +46,7 @@ namespace rubinius {
    */
   Heap::~Heap() {
     if(owner_) {
-      vfree(start_, size_);
+      memory::gc_free(start_, size_);
     }
   }
 

@@ -1,5 +1,5 @@
-#ifndef RBX_UTIL_VALLOC
-#define RBX_UTIL_VALLOC
+#ifndef RBX_UTIL_GC_ALLOC
+#define RBX_UTIL_GC_ALLOC
 
 #ifndef RBX_WINDOWS
 #include <sys/mman.h>
@@ -8,7 +8,7 @@
 namespace memory {
 
 #ifndef RBX_WINDOWS
-  static inline void* valloc(std::size_t size) {
+  static inline void* gc_alloc(std::size_t size) {
     void* addr = mmap(0, size, PROT_READ | PROT_WRITE,
                         MAP_ANON | MAP_PRIVATE, -1, 0);
     if(addr == MAP_FAILED) {
@@ -18,7 +18,7 @@ namespace memory {
     return addr;
   }
 
-  static inline void vfree(void* addr, std::size_t size) {
+  static inline void gc_free(void* addr, std::size_t size) {
     int ret = munmap(addr, size);
     if(ret != 0) {
       perror("munmap");
@@ -26,7 +26,7 @@ namespace memory {
     }
   }
 #else
-  static inline void* valloc(std::size_t size) {
+  static inline void* gc_alloc(std::size_t size) {
     LPVOID addr = VirtualAlloc(0, size, MEM_COMMIT | MEM_RESERVE,
           PAGE_READWRITE);
     if(addr == NULL) {
@@ -36,7 +36,7 @@ namespace memory {
     return addr;
   }
 
-  static inline void vfree(void* addr, std::size_t size) {
+  static inline void gc_free(void* addr, std::size_t size) {
     BOOL ret = VirtualFree(addr, 0, MEM_RELEASE);
     if(!ret) {
       perror("VirtualFree");
