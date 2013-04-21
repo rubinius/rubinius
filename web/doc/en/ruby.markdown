@@ -47,12 +47,12 @@ Each of the following elements of Ruby are discussed from the perspective of
 understanding how Rubinius implements them and how the concept of _scope_ is
 involved in each one.
 
-1. [Scripts](/doc/en/ruby/scripts/)
-1. [Methods](/doc/en/ruby/methods/)
-1. [Constants](/doc/en/ruby/constants/)
-1. [Classes & Modules](/doc/en/ruby/classes-and-modules/)
-1. [Blocks & Procs](/doc/en/ruby/blocks-and-procs/)
-1. [Local Variables](/doc/en/ruby/local-variables/)
-1. [Instance Variables](/doc/en/ruby/instance-variables/)
-1. [Class Variables](/doc/en/ruby/class-variables/)
-1. [Global Variables](/doc/en/ruby/global-variables/)
+1. [Scripts](ruby/scripts.markdown)
+1. [Methods](ruby/methods.markdown)
+1. [Constants](ruby/constants.markdown)
+1. [Classes & Modules](ruby/classes-and-modules.markdown)
+1. [Blocks & Procs](ruby/blocks-and-procs.markdown)
+1. [Local Variables](ruby/local-variables.markdown)
+1. [Instance Variables](ruby/instance-variables.markdown)
+1. [Class Variables](ruby/class-variables.markdown)
+1. [Global Variables](ruby/global-variables.markdown)

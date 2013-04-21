@@ -8,5 +8,5 @@ next_url: virtual-machine/instructions
 review: true
 ---
 
-1. [Instructions](/doc/en/virtual-machine/instructions/)
-1. [Custom Dispatch Logic](/doc/en/virtual-machine/custom-dispatch-logic/)
+1. [Instructions](virtual-machine/instructions.markdown)
+1. [Custom Dispatch Logic](virtual-machine/custom-dispatch-logic.markdown)

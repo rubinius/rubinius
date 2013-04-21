@@ -24,5 +24,5 @@ explain how we ensure that concurrent allocation of objects performs
 well and how you have to consider the implications of a moving garbage
 collector when working with the virtual machine code.
 
-1. [Object layout](/doc/en/memory-system/object-layout/)
-1. [Garbage collector](/doc/en/memory-system/garbage-collector/)
+1. [Object layout](memory-system/object-layout.markdown)
+1. [Garbage collector](memory-system/garbage-collector.markdown)

@@ -27,7 +27,7 @@ Rubinius runs on Mac OS X and many Unix/Linux operating systems. Support for
 Microsoft Windows is coming soon.
 
 To install Rubinius, use the following steps. For more detailed information,
-see [Getting Started](/doc/en/getting-started/).
+see [Getting Started](getting-started.markdown).
 
 1. `git clone git://github.com/rubinius/rubinius.git`
 1. `cd rubinius`
