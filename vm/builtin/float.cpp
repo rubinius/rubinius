@@ -437,7 +437,7 @@ namespace rubinius {
     s = ::dtoa(val, 0, 0, &decpt, &sign, &se);
 
     Tuple* result = Tuple::create(state, 4);
-    result->put(state, 0, String::create(state, s));
+    result->put(state, 0, String::create(state, s, se - s));
     result->put(state, 1, Fixnum::from(decpt));
     result->put(state, 2, Fixnum::from(sign));
     result->put(state, 3, Fixnum::from((int)(se - s)));

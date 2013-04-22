@@ -441,7 +441,7 @@ namespace rubinius {
     }
 
     /* Algorithm taken from 1.8.4 rb_fix2str */
-    if(k == 0) return String::create(state, "0");
+    if(k == 0) return String::create(state, "0", 1);
 
     m = 0;
     if(k < 0) {
@@ -450,14 +450,14 @@ namespace rubinius {
     }
     *--b = 0;
     do {
-      *--b = digitmap[(int)(k % j)];
+      *--b = digitmap[k % j];
     } while(k /= j);
 
     if(m) {
       *--b = '-';
     }
 
-    String* str = String::create(state, b);
+    String* str = String::create(state, b, buf + sizeof(buf) - b - 1);
     str->encoding(state, Encoding::usascii_encoding(state));
 
     return str;
