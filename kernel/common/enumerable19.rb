@@ -18,7 +18,7 @@ module Enumerable
           when :_alone
             yielder.yield [key, [val]]
           else
-            raise RuntimeError, "symbol beginning with an underscore are reserved"
+            raise RuntimeError, "symbols beginning with an underscore are reserved"
           end
         else
           if previous.nil? || previous == key
