@@ -25,17 +25,10 @@ namespace rubinius {
     cache->receiver_class_  = nil<Class>();
     cache->visibility_      = nil<Symbol>();
     cache->responds_        = cNil;
-    cache->initial_backend_ = empty_cache;
-    cache->execute_backend_ = empty_cache;
+    cache->execute_backend_ = check_cache;
     cache->location_        = location;
     cache->clear_receiver_data();
     return cache;
-  }
-
-  Object* RespondToCache::empty_cache(STATE, CallSite* call_site, CallFrame* call_frame,
-                                      Arguments& args) {
-    RespondToCache* cache = static_cast<RespondToCache*>(call_site);
-    return cache->fallback_->execute(state, call_frame, args);
   }
 
   Object* RespondToCache::check_cache(STATE, CallSite* call_site, CallFrame* call_frame,
@@ -54,10 +47,10 @@ namespace rubinius {
       return cache->responds_;
     }
 
-    // Invalidate the cache here so we don't see anything else
-    cache->clear_receiver_data();
-    atomic::memory_barrier();
-    return cache->initialize(state, call_frame, args);
+    state->set_call_site_location(cache->location_);
+    Object* res = cache->fallback_->execute(state, call_frame, args);
+    state->set_call_site_location(NULL);
+    return res;
   }
 
   void RespondToCache::update(STATE, Object* recv, Symbol* msg, Object* priv, Object* res) {
@@ -66,7 +59,6 @@ namespace rubinius {
     message(state, msg);
     visibility(state, priv);
     responds(state, res);
-    atomic::memory_barrier();
     set_receiver_data(recv_data);
     execute_backend_ = check_cache;
   }

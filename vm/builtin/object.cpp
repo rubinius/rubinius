@@ -840,10 +840,7 @@ namespace rubinius {
 
     if(location && res) {
       CallSite* existing = *location;
-      RespondToCache* cache = try_as<RespondToCache>(existing);
-      if(!cache) {
-        cache = RespondToCache::empty(state, existing, location);
-      }
+      RespondToCache* cache = RespondToCache::empty(state, existing, location);
       cache->update(state, this, name, priv, res);
       atomic::memory_barrier();
       *location = cache;

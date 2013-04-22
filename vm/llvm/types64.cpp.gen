@@ -513,7 +513,6 @@ FunctionType* FuncTy_41 = FunctionType::get(
 PointerType* PointerTy_40 = PointerType::get(FuncTy_41, 0);
 
 StructTy_struct_rubinius__CallSite_fields.push_back(PointerTy_40);
-StructTy_struct_rubinius__CallSite_fields.push_back(PointerTy_40);
 PointerType* PointerTy_42 = PointerType::get(PointerTy_39, 0);
 
 StructTy_struct_rubinius__CallSite_fields.push_back(PointerTy_42);
@@ -547,6 +546,7 @@ StructTy_struct_rubinius__CallUnit->setBody(StructTy_struct_rubinius__CallUnit_f
 PointerType* PointerTy_45 = PointerType::get(StructTy_struct_rubinius__CallUnit, 0);
 
 StructTy_struct_rubinius__InlineCache_fields.push_back(PointerTy_45);
+StructTy_struct_rubinius__InlineCache_fields.push_back(PointerTy_40);
 StructType *StructTy_struct_rubinius__InlineCacheHit = mod->getTypeByName("struct.rubinius::InlineCacheHit");
 if (!StructTy_struct_rubinius__InlineCacheHit) {
 StructTy_struct_rubinius__InlineCacheHit = StructType::create(mod->getContext(), "struct.rubinius::InlineCacheHit");

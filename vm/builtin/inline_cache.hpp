@@ -109,6 +109,7 @@ namespace rubinius {
   private:
     CallUnit* call_unit_; // slot
 
+    CacheExecutor initial_backend_;
     InlineCacheHit cache_[cTrackedICHits];
 
     int seen_classes_overflow_;
@@ -116,6 +117,11 @@ namespace rubinius {
   public:
     attr_accessor(name, Symbol);
     attr_accessor(call_unit, CallUnit);
+
+
+    Object* initialize(STATE, CallFrame* call_frame, Arguments& args) {
+      return (*initial_backend_)(state, this, call_frame, args);
+    }
 
     static void init(STATE);
     static InlineCache* empty(STATE, Symbol* name, CallSite** location);

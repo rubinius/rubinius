@@ -66,7 +66,6 @@ declare void @output3(%"struct.rubinius::Dispatch"*)
 %"struct.rubinius::CallSite" = type {
    %"struct.rubinius::Object", ; header
   %"struct.rubinius::Symbol"*, ; name
-  %"struct.rubinius::Object"* (%"struct.rubinius::State"*, %"struct.rubinius::CallSite"*, %"struct.rubinius::CallFrame"*, %"struct.rubinius::Arguments"*)*, ; initial
   %"struct.rubinius::Object"* (%"struct.rubinius::State"*, %"struct.rubinius::CallSite"*, %"struct.rubinius::CallFrame"*, %"struct.rubinius::Arguments"*)*, ; execute
   %"struct.rubinius::CallSite"** ; location
 }
@@ -76,6 +75,7 @@ declare void @outputCallSite(%"struct.rubinius::CallSite"*)
 %"struct.rubinius::InlineCache" = type {
              %"struct.rubinius::CallSite", ; header
           %"struct.rubinius::CallUnit"*, ; call_unit
+  %"struct.rubinius::Object"* (%"struct.rubinius::State"*, %"struct.rubinius::CallSite"*, %"struct.rubinius::CallFrame"*, %"struct.rubinius::Arguments"*)*, ; initial
   [3 x %"struct.rubinius::InlineCacheHit"], ; cache
                                        i32 ; seen_classes_overflow
 }

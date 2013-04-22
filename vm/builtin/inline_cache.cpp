@@ -389,7 +389,7 @@ namespace rubinius {
       return meth->execute(state, call_frame, meth, mod, args);
     }
 
-    return call_site->initialize(state, call_frame, args);
+    return cache->initialize(state, call_frame, args);
   }
 
   Object* InlineCache::check_cache_mm(STATE, CallSite* call_site, CallFrame* call_frame,
@@ -412,7 +412,7 @@ namespace rubinius {
       return meth->execute(state, call_frame, meth, mod, args);
     }
 
-    return call_site->initialize(state, call_frame, args);
+    return cache->initialize(state, call_frame, args);
   }
 
   Object* InlineCache::check_cache_poly(STATE, CallSite* call_site, CallFrame* call_frame,
@@ -436,7 +436,7 @@ namespace rubinius {
       return meth->execute(state, call_frame, meth, mod, args);
     }
 
-    return call_site->initialize(state, call_frame, args);
+    return cache->initialize(state, call_frame, args);
   }
 
   void InlineCache::print(STATE, std::ostream& stream) {

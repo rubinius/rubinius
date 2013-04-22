@@ -7,15 +7,14 @@
 
 namespace rubinius {
 
+  typedef Object* (*CacheExecutor)(STATE, CallSite*, CallFrame*, Arguments& args);
+
   class CallSite : public Object {
   public:
     const static object_type type = CallSiteType;
 
     Symbol* name_; // slot
 
-    typedef Object* (*CacheExecutor)(STATE, CallSite*, CallFrame*, Arguments& args);
-
-    CacheExecutor initial_backend_;
     CacheExecutor execute_backend_;
 
     CallSite** location_;
@@ -27,10 +26,6 @@ namespace rubinius {
 
     Object* execute(STATE, CallFrame* call_frame, Arguments& args) {
       return (*execute_backend_)(state, this, call_frame, args);
-    }
-
-    Object* initialize(STATE, CallFrame* call_frame, Arguments& args) {
-      return (*initial_backend_)(state, this, call_frame, args);
     }
 
     class Info : public TypeInfo {
