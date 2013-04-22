@@ -1852,7 +1852,7 @@ namespace rubinius {
           String* str = String::create(state, (const char*)start+begin, end-begin);
           str->klass(state, out_class);
           str->set_tainted(taint);
-
+          str->encoding(state, encoding());
 
           ary->append(state, str);
           skip = true;
@@ -1870,6 +1870,7 @@ namespace rubinius {
       String* str = String::create(state, (const char*)start+begin, fin_sz);
       str->klass(state, out_class);
       str->set_tainted(taint);
+      str->encoding(state, encoding());
 
       ary->append(state, str);
     }
