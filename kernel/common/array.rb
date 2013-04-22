@@ -399,9 +399,9 @@ class Array
   end
 
   def delete_if(&block)
-    Rubinius.check_frozen
-
     return to_enum(:delete_if) unless block_given?
+
+    Rubinius.check_frozen
 
     return self if empty?
 
@@ -779,9 +779,9 @@ class Array
   end
 
   def reject!(&block)
-    Rubinius.check_frozen
-
     return to_enum(:reject!) unless block_given?
+
+    Rubinius.check_frozen
 
     was = size()
     delete_if(&block)
