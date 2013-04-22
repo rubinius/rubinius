@@ -190,7 +190,7 @@ typedef void (*RUBY_DATA_FUNC)(void*);
 /** Global class/object etc. types. */
 
 #ifndef RBX_WINDOWS
-  extern int __X_rubinius_version __attribute__((weak));
+  extern int __X_rubinius_version __attribute__((weak, visibility ("default")));
   int __X_rubinius_version = 2;
 #endif
 
