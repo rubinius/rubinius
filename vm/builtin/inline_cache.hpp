@@ -191,7 +191,6 @@ namespace rubinius {
     InlineCacheEntry* update_and_validate(STATE, CallFrame* call_frame, Object* recv);
     InlineCacheEntry* update_and_validate_private(STATE, CallFrame* call_frame, Object* recv);
 
-    void print_location(STATE, std::ostream& stream);
     void print(STATE, std::ostream& stream);
 
     InlineCacheHit* caches() {
