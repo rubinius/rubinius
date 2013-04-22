@@ -32,8 +32,6 @@ module Rubinius
         end
 
         return Rubinius.invoke_primitive :string_awk_split, string, lim
-      elsif pattern.nil?
-        pattern = /\s+/
       elsif pattern.kind_of?(Regexp)
         # Pass
       else
