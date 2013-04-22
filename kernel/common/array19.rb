@@ -322,9 +322,9 @@ class Array
   end
 
   def keep_if(&block)
-    Rubinius.check_frozen
-
     return to_enum :keep_if unless block_given?
+
+    Rubinius.check_frozen
 
     replace select(&block)
   end
@@ -514,9 +514,9 @@ class Array
   end
 
   def select!(&block)
-    Rubinius.check_frozen
-
     return to_enum :select! unless block_given?
+
+    Rubinius.check_frozen
 
     ary = select(&block)
     replace ary unless size == ary.size
