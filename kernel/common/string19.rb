@@ -253,9 +253,9 @@ class String
   def upto(stop, exclusive=false)
     return to_enum :upto, stop, exclusive unless block_given?
     stop = StringValue(stop)
-    return self if self > stop
 
     if stop.size == 1 && size == 1
+      return self if self > stop
       after_stop = stop.getbyte(0) + (exclusive ? 0 : 1)
       current = getbyte(0)
       until current == after_stop
