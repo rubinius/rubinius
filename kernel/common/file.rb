@@ -425,7 +425,7 @@ class File < IO
           raise ArgumentError, "HOME environment variable is empty expanding '~'"
         end
 
-        return home
+        return home.dup
       else
         unless length = path.find_string("/", 1)
           length = path.bytesize
