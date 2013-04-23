@@ -15,10 +15,10 @@ module Enumerable
           previous = nil
           case key
           when nil, :_separator
-          when :_singleton
+          when :_alone
             yielder.yield [key, [val]]
           else
-            raise RuntimeError, "symbol beginning with an underscore are reserved"
+            raise RuntimeError, "symbols beginning with an underscore are reserved"
           end
         else
           if previous.nil? || previous == key
