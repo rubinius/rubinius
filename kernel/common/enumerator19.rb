@@ -60,6 +60,10 @@ module Enumerable
       raise StopIteration, "iteration reached end"
     end
 
+    def next_values
+      Array(self.next)
+    end
+
     def peek
       return @lookahead.first unless @lookahead.empty?
       item = self.next
