@@ -4,6 +4,7 @@
 #include "builtin/tuple.hpp"
 #include "builtin/constant_cache.hpp"
 #include "builtin/inline_cache.hpp"
+#include "builtin/respond_to_cache.hpp"
 #include "builtin/lookuptable.hpp"
 
 #include "llvm/jit_operations.hpp"
@@ -1106,9 +1107,15 @@ namespace rubinius {
     void visit_push_literal(opcode which) {
       Object* lit = literal(which);
       if(Symbol* sym = try_as<Symbol>(lit)) {
-        stack_push(constant(sym), type::KnownType::symbol());
-      } else if(kind_of<Fixnum>(lit)) {
-        stack_push(constant(lit));
+        stack_push(constant(sym), type::KnownType::symbol(sym->index()));
+      } else if(Fixnum* fix = try_as<Fixnum>(lit)) {
+        stack_push(constant(fix), type::KnownType::fixnum(fix->to_native()));
+      } else if(lit == cTrue) {
+        stack_push(constant(cTrue), type::KnownType::true_());
+      } else if(lit == cFalse) {
+        stack_push(constant(cFalse), type::KnownType::false_());
+      } else if(lit == cNil) {
+        stack_push(constant(cNil), type::KnownType::nil());
       } else {
         stack_push(get_literal(which));
       }
@@ -1397,6 +1404,63 @@ namespace rubinius {
       b().CreateBr(info().return_pad());
     }
 
+    void emit_respond_to(RespondToCache* cache, opcode& which, opcode args) {
+      BasicBlock* cont = new_block("check_class_respond_to");
+      BasicBlock* success = new_block("success");
+      BasicBlock* failure = new_block("use_call");
+
+      Value* responds = NULL;
+
+      if(args >= 1 && args <= 2) {
+        Value* msg  = stack_back(0);
+        Value* recv = stack_back(1);
+        Value* priv = constant(cFalse, ObjType);
+        if(args == 2) {
+          priv = stack_back(1);
+          recv = stack_back(2);
+        }
+
+        Class* klass = cache->receiver_class();
+        check_class(recv, klass,
+                          cache->receiver_class_id(),
+                          cache->receiver_serial_id(),
+                          failure,
+                          failure);
+
+        Value* msg_match  = b().CreateICmp(ICmpInst::ICMP_EQ, msg, constant(cache->message()), "check_message");
+        Value* priv_match = b().CreateICmp(ICmpInst::ICMP_EQ, priv, constant(cache->visibility()), "check_visibility");
+        Value* both_match = create_and(msg_match, priv_match, "both_match");
+
+        create_conditional_branch(success, failure, both_match);
+        set_block(success);
+
+        responds = constant(cache->responds());
+        create_branch(cont);
+      } else {
+        create_branch(failure);
+      }
+
+      set_block(failure);
+
+      Value* ret = inline_call_site_execute(args, which);
+      check_for_exception(ret);
+      failure = current_block();
+
+      create_branch(cont);
+      set_block(cont);
+
+      stack_remove(args + 1);
+
+      if(responds) {
+        PHINode* phi = b().CreatePHI(ObjType, 2, "object_class");
+        phi->addIncoming(responds, success);
+        phi->addIncoming(ret, failure);
+        stack_push(phi);
+      } else {
+        stack_push(ret);
+      }
+    }
+
     void visit_invoke_primitive(opcode which, opcode args) {
       InvokePrimitive invoker = reinterpret_cast<InvokePrimitive>(which);
 
@@ -1499,6 +1563,11 @@ namespace rubinius {
     void visit_send_stack(opcode& which, opcode args) {
       CallSite** call_site_ptr = reinterpret_cast<CallSite**>(&which);
       CallSite*  call_site = *call_site_ptr;
+
+      if(RespondToCache* respond_to = try_as<RespondToCache>(call_site)) {
+        emit_respond_to(respond_to, which, args);
+        return;
+      }
 
       InlineCache* cache = try_as<InlineCache>(call_site);
 

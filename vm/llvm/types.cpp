@@ -115,6 +115,8 @@ namespace type {
       return "<type: singleton instance>";
     case eSymbol:
       return "<type: symbol>";
+    case eStaticSymbol:
+      return "<type: static symbol>";
     case eType:
       return "<obj: Rubinius::Type>";
     case eClassObject:

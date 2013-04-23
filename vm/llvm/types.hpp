@@ -1,6 +1,8 @@
 #ifndef RBX_LLVM_TYPES_HPP
 #define RBX_LLVM_TYPES_HPP
 
+#include "prelude.hpp"
+
 namespace llvm {
   class Instruction;
   class Value;
@@ -21,6 +23,7 @@ namespace rubinius {
       eInstance,
       eSingletonInstance,
       eSymbol,
+      eStaticSymbol,
       eType,
       eClassObject,
       eConstantCache
@@ -77,7 +80,7 @@ namespace rubinius {
         return KnownType(eFalse);
       }
 
-      static KnownType fixnum(int val) {
+      static KnownType fixnum(native_int val) {
         return KnownType(eStaticFixnum, val);
       }
 
@@ -87,6 +90,10 @@ namespace rubinius {
 
       static KnownType symbol() {
         return KnownType(eSymbol);
+      }
+
+      static KnownType symbol(native_int index) {
+        return KnownType(eStaticSymbol, index);
       }
 
       static KnownType type() {
@@ -160,7 +167,11 @@ namespace rubinius {
       }
 
       bool symbol_p() {
-        return kind_ == eSymbol;
+        return kind_ == eStaticSymbol || kind_ == eSymbol;
+      }
+
+      bool static_symbol_p() {
+        return kind_ == eStaticSymbol;
       }
 
       bool type_p() {

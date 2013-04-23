@@ -763,10 +763,9 @@ namespace rubinius {
       failure->moveAfter(cont);
     }
 
-    type::KnownType check_class(Value* obj, InlineCacheEntry* ice,
+    type::KnownType check_class(Value* obj, Class* klass, uint32_t class_id, uint32_t serial_id,
                                 BasicBlock* class_id_failure, BasicBlock* serial_id_failure) {
 
-      Class* klass = ice->receiver_class();
       object_type type = (object_type)klass->instance_type()->to_native();
 
       switch(type) {
@@ -821,21 +820,21 @@ namespace rubinius {
 
             return kt;
 
-          } else if(kt.class_id() == klass->class_id()) {
+          } else if(kt.class_id() == class_id) {
             if(ctx_->llvm_state()->config().jit_inline_debug) {
               ctx_->info_log("eliding redundant guard")
                 << "class " << ctx_->llvm_state()->symbol_debug_str(klass->module_name())
-                << " (" << klass->class_id() << ")\n";
+                << " (" << class_id << ")\n";
             }
 
             return kt;
           }
 
-          check_reference_class(obj, ice, class_id_failure, serial_id_failure);
+          check_reference_class(obj, class_id, serial_id, class_id_failure, serial_id_failure);
           if(kind_of<SingletonClass>(klass)) {
-            return type::KnownType::singleton_instance(klass->class_id());
+            return type::KnownType::singleton_instance(class_id);
           } else {
-            return type::KnownType::instance(klass->class_id());
+            return type::KnownType::instance(class_id);
           }
         }
       }
@@ -937,7 +936,7 @@ namespace rubinius {
       failure->moveAfter(body);
     }
 
-    void check_reference_class(Value* obj, InlineCacheEntry* ice,
+    void check_reference_class(Value* obj, uint32_t class_id, uint32_t serial_id,
                                BasicBlock* class_id_failure, BasicBlock* serial_id_failure) {
       Value* is_ref = check_is_reference(obj);
       BasicBlock* cont = new_block("check_class_id");
@@ -949,14 +948,14 @@ namespace rubinius {
       set_block(cont);
 
       Value* klass = reference_class(obj);
-      Value* class_match = create_equal(get_class_id(klass), cint(ice->receiver_class_id()), "check_class_id");
+      Value* class_match = create_equal(get_class_id(klass), cint(class_id), "check_class_id");
 
       create_conditional_branch(body, class_id_failure, class_match);
 
       set_block(body);
       class_id_failure->moveAfter(body);
 
-      Value* serial_match = create_equal(get_serial_id(klass), cint(ice->receiver_serial_id()), "check_serial_id");
+      Value* serial_match = create_equal(get_serial_id(klass), cint(serial_id), "check_serial_id");
 
       create_conditional_branch(serial, serial_id_failure, serial_match);
 

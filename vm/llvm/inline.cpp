@@ -19,7 +19,9 @@
 namespace rubinius {
 
   void Inliner::check_class(llvm::Value* recv, InlineCacheEntry* ice) {
-    guarded_type_ = ops_.check_class(recv, ice, class_id_failure(), serial_id_failure());
+    guarded_type_ = ops_.check_class(recv, ice->receiver_class(),
+                                    ice->receiver_class_id(), ice->receiver_serial_id(),
+                                    class_id_failure(), serial_id_failure());
     guarded_type_.inherit_source(ops_.context(), recv);
   }
 
@@ -492,7 +494,7 @@ remember:
 
     Value* self = recv();
 
-    ops_.check_reference_class(self, ice, class_id_failure(), serial_id_failure());
+    check_class(self, ice);
 
     // Figure out if we should use the table ivar lookup or
     // the slot ivar lookup.
