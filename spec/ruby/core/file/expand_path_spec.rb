@@ -65,12 +65,24 @@ describe "File.expand_path" do
         File.expand_path('~', '/tmp/gumby/ddd').should == home
         File.expand_path('~/a', '/tmp/gumby/ddd').should == File.join(home, 'a')
       end
+
+      it "does not return a frozen string" do
+        File.expand_path('~').frozen?.should == false
+        File.expand_path('~', '/tmp/gumby/ddd').frozen?.should == false
+        File.expand_path('~/a', '/tmp/gumby/ddd').frozen?.should == false
+      end
     end
     platform_is :windows do
       it "converts a pathname to an absolute pathname, using ~ (home) as base" do
         File.expand_path('~').should == home.tr("\\", '/')
         File.expand_path('~', '/tmp/gumby/ddd').should == home.tr("\\", '/')
         File.expand_path('~/a', '/tmp/gumby/ddd').should == File.join(home.tr("\\", '/'), 'a')
+      end
+
+      it "does not return a frozen string" do
+        File.expand_path('~').frozen?.should == false
+        File.expand_path('~', '/tmp/gumby/ddd').frozen?.should == false
+        File.expand_path('~/a', '/tmp/gumby/ddd').frozen?.should == false
       end
     end
   end
