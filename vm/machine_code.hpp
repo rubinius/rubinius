@@ -20,6 +20,7 @@ namespace rubinius {
   typedef uintptr_t opcode;
 
   class CompiledCode;
+  class CallSite;
   class MachineCode;
   class InterpreterCallFrame;
   class InlineCache;
@@ -166,6 +167,9 @@ namespace rubinius {
     void set_no_inline() {
       flags |= eNoInline;
     }
+
+    CallSite* call_site(STATE, int ip);
+    void store_call_site(STATE, int ip, CompiledCode* code, CallSite* call_site);
 
     void specialize(STATE, CompiledCode* original, TypeInfo* ti);
     void compile(STATE);

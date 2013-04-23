@@ -64,10 +64,11 @@ declare void @output2(%"struct.rubinius::jit::RuntimeData"*)
 declare void @output3(%"struct.rubinius::Dispatch"*)
 
 %"struct.rubinius::CallSite" = type {
-   %"struct.rubinius::Object", ; header
-  %"struct.rubinius::Symbol"*, ; name
-  %"struct.rubinius::Object"* (%"struct.rubinius::State"*, %"struct.rubinius::CallSite"*, %"struct.rubinius::CallFrame"*, %"struct.rubinius::Arguments"*)*, ; execute
-  %"struct.rubinius::CallSite"** ; location
+       %"struct.rubinius::Object", ; header
+      %"struct.rubinius::Symbol"*, ; name
+  %"struct.rubinius::Executable"*, ; executable
+                              i32, ; ip
+  %"struct.rubinius::Object"* (%"struct.rubinius::State"*, %"struct.rubinius::CallSite"*, %"struct.rubinius::CallFrame"*, %"struct.rubinius::Arguments"*)* ; execute
 }
 
 declare void @outputCallSite(%"struct.rubinius::CallSite"*)

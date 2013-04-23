@@ -30,13 +30,14 @@ namespace rubinius {
 
   }
 
-  InlineCache* InlineCache::empty(STATE, Symbol* name, CallSite** location) {
+  InlineCache* InlineCache::empty(STATE, Symbol* name, Executable* executable, int ip) {
     InlineCache* cache =
       state->vm()->new_object_mature<InlineCache>(G(inline_cache));
     cache->name_ = name;
     cache->initial_backend_ = empty_cache;
     cache->execute_backend_ = empty_cache;
-    cache->location_ = location;
+    cache->executable(state, executable);
+    cache->ip_ = ip;
     cache->call_unit_ = nil<CallUnit>();
     cache->seen_classes_overflow_ = 0;
     cache->clear();
@@ -195,9 +196,10 @@ namespace rubinius {
     Module* mod = ice->stored_module();
 
     if(meth->custom_call_site_p()) {
-      state->set_call_site_location(cache->location_);
+      CallSiteInformation info(cache->executable(), cache->ip());
+      state->set_call_site_information(&info);
       Object* res = meth->execute(state, call_frame, meth, mod, args);
-      state->set_call_site_location(NULL);
+      state->set_call_site_information(NULL);
       return res;
     } else {
       return meth->execute(state, call_frame, meth, mod, args);
@@ -246,9 +248,10 @@ namespace rubinius {
     Module* mod = ice->stored_module();
 
     if(meth->custom_call_site_p()) {
-      state->set_call_site_location(cache->location_);
+      CallSiteInformation info(cache->executable(), cache->ip());
+      state->set_call_site_information(&info);
       Object* res = meth->execute(state, call_frame, meth, mod, args);
-      state->set_call_site_location(NULL);
+      state->set_call_site_information(NULL);
       return res;
     } else {
       return meth->execute(state, call_frame, meth, mod, args);
@@ -297,9 +300,10 @@ namespace rubinius {
     Module* mod = ice->stored_module();
 
     if(meth->custom_call_site_p()) {
-      state->set_call_site_location(cache->location_);
+      CallSiteInformation info(cache->executable(), cache->ip());
+      state->set_call_site_information(&info);
       Object* res = meth->execute(state, call_frame, meth, mod, args);
-      state->set_call_site_location(NULL);
+      state->set_call_site_information(NULL);
       return res;
     } else {
       return meth->execute(state, call_frame, meth, mod, args);
@@ -363,9 +367,10 @@ namespace rubinius {
     Module* mod = ice->stored_module();
 
     if(meth->custom_call_site_p()) {
-      state->set_call_site_location(cache->location_);
+      CallSiteInformation info(cache->executable(), cache->ip());
+      state->set_call_site_information(&info);
       Object* res = meth->execute(state, call_frame, meth, mod, args);
-      state->set_call_site_location(NULL);
+      state->set_call_site_information(NULL);
       return res;
     } else {
       return meth->execute(state, call_frame, meth, mod, args);

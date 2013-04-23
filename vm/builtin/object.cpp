@@ -830,23 +830,33 @@ namespace rubinius {
     return this;
   }
 
+  Object* Object::respond_to(STATE, Symbol* name, Object* priv, CallFrame* calling_environment) {
+    Object* responds = respond_to(state, name, priv);
+
+    CompiledCode* code = NULL;
+    CallSiteInformation* info = state->vm()->saved_call_site_information();
+
+    if(info && (code = try_as<CompiledCode>(info->executable))) {
+      CallSite* existing = code->machine_code()->call_site(state, info->ip);
+      if(RespondToCache* rct = try_as<RespondToCache>(existing)) {
+        existing = rct->fallback();
+      }
+      RespondToCache* cache = RespondToCache::empty(state, existing, code, info->ip);
+      cache->update(state, this, name, priv, responds);
+      atomic::memory_barrier();
+      code->machine_code()->store_call_site(state, info->ip, code, cache);
+    }
+
+    return responds;
+
+  }
+
   Object* Object::respond_to(STATE, Symbol* name, Object* priv) {
     LookupData lookup(this, lookup_begin(state), CBOOL(priv) ? G(sym_private) : G(sym_protected));
 
     Dispatch dis(name);
 
-    Object* res = RBOOL(dis.resolve(state, name, lookup));
-    CallSite** location = state->vm()->saved_call_site_location();
-
-    if(location && res) {
-      CallSite* existing = *location;
-      RespondToCache* cache = RespondToCache::empty(state, existing, location);
-      cache->update(state, this, name, priv, res);
-      atomic::memory_barrier();
-      *location = cache;
-    }
-
-    return res;
+    return RBOOL(dis.resolve(state, name, lookup));
   }
 
   /**

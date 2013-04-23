@@ -54,7 +54,7 @@ namespace rubinius {
 
   public:
     static void init(STATE);
-    static RespondToCache* empty(STATE, CallSite* fallback, CallSite** location);
+    static RespondToCache* empty(STATE, CallSite* fallback, Executable* executable, int ip);
 
     static Object* check_cache(STATE, CallSite* call_site, CallFrame* call_frame,
                                Arguments& args);

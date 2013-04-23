@@ -124,7 +124,7 @@ namespace rubinius {
     }
 
     static void init(STATE);
-    static InlineCache* empty(STATE, Symbol* name, CallSite** location);
+    static InlineCache* empty(STATE, Symbol* name, Executable* executable, int ip);
 
     friend class CompiledCode::Info;
 

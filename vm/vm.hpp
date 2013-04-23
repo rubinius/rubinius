@@ -56,7 +56,7 @@ namespace rubinius {
   class TypeError;
   class Assertion;
   struct CallFrame;
-  class CallSite;
+  class CallSiteInformation;
   class Object;
   class Configuration;
   class VMManager;
@@ -89,7 +89,7 @@ namespace rubinius {
     UnwindInfoSet unwinds_;
 
     CallFrame* saved_call_frame_;
-    CallSite** saved_call_site_location_;
+    CallSiteInformation* saved_call_site_information_;
     FiberStacks fiber_stacks_;
     Park* park_;
     rbxti::Env* tooling_env_;
@@ -163,12 +163,12 @@ namespace rubinius {
       return saved_call_frame_;
     }
 
-    void set_call_site_location(CallSite** location) {
-      saved_call_site_location_ = location;
+    void set_call_site_information(CallSiteInformation* info) {
+      saved_call_site_information_ = info;
     }
 
-    CallSite** saved_call_site_location() {
-      return saved_call_site_location_;
+    CallSiteInformation* saved_call_site_information() {
+      return saved_call_site_information_;
     }
 
     GlobalCache* global_cache() {

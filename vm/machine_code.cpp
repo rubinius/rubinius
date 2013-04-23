@@ -234,9 +234,7 @@ namespace rubinius {
         Symbol* name = try_as<Symbol>(original->literals()->at(opcodes[ip + 1]));
         if(!name) name = nil<Symbol>();
 
-        CallSite** location = reinterpret_cast<CallSite**>(&opcodes[ip + 1]);
-        InlineCache* cache = InlineCache::empty(state, name, location);
-        original->write_barrier(state, cache);
+        InlineCache* cache = InlineCache::empty(state, name, original, ip);
 
         inline_cache_offsets_[inline_index] = ip;
         inline_index++;
@@ -252,8 +250,7 @@ namespace rubinius {
           }
         }
 
-        opcodes[ip + 1] = reinterpret_cast<intptr_t>(cache);
-
+        store_call_site(state, ip, original, cache);
         is_super = false;
         allow_private = false;
       }
@@ -287,6 +284,16 @@ namespace rubinius {
       ip += InstructionSequence::instruction_width(op);
     }
 
+  }
+
+  CallSite* MachineCode::call_site(STATE, int ip) {
+    Object* obj = reinterpret_cast<Object*>(opcodes[ip + 1]);
+    return as<CallSite>(obj);
+  }
+
+  void MachineCode::store_call_site(STATE, int ip, CompiledCode* code, CallSite* call_site) {
+    opcodes[ip + 1] = reinterpret_cast<intptr_t>(call_site);
+    code->write_barrier(state, call_site);
   }
 
   // Argument handler implementations

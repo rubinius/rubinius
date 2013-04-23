@@ -20,6 +20,7 @@
 #include "builtin/location.hpp"
 #include "builtin/nativemethod.hpp"
 #include "builtin/channel.hpp"
+#include "builtin/call_site.hpp"
 
 #include "instruments/tooling.hpp"
 #include "instruments/rbxti-internal.hpp"
@@ -66,7 +67,7 @@ namespace rubinius {
   VM::VM(uint32_t id, SharedState& shared)
     : ManagedThread(id, shared, ManagedThread::eRuby)
     , saved_call_frame_(0)
-    , saved_call_site_location_(0)
+    , saved_call_site_information_(0)
     , fiber_stacks_(this, shared)
     , park_(new Park)
     , run_signals_(false)
@@ -435,6 +436,10 @@ namespace rubinius {
   void VM::gc_scan(GarbageCollector* gc) {
     if(CallFrame* cf = saved_call_frame()) {
       gc->walk_call_frame(cf);
+    }
+
+    if(CallSiteInformation* info = saved_call_site_information()) {
+      info->executable = as<Executable>(gc->mark_object(info->executable));
     }
 
     State ls(this);

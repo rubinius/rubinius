@@ -385,6 +385,8 @@ namespace rubinius {
      * Returns cTrue if this responds to method +meth+
      */
     // Rubinius.primitive :object_respond_to
+    Object* respond_to(STATE, Symbol* name, Object* priv, CallFrame* calling_environment);
+
     Object* respond_to(STATE, Symbol* name, Object* priv);
 
     /**
