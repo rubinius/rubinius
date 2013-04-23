@@ -111,4 +111,17 @@ describe "String#upto" do
     end
   end
 
+  describe "on sequence of numbers" do
+    ruby_version_is ''...'1.9' do
+      it "calls the block with only self" do
+        "8".upto("11").to_a.should == ["8"]
+      end
+    end
+
+    ruby_version_is '1.9' do
+      it "calls the block as Integer#upto"  do
+        "8".upto("11").to_a.should == 8.upto(11).map(&:to_s)
+      end
+    end
+  end
 end
