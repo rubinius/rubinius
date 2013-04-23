@@ -422,9 +422,6 @@ namespace rubinius {
     void register_kill(STATE);
 
     void gc_scan(GarbageCollector* gc);
-
-    // For thread-local roots
-    static std::list<Roots*>* roots;
   };
 
 }
