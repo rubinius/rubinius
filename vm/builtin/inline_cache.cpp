@@ -350,7 +350,6 @@ namespace rubinius {
   Object* InlineCache::check_cache(STATE, InlineCache* cache, CallFrame* call_frame,
                                    Arguments& args)
   {
-    args.set_name(cache->name_);
     Class* const recv_class = args.recv()->lookup_begin(state);
 
     InlineCacheEntry* entry;
@@ -370,8 +369,6 @@ namespace rubinius {
   Object* InlineCache::check_cache_mm(STATE, InlineCache* cache, CallFrame* call_frame,
                                    Arguments& args)
   {
-
-    args.set_name(cache->name_);
     Class* const recv_class = args.recv()->lookup_begin(state);
 
     InlineCacheEntry* entry;
@@ -394,7 +391,6 @@ namespace rubinius {
   Object* InlineCache::check_cache_poly(STATE, InlineCache* cache, CallFrame* call_frame,
                                    Arguments& args)
   {
-    args.set_name(cache->name_);
     Class* const recv_class = args.recv()->lookup_begin(state);
 
     InlineCacheEntry* entry;

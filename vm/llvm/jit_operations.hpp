@@ -178,8 +178,9 @@ namespace rubinius {
                                     "out_args_container");
     }
 
-    void setup_out_args(int args) {
+    void setup_out_args(Symbol* name, int args) {
       b().CreateStore(stack_back(args), out_args_recv_);
+      b().CreateStore(constant(name, ptr_type("Symbol")), out_args_name_);
       b().CreateStore(constant(cNil), out_args_block_);
       b().CreateStore(cint(args),
                     out_args_total_);

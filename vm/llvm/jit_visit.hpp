@@ -640,8 +640,9 @@ namespace rubinius {
       sig << ObjArrayTy;
     }
 
-    void setup_out_args_with_block(int args) {
+    void setup_out_args_with_block(Symbol* name, int args) {
       b().CreateStore(stack_back(args + 1), out_args_recv_);
+      b().CreateStore(constant(name, ptr_type("Symbol")), out_args_name_);
       b().CreateStore(stack_top(), out_args_block_);
       b().CreateStore(cint(args),
                     out_args_total_);
@@ -682,11 +683,12 @@ namespace rubinius {
       return b().CreateCall(execute, call_args, "ic_send");
     }
 
-    Value* inline_cache_send(int args, opcode& cache) {
+    Value* inline_cache_send(int args, opcode& which) {
       sends_done_++;
 
-      setup_out_args(args);
-      return invoke_inline_cache(cache);
+      InlineCache* cache = reinterpret_cast<InlineCache*>(which);
+      setup_out_args(cache->name(), args);
+      return invoke_inline_cache(which);
     }
 
     Value* block_send(opcode& which, int args, bool priv=false) {
@@ -694,6 +696,7 @@ namespace rubinius {
       sends_done_++;
 
       InlineCache** cache_ptr = reinterpret_cast<InlineCache**>(&which);
+      InlineCache* cache = *cache_ptr;
 
       Value* cache_ptr_const = b().CreateIntToPtr(
           clong(reinterpret_cast<uintptr_t>(cache_ptr)),
@@ -711,7 +714,7 @@ namespace rubinius {
 
       Value* execute = b().CreateLoad(execute_pos, "execute");
 
-      setup_out_args_with_block(args);
+      setup_out_args_with_block(cache->name(), args);
 
       Value* call_args[] = {
         state_,
@@ -1981,7 +1984,10 @@ use_send:
     void visit_send_super_stack_with_block(opcode& which, opcode args) {
       set_has_side_effects();
 
+      InlineCache* cache = reinterpret_cast<InlineCache*>(which);
+
       b().CreateStore(get_self(), out_args_recv_);
+      b().CreateStore(constant(cache->name(), ptr_type("Symbol")), out_args_name_);
       b().CreateStore(stack_top(), out_args_block_);
       b().CreateStore(cint(args), out_args_total_);
       b().CreateStore(Constant::getNullValue(ptr_type("Tuple")),

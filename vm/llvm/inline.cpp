@@ -71,7 +71,7 @@ namespace rubinius {
             execute_pos_idx, "execute_pos");
 
         Value* execute = ops_.b().CreateLoad(execute_pos, "execute");
-        ops_.setup_out_args(count_);
+        ops_.setup_out_args(cache_->name(), count_);
 
         Value* call_args[] = {
           ops_.state(),
