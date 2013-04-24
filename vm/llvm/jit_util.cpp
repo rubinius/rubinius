@@ -37,6 +37,8 @@
 #include "machine_code.hpp"
 #include "configuration.hpp"
 
+#include "gen/instruction_defines.hpp"
+
 #include <stdarg.h>
 
 #define both_fixnum_p(_p1, _p2) ((uintptr_t)(_p1) & (uintptr_t)(_p2) & TAG_FIXNUM)
@@ -112,43 +114,55 @@ extern "C" {
   }
 
   Object* rbx_splat_send(STATE, CallFrame* call_frame, InlineCache* cache,
-                          int count, Object** args) {
+                          int count, int call_flags, Object** args) {
     Object* recv = args[0];
     Arguments out_args(cache->name(), recv, args[count+2], count, args+1);
 
     if(Array* ary = try_as<Array>(args[count+1])) {
-      out_args.append(state, ary);
+      if(call_flags & CALL_FLAG_CONCAT) {
+        out_args.prepend(state, ary);
+      } else {
+        out_args.append(state, ary);
+      }
     }
 
     return cache->execute(state, call_frame, out_args);
   }
 
   Object* rbx_splat_send_private(STATE, CallFrame* call_frame, InlineCache* cache,
-                                  int count, Object** args) {
+                                  int count, int call_flags, Object** args) {
     Object* recv = args[0];
     Arguments out_args(cache->name(), recv, args[count+2], count, args+1);
 
     if(Array* ary = try_as<Array>(args[count+1])) {
-      out_args.append(state, ary);
+      if(call_flags & CALL_FLAG_CONCAT) {
+        out_args.prepend(state, ary);
+      } else {
+        out_args.append(state, ary);
+      }
     }
 
     return cache->execute(state, call_frame, out_args);
   }
 
   Object* rbx_super_send(STATE, CallFrame* call_frame, InlineCache* cache,
-                          int count, Object** args) {
+                          int count, int call_flags, Object** args) {
     Object* recv = call_frame->self();
     Arguments out_args(cache->name(), recv, args[count], count, args);
     return cache->execute(state, call_frame, out_args);
   }
 
   Object* rbx_super_splat_send(STATE, CallFrame* call_frame, InlineCache* cache,
-                          int count, Object** args) {
+                          int count, int call_flags, Object** args) {
     Object* recv = call_frame->self();
     Arguments out_args(cache->name(), recv, args[count+1], count, args);
 
     if(Array* ary = try_as<Array>(args[count])) {
-      out_args.append(state, ary);
+      if(call_flags & CALL_FLAG_CONCAT) {
+        out_args.prepend(state, ary);
+      } else {
+        out_args.append(state, ary);
+      }
     }
 
     return cache->execute(state, call_frame, out_args);

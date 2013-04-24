@@ -732,7 +732,8 @@ namespace rubinius {
       sig << StateTy;
       sig << CallFrameTy;
       sig << "InlineCache";
-      sig << ctx_->IntPtrTy;
+      sig << ctx_->Int32Ty;
+      sig << ctx_->Int32Ty;
       sig << ObjArrayTy;
 
       const char* func_name;
@@ -754,12 +755,14 @@ namespace rubinius {
         state_,
         call_frame_,
         cache_const,
-        clong(args),
+        cint(args),
+        cint(call_flags_),
         stack_objects(args + 3),   // 3 == recv + block + splat
       };
 
+      call_flags_ = 0;
       flush_ip();
-      return sig.call(func_name, call_args, 5, "splat_send", b());
+      return sig.call(func_name, call_args, 6, "splat_send", b());
     }
 
     Value* super_send(opcode& which, int args, bool splat=false) {
@@ -768,7 +771,8 @@ namespace rubinius {
       sig << StateTy;
       sig << CallFrameTy;
       sig << "InlineCache";
-      sig << ctx_->IntPtrTy;
+      sig << ctx_->Int32Ty;
+      sig << ctx_->Int32Ty;
       sig << ObjArrayTy;
 
       const char* func_name;
@@ -792,12 +796,14 @@ namespace rubinius {
         state_,
         call_frame_,
         cache_const,
-        clong(args),
+        cint(args),
+        cint(call_flags_),
         stack_objects(args + extra),
       };
 
+      call_flags_ = 0;
       flush_ip();
-      return sig.call(func_name, call_args, 5, "super_send", b());
+      return sig.call(func_name, call_args, 6, "super_send", b());
     }
 
     void visit_meta_to_s(opcode& name) {
@@ -1287,7 +1293,7 @@ namespace rubinius {
       allow_private_ = true;
     }
 
-    void novisit_set_call_flags(opcode flag) {
+    void visit_set_call_flags(opcode flag) {
       call_flags_ = flag;
     }
 
