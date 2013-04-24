@@ -188,8 +188,7 @@ namespace rubinius {
 
     bool fill_method_missing(STATE, Object* self, Class* klass, MethodMissingReason reason, InlineCacheEntry*& ice);
 
-    InlineCacheEntry* update_and_validate(STATE, CallFrame* call_frame, Object* recv);
-    InlineCacheEntry* update_and_validate_private(STATE, CallFrame* call_frame, Object* recv);
+    InlineCacheEntry* update_and_validate(STATE, CallFrame* call_frame, Object* recv, Symbol* vis);
 
     void print(STATE, std::ostream& stream);
 

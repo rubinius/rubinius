@@ -546,16 +546,16 @@ extern "C" {
   }
 
   Object* rbx_check_serial(STATE, CallFrame* call_frame, InlineCache* cache,
-                           int serial, Object* recv)
+                           int serial, Object* recv, Symbol* vis)
   {
-    InlineCacheEntry* ice = cache->update_and_validate(state, call_frame, recv);
+    InlineCacheEntry* ice = cache->update_and_validate(state, call_frame, recv, G(sym_public));
     return RBOOL(ice && ice->method()->serial()->to_native() == serial);
   }
 
   Object* rbx_check_serial_private(STATE, CallFrame* call_frame, InlineCache* cache,
                            int serial, Object* recv)
   {
-    InlineCacheEntry* ice = cache->update_and_validate_private(state, call_frame, recv);
+    InlineCacheEntry* ice = cache->update_and_validate(state, call_frame, recv, G(sym_private));
     return RBOOL(ice && ice->method()->serial()->to_native() == serial);
   }
 

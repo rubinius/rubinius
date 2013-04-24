@@ -1698,7 +1698,7 @@ instruction check_serial(literal serial) [ receiver -- boolean ]
   InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
 
   InlineCacheEntry* ice =
-      cache->update_and_validate(state, call_frame, recv);
+      cache->update_and_validate(state, call_frame, recv, G(sym_public));
 
   stack_push(RBOOL(ice && ice->method()->serial()->to_native() == serial));
 end
@@ -1714,7 +1714,7 @@ instruction check_serial_private(literal serial) [ receiver -- boolean ]
   InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
 
   InlineCacheEntry* ice =
-      cache->update_and_validate_private(state, call_frame, recv);
+      cache->update_and_validate(state, call_frame, recv, G(sym_private));
 
   stack_push(RBOOL(ice && ice->method()->serial()->to_native() == serial));
 end

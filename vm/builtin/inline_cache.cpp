@@ -87,7 +87,7 @@ namespace rubinius {
     return dis.method_missing == eNone;
   }
 
-  InlineCacheEntry* InlineCache::update_and_validate(STATE, CallFrame* call_frame, Object* recv) {
+  InlineCacheEntry* InlineCache::update_and_validate(STATE, CallFrame* call_frame, Object* recv, Symbol* vis) {
 
     Class* const recv_class = recv->lookup_begin(state);
     InlineCacheEntry* ice = get_cache(recv_class);
@@ -95,28 +95,7 @@ namespace rubinius {
     if(likely(ice)) return ice;
 
     MethodMissingReason reason =
-      fill(state, call_frame->self(), recv_class, name_, recv_class, G(sym_public), ice);
-    if(reason != eNone) return 0;
-
-    if(unlikely(growth_cache_size(ice->receiver_class_id()) > 0)) {
-      execute_backend_ = check_cache_poly;
-    }
-
-    write_barrier(state, ice);
-    set_cache(ice);
-
-    return ice;
-  }
-
-  InlineCacheEntry* InlineCache::update_and_validate_private(STATE, CallFrame* call_frame, Object* recv) {
-
-    Class* const recv_class = recv->lookup_begin(state);
-    InlineCacheEntry* ice = get_cache(recv_class);
-
-    if(likely(ice)) return ice;
-
-    MethodMissingReason reason =
-      fill(state, call_frame->self(), recv_class, name_, recv_class, G(sym_private), ice);
+      fill(state, call_frame->self(), recv_class, name_, recv_class, vis, ice);
     if(reason != eNone) return 0;
 
     if(unlikely(growth_cache_size(ice->receiver_class_id()) > 0)) {
