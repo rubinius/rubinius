@@ -25,11 +25,11 @@ namespace rubinius {
   public:
     const static object_type type = CallSiteType;
 
+    CacheExecutor execute_backend_;
+
     Symbol* name_; // slot
     Executable* executable_; // slot
     int ip_;
-
-    CacheExecutor execute_backend_;
 
   public:
     attr_accessor(name, Symbol);

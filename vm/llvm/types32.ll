@@ -65,10 +65,10 @@ declare void @output3(%"struct.rubinius::Dispatch"*)
 
 %"struct.rubinius::CallSite" = type {
        %"struct.rubinius::Object", ; header
+  %"struct.rubinius::Object"* (%"struct.rubinius::State"*, %"struct.rubinius::CallSite"*, %"struct.rubinius::CallFrame"*, %"struct.rubinius::Arguments"*)*, ; execute
       %"struct.rubinius::Symbol"*, ; name
   %"struct.rubinius::Executable"*, ; executable
-                              i32, ; ip
-  %"struct.rubinius::Object"* (%"struct.rubinius::State"*, %"struct.rubinius::CallSite"*, %"struct.rubinius::CallFrame"*, %"struct.rubinius::Arguments"*)* ; execute
+                              i32  ; ip
 }
 
 declare void @outputCallSite(%"struct.rubinius::CallSite"*)

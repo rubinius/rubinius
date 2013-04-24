@@ -50,10 +50,10 @@ namespace CallFrame {
 }
 namespace CallSite {
   const static int header = 0;
-  const static int name = 1;
-  const static int executable = 2;
-  const static int ip = 3;
-  const static int execute = 4;
+  const static int execute = 1;
+  const static int name = 2;
+  const static int executable = 3;
+  const static int ip = 4;
 }
 namespace Class {
   const static int header = 0;
