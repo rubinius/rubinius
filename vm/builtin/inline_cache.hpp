@@ -149,15 +149,6 @@ namespace rubinius {
     static Object* empty_cache_custom(STATE, InlineCache* cache, CallFrame* call_frame,
                                           Arguments& args);
 
-    static Object* check_cache_symbol(STATE, InlineCache* cache, CallFrame* call_frame,
-                               Arguments& args);
-
-    static Object* check_cache_fixnum(STATE, InlineCache* cache, CallFrame* call_frame,
-                               Arguments& args);
-
-    static Object* check_cache_reference(STATE, InlineCache* cache, CallFrame* call_frame,
-                               Arguments& args);
-
     static Object* check_cache(STATE, InlineCache* cache, CallFrame* call_frame,
                                Arguments& args);
 
@@ -167,20 +158,7 @@ namespace rubinius {
     static Object* check_cache_custom(STATE, InlineCache* cache, CallFrame* call_frame,
                                Arguments& args);
 
-    static Object* check_cache_super(STATE, InlineCache* cache, CallFrame* call_frame,
-                               Arguments& args);
-
-    static Object* check_cache_super_mm(STATE, InlineCache* cache, CallFrame* call_frame,
-                                  Arguments& args);
-
     static Object* check_cache_poly(STATE, InlineCache* cache, CallFrame* call_frame,
-                                  Arguments& args);
-
-    static Object* disabled_cache(STATE, InlineCache* cache, CallFrame* call_frame,
-                                  Arguments& args);
-    static Object* disabled_cache_private(STATE, InlineCache* cache, CallFrame* call_frame,
-                                  Arguments& args);
-    static Object* disabled_cache_super(STATE, InlineCache* cache, CallFrame* call_frame,
                                   Arguments& args);
 
     MethodMissingReason fill(STATE, Object* self, Class* klass, Symbol* name, Module* start,

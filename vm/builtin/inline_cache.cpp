@@ -187,15 +187,7 @@ namespace rubinius {
       if(unlikely(cache->growth_cache_size(ice->receiver_class_id()) > 0)) {
         cache->execute_backend_ = check_cache_poly;
       } else {
-        if(recv->fixnum_p()) {
-          cache->execute_backend_ = check_cache_fixnum;
-        } else if(recv->symbol_p()) {
-          cache->execute_backend_ = check_cache_symbol;
-        } else if(recv->reference_p()) {
-          cache->execute_backend_ = check_cache_reference;
-        } else {
-          cache->execute_backend_ = check_cache;
-        }
+        cache->execute_backend_ = check_cache;
       }
     }
 
@@ -336,13 +328,13 @@ namespace rubinius {
       if(unlikely(cache->growth_cache_size(ice->receiver_class_id()) > 0)) {
         cache->execute_backend_ = check_cache_poly;
       } else {
-        cache->execute_backend_ = check_cache_super_mm;
+        cache->execute_backend_ = check_cache_mm;
       }
     } else {
       if(unlikely(cache->growth_cache_size(ice->receiver_class_id()) > 0)) {
         cache->execute_backend_ = check_cache_poly;
       } else {
-        cache->execute_backend_ = check_cache_super;
+        cache->execute_backend_ = check_cache;
       }
     }
 
@@ -353,77 +345,6 @@ namespace rubinius {
     Module* mod = ice->stored_module();
 
     return meth->execute(state, call_frame, meth, mod, args);
-  }
-
-  Object* InlineCache::check_cache_fixnum(STATE, InlineCache* cache,
-      CallFrame* call_frame, Arguments& args)
-  {
-    args.set_name(cache->name_);
-    Object* const recv = args.recv();
-
-    if(unlikely(!recv->fixnum_p())) {
-      return cache->initialize(state, call_frame, args);
-    }
-
-    InlineCacheEntry* entry;
-    InlineCacheHit* ic = cache->get_inline_cache(G(fixnum_class), entry);
-    if(likely(ic)) {
-      Executable* meth = entry->method();
-      Module* mod = entry->stored_module();
-      ic->hit();
-
-      return meth->execute(state, call_frame, meth, mod, args);
-    }
-
-    return cache->initialize(state, call_frame, args);
-  }
-
-  Object* InlineCache::check_cache_symbol(STATE, InlineCache* cache,
-      CallFrame* call_frame, Arguments& args)
-  {
-    args.set_name(cache->name_);
-    Object* const recv = args.recv();
-
-    if(unlikely(!recv->symbol_p())) {
-      return cache->initialize(state, call_frame, args);
-    }
-
-    InlineCacheEntry* entry;
-    InlineCacheHit* ic = cache->get_inline_cache(G(symbol), entry);
-
-    if(likely(ic)) {
-      Executable* meth = entry->method();
-      Module* mod = entry->stored_module();
-      ic->hit();
-
-      return meth->execute(state, call_frame, meth, mod, args);
-    }
-
-    return cache->initialize(state, call_frame, args);
-  }
-
-  Object* InlineCache::check_cache_reference(STATE, InlineCache* cache,
-      CallFrame* call_frame, Arguments& args)
-  {
-    args.set_name(cache->name_);
-    Object* const recv = args.recv();
-
-    if(unlikely(!recv->reference_p())) {
-      return cache->initialize(state, call_frame, args);
-    }
-
-    InlineCacheEntry* entry;
-    InlineCacheHit* ic = cache->get_inline_cache(recv->reference_class(), entry);
-
-    if(likely(ic)) {
-      Executable* meth = entry->method();
-      Module* mod = entry->stored_module();
-      ic->hit();
-
-      return meth->execute(state, call_frame, meth, mod, args);
-    }
-
-    return cache->initialize(state, call_frame, args);
   }
 
   Object* InlineCache::check_cache(STATE, InlineCache* cache, CallFrame* call_frame,
@@ -469,58 +390,6 @@ namespace rubinius {
 
     return cache->initialize(state, call_frame, args);
   }
-
-  Object* InlineCache::check_cache_super(STATE, InlineCache* cache, CallFrame* call_frame,
-                                   Arguments& args)
-  {
-    Symbol* current_name = call_frame->original_name();
-    args.set_name(cache->name_);
-    Class* const recv_class = args.recv()->lookup_begin(state);
-
-    InlineCacheEntry* entry;
-    InlineCacheHit* ic = cache->get_inline_cache(recv_class, entry);
-
-    if(likely(ic && current_name == cache->name_))
-    {
-      Executable* meth = entry->method();
-      Module* mod = entry->stored_module();
-      ic->hit();
-
-      return meth->execute(state, call_frame, meth, mod, args);
-    }
-
-    cache->name_ = current_name;
-
-    return cache->initialize(state, call_frame, args);
-  }
-
-  Object* InlineCache::check_cache_super_mm(STATE, InlineCache* cache, CallFrame* call_frame,
-                                   Arguments& args)
-  {
-    Symbol* current_name = call_frame->original_name();
-    args.set_name(cache->name_);
-    Class* const recv_class = args.recv()->lookup_begin(state);
-
-    InlineCacheEntry* entry;
-    InlineCacheHit* ic = cache->get_inline_cache(recv_class, entry);
-
-    if(likely(ic))
-    {
-      args.unshift(state, cache->name_);
-
-      state->vm()->set_method_missing_reason(entry->method_missing());
-      Executable* meth = entry->method();
-      Module* mod = entry->stored_module();
-      ic->hit();
-
-      return meth->execute(state, call_frame, meth, mod, args);
-    }
-
-    cache->name_ = current_name;
-
-    return cache->initialize(state, call_frame, args);
-  }
-
 
   Object* InlineCache::check_cache_poly(STATE, InlineCache* cache, CallFrame* call_frame,
                                    Arguments& args)
