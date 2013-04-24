@@ -26,6 +26,9 @@ class Symbol
     # we leave the symbol in sym and use it in the block.
     #
     sym = self
-    Proc.new { |*args| args.shift.__send__(sym, *args) }
+    Proc.new do |*args|
+      raise ArgumentError, "no receiver given" if args.empty?
+      args.shift.__send__(sym, *args)
+    end
   end
 end
