@@ -12,6 +12,10 @@ ruby_version_is "1.8.7" do
       obj.should_receive(:to_s).and_return("Received #to_s")
       :to_s.to_proc.call(obj).should == "Received #to_s"
     end
+
+    it "raises an ArgumentError when calling #call on the Proc without receiver" do
+      lambda { :object_id.to_proc.call }.should raise_error(ArgumentError)
+    end
   end
 
   describe "Symbol#to_proc" do
