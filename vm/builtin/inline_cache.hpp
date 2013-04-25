@@ -108,7 +108,6 @@ namespace rubinius {
 
   private:
     CallUnit* call_unit_; // slot
-
     CacheExecutor initial_backend_;
     InlineCacheHit cache_[cTrackedICHits];
 
@@ -145,8 +144,6 @@ namespace rubinius {
 
     bool fill_method_missing(STATE, Object* self, Class* klass, MethodMissingReason reason, InlineCacheEntry*& ice);
 
-    InlineCacheEntry* update_and_validate(STATE, CallFrame* call_frame, Object* recv, Symbol* vis);
-
     void print(STATE, std::ostream& stream);
 
     InlineCacheHit* caches() {
@@ -171,6 +168,11 @@ namespace rubinius {
     void set_call_custom() {
       initial_backend_ = CallSite::empty_cache_custom;
       execute_backend_ = CallSite::empty_cache_custom;
+    }
+
+    void set_executor(CacheExecutor executor) {
+      initial_backend_ = executor;
+      execute_backend_ = executor;
     }
 
     void clear() {

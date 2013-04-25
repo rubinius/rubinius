@@ -343,6 +343,41 @@ namespace rubinius {
     }
   }
 
+  bool CallSite::update_and_validate(STATE, CallFrame* call_frame, Object* recv, Symbol* vis, int serial) {
+
+    Class* const recv_class = recv->lookup_begin(state);
+
+    InlineCache* cache = try_as<InlineCache>(this);
+
+    if(!cache) {
+      cache = InlineCache::empty(state, name_,
+                                        executable_,
+                                        ip_);
+      cache->set_executor(execute_backend_);
+    }
+
+    InlineCacheEntry* ice = cache->get_cache(recv_class);
+
+    if(likely(ice)) return ice->method()->serial()->to_native() == serial;
+
+    MethodMissingReason reason =
+      cache->fill(state, call_frame->self(), recv_class, name_, recv_class, vis, ice);
+    if(reason != eNone) return false;
+
+    if(unlikely(cache->growth_cache_size(ice->receiver_class_id()) > 0)) {
+      cache->execute_backend_ = InlineCache::check_cache_poly;
+    }
+
+    cache->write_barrier(state, ice);
+    cache->set_cache(ice);
+
+    if(CompiledCode* ccode = try_as<CompiledCode>(cache->executable())) {
+      ccode->machine_code()->store_call_site(state, cache->ip(), ccode, cache);
+    }
+
+    return ice->method()->serial()->to_native() == serial;
+  }
+
   void CallSite::Info::mark(Object* obj, ObjectMark& mark) {
     auto_mark(obj, mark);
   }

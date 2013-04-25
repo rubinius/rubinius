@@ -43,20 +43,22 @@ namespace rubinius {
 
     static CallSite* empty(STATE, Symbol* name, Executable* executable, int ip);
 
-    static Object* empty_cache(STATE, CallSite* cache, CallFrame* call_frame,
+    static Object* empty_cache(STATE, CallSite* call_site, CallFrame* call_frame,
                                Arguments& args);
 
-    static Object* empty_cache_private(STATE, CallSite* cache, CallFrame* call_frame,
+    static Object* empty_cache_private(STATE, CallSite* call_site, CallFrame* call_frame,
                                Arguments& args);
 
-    static Object* empty_cache_vcall(STATE, CallSite* cache, CallFrame* call_frame,
+    static Object* empty_cache_vcall(STATE, CallSite* call_site, CallFrame* call_frame,
                                Arguments& args);
 
-    static Object* empty_cache_super(STATE, CallSite* cache, CallFrame* call_frame,
+    static Object* empty_cache_super(STATE, CallSite* call_site, CallFrame* call_frame,
                                Arguments& args);
 
-    static Object* empty_cache_custom(STATE, CallSite* cache, CallFrame* call_frame,
+    static Object* empty_cache_custom(STATE, CallSite* call_site, CallFrame* call_frame,
                                           Arguments& args);
+
+    bool update_and_validate(STATE, CallFrame* call_frame, Object* recv, Symbol* vis, int serial);
 
     void set_is_private() {
       execute_backend_ = empty_cache_private;

@@ -560,25 +560,13 @@ extern "C" {
   }
 
   Object* rbx_check_serial(STATE, CallFrame* call_frame, CallSite* call_site,
-                           int serial, Object* recv, Symbol* vis)
-  {
-    if(InlineCache* cache = try_as<InlineCache>(call_site)) {
-      InlineCacheEntry* ice = cache->update_and_validate(state, call_frame, recv, G(sym_public));
-      return RBOOL(ice && ice->method()->serial()->to_native() == serial);
-    } else {
-      return cFalse;
-    }
+                           int serial, Object* recv, Symbol* vis) {
+    return RBOOL(call_site->update_and_validate(state, call_frame, recv, G(sym_public), serial));
   }
 
   Object* rbx_check_serial_private(STATE, CallFrame* call_frame, CallSite* call_site,
-                           int serial, Object* recv)
-  {
-    if(InlineCache* cache = try_as<InlineCache>(call_site)) {
-      InlineCacheEntry* ice = cache->update_and_validate(state, call_frame, recv, G(sym_private));
-      return RBOOL(ice && ice->method()->serial()->to_native() == serial);
-    } else {
-      return cFalse;
-    }
+                           int serial, Object* recv) {
+    return RBOOL(call_site->update_and_validate(state, call_frame, recv, G(sym_private), serial));
   }
 
   Object* rbx_find_const(STATE, CallFrame* call_frame, int index, Object* top) {
