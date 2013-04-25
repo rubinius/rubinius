@@ -4,7 +4,7 @@ require File.expand_path('../shared/open', __FILE__)
 
 describe "File.open" do
   before :all do
-    @file = tmp("core-file-open.txt")
+    @file = tmp("file_open.txt")
     @nonexistent = tmp("fake.txt")
     rm_r @file, @nonexistent
   end
@@ -55,9 +55,8 @@ describe "File.open" do
     File.exist?(@file).should == true
   end
 
-  it "opens file when call with a block (basic case)" do
-    File.open(@file){ |fh| @fd = fh.fileno }
-    lambda { File.open(@fd) }.should raise_error(SystemCallError) # Should be closed by block
+  it "opens a file when called with a block" do
+    File.open(@file) { |fh| }
     File.exist?(@file).should == true
   end
 
@@ -68,8 +67,7 @@ describe "File.open" do
   end
 
   it "opens a file with mode string and block" do
-    File.open(@file, 'w'){ |fh| @fd = fh.fileno }
-    lambda { File.open(@fd) }.should raise_error(SystemCallError)
+    File.open(@file, 'w') { |fh| }
     File.exist?(@file).should == true
   end
 
@@ -80,8 +78,7 @@ describe "File.open" do
   end
 
   it "opens a file with mode num and block" do
-    File.open(@file, 'w'){ |fh| @fd = fh.fileno }
-    lambda { File.open(@fd) }.should raise_error(SystemCallError)
+    File.open(@file, 'w') { |fh| }
     File.exist?(@file).should == true
   end
 
@@ -106,8 +103,7 @@ describe "File.open" do
   it "opens the file when passed mode, num, permissions and block" do
     rm_r @file
     File.umask(0022)
-    File.open(@file, "w", 0755){ |fh| @fd = fh.fileno }
-    lambda { File.open(@fd) }.should raise_error(SystemCallError)
+    File.open(@file, "w", 0755){ |fh| }
     platform_is_not :windows do
       File.stat(@file).mode.to_s(8).should == "100755"
     end
@@ -138,27 +134,6 @@ describe "File.open" do
       File.readable?(@file).should == false
       File.writable?(@file).should == true
     end
-  end
-
-  it "opens the file when call with fd" do
-    fh_orig = File.open(@file)
-    @fh = File.open(fh_orig.fileno)
-    (@fh.autoclose = false) rescue nil
-    @fh.should be_kind_of(File)
-    File.exist?(@file).should == true
-    # don't close fh_orig here to adjust closing cycle between fh_orig and @fh
-    # see also c02c78b3899fcf769084a88777c63de0fcebb48d
-  end
-
-  it "opens a file with a file descriptor d and a block" do
-    @fh = File.open(@file)
-    @fh.should be_kind_of(File)
-    File.open(@fh.fileno) do |fh|
-      @fd = fh.fileno
-      @fh.close
-    end
-    lambda { File.open(@fd) }.should raise_error(SystemCallError)
-    File.exist?(@file).should == true
   end
 
   it "opens a file that no exists when use File::WRONLY mode" do
@@ -371,9 +346,9 @@ describe "File.open" do
     File.open(@file, File::RDWR|File::APPEND) do |f|
       f.puts("bye file")
       f.rewind
-      f.gets().should == "hello file\n"
-      f.gets().should == "bye file\n"
-      f.gets().should == nil
+      f.gets.should == "hello file\n"
+      f.gets.should == "bye file\n"
+      f.gets.should == nil
     end
   end
 
@@ -582,6 +557,41 @@ describe "File.open" do
     end
   end
 
+end
+
+describe "File.open when passed a file descriptor" do
+  before do
+    @content = "File#open when passed a file descriptor"
+    @name = tmp("file_open_with_fd.txt")
+    @fd = new_fd @name, fmode("w:utf-8")
+    @file = nil
+  end
+
+  after do
+    @file.close unless @file.closed?
+    rm_r @name
+  end
+
+  it "opens a file" do
+    # This leaks one file descriptor. Do NOT write this spec to
+    # call IO.new with the fd of an existing IO instance.
+    @file = File.open @fd
+    @file.should be_an_instance_of(File)
+    @file.fileno.should equal(@fd)
+    @file.write @content
+    @file.flush
+    @name.should have_data(@content)
+  end
+
+  it "opens a file when passed a block" do
+    @file = File.open(@fd) do |f|
+      f.should be_an_instance_of(File)
+      f.fileno.should equal(@fd)
+      f.write @content
+      f
+    end
+    @name.should have_data(@content)
+  end
 end
 
 describe "File.open" do

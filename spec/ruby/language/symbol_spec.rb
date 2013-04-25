@@ -84,6 +84,12 @@ describe "A Symbol literal" do
       eval(':"\0" ').inspect.should == ':"\\0"'
     end
   end
+
+  ruby_version_is "2.1"..."" do
+    it "can contain null in the string" do
+      eval(':"\0" ').inspect.should == ':"\\000"'
+    end
+  end
 end
 
 language_version __FILE__, 'symbol'

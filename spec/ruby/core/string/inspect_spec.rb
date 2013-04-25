@@ -521,6 +521,12 @@ describe "String#inspect" do
       end
     end
 
+    ruby_version_is "2.1"..."" do
+      it "returns a string with a NUL character replaced by \\000" do
+        0.chr.inspect.should == '"\\000"'
+      end
+    end
+
     describe "when default external is UTF-8" do
       before :each do
         @extenc, Encoding.default_external = Encoding.default_external, Encoding::UTF_8
@@ -598,6 +604,12 @@ describe "String#inspect" do
       ruby_version_is "2.0" do
         it "returns a string with a NUL character replaced by \\0" do
           0.chr('utf-8').inspect.should == '"\\0"'
+        end
+      end
+
+      ruby_version_is "2.1"..."" do
+        it "returns a string with a NUL character replaced by \\000" do
+          0.chr('utf-8').inspect.should == '"\\000"'
         end
       end
 
