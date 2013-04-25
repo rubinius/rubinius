@@ -107,7 +107,6 @@ namespace rubinius {
   Object* InlineCache::empty_cache_custom(STATE, InlineCache* cache, CallFrame* call_frame,
                                           Arguments& args)
   {
-    args.set_name(cache->name_);
     Object* const recv = args.recv();
     Class* const recv_class = recv->lookup_begin(state);
 
@@ -145,7 +144,6 @@ namespace rubinius {
   {
     InlineCacheEntry* ice = cache->get_single_cache();
 
-    args.set_name(cache->name_);
     return cache->call_unit_->execute(state, call_frame, cache->call_unit_,
                                       ice->method(), ice->stored_module(), args);
   }
@@ -155,7 +153,6 @@ namespace rubinius {
   Object* InlineCache::empty_cache(STATE, InlineCache* cache, CallFrame* call_frame,
                                    Arguments& args)
   {
-    args.set_name(cache->name_);
     Object* const recv = args.recv();
     Class* const recv_class = recv->lookup_begin(state);
 
@@ -199,7 +196,6 @@ namespace rubinius {
   Object* InlineCache::empty_cache_private(STATE, InlineCache* cache, CallFrame* call_frame,
                                    Arguments& args)
   {
-    args.set_name(cache->name_);
     Object* const recv = args.recv();
     Class* const recv_class = recv->lookup_begin(state);
 
@@ -243,7 +239,6 @@ namespace rubinius {
   Object* InlineCache::empty_cache_vcall(STATE, InlineCache* cache, CallFrame* call_frame,
                                          Arguments& args)
   {
-    args.set_name(cache->name_);
     Object* const recv = args.recv();
     Class* const recv_class = recv->lookup_begin(state);
 
@@ -290,9 +285,9 @@ namespace rubinius {
     Symbol* original_name = call_frame->original_name();
     if(cache->name_ != original_name) {
       cache->name_ = original_name;
+      args.set_name(original_name);
     }
 
-    args.set_name(cache->name_);
     Object* const recv = args.recv();
     Class* const recv_class = recv->lookup_begin(state);
 
@@ -395,14 +390,6 @@ namespace rubinius {
       if(entry->method_missing() != eNone) {
         args.unshift(state, cache->name_);
       }
-      if(cache->is_super_p()) {
-        Symbol* current_name = call_frame->original_name();
-        if(current_name != cache->name_) {
-          cache->name_ = current_name;
-          return cache->initialize(state, call_frame, args);
-        }
-      }
-
       state->vm()->set_method_missing_reason(entry->method_missing());
       Executable* meth = entry->method();
       Module* mod = entry->stored_module();

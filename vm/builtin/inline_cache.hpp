@@ -188,10 +188,6 @@ namespace rubinius {
       execute_backend_ = empty_cache_custom;
     }
 
-    bool is_super_p() {
-      return initial_backend_ == empty_cache_super;
-    }
-
     Object* execute(STATE, CallFrame* call_frame, Arguments& args) {
       return (*execute_backend_)(state, this, call_frame, args);
     }

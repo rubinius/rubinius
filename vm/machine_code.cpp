@@ -199,10 +199,7 @@ namespace rubinius {
       opcode op = opcodes[ip];
       switch(op) {
       case InstructionSequence::insn_invoke_primitive: {
-        Symbol* name = try_as<Symbol>(original->literals()->at(opcodes[ip + 1]));
-        if(!name) {
-          name = state->symbol("__unknown__");
-        }
+        Symbol* name = as<Symbol>(original->literals()->at(opcodes[ip + 1]));
 
         InvokePrimitive invoker = Primitives::get_invoke_stub(state, name);
         opcodes[ip + 1] = reinterpret_cast<intptr_t>(invoker);
@@ -235,9 +232,7 @@ namespace rubinius {
         assert(which < sends);
 
         Symbol* name = try_as<Symbol>(original->literals()->at(opcodes[ip + 1]));
-        if(!name) {
-          name = state->symbol("__unknown__");
-        }
+        if(!name) name = nil<Symbol>();
 
         InlineCache* cache = InlineCache::empty(state, name);
         original->write_barrier(state, cache);
