@@ -43,8 +43,7 @@ namespace rubinius {
   }
 
   InlineCacheEntry* InlineCacheEntry::create(STATE, Class* klass, Module* mod,
-                                             Executable* exec, MethodMissingReason method_missing,
-                                             bool super) {
+                                             Executable* exec, MethodMissingReason method_missing) {
     InlineCacheEntry* cache =
       state->new_object_dirty<InlineCacheEntry>(G(object));
 
@@ -54,21 +53,18 @@ namespace rubinius {
     cache->receiver_.f.class_id = klass->class_id();
     cache->receiver_.f.serial_id = klass->serial_id();
     cache->method_missing_ = method_missing;
-    cache->super_ = super;
 
     return cache;
   }
 
   MethodMissingReason InlineCache::fill(STATE, Object* self, Class* klass,
                                         Symbol* name, Module* start, Symbol* vis,
-                                        InlineCacheEntry*& ice,
-                                        bool super)
-  {
+                                        InlineCacheEntry*& ice) {
     LookupData lookup(self, start, vis);
     Dispatch dis(name);
 
     if(dis.resolve(state, name, lookup)) {
-      ice = InlineCacheEntry::create(state, klass, dis.module, dis.method, dis.method_missing, super);
+      ice = InlineCacheEntry::create(state, klass, dis.module, dis.method, dis.method_missing);
     }
     return dis.method_missing;
   }
@@ -82,7 +78,7 @@ namespace rubinius {
     Dispatch dis(G(sym_method_missing));
 
     if(dis.resolve(state, G(sym_method_missing), lookup)) {
-      ice = InlineCacheEntry::create(state, klass, dis.module, dis.method, reason, false);
+      ice = InlineCacheEntry::create(state, klass, dis.module, dis.method, reason);
     }
     return dis.method_missing == eNone;
   }
@@ -130,7 +126,7 @@ namespace rubinius {
     if(CallUnit* cu = try_as<CallUnit>(ret)) {
       InlineCacheEntry* ice = 0;
 
-      ice = InlineCacheEntry::create(state, recv_class, cu->module(), cu->executable(), eNone, false);
+      ice = InlineCacheEntry::create(state, recv_class, cu->module(), cu->executable(), eNone);
 
       cache->write_barrier(state, ice);
       cache->set_cache(ice);
@@ -308,8 +304,7 @@ namespace rubinius {
     MethodMissingReason reason = eSuper;
     if(parent_found) {
       reason = cache->fill(state, call_frame->self(), recv_class,
-                          cache->name_, start, G(sym_private), ice, true);
-
+                          cache->name_, start, G(sym_private), ice);
     }
 
     if(!parent_found || reason != eNone) {
@@ -400,7 +395,7 @@ namespace rubinius {
       if(entry->method_missing() != eNone) {
         args.unshift(state, cache->name_);
       }
-      if(entry->super()) {
+      if(cache->is_super_p()) {
         Symbol* current_name = call_frame->original_name();
         if(current_name != cache->name_) {
           cache->name_ = current_name;

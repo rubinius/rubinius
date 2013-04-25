@@ -30,7 +30,6 @@ namespace rubinius {
     ClassData receiver_;
 
     MethodMissingReason method_missing_;
-    bool super_;
 
   public:
     attr_accessor(stored_module, Module);
@@ -57,14 +56,9 @@ namespace rubinius {
       return method_missing_;
     }
 
-    bool super() {
-      return super_;
-    }
-
   public:
     static InlineCacheEntry* create(STATE, Class* klass, Module* mod,
-                                    Executable* method, MethodMissingReason method_missing,
-                                    bool super);
+                                    Executable* method, MethodMissingReason method_missing);
 
     class Info : public TypeInfo {
     public:
@@ -162,7 +156,7 @@ namespace rubinius {
                                   Arguments& args);
 
     MethodMissingReason fill(STATE, Object* self, Class* klass, Symbol* name, Module* start,
-                             Symbol* vis, InlineCacheEntry*& ice, bool super = false);
+                             Symbol* vis, InlineCacheEntry*& ice);
 
     bool fill_method_missing(STATE, Object* self, Class* klass, MethodMissingReason reason, InlineCacheEntry*& ice);
 
@@ -192,6 +186,10 @@ namespace rubinius {
     void set_call_custom() {
       initial_backend_ = empty_cache_custom;
       execute_backend_ = empty_cache_custom;
+    }
+
+    bool is_super_p() {
+      return initial_backend_ == empty_cache_super;
     }
 
     Object* execute(STATE, CallFrame* call_frame, Arguments& args) {
