@@ -844,7 +844,7 @@ namespace rubinius {
       RespondToCache* cache = RespondToCache::empty(state, existing, code, info->ip);
       cache->update(state, this, name, priv, responds);
       atomic::memory_barrier();
-      code->machine_code()->store_call_site(state, info->ip, code, cache);
+      existing->update_call_site(state, cache);
     }
 
     return responds;

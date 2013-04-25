@@ -65,9 +65,7 @@ namespace rubinius {
       cache->call_unit(state, cu);
       cache->execute_backend_ = InlineCache::check_cache_custom;
 
-      if(CompiledCode* ccode = try_as<CompiledCode>(cache->executable())) {
-        ccode->machine_code()->store_call_site(state, cache->ip(), ccode, cache);
-      }
+      call_site->update_call_site(state, cache);
 
       return cu->execute(state, call_frame, cu, ice->method(), ice->stored_module(), args);
     } else {
@@ -119,10 +117,7 @@ namespace rubinius {
 
     cache->write_barrier(state, ice);
     cache->set_cache(ice);
-
-    if(CompiledCode* ccode = try_as<CompiledCode>(cache->executable())) {
-      ccode->machine_code()->store_call_site(state, cache->ip(), ccode, cache);
-    }
+    call_site->update_call_site(state, cache);
 
     Executable* meth = ice->method();
     Module* mod = ice->stored_module();
@@ -182,10 +177,7 @@ namespace rubinius {
 
     cache->write_barrier(state, ice);
     cache->set_cache(ice);
-
-    if(CompiledCode* ccode = try_as<CompiledCode>(cache->executable())) {
-      ccode->machine_code()->store_call_site(state, cache->ip(), ccode, cache);
-    }
+    call_site->update_call_site(state, cache);
 
     Executable* meth = ice->method();
     Module* mod = ice->stored_module();
@@ -245,10 +237,7 @@ namespace rubinius {
 
     cache->write_barrier(state, ice);
     cache->set_cache(ice);
-
-    if(CompiledCode* ccode = try_as<CompiledCode>(cache->executable())) {
-      ccode->machine_code()->store_call_site(state, cache->ip(), ccode, cache);
-    }
+    call_site->update_call_site(state, cache);
 
     Executable* meth = ice->method();
     Module* mod = ice->stored_module();
@@ -324,10 +313,7 @@ namespace rubinius {
 
     cache->write_barrier(state, ice);
     cache->set_cache(ice);
-
-    if(CompiledCode* ccode = try_as<CompiledCode>(cache->executable())) {
-      ccode->machine_code()->store_call_site(state, cache->ip(), ccode, cache);
-    }
+    call_site->update_call_site(state, cache);
 
     Executable* meth = ice->method();
     Module* mod = ice->stored_module();
@@ -370,10 +356,7 @@ namespace rubinius {
 
     cache->write_barrier(state, ice);
     cache->set_cache(ice);
-
-    if(CompiledCode* ccode = try_as<CompiledCode>(cache->executable())) {
-      ccode->machine_code()->store_call_site(state, cache->ip(), ccode, cache);
-    }
+    update_call_site(state, cache);
 
     return ice->method()->serial()->to_native() == serial;
   }

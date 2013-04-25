@@ -4,6 +4,8 @@
 #include "machine_code.hpp"
 #include "builtin/object.hpp"
 #include "builtin/exception.hpp"
+#include "machine_code.hpp"
+#include "object_utils.hpp"
 #include "type_info.hpp"
 
 namespace rubinius {
@@ -74,6 +76,14 @@ namespace rubinius {
 
     void set_call_custom() {
       execute_backend_ = empty_cache_custom;
+    }
+
+    void update_call_site(STATE, CallSite* other) {
+      if(this != other) {
+        if(CompiledCode* ccode = try_as<CompiledCode>(executable_)) {
+          ccode->machine_code()->store_call_site(state, ccode, ip_, other);
+        }
+      }
     }
 
     Object* execute(STATE, CallFrame* call_frame, Arguments& args) {

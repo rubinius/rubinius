@@ -250,7 +250,7 @@ namespace rubinius {
           }
         }
 
-        store_call_site(state, ip, original, call_site);
+        store_call_site(state, original, ip, call_site);
         is_super = false;
         allow_private = false;
       }
@@ -291,7 +291,7 @@ namespace rubinius {
     return as<CallSite>(obj);
   }
 
-  void MachineCode::store_call_site(STATE, int ip, CompiledCode* code, CallSite* call_site) {
+  void MachineCode::store_call_site(STATE, CompiledCode* code, int ip, CallSite* call_site) {
     opcodes[ip + 1] = reinterpret_cast<intptr_t>(call_site);
     code->write_barrier(state, call_site);
   }

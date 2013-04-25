@@ -169,7 +169,7 @@ namespace rubinius {
     }
 
     CallSite* call_site(STATE, int ip);
-    void store_call_site(STATE, int ip, CompiledCode* code, CallSite* call_site);
+    void store_call_site(STATE, CompiledCode* code, int ip, CallSite* call_site);
 
     void specialize(STATE, CompiledCode* original, TypeInfo* ti);
     void compile(STATE);
