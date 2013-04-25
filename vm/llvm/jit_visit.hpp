@@ -2988,20 +2988,25 @@ use_send:
 
     void emit_check_serial(opcode& index, opcode serial, const char* function) {
 
-      InlineCache** cache_ptr = reinterpret_cast<InlineCache**>(&index);
+      CallSite** call_site_ptr = reinterpret_cast<CallSite**>(&index);
 
-      Value* cache_ptr_const = b().CreateIntToPtr(
+      Value* call_site_ptr_const = b().CreateIntToPtr(
           clong(reinterpret_cast<uintptr_t>(cache_ptr)),
           ptr_type(ptr_type("InlineCache")), "cast_to_ptr");
 
-      Value* cache_const = b().CreateLoad(cache_ptr_const, "cache_const");
+      Value* call_site_const = b().CreateLoad(cache_ptr_const, "cache_const");
 
       Value* recv = stack_pop();
 
+      BasicBlock* inline_cache = new_block("inline_cache");
       BasicBlock* cont = new_block("cont");
       BasicBlock* fallback = new_block("fallback");
       BasicBlock* done = new_block("done");
 
+      Value* is_inline_cache = check_type_bits(call_site_const, rubinius::InlineCache::type, "is_inline_cache");
+      create_conditional_branch(inline_cache, fallback, is_inline_cache);
+
+      set_block(inline_cache);
       Value* is_ref = check_is_reference(recv);
       create_conditional_branch(cont, fallback, is_ref);
 
@@ -3009,6 +3014,8 @@ use_send:
       Value* recv_class = reference_class(recv);
 
       BasicBlock* blocks[cTrackedICHits];
+
+      Value* cache_const = b().CreateBitCast(call_site_const, ptr_type("InlineCache"), "downcast");
 
       for(int i = 0; i < cTrackedICHits; ++i) {
         Value* ich_idx[] = {
@@ -3071,7 +3078,7 @@ use_send:
       Signature sig(ctx_, "Object");
       sig << "State";
       sig << "CallFrame";
-      sig << "InlineCache";
+      sig << "CallSite";
       sig << ctx_->Int32Ty;
       sig << "Object";
 
@@ -3079,7 +3086,7 @@ use_send:
       Value* call_args[] = {
         state_,
         call_frame_,
-        cache_const,
+        call_site_const,
         cint(serial),
         recv
       };

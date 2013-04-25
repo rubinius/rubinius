@@ -317,7 +317,7 @@ namespace rubinius {
         obj = b().CreateBitCast(obj, ObjType);
       }
 
-      Value* gep = create_gep(obj, word_idx, 4, "word_pos");
+      Value* gep = b().CreateGEP(obj, ArrayRef<Value*>(word_idx, 4), "word_pos");
       Value* word = create_load(gep, "flags");
       return b().CreatePtrToInt(word, ctx_->Int64Ty, "word2flags");
     }

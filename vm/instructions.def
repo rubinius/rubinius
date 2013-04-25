@@ -1690,12 +1690,14 @@ end
 
 instruction check_serial(literal serial) [ receiver -- boolean ]
   Object* recv = stack_pop();
-  InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
-
-  InlineCacheEntry* ice =
-      cache->update_and_validate(state, call_frame, recv, G(sym_public));
-
-  stack_push(RBOOL(ice && ice->method()->serial()->to_native() == serial));
+  CallSite* call_site = reinterpret_cast<CallSite*>(literal);
+  if(InlineCache* cache = try_as<InlineCache>(call_site)) {
+    InlineCacheEntry* ice =
+        cache->update_and_validate(state, call_frame, recv, G(sym_public));
+    stack_push(RBOOL(ice && ice->method()->serial()->to_native() == serial));
+  } else {
+    stack_push(cFalse);
+  }
 end
 
 # [Description]
@@ -1706,12 +1708,15 @@ end
 
 instruction check_serial_private(literal serial) [ receiver -- boolean ]
   Object* recv = stack_pop();
-  InlineCache* cache = reinterpret_cast<InlineCache*>(literal);
 
-  InlineCacheEntry* ice =
-      cache->update_and_validate(state, call_frame, recv, G(sym_private));
-
-  stack_push(RBOOL(ice && ice->method()->serial()->to_native() == serial));
+  CallSite* call_site = reinterpret_cast<CallSite*>(literal);
+  if(InlineCache* cache = try_as<InlineCache>(call_site)) {
+    InlineCacheEntry* ice =
+        cache->update_and_validate(state, call_frame, recv, G(sym_private));
+    stack_push(RBOOL(ice && ice->method()->serial()->to_native() == serial));
+  } else {
+    stack_push(cFalse);
+  }
 end
 
 section "Access object fields"

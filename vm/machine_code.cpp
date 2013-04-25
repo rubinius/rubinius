@@ -234,23 +234,23 @@ namespace rubinius {
         Symbol* name = try_as<Symbol>(original->literals()->at(opcodes[ip + 1]));
         if(!name) name = nil<Symbol>();
 
-        InlineCache* cache = InlineCache::empty(state, name, original, ip);
+        CallSite* call_site = CallSite::empty(state, name, original, ip);
 
         inline_cache_offsets_[inline_index] = ip;
         inline_index++;
 
         if(op == InstructionSequence::insn_call_custom) {
-          cache->set_call_custom();
+          call_site->set_call_custom();
         } else {
-          if(allow_private) cache->set_is_private();
-          if(is_super) cache->set_is_super();
+          if(allow_private) call_site->set_is_private();
+          if(is_super) call_site->set_is_super();
 
           if(op == InstructionSequence::insn_send_method) {
-            cache->set_is_vcall();
+            call_site->set_is_vcall();
           }
         }
 
-        store_call_site(state, ip, original, cache);
+        store_call_site(state, ip, original, call_site);
         is_super = false;
         allow_private = false;
       }

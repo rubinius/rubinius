@@ -128,21 +128,6 @@ namespace rubinius {
 
     friend class CompiledCode::Info;
 
-    static Object* empty_cache(STATE, CallSite* cache, CallFrame* call_frame,
-                               Arguments& args);
-
-    static Object* empty_cache_private(STATE, CallSite* cache, CallFrame* call_frame,
-                               Arguments& args);
-
-    static Object* empty_cache_vcall(STATE, CallSite* cache, CallFrame* call_frame,
-                               Arguments& args);
-
-    static Object* empty_cache_super(STATE, CallSite* cache, CallFrame* call_frame,
-                               Arguments& args);
-
-    static Object* empty_cache_custom(STATE, CallSite* cache, CallFrame* call_frame,
-                                          Arguments& args);
-
     static Object* check_cache(STATE, CallSite* cache, CallFrame* call_frame,
                                Arguments& args);
 
@@ -169,23 +154,23 @@ namespace rubinius {
     }
 
     void set_is_private() {
-      initial_backend_ = empty_cache_private;
-      execute_backend_ = empty_cache_private;
+      initial_backend_ = CallSite::empty_cache_private;
+      execute_backend_ = CallSite::empty_cache_private;
     }
 
     void set_is_super() {
-      initial_backend_ = empty_cache_super;
-      execute_backend_ = empty_cache_super;
+      initial_backend_ = CallSite::empty_cache_super;
+      execute_backend_ = CallSite::empty_cache_super;
     }
 
     void set_is_vcall() {
-      initial_backend_ = empty_cache_vcall;
-      execute_backend_ = empty_cache_vcall;
+      initial_backend_ = CallSite::empty_cache_vcall;
+      execute_backend_ = CallSite::empty_cache_vcall;
     }
 
     void set_call_custom() {
-      initial_backend_ = empty_cache_custom;
-      execute_backend_ = empty_cache_custom;
+      initial_backend_ = CallSite::empty_cache_custom;
+      execute_backend_ = CallSite::empty_cache_custom;
     }
 
     void clear() {

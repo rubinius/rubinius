@@ -41,6 +41,39 @@ namespace rubinius {
       return ip_;
     }
 
+    static CallSite* empty(STATE, Symbol* name, Executable* executable, int ip);
+
+    static Object* empty_cache(STATE, CallSite* cache, CallFrame* call_frame,
+                               Arguments& args);
+
+    static Object* empty_cache_private(STATE, CallSite* cache, CallFrame* call_frame,
+                               Arguments& args);
+
+    static Object* empty_cache_vcall(STATE, CallSite* cache, CallFrame* call_frame,
+                               Arguments& args);
+
+    static Object* empty_cache_super(STATE, CallSite* cache, CallFrame* call_frame,
+                               Arguments& args);
+
+    static Object* empty_cache_custom(STATE, CallSite* cache, CallFrame* call_frame,
+                                          Arguments& args);
+
+    void set_is_private() {
+      execute_backend_ = empty_cache_private;
+    }
+
+    void set_is_super() {
+      execute_backend_ = empty_cache_super;
+    }
+
+    void set_is_vcall() {
+      execute_backend_ = empty_cache_vcall;
+    }
+
+    void set_call_custom() {
+      execute_backend_ = empty_cache_custom;
+    }
+
     Object* execute(STATE, CallFrame* call_frame, Arguments& args) {
       return (*execute_backend_)(state, this, call_frame, args);
     }
