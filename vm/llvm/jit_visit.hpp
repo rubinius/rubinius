@@ -3,6 +3,7 @@
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/constant_cache.hpp"
+#include "builtin/mono_inline_cache.hpp"
 #include "builtin/inline_cache.hpp"
 #include "builtin/respond_to_cache.hpp"
 #include "builtin/lookuptable.hpp"
@@ -1569,16 +1570,10 @@ namespace rubinius {
         return;
       }
 
-      InlineCache* cache = try_as<InlineCache>(call_site);
+      MonoInlineCache* mono = try_as<MonoInlineCache>(call_site);
+      InlineCache* poly = try_as<InlineCache>(call_site);
 
-      if(!cache) {
-        invoke_call_site(which, args);
-        return;
-      }
-
-      int classes_seen = cache->classes_seen();
-
-      if(!classes_seen) {
+      if(!mono && !poly) {
         invoke_call_site(which, args);
         return;
       }
@@ -1588,12 +1583,18 @@ namespace rubinius {
       BasicBlock* cont = new_block("continue");
 
       Inliner inl(ctx_, *this, call_site_ptr, args, class_failure, serial_failure);
-      bool res = classes_seen > 1 ? inl.consider_poly() : inl.consider_mono();
+
+      bool res = false;
+      if(mono) {
+        res = inl.consider_mono();
+      } else if(poly) {
+        res = inl.consider_poly();
+      }
 
       // If we have tried to reoptimize here a few times and failed, we use
       // a regular send as the fallback so we don't try to keep reoptimizing in
       // the future.
-      if(cache->seen_classes_overflow() > llvm_state()->shared().config.jit_deoptimize_overflow_threshold) {
+      if(poly && poly->seen_classes_overflow() > llvm_state()->shared().config.jit_deoptimize_overflow_threshold) {
         inl.use_send_for_failure();
       }
 
@@ -1619,7 +1620,7 @@ namespace rubinius {
         }
         stack_push(inl.result());
 
-        if(classes_seen == 1) {
+        if(mono) {
           type::KnownType kt = inl.guarded_type();
 
           if(kt.local_source_p() && kt.known_p()) {
@@ -2989,30 +2990,68 @@ use_send:
     void emit_check_serial(opcode& index, opcode serial, const char* function) {
 
       CallSite** call_site_ptr = reinterpret_cast<CallSite**>(&index);
-
       Value* call_site_ptr_const = b().CreateIntToPtr(
-          clong(reinterpret_cast<uintptr_t>(cache_ptr)),
-          ptr_type(ptr_type("InlineCache")), "cast_to_ptr");
+          clong(reinterpret_cast<uintptr_t>(call_site_ptr)),
+          ptr_type(ptr_type("CallSite")), "cast_to_ptr");
 
-      Value* call_site_const = b().CreateLoad(cache_ptr_const, "cache_const");
+      Value* call_site_const = b().CreateLoad(call_site_ptr_const, "cache_const");
 
-      Value* recv = stack_pop();
-
-      BasicBlock* inline_cache = new_block("inline_cache");
+      BasicBlock* mono_cache = new_block("mono_cache");
+      BasicBlock* check_poly_cache = new_block("check_poly_cache");
+      BasicBlock* poly_cache = new_block("mono_cache");
       BasicBlock* cont = new_block("cont");
       BasicBlock* fallback = new_block("fallback");
       BasicBlock* done = new_block("done");
+      BasicBlock* mono_class_match = new_block("mono_class_match");
 
-      Value* is_inline_cache = check_type_bits(call_site_const, rubinius::InlineCache::type, "is_inline_cache");
-      create_conditional_branch(inline_cache, fallback, is_inline_cache);
+      Value* recv = stack_pop();
 
-      set_block(inline_cache);
       Value* is_ref = check_is_reference(recv);
       create_conditional_branch(cont, fallback, is_ref);
 
       set_block(cont);
+
       Value* recv_class = reference_class(recv);
 
+      Value* is_mono_cache = check_type_bits(call_site_const, rubinius::MonoInlineCache::type, "is_mono_cache");
+      create_conditional_branch(mono_cache, check_poly_cache, is_mono_cache);
+
+      set_block(mono_cache);
+
+      Value* mono_const = b().CreateBitCast(call_site_const, ptr_type("MonoInlineCache"), "downcast");
+
+      Value* receiver_class_idx[] = {
+        cint(0),
+        cint(offset::MonoInlineCache::receiver_class)
+      };
+
+      Value* receiver_class = b().CreateLoad(b().CreateGEP(mono_const, receiver_class_idx, "receiver_class"));
+      Value* check_class = b().CreateICmpEQ(recv_class, receiver_class, "check_class");
+
+      create_conditional_branch(mono_class_match, fallback, check_class);
+      set_block(mono_class_match);
+
+      Value* method_idx[] = {
+        cint(0),
+        cint(offset::MonoInlineCache::method)
+      };
+      Value* method = b().CreateLoad(b().CreateGEP(mono_const, method_idx, "method"));
+
+      Value* executable_serial_idx[] = {
+        cint(0),
+        cint(offset::Executable::serial)
+      };
+      Value* executable_serial = b().CreateLoad(b().CreateGEP(method, executable_serial_idx, "executable_serial"));
+      Value* check_serial = b().CreateICmpEQ(fixnum_strip(executable_serial), clong(serial), "check_serial");
+
+      create_conditional_branch(done, fallback, check_serial);
+
+      set_block(check_poly_cache);
+
+      Value* is_poly_cache = check_type_bits(call_site_const, rubinius::InlineCache::type, "is_inline_cache");
+      create_conditional_branch(poly_cache, fallback, is_poly_cache);
+
+      set_block(poly_cache);
       BasicBlock* blocks[cTrackedICHits];
 
       Value* cache_const = b().CreateBitCast(call_site_const, ptr_type("InlineCache"), "downcast");
@@ -3098,6 +3137,8 @@ use_send:
       set_block(done);
 
       PHINode* phi = b().CreatePHI(ObjType, 1 + cTrackedICHits, "constant");
+
+      phi->addIncoming(constant(cTrue), mono_class_match);
 
       for(int i = 0; i < cTrackedICHits; ++i) {
         phi->addIncoming(constant(cTrue), blocks[i]);

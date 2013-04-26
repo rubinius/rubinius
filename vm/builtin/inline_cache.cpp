@@ -27,7 +27,7 @@ namespace rubinius {
     GO(inline_cache).set(
         ontology::new_class(state, "InlineCache",
           G(call_site), G(rubinius)));
-
+    G(inline_cache)->set_object_type(state, InlineCacheType);
   }
 
   InlineCache* InlineCache::empty(STATE, Symbol* name, Executable* executable, int ip) {
@@ -36,6 +36,7 @@ namespace rubinius {
     cache->name_ = name;
     cache->executor_ = CallSite::empty_cache;
     cache->fallback_ = CallSite::empty_cache;
+    cache->updater_  = inline_cache_updater;
     cache->executable(state, executable);
     cache->ip_ = ip;
     cache->call_unit_ = nil<CallUnit>();
@@ -44,7 +45,7 @@ namespace rubinius {
     return cache;
   }
 
-  InlineCacheEntry* InlineCacheEntry::create(STATE, Class* klass, Module* mod,
+  InlineCacheEntry* InlineCacheEntry::create(STATE, ClassData data, Class* klass, Module* mod,
                                              Executable* exec, MethodMissingReason method_missing) {
     InlineCacheEntry* cache =
       state->new_object_dirty<InlineCacheEntry>(G(object));
@@ -52,37 +53,10 @@ namespace rubinius {
     cache->stored_module(state, mod);
     cache->receiver_class(state, klass);
     cache->method(state, exec);
-    cache->receiver_.f.class_id = klass->class_id();
-    cache->receiver_.f.serial_id = klass->serial_id();
+    cache->receiver_ = data;
     cache->method_missing_ = method_missing;
 
     return cache;
-  }
-
-  MethodMissingReason InlineCache::fill(STATE, Object* self, Class* klass,
-                                        Symbol* name, Module* start, Symbol* vis,
-                                        InlineCacheEntry*& ice) {
-    LookupData lookup(self, start, vis);
-    Dispatch dis(name);
-
-    if(dis.resolve(state, name, lookup)) {
-      ice = InlineCacheEntry::create(state, klass, dis.module, dis.method, dis.method_missing);
-    }
-    return dis.method_missing;
-  }
-
-  bool InlineCache::fill_method_missing(STATE, Object* self, Class* klass,
-                                        MethodMissingReason reason,
-                                        InlineCacheEntry*& ice)
-  {
-
-    LookupData lookup(self, klass, G(sym_private));
-    Dispatch dis(G(sym_method_missing));
-
-    if(dis.resolve(state, G(sym_method_missing), lookup)) {
-      ice = InlineCacheEntry::create(state, klass, dis.module, dis.method, reason);
-    }
-    return dis.method_missing == eNone;
   }
 
   Object* InlineCache::check_cache_custom(STATE, CallSite* call_site,
@@ -93,49 +67,6 @@ namespace rubinius {
 
     return cache->call_unit_->execute(state, call_frame, cache->call_unit_,
                                       ice->method(), ice->stored_module(), args);
-  }
-
-  Object* InlineCache::check_cache(STATE, CallSite* call_site, CallFrame* call_frame,
-                                   Arguments& args)
-  {
-    Class* const recv_class = args.recv()->lookup_begin(state);
-
-    InlineCacheEntry* entry;
-    InlineCache* cache = static_cast<InlineCache*>(call_site);
-    InlineCacheHit* ic = cache->get_inline_cache(recv_class, entry);
-
-    if(likely(ic)) {
-      Executable* meth = entry->method();
-      Module* mod = entry->stored_module();
-      ic->hit();
-
-      return meth->execute(state, call_frame, meth, mod, args);
-    }
-
-    return cache->fallback(state, call_frame, args);
-  }
-
-  Object* InlineCache::check_cache_mm(STATE, CallSite* call_site, CallFrame* call_frame,
-                                   Arguments& args)
-  {
-    Class* const recv_class = args.recv()->lookup_begin(state);
-
-    InlineCacheEntry* entry;
-    InlineCache* cache = static_cast<InlineCache*>(call_site);
-    InlineCacheHit* ic = cache->get_inline_cache(recv_class, entry);
-
-    if(likely(ic)) {
-      args.unshift(state, call_site->name_);
-
-      state->vm()->set_method_missing_reason(entry->method_missing());
-      Executable* meth = entry->method();
-      Module* mod = entry->stored_module();
-      ic->hit();
-
-      return meth->execute(state, call_frame, meth, mod, args);
-    }
-
-    return cache->fallback(state, call_frame, args);
   }
 
   Object* InlineCache::check_cache_poly(STATE, CallSite* call_site, CallFrame* call_frame,
@@ -150,8 +81,8 @@ namespace rubinius {
     if(likely(ic)) {
       if(entry->method_missing() != eNone) {
         args.unshift(state, call_site->name_);
+        state->vm()->set_method_missing_reason(entry->method_missing());
       }
-      state->vm()->set_method_missing_reason(entry->method_missing());
       Executable* meth = entry->method();
       Module* mod = entry->stored_module();
       ic->hit();
@@ -160,6 +91,16 @@ namespace rubinius {
     }
 
     return cache->fallback(state, call_frame, args);
+  }
+
+  void InlineCache::inline_cache_updater(STATE, CallSite* call_site, Class* klass, FallbackExecutor fallback, Dispatch& dispatch) {
+    InlineCache* cache = reinterpret_cast<InlineCache*>(call_site);
+    InlineCacheEntry* entry = InlineCacheEntry::create(state, klass->data(), klass,
+                                                       dispatch.module,
+                                                       dispatch.method,
+                                                       dispatch.method_missing);
+    cache->write_barrier(state, entry);
+    cache->set_cache(entry);
   }
 
   void InlineCache::print(STATE, std::ostream& stream) {

@@ -292,6 +292,7 @@ namespace rubinius {
   }
 
   void MachineCode::store_call_site(STATE, CompiledCode* code, int ip, CallSite* call_site) {
+    atomic::memory_barrier();
     opcodes[ip + 1] = reinterpret_cast<intptr_t>(call_site);
     code->write_barrier(state, call_site);
   }

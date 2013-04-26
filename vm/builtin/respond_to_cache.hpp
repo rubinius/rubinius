@@ -40,7 +40,11 @@ namespace rubinius {
       receiver_.raw = data;
     }
 
-    uint64_t receiver_data() {
+    ClassData receiver_data() {
+      return receiver_;
+    }
+
+    uint64_t receiver_data_raw() {
       return receiver_.raw;
     }
 

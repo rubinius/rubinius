@@ -23,14 +23,16 @@ namespace rubinius {
     JITOperations& ops;
     Inliner& i;
     CompiledCode* compiled_code;
-    InlineCacheEntry* ice;
+    Class* klass;
+    ClassData data;
 
     InlinePrimitive(JITOperations& _ops, Inliner& _i, CompiledCode* _code,
-                    InlineCacheEntry* _ice)
+                    Class* _klass, ClassData _data)
       : ops(_ops)
       , i(_i)
       , compiled_code(_code)
-      , ice(_ice)
+      , klass(_klass)
+      , data(_data)
     {}
 
     void log(const char* name) {
@@ -900,13 +902,13 @@ namespace rubinius {
 
       i.use_send_for_failure();
 
-      i.check_recv(ice);
+      i.check_recv(klass, data);
 
       Value* arg = i.arg(0);
 
       BasicBlock* not_float = ops.new_block();
 
-      ops.check_class(arg, ice->receiver_class(), not_float);
+      ops.check_class(arg, klass, not_float);
 
       // Float#*(Float)
       Value* farg  = ops.b().CreateBitCast(arg, ops.context()->ptr_type("Float"),
@@ -995,14 +997,14 @@ namespace rubinius {
 
       i.use_send_for_failure();
 
-      i.check_recv(ice);
+      i.check_recv(klass, data);
 
       // Support compare against Floats and Fixnums inline
       BasicBlock* do_compare = ops.new_block("float_compare_operation");
       BasicBlock* check_fix =  ops.new_block("check_fixnum");
 
       Value* arg = i.arg(0);
-      ops.check_class(arg, ice->receiver_class(), check_fix);
+      ops.check_class(arg, klass, check_fix);
 
       Value* farg =  ops.b().CreateBitCast(arg, ops.context()->ptr_type("Float"),
           "arg_float");
@@ -1077,14 +1079,14 @@ namespace rubinius {
 
       i.use_send_for_failure();
 
-      i.check_recv(ice);
+      i.check_recv(klass, data);
 
       // Support compare against Floats and Fixnums inline
       BasicBlock* do_compare = ops.new_block("float_compare_operation");
       BasicBlock* check_fix =  ops.new_block("check_fixnum");
 
       Value* arg = i.arg(0);
-      ops.check_class(arg, ice->receiver_class(), check_fix);
+      ops.check_class(arg, klass, check_fix);
 
       Value* farg =  ops.b().CreateBitCast(arg, ops.context()->ptr_type("Float"),
           "arg_float");
@@ -1152,7 +1154,7 @@ namespace rubinius {
       log("object_equal");
       i.context()->enter_inline();
 
-      i.check_recv(ice);
+      i.check_recv(klass, data);
 
       Value* cmp = ops.create_equal(i.recv(), i.arg(0), "identity_equal");
       Value* imm_value = SelectInst::Create(cmp, ops.constant(cTrue),
@@ -1167,7 +1169,7 @@ namespace rubinius {
       log("class_allocate");
       i.context()->enter_inline();
 
-      i.check_recv(ice);
+      i.check_recv(klass, data);
 
       Value* V = i.recv();
 
@@ -1453,9 +1455,9 @@ namespace rubinius {
 
   };
 
-  bool Inliner::inline_primitive(InlineCacheEntry* ice, CompiledCode* code, executor prim) {
+  bool Inliner::inline_primitive(Class* klass, ClassData data, CompiledCode* code, executor prim) {
 
-    InlinePrimitive ip(ops_, *this, code, ice);
+    InlinePrimitive ip(ops_, *this, code, klass, data);
 
     if(prim == Primitives::tuple_at && count_ == 1) {
       ip.tuple_at();
@@ -1599,7 +1601,7 @@ namespace rubinius {
 
           ops_.context()->enter_inline();
 
-          check_recv(ice);
+          check_recv(klass, data);
 
           std::vector<Value*> call_args;
 
@@ -1670,8 +1672,7 @@ namespace rubinius {
     return true;
   }
 
-  int Inliner::detect_jit_intrinsic(InlineCacheEntry* ice, CompiledCode* code) {
-    Class* klass = ice->receiver_class();
+  int Inliner::detect_jit_intrinsic(Class* klass, ClassData data, CompiledCode* code) {
     if(klass->instance_type()->to_native() == rubinius::Tuple::type) {
       if(count_ == 2 && code->name() == ops_.llvm_state()->symbol("swap")) {
         return 1;
@@ -1681,8 +1682,8 @@ namespace rubinius {
     return 0;
   }
 
-  void Inliner::inline_intrinsic(InlineCacheEntry* ice, CompiledCode* code, int which) {
-    InlinePrimitive ip(ops_, *this, code, ice);
+  void Inliner::inline_intrinsic(Class* klass, ClassData data, CompiledCode* code, int which) {
+    InlinePrimitive ip(ops_, *this, code, klass, data);
 
     switch(which) {
     case 1: // Tuple#swap

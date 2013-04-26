@@ -36,7 +36,11 @@ namespace rubinius {
     attr_accessor(receiver_class, Class);
     attr_accessor(method, Executable);
 
-    uint64_t receiver_data() {
+    ClassData receiver_data() {
+      return receiver_;
+    }
+
+    uint64_t receiver_data_raw() {
       return receiver_.raw;
     }
 
@@ -57,7 +61,7 @@ namespace rubinius {
     }
 
   public:
-    static InlineCacheEntry* create(STATE, Class* klass, Module* mod,
+    static InlineCacheEntry* create(STATE, ClassData data, Class* klass, Module* mod,
                                     Executable* method, MethodMissingReason method_missing);
 
     class Info : public TypeInfo {
@@ -121,22 +125,13 @@ namespace rubinius {
 
     friend class CompiledCode::Info;
 
-    static Object* check_cache(STATE, CallSite* cache, CallFrame* call_frame,
-                               Arguments& args);
-
-    static Object* check_cache_mm(STATE, CallSite* cache, CallFrame* call_frame,
-                                  Arguments& args);
-
     static Object* check_cache_custom(STATE, CallSite* cache, CallFrame* call_frame,
                                Arguments& args);
 
     static Object* check_cache_poly(STATE, CallSite* cache, CallFrame* call_frame,
                                   Arguments& args);
 
-    MethodMissingReason fill(STATE, Object* self, Class* klass, Symbol* name, Module* start,
-                             Symbol* vis, InlineCacheEntry*& ice);
-
-    bool fill_method_missing(STATE, Object* self, Class* klass, MethodMissingReason reason, InlineCacheEntry*& ice);
+    static void inline_cache_updater(STATE, CallSite* call_site, Class* klass, FallbackExecutor fallback, Dispatch& dispatch);
 
     void print(STATE, std::ostream& stream);
 
@@ -151,19 +146,19 @@ namespace rubinius {
     }
 
     InlineCacheEntry* get_cache(Class* const recv_class) {
-      register uint64_t recv_data = recv_class->data_id();
+      register uint64_t recv_data = recv_class->data_raw();
       for(int i = 0; i < cTrackedICHits; ++i) {
         InlineCacheEntry* ice = cache_[i].entry();
-        if(likely(ice && ice->receiver_data() == recv_data)) return ice;
+        if(likely(ice && ice->receiver_data_raw() == recv_data)) return ice;
       }
       return NULL;
     }
 
     InlineCacheHit* get_inline_cache(Class* const recv_class, InlineCacheEntry*& ice) {
-      register uint64_t recv_data = recv_class->data_id();
+      register uint64_t recv_data = recv_class->data_raw();
       for(int i = 0; i < cTrackedICHits; ++i) {
         ice = cache_[i].entry();
-        if(likely(ice && ice->receiver_data() == recv_data)) return &cache_[i];
+        if(likely(ice && ice->receiver_data_raw() == recv_data)) return &cache_[i];
       }
       return NULL;
     }

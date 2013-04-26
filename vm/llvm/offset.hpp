@@ -53,8 +53,9 @@ namespace CallSite {
   const static int name = 1;
   const static int executor = 2;
   const static int fallback = 3;
-  const static int executable = 4;
-  const static int ip = 5;
+  const static int updater = 4;
+  const static int executable = 5;
+  const static int ip = 6;
 }
 namespace Class {
   const static int header = 0;
@@ -147,6 +148,16 @@ namespace Module {
   const static int seen_ivars = 5;
   const static int mirror = 6;
   const static int subclasses = 7;
+}
+namespace MonoInlineCache {
+  const static int header = 0;
+  const static int receiver_class_id = 1;
+  const static int receiver_serial_id = 2;
+  const static int receiver_class = 3;
+  const static int stored_module = 4;
+  const static int method = 5;
+  const static int method_missing = 6;
+  const static int hits = 7;
 }
 namespace Numeric {
   const static int header = 0;

@@ -46,7 +46,11 @@ namespace rubinius {
       type_info_ = ti;
     }
 
-    uint64_t data_id() {
+    ClassData data() {
+      return data_;
+    }
+
+    uint64_t data_raw() {
       return data_.raw;
     }
 

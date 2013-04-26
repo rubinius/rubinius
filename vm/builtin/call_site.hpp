@@ -1,6 +1,7 @@
 #ifndef RBX_BUILTIN_CALL_SITE_HPP
 #define RBX_BUILTIN_CALL_SITE_HPP
 
+#include "dispatch.hpp"
 #include "machine_code.hpp"
 #include "builtin/object.hpp"
 #include "builtin/exception.hpp"
@@ -10,7 +11,9 @@
 
 namespace rubinius {
 
-  typedef Object* (*CacheExecutor)(STATE, CallSite*, CallFrame*, Arguments& args);
+  typedef Object* (*CacheExecutor)(STATE, CallSite*, CallFrame*, Arguments&);
+  typedef Object* (*FallbackExecutor)(STATE, CallSite*, CallFrame*, Arguments&);
+  typedef void (*CacheUpdater)(STATE, CallSite*, Class*, FallbackExecutor, Dispatch&);
 
   class CallSiteInformation {
   public:
@@ -28,8 +31,9 @@ namespace rubinius {
     const static object_type type = CallSiteType;
 
     Symbol* name_; // slot
-    CacheExecutor executor_;
-    CacheExecutor fallback_;
+    CacheExecutor    executor_;
+    FallbackExecutor fallback_;
+    CacheUpdater     updater_;
 
     Executable* executable_; // slot
     int ip_;
@@ -60,6 +64,8 @@ namespace rubinius {
 
     static Object* empty_cache_custom(STATE, CallSite* call_site, CallFrame* call_frame,
                                           Arguments& args);
+
+    static void empty_cache_updater(STATE, CallSite* call_site, Class* klass, FallbackExecutor fallback, Dispatch& dispatch);
 
     bool update_and_validate(STATE, CallFrame* call_frame, Object* recv, Symbol* vis, int serial);
 
@@ -102,6 +108,10 @@ namespace rubinius {
 
     Object* fallback(STATE, CallFrame* call_frame, Arguments& args) {
       return (*fallback_)(state, this, call_frame, args);
+    }
+
+    void update(STATE, Class* klass, FallbackExecutor fallback, Dispatch& dispatch) {
+      (*updater_)(state, this, klass, fallback, dispatch);
     }
 
     class Info : public TypeInfo {

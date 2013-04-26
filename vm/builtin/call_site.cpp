@@ -5,6 +5,7 @@
 #include "builtin/object.hpp"
 #include "builtin/class.hpp"
 #include "builtin/call_site.hpp"
+#include "builtin/mono_inline_cache.hpp"
 #include "builtin/inline_cache.hpp"
 #include "builtin/module.hpp"
 #include "builtin/symbol.hpp"
@@ -22,7 +23,7 @@ namespace rubinius {
 
   void CallSite::init(STATE) {
     GO(call_site).set(ontology::new_class(state, "CallSite", G(object), G(rubinius)));
-    G(executable)->set_object_type(state, CallSiteType);
+    G(call_site)->set_object_type(state, CallSiteType);
   }
 
   CallSite* CallSite::empty(STATE, Symbol* name, Executable* executable, int ip) {
@@ -31,6 +32,7 @@ namespace rubinius {
     cache->name_ = name;
     cache->executor_ = empty_cache;
     cache->fallback_ = empty_cache;
+    cache->updater_  = empty_cache_updater;
     cache->executable(state, executable);
     cache->ip_ = ip;
     return cache;
@@ -59,7 +61,7 @@ namespace rubinius {
       cache->set_call_custom();
       InlineCacheEntry* ice = 0;
 
-      ice = InlineCacheEntry::create(state, recv_class, cu->module(), cu->executable(), eNone);
+      ice = InlineCacheEntry::create(state, recv_class->data(), recv_class, cu->module(), cu->executable(), eNone);
 
       cache->write_barrier(state, ice);
       cache->set_cache(ice);
@@ -81,50 +83,33 @@ namespace rubinius {
     Object* const recv = args.recv();
     Class* const recv_class = recv->lookup_begin(state);
 
-    InlineCache* cache = try_as<InlineCache>(call_site);
-    InlineCacheEntry* ice = NULL;
+    LookupData lookup(call_frame->self(), recv_class, G(sym_public));
+    Dispatch dis(call_site->name());
 
-    if(!cache) {
-      cache = InlineCache::empty(state, call_site->name(),
-                                        call_site->executable(),
-                                        call_site->ip());
-    }
+    if(!dis.resolve(state, call_site->name(), lookup)) {
 
-    MethodMissingReason reason =
-      cache->fill(state, call_frame->self(), recv_class,
-                         cache->name_, recv_class, G(sym_public), ice);
+      LookupData missing_lookup(call_frame->self(), recv_class, G(sym_private));
+      Dispatch missing_dis(G(sym_method_missing));
+      missing_dis.resolve(state, G(sym_method_missing), missing_lookup);
 
-    if(reason != eNone) {
-      state->vm()->set_method_missing_reason(reason);
-
-      if(!cache->fill_method_missing(state, call_frame->self(), recv_class, reason, ice)) {
+      if(missing_dis.method_missing != eNone) {
         Exception::internal_error(state, call_frame, "no method_missing");
         return 0;
       }
 
-      args.unshift(state, cache->name_);
-      if(unlikely(cache->growth_cache_size(ice->receiver_class_id()) > 0)) {
-        cache->executor_ = InlineCache::check_cache_poly;
-      } else {
-        cache->executor_ = InlineCache::check_cache_mm;
-      }
-    } else {
-      if(unlikely(cache->growth_cache_size(ice->receiver_class_id()) > 0)) {
-        cache->executor_ = InlineCache::check_cache_poly;
-      } else {
-        cache->executor_ = InlineCache::check_cache;
-      }
+      args.unshift(state, call_site->name());
+      dis.method = missing_dis.method;
+      dis.module = missing_dis.module;
+      state->vm()->set_method_missing_reason(dis.method_missing);
     }
 
-    cache->write_barrier(state, ice);
-    cache->set_cache(ice);
-    call_site->update_call_site(state, cache);
+    call_site->update(state, recv_class, empty_cache, dis);
 
-    Executable* meth = ice->method();
-    Module* mod = ice->stored_module();
+    Executable* meth = dis.method;
+    Module* mod = dis.module;
 
     if(meth->custom_call_site_p()) {
-      CallSiteInformation info(cache->executable(), cache->ip());
+      CallSiteInformation info(call_site->executable(), call_site->ip());
       state->set_call_site_information(&info);
       Object* res = meth->execute(state, call_frame, meth, mod, args);
       state->set_call_site_information(NULL);
@@ -140,51 +125,33 @@ namespace rubinius {
     Object* const recv = args.recv();
     Class* const recv_class = recv->lookup_begin(state);
 
-    InlineCacheEntry* ice = 0;
-    InlineCache* cache = try_as<InlineCache>(call_site);
+    LookupData lookup(call_frame->self(), recv_class, G(sym_private));
+    Dispatch dis(call_site->name());
 
-    if(!cache) {
-      cache = InlineCache::empty(state, call_site->name(),
-                                        call_site->executable(),
-                                        call_site->ip());
-      cache->set_is_private();
-    }
+    if(!dis.resolve(state, call_site->name(), lookup)) {
 
-    MethodMissingReason reason =
-      cache->fill(state, call_frame->self(), recv_class,
-                         cache->name_, recv_class, G(sym_private), ice);
+      LookupData missing_lookup(call_frame->self(), recv_class, G(sym_private));
+      Dispatch missing_dis(G(sym_method_missing));
+      missing_dis.resolve(state, G(sym_method_missing), missing_lookup);
 
-    if(reason != eNone) {
-      state->vm()->set_method_missing_reason(eNormal);
-
-      if(!cache->fill_method_missing(state, call_frame->self(), recv_class, reason, ice)) {
+      if(missing_dis.method_missing != eNone) {
         Exception::internal_error(state, call_frame, "no method_missing");
         return 0;
       }
 
-      args.unshift(state, cache->name_);
-      if(unlikely(cache->growth_cache_size(ice->receiver_class_id()) > 0)) {
-        cache->executor_ = InlineCache::check_cache_poly;
-      } else {
-        cache->executor_ = InlineCache::check_cache_mm;
-      }
-    } else {
-      if(unlikely(cache->growth_cache_size(ice->receiver_class_id()) > 0)) {
-        cache->executor_ = InlineCache::check_cache_poly;
-      } else {
-        cache->executor_ = InlineCache::check_cache;
-      }
+      args.unshift(state, call_site->name());
+      dis.method = missing_dis.method;
+      dis.module = missing_dis.module;
+      state->vm()->set_method_missing_reason(dis.method_missing);
     }
 
-    cache->write_barrier(state, ice);
-    cache->set_cache(ice);
-    call_site->update_call_site(state, cache);
+    call_site->update(state, recv_class, empty_cache_private, dis);
 
-    Executable* meth = ice->method();
-    Module* mod = ice->stored_module();
+    Executable* meth = dis.method;
+    Module* mod = dis.module;
 
     if(meth->custom_call_site_p()) {
-      CallSiteInformation info(cache->executable(), cache->ip());
+      CallSiteInformation info(call_site->executable(), call_site->ip());
       state->set_call_site_information(&info);
       Object* res = meth->execute(state, call_frame, meth, mod, args);
       state->set_call_site_information(NULL);
@@ -197,54 +164,38 @@ namespace rubinius {
   Object* CallSite::empty_cache_vcall(STATE, CallSite* call_site, CallFrame* call_frame,
                                          Arguments& args)
   {
+
     Object* const recv = args.recv();
     Class* const recv_class = recv->lookup_begin(state);
 
-    InlineCacheEntry* ice = NULL;
-    InlineCache* cache = try_as<InlineCache>(call_site);
+    LookupData lookup(call_frame->self(), recv_class, G(sym_private));
+    Dispatch dis(call_site->name());
 
-    if(!cache) {
-      cache = InlineCache::empty(state, call_site->name(),
-                                        call_site->executable(),
-                                        call_site->ip());
-      cache->set_is_vcall();
-    }
+    if(!dis.resolve(state, call_site->name(), lookup)) {
 
-    MethodMissingReason reason =
-      cache->fill(state, call_frame->self(), recv_class,
-                         cache->name_, recv_class, G(sym_private), ice);
+      LookupData missing_lookup(call_frame->self(), recv_class, G(sym_private));
+      Dispatch missing_dis(G(sym_method_missing));
+      missing_dis.resolve(state, G(sym_method_missing), missing_lookup);
 
-    if(reason != eNone) {
-      state->vm()->set_method_missing_reason(eVCall);
-
-      if(!cache->fill_method_missing(state, call_frame->self(), recv_class, reason, ice)) {
+      if(missing_dis.method_missing != eNone) {
         Exception::internal_error(state, call_frame, "no method_missing");
         return 0;
       }
 
-      args.unshift(state, cache->name_);
-      if(unlikely(cache->growth_cache_size(ice->receiver_class_id()) > 0)) {
-        cache->executor_ = InlineCache::check_cache_poly;
-      } else {
-        cache->executor_ = InlineCache::check_cache_mm;
-      }
-    } else {
-      if(unlikely(cache->growth_cache_size(ice->receiver_class_id()) > 0)) {
-        cache->executor_ = InlineCache::check_cache_poly;
-      } else {
-        cache->executor_ = InlineCache::check_cache;
-      }
+      args.unshift(state, call_site->name());
+      dis.method = missing_dis.method;
+      dis.module = missing_dis.module;
+      dis.method_missing = eVCall;
+      state->vm()->set_method_missing_reason(dis.method_missing);
     }
 
-    cache->write_barrier(state, ice);
-    cache->set_cache(ice);
-    call_site->update_call_site(state, cache);
+    call_site->update(state, recv_class, empty_cache_vcall, dis);
 
-    Executable* meth = ice->method();
-    Module* mod = ice->stored_module();
+    Executable* meth = dis.method;
+    Module* mod = dis.module;
 
     if(meth->custom_call_site_p()) {
-      CallSiteInformation info(cache->executable(), cache->ip());
+      CallSiteInformation info(call_site->executable(), call_site->ip());
       state->set_call_site_information(&info);
       Object* res = meth->execute(state, call_frame, meth, mod, args);
       state->set_call_site_information(NULL);
@@ -265,62 +216,37 @@ namespace rubinius {
 
     Object* const recv = args.recv();
     Class* const recv_class = recv->lookup_begin(state);
-
-    InlineCacheEntry* ice = 0;
-    InlineCache* cache = try_as<InlineCache>(call_site);
-
-    if(!cache) {
-      cache = InlineCache::empty(state, call_site->name(),
-                                        call_site->executable(),
-                                        call_site->ip());
-      cache->set_is_super();
-    }
-
     Module* const start = call_frame->module()->superclass();
 
-    bool parent_found = !start->nil_p();
-    MethodMissingReason reason = eSuper;
-    if(parent_found) {
-      reason = cache->fill(state, call_frame->self(), recv_class,
-                          cache->name_, start, G(sym_private), ice);
 
-    }
+    LookupData lookup(call_frame->self(), start, G(sym_private));
+    Dispatch dis(call_site->name());
 
-    if(!parent_found || reason != eNone) {
-      state->vm()->set_method_missing_reason(eSuper);
+    if(start->nil_p() || !dis.resolve(state, call_site->name(), lookup)) {
 
-      // Don't use start when looking up method_missing!
-      // Always completely redispatch for method_missing.
-      // github#157
-      if(!cache->fill_method_missing(state, call_frame->self(), recv_class, reason, ice)) {
+      LookupData missing_lookup(call_frame->self(), recv_class, G(sym_private));
+      Dispatch missing_dis(G(sym_method_missing));
+      missing_dis.resolve(state, G(sym_method_missing), missing_lookup);
+
+      if(missing_dis.method_missing != eNone) {
         Exception::internal_error(state, call_frame, "no method_missing");
         return 0;
       }
 
-      args.unshift(state, cache->name_);
-
-      if(unlikely(cache->growth_cache_size(ice->receiver_class_id()) > 0)) {
-        cache->executor_ = InlineCache::check_cache_poly;
-      } else {
-        cache->executor_ = InlineCache::check_cache_mm;
-      }
-    } else {
-      if(unlikely(cache->growth_cache_size(ice->receiver_class_id()) > 0)) {
-        cache->executor_ = InlineCache::check_cache_poly;
-      } else {
-        cache->executor_ = InlineCache::check_cache;
-      }
+      args.unshift(state, call_site->name());
+      dis.method = missing_dis.method;
+      dis.module = missing_dis.module;
+      dis.method_missing = eSuper;
+      state->vm()->set_method_missing_reason(dis.method_missing);
     }
 
-    cache->write_barrier(state, ice);
-    cache->set_cache(ice);
-    call_site->update_call_site(state, cache);
+    call_site->update(state, recv_class, empty_cache_super, dis);
 
-    Executable* meth = ice->method();
-    Module* mod = ice->stored_module();
+    Executable* meth = dis.method;
+    Module* mod = dis.module;
 
     if(meth->custom_call_site_p()) {
-      CallSiteInformation info(cache->executable(), cache->ip());
+      CallSiteInformation info(call_site->executable(), call_site->ip());
       state->set_call_site_information(&info);
       Object* res = meth->execute(state, call_frame, meth, mod, args);
       state->set_call_site_information(NULL);
@@ -330,36 +256,43 @@ namespace rubinius {
     }
   }
 
+  void CallSite::empty_cache_updater(STATE, CallSite* call_site, Class* klass, FallbackExecutor fallback, Dispatch& dispatch) {
+    MonoInlineCache* cache = MonoInlineCache::empty(state, call_site->name(),
+                                                   call_site->executable(),
+                                                   call_site->ip());
+    cache->update(state, klass, dispatch.module, dispatch.method, dispatch.method_missing);
+    if(dispatch.method_missing == eNone) {
+      cache->executor_ = MonoInlineCache::check_cache;
+    } else {
+      cache->executor_ = MonoInlineCache::check_cache_mm;
+    }
+    cache->fallback_ = fallback;
+    call_site->update_call_site(state, cache);
+  }
+
   bool CallSite::update_and_validate(STATE, CallFrame* call_frame, Object* recv, Symbol* vis, int serial) {
 
     Class* const recv_class = recv->lookup_begin(state);
 
-    InlineCache* cache = try_as<InlineCache>(this);
-
-    if(!cache) {
-      cache = InlineCache::empty(state, name_,
-                                        executable_,
-                                        ip_);
-      cache->set_executor(executor_);
+    if(MonoInlineCache* mono = try_as<MonoInlineCache>(this)) {
+      if(recv_class->data_raw() == mono->receiver_data_raw()) {
+        return mono->method()->serial()->to_native() == serial;
+      }
     }
 
-    InlineCacheEntry* ice = cache->get_cache(recv_class);
-
-    if(likely(ice)) return ice->method()->serial()->to_native() == serial;
-
-    MethodMissingReason reason =
-      cache->fill(state, call_frame->self(), recv_class, name_, recv_class, vis, ice);
-    if(reason != eNone) return false;
-
-    if(unlikely(cache->growth_cache_size(ice->receiver_class_id()) > 0)) {
-      cache->executor_ = InlineCache::check_cache_poly;
+    if(InlineCache* cache = try_as<InlineCache>(this)) {
+      InlineCacheEntry* ice = cache->get_cache(recv_class);
+      if(likely(ice)) return ice->method()->serial()->to_native() == serial;
     }
 
-    cache->write_barrier(state, ice);
-    cache->set_cache(ice);
-    update_call_site(state, cache);
+    LookupData lookup(call_frame->self(), recv_class, G(sym_public));
+    Dispatch dis(name_);
 
-    return ice->method()->serial()->to_native() == serial;
+    if(dis.resolve(state, name_, lookup)) {
+      update(state, recv_class, fallback_, dis);
+      return dis.method->serial()->to_native() == serial;
+    }
+    return false;
   }
 
   void CallSite::Info::mark(Object* obj, ObjectMark& mark) {

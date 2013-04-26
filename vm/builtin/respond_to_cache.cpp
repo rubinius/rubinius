@@ -15,7 +15,7 @@ namespace rubinius {
     GO(respond_to_cache).set(
         ontology::new_class(state, "RespondToCache",
           G(call_site), G(rubinius)));
-
+    G(respond_to_cache)->set_object_type(state, RespondToCacheType);
   }
 
   RespondToCache* RespondToCache::empty(STATE, CallSite* fallback, Executable* executable, int ip) {
@@ -45,8 +45,8 @@ namespace rubinius {
       visibility            = args.get_argument(1);
     }
 
-    register uint64_t recv_data = recv_class->data_id();
-    if(likely(recv_data == cache->receiver_data() && message == cache->message_ && visibility == cache->visibility_)) {
+    register uint64_t recv_data = recv_class->data_raw();
+    if(likely(recv_data == cache->receiver_data_raw() && message == cache->message_ && visibility == cache->visibility_)) {
       return cache->responds_;
     }
 
@@ -55,7 +55,7 @@ namespace rubinius {
 
   void RespondToCache::update(STATE, Object* recv, Symbol* msg, Object* priv, Object* res) {
     Class* const recv_class = recv->lookup_begin(state);
-    uint64_t recv_data = recv_class->data_id();
+    uint64_t recv_data = recv_class->data_raw();
     receiver_class(state, recv_class);
     message(state, msg);
     visibility(state, priv);

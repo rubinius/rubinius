@@ -43,6 +43,7 @@
 #include "builtin/proc.hpp"
 #include "builtin/variable_scope.hpp"
 #include "builtin/location.hpp"
+#include "builtin/mono_inline_cache.hpp"
 #include "builtin/inline_cache.hpp"
 #include "builtin/respond_to_cache.hpp"
 #include "builtin/constant_cache.hpp"
@@ -349,6 +350,7 @@ namespace rubinius {
     NativeMethod::init(state);
 
     CallSite::init(state);
+    MonoInlineCache::init(state);
     InlineCache::init(state);
     ConstantCache::init(state);
     RespondToCache::init(state);

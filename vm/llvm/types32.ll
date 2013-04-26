@@ -68,11 +68,25 @@ declare void @output3(%"struct.rubinius::Dispatch"*)
       %"struct.rubinius::Symbol"*, ; name
   %"struct.rubinius::Object"* (%"struct.rubinius::State"*, %"struct.rubinius::CallSite"*, %"struct.rubinius::CallFrame"*, %"struct.rubinius::Arguments"*)*, ; executor
   %"struct.rubinius::Object"* (%"struct.rubinius::State"*, %"struct.rubinius::CallSite"*, %"struct.rubinius::CallFrame"*, %"struct.rubinius::Arguments"*)*, ; fallback
+  void (%"struct.rubinius::State"*, %"struct.rubinius::CallSite"*, %"struct.rubinius::Class"*, %"struct.rubinius::Object"* (%"struct.rubinius::State"*, %"struct.rubinius::CallSite"*, %"struct.rubinius::CallFrame"*, %"struct.rubinius::Arguments"*)*, %"struct.rubinius::Dispatch"*)*, ; updater
   %"struct.rubinius::Executable"*, ; executable
                               i32  ; ip
 }
 
 declare void @outputCallSite(%"struct.rubinius::CallSite"*)
+
+%"struct.rubinius::MonoInlineCache" = type {
+    %"struct.rubinius::CallSite",  ; header
+                              i32, ; receiver_class_id
+                              i32, ; receiver_serial_id
+       %"struct.rubinius::Class"*, ; receiver_class
+      %"struct.rubinius::Module"*, ; stored_module
+  %"struct.rubinius::Executable"*, ; method
+                              i32, ; method_missing
+                              i32  ; hits
+}
+
+declare void @outputMonoInlineCache(%"struct.rubinius::MonoInlineCache"*)
 
 %"struct.rubinius::InlineCache" = type {
              %"struct.rubinius::CallSite",  ; header
