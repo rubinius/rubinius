@@ -1,1 +1,0 @@
-fails:Math.log10 returns NaN given NaN

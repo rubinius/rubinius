@@ -27,6 +27,35 @@ module Math
     1124000727777607680000.0
   ]
 
+  def asin(x)
+    return Float::NAN if x.kind_of? Float and x.nan?
+
+    x = Rubinius::Type.coerce_to_float(x)
+    raise DomainError, 'asin' unless x.abs <= 1.0
+    FFI::Platform::Math.asin x
+  end
+
+  def acos(x)
+    return Float::NAN if x.kind_of? Float and x.nan?
+
+    x = Rubinius::Type.coerce_to_float(x)
+    raise DomainError, 'acos' unless x.abs <= 1.0
+
+    FFI::Platform::POSIX.errno = 0
+
+    ret = FFI::Platform::Math.acos x
+    Errno.handle
+    ret
+  end
+
+  def acosh(x)
+    return Float::NAN if x.kind_of? Float and x.nan?
+
+    x = Rubinius::Type.coerce_to_float(x)
+    raise DomainError, 'acosh' unless x >= 1.0
+    FFI::Platform::Math.acosh x
+  end
+
   def cbrt(x)
     x = Rubinius::Type.coerce_to_float x
     FFI::Platform::Math.cbrt x
@@ -76,6 +105,8 @@ module Math
   end
 
   def log(x, base=undefined)
+    return Float::NAN if x.kind_of? Float and x.nan?
+
     x = Rubinius::Type.coerce_to_float x
     raise DomainError, 'log' unless x >= 0.0
     return -Float::INFINITY if x == 0.0
@@ -86,4 +117,29 @@ module Math
     end
     y
   end
+
+  def log2(x)
+    return Float::NAN if x.kind_of? Float and x.nan?
+
+    x = Rubinius::Type.coerce_to_float(x)
+    raise DomainError, 'log2' unless x >= 0.0
+    FFI::Platform::Math.log2 x
+  end
+
+  def log10(x)
+    return Float::NAN if x.kind_of? Float and x.nan?
+
+    x = Rubinius::Type.coerce_to_float(x)
+    raise DomainError, 'log10' unless x >= 0.0
+    FFI::Platform::Math.log10 x
+  end
+
+  def sqrt(x)
+    return Float::NAN if x.kind_of? Float and x.nan?
+
+    x = Rubinius::Type.coerce_to_float(x)
+    raise DomainError, 'sqrt' unless x >= 0.0
+    FFI::Platform::Math.sqrt x
+  end
+
 end
