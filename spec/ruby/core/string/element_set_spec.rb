@@ -373,6 +373,15 @@ describe "String#[]= with a Regexp index" do
       lambda { str[/a (bbb) c/,  2] = "ddd" }.should raise_error(IndexError)
       lambda { str[/a (bbb) c/, -2] = "ddd" }.should raise_error(IndexError)
     end
+
+    describe "when the optional capture does not match" do
+      it "raises an IndexError before setting the replacement" do
+        str1 = "a b c"
+        str2 = str1.dup
+        lambda { str2[/a (b) (Z)?/,  2] = "d" }.should raise_error(IndexError)
+        str2.should == str1
+      end
+    end
   end
 
   with_feature :encoding do
