@@ -839,7 +839,7 @@ namespace rubinius {
     if(info && (code = try_as<CompiledCode>(info->executable))) {
       CallSite* existing = code->machine_code()->call_site(state, info->ip);
       if(RespondToCache* rct = try_as<RespondToCache>(existing)) {
-        existing = rct->fallback();
+        existing = rct->fallback_call_site();
       }
       RespondToCache* cache = RespondToCache::empty(state, existing, code, info->ip);
       cache->update(state, this, name, priv, responds);

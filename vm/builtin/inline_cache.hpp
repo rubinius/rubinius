@@ -108,7 +108,6 @@ namespace rubinius {
 
   private:
     CallUnit* call_unit_; // slot
-    CacheExecutor initial_backend_;
     InlineCacheHit cache_[cTrackedICHits];
 
     int seen_classes_overflow_;
@@ -116,11 +115,6 @@ namespace rubinius {
   public:
     attr_accessor(name, Symbol);
     attr_accessor(call_unit, CallUnit);
-
-
-    Object* initialize(STATE, CallFrame* call_frame, Arguments& args) {
-      return (*initial_backend_)(state, this, call_frame, args);
-    }
 
     static void init(STATE);
     static InlineCache* empty(STATE, Symbol* name, Executable* executable, int ip);
@@ -148,31 +142,6 @@ namespace rubinius {
 
     InlineCacheHit* caches() {
       return cache_;
-    }
-
-    void set_is_private() {
-      initial_backend_ = CallSite::empty_cache_private;
-      execute_backend_ = CallSite::empty_cache_private;
-    }
-
-    void set_is_super() {
-      initial_backend_ = CallSite::empty_cache_super;
-      execute_backend_ = CallSite::empty_cache_super;
-    }
-
-    void set_is_vcall() {
-      initial_backend_ = CallSite::empty_cache_vcall;
-      execute_backend_ = CallSite::empty_cache_vcall;
-    }
-
-    void set_call_custom() {
-      initial_backend_ = CallSite::empty_cache_custom;
-      execute_backend_ = CallSite::empty_cache_custom;
-    }
-
-    void set_executor(CacheExecutor executor) {
-      initial_backend_ = executor;
-      execute_backend_ = executor;
     }
 
     void clear() {

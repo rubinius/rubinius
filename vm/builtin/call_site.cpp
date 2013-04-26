@@ -29,7 +29,8 @@ namespace rubinius {
     CallSite* cache =
       state->new_object_dirty<CallSite>(G(call_site));
     cache->name_ = name;
-    cache->execute_backend_ = CallSite::empty_cache;
+    cache->executor_ = empty_cache;
+    cache->fallback_ = empty_cache;
     cache->executable(state, executable);
     cache->ip_ = ip;
     return cache;
@@ -63,7 +64,7 @@ namespace rubinius {
       cache->write_barrier(state, ice);
       cache->set_cache(ice);
       cache->call_unit(state, cu);
-      cache->execute_backend_ = InlineCache::check_cache_custom;
+      cache->executor_ = InlineCache::check_cache_custom;
 
       call_site->update_call_site(state, cache);
 
@@ -103,15 +104,15 @@ namespace rubinius {
 
       args.unshift(state, cache->name_);
       if(unlikely(cache->growth_cache_size(ice->receiver_class_id()) > 0)) {
-        cache->execute_backend_ = InlineCache::check_cache_poly;
+        cache->executor_ = InlineCache::check_cache_poly;
       } else {
-        cache->execute_backend_ = InlineCache::check_cache_mm;
+        cache->executor_ = InlineCache::check_cache_mm;
       }
     } else {
       if(unlikely(cache->growth_cache_size(ice->receiver_class_id()) > 0)) {
-        cache->execute_backend_ = InlineCache::check_cache_poly;
+        cache->executor_ = InlineCache::check_cache_poly;
       } else {
-        cache->execute_backend_ = InlineCache::check_cache;
+        cache->executor_ = InlineCache::check_cache;
       }
     }
 
@@ -163,15 +164,15 @@ namespace rubinius {
 
       args.unshift(state, cache->name_);
       if(unlikely(cache->growth_cache_size(ice->receiver_class_id()) > 0)) {
-        cache->execute_backend_ = InlineCache::check_cache_poly;
+        cache->executor_ = InlineCache::check_cache_poly;
       } else {
-        cache->execute_backend_ = InlineCache::check_cache_mm;
+        cache->executor_ = InlineCache::check_cache_mm;
       }
     } else {
       if(unlikely(cache->growth_cache_size(ice->receiver_class_id()) > 0)) {
-        cache->execute_backend_ = InlineCache::check_cache_poly;
+        cache->executor_ = InlineCache::check_cache_poly;
       } else {
-        cache->execute_backend_ = InlineCache::check_cache;
+        cache->executor_ = InlineCache::check_cache;
       }
     }
 
@@ -223,15 +224,15 @@ namespace rubinius {
 
       args.unshift(state, cache->name_);
       if(unlikely(cache->growth_cache_size(ice->receiver_class_id()) > 0)) {
-        cache->execute_backend_ = InlineCache::check_cache_poly;
+        cache->executor_ = InlineCache::check_cache_poly;
       } else {
-        cache->execute_backend_ = InlineCache::check_cache_mm;
+        cache->executor_ = InlineCache::check_cache_mm;
       }
     } else {
       if(unlikely(cache->growth_cache_size(ice->receiver_class_id()) > 0)) {
-        cache->execute_backend_ = InlineCache::check_cache_poly;
+        cache->executor_ = InlineCache::check_cache_poly;
       } else {
-        cache->execute_backend_ = InlineCache::check_cache;
+        cache->executor_ = InlineCache::check_cache;
       }
     }
 
@@ -299,15 +300,15 @@ namespace rubinius {
       args.unshift(state, cache->name_);
 
       if(unlikely(cache->growth_cache_size(ice->receiver_class_id()) > 0)) {
-        cache->execute_backend_ = InlineCache::check_cache_poly;
+        cache->executor_ = InlineCache::check_cache_poly;
       } else {
-        cache->execute_backend_ = InlineCache::check_cache_mm;
+        cache->executor_ = InlineCache::check_cache_mm;
       }
     } else {
       if(unlikely(cache->growth_cache_size(ice->receiver_class_id()) > 0)) {
-        cache->execute_backend_ = InlineCache::check_cache_poly;
+        cache->executor_ = InlineCache::check_cache_poly;
       } else {
-        cache->execute_backend_ = InlineCache::check_cache;
+        cache->executor_ = InlineCache::check_cache;
       }
     }
 
@@ -339,7 +340,7 @@ namespace rubinius {
       cache = InlineCache::empty(state, name_,
                                         executable_,
                                         ip_);
-      cache->set_executor(execute_backend_);
+      cache->set_executor(executor_);
     }
 
     InlineCacheEntry* ice = cache->get_cache(recv_class);
@@ -351,7 +352,7 @@ namespace rubinius {
     if(reason != eNone) return false;
 
     if(unlikely(cache->growth_cache_size(ice->receiver_class_id()) > 0)) {
-      cache->execute_backend_ = InlineCache::check_cache_poly;
+      cache->executor_ = InlineCache::check_cache_poly;
     }
 
     cache->write_barrier(state, ice);

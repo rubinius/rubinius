@@ -665,7 +665,7 @@ namespace rubinius {
 
       Value* execute_pos_idx[] = {
         cint(0),
-        cint(offset::CallSite::execute),
+        cint(offset::CallSite::executor),
       };
 
       Value* execute_pos = b().CreateGEP(call_site_const,
@@ -708,7 +708,7 @@ namespace rubinius {
 
       Value* execute_pos_idx[] = {
         cint(0),
-        cint(offset::CallSite::execute),
+        cint(offset::CallSite::executor),
       };
 
       Value* execute_pos = b().CreateGEP(call_site_const,

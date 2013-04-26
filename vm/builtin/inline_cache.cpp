@@ -34,8 +34,8 @@ namespace rubinius {
     InlineCache* cache =
       state->vm()->new_object_mature<InlineCache>(G(inline_cache));
     cache->name_ = name;
-    cache->initial_backend_ = CallSite::empty_cache;
-    cache->execute_backend_ = CallSite::empty_cache;
+    cache->executor_ = CallSite::empty_cache;
+    cache->fallback_ = CallSite::empty_cache;
     cache->executable(state, executable);
     cache->ip_ = ip;
     cache->call_unit_ = nil<CallUnit>();
@@ -112,7 +112,7 @@ namespace rubinius {
       return meth->execute(state, call_frame, meth, mod, args);
     }
 
-    return cache->initialize(state, call_frame, args);
+    return cache->fallback(state, call_frame, args);
   }
 
   Object* InlineCache::check_cache_mm(STATE, CallSite* call_site, CallFrame* call_frame,
@@ -135,7 +135,7 @@ namespace rubinius {
       return meth->execute(state, call_frame, meth, mod, args);
     }
 
-    return cache->initialize(state, call_frame, args);
+    return cache->fallback(state, call_frame, args);
   }
 
   Object* InlineCache::check_cache_poly(STATE, CallSite* call_site, CallFrame* call_frame,
@@ -159,7 +159,7 @@ namespace rubinius {
       return meth->execute(state, call_frame, meth, mod, args);
     }
 
-    return cache->initialize(state, call_frame, args);
+    return cache->fallback(state, call_frame, args);
   }
 
   void InlineCache::print(STATE, std::ostream& stream) {

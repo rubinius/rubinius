@@ -50,10 +50,11 @@ namespace CallFrame {
 }
 namespace CallSite {
   const static int header = 0;
-  const static int execute = 1;
-  const static int name = 2;
-  const static int executable = 3;
-  const static int ip = 4;
+  const static int name = 1;
+  const static int executor = 2;
+  const static int fallback = 3;
+  const static int executable = 4;
+  const static int ip = 5;
 }
 namespace Class {
   const static int header = 0;
@@ -122,9 +123,8 @@ namespace HeaderWord {
 namespace InlineCache {
   const static int header = 0;
   const static int call_unit = 1;
-  const static int initial = 2;
-  const static int cache = 3;
-  const static int seen_classes_overflow = 4;
+  const static int cache = 2;
+  const static int seen_classes_overflow = 3;
 }
 namespace InlineCacheEntry {
   const static int header = 0;

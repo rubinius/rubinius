@@ -497,6 +497,7 @@ StructTy_struct_rubinius__CallSite = StructType::create(mod->getContext(), "stru
 }
 std::vector<Type*>StructTy_struct_rubinius__CallSite_fields;
 StructTy_struct_rubinius__CallSite_fields.push_back(StructTy_struct_rubinius__Object);
+StructTy_struct_rubinius__CallSite_fields.push_back(PointerTy_8);
 std::vector<Type*>FuncTy_41_args;
 FuncTy_41_args.push_back(PointerTy_3);
 PointerType* PointerTy_39 = PointerType::get(StructTy_struct_rubinius__CallSite, 0);
@@ -512,7 +513,7 @@ FunctionType* FuncTy_41 = FunctionType::get(
 PointerType* PointerTy_40 = PointerType::get(FuncTy_41, 0);
 
 StructTy_struct_rubinius__CallSite_fields.push_back(PointerTy_40);
-StructTy_struct_rubinius__CallSite_fields.push_back(PointerTy_8);
+StructTy_struct_rubinius__CallSite_fields.push_back(PointerTy_40);
 StructTy_struct_rubinius__CallSite_fields.push_back(PointerTy_31);
 StructTy_struct_rubinius__CallSite_fields.push_back(IntegerType::get(mod->getContext(), 32));
 if (StructTy_struct_rubinius__CallSite->isOpaque()) {
@@ -545,7 +546,6 @@ StructTy_struct_rubinius__CallUnit->setBody(StructTy_struct_rubinius__CallUnit_f
 PointerType* PointerTy_44 = PointerType::get(StructTy_struct_rubinius__CallUnit, 0);
 
 StructTy_struct_rubinius__InlineCache_fields.push_back(PointerTy_44);
-StructTy_struct_rubinius__InlineCache_fields.push_back(PointerTy_40);
 StructType *StructTy_struct_rubinius__InlineCacheHit = mod->getTypeByName("struct.rubinius::InlineCacheHit");
 if (!StructTy_struct_rubinius__InlineCacheHit) {
 StructTy_struct_rubinius__InlineCacheHit = StructType::create(mod->getContext(), "struct.rubinius::InlineCacheHit");

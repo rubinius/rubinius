@@ -21,14 +21,15 @@ namespace rubinius {
   RespondToCache* RespondToCache::empty(STATE, CallSite* fallback, Executable* executable, int ip) {
     RespondToCache* cache =
       state->vm()->new_object<RespondToCache>(G(respond_to_cache));
-    cache->fallback(state, fallback);
+    cache->fallback_call_site(state, fallback);
     cache->executable(state, executable);
     cache->ip_              = ip;
     cache->name_            = fallback->name();
     cache->receiver_class_  = nil<Class>();
     cache->visibility_      = nil<Symbol>();
     cache->responds_        = cNil;
-    cache->execute_backend_ = check_cache;
+    cache->executor_        = check_cache;
+    cache->fallback_        = check_cache;
     cache->clear_receiver_data();
     return cache;
   }
@@ -49,7 +50,7 @@ namespace rubinius {
       return cache->responds_;
     }
 
-    return cache->fallback_->execute(state, call_frame, args);
+    return cache->fallback_call_site_->execute(state, call_frame, args);
   }
 
   void RespondToCache::update(STATE, Object* recv, Symbol* msg, Object* priv, Object* res) {
@@ -60,7 +61,7 @@ namespace rubinius {
     visibility(state, priv);
     responds(state, res);
     set_receiver_data(recv_data);
-    execute_backend_ = check_cache;
+    executor_ = check_cache;
   }
 
   void RespondToCache::Info::mark(Object* obj, ObjectMark& mark) {
