@@ -29,6 +29,7 @@ module Math
 
   def cbrt(x)
     x = Rubinius::Type.coerce_to_float x
+    FFI::Platform::Math.cbrt x
   end
 
   def gamma(x)
