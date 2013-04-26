@@ -36,7 +36,6 @@ describe :tcpsocket_new, :shared => true do
     after :each do
       if @socket
         @socket.write "QUIT"
-        @socket.shutdown
         @socket.close
       end
     end
