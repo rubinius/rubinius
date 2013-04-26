@@ -146,6 +146,10 @@ module Math
   end
 
   def ldexp(x, n)
+    if n.kind_of? Float and n.nan?
+      raise RangeError, "NaN cannot be converted to an Integer"
+    end
+
     n = Rubinius::Type.coerce_to(n, Integer, :to_int)
 
     FFI::Platform::Math.ldexp Rubinius::Type.coerce_to_float(x), n

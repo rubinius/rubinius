@@ -1,1 +1,0 @@
-fails:Math.ldexp raises RangeError if NaN is given as the second arg
