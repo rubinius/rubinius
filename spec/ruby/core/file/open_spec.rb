@@ -568,7 +568,7 @@ describe "File.open when passed a file descriptor" do
   end
 
   after do
-    @file.close unless @file.closed?
+    @file.close if @file and not @file.closed?
     rm_r @name
   end
 
