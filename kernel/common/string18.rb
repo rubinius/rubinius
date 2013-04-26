@@ -673,6 +673,10 @@ class String
         raise IndexError, "index #{count} out of match bounds"
       end
 
+      unless match[count]
+        raise IndexError, "regexp group #{count} not matched"
+      end
+
       replacement = StringValue replacement
 
       m = Rubinius::Mirror.reflect self
