@@ -111,12 +111,16 @@ module Enumerable
     each do
       o = Rubinius.single_block_arg
       entry = args.inject([o]) do |ary, a|
-        case a
-        when Array
-          ary << a[i]
-        else
-          ary << a.next
-        end
+        ary << case a
+               when Array
+                 a[i]
+               else
+                 begin
+                   a.next
+                 rescue StopIteration
+                   nil
+                 end
+               end
       end
 
       yield entry if block_given?
