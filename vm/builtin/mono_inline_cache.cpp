@@ -109,7 +109,11 @@ namespace rubinius {
       new_cache->set_cache(existing_entry);
       new_cache->write_barrier(state, new_entry);
       new_cache->set_cache(new_entry);
-      new_cache->executor_ = InlineCache::check_cache_poly;
+      if(new_entry->method_missing() == eNone && existing_entry->method_missing() == eNone) {
+        new_cache->executor_ = InlineCache::check_cache_poly;
+      } else {
+        new_cache->executor_ = InlineCache::check_cache_poly_mm;
+      }
       new_cache->fallback_ = fallback;
 
       existing_cache->update_call_site(state, new_cache);

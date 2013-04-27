@@ -70,7 +70,27 @@ namespace rubinius {
   }
 
   Object* InlineCache::check_cache_poly(STATE, CallSite* call_site, CallFrame* call_frame,
-                                   Arguments& args)
+                                        Arguments& args)
+  {
+    Class* const recv_class = args.recv()->lookup_begin(state);
+
+    InlineCacheEntry* entry;
+    InlineCache* cache = static_cast<InlineCache*>(call_site);
+    InlineCacheHit* ic = cache->get_inline_cache(recv_class, entry);
+
+    if(likely(ic)) {
+      Executable* meth = entry->method();
+      Module* mod = entry->stored_module();
+      ic->hit();
+
+      return meth->execute(state, call_frame, meth, mod, args);
+    }
+
+    return cache->fallback(state, call_frame, args);
+  }
+
+  Object* InlineCache::check_cache_poly_mm(STATE, CallSite* call_site, CallFrame* call_frame,
+                                           Arguments& args)
   {
     Class* const recv_class = args.recv()->lookup_begin(state);
 
@@ -99,6 +119,10 @@ namespace rubinius {
                                                        dispatch.module,
                                                        dispatch.method,
                                                        dispatch.method_missing);
+
+    if(entry->method_missing() != eNone) {
+      cache->executor_ = check_cache_poly_mm;
+    }
     cache->write_barrier(state, entry);
     cache->set_cache(entry);
   }
