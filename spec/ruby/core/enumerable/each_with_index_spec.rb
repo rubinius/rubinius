@@ -35,6 +35,19 @@ describe "Enumerable#each_with_index" do
     res.should equal(@b)
   end
 
+  it "binds to an array if the yield is called with multiple arguments" do
+    enum = EnumerableSpecs::YieldsMixed.new.each_with_index
+    enum.to_a.should == [
+      [1,         0],
+      [[2],       1],
+      [[3, 4],    2],
+      [[5, 6, 7], 3],
+      [[8, 9],    4],
+      [nil,       5],
+      [[],        6]
+    ]
+  end
+
   ruby_version_is '1.8.7' do
     it "returns an enumerator if no block" do
       e = @b.each_with_index
