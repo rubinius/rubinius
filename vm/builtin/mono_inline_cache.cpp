@@ -104,17 +104,9 @@ namespace rubinius {
                                                                          existing_cache->stored_module_,
                                                                          existing_cache->method_,
                                                                          existing_cache->method_missing_);
-
-      new_cache->write_barrier(state, existing_entry);
-      new_cache->set_cache(existing_entry);
-      new_cache->write_barrier(state, new_entry);
-      new_cache->set_cache(new_entry);
-      if(new_entry->method_missing() == eNone && existing_entry->method_missing() == eNone) {
-        new_cache->executor_ = InlineCache::check_cache_poly;
-      } else {
-        new_cache->executor_ = InlineCache::check_cache_poly_mm;
-      }
       new_cache->fallback_ = fallback;
+      new_cache->set_cache(state, existing_entry);
+      new_cache->set_cache(state, new_entry);
 
       existing_cache->update_call_site(state, new_cache);
     }

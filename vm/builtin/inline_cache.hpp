@@ -128,11 +128,11 @@ namespace rubinius {
     static Object* check_cache_custom(STATE, CallSite* cache, CallFrame* call_frame,
                                Arguments& args);
 
-    static Object* check_cache_poly(STATE, CallSite* cache, CallFrame* call_frame,
-                                    Arguments& args);
+    static Object* check_cache(STATE, CallSite* cache, CallFrame* call_frame,
+                               Arguments& args);
 
-    static Object* check_cache_poly_mm(STATE, CallSite* cache, CallFrame* call_frame,
-                                       Arguments& args);
+    static Object* check_cache_mm(STATE, CallSite* cache, CallFrame* call_frame,
+                                  Arguments& args);
 
     static void inline_cache_updater(STATE, CallSite* call_site, Class* klass, FallbackExecutor fallback, Dispatch& dispatch);
 
@@ -199,7 +199,11 @@ namespace rubinius {
       return entry;
     }
 
-    void set_cache(InlineCacheEntry* ice) {
+    void set_cache(STATE, InlineCacheEntry* ice) {
+      write_barrier(state, ice);
+      if(ice->method_missing() != eNone) {
+        executor_ = check_cache_mm;
+      }
       // Make sure we sync here, so the InlineCacheEntry ice is
       // guaranteed completely initialized. Otherwise another thread
       // might see an incompletely initialized InlineCacheEntry.

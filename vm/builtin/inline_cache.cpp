@@ -34,7 +34,7 @@ namespace rubinius {
     InlineCache* cache =
       state->vm()->new_object_mature<InlineCache>(G(inline_cache));
     cache->name_ = name;
-    cache->executor_ = CallSite::empty_cache;
+    cache->executor_ = check_cache;
     cache->fallback_ = CallSite::empty_cache;
     cache->updater_  = inline_cache_updater;
     cache->executable(state, executable);
@@ -69,8 +69,8 @@ namespace rubinius {
                                       ice->method(), ice->stored_module(), args);
   }
 
-  Object* InlineCache::check_cache_poly(STATE, CallSite* call_site, CallFrame* call_frame,
-                                        Arguments& args)
+  Object* InlineCache::check_cache(STATE, CallSite* call_site, CallFrame* call_frame,
+                                   Arguments& args)
   {
     Class* const recv_class = args.recv()->lookup_begin(state);
 
@@ -89,8 +89,8 @@ namespace rubinius {
     return cache->fallback(state, call_frame, args);
   }
 
-  Object* InlineCache::check_cache_poly_mm(STATE, CallSite* call_site, CallFrame* call_frame,
-                                           Arguments& args)
+  Object* InlineCache::check_cache_mm(STATE, CallSite* call_site, CallFrame* call_frame,
+                                      Arguments& args)
   {
     Class* const recv_class = args.recv()->lookup_begin(state);
 
@@ -119,12 +119,7 @@ namespace rubinius {
                                                        dispatch.module,
                                                        dispatch.method,
                                                        dispatch.method_missing);
-
-    if(entry->method_missing() != eNone) {
-      cache->executor_ = check_cache_poly_mm;
-    }
-    cache->write_barrier(state, entry);
-    cache->set_cache(entry);
+    cache->set_cache(state, entry);
   }
 
   void InlineCache::print(STATE, std::ostream& stream) {

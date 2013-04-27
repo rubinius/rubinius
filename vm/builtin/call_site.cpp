@@ -63,8 +63,7 @@ namespace rubinius {
 
       ice = InlineCacheEntry::create(state, recv_class->data(), recv_class, cu->module(), cu->executable(), eNone);
 
-      cache->write_barrier(state, ice);
-      cache->set_cache(ice);
+      cache->set_cache(state, ice);
       cache->call_unit(state, cu);
       cache->executor_ = InlineCache::check_cache_custom;
 
