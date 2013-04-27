@@ -187,4 +187,30 @@ ruby_version_is "1.9" do
     it_behaves_like :io_readlines, :readlines
     it_behaves_like :io_readlines_options_19, :readlines
   end
+
+  describe "IO.readlines" do
+    before :each do
+      @external = Encoding.default_external
+      @internal = Encoding.default_internal
+      @name = fixture __FILE__, "lines.txt"
+    end
+
+    after :each do
+      Encoding.default_external = @external
+      Encoding.default_internal = @internal
+    end
+
+    it "returns strings encoded with the default external encoding" do
+      Encoding.default_external = Encoding::UTF_8
+      lines = IO.readlines(@name)
+      lines.all? { |s| s.encoding == Encoding::UTF_8 }.should be_true
+    end
+
+    it "encodes the strings with the default internal encoding, if set" do
+      Encoding.default_external = Encoding::UTF_8
+      Encoding.default_internal = Encoding::UTF_16
+      lines = IO.readlines(@name)
+      lines.all? { |s| s.encoding == Encoding::UTF_16 }.should be_true
+    end
+  end
 end
