@@ -562,13 +562,6 @@ extern "C" {
 
   Object* rbx_check_serial(STATE, CallFrame* call_frame, CallSite* call_site,
                            int serial, Object* recv, Symbol* vis) {
-
-    if(call_site->update_and_validate(state, call_frame, recv, G(sym_public), serial)) {
-      if(MonoInlineCache* mono = try_as<MonoInlineCache>(call_site)) {
-
-        printf("call site on %p recv %p site %p %s updated\n", recv, recv->lookup_begin(state), mono->receiver_class(), call_site->name()->debug_str(state).c_str());
-      }
-    }
     return RBOOL(call_site->update_and_validate(state, call_frame, recv, G(sym_public), serial));
   }
 
