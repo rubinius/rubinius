@@ -2907,10 +2907,15 @@ use_send:
       set_block(done);
     }
 
-    void emit_check_serial(opcode index, opcode serial, const char* function) {
-      Value* cache_const = b().CreateIntToPtr(
-          clong(index),
-          ptr_type("InlineCache"), "cast_to_ptr");
+    void emit_check_serial(opcode& index, opcode serial, const char* function) {
+
+      InlineCache** cache_ptr = reinterpret_cast<InlineCache**>(&index);
+
+      Value* cache_ptr_const = b().CreateIntToPtr(
+          clong(reinterpret_cast<uintptr_t>(cache_ptr)),
+          ptr_type(ptr_type("InlineCache")), "cast_to_ptr");
+
+      Value* cache_const = b().CreateLoad(cache_ptr_const, "cache_const");
 
       Value* recv = stack_pop();
 
@@ -3017,11 +3022,11 @@ use_send:
       stack_push(phi);
     }
 
-    void visit_check_serial(opcode index, opcode serial) {
+    void visit_check_serial(opcode& index, opcode serial) {
       emit_check_serial(index, serial, "rbx_check_serial");
     }
 
-    void visit_check_serial_private(opcode index, opcode serial) {
+    void visit_check_serial_private(opcode& index, opcode serial) {
       emit_check_serial(index, serial, "rbx_check_serial_private");
     }
 
