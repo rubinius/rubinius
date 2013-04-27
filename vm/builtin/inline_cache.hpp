@@ -121,7 +121,7 @@ namespace rubinius {
     static Object* check_cache_mm(STATE, CallSite* cache, CallFrame* call_frame,
                                   Arguments& args);
 
-    static void inline_cache_updater(STATE, CallSite* call_site, Class* klass, FallbackExecutor fallback, Dispatch& dispatch);
+    static void inline_cache_updater(STATE, CallSite* call_site, Class* klass, Dispatch& dispatch);
 
     void print(STATE, std::ostream& stream);
 

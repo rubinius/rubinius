@@ -518,7 +518,6 @@ std::vector<Type*>FuncTy_43_args;
 FuncTy_43_args.push_back(PointerTy_3);
 FuncTy_43_args.push_back(PointerTy_39);
 FuncTy_43_args.push_back(PointerTy_10);
-FuncTy_43_args.push_back(PointerTy_40);
 FuncTy_43_args.push_back(PointerTy_37);
 FunctionType* FuncTy_43 = FunctionType::get(
  /*Result=*/Type::getVoidTy(mod->getContext()),

@@ -62,7 +62,7 @@ namespace rubinius {
     static Object* check_cache_mm(STATE, CallSite* cache, CallFrame* call_frame,
                                   Arguments& args);
 
-    static void mono_cache_updater(STATE, CallSite* call_site, Class* klass, FallbackExecutor fallback, Dispatch& dispatch);
+    static void mono_cache_updater(STATE, CallSite* call_site, Class* klass, Dispatch& dispatch);
 
   public: // Rubinius Type stuff
     class Info : public CallSite::Info {

@@ -90,7 +90,7 @@ namespace rubinius {
       state->vm()->set_method_missing_reason(dis.method_missing);
     }
 
-    call_site->update(state, recv_class, empty_cache, dis);
+    call_site->update(state, recv_class, dis);
 
     Executable* meth = dis.method;
     Module* mod = dis.module;
@@ -132,7 +132,7 @@ namespace rubinius {
       state->vm()->set_method_missing_reason(dis.method_missing);
     }
 
-    call_site->update(state, recv_class, empty_cache_private, dis);
+    call_site->update(state, recv_class, dis);
 
     Executable* meth = dis.method;
     Module* mod = dis.module;
@@ -176,7 +176,7 @@ namespace rubinius {
       state->vm()->set_method_missing_reason(dis.method_missing);
     }
 
-    call_site->update(state, recv_class, empty_cache_vcall, dis);
+    call_site->update(state, recv_class, dis);
 
     Executable* meth = dis.method;
     Module* mod = dis.module;
@@ -227,7 +227,7 @@ namespace rubinius {
       state->vm()->set_method_missing_reason(dis.method_missing);
     }
 
-    call_site->update(state, recv_class, empty_cache_super, dis);
+    call_site->update(state, recv_class, dis);
 
     Executable* meth = dis.method;
     Module* mod = dis.module;
@@ -243,7 +243,7 @@ namespace rubinius {
     }
   }
 
-  void CallSite::empty_cache_updater(STATE, CallSite* call_site, Class* klass, FallbackExecutor fallback, Dispatch& dispatch) {
+  void CallSite::empty_cache_updater(STATE, CallSite* call_site, Class* klass, Dispatch& dispatch) {
     MonoInlineCache* cache = MonoInlineCache::create(state, call_site, klass, dispatch);
     call_site->update_call_site(state, cache);
   }
@@ -267,7 +267,7 @@ namespace rubinius {
     Dispatch dis(name_);
 
     if(dis.resolve(state, name_, lookup)) {
-      update(state, recv_class, fallback_, dis);
+      update(state, recv_class, dis);
       return dis.method->serial()->to_native() == serial;
     }
     return false;

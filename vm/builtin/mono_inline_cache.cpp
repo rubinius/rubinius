@@ -81,14 +81,14 @@ namespace rubinius {
     return call_site->fallback(state, call_frame, args);
   }
 
-  void MonoInlineCache::mono_cache_updater(STATE, CallSite* call_site, Class* klass, FallbackExecutor fallback, Dispatch& dispatch) {
+  void MonoInlineCache::mono_cache_updater(STATE, CallSite* call_site, Class* klass, Dispatch& dispatch) {
     MonoInlineCache* mono_cache = reinterpret_cast<MonoInlineCache*>(call_site);
 
     // If it's the same class, replace it since the old cache is
     // for an older version of the same class and we don't
     // want to go polymorphic in that case.
     if(klass == mono_cache->receiver_class_) {
-      CallSite::empty_cache_updater(state, call_site, klass, fallback, dispatch);
+      CallSite::empty_cache_updater(state, call_site, klass, dispatch);
     } else {
       InlineCache* poly_cache = InlineCache::create(state, mono_cache);
       InlineCacheEntry* entry = InlineCacheEntry::create(state, klass->data(),

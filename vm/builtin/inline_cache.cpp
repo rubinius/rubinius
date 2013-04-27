@@ -103,7 +103,7 @@ namespace rubinius {
     return cache->fallback(state, call_frame, args);
   }
 
-  void InlineCache::inline_cache_updater(STATE, CallSite* call_site, Class* klass, FallbackExecutor fallback, Dispatch& dispatch) {
+  void InlineCache::inline_cache_updater(STATE, CallSite* call_site, Class* klass, Dispatch& dispatch) {
     InlineCache* cache = reinterpret_cast<InlineCache*>(call_site);
     InlineCacheEntry* entry = InlineCacheEntry::create(state, klass->data(), klass, dispatch);
     cache->set_cache(state, entry);

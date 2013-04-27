@@ -13,7 +13,7 @@ namespace rubinius {
 
   typedef Object* (*CacheExecutor)(STATE, CallSite*, CallFrame*, Arguments&);
   typedef Object* (*FallbackExecutor)(STATE, CallSite*, CallFrame*, Arguments&);
-  typedef void (*CacheUpdater)(STATE, CallSite*, Class*, FallbackExecutor, Dispatch&);
+  typedef void (*CacheUpdater)(STATE, CallSite*, Class*, Dispatch&);
 
   class CallSiteInformation {
   public:
@@ -65,7 +65,7 @@ namespace rubinius {
     static Object* empty_cache_custom(STATE, CallSite* call_site, CallFrame* call_frame,
                                           Arguments& args);
 
-    static void empty_cache_updater(STATE, CallSite* call_site, Class* klass, FallbackExecutor fallback, Dispatch& dispatch);
+    static void empty_cache_updater(STATE, CallSite* call_site, Class* klass, Dispatch& dispatch);
 
     bool update_and_validate(STATE, CallFrame* call_frame, Object* recv, Symbol* vis, int serial);
 
@@ -110,8 +110,8 @@ namespace rubinius {
       return (*fallback_)(state, this, call_frame, args);
     }
 
-    void update(STATE, Class* klass, FallbackExecutor fallback, Dispatch& dispatch) {
-      (*updater_)(state, this, klass, fallback, dispatch);
+    void update(STATE, Class* klass, Dispatch& dispatch) {
+      (*updater_)(state, this, klass, dispatch);
     }
 
     class Info : public TypeInfo {

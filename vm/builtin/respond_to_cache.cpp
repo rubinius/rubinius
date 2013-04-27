@@ -30,6 +30,7 @@ namespace rubinius {
     cache->responds_        = cNil;
     cache->executor_        = check_cache;
     cache->fallback_        = check_cache;
+    cache->updater_         = NULL;
     cache->clear_receiver_data();
     return cache;
   }
