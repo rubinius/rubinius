@@ -133,7 +133,8 @@ module Enumerable
     return to_enum(:each_with_index, *args) unless block_given?
 
     idx = 0
-    each(*args) do |o|
+    each(*args) do
+      o = Rubinius.single_block_arg
       yield o, idx
       idx += 1
     end
