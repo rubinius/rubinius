@@ -8,9 +8,9 @@ describe "Enumerable#each_with_index" do
   end
 
   it "passes each element and its index to block" do
-    @a = []
-    @b.each_with_index { |o, i| @a << [o, i] }
-    @a.should == [[2, 0], [5, 1], [3, 2], [6, 3], [1, 4], [4, 5]]
+    a = []
+    @b.each_with_index { |o, i| a << [o, i] }
+    a.should == [[2, 0], [5, 1], [3, 2], [6, 3], [1, 4], [4, 5]]
   end
 
   it "provides each element to the block" do
@@ -18,21 +18,21 @@ describe "Enumerable#each_with_index" do
     obj = EnumerableSpecs::EachDefiner.new()
     res = obj.each_with_index {|a,i| acc << [a,i]}
     acc.should == []
-    obj.should == res
+    obj.should equal(res)
   end
 
   it "provides each element to the block and its index" do
     acc = []
     res = @b.each_with_index {|a,i| acc << [a,i]}
     [[2, 0], [5, 1], [3, 2], [6, 3], [1, 4], [4, 5]].should == acc
-    res.should eql(@b)
+    res.should equal(@b)
   end
 
   it "binds splat arguments properly" do
     acc = []
     res = @b.each_with_index { |*b| c,d = b; acc << c; acc << d }
     [2, 0, 5, 1, 3, 2, 6, 3, 1, 4, 4, 5].should == acc
-    res.should eql(@b)
+    res.should equal(@b)
   end
 
   ruby_version_is '1.8.7' do
