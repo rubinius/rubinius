@@ -116,11 +116,18 @@ namespace rubinius {
 
     class Info : public TypeInfo {
     public:
-      BASIC_TYPEINFO(TypeInfo)
-      virtual void mark(Object* t, ObjectMark& mark);
-    };
+      Info(object_type type)
+        : TypeInfo(type)
+      {
+        allow_user_allocate = false;
+      }
 
-    friend class Info;
+      virtual void mark(Object* obj, ObjectMark& mark);
+      virtual void auto_mark(Object* obj, ObjectMark& mark);
+      virtual void set_field(STATE, Object* target, size_t index, Object* val);
+      virtual Object* get_field(STATE, Object* target, size_t index);
+      virtual void populate_slot_locations();
+    };
   };
 
 }
