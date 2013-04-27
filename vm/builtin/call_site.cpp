@@ -7,6 +7,7 @@
 #include "builtin/call_site.hpp"
 #include "builtin/mono_inline_cache.hpp"
 #include "builtin/inline_cache.hpp"
+#include "builtin/call_custom_cache.hpp"
 #include "builtin/module.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/lookuptable.hpp"
@@ -42,7 +43,6 @@ namespace rubinius {
                                           Arguments& args)
   {
     Object* const recv = args.recv();
-    Class* const recv_class = recv->lookup_begin(state);
 
     Array*  ary = Array::create(state, args.total() + 2);
     ary->set(state, 0, recv);
@@ -55,21 +55,9 @@ namespace rubinius {
     Object* ret = G(rubinius)->send(state, call_frame, state->symbol("bind_call"), ary);
 
     if(CallUnit* cu = try_as<CallUnit>(ret)) {
-      InlineCache* cache = InlineCache::empty(state, call_site->name(),
-                                              call_site->executable(),
-                                              call_site->ip());
-      cache->set_call_custom();
-      InlineCacheEntry* ice = 0;
-
-      ice = InlineCacheEntry::create(state, recv_class->data(), recv_class, cu->module(), cu->executable(), eNone);
-
-      cache->set_cache(state, ice);
-      cache->call_unit(state, cu);
-      cache->executor_ = InlineCache::check_cache_custom;
-
+      CallCustomCache* cache = CallCustomCache::create(state, call_site, cu);
       call_site->update_call_site(state, cache);
-
-      return cu->execute(state, call_frame, cu, ice->method(), ice->stored_module(), args);
+      return cu->execute(state, call_frame, cu, cu->executable(), cu->module(), args);
     } else {
       Exception::internal_error(state, call_frame, "bind_call must return CallUnit");
       return 0;
@@ -256,16 +244,7 @@ namespace rubinius {
   }
 
   void CallSite::empty_cache_updater(STATE, CallSite* call_site, Class* klass, FallbackExecutor fallback, Dispatch& dispatch) {
-    MonoInlineCache* cache = MonoInlineCache::empty(state, call_site->name(),
-                                                   call_site->executable(),
-                                                   call_site->ip());
-    cache->update(state, klass, dispatch.module, dispatch.method, dispatch.method_missing);
-    if(dispatch.method_missing == eNone) {
-      cache->executor_ = MonoInlineCache::check_cache;
-    } else {
-      cache->executor_ = MonoInlineCache::check_cache_mm;
-    }
-    cache->fallback_ = fallback;
+    MonoInlineCache* cache = MonoInlineCache::create(state, call_site, klass, dispatch);
     call_site->update_call_site(state, cache);
   }
 

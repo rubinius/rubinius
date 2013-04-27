@@ -25,24 +25,26 @@ namespace rubinius {
     G(mono_inline_cache)->set_object_type(state, MonoInlineCacheType);
   }
 
-  MonoInlineCache* MonoInlineCache::empty(STATE, Symbol* name, Executable* executable, int ip) {
-    MonoInlineCache* cache =
-      state->new_object_dirty<MonoInlineCache>(G(mono_inline_cache));
-    cache->name_ = name;
-    cache->executor_ = CallSite::empty_cache;
-    cache->fallback_ = CallSite::empty_cache;
+  MonoInlineCache* MonoInlineCache::create(STATE, CallSite* call_site, Class* klass, Dispatch& dis) {
+    MonoInlineCache* cache = state->new_object_dirty<MonoInlineCache>(G(mono_inline_cache));
+    cache->name_     = call_site->name();
+    cache->executable(state, call_site->executable());
+    cache->ip_       = call_site->ip();
+    if(dis.method_missing == eNone) {
+      cache->executor_ = check_cache;
+    } else {
+      cache->executor_ = check_cache_mm;
+    }
+    cache->fallback_ = call_site->fallback_;
     cache->updater_  = mono_cache_updater;
-    cache->executable(state, executable);
-    cache->ip_ = ip;
-    return cache;
-  }
 
-  void MonoInlineCache::update(STATE, Class* klass, Module* mod, Executable* exec, MethodMissingReason reason) {
-    receiver_class(state, klass);
-    stored_module(state, mod);
-    method(state, exec);
-    receiver_ = klass->data();
-    method_missing_ = reason;
+    cache->receiver_ = klass->data();
+    cache->receiver_class(state, klass);
+    cache->stored_module(state, dis.module);
+    cache->method(state, dis.method);
+    cache->method_missing_ = dis.method_missing;
+
+    return cache;
   }
 
   Object* MonoInlineCache::check_cache(STATE, CallSite* call_site, CallFrame* call_frame,
@@ -80,35 +82,20 @@ namespace rubinius {
   }
 
   void MonoInlineCache::mono_cache_updater(STATE, CallSite* call_site, Class* klass, FallbackExecutor fallback, Dispatch& dispatch) {
-    MonoInlineCache* existing_cache = reinterpret_cast<MonoInlineCache*>(call_site);
+    MonoInlineCache* mono_cache = reinterpret_cast<MonoInlineCache*>(call_site);
 
     // If it's the same class, replace it since the old cache is
     // for an older version of the same class and we don't
     // want to go polymorphic in that case.
-    if(klass == existing_cache->receiver_class_) {
+    if(klass == mono_cache->receiver_class_) {
       CallSite::empty_cache_updater(state, call_site, klass, fallback, dispatch);
     } else {
+      InlineCache* poly_cache = InlineCache::create(state, mono_cache);
+      InlineCacheEntry* entry = InlineCacheEntry::create(state, klass->data(),
+                                                         klass, dispatch);
 
-      InlineCache* new_cache = InlineCache::empty(state, call_site->name(),
-                                                  call_site->executable(),
-                                                  call_site->ip());
-
-      InlineCacheEntry* new_entry = InlineCacheEntry::create(state, klass->data(),
-                                                                    klass,
-                                                                    dispatch.module,
-                                                                    dispatch.method,
-                                                                    dispatch.method_missing);
-
-      InlineCacheEntry* existing_entry = InlineCacheEntry::create(state, existing_cache->receiver_,
-                                                                         existing_cache->receiver_class_,
-                                                                         existing_cache->stored_module_,
-                                                                         existing_cache->method_,
-                                                                         existing_cache->method_missing_);
-      new_cache->fallback_ = fallback;
-      new_cache->set_cache(state, existing_entry);
-      new_cache->set_cache(state, new_entry);
-
-      existing_cache->update_call_site(state, new_cache);
+      poly_cache->set_cache(state, entry);
+      call_site->update_call_site(state, poly_cache);
     }
   }
 

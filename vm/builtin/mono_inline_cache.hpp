@@ -36,9 +36,7 @@ namespace rubinius {
     attr_accessor(method, Executable);
 
     static void init(STATE);
-    static MonoInlineCache* empty(STATE, Symbol* name, Executable* executable, int ip);
-
-    void update(STATE, Class* klass, Module* mod, Executable* exec, MethodMissingReason reason);
+    static MonoInlineCache* create(STATE, CallSite* call_site, Class* klass, Dispatch& dis);
 
     ClassData receiver_data() {
       return receiver_;
@@ -46,6 +44,10 @@ namespace rubinius {
 
     uint64_t receiver_data_raw() {
       return receiver_.raw;
+    }
+
+    MethodMissingReason method_missing() {
+      return method_missing_;
     }
 
     int hits() {

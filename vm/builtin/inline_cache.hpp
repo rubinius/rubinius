@@ -8,15 +8,12 @@
 #include "lock.hpp"
 #include "object_utils.hpp"
 
-#include <tr1/unordered_map>
-#include <tr1/unordered_set>
-
 namespace rubinius {
   class InlineCache;
   struct CallFrame;
   class Arguments;
-  class CallUnit;
   class Module;
+  class MonoInlineCache;
 
   class InlineCacheEntry : public Object {
   public:
@@ -61,8 +58,7 @@ namespace rubinius {
     }
 
   public:
-    static InlineCacheEntry* create(STATE, ClassData data, Class* klass, Module* mod,
-                                    Executable* method, MethodMissingReason method_missing);
+    static InlineCacheEntry* create(STATE, ClassData data, Class* klass, Dispatch& dis);
 
     class Info : public TypeInfo {
     public:
@@ -111,22 +107,13 @@ namespace rubinius {
     const static object_type type = InlineCacheType;
 
   private:
-    CallUnit* call_unit_; // slot
     InlineCacheHit cache_[cTrackedICHits];
 
     int seen_classes_overflow_;
 
   public:
-    attr_accessor(name, Symbol);
-    attr_accessor(call_unit, CallUnit);
-
     static void init(STATE);
-    static InlineCache* empty(STATE, Symbol* name, Executable* executable, int ip);
-
-    friend class CompiledCode::Info;
-
-    static Object* check_cache_custom(STATE, CallSite* cache, CallFrame* call_frame,
-                               Arguments& args);
+    static InlineCache* create(STATE, MonoInlineCache* mono);
 
     static Object* check_cache(STATE, CallSite* cache, CallFrame* call_frame,
                                Arguments& args);

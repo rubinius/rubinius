@@ -109,6 +109,7 @@ namespace rubinius {
     TypedRoot<Class*> call_site;
     TypedRoot<Class*> mono_inline_cache;
     TypedRoot<Class*> inline_cache;
+    TypedRoot<Class*> call_custom_cache;
     TypedRoot<Class*> respond_to_cache;
     TypedRoot<Class*> constant_cache;
     TypedRoot<Class*> constant_cache_entry;
@@ -232,6 +233,7 @@ namespace rubinius {
       call_site(&roots),
       mono_inline_cache(&roots),
       inline_cache(&roots),
+      call_custom_cache(&roots),
       respond_to_cache(&roots),
       constant_cache(&roots),
       constant_cache_entry(&roots),

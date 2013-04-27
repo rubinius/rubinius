@@ -45,6 +45,7 @@
 #include "builtin/location.hpp"
 #include "builtin/mono_inline_cache.hpp"
 #include "builtin/inline_cache.hpp"
+#include "builtin/call_custom_cache.hpp"
 #include "builtin/respond_to_cache.hpp"
 #include "builtin/constant_cache.hpp"
 #include "builtin/weakref.hpp"
@@ -352,6 +353,7 @@ namespace rubinius {
     CallSite::init(state);
     MonoInlineCache::init(state);
     InlineCache::init(state);
+    CallCustomCache::init(state);
     ConstantCache::init(state);
     RespondToCache::init(state);
     WeakRef::init(state);

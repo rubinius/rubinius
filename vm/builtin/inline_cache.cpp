@@ -1,11 +1,6 @@
 #include "detection.hpp"
 
-#ifdef OS_X_10_5
-#ifndef RBX_HAVE_TR1_HASH
-#include "missing/leopard_hashtable.hpp"
-#endif
-#endif
-
+#include "builtin/mono_inline_cache.hpp"
 #include "builtin/inline_cache.hpp"
 #include "arguments.hpp"
 #include "call_frame.hpp"
@@ -30,43 +25,38 @@ namespace rubinius {
     G(inline_cache)->set_object_type(state, InlineCacheType);
   }
 
-  InlineCache* InlineCache::empty(STATE, Symbol* name, Executable* executable, int ip) {
+  InlineCache* InlineCache::create(STATE, MonoInlineCache* mono) {
     InlineCache* cache =
       state->vm()->new_object_mature<InlineCache>(G(inline_cache));
-    cache->name_ = name;
+    cache->name_     = mono->name();
+    cache->executable(state, mono->executable());
+    cache->ip_       = mono->ip();
     cache->executor_ = check_cache;
-    cache->fallback_ = CallSite::empty_cache;
+    cache->fallback_ = mono->fallback_;
     cache->updater_  = inline_cache_updater;
-    cache->executable(state, executable);
-    cache->ip_ = ip;
-    cache->call_unit_ = nil<CallUnit>();
     cache->seen_classes_overflow_ = 0;
     cache->clear();
+
+    Dispatch dis(mono->name());
+    dis.module = mono->stored_module();
+    dis.method = mono->method();
+    dis.method_missing = mono->method_missing();
+    InlineCacheEntry* entry = InlineCacheEntry::create(state, mono->receiver_data(),
+                                                       mono->receiver_class(), dis);
+    cache->set_cache(state, entry);
     return cache;
   }
 
-  InlineCacheEntry* InlineCacheEntry::create(STATE, ClassData data, Class* klass, Module* mod,
-                                             Executable* exec, MethodMissingReason method_missing) {
-    InlineCacheEntry* cache =
-      state->new_object_dirty<InlineCacheEntry>(G(object));
+  InlineCacheEntry* InlineCacheEntry::create(STATE, ClassData data, Class* klass, Dispatch& dis) {
+    InlineCacheEntry* cache = state->new_object_dirty<InlineCacheEntry>(G(object));
 
-    cache->stored_module(state, mod);
-    cache->receiver_class(state, klass);
-    cache->method(state, exec);
     cache->receiver_ = data;
-    cache->method_missing_ = method_missing;
+    cache->receiver_class(state, klass);
+    cache->stored_module(state, dis.module);
+    cache->method(state, dis.method);
+    cache->method_missing_ = dis.method_missing;
 
     return cache;
-  }
-
-  Object* InlineCache::check_cache_custom(STATE, CallSite* call_site,
-      CallFrame* call_frame, Arguments& args)
-  {
-    InlineCache* cache = static_cast<InlineCache*>(call_site);
-    InlineCacheEntry* ice = cache->get_single_cache();
-
-    return cache->call_unit_->execute(state, call_frame, cache->call_unit_,
-                                      ice->method(), ice->stored_module(), args);
   }
 
   Object* InlineCache::check_cache(STATE, CallSite* call_site, CallFrame* call_frame,
@@ -115,10 +105,7 @@ namespace rubinius {
 
   void InlineCache::inline_cache_updater(STATE, CallSite* call_site, Class* klass, FallbackExecutor fallback, Dispatch& dispatch) {
     InlineCache* cache = reinterpret_cast<InlineCache*>(call_site);
-    InlineCacheEntry* entry = InlineCacheEntry::create(state, klass->data(), klass,
-                                                       dispatch.module,
-                                                       dispatch.method,
-                                                       dispatch.method_missing);
+    InlineCacheEntry* entry = InlineCacheEntry::create(state, klass->data(), klass, dispatch);
     cache->set_cache(state, entry);
   }
 
@@ -160,14 +147,6 @@ namespace rubinius {
           cache->cache_[j].update(updated);
           mark.just_set(cache, updated);
         }
-      }
-    }
-
-    if(cache->call_unit_) {
-      CallUnit* updated = static_cast<CallUnit*>(mark.call(cache->call_unit_));
-      if(updated) {
-        cache->call_unit_ = static_cast<CallUnit*>(updated);
-        mark.just_set(cache, updated);
       }
     }
   }
