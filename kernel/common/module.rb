@@ -453,10 +453,7 @@ class Module
   end
 
   def <=(other)
-    return true if self.equal? other
-    lt = self < other
-    return false if lt.nil? && other < self
-    lt
+    equal?(other) || (self < other)
   end
 
   def >(other)
