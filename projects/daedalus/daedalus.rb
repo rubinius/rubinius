@@ -249,7 +249,7 @@ module Daedalus
       dirs = header_directories() + ["/usr/include"]
       flags = @cflags.join(' ')
       begin
-        dep = DependencyGrapher.new [path], dirs, flags
+        dep = DependencyGrapher.new @cc, [path], dirs, flags
         dep.process
 
         # This is a quick work-around for a craptastic bug that I can't figure
@@ -263,7 +263,7 @@ module Daedalus
         #
         # I know this sounds silly, but we need some fix for this.
       rescue Exception
-        dep = DependencyGrapher.new [path], dirs, flags
+        dep = DependencyGrapher.new @cc, [path], dirs, flags
         dep.process
       end
 

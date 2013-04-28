@@ -395,7 +395,8 @@ class DependencyGrapher
   attr_accessor :file_names, :directories, :defines, :system_defines, :objects_dir
   attr_reader :sources
 
-  def initialize(files, directories=[], defines=nil)
+  def initialize(cc, files, directories=[], defines=nil)
+    @cc = cc
     @file_names = files
     @directories = directories
     @defines = defines
@@ -406,7 +407,7 @@ class DependencyGrapher
   end
 
   def get_system_defines
-    lines = `cpp -dM #{@defines} #{DEV_NULL}`.split("\n")
+    lines = `#{@cc} -dM -E #{@defines} - < #{DEV_NULL}`.split("\n")
 
     source = SourceFile.new "sytem_defines", self
     parser = FileParser.new source, @directories

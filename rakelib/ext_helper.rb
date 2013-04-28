@@ -203,7 +203,7 @@ def graph_dependencies(sources, directories=[], objects_dir=nil)
   directories = Array(directories)
   directories.concat [".", include18_dir, include19_dir]
 
-  grapher = DependencyGrapher.new sources, directories
+  grapher = DependencyGrapher.new $CC, sources, directories
   grapher.objects_dir = objects_dir
   grapher.process
 
