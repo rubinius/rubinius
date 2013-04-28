@@ -447,6 +447,7 @@ class Module
     return false if self.equal? other
 
     Rubinius::Type.each_ancestor(self) { |mod| return true if mod.equal?(other) }
+    Rubinius::Type.each_ancestor(other) { |mod| return false if mod.equal?(self) }
 
     nil
   end
