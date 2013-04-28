@@ -464,14 +464,7 @@ class Module
   end
 
   def >=(other)
-    unless other.kind_of? Module
-      raise TypeError, "compared with non class/module"
-    end
-
-    return true if self.equal? other
-    gt = self > other
-    return false if gt.nil? && other > self
-    gt
+    equal?(other) || (self > other)
   end
 
   def <=>(other)
