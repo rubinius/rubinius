@@ -472,11 +472,8 @@ class Module
     return nil unless other.kind_of? Module
 
     lt = self < other
-    if lt.nil?
-      other < self ? 1 : nil
-    else
-      lt ? -1 : 1
-    end
+    return nil if lt.nil?
+    lt ? -1 : 1
   end
 
   def ===(inst)
