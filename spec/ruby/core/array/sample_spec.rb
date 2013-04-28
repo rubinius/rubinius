@@ -2,113 +2,147 @@ require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "Array#sample" do
-  ruby_version_is "1.8.8" do
-    it "selects a value from the array" do
-      [4].sample.should eql(4)
-    end
-
-    it "returns a distribution of results" do
-      source = [0,1,2,3,4]
-      samples = ArraySpecs::SampleRange.collect { |el| source.sample }
-      samples.uniq.sort.should eql(source)
-    end
-
-    it "returns nil for empty arrays" do
+  ruby_version_is "1.9" do
+    it "returns nil for an empty Array" do
       [].sample.should be_nil
     end
 
-    describe "passed a number n as an argument" do
-      it "raises ArgumentError for a negative n" do
-        lambda { [1, 2].sample(-1) }.should raise_error(ArgumentError)
-      end
-
-      it "selects values from the array" do
-        source = [1,2,3,4]
-        source.should include(*source.sample(2))
-      end
-
-      it "does not return the same value if the array is unique" do
-        source = [1, 2, 3, 4]
-        ArraySpecs::SampleCount.times do
-          pair = source.sample(2)
-          pair[0].should_not eql(pair[1])
-        end
-      end
-
-      it "may return the same value if the array is not unique" do
-        source = [4, 4]
-        source.sample(2).should eql([4,4])
-      end
-
-      it "returns a distribution of results" do
-        source = [0,1,2,3,4]
-        samples = ArraySpecs::SampleRange.collect { |el| source.sample(3) }
-        samples.flatten.uniq.sort.should eql(source)
-      end
-
-      it "tries to convert n to an Integer using #to_int" do
-        a = [1, 2, 3, 4]
-        a.sample(2.3).size.should == 2
-
-        obj = mock('to_int')
-        obj.should_receive(:to_int).and_return(2)
-        a.sample(obj).size.should == 2
-      end
-
-      it "returns all values when n >= array size" do
-        a = [1, 2, 3, 4]
-        a.sample(4).sort.should == a
-        a.sample(5).sort.should == a
-      end
-
-      it "returns [] for empty arrays or if n <= 0" do
-        [].sample(1).should == []
-        [1, 2, 3].sample(0).should == []
-      end
-
-      it "does not return subclass instances with Array subclass" do
-        ArraySpecs::MyArray[1, 2, 3].sample(2).should be_an_instance_of(Array)
-      end
-    end
-  end
-
-  ruby_version_is "1.9" do
-    it "returns only one element" do
-      [2, 3].sample.should be_kind_of(Fixnum)
+    it "returns a single value when not passed a count" do
+      [4].sample.should equal(4)
     end
 
-    it "returns proper array size" do
-      [2, 3].sample(2).size.should == 2
+    it "returns an empty Array when passed zero" do
+      [4].sample(0).should == []
+    end
+
+    it "returns an Array of elements when passed a count" do
+      [1, 2, 3, 4].sample(3).should be_an_instance_of(Array)
+    end
+
+    it "returns elements from the Array" do
+      array = [1, 2, 3, 4]
+      array.sample(3).all? { |x| array.should include(x) }
+    end
+
+    it "returns at most the number of elements in the Array" do
+      array = [1, 2, 3, 4]
+      result = array.sample(20)
+      result.size.should == 4
+    end
+
+    it "does not return the same value if the Array has unique values" do
+      array = [1, 2, 3, 4]
+      result = array.sample(20)
+      result.sort.should == array
+    end
+
+    it "may return the same value if the array is not unique" do
+      [4, 4].sample(2).should == [4,4]
+    end
+
+    it "calls #to_int to convert the count when passed an Object" do
+      [1, 2, 3, 4].sample(mock_int(2)).size.should == 2
+    end
+
+    it "raises ArgumentError when passed a negative count" do
+      lambda { [1, 2].sample(-1) }.should raise_error(ArgumentError)
+    end
+
+    it "does not return subclass instances with Array subclass" do
+      ArraySpecs::MyArray[1, 2, 3].sample(2).should be_an_instance_of(Array)
     end
   end
 
   ruby_version_is "1.9.3" do
-    it "attempts coercion via #to_hash" do
-      obj = mock('hash')
-      obj.should_receive(:to_hash).once.and_return({})
-      [2, 3].sample(obj)
+    it "calls #to_hash to convert the passed Object" do
+      obj = mock("array_sample")
+      obj.should_receive(:to_hash).and_return({})
+      obj.should_not_receive(:to_int)
+
+      [1, 2].sample(obj).should be_an_instance_of(Fixnum)
     end
 
-    it "uses default random generator" do
-      Kernel.should_receive(:rand).and_return(1)
-      [2, 3].sample(:random => Object.new)
+    it "calls #to_int on the first argument and #to_hash on the second when passed Objects" do
+      count = mock("array_sample_count")
+      count.should_receive(:to_int).and_return(2)
+      options = mock("array_sample_options")
+      options.should_receive(:to_hash).and_return({})
+
+      [1, 2].sample(count, options).size.should == 2
     end
 
-    it "uses given random generator" do
-      random = Random.new
-      random.should_receive(:rand).and_return(1)
-      [2, 3].sample(:random => random)
+    it "calls #rand on the Object passed by the :random key in the arguments Hash" do
+      obj = mock("array_sample_random")
+      obj.should_receive(:rand).and_return(0.5)
+
+      [1, 2].sample(:random => obj).should be_an_instance_of(Fixnum)
     end
 
-    it "uses default random generator and return proper array size" do
-      Kernel.should_receive(:rand).and_return(1, 0)
-      [2, 3].sample(2).should == [3, 2]
+    it "ignores an Object passed for the RNG if it does not define #rand" do
+      obj = mock("array_sample_random")
+
+      [1, 2].sample(:random => obj).should be_an_instance_of(Fixnum)
+    end
+  end
+
+  ruby_version_is "1.9.3"..."2.0" do
+    it "calls #to_f on the Object returned by #rand" do
+      value = mock("array_sample_random_value")
+      value.should_receive(:to_f).and_return(0.3)
+      random = mock("array_sample_random")
+      random.should_receive(:rand).and_return(value)
+
+      [1, 2].sample(:random => random).should be_an_instance_of(Fixnum)
     end
 
-    it "uses given random generator and return proper array size" do
-      random = Random.new
-      random.should_receive(:rand).and_return(1, 0)
-      [2, 3].sample(2, :random => random).should == [3, 2]
+    it "raises a RangeError if the random generator returns a value less than 0.0" do
+      obj = mock("array_sample_random")
+      obj.should_receive(:rand).and_return(-0.1)
+
+      lambda { [1, 2].sample(:random => obj) }.should raise_error(RangeError)
+    end
+
+    it "raises a RangeError if the random generator returns a value equal to 1.0" do
+      obj = mock("array_sample_random")
+      obj.should_receive(:rand).and_return(1.0)
+
+      lambda { [1, 2].sample(:random => obj) }.should raise_error(RangeError)
+    end
+
+    it "raises a RangeError if the random generator returns a value greater than 1.0" do
+      obj = mock("array_sample_random")
+      obj.should_receive(:rand).and_return(1.1)
+
+      lambda { [1, 2].sample(:random => obj) }.should raise_error(RangeError)
+    end
+  end
+
+  ruby_version_is "2.0" do
+    it "calls #to_int on the Object returned by #rand" do
+      value = mock("array_sample_random_value")
+      value.should_receive(:to_int).and_return(1)
+      random = mock("array_sample_random")
+      random.should_receive(:rand).and_return(value)
+
+      [1, 2].sample(:random => random).should be_an_instance_of(Fixnum)
+    end
+
+    it "raises a RangeError if the value is less than zero" do
+      value = mock("array_sample_random_value")
+      value.should_receive(:to_int).and_return(-1)
+      random = mock("array_sample_random")
+      random.should_receive(:rand).and_return(value)
+
+      lambda { [1, 2].sample(:random => random) }.should raise_error(RangeError)
+    end
+
+    it "raises a RangeError if the value is equal to the Array size" do
+      value = mock("array_sample_random_value")
+      value.should_receive(:to_int).and_return(2)
+      random = mock("array_sample_random")
+      random.should_receive(:rand).and_return(value)
+
+      lambda { [1, 2].sample(:random => random) }.should raise_error(RangeError)
     end
   end
 end

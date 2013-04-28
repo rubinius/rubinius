@@ -20,15 +20,6 @@ describe "Enumerable#zip" do
     EnumerableSpecs::Numerous.new(1,2,3).zip([4,5,6], [7,8]).should == [[1,4,7],[2,5,8],[3,6,nil]]
   end
 
-  it "fills resulting array with nils if an argument hash is too short" do
-    EnumerableSpecs::Numerous.new(1,2,3).zip([4,5,6], {:a=>7}).should == [[1,4,[:a, 7]],[2,5,nil],[3,6,nil]]
-  end
-
-  it "fills resulting array with nils if an argument enumerable object is too short" do
-    enum = EnumerableSpecs::Numerous.new(7)
-    EnumerableSpecs::Numerous.new(1,2,3).zip([4,5,6], enum).should == [[1,4,7],[2,5,nil],[3,6,nil]]
-  end
-
   ruby_version_is ''...'1.9' do
     it "converts arguments to arrays using #to_a" do
       convertable = EnumerableSpecs::ArrayConvertable.new(4,5,6)
