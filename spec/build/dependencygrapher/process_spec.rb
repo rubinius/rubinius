@@ -1,9 +1,10 @@
 require File.expand_path('../../../spec_helper', __FILE__)
+require 'rbconfig'
 require 'rakelib/dependency_grapher'
 
 describe "DependencyGrapher#process" do
   before :each do
-    @grapher = DependencyGrapher.new []
+    @grapher = DependencyGrapher.new RbConfig::CONFIG["CC"], []
     @grapher.should_receive(:get_system_defines)
   end
 

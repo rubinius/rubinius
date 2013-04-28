@@ -1,11 +1,12 @@
 require File.expand_path('../../../spec_helper', __FILE__)
+require 'rbconfig'
 require 'rakelib/dependency_grapher'
 
 describe "DependencyGrapher#print_dependencies" do
   before :each do
     @stdout, $stdout = $stdout, IOStub.new
 
-    @grapher = DependencyGrapher.new []
+    @grapher = DependencyGrapher.new RbConfig::CONFIG["CC"], []
     @grapher.should_receive(:get_system_defines)
   end
 
