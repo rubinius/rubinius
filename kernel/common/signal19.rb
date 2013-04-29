@@ -21,6 +21,7 @@ module Signal
 
     # If no command, use the block.
     prc ||= block
+    prc = prc.to_s if prc.kind_of?(Symbol)
 
     case prc
     when "DEFAULT", "SIG_DFL"

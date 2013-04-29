@@ -42,6 +42,26 @@ describe "Signal.trap" do
       Signal.trap :HUP, nil
       Signal.trap(:HUP, @saved_trap).should be_nil
     end
+
+    it "accepts 'DEFAULT' as a symbol in place of a proc" do
+      Signal.trap :HUP, :DEFAULT
+      Signal.trap(:HUP, :DEFAULT).should == "DEFAULT"
+    end
+
+    it "accepts 'SIG_DFL' as a symbol in place of a proc" do
+      Signal.trap :HUP, :SIG_DFL
+      Signal.trap(:HUP, :SIG_DFL).should == "DEFAULT"
+    end
+
+    it "accepts 'SIG_IGN' as a symbol in place of a proc" do
+      Signal.trap :HUP, :SIG_IGN
+      Signal.trap(:HUP, :SIG_IGN).should == "IGNORE"
+    end
+
+    it "accepts 'IGNORE' as a symbol in place of a proc" do
+      Signal.trap :HUP, :IGNORE
+      Signal.trap(:HUP, :IGNORE).should == "IGNORE"
+    end
   end
 
   it "accepts long names as Strings" do
