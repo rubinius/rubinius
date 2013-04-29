@@ -1123,7 +1123,7 @@ write_if_new "vm/gen/typechecks.gen.cpp" do |f|
       f.puts "    ti->slot_types[#{idx}] = #{type}::type;"
       f.puts "    ti->slot_accessors[#{idx}] = Primitives::resolve_primitive(state, state->symbol(\"#{symbol_name}\", #{symbol_name.bytesize}));"
     end
-    f.puts "  ti->populate_slot_locations();"
+    f.puts "    ti->populate_slot_locations();"
     f.puts "  }"
     f.puts
   end
