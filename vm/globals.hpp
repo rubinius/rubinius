@@ -108,7 +108,8 @@ namespace rubinius {
     TypedRoot<Class*> exc_vm_bad_bytecode;
     TypedRoot<Class*> call_site;
     TypedRoot<Class*> mono_inline_cache;
-    TypedRoot<Class*> inline_cache;
+    TypedRoot<Class*> poly_inline_cache;
+    TypedRoot<Class*> inline_cache_entry;
     TypedRoot<Class*> call_custom_cache;
     TypedRoot<Class*> respond_to_cache;
     TypedRoot<Class*> constant_cache;
@@ -232,7 +233,8 @@ namespace rubinius {
       exc_vm_bad_bytecode(&roots),
       call_site(&roots),
       mono_inline_cache(&roots),
-      inline_cache(&roots),
+      poly_inline_cache(&roots),
+      inline_cache_entry(&roots),
       call_custom_cache(&roots),
       respond_to_cache(&roots),
       constant_cache(&roots),

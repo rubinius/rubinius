@@ -17,7 +17,7 @@
 #include "builtin/class.hpp"
 #include "builtin/location.hpp"
 #include "builtin/constant_cache.hpp"
-#include "builtin/inline_cache.hpp"
+#include "builtin/call_site.hpp"
 
 #include "instructions.hpp"
 

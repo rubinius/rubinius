@@ -13,7 +13,7 @@
 #include "builtin/nativefunction.hpp"
 #include "builtin/lookuptable.hpp"
 #include "builtin/mono_inline_cache.hpp"
-#include "builtin/inline_cache.hpp"
+#include "builtin/poly_inline_cache.hpp"
 
 #include "ffi_util.hpp"
 
@@ -38,7 +38,7 @@ namespace rubinius {
   }
 
   bool Inliner::consider_poly() {
-    InlineCache* cache = try_as<InlineCache>(call_site_);
+    PolyInlineCache* cache = try_as<PolyInlineCache>(call_site_);
 
     if(!cache) return false;
 

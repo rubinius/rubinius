@@ -1,7 +1,7 @@
 #include "detection.hpp"
 
 #include "builtin/mono_inline_cache.hpp"
-#include "builtin/inline_cache.hpp"
+#include "builtin/poly_inline_cache.hpp"
 #include "arguments.hpp"
 #include "call_frame.hpp"
 #include "global_cache.hpp"
@@ -18,16 +18,55 @@
 
 namespace rubinius {
 
-  void InlineCache::init(STATE) {
-    GO(inline_cache).set(
-        ontology::new_class(state, "InlineCache",
+  void PolyInlineCache::init(STATE) {
+    GO(poly_inline_cache).set(
+        ontology::new_class(state, "PolyInlineCache",
           G(call_site), G(rubinius)));
-    G(inline_cache)->set_object_type(state, InlineCacheType);
+    G(poly_inline_cache)->set_object_type(state, PolyInlineCacheType);
+
+    GO(inline_cache_entry).set(
+        ontology::new_class(state, "InlineCacheEntry",
+          G(call_site), G(rubinius)));
+    G(inline_cache_entry)->set_object_type(state, InlineCacheEntryType);
   }
 
-  InlineCache* InlineCache::create(STATE, MonoInlineCache* mono) {
-    InlineCache* cache =
-      state->vm()->new_object_mature<InlineCache>(G(inline_cache));
+  InlineCacheEntry* InlineCacheEntry::create(STATE, ClassData data, Class* klass, Dispatch& dis, int hits) {
+    InlineCacheEntry* cache = state->new_object_dirty<InlineCacheEntry>(G(inline_cache_entry));
+
+    cache->receiver_ = data;
+    cache->receiver_class(state, klass);
+    cache->stored_module(state, dis.module);
+    cache->method(state, dis.method);
+    cache->method_missing_ = dis.method_missing;
+    cache->hits_ = hits;
+
+    return cache;
+  }
+
+  Integer* InlineCacheEntry::hits_prim(STATE) {
+    return Integer::from(state, hits_);
+  }
+
+  Symbol* InlineCacheEntry::method_missing_prim(STATE) {
+    switch(method_missing_) {
+    case eNone:
+      return state->symbol("none");
+    case ePrivate:
+      return G(sym_private);
+    case eProtected:
+      return G(sym_protected);
+    case eSuper:
+      return state->symbol("super");
+    case eVCall:
+      return state->symbol("vcall");
+    case eNormal:
+      return state->symbol("normal");
+    }
+  }
+
+  PolyInlineCache* PolyInlineCache::create(STATE, MonoInlineCache* mono) {
+    PolyInlineCache* cache =
+      state->vm()->new_object_mature<PolyInlineCache>(G(poly_inline_cache));
     cache->name_     = mono->name();
     cache->executable(state, mono->executable());
     cache->ip_       = mono->ip();
@@ -47,24 +86,12 @@ namespace rubinius {
     return cache;
   }
 
-  InlineCacheEntry* InlineCacheEntry::create(STATE, ClassData data, Class* klass, Dispatch& dis) {
-    InlineCacheEntry* cache = state->new_object_dirty<InlineCacheEntry>(G(object));
-
-    cache->receiver_ = data;
-    cache->receiver_class(state, klass);
-    cache->stored_module(state, dis.module);
-    cache->method(state, dis.method);
-    cache->method_missing_ = dis.method_missing;
-
-    return cache;
-  }
-
-  Object* InlineCache::check_cache(STATE, CallSite* call_site, CallFrame* call_frame,
+  Object* PolyInlineCache::check_cache(STATE, CallSite* call_site, CallFrame* call_frame,
                                    Arguments& args)
   {
     Class* const recv_class = args.recv()->lookup_begin(state);
 
-    InlineCache* cache = static_cast<InlineCache*>(call_site);
+    PolyInlineCache* cache = static_cast<PolyInlineCache*>(call_site);
     InlineCacheEntry* entry = cache->get_entry(recv_class);
 
     if(likely(entry)) {
@@ -78,12 +105,12 @@ namespace rubinius {
     return cache->fallback(state, call_frame, args);
   }
 
-  Object* InlineCache::check_cache_mm(STATE, CallSite* call_site, CallFrame* call_frame,
+  Object* PolyInlineCache::check_cache_mm(STATE, CallSite* call_site, CallFrame* call_frame,
                                       Arguments& args)
   {
     Class* const recv_class = args.recv()->lookup_begin(state);
 
-    InlineCache* cache = static_cast<InlineCache*>(call_site);
+    PolyInlineCache* cache = static_cast<PolyInlineCache*>(call_site);
     InlineCacheEntry* entry = cache->get_entry(recv_class);
 
     if(likely(entry)) {
@@ -101,13 +128,13 @@ namespace rubinius {
     return cache->fallback(state, call_frame, args);
   }
 
-  void InlineCache::inline_cache_updater(STATE, CallSite* call_site, Class* klass, Dispatch& dispatch) {
-    InlineCache* cache = reinterpret_cast<InlineCache*>(call_site);
+  void PolyInlineCache::inline_cache_updater(STATE, CallSite* call_site, Class* klass, Dispatch& dispatch) {
+    PolyInlineCache* cache = reinterpret_cast<PolyInlineCache*>(call_site);
     InlineCacheEntry* entry = InlineCacheEntry::create(state, klass->data(), klass, dispatch);
     cache->set_cache(state, entry);
   }
 
-  void InlineCache::print(STATE, std::ostream& stream) {
+  void PolyInlineCache::print(STATE, std::ostream& stream) {
     stream << "name: " << name_->debug_str(state) << "\n"
            << "seen classes: " << classes_seen() << "\n"
            << "overflows: " << seen_classes_overflow_ << "\n"
@@ -133,9 +160,9 @@ namespace rubinius {
     }
   }
 
-  void InlineCache::Info::mark(Object* obj, ObjectMark& mark) {
+  void PolyInlineCache::Info::mark(Object* obj, ObjectMark& mark) {
     auto_mark(obj, mark);
-    InlineCache* cache = static_cast<InlineCache*>(obj);
+    PolyInlineCache* cache = static_cast<PolyInlineCache*>(obj);
 
     for(int i = 0; i < cTrackedICHits; ++i) {
       InlineCacheEntry* ice = cache->entries_[i];

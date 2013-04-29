@@ -6,7 +6,7 @@
 #include "builtin/class.hpp"
 #include "builtin/call_site.hpp"
 #include "builtin/mono_inline_cache.hpp"
-#include "builtin/inline_cache.hpp"
+#include "builtin/poly_inline_cache.hpp"
 #include "builtin/call_custom_cache.hpp"
 #include "builtin/module.hpp"
 #include "builtin/symbol.hpp"
@@ -258,7 +258,7 @@ namespace rubinius {
       }
     }
 
-    if(InlineCache* cache = try_as<InlineCache>(this)) {
+    if(PolyInlineCache* cache = try_as<PolyInlineCache>(this)) {
       InlineCacheEntry* ice = cache->get_entry(recv_class);
       if(likely(ice)) return ice->method()->serial()->to_native() == serial;
     }

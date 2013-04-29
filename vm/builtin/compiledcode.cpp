@@ -9,8 +9,6 @@
 #include "builtin/tuple.hpp"
 #include "builtin/string.hpp"
 #include "builtin/lookuptable.hpp"
-#include "builtin/call_unit.hpp"
-#include "builtin/inline_cache.hpp"
 
 #include "ffi.hpp"
 #include "marshal.hpp"

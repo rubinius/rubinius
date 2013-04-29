@@ -473,13 +473,11 @@ namespace jit {
 
     void check_for_eval(opcode which) {
       CallSite* call_site = reinterpret_cast<CallSite*>(which);
-      if(InlineCache* ic = try_as<InlineCache>(call_site)) {
-        if(ic->name() == s_eval_ ||
-            ic->name() == s_binding_ ||
-            ic->name() == s_class_eval_ ||
-            ic->name() == s_module_eval_) {
-          calctx_evalish_ = true;
-        }
+      if(call_site->name() == s_eval_ ||
+         call_site->name() == s_binding_ ||
+         call_site->name() == s_class_eval_ ||
+         call_site->name() == s_module_eval_) {
+        calctx_evalish_ = true;
       }
     }
 

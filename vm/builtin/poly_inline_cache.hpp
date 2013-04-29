@@ -9,7 +9,7 @@
 #include "object_utils.hpp"
 
 namespace rubinius {
-  class InlineCache;
+  class PolyInlineCache;
   struct CallFrame;
   class Arguments;
   class Module;
@@ -78,9 +78,9 @@ namespace rubinius {
   // How many receiver class have been seen to keep track of inside an IC
   const static int cTrackedICHits = 3;
 
-  class InlineCache : public CallSite {
+  class PolyInlineCache : public CallSite {
   public:
-    const static object_type type = InlineCacheType;
+    const static object_type type = PolyInlineCacheType;
 
   private:
     InlineCacheEntry* entries_[cTrackedICHits];
@@ -89,7 +89,7 @@ namespace rubinius {
 
   public:
     static void init(STATE);
-    static InlineCache* create(STATE, MonoInlineCache* mono);
+    static PolyInlineCache* create(STATE, MonoInlineCache* mono);
 
     static Object* check_cache(STATE, CallSite* cache, CallFrame* call_frame,
                                Arguments& args);

@@ -67,6 +67,10 @@ namespace rubinius {
 
     static void empty_cache_updater(STATE, CallSite* call_site, Class* klass, Dispatch& dispatch);
 
+    bool regular_call() {
+      return type_id() == MonoInlineCacheType || type_id() == PolyInlineCacheType;
+    }
+
     bool update_and_validate(STATE, CallFrame* call_frame, Object* recv, Symbol* vis, int serial);
 
     void set_is_private() {

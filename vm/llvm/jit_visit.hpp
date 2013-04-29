@@ -4,7 +4,7 @@
 #include "builtin/tuple.hpp"
 #include "builtin/constant_cache.hpp"
 #include "builtin/mono_inline_cache.hpp"
-#include "builtin/inline_cache.hpp"
+#include "builtin/poly_inline_cache.hpp"
 #include "builtin/respond_to_cache.hpp"
 #include "builtin/lookuptable.hpp"
 
@@ -688,7 +688,7 @@ namespace rubinius {
     Value* inline_call_site_execute(int args, opcode& which) {
       sends_done_++;
 
-      CallSite* call_site = reinterpret_cast<InlineCache*>(which);
+      CallSite* call_site = reinterpret_cast<CallSite*>(which);
 
       setup_out_args(call_site->name(), args);
       return invoke_call_site(which);
@@ -1570,10 +1570,7 @@ namespace rubinius {
         return;
       }
 
-      MonoInlineCache* mono = try_as<MonoInlineCache>(call_site);
-      InlineCache* poly = try_as<InlineCache>(call_site);
-
-      if(!mono && !poly) {
+      if(!call_site->regular_call()) {
         invoke_call_site(which, args);
         return;
       }
@@ -1583,6 +1580,9 @@ namespace rubinius {
       BasicBlock* cont = new_block("continue");
 
       Inliner inl(ctx_, *this, call_site_ptr, args, class_failure, serial_failure);
+
+      MonoInlineCache* mono = try_as<MonoInlineCache>(call_site);
+      PolyInlineCache* poly = try_as<PolyInlineCache>(call_site);
 
       bool res = false;
       if(mono) {
@@ -1823,11 +1823,9 @@ namespace rubinius {
       CallSite*  call_site = *call_site_ptr;
       CompiledCode* block_code = 0;
 
-      InlineCache* cache = try_as<InlineCache>(call_site);
-
-      if(cache && cache->classes_seen() &&
+      if(call_site->regular_call() &&
           llvm_state()->config().jit_inline_blocks &&
-          !ctx_->inlined_block()) {
+         !ctx_->inlined_block()) {
         if(current_block_) {
           block_code = current_block_->method();
 
@@ -2064,10 +2062,10 @@ use_send:
     void visit_send_super_stack_with_block(opcode& which, opcode args) {
       set_has_side_effects();
 
-      InlineCache* cache = reinterpret_cast<InlineCache*>(which);
+      CallSite* call_site = reinterpret_cast<CallSite*>(which);
 
       b().CreateStore(get_self(), out_args_recv_);
-      b().CreateStore(constant(cache->name(), ptr_type("Symbol")), out_args_name_);
+      b().CreateStore(constant(call_site->name(), ptr_type("Symbol")), out_args_name_);
       b().CreateStore(stack_top(), out_args_block_);
       b().CreateStore(cint(args), out_args_total_);
       b().CreateStore(Constant::getNullValue(ptr_type("Tuple")),
@@ -3048,18 +3046,18 @@ use_send:
 
       set_block(check_poly_cache);
 
-      Value* is_poly_cache = check_type_bits(call_site_const, rubinius::InlineCache::type, "is_inline_cache");
+      Value* is_poly_cache = check_type_bits(call_site_const, rubinius::PolyInlineCache::type, "is_inline_cache");
       create_conditional_branch(poly_cache, fallback, is_poly_cache);
 
       set_block(poly_cache);
       BasicBlock* blocks[cTrackedICHits];
 
-      Value* poly_const = b().CreateBitCast(call_site_const, ptr_type("InlineCache"), "downcast");
+      Value* poly_const = b().CreateBitCast(call_site_const, ptr_type("PolyInlineCache"), "downcast");
 
       for(int i = 0; i < cTrackedICHits; ++i) {
         Value* ice_idx[] = {
           cint(0),
-          cint(offset::InlineCache::entries),
+          cint(offset::PolyInlineCache::entries),
           cint(i)
         };
 
@@ -3578,9 +3576,8 @@ use_send:
 
     void visit_meta_send_call(opcode& name, opcode count) {
       CallSite* call_site = reinterpret_cast<CallSite*>(name);
-      InlineCache* cache = try_as<InlineCache>(call_site);
 
-      if(cache && cache->classes_seen() == 0) {
+      if(call_site->type_id() == CallSiteType) {
         set_has_side_effects();
 
         Signature sig(ctx_, ObjType);

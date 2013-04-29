@@ -20,7 +20,7 @@
 #include "builtin/constant_cache.hpp"
 #include "builtin/location.hpp"
 #include "builtin/thread_state.hpp"
-#include "builtin/inline_cache.hpp"
+#include "builtin/call_site.hpp"
 
 #include "instruments/tooling.hpp"
 

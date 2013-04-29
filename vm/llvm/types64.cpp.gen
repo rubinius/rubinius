@@ -567,12 +567,12 @@ FunctionType* FuncTy_44 = FunctionType::get(
  /*isVarArg=*/false);
 
 std::vector<Type*>FuncTy_46_args;
-StructType *StructTy_struct_rubinius__InlineCache = mod->getTypeByName("struct.rubinius::InlineCache");
-if (!StructTy_struct_rubinius__InlineCache) {
-StructTy_struct_rubinius__InlineCache = StructType::create(mod->getContext(), "struct.rubinius::InlineCache");
+StructType *StructTy_struct_rubinius__PolyInlineCache = mod->getTypeByName("struct.rubinius::PolyInlineCache");
+if (!StructTy_struct_rubinius__PolyInlineCache) {
+StructTy_struct_rubinius__PolyInlineCache = StructType::create(mod->getContext(), "struct.rubinius::PolyInlineCache");
 }
-std::vector<Type*>StructTy_struct_rubinius__InlineCache_fields;
-StructTy_struct_rubinius__InlineCache_fields.push_back(StructTy_struct_rubinius__CallSite);
+std::vector<Type*>StructTy_struct_rubinius__PolyInlineCache_fields;
+StructTy_struct_rubinius__PolyInlineCache_fields.push_back(StructTy_struct_rubinius__CallSite);
 StructType *StructTy_struct_rubinius__InlineCacheEntry = mod->getTypeByName("struct.rubinius::InlineCacheEntry");
 if (!StructTy_struct_rubinius__InlineCacheEntry) {
 StructTy_struct_rubinius__InlineCacheEntry = StructType::create(mod->getContext(), "struct.rubinius::InlineCacheEntry");
@@ -594,13 +594,13 @@ PointerType* PointerTy_49 = PointerType::get(StructTy_struct_rubinius__InlineCac
 
 ArrayType* ArrayTy_48 = ArrayType::get(PointerTy_49, 3);
 
-StructTy_struct_rubinius__InlineCache_fields.push_back(ArrayTy_48);
-StructTy_struct_rubinius__InlineCache_fields.push_back(IntegerType::get(mod->getContext(), 32));
-if (StructTy_struct_rubinius__InlineCache->isOpaque()) {
-StructTy_struct_rubinius__InlineCache->setBody(StructTy_struct_rubinius__InlineCache_fields, /*isPacked=*/false);
+StructTy_struct_rubinius__PolyInlineCache_fields.push_back(ArrayTy_48);
+StructTy_struct_rubinius__PolyInlineCache_fields.push_back(IntegerType::get(mod->getContext(), 32));
+if (StructTy_struct_rubinius__PolyInlineCache->isOpaque()) {
+StructTy_struct_rubinius__PolyInlineCache->setBody(StructTy_struct_rubinius__PolyInlineCache_fields, /*isPacked=*/false);
 }
 
-PointerType* PointerTy_47 = PointerType::get(StructTy_struct_rubinius__InlineCache, 0);
+PointerType* PointerTy_47 = PointerType::get(StructTy_struct_rubinius__PolyInlineCache, 0);
 
 FuncTy_46_args.push_back(PointerTy_47);
 FunctionType* FuncTy_46 = FunctionType::get(
@@ -996,16 +996,16 @@ func_outputMonoInlineCache->setCallingConv(CallingConv::C);
 AttrListPtr func_outputMonoInlineCache_PAL;
 func_outputMonoInlineCache->setAttributes(func_outputMonoInlineCache_PAL);
 
-Function* func_outputInlineCache = mod->getFunction("outputInlineCache");
-if (!func_outputInlineCache) {
-func_outputInlineCache = Function::Create(
+Function* func_outputPolyInlineCache = mod->getFunction("outputPolyInlineCache");
+if (!func_outputPolyInlineCache) {
+func_outputPolyInlineCache = Function::Create(
  /*Type=*/FuncTy_46,
  /*Linkage=*/GlobalValue::ExternalLinkage,
- /*Name=*/"outputInlineCache", mod); // (external, no body)
-func_outputInlineCache->setCallingConv(CallingConv::C);
+ /*Name=*/"outputPolyInlineCache", mod); // (external, no body)
+func_outputPolyInlineCache->setCallingConv(CallingConv::C);
 }
-AttrListPtr func_outputInlineCache_PAL;
-func_outputInlineCache->setAttributes(func_outputInlineCache_PAL);
+AttrListPtr func_outputPolyInlineCache_PAL;
+func_outputPolyInlineCache->setAttributes(func_outputPolyInlineCache_PAL);
 
 Function* func_outputInlineCacheEntry = mod->getFunction("outputInlineCacheEntry");
 if (!func_outputInlineCacheEntry) {

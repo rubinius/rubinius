@@ -11,7 +11,6 @@
 #include "builtin/object.hpp"
 #include "builtin/methodtable.hpp"
 #include "builtin/alias.hpp"
-#include "builtin/inline_cache.hpp"
 
 namespace rubinius {
   static bool hierarchy_resolve(STATE, Symbol* name, Dispatch& msg, LookupData& lookup) {

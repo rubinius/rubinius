@@ -88,13 +88,13 @@ declare void @outputCallSite(%"struct.rubinius::CallSite"*)
 
 declare void @outputMonoInlineCache(%"struct.rubinius::MonoInlineCache"*)
 
-%"struct.rubinius::InlineCache" = type {
+%"struct.rubinius::PolyInlineCache" = type {
              %"struct.rubinius::CallSite",  ; header
   [3 x %"struct.rubinius::InlineCacheEntry"*], ; entries
                                        i32  ; seen_classes_overflow
 }
 
-declare void @outputInlineCache(%"struct.rubinius::InlineCache"*)
+declare void @outputPolyInlineCache(%"struct.rubinius::PolyInlineCache"*)
 
 %"struct.rubinius::InlineCacheEntry" = type {
    %"struct.rubinius::Object", ; header

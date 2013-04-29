@@ -1,7 +1,7 @@
 #include "detection.hpp"
 
 #include "builtin/mono_inline_cache.hpp"
-#include "builtin/inline_cache.hpp"
+#include "builtin/poly_inline_cache.hpp"
 #include "arguments.hpp"
 #include "call_frame.hpp"
 #include "global_cache.hpp"
@@ -13,7 +13,6 @@
 #include "builtin/executable.hpp"
 #include "builtin/methodtable.hpp"
 #include "builtin/alias.hpp"
-#include "builtin/call_unit.hpp"
 #include "ontology.hpp"
 
 namespace rubinius {
@@ -90,7 +89,7 @@ namespace rubinius {
     if(klass == mono_cache->receiver_class_) {
       CallSite::empty_cache_updater(state, call_site, klass, dispatch);
     } else {
-      InlineCache* poly_cache = InlineCache::create(state, mono_cache);
+      PolyInlineCache* poly_cache = PolyInlineCache::create(state, mono_cache);
       InlineCacheEntry* entry = InlineCacheEntry::create(state, klass->data(),
                                                          klass, dispatch);
 

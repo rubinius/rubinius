@@ -19,7 +19,7 @@
 #include "builtin/methodtable.hpp"
 #include "builtin/packed_object.hpp"
 #include "builtin/location.hpp"
-#include "builtin/inline_cache.hpp"
+#include "builtin/call_site.hpp"
 #include "builtin/respond_to_cache.hpp"
 
 #include "objectmemory.hpp"

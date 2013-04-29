@@ -54,7 +54,6 @@
 
 #include "builtin/constantscope.hpp"
 #include "builtin/block_environment.hpp"
-#include "builtin/inline_cache.hpp"
 
 #include "builtin/system.hpp"
 #include "signal.hpp"

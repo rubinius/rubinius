@@ -9,7 +9,6 @@
 #include "global_cache.hpp"
 
 #include "util/thread.hpp"
-#include "builtin/inline_cache.hpp"
 #include "configuration.hpp"
 
 #include "agent.hpp"

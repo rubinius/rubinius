@@ -18,6 +18,7 @@
 #include "builtin/proc.hpp"
 #include "builtin/autoload.hpp"
 #include "builtin/constant_cache.hpp"
+#include "builtin/call_site.hpp"
 #include "builtin/iseq.hpp"
 #include "builtin/ffi_pointer.hpp"
 #include "builtin/integer.hpp"
@@ -25,8 +26,6 @@
 #include "builtin/location.hpp"
 #include "builtin/encoding.hpp"
 #include "builtin/thread_state.hpp"
-#include "builtin/mono_inline_cache.hpp"
-#include "builtin/inline_cache.hpp"
 
 #include "instruments/tooling.hpp"
 
