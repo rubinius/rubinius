@@ -118,8 +118,9 @@ namespace rubinius {
     TypedRoot<Class*> atomic_ref;
     TypedRoot<Class*> mirror;
 
-    TypedRoot<Encoding*> usascii_encoding, utf8_encoding, ascii8bit_encoding;
+#include "gen/method_name_roots.hpp"
 
+    TypedRoot<Encoding*> usascii_encoding, utf8_encoding, ascii8bit_encoding;
     /* Add new globals above this line. */
 
     /* Leave this as the last data member always */
@@ -236,6 +237,9 @@ namespace rubinius {
       vm_class(&roots),
       atomic_ref(&roots),
       mirror(&roots),
+
+#include "gen/method_name_roots_initialization.hpp"
+
       usascii_encoding(&roots),
       utf8_encoding(&roots),
       ascii8bit_encoding(&roots)
