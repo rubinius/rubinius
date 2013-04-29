@@ -9,6 +9,7 @@
 #include "builtin/tuple.hpp"
 #include "builtin/string.hpp"
 #include "builtin/lookuptable.hpp"
+#include "builtin/call_site.hpp"
 
 #include "ffi.hpp"
 #include "marshal.hpp"
@@ -68,6 +69,18 @@ namespace rubinius {
 #endif
 
     return code;
+  }
+
+  Tuple* CompiledCode::call_sites(STATE, CallFrame* calling_environment) {
+    GCTokenImpl gct;
+    CompiledCode* self = this;
+    OnStack<1> os(state, self);
+
+    if(self->machine_code_ == NULL) {
+      if(!self->internalize(state, gct, calling_environment)) return force_as<Tuple>(Primitives::failure());
+    }
+    MachineCode* mcode = self->machine_code_;
+    return mcode->call_sites(state);
   }
 
   int CompiledCode::start_line(STATE) {
@@ -421,8 +434,8 @@ namespace rubinius {
     }
 #endif
 
-    for(size_t i = 0; i < mcode->inline_cache_count(); i++) {
-      size_t index = mcode->inline_cache_offsets()[i];
+    for(size_t i = 0; i < mcode->call_site_count(); i++) {
+      size_t index = mcode->call_site_offsets()[i];
       Object* new_cache = mark.call(reinterpret_cast<Object*>(mcode->opcodes[index + 1]));
       mcode->opcodes[index + 1] = reinterpret_cast<intptr_t>(new_cache);
       mark.just_set(code, new_cache);

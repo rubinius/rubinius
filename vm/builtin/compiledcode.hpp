@@ -11,6 +11,7 @@ namespace rubinius {
   class InstructionSequence;
   class MachineCode;
   class ConstantScope;
+  class CallSite;
 
   namespace jit {
     class RuntimeDataHolder;
@@ -121,6 +122,9 @@ namespace rubinius {
 
     // Rubinius.primitive :compiledcode_dup
     CompiledCode* dup(STATE);
+
+    // Rubinius.primitive :compiledcode_call_sites
+    Tuple* call_sites(STATE, CallFrame* calling_environment);
 
     String* full_name(STATE);
 

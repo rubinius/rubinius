@@ -39,6 +39,10 @@ namespace rubinius {
     return cache;
   }
 
+  Integer* CallSite::ip_prim(STATE) {
+    return Integer::from(state, ip_);
+  }
+
   Object* CallSite::empty_cache_custom(STATE, CallSite* call_site, CallFrame* call_frame,
                                           Arguments& args)
   {

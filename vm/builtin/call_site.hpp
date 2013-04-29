@@ -48,6 +48,9 @@ namespace rubinius {
       return ip_;
     }
 
+    // Rubinius.primitive :call_site_ip
+    Integer* ip_prim(STATE);
+
     static CallSite* empty(STATE, Symbol* name, Executable* executable, int ip);
 
     static Object* empty_cache(STATE, CallSite* call_site, CallFrame* call_frame,

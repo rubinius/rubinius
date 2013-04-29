@@ -81,9 +81,22 @@ namespace rubinius {
     dis.method = mono->method();
     dis.method_missing = mono->method_missing();
     InlineCacheEntry* entry = InlineCacheEntry::create(state, mono->receiver_data(),
-                                                       mono->receiver_class(), dis);
+                                                       mono->receiver_class(), dis, mono->hits());
     cache->set_cache(state, entry);
     return cache;
+  }
+
+  Tuple* PolyInlineCache::entries_prim(STATE) {
+    Tuple* tup = Tuple::create(state, cTrackedICHits);
+    for(int i = 0; i < cTrackedICHits; ++i) {
+      InlineCacheEntry* ice = entries_[i];
+      if(ice) tup->put(state, i, ice);
+    }
+    return tup;
+  }
+
+  Integer* PolyInlineCache::overflows(STATE) {
+    return Integer::from(state, seen_classes_overflow_);
   }
 
   Object* PolyInlineCache::check_cache(STATE, CallSite* call_site, CallFrame* call_frame,
@@ -130,7 +143,7 @@ namespace rubinius {
 
   void PolyInlineCache::inline_cache_updater(STATE, CallSite* call_site, Class* klass, Dispatch& dispatch) {
     PolyInlineCache* cache = reinterpret_cast<PolyInlineCache*>(call_site);
-    InlineCacheEntry* entry = InlineCacheEntry::create(state, klass->data(), klass, dispatch);
+    InlineCacheEntry* entry = InlineCacheEntry::create(state, klass->data(), klass, dispatch, 1);
     cache->set_cache(state, entry);
   }
 

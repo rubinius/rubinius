@@ -705,7 +705,7 @@ halt:
     if(debug_search) {
       std::cout << "> call_count: " << call_frame->compiled_code->machine_code()->call_count
             << " size: " << call_frame->compiled_code->machine_code()->total
-            << " sends: " << call_frame->compiled_code->machine_code()->inline_cache_count()
+            << " sends: " << call_frame->compiled_code->machine_code()->call_site_count()
             << std::endl;
 
       call_frame->print_backtrace(state, 1);
@@ -762,7 +762,7 @@ halt:
       if(debug_search) {
         std::cout << "> call_count: " << mcode->call_count
               << " size: " << mcode->total
-              << " sends: " << mcode->inline_cache_count()
+              << " sends: " << mcode->call_site_count()
               << std::endl;
 
         call_frame->print_backtrace(state, 1);
@@ -815,7 +815,7 @@ halt:
         return callee;
       }
 
-      if(mcode->inline_cache_count() > eMaxInlineSendCount) {
+      if(mcode->call_site_count() > eMaxInlineSendCount) {
         if(debug_search) {
           std::cout << "JIT: STOP. reason: high send count" << std::endl;
         }

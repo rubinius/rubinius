@@ -54,6 +54,12 @@ namespace rubinius {
       return hits_;
     }
 
+    // Rubinius.primitive :mono_inline_cache_hits
+    Integer* hits_prim(STATE);
+
+    // Rubinius.primitive :mono_inline_cache_method_missing
+    Symbol* method_missing_prim(STATE);
+
     friend class CompiledCode::Info;
 
     static Object* check_cache(STATE, CallSite* cache, CallFrame* call_frame,

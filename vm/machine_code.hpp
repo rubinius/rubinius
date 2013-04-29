@@ -72,8 +72,8 @@ namespace rubinius {
     native_int call_count;
     native_int uncommon_count;
 
-    size_t number_of_inline_caches_;
-    size_t* inline_cache_offsets_;
+    size_t number_of_call_sites_;
+    size_t* call_site_offsets_;
 
     size_t number_of_constant_caches_;
     size_t* constant_cache_offsets_;
@@ -124,12 +124,12 @@ namespace rubinius {
       execute_status_ = s;
     }
 
-    size_t inline_cache_count() {
-      return number_of_inline_caches_;
+    size_t call_site_count() {
+      return number_of_call_sites_;
     }
 
-    size_t* inline_cache_offsets() {
-      return inline_cache_offsets_;
+    size_t* call_site_offsets() {
+      return call_site_offsets_;
     }
 
     size_t constant_cache_count() {
@@ -169,6 +169,8 @@ namespace rubinius {
     }
 
     CallSite* call_site(STATE, int ip);
+    Tuple* call_sites(STATE);
+
     void store_call_site(STATE, CompiledCode* code, int ip, CallSite* call_site);
 
     void specialize(STATE, CompiledCode* original, TypeInfo* ti);
@@ -220,7 +222,7 @@ namespace rubinius {
     bool validate_ip(STATE, size_t ip);
 
     void fill_opcodes(STATE, CompiledCode* original);
-    void initialize_inline_caches(STATE, CompiledCode* original, int sends);
+    void initialize_call_sites(STATE, CompiledCode* original, int sends);
     void initialize_constant_caches(STATE, CompiledCode* original, int constants);
     void find_super_instructions();
 

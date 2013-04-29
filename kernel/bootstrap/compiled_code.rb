@@ -15,6 +15,11 @@ module Rubinius
       raise PrimitiveFailure, "CompiledCode#dup primitive failed"
     end
 
+    def call_sites
+      Rubinius.primitive :compiledcode_call_sites
+      raise PrimitiveFailure, "CompiledCode#call_sites primitive failed"
+    end
+
     # Return the CompiledCode for caller of the method that called
     # .of_sender.
     #

@@ -54,8 +54,8 @@ namespace rubinius {
     : parent_(NULL)
     , type(NULL)
     , uncommon_count(0)
-    , number_of_inline_caches_(0)
-    , inline_cache_offsets_(0)
+    , number_of_call_sites_(0)
+    , call_site_offsets_(0)
     , number_of_constant_caches_(0)
     , constant_cache_offsets_(0)
     , execute_status_(eInterpret)
@@ -111,8 +111,8 @@ namespace rubinius {
   MachineCode::~MachineCode() {
     delete[] opcodes;
 
-    if(inline_cache_offsets_) {
-      delete[] inline_cache_offsets_;
+    if(call_site_offsets_) {
+      delete[] call_site_offsets_;
     }
     if(constant_cache_offsets_) {
       delete[] constant_cache_offsets_;
@@ -182,13 +182,13 @@ namespace rubinius {
       }
     }
 
-    initialize_inline_caches(state, original, sends);
+    initialize_call_sites(state, original, sends);
     initialize_constant_caches(state, original, constants);
   }
 
-  void MachineCode::initialize_inline_caches(STATE, CompiledCode* original, int sends) {
-    number_of_inline_caches_ = sends;
-    inline_cache_offsets_ = new size_t[sends];
+  void MachineCode::initialize_call_sites(STATE, CompiledCode* original, int sends) {
+    number_of_call_sites_ = sends;
+    call_site_offsets_ = new size_t[sends];
 
     int which = 0;
     bool allow_private = false;
@@ -236,7 +236,7 @@ namespace rubinius {
 
         CallSite* call_site = CallSite::empty(state, name, original, ip);
 
-        inline_cache_offsets_[inline_index] = ip;
+        call_site_offsets_[inline_index] = ip;
         inline_index++;
 
         if(op == InstructionSequence::insn_call_custom) {
@@ -289,6 +289,14 @@ namespace rubinius {
   CallSite* MachineCode::call_site(STATE, int ip) {
     Object* obj = reinterpret_cast<Object*>(opcodes[ip + 1]);
     return as<CallSite>(obj);
+  }
+
+  Tuple* MachineCode::call_sites(STATE) {
+    Tuple* sites = Tuple::create(state, number_of_call_sites_);
+    for(size_t i = 0; i < number_of_call_sites_; ++i) {
+      sites->put(state, i, call_site(state, call_site_offsets_[i]));
+    }
+    return sites;
   }
 
   void MachineCode::store_call_site(STATE, CompiledCode* code, int ip, CallSite* call_site) {

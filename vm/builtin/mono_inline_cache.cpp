@@ -24,6 +24,27 @@ namespace rubinius {
     G(mono_inline_cache)->set_object_type(state, MonoInlineCacheType);
   }
 
+  Integer* MonoInlineCache::hits_prim(STATE) {
+    return Integer::from(state, hits_);
+  }
+
+  Symbol* MonoInlineCache::method_missing_prim(STATE) {
+    switch(method_missing_) {
+    case eNone:
+      return state->symbol("none");
+    case ePrivate:
+      return G(sym_private);
+    case eProtected:
+      return G(sym_protected);
+    case eSuper:
+      return state->symbol("super");
+    case eVCall:
+      return state->symbol("vcall");
+    case eNormal:
+      return state->symbol("normal");
+    }
+  }
+
   MonoInlineCache* MonoInlineCache::create(STATE, CallSite* call_site, Class* klass, Dispatch& dis) {
     MonoInlineCache* cache = state->new_object_dirty<MonoInlineCache>(G(mono_inline_cache));
     cache->name_     = call_site->name();
@@ -42,6 +63,7 @@ namespace rubinius {
     cache->stored_module(state, dis.module);
     cache->method(state, dis.method);
     cache->method_missing_ = dis.method_missing;
+    cache->hits_ = 1;
 
     return cache;
   }
@@ -91,7 +113,7 @@ namespace rubinius {
     } else {
       PolyInlineCache* poly_cache = PolyInlineCache::create(state, mono_cache);
       InlineCacheEntry* entry = InlineCacheEntry::create(state, klass->data(),
-                                                         klass, dispatch);
+                                                         klass, dispatch, 1);
 
       poly_cache->set_cache(state, entry);
       call_site->update_call_site(state, poly_cache);
