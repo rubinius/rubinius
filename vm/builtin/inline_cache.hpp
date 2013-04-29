@@ -27,6 +27,7 @@ namespace rubinius {
     ClassData receiver_;
 
     MethodMissingReason method_missing_;
+    int hits_;
 
   public:
     attr_accessor(stored_module, Module);
@@ -57,6 +58,14 @@ namespace rubinius {
       return method_missing_;
     }
 
+    int hits() {
+      return hits_;
+    }
+
+    void hit() {
+      ++hits_;
+    }
+
   public:
     static InlineCacheEntry* create(STATE, ClassData data, Class* klass, Dispatch& dis);
 
@@ -69,45 +78,12 @@ namespace rubinius {
   // How many receiver class have been seen to keep track of inside an IC
   const static int cTrackedICHits = 3;
 
-  class InlineCacheHit {
-    InlineCacheEntry* entry_;
-    int hits_;
-
-  public:
-
-    InlineCacheHit()
-      : entry_(NULL)
-      , hits_(0)
-    {}
-
-    void assign(InlineCacheEntry* entry) {
-      hits_ = 0;
-      atomic::write(&entry_, entry);
-    }
-
-    void update(InlineCacheEntry* entry) {
-      atomic::write(&entry_, entry);
-    }
-
-    void hit() {
-      ++hits_;
-    }
-
-    int hits() {
-      return hits_;
-    }
-
-    InlineCacheEntry* entry() {
-      return entry_;
-    }
-  };
-
   class InlineCache : public CallSite {
   public:
     const static object_type type = InlineCacheType;
 
   private:
-    InlineCacheHit cache_[cTrackedICHits];
+    InlineCacheEntry* entries_[cTrackedICHits];
 
     int seen_classes_overflow_;
 
@@ -125,65 +101,30 @@ namespace rubinius {
 
     void print(STATE, std::ostream& stream);
 
-    InlineCacheHit* caches() {
-      return cache_;
-    }
-
     void clear() {
       for(int i = 0; i < cTrackedICHits; ++i) {
-        cache_[i].assign(NULL);
+        entries_[i] = NULL;
       }
     }
 
-    InlineCacheEntry* get_cache(Class* const recv_class) {
+    InlineCacheEntry* get_entry(Class* const recv_class) {
       register uint64_t recv_data = recv_class->data_raw();
       for(int i = 0; i < cTrackedICHits; ++i) {
-        InlineCacheEntry* ice = cache_[i].entry();
+        InlineCacheEntry* ice = entries_[i];
         if(likely(ice && ice->receiver_data_raw() == recv_data)) return ice;
       }
       return NULL;
     }
 
-    InlineCacheHit* get_inline_cache(Class* const recv_class, InlineCacheEntry*& ice) {
-      register uint64_t recv_data = recv_class->data_raw();
-      for(int i = 0; i < cTrackedICHits; ++i) {
-        ice = cache_[i].entry();
-        if(likely(ice && ice->receiver_data_raw() == recv_data)) return &cache_[i];
-      }
-      return NULL;
-    }
-
-    InlineCacheEntry* get_single_cache() {
-      if(cache_size() == 1) {
-        return cache_[0].entry();
-      }
-      return NULL;
-    }
-
-    int growth_cache_size(uint32_t class_id) {
-      int count = 0;
-      for(int i = 0; i < cTrackedICHits; ++i) {
-        InlineCacheEntry* current = cache_[i].entry();
-        if(current && current->receiver_class_id() != class_id) {
-          ++count;
-        }
-      }
-      return count;
-    }
-
     int cache_size() {
       for(int i = 0; i < cTrackedICHits; ++i) {
-        if(!cache_[i].entry()) return i;
+        if(!entries_[i]) return i;
       }
       return cTrackedICHits;
     }
 
-    InlineCacheEntry* get_cache(int idx, int* hits) {
-      InlineCacheEntry* entry = cache_[idx].entry();
-      if(entry) {
-        *hits = cache_[idx].hits();
-      }
-      return entry;
+    InlineCacheEntry* get_cache(int idx) {
+      return entries_[idx];
     }
 
     void set_cache(STATE, InlineCacheEntry* ice) {
@@ -194,20 +135,20 @@ namespace rubinius {
       // Make sure we sync here, so the InlineCacheEntry ice is
       // guaranteed completely initialized. Otherwise another thread
       // might see an incompletely initialized InlineCacheEntry.
-      int least_used = cTrackedICHits - 1;
+      int least_used = 0;
       for(int i = 0; i < cTrackedICHits; ++i) {
-        InlineCacheEntry* current = cache_[i].entry();
+        InlineCacheEntry* current = entries_[i];
         if(!current || current->receiver_class_id() == ice->receiver_class_id()) {
-          cache_[i].assign(ice);
+          atomic::write(&entries_[i], ice);
           return;
         }
-        if(cache_[i].hits() < cache_[least_used].hits()) {
+        if(current && current->hits() < entries_[least_used]->hits()) {
           least_used = i;
         }
       }
 
       seen_classes_overflow_++;
-      cache_[least_used].assign(ice);
+      atomic::write(&entries_[least_used], ice);
     }
 
     int seen_classes_overflow() {
@@ -216,16 +157,6 @@ namespace rubinius {
 
     int classes_seen() {
       return cache_size();
-    }
-
-    Class* get_class(int idx, int* hits) {
-      InlineCacheEntry* entry = cache_[idx].entry();
-      if(entry) {
-        *hits = cache_[idx].hits();
-        return entry->receiver_class();
-      } else {
-        return NULL;
-      }
     }
 
   public: // Rubinius Type stuff

@@ -90,8 +90,7 @@ declare void @outputMonoInlineCache(%"struct.rubinius::MonoInlineCache"*)
 
 %"struct.rubinius::InlineCache" = type {
              %"struct.rubinius::CallSite",  ; header
-          %"struct.rubinius::CallUnit"*,    ; call_unit
-  [3 x %"struct.rubinius::InlineCacheHit"], ; cache
+  [3 x %"struct.rubinius::InlineCacheEntry"*], ; entries
                                        i32  ; seen_classes_overflow
 }
 
@@ -103,18 +102,12 @@ declare void @outputInlineCache(%"struct.rubinius::InlineCache"*)
    %"struct.rubinius::Class"*, ; receiver_class
   %"struct.rubinius::Executable"*, ; method
                           i32, ; receiver_class_id
-                          i32  ; receiver_serial_id
-
+                          i32, ; receiver_serial_id
+                          i32, ; method_missing
+                          i32  ; hits
 }
 
 declare void @outputInlineCacheEntry(%"struct.rubinius::InlineCacheEntry"*)
-
-%"struct.rubinius::InlineCacheHit" = type {
-  %"struct.rubinius::InlineCacheEntry"*, ; entry
-                         i32  ; hits
-}
-
-declare void @output5(%"struct.rubinius::InlineCacheHit"*)
 
 %"struct.rubinius::ConstantCache" = type {
                %"struct.rubinius::Object", ; header

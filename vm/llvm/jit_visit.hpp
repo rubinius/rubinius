@@ -3054,22 +3054,16 @@ use_send:
       set_block(poly_cache);
       BasicBlock* blocks[cTrackedICHits];
 
-      Value* cache_const = b().CreateBitCast(call_site_const, ptr_type("InlineCache"), "downcast");
+      Value* poly_const = b().CreateBitCast(call_site_const, ptr_type("InlineCache"), "downcast");
 
       for(int i = 0; i < cTrackedICHits; ++i) {
-        Value* ich_idx[] = {
+        Value* ice_idx[] = {
           cint(0),
-          cint(offset::InlineCache::cache),
+          cint(offset::InlineCache::entries),
           cint(i)
         };
 
-        Value* ich = b().CreateGEP(cache_const, ich_idx, "ich");
-
-        Value* ice_idx[] = {
-          cint(0),
-          cint(offset::InlineCacheHit::entry)
-        };
-        Value* ice = b().CreateLoad(b().CreateGEP(ich, ice_idx, "ice"));
+        Value* ice = b().CreateLoad(b().CreateGEP(poly_const, ice_idx, "ice"));
 
         BasicBlock* has_ice = new_block("has_ice");
         BasicBlock* class_match = new_block("class_match");

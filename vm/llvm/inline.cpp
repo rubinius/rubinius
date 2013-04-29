@@ -54,13 +54,12 @@ namespace rubinius {
     ops_.set_block(current);
 
     for(int i = 0; i < classes_seen; ++i) {
-      int hits = 0;
-      InlineCacheEntry* ice = cache->get_cache(i, &hits);
+      InlineCacheEntry* ice = cache->get_cache(i);
 
       // Fallback to the next for failure
       set_class_id_failure(fallback);
 
-      if(!inline_for_class(ice->receiver_class(), ice->receiver_data(), hits)) {
+      if(!inline_for_class(ice->receiver_class(), ice->receiver_data(), ice->hits())) {
         // If we fail to inline this, emit a send to the method
 
         Value* call_site_ptr_const = ops_.b().CreateIntToPtr(

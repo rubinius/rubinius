@@ -123,9 +123,8 @@ namespace HeaderWord {
 }
 namespace InlineCache {
   const static int header = 0;
-  const static int call_unit = 1;
-  const static int cache = 2;
-  const static int seen_classes_overflow = 3;
+  const static int entries = 1;
+  const static int seen_classes_overflow = 2;
 }
 namespace InlineCacheEntry {
   const static int header = 0;
@@ -134,10 +133,8 @@ namespace InlineCacheEntry {
   const static int method = 3;
   const static int receiver_class_id = 4;
   const static int receiver_serial_id = 5;
-}
-namespace InlineCacheHit {
-  const static int entry = 0;
-  const static int hits = 1;
+  const static int method_missing = 6;
+  const static int hits = 7;
 }
 namespace Module {
   const static int header = 0;

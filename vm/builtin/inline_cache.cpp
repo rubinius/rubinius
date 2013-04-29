@@ -64,14 +64,13 @@ namespace rubinius {
   {
     Class* const recv_class = args.recv()->lookup_begin(state);
 
-    InlineCacheEntry* entry;
     InlineCache* cache = static_cast<InlineCache*>(call_site);
-    InlineCacheHit* ic = cache->get_inline_cache(recv_class, entry);
+    InlineCacheEntry* entry = cache->get_entry(recv_class);
 
-    if(likely(ic)) {
+    if(likely(entry)) {
       Executable* meth = entry->method();
       Module* mod = entry->stored_module();
-      ic->hit();
+      entry->hit();
 
       return meth->execute(state, call_frame, meth, mod, args);
     }
@@ -84,18 +83,17 @@ namespace rubinius {
   {
     Class* const recv_class = args.recv()->lookup_begin(state);
 
-    InlineCacheEntry* entry;
     InlineCache* cache = static_cast<InlineCache*>(call_site);
-    InlineCacheHit* ic = cache->get_inline_cache(recv_class, entry);
+    InlineCacheEntry* entry = cache->get_entry(recv_class);
 
-    if(likely(ic)) {
+    if(likely(entry)) {
       if(entry->method_missing() != eNone) {
         args.unshift(state, call_site->name_);
         state->vm()->set_method_missing_reason(entry->method_missing());
       }
       Executable* meth = entry->method();
       Module* mod = entry->stored_module();
-      ic->hit();
+      entry->hit();
 
       return meth->execute(state, call_frame, meth, mod, args);
     }
@@ -116,8 +114,8 @@ namespace rubinius {
            << "classes:\n";
 
     for(int i = 0; i < cTrackedICHits; i++) {
-      if(cache_[i].entry()) {
-        Module* mod = cache_[i].entry()->receiver_class();
+      if(entries_[i]) {
+        Module* mod = entries_[i]->receiver_class();
         if(mod) {
           if(SingletonClass* sc = try_as<SingletonClass>(mod)) {
             if(Module* inner = try_as<Module>(sc->attached_instance())) {
@@ -139,12 +137,12 @@ namespace rubinius {
     auto_mark(obj, mark);
     InlineCache* cache = static_cast<InlineCache*>(obj);
 
-    for(int j = 0; j < cTrackedICHits; ++j) {
-      InlineCacheEntry* ice = cache->cache_[j].entry();
+    for(int i = 0; i < cTrackedICHits; ++i) {
+      InlineCacheEntry* ice = cache->entries_[i];
       if(ice) {
         InlineCacheEntry* updated = static_cast<InlineCacheEntry*>(mark.call(ice));
         if(updated) {
-          cache->cache_[j].update(updated);
+          cache->entries_[i] = updated;
           mark.just_set(cache, updated);
         }
       }

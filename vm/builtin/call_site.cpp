@@ -259,7 +259,7 @@ namespace rubinius {
     }
 
     if(InlineCache* cache = try_as<InlineCache>(this)) {
-      InlineCacheEntry* ice = cache->get_cache(recv_class);
+      InlineCacheEntry* ice = cache->get_entry(recv_class);
       if(likely(ice)) return ice->method()->serial()->to_native() == serial;
     }
 
