@@ -3,6 +3,7 @@
 module Rubinius
 
   class InlineCacheEntry
+
     attr_reader :receiver_class
     attr_reader :stored_module
     attr_reader :method
@@ -23,6 +24,9 @@ module Rubinius
   end
 
   class PolyInlineCache < CallSite
+
+    attr_reader :name
+    attr_reader :executable
 
     def entries
       Rubinius.primitive :poly_inline_cache_entries

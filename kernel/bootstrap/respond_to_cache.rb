@@ -3,6 +3,8 @@
 module Rubinius
   class RespondToCache < CallSite
 
+    attr_reader :name
+    attr_reader :executable
     attr_reader :receiver_class
     attr_reader :message
     attr_reader :visibility

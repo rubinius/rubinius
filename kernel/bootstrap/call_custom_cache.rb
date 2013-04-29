@@ -3,6 +3,8 @@
 module Rubinius
   class CallCustomCache < CallSite
 
+    attr_reader :name
+    attr_reader :executable
     attr_reader :call_unit
 
     def inspect

@@ -3,6 +3,8 @@
 module Rubinius
   class MonoInlineCache < CallSite
 
+    attr_reader :name
+    attr_reader :executable
     attr_reader :receiver_class
     attr_reader :stored_module
     attr_reader :method
