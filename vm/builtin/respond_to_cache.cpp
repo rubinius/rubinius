@@ -18,20 +18,25 @@ namespace rubinius {
     G(respond_to_cache)->set_object_type(state, RespondToCacheType);
   }
 
-  RespondToCache* RespondToCache::empty(STATE, CallSite* fallback, Executable* executable, int ip) {
+  RespondToCache* RespondToCache::create(STATE, CallSite* fallback,
+                    Object* recv, Symbol* msg, Object* priv, Object* res) {
+
     RespondToCache* cache =
       state->vm()->new_object<RespondToCache>(G(respond_to_cache));
+
+    Class* recv_class = recv->lookup_begin(state);
     cache->fallback_call_site(state, fallback);
-    cache->executable(state, executable);
-    cache->ip_              = ip;
-    cache->name_            = fallback->name();
-    cache->receiver_class_  = nil<Class>();
-    cache->visibility_      = nil<Symbol>();
-    cache->responds_        = cNil;
+    cache->executable(state, fallback->executable());
+    cache->name(state, fallback->name());
+    cache->receiver_class(state, recv_class);
+    cache->visibility(state, priv);
+    cache->responds(state, res);
+    cache->ip_              = fallback->ip();
     cache->executor_        = check_cache;
     cache->fallback_        = check_cache;
     cache->updater_         = NULL;
-    cache->clear_receiver_data();
+    uint64_t recv_data = recv_class->data_raw();
+    cache->set_receiver_data(recv_data);
     return cache;
   }
 
@@ -52,17 +57,6 @@ namespace rubinius {
     }
 
     return cache->fallback_call_site_->execute(state, call_frame, args);
-  }
-
-  void RespondToCache::update(STATE, Object* recv, Symbol* msg, Object* priv, Object* res) {
-    Class* const recv_class = recv->lookup_begin(state);
-    uint64_t recv_data = recv_class->data_raw();
-    receiver_class(state, recv_class);
-    message(state, msg);
-    visibility(state, priv);
-    responds(state, res);
-    set_receiver_data(recv_data);
-    executor_ = check_cache;
   }
 
   void RespondToCache::Info::mark(Object* obj, ObjectMark& mark) {

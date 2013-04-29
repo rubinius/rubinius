@@ -841,8 +841,8 @@ namespace rubinius {
       if(RespondToCache* rct = try_as<RespondToCache>(existing)) {
         existing = rct->fallback_call_site();
       }
-      RespondToCache* cache = RespondToCache::empty(state, existing, code, info->ip);
-      cache->update(state, this, name, priv, responds);
+      RespondToCache* cache = RespondToCache::create(state, existing,
+                                this, name, priv, responds);
       atomic::memory_barrier();
       existing->update_call_site(state, cache);
     }

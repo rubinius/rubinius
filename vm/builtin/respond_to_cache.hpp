@@ -58,12 +58,11 @@ namespace rubinius {
 
   public:
     static void init(STATE);
-    static RespondToCache* empty(STATE, CallSite* fallback, Executable* executable, int ip);
+    static RespondToCache* create(STATE, CallSite* fallback,
+                                  Object* recv, Symbol* msg, Object* priv, Object* res);
 
     static Object* check_cache(STATE, CallSite* call_site, CallFrame* call_frame,
                                Arguments& args);
-
-    void update(STATE, Object* recv, Symbol* msg, Object* priv, Object* res);
 
   public: // Rubinius Type stuff
     class Info : public CallSite::Info {
