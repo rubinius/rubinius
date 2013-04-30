@@ -29,6 +29,7 @@ kernel19.rbc
 identitymap.rbc
 array.rbc
 array19.rbc
+array20.rbc
 loadedfeatures.rbc
 global.rbc
 backtrace.rbc
