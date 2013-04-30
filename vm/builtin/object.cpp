@@ -842,7 +842,7 @@ namespace rubinius {
         existing = rct->fallback_call_site();
       }
       RespondToCache* cache = RespondToCache::create(state, existing,
-                                this, name, priv, responds);
+                                this, name, priv, responds, 1);
       atomic::memory_barrier();
       existing->update_call_site(state, cache);
     }

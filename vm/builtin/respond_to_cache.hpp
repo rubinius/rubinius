@@ -24,6 +24,7 @@ namespace rubinius {
     Object* visibility_;           // slot
     Object* responds_;             // slot
     CallSite* fallback_call_site_; // slot
+    int hits_;
 
   public:
     attr_accessor(receiver_class, Class);
@@ -56,10 +57,21 @@ namespace rubinius {
       return receiver_.f.serial_id;
     }
 
+    void hit() {
+      ++hits_;
+    }
+
+    int hits() {
+      return hits_;
+    }
+
+    // Rubinius.primitive :respond_to_cache_hits
+    Integer* hits_prim(STATE);
+
   public:
     static void init(STATE);
-    static RespondToCache* create(STATE, CallSite* fallback,
-                                  Object* recv, Symbol* msg, Object* priv, Object* res);
+    static RespondToCache* create(STATE, CallSite* fallback, Object* recv,
+                                  Symbol* msg, Object* priv, Object* res, int hits);
 
     static Object* check_cache(STATE, CallSite* call_site, CallFrame* call_frame,
                                Arguments& args);
