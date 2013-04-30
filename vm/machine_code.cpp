@@ -271,12 +271,11 @@ namespace rubinius {
       case InstructionSequence::insn_push_const_fast:
       case InstructionSequence::insn_find_const_fast: {
         Symbol* name = as<Symbol>(original->literals()->at(opcodes[ip + 1]));
-        ConstantCache* cache = ConstantCache::empty(state, name);
-        original->write_barrier(state, cache);
 
+        ConstantCache* cache = ConstantCache::empty(state, name, original, ip);
         constant_cache_offsets_[constant_index] = ip;
         constant_index++;
-        opcodes[ip + 1] = reinterpret_cast<intptr_t>(cache);
+        store_constant_cache(state, original, ip, cache);
         break;
       }
       }
@@ -291,6 +290,11 @@ namespace rubinius {
     return as<CallSite>(obj);
   }
 
+  ConstantCache* MachineCode::constant_cache(STATE, int ip) {
+    Object* obj = reinterpret_cast<Object*>(opcodes[ip + 1]);
+    return as<ConstantCache>(obj);
+  }
+
   Tuple* MachineCode::call_sites(STATE) {
     Tuple* sites = Tuple::create(state, number_of_call_sites_);
     for(size_t i = 0; i < number_of_call_sites_; ++i) {
@@ -299,10 +303,24 @@ namespace rubinius {
     return sites;
   }
 
+  Tuple* MachineCode::constant_caches(STATE) {
+    Tuple* caches = Tuple::create(state, number_of_constant_caches_);
+    for(size_t i = 0; i < number_of_constant_caches_; ++i) {
+      caches->put(state, i, constant_cache(state, constant_cache_offsets_[i]));
+    }
+    return caches;
+  }
+
   void MachineCode::store_call_site(STATE, CompiledCode* code, int ip, CallSite* call_site) {
     atomic::memory_barrier();
     opcodes[ip + 1] = reinterpret_cast<intptr_t>(call_site);
     code->write_barrier(state, call_site);
+  }
+
+  void MachineCode::store_constant_cache(STATE, CompiledCode* code, int ip, ConstantCache* constant_cache) {
+    atomic::memory_barrier();
+    opcodes[ip + 1] = reinterpret_cast<intptr_t>(constant_cache);
+    code->write_barrier(state, constant_cache);
   }
 
   // Argument handler implementations

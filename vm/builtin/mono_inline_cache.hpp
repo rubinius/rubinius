@@ -10,7 +10,6 @@
 #include "object_utils.hpp"
 
 namespace rubinius {
-  class InlineCache;
   struct CallFrame;
   class Arguments;
   class CallUnit;

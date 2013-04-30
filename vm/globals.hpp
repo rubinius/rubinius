@@ -113,7 +113,6 @@ namespace rubinius {
     TypedRoot<Class*> call_custom_cache;
     TypedRoot<Class*> respond_to_cache;
     TypedRoot<Class*> constant_cache;
-    TypedRoot<Class*> constant_cache_entry;
     TypedRoot<Class*> cls_weakref;
     TypedRoot<Class*> fiber;
     TypedRoot<Class*> alias;
@@ -238,7 +237,6 @@ namespace rubinius {
       call_custom_cache(&roots),
       respond_to_cache(&roots),
       constant_cache(&roots),
-      constant_cache_entry(&roots),
       cls_weakref(&roots),
       fiber(&roots),
       alias(&roots),

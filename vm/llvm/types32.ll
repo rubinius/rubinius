@@ -112,20 +112,15 @@ declare void @outputInlineCacheEntry(%"struct.rubinius::InlineCacheEntry"*)
 %"struct.rubinius::ConstantCache" = type {
                %"struct.rubinius::Object", ; header
               %"struct.rubinius::Symbol"*, ; name
-  %"struct.rubinius::ConstantCacheEntry"*, ; entry
+              %"struct.rubinius::Object"*, ; value
+              %"struct.rubinius::Module"*, ; under
+       %"struct.rubinius::ConstantScope"*, ; scope
+          %"struct.rubinius::Executable"*, ; executable
+                                      i32, ; ip
                                       i32  ; serial
 }
 
 declare void @outputConstantCache(%"struct.rubinius::ConstantCache"*)
-
-%"struct.rubinius::ConstantCacheEntry" = type {
-          %"struct.rubinius::Object", ; header
-         %"struct.rubinius::Object"*, ; value
-         %"struct.rubinius::Module"*, ; under
-  %"struct.rubinius::ConstantScope"*  ; scope
-}
-
-declare void @outputConstantCacheEntry(%"struct.rubinius::ConstantCacheEntry"*)
 
 %"struct.rubinius::StackVariables" = type {
   %"struct.rubinius::VariableScope"*, ; on_heap

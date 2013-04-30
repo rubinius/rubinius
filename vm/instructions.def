@@ -842,7 +842,8 @@ instruction push_const_fast(literal) [ -- constant ]
       }
 
       if(res) {
-        cache->update(state, res, call_frame->constant_scope());
+        ConstantCache* update = ConstantCache::create(state, cache, res, call_frame->constant_scope());
+        cache->update_constant_cache(state, update);
       }
     } else {
       res = Helpers::const_missing(state, sym, call_frame);
@@ -886,7 +887,8 @@ instruction find_const_fast(literal) [ module -- constant ]
       }
 
       if(res) {
-        cache->update(state, res, under, call_frame->constant_scope());
+        ConstantCache* update = ConstantCache::create(state, cache, res, under, call_frame->constant_scope());
+        cache->update_constant_cache(state, update);
       }
     } else {
       res = Helpers::const_missing_under(state, under, sym, call_frame);

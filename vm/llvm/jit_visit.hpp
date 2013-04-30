@@ -2191,22 +2191,12 @@ use_send:
 
       set_block(use_cache);
 
-      Value* entry_pos_idx[] = {
-        context()->cint(0),
-        context()->cint(offset::ConstantCache::entry),
-      };
-
-      Value* entry_pos = b().CreateGEP(cache,
-          entry_pos_idx, "entry_pos");
-
-      Value* entry = b().CreateLoad(entry_pos, "entry");
-
       Value* value_pos_idx[] = {
         context()->cint(0),
-        context()->cint(offset::ConstantCacheEntry::value),
+        context()->cint(offset::ConstantCache::value),
       };
 
-      Value* value_pos = b().CreateGEP(entry,
+      Value* value_pos = b().CreateGEP(cache,
           value_pos_idx, "value_pos");
 
       cached_value = b().CreateLoad(value_pos, "cached_value");
@@ -3448,23 +3438,12 @@ use_send:
 
       set_block(check_under);
 
-
-      Value* entry_pos_idx[] = {
-        context()->cint(0),
-        context()->cint(offset::ConstantCache::entry),
-      };
-
-      Value* entry_pos = b().CreateGEP(cache,
-          entry_pos_idx, "entry_pos");
-
-      Value* entry = b().CreateLoad(entry_pos, "entry");
-
       Value* under_pos_idx[] = {
         context()->cint(0),
-        context()->cint(offset::ConstantCacheEntry::under),
+        context()->cint(offset::ConstantCache::under),
       };
 
-      Value* under_pos = b().CreateGEP(entry,
+      Value* under_pos = b().CreateGEP(cache,
           under_pos_idx, "value_pos");
 
       Value* cached_under = b().CreateBitCast(b().CreateLoad(under_pos, "cached_under"),
@@ -3478,10 +3457,10 @@ use_send:
 
       Value* value_pos_idx[] = {
         context()->cint(0),
-        context()->cint(offset::ConstantCacheEntry::value),
+        context()->cint(offset::ConstantCache::value),
       };
 
-      Value* value_pos = b().CreateGEP(entry,
+      Value* value_pos = b().CreateGEP(cache,
           value_pos_idx, "value_pos");
 
       cached_value = b().CreateLoad(value_pos, "cached_value");

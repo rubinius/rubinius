@@ -606,11 +606,7 @@ namespace rubinius {
           ctx_->inline_log("inlining") << "direct class used for kind_of ";
         }
         ConstantCache* constant_cache = kt.constant_cache();
-        if(ConstantCacheEntry* entry = constant_cache->entry()) {
-          if(!entry->nil_p()) {
-            klass = try_as<Class>(entry->value());
-          }
-        }
+        klass = try_as<Class>(constant_cache->value());
 
         if(klass) {
 

@@ -609,7 +609,8 @@ extern "C" {
         }
 
         if(res) {
-          cache->update(state, res, under, call_frame->constant_scope());
+          ConstantCache* update = ConstantCache::create(state, cache, res, under, call_frame->constant_scope());
+          cache->update_constant_cache(state, update);
         }
       } else {
         res = Helpers::const_missing_under(state, under, cache->name(), call_frame);
@@ -756,7 +757,8 @@ extern "C" {
         }
 
         if(res) {
-          cache->update(state, res, call_frame->constant_scope());
+          ConstantCache* update = ConstantCache::create(state, cache, res, call_frame->constant_scope());
+          cache->update_constant_cache(state, update);
         }
       } else {
         res = Helpers::const_missing(state, cache->name(), call_frame);

@@ -21,9 +21,9 @@ namespace rubinius {
 
   class CompiledCode;
   class CallSite;
+  class ConstantCache;
   class MachineCode;
   class InterpreterCallFrame;
-  class InlineCache;
 
   typedef Object* (*InterpreterRunner)(STATE, MachineCode* const mcode,
                                        InterpreterCallFrame* const call_frame);
@@ -169,9 +169,13 @@ namespace rubinius {
     }
 
     CallSite* call_site(STATE, int ip);
+    ConstantCache* constant_cache(STATE, int ip);
+
     Tuple* call_sites(STATE);
+    Tuple* constant_caches(STATE);
 
     void store_call_site(STATE, CompiledCode* code, int ip, CallSite* call_site);
+    void store_constant_cache(STATE, CompiledCode* code, int ip, ConstantCache* constant_cache);
 
     void specialize(STATE, CompiledCode* original, TypeInfo* ti);
     void compile(STATE);

@@ -90,14 +90,12 @@ namespace CompiledCode {
 namespace ConstantCache {
   const static int header = 0;
   const static int name = 1;
-  const static int entry = 2;
-  const static int serial = 3;
-}
-namespace ConstantCacheEntry {
-  const static int header = 0;
-  const static int value = 1;
-  const static int under = 2;
-  const static int scope = 3;
+  const static int value = 2;
+  const static int under = 3;
+  const static int scope = 4;
+  const static int executable = 5;
+  const static int ip = 6;
+  const static int serial = 7;
 }
 namespace Dispatch {
   const static int name = 0;

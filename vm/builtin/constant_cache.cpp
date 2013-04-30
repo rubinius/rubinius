@@ -8,67 +8,42 @@
 
 namespace rubinius {
   void ConstantCache::init(STATE) {
-    GO(constant_cache_entry).set(
-        ontology::new_class(state, "ConstantCacheEntry",
-          G(object), G(rubinius)));
     GO(constant_cache).set(
         ontology::new_class(state, "ConstantCache",
           G(object), G(rubinius)));
 
   }
 
-  ConstantCacheEntry* ConstantCacheEntry::create(STATE, Object* value,
-                                                 Module* under,
-                                                 ConstantScope* scope) {
-    ConstantCacheEntry* cache_entry = state->new_object_dirty<ConstantCacheEntry>(G(constant_cache_entry));
+  ConstantCache* ConstantCache::create(STATE, ConstantCache* existing, Object* value, Module* under,
+                                             ConstantScope* scope) {
+    ConstantCache* cache = state->new_object_dirty<ConstantCache>(G(constant_cache));
 
-    cache_entry->value(state, value);
-    cache_entry->under(state, under);
-    cache_entry->scope(state, scope);
-
-    return cache_entry;
-  }
-
-  ConstantCache* ConstantCache::create(STATE, Symbol* name, Object* value,
-                                             ConstantScope* scope)
-  {
-    ConstantCache* cache =
-      state->vm()->new_object_mature<ConstantCache>(G(constant_cache));
-
-    cache->name(state, name);
-    cache->update(state, value, scope);
+    cache->name(state, existing->name());
+    cache->executable(state, existing->executable());
+    cache->ip_ = existing->ip();
+    cache->value(state, value);
+    cache->under(state, under);
+    cache->scope(state, scope);
+    cache->serial_ = state->shared().global_serial();
     return cache;
   }
 
-  ConstantCache* ConstantCache::create(STATE, Symbol* name, Object* value, Module* under,
-                                             ConstantScope* scope)
-  {
-    ConstantCache* cache =
-      state->vm()->new_object_mature<ConstantCache>(G(constant_cache));
-
-    cache->name(state, name);
-    cache->update(state, value, under, scope);
-    return cache;
+  ConstantCache* ConstantCache::create(STATE, ConstantCache* existing, Object* value,
+                                             ConstantScope* scope) {
+    return create(state, existing, value, nil<Module>(), scope);
   }
 
-  ConstantCache* ConstantCache::empty(STATE, Symbol* name) {
-    ConstantCache* cache =
-      state->vm()->new_object_mature<ConstantCache>(G(constant_cache));
+  ConstantCache* ConstantCache::empty(STATE, Symbol* name, Executable* executable, int ip) {
+    ConstantCache* cache = state->new_object_dirty<ConstantCache>(G(constant_cache));
 
     cache->name(state, name);
+    cache->executable(state, executable);
+    cache->ip_ = ip;
+    cache->value(state, cNil);
+    cache->under(state, nil<Module>());
+    cache->scope(state, nil<ConstantScope>());
     cache->serial_ = -1;
     return cache;
-  }
-
-  void ConstantCache::update(STATE, Object* val, ConstantScope* sc) {
-    update(state, val, nil<Module>(), sc);
-  }
-
-  void ConstantCache::update(STATE, Object* val, Module* mc, ConstantScope* sc) {
-    ConstantCacheEntry* cache_entry = ConstantCacheEntry::create(state, val, mc, sc);
-    atomic::memory_barrier();
-    entry(state, cache_entry);
-    serial_ = state->shared().global_serial();
   }
 }
 
