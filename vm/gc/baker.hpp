@@ -14,8 +14,6 @@
 
 #include "instruments/stats.hpp"
 
-#include "call_frame_list.hpp"
-
 #include "object_watch.hpp"
 
 #include "util/thread.hpp"

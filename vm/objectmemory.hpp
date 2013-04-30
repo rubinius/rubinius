@@ -6,8 +6,6 @@
 
 #include "object_position.hpp"
 
-#include "call_frame_list.hpp"
-
 #include "builtin/object.hpp"
 #include "gc/code_manager.hpp"
 #include "gc/finalize.hpp"

@@ -7,8 +7,6 @@
 
 #include <list>
 
-#include "call_frame_list.hpp"
-
 namespace rubinius {
 
   /* Forwards */
@@ -45,7 +43,6 @@ namespace rubinius {
     void   sweep_objects();
     void   free_object(Object* obj, bool fast = false);
     virtual Object* saw_object(Object* obj);
-    void   collect(Roots &roots, CallFrameLocationList& call_frame);
     void after_marked();
 
     void profile(STATE);

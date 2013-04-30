@@ -110,36 +110,6 @@ namespace rubinius {
     return NULL;
   }
 
-  void MarkSweepGC::collect(Roots &roots, CallFrameLocationList& call_frames) {
-    Object* tmp;
-
-    Root* root = static_cast<Root*>(roots.head());
-    while(root) {
-      tmp = root->get();
-      if(tmp->reference_p()) {
-        saw_object(tmp);
-      }
-
-      root = static_cast<Root*>(root->next());
-    }
-
-    // Walk all the call frames
-    for(CallFrameLocationList::const_iterator i = call_frames.begin();
-        i != call_frames.end();
-        ++i) {
-      CallFrame** loc = *i;
-      walk_call_frame(*loc);
-    }
-
-    while(!mark_stack_.empty()) {
-      tmp = mark_stack_.back();
-      mark_stack_.pop_back();
-      scan_object(tmp);
-    }
-
-    after_marked();
-  }
-
   void MarkSweepGC::after_marked() {
     times_collected++;
     last_freed = 0;
