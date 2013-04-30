@@ -20,6 +20,11 @@ module Rubinius
       raise PrimitiveFailure, "CompiledCode#call_sites primitive failed"
     end
 
+    def constant_caches
+      Rubinius.primitive :compiledcode_constant_caches
+      raise PrimitiveFailure, "CompiledCode#constant_caches primitive failed"
+    end
+
     # Return the CompiledCode for caller of the method that called
     # .of_sender.
     #

@@ -12,6 +12,7 @@ class.rbc
 compactlookuptable.rbc
 compiled_code.rbc
 configuration.rbc
+constant_cache.rbc
 constant_scope.rbc
 dir.rbc
 exception.rbc

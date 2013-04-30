@@ -45,5 +45,13 @@ namespace rubinius {
     cache->serial_ = -1;
     return cache;
   }
+
+  Integer* ConstantCache::ip_prim(STATE) {
+    return Integer::from(state, ip_);
+  }
+
+  Integer* ConstantCache::serial_prim(STATE) {
+    return Integer::from(state, serial_);
+  }
 }
 

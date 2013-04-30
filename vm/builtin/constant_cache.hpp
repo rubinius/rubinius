@@ -37,6 +37,12 @@ namespace rubinius {
     int ip() { return ip_; }
     int serial() { return serial_; }
 
+    // Rubinius.primitive :constant_cache_ip
+    Integer* ip_prim(STATE);
+
+    // Rubinius.primitive :constant_cache_serial
+    Integer* serial_prim(STATE);
+
     static void init(STATE);
     static ConstantCache* create(STATE, ConstantCache* cache, Object* value, ConstantScope* scope);
     static ConstantCache* create(STATE, ConstantCache* cache, Object* value, Module* under, ConstantScope* scope);

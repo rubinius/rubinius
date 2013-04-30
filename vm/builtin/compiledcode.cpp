@@ -83,6 +83,19 @@ namespace rubinius {
     return mcode->call_sites(state);
   }
 
+  Tuple* CompiledCode::constant_caches(STATE, CallFrame* calling_environment) {
+    GCTokenImpl gct;
+    CompiledCode* self = this;
+    OnStack<1> os(state, self);
+
+    if(self->machine_code_ == NULL) {
+      if(!self->internalize(state, gct, calling_environment)) return force_as<Tuple>(Primitives::failure());
+    }
+    MachineCode* mcode = self->machine_code_;
+    return mcode->constant_caches(state);
+  }
+
+
   int CompiledCode::start_line(STATE) {
     return start_line();
   }
