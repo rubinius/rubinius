@@ -610,6 +610,17 @@ module Rubinius
         g.make_array size if size >= 0
       end
 
+      def make_retval(g)
+        size = @right.body.size
+        if @left and !@splat
+          lhs = @left.body.size
+          size = lhs if lhs > size
+        end
+        g.dup_many @right.body.size
+        g.make_array @right.body.size
+        g.move_down size
+      end
+
       def rotate(g)
         if @splat
           size = @left.body.size + 1
@@ -656,10 +667,15 @@ module Rubinius
         if @fixed
           pad_short(g) if @left and !@splat
           @right.body.each { |x| x.bytecode(g) }
-          pad_short(g) if @left and @splat
 
           if @left
-            make_array(g) if @splat
+            make_retval(g)
+
+            if @splat
+              pad_short(g)
+              make_array(g)
+            end
+
             rotate(g)
 
             g.state.push_masgn
@@ -681,6 +697,7 @@ module Rubinius
             end
 
             g.cast_array unless @right.kind_of? ToArray
+            g.dup # Use the array as the return value
           end
 
           if @left
@@ -710,13 +727,14 @@ module Rubinius
         if @splat
           g.state.push_masgn
           @splat.bytecode(g)
+
+          # Use the array as the return value
+          g.dup if @fixed and !@left
+
           g.state.pop_masgn
         end
 
-        if @right
-          g.pop if !@fixed or @splat
-          g.push :true
-        end
+        g.pop if @right and (!@fixed or @splat)
       end
 
       def defined(g)
