@@ -358,11 +358,9 @@ describe "Assigning multiple values" do
     b.should == 1
   end
 
-  not_compliant_on :rubinius do
-    it "returns the rhs values used for assignment as an array" do
-      x = begin; a, b, c = 1, 2, 3; end
-      x.should == [1,2,3]
-    end
+  it "returns the rhs values used for assignment as an array" do
+    x = begin; a, b, c = 1, 2, 3; end
+    x.should == [1,2,3]
   end
 
   ruby_version_is "" ... "1.9" do
@@ -1235,70 +1233,42 @@ end
 # TODO: merge the following two describe blocks and partition the specs
 # into distinct cases.
 describe "Multiple assignment" do
-  not_compliant_on :rubinius do
-    it "has the proper return value" do
-      (a,b,*c = *[5,6,7,8,9,10]).should == [5,6,7,8,9,10]
-      (d,e = VariablesSpecs.reverse_foo(4,3)).should == [3,4]
-      (f,g,h = VariablesSpecs.reverse_foo(6,7)).should == [7,6]
-      (i,*j = *[5,6,7]).should == [5,6,7]
-      (k,*l = [5,6,7]).should == [5,6,7]
-      a.should == 5
-      b.should == 6
-      c.should == [7,8,9,10]
-      d.should == 3
-      e.should == 4
-      f.should == 7
-      g.should == 6
-      h.should == nil
-      i.should == 5
-      j.should == [6,7]
-      k.should == 5
-      l.should == [6,7]
-    end
+  it "has the proper return value" do
+    (a,b,*c = *[5,6,7,8,9,10]).should == [5,6,7,8,9,10]
+    (d,e = VariablesSpecs.reverse_foo(4,3)).should == [3,4]
+    (f,g,h = VariablesSpecs.reverse_foo(6,7)).should == [7,6]
+    (i,*j = *[5,6,7]).should == [5,6,7]
+    (k,*l = [5,6,7]).should == [5,6,7]
+    a.should == 5
+    b.should == 6
+    c.should == [7,8,9,10]
+    d.should == 3
+    e.should == 4
+    f.should == 7
+    g.should == 6
+    h.should == nil
+    i.should == 5
+    j.should == [6,7]
+    k.should == 5
+    l.should == [6,7]
   end
-
-  # TODO: write Rubinius versions
 end
 
-# For now, masgn is deliberately non-compliant with MRI wrt the return val from an masgn.
-# Rubinius returns true as the result of the assignment, but MRI returns an array
-# containing all the elements on the rhs. As this result is never used, the cost
-# of creating and then discarding this array is avoided
 describe "Multiple assignment, array-style" do
-  not_compliant_on :rubinius do
-    it "returns an array of all rhs values" do
-      (a,b = 5,6,7).should == [5,6,7]
-      a.should == 5
-      b.should == 6
+  it "returns an array of all rhs values" do
+    (a,b = 5,6,7).should == [5,6,7]
+    a.should == 5
+    b.should == 6
 
-      (c,d,*e = 99,8).should == [99,8]
-      c.should == 99
-      d.should == 8
-      e.should == []
+    (c,d,*e = 99,8).should == [99,8]
+    c.should == 99
+    d.should == 8
+    e.should == []
 
-      (f,g,h = 99,8).should == [99,8]
-      f.should == 99
-      g.should == 8
-      h.should == nil
-    end
-  end
-
-  deviates_on :rubinius do
-    it "returns true" do
-      (a,b = 5,6,7).should == true
-      a.should == 5
-      b.should == 6
-
-      (c,d,*e = 99,8).should == true
-      c.should == 99
-      d.should == 8
-      e.should == []
-
-      (f,g,h = 99,8).should == true
-      f.should == 99
-      g.should == 8
-      h.should == nil
-    end
+    (f,g,h = 99,8).should == [99,8]
+    f.should == 99
+    g.should == 8
+    h.should == nil
   end
 end
 
