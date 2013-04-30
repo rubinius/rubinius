@@ -62,6 +62,7 @@ namespace rubinius {
     case eNormal:
       return state->symbol("normal");
     }
+    return nil<Symbol>();
   }
 
   PolyInlineCache* PolyInlineCache::create(STATE, MonoInlineCache* mono) {

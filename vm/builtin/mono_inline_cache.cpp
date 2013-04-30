@@ -43,6 +43,7 @@ namespace rubinius {
     case eNormal:
       return state->symbol("normal");
     }
+    return nil<Symbol>();
   }
 
   MonoInlineCache* MonoInlineCache::create(STATE, CallSite* call_site, Class* klass, Dispatch& dis) {
