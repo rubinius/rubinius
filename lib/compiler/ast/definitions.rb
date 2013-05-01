@@ -117,8 +117,7 @@ module Rubinius
       end
 
       def new_local(name)
-        variable = Compiler::LocalVariable.new allocate_slot
-        variables[name] = variable
+        variables[name] ||= Compiler::LocalVariable.new allocate_slot
       end
 
       def new_nested_local(name)
@@ -1022,8 +1021,7 @@ module Rubinius
       end
 
       def new_local(name)
-        variable = Compiler::EvalLocalVariable.new name
-        variables[name] = variable
+        variables[name] ||= Compiler::EvalLocalVariable.new name
       end
 
       def assign_local_reference(var)
