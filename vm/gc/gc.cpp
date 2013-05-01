@@ -236,7 +236,7 @@ namespace rubinius {
       }
 #endif
 
-      if(call_frame->scope) {
+      if(call_frame->scope && call_frame->compiled_code) {
         saw_variable_scope(call_frame, displace(call_frame->scope, offset));
       }
 

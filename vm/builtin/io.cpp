@@ -112,17 +112,19 @@ namespace rubinius {
     int permissions = perm->to_int();
     int fd = -1;
 
+    OnStack<1> os(state, p);
+
     {
       GCIndependent guard(state, calling_environment);
       fd = ::open(path, mode, permissions);
     }
 
+    free(path);
+
     if(fd < 0) {
-      Exception::errno_error(state, path);
+      Exception::errno_error(state, p->c_str_null_safe(state));
     }
     update_max_fd(state, fd);
-
-    free(path);
 
     return Fixnum::from(fd);
   }
@@ -338,14 +340,20 @@ namespace rubinius {
     int mode = m->to_int();
     int other_fd = -1;
 
+    IO* self = this;
+    OnStack<2> os(state, self, p);
+
     {
       GCIndependent guard(state, calling_environment);
       other_fd = ::open(path, mode, 0666);
     }
 
+    free(path);
+
     if(other_fd < 0) {
-      Exception::errno_error(state, path);
+      Exception::errno_error(state, p->c_str_null_safe(state));
     }
+
     update_max_fd(state, other_fd);
 
     if(dup2(other_fd, cur_fd) == -1) {
@@ -353,15 +361,13 @@ namespace rubinius {
         // Just set ourselves to use the new fd and go on with life.
         descriptor(state, Fixnum::from(other_fd));
       } else {
-        Exception::errno_error(state, path);
+        Exception::errno_error(state, p->c_str_null_safe(state));
         return NULL;
       }
     }
 
-    free(path);
-
-    set_mode(state);
-    if(IOBuffer* ibuf = try_as<IOBuffer>(ibuffer())) {
+    self->set_mode(state);
+    if(IOBuffer* ibuf = try_as<IOBuffer>(self->ibuffer())) {
       ibuf->reset(state);
     }
 

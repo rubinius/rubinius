@@ -50,6 +50,7 @@ namespace rubinius {
     ByteArray* ba = state->memory()->new_object_bytes_mature_dirty<ByteArray>(state, G(bytearray), body);
     if(unlikely(!ba)) {
       Exception::memory_error(state);
+      return NULL;
     }
 
     if(!ba->pin()) {
