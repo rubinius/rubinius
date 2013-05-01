@@ -368,11 +368,7 @@ namespace rubinius {
   }
 
   bool Exception::errno_error_p(STATE, Exception* exc) {
-    if(Class* cls = try_as<Class>(G(object)->get_const(state, "SystemCallError"))) {
-      return exc->kind_of_p(state, cls);
-    }
-
-    return false;
+    return exc->kind_of_p(state, get_system_call_error(state));
   }
 
   bool Exception::system_call_error_p(STATE, Exception* exc) {

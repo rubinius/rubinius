@@ -542,20 +542,6 @@ namespace rubinius {
 
       i += InstructionSequence::instruction_width(op);
     }
-
-    find_super_instructions();
-  }
-
-  void MachineCode::find_super_instructions() {
-    return;
-    for(size_t index = 0; index < total;) {
-      size_t width = InstructionSequence::instruction_width(opcodes[index]);
-      int super = instructions::find_superop(&opcodes[index]);
-      if(super > 0) {
-        opcodes[index] = (opcode)super;
-      }
-      index += width;
-    }
   }
 
   void MachineCode::setup_argument_handler() {

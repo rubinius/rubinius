@@ -261,12 +261,11 @@ namespace rubinius {
     ffi_type* rtype;
     ffi_type** types = 0;
     FFIArgInfo* out_args_info = 0;
-    int i;
 
     if(arg_count > 0) {
       types = ALLOC_N(ffi_type*, arg_count);
 
-      for(i = 0; i < arg_count; i++) {
+      for(int i = 0; i < arg_count; i++) {
         types[i] = ffi_type_info(&args[i]);
       }
 
@@ -296,7 +295,6 @@ namespace rubinius {
                                            Array* args, Object* ret)
   {
     int arg_count;
-    Object* type;
     FFIArgInfo ret_info;
     FFIArgInfo* args_info;
 
@@ -307,7 +305,7 @@ namespace rubinius {
       args_info = ALLOC_N(FFIArgInfo, arg_count);
 
       for(int i = 0; i < arg_count; i++) {
-        type = args->get(state, i);
+        Object* type = args->get(state, i);
         if(!ffi_arg_info(state, type, &(args_info[i]))) {
           XFREE(args_info);
           return (NativeFunction*)Primitives::failure();
@@ -610,7 +608,6 @@ namespace rubinius {
                                         Array* args, Object* ret)
   {
     int tot;
-    Object* type;
     FFIArgInfo ret_info;
     FFIArgInfo* args_info;
 
@@ -620,7 +617,7 @@ namespace rubinius {
       args_info = ALLOC_N(FFIArgInfo, tot);
 
       for(int i = 0; i < tot; i++) {
-        type = args->get(state, i);
+        Object* type = args->get(state, i);
         if(!ffi_arg_info(state, type, &(args_info[i]))) {
           XFREE(args_info);
           return nil<Array>();

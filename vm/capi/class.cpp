@@ -64,7 +64,6 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     Module* mod = env->state()->vm()->shared.globals.object.get();
-    Object* val = 0;
 
     char* pathd = strdup(path);
     char* ptr = pathd;
@@ -76,7 +75,7 @@ extern "C" {
     while((name = strtok_r(ptr, ":", &context))) {
       ptr = NULL;
 
-      val = mod->get_const(env->state(), env->state()->symbol(name), &found);
+      Object* val = mod->get_const(env->state(), env->state()->symbol(name), &found);
 
       if(!found) {
         free(pathd);

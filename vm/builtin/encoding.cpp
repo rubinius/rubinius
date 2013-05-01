@@ -80,7 +80,6 @@ namespace rubinius {
 
 #include "vm/gen/encoding_database.cpp"
 
-    int index = -1;
     char* locale_charmap;
 
 #ifdef HAVE_NL_LANGINFO
@@ -92,7 +91,7 @@ namespace rubinius {
 
     G(encoding)->set_const(state, "LocaleCharmap", String::create(state, locale_charmap));
 
-    index = find_index(state, locale_charmap);
+    int index = find_index(state, locale_charmap);
     if(index < 0) index = find_index(state, "US-ASCII");
 
     create_internal(state, "locale", index);

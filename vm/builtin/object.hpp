@@ -418,16 +418,7 @@ namespace rubinius {
 
       virtual void auto_mark(Object* obj, ObjectMark& mark) {}
     };
-
-  private:
-    // Define these as private and without implementation so we
-    // don't accidently let C++ create them.
-    Object();
-    ~Object();
-    Object(const Object&);
-    Object& operator= (const Object&);
   };
-
 
 /* Object inlines -- Alphabetic, unlike class definition. */
 

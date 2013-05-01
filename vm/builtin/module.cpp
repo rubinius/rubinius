@@ -189,11 +189,10 @@ namespace rubinius {
   }
 
   Executable* Module::find_method(Symbol* name, Module** defined_in) {
-    MethodTableBucket* buk;
     Module* mod = this;
 
     do {
-      buk = mod->method_table()->find_entry(name);
+      MethodTableBucket* buk = mod->method_table()->find_entry(name);
       if(buk) {
         if(defined_in) *defined_in = mod;
         return buk->method();
@@ -256,10 +255,9 @@ namespace rubinius {
     if(!name->is_cvar_p(state)->true_p()) return Primitives::failure();
 
     Module* mod = this;
-    Module* mod_to_query;
 
     while(!mod->nil_p()) {
-      mod_to_query = get_module_to_query(mod);
+      Module* mod_to_query = get_module_to_query(mod);
 
       if(mod_to_query->table_ivar_defined(state, name)->true_p()) return cTrue;
 
@@ -273,10 +271,9 @@ namespace rubinius {
     if(!name->is_cvar_p(state)->true_p()) return Primitives::failure();
 
     Module* mod = this;
-    Module* mod_to_query;
 
     while(!mod->nil_p()) {
-      mod_to_query = get_module_to_query(mod);
+      Module* mod_to_query = get_module_to_query(mod);
 
       if(mod_to_query->table_ivar_defined(state, name)->true_p()) {
         return mod_to_query->get_table_ivar(state, name);

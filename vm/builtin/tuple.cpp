@@ -345,11 +345,10 @@ namespace rubinius {
   }
 
   void Tuple::Info::mark(Object* obj, ObjectMark& mark) {
-    Object* tmp;
     Tuple* tup = as<Tuple>(obj);
 
     for(native_int i = 0; i < tup->num_fields(); i++) {
-      tmp = mark.call(tup->field[i]);
+      Object* tmp = mark.call(tup->field[i]);
       if(tmp) mark.set(obj, &tup->field[i], tmp);
     }
   }

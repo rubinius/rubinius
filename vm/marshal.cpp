@@ -199,7 +199,6 @@ namespace rubinius {
 
   InstructionSequence* UnMarshaller::get_iseq() {
     size_t count;
-    long op;
     char data[OPCODE_LENGTH];
     stream >> count;
 
@@ -211,7 +210,7 @@ namespace rubinius {
 
     for(size_t i = 0; i < count; i++) {
       stream.getline(data, OPCODE_LENGTH);
-      op = strtol(data, NULL, 10);
+      long op = strtol(data, NULL, 10);
       ops->put(state, i, Fixnum::from(op));
     }
 

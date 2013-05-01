@@ -280,7 +280,6 @@ namespace rubinius {
     }
 
     char stack_str[STRFTIME_STACK_BUF];
-    char* malloc_str = 0;
 
     size_t chars = ::strftime_extended(stack_str, STRFTIME_STACK_BUF,
                        format->c_str(state), &tm, &ts, CBOOL(is_gmt_) ? 1 : 0,
@@ -291,7 +290,7 @@ namespace rubinius {
     String* result = 0;
 
     if(chars == 0 && format->byte_size() > 0) {
-      malloc_str = (char*)malloc(buf_size);
+      char* malloc_str = (char*)malloc(buf_size);
 
       chars = ::strftime_extended(malloc_str, buf_size,
                   format->c_str(state), &tm, &ts, CBOOL(is_gmt_) ? 1 : 0,

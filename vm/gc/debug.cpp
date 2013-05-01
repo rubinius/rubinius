@@ -13,11 +13,9 @@ namespace rubinius {
   }
 
   void HeapDebug::walk(Roots &roots) {
-    Object* tmp;
-
     Root* root = static_cast<Root*>(roots.head());
     while(root) {
-      tmp = root->get();
+      Object* tmp = root->get();
       if(tmp->reference_p()) {
         saw_object(tmp);
       }

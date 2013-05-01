@@ -243,7 +243,6 @@ namespace rubinius {
   {
     size_t i, j;
     Tuple* values;
-    LookupTableBucket* entry;
 
     if(!ary) ary = Array::create(state, tbl->entries()->to_native());
 
@@ -251,7 +250,7 @@ namespace rubinius {
     values = tbl->values();
 
     for(i = j = 0; i < num_bins; i++) {
-      entry = try_as<LookupTableBucket>(values->at(state, i));
+      LookupTableBucket* entry = try_as<LookupTableBucket>(values->at(state, i));
 
       while(entry) {
         Object* ret = action.call(state, entry);
@@ -267,14 +266,13 @@ namespace rubinius {
   {
     size_t i, j;
     Tuple* values;
-    LookupTableBucket* entry;
 
     Array* ary = Array::create(state, tbl->entries()->to_native());
     size_t num_bins = tbl->bins()->to_native();
     values = tbl->values();
 
     for(i = j = 0; i < num_bins; i++) {
-      entry = try_as<LookupTableBucket>(values->at(state, i));
+      LookupTableBucket* entry = try_as<LookupTableBucket>(values->at(state, i));
 
       while(entry) {
         ary->set(state, j++, action(state, entry));

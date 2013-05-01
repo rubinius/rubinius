@@ -228,7 +228,6 @@ namespace rubinius {
     void fill_opcodes(STATE, CompiledCode* original);
     void initialize_call_sites(STATE, CompiledCode* original, int sends);
     void initialize_constant_caches(STATE, CompiledCode* original, int constants);
-    void find_super_instructions();
 
     void deoptimize(STATE, CompiledCode* original, jit::RuntimeDataHolder* rd,
                     bool disable=false);

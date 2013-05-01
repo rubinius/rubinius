@@ -52,8 +52,6 @@ namespace rubinius {
    * functions here.
    */
   static int mp_set_long MPA(mp_int* a, unsigned long b) {
-    int     err;
-
     mp_zero(a);
 
     int digits = 0;
@@ -65,7 +63,8 @@ namespace rubinius {
     while(b > MP_DIGIT_MAX) {
       a->dp[0] |= (b >> DIGIT_BIT);
       a->used += 1;
-      if((err = mp_mul_2d(MPST, a, DIGIT_BIT, a)) != MP_OKAY) {
+      int err = mp_mul_2d(MPST, a, DIGIT_BIT, a);
+      if(err != MP_OKAY) {
         return err;
       }
 
@@ -1193,7 +1192,6 @@ namespace rubinius {
     NMP;
 
     long i = 0;
-    BDIGIT_DBL c;
     double value;
 
     value = (d < 0) ? -d : d;
@@ -1213,7 +1211,7 @@ namespace rubinius {
 
     while(i--) {
       value *= DIGIT_RADIX;
-      c = (BDIGIT_DBL) value;
+      BDIGIT_DBL c = (BDIGIT_DBL) value;
       value -= c;
       DIGIT(n,i) = c;
       n->used += 1;

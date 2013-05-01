@@ -207,16 +207,15 @@ extern "C" {
     FD_ZERO(&fds);
     FD_SET((int_fd_t)fd, &fds);
 
-    int count = 0;
-
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     LEAVE_CAPI(env->state());
     {
       GCIndependent guard(env);
 
-      while(count == 0) {
-        count = select(fd+1, &fds, 0, 0, 0);
+      int ready = 0;
+      while(!ready) {
+        ready = select(fd+1, &fds, 0, 0, 0);
         if(!retry) break;
       }
     }
@@ -254,15 +253,14 @@ extern "C" {
     FD_ZERO(&fds);
     FD_SET((int_fd_t)fd, &fds);
 
-    int count = 0;
-
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     LEAVE_CAPI(env->state());
     {
       GCIndependent guard(env);
 
-      while(count == 0) {
-        count = select(fd+1, 0, &fds, 0, 0);
+      int ready = 0;
+      while(!ready) {
+        ready = select(fd+1, 0, &fds, 0, 0);
         if(!retry) break;
       }
     }
@@ -280,15 +278,14 @@ extern "C" {
     FD_ZERO(&fds);
     FD_SET((int_fd_t)fd, &fds);
 
-    int count = 0;
-
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     LEAVE_CAPI(env->state());
     {
       GCIndependent guard(env);
 
-      while(count == 0) {
-        count = select(fd+1, &fds, 0, 0, 0);
+      int ready = 0;
+      while(!ready) {
+        ready = select(fd+1, &fds, 0, 0, 0);
       }
     }
     ENTER_CAPI(env->state());
@@ -304,13 +301,12 @@ extern "C" {
     FD_ZERO(&fds);
     FD_SET((int_fd_t)fd, &fds);
 
-    int ready = 0;
-
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     LEAVE_CAPI(env->state());
     {
       GCIndependent guard(env);
 
+      int ready = 0;
       while(!ready) {
         ready = select(fd+1, 0, &fds, 0, 0);
       }

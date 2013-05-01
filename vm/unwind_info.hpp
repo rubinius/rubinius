@@ -45,7 +45,8 @@ namespace rubinius {
     public:
 
     UnwindInfoSet()
-      : overflow_(NULL)
+      : unwinds_()
+      , overflow_(NULL)
       , current_(0)
     {}
 

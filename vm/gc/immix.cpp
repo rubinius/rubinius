@@ -135,15 +135,13 @@ namespace rubinius {
    * Performs a garbage collection of the immix space.
    */
   void ImmixGC::collect(GCData& data) {
-    Object* tmp;
-
     gc_.clear_lines();
 
     int via_handles_ = 0;
     int via_roots = 0;
 
     for(Roots::Iterator i(data.roots()); i.more(); i.advance()) {
-      tmp = i->get();
+      Object* tmp = i->get();
       if(tmp->reference_p()) saw_object(tmp);
       via_roots++;
     }

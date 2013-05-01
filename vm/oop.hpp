@@ -636,6 +636,14 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     friend class TypeInfo;
     friend class ObjectMemory;
+
+  private:
+    // Define these as private and without implementation so we
+    // don't accidently let C++ create them.
+    ObjectHeader();
+    ~ObjectHeader();
+    ObjectHeader(const ObjectHeader&);
+    ObjectHeader& operator= (const ObjectHeader&);
   };
 }
 

@@ -30,12 +30,10 @@
 namespace rubinius {
   namespace Helpers {
     Object* const_get_under(STATE, Module* mod, Symbol* name, bool* found, Object* filter) {
-      Object* result;
-
       *found = false;
 
       while(!mod->nil_p()) {
-        result = mod->get_const(state, name, found);
+        Object* result = mod->get_const(state, name, found);
         if(*found) {
           if(result != filter) return result;
           *found = false;
@@ -111,10 +109,10 @@ namespace rubinius {
 
       // Now look up the superclass chain.
       Module *fallback = G(object);
-      bool object_seen = false;
 
       cur = call_frame->constant_scope();
       if(!cur->nil_p()) {
+        bool object_seen = false;
         Module* mod = cur->module();
         while(!mod->nil_p()) {
           if(mod == G(object)) {

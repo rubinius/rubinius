@@ -165,10 +165,8 @@ keep_looking:
   }
 
   void GlobalCache::prune_young() {
-    CacheEntry* entry;
-
     for(size_t i = 0; i < CPU_CACHE_SIZE; i++) {
-      entry = &entries[i];
+      CacheEntry* entry = &entries[i];
       bool clear = false;
 
       Object* klass = reinterpret_cast<Object*>(entry->klass);
@@ -209,10 +207,8 @@ keep_looking:
   }
 
   void GlobalCache::prune_unmarked(int mark) {
-    CacheEntry* entry;
-
     for(size_t i = 0; i < CPU_CACHE_SIZE; i++) {
-      entry = &entries[i];
+      CacheEntry* entry = &entries[i];
       Object* klass = reinterpret_cast<Object*>(entry->klass);
       if(!klass) continue;
 

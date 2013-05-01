@@ -234,9 +234,8 @@ namespace rubinius {
 
     switch(process_item_kind_) {
     case eRuby: {
-      CallFrame* call_frame = 0;
-
       if(process_item_->ruby_finalizer) {
+        CallFrame* call_frame = 0;
         // Rubinius specific code. If the finalizer is cTrue, then send the
         // object the __finalize__ message.
         if(process_item_->ruby_finalizer == cTrue) {

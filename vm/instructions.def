@@ -1822,9 +1822,7 @@ instruction meta_send_op_plus(literal) [ value1 value2 -- sum ] => send
 
   if(both_fixnum_p(left, right)) {
     (void)stack_pop();
-    (void)stack_pop();
-    Object* res = ((Fixnum*)(left))->add(state, (Fixnum*)(right));
-    stack_push(res);
+    stack_set_top(force_as<Fixnum>(left)->add(state, force_as<Fixnum>(right)));
   } else {
     flush_ip();
     Arguments out_args(G(sym_plus), left, 1, stack_back_position(1));
@@ -1850,7 +1848,7 @@ instruction meta_send_op_minus(literal) [ value1 value2 -- difference ] => send
 
   if(both_fixnum_p(left, right)) {
     (void)stack_pop();
-    stack_set_top(((Fixnum*)(left))->sub(state, (Fixnum*)(right)));
+    stack_set_top(force_as<Fixnum>(left)->sub(state, force_as<Fixnum>(right)));
   } else {
     flush_ip();
     Arguments out_args(G(sym_minus), left, 1, stack_back_position(1));
