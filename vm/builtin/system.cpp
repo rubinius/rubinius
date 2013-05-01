@@ -1293,63 +1293,23 @@ namespace rubinius {
   Object* System::vm_check_callable(STATE, Object* obj, Symbol* sym,
                                     Object* self)
   {
-    Module* mod = obj->lookup_begin(state);
+    Class* recv_class = obj->lookup_begin(state);
 
-    MethodTableBucket* entry;
-    bool skip_vis_check = false;
+    LookupData lookup(self, recv_class, G(sym_public));
+    Dispatch dis(sym);
 
-    while(!mod->nil_p()) {
-      entry = mod->method_table()->find_entry(state, sym);
-
-      if(entry) {
-        if(entry->undef_p(state)) return cFalse;
-        if(!skip_vis_check) {
-          if(entry->private_p(state)) return cFalse;
-          if(entry->protected_p(state)) {
-            if(!self->kind_of_p(state, mod)) return cFalse;
-          }
-        }
-
-        // It's callable, ok, but see if we should see if it's just a stub
-        // to change the visibility of another method.
-        if(entry->method()->nil_p()) {
-          skip_vis_check = true;
-        } else {
-          return cTrue;
-        }
-      }
-
-      mod = mod->superclass();
-    }
-
-    return cFalse;
+    return RBOOL(dis.resolve(state, sym, lookup));
   }
 
   Object* System::vm_check_super_callable(STATE, CallFrame* call_frame) {
-    if(call_frame->native_method_p()) return cTrue;
 
-    Module* mod = call_frame->module()->superclass();
-
-    MethodTableBucket* entry;
+    Module* start = call_frame->module()->superclass();
     Symbol* sym = call_frame->original_name();
 
-    while(!mod->nil_p()) {
-      entry = mod->method_table()->find_entry(state, sym);
+    LookupData lookup(call_frame->self(), start, G(sym_private));
+    Dispatch dis(sym);
 
-      if(entry) {
-        if(entry->undef_p(state)) return cFalse;
-
-        // It's callable, ok, but see if we should see if it's just a stub
-        // to change the visibility of another method.
-        if(!entry->method()->nil_p()) {
-          return cTrue;
-        }
-      }
-
-      mod = mod->superclass();
-    }
-
-    return cFalse;
+    return RBOOL(dis.resolve(state, sym, lookup));
   }
 
   String* System::vm_get_user_home(STATE, String* name) {
