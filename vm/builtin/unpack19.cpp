@@ -172,9 +172,9 @@ namespace rubinius {
 
       int a = -1, b = -1, c = 0, d = 0;
       while(bytes < bytes_end) {
-        a = b = c = d = -1;
+        b = c = d = -1;
 
-        while((a = b64_xtable[(int)(*bytes)]) == -1 && bytes < bytes_end)
+        while((a = (int)b64_xtable[(int)(*bytes)]) == -1 && bytes < bytes_end)
           bytes++;
         if(bytes >= bytes_end)
           break;
@@ -632,12 +632,12 @@ namespace rubinius {
     const char* bytes_end = 0;
 
     native_int bytes_size = self->byte_size();
-    native_int index = 0;
+    native_int index UNUSED = 0;
     native_int stop = 0;
     native_int width = 0;
-    native_int count = 0;
+    native_int count UNUSED = 0;
     native_int remainder = 0;
-    bool rest = false;
+    bool rest UNUSED = false;
 
 
 static const char _trans_keys[] = {

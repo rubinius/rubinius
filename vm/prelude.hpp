@@ -41,8 +41,10 @@ namespace rubinius {
 
 #if __GNUC__ >= 4
 #define WARN_UNUSED __attribute__ ((warn_unused_result))
+#define UNUSED __attribute__((unused))
 #else
 #define WARN_UNUSED
+#define UNUSED
 #endif
 
 #endif

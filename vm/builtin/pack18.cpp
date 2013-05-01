@@ -632,11 +632,11 @@ namespace rubinius {
 
     native_int array_size = self->size();
     native_int index = 0;
-    native_int count = 0;
+    native_int count UNUSED = 0;
     native_int stop = 0;
-    bool rest = false;
-    bool platform = false;
-    bool tainted = false;
+    bool rest UNUSED = false;
+    bool platform UNUSED = false;
+    bool tainted UNUSED  = false;
 
     String* string_value = 0;
     std::string str("");

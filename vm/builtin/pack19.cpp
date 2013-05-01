@@ -637,12 +637,12 @@ namespace rubinius {
 
     native_int array_size = self->size();
     native_int index = 0;
-    native_int count = 0;
+    native_int count UNUSED = 0;
     native_int count_flag = -1;
     native_int stop = 0;
-    bool rest = false;
-    bool tainted = false;
-    bool untrusted = false;
+    bool rest UNUSED = false;
+    bool tainted UNUSED = false;
+    bool untrusted UNUSED = false;
     bool ascii_encoding = false;
     bool utf8_encoding = false;
     bool string_encoding = false;
