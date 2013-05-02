@@ -9,8 +9,7 @@ describe "An Sclass node" do
 
     compile do |g|
       g.push :self
-      g.push_rubinius
-      g.find_const :Type
+      g.push_type
       g.swap
       g.send :object_singleton_class, 1
 
@@ -44,8 +43,7 @@ describe "An Sclass node" do
 
 
         d.push :self
-        d.push_rubinius
-        d.find_const :Type
+        d.push_type
         d.swap
         d.send :object_singleton_class, 1
 
@@ -83,8 +81,7 @@ describe "An Sclass node" do
       g.set_local 0
       g.pop
       g.push_local 0
-      g.push_rubinius
-      g.find_const :Type
+      g.push_type
       g.swap
       g.send :object_singleton_class, 1
       g.pop
@@ -110,8 +107,7 @@ describe "An Sclass node" do
 
       g.in_block_send :m, :none do |d|
         d.push_local_depth 1, 0
-        d.push_rubinius
-        d.find_const :Type
+        d.push_type
         d.swap
         d.send :object_singleton_class, 1
         d.pop
@@ -134,8 +130,7 @@ describe "An Sclass node" do
       g.pop
 
       g.push_local 0
-      g.push_rubinius
-      g.find_const :Type
+      g.push_type
       g.swap
       g.send :object_singleton_class, 1
     end

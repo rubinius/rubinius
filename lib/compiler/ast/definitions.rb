@@ -907,8 +907,7 @@ module Rubinius
       def bytecode(g)
         pos(g)
 
-        g.push_rubinius
-        g.find_const :Type
+        g.push_type
         g.swap
         g.send :object_singleton_class, 1
 

@@ -385,8 +385,7 @@ module Rubinius
 
         g.push_const :Hash
 
-        g.push_rubinius
-        g.find_const :Type
+        g.push_type
         g.move_down 2
         g.send :object_kind_of?, 2
         g.gif not_hash
