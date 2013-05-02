@@ -202,4 +202,56 @@ describe "A Call node using FastNew transform" do
 
     compile(:fast_new, &fast_new_with_arg_block)
   end
+
+  ruby_version_is "1.9" do
+    relates "A.new(a { |(b, c)| })" do
+      compile :fast_new do
+        d = new_block_generator(g)
+        d.push_local 0
+        d.cast_array
+        d.shift_array
+        d.set_local 0
+        d.pop
+
+        d.shift_array
+        d.set_local 1
+        d.pop
+        d.pop
+
+        d.push_modifiers
+        d.new_label.set!
+        d.push :nil
+        d.pop_modifiers
+        d.ret
+
+        slow = g.new_label
+        done = g.new_label
+
+        g.push_const :A
+        g.dup
+        g.check_serial :new, Rubinius::CompiledCode::KernelMethodSerial
+        gif slow
+
+        g.send :allocate, 0, true
+        g.dup
+
+        g.push :self
+        g.create_block(d)
+        g.send_with_block :a, 0, true
+
+        g.send :initialize, 1, true
+        g.pop
+        g.goto done
+
+        slow.set!
+
+        g.push :self
+        g.create_block(d)
+        g.send_with_block :a, 0, true
+        g.send :new, 1, false
+
+        done.set!
+      end
+    end
+  end
 end
