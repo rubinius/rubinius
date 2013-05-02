@@ -325,7 +325,7 @@ namespace rubinius {
        * case.
        */
       sc->klass(state, sc);
-      Class* super = already_sc->true_superclass(state)->singleton_class(state);
+      Class* super = already_sc->true_superclass(state)->singleton_class_instance(state);
       sc->superclass(state, super);
       super->track_subclass(state, sc);
     } else {

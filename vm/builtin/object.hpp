@@ -299,8 +299,12 @@ namespace rubinius {
     // Rubinius.primitive :object_instance_of
     Object*   instance_of_prim(STATE, Module* klass);
 
-    /** Return object's MetaClass object. Created as needed. */
+    /** Return object's MetaClass object. Created as needed.
+     *  Also fixes up the parent hierarchy if needed */
     Class* singleton_class(STATE);
+
+    /** Return object's MetaClass object. Created as needed. */
+    Class* singleton_class_instance(STATE);
 
     /**
      *  Ruby #instance_variable_set
