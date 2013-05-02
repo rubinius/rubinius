@@ -109,8 +109,9 @@ namespace Executable {
   const static int primitive = 1;
   const static int serial = 2;
   const static int execute = 3;
-  const static int prim_index = 4;
-  const static int inliners = 5;
+  const static int inliners = 4;
+  const static int prim_index = 5;
+  const static int custom_call_site = 6;
 }
 namespace Float {
   const static int header = 0;

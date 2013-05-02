@@ -379,7 +379,6 @@ FunctionType* FuncTy_26 = FunctionType::get(
 PointerType* PointerTy_25 = PointerType::get(FuncTy_26, 0);
 
 StructTy_struct_rubinius__Executable_fields.push_back(PointerTy_25);
-StructTy_struct_rubinius__Executable_fields.push_back(IntegerType::get(mod->getContext(), 32));
 StructType *StructTy_struct_rubinius__Inliners = mod->getTypeByName("struct.rubinius::Inliners");
 if (!StructTy_struct_rubinius__Inliners) {
 StructTy_struct_rubinius__Inliners = StructType::create(mod->getContext(), "struct.rubinius::Inliners");
@@ -392,6 +391,8 @@ StructTy_struct_rubinius__Inliners->setBody(StructTy_struct_rubinius__Inliners_f
 PointerType* PointerTy_32 = PointerType::get(StructTy_struct_rubinius__Inliners, 0);
 
 StructTy_struct_rubinius__Executable_fields.push_back(PointerTy_32);
+StructTy_struct_rubinius__Executable_fields.push_back(IntegerType::get(mod->getContext(), 32));
+StructTy_struct_rubinius__Executable_fields.push_back(IntegerType::get(mod->getContext(), 8));
 if (StructTy_struct_rubinius__Executable->isOpaque()) {
 StructTy_struct_rubinius__Executable->setBody(StructTy_struct_rubinius__Executable_fields, /*isPacked=*/false);
 }

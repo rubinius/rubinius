@@ -256,8 +256,9 @@ declare void @output17(%"struct.rubinius::CompiledCode"*)
   %"struct.rubinius::Symbol"*, ; primitive
   %"struct.rubinius::Fixnum"*, ; serial
   %"struct.rubinius::Object"* (%"struct.rubinius::State"*, %"struct.rubinius::CallFrame"*, %"struct.rubinius::Executable"*, %"struct.rubinius::Module"*, %"struct.rubinius::Arguments"*)*, ; execute
+  %"struct.rubinius::Inliners"*, ; inliners
                             i32, ; prim_index
-  %"struct.rubinius::Inliners"*  ; inliners
+                             i8  ; custom_call_site
 }
 
 declare void @output18(%"struct.rubinius::Executable"*)
