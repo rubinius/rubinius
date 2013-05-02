@@ -65,7 +65,6 @@ namespace Class {
   const static int class_id = 4;
   const static int serial_id = 5;
   const static int packed_size = 6;
-  const static int building = 7;
 }
 namespace CompiledCode {
   const static int header = 0;

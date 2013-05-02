@@ -222,8 +222,7 @@ declare void @output15(%"struct.rubinius::CallFrame"*)
      %"struct.rubinius::TypeInfo"*, ; type_info
                                i32, ; class_id
                                i32, ; serial_id
-                               i32, ; packed_size
-                               i8   ; building
+                               i32  ; packed_size
 }
 
 declare void @output16(%"struct.rubinius::Class"*)
@@ -279,7 +278,6 @@ declare void @output19(%"struct.rubinius::Float"*)
         %"struct.rubinius::Array"*, ; seen_ivars
         %"struct.rubinius::Class"*, ; mirror
         %"struct.rubinius::Array"*  ; subclasses
-
 }
 
 declare void @output20(%"struct.rubinius::Module"*)

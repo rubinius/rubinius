@@ -222,8 +222,7 @@ declare void @output15(%"struct.rubinius::CallFrame"*)
      %"struct.rubinius::TypeInfo"*, ; type_info
                                i32, ; class_id
                                i32, ; serial_id
-                               i32, ; packed_size
-                               i8   ; building
+                               i32  ; packed_size
 }
 
 declare void @output16(%"struct.rubinius::Class"*)
