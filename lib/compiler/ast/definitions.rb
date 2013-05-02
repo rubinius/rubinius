@@ -169,24 +169,10 @@ module Rubinius
 
         meth.pop_state
 
-        g.dup
-        g.push_rubinius
-        g.swap
-        g.push_literal arg_name
-        g.swap
-        g.push_generator meth
+        g.create_block meth
         g.swap
         g.push_scope
-        g.swap
-        g.send :attach_method, 4
-        g.pop
-
-        if pass_block
-          g.push_block
-          g.send_with_block arg_name, 0
-        else
-          g.send arg_name, 0
-        end
+        g.send :call_under, 2
 
         return meth
       end

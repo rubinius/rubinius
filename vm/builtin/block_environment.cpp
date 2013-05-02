@@ -45,7 +45,18 @@ namespace rubinius {
     GO(blokenv).set(ontology::new_class(state, "BlockEnvironment", G(object),
                                      G(rubinius)));
     G(blokenv)->set_object_type(state, BlockEnvironmentType);
+
+
   }
+
+  void BlockEnvironment::bootstrap_methods(STATE) {
+    GCTokenImpl gct;
+    System::attach_primitive(state, gct,
+                             G(blokenv), false,
+                             state->symbol("call_under"),
+                             state->symbol("block_call_under"));
+  }
+
 
   BlockEnvironment* BlockEnvironment::allocate(STATE) {
     BlockEnvironment* env = state->new_object<BlockEnvironment>(G(blokenv));
@@ -394,7 +405,7 @@ namespace rubinius {
     return invoke(state, call_frame, this, args, invocation);
   }
 
-  Object* BlockEnvironment::call_under(STATE,CallFrame* call_frame,
+  Object* BlockEnvironment::call_under(STATE, CallFrame* call_frame,
                                        Executable* exec, Module* mod,
                                        Arguments& args)
   {

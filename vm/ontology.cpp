@@ -410,6 +410,7 @@ namespace rubinius {
     Module::bootstrap_methods(state);
     ConstantScope::bootstrap_methods(state);
     VariableScope::bootstrap_methods(state);
+    BlockEnvironment::bootstrap_methods(state);
 
     /*
      * Setup the table we use to store ivars for immediates

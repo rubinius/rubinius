@@ -41,28 +41,17 @@ describe "A Class node" do
       g.push :nil
       g.push_cpath_top
       g.send :open_class_under, 3
-      g.dup
-      g.push_rubinius
-      g.swap
-      g.push_literal :__class_init__
-      g.swap
-
       d = new_generator(g, :Y)
-
+      g.create_block d
       d.push_self
       d.add_scope
       d.push :self
       d.send :c, 0, true
       d.ret
 
-      g.push_literal(d)
-
       g.swap
       g.push_scope
-      g.swap
-      g.send :attach_method, 4
-      g.pop
-      g.send :__class_init__, 0
+      g.send :call_under, 2
     end
   end
 

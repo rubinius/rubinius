@@ -411,13 +411,9 @@ describe "An Lasgn node" do
       g.push :nil
       g.push_local 0
       g.send :open_class_under, 3
-      g.dup
-      g.push_rubinius
-      g.swap
-      g.push_literal :__class_init__
-      g.swap
 
       d = new_generator(g, :F)
+      g.create_block d
 
       d.push_self
       d.add_scope
@@ -426,14 +422,9 @@ describe "An Lasgn node" do
       d.set_local 0
       d.ret
 
-      g.push_literal(d)
-
       g.swap
       g.push_scope
-      g.swap
-      g.send :attach_method, 4
-      g.pop
-      g.send :__class_init__, 0
+      g.send :call_under, 2
     end
   end
 
@@ -455,13 +446,8 @@ describe "An Lasgn node" do
       g.push_scope
       g.send :open_class, 3
 
-      g.dup
-      g.push_rubinius
-      g.swap
-      g.push_literal :__class_init__
-      g.swap
-
       d = new_generator(g, :F)
+      g.create_block d
 
       d.push_self
       d.add_scope
@@ -471,14 +457,9 @@ describe "An Lasgn node" do
 
       d.ret
 
-      g.push_literal(d)
-
       g.swap
       g.push_scope
-      g.swap
-      g.send :attach_method, 4
-      g.pop
-      g.send :__class_init__, 0
+      g.send :call_under, 2
     end
   end
 
@@ -558,13 +539,10 @@ describe "An Lasgn node" do
       g.push_literal :M
       g.push_local 0
       g.send :open_module_under, 2
-      g.dup
-      g.push_rubinius
-      g.swap
-      g.push_literal :__module_init__
-      g.swap
+
 
       d = new_generator(g, :F)
+      g.create_block d
 
       d.push_self
       d.add_scope
@@ -574,14 +552,9 @@ describe "An Lasgn node" do
 
       d.ret
 
-      g.push_literal(d)
-
       g.swap
       g.push_scope
-      g.swap
-      g.send :attach_method, 4
-      g.pop
-      g.send :__module_init__, 0
+      g.send :call_under, 2
     end
   end
 end

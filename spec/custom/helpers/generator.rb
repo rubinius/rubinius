@@ -348,13 +348,9 @@ module Rubinius
 
       return unless block_given?
 
-      g.dup
-      g.push_rubinius
-      g.swap
-      g.push_literal :__class_init__
-      g.swap
+      d = new_generator(g, :Y)
 
-      d = new_generator(g, name)
+      g.create_block d
 
       d.push_self
       d.add_scope
@@ -363,14 +359,9 @@ module Rubinius
 
       d.ret
 
-      g.push_literal(d)
-
       g.swap
       g.push_scope
-      g.swap
-      g.send :attach_method, 4
-      g.pop
-      g.send :__class_init__, 0
+      g.send :call_under, 2
     end
 
     def in_singleton_method(name, sing)
@@ -442,13 +433,9 @@ module Rubinius
 
       return unless block_given?
 
-      g.dup
-      g.push_rubinius
-      g.swap
-      g.push_literal :__module_init__
-      g.swap
+      d = new_generator(g, :Y)
 
-      d = new_generator(g)
+      g.create_block d
 
       d.push_self
       d.add_scope
@@ -457,14 +444,9 @@ module Rubinius
 
       d.ret
 
-      g.push_literal(d)
-
       g.swap
       g.push_scope
-      g.swap
-      g.send :attach_method, 4
-      g.pop
-      g.send :__module_init__, 0
+      g.send :call_under, 2
     end
 
     def save_exception

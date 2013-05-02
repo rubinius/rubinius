@@ -56,6 +56,7 @@ namespace rubinius {
     /* interface */
 
     static void init(STATE);
+    static void bootstrap_methods(STATE);
 
     // Rubinius.primitive :blockenvironment_allocate
     static BlockEnvironment* allocate(STATE);
