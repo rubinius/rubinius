@@ -15,7 +15,6 @@ namespace Array {
   const static int total = 1;
   const static int tuple = 2;
   const static int start = 3;
-  const static int shared = 4;
 }
 namespace BlockEnvironment {
   const static int header = 0;
@@ -82,7 +81,7 @@ namespace CompiledCode {
   const static int file = 12;
   const static int scope = 13;
   const static int breakpoints = 14;
-  const static int backend_method = 15;
+  const static int machine_code = 15;
   const static int jit_data = 16;
   const static int literals = 17;
 }
@@ -215,12 +214,14 @@ namespace VariableScope {
   const static int module = 3;
   const static int parent = 4;
   const static int heap_locals = 5;
-  const static int last_match = 6;
-  const static int self = 7;
-  const static int locals = 8;
-  const static int number_of_locals = 9;
-  const static int isolated = 10;
-  const static int flags = 11;
+  const static int dynamic_locals = 6;
+  const static int last_match = 7;
+  const static int fiber = 8;
+  const static int self = 9;
+  const static int locals = 10;
+  const static int number_of_locals = 11;
+  const static int isolated = 12;
+  const static int flags = 13;
 }
 namespace jit_RuntimeData {
   const static int method = 0;
