@@ -37,7 +37,7 @@ module Rubinius
       # Otherwise, put it in the highest non-eval scope
       if @parent
         scope = @parent
-        while scope.parent and scope.method.get_metadata(:for_eval)
+        while scope.parent and scope.method.for_eval?
           scope = scope.parent
         end
 

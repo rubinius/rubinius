@@ -14,7 +14,6 @@ module Rubinius
     attr_reader :compiled_code
 
     attr_accessor :proc_environment
-    attr_reader :metadata_container
 
     def from_proc?
       @proc_environment
@@ -47,23 +46,6 @@ module Rubinius
 
     def to_binding
       Binding.setup @scope, @compiled_code, @compiled_code.scope
-    end
-
-    def set_eval_binding(bind)
-      @compiled_code.scope.script.eval_binding = bind
-    end
-
-    ##
-    # First field of the tuple in @metadata_container holds a boolean
-    # indicating if the context is from eval
-
-    def from_eval?
-      @metadata_container and @metadata_container[0]
-    end
-
-    def from_eval!
-      @metadata_container = Tuple.new(1) unless @metadata_container
-      @metadata_container[0] = true
     end
 
     def make_independent

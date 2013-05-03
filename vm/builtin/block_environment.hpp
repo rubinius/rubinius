@@ -41,7 +41,6 @@ namespace rubinius {
     VariableScope* top_scope_;    // slot
     CompiledCode* compiled_code_; // slot
     Module* module_;              // slot
-    Tuple* metadata_container_;   // slot
 
     MachineCode* machine_code(STATE, GCToken gct, CallFrame* call_frame);
 
@@ -51,7 +50,6 @@ namespace rubinius {
     attr_accessor(top_scope, VariableScope);
     attr_accessor(compiled_code, CompiledCode);
     attr_accessor(module, Module);
-    attr_accessor(metadata_container, Tuple);
 
     /* interface */
 

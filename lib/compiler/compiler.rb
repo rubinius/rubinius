@@ -334,8 +334,6 @@ module Rubinius
         be.proc_environment = binding.proc_environment
       end
 
-      be.from_eval!
-     
       return be
     end
 

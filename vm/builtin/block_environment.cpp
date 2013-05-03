@@ -451,7 +451,6 @@ namespace rubinius {
     be->top_scope(state, call_frame->top_scope(state));
     be->compiled_code(state, ccode);
     be->module(state, call_frame->module());
-    be->metadata_container(state, nil<Tuple>());
     return be;
   }
 
@@ -462,8 +461,6 @@ namespace rubinius {
     be->top_scope(state, top_scope_);
     be->compiled_code(state, compiled_code_);
     be->module(state, nil<Module>());
-    be->metadata_container(state, nil<Tuple>());
-
     return be;
   }
 

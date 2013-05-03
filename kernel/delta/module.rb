@@ -35,13 +35,11 @@ class Module
   def module_function(*args)
     if args.empty?
       vs = Rubinius::VariableScope.of_sender
-      if scr = vs.method.scope.script
-        if scr.eval? and scr.eval_binding
-          scr.eval_binding.variables.method_visibility = :module
-        end
+      until vs.top_level_visibility?
+        break unless vs.parent
+        vs = vs.parent
       end
-
-      Rubinius::VariableScope.of_sender.method_visibility = :module
+      vs.method_visibility = :module
     else
       sc = Rubinius::Type.object_singleton_class(self)
       args.each do |meth|
