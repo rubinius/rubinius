@@ -296,7 +296,6 @@ module Rubinius
         end
 
         @g.string_build @append_parts
-        encode_result
         @g.ret
       end
 
@@ -953,6 +952,12 @@ module Rubinius
 
         atoms = []
 
+        # Always push an empty string at first for correct
+        # encoding protocols
+        atom = LiteralAtom.new(self, @g, "", "")
+        atom.set_value(encode_value(""))
+
+        atoms << atom
         pos = 0
         while match = RE.match_start(@format, pos)
           pos = match.full.at(1)
@@ -973,6 +978,7 @@ module Rubinius
           invalid_format = *match
 
           flags = "#{flags_a}#{flags_b}"
+
 
           if plain_string
             atom = LiteralAtom.new(self, @g, format_code, flags)

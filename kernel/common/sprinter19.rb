@@ -5,9 +5,9 @@ module Rubinius
 
     class Builder
 
-      def encode_result
-        @g.push_literal @format.encoding
-        @g.send :force_encoding, 1
+      def encode_value(str)
+        str.force_encoding(@format.encoding)
+        str
       end
 
       def is_zero

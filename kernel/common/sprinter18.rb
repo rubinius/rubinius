@@ -5,7 +5,8 @@ module Rubinius
 
     class Builder
 
-      def encode_result
+      def encode_value(str)
+        str
       end
 
       class Atom
