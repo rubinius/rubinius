@@ -651,6 +651,10 @@ namespace rubinius {
   }
 
   Object* IO::read_if_available(STATE, Fixnum* number_of_bytes) {
+
+    std::size_t count = number_of_bytes->to_ulong();
+    if(count == 0) return String::create(state, Fixnum::from(0));
+
     fd_set set;
     FD_ZERO(&set);
 
@@ -668,7 +672,6 @@ namespace rubinius {
       return 0;
     }
 
-    std::size_t count = number_of_bytes->to_ulong();
     String* buffer = String::create_pinned(state, number_of_bytes);
 
     // There is a minor race here. If another thread is running concurrently
