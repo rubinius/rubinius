@@ -1227,8 +1227,8 @@ int main() { return tgetnum(""); }
   end
 
   def detect_features
-    # Default on OpenBSD is no execinfo
-    if RUBY_PLATFORM =~ /openbsd/i and @features["execinfo"].configured.nil?
+    # Default on *BSD is no execinfo
+    if RUBY_PLATFORM =~ /bsd/i and @features["execinfo"].configured.nil?
       @features["execinfo"].configured = false
     end
 
