@@ -174,6 +174,12 @@ describe "C-API String function" do
         a.should_not equal(b)
       end
 
+      it "returns a duplicate of the original when the encoding doesn't change" do
+        a = "abc"
+        b = @s.rb_str_encode("abc", Encoding::UTF_8, 0, nil)
+        a.should_not equal(b)
+      end
+
       it "accepts encoding flags" do
         result = @s.rb_str_encode("a\xffc", "us-ascii",
                                   Encoding::Converter::INVALID_REPLACE, nil)
