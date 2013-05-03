@@ -332,12 +332,6 @@ namespace rubinius {
       signal(SIGILL,  segv_handler);
       signal(SIGFPE,  segv_handler);
       signal(SIGABRT, segv_handler);
-
-      // Force glibc to load the shared library containing backtrace()
-      // now, so that we don't have to try and load it in the signal
-      // handler.
-      void* ary[1];
-      backtrace(ary, 1);
     }
 #endif  // USE_EXEC_INFO
 
