@@ -31,6 +31,16 @@ describe "IO#read_nonblock" do
     @read.read_nonblock(10).should == "hello"
   end
 
+  it "allows for reading 0 bytes before any write" do
+    @read.read_nonblock(0).should == ""
+  end
+
+  it "allows for reading 0 bytes after a write" do
+    @write.write "1"
+    @read.read_nonblock(0).should == ""
+    @read.read_nonblock(1).should == "1"
+  end
+
   not_compliant_on :rubinius, :jruby do
     ruby_version_is ""..."1.9" do
       it "changes the behavior of #read to nonblocking" do
