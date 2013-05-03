@@ -133,24 +133,7 @@ module Rubinius
       return false
     end
 
-    # Indicates if this scope is for the running of a script body
-    def for_script?
-      if script = @method.scope.script
-        return script.compiled_code == @method
-      end
-
-      return false
-    end
-
     def method_visibility
-      if scr = method.scope.script and scr.eval?
-        if scr.eval_binding
-          return scr.eval_binding.variables.method_visibility
-        else
-          return @method_visibility
-        end
-      end
-
       return @method_visibility if @method_visibility
 
       # if this scope is for a script, and there is no method_visibility
@@ -158,7 +141,9 @@ module Rubinius
       #
       # This is so that a script body has it's visibility default to private.
 
-      return :private if for_script?
+      return :private if script?
+      return nil if top_level_visibility?
+      return @parent.method_visibility if @parent
 
       # The default, let the caller sort it out.
       return nil

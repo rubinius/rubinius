@@ -26,6 +26,7 @@
 #include "builtin/location.hpp"
 #include "builtin/encoding.hpp"
 #include "builtin/thread_state.hpp"
+#include "builtin/variable_scope.hpp"
 
 #include "instruments/tooling.hpp"
 

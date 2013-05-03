@@ -4,9 +4,9 @@
 #include "machine_code.hpp"
 #include "unwind_info.hpp"
 #include "stack_variables.hpp"
-#include "builtin/variable_scope.hpp"
 #include "dispatch.hpp"
 #include "arguments.hpp"
+#include "object_utils.hpp"
 #include "builtin/symbol.hpp"
 
 #include <ostream>
@@ -19,6 +19,7 @@ namespace rubinius {
   class Module;
   class VariableScope;
   class NativeMethodFrame;
+  class BlockEnvironment;
 
   namespace jit {
     class RuntimeData;
@@ -36,7 +37,9 @@ namespace rubinius {
       cJITed =              1 << 6,
       cBlock =              1 << 7,
       cInlineBlock =        1 << 8,
-      cNativeMethod =       1 << 9
+      cNativeMethod =       1 << 9,
+      cTopLevelVisibility = 1 << 10,
+      cScript =             1 << 11
     };
 
     CallFrame* previous;

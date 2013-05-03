@@ -1,6 +1,7 @@
 #ifndef RBX_VARIABLE_SCOPE_HPP
 #define RBX_VARIABLE_SCOPE_HPP
 
+#include "call_frame.hpp"
 #include "vm/object_utils.hpp"
 
 #include "builtin/object.hpp"
@@ -10,7 +11,6 @@ namespace rubinius {
 
   class CompiledCode;
   class Module;
-  struct CallFrame;
   class Fiber;
 
   /**
@@ -40,7 +40,7 @@ namespace rubinius {
     Object** locals_;
     int number_of_locals_;
     int isolated_;
-    int block_as_method_;
+    int flags_;
 
   public: /* Accessors */
     attr_accessor(block, Object);
@@ -63,11 +63,15 @@ namespace rubinius {
     }
 
     bool block_as_method_p() {
-      return block_as_method_ == 1;
+      return flags_ & CallFrame::cBlockAsMethod;
     }
 
-    void set_block_as_method(bool val) {
-      block_as_method_ = (val ? 1 : 0);
+    bool top_level_visibility_p() {
+      return flags_ & CallFrame::cTopLevelVisibility;
+    }
+
+    bool script_p() {
+      return flags_ & CallFrame::cScript;
     }
 
     void set_local(int pos, Object* val);
@@ -101,6 +105,12 @@ namespace rubinius {
 
     // Rubinius.primitive :variable_scope_method_visibility
     Object* method_visibility(STATE);
+
+    // Rubinius.primitive :variable_scope_top_level_visibility
+    Object* top_level_visibility(STATE);
+
+    // Rubinius.primitive :variable_scope_script
+    Object* script(STATE);
 
   public: // Rubinius Type stuff
     class Info : public TypeInfo {

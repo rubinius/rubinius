@@ -12,6 +12,7 @@
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
+#include "builtin/variable_scope.hpp"
 
 #include "vm.hpp"
 #include "vm/object_utils.hpp"

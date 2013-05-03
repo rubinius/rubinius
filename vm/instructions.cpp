@@ -21,6 +21,7 @@
 #include "builtin/location.hpp"
 #include "builtin/thread_state.hpp"
 #include "builtin/call_site.hpp"
+#include "builtin/variable_scope.hpp"
 
 #include "instruments/tooling.hpp"
 

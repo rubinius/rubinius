@@ -42,7 +42,7 @@ module Kernel
         constant_scope = env.disable_scope!
       end
 
-      return env.call_under(self, constant_scope, self)
+      return env.call_under(self, constant_scope, true, self)
     elsif string
       string = StringValue(string)
 
@@ -101,6 +101,6 @@ module Kernel
       constant_scope = constant_scope.using_current_as(sc)
     end
 
-    return env.call_under(self, constant_scope, *args)
+    return env.call_under(self, constant_scope, true, *args)
   end
 end

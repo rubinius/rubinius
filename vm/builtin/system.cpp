@@ -54,6 +54,7 @@
 
 #include "builtin/constantscope.hpp"
 #include "builtin/block_environment.hpp"
+#include "builtin/variable_scope.hpp"
 
 #include "builtin/system.hpp"
 #include "signal.hpp"

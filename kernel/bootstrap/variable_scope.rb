@@ -27,6 +27,16 @@ module Rubinius
       raise PrimitiveFailure, "Rubinius::VariableScope#locals primitive failed"
     end
 
+    def top_level_visibility?
+      Rubinius.primitive :variable_scope_top_level_visibility
+      raise PrimitiveFailure, "Rubinius::VariableScope#top_level_visibility primitive failed"
+    end
+
+    def script?
+      Rubinius.primitive :variable_scope_script
+      raise PrimitiveFailure, "Rubinius::VariableScope#script primitive failed"
+    end
+
     # To handle Module#private, protected
     attr_accessor :method_visibility
   end

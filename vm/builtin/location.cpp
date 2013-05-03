@@ -5,6 +5,7 @@
 #include "builtin/symbol.hpp"
 #include "builtin/string.hpp"
 #include "builtin/nativemethod.hpp"
+#include "builtin/variable_scope.hpp"
 
 #include "vm.hpp"
 

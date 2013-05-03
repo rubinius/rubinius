@@ -308,7 +308,7 @@ declare void @output22(%"struct.rubinius::Tuple"*)
          %"struct.rubinius::Object"**, ; locals
                                   i32, ; number_of_locals
                                   i32, ; isolated
-                                  i32  ; block_as_method
+                                  i32  ; flags
 }
 
 declare void @output23(%"struct.rubinius::VariableScope"*)

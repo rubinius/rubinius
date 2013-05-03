@@ -65,7 +65,7 @@ namespace rubinius {
     scope->number_of_locals_ = locals->num_fields();
     scope->isolated_ = true;
     scope->locals_ = 0;
-    scope->block_as_method_ = 0;
+    scope->flags_ = 0;
 
     return scope;
   }
@@ -148,6 +148,14 @@ namespace rubinius {
       }
     }
     return ary[pos];
+  }
+
+  Object* VariableScope::top_level_visibility(STATE) {
+    return RBOOL(top_level_visibility_p());
+  }
+
+  Object* VariableScope::script(STATE) {
+    return RBOOL(script_p());
   }
 
   void VariableScope::flush_to_heap(STATE) {

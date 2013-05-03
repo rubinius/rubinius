@@ -220,7 +220,7 @@ namespace VariableScope {
   const static int locals = 8;
   const static int number_of_locals = 9;
   const static int isolated = 10;
-  const static int block_as_method = 11;
+  const static int flags = 11;
 }
 namespace jit_RuntimeData {
   const static int method = 0;

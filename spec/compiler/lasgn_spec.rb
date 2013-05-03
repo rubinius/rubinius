@@ -424,7 +424,8 @@ describe "An Lasgn node" do
 
       g.swap
       g.push_scope
-      g.send :call_under, 2
+      g.push_true
+      g.send :call_under, 3
     end
   end
 
@@ -459,7 +460,8 @@ describe "An Lasgn node" do
 
       g.swap
       g.push_scope
-      g.send :call_under, 2
+      g.push_true
+      g.send :call_under, 3
     end
   end
 
@@ -554,7 +556,8 @@ describe "An Lasgn node" do
 
       g.swap
       g.push_scope
-      g.send :call_under, 2
+      g.push_true
+      g.send :call_under, 3
     end
   end
 end

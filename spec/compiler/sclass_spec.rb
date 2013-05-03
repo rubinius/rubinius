@@ -24,7 +24,8 @@ describe "An Sclass node" do
 
       g.swap
       g.push_scope
-      g.send :call_under, 2
+      g.push_true
+      g.send :call_under, 3
     end
   end
 
@@ -59,7 +60,8 @@ describe "An Sclass node" do
 
         d.swap
         d.push_scope
-        d.send :call_under, 2
+        d.push_true
+        d.send :call_under, 3
 
         d.pop
         d.in_class :B

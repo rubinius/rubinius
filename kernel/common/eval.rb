@@ -99,7 +99,7 @@ class Module
       # Return a copy of the BlockEnvironment with the receiver set to self
       env = prc.block
       constant_scope = env.repoint_scope self
-      return env.call_under(self, constant_scope, self)
+      return env.call_under(self, constant_scope, true, self)
     elsif string.equal?(undefined)
       raise ArgumentError, 'block not supplied'
     end
@@ -117,7 +117,7 @@ class Module
     be = Rubinius::Compiler.construct_block string, binding,
                                             filename, line
 
-    be.call_under self, cs, self
+    be.call_under self, cs, true, self
   end
 
   alias_method :class_eval, :module_eval

@@ -406,7 +406,7 @@ class Module
 
     env = prc.block
     constant_scope = env.repoint_scope self
-    return env.call_under(self, constant_scope, *args)
+    return env.call_under(self, constant_scope, true, *args)
   end
   alias_method :class_exec, :module_exec
 

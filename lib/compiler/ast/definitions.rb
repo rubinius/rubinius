@@ -172,7 +172,8 @@ module Rubinius
         g.create_block meth
         g.swap
         g.push_scope
-        g.send :call_under, 2
+        g.push_true
+        g.send :call_under, 3
 
         return meth
       end

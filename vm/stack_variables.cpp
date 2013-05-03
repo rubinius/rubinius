@@ -31,6 +31,7 @@ namespace rubinius {
 
     scope->number_of_locals_ = mcode->number_of_locals;
     scope->isolated_ = 0;
+    scope->flags_ = call_frame->flags;
 
     if(!full) {
       scope->isolated_ = 1;
@@ -42,8 +43,6 @@ namespace rubinius {
 
     scope->locals_ = locals_;
     scope->dynamic_locals(state, nil<LookupTable>());
-
-    scope->set_block_as_method(call_frame->block_as_method_p());
 
     on_heap_ = scope;
 

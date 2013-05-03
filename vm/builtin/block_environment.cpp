@@ -7,6 +7,7 @@
 #include "builtin/symbol.hpp"
 
 #include "builtin/block_environment.hpp"
+#include "builtin/variable_scope.hpp"
 #include "objectmemory.hpp"
 
 #include "vm/object_utils.hpp"
@@ -409,9 +410,9 @@ namespace rubinius {
                                        Executable* exec, Module* mod,
                                        Arguments& args)
   {
-    if(args.total() < 2) {
+    if(args.total() < 3) {
       Exception* exc =
-        Exception::make_argument_error(state, 2, args.total(),
+        Exception::make_argument_error(state, 3, args.total(),
                                        compiled_code_->name());
       exc->locations(state, Location::from_call_stack(state, call_frame));
       state->raise_exception(exc);
@@ -420,8 +421,10 @@ namespace rubinius {
 
     Object* recv = args.shift(state);
     ConstantScope* constant_scope = as<ConstantScope>(args.shift(state));
+    Object* visibility_scope = args.shift(state);
 
-    BlockInvocation invocation(recv, constant_scope, 0);
+    int flags = CBOOL(visibility_scope) ? CallFrame::cTopLevelVisibility : 0;
+    BlockInvocation invocation(recv, constant_scope, flags);
     return invoke(state, call_frame, this, args, invocation);
   }
 

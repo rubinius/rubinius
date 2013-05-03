@@ -72,7 +72,7 @@ module Rubinius
     end
 
     def call_on_instance(obj, *args)
-      call_under obj, @compiled_code.scope, *args
+      call_under obj, @compiled_code.scope, false, *args
     end
 
     def arity
