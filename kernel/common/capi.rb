@@ -58,10 +58,14 @@ module Rubinius
 
     def self.rb_str_encode(str, enc, flags, opts)
       # TODO: set flags from opts
-      ec = Encoding::Converter.new str.encoding, enc, flags
-      ec.replacement = opts[:replace] if opts
+      if str.encoding == enc
+        str.dup
+      else
+        ec = Encoding::Converter.new str.encoding, enc, flags
+        ec.replacement = opts[:replace] if opts
 
-      ec.convert str
+        ec.convert str
+      end
     end
 
     def self.rb_str_conv_enc_opts(str, from, to, flags, opts)
