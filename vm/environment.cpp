@@ -878,6 +878,7 @@ namespace rubinius {
 
     load_argv(argc_, argv_);
 
+    start_signals();
     state->vm()->initialize_config();
 
     load_tool();
@@ -897,7 +898,6 @@ namespace rubinius {
     load_kernel(runtime);
     shared->finalizer_handler()->start_thread(state);
 
-    start_signals();
     run_file(runtime + "/loader.rbc");
 
     state->vm()->thread_state()->clear();

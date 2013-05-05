@@ -53,8 +53,6 @@ namespace rubinius {
   typedef std::list<FinalizeObject> FinalizeObjects;
   typedef std::list<FinalizeObjects*> FinalizeObjectsList;
 
-  Object* handle_tramp(STATE);
-
   class FinalizerHandler : public AuxiliaryThread, public Lockable {
   public:
     class iterator {

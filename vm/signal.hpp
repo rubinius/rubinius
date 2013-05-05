@@ -14,8 +14,6 @@ namespace rubinius {
   struct CallFrame;
   class Thread;
 
-  Object* handle_tramp(STATE);
-
   class SignalHandler : public AuxiliaryThread, public Lockable {
     SharedState& shared_;
     VM* target_;
@@ -45,7 +43,7 @@ namespace rubinius {
     SignalHandler(STATE);
     virtual ~SignalHandler();
 
-    void perform(State*);
+    void perform(STATE);
 
     void add_signal(State*, int sig, HandlerType type = eCustom);
     void handle_signal(int sig);
@@ -64,7 +62,7 @@ namespace rubinius {
     void after_fork_parent(STATE);
     void after_fork_child(STATE);
 
-    void run(State*);
+    void run(STATE);
   };
 }
 

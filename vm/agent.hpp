@@ -5,12 +5,15 @@
 
 #include "auxiliary_threads.hpp"
 #include "gc/managed.hpp"
+#include "gc/root.hpp"
 #include "util/thread.hpp"
 
 #include "windows_compat.h"
 
 namespace rubinius {
   class SharedState;
+  class VM;
+  class Thread;
 
   namespace agent {
     class VariableAccess;
@@ -49,24 +52,14 @@ namespace rubinius {
 
     };
 
-    class Thread : public utilities::thread::Thread {
-    private:
-      QueryAgent* agent_;
-      bool exit_;
-
-    public:
-      Thread(QueryAgent* agent);
-
-      void stop();
-      virtual void perform();
-    };
-
   private:
     SharedState& shared_;
-    Thread* thread_;
+    VM* vm_;
+    TypedRoot<Thread*> thread_;
     int port_;
     int server_fd_;
     bool verbose_;
+    bool exit_;
     fd_set fds_;
     int max_fd_;
 
@@ -172,5 +165,8 @@ namespace rubinius {
     void before_fork(STATE);
     void after_fork_parent(STATE);
     void after_fork_child(STATE);
+
+    void perform(STATE);
+    void run(STATE);
   };
 }

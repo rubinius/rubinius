@@ -30,6 +30,7 @@ namespace rubinius {
     : auxiliary_threads_(0)
     , signal_handler_(0)
     , finalizer_handler_(0)
+    , query_agent_(0)
     , world_(new WorldState(&check_global_interrupts_))
     , method_count_(0)
     , class_count_(0)

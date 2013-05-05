@@ -69,6 +69,7 @@ namespace rubinius {
     AuxiliaryThreads* auxiliary_threads_;
     SignalHandler* signal_handler_;
     FinalizerHandler* finalizer_handler_;
+    QueryAgent* query_agent_;
 
     CApiConstantNameMap capi_constant_name_map_;
     CApiConstantHandleMap capi_constant_handle_map_;
@@ -152,6 +153,14 @@ namespace rubinius {
 
     void set_finalizer_handler(FinalizerHandler* thr) {
       finalizer_handler_ = thr;
+    }
+
+    QueryAgent* query_agent() {
+      return query_agent_;
+    }
+
+    void set_query_agent(QueryAgent* thr) {
+      query_agent_ = thr;
     }
 
     VM* new_vm();
