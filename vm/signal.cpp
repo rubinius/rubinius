@@ -24,7 +24,6 @@
 
 namespace rubinius {
   static SignalHandler* signal_handler_ = 0;
-  pthread_t main_thread;
 
   Object* signal_handler_tramp(STATE) {
     state->shared().signal_handler()->perform(state);
@@ -42,7 +41,6 @@ namespace rubinius {
     , thread_(state)
   {
     signal_handler_ = this;
-    main_thread = pthread_self();
 
     shared_.auxiliary_threads()->register_thread(this);
     shared_.set_signal_handler(this);
@@ -190,11 +188,11 @@ namespace rubinius {
     target_->set_check_local_interrupts();
 
     if(target_->should_interrupt_with_signal()) {
-      if(!pthread_equal(pthread_self(), main_thread)) {
+      if(!pthread_equal(pthread_self(), target_->os_thread())) {
 #ifdef RBX_WINDOWS
         // TODO: Windows
 #else
-        pthread_kill(main_thread, SIGVTALRM);
+        pthread_kill(target_->os_thread(), SIGVTALRM);
 #endif
       }
     }
