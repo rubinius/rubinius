@@ -335,13 +335,20 @@ namespace agent {
         ManagedThread* thr = *i;
 
         if(VM* vm = thr->as_vm()) {
-          std::ostringstream ss;
-          vm->saved_call_frame()->print_backtrace(state_, ss);
+          Thread* ruby_thread = vm->thread.get();
+          if(ruby_thread->system_thread()) {
+            output.e().write_tuple(2);
+            output.e().write_atom("system");
+            output.e().write_binary(thr->name().c_str());
+          } else {
+            std::ostringstream ss;
+            vm->saved_call_frame()->print_backtrace(state_, ss);
 
-          output.e().write_tuple(3);
-          output.e().write_atom("user");
-          output.e().write_atom(CBOOL(vm->thread->sleep()) ? "sleep" : "run");
-          output.e().write_binary(ss.str().c_str());
+            output.e().write_tuple(3);
+            output.e().write_atom("user");
+            output.e().write_atom(CBOOL(vm->thread->sleep()) ? "sleep" : "run");
+            output.e().write_binary(ss.str().c_str());
+          }
         } else {
           output.e().write_tuple(2);
           output.e().write_atom("system");

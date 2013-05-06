@@ -189,7 +189,8 @@ namespace rubinius {
   void FinalizerHandler::perform(STATE) {
     GCTokenImpl gct;
     const char* thread_name = "rbx.finalizer";
-    utilities::thread::Thread::set_os_name(thread_name);
+    self_->set_name(thread_name);
+
     RUBINIUS_THREAD_START(thread_name, state->vm()->thread_id(), 1);
 
     state->vm()->thread->hard_unlock(state, gct, 0);

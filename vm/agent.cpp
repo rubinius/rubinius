@@ -551,7 +551,7 @@ auth_error:
   void QueryAgent::perform(STATE) {
     GCTokenImpl gct;
     const char* thread_name = "rbx.agent";
-    utilities::thread::Thread::set_os_name(thread_name);
+    vm_->set_name(thread_name);
 
     RUBINIUS_THREAD_START(thread_name, state->vm()->thread_id(), 1);
 
