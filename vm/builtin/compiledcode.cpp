@@ -48,6 +48,7 @@ namespace rubinius {
     code->local_count(state, Fixnum::from(0));
     code->inliners_ = 0;
     code->prim_index_ = -1;
+    code->custom_call_site_ = false;
 
     code->set_executor(CompiledCode::default_executor);
     code->machine_code_ = NULL;

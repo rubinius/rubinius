@@ -180,6 +180,8 @@ namespace rubinius {
 
     nf->set_executor(NativeFunction::execute);
     nf->inliners_ = 0;
+    nf->prim_index_ = -1;
+    nf->custom_call_site_ = false;
     nf->ffi_data = 0;
 
     return nf;

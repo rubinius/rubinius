@@ -17,6 +17,8 @@ namespace rubinius {
     BlockAsMethod* pe = state->new_object<BlockAsMethod>(as<Class>(self));
     pe->block_env(state, be);
     pe->inliners_ = 0;
+    pe->prim_index_ = -1;
+    pe->custom_call_site_ = false;
     pe->execute = block_executor;
     return pe;
   }

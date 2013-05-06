@@ -27,6 +27,7 @@ namespace rubinius {
     AccessVariable* av = state->new_object<AccessVariable>(G(access_variable));
     av->inliners_ = 0;
     av->prim_index_ = -1;
+    av->custom_call_site_ = false;
     av->set_executor(AccessVariable::access_execute);
     return av;
   }

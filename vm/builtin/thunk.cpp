@@ -14,6 +14,8 @@ namespace rubinius {
     Thunk* pe = state->new_object<Thunk>(as<Class>(self));
     pe->value(state, value);
     pe->inliners_ = 0;
+    pe->prim_index_ = -1;
+    pe->custom_call_site_ = false;
     pe->execute = thunk_executor;
     return pe;
   }

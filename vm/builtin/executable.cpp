@@ -27,6 +27,7 @@ namespace rubinius {
     executable->serial(state, Fixnum::from(0));
     executable->inliners_ = 0;
     executable->prim_index_ = -1;
+    executable->custom_call_site_ = false;
 
     executable->set_executor(Executable::default_executor);
 

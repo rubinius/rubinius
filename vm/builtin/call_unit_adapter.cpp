@@ -14,6 +14,8 @@ namespace rubinius {
     CallUnitAdapter* pe = state->new_object<CallUnitAdapter>(as<Class>(self));
     pe->unit(state, unit);
     pe->inliners_ = 0;
+    pe->prim_index_ = -1;
+    pe->custom_call_site_ = false;
     pe->execute = adapter_executor;
     return pe;
   }

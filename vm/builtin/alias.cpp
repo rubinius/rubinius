@@ -25,6 +25,7 @@ namespace rubinius {
     Alias* alias = state->new_object<Alias>(G(alias));
     alias->inliners_ = 0;
     alias->prim_index_ = -1;
+    alias->custom_call_site_ = false;
     alias->set_executor(alias_executor);
     alias->original_name(state, name);
     alias->original_module(state, mod);

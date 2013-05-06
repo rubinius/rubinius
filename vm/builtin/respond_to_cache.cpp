@@ -47,16 +47,18 @@ namespace rubinius {
     RespondToCache* cache = static_cast<RespondToCache*>(call_site);
 
     Class* const recv_class = args.recv()->lookup_begin(state);
-    Object* const message   = args.get_argument(0);
-    Object* visibility      = cFalse;
-    if(args.total() > 1) {
-      visibility            = args.get_argument(1);
-    }
+    if(args.total() > 0) {
+      Object* const message   = args.get_argument(0);
+      Object* visibility      = cFalse;
+      if(args.total() > 1) {
+        visibility            = args.get_argument(1);
+      }
 
-    register uint64_t recv_data = recv_class->data_raw();
-    if(likely(recv_data == cache->receiver_data_raw() && message == cache->message_ && visibility == cache->visibility_)) {
-      cache->hit();
-      return cache->responds_;
+      register uint64_t recv_data = recv_class->data_raw();
+      if(likely(recv_data == cache->receiver_data_raw() && message == cache->message_ && visibility == cache->visibility_)) {
+        cache->hit();
+        return cache->responds_;
+      }
     }
 
     return cache->fallback_call_site_->execute(state, call_frame, args);
