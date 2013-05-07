@@ -94,6 +94,12 @@ namespace rubinius {
     // Rubinius.primitive :io_seek
     Integer* seek(STATE, Integer* amount, Fixnum* whence);
 
+    // Rubinius.primitive :io_truncate
+    static Integer* truncate(STATE, String* name, Fixnum* off);
+
+    // Rubinius.primitive :io_ftruncate
+    Integer* ftruncate(STATE, Fixnum* off);
+
     // Rubinius.primitive :io_write
     Object* write(STATE, String* buf, CallFrame* calling_environment);
 

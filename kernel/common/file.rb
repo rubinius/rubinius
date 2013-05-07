@@ -879,9 +879,7 @@ class File < IO
 
     length = Rubinius::Type.coerce_to length, Integer, :to_int
 
-    n = POSIX.truncate(path, length)
-    Errno.handle if n == -1
-    n
+    prim_truncate(path, length)
   end
 
   ##
@@ -1051,9 +1049,7 @@ class File < IO
 
     flush
     reset_buffering
-    n = POSIX.ftruncate(@descriptor, length)
-    Errno.handle if n == -1
-    n
+    prim_ftruncate(length)
   end
 
   def inspect

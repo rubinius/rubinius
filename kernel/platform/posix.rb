@@ -52,10 +52,6 @@ module FFI::Platform::POSIX
   #   inspecting
   attach_function :isatty,   [:int], :int
 
-  #   truncating
-  attach_function :truncate,  [:string, :off_t], :int
-  attach_function :ftruncate, [:int, :off_t], :int
-
   #   locking
   attach_function :flock, [:int, :int], :int
 

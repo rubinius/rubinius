@@ -424,6 +424,43 @@ namespace rubinius {
     return Integer::from(state, position);
   }
 
+  Integer* IO::ftruncate(STATE, Fixnum* off) {
+    ensure_open(state);
+
+    if(Bignum* big = try_as<Bignum>(off)) {
+      if((size_t)mp_count_bits(big->mp_val()) > (sizeof(off_t) * 8)) {
+        return static_cast<Integer*>(Primitives::failure());
+      }
+    }
+
+    off_t offset = off->to_long_long();
+
+    int status = ::ftruncate(to_fd(), offset);
+    if(status == -1) {
+      Exception::errno_error(state);
+    }
+
+    return Integer::from(state, status);
+  }
+
+  Integer* IO::truncate(STATE, String* name, Fixnum* off) {
+
+    if(Bignum* big = try_as<Bignum>(off)) {
+      if((size_t)mp_count_bits(big->mp_val()) > (sizeof(off_t) * 8)) {
+        return static_cast<Integer*>(Primitives::failure());
+      }
+    }
+
+    off_t offset = off->to_long_long();
+
+    int status = ::truncate(name->c_str_null_safe(state), offset);
+    if(status == -1) {
+      Exception::errno_error(state);
+    }
+
+    return Integer::from(state, status);
+  }
+
   /** This is NOT the same as shutdown(). */
   Object* IO::close(STATE) {
     ensure_open(state);

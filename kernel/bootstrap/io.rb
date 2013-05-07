@@ -100,6 +100,16 @@ class IO
     raise RangeError, "#{amount} is too big"
   end
 
+  def self.prim_truncate(name, offset)
+    Rubinius.primitive :io_truncate
+    raise RangeError, "#{offset} is too big"
+  end
+
+  def prim_ftruncate(offset)
+    Rubinius.primitive :io_ftruncate
+    raise RangeError, "#{amount} is too big"
+  end
+
   def query(which)
     Rubinius.primitive :io_query
     raise PrimitiveFailure, "IO#query primitive failed"
