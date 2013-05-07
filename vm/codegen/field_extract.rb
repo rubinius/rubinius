@@ -1133,7 +1133,6 @@ write_if_new "vm/gen/typechecks.gen.cpp" do |f|
     next if cpp.all_fields.size == 0
 
     f.puts "void #{n}::Info::populate_slot_locations() {"
-    f.puts "  slot_locations.resize(#{cpp.all_fields.size});\n"
 
     if cpp.super
       f.puts "  this->#{cpp.super.name}::Info::populate_slot_locations();\n"
@@ -1141,6 +1140,8 @@ write_if_new "vm/gen/typechecks.gen.cpp" do |f|
     else
       offset = 0
     end
+
+    f.puts "  slot_locations.resize(#{cpp.all_fields.size});\n"
 
     cpp.fields.each do |name, type, idx|
       f.puts "  slot_locations[#{offset + idx}] = FIELD_OFFSET(#{n}, #{name}_);\n"
