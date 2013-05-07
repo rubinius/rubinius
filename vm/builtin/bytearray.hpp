@@ -10,6 +10,7 @@ namespace rubinius {
   class ByteArray : public Object {
   public:
     const static object_type type = ByteArrayType;
+    static uintptr_t bytes_offset;
 
   private:
     native_int full_size_;
@@ -25,8 +26,8 @@ namespace rubinius {
 
     template <typename Any>
       static ByteArray* from_body(Any obj) {
-        ByteArray* ba = reinterpret_cast<ByteArray*>(obj);
-        return ba - 1; // move back up to the pointer to the header
+        uintptr_t ptr = reinterpret_cast<uintptr_t>(obj);
+        return reinterpret_cast<ByteArray*>(ptr - bytes_offset);
       }
 
     // Rubinius.primitive :bytearray_allocate
@@ -37,7 +38,7 @@ namespace rubinius {
 
     // Return the number of bytes this ByteArray contains
     native_int size() {
-      return full_size_ - sizeof(ByteArray);
+      return full_size_ - bytes_offset;
     }
 
     uint8_t* raw_bytes() {

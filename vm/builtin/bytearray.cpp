@@ -18,10 +18,15 @@
 
 namespace rubinius {
 
+  uintptr_t ByteArray::bytes_offset;
+
   void ByteArray::init(STATE) {
     GO(bytearray).set(ontology::new_class_under(state,
                         "ByteArray", G(rubinius)));
     G(bytearray)->set_object_type(state, ByteArrayType);
+
+    ByteArray* ba = ALLOCA(ByteArray);
+    bytes_offset = (uintptr_t)&(ba->bytes) - (uintptr_t)ba;
   }
 
   ByteArray* ByteArray::create(STATE, native_int bytes) {
@@ -36,7 +41,7 @@ namespace rubinius {
       Exception::memory_error(state);
     } else {
       ba->full_size_ = body;
-      memset(ba->bytes, 0, body - sizeof(ByteArray));
+      memset(ba->bytes, 0, body - bytes_offset);
     }
     return ba;
   }
@@ -57,7 +62,7 @@ namespace rubinius {
       rubinius::bug("unable to allocate pinned ByteArray");
     } else {
       ba->full_size_ = body;
-      memset(ba->bytes, 0, body - sizeof(ByteArray));
+      memset(ba->bytes, 0, body - bytes_offset);
     }
     return ba;
   }
