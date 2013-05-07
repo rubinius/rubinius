@@ -9,6 +9,7 @@ namespace rubinius {
   class Tuple : public Object {
   public:
     const static object_type type = TupleType;
+    static uintptr_t fields_offset;
 
     native_int full_size_;
 
@@ -17,9 +18,10 @@ namespace rubinius {
 
   public:
     native_int num_fields() const {
-      return (full_size_ - sizeof(Tuple)) / sizeof(Object*);
+      return (full_size_ - fields_offset) / sizeof(Object*);
     }
 
+    static void init(STATE);
     static Tuple* create(STATE, native_int fields);
     static Tuple* from(STATE, native_int fields, ...);
 

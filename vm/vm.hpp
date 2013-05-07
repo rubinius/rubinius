@@ -372,7 +372,7 @@ namespace rubinius {
 
     template <class T>
       T* new_object_variable(Class* cls, size_t fields, size_t& bytes) {
-        bytes = sizeof(T) + (fields * sizeof(Object*));
+        bytes = T::fields_offset + (fields * sizeof(Object*));
         return static_cast<T*>(new_object_typed(cls, bytes, T::type));
       }
 

@@ -5,13 +5,27 @@
 #include "vm/object_utils.hpp"
 #include "objectmemory.hpp"
 #include "builtin/fixnum.hpp"
+#include "builtin/class.hpp"
 #include "builtin/compactlookuptable.hpp"
 
 #include <stdarg.h>
 #include <iostream>
 #include <stdint.h>
 
+#include "ontology.hpp"
+
 namespace rubinius {
+
+  uintptr_t Tuple::fields_offset;
+
+  void Tuple::init(STATE) {
+    GO(tuple).set(ontology::new_basic_class(state, G(object)));
+    G(tuple)->set_object_type(state, TupleType);
+
+    Tuple* tup = ALLOCA(Tuple);
+    fields_offset = (uintptr_t)&(tup->field) - (uintptr_t)tup;
+  }
+
   Tuple* Tuple::bounds_exceeded_error(STATE, const char* method, int index) {
     std::ostringstream msg;
 

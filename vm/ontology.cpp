@@ -163,8 +163,7 @@ namespace rubinius {
     cls->superclass(state, G(module));
 
     // Create Tuple
-    GO(tuple).set(ontology::new_basic_class(state, object));
-    G(tuple)->set_object_type(state, TupleType);
+    Tuple::init(state);
 
     // Create Array
     GO(array).set(ontology::new_basic_class(state, object));

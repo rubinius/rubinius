@@ -207,7 +207,7 @@ namespace rubinius {
   }
 
   Tuple* VM::new_young_tuple_dirty(size_t fields) {
-    size_t bytes = sizeof(Tuple) + (sizeof(Object*) * fields);
+    size_t bytes = Tuple::fields_offset + (sizeof(Object*) * fields);
 
     if(unlikely(bytes > om->large_object_threshold)) {
       return 0;

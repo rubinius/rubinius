@@ -1405,7 +1405,7 @@ namespace rubinius {
                         true,
                         "to_native_int");
 
-      Value* header = ConstantInt::get(NativeIntTy, sizeof(Tuple));
+      Value* header = ConstantInt::get(NativeIntTy, Tuple::fields_offset);
       Value* body_bytes = b().CreateSub(bytes, header);
 
       Value* ptr_size = ConstantInt::get(NativeIntTy, sizeof(Object*));
@@ -1427,7 +1427,7 @@ namespace rubinius {
                         true,
                         "to_native_int");
 
-      Value* header = ConstantInt::get(NativeIntTy, sizeof(ByteArray));
+      Value* header = ConstantInt::get(NativeIntTy, ByteArray::bytes_offset);
       Value* body_bytes = b().CreateSub(bytes, header);
 
       return body_bytes;
