@@ -262,6 +262,10 @@ module Rubinius
         @evals << code
       end
 
+      options.on '-F', "PATTERN", "Set $; to PATTERN" do |pattern|
+        Rubinius::Globals.set!(:$;, Regexp.new(pattern))
+      end
+
       options.on '-G', '--gemfile', 'Respect a Gemfile in the current path' do
         @load_gemfile = true
       end
