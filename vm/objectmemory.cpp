@@ -820,6 +820,8 @@ step1:
 
   Object* ObjectMemory::new_object_typed(STATE, Class* cls, size_t bytes, object_type type) {
     Object* obj = new_object_typed_dirty(state, cls, bytes, type);
+    if(unlikely(!obj)) return NULL;
+
     obj->clear_fields(bytes);
     return obj;
   }
@@ -841,6 +843,8 @@ step1:
 
   Object* ObjectMemory::new_object_typed_mature(STATE, Class* cls, size_t bytes, object_type type) {
     Object* obj = new_object_typed_mature_dirty(state, cls, bytes, type);
+    if(unlikely(!obj)) return NULL;
+
     obj->clear_fields(bytes);
     return obj;
   }
@@ -849,6 +853,8 @@ step1:
   Object* ObjectMemory::allocate_object_raw(size_t bytes) {
 
     Object* obj = mark_sweep_->allocate(bytes, &collect_mature_now);
+    if(unlikely(!obj)) return NULL;
+
     gc_stats.mature_object_allocated(bytes);
     obj->clear_fields(bytes);
     return obj;
@@ -858,6 +864,8 @@ step1:
     utilities::thread::SpinLock::LockGuard guard(allocation_lock_);
 
     Object* obj = mark_sweep_->allocate(bytes, &collect_mature_now);
+    if(unlikely(!obj)) return NULL;
+
     gc_stats.mature_object_allocated(bytes);
 
     if(collect_mature_now) shared_.gc_soon();
@@ -877,6 +885,8 @@ step1:
 
   Object* ObjectMemory::new_object_typed_enduring(STATE, Class* cls, size_t bytes, object_type type) {
     Object* obj = new_object_typed_enduring_dirty(state, cls, bytes, type);
+    if(unlikely(!obj)) return NULL;
+
     obj->clear_fields(bytes);
     return obj;
   }
