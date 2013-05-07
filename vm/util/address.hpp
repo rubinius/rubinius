@@ -1,6 +1,22 @@
 #ifndef RBX_ADDRESS_H
 #define RBX_ADDRESS_H
 
+#if defined(i386) || defined(__i386) || defined(__i386__)
+#define IS_X86
+#endif
+
+#ifdef IS_X86
+#define ALIGN(var) (var)
+#else
+/*
+ * On non X86, we always align on 64 bit boundaries
+ * because we sue 64 bit CAS operations, even on
+ * 32 bit systems. X86 can do this, but for example ARM
+ * can't.
+ */
+#define ALIGNMENT sizeof(int64_t)
+#define ALIGN(var) ((var + (ALIGNMENT - 1)) & ~(ALIGNMENT - 1))
+#endif
 
 namespace memory {
 
@@ -32,10 +48,12 @@ namespace memory {
     }
 
     Address operator+(int change) const {
+      change = ALIGN(change);
       return Address(reinterpret_cast<void*>(address_ + change));
     }
 
     Address operator+=(int change) {
+      change = ALIGN(change);
       address_ += change;
       return *this;
     }
@@ -45,6 +63,7 @@ namespace memory {
     }
 
     Address operator-(int change) const {
+      change = ALIGN(change);
       return Address(reinterpret_cast<void*>(address_ - change));
     }
 
