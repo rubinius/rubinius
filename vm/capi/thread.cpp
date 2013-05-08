@@ -240,8 +240,10 @@ extern "C" {
     thr->locals_store(state, state->symbol("function"), nm);
     thr->locals_store(state, state->symbol("argument"), ptr);
 
+    VALUE thr_handle = env->get_handle(thr);
+    capi::capi_fast_call(thr_handle, rb_intern("setup"), 0);
     thr->fork(state);
-    return env->get_handle(thr);
+    return thr_handle;
   }
 
 }
