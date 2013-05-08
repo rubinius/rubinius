@@ -306,6 +306,16 @@
 #define HAVE_RB_THREAD_FD_WRITABLE         1
 #define HAVE_RB_THREAD_WAIT_FD             1
 
+#ifdef RUBY_VERSION_IS_1_9
+#define HAVE_RB_MUTEX_NEW                  1
+#define HAVE_RB_MUTEX_LOCKED_P             1
+#define HAVE_RB_MUTEX_TRYLOCK              1
+#define HAVE_RB_MUTEX_LOCK                 1
+#define HAVE_RB_MUTEX_UNLOCK               1
+#define HAVE_RB_MUTEX_SLEEP                1
+#define HAVE_RB_MUTEX_SYNCHRONIZE          1
+#endif
+
 /* Kernel */
 #define HAVE_RB_BLOCK_GIVEN_P              1
 #define HAVE_RB_BLOCK_PROC                 1
