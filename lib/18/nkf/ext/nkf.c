@@ -53,6 +53,7 @@ static int output_ctr;
 static int o_len;
 static int incsize;
 
+static VALUE lock;
 static VALUE result;
 
 static int
@@ -148,6 +149,8 @@ rb_nkf_kconv(obj, opt, src)
   char *opt_ptr, *opt_end;
   volatile VALUE v;
 
+  rb_mutex_lock(lock);
+
   reinit();
   StringValue(opt);
   opt_ptr = RSTRING(opt)->ptr;
@@ -176,6 +179,7 @@ rb_nkf_kconv(obj, opt, src)
   RSTRING(result)->len = output_ctr;
   OBJ_INFECT(result, src);
 
+  rb_mutex_unlock(lock);
   return result;
 }
 
@@ -324,6 +328,8 @@ rb_nkf_guess2(obj, src)
 {
   int code = _BINARY;
 
+  rb_mutex_lock(lock);
+
   reinit();
 
   input_ctr = 0;
@@ -356,6 +362,7 @@ rb_nkf_guess2(obj, src)
     }
   }
 
+  rb_mutex_unlock(lock);
   return INT2FIX( code );
 }
 
@@ -613,6 +620,7 @@ rb_nkf_guess2(obj, src)
 void
 Init_nkf()
 {
+    rb_require("thread");
     /* hoge */
     VALUE mKconv = rb_define_module("NKF");
     /* hoge */
@@ -651,4 +659,9 @@ Init_nkf()
     rb_define_const(mKconv, "NKF_VERSION", rb_str_new2(NKF_VERSION));
     /* Release date of nkf */
     rb_define_const(mKconv, "NKF_RELEASE_DATE", rb_str_new2(NKF_RELEASE_DATE));
+
+    result = Qnil;
+    rb_global_variable(&result);
+    lock = rb_mutex_new();
+    rb_global_variable(&lock);
 }
