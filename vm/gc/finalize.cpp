@@ -2,11 +2,13 @@
 #include "vm.hpp"
 #include "on_stack.hpp"
 #include "objectmemory.hpp"
+#include "call_frame.hpp"
 
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
 #include "builtin/module.hpp"
 #include "builtin/thread.hpp"
+#include "builtin/nativemethod.hpp"
 
 #include "capi/handle.hpp"
 
@@ -253,7 +255,29 @@ namespace rubinius {
     }
     case eNative:
       if(process_item_->finalizer) {
+
+        NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+        NativeMethodFrame nmf(0);
+        CallFrame* call_frame = ALLOCA_CALLFRAME(0);
+        call_frame->previous = 0;
+        call_frame->constant_scope_ = 0;
+        call_frame->dispatch_data = (void*)&nmf;
+        call_frame->compiled_code = 0;
+        call_frame->flags = CallFrame::cNativeMethod;
+        call_frame->optional_jit_data = 0;
+        call_frame->top_scope_ = 0;
+        call_frame->scope = 0;
+        call_frame->arguments = 0;
+
+        env->set_current_call_frame(0);
+        env->set_current_native_frame(&nmf);
+
+        // Register the CallFrame, because we might GC below this.
+        state->set_call_frame(call_frame);
         (*process_item_->finalizer)(state, process_item_->object);
+
+        env->set_current_call_frame(0);
+        env->set_current_native_frame(0);
       }
       process_item_->status = FinalizeObject::eNativeFinalized;
       break;

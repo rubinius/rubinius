@@ -323,6 +323,7 @@ struct RFile {
 #define rb_cComplex           (capi_get_constant(cCApiComplex))
 #define rb_cEncoding          (capi_get_constant(cCApiEncoding))
 #define rb_cEnumerator        (capi_get_constant(cCApiEnumerator))
+#define rb_cMutex             (capi_get_constant(cCApiMutex))
 
 /* Global Module objects. */
 
@@ -1109,6 +1110,15 @@ VALUE rb_uint2big(unsigned long number);
   void    rb_thread_wait_for(struct timeval time);
 #define rb_thread_create(func, arg) capi_thread_create(func, arg, #func, __FILE__)
   VALUE   capi_thread_create(VALUE (*)(ANYARGS), void*, const char* name, const char* file);
+
+  /** Functions for mutexes, mostly used for thread safety in extensions */
+  VALUE rb_mutex_new();
+  VALUE rb_mutex_locked_p(VALUE mutex);
+  VALUE rb_mutex_trylock(VALUE mutex);
+  VALUE rb_mutex_lock(VALUE mutex);
+  VALUE rb_mutex_unlock(VALUE mutex);
+  VALUE rb_mutex_sleep(VALUE mutex, VALUE timeout);
+  VALUE rb_mutex_synchronize(VALUE mutex, VALUE (*func)(VALUE arg), VALUE arg);
 
 /* This is a HACK. */
 #define rb_io_taint_check(io)   rb_check_frozen(io)

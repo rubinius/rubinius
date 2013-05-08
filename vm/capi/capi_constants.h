@@ -80,6 +80,7 @@ typedef enum {
   cCApiWaitReadable,
   cCApiWaitWritable,
   cCApiEnumerator,
+  cCApiMutex,
 
   // MUST be last
   cCApiMaxConstant
