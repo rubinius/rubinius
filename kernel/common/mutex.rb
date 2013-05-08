@@ -53,6 +53,7 @@ class Mutex
 
     @owner = nil
     Rubinius.unlock self
+    self
   end
 
   def synchronize
