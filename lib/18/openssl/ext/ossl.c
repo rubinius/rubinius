@@ -427,8 +427,9 @@ static unsigned long ossl_thread_id(void)
 
 static void Init_ossl_locks(void)
 {
+  int i;
   ossl_locks = (VALUE*) OPENSSL_malloc(CRYPTO_num_locks() * sizeof(VALUE));
-  for (int i = 0; i < CRYPTO_num_locks(); i++) {
+  for (i = 0; i < CRYPTO_num_locks(); i++) {
     ossl_locks[i] = rb_mutex_new();
     rb_global_variable(&(ossl_locks[i]));
   }
