@@ -48,6 +48,7 @@ namespace rubinius {
     Tuple* values_;   // slot
     Integer* bins_;    // slot
     Integer* entries_; // slot
+    utilities::thread::SpinLock lock_;
 
     void   redistribute(STATE, size_t size);
 
@@ -67,13 +68,13 @@ namespace rubinius {
     static MethodTable* allocate(STATE, Object* self);
 
     // Rubinius.primitive :methodtable_store
-    Object* store(STATE, GCToken gct, Symbol* name, Object* meth, Symbol* vis, CallFrame* calling_environment);
+    Object* store(STATE, Symbol* name, Object* meth, Symbol* vis);
 
     // Rubinius.primitive :methodtable_alias
-    Object* alias(STATE, GCToken gct, Symbol* name, Symbol* vis, Symbol* orig_name, Object* orig_method, Module* orig_mod, CallFrame* calling_environment);
+    Object* alias(STATE, Symbol* name, Symbol* vis, Symbol* orig_name, Object* orig_method, Module* orig_mod);
 
     // Rubinius.primitive :methodtable_duplicate
-    MethodTable* duplicate(STATE, GCToken gct, CallFrame* calling_environment);
+    MethodTable* duplicate(STATE);
 
     MethodTableBucket* find_entry(STATE, Symbol* name);
     MethodTableBucket* find_entry(Symbol* name);
@@ -82,7 +83,7 @@ namespace rubinius {
     MethodTableBucket* lookup(STATE, Symbol* name);
 
     // Rubinius.primitive :methodtable_delete
-    Executable* remove(STATE, GCToken gct, Symbol* name, CallFrame* calling_environment);
+    Executable* remove(STATE, Symbol* name);
 
     // Rubinius.primitive :methodtable_has_name
     Object* has_name(STATE, Symbol* name);

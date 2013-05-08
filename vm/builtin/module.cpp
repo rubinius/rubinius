@@ -153,14 +153,10 @@ namespace rubinius {
     return get_const(state, state->symbol(sym));
   }
 
-  void Module::add_method(STATE, GCToken gct, CallFrame* call_frame,
-                          Symbol* name, Executable* exec, Symbol* vis) {
-    Module* self = this;
-    OnStack<2> os(state, self, exec);
-
+  void Module::add_method(STATE, Symbol* name, Executable* exec, Symbol* vis) {
     if(!vis) vis = G(sym_public);
-    method_table_->store(state, gct, name, exec, vis, call_frame);
-    state->vm()->global_cache()->clear(state, self, name);
+    method_table_->store(state, name, exec, vis);
+    state->vm()->global_cache()->clear(state, this, name);
     reset_method_cache(state, name);
   }
 

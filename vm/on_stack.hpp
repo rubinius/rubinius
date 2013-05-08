@@ -87,6 +87,24 @@ namespace rubinius {
       objects_[2] = reinterpret_cast<Object**>(&o3);
       objects_[3] = reinterpret_cast<Object**>(&o4);
     }
+
+    template <typename T1, typename T2, typename T3, typename T4, typename T5>
+    OnStack(STATE, T1& o1, T2& o2, T3& o3, T4& o4, T5& o5)
+      : buffer_(state->vm()->current_root_buffers(), objects_, size)
+    {
+      (void)static_cast<Object*>(o1);
+      (void)static_cast<Object*>(o2);
+      (void)static_cast<Object*>(o3);
+      (void)static_cast<Object*>(o4);
+      (void)static_cast<Object*>(o5);
+
+      objects_[0] = reinterpret_cast<Object**>(&o1);
+      objects_[1] = reinterpret_cast<Object**>(&o2);
+      objects_[2] = reinterpret_cast<Object**>(&o3);
+      objects_[3] = reinterpret_cast<Object**>(&o4);
+      objects_[4] = reinterpret_cast<Object**>(&o4);
+    }
+
   };
 }
 

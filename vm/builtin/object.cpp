@@ -69,7 +69,7 @@ namespace rubinius {
 
       OnStack<4> os(state, self, sc, source_methods, source_constants);
 
-      source_methods = sc->method_table()->duplicate(state, gct, calling_environment);
+      source_methods = sc->method_table()->duplicate(state);
       source_constants = sc->constant_table()->duplicate(state);
 
       self->singleton_class(state)->method_table(state, source_methods);

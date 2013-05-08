@@ -700,8 +700,7 @@ extern "C" {
       break;
     }
 
-    GCTokenImpl gct;
-    module->add_method(state, gct, env->current_call_frame(), method_name, method, visibility);
+    module->add_method(state, method_name, method, visibility);
     System::vm_reset_method_cache(env->state(), module, method_name, env->current_call_frame());
   }
 

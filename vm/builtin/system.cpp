@@ -143,7 +143,7 @@ namespace rubinius {
     oc->primitive(state, prim);
     oc->resolve_primitive(state);
 
-    tbl->store(state, gct, name, oc, G(sym_public), 0);
+    tbl->store(state, name, oc, G(sym_public));
   }
 
 /* Primitives */
@@ -972,13 +972,10 @@ namespace rubinius {
     method->scope(state, scope);
     method->serial(state, Fixnum::from(0));
 
-    OnStack<4> os(state, mod, method, scope, vis);
-    state->set_call_frame(calling_environment);
-
-    mod->add_method(state, gct, calling_environment, name, method);
+    mod->add_method(state, name, method);
 
     if(Class* cls = try_as<Class>(mod)) {
-      OnStack<1> o2(state, cls);
+      OnStack<5> o2(state, mod, method, scope, vis, cls);
 
       if(!method->internalize(state, gct, calling_environment)) {
         Exception::argument_error(state, "invalid bytecode method");
@@ -1033,10 +1030,7 @@ namespace rubinius {
     method->scope(state, scope);
     method->serial(state, Fixnum::from(0));
 
-    OnStack<2> os(state, mod, method);
-
-    mod->add_method(state, gct, calling_environment, name, method);
-
+    mod->add_method(state, name, method);
     vm_reset_method_cache(state, mod, name, calling_environment);
 
     return method;
