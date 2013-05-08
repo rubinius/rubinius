@@ -108,7 +108,7 @@ namespace jit {
     template <typename T>
     llvm::Value* constant(T obj, llvm::Type* obj_type) {
       return b().CreateIntToPtr(
-        llvm::ConstantInt::get(ctx_->Int64Ty, (intptr_t)obj),
+        llvm::ConstantInt::get(ctx_->IntPtrTy, (intptr_t)obj),
         obj_type, "constant");
     }
 
