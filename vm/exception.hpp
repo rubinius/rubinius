@@ -41,7 +41,10 @@ namespace rubinius {
 
     VMException(bool make_backtrace = true);
     VMException(const char* reason, bool make_backtrace = true);
-    ~VMException() { if(reason) free(reason); }
+    ~VMException() {
+      if(backtrace) delete backtrace;
+      if(reason) free(reason);
+    }
 
   public:   /* Interface */
 
