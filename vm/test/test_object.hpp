@@ -50,7 +50,7 @@ public:
     Object* obj = util_new_object();
     Fixnum* fix = Fixnum::from(1);
 
-    //Object* nil = cNil;
+    Object* nil = cNil;
 
     // OK
     TS_ASSERT_EQUALS(as<Object>(obj), obj);
@@ -60,9 +60,9 @@ public:
     TS_ASSERT_EQUALS(as<Object>(fix), fix);
 
     // Fail
-    //TS_ASSERT_THROWS(as<String>(nil), TypeError);
-    //TS_ASSERT_THROWS(as<String>(obj), TypeError);
-    //TS_ASSERT_THROWS(as<String>(fix), TypeError);
+    TS_ASSERT_THROWS(as<String>(nil), TypeError);
+    TS_ASSERT_THROWS(as<String>(obj), TypeError);
+    TS_ASSERT_THROWS(as<String>(fix), TypeError);
   }
 
   void test_try_as() {

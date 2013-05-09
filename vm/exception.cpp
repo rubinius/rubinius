@@ -166,6 +166,16 @@ namespace rubinius {
     if(reason) this->reason = strdup(reason);
   }
 
+  VMException::VMException(const VMException& other)
+      : backtrace(NULL), reason(NULL) {
+    if(other.backtrace) {
+      backtrace = new VMException::Backtrace(*other.backtrace);
+    }
+    if(other.reason) {
+      reason = strdup(reason);
+    }
+  }
+
   void VMException::print_backtrace() {
     if(!backtrace) return;
 

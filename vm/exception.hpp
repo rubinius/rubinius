@@ -45,6 +45,7 @@ namespace rubinius {
       if(backtrace) delete backtrace;
       if(reason) free(reason);
     }
+    VMException(const VMException&);
 
   public:   /* Interface */
 
