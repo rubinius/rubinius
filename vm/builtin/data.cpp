@@ -100,8 +100,8 @@ namespace rubinius {
           f(data_ptr);
         }
       }
-      data->set_freed();
     }
+    data->set_freed();
   }
 
   void Data::Info::mark(Object* t, ObjectMark& mark) {

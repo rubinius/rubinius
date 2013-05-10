@@ -276,6 +276,7 @@ namespace rubinius {
         state->set_call_frame(call_frame);
         (*process_item_->finalizer)(state, process_item_->object);
 
+        state->set_call_frame(0);
         env->set_current_call_frame(0);
         env->set_current_native_frame(0);
       }
