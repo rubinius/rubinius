@@ -12,10 +12,7 @@ namespace rubinius {
 
     bool Handle::valid_handle_p(STATE, Handle* handle) {
       Handles* capi_handles = state->memory()->capi_handles();
-      for(Allocator<Handle>::Iterator i(capi_handles->allocator()); i.more(); i.advance()) {
-        if(i.current() == handle) return true;
-      }
-      return false;
+      return capi_handles->validate(handle);
     }
 
     void Handle::free_data() {
