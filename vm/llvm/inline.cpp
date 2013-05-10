@@ -64,7 +64,14 @@ namespace rubinius {
       reachable_caches.push_back(ice);
     }
 
-    if(reachable_caches.empty()) return false;
+    if(reachable_caches.empty()) {
+      if(ops_.llvm_state()->config().jit_inline_debug) {
+        ctx_->inline_log("NOT inlining")
+          << ops_.llvm_state()->symbol_debug_str(call_site_->name())
+          << ". No reachable types found in IC.\n";
+      }
+      return false;
+    }
 
     BasicBlock* fail = class_id_failure();
     BasicBlock* fallback = ops_.new_block("poly_fallback");
