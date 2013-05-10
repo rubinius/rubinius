@@ -76,7 +76,7 @@ namespace rubinius {
 
     ops_.set_block(current);
 
-    for(int i = 0; i < reachable_caches.size(); ++i) {
+    for(size_t i = 0; i < reachable_caches.size(); ++i) {
       InlineCacheEntry* ice = reachable_caches[i];
 
       // Fallback to the next for failure
