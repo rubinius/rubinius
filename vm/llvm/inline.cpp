@@ -43,6 +43,29 @@ namespace rubinius {
     if(!cache) return false;
 
     int classes_seen = cache->classes_seen();
+
+    std::vector<InlineCacheEntry*> reachable_caches;
+
+    for(int i = 0; i < classes_seen; ++i) {
+      InlineCacheEntry* ice = cache->get_cache(i);
+
+      // If we staticly know the type, don't inline code that can never
+      // match by definition because of wrong class id's.
+      type::KnownType type = type::KnownType::extract(ctx_, recv());
+      if(type.known_p()) {
+        if(type.fixnum_p()) {
+          if(ice->receiver_class_id() != ops_.llvm_state()->fixnum_class_id()) continue;
+        } else if(type.symbol_p()) {
+          if(ice->receiver_class_id() != ops_.llvm_state()->symbol_class_id()) continue;
+        } else if(type.instance_p()) {
+          if(ice->receiver_class_id() != type.class_id()) continue;
+        }
+      }
+      reachable_caches.push_back(ice);
+    }
+
+    if(reachable_caches.empty()) return false;
+
     BasicBlock* fail = class_id_failure();
     BasicBlock* fallback = ops_.new_block("poly_fallback");
     BasicBlock* merge = ops_.new_block("merge");
@@ -53,8 +76,8 @@ namespace rubinius {
 
     ops_.set_block(current);
 
-    for(int i = 0; i < classes_seen; ++i) {
-      InlineCacheEntry* ice = cache->get_cache(i);
+    for(int i = 0; i < reachable_caches.size(); ++i) {
+      InlineCacheEntry* ice = reachable_caches[i];
 
       // Fallback to the next for failure
       set_class_id_failure(fallback);
