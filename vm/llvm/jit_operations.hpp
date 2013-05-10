@@ -862,8 +862,8 @@ namespace rubinius {
           if(ctx_->llvm_state()->type_optz()) {
             type::KnownType kt = type::KnownType::extract(ctx_, obj);
 
-            if(kt.static_fixnum_p()) {
-              ctx_->info("eliding guard: detected static fixnum");
+            if(kt.fixnum_p()) {
+              ctx_->info("eliding guard: detected fixnum");
               return kt;
             } else {
               verify_guard(check_is_fixnum(obj), failure);
