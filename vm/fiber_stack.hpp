@@ -1,6 +1,8 @@
 #ifndef RBX_VM_FIBER_STACK_HPP
 #define RBX_VM_FIBER_STACK_HPP
 
+#include <tr1/unordered_set>
+
 namespace rubinius {
   class FiberData;
   class GarbageCollector;
@@ -69,7 +71,7 @@ namespace rubinius {
 
   private:
     typedef std::list<FiberStack> Stacks;
-    typedef std::list<FiberData*> Datas;
+    typedef std::tr1::unordered_set<FiberData*> Datas;
 
     size_t max_stacks_;
     size_t stack_size_;
@@ -86,7 +88,7 @@ namespace rubinius {
     FiberStack* allocate();
 
     void remove_data(FiberData* data) {
-      datas_.remove(data);
+      datas_.erase(data);
     }
 
     FiberData* new_data(bool root=false);

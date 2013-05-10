@@ -102,7 +102,7 @@ namespace rubinius {
 
   FiberData* FiberStacks::new_data(bool root) {
     FiberData* data = new FiberData(thread_, root);
-    datas_.push_back(data);
+    datas_.insert(data);
 
     return data;
   }
