@@ -63,6 +63,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
+#include <errno.h>
 #include "time64.h"
 
 /* Prevent NetBSD from using ctype macros that cause compiler
@@ -193,7 +194,7 @@ int tm64_to_tm(struct tm64* tm64, struct tm* tm) {
     tm->tm_year = 0;
     return -1;
   }
-  tm->tm_year = (int)(tm64->tm_year - 1900);
+  tm->tm_year = (int)year;
   return 0;
 }
 
@@ -323,6 +324,15 @@ time64_t timestamp64(time_t (*func)(struct tm*), struct tm64* tm64) {
   }
 
   time64_t time = (time64_t) func(&tm);
+  if(time == -1 && errno == EINVAL) {
+    // retry one time because of perhaps DST change. This invalid
+    // time due to DST change only happens if time moves forward,
+    // so we know we start off with DST not active.
+    // This happens at least on NetBSD.
+    tm.tm_isdst = 0;
+    time = (time64_t) func(&tm);
+  }
+
   tm_to_tm64(&tm, tm64);
 
   if(year != tm64->tm_year) {
