@@ -124,7 +124,7 @@ class Configure
     @patch_version = "0"
     @release = "rc1"
     @release_date = "yyyy-mm-dd"
-    @config_version = 171
+    @config_version = 172
   end
 
   # Set up system commands to run in cmd.exe on Windows. Either Windows
@@ -813,18 +813,6 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
     false
   end
 
-  def c_includes
-    @include_dirs.map do |d|
-      "-I#{d}"
-    end.join(" ")
-  end
-
-  def c_libs
-    @lib_dirs.map do |d|
-      "-L#{d}"
-    end.join(" ")
-  end
-
   def env(which)
     ENV[which] || ""
   end
@@ -879,6 +867,14 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
     @ldsharedxx = "#{@cxx} -shared -lstdc++"
     @ldshared   = "#{@cc} -shared"
     @make       = "make"
+
+    @include_dirs.each do |d|
+      @system_cflags << "-I#{d} "
+    end
+    @lib_dirs.each do |d|
+      @system_ldflags << "-L#{d} "
+    end
+
     case RUBY_PLATFORM
     when /mswin/i, /mingw/i, /bccwin32/i
       # TODO: discovery helpers
@@ -901,6 +897,9 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
       @ldshared   = "#{@cc} -shared -fPIC"
       @system_cflags << "-fPIC"
       @system_ldflags << "-lcrypt -pthread -rdynamic"
+      @lib_dirs.each do |d|
+        @system_ldflags << " -Wl,-rpath=#{d}"
+      end
       @make = "gmake"
     when /openbsd|netbsd/i
       # OpenBSD branch contributed by Guillaume Sellier.
@@ -910,7 +909,10 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
       @ldsharedxx = "#{@cxx} -shared -lstdc++ -fPIC"
       @ldshared   = "#{@cc} -shared -fPIC"
       @system_cflags << "-fPIC"
-      @system_ldflags << "-lcrypto -pthread -lssl -rdynamic -Wl,--export-dynamic"
+      @system_ldflags << "-lcrypt -pthread -rdynamic -Wl,--export-dynamic"
+      @lib_dirs.each do |d|
+        @system_ldflags << " -Wl,-rpath=#{d}"
+      end
       @make = "gmake"
     when /darwin/i
       # on Unix we need a g++ link, not gcc.
@@ -927,6 +929,9 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
     when /linux/i
       @system_cflags << "-fPIC"
       @system_ldflags << "-Wl,--export-dynamic -lrt -lcrypt -ldl -lpthread"
+      @lib_dirs.each do |d|
+        @system_ldflags << " -Wl,-rpath=#{d}"
+      end
     else
       # on Unix we need a g++ link, not gcc.
       @system_cflags << "-fPIC"
@@ -949,7 +954,7 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
 
       libs = (default_link_libs + link_libs).map { |l| "-l#{l}" }.join(" ")
 
-      cmd = "#{@cxx} #{env('CPPFLAGS')} #{env('CXXFLAGS')} #{env('LDFLAGS')} -o #{basename} #{source} #{c_includes} #{c_libs} -lstdc++ #{libs} >>#{@log.path} 2>&1"
+      cmd = "#{@cxx} #{env('CPPFLAGS')} #{env('CXXFLAGS')} #{env('LDFLAGS')} -o #{basename} #{source} #{@system_cflags} #{@system_ldflags} -lstdc++ #{libs} >>#{@log.path} 2>&1"
       @log.log cmd
       system cmd
       return $?.exitstatus unless run
@@ -1215,7 +1220,7 @@ int main() { return tgetnum(""); }
 
     @log.log string
 
-    cmd = "#{@cxx} -S -o - -x c #{c_includes} #{c_libs} #{env('CPPFLAGS')} #{env('CFLAGS')} #{env('LDFLAGS')} #{file.path} >>#{@log.path} 2>&1"
+    cmd = "#{@cxx} -S -o - -x c #{env('CPPFLAGS')} #{env('CFLAGS')} #{env('LDFLAGS')} #{@system_cflags} #{@system_ldflags} #{file.path} >>#{@log.path} 2>&1"
     @log.log cmd
     system cmd
 
@@ -1378,6 +1383,15 @@ int main() { return tgetnum(""); }
   def process
     set_host
     set_system_commands
+
+    ["/usr/local", "/opt/local", "/usr/pkg"].each do |dir|
+      @include_dirs << "#{dir}/include"
+      @lib_dirs     << "#{dir}/lib" << "#{dir}/lib64"
+    end
+
+    detect_include_dirs
+    detect_lib_dirs
+
     check_tools
 
     if @use_llvm
@@ -1388,14 +1402,6 @@ int main() { return tgetnum(""); }
     end
 
     @log.write ""
-
-    ["/usr/local", "/opt/local"].each do |dir|
-      @include_dirs << "#{dir}/include"
-      @lib_dirs     << "#{dir}/lib" << "#{dir}/lib64"
-    end
-
-    detect_include_dirs
-    detect_lib_dirs
 
     detect_sizeof("short")
     detect_sizeof("int")

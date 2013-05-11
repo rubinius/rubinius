@@ -127,20 +127,16 @@ module RbConfig
     CONFIG["CFLAGS"] << " -O2"
   end
 
-  if include_dirs = Rubinius::BUILD_CONFIG[:include_dirs]
-    include_dirs.each do |include_dir|
-      CONFIG["CFLAGS"] << " -I#{include_dir}"
-    end
-  end
-
-  if lib_dirs = Rubinius::BUILD_CONFIG[:lib_dirs]
-    lib_dirs.each do |lib_dir|
-      CONFIG["LDFLAGS"] << " -L#{lib_dir}"
-    end
+  if sys = Rubinius::BUILD_CONFIG[:system_cflags]
+    CONFIG["CFLAGS"] << " #{sys}" unless sys.empty?
   end
 
   if user = Rubinius::BUILD_CONFIG[:user_cflags]
     CONFIG["CFLAGS"] << " #{user}" unless user.empty?
+  end
+
+  if sys = Rubinius::BUILD_CONFIG[:system_ldflags]
+    CONFIG["LDFLAGS"] << " #{sys}" unless sys.empty?
   end
 
   if user = Rubinius::BUILD_CONFIG[:user_ldflags]
@@ -148,6 +144,10 @@ module RbConfig
   end
 
   CONFIG["CPPFLAGS"]           = ""
+  if sys = Rubinius::BUILD_CONFIG[:system_cppflags]
+    CONFIG["CPPFLAGS"] << " #{sys}" unless sys.empty?
+  end
+
   if user = Rubinius::BUILD_CONFIG[:user_cppflags]
     CONFIG["CPPFLAGS"] << " #{user}" unless user.empty?
   end

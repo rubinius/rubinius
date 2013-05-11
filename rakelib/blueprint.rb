@@ -51,10 +51,6 @@ Daedalus.blueprint do |i|
 
   gcc.ldflags << "-lstdc++" << "-lm"
 
-  Rubinius::BUILD_CONFIG[:lib_dirs].each do |path|
-    gcc.ldflags << "-L#{path}" if File.exists? path
-  end
-
   make = Rubinius::BUILD_CONFIG[:make]
 
   if RUBY_PLATFORM =~ /bsd/ and
@@ -230,11 +226,6 @@ Daedalus.blueprint do |i|
   else
     STDERR.puts "Unsupported LLVM configuration: #{Rubinius::BUILD_CONFIG[:llvm]}"
     raise "get out"
-  end
-
-
-  Rubinius::BUILD_CONFIG[:include_dirs].each do |path|
-    gcc.cflags << "-I#{path} " if File.exists? path
   end
 
   # Add these flags after building the libraries
