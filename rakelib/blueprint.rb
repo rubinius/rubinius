@@ -24,11 +24,6 @@ Daedalus.blueprint do |i|
   # warnings when LLVM is also built with this flag.
   gcc.cxxflags << "-fno-rtti -fvisibility-inlines-hidden"
 
-  gcc.cflags << Rubinius::BUILD_CONFIG[:system_cflags]
-  gcc.cflags << Rubinius::BUILD_CONFIG[:user_cflags]
-  gcc.cxxflags << Rubinius::BUILD_CONFIG[:system_cxxflags]
-  gcc.cxxflags << Rubinius::BUILD_CONFIG[:user_cxxflags]
-
   if ENV['DEV']
     gcc.cflags << "-O0"
     gcc.mtime_only = true
@@ -72,7 +67,7 @@ Daedalus.blueprint do |i|
 
   # Libraries
   ltm = i.external_lib "vendor/libtommath" do |l|
-    l.cflags = gcc.cflags + ["-Ivendor/libtommath"]
+    l.cflags = ["-Ivendor/libtommath"] + gcc.cflags
     l.objects = [l.file("libtommath.a")]
     l.to_build do |x|
       x.command make
@@ -114,7 +109,7 @@ Daedalus.blueprint do |i|
   files << oniguruma
 
   gdtoa = i.external_lib "vendor/libgdtoa" do |l|
-    l.cflags = gcc.cflags + ["-Ivendor/libgdtoa"]
+    l.cflags = ["-Ivendor/libgdtoa"] + gcc.cflags
     l.objects = [l.file("libgdtoa.a")]
     l.to_build do |x|
       x.command make
@@ -124,7 +119,7 @@ Daedalus.blueprint do |i|
   files << gdtoa
 
   ffi = i.external_lib "vendor/libffi" do |l|
-    l.cflags = gcc.cflags + ["-Ivendor/libffi/include"]
+    l.cflags = ["-Ivendor/libffi/include"] + gcc.cflags
     l.objects = [l.file(".libs/libffi.a")]
     l.to_build do |x|
       x.command "sh -c './configure --disable-builddir'" unless File.exists?("Makefile")
@@ -135,7 +130,7 @@ Daedalus.blueprint do |i|
   files << ffi
 
   udis = i.external_lib "vendor/udis86" do |l|
-    l.cflags = gcc.cflags + ["-Ivendor/udis86"]
+    l.cflags = ["-Ivendor/udis86"] + gcc.cflags
     l.objects = [l.file("libudis86/.libs/libudis86.a")]
     l.to_build do |x|
       unless File.exists?("Makefile") and File.exists?("libudis86/Makefile")
@@ -149,7 +144,7 @@ Daedalus.blueprint do |i|
 
   if Rubinius::BUILD_CONFIG[:vendor_zlib]
     zlib = i.external_lib "vendor/zlib" do |l|
-      l.cflags = gcc.cflags + ["-Ivendor/zlib"]
+      l.cflags = ["-Ivendor/zlib"] + gcc.cflags
       l.objects = []
       l.to_build do |x|
         unless File.exists?("Makefile") and File.exists?("zconf.h")
@@ -169,7 +164,7 @@ Daedalus.blueprint do |i|
 
   if Rubinius::BUILD_CONFIG[:windows]
     winp = i.external_lib "vendor/winpthreads" do |l|
-      l.cflags = gcc.cflags + ["-Ivendor/winpthreads/include"]
+      l.cflags = ["-Ivendor/winpthreads/include"] + gcc.cflags
       l.objects = [l.file("libpthread.a")]
       l.to_build do |x|
         x.command "sh -c ./configure" unless File.exists?("Makefile")
@@ -185,7 +180,7 @@ Daedalus.blueprint do |i|
   case Rubinius::BUILD_CONFIG[:llvm]
   when :prebuilt, :svn
     llvm = i.external_lib "vendor/llvm" do |l|
-      l.cflags = gcc.cflags + ["-Ivendor/llvm/include"]
+      l.cflags = ["-Ivendor/llvm/include"] + gcc.cflags
       l.objects = []
     end
 
@@ -227,6 +222,11 @@ Daedalus.blueprint do |i|
     STDERR.puts "Unsupported LLVM configuration: #{Rubinius::BUILD_CONFIG[:llvm]}"
     raise "get out"
   end
+
+  gcc.cflags << Rubinius::BUILD_CONFIG[:system_cflags]
+  gcc.cflags << Rubinius::BUILD_CONFIG[:user_cflags]
+  gcc.cxxflags << Rubinius::BUILD_CONFIG[:system_cxxflags]
+  gcc.cxxflags << Rubinius::BUILD_CONFIG[:user_cxxflags]
 
   # Add these flags after building the libraries
   gcc.cflags << "-Ivm -Ivm/test/cxxtest -I. "
