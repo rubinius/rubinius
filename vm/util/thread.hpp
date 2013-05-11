@@ -567,9 +567,7 @@ namespace thread {
 
     void lock() {
       while(!atomic::compare_and_swap(&lock_, 0, 1)) {
-        while(lock_) {
-          atomic::pause();
-        }
+        atomic::pause();
       }
     }
 

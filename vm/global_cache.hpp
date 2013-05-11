@@ -46,6 +46,10 @@ namespace rubinius {
     bool resolve_i(STATE, Symbol* name, Dispatch& msg, LookupData& lookup);
 
     GlobalCache() {
+      reset();
+    }
+
+    void reset() {
       lock_.init();
       clear();
     }
