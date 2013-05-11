@@ -6,7 +6,7 @@
 #endif
 
 #ifdef IS_X86
-#define ALIGN(var) (var)
+#define RBX_MEMORY_ALIGN(var) (var)
 #else
 /*
  * On non X86, we always align on 64 bit boundaries
@@ -14,8 +14,8 @@
  * 32 bit systems. X86 can do this, but for example ARM
  * can't.
  */
-#define ALIGNMENT sizeof(int64_t)
-#define ALIGN(var) ((var + (ALIGNMENT - 1)) & ~(ALIGNMENT - 1))
+#define RBX_MEMORY_ALIGNMENT sizeof(int64_t)
+#define RBX_MEMORY_ALIGN(var) ((var + (RBX_MEMORY_ALIGNMENT - 1)) & ~(RBX_MEMORY_ALIGNMENT - 1))
 #endif
 
 namespace memory {
@@ -48,12 +48,12 @@ namespace memory {
     }
 
     Address operator+(int change) const {
-      change = ALIGN(change);
+      change = RBX_MEMORY_ALIGN(change);
       return Address(reinterpret_cast<void*>(address_ + change));
     }
 
     Address operator+=(int change) {
-      change = ALIGN(change);
+      change = RBX_MEMORY_ALIGN(change);
       address_ += change;
       return *this;
     }
@@ -63,7 +63,7 @@ namespace memory {
     }
 
     Address operator-(int change) const {
-      change = ALIGN(change);
+      change = RBX_MEMORY_ALIGN(change);
       return Address(reinterpret_cast<void*>(address_ - change));
     }
 
