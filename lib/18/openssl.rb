@@ -14,6 +14,7 @@
   $Id: openssl.rb 29856 2010-11-22 07:21:45Z shyouhei $
 =end
 
+require 'thread'
 require 'openssl/ext/openssl'
 
 require 'openssl/bn'
