@@ -187,12 +187,12 @@ module Daedalus
 
     def add_library(lib)
       if f = lib.cflags
-        @cflags += f
+        @cflags = f + @cflags
         @cflags.uniq!
       end
 
       if f = lib.ldflags
-        @ldflags += f
+        @ldflags = f + @ldflags
         @ldflags.uniq!
       end
     end
