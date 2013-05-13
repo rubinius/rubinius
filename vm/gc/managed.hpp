@@ -105,6 +105,7 @@ namespace rubinius {
 
     void set_name(std::string name) {
       name_ = name;
+      utilities::thread::Thread::set_os_name(name.c_str());
     }
 
     uint32_t thread_id() {

@@ -21,8 +21,7 @@ namespace rubinius {
 
   void ManagedThread::set_current(ManagedThread* th, std::string name) {
     th->os_thread_ = pthread_self();
+    th->set_name(name);
     _current_thread.set(th);
-    th->name_ = name;
-    utilities::thread::Thread::set_os_name(name.c_str());
   }
 }
