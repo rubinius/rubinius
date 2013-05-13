@@ -982,6 +982,9 @@ namespace rubinius {
       CallInst* res = sig.call("rbx_float_allocate", call_args, 1, "result", ops.b());
       res->setDoesNotThrow();
 
+      type::KnownType kt = type::KnownType::instance(ops.llvm_state()->float_class_id());
+      kt.associate(ops.context(), res);
+
       ops.b().CreateStore(
           performed,
           ops.b().CreateConstGEP2_32(res, 0, offset::Float::val));
@@ -1187,6 +1190,19 @@ namespace rubinius {
       // can be removed if this value is never used afterwards and the
       // allocation can be elided in that case.
       out->setDoesNotThrow();
+
+      type::KnownType kt = type::KnownType::extract(ops.context(), V);
+      if(kt.constant_cache_p()) {
+        ConstantCache* constant_cache = kt.constant_cache();
+        klass = try_as<Class>(constant_cache->value());
+        type::KnownType kt = type::KnownType::unknown();
+        if(kind_of<SingletonClass>(klass)) {
+          kt = type::KnownType::singleton_instance(klass->class_id());
+        } else {
+          kt = type::KnownType::instance(klass->class_id());
+        }
+        kt.associate(ops.context(), out);
+      }
 
       i.set_result(out);
       i.context()->leave_inline();

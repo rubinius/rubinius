@@ -485,6 +485,7 @@ halt:
     fixnum_class_id_   = G(fixnum_class)->class_id();
     integer_class_id_  = G(integer)->class_id();
     numeric_class_id_  = G(numeric)->class_id();
+    float_class_id_    = G(floatpoint)->class_id();
     symbol_class_id_   = G(symbol)->class_id();
     string_class_id_   = G(string)->class_id();
     regexp_class_id_   = G(regexp)->class_id();

@@ -11,6 +11,7 @@
 
 #include "builtin/constantscope.hpp"
 #include "builtin/module.hpp"
+#include "builtin/class.hpp"
 
 using namespace llvm;
 
@@ -58,8 +59,6 @@ namespace jit {
     alloc_frame("method_body");
 
     check_arity();
-
-    // check_self_type();
 
     initialize_frame(machine_code_->stack_size);
 
@@ -508,6 +507,19 @@ namespace jit {
 
     Value* self = b().CreateLoad(get_field(args, offset::Arguments::recv),
         "args.recv");
+
+    if(Class* klass = info_.self_class()) {
+      if(!klass->nil_p()) {
+        type::KnownType kt = type::KnownType::unknown();
+        if(kind_of<SingletonClass>(klass)) {
+          kt = type::KnownType::singleton_instance(klass->class_id());
+        } else {
+          kt = type::KnownType::instance(klass->class_id());
+        }
+        kt.associate(ctx_, self);
+      }
+    }
+
     b().CreateStore(self, get_field(vars, offset::StackVariables::self));
     Value* mod = module;
     b().CreateStore(mod, get_field(vars, offset::StackVariables::module));
@@ -523,8 +535,6 @@ namespace jit {
 
     nil_locals();
   }
-
-
 
   void MethodBuilder::initialize_frame(int stack_size) {
     Value* code_gep = get_field(call_frame, offset::CallFrame::compiled_code);

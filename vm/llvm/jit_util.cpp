@@ -1248,10 +1248,6 @@ extern "C" {
                                           force_deoptimization);
   }
 
-  Object* rbx_restart_interp(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args) {
-    return MachineCode::execute(state, call_frame, exec, mod, args);
-  }
-
   Object* rbx_continue_debugging(STATE, CallFrame* call_frame,
                                  int32_t entry_ip, native_int sp,
                                  CallFrame* method_call_frame,

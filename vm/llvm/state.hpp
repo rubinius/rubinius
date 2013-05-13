@@ -92,6 +92,7 @@ namespace rubinius {
     uint32_t fixnum_class_id_;
     uint32_t integer_class_id_;
     uint32_t numeric_class_id_;
+    uint32_t float_class_id_;
     uint32_t symbol_class_id_;
     uint32_t string_class_id_;
     uint32_t regexp_class_id_;
@@ -198,6 +199,10 @@ namespace rubinius {
 
     uint32_t numeric_class_id() {
       return numeric_class_id_;
+    }
+
+    uint32_t float_class_id() {
+      return float_class_id_;
     }
 
     uint32_t symbol_class_id() {

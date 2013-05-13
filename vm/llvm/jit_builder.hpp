@@ -96,8 +96,6 @@ namespace jit {
 
     void nil_locals();
 
-    void check_self_type();
-
     void alloc_frame(const char* body_name);
 
     bool generate_body();
