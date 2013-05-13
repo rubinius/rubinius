@@ -638,10 +638,12 @@ extern "C" {
 
   Object* rbx_make_array(STATE, int count, Object** args) {
     Array* ary = Array::create(state, count);
+    Tuple* tup = ary->tuple();
     for(int i = 0; i < count; i++) {
-      ary->set(state, i, args[i]);
+      tup->put(state, i, args[i]);
     }
 
+    ary->total(state, Fixnum::from(count));
     return ary;
   }
 
@@ -649,14 +651,16 @@ extern "C" {
     va_list ap;
 
     Array* ary = Array::create(state, count);
+    Tuple* tup = ary->tuple();
 
     va_start(ap, count);
     for(int i = 0; i < count; i++) {
       Object* obj = va_arg(ap, Object*);
-      ary->set(state, i, obj);
+      tup->put(state, i, obj);
     }
 
     va_end(ap);
+    ary->total(state, Fixnum::from(count));
 
     return ary;
   }

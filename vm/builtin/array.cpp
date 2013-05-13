@@ -36,11 +36,11 @@ namespace rubinius {
     return start_->to_native();
   }
 
-  Array* Array::create(STATE, native_int idx) {
+  Array* Array::create(STATE, native_int size) {
     Array* ary;
     ary = state->new_object_dirty<Array>(G(array));
 
-    ary->setup(state, idx);
+    ary->setup(state, size);
 
     return ary;
   }

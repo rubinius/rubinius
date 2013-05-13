@@ -603,6 +603,8 @@ section "Manipulate arrays"
 instruction make_array(count) [ +count -- array ]
   Object* t2;
   Array* ary = Array::create(state, count);
+  Tuple* tup = ary->tuple();
+
 #ifdef RBX_ALLOC_TRACKING
   if(unlikely(state->vm()->allocation_tracking())) {
     ary->setup_allocation_site(state, call_frame);
@@ -611,9 +613,9 @@ instruction make_array(count) [ +count -- array ]
   int j = count - 1;
   for(; j >= 0; j--) {
     t2 = stack_pop();
-    ary->set(state, j, t2);
+    tup->put(state, j, t2);
   }
-
+  ary->total(state, Fixnum::from(count));
   stack_push(ary);
 end
 
