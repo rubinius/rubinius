@@ -512,9 +512,7 @@ remember:
     ctx_->enter_inline();
     ops_.llvm_state()->add_accessor_inlined();
 
-    Value* self = recv();
-
-    check_class(self, klass, data);
+    check_recv(klass, data);
 
     // Figure out if we should use the table ivar lookup or
     // the slot ivar lookup.
@@ -523,6 +521,7 @@ remember:
     TypeInfo::Slots::iterator it = ti->slots.find(acc->name()->index());
 
     Value* ivar = 0;
+    Value* self = recv();
 
     if(it != ti->slots.end()) {
       int offset = ti->slot_locations[it->second];

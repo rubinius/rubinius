@@ -1117,6 +1117,15 @@ namespace rubinius {
         stack_push(constant(cFalse), type::KnownType::false_());
       } else if(lit == cNil) {
         stack_push(constant(cNil), type::KnownType::nil());
+      } else if(lit->reference_p()) {
+        Class* klass = lit->klass();
+        type::KnownType kt = type::KnownType::unknown();
+        if(kind_of<SingletonClass>(klass)) {
+          kt = type::KnownType::singleton_instance(klass->class_id());
+        } else {
+          kt = type::KnownType::instance(klass->class_id());
+        }
+        stack_push(get_literal(which), kt);
       } else {
         stack_push(get_literal(which));
       }
@@ -1187,33 +1196,14 @@ namespace rubinius {
       if(LocalInfo* bli = current_jbb_->get_local(which)) {
         type::KnownType kt = bli->known_type();
         kt.set_local_source(which);
-
         stack_push(b().CreateLoad(pos, "local"), kt);
         return;
       }
 
       LocalInfo* li = info().get_local(which);
-
-      /*
-      if(li->known_type().known_p()) {
-        std::cout << "push_local type known for " << which << ": "
-                  << li->known_type().describe() << ". "
-                  << (li->static_type_argument_p() ? "STA" : "not STA")
-                  << "\n";
-      }
-      */
-
-      if(!info().use_full_scope() && li->static_type_argument_p()) {
-        type::KnownType kt = li->known_type();
-        kt.set_local_source(which);
-
-        stack_push(b().CreateLoad(pos, "local"), kt);
-      } else {
-        type::KnownType kt;
-        kt.set_local_source(which);
-
-        stack_push(b().CreateLoad(pos, "local"), kt);
-      }
+      type::KnownType kt = li->known_type();
+      kt.set_local_source(which);
+      stack_push(b().CreateLoad(pos, "local"), kt);
     }
 
     void set_scope_local(Value* scope, opcode which) {
@@ -1273,6 +1263,9 @@ namespace rubinius {
         val = b().CreateCall(func, outgoing_args, "ary");
       } else {
         val = stack_top();
+        LocalInfo* li = info().get_local(which);
+        type::KnownType kt = type::KnownType::extract(ctx_, val);
+        li->set_known_type(kt);
       }
 
       b().CreateStore(val, pos);
