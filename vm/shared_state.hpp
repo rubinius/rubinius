@@ -22,6 +22,10 @@
 
 #include "capi/capi_constants.h"
 
+#include <vector>
+#include <tr1/unordered_map>
+#include <tr1/unordered_set>
+
 #ifdef RBX_WINDOWS
 #include <winsock2.h>
 #endif
@@ -50,6 +54,10 @@ namespace rubinius {
   class ManagedThread;
   class QueryAgent;
   class Environment;
+
+  typedef std::tr1::unordered_set<std::string> CApiBlackList;
+  typedef std::vector<Mutex*> CApiLocks;
+  typedef std::tr1::unordered_map<std::string, int> CApiLockMap;
 
   typedef std::vector<std::string> CApiConstantNameMap;
   typedef std::tr1::unordered_map<int, capi::Handle*> CApiConstantHandleMap;
@@ -102,13 +110,16 @@ namespace rubinius {
     utilities::thread::Mutex ruby_critical_lock_;
     pthread_t ruby_critical_thread_;
 
-    Mutex capi_lock_;
-    bool use_capi_lock_;
-
     utilities::thread::SpinLock capi_ds_lock_;
+    utilities::thread::SpinLock capi_locks_lock_;
     utilities::thread::SpinLock capi_constant_lock_;
     utilities::thread::SpinLock llvm_state_lock_;
 
+    CApiBlackList capi_black_list_;
+    CApiLocks capi_locks_;
+    CApiLockMap capi_lock_map_;
+
+    bool use_capi_lock_;
     int primitive_hits_[Primitives::cTotalPrimitives];
 
   public:
@@ -288,6 +299,8 @@ namespace rubinius {
       return capi_constant_lock_;
     }
 
+    int capi_lock_index(std::string name);
+
     utilities::thread::SpinLock& llvm_state_lock() {
       return llvm_state_lock_;
     }
@@ -326,6 +339,7 @@ namespace rubinius {
       return capi_constant_handle_map_;
     }
 
+    void initialize_capi_black_list();
   };
 }
 

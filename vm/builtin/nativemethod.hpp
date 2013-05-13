@@ -160,6 +160,7 @@ namespace rubinius {
     /** HandleSet to Objects used in this Frame. */
     capi::HandleSet handles_;
 
+    int capi_lock_index_;
     bool check_handles_;
 
     /** Handle for the block passed in **/
@@ -175,12 +176,7 @@ namespace rubinius {
     VALUE method_;
 
   public:
-    NativeMethodFrame(NativeMethodFrame* prev)
-      : previous_(prev)
-      , check_handles_(false)
-      , block_(Qnil)
-    {}
-
+    NativeMethodFrame(NativeMethodFrame* prev, NativeMethod* method);
     ~NativeMethodFrame();
 
   public:     /* Interface methods */
@@ -203,6 +199,10 @@ namespace rubinius {
 
     /** Updates cached data with changes to the Ruby objects. */
     void update_cached_data();
+
+    int capi_lock_index() {
+      return capi_lock_index_;
+    }
 
   public:     /* Accessors */
 
@@ -303,6 +303,8 @@ namespace rubinius {
     /** Function object that implements this method. */
     void* func_;
 
+    int capi_lock_index_;
+
   public:   /* Accessors */
 
     /** Arity of the method within. @see Arity. */
@@ -313,6 +315,10 @@ namespace rubinius {
     attr_accessor(name, Symbol);
     /** Module on which created. */
     attr_accessor(module, Module);
+
+    int capi_lock_index() {
+      return capi_lock_index_;
+    }
 
   public:   /* Ruby bookkeeping */
 
@@ -340,7 +346,8 @@ namespace rubinius {
      */
     static NativeMethod* create(State* state, String* file_name,
                                 Module* module, Symbol* method_name,
-                                void* func, Fixnum* arity);
+                                void* func, Fixnum* arity,
+                                int capi_lock_index);
 
   public:   /* Class Interface */
 

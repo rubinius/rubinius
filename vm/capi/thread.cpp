@@ -165,10 +165,16 @@ extern "C" {
   }
 
   Object* run_function(STATE) {
-
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    NativeMethodFrame nmf(0);
+    Thread* self = state->vm()->thread.get();
+    NativeMethod* nm = as<NativeMethod>(self->locals_aref(state, state->symbol("function")));
+    Pointer* ptr = as<Pointer>(self->locals_aref(state, state->symbol("argument")));
+
+    self->locals_remove(state, state->symbol("function"));
+    self->locals_remove(state, state->symbol("argument"));
+
+    NativeMethodFrame nmf(0, nm);
     CallFrame cf;
     cf.previous = 0;
     cf.constant_scope_ = 0;
@@ -183,13 +189,6 @@ extern "C" {
     CallFrame* saved_frame = env->current_call_frame();
     env->set_current_call_frame(&cf);
     env->set_current_native_frame(&nmf);
-
-    Thread* self = state->vm()->thread.get();
-    NativeMethod* nm = as<NativeMethod>(self->locals_aref(state, state->symbol("function")));
-    Pointer* ptr = as<Pointer>(self->locals_aref(state, state->symbol("argument")));
-
-    self->locals_remove(state, state->symbol("function"));
-    self->locals_remove(state, state->symbol("argument"));
 
     nmf.setup(
         env->get_handle(self),
@@ -213,11 +212,11 @@ extern "C" {
       ret = env->get_object(nm->func()(ptr->pointer));
     }
 
+    LEAVE_CAPI(state);
+
     env->set_current_call_frame(saved_frame);
     env->set_current_native_frame(nmf.previous());
     ep.pop(env);
-
-    LEAVE_CAPI(state);
 
     return ret;
   }
@@ -229,7 +228,7 @@ extern "C" {
     NativeMethod* nm = NativeMethod::create(state,
                         String::create(state, file), G(thread),
                         state->symbol(name), (void*)func,
-                        Fixnum::from(1));
+                        Fixnum::from(1), 0);
 
     Pointer* ptr = Pointer::create(state, arg);
 

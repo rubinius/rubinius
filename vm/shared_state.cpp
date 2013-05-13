@@ -16,6 +16,7 @@
 #include "builtin/randomizer.hpp"
 #include "builtin/array.hpp"
 #include "builtin/thread.hpp"
+#include "builtin/nativemethod.hpp"
 
 #include <iostream>
 #include <iomanip>
@@ -62,6 +63,7 @@ namespace rubinius {
     }
 
     hash_seed = Randomizer::random_uint32();
+    initialize_capi_black_list();
   }
 
   SharedState::~SharedState() {
@@ -180,8 +182,8 @@ namespace rubinius {
     global_cache->reset();
     onig_lock_.init();
     ruby_critical_lock_.init();
-    capi_lock_.init();
     capi_ds_lock_.init();
+    capi_locks_lock_.init();
     capi_constant_lock_.init();
     auxiliary_threads_->init();
 
@@ -255,15 +257,40 @@ namespace rubinius {
   }
 
   void SharedState::enter_capi(STATE, const char* file, int line) {
-    if(use_capi_lock_) {
-      capi_lock_.lock(state->vm(), file, line);
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    if(int lock_index = env->current_native_frame()->capi_lock_index()) {
+      capi_locks_[lock_index - 1]->lock(state->vm(), file, line);
     }
   }
 
   void SharedState::leave_capi(STATE) {
-    if(use_capi_lock_) {
-      capi_lock_.unlock(state->vm());
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    if(int lock_index = env->current_native_frame()->capi_lock_index()) {
+      capi_locks_[lock_index - 1]->unlock(state->vm());
     }
+  }
+
+  int SharedState::capi_lock_index(std::string name) {
+    utilities::thread::SpinLock::LockGuard guard(capi_locks_lock_);
+    int existing = capi_lock_map_[name];
+    if(existing) return existing;
+
+    CApiBlackList::const_iterator blacklisted = capi_black_list_.find(name);
+
+    // Only disable locks if we have capi locks disabled
+    // and library is not in the blacklist.
+    if(!use_capi_lock_ && blacklisted == capi_black_list_.end()) {
+      capi_lock_map_[name] = 0;
+      return 0;
+    }
+
+    Mutex* lock = new Mutex();
+    capi_locks_.push_back(lock);
+
+    // We use a 1 offset index, so 0 can indicate no lock used
+    int lock_index = capi_locks_.size();
+    capi_lock_map_[name] = lock_index;
+    return lock_index;
   }
 
   void SharedState::setup_capi_constant_names() {
@@ -344,5 +371,10 @@ namespace rubinius {
       capi_constant_name_map_[cCApiWaitWritable]        = "IO::WaitWritable";
     }
 
+  }
+
+#define CAPI_BLACK_LIST(name) capi_black_list_.insert(std::string("Init_" # name))
+  void SharedState::initialize_capi_black_list() {
+    CAPI_BLACK_LIST(nkf);
   }
 }

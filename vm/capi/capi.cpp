@@ -27,13 +27,6 @@
 #include "dispatch.hpp"
 #include "capi/capi.hpp"
 #include "capi/18/include/ruby.h"
-#include <string>
-#include <vector>
-#include <tr1/unordered_map>
-
-#ifdef RBX_WINDOWS
-#include <malloc.h>
-#endif
 
 namespace rubinius {
   namespace capi {
@@ -389,7 +382,7 @@ namespace rubinius {
       NativeMethod* nm = NativeMethod::create(env->state(),
                           nil<String>(), env->state()->vm()->shared.globals.rubinius.get(),
                           env->state()->symbol("call"), cb,
-                          Fixnum::from(arity));
+                          Fixnum::from(arity), 0);
 
       nm->set_ivar(env->state(), env->state()->symbol("cb_data"),
                    env->get_object(cb_data));
@@ -682,7 +675,8 @@ extern "C" {
     NativeMethod* method = NULL;
     method = NativeMethod::create(state, String::create(state, file),
                                   module, method_name,
-                                  (void*)fptr, Fixnum::from(arity));
+                                  (void*)fptr, Fixnum::from(arity),
+                                  env->current_native_frame()->capi_lock_index());
 
     Symbol* visibility;
 

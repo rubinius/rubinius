@@ -257,7 +257,7 @@ namespace rubinius {
       if(process_item_->finalizer) {
 
         NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-        NativeMethodFrame nmf(0);
+        NativeMethodFrame nmf(0, 0);
         CallFrame* call_frame = ALLOCA_CALLFRAME(0);
         call_frame->previous = 0;
         call_frame->constant_scope_ = 0;
@@ -274,6 +274,9 @@ namespace rubinius {
 
         // Register the CallFrame, because we might GC below this.
         state->set_call_frame(call_frame);
+
+        nmf.setup(Qnil, Qnil, Qnil, Qnil);
+
         (*process_item_->finalizer)(state, process_item_->object);
 
         state->set_call_frame(0);

@@ -46,6 +46,13 @@ namespace rubinius {
     return native_method_environment.get();
   }
 
+  NativeMethodFrame::NativeMethodFrame(NativeMethodFrame* prev, NativeMethod* method)
+    : previous_(prev)
+    , capi_lock_index_(method ? method->capi_lock_index() : 0)
+    , check_handles_(false)
+    , block_(Qnil)
+  {}
+
   NativeMethodFrame::~NativeMethodFrame() {
     flush_cached_data();
     handles_.deref_all();
@@ -657,8 +664,7 @@ namespace rubinius {
       }
     }
 
-
-    NativeMethodFrame nmf(env->current_native_frame());
+    NativeMethodFrame nmf(env->current_native_frame(), nm);
     CallFrame* call_frame = ALLOCA_CALLFRAME(0);
     call_frame->previous = previous;
     call_frame->constant_scope_ = 0;
@@ -735,11 +741,12 @@ namespace rubinius {
     RUBINIUS_METHOD_NATIVE_RETURN_HOOK(state, mod, args.name(), call_frame);
 #endif
 
+    LEAVE_CAPI(state);
+
     env->set_current_call_frame(saved_frame);
     env->set_current_native_frame(nmf.previous());
     ep.pop(env);
 
-    LEAVE_CAPI(state);
     OnStack<1> os_ret(state, ret);
 
     // Handle any signals that occurred while the native method
@@ -753,14 +760,18 @@ namespace rubinius {
       String* library, Symbol* name, Pointer* ptr) {
     void* func = ptr->pointer;
 
+    int capi_lock_index = state->shared().capi_lock_index(name->debug_str(state));
+
     return NativeMethod::create(state, library, G(rubinius),
                                 name, func,
-                                Fixnum::from(INIT_FUNCTION));
+                                Fixnum::from(INIT_FUNCTION),
+                                capi_lock_index);
   }
 
   NativeMethod* NativeMethod::create(State* state, String* file_name,
                                      Module* module, Symbol* method_name,
-                                     void* func, Fixnum* arity)
+                                     void* func, Fixnum* arity,
+                                     int capi_lock_index)
   {
     NativeMethod* nmethod = state->new_object<NativeMethod>(G(nmethod));
 
@@ -798,6 +809,7 @@ namespace rubinius {
     nmethod->inliners_ = 0;
     nmethod->prim_index_ = -1;
     nmethod->custom_call_site_ = false;
+    nmethod->capi_lock_index_ = capi_lock_index;
 
     return nmethod;
   }
