@@ -25,9 +25,6 @@ namespace rubinius {
   class Pointer;
   class StackVariables;
 
-  /** Tracks RARRAY and RSTRING structs */
-  typedef std::tr1::unordered_map<capi::Handle*, void*> CApiStructs;
-
   /**
    * Thread-local info about native method calls. @see NativeMethodFrame.
    */
