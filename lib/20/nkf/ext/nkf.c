@@ -37,7 +37,6 @@ static int output_ctr;
 static int o_len;
 static int incsize;
 
-static VALUE lock;
 static VALUE result;
 
 static int
@@ -137,9 +136,6 @@ static VALUE
 rb_nkf_convert(VALUE obj, VALUE opt, VALUE src)
 {
     volatile VALUE tmp;
-
-    rb_mutex_lock(lock);
-
     reinit();
     StringValue(opt);
     nkf_split_options(RSTRING_PTR(opt));
@@ -176,7 +172,6 @@ rb_nkf_convert(VALUE obj, VALUE opt, VALUE src)
     else
 	rb_enc_associate(result, rb_nkf_enc_get(nkf_enc_name(output_encoding)));
 
-    rb_mutex_unlock(lock);
     return result;
 }
 
@@ -192,9 +187,6 @@ rb_nkf_convert(VALUE obj, VALUE opt, VALUE src)
 static VALUE
 rb_nkf_guess(VALUE obj, VALUE src)
 {
-    volatile VALUE result;
-
-    rb_mutex_lock(lock);
     reinit();
 
     input_ctr = 0;
@@ -206,9 +198,7 @@ rb_nkf_guess(VALUE obj, VALUE src)
     kanji_convert( NULL );
     guess_f = FALSE;
 
-    result = rb_enc_from_encoding(rb_nkf_enc_get(get_guessed_code()));
-    rb_mutex_unlock(lock);
-    return result;
+    return rb_enc_from_encoding(rb_nkf_enc_get(get_guessed_code()));
 }
 
 
@@ -509,9 +499,4 @@ Init_nkf()
     rb_define_const(mNKF, "NKF_VERSION", rb_str_new2(NKF_VERSION));
     /* Release date of nkf */
     rb_define_const(mNKF, "NKF_RELEASE_DATE", rb_str_new2(NKF_RELEASE_DATE));
-
-    result = Qnil;
-    rb_global_variable(&result);
-    lock = rb_mutex_new();
-    rb_global_variable(&lock);
 }
