@@ -175,8 +175,6 @@ namespace rubinius {
 
     VariableScope* vs = as<VariableScope>(obj);
 
-    vs->fixup();
-
     if(!vs->isolated()) {
       Object** ary = vs->locals_;
 

@@ -56,8 +56,6 @@ namespace rubinius {
     static void init(STATE);
     static void bootstrap_methods(STATE);
 
-    void fixup() { }
-
     bool isolated() {
       return isolated_ == 1;
     }
