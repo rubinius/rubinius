@@ -27,7 +27,7 @@ class Struct
     # own #initialize and super into Struct#initialize.
     #
     # When they do this and then do Craptastic.new(:x, :y), this code
-    # will accidentally shadow they're #initialize. So for now, only run
+    # will accidentally shadow their #initialize. So for now, only run
     # the specialize if we're trying new Struct's directly from Struct itself,
     # not a craptastic Struct subclass.
 
