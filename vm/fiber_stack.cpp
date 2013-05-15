@@ -62,7 +62,9 @@ namespace rubinius {
     , stack_size_(shared.config.fiber_stack_size)
     , thread_(thread)
     , trampoline_(0)
-  {}
+  {
+    lock_.init();
+  }
 
   FiberStacks::~FiberStacks() {
     for(Datas::iterator i = datas_.begin();
@@ -101,10 +103,15 @@ namespace rubinius {
   }
 
   FiberData* FiberStacks::new_data(bool root) {
+    utilities::thread::SpinLock::LockGuard guard(lock_);
     FiberData* data = new FiberData(thread_, root);
     datas_.insert(data);
-
     return data;
+  }
+
+  void FiberStacks::remove_data(FiberData* data) {
+    utilities::thread::SpinLock::LockGuard guard(lock_);
+    datas_.erase(data);
   }
 
   FiberStack* FiberStacks::allocate() {

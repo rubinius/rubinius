@@ -2,6 +2,7 @@
 #define RBX_VM_FIBER_STACK_HPP
 
 #include <tr1/unordered_set>
+#include "util/thread.hpp"
 
 namespace rubinius {
   class FiberData;
@@ -80,6 +81,7 @@ namespace rubinius {
     Stacks stacks_;
     Datas datas_;
     void* trampoline_;
+    utilities::thread::SpinLock lock_;
 
   public:
     FiberStacks(VM* thread, SharedState& shared);
@@ -87,9 +89,7 @@ namespace rubinius {
 
     FiberStack* allocate();
 
-    void remove_data(FiberData* data) {
-      datas_.erase(data);
-    }
+    void remove_data(FiberData* data);
 
     FiberData* new_data(bool root=false);
 
