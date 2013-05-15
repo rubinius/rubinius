@@ -1,7 +1,6 @@
 #ifndef RBX_VM_FIBER_STACK_HPP
 #define RBX_VM_FIBER_STACK_HPP
 
-#include <tr1/unordered_set>
 #include "util/thread.hpp"
 
 namespace rubinius {
@@ -72,30 +71,20 @@ namespace rubinius {
 
   private:
     typedef std::list<FiberStack> Stacks;
-    typedef std::tr1::unordered_set<FiberData*> Datas;
 
     size_t max_stacks_;
     size_t stack_size_;
 
-    VM* thread_;
     Stacks stacks_;
-    Datas datas_;
     void* trampoline_;
-    utilities::thread::SpinLock lock_;
 
   public:
-    FiberStacks(VM* thread, SharedState& shared);
+    FiberStacks(SharedState& shared);
     ~FiberStacks();
 
     FiberStack* allocate();
 
-    void remove_data(FiberData* data);
-
-    FiberData* new_data(bool root=false);
-
     void* trampoline();
-
-    void gc_scan(GarbageCollector* gc);
   };
 }
 

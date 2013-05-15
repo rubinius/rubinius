@@ -57,61 +57,19 @@ namespace rubinius {
     dec_ref();
   }
 
-  FiberStacks::FiberStacks(VM* thread, SharedState& shared)
+  FiberStacks::FiberStacks(SharedState& shared)
     : max_stacks_(shared.config.fiber_stacks)
     , stack_size_(shared.config.fiber_stack_size)
-    , thread_(thread)
     , trampoline_(0)
-  {
-    lock_.init();
-  }
+  {}
 
   FiberStacks::~FiberStacks() {
-    for(Datas::iterator i = datas_.begin();
-        i != datas_.end();
-        ++i)
-    {
-      (*i)->die();
-    }
-
     for(Stacks::iterator i = stacks_.begin();
         i != stacks_.end();
         ++i)
     {
       i->free();
     }
-  }
-
-  void FiberStacks::gc_scan(GarbageCollector* gc) {
-    for(Datas::iterator i = datas_.begin();
-        i != datas_.end();
-        ++i)
-    {
-      FiberData* data = *i;
-      if(data->dead_p()) continue;
-
-      AddressDisplacement dis(data->data_offset(),
-                              data->data_lower_bound(),
-                              data->data_upper_bound());
-
-      if(CallFrame* cf = data->call_frame()) {
-        gc->walk_call_frame(cf, &dis);
-      }
-
-      gc->scan(data->variable_root_buffers(), false, &dis);
-    }
-  }
-
-  FiberData* FiberStacks::new_data(bool root) {
-    utilities::thread::SpinLock::LockGuard guard(lock_);
-    FiberData* data = new FiberData(thread_, root);
-    datas_.insert(data);
-    return data;
-  }
-
-  void FiberStacks::remove_data(FiberData* data) {
-    utilities::thread::SpinLock::LockGuard guard(lock_);
-    datas_.erase(data);
   }
 
   FiberStack* FiberStacks::allocate() {
