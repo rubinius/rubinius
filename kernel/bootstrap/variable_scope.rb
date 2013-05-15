@@ -37,6 +37,16 @@ module Rubinius
       raise PrimitiveFailure, "Rubinius::VariableScope#script primitive failed"
     end
 
+    def locked?
+      Rubinius.primitive :variable_scope_locked
+      raise PrimitiveFailure, "Rubinius::VariableScope#locked primitive failed"
+    end
+
+    def locked!
+      Rubinius.primitive :variable_scope_set_locked
+      raise PrimitiveFailure, "Rubinius::VariableScope#set_locked primitive failed"
+    end
+
     # To handle Module#private, protected
     attr_accessor :method_visibility
   end

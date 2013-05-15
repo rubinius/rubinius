@@ -98,12 +98,34 @@ namespace rubinius {
     return cNil;
   }
 
+  Object* VariableScope::locked(STATE) {
+    return RBOOL(locked_p());
+  }
+
+  Object* VariableScope::set_locked(STATE) {
+    flags_ |= CallFrame::cScopeLocked;
+    VariableScope* parent = parent_;
+    while(parent && !parent->nil_p()) {
+      parent->set_locked(state);
+      parent = parent->parent();
+    }
+    return cNil;
+  }
+
+  void VariableScope::set_local_internal(STATE, int pos, Object* val) {
+     if(isolated_) {
+       heap_locals_->put(state, pos, val);
+     } else {
+       set_local(pos, val);
+     }
+   }
+
   void VariableScope::set_local(STATE, int pos, Object* val) {
-    utilities::thread::SpinLock::LockGuard guard(lock_);
-    if(isolated_) {
-      heap_locals_->put(state, pos, val);
+    if(unlikely(locked_p())) {
+      utilities::thread::SpinLock::LockGuard guard(lock_);
+      set_local_internal(state, pos, val);
     } else {
-      set_local(pos, val);
+      set_local_internal(state, pos, val);
     }
   }
 
@@ -123,12 +145,20 @@ namespace rubinius {
     ary[pos] = val;
   }
 
+  Object* VariableScope::get_local_internal(STATE, int pos) {
+     if(isolated_) {
+       return heap_locals_->at(pos);
+     } else {
+       return get_local(pos);
+     }
+   }
+
   Object* VariableScope::get_local(STATE, int pos) {
-    utilities::thread::SpinLock::LockGuard guard(lock_);
-    if(isolated_) {
-      return heap_locals_->at(pos);
+    if(unlikely(locked_p())) {
+      utilities::thread::SpinLock::LockGuard guard(lock_);
+      return get_local_internal(state, pos);
     } else {
-      return get_local(pos);
+      return get_local_internal(state, pos);
     }
   }
 
@@ -155,16 +185,24 @@ namespace rubinius {
     return RBOOL(script_p());
   }
 
-  void VariableScope::flush_to_heap(STATE) {
-    utilities::thread::SpinLock::LockGuard guard(lock_);
+  void VariableScope::flush_to_heap_internal(STATE) {
     if(isolated_) return;
-    Tuple* new_locals = Tuple::create(state, number_of_locals_);
-    for(int i = 0; i < number_of_locals_; i++) {
-      new_locals->put(state, i, locals_[i]);
-    }
+     Tuple* new_locals = Tuple::create(state, number_of_locals_);
+     for(int i = 0; i < number_of_locals_; i++) {
+       new_locals->put(state, i, locals_[i]);
+     }
     heap_locals(state, new_locals);
-    atomic::memory_barrier();
     isolated_ = 1;
+  }
+
+  void VariableScope::flush_to_heap(STATE) {
+    if(unlikely(locked_p())) {
+      utilities::thread::SpinLock::LockGuard guard(lock_);
+      flush_to_heap_internal(state);
+      flags_ &= ~CallFrame::cScopeLocked;
+    } else {
+      flush_to_heap_internal(state);
+    }
   }
 
   void VariableScope::Info::mark(Object* obj, ObjectMark& mark) {

@@ -83,6 +83,8 @@ namespace rubinius {
     // Rubinius.primitive :block_env_of_sender
     static Object* of_sender(STATE, CallFrame* calling_environment);
 
+    void lock_scope(STATE);
+
     BlockEnvironment* dup(STATE);
 
     class Info : public TypeInfo {

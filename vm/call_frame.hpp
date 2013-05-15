@@ -39,7 +39,8 @@ namespace rubinius {
       cInlineBlock =        1 << 8,
       cNativeMethod =       1 << 9,
       cTopLevelVisibility = 1 << 10,
-      cScript =             1 << 11
+      cScript =             1 << 11,
+      cScopeLocked =        1 << 12
     };
 
     CallFrame* previous;

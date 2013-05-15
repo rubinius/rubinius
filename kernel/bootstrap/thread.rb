@@ -107,6 +107,8 @@ class Thread
   def self.new(*args)
     thr = Rubinius.invoke_primitive :thread_allocate, self
 
+    Rubinius::VariableScope.of_sender.locked!
+
     Rubinius.asm(args, thr) do |args, obj|
       run obj
       dup

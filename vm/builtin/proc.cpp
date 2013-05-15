@@ -40,6 +40,7 @@ namespace rubinius {
     if(BlockEnvironment* be = try_as<BlockEnvironment>(env)) {
       Proc* proc = Proc::create(state, self);
       proc->block(state, be);
+      be->lock_scope(state);
       return proc;
     }
 

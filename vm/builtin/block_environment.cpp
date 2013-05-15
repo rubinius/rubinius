@@ -58,6 +58,14 @@ namespace rubinius {
                              state->symbol("block_call_under"));
   }
 
+  void BlockEnvironment::lock_scope(STATE) {
+    if(scope_ && !scope_->nil_p()) {
+      scope_->set_locked(state);
+    }
+    if(top_scope_ && !top_scope_->nil_p()) {
+      top_scope_->set_locked(state);
+    }
+  }
 
   BlockEnvironment* BlockEnvironment::allocate(STATE) {
     BlockEnvironment* env = state->new_object<BlockEnvironment>(G(blokenv));

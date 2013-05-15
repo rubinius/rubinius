@@ -35,6 +35,10 @@ namespace rubinius {
     // The Fiber that the scope was created on
     Fiber*          fiber_; // slot
 
+    void set_local_internal(STATE, int pos, Object* val);
+    Object* get_local_internal(STATE, int pos);
+    void flush_to_heap_internal(STATE);
+
   public:
     Object* self_;    // slot
 
@@ -74,6 +78,10 @@ namespace rubinius {
       return flags_ & CallFrame::cScript;
     }
 
+    bool locked_p() {
+      return flags_ & CallFrame::cScopeLocked;
+    }
+
     void set_local(int pos, Object* val);
     void set_local(STATE, int pos, Object* val);
 
@@ -111,6 +119,12 @@ namespace rubinius {
 
     // Rubinius.primitive :variable_scope_script
     Object* script(STATE);
+
+    // Rubinius.primitive :variable_scope_locked
+    Object* locked(STATE);
+
+    // Rubinius.primitive :variable_scope_set_locked
+    Object* set_locked(STATE);
 
   public: // Rubinius Type stuff
     class Info : public TypeInfo {
