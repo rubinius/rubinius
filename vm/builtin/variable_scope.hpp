@@ -6,6 +6,7 @@
 
 #include "builtin/object.hpp"
 #include "builtin/tuple.hpp"
+#include "util/thread.hpp"
 
 namespace rubinius {
 
@@ -41,6 +42,7 @@ namespace rubinius {
     int number_of_locals_;
     int isolated_;
     int flags_;
+    utilities::thread::SpinLock lock_;
 
   public: /* Accessors */
     attr_accessor(block, Object);

@@ -63,9 +63,10 @@ namespace rubinius {
 
     scope->self(state, self);
     scope->number_of_locals_ = locals->num_fields();
-    scope->isolated_ = true;
+    scope->isolated_ = 1;
     scope->locals_ = 0;
     scope->flags_ = 0;
+    scope->lock_.init();
 
     return scope;
   }
@@ -98,10 +99,8 @@ namespace rubinius {
   }
 
   void VariableScope::set_local(STATE, int pos, Object* val) {
+    utilities::thread::SpinLock::LockGuard guard(lock_);
     if(isolated_) {
-      while(heap_locals_->nil_p()) {
-        atomic::pause();
-      }
       heap_locals_->put(state, pos, val);
     } else {
       set_local(pos, val);
@@ -125,10 +124,8 @@ namespace rubinius {
   }
 
   Object* VariableScope::get_local(STATE, int pos) {
+    utilities::thread::SpinLock::LockGuard guard(lock_);
     if(isolated_) {
-      while(heap_locals_->nil_p()) {
-        atomic::pause();
-      }
       return heap_locals_->at(pos);
     } else {
       return get_local(pos);
@@ -159,15 +156,15 @@ namespace rubinius {
   }
 
   void VariableScope::flush_to_heap(STATE) {
+    utilities::thread::SpinLock::LockGuard guard(lock_);
     if(isolated_) return;
-    if(!atomic::compare_and_swap(&isolated_, 0, 1)) return;
-
     Tuple* new_locals = Tuple::create(state, number_of_locals_);
     for(int i = 0; i < number_of_locals_; i++) {
       new_locals->put(state, i, locals_[i]);
     }
-    atomic::memory_barrier();
     heap_locals(state, new_locals);
+    atomic::memory_barrier();
+    isolated_ = 1;
   }
 
   void VariableScope::Info::mark(Object* obj, ObjectMark& mark) {

@@ -32,6 +32,7 @@ namespace rubinius {
     scope->number_of_locals_ = mcode->number_of_locals;
     scope->isolated_ = 0;
     scope->flags_ = call_frame->flags;
+    scope->lock_.init();
 
     if(!full) {
       scope->isolated_ = 1;
