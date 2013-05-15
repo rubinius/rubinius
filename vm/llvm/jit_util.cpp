@@ -937,9 +937,18 @@ extern "C" {
   }
 
   Object* rbx_clear_raise_value(STATE) {
-    Object* val = state->vm()->thread_state()->raise_value();
-    state->vm()->thread_state()->clear_return();
-    return val;
+    switch(state->vm()->thread_state()->raise_reason()) {
+      case cReturn:
+      case cBreak:
+      {
+        Object* val = state->vm()->thread_state()->raise_value();
+        state->vm()->thread_state()->clear_return();
+        return val;
+      }
+      default:
+        break;
+    }
+    return cNil;
   }
 
   bool rbx_raising_exception(STATE) {
