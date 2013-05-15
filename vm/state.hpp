@@ -140,8 +140,8 @@ namespace rubinius {
       shared_.gc_independent(this, call_frame);
     }
 
-    void gc_dependent() {
-      shared_.gc_dependent(this);
+    void gc_dependent(GCToken gct, CallFrame* call_frame) {
+      shared_.gc_dependent(this, call_frame);
     }
 
     void checkpoint(GCToken gct, CallFrame* call_frame) {
@@ -159,7 +159,7 @@ namespace rubinius {
     void lock(GCToken gct, CallFrame* call_frame) {
       gc_independent(gct, call_frame);
       vm_->lock(vm_);
-      gc_dependent();
+      gc_dependent(gct, call_frame);
     }
 
     void unlock() {

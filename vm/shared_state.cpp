@@ -214,7 +214,8 @@ namespace rubinius {
     return world_->checkpoint(state);
   }
 
-  void SharedState::gc_dependent(STATE) {
+  void SharedState::gc_dependent(STATE, CallFrame* call_frame) {
+    state->set_call_frame(call_frame);
     world_->become_dependent(state->vm());
   }
 

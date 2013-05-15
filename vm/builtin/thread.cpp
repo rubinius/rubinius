@@ -232,8 +232,6 @@ namespace rubinius {
 
     RUBINIUS_THREAD_START(tn.str().c_str(), vm->thread_id(), 0);
 
-    state->set_call_frame(0);
-
     if(cDebugThreading) {
       std::cerr << "[THREAD " << vm->thread_id()
                 << " (" << (unsigned int)thread_debug_self() << ") started thread]\n";
@@ -251,7 +249,7 @@ namespace rubinius {
     // Become GC-dependent after unlocking init_lock_ to avoid deadlocks.
     // gc_dependent may lock when it detects GC is happening. Also the parent
     // thread is locked until init_lock_ is unlocked by this child thread.
-    vm->shared.gc_dependent(state);
+    state->gc_dependent(gct, 0);
 
     vm->shared.tool_broker()->thread_start(state);
     Object* ret = vm->thread->runner_(state);
@@ -460,7 +458,7 @@ namespace rubinius {
     state->gc_independent(gct, calling_environment);
     void* val;
     int err = pthread_join(id, &val);
-    state->gc_dependent();
+    state->gc_dependent(gct, calling_environment);
 
     switch(err) {
     case 0:

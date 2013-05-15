@@ -912,14 +912,13 @@ extern "C" {
 
   int rbx_enter_unmanaged(STATE, CallFrame* call_frame) {
     GCTokenImpl gct;
-    state->set_call_frame(call_frame);
     state->gc_independent(gct, call_frame);
     return 0;
   }
 
   int rbx_exit_unmanaged(STATE, CallFrame* call_frame) {
-    state->set_call_frame(call_frame);
-    state->gc_dependent();
+    GCTokenImpl gct;
+    state->gc_dependent(gct, call_frame);
     return 0;
   }
 

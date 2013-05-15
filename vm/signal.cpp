@@ -162,7 +162,7 @@ namespace rubinius {
         // dependent first but break and exit the thread
         if(exit_) break;
       }
-      state->gc_dependent();
+      state->gc_dependent(gct, 0);
       {
         utilities::thread::Mutex::LockGuard lg(worker_lock_);
         if(exit_) break;

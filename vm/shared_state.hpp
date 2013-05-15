@@ -318,7 +318,7 @@ namespace rubinius {
     void restart_threads_externally();
 
     bool checkpoint(THREAD);
-    void gc_dependent(STATE);
+    void gc_dependent(STATE, CallFrame* call_frame);
     void gc_independent(STATE, CallFrame* call_frame);
 
     void gc_dependent(THREAD, utilities::thread::Condition* = NULL);

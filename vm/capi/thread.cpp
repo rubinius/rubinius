@@ -153,8 +153,9 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     GCTokenImpl gct;
-    ENTER_CAPI(env->state());
-    env->state()->gc_dependent();
+    State* state = env->state();
+    ENTER_CAPI(state);
+    state->gc_dependent(gct, state->vm()->saved_call_frame());
 
     void* ret = (*func)(data);
 

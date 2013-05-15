@@ -375,7 +375,7 @@ namespace rubinius {
 
     State* state = env->state();
 
-    state->gc_dependent();
+    state->gc_dependent(gct, state->vm()->saved_call_frame());
 
     Array* args = Array::create(state, stub->arg_count);
     OnStack<1> os(state, args);
@@ -1049,98 +1049,98 @@ namespace rubinius {
     case RBX_FFI_TYPE_CHAR: {
       ffi_arg result;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->gc_dependent();
+      state->gc_dependent(gct, call_frame);
       ret = Fixnum::from((native_int)result);
       break;
     }
     case RBX_FFI_TYPE_UCHAR: {
       ffi_arg result;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->gc_dependent();
+      state->gc_dependent(gct, call_frame);
       ret = Fixnum::from((native_int)result);
       break;
     }
     case RBX_FFI_TYPE_BOOL: {
       ffi_arg result;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->gc_dependent();
+      state->gc_dependent(gct, call_frame);
       ret = RBOOL(result);
       break;
     }
     case RBX_FFI_TYPE_SHORT: {
       ffi_arg result;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->gc_dependent();
+      state->gc_dependent(gct, call_frame);
       ret = Fixnum::from((native_int)result);
       break;
     }
     case RBX_FFI_TYPE_USHORT: {
       ffi_arg result;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->gc_dependent();
+      state->gc_dependent(gct, call_frame);
       ret = Fixnum::from((native_int)result);
       break;
     }
     case RBX_FFI_TYPE_INT: {
       ffi_arg result;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->gc_dependent();
+      state->gc_dependent(gct, call_frame);
       ret = Integer::from(state, (native_int)result);
       break;
     }
     case RBX_FFI_TYPE_UINT: {
       ffi_arg result;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->gc_dependent();
+      state->gc_dependent(gct, call_frame);
       ret = Integer::from(state, (unsigned int)result);
       break;
     }
     case RBX_FFI_TYPE_LONG: {
       long result;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->gc_dependent();
+      state->gc_dependent(gct, call_frame);
       ret = Integer::from(state, result);
       break;
     }
     case RBX_FFI_TYPE_ULONG: {
       unsigned long result;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->gc_dependent();
+      state->gc_dependent(gct, call_frame);
       ret = Integer::from(state, result);
       break;
     }
     case RBX_FFI_TYPE_FLOAT: {
       float result;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->gc_dependent();
+      state->gc_dependent(gct, call_frame);
       ret = Float::create(state, (double)result);
       break;
     }
     case RBX_FFI_TYPE_DOUBLE: {
       double result;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->gc_dependent();
+      state->gc_dependent(gct, call_frame);
       ret = Float::create(state, result);
       break;
     }
     case RBX_FFI_TYPE_LONG_LONG: {
       long long result;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->gc_dependent();
+      state->gc_dependent(gct, call_frame);
       ret = Integer::from(state, result);
       break;
     }
     case RBX_FFI_TYPE_ULONG_LONG: {
       unsigned long long result;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->gc_dependent();
+      state->gc_dependent(gct, call_frame);
       ret = Integer::from(state, result);
       break;
     }
     case RBX_FFI_TYPE_PTR: {
       void* result;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->gc_dependent();
+      state->gc_dependent(gct, call_frame);
       if(result == NULL) {
         ret = cNil;
       } else {
@@ -1151,7 +1151,7 @@ namespace rubinius {
     case RBX_FFI_TYPE_ENUM: {
       ffi_arg result;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->gc_dependent();
+      state->gc_dependent(gct, call_frame);
       Array* ary = Array::create(state, 1);
       ary->set(state, 0, Integer::from(state, (native_int)result));
       ret = ffi_data->ret_info.enum_obj->send(state, call_frame, state->symbol("symbol"), ary);
@@ -1160,7 +1160,7 @@ namespace rubinius {
     case RBX_FFI_TYPE_CALLBACK: {
       void* result;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->gc_dependent();
+      state->gc_dependent(gct, call_frame);
       if(result == NULL) {
         ret = cNil;
       } else {
@@ -1177,7 +1177,7 @@ namespace rubinius {
     case RBX_FFI_TYPE_STRING: {
       char* result;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->gc_dependent();
+      state->gc_dependent(gct, call_frame);
       if(result == NULL) {
         ret = cNil;
       } else {
@@ -1192,7 +1192,7 @@ namespace rubinius {
       Object* p;
 
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->gc_dependent();
+      state->gc_dependent(gct, call_frame);
 
       if(result == NULL) {
         s = p = cNil;
@@ -1212,7 +1212,7 @@ namespace rubinius {
     case RBX_FFI_TYPE_VOID: {
       ffi_arg result;
       ffi_call(cif, FFI_FN(ffi_data_local->ep), &result, values);
-      state->gc_dependent();
+      state->gc_dependent(gct, call_frame);
       ret = cNil;
       break;
     }

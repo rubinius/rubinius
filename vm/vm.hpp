@@ -478,7 +478,8 @@ namespace rubinius {
     GCIndependent(NativeMethodEnvironment* env);
 
     ~GCIndependent() {
-      state_->gc_dependent();
+      GCTokenImpl gct;
+      state_->gc_dependent(gct, state_->vm()->saved_call_frame());
     }
   };
 
@@ -492,7 +493,7 @@ namespace rubinius {
     {
       state_->shared().gc_independent(state_, call_frame);
       this->lock();
-      state->shared().gc_dependent(state_);
+      state->shared().gc_dependent(state_, call_frame);
     }
 
     ~GCIndependentLockGuard() {
