@@ -620,6 +620,9 @@ step1:
     }
 
     young_->reset();
+#ifdef RBX_GC_DEBUG
+    young_->verify(data);
+#endif
   }
 
   void ObjectMemory::collect_mature(GCData& data) {
@@ -653,6 +656,10 @@ step1:
     // be ignored next time anyway.
     //
     // immix_->unmark_all(data);
+
+#ifdef RBX_GC_DEBUG
+    immix_->verify(data);
+#endif
 
     rotate_mark();
     gc_stats.full_collection_count++;

@@ -152,7 +152,9 @@ namespace rubinius {
     void scan_object(Object* obj);
     void delete_object(Object* obj);
     void walk_call_frame(CallFrame* top_call_frame, AddressDisplacement* offset=0);
+    void verify_call_frame(CallFrame* top_call_frame, AddressDisplacement* offset=0);
     void saw_variable_scope(CallFrame* call_frame, StackVariables* scope);
+    void verify_variable_scope(CallFrame* call_frame, StackVariables* scope);
 
     /**
      * Marks the specified Object +obj+ as live.
@@ -171,6 +173,8 @@ namespace rubinius {
     void scan(ManagedThread* thr, bool young_only);
     void scan(VariableRootBuffers& buffers, bool young_only, AddressDisplacement* offset=0);
     void scan(RootBuffers& rb, bool young_only);
+
+    void verify(GCData& data);
 
     VM* state();
 

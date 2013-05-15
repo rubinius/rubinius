@@ -449,6 +449,16 @@ namespace rubinius {
     fiber_stacks_.gc_scan(gc);
   }
 
+  void VM::gc_verify(GarbageCollector* gc) {
+    if(CallFrame* cf = saved_call_frame()) {
+      gc->verify_call_frame(cf);
+    }
+
+    if(CallSiteInformation* info = saved_call_site_information()) {
+      info->executable->validate();
+    }
+  }
+
   GCIndependent::GCIndependent(NativeMethodEnvironment* env)
     : state_(env->state())
   {

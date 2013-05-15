@@ -430,6 +430,7 @@ namespace rubinius {
     void register_kill(STATE);
 
     void gc_scan(GarbageCollector* gc);
+    void gc_verify(GarbageCollector* gc);
   };
 
 }

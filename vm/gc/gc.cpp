@@ -155,6 +155,35 @@ namespace rubinius {
     }
   }
 
+
+  void GarbageCollector::verify_variable_scope(CallFrame* call_frame,
+      StackVariables* scope)
+  {
+    scope->self_->validate();
+    scope->block_->validate();
+    scope->module_->validate();
+
+    int locals = call_frame->compiled_code->machine_code()->number_of_locals;
+    for(int i = 0; i < locals; i++) {
+      Object* local = scope->get_local(i);
+      local->validate();
+    }
+
+    if(scope->last_match_ && scope->last_match_->reference_p()) {
+      scope->last_match_->validate();
+    }
+
+    VariableScope* parent = scope->parent();
+    if(parent) {
+      scope->parent_->validate();
+    }
+
+    VariableScope* heap = scope->on_heap();
+    if(heap) {
+      scope->on_heap_->validate();
+    }
+  }
+
   template <typename T>
     T displace(T ptr, AddressDisplacement* dis) {
       if(!dis) return ptr;
@@ -244,6 +273,63 @@ namespace rubinius {
     }
   }
 
+  /**
+   * Walks the chain of objects accessible from the specified CallFrame.
+   */
+  void GarbageCollector::verify_call_frame(CallFrame* top_call_frame,
+                                           AddressDisplacement* offset)
+  {
+    CallFrame* call_frame = top_call_frame;
+
+    while(call_frame) {
+      call_frame = displace(call_frame, offset);
+
+      if(call_frame->custom_constant_scope_p() &&
+          call_frame->constant_scope_) {
+        call_frame->constant_scope_->validate();
+      }
+
+      if(call_frame->compiled_code) {
+        call_frame->compiled_code->validate();
+      }
+
+      if(call_frame->compiled_code && call_frame->stk) {
+        native_int stack_size = call_frame->compiled_code->stack_size()->to_native();
+        for(native_int i = 0; i < stack_size; i++) {
+          Object* obj = call_frame->stk[i];
+          obj->validate();
+        }
+      }
+
+      if(call_frame->multiple_scopes_p() && call_frame->top_scope_) {
+        call_frame->top_scope_->validate();
+      }
+
+      if(BlockEnvironment* env = call_frame->block_env()) {
+        env->validate();
+      }
+
+      Arguments* args = displace(call_frame->arguments, offset);
+
+      if(!call_frame->inline_method_p() && args) {
+        args->recv()->validate();
+        args->block()->validate();
+
+        Object** ary = displace(args->arguments(), offset);
+        for(uint32_t i = 0; i < args->total(); i++) {
+          ary[i]->validate();
+        }
+      }
+
+      if(call_frame->scope && call_frame->compiled_code) {
+        verify_variable_scope(call_frame, displace(call_frame->scope, offset));
+      }
+
+      call_frame = call_frame->previous;
+    }
+  }
+
+
   void GarbageCollector::scan(ManagedThread* thr, bool young_only) {
     for(Roots::Iterator ri(thr->roots()); ri.more(); ri.advance()) {
       ri->set(saw_object(ri->get()));
@@ -254,6 +340,23 @@ namespace rubinius {
 
     if(VM* vm = thr->as_vm()) {
       vm->gc_scan(this);
+    }
+  }
+
+  void GarbageCollector::verify(GCData& data) {
+    if(data.threads()) {
+      for(std::list<ManagedThread*>::iterator i = data.threads()->begin();
+          i != data.threads()->end();
+          ++i) {
+        ManagedThread* thr = *i;
+        for(Roots::Iterator ri(thr->roots()); ri.more(); ri.advance()) {
+          ri->get()->validate();
+        }
+
+        if(VM* vm = thr->as_vm()) {
+          vm->gc_verify(this);
+        }
+      }
     }
   }
 

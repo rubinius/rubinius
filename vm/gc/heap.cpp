@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include "config.h"
 #include "gc/heap.hpp"
 #include "instruments/stats.hpp"
 #include "util/gc_alloc.hpp"
@@ -59,7 +60,7 @@ namespace rubinius {
   void Heap::reset() {
     current_ = start_;
     scan_ = start_;
-#ifdef BAKER_DEBUG
+#ifdef RBX_GC_DEBUG
     memset(start_, 0xff, size_);
 #endif
   }

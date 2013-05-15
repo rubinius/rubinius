@@ -634,6 +634,10 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return reference_p() && flags().obj_type == type;
     }
 
+    void validate() const {
+      assert(this && (!reference_p() || (type_id() > InvalidType && type_id() < LastObjectType)));
+    }
+
     friend class TypeInfo;
     friend class ObjectMemory;
 
