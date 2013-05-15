@@ -19,7 +19,6 @@
 #include "dispatch.hpp"
 #include "call_frame.hpp"
 #include "object_utils.hpp"
-#include "vm/object_utils.hpp"
 #include "configuration.hpp"
 
 #include "bytecode_verification.hpp"

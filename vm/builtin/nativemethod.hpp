@@ -2,8 +2,8 @@
 #define RBX_BUILTIN_NATIVEMETHOD_HPP
 
 /* Project */
-#include "vm/executor.hpp"
-#include "vm/vm.hpp"
+#include "executor.hpp"
+#include "vm.hpp"
 
 #include "builtin/class.hpp"
 #include "builtin/executable.hpp"
@@ -13,7 +13,7 @@
 #include "util/thread.hpp"
 #include "gc/root.hpp"
 
-#include "vm/object_utils.hpp"
+#include "object_utils.hpp"
 
 #include "capi/tag.hpp"
 #include "capi/value.hpp"

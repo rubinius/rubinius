@@ -1,4 +1,4 @@
-#include "vm/config.h"
+#include "config.h"
 #include "windows_compat.h"
 
 #include "call_frame.hpp"

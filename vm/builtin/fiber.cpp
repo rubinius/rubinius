@@ -5,7 +5,7 @@
 
 #include "builtin/object.hpp"
 #include "builtin/array.hpp"
-#include "vm/vm.hpp"
+#include "vm.hpp"
 #include "builtin/class.hpp"
 #include "builtin/integer.hpp"
 #include "builtin/exception.hpp"

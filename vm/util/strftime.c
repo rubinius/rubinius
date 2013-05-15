@@ -68,7 +68,7 @@
 #include <math.h>
 
 #include "util/time64.h"
-#include "vm/config.h"
+#include "config.h"
 
 /* defaults: season to taste */
 #define SYSV_EXT	1	/* stuff in System V ascftime routine */

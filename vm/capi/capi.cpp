@@ -1,4 +1,4 @@
-#include "vm/config.h"
+#include "config.h"
 
 #include "builtin/array.hpp"
 #include "builtin/data.hpp"

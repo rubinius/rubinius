@@ -7,7 +7,7 @@
 #include "type_info.hpp"
 #include "unwind_info.hpp"
 
-#include "vm/builtin/compiledcode.hpp"
+#include "builtin/compiledcode.hpp"
 #include "gc/code_resource.hpp"
 
 #ifdef ENABLE_LLVM

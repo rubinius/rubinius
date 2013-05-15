@@ -1,7 +1,7 @@
 #include "builtin/nativemethod.hpp"
 #include "builtin/proc.hpp"
 
-#include "vm/configuration.hpp"
+#include "configuration.hpp"
 
 #include "capi/capi.hpp"
 #include "capi/18/include/ruby.h"

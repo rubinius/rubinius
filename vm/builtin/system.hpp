@@ -1,7 +1,7 @@
 #ifndef RBX_BUILTIN_SYSTEM_HPP
 #define RBX_BUILTIN_SYSTEM_HPP
 
-#include "vm/type_info.hpp"
+#include "type_info.hpp"
 
 #include "builtin/object.hpp"
 

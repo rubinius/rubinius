@@ -3,7 +3,7 @@
 #include "global_cache.hpp"
 #include "gc/gc.hpp"
 
-#include "vm/object_utils.hpp"
+#include "object_utils.hpp"
 
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"

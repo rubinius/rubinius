@@ -36,7 +36,7 @@
 
 #include "helpers.hpp"
 
-#include "vm/gen/instruction_defines.hpp"
+#include "gen/instruction_defines.hpp"
 
 #define interp_assert(code) if(!(code)) { Exception::internal_error(state, call_frame, "assertion failed: " #code); RUN_EXCEPTION(); }
 
@@ -81,7 +81,7 @@ Object* MachineCode::interpreter(STATE,
                                  InterpreterCallFrame* const call_frame)
 {
 
-#include "vm/gen/instruction_locations.hpp"
+#include "gen/instruction_locations.hpp"
 
   InterpreterState is;
   GCTokenImpl gct;
@@ -105,7 +105,7 @@ continue_to_run:
 #define store_ip(which) ip_ptr = mcode->opcodes + which
 #define flush_ip() call_frame->set_ip(ip_ptr - mcode->opcodes)
 
-#include "vm/gen/instruction_implementations.hpp"
+#include "gen/instruction_implementations.hpp"
 
   } catch(TypeError& e) {
     flush_ip();
@@ -230,7 +230,7 @@ Object* MachineCode::uncommon_interpreter(STATE,
     mc->deoptimize(state, method_call_frame->compiled_code, rd);
   }
 
-#include "vm/gen/instruction_locations.hpp"
+#include "gen/instruction_locations.hpp"
 
   opcode* stream = mcode->opcodes;
   InterpreterState is;
@@ -253,7 +253,7 @@ continue_to_run:
 #define store_ip(which) call_frame->set_ip(which)
 #define flush_ip()
 
-#include "vm/gen/instruction_implementations.hpp"
+#include "gen/instruction_implementations.hpp"
 
   } catch(TypeError& e) {
     flush_ip();
@@ -364,7 +364,7 @@ Object* MachineCode::debugger_interpreter(STATE,
                                           InterpreterCallFrame* const call_frame)
 {
 
-#include "vm/gen/instruction_locations.hpp"
+#include "gen/instruction_locations.hpp"
 
   opcode* stream = mcode->opcodes;
   InterpreterState is;
@@ -398,7 +398,7 @@ continue_to_run:
 #define store_ip(which) call_frame->set_ip(which)
 #define flush_ip()
 
-#include "vm/gen/instruction_implementations.hpp"
+#include "gen/instruction_implementations.hpp"
 
   } catch(TypeError& e) {
     flush_ip();
@@ -505,7 +505,7 @@ Object* MachineCode::debugger_interpreter_continue(STATE,
                                                    UnwindInfoSet& thread_unwinds)
 {
 
-#include "vm/gen/instruction_locations.hpp"
+#include "gen/instruction_locations.hpp"
 
   GCTokenImpl gct;
   opcode* stream = mcode->opcodes;
@@ -531,7 +531,7 @@ continue_to_run:
 #define store_ip(which) call_frame->set_ip(which)
 #define flush_ip()
 
-#include "vm/gen/instruction_implementations.hpp"
+#include "gen/instruction_implementations.hpp"
 
   } catch(TypeError& e) {
     flush_ip();
@@ -636,7 +636,7 @@ Object* MachineCode::tooling_interpreter(STATE,
                                          InterpreterCallFrame* const call_frame)
 {
 
-#include "vm/gen/instruction_locations.hpp"
+#include "gen/instruction_locations.hpp"
 
   opcode* stream = mcode->opcodes;
   InterpreterState is;
@@ -662,7 +662,7 @@ continue_to_run:
 #define store_ip(which) call_frame->set_ip(which)
 #define flush_ip()
 
-#include "vm/gen/instruction_implementations.hpp"
+#include "gen/instruction_implementations.hpp"
 
   } catch(TypeError& e) {
     flush_ip();

@@ -20,7 +20,7 @@
 #include "instruments/tooling.hpp"
 #include "dtrace/dtrace.h"
 
-#include "vm/object_utils.hpp"
+#include "object_utils.hpp"
 #include "vm.hpp"
 
 #include "on_stack.hpp"

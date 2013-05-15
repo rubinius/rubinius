@@ -1,9 +1,9 @@
 #ifndef RBX_BUILTIN_THREAD_HPP
 #define RBX_BUILTIN_THREAD_HPP
 
-#include "vm/exception.hpp"
-#include "vm/type_info.hpp"
-#include "vm/signal.hpp"
+#include "exception.hpp"
+#include "type_info.hpp"
+#include "signal.hpp"
 
 #include "builtin/object.hpp"
 #include "builtin/randomizer.hpp"

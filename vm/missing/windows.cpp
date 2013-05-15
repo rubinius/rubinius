@@ -1,4 +1,4 @@
-#include "vm/config.h"
+#include "config.h"
 
 #ifdef RBX_WINDOWS
 

@@ -2,7 +2,7 @@
 #define RBX_CONFIGURATION_HPP
 
 #include "util/configuration.hpp"
-#include "vm/config.h"
+#include "config.h"
 
 namespace rubinius {
   class Configuration : public config::Configuration {
@@ -26,7 +26,7 @@ namespace rubinius {
 #define LANGUAGE_20_ENABLED(state)  (false)
 #endif
 
-#include "vm/gen/config_variables.h"
+#include "gen/config_variables.h"
     void finalize() { }
   };
 }

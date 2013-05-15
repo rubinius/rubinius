@@ -22,7 +22,7 @@
 
 #include "ontology.hpp"
 
-#include "vm/config.h"
+#include "config.h"
 
 #include "gc/gc.hpp"
 
@@ -78,7 +78,7 @@ namespace rubinius {
     GO(ascii8bit_encoding).set(binary);
     GO(utf8_encoding).set(utf8);
 
-#include "vm/gen/encoding_database.cpp"
+#include "gen/encoding_database.cpp"
 
     char* locale_charmap;
 
@@ -565,7 +565,7 @@ namespace rubinius {
 
     G(encoding)->set_const(state, "TranscodingMap", LookupTable::create(state));
 
-#include "vm/gen/transcoder_database.cpp"
+#include "gen/transcoder_database.cpp"
   }
 
   Transcoding* Transcoding::create(STATE, OnigTranscodingType* tr) {

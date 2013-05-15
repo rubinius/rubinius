@@ -4,9 +4,9 @@
 #include <vector>
 
 #include "vm.hpp"
-#include "vm/oop.hpp"
-#include "vm/type_info.hpp"
-#include "vm/lookup_data.hpp"
+#include "oop.hpp"
+#include "type_info.hpp"
+#include "lookup_data.hpp"
 
 #include "executor.hpp"
 

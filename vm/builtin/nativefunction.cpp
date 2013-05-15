@@ -1,6 +1,6 @@
 /* A simple C++ wrapper around libffi. */
 
-#include "vm/config.h"
+#include "config.h"
 
 #include <stdio.h>
 #include <stdlib.h>

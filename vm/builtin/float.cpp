@@ -8,7 +8,7 @@
 
 #include "objectmemory.hpp"
 #include "vm.hpp"
-#include "vm/object_utils.hpp"
+#include "object_utils.hpp"
 #include "primitives.hpp"
 #include "configuration.hpp"
 

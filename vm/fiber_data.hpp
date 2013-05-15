@@ -1,7 +1,7 @@
 #ifndef RBX_VM_FIBER_DATA_HPP
 #define RBX_VM_FIBER_DATA_HPP
 
-#include "vm/config.h"
+#include "config.h"
 #include "bug.hpp"
 #include "prelude.hpp"
 

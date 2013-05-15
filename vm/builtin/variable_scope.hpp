@@ -2,7 +2,7 @@
 #define RBX_VARIABLE_SCOPE_HPP
 
 #include "call_frame.hpp"
-#include "vm/object_utils.hpp"
+#include "object_utils.hpp"
 
 #include "builtin/object.hpp"
 #include "builtin/tuple.hpp"

@@ -10,7 +10,7 @@
 #include "builtin/variable_scope.hpp"
 #include "objectmemory.hpp"
 
-#include "vm/object_utils.hpp"
+#include "object_utils.hpp"
 
 #include "arguments.hpp"
 #include "dispatch.hpp"

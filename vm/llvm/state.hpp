@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <unistd.h>
 
-#include "vm/config.h"
+#include "config.h"
 
 #if RBX_LLVM_API_VER >= 303
 #include <llvm/IR/Module.h>

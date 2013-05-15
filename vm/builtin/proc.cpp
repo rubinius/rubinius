@@ -1,6 +1,6 @@
 #include "prelude.hpp"
 #include "builtin/proc.hpp"
-#include "vm/object_utils.hpp"
+#include "object_utils.hpp"
 #include "objectmemory.hpp"
 #include "builtin/class.hpp"
 #include "builtin/block_environment.hpp"

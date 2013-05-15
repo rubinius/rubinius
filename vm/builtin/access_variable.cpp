@@ -1,4 +1,4 @@
-#include "vm/object_utils.hpp"
+#include "object_utils.hpp"
 #include "prelude.hpp"
 
 #include "builtin/access_variable.hpp"

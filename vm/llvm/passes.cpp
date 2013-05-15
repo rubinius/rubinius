@@ -1,7 +1,7 @@
 #ifdef ENABLE_LLVM
 
 #include "llvm/passes.hpp"
-#include "vm/config.h"
+#include "config.h"
 
 #if RBX_LLVM_API_VER >= 303
 #include <llvm/IR/Attributes.h>

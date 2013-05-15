@@ -1,4 +1,4 @@
-#include "vm/config.h"
+#include "config.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,7 +14,7 @@
 
 #include "vm.hpp"
 #include "oop.hpp"
-#include "vm/object_utils.hpp"
+#include "object_utils.hpp"
 #include "objectmemory.hpp"
 
 #include "builtin/array.hpp"

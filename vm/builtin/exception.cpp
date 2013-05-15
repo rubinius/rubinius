@@ -10,7 +10,7 @@
 #include "builtin/system.hpp"
 
 #include "vm.hpp"
-#include "vm/object_utils.hpp"
+#include "object_utils.hpp"
 #include "exception.hpp"
 #include "type_info.hpp"
 

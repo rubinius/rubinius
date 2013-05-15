@@ -15,7 +15,7 @@
 #include "builtin/variable_scope.hpp"
 
 #include "vm.hpp"
-#include "vm/object_utils.hpp"
+#include "object_utils.hpp"
 #include "objectmemory.hpp"
 #include "call_frame.hpp"
 #include "arguments.hpp"

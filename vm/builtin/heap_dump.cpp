@@ -2,9 +2,9 @@
 // because it uses a whole bunch of local classes and it's cleaner to have
 // all that be in it's own file.
 
-#include "vm/config.h"
+#include "config.h"
 
-#include "vm/vm.hpp"
+#include "vm.hpp"
 
 #include "gc/gc.hpp"
 #include "gc/walker.hpp"

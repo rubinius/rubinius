@@ -8,7 +8,7 @@
 #include <sstream>
 #include <signal.h>
 
-#include "vm/config.h"
+#include "config.h"
 
 #ifdef RBX_WINDOWS
 #include "windows_compat.h"
@@ -21,11 +21,11 @@
 
 #include <unistd.h>
 
-#include "vm/call_frame.hpp"
-#include "vm/helpers.hpp"
+#include "call_frame.hpp"
+#include "helpers.hpp"
 
-#include "vm/object_utils.hpp"
-#include "vm/vm.hpp"
+#include "object_utils.hpp"
+#include "vm.hpp"
 
 #include "compiled_file.hpp"
 #include "objectmemory.hpp"

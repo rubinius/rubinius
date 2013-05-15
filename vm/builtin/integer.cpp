@@ -1,5 +1,5 @@
-#include "vm/object_utils.hpp"
-#include "vm/config.h"
+#include "config.h"
+#include "object_utils.hpp"
 
 #include "builtin/integer.hpp"
 #include "builtin/fixnum.hpp"

@@ -1,4 +1,4 @@
-#include "vm/vm.hpp"
+#include "vm.hpp"
 #include "arguments.hpp"
 #include "dispatch.hpp"
 #include "configuration.hpp"

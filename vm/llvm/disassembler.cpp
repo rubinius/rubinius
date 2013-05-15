@@ -1,6 +1,6 @@
 #ifdef ENABLE_LLVM
 
-#include "vm/config.h"
+#include "config.h"
 #include "llvm/disassembler.hpp"
 #include <llvm/Support/Host.h>
 #if RBX_LLVM_API_VER >= 303

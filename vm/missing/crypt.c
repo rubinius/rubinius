@@ -30,7 +30,7 @@
  * SUCH DAMAGE.
  */
 
-#include "vm/config.h"
+#include "config.h"
 
 #ifdef RBX_WINDOWS
 #if defined(LIBC_SCCS) && !defined(lint)

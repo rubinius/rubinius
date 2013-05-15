@@ -8,8 +8,8 @@
 #include "builtin/string.hpp"
 
 #include "primitives.hpp"
-#include "vm/object_utils.hpp"
-#include "vm/configuration.hpp"
+#include "object_utils.hpp"
+#include "configuration.hpp"
 
 #include "ontology.hpp"
 

@@ -29,7 +29,7 @@
 #include "primitives.hpp"
 #include "global_cache.hpp"
 
-#include "vm/object_utils.hpp"
+#include "object_utils.hpp"
 #include "on_stack.hpp"
 #include "call_frame.hpp"
 

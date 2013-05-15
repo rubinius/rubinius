@@ -6,7 +6,7 @@
 #include <sstream>
 
 #include "gc/gc.hpp"
-#include "vm/object_utils.hpp"
+#include "object_utils.hpp"
 #include "vm.hpp"
 #include "objectmemory.hpp"
 #include "builtin/array.hpp"

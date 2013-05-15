@@ -3,7 +3,7 @@
 #include "builtin/symbol.hpp"
 #include "builtin/autoload.hpp"
 
-#include "vm/configuration.hpp"
+#include "configuration.hpp"
 
 #include "helpers.hpp"
 #include "call_frame.hpp"

@@ -2,7 +2,7 @@
 
 #include "rbxti-internal.hpp"
 
-#include "vm/vm.hpp"
+#include "vm.hpp"
 #include "machine_code.hpp"
 #include "configuration.hpp"
 #include "config_parser.hpp"

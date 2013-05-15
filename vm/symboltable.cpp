@@ -1,5 +1,5 @@
-#include "vm/symboltable.hpp"
-#include "vm/exception.hpp"
+#include "symboltable.hpp"
+#include "exception.hpp"
 #include "configuration.hpp"
 
 #include "builtin/array.hpp"

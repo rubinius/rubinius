@@ -7,12 +7,12 @@
 #include <llvm/Support/ManagedStatic.h>
 #endif
 
-#include "vm/environment.hpp"
-#include "vm/oop.hpp"
-#include "vm/type_info.hpp"
-#include "vm/exception.hpp"
+#include "environment.hpp"
+#include "oop.hpp"
+#include "type_info.hpp"
+#include "exception.hpp"
 
-#include "vm/config.h"
+#include "config.h"
 
 
 using namespace std;

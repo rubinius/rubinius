@@ -6,7 +6,7 @@
 #include "compiled_file.hpp"
 #include "objectmemory.hpp"
 
-#include "vm/exception.hpp"
+#include "exception.hpp"
 
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"

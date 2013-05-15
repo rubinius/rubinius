@@ -1,4 +1,4 @@
-#include "vm/config.h"
+#include "config.h"
 
 #include <iostream>
 
@@ -35,9 +35,9 @@
 #include "vm.hpp"
 #include "objectmemory.hpp"
 
-#include "vm/object_utils.hpp"
-#include "vm/on_stack.hpp"
-#include "vm/configuration.hpp"
+#include "object_utils.hpp"
+#include "on_stack.hpp"
+#include "configuration.hpp"
 
 #include "capi/handle.hpp"
 

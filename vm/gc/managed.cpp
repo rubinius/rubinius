@@ -1,4 +1,4 @@
-#include "vm/vm.hpp"
+#include "vm.hpp"
 
 #include "util/thread.hpp"
 #include "gc/managed.hpp"

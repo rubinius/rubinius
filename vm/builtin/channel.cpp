@@ -2,7 +2,7 @@
  * mechanism. */
 
 #include "vm.hpp"
-#include "vm/object_utils.hpp"
+#include "object_utils.hpp"
 #include "objectmemory.hpp"
 
 #include "builtin/object.hpp"

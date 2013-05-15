@@ -1,5 +1,5 @@
 #include "vm.hpp"
-#include "vm/object_utils.hpp"
+#include "object_utils.hpp"
 
 #include "capi/capi.hpp"
 #include "capi/19/include/ruby/ruby.h"

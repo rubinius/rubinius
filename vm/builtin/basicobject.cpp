@@ -1,6 +1,6 @@
 #include "builtin/object.hpp"
 
-#include "vm/object_utils.hpp"
+#include "object_utils.hpp"
 
 namespace rubinius {
   // void BasicObject::bootstrap_methods(STATE) {

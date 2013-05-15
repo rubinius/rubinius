@@ -51,7 +51,7 @@ SOFTWARE.
 
 */
 
-#include "vm/config.h"
+#include "config.h"
 
 #include <llvm/ExecutionEngine/JITMemoryManager.h>
 #include <llvm/ADT/SmallPtrSet.h>

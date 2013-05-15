@@ -1,4 +1,4 @@
-#include "vm/config.h"
+#include "config.h"
 
 #ifndef RBX_WINDOWS
 #include <sys/select.h>

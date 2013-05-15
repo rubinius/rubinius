@@ -6,7 +6,7 @@
 #include "prelude.hpp"
 #include "machine_code.hpp"
 
-#include "vm/object_utils.hpp"
+#include "object_utils.hpp"
 
 #include "builtin/array.hpp"
 #include "builtin/compiledcode.hpp"
