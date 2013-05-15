@@ -19,6 +19,8 @@ describe "DRb.stop_service" do
       server = nil
       lambda { server = DRb.start_service(@url, TestServer.new) }.should_not raise_error
       DRb.current_server.should == server
+      obj = DRbObject.new(nil, @url)
+      obj.add(1,2,3).should == 6
       lambda { DRb.stop_service }.should_not raise_error
     end
   end
