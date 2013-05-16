@@ -341,12 +341,12 @@ ruby_version_is "1.9" do
       result.should == "abc\xE2def".force_encoding(Encoding::ASCII_8BIT)
     end
 
-    it "does transcode file contents when an internal encoding is specified" do
-      Encoding.default_internal = "euc-jp"
-
-      lambda do
-        File.open(@name, "r:binary:utf-8") { |f| f.read }
-      end.should raise_error(Encoding::UndefinedConversionError)
+    ruby_bug "#8342", "2.0" do
+      it "does not transcode file contents when an internal encoding is specified" do
+        result = File.open(@name, "r:binary:utf-8") { |f| f.read }.chomp
+        result.encoding.should == Encoding::ASCII_8BIT
+        result.should == "abc\xE2def".force_encoding(Encoding::ASCII_8BIT)
+      end
     end
   end
 
