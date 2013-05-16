@@ -243,12 +243,16 @@ int leap_year(int64_t n) {
   return !( n % 400 && (n % 4 || (n % 100 == 0)));
 }
 
+static int day_before_leap(struct tm64* tm64) {
+  return (tm64->tm_mon == 0) || (tm64->tm_mon == 1 && tm64->tm_mday < 29);
+}
+
 /* Translate a number of years in difference into
  * seconds. This is used for translating back into
  * a timestamp after using the conversion table for
  * computing with a compatible date.
  */
-time64_t year_diff_to_seconds(int64_t from, int64_t to) {
+time64_t year_diff_to_seconds(int64_t from, int64_t to, int pre_leap_day) {
   int increment = (from < to) ? 1 : -1;
   time64_t seconds = 0;
   int64_t cycles;
@@ -269,9 +273,12 @@ time64_t year_diff_to_seconds(int64_t from, int64_t to) {
     seconds += cycles * seconds_in_gregorian_cycle;
   }
 
+  int traversal_includes_leap = increment < 1 ? !pre_leap_day : pre_leap_day;
   while( to != from) {
-    seconds += length_of_year[leap_year(to)] * 86400LL;
-    to -= increment;
+    int64_t next_year = to - increment;
+    int64_t year_to_count = traversal_includes_leap ? next_year : to;
+    seconds += length_of_year[leap_year(year_to_count)] * 86400LL;
+    to = next_year;
   }
 
   return seconds * increment;
@@ -306,7 +313,7 @@ time64_t timestamp64(time_t (*func)(struct tm*), struct tm64* tm64) {
   if(year < 1902) {
     /* For years below the 32 bit size time_t value we need to use
     * the lower comparable years */
-    int day = day_of_week(year, tm64->tm_mon, tm64->tm_mday);
+    int day = day_of_week(year, tm64->tm_mon + 1, tm64->tm_mday);
     if(tm64->tm_mon == 2 && leap_year(year)) {
       tm.tm_year = lower_leap_month_table[day] - 1900;
     } else {
@@ -315,7 +322,7 @@ time64_t timestamp64(time_t (*func)(struct tm*), struct tm64* tm64) {
   } else if(year > 2037) {
     /* For years above the 32 bit size time_t value we need to use
      * the lower comparable years */
-    int day = day_of_week(year, tm64->tm_mon, tm64->tm_mday);
+    int day = day_of_week(year, tm64->tm_mon + 1, tm64->tm_mday);
     if(tm64->tm_mon == 2 && leap_year(year)) {
       tm.tm_year = higher_leap_month_table[day] - 1900;
     } else {
@@ -337,7 +344,7 @@ time64_t timestamp64(time_t (*func)(struct tm*), struct tm64* tm64) {
 
   if(year != tm64->tm_year) {
     /* Correct for the changed year to do the mktime computation */
-    time += year_diff_to_seconds(tm64->tm_year, year);
+    time += year_diff_to_seconds(tm64->tm_year, year, day_before_leap(tm64));
   }
 
   tm64->tm_year = year;
@@ -495,7 +502,7 @@ struct tm64* localtime64_r(const time64_t* time64, struct tm64* tm64) {
   if(gm_year < 1902) {
     /* For years below the 32 bit size time_t value we need to use
     * the lower comparable years */
-    int day = day_of_week(gm_year, gm.tm_mon, gm.tm_mday);
+    int day = day_of_week(gm_year, gm.tm_mon + 1, gm.tm_mday);
     if(gm.tm_mon == 2 && leap_year(gm_year)) {
       gm.tm_year = lower_leap_month_table[day];
     } else {
@@ -504,7 +511,7 @@ struct tm64* localtime64_r(const time64_t* time64, struct tm64* tm64) {
   } else if(gm_year > 2037) {
     /* For years above the 32 bit size time_t value we need to use
      * the lower comparable years */
-    int day = day_of_week(gm_year, gm.tm_mon, gm.tm_mday);
+    int day = day_of_week(gm_year, gm.tm_mon + 1, gm.tm_mday);
     if(gm.tm_mon == 2 && leap_year(gm_year)) {
       gm.tm_year = higher_leap_month_table[day];
     } else {
