@@ -20,6 +20,18 @@ with_feature :encoding do
       @io.external_encoding.should be_nil
       @io.internal_encoding.should be_nil
     end
+
+    it "sets the encodings to the current Encoding defaults" do
+      @io = new_io @name, @object
+
+      Encoding.default_external = Encoding::IBM437
+      Encoding.default_internal = Encoding::IBM866
+
+      @io.set_encoding nil, nil
+
+      @io.external_encoding.should == Encoding::IBM437
+      @io.internal_encoding.should == Encoding::IBM866
+    end
   end
 
   describe "IO#set_encoding when passed nil, nil" do
