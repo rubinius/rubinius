@@ -200,17 +200,24 @@ ruby_version_is "1.9" do
       Encoding.default_internal = @internal
     end
 
-    it "returns strings encoded with the default external encoding" do
+    it "encodes lines using the default external encoding" do
       Encoding.default_external = Encoding::UTF_8
       lines = IO.readlines(@name)
       lines.all? { |s| s.encoding == Encoding::UTF_8 }.should be_true
     end
 
-    it "encodes the strings with the default internal encoding, if set" do
+    it "encodes lines using the default internal encoding, when set" do
       Encoding.default_external = Encoding::UTF_8
       Encoding.default_internal = Encoding::UTF_16
       lines = IO.readlines(@name)
       lines.all? { |s| s.encoding == Encoding::UTF_16 }.should be_true
+    end
+
+    it "ignores the default internal encoding if the external encoding is ASCII-8BIT" do
+      Encoding.default_external = Encoding::ASCII_8BIT
+      Encoding.default_internal = Encoding::UTF_8
+      lines = IO.readlines(@name)
+      lines.all? { |s| s.encoding == Encoding::ASCII_8BIT }.should be_true
     end
   end
 end

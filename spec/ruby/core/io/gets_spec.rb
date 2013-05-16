@@ -212,4 +212,73 @@ ruby_version_is "1.9" do
       @io.gets("", 3).should == "one"
     end
   end
+
+  describe "IO#gets" do
+    before :each do
+      @external = Encoding.default_external
+      @internal = Encoding.default_internal
+
+      Encoding.default_external = Encoding::UTF_8
+      Encoding.default_internal = nil
+
+      @name = tmp("io_gets")
+      touch(@name) { |f| f.write "line" }
+    end
+
+    after :each do
+      rm_r @name
+      @io.close
+      Encoding.default_external = @external
+      Encoding.default_internal = @internal
+    end
+
+    it "uses the default external encoding" do
+      @io = new_io @name, 'r'
+      @io.gets.encoding.should == Encoding::UTF_8
+    end
+
+    it "uses the IO object's external encoding, when set" do
+      @io = new_io @name, 'r'
+      @io.set_encoding Encoding::US_ASCII
+      @io.gets.encoding.should == Encoding::US_ASCII
+    end
+
+    it "transcodes into the default internal encoding" do
+      Encoding.default_internal = Encoding::US_ASCII
+      @io = new_io @name, 'r'
+      @io.gets.encoding.should == Encoding::US_ASCII
+    end
+
+    it "transcodes into the IO object's internal encoding, when set" do
+      Encoding.default_internal = Encoding::US_ASCII
+      @io = new_io @name, 'r'
+      @io.set_encoding Encoding::UTF_8, Encoding::UTF_16
+      @io.gets.encoding.should == Encoding::UTF_16
+    end
+
+    it "overwrites the default external encoding with the IO object's own external encoding" do
+      Encoding.default_external = Encoding::ASCII_8BIT
+      Encoding.default_internal = Encoding::UTF_8
+      @io = new_io @name, 'r'
+      @io.set_encoding Encoding::IBM866
+      @io.gets.encoding.should == Encoding::UTF_8
+    end
+
+    it "ignores the internal encoding if the default external encoding is ASCII-8BIT" do
+      Encoding.default_external = Encoding::ASCII_8BIT
+      Encoding.default_internal = Encoding::UTF_8
+      @io = new_io @name, 'r'
+      @io.gets.encoding.should == Encoding::ASCII_8BIT
+    end
+
+    ruby_bug "#8342", "2.0" do
+      it "ignores the internal encoding if the IO object's external encoding is ASCII-8BIT" do
+        Encoding.default_external = Encoding::ASCII_8BIT
+        Encoding.default_internal = Encoding::UTF_8
+        @io = new_io @name, 'r'
+        @io.set_encoding Encoding::ASCII_8BIT, Encoding::UTF_8
+        @io.gets.encoding.should == Encoding::ASCII_8BIT
+      end
+    end
+  end
 end
