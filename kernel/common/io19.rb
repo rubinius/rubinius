@@ -864,11 +864,13 @@ class IO
     end
 
     if internal.kind_of? String
-      return if internal == "-"
+      return self if internal == "-"
       internal = Encoding.find internal
     end
 
     @internal = internal unless internal && @external == internal
+
+    self
   end
 
   def read_bom_byte
