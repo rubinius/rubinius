@@ -404,6 +404,10 @@ class IO
     binmode if binary
     set_encoding external, internal
 
+    if @external && !external
+      @external = nil
+    end
+
     if @internal
       if Encoding.default_external == Encoding.default_internal
         @internal = nil
@@ -823,7 +827,11 @@ class IO
     when String
       @external = nil
     when nil
-      @external = nil
+      if @mode == RDONLY || @external
+        @external = nil
+      else
+        @external = Encoding.default_external
+      end
     else
       @external = nil
       external = StringValue(external)
@@ -859,11 +867,7 @@ class IO
     when String
       # do nothing
     when nil
-      if @mode == RDONLY
-        @internal = Encoding.default_internal
-      else
-        @internal = nil
-      end
+      internal = Encoding.default_internal
     else
       internal = StringValue(internal)
     end
@@ -873,7 +877,7 @@ class IO
       internal = Encoding.find internal
     end
 
-    @internal = internal unless @external == internal
+    @internal = internal unless internal && @external == internal
   end
 
   def read_bom_byte
