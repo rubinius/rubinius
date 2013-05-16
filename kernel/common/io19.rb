@@ -457,8 +457,6 @@ class IO
       @separator = separator
       @limit = limit
       @skip = nil
-      @external = @io.external_encoding || Encoding.default_external
-      @internal = @io.internal_encoding || Encoding.default_internal
     end
 
     def each(&block)
@@ -493,8 +491,7 @@ class IO
         if count = @buffer.find(@separator)
           str << @buffer.shift(count)
 
-          str.force_encoding(@external)
-          str.encode!(@internal) if @internal
+          str = IO.read_encode(@io, str)
           str.taint
 
           $. = @io.increment_lineno
@@ -510,8 +507,7 @@ class IO
 
       str << @buffer.shift
       unless str.empty?
-        str.force_encoding(@external)
-        str.encode!(@internal) if @internal
+        str = IO.read_encode(@io, str)
         str.taint
         $. = @io.increment_lineno
         yield str
@@ -533,8 +529,7 @@ class IO
           bytes = count < wanted ? count : wanted
           str << @buffer.shift(bytes)
 
-          str.force_encoding(@external)
-          str.encode!(@internal) if @internal
+          str = IO.read_encode(@io, str)
           str.taint
 
           $. = @io.increment_lineno
@@ -548,8 +543,7 @@ class IO
           if wanted < available
             str << @buffer.shift(wanted)
 
-            str.force_encoding(@external)
-            str.encode!(@internal) if @internal
+            str = IO.read_encode(@io, str)
             str.taint
 
             $. = @io.increment_lineno
@@ -568,8 +562,7 @@ class IO
 
       str << @buffer.shift
       unless str.empty?
-        str.force_encoding(@external)
-        str.encode!(@internal) if @internal
+        str = IO.read_encode(@io, str)
         str.taint
         $. = @io.increment_lineno
         yield str
@@ -585,8 +578,7 @@ class IO
       end
 
       unless str.empty?
-        str.force_encoding(@external)
-        str.encode!(@internal) if @internal
+        str = IO.read_encode(@io, str)
         str.taint
         $. = @io.increment_lineno
         yield str
@@ -603,8 +595,7 @@ class IO
         if wanted < available
           str << @buffer.shift(wanted)
 
-          str.force_encoding(@external)
-          str.encode!(@internal) if @internal
+          str = IO.read_encode(@io, str)
           str.taint
 
           $. = @io.increment_lineno
