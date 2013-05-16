@@ -147,7 +147,7 @@ class IO
     internal = io.internal_encoding
     external = io.external_encoding || Encoding.default_external
 
-    if external.equal? Encoding::ASCII_8BIT and not internal
+    if external.equal? Encoding::ASCII_8BIT
       str.force_encoding external
     elsif internal and external
       ec = Encoding::Converter.new external, internal
