@@ -50,11 +50,10 @@ class Autoload
     current, constant = under, undefined
 
     while current
-      constant = current.constant_table.fetch name, undefined
-      unless constant.equal?(undefined)
+      if entry = current.constant_table.lookup(name)
+        constant = entry.constant
         if constant.equal? self
-          constant = Object.constant_table.fetch name, undefined
-          if constant.equal?(undefined)
+          unless Object.constant_table.lookup(name)
             return under.const_missing(name)
           end
         end
@@ -65,8 +64,8 @@ class Autoload
     end
 
     if instance_of?(Module)
-      constant = Object.constant_table.fetch name, undefined
-      unless constant.equal?(undefined)
+      if entry = Object.constant_table.lookup(name)
+        constant = entry.constant
         if constant.equal? self
           return under.const_missing(name)
         end

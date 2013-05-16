@@ -53,7 +53,7 @@ namespace rubinius {
     TypedRoot<Class*> string, character, symbol, io;
     TypedRoot<Class*> nil_class, true_class, false_class, fixnum_class, undef_class;
     TypedRoot<Class*> floatpoint, nmc, list, list_node;
-    TypedRoot<Class*> channel, thread, thread_state, constantscope, lookuptable;
+    TypedRoot<Class*> channel, thread, thread_state, constantscope, constant_table, lookuptable;
     TypedRoot<Class*> iseq, executable, native_function, iobuffer;
     TypedRoot<Class*> included_module;
 
@@ -82,6 +82,7 @@ namespace rubinius {
     TypedRoot<Class*> dir;
     TypedRoot<Class*> compactlookuptable;
     TypedRoot<Class*> lookuptablebucket;
+    TypedRoot<Class*> constant_table_bucket;
     TypedRoot<Class*> methtblbucket;
     TypedRoot<Class*> access_variable;
     TypedRoot<Module*> rubinius;
@@ -161,6 +162,7 @@ namespace rubinius {
       thread(&roots),
       thread_state(&roots),
       constantscope(&roots),
+      constant_table(&roots),
       lookuptable(&roots),
       iseq(&roots),
       executable(&roots),
@@ -208,6 +210,7 @@ namespace rubinius {
       dir(&roots),
       compactlookuptable(&roots),
       lookuptablebucket(&roots),
+      constant_table_bucket(&roots),
       methtblbucket(&roots),
       access_variable(&roots),
       rubinius(&roots),

@@ -311,6 +311,28 @@ module Rubinius
     end
   end
 
+  # Constant table for storing methods.
+  #
+  # See kernel/bootstrap/constant_table.rb and
+  #     kernel/common/constant_table.rb
+  #
+  class ConstantTable
+
+    # Perform lookup for constant name.
+    #
+    def lookup(name)
+      Rubinius.primitive :constant_table_lookup
+      raise PrimitiveFailure, "ConstantTable#lookup primitive failed"
+    end
+
+    # Store Constant under name, with given visibility.
+    #
+    def store(name, constant, visibility)
+      Rubinius.primitive :constant_table_store
+      raise PrimitiveFailure, "ConstantTable#store primitive failed"
+    end
+  end
+
   # Lookup table for storing methods.
   #
   # See kernel/bootstrap/methodtable.rb and

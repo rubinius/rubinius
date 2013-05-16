@@ -48,7 +48,7 @@ namespace rubinius {
     return nil<ConstantScope>();
   }
 
-  Object* ConstantScope::const_set(STATE, Object* name, Object* value) {
+  Object* ConstantScope::const_set(STATE, Symbol* name, Object* value) {
     module_->set_const(state, name, value);
     return value;
   }

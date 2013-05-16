@@ -72,6 +72,7 @@ field_extract_headers = %w[
   vm/builtin/io.hpp
   vm/builtin/channel.hpp
   vm/builtin/module.hpp
+  vm/builtin/constant_table.hpp
   vm/builtin/class.hpp
   vm/builtin/compiledcode.hpp
   vm/builtin/data.hpp

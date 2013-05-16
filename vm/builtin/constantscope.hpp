@@ -39,7 +39,7 @@ namespace rubinius {
     static ConstantScope* of_sender(STATE, CallFrame* calling_environment);
 
     // Rubinius.primitive :constant_scope_const_set
-    Object* const_set(STATE, Object* name, Object* value);
+    Object* const_set(STATE, Symbol* name, Object* value);
 
     // The module to use when adding and removing methods
     Module* for_method_definition();

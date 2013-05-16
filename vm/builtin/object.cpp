@@ -16,6 +16,7 @@
 #include "builtin/float.hpp"
 #include "builtin/constantscope.hpp"
 #include "builtin/system.hpp"
+#include "builtin/constant_table.hpp"
 #include "builtin/methodtable.hpp"
 #include "builtin/packed_object.hpp"
 #include "builtin/location.hpp"
@@ -64,7 +65,7 @@ namespace rubinius {
   Object* Object::copy_singleton_class(STATE, GCToken gct, Object* other, CallFrame* calling_environment) {
     if(SingletonClass* sc = try_as<SingletonClass>(other->klass())) {
       MethodTable* source_methods = 0;
-      LookupTable* source_constants = 0;
+      ConstantTable* source_constants = 0;
       Object* self = this;
 
       OnStack<4> os(state, self, sc, source_methods, source_constants);

@@ -7,12 +7,12 @@ module Rubinius
     end
 
     tbl = mod.constant_table
-    if !tbl.key?(name)
+    if !tbl.has_name?(name)
       # Create the class
       sup = Object unless sup
       obj = Class.new sup, name, mod
     else
-      obj = tbl[name]
+      obj = tbl.lookup(name).constant
       if Type.object_kind_of? obj, Autoload
         obj = begin
           obj.call(mod, true)

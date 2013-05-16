@@ -32,7 +32,7 @@ module Rubinius
     end
 
     tbl = mod.constant_table
-    found = tbl.key?(name)
+    found = tbl.has_name?(name)
 
     # Object has special behavior, we check it's included
     # modules also
@@ -41,7 +41,7 @@ module Rubinius
 
       while check
         tbl = check.constant_table
-        found = tbl.key?(name)
+        found = tbl.has_name?(name)
         break if found
         check = check.direct_superclass
       end
@@ -52,7 +52,8 @@ module Rubinius
       obj = Module.new
       mod.const_set name, obj
     else
-      obj = tbl[name]
+      obj = tbl.lookup(name).constant
+
       if Type.object_kind_of? obj, Autoload
         obj = obj.call(mod, true)
 
@@ -64,7 +65,7 @@ module Rubinius
       end
 
       if Type.object_kind_of?(obj, Class) || !Type.object_kind_of?(obj, Module)
-        raise TypeError, "#{name} is not a module"
+        raise TypeError, "#{name} is not a module, but a #{obj.class}"
       end
     end
     return obj

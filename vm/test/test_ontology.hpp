@@ -41,7 +41,7 @@ public:
     sc = (SingletonClass*)cls->klass();
     TS_ASSERT(kind_of<SingletonClass>(G(object)->klass()));
     TS_ASSERT(kind_of<MethodTable>(sc->method_table()));
-    TS_ASSERT(kind_of<LookupTable>(sc->constants()));
+    TS_ASSERT(kind_of<ConstantTable>(sc->constant_table()));
   }
 
   void test_module() {

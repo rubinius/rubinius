@@ -6,7 +6,7 @@
 #include "type_info.hpp"
 
 namespace rubinius {
-  class LookupTable;
+  class ConstantTable;
   class MethodTable;
 
   class Module : public Object {
@@ -14,28 +14,24 @@ namespace rubinius {
     const static object_type type = ModuleType;
 
   private:
-    MethodTable* method_table_;   // slot
-    Symbol* module_name_;         // slot
-    LookupTable* constant_table_; // slot
-    Module* superclass_;          // slot
-    Array* seen_ivars_;           // slot
-    Class* mirror_;               // slot
-    Array* hierarchy_subclasses_; // slot
+    MethodTable* method_table_;     // slot
+    Symbol* module_name_;           // slot
+    ConstantTable* constant_table_; // slot
+    Module* superclass_;            // slot
+    Array* seen_ivars_;             // slot
+    Class* mirror_;                 // slot
+    Array* hierarchy_subclasses_;   // slot
 
   public:
     /* accessors */
 
     attr_accessor(method_table, MethodTable);
     attr_accessor(module_name, Symbol);
-    attr_accessor(constant_table, LookupTable);
+    attr_accessor(constant_table, ConstantTable);
     attr_accessor(superclass, Module);
     attr_accessor(seen_ivars, Array);
     attr_accessor(mirror, Class);
     attr_accessor(hierarchy_subclasses, Array);
-
-    LookupTable* constants() {
-      return constant_table();
-    }
 
     /* interface */
     static Module* create(STATE);
@@ -51,7 +47,7 @@ namespace rubinius {
     String* get_name(STATE);
 
     // Rubinius.primitive :module_const_set
-    Object* const_set(STATE, Object* name, Object* value);
+    Object* const_set(STATE, Symbol* name, Object* value);
 
     // Rubinius.primitive :module_class_variables
     Array* class_variables(STATE);
@@ -79,7 +75,7 @@ namespace rubinius {
 
     void setup(STATE);
     void setup(STATE, std::string name, Module* under = NULL);
-    void set_const(STATE, Object* sym, Object* val);
+    void set_const(STATE, Symbol* sym, Object* val);
     void set_const(STATE, std::string name, Object* val);
     Object* get_const(STATE, Symbol* sym);
     Object* get_const(STATE, Symbol* sym, bool* found, bool check_super=false);

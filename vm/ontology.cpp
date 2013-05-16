@@ -185,6 +185,14 @@ namespace rubinius {
     GO(lookuptablebucket).set(ontology::new_basic_class(state, object));
     G(lookuptablebucket)->set_object_type(state, LookupTableBucketType);
 
+    // Create ConstantTable
+    GO(constant_table).set(ontology::new_basic_class(state, object));
+    G(constant_table)->set_object_type(state, ConstantTableType);
+
+    // Create ConstantTableBucket
+    GO(constant_table_bucket).set(ontology::new_basic_class(state, object));
+    G(constant_table_bucket)->set_object_type(state, ConstantTableBucketType);
+
     // Create MethodTable
     GO(methtbl).set(ontology::new_basic_class(state, object));
     G(methtbl)->set_object_type(state, MethodTableType);
@@ -201,6 +209,8 @@ namespace rubinius {
      *  Array
      *  LookupTable
      *  LookupTableBucket
+     *  ConstantTable
+     *  ConstantTableBucket
      *  MethodTable
      *  MethodTableBucket
      *
@@ -247,6 +257,8 @@ namespace rubinius {
     SingletonClass::attach(state, G(cls_weakref), sc);
     SingletonClass::attach(state, G(lookuptable), sc);
     SingletonClass::attach(state, G(lookuptablebucket), sc);
+    SingletonClass::attach(state, G(constant_table), sc);
+    SingletonClass::attach(state, G(constant_table_bucket), sc);
     SingletonClass::attach(state, G(methtbl), sc);
     SingletonClass::attach(state, G(methtblbucket), sc);
 
@@ -268,6 +280,9 @@ namespace rubinius {
 
     G(lookuptable)->setup(state, "LookupTable", G(rubinius));
     G(lookuptablebucket)->setup(state, "Bucket", G(lookuptable));
+
+    G(constant_table)->setup(state, "ConstantTable", G(rubinius));
+    G(constant_table_bucket)->setup(state, "Bucket", G(constant_table));
 
     G(methtbl)->setup(state, "MethodTable", G(rubinius));
     G(methtblbucket)->setup(state, "Bucket", G(methtbl));
@@ -372,6 +387,7 @@ namespace rubinius {
      * Bootstrap everything so we can create fully initialized
      * Classes.
      */
+    bootstrap_symbol(state);
     bootstrap_class(state);
 
     /*
@@ -388,7 +404,6 @@ namespace rubinius {
 
     initialize_fundamental_constants(state);
 
-    bootstrap_symbol(state);
     initialize_builtin_classes(state);
     bootstrap_exceptions(state);
 

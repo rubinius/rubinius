@@ -16,6 +16,7 @@ compiled_code.rbc
 configuration.rbc
 constant_cache.rbc
 constant_scope.rbc
+constant_table.rbc
 dir.rbc
 encoding.rbc
 exception.rbc

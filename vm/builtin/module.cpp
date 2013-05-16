@@ -5,13 +5,14 @@
 #include "builtin/class.hpp"
 #include "builtin/module.hpp"
 #include "builtin/fixnum.hpp"
-#include "builtin/lookuptable.hpp"
+#include "builtin/constant_table.hpp"
 #include "builtin/methodtable.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/string.hpp"
 #include "builtin/system.hpp"
 #include "builtin/array.hpp"
 #include "builtin/compactlookuptable.hpp"
+#include "builtin/lookuptable.hpp"
 #include "builtin/weakref.hpp"
 
 #include "configuration.hpp"
@@ -52,7 +53,7 @@ namespace rubinius {
   }
 
   void Module::setup(STATE) {
-    constant_table(state, LookupTable::create(state));
+    constant_table(state, ConstantTable::create(state));
     method_table(state, MethodTable::create(state));
     if(!superclass()->nil_p()) {
       superclass()->track_subclass(state, this);
@@ -80,12 +81,12 @@ namespace rubinius {
         path_name << under_name->cpp_str(state) << "::" << name->cpp_str(state);
         module_name(state, state->symbol(path_name.str()));
 
-        LookupTable::iterator i(constants());
+        ConstantTable::iterator i(constant_table());
 
         while(i.advance()) {
-          if(Module* m = try_as<Module>(i.value())) {
+          if(Module* m = try_as<Module>(i.constant())) {
             if(m->module_name()->nil_p()) {
-              m->set_name(state, as<Symbol>(i.key()), this);
+              m->set_name(state, i.name(), this);
             }
           }
         }
@@ -109,18 +110,18 @@ namespace rubinius {
     }
   }
 
-  Object* Module::const_set(STATE, Object* name, Object* value) {
+  Object* Module::const_set(STATE, Symbol* name, Object* value) {
     set_const(state, name, value);
     return value;
   }
 
-  void Module::set_const(STATE, Object* sym, Object* val) {
-    constants()->store(state, sym, val);
+  void Module::set_const(STATE, Symbol* sym, Object* val) {
+    constant_table()->store(state, sym, val, G(sym_public));
     state->shared().inc_global_serial(state);
   }
 
   void Module::del_const(STATE, Symbol* sym) {
-    constants()->remove(state, sym);
+    constant_table()->remove(state, sym);
     state->shared().inc_global_serial(state);
   }
 
@@ -130,11 +131,15 @@ namespace rubinius {
 
   Object* Module::get_const(STATE, Symbol* sym, bool* found, bool check_super) {
     Module* mod = this;
+    *found = false;
 
     while(!mod->nil_p()) {
-      Object* obj = mod->constants()->fetch(state, sym, found);
+      ConstantTableBucket* bucket = mod->constant_table()->lookup(state, sym);
 
-      if(*found) return obj;
+      if(!bucket->nil_p()) {
+        *found = true;
+        return bucket->constant();
+      }
 
       if(!check_super) break;
 
@@ -464,7 +469,7 @@ namespace rubinius {
     class_header(state, self);
     indent_attribute(++level, "name"); mod->module_name()->show(state, level);
     indent_attribute(level, "superclass"); class_info(state, mod->superclass(), true);
-    indent_attribute(level, "constants"); mod->constants()->show(state, level);
+    indent_attribute(level, "constant_table"); mod->constant_table()->show(state, level);
     indent_attribute(level, "method_table"); mod->method_table()->show(state, level);
     close_body(level);
   }

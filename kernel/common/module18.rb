@@ -9,8 +9,8 @@ class Module
     current, constant = self, undefined
 
     while current
-      constant = current.constant_table.fetch name, undefined
-      unless constant.equal?(undefined)
+      if bucket = current.constant_table.lookup(name)
+        constant = bucket.constant
         constant = constant.call(current) if constant.kind_of?(Autoload)
         return constant
       end
@@ -19,8 +19,8 @@ class Module
     end
 
     if instance_of?(Module)
-      constant = Object.constant_table.fetch name, undefined
-      unless constant.equal?(undefined)
+      if bucket = Object.constant_table.lookup(name)
+        constant = bucket.constant
         constant = constant.call(current) if constant.kind_of?(Autoload)
         return constant
       end
@@ -31,13 +31,13 @@ class Module
 
   def const_defined?(name)
     name = Rubinius::Type.coerce_to_constant_name name
-    return true if @constant_table.has_key? name
+    return true if @constant_table.has_name? name
 
     # a silly special case
     if self.equal? Object
       mod = direct_superclass
       while mod.kind_of? Rubinius::IncludedModule
-        return true if mod.constant_table.has_key? name
+        return true if mod.constant_table.has_name? name
         mod = mod.direct_superclass
       end
     end
@@ -69,11 +69,11 @@ class Module
 
     name = Rubinius::Type.coerce_to_constant_name name
 
-    if existing = @constant_table[name]
-      if existing.kind_of? Autoload
+    if entry = @constant_table.lookup(name)
+      if entry.constant.kind_of? Autoload
         # If there is already an Autoload here, just change the path to
         # autoload!
-        existing.set_path(path)
+        entry.constant.set_path(path)
       else
         # Trying to register an autoload for a constant that already exists,
         # ignore the request entirely.
@@ -82,7 +82,7 @@ class Module
       return
     end
 
-    constant_table[name] = Autoload.new(name, self, path)
+    constant_table.store(name, Autoload.new(name, self, path), :public)
     Rubinius.inc_global_serial
     return nil
   end
@@ -90,15 +90,15 @@ class Module
   def constants
     tbl = Rubinius::LookupTable.new
 
-    @constant_table.each do |name, val|
+    @constant_table.each do |name, constant, visibility|
       tbl[name] = true
     end
 
     current = self.direct_superclass
 
     while current and current != Object
-      current.constant_table.each do |name, val|
-        tbl[name] = true unless tbl.has_key? name
+      current.constant_table.each do |name, constant, visibility|
+        tbl[name] = true
       end
 
       current = current.direct_superclass
@@ -106,8 +106,8 @@ class Module
 
     # special case: Module.constants returns Object's constants
     if self.equal? Module
-      Object.constant_table.each do |name, val|
-        tbl[name] = true unless tbl.has_key? name
+      Object.constant_table.each do |name, constant, visibility|
+        tbl[name] = true
       end
     end
 

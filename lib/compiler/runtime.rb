@@ -22,8 +22,8 @@ module Rubinius
       current, constant = scope.module, undefined
 
       while current
-        constant = current.constant_table.fetch name, undefined
-        unless constant.equal?(undefined)
+        if entry = current.constant_table.lookup(name)
+          constant = entry.constant
           constant = constant.call if constant.kind_of?(Autoload)
           return constant
         end
@@ -32,8 +32,8 @@ module Rubinius
       end
 
       if instance_of?(Module)
-        constant = Object.constant_table.fetch name, undefined
-        unless constant.equal?(undefined)
+        if entry = Object.constant_table.lookup(name)
+          constant = entry.constant
           constant = constant.call if constant.kind_of?(Autoload)
           return constant
         end

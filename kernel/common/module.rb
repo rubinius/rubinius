@@ -417,7 +417,7 @@ class Module
       Rubinius::Type.set_module_name value, name, self
     end
 
-    @constant_table[name] = value
+    @constant_table.store(name, value, :public)
     Rubinius.inc_global_serial
 
     return value
@@ -483,9 +483,10 @@ class Module
   # Is an autoload trigger defined for the given path?
   def autoload?(name)
     name = name.to_sym
-    return unless constant_table.key?(name)
-    trigger = constant_table[name]
-    return unless trigger.kind_of?(Autoload)
+    entry = constant_table.lookup(name)
+    return unless entry
+    trigger = entry.constant
+    return unless trigger && trigger.kind_of?(Autoload)
     trigger.path
   end
 
@@ -499,7 +500,7 @@ class Module
     end
 
     sym = name.to_sym
-    unless constant_table.has_key?(sym)
+    unless constant_table.has_name?(sym)
       mod_name = Rubinius::Type.module_name self
       raise NameError, "Missing or uninitialized constant: #{mod_name}::#{name}"
     end
@@ -549,14 +550,14 @@ class Module
     sc_s.method_table = sc_o.method_table.dup
     sc_s.superclass = sc_o.direct_superclass
 
-    @constant_table = Rubinius::LookupTable.new
+    @constant_table = Rubinius::ConstantTable.new
 
     other.constant_table.each do |name, val|
       if val.kind_of? Autoload
         val = Autoload.new(val.name, self, val.path)
       end
 
-      @constant_table[name] = val
+      @constant_table.store(name, val, :public)
     end
 
     self
