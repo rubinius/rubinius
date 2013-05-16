@@ -878,10 +878,10 @@ namespace rubinius {
   Class* System::vm_open_class_under(STATE, Symbol* name, Object* super,
                                      Module* under)
   {
-    bool found = false;
+    ConstantMissingReason reason = vNonExistent;
 
-    Object* obj = under->get_const(state, name, &found);
-    if(found) {
+    Object* obj = under->get_const(state, name, G(sym_private), &reason);
+    if(reason == vFound) {
       Class* cls = as<Class>(obj);
       if(super->nil_p()) return cls;
 
@@ -925,11 +925,11 @@ namespace rubinius {
   }
 
   Module* System::vm_open_module_under(STATE, Symbol* name, Module* under) {
-    bool found;
+    ConstantMissingReason reason = vNonExistent;
 
-    Object* obj = under->get_const(state, name, &found);
+    Object* obj = under->get_const(state, name, G(sym_private), &reason);
 
-    if(found) return as<Module>(obj);
+    if(reason == vFound) return as<Module>(obj);
 
     Module* module = Module::create(state);
 
@@ -1194,6 +1194,17 @@ namespace rubinius {
     }
   }
 
+  Object* System::vm_constant_missing_reason(STATE) {
+    switch(state->vm()->constant_missing_reason()) {
+    case vPrivate:
+      return G(sym_private);
+    case vNonExistent:
+      return state->symbol("normal");
+    default:
+      return state->symbol("none");
+    }
+  }
+
   Object* System::vm_extended_modules(STATE, Object* obj) {
     if(SingletonClass* sc = try_as<SingletonClass>(obj->klass())) {
       Array* ary = Array::create(state, 3);
@@ -1255,11 +1266,11 @@ namespace rubinius {
   Object* System::vm_const_defined(STATE, Symbol* sym,
                                    CallFrame* calling_environment)
   {
-    bool found;
+    ConstantMissingReason reason = vNonExistent;
 
-    Object* res = Helpers::const_get(state, calling_environment, sym, &found);
+    Object* res = Helpers::const_get(state, calling_environment, sym, &reason);
 
-    if(!found || (!LANGUAGE_18_ENABLED(state) && kind_of<Autoload>(res))) {
+    if(reason != vFound || (!LANGUAGE_18_ENABLED(state) && kind_of<Autoload>(res))) {
       return Primitives::failure();
     }
 
@@ -1270,10 +1281,10 @@ namespace rubinius {
                                          Object* send_const_missing,
                                          CallFrame* calling_environment)
   {
-    bool found;
+    ConstantMissingReason reason = vNonExistent;
 
-    Object* res = Helpers::const_get_under(state, under, sym, &found);
-    if(!found) {
+    Object* res = Helpers::const_get_under(state, under, sym, &reason);
+    if(reason != vFound) {
       if(send_const_missing->true_p()) {
         res = Helpers::const_missing_under(state, under, sym,
                                            calling_environment);

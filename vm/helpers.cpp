@@ -29,29 +29,31 @@
 
 namespace rubinius {
   namespace Helpers {
-    Object* const_get_under(STATE, Module* mod, Symbol* name, bool* found, Object* filter) {
-      *found = false;
+    Object* const_get_under(STATE, Module* mod, Symbol* name, ConstantMissingReason* reason, Object* filter) {
+      *reason = vNonExistent;
 
       while(!mod->nil_p()) {
-        Object* result = mod->get_const(state, name, found);
-        if(*found) {
+        Object* result = mod->get_const(state, name, G(sym_public), reason);
+        if(*reason == vFound) {
           if(result != filter) return result;
-          *found = false;
+          *reason = vNonExistent;
         }
+        if(*reason == vPrivate) break;
 
         // Don't stop when you see Object, because we need to check any
         // includes into Object as well, and they're found via superclass
         mod = mod->superclass();
       }
 
+      state->vm()->set_constant_missing_reason(*reason);
       return cNil;
     }
 
-    Object* const_get(STATE, CallFrame* call_frame, Symbol* name, bool* found, Object* filter) {
+    Object* const_get(STATE, CallFrame* call_frame, Symbol* name, ConstantMissingReason* reason, Object* filter) {
       ConstantScope *cur;
       Object* result;
 
-      *found = false;
+      *reason = vNonExistent;
 
       call_frame = call_frame->top_ruby_frame();
 
@@ -98,10 +100,10 @@ namespace rubinius {
         // Detect the toplevel scope (the default) and get outta dodge.
         if(cur->top_level_p(state)) break;
 
-        result = cur->module()->get_const(state, name, found);
-        if(*found) {
+        result = cur->module()->get_const(state, name, G(sym_private), reason);
+        if(*reason == vFound) {
           if(result != filter) return result;
-          *found = false;
+          *reason = vNonExistent;
         }
 
         cur = cur->parent();
@@ -122,10 +124,10 @@ namespace rubinius {
             fallback = NULL;
           }
 
-          result = mod->get_const(state, name, found);
-          if(*found) {
+          result = mod->get_const(state, name, G(sym_private), reason);
+          if(*reason == vFound) {
             if(result != filter) return result;
-            *found = false;
+            *reason = vNonExistent;
           }
 
           mod = mod->superclass();
@@ -134,10 +136,10 @@ namespace rubinius {
 
       // Lastly, check the fallback scope (=Object) specifically if needed
       if(fallback) {
-        result = fallback->get_const(state, name, found, true);
-        if(*found) {
+        result = fallback->get_const(state, name, G(sym_private), reason, true);
+        if(*reason == vFound) {
           if(result != filter) return result;
-          *found = false;
+          *reason = vNonExistent;
         }
       }
 
@@ -210,13 +212,13 @@ namespace rubinius {
     }
 
     Class* open_class(STATE, GCToken gct, CallFrame* call_frame, Module* under, Object* super, Symbol* name, bool* created) {
-      bool found;
+      ConstantMissingReason reason;
 
       *created = false;
 
-      Object* obj = under->get_const(state, name, &found);
+      Object* obj = under->get_const(state, name, G(sym_public), &reason);
 
-      if(found) {
+      if(reason == vFound) {
         OnStack<4> os(state, under, super, name, obj);
 
         if(Autoload* autoload = try_as<Autoload>(obj)) {
@@ -251,11 +253,11 @@ namespace rubinius {
 
     Module* open_module(STATE, GCToken gct, CallFrame* call_frame, Module* under, Symbol* name) {
       Module* module;
-      bool found;
+      ConstantMissingReason reason;
 
-      Object* obj = under->get_const(state, name, &found);
+      Object* obj = under->get_const(state, name, G(sym_public), &reason);
 
-      if(found) {
+      if(reason == vFound) {
         OnStack<3> os(state, under, name, obj);
 
         if(Autoload* autoload = try_as<Autoload>(obj)) {

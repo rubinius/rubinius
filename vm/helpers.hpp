@@ -12,8 +12,8 @@ namespace rubinius {
   class Tuple;
 
   namespace Helpers {
-    Object* const_get_under(State*, Module* under, Symbol* name, bool* found, Object* filter = NULL);
-    Object* const_get(State*, CallFrame* call_frame, Symbol* name, bool* found, Object* filter = NULL);
+    Object* const_get_under(State*, Module* under, Symbol* name, ConstantMissingReason* reason, Object* filter = NULL);
+    Object* const_get(State*, CallFrame* call_frame, Symbol* name, ConstantMissingReason* reason, Object* filter = NULL);
     Object* const_missing_under(State*, Module* under, Symbol* sym, CallFrame* call_frame);
     Object* const_missing(State*, Symbol* sym, CallFrame* call_frame);
     void const_set(State*, CallFrame* call_frame, Symbol* name, Object* val);

@@ -435,7 +435,14 @@ class Module
     unless self == Object
       mod_name = "#{Rubinius::Type.module_name self}::"
     end
-    raise NameError, "Missing or uninitialized constant: #{mod_name}#{name}"
+    case Rubinius.constant_missing_reason
+    when :private
+      msg = "Private constant: #{mod_name}#{name}"
+    else
+      msg = "Missing or uninitialized constant: #{mod_name}#{name}"
+    end
+
+    raise NameError, msg
   end
 
   def <(other)

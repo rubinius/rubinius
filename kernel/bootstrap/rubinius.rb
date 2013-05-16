@@ -57,6 +57,11 @@ module Rubinius
     :unknown
   end
 
+  def self.constant_missing_reason
+    Rubinius.primitive :vm_constant_missing_reason
+    :unknown
+  end
+
   def self.mri_backtrace(skip)
     Rubinius.primitive :vm_mri_backtrace
     raise PrimitiveFailure, "Rubinius.mri_backtrace primitive failed"

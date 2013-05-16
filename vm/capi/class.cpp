@@ -63,21 +63,22 @@ extern "C" {
   VALUE rb_path2class(const char* path) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Module* mod = env->state()->vm()->shared.globals.object.get();
+    State* state = env->state();
+    Module* mod = G(object);
 
     char* pathd = strdup(path);
     char* ptr = pathd;
     char* context;
     char* name;
 
-    bool found = false;
+    ConstantMissingReason reason = vNonExistent;
 
     while((name = strtok_r(ptr, ":", &context))) {
       ptr = NULL;
 
-      Object* val = mod->get_const(env->state(), env->state()->symbol(name), &found);
+      Object* val = mod->get_const(env->state(), env->state()->symbol(name), G(sym_private), &reason);
 
-      if(!found) {
+      if(reason != vFound) {
         free(pathd);
         rb_raise(rb_eArgError, "undefined class or module %s", path);
       }

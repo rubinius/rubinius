@@ -63,13 +63,14 @@ extern "C" {
   VALUE rb_const_get_at(VALUE module_handle, ID id_name) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
+    State* state = env->state();
     Symbol* name = reinterpret_cast<Symbol*>(id_name);
     Module* module = c_as<Module>(env->get_object(module_handle));
 
-    bool found = false;
-    Object* val = module->get_const(env->state(), name, &found);
+    ConstantMissingReason reason = vNonExistent;
+    Object* val = module->get_const(state, name, G(sym_private), &reason);
 
-    if(!found) return const_missing(module_handle, id_name);
+    if(reason != vFound) return const_missing(module_handle, id_name);
 
     if(Autoload* autoload = try_as<Autoload>(val)) {
       return capi_fast_call(env->get_handle(autoload), rb_intern("call"), 0);
@@ -81,13 +82,14 @@ extern "C" {
   VALUE rb_const_get_from(VALUE module_handle, ID id_name) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
+    State* state = env->state();
     Symbol* name = reinterpret_cast<Symbol*>(id_name);
     Module* module = c_as<Module>(env->get_object(module_handle));
 
-    bool found = false;
+    ConstantMissingReason reason = vNonExistent;
     while(!module->nil_p()) {
-      Object* val = module->get_const(env->state(), name, &found);
-      if(found) {
+      Object* val = module->get_const(state, name, G(sym_private), &reason);
+      if(reason == vFound) {
         if(Autoload* autoload = try_as<Autoload>(val)) {
           return capi_fast_call(env->get_handle(autoload), rb_intern("call"), 0);
         }
@@ -104,13 +106,14 @@ extern "C" {
   VALUE rb_const_get(VALUE module_handle, ID id_name) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
+    State* state = env->state();
     Symbol* name = reinterpret_cast<Symbol*>(id_name);
     Module* module = c_as<Module>(env->get_object(module_handle));
 
-    bool found = false;
+    ConstantMissingReason reason = vNonExistent;
     while(!module->nil_p()) {
-      Object* val = module->get_const(env->state(), name, &found);
-      if(found) {
+      Object* val = module->get_const(state, name, G(sym_private), &reason);
+      if(reason == vFound) {
         if(Autoload* autoload = try_as<Autoload>(val)) {
           return capi_fast_call(env->get_handle(autoload), rb_intern("call"), 0);
         }
@@ -122,11 +125,11 @@ extern "C" {
     }
 
     // Try from Object as well.
-    module = env->state()->globals().object.get();
+    module = G(object);
 
     while(!module->nil_p()) {
-      Object* val = module->get_const(env->state(), name, &found);
-      if(found) {
+      Object* val = module->get_const(state, name, G(sym_private), &reason);
+      if(reason == vFound) {
         if(Autoload* autoload = try_as<Autoload>(val)) {
           return capi_fast_call(env->get_handle(autoload), rb_intern("call"), 0);
         }

@@ -129,29 +129,34 @@ namespace rubinius {
     set_const(state, state->symbol(name), val);
   }
 
-  Object* Module::get_const(STATE, Symbol* sym, bool* found, bool check_super) {
+  Object* Module::get_const(STATE, Symbol* sym, Symbol* min_vis, ConstantMissingReason* reason, bool check_super) {
     Module* mod = this;
-    *found = false;
+    *reason = vNonExistent;
 
     while(!mod->nil_p()) {
       ConstantTableBucket* bucket = mod->constant_table()->lookup(state, sym);
 
       if(!bucket->nil_p()) {
-        *found = true;
-        return bucket->constant();
+        if(min_vis == G(sym_public) &&
+           bucket->visibility() == G(sym_private)) {
+          *reason = vPrivate;
+          break;
+        } else {
+          *reason = vFound;
+          return bucket->constant();
+        }
       }
 
       if(!check_super) break;
 
       mod = mod->superclass();
     }
-
     return cNil;
   }
 
   Object* Module::get_const(STATE, Symbol* sym) {
-    bool found;
-    return get_const(state, sym, &found);
+    ConstantMissingReason reason;
+    return get_const(state, sym, G(sym_private), &reason);
   }
 
   Object* Module::get_const(STATE, std::string sym) {
@@ -422,10 +427,10 @@ namespace rubinius {
           class_name = class_name.substr(k);
         }
 
-        bool found = false;
-        Object* obj = G(mirror)->get_const(state, state->symbol(class_name), &found);
+        ConstantMissingReason reason = vNonExistent;
+        Object* obj = G(mirror)->get_const(state, state->symbol(class_name), G(sym_private), &reason);
 
-        if(found) {
+        if(reason == vFound) {
           if(Class* mirror_class = try_as<Class>(obj)) {
             object_class->mirror(state, mirror_class);
             return mirror_class;

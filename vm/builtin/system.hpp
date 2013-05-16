@@ -276,6 +276,9 @@ namespace rubinius {
     // Rubinius.primitive :vm_method_missing_reason
     static Object* vm_method_missing_reason(STATE);
 
+    // Rubinius.primitive :vm_constant_missing_reason
+    static Object* vm_constant_missing_reason(STATE);
+
     // Rubinius.primitive :vm_extended_modules
     static Object* vm_extended_modules(STATE, Object* obj);
 

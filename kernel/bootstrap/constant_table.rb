@@ -5,7 +5,7 @@ module Rubinius
     class Bucket
       attr_reader :name
       attr_reader :constant
-      attr_reader :visibility
+      attr_accessor :visibility
       attr_reader :next
 
       def inspect

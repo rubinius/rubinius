@@ -71,6 +71,9 @@ namespace rubinius {
     eNone, ePrivate, eProtected, eSuper, eVCall, eNormal
   };
 
+  enum ConstantMissingReason {
+    vFound, vPrivate, vNonExistent
+  };
 
   /**
    * Represents an execution context for running Ruby code.
@@ -100,6 +103,8 @@ namespace rubinius {
     VMJIT vm_jit_;
 
     MethodMissingReason method_missing_reason_;
+    ConstantMissingReason constant_missing_reason_;
+
     bool run_signals_;
     bool tooling_;
     bool allocation_tracking_;
@@ -221,6 +226,14 @@ namespace rubinius {
 
     void set_method_missing_reason(MethodMissingReason reason) {
       method_missing_reason_ = reason;
+    }
+
+    ConstantMissingReason constant_missing_reason() {
+      return constant_missing_reason_;
+    }
+
+    void set_constant_missing_reason(ConstantMissingReason reason) {
+      constant_missing_reason_ = reason;
     }
 
     bool thread_step() {

@@ -124,7 +124,7 @@ class Module
     tbl[:BasicObject] = true if self == BasicObject
 
     @constant_table.each do |name, constant, visibility|
-      tbl[name] = true
+      tbl[name] = true unless visibility == :private
     end
 
     if all
@@ -132,7 +132,7 @@ class Module
 
       while current and current != Object
         current.constant_table.each do |name, constant, visibility|
-          tbl[name] = true
+          tbl[name] = true unless visibility == :private
         end
 
         current = current.direct_superclass
@@ -142,7 +142,7 @@ class Module
     # special case: Module.constants returns Object's constants
     if self.equal?(Module) && all.equal?(undefined)
       Object.constant_table.each do |name, constant, visibility|
-        tbl[name] = true
+        tbl[name] = true unless visibility == :private
       end
     end
 
@@ -150,12 +150,24 @@ class Module
   end
 
   def private_constant(*names)
+    unknown_constants = names - @constant_table.keys
+    if unknown_constants.size > 0
+      raise NameError, "#{unknown_constants.size > 1 ? 'Constants' : 'Constant'} #{unknown_constants.map{|e| "#{name}::#{e}"}.join(', ')} undefined"
+    end
+    names.each do |name|
+      entry = @constant_table.lookup(name)
+      entry.visibility = :private
+    end
   end
 
   def public_constant(*names)
     unknown_constants = names - @constant_table.keys
     if unknown_constants.size > 0
       raise NameError, "#{unknown_constants.size > 1 ? 'Constants' : 'Constant'} #{unknown_constants.map{|e| "#{name}::#{e}"}.join(', ')} undefined"
+    end
+    names.each do |name|
+      entry = @constant_table.lookup(name)
+      entry.visibility = :public
     end
   end
 

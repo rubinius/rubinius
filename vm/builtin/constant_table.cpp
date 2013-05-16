@@ -121,7 +121,6 @@ namespace rubinius {
     while(entry) {
       if(entry->name() == name) {
         entry->constant(state, constant);
-        entry->visibility(state, vis);
         return name;
       }
 

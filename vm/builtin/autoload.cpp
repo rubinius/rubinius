@@ -31,12 +31,12 @@ namespace rubinius {
     if(!res) return NULL;
 
     if(CBOOL(res) || !honor_require) {
-      bool found;
-      Object* constant = Helpers::const_get_under(state, under, self->name(), &found, self);
+      ConstantMissingReason reason = vNonExistent;
+      Object* constant = Helpers::const_get_under(state, under, self->name(), &reason, self);
 
       if(!constant) return NULL;
 
-      if(found) {
+      if(reason == vFound) {
         return constant;
       }
       return Helpers::const_missing_under(state, under, self->name(), call_frame);
@@ -52,12 +52,12 @@ namespace rubinius {
     if(!res) return NULL;
 
     if(CBOOL(res) || !honor_require) {
-      bool found;
-      Object* constant = Helpers::const_get(state, call_frame, self->name(), &found, self);
+      ConstantMissingReason reason = vNonExistent;
+      Object* constant = Helpers::const_get(state, call_frame, self->name(), &reason, self);
 
       if(!constant) return NULL;
 
-      if(found) {
+      if(reason == vFound) {
         return constant;
       }
       return Helpers::const_missing(state, self->name(), call_frame);

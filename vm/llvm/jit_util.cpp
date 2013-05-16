@@ -574,12 +574,12 @@ extern "C" {
     CPP_TRY
 
     GCTokenImpl gct;
-    bool found;
+    ConstantMissingReason reason;
     Module* under = as<Module>(top);
     Symbol* sym = as<Symbol>(call_frame->compiled_code->literals()->at(state, index));
-    Object* res = Helpers::const_get_under(state, under, sym, &found);
+    Object* res = Helpers::const_get_under(state, under, sym, &reason);
 
-    if(!found) {
+    if(reason != vFound) {
       res = Helpers::const_missing_under(state, under, sym, call_frame);
     } else if(Autoload* autoload = try_as<Autoload>(res)) {
       res = autoload->resolve(state, gct, call_frame, under);
@@ -599,10 +599,10 @@ extern "C" {
     Object* res = cache->retrieve(state, under, call_frame->constant_scope());
 
     if(!res) {
-      bool found = false;
-      res = Helpers::const_get_under(state, under, cache->name(), &found);
+      ConstantMissingReason reason;
+      res = Helpers::const_get_under(state, under, cache->name(), &reason);
 
-      if(found) {
+      if(reason == vFound) {
         GCTokenImpl gct;
         OnStack<2> os(state, cache, res);
         if(Autoload* autoload = try_as<Autoload>(res)) {
@@ -733,10 +733,10 @@ extern "C" {
 
   Object* rbx_push_const(STATE, CallFrame* call_frame, Symbol* sym) {
     GCTokenImpl gct;
-    bool found;
-    Object* res = Helpers::const_get(state, call_frame, sym, &found);
+    ConstantMissingReason reason;
+    Object* res = Helpers::const_get(state, call_frame, sym, &reason);
 
-    if(!found) {
+    if(reason != vFound) {
       res = Helpers::const_missing(state, sym, call_frame);
     } else if(Autoload* autoload = try_as<Autoload>(res)) {
       res = autoload->resolve(state, gct, call_frame);
@@ -751,10 +751,10 @@ extern "C" {
     Object* res = cache->retrieve(state, call_frame->constant_scope());
 
     if(!res) {
-      bool found = false;
-      res = Helpers::const_get(state, call_frame, cache->name(), &found);
+      ConstantMissingReason reason;
+      res = Helpers::const_get(state, call_frame, cache->name(), &reason);
 
-      if(found) {
+      if(reason == vFound) {
         GCTokenImpl gct;
         OnStack<2> os(state, cache, res);
         if(Autoload* autoload = try_as<Autoload>(res)) {

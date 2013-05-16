@@ -737,10 +737,10 @@ section "Manipulate constants"
 #     engine = RUBY_ENGINE # RUBY_ENGINE is a constant defined by Rubinius
 
 instruction push_const(literal) [ -- constant ]
-  bool found;
+  ConstantMissingReason reason;
   Symbol* sym = as<Symbol>(call_frame->compiled_code->literals()->at(state, literal));
-  Object* res = Helpers::const_get(state, call_frame, sym, &found);
-  if(!found) {
+  Object* res = Helpers::const_get(state, call_frame, sym, &reason);
+  if(reason != vFound) {
     flush_ip();
     res = Helpers::const_missing(state, sym, call_frame);
   } else if(Autoload* autoload = try_as<Autoload>(res)) {
@@ -791,11 +791,11 @@ end
 #     enum = Enumerable::Enumerator(str, :each_byte)
 
 instruction find_const(literal) [ module -- constant ]
-  bool found;
+  ConstantMissingReason reason;
   Module* under = as<Module>(stack_pop());
   Symbol* sym = as<Symbol>(call_frame->compiled_code->literals()->at(state, literal));
-  Object* res = Helpers::const_get_under(state, under, sym, &found);
-  if(!found) {
+  Object* res = Helpers::const_get_under(state, under, sym, &reason);
+  if(reason != vFound) {
     flush_ip();
     res = Helpers::const_missing_under(state, under, sym, call_frame);
   } else if(Autoload* autoload = try_as<Autoload>(res)) {
@@ -830,13 +830,13 @@ instruction push_const_fast(literal) [ -- constant ]
   Object* res = cache->retrieve(state, call_frame->constant_scope());
 
   if(!res) {
-    bool found = false;
+    ConstantMissingReason reason;
     flush_ip();
 
     Symbol* sym = cache->name();
-    res = Helpers::const_get(state, call_frame, sym, &found);
+    res = Helpers::const_get(state, call_frame, sym, &reason);
 
-    if(found) {
+    if(reason == vFound) {
       OnStack<2> os(state, cache, res);
       if(Autoload* autoload = try_as<Autoload>(res)) {
         flush_ip();
@@ -875,13 +875,13 @@ instruction find_const_fast(literal) [ module -- constant ]
   Object* res = cache->retrieve(state, under, call_frame->constant_scope());
 
   if(!res) {
-    bool found = false;
+    ConstantMissingReason reason;
     flush_ip();
 
     Symbol* sym = cache->name();
-    res = Helpers::const_get_under(state, under, sym, &found);
+    res = Helpers::const_get_under(state, under, sym, &reason);
 
-    if(found) {
+    if(reason == vFound) {
       OnStack<3> os(state, cache, under, res);
       if(Autoload* autoload = try_as<Autoload>(res)) {
         flush_ip();

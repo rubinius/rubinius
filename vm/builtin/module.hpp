@@ -78,7 +78,7 @@ namespace rubinius {
     void set_const(STATE, Symbol* sym, Object* val);
     void set_const(STATE, std::string name, Object* val);
     Object* get_const(STATE, Symbol* sym);
-    Object* get_const(STATE, Symbol* sym, bool* found, bool check_super=false);
+    Object* get_const(STATE, Symbol* sym, Symbol* min_vis, ConstantMissingReason* reason, bool check_super=false);
     Object* get_const(STATE, std::string sym);
 
     void del_const(STATE, Symbol* sym);
