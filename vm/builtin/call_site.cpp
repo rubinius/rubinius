@@ -20,6 +20,8 @@
 #include "call_frame.hpp"
 #include "ontology.hpp"
 
+#include <iostream>
+
 namespace rubinius {
 
   void CallSite::init(STATE) {
@@ -84,7 +86,12 @@ namespace rubinius {
       missing_dis.resolve(state, G(sym_method_missing), missing_lookup);
 
       if(missing_dis.method_missing != eNone) {
-        Exception::internal_error(state, call_frame, "no method_missing");
+        std::ostringstream msg;
+        msg << "no method_missing for ";
+        msg << recv_class->to_string(state);
+        msg << "#" << call_site->name()->to_string(state);
+
+        Exception::internal_error(state, call_frame, msg.str().c_str());
         return 0;
       }
 
@@ -126,7 +133,12 @@ namespace rubinius {
       missing_dis.resolve(state, G(sym_method_missing), missing_lookup);
 
       if(missing_dis.method_missing != eNone) {
-        Exception::internal_error(state, call_frame, "no method_missing");
+        std::ostringstream msg;
+        msg << "no method_missing for ";
+        msg << recv_class->to_string(state);
+        msg << "#" << call_site->name()->to_string(state);
+
+        Exception::internal_error(state, call_frame, msg.str().c_str());
         return 0;
       }
 
@@ -169,7 +181,12 @@ namespace rubinius {
       missing_dis.resolve(state, G(sym_method_missing), missing_lookup);
 
       if(missing_dis.method_missing != eNone) {
-        Exception::internal_error(state, call_frame, "no method_missing");
+        std::ostringstream msg;
+        msg << "no method_missing for ";
+        msg << recv_class->to_string(state);
+        msg << "#" << call_site->name()->to_string(state);
+
+        Exception::internal_error(state, call_frame, msg.str().c_str());
         return 0;
       }
 
@@ -220,7 +237,12 @@ namespace rubinius {
       missing_dis.resolve(state, G(sym_method_missing), missing_lookup);
 
       if(missing_dis.method_missing != eNone) {
-        Exception::internal_error(state, call_frame, "no method_missing");
+        std::ostringstream msg;
+        msg << "no method_missing for ";
+        msg << recv_class->to_string(state);
+        msg << "#" << call_site->name()->to_string(state);
+
+        Exception::internal_error(state, call_frame, msg.str().c_str());
         return 0;
       }
 

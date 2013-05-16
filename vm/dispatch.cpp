@@ -8,6 +8,8 @@
 #include "builtin/symbol.hpp"
 #include "builtin/executable.hpp"
 
+#include <iostream>
+
 namespace rubinius {
   Object* Dispatch::send(STATE, CallFrame* call_frame, Arguments& args,
                          MethodMissingReason reason)
@@ -28,7 +30,12 @@ namespace rubinius {
       method_missing = reason;
       lookup.min_visibility = G(sym_private);
       if(!resolve(state, G(sym_method_missing), lookup)) {
-        Exception::internal_error(state, call_frame, "no method_missing");
+        std::ostringstream msg;
+        msg << "no method_missing for ";
+        msg << lookup.from->to_string(state);
+        msg << "#" << original_name->to_string(state);
+
+        Exception::internal_error(state, call_frame, msg.str().c_str());
         return 0;
       }
 
