@@ -128,6 +128,10 @@ with_feature :encoding do
       rm_r @name
     end
 
+    it "returns self" do
+      @io.set_encoding(Encoding::UTF_8).should equal(@io)
+    end
+
     it "sets the external encoding when passed an Encoding argument" do
       @io.set_encoding(Encoding::UTF_8)
       @io.external_encoding.should == Encoding::UTF_8
