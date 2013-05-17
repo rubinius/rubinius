@@ -26,15 +26,14 @@ Rubinius uses the BSD license. See LICENSE for details.
 
 To install Rubinius:
 
-  Ensure that MRI 1.8.7+, rubygems, rake, and git are installed
+  Ensure that MRI 1.8.7+, rubygems, rake, and git are installed, then:
   
-  Then:
-   ```git clone git://github.com/rubinius/rubinius.git
-   cd rubinius
-   ./configure --prefix=/path/to/install/dir
-   rake install
-   ```
-
+```
+git clone git://github.com/rubinius/rubinius.git
+cd rubinius
+./configure --prefix=/path/to/install/dir
+rake install 
+```
 When the install process finishes, follow the directions printed to the
 terminal to add the Rubinius executable (bin) directory to your PATH.
 
@@ -45,9 +44,9 @@ Rubinius for different Ruby language versions.
 ## Using RubyGems
 
 Rubinius comes with RubyGems built-in. To install a gem, run the following:
-
-  rbx -S gem install <gem_name>
-
+```
+rbx -S gem install <gem_name>
+```
 
 ## Language Modes
 
@@ -55,20 +54,22 @@ Rubinius implements multiple Ruby language features in one executable. You can
 select the language mode at runtime by passing the -X18, -X19, or -X20 command
 line option or by setting the RBXOPT environment variable. The following two
 commands are equivalent:
-
-  RBXOPT=-X19 bin/rbx -v
-  bin/rbx -X19 -v
-
+```
+RBXOPT=-X19 bin/rbx -v
+```
+```
+bin/rbx -X19 -v
+```
 The default language mode is 1.8. You can change which language modes are
 enabled and which one is the default mode with configure options.
 
 For example, to enable both 1.9 and 2.0 modes, with 1.9 the default, use the
 follwing configure options:
-
-  ./configure --enable-version=1.9,2.0 --default-version=1.9
-
-The --enable-version option takes a comma-separated list of versions. The
---default-version option takes a single version. If only a single version is
+```
+./configure --enable-version=1.9,2.0 --default-version=1.9
+```
+The ```--enable-version``` option takes a comma-separated list of versions. The
+```--default-version``` option takes a single version. If only a single version is
 enabled, setting the default version is redundant.
 
 
@@ -83,7 +84,6 @@ at any time.
 Please file tickets for bugs or problems. The issue tracker is:
 
   http://github.com/rubinius/rubinius/issues
-
 
 ## Contributing
 
