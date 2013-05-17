@@ -17,7 +17,7 @@ Microsoft Windows is coming soon.
 Most popular Ruby applications, like Rails, run on Rubinius.
 
 
-# License
+## License
 
 Rubinius uses the BSD license. See LICENSE for details.
 
@@ -46,7 +46,7 @@ Rubinius comes with RubyGems built-in. To install a gem, run the following:
   rbx -S gem install <gem_name>
 
 
-# Language Modes
+## Language Modes
 
 Rubinius implements multiple Ruby language features in one executable. You can
 select the language mode at runtime by passing the -X18, -X19, or -X20 command
@@ -69,7 +69,7 @@ The --enable-version option takes a comma-separated list of versions. The
 enabled, setting the default version is redundant.
 
 
-# Documentation
+## Documentation
 
 After installing Rubinius, run 'rbx docs' to access the built-in documentation
 at any time.
