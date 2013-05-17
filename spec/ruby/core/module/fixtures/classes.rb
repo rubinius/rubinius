@@ -404,7 +404,6 @@ module ModuleSpecs
     end
   end
 
-  require 'thread' # get Mutex class
   class CyclicBarrier
     def initialize(count = 1)
       @count = count

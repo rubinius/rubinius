@@ -460,7 +460,7 @@ describe "Module#autoload" do
         # check that no thread got a NoMethodError because of partially loaded module
         threads.all? {|t| t.value}.should be_true
 
-        # check that the autloaded file was evaled exactly once
+        # check that the autoloaded file was evaled exactly once
         ScratchPad.recorded.get.should == mod_count
       end
     end
