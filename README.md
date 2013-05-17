@@ -1,4 +1,4 @@
-1. What is Rubinius
+# What is Rubinius
 
 Rubinius is an implementation of the Ruby programming language.
 
@@ -17,12 +17,12 @@ Microsoft Windows is coming soon.
 Most popular Ruby applications, like Rails, run on Rubinius.
 
 
-2. License
+# License
 
 Rubinius uses the BSD license. See LICENSE for details.
 
 
-3. Installing Rubinius from Source
+# Installing Rubinius from Source
 
 To install Rubinius, use the following steps:
 
@@ -39,14 +39,14 @@ See Section 5. Language Modes below for more information about configuring
 Rubinius for different Ruby language versions.
 
 
-4. Using RubyGems
+## Using RubyGems
 
 Rubinius comes with RubyGems built-in. To install a gem, run the following:
 
   rbx -S gem install <gem_name>
 
 
-5. Language Modes
+# Language Modes
 
 Rubinius implements multiple Ruby language features in one executable. You can
 select the language mode at runtime by passing the -X18, -X19, or -X20 command
@@ -69,20 +69,20 @@ The --enable-version option takes a comma-separated list of versions. The
 enabled, setting the default version is redundant.
 
 
-6. Documentation
+# Documentation
 
 After installing Rubinius, run 'rbx docs' to access the built-in documentation
 at any time.
 
 
-7. Tickets
+## Tickets
 
 Please file tickets for bugs or problems. The issue tracker is:
 
   http://github.com/rubinius/rubinius/issues
 
 
-8. Contributing
+## Contributing
 
 The Rubinius team welcomes contributions. For more information read the
 CONTRIBUTING file in the root directory of Rubinius.
