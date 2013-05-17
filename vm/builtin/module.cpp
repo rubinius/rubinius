@@ -6,6 +6,7 @@
 #include "builtin/module.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/constant_table.hpp"
+#include "builtin/autoload.hpp"
 #include "builtin/methodtable.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/string.hpp"
@@ -129,7 +130,7 @@ namespace rubinius {
     set_const(state, state->symbol(name), val);
   }
 
-  Object* Module::get_const(STATE, Symbol* sym, Symbol* min_vis, ConstantMissingReason* reason, bool check_super) {
+  Object* Module::get_const(STATE, Symbol* sym, Symbol* min_vis, ConstantMissingReason* reason, bool check_super, bool replace_autoload) {
     Module* mod = this;
     *reason = vNonExistent;
 
@@ -143,6 +144,15 @@ namespace rubinius {
           break;
         } else {
           *reason = vFound;
+          if(Autoload* autoload = try_as<Autoload>(bucket->constant())) {
+            if(autoload->constant() != G(undefined)) {
+              if(replace_autoload) {
+                bucket->constant(state, autoload->constant());
+              } else if (autoload->thread() == Thread::current(state)) {
+                return autoload->constant();
+              }
+            }
+          }
           return bucket->constant();
         }
       }

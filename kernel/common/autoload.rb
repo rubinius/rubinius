@@ -12,11 +12,14 @@ class Autoload
   attr_reader :name
   attr_reader :scope
   attr_reader :path
+  attr_reader :constant
+  attr_reader :thread
 
   def initialize(name, scope, path)
     @name = name
     @scope = scope
     @path = path
+    @constant = undefined
   end
 
   ##
@@ -35,10 +38,15 @@ class Autoload
     # be held by require until @path is available, at which time they'll
     # attempt the lookup again.
     #
-    worked = resolve
 
-    if !honor_require or worked
-      find_const under
+    if !constant.equal?(undefined) && Thread.current == thread
+      constant
+    else
+      worked = resolve
+
+      if !honor_require or worked
+        find_const under
+      end
     end
   end
 
@@ -53,8 +61,13 @@ class Autoload
       if entry = current.constant_table.lookup(name)
         constant = entry.constant
         if constant.equal? self
-          unless Object.constant_table.lookup(name)
-            return under.const_missing(name)
+          if constant.constant.equal? undefined
+            unless Object.constant_table.lookup(name)
+              return under.const_missing(name)
+            end
+          else
+            entry.constant = constant.constant
+            return constant.constant
           end
         end
         return constant
@@ -67,7 +80,12 @@ class Autoload
       if entry = Object.constant_table.lookup(name)
         constant = entry.constant
         if constant.equal? self
-          return under.const_missing(name)
+          if constant.constant.equal? undefined
+            return under.const_missing(name)
+          else
+            entry.constant = constant.constant
+            return constant.constant
+          end
         end
         return constant
       end

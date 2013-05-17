@@ -4,7 +4,7 @@ module Rubinius
   class ConstantTable
     class Bucket
       attr_reader :name
-      attr_reader :constant
+      attr_accessor :constant
       attr_accessor :visibility
       attr_reader :next
 

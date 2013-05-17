@@ -32,7 +32,7 @@ namespace rubinius {
 
     if(CBOOL(res) || !honor_require) {
       ConstantMissingReason reason = vNonExistent;
-      Object* constant = Helpers::const_get_under(state, under, self->name(), &reason, self);
+      Object* constant = Helpers::const_get_under(state, under, self->name(), &reason, self, true);
 
       if(!constant) return NULL;
 
@@ -53,7 +53,7 @@ namespace rubinius {
 
     if(CBOOL(res) || !honor_require) {
       ConstantMissingReason reason = vNonExistent;
-      Object* constant = Helpers::const_get(state, call_frame, self->name(), &reason, self);
+      Object* constant = Helpers::const_get(state, call_frame, self->name(), &reason, self, true);
 
       if(!constant) return NULL;
 

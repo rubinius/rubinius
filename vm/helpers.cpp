@@ -29,11 +29,11 @@
 
 namespace rubinius {
   namespace Helpers {
-    Object* const_get_under(STATE, Module* mod, Symbol* name, ConstantMissingReason* reason, Object* filter) {
+    Object* const_get_under(STATE, Module* mod, Symbol* name, ConstantMissingReason* reason, Object* filter, bool replace_autoload) {
       *reason = vNonExistent;
 
       while(!mod->nil_p()) {
-        Object* result = mod->get_const(state, name, G(sym_public), reason);
+        Object* result = mod->get_const(state, name, G(sym_public), reason, false, replace_autoload);
         if(*reason == vFound) {
           if(result != filter) return result;
           *reason = vNonExistent;
@@ -49,7 +49,7 @@ namespace rubinius {
       return cNil;
     }
 
-    Object* const_get(STATE, CallFrame* call_frame, Symbol* name, ConstantMissingReason* reason, Object* filter) {
+    Object* const_get(STATE, CallFrame* call_frame, Symbol* name, ConstantMissingReason* reason, Object* filter, bool replace_autoload) {
       ConstantScope *cur;
       Object* result;
 
@@ -100,7 +100,7 @@ namespace rubinius {
         // Detect the toplevel scope (the default) and get outta dodge.
         if(cur->top_level_p(state)) break;
 
-        result = cur->module()->get_const(state, name, G(sym_private), reason);
+        result = cur->module()->get_const(state, name, G(sym_private), reason, false, replace_autoload);
         if(*reason == vFound) {
           if(result != filter) return result;
           *reason = vNonExistent;
@@ -124,7 +124,7 @@ namespace rubinius {
             fallback = NULL;
           }
 
-          result = mod->get_const(state, name, G(sym_private), reason);
+          result = mod->get_const(state, name, G(sym_private), reason, false, replace_autoload);
           if(*reason == vFound) {
             if(result != filter) return result;
             *reason = vNonExistent;
@@ -136,7 +136,7 @@ namespace rubinius {
 
       // Lastly, check the fallback scope (=Object) specifically if needed
       if(fallback) {
-        result = fallback->get_const(state, name, G(sym_private), reason, true);
+        result = fallback->get_const(state, name, G(sym_private), reason, true, replace_autoload);
         if(*reason == vFound) {
           if(result != filter) return result;
           *reason = vNonExistent;

@@ -10,6 +10,8 @@
 #include "builtin/string.hpp"
 #include "builtin/alias.hpp"
 #include "builtin/constant_table.hpp"
+#include "builtin/autoload.hpp"
+#include "builtin/thread.hpp"
 
 #include "on_stack.hpp"
 
@@ -120,7 +122,12 @@ namespace rubinius {
 
     while(entry) {
       if(entry->name() == name) {
-        entry->constant(state, constant);
+        if(Autoload* autoload = try_as<Autoload>(entry->constant())) {
+          autoload->constant(state, constant);
+          autoload->thread(state, Thread::current(state));
+        } else {
+          entry->constant(state, constant);
+        }
         return name;
       }
 

@@ -2,6 +2,7 @@
 #define RBX_BUILTIN_AUTOLOAD_HPP
 
 #include "builtin/object.hpp"
+#include "builtin/thread.hpp"
 #include "type_info.hpp"
 
 namespace rubinius {
@@ -15,11 +16,15 @@ namespace rubinius {
     Symbol* name_; // slot
     Module* scope_; // slot
     Object* path_; // slot
+    Object* constant_; // slot
+    Thread* thread_; // slot
 
   public:
     attr_accessor(name, Symbol);
     attr_accessor(scope, Module);
     attr_accessor(path, Object);
+    attr_accessor(constant, Object);
+    attr_accessor(thread, Thread);
 
     /**  Register class with the VM. */
     static void   init(STATE);
