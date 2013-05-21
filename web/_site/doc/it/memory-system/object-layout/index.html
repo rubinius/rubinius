@@ -153,7 +153,7 @@
     <h2 id="introduction">Introduction</h2>
 
 <p>The virtual machines knows about various types of objects. These objects
-can be divided into different categories where each has it&rsquo;s specific
+can be divided into different categories where each has it’s specific
 properties. The first category is the so-called immediates, also known
 as tagged pointers. This is a very efficient way of storing things like
 smaller numbers and symbols.</p>
@@ -211,7 +211,7 @@ check that patter for a Ruby false match.</p>
   </li>
 </ol>
 
-<p>The use of these immediates means that we don&rsquo;t have to allocate any
+<p>The use of these immediates means that we don’t have to allocate any
 memory for these types of objects. It also means that each instance of
 for example the Fixnum value 1 is indistinguishable from other ones.</p>
 
@@ -268,8 +268,7 @@ the number of bits of the total flags header used for this flag.</p>
 <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">Untrusted</span>       <span class="o">:</span> <span class="mi">1</span><span class="p">;</span>
 <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">LockContended</span>   <span class="o">:</span> <span class="mi">1</span><span class="p">;</span>
 <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">unused</span>          <span class="o">:</span> <span class="mi">6</span><span class="p">;</span>
-</code></pre>
-</div>
+</code></pre></div>
 
 <h4 id="meaning">meaning</h4>
 
@@ -277,7 +276,7 @@ the number of bits of the total flags header used for this flag.</p>
 meanings defined:</p>
 
 <ol>
-  <li><strong>eAuxWordEmpty</strong>: This is the default value and means that there&rsquo;s
+  <li><strong>eAuxWordEmpty</strong>: This is the default value and means that there’s
 nothing special with this header.</li>
   <li><strong>eAuxWordObjID</strong>: This value means an object id was stored inside this
 header.</li>
@@ -298,12 +297,11 @@ objects in the virtual machine. This allows for us using C++ templates
 such as these for type safe operations:</p>
 
 <div class="highlight"><pre><code class="cpp"><span class="n">ByteArray</span> <span class="n">ba</span> <span class="o">=</span> <span class="n">as</span><span class="o">&lt;</span><span class="n">ByteArray</span><span class="o">&gt;</span><span class="p">(</span><span class="n">obj</span><span class="p">);</span>
-</code></pre>
-</div>
+</code></pre></div>
 
 <p>In this case it validates that the given object is actually of the
 correct obj_type and can throw an exception that bubbles back into Ruby
-land so we don&rsquo;t crash the virtual machine but just get an exception.</p>
+land so we don’t crash the virtual machine but just get an exception.</p>
 
 <h4 id="zone">zone</h4>
 
@@ -312,7 +310,7 @@ located. The value is one of the following:</p>
 
 <ol>
   <li><strong>UnspecifiedZone</strong>: Not yet in a zone. This only happens when we just
-allocated the object and haven&rsquo;t set the value. When debugging,
+allocated the object and haven’t set the value. When debugging,
 normally you would never see this value.</li>
   <li><strong>LargeObjectZone</strong>: The object is a large object and therefore allocated
 in the large object zone.</li>
@@ -353,7 +351,7 @@ possible values are 0 for no mark or 1 or 2 depending on the rotation.</p>
 <p>A pinned object is not moved by the garbage collector. This is for
 example used when reading data with the read system call which can block
 and allows the garbage collector to run in the mean while. In this case
-the buffer used to store the read data can&rsquo;t be moved.</p>
+the buffer used to store the read data can’t be moved.</p>
 
 <h4 id="frozen">Frozen</h4>
 
@@ -382,7 +380,7 @@ transparent. As can be read in the previous section the obj_type flag
 indicates this type.</p>
 
 <p>These objects are also C++ objects and inherit from the C++ type Object
-which in it&rsquo;s turn inherits from ObjectHeader. Instance variables that
+which in it’s turn inherits from ObjectHeader. Instance variables that
 are defined in the C++ class can be made available in Ruby very easily
 as can be seen in the following code snippet that can be found in these
 C++ classes:</p>
@@ -395,14 +393,13 @@ C++ classes:</p>
     <span class="n">attr_accessor</span><span class="p">(</span><span class="n">hash_value</span><span class="p">,</span> <span class="n">Fixnum</span><span class="p">);</span>
   <span class="p">}</span>
 <span class="p">}</span>
-</code></pre>
-</div>
+</code></pre></div>
 
 <p>In this case you see here the String class defined which has a
 hash_value_ instance variable. This instance variable is made
 available with accessors that work from both C++, but also are used
 when the @hash_value instance variable in this case is set in Ruby.
-Please note that this doesn&rsquo;t setup accessor methods in Ruby itself.
+Please note that this doesn’t setup accessor methods in Ruby itself.
 This means that setting an instance variable from Ruby goes through this
 accessor in C++. If this instance variable should also be exposed in
 Ruby, you still need to add an attr_accessor in Ruby in the given class.</p>
@@ -423,7 +420,7 @@ aware of.</p>
 generic object layout also includes an Object pointer called ivars. As
 you might already thought, this is a pointer to a so called LookupTable
 that contains the instance variables for this object. A LookupTable is a
-structure much like Ruby&rsquo;s Hash, but it uses only Symbols as the keys.</p>
+structure much like Ruby’s Hash, but it uses only Symbols as the keys.</p>
 
 <h2 id="packed-object-layout">Packed object layout</h2>
 
@@ -450,8 +447,7 @@ Class, as can be seen in this code snippet.</p>
 <span class="k">end</span>
 
 <span class="no">Foo</span><span class="o">.</span><span class="n">instance_variable_get</span><span class="p">(</span><span class="s2">&quot;@seen_ivars&quot;</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="o">[</span><span class="ss">:@str</span><span class="o">]</span>
-</code></pre>
-</div>
+</code></pre></div>
 
 <p>As you can see here, the compiler has tracked the compilation and has
 seen the @str instance variable. The virtual machine can then use this
@@ -468,24 +464,23 @@ object, it would look something like this:</p>
 <div class="highlight"><pre><code class="cpp"><span class="k">class</span> <span class="nc">Foo</span> <span class="o">:</span> <span class="k">public</span> <span class="n">Object</span> <span class="p">{</span>
   <span class="n">Object</span><span class="o">*</span> <span class="n">str</span><span class="p">;</span>
 <span class="p">}</span>
-</code></pre>
-</div>
+</code></pre></div>
 
 <p>This so-called packing of instance variables has multiple advantages.
-One is that this creates more memory efficient objects. We don&rsquo;t have
+One is that this creates more memory efficient objects. We don’t have
 the overhead of a LookupTable for storing them, so we use less memory
 when we make objects like this.</p>
 
 <p>Another advantage is that using this also results in faster code.
-Retrieving or setting an instance variable doesn&rsquo;t incur a LookupTable
+Retrieving or setting an instance variable doesn’t incur a LookupTable
 lookup anymore. The location of where the instance variable is stored
 can be determined with just the address of the object and an offset
 because this offset is always the same for all Foo instances.</p>
 
 <p>Of course it is still possible to set an instance variable on an
-instance of Foo after the first instance has been created. Maybe it&rsquo;s
+instance of Foo after the first instance has been created. Maybe it’s
 happening due to reopening the class later on after the first Foo is
-instantiated or we&rsquo;re doing some metaprogramming. In that case we use
+instantiated or we’re doing some metaprogramming. In that case we use
 the ivars LookupTable as the fallback mechanism so we can keep providing
 the flexibility that Ruby gives you.</p>
 

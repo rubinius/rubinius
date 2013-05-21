@@ -83,7 +83,7 @@ technology. We started the week by making the following list:</p>
 <ul>
   <li>Inline cache</li>
   <li>JIT IR</li>
-  <li>Performance of JIT&rsquo;d code</li>
+  <li>Performance of JIT’d code</li>
   <li>Extension API</li>
   <li>Concurrency and garbage collection</li>
 </ul>
@@ -91,9 +91,9 @@ technology. We started the week by making the following list:</p>
 <p>We spent the week mostly writing a ton of things on the whiteboard, discussing
 them, erasing them, and writing a bunch more. Ultimately, we touched on all
 the topics but we did not get to discussing the extension API in depth, so
-we&rsquo;ll skip that one for now. I&rsquo;ve <a href="http://rubini.us/2013/03/13/welcome-dirkjan/">previously
+we’ll skip that one for now. I’ve <a href="http://rubini.us/2013/03/13/welcome-dirkjan/">previously
 blogged</a> about our inline cache
-discussion. Here I&rsquo;ll summarize the rest of our discussions.</p>
+discussion. Here I’ll summarize the rest of our discussions.</p>
 
 <h2 id="just-in-time-compiler">Just-in-time Compiler</h2>
 
@@ -111,7 +111,7 @@ improve the quality of the machine code.</p>
 
 <p>One important component of this work is the ability to represent operations
 that have Ruby semantics (but are not part of Ruby itself) in a way that we
-can perform transformations on those operations. The &ldquo;not part of Ruby&rdquo; is
+can perform transformations on those operations. The “not part of Ruby” is
 actually a bit fuzzy. The concept of object allocation is certainly a part of
 Ruby. But the specific operation of reserving a region in the heap is
 invisible to Ruby.</p>
@@ -129,7 +129,7 @@ other side effects, we may be able to avoid allocating the object. A good
 example of this in Rubinius, where the core library is implemented in Ruby, is
 the ByteArray object that is used by String. A ByteArray is a fixed vector of
 8-bit bytes. If an intermediate operation on a String creates a ByteArray and
-that object isn&rsquo;t used outside the JIT&rsquo;d method, the JIT should be able to see
+that object isn’t used outside the JIT’d method, the JIT should be able to see
 through the object creation and recognize that just some machine bytes are
 being moved around or transformed. The ByteArray allocation can be elided.</p>
 
@@ -159,9 +159,9 @@ simultaneously.</p>
 <h2 id="performance">Performance</h2>
 
 <p>For us as people, when our assumptions fail we often just blunder on making
-fools of ourselves. Too bad we don&rsquo;t have a &ldquo;check your assumptions&rdquo; mode as
+fools of ourselves. Too bad we don’t have a “check your assumptions” mode as
 useful as the one we build into the JIT. In the JIT, if our assumptions fail
-and we don&rsquo;t catch it, we&rsquo;re going to compute the wrong values or cause the
+and we don’t catch it, we’re going to compute the wrong values or cause the
 wrong actions to be performed.</p>
 
 <p>So, in the JIT, when our assumptions are wrong, we must change course. This
@@ -172,7 +172,7 @@ significant performance implications.</p>
 <p>A reason to exit the machine code is that one significant aspect of generating
 fast machine code is proper use of the type guards. If our assumptions about
 the type of a value are wrong, simply exiting back to the interpreter means
-that we don&rsquo;t pollute the LLVM IR with types that can inhibit LLVM
+that we don’t pollute the LLVM IR with types that can inhibit LLVM
 optimizations from being as effective. On the other hand, there are runtime
 costs associated with both exiting to the interpreter and running the
 interpreter instead of machine code. Also, if we exit the generate machine code
@@ -185,7 +185,7 @@ low-level operations that we call primitives. These are coded in C++ and
 interact with internal virtual machine facilities. When compiling machine
 code, we want as few conditionals and as few function calls as possible to get
 the highest performance. Typically, we call a function that performs the
-primitive operation and then returns to the JIT&rsquo;d machine code. As we move
+primitive operation and then returns to the JIT’d machine code. As we move
 more and more things into Ruby itself, it is possible for the JIT to inline
 operations and get the greatest possible optimizations. This is another area
 we will be working on as we improve the JIT.</p>
@@ -195,7 +195,7 @@ we will be working on as we improve the JIT.</p>
 <p>One of the goals for Rubinius since the very beginning is to provide excellent
 support for concurrency and parallelism in Ruby. We have already removed the
 global interpreter lock (GIL/GVL) from Rubinius. However, we have to ensure
-that we don&rsquo;t replace it with an effective global lock when we implement
+that we don’t replace it with an effective global lock when we implement
 components of the system.</p>
 
 <p>The key to improving lock-freedom throughout the system is to use less locks.
@@ -209,7 +209,7 @@ concurrency bugs could arise just from calling Ruby methods.</p>
 
 <p>In the virtual machine, we must be careful to ensure correctness under
 concurrent execution. The classical way of doing so is to use locking.
-However, there is tons of research from the &rsquo;90s about lock-free and wait-free
+However, there is tons of research from the ’90s about lock-free and wait-free
 algorithms. This academic research is slowly trickling down to industry in
 various domains. We will be using lock-free implementations of various virtual
 machine data structures to improve support for concurrency and parallelism.</p>
@@ -234,8 +234,8 @@ collector concurrent. Fortunately, we can achieve this with some modifications
 to our existing garbage collector. When adding concurrency to the garbage
 collector, we want to avoid slowing down non-garbage-collector operations,
 typically referred to as mutator performance. (Operations in the system can be
-viewed as partitioned into two sets: the heap management&ndash;allocation and
-garbage collection, and the operations that mutate the heap&ndash;mutator
+viewed as partitioned into two sets: the heap management–allocation and
+garbage collection, and the operations that mutate the heap–mutator
 operations.)</p>
 
 <p>With modifications to our mature generation collector (based on the Immix
@@ -253,13 +253,13 @@ version increments on special dates completely devoid of semantic relevance.</p>
 
 <p>In Rubinius, we would like to provide a more sound versioning discipline, in
 particular, semantic versioning. However, this raises some significant
-challenges. Let&rsquo;s consider some of the components of Rubinius:</p>
+challenges. Let’s consider some of the components of Rubinius:</p>
 
 <ul>
   <li>Ruby language itself in one of three language modes: 1.8, 1.9, and 2.0</li>
   <li>Ruby core classes</li>
   <li>Ruby standard library</li>
-  <li>MRI compatibility &ldquo;C-API&rdquo; for supporting C-extensions</li>
+  <li>MRI compatibility “C-API” for supporting C-extensions</li>
   <li>Supporting core classes like ByteArray and Tuple</li>
   <li>Bytecode compiler</li>
   <li>Virtual machine instruction set</li>
@@ -285,8 +285,8 @@ CI</a>.</p>
 
 <h2 id="all-work-and-no-play">All Work and No Play</h2>
 
-<p>Portland is a beautiful city. It&rsquo;s not very big but has enough city things to
-feel like a proper city. I didn&rsquo;t want to keep Dirkjan caged in the office all
+<p>Portland is a beautiful city. It’s not very big but has enough city things to
+feel like a proper city. I didn’t want to keep Dirkjan caged in the office all
 day every day, so when the weather looked promising on Friday, we packed our
 concurrency and garbage collection conversation up and headed out. First we
 went to <a href="http://www.pdx.edu/">Portland State University</a> to attend a talk at a
@@ -299,8 +299,8 @@ fascinating work in dependently typed programming language theory.</p>
 
 <p>After the talk at PSU, we hopped on the MAX light rail and headed toward the
 <a href="http://japanesegarden.com/">Japanese Garden</a>. The bus that would take us the
-rest of the way wasn&rsquo;t due for 25 minutes so we decided to walk. The garden is
-located in Portland&rsquo;s <a href="http://washingtonparkpdx.org/">Washington Park</a>, which
+rest of the way wasn’t due for 25 minutes so we decided to walk. The garden is
+located in Portland’s <a href="http://washingtonparkpdx.org/">Washington Park</a>, which
 is located in the west hills of Portland. So, we walked, uphill, for quite a
 while. We walked past the Lewis and Clark monument, through the <a href="http://www.rosegardenstore.org/">international
 rose garden</a>, past the tennis courts and
@@ -313,7 +313,7 @@ spring, not many plants were blossoming yet, but we saw some huge koi, some
 water falls, beautiful trees, and a stunning view of Portland. Unfortunately,
 Mt Hood was hiding in the clouds that day.</p>
 
-<p>I&rsquo;m not much of a photographer, but here are some pics from the trip.</p>
+<p>I’m not much of a photographer, but here are some pics from the trip.</p>
 
 <p><img src="http://farm9.staticflickr.com/8516/8573161804_69e037f173_c.jpg" alt="Dirkjan photographing from a bridge" />
 <img src="http://farm9.staticflickr.com/8367/8573160544_466e14d2ec_c.jpg" alt="Koi!" />

@@ -78,19 +78,19 @@
 
   <h3 id="tldr">tl;dr</h3>
 
-<p>It&rsquo;s now <strong><a href="https://github.com/rubinius/heroku-rbx-puma-rails-app">very easy</a></strong> to get a <a href="https://devcenter.heroku.com/articles/rails3">Rails app</a> on <a href="https://devcenter.heroku.com/articles/cedar">Heroku&rsquo;s Cedar Stack</a> running on <a href="http://rubini.us" title="Rubinius : Use Ruby&#8482;">Rubinius 2.0</a> and <a href="http://puma.io" title="A Modern, Concurrent Web Server for Ruby - Puma">Puma 2.0</a>.</p>
+<p>It’s now <strong><a href="https://github.com/rubinius/heroku-rbx-puma-rails-app">very easy</a></strong> to get a <a href="https://devcenter.heroku.com/articles/rails3">Rails app</a> on <a href="https://devcenter.heroku.com/articles/cedar">Heroku’s Cedar Stack</a> running on <a href="http://rubini.us" title="Rubinius : Use Ruby&#8482;">Rubinius 2.0</a> and <a href="http://puma.io" title="A Modern, Concurrent Web Server for Ruby - Puma">Puma 2.0</a>.</p>
 
 <h3 id="the-backstory">The Backstory</h3>
 
 <p>The fine folks at Heroku have been adding support for using <a href="http://gembundler.com" title="Bundler: The best way to manage a Ruby application's gems">Bundler</a> to <a href="https://devcenter.heroku.com/articles/ruby-versions">specify which version of Ruby</a> your app uses and even <a href="https://blog.heroku.com/archives/2012/12/13/run_jruby_on_heroku_right_now">to specify which Ruby</a> it uses.</p>
 
-<p>I&rsquo;ve checked in on the progress of using Rubinius with this same method every couple few months for the past year or so. I was always met with the same results&hellip; <q>&ldquo;not quite yet, we&rsquo;re working on it&rdquo;</q>.</p>
+<p>I’ve checked in on the progress of using Rubinius with this same method every couple few months for the past year or so. I was always met with the same results… <q>“not quite yet, we’re working on it”</q>.</p>
 
-<p>Last night I was getting mentally packed for <a href="https://waza.heroku.com/2013">Waza</a> later this week and decided to check in on the state of things so I could ask the right people the right questions in person when we&rsquo;re all together. Turns out that sometime between last time and this time, they&rsquo;ve got things working. Boom diggity! And it&rsquo;s pretty ding-dang easy too! Double boom diggity!</p>
+<p>Last night I was getting mentally packed for <a href="https://waza.heroku.com/2013">Waza</a> later this week and decided to check in on the state of things so I could ask the right people the right questions in person when we’re all together. Turns out that sometime between last time and this time, they’ve got things working. Boom diggity! And it’s pretty ding-dang easy too! Double boom diggity!</p>
 
 <h3 id="the-build-up">The Build Up</h3>
 
-<p>I&rsquo;m going to assume that if you want to use Rubinius 2.0 that you also have the good sense to want to use Puma 2.0. There are three very simple steps to get up and running with Rubinius 2.0 + Puma 2.0.</p>
+<p>I’m going to assume that if you want to use Rubinius 2.0 that you also have the good sense to want to use Puma 2.0. There are three very simple steps to get up and running with Rubinius 2.0 + Puma 2.0.</p>
 
 <h4 id="step-1">Step 1</h4>
 
@@ -112,10 +112,10 @@
 
 <h3 id="the-breakdown">The Breakdown</h3>
 
-<p>Once you&rsquo;ve done those things, your workflow is the same as before.
+<p>Once you’ve done those things, your workflow is the same as before.
 <code>bundle update &amp;&amp; git commit -am "Double boom diggity!" &amp;&amp; git push heroku master</code></p>
 
-<p>If you&rsquo;re changing an existing app from Heroku&rsquo;s default Ruby (MRI 1.9.x) to Rubinius, you&rsquo;ll see a message like this when you <code>git push heroku master</code>.</p>
+<p>If you’re changing an existing app from Heroku’s default Ruby (MRI 1.9.x) to Rubinius, you’ll see a message like this when you <code>git push heroku master</code>.</p>
 
 <script src="https://gist.github.com/veganstraightedge/5041986.js"></script>
 
@@ -123,7 +123,7 @@
 
 <h3 id="the-outro">The Outro</h3>
 
-<p>That&rsquo;s it. You should now be up and running with Rubinius and Puma!</p>
+<p>That’s it. You should now be up and running with Rubinius and Puma!</p>
 
 <p>If you have problems, say something in the comments with a link to a gist with your problem output. If you succeed and get up and running in production, let us in the comments too. Tell the world that you love Rubinius/Puma.</p>
 
@@ -135,7 +135,7 @@
 
 <h3 id="the-footnotes">The Footnotes</h3>
 
-<p>As of this writing &ldquo;Rubinius 2.0&rdquo; actually means &ldquo;Rubinius 2.0.0.dev&rdquo; and &ldquo;Puma 2.0&rdquo; actually means &ldquo;Puma 2.0.0b6&rdquo;. The net result is the same though.</p>
+<p>As of this writing “Rubinius 2.0” actually means “Rubinius 2.0.0.rc1” and “Puma 2.0” actually means “Puma 2.0.0b7”. The net result is the same though.</p>
 
 
 

@@ -161,14 +161,14 @@
 
     <h2 id="introduction">Introduction</h2>
 
-<p>Rubinius implements a <a href="http://en.wikipedia.org/wiki/Garbage_collection_&#40;computer_science&#41;#Generational_GC_.28ephemeral_GC.29">Generational Garbage Collector (GC)</a>.
-The Rubinus Generational GC manages the dynamic allocation and deallocation in
+<p>Rubinius implements a <a href="http://en.wikipedia.org/wiki/Garbage_collection_(computer_science)#Generational_GC_.28ephemeral_GC.29">Generational Garbage Collector (GC)</a>.
+The Rubinius Generational GC manages the dynamic allocation and deallocation in
 the heap space of a running Rubinius process.</p>
 
 <h2 id="nursery">Nursery</h2>
 
-<p>The first generation in Rubinius&rsquo;s generational GC is the nursery.
-An object&rsquo;s lifcycle begins in the nursery where it is created (allocated).</p>
+<p>The first generation in Rubinius’ generational GC is the nursery.
+An object’s lifecycle begins in the nursery where it is created (allocated).</p>
 
 <p>Objects live in the nursery until the very next collection. If an object
 is still alive after one GC cycle then it is moved to the Young generation.
@@ -192,10 +192,10 @@ If <em>not enough</em> objects are promoted during a given GC cycle, then X goes
 <h2 id="mature-generation">Mature generation</h2>
 
 <p>Mature objects are objects that have been promoted from the Young
-generation after living past the promotion threshold &lsquo;X&rsquo;.</p>
+generation after living past the promotion threshold ‘X’.</p>
 
 <p>Autotune is the mechanism that is used to dynamic adjust the GC cycles before
-mature collection occurrs. This can be turned off or a static number may be used
+mature collection occurs. This can be turned off or a static number may be used
 via gc.lifetime. gc.lifetime is used by autotune which sets the initial value.</p>
 
 <p>For more information on configuration variables available read the
@@ -205,7 +205,7 @@ via gc.lifetime. gc.lifetime is used by autotune which sets the initial value.</
 
 <p>Large objects are born in a birthing tank rather than in the nursery.</p>
 
-<p>Any object that exceedes the defined byte size for a large object upon
+<p>Any object that exceeds the defined byte size for a large object upon
 allocation is allocated directly into the large objects space.  This is done to
 avoid copying since copying large objects is an expensive operation.</p>
 
@@ -217,6 +217,7 @@ object</em> which by default is 2700 (such a good baud rate eh?) bytes.</p>
 
 <p>For more information on configuration variables available read the
 <a href="https://github.com/rubinius/rubinius/blob/master/vm/configuration.hpp">vm configuration source file </a></p>
+
 
 
 </div>

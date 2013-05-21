@@ -142,34 +142,34 @@ instruction:</p>
                :forever
 </code></pre>
 
-<p>We&rsquo;re using <a href="http://oprofile.sourceforge.net/news/">OProfile</a>, a profiling
-software. In this blog post, I&rsquo;ll show you how to profile using it!</p>
+<p>We’re using <a href="http://oprofile.sourceforge.net/news/">OProfile</a>, a profiling
+software. In this blog post, I’ll show you how to profile using it!</p>
 
-<h3 id="whats-oprofile">What&rsquo;s OProfile?</h3>
+<h3 id="whats-oprofile">What’s OProfile?</h3>
 
-<p>It&rsquo;s a very useful profiling tool available on Linux. It&rsquo;s a sampling-based
+<p>It’s a very useful profiling tool available on Linux. It’s a sampling-based
 one. That means there is absolutely no change to Rubinius and your Ruby code to
 profile. Just run it as you normally do. Also, the overhead of profiling is
 minimal.</p>
 
-<p>This is contrasted to measuring-based profiling. Rubinius&rsquo;s built-in profiler
+<p>This is contrasted to measuring-based profiling. Rubinius’s built-in profiler
 and ruby-prof are both examples of measuring profilers. This means the overhead
 is much bigger and can skew results because of that.</p>
 
 <p>Basically, it works by reporting how many individual profiled items are sampled
-compared to the overall total samples. It doesn&rsquo;t measure elapsed time. It&rsquo;s
-much like top command&rsquo;s individual processes&rsquo; CPU % usage with far greater
+compared to the overall total samples. It doesn’t measure elapsed time. It’s
+much like top command’s individual processes’ CPU % usage with far greater
 flexibility. The actual profiled items can be any of C/C++ libraries, C/C++
 functions, C/C++ source code lines, or CPU instructions.</p>
 
-<p>So, OProfile can&rsquo;t usually profile Ruby code because it works on CPU
-instruction level. From OProfile, it can&rsquo;t tell which Ruby source code line
+<p>So, OProfile can’t usually profile Ruby code because it works on CPU
+instruction level. From OProfile, it can’t tell which Ruby source code line
 Rubinius currently executing from the CPU instructions. However, it can profile
 JIT-ted Ruby code because Rubinius compiles it very down into the CPU
 instructions by definition.</p>
 
-<p>OProfile works as a Linux kernel module. So, it&rsquo;s supported only for Linux.
-Sadly, Ubuntu&rsquo;s OProfile and LLVM have bugs relating to this feature.
+<p>OProfile works as a Linux kernel module. So, it’s supported only for Linux.
+Sadly, Ubuntu’s OProfile and LLVM have bugs relating to this feature.
 Apparently, there is no one using this. So you can say, we are really on the
 cutting edge. ;)</p>
 
@@ -187,7 +187,7 @@ $ sudo apt-get install oprofile llvm-3.1
 $ sudo apt-get dist-upgrade # Upgrade preinstalled libllvm3.1 to the PPA
 </code></pre>
 
-<p>By default, Rubinius doesn&rsquo;t use system-provided LLVM, so re-configure Rubinius
+<p>By default, Rubinius doesn’t use system-provided LLVM, so re-configure Rubinius
 to use it and re-build Rubinius:</p>
 
 <pre><code>$ cd /path/to/rubinius-git-repository
@@ -200,8 +200,8 @@ $ rake
 
 <h3 id="setup-manual-build-the-hard-way">Setup (manual build: the hard way)</h3>
 
-<p>If you really want to build LLVM and OProfile manually or if you&rsquo;re using an
-other Linux distribution and the distribution doesn&rsquo;t provide OProfile-enabled
+<p>If you really want to build LLVM and OProfile manually or if you’re using an
+other Linux distribution and the distribution doesn’t provide OProfile-enabled
  LLVM packages, manually build LLVM and OProfile like this:</p>
 
 <p>(I tested this on Ubuntu 12.10. Minor adjustments may be needed to build on
@@ -310,12 +310,12 @@ $ ./bin/benchmark ./benchmark/core/hash/bench_access.rb
 
 <h3 id="generate-profile-report">Generate profile report</h3>
 
-<p>Let&rsquo;s check the profile report of the above benchmark.</p>
+<p>Let’s check the profile report of the above benchmark.</p>
 
 <p>NOTE: try to run <code>opcontrol --dump</code> at least once while running Rubinius if
-JIT-ted Ruby code doesn&rsquo;t show in the profile report. OProfile automatically
+JIT-ted Ruby code doesn’t show in the profile report. OProfile automatically
 dumps periodically, but if your Ruby process terminates too quickly, you
-should manually run <code>opcontrol --dump</code> while it&rsquo;s still alive.</p>
+should manually run <code>opcontrol --dump</code> while it’s still alive.</p>
 
 <pre><code>$ sudo opcontrol --dump &amp;&amp; sudo opjitconv /var/lib/oprofile/ 0 0
 $ opreport --merge all --threshold 1 image:./bin/rbx --symbols --debug-info \
@@ -324,7 +324,7 @@ $ opannotate --merge all --threshold 0.5 image:./bin/rbx --source \
     &gt; /tmp/hash-access-source
 </code></pre>
 
-<p>I&rsquo;ll omit but you can generate profile report of annotated assembly by passing
+<p>I’ll omit but you can generate profile report of annotated assembly by passing
 <code>--assembly</code> to <code>opannotate</code> instead of <code>--source</code>.</p>
 
 <h3 id="reset-current-profile">Reset current profile</h3>
@@ -376,7 +376,7 @@ samples  %        linenr info                 app name                 symbol na
 <p>As you can guess, symbol names beginning with <code>_X_</code> is the JIT-ted Ruby code.
 Many Ruby benchmark blocks are JIT-ted (like
 <code>_X_Object#__block__$block@7</code> at <code>bench_access.rb:16</code>) and listed near the top.
-Also, <code>_X_Array#map@12</code> is a JIT-ted code of <code>Array#map</code>. I&rsquo;ll explain the
+Also, <code>_X_Array#map@12</code> is a JIT-ted code of <code>Array#map</code>. I’ll explain the
 format of the report using it as an example:</p>
 
 <pre><code>97        0.8583  array18.rb:6                8295.jo                  _X_Array#map@12
@@ -386,7 +386,7 @@ format of the report using it as an example:</p>
 periodically sampling it.</p>
 
 <p><code>0.8583</code> is the percentage to the total number of samples OProfile collected.
-Note that summing all entries up doesn&rsquo;t equal to 100%, because <code>opreport</code> only
+Note that summing all entries up doesn’t equal to 100%, because <code>opreport</code> only
 reported the top part of whole profile result (by <code>--threshold 0.5</code>).</p>
 
 <p><a href="https://github.com/rubinius/rubinius/blob/1d7d7b2e2880478776476089d4dd93fd97aff122/kernel/bootstrap/array18.rb#L6"><code>array18.rb:6</code></a>
@@ -395,7 +395,7 @@ is the source location where this method is defined (this is same as
 
 <p><code>8295.jo</code> is a special <code>app name</code> for JIT-ted code. Usually <code>app name</code> is the
 name of file C/C++ functions reside in (shared libraries or executables).
-So, for normal Rubinius&rsquo; C++ functions, <code>app name</code> is just <code>rbx</code> because they
+So, for normal Rubinius’ C++ functions, <code>app name</code> is just <code>rbx</code> because they
 reside in <code>./bin/rbx</code>. For JIT-ted Ruby code, there can be no meaningful <code>app
 name</code>, because JIT-ted Ruby code is generated at runtime and they reside in no
 file, but only in memory. So, OProfile uses <code>*.jo</code> as <code>app name</code> in such cases.
@@ -404,7 +404,7 @@ And, <code>8295</code> means this is profiled when running the process of PID 82
 <p><code>_X_Array#map@12</code> is the name of symbol for this entry of profile report
 (duh!).</p>
 
-<p>Open <code>/tmp/hash-access-source</code>, the content should be like this (I&rsquo;ll omit some
+<p>Open <code>/tmp/hash-access-source</code>, the content should be like this (I’ll omit some
 unimportant part, because this file is big):</p>
 
 <pre><code>/* 
@@ -439,7 +439,7 @@ unimportant part, because this file is big):</p>
 ...
 </code></pre>
 
-<p>You might wonder why <code>Hash::Bucket#match?</code> has so many counts while this didn&rsquo;t
+<p>You might wonder why <code>Hash::Bucket#match?</code> has so many counts while this didn’t
 appear in the report for symbols. The reason is that the method is inlined to
 each its callers (maybe many top-appearing JIT-ted Ruby blocks). How cool this
 is! You can really know which Ruby code is actually taking too much time.</p>
@@ -447,8 +447,8 @@ is! You can really know which Ruby code is actually taking too much time.</p>
 <h3 id="my-last-favor">My last favor</h3>
 
 <p>I wish the official Ubuntu packages are fixed and there is no need to add any
-PPA. I want it-just-works. I reported affecting bugs to Ubuntu&rsquo;s bug tracking
-system. So, please vote it up for fixing (vote them with &ldquo;affects you?&rdquo;,
+PPA. I want it-just-works. I reported affecting bugs to Ubuntu’s bug tracking
+system. So, please vote it up for fixing (vote them with “affects you?”,
 please!!):</p>
 
 <ul>
@@ -459,11 +459,11 @@ please!!):</p>
 
 <h3 id="further-profiling">Further profiling</h3>
 
-<p>There is new profiling tool on Linux: <code>perf</code> and <code>operf</code> (OProfile&rsquo;s new
-command). I don&rsquo;t know them well, but certainly they will be useful for
+<p>There is new profiling tool on Linux: <code>perf</code> and <code>operf</code> (OProfile’s new
+command). I don’t know them well, but certainly they will be useful for
 profiling Rubinius.</p>
 
-<p>As a last note, this is partially based on <a href="http://code.google.com/p/unladen-swallow/wiki/UsingOProfile">Unladen Swallow&rsquo;s
+<p>As a last note, this is partially based on <a href="http://code.google.com/p/unladen-swallow/wiki/UsingOProfile">Unladen Swallow’s
 information</a>
 of profiling LLVM-based JIT-ted code by OProfile.</p>
 

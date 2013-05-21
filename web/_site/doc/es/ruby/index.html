@@ -160,7 +160,40 @@
   
 
     <p>Una forma de acercarse a la comprensión de cómo Rubinius implementa Ruby
-comienza con la comprensión de cómo funciona los distintos conceptos de Ruby.</p>
+comienza con la comprensión de cómo funciona los distintos conceptos de Ruby.
+El propósito de este tema es introducir las características Rubinius como
+conceptos de Ruby que deberían ser familiares. La documentación de Rubinius
+generalmente asume que ya tienes experiencia con Ruby o con coneptos de
+máquinas virtuales y compiladores.</p>
+
+<p>El concepto de <em>scope</em> es central a los temas siguientes. En la sintaxis
+de Ruby, <em>scope</em> es generalmente un concepto derivado. En otras palabras,
+no hay elementos sintácticos cuya responsablidad primaria sea delimitar o
+referenciar un <em>scope</em>. Por este motivo, puede ser confuso hablar de <em>scope</em>.
+Un ejemplo de esto es una típica definición de método:</p>
+
+<pre><code>a = 5
+
+def diligent(a)
+  puts a * 2
+end
+</code></pre>
+
+<p>Aquí, el metodo <code>#diligent</code> nos da un nombre para referirnos al cálculo
+<code>puts a * 2</code>. Pero el método también define un <em>scope</em> léxico cerrado para
+la variable <code>a</code>. El <em>scope</em> es cerrado porque la sentencia <code>a = 5</code> fuera de
+la definición del método no tiene relación con la variable <code>a</code> en <code>#diligent</code>.</p>
+
+<p>Usualmente se dice que todo en Ruby es un objeto. Esto no es del todo cierto.
+<em>La mayoría</em> de las cosas en Ruby son objetos, pero algunas cosas que son
+absolutamente esenciales para ejecutar código Ruby no son necesariamente
+objetos accesibles. Cuales de las cosas del ambiente de ejecución son objetos
+en Ruby depende altamente de la implementación. El <em>scope</em> es una de esas
+cosas.</p>
+
+<p>Cada uno de los siguientes elementos de Ruby se discuten desde la perspectiva
+de entender como las implementa Rubinius y como se involucra el concepto
+de <em>scope</em> en cada uno.</p>
 
 <ol>
   <li><a href="/doc/es/ruby/scripts/">Scripts</a></li>

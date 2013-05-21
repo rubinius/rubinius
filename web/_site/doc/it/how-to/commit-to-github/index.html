@@ -151,7 +151,7 @@
   
 
     <p>The Rubinius Project does a majority of its work on the master
-branch. The goal is to keep master &ldquo;clean&rdquo; so that it always builds
+branch. The goal is to keep master “clean” so that it always builds
 a working binary and provides a snapshot of the latest fixes
 and enhancements.</p>
 
@@ -164,7 +164,7 @@ The first step should commit the spec that highlights the
 behavior under construction while the second commit adds the
 behavior and allows the spec to pass.</p>
 
-<p>After committing to the local repository&rsquo;s branch, the commit
+<p>After committing to the local repository’s branch, the commit
 should be merged back to master and pushed to github. To avoid
 superfluous git merge messages, we ask that the committer first
 rebase the master branch prior to the merge.</p>
@@ -172,14 +172,20 @@ rebase the master branch prior to the merge.</p>
 <ol>
   <li>git branch name-of-fix-branch</li>
   <li>git checkout name-of-fix-branch</li>
-  <li>&lt;write the spec&gt;</li>
-  <li>&lt;write code to pass the spec&gt;</li>
-  <li>git add &lt;list of spec files&gt;</li>
+  <li>
+    <write the="" spec="">
+</write>
+  </li>
+  <li>
+    <write code="" to="" pass="" the="" spec="">
+</write>
+  </li>
+  <li>git add <list of="" spec="" files=""></list></li>
   <li>git commit</li>
-  <li>git add &lt;list of code files&gt;</li>
+  <li>git add <list of="" code="" files=""></list></li>
   <li>git commit</li>
   <li>git checkout master</li>
-  <li>git pull &ndash;rebase</li>
+  <li>git pull –rebase</li>
   <li>git checkout name-of-fix-branch</li>
   <li>git rebase master</li>
   <li>git checkout master</li>

@@ -157,7 +157,7 @@ domande sul canale IRC #rubinius su irc.freenode.net.</p>
 <h2 id="tutto-il-codice">Tutto il codice</h2>
 
 <ul>
-  <li>Configurate il vostro editor per l&rsquo;inserimento di spazi al posto dei tab</li>
+  <li>Configurate il vostro editor per l’inserimento di spazi al posto dei tab</li>
   <li>I tab vanno sostituiti con 2 spazi</li>
   <li>Aggiungete un carattere di fine riga alla fine di ogni file</li>
 </ul>
@@ -171,7 +171,7 @@ domande sul canale IRC #rubinius su irc.freenode.net.</p>
   </li>
   <li>
     <p>Inserite la parentesi graffa sulla stessa riga della dichiarazione di 
-funzione o dell&rsquo;istruzione condizionale.</p>
+funzione o dell’istruzione condizionale.</p>
   </li>
   <li>
     <p>Utilizzate sempre le parentesi graffe, anche quando potrebbero essere
@@ -184,9 +184,9 @@ possibile).</p>
   <li>
     <p>Versioni alternative di una funzione devono avere nomi che rispecchino il
 motivo per cui differiscono dalla funzione principale. Se esiste una
-funzione &lsquo;person()&rsquo; e volete una versione che riceva come parametro il
-nome della persona, questa va chiamata &lsquo;person_with_name(char *name)&rsquo; o
-&lsquo;person_with_details(char *name, &hellip;)&rsquo;. NON &lsquo;person1(char *name).</p>
+funzione ‘person()’ e volete una versione che riceva come parametro il
+nome della persona, questa va chiamata ‘person_with_name(char *name)’ o
+‘person_with_details(char *name, …)’. NON ‘person1(char *name).</p>
   </li>
 </ul>
 
@@ -194,18 +194,18 @@ nome della persona, questa va chiamata &lsquo;person_with_name(char *name)&rsquo
 
 <ul>
   <li>
-    <p>Metodi: Cercate di mantenere i metodi brevi&ndash;una schermata e cercate di
-rispettare il principio DRY (Don&rsquo;t Repeat Yourself, Non Ripetetevi) nei
+    <p>Metodi: Cercate di mantenere i metodi brevi–una schermata e cercate di
+rispettare il principio DRY (Don’t Repeat Yourself, Non Ripetetevi) nei
 limiti del possibile. In genere le funzionalità di uso comune vanno
-astratte all&rsquo;interno di metodi helper (che possono essere resi privati) ma
+astratte all’interno di metodi helper (che possono essere resi privati) ma
 in alcuni casi, in particolare lavorando con il Core, cercare di non
 ripetersi è solo un ostacolo se dovete, ad esempio, aggirare diverse
-condizioni d&rsquo;errore.</p>
+condizioni d’errore.</p>
   </li>
   <li>
     <p>Nomi dei metodi: dovrebbero essere chiari, espressivi e significativi.
-Evitate l&rsquo;utilizzo di trattini bassi (underscore) per &lsquo;proteggere&rsquo; i
-metodi (&lsquo;__send__&rsquo;), a parte delle eccezioni.</p>
+Evitate l’utilizzo di trattini bassi (underscore) per ‘proteggere’ i
+metodi (‘__send__’), a parte delle eccezioni.</p>
   </li>
   <li>
     <p>I nomi dei metodi in stile Smalltalk vanno bene, nel senso che è possibile
@@ -216,13 +216,13 @@ la lettura del codice più naturale.</p>
   </li>
   <li>
     <p>Nomi delle variabili: devono essere chiari e significativi (con qualche
-nota eccezione come l&rsquo;utilizzo di &lsquo;i&rsquo; come contatore). Cercate di evitare
-nomi di variabili uguali a nomi di metodo. Ad esempio, all&rsquo;interno di
-Array utilizzate &lsquo;idx&rsquo; anziché &lsquo;index&rsquo; in quanto questo è già un nome di
+nota eccezione come l’utilizzo di ‘i’ come contatore). Cercate di evitare
+nomi di variabili uguali a nomi di metodo. Ad esempio, all’interno di
+Array utilizzate ‘idx’ anziché ‘index’ in quanto questo è già un nome di
 metodo.</p>
   </li>
   <li>
-    <p>Postcondizioni: utilizzate postcondizioni solo <em>se</em> l&rsquo;espressione occupa
+    <p>Postcondizioni: utilizzate postcondizioni solo <em>se</em> l’espressione occupa
 una sola riga <em>e</em> non ci sono troppe condizioni.</p>
   </li>
   <li>
@@ -249,7 +249,7 @@ end
 <h2 id="codice-del-kernel">Codice del kernel</h2>
 
 <p>Le linee guida principali per il codice del kernel sono la semplicità e
-l&rsquo;efficienza. Il codice semplice è spesso più efficiente e generalmente più
+l’efficienza. Il codice semplice è spesso più efficiente e generalmente più
 comprensibile. Non andrebbe usata la metaprogrammazione nel bootstrap.
 Utilizzate i metodi #attr_xxx per tutto il codice del kernel. Inoltre, le
 chiamate al metodo #alias_method per la creazione di metodi alias vanno poste

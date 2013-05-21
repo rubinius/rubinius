@@ -82,14 +82,14 @@ sponsoring <a href="https://github.com/dbussink">Dirkjan Bussink</a> to work on 
 <p>A long time ago (around 2008) when Dirkjan first showed up in the Rubinius
 project he was still a university student finishing his Masters degree. He let
 me read a draft of his thesis on brain-computer interfaces. Dirkjan has been
-helping out on Rubinius since then. Recently, he&rsquo;s been fixing concurrency,
+helping out on Rubinius since then. Recently, he’s been fixing concurrency,
 garbage collection, and JIT issues.</p>
 
 <p>This week, Dirkjan is working from the Engine Yard office in Portland, OR.
-We&rsquo;ve got a list of topics that we&rsquo;re delving into to get ready for several
+We’ve got a list of topics that we’re delving into to get ready for several
 technology improvements in Rubinius. We started with a list of five things,
 one for each day. Unfortunately, time always goes faster than we expect so
-we&rsquo;ve dropped one topic. I&rsquo;ll blog a summary of our discussions so you get an
+we’ve dropped one topic. I’ll blog a summary of our discussions so you get an
 idea of some of the big stuff coming in Rubinius.</p>
 
 <p>Our first discussion was about our inline cache mechanisms. An inline cache is
@@ -99,7 +99,7 @@ the correct type, the same method can safely be used. This is a typical
 execution-time versus memory size trade-off. We cache the method we found,
 which saves time looking it up again at the expense of some additional memory
 to store the method. As with all caches, we have to carefully consider cache
-invalidation.  Let&rsquo;s use a quick code sample to illustrate the inline cache.</p>
+invalidation.  Let’s use a quick code sample to illustrate the inline cache.</p>
 
 <div class="highlight"><pre><code class="ruby"><span class="lineno">1</span> <span class="k">class</span> <span class="nc">A</span>
 <span class="lineno">2</span>   <span class="k">def</span> <span class="nf">a</span>
@@ -108,8 +108,7 @@ invalidation.  Let&rsquo;s use a quick code sample to illustrate the inline cach
 <span class="lineno">5</span> 
 <span class="lineno">6</span> <span class="k">class</span> <span class="nc">B</span> <span class="o">&lt;</span> <span class="n">A</span>
 <span class="lineno">7</span> <span class="k">end</span>
-</code></pre>
-</div>
+</code></pre></div>
 
 <p>In the example above, the class <code>B</code> inherits from <code>A</code>, which provides the method
 <code>a</code>. If we call <code>a</code> on an instance of <code>B</code>, we look up the method and find it
@@ -117,8 +116,7 @@ in <code>A</code>.</p>
 
 <div class="highlight"><pre><code class="ruby"><span class="lineno">1</span> <span class="n">b</span> <span class="o">=</span> <span class="n">B</span><span class="o">.</span><span class="n">new</span>
 <span class="lineno">2</span> <span class="n">b</span><span class="o">.</span><span class="n">a</span>
-</code></pre>
-</div>
+</code></pre></div>
 
 <p>Here, in the code representation for the call <code>b.a</code>, we store an inline cache
 object. As long as the type of object we see in <code>b</code> is the same, we can safely
@@ -169,7 +167,7 @@ of the virtual machine. Certain method calls, like <code>respond_to?</code> impl
 VM operations. This perspective is very important. Sometimes people complain
 that Ruby is too dynamic because you could, for example, alias <code>respond_to?</code>
 or <code>eval</code> to some other name. Now any attempt to statically analyze Ruby fails
-because you can&rsquo;t know ahead of time what the alias may be. This is actually
+because you can’t know ahead of time what the alias may be. This is actually
 not an issue if you consider the perspective from the VM. No matter what the
 method name is, the ultimate VM operation for looking up a method will
 execute. By associating method call sites with a VM operation, we get more
@@ -187,13 +185,13 @@ in the cache can be done efficiently.</p>
 object-oriented code, a method call site may be <em>monomorphic</em> (only one type
 is seen), <em>polymorphic</em> (a small number of different types are seen), or
 <em>megamorphic</em> (a huge number of different types are seen). This perspective
-can be very important for performance and for memory overhead. We don&rsquo;t want
+can be very important for performance and for memory overhead. We don’t want
 to waste memory for sites that are monomorphic. Nor do we want the cache to be
 thrashing when many different types are seen.</p>
 
 <p>In summary, we looked at these aspects of inline caches: method call site
 types, VM operations that result from the method call, the kind of data cached
-and cache invalidation, and the cardinality of the method call site. We&rsquo;ll be
+and cache invalidation, and the cardinality of the method call site. We’ll be
 taking the results of our discussion and implementing changes to our inline
 caching over the next few weeks.</p>
 
