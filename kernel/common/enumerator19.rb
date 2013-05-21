@@ -101,6 +101,7 @@ module Enumerable
     end
 
     class Generator
+      include Enumerable
       def initialize(&block)
         raise LocalJumpError, "Expected a block to be given" unless block_given?
 
