@@ -2,6 +2,11 @@ require File.expand_path('../../../../spec_helper', __FILE__)
 
 ruby_version_is "1.9" do
   describe "Enumerator::Generator#each" do
+    it "is an enumerable" do
+      g = Enumerator::Generator.new { |y| y << 3 << 2 << 1 }
+      g.should be_kind_of(Enumerable)
+    end
+
     it "Supports enumeration with a block" do
       g = Enumerator::Generator.new { |y| y << 3 << 2 << 1 }
       r = []
