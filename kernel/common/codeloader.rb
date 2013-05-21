@@ -22,6 +22,7 @@ module Rubinius
     #   @type : the kind of file to load, :ruby or :library
     def initialize(path)
       @path = Rubinius::Type.coerce_to_path path
+      @short_path = nil
       @load_path = nil
       @file_path = nil
       @feature = nil
@@ -146,16 +147,25 @@ module Rubinius
     # autoloads use this, Kernel#load does not.
     def add_feature
       $LOADED_FEATURES << @feature
+      add_feature_to_index
+    end
+
+    def add_feature_to_index(feature = @feature)
+      self.class.loaded_features_dup = $LOADED_FEATURES.dup
+      self.class.loaded_features_index[@short_path] = feature
     end
 
     # Hook support. This allows code to be told when a file was just compiled,
     # or when it has finished loading.
     @compiled_hook = Rubinius::Hook.new
     @loaded_hook = Rubinius::Hook.new
+    @loaded_features_index = Hash.new(false)
 
     class << self
       attr_reader :compiled_hook
       attr_reader :loaded_hook
+      attr_reader :loaded_features_index
+      attr_accessor :loaded_features_dup
 
       attr_writer :source_extension
 
@@ -186,7 +196,6 @@ module Rubinius
           return loaded?(name[0..-4] + LIBSUFFIX)
         else
           return true if loaded?(name + CodeLoader.source_extension)
-          return loaded?(name + LIBSUFFIX)
         end
 
         return false
@@ -195,7 +204,18 @@ module Rubinius
       # Returns true if $LOADED_FEATURES includes +feature+. Otherwise,
       # returns false.
       def loaded?(feature)
-        $LOADED_FEATURES.include? feature
+        return true if $LOADED_FEATURES.include? feature
+
+        if !features_index_up_to_date?
+          loaded_features_index.clear
+          return false
+        end
+
+        loaded_features_index.include?(feature)
+      end
+
+      def features_index_up_to_date?
+        loaded_features_dup == $LOADED_FEATURES
       end
 
       # Loads a Ruby source file or shared library extension. Called by
@@ -360,17 +380,16 @@ module Rubinius
         @type = :library
       end
 
+      return false if CodeLoader.feature_provided?(@path)
+
       if @type
         if verify_load_path(@path)
-          if CodeLoader.feature_provided?(@path) or
-             CodeLoader.feature_provided?(@feature)
-            return false
-          end
+          return false if CodeLoader.feature_provided?(@feature)
           return true
         end
       else
         if verify_require_path(@path)
-          return false if CodeLoader.feature_provided? @feature
+          return false if CodeLoader.feature_provided?(@feature)
           return true
         end
       end

@@ -76,6 +76,7 @@ module Rubinius
     def add_feature
       name = @feature.suffix?(".rbc") ? @feature[0..-2] : @feature
       $LOADED_FEATURES << name
+      add_feature_to_index(feature)
     end
 
     # Default check_version flag to true

@@ -1,2 +1,0 @@
-fails:Kernel#require (path resolution) does not load file twice after $LOAD_PATH change
-fails:Kernel.require (path resolution) does not load file twice after $LOAD_PATH change
