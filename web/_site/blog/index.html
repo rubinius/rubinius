@@ -70,6 +70,175 @@
   
     <div class="post">
       <h2 class="post_title">
+        <a href="/2013/05/21/more-ruby-transparancy/" title="Better access to runtime information from Ruby" class="post_title">
+        Better access to runtime information from Ruby
+        </a>
+      </h2>
+      <div class="by_line">
+  <p><span class="author">Dirkjan Bussink</span>
+    <span class="date">21 May 2013</span>
+    
+      <a href="http://rubini.us/2013/05/21/more-ruby-transparancy/#disqus_thread" data-disqus-identifier="/2013/05/21/more-ruby-transparancy/"></a>
+
+    
+  </p>
+</div>
+
+      <p>Rubinius has always tried to provide a lot of information to you as a
+developer about runtime information. Things like the variable scope and
+constant scope are already available. In this post I’d like to describe
+a small new API that is available for even more information.</p>
+
+<h3 id="inline-caching">Inline caching</h3>
+
+<p>One of the important mechanisms in making your Ruby code fast is doing
+inline caching. Inline caching means that we store the result of a method
+lookup a specific call site.</p>
+
+<p>So what is a call site you might ask? Well, that’s every place in your
+code where a method is called. So take for example the following
+snippet.</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="lineno">1</span> <span class="k">class</span> <span class="nc">Foo</span>
+<span class="lineno">2</span>   <span class="k">def</span> <span class="nf">bar</span>
+<span class="lineno">3</span>     <span class="vi">@foo</span><span class="o">.</span><span class="n">quz</span>
+<span class="lineno">4</span>   <span class="k">end</span>
+<span class="lineno">5</span> <span class="k">end</span>
+</code></pre></div>
+
+<p>Here <code>@foo.quz</code> is a call site, so the place where quz is called. What we
+do here is cache the type of <code>@foo</code> and store which method to execute for
+this type.</p>
+
+<p>The fact that inline caching works well is based on the idea that at
+runtime for most call sites the receiver type never changes. So in this
+case it means that <code>@foo</code> is always of the same type. This is
+called a monomorphic call site. </p>
+
+<p>Of course there are cases where this reasoning doesn’t apply. If we see
+multiple types at a certain call site, it’s called a polymorphic call site.
+For this we store things in a different object and Rubinius currently stores
+up to 3 different types in that case.</p>
+
+<p>It might be surprising to some, but these cache objects are also just
+Ruby objects. This means that they can be used just like any other Ruby
+object and be inspected for example. So there are objects for an empty
+call site, for monomorphic and also polymorphic sites.</p>
+
+<p>There is also a specialized site for places where we call <code>respond_to?</code> since that
+happens often enough to warrant a special case. In the future there
+might be new types introduced such as a specific type for <code>send</code> calls.</p>
+
+<h3 id="accessing-inline-caches-stored-at-call-sites">Accessing inline caches stored at call sites</h3>
+
+<p>So now that we have described all this, how do we get access to this
+information? It is actually pretty straightforward and builds on other
+things already available.</p>
+
+<p>Under the hood, all Ruby code in Rubinius gets translated into a
+<code>CompiledCode</code> object, which also provides the API for getting access to
+inline caches. One way to get access to the <code>CompiledCode</code> object is to
+grab it through Ruby’s Method API.</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="lineno"> 1</span> <span class="k">class</span> <span class="nc">Foo</span>
+<span class="lineno"> 2</span>   <span class="k">def</span> <span class="nf">bar</span>
+<span class="lineno"> 3</span>     <span class="vi">@foo</span><span class="o">.</span><span class="n">quz</span>
+<span class="lineno"> 4</span>   <span class="k">end</span>
+<span class="lineno"> 5</span> <span class="k">end</span>
+<span class="lineno"> 6</span> 
+<span class="lineno"> 7</span> <span class="n">f</span> <span class="o">=</span> <span class="no">Foo</span><span class="o">.</span><span class="n">new</span>
+<span class="lineno"> 8</span> <span class="n">compiled_code</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">method</span><span class="p">(</span><span class="ss">:bar</span><span class="p">)</span><span class="o">.</span><span class="n">executable</span>
+<span class="lineno"> 9</span> <span class="n">compiled_code</span><span class="o">.</span><span class="n">call_sites</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">cs</span><span class="o">|</span>
+<span class="lineno">10</span>   <span class="nb">p</span> <span class="n">cs</span> <span class="c1"># #&lt;Rubinius::CallSite:0xXX script.rb:3#quz(0)&gt;</span>
+<span class="lineno">11</span> <span class="k">end</span>
+</code></pre></div>
+
+<p>What you can see here is that we have one call site located at <code>script.rb</code>
+on line 3 (which is the class definition). Currently it’s of the type
+<code>CallSite</code>, which means that it has a basic structure in place with no
+additional information because this method was never called. This can
+also be inferred from the (0) at the end which indicates the number of
+calls through this object.</p>
+
+<p>So if we make sure we call this at least once, we should be able to see
+this information.</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="lineno"> 1</span> <span class="k">class</span> <span class="nc">Foo</span>
+<span class="lineno"> 2</span>   <span class="k">def</span> <span class="nf">bar</span>
+<span class="lineno"> 3</span>     <span class="vi">@foo</span><span class="o">.</span><span class="n">quz</span>
+<span class="lineno"> 4</span>   <span class="k">end</span>
+<span class="lineno"> 5</span> <span class="k">end</span>
+<span class="lineno"> 6</span> 
+<span class="lineno"> 7</span> <span class="n">f</span> <span class="o">=</span> <span class="no">Foo</span><span class="o">.</span><span class="n">new</span>
+<span class="lineno"> 8</span> <span class="k">begin</span>
+<span class="lineno"> 9</span>   <span class="n">f</span><span class="o">.</span><span class="n">bar</span>
+<span class="lineno">10</span> <span class="k">rescue</span>
+<span class="lineno">11</span> <span class="k">end</span>
+<span class="lineno">12</span> 
+<span class="lineno">13</span> <span class="n">compiled_code</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">method</span><span class="p">(</span><span class="ss">:bar</span><span class="p">)</span><span class="o">.</span><span class="n">executable</span>
+<span class="lineno">14</span> <span class="n">compiled_code</span><span class="o">.</span><span class="n">call_sites</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">cs</span><span class="o">|</span>
+<span class="lineno">15</span>   <span class="nb">p</span> <span class="n">cs</span> <span class="c1"># #&lt;Rubinius::MonoInlineCache:0xXX script.rb:3#quz(1)</span>
+<span class="lineno">16</span>        <span class="c1">#   receiver_class=NilClass stored_module=Kernel</span>
+<span class="lineno">17</span>        <span class="c1">#   method=#&lt;Rubinius::CompiledCode method_missing file=kernel/delta/kernel.rb&gt;&gt;</span>
+<span class="lineno">18</span> <span class="k">end</span>
+</code></pre></div>
+
+<p>What we do here is actually run this inside a begin / rescue clause
+because the call will fail because @foo being nil. But this will also
+show that we can actually cache that this will run the <code>method_missing</code>
+method and that we cache that.</p>
+
+<p>What you can see here is that we have a <code>MonoInlineCache</code>, because we’ve
+only seen one type for <code>@foo</code>, which is <code>nil</code> so the receiver class is
+<code>NilClass</code>. The <code>stored_module</code> is the module the saved method is in, which
+in this case is <code>Kernel</code>. The actual method stored is the <code>method_missing</code>
+method here. We can also see it has been called 1 time so far.</p>
+
+<h3 id="caveats">Caveats</h3>
+
+<p>Currently you get these objects back and you can actually modify them.
+Modifying them at the moment would actually result in undefined
+behavior. You can’t do this easily though since they only provide
+accessor readers, but since it’s Ruby you can of course hack around with
+<code>instance_variable_set</code> for example.</p>
+
+<p>You can probably do really crazy stuff with this, if it crashes the vm
+it’s probably a bug, otherwise you’re pretty much on your own when
+hacking this.</p>
+
+<p>Another thing is that the counters are not guaranteed to be accurate.
+This can mainly happen when the JIT kicks in. The JIT doens’t update
+counters if it inlines methods so that way the method could be called
+more often than you’d think based on the counter. If it’s zero though,
+you can be sure it has been never called since it will always go through
+the interpreter path first.</p>
+
+<h3 id="future">Future</h3>
+
+<p>So besides for fun and crazy, what is this actually useful for? Well,
+first of all we already use it to actually test in Ruby whether our
+inline caches work properly. This made testing this a lot easier and we
+can easily verify that an empty call sites turns into a monomorphic
+cache and subsequently in a polymorphic one if needed.</p>
+
+<p>Another reason this can be very useful is for building better tools.
+With this information, it would be possible to create better
+refactoring tools for example. The information provided here gives you
+insight into which methods are bound where and could help perhaps in
+renaming things.</p>
+
+<p>It would also be interesting to gather this information from your
+runtime application, so you could see which code does and doesn’t get
+executed in your production environment. All these things are just
+ideas, but API’s like the one discussed here make these future
+developments possible and allow for more insight in your Ruby code.</p>
+
+<p>So play with and let us know what you’ve done with it!</p>
+
+    </div>
+  
+    <div class="post">
+      <h2 class="post_title">
         <a href="/2013/03/20/profiling-jitted-ruby-code-with-oprofile/" title="Profiling JIT-ted Ruby code with OProfile" class="post_title">
         Profiling JIT-ted Ruby code with OProfile
         </a>
@@ -1018,429 +1187,6 @@ machine. It’s 453 MB so it might take a while.</p>
 <p>Please let us know if you find this useful, we might do more of them
 in the future if there’s interest!</p>
 
-
-    </div>
-  
-    <div class="post">
-      <h2 class="post_title">
-        <a href="/2011/10/18/contributing-to-rubinius/" title="Contributing to Rubinius" class="post_title">
-        Contributing to Rubinius
-        </a>
-      </h2>
-      <div class="by_line">
-  <p><span class="author">Brian Ford</span>
-    <span class="date">18 October 2011</span>
-    
-      <a href="http://rubini.us/2011/10/18/contributing-to-rubinius/#disqus_thread" data-disqus-identifier="/2011/10/18/contributing-to-rubinius/"></a>
-
-    
-  </p>
-</div>
-
-      <p>Implementing Ruby is a lot of hard work. The Rubinius project has been lucky
-to have <a href="http://it.isagit.com/rubinius/rubinius">more than 240 contributors</a>,
-many with <em>hundreds</em> of commits, including code, benchmarks, documentation,
-translations, and more. Lately, we have seen a surge of new folks working hard
-on 1.9 language features. While we concentrate on making Rubinius easy to
-contribute to, this post should clarify some things and pave an easier road to
-your first Rubinius commit.</p>
-
-<h3 id="contributions">Contributions</h3>
-
-<p>Before diving into the Rubinius code, I want to emphasize that there are many
-ways that you can contribute to Rubinius. One of the most valuable for us is
-trying your own library or application on Rubinius. We’ve worked super hard to
-make using Rubinius in place of MRI as simple as possible. For example, with a
-typical Rails application, here is all you should need to do to get set up:</p>
-
-<pre><code>rvm install rbx
-rvm use rbx
-gem install bundler
-</code></pre>
-
-<p>Once you’ve got Rubinius and Bundler installed, running your application
-should be this simple:</p>
-
-<pre><code>cd &lt;my_application&gt;
-rm Gemfile.lock
-bundle install
-</code></pre>
-
-<p>Note the step of removing the <code>Gemfile.lock</code>. This is necessary to force
-bundler to resolve the dependencies for Rubinius. This is very important. Not
-all gems for MRI will work with Rubinius, and in some cases Rubinius has
-built-in gems or stubs that need to be considered when resolving dependencies
-(ruby-debug and ffi are two examples).</p>
-
-<p>Once <code>bundle install</code> is finished, you should be able to start your
-application just like you would under MRI. If you have any trouble, please let
-us know. Issues for Rubinius are <a href="https://github.com/rubinius/rubinius/issues">tracked on
-Github</a>.</p>
-
-<p>Another way to contribute to Rubinius is talking about the project. If you
-tried your application and your 50 gems installed without problems, consider
-<a href="https://twitter.com/rubinius">tweeting at us</a> or writing up a quick blog post
-about your experiences. If you’ve done something
-<a href="http://fancy-lang.org/">fancy</a> that you’d like to share with us, we’re always
-happy to have <a href="http://rubini.us/2011/02/23/introduction-to-fancy/">guest blog
-posts</a>, too. We even have
-documentation on <a href="http://rubini.us/doc/en/how-to/write-a-blog-post/">how to write a blog
-post</a>.</p>
-
-<h3 id="clone--build">Clone &amp; Build</h3>
-
-<p>Before we can do anything else, we need to get the Rubinius source code and
-build it. Run the commands below to do this:</p>
-
-<pre><code>git clone git://github.com/rubinius/rubinius.git
-cd rubinius
-./configure
-rake
-</code></pre>
-
-<p>You can run Rubinius directly from the build directory, there is no need to
-install it. We provide symlinks for common commands like <code>gem</code>, <code>rake</code>, <code>irb</code>,
-<code>ri</code>, <code>rdoc</code>, and even <code>ruby</code>. Just add <code>&lt;rbx_clone&gt;/bin</code> to your <code>PATH</code>.</p>
-
-<p>If you run into any trouble with these steps, see the <a href="http://rubini.us/doc/en/getting-started/">Getting
-Started</a> page for more information.
-You may need to install libraries required to build Rubinius. If you don’t
-find answers there, visit the <code>#rubinius</code> channel on freenode.net and we’ll
-help you out.</p>
-
-<p>While the build is running, let’s get a quick overview of how Rubinius is
-organized.</p>
-
-<h3 id="code-tour">Code Tour</h3>
-
-<p>There are two main divisions in the Rubinius source code. The virtual machine,
-garbage collector, and just-in-time (JIT) compiler are written in C++. The
-Ruby core library, bytecode compiler, and various tools like the profiler and
-debugger are written mostly or all in Ruby.</p>
-
-<h4 id="ruby-core-library">Ruby Core Library</h4>
-
-<p>The Ruby core library is found in the <code>kernel/</code> directory. The kernel is
-divided into subdirectories that are loaded in order when Rubinius boots. The
-divisions were made to help share the Ruby core library with other
-implementations. I’ll cover those basic divisions here. For more details about
-how the loading process works, see the
-<a href="http://rubini.us/doc/en/bootstrapping/">Bootstrapping</a> documentation.</p>
-
-<ol>
-  <li><code>alpha.rb</code> - Sets up very basic Ruby features needed to start loading the
-rest of the core library.</li>
-  <li><code>bootstrap/</code>- Contains implementation-specific features needed to load the
-main parts of the core library.</li>
-  <li><code>platform/</code> - Contains platform-specific features like the FFI
-(foreign-function interface) code that is used extensively in Rubinius to
-bind to standard <code>libc</code> functions.</li>
-  <li><code>common/</code> - Contains the majority of the Ruby core library and the code
-should be implementation-agnostic.</li>
-  <li><code>delta/</code> - Contains more implementation-specific code that may extend or
-override code from <code>common/</code>.</li>
-</ol>
-
-<p>Most of the work on the Ruby core library will be done in <code>kernel/common/</code>.</p>
-
-<h4 id="rubinius-vm">Rubinius VM</h4>
-
-<p>The concept of a virtual machine is somewhat nebulous. It can be hard to draw
-the lines around the different components. In Rubinius, the code for the
-bytecode interpreter, garbage collector, and JIT compiler is under the <code>vm/</code>
-directory. There are subdirectories for the garbage collector (<code>vm/gc/</code>) and
-the JIT compiler (<code>vm/llvm/</code>). The <code>main()</code> function is in
-<code>vm/drivers/cli.cpp</code>.</p>
-
-<p>One of the important parts of Rubinius are the low-level operations that
-cannot be defined in Ruby. These are things like adding two Fixnums together.
-These operations are called primitives and the code for them is in
-<code>vm/builtin</code>. Since you will likely encounter these in the core library, we’ll
-delve into them a bit.</p>
-
-<h4 id="primitives">Primitives</h4>
-
-<p>All methods that can be called in Ruby are exposed as, well, Ruby methods. If
-you open <code>kernel/bootstrap/fixnum.rb</code>, you should see the following code:</p>
-
-<div class="highlight"><pre><code class="ruby"><span class="lineno">1</span> <span class="k">def</span> <span class="nf">to_f</span>
-<span class="lineno">2</span>   <span class="no">Rubinius</span><span class="o">.</span><span class="n">primitive</span> <span class="ss">:fixnum_to_f</span>
-<span class="lineno">3</span>   <span class="k">raise</span> <span class="no">PrimitiveFailure</span><span class="p">,</span> <span class="s2">&quot;Fixnum#to_f primitive failed&quot;</span>
-<span class="lineno">4</span> <span class="k">end</span>
-</code></pre></div>
-
-<p>The <code>Rubinius.primitive :fixnum_to_f</code> code looks like a normal Ruby method
-call but it is not. It’s actually a compiler directive to tag this Ruby method
-as having an associated primitive operation. The name of the primitive is
-<code>fixnum_to_f</code>. This naming convention is standard, being composed of the class
-name and the method name. Methods in Ruby that are characters, like <code>+</code>, are
-given word names for the primitives.</p>
-
-<p>When this method is run, the primitive operation is invoked. If the primitive
-operation fails, the Ruby code following the <code>Rubinius.primitive</code> line is run.
-This code can perform any Ruby operation. For example, it may coerce the
-arguments to a particular class and re-dispatch to itself. If no other
-operation is appropriate, the method should raise an exception.</p>
-
-<p>To see how the Ruby method relates to the primitive code, open
-<code>vm/builtin/fixnum.hpp</code>:</p>
-
-<div class="highlight"><pre><code class="cpp"><span class="lineno">1</span> <span class="c1">// Rubinius.primitive :fixnum_to_f</span>
-<span class="lineno">2</span> <span class="n">Float</span><span class="o">*</span> <span class="nf">to_f</span><span class="p">(</span><span class="n">STATE</span><span class="p">);</span>
-</code></pre></div>
-
-<p>The <code>vm/builtin/*.hpp</code> files are processed by the Rubinius build system to
-automatically generate C++ code to resolve and bind these primitive
-operations. The comment provides the link between the Ruby method and the C++
-method.</p>
-
-<p>Finally, the actual implementation of this primitive is found in
-<code>vm/builtin/fixnum.cpp</code>:</p>
-
-<div class="highlight"><pre><code class="cpp"><span class="lineno">1</span> <span class="n">Float</span><span class="o">*</span> <span class="n">Fixnum</span><span class="o">::</span><span class="n">to_f</span><span class="p">(</span><span class="n">STATE</span><span class="p">)</span> <span class="p">{</span>
-<span class="lineno">2</span>   <span class="k">return</span> <span class="n">Float</span><span class="o">::</span><span class="n">create</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="n">to_native</span><span class="p">());</span>
-<span class="lineno">3</span> <span class="p">}</span>
-</code></pre></div>
-
-<p>Here you can see that a new Float object is being created from the value of
-the Fixnum. Rubinius names the C++ classes that implement the Ruby primitive
-operations the same as their Ruby counterparts. One of the goals of Rubinius
-is to build an elegant, easily comprehensible system, and we feel that this
-consistency has been a great benefit toward that goal.</p>
-
-<p>Now that we have a basic idea of the structure of Rubinius, let’s look at some
-aspects of its runtime behavior, in particular, supporting different Ruby
-language modes.</p>
-
-<h3 id="language-modes">Language Modes</h3>
-
-<p>Rubinius 2.0 (the master branch) implements both 1.8 and 1.9 language features
-in one executable. You can select the language mode at runtime by passing the
-<code>-X18</code> or <code>-X19</code> flag, either as a command line option or by setting the
-<code>RBXOPT</code> environment variable. Both commands below should have the same
-effect:</p>
-
-<pre><code>RBXOPT=-X19 bin/rbx -v
-bin/rbx -X19 -v
-</code></pre>
-
-<p>If I run that on my system, I will see the following:</p>
-
-<pre><code>rubinius 2.0.0dev (1.9.2 0f223599 yyyy-mm-dd JI) [x86_64-apple-darwin10.8.0]
-</code></pre>
-
-<p>The default language mode is 1.8, so if you invoke <code>rbx</code> with no other
-options, you’ll be running in 1.8 mode. You can change the default mode with a
-configure time option as follows:</p>
-
-<pre><code>./configure --default-version=1.9
-</code></pre>
-
-<p>If you configure Rubinius to have a default language mode of 1.9, you can
-access 1.8 mode with the <code>-X18</code> runtime option as discussed above.</p>
-
-<p>Ok, we’ve got the code, we understand something about how it is organized,
-we’ve got the runtime behavior down, now let’s look at actually implementing
-Ruby. To do that, we need to know how Ruby behaves, and that is what RubySpec
-is all about.</p>
-
-<h3 id="by-the-spec">By the Spec</h3>
-
-<p>Rubinius created the RubySpec project to ensure that we would be faithfully
-implementing Ruby behavior, and we are constantly contributing more to it.
-Basically, Rubinius does it by the spec. So, any commit to the Ruby core
-library in Rubinius must either have new specs or make existing specs pass. To
-effectively contribute to Rubinius, you’ll need to understand some basics
-about RubySpec. I recommend that you have a read through the documentation at
-<a href="http://rubyspec.org/">rubyspec.org</a>.</p>
-
-<p>RubySpec includes a custom-built framework for the specs called MSpec. The
-syntax is intended to be consistent with <a href="http://rspec.info">RSpec</a>, but there
-are various facilities that are purpose-built to support multiple
-implementations, multiple versions of Ruby, and multiple platforms.</p>
-
-<h4 id="running-specs">Running Specs</h4>
-
-<p>MSpec provides several different scripts to run the specs under different
-conditions. The default behavior is to simply run all the specs. If you invoke
-the following command, it will run all the Ruby Array specs in the default
-language mode, which should be 1.8 unless you configured 1.9 to be the
-default:</p>
-
-<pre><code>bin/mspec core/array
-</code></pre>
-
-<p>To Run the specs in 1.9 mode, add the <code>-tx19</code> option:</p>
-
-<pre><code>bin/mspec -tx19 core/array
-</code></pre>
-
-<p>The <code>-t</code> option specifies which target to run the specs under. The default in
-Rubinius is to run them with Rubinius, so <code>-tx</code> is implied. You can easily run
-with another target by giving the name of an executable on your PATH or the
-full path to an executable. Since the specs are intended to show the behavior
-of MRI, if you are writing new specs you need to run them under MRI 1.8.7 and
-1.9.2. I have those on my PATH, so I can do the following:</p>
-
-<pre><code>bin/mspec -t ruby1.8.7 core/array
-bin/mspec -t ruby1.9.2 core/array
-</code></pre>
-
-<p>Finally, if you are running <code>bin/mspec</code> in the Rubinius source directory, the
-location of the RubySpecs are known (<code>spec/ruby/</code>), so you can use the full
-path or the shortened version <code>core/array</code> above.</p>
-
-<h4 id="continuous-integration">Continuous Integration</h4>
-
-<p>One goal of MSpec is to make it as easy as possible to run the specs for the
-parts of Ruby that have been implemented. It takes a long time to implement
-all of Ruby correctly, but we want to know that the parts we have implemented
-don’t get broken while working on other parts. That is the role of continuous
-integration. To use CI effectively, we need to partition the specs into those
-that we expect to pass and those we know we don’t pass yet. MSpec provides a
-facility for this, called tagging, that we’ll look at shortly. For now, we’ll
-just look at running the specs in CI mode.</p>
-
-<p>To run all the Rubinius specs in CI mode under the default language version,
-use the following command:</p>
-
-<pre><code>bin/mspec ci
-</code></pre>
-
-<p>Likewise, to run these specs in the 1.9 language mode, add the <code>-tx19</code> option:</p>
-
-<pre><code>bin/mspec ci -tx19
-</code></pre>
-
-<p>The <code>bin/mspec ci</code> command runs the <code>mspec-ci</code> script. You should be familiar
-with this mechanism from working with Git. It’s the same idea. The <code>mspec</code>
-script itself is just a utility to invoke the various specific MSpec scripts.
-To see the options for <code>mspec</code>, run the following command</p>
-
-<pre><code>bin/mspec -h
-</code></pre>
-
-<p>There are three basic functions that MSpec performs and these correspond to
-<code>mspec-run</code>, <code>mspec-ci</code>, and <code>mspec-tag</code>. When not given an operation, <code>mspec</code>
-assumes <code>run</code>, so the following two commands are equivalent:</p>
-
-<pre><code>mspec core/array
-mspec run core/array
-</code></pre>
-
-<p>If the operation is given, it must be the first parameter to <code>mspec</code>. In the
-case below, the first command runs <code>mspec-ci</code> with <code>core/array</code> while the
-second command runs <code>mspec-run</code> with <code>core/array</code> and <code>ci</code> as files.</p>
-
-<pre><code>mspec ci core/array
-mspec core/array ci
-</code></pre>
-
-<p>Now that we’ve got the basics of MSpec down, let’s look at how we find specs
-that fail on Rubinius. To do this, we’ll use the <code>mspec tag</code> command.</p>
-
-<h4 id="tagged-specs">Tagged Specs</h4>
-
-<p>Since Rubinius uses the tagging mechanism to create the set of CI specs to
-run, the best way to discover what parts of RubySpec that Rubinius isn’t
-passing yet is to list the specs that are tagged. There’s a command for that:</p>
-
-<pre><code>bin/mspec tag --list fails -tx19 :ci_files
-</code></pre>
-
-<p>This command lists all the specs that are tagged as failing. There’s some new
-syntax here, namely <code>:ci_files</code>. MSpec has the concept of pseudo-directories.
-Basically, they are lists of files. The reason for this is that running all
-the core or standard library specs in RubySpec is not as simple as just
-running all the files under <code>spec/ruby/core</code> or <code>spec/ruby/library</code>. It’s more
-complicated than that because there are 1.8- and 1.9-specific libraries.
-Rather than wrapping everything in <code>ruby_version_is</code> guards, MSpec adds
-version-specific lists and names them, for example, <code>:core</code> and <code>:library</code>.</p>
-
-<p>In this case, we’re using the list of files specified by <code>:ci_files</code>. This
-list excludes some files that are known to cause problems if they are run.</p>
-
-<p>The list of specs that are currently marked as failing is pretty long. We can
-reduce the number of tags we are looking at by giving a smaller set of specs
-to run.  For example, let’s just run the File specs:</p>
-
-<pre><code>bin/mspec tag --list fails -tx19 core/file
-</code></pre>
-
-<p>Looking at the output from this command, we notice (at least at the time of
-writing this post) that there are several failures in the
-<code>File.world_writable?</code> specs. We can run just these specs:</p>
-
-<pre><code>bin/mspec tag --list fails -tx19 core/file/world_writable
-</code></pre>
-
-<p>If we look into the documentation for <code>File.world_writable?</code>, we’ll find that
-it is a new method introduced in 1.9. Excellent, this gives us an opportunity
-to talk about language-specific changes in Rubinius.</p>
-
-<h3 id="language-specific-changes">Language-specific Changes</h3>
-
-<p>When Rubinius boots, it loads different files depending on what language mode
-it is running. In the <code>kernel/**/</code> directories, there are <code>load_order18.txt</code>
-and <code>load_order19.txt</code> files. These files are used during the build process to
-create separate runtime kernels for Rubinius. You can see these in the
-<code>runtime/18</code> and <code>runtime/19</code> directories after building.</p>
-
-<p>Here’s how language-specific features are handled in the Rubinius kernel.</p>
-
-<ol>
-  <li>If there are no language-specific methods, the name of the file in
-<code>kernel/common</code> is the name of the class. In the case here, the file is
-<code>kernel/common/file.rb</code>. This rule applies regardless of whether the class
-is 1.8- or 1.9-specific. For example, Rational is part of the 1.9 core
-library, but does not exist in the core library in 1.8. The Rational class
-is in <code>kernel/core/rational.rb</code>.</li>
-  <li>If there are version-specific methods, they go in <code>kernel/common/file18.rb</code>
-and <code>kernel/common/file19.rb</code>. The correct file is then added to the
-appropriate <code>load_orderNN.txt</code> file.</li>
-</ol>
-
-<p>In the case of <code>File.world_writable?</code>, there is no 1.8 version. So, we open
-<code>kernel/common/file19.rb</code> and add the method definition. After changing any of
-the <code>kernel/**/*.rb</code> files, we have to build Rubinius. Run the following
-command to do that:</p>
-
-<pre><code>rake build
-</code></pre>
-
-<p>After making the change, we verify that the specs pass by running the specs
-<em>without</em> the CI tags:</p>
-
-<pre><code>bin/mspec -tx19 core/file/world_writable
-</code></pre>
-
-<p>If all the specs pass, then you’re ready to remove the CI tags. To do so, run
-the following command:</p>
-
-<pre><code>bin/mspec tag --del fails -tx19 core/file/world_writable
-</code></pre>
-
-<p>After removing the CI tags, the final step is to ensure that all specs still
-pass. To run all the CI specs in both 1.8 and 1.9 modes, simply do:</p>
-
-<pre><code>rake
-</code></pre>
-
-<p>If everything passes, you’re ready to submit a pull request. All in all, that
-wasn’t too bad, right?</p>
-
-<p>One final note, if you are making changes to RubySpec, make separate commits
-in your pull request for changes to <code>spec/ruby/**/*_specs.rb</code> and another
-commit for any other Rubinius files. It is fine to commit the removed tags
-with the other Rubinius changes.</p>
-
-<h3 id="wrapping-presents">Wrapping Presents</h3>
-
-<p>The information here should give you everything you need to get your feet wet
-in Rubinius. By the way, today is Evan’s birthday. If you’re not taking him to
-dinner, why don’t you show your appreciation for this fantastic project he
-created by grabbing Rubinius and hacking on some Ruby code. Be safe and have
-fun! We can’t wait to hear from you.</p>
 
     </div>
   

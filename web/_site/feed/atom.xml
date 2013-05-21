@@ -9,6 +9,168 @@
 
   
   <entry>
+    <title>Better access to runtime information from Ruby</title>
+    <id>http://rubini.us/2013/05/21/more-ruby-transparancy/</id>
+    <link rel="alternate" type="text/html" href="http://rubini.us/2013/05/21/more-ruby-transparancy/" />
+    <updated>2013-05-21T00:00:00+00:00</updated>
+    <author>
+      <name>Dirkjan Bussink</name>
+    </author>
+    
+    <content type="html">&lt;p&gt;Rubinius has always tried to provide a lot of information to you as a
+developer about runtime information. Things like the variable scope and
+constant scope are already available. In this post I’d like to describe
+a small new API that is available for even more information.&lt;/p&gt;
+
+&lt;h3 id=&quot;inline-caching&quot;&gt;Inline caching&lt;/h3&gt;
+
+&lt;p&gt;One of the important mechanisms in making your Ruby code fast is doing
+inline caching. Inline caching means that we store the result of a method
+lookup a specific call site.&lt;/p&gt;
+
+&lt;p&gt;So what is a call site you might ask? Well, that’s every place in your
+code where a method is called. So take for example the following
+snippet.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;ruby&quot;&gt;&lt;span class=&quot;lineno&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Foo&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;2&lt;/span&gt;   &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;bar&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;3&lt;/span&gt;     &lt;span class=&quot;vi&quot;&gt;@foo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;quz&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;4&lt;/span&gt;   &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;5&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Here &lt;code&gt;@foo.quz&lt;/code&gt; is a call site, so the place where quz is called. What we
+do here is cache the type of &lt;code&gt;@foo&lt;/code&gt; and store which method to execute for
+this type.&lt;/p&gt;
+
+&lt;p&gt;The fact that inline caching works well is based on the idea that at
+runtime for most call sites the receiver type never changes. So in this
+case it means that &lt;code&gt;@foo&lt;/code&gt; is always of the same type. This is
+called a monomorphic call site. &lt;/p&gt;
+
+&lt;p&gt;Of course there are cases where this reasoning doesn’t apply. If we see
+multiple types at a certain call site, it’s called a polymorphic call site.
+For this we store things in a different object and Rubinius currently stores
+up to 3 different types in that case.&lt;/p&gt;
+
+&lt;p&gt;It might be surprising to some, but these cache objects are also just
+Ruby objects. This means that they can be used just like any other Ruby
+object and be inspected for example. So there are objects for an empty
+call site, for monomorphic and also polymorphic sites.&lt;/p&gt;
+
+&lt;p&gt;There is also a specialized site for places where we call &lt;code&gt;respond_to?&lt;/code&gt; since that
+happens often enough to warrant a special case. In the future there
+might be new types introduced such as a specific type for &lt;code&gt;send&lt;/code&gt; calls.&lt;/p&gt;
+
+&lt;h3 id=&quot;accessing-inline-caches-stored-at-call-sites&quot;&gt;Accessing inline caches stored at call sites&lt;/h3&gt;
+
+&lt;p&gt;So now that we have described all this, how do we get access to this
+information? It is actually pretty straightforward and builds on other
+things already available.&lt;/p&gt;
+
+&lt;p&gt;Under the hood, all Ruby code in Rubinius gets translated into a
+&lt;code&gt;CompiledCode&lt;/code&gt; object, which also provides the API for getting access to
+inline caches. One way to get access to the &lt;code&gt;CompiledCode&lt;/code&gt; object is to
+grab it through Ruby’s Method API.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;ruby&quot;&gt;&lt;span class=&quot;lineno&quot;&gt; 1&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Foo&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt; 2&lt;/span&gt;   &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;bar&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt; 3&lt;/span&gt;     &lt;span class=&quot;vi&quot;&gt;@foo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;quz&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt; 4&lt;/span&gt;   &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt; 5&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt; 6&lt;/span&gt; 
+&lt;span class=&quot;lineno&quot;&gt; 7&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;Foo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;new&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt; 8&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;compiled_code&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;method&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:bar&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;executable&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt; 9&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;compiled_code&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;call_sites&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;each&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;do&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;10&lt;/span&gt;   &lt;span class=&quot;nb&quot;&gt;p&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cs&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;# #&amp;lt;Rubinius::CallSite:0xXX script.rb:3#quz(0)&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;11&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;What you can see here is that we have one call site located at &lt;code&gt;script.rb&lt;/code&gt;
+on line 3 (which is the class definition). Currently it’s of the type
+&lt;code&gt;CallSite&lt;/code&gt;, which means that it has a basic structure in place with no
+additional information because this method was never called. This can
+also be inferred from the (0) at the end which indicates the number of
+calls through this object.&lt;/p&gt;
+
+&lt;p&gt;So if we make sure we call this at least once, we should be able to see
+this information.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;ruby&quot;&gt;&lt;span class=&quot;lineno&quot;&gt; 1&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Foo&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt; 2&lt;/span&gt;   &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;bar&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt; 3&lt;/span&gt;     &lt;span class=&quot;vi&quot;&gt;@foo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;quz&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt; 4&lt;/span&gt;   &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt; 5&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt; 6&lt;/span&gt; 
+&lt;span class=&quot;lineno&quot;&gt; 7&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;Foo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;new&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt; 8&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;begin&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt; 9&lt;/span&gt;   &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bar&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;10&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;rescue&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;11&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;12&lt;/span&gt; 
+&lt;span class=&quot;lineno&quot;&gt;13&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;compiled_code&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;method&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;ss&quot;&gt;:bar&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;executable&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;14&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;compiled_code&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;call_sites&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;each&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;do&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;|&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;15&lt;/span&gt;   &lt;span class=&quot;nb&quot;&gt;p&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cs&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;# #&amp;lt;Rubinius::MonoInlineCache:0xXX script.rb:3#quz(1)&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;16&lt;/span&gt;        &lt;span class=&quot;c1&quot;&gt;#   receiver_class=NilClass stored_module=Kernel&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;17&lt;/span&gt;        &lt;span class=&quot;c1&quot;&gt;#   method=#&amp;lt;Rubinius::CompiledCode method_missing file=kernel/delta/kernel.rb&amp;gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;lineno&quot;&gt;18&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;end&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;What we do here is actually run this inside a begin / rescue clause
+because the call will fail because @foo being nil. But this will also
+show that we can actually cache that this will run the &lt;code&gt;method_missing&lt;/code&gt;
+method and that we cache that.&lt;/p&gt;
+
+&lt;p&gt;What you can see here is that we have a &lt;code&gt;MonoInlineCache&lt;/code&gt;, because we’ve
+only seen one type for &lt;code&gt;@foo&lt;/code&gt;, which is &lt;code&gt;nil&lt;/code&gt; so the receiver class is
+&lt;code&gt;NilClass&lt;/code&gt;. The &lt;code&gt;stored_module&lt;/code&gt; is the module the saved method is in, which
+in this case is &lt;code&gt;Kernel&lt;/code&gt;. The actual method stored is the &lt;code&gt;method_missing&lt;/code&gt;
+method here. We can also see it has been called 1 time so far.&lt;/p&gt;
+
+&lt;h3 id=&quot;caveats&quot;&gt;Caveats&lt;/h3&gt;
+
+&lt;p&gt;Currently you get these objects back and you can actually modify them.
+Modifying them at the moment would actually result in undefined
+behavior. You can’t do this easily though since they only provide
+accessor readers, but since it’s Ruby you can of course hack around with
+&lt;code&gt;instance_variable_set&lt;/code&gt; for example.&lt;/p&gt;
+
+&lt;p&gt;You can probably do really crazy stuff with this, if it crashes the vm
+it’s probably a bug, otherwise you’re pretty much on your own when
+hacking this.&lt;/p&gt;
+
+&lt;p&gt;Another thing is that the counters are not guaranteed to be accurate.
+This can mainly happen when the JIT kicks in. The JIT doens’t update
+counters if it inlines methods so that way the method could be called
+more often than you’d think based on the counter. If it’s zero though,
+you can be sure it has been never called since it will always go through
+the interpreter path first.&lt;/p&gt;
+
+&lt;h3 id=&quot;future&quot;&gt;Future&lt;/h3&gt;
+
+&lt;p&gt;So besides for fun and crazy, what is this actually useful for? Well,
+first of all we already use it to actually test in Ruby whether our
+inline caches work properly. This made testing this a lot easier and we
+can easily verify that an empty call sites turns into a monomorphic
+cache and subsequently in a polymorphic one if needed.&lt;/p&gt;
+
+&lt;p&gt;Another reason this can be very useful is for building better tools.
+With this information, it would be possible to create better
+refactoring tools for example. The information provided here gives you
+insight into which methods are bound where and could help perhaps in
+renaming things.&lt;/p&gt;
+
+&lt;p&gt;It would also be interesting to gather this information from your
+runtime application, so you could see which code does and doesn’t get
+executed in your production environment. All these things are just
+ideas, but API’s like the one discussed here make these future
+developments possible and allow for more insight in your Ruby code.&lt;/p&gt;
+
+&lt;p&gt;So play with and let us know what you’ve done with it!&lt;/p&gt;
+</content>
+  </entry>
+  
+  <entry>
     <title>Profiling JIT-ted Ruby code with OProfile</title>
     <id>http://rubini.us/2013/03/20/profiling-jitted-ruby-code-with-oprofile/</id>
     <link rel="alternate" type="text/html" href="http://rubini.us/2013/03/20/profiling-jitted-ruby-code-with-oprofile/" />
