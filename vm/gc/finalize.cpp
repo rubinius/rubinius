@@ -177,8 +177,10 @@ namespace rubinius {
     supervisor_lock_.init();
     supervisor_cond_.init();
 
-    VM::discard(state, self_);
-    self_ = NULL;
+    if(self_) {
+      VM::discard(state, self_);
+      self_ = NULL;
+    }
 
     start_thread(state);
   }

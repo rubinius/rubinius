@@ -1,5 +1,4 @@
 #include "builtin/dir.hpp"
-#include "ffi.hpp"
 #include "vm.hpp"
 #include "objectmemory.hpp"
 #include "builtin/array.hpp"

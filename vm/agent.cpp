@@ -482,6 +482,10 @@ auth_error:
   }
 
   void QueryAgent::after_fork_child(STATE) {
+    if(vm_) {
+      VM::discard(state, vm_);
+      vm_ = NULL;
+    }
     initialize(state);
     start_thread(state);
   }

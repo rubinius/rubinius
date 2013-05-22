@@ -2,7 +2,6 @@
 #include "prelude.hpp"
 #include "builtin/nativefunction.hpp"
 #include "builtin/ffi_pointer.hpp"
-#include "ffi.hpp"
 
 State *global_state;
 

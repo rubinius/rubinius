@@ -124,8 +124,10 @@ namespace rubinius {
     worker_cond_.init();
     pause_cond_.init();
 
-    VM::discard(state, self_);
-    self_ = NULL;
+    if(self_) {
+      VM::discard(state, self_);
+      self_ = NULL;
+    }
 
     start_thread(state);
   }

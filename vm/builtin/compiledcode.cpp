@@ -11,7 +11,6 @@
 #include "builtin/lookuptable.hpp"
 #include "builtin/call_site.hpp"
 
-#include "ffi.hpp"
 #include "marshal.hpp"
 #include "primitives.hpp"
 #include "objectmemory.hpp"
