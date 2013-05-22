@@ -326,8 +326,6 @@ namespace rubinius {
     return Primitives::failure();
 #else
 
-    const char* c_str = str->c_str_null_safe(state);
-
     int fds[2];
 
     OnStack<1> os(state, str);
@@ -340,6 +338,7 @@ namespace rubinius {
       state->shared().auxiliary_threads()->before_fork(state);
     }
 
+    const char* c_str = str->c_str_null_safe(state);
     pid_t pid = ::fork();
 
     // error
@@ -358,6 +357,7 @@ namespace rubinius {
       exec_sh_fallback(state, c_str, str->byte_size());
 
       // bad news, shouldn't be here.
+      perror(c_str);
       exit(1);
     } else {
       state->shared().auxiliary_threads()->after_fork_parent(state);
