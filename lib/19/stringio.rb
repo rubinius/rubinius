@@ -1,6 +1,15 @@
+class IO
+  module Writable
+  end
+  module Readable
+  end
+end
+
 class StringIO
 
   include Enumerable
+  include IO::Writable
+  include IO::Readable
 
   DEFAULT_RECORD_SEPARATOR = "\n" unless defined?(::DEFAULT_RECORD_SEPARATOR)
 
