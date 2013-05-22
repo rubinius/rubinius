@@ -25,18 +25,13 @@ namespace rubinius {
 
 extern "C" {
   VALUE rb_gc_start() {
-    VALUE gc_class_handle = rb_const_get(rb_cObject, rb_intern("GC"));
-    rb_funcall(gc_class_handle, rb_intern("start"), 0);
+    rb_gc();
     return Qnil;
   }
 
   void rb_gc() {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    // Normally ignore this. It's almost always a hack.
-    if(getenv("RBX_RESPECT_RB_GC")) {
-      env->state()->vm()->run_gc_soon();
-    }
+    VALUE gc_class_handle = rb_const_get(rb_cObject, rb_intern("GC"));
+    rb_funcall(gc_class_handle, rb_intern("start"), 0);
   }
 
   void rb_gc_force_recycle(VALUE val) {
