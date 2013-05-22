@@ -140,25 +140,6 @@ long ffi_minor(dev_t n) {
   return minor(n);
 }
 
-/* FIXME: these are TEMPORARY until we determine how to
- * have FFI resolve symbols that may be macros. This is
- * used rather than a primitive so that it is easier to
- * replace (unlike primitives).
- */
-int ffi_stat(const char *path, struct stat *buf) {
-  return stat(path, buf);
-}
-
-int ffi_fstat(int filedes, struct stat *buf) {
-  return fstat(filedes, buf);
-}
-
-#ifndef RBX_WINDOWS
-int ffi_lstat(const char *path, struct stat *buf) {
-  return lstat(path, buf);
-}
-#endif
-
 int ffi_signbit(double x) {
   return signbit(x);
 }

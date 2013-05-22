@@ -58,6 +58,16 @@ namespace rubinius {
     return tm;
   }
 
+  Time* Time::at(STATE, time64_t seconds, long nanoseconds) {
+    Time* tm = state->new_object_dirty<Time>(G(time_class));
+    tm->seconds_ = seconds;
+    tm->nanoseconds_ = nanoseconds;
+    tm->decomposed(state, nil<Array>());
+    tm->is_gmt(state, cFalse);
+    tm->offset(state, nil<Fixnum>());
+    return tm;
+  }
+
   // Taken from MRI
 #define NDIV(x,y) (-(-((x)+1)/(y))-1)
 #define NMOD(x,y) ((y)-(-((x)+1)%(y))-1)

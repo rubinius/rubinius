@@ -76,6 +76,7 @@ file.rbc
 file19.rbc
 dir19.rbc
 filetest.rbc
+stat.rbc
 float.rbc
 float19.rbc
 immediate.rbc

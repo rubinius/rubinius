@@ -304,7 +304,7 @@ class File < IO
     io = Rubinius::Type.try_convert io_or_path, IO, :to_io
 
     if io.is_a? IO
-      Stat.from_fd(io.fileno).directory?
+      Stat.fstat(io.fileno).directory?
     else
       st = Stat.stat io_or_path
       st ? st.directory? : false
@@ -385,7 +385,8 @@ class File < IO
   ##
   # Return true if the named file exists.
   def self.exist?(path)
-    POSIX.stat(Rubinius::Type.coerce_to_path(path), Stat::EXISTS_STRUCT.pointer) == 0
+    st = Stat.stat(path)
+    st ? true : false
   end
 
   # Pull a constant for Dir local to File so that we don't have to depend
@@ -783,7 +784,7 @@ class File < IO
     io = Rubinius::Type.try_convert io_or_path, IO, :to_io
 
     if io.is_a? IO
-      Stat.from_fd(io.fileno).size
+      Stat.fstat(io.fileno).size
     else
       stat(io_or_path).size
     end
@@ -798,7 +799,7 @@ class File < IO
     io = Rubinius::Type.try_convert io_or_path, IO, :to_io
 
     if io.is_a? IO
-      s = Stat.from_fd(io.fileno).size
+      s = Stat.fstat(io.fileno).size
     else
       st = Stat.stat io_or_path
       s = st.size if st
@@ -1038,7 +1039,7 @@ class File < IO
   end
 
   def stat
-    Stat.from_fd @descriptor
+    Stat.fstat @descriptor
   end
 
   def truncate(length)
@@ -1064,338 +1065,7 @@ class IO
   include File::Constants
 end
 
+File::Stat = Rubinius::Stat
 class File::Stat
-  FFI = Rubinius::FFI
-
-  class Struct < FFI::Struct
-    config "rbx.platform.stat", :st_dev, :st_ino, :st_mode, :st_nlink,
-           :st_uid, :st_gid, :st_rdev, :st_size, :st_blksize, :st_blocks,
-           :st_atime, :st_mtime, :st_ctime
-  end
-
-  EXISTS_STRUCT = Struct.new
-
-  include Comparable
-
-  S_IRUSR  = Rubinius::Config['rbx.platform.file.S_IRUSR']
-  S_IWUSR  = Rubinius::Config['rbx.platform.file.S_IWUSR']
-  S_IXUSR  = Rubinius::Config['rbx.platform.file.S_IXUSR']
-  S_IRGRP  = Rubinius::Config['rbx.platform.file.S_IRGRP']
-  S_IWGRP  = Rubinius::Config['rbx.platform.file.S_IWGRP']
-  S_IXGRP  = Rubinius::Config['rbx.platform.file.S_IXGRP']
-  S_IROTH  = Rubinius::Config['rbx.platform.file.S_IROTH']
-  S_IWOTH  = Rubinius::Config['rbx.platform.file.S_IWOTH']
-  S_IXOTH  = Rubinius::Config['rbx.platform.file.S_IXOTH']
-
-  S_IRUGO  = S_IRUSR | S_IRGRP | S_IROTH
-  S_IWUGO  = S_IWUSR | S_IWGRP | S_IWOTH
-  S_IXUGO  = S_IXUSR | S_IXGRP | S_IXOTH
-
-  S_IFMT   = Rubinius::Config['rbx.platform.file.S_IFMT']
-  S_IFIFO  = Rubinius::Config['rbx.platform.file.S_IFIFO']
-  S_IFCHR  = Rubinius::Config['rbx.platform.file.S_IFCHR']
-  S_IFDIR  = Rubinius::Config['rbx.platform.file.S_IFDIR']
-  S_IFBLK  = Rubinius::Config['rbx.platform.file.S_IFBLK']
-  S_IFREG  = Rubinius::Config['rbx.platform.file.S_IFREG']
-  S_IFLNK  = Rubinius::Config['rbx.platform.file.S_IFLNK']
-  S_IFSOCK = Rubinius::Config['rbx.platform.file.S_IFSOCK']
-  S_IFWHT  = Rubinius::Config['rbx.platform.file.S_IFWHT']
-  S_ISUID  = Rubinius::Config['rbx.platform.file.S_ISUID']
-  S_ISGID  = Rubinius::Config['rbx.platform.file.S_ISGID']
-  S_ISVTX  = Rubinius::Config['rbx.platform.file.S_ISVTX']
-
-  POSIX    = FFI::Platform::POSIX
-
-  attr_reader :path
-
-  def self.create(path)
-    path = Rubinius::Type.coerce_to_path path
-    stat = allocate
-    Rubinius.privately { stat.setup path, Struct.new }
-  end
-
-  def self.stat(path)
-    stat = create path
-
-    result = POSIX.stat stat.path, stat.pointer
-    return nil unless result == 0
-
-    stat
-  end
-
-  # --
-  # Stat.lstat raises whereas Stat.stat does not because most things
-  # that use Stat.stat do not expect exceptions but most things that
-  # uses Stat.lstat do.
-  # ++
-  def self.lstat(path)
-    stat = create path
-
-    result = POSIX.lstat stat.path, stat.pointer
-    Errno.handle path unless result == 0
-
-    stat
-  end
-
-  ##
-  # File::Stat#from_fd is used to support IO#stat which does not necessarily
-  # have a path.
-
-  def self.from_fd(descriptor)
-    stat = allocate
-    struct = Struct.new
-
-    result = POSIX.fstat descriptor, struct.pointer
-    Errno.handle "file descriptor #{descriptor}" unless result == 0
-
-    Rubinius.privately { stat.setup nil, struct }
-  end
-
-  def initialize(path)
-    @path = Rubinius::Type.coerce_to_path path
-    @stat = Struct.new
-    result = POSIX.stat @path, @stat.pointer
-    Errno.handle path unless result == 0
-  end
-
-  private :initialize
-
-  def setup(path, struct)
-    @path = path
-    @stat = struct
-    self
-  end
-
-  private :setup
-
-  def pointer
-    @stat.pointer
-  end
-
-  def atime
-    Time.at @stat[:st_atime]
-  end
-
-  def blksize
-    @stat[:st_blksize]
-  end
-
-  def blocks
-    @stat[:st_blocks]
-  end
-
-  def blockdev?
-    @stat[:st_mode] & S_IFMT == S_IFBLK
-  end
-
-  def chardev?
-    @stat[:st_mode] & S_IFMT == S_IFCHR
-  end
-
-  def ctime
-    Time.at @stat[:st_ctime]
-  end
-
-  def dev
-    @stat[:st_dev]
-  end
-
-  def dev_major
-    major = POSIX.major @stat[:st_dev]
-    major < 0 ? nil : major
-  end
-
-  def dev_minor
-    minor = POSIX.major @stat[:st_dev]
-    minor < 0 ? nil : minor
-  end
-
-  def directory?
-    @stat[:st_mode] & S_IFMT == S_IFDIR
-  end
-
-  def executable?
-    return true if superuser?
-    return @stat[:st_mode] & S_IXUSR != 0 if owned?
-    return @stat[:st_mode] & S_IXGRP != 0 if grpowned?
-    return @stat[:st_mode] & S_IXOTH != 0
-  end
-
-  def executable_real?
-    return true if rsuperuser?
-    return @stat[:st_mode] & S_IXUSR != 0 if rowned?
-    return @stat[:st_mode] & S_IXGRP != 0 if rgrpowned?
-    return @stat[:st_mode] & S_IXOTH != 0
-  end
-
-  def file?
-    @stat[:st_mode] & S_IFMT == S_IFREG
-  end
-
-  def ftype
-    if file?
-      "file"
-    elsif directory?
-      "directory"
-    elsif chardev?
-      "characterSpecial"
-    elsif blockdev?
-      "blockSpecial"
-    elsif pipe?
-      "fifo"
-    elsif socket?
-      "socket"
-    elsif symlink?
-      "link"
-    else
-      "unknown"
-    end
-  end
-
-  def gid
-    @stat[:st_gid]
-  end
-
-  def grpowned?
-    @stat[:st_gid] == POSIX.getegid
-  end
-
-  def ino
-    @stat[:st_ino]
-  end
-
-  def inspect
-    "#<File::Stat dev=0x#{self.dev.to_s(16)}, ino=#{self.ino}, " \
-    "mode=#{sprintf("%07d", self.mode.to_s(8).to_i)}, nlink=#{self.nlink}, " \
-    "uid=#{self.uid}, gid=#{self.gid}, rdev=0x#{self.rdev.to_s(16)}, " \
-    "size=#{self.size}, blksize=#{self.blksize}, blocks=#{self.blocks}, " \
-    "atime=#{self.atime}, mtime=#{self.mtime}, ctime=#{self.ctime}>"
-  end
-
-  def nlink
-    @stat[:st_nlink]
-  end
-
-  def mtime
-    Time.at @stat[:st_mtime]
-  end
-
-  def mode
-    @stat[:st_mode]
-  end
-
-  def owned?
-    @stat[:st_uid] == POSIX.geteuid
-  end
-
-  def path
-    @path
-  end
-
-  def pipe?
-    @stat[:st_mode] & S_IFMT == S_IFIFO
-  end
-
-  def rdev
-    @stat[:st_rdev]
-  end
-
-  def rdev_major
-    major = POSIX.major @stat[:st_rdev]
-    major < 0 ? nil : major
-  end
-
-  def rdev_minor
-    minor = POSIX.minor @stat[:st_rdev]
-    minor < 0 ? nil : minor
-  end
-
-  def readable?
-    return true if superuser?
-    return @stat[:st_mode] & S_IRUSR != 0 if owned?
-    return @stat[:st_mode] & S_IRGRP != 0 if grpowned?
-    return @stat[:st_mode] & S_IROTH != 0
-  end
-
-  def readable_real?
-    return true if rsuperuser?
-    return @stat[:st_mode] & S_IRUSR != 0 if rowned?
-    return @stat[:st_mode] & S_IRGRP != 0 if rgrpowned?
-    return @stat[:st_mode] & S_IROTH != 0
-  end
-
-  def setgid?
-    @stat[:st_mode] & S_ISGID != 0
-  end
-
-  def setuid?
-    @stat[:st_mode] & S_ISUID != 0
-  end
-
-  def sticky?
-    @stat[:st_mode] & S_ISVTX != 0
-  end
-
-  def size
-    @stat[:st_size]
-  end
-
-  def size?
-    size == 0 ? nil : size
-  end
-
-  def socket?
-    @stat[:st_mode] & S_IFMT == S_IFSOCK
-  end
-
-  def symlink?
-    @stat[:st_mode] & S_IFMT == S_IFLNK
-  end
-
-  def uid
-    @stat[:st_uid]
-  end
-
-  def writable?
-    return true if superuser?
-    return @stat[:st_mode] & S_IWUSR != 0 if owned?
-    return @stat[:st_mode] & S_IWGRP != 0 if grpowned?
-    return @stat[:st_mode] & S_IWOTH != 0
-  end
-
-  def writable_real?
-    return true if rsuperuser?
-    return @stat[:st_mode] & S_IWUSR != 0 if rowned?
-    return @stat[:st_mode] & S_IWGRP != 0 if rgrpowned?
-    return @stat[:st_mode] & S_IWOTH != 0
-  end
-
-  def zero?
-    @stat[:st_size] == 0
-  end
-
-  def <=>(other)
-    return nil unless other.is_a?(File::Stat)
-    self.mtime <=> other.mtime
-  end
-
-  def rgrpowned?
-    @stat[:st_gid] == POSIX.getgid
-  end
-  private :rgrpowned?
-
-  def rowned?
-    @stat[:st_uid] == POSIX.getuid
-  end
-  private :rowned?
-
-  def rsuperuser?
-    POSIX.getuid == 0
-  end
-  private :rsuperuser?
-
-  def superuser?
-    POSIX.geteuid == 0
-  end
-  private :superuser?
-end     # File::Stat
+  @module_name = :"File::Stat"
+end

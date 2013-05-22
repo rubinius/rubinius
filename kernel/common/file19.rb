@@ -134,15 +134,15 @@ end
 
 class File::Stat
   def world_readable?
-    if (@stat[:st_mode] & S_IROTH) == S_IROTH
-      tmp = @stat[:st_mode] & (S_IRUGO | S_IWUGO | S_IXUGO)
+    if mode & S_IROTH == S_IROTH
+      tmp = mode & (S_IRUGO | S_IWUGO | S_IXUGO)
       return Rubinius::Type.coerce_to tmp, Fixnum, :to_int
     end
   end
 
   def world_writable?
-    if (@stat[:st_mode] & S_IWOTH) == S_IWOTH
-      tmp = @stat[:st_mode] & (S_IRUGO | S_IWUGO | S_IXUGO)
+    if mode & S_IWOTH == S_IWOTH
+      tmp = mode & (S_IRUGO | S_IWUGO | S_IXUGO)
       return Rubinius::Type.coerce_to tmp, Fixnum, :to_int
     end
   end

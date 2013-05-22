@@ -879,7 +879,7 @@ class IO
   end
 
   def strip_bom
-    return unless File::Stat.from_fd(@descriptor).file?
+    return unless File::Stat.fstat(@descriptor).file?
 
     case b1 = getbyte
     when 0x00

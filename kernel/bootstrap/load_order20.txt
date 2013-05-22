@@ -39,6 +39,7 @@ regexp.rbc
 regexp19.rbc
 respond_to_cache.rbc
 rubinius.rbc
+stat.rbc
 string.rbc
 string19.rbc
 symbol.rbc

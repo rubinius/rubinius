@@ -38,6 +38,7 @@
 #include "builtin/system.hpp"
 #include "builtin/thread.hpp"
 #include "builtin/time.hpp"
+#include "builtin/stat.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/autoload.hpp"
 #include "builtin/proc.hpp"
@@ -342,6 +343,7 @@ namespace rubinius {
     ConstantScope::init(state);
     Dir::init(state);
     Time::init(state);
+    Stat::init(state);
     Regexp::init(state);
     Bignum::init(state);
     Float::init(state);

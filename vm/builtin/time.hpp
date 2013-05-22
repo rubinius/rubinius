@@ -35,6 +35,8 @@ namespace rubinius {
 
     static void init(STATE);
 
+    static Time* at(STATE, time64_t seconds, long nanoseconds = 0);
+
     // Rubinius.primitive :time_s_specific
     static Time* specific(STATE, Object* self, Integer* sec, Integer* nsec, Object* gmt, Object* offset);
 

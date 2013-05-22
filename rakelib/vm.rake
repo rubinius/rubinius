@@ -97,6 +97,7 @@ field_extract_headers = %w[
   vm/builtin/tuple.hpp
   vm/builtin/compactlookuptable.hpp
   vm/builtin/time.hpp
+  vm/builtin/stat.hpp
   vm/builtin/nativemethod.hpp
   vm/builtin/system.hpp
   vm/builtin/autoload.hpp

@@ -1072,7 +1072,7 @@ class IO
   def stat
     ensure_open
 
-    File::Stat.from_fd @descriptor
+    File::Stat.fstat @descriptor
   end
 
   ##

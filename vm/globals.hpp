@@ -87,6 +87,7 @@ namespace rubinius {
     TypedRoot<Class*> access_variable;
     TypedRoot<Module*> rubinius;
     TypedRoot<Class*> time_class;
+    TypedRoot<Class*> stat_class;
     TypedRoot<Class*> integer;
     TypedRoot<Class*> numeric;
     TypedRoot<Class*> memory_pointer;
@@ -215,6 +216,7 @@ namespace rubinius {
       access_variable(&roots),
       rubinius(&roots),
       time_class(&roots),
+      stat_class(&roots),
       integer(&roots),
       numeric(&roots),
       memory_pointer(&roots),

@@ -107,10 +107,5 @@ module FFI::Platform::POSIX
   # related to stat()
   attach_function :major, 'ffi_major', [:dev_t], :dev_t
   attach_function :minor, 'ffi_minor', [:dev_t], :dev_t
-
-  # stat
-  attach_function :stat,  'ffi_stat',  [:string, :pointer], :int
-  attach_function :fstat, 'ffi_fstat', [:int,    :pointer], :int
-  attach_function :lstat, 'ffi_lstat', [:string, :pointer], :int
 end
 end

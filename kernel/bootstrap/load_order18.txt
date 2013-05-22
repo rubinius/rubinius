@@ -36,6 +36,7 @@ poly_inline_cache.rbc
 regexp.rbc
 respond_to_cache.rbc
 rubinius.rbc
+stat.rbc
 string.rbc
 symbol.rbc
 thread.rbc
