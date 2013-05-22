@@ -15,11 +15,13 @@ namespace rubinius {
     BlockEnvironment* block_; // slot
     Object* lambda_; // slot
     Object* bound_method_; // slot
+    Object* ruby_method_; // slot
 
   public:
     attr_accessor(block, BlockEnvironment);
     attr_accessor(lambda, Object);
     attr_accessor(bound_method, Object);
+    attr_accessor(ruby_method, Object);
 
     static void init(STATE);
 
