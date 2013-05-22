@@ -89,12 +89,6 @@ namespace rubinius {
     if(!llvm::llvm_start_multithreaded()) {
       assert(0 && "llvm doesn't support threading!");
     }
-
-#ifdef LLVM_JIT_DEBUG
-    if(getenv("RBX_GDBJIT")) {
-      llvm::JITEmitDebugInfo = true;
-    }
-#endif
 #endif
 
     String::init_hash();

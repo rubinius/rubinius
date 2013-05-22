@@ -82,6 +82,7 @@ namespace rubinius {
     llvm::TargetOptions opts;
     opts.NoFramePointerElim = true;
     opts.NoFramePointerElimNonLeaf = true;
+    opts.JITEmitDebugInfo = true;
 
     factory.setTargetOptions(opts);
 #endif
