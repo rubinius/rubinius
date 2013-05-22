@@ -123,7 +123,7 @@ class Configure
     # Essential settings (modify these for creating releases)
     @libversion = "2.0"
     @patch_version = "0"
-    @release = "rc1"
+    @release = validate_release "nightly"
     @release_date = "yyyy-mm-dd"
     @config_version = 174
   end
@@ -257,8 +257,8 @@ class Configure
 
     o.doc "\n Release Settings"
 
-    o.on "--release", "NAME", "Set version to X.Y.Z.NAME" do |name|
-      @release = name
+    o.on "--release", "LABEL", "Set release from { nightly, weekly, monthly, rcN, final }" do |label|
+      @release = validate_release label
     end
 
     o.on "--release-date", "DATE", "Set release date to DATE in yyyy-mm-dd format" do |date|
@@ -474,7 +474,27 @@ class Configure
   end
 
   def version
-    "#{@libversion}.#{@patch_version}.#{@release}"
+    version = "#{@libversion}.#{@patch_version}"
+    version += ".#{@release}" if @release
+    version
+  end
+
+  def validate_release(label)
+    date = Time.now
+    case label
+    when "nightly"
+      "n#{date.strftime("%j").to_i}"
+    when "weekly"
+      "w#{date.strftime("%V").to_i}"
+    when "monthly"
+      "m#{date.month}"
+    when /^rc\d+/
+      label
+    when "final"
+      nil
+    else
+      raise "unknown release label #{label}"
+    end
   end
 
   def validate_release_date(str)
