@@ -64,10 +64,12 @@ namespace rubinius {
     , last_object_id(1)
   {
     // TODO Not sure where this code should be...
+#ifdef ENABLE_OBJECT_WATCH
     if(char* num = getenv("RBX_WATCH")) {
       object_watch = reinterpret_cast<Object*>(strtol(num, NULL, 10));
       std::cout << "Watching for " << object_watch << "\n";
     }
+#endif
 
     large_object_threshold = config.gc_large_object;
     young_->set_lifetime(config.gc_lifetime);
