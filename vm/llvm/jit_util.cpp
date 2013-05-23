@@ -484,15 +484,14 @@ extern "C" {
           Object* ignored = obj->send(state, call_frame, G(sym_to_ary));
           if(!ignored) {
             obj = 0;
-          }
-          else if(!kind_of<Array>(ignored)) {
+          } else if(!kind_of<Array>(ignored)) {
             Exception::type_error(state, "to_ary must return an Array", call_frame);
             obj = 0;
           }
         }
       }
 
-      if (obj != 0) {
+      if(obj) {
         Array* ary = Array::create(state, 1);
         ary->set(state, 0, obj);
         obj = ary;
@@ -524,15 +523,11 @@ extern "C" {
 
       Object* obj = va_arg(ap, Object*);
 
-      if(!obj) {
-        obj = 0;
-      } else if(kind_of<Array>(obj)) {
+      if(kind_of<Array>(obj)) {
         // Nothing! it's good.
       } else if(CBOOL(obj->respond_to(state, G(sym_to_ary), cFalse))) {
         obj = obj->send(state, call_frame, G(sym_to_ary));
-        if(!obj) {
-          obj = 0;
-        } else if(!kind_of<Array>(obj)) {
+        if(obj && !kind_of<Array>(obj)) {
           Exception::type_error(state, "to_ary must return an Array", call_frame);
           obj = 0;
         }
