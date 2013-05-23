@@ -47,22 +47,25 @@ module Rubinius
         #       OR
         #   2. ~/ is owned by the process user
 
-        dir = Rubinius::OS_STARTUP_DIR
-        db = "#{dir}/.rbx"
-        unless name.prefix?(dir) and compiled_cache_writable?(db, dir)
-          # Yes, this retarded shit is necessary because people actually
-          # run under fucked environments with no HOME set.
-          return unless ENV["HOME"]
-
-          dir = File.expand_path "~/"
+        unless @db
+          dir = Rubinius::OS_STARTUP_DIR
           db = "#{dir}/.rbx"
-          return unless compiled_cache_writable?(db, dir)
+          unless name.prefix?(dir) and compiled_cache_writable?(db, dir)
+            # Yes, this retarded shit is necessary because people actually
+            # run under fucked environments with no HOME set.
+            return unless ENV["HOME"]
+
+            dir = File.expand_path "~/"
+            db = "#{dir}/.rbx"
+            return unless compiled_cache_writable?(db, dir)
+          end
+          @db = db
         end
 
         full = "#{name}#{Rubinius::RUBY_LIB_VERSION}"
         hash = Rubinius.invoke_primitive :sha1_hash, full
 
-        "#{db}/#{hash[0, 2]}/#{hash}"
+        "#{@db}/#{hash[0, 2]}/#{hash}"
       end
     end
 
