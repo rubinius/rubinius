@@ -149,6 +149,7 @@ namespace rubinius {
           if(!(ary = try_as<Array>(obj))) {
             if(CBOOL(obj->respond_to(state, G(sym_to_ary), cFalse))) {
               obj = obj->send(state, call_frame, G(sym_to_ary));
+              if(!obj) return false;
               if(!(ary = try_as<Array>(obj))) {
                 Exception::type_error(state, "to_ary must return an Array", call_frame);
                 return false;
