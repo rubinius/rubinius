@@ -218,6 +218,18 @@ retry:
     }
   }
 
+  void ObjectHeader::scanned() {
+    for(;;) {
+      HeaderWord orig    = header;
+      HeaderWord new_val = orig;
+      new_val.f.Marked  |= 1;
+
+      if(header.atomic_set(orig, new_val)) {
+        return;
+      }
+    }
+  }
+
   void ObjectHeader::clear_mark() {
     for(;;) {
       HeaderWord orig    = header;

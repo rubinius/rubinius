@@ -17,6 +17,7 @@ namespace rubinius {
     virtual ~HeapDebug() { }
 
     virtual Object* saw_object(Object* obj);
+    virtual void scanned_object(Object* obj) {}
     void walk(Roots &roots);
   };
 }

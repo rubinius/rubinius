@@ -211,7 +211,7 @@ namespace rubinius {
     }
 
     void rotate_mark() {
-      mark_ = (mark_ == 1 ? 2 : 1);
+      mark_ = (mark_ == 2 ? 4 : 2);
     }
 
     bool can_gc() const {

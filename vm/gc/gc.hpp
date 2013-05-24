@@ -148,6 +148,7 @@ namespace rubinius {
      * encountered during garbage collection.
      */
     virtual Object* saw_object(Object*) = 0;
+    virtual void scanned_object(Object*) = 0;
     // Scans the specified Object for references to other Objects.
     void scan_object(Object* obj);
     void delete_object(Object* obj);

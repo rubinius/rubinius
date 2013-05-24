@@ -55,7 +55,7 @@ namespace rubinius {
     , inflated_headers_(new InflatedHeaders(state))
     , capi_handles_(new capi::Handles)
     , code_manager_(&state->shared)
-    , mark_(1)
+    , mark_(2)
     , allow_gc_(true)
     , slab_size_(4096)
     , shared_(state->shared)
@@ -1063,9 +1063,7 @@ step1:
     std::cout << "  total allocated: " << code_manager_.total_allocated() << "\n";
     std::cout << "      total freed: " << code_manager_.total_freed() << "\n";
   }
-
 };
-
 
 // The following memory functions are defined in ruby.h for use by C-API
 // extensions, and also used by library code lifted from MRI (e.g. Oniguruma).

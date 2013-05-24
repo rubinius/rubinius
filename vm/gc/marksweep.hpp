@@ -43,6 +43,7 @@ namespace rubinius {
     void   sweep_objects();
     void   free_object(Object* obj, bool fast = false);
     virtual Object* saw_object(Object* obj);
+    virtual void scanned_object(Object* obj) {}
     void after_marked();
 
     void profile(STATE);

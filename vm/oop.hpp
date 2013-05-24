@@ -142,13 +142,13 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 #define OBJECT_FLAGS_MEANING        16
 #define OBJECT_FLAGS_FORWARDED      17
 #define OBJECT_FLAGS_REMEMBER       18
-#define OBJECT_FLAGS_MARKED         20
-#define OBJECT_FLAGS_INIMMIX        21
-#define OBJECT_FLAGS_PINNED         22
-#define OBJECT_FLAGS_FROZEN         23
-#define OBJECT_FLAGS_TAINTED        24
-#define OBJECT_FLAGS_UNTRUSTED      25
-#define OBJECT_FLAGS_LOCK_CONTENDED 26
+#define OBJECT_FLAGS_MARKED         21
+#define OBJECT_FLAGS_INIMMIX        22
+#define OBJECT_FLAGS_PINNED         23
+#define OBJECT_FLAGS_FROZEN         24
+#define OBJECT_FLAGS_TAINTED        25
+#define OBJECT_FLAGS_UNTRUSTED      26
+#define OBJECT_FLAGS_LOCK_CONTENDED 27
 
   struct ObjectFlags {
     object_type  obj_type        : 8;
@@ -158,7 +158,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     unsigned int Forwarded       : 1;
     unsigned int Remember        : 1;
-    unsigned int Marked          : 2;
+    unsigned int Marked          : 3;
 
     unsigned int InImmix         : 1;
     unsigned int Pinned          : 1;
@@ -167,7 +167,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     unsigned int Tainted         : 1;
     unsigned int Untrusted       : 1;
     unsigned int LockContended   : 1;
-    unsigned int unused          : 5;
+    unsigned int unused          : 4;
 
     uint32_t aux_word;
   };
@@ -256,7 +256,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     }
 
     bool marked_p(unsigned int which) const {
-      return mark_ == (int)which;
+      return (mark_ & which) == (int)which;
     }
 
     void mark(ObjectMemory* om, unsigned int which) {
@@ -481,10 +481,15 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     }
 
     bool marked_p(unsigned int which) const {
-      return flags().Marked == which;
+      return (flags().Marked & which) == which;
+    }
+
+    bool scanned_p(unsigned int which) const {
+      return flags().Marked == which + 1;
     }
 
     void mark(ObjectMemory* om, unsigned int which);
+    void scanned();
 
     int which_mark() const {
       return flags().Marked;

@@ -283,6 +283,9 @@ namespace rubinius {
     /// generation.
     virtual Object* saw_object(Object* obj);
 
+    /// Called for each object after the object is scanned
+    virtual void scanned_object(Object* obj) {}
+
     /// Scans the remaining unscanned portion of what was the Current space.
     void    copy_unscanned();
 

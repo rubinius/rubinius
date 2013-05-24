@@ -83,6 +83,11 @@ namespace rubinius {
       std::cout << "detected " << obj << " during scan_object.\n";
     }
 #endif
+    // We set scanned here before we finish scanning the object.
+    // This is done so we don't have a race condition while we're
+    // scanning the object and another thread updates a field during
+    // the phase where the object is partially scanned.
+    scanned_object(obj);
 
     slot = saw_object(obj->klass());
     if(slot && slot != obj->klass()) {
@@ -117,7 +122,6 @@ namespace rubinius {
       ti->mark(obj, mark);
     }
   }
-
 
   /**
    * Removes a mature object from the remembered set, ensuring it will not keep
