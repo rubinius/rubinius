@@ -560,7 +560,6 @@ class IO
         end
       end
 
-      str << @buffer.shift
       unless str.empty?
         str = IO.read_encode(@io, str)
         str.taint
@@ -607,6 +606,13 @@ class IO
           str << @buffer.shift
           wanted -= available
         end
+      end
+
+      unless str.empty?
+        str = IO.read_encode(@io, str)
+        str.taint
+        $. = @io.increment_lineno
+        yield str
       end
     end
   end
