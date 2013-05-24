@@ -204,12 +204,20 @@ ruby_version_is "1.9" do
       @io.gets(nil, 6).should == "one\n\nt"
     end
 
+    it "reads all bytes when the limit is higher than the available bytes" do
+      @io.gets(nil, 100).should == "one\n\ntwo\n\nthree\nfour\n"
+    end
+
     it "reads until the next paragraph when passed '' and a limit greater than the next paragraph" do
       @io.gets("", 6).should == "one\n\n"
     end
 
     it "reads limit bytes when passed '' and a limit less than the next paragraph" do
       @io.gets("", 3).should == "one"
+    end
+
+    it "reads all bytes when pass a separator and reading more than all bytes" do
+      @io.gets("\t", 100).should == "one\n\ntwo\n\nthree\nfour\n"
     end
   end
 
