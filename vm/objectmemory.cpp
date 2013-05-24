@@ -646,18 +646,11 @@ step1:
 
     prune_handles(data.handles(), data.cached_handles(), NULL);
 
-
     // Have to do this after all things that check for mark bits is
     // done, as it free()s objects, invalidating mark bits.
     mark_sweep_->after_marked();
 
     inflated_headers_->deallocate_headers(mark());
-
-    // We no longer need to unmark all, we use the rotating mark instead.
-    // This means that the mark we just set on all reachable objects will
-    // be ignored next time anyway.
-    //
-    // immix_->unmark_all(data);
 
 #ifdef RBX_GC_DEBUG
     immix_->verify(data);
