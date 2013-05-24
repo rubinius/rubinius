@@ -121,6 +121,7 @@ namespace immix {
 
     /// Map of in-use lines in the Block
     LineEntry lines_[cLineTableSize];
+    LineEntry marks_[cLineTableSize];
 
   public:
     Block()
@@ -131,20 +132,27 @@ namespace immix {
       , objects_(0)
       , object_bytes_(0)
     {
-      clear_lines();
+      memset(lines_, 0, sizeof(lines_));
+      memset(marks_, 0, sizeof(marks_));
+      marks_[0] = 1;
+      lines_[0] = 1;
     }
 
     /**
      * Clears all lines in the Block, making the memory managed by this Block
      * available for allocation.
      */
-    void clear_lines() {
+    void clear_marks() {
       objects_ = 0;
       object_bytes_ = 0;
-      memset(lines_, 0, sizeof(lines_));
+      memset(marks_, 0, sizeof(marks_));
       // Always exclude the first line, it's got metadata in the form of a
       // pointer back to this Block object managing that memory.
-      lines_[0] = 1;
+      marks_[0] = 1;
+    }
+
+    void copy_marks() {
+      memcpy(lines_, marks_, sizeof(lines_));
     }
 
     /**
@@ -241,14 +249,14 @@ namespace immix {
      * Marks a line of memory as in use.
      */
     void mark_line(int line) {
-      lines_[line] = 1;
+      marks_[line] = 1;
     }
 
     /**
      * Marks a line of memory as free.
      */
     void free_line(int line) {
-      lines_[line] = 0;
+      marks_[line] = 0;
     }
 
     /**
@@ -338,7 +346,7 @@ namespace immix {
       lines_used_ = 0;
       bool in_hole = false;
       for(int i = 0; i < cLineTableSize; i++) {
-        if(lines_[i] == 0) {
+        if(marks_[i] == 0) {
           if(!in_hole) holes_++;
           in_hole = true;
         } else {
@@ -1042,7 +1050,7 @@ namespace immix {
      * for evacuation). Since this method does not actually know how to do the
      * marking of an object, it calls back to ObjectDescriber to handle this.
      */
-    Address mark_address(Address addr, Allocator& alloc) {
+    Address mark_address(Address addr, Allocator& alloc, bool push = true) {
       Address fwd = desc.forwarding_pointer(addr);
 
       if(!fwd.is_null()) {
@@ -1051,7 +1059,7 @@ namespace immix {
 
       // Returns false if addr is already marked, if so, we don't
       // do the block marking logic again.
-      if(!desc.mark_address(addr, mark_stack_)) {
+      if(!desc.mark_address(addr, mark_stack_, push)) {
         return addr;
       }
 
@@ -1075,7 +1083,7 @@ namespace immix {
     /**
      * Calls the Describer to scan from each of the Addresses in the mark stack.
      */
-    bool process_mark_stack(Allocator& alloc) {
+    bool process_mark_stack(Allocator& alloc, int count = 0) {
       Marker<Describer> mark(this, alloc);
 
       if(mark_stack_.empty()) return false;
@@ -1085,9 +1093,28 @@ namespace immix {
         Address addr = mark_stack_.back();
         mark_stack_.pop_back();
         desc.walk_pointers(addr, mark);
+        count--;
+        if(count == 0) return true;
       }
 
       return true;
+    }
+
+    /**
+     * Calls the describer to update addresses that might have been
+     * forwarded by another GC.
+     */
+    size_t update_mark_stack(Allocator& alloc) {
+      Marker<Describer> mark(this, alloc);
+
+      for(MarkStack::iterator i = mark_stack_.begin(); i != mark_stack_.end(); ++i) {
+        Address addr = desc.update_pointer(*i);
+        if(!addr.is_null()) {
+          addr = mark_address(addr, alloc, false);
+        }
+        *i = addr;
+      }
+      return mark_stack_.size();
     }
 
     /**
@@ -1106,17 +1133,28 @@ namespace immix {
     }
 
     /**
-     * Called at the start of a collection; invalidates all blocks and lines,
-     * making all the memory potentially available. Following a call to this
-     * method, the garbage collector will trace from all root objects, and
-     * live objects found in managed Blocks will cause lines to be re-marked
-     * as in use.
+     * Called at the start of a collection; clears marks before a new cycle.
+     * Following a call to this method, the garbage collector will trace
+     * from all root objects, and live objects found in managed Blocks will
+     * cause lines to be marked as in use.
      */
-    void clear_lines() {
+    void clear_marks() {
       AllBlockIterator iter(block_allocator_.chunks());
 
       while(Block* block = iter.next()) {
-        block->clear_lines();
+        block->clear_marks();
+      }
+    }
+
+    /**
+     * Called after a collection. Copies the marks to the current lines
+     * allocations will be able to use the updated lines list for finding holes
+     */
+    void copy_marks() {
+      AllBlockIterator iter(block_allocator_.chunks());
+
+      while(Block* block = iter.next()) {
+        block->copy_marks();
       }
     }
 

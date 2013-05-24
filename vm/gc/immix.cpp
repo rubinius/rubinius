@@ -135,7 +135,7 @@ namespace rubinius {
    * Performs a garbage collection of the immix space.
    */
   void ImmixGC::collect(GCData& data) {
-    gc_.clear_lines();
+    gc_.clear_marks();
 
     int via_handles_ = 0;
     int via_roots = 0;
@@ -214,6 +214,9 @@ namespace rubinius {
     // Clear unreachable objects from the various remember sets
     unsigned int mark = object_memory_->mark();
     object_memory_->unremember_objects(mark);
+
+    // Copy marks for use in new allocations
+    gc_.copy_marks();
 
     // Sweep up the garbage
     gc_.sweep_blocks();
