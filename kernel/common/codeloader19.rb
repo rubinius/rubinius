@@ -24,7 +24,7 @@ module Rubinius
       if script && script.data_path.nil?
         raise LoadError.new "cannot infer basepath from #{script.file_path}"
       elsif script
-        require File.expand_path(name, File.dirname(script.data_path))
+        require File.expand_path(name, File.realdirpath(script.data_path))
       else
         raise LoadError.new "Something is wrong in trying to get relative path"
       end

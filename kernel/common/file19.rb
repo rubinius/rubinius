@@ -130,6 +130,10 @@ class File
 
     real
   end
+
+  def self.realdirpath(path, basedir = nil)
+    dirname(realpath(path, basedir))
+  end
 end
 
 class File::Stat
