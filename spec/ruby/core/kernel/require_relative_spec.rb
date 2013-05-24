@@ -17,6 +17,25 @@ ruby_version_is "1.9" do
       CodeLoadingSpecs.spec_cleanup
     end
 
+    platform_is_not :windows do
+      describe "when file is a symlink" do
+        before :each do
+          @link = tmp("symlink.rb", false)
+          @real_path = "#{@abs_dir}/symlink/symlink1.rb"
+          File.symlink(@real_path, @link)
+        end
+
+        after :each do
+          rm_r @link
+        end
+
+        it "loads a path relative to current file" do
+          require_relative(@link).should be_true
+          ScratchPad.recorded.should == [:loaded]
+        end
+      end
+    end
+
     it "loads a path relative to the current file" do
       require_relative(@path).should be_true
       ScratchPad.recorded.should == [:loaded]
