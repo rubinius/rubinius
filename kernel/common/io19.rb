@@ -409,7 +409,8 @@ class IO
     end
 
     if @internal
-      if Encoding.default_external == Encoding.default_internal
+      if Encoding.default_external == Encoding.default_internal or
+         (@external || Encoding.default_external) == Encoding::ASCII_8BIT
         @internal = nil
       end
     elsif @mode != RDONLY
