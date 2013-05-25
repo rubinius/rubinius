@@ -85,11 +85,12 @@ namespace rubinius {
   Object* Dir::read(STATE) {
     guard(state);
 
-    struct dirent *ent = readdir(os_);
+    struct dirent ent;
+    struct dirent* entp = &ent;
+    readdir_r(os_, entp, &entp);
 
-    if(!ent) return cNil;
-
-    return String::create(state, ent->d_name);
+    if(!entp) return cNil;
+    return String::create(state, ent.d_name);
   }
 
   Object* Dir::control(STATE, Fixnum* kind, Integer* pos) {
