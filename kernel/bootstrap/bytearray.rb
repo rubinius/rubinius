@@ -86,11 +86,6 @@ module Rubinius
       end
     end
 
-    def utf8_char(offset)
-      Rubinius.primitive :bytearray_get_utf8_char
-      raise ArgumentError, "unable to extract utf8 character"
-    end
-
     def reverse(start, total)
       Rubinius.primitive :bytearray_reverse
       raise PrimitiveFailure, "ByteArray#reverse primitive failed"

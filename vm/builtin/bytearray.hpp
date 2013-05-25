@@ -72,9 +72,6 @@ namespace rubinius {
     // Rubinius.primitive :bytearray_prepend
     ByteArray* prepend(STATE, String* other);
 
-    // Rubinius.primitive :bytearray_get_utf8_char
-    Object* get_utf8_char(STATE, Fixnum* offset);
-
     // Rubinius.primitive :bytearray_reverse
     ByteArray* reverse(STATE, Fixnum* start, Fixnum* total);
 
