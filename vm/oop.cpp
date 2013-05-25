@@ -820,16 +820,6 @@ step2:
     }
   }
 
-  void ObjectHeader::clear_body_to_null(size_t bytes) {
-    void** dst = this->__body__;
-    size_t field_count = bytes_to_fields(bytes);
-
-    for(size_t counter = 0; counter < field_count; counter++) {
-      dst[counter] = 0;
-    }
-
-  }
-
   void InflatedHeader::initialize_mutex(int thread_id, int count) {
     owner_id_ = thread_id;
     rec_lock_count_ = count;

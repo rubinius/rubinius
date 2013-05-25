@@ -2,7 +2,6 @@
 #define RBX_VM_OOP_HPP
 
 #include <stddef.h>
-#include <ctype.h>
 #include <stdint.h>
 #include <assert.h>
 #ifdef HAVE_ALLOCA_H
@@ -17,11 +16,6 @@
 #include "bug.hpp"
 
 namespace rubinius {
-namespace utilities {
-namespace thread {
-  class Mutex;
-}
-}
 
 /* We use a variable length OOP tag system:
  * The tag represents 1 to 3 bits which uniquely
@@ -104,15 +98,6 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 #define CBOOL(v)                    (((uintptr_t)(v) & FALSE_MASK) != (uintptr_t)cFalse)
 #define RBOOL(v)                    ((v) ? cTrue : cFalse)
 
-#define SIZE_OF_OBJECT              ((size_t)(sizeof(ObjectHeader*)))
-
-#define NUM_FIELDS(obj)             ((obj)->num_fields())
-#define SIZE_IN_BYTES_FIELDS(fel)   ((size_t)(sizeof(ObjectHeader) + \
-                                        ((fel)*SIZE_OF_OBJECT)))
-#define SIZE_IN_WORDS_FIELDS(fel)   (sizeof(ObjectHeader)/SIZE_OF_OBJECT + (fel))
-#define SIZE_IN_BYTES(obj)          SIZE_IN_BYTES_FIELDS(obj->num_fields())
-#define SIZE_OF_BODY(obj)           (obj->num_fields() * SIZE_OF_OBJECT)
-
 // Some configuration flags
 
   /* rubinius_object gc zone, takes up two bits */
@@ -122,19 +107,6 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     MatureObjectZone = 1,
     YoungObjectZone  = 2,
   } gc_zone;
-
-  /* the sizeof(class ObjectHeader) must be a multiple of the platform
-     pointer size, so that the bytes located directly after a
-     struct rubinius_object can hold a pointer which can be
-     dereferenced. (on 32 bit platforms, pointers must be aligned
-     on 32bit (word) boundaries. on 64 bit platforms, pointers probably
-     have to be aligned on 64bit (double word) boundaries) */
-
-  /* On a 32 bit platform, I expect ObjectHeader to take up
-     4 + 4 + 4 = 12 bytes.
-     on 64 bit platform,
-     8 + 8 + 8 = 24 bytes.
-     */
 
   class Class;
   class Object;
@@ -350,10 +322,6 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     bool set_inflated_header(STATE, uint32_t ih_header, HeaderWord orig);
 
-    HeaderWord current_header() {
-      return header;
-    }
-
     /*
      * We return a copy here for safe reading. This means that
      * even though the reader might see slightly outdated information,
@@ -426,9 +394,6 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     /* Clear the body of the object, by setting each field to cNil */
     void clear_fields(size_t bytes);
 
-    /* Clear the body of the object, setting it to all 0s */
-    void clear_body_to_null(size_t bytes);
-
     /* Initialize the objects data with the most basic info. This is done
      * right after an object is created.
      *
@@ -471,10 +436,6 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     size_t body_in_bytes(VM* state) const {
       return size_in_bytes(state) - sizeof(ObjectHeader);
-    }
-
-    size_t total_size(VM* state) const {
-      return size_in_bytes(state);
     }
 
     bool reference_p() const {
@@ -650,6 +611,5 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     ObjectHeader& operator= (const ObjectHeader&);
   };
 }
-
 
 #endif
