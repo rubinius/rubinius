@@ -59,6 +59,14 @@ describe :kernel_load, :shared => true do
     ScratchPad.recorded.should == [:loaded, :loaded]
   end
 
+  it "loads file even after $LOAD_PATH change" do
+    $LOAD_PATH << CODE_LOADING_DIR
+    @object.load("load_fixture.rb").should be_true
+    $LOAD_PATH.unshift CODE_LOADING_DIR + "/gem"
+    @object.load("load_fixture.rb").should be_true
+    ScratchPad.recorded.should == [:loaded, :loaded_gem]
+  end
+
   it "does not cause #require with the same path to fail" do
     @object.load(@path).should be_true
     @object.require(@path).should be_true
