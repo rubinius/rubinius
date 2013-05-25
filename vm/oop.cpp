@@ -789,8 +789,8 @@ step2:
 
     copy_body(state, other);
 
-    state->om->write_barrier(reinterpret_cast<Object*>(this), ivars_);
-    state->om->write_barrier(reinterpret_cast<Object*>(this), klass_);
+    reinterpret_cast<Object*>(this)->write_barrier(state, ivars_);
+    reinterpret_cast<Object*>(this)->write_barrier(state, klass_);
 
     // This method is only used by the GC to move an object, so must retain
     // the settings flags.
