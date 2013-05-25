@@ -484,7 +484,7 @@ module Rubinius
           when PatternArguments
             arg.map_arguments scope
           when Symbol
-            @required[index] = arg = :"_#{index}" if arg == :_
+            @required[index] = arg = :"_#{index}" if arg == :_ and index > 0
             scope.new_local arg
           end
         end
