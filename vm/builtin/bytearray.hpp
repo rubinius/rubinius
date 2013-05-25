@@ -45,8 +45,6 @@ namespace rubinius {
       return bytes;
     }
 
-    char* to_chars(STATE, Fixnum* size);
-
     // Rubinius.primitive :bytearray_get_byte
     Fixnum* get_byte(STATE, Fixnum* index);
 

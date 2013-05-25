@@ -57,14 +57,6 @@ class TestByteArray : public CxxTest::TestSuite, public VMTest {
     TS_ASSERT_EQUALS(b->size(state), Fixnum::from(sizeof(Object*)));
   }
 
-  void test_to_chars() {
-    String* s = String::create(state, "xy");
-    ByteArray* ba = s->data();
-    char* chars = ba->to_chars(state, Fixnum::from(2));
-
-    TS_ASSERT_SAME_DATA("xy", chars, 2);
-  }
-
   void test_get_byte() {
     ByteArray* b = new_bytearray("xyz");
     TS_ASSERT_EQUALS(b->get_byte(state, Fixnum::from(0)), Fixnum::from('x'));
