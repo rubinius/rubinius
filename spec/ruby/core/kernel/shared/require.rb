@@ -173,11 +173,12 @@ describe :kernel_require_basic, :shared => true do
       ScratchPad.recorded.should == [:loaded]
     end
 
-    it "does not load file twice after $LOAD_PATH change" do
+    it "does not require file twice after $LOAD_PATH change" do
       $LOAD_PATH << CODE_LOADING_DIR
-      @object.send(@method, "load_fixture.rb").should be_true
+      @object.require("load_fixture.rb").should be_true
       $LOAD_PATH.unshift CODE_LOADING_DIR + "/gem"
-      @object.send(@method, "load_fixture.rb").should be_false
+      @object.require("load_fixture.rb").should be_false
+      ScratchPad.recorded.should == [:loaded]
     end
 
     it "does not resolve a ./ relative path against $LOAD_PATH entries" do

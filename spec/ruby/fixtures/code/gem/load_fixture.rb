@@ -1,1 +1,1 @@
-ScratchPad << :loaded
+ScratchPad << :loaded_gem
