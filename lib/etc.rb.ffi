@@ -107,16 +107,20 @@ module Etc
   end
 
   def self.passwd
-    setpwent
+    Rubinius.synchronize(self) do
+      begin
+        setpwent
 
-    loop do
-      pw = getpwent
-      return if pw.nil?
+        loop do
+          pw = getpwent
+          return if pw.nil?
 
-      yield pw
+          yield pw
+        end
+      ensure
+        endpwent
+      end
     end
-  ensure
-    endpwent
   end
 
   def self.getgrnam(name)
