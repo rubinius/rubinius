@@ -23,6 +23,7 @@
 #include "ontology.hpp"
 #include "util/murmur_hash3.hpp"
 #include "util/siphash.h"
+#include "util/spinlock.hpp"
 #include "util/random.h"
 
 #include <unistd.h>
@@ -1282,10 +1283,19 @@ namespace rubinius {
     return s;
   }
 
+
+  static int crypt_lock = RBX_SPINLOCK_UNLOCKED;
   String* String::crypt(STATE, String* salt) {
+    rbx_spinlock_lock(&crypt_lock);
     char* result = ::crypt(this->c_str(state), salt->c_str(state));
-    if(!result) Exception::errno_error(state, "crypt(3) failed");
-    return String::create(state, result);
+    if(!result) {
+      rbx_spinlock_unlock(&crypt_lock);
+      Exception::errno_error(state, "crypt(3) failed");
+      return NULL;
+    }
+    String* res = String::create(state, result);
+    rbx_spinlock_unlock(&crypt_lock);
+    return res;
   }
 
   Integer* String::to_i(STATE, Fixnum* fix_base, Object* strict) {
