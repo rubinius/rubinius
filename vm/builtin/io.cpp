@@ -14,6 +14,7 @@
 #include "object_utils.hpp"
 #include "on_stack.hpp"
 #include "ontology.hpp"
+#include "util/spinlock.hpp"
 #include "windows_compat.h"
 
 #include <sstream>
@@ -970,6 +971,7 @@ namespace rubinius {
     return ary;
   }
 
+  static int ttyname_lock = RBX_SPINLOCK_UNLOCKED;
   Object* IO::query(STATE, Symbol* op) {
     ensure_open(state);
 
@@ -979,7 +981,17 @@ namespace rubinius {
       return RBOOL(isatty(fd));
 #ifndef RBX_WINDOWS
     } else if(op == state->symbol("ttyname")) {
-      return String::create(state, ttyname(fd));
+      rbx_spinlock_lock(&ttyname_lock);
+      char* name = ttyname(fd);
+      if(name) {
+        String* res = String::create(state, name);
+        rbx_spinlock_unlock(&ttyname_lock);
+        return res;
+      } else {
+        rbx_spinlock_unlock(&ttyname_lock);
+        Exception::errno_error(state, "ttyname(3) failed");
+        return NULL;
+      }
 #endif
     }
 
