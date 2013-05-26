@@ -1304,16 +1304,20 @@ namespace rubinius {
     // TODO: Windows
     return force_as<String>(Primitives::failure());
 #else
+    struct passwd pw;
     struct passwd *pwd;
     String* home = 0;
 
-    if((pwd = getpwnam(name->c_str(state)))) {
+    long len = sysconf(_SC_GETPW_R_SIZE_MAX);
+    char buf[len];
+
+    getpwnam_r(name->c_str_null_safe(state), &pw, buf, len, &pwd);
+    if(pwd) {
       home = String::create(state, pwd->pw_dir);
     } else {
       home = nil<String>();
     }
 
-    endpwent();
     return home;
 #endif
   }
