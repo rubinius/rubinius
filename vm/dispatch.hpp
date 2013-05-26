@@ -1,11 +1,12 @@
 #ifndef RBX_DISPATCH_HPP
 #define RBX_DISPATCH_HPP
 
-#include "builtin/object.hpp"
+#include "vm.hpp"
 
 namespace rubinius {
   class Symbol;
   class Module;
+  class Object;
   class Executable;
   struct CallFrame;
   class Arguments;

@@ -1,18 +1,16 @@
-#include <iostream>
-
-#include "call_frame.hpp"
-#include "builtin/variable_scope.hpp"
 #include "builtin/class.hpp"
-#include "builtin/module.hpp"
-#include "builtin/string.hpp"
-#include "builtin/symbol.hpp"
 #include "builtin/compiledcode.hpp"
-#include "builtin/tuple.hpp"
 #include "builtin/constantscope.hpp"
 #include "builtin/lookuptable.hpp"
 #include "builtin/nativemethod.hpp"
-
+#include "builtin/string.hpp"
+#include "builtin/symbol.hpp"
+#include "builtin/tuple.hpp"
+#include "builtin/variable_scope.hpp"
+#include "call_frame.hpp"
 #include "object_utils.hpp"
+
+#include <iostream>
 
 namespace rubinius {
   Object* CallFrame::last_match(STATE) {

@@ -1,18 +1,13 @@
-#include "prelude.hpp"
-#include "oop.hpp"
-
-#include "bytecode_verification.hpp"
 #include "builtin/compiledcode.hpp"
 #include "builtin/iseq.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/symbol.hpp"
-
+#include "bytecode_verification.hpp"
+#include "configuration.hpp"
+#include "instruments/timing.hpp"
 #include "machine_code.hpp"
 #include "object_utils.hpp"
-#include "instruments/timing.hpp"
-
-#include "configuration.hpp"
 
 namespace rubinius {
   BytecodeVerification::BytecodeVerification(CompiledCode* code)

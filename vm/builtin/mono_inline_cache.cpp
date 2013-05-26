@@ -1,6 +1,5 @@
 #include "arguments.hpp"
 #include "builtin/class.hpp"
-#include "builtin/module.hpp"
 #include "builtin/mono_inline_cache.hpp"
 #include "builtin/poly_inline_cache.hpp"
 #include "builtin/executable.hpp"

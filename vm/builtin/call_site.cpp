@@ -5,7 +5,6 @@
 #include "builtin/call_unit.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/executable.hpp"
-#include "builtin/module.hpp"
 #include "builtin/mono_inline_cache.hpp"
 #include "builtin/object.hpp"
 #include "builtin/poly_inline_cache.hpp"

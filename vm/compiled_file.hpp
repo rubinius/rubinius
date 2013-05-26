@@ -1,9 +1,10 @@
 #ifndef RBX_COMPILED_FILE_HPP
 #define RBX_COMPILED_FILE_HPP
 
-#include <string>
-
 #include "prelude.hpp"
+
+#include <string>
+#include <istream>
 
 namespace rubinius {
 

@@ -1,9 +1,8 @@
 #ifndef RBX_CONFIG_PARSER
 #define RBX_CONFIG_PARSER
 
+#include <string>
 #include <iostream>
-#include <sstream>
-#include <map>
 #include <vector>
 
 namespace rubinius {

@@ -34,7 +34,6 @@
 
 #include "dtrace/dtrace.h"
 
-#include <ostream>
 #include <sstream>
 #include <fstream>
 
@@ -239,7 +238,7 @@ namespace rubinius {
     bert::IOWriter writer(client.socket);
     bert::Encoder<bert::IOWriter> encoder(writer);
 
-    std::stringstream name;
+    std::ostringstream name;
     std::ifstream file;
     bert::Value* val = 0;
 
@@ -602,7 +601,7 @@ auth_error:
 
           cl.begin_auth(incr_tmp_key());
 
-          std::stringstream name;
+          std::ostringstream name;
           name << "/tmp/agent-auth." << getuid() << "-" << getpid() << "." << cl.auth_key;
 
           int file = open(name.str().c_str(), O_CREAT | O_WRONLY | O_EXCL, 0600);

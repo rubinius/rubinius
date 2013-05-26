@@ -6,16 +6,16 @@
  * primary execution begins, when the VM loads the loader.rbc and executes
  * it. */
 
-#include "compiled_file.hpp"
-#include "marshal.hpp"
 #include "arguments.hpp"
-#include "call_frame.hpp"
-#include "objectmemory.hpp"
-#include "object_utils.hpp"
 #include "builtin/constantscope.hpp"
 #include "builtin/compiledcode.hpp"
 #include "builtin/class.hpp"
 #include "builtin/thread.hpp"
+#include "call_frame.hpp"
+#include "compiled_file.hpp"
+#include "marshal.hpp"
+#include "objectmemory.hpp"
+#include "object_utils.hpp"
 
 namespace rubinius {
   CompiledFile* CompiledFile::load(std::istream& stream) {

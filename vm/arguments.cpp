@@ -1,5 +1,4 @@
 #include "arguments.hpp"
-#include "builtin/array.hpp"
 
 namespace rubinius {
   void Arguments::append(STATE, Array* ary) {

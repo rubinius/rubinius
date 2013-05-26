@@ -5,7 +5,6 @@
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
 #include "builtin/exception.hpp"
-#include "builtin/module.hpp"
 #include "builtin/object.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"

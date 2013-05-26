@@ -1,15 +1,14 @@
-#include "dispatch.hpp"
 #include "arguments.hpp"
-#include "lookup_data.hpp"
-#include "global_cache.hpp"
-
 #include "builtin/module.hpp"
 #include "builtin/class.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/executable.hpp"
 #include "builtin/exception.hpp"
+#include "dispatch.hpp"
+#include "global_cache.hpp"
+#include "lookup_data.hpp"
 
-#include <iostream>
+#include <sstream>
 
 namespace rubinius {
   Object* Dispatch::send(STATE, CallFrame* call_frame, Arguments& args,
