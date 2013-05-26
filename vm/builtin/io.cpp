@@ -756,6 +756,7 @@ namespace rubinius {
           case EPIPE:
             if(fd == STDOUT_FILENO || fd == STDERR_FILENO) {
               left = 0;
+              delete[] bytes;
               goto done;
             }
             // fall through
