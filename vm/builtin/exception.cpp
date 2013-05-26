@@ -224,7 +224,9 @@ namespace rubinius {
   }
 
   void Exception::memory_error(STATE) {
-    RubyException::raise(make_exception(state, get_errno_error(state, Fixnum::from(errno)), strerror(errno)));
+    char buf[RBX_STRERROR_BUFSIZE];
+    strerror_r(errno, buf, RBX_STRERROR_BUFSIZE);
+    RubyException::raise(make_exception(state, get_errno_error(state, Fixnum::from(errno)), buf));
   }
 
   void Exception::object_bounds_exceeded_error(STATE, Object* obj, int index) {

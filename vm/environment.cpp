@@ -462,8 +462,10 @@ namespace rubinius {
       // Test that we can actually use this path
       int fd = open(config.report_path, O_RDONLY | O_CREAT, 0666);
       if(!fd) {
+        char buf[RBX_STRERROR_BUFSIZE];
+        strerror_r(errno, buf, RBX_STRERROR_BUFSIZE);
         std::cerr << "Unable to use " << config.report_path << " for crash reports.\n";
-        std::cerr << "Unable to open path: " << strerror(errno) << "\n";
+        std::cerr << "Unable to open path: " << buf << "\n";
 
         // Don't use the home dir path even, just use stderr
         report_path[0] = 0;

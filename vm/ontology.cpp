@@ -584,7 +584,10 @@ namespace rubinius {
       cls->set_name(state, name, ern);
 
       cls->set_const(state, state->symbol("Errno"), key);
-      cls->set_const(state, state->symbol("Strerror"), String::create(state, strerror(num)));
+
+      char buf[RBX_STRERROR_BUFSIZE];
+      strerror_r(num, buf, RBX_STRERROR_BUFSIZE);
+      cls->set_const(state, state->symbol("Strerror"), String::create(state, buf));
       state->globals().errno_mapping->store(state, key, cls);
     }
   }

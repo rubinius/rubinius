@@ -10,8 +10,6 @@ module FFI::Platform::POSIX
   # errors
   attach_function :errno,    'ffi_errno',     [],     :int
   attach_function :errno=,   'ffi_set_errno', [:int], :void
-  attach_function :strerror, [:int], :string
-  attach_function :perror,   [:string], :void
 
   # memory
   attach_function :malloc,   [:size_t], :pointer

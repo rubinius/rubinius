@@ -293,7 +293,9 @@ namespace rubinius {
     int error = start_new_thread(state, attrs);
 
     if(error) {
-      Exception::thread_error(state, strerror(error));
+      char buf[RBX_STRERROR_BUFSIZE];
+      strerror_r(error, buf, RBX_STRERROR_BUFSIZE);
+      Exception::thread_error(state, buf);
     }
     return cNil;
   }
