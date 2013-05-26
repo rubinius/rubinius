@@ -1,10 +1,7 @@
 #ifndef RBX_BUILTIN_EXCEPTION_HPP
 #define RBX_BUILTIN_EXCEPTION_HPP
 
-#include <string>
-
 #include "builtin/object.hpp"
-#include "type_info.hpp"
 
 namespace rubinius {
   class Class;

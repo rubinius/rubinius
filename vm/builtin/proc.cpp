@@ -1,25 +1,19 @@
-#include "prelude.hpp"
-#include "builtin/proc.hpp"
-#include "object_utils.hpp"
-#include "objectmemory.hpp"
-#include "builtin/class.hpp"
+#include "arguments.hpp"
 #include "builtin/block_environment.hpp"
+#include "builtin/class.hpp"
 #include "builtin/compiledcode.hpp"
-#include "builtin/system.hpp"
+#include "builtin/exception.hpp"
 #include "builtin/location.hpp"
 #include "builtin/nativemethod.hpp"
 #include "builtin/nativefunction.hpp"
-
-#include "arguments.hpp"
-#include "on_stack.hpp"
-
-#include "machine_code.hpp"
-#include "arguments.hpp"
-#include "dispatch.hpp"
+#include "builtin/proc.hpp"
 #include "call_frame.hpp"
 #include "configuration.hpp"
-
+#include "dispatch.hpp"
+#include "object_utils.hpp"
+#include "objectmemory.hpp"
 #include "ontology.hpp"
+#include "on_stack.hpp"
 
 namespace rubinius {
 

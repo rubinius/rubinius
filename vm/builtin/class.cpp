@@ -1,27 +1,16 @@
-#include "vm.hpp"
-#include "object_utils.hpp"
-#include "objectmemory.hpp"
-#include "configuration.hpp"
-#include "on_stack.hpp"
-
+#include "builtin/array.hpp"
 #include "builtin/class.hpp"
-#include "builtin/compiledcode.hpp"
+#include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/lookuptable.hpp"
 #include "builtin/methodtable.hpp"
 #include "builtin/module.hpp"
-#include "builtin/symbol.hpp"
-#include "builtin/constantscope.hpp"
-#include "builtin/string.hpp"
-#include "builtin/system.hpp"
 #include "builtin/packed_object.hpp"
-#include "builtin/array.hpp"
-#include "builtin/exception.hpp"
-#include "builtin/location.hpp"
-
-#include "builtin/executable.hpp"
-
-#include <iostream>
+#include "builtin/symbol.hpp"
+#include "configuration.hpp"
+#include "object_utils.hpp"
+#include "objectmemory.hpp"
+#include "on_stack.hpp"
 
 namespace rubinius {
 

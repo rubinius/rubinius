@@ -4,9 +4,8 @@
 #include "builtin/object.hpp"
 #include "builtin/bytearray.hpp"
 #include "builtin/fixnum.hpp"
-
 #include "object_utils.hpp"
-#include "type_info.hpp"
+
 #include <ctype.h> // For isdigit and friends
 #include <errno.h> // For ERANGE
 
@@ -29,7 +28,6 @@ struct OnigEncodingType;
 #define ISDIGIT(c) (ISASCII(c) && isdigit((int)(unsigned char)(c)))
 #define ISXDIGIT(c) (ISASCII(c) && isxdigit((int)(unsigned char)(c)))
 #endif
-
 
 namespace rubinius {
   class ByteArray;

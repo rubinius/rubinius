@@ -2,7 +2,6 @@
 #define RBX_BUILTIN_BLOCK_WRAPPER_HPP
 
 #include "builtin/object.hpp"
-#include "type_info.hpp"
 
 namespace rubinius {
   class BlockEnvironment;

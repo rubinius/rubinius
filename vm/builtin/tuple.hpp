@@ -2,8 +2,6 @@
 #define RBX_BUILTIN_TUPLE_HPP
 
 #include "builtin/object.hpp"
-#include "builtin/exception.hpp"
-#include "type_info.hpp"
 
 namespace rubinius {
   class Tuple : public Object {

@@ -1,29 +1,17 @@
-#include <sstream>
-
 #include "builtin/class.hpp"
 #include "builtin/encoding.hpp"
 #include "builtin/exception.hpp"
+#include "builtin/location.hpp"
 #include "builtin/lookuptable.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/string.hpp"
-#include "builtin/system.hpp"
-
-#include "vm.hpp"
-#include "object_utils.hpp"
-#include "exception.hpp"
-#include "type_info.hpp"
-
-#include "builtin/location.hpp"
-#include "builtin/array.hpp"
-
 #include "call_frame.hpp"
-
 #include "configuration.hpp"
-
+#include "object_utils.hpp"
 #include "ontology.hpp"
 
-#include <iostream>
+#include <sstream>
 
 namespace rubinius {
   void Exception::init(STATE) {

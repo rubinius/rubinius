@@ -1,10 +1,7 @@
 #include "builtin/class.hpp"
 #include "builtin/iseq.hpp"
 #include "builtin/tuple.hpp"
-
 #include "ontology.hpp"
-
-#include "vm.hpp"
 
 namespace rubinius {
   void InstructionSequence::init(STATE) {

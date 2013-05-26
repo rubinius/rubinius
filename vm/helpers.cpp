@@ -16,6 +16,7 @@
 #include "builtin/channel.hpp"
 #include "builtin/methodtable.hpp"
 #include "builtin/location.hpp"
+#include "builtin/exception.hpp"
 
 #include "vm.hpp"
 #include "object_utils.hpp"

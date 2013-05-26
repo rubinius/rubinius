@@ -1,3 +1,6 @@
+#ifndef RBX_BUILTIN_THUNK_HPP
+#define RBX_BUILTIN_THUNK_HPP
+
 #include "builtin/executable.hpp"
 
 namespace rubinius {
@@ -28,3 +31,5 @@ namespace rubinius {
     };
   };
 }
+
+#endif

@@ -1,24 +1,14 @@
-/* This MUST all be at the top */
-#include "builtin/fiber.hpp"
-/* end must be at the top */
-
-
-#include "builtin/object.hpp"
-#include "builtin/array.hpp"
-#include "vm.hpp"
-#include "builtin/class.hpp"
-#include "builtin/integer.hpp"
-#include "builtin/exception.hpp"
-
-#include "objectmemory.hpp"
-#include "gc/gc.hpp"
-
-#include "call_frame.hpp"
 #include "arguments.hpp"
-
+#include "builtin/array.hpp"
+#include "builtin/class.hpp"
+#include "builtin/exception.hpp"
+#include "builtin/fiber.hpp"
+#include "builtin/lookuptable.hpp"
+#include "builtin/object.hpp"
+#include "call_frame.hpp"
+#include "gc/gc.hpp"
+#include "objectmemory.hpp"
 #include "ontology.hpp"
-
-#include "on_stack.hpp"
 
 namespace rubinius {
 

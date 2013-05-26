@@ -4,8 +4,6 @@
 #include "builtin/object.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/integer.hpp"
-
-#include "type_info.hpp"
 #include "object_utils.hpp"
 
 namespace rubinius {

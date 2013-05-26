@@ -1,17 +1,12 @@
-#include "object_utils.hpp"
-#include "prelude.hpp"
-
+#include "arguments.hpp"
 #include "builtin/access_variable.hpp"
 #include "builtin/class.hpp"
 #include "builtin/executable.hpp"
-#include "builtin/symbol.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/packed_object.hpp"
-
+#include "builtin/symbol.hpp"
+#include "object_utils.hpp"
 #include "objectmemory.hpp"
-#include "dispatch.hpp"
-#include "arguments.hpp"
-
 #include "ontology.hpp"
 
 namespace rubinius {

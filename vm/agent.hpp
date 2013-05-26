@@ -7,7 +7,6 @@
 #include "gc/managed.hpp"
 #include "gc/root.hpp"
 #include "util/thread.hpp"
-
 #include "windows_compat.h"
 
 namespace rubinius {

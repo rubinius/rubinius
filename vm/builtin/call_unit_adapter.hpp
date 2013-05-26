@@ -1,11 +1,12 @@
+#ifndef RBX_BUILTIN_CALL_UNIT_ADAPTER_HPP
+#define RBX_BUILTIN_CALL_UNIT_ADAPTER_HPP
+
 #include "builtin/executable.hpp"
-#include "builtin/call_unit.hpp"
 
 namespace rubinius {
   struct CallFrame;
-  class Dispatch;
   class Arguments;
-  class BlockEnvironment;
+  class CallUnit;
 
   class CallUnitAdapter: public Executable {
   public:
@@ -29,3 +30,5 @@ namespace rubinius {
     };
   };
 }
+
+#endif

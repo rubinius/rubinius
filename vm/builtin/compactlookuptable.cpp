@@ -1,16 +1,10 @@
-#include "vm.hpp"
-#include "object_utils.hpp"
-#include "objectmemory.hpp"
-
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
 #include "builtin/compactlookuptable.hpp"
 #include "builtin/lookuptable.hpp"
 #include "builtin/symbol.hpp"
-
+#include "object_utils.hpp"
 #include "ontology.hpp"
-
-#include <iostream>
 
 namespace rubinius {
   void CompactLookupTable::init(STATE) {

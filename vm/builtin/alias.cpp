@@ -1,7 +1,6 @@
 #include "builtin/alias.hpp"
 #include "builtin/class.hpp"
 #include "builtin/exception.hpp"
-
 #include "ontology.hpp"
 
 namespace rubinius {

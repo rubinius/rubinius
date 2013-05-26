@@ -21,6 +21,7 @@
 #include "builtin/nativemethod.hpp"
 #include "builtin/channel.hpp"
 #include "builtin/call_site.hpp"
+#include "builtin/exception.hpp"
 
 #include "instruments/tooling.hpp"
 #include "instruments/rbxti-internal.hpp"

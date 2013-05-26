@@ -1,17 +1,8 @@
-#include "vm.hpp"
-#include "prelude.hpp"
 #include "builtin/class.hpp"
 #include "builtin/constantscope.hpp"
 #include "builtin/system.hpp"
-#include "builtin/symbol.hpp"
-#include "builtin/lookuptable.hpp"
-#include "builtin/compactlookuptable.hpp"
-
 #include "call_frame.hpp"
-
 #include "ontology.hpp"
-
-#include <sstream>
 
 namespace rubinius {
   void ConstantScope::init(STATE) {

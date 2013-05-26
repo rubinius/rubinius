@@ -1,27 +1,14 @@
-#include "config.h"
-
-#include "vm.hpp"
-#include "object_utils.hpp"
-#include "objectmemory.hpp"
-#include "primitives.hpp"
-
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/integer.hpp"
 #include "builtin/string.hpp"
 #include "builtin/time.hpp"
-
+#include "objectmemory.hpp"
+#include "object_utils.hpp"
 #include "ontology.hpp"
-
 #include "util/time64.h"
 #include "util/strftime.h"
-
-#include <sys/time.h>
-#include <time.h>
-
-#include "windows_compat.h"
-#include "configuration.hpp"
 
 namespace rubinius {
   void Time::init(STATE) {

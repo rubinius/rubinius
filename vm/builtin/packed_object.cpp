@@ -1,15 +1,12 @@
-#include "gc/gc.hpp"
-
-#include "builtin/packed_object.hpp"
-#include "builtin/object.hpp"
-#include "builtin/lookuptable.hpp"
-#include "builtin/fixnum.hpp"
-#include "builtin/class.hpp"
-#include "builtin/symbol.hpp"
 #include "builtin/array.hpp"
-
-#include "object_utils.hpp"
+#include "builtin/class.hpp"
+#include "builtin/fixnum.hpp"
+#include "builtin/lookuptable.hpp"
+#include "builtin/object.hpp"
+#include "builtin/packed_object.hpp"
+#include "builtin/symbol.hpp"
 #include "objectmemory.hpp"
+#include "object_utils.hpp"
 
 namespace rubinius {
 

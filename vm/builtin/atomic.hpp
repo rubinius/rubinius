@@ -1,7 +1,6 @@
 #ifndef RBX_BUILTIN_ATOMIC_HPP
 #define RBX_BUILTIN_ATOMIC_HPP
 
-#include "vm.hpp"
 #include "builtin/object.hpp"
 #include "util/atomic.hpp"
 

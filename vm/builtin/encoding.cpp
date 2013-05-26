@@ -5,8 +5,8 @@
 #include "builtin/array.hpp"
 #include "builtin/bytearray.hpp"
 #include "builtin/class.hpp"
-#include "builtin/data.hpp"
 #include "builtin/encoding.hpp"
+#include "builtin/exception.hpp"
 #include "builtin/integer.hpp"
 #include "builtin/io.hpp"
 #include "builtin/lookuptable.hpp"
@@ -14,17 +14,11 @@
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
-
-#include "on_stack.hpp"
+#include "configuration.hpp"
 #include "object_utils.hpp"
 #include "objectmemory.hpp"
-#include "configuration.hpp"
-
+#include "on_stack.hpp"
 #include "ontology.hpp"
-
-#include "config.h"
-
-#include "gc/gc.hpp"
 
 #include <ctype.h>
 #include <string.h>

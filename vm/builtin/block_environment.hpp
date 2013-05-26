@@ -2,7 +2,6 @@
 #define RBX_BUILTIN_BLOCK_ENVIRONMENT_HPP
 
 #include "builtin/object.hpp"
-#include "type_info.hpp"
 #include "executor.hpp"
 
 namespace rubinius {

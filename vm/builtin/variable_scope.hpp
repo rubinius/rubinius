@@ -2,10 +2,7 @@
 #define RBX_VARIABLE_SCOPE_HPP
 
 #include "call_frame.hpp"
-#include "object_utils.hpp"
-
 #include "builtin/object.hpp"
-#include "builtin/tuple.hpp"
 #include "util/thread.hpp"
 
 namespace rubinius {
@@ -13,6 +10,7 @@ namespace rubinius {
   class CompiledCode;
   class Module;
   class Fiber;
+  class Tuple;
 
   /**
    *  Variable information.

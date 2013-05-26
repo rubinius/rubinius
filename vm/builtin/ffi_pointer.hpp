@@ -2,9 +2,12 @@
 #define RBX_BUILTIN_MEMORYPOINTER_HPP
 
 #include "builtin/object.hpp"
-#include "type_info.hpp"
 
 namespace rubinius {
+  class Float;
+  class Integer;
+  class String;
+
   class Pointer : public Object {
   public:
     const static object_type type = PointerType;

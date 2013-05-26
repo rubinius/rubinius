@@ -1,38 +1,23 @@
-/* A BlockEnvironment is created when a block is created. Its primary
- * operation is call, which activates the code associated with the block. */
-
-#include "config.h"
-
-#include "builtin/object.hpp"
-#include "builtin/symbol.hpp"
-
-#include "builtin/block_environment.hpp"
-#include "builtin/variable_scope.hpp"
-#include "objectmemory.hpp"
-
-#include "object_utils.hpp"
-
 #include "arguments.hpp"
-#include "dispatch.hpp"
-#include "call_frame.hpp"
+#include "builtin/block_environment.hpp"
 #include "builtin/class.hpp"
 #include "builtin/compiledcode.hpp"
-#include "builtin/fixnum.hpp"
-#include "builtin/tuple.hpp"
-#include "builtin/system.hpp"
 #include "builtin/constantscope.hpp"
+#include "builtin/exception.hpp"
+#include "builtin/fixnum.hpp"
 #include "builtin/location.hpp"
 #include "builtin/nativemethod.hpp"
-
-#include "instruments/tooling.hpp"
+#include "builtin/object.hpp"
+#include "builtin/symbol.hpp"
+#include "builtin/system.hpp"
+#include "builtin/tuple.hpp"
+#include "builtin/variable_scope.hpp"
+#include "call_frame.hpp"
 #include "configuration.hpp"
+#include "instruments/tooling.hpp"
+#include "object_utils.hpp"
 #include "on_stack.hpp"
-
 #include "ontology.hpp"
-
-#ifdef RBX_WINDOWS
-#include <malloc.h>
-#endif
 
 #ifdef ENABLE_LLVM
 #include "llvm/state.hpp"

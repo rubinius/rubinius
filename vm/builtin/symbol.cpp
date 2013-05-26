@@ -1,18 +1,16 @@
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
 #include "builtin/encoding.hpp"
+#include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
-
-#include "vm.hpp"
 #include "object_utils.hpp"
 #include "objectmemory.hpp"
-
 #include "ontology.hpp"
 
-#include <iostream>
+#include <sstream>
 
 #define StartSize 16
 #define Increments 32

@@ -1,30 +1,20 @@
-#include "gc/gc.hpp"
-
-#include "builtin/compiledcode.hpp"
+#include "arguments.hpp"
+#include "builtin/call_site.hpp"
 #include "builtin/class.hpp"
+#include "builtin/compiledcode.hpp"
+#include "builtin/constantscope.hpp"
+#include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/iseq.hpp"
-#include "builtin/constantscope.hpp"
+#include "builtin/lookuptable.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
-#include "builtin/string.hpp"
-#include "builtin/lookuptable.hpp"
-#include "builtin/call_site.hpp"
-
-#include "marshal.hpp"
-#include "primitives.hpp"
-#include "objectmemory.hpp"
-#include "arguments.hpp"
-#include "dispatch.hpp"
-#include "call_frame.hpp"
-#include "object_utils.hpp"
-#include "configuration.hpp"
-
 #include "bytecode_verification.hpp"
+#include "call_frame.hpp"
+#include "configuration.hpp"
 #include "instruments/timing.hpp"
-
+#include "object_utils.hpp"
 #include "on_stack.hpp"
-
 #include "ontology.hpp"
 
 #ifdef ENABLE_LLVM

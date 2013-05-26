@@ -1,18 +1,13 @@
-#include "gc/gc.hpp"
-
+#include "builtin/class.hpp"
+#include "builtin/exception.hpp"
+#include "builtin/fixnum.hpp"
 #include "builtin/tuple.hpp"
-#include "vm.hpp"
 #include "object_utils.hpp"
 #include "objectmemory.hpp"
-#include "builtin/fixnum.hpp"
-#include "builtin/class.hpp"
-#include "builtin/compactlookuptable.hpp"
+#include "ontology.hpp"
 
 #include <stdarg.h>
-#include <iostream>
-#include <stdint.h>
-
-#include "ontology.hpp"
+#include <sstream>
 
 namespace rubinius {
 

@@ -1,20 +1,12 @@
-#include "vm.hpp"
-#include "object_utils.hpp"
-#include "objectmemory.hpp"
-
-#include "builtin/executable.hpp"
-#include "builtin/methodtable.hpp"
-#include "builtin/array.hpp"
+#include "builtin/alias.hpp"
 #include "builtin/class.hpp"
+#include "builtin/executable.hpp"
 #include "builtin/fixnum.hpp"
+#include "builtin/methodtable.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
-#include "builtin/string.hpp"
-#include "builtin/alias.hpp"
-
-#include "on_stack.hpp"
-
-#include <iostream>
+#include "object_utils.hpp"
+#include "objectmemory.hpp"
 
 #define METHODTABLE_MAX_DENSITY 0.75
 #define METHODTABLE_MIN_DENSITY 0.3

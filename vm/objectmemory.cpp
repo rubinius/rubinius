@@ -28,6 +28,7 @@
 #include "builtin/dir.hpp"
 #include "builtin/array.hpp"
 #include "builtin/thread.hpp"
+#include "builtin/exception.hpp"
 
 #include "capi/handles.hpp"
 #include "configuration.hpp"

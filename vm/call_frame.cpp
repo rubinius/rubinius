@@ -4,6 +4,7 @@
 #include "builtin/variable_scope.hpp"
 #include "builtin/class.hpp"
 #include "builtin/module.hpp"
+#include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/compiledcode.hpp"
 #include "builtin/tuple.hpp"

@@ -2,11 +2,10 @@
 #define RBX_BUILTIN_AUTOLOAD_HPP
 
 #include "builtin/object.hpp"
-#include "builtin/thread.hpp"
-#include "type_info.hpp"
 
 namespace rubinius {
   struct CallFrame;
+  class Thread;
 
   class Autoload : public Object {
   public:

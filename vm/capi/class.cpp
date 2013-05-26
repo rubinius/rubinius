@@ -1,5 +1,6 @@
 #include "builtin/class.hpp"
 #include "builtin/module.hpp"
+#include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 
 #include "helpers.hpp"

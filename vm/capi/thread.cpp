@@ -13,6 +13,7 @@
 #include "builtin/thread.hpp"
 #include "builtin/nativemethod.hpp"
 #include "builtin/ffi_pointer.hpp"
+#include "builtin/string.hpp"
 
 #include "windows_compat.h"
 

@@ -4,14 +4,12 @@
 #include "util/time64.h"
 
 #include "builtin/object.hpp"
-#include "type_info.hpp"
-
-#include "builtin/tuple.hpp"
 #include "builtin/integer.hpp"
 
 namespace rubinius {
   class Array;
   class String;
+  class Tuple;
 
   class Time : public Object {
   public:

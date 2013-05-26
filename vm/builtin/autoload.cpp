@@ -1,9 +1,6 @@
-#include "prelude.hpp"
-#include "call_frame.hpp"
-#include "builtin/class.hpp"
 #include "builtin/autoload.hpp"
+#include "builtin/class.hpp"
 #include "helpers.hpp"
-
 #include "ontology.hpp"
 #include "on_stack.hpp"
 

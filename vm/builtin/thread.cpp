@@ -1,35 +1,21 @@
-#include "builtin/thread.hpp"
-#include "builtin/lookuptable.hpp"
-#include "builtin/tuple.hpp"
-#include "builtin/list.hpp"
-#include "builtin/class.hpp"
-#include "builtin/fixnum.hpp"
-#include "builtin/symbol.hpp"
-#include "builtin/float.hpp"
 #include "builtin/channel.hpp"
-#include "builtin/nativemethod.hpp"
+#include "builtin/class.hpp"
+#include "builtin/exception.hpp"
 #include "builtin/fiber.hpp"
+#include "builtin/fixnum.hpp"
 #include "builtin/location.hpp"
-
-#include "objectmemory.hpp"
-#include "arguments.hpp"
-#include "dispatch.hpp"
+#include "builtin/lookuptable.hpp"
+#include "builtin/nativemethod.hpp"
+#include "builtin/thread.hpp"
+#include "builtin/tuple.hpp"
+#include "builtin/symbol.hpp"
 #include "call_frame.hpp"
-#include "environment.hpp"
-
-#include "instruments/tooling.hpp"
 #include "dtrace/dtrace.h"
-
+#include "environment.hpp"
+#include "instruments/tooling.hpp"
 #include "object_utils.hpp"
-#include "vm.hpp"
-
-#include "on_stack.hpp"
-
 #include "ontology.hpp"
-
-#include "windows_compat.h"
-
-#include <sys/time.h>
+#include "on_stack.hpp"
 
 /* HACK: returns a value that should identify a native thread
  * for debugging threading issues. The winpthreads library

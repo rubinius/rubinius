@@ -2,11 +2,10 @@
 #define RBX_ARRAY_HPP
 
 #include "builtin/object.hpp"
-#include "builtin/fixnum.hpp"
-#include "type_info.hpp"
 
 namespace rubinius {
   class Tuple;
+  class Fixnum;
 
   class Array : public Object {
   public:

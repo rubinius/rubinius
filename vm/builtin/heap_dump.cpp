@@ -2,38 +2,31 @@
 // because it uses a whole bunch of local classes and it's cleaner to have
 // all that be in it's own file.
 
-#include "config.h"
-
-#include "vm.hpp"
-
+#include "builtin/array.hpp"
+#include "builtin/bytearray.hpp"
+#include "builtin/class.hpp"
+#include "builtin/module.hpp"
+#include "builtin/object.hpp"
+#include "builtin/string.hpp"
+#include "builtin/symbol.hpp"
+#include "builtin/system.hpp"
+#include "builtin/tuple.hpp"
+#include "builtin/variable_scope.hpp"
 #include "gc/gc.hpp"
 #include "gc/walker.hpp"
 #include "objectmemory.hpp"
-
-#include "builtin/object.hpp"
-#include "builtin/array.hpp"
-#include "builtin/bytearray.hpp"
-#include "builtin/symbol.hpp"
-#include "builtin/module.hpp"
-#include "builtin/string.hpp"
-#include "builtin/class.hpp"
-#include "builtin/tuple.hpp"
-#include "builtin/variable_scope.hpp"
-#include "builtin/system.hpp"
-
 #include "object_utils.hpp"
 
 #include <fcntl.h>
+#include <map>
+#include <vector>
+#include <algorithm>
+
 #ifdef RBX_WINDOWS
 #include <winsock2.h>
 #else
 #include <arpa/inet.h>
 #endif
-
-#include <map>
-#include <vector>
-#include <algorithm>
-#include <iostream>
 
 namespace rubinius {
   typedef std::map<Object*, int> Identities;
@@ -386,7 +379,7 @@ namespace rubinius {
     // Seed it with the root objects.
     walker.seed(gc_data);
 
-    int fd = open(path->c_str(state), O_CREAT | O_TRUNC | O_WRONLY, 0666);
+    int fd = open(path->c_str_null_safe(state), O_CREAT | O_TRUNC | O_WRONLY, 0666);
     if(fd < 0) return cNil;
 
     HeapDump dump(fd);
@@ -402,7 +395,7 @@ namespace rubinius {
 
     dump.footer(state);
 
-    std::cout << "Heap dumped to " << path->c_str(state) << "\n";
+    std::cout << "Heap dumped to " << path->c_str_null_safe(state) << "\n";
     close(fd);
 
     return cNil;

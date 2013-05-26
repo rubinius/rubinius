@@ -1,19 +1,13 @@
-#include "builtin/location.hpp"
+#include "builtin/array.hpp"
 #include "builtin/class.hpp"
 #include "builtin/compiledcode.hpp"
-#include "builtin/array.hpp"
-#include "builtin/symbol.hpp"
-#include "builtin/string.hpp"
+#include "builtin/location.hpp"
 #include "builtin/nativemethod.hpp"
+#include "builtin/string.hpp"
+#include "builtin/symbol.hpp"
 #include "builtin/variable_scope.hpp"
-
-#include "vm.hpp"
-
 #include "call_frame.hpp"
-
 #include "ontology.hpp"
-
-#include <sstream>
 
 namespace rubinius {
   void Location::init(STATE) {

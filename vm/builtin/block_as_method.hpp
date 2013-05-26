@@ -1,3 +1,6 @@
+#ifndef RBX_BUILTIN_BLOCK_AS_METHOD_HPP
+#define RBX_BUILTIN_BLOCK_AS_METHOD_HPP
+
 #include "builtin/executable.hpp"
 
 namespace rubinius {
@@ -28,3 +31,5 @@ namespace rubinius {
     };
   };
 }
+
+#endif

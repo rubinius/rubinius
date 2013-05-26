@@ -2,7 +2,6 @@
 #define RBX_BUILTIN_ISEQ_HPP
 
 #include "builtin/object.hpp"
-#include "type_info.hpp"
 
 namespace rubinius {
   class Tuple;

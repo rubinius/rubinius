@@ -1,40 +1,24 @@
-#include <iostream>
-
-#include "config.h"
-#include "vm.hpp"
-
-#include "exception.hpp"
-#include "exception_point.hpp"
 #include "arguments.hpp"
-#include "dispatch.hpp"
-#include "primitives.hpp"
-#include "call_frame.hpp"
-#include "objectmemory.hpp"
-#include "configuration.hpp"
-#include "on_stack.hpp"
-
 #include "builtin/array.hpp"
 #include "builtin/data.hpp"
 #include "builtin/exception.hpp"
+#include "builtin/ffi_pointer.hpp"
+#include "builtin/float.hpp"
+#include "builtin/location.hpp"
 #include "builtin/nativemethod.hpp"
 #include "builtin/string.hpp"
-#include "builtin/system.hpp"
 #include "builtin/tuple.hpp"
-#include "builtin/location.hpp"
-#include "builtin/ffi_pointer.hpp"
-
-#include "instruments/tooling.hpp"
-
-#include "ontology.hpp"
-
+#include "call_frame.hpp"
 #include "capi/capi.hpp"
 #include "capi/handle.hpp"
-
+#include "configuration.hpp"
 #include "dtrace/dtrace.h"
-
-#ifdef RBX_WINDOWS
-#include <malloc.h>
-#endif
+#include "exception.hpp"
+#include "exception_point.hpp"
+#include "instruments/tooling.hpp"
+#include "objectmemory.hpp"
+#include "ontology.hpp"
+#include "on_stack.hpp"
 
 namespace rubinius {
   /** Thread-local NativeMethodEnvironment instance. */

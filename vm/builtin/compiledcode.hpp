@@ -2,9 +2,6 @@
 #define RBX_BUILTIN_COMPILEDCODE_HPP
 
 #include "builtin/executable.hpp"
-#include "vm.hpp"
-
-#include <list>
 
 namespace rubinius {
 

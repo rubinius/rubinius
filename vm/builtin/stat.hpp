@@ -1,14 +1,14 @@
 #ifndef RBX_BUILTIN_STAT_HPP
 #define RBX_BUILTIN_STAT_HPP
 
-#include <sys/stat.h>
-
 #include "builtin/object.hpp"
-#include "type_info.hpp"
+
+#include <sys/stat.h>
 
 namespace rubinius {
 
   class String;
+  class Fixnum;
   class Integer;
   class Time;
 

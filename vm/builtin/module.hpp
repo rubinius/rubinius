@@ -2,8 +2,6 @@
 #define RBX_BUILTIN_MODULE_HPP
 
 #include "builtin/object.hpp"
-#include "builtin/fixnum.hpp"
-#include "type_info.hpp"
 
 namespace rubinius {
   class ConstantTable;

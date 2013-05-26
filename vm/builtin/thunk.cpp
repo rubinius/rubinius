@@ -1,12 +1,9 @@
-#include "builtin/thunk.hpp"
-#include "builtin/system.hpp"
-#include "builtin/class.hpp"
-#include "builtin/location.hpp"
-
-#include "dispatch.hpp"
-#include "call_frame.hpp"
 #include "arguments.hpp"
-
+#include "builtin/class.hpp"
+#include "builtin/exception.hpp"
+#include "builtin/location.hpp"
+#include "builtin/system.hpp"
+#include "builtin/thunk.hpp"
 #include "object_utils.hpp"
 
 namespace rubinius {

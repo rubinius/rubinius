@@ -1,11 +1,7 @@
-#include "vm.hpp"
-#include "objectmemory.hpp"
-#include "object_utils.hpp"
-
-#include "builtin/list.hpp"
 #include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
-
+#include "builtin/list.hpp"
+#include "object_utils.hpp"
 #include "ontology.hpp"
 
 namespace rubinius {

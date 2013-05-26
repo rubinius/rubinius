@@ -10,6 +10,7 @@
 
 #include "builtin/array.hpp"
 #include "builtin/compiledcode.hpp"
+#include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/iseq.hpp"
 #include "builtin/symbol.hpp"

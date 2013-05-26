@@ -1,13 +1,10 @@
-#include "config.h"
-#include "object_utils.hpp"
-
-#include "builtin/integer.hpp"
-#include "builtin/fixnum.hpp"
 #include "builtin/bignum.hpp"
+#include "builtin/class.hpp"
+#include "builtin/fixnum.hpp"
 #include "builtin/float.hpp"
-
+#include "builtin/integer.hpp"
+#include "object_utils.hpp"
 #include "ontology.hpp"
-
 #include "configuration.hpp"
 
 namespace rubinius {

@@ -1,31 +1,24 @@
 #include "oniguruma.h" // Must be first.
 #include "transcoder.h"
 
-#include "builtin/regexp.hpp"
+#include "arguments.hpp"
 #include "builtin/block_environment.hpp"
 #include "builtin/bytearray.hpp"
 #include "builtin/class.hpp"
 #include "builtin/encoding.hpp"
+#include "builtin/exception.hpp"
 #include "builtin/integer.hpp"
 #include "builtin/lookuptable.hpp"
 #include "builtin/proc.hpp"
+#include "builtin/regexp.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/variable_scope.hpp"
-
-#include "vm.hpp"
+#include "call_frame.hpp"
+#include "configuration.hpp"
 #include "object_utils.hpp"
 #include "objectmemory.hpp"
-#include "call_frame.hpp"
-#include "arguments.hpp"
-
-#include "configuration.hpp"
-
-#include "gc/gc.hpp"
-
-#include "util/atomic.hpp"
-
 #include "ontology.hpp"
 
 #define OPTION_IGNORECASE         ONIG_OPTION_IGNORECASE

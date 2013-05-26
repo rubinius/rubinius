@@ -1,16 +1,13 @@
 #include "oniguruma.h" // Must be first.
-#include "transcoder.h"
 #include "regenc.h"
+#include "transcoder.h"
 
 #include "builtin/bytearray.hpp"
 #include "builtin/character.hpp"
 #include "builtin/class.hpp"
 #include "builtin/encoding.hpp"
 #include "builtin/object.hpp"
-
-#include "vm.hpp"
 #include "object_utils.hpp"
-#include "objectmemory.hpp"
 #include "ontology.hpp"
 
 namespace rubinius {

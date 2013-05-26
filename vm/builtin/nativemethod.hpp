@@ -1,19 +1,9 @@
 #ifndef RBX_BUILTIN_NATIVEMETHOD_HPP
 #define RBX_BUILTIN_NATIVEMETHOD_HPP
 
-/* Project */
 #include "executor.hpp"
-#include "vm.hpp"
-
 #include "builtin/class.hpp"
 #include "builtin/executable.hpp"
-#include "builtin/string.hpp"
-#include "builtin/symbol.hpp"
-
-#include "util/thread.hpp"
-#include "gc/root.hpp"
-
-#include "object_utils.hpp"
 
 #include "capi/tag.hpp"
 #include "capi/value.hpp"
@@ -22,6 +12,7 @@
 namespace rubinius {
   class ExceptionPoint;
   class NativeMethodFrame;
+  class NativeMethod;
   class Pointer;
   class StackVariables;
 

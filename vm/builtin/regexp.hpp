@@ -2,7 +2,6 @@
 #define RBX_REGEXP_HPP
 
 #include "builtin/object.hpp"
-#include "type_info.hpp"
 
 // HACK gross.
 // Forward declare ONLY if we haven't already included oniguruma.h

@@ -1,19 +1,13 @@
-
-#include "prelude.hpp"
+#include "builtin/array.hpp"
+#include "builtin/class.hpp"
 #include "builtin/encoding.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/float.hpp"
-#include "builtin/array.hpp"
 #include "builtin/string.hpp"
-
-#include "primitives.hpp"
-#include "object_utils.hpp"
 #include "configuration.hpp"
-
+#include "object_utils.hpp"
 #include "ontology.hpp"
-
-#include <iostream>
 
 namespace rubinius {
 

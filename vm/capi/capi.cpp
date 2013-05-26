@@ -13,6 +13,7 @@
 #include "builtin/location.hpp"
 #include "builtin/block_environment.hpp"
 #include "builtin/proc.hpp"
+#include "builtin/exception.hpp"
 
 #include "call_frame.hpp"
 #include "configuration.hpp"

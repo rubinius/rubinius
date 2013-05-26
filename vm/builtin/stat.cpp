@@ -1,23 +1,9 @@
-#include "config.h"
-
-#include "vm.hpp"
-#include "object_utils.hpp"
-#include "objectmemory.hpp"
-#include "primitives.hpp"
-
-#include "builtin/object.hpp"
 #include "builtin/class.hpp"
+#include "builtin/object.hpp"
+#include "builtin/stat.hpp"
 #include "builtin/string.hpp"
 #include "builtin/time.hpp"
-#include "builtin/stat.hpp"
-#include "builtin/exception.hpp"
-
 #include "ontology.hpp"
-
-#include "windows_compat.h"
-#include "configuration.hpp"
-
-#include <sstream>
 
 namespace rubinius {
   void Stat::init(STATE) {

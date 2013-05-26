@@ -1,9 +1,8 @@
 #ifndef RBX_FLOAT_HPP
 #define RBX_FLOAT_HPP
 
-#include "builtin/class.hpp"
 #include "builtin/object.hpp"
-#include "type_info.hpp"
+#include "builtin/integer.hpp"
 
 /* Begin borrowing from MRI 1.8.6 stable */
 #if defined(__FreeBSD__) && __FreeBSD__ < 4

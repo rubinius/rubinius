@@ -1,17 +1,14 @@
-#include "vm.hpp"
-#include "objectmemory.hpp"
-#include "call_frame.hpp"
-#include "gc/gc.hpp"
-
-#include "builtin/object.hpp"
-#include "builtin/variable_scope.hpp"
 #include "builtin/class.hpp"
+#include "builtin/exception.hpp"
+#include "builtin/fiber.hpp"
+#include "builtin/object.hpp"
 #include "builtin/system.hpp"
 #include "builtin/tuple.hpp"
-
-#include "builtin/fiber.hpp"
+#include "builtin/variable_scope.hpp"
+#include "call_frame.hpp"
 #include "fiber_data.hpp"
-
+#include "gc/gc.hpp"
+#include "objectmemory.hpp"
 #include "ontology.hpp"
 
 namespace rubinius {

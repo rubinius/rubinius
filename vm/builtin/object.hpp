@@ -6,10 +6,7 @@
 #include "vm.hpp"
 #include "oop.hpp"
 #include "type_info.hpp"
-#include "lookup_data.hpp"
-
 #include "executor.hpp"
-
 
 namespace rubinius {
 
@@ -53,7 +50,6 @@ namespace rubinius {
   class Module;
   class Executable;
   class Array;
-  class TypeInfo;
 
   class Object;
 

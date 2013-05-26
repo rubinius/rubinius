@@ -1,19 +1,11 @@
-/* The simple ByteArray class, used to implement String. */
-
-#include <stdint.h>
-
-#include "vm.hpp"
-#include "objectmemory.hpp"
-#include "primitives.hpp"
 #include "builtin/bytearray.hpp"
 #include "builtin/class.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/string.hpp"
 #include "builtin/tuple.hpp"
-
 #include "object_utils.hpp"
-
+#include "objectmemory.hpp"
 #include "ontology.hpp"
 
 namespace rubinius {

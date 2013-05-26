@@ -2,25 +2,20 @@
 // because it uses a whole bunch of local classes and it's cleaner to have
 // all that be in it's own file.
 
-#include "vm.hpp"
-
+#include "builtin/array.hpp"
+#include "builtin/class.hpp"
+#include "builtin/exception.hpp"
+#include "builtin/module.hpp"
+#include "builtin/object.hpp"
+#include "builtin/symbol.hpp"
+#include "builtin/tuple.hpp"
+#include "builtin/variable_scope.hpp"
+#include "builtin/system.hpp"
 #include "gc/gc.hpp"
 #include "gc/walker.hpp"
 #include "objectmemory.hpp"
-
-#include "builtin/object.hpp"
-#include "builtin/array.hpp"
-#include "builtin/symbol.hpp"
-#include "builtin/module.hpp"
-#include "builtin/class.hpp"
-#include "builtin/tuple.hpp"
-#include "builtin/variable_scope.hpp"
-
-#include "builtin/system.hpp"
-
-#include "on_stack.hpp"
-
 #include "object_utils.hpp"
+#include "on_stack.hpp"
 
 namespace rubinius {
   class QueryCondition {

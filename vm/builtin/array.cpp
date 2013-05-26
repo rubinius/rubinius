@@ -1,21 +1,13 @@
-#include "vm.hpp"
-#include "object_utils.hpp"
-
+#include "arguments.hpp"
 #include "builtin/array.hpp"
+#include "builtin/class.hpp"
+#include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/tuple.hpp"
-#include "builtin/class.hpp"
-#include "objectmemory.hpp"
-#include "primitives.hpp"
-
 #include "configuration.hpp"
-#include "arguments.hpp"
 #include "dispatch.hpp"
-
+#include "object_utils.hpp"
 #include "ontology.hpp"
-
-#include <iostream>
-#include <math.h>
 
 /* Implementation certain Array methods. These methods are just
  * the ones the VM requires, not the entire set of all Array methods.

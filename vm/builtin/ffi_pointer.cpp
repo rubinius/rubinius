@@ -1,22 +1,3 @@
-#include "config.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <unistd.h>
-#include <sys/stat.h>
-#ifdef RBX_WINDOWS
-#include <winsock2.h>
-#else
-#include <dlfcn.h>
-#include <arpa/inet.h>
-#endif
-
-#include "vm.hpp"
-#include "oop.hpp"
-#include "object_utils.hpp"
-#include "objectmemory.hpp"
-
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
@@ -25,14 +6,18 @@
 #include "builtin/nativefunction.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
-
 #include "ffi_util.hpp"
-#include "arguments.hpp"
-#include "dispatch.hpp"
-
+#include "object_utils.hpp"
+#include "objectmemory.hpp"
 #include "ontology.hpp"
-
 #include "windows_compat.h"
+
+#ifdef RBX_WINDOWS
+#include <winsock2.h>
+#else
+#include <dlfcn.h>
+#include <arpa/inet.h>
+#endif
 
 namespace rubinius {
 

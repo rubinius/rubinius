@@ -1,19 +1,11 @@
-#include "detection.hpp"
-
+#include "arguments.hpp"
+#include "builtin/class.hpp"
+#include "builtin/executable.hpp"
+#include "builtin/module.hpp"
 #include "builtin/mono_inline_cache.hpp"
 #include "builtin/poly_inline_cache.hpp"
-#include "arguments.hpp"
-#include "call_frame.hpp"
-#include "global_cache.hpp"
-
-#include "builtin/class.hpp"
-#include "builtin/module.hpp"
 #include "builtin/symbol.hpp"
-#include "builtin/lookuptable.hpp"
-#include "builtin/executable.hpp"
-#include "builtin/methodtable.hpp"
-#include "builtin/alias.hpp"
-#include "builtin/call_unit.hpp"
+#include "call_frame.hpp"
 #include "ontology.hpp"
 
 namespace rubinius {

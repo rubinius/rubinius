@@ -1,11 +1,9 @@
-#include "builtin/weakref.hpp"
 #include "builtin/class.hpp"
-
-#include "object_utils.hpp"
-#include "gc/gc.hpp"
-
-#include "ontology.hpp"
+#include "builtin/weakref.hpp"
 #include "configuration.hpp"
+#include "gc/gc.hpp"
+#include "object_utils.hpp"
+#include "ontology.hpp"
 
 namespace rubinius {
   void WeakRef::init(STATE) {

@@ -2,7 +2,6 @@
 #define RBX_ENCODING_HPP
 
 #include "builtin/object.hpp"
-#include "type_info.hpp"
 
 // See comment in regexp.hpp
 #ifndef ONIGURUMA_H

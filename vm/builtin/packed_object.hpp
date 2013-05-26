@@ -2,7 +2,6 @@
 #define RBX_PACKED_OBJECT_HPP
 
 #include "builtin/object.hpp"
-#include "type_info.hpp"
 
 namespace rubinius {
   class PackedObject : public Object {

@@ -1,6 +1,7 @@
 #include "builtin/class.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/proc.hpp"
+#include "builtin/string.hpp"
 
 #include "exception_point.hpp"
 

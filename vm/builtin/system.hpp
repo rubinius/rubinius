@@ -1,8 +1,6 @@
 #ifndef RBX_BUILTIN_SYSTEM_HPP
 #define RBX_BUILTIN_SYSTEM_HPP
 
-#include "type_info.hpp"
-
 #include "builtin/object.hpp"
 
 namespace rubinius {

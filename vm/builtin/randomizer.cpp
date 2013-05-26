@@ -1,24 +1,12 @@
-#include "config.h"
-
-#include "builtin/randomizer.hpp"
-#include "vm.hpp"
-#include "objectmemory.hpp"
 #include "builtin/bytearray.hpp"
 #include "builtin/bignum.hpp"
 #include "builtin/class.hpp"
 #include "builtin/float.hpp"
 #include "builtin/integer.hpp"
-
-#include "util/spinlock.hpp"
-
+#include "builtin/randomizer.hpp"
 #include "object_utils.hpp"
-
 #include "ontology.hpp"
-
-#ifdef RBX_WINDOWS
-#include <malloc.h>
-#include <process.h>
-#endif
+#include "util/spinlock.hpp"
 
 template <typename T>
 static T make_mask(T x) {

@@ -25,6 +25,7 @@
 #include "builtin/float.hpp"
 #include "builtin/location.hpp"
 #include "builtin/encoding.hpp"
+#include "builtin/exception.hpp"
 #include "builtin/thread_state.hpp"
 #include "builtin/variable_scope.hpp"
 

@@ -2,7 +2,6 @@
 #define RBX_BUILTIN_DATA_HPP
 
 #include "builtin/object.hpp"
-#include "type_info.hpp"
 
 namespace rubinius {
   // Copied from here because you can't include capi/include/ruby.h into

@@ -1,7 +1,22 @@
-#include "config.h"
+#include "builtin/atomic.hpp"
+#include "builtin/array.hpp"
+#include "builtin/bytearray.hpp"
+#include "builtin/channel.hpp"
+#include "builtin/class.hpp"
+#include "builtin/exception.hpp"
+#include "builtin/fixnum.hpp"
+#include "builtin/io.hpp"
+#include "builtin/string.hpp"
+#include "builtin/thread.hpp"
+#include "capi/handle.hpp"
+#include "configuration.hpp"
+#include "objectmemory.hpp"
+#include "object_utils.hpp"
+#include "on_stack.hpp"
+#include "ontology.hpp"
+#include "windows_compat.h"
 
-#include <iostream>
-
+#include <sstream>
 #include <unistd.h>
 #include <fcntl.h>
 #ifdef RBX_WINDOWS
@@ -19,31 +34,6 @@
 #ifdef __OpenBSD__
 #include <sys/uio.h>
 #endif
-
-#include "builtin/io.hpp"
-#include "builtin/atomic.hpp"
-#include "builtin/array.hpp"
-#include "builtin/bytearray.hpp"
-#include "builtin/channel.hpp"
-#include "builtin/class.hpp"
-#include "builtin/exception.hpp"
-#include "builtin/fixnum.hpp"
-#include "builtin/array.hpp"
-#include "builtin/string.hpp"
-#include "primitives.hpp"
-
-#include "vm.hpp"
-#include "objectmemory.hpp"
-
-#include "object_utils.hpp"
-#include "on_stack.hpp"
-#include "configuration.hpp"
-
-#include "capi/handle.hpp"
-
-#include "ontology.hpp"
-
-#include "windows_compat.h"
 
 namespace rubinius {
   void IO::init(STATE) {

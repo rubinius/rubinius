@@ -8,6 +8,8 @@
 #include "builtin/encoding.hpp"
 #include "builtin/nativemethod.hpp"
 #include "builtin/regexp.hpp"
+#include "builtin/string.hpp"
+#include "builtin/symbol.hpp"
 
 #include "capi/capi.hpp"
 

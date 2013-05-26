@@ -1,7 +1,9 @@
 #ifndef RBX_BUILTIN_CONSTANT_TABLE_HPP
 #define RBX_BUILTIN_CONSTANT_TABLE_HPP
 
+#include "builtin/object.hpp"
 #include "builtin/tuple.hpp"
+#include "object_utils.hpp"
 
 namespace rubinius {
   class Tuple;

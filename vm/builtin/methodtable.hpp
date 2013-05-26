@@ -1,6 +1,8 @@
 #ifndef RBX_BUILTIN_METHODTABLE_HPP
 #define RBX_BUILTIN_METHODTABLE_HPP
 
+#include "builtin/object.hpp"
+
 namespace rubinius {
   class Tuple;
   class Array;

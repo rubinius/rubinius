@@ -1,12 +1,8 @@
 #include "builtin/data.hpp"
 #include "builtin/class.hpp"
+#include "capi/capi.hpp"
 #include "objectmemory.hpp"
 #include "object_utils.hpp"
-
-#include "gc/gc.hpp"
-
-#include "capi/capi.hpp"
-
 #include "ontology.hpp"
 
 namespace rubinius {

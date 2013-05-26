@@ -2,19 +2,13 @@
 #define RBX_CHANNEL_HPP
 
 #include "builtin/object.hpp"
-#include "type_info.hpp"
-
-#include "virtual.hpp" // ObjectCallback
-#include "gc/root.hpp" // TypedRoot
-
-#include "builtin/thread.hpp"
 
 namespace rubinius {
-  class Float;
   class List;
   class IO;
   class IOBuffer;
   class Executable;
+  class Thread;
 
   class Channel : public Object {
   public:
@@ -66,14 +60,6 @@ namespace rubinius {
       BASIC_TYPEINFO(TypeInfo)
     };
 
-  };
-
-  class ChannelCallback : public ObjectCallback {
-  public:
-    TypedRoot<Channel*> channel;
-
-    ChannelCallback(STATE, Channel* chan);
-    virtual void call(Object* obj);
   };
 
 }

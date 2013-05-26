@@ -1,26 +1,20 @@
-#include "vm.hpp"
-#include "object_utils.hpp"
-
-#include "gc/gc.hpp"
-#include "builtin/object.hpp"
-#include "builtin/class.hpp"
-#include "builtin/call_site.hpp"
-#include "builtin/mono_inline_cache.hpp"
-#include "builtin/poly_inline_cache.hpp"
-#include "builtin/call_custom_cache.hpp"
-#include "builtin/module.hpp"
-#include "builtin/symbol.hpp"
-#include "builtin/lookuptable.hpp"
-#include "builtin/executable.hpp"
-#include "builtin/methodtable.hpp"
-#include "builtin/alias.hpp"
-#include "builtin/call_unit.hpp"
-
 #include "arguments.hpp"
+#include "builtin/class.hpp"
+#include "builtin/call_custom_cache.hpp"
+#include "builtin/call_site.hpp"
+#include "builtin/call_unit.hpp"
+#include "builtin/exception.hpp"
+#include "builtin/executable.hpp"
+#include "builtin/module.hpp"
+#include "builtin/mono_inline_cache.hpp"
+#include "builtin/object.hpp"
+#include "builtin/poly_inline_cache.hpp"
 #include "call_frame.hpp"
+#include "lookup_data.hpp"
+#include "object_utils.hpp"
 #include "ontology.hpp"
 
-#include <iostream>
+#include <sstream>
 
 namespace rubinius {
 

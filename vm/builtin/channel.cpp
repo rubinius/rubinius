@@ -1,24 +1,13 @@
-/* The Channel class, provides a simple, Ruby thread safe communication
- * mechanism. */
-
-#include "vm.hpp"
-#include "object_utils.hpp"
-#include "objectmemory.hpp"
-
-#include "builtin/object.hpp"
+#include "builtin/class.hpp"
 #include "builtin/channel.hpp"
-#include "builtin/thread.hpp"
-#include "builtin/list.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/float.hpp"
 #include "builtin/io.hpp"
-
-#include "arguments.hpp"
-#include "dispatch.hpp"
-#include "call_frame.hpp"
-
+#include "builtin/list.hpp"
+#include "builtin/object.hpp"
+#include "builtin/thread.hpp"
+#include "object_utils.hpp"
 #include "on_stack.hpp"
-
 #include "ontology.hpp"
 
 #include <sys/time.h>

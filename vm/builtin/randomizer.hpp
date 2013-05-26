@@ -2,7 +2,6 @@
 #define RBX_BUILTIN_RANDOMIZER_HPP
 
 #include "builtin/object.hpp"
-#include "type_info.hpp"
 #include "util/random.h"
 
 namespace rubinius {

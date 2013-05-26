@@ -1,17 +1,13 @@
 #ifndef RBX_INLINE_CACHE_HPP
 #define RBX_INLINE_CACHE_HPP
 
-#include "dispatch.hpp"
-#include "builtin/compiledcode.hpp"
-#include "builtin/call_site.hpp"
 #include "builtin/class.hpp"
-#include "lock.hpp"
-#include "object_utils.hpp"
+#include "builtin/call_site.hpp"
 
 namespace rubinius {
-  class PolyInlineCache;
   struct CallFrame;
   class Arguments;
+  class Dispatch;
   class Module;
   class MonoInlineCache;
 

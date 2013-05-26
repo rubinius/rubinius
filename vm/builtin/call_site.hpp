@@ -1,15 +1,13 @@
 #ifndef RBX_BUILTIN_CALL_SITE_HPP
 #define RBX_BUILTIN_CALL_SITE_HPP
 
-#include "dispatch.hpp"
-#include "machine_code.hpp"
 #include "builtin/object.hpp"
-#include "builtin/exception.hpp"
 #include "machine_code.hpp"
 #include "object_utils.hpp"
-#include "type_info.hpp"
 
 namespace rubinius {
+
+  class Dispatch;
 
   typedef Object* (*CacheExecutor)(STATE, CallSite*, CallFrame*, Arguments&);
   typedef Object* (*FallbackExecutor)(STATE, CallSite*, CallFrame*, Arguments&);

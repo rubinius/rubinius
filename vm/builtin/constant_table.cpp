@@ -1,21 +1,12 @@
-#include "vm.hpp"
-#include "object_utils.hpp"
-#include "objectmemory.hpp"
-
 #include "builtin/array.hpp"
+#include "builtin/autoload.hpp"
 #include "builtin/class.hpp"
+#include "builtin/constant_table.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
-#include "builtin/string.hpp"
-#include "builtin/alias.hpp"
-#include "builtin/constant_table.hpp"
-#include "builtin/autoload.hpp"
 #include "builtin/thread.hpp"
-
-#include "on_stack.hpp"
-
-#include <iostream>
+#include "object_utils.hpp"
 
 #define CONSTANT_TABLE_MAX_DENSITY 0.75
 #define CONSTANT_TABLE_MIN_DENSITY 0.3

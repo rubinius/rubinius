@@ -2,7 +2,6 @@
 #include "transcoder.h"
 #include "regenc.h"
 
-#include "builtin/string.hpp"
 #include "builtin/array.hpp"
 #include "builtin/bytearray.hpp"
 #include "builtin/character.hpp"
@@ -12,35 +11,23 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/float.hpp"
 #include "builtin/integer.hpp"
+#include "builtin/nativemethod.hpp"
 #include "builtin/regexp.hpp"
+#include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
-
+#include "capi/handle.hpp"
+#include "configuration.hpp"
+#include "object_utils.hpp"
+#include "objectmemory.hpp"
+#include "ontology.hpp"
 #include "util/murmur_hash3.hpp"
 #include "util/siphash.h"
 #include "util/random.h"
 
-#include "configuration.hpp"
-#include "vm.hpp"
-#include "object_utils.hpp"
-#include "objectmemory.hpp"
-#include "primitives.hpp"
-
-#include "windows_compat.h"
-
-#include "ontology.hpp"
-
-#include "capi/handle.hpp"
-#include "builtin/nativemethod.hpp"
-
-#include <gdtoa.h>
-
 #include <unistd.h>
 #include <string.h>
-#include <iostream>
 #include <ctype.h>
-#include <stdint.h>
-
 #include <sstream>
 
 namespace rubinius {

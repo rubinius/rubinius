@@ -1,17 +1,11 @@
-#include "vm.hpp"
-#include "object_utils.hpp"
-
-#include "gc/gc.hpp"
-
+#include "arguments.hpp"
 #include "builtin/class.hpp"
 #include "builtin/executable.hpp"
 #include "builtin/symbol.hpp"
-
-#include "arguments.hpp"
-#include "dispatch.hpp"
 #include "call_frame.hpp"
+#include "dispatch.hpp"
 #include "objectmemory.hpp"
-
+#include "object_utils.hpp"
 #include "ontology.hpp"
 
 namespace rubinius {

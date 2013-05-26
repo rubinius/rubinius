@@ -2,7 +2,6 @@
 #define RBX_BUILTIN_THREAD_STATE_HPP
 
 #include "builtin/object.hpp"
-#include "type_info.hpp"
 
 namespace rubinius {
 

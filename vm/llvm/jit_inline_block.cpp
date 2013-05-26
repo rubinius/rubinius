@@ -1,5 +1,6 @@
 #ifdef ENABLE_LLVM
 
+#include <sys/param.h>
 #include "llvm/jit_inline_block.hpp"
 #include "llvm/stack_args.hpp"
 #include "llvm/method_info.hpp"

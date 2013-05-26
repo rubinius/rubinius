@@ -1,16 +1,12 @@
 #ifndef RBX_MONO_INLINE_CACHE_HPP
 #define RBX_MONO_INLINE_CACHE_HPP
 
-#include "dispatch.hpp"
-#include "builtin/compiledcode.hpp"
-#include "builtin/call_site.hpp"
-#include "builtin/executable.hpp"
 #include "builtin/class.hpp"
-#include "lock.hpp"
-#include "object_utils.hpp"
+#include "builtin/call_site.hpp"
 
 namespace rubinius {
   struct CallFrame;
+  class Dispatch;
   class Arguments;
   class CallUnit;
   class Module;

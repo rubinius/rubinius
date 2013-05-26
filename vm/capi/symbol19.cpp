@@ -1,4 +1,5 @@
 #include "builtin/string.hpp"
+#include "builtin/symbol.hpp"
 #include "capi/capi.hpp"
 
 using namespace rubinius;

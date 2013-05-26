@@ -1,12 +1,8 @@
 #ifndef RBX_RESPOND_TO_CACHE_HPP
 #define RBX_RESPOND_TO_CACHE_HPP
 
-#include "dispatch.hpp"
-#include "builtin/object.hpp"
 #include "builtin/class.hpp"
 #include "builtin/call_site.hpp"
-#include "builtin/exception.hpp"
-#include "type_info.hpp"
 
 namespace rubinius {
   struct CallFrame;

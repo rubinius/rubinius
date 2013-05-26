@@ -1,10 +1,5 @@
-#include "builtin/thread_state.hpp"
-#include "vm.hpp"
-#include "objectmemory.hpp"
 #include "builtin/class.hpp"
-
-#include "object_utils.hpp"
-
+#include "builtin/thread_state.hpp"
 #include "ontology.hpp"
 
 namespace rubinius {
@@ -17,5 +12,4 @@ namespace rubinius {
   ThreadState* ThreadState::create(STATE) {
     return state->new_object<ThreadState>(G(thread_state));
   }
-
-} // rubinius
+}

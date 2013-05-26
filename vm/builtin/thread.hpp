@@ -1,14 +1,7 @@
 #ifndef RBX_BUILTIN_THREAD_HPP
 #define RBX_BUILTIN_THREAD_HPP
 
-#include "exception.hpp"
-#include "type_info.hpp"
-#include "signal.hpp"
-
 #include "builtin/object.hpp"
-#include "builtin/randomizer.hpp"
-#include "builtin/lookuptable.hpp"
-#include "executor.hpp"
 
 #define THREAD_STACK_SIZE 4194304
 
@@ -16,6 +9,8 @@ namespace rubinius {
 
   class Channel;
   class Exception;
+  class LookupTable;
+  class Randomizer;
 
   /**
    *  Ruby Thread implementation.

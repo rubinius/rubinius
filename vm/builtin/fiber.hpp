@@ -1,17 +1,12 @@
 #ifndef RBX_BUILTIN_FIBER
 #define RBX_BUILTIN_FIBER
 
-#include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-#include "prelude.hpp"
 #include "builtin/object.hpp"
-#include "builtin/lookuptable.hpp"
-
 #include "fiber_data.hpp"
 
 namespace rubinius {
+  class LookupTable;
+
   class Fiber : public Object {
   public:
     const static object_type type = FiberType;

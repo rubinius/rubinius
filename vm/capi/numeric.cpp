@@ -3,6 +3,7 @@
 #include "builtin/float.hpp"
 #include "builtin/object.hpp"
 #include "builtin/integer.hpp"
+#include "builtin/string.hpp"
 
 #include "object_utils.hpp"
 

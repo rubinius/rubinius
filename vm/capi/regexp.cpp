@@ -5,6 +5,7 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/io.hpp"
 #include "builtin/regexp.hpp"
+#include "builtin/string.hpp"
 #include "objectmemory.hpp"
 #include "primitives.hpp"
 

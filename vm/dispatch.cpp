@@ -7,6 +7,7 @@
 #include "builtin/class.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/executable.hpp"
+#include "builtin/exception.hpp"
 
 #include <iostream>
 

@@ -2,9 +2,6 @@
 #define RBX_BUILTIN_BYTEARRAY_HPP
 
 #include "builtin/object.hpp"
-#include "type_info.hpp"
-
-#include <ctype.h>
 
 namespace rubinius {
   class ByteArray : public Object {

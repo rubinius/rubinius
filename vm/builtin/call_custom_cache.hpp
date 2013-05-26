@@ -1,16 +1,11 @@
 #ifndef RBX_CALL_CUSTOM_CACHE_HPP
 #define RBX_CALL_CUSTOM_CACHE_HPP
 
-#include "dispatch.hpp"
 #include "builtin/call_site.hpp"
-#include "builtin/call_unit.hpp"
-#include "builtin/executable.hpp"
-#include "lock.hpp"
-#include "object_utils.hpp"
 
 namespace rubinius {
   struct CallFrame;
-  class Arguments;
+  class CallUnit;
 
   class CallCustomCache : public CallSite {
   public:

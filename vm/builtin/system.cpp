@@ -1,78 +1,59 @@
+#include "arguments.hpp"
+#include "builtin/array.hpp"
+#include "builtin/bignum.hpp"
+#include "builtin/block_environment.hpp"
+#include "builtin/channel.hpp"
+#include "builtin/class.hpp"
+#include "builtin/compactlookuptable.hpp"
+#include "builtin/constantscope.hpp"
+#include "builtin/exception.hpp"
+#include "builtin/fixnum.hpp"
+#include "builtin/float.hpp"
+#include "builtin/io.hpp"
+#include "builtin/location.hpp"
+#include "builtin/lookuptable.hpp"
+#include "builtin/methodtable.hpp"
+#include "builtin/thread.hpp"
+#include "builtin/tuple.hpp"
+#include "builtin/string.hpp"
+#include "builtin/symbol.hpp"
+#include "builtin/system.hpp"
+#include "builtin/variable_scope.hpp"
+#include "call_frame.hpp"
+#include "compiled_file.hpp"
+#include "configuration.hpp"
+#include "config_parser.hpp"
+#include "dtrace/dtrace.h"
+#include "gc/walker.hpp"
+#include "global_cache.hpp"
+#include "helpers.hpp"
+#include "instruments/tooling.hpp"
+#include "lookup_data.hpp"
+#include "objectmemory.hpp"
+#include "object_utils.hpp"
+#include "on_stack.hpp"
+#include "signal.hpp"
+#include "windows_compat.h"
+#include "util/sha1.h"
+
+#include "agent.hpp"
+
 #include <vector>
 #include <errno.h>
-
 #include <iostream>
 #include <fstream>
 #include <stdarg.h>
 #include <string.h>
 #include <sstream>
 #include <signal.h>
+#include <unistd.h>
 
-#include "config.h"
-
-#ifdef RBX_WINDOWS
-#include "windows_compat.h"
-#else
+#ifndef RBX_WINDOWS
 #include <sys/resource.h>
 #include <sys/wait.h>
 #include <pwd.h>
 #include <dlfcn.h>
 #endif
-
-#include <unistd.h>
-
-#include "call_frame.hpp"
-#include "helpers.hpp"
-
-#include "object_utils.hpp"
-#include "vm.hpp"
-
-#include "compiled_file.hpp"
-#include "objectmemory.hpp"
-#include "global_cache.hpp"
-#include "config_parser.hpp"
-
-#include "arguments.hpp"
-
-#include "builtin/array.hpp"
-#include "builtin/exception.hpp"
-#include "builtin/fixnum.hpp"
-#include "builtin/string.hpp"
-#include "builtin/bignum.hpp"
-#include "builtin/class.hpp"
-#include "builtin/compactlookuptable.hpp"
-#include "builtin/location.hpp"
-#include "builtin/lookuptable.hpp"
-#include "builtin/symbol.hpp"
-#include "builtin/tuple.hpp"
-#include "builtin/float.hpp"
-#include "builtin/methodtable.hpp"
-#include "builtin/io.hpp"
-#include "builtin/thread.hpp"
-
-#include "builtin/channel.hpp"
-
-#include "builtin/constantscope.hpp"
-#include "builtin/block_environment.hpp"
-#include "builtin/variable_scope.hpp"
-
-#include "builtin/system.hpp"
-#include "signal.hpp"
-#include "lookup_data.hpp"
-
-#include "configuration.hpp"
-
-#include "agent.hpp"
-
-#include "windows_compat.h"
-#include "util/sha1.h"
-
-#include "instruments/tooling.hpp"
-#include "dtrace/dtrace.h"
-
-#include "gc/walker.hpp"
-
-#include "on_stack.hpp"
 
 #ifdef ENABLE_LLVM
 #include "llvm/state.hpp"

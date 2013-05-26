@@ -1,6 +1,4 @@
-#include "vm.hpp"
-#include "object_utils.hpp"
-
+#include "builtin/string.hpp"
 #include "capi/capi.hpp"
 #include "capi/19/include/ruby/ruby.h"
 

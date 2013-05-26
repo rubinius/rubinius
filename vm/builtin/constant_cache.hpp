@@ -1,14 +1,9 @@
 #ifndef RBX_BUILTIN_CONSTANT_CACHE_HPP
 #define RBX_BUILTIN_CONSTANT_CACHE_HPP
 
-
-#include "dispatch.hpp"
-#include "machine_code.hpp"
 #include "builtin/object.hpp"
-#include "builtin/exception.hpp"
 #include "machine_code.hpp"
 #include "object_utils.hpp"
-#include "type_info.hpp"
 
 namespace rubinius {
   class ConstantScope;

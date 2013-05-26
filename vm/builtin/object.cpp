@@ -1,40 +1,31 @@
-#include <iostream>
-#include <sstream>
-
-#include <stdarg.h>
-
-#include "builtin/object.hpp"
+#include "arguments.hpp"
+#include "builtin/array.hpp"
 #include "builtin/bignum.hpp"
+#include "builtin/call_site.hpp"
 #include "builtin/class.hpp"
 #include "builtin/compactlookuptable.hpp"
+#include "builtin/constant_table.hpp"
+#include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
+#include "builtin/float.hpp"
+#include "builtin/location.hpp"
 #include "builtin/lookuptable.hpp"
+#include "builtin/methodtable.hpp"
+#include "builtin/object.hpp"
+#include "builtin/packed_object.hpp"
+#include "builtin/respond_to_cache.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/string.hpp"
 #include "builtin/tuple.hpp"
-#include "builtin/array.hpp"
-#include "builtin/float.hpp"
-#include "builtin/constantscope.hpp"
-#include "builtin/system.hpp"
-#include "builtin/constant_table.hpp"
-#include "builtin/methodtable.hpp"
-#include "builtin/packed_object.hpp"
-#include "builtin/location.hpp"
-#include "builtin/call_site.hpp"
-#include "builtin/respond_to_cache.hpp"
-
-#include "objectmemory.hpp"
-#include "arguments.hpp"
+#include "call_frame.hpp"
+#include "configuration.hpp"
 #include "dispatch.hpp"
 #include "lookup_data.hpp"
-#include "primitives.hpp"
-#include "global_cache.hpp"
-
+#include "objectmemory.hpp"
 #include "object_utils.hpp"
 #include "on_stack.hpp"
-#include "call_frame.hpp"
 
-#include "configuration.hpp"
+#include <sstream>
 
 namespace rubinius {
 

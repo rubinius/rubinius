@@ -1,31 +1,22 @@
 #include "builtin/array.hpp"
+#include "builtin/class.hpp"
 #include "builtin/encoding.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/float.hpp"
 #include "builtin/string.hpp"
 #include "builtin/tuple.hpp"
-
-#include "objectmemory.hpp"
-#include "vm.hpp"
-#include "object_utils.hpp"
-#include "primitives.hpp"
 #include "configuration.hpp"
-
+#include "missing/math.h"
+#include "object_utils.hpp"
 #include "ontology.hpp"
+#include "util/local_buffer.hpp"
 
 #include <gdtoa.h>
 #include <ctype.h>
-
 #include <string.h>
 #include <math.h>
-#include <iostream>
 #include <sstream>
-
-#include "missing/math.h"
-
-#include "util/local_buffer.hpp"
-
 namespace rubinius {
 
   void Float::init(STATE) {
@@ -43,7 +34,6 @@ namespace rubinius {
     G(floatpoint)->set_const(state, "DIG",        Fixnum::from(DBL_DIG));
     G(floatpoint)->set_const(state, "MANT_DIG",   Fixnum::from(DBL_MANT_DIG));
     G(floatpoint)->set_const(state, "EPSILON",    Float::create(state, DBL_EPSILON));
-
   }
 
   Float* Float::create(STATE, double val) {

@@ -1,49 +1,26 @@
-/* A simple C++ wrapper around libffi. */
-
-#include "config.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <unistd.h>
-#include <sys/stat.h>
-#ifdef RBX_WINDOWS
-#include <malloc.h>
-#else
-#include <dlfcn.h>
-#endif
-
-#include "prelude.hpp"
-#include "object_utils.hpp"
-#include "vm.hpp"
-#include "objectmemory.hpp"
-#include "on_stack.hpp"
-
+#include "arguments.hpp"
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
+#include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
-#include "builtin/float.hpp"
-#include "builtin/proc.hpp"
 #include "builtin/ffi_pointer.hpp"
+#include "builtin/float.hpp"
+#include "builtin/location.hpp"
 #include "builtin/lookuptable.hpp"
 #include "builtin/nativefunction.hpp"
+#include "builtin/nativemethod.hpp"
+#include "builtin/proc.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/system.hpp"
-#include "builtin/location.hpp"
-#include "builtin/nativemethod.hpp"
-
-#include "ontology.hpp"
-
-#include "ffi_util.hpp"
-#include "arguments.hpp"
-#include "dispatch.hpp"
-
-#include "builtin/nativefunction.hpp"
-
-#include "instruments/tooling.hpp"
 #include "call_frame.hpp"
 #include "dtrace/dtrace.h"
+#include "ffi_util.hpp"
+#include "instruments/tooling.hpp"
+#include "object_utils.hpp"
+#include "objectmemory.hpp"
+#include "on_stack.hpp"
+#include "ontology.hpp"
 
 namespace rubinius {
 

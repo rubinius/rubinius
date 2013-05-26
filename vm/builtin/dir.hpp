@@ -2,8 +2,6 @@
 #define RBX_BUILTIN_DIR_HPP
 
 #include "builtin/object.hpp"
-#include "type_info.hpp"
-
 #include <dirent.h>
 
 namespace rubinius {
@@ -24,7 +22,6 @@ namespace rubinius {
     /* interface */
 
     static void init(STATE);
-
 
     static Dir* create(STATE);
 

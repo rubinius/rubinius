@@ -1,14 +1,5 @@
-/* The implementation of Bignum, providing infinite size integers */
-
-#include <ctype.h>
-#include <math.h>
-#include <iostream>
 #include <sstream>
 
-#include "gc/gc.hpp"
-#include "object_utils.hpp"
-#include "vm.hpp"
-#include "objectmemory.hpp"
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
 #include "builtin/encoding.hpp"
@@ -18,10 +9,9 @@
 #include "builtin/string.hpp"
 #include "builtin/bytearray.hpp"
 #include "configuration.hpp"
-
-#include "ontology.hpp"
-
 #include "missing/math.h"
+#include "object_utils.hpp"
+#include "ontology.hpp"
 
 #define BASIC_CLASS(blah) G(blah)
 #define NEW_STRUCT(obj, str, kls, kind) \

@@ -1,10 +1,7 @@
 #ifndef RBX_BUILTIN_EXECUTABLE_HPP
 #define RBX_BUILTIN_EXECUTABLE_HPP
 
-#include <assert.h>
-
 #include "builtin/object.hpp"
-#include "type_info.hpp"
 #include "executor.hpp"
 #include "gc/code_resource.hpp"
 

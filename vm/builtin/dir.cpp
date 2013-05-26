@@ -1,18 +1,12 @@
 #include "builtin/dir.hpp"
-#include "vm.hpp"
-#include "objectmemory.hpp"
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/string.hpp"
-
 #include "object_utils.hpp"
-
+#include "objectmemory.hpp"
 #include "ontology.hpp"
-
-#include <sys/types.h>
-#include <dirent.h>
 
 namespace rubinius {
   void Dir::init(STATE) {
@@ -58,7 +52,7 @@ namespace rubinius {
     os_ = opendir(path->c_str_null_safe(state));
 
     if(!os_) {
-      Exception::errno_error(state, "Unable to open directory", errno, path->c_str(state));
+      Exception::errno_error(state, "Unable to open directory", errno, path->c_str_null_safe(state));
       return 0;
     }
 

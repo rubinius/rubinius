@@ -1,6 +1,5 @@
-
-#include "builtin/class.hpp"
 #include "builtin/atomic.hpp"
+#include "builtin/class.hpp"
 #include "ontology.hpp"
 
 namespace rubinius {

@@ -1,13 +1,9 @@
-#include "detection.hpp"
-
 #include "arguments.hpp"
-#include "call_frame.hpp"
-#include "global_cache.hpp"
-#include "ontology.hpp"
-
-#include "builtin/respond_to_cache.hpp"
 #include "builtin/class.hpp"
+#include "builtin/respond_to_cache.hpp"
 #include "builtin/symbol.hpp"
+#include "call_frame.hpp"
+#include "ontology.hpp"
 
 namespace rubinius {
 
