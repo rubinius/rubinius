@@ -103,7 +103,7 @@ namespace rubinius {
     }
 
     /** Obtain the enveloped Object. */
-    Object* get() {
+    Object* get() const {
       return object_;
     }
 
@@ -161,14 +161,14 @@ namespace rubinius {
 
       /** Transparently delegate dereferencing to enveloped object. */
       /** @todo Use as<ObjType>() when using base type instead of pointer. --rue */
-      ObjType operator->() {
+      ObjType operator->() const {
         // assert(object_ && "Using an unassigned root!");
         return reinterpret_cast<ObjType>(object_);
       }
 
       /** Return the enveloped object as the real ObjType. */
       /** @todo Use as<ObjType>() when using base type instead of pointer. --rue */
-      ObjType get() {
+      ObjType get() const {
         // assert(object_ && "Using an unassigned root!");
         return reinterpret_cast<ObjType>(object_);
       }

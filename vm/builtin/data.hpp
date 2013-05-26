@@ -37,7 +37,7 @@ namespace rubinius {
 
     static void finalize(STATE, Data* data);
 
-    bool freed_p() {
+    bool freed_p() const {
       return freed_;
     }
 

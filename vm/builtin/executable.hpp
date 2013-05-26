@@ -54,11 +54,11 @@ namespace rubinius {
       execute = exc;
     }
 
-    int prim_index() {
+    int prim_index() const {
       return prim_index_;
     }
 
-    bool custom_call_site_p() {
+    bool custom_call_site_p() const {
       return custom_call_site_;
     }
 

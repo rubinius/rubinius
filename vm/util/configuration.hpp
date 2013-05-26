@@ -23,7 +23,7 @@ namespace config {
     void print(bool desc=false);
     ConfigItem* find(const char* key);
 
-    size_t items_size() {
+    size_t items_size() const {
       return items_.size();
     }
 
@@ -295,8 +295,6 @@ namespace config {
     std::vector<Bool*> sub_bools_;
 
   public:
-    bool value;
-
     BoolSet(Configuration* config, const char* name)
       : Bool(config, name)
     {}

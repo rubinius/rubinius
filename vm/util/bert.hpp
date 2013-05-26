@@ -107,7 +107,7 @@ namespace bert {
       float_ = val;
     }
 
-    char* string() {
+    char* string() const {
       return string_;
     }
 
@@ -115,7 +115,7 @@ namespace bert {
       string_ = str;
     }
 
-    void print() {
+    void print() const {
       switch(type_) {
       case Integer:
         std::cout << "<integer: " << integer_ << ">\n";
@@ -145,7 +145,7 @@ namespace bert {
       }
     }
 
-    bool contains_string_p() {
+    bool contains_string_p() const {
       switch(type_) {
       case Atom:
       case String:
@@ -156,7 +156,7 @@ namespace bert {
       }
     }
 
-    bool contains_elements_p() {
+    bool contains_elements_p() const {
       switch(type_) {
       case Tuple:
       case List:
@@ -176,11 +176,11 @@ namespace bert {
       : reader_(reader)
     {}
 
-    int from_32(char* buffer) {
+    int from_32(char* buffer) const {
       return ntohl(*(uint32_t*)buffer);
     }
 
-    int from_16(char* buffer) {
+    int from_16(char* buffer) const {
       return ntohs(*(uint16_t*)buffer);
     }
 
@@ -602,7 +602,7 @@ namespace bert {
       return type_;
     }
 
-    Term* term() {
+    Term* term() const {
       return term_;
     }
 
@@ -626,7 +626,7 @@ namespace bert {
       return type_ == Binary;
     }
 
-    char* string() {
+    char* string() const {
       return term_->string();
     }
 
@@ -634,11 +634,11 @@ namespace bert {
       return boolean_;
     }
 
-    ValueList* elements() {
+    ValueList* elements() const {
       return elements_;
     }
 
-    Value* sub_value() {
+    Value* sub_value() const {
       return sub_value_;
     }
 
@@ -651,7 +651,7 @@ namespace bert {
     }
 
     // Access
-    bool equal_atom(const char* str) {
+    bool equal_atom(const char* str) const {
       if(type_ != Atom) return false;
 
       int len = strlen(str);
@@ -661,19 +661,19 @@ namespace bert {
       return true;
     }
 
-    int total_elements() {
+    int total_elements() const {
       if(!(type_ == Tuple || type_ == List)) return -1;
       return elements_->size();
     }
 
-    Value* get_element(size_t which) {
+    Value* get_element(size_t which) const {
       if(!(type_ == Tuple || type_ == List)) return NULL;
       if(!elements_) return NULL;
       return elements_->at(which);
     }
 
     // Printing
-    void print_element_list(std::ostream& stream) {
+    void print_element_list(std::ostream& stream) const {
       int last = elements_->size() - 1;
       int j = 0;
 
@@ -686,7 +686,7 @@ namespace bert {
 
     }
 
-    void print(std::ostream& stream) {
+    void print(std::ostream& stream) const {
       switch(type_) {
       case Nil:
         stream << "nil";

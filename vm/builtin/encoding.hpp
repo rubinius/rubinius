@@ -93,7 +93,7 @@ namespace rubinius {
     static int mbclen(const uint8_t* start, const uint8_t* end, OnigEncodingType* enc);
     static int precise_mbclen(const uint8_t* start, const uint8_t* end, OnigEncodingType* enc);
 
-    OnigEncodingType* get_encoding() {
+    OnigEncodingType* get_encoding() const {
       return encoding_;
     }
 
@@ -103,7 +103,7 @@ namespace rubinius {
 
     void make_managed(STATE, const char* name, OnigEncodingType* enc);
 
-    bool get_managed() {
+    bool get_managed() const {
       return managed_;
     }
 
@@ -163,7 +163,7 @@ namespace rubinius {
       converter_ = c;
     }
 
-    rb_econv_t* get_converter() {
+    rb_econv_t* get_converter() const {
       return converter_;
     }
 
@@ -214,7 +214,7 @@ namespace rubinius {
     static void declare(STATE, const char* from, const char* to, const char* lib);
     static void define(STATE, OnigTranscodingType* tr);
 
-    OnigTranscodingType* get_transcoder() {
+    OnigTranscodingType* get_transcoder() const {
       return transcoder_;
     }
 

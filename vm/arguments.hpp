@@ -64,7 +64,7 @@ namespace rubinius {
       use_array(ary);
     }
 
-    Symbol* name() {
+    Symbol* name() const {
       return name_;
     }
 
@@ -72,7 +72,7 @@ namespace rubinius {
       name_ = n;
     }
 
-    Object* recv() {
+    Object* recv() const {
       return recv_;
     }
 
@@ -80,7 +80,7 @@ namespace rubinius {
       recv_ = val;
     }
 
-    Object* block() {
+    Object* block() const {
       return block_;
     }
 
@@ -88,21 +88,21 @@ namespace rubinius {
       block_ = val;
     }
 
-    Object* get_argument(uint32_t which) {
+    Object* get_argument(uint32_t which) const {
       return arguments_[which];
     }
 
-    Object** arguments() {
+    Object** arguments() const {
       return arguments_;
     }
 
-    Tuple* argument_container() {
+    Tuple* argument_container() const {
       return argument_container_;
     }
 
     void update_argument_container(Tuple* obj);
 
-    uint32_t total() {
+    uint32_t total() const {
       return total_;
     }
 

@@ -397,10 +397,6 @@ namespace rubinius {
     custom_wakeup_data_ = data;
   }
 
-  bool VM::waiting_p() {
-    return park_->parked_p() || vm_jit_.interrupt_with_signal_ || !waiting_channel_->nil_p();
-  }
-
   void VM::set_sleeping() {
     thread->sleep(this, cTrue);
   }

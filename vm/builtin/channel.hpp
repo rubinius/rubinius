@@ -35,10 +35,6 @@ namespace rubinius {
 
     // Rubinius.primitive :channel_new
     static Channel* create(STATE);
-    static Channel* create_primed(STATE);
-
-    /** Remove Thread from waiting list, if it is there. */
-    void    cancel_waiter(STATE, const Thread* waiter);
 
     // Rubinius.primitive :channel_send
     Object* send(STATE, GCToken gct, Object* val, CallFrame* calling_environment);

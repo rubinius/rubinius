@@ -28,11 +28,11 @@ namespace rubinius {
       return locking_thread_;
     }
 
-    const char* lock_file() {
+    const char* lock_file() const {
       return lock_file_;
     }
 
-    int lock_line() {
+    int lock_line() const {
       return lock_line_;
     }
 

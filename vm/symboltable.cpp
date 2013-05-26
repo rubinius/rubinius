@@ -12,7 +12,7 @@
 
 namespace rubinius {
 
-  SymbolTable::Kind SymbolTable::detect_kind(const char* str, size_t size) {
+  SymbolTable::Kind SymbolTable::detect_kind(const char* str, size_t size) const {
     const char one = str[0];
 
     // A constant begins with an uppercase letter.
@@ -44,7 +44,7 @@ namespace rubinius {
     return SymbolTable::Normal;
   }
 
-  SymbolTable::Kind SymbolTable::kind(STATE, const Symbol* sym) {
+  SymbolTable::Kind SymbolTable::kind(STATE, const Symbol* sym) const {
     return kinds[sym->index()];
   }
 

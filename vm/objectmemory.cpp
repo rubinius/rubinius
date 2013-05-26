@@ -123,18 +123,6 @@ namespace rubinius {
     obj->set_object_id(state, atomic::fetch_and_add(&last_object_id, (size_t)1));
   }
 
-  Integer* ObjectMemory::assign_object_id_ivar(STATE, Object* obj) {
-    SYNC(state);
-    Object* id = obj->get_ivar(state, G(sym_object_id));
-    if(id->nil_p()) {
-      /* All references have an even object_id. last_object_id starts out at 0
-       * but we don't want to use 0 as an object_id, so we just add before using */
-      id = Integer::from(state, ++state->memory()->last_object_id << TAG_REF_WIDTH);
-      obj->set_ivar(state, G(sym_object_id), id);
-    }
-    return as<Integer>(id);
-  }
-
   bool ObjectMemory::inflate_lock_count_overflow(STATE, ObjectHeader* obj,
                                                  int count)
   {

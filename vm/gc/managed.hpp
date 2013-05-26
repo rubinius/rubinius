@@ -90,7 +90,7 @@ namespace rubinius {
       }
     }
 
-    Kind kind() {
+    Kind kind() const {
       return kind_;
     }
 
@@ -99,7 +99,7 @@ namespace rubinius {
       return 0;
     }
 
-    std::string name() {
+    std::string name() const {
       return name_;
     }
 
@@ -108,7 +108,7 @@ namespace rubinius {
       utilities::thread::Thread::set_os_name(name.c_str());
     }
 
-    uint32_t thread_id() {
+    uint32_t thread_id() const {
       return id_;
     }
 
@@ -120,7 +120,7 @@ namespace rubinius {
       run_state_ = s;
     }
 
-    RunState run_state() {
+    RunState run_state() const {
       return run_state_;
     }
 

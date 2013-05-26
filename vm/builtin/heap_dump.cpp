@@ -172,11 +172,11 @@ namespace rubinius {
       }
     }
 
-    int id() {
+    int id() const {
       return id_;
     }
 
-    Symbol* name() {
+    Symbol* name() const {
       return name_;
     }
 
@@ -281,8 +281,8 @@ namespace rubinius {
       return id;
     }
 
-    bool seen_object_p(Object* obj) {
-      Identities::iterator i = ids.find(obj);
+    bool seen_object_p(Object* obj) const {
+      Identities::const_iterator i = ids.find(obj);
       return i != ids.end();
     }
 

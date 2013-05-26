@@ -34,7 +34,7 @@ namespace rubinius {
     Fixnum* size(STATE);
 
     // Return the number of bytes this ByteArray contains
-    native_int size() {
+    native_int size() const {
       return full_size_ - bytes_offset;
     }
 

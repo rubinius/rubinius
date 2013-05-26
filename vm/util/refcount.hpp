@@ -18,7 +18,7 @@ namespace rubinius {
       return --ref_count_ <= 0;
     }
 
-    int ref_count() {
+    int ref_count() const {
       return ref_count_;
     }
   };

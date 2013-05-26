@@ -53,11 +53,6 @@ using namespace llvm;
 
 namespace rubinius {
 namespace jit {
-  void* Compiler::function_pointer() {
-    if(!mci_) return NULL;
-    return mci_->address();
-  }
-
   void Compiler::show_machine_code() {
     llvm::outs() << "[[[ JIT Machine Code: " << function_->getName() << " ]]]\n";
     LLVMState::show_machine_code(mci_->address(), mci_->size());

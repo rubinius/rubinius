@@ -46,7 +46,7 @@ namespace tooling {
       return tool_ids_++;
     }
 
-    void* global_tool_data() {
+    void* global_tool_data() const {
       return global_tool_data_;
     }
 
@@ -54,7 +54,7 @@ namespace tooling {
       global_tool_data_ = d;
     }
 
-    bool tooling_interpreter_p() {
+    bool tooling_interpreter_p() const {
       return at_ip_func_ != NULL;
     }
 

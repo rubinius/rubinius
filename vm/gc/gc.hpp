@@ -107,7 +107,7 @@ namespace rubinius {
     {}
 
     template <typename T>
-      T displace(T ptr) {
+      T displace(T ptr) const {
         intptr_t addr = (intptr_t)ptr;
         if(addr < lower_bound_) return ptr;
         if(addr >= upper_bound_) return ptr;

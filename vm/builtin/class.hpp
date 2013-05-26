@@ -38,7 +38,7 @@ namespace rubinius {
     attr_accessor(packed_ivar_info, LookupTable);
     attr_accessor(instance_type, Fixnum);
 
-    TypeInfo* type_info() {
+    TypeInfo* type_info() const {
       return type_info_;
     }
 
@@ -46,19 +46,19 @@ namespace rubinius {
       type_info_ = ti;
     }
 
-    ClassData data() {
+    ClassData data() const {
       return data_;
     }
 
-    uint64_t data_raw() {
+    uint64_t data_raw() const {
       return data_.raw;
     }
 
-    uint32_t class_id() {
+    uint32_t class_id() const {
       return data_.f.class_id;
     }
 
-    uint32_t serial_id() {
+    uint32_t serial_id() const {
       return data_.f.serial_id;
     }
 
@@ -70,7 +70,7 @@ namespace rubinius {
       data_.f.class_id = id;
     }
 
-    uint32_t packed_size() {
+    uint32_t packed_size() const {
       return packed_size_;
     }
 

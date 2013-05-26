@@ -75,11 +75,11 @@ namespace rubinius {
 
     ~FiberData();
 
-    bool dead_p() {
+    bool dead_p() const {
       return status_ == eDead;
     }
 
-    CallFrame* call_frame() {
+    CallFrame* call_frame() const {
       return call_frame_;
     }
 
@@ -87,7 +87,7 @@ namespace rubinius {
       call_frame_ = cf;
     }
 
-    VM* thread() {
+    VM* thread() const {
       return thread_;
     }
 
@@ -95,7 +95,7 @@ namespace rubinius {
       return variable_root_buffers_;
     }
 
-    bool uninitialized_p() {
+    bool uninitialized_p() const {
       return status_ == eInitial && stack_ == 0;
     }
 
@@ -103,15 +103,15 @@ namespace rubinius {
       return &machine_;
     }
 
-    void* stack_address() {
+    void* stack_address() const {
       return stack_ ? stack_->address() : 0;
     }
 
-    size_t stack_size() {
+    size_t stack_size() const {
       return stack_ ? stack_->size() : 0;
     }
 
-    void* stack_bottom() {
+    void* stack_bottom() const {
 #ifdef RBX_FIBER_ENABLED
 #if defined(FIBER_ASM_X8632)
       return machine_.esp;
@@ -124,22 +124,22 @@ namespace rubinius {
 #endif
     }
 
-    intptr_t data_offset() {
+    intptr_t data_offset() const {
       if(status_ != eOnHeap) return 0;
       return (intptr_t)heap_ - (intptr_t)stack_bottom();
     }
 
-    intptr_t data_lower_bound() {
+    intptr_t data_lower_bound() const {
       if(status_ != eOnHeap) return 0;
       return (intptr_t)stack_->address();
     }
 
-    intptr_t data_upper_bound() {
+    intptr_t data_upper_bound() const {
       if(status_ != eOnHeap) return 0;
       return (intptr_t)stack_->address() + stack_->size();
     }
 
-    bool currently_on_stack_p(FiberData* cur) {
+    bool currently_on_stack_p(FiberData* cur) const {
       return stack_ && stack_->user() == cur;
     }
 

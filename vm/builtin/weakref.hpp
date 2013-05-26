@@ -16,7 +16,7 @@ namespace rubinius {
   public:
 
     // Rubinius.primitive+ :weakref_object
-    Object* object() {
+    Object* object() const {
       return object_;
     }
 
@@ -37,7 +37,7 @@ namespace rubinius {
     // Rubinius.primitive+ :weakref_new
     static WeakRef* create(STATE, Object* obj);
 
-    bool alive_p() {
+    bool alive_p() const {
       return object_->reference_p();
     }
 

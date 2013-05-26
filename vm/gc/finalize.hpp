@@ -45,7 +45,7 @@ namespace rubinius {
       status = eQueued;
     }
 
-    bool queued_p() {
+    bool queued_p() const {
       return status == eQueued;
     }
   };

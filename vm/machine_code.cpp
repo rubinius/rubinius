@@ -128,13 +128,12 @@ namespace rubinius {
 
   void MachineCode::fill_opcodes(STATE, CompiledCode* original) {
     Tuple* ops = original->iseq()->opcodes();
-    Object* val;
 
     int sends = 0;
     int constants = 0;
 
     for(size_t index = 0; index < total;) {
-      val = ops->at(state, index);
+      Object* val = ops->at(state, index);
       if(val->nil_p()) {
         opcodes[index++] = 0;
       } else {
@@ -731,9 +730,6 @@ namespace rubinius {
 
     return (*mcode->run)(state, mcode, frame);
   }
-
-  /* This is a noop for this class. */
-  void MachineCode::compile(STATE) { }
 
   // If +disable+ is set, then the method is tagged as not being
   // available for JIT.

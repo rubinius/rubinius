@@ -75,11 +75,11 @@ namespace rubinius {
 
     attr_accessor(locals, LookupTable);
 
-    VM* vm() {
+    VM* vm() const {
       return vm_;
     }
 
-    bool system_thread() {
+    bool system_thread() const {
       return system_thread_;
     }
 

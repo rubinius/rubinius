@@ -20,11 +20,11 @@ namespace rubinius {
     int stack_depth;
     UnwindType type;
 
-    bool for_ensure() {
+    bool for_ensure() const {
       return type == cEnsure;
     }
 
-    bool for_rescue() {
+    bool for_rescue() const {
       return type == cRescue;
     }
   };
@@ -58,7 +58,7 @@ namespace rubinius {
 
     UnwindInfoSet(const UnwindInfoSet& other);
 
-    int has_unwinds() {
+    int has_unwinds() const {
       return current_ > 0;
     }
 

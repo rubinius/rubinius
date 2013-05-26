@@ -59,7 +59,7 @@ namespace thread {
       pthread_check(pthread_key_delete(native_));
     }
 
-    T get() {
+    T get() const {
       return reinterpret_cast<T>(pthread_getspecific(native_));
     }
 
@@ -116,11 +116,11 @@ namespace thread {
       pthread_kill(thr, signal);
     }
 
-    pthread_t* native() {
+    const pthread_t* native() const {
       return &native_;
     }
 
-    size_t stack_size() {
+    size_t stack_size() const {
       return stack_size_;
     }
 
@@ -141,7 +141,7 @@ namespace thread {
       pthread_check(pthread_detach(native_));
     }
 
-    bool equal(Thread& other) {
+    bool equal(Thread& other) const {
       if(pthread_equal(native_, *other.native())) {
         return true;
       }
@@ -163,7 +163,7 @@ namespace thread {
       }
     }
 
-    bool in_self_p() {
+    bool in_self_p() const {
       return pthread_equal(pthread_self(), native_);
     }
 
@@ -213,7 +213,7 @@ namespace thread {
       return true;
     }
 
-    bool delete_on_exit() {
+    bool delete_on_exit() const {
       return delete_on_exit_;
     }
 
@@ -333,7 +333,7 @@ namespace thread {
       }
     }
 
-    pthread_t owner() {
+    pthread_t owner() const {
       return owner_;
     }
 
@@ -394,7 +394,7 @@ namespace thread {
       return cUnlocked;
     }
 
-    std::string describe() {
+    std::string describe() const {
       std::ostringstream ss;
       ss << "Mutex ";
       ss << (void*)this;
@@ -472,21 +472,6 @@ namespace thread {
     }
   };
 
-  // Useful for stubbing out lock usage. Either based on a compile time
-  // decision about not needing a lock around something or for while debugging.
-  class NullLock {
-  public:
-    void lock() {}
-    void unlock() {}
-    bool try_lock() { return cLocked; }
-
-    std::string describe() {
-      std::ostringstream ss;
-      ss << "NullLock ";
-      ss << (void*)this;
-      return ss.str();
-    }
-  };
 }
 }
 }
@@ -532,7 +517,7 @@ namespace thread {
       return cLocked;
     }
 
-    std::string describe() {
+    std::string describe() const {
       std::ostringstream ss;
       ss << "SpinLock ";
       ss << (void*)this;
@@ -583,7 +568,7 @@ namespace thread {
       return cLockBusy;
     }
 
-    std::string describe() {
+    std::string describe() const {
       std::ostringstream ss;
       ss << "SpinLock ";
       ss << (void*)this;

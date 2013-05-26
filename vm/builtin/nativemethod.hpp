@@ -54,7 +54,7 @@ namespace rubinius {
     void mark_handles(ObjectMark& mark);
 
   public:
-    VALUE outgoing_block() {
+    VALUE outgoing_block() const {
       return outgoing_block_;
     }
 
@@ -97,7 +97,7 @@ namespace rubinius {
       return &state_;
     }
 
-    CallFrame* current_call_frame() {
+    CallFrame* current_call_frame() const {
       return current_call_frame_;
     }
 
@@ -105,7 +105,7 @@ namespace rubinius {
       current_call_frame_ = frame;
     }
 
-    NativeMethodFrame* current_native_frame() {
+    NativeMethodFrame* current_native_frame() const {
       return current_native_frame_;
     }
 
@@ -113,7 +113,7 @@ namespace rubinius {
       current_native_frame_ = frame;
     }
 
-    ExceptionPoint* current_ep() {
+    ExceptionPoint* current_ep() const {
       return current_ep_;
     }
 
@@ -191,7 +191,7 @@ namespace rubinius {
     /** Updates cached data with changes to the Ruby objects. */
     void update_cached_data();
 
-    int capi_lock_index() {
+    int capi_lock_index() const {
       return capi_lock_index_;
     }
 
@@ -203,7 +203,7 @@ namespace rubinius {
     }
 
     /** Native Frame active before this call. */
-    NativeMethodFrame* previous() {
+    NativeMethodFrame* previous() const {
       return previous_;
     }
 
@@ -214,7 +214,7 @@ namespace rubinius {
       module_ = module;
     }
 
-    VALUE block() {
+    VALUE block() const {
       return block_;
     }
 
@@ -222,15 +222,15 @@ namespace rubinius {
       block_ = blk;
     }
 
-    VALUE receiver() {
+    VALUE receiver() const {
       return receiver_;
     }
 
-    VALUE method() {
+    VALUE method() const {
       return method_;
     }
 
-    VALUE module() {
+    VALUE module() const {
       return module_;
     }
 
@@ -307,7 +307,7 @@ namespace rubinius {
     /** Module on which created. */
     attr_accessor(module, Module);
 
-    int capi_lock_index() {
+    int capi_lock_index() const {
       return capi_lock_index_;
     }
 

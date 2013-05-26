@@ -139,18 +139,18 @@ namespace rubinius {
 
     static void discard(SharedState* ss);
 
-    int size();
+    int size() const;
 
     void set_initialized() {
       setup_capi_constant_names();
       initialized_ = true;
     }
 
-    AuxiliaryThreads* auxiliary_threads() {
+    AuxiliaryThreads* auxiliary_threads() const {
       return auxiliary_threads_;
     }
 
-    SignalHandler* signal_handler() {
+    SignalHandler* signal_handler() const {
       return signal_handler_;
     }
 
@@ -158,7 +158,7 @@ namespace rubinius {
       signal_handler_ = thr;
     }
 
-    FinalizerHandler* finalizer_handler() {
+    FinalizerHandler* finalizer_handler() const {
       return finalizer_handler_;
     }
 
@@ -166,7 +166,7 @@ namespace rubinius {
       finalizer_handler_ = thr;
     }
 
-    QueryAgent* query_agent() {
+    QueryAgent* query_agent() const {
       return query_agent_;
     }
 
@@ -186,7 +186,7 @@ namespace rubinius {
     void add_managed_thread(ManagedThread* thr);
     void remove_managed_thread(ManagedThread* thr);
 
-    int global_serial() {
+    int global_serial() const {
       return global_serial_;
     }
 
@@ -219,11 +219,11 @@ namespace rubinius {
       return primitive_hits_[primitive];
     }
 
-    kcode::table* kcode_table() {
+    kcode::table* kcode_table() const {
       return kcode_table_;
     }
 
-    kcode::CodePage kcode_page() {
+    kcode::CodePage kcode_page() const {
       return kcode_page_;
     }
 
@@ -232,13 +232,13 @@ namespace rubinius {
       kcode_page_ = page;
     }
 
-    QueryAgent* agent() {
+    QueryAgent* agent() const {
       return agent_;
     }
 
     QueryAgent* start_agent(STATE);
 
-    Environment* env() {
+    Environment* env() const {
       return env_;
     }
 
@@ -246,15 +246,15 @@ namespace rubinius {
       return onig_lock_;
     }
 
-    VM* root_vm() {
+    VM* root_vm() const {
       return root_vm_;
     }
 
-    tooling::ToolBroker* tool_broker() {
+    tooling::ToolBroker* tool_broker() const {
       return tool_broker_;
     }
 
-    ObjectMemory* memory() {
+    ObjectMemory* memory() const {
       return om;
     }
 
@@ -271,7 +271,7 @@ namespace rubinius {
       check_gc_ = true;
     }
 
-    bool check_global_interrupts() {
+    bool check_global_interrupts() const {
       return check_global_interrupts_;
     }
 
@@ -309,7 +309,7 @@ namespace rubinius {
 
     void reinit(STATE);
 
-    bool should_stop();
+    bool should_stop() const;
 
     bool stop_the_world(THREAD) WARN_UNUSED;
     void restart_world(THREAD);

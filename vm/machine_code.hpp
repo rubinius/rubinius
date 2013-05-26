@@ -100,15 +100,15 @@ namespace rubinius {
     virtual void cleanup(STATE, CodeManager* code) {}
     virtual int size();
 
-    bool jitted() {
+    bool jitted() const {
       return execute_status_ == eJIT;
     }
 
-    bool jit_disabled() {
+    bool jit_disabled() const {
       return execute_status_ == eJITDisable;
     }
 
-    bool compiling_p() {
+    bool compiling_p() const {
       return (flags & eCompiling) == eCompiling;
     }
 
@@ -124,23 +124,23 @@ namespace rubinius {
       execute_status_ = s;
     }
 
-    size_t call_site_count() {
+    size_t call_site_count() const {
       return number_of_call_sites_;
     }
 
-    size_t* call_site_offsets() {
+    size_t* call_site_offsets() const {
       return call_site_offsets_;
     }
 
-    size_t constant_cache_count() {
+    size_t constant_cache_count() const {
       return number_of_constant_caches_;
     }
 
-    size_t* constant_cache_offsets() {
+    size_t* constant_cache_offsets() const {
       return constant_cache_offsets_;
     }
 
-    MachineCode* parent() {
+    MachineCode* parent() const {
       return parent_;
     }
 
@@ -148,19 +148,19 @@ namespace rubinius {
       parent_ = parent;
     }
 
-    bool for_block() {
+    bool for_block() const {
       return parent_ != 0;
     }
 
-    Symbol* name() {
+    Symbol* name() const {
       return name_;
     }
 
-    uint64_t method_id() {
+    uint64_t method_id() const {
       return method_id_;
     }
 
-    bool no_inline_p() {
+    bool no_inline_p() const {
       return (flags & eNoInline) == eNoInline;
     }
 
@@ -178,7 +178,6 @@ namespace rubinius {
     void store_constant_cache(STATE, CompiledCode* code, int ip, ConstantCache* constant_cache);
 
     void specialize(STATE, CompiledCode* original, TypeInfo* ti);
-    void compile(STATE);
     static Object* execute(STATE, CallFrame* call_frame, Executable* exec, Module* mod, Arguments& args);
 
     template <typename ArgumentHandler>
@@ -254,11 +253,11 @@ namespace rubinius {
         , size_(size)
       {}
 
-      size_t position() {
+      size_t position() const {
         return position_;
       }
 
-      size_t next_position() {
+      size_t next_position() const {
         return position_ + width();
       }
 
@@ -274,41 +273,41 @@ namespace rubinius {
         return true;
       }
 
-      bool last_instruction() {
+      bool last_instruction() const {
         return next_position() >= size_;
       }
 
-      opcode op() {
+      opcode op() const {
         return stream_[position_] & 0x00ffff;
       }
 
-      opcode operand1() {
+      opcode operand1() const {
         return stream_[position_ + 1];
       }
 
-      opcode operand2() {
+      opcode operand2() const {
         return stream_[position_ + 2];
       }
 
-      int next_pos() {
+      int next_pos() const {
         return position_ + width();
       }
 
-      opcode next() {
+      opcode next() const {
         return stream_[next_pos()];
       }
 
-      size_t width() {
+      size_t width() const {
         opcode op = this->op();
 #include "gen/instruction_sizes.hpp"
         return width;
       }
 
-      size_t args() {
+      size_t args() const {
         return width() - 1;
       }
 
-      bool end() {
+      bool end() const {
         return position_ >= size_;
       }
     };

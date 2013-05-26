@@ -48,14 +48,6 @@ namespace rubinius {
     return true;
   }
 
-  void State::check_exception(CallFrame* call_frame) {
-    if(vm_->thread_state()->raise_reason() == cNone) {
-      std::cout << "Exception propagating, but none registered!\n";
-      call_frame->print_backtrace(this);
-      rubinius::abort();
-    }
-  }
-
   bool State::check_interrupts(GCToken gct, CallFrame* call_frame, void* end) {
     // First, we might be here because someone reset the stack_limit_ so that
     // we'd fall into here to check interrupts even if the stack is fine,

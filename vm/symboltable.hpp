@@ -85,12 +85,12 @@ namespace rubinius {
     size_t size() const;
     Array* all_as_array(STATE);
 
-    Kind kind(STATE, const Symbol* sym);
+    Kind kind(STATE, const Symbol* sym) const;
 
     size_t byte_size() const;
 
     size_t add(std::string str);
-    Kind detect_kind(const char* str, size_t size);
+    Kind detect_kind(const char* str, size_t size) const;
   };
 };
 

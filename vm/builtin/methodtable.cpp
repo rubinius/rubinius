@@ -56,11 +56,8 @@ namespace rubinius {
     dup->klass(state, class_object(state));
 
     size_t num = bins_->to_native();
-
-    MethodTableBucket* entry = 0;
-
     for(i = 0; i < num; i++) {
-      entry = try_as<MethodTableBucket>(values_->at(state, i));
+      MethodTableBucket* entry = try_as<MethodTableBucket>(values_->at(state, i));
 
       while(entry) {
         dup->store(state, entry->name(), entry->method(), entry->visibility());

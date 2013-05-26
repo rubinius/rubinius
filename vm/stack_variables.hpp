@@ -30,11 +30,11 @@ namespace rubinius {
       }
     }
 
-    VariableScope* on_heap() {
+    VariableScope* on_heap() const {
       return on_heap_;
     }
 
-    VariableScope* parent() {
+    VariableScope* parent() const {
       return parent_;
     }
 
@@ -42,23 +42,23 @@ namespace rubinius {
       parent_ = scope;
     }
 
-    Object* self() {
+    Object* self() const {
       return self_;
     }
 
-    Object* block() {
+    Object* block() const {
       return block_;
     }
 
-    Module* module() {
+    Module* module() const {
       return module_;
     }
 
-    bool made_alias_p() {
+    bool made_alias_p() const {
       return on_heap_ != 0;
     }
 
-    Object* get_local(int which) {
+    Object* get_local(int which) const {
       return locals_[which];
     }
 

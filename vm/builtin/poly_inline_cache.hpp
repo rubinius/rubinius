@@ -30,19 +30,19 @@ namespace rubinius {
     attr_accessor(receiver_class, Class);
     attr_accessor(method, Executable);
 
-    ClassData receiver_data() {
+    ClassData receiver_data() const {
       return receiver_;
     }
 
-    uint64_t receiver_data_raw() {
+    uint64_t receiver_data_raw() const {
       return receiver_.raw;
     }
 
-    uint32_t receiver_class_id() {
+    uint32_t receiver_class_id() const {
       return receiver_.f.class_id;
     }
 
-    uint32_t receiver_serial_id() {
+    uint32_t receiver_serial_id() const {
       return receiver_.f.serial_id;
     }
 
@@ -50,11 +50,11 @@ namespace rubinius {
       method_missing_ = reason;
     }
 
-    MethodMissingReason method_missing() {
+    MethodMissingReason method_missing() const {
       return method_missing_;
     }
 
-    int hits() {
+    int hits() const {
       return hits_;
     }
 
@@ -109,7 +109,7 @@ namespace rubinius {
       }
     }
 
-    InlineCacheEntry* get_entry(Class* const recv_class) {
+    InlineCacheEntry* get_entry(Class* const recv_class) const {
       register uint64_t recv_data = recv_class->data_raw();
       for(int i = 0; i < cTrackedICHits; ++i) {
         InlineCacheEntry* ice = entries_[i];
@@ -118,14 +118,14 @@ namespace rubinius {
       return NULL;
     }
 
-    int cache_size() {
+    int cache_size() const {
       for(int i = 0; i < cTrackedICHits; ++i) {
         if(!entries_[i]) return i;
       }
       return cTrackedICHits;
     }
 
-    InlineCacheEntry* get_cache(int idx) {
+    InlineCacheEntry* get_cache(int idx) const {
       return entries_[idx];
     }
 
@@ -153,11 +153,11 @@ namespace rubinius {
       atomic::write(&entries_[least_used], ice);
     }
 
-    int seen_classes_overflow() {
+    int seen_classes_overflow() const {
       return seen_classes_overflow_;
     }
 
-    int classes_seen() {
+    int classes_seen() const {
       return cache_size();
     }
 

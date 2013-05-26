@@ -34,25 +34,6 @@ namespace rubinius {
     return chan;
   }
 
-  Channel* Channel::create_primed(STATE) {
-    Channel* chan = state->vm()->new_object_mature<Channel>(G(channel));
-    chan->waiters_ = 0;
-    chan->semaphore_count_ = 1;
-
-    // Using placement new to call the constructor of condition_
-    new(&chan->condition_) utilities::thread::Condition();
-    new(&chan->mutex_) utilities::thread::Mutex();
-
-    chan->value(state, List::create(state));
-
-    return chan;
-  }
-
-  /** @todo Remove the event too? Should not affect code, but no need for it either. --rue */
-  void Channel::cancel_waiter(STATE, const Thread* waiter) {
-    // waiting_->remove(state, waiter);
-  }
-
   Object* Channel::send(STATE, GCToken gct, Object* val, CallFrame* calling_environment) {
     Channel* self = this;
 

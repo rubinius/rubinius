@@ -31,8 +31,7 @@ namespace rubinius {
  *  instance variable foo_. A const version is also generated.
  */
 #define attr_reader(name, type) \
-  type* name() { return name ## _; } \
-  const type* name() const { return name ## _; }
+  type* name() const { return name ## _; }
 
 /**
  *  Ruby-like accessor creation for a slot.

@@ -21,7 +21,7 @@ namespace rubinius {
     virtual int  size() { return 0; }
     virtual const char* kind() { return "resource"; }
 
-    bool marked() {
+    bool marked() const {
       return mark_ ;
     }
 
@@ -33,7 +33,7 @@ namespace rubinius {
       mark_ = false;
     }
 
-    bool detached() {
+    bool detached() const {
       return detached_;
     }
 

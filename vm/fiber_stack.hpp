@@ -27,7 +27,7 @@ namespace rubinius {
       return (void*)((char*)address_ + size_);
     }
 
-    size_t size() {
+    size_t size() const {
       return size_;
     }
 
@@ -39,19 +39,19 @@ namespace rubinius {
       refs_--;
     }
 
-    int refs() {
+    int refs() const {
       return refs_;
     }
 
-    bool unused_p() {
+    bool unused_p() const {
       return refs_ == 0;
     }
 
-    bool shared_p() {
+    bool shared_p() const {
       return user_ && refs_ > 1;
     }
 
-    FiberData* user() {
+    FiberData* user() const {
       return user_;
     }
 

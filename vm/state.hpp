@@ -67,7 +67,7 @@ namespace rubinius {
       return shared_.symbols.lookup(this, str);
     }
 
-    uint32_t hash_seed() {
+    uint32_t hash_seed() const {
       return shared_.hash_seed;
     }
 
@@ -93,11 +93,11 @@ namespace rubinius {
       return shared_;
     }
 
-    bool detect_stack_condition(void* end) {
+    bool detect_stack_condition(void* end) const {
       return vm_->detect_stack_condition(end);
     }
 
-    bool check_local_interrupts() {
+    bool check_local_interrupts() const {
       return vm_jit_->check_local_interrupts_;
     }
 
@@ -121,7 +121,6 @@ namespace rubinius {
     }
 
     bool process_async(CallFrame* call_frame);
-    void check_exception(CallFrame* call_frame);
     bool check_interrupts(GCToken gct, CallFrame* call_frame, void* end);
 
     gc::Slab& local_slab() {

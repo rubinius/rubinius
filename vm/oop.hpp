@@ -341,10 +341,6 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return header.f;
     }
 
-    ObjectFlags flags() {
-      return header.f;
-    }
-
     gc_zone zone() const {
       return flags().zone;
     }
@@ -517,7 +513,6 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     void set_remember();
     void clear_remember();
-    void set_lock_contended();
     void clear_lock_contended();
 
     bool is_frozen_p() const {
@@ -563,7 +558,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     LockStatus lock(STATE, GCToken gct, CallFrame* call_frame, size_t us=0, bool interrupt=true);
     LockStatus try_lock(STATE, GCToken gct, CallFrame* call_frame);
-    bool locked_p(STATE, GCToken gct, CallFrame* call_frame);
+    bool locked_p(STATE, GCToken gct, CallFrame* call_frame) const;
     LockStatus unlock(STATE, GCToken gct, CallFrame* call_frame);
     void unlock_for_terminate(STATE, GCToken gct, CallFrame* call_frame);
 

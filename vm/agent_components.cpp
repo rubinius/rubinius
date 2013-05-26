@@ -37,15 +37,15 @@ namespace agent {
       free(const_cast<char*>(name_));
     }
 
-    Kind kind() {
+    Kind kind() const {
       return kind_;
     }
 
-    bool tree_p() {
+    bool tree_p() const {
       return kind_ == eTree;
     }
 
-    const char* name() {
+    const char* name() const {
       return name_;
     }
 

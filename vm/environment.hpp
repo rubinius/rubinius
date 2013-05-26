@@ -74,11 +74,11 @@ namespace rubinius {
     Environment(int argc, char** argv);
     ~Environment();
 
-    int argc() {
+    int argc() const {
       return argc_;
     }
 
-    char** argv() {
+    char** argv() const {
       return argv_;
     }
 

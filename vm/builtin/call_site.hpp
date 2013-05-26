@@ -42,7 +42,7 @@ namespace rubinius {
 
     static void init(STATE);
 
-    int ip() {
+    int ip() const {
       return ip_;
     }
 
@@ -68,7 +68,7 @@ namespace rubinius {
 
     static void empty_cache_updater(STATE, CallSite* call_site, Class* klass, Dispatch& dispatch);
 
-    bool regular_call() {
+    bool regular_call() const {
       return type_id() == MonoInlineCacheType || type_id() == PolyInlineCacheType;
     }
 
@@ -94,9 +94,9 @@ namespace rubinius {
       fallback_ = empty_cache_custom;
     }
 
-    void set_executor(CacheExecutor executor) {
-      executor_ = executor;
-      fallback_ = executor;
+    void set_executor(CacheExecutor exec) {
+      executor_ = exec;
+      fallback_ = exec;
     }
 
     void update_call_site(STATE, CallSite* other) {

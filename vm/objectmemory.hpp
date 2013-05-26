@@ -201,7 +201,7 @@ namespace rubinius {
       return root_state_;
     }
 
-    unsigned int mark() {
+    unsigned int mark() const {
       return mark_;
     }
 
@@ -209,7 +209,7 @@ namespace rubinius {
       mark_ = (mark_ == 1 ? 2 : 1);
     }
 
-    bool can_gc() {
+    bool can_gc() const {
       return allow_gc_;
     }
 
@@ -221,15 +221,15 @@ namespace rubinius {
       allow_gc_ = false;
     }
 
-    FinalizerHandler* finalizer_handler() {
+    FinalizerHandler* finalizer_handler() const {
       return shared_.finalizer_handler();
     }
 
-    InflatedHeaders* inflated_headers() {
+    InflatedHeaders* inflated_headers() const {
       return inflated_headers_;
     }
 
-    capi::Handles* capi_handles() {
+    capi::Handles* capi_handles() const {
       return capi_handles_;
     }
 
@@ -337,7 +337,6 @@ namespace rubinius {
     bool refill_slab(STATE, gc::Slab& slab);
 
     void assign_object_id(STATE, Object* obj);
-    Integer* assign_object_id_ivar(STATE, Object* obj);
     bool inflate_lock_count_overflow(STATE, ObjectHeader* obj, int count);
     LockStatus contend_for_lock(STATE, GCToken gct, CallFrame* call_frame, ObjectHeader* obj, size_t us, bool interrupt);
     void release_contention(STATE, GCToken gct, CallFrame* call_frame);

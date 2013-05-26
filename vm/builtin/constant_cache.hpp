@@ -29,8 +29,8 @@ namespace rubinius {
     attr_accessor(scope, ConstantScope);
     attr_accessor(executable, Executable);
 
-    int ip() { return ip_; }
-    int serial() { return serial_; }
+    int ip() const { return ip_; }
+    int serial() const { return serial_; }
 
     // Rubinius.primitive :constant_cache_ip
     Integer* ip_prim(STATE);

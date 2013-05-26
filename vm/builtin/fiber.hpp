@@ -36,11 +36,11 @@ namespace rubinius {
     attr_accessor(locals, LookupTable);
     attr_accessor(dead, Object);
 
-    bool root_p() {
+    bool root_p() const {
       return root_;
     }
 
-    CallFrame* call_frame() {
+    CallFrame* call_frame() const {
       if(!data_) return 0;
       return data_->call_frame();
     }
@@ -56,27 +56,27 @@ namespace rubinius {
       status_ = eRunning;
     }
 
-    fiber_context_t* ucontext() {
+    fiber_context_t* ucontext() const {
       return data_->machine();
     }
 
-    FiberData* data() {
+    FiberData* data() const {
       return data_;
     }
 
-    void* stack_region() {
+    void* stack_region() const {
       return data_->stack_address();
     }
 
-    void* stack_end() {
+    void* stack_end() const {
       return data_->stack_address();
     }
 
-    void* stack_start() {
+    void* stack_start() const {
       return (void*)((uintptr_t)stack_region() + stack_size());
     }
 
-    int stack_size() {
+    int stack_size() const {
       return data_->stack_size();
     }
 

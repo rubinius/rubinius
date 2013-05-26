@@ -15,11 +15,11 @@ public:
   public:
     Node();
 
-    Node* next() {
+    Node* next() const {
       return next_;
     }
 
-    Node* prev() {
+    Node* prev() const {
       return prev_;
     }
 
@@ -53,7 +53,7 @@ private:
 
 public:
   LinkedList();
-  Node* head() {
+  Node* head() const {
     return head_;
   }
 
@@ -73,7 +73,7 @@ public:
       , current_(roots.front())
     {}
 
-    bool more() {
+    bool more() const {
       return current_ != 0;
     }
 
@@ -81,15 +81,15 @@ public:
       current_ = static_cast<Root*>(current_->next());
     }
 
-    Root* operator->() {
+    Root* operator->() const {
       return current_;
     }
 
-    Root* current() {
+    Root* current() const {
       return current_;
     }
 
-    Root* next() {
+    Root* next() const {
       Root* ret = current_;
       if(current_) {
         current_ = static_cast<Root*>(current_->next());

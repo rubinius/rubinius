@@ -100,7 +100,7 @@ namespace rubinius {
     threads_.remove(thr);
   }
 
-  int SharedState::size() {
+  int SharedState::size() const {
     return sizeof(SharedState) +
       sizeof(WorldState) +
       symbols.byte_size();
@@ -190,7 +190,7 @@ namespace rubinius {
     world_->reinit();
   }
 
-  bool SharedState::should_stop() {
+  bool SharedState::should_stop() const {
     return world_->should_stop();
   }
 

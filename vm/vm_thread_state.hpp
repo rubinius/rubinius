@@ -30,19 +30,19 @@ namespace rubinius {
       current_exception_.set(reinterpret_cast<Object*>(exc));
     }
 
-    Object* raise_value() {
+    Object* raise_value() const {
       return raise_value_.get();
     }
 
-    RaiseReason raise_reason() {
+    RaiseReason raise_reason() const {
       return raise_reason_;
     }
 
-    VariableScope* destination_scope() {
+    VariableScope* destination_scope() const {
       return destination_scope_.get();
     }
 
-    Object* throw_dest() {
+    Object* throw_dest() const {
       return throw_dest_.get();
     }
 

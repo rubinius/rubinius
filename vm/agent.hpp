@@ -40,7 +40,7 @@ namespace rubinius {
         state = eRunning;
       }
 
-      bool needs_auth_p() {
+      bool needs_auth_p() const {
         return state == eWaitingAuth;
       }
 
@@ -84,31 +84,31 @@ namespace rubinius {
       verbose_ = true;
     }
 
-    int port() {
+    int port() const {
       return port_;
     }
 
-    fd_set fds() {
+    fd_set fds() const {
       return fds_;
     }
 
-    int max_fd() {
+    int max_fd() const {
       return max_fd_;
     }
 
-    int server_fd() {
+    int server_fd() const {
       return server_fd_;
     }
 
-    bool local_only() {
+    bool local_only() const {
       return local_only_;
     }
 
-    bool use_password() {
+    bool use_password() const {
       return use_password_;
     }
 
-    bool verbose() {
+    bool verbose() const {
       return verbose_;
     }
 
@@ -129,15 +129,15 @@ namespace rubinius {
       FD_CLR((int_fd_t)fd, &fds_);
     }
 
-    int loopback_socket() {
+    int loopback_socket() const {
       return loopback_[1];
     }
 
-    int read_control() {
+    int read_control() const {
       return control_[0];
     }
 
-    int write_control() {
+    int write_control() const {
       return control_[1];
     }
 

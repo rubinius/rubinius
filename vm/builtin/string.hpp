@@ -119,7 +119,7 @@ namespace rubinius {
     Object* secure_compare(STATE, String* other);
 
     // Returns the number of bytes this String contains
-    native_int byte_size() {
+    native_int byte_size() const {
       return num_bytes_->to_native();
     }
 
@@ -132,7 +132,7 @@ namespace rubinius {
     // return a null terminated char*, so be sure to use byte_size() with it.
     //
     // NOTE: do not free() or realloc() this buffer.
-    uint8_t* byte_address() {
+    uint8_t* byte_address() const {
       return data_->raw_bytes();
     }
 

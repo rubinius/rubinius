@@ -234,7 +234,7 @@ namespace rubinius {
       waiting_to_run_.broadcast();
     }
 
-    bool should_stop() {
+    bool should_stop() const {
       return should_stop_;
     }
 

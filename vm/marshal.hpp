@@ -50,7 +50,7 @@ namespace rubinius {
         : message_(msg)
       {}
 
-      const char* message() {
+      const char* message() const {
         return message_;
       }
     };

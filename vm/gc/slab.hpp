@@ -36,11 +36,11 @@ namespace gc {
 
   public:
 
-    size_t allocations() {
+    size_t allocations() const {
       return allocations_;
     }
 
-    size_t byte_used() {
+    size_t byte_used() const {
       return current_ - start_;
     }
 

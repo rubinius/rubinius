@@ -20,7 +20,7 @@ namespace rubinius {
   public:
     ExceptionPoint(NativeMethodEnvironment* env);
 
-    bool jumped_to() {
+    bool jumped_to() const {
       return jumped_to_;
     }
 

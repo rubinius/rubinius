@@ -650,12 +650,13 @@ halt:
                       << enclosure_name(start) << "#" << symbol_debug_str(start->name());
         if(!candidate) {
           llvm::outs() << " no candidate";
-        }
-        if(candidate->jitted_p()) {
-          llvm::outs() << " candidate is jitted";
-        }
-        if(candidate->inline_method_p()) {
-          llvm::outs() << " candidate is inlined";
+        } else {
+          if(candidate->jitted_p()) {
+           llvm::outs() << " candidate is jitted";
+          }
+          if(candidate->inline_method_p()) {
+            llvm::outs() << " candidate is inlined";
+          }
         }
 
         llvm::outs() << " ]]]\n";

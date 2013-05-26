@@ -60,23 +60,23 @@ namespace rubinius {
     static void init(STATE);
     static void bootstrap_methods(STATE);
 
-    bool isolated() {
+    bool isolated() const {
       return isolated_ == 1;
     }
 
-    bool block_as_method_p() {
+    bool block_as_method_p() const {
       return flags_ & CallFrame::cBlockAsMethod;
     }
 
-    bool top_level_visibility_p() {
+    bool top_level_visibility_p() const {
       return flags_ & CallFrame::cTopLevelVisibility;
     }
 
-    bool script_p() {
+    bool script_p() const {
       return flags_ & CallFrame::cScript;
     }
 
-    bool locked_p() {
+    bool locked_p() const {
       return flags_ & CallFrame::cScopeLocked;
     }
 
@@ -86,7 +86,7 @@ namespace rubinius {
     Object* get_local(int pos);
     Object* get_local(STATE, int pos);
 
-    int number_of_locals() {
+    int number_of_locals() const {
       return number_of_locals_;
     }
 

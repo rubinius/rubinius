@@ -63,7 +63,6 @@ namespace jit {
     void compile_block(BackgroundCompileRequest* req);
     void compile_builder(JITMethodInfo&, rubinius::jit::Builder&);
 
-    void* function_pointer();
     void* generate_function(bool indy=true);
     void show_machine_code();
 

@@ -272,16 +272,6 @@ retry:
     }
   }
 
-  void ObjectHeader::set_lock_contended() {
-    for(;;) {
-      HeaderWord orig    = header;
-      HeaderWord new_val = orig;
-      new_val.f.LockContended = 1;
-
-      if(header.atomic_set(orig, new_val)) return;
-    }
-  }
-
   void ObjectHeader::clear_lock_contended() {
     for(;;) {
       HeaderWord orig    = header;
@@ -587,10 +577,7 @@ step2:
     return eLockError;
   }
 
-  bool ObjectHeader::locked_p(STATE, GCToken gct, CallFrame* call_frame) {
-    // Construct 2 new headers: one is the version we hope that
-    // is in use and the other is what we want it to be. The CAS
-    // the new one into place.
+  bool ObjectHeader::locked_p(STATE, GCToken gct, CallFrame* call_frame) const {
     HeaderWord orig = header;
 
     switch(orig.f.meaning) {

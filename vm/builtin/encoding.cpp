@@ -279,7 +279,7 @@ namespace rubinius {
     if(str_b && str_b->byte_size() == 0) return enc_a;
     if(str_a && str_a->byte_size() == 0) {
       if(CBOOL(enc_a->ascii_compatible_p(state))
-          && CBOOL(str_b->ascii_only_p(state))) {
+          && str_b && CBOOL(str_b->ascii_only_p(state))) {
         return enc_a;
       } else {
         return enc_b;
@@ -310,7 +310,7 @@ namespace rubinius {
       if(ascii_b) return enc_a;
       if(ascii_a) return enc_b;
     } else if(!str_b) {
-      if(CBOOL(str_a->ascii_only_p(state))) return enc_b;
+      if(str_a && CBOOL(str_a->ascii_only_p(state))) return enc_b;
     }
 
     return nil<Encoding>();

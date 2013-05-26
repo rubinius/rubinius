@@ -337,11 +337,6 @@ namespace rubinius {
     return false;
   }
 
-  void CompiledCode::set_interpreter(executor interp) {
-    set_executor(interp);
-    machine_code_->fallback = interp;
-  }
-
   Object* CompiledCode::set_breakpoint(STATE, GCToken gct, Fixnum* ip, Object* bp, CallFrame* calling_environment) {
     CompiledCode* self = this;
     OnStack<3> os(state, self, ip, bp);

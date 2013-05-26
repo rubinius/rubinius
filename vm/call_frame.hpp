@@ -63,11 +63,11 @@ namespace rubinius {
 
     // ACCESS
 
-    int ip() {
+    int ip() const {
       return ip_;
     }
 
-    bool block_as_method_p() {
+    bool block_as_method_p() const {
       return flags & cBlockAsMethod;
     }
 
@@ -86,7 +86,7 @@ namespace rubinius {
     }
 
 #ifdef ENABLE_LLVM
-    Symbol* name() {
+    Symbol* name() const {
       if(inline_method_p() && dispatch_data) {
         return reinterpret_cast<jit::RuntimeData*>(dispatch_data)->name();
       } else if(block_p()) {
@@ -98,7 +98,7 @@ namespace rubinius {
       return nil<Symbol>();
     }
 #else
-    Symbol* name() {
+    Symbol* name() const {
       if(arguments && !block_p()) {
         return arguments->name();
       }
@@ -108,7 +108,7 @@ namespace rubinius {
 #endif
 
 #ifdef ENABLE_LLVM
-    jit::RuntimeData* runtime_data() {
+    jit::RuntimeData* runtime_data() const {
       if(dispatch_data) {
         if(inline_method_p()) {
           return reinterpret_cast<jit::RuntimeData*>(dispatch_data);
@@ -118,7 +118,7 @@ namespace rubinius {
       return NULL;
     }
 
-    jit::RuntimeDataHolder* jit_data() {
+    jit::RuntimeDataHolder* jit_data() const {
       if(jitted_p()) {
         return reinterpret_cast<jit::RuntimeDataHolder*>(optional_jit_data);
       }
@@ -126,49 +126,49 @@ namespace rubinius {
       return NULL;
     }
 #else
-    jit::RuntimeData* runtime_data() {
+    jit::RuntimeData* runtime_data() const {
       return NULL;
     }
 
-    jit::RuntimeDataHolder* jit_data() {
+    jit::RuntimeDataHolder* jit_data() const {
       return NULL;
     }
 #endif
 
-    Symbol* original_name() {
+    Symbol* original_name() const {
       return compiled_code->name();
     }
 
-    bool custom_constant_scope_p() {
+    bool custom_constant_scope_p() const {
       return flags & cCustomConstantScope;
     }
 
-    bool inline_method_p() {
+    bool inline_method_p() const {
       return flags & cInlineFrame;
     }
 
-    bool jitted_p() {
+    bool jitted_p() const {
       return flags & cJITed;
     }
 
-    bool block_p() {
+    bool block_p() const {
       return flags & cBlock;
     }
 
-    ConstantScope* constant_scope() {
+    ConstantScope* constant_scope() const {
       if(custom_constant_scope_p()) return constant_scope_;
       return compiled_code->scope();
     }
 
-    bool is_block_p(STATE) {
+    bool is_block_p(STATE) const {
       return block_p();
     }
 
-    Object* self() {
+    Object* self() const {
       return scope->self();
     }
 
-    bool multiple_scopes_p() {
+    bool multiple_scopes_p() const {
       return flags & cMultipleScopes;
     }
 
@@ -177,23 +177,23 @@ namespace rubinius {
       return promote_scope(state);
     }
 
-    bool is_inline_frame() {
+    bool is_inline_frame() const {
       return flags & cInlineFrame;
     }
 
-    bool is_inline_block() {
+    bool is_inline_block() const {
       return flags & cInlineBlock;
     }
 
-    bool has_closed_scope_p() {
+    bool has_closed_scope_p() const {
       return flags & cClosedScope;
     }
 
-    bool native_method_p() {
+    bool native_method_p() const {
       return flags & cNativeMethod;
     }
 
-    NativeMethodFrame* native_method_frame() {
+    NativeMethodFrame* native_method_frame() const {
       if(native_method_p()) return reinterpret_cast<NativeMethodFrame*>(dispatch_data);
       return 0;
     }
@@ -212,7 +212,7 @@ namespace rubinius {
     Object* last_match(STATE);
     void set_last_match(STATE, Object* obj);
 
-    Module* module() {
+    Module* module() const {
       return scope->module();
     }
 

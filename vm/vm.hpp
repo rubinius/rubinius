@@ -140,11 +140,11 @@ namespace rubinius {
       return unwinds_;
     }
 
-    uint32_t thread_id() {
+    uint32_t thread_id() const {
       return id_;
     }
 
-    bool run_signals_p() {
+    bool run_signals_p() const {
       return run_signals_;
     }
 
@@ -164,7 +164,7 @@ namespace rubinius {
       saved_call_frame_ = frame;
     }
 
-    CallFrame* saved_call_frame() {
+    CallFrame* saved_call_frame() const {
       return saved_call_frame_;
     }
 
@@ -176,7 +176,7 @@ namespace rubinius {
       return saved_call_site_information_;
     }
 
-    GlobalCache* global_cache() {
+    GlobalCache* global_cache() const {
       return shared.global_cache;
     }
 
@@ -184,11 +184,11 @@ namespace rubinius {
       return shared.globals;
     }
 
-    void* stack_start() {
+    void* stack_start() const {
       return reinterpret_cast<void*>(vm_jit_.stack_start_);
     }
 
-    int stack_size() {
+    int stack_size() const {
       return vm_jit_.stack_size_;
     }
 
@@ -215,12 +215,12 @@ namespace rubinius {
       set_stack_bounds(root_stack_start_, root_stack_size_);
     }
 
-    bool detect_stack_condition(void* end) {
+    bool detect_stack_condition(void* end) const {
       // @TODO assumes stack growth direction
       return reinterpret_cast<uintptr_t>(end) < vm_jit_.stack_limit_;
     }
 
-    MethodMissingReason method_missing_reason() {
+    MethodMissingReason method_missing_reason() const {
       return method_missing_reason_;
     }
 
@@ -228,7 +228,7 @@ namespace rubinius {
       method_missing_reason_ = reason;
     }
 
-    ConstantMissingReason constant_missing_reason() {
+    ConstantMissingReason constant_missing_reason() const {
       return constant_missing_reason_;
     }
 
@@ -236,7 +236,7 @@ namespace rubinius {
       constant_missing_reason_ = reason;
     }
 
-    bool thread_step() {
+    bool thread_step() const {
       return vm_jit_.thread_step_;
     }
 
@@ -250,7 +250,7 @@ namespace rubinius {
       vm_jit_.thread_step_ = true;
     }
 
-    bool check_local_interrupts() {
+    bool check_local_interrupts() const {
       return vm_jit_.check_local_interrupts_;
     }
 
@@ -262,7 +262,7 @@ namespace rubinius {
       vm_jit_.check_local_interrupts_ = true;
     }
 
-    bool interrupt_by_kill() {
+    bool interrupt_by_kill() const {
       return vm_jit_.interrupt_by_kill_;
     }
 
@@ -274,7 +274,7 @@ namespace rubinius {
       vm_jit_.interrupt_by_kill_ = true;
     }
 
-    Exception* interrupted_exception() {
+    Exception* interrupted_exception() const {
       return interrupted_exception_.get();
     }
 
@@ -282,11 +282,11 @@ namespace rubinius {
       interrupted_exception_.set(cNil);
     }
 
-    rbxti::Env* tooling_env() {
+    rbxti::Env* tooling_env() const {
       return tooling_env_;
     }
 
-    bool tooling() {
+    bool tooling() const {
       return tooling_;
     }
 
@@ -298,7 +298,7 @@ namespace rubinius {
       tooling_ = false;
     }
 
-    bool allocation_tracking() {
+    bool allocation_tracking() const {
       return allocation_tracking_;
     }
 
@@ -418,7 +418,6 @@ namespace rubinius {
     void wait_on_custom_function(void (*func)(void*), void* data);
     void clear_waiter();
     bool wakeup(STATE, GCToken gct, CallFrame* call_frame);
-    bool waiting_p();
 
     void set_parked();
     void set_unparked();
@@ -427,7 +426,7 @@ namespace rubinius {
     void clear_sleeping();
 
     void interrupt_with_signal();
-    bool should_interrupt_with_signal() {
+    bool should_interrupt_with_signal() const {
       return vm_jit_.interrupt_with_signal_;
     }
 

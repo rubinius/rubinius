@@ -61,19 +61,19 @@ namespace rubinius {
     size_t bytes_used_;
 
   public:
-    int freed_resources() {
+    int freed_resources() const {
       return freed_resources_;
     }
 
-    int total_allocated() {
+    int total_allocated() const {
       return total_allocated_;
     }
 
-    int total_freed() {
+    int total_freed() const {
       return total_freed_;
     }
 
-    SharedState* shared() {
+    SharedState* shared() const {
       return shared_;
     }
 

@@ -39,7 +39,7 @@ namespace rubinius {
       arg_count_ = count;
     }
 
-    int arg_count() {
+    int arg_count() const {
       return arg_count_;
     }
 
@@ -47,7 +47,7 @@ namespace rubinius {
       name_ = name;
     }
 
-    const char* name() {
+    const char* name() const {
       return name_;
     }
 
@@ -55,7 +55,7 @@ namespace rubinius {
       pass_callframe_ = val;
     }
 
-    bool pass_callframe() {
+    bool pass_callframe() const {
       return pass_callframe_;
     }
 
@@ -63,7 +63,7 @@ namespace rubinius {
       can_fail_ = val;
     }
 
-    bool can_fail() {
+    bool can_fail() const {
       return can_fail_;
     }
 
