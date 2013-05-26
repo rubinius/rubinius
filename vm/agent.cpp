@@ -255,7 +255,10 @@ namespace rubinius {
       goto auth_error;
     }
 
-    if(!val->equal_atom("ok")) goto auth_error;
+    if(!val->equal_atom("ok")) {
+      delete val;
+      goto auth_error;
+    }
 
     file.open(name.str().c_str());
 

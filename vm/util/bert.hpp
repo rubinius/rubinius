@@ -941,7 +941,7 @@ namespace bert {
 
       Value* val = new Value(Time);
       val->set_time((sec * 1000000) + num->integer());
-
+      delete num;
       return val;
     }
 
