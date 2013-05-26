@@ -223,7 +223,7 @@ namespace rubinius {
       struct tm utc;
       time_t now;
       time(&now);
-      utc = *gmtime(&now);
+      gmtime_r(&now, &utc);
       off = (now - mktime(&utc));
     }
 #endif
