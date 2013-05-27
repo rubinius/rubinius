@@ -504,7 +504,7 @@ extern "C" {
       return rb_funcall(object, to_ary_id, 0);
     } else {
       Array* array = Array::create(env->state(), 1);
-      array->set(env->state(), 0, obj);
+      array->set(env->state(), 0, env->get_object(object));
 
       return env->get_handle(array);
     }
