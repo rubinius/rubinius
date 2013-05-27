@@ -67,7 +67,7 @@ namespace rubinius {
 
           if(fd == -1) {
             char buf[RBX_STRERROR_BUFSIZE];
-            strerror_r(errno, buf, RBX_STRERROR_BUFSIZE);
+            RBX_STRERROR(errno, buf, RBX_STRERROR_BUFSIZE);
             rb_raise(rb_eIOError, "%s (%d)", buf, errno);
           }
 
@@ -75,7 +75,7 @@ namespace rubinius {
 
           if(!f) {
             char buf[RBX_STRERROR_BUFSIZE];
-            strerror_r(errno, buf, RBX_STRERROR_BUFSIZE);
+            RBX_STRERROR(errno, buf, RBX_STRERROR_BUFSIZE);
             std::cerr << "Error convert fd (" << fd << ") to lowlevel IO: "
                       << buf << " (" << errno << ")" << std::endl;
 

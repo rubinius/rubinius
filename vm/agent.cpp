@@ -117,7 +117,7 @@ namespace rubinius {
     server_fd_ = ::socket(AF_INET, SOCK_STREAM, 0);
     if(server_fd_ == -1) {
       char buf[RBX_STRERROR_BUFSIZE];
-      strerror_r(errno, buf, RBX_STRERROR_BUFSIZE);
+      RBX_STRERROR(errno, buf, RBX_STRERROR_BUFSIZE);
       std::cerr << "[QA: Unable to create socket: " << buf << "]\n";
       return false;
     }
@@ -133,7 +133,7 @@ namespace rubinius {
 
     if(::bind(server_fd_, (struct sockaddr*)&sin, sizeof(sin)) == -1) {
       char buf[RBX_STRERROR_BUFSIZE];
-      strerror_r(errno, buf, RBX_STRERROR_BUFSIZE);
+      RBX_STRERROR(errno, buf, RBX_STRERROR_BUFSIZE);
       std::cerr << "[QA: Unable to bind socket: " << buf << "]\n";
       return false;
     }
@@ -151,7 +151,7 @@ namespace rubinius {
 
     if(::listen(server_fd_, cBackLog) == -1) {
       char buf[RBX_STRERROR_BUFSIZE];
-      strerror_r(errno, buf, RBX_STRERROR_BUFSIZE);
+      RBX_STRERROR(errno, buf, RBX_STRERROR_BUFSIZE);
       std::cerr << "[QA: Unable to listen on socket: " << buf << "]\n";
       return false;
     }
@@ -465,7 +465,7 @@ auth_error:
     atomic::memory_barrier();
     if(write(write_control(), &buf, 1) < 0) {
       char buf[RBX_STRERROR_BUFSIZE];
-      strerror_r(errno, buf, RBX_STRERROR_BUFSIZE);
+      RBX_STRERROR(errno, buf, RBX_STRERROR_BUFSIZE);
       std::cerr << "[QA: Write error: " << buf << "]\n";
     }
   }
@@ -581,7 +581,7 @@ auth_error:
       if(ret < 0) {
         if(errno == EINTR || errno == EAGAIN) continue;
         char buf[RBX_STRERROR_BUFSIZE];
-        strerror_r(errno, buf, RBX_STRERROR_BUFSIZE);
+        RBX_STRERROR(errno, buf, RBX_STRERROR_BUFSIZE);
         std::cerr << "[QA: Select error: " << buf << "]\n";
         return;
       } else if(ret == 0) {
@@ -595,7 +595,7 @@ auth_error:
         char buf;
         if(read(read_control(), &buf, 1) < 0) {
           char buf[RBX_STRERROR_BUFSIZE];
-          strerror_r(errno, buf, RBX_STRERROR_BUFSIZE);
+          RBX_STRERROR(errno, buf, RBX_STRERROR_BUFSIZE);
           std::cerr << "[QA: Read error: " << buf << "]\n";
         }
       } else if(server_fd() > 0 && FD_ISSET(server_fd(), &read_fds)) {

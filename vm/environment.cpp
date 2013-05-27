@@ -463,7 +463,7 @@ namespace rubinius {
       int fd = open(config.report_path, O_RDONLY | O_CREAT, 0666);
       if(!fd) {
         char buf[RBX_STRERROR_BUFSIZE];
-        strerror_r(errno, buf, RBX_STRERROR_BUFSIZE);
+        RBX_STRERROR(errno, buf, RBX_STRERROR_BUFSIZE);
         std::cerr << "Unable to use " << config.report_path << " for crash reports.\n";
         std::cerr << "Unable to open path: " << buf << "\n";
 

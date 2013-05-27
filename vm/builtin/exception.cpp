@@ -225,7 +225,7 @@ namespace rubinius {
 
   void Exception::memory_error(STATE) {
     char buf[RBX_STRERROR_BUFSIZE];
-    strerror_r(errno, buf, RBX_STRERROR_BUFSIZE);
+    RBX_STRERROR(errno, buf, RBX_STRERROR_BUFSIZE);
     RubyException::raise(make_exception(state, get_errno_error(state, Fixnum::from(errno)), buf));
   }
 
