@@ -55,6 +55,13 @@ namespace rubinius {
     thr->control_channel(state, nil<Channel>());
     thr->locals(state, LookupTable::create(state));
     thr->recursive_objects(state, LookupTable::create(state));
+    thr->group(state, cNil);
+    thr->result(state, cFalse);
+    thr->exception(state, nil<Exception>());
+    thr->critical(state, cFalse);
+    thr->dying(state, cFalse);
+    thr->joins(state, Array::create(state, 1));
+    thr->killed(state, cFalse);
 
     thr->vm_ = target;
     thr->klass(state, as<Class>(self));

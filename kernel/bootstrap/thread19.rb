@@ -10,9 +10,6 @@ class Thread
       run obj
       dup
 
-      send :setup, 0, true
-      pop
-
       run args
       push_block
       send_with_splat :__thread_initialize__, 0, true
@@ -88,16 +85,6 @@ class Thread
     unless @exception
       Thread.main.raise exception
     end
-  end
-
-  def setup
-    @group = nil
-    @result = false
-    @exception = nil
-    @critical = false
-    @dying = false
-    @joins = []
-    @killed = false
   end
 
   def kill

@@ -10,6 +10,7 @@
 #include "on_stack.hpp"
 #include "call_frame.hpp"
 #include "exception_point.hpp"
+#include "builtin/exception.hpp"
 #include "builtin/thread.hpp"
 #include "builtin/nativemethod.hpp"
 #include "builtin/ffi_pointer.hpp"
@@ -208,7 +209,10 @@ extern "C" {
 
     if(unlikely(ep.jumped_to())) {
       // Setup exception in thread so it's raised when joining
-      self->set_ivar(state, state->symbol("@exception"), self->current_exception(state));
+      // Reload self because it might have been moved
+      self = state->vm()->thread.get();
+      Exception* exc = capi::c_as<Exception>(self->current_exception(state));
+      self->exception(state, exc);
       return NULL;
     } else {
       ret = env->get_object(nm->func()(ptr->pointer));
@@ -242,7 +246,6 @@ extern "C" {
     thr->locals_store(state, state->symbol("argument"), ptr);
 
     VALUE thr_handle = env->get_handle(thr);
-    capi::capi_fast_call(thr_handle, rb_intern("setup"), 0);
     thr->fork(state);
     return thr_handle;
   }

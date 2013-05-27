@@ -113,9 +113,6 @@ class Thread
       run obj
       dup
 
-      send :setup, 0, true
-      pop
-
       run args
       push_block
       send_with_splat :initialize, 0, true

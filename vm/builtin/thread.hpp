@@ -11,6 +11,7 @@ namespace rubinius {
   class Exception;
   class LookupTable;
   class Randomizer;
+  class Array;
 
   /**
    *  Ruby Thread implementation.
@@ -38,6 +39,14 @@ namespace rubinius {
     Randomizer* randomizer_; // slot
 
     LookupTable* locals_; // slot
+
+    Object* group_; // slot
+    Object* result_; // slot
+    Exception* exception_; // slot
+    Object* critical_; // slot
+    Object* dying_; // slot
+    Array* joins_; // slot
+    Object* killed_; // slot
 
     utilities::thread::SpinLock init_lock_;
 
@@ -74,6 +83,14 @@ namespace rubinius {
     attr_accessor(randomizer, Randomizer);
 
     attr_accessor(locals, LookupTable);
+
+    attr_accessor(group, Object);
+    attr_accessor(result, Object);
+    attr_accessor(exception, Exception);
+    attr_accessor(critical, Object);
+    attr_accessor(dying, Object);
+    attr_accessor(joins, Array);
+    attr_accessor(killed, Object);
 
     VM* vm() const {
       return vm_;
