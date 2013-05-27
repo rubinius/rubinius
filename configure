@@ -124,7 +124,7 @@ class Configure
     @patch_version = "0"
     @release = "rc1"
     @release_date = "yyyy-mm-dd"
-    @config_version = 172
+    @config_version = 173
   end
 
   # Set up system commands to run in cmd.exe on Windows. Either Windows
@@ -1389,6 +1389,24 @@ int main() { return tgetnum(""); }
     end
   end
 
+  def strerror_r_returns_char_pointer
+    status = check_program(false) do |src|
+      src.puts "#include <string.h>"
+      src.puts "int main() { char buf[1024]; static_cast<char*>(strerror_r(42, buf, 1024)); }"
+    end
+    status == 0
+  end
+
+  def detect_strerror
+    @log.print "Checking if function 'strerror_r' returns char*: "
+    if strerror_r_returns_char_pointer
+      @defines << "STRERROR_R_CHAR_P"
+      @log.write "yes"
+    else
+      @log.write "no"
+    end
+  end
+
   def process
     set_host
     set_system_commands
@@ -1435,6 +1453,7 @@ int main() { return tgetnum(""); }
     detect_globals
     detect_headers
     detect_curses
+    detect_strerror
  end
 
   def which_ruby
