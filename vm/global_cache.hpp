@@ -76,6 +76,7 @@ namespace rubinius {
     void prune_young();
 
     bool has_seen(STATE, Symbol* sym);
+    void add_seen(STATE, Symbol* sym);
 
     void prune_unmarked(int mark);
 

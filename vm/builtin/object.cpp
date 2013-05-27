@@ -20,6 +20,7 @@
 #include "call_frame.hpp"
 #include "configuration.hpp"
 #include "dispatch.hpp"
+#include "global_cache.hpp"
 #include "lookup_data.hpp"
 #include "objectmemory.hpp"
 #include "object_utils.hpp"
@@ -842,6 +843,7 @@ namespace rubinius {
       }
       RespondToCache* cache = RespondToCache::create(state, existing,
                                 this, name, priv, responds, 1);
+      state->vm()->global_cache()->add_seen(state, name);
       atomic::memory_barrier();
       existing->update_call_site(state, cache);
     }

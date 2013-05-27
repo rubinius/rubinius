@@ -164,6 +164,11 @@ keep_looking:
     return seen != seen_methods.end();
   }
 
+  void GlobalCache::add_seen(STATE, Symbol* sym) {
+    utilities::thread::SpinLock::LockGuard guard(lock_);
+    seen_methods.insert(sym->index());
+  }
+
   void GlobalCache::prune_young() {
     for(size_t i = 0; i < CPU_CACHE_SIZE; i++) {
       CacheEntry* entry = &entries[i];
