@@ -124,7 +124,7 @@ class Configure
     @patch_version = "0"
     @release = "rc1"
     @release_date = "yyyy-mm-dd"
-    @config_version = 172
+    @config_version = 173
   end
 
   # Set up system commands to run in cmd.exe on Windows. Either Windows
