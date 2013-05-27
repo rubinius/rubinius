@@ -301,8 +301,8 @@ namespace rubinius {
 
     if(error) {
       char buf[RBX_STRERROR_BUFSIZE];
-      RBX_STRERROR(error, buf, RBX_STRERROR_BUFSIZE);
-      Exception::thread_error(state, buf);
+      char* err = RBX_STRERROR(error, buf, RBX_STRERROR_BUFSIZE);
+      Exception::thread_error(state, err);
     }
     return cNil;
   }

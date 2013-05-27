@@ -5,11 +5,19 @@
 #include "detection.hpp"
 
 #define RBX_STRERROR_BUFSIZE 256
-// This is just so annoying. strerror_r has different signatures
-// on GNU and XSI, don't ask why. Also the GNU version has an
-// unused warning that can't be worked around easier in another way than
-// just putting an if() around and don't do anything with it.
-#define RBX_STRERROR(errno, buf, size) if(strerror_r(errno, buf, size))
+
+// strerror_r has different signatures on GNU and XSI.
+// - The GNU version returns a pointer to a string, which may be the one passed
+//   to the function as 'buf', or some immutable static string, in which case
+//   'buf' is unused.
+// - The XSI version always stores the error message in 'buf' and returns 0 on
+//   success.
+// This macro makes sure that the error message is returned either way.
+#ifdef STRERROR_R_CHAR_P
+#define RBX_STRERROR(errno, buf, size) strerror_r(errno, buf, size)
+#else
+#define RBX_STRERROR(errno, buf, size) (strerror_r(errno, buf, size), buf)
+#endif
 
 // Enable this define for some minimal GC debugging
 // #define RBX_GC_DEBUG

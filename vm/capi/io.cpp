@@ -67,23 +67,23 @@ namespace rubinius {
 
           if(fd == -1) {
             char buf[RBX_STRERROR_BUFSIZE];
-            RBX_STRERROR(errno, buf, RBX_STRERROR_BUFSIZE);
-            rb_raise(rb_eIOError, "%s (%d)", buf, errno);
+            char* err = RBX_STRERROR(errno, buf, RBX_STRERROR_BUFSIZE);
+            rb_raise(rb_eIOError, "%s (%d)", err, errno);
           }
 
           FILE* f = fdopen(fd, flags_modestr(io_obj->mode()->to_native()));
 
           if(!f) {
             char buf[RBX_STRERROR_BUFSIZE];
-            RBX_STRERROR(errno, buf, RBX_STRERROR_BUFSIZE);
+            char* err = RBX_STRERROR(errno, buf, RBX_STRERROR_BUFSIZE);
             std::cerr << "Error convert fd (" << fd << ") to lowlevel IO: "
-                      << buf << " (" << errno << ")" << std::endl;
+                      << err << " (" << errno << ")" << std::endl;
 
             env->shared().capi_ds_lock().unlock();
 
             rb_raise(rb_eTypeError,
                 "unable to convert fd (%d) to lowlevel IO: %s (%d)",
-                fd, buf, errno);
+                fd, err, errno);
           }
 
           RIO* rf = new RIO;

@@ -1389,6 +1389,19 @@ int main() { return tgetnum(""); }
     end
   end
 
+  def strerror_r_returns_char_pointer
+    compile_check "function 'strerror_r' returns char*" do |src|
+      src.puts "#include <string.h>"
+      src.puts "int main() { char buf[1024]; char* err = strerror_r(42, buf, 1024); }"
+    end
+  end
+
+  def detect_strerror
+    if strerror_r_returns_char_pointer
+      @defines << "STRERROR_R_CHAR_P"
+    end
+  end
+
   def process
     set_host
     set_system_commands
@@ -1435,6 +1448,7 @@ int main() { return tgetnum(""); }
     detect_globals
     detect_headers
     detect_curses
+    detect_strerror
  end
 
   def which_ruby
