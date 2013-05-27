@@ -363,14 +363,8 @@ namespace rubinius {
     void needs_finalization(Object* obj, FinalizerFunction func);
     void set_ruby_finalizer(Object* obj, Object* finalizer);
 
-    void find_referers(Object* obj, ObjectArray& result);
-
     void* young_start();
     void* yound_end();
-
-    void print_references(STATE, Object* obj);
-    void snapshot(STATE);
-    void print_new_since_snapshot(STATE);
 
     size_t& loe_usage();
     size_t& immix_usage();
