@@ -12,6 +12,10 @@ module RespondToCacheSpec
     HitTest = def hits_test
       respond_to?(:hits_test)
     end
+
+    CacheTest = def call_site_respond_to_cache
+      respond_to?(:call_site_respond_to_cache_method)
+    end
   end
 end
 
