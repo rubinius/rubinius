@@ -3,7 +3,7 @@
 module Rubinius
   class AtomicReference
     def initialize(val=nil)
-      set(val) if val
+      set(val) unless val.nil?
     end
 
     def marshal_dump
