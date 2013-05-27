@@ -197,7 +197,9 @@ namespace rubinius {
     }
 
     obj->init_header(cls, YoungObjectZone, type);
-
+#ifdef RBX_GC_STRESS
+    state.shared().gc_soon();
+#endif
     return obj;
   }
 
@@ -208,6 +210,7 @@ namespace rubinius {
   }
 
   Tuple* VM::new_young_tuple_dirty(size_t fields) {
+    State state(this);
     size_t bytes = Tuple::fields_offset + (sizeof(Object*) * fields);
 
     if(unlikely(bytes > om->large_object_threshold)) {
@@ -217,7 +220,6 @@ namespace rubinius {
     Tuple* tup = local_slab().allocate(bytes).as<Tuple>();
 
     if(unlikely(!tup)) {
-      State state(this);
 
       if(shared.om->refill_slab(&state, local_slab())) {
         tup = local_slab().allocate(bytes).as<Tuple>();
@@ -228,13 +230,17 @@ namespace rubinius {
 
     tup->init_header(G(tuple), YoungObjectZone, Tuple::type);
     tup->full_size_ = bytes;
-
+#ifdef RBX_GC_STRESS
+    state.shared().gc_soon();
+#endif
     return tup;
   }
 
   Object* VM::new_object_typed_mature(Class* cls, size_t bytes, object_type type) {
     State state(this);
-
+#ifdef RBX_GC_STRESS
+    state.shared().gc_soon();
+#endif
     return om->new_object_typed_mature(&state, cls, bytes, type);
   }
 

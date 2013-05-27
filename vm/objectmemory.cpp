@@ -580,7 +580,9 @@ step1:
   }
 
   void ObjectMemory::collect_young(GCData& data, YoungCollectStats* stats) {
+#ifndef RBX_GC_STRESS_YOUNG
     collect_young_now = false;
+#endif
 
     timer::Running<1000000> timer(gc_stats.total_young_collection_time,
                                   gc_stats.last_young_collection_time);
@@ -620,8 +622,9 @@ step1:
 
     timer::Running<1000000> timer(gc_stats.total_full_collection_time,
                                   gc_stats.last_full_collection_time);
-
+#ifndef RBX_GC_STRESS_MATURE
     collect_mature_now = false;
+#endif
 
     code_manager_.clear_marks();
 

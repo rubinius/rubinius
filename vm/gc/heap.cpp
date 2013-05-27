@@ -61,7 +61,10 @@ namespace rubinius {
     current_ = start_;
     scan_ = start_;
 #ifdef RBX_GC_DEBUG
+// To heavy when doing GC stress and not necessary
+#ifndef RBX_GC_STRESS
     memset(start_, 0xff, size_);
+#endif
 #endif
   }
 

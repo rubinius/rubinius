@@ -134,6 +134,9 @@ namespace rubinius {
         new_obj->setup_allocation_site(state, calling_environment);
       }
 #endif
+#ifdef RBX_GC_STRESS
+      state->shared().gc_soon();
+#endif
       return new_obj;
     } else if(!type_info_->allow_user_allocate || kind_of<SingletonClass>(this)) {
       Exception::type_error(state, "direct allocation disabled");
@@ -150,6 +153,9 @@ namespace rubinius {
         new_obj->setup_allocation_site(state, calling_environment);
       }
 #endif
+#ifdef RBX_GC_STRESS
+      state->shared().gc_soon();
+#endif
       return new_obj;
     } else {
       // type_info_->type is neither PackedObject nor Object, so use the
@@ -160,6 +166,9 @@ namespace rubinius {
       if(unlikely(state->vm()->allocation_tracking())) {
         new_obj->setup_allocation_site(state, calling_environment);
       }
+#endif
+#ifdef RBX_GC_STRESS
+      state->shared().gc_soon();
 #endif
       return new_obj;
     }
