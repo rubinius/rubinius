@@ -860,31 +860,8 @@ namespace rubinius {
     return RBOOL(dis.resolve(state, name, lookup));
   }
 
-  /**
-   *  We use void* as the type for obj to work around C++'s type system
-   *  that requires full definitions of classes to be present for it
-   *  figure out if you can properly pass an object (the superclass
-   *  has to be known).
-   *
-   *  If we have Object* obj here, then we either have to cast to call
-   *  write_barrier (which means we lose the ability to have type specific
-   *  write_barrier versions, which we do), or we have to include
-   *  every header up front. We opt for the former.
-   */
-  void Object::inline_write_barrier_passed(STATE, void* obj) {
-    if(!remembered_p()) {
-      state->memory()->remember_object(this);
-    }
-  }
-
-  void Object::inline_write_barrier_passed(VM* vm, void* obj) {
-    if(!remembered_p()) {
-      vm->om->remember_object(this);
-    }
-  }
-
-  void Object::write_barrier(gc::WriteBarrier* wb, void* obj) {
-    wb->write_barrier(this, reinterpret_cast<Object*>(obj));
+  void Object::write_barrier(ObjectMemory* om, void* obj) {
+    om->write_barrier(this, reinterpret_cast<Object*>(obj));
   }
 
   void Object::setup_allocation_site(STATE, CallFrame* call_frame) {

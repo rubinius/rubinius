@@ -40,7 +40,6 @@
 #include "llvm/local_info.hpp"
 
 #include "gc/managed.hpp"
-#include "gc/write_barrier.hpp"
 #include "auxiliary_threads.hpp"
 #include "configuration.hpp"
 #include "util/thread.hpp"
@@ -59,6 +58,7 @@ namespace rubinius {
   class BackgroundCompilerThread;
   class BlockEnvironment;
   class Context;
+  class Symbol;
 
   enum JitDebug {
     cSimple = 1,
@@ -86,8 +86,6 @@ namespace rubinius {
     int code_bytes_;
 
     std::ostream* log_;
-
-    gc::WriteBarrier write_barrier_;
 
     uint32_t fixnum_class_id_;
     uint32_t integer_class_id_;
@@ -183,10 +181,6 @@ namespace rubinius {
 
     std::ostream& log() {
       return *log_;
-    }
-
-    gc::WriteBarrier* write_barrier() {
-      return &write_barrier_;
     }
 
     uint32_t fixnum_class_id() {

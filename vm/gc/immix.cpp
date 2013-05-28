@@ -215,12 +215,6 @@ namespace rubinius {
     int cleared = 0;
     unsigned int mark = object_memory_->mark();
     cleared = object_memory_->unremember_objects(mark);
-    for(std::list<gc::WriteBarrier*>::iterator wbi = object_memory_->aux_barriers().begin();
-        wbi != object_memory_->aux_barriers().end();
-        ++wbi) {
-      gc::WriteBarrier* wb = *wbi;
-      cleared += wb->unremember_objects(mark);
-    }
 
     // Sweep up the garbage
     gc_.sweep_blocks();

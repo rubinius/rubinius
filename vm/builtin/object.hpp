@@ -7,6 +7,7 @@
 #include "oop.hpp"
 #include "type_info.hpp"
 #include "executor.hpp"
+#include "objectmemory.hpp"
 
 namespace rubinius {
 
@@ -49,11 +50,7 @@ namespace rubinius {
   class Module;
   class Executable;
   class Array;
-
   class Object;
-
-  typedef std::vector<Object*> ObjectArray;
-
 
   /**
    *  Object is the basic Ruby object.
@@ -95,17 +92,14 @@ namespace rubinius {
 
     /** Provides access to the GC write barrier from any object. */
     void        write_barrier(STATE, void* obj);
-    void        inline_write_barrier_passed(STATE, void* obj);
-
     void        write_barrier(VM*, void* obj);
-    void        inline_write_barrier_passed(VM*, void* obj);
 
     /** Special-case write_barrier() for Fixnums. */
     void        write_barrier(STATE, Fixnum* obj);
     /** Special-case write_barrier() for Symbols. */
     void        write_barrier(STATE, Symbol* obj);
 
-    void        write_barrier(gc::WriteBarrier* wb, void* obj);
+    void        write_barrier(ObjectMemory* om, void* obj);
 
     void        setup_allocation_site(STATE, CallFrame* call_frame = NULL);
 
@@ -447,20 +441,12 @@ namespace rubinius {
 
   inline void Object::write_barrier(STATE, void* ptr) {
     Object* obj = reinterpret_cast<Object*>(ptr);
-    if(!obj->reference_p() ||
-        this->young_object_p() ||
-        !obj->young_object_p()) return;
-
-    inline_write_barrier_passed(state, ptr);
+    state->memory()->write_barrier(this, obj);
   }
 
   inline void Object::write_barrier(VM* vm, void* ptr) {
     Object* obj = reinterpret_cast<Object*>(ptr);
-    if(!obj->reference_p() ||
-        this->young_object_p() ||
-        !obj->young_object_p()) return;
-
-    inline_write_barrier_passed(vm, ptr);
+    vm->om->write_barrier(this, obj);
   }
 
   // Used in filtering APIs

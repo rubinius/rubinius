@@ -2,9 +2,10 @@
 #define RBX_GC_WRITE_BARRIER_HPP
 
 #include "util/thread.hpp"
-#include "builtin/object.hpp"
 
 namespace rubinius {
+
+  class Object;
 
 namespace gc {
 
@@ -68,13 +69,13 @@ namespace gc {
      * @param target The object holding the reference (i.e. the referer).
      * @param val    The object being referenced (i.e. the referee).
      */
-    void write_barrier(Object* target, Object* val) {
+    void write_barrier(ObjectHeader* target, ObjectHeader* val) {
       if(target->remembered_p()) return;
       if(!val->reference_p()) return;
       if(target->young_object_p()) return;
       if(!val->young_object_p()) return;
 
-      remember_object(target);
+      remember_object(reinterpret_cast<Object*>(target));
     }
 
     // Adds the target object directly to the remembered set.

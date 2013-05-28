@@ -20,9 +20,9 @@ namespace rubinius {
       return object_;
     }
 
-    void set_object(gc::WriteBarrier* wb, Object* obj) {
+    void set_object(ObjectMemory* om, Object* obj) {
       object_ = obj;
-      write_barrier(wb, obj);
+      write_barrier(om, obj);
     }
 
     // Rubinius.primitive :weakref_set_object

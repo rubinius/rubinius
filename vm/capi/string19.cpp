@@ -1,4 +1,5 @@
 #include "vm.hpp"
+#include "objectmemory.hpp"
 
 #include "capi/19/include/ruby/ruby.h"
 #include "capi/19/include/ruby/encoding.h"

@@ -71,22 +71,22 @@ namespace jit {
     }
   }
 
-  void RuntimeDataHolder::run_write_barrier(gc::WriteBarrier* wb, Object* obj) {
+  void RuntimeDataHolder::run_write_barrier(ObjectMemory* om, Object* obj) {
     for(std::vector<jit::RuntimeData*>::iterator i = runtime_data_.begin();
         i != runtime_data_.end();
         ++i) {
       jit::RuntimeData* rd = *i;
 
       if(rd->method()) {
-        obj->write_barrier(wb, rd->method());
+        obj->write_barrier(om, rd->method());
       }
 
       if(rd->name()) {
-        obj->write_barrier(wb, rd->name());
+        obj->write_barrier(om, rd->name());
       }
 
       if(rd->module()) {
-        obj->write_barrier(wb, rd->module());
+        obj->write_barrier(om, rd->module());
       }
     }
 

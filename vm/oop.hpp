@@ -112,6 +112,8 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
   class Object;
   class VM;
 
+  typedef std::vector<Object*> ObjectArray;
+
   enum LockStatus {
     eUnlocked,
     eLocked,

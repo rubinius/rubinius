@@ -370,7 +370,7 @@ namespace rubinius {
 
           ls_->end_method_update();
 
-          rd->run_write_barrier(ls_->write_barrier(), req->method());
+          rd->run_write_barrier(ls_->shared().om, req->method());
 
           ls_->shared().stats.jitted_methods++;
 
@@ -454,7 +454,6 @@ halt:
 
     state->shared().auxiliary_threads()->register_thread(this);
     state->shared().add_managed_thread(this);
-    state->shared().om->add_aux_barrier(state, &write_barrier_);
 
     if(state->shared().config.jit_log.value.size() == 0) {
       log_ = &std::cerr;
@@ -506,7 +505,6 @@ halt:
     shared_.auxiliary_threads()->unregister_thread(this);
 
     shared_.remove_managed_thread(this);
-    shared_.om->del_aux_barrier(&write_barrier_);
     delete background_thread_;
     delete memory_;
     delete jit_event_listener_;

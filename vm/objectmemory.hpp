@@ -6,7 +6,7 @@
 
 #include "object_position.hpp"
 
-#include "builtin/object.hpp"
+#include "oop.hpp"
 #include "gc/code_manager.hpp"
 #include "gc/finalize.hpp"
 #include "gc/write_barrier.hpp"
@@ -14,12 +14,15 @@
 #include "util/thread.hpp"
 #include "lock.hpp"
 
+#include "shared_state.hpp"
+
 class TestObjectMemory; // So we can friend it properly
 class TestVM; // So we can friend it properly
 
 namespace rubinius {
 
   class Object;
+  class Integer;
 
   struct CallFrame;
   class GCData;
@@ -33,6 +36,12 @@ namespace rubinius {
 
   namespace gc {
     class Slab;
+  }
+
+  namespace capi {
+    class Handle;
+    class Handles;
+    class GlobalHandle;
   }
 
   struct YoungCollectStats {
@@ -159,10 +168,6 @@ namespace rubinius {
     /// Flag controlling whether garbage collections are allowed
     bool allow_gc_;
 
-    /// List of additional write-barriers that may hold objects with references
-    /// to young objects.
-    std::list<gc::WriteBarrier*> aux_barriers_;
-
     /// Size of slabs to be allocated to threads for lockless thread-local
     /// allocations.
     size_t slab_size_;
@@ -246,30 +251,6 @@ namespace rubinius {
 
     void add_global_capi_handle_location(STATE, capi::Handle** loc, const char* file, int line);
     void del_global_capi_handle_location(STATE, capi::Handle** loc);
-
-    /**
-     * Adds an additional write-barrier to the auxiliary write-barriers list.
-     */
-    void add_aux_barrier(STATE, gc::WriteBarrier* wb) {
-      SYNC(state);
-      aux_barriers_.push_back(wb);
-    }
-
-    /**
-     * Removes a write-barrier from the auxiliary write-barriers list.
-     */
-    void del_aux_barrier(STATE, gc::WriteBarrier* wb) {
-      SYNC(state);
-      aux_barriers_.remove(wb);
-    }
-
-    void del_aux_barrier(gc::WriteBarrier* wb) {
-      aux_barriers_.remove(wb);
-    }
-
-    std::list<gc::WriteBarrier*>& aux_barriers() {
-      return aux_barriers_;
-    }
 
   public:
     ObjectMemory(VM* state, Configuration& config);
