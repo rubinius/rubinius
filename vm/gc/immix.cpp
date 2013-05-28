@@ -1,5 +1,6 @@
 #include "objectmemory.hpp"
 #include "gc/immix.hpp"
+#include "gc/immix_marker.hpp"
 
 #include "capi/handles.hpp"
 #include "capi/tag.hpp"
@@ -43,6 +44,9 @@ namespace rubinius {
   ImmixGC::ImmixGC(ObjectMemory* om)
     : GarbageCollector(om)
     , allocator_(gc_.block_allocator())
+    , marker_(NULL)
+    , marked_objects_(0)
+    , chunks_left_(0)
     , chunks_before_collection_(10)
   {
     gc_.describer().set_object_memory(om, this);
@@ -88,8 +92,6 @@ namespace rubinius {
     memcpy(obj, orig, bytes);
 
     obj->set_zone(MatureObjectZone);
-    obj->set_age(0);
-
     obj->set_in_immix();
 
     orig->set_forward(obj);
@@ -138,14 +140,21 @@ namespace rubinius {
    */
   void ImmixGC::collect(GCData* data) {
     gc_.clear_marks();
+    collect_scan(data);
+    process_mark_stack();
+    collect_finish(data);
+  }
 
-    int via_handles_ = 0;
-    int via_roots = 0;
+  void ImmixGC::collect_start(GCData* data) {
+    gc_.clear_marks();
+    collect_scan(data);
+    marker_->concurrent_mark(data);
+  }
 
+  void ImmixGC::collect_scan(GCData* data) {
     for(Roots::Iterator i(data->roots()); i.more(); i.advance()) {
       Object* tmp = i->get();
       if(tmp->reference_p()) saw_object(tmp);
-      via_roots++;
     }
 
     if(data->threads()) {
@@ -159,7 +168,6 @@ namespace rubinius {
     for(Allocator<capi::Handle>::Iterator i(data->handles()->allocator()); i.more(); i.advance()) {
       if(i->in_use_p() && !i->weak_p()) {
         saw_object(i->object());
-        via_handles_++;
       }
     }
 
@@ -176,7 +184,6 @@ namespace rubinius {
             Object* obj = hdl->object();
             if(obj && obj->reference_p()) {
               saw_object(obj);
-              via_handles_++;
             }
           } else {
             std::cerr << "Detected bad handle checking global capi handles\n";
@@ -188,8 +195,10 @@ namespace rubinius {
 #ifdef ENABLE_LLVM
     if(LLVMState* ls = data->llvm_state()) ls->gc_scan(this);
 #endif
+  }
 
-    gc_.process_mark_stack(allocator_);
+  void ImmixGC::collect_finish(GCData* data) {
+    collect_scan(data);
 
     ObjectArray* marked_set = object_memory_->swap_marked_set();
     for(ObjectArray::iterator oi = marked_set->begin();
@@ -200,7 +209,24 @@ namespace rubinius {
     }
     delete marked_set;
 
-    gc_.process_mark_stack(allocator_);
+    // Users manipulate values accessible from the data* within an
+    // RData without running a write barrier. Thusly if we see any rdata
+    // we must always scan it again here because it could contain new pointers.
+    //
+    // We do this in a loop because the scanning might generate new entries
+    // on the mark stack.
+    do {
+      for(Allocator<capi::Handle>::Iterator i(data->handles()->allocator()); i.more(); i.advance()) {
+        capi::Handle* hdl = i.current();
+        if(!hdl->in_use_p()) continue;
+        if(hdl->is_rdata()) {
+          Object* obj = hdl->object();
+          if(obj->marked_p(object_memory_->mark())) {
+            scan_object(obj);
+          }
+        }
+      }
+    } while(process_mark_stack());
 
     // We've now finished marking the entire object graph.
     // Clean weakrefs before keeping additional objects alive
@@ -213,7 +239,7 @@ namespace rubinius {
     do {
       walk_finalizers();
       scan_fibers(data, true);
-    } while(gc_.process_mark_stack(allocator_));
+    } while(process_mark_stack());
 
     // Remove unreachable locked objects still in the list
     if(data->threads()) {
@@ -227,7 +253,9 @@ namespace rubinius {
     // Clear unreachable objects from the various remember sets
     unsigned int mark = object_memory_->mark();
     object_memory_->unremember_objects(mark);
+  }
 
+  void ImmixGC::sweep() {
     // Copy marks for use in new allocations
     gc_.copy_marks();
 
@@ -255,8 +283,6 @@ namespace rubinius {
     if(object_memory_->state()->shared.config.gc_immix_debug) {
       std::cerr << "[GC IMMIX: " << clear_marked_objects() << " marked"
                 << ", "
-                << via_roots << " roots "
-                << via_handles_ << " handles "
                 << (int)(percentage_live * 100) << "% live"
                 << ", " << live_bytes << "/" << total_bytes
                 << "]\n";
@@ -321,6 +347,26 @@ namespace rubinius {
     delete[] holes;
     holes = NULL;
 #endif
+  }
+
+  void ImmixGC::start_marker(STATE) {
+    if(!marker_) {
+      marker_ = new ImmixMarker(state, this);
+    }
+  }
+
+  void ImmixGC::wait_for_marker(STATE) {
+    if(marker_) {
+      marker_->wait_for_marker(state);
+    }
+  }
+
+  bool ImmixGC::process_mark_stack(int count) {
+    return gc_.process_mark_stack(allocator_, count);
+  }
+
+  immix::MarkStack& ImmixGC::mark_stack() {
+    return gc_.mark_stack();
   }
 
   void ImmixGC::walk_finalizers() {

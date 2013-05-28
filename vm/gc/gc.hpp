@@ -38,6 +38,7 @@ namespace rubinius {
 #ifdef ENABLE_LLVM
     LLVMState* llvm_state_;
 #endif
+    size_t bytes_allocated_;
 
   public:
     GCData(VM*, GCToken gct);
@@ -57,6 +58,7 @@ namespace rubinius {
 #ifdef ENABLE_LLVM
       , llvm_state_(0)
 #endif
+      , bytes_allocated_(0)
     {}
 
     Roots& roots() {
@@ -92,6 +94,10 @@ namespace rubinius {
       return llvm_state_;
     }
 #endif
+
+    size_t bytes_allocated() {
+      return bytes_allocated_;
+    }
   };
 
   class AddressDisplacement {
@@ -198,6 +204,10 @@ namespace rubinius {
     }
 
     void reset_stats() {
+    }
+
+    ObjectArray* weak_refs_set() {
+      return weak_refs_;
     }
 
     friend class ObjectMark;

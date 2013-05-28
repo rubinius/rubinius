@@ -534,7 +534,7 @@ namespace rubinius {
 
   Integer* System::vm_gc_time(STATE) {
     return Integer::from(state, state->memory()->gc_stats.total_young_collection_time.read() +
-                                state->memory()->gc_stats.total_full_collection_time.read());
+                                state->memory()->gc_stats.total_full_stop_collection_time.read());
   }
 
   Object* System::vm_get_config_item(STATE, String* var) {

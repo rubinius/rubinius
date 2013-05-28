@@ -327,7 +327,9 @@ namespace rubinius {
         tup->field[i] = obj;
 
         // Because tup is promised to be a young object,
-        // we can elide the write barrier usage.
+        // we can elide the write barrier usage. We also
+        // know this object is new, so it can't be scanned
+        // yet.
       }
 
       return tup;

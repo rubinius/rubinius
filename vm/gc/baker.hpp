@@ -307,6 +307,22 @@ namespace rubinius {
     /// mature generation.
     bool    handle_promotions();
 
+    /// Scans the pending mark set
+    void    scan_mark_set();
+
+    /// Updates the pending mark set and removes any young unreachable objects
+    void    update_mark_set();
+
+    /// Scans the current mark stack
+    void    scan_mature_mark_stack();
+
+    /// Updates the current mark stack and removes any young unreachable objects
+    void    update_mature_mark_stack();
+
+    /// Updates the set with weak refs and removes any young unreachable objects.
+    /// Note this removes the actual WeakRef, not the object referenced.
+    void    update_weak_refs_set();
+
     /// Validates the specified object, and returns an ObjectPosition value
     /// indicating in which space in the young generation the object lies.
     ObjectPosition validate_object(Object* obj);

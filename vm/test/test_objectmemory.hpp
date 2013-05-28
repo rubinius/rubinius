@@ -33,7 +33,9 @@ public:
   }
 
   void tearDown() {
-    delete gc_data;
+    if(gc_data) {
+      delete gc_data;
+    }
     destroy();
   }
 
@@ -238,8 +240,6 @@ public:
     TS_ASSERT_EQUALS(roots->front()->get()->age(), 1U);
     om.collect_young(state, gc_data);
 
-    TS_ASSERT_EQUALS(roots->front()->get()->age(), 0U);
-
     TS_ASSERT(roots->front()->get()->mature_object_p());
   }
 
@@ -324,6 +324,9 @@ public:
     Root r(roots, mature);
 
     om.collect_mature(state, gc_data);
+    om.wait_for_mature_marker(state);
+    // marker thread cleans up gc_data
+    gc_data = NULL;
 
     TS_ASSERT(mature->marked_p(mark));
   }
@@ -343,6 +346,9 @@ public:
     Root r(roots, young);
 
     om.collect_mature(state, gc_data);
+    om.wait_for_mature_marker(state);
+    gc_data = NULL;
+
     TS_ASSERT_EQUALS(young->marked_p(om.mark()), 0U);
   }
 
@@ -365,6 +371,8 @@ public:
     Root r(roots, young);
 
     om.collect_mature(state, gc_data);
+    om.wait_for_mature_marker(state);
+    gc_data = NULL;
 
     mature = (Tuple*)young->field[0];
 

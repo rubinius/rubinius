@@ -57,6 +57,7 @@ namespace rubinius {
     , code_manager_(&state->shared)
     , mark_(2)
     , allow_gc_(true)
+    , mature_gc_in_progress_(false)
     , slab_size_(4096)
     , shared_(state->shared)
 
@@ -77,6 +78,8 @@ namespace rubinius {
     young_->set_lifetime(config.gc_lifetime);
 
     if(config.gc_autotune) young_->set_autotune();
+
+    mature_mark_concurrent_ = config.gc_immix_concurrent;
 
     for(size_t i = 0; i < LastObjectType; i++) {
       type_info[i] = NULL;
@@ -115,6 +118,7 @@ namespace rubinius {
   void ObjectMemory::on_fork(STATE) {
     lock_init(state->vm());
     contention_lock_.init();
+    mature_gc_in_progress_ = false;
   }
 
   void ObjectMemory::assign_object_id(STATE, Object* obj) {
@@ -481,6 +485,7 @@ step1:
     }
 #endif
 
+    copy->clear_mark();
     return copy;
   }
 
@@ -505,7 +510,7 @@ step1:
                 << " WORLD beginning GC.]" << std::endl;
     }
 
-    GCData gc_data(state->vm(), gct);
+    GCData* gc_data = new GCData(state->vm(), gct);
 
     if(collect_young_now) {
 
@@ -515,58 +520,37 @@ step1:
 #ifdef RBX_PROFILER
       if(unlikely(state->vm()->tooling())) {
         tooling::GCEntry method(state, tooling::GCYoung);
-        collect_young(state, &gc_data, &stats);
+        collect_young(state, gc_data, &stats);
       } else {
-        collect_young(state, &gc_data, &stats);
+        collect_young(state, gc_data, &stats);
       }
 #else
-      collect_young(state, &gc_data, &stats);
+      collect_young(state, gc_data, &stats);
 #endif
-
       RUBINIUS_GC_END(0);
-
-      if(state->shared().config.gc_show) {
-        uint64_t diff = gc_stats.last_young_collection_time.value;
-
-        std::cerr << "[GC " << std::fixed << std::setprecision(1) << stats.percentage_used << "% "
-                  << stats.promoted_objects << "/" << stats.excess_objects << " "
-                  << stats.lifetime << " " << diff << "ms]" << std::endl;
-
-        if(state->shared().config.gc_noisy) {
-          std::cerr << "\a" << std::flush;
-        }
+      print_young_stats(state, gc_data, &stats);
+      if(!collect_mature_now) {
+        delete gc_data;
       }
     }
 
     if(collect_mature_now) {
-      size_t before_kb = 0;
-
       RUBINIUS_GC_BEGIN(1);
 #ifdef RBX_PROFILER
       if(unlikely(state->vm()->tooling())) {
         tooling::GCEntry method(state, tooling::GCMature);
-        collect_mature(state, &gc_data);
+        collect_mature(state, gc_data);
       } else {
-        collect_mature(state, &gc_data);
+        collect_mature(state, gc_data);
       }
 #else
-      collect_mature(state, &gc_data);
+      collect_mature(state, gc_data);
 #endif
-
-      RUBINIUS_GC_END(1);
-
-      if(state->shared().config.gc_show) {
-        uint64_t diff = gc_stats.last_full_collection_time.value;
-        size_t kb = mature_bytes_allocated() / 1024;
-        std::cerr << "[Full GC " << before_kb << "kB => " << kb << "kB " << diff << "ms]" << std::endl;
-
-        if(state->shared().config.gc_noisy) {
-          std::cerr << "\a\a" << std::flush;
-        }
+      if(!mature_mark_concurrent_) {
+        print_mature_stats(state, gc_data);
       }
     }
 
-    state->shared().finalizer_handler()->finish_collection(state);
     state->restart_world();
 
     UNSYNC;
@@ -609,23 +593,38 @@ step1:
 #ifdef RBX_GC_DEBUG
     young_->verify(data);
 #endif
+    if(FinalizerHandler* hdl = state->shared().finalizer_handler()) {
+      hdl->finish_collection(state);
+    }
   }
 
   void ObjectMemory::collect_mature(STATE, GCData* data) {
-
-    timer::Running<1000000> timer(gc_stats.total_full_collection_time,
-                                  gc_stats.last_full_collection_time);
+    timer::Running<1000000> timer(gc_stats.total_full_stop_collection_time,
+                                  gc_stats.last_full_stop_collection_time);
 #ifndef RBX_GC_STRESS_MATURE
     collect_mature_now = false;
 #endif
+
+    // If we're already collecting, ignore this request
+    if(mature_gc_in_progress_) return;
 
     code_manager_.clear_marks();
     clear_fiber_marks(data->threads());
 
     immix_->reset_stats();
 
-    immix_->collect(data);
+    if(mature_mark_concurrent_) {
+      immix_->start_marker(state);
+      immix_->collect_start(data);
+      mature_gc_in_progress_ = true;
+    } else {
+      immix_->collect(data);
+    }
+  }
 
+  void ObjectMemory::collect_mature_finish(STATE, GCData* data) {
+
+    immix_->collect_finish(data);
     code_manager_.sweep();
 
     data->global_cache()->prune_unmarked(mark());
@@ -641,10 +640,53 @@ step1:
 #ifdef RBX_GC_DEBUG
     immix_->verify(data);
 #endif
+    immix_->sweep();
 
     rotate_mark();
-    gc_stats.full_collection_count++;
 
+    gc_stats.full_collection_count++;
+    if(FinalizerHandler* hdl = state->shared().finalizer_handler()) {
+      hdl->finish_collection(state);
+    }
+
+    RUBINIUS_GC_END(1);
+  }
+
+  void ObjectMemory::wait_for_mature_marker(STATE) {
+    immix_->wait_for_marker(state);
+  }
+
+  immix::MarkStack& ObjectMemory::mature_mark_stack() {
+    return immix_->mark_stack();
+  }
+
+
+  void ObjectMemory::print_young_stats(STATE, GCData* data, YoungCollectStats* stats) {
+    if(state->shared().config.gc_show) {
+      uint64_t diff = gc_stats.last_young_collection_time.value;
+
+      std::cerr << "[GC " << std::fixed << std::setprecision(1) << stats->percentage_used << "% "
+                << stats->promoted_objects << "/" << stats->excess_objects << " "
+                << stats->lifetime << " " << diff << "ms]" << std::endl;
+
+      if(state->shared().config.gc_noisy) {
+        std::cerr << "\a" << std::flush;
+      }
+    }
+  }
+
+  void ObjectMemory::print_mature_stats(STATE, GCData* data) {
+    if(state->shared().config.gc_show) {
+      uint64_t stop = gc_stats.last_full_stop_collection_time.value;
+      uint64_t concur = gc_stats.last_full_concurrent_collection_time.value;
+      size_t before_kb = data->bytes_allocated() / 1024;
+      size_t kb = mature_bytes_allocated() / 1024;
+      std::cerr << "[Full GC " << before_kb << "kB => " << kb << "kB " << stop << "ms (" << concur << "ms)]" << std::endl;
+
+      if(state->shared().config.gc_noisy) {
+        std::cerr << "\a\a" << std::flush;
+      }
+    }
   }
 
   void ObjectMemory::inflate_for_id(STATE, ObjectHeader* obj, uint32_t id) {
@@ -1014,6 +1056,10 @@ step1:
   void ObjectMemory::make_capi_handle_cached(STATE, capi::Handle* handle) {
     SYNC(state);
     cached_capi_handles_.push_back(handle);
+  }
+
+  ObjectArray* ObjectMemory::weak_refs_set() {
+    return immix_->weak_refs_set();
   }
 
   size_t& ObjectMemory::loe_usage() {

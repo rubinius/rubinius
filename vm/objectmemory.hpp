@@ -11,6 +11,7 @@
 #include "gc/finalize.hpp"
 #include "gc/write_barrier.hpp"
 
+#include "util/immix.hpp"
 #include "util/thread.hpp"
 #include "lock.hpp"
 
@@ -33,6 +34,7 @@ namespace rubinius {
   class InflatedHeaders;
   class Thread;
   class FinalizerHandler;
+  class ImmixMarker;
 
   namespace gc {
     class Slab;
@@ -74,9 +76,11 @@ namespace rubinius {
     atomic::integer full_collection_count;
 
     atomic::integer total_young_collection_time;
-    atomic::integer total_full_collection_time;
+    atomic::integer total_full_stop_collection_time;
+    atomic::integer total_full_concurrent_collection_time;
     atomic::integer last_young_collection_time;
-    atomic::integer last_full_collection_time;
+    atomic::integer last_full_stop_collection_time;
+    atomic::integer last_full_concurrent_collection_time;
 
     void young_object_allocated(uint64_t size) {
       young_objects_allocated.inc();
@@ -108,9 +112,11 @@ namespace rubinius {
       , young_collection_count(0)
       , full_collection_count(0)
       , total_young_collection_time(0)
-      , total_full_collection_time(0)
+      , total_full_stop_collection_time(0)
+      , total_full_concurrent_collection_time(0)
       , last_young_collection_time(0)
-      , last_full_collection_time(0)
+      , last_full_stop_collection_time(0)
+      , last_full_concurrent_collection_time(0)
     {}
   };
 
@@ -150,6 +156,9 @@ namespace rubinius {
     /// ImmixGC used for the mature generation
     ImmixGC* immix_;
 
+    /// ImmixMarker thread used for the mature generation
+    ImmixMarker* immix_marker_;
+
     /// Storage for all InflatedHeader instances.
     InflatedHeaders* inflated_headers_;
 
@@ -167,6 +176,10 @@ namespace rubinius {
 
     /// Flag controlling whether garbage collections are allowed
     bool allow_gc_;
+    /// Flag set when concurrent mature mark is requested
+    bool mature_mark_concurrent_;
+    /// Flag set when a mature GC is already in progress
+    bool mature_gc_in_progress_;
 
     /// Size of slabs to be allocated to threads for lockless thread-local
     /// allocations.
@@ -242,6 +255,14 @@ namespace rubinius {
       return capi_handles_;
     }
 
+    ImmixMarker* immix_marker() const {
+      return immix_marker_;
+    }
+
+    void set_immix_marker(ImmixMarker* immix_marker) {
+      immix_marker_ = immix_marker;
+    }
+
     capi::Handle* add_capi_handle(STATE, Object* obj);
     void make_capi_handle_cached(State*, capi::Handle* handle);
 
@@ -255,6 +276,8 @@ namespace rubinius {
 
     void add_global_capi_handle_location(STATE, capi::Handle** loc, const char* file, int line);
     void del_global_capi_handle_location(STATE, capi::Handle** loc);
+
+    ObjectArray* weak_refs_set();
 
   public:
     ObjectMemory(VM* state, Configuration& config);
@@ -366,6 +389,16 @@ namespace rubinius {
 
     /// This only has one use! Don't use it!
     Object* allocate_object_raw(size_t bytes);
+    void collect_mature_finish(STATE, GCData* data);
+    void wait_for_mature_marker(STATE);
+    void clear_mature_mark_in_progress() {
+      mature_gc_in_progress_ = false;
+    }
+
+    immix::MarkStack& mature_mark_stack();
+
+    void print_young_stats(STATE, GCData* data, YoungCollectStats* stats);
+    void print_mature_stats(STATE, GCData* data);
 
   private:
     Object* allocate_object(size_t bytes);

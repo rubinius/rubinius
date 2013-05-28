@@ -528,10 +528,14 @@ namespace agent {
     Tree* gc_full = system_->get_tree("gc")->get_tree("full");
     gc_full->add(new ReadAtomicInteger("count",
                        state->memory()->gc_stats.full_collection_count));
-    gc_full->add(new ReadAtomicInteger("total_wallclock",
-                       state->memory()->gc_stats.total_full_collection_time));
-    gc_full->add(new ReadAtomicInteger("last_wallclock",
-                       state->memory()->gc_stats.last_full_collection_time));
+    gc_full->add(new ReadAtomicInteger("total_stop_wallclock",
+                       state->memory()->gc_stats.total_full_stop_collection_time));
+    gc_full->add(new ReadAtomicInteger("total_concurrent_wallclock",
+                       state->memory()->gc_stats.total_full_concurrent_collection_time));
+    gc_full->add(new ReadAtomicInteger("last_stop_wallclock",
+                       state->memory()->gc_stats.last_full_stop_collection_time));
+    gc_full->add(new ReadAtomicInteger("last_concurrent_wallclock",
+                       state->memory()->gc_stats.last_full_concurrent_collection_time));
 
     Tree* jit = system_->get_tree("jit");
     jit->add(new ReadAtomicInteger("cache_resets", state->shared().stats.methods_cache_resets));

@@ -29,6 +29,9 @@ Rubinius::ConfigurationVariables.define do |c|
     s.vm_variable "noisy", :bool,
       "Beep whenever the GC runs (once for young, twice for mature). Requires gc.show"
 
+    s.vm_variable "immix.concurrent", true,
+      "Set whether we want the Immix mark phase to run concurrently"
+
     s.vm_variable "immix.debug", :bool,
       "Print out collection stats when the Immix collector finishes"
 

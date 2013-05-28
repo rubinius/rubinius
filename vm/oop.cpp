@@ -182,16 +182,6 @@ retry:
     }
   }
 
-  unsigned int ObjectHeader::inc_age() {
-    for(;;) {
-      HeaderWord orig      = header;
-      HeaderWord new_val   = orig;
-      unsigned int new_age = new_val.f.age++;
-
-      if(header.atomic_set(orig, new_val)) return new_age;
-    }
-  }
-
   void ObjectHeader::set_age(unsigned int age) {
     for(;;) {
       HeaderWord orig    = header;
@@ -230,16 +220,6 @@ retry:
     }
   }
 
-  void ObjectHeader::clear_mark() {
-    for(;;) {
-      HeaderWord orig    = header;
-      HeaderWord new_val = orig;
-      new_val.f.Marked   = 0;
-
-      if(header.atomic_set(orig, new_val)) return;
-    }
-  }
-
   bool ObjectHeader::pin() {
     // Can't pin young objects!
     if(young_object_p()) return false;
@@ -259,26 +239,6 @@ retry:
       HeaderWord orig    = header;
       HeaderWord new_val = orig;
       new_val.f.Pinned   = 0;
-
-      if(header.atomic_set(orig, new_val)) return;
-    }
-  }
-
-  void ObjectHeader::set_in_immix() {
-    for(;;) {
-      HeaderWord orig    = header;
-      HeaderWord new_val = orig;
-      new_val.f.InImmix  = 1;
-
-      if(header.atomic_set(orig, new_val)) return;
-    }
-  }
-
-  void ObjectHeader::set_zone(gc_zone zone) {
-    for(;;) {
-      HeaderWord orig    = header;
-      HeaderWord new_val = orig;
-      new_val.f.zone     = zone;
 
       if(header.atomic_set(orig, new_val)) return;
     }

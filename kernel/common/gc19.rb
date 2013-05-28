@@ -21,8 +21,10 @@ module GC
         },
         :full => {
           :count => @agent.get('system.gc.full.count')[1],
-          :total_wallclock => @agent.get('system.gc.full.total_wallclock')[1],
-          :last_wallclock => @agent.get('system.gc.full.last_wallclock')[1]
+          :total_stop_wallclock => @agent.get('system.gc.full.total_stop_wallclock')[1],
+          :total_concurrent_wallclock => @agent.get('system.gc.full.total_concurrent_wallclock')[1],
+          :last_stop_wallclock => @agent.get('system.gc.full.last_stop_wallclock')[1],
+          :last_concurrent_wallclock => @agent.get('system.gc.full.last_concurrent_wallclock')[1]
         }
       },
       :memory => {
@@ -84,9 +86,9 @@ Complete process runtime statistics
 ===================================
 
 Collections
-                         Count        Total time (ms)         Last time (ms)
-Young   #{sprintf("% 22d", stats[:gc][:young][:count])} #{sprintf("% 22d", stats[:gc][:young][:total_wallclock])} #{sprintf("% 22d", stats[:gc][:young][:last_wallclock])}
-Full    #{sprintf("% 22d", stats[:gc][:full][:count])} #{sprintf("% 22d", stats[:gc][:full][:total_wallclock])} #{sprintf("% 22d", stats[:gc][:full][:last_wallclock])}
+                         Count       Total time / concurrent (ms)   Last time / concurrent (ms)
+Young   #{sprintf("% 22d", stats[:gc][:young][:count])} #{sprintf("% 16d             ", stats[:gc][:young][:total_wallclock])} #{sprintf("% 16d            ", stats[:gc][:young][:last_wallclock])}
+Full    #{sprintf("% 22d", stats[:gc][:full][:count])} #{sprintf("% 16d / % 10d", stats[:gc][:full][:total_stop_wallclock], stats[:gc][:full][:total_concurrent_wallclock])} #{sprintf("% 16d / % 10d", stats[:gc][:full][:last_stop_wallclock], stats[:gc][:full][:last_concurrent_wallclock])}
 
 Allocation
              Objects allocated        Bytes allocated

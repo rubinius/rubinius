@@ -31,8 +31,6 @@ namespace gc {
   void WriteBarrier::remember_object(Object* target) {
     utilities::thread::SpinLock::LockGuard lg(lock_);
 
-    assert(target->mature_object_p());
-
     // If it's already remembered, ignore this request
     if(target->remembered_p()) return;
     target->set_remember();
@@ -84,14 +82,9 @@ namespace gc {
       Object* tmp = *oi;
       // unremember_object throws a NULL in to remove an object
       // so we don't have to compact the set in unremember
-      if(tmp) {
-        assert(tmp->mature_object_p());
-        assert(!tmp->forwarded_p());
-
-        if(!tmp->marked_p(mark)) {
-          cleared++;
-          *oi = NULL;
-        }
+      if(tmp && !tmp->marked_p(mark)) {
+        cleared++;
+        *oi = NULL;
       }
     }
     return cleared;

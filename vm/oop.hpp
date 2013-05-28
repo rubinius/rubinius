@@ -343,13 +343,19 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return flags().zone;
     }
 
-    void set_zone(gc_zone zone);
+    // Only called in non contended scenario's
+    void set_zone(gc_zone zone) {
+      header.f.zone = zone;
+    }
 
     unsigned int age() const {
       return flags().age;
     }
 
-    unsigned int inc_age();
+    unsigned int inc_age() {
+      return ++header.f.age;
+    }
+
     void set_age(unsigned int age);
 
     /*
@@ -495,7 +501,9 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return flags().Marked;
     }
 
-    void clear_mark();
+    void clear_mark() {
+      header.f.Marked = 0;
+    }
 
     bool pinned_p() const {
       return flags().Pinned == 1;
@@ -508,7 +516,10 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return flags().InImmix == 1;
     }
 
-    void set_in_immix();
+    // Only called in non contended scenario's
+    void set_in_immix() {
+      header.f.InImmix = 1;
+    }
 
     bool remembered_p() const {
       return flags().Remember == 1;

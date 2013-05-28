@@ -11,6 +11,7 @@
 namespace rubinius {
   class ObjectMemory;
   class ImmixGC;
+  class ImmixMarker;
 
   /**
    * ImmixGC uses the immix memory management strategy to perform garbage
@@ -115,6 +116,7 @@ namespace rubinius {
 
     immix::GC<ObjectDescriber> gc_;
     immix::ExpandingAllocator allocator_;
+    ImmixMarker* marker_;
     int marked_objects_;
     int chunks_left_;
     int chunks_before_collection_;
@@ -128,6 +130,10 @@ namespace rubinius {
     virtual Object* saw_object(Object*);
     virtual void scanned_object(Object*);
     void collect(GCData* data);
+    void collect_start(GCData* data);
+    void collect_finish(GCData* data);
+    void sweep();
+    void wait_for_marker(STATE);
 
     void walk_finalizers();
 
@@ -159,6 +165,13 @@ namespace rubinius {
     void reset_chunks_left() {
       chunks_left_ = chunks_before_collection_;
     }
+
+    void start_marker(STATE);
+    bool process_mark_stack(int count = 0);
+    immix::MarkStack& mark_stack();
+
+  private:
+    void collect_scan(GCData* data);
   };
 }
 

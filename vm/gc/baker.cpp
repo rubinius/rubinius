@@ -170,6 +170,9 @@ namespace rubinius {
 
     delete current_rs;
 
+    scan_mark_set();
+    scan_mature_mark_stack();
+
     for(Roots::Iterator i(data->roots()); i.more(); i.advance()) {
       i->set(saw_object(i->get()));
     }
@@ -253,6 +256,16 @@ namespace rubinius {
       }
     }
 
+    // Update the pending mark set to remove unreachable objects.
+    update_mark_set();
+
+    // Update the existing mark stack of the mature gen because young
+    // objects might have moved.
+    update_mature_mark_stack();
+
+    // Update the weak ref set to remove unreachable weak refs.
+    update_weak_refs_set();
+
     // Swap the 2 halves
     Heap *x = next;
     next = current;
@@ -310,6 +323,81 @@ namespace rubinius {
     }
 
     return true;
+  }
+
+  void BakerGC::scan_mark_set() {
+    // Update the marked set and remove young not forwarded objects
+    ObjectArray* marked_set = object_memory_->marked_set();
+
+    for(ObjectArray::iterator oi = marked_set->begin();
+        oi != marked_set->end(); ++oi) {
+      Object* obj = *oi;
+      if(obj && obj->mature_object_p()) {
+        scan_object(obj);
+      }
+    }
+  }
+
+  void BakerGC::update_mark_set() {
+    // Update the marked set and remove young not forwarded objects
+    ObjectArray* marked_set = object_memory_->marked_set();
+
+    for(ObjectArray::iterator oi = marked_set->begin();
+        oi != marked_set->end(); ++oi) {
+      Object* obj = *oi;
+      if(!obj) continue; // Already removed during previous cycle
+      if(obj->young_object_p()) {
+        if(obj->forwarded_p()) {
+          *oi = obj->forward();
+        } else {
+          *oi = NULL;
+        }
+      }
+    }
+  }
+
+  void BakerGC::scan_mature_mark_stack() {
+    immix::MarkStack& stack = object_memory_->mature_mark_stack();
+    for(immix::MarkStack::iterator i = stack.begin(); i != stack.end(); ++i) {
+      Object* obj = (*i).as<Object>();
+      if(obj && obj->mature_object_p()) {
+        scan_object(obj);
+      }
+    }
+  }
+
+  void BakerGC::update_mature_mark_stack() {
+    immix::MarkStack& stack = object_memory_->mature_mark_stack();
+    for(immix::MarkStack::iterator i = stack.begin(); i != stack.end(); ++i) {
+      Object* obj = (*i).as<Object>();
+      if(obj && obj->young_object_p()) {
+        if(obj->forwarded_p()) {
+          *i = obj->forward();
+        } else {
+          *i = memory::Address::null();
+        }
+      }
+    }
+  }
+
+  void BakerGC::update_weak_refs_set() {
+    // Update the weakref set for mature GC and remove young not forwarded objects
+    ObjectArray* weak_refs_set = object_memory_->weak_refs_set();
+
+    if(weak_refs_set) {
+      for(ObjectArray::iterator oi = weak_refs_set->begin();
+          oi != weak_refs_set->end(); ++oi) {
+        Object* obj = *oi;
+        if(!obj) continue; // Already removed during previous cycle
+        if(obj->young_object_p()) {
+          if(obj->forwarded_p()) {
+            *oi = obj->forward();
+          } else {
+            *oi = NULL;
+          }
+        }
+      }
+    }
   }
 
   void BakerGC::walk_finalizers() {

@@ -8,6 +8,7 @@
 
 #include "builtin/class.hpp"
 #include "builtin/tuple.hpp"
+#include "builtin/packed_object.hpp"
 #include "builtin/module.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/weakref.hpp"
@@ -42,6 +43,7 @@ namespace rubinius {
 #ifdef ENABLE_LLVM
     , llvm_state_(LLVMState::get_if_set(state))
 #endif
+    , bytes_allocated_(state->om->mature_bytes_allocated())
   {}
 
   GCData::GCData(VM* state, GCToken gct)
@@ -55,6 +57,7 @@ namespace rubinius {
 #ifdef ENABLE_LLVM
     , llvm_state_(LLVMState::get_if_set(state))
 #endif
+    , bytes_allocated_(state->om->mature_bytes_allocated())
   {}
 
   GarbageCollector::GarbageCollector(ObjectMemory *om)
@@ -422,8 +425,9 @@ namespace rubinius {
     for(ObjectArray::iterator i = weak_refs_->begin();
         i != weak_refs_->end();
         ++i) {
+      if(!*i) continue; // Object was removed during young gc.
       WeakRef* ref = try_as<WeakRef>(*i);
-      if(!ref) continue; // WTF.
+      if(!ref) continue; // Other type for some reason?
 
       Object* obj = ref->object();
       if(!obj->reference_p()) continue;
