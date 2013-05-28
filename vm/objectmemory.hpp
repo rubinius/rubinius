@@ -210,6 +210,10 @@ namespace rubinius {
       return mark_;
     }
 
+    const unsigned int* mark_address() const {
+      return &mark_;
+    }
+
     void rotate_mark() {
       mark_ = (mark_ == 2 ? 4 : 2);
     }
@@ -310,6 +314,10 @@ namespace rubinius {
         return static_cast<T*>(
             new_object_typed_enduring(state, cls, sizeof(T), T::type));
       }
+
+    void inline write_barrier(ObjectHeader* target, ObjectHeader* val) {
+      gc::WriteBarrier::write_barrier(target, val, mark_);
+    }
 
     TypeInfo* find_type_info(Object* obj);
     void set_young_lifetime(size_t age);

@@ -191,6 +191,18 @@ namespace rubinius {
 
     gc_.process_mark_stack(allocator_);
 
+    ObjectArray* marked_set = object_memory_->swap_marked_set();
+    for(ObjectArray::iterator oi = marked_set->begin();
+        oi != marked_set->end();
+        ++oi) {
+      Object* obj = *oi;
+      if(obj) saw_object(obj);
+    }
+    delete marked_set;
+
+    gc_.process_mark_stack(allocator_);
+
+    // We've now finished marking the entire object graph.
     // Clean weakrefs before keeping additional objects alive
     // for finalization, so people don't get a hold of finalized
     // objects through weakrefs.

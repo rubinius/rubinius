@@ -121,6 +121,8 @@ namespace rubinius {
     llvm::Value* Zero;
     llvm::Value* One;
 
+    llvm::Value* object_memory_mark_pos_;
+
   public:
     JITOperations(jit::Builder* builder, JITMethodInfo& info, llvm::BasicBlock* start)
       : stack_(info.stack())
@@ -149,6 +151,10 @@ namespace rubinius {
       One = ConstantInt::get(NativeIntTy, 1);
       Zero = ConstantInt::get(NativeIntTy, 0);
       NegOne = ConstantInt::get(NativeIntTy, -1);
+
+      object_memory_mark_pos_ = b().CreateIntToPtr(
+        clong((intptr_t)llvm_state()->shared().object_memory_mark_address()),
+        llvm::PointerType::getUnqual(ctx_->Int32Ty), "cast_to_intptr");
 
       ObjType = ptr_type("Object");
       ObjArrayTy = llvm::PointerType::getUnqual(ObjType);
@@ -1601,23 +1607,40 @@ namespace rubinius {
 
       Value* is_ref = check_is_reference(val);
 
-      BasicBlock* cont = new_block("reference");
-      BasicBlock* not_young = new_block("not_young");
+      BasicBlock* cont = new_block("reference_obj");
+      BasicBlock* cont_notscan = new_block("object_not_scanned");
+
+      BasicBlock* run_barrier = new_block("run_barrier");
       BasicBlock* done = new_block("done");
 
       create_conditional_branch(cont, done, is_ref);
 
       set_block(cont);
 
+      // Check if obj is scanned already
+      Value* object_memory_mark = b().CreateLoad(object_memory_mark_pos_, "object_memory_mark");
       Value* flags = object_flags(obj);
+
+      Value* mark_mask  = ConstantInt::get(ctx_->Int64Ty, (7UL << (OBJECT_FLAGS_MARKED - 2)));
+      Value* mark_masked = b().CreateAnd(flags, mark_mask, "mark_mask");
+      Value* scan_val   = b().CreateIntCast(
+                            b().CreateAdd(object_memory_mark, cint(1), "scan_mark"),
+                            ctx_->Int64Ty, false);
+
+      Value* scan_mark = b().CreateShl(scan_val, clong(OBJECT_FLAGS_MARKED - 2), "lshr");
+      Value* is_scanned = b().CreateICmpEQ(mark_masked, scan_mark, "is_scanned");
+
+      create_conditional_branch(run_barrier, cont_notscan, is_scanned);
+      set_block(cont_notscan);
+
       Value* zone_mask  = ConstantInt::get(ctx_->Int64Ty, (3UL << (OBJECT_FLAGS_GC_ZONE - 1)));
       Value* young_mask = ConstantInt::get(ctx_->Int64Ty, YoungObjectZone << (OBJECT_FLAGS_GC_ZONE - 1));
 
       Value* zone_masked = b().CreateAnd(flags, zone_mask, "zone_mask");
       Value* is_young = b().CreateICmpEQ(zone_masked, young_mask, "is_young");
 
-      create_conditional_branch(done, not_young, is_young);
-      set_block(not_young);
+      create_conditional_branch(done, run_barrier, is_young);
+      set_block(run_barrier);
 
       Signature wb(ctx_, ObjType);
       wb << StateTy;

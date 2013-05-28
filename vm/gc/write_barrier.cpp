@@ -1,5 +1,6 @@
 #include "builtin/object.hpp"
 #include "gc/write_barrier.hpp"
+#include "object_utils.hpp"
 
 namespace rubinius {
 namespace gc {
@@ -9,6 +10,7 @@ namespace gc {
    */
   WriteBarrier::WriteBarrier()
     : remember_set_(new ObjectArray(0))
+    , marked_set_(new ObjectArray(0))
   {}
 
   /**
@@ -16,6 +18,7 @@ namespace gc {
    */
   WriteBarrier::~WriteBarrier() {
     delete remember_set_;
+    delete marked_set_;
   }
 
   /**
@@ -95,6 +98,18 @@ namespace gc {
   }
 
   /**
+   * Store the object in the set to be marked.
+   * Called when it is determined (elsewhere) that the value is stored
+   * in a target object that is already scanned.
+   *
+   * @param target The object to be added to the mark set.
+   */
+  void WriteBarrier::mark_object(Object* val) {
+    utilities::thread::SpinLock::LockGuard lg(lock_);
+    marked_set_->push_back(val);
+  }
+
+  /**
    * Returns the current contents of the remember set, and then sets up a new,
    * empty remember set.
    * Note: It is the responsibility of the caller to dispose of the returned
@@ -108,6 +123,23 @@ namespace gc {
 
     ObjectArray* cur = remember_set_;
     remember_set_ = new ObjectArray(0);
+    return cur;
+  }
+
+  /**
+   * Returns the current contents of the remember set, and then sets up a new,
+   * empty remember set.
+   * Note: It is the responsibility of the caller to dispose of the returned
+   * ObjectArray.
+   *
+   * @returns an ObjectArray instance containing the remember set contents
+   * prior to this method being called.
+   */
+  ObjectArray* WriteBarrier::swap_marked_set() {
+    utilities::thread::SpinLock::LockGuard lg(lock_);
+
+    ObjectArray* cur = marked_set_;
+    marked_set_ = new ObjectArray(0);
     return cur;
   }
 

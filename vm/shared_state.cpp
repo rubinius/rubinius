@@ -232,6 +232,10 @@ namespace rubinius {
     world_->become_independent(state);
   }
 
+  const unsigned int* SharedState::object_memory_mark_address() {
+    return om->mark_address();
+  }
+
   void SharedState::set_critical(STATE, CallFrame* call_frame) {
     SYNC(state);
 

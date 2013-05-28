@@ -47,6 +47,9 @@ namespace gc {
     /// that contain one or more references to young generation objects.
     ObjectArray* remember_set_;
 
+    /// Holds a list of rescan Object instances in the mature generation
+    /// that contain one or more references to unmarked objects.
+    ObjectArray* marked_set_;
   public:
 
     /**
@@ -56,6 +59,13 @@ namespace gc {
      */
     ObjectArray* const remember_set() {
       return remember_set_;
+    }
+
+    /**
+     * Returns the current mark set
+     */
+    ObjectArray* marked_set() {
+      return marked_set_;
     }
 
     WriteBarrier();
@@ -69,11 +79,18 @@ namespace gc {
      * @param target The object holding the reference (i.e. the referer).
      * @param val    The object being referenced (i.e. the referee).
      */
-    void write_barrier(ObjectHeader* target, ObjectHeader* val) {
-      if(target->remembered_p()) return;
+    void inline write_barrier(ObjectHeader* target, ObjectHeader* val, int mark) {
       if(!val->reference_p()) return;
-      if(target->young_object_p()) return;
-      if(!val->young_object_p()) return;
+      if(target->reference_p()) {
+        // Check if we need to mark the value set because the
+        // target is already scanned.
+        if(unlikely(target->scanned_p(mark) && !val->marked_p(mark))) {
+          mark_object(reinterpret_cast<Object*>(val));
+        }
+        if(target->remembered_p()) return;
+        if(target->young_object_p()) return;
+        if(!val->young_object_p()) return;
+      }
 
       remember_object(reinterpret_cast<Object*>(target));
     }
@@ -86,8 +103,14 @@ namespace gc {
     // Removes objects from the remember set that do not have the specified mark.
     int unremember_objects(unsigned int mark);
 
+    // Adds the target object directly to the remembered set.
+    void mark_object(Object* target);
+
     // Returns the current remember set, and replaces it with a new, empty one.
     ObjectArray* swap_remember_set();
+
+    // Returns the current marked set, and replaces it with a new, empty one.
+    ObjectArray* swap_marked_set();
   };
 
 }}
