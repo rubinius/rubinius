@@ -191,7 +191,7 @@ class CPPPrimitive < BasicPrimitive
     else
       emit_fail = true
       str << "  #{@type}* self = try_as<#{@type}>(recv);\n"
-      str << "  if(unlikely(recv == NULL)) goto fail;\n"
+      str << "  if(unlikely(self == NULL)) goto fail;\n"
     end
 
     args = []
