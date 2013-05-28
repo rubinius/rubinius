@@ -1590,7 +1590,7 @@ namespace rubinius {
       set_block(cont);
 
       Value* flags = object_flags(obj);
-      Value* zone_mask  = ConstantInt::get(ctx_->Int64Ty, (3UL << (OBJECT_FLAGS_GC_ZONE - 1)) + 1);
+      Value* zone_mask  = ConstantInt::get(ctx_->Int64Ty, (3UL << (OBJECT_FLAGS_GC_ZONE - 1)));
       Value* young_mask = ConstantInt::get(ctx_->Int64Ty, YoungObjectZone << (OBJECT_FLAGS_GC_ZONE - 1));
 
       Value* zone_masked = b().CreateAnd(flags, zone_mask, "zone_mask");
