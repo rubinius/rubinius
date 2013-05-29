@@ -211,13 +211,6 @@ namespace rubinius {
       }
     }
 
-    // Sweep up the garbage
-    gc_.sweep_blocks();
-
-    // This resets the allocator state to sync it up with the BlockAllocator
-    // properly.
-    allocator_.get_new_block();
-
     // Clear unreachable objects from the various remember sets
     int cleared = 0;
     unsigned int mark = object_memory_->mark();
@@ -228,6 +221,13 @@ namespace rubinius {
       gc::WriteBarrier* wb = *wbi;
       cleared += wb->unremember_objects(mark);
     }
+
+    // Sweep up the garbage
+    gc_.sweep_blocks();
+
+    // This resets the allocator state to sync it up with the BlockAllocator
+    // properly.
+    allocator_.get_new_block();
 
     // Now, calculate how much space we're still using.
     immix::Chunks& chunks = gc_.block_allocator().chunks();
