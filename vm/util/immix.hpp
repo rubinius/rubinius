@@ -148,6 +148,22 @@ namespace immix {
     }
 
     /**
+     * Overwrites memory inside the blocks that is not used according to
+     * the lines found.
+     * Is used for debugging purposes to see easier when an object
+     * isn't properly marked.
+     */
+    void clear_memory() {
+      Address start = address_;
+      for(int i = 0; i < cLineTableSize; ++i) {
+        if(!lines_[i]) {
+          memset((void*)start.address_, 0xFF, cLineSize);
+        }
+        start += cLineSize;
+      }
+    }
+
+    /**
      * Sets the location of the memory managed by this Block.
      */
     void set_address(Address addr) {
@@ -1005,6 +1021,13 @@ namespace immix {
           block->set_status(cFree);
         }
       }
+#ifdef RBX_GC_DEBUG
+      AllBlockIterator iter(block_allocator_.chunks());
+
+      while(Block* block = iter.next()) {
+        block->clear_memory();
+      }
+#endif
 
       block_allocator_.reset();
     }
