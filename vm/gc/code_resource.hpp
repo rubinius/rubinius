@@ -12,7 +12,7 @@ namespace rubinius {
 
   public:
     CodeResource()
-      : mark_(false)
+      : mark_(true)
       , detached_(false)
     {}
 
