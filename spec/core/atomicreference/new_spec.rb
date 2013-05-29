@@ -9,4 +9,8 @@ describe "Rubinius::AtomicReference.new" do
   it "creates an AtomicReference to nil" do
     Rubinius::AtomicReference.new(nil).value.should equal(nil)
   end
+
+  it "creates an AtomicReference to false" do
+    Rubinius::AtomicReference.new(false).value.should equal(false)
+  end
 end
