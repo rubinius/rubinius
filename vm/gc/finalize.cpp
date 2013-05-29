@@ -236,9 +236,7 @@ namespace rubinius {
   }
 
   void FinalizerHandler::finalize(STATE) {
-    Object* obj = process_item_->object;
-    Object* fin = process_item_->ruby_finalizer;
-    OnStack<2> os(state, obj, fin);
+
     switch(process_item_kind_) {
     case eRuby: {
       if(process_item_->ruby_finalizer) {
@@ -306,8 +304,6 @@ namespace rubinius {
 
       break;
     }
-    process_item_->object = obj;
-    process_item_->ruby_finalizer = fin;
   }
 
   void FinalizerHandler::first_process_item() {
