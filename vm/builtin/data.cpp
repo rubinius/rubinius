@@ -4,6 +4,7 @@
 #include "objectmemory.hpp"
 #include "object_utils.hpp"
 #include "ontology.hpp"
+#include "on_stack.hpp"
 
 namespace rubinius {
 
@@ -93,6 +94,9 @@ namespace rubinius {
         if(reinterpret_cast<intptr_t>(f) == -1) {
           ::free(data_ptr);
         } else {
+          // The free function might trigger a GC, so make sure we update
+          // the data pointer then for setting the free bit.
+          OnStack<1> os(state, data);
           f(data_ptr);
         }
       }
