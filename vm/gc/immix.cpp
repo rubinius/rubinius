@@ -212,9 +212,8 @@ namespace rubinius {
     }
 
     // Clear unreachable objects from the various remember sets
-    int cleared = 0;
     unsigned int mark = object_memory_->mark();
-    cleared = object_memory_->unremember_objects(mark);
+    object_memory_->unremember_objects(mark);
 
     // Sweep up the garbage
     gc_.sweep_blocks();
@@ -257,8 +256,6 @@ namespace rubinius {
     }
 
 #ifdef IMMIX_DEBUG
-    std::cout << "Immix: RS size cleared: " << cleared << "\n";
-
     immix::Chunks& chunks = gc_.block_allocator().chunks();
     std::cout << "chunks=" << chunks.size() << "\n";
 
