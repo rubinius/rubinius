@@ -67,6 +67,10 @@ describe "Module#alias_method" do
     lambda { @class.alias_method :ichi, :public_one }.should raise_error(NoMethodError)
   end
 
+  it "returns self" do
+    @class.send(:alias_method, :checking_return_value, :public_one).should equal(@class)
+  end
+
   it "works in module" do
     ModuleSpecs::Allonym.new.publish.should == :report
   end
