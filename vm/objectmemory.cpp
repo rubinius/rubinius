@@ -138,6 +138,7 @@ namespace rubinius {
     InflatedHeader* ih = inflated_headers_->allocate(obj, &ih_header);
     ih->update(state, orig);
     ih->initialize_mutex(state->vm()->thread_id(), count);
+    ih->mark(this, mark_);
 
     while(!obj->set_inflated_header(state, ih_header, orig)) {
       orig = obj->header;
@@ -329,6 +330,7 @@ step1:
     }
 
     ih->initialize_mutex(state->vm()->thread_id(), initial_count);
+    ih->mark(this, mark_);
 
     while(!obj->set_inflated_header(state, ih_index, orig)) {
       // The header can't have been inflated by another thread, the
@@ -397,6 +399,8 @@ step1:
         }
         return false;
       }
+
+      ih->mark(this, mark_);
 
       // Try it all over again if it fails.
       if(!obj->set_inflated_header(state, ih_header, orig)) {
@@ -667,6 +671,7 @@ step1:
     InflatedHeader* ih = inflated_headers_->allocate(obj, &ih_index);
     ih->update(state, orig);
     ih->set_object_id(id);
+    ih->mark(this, mark_);
 
     while(!obj->set_inflated_header(state, ih_index, orig)) {
       orig = obj->header;
@@ -696,6 +701,7 @@ step1:
     InflatedHeader* ih = inflated_headers_->allocate(obj, &ih_index);
     ih->update(state, orig);
     ih->set_handle(state, handle);
+    ih->mark(this, mark_);
 
     while(!obj->set_inflated_header(state, ih_index, orig)) {
       orig = obj->header;
