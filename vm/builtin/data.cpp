@@ -83,6 +83,7 @@ namespace rubinius {
       // std::cerr << "Data::finalize called for already freed object" << std::endl;
       return;
     }
+    data->set_freed();
 
     // MRI only calls free if the data_ptr is not NULL.
     if(void* data_ptr = data->data(state)) {
@@ -96,12 +97,10 @@ namespace rubinius {
         } else {
           // The free function might trigger a GC, so make sure we update
           // the data pointer then for setting the free bit.
-          OnStack<1> os(state, data);
           f(data_ptr);
         }
       }
     }
-    data->set_freed();
   }
 
   void Data::Info::mark(Object* t, ObjectMark& mark) {
