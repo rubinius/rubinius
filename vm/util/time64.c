@@ -284,14 +284,38 @@ time64_t year_diff_to_seconds(int64_t from, int64_t to, int pre_leap_day) {
   return seconds * increment;
 }
 
-time64_t timestamp64(time_t (*func)(struct tm*), struct tm64* tm64) {
+time64_t timestamp64_mktime(time_t (*func)(struct tm*), struct tm* tm) {
+  int orig_tm_isdst;
+  time_t time;
 
+  time = func(tm);
+  if(time == -1 && tm->tm_isdst != 0 && (errno == EINVAL || errno == EOVERFLOW)) {
+    /*
+     * Retry one time because of perhaps DST change or inappropriate value of tm_isdst.
+     * The invalid time due to DST change only happens if time moves forward (thus creating the DST gap),
+     * so we know we start off with DST not active. This happens at least on NetBSD with tm_isdst == -1.
+     * Some implementations of mktime() return -1 with errno of EOVERFLOW if isdst flag is set to 1 and the time
+     * point is not in a DST period. Observed on NetBSD.
+     */
+    orig_tm_isdst = tm->tm_isdst;
+    tm->tm_isdst = 0;
+    time = func(tm);
+    if(time == -1 && (errno == EINVAL || errno == EOVERFLOW)) {
+      /* Restore the original value, adjusting tm_isdst didn't help. */
+      tm->tm_isdst = orig_tm_isdst;
+    }
+  }
+  return (time64_t) time;
+}
+
+time64_t timestamp64(time_t (*func)(struct tm*), struct tm64* tm64) {
+  time64_t time;
   struct tm tm;
   memset(&tm, 0, sizeof(tm));
 
   /* If this succeeds it fits in a standard struct tm */
   if(tm64_to_tm(tm64, &tm) == 0) {
-    time64_t time = (time64_t)func(&tm);
+    time = timestamp64_mktime(func, &tm);
     /*
      * This still would fail for 1969-12-31 23:59:59 GMT, but
      * the fallback code will properly handle that case anyway.
@@ -330,16 +354,7 @@ time64_t timestamp64(time_t (*func)(struct tm*), struct tm64* tm64) {
     }
   }
 
-  time64_t time = (time64_t) func(&tm);
-  if(time == -1 && errno == EINVAL) {
-    // retry one time because of perhaps DST change. This invalid
-    // time due to DST change only happens if time moves forward,
-    // so we know we start off with DST not active.
-    // This happens at least on NetBSD.
-    tm.tm_isdst = 0;
-    time = (time64_t) func(&tm);
-  }
-
+  time = timestamp64_mktime(func, &tm);
   tm_to_tm64(&tm, tm64);
 
   if(year != tm64->tm_year) {
