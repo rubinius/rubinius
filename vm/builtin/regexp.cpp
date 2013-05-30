@@ -118,26 +118,23 @@ namespace rubinius {
     Regexp* o_reg = state->new_object<Regexp>(G(regexp));
 
     o_reg->onig_data = NULL;
-    o_reg->fixed_encoding_ = false;
     o_reg->lock_.init();
+    o_reg->fixed_encoding_ = false;
+    o_reg->no_encoding_ = false;
 
     return o_reg;
   }
 
-  void Regexp::make_managed(STATE) {
+  void Regexp::make_managed(STATE, regex_t* reg) {
     Regexp* obj = this;
-    regex_t* reg = onig_data;
+    regex_t* orig = reg;
 
     assert(reg->chain == 0);
 
     ByteArray* reg_ba = ByteArray::create_dirty(state, sizeof(regex_t));
     memcpy(reg_ba->raw_bytes(), reg, sizeof(regex_t));
 
-    regex_t* old_reg = reg;
     reg = reinterpret_cast<regex_t*>(reg_ba->raw_bytes());
-
-    obj->onig_data = reg;
-    write_barrier(state, reg_ba);
 
     if(reg->p) {
       ByteArray* pattern = ByteArray::create_dirty(state, reg->alloc);
@@ -189,7 +186,10 @@ namespace rubinius {
       obj->write_barrier(state, rrange);
     }
 
-    onig_free(old_reg);
+    obj->onig_data = reg;
+    obj->write_barrier(state, reg_ba);
+
+    onig_free(orig);
   }
 
 #define REGEXP_ONIG_ERROR_MESSAGE_LEN   ONIG_MAX_ERROR_MESSAGE_LEN + 1024
@@ -215,15 +215,16 @@ namespace rubinius {
 
     int options = onig_data->options;
     OnigEncoding orig_enc = onig_data->enc;
+    regex_t* reg;
 
-    err = onig_new(&this->onig_data, pat, end, options,
+    err = onig_new(&reg, pat, end, options,
                    enc, ONIG_SYNTAX_RUBY, &err_info);
 
     // If it doesn't work out, then abort and reset the encoding back
     // and say that it's forced.
     if(err != ONIG_NORMAL) {
 
-      err = onig_new(&this->onig_data, pat, end, options,
+      err = onig_new(&reg, pat, end, options,
                      orig_enc, ONIG_SYNTAX_RUBY, &err_info);
 
       // Ok, wtf. Well, no way to proceed now.
@@ -240,7 +241,7 @@ namespace rubinius {
       fixed_encoding_ = true;
     }
 
-    make_managed(state);
+    make_managed(state, reg);
     return true;
   }
 
@@ -305,8 +306,9 @@ namespace rubinius {
     }
 
     utilities::thread::Mutex::LockGuard lg(state->shared().onig_lock());
+    regex_t* reg;
 
-    int err = onig_new(&this->onig_data, pat, end, opts & OPTION_MASK, enc, ONIG_SYNTAX_RUBY, &err_info);
+    int err = onig_new(&reg, pat, end, opts & OPTION_MASK, enc, ONIG_SYNTAX_RUBY, &err_info);
 
     if(err != ONIG_NORMAL) {
 
@@ -314,7 +316,7 @@ namespace rubinius {
         // Retry with the encoding of the pattern in 1.8 mode here
         enc = ONIG_ENCODING_ASCII;
         fixed_encoding_ = true;
-        err = onig_new(&this->onig_data, pat, end, opts & OPTION_MASK, enc, ONIG_SYNTAX_RUBY, &err_info);
+        err = onig_new(&reg, pat, end, opts & OPTION_MASK, enc, ONIG_SYNTAX_RUBY, &err_info);
       }
 
       if(err != ONIG_NORMAL) {
@@ -330,7 +332,7 @@ namespace rubinius {
 
     this->source(state, pattern);
 
-    int num_names = onig_number_of_names(this->onig_data);
+    int num_names = onig_number_of_names(reg);
 
     if(num_names == 0) {
       this->names(state, nil<LookupTable>());
@@ -339,11 +341,11 @@ namespace rubinius {
       gd.state = state;
       LookupTable* tbl = LookupTable::create(state);
       gd.tbl = tbl;
-      onig_foreach_name(this->onig_data, (int (*)(const OnigUChar*, const OnigUChar*,int,int*,OnigRegex,void*))_gather_names, (void*)&gd);
+      onig_foreach_name(reg, (int (*)(const OnigUChar*, const OnigUChar*,int,int*,OnigRegex,void*))_gather_names, (void*)&gd);
       this->names(state, tbl);
     }
 
-    make_managed(state);
+    make_managed(state, reg);
 
     return this;
   }
@@ -838,7 +840,6 @@ namespace rubinius {
 
     Regexp* reg_o = force_as<Regexp>(obj);
     regex_t* reg = reg_o->onig_data;
-
     if(!reg) return;
 
     ByteArray* reg_ba = ByteArray::from_body(reg);

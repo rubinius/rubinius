@@ -26,9 +26,9 @@ namespace rubinius {
     String* source_;     // slot
     LookupTable* names_; // slot
     regex_t* onig_data;
+    utilities::thread::SpinLock lock_;
     bool fixed_encoding_;
     bool no_encoding_;
-    utilities::thread::SpinLock lock_;
 
   public:
     /* accessors */
@@ -87,7 +87,7 @@ namespace rubinius {
 
     Encoding* encoding(STATE, Encoding* enc);
 
-    void make_managed(STATE);
+    void make_managed(STATE, regex_t* reg);
 
     class Info : public TypeInfo {
     public:
