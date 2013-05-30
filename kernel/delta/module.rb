@@ -21,6 +21,7 @@ class Module
       end
 
       Rubinius::VM.reset_method_cache self, new_name
+      self
     else
       if Rubinius::Type.object_kind_of?(self, Class) and
          ai = Rubinius::Type.singleton_class_object(self)
