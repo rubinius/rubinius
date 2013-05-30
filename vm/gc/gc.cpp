@@ -99,10 +99,10 @@ namespace rubinius {
       for(native_int i = 0; i < size; i++) {
         slot = tup->field[i];
         if(slot->reference_p()) {
-          slot = saw_object(slot);
-          if(slot) {
-            tup->field[i] = slot;
-            object_memory_->write_barrier(tup, slot);
+          Object* moved = saw_object(slot);
+          if(moved && moved != slot) {
+            tup->field[i] = moved;
+            object_memory_->write_barrier(tup, moved);
           }
         }
       }

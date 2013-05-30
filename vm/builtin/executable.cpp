@@ -100,7 +100,7 @@ namespace rubinius {
       CompiledCode* code = *i;
 
       Object* tmp = mark.call(code);
-      if(tmp) {
+      if(tmp && tmp != code) {
         *i = static_cast<CompiledCode*>(tmp);
         mark.just_set(obj, tmp);
       }

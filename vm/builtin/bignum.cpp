@@ -1299,7 +1299,7 @@ namespace rubinius {
     assert(MANAGED(n));
 
     Object* tmp = mark.call(static_cast<Object*>(n->managed));
-    if(tmp) {
+    if(tmp && tmp != n->managed) {
       n->managed = reinterpret_cast<void*>(tmp);
       ByteArray* ba = force_as<ByteArray>(tmp);
       n->dp = OPT_CAST(mp_digit)ba->raw_bytes();

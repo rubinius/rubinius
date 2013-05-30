@@ -226,7 +226,7 @@ namespace rubinius {
 
       for(size_t i = 0; i < locals; i++) {
         Object* tmp = mark.call(ary[i]);
-        if(tmp) { ary[i] = tmp; }
+        if(tmp && tmp != ary[i]) { ary[i] = tmp; }
       }
     }
   }

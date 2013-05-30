@@ -103,14 +103,6 @@ namespace rubinius {
 
     void make_managed(STATE, const char* name, OnigEncodingType* enc);
 
-    bool get_managed() const {
-      return managed_;
-    }
-
-    void set_managed() {
-      managed_ = true;
-    }
-
     // Rubinius.primitive :encoding_compatible_p
     static Encoding* compatible_p(STATE, Object* a, Object* b);
 
