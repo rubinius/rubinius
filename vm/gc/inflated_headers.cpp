@@ -15,7 +15,6 @@ namespace rubinius {
     }
     *index = (uint32_t)header_index;
     InflatedHeader* header = allocator_->from_index(header_index);
-    header->clear_mark();
     if(needs_gc) {
       state_->om->collect_mature_now = true;
     }
@@ -31,12 +30,10 @@ namespace rubinius {
       for(size_t j = 0; j < allocator_->cChunkSize; j++) {
         InflatedHeader* header = &chunk[j];
 
-        if(header->in_use_p()) {
-          if(header->marked_p(mark)) {
-            chunk_marks[i] = true;
-          } else {
-            header->clear();
-          }
+        if(header->marked_p(mark)) {
+          chunk_marks[i] = true;
+        } else {
+          header->clear();
         }
       }
     }

@@ -236,11 +236,11 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       owner_id_ = 0;
       rec_lock_count_ = 0;
       object_id_ = 0;
-      mark_ = -1;
+      mark_ = 0;
     }
 
     bool in_use_p() const {
-      return mark_ >= 0;
+      return mark_ > 0;
     }
 
     capi::Handle* handle(STATE) const {
@@ -261,10 +261,6 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     void mark(ObjectMemory* om, unsigned int which) {
       mark_ = which;
-    }
-
-    void clear_mark() {
-      mark_ = 0;
     }
 
     bool update(STATE, HeaderWord header);
