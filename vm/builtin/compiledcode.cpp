@@ -433,16 +433,22 @@ namespace rubinius {
 
     for(size_t i = 0; i < mcode->call_site_count(); i++) {
       size_t index = mcode->call_site_offsets()[i];
-      Object* new_cache = mark.call(reinterpret_cast<Object*>(mcode->opcodes[index + 1]));
-      mcode->opcodes[index + 1] = reinterpret_cast<intptr_t>(new_cache);
-      mark.just_set(code, new_cache);
+      Object* old_cache = reinterpret_cast<Object*>(mcode->opcodes[index + 1]);
+      Object* new_cache = mark.call(old_cache);
+      if(new_cache != old_cache) {
+        mcode->opcodes[index + 1] = reinterpret_cast<intptr_t>(new_cache);
+        mark.just_set(code, new_cache);
+      }
     }
 
     for(size_t i = 0; i < mcode->constant_cache_count(); i++) {
       size_t index = mcode->constant_cache_offsets()[i];
-      Object* new_cache = mark.call(reinterpret_cast<Object*>(mcode->opcodes[index + 1]));
-      mcode->opcodes[index + 1] = reinterpret_cast<intptr_t>(new_cache);
-      mark.just_set(code, new_cache);
+      Object* old_cache = reinterpret_cast<Object*>(mcode->opcodes[index + 1]);
+      Object* new_cache = mark.call(old_cache);
+      if(new_cache != old_cache) {
+        mcode->opcodes[index + 1] = reinterpret_cast<intptr_t>(new_cache);
+        mark.just_set(code, new_cache);
+      }
     }
   }
 

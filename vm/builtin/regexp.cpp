@@ -854,7 +854,7 @@ namespace rubinius {
       ByteArray* ba = ByteArray::from_body(reg->p);
 
       ByteArray* tmp = force_as<ByteArray>(mark.call(ba));
-      if(tmp) {
+      if(tmp && tmp != ba) {
         reg->p = reinterpret_cast<unsigned char*>(tmp->raw_bytes());
         mark.just_set(obj, tmp);
       }

@@ -173,7 +173,7 @@ namespace rubinius {
       InlineCacheEntry* ice = cache->entries_[i];
       if(ice) {
         InlineCacheEntry* updated = static_cast<InlineCacheEntry*>(mark.call(ice));
-        if(updated) {
+        if(updated && updated != ice) {
           cache->entries_[i] = updated;
           mark.just_set(cache, updated);
         }
