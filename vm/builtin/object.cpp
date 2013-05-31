@@ -636,7 +636,7 @@ namespace rubinius {
 
         Object** baa = reinterpret_cast<Object**>(pointer_to_body());
         baa[which->to_native()] = val;
-        if(val->reference_p()) write_barrier(state, val);
+        write_barrier(state, val);
         return val;
       }
     default:

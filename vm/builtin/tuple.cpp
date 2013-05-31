@@ -47,8 +47,8 @@ namespace rubinius {
       rubinius::bug("Invalid tuple index");
     }
 
-    this->field[idx] = val;
-    if(val->reference_p()) write_barrier(state, val);
+    field[idx] = val;
+    write_barrier(state, val);
     return val;
   }
 
@@ -60,8 +60,8 @@ namespace rubinius {
       return bounds_exceeded_error(state, "Tuple::put_prim", idx);
     }
 
-    this->field[idx] = val;
-    if(val->reference_p()) write_barrier(state, val);
+    field[idx] = val;
+    write_barrier(state, val);
     return val;
   }
 
@@ -122,7 +122,7 @@ namespace rubinius {
       Object *obj = va_arg(ar, Object*);
       // fields equals size so bounds checking is unecessary
       tup->field[i] = obj;
-      if(obj->reference_p()) tup->write_barrier(state, obj);
+      tup->write_barrier(state, obj);
     }
     va_end(ar);
 
@@ -188,9 +188,9 @@ namespace rubinius {
         // Since we have carefully checked the bounds we don't need
         // to do it in at/put
         Object *obj = other->field[src];
-        this->field[dst] = obj;
         // but this is necessary to keep the GC happy
-        if(obj->reference_p()) write_barrier(state, obj);
+        field[dst] = obj;
+        write_barrier(state, obj);
       }
     }
 
@@ -205,11 +205,11 @@ namespace rubinius {
         native_int j = i;
         ++i;
         while(i < rend) {
-          Object *val = this->field[i];
+          Object *val = field[i];
           if(val != obj) {
             // no need to set write_barrier since it's already
             // referenced to this object
-            this->field[j] = val;
+            field[j] = val;
             ++j;
           }
           ++i;
@@ -302,16 +302,15 @@ namespace rubinius {
 
     Tuple* tuple = Tuple::create(state, cnt);
 
-    // val is referend size times, we only need to hit the write
-    // barrier once
-    if(val->reference_p()) tuple->write_barrier(state, val);
-
     for(native_int i = 0; i < cnt; i++) {
       // bounds checking is covered because we instantiated the tuple
       // in this method
       tuple->field[i] = val;
     }
 
+    // val is referend size times, we only need to hit the write
+    // barrier once
+    tuple->write_barrier(state, val);
     return tuple;
   }
 
@@ -343,7 +342,7 @@ namespace rubinius {
 
       // fields equals size so bounds checking is unecessary
       tup->field[i] = obj;
-      if(obj->reference_p()) tup->write_barrier(state, obj);
+      tup->write_barrier(state, obj);
     }
 
     return tup;
