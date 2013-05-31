@@ -6,6 +6,7 @@ autoload.rbc
 module.rbc
 module18.rbc
 binding.rbc
+binding18.rbc
 proc.rbc
 proc18.rbc
 enumerable.rbc
