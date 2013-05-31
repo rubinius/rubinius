@@ -26,7 +26,7 @@ class Binding
   def self.setup(variables, code, constant_scope, recv=nil, location=nil)
     bind = allocate()
 
-    bind.self = recv || variables.self
+    bind.self = self_context(recv, variables)
     bind.variables = variables
     bind.compiled_code = code
     bind.constant_scope = constant_scope
