@@ -8,12 +8,10 @@ namespace rubinius {
 
   class CodeResource {
     bool mark_;
-    bool detached_;
 
   public:
     CodeResource()
       : mark_(true)
-      , detached_(false)
     {}
 
     virtual ~CodeResource() { };
@@ -32,15 +30,6 @@ namespace rubinius {
     void clear_mark() {
       mark_ = false;
     }
-
-    bool detached() const {
-      return detached_;
-    }
-
-    void set_detached() {
-      detached_ = true;
-    }
-
   };
 }
 
