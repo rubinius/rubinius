@@ -85,7 +85,7 @@ module Rubinius
     end
 
     def self.each_ancestor(mod)
-      unless object_kind_of?(mod, Class) and singleton_class_object(mod)
+      unless singleton_class_object(mod)
         yield mod
       end
 

@@ -136,7 +136,7 @@ class Module
     name = Rubinius::Type.coerce_to_symbol(name)
     @method_table.store name, nil, :undef
     Rubinius::VM.reset_method_cache self, name
-    if Rubinius::Type.object_kind_of?(self, Class) and obj = Rubinius::Type.singleton_class_object(self)
+    if obj = Rubinius::Type.singleton_class_object(self)
       Rubinius.privately do
         obj.singleton_method_undefined(name)
       end
@@ -158,7 +158,7 @@ class Module
 
       Rubinius::VM.reset_method_cache self, name
 
-      if Rubinius::Type.object_kind_of?(self, Class) and obj = Rubinius::Type.singleton_class_object(self)
+      if obj = Rubinius::Type.singleton_class_object(self)
         Rubinius.privately do
           obj.singleton_method_removed(name)
         end
