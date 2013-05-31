@@ -110,7 +110,6 @@ namespace rubinius {
     Object* iobj = next->next_unscanned(object_memory_->state());
 
     while(iobj) {
-      assert(iobj->young_object_p());
       if(!iobj->forwarded_p()) scan_object(iobj);
       iobj = next->next_unscanned(object_memory_->state());
     }
@@ -163,9 +162,6 @@ namespace rubinius {
       // unremember_object throws a NULL in to remove an object
       // so we don't have to compact the set in unremember
       if(tmp) {
-        // assert(tmp->mature_object_p());
-        // assert(!tmp->forwarded_p());
-
         // Remove the Remember bit, since we're clearing the set.
         tmp->clear_remember();
         scan_object(tmp);
@@ -199,8 +195,6 @@ namespace rubinius {
       } else if(!i->object()->young_object_p() && i->is_rdata()) {
         scan_object(i->object());
       }
-
-      assert(i->object()->type_id() > InvalidType && i->object()->type_id() < LastObjectType);
     }
 
     std::list<capi::GlobalHandle*>* gh = data.global_handle_locations();
