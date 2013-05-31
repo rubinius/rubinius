@@ -95,8 +95,6 @@ namespace rubinius {
         if(reinterpret_cast<intptr_t>(f) == -1) {
           ::free(data_ptr);
         } else {
-          // The free function might trigger a GC, so make sure we update
-          // the data pointer then for setting the free bit.
           f(data_ptr);
         }
       }
