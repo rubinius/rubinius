@@ -1,2 +1,0 @@
-fails:Kernel#binding uses the closure's self as self in the binding
-fails:Kernel#binding uses the class as self in a Class.new block
