@@ -21,10 +21,18 @@ class Module
       end
 
       Rubinius::VM.reset_method_cache self, new_name
+
+      if ai = Rubinius::Type.singleton_class_object(self)
+        Rubinius.privately do
+          ai.singleton_method_added new_name
+        end
+      else
+        method_added new_name
+      end
+
       self
     else
-      if Rubinius::Type.object_kind_of?(self, Class) and
-         ai = Rubinius::Type.singleton_class_object(self)
+      if ai = Rubinius::Type.singleton_class_object(self)
         raise NameError, "Unable to find '#{current_name}' for object #{ai.inspect}"
       else
         thing = Rubinius::Type.object_kind_of?(self, Class) ? "class" : "module"
