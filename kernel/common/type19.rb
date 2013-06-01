@@ -167,5 +167,9 @@ module Rubinius
 
       enc
     end
+
+    def self.encoding_order(a, b)
+      Encoding.list.index(a) <=> Encoding.list.index(b)
+    end
   end
 end

@@ -79,16 +79,6 @@ class String
     String.new(self) << other
   end
 
-  def <=>(other)
-    if other.kind_of?(String)
-      @data.compare_bytes(other.__data__, @num_bytes, other.bytesize)
-    else
-      return unless other.respond_to?(:to_str) && other.respond_to?(:<=>)
-      return unless tmp = (other <=> self)
-      return -tmp # We're not supposed to convert to integer here
-    end
-  end
-
   def ==(other)
     Rubinius.primitive :string_equal
 
