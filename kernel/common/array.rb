@@ -834,7 +834,7 @@ class Array
       tuple = @tuple
 
       while i > stop
-        return i if tuple.at(i) == obj
+        return i - @start if tuple.at(i) == obj
         i -= 1
       end
     end
