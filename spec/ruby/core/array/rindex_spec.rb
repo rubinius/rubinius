@@ -31,6 +31,12 @@ describe "Array#rindex" do
     [1, 1, 3, 2, 1, 3].rindex(4).should == nil
   end
 
+  it "returns correct index even after delete_at" do
+    array = ["fish", "bird", "lion", "cat"]
+    array.delete_at(0)
+    array.rindex("lion").should == 1
+  end
+
   it "properly handles empty recursive arrays" do
     empty = ArraySpecs.empty_recursive_array
     empty.rindex(empty).should == 0
