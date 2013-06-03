@@ -12,8 +12,6 @@
 
 #include "builtin/object.hpp"
 
-#include "instruments/stats.hpp"
-
 #include "object_watch.hpp"
 
 #include "util/thread.hpp"

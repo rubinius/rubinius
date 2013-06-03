@@ -35,6 +35,7 @@
 
 #include "global_cache.hpp"
 
+#include "instruments/timing.hpp"
 #include "instruments/tooling.hpp"
 #include "dtrace/dtrace.h"
 

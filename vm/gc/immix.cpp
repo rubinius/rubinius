@@ -1,8 +1,6 @@
 #include "objectmemory.hpp"
 #include "gc/immix.hpp"
 
-#include "instruments/stats.hpp"
-
 #include "capi/handles.hpp"
 #include "capi/tag.hpp"
 #include "object_watch.hpp"

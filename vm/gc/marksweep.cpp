@@ -9,8 +9,6 @@
 #include "builtin/class.hpp"
 #include "builtin/symbol.hpp"
 
-#include "instruments/stats.hpp"
-
 #include "configuration.hpp"
 
 #include <iostream>
