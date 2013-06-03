@@ -159,11 +159,11 @@ namespace rubinius {
     std::list<capi::Handle*> cached_capi_handles_;
     std::list<capi::GlobalHandle*> global_capi_handle_locations_;
 
-    /// The current mark value used when marking objects.
-    unsigned int mark_;
-
     /// Garbage collector for CodeResource objects.
     CodeManager code_manager_;
+
+    /// The current mark value used when marking objects.
+    unsigned int mark_;
 
     /// Flag controlling whether garbage collections are allowed
     bool allow_gc_;
