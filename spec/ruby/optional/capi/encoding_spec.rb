@@ -429,5 +429,46 @@ ruby_version_is "1.9" do
       end
     end
 
+    describe "rb_enc_codepoint_len" do
+      it "raises ArgumentError if an empty string is given" do
+        lambda do
+          @s.rb_enc_codepoint_len("")
+        end.should raise_error(ArgumentError)
+      end
+
+      it "raises ArgumentError if an invalid byte sequence is given" do
+        lambda do
+          @s.rb_enc_codepoint_len("\xa0\xa1") # Invalid sequence identifier
+        end.should raise_error(ArgumentError)
+      end
+
+      it "returns codepoint 0x24 and length 1 for character '$'" do
+        codepoint, length = @s.rb_enc_codepoint_len("$")
+
+        codepoint.should == 0x24
+        length.should == 1
+      end
+
+      it "returns codepoint 0xA2 and length 2 for character '¢'" do
+        codepoint, length = @s.rb_enc_codepoint_len("¢")
+
+        codepoint.should == 0xA2
+        length.should == 2
+      end
+
+      it "returns codepoint 0x20AC and length 3 for character '€'" do
+        codepoint, length = @s.rb_enc_codepoint_len("€")
+
+        codepoint.should == 0x20AC
+        length.should == 3
+      end
+
+      it "returns codepoint 0x24B62 and length 4 for character '𤭢'" do
+        codepoint, length = @s.rb_enc_codepoint_len("𤭢")
+
+        codepoint.should == 0x24B62
+        length.should == 4
+      end
+    end
   end
 end
