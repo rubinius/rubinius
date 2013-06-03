@@ -174,31 +174,31 @@ keep_looking:
       CacheEntry* entry = &entries[i];
       bool clear = false;
 
-      Object* klass = reinterpret_cast<Object*>(entry->klass);
+      Object* klass = entry->klass;
       if(!klass) continue;
 
       if(klass->young_object_p()) {
         if(klass->forwarded_p()) {
-          Module* fwd = reinterpret_cast<Module*>(klass->forward());
+          Module* fwd = force_as<Module>(klass->forward());
           entry->klass = fwd;
         } else {
           clear = true;
         }
       }
 
-      Object* mod = reinterpret_cast<Object*>(entry->module);
+      Object* mod = entry->module;
       if(mod->young_object_p()) {
         if(mod->forwarded_p()) {
-          entry->module = reinterpret_cast<Module*>(mod->forward());
+          entry->module = force_as<Module>(mod->forward());
         } else {
           clear = true;
         }
       }
 
-      Object* exec = reinterpret_cast<Object*>(entry->method);
+      Object* exec = entry->method;
       if(exec->young_object_p()) {
         if(exec->forwarded_p()) {
-          entry->method = reinterpret_cast<Executable*>(exec->forward());
+          entry->method = force_as<Executable>(exec->forward());
         } else {
           clear = true;
         }
@@ -214,11 +214,11 @@ keep_looking:
   void GlobalCache::prune_unmarked(int mark) {
     for(size_t i = 0; i < CPU_CACHE_SIZE; i++) {
       CacheEntry* entry = &entries[i];
-      Object* klass = reinterpret_cast<Object*>(entry->klass);
+      Object* klass = entry->klass;
       if(!klass) continue;
 
-      Object* mod = reinterpret_cast<Object*>(entry->module);
-      Object* exec = reinterpret_cast<Object*>(entry->method);
+      Object* mod = entry->module;
+      Object* exec = entry->method;
 
       if(!klass->marked_p(mark) || !mod->marked_p(mark) || !exec->marked_p(mark)) {
         entry_names[i] = NULL;
