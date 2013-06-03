@@ -137,7 +137,7 @@ namespace rubinius {
   /**
    * Perform garbage collection on the young objects.
    */
-  void BakerGC::collect(GCData& data, YoungCollectStats* stats) {
+  void BakerGC::collect(GCData* data, YoungCollectStats* stats) {
 
 #ifdef HAVE_VALGRIND_H
     (void)VALGRIND_MAKE_MEM_DEFINED(next->start().as_int(), next->size());
@@ -170,19 +170,19 @@ namespace rubinius {
 
     delete current_rs;
 
-    for(Roots::Iterator i(data.roots()); i.more(); i.advance()) {
+    for(Roots::Iterator i(data->roots()); i.more(); i.advance()) {
       i->set(saw_object(i->get()));
     }
 
-    if(data.threads()) {
-      for(std::list<ManagedThread*>::iterator i = data.threads()->begin();
-          i != data.threads()->end();
+    if(data->threads()) {
+      for(std::list<ManagedThread*>::iterator i = data->threads()->begin();
+          i != data->threads()->end();
           ++i) {
         scan(*i, true);
       }
     }
 
-    for(Allocator<capi::Handle>::Iterator i(data.handles()->allocator()); i.more(); i.advance()) {
+    for(Allocator<capi::Handle>::Iterator i(data->handles()->allocator()); i.more(); i.advance()) {
       if(!i->in_use_p()) continue;
 
       if(!i->weak_p() && i->object()->young_object_p()) {
@@ -197,7 +197,7 @@ namespace rubinius {
       }
     }
 
-    std::list<capi::GlobalHandle*>* gh = data.global_handle_locations();
+    std::list<capi::GlobalHandle*>* gh = data->global_handle_locations();
 
     if(gh) {
       for(std::list<capi::GlobalHandle*>::iterator i = gh->begin();
@@ -220,7 +220,7 @@ namespace rubinius {
     }
 
 #ifdef ENABLE_LLVM
-    if(LLVMState* ls = data.llvm_state()) ls->gc_scan(this);
+    if(LLVMState* ls = data->llvm_state()) ls->gc_scan(this);
 #endif
 
     // Handle all promotions to non-young space that occurred.
@@ -245,9 +245,9 @@ namespace rubinius {
     } while(!promoted_stack_.empty() && !fully_scanned_p());
 
     // Remove unreachable locked objects still in the list
-    if(data.threads()) {
-      for(std::list<ManagedThread*>::iterator i = data.threads()->begin();
-          i != data.threads()->end();
+    if(data->threads()) {
+      for(std::list<ManagedThread*>::iterator i = data->threads()->begin();
+          i != data->threads()->end();
           ++i) {
         clean_locked_objects(*i, true);
       }

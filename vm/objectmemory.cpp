@@ -519,12 +519,12 @@ step1:
 #ifdef RBX_PROFILER
       if(unlikely(state->vm()->tooling())) {
         tooling::GCEntry method(state, tooling::GCYoung);
-        collect_young(gc_data, &stats);
+        collect_young(&gc_data, &stats);
       } else {
-        collect_young(gc_data, &stats);
+        collect_young(&gc_data, &stats);
       }
 #else
-      collect_young(gc_data, &stats);
+      collect_young(&gc_data, &stats);
 #endif
 
       RUBINIUS_GC_END(0);
@@ -555,12 +555,12 @@ step1:
 #ifdef RBX_PROFILER
       if(unlikely(state->vm()->tooling())) {
         tooling::GCEntry method(state, tooling::GCMature);
-        collect_mature(gc_data);
+        collect_mature(&gc_data);
       } else {
-        collect_mature(gc_data);
+        collect_mature(&gc_data);
       }
 #else
-      collect_mature(gc_data);
+      collect_mature(&gc_data);
 #endif
 
       RUBINIUS_GC_END(1);
@@ -583,7 +583,7 @@ step1:
     UNSYNC;
   }
 
-  void ObjectMemory::collect_young(GCData& data, YoungCollectStats* stats) {
+  void ObjectMemory::collect_young(GCData* data, YoungCollectStats* stats) {
 #ifndef RBX_GC_STRESS_YOUNG
     collect_young_now = false;
 #endif
@@ -595,14 +595,14 @@ step1:
 
     young_->collect(data, stats);
 
-    prune_handles(data.handles(), data.cached_handles(), young_);
+    prune_handles(data->handles(), data->cached_handles(), young_);
     gc_stats.young_collection_count++;
 
-    data.global_cache()->prune_young();
+    data->global_cache()->prune_young();
 
-    if(data.threads()) {
-      for(std::list<ManagedThread*>::iterator i = data.threads()->begin();
-          i != data.threads()->end();
+    if(data->threads()) {
+      for(std::list<ManagedThread*>::iterator i = data->threads()->begin();
+          i != data->threads()->end();
           ++i) {
         gc::Slab& slab = (*i)->local_slab();
 
@@ -622,7 +622,7 @@ step1:
 #endif
   }
 
-  void ObjectMemory::collect_mature(GCData& data) {
+  void ObjectMemory::collect_mature(GCData* data) {
 
     timer::Running<1000000> timer(gc_stats.total_full_collection_time,
                                   gc_stats.last_full_collection_time);
@@ -631,7 +631,7 @@ step1:
 #endif
 
     code_manager_.clear_marks();
-    clear_fiber_marks(data.threads());
+    clear_fiber_marks(data->threads());
 
     immix_->reset_stats();
 
@@ -639,9 +639,9 @@ step1:
 
     code_manager_.sweep();
 
-    data.global_cache()->prune_unmarked(mark());
+    data->global_cache()->prune_unmarked(mark());
 
-    prune_handles(data.handles(), data.cached_handles(), NULL);
+    prune_handles(data->handles(), data->cached_handles(), NULL);
 
     // Have to do this after all things that check for mark bits is
     // done, as it free()s objects, invalidating mark bits.

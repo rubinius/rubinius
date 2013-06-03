@@ -343,10 +343,10 @@ namespace rubinius {
     }
   }
 
-  void GarbageCollector::verify(GCData& data) {
-    if(data.threads()) {
-      for(std::list<ManagedThread*>::iterator i = data.threads()->begin();
-          i != data.threads()->end();
+  void GarbageCollector::verify(GCData* data) {
+    if(data->threads()) {
+      for(std::list<ManagedThread*>::iterator i = data->threads()->begin();
+          i != data->threads()->end();
           ++i) {
         ManagedThread* thr = *i;
         for(Roots::Iterator ri(thr->roots()); ri.more(); ri.advance()) {
@@ -396,10 +396,10 @@ namespace rubinius {
     }
   }
 
-  void GarbageCollector::scan_fibers(GCData& data, bool marked_only) {
-    if(data.threads()) {
-      for(std::list<ManagedThread*>::iterator i = data.threads()->begin();
-          i != data.threads()->end();
+  void GarbageCollector::scan_fibers(GCData* data, bool marked_only) {
+    if(data->threads()) {
+      for(std::list<ManagedThread*>::iterator i = data->threads()->begin();
+          i != data->threads()->end();
           ++i) {
         if(VM* vm = (*i)->as_vm()) {
           vm->gc_fiber_scan(this, marked_only);

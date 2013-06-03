@@ -134,34 +134,34 @@ namespace rubinius {
   /**
    * Performs a garbage collection of the immix space.
    */
-  void ImmixGC::collect(GCData& data) {
+  void ImmixGC::collect(GCData* data) {
     gc_.clear_marks();
 
     int via_handles_ = 0;
     int via_roots = 0;
 
-    for(Roots::Iterator i(data.roots()); i.more(); i.advance()) {
+    for(Roots::Iterator i(data->roots()); i.more(); i.advance()) {
       Object* tmp = i->get();
       if(tmp->reference_p()) saw_object(tmp);
       via_roots++;
     }
 
-    if(data.threads()) {
-      for(std::list<ManagedThread*>::iterator i = data.threads()->begin();
-          i != data.threads()->end();
+    if(data->threads()) {
+      for(std::list<ManagedThread*>::iterator i = data->threads()->begin();
+          i != data->threads()->end();
           ++i) {
         scan(*i, false);
       }
     }
 
-    for(Allocator<capi::Handle>::Iterator i(data.handles()->allocator()); i.more(); i.advance()) {
+    for(Allocator<capi::Handle>::Iterator i(data->handles()->allocator()); i.more(); i.advance()) {
       if(i->in_use_p() && !i->weak_p()) {
         saw_object(i->object());
         via_handles_++;
       }
     }
 
-    std::list<capi::GlobalHandle*>* gh = data.global_handle_locations();
+    std::list<capi::GlobalHandle*>* gh = data->global_handle_locations();
 
     if(gh) {
       for(std::list<capi::GlobalHandle*>::iterator i = gh->begin();
@@ -184,7 +184,7 @@ namespace rubinius {
     }
 
 #ifdef ENABLE_LLVM
-    if(LLVMState* ls = data.llvm_state()) ls->gc_scan(this);
+    if(LLVMState* ls = data->llvm_state()) ls->gc_scan(this);
 #endif
 
     gc_.process_mark_stack(allocator_);
@@ -202,9 +202,9 @@ namespace rubinius {
     } while(gc_.process_mark_stack(allocator_));
 
     // Remove unreachable locked objects still in the list
-    if(data.threads()) {
-      for(std::list<ManagedThread*>::iterator i = data.threads()->begin();
-          i != data.threads()->end();
+    if(data->threads()) {
+      for(std::list<ManagedThread*>::iterator i = data->threads()->begin();
+          i != data->threads()->end();
           ++i) {
         clean_locked_objects(*i, false);
       }

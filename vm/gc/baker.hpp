@@ -293,7 +293,7 @@ namespace rubinius {
     bool    fully_scanned_p();
 
     /// Performs a collection of the young generation.
-    void    collect(GCData& data, YoungCollectStats* stats = 0);
+    void    collect(GCData* data, YoungCollectStats* stats = 0);
 
     /// Gathers statistics on the age of objects at the time of their death.
     void    find_lost_souls();

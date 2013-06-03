@@ -126,7 +126,7 @@ namespace rubinius {
     Object* move_object(Object* orig, int bytes);
 
     virtual Object* saw_object(Object*);
-    void collect(GCData& data);
+    void collect(GCData* data);
 
     void walk_finalizers();
 
