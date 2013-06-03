@@ -519,12 +519,12 @@ step1:
 #ifdef RBX_PROFILER
       if(unlikely(state->vm()->tooling())) {
         tooling::GCEntry method(state, tooling::GCYoung);
-        collect_young(&gc_data, &stats);
+        collect_young(state, &gc_data, &stats);
       } else {
-        collect_young(&gc_data, &stats);
+        collect_young(state, &gc_data, &stats);
       }
 #else
-      collect_young(&gc_data, &stats);
+      collect_young(state, &gc_data, &stats);
 #endif
 
       RUBINIUS_GC_END(0);
@@ -555,12 +555,12 @@ step1:
 #ifdef RBX_PROFILER
       if(unlikely(state->vm()->tooling())) {
         tooling::GCEntry method(state, tooling::GCMature);
-        collect_mature(&gc_data);
+        collect_mature(state, &gc_data);
       } else {
-        collect_mature(&gc_data);
+        collect_mature(state, &gc_data);
       }
 #else
-      collect_mature(&gc_data);
+      collect_mature(state, &gc_data);
 #endif
 
       RUBINIUS_GC_END(1);
@@ -583,7 +583,7 @@ step1:
     UNSYNC;
   }
 
-  void ObjectMemory::collect_young(GCData* data, YoungCollectStats* stats) {
+  void ObjectMemory::collect_young(STATE, GCData* data, YoungCollectStats* stats) {
 #ifndef RBX_GC_STRESS_YOUNG
     collect_young_now = false;
 #endif
@@ -622,7 +622,7 @@ step1:
 #endif
   }
 
-  void ObjectMemory::collect_mature(GCData* data) {
+  void ObjectMemory::collect_mature(STATE, GCData* data) {
 
     timer::Running<1000000> timer(gc_stats.total_full_collection_time,
                                   gc_stats.last_full_collection_time);

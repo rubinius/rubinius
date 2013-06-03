@@ -58,7 +58,7 @@ class TestVM : public CxxTest::TestSuite, public VMTest {
     //  state->om->young.total_objects << ")" << std::endl;
 
     GCData gc_data(state->vm());
-    state->memory()->collect_young(&gc_data);
+    state->memory()->collect_young(state, &gc_data);
 
     index = 0;
     root = static_cast<Root*>(state->globals().roots.head());

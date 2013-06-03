@@ -363,8 +363,8 @@ namespace rubinius {
     Object* allocate_object(size_t bytes);
     Object* allocate_object_mature(size_t bytes);
 
-    void collect_young(GCData* data, YoungCollectStats* stats = 0);
-    void collect_mature(GCData* data);
+    void collect_young(STATE, GCData* data, YoungCollectStats* stats = 0);
+    void collect_mature(STATE, GCData* data);
 
   public:
     friend class ::TestObjectMemory;
