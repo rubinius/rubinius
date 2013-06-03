@@ -20,10 +20,10 @@ namespace rubinius {
    */
   Object* ObjectMark::call(Object* obj) {
     if(!obj->reference_p()) return NULL;
-#ifdef RBX_DEBUG
-      if(unlikely(obj->zone() == UnspecifiedZone)) {
-        rubinius::bug("Unspecified zone for object");
-      }
+#ifdef RBX_GC_DEBUG
+    if(unlikely(obj->zone() == UnspecifiedZone)) {
+      rubinius::bug("Unspecified zone for object");
+    }
 #endif
     return gc->saw_object(obj);
   }
