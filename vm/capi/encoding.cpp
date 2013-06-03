@@ -398,4 +398,22 @@ extern "C" {
 
     Transcoding::define(env->state(), (OnigTranscodingType*)trans);
   }
+
+  unsigned int rb_enc_codepoint_len(const char *p, const char *e, int *len_p, rb_encoding *enc) {
+    if(e <= p) {
+      rb_raise(rb_eArgError, "empty string");
+    }
+
+    int r = rb_enc_precise_mbclen(p, e, enc);
+
+    if(ONIGENC_MBCLEN_CHARFOUND_P(r)) {
+      if(len_p) {
+        *len_p = ONIGENC_MBCLEN_CHARFOUND_LEN(r);
+      }
+
+      return ONIGENC_MBC_TO_CODE(enc, (UChar*)p, (UChar*)e);
+    } else {
+      rb_raise(rb_eArgError, "invalid byte sequence in %s", rb_enc_name(enc));
+    }
+  }
 }

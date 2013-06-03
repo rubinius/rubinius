@@ -89,6 +89,8 @@ rb_encoding* rb_to_encoding(VALUE obj);
 
 VALUE rb_enc_from_encoding(rb_encoding *enc);
 
+unsigned int rb_enc_codepoint_len(const char *p, const char *e, int *len_p, rb_encoding *enc);
+
 int rb_define_dummy_encoding(const char *);
 int rb_enc_find_index(const char *name);
 int rb_enc_to_index(rb_encoding* enc);
