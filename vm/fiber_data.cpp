@@ -110,6 +110,8 @@ namespace rubinius {
 
   FiberData::~FiberData() {
     if(heap_) free(heap_);
+    if(!thread_) return;
+    thread_->remove_fiber_data(this);
   }
 
   void FiberData::take_stack(STATE) {

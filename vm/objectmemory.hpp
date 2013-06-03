@@ -333,6 +333,7 @@ namespace rubinius {
 
     void validate_handles(capi::Handles* handles);
     void prune_handles(capi::Handles* handles, std::list<capi::Handle*>* cached, BakerGC* young);
+    void clear_fiber_marks(std::list<ManagedThread*>* threads);
 
     ObjectPosition validate_object(Object* obj);
     bool valid_young_object_p(Object* obj);

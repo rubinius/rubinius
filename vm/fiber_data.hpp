@@ -51,6 +51,8 @@ namespace rubinius {
       eDead
     } status_;
 
+    bool mark_;
+
     VM* thread_;
     FiberStack* stack_;
 
@@ -62,9 +64,11 @@ namespace rubinius {
 
     CallFrame* call_frame_;
 
-  public:
+    // Private constructor so only FiberStack can use it.
+
     FiberData(VM* thread, bool root=false)
       : status_(root ? eOnStack : eInitial)
+      , mark_(true)
       , thread_(thread)
       , stack_(0)
       , heap_(0)
@@ -73,10 +77,25 @@ namespace rubinius {
       , call_frame_(0)
     {}
 
+    friend class FiberStacks;
+
+  public:
     ~FiberData();
 
     bool dead_p() const {
       return status_ == eDead;
+    }
+
+    bool marked_p() const {
+      return mark_;
+    }
+
+    void set_mark() {
+      mark_ = true;
+    }
+
+    void clear_mark() {
+      mark_ = false;
     }
 
     CallFrame* call_frame() const {

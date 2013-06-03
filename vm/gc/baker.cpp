@@ -235,15 +235,14 @@ namespace rubinius {
     // objects kept alive for finalization through weakrefs.
     clean_weakrefs(true);
 
-    // Objects with finalizers must be kept alive until the finalizers have
-    // run.
-    walk_finalizers();
-
-    // Process possible promotions from processing objects with finalizers.
-    handle_promotions();
-
-    if(!promoted_stack_.empty()) rubinius::bug("promote stack has elements!");
-    if(!fully_scanned_p()) rubinius::bug("more young refs");
+    do {
+      // Objects with finalizers must be kept alive until the finalizers have
+      // run.
+      walk_finalizers();
+      // Scan any fibers that aren't running but still active
+      scan_fibers(data, false);
+      handle_promotions();
+    } while(!promoted_stack_.empty() && !fully_scanned_p());
 
     // Remove unreachable locked objects still in the list
     if(data.threads()) {

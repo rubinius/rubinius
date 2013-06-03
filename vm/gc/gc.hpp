@@ -166,6 +166,7 @@ namespace rubinius {
       return obj;
     }
 
+    void scan_fibers(GCData& data, bool marked_only = true);
     void clean_weakrefs(bool check_forwards=false);
     void clean_locked_objects(ManagedThread* thr, bool young_only);
 

@@ -34,7 +34,8 @@ namespace rubinius {
       fib->locals(state, nil<LookupTable>());
       fib->root_ = true;
       fib->status_ = Fiber::eRunning;
-      fib->data_ = new FiberData(state->vm(), true);
+
+      fib->data_ = state->vm()->new_fiber_data(true);
 
       state->memory()->needs_finalization(fib, (FinalizerFunction)&Fiber::finalize);
 
@@ -120,7 +121,7 @@ namespace rubinius {
   Object* Fiber::resume(STATE, Arguments& args, CallFrame* calling_environment) {
 #ifdef RBX_FIBER_ENABLED
     if(!data_) {
-      data_ = new FiberData(state->vm());
+      data_ = state->vm()->new_fiber_data();
     }
 
     if(status_ == Fiber::eDead || data_->dead_p()) {
@@ -178,7 +179,7 @@ namespace rubinius {
   Object* Fiber::transfer(STATE, Arguments& args, CallFrame* calling_environment) {
 #ifdef RBX_FIBER_ENABLED
     if(!data_) {
-      data_ = new FiberData(state->vm());
+      data_ = state->vm()->new_fiber_data();
     }
 
     if(status_ == Fiber::eDead || data_->dead_p()) {
@@ -290,20 +291,9 @@ namespace rubinius {
   void Fiber::Info::mark(Object* obj, ObjectMark& mark) {
     auto_mark(obj, mark);
     Fiber* fib = force_as<Fiber>(obj);
-
     FiberData* data = fib->data_;
     if(!data || data->dead_p()) return;
-
-    AddressDisplacement dis(data->data_offset(),
-                            data->data_lower_bound(),
-                            data->data_upper_bound());
-
-    if(CallFrame* cf = data->call_frame()) {
-      mark.gc->walk_call_frame(cf, &dis);
-    }
-
-    mark.gc->scan(data->variable_root_buffers(), false, &dis);
-
+    data->set_mark();
   }
 }
 

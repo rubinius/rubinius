@@ -69,7 +69,7 @@ namespace rubinius {
     : ManagedThread(id, shared, ManagedThread::eRuby)
     , saved_call_frame_(0)
     , saved_call_site_information_(0)
-    , fiber_stacks_(shared)
+    , fiber_stacks_(this, shared)
     , park_(new Park)
     , run_signals_(false)
     , shared(shared)
@@ -448,6 +448,14 @@ namespace rubinius {
     State ls(this);
 
     shared.tool_broker()->at_gc(&ls);
+  }
+
+  void VM::gc_fiber_clear_mark() {
+    fiber_stacks_.gc_clear_mark();
+  }
+
+  void VM::gc_fiber_scan(GarbageCollector* gc, bool only_marked) {
+    fiber_stacks_.gc_scan(gc, only_marked);
   }
 
   void VM::gc_verify(GarbageCollector* gc) {

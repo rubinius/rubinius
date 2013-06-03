@@ -318,6 +318,14 @@ namespace rubinius {
       return fiber_stacks_.trampoline();
     }
 
+    FiberData* new_fiber_data(bool root=false) {
+      return fiber_stacks_.new_data(root);
+    }
+
+    void remove_fiber_data(FiberData* data) {
+      fiber_stacks_.remove_data(data);
+    }
+
     VariableRootBuffers& current_root_buffers();
 
   public:
@@ -434,6 +442,8 @@ namespace rubinius {
     void register_kill(STATE);
 
     void gc_scan(GarbageCollector* gc);
+    void gc_fiber_clear_mark();
+    void gc_fiber_scan(GarbageCollector* gc, bool only_marked = true);
     void gc_verify(GarbageCollector* gc);
   };
 

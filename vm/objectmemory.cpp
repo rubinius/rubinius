@@ -631,6 +631,7 @@ step1:
 #endif
 
     code_manager_.clear_marks();
+    clear_fiber_marks(data.threads());
 
     immix_->reset_stats();
 
@@ -719,6 +720,18 @@ step1:
 
   void ObjectMemory::prune_handles(capi::Handles* handles, std::list<capi::Handle*>* cached, BakerGC* young) {
     handles->deallocate_handles(cached, mark(), young);
+  }
+
+  void ObjectMemory::clear_fiber_marks(std::list<ManagedThread*>* threads) {
+    if(threads) {
+      for(std::list<ManagedThread*>::iterator i = threads->begin();
+          i != threads->end();
+          ++i) {
+        if(VM* vm = (*i)->as_vm()) {
+          vm->gc_fiber_clear_mark();
+        }
+      }
+    }
   }
 
   size_t ObjectMemory::mature_bytes_allocated() {
