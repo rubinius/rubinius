@@ -85,11 +85,15 @@ namespace rubinius {
 #endif
 
     slot = saw_object(obj->klass());
-    if(slot) obj->klass(object_memory_, force_as<Class>(slot));
+    if(slot && slot != obj->klass()) {
+      obj->klass(object_memory_, force_as<Class>(slot));
+    }
 
     if(obj->ivars()->reference_p()) {
       slot = saw_object(obj->ivars());
-      if(slot) obj->ivars(object_memory_, slot);
+      if(slot && slot != obj->ivars()) {
+        obj->ivars(object_memory_, slot);
+      }
     }
 
     // Handle Tuple directly, because it's so common
