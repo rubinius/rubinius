@@ -506,12 +506,7 @@ step1:
 
     GCData gc_data(state->vm(), gct);
 
-    uint64_t start_time = 0;
-
     if(collect_young_now) {
-      if(state->shared().config.gc_show) {
-        start_time = get_current_time();
-      }
 
       YoungCollectStats stats;
 
@@ -530,8 +525,7 @@ step1:
       RUBINIUS_GC_END(0);
 
       if(state->shared().config.gc_show) {
-        uint64_t fin_time = get_current_time();
-        int diff = (fin_time - start_time) / 1000000;
+        uint64_t diff = gc_stats.last_young_collection_time.value;
 
         std::cerr << "[GC " << std::fixed << std::setprecision(1) << stats.percentage_used << "% "
                   << stats.promoted_objects << "/" << stats.excess_objects << " "
@@ -545,11 +539,6 @@ step1:
 
     if(collect_mature_now) {
       size_t before_kb = 0;
-
-      if(state->shared().config.gc_show) {
-        start_time = get_current_time();
-        before_kb = mature_bytes_allocated() / 1024;
-      }
 
       RUBINIUS_GC_BEGIN(1);
 #ifdef RBX_PROFILER
@@ -566,8 +555,7 @@ step1:
       RUBINIUS_GC_END(1);
 
       if(state->shared().config.gc_show) {
-        uint64_t fin_time = get_current_time();
-        int diff = (fin_time - start_time) / 1000000;
+        uint64_t diff = gc_stats.last_full_collection_time.value;
         size_t kb = mature_bytes_allocated() / 1024;
         std::cerr << "[Full GC " << before_kb << "kB => " << kb << "kB " << diff << "ms]" << std::endl;
 
