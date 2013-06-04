@@ -61,12 +61,16 @@ describe "String#<=> with String" do
       ("ÄÖÜ" <=> "ÄÖÛ").should == 1
     end
 
-    it "returns 0 if self and other contain identical ASCII-compatible bytes in different encodings" do
+    it "returns 0 with identical ASCII-compatible bytes of different encodings" do
       ("abc".force_encoding("utf-8") <=> "abc".force_encoding("iso-8859-1")).should == 0
     end
 
-    it "does not return 0 if self and other contain identical non-ASCII-compatible bytes in different encodings" do
-      ("\xff".force_encoding("utf-8") <=> "\xff".force_encoding("iso-8859-1")).should_not == 0
+    it "returns 1 with identical non-ASCII-compatible bytes of different encodings (LHS encoding's index is smaller)" do
+      ("\xff".force_encoding("utf-8") <=> "\xff".force_encoding("iso-8859-1")).should == -1
+    end
+
+    it "returns -1 with identical non-ASCII-compatible bytes of different encodings (LHS encoding's index is bigger)" do
+      ("\xff".force_encoding("iso-8859-1") <=> "\xff".force_encoding("utf-8")).should == 1
     end
   end
 end
