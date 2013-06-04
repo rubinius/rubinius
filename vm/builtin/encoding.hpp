@@ -22,9 +22,9 @@ namespace rubinius {
     const static object_type type = EncodingType;
 
     enum Index {
-      eAscii = 0,
-      eBinary,
-      eUtf8
+      eBinary = 0,
+      eUtf8,
+      eAscii
     };
 
   private:
