@@ -309,19 +309,23 @@ class String
     return self
   end
 
-  def chars(&block)
+  def chars
     return to_enum :chars unless block_given?
     # TODO: Use Encodings for KCODE in 1.8 mode
-    return scan(/./u, &block) if Rubinius.kcode == :UTF8 and Rubinius.ruby18?
+    if Rubinius.kcode == :UTF8 and Rubinius.ruby18?
+      scan(/./u) do |c|
+        yield c
+      end
+    else
+      i = 0
+      n = size
+      while i < n
+        yield substring(i, 1)
+        i += 1
+      end
 
-    i = 0
-    n = size
-    while i < n
-      yield substring(i, 1)
-      i += 1
+      self
     end
-
-    self
   end
 
   alias_method :each_char, :chars

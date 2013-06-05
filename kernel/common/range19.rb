@@ -7,7 +7,7 @@ class Range
 
   alias_method :cover?, :include?
 
-  def each(&block)
+  def each
     return to_enum unless block_given?
     first, last = @begin, @end
 
@@ -24,7 +24,9 @@ class Range
       end
 
     when String
-      first.upto(last, @excl, &block)
+      first.upto(last, @excl) do |i|
+        yield i
+      end
     when Symbol
       first.to_s.upto(last.to_s, @excl) do |str|
         yield str.to_sym
@@ -55,8 +57,8 @@ class Range
     n.equal?(undefined) ? @end : to_a.last(n)
   end
 
-  def max(&block)
-    return super(&block) if block_given? || (@excl && !@end.kind_of?(Numeric))
+  def max
+    return super if block_given? || (@excl && !@end.kind_of?(Numeric))
     return nil if @end < @begin || (@excl && @end == @begin)
 
     if @excl
@@ -74,8 +76,8 @@ class Range
     @end
   end
 
-  def min(&block)
-    return super(&block) if block_given?
+  def min
+    return super if block_given?
     return nil if @end < @begin || (@excl && @end == @begin)
     @begin
   end

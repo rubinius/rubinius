@@ -167,9 +167,11 @@ class Struct
     true
   end
 
-  def each(&block)
+  def each
     return to_enum :each unless block_given?
-    values.each(&block)
+    values.each do |v|
+      yield v
+    end
     self
   end
 
@@ -205,8 +207,10 @@ class Struct
     return self.class.members
   end
 
-  def select(&block)
-    to_a.select(&block)
+  def select
+    to_a.select do |v|
+      yield v
+    end
   end
 
   def to_a

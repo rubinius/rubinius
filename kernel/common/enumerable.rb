@@ -61,8 +61,8 @@ module Enumerable
     sort_values.map! { |ary| ary.value }
   end
 
-  def inject(initial=undefined, sym=undefined, &block)
-    if !block or !sym.equal?(undefined)
+  def inject(initial=undefined, sym=undefined)
+    if !block_given? or !sym.equal?(undefined)
       if sym.equal?(undefined)
         sym = initial
         initial = undefined
@@ -88,7 +88,7 @@ module Enumerable
         if initial.equal? undefined
           initial = o
         else
-          initial = block.call(initial, o)
+          initial = yield(initial, o)
         end
       end
     end

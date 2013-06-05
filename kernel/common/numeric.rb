@@ -33,7 +33,7 @@ class Numeric
     return nil
   end
 
-  def step(limit, step=1, &block)
+  def step(limit, step=1)
     return to_enum(:step, limit, step) unless block_given?
 
     raise ArgumentError, "step cannot be 0" if step == 0

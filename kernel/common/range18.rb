@@ -3,7 +3,7 @@
 class Range
   alias_method :===, :include?
 
-  def each(&block)
+  def each
     return to_enum unless block_given?
     first, last = @begin, @end
 
@@ -20,7 +20,9 @@ class Range
       end
 
     when String
-      first.upto(last, @excl, &block)
+      first.upto(last, @excl) do |i|
+        yield i
+      end
     else
       current = first
       if @excl
