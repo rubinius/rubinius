@@ -256,7 +256,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     }
 
     bool marked_p(unsigned int which) const {
-      return (mark_ & which) == (int)which;
+      return (mark_ & (int)which) == (int)which;
     }
 
     void mark(ObjectMemory* om, unsigned int which) {
