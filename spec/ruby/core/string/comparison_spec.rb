@@ -65,11 +65,8 @@ describe "String#<=> with String" do
       ("abc".force_encoding("utf-8") <=> "abc".force_encoding("iso-8859-1")).should == 0
     end
 
-    it "returns 1 with identical non-ASCII-compatible bytes of different encodings (LHS encoding's index is smaller)" do
+    it "compares the indices of the encodings when the strings have identical non-ASCII-compatible bytes" do
       ("\xff".force_encoding("utf-8") <=> "\xff".force_encoding("iso-8859-1")).should == -1
-    end
-
-    it "returns -1 with identical non-ASCII-compatible bytes of different encodings (LHS encoding's index is bigger)" do
       ("\xff".force_encoding("iso-8859-1") <=> "\xff".force_encoding("utf-8")).should == 1
     end
   end
