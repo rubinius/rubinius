@@ -174,12 +174,15 @@ namespace rubinius {
     /// The current mark value used when marking objects.
     unsigned int mark_;
 
+    unsigned int young_gc_while_marking_;
     /// Flag controlling whether garbage collections are allowed
     bool allow_gc_;
     /// Flag set when concurrent mature mark is requested
     bool mature_mark_concurrent_;
     /// Flag set when a mature GC is already in progress
     bool mature_gc_in_progress_;
+    /// Flag set when requesting a young gen resize
+    bool young_gc_resize_;
 
     /// Size of slabs to be allocated to threads for lockless thread-local
     /// allocations.
@@ -208,9 +211,9 @@ namespace rubinius {
     TypeInfo* type_info[(int)LastObjectType];
 
     /* Config variables */
-    /// Threshold size at which an object is considered a large object, and
-    /// therefore allocated in the large object space.
     size_t large_object_threshold;
+    int young_autotune_factor;
+    bool young_autotune_size;
 
     GCStats gc_stats;
 
@@ -369,6 +372,7 @@ namespace rubinius {
     ObjectPosition validate_object(Object* obj);
     bool valid_young_object_p(Object* obj);
 
+    size_t young_bytes_allocated();
     size_t mature_bytes_allocated();
 
     void collect_maybe(STATE, GCToken gct, CallFrame* call_frame);
@@ -380,6 +384,7 @@ namespace rubinius {
     void* yound_end();
 
     size_t& loe_usage();
+    size_t& young_usage();
     size_t& immix_usage();
     size_t& code_usage();
 
@@ -396,6 +401,8 @@ namespace rubinius {
     }
 
     immix::MarkStack& mature_mark_stack();
+
+    void young_autotune();
 
     void print_young_stats(STATE, GCData* data, YoungCollectStats* stats);
     void print_mature_stats(STATE, GCData* data);

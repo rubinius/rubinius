@@ -43,7 +43,8 @@ namespace rubinius {
 #ifdef ENABLE_LLVM
     , llvm_state_(LLVMState::get_if_set(state))
 #endif
-    , bytes_allocated_(state->om->mature_bytes_allocated())
+    , young_bytes_allocated_(state->om->young_bytes_allocated())
+    , mature_bytes_allocated_(state->om->mature_bytes_allocated())
   {}
 
   GCData::GCData(VM* state, GCToken gct)
@@ -57,7 +58,8 @@ namespace rubinius {
 #ifdef ENABLE_LLVM
     , llvm_state_(LLVMState::get_if_set(state))
 #endif
-    , bytes_allocated_(state->om->mature_bytes_allocated())
+    , young_bytes_allocated_(state->om->young_bytes_allocated())
+    , mature_bytes_allocated_(state->om->mature_bytes_allocated())
   {}
 
   GarbageCollector::GarbageCollector(ObjectMemory *om)

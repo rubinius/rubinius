@@ -49,7 +49,7 @@ namespace rubinius {
 
   /* ObjectMemory methods */
   ObjectMemory::ObjectMemory(VM* state, Configuration& config)
-    : young_(new BakerGC(this, config.gc_bytes))
+    : young_(new BakerGC(this, config.gc_young_initial_bytes * 2))
     , mark_sweep_(new MarkSweepGC(this, config))
     , immix_(new ImmixGC(this))
     , inflated_headers_(new InflatedHeaders(state))
@@ -75,9 +75,12 @@ namespace rubinius {
 #endif
 
     large_object_threshold = config.gc_large_object;
-    young_->set_lifetime(config.gc_lifetime);
+    young_autotune_factor = config.gc_young_autotune_factor;
+    young_autotune_size = config.gc_young_autotune_size;
 
-    if(config.gc_autotune) young_->set_autotune();
+    young_->set_lifetime(config.gc_young_lifetime);
+
+    if(config.gc_young_autotune_lifetime) young_->set_autotune_lifetime();
 
     mature_mark_concurrent_ = config.gc_immix_concurrent;
 
@@ -564,6 +567,7 @@ step1:
     timer::Running<1000000> timer(gc_stats.total_young_collection_time,
                                   gc_stats.last_young_collection_time);
 
+    young_gc_while_marking_++;
     young_->reset_stats();
 
     young_->collect(data, stats);
@@ -607,6 +611,7 @@ step1:
 
     // If we're already collecting, ignore this request
     if(mature_gc_in_progress_) return;
+    young_gc_while_marking_ = 0;
 
     code_manager_.clear_marks();
     clear_fiber_marks(data->threads());
@@ -650,6 +655,28 @@ step1:
     }
 
     RUBINIUS_GC_END(1);
+    young_autotune();
+    young_gc_while_marking_ = 0;
+  }
+
+  void ObjectMemory::young_autotune() {
+    if(young_autotune_size) {
+      // We autotune the size if we do multiple young
+      // collections during a mature mark phase. This indicates
+      // that memory pressure is higher and we might want to grow
+      // if we haven't met the young size factor yet.
+      //
+      // If we don't see any young GC's we check if we should shrink it
+      if(young_gc_while_marking_ > 1) {
+        if(young_->bytes_size() < mature_bytes_allocated() / young_autotune_factor) {
+          young_->grow(young_->bytes_size() * 2);
+        }
+      } else if(young_gc_while_marking_ == 0) {
+        if(young_->bytes_size() > mature_bytes_allocated() / young_autotune_factor) {
+          young_->grow(young_->bytes_size() / 2);
+        }
+      }
+    }
   }
 
   void ObjectMemory::wait_for_mature_marker(STATE) {
@@ -663,9 +690,15 @@ step1:
 
   void ObjectMemory::print_young_stats(STATE, GCData* data, YoungCollectStats* stats) {
     if(state->shared().config.gc_show) {
+      size_t before_kb = data->young_bytes_allocated() / 1024;
+      size_t kb = state->memory()->young_bytes_allocated() / 1024;
       uint64_t diff = gc_stats.last_young_collection_time.value;
 
-      std::cerr << "[GC " << std::fixed << std::setprecision(1) << stats->percentage_used << "% "
+      std::cerr << "[Young GC ";
+      if(before_kb != kb) {
+        std::cerr << before_kb << "kB => ";
+      }
+      std::cerr << kb << "kB " << std::fixed << std::setprecision(1) << stats->percentage_used << "% "
                 << stats->promoted_objects << "/" << stats->excess_objects << " "
                 << stats->lifetime << " " << diff << "ms]" << std::endl;
 
@@ -679,7 +712,7 @@ step1:
     if(state->shared().config.gc_show) {
       uint64_t stop = gc_stats.last_full_stop_collection_time.value;
       uint64_t concur = gc_stats.last_full_concurrent_collection_time.value;
-      size_t before_kb = data->bytes_allocated() / 1024;
+      size_t before_kb = data->mature_bytes_allocated() / 1024;
       size_t kb = mature_bytes_allocated() / 1024;
       std::cerr << "[Full GC " << before_kb << "kB => " << kb << "kB " << stop << "ms (" << concur << "ms)]" << std::endl;
 
@@ -763,6 +796,10 @@ step1:
         }
       }
     }
+  }
+
+  size_t ObjectMemory::young_bytes_allocated() {
+    return young_->bytes_size();
   }
 
   size_t ObjectMemory::mature_bytes_allocated() {
@@ -1066,6 +1103,10 @@ step1:
     return mark_sweep_->allocated_bytes;
   }
 
+  size_t& ObjectMemory::young_usage() {
+    return young_->bytes_size();
+  }
+
   size_t& ObjectMemory::immix_usage() {
     return immix_->bytes_allocated();
   }
@@ -1075,21 +1116,17 @@ step1:
   }
 
   void ObjectMemory::memstats() {
-    int total = 0;
+    size_t total = 0;
 
-    int baker = root_state_->shared.config.gc_bytes * 2;
+    size_t baker = young_usage();
     total += baker;
-
-    int immix = immix_->bytes_allocated();
+    size_t immix = immix_usage();
     total += immix;
-
-    int large = mark_sweep_->allocated_bytes;
+    size_t large = loe_usage();
     total += large;
-
-    int code = code_manager_.size();
+    size_t code = code_usage();
     total += code;
-
-    int shared = root_state_->shared.size();
+    size_t shared = root_state_->shared.size();
     total += shared;
 
     std::cout << "baker: " << baker << "\n";

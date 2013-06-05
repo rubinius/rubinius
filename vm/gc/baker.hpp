@@ -59,22 +59,37 @@ namespace rubinius {
   class BakerGC : public GarbageCollector {
 
     /// The total memory heap allocated to the BakerGC
-    Heap full;
+    Heap* full;
 
     /// The Eden space heap, which is a subset of the full heap
-    Heap eden;
+    Heap* eden;
 
     /// The A heap, which is a subset of the full heap
-    Heap heap_a;
+    Heap* heap_a;
 
     /// The B heap, which is a subset of the full heap
-    Heap heap_b;
+    Heap* heap_b;
+
+
+    /// The new heap if we request a resize. We need to set
+    /// this up at the start of a young GC cycle and clean
+    /// up at the end
+    Heap* full_new;
+
+    /// The new Eden space heap when resizing
+    Heap* eden_new;
+
+    /// The new A heap when resizing
+    Heap* heap_a_new;
+
+    /// The new B heap when resizing
+    Heap* heap_b_new;
 
     /// Pointer to the Current space heap (i.e. Heap A or B)
-    Heap *current;
+    Heap* current;
 
     /// Pointer to the Next space heap (i.e. Heap B or A)
-    Heap *next;
+    Heap* next;
 
   public:
     /// Total number of objects currently allocated in the young generation
@@ -87,17 +102,17 @@ namespace rubinius {
      * allocation area that can be used without locking.
      */
     void* allocate_for_slab(size_t bytes) {
-      if(!eden.enough_space_p(bytes)) {
+      if(!eden->enough_space_p(bytes)) {
         return NULL;
       }
 
       void* addr = 0;
 
-      addr = eden.allocate(bytes);
+      addr = eden->allocate(bytes);
 
       // If this takes us over the limit, return the bytes we just grabbed
-      if(eden.over_limit_p(addr)) {
-          eden.put_back(bytes);
+      if(eden->over_limit_p(addr)) {
+          eden->put_back(bytes);
           return NULL;
       }
 
@@ -116,13 +131,13 @@ namespace rubinius {
     Object* raw_allocate(size_t bytes, bool* limit_hit) {
       Object* obj;
 
-      if(!eden.enough_space_p(bytes)) {
+      if(!eden->enough_space_p(bytes)) {
         return NULL;
       } else {
         total_objects++;
-        obj = eden.allocate(bytes).as<Object>();
+        obj = eden->allocate(bytes).as<Object>();
 
-        if(eden.over_limit_p(obj)) {
+        if(eden->over_limit_p(obj)) {
           *limit_hit = true;
         }
       }
@@ -149,13 +164,13 @@ namespace rubinius {
     Object* allocate(size_t bytes, bool* limit_hit) {
       Object* obj;
 
-      if(!eden.enough_space_p(bytes)) {
+      if(!eden->enough_space_p(bytes)) {
         return NULL;
       } else {
         total_objects++;
-        obj = eden.allocate(bytes).as<Object>();
+        obj = eden->allocate(bytes).as<Object>();
 
-        if(eden.over_limit_p(obj)) {
+        if(eden->over_limit_p(obj)) {
           *limit_hit = true;
         }
       }
@@ -172,13 +187,31 @@ namespace rubinius {
     }
 
   private:
+
+    /// List of objects that have been promoted to the mature generation, but
+    /// not yet scanned
+    ObjectArray promoted_stack_;
+
+    /// Current size of the young gen, number of bytes in Eden
+    size_t current_byte_size_;
+
+    /// Request size of new young space for resizing
+    size_t requested_byte_size_;
+
+    /// The original configured lifetime objects had to survive before being
+    /// promoted to the mature generation
+    int original_lifetime_;
+
+    /// The current lifetime objects have to survive before being promoted
+    int lifetime_;
+
     /// Count of the number of objects that were promoted to the mature
     /// generation on the current collection due to lack of space in the Next
     /// space.
     int copy_spills_;
 
-    /// True if the young to mature promotion threshhold should be auto-tuned
-    bool autotune_;
+    /// Count of the number of objects promoted on the current collection
+    int promoted_objects_;
 
     /// Count of the successive number of times a collection has gone over
     /// the cOverFullThreshhold (positive value) or under the
@@ -186,19 +219,8 @@ namespace rubinius {
     /// at which objects are promoted to the mature generation.
     int tune_threshold_;
 
-    /// The original configured lifetime objects had to survive before being
-    /// promoted to the mature generation
-    size_t original_lifetime_;
-
-    /// The current lifetime objects have to survive before being promoted
-    size_t lifetime_;
-
-    /// Count of the number of objects promoted on the current collection
-    int promoted_objects_;
-
-    /// List of objects that have been promoted to the mature generation, but
-    /// not yet scanned
-    ObjectArray promoted_stack_;
+    /// True if the young to mature promotion threshhold should be auto-tuned
+    bool autotune_lifetime_;
 
     /**
      * Adds the specified object to the promoted objects stack.
@@ -219,13 +241,23 @@ namespace rubinius {
       promoted_objects_ = 0;
     }
 
+    void check_growth_start();
+    void check_growth_finish();
+
   public:
 
     /**
      * Returns the number of bytes used in the Eden space.
      */
     size_t bytes_used() {
-      return eden.used();
+      return eden->used();
+    }
+
+    /**
+     * Returns the number of bytes used in the Eden space.
+     */
+    size_t& bytes_size() {
+      return current_byte_size_;
     }
 
     /**
@@ -243,35 +275,29 @@ namespace rubinius {
      * promoted to the mature generation, based on how full the Next space is
      * following a collecion.
      */
-    void set_autotune(bool val = true) {
-      autotune_ = val;
+    void set_autotune_lifetime(bool val = true) {
+      autotune_lifetime_ = val;
     }
 
     /// Returns true if the BakerGC is auto-tuning
-    bool autotune() {
-      return autotune_;
+    bool autotune_lifetime() {
+      return autotune_lifetime_;
     }
 
     /// Returns the start address of the young generation
     void* start_address() {
-      return full.start();
+      return full->start();
     }
 
     /// Returns the last address in the young generation
     void* last_address() {
-      return full.last();
+      return full->last();
     }
 
-    void reset() {
-      next->reset();
-      eden.reset();
+    void reset();
 
-#ifdef HAVE_VALGRIND_H
-      (void)VALGRIND_MAKE_MEM_NOACCESS(next->start().as_int(), next->size());
-      (void)VALGRIND_MAKE_MEM_DEFINED(current->start().as_int(), current->size());
-#endif
-      mprotect(next->start(), next->size(), PROT_NONE);
-      mprotect(current->start(), current->size(), PROT_READ | PROT_WRITE);
+    void grow(size_t bytes) {
+      requested_byte_size_ = bytes;
     }
 
   public:

@@ -525,7 +525,7 @@ namespace rubinius {
   }
 
   Integer* System::vm_gc_size(STATE) {
-    return Integer::from(state, state->shared().config.gc_bytes * 2 +
+    return Integer::from(state, state->memory()->young_usage() +
                                 state->memory()->immix_usage() +
                                 state->memory()->loe_usage() +
                                 state->memory()->code_usage() +

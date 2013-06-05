@@ -38,7 +38,8 @@ namespace rubinius {
 #ifdef ENABLE_LLVM
     LLVMState* llvm_state_;
 #endif
-    size_t bytes_allocated_;
+    size_t young_bytes_allocated_;
+    size_t mature_bytes_allocated_;
 
   public:
     GCData(VM*, GCToken gct);
@@ -58,7 +59,8 @@ namespace rubinius {
 #ifdef ENABLE_LLVM
       , llvm_state_(0)
 #endif
-      , bytes_allocated_(0)
+      , young_bytes_allocated_(0)
+      , mature_bytes_allocated_(0)
     {}
 
     Roots& roots() {
@@ -95,8 +97,12 @@ namespace rubinius {
     }
 #endif
 
-    size_t bytes_allocated() {
-      return bytes_allocated_;
+    size_t young_bytes_allocated() {
+      return young_bytes_allocated_;
+    }
+
+    size_t mature_bytes_allocated() {
+      return mature_bytes_allocated_;
     }
   };
 

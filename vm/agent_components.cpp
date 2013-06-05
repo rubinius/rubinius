@@ -488,7 +488,7 @@ namespace agent {
     mem->add(new DumpHeap(state, "dump"));
 
     Tree* young = mem->get_tree("young");
-    young->add(new StaticInteger<int>("bytes", state->shared().config.gc_bytes * 2));
+    young->add(new ReadInteger<size_t>("bytes", &state->memory()->young_usage()));
 
     Tree* mature = mem->get_tree("mature");
     mature->add(new ReadInteger<size_t>("bytes", &state->memory()->immix_usage()));

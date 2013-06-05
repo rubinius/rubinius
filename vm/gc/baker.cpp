@@ -33,23 +33,35 @@ namespace rubinius {
    */
   BakerGC::BakerGC(ObjectMemory *om, size_t bytes)
     : GarbageCollector(om)
-    , full(bytes * 2)
-    , eden(full.allocate(bytes), bytes)
-    , heap_a(full.allocate(bytes / 2), bytes / 2)
-    , heap_b(full.allocate(bytes / 2), bytes / 2)
+    , full(new Heap(bytes))
+    , eden(new Heap(full->allocate(bytes / 2), bytes / 2))
+    , heap_a(new Heap(full->allocate(bytes / 4), bytes / 4))
+    , heap_b(new Heap(full->allocate(bytes / 4), bytes / 4))
+    , full_new(NULL)
+    , eden_new(NULL)
+    , heap_a_new(NULL)
+    , heap_b_new(NULL)
+    , current(heap_a)
+    , next(heap_b)
     , total_objects(0)
-    , copy_spills_(0)
-    , autotune_(false)
-    , tune_threshold_(0)
+    , current_byte_size_(bytes)
+    , requested_byte_size_(bytes)
     , original_lifetime_(1)
     , lifetime_(1)
+    , copy_spills_(0)
+    , promoted_objects_(0)
+    , tune_threshold_(0)
+    , autotune_lifetime_(false)
   {
-    current = &heap_a;
-    next = &heap_b;
     reset();
   }
 
-  BakerGC::~BakerGC() { }
+  BakerGC::~BakerGC() {
+    delete heap_a;
+    delete heap_b;
+    delete eden;
+    delete full;
+  }
 
   /**
    * Called for each object in the young generation that is seen during garbage
@@ -145,6 +157,8 @@ namespace rubinius {
 #endif
     mprotect(next->start(), next->size(), PROT_READ | PROT_WRITE);
     mprotect(current->start(), current->size(), PROT_READ | PROT_WRITE);
+
+    check_growth_start();
 
     Object* tmp;
     ObjectArray *current_rs = object_memory_->swap_remember_set();
@@ -267,7 +281,7 @@ namespace rubinius {
     update_weak_refs_set();
 
     // Swap the 2 halves
-    Heap *x = next;
+    Heap* x = next;
     next = current;
     current = x;
 
@@ -279,7 +293,7 @@ namespace rubinius {
     }
 
     // Tune the age at which promotion occurs
-    if(autotune_) {
+    if(autotune_lifetime_) {
       double used = current->percentage_used();
       if(used > cOverFullThreshold) {
         if(tune_threshold_ >= cOverFullTimes) {
@@ -308,6 +322,20 @@ namespace rubinius {
 
   }
 
+  void BakerGC::reset() {
+    check_growth_finish();
+
+    next->reset();
+    eden->reset();
+
+#ifdef HAVE_VALGRIND_H
+    (void)VALGRIND_MAKE_MEM_NOACCESS(next->start().as_int(), next->size());
+    (void)VALGRIND_MAKE_MEM_DEFINED(current->start().as_int(), current->size());
+#endif
+    mprotect(next->start(), next->size(), PROT_NONE);
+    mprotect(current->start(), current->size(), PROT_READ | PROT_WRITE);
+  }
+
   bool BakerGC::handle_promotions() {
     if(promoted_stack_.empty() && fully_scanned_p()) return false;
 
@@ -323,6 +351,41 @@ namespace rubinius {
     }
 
     return true;
+  }
+
+  void BakerGC::check_growth_start() {
+    if(unlikely(current_byte_size_ != requested_byte_size_)) {
+
+      full_new   = new Heap(requested_byte_size_);
+      eden_new   = new Heap(full_new->allocate(requested_byte_size_ / 2), requested_byte_size_ / 2);
+      heap_a_new = new Heap(full_new->allocate(requested_byte_size_ / 4), requested_byte_size_ / 4);
+      heap_b_new = new Heap(full_new->allocate(requested_byte_size_ / 4), requested_byte_size_ / 4);
+
+      // Install the next pointer so we move objects to the new memory space.
+      next = heap_a_new;
+    }
+  }
+
+  void BakerGC::check_growth_finish() {
+    if(unlikely(full_new)) {
+      delete heap_a;
+      delete heap_b;
+      delete eden;
+      delete full;
+      heap_a  = heap_a_new;
+      heap_b  = heap_b_new;
+      eden    = eden_new;
+      full    = full_new;
+      current = heap_a_new;
+      next    = heap_b_new;
+
+      heap_a_new = NULL;
+      heap_b_new = NULL;
+      eden_new   = NULL;
+      full_new   = NULL;
+
+      current_byte_size_ = requested_byte_size_;
+    }
   }
 
   void BakerGC::scan_mark_set() {
@@ -445,7 +508,7 @@ namespace rubinius {
   }
 
   ObjectPosition BakerGC::validate_object(Object* obj) {
-    if(current->contains_p(obj) || eden.contains_p(obj)) {
+    if(current->contains_p(obj) || eden->contains_p(obj)) {
       return cValid;
     } else if(next->contains_p(obj)) {
       return cInWrongYoungHalf;

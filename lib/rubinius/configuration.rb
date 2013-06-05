@@ -11,17 +11,23 @@ Rubinius::ConfigurationVariables.define do |c|
     :description => "Which version of ruby should we run"
 
   c.section "gc" do |s|
-    s.vm_variable "bytes", 3145728,
-      "The number of bytes the young generation of the GC should use"
+    s.vm_variable "young_initial_bytes", 3145728,
+      "The initial number of bytes the young generation of the GC should use"
+
+    s.vm_variable "young_autotune_size", true,
+      "Set whether or not the young GC should autotune the size"
+
+    s.vm_variable "young_autotune_factor", 8,
+      "Set the young GC size autotune factor. This is the denominator of the fraction of total memory used for young GC"
+
+    s.vm_variable "young_lifetime", 2,
+      "How many young GC cycles an object lives before promotion"
+
+    s.vm_variable "young_autotune_lifetime", true,
+      "Set whether or not the young GC should adjust promotion age for performance"
 
     s.vm_variable "large_object", (50 * 1024),
       "The size (in bytes) of the large object threshold"
-
-    s.vm_variable "lifetime", 3,
-      "How many young GC cycles an object lives before promotion"
-
-    s.vm_variable "autotune", true,
-      "Set whether or not the GC should adjust itself for performance"
 
     s.vm_variable "show", :bool,
       "Display information whenever the GC runs"
