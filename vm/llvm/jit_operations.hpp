@@ -626,6 +626,26 @@ namespace rubinius {
             }
             Value* is_fixnum = check_is_fixnum(obj);
             create_conditional_branch(positive, use_call, is_fixnum);
+          } else if(class_id == llvm_state()->bignum_class_id()) {
+            if(llvm_state()->config().jit_inline_debug) {
+              ctx_->log() << "(against Bignum)\n";
+            }
+            Value* is_ref = check_is_reference(obj);
+            create_conditional_branch(use_cache, negative, is_ref);
+            set_block(use_cache);
+
+            Value* is_type = check_type_bits(obj, BignumType);
+            create_conditional_branch(positive, negative, is_type);
+          } else if(class_id == llvm_state()->float_class_id()) {
+            if(llvm_state()->config().jit_inline_debug) {
+              ctx_->log() << "(against Float)\n";
+            }
+            Value* is_ref = check_is_reference(obj);
+            create_conditional_branch(use_cache, negative, is_ref);
+            set_block(use_cache);
+
+            Value* is_type = check_type_bits(obj, FloatType);
+            create_conditional_branch(positive, negative, is_type);
           } else if(class_id == llvm_state()->symbol_class_id()) {
             if(llvm_state()->config().jit_inline_debug) {
               ctx_->log() << "(against Symbol)\n";
@@ -641,7 +661,7 @@ namespace rubinius {
             set_block(use_cache);
 
             Value* is_type = check_type_bits(obj, StringType);
-            create_conditional_branch(positive, use_call, is_type);
+            create_conditional_branch(positive, negative, is_type);
           } else if(class_id == llvm_state()->regexp_class_id()) {
             if(llvm_state()->config().jit_inline_debug) {
               ctx_->log() << "(against Regexp)\n";
@@ -651,7 +671,7 @@ namespace rubinius {
             set_block(use_cache);
 
             Value* is_type = check_type_bits(obj, RegexpType);
-            create_conditional_branch(positive, use_call, is_type);
+            create_conditional_branch(positive, negative, is_type);
           } else if(class_id == llvm_state()->encoding_class_id()) {
             if(llvm_state()->config().jit_inline_debug) {
               ctx_->log() << "(against Encoding)\n";
@@ -661,7 +681,7 @@ namespace rubinius {
             set_block(use_cache);
 
             Value* is_type = check_type_bits(obj, EncodingType);
-            create_conditional_branch(positive, use_call, is_type);
+            create_conditional_branch(positive, negative, is_type);
           } else if(class_id == llvm_state()->module_class_id()) {
             if(llvm_state()->config().jit_inline_debug) {
               ctx_->log() << "(against Module)\n";
