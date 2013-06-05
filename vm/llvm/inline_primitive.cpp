@@ -896,6 +896,111 @@ namespace rubinius {
       i.context()->leave_inline();
     }
 
+    void fixnum_left_shift() {
+      log("fixnum_left_shift");
+      i.context()->enter_inline();
+
+      Value* recv = i.recv();
+      Value* shift = i.arg(0);
+
+      BasicBlock* positive = ops.new_block("positive");
+      BasicBlock* left_shift = ops.new_block("left_shift");
+      BasicBlock* match = ops.new_block("match");
+      BasicBlock* tagnow = ops.new_block("tagnow");
+      BasicBlock* bignum = ops.new_block("bignum");
+      BasicBlock* cont = ops.new_block("cont");
+      BasicBlock* send = i.class_id_failure();
+
+      Value* positive_cmp = ops.check_if_positive_fixnums(recv, shift);
+      ops.create_conditional_branch(positive, send, positive_cmp);
+
+      ops.set_block(positive);
+
+      Value* recv_int = ops.fixnum_strip(recv);
+      Value* shift_int = ops.fixnum_strip(shift);
+
+      Value* small_shift = ops.b().CreateICmpSLT(shift_int, ops.clong(FIXNUM_WIDTH), "small_shift");
+      ops.create_conditional_branch(left_shift, send, small_shift);
+
+      ops.set_block(left_shift);
+
+      Value* answer = ops.b().CreateShl(recv_int, shift_int, "shl");
+      Value* check  = ops.b().CreateAShr(answer, shift_int, "shr");
+
+      Value* same = ops.b().CreateICmpEQ(recv_int, check, "same");
+      ops.create_conditional_branch(match, send, same);
+
+      ops.set_block(match);
+
+      Value* check_fits = ops.check_if_fits_fixnum(answer);
+
+      ops.create_conditional_branch(tagnow, bignum, check_fits);
+
+      ops.set_block(bignum);
+      Value* big_value = ops.promote_to_bignum(answer);
+      ops.create_branch(cont);
+
+      ops.set_block(tagnow);
+      Value* imm_value = ops.fixnum_tag(answer);
+      ops.create_branch(cont);
+
+      ops.set_block(cont);
+
+      PHINode* res = ops.b().CreatePHI(ops.ObjType, 2, "result");
+      res->addIncoming(big_value, bignum);
+      res->addIncoming(imm_value, tagnow);
+
+
+      i.use_send_for_failure();
+      i.exception_safe();
+      i.set_result(res);
+      i.context()->leave_inline();
+    }
+
+    void fixnum_right_shift() {
+      log("fixnum_right_shift");
+      i.context()->enter_inline();
+
+      Value* recv = i.recv();
+      Value* shift = i.arg(0);
+
+      BasicBlock* positive = ops.new_block("positive");
+      BasicBlock* right_shift = ops.new_block("right_shift");
+      BasicBlock* zero = ops.new_block("zero");
+      BasicBlock* cont = ops.new_block("cont");
+      BasicBlock* send = i.class_id_failure();
+
+      Value* positive_cmp = ops.check_if_positive_fixnums(recv, shift);
+      ops.create_conditional_branch(positive, send, positive_cmp);
+
+      ops.set_block(positive);
+
+      Value* recv_int = ops.fixnum_strip(recv);
+      Value* shift_int = ops.fixnum_strip(shift);
+
+      Value* small_shift = ops.b().CreateICmpSLT(shift_int, ops.clong(FIXNUM_WIDTH), "small_shift");
+      ops.create_conditional_branch(right_shift, zero, small_shift);
+
+      ops.set_block(right_shift);
+
+      Value* answer  = ops.fixnum_tag(ops.b().CreateAShr(recv_int, shift_int, "shr"));
+      ops.create_branch(cont);
+
+      ops.set_block(zero);
+      Value* fix_zero = ops.constant(Fixnum::from(0));
+      ops.create_branch(cont);
+
+      ops.set_block(cont);
+      PHINode* res = ops.b().CreatePHI(ops.ObjType, 2, "result");
+      res->addIncoming(answer, right_shift);
+      res->addIncoming(fix_zero, zero);
+
+      i.use_send_for_failure();
+      i.exception_safe();
+      i.set_result(res);
+      i.context()->leave_inline();
+    }
+
     void float_op(MathOperation op) {
       log("float_op");
       i.context()->enter_inline();
@@ -1517,6 +1622,10 @@ namespace rubinius {
       ip.fixnum_compare_operation(cGreaterThan);
     } else if(prim == Primitives::fixnum_ge && count_ == 1) {
       ip.fixnum_compare_operation(cGreaterThanEqual);
+    } else if(prim == Primitives::fixnum_left_shift && count_ == 1) {
+      ip.fixnum_left_shift();
+    } else if(prim == Primitives::fixnum_right_shift && count_ == 1) {
+      ip.fixnum_right_shift();
     } else if(prim == Primitives::object_equal && count_ == 1) {
       ip.object_equal();
     } else if(prim == Primitives::vm_object_equal && count_ == 2) {

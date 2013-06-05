@@ -221,7 +221,7 @@ namespace rubinius {
   }
 
   Bignum* Bignum::create(STATE) {
-    Bignum* o = state->new_object<Bignum>(G(bignum));
+    Bignum* o = state->new_object_dirty<Bignum>(G(bignum));
     mp_init_managed(state, o->mp_val());
     return o;
   }
