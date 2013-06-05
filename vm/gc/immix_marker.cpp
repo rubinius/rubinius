@@ -178,13 +178,14 @@ namespace rubinius {
         state->restart_world();
       }
 
-      utilities::thread::Mutex::LockGuard lg(run_lock_);
-      if(exit_) break;
-      state->gc_independent(gct, 0);
-      paused_ = true;
-      pause_cond_.signal();
-      run_cond_.wait(run_lock_);
-
+      {
+        utilities::thread::Mutex::LockGuard lg(run_lock_);
+        if(exit_) break;
+        state->gc_independent(gct, 0);
+        paused_ = true;
+        pause_cond_.signal();
+        run_cond_.wait(run_lock_);
+      }
       state->gc_dependent(gct, 0);
     }
     state->memory()->clear_mature_mark_in_progress();
