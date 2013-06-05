@@ -68,8 +68,8 @@ describe :io_new, :shared => true do
     end
 
     it "uses the internal encoding specified via the :internal_encoding option" do
-      @io = IO.send(@method, @fd, 'w', {:internal_encoding => 'iso-8859-1'})
-      @io.internal_encoding.to_s.should == 'ISO-8859-1'
+      @io = IO.send(@method, @fd, 'w', {:internal_encoding => 'ibm866'})
+      @io.internal_encoding.to_s.should == 'IBM866'
     end
 
     it "uses the colon-separated encodings specified via the :encoding option" do
@@ -84,8 +84,8 @@ describe :io_new, :shared => true do
     end
 
     it "ingores the :encoding option when the :internal_encoding option is present" do
-      @io = IO.send(@method, @fd, 'w', {:internal_encoding => 'iso-8859-1', :encoding => 'iso-8859-1:iso-8859-1'})
-      @io.internal_encoding.to_s.should == 'ISO-8859-1'
+      @io = IO.send(@method, @fd, 'w', {:internal_encoding => 'ibm866', :encoding => 'iso-8859-1:iso-8859-1'})
+      @io.internal_encoding.to_s.should == 'IBM866'
     end
 
     it "uses the encoding specified via the :mode option hash" do
@@ -189,8 +189,8 @@ describe :io_new, :shared => true do
     end
 
     it "does not use binary encoding when :internal_encoding option is specified" do
-      @io = IO.send(@method, @fd, 'wb', :internal_encoding => "iso-8859-1")
-      @io.internal_encoding.to_s.should == 'ISO-8859-1'
+      @io = IO.send(@method, @fd, 'wb', :internal_encoding => "ibm866")
+      @io.internal_encoding.to_s.should == 'IBM866'
     end
 
     ruby_version_is "1.9.3" do
