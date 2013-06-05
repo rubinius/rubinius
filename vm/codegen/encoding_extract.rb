@@ -10,7 +10,7 @@ else
   end
 end
 
-# This sort logic is ctitical for determining the encoding index, which is
+# This sort logic is critical for determining the encoding index, which is
 # internally used in String#<=>.
 # It must be IDENTICAL to MRI's counterpart logic.
 
