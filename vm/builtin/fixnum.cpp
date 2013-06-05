@@ -332,14 +332,22 @@ namespace rubinius {
     }
 
     native_int self = to_native();
-    native_int check = self < 0 ? -self : self;
-
-    if(shift >= (native_int)FIXNUM_WIDTH
-        || check >> ((native_int)FIXNUM_WIDTH - shift) > 0) {
+    if(shift >= (native_int)FIXNUM_WIDTH) {
       return Bignum::from(state, self)->left_shift(state, bits);
     }
 
-    return Fixnum::from(self << shift);
+    native_int answer = self << shift;
+    native_int check = answer >> shift;
+
+    if(self != check) {
+      return Bignum::from(state, self)->left_shift(state, bits);
+    }
+
+    if(answer > FIXNUM_MAX || answer < FIXNUM_MIN) {
+      return Bignum::from(state, answer);
+    } else {
+      return Fixnum::from(answer);
+    }
   }
 
   Integer* Fixnum::right_shift(STATE, Fixnum* bits) {
@@ -350,7 +358,7 @@ namespace rubinius {
 
     // boundary case. Don't overflow the bits back to their original
     // value like C does, just say it's 0.
-    if(shift >= (native_int)((sizeof(native_int)*CHAR_BIT)-1)) {
+    if(shift > FIXNUM_WIDTH) {
       if(to_native() >= 0) return Fixnum::from(0);
       return Fixnum::from(-1);
     }
