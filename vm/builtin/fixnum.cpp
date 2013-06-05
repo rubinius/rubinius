@@ -358,7 +358,7 @@ namespace rubinius {
 
     // boundary case. Don't overflow the bits back to their original
     // value like C does, just say it's 0.
-    if(shift > FIXNUM_WIDTH) {
+    if(shift > (native_int)FIXNUM_WIDTH) {
       if(to_native() >= 0) return Fixnum::from(0);
       return Fixnum::from(-1);
     }
