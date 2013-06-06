@@ -200,10 +200,10 @@ namespace rubinius {
 
     /// The original configured lifetime objects had to survive before being
     /// promoted to the mature generation
-    int original_lifetime_;
+    unsigned int original_lifetime_;
 
     /// The current lifetime objects have to survive before being promoted
-    int lifetime_;
+    unsigned int lifetime_;
 
     /// Count of the number of objects that were promoted to the mature
     /// generation on the current collection due to lack of space in the Next
