@@ -459,12 +459,12 @@ namespace rubinius {
 
     if(!maybe_recompile(state, string)) return 0;
 
-    int begin_reg[10] = { ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
+    OnigPosition begin_reg[10] = { ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
                          ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
                          ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
                          ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
                          ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS };
-    int end_reg[10] =  { ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
+    OnigPosition end_reg[10] =  { ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
                          ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
                          ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
                          ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
@@ -539,12 +539,12 @@ namespace rubinius {
 
     if(!maybe_recompile(state, string)) return 0;
 
-    int begin_reg[10] = { ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
+    OnigPosition begin_reg[10] = { ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
                          ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
                          ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
                          ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
                          ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS };
-    int end_reg[10] =  { ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
+    OnigPosition end_reg[10] =  { ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
                          ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
                          ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
                          ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
@@ -603,12 +603,12 @@ namespace rubinius {
 
     str += pos;
 
-    int begin_reg[10] = { ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
+    OnigPosition begin_reg[10] = { ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
                          ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
                          ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
                          ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
                          ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS };
-    int end_reg[10] =  { ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
+    OnigPosition end_reg[10] =  { ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
                          ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
                          ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
                          ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
