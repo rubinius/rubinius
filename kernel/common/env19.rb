@@ -22,9 +22,9 @@ module Rubinius
       self
     end
 
-    def select!(&block)
+    def select!
       return to_enum(:select!) unless block_given?
-      reject! {|k, v| !block.call(k, v) }
+      reject! { |k, v| !yield(k, v) }
     end
 
     def assoc(key)

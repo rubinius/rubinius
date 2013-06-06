@@ -238,7 +238,7 @@ module Rubinius
       hsh
     end
 
-    def update(other, &block)
+    def update(other)
       if block_given?
         other.each { |k, v| self[k] = yield(k, self[k], v) }
       else

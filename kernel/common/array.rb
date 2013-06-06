@@ -356,7 +356,7 @@ class Array
     end
   end
 
-  def cycle(n=nil, &block)
+  def cycle(n=nil)
     return to_enum(:cycle, n) unless block_given?
 
     # Don't use nil? because, historically, lame code has overridden that method
@@ -398,7 +398,7 @@ class Array
     obj
   end
 
-  def delete_if(&block)
+  def delete_if
     return to_enum(:delete_if) unless block_given?
 
     Rubinius.check_frozen

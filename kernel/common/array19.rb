@@ -342,7 +342,7 @@ class Array
   # Implementation notes: We build a block that will generate all the
   # combinations by building it up successively using "inject" and starting
   # with one responsible to append the values.
-  def product(*args, &block)
+  def product(*args)
     args.map! { |x| Rubinius::Type.coerce_to(x, Array, :to_ary) }
 
     # Check the result size will fit in an Array.
