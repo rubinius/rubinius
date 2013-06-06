@@ -255,6 +255,7 @@ namespace rubinius {
     OnigEncoding enc;
 
     OnigOptionType opts = options->to_native();
+    Encoding* original_enc = pattern->encoding(state);
 
     if(LANGUAGE_18_ENABLED(state)) {
       int kcode = opts & KCODE_MASK;
@@ -274,7 +275,7 @@ namespace rubinius {
       fixed_encoding_ = opts & OPTION_FIXEDENCODING;
       no_encoding_    = opts & OPTION_NOENCODING;
 
-      Encoding* source_enc = pattern->encoding(state);
+      Encoding* source_enc = original_enc;
 
       switch(opts & KCODE_MASK) {
       case KCODE_NONE:
@@ -312,12 +313,10 @@ namespace rubinius {
 
     if(err != ONIG_NORMAL) {
 
-      if(LANGUAGE_18_ENABLED(state)) {
-        // Retry with the encoding of the pattern in 1.8 mode here
-        enc = ONIG_ENCODING_ASCII;
-        fixed_encoding_ = true;
-        err = onig_new(&reg, pat, end, opts & OPTION_MASK, enc, ONIG_SYNTAX_RUBY, &err_info);
-      }
+      enc = original_enc->get_encoding();
+      fixed_encoding_ = true;
+      err = onig_new(&reg, pat, end, opts & OPTION_MASK, enc, ONIG_SYNTAX_RUBY, &err_info);
+      pattern->encoding(state, original_enc);
 
       if(err != ONIG_NORMAL) {
         UChar onig_err_buf[ONIG_MAX_ERROR_MESSAGE_LEN];
