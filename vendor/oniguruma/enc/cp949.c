@@ -211,9 +211,10 @@ OnigEncodingDefine(cp949, CP949) = {
   onigenc_not_support_get_ctype_code_range,
   cp949_left_adjust_char_head,
   cp949_is_allowed_reverse_match,
-  0
+  0,
+  ONIGENC_FLAG_NONE,
 };
-ENC_DEFINE("CP949", CP949)
+ENC_DEFINE("CP949", CP949);
 /*
  * Name: CP949
  * Link: http://www.microsoft.com/globaldev/reference/dbcs/949.mspx

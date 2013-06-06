@@ -188,7 +188,8 @@ OnigEncodingDefine(euc_kr, EUC_KR) = {
   onigenc_not_support_get_ctype_code_range,
   euckr_left_adjust_char_head,
   euckr_is_allowed_reverse_match,
-  0
+  0,
+  ONIGENC_FLAG_NONE,
 };
 ENC_DEFINE("EUC-KR", EUC_KR)
 ENC_ALIAS("eucKR", "EUC-KR")

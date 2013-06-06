@@ -25,7 +25,6 @@ extern "C" {
 #include <stdlib.h>
 #include <inttypes.h>
 
-
 #define WORDINDEX_SHIFT_BITS 2
 #define WORDINDEX2INFO(widx)      ((widx) << WORDINDEX_SHIFT_BITS)
 #define INFO2WORDINDEX(info)      ((info) >> WORDINDEX_SHIFT_BITS)
@@ -234,6 +233,16 @@ int rb_econv_add_transcoder_at(rb_econv_t *ec, const rb_transcoder *tr, int i);
 
 #if defined __GNUC__ && __GNUC__ >= 4
 #pragma GCC visibility pop
+#endif
+
+/*
+ * To get rid of collision of initializer symbols in statically-linked encodings
+ * and transcoders
+ */
+#if defined(EXTSTATIC) && EXTSTATIC
+# define TRANS_INIT(name) void Init_trans_ ## name(void)
+#else
+# define TRANS_INIT(name) void Init_ ## name(void)
 #endif
 
 #ifdef __cplusplus

@@ -229,7 +229,8 @@ OnigEncodingDefine(iso_8859_9, ISO_8859_9) = {
   onigenc_not_support_get_ctype_code_range,
   onigenc_single_byte_left_adjust_char_head,
   onigenc_always_true_is_allowed_reverse_match,
-  0
+  0,
+  ONIGENC_FLAG_NONE,
 };
 ENC_DEFINE("ISO-8859-9", ISO_8859_9)
 ENC_ALIAS("ISO8859-9", "ISO-8859-9")

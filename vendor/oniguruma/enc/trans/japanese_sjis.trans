@@ -1,4 +1,4 @@
-#include "transcode_data.h"
+#include "transcoder.h"
 
 <%
   transcode_tblgen "Shift_JIS", "UTF-8",
@@ -27,8 +27,7 @@
 
 <%= transcode_generated_code %>
 
-void
-Init_japanese_sjis(void)
+TRANS_INIT(japanese_sjis)
 {
 <%= transcode_register_code %>
 }

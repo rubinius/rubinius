@@ -1,4 +1,4 @@
-#include "transcode_data.h"
+#include "transcoder.h"
 
 <%
   us_ascii_map = [["{00-7f}", :nomap]]
@@ -43,6 +43,7 @@
   transcode_tblgen_singlebyte "ISO-8859-13"
   transcode_tblgen_singlebyte "ISO-8859-14"
   transcode_tblgen_singlebyte "ISO-8859-15"
+  transcode_tblgen_singlebyte "ISO-8859-16"
   transcode_tblgen_singlebyte "WINDOWS-874"
   transcode_tblgen_singlebyte "WINDOWS-1250"
   transcode_tblgen_singlebyte "WINDOWS-1251"
@@ -83,8 +84,7 @@
 
 <%= transcode_generated_code %>
 
-void
-Init_single_byte(void)
+TRANS_INIT(single_byte)
 {
 <%= transcode_register_code %>
 }

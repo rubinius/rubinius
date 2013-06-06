@@ -63,9 +63,8 @@ capture_tree_traverse(OnigCaptureTreeNode* node, int at,
 }
 #endif /* USE_CAPTURE_HISTORY */
 
-extern int
-onig_capture_tree_traverse(OnigRegion* region, int at,
-                  int(*callback_func)(int,int,int,int,int,void*), void* arg)
+
+int onig_capture_tree_traverse P_((OnigRegion* region, int at, int(*callback_func)(int,OnigPosition,OnigPosition,int,int,void*), void* arg))
 {
 #ifdef USE_CAPTURE_HISTORY
   return capture_tree_traverse(region->history_root, at,

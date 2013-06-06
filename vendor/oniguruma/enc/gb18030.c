@@ -597,7 +597,7 @@ OnigEncodingDefine(gb18030, GB18030) = {
   onigenc_not_support_get_ctype_code_range,
   gb18030_left_adjust_char_head,
   gb18030_is_allowed_reverse_match,
-  0
+  0,
+  ONIGENC_FLAG_NONE,
 };
-
 ENC_DEFINE("GB18030", GB18030)

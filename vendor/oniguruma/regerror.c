@@ -1,8 +1,9 @@
 /**********************************************************************
-  regerror.c -  Oniguruma (regular expression library)
+  regerror.c -  Onigmo (Oniguruma-mod) (regular expression library)
 **********************************************************************/
 /*-
  * Copyright (c) 2002-2007  K.Kosako  <sndgk393 AT ybb DOT ne DOT jp>
+ * Copyright (c) 2011       K.Takata  <kentkt AT csc DOT jp>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +28,19 @@
  * SUCH DAMAGE.
  */
 
-#include "oniguruma.h"
 #include "regint.h"
-
 #include <stdio.h> /* for vsnprintf() */
-#include <string.h>
+
+#ifdef HAVE_STDARG_PROTOTYPES
 #include <stdarg.h>
+#define va_init_list(a,b) va_start(a,b)
+#else
+#include <varargs.h>
+#define va_init_list(a,b) va_start(a)
+#endif
 
 extern UChar*
-onig_error_code_to_format(int code)
+onig_error_code_to_format(OnigPosition code)
 {
   const char *p;
 
@@ -60,8 +65,8 @@ onig_error_code_to_format(int code)
     p = "undefined bytecode (bug)"; break;
   case ONIGERR_UNEXPECTED_BYTECODE:
     p = "unexpected bytecode (bug)"; break;
-  case ONIGERR_DEFAULT_ENCODING_IS_NOT_SETTED:
-    p = "default multibyte-encoding is not setted"; break;
+  case ONIGERR_DEFAULT_ENCODING_IS_NOT_SET:
+    p = "default multibyte-encoding is not set"; break;
   case ONIGERR_SPECIFIED_ENCODING_CANT_CONVERT_TO_WIDE_CHAR:
     p = "can't convert to wide-char on specified multibyte-encoding"; break;
   case ONIGERR_INVALID_ARGUMENT:
@@ -110,6 +115,8 @@ onig_error_code_to_format(int code)
     p = "invalid pattern in look-behind"; break;
   case ONIGERR_INVALID_REPEAT_RANGE_PATTERN:
     p = "invalid repeat range {lower,upper}"; break;
+  case ONIGERR_INVALID_CONDITION_PATTERN:
+    p = "invalid conditional pattern"; break;
   case ONIGERR_TOO_BIG_NUMBER:
     p = "too big number"; break;
   case ONIGERR_TOO_BIG_NUMBER_FOR_REPEAT_RANGE:
@@ -136,6 +143,8 @@ onig_error_code_to_format(int code)
     p = "numbered backref/call is not allowed. (use name)"; break;
   case ONIGERR_TOO_BIG_WIDE_CHAR_VALUE:
     p = "too big wide-char value"; break;
+  case ONIGERR_TOO_SHORT_DIGITS:
+    p = "too short digits"; break;
   case ONIGERR_TOO_LONG_WIDE_CHAR_VALUE:
     p = "too long wide-char value"; break;
   case ONIGERR_INVALID_CODE_POINT_VALUE:
@@ -228,7 +237,7 @@ static int to_ascii(OnigEncoding enc, UChar *s, UChar *end,
     *is_over = ((p < end) ? 1 : 0);
   }
   else {
-    len = (int)MIN((end - s), buf_size);
+    len = (int )MIN((end - s), buf_size);
     xmemcpy(buf, s, (size_t )len);
     *is_over = ((buf_size < (end - s)) ? 1 : 0);
   }
@@ -241,7 +250,14 @@ static int to_ascii(OnigEncoding enc, UChar *s, UChar *end,
 #define MAX_ERROR_PAR_LEN   30
 
 extern int
-onig_error_code_to_str(UChar* s, int code, ...)
+#ifdef HAVE_STDARG_PROTOTYPES
+onig_error_code_to_str(UChar* s, OnigPosition code, ...)
+#else
+onig_error_code_to_str(s, code, va_alist)
+  UChar* s;
+  OnigPosition code;
+  va_dcl
+#endif
 {
   UChar *p, *q;
   OnigErrorInfo* einfo;
@@ -250,7 +266,7 @@ onig_error_code_to_str(UChar* s, int code, ...)
   UChar parbuf[MAX_ERROR_PAR_LEN];
   va_list vargs;
 
-  va_start(vargs, code);
+  va_init_list(vargs, code);
 
   switch (code) {
   case ONIGERR_UNDEFINED_NAME_REFERENCE:
@@ -298,7 +314,7 @@ onig_error_code_to_str(UChar* s, int code, ...)
   }
 
   va_end(vargs);
-  return (int)len;
+  return (int )len;
 }
 
 void
@@ -314,7 +330,7 @@ onig_vsnprintf_with_pattern(UChar buf[], int bufsize, OnigEncoding enc,
 
   need = (pat_end - pat) * 4 + 4;
 
-  if (n + need < (size_t)bufsize) {
+  if (n + need < (size_t )bufsize) {
     strcat((char* )buf, ": /");
     s = buf + onigenc_str_bytelen_null(ONIG_ENCODING_ASCII, buf);
 
@@ -363,11 +379,22 @@ onig_vsnprintf_with_pattern(UChar buf[], int bufsize, OnigEncoding enc,
 }
 
 void
+#ifdef HAVE_STDARG_PROTOTYPES
 onig_snprintf_with_pattern(UChar buf[], int bufsize, OnigEncoding enc,
                            UChar* pat, UChar* pat_end, const UChar *fmt, ...)
+#else
+onig_snprintf_with_pattern(buf, bufsize, enc, pat, pat_end, fmt, va_alist)
+    UChar buf[];
+    int bufsize;
+    OnigEncoding enc;
+    UChar* pat;
+    UChar* pat_end;
+    const UChar *fmt;
+    va_dcl
+#endif
 {
   va_list args;
-  va_start(args, fmt);
+  va_init_list(args, fmt);
   onig_vsnprintf_with_pattern(buf, bufsize, enc,
 	  pat, pat_end, fmt, args);
   va_end(args);
