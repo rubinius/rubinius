@@ -343,13 +343,15 @@ public:
 
     young->field[0] = mature; // dangerous, but ok in tests
 
+    unsigned int mark = om.mark();
+    TS_ASSERT(!young->marked_p(mark));
     Root r(roots, young);
 
     om.collect_mature(state, gc_data);
     om.wait_for_mature_marker(state);
     gc_data = NULL;
 
-    TS_ASSERT_EQUALS(young->marked_p(om.mark()), 0U);
+    TS_ASSERT(young->marked_p(mark));
   }
 
   /* Could segfault on failure due to infinite loop. */
