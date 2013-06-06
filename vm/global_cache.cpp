@@ -211,7 +211,7 @@ keep_looking:
     }
   }
 
-  void GlobalCache::prune_unmarked(int mark) {
+  void GlobalCache::prune_unmarked(unsigned int mark) {
     for(size_t i = 0; i < CPU_CACHE_SIZE; i++) {
       CacheEntry* entry = &entries[i];
       Object* klass = entry->klass;

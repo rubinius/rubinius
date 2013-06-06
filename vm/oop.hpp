@@ -202,7 +202,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     int rec_lock_count_;
 
     uint32_t object_id_;
-    int mark_;
+    unsigned int mark_;
 
   public:
 
@@ -256,7 +256,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     }
 
     bool marked_p(unsigned int which) const {
-      return mark_ == (int)which;
+      return mark_ == which;
     }
 
     void mark(ObjectMemory* om, unsigned int which) {
@@ -486,7 +486,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     void mark(ObjectMemory* om, unsigned int which);
 
-    int which_mark() const {
+    unsigned int which_mark() const {
       return flags().Marked;
     }
 

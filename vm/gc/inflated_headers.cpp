@@ -22,7 +22,7 @@ namespace rubinius {
     return header;
   }
 
-  void InflatedHeaders::deallocate_headers(int mark) {
+  void InflatedHeaders::deallocate_headers(unsigned int mark) {
     std::vector<bool> chunk_marks(allocator_->chunks_.size(), false);
     for(std::vector<int>::size_type i = 0; i < allocator_->chunks_.size(); ++i) {
       InflatedHeader* chunk = allocator_->chunks_[i];

@@ -78,7 +78,7 @@ namespace rubinius {
     bool has_seen(STATE, Symbol* sym);
     void add_seen(STATE, Symbol* sym);
 
-    void prune_unmarked(int mark);
+    void prune_unmarked(unsigned int mark);
 
     void retain(STATE, Module* cls, Symbol* name, Module* mod, Executable* meth,
                 Symbol* visibility) {
