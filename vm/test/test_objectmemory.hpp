@@ -319,7 +319,7 @@ public:
     mature = util_new_object(om,20);
 
     TS_ASSERT(mature->mature_object_p());
-    int mark = om.mark();
+    unsigned int mark = om.mark();
     TS_ASSERT(!mature->marked_p(mark));
     Root r(roots, mature);
 

@@ -36,7 +36,7 @@ namespace rubinius {
 
       bool validate(Handle* handle);
 
-      void deallocate_handles(std::list<Handle*>* cached, int mark, BakerGC* young);
+      void deallocate_handles(std::list<Handle*>* cached, unsigned int mark, BakerGC* young);
 
       void flush_all(NativeMethodEnvironment* env);
 

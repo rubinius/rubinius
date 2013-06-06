@@ -58,7 +58,7 @@ namespace rubinius {
       delete allocator_;
     }
 
-    void Handles::deallocate_handles(std::list<Handle*>* cached, int mark, BakerGC* young) {
+    void Handles::deallocate_handles(std::list<Handle*>* cached, unsigned int mark, BakerGC* young) {
       std::vector<bool> chunk_marks(allocator_->chunks_.size(), false);
 
       for(std::vector<int>::size_type i = 0; i < allocator_->chunks_.size(); ++i) {

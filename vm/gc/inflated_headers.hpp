@@ -29,7 +29,7 @@ namespace rubinius {
       return allocator_->from_index(index);
     }
 
-    void deallocate_headers(int mark);
+    void deallocate_headers(unsigned int mark);
     void allocate_chunk();
   };
 }
