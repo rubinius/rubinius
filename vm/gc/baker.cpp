@@ -477,25 +477,22 @@ namespace rubinius {
       if(fi.object->young_object_p()) {
         live = fi.object->forwarded_p();
         fi.object = saw_object(fi.object);
+      } else {
+        // If this object is mature, scan it. This
+        // means that any young objects it refers to are properly
+        // GC'ed and kept alive if necessary
+        scan_object(fi.object);
       }
 
-      // If this object is mature, handle it as if promoted. This
-      // means that any young objects it refers to are properly
-      // GC'ed and kept alive if necessary
-      if(fi.object->mature_object_p()) {
-        promoted_push(fi.object);
-      }
-
-      Object *fin = fi.ruby_finalizer;
+      Object* fin = fi.ruby_finalizer;
       if(fin && fin->reference_p()) {
         if(fin->young_object_p()) {
           fi.ruby_finalizer = saw_object(fin);
-        }
-        // If this object is mature, handle it as if promoted. This
-        // means that any young objects it refers to are properly
-        // GC'ed and kept alive if necessary
-        if(fin->mature_object_p()) {
-          promoted_push(fin);
+        } else {
+          // If this object is mature, scan it. This
+          // means that any young objects it refers to are properly
+          // GC'ed and kept alive if necessary
+          scan_object(fin);
         }
       }
 
