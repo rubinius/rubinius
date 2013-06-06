@@ -295,11 +295,6 @@ namespace rubinius {
         process_item_->object->clear_handle(state);
       }
 
-      // If the object was remembered, unremember it.
-      if(process_item_->object->remembered_p()) {
-        state->memory()->unremember_object(process_item_->object);
-      }
-
       process_item_->status = FinalizeObject::eReleased;
 
       break;
