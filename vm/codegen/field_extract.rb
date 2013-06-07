@@ -1273,25 +1273,6 @@ class PrimitiveCodeGenerator
   end
 
   def method_resolver
-
-    write_if_new "vm/gen/method_name_roots.hpp" do |f|
-      @names.each do |name|
-        f.puts "TypedRoot<Symbol*> sym_#{name};"
-      end
-    end
-
-    write_if_new "vm/gen/method_name_roots_initialization.hpp" do |f|
-      @names.each do |name|
-        f.puts "sym_#{name}(&roots),"
-      end
-    end
-
-    write_if_new "vm/gen/method_name_ontology.hpp" do |f|
-      @names.each do |name|
-        f.puts "add_sym(#{name});"
-      end
-    end
-
     write_if_new "vm/gen/method_resolver.cpp" do |f|
       f.puts "executor Primitives::resolve_primitive(STATE, Symbol* name, int* index) {"
 
@@ -1299,7 +1280,7 @@ class PrimitiveCodeGenerator
         @indexes[name] = index
 
         f.puts <<-EOC
-  if(name == G(sym_#{name})) {
+  if(name == state->symbol("#{name}", #{name.bytesize})) {
     if(index) *index = #{index};
     return &Primitives::#{name};
   }

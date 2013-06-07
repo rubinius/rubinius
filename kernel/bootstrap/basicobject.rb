@@ -36,7 +36,7 @@ class BasicObject
   end
 
   def __id__
-    Rubinius.primitive :object_object_id
+    Rubinius.primitive :object_id
     raise ::PrimitiveFailure, "BasicObject#__id__ primitive failed"
   end
 end

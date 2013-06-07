@@ -123,9 +123,9 @@ namespace rubinius {
 
     State state(this);
 
-    bootstrap_ontology(&state);
-
     TypeInfo::auto_learn_fields(&state);
+
+    bootstrap_ontology(&state);
 
     MachineCode::init(&state);
 
