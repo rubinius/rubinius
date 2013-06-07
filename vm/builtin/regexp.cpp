@@ -128,7 +128,11 @@ namespace rubinius {
   }
 
   regex_t* Regexp::onig_source_data(STATE) {
-    return onig_data[0];
+    return onig_data[source()->encoding(state)->cache_index()];
+  }
+
+  regex_t* Regexp::onig_data_encoded(STATE, Encoding* enc) {
+    return onig_data[enc->cache_index()];
   }
 
   regex_t* Regexp::make_managed(STATE, Encoding* enc, regex_t* reg) {
@@ -192,7 +196,7 @@ namespace rubinius {
       obj->write_barrier(state, rrange);
     }
 
-    obj->onig_data[0] = reg;
+    obj->onig_data[enc->cache_index()] = reg;
     obj->write_barrier(state, reg_ba);
 
     onig_free(orig);
@@ -212,9 +216,11 @@ namespace rubinius {
     if(fixed_encoding_) return onig_source_data(state);
 
     Encoding* string_enc = string->get_encoding_kcode_fallback(state);
-    enc = string_enc->get_encoding();
+    regex_t* onig_encoded = onig_data_encoded(state, string_enc);
 
-    if(enc == onig_source_data(state)->enc) return onig_source_data(state);
+    if(onig_encoded) return onig_encoded;
+
+    enc = string_enc->get_encoding();
 
     Encoding* source_enc = source()->encoding(state);
     String* converted = source()->convert_escaped(state, source_enc, fixed_encoding_);

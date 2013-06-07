@@ -93,6 +93,7 @@ namespace rubinius {
 
     regex_t* make_managed(STATE, Encoding* enc, regex_t* reg);
     regex_t* onig_source_data(STATE);
+    regex_t* onig_data_encoded(STATE, Encoding* enc);
 
     class Info : public TypeInfo {
     public:

@@ -31,12 +31,17 @@ namespace rubinius {
     String* name_;    // slot
     Object* dummy_;   // slot
 
-    bool managed_;
     OnigEncodingType* encoding_;
+    int cache_index_;
+    bool managed_;
 
   public:
     attr_accessor(name, String);
     attr_accessor(dummy, Object);
+
+    int cache_index() const {
+      return cache_index_;
+    }
 
     static void init(STATE);
 
