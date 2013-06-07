@@ -18,6 +18,10 @@ namespace rubinius {
   class Tuple;
   class LookupTable;
 
+  // Cache up to 4 entries, for ASCII, Binary, UTF-8
+  // and other encodings.
+  const static int cCachedOnigDatas = 4;
+
   class Regexp : public Object {
   public:
     const static object_type type = RegexpType;
@@ -25,7 +29,7 @@ namespace rubinius {
   private:
     String* source_;     // slot
     LookupTable* names_; // slot
-    regex_t* onig_data;
+    regex_t* onig_data[cCachedOnigDatas];
     utilities::thread::SpinLock lock_;
     bool fixed_encoding_;
     bool no_encoding_;
@@ -47,7 +51,7 @@ namespace rubinius {
      */
     // Rubinius.primitive :regexp_initialize
     Regexp* initialize(STATE, String* pattern, Fixnum* options);
-    bool maybe_recompile(STATE, String* string);
+    regex_t* maybe_recompile(STATE, String* string);
 
     // Rubinius.primitive :regexp_options
     Fixnum* options(STATE);
@@ -87,7 +91,9 @@ namespace rubinius {
 
     Encoding* encoding(STATE, Encoding* enc);
 
-    void make_managed(STATE, regex_t* reg);
+    regex_t* make_managed(STATE, Encoding* enc, regex_t* reg);
+    regex_t* onig_source_data(STATE);
+    regex_t* onig_data_encoded(STATE, Encoding* enc);
 
     class Info : public TypeInfo {
     public:

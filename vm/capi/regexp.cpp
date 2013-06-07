@@ -12,6 +12,8 @@
 #include "capi/capi.hpp"
 #include "capi/18/include/ruby.h"
 
+#include "util/spinlock.hpp"
+
 using namespace rubinius;
 using namespace rubinius::capi;
 
@@ -48,5 +50,15 @@ extern "C" {
 
   VALUE rb_backref_get(void) {
     return rb_gv_get("$~");
+  }
+
+  static int onig_lock = RBX_SPINLOCK_UNLOCKED;
+
+  void capi_reg_lock() {
+    rbx_spinlock_lock(&onig_lock);
+  }
+
+  void capi_reg_unlock() {
+    rbx_spinlock_unlock(&onig_lock);
   }
 }

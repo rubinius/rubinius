@@ -115,12 +115,12 @@
 #define USE_FIND_LONGEST_SEARCH_ALL_OF_RANGE
 /* #define USE_COMBINATION_EXPLOSION_CHECK */     /* (X*)* */
 
-/* #define USE_MULTI_THREAD_SYSTEM */
-#define THREAD_SYSTEM_INIT      /* depend on thread system */
-#define THREAD_SYSTEM_END       /* depend on thread system */
-#define THREAD_ATOMIC_START     /* depend on thread system */
-#define THREAD_ATOMIC_END       /* depend on thread system */
-#define THREAD_PASS             /* depend on thread system */
+#define USE_MULTI_THREAD_SYSTEM
+#define THREAD_SYSTEM_INIT      /* No need on Rubinius, we initialize once single threaded */
+#define THREAD_SYSTEM_END       /* No need on Rubinius, we initialize once single threaded */
+#define THREAD_ATOMIC_START     capi_reg_lock()
+#define THREAD_ATOMIC_END       capi_reg_unlock()
+#define THREAD_PASS             atomic::pause()
 #ifndef xmalloc
 #define xmalloc     malloc
 #define xrealloc    realloc

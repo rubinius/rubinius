@@ -133,6 +133,7 @@ namespace rubinius {
 
     e->dummy(state, dummy);
     e->encoding_ = enc;
+    e->cache_index_ = cCachedOnigDatas - 1;
     e->managed_ = false;
 
     return e;
@@ -142,6 +143,8 @@ namespace rubinius {
                                        Index index, OnigEncodingType* enc)
   {
     Encoding* e = create(state, enc);
+    e->cache_index_ = (int) index;
+
     Tuple* ref = encoding_reference(state, index);
     encoding_map(state)->store(state, encoding_symbol(state, name), ref);
     encoding_list(state)->set(state, index, e);
