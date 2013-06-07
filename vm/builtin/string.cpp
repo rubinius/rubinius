@@ -1762,23 +1762,23 @@ namespace rubinius {
     return Fixnum::from(b - s);
   }
 
-  OnigEncodingType* String::get_encoding_kcode_fallback(STATE) {
+  Encoding* String::get_encoding_kcode_fallback(STATE) {
     if(!LANGUAGE_18_ENABLED(state)) {
       if(!encoding_->nil_p()) {
-        return encoding_->get_encoding();
+        return encoding_;
       }
     }
 
     switch(state->shared().kcode_page()) {
     default:
     case kcode::eAscii:
-      return ONIG_ENCODING_ASCII;
+      return Encoding::ascii8bit_encoding(state);
     case kcode::eEUC:
-      return ONIG_ENCODING_EUC_JP;
+      return Encoding::find(state, "EUC-JP");
     case kcode::eSJIS:
-      return ONIG_ENCODING_Shift_JIS;
+      return Encoding::find(state, "Windows-31J");
     case kcode::eUTF8:
-      return ONIG_ENCODING_UTF_8;
+      return Encoding::utf8_encoding(state);
     }
   }
 
@@ -1791,7 +1791,7 @@ namespace rubinius {
 
     String* output = 0;
 
-    OnigEncodingType* enc = get_encoding_kcode_fallback(state);
+    OnigEncodingType* enc = get_encoding_kcode_fallback(state)->get_encoding();
 
     if(ONIGENC_MBC_MAXLEN(enc) == 1) {
       output = String::create(state, reinterpret_cast<const char*>(cur), 1);

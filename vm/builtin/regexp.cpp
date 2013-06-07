@@ -204,7 +204,7 @@ namespace rubinius {
 
     if(fixed_encoding_) return true;
 
-    enc = string->get_encoding_kcode_fallback(state);
+    enc = string->get_encoding_kcode_fallback(state)->get_encoding();
 
     if(enc == onig_data->enc) return true;
 
@@ -264,7 +264,7 @@ namespace rubinius {
       end = pat + pattern->byte_size();
 
       if(kcode == 0) {
-        enc = pattern->get_encoding_kcode_fallback(state);
+        enc = pattern->get_encoding_kcode_fallback(state)->get_encoding();
       } else {
         // Don't attempt to fix the encoding later, it's been specified by the
         // user.
