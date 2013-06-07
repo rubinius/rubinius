@@ -205,7 +205,7 @@ namespace rubinius {
 
 #define REGEXP_ONIG_ERROR_MESSAGE_LEN   ONIG_MAX_ERROR_MESSAGE_LEN + 1024
 
-  // Called with the onig_lock held.
+  // Called with the individual regexp lock held.
   regex_t* Regexp::maybe_recompile(STATE, String* string) {
     const UChar *pat;
     const UChar *end;
@@ -320,7 +320,6 @@ namespace rubinius {
       pattern->encoding(state, source_enc);
     }
 
-    utilities::thread::Mutex::LockGuard lg(state->shared().onig_lock());
     regex_t* reg;
 
     int err = onig_new(&reg, pat, end, opts & OPTION_MASK, enc, ONIG_SYNTAX_RUBY, &err_info);
@@ -536,8 +535,6 @@ namespace rubinius {
     if(unlikely(!onig_source_data(state))) {
       Exception::argument_error(state, "Not properly initialized Regexp");
     }
-
-    // utilities::thread::Mutex::LockGuard lg(state->shared().onig_lock());
 
     max = string->byte_size();
     native_int pos = start->to_native();

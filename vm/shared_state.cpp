@@ -180,7 +180,6 @@ namespace rubinius {
     // Reinit the locks for this object
     lock_init(state->vm());
     global_cache->reset();
-    onig_lock_.init();
     ruby_critical_lock_.init();
     capi_ds_lock_.init();
     capi_locks_lock_.init();
