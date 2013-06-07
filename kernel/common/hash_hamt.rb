@@ -486,7 +486,7 @@ class Hash
     nil
   end
 
-  def delete_if(&block)
+  def delete_if
     Rubinius.check_frozen
 
     return to_enum(:delete_if) unless block_given?
@@ -622,7 +622,7 @@ class Hash
     h
   end
 
-  def keep_if(&block)
+  def keep_if
     Rubinius.check_frozen
 
     return to_enum(:keep_if) unless block_given?

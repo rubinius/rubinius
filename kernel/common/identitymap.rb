@@ -259,7 +259,7 @@ module Rubinius
     end
     private :load
 
-    def match?(table, index, item, item_hash, &block)
+    def match?(table, index, item, item_hash)
       return false unless table[index] == item_hash
       other = table[index+1]
       if block_given?

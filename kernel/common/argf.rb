@@ -113,7 +113,7 @@ module Rubinius
     #
     def each(&block)
       return to_enum :each unless block_given?
-      each_line &block
+      each_line(&block)
       self
     end
 
@@ -145,7 +145,7 @@ module Rubinius
     #
     # @see  #getc
     #
-    def each_char(&block)
+    def each_char
       return to_enum :each_char unless block_given?
       while c = getc()
         yield c.chr

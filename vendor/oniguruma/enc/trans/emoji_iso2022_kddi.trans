@@ -1,4 +1,4 @@
-#include "transcode_data.h"
+#include "transcoder.h"
 
 <%
   # mapping from ISO-2022-JP-KDDI to stateless-ISO-2022-JP-KDDI
@@ -64,16 +64,16 @@ iso2022jp_kddi_init(void *statep)
     return 0;
 }
 
-static VALUE
+static unsigned int
 fun_si_iso2022jp_kddi_decoder(void *statep, const unsigned char *s, size_t l)
 {
     unsigned char *sp = statep;
     if (*sp == G0_ASCII)
-        return (VALUE)NOMAP;
-    else if (0x21 <= s[0] && s[0] <= 0x7e)
-        return (VALUE)iso2022jp_kddi_decoder_jisx0208_rest;
+        return NOMAP;
+    else if (0x2 <= s[0] && s[0] <= 0x7e)
+        return iso2022jp_kddi_decoder_jisx0208_rest;
     else
-        return (VALUE)INVALID;
+        return INVALID;
 }
 
 static ssize_t
@@ -208,8 +208,7 @@ rb_iso2022jp_kddi_encoder = {
     iso2022jp_kddi_encoder_reset_sequence_size, finish_iso2022jp_kddi_encoder
 };
 
-void
-Init_emoji_iso2022_kddi(void)
+TRANS_INIT(emoji_iso2022_kddi)
 {
     rb_register_transcoder(&rb_iso2022jp_kddi_decoder);
     rb_register_transcoder(&rb_iso2022jp_kddi_encoder);

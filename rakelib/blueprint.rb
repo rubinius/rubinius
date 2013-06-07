@@ -9,7 +9,7 @@ Daedalus.blueprint do |i|
   # -fno-omit-frame-pointer is needed to get a backtrace on FreeBSD.
   # It is enabled by default on OS X, on the other hand, not on Linux.
   # To use same build flags across platforms, it is added explicitly.
-  gcc.cflags << "-pipe -Wall -fno-omit-frame-pointer"
+  gcc.cflags << "-pipe -Wall -fno-omit-frame-pointer -g"
 
   # Due to a Clang bug (http://llvm.org/bugs/show_bug.cgi?id=9825),
   # -mno-omit-leaf-frame-pointer is needed for Clang on Linux.
@@ -232,7 +232,7 @@ Daedalus.blueprint do |i|
   gcc.cflags.unshift "-Ivm -Ivm/test/cxxtest -I. "
 
   gcc.cflags << "-Wno-unused-function"
-  gcc.cflags << "-g -Werror"
+  gcc.cflags << "-Werror"
   gcc.cflags << "-DRBX_PROFILER"
   gcc.cflags << "-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS"
   gcc.cflags << "-D_LARGEFILE_SOURCE"

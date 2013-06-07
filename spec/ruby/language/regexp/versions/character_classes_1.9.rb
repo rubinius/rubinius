@@ -497,3 +497,15 @@ end
 it "doesn't match Unicode private-use characters with [[:word:]]" do
   "\u{E001}".match(/[[:word:]]/).should be_nil
 end
+
+it "matches unicode named character properties" do
+  "a1".match(/\p{Alpha}/).to_a.should == ["a"]
+end
+
+it "matches unicode abbreviated character properties" do
+  "a1".match(/\p{L}/).to_a.should == ["a"]
+end
+
+it "matches unicode script properties" do
+  "a\u06E9b".match(/\p{Arabic}/).to_a.should == ["\u06E9"]
+end
