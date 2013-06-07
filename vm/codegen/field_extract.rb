@@ -1122,7 +1122,7 @@ write_if_new "vm/gen/typechecks.gen.cpp" do |f|
       symbol_name = "access_#{n}_#{name}"
       f.puts "    ti->slots[state->symbol(\"@#{name}\")->index()] = #{idx};"
       f.puts "    ti->slot_types[#{idx}] = #{type}::type;"
-      f.puts "    ti->slot_accessors[#{idx}] = Primitives::resolve_primitive(state, state->symbol(\"#{symbol_name}\", #{symbol_name.bytesize}));"
+      f.puts "    ti->slot_accessors[#{idx}] = &Primitives::#{symbol_name};"
     end
     f.puts "    ti->populate_slot_locations();"
     f.puts "  }"
