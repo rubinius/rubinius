@@ -1276,7 +1276,9 @@ namespace rubinius {
     ByteArray* ba = ByteArray::create_dirty(state, n);
 
     n = ONIGENC_CODE_TO_MBC(enc->get_encoding(), c, (UChar*)ba->raw_bytes());
-    if(n <= 0) invalid_codepoint_error(state, c);
+    if(Encoding::precise_mbclen(ba->raw_bytes(), ba->raw_bytes() + n, enc->get_encoding()) != n) {
+      invalid_codepoint_error(state, c);
+    }
 
     s->data(state, ba);
 
