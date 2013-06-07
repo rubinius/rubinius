@@ -250,7 +250,7 @@ namespace rubinius {
     Integer*  hash_prim(STATE);
 
     /** Returns an Integer ID for this object. Created as needed. */
-    // Rubinius.primitive :object_object_id
+    // Rubinius.primitive :object_id
     Integer*  id(STATE);
 
     /** Indicates if this object has been assigned an object id. */

@@ -554,7 +554,6 @@ namespace rubinius {
     add_sym(call);
     add_sym(coerce_to_array);
     add_sym(to_ary);
-#include "gen/method_name_ontology.hpp"
 #undef add_sym
     GO(sym_s_method_added).set(state->symbol("singleton_method_added"));
     GO(sym_init_copy).set(state->symbol("initialize_copy"));

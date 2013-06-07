@@ -135,7 +135,7 @@ module Kernel
   # on Kernel. But in 1.9, :__id__ is defined on BasicObject.
   #
   def object_id
-    Rubinius.primitive :object_object_id
+    Rubinius.primitive :object_id
     raise PrimitiveFailure, "Kernel#object_id primitive failed"
   end
 
