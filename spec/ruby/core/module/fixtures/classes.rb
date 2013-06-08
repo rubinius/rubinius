@@ -456,6 +456,23 @@ module ModuleSpecs
       end
     end
   end
+
+  module ShadowingOuter
+    module M
+      SHADOW = 123
+    end
+
+    module N
+      SHADOW = 456
+    end
+
+    class Foo
+      include M
+      def self.get
+        SHADOW
+      end
+    end
+  end
 end
 
 class Object
