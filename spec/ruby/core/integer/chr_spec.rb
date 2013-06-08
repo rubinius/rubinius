@@ -250,7 +250,15 @@ ruby_version_is "1.9" do
           [0x80,   "SHIFT_JIS"],
           [0xE0,   "SHIFT_JIS"],
           [0x0100, "ISO-8859-9"],
-          [620,    "TIS-620"]
+          [620,    "TIS-620"],
+          [0xD800, "UTF-8"],
+          [0xDBFF, "UTF-8"],
+          [0xDC00, "UTF-8"],
+          [0xDFFF, "UTF-8"],
+          [0xD800, "UTF-16"],
+          [0xDBFF, "UTF-16"],
+          [0xDC00, "UTF-16"],
+          [0xDFFF, "UTF-16"],
         ].each do |integer, encoding_name|
           lambda { integer.chr(encoding_name) }.should raise_error(RangeError)
         end
