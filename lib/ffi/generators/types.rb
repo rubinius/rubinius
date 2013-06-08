@@ -63,7 +63,7 @@ module FFI
       end
 
       def process(target)
-        "cpp #{@platform.defines} #{target}"
+        "#{@platform.compiler} -E #{@platform.defines} #{target}"
       end
 
       def process_failed
