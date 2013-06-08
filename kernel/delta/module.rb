@@ -110,6 +110,7 @@ class Module
     insert_at = klass
     mod = self
     changed = false
+    constants_changed = false
 
     while mod
 
@@ -159,6 +160,8 @@ class Module
         changed = true
       end
 
+      constants_changed ||= mod.constants.any?
+
       mod = mod.direct_superclass
     end
 
@@ -166,6 +169,10 @@ class Module
       method_table.each do |meth, obj, vis|
         Rubinius::VM.reset_method_cache klass, meth
       end
+    end
+
+    if constants_changed
+      Rubinius.inc_global_serial
     end
 
     return self

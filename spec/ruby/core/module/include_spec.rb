@@ -59,6 +59,12 @@ describe "Module#include" do
     end
   end
 
+  it "shadows constants from outer scopes" do
+    ModuleSpecs::ShadowingOuter::Foo.get.should == 123
+    ModuleSpecs::ShadowingOuter::Foo.send(:include, ModuleSpecs::ShadowingOuter::N)
+    ModuleSpecs::ShadowingOuter::Foo.get.should == 456
+  end
+
   it "does not override existing constants in modules and classes" do
     ModuleSpecs::A::OVERRIDE.should == :a
     ModuleSpecs::B::OVERRIDE.should == :b
