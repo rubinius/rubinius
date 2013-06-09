@@ -853,11 +853,11 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
     end
 
     @system_cflags =   ""
-    @system_cppflags = ""
+    @system_cxxflags = ""
     @system_ldflags =  ""
 
     @user_cflags =   ENV['CFLAGS']
-    @user_cppflags = ENV['CPPFLAGS']
+    @user_cxxflags = ENV['CXXFLAGS']
     @user_ldflags =  ENV['LDFLAGS']
 
     setup_platform
@@ -963,7 +963,7 @@ Unsupported language version requested: #{ver}. Options are #{@supported_version
 
       libs = (default_link_libs + link_libs).map { |l| "-l#{l}" }.join(" ")
 
-      cmd = "#{@cxx} #{env('CPPFLAGS')} #{env('CXXFLAGS')} #{env('LDFLAGS')} -o #{basename} #{source} #{@system_cflags} #{@system_ldflags} -lstdc++ #{libs} >>#{@log.path} 2>&1"
+      cmd = "#{@cxx} #{@user_cflags} #{@user_cxxflags} #{@user_ldflags} -o #{basename} #{source} #{@system_cflags} #{@system_cxxflags} #{@system_ldflags} -lstdc++ #{libs} >>#{@log.path} 2>&1"
       @log.log cmd
       system cmd
       return $?.exitstatus unless run
@@ -1229,7 +1229,7 @@ int main() { return tgetnum(""); }
 
     @log.log string
 
-    cmd = "#{@cxx} -S -o - -x c #{env('CPPFLAGS')} #{env('CFLAGS')} #{env('LDFLAGS')} #{@system_cflags} #{@system_ldflags} #{file.path} >>#{@log.path} 2>&1"
+    cmd = "#{@cxx} -S -o - -x c #{@user_cxxflags} #{@user_cflags} #{@user_ldflags} #{@system_cxxflags} #{@system_cflags} #{@system_ldflags} #{file.path} >>#{@log.path} 2>&1"
     @log.log cmd
     system cmd
 
@@ -1583,10 +1583,10 @@ module Rubinius
     :ldsharedxx     => "#{@ldsharedxx}",
     :gcc_major      => "#{@gcc_major}",
     :user_cflags    => "#{@user_cflags}",
-    :user_cppflags  => "#{@user_cppflags}",
+    :user_cxxflags  => "#{@user_cxxflags}",
     :user_ldflags   => "#{@user_ldflags}",
     :system_cflags   => "#{@system_cflags}",
-    :system_cppflags => "#{@system_cppflags}",
+    :system_cxxflags => "#{@system_cxxflags}",
     :system_ldflags  => "#{@system_ldflags}",
     :make           => "#{@make}",
     :include_dirs   => #{@include_dirs.inspect},
