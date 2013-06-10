@@ -276,6 +276,10 @@ if enabled_19
                    :dir => "#{libprefixdir}/19/io/console/ext",
                    :env => "-X19"
 
+  compile_ext "19/curses", :deps => ["Makefile"],
+                   :dir => "#{libprefixdir}/19/curses/ext",
+                   :env => "-X19"
+
 end
 
 if enabled_20
@@ -346,6 +350,7 @@ if enabled_20
   compile_ext "20/io/console", :deps => ["Makefile"],
                    :dir => "#{libprefixdir}/20/io/console/ext",
                    :env => "-X20"
+
 end
 
 compile_ext "profiler", :dir => "#{libprefixdir}/tooling/profiler",
