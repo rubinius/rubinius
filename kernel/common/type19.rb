@@ -167,5 +167,11 @@ module Rubinius
 
       enc
     end
+
+    def self.encoding_order(a, b)
+      index_a = Encoding::EncodingMap[a.name.upcase][1]
+      index_b = Encoding::EncodingMap[b.name.upcase][1]
+      index_a <=> index_b
+    end
   end
 end
