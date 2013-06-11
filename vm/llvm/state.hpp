@@ -108,6 +108,8 @@ namespace rubinius {
     utilities::thread::Mutex wait_mutex;
     utilities::thread::Condition wait_cond;
 
+    std::string cpu_;
+
   public:
 
     uint64_t time_spent;
@@ -242,6 +244,10 @@ namespace rubinius {
 
     bool type_optz() {
       return type_optz_;
+    }
+
+    std::string cpu() {
+      return cpu_;
     }
 
     void start_method_update() {
