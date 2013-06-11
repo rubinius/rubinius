@@ -176,6 +176,11 @@ namespace rubinius {
       return info->call_frame();
     }
 
+    llvm::Value* creator_call_frame() {
+      if(!creator_info_) return llvm::Constant::getNullValue(context_->ptr_type("CallFrame"));
+      return creator_info_->call_frame();
+    }
+
     bool for_inlined_method() {
       return parent_info_ != 0;
     }

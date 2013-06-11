@@ -50,9 +50,6 @@ namespace rubinius {
       eJITDisable,
     };
 
-  private:
-    MachineCode* parent_;
-
   public:
     InterpreterRunner run;
 
@@ -138,18 +135,6 @@ namespace rubinius {
 
     size_t* constant_cache_offsets() const {
       return constant_cache_offsets_;
-    }
-
-    MachineCode* parent() const {
-      return parent_;
-    }
-
-    void set_parent(MachineCode* parent) {
-      parent_ = parent;
-    }
-
-    bool for_block() const {
-      return parent_ != 0;
     }
 
     Symbol* name() const {

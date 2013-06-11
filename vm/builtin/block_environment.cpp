@@ -437,8 +437,6 @@ namespace rubinius {
       }
     }
 
-    mcode->set_parent(caller);
-
     BlockEnvironment* be = state->new_object_dirty<BlockEnvironment>(G(blokenv));
     be->scope(state, call_frame->promote_scope(state));
     be->top_scope(state, call_frame->top_scope(state));

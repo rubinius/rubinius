@@ -357,11 +357,13 @@ namespace rubinius {
       sig << ctx_->Int32Ty;
       sig << ctx_->IntPtrTy;
       sig << "CallFrame";
+      sig << "CallFrame";
       sig << ctx_->Int32Ty;
 
       int unwinds = emit_unwinds();
 
       Value* root_callframe = info().top_parent_call_frame();
+      Value* creator_callframe = info().creator_call_frame();
 
       Value* call_args[] = {
         state_,
@@ -369,11 +371,12 @@ namespace rubinius {
         cint(next_ip_),
         sp,
         root_callframe,
+        creator_callframe,
         cint(unwinds),
         (pass_top ? val : Constant::getNullValue(val->getType()))
       };
 
-      Value* call = sig.call("rbx_continue_debugging", call_args, 7, "", b());
+      Value* call = sig.call("rbx_continue_debugging", call_args, 8, "", b());
 
       info().add_return_value(call, current_block());
       b().CreateBr(info().return_pad());
@@ -1373,13 +1376,15 @@ namespace rubinius {
       sig << ctx_->Int32Ty;
       sig << ctx_->IntPtrTy;
       sig << "CallFrame";
+      sig << "CallFrame";
       sig << ctx_->VoidPtrTy;
       sig << ctx_->Int32Ty;
       sig << ctx_->Int8Ty;
 
       int unwinds = emit_unwinds();
 
-      Value* root_callframe = info().top_parent_call_frame();
+      Value* root_callframe    = info().top_parent_call_frame();
+      Value* creator_callframe = info().creator_call_frame();
 
       Value* call_args[] = {
         state_,
@@ -1387,12 +1392,13 @@ namespace rubinius {
         cint(current_ip_),
         sp,
         root_callframe,
+        creator_callframe,
         constant(ctx_->runtime_data_holder(), ctx_->VoidPtrTy),
         cint(unwinds),
         llvm::ConstantInt::get(ctx_->Int8Ty, force_deoptimization)
       };
 
-      Value* call = sig.call("rbx_continue_uncommon", call_args, 8, "", b());
+      Value* call = sig.call("rbx_continue_uncommon", call_args, 9, "", b());
 
       info().add_return_value(call, current_block());
       b().CreateBr(info().return_pad());

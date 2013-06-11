@@ -52,8 +52,7 @@ namespace rubinius {
    * Turns a CompiledCode's InstructionSequence into a C array of opcodes.
    */
   MachineCode::MachineCode(STATE, CompiledCode* meth)
-    : parent_(NULL)
-    , type(NULL)
+    : type(NULL)
     , uncommon_count(0)
     , number_of_call_sites_(0)
     , call_site_offsets_(0)
