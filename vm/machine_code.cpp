@@ -52,8 +52,7 @@ namespace rubinius {
    * Turns a CompiledCode's InstructionSequence into a C array of opcodes.
    */
   MachineCode::MachineCode(STATE, CompiledCode* meth)
-    : parent_(NULL)
-    , type(NULL)
+    : type(NULL)
     , uncommon_count(0)
     , number_of_call_sites_(0)
     , call_site_offsets_(0)
@@ -620,7 +619,7 @@ namespace rubinius {
       frame->prepare(mcode->stack_size);
 
       frame->previous = previous;
-      frame->constant_scope_ = 0;
+      frame->constant_scope_ = code->scope();
       frame->dispatch_data = 0;
       frame->compiled_code = code;
       frame->flags = 0;
@@ -705,7 +704,7 @@ namespace rubinius {
     Arguments args(state->symbol("__script__"), G(main), cNil, 0, 0);
 
     frame->previous = previous;
-    frame->constant_scope_ = 0;
+    frame->constant_scope_ = code->scope();
     frame->dispatch_data = 0;
     frame->compiled_code = code;
     frame->flags = CallFrame::cScript | CallFrame::cTopLevelVisibility;

@@ -214,8 +214,7 @@ namespace rubinius {
     while(call_frame) {
       call_frame = displace(call_frame, offset);
 
-      if(call_frame->custom_constant_scope_p() &&
-          call_frame->constant_scope_ &&
+      if(call_frame->constant_scope_ &&
           call_frame->constant_scope_->reference_p()) {
         call_frame->constant_scope_ =
           (ConstantScope*)mark_object(call_frame->constant_scope_);
@@ -297,8 +296,7 @@ namespace rubinius {
     while(call_frame) {
       call_frame = displace(call_frame, offset);
 
-      if(call_frame->custom_constant_scope_p() &&
-          call_frame->constant_scope_) {
+      if(call_frame->constant_scope_) {
         call_frame->constant_scope_->validate();
       }
 

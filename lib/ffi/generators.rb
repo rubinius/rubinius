@@ -118,11 +118,22 @@ module FFI
       end
 
       def defines
-        "-D_DARWIN_USE_64_BIT_INODE -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64"
+        Rubinius::BUILD_CONFIG[:defines].map{|f| "-D#{f}" }.join(" ")
       end
 
       def windows?
         RUBY_PLATFORM =~ /mswin|mingw/
+      end
+
+      def compiler
+        case @kind
+        when :c
+          Rubinius::BUILD_CONFIG[:cc]
+        when :cpp, :cxx
+          Rubinius::BUILD_CONFIG[:cxx]
+        else
+          Rubinius::BUILD_CONFIG[:cc]
+        end
       end
     end
   end

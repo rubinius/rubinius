@@ -12,6 +12,7 @@ module Rubinius
 
     # The CompiledCode that implements the code for the block
     attr_reader :compiled_code
+    attr_reader :constant_scope
 
     attr_accessor :proc_environment
 
@@ -23,6 +24,7 @@ module Rubinius
       @top_scope = scope
       @scope = scope
       @compiled_code = code
+      @constant_scope = code.scope
       @module = code.scope.module
 
       return self
@@ -33,19 +35,15 @@ module Rubinius
     end
 
     def repoint_scope(where)
-      @compiled_code.scope.using_current_as where
+      @constant_scope.using_current_as where
     end
 
     def disable_scope!
-      @compiled_code.scope.using_disabled_scope
-    end
-
-    def constant_scope
-      @compiled_code.scope
+      @constant_scope.using_disabled_scope
     end
 
     def to_binding
-      Binding.setup @scope, @compiled_code, @compiled_code.scope
+      Binding.setup @scope, @compiled_code, @constant_scope
     end
 
     def make_independent
@@ -54,7 +52,7 @@ module Rubinius
     end
 
     def call_on_instance(obj, *args)
-      call_under obj, @compiled_code.scope, false, *args
+      call_under obj, @constant_scope, false, *args
     end
 
     def arity
@@ -89,6 +87,10 @@ module Rubinius
         @scope         == other.scope and
         @module        == other.module and
         @compiled_code.equivalent_body?(other.compiled_code)
+    end
+
+    def inspect
+      "#<#{self.class.name}:0x#{self.object_id.to_s(16)} scope=#{@scope.inspect} top_scope=#{@top_scope.inspect} module=#{@module.inspect} compiled_code=#{@compiled_code.inspect} constant_scope=#{@constant_scope.inspect}>"
     end
 
     class AsMethod < Executable

@@ -60,9 +60,9 @@ namespace rubinius {
     G(encoding)->set_ivar(state, state->symbol("@default_external"), G(undefined));
     G(encoding)->set_ivar(state, state->symbol("@default_internal"), G(undefined));
 
-    Encoding* ascii = create_bootstrap(state, "US-ASCII", eAscii, ONIG_ENCODING_US_ASCII);
     Encoding* binary = create_bootstrap(state, "ASCII-8BIT", eBinary, ONIG_ENCODING_ASCII);
     Encoding* utf8 = create_bootstrap(state, "UTF-8", eUtf8, ONIG_ENCODING_UTF_8);
+    Encoding* ascii = create_bootstrap(state, "US-ASCII", eAscii, ONIG_ENCODING_US_ASCII);
 
     ascii->name(state, String::create(state, "US-ASCII"));
     binary->name(state, String::create(state, "ASCII-8BIT"));

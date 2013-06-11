@@ -87,6 +87,8 @@ namespace rubinius {
     factory.setTargetOptions(opts);
 #endif
 
+    factory.setMCPU(ls_->cpu());
+
     engine_ = factory.create();
     if(ls_->jit_event_listener()) {
       engine_->RegisterJITEventListener(ls_->jit_event_listener());

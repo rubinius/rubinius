@@ -251,9 +251,6 @@ extern "C" {
     Object* _lit = call_frame->compiled_code->literals()->at(state, index);
     CompiledCode* code = as<CompiledCode>(_lit);
 
-    // TODO: We don't need to be doing this everytime.
-    code->scope(state, call_frame->constant_scope());
-
     MachineCode* mcode = call_frame->compiled_code->machine_code();
     GCTokenImpl gct;
     return BlockEnvironment::under_call_frame(state, gct, code, mcode, call_frame);
@@ -282,10 +279,6 @@ extern "C" {
       }
     }
     va_end(ap);
-
-    assert(closest);
-    // TODO: We don't need to be doing this everytime.
-    code->scope(state, closest->constant_scope());
 
     MachineCode* mcode = closest->compiled_code->machine_code();
     GCTokenImpl gct;
@@ -388,8 +381,7 @@ extern "C" {
     ConstantScope* scope = ConstantScope::create(state);
     scope->module(state, mod);
     scope->parent(state, call_frame->constant_scope());
-    call_frame->compiled_code->scope(state, scope);
-    // call_frame->constant_scope_ = scope;
+    call_frame->constant_scope_ = scope;
 
     return cNil;
 
@@ -1236,29 +1228,19 @@ extern "C" {
   Object* rbx_continue_uncommon(STATE, CallFrame* call_frame,
                                 int32_t entry_ip, native_int sp,
                                 CallFrame* method_call_frame,
+                                CallFrame* creator_call_frame,
                                 jit::RuntimeDataHolder* rd,
                                 int32_t unwind_count,
-                                bool force_deoptimization)
-  {
+                                bool force_deoptimization) {
+
     LLVMState::get(state)->add_uncommons_taken();
 
     MachineCode* mcode = call_frame->compiled_code->machine_code();
 
-    if(call_frame->is_inline_frame()) {
+    if(call_frame->is_inline_frame() && creator_call_frame) {
       // Fix up this inlined block.
-      if(mcode->parent()) {
-        CallFrame* creator = call_frame->previous;
-        while(creator && mcode->parent() != creator->compiled_code->machine_code()) {
-          creator = creator->previous;
-        }
-        assert(creator);
-
-        VariableScope* parent = creator->promote_scope(state);
-        call_frame->scope->set_parent(parent);
-
-        // Only support one depth!
-        assert(!creator->compiled_code->machine_code()->parent());
-      }
+      VariableScope* parent = creator_call_frame->promote_scope(state);
+      call_frame->scope->set_parent(parent);
     }
 
     state->vm()->unwinds().set_current(unwind_count);
@@ -1272,23 +1254,16 @@ extern "C" {
   Object* rbx_continue_debugging(STATE, CallFrame* call_frame,
                                  int32_t entry_ip, native_int sp,
                                  CallFrame* method_call_frame,
+                                 CallFrame* creator_call_frame,
                                  int32_t unwind_count,
-                                 Object* top_of_stack)
-  {
+                                 Object* top_of_stack) {
+
     MachineCode* mcode = call_frame->compiled_code->machine_code();
 
-    if(call_frame->is_inline_frame()) {
+    if(call_frame->is_inline_frame() && creator_call_frame) {
       // Fix up this inlined block.
-      if(mcode->parent()) {
-        CallFrame* creator = call_frame->previous->previous;
-        assert(creator);
-
-        VariableScope* parent = creator->promote_scope(state);
-        call_frame->scope->set_parent(parent);
-
-        // Only support one depth!
-        assert(!creator->compiled_code->machine_code()->parent());
-      }
+      VariableScope* parent = creator_call_frame->promote_scope(state);
+      call_frame->scope->set_parent(parent);
     }
 
     call_frame->ip_ = entry_ip;

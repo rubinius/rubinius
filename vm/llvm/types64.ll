@@ -185,6 +185,7 @@ declare void @outputArray(%"struct.rubinius::Array"*)
    %"struct.rubinius::VariableScope"*, ; scope
    %"struct.rubinius::VariableScope"*, ; top_scope
   %"struct.rubinius::CompiledCode"*,   ; code
+  %"struct.rubinius::ConstantScope"*,  ; constant_scope
           %"struct.rubinius::Module"*  ; module
 }
 

@@ -20,7 +20,7 @@ class Module
   private :included
 
   def self.nesting
-    scope = Rubinius::CompiledCode.of_sender.scope
+    scope = Rubinius::ConstantScope.of_sender
     nesting = []
     while scope and scope.module != Object
       nesting << scope.module

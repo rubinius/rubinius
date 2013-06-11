@@ -1492,9 +1492,6 @@
    Create a new `ConstantScope` object for the given Module on the stack.
    This scope is chained off the current scope of the method.
 
-   This also sets the scope of the current `CompiledCode` to the new
-   `ConstantScope`.
-
 
 <table class="stack_effect">
 <thead>
