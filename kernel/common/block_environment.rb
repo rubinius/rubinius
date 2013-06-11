@@ -89,6 +89,10 @@ module Rubinius
         @compiled_code.equivalent_body?(other.compiled_code)
     end
 
+    def inspect
+      "#<#{self.class.name}:0x#{self.object_id.to_s(16)} scope=#{@scope.inspect} top_scope=#{@top_scope.inspect} module=#{@module.inspect} compiled_code=#{@compiled_code.inspect} constant_scope=#{@constant_scope.inspect}>"
+    end
+
     class AsMethod < Executable
       attr_reader :block_env
 
