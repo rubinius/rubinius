@@ -1,3 +1,5 @@
+#ifdef ENABLE_LLVM
+
 //===-- Host.cpp - Implement OS Host Concept --------------------*- C++ -*-===//
 //
 //                     The LLVM Compiler Infrastructure
@@ -523,4 +525,6 @@ std::string rubinius::getHostCPUName() {
 std::string rubinius::getHostCPUName() {
   return "generic";
 }
+#endif
+
 #endif
