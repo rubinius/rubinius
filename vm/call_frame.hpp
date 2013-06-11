@@ -29,18 +29,17 @@ namespace rubinius {
   struct CallFrame {
     enum Flags {
       cIsLambda =           1 << 0,
-      cCustomConstantScope =  1 << 1,
-      cMultipleScopes =     1 << 2,
-      cInlineFrame =        1 << 3,
-      cClosedScope =        1 << 4,
-      cBlockAsMethod =      1 << 5,
-      cJITed =              1 << 6,
-      cBlock =              1 << 7,
-      cInlineBlock =        1 << 8,
-      cNativeMethod =       1 << 9,
-      cTopLevelVisibility = 1 << 10,
-      cScript =             1 << 11,
-      cScopeLocked =        1 << 12
+      cMultipleScopes =     1 << 1,
+      cInlineFrame =        1 << 2,
+      cClosedScope =        1 << 3,
+      cBlockAsMethod =      1 << 4,
+      cJITed =              1 << 5,
+      cBlock =              1 << 6,
+      cInlineBlock =        1 << 7,
+      cNativeMethod =       1 << 8,
+      cTopLevelVisibility = 1 << 9,
+      cScript =             1 << 10,
+      cScopeLocked =        1 << 11
     };
 
     CallFrame* previous;
@@ -139,10 +138,6 @@ namespace rubinius {
       return compiled_code->name();
     }
 
-    bool custom_constant_scope_p() const {
-      return flags & cCustomConstantScope;
-    }
-
     bool inline_method_p() const {
       return flags & cInlineFrame;
     }
@@ -156,8 +151,7 @@ namespace rubinius {
     }
 
     ConstantScope* constant_scope() const {
-      if(custom_constant_scope_p()) return constant_scope_;
-      return compiled_code->scope();
+      return constant_scope_;
     }
 
     bool is_block_p(STATE) const {

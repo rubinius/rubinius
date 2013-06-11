@@ -129,12 +129,12 @@ namespace rubinius {
           std::string mod_name;
 
           if(cf->module()->nil_p()) {
-            mod_name = cf->compiled_code->scope()->module()->debug_str(state);
+            mod_name = cf->constant_scope()->module()->debug_str(state);
           } else {
             if((name = try_as<Symbol>(cf->module()->module_name()))) {
               mod_name = name->debug_str(state);
             } else if((name = try_as<Symbol>(
-                      cf->compiled_code->scope()->module()->module_name()))) {
+                      cf->constant_scope()->module()->module_name()))) {
               mod_name = name->debug_str(state);
             } else {
               mod_name = "<anonymous module>";

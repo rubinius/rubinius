@@ -1186,9 +1186,6 @@ instruction create_block(literal) [ -- block ]
   Object* _lit = call_frame->compiled_code->literals()->at(state, literal);
   CompiledCode* code = as<CompiledCode>(_lit);
 
-  // TODO: We do not need to be doing this everytime.
-  code->scope(state, call_frame->constant_scope());
-
   Object* be = BlockEnvironment::under_call_frame(state, gct, code, mcode, call_frame);
 
   CHECK_AND_PUSH(be);
@@ -1614,9 +1611,6 @@ end
 # [Description]
 #   Create a new `ConstantScope` object for the given Module on the stack.
 #   This scope is chained off the current scope of the method.
-#
-#   This also sets the scope of the current `CompiledCode` to the new
-#   `ConstantScope`.
 
 instruction add_scope() [ module -- ]
   Object* obj = stack_pop();
@@ -1624,7 +1618,6 @@ instruction add_scope() [ module -- ]
   ConstantScope* scope = ConstantScope::create(state);
   scope->module(state, mod);
   scope->parent(state, call_frame->constant_scope());
-  call_frame->compiled_code->scope(state, scope);
   call_frame->constant_scope_ = scope;
 end
 

@@ -311,8 +311,7 @@ namespace rubinius {
     frame->compiled_code = env->compiled_code_;
     frame->scope = scope;
     frame->top_scope_ = env->top_scope_;
-    frame->flags = invocation.flags | CallFrame::cCustomConstantScope
-                                    | CallFrame::cMultipleScopes
+    frame->flags = invocation.flags | CallFrame::cMultipleScopes
                                     | CallFrame::cBlock;
 
     // TODO: this is a quick hack to process block arguments in 1.9.
@@ -371,7 +370,7 @@ namespace rubinius {
   Object* BlockEnvironment::call(STATE, CallFrame* call_frame,
                                  Arguments& args, int flags)
   {
-    BlockInvocation invocation(scope_->self(), compiled_code_->scope(), flags);
+    BlockInvocation invocation(scope_->self(), constant_scope_, flags);
     return invoke(state, call_frame, this, args, invocation);
   }
 
@@ -396,7 +395,7 @@ namespace rubinius {
 
     Object* recv = args.shift(state);
 
-    BlockInvocation invocation(recv, compiled_code_->scope(), flags);
+    BlockInvocation invocation(recv, constant_scope_, flags);
     return invoke(state, call_frame, this, args, invocation);
   }
 
@@ -444,6 +443,7 @@ namespace rubinius {
     be->scope(state, call_frame->promote_scope(state));
     be->top_scope(state, call_frame->top_scope(state));
     be->compiled_code(state, ccode);
+    be->constant_scope(state, call_frame->constant_scope());
     be->module(state, call_frame->module());
     return be;
   }
@@ -454,6 +454,7 @@ namespace rubinius {
     be->scope(state, scope_);
     be->top_scope(state, top_scope_);
     be->compiled_code(state, compiled_code_);
+    be->constant_scope(state, constant_scope_);
     be->module(state, nil<Module>());
     return be;
   }

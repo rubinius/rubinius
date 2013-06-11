@@ -174,8 +174,7 @@ namespace jit {
     inv_flags_ = b().CreateLoad(get_field(block_inv, offset::BlockInvocation::flags),
         "invocation.flags");
 
-    int block_flags = CallFrame::cCustomConstantScope |
-      CallFrame::cMultipleScopes |
+    int block_flags = CallFrame::cMultipleScopes |
       CallFrame::cBlock |
       CallFrame::cJITed;
 

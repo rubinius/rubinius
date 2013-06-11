@@ -743,6 +743,7 @@ StructTy_struct_rubinius__BlockEnvironment_fields.push_back(StructTy_struct_rubi
 StructTy_struct_rubinius__BlockEnvironment_fields.push_back(PointerTy_29);
 StructTy_struct_rubinius__BlockEnvironment_fields.push_back(PointerTy_29);
 StructTy_struct_rubinius__BlockEnvironment_fields.push_back(PointerTy_24);
+StructTy_struct_rubinius__BlockEnvironment_fields.push_back(PointerTy_28);
 StructTy_struct_rubinius__BlockEnvironment_fields.push_back(PointerTy_13);
 if (StructTy_struct_rubinius__BlockEnvironment->isOpaque()) {
 StructTy_struct_rubinius__BlockEnvironment->setBody(StructTy_struct_rubinius__BlockEnvironment_fields, /*isPacked=*/false);

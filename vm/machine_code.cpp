@@ -620,7 +620,7 @@ namespace rubinius {
       frame->prepare(mcode->stack_size);
 
       frame->previous = previous;
-      frame->constant_scope_ = 0;
+      frame->constant_scope_ = code->scope();
       frame->dispatch_data = 0;
       frame->compiled_code = code;
       frame->flags = 0;
@@ -705,7 +705,7 @@ namespace rubinius {
     Arguments args(state->symbol("__script__"), G(main), cNil, 0, 0);
 
     frame->previous = previous;
-    frame->constant_scope_ = 0;
+    frame->constant_scope_ = code->scope();
     frame->dispatch_data = 0;
     frame->compiled_code = code;
     frame->flags = CallFrame::cScript | CallFrame::cTopLevelVisibility;

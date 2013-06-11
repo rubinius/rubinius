@@ -72,6 +72,14 @@ namespace jit {
     Value* code_gep = get_field(call_frame, offset::CallFrame::compiled_code);
     b().CreateStore(method, code_gep);
 
+    // constant_scope
+    Value* constant_scope = b().CreateLoad(
+        b().CreateConstGEP2_32(method, 0, offset::CompiledCode::scope, "constant_scope_pos"),
+        "constant_scope");
+
+    Value* constant_scope_gep = get_field(call_frame, offset::CallFrame::constant_scope);
+    b().CreateStore(constant_scope, constant_scope_gep);
+
     // flags
     int flags = CallFrame::cInlineFrame;
     if(!use_full_scope_) flags |= CallFrame::cClosedScope;

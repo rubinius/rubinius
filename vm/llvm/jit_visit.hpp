@@ -2164,6 +2164,31 @@ use_send:
 
       Value* cache = b().CreateLoad(cache_ptr, "constant_cache");
 
+      Value* constant_scope_pos_idx[] = {
+        context()->cint(0),
+        context()->cint(offset::ConstantCache::scope),
+      };
+
+      Value* constant_scope_pos = b().CreateGEP(cache,
+          constant_scope_pos_idx, "constant_cache_pos");
+
+      Value* constant_scope = b().CreateLoad(constant_scope_pos, "constant_scope");
+
+      Value* frame_scope = b().CreateLoad(
+          b().CreateConstGEP2_32(call_frame_, 0,
+                                 offset::CallFrame::constant_scope, "scope_pos"), "frame_scope");
+
+      Value* scope_cmp = b().CreateICmpEQ(constant_scope, frame_scope, "same_scope");
+
+      BasicBlock* check_serial = new_block("check_serial");
+      BasicBlock* use_cache = new_block("use_cache");
+      BasicBlock* use_call  = new_block("use_call");
+      cont =      new_block("continue");
+
+      b().CreateCondBr(scope_cmp, check_serial, use_call);
+
+      set_block(check_serial);
+
       Value* serial_pos_idx[] = {
         context()->cint(0),
         context()->cint(offset::ConstantCache::serial),
@@ -2176,9 +2201,6 @@ use_send:
 
       Value* cmp = b().CreateICmpEQ(global_serial, current_serial, "use_cache");
 
-      BasicBlock* use_cache = new_block("use_cache");
-      BasicBlock* use_call  = new_block("use_call");
-      cont =      new_block("continue");
 
       b().CreateCondBr(cmp, use_cache, use_call);
 
@@ -2356,32 +2378,12 @@ use_send:
     }
 
     void visit_push_scope() {
-      if(info().is_block && !in_inlined_block()) {
-        Value* scope = b().CreateLoad(
-            b().CreateConstGEP2_32(call_frame_, 0,
-                                   offset::CallFrame::constant_scope, "scope_pos"),
-            "compiled_code");
+      Value* scope = b().CreateLoad(
+          b().CreateConstGEP2_32(call_frame_, 0,
+                                 offset::CallFrame::constant_scope, "scope_pos"),
+          "constant_scope");
 
-        stack_push(scope);
-      } else {
-        Value* code;
-
-        if(in_inlined_block()) {
-          JITMethodInfo* creator = info().creator_info();
-          assert(creator);
-          code = b().CreateLoad(
-              b().CreateConstGEP2_32(creator->call_frame(), 0,
-                  offset::CallFrame::compiled_code, "code_pos"), "compiled_code");
-        } else {
-          code = b().CreateLoad(
-              b().CreateConstGEP2_32(call_frame_, 0,
-                  offset::CallFrame::compiled_code, "code_pos"), "compiled_code");
-        }
-
-        Value* gep = b().CreateConstGEP2_32(code, 0,
-            offset::CompiledCode::scope, "scope_pos");
-        stack_push(b().CreateLoad(gep, "scope"));
-      }
+      stack_push(scope);
     }
 
     void visit_cast_for_single_block_arg() {
@@ -3410,6 +3412,33 @@ use_send:
 
       Value* cache = b().CreateLoad(cache_ptr, "constant_cache");
 
+      Value* constant_scope_pos_idx[] = {
+        context()->cint(0),
+        context()->cint(offset::ConstantCache::scope),
+      };
+
+      Value* constant_scope_pos = b().CreateGEP(cache,
+          constant_scope_pos_idx, "constant_cache_pos");
+
+      Value* constant_scope = b().CreateLoad(constant_scope_pos, "constant_scope");
+
+      Value* frame_scope = b().CreateLoad(
+          b().CreateConstGEP2_32(call_frame_, 0,
+                                 offset::CallFrame::constant_scope, "scope_pos"), "frame_scope");
+
+      Value* scope_cmp = b().CreateICmpEQ(constant_scope, frame_scope, "same_scope");
+
+      BasicBlock* check_serial = new_block("check_serial");
+      BasicBlock* check_under  = new_block("check_under");
+      BasicBlock* use_cache    = new_block("use_cache");
+      BasicBlock* use_call     = new_block("use_call");
+
+      cont =      new_block("continue");
+
+      b().CreateCondBr(scope_cmp, check_serial, use_call);
+
+      set_block(check_serial);
+
       Value* serial_pos_idx[] = {
         context()->cint(0),
         context()->cint(offset::ConstantCache::serial),
@@ -3421,11 +3450,6 @@ use_send:
       Value* current_serial = b().CreateLoad(serial_pos, "serial");
 
       Value* cache_cmp = b().CreateICmpEQ(global_serial, current_serial, "use_under");
-
-      BasicBlock* check_under = new_block("check_under");
-      BasicBlock* use_cache   = new_block("use_cache");
-      BasicBlock* use_call    = new_block("use_call");
-      cont =      new_block("continue");
 
       b().CreateCondBr(cache_cmp, check_under, use_call);
 
