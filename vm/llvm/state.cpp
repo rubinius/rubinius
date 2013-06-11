@@ -597,6 +597,7 @@ halt:
       req->set_waiter(&wait_cond);
 
       background_thread_->add(req);
+      bool req_block = req->is_block();
 
       state->set_call_frame(call_frame);
 
@@ -608,7 +609,7 @@ halt:
       if(state->shared().config.jit_show_compiling) {
         llvm::outs() << "[[[ JIT compiled "
           << enclosure_name(code) << "#" << symbol_debug_str(code->name())
-          << (req->is_block() ? " (block) " : " (method) ")
+          << (req_block ? " (block) " : " (method) ")
           << queued_methods() << "/"
           << jitted_methods() << " ]]]\n";
       }
