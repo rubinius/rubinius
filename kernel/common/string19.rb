@@ -1406,10 +1406,16 @@ class String
 
   def <=>(other)
     if other.kind_of?(String)
-      if Encoding.compatible?(self, other)
-        @data.compare_bytes(other.__data__, @num_bytes, other.bytesize)
+      result = @data.compare_bytes(other.__data__, @num_bytes, other.bytesize)
+
+      if result == 0
+        if Encoding.compatible?(self, other)
+          0
+        else
+          Rubinius::Type.encoding_order(encoding, other.encoding)
+        end
       else
-        Rubinius::Type.encoding_order(encoding, other.encoding)
+        result
       end
     else
       return unless other.respond_to?(:to_str) && other.respond_to?(:<=>)
