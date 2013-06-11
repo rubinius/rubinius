@@ -1404,4 +1404,17 @@ class String
     return modified ? self : nil
   end
 
+  def <=>(other)
+    if other.kind_of?(String)
+      if Encoding.compatible?(self, other)
+        @data.compare_bytes(other.__data__, @num_bytes, other.bytesize)
+      else
+        Rubinius::Type.encoding_order(encoding, other.encoding)
+      end
+    else
+      return unless other.respond_to?(:to_str) && other.respond_to?(:<=>)
+      return unless tmp = (other <=> self)
+      return -tmp # We're not supposed to convert to integer here
+    end
+  end
 end
