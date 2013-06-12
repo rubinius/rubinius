@@ -546,7 +546,12 @@ namespace rubinius {
     stream.rdbuf()->pubsetbuf(&buffer[0], length);
 
     CompiledFile* cf = CompiledFile::load(stream);
-    if(cf->magic != "!RBIX") throw std::runtime_error("Invalid file");
+    if(cf->magic != "!RBIX") {
+      std::ostringstream msg;
+      msg << "attempted to open a bytecode file with invalid magic identifier"
+          << ": path: " << file << ", magic: " << cf->magic;
+      throw std::runtime_error(msg.str().c_str());
+    }
     if((signature_ > 0 && cf->signature != signature_)
         || cf->version != version_) {
       throw BadKernelFile(path);
