@@ -61,6 +61,11 @@ describe "String#<=> with String" do
       ("ÄÖÜ" <=> "ÄÖÛ").should == 1
     end
 
+    it "ignores encoding difference" do
+      ("ÄÖÛ".force_encoding("utf-8") <=> "ÄÖÜ".force_encoding("iso-8859-1")).should == -1
+      ("ÄÖÜ".force_encoding("utf-8") <=> "ÄÖÛ".force_encoding("iso-8859-1")).should == 1
+    end
+
     it "returns 0 with identical ASCII-compatible bytes of different encodings" do
       ("abc".force_encoding("utf-8") <=> "abc".force_encoding("iso-8859-1")).should == 0
     end
