@@ -7,7 +7,8 @@
 
 #include <string>
 #include <vector>
-#include <tr1/unordered_map>
+
+#include "missing/unordered_map.hpp"
 
 /* SymbolTable provides a one-to-one map between a symbol ID
  * and a string. The hashing algorithm used to generate a
@@ -33,7 +34,7 @@ namespace rubinius {
 
   typedef std::vector<std::string> SymbolStrings;
   typedef std::vector<std::size_t> SymbolIds;
-  typedef std::tr1::unordered_map<hashval, SymbolIds> SymbolMap;
+  typedef std_unordered_map<hashval, SymbolIds> SymbolMap;
 
   class SymbolTable {
   public: // Types

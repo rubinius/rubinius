@@ -23,8 +23,9 @@
 #include "capi/capi_constants.h"
 
 #include <vector>
-#include <tr1/unordered_map>
-#include <tr1/unordered_set>
+
+#include "missing/unordered_map.hpp"
+#include "missing/unordered_set.hpp"
 
 #ifdef RBX_WINDOWS
 #include <winsock2.h>
@@ -55,12 +56,12 @@ namespace rubinius {
   class QueryAgent;
   class Environment;
 
-  typedef std::tr1::unordered_set<std::string> CApiBlackList;
+  typedef std_unordered_set<std::string> CApiBlackList;
   typedef std::vector<Mutex*> CApiLocks;
-  typedef std::tr1::unordered_map<std::string, int> CApiLockMap;
+  typedef std_unordered_map<std::string, int> CApiLockMap;
 
   typedef std::vector<std::string> CApiConstantNameMap;
-  typedef std::tr1::unordered_map<int, capi::Handle*> CApiConstantHandleMap;
+  typedef std_unordered_map<int, capi::Handle*> CApiConstantHandleMap;
 
   /**
    * SharedState represents the global shared state that needs to be shared

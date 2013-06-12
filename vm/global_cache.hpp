@@ -6,8 +6,7 @@
 #include "builtin/compiledcode.hpp"
 #include "builtin/symbol.hpp"
 
-#include <tr1/unordered_map>
-#include <tr1/unordered_set>
+#include "missing/unordered_set.hpp"
 
 namespace rubinius {
   #define CPU_CACHE_SIZE 0x1000
@@ -17,7 +16,7 @@ namespace rubinius {
   struct LookupData;
   class Dispatch;
 
-  typedef std::tr1::unordered_set<native_int> SeenMethodSet;
+  typedef std_unordered_set<native_int> SeenMethodSet;
 
   class GlobalCache : public Lockable {
   public:
