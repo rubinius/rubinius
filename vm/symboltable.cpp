@@ -3,6 +3,7 @@
 #include "configuration.hpp"
 
 #include "builtin/array.hpp"
+#include "builtin/encoding.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
@@ -173,7 +174,9 @@ namespace rubinius {
       return NULL;
     }
     std::string& str = strings[sym_index];
-    return String::create(state, str.data(), str.size());
+    String* s = String::create(state, str.data(), str.size());
+    s->encoding(state, Encoding::usascii_encoding(state));
+    return s;
   }
 
   std::string& SymbolTable::lookup_cppstring(const Symbol* sym) {
