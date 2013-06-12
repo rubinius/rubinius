@@ -4,6 +4,7 @@
 #include <map>
 #include <stdexcept>
 #include <vector>
+#include <string>
 
 #include "object_types.hpp"
 #include "prelude.hpp"
