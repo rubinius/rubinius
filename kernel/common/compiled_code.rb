@@ -75,7 +75,7 @@ module Rubinius
         @required_args == other.required_args and
         @total_args    == other.total_args    and
         @splat         == other.splat         and
-        @block_index   == other.block_index   and
+        block_index   == other.block_index    and
         @literals      == other.literals      and
         @file          == other.file          and
         @local_names   == other.local_names
