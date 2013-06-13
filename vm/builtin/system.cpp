@@ -134,18 +134,10 @@ namespace rubinius {
   Object* System::compiledfile_load(STATE, String* path,
                                     Integer* signature, Integer* version)
   {
-    std::stringstream stream;
-    std::ifstream file(path->c_str(state), std::ios::ate|std::ios::binary);
-
-    if(!file) {
+    std::ifstream stream(path->c_str(state));
+    if(!stream) {
       return Primitives::failure();
     }
-
-    std::streampos length = file.tellg();
-    std::vector<char> buffer(length);
-    file.seekg(0, std::ios::beg);
-    file.read(&buffer[0], length);
-    stream.rdbuf()->pubsetbuf(&buffer[0], length);
 
     CompiledFile* cf = CompiledFile::load(stream);
     if(cf->magic != "!RBIX") {
