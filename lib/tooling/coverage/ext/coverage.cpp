@@ -3,11 +3,17 @@
 #include <rbx_config.h>
 
 #include <iostream>
+#ifdef RBX_HAVE_TR1
 #include <tr1/unordered_map>
+#define std_unordered_map std::tr1::unordered_map
+#else
+#include <unordered_map>
+#define std_unordered_map std::unordered_map
+#endif
 
 using namespace rbxti;
 
-#ifndef RBX_HAVE_TR1_HASH
+#if defined(RBX_HAVE_TR1) && !defined(RBX_HAVE_TR1_HASH)
 namespace std {
   namespace tr1 {
     template <>
@@ -22,8 +28,8 @@ namespace std {
 
 namespace coverage {
 
-  typedef std::tr1::unordered_map<int, int> InstructionCoverageMap;
-  typedef std::tr1::unordered_map<r_mint, InstructionCoverageMap*> CoverageMap;
+  typedef std_unordered_map<int, int> InstructionCoverageMap;
+  typedef std_unordered_map<r_mint, InstructionCoverageMap*> CoverageMap;
 
   class Coverage {
     CoverageMap coverage_map_;
