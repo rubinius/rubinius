@@ -252,8 +252,7 @@ Daedalus.blueprint do |i|
 
     f.autogenerate do |x|
       x.command("#{perl} vm/test/cxxtest/cxxtestgen.pl --error-printer --have-eh " +
-        "--abort-on-fail -include=string.h -include=stdlib.h " +
-        "-include=vm/test/test_setup.h -o vm/test/runner.cpp " +
+        "--abort-on-fail -include=vm/test/test_setup.h -o vm/test/runner.cpp " +
         tests.join(' '))
     end
   }
