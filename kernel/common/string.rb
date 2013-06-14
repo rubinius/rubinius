@@ -90,8 +90,8 @@ class String
       return false
     end
 
-    return false unless @num_bytes == other.size
-    return @data.compare_bytes(other.__data__, @num_bytes, other.size) == 0
+    return false unless @num_bytes == other.bytesize
+    return @data.compare_bytes(other.__data__, @num_bytes, other.bytesize) == 0
   end
 
   def =~(pattern)
@@ -349,8 +349,8 @@ class String
   def eql?(other)
     Rubinius.primitive :string_equal
 
-    return false unless other.kind_of?(String) && other.size == @num_bytes
-    return @data.compare_bytes(other.__data__, @num_bytes, other.size) == 0
+    return false unless other.kind_of?(String) && other.bytesize == @num_bytes
+    return @data.compare_bytes(other.__data__, @num_bytes, other.bytesize) == 0
   end
 
   # This method is specifically part of 1.9 but we enable it in 1.8 also
