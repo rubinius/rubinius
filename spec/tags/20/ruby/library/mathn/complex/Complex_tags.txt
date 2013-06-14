@@ -1,1 +1,0 @@
-fails:Kernel#Complex returns an Integer if imaginary part is 0
