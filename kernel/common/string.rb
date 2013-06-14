@@ -91,6 +91,7 @@ class String
     end
 
     return false unless @num_bytes == other.bytesize
+    return false unless Encoding.compatible?(self, other)
     return @data.compare_bytes(other.__data__, @num_bytes, other.bytesize) == 0
   end
 
@@ -350,6 +351,7 @@ class String
     Rubinius.primitive :string_equal
 
     return false unless other.kind_of?(String) && other.bytesize == @num_bytes
+    return false unless Encoding.compatible?(self, other)
     return @data.compare_bytes(other.__data__, @num_bytes, other.bytesize) == 0
   end
 
