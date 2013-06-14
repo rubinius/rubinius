@@ -751,7 +751,7 @@ module Kernel
     pid, output = Process.replace(str)
 
     Process.waitpid(pid)
-    return output
+    return Rubinius::Type.external_string(output)
   end
 
   module_function :` # `
