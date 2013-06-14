@@ -58,9 +58,10 @@ class Complex < Numeric
         imag = 0
       end
     elsif real.kind_of?(Numeric) && imag.kind_of?(Numeric) && (!real.real? || !imag.real?)
-      return real + imag * Complex(0, 1)
+      return real + imag * Complex.new(0, 1)
     end
 
+    return real if Rubinius.mathn_loaded? && imag.equal?(0)
     rect(real, imag)
   end
 
@@ -155,25 +156,25 @@ class Complex < Numeric
       Complex.polar(nr, ntheta)
     elsif other.kind_of?(Integer)
       if other > 0
-	x = self
-	z = x
-	n = other - 1
-	while n != 0
-	  while (div, mod = n.divmod(2)
-		 mod == 0)
-	    x = Complex(x.real*x.real - x.imag*x.imag, 2*x.real*x.imag)
-	    n = div
-	  end
-	  z *= x
-	  n -= 1
-	end
-	z
+        x = self
+        z = x
+        n = other - 1
+        while n != 0
+          while (div, mod = n.divmod(2)
+           mod == 0)
+            x = Complex(x.real*x.real - x.imag*x.imag, 2*x.real*x.imag)
+            n = div
+          end
+          z *= x
+          n -= 1
+        end
+        z
       else
-	if defined? Rational
-	  (Rational(1) / self) ** -other
-	else
-	  self ** Float(other)
-	end
+        if defined? Rational
+          (Rational.new(1, 1) / self) ** -other
+        else
+          self ** Float(other)
+        end
       end
     elsif Complex.generic?(other)
       r, theta = polar
@@ -228,7 +229,7 @@ class Complex < Numeric
 
   def coerce(other)
     if other.kind_of?(Numeric) && other.real?
-      [Complex(other), self]
+      [Complex.new(other, 0), self]
     elsif other.kind_of?(Complex)
       [other, self]
     else

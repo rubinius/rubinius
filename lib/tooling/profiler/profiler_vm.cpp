@@ -7,8 +7,14 @@
 
 #include <list>
 #include <stack>
-#include <tr1/unordered_map>
 #include <map>
+#ifdef RBX_HAVE_TR1
+#include <tr1/unordered_map>
+#define std_unordered_map std::tr1::unordered_map
+#else
+#include <unordered_map>
+#define std_unordered_map std::unordered_map
+#endif
 
 #include <time.h>
 
@@ -19,7 +25,7 @@
 
 typedef uint64_t method_id;
 
-#ifndef RBX_HAVE_TR1_HASH
+#if defined(RBX_HAVE_TR1) && !defined(RBX_HAVE_TR1_HASH)
 namespace std {
   namespace tr1 {
     template <>
@@ -54,8 +60,8 @@ namespace profiler {
   class Profiler;
   class Method;
   class Node;
-  typedef std::tr1::unordered_map<Method*, rinteger> KeyMap;
-  typedef std::tr1::unordered_map<method_id, Method*> MethodMap;
+  typedef std_unordered_map<Method*, rinteger> KeyMap;
+  typedef std_unordered_map<method_id, Method*> MethodMap;
 
   /* An accumulating increment timer. Keeps track of the maximum and minimum
    * intervals recorded. Calculates a cumulative moving average according to

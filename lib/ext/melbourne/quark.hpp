@@ -4,8 +4,15 @@
 #include <stddef.h>
 #include <cmath>
 #include <vector>
-#include <tr1/unordered_map>
 #include <string.h>
+
+#if defined(__APPLE_CC__) && __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ >= 1090
+#include <unordered_map>
+#define std_unordered_map std::unordered_map
+#else
+#include <tr1/unordered_map>
+#define std_unordered_map std::tr1::unordered_map
+#endif
 
 namespace melbourne {
 
@@ -37,7 +44,7 @@ namespace melbourne {
     const char* quark_to_string(rb_parser_state* parser_state, const quark quark);
     void quark_cleanup(rb_parser_state* parser_state);
 
-    typedef std::tr1::unordered_map<const char*, quark, ConstCharHash, ConstCharEqualTo> quark_map;
+    typedef std_unordered_map<const char*, quark, ConstCharHash, ConstCharEqualTo> quark_map;
     typedef std::vector<const char*> quark_vector;
   };
 };

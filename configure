@@ -1039,8 +1039,27 @@ int main() { return sizeof(#{type}); }
     @log.write @little_endian ? "little endian" : "big endian"
   end
 
+  def detect_tr1
+    @log.print "Checking for tr1: "
+
+    status = check_program(false) do |f|
+      src = <<-EOP
+#include <tr1/unordered_map>
+
+typedef std::tr1::unordered_map<int, void*> X;
+
+int main() { X x; return 0; }
+      EOP
+      f.puts src
+      @log.log src
+    end
+
+    @tr1 = (status == 0)
+    @log.write @tr1 ? "found" : "not found"
+  end
+
   def detect_tr1_hash
-    @log.print "Checking tr1/hash definition: "
+    @log.print "Checking for tr1/hash definition: "
 
     status = check_program(false) do |f|
       src = <<-EOP
@@ -1444,6 +1463,7 @@ int main() { return tgetnum(""); }
     detect_libc_name
 
     detect_endian
+    detect_tr1
     detect_tr1_hash
     detect_x86
     detect_features
@@ -1681,6 +1701,10 @@ end
 
       if @little_endian
         f.puts "#define RBX_LITTLE_ENDIAN    1"
+      end
+
+      if @tr1
+        f.puts "#define RBX_HAVE_TR1         1"
       end
 
       if @tr1_hash

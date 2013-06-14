@@ -529,27 +529,24 @@ namespace rubinius {
     state->vm()->initialize_as_root();
   }
 
-  void Environment::run_file(std::string path) {
-    std::stringstream stream;
-    std::ifstream file(path.c_str(), std::ios::ate|std::ios::binary);
-
-    if(!file) {
+  void Environment::run_file(std::string file) {
+    std::ifstream stream(file.c_str());
+    if(!stream) {
       std::string msg = std::string("Unable to open file to run: ");
-      msg.append(path);
+      msg.append(file);
       throw std::runtime_error(msg);
     }
 
-    std::streampos length = file.tellg();
-    std::vector<char> buffer(length);
-    file.seekg(0, std::ios::beg);
-    file.read(&buffer[0], length);
-    stream.rdbuf()->pubsetbuf(&buffer[0], length);
-
     CompiledFile* cf = CompiledFile::load(stream);
-    if(cf->magic != "!RBIX") throw std::runtime_error("Invalid file");
+    if(cf->magic != "!RBIX") {
+      std::ostringstream msg;
+      msg << "attempted to open a bytecode file with invalid magic identifier"
+          << ": path: " << file << ", magic: " << cf->magic;
+      throw std::runtime_error(msg.str().c_str());
+    }
     if((signature_ > 0 && cf->signature != signature_)
         || cf->version != version_) {
-      throw BadKernelFile(path);
+      throw BadKernelFile(file);
     }
 
     cf->execute(state);

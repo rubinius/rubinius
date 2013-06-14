@@ -8,7 +8,7 @@ class Float
     Rubinius.primitive :float_pow
 
     if other.is_a?(Float) && self < 0 && other != other.round
-      return Complex(self) ** other
+      return Complex.new(self, 0) ** other
     end
 
     b, a = math_coerce other
@@ -67,7 +67,7 @@ class Float
       f = Math.ldexp(f, Float::MANT_DIG).to_i
       n -= Float::MANT_DIG
 
-      Rational(2 * f, 1 << (1 - n)).rationalize(Rational(1, 1 << (1 - n)))
+      Rational.new(2 * f, 1 << (1 - n)).rationalize(Rational.new(1, 1 << (1 - n)))
     else
       to_r.rationalize(eps)
     end

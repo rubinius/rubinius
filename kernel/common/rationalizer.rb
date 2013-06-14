@@ -29,7 +29,7 @@ class String
         ifp, exp = nu.split /[eE]/
         ip, fp = ifp.split /\./
 
-        value = Rational(ip.to_i)
+        value = Rational.new(ip.to_i, 1)
 
         if fp
           ctype = Rubinius::CType
@@ -43,12 +43,12 @@ class String
           l = 10 ** count
           value *= l
           value += fp.to_i
-          value /= l
+          value = value.quo(l)
         end
 
         value = -value if si == "-"
         value *= 10 ** exp.to_i if exp
-        value /= de.to_i if de
+        value = value.quo(de.to_i) if de
 
         value
       else

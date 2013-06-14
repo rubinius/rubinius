@@ -1,4 +1,4 @@
-#include <tr1/unordered_map>
+#include "missing/unordered_map.hpp"
 
 #include "config.h"
 
@@ -66,7 +66,7 @@ namespace agent {
     }
   };
 
-  typedef std::tr1::unordered_map<std::string, Item*> NamedItems;
+  typedef std_unordered_map<std::string, Item*> NamedItems;
 
   class DynamicVariable : public Item {
   public:

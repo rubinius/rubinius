@@ -1,7 +1,7 @@
 #ifndef RBX_VM_FIBER_STACK_HPP
 #define RBX_VM_FIBER_STACK_HPP
 
-#include <tr1/unordered_set>
+#include "missing/unordered_set.hpp"
 #include "util/thread.hpp"
 
 namespace rubinius {
@@ -72,7 +72,7 @@ namespace rubinius {
 
   private:
     typedef std::list<FiberStack> Stacks;
-    typedef std::tr1::unordered_set<FiberData*> Datas;
+    typedef std_unordered_set<FiberData*> Datas;
 
     size_t max_stacks_;
     size_t stack_size_;

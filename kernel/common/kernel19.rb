@@ -252,15 +252,15 @@ module Kernel
   module_function :Float
 
   def Complex(*args)
-    Complex.send :convert, *args
+    Rubinius.privately do
+      Complex.convert *args
+    end
   end
   module_function :Complex
 
   def Rational(a, b = 1)
-    if a.kind_of?(Rational) && b == 1
-      a
-    else
-      Rational.send :convert, a, b
+    Rubinius.privately do
+      Rational.convert a, b
     end
   end
   module_function :Rational
