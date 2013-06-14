@@ -319,3 +319,9 @@ class Float
   end
 
 end
+
+module Rubinius
+  def self.mathn_loaded?
+    true
+  end
+end

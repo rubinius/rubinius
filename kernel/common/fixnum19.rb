@@ -18,9 +18,9 @@ class Fixnum < Integer
     Rubinius.primitive :fixnum_pow
 
     if o.is_a?(Float) && self < 0 && o != o.round
-      return Complex(self) ** o
+      return Complex.new(self, 0) ** o
     elsif o.is_a?(Integer) && o < 0
-      return Rational(self) ** o
+      return Rational.new(self, 1) ** o
     end
 
     redo_coerced :**, o

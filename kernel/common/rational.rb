@@ -10,9 +10,7 @@
 
 class Rational < Numeric
 
-  private_class_method :new
-
-  def self.convert(num, den)
+  def self.convert(num, den, mathn = true)
     if num.equal? nil or den.equal? nil
       raise TypeError, "cannot convert nil into Rational"
     end
@@ -32,7 +30,7 @@ class Rational < Numeric
     end
 
     if num.kind_of? Integer and den.kind_of? Integer
-      return new(num, den)
+      return reduce(num, den, mathn)
     end
 
     if den.equal? 1 and !num.kind_of? Integer
@@ -44,15 +42,12 @@ class Rational < Numeric
       end
     end
 
-    new num, den
+    reduce num, den
   end
 
   private_class_method :convert
 
-  #
-  # This method is actually private.
-  #
-  def initialize(num, den)
+  def self.reduce(num, den, mathn = true)
     case num
     when Integer
       # nothing
@@ -72,9 +67,8 @@ class Rational < Numeric
       end
 
       if den == 1
-        @numerator = num
-        @denominator = den
-        return
+        return num if mathn && Rubinius.mathn_loaded?
+        return new(num, den)
       end
     when Numeric
       den = den.to_i
@@ -83,8 +77,17 @@ class Rational < Numeric
     end
 
     gcd = num.gcd den
-    @numerator = num.div gcd
-    @denominator = den.div gcd
+    num = num.div gcd
+    den = den.div gcd
+    return num if mathn && Rubinius.mathn_loaded? && den == 1
+    new(num, den)
+  end
+
+  private_class_method :reduce
+
+  def initialize(num, den)
+    @numerator = num
+    @denominator = den
   end
 
   def + (a)
@@ -93,7 +96,7 @@ class Rational < Numeric
       num_a = a.numerator * @denominator
       Rational(num + num_a, @denominator * a.denominator)
     elsif a.kind_of?(Integer)
-      self + Rational(a, 1)
+      self + Rational.new(a, 1)
     elsif a.kind_of?(Float)
       Float(self) + a
     else
@@ -108,7 +111,7 @@ class Rational < Numeric
       num_a = a.numerator * @denominator
       Rational(num - num_a, @denominator*a.denominator)
     elsif a.kind_of?(Integer)
-      self - Rational(a, 1)
+      self - Rational.new(a, 1)
     elsif a.kind_of?(Float)
       Float(self) - a
     else
@@ -123,7 +126,7 @@ class Rational < Numeric
       den = @denominator * a.denominator
       Rational(num, den)
     elsif a.kind_of?(Integer)
-      self * Rational(a, 1)
+      self * Rational.new(a, 1)
     elsif a.kind_of?(Float)
       Float(self) * a
     else
@@ -139,7 +142,7 @@ class Rational < Numeric
       Rational(num, den)
     elsif a.kind_of?(Integer)
       raise ZeroDivisionError, "division by zero" if a == 0
-      self / Rational(a, 1)
+      self / Rational.new(a, 1)
     elsif a.kind_of?(Float)
       Float(self) / a
     else
@@ -222,7 +225,7 @@ class Rational < Numeric
     if other.kind_of?(Rational)
       @numerator == other.numerator and (@denominator == other.denominator or @numerator.zero?)
     elsif other.kind_of?(Integer)
-      self == Rational(other, 1)
+      self == Rational.new(other, 1)
     elsif other.kind_of?(Float)
       Float(self) == other
     else
@@ -243,7 +246,7 @@ class Rational < Numeric
         return 0
       end
     elsif other.kind_of?(Integer)
-      return self <=> Rational(other, 1)
+      return self <=> Rational.new(other, 1)
     elsif other.kind_of?(Float)
       return Float(self) <=> other
     elsif defined? other.coerce
@@ -258,7 +261,7 @@ class Rational < Numeric
     if other.kind_of?(Float)
       return other, self.to_f
     elsif other.kind_of?(Integer)
-      return Rational(other, 1), self
+      return Rational.new(other, 1), self
     else
       super
     end

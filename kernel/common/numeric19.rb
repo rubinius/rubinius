@@ -11,7 +11,9 @@ class Numeric
   end
 
   def quo(other)
-    Rational(self) / other
+    Rubinius.privately do
+      Rational.convert(self, 1, false) / other
+    end
   end
 
   def modulo(other)

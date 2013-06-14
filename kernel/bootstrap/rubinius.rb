@@ -72,6 +72,10 @@ module Rubinius
     Rubinius::VM.reset_method_cache mod, name
   end
 
+  def self.mathn_loaded?
+    false
+  end
+
   module Unsafe
     def self.set_class(obj, cls)
       Rubinius.primitive :vm_set_class

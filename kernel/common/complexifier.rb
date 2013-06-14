@@ -32,7 +32,7 @@ class String
         re = m.post_match
         po = false
       else
-        return Complex(0, 0)
+        return Complex.new(0, 0)
       end
 
       r = 0
