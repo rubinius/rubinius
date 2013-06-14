@@ -672,7 +672,7 @@ rb_syck_err_handler(p, msg)
            msg,
            p->linect,
            p->cursor - p->lineptr, 
-           p->lineptr); 
+           p->cursor);
 }
 
 /*
