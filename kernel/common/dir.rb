@@ -98,39 +98,34 @@ class Dir
       return value
     else
       error = FFI::Platform::POSIX.chdir path
-      if error != 0
-        Errno.handle path
-      end
+      Errno.handle path if error != 0
       error
     end
   end
 
   def self.mkdir(path, mode = 0777)
     error = FFI::Platform::POSIX.mkdir(Rubinius::Type.coerce_to_path(path), mode)
-    if error != 0
-      Errno.handle path
-    end
+    Errno.handle path if error != 0
     error
   end
 
   def self.rmdir(path)
     error = FFI::Platform::POSIX.rmdir(Rubinius::Type.coerce_to_path(path))
-    if error != 0
-      Errno.handle path
-    end
+    Errno.handle path if error != 0
     error
   end
 
   def self.getwd
     buf = String.pattern Rubinius::PATH_MAX, 0
     wd = FFI::Platform::POSIX.getcwd(buf, buf.length)
+    Errno.handle unless wd
     Rubinius::Type.external_string wd
   end
 
   def self.chroot(path)
     ret = FFI::Platform::POSIX.chroot Rubinius::Type.coerce_to_path(path)
-    Errno.handle path
-    return ret
+    Errno.handle path if ret != 0
+    ret
   end
 
   def each
