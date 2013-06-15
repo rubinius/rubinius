@@ -133,7 +133,7 @@ class StringIO
         end
       end
     else
-      while s = read(1)
+      while s = getc
         yield s
       end
     end
