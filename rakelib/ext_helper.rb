@@ -23,6 +23,7 @@ $YACC     = env "YACC", "bison"
 
 $CFLAGS   = env "CFLAGS", Rubinius::BUILD_CONFIG[:user_cflags] || ""
 $CXXFLAGS = env "CXXFLAGS", Rubinius::BUILD_CONFIG[:user_cxxflags] || ""
+$CPPFLAGS = env "CPPFLAGS", Rubinius::BUILD_CONFIG[:user_cppflags] || ""
 
 $DEBUGFLAGS = "-O0" if ENV["DEV"]
 
@@ -60,6 +61,10 @@ def add_cxxflag(*flags)
   flags.each { |f| $CXXFLAGS << " #{f}" }
 end
 
+def add_cppflag(*flags)
+  flags.each { |f| $CPPFLAGS << " #{f}" }
+end
+
 def add_ldflag(*flags)
   flags.each { |f| $LDFLAGS << " #{f}" }
 end
@@ -83,9 +88,11 @@ end
 def add_mri_capi
   add_cflag Rubinius::BUILD_CONFIG[:system_cflags]
   add_cxxflag Rubinius::BUILD_CONFIG[:system_cxxflags]
+  add_cppflag Rubinius::BUILD_CONFIG[:system_cppflags]
 
   add_cflag DEFAULT_CONFIG["DEFS"]
   add_cflag DEFAULT_CONFIG["CFLAGS"]
+  add_cppflag DEFAULT_CONFIG["CPPFLAGS"]
 
   $LIBS << " #{DEFAULT_CONFIG["LIBS"]}"
   $LIBS << " #{DEFAULT_CONFIG["DLDLIBS"]}"
@@ -131,6 +138,7 @@ end
 def add_rbx_capi
   add_cflag Rubinius::BUILD_CONFIG[:system_cflags]
   add_cxxflag Rubinius::BUILD_CONFIG[:system_cxxflags]
+  add_cppflag Rubinius::BUILD_CONFIG[:system_cppflags]
   add_cflag "-g"
   add_cxxflag "-fno-rtti"
   if ENV['DEV']
@@ -471,12 +479,12 @@ end
 
 rule ".o" => ".c" do |t|
   report_command "CC #{t.source}"
-  qsh "#{$CC} -c -o #{t.name} #{$CFLAGS} #{$DEBUGFLAGS} #{t.source}"
+  qsh "#{$CC} -c -o #{t.name} #{$CPPFLAGS} #{$CFLAGS} #{$DEBUGFLAGS} #{t.source}"
 end
 
 rule ".o" => ".cpp" do |t|
   report_command "CXX #{t.source}"
-  qsh "#{$CXX} -c -o #{t.name} #{$CFLAGS} #{$CXXFLAGS} #{$DEBUGFLAGS} #{t.source}"
+  qsh "#{$CXX} -c -o #{t.name} #{$CPPFLAGS} #{$CFLAGS} #{$CXXFLAGS} #{$DEBUGFLAGS} #{t.source}"
 end
 
 rule ".#{$DLEXT}" do |t|
