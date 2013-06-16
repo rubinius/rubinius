@@ -247,6 +247,13 @@ describe "C-API String function" do
     it "appends a string to another string" do
       @s.rb_str_append("Hello", " Goodbye").should == "Hello Goodbye"
     end
+
+    ruby_version_is "1.9" do
+      it "changes Encoding if a string is appended to an empty string" do
+        string = "パスタ".encode(Encoding::ISO_2022_JP)
+        @s.rb_str_append("", string).encoding.should == Encoding::ISO_2022_JP
+      end
+    end
   end
 
   describe "rb_str_plus" do
