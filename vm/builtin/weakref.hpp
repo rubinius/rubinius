@@ -32,8 +32,6 @@ namespace rubinius {
       return obj;
     }
 
-    static void init(STATE);
-
     // Rubinius.primitive+ :weakref_new
     static WeakRef* create(STATE, Object* obj);
 

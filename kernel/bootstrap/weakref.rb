@@ -4,9 +4,9 @@ class WeakRef
 
   class RefError < ::RuntimeError; end
 
-  def self.new
+  def self.new(obj)
     Rubinius.primitive :weakref_new
-    raise PrimitiveFailure, "WeakRef.new primitive failed"
+    ::Kernel.raise PrimitiveFailure, "WeakRef.new primitive failed"
   end
 
   def __setobj__(obj)

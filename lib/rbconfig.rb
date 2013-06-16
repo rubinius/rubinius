@@ -119,12 +119,15 @@ module RbConfig
   # since we hardcode using gcc, and this flag is only
   # used by mkmf to compile extensions, be sure PIC is in
   # there
-  CONFIG["CFLAGS"]             = "-g -fPIC"
+  CONFIG["CFLAGS"]             = "-g"
+  CONFIG["CXXFLAGS"]           = "-g"
   CONFIG["LDFLAGS"]            = ""
   if ENV['DEV']
     CONFIG["CFLAGS"] << " -O0 "
+    CONFIG["CXXFLAGS"] << " -O0 "
   else
     CONFIG["CFLAGS"] << " -O2"
+    CONFIG["CXXFLAGS"] << " -O2"
   end
 
   if sys = Rubinius::BUILD_CONFIG[:system_cflags]
@@ -133,6 +136,14 @@ module RbConfig
 
   if user = Rubinius::BUILD_CONFIG[:user_cflags]
     CONFIG["CFLAGS"] << " #{user}" unless user.empty?
+  end
+
+  if sys = Rubinius::BUILD_CONFIG[:system_cxxflags]
+    CONFIG["CXXFLAGS"] << " #{sys}" unless sys.empty?
+  end
+
+  if user = Rubinius::BUILD_CONFIG[:user_cxxflags]
+    CONFIG["CXXFLAGS"] << " #{user}" unless user.empty?
   end
 
   if sys = Rubinius::BUILD_CONFIG[:system_ldflags]
@@ -163,7 +174,7 @@ module RbConfig
   CONFIG["DLDFLAGS"]           = ""
   CONFIG["ARCH_FLAG"]          = ""
   CONFIG["STATIC"]             = ""
-  CONFIG["CCDLFLAGS"]          = " -fPIC"
+  CONFIG["CCDLFLAGS"]          = ""
   CONFIG["XCFLAGS"]            = ""
   CONFIG["XLDFLAGS"]           = ""
   CONFIG["LIBRUBY_DLDFLAGS"]   = ""

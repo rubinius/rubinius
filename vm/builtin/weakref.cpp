@@ -6,16 +6,6 @@
 #include "ontology.hpp"
 
 namespace rubinius {
-  void WeakRef::init(STATE) {
-    Class* super_class;
-    if(!LANGUAGE_18_ENABLED(state)) {
-      super_class = G(basicobject);
-    } else {
-      super_class = G(object);
-    }
-    GO(cls_weakref).set(ontology::new_class(state, "WeakRef", super_class));
-     G(cls_weakref)->set_object_type(state, WeakRefType);
-  }
 
   WeakRef* WeakRef::create(STATE, Object* obj) {
     WeakRef* ref = state->new_object<WeakRef>(G(cls_weakref));

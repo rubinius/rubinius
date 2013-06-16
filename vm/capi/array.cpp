@@ -351,9 +351,7 @@ extern "C" {
     }
 
     if(index < 0) {
-      std::ostringstream error;
-      error << "Index " << (index - total) << " out of range!";
-      rb_raise(rb_eIndexError, error.str().c_str());
+      rb_raise(rb_eIndexError, "Index %li out of range", index - total);
     }
 
     array->set(env->state(), index, env->get_object(object));
