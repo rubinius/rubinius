@@ -372,7 +372,6 @@ namespace rubinius {
     CallCustomCache::init(state);
     ConstantCache::init(state);
     RespondToCache::init(state);
-    WeakRef::init(state);
     Fiber::init(state);
     Alias::init(state);
     Randomizer::init(state);
