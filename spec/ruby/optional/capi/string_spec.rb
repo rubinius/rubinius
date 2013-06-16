@@ -134,6 +134,12 @@ describe "C-API String function" do
   end
 
   ruby_version_is "1.9" do
+    describe "rb_str_new" do
+      it "creates a new String with ASCII-8BIT Encoding" do
+        @s.rb_str_new("", 0).encoding.should == Encoding::ASCII_8BIT
+      end
+    end
+
     describe "rb_str_new_cstr" do
       it_behaves_like :rb_str_new2, :rb_str_new_cstr
     end
