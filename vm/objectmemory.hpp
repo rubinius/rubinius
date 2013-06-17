@@ -212,6 +212,7 @@ namespace rubinius {
 
     /* Config variables */
     size_t large_object_threshold;
+    size_t young_max_bytes;
     int young_autotune_factor;
     bool young_autotune_size;
 

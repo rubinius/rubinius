@@ -58,6 +58,7 @@ namespace rubinius {
     , code_manager_(&state->shared)
     , mark_(2)
     , allow_gc_(true)
+    , mature_mark_concurrent_(config.gc_immix_concurrent)
     , mature_gc_in_progress_(false)
     , slab_size_(4096)
     , shared_(state->shared)
@@ -66,6 +67,11 @@ namespace rubinius {
     , collect_mature_now(false)
     , root_state_(state)
     , last_object_id(1)
+    , last_snapshot_id(0)
+    , large_object_threshold(config.gc_large_object)
+    , young_max_bytes(config.gc_young_max_bytes * 2)
+    , young_autotune_factor(config.gc_young_autotune_factor)
+    , young_autotune_size(config.gc_young_autotune_size)
   {
     // TODO Not sure where this code should be...
 #ifdef ENABLE_OBJECT_WATCH
@@ -75,15 +81,9 @@ namespace rubinius {
     }
 #endif
 
-    large_object_threshold = config.gc_large_object;
-    young_autotune_factor = config.gc_young_autotune_factor;
-    young_autotune_size = config.gc_young_autotune_size;
-
     young_->set_lifetime(config.gc_young_lifetime);
 
     if(config.gc_young_autotune_lifetime) young_->set_autotune_lifetime();
-
-    mature_mark_concurrent_ = config.gc_immix_concurrent;
 
     for(size_t i = 0; i < LastObjectType; i++) {
       type_info[i] = NULL;
@@ -669,7 +669,8 @@ step1:
       //
       // If we don't see any young GC's we check if we should shrink it
       if(young_gc_while_marking_ > 1) {
-        if(young_->bytes_size() < mature_bytes_allocated() / young_autotune_factor) {
+        if(young_->bytes_size() < young_max_bytes &&
+           young_->bytes_size() < mature_bytes_allocated() / young_autotune_factor) {
           young_->grow(young_->bytes_size() * 2);
         }
       } else if(young_gc_while_marking_ == 0) {
