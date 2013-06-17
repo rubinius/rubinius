@@ -714,7 +714,8 @@ step1:
       uint64_t concur = gc_stats.last_full_concurrent_collection_time.value;
       size_t before_kb = data->mature_bytes_allocated() / 1024;
       size_t kb = mature_bytes_allocated() / 1024;
-      std::cerr << "[Full GC " << before_kb << "kB => " << kb << "kB " << stop << "ms (" << concur << "ms)]" << std::endl;
+      std::cerr << "[Full GC " << before_kb << "kB => " << kb << "kB " << stop << "ms (" << concur << "ms), ";
+      std::cerr << capi_handles_->size() << " C-API handles, " << inflated_headers_->size() << " inflated headers]" << std::endl;
 
       if(state->shared().config.gc_noisy) {
         std::cerr << "\a\a" << std::flush;

@@ -31,5 +31,9 @@ namespace rubinius {
 
     void deallocate_headers(unsigned int mark);
     void allocate_chunk();
+
+    int size() const {
+      return allocator_->in_use_;
+    }
   };
 }
