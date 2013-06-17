@@ -12,6 +12,7 @@
 #include "gc/immix.hpp"
 #include "gc/inflated_headers.hpp"
 #include "gc/walker.hpp"
+#include "llvm/state.hpp"
 #include "on_stack.hpp"
 
 #include "config_parser.hpp"
@@ -712,9 +713,15 @@ step1:
     if(state->shared().config.gc_show) {
       uint64_t stop = gc_stats.last_full_stop_collection_time.value;
       uint64_t concur = gc_stats.last_full_concurrent_collection_time.value;
-      size_t before_kb = data->mature_bytes_allocated() / 1024;
-      size_t kb = mature_bytes_allocated() / 1024;
-      std::cerr << "[Full GC " << before_kb << "kB => " << kb << "kB " << stop << "ms (" << concur << "ms), ";
+      size_t before_mature_kb = data->mature_bytes_allocated() / 1024;
+      size_t mature_kb = mature_bytes_allocated() / 1024;
+      size_t before_code_kb = data->code_bytes_allocated() / 1024;
+      size_t code_kb = code_bytes_allocated() / 1024;
+      std::cerr << "[Full GC mature: " << before_mature_kb << "kB => " << mature_kb << "kB, ";
+      std::cerr << "code: " << before_code_kb << "kB => " << code_kb << "kB, ";
+      std::cerr << "symbols: " << data->symbol_bytes_allocated() / 1024 << "kB, ";
+      std::cerr << "jit: " << data->jit_bytes_allocated() / 1024 << "kB, ";
+      std::cerr << "time: " << stop << "ms (" << concur << "ms), ";
       std::cerr << capi_handles_->size() << " C-API handles, " << inflated_headers_->size() << " inflated headers]" << std::endl;
 
       if(state->shared().config.gc_noisy) {
@@ -805,6 +812,18 @@ step1:
 
   size_t ObjectMemory::mature_bytes_allocated() {
     return immix_->bytes_allocated() + mark_sweep_->allocated_bytes;
+  }
+
+  size_t ObjectMemory::code_bytes_allocated() {
+    return code_manager_.size();
+  }
+
+  size_t ObjectMemory::symbol_bytes_allocated() {
+    return shared_.symbols.size();
+  }
+
+  size_t ObjectMemory::jit_bytes_allocated() {
+    return shared_.llvm_state->code_bytes();
   }
 
   void ObjectMemory::add_type_info(TypeInfo* ti) {

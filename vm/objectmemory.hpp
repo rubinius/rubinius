@@ -374,6 +374,9 @@ namespace rubinius {
 
     size_t young_bytes_allocated();
     size_t mature_bytes_allocated();
+    size_t code_bytes_allocated();
+    size_t symbol_bytes_allocated();
+    size_t jit_bytes_allocated();
 
     void collect_maybe(STATE, GCToken gct, CallFrame* call_frame);
 

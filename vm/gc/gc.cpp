@@ -45,6 +45,8 @@ namespace rubinius {
 #endif
     , young_bytes_allocated_(state->om->young_bytes_allocated())
     , mature_bytes_allocated_(state->om->mature_bytes_allocated())
+    , code_bytes_allocated_(state->om->code_bytes_allocated())
+    , symbol_bytes_allocated_(state->om->symbol_bytes_allocated())
   {}
 
   GCData::GCData(VM* state, GCToken gct)
@@ -60,6 +62,8 @@ namespace rubinius {
 #endif
     , young_bytes_allocated_(state->om->young_bytes_allocated())
     , mature_bytes_allocated_(state->om->mature_bytes_allocated())
+    , code_bytes_allocated_(state->om->code_bytes_allocated())
+    , symbol_bytes_allocated_(state->om->symbol_bytes_allocated())
   {}
 
   GarbageCollector::GarbageCollector(ObjectMemory *om)
@@ -475,5 +479,12 @@ namespace rubinius {
     }
   }
 
-
+  size_t GCData::jit_bytes_allocated() {
+#ifdef ENABLE_LLVM
+    if(llvm_state_) {
+      return llvm_state_->code_bytes();
+    }
+#endif
+    return 0;
+  }
 }

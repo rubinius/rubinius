@@ -40,6 +40,8 @@ namespace rubinius {
 #endif
     size_t young_bytes_allocated_;
     size_t mature_bytes_allocated_;
+    size_t code_bytes_allocated_;
+    size_t symbol_bytes_allocated_;
 
   public:
     GCData(VM*, GCToken gct);
@@ -61,6 +63,8 @@ namespace rubinius {
 #endif
       , young_bytes_allocated_(0)
       , mature_bytes_allocated_(0)
+      , code_bytes_allocated_(0)
+      , symbol_bytes_allocated_(0)
     {}
 
     Roots& roots() {
@@ -104,6 +108,16 @@ namespace rubinius {
     size_t mature_bytes_allocated() {
       return mature_bytes_allocated_;
     }
+
+    size_t code_bytes_allocated() {
+      return code_bytes_allocated_;
+    }
+
+    size_t symbol_bytes_allocated() {
+      return symbol_bytes_allocated_;
+    }
+
+    size_t jit_bytes_allocated();
   };
 
   class AddressDisplacement {
