@@ -376,12 +376,12 @@ class Socket < BasicSocket
       end
     end
 
-    def self.getaddrinfo(host, service = nil, family = 0, socktype = 0,  protocol = 0, flags = 0)
+    def self.getaddrinfo(host, service = nil, family = nil, socktype = nil,  protocol = nil, flags = nil)
       hints = Addrinfo.new
-      hints[:ai_family] = family
-      hints[:ai_socktype] = socktype
-      hints[:ai_protocol] = protocol
-      hints[:ai_flags] = flags
+      hints[:ai_family] = family || 0
+      hints[:ai_socktype] = socktype || 0
+      hints[:ai_protocol] = protocol || 0
+      hints[:ai_flags] = flags || 0
 
       if host && (host.empty? || host == '<any>')
         host = "0.0.0.0"
