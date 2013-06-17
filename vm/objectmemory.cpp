@@ -539,7 +539,7 @@ step1:
     }
 
     if(collect_mature_now) {
-      size_t before_kb = 0;
+      size_t before_kb = mature_bytes_allocated() / 1024;
 
       RUBINIUS_GC_BEGIN(1);
 #ifdef RBX_PROFILER
@@ -558,7 +558,8 @@ step1:
       if(state->shared().config.gc_show) {
         uint64_t diff = gc_stats.last_full_collection_time.value;
         size_t kb = mature_bytes_allocated() / 1024;
-        std::cerr << "[Full GC " << before_kb << "kB => " << kb << "kB " << diff << "ms]" << std::endl;
+        std::cerr << "[Full GC " << before_kb << "kB => " << kb << "kB " << diff << "ms, ";
+        std::cerr << capi_handles_->size() << " C-API handles, " << inflated_headers_->size() << " inflated headers]" << std::endl;
 
         if(state->shared().config.gc_noisy) {
           std::cerr << "\a\a" << std::flush;
