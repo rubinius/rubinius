@@ -59,6 +59,58 @@ describe "Socket#getaddrinfo" do
     end
   end
 
+  it "accepts an empty family" do
+    res = Socket.getaddrinfo('127.0.0.1', 9160,
+                             nil,
+                             Socket::SOCK_STREAM,
+                             Socket::IPPROTO_TCP,
+                             Socket::AI_PASSIVE)
+
+    expected = [["AF_INET", 9160, "127.0.0.1", "127.0.0.1", Socket::AF_INET, Socket::SOCK_STREAM, Socket::IPPROTO_TCP]]
+    res.each do |a|
+      expected.should include(a)
+    end
+  end
+
+  it "accepts an empty socket type" do
+    res = Socket.getaddrinfo('127.0.0.1', 9160,
+                             Socket::AF_INET,
+                             nil,
+                             Socket::IPPROTO_TCP,
+                             Socket::AI_PASSIVE)
+
+    expected = [["AF_INET", 9160, "127.0.0.1", "127.0.0.1", Socket::AF_INET, Socket::SOCK_STREAM, Socket::IPPROTO_TCP]]
+    res.each do |a|
+      expected.should include(a)
+    end
+  end
+
+  it "accepts an empty protocol" do
+    res = Socket.getaddrinfo('127.0.0.1', 9160,
+                             Socket::AF_INET,
+                             Socket::SOCK_STREAM,
+                             nil,
+                             Socket::AI_PASSIVE)
+
+    expected = [["AF_INET", 9160, "127.0.0.1", "127.0.0.1", Socket::AF_INET, Socket::SOCK_STREAM, Socket::IPPROTO_TCP]]
+    res.each do |a|
+      expected.should include(a)
+    end
+  end
+
+  it "accepts empty flags" do
+    res = Socket.getaddrinfo('127.0.0.1', 9160,
+                             Socket::AF_INET,
+                             Socket::SOCK_STREAM,
+                             Socket::IPPROTO_TCP,
+                             nil)
+
+    expected = [["AF_INET", 9160, "127.0.0.1", "127.0.0.1", Socket::AF_INET, Socket::SOCK_STREAM, Socket::IPPROTO_TCP]]
+    res.each do |a|
+      expected.should include(a)
+    end
+  end
+
    # #getaddrinfo will return a INADDR_ANY address (0.0.0.0
    # or "::") if it's a passive socket. In the case of non-passive
    # sockets (AI_PASSIVE not set) it should return the loopback
