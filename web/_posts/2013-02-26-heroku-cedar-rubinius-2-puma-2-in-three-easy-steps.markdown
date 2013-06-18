@@ -70,5 +70,5 @@ None of this would be possible without the hard work of [Carl Lerche](https://gi
 
 ### The Footnotes
 
-As of this writing "Rubinius 2.0" actually means "Rubinius 2.0.0.rc1" and "Puma 2.0" actually means "Puma 2.0.0b7". The net result is the same though.
+As of this writing "Rubinius 2.0" actually means "Rubinius 2.0.0.rc1" and "Puma 2.0" actually means "Puma 2.0.1". The net result is the same though.
 
