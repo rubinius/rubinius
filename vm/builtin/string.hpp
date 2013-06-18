@@ -107,8 +107,7 @@ namespace rubinius {
 
     // Rubinius.primitive :string_equal
     Object* equal(STATE, String* other) {
-      if(!LANGUAGE_18_ENABLED(state) &&
-         Encoding::compatible_p(state, this, other)->nil_p()) return cFalse;
+      if(Encoding::compatible_p(state, this, other)->nil_p()) return cFalse;
       if(this->num_bytes() != other->num_bytes()) return cFalse;
       int comp = memcmp(
           this->byte_address(),
