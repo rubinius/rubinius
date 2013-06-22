@@ -31,6 +31,18 @@ describe "Defining an 'initialize_copy' method" do
   end
 end
 
+ruby_version_is "2.0" do
+  describe "Defining an 'initialize_dup' method" do
+    it "sets the method's visibility to private" do
+      class DefInitializeDupSpec
+        def initialize_dup
+        end
+      end
+      DefInitializeDupSpec.should have_private_instance_method(:initialize_dup, false)
+    end
+  end
+end
+
 describe "An instance method definition with a splat" do
   it "accepts an unnamed '*' argument" do
     def foo(*); end;
