@@ -41,6 +41,16 @@ ruby_version_is "2.0" do
       DefInitializeDupSpec.should have_private_instance_method(:initialize_dup, false)
     end
   end
+
+  describe "Defining an 'initialize_clone' method" do
+    it "sets the method's visibility to private" do
+      class DefInitializeCloneSpec
+        def initialize_clone
+        end
+      end
+      DefInitializeCloneSpec.should have_private_instance_method(:initialize_clone, false)
+    end
+  end
 end
 
 describe "An instance method definition with a splat" do
