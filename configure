@@ -95,7 +95,7 @@ class Configure
     @prefixdir    = nil
     @bindir       = nil
     @appdir       = nil
-    @librarydir   = nil
+    @libdir       = nil
     @runtimedir   = nil
     @kerneldir    = nil
     @sitedir      = nil
@@ -183,7 +183,7 @@ class Configure
     if @appdir
       dir = expand_install_dir @appdir
 
-      @librarydir = dir + "/lib"
+      @libdir     = dir + "/lib"
       @runtimedir = dir + "/runtime"
       @kerneldir  = dir + "/kernel"
       @sitedir    = dir + "/site"
@@ -191,7 +191,7 @@ class Configure
     end
 
     @bindir       = @prefixdir + "/bin" unless @bindir
-    @librarydir   = @prefixdir + "/lib" unless @librarydir
+    @libdir       = @prefixdir + "/lib" unless @libdir
     @runtimedir   = @prefixdir + "/runtime" unless @runtimedir
     @kerneldir    = @prefixdir + "/kernel" unless @kerneldir
     @sitedir      = @prefixdir + "/site" unless @sitedir
@@ -202,7 +202,7 @@ class Configure
     @include19dir = @prefixdir + "/vm/capi/19/include" unless @include19dir
     @include20dir = @prefixdir + "/vm/capi/19/include" unless @include20dir
 
-    dirs = [@bindir, @librarydir, @runtimedir, @kerneldir, @sitedir, @vendordir,
+    dirs = [@bindir, @libdir, @runtimedir, @kerneldir, @sitedir, @vendordir,
             @mandir, @gemsdir, @include18dir, @include19dir, @include20dir]
 
     parts = dirs.map { |d| d.split "/" }
@@ -1631,7 +1631,7 @@ module Rubinius
     :stagingdir     => #{@stagingdir.inspect},
     :prefixdir      => "#{@prefixdir}",
     :bindir         => "#{@bindir}",
-    :libdir         => "#{@librarydir}",
+    :libdir         => "#{@libdir}",
     :runtimedir     => "#{@runtimedir}",
     :kerneldir      => "#{@kerneldir}",
     :sitedir        => "#{@sitedir}",
@@ -1679,7 +1679,7 @@ end
 #define RBX_GEMS_PATH        "#{@gemsdir}"
 #define RBX_RUNTIME_PATH     "#{@runtimedir}"
 #define RBX_KERNEL_PATH      "#{@kerneldir}"
-#define RBX_LIB_PATH         "#{@librarydir}"
+#define RBX_LIB_PATH         "#{@libdir}"
 #define RBX_HDR18_PATH       "#{@include18dir}"
 #define RBX_HDR19_PATH       "#{@include19dir}"
 #define RBX_HDR20_PATH       "#{@include20dir}"
@@ -1877,7 +1877,7 @@ Rubinius has been configured for the following paths:
 
 prefix:  #{@prefixdir}
 bin:     #{@bindir}
-lib:     #{@librarydir}
+lib:     #{@libdir}
 runtime: #{@runtimedir}
 kernel:  #{@kerneldir}
 site:    #{@sitedir}
