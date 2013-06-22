@@ -268,7 +268,9 @@ module Rubinius
         when Tuple
           str = "p\n#{val.size}\n"
           val.each do |ele|
-            str.append marshal(ele)
+            data = marshal(ele)
+            data.force_encoding(str.encoding) if defined?(Encoding)
+            str.append data
           end
           str
         when Float
