@@ -2,6 +2,7 @@
 #include "builtin/exception.hpp"
 #include "builtin/location.hpp"
 #include "builtin/array.hpp"
+#include "builtin/fiber.hpp"
 
 #include "signal.hpp"
 #include "call_frame.hpp"
@@ -40,7 +41,12 @@ namespace rubinius {
       return false;
     }
     if(vm_->interrupt_by_kill()) {
-      vm_->clear_interrupt_by_kill();
+      Fiber* fib = vm_->current_fiber.get();
+      if(fib->nil_p() || fib->root_p()) {
+        vm_->clear_interrupt_by_kill();
+      } else {
+        vm_->set_check_local_interrupts();
+      }
       vm_->thread_state_.raise_thread_kill();
       return false;
     }
