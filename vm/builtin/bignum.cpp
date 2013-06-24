@@ -48,7 +48,7 @@ namespace rubinius {
     unsigned long tmp = b;
     do {
       ++digits;
-    } while((tmp >>= DIGIT_BIT) > MP_DIGIT_MAX);
+    } while((tmp >>= DIGIT_BIT) > 0);
 
     while(b > MP_DIGIT_MAX) {
       a->dp[0] |= (b >> DIGIT_BIT);
