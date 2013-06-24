@@ -151,7 +151,7 @@ extern "C" {
 
     if(enc->nil_p()) return 0;
 
-    return Encoding::find_index(env->state(), enc->get_encoding()->name);
+    return Encoding::find_index(env->state(), enc->name()->c_str(env->state()));
   }
 
   void rb_enc_set_index(VALUE obj, int index) {
@@ -204,7 +204,7 @@ extern "C" {
 
     if(enc->nil_p()) return -1;
 
-    return Encoding::find_index(env->state(), enc->get_encoding()->name);
+    return Encoding::find_index(env->state(), enc->name()->c_str(env->state()));
   }
 
   int rb_enc_dummy_p(rb_encoding *enc) {

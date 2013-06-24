@@ -58,4 +58,16 @@ describe "TCPServer#accept" do
     t.raise ex
     lambda { t.join }.should raise_error(Exception)
   end
+
+  ruby_version_is "1.9" do
+    it "returns a binary-mode socket" do
+      socket = TCPSocket.new('127.0.0.1', SocketSpecs.port)
+      socket.close
+      client = @server.accept
+      client.binmode?.should be_true
+      client.external_encoding.should == Encoding::BINARY
+      client.internal_encoding.should == nil
+      client.close
+    end
+  end
 end

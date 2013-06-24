@@ -4,6 +4,8 @@
 #include "builtin/object.hpp"
 #include "builtin/bytearray.hpp"
 #include "builtin/fixnum.hpp"
+#include "builtin/encoding.hpp"
+#include "configuration.hpp"
 #include "object_utils.hpp"
 
 #include <ctype.h> // For isdigit and friends
@@ -105,6 +107,7 @@ namespace rubinius {
 
     // Rubinius.primitive :string_equal
     Object* equal(STATE, String* other) {
+      if(Encoding::compatible_p(state, this, other)->nil_p()) return cFalse;
       if(this->num_bytes() != other->num_bytes()) return cFalse;
       int comp = memcmp(
           this->byte_address(),

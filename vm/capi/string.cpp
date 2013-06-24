@@ -175,6 +175,7 @@ extern "C" {
   VALUE rb_str_append(VALUE self, VALUE other) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
+    StringValue(other);
     String* string = capi_get_string(env, self);
     string->append(env->state(), capi_get_string(env, other));
     capi_update_string(env, self);
