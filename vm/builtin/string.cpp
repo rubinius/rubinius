@@ -807,7 +807,7 @@ namespace rubinius {
     if (encoding() != other->encoding()) {
       Encoding* new_encoding = Encoding::compatible_p(state, this, other);
       if(new_encoding->nil_p()) {
-        Exception::argument_error(state, "encodings are incompatible");
+        Exception::encoding_compatibility_error(state, other, this);
       }
       ascii_only(state, cNil);
       valid_encoding(state, cNil);

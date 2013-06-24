@@ -616,11 +616,6 @@ class String
       end
     end
 
-    unless other.encoding == encoding
-      enc = Rubinius::Type.compatible_encoding self, other
-      force_encoding enc
-    end
-
     Rubinius::Type.infect(self, other)
     append(other)
   end
@@ -751,8 +746,6 @@ class String
 
     while match
       if str = match.pre_match_from(last_end)
-        enc = Rubinius::Type.compatible_encoding ret, str
-        ret.force_encoding enc
         ret.append str
       end
 
@@ -769,8 +762,6 @@ class String
 
         tainted ||= val.tainted?
 
-        enc = Rubinius::Type.compatible_encoding ret, val
-        ret.force_encoding enc
         ret.append val
 
         if !@data.equal?(orig_data) or @num_bytes != orig_len
@@ -806,8 +797,6 @@ class String
 
     str = byteslice(last_end, @num_bytes-last_end+1)
     if str
-      enc = Rubinius::Type.compatible_encoding ret, str
-      ret.force_encoding enc
       ret.append str
     end
 
@@ -863,8 +852,6 @@ class String
 
     while match
       if str = match.pre_match_from(last_end)
-        enc = Rubinius::Type.compatible_encoding ret, str
-        ret.force_encoding enc
         ret.append str
       end
 
@@ -881,8 +868,6 @@ class String
 
         tainted ||= val.tainted?
 
-        enc = Rubinius::Type.compatible_encoding ret, val
-        ret.force_encoding enc
         ret.append val
 
         if !@data.equal?(orig_data) or @num_bytes != orig_len
@@ -918,8 +903,6 @@ class String
 
     str = byteslice(last_end, @num_bytes-last_end+1)
     if str
-      enc = Rubinius::Type.compatible_encoding ret, str
-      ret.force_encoding enc
       ret.append str
     end
 
