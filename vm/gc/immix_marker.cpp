@@ -173,13 +173,15 @@ namespace rubinius {
         }
         state->memory()->gc_stats.last_full_stop_collection_time.add(initial_stop.value);
         state->memory()->print_mature_stats(state, data_);
-        delete data_;
-        data_ = NULL;
         state->restart_world();
       }
 
       {
         utilities::thread::Mutex::LockGuard lg(run_lock_);
+        if(data_) {
+          delete data_;
+          data_ = NULL;
+        }
         if(exit_) break;
         state->gc_independent(gct, 0);
         paused_ = true;

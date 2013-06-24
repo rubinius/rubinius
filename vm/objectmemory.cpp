@@ -514,31 +514,28 @@ step1:
                 << " WORLD beginning GC.]" << std::endl;
     }
 
-    GCData* gc_data = new GCData(state->vm(), gct);
 
     if(collect_young_now) {
-
+      GCData gc_data(state->vm(), gct);
       YoungCollectStats stats;
 
       RUBINIUS_GC_BEGIN(0);
 #ifdef RBX_PROFILER
       if(unlikely(state->vm()->tooling())) {
         tooling::GCEntry method(state, tooling::GCYoung);
-        collect_young(state, gc_data, &stats);
+        collect_young(state, &gc_data, &stats);
       } else {
-        collect_young(state, gc_data, &stats);
+        collect_young(state, &gc_data, &stats);
       }
 #else
-      collect_young(state, gc_data, &stats);
+      collect_young(state, &gc_data, &stats);
 #endif
       RUBINIUS_GC_END(0);
-      print_young_stats(state, gc_data, &stats);
-      if(!collect_mature_now) {
-        delete gc_data;
-      }
+      print_young_stats(state, &gc_data, &stats);
     }
 
     if(collect_mature_now) {
+      GCData* gc_data = new GCData(state->vm(), gct);
       RUBINIUS_GC_BEGIN(1);
 #ifdef RBX_PROFILER
       if(unlikely(state->vm()->tooling())) {
