@@ -65,6 +65,7 @@ class Encoding
     attr_accessor :source_encoding
     attr_accessor :destination_encoding
     attr_reader :replacement
+    attr_reader :options
 
     def self.allocate
       Rubinius.primitive :encoding_converter_allocate

@@ -73,7 +73,10 @@ class String
       force_encoding to_enc
     elsif to_enc and from_enc != to_enc
       ec = Encoding::Converter.new from_enc, to_enc, options
-      replace ec.convert(self)
+      dest = ""
+      status = ec.primitive_convert self, dest, nil, nil, ec.options
+      raise ec.last_error unless status == :finished
+      replace dest
     end
 
     # TODO: replace this hack with transcoders
