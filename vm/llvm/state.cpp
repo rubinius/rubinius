@@ -496,6 +496,8 @@ halt:
     nil_class_id_      = G(nil_class)->class_id();
     true_class_id_     = G(true_class)->class_id();
     false_class_id_    = G(false_class)->class_id();
+    array_class_id_    = G(array)->class_id();
+    tuple_class_id_    = G(tuple)->class_id();
 
     type_optz_ = state->shared().config.jit_type_optz;
 

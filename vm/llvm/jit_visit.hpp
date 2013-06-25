@@ -1144,6 +1144,10 @@ namespace rubinius {
       FunctionType* ft = FunctionType::get(ObjType, types, false);
       Function* func = cast<Function>(
           module_->getOrInsertFunction("rbx_string_dup", ft));
+      func->setDoesNotCapture(1);
+      func->setDoesNotCapture(2);
+      func->setDoesNotCapture(3);
+      func->setDoesNotAlias(0);
 
       Value* call_args[] = {
         state_,
@@ -3572,6 +3576,9 @@ use_send:
       };
 
       Value* val = sig.call("rbx_make_array", call_args, 3, "constant", b());
+      type::KnownType kt = type::KnownType::instance(llvm_state()->array_class_id());
+      kt.associate(ctx_, val);
+
       stack_remove(count);
       stack_push(val);
     }

@@ -686,6 +686,7 @@ namespace rubinius {
       FunctionType* ft = FunctionType::get(st, types, false);
       Function* func = cast<Function>(
           ops.context()->module()->getOrInsertFunction(MUL_WITH_OVERFLOW, ft));
+      func->setDoesNotThrow();
 
       Value* recv_int = ops.fixnum_strip(recv);
       Value* arg_int = ops.fixnum_strip(arg);
@@ -1081,7 +1082,9 @@ namespace rubinius {
       sig << "State";
 
       Function* func = sig.function("rbx_float_allocate");
+      func->setDoesNotCapture(1);
       func->setDoesNotAlias(0); // return value
+      func->setDoesNotThrow();
 
       Value* call_args[] = { ops.state() };
       CallInst* res = sig.call("rbx_float_allocate", call_args, 1, "result", ops.b());
@@ -1279,14 +1282,20 @@ namespace rubinius {
 
       i.check_recv(klass, data);
 
-      Value* V = i.recv();
+      Value* cls = i.recv();
 
       Signature sig(ops.context(), "Object");
       sig << "State";
       sig << "CallFrame";
       sig << "Object";
 
-      Value* call_args[] = { ops.state(), ops.call_frame(), V };
+      Function* func = sig.function("rbx_create_instance");
+      func->setDoesNotCapture(1);
+      func->setDoesNotCapture(2);
+      func->setDoesNotCapture(3);
+      func->setDoesNotAlias(0);
+
+      Value* call_args[] = { ops.state(), ops.call_frame(), cls };
 
       CallInst* out = sig.call("rbx_create_instance", call_args, 3,
                                "instance", ops.b());
@@ -1296,7 +1305,7 @@ namespace rubinius {
       // allocation can be elided in that case.
       out->setDoesNotThrow();
 
-      type::KnownType kt = type::KnownType::extract(ops.context(), V);
+      type::KnownType kt = type::KnownType::extract(ops.context(), cls);
       if(kt.constant_cache_p()) {
         ConstantCache* constant_cache = kt.constant_cache();
         klass = try_as<Class>(constant_cache->value());
@@ -1438,7 +1447,8 @@ namespace rubinius {
         call_frame
       };
 
-      Value* res = sig.call("rbx_regexp_set_last_match", call_args, 3, "set_last_match", ops.b());
+      CallInst* res = sig.call("rbx_regexp_set_last_match", call_args, 3, "set_last_match", ops.b());
+      res->setDoesNotThrow();
 
       i.set_result(res);
       i.exception_safe();
@@ -1489,6 +1499,7 @@ namespace rubinius {
       };
 
       CallInst* res = sig.call("rbx_proc_call", call_args, 5, "result", ops.b());
+      res->setDoesNotThrow();
 
       i.set_result(res);
       i.context()->leave_inline();
@@ -1508,6 +1519,7 @@ namespace rubinius {
       };
 
       CallInst* res = sig.call("rbx_variable_scope_of_sender", call_args, 2, "result", ops.b());
+      res->setDoesNotThrow();
 
       i.set_result(res);
       i.exception_safe();
@@ -1528,6 +1540,7 @@ namespace rubinius {
       };
 
       CallInst* res = sig.call("rbx_compiledcode_of_sender", call_args, 2, "result", ops.b());
+      res->setDoesNotThrow();
 
       i.set_result(res);
       i.exception_safe();
@@ -1548,6 +1561,7 @@ namespace rubinius {
       };
 
       CallInst* res = sig.call("rbx_constant_scope_of_sender", call_args, 2, "result", ops.b());
+      res->setDoesNotThrow();
 
       i.set_result(res);
       i.exception_safe();
@@ -1568,6 +1582,7 @@ namespace rubinius {
       };
 
       CallInst* res = sig.call("rbx_location_of_closest_ruby_method", call_args, 2, "result", ops.b());
+      res->setDoesNotThrow();
 
       i.set_result(res);
       i.exception_safe();
@@ -1749,12 +1764,14 @@ namespace rubinius {
 
           Function* func = sig.function(stub_res.name());
           func->setDoesNotCapture(1);
+          func->setDoesNotThrow();
 
           if(stub_res.pass_callframe()) {
             func->setDoesNotCapture(2);
           }
 
-          Value* res = sig.call(stub_res.name(), call_args, "prim_value", ops_.b());
+          CallInst* res = sig.call(stub_res.name(), call_args, "prim_value", ops_.b());
+          res->setDoesNotThrow();
 
           // Only doing this when stub_res.can_fail() causes an exception
           // to be thrown when running the ci specs, need to investigate.

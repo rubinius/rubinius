@@ -101,6 +101,8 @@ namespace rubinius {
     uint32_t nil_class_id_;
     uint32_t true_class_id_;
     uint32_t false_class_id_;
+    uint32_t array_class_id_;
+    uint32_t tuple_class_id_;
 
     bool type_optz_;
 
@@ -240,6 +242,14 @@ namespace rubinius {
 
     uint32_t false_class_id() {
       return false_class_id_;
+    }
+
+    uint32_t array_class_id() {
+      return array_class_id_;
+    }
+
+    uint32_t tuple_class_id() {
+      return tuple_class_id_;
     }
 
     bool type_optz() {

@@ -619,7 +619,15 @@ namespace rubinius {
           uint32_t class_id = klass->class_id();
           BasicBlock* use_cache = new_block("use_cache");
 
-          if(class_id == llvm_state()->fixnum_class_id()) {
+          type::KnownType recv_type = type::KnownType::extract(ctx_, obj);
+          uint32_t recv_class_id = recv_type.class_id();
+
+          if(recv_type.instance_p() && class_id == recv_class_id) {
+            if(llvm_state()->config().jit_inline_debug) {
+              ctx_->log() << "(eliding because of staticly known match)\n";
+            }
+            create_branch(positive);
+          } else if(class_id == llvm_state()->fixnum_class_id()) {
             if(llvm_state()->config().jit_inline_debug) {
               ctx_->log() << "(against Fixnum)\n";
             }
