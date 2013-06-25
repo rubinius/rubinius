@@ -112,8 +112,10 @@ module FFI
       end
 
       def prepare(name, target)
-        include_dirs = @include_dirs.map { |i| "-I#{i}" }.join(" ")
-        "gcc #{@platform.defines} -x c #{include_dirs} -Wall -Werror #{name} -o #{target} 2>&1"
+        includes = @include_dirs.map { |i| "-I#{i}" }.join(" ")
+        cc = Rubinius::BUILD_CONFIG[:cc]
+        defs = @platform.defines
+        "#{cc} #{defs} -x c #{includes} -Wall -Werror #{name} -o #{target} 2>&1"
       end
 
       def prepare_failed
