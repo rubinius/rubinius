@@ -111,7 +111,7 @@ class Proc
       elsif i < o
         [:opt, name]
       elsif code.splat == i
-        name == :@unnamed_splat ? [:rest] : [:rest, name]
+        name == :* ? [:rest] : [:rest, name]
       elsif i < p
         [required_status, name]
       else

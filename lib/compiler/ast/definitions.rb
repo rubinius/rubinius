@@ -303,7 +303,7 @@ module Rubinius
         if splat.kind_of? Symbol
           args << splat
         elsif splat
-          splat = :@unnamed_splat
+          splat = :*
           args << splat
         end
         @names = args
@@ -376,7 +376,7 @@ module Rubinius
         @required.each { |x| sexp << x }
         sexp += @defaults.names if @defaults
 
-        if @splat == :@unnamed_splat
+        if @splat == :*
           sexp << :*
         elsif @splat
           sexp << :"*#{@splat}"
@@ -430,7 +430,7 @@ module Rubinius
         when Symbol
           names << splat
         when true
-          splat = :@unnamed_splat
+          splat = :*
           names << splat
         when false
           @splat_index = -3

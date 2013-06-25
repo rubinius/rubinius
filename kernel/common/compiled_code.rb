@@ -527,7 +527,11 @@ module Rubinius
         elsif i < o
           params << [:opt, name]
         elsif splat == i
-          params << [:rest, name]
+          if name == :*
+            params << [:rest]
+          else
+            params << [:rest, name]
+          end
         elsif i < p
           params << [:req, name]
         elsif block_index == i
