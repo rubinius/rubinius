@@ -569,6 +569,7 @@ class Socket < BasicSocket
 
       socket = self.class.superclass.allocate
       IO.setup socket, fd, nil, true
+      socket.binmode
       socket
     end
 

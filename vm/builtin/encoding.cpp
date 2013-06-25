@@ -276,6 +276,24 @@ namespace rubinius {
 
     if(enc_a == enc_b) return enc_a;
 
+    // XXX This is an ugly hack for the 1.8 mode to avoid unwanted encoding
+    // errors.
+    //
+    // String literals are encoded as US-ASCII in .rbc files (See,
+    // Rubinius::CompiledFile::Marshal#marshal in lib/compiler/compiled_file.rb)
+    //
+    // Normally, the 1.8 mode operates on ASCII-8BIT strings. However, US-ASCII
+    // string can come from rbc files. So, ASCII-8BIT binary string and
+    // US-ASCII binary string are sometimes checked for compatibility.
+    //
+    // Finally, the normal logic would return nil and String::append fails.
+    // This shouldn't happen.
+    //
+    // In the ideal world, everything should be ASCII-8BIT in the 1.8 mode...
+    if(LANGUAGE_18_ENABLED(state)) {
+      return Encoding::ascii8bit_encoding(state);
+    }
+
     String* str_a = try_as<String>(a);
     String* str_b = try_as<String>(b);
 

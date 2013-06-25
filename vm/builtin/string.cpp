@@ -803,6 +803,17 @@ namespace rubinius {
     // Clamp the length of the other string to the maximum byte array size
     native_int length = other->byte_size();
     native_int data_length = as<ByteArray>(other->data_)->size();
+
+    if (encoding() != other->encoding()) {
+      Encoding* new_encoding = Encoding::compatible_p(state, this, other);
+      if(new_encoding->nil_p()) {
+        Exception::encoding_compatibility_error(state, other, this);
+      }
+      ascii_only(state, cNil);
+      valid_encoding(state, cNil);
+      encoding(state, new_encoding);
+    }
+
     if(unlikely(length > data_length)) {
       length = data_length;
     }

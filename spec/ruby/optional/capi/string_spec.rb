@@ -134,6 +134,12 @@ describe "C-API String function" do
   end
 
   ruby_version_is "1.9" do
+    describe "rb_str_new" do
+      it "creates a new String with ASCII-8BIT Encoding" do
+        @s.rb_str_new("", 0).encoding.should == Encoding::ASCII_8BIT
+      end
+    end
+
     describe "rb_str_new_cstr" do
       it_behaves_like :rb_str_new2, :rb_str_new_cstr
     end
@@ -240,6 +246,17 @@ describe "C-API String function" do
   describe "rb_str_append" do
     it "appends a string to another string" do
       @s.rb_str_append("Hello", " Goodbye").should == "Hello Goodbye"
+    end
+
+    it "raises a TypeError trying to append non-String-like object" do
+      lambda { @s.rb_str_append("Hello", 32323)}.should raise_error(TypeError)
+    end
+
+    ruby_version_is "1.9" do
+      it "changes Encoding if a string is appended to an empty string" do
+        string = "パスタ".encode(Encoding::ISO_2022_JP)
+        @s.rb_str_append("", string).encoding.should == Encoding::ISO_2022_JP
+      end
     end
   end
 
