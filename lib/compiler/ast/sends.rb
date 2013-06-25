@@ -624,7 +624,7 @@ module Rubinius
     end
 
     class IterArguments < Node
-      attr_accessor :prelude, :arity, :optional, :arguments, :splat_index
+      attr_accessor :prelude, :arity, :optional, :arguments, :splat_index, :block_index
       attr_accessor :required_args
 
       def initialize(line, arguments)
@@ -633,6 +633,7 @@ module Rubinius
         @arguments = nil
 
         @splat_index = -1
+        @block_index = nil
         @required_args = 0
         @splat = nil
         @block = nil
@@ -811,6 +812,8 @@ module Rubinius
     end
 
     class For19Arguments < Node
+      attr_reader :block_index
+
       def initialize(line, arguments)
         @line = line
         @arguments = arguments

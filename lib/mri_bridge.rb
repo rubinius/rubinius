@@ -5,7 +5,13 @@ module Rubinius
   RUBY_LIB_VERSION = 18
 
   LookupTable = Hash
-  class Tuple < Array; end
+  class Tuple < Array
+    def copy_from(other, start, length, dest)
+      length.times do |i|
+        self[dest + i] = other[start + i]
+      end
+    end
+  end
 
   class Executable
     attr_accessor :primitive

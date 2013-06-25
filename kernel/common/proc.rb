@@ -96,7 +96,9 @@ class Proc
 
     code = @block.compiled_code
 
-    return [] unless code.respond_to? :local_names
+    params = []
+
+    return params unless code.respond_to? :local_names
 
     m = code.required_args - code.post_args
     o = m + code.total_args - code.required_args
@@ -105,19 +107,25 @@ class Proc
 
     required_status = self.lambda? ? :req : :opt
 
-    code.local_names.each_with_index.map do |name, i|
+    code.local_names.each_with_index do |name, i|
       if i < m
-        [required_status, name]
+        params << [required_status, name]
       elsif i < o
-        [:opt, name]
+        params << [:opt, name]
       elsif code.splat == i
-        name == :* ? [:rest] : [:rest, name]
+        if name == :*
+          params << [:rest]
+        else
+          params << [:rest, name]
+        end
       elsif i < p
-        [required_status, name]
-      else
-        [:block, name]
+        params << [required_status, name]
+      elsif code.block_index == i
+        params << [:block, name]
       end
     end
+
+    params
   end
 
 

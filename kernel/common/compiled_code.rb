@@ -539,7 +539,7 @@ module Rubinius
         end
       end
 
-      return params
+      params
     end
 
     ##
