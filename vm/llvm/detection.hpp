@@ -15,6 +15,9 @@
 #define RBX_LLVM_DETECTION_HPP
 
 #include <llvm/Support/Host.h>
+#include <llvm/Support/DataStream.h>
+#include <llvm/ADT/SmallVector.h>
+#include <llvm/ADT/StringSwitch.h>
 
 namespace rubinius {
 

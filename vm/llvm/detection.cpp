@@ -390,7 +390,6 @@ std::string rubinius::getHostCPUName() {
   std::string Err;
   DataStreamer *DS = getDataFileStreamer("/proc/cpuinfo", &Err);
   if (!DS) {
-    DEBUG(dbgs() << "Unable to open /proc/cpuinfo: " << Err << "\n");
     return generic;
   }
 
@@ -477,7 +476,6 @@ std::string rubinius::getHostCPUName() {
   std::string Err;
   DataStreamer *DS = getDataFileStreamer("/proc/cpuinfo", &Err);
   if (!DS) {
-    DEBUG(dbgs() << "Unable to open /proc/cpuinfo: " << Err << "\n");
     return "generic";
   }
 
