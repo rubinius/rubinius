@@ -12,7 +12,11 @@
 #include "gc/immix.hpp"
 #include "gc/inflated_headers.hpp"
 #include "gc/walker.hpp"
+
+#if ENABLE_LLVM
 #include "llvm/state.hpp"
+#endif
+
 #include "on_stack.hpp"
 
 #include "config_parser.hpp"
@@ -821,7 +825,11 @@ step1:
   }
 
   size_t ObjectMemory::jit_bytes_allocated() {
+#if ENABLE_LLVM
     return shared_.llvm_state->code_bytes();
+#else
+    return 0;
+#endif
   }
 
   void ObjectMemory::add_type_info(TypeInfo* ti) {
