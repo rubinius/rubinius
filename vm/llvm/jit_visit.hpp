@@ -1975,6 +1975,25 @@ use_send:
     }
 
     void visit_cast_array() {
+      Value* top = stack_pop();
+
+      BasicBlock* cont = new_block("cont");
+      BasicBlock* done = new_block("done");
+      BasicBlock* ref  = new_block("ref");
+      BasicBlock* call = new_block("call");
+
+      Value* is_ref = check_is_reference(top);
+      create_conditional_branch(ref, call, is_ref);
+
+      set_block(ref);
+      Value* is_ary = check_type_bits(top, rubinius::Array::type, "is_ary");
+
+      create_conditional_branch(done, call, is_ary);
+
+      set_block(done);
+      create_branch(cont);
+
+      set_block(call);
       std::vector<Type*> types;
 
       types.push_back(StateTy);
@@ -1988,15 +2007,46 @@ use_send:
       Value* call_args[] = {
         state_,
         call_frame_,
-        stack_pop()
+        top
       };
 
       Value* val = b().CreateCall(func, call_args, "cast_array");
       check_for_exception(val);
-      stack_push(val);
+
+      call = b().GetInsertBlock();
+      create_branch(cont);
+
+      set_block(cont);
+
+      PHINode* phi = b().CreatePHI(ObjType, 2, "result");
+      phi->addIncoming(top, done);
+      phi->addIncoming(val, call);
+
+      stack_push(phi);
     }
 
     void visit_cast_multi_value() {
+      Value* top = stack_pop();
+
+      BasicBlock* cont = new_block("cont");
+      BasicBlock* done = new_block("done");
+      BasicBlock* ref  = new_block("ref");
+      BasicBlock* call = new_block("call");
+
+      Value* is_ref = check_is_reference(top);
+      create_conditional_branch(ref, call, is_ref);
+
+      set_block(ref);
+
+      Value* is_ary = check_type_bits(top, rubinius::Array::type, "is_ary");
+
+      create_conditional_branch(done, call, is_ary);
+
+      set_block(done);
+      create_branch(cont);
+
+      set_block(call);
+
       std::vector<Type*> types;
 
       types.push_back(StateTy);
@@ -2010,12 +2060,22 @@ use_send:
       Value* call_args[] = {
         state_,
         call_frame_,
-        stack_pop()
+        top
       };
 
       Value* val = b().CreateCall(func, call_args, "cast_multi_value");
       check_for_exception(val);
-      stack_push(val);
+      call = b().GetInsertBlock();
+      create_branch(cont);
+
+      set_block(cont);
+
+      PHINode* phi = b().CreatePHI(ObjType, 2, "result");
+      phi->addIncoming(top, done);
+      phi->addIncoming(val, call);
+
+      stack_push(phi);
+
     }
 
     void visit_push_block() {
