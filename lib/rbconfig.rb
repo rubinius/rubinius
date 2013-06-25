@@ -84,6 +84,7 @@ module RbConfig
   CONFIG["build_alias"]        = ""
   CONFIG["host_alias"]         = ""
   CONFIG["target_alias"]       = ""
+  CONFIG["warnflags"]          = ""
   # command line utilities
   CONFIG["SHELL"]              = "/bin/sh"
   CONFIG["ECHO_C"]             = ""
