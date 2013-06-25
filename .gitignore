@@ -50,6 +50,9 @@ tmtags
 /work
 /staging
 
+# .revision tracks configure and code revision consistency
+.revision
+
 # ignore gems and commands installed by gems
 /gems/*
 /bin/*

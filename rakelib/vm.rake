@@ -1,6 +1,7 @@
 require 'rakelib/rubinius'
 require 'rakelib/instruction_parser'
 require 'rakelib/generator_task'
+require 'rakelib/release'
 
 require 'tmpdir'
 require 'ostruct'
@@ -18,6 +19,10 @@ VM_EXE = RUBY_PLATFORM =~ /mingw|mswin/ ? 'vm/vm.exe' : 'vm/vm'
 
 encoding_database = "vm/gen/encoding_database.cpp"
 transcoders_database = "vm/gen/transcoder_database.cpp"
+
+vm_release_h = "vm/gen/release.h"
+capi_18_release_h = "vm/capi/18/include/gen/rbx_release.h"
+capi_19_release_h = "vm/capi/19/include/gen/rbx_release.h"
 
 ENV.delete 'CDPATH' # confuses llvm_config
 
@@ -45,12 +50,14 @@ TYPE_GEN    = %w[ vm/gen/includes.hpp
                   vm/gen/jit_resolver.cpp
                   vm/gen/invoke_resolver.cpp ]
 
-GENERATED = %W[ vm/gen/revision.h
-                vm/gen/config_variables.h
+GENERATED = %W[ vm/gen/config_variables.h
                 vm/gen/signature.h
                 vm/dtrace/probes.h
                 #{encoding_database}
                 #{transcoders_database}
+                #{vm_release_h}
+                #{capi_18_release_h}
+                #{capi_19_release_h}
               ] + TYPE_GEN + INSN_GEN
 
 # Files are in order based on dependencies. For example,
@@ -239,18 +246,44 @@ file transcoders_database => [transcoders_lib_dir, transcoders_extract] do |t|
   ruby transcoders_extract, transcoders_src_dir, t.name
 end
 
-task 'vm/gen/revision.h' do |t|
-  git_dir = File.expand_path "../../.git", __FILE__
-
-  if !ENV['RELEASE'] and File.directory? git_dir
-    buildrev = `git rev-parse HEAD`.chomp
+task vm_release_h do |t|
+  if git_directory
+    if validate_revision
+      File.open t.name, "wb" do |f|
+        f.puts %[#define RBX_VERSION       "#{config_rubinius_version}"]
+        f.puts %[#define RBX_RELEASE_DATE  "#{config_release_date}"]
+        f.puts %[#define RBX_BUILD_REV     "#{build_revision}"]
+      end
+    else
+      File.open t.name, "wb" do |f|
+        f.puts %[#define RBX_VERSION       "#{default_rubinius_version}"]
+        f.puts %[#define RBX_RELEASE_DATE  "#{default_release_date}"]
+        f.puts %[#define RBX_BUILD_REV     "#{build_revision}"]
+      end
+    end
+  elsif File.file? release_revision
+    unless File.exists? t.name
+      File.open t.name, "wb" do |f|
+        f.puts %[#define RBX_VERSION       "#{default_rubinius_version}"]
+        f.puts %[#define RBX_RELEASE_DATE  "#{default_release_date}"]
+        f.puts %[#define RBX_BUILD_REV     "#{build_revision}"]
+      end
+    end
   else
-    buildrev = "release"
+    File.open t.name, "wb" do |f|
+      f.puts %[#define RBX_VERSION       "#{config_rubinius_version}"]
+      f.puts %[#define RBX_RELEASE_DATE  "#{config_release_date}"]
+      f.puts %[#define RBX_BUILD_REV     "#{build_revision}"]
+    end
   end
+end
 
-  File.open t.name, "wb" do |f|
-    f.puts %[#define RBX_BUILD_REV     "#{buildrev}"]
-  end
+task capi_18_release_h => vm_release_h do |t|
+  FileUtils.cp vm_release_h, t.name
+end
+
+task capi_19_release_h => vm_release_h do |t|
+  FileUtils.cp vm_release_h, t.name
 end
 
 file 'vm/gen/config_variables.h' => %w[lib/rubinius/configuration.rb config.rb] do |t|

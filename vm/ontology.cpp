@@ -61,7 +61,7 @@
 #include "environment.hpp"
 #include "configuration.hpp"
 #include "config.h"
-#include "revision.h"
+#include "release.h"
 
 #include "ontology.hpp"
 

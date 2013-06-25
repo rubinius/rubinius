@@ -5,6 +5,7 @@ if ENV["RUBYLIB"]
   exit 1
 end
 
+require './rakelib/release'
 require 'rbconfig'
 require 'tempfile'
 require 'fileutils'
@@ -124,7 +125,8 @@ class Configure
     @libversion = "2.0"
     @patch_version = "0"
     @release = validate_release_label
-    @config_version = 174
+    @release_date = validate_release_date
+    @config_version = 175
   end
 
   # Set up system commands to run in cmd.exe on Windows. Either Windows
@@ -257,7 +259,7 @@ class Configure
     o.doc "\n Release Settings"
 
     o.on "--release", "LABEL", "Set release from { nightly, weekly, monthly, rcN, final }" do |label|
-      @release = validate_release label
+      @release = validate_release_label label
     end
 
     o.on "--release-date", "DATE", "Set release date to DATE in yyyy-mm-dd format" do |date|
@@ -476,28 +478,6 @@ class Configure
     version = "#{@libversion}.#{@patch_version}"
     version += ".#{@release}" if @release
     version
-  end
-
-  def validate_release(label)
-    date = Time.now
-    case label
-    when "nightly"
-      "n#{date.strftime("%j").to_i}"
-    when "weekly"
-      "w#{date.strftime("%V").to_i}"
-    when "monthly"
-      "m#{date.month}"
-    when /^rc\d+/
-      label
-    when "final"
-      nil
-    else
-      raise "unknown release label #{label}"
-    end
-  end
-
-  def validate_release_date(str)
-    Date.parse(str).strftime
   end
 
   def normalize_versions(str)
@@ -1670,8 +1650,11 @@ module Rubinius
     :bin_links      => #{@bin_links.inspect},
     :use_bin_links  => #{@use_bin_links},
     :version        => "#{version}",
+    :patch_version  => "#{@patch_version}",
     :libversion     => "#{@libversion}",
+    :release        => "#{@release}",
     :release_date   => "#{@release_date}",
+    :revision       => "#{read_revision}",
     :config_version => #{@config_version},
     :windows        => #{@windows},
     :darwin         => #{@darwin},
@@ -1710,11 +1693,9 @@ end
 #define RBX_HDR20_PATH       "#{@include20dir}"
 #define RBX_SITE_PATH        "#{@sitedir}"
 #define RBX_VENDOR_PATH      "#{@vendordir}"
-#define RBX_VERSION          "#{version}"
 #define RBX_LIB_VERSION      "#{@libversion}"
 #define RBX_LDSHARED         "#{@ldshared}"
 #define RBX_LDSHAREDXX       "#{@ldsharedxx}"
-#define RBX_RELEASE_DATE     "#{@release_date}"
 #define RBX_SIZEOF_LONG      #{sizeof("long")}
 #define RBX_LLVM_API_VER     #{@llvm_api_version}
 #define RBX_LIBC             "#{@libc}"
@@ -1753,8 +1734,11 @@ end
       write_have_defines f
     end
 
-    FileUtils.cp vm_config_h, "vm/capi/18/include/rbx_config.h"
-    FileUtils.cp vm_config_h, "vm/capi/19/include/rbx_config.h"
+    FileUtils.mkdir_p "vm/capi/18/include/gen"
+    FileUtils.mkdir_p "vm/capi/19/include/gen"
+
+    FileUtils.cp vm_config_h, "vm/capi/18/include/gen/rbx_config.h"
+    FileUtils.cp vm_config_h, "vm/capi/19/include/gen/rbx_config.h"
 
     # Write the config file for vendor/oniguruma.
     File.open "vendor/oniguruma/config.h", "wb" do |f|
@@ -2030,5 +2014,6 @@ Available commands are:
   end
 end
 
+record_revision
 STDOUT.sync = true
 Configure.new(root).run
