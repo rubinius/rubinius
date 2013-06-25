@@ -18,7 +18,7 @@ class Hash
   MAX_ENTRIES = 12
 
   def self.new_from_literal(size)
-    new
+    allocate
   end
 
   # Creates a fully-formed instance of Hash.
