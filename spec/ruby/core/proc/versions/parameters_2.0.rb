@@ -69,5 +69,14 @@ ruby_version_is "1.9" do
     it "adds nameless rest arg for \"star\" argument" do
       lambda {|x,*|}.parameters.should == [[:req, :x], [:rest]]
     end
+
+    it "does not add locals as block options with a block and splat" do
+      lambda do |*args, &blk|
+        options = {}
+      end.parameters.should == [[:rest, :args], [:block, :blk]]
+      proc do |*args, &blk|
+        options = {}
+      end.parameters.should == [[:rest, :args], [:block, :blk]]
+    end
   end
 end

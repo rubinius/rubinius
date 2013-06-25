@@ -195,5 +195,10 @@ ruby_version_is "1.9" do
       m = MethodSpecs::Methods.new
       m.method(:one_unnamed_splat).parameters.should == [[:rest]]
     end
+
+    it "returns the args and block for a splat and block argument" do
+      m = MethodSpecs::Methods.new
+      m.method(:one_splat_one_block).parameters.should == [[:rest, :args], [:block, :block]]
+    end
   end
 end

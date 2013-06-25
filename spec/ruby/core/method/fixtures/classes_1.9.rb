@@ -8,6 +8,11 @@ module MethodSpecs
     def one_opt_with_stabby(a=->(b){true}); end
 
     def one_unnamed_splat(*); end
+
+    def one_splat_one_block(*args, &block)
+      options = {}
+    end
+
     define_method(:one_optional_defined_method) {|x = 1|}
   end
 end
