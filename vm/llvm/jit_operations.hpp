@@ -1635,7 +1635,7 @@ namespace rubinius {
                             b().CreateAdd(object_memory_mark, cint(1), "scan_mark"),
                             ctx_->Int64Ty, false);
 
-      Value* scan_mark = b().CreateShl(scan_val, clong(OBJECT_FLAGS_MARKED - 2), "lshr");
+      Value* scan_mark = b().CreateShl(scan_val, llvm::ConstantInt::get(ctx_->Int64Ty, OBJECT_FLAGS_MARKED - 2), "lshr");
       Value* is_scanned = b().CreateICmpEQ(mark_masked, scan_mark, "is_scanned");
 
       create_conditional_branch(run_barrier, cont_notscan, is_scanned);
