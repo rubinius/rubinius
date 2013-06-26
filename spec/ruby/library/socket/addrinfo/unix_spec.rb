@@ -2,7 +2,19 @@ require File.expand_path('../../../../spec_helper', __FILE__)
 require 'socket'
 
 describe "Addrinfo.unix" do
-  it "needs to be reviewed for spec completeness"
+
+  platform_is_not :windows do
+    before :each do
+      @addrinfo = Addrinfo.unix("/tmp/sock")
+    end
+
+    it "creates a addrinfo for a unix socket" do
+      @addrinfo.pfamily.should == Socket::PF_UNIX
+      @addrinfo.socktype.should == Socket::SOCK_STREAM
+      @addrinfo.protocol.should == 0
+      @addrinfo.unix_path.should == "/tmp/sock"
+    end
+  end
 end
 
 describe "Addrinfo#unix?" do
