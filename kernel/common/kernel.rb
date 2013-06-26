@@ -721,32 +721,37 @@ module Kernel
   module_function :readlines
 
   def gsub(pattern, rep=nil, &block)
-    raise TypeError, "$_ must be a String" unless $_.kind_of? String
-    $_ = $_.gsub(pattern, rep, &block)
+    target = $_
+    raise TypeError, "$_ must be a String, but is #{target.inspect}" unless target.kind_of? String
+    $_ = target.gsub(pattern, rep, &block)
   end
   module_function :gsub
 
   def gsub!(pattern, rep=nil, &block)
-    raise TypeError, "$_ must be a String" unless $_.kind_of? String
-    $_.gsub!(pattern, rep, &block)
+    target = $_
+    raise TypeError, "$_ must be a String, but is #{target.inspect}" unless target.kind_of? String
+    target.gsub!(pattern, rep, &block)
   end
   module_function :gsub!
 
   def sub(pattern, rep=nil, &block)
-    raise TypeError, "$_ must be a String" unless $_.kind_of? String
-    $_ = $_.sub(pattern, rep, &block)
+    target = $_
+    raise TypeError, "$_ must be a String, but is #{target.inspect}" unless target.kind_of? String
+    $_ = target.sub(pattern, rep, &block)
   end
   module_function :sub
 
   def sub!(pattern, rep=nil, &block)
-    raise TypeError, "$_ must be a String" unless $_.kind_of? String
-    $_.sub!(pattern, rep, &block)
+    target = $_
+    raise TypeError, "$_ must be a String, but is #{target.inspect}" unless target.kind_of? String
+    target.sub!(pattern, rep, &block)
   end
   module_function :sub!
 
   def scan(pattern, &block)
-    raise TypeError, "$_ must be a String" unless $_.kind_of? String
-    $_.scan(pattern, &block)
+    target = $_
+    raise TypeError, "$_ must be a String, but is #{target.inspect}" unless target.kind_of? String
+    target.scan(pattern, &block)
   end
   module_function :scan
 
@@ -756,8 +761,9 @@ module Kernel
   module_function :select
 
   def split(*args)
-    raise TypeError, "$_ must be a String" unless $_.kind_of? String
-    $_.split(*args)
+    target = $_
+    raise TypeError, "$_ must be a String, but is #{target.inspect}" unless target.kind_of? String
+    target.split(*args)
   end
   module_function :split
 end
