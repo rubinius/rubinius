@@ -91,7 +91,7 @@ namespace rubinius {
       const char* pos = strstr(str, " _Z");
       /* Found a mangle. */
       if(pos) {
-        size_t sz = 1024;
+        size_t sz = 0;
         char *cpp_name = 0;
         char* name = strdup(pos + 1);
         char* end = strstr(name, " + ");
@@ -100,12 +100,17 @@ namespace rubinius {
         int status;
         cpp_name = abi::__cxa_demangle(name, cpp_name, &sz, &status);
 
-        if(!status) {
-          std::string full_cpp = std::string(str, pos - str) + " " + cpp_name +
-            " " + (++end);
-          s[i] = full_cpp;
+        // It's possible for __cxa_demangle to return 0x0, which probably
+        // shouldn't happen with status == 0, but it was observed in OS X
+        // Mavericks Preview 2 so be paranoid.
+        if(cpp_name) {
+          if(!status) {
+            std::string full_cpp = std::string(str, pos - str) + " " + cpp_name +
+              " " + (++end);
+            s[i] = full_cpp;
+          }
+          free(cpp_name);
         }
-        if(cpp_name) free(cpp_name);
         free(name);
       }
     }
