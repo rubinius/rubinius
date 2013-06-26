@@ -63,7 +63,7 @@ class RubiniusPackager
     BUILD_CONFIG[:version].match(/^(\d+\.\d+\.\d+)/)[0]
   end
 
-  # "nightly", "weekly", "rcN". no value indicates standard release
+  # "nightly", "weekly", "monthly". no value indicates standard release
   def release
     @release
   end

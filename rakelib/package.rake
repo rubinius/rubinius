@@ -106,54 +106,21 @@ namespace :package do
     pkg.build
   end
 
-  namespace :nightly do
-    desc "Build a general Unix/Linux nightly binary package for 1.8"
-    task :"18" do
-      sh "rake package:binary_builder RBX_BINARY_LANGUAGE=18 RBX_BINARY_RELEASE=nightly"
+  ["18", "19", "20"].each do |ruby_version|
+    desc_version = ruby_version.split(//).join(".")
+
+    desc "Build a general Unix/Linux binary package for #{desc_version}"
+    task ruby_version.to_sym do
+      sh "rake package:binary_builder RBX_BINARY_LANGUAGE=#{ruby_version}"
     end
 
-    desc "Build a general Unix/Linux nightly binary package for 1.9"
-    task :"19" do
-      sh "rake package:binary_builder RBX_BINARY_LANGUAGE=19 RBX_BINARY_RELEASE=nightly"
-    end
-
-    desc "Build a general Unix/Linux nightly binary package for 2.0"
-    task :"20" do
-      sh "rake package:binary_builder RBX_BINARY_LANGUAGE=20 RBX_BINARY_RELEASE=nightly"
-    end
-  end
-
-  namespace :weekly do
-    desc "Build a general Unix/Linux weekly binary package for 1.8"
-    task :"18" do
-      sh "rake package:binary_builder RBX_BINARY_LANGUAGE=18 RBX_BINARY_RELEASE=weekly"
-    end
-
-    desc "Build a general Unix/Linux weekly binary package for 1.9"
-    task :"19" do
-      sh "rake package:binary_builder RBX_BINARY_LANGUAGE=19 RBX_BINARY_RELEASE=weekly"
-    end
-
-    desc "Build a general Unix/Linux weekly binary package for 2.0"
-    task :"20" do
-      sh "rake package:binary_builder RBX_BINARY_LANGUAGE=20 RBX_BINARY_RELEASE=weekly"
-    end
-  end
-
-  namespace :rc do
-    desc "Build a general Unix/Linux RC binary package for 1.8"
-    task :"18" do
-      sh "rake package:binary_builder RBX_BINARY_LANGUAGE=18"
-    end
-
-    desc "Build a general Unix/Linux RC binary package for 1.9"
-    task :"19" do
-      sh "rake package:binary_builder RBX_BINARY_LANGUAGE=19"
-    end
-
-    desc "Build a general Unix/Linux RC binary package for 2.0"
-    task :"20" do
-      sh "rake package:binary_builder RBX_BINARY_LANGUAGE=20"
+    [:nightly, :weekly, :monthly].each do |release|
+      namespace release do
+        desc "Build a general Unix/Linux #{release} binary package for #{desc_version}"
+        task ruby_version.to_sym do
+          sh "rake package:binary_builder RBX_BINARY_LANGUAGE=#{ruby_version} RBX_BINARY_RELEASE=#{release}"
+        end
+      end
     end
   end
 end
