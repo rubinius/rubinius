@@ -100,7 +100,7 @@ class String
     when Regexp
       match_data = pattern.search_region(self, 0, @num_bytes, true)
       Regexp.last_match = match_data
-      return match_data.full[0] if match_data
+      return match_data.begin(0) if match_data
     when String
       raise TypeError, "type mismatch: String given"
     else
