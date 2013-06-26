@@ -36,6 +36,13 @@ describe "String#=~" do
     'hello' =~ /not/
     $~.should == nil
   end
+
+  with_feature :encoding do
+    it "returns the character index of a found match" do
+      ("こにちわ" =~ /に/).should == 1
+    end
+  end
+
 end
 
 describe "String#match" do
