@@ -547,7 +547,7 @@ describe "A Call node" do
           g.send :b, 0, true
         end
 
-        rb.condition :StandardError do
+        rb.condition :StandardError, true do
           g.push :self
           g.send :c, 0, true
         end

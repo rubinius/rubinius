@@ -373,7 +373,7 @@ module Rubinius
         when SplatValue
           @splat = RescueSplat.new line, conditions.value
         when nil
-          condition = ConstantAccess.new line, :StandardError
+          condition = ConstantAccess.new line, :StandardError, true
           @conditions = ArrayLiteral.new line, [condition]
         end
 

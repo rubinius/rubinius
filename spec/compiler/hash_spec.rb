@@ -37,7 +37,7 @@ describe "A Hash node" do
           g.push 2
         end
 
-        rb.condition :StandardError do
+        rb.condition :StandardError, true do
           g.push 3
         end
       end

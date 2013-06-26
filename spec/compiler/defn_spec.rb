@@ -149,7 +149,7 @@ describe "A Defn node" do
             d.send :b, 0, true
           end
 
-          rb.condition :StandardError do
+          rb.condition :StandardError, true do
             d.push :self
             d.send :c, 0, true
           end
@@ -186,7 +186,7 @@ describe "A Defn node" do
             d.send :b, 0, true
           end
 
-          rb.condition :StandardError do
+          rb.condition :StandardError, true do
             d.push :self
             d.send :c, 0, true
           end
@@ -220,7 +220,7 @@ describe "A Defn node" do
             d.send :b, 0, true
           end
 
-          rb.condition :StandardError do
+          rb.condition :StandardError, true do
             d.push :self
             d.send :c, 0, true
           end
@@ -519,7 +519,7 @@ describe "A Defn node" do
             d.send :==, 1, false
           end
 
-          rb.condition :StandardError do
+          rb.condition :StandardError, true do
             d.push :false
           end
         end

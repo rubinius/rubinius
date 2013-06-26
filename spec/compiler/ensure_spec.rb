@@ -117,7 +117,7 @@ describe "An Ensure node" do
               g.send :a, 0, true
             end
 
-            rb.condition :StandardError do
+            rb.condition :StandardError, true do
               g.push :nil
             end
           end

@@ -499,12 +499,12 @@ module Rubinius
         @body ||= block
       end
 
-      def condition(klass, &block)
-        @conditions << [klass, block]
+      def condition(klass, top_level = false, &block)
+        @conditions << [klass, block, top_level]
       end
 
       def raw_condition(&block)
-        @conditions << [nil, block]
+        @conditions << [nil, block, false]
       end
 
       def els(&block)
@@ -608,13 +608,18 @@ module Rubinius
 
       g.push_current_exception
 
-      rb.conditions.each do |klass, code|
+      rb.conditions.each do |klass, code, top_level|
         jump_body = g.new_label
         jump_next = g.new_label
 
         if klass
           g.dup
-          g.push_const klass
+          if top_level
+            g.push_cpath_top
+            g.find_const klass
+          else
+            g.push_const klass
+          end
           g.swap
           g.send :===, 1
           g.git jump_body

@@ -8,7 +8,7 @@ describe "A Rescue node" do
         g.send :blah, 0, true
       end
 
-      rb.condition :StandardError do
+      rb.condition :StandardError, true do
         g.push :nil
       end
     end
@@ -82,7 +82,7 @@ describe "A Rescue node" do
           g.send :a, 0, true
         end
 
-        rb.condition :StandardError do
+        rb.condition :StandardError, true do
           g.push_current_exception
           g.set_ivar :@e
           g.pop
@@ -112,7 +112,7 @@ describe "A Rescue node" do
           g.send :a, 0, true
         end
 
-        rb.condition :StandardError do
+        rb.condition :StandardError, true do
           g.push_current_exception
           g.set_local 0
           g.pop
@@ -147,7 +147,7 @@ describe "A Rescue node" do
           g.send :a, 0, true
         end
 
-        rb.condition :StandardError do
+        rb.condition :StandardError, true do
           g.push_current_exception
           g.set_local 0
           g.pop
@@ -163,7 +163,7 @@ describe "A Rescue node" do
           g.send :b, 0, true
         end
 
-        rb.condition :StandardError do
+        rb.condition :StandardError, true do
           g.push_current_exception
           g.set_local 0
           g.pop
@@ -210,7 +210,7 @@ describe "A Rescue node" do
           g.push 1
         end
 
-        rb.condition :StandardError do
+        rb.condition :StandardError, true do
           g.push_current_exception
           g.set_ivar :@e
           g.pop
@@ -234,7 +234,7 @@ describe "A Rescue node" do
           g.push 1
         end
 
-        rb.condition :StandardError do
+        rb.condition :StandardError, true do
           g.push 2
           g.set_local 0
         end
@@ -255,7 +255,7 @@ describe "A Rescue node" do
           g.push 1
         end
 
-        rb.condition :StandardError do
+        rb.condition :StandardError, true do
           g.push_current_exception
           g.set_local 0
           g.pop
@@ -279,7 +279,7 @@ describe "A Rescue node" do
           g.push 1
         end
 
-        rb.condition :StandardError do
+        rb.condition :StandardError, true do
           g.push :self
           g.send :a, 0, true
           g.push :nil
@@ -306,7 +306,7 @@ describe "A Rescue node" do
           g.push 1
         end
 
-        rb.condition :StandardError do
+        rb.condition :StandardError, true do
           g.push_current_exception
           g.set_local 0
           g.pop
@@ -543,13 +543,13 @@ describe "A Rescue node" do
           g.push 1
         end
 
-        rb.condition :StandardError do
+        rb.condition :StandardError, true do
           g.for_rescue do |rb2|
             rb2.body do
               g.push 2
             end
 
-            rb2.condition :StandardError do
+            rb2.condition :StandardError, true do
               g.push 3
               g.push_stack_local 2
               g.restore_exception_state
@@ -578,7 +578,7 @@ describe "A Rescue node" do
           g.push 1
         end
 
-        rb.condition :StandardError do
+        rb.condition :StandardError, true do
           g.push_rubinius
           g.push_literal :x
 
@@ -648,7 +648,7 @@ describe "A Rescue node" do
           g.pop_modifiers
         end
 
-        rb.condition :StandardError do
+        rb.condition :StandardError, true do
           g.push 3
         end
       end
@@ -674,7 +674,7 @@ describe "A Rescue node" do
             d.push 1
           end
 
-          rb.condition :StandardError do
+          rb.condition :StandardError, true do
             d.push :nil
             rb.next
           end
@@ -703,7 +703,7 @@ describe "A Rescue node" do
             rb.next
           end
 
-          rb.condition :StandardError do
+          rb.condition :StandardError, true do
             d.push 2
           end
         end
@@ -728,7 +728,7 @@ describe "A Rescue node" do
           g.push 1
         end
 
-        rb.condition :StandardError do
+        rb.condition :StandardError, true do
           top = g.new_label
           post = g.new_label
           bottom = g.new_label

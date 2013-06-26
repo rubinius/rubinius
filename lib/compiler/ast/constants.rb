@@ -194,9 +194,10 @@ module Rubinius
     class ConstantAccess < Node
       attr_accessor :name
 
-      def initialize(line, name)
+      def initialize(line, name, top_level = false)
         @line = line
         @name = name
+        @top_level = top_level
       end
 
       def bytecode(g)
@@ -208,7 +209,12 @@ module Rubinius
           g.push_scope
           g.send :find_constant_for_op_asign_or, 2
         else
-          g.push_const @name
+          if @top_level
+            g.push_cpath_top
+            g.find_const @name
+          else
+            g.push_const @name
+          end
         end
       end
 

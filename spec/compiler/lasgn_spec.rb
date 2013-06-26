@@ -154,7 +154,7 @@ describe "An Lasgn node" do
           g.send :b, 0, true
         end
 
-        rb.condition :StandardError do
+        rb.condition :StandardError, true do
           g.push :nil
         end
       end

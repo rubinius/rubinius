@@ -423,7 +423,7 @@ describe "A While node" do
           rb.break
         end
 
-        rb.condition :StandardError do
+        rb.condition :StandardError, true do
           g.push 3
         end
       end
@@ -473,7 +473,7 @@ describe "A While node" do
           g.push 2
         end
 
-        rb.condition :StandardError do
+        rb.condition :StandardError, true do
           g.push 3
           g.pop
           g.push_literal :brk
