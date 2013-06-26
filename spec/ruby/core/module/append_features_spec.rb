@@ -30,4 +30,25 @@ describe "Module#append_features" do
     }.should raise_error(ArgumentError)
 
   end
+
+  describe "when other is frozen" do
+    before :each do
+      @receiver = Module.new
+      @other = Module.new.freeze
+    end
+
+    ruby_version_is ""..."1.9" do
+      it "raises a TypeError before appending self" do
+        lambda { @receiver.send(:append_features, @other) }.should raise_error(TypeError)
+        @other.ancestors.should_not include(@receiver)
+      end
+    end
+
+    ruby_version_is "1.9" do
+      it "raises a RuntimeError before appending self" do
+        lambda { @receiver.send(:append_features, @other) }.should raise_error(RuntimeError)
+        @other.ancestors.should_not include(@receiver)
+      end
+    end
+  end
 end
