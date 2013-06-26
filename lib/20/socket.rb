@@ -89,8 +89,8 @@ class BasicSocket < IO
                                            val.total)
       end
     when String then
-      FFI::MemoryPointer.new optval.size do |val|
-        val.write_string optval
+      FFI::MemoryPointer.new optval.bytesize do |val|
+        val.write_string optval, optval.bytesize
         error = Socket::Foreign.setsockopt(descriptor, level,
                                            optname, val,
                                            optval.size)
@@ -123,11 +123,11 @@ class BasicSocket < IO
   def send(message, flags, to = nil)
     connect to if to
 
-    bytes = message.length
+    bytes = message.bytesize
     bytes_sent = 0
 
     FFI::MemoryPointer.new :char, bytes + 1 do |buffer|
-      buffer.write_string message
+      buffer.write_string message, bytes
       bytes_sent = Socket::Foreign.send(descriptor, buffer, bytes, flags)
       Errno.handle 'send(2)' if bytes_sent < 0
     end
@@ -315,8 +315,8 @@ class Socket < BasicSocket
     attach_function :shutdown, [:int, :int], :int
     attach_function :listen,   [:int, :int], :int
     attach_function :socket,   [:int, :int, :int], :int
-    attach_function :send,     [:int, :pointer, :size_t, :int], :int
-    attach_function :recv,     [:int, :pointer, :size_t, :int], :int
+    attach_function :send,     [:int, :pointer, :size_t, :int], :ssize_t
+    attach_function :recv,     [:int, :pointer, :size_t, :int], :ssize_t
     attach_function :recvfrom, [:int, :pointer, :size_t, :int,
                                 :pointer, :pointer], :int
 
@@ -344,19 +344,19 @@ class Socket < BasicSocket
                                     :pointer, :socklen_t, :int], :int
 
     def self.bind(descriptor, sockaddr)
-      FFI::MemoryPointer.new :char, sockaddr.length do |sockaddr_p|
-        sockaddr_p.write_string sockaddr, sockaddr.length
+      FFI::MemoryPointer.new :char, sockaddr.bytesize do |sockaddr_p|
+        sockaddr_p.write_string sockaddr, sockaddr.bytesize
 
-        _bind descriptor, sockaddr_p, sockaddr.length
+        _bind descriptor, sockaddr_p, sockaddr.bytesize
       end
     end
 
     def self.connect(descriptor, sockaddr)
       err = 0
-      FFI::MemoryPointer.new :char, sockaddr.length do |sockaddr_p|
-        sockaddr_p.write_string sockaddr, sockaddr.length
+      FFI::MemoryPointer.new :char, sockaddr.bytesize do |sockaddr_p|
+        sockaddr_p.write_string sockaddr, sockaddr.bytesize
 
-        err = _connect descriptor, sockaddr_p, sockaddr.length
+        err = _connect descriptor, sockaddr_p, sockaddr.bytesize
       end
 
       err
@@ -444,19 +444,19 @@ class Socket < BasicSocket
       name_info = []
       value = nil
 
-      FFI::MemoryPointer.new :char, sockaddr.length do |sockaddr_p|
+      FFI::MemoryPointer.new :char, sockaddr.bytesize do |sockaddr_p|
         FFI::MemoryPointer.new :char, Socket::Constants::NI_MAXHOST do |node|
           FFI::MemoryPointer.new :char, Socket::Constants::NI_MAXSERV do |service|
-            sockaddr_p.write_string sockaddr, sockaddr.length
+            sockaddr_p.write_string sockaddr, sockaddr.bytesize
 
             if reverse_lookup then
-              err = _getnameinfo(sockaddr_p, sockaddr.length,
+              err = _getnameinfo(sockaddr_p, sockaddr.bytesize,
                                  node, Socket::Constants::NI_MAXHOST, nil, 0, 0)
 
               name_info[2] = node.read_string if err == 0
             end
 
-            err = _getnameinfo(sockaddr_p, sockaddr.length,
+            err = _getnameinfo(sockaddr_p, sockaddr.bytesize,
                                node, Socket::Constants::NI_MAXHOST,
                                service, Socket::Constants::NI_MAXSERV,
                                flags)
@@ -606,8 +606,8 @@ class Socket < BasicSocket
     config("rbx.platform.sockaddr_in", :sin_family, :sin_port, :sin_addr, :sin_zero)
 
     def initialize(sockaddrin)
-      @p = FFI::MemoryPointer.new sockaddrin.size
-      @p.write_string(sockaddrin)
+      @p = FFI::MemoryPointer.new sockaddrin.bytesize
+      @p.write_string(sockaddrin, sockaddrin.bytesize)
       super(@p)
     end
 
@@ -686,13 +686,13 @@ class Socket < BasicSocket
       if @level != Socket::SOL_SOCKET || @optname != Socket::SO_LINGER
         raise TypeError, "linger socket option expected"
       end
-      if @data.length != FFI.config("linger.sizeof")
+      if @data.bytesize != FFI.config("linger.sizeof")
         raise TypeError, "size differ. expected as sizeof(struct linger)=" +
           "#{FFI.config("linger.sizeof")} but #{@data.length}"
       end
 
       linger = Socket::Foreign::Linger.new
-      linger.to_ptr.write_string @data
+      linger.to_ptr.write_string @data, @data.bytesize
 
       onoff = nil
       case linger[:l_onoff]
@@ -926,8 +926,8 @@ class Socket < BasicSocket
     config("rbx.platform.servent", :s_name, :s_aliases, :s_port, :s_proto)
 
     def initialize(data)
-      @p = FFI::MemoryPointer.new data.size
-      @p.write_string(data)
+      @p = FFI::MemoryPointer.new data.bytesize
+      @p.write_string(data, data.bytesize)
       super(@p)
     end
 
@@ -1004,12 +1004,12 @@ class Socket < BasicSocket
 
     def self.unpack_sockaddr_un(addr)
 
-      if addr.length > FFI.config("sockaddr_un.sizeof")
-        raise TypeError, "too long sockaddr_un - #{addr.length} longer than #{FFI.config("sockaddr_un.sizeof")}"
+      if addr.bytesize > FFI.config("sockaddr_un.sizeof")
+        raise TypeError, "too long sockaddr_un - #{addr.bytesize} longer than #{FFI.config("sockaddr_un.sizeof")}"
       end
 
       struct = SockAddr_Un.new
-      struct.pointer.write_string(addr)
+      struct.pointer.write_string(addr, addr.bytesize)
 
       struct[:sun_path]
     end
@@ -1322,11 +1322,11 @@ class UDPSocket < IPSocket
   def send(message, flags, *to)
     connect *to unless to.empty?
 
-    bytes = message.length
+    bytes = message.bytesize
     bytes_sent = 0
 
     FFI::MemoryPointer.new :char, bytes + 1 do |buffer|
-      buffer.write_string message
+      buffer.write_string message, bytes
       bytes_sent = Socket::Foreign.send(descriptor, buffer, bytes, flags)
       Errno.handle 'send(2)' if bytes_sent < 0
     end
