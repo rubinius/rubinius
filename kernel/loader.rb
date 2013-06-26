@@ -201,6 +201,36 @@ module Rubinius
       end
     end
 
+    def define_global_methods
+      Kernel.module_eval do
+        def gsub(pattern, rep=nil, &block)
+          target = $_
+          raise TypeError, "$_ must be a String, but is #{target.inspect}" unless target.kind_of? String
+          $_ = target.gsub(pattern, rep, &block)
+        end
+        module_function :gsub
+
+        def sub(pattern, rep=nil, &block)
+          target = $_
+          raise TypeError, "$_ must be a String, but is #{target.inspect}" unless target.kind_of? String
+          $_ = target.sub(pattern, rep, &block)
+        end
+        module_function :sub
+
+        def chomp(string=$/)
+          raise TypeError, "$_ must be a String" unless $_.kind_of? String
+          $_ = $_.chomp(string)
+        end
+        module_function :chomp
+
+        def chop
+          raise TypeError, "$_ must be a String" unless $_.kind_of? String
+          $_ = $_.chop
+        end
+        module_function :chop
+      end
+    end
+
     # Process all command line arguments.
     def options(argv=ARGV)
       @stage = "processing command line arguments"
@@ -316,12 +346,14 @@ module Rubinius
 
       options.on "-n", "Wrap running code in 'while(gets()) ...'" do
         @input_loop = true
+        define_global_methods
       end
 
       options.on "-p", "Same as -n, but also print $_" do
         @input_loop = true
         @input_loop_print = true
         Rubinius::Globals.set!(:$-p, true)
+        define_global_methods
       end
 
       options.on "-r", "LIBRARY", "Require library before execution" do |file|

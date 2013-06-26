@@ -169,4 +169,70 @@ module Kernel
       raise NameError, "undefined method `#{name}' for #{self.inspect}"
     end
   end
+
+  def gsub(pattern, rep=nil, &block)
+    target = $_
+    raise TypeError, "$_ must be a String, but is #{target.inspect}" unless target.kind_of? String
+    $_ = target.gsub(pattern, rep, &block)
+  end
+  module_function :gsub
+
+  def gsub!(pattern, rep=nil, &block)
+    target = $_
+    raise TypeError, "$_ must be a String, but is #{target.inspect}" unless target.kind_of? String
+    target.gsub!(pattern, rep, &block)
+  end
+  module_function :gsub!
+
+  def sub(pattern, rep=nil, &block)
+    target = $_
+    raise TypeError, "$_ must be a String, but is #{target.inspect}" unless target.kind_of? String
+    $_ = target.sub(pattern, rep, &block)
+  end
+  module_function :sub
+
+  def sub!(pattern, rep=nil, &block)
+    target = $_
+    raise TypeError, "$_ must be a String, but is #{target.inspect}" unless target.kind_of? String
+    target.sub!(pattern, rep, &block)
+  end
+  module_function :sub!
+
+  def scan(pattern, &block)
+    target = $_
+    raise TypeError, "$_ must be a String, but is #{target.inspect}" unless target.kind_of? String
+    target.scan(pattern, &block)
+  end
+  module_function :scan
+
+  def split(*args)
+    target = $_
+    raise TypeError, "$_ must be a String, but is #{target.inspect}" unless target.kind_of? String
+    target.split(*args)
+  end
+  module_function :split
+
+  def chomp(string=$/)
+    raise TypeError, "$_ must be a String" unless $_.kind_of? String
+    $_ = $_.chomp(string)
+  end
+  module_function :chomp
+
+  def chomp!(string=$/)
+    raise TypeError, "$_ must be a String" unless $_.kind_of? String
+    $_.chomp!(string)
+  end
+  module_function :chomp!
+
+  def chop
+    raise TypeError, "$_ must be a String" unless $_.kind_of? String
+    $_ = $_.chop
+  end
+  module_function :chop
+
+  def chop!
+    raise TypeError, "$_ must be a String" unless $_.kind_of? String
+    $_.chop!
+  end
+  module_function :chop!
 end
