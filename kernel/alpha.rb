@@ -475,6 +475,7 @@ class Module
   # accessor
   #
   def superclass=(other)
+    Rubinius.check_frozen
     @superclass = other
   end
 
