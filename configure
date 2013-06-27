@@ -52,8 +52,8 @@ class Configure
     @perl = nil
 
     # Versions
-    @default_version = "18"
-    @version_list = ["18", "19"]
+    @default_version = "19"
+    @version_list = ["19"]
     @supported_versions = ["18", "19", "20"]
     @build_ruby = nil
 
