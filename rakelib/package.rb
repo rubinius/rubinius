@@ -35,12 +35,27 @@ def write_sha1_digest_file(filename)
   puts "Computed SHA1 to #{digest_file}"
 end
 
+def decode_release_label(label)
+  case label
+  when /^n\d+$/
+    "nightly"
+  when /^w\d+$/
+    "weekly"
+  when /^m\d+$/
+    "monthly"
+  when /^$/
+    "final"
+  else
+    label
+  end
+end
+
 class RubiniusPackager
   attr_writer :ruby_version, :release, :prefix, :root, :bin, :config, :archive, :package
 
   def initialize(options={})
     @ruby_version = options[:ruby_version]
-    @release = options[:release]
+    @release_type = options[:release]
     @release_date = options[:release_date]
     @prefix = options[:prefix]
     @root = options[:root]
@@ -64,8 +79,12 @@ class RubiniusPackager
   end
 
   # "nightly", "weekly", "monthly". no value indicates standard release
-  def release
-    @release
+  def release_type
+    @release_type
+  end
+
+  def release_label
+    BUILD_CONFIG[:release] unless BUILD_CONFIG[:release].empty?
   end
 
   def release_date
@@ -75,7 +94,7 @@ class RubiniusPackager
   # passed verbatim to --prefix
   def prefix
     default = "/rubinius/#{rbx_version}"
-    default += ".#{release}" if release
+    default += ".#{release_label}" if release_label
     default += "-#{ruby_version}" if single_version?
     @prefix || default
   end
@@ -99,7 +118,8 @@ class RubiniusPackager
   def config
     default = ["--prefix=#{prefix} --preserve-prefix"]
     default << ["--enable-version=#{ruby_version}"] if single_version?
-    default << ["--release=#{release} --release-date=#{release_date}"] if release
+    default << ["--release=#{release_type}"] if release_type
+    default << ["--release-date=#{release_date}"]
     @config || default.join(" ")
   end
 
@@ -111,10 +131,13 @@ class RubiniusPackager
   # name of the final package file minus #archive
   def package
     default = "rubinius-#{rbx_version}"
-    if release[0, 2] == "rc"
-      default += "-#{release}"
+    case release_type
+    when /^rc\d+/
+      default += "-#{release_type}"
+    when "final", nil
+      # stable release, no release label
     else
-      default += "-#{release}#{date_stamp}"
+      default += "-#{release_type}#{date_stamp}"
     end
     default += "-d#{ruby_version}" if single_version?
     @package || default

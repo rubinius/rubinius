@@ -111,7 +111,7 @@ namespace :package do
 
     desc "Build a general Unix/Linux binary package for #{desc_version}"
     task ruby_version.to_sym do
-      sh "rake package:binary_builder RBX_BINARY_LANGUAGE=#{ruby_version}"
+      sh "rake package:binary_builder RBX_BINARY_RELEASE=#{decode_release_label(BUILD_CONFIG[:release])} RBX_BINARY_RELEASE_DATE=#{BUILD_CONFIG[:release_date]} RBX_BINARY_LANGUAGE=#{ruby_version}"
     end
 
     [:nightly, :weekly, :monthly].each do |release|
