@@ -24,6 +24,9 @@ class ThreadGroup
   end
 
   def remove(thread)
+    if enclosed?
+      raise ThreadError, "can't move from the enclosed thread group"
+    end
     @threads.delete_if { |w| w.__object__ == thread }
   end
 
@@ -34,6 +37,11 @@ class ThreadGroup
       list << obj if obj and obj.alive?
     end
     list
+  end
+
+  def enclose
+    @enclosed = true
+    self
   end
 
   def enclosed?
