@@ -3,6 +3,7 @@
 class ThreadGroup
   def initialize
     @threads = []
+    @enclosed = false
   end
 
   Default = ThreadGroup.new
@@ -33,5 +34,9 @@ class ThreadGroup
       list << obj if obj and obj.alive?
     end
     list
+  end
+
+  def enclosed?
+    @enclosed
   end
 end
