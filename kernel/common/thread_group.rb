@@ -5,6 +5,8 @@ class ThreadGroup
     @threads = []
   end
 
+  Default = ThreadGroup.new
+
   def add(thread)
     if thread.group
       thread.group.remove(thread)
