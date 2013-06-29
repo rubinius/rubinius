@@ -135,6 +135,24 @@ module FFI
           Rubinius::BUILD_CONFIG[:cc]
         end
       end
+
+      def language
+        case @kind
+        when :c
+          "c"
+        when :cpp, :cxx
+          "c++"
+        else
+          "c"
+        end
+      end
+
+      def compile(include_dirs, source, target)
+        includes = include_dirs.map { |i| "-I#{i}" }.join(" ")
+        compile_options = "#{defines} -x #{language} #{includes} -Wall -Werror"
+
+        "#{compiler} #{compile_options} #{source} -o #{target} 2>&1"
+      end
     end
   end
 end
