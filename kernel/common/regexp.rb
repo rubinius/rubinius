@@ -192,12 +192,12 @@ class Regexp
 
     # TODO: audit specs for this method when specs are running
     def create_parts
-      return unless @index < @source.bytesize
-      char =  @source.getbyte(@index).chr
+      return unless @index < @source.size
+      char =  @source[@index].chr
       case char
       when '('
         idx = @index + 1
-        if idx < @source.bytesize and @source.getbyte(idx).chr == '?'
+        if idx < @source.size and @source[idx].chr == '?'
           process_group
         else
           push_current_character!
@@ -251,7 +251,7 @@ class Regexp
 
     def process_group_options
       @parts.last.has_options!
-      case @source.getbyte(@index).chr
+      case @source[@index].chr
       when ')'
         return
       when ':'
@@ -264,7 +264,7 @@ class Regexp
     end
 
     def process_until_group_finished
-      if @source.getbyte(@index).chr == ")"
+      if @source[@index].chr == ")"
         @index += 1
         return
       else
@@ -274,12 +274,12 @@ class Regexp
     end
 
     def push_current_character!
-      @parts.last << @source.getbyte(@index).chr
+      @parts.last << @source[@index].chr
       @index += 1
     end
 
     def push_option!
-      @parts.last.push_option!(@source.getbyte(@index).chr)
+      @parts.last.push_option!(@source[@index].chr)
       @index += 1
     end
 
