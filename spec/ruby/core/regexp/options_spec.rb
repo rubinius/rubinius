@@ -19,6 +19,10 @@ describe "Regexp#options" do
     (/cat/xi.options & Regexp::EXTENDED).should_not == 0
   end
 
+  it "raises a TypeError on an uninitialized Regexp" do
+    lambda { Regexp.allocate.options }.should raise_error(TypeError)
+  end
+
   ruby_version_is "1.9" do
     it "includes Regexp::FIXEDENCODING for a Regexp literal with the 'u' option" do
       (//u.options & Regexp::FIXEDENCODING).should_not == 0
