@@ -128,6 +128,7 @@ namespace rubinius {
   }
 
   regex_t* Regexp::onig_source_data(STATE) {
+    if(source()->nil_p()) return NULL;
     return onig_data[source()->encoding(state)->cache_index()];
   }
 
@@ -371,7 +372,7 @@ namespace rubinius {
 
   Fixnum* Regexp::options(STATE) {
     if(unlikely(!onig_source_data(state))) {
-      Exception::argument_error(state, "Not properly initialized Regexp");
+      Exception::type_error(state, "Not properly initialized Regexp");
     }
 
     int result = ((int)onig_get_options(onig_source_data(state)) & OPTION_MASK);
