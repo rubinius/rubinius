@@ -296,7 +296,7 @@ namespace rubinius {
     static Object* vm_const_defined_under(STATE, Module* under, Symbol* sym, Object* send_const_missing, CallFrame* calling_environment);
 
     // Rubinius.primitive :vm_check_callable
-    static Object* vm_check_callable(STATE, Object* obj, Symbol* sym, Object* self);
+    static Object* vm_check_callable(STATE, Object* obj, Symbol* sym, Object* self, CallFrame* calling_environment);
 
     // Rubinius.primitive :vm_check_super_callable
     static Object* vm_check_super_callable(STATE, CallFrame* calling_environment);

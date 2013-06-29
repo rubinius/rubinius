@@ -17,5 +17,15 @@ module RespondToCacheSpec
       respond_to?(:call_site_respond_to_cache_method)
     end
   end
+
+  class BarMissing
+    CallSiteTrue = def call_site_true
+      respond_to?(:hits_test)
+    end
+
+    def respond_to_missing?(name, include_private)
+      true
+    end
+  end
 end
 

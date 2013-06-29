@@ -1270,14 +1270,26 @@ namespace rubinius {
   }
 
   Object* System::vm_check_callable(STATE, Object* obj, Symbol* sym,
-                                    Object* self)
+                                    Object* self, CallFrame* calling_environment)
   {
     Class* recv_class = obj->lookup_begin(state);
 
     LookupData lookup(self, recv_class, G(sym_public));
     Dispatch dis(sym);
 
-    return RBOOL(dis.resolve(state, sym, lookup));
+    Object* responds = RBOOL(dis.resolve(state, sym, lookup));
+    if(!CBOOL(responds) && !LANGUAGE_18_ENABLED(state)) {
+      LookupData lookup(obj, obj->lookup_begin(state), G(sym_private));
+      Symbol* name = state->symbol("respond_to_missing?");
+      Dispatch dis(name);
+
+      Object* buf[2];
+      buf[0] = name;
+      buf[1] = G(sym_public);
+      Arguments args(name, obj, 2, buf);
+      responds = RBOOL(CBOOL(dis.send(state, calling_environment, lookup, args)));
+    }
+    return responds;
   }
 
   Object* System::vm_check_super_callable(STATE, CallFrame* call_frame) {

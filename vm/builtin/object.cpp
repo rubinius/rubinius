@@ -838,6 +838,21 @@ namespace rubinius {
   Object* Object::respond_to(STATE, Symbol* name, Object* priv, CallFrame* calling_environment) {
     Object* responds = respond_to(state, name, priv);
 
+    if(!CBOOL(responds) && !LANGUAGE_18_ENABLED(state)) {
+      LookupData lookup(this, this->lookup_begin(state), G(sym_private));
+      Symbol* missing = state->symbol("respond_to_missing?");
+      Dispatch dis(missing);
+
+      Object* buf[2];
+      buf[0] = name;
+      buf[1] = priv;
+
+      Arguments args(missing, this, 2, buf);
+      responds = dis.send(state, calling_environment, lookup, args);
+      if(!responds) return NULL;
+      responds = RBOOL(CBOOL(responds));
+    }
+
     CompiledCode* code = NULL;
     CallSiteInformation* info = state->vm()->saved_call_site_information();
 
