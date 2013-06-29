@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "Regexp.union" do
@@ -50,6 +52,10 @@ describe "Regexp.union" do
 
     it "returns a Regexp with the encoding of a String containing non-ASCII-compatible characters and another ASCII-only String" do
       Regexp.union("\u00A9".encode("ISO-8859-1"), "a".encode("UTF-8")).encoding.should == Encoding::ISO_8859_1
+    end
+
+    it "returns a Regexp with UTF-8 if one part is UTF-8" do
+      Regexp.union(/probl[éeè]me/i, /help/i).encoding.should == Encoding::UTF_8
     end
 
     it "raises ArgumentError if the arguments include conflicting ASCII-incompatible Strings" do
