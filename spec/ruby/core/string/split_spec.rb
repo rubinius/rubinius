@@ -368,6 +368,11 @@ describe "String#split with Regexp" do
       encodings.should == [Encoding::UTF_8, Encoding::UTF_8, Encoding::UTF_8]
     end
 
+
+    it "splits a string on each character for a multibyte encoding and empty split" do
+      "That's why eﬃciency could not be helped".split("").size.should == 39
+    end
+
     it "returns an ArgumentError if an invalid UTF-8 string is supplied" do
       broken_str = 'проверка' # in russian, means "test"
       broken_str.force_encoding('binary')
