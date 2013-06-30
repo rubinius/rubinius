@@ -42,16 +42,7 @@ module Rubinius
         unless limited
           if pattern.empty?
             if trim_end
-              ret = []
-              pos = 0
-              str_size = string.num_bytes
-
-              while pos < str_size
-                ret << string.byteslice(pos, 1)
-                pos += 1
-              end
-
-              return ret
+              return string.chars.to_a
             end
           else
             return split_on_string(string, pattern, trim_end)
