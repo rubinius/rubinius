@@ -92,7 +92,7 @@ class Thread
   end
 
   def abort_on_exception
-    @abort_on_exception ||= false
+    @abort_on_exception || false
   end
 
   def inspect

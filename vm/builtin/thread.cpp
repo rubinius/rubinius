@@ -123,6 +123,7 @@ namespace rubinius {
      * If we're not trying to set values on the current thread,
      * we will set thread locals anyway and not use fiber locals.
      */
+    check_frozen(state);
     if(state->vm() != vm()) {
       return locals()->store(state, key, value);
     }
@@ -137,6 +138,7 @@ namespace rubinius {
   }
 
   Object* Thread::locals_remove(STATE, Symbol* key) {
+    check_frozen(state);
     if(state->vm() != vm()) {
       return locals()->remove(state, key);
     }
