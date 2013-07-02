@@ -1894,6 +1894,9 @@ VALUE rb_uint2big(unsigned long number);
 
   VALUE   rb_range_beg_len(VALUE range, long* begp, long* lenp, long len, int err);
 
+  /** Creates Range values and stores begin and end pointer */
+  int rb_range_values(VALUE range, VALUE *begp, VALUE *endp, int *exclp);
+
   /** Callback to run when shutting down */
   void rb_set_end_proc(void* cb, VALUE cb_data);
 

@@ -43,4 +43,18 @@ extern "C" {
     }
     return Qnil;
   }
+
+  int rb_range_values(VALUE range, VALUE *begp, VALUE *endp, int *exclp) {
+    if(!rb_obj_is_kind_of(range, rb_cRange)) return 0;
+
+    VALUE beg = rb_funcall(range, rb_intern("begin"), 0);
+    VALUE end = rb_funcall(range, rb_intern("end"), 0);
+    int excl = RTEST(rb_funcall(range, rb_intern("exclude_end?"), 0));
+
+    *begp = beg;
+    *endp = end;
+    *exclp = excl;
+
+    return 1;
+  }
 }
