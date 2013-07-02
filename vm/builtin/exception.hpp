@@ -16,6 +16,8 @@ namespace rubinius {
     Object* reason_message_;  // slot
     Array* locations_; // slot
     Exception* parent_; // slot
+    Object* backtrace_; // slot
+    Object* custom_backtrace_; // slot
 
   public:
     /* accessors */
@@ -23,6 +25,8 @@ namespace rubinius {
     attr_accessor(reason_message, Object);
     attr_accessor(locations, Array);
     attr_accessor(parent, Exception);
+    attr_accessor(backtrace, Object);
+    attr_accessor(custom_backtrace, Object);
 
     Object* message() {
       return reason_message_;

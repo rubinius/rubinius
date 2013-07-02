@@ -549,7 +549,11 @@ module Marshal
       raise TypeError, 'dump format error' unless Object === obj
 
       store_unique_object obj
-      set_instance_variables obj
+      if obj.kind_of?(Exception)
+        set_exception_variables obj
+      else
+        set_instance_variables obj
+      end
 
       obj
     end
@@ -865,6 +869,19 @@ module Marshal
         add_object obj
       end
       obj
+    end
+
+    def set_exception_variables(obj)
+      construct_integer.times do
+        ivar = get_symbol
+        value = construct
+        case ivar
+        when :bt
+          obj.__instance_variable_set__ :@custom_backtrace, value
+        when :mesg
+          obj.__instance_variable_set__ :@reason_message, value
+        end
+      end
     end
 
   end

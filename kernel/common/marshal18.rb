@@ -34,6 +34,24 @@ class Float
   end
 end
 
+class Exception
+  def __marshal__(ms)
+    out = ms.serialize_extended_object self
+    out << "o"
+    cls = Rubinius::Type.object_class self
+    name = Rubinius::Type.module_inspect cls
+    out << ms.serialize(name.to_sym)
+    out << ms.serialize_fixnum(2)
+
+    out << ms.serialize(:bt)
+    out << ms.serialize(backtrace)
+    out << ms.serialize(:mesg)
+    out << ms.serialize(@reason_message)
+
+    out
+  end
+end
+
 module Marshal
   class State
     def serialize_encoding?(obj)
