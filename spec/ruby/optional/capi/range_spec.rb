@@ -43,4 +43,18 @@ describe "C-API Range function" do
       end
     end
   end
+
+  ruby_version_is "1.9" do
+    describe "rb_range_values" do
+
+      it "stores the range properties" do
+        beg, fin, excl = @s.rb_range_values(10..20)
+        beg.should == 10
+        fin.should == 20
+        excl.should be_false
+      end
+
+    end
+  end
+
 end

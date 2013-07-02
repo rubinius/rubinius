@@ -454,6 +454,9 @@
 
 /* Range */
 #define HAVE_RB_RANGE_NEW                  1
+#ifdef RUBY_VERSION_IS_1_9
+#define HAVE_RB_RANGE_VALUES               1
+#endif
 
 /* Rational */
 #define HAVE_RB_RATIONAL                   1
