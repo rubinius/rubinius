@@ -32,4 +32,12 @@ describe "Module#public" do
       public.should equal(self)
     end
   end
+
+  it "raises a NameError when given an undefined name" do
+    lambda {Module.new.send(:public, :undefined)}.should(
+      raise_error(NameError) do |err|
+        err.should be_an_instance_of(NameError)
+      end
+    )
+  end
 end
