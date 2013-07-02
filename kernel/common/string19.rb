@@ -920,6 +920,7 @@ class String
     pattern = Rubinius::Type.coerce_to_regexp(pattern) unless pattern.kind_of? Regexp
 
     m = Rubinius::Mirror.reflect self
+    pos = pos < 0 ? pos + size : pos
     pos = m.character_to_byte_index pos
     match_data = pattern.search_region(self, pos, @num_bytes, true)
     Regexp.last_match = match_data
