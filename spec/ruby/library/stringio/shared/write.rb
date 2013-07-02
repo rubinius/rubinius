@@ -78,6 +78,16 @@ describe :stringio_write_string, :shared => true do
       @enc_io.string.should == "Hëll\xFF\xB8"
     end
 
+    it "writes binary data in different encodings" do
+      data = "Hëllø"
+      @enc_io.send(@method, data)
+      @enc_io.string.should == "Hëllø"
+      data = "Hëll\xFF"
+      data.force_encoding("ASCII-8BIT")
+      @enc_io.send(@method, data)
+      @enc_io.string.should == "HëlløHëll\xFF"
+    end
+
     it "retains the original encoding" do
       data = "Hëll\xFF"
       data.force_encoding("ASCII-8BIT")
