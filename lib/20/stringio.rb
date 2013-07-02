@@ -17,10 +17,11 @@ class StringIO
   Undefined = Object.new
 
   class Data
-    attr_accessor :string, :pos, :lineno
+    attr_accessor :string, :pos, :lineno, :encoding
 
     def initialize(string)
       @string = string
+      @encoding = string.encoding
       @pos = @lineno = 0
     end
   end
@@ -85,11 +86,13 @@ class StringIO
   private :check_writable
 
   def set_encoding(external, internal=nil, options=nil)
-    @__data__.string.force_encoding(external || Encoding.default_external)
+    encoding = external || Encoding.default_external
+    @__data__.encoding = encoding
+    @__data__.string.force_encoding(encoding)
   end
 
   def external_encoding
-    @__data__.string.encoding
+    @__data__.encoding
   end
 
   def internal_encoding
@@ -136,7 +139,7 @@ class StringIO
       char = string.chr_at d.pos
 
       unless char
-        raise ArgumentError, "invalid byte sequence in #{string.encoding}"
+        raise ArgumentError, "invalid byte sequence in #{d.encoding}"
       end
 
       d.pos += char.bytesize
@@ -182,12 +185,12 @@ class StringIO
     string = d.string
 
     if @append || pos == string.bytesize
-      string.append str
+      string.byte_append str
       d.pos = string.bytesize
     elsif pos > string.bytesize
       m = Rubinius::Mirror.reflect string
       m.splice string.bytesize, 0, "\000" * (pos - string.bytesize)
-      string.append str
+      string.byte_append str
       d.pos = string.bytesize
     else
       stop = string.bytesize - pos
@@ -342,12 +345,12 @@ class StringIO
     string = d.string
 
     if @append || pos == string.bytesize
-      string.append char
+      string.byte_append char
       d.pos = string.bytesize
     elsif pos > string.bytesize
       m = Rubinius::Mirror.reflect string
       m.splice string.bytesize, 0, "\000" * (pos - string.bytesize)
-      string.append char
+      string.byte_append char
       d.pos = string.bytesize
     else
       m = Rubinius::Mirror.reflect string

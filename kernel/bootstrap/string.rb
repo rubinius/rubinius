@@ -25,6 +25,11 @@ class String
     raise TypeError, "String#append primitive only accepts Strings"
   end
 
+  def byte_append(str)
+    Rubinius.primitive :string_byte_append
+    raise TypeError, "String#byte_append primitive only accepts Strings"
+  end
+
   def byteslice(index_or_range, length=undefined)
     Rubinius.primitive :string_byte_substring
 

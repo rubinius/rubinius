@@ -826,6 +826,18 @@ namespace rubinius {
     return append(state, other, strlen(other));
   }
 
+  String* String::byte_append(STATE, String* other) {
+    native_int length = other->byte_size();
+    native_int data_length = as<ByteArray>(other->data_)->size();
+
+    if(unlikely(length > data_length)) {
+      length = data_length;
+    }
+    return append(state,
+                  reinterpret_cast<const char*>(other->byte_address()),
+                  length);
+  }
+
   String* String::append(STATE, const char* other, native_int length) {
     native_int current_size = byte_size();
     native_int data_size = as<ByteArray>(data_)->size();

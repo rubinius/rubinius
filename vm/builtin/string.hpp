@@ -177,6 +177,12 @@ namespace rubinius {
     String* append(STATE, String* other);
 
     /**
+     * Append byte strings, ignores encoding
+     */
+    // Rubinius.primitive :string_byte_append
+    String* byte_append(STATE, String* other);
+
+    /**
      *  Append C string to self.
      *
      *  strlen() is used to calculate number of bytes to append.
