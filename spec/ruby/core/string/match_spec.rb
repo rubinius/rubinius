@@ -53,12 +53,30 @@ describe "String#match" do
   ruby_version_is "1.9" do
     it_behaves_like :string_match_escaped_literal, :match
 
-    it "matches the pattern against self starting at an optional index" do
-      "hello".match(/(.+)/,2)[0].should == 'llo'
-    end
+    describe "with [pattern, position]" do
+      describe "when given a positive position" do
+        it "matches the pattern against self starting at an optional index" do
+          "01234".match(/(.).(.)/, 1).captures.should == ["1", "3"]
+        end
 
-    it "uses the start as a character offset" do
-      "hüllo".match(/(.+)/, 2)[0].should == 'llo'
+        with_feature :encoding do
+          it "uses the start as a character offset" do
+            "零一二三四".match(/(.).(.)/, 1).captures.should == ["一", "三"]
+          end
+        end
+      end
+
+      describe "when given a negative position" do
+        it "matches the pattern against self starting at an optional index" do
+          "01234".match(/(.).(.)/, -4).captures.should == ["1", "3"]
+        end
+
+        with_feature :encoding do
+          it "uses the start as a character offset" do
+            "零一二三四".match(/(.).(.)/, -4).captures.should == ["一", "三"]
+          end
+        end
+      end
     end
 
     describe "when passed a block" do
