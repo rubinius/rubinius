@@ -249,7 +249,13 @@ module Marshal
       mod = Object
 
       parts = String(name).split '::'
-      parts.each { |part| mod = mod.const_get(part) }
+      parts.each do |part|
+        begin
+          mod = mod.const_get(part)
+        rescue NameError => e
+          raise ArgumentError, "undefined class/module #{part}"
+        end
+      end
 
       if type and not mod.instance_of? type
         raise ArgumentError, "#{name} does not refer to a #{type}"
@@ -973,8 +979,6 @@ module Marshal
     end
 
     ms.construct
-  rescue NameError => e
-    raise ArgumentError, e.message, e
   end
 
   class << self
