@@ -424,6 +424,39 @@ describe :marshal_load, :shared => true do
     end
   end
 
+  describe "for an Exception" do
+    it "loads a marshalled exception with no message" do
+      obj = Exception.new
+      loaded = Marshal.send(@method, "\004\bo:\016Exception\a:\abt0:\tmesg0")
+      loaded.message.should == obj.message
+      loaded.backtrace.should == obj.backtrace
+      loaded = Marshal.send(@method, "\x04\bo:\x0EException\a:\tmesg0:\abt0")
+      loaded.message.should == obj.message
+      loaded.backtrace.should == obj.backtrace
+    end
+
+    it "loads a marshalled exception with a message" do
+      obj = Exception.new("foo")
+      loaded = Marshal.send(@method, "\004\bo:\016Exception\a:\abt0:\tmesg\"\bfoo")
+      loaded.message.should == obj.message
+      loaded.backtrace.should == obj.backtrace
+      loaded = Marshal.send(@method, "\x04\bo:\x0EException\a:\tmesgI\"\bfoo\x06:\x06EF:\abt0")
+      loaded.message.should == obj.message
+      loaded.backtrace.should == obj.backtrace
+    end
+
+    it "loads a marshalled exception with a backtrace" do
+      obj = Exception.new("foo")
+      obj.set_backtrace(["foo/bar.rb:10"])
+      loaded = Marshal.send(@method, "\004\bo:\016Exception\a:\abt[\006\"\022foo/bar.rb:10:\tmesg\"\bfoo")
+      loaded.message.should == obj.message
+      loaded.backtrace.should == obj.backtrace
+      loaded = Marshal.send(@method, "\x04\bo:\x0EException\a:\tmesgI\"\bfoo\x06:\x06EF:\abt[\x06I\"\x12foo/bar.rb:10\x06;\aF")
+      loaded.message.should == obj.message
+      loaded.backtrace.should == obj.backtrace
+    end
+  end
+
   describe "for a user Class" do
     it "loads a user-marshaled extended object" do
       obj = UserMarshal.new.extend(Meths)

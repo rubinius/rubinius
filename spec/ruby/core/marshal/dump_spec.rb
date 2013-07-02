@@ -417,6 +417,40 @@ describe "Marshal.dump" do
     end
   end
 
+  describe "with an Exception" do
+    ruby_version_is ""..."1.9" do
+      it "dumps an empty Exception" do
+        Marshal.dump(Exception.new).should == "\004\bo:\016Exception\a:\abt0:\tmesg0"
+      end
+
+      it "dumps the message for the exception" do
+        Marshal.dump(Exception.new("foo")).should == "\004\bo:\016Exception\a:\abt0:\tmesg\"\bfoo"
+      end
+
+      it "contains the filename in the backtrace" do
+        obj = Exception.new("foo")
+        obj.set_backtrace(["foo/bar.rb:10"])
+        Marshal.dump(obj).should == "\004\bo:\016Exception\a:\abt[\006\"\022foo/bar.rb:10:\tmesg\"\bfoo"
+      end
+    end
+
+    ruby_version_is "1.9" do
+      it "dumps an empty Exception" do
+        Marshal.dump(Exception.new).should == "\x04\bo:\x0EException\a:\tmesg0:\abt0"
+      end
+
+      it "dumps the message for the exception" do
+        Marshal.dump(Exception.new("foo")).should == "\x04\bo:\x0EException\a:\tmesgI\"\bfoo\x06:\x06EF:\abt0"
+      end
+
+      it "contains the filename in the backtrace" do
+        obj = Exception.new("foo")
+        obj.set_backtrace(["foo/bar.rb:10"])
+        Marshal.dump(obj).should == "\x04\bo:\x0EException\a:\tmesgI\"\bfoo\x06:\x06EF:\abt[\x06I\"\x12foo/bar.rb:10\x06;\aF"
+      end
+    end
+  end
+
   it "dumps subsequent appearances of a symbol as a link" do
     Marshal.dump([:a, :a]).should == "\004\b[\a:\006a;\000"
   end
