@@ -41,6 +41,7 @@ class Regexp
     str = StringValue(str)
 
     m = Rubinius::Mirror.reflect str
+    pos = pos < 0 ? pos + str.size : pos
     pos = m.character_to_byte_index pos
     result = search_region(str, pos, str.bytesize, true)
     Regexp.last_match = result
