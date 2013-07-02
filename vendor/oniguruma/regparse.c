@@ -2900,7 +2900,7 @@ onig_syntax_warn(ScanEnv *env, const char *fmt, ...)
 		env->pattern, env->pattern_end,
 		(const UChar *)fmt, args);
     va_end(args);
-    rb_warn("%s", (char *)buf);
+    fprintf(stderr, "%s\n", (char *)buf);
 }
 
 static void
