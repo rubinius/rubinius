@@ -710,6 +710,10 @@ class String
     # Because of the behavior of $~, this is duplicated from gsub! because
     # if we call gsub! from gsub, the last_match can't be updated properly.
 
+    unless valid_encoding?
+      raise ArgumentError, "invalid byte sequence in #{encoding}"
+    end
+
     if undefined.equal? replacement
       unless block_given?
         return to_enum(:gsub, pattern, replacement)
@@ -812,6 +816,10 @@ class String
   def gsub!(pattern, replacement=undefined)
     # Because of the behavior of $~, this is duplicated from gsub! because
     # if we call gsub! from gsub, the last_match can't be updated properly.
+
+    unless valid_encoding?
+      raise ArgumentError, "invalid byte sequence in #{encoding}"
+    end
 
     if undefined.equal? replacement
       unless block_given?
