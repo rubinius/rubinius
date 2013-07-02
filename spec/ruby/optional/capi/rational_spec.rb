@@ -9,6 +9,14 @@ ruby_version_is "1.9" do
     end
   end
 
+  describe :rb_rational_new, :shared => true do
+    it "creates a normalized Rational" do
+      r = @r.send(@method, 10, 4)
+      r.numerator.should == 5
+      r.denominator.should == 2
+    end
+  end
+
   describe "CApiRationalSpecs" do
     before :each do
       @r = CApiRationalSpecs.new
@@ -26,6 +34,14 @@ ruby_version_is "1.9" do
       it "creates a new Rational with numerator and denominator of 1" do
         @r.rb_Rational1(5).should == Rational(5, 1)
       end
+    end
+
+    describe "rb_rational_new" do
+      it_behaves_like :rb_rational_new, :rb_rational_new
+    end
+
+    describe "rb_rational_new2" do
+      it_behaves_like :rb_rational_new, :rb_rational_new2
     end
   end
 end

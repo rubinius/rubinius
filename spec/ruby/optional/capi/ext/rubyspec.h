@@ -104,6 +104,14 @@
 #define HAVE_RB_PATH2CLASS                 1
 #define HAVE_RB_PATH_TO_CLASS              1
 
+/* Complex */
+#define HAVE_RB_COMPLEX                    1
+#define HAVE_RB_COMPLEX1                   1
+#define HAVE_RB_COMPLEX2                   1
+#define HAVE_RB_COMPLEX_NEW                1
+#define HAVE_RB_COMPLEX_NEW1               1
+#define HAVE_RB_COMPLEX_NEW2               1
+
 /* Constants */
 #define HAVE_RB_CARRAY                     1
 #define HAVE_RB_CBIGNUM                    1
@@ -451,6 +459,9 @@
 #define HAVE_RB_RATIONAL                   1
 #define HAVE_RB_RATIONAL1                  1
 #define HAVE_RB_RATIONAL2                  1
+#define HAVE_RB_RATIONAL_NEW               1
+#define HAVE_RB_RATIONAL_NEW1              1
+#define HAVE_RB_RATIONAL_NEW2              1
 
 /* Regexp */
 #define HAVE_RB_BACKREF_GET                1
