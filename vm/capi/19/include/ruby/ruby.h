@@ -1858,6 +1858,18 @@ VALUE rb_uint2big(unsigned long number);
 #define rb_Rational1(x)   rb_Rational(x, INT2FIX(1))
 #define rb_Rational2(x,y) rb_Rational(x, y)
 
+  VALUE   rb_rational_new(VALUE, VALUE);
+#define rb_rational_new1(x) rb_rational_new((x), INT2FIX(1))
+#define rb_rational_new2(x,y) rb_rational_new((x), (y))
+
+  VALUE   rb_Complex(VALUE real, VALUE imag);
+#define rb_Complex1(x)   rb_Complex(x, INT2FIX(0))
+#define rb_Complex2(x,y) rb_Complex(x, y)
+
+  VALUE   rb_complex_new(VALUE, VALUE);
+#define rb_complex_new1(x) rb_complex_new((x), INT2FIX(1))
+#define rb_complex_new2(x,y) rb_complex_new((x), (y))
+
   NORETURN(void rb_num_zerodiv(void));
 
   NORETURN(void rb_bug(const char *fmt, ...));
