@@ -117,9 +117,11 @@ class Configure
     @bin_links = ["rbx", "ruby", "rake", "gem", "irb", "rdoc", "ri"]
     @use_bin_links = true
 
+    # Vendored library settings
+    @vendored_libdir = root + "/vendor"
+
     # Library configuration
     @rb_readline = false
-    @vendor_zlib = false
 
     # Essential settings (modify these for creating releases)
     @libversion = "2.0"
@@ -437,6 +439,7 @@ class Configure
     feature "C-readline", true
     feature "ruby-readline", false
     feature "vendor-zlib", false
+    feature "vendor-yaml", true
     feature "alloc-tracking", false
     feature "fibers", true
     feature "dtrace", false
@@ -1160,11 +1163,13 @@ int main() { return tgetnum(""); }
     end
   end
 
-  def detect_include_dirs
-    @include_dirs = @include_dirs.select {|p| File.directory? p }
-  end
+  def detect_build_dirs
+    ["/usr/local", "/opt/local", "/usr/pkg"].each do |dir|
+      @include_dirs << "#{dir}/include"
+      @lib_dirs     << "#{dir}/lib" << "#{dir}/lib64"
+    end
 
-  def detect_lib_dirs
+    @include_dirs = @include_dirs.select {|p| File.directory? p }
     @lib_dirs = @lib_dirs.select {|p| File.directory? p }
   end
 
@@ -1265,6 +1270,23 @@ int main() { return tgetnum(""); }
     status
   end
 
+  def enable_features
+    if @features["vendor-zlib"].value
+      # Our vendored zlib uses long as the crc_table type
+      # If we update vendored zlib in the future, we have to
+      # review this and make sure we update it properly to
+      # match the newer version which like will have uint32_t
+      # as the type.
+      @include_dirs << "#{@vendored_libdir}/zlib"
+      @lib_dirs     << "#{@vendored_libdir}/zlib"
+    end
+
+    if @features["vendor-yaml"].value
+      @include_dirs << "#{@vendored_libdir}/libyaml/include"
+      @lib_dirs     << "#{@vendored_libdir}/libyaml/src/.libs"
+    end
+  end
+
   def detect_features
     # Default on *BSD is no execinfo
     if RUBY_PLATFORM =~ /bsd/i and @features["execinfo"].configured.nil?
@@ -1302,17 +1324,6 @@ int main() { return tgetnum(""); }
     # Default on Windows is vendor-zlib
     if @windows and @features["vendor-zlib"].configured.nil?
       @features["vendor-zlib"].configured = true
-    end
-
-    if @features["vendor-zlib"].value
-      @vendor_zlib = true
-      # Our vendored zlib uses long as the crc_table type
-      # If we update vendored zlib in the future, we have to
-      # review this and make sure we update it properly to
-      # match the newer version which like will have uint32_t
-      # as the type.
-      @include_dirs << "#{@vendordir}/zlib"
-      @lib_dirs     << "#{@vendordir}/zlib"
     end
 
     @defines << "HAVE_SPT_REUSEARGV" if @linux || @darwin || @bsd
@@ -1436,13 +1447,8 @@ int main() { return tgetnum(""); }
     set_host
     set_system_commands
 
-    ["/usr/local", "/opt/local", "/usr/pkg"].each do |dir|
-      @include_dirs << "#{dir}/include"
-      @lib_dirs     << "#{dir}/lib" << "#{dir}/lib64"
-    end
-
-    detect_include_dirs
-    detect_lib_dirs
+    enable_features
+    detect_build_dirs
 
     check_tools
 
@@ -1662,7 +1668,8 @@ module Rubinius
     :linux          => #{@linux},
     :version_list   => #{@version_list.inspect},
     :default_version => "#{@default_version}",
-    :vendor_zlib    => #{@vendor_zlib},
+    :vendor_zlib    => #{@features["vendor-zlib"].value},
+    :vendor_yaml    => #{@features["vendor-yaml"].value},
     :readline       => :#{@rb_readline ? :rb_readline : :c_readline},
   }
 end
