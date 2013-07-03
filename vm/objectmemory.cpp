@@ -232,11 +232,10 @@ step1:
         ts.tv_nsec = (us % 1000000) * 1000;
       }
 
-      state->vm()->set_sleeping();
-
       while(!obj->inflated_header_p()) {
         GCIndependent gc_guard(state, call_frame);
 
+        state->vm()->set_sleeping();
         if(timed) {
           timeout = (contention_var_.wait_until(contention_lock_, &ts) == utilities::thread::cTimedOut);
           if(timeout) break;

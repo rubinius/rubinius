@@ -839,12 +839,12 @@ step2:
         std::cerr << "[LOCK " << state->vm()->thread_id() << " locking native mutex: " << this << "]\n";
       }
 
-      state->vm()->set_sleeping();
       state->vm()->wait_on_inflated_lock(this);
 
       // Loop until there is no owner.
       while(owner_id_ != 0) {
 
+        state->vm()->set_sleeping();
         if(ts) {
           timeout = (condition_.wait_until(mutex_, ts) == utilities::thread::cTimedOut);
           if(timeout) break;
