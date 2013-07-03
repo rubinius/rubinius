@@ -37,12 +37,30 @@ describe "Regexp#match" do
       /(.)(.)(.)/.match(:abc).should be_kind_of(MatchData)
     end
 
-    it "matches the input at a given position" do
-      /./.match("abc", 1).begin(0).should == 1
-    end
+    describe "with [string, position]" do
+      describe "when given a positive position" do
+        it "matches the input at a given position" do
+          /(.).(.)/.match("01234", 1).captures.should == ["1", "3"]
+        end
 
-    it "uses the start as a character offset" do
-      /(.+)/.match("hüllo", 2)[0].should == 'llo'
+        with_feature :encoding do
+          it "uses the start as a character offset" do
+            /(.).(.)/.match("零一二三四", 1).captures.should == ["一", "三"]
+          end
+        end
+      end
+
+      describe "when given a negative position" do
+        it "matches the input at a given position" do
+          /(.).(.)/.match("01234", -4).captures.should == ["1", "3"]
+        end
+
+        with_feature :encoding do
+          it "uses the start as a character offset" do
+            /(.).(.)/.match("零一二三四", -4).captures.should == ["一", "三"]
+          end
+        end
+      end
     end
 
     describe "when passed a block" do
