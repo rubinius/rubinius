@@ -558,6 +558,12 @@ describe "String#gsub with pattern and block" do
       s.gsub(/ë/) { |bar| "Русский".force_encoding("iso-8859-5") }.encoding.should == Encoding::ISO_8859_5
     end
   end
+
+  ruby_version_is "1.9" do
+    it "raises an ArgumentError if encoding is not valid" do
+      lambda { "a\x92b".gsub(/[^\x00-\x7f]/u, '') }.should raise_error(ArgumentError)
+    end
+  end
 end
 
 describe "String#gsub! with pattern and replacement" do
@@ -711,6 +717,12 @@ describe "String#gsub! with pattern and block" do
       s = "hllëllo"
 
       s.gsub!(/ë/) { |bar| "Русский".force_encoding("iso-8859-5") }.encoding.should == Encoding::ISO_8859_5
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "raises an ArgumentError if encoding is not valid" do
+      lambda { "a\x92b".gsub!(/[^\x00-\x7f]/u, '') }.should raise_error(ArgumentError)
     end
   end
 end
