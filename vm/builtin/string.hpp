@@ -55,6 +55,7 @@ namespace rubinius {
 
     attr_reader(num_bytes, Fixnum);
     attr_reader(data, ByteArray);
+    attr_reader(encoding, Encoding);
 
     void update_handle(STATE);
     void update_handle(VM* vm);
@@ -74,10 +75,19 @@ namespace rubinius {
         update_handle(state);
       }
 
+    template <class T>
+      void encoding(T state, Encoding* obj) {
+        if(encoding_ != obj) {
+          ascii_only_ = cNil;
+          valid_encoding_ = cNil;
+        }
+        encoding_ = obj;
+        this->write_barrier(state, obj);
+      }
+
     attr_accessor(num_chars, Fixnum);
     attr_accessor(hash_value, Fixnum);
     attr_accessor(shared, Object);
-    attr_accessor(encoding, Encoding);
     attr_accessor(ascii_only, Object);
     attr_accessor(valid_encoding, Object);
 
