@@ -1,0 +1,1 @@
+fails:String#intern keeps the source encoding

@@ -44,5 +44,9 @@ describe :string_to_sym, :shared => true do
         ["-(unary)", :"-(unary)"]
       ].should be_computed_by(:to_sym)
     end
+
+    it "keeps the source encoding" do
+      "\xC3\xBC".force_encoding('UTF-8').to_sym.encoding.should == Encoding::UTF_8
+    end
   end
 end
