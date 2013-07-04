@@ -3,13 +3,6 @@ require 'rubinius/configuration_variables'
 
 Rubinius::ConfigurationVariables.define do |c|
 
-  possible = Rubinius::BUILD_CONFIG[:version_list].map { |x| [x, x.to_i] }
-
-  c.vm_variable "version", :radio,
-    :possible => possible,
-    :default => Rubinius::BUILD_CONFIG[:default_version],
-    :description => "Which version of ruby should we run"
-
   c.section "gc" do |s|
     s.vm_variable "young_initial_bytes", 3145728,
       "The initial number of bytes the young generation of the GC should use"

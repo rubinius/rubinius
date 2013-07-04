@@ -31,7 +31,7 @@ end
 
 # TODO: Build this functionality into the compiler
 class KernelCompiler
-  def self.compile(version, file, output, line, transforms)
+  def self.compile(file, output, line, transforms)
     compiler = Rubinius::Compiler.new :file, :compiled_file
 
     parser = compiler.parser
@@ -40,7 +40,7 @@ class KernelCompiler
     writer = compiler.writer
 
     # Not ready to enable them yet
-    case version
+    case BUILD_CONFIG[:language_version]
     when "18"
       parser.processor Rubinius::Melbourne
       writer.version = 18
@@ -70,9 +70,8 @@ end
 # The rule for compiling all kernel Ruby files
 rule ".rbc" do |t|
   source = t.prerequisites.first
-  version = t.name.match(%r[^runtime/(\d+)])[1]
-  puts "RBC #{version.split(//).join('.')} #{source}"
-  KernelCompiler.compile version, source, t.name, 1, [:default, :kernel]
+  puts "RBC #{source}"
+  KernelCompiler.compile source, t.name, 1, [:default, :kernel]
 end
 
 # Collection of all files in the kernel runtime. Modified by

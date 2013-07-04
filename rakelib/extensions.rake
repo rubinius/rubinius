@@ -99,7 +99,7 @@ def compile_ext(name, opts={})
       build_config = File.expand_path "../../config.rb", __FILE__
       Dir.chdir ext_dir do
         if File.exists? "Rakefile"
-          ENV["BUILD_VERSION"] = opts[:env][-2..-1]
+          ENV["BUILD_VERSION"] = BUILD_CONFIG[:language_version]
 
           sh "#{BUILD_CONFIG[:build_ruby]} -S #{BUILD_CONFIG[:build_rake]} #{'-t' if $verbose} -r #{build_config} -r #{ext_helper} -r #{dep_grapher} #{ext_task_name}"
         else
@@ -133,7 +133,6 @@ compile_ext "melbourne", :task => "build",
                          :doc => "for bootstrapping"
 
 compile_ext "melbourne", :task => "rbx",
-                         :env => lang_env,
                          :doc => "for Rubinius"
 
 compile_ext "digest", :deps => ["Makefile", "extconf.rb"],
@@ -150,7 +149,7 @@ compile_ext "digest:sha2", :deps => ["Makefile", "extconf.rb"],
 compile_ext "digest:bubblebabble", :deps => ["Makefile", "extconf.rb"],
                                    :dir => "#{libprefixdir}/digest/ext/bubblebabble"
 
-if BUILD_CONFIG[:language_version] = "18"
+if BUILD_CONFIG[:language_version] == "18"
   compile_ext "18/bigdecimal", :dir => "#{libprefixdir}/18/bigdecimal/ext"
 
   compile_ext "18/syck", :dir => "#{libprefixdir}/18/syck/ext"
@@ -186,7 +185,7 @@ if BUILD_CONFIG[:language_version] = "18"
                    :dir => "#{libprefixdir}/18/sdbm/ext"
 end
 
-if BUILD_CONFIG[:language_version] = "19"
+if BUILD_CONFIG[:language_version] == "19"
   compile_ext "19/bigdecimal",
       :dir => "#{libprefixdir}/19/bigdecimal/ext",
       :deps => ["Makefile", "extconf.rb"]
@@ -240,7 +239,7 @@ if BUILD_CONFIG[:language_version] = "19"
 
 end
 
-if BUILD_CONFIG[:language_version] = "20"
+if BUILD_CONFIG[:language_version] == "20"
   compile_ext "20/bigdecimal",
       :dir => "#{libprefixdir}/20/bigdecimal/ext",
       :deps => ["Makefile", "extconf.rb"]

@@ -249,7 +249,7 @@ file transcoders_database => [transcoders_lib_dir, transcoders_extract] do |t|
 end
 
 task vm_version_h do |t|
-  write_config_version t.name, BUILD_CONFIG[:language_version], BUILD_CONFIG[:supported_versions]
+  write_version t.name, BUILD_CONFIG[:language_version], BUILD_CONFIG[:supported_versions]
 end
 
 task vm_release_h do |t|

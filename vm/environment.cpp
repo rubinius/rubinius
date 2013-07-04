@@ -771,15 +771,6 @@ namespace rubinius {
   bool Environment::load_signature(std::string runtime) {
     std::string path = runtime;
 
-    // TODO: Fix this
-    if(LANGUAGE_20_ENABLED) {
-      path += "/20";
-    } else if(LANGUAGE_19_ENABLED) {
-      path += "/19";
-    } else {
-      path += "/18";
-    }
-
     path += "/signature";
 
     std::ifstream signature(path.c_str());
@@ -793,11 +784,6 @@ namespace rubinius {
       return true;
     }
 
-    /*
-    } else {
-      std::string error = "Unable to load compiler signature file: " + sig_path;
-      throw std::runtime_error(error);
-     */
     return false;
   }
 
@@ -878,13 +864,6 @@ namespace rubinius {
 
     G(rubinius)->set_const(state, "Signature", Integer::from(state, signature_));
 
-    if(LANGUAGE_20_ENABLED) {
-      runtime += "/20";
-    } else if(LANGUAGE_19_ENABLED) {
-      runtime += "/19";
-    } else {
-      runtime += "/18";
-    }
     G(rubinius)->set_const(state, "RUNTIME_PATH", String::create(state,
                            runtime.c_str(), runtime.size()));
 
