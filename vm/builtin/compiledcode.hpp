@@ -61,8 +61,8 @@ namespace rubinius {
 
     bool can_specialize_p();
     void set_unspecialized(executor exec, jit::RuntimeDataHolder* rd);
-    void add_specialized(uint32_t spec_id, executor exec, jit::RuntimeDataHolder* rd);
-    executor find_specialized(uint32_t spec_id);
+    void add_specialized(uint32_t class_id, uint32_t serial_id, executor exec, jit::RuntimeDataHolder* rd);
+    executor find_specialized(Class* cls);
 
     attr_accessor(metadata, Object);
     attr_accessor(name, Symbol);

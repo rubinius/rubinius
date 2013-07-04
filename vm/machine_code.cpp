@@ -100,7 +100,7 @@ namespace rubinius {
     fallback = 0;
 
     for(int i = 0; i < cMaxSpecializations; i++) {
-      specializations[i].class_id = 0;
+      specializations[i].class_data.raw = 0;
       specializations[i].execute = 0;
       specializations[i].jit_data = 0;
     }
@@ -744,11 +744,11 @@ namespace rubinius {
 
     for(int i = 0; i < cMaxSpecializations; i++) {
       if(!rd) {
-        specializations[i].class_id = 0;
+        specializations[i].class_data.raw = 0;
         specializations[i].execute = 0;
         specializations[i].jit_data = 0;
       } else if(specializations[i].jit_data == rd) {
-        specializations[i].class_id = 0;
+        specializations[i].class_data.raw = 0;
         specializations[i].execute = 0;
         specializations[i].jit_data = 0;
       } else if(specializations[i].jit_data) {

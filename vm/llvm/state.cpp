@@ -300,10 +300,12 @@ namespace rubinius {
         current_req_ = req;
         current_compiler_ = &jit;
 
-        int spec_id = 0;
+        uint32_t class_id = 0;
+        uint32_t serial_id = 0;
         Class* cls = req->receiver_class();
         if(cls && !cls->nil_p()) {
-          spec_id = cls->class_id();
+          class_id = cls->class_id();
+          serial_id = cls->serial_id();
         }
 
         void* func = 0;
@@ -356,8 +358,8 @@ namespace rubinius {
           ls_->start_method_update();
 
           if(!req->is_block()) {
-            if(spec_id) {
-              req->method()->add_specialized(spec_id, reinterpret_cast<executor>(func), rd);
+            if(class_id) {
+              req->method()->add_specialized(class_id, serial_id, reinterpret_cast<executor>(func), rd);
             } else {
               req->method()->set_unspecialized(reinterpret_cast<executor>(func), rd);
             }

@@ -170,17 +170,17 @@ namespace rubinius {
     CompiledCode* code = as<CompiledCode>(exec);
 
     Class* cls = args.recv()->lookup_begin(state);
-    uint32_t id = cls->class_id();
+    uint64_t class_data = cls->data_raw();
 
     MachineCode* v = code->machine_code();
 
     executor target = v->unspecialized;
 
     for(int i = 0; i < MachineCode::cMaxSpecializations; i++) {
-      uint32_t c_id = v->specializations[i].class_id;
+      uint64_t c_id = v->specializations[i].class_data.raw;
       executor x = v->specializations[i].execute;
 
-      if(c_id == id && x != 0) {
+      if(c_id == class_data && x != 0) {
         target = x;
         break;
       }
@@ -227,17 +227,17 @@ namespace rubinius {
     CompiledCode* code = as<CompiledCode>(exec);
 
     Class* cls = args.recv()->lookup_begin(state);
-    uint32_t id = cls->class_id();
+    uint64_t class_data = cls->data_raw();
 
     MachineCode* v = code->machine_code();
 
     executor target = v->unspecialized;
 
     for(int i = 0; i < MachineCode::cMaxSpecializations; i++) {
-      uint32_t c_id = v->specializations[i].class_id;
+      uint64_t c_id = v->specializations[i].class_data.raw;
       executor x = v->specializations[i].execute;
 
-      if(c_id == id && x != 0) {
+      if(c_id == class_data && x != 0) {
         target = x;
         break;
       }
@@ -254,7 +254,7 @@ namespace rubinius {
     if(!machine_code_) rubinius::bug("specializing with no backend");
 
     for(int i = 0; i < MachineCode::cMaxSpecializations; i++) {
-      if(machine_code_->specializations[i].class_id == 0) return true;
+      if(machine_code_->specializations[i].class_data.raw == 0) return true;
     }
 
     return false;
@@ -272,7 +272,7 @@ namespace rubinius {
 
     // See if we can also just make this the normal execute
     for(int i = 0; i < MachineCode::cMaxSpecializations; i++) {
-      if(machine_code_->specializations[i].class_id > 0) return;
+      if(machine_code_->specializations[i].class_data.raw > 0) return;
     }
 
     if(primitive()->nil_p()) {
@@ -280,7 +280,7 @@ namespace rubinius {
     }
   }
 
-  void CompiledCode::add_specialized(uint32_t spec_id, executor exec,
+  void CompiledCode::add_specialized(uint32_t class_id, uint32_t serial_id, executor exec,
                                        jit::RuntimeDataHolder* rd)
   {
     if(!machine_code_) rubinius::bug("specializing with no backend");
@@ -288,9 +288,10 @@ namespace rubinius {
     MachineCode* v = machine_code_;
 
     for(int i = 0; i < MachineCode::cMaxSpecializations; i++) {
-      uint32_t id = v->specializations[i].class_id;
-      if(id == 0 || id == spec_id) {
-        v->specializations[i].class_id = spec_id;
+      uint32_t id = v->specializations[i].class_data.f.class_id;
+      if(id == 0 || id == class_id) {
+        v->specializations[i].class_data.f.class_id = class_id;
+        v->specializations[i].class_data.f.serial_id = serial_id;
         v->specializations[i].execute = exec;
         v->specializations[i].jit_data = rd;
 
@@ -306,13 +307,13 @@ namespace rubinius {
     std::cerr << "No room for specialization!\n";
   }
 
-  executor CompiledCode::find_specialized(uint32_t spec_id) {
+  executor CompiledCode::find_specialized(Class* cls) {
     MachineCode* v = machine_code_;
 
     if(!v) return 0;
 
     for(int i = 0; i < MachineCode::cMaxSpecializations; i++) {
-      if(v->specializations[i].class_id == spec_id) {
+      if(v->specializations[i].class_data.raw == cls->data_raw()) {
         return v->specializations[i].execute;
       }
     }

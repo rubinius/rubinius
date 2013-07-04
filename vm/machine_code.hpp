@@ -7,6 +7,7 @@
 #include "type_info.hpp"
 #include "unwind_info.hpp"
 
+#include "builtin/class.hpp"
 #include "builtin/compiledcode.hpp"
 #include "gc/code_resource.hpp"
 
@@ -39,7 +40,7 @@ namespace rubinius {
     const static int cMaxSpecializations = 3;
 
     struct Specialization {
-      uint32_t class_id;
+      ClassData class_data;
       executor execute;
       jit::RuntimeDataHolder* jit_data;
     };
