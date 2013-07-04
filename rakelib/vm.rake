@@ -20,7 +20,8 @@ VM_EXE = RUBY_PLATFORM =~ /mingw|mswin/ ? 'vm/vm.exe' : 'vm/vm'
 encoding_database = "vm/gen/encoding_database.cpp"
 transcoders_database = "vm/gen/transcoder_database.cpp"
 
-vm_release_h = "vm/gen/release.h"
+vm_release_h = BUILD_CONFIG[:vm_release_h]
+vm_version_h = BUILD_CONFIG[:vm_version_h]
 capi_18_release_h = "vm/capi/18/include/gen/rbx_release.h"
 capi_19_release_h = "vm/capi/19/include/gen/rbx_release.h"
 
@@ -56,6 +57,7 @@ GENERATED = %W[ vm/gen/config_variables.h
                 #{encoding_database}
                 #{transcoders_database}
                 #{vm_release_h}
+                #{vm_version_h}
                 #{capi_18_release_h}
                 #{capi_19_release_h}
               ] + TYPE_GEN + INSN_GEN
@@ -246,35 +248,23 @@ file transcoders_database => [transcoders_lib_dir, transcoders_extract] do |t|
   ruby transcoders_extract, transcoders_src_dir, t.name
 end
 
+task vm_version_h do |t|
+  write_config_version t.name, BUILD_CONFIG[:language_version], BUILD_CONFIG[:supported_versions]
+end
+
 task vm_release_h do |t|
   if git_directory
     if validate_revision
-      File.open t.name, "wb" do |f|
-        f.puts %[#define RBX_VERSION       "#{config_rubinius_version}"]
-        f.puts %[#define RBX_RELEASE_DATE  "#{config_release_date}"]
-        f.puts %[#define RBX_BUILD_REV     "#{build_revision}"]
-      end
+      write_release t.name, config_rubinius_version, config_release_date, build_revision
     else
-      File.open t.name, "wb" do |f|
-        f.puts %[#define RBX_VERSION       "#{default_rubinius_version}"]
-        f.puts %[#define RBX_RELEASE_DATE  "#{default_release_date}"]
-        f.puts %[#define RBX_BUILD_REV     "#{build_revision}"]
-      end
+      write_release t.name, default_rubinius_version, default_release_date, build_revision
     end
   elsif File.file? release_revision
     unless File.exists? t.name
-      File.open t.name, "wb" do |f|
-        f.puts %[#define RBX_VERSION       "#{default_rubinius_version}"]
-        f.puts %[#define RBX_RELEASE_DATE  "#{default_release_date}"]
-        f.puts %[#define RBX_BUILD_REV     "#{build_revision}"]
-      end
+      write_release t.name, default_rubinius_version, default_release_date, build_revision
     end
   else
-    File.open t.name, "wb" do |f|
-      f.puts %[#define RBX_VERSION       "#{config_rubinius_version}"]
-      f.puts %[#define RBX_RELEASE_DATE  "#{config_release_date}"]
-      f.puts %[#define RBX_BUILD_REV     "#{build_revision}"]
-    end
+    write_release t.name, config_rubinius_version, config_release_date, build_revision
   end
 end
 

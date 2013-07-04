@@ -52,8 +52,7 @@ class Configure
     @perl = nil
 
     # Versions
-    @default_version = "19"
-    @version_list = ["19"]
+    @language_version = "19"
     @supported_versions = ["18", "19", "20"]
     @build_ruby = nil
 
@@ -105,6 +104,9 @@ class Configure
     @mandir       = nil
     @gemsdir      = nil
     @libdir       = nil
+
+    @vm_release_h = root + "/vm/gen/release.h"
+    @vm_version_h = root + "/vm/gen/version.h"
 
     # TODO: fix this
     @include18dir = nil # root + "/vm/capi/18/include"
@@ -270,21 +272,8 @@ class Configure
 
     o.doc "\n Language version settings"
 
-    o.on "--default-version", "VERSION", "Enable Ruby VERSION as the default" do |v|
-      version = normalize_versions v
-      if version.size > 1
-        failure "Only one version can be default, given: #{version.inspect}."
-      end
-      @default_version = version.first
-
-      unless @version_list.include? @default_version
-        failure "Requested default version #{@default_version} is not enabled."
-      end
-    end
-
-    o.on "--enable-version", "VERSION", "Enable Ruby VERSION support (eg 18,19)" do |v|
-      @version_list = normalize_versions v
-      @default_version = @version_list.first if @version_list.size == 1
+    o.on "--enable-version", "VERSION", "Enable Ruby VERSION (supported 1.8, 1.9, 2.0)" do |v|
+      @language_version = normalize_version v
     end
 
     o.doc "\n Compiler settings"
@@ -483,16 +472,14 @@ class Configure
     version
   end
 
-  def normalize_versions(str)
-    versions = str.gsub(/[^\d,]/, "").split(',')
-    versions.each do |ver|
-      unless @supported_versions.include? ver
-        failure <<-EOM
+  def normalize_version(str)
+    version = str.gsub(/[^\d]/, "")
+    unless @supported_versions.include? version
+      failure <<-EOM
 Unsupported language version requested: #{ver}. Options are #{@supported_versions.join(", ")}
-        EOM
-      end
+      EOM
     end
-    versions
+    version
   end
 
   def md5_checksum(md5_path, full_path)
@@ -1330,7 +1317,7 @@ int main() { return tgetnum(""); }
   end
 
   def detect_libraries
-    if @version_list.include? "19" or @version_list.include? "20"
+    if @language_version == "19" or @language_version == "20"
       unless has_library("libyaml", "yaml_parser_initialize", ["yaml"], ["yaml.h"])
         failure "libyaml is required for 1.9 and above"
       end
@@ -1666,11 +1653,13 @@ module Rubinius
     :darwin         => #{@darwin},
     :bsd            => #{@bsd},
     :linux          => #{@linux},
-    :version_list   => #{@version_list.inspect},
-    :default_version => "#{@default_version}",
     :vendor_zlib    => #{@features["vendor-zlib"].value},
     :vendor_yaml    => #{@features["vendor-yaml"].value},
     :readline       => :#{@rb_readline ? :rb_readline : :c_readline},
+    :vm_release_h   => #{@vm_release_h.inspect},
+    :vm_version_h   => #{@vm_version_h.inspect},
+    :language_version => "#{@language_version}",
+    :supported_versions => #{@supported_versions.inspect}
   }
 end
       EOC
@@ -1707,14 +1696,6 @@ end
 #define RBX_LLVM_API_VER     #{@llvm_api_version}
 #define RBX_LIBC             "#{@libc}"
       EOC
-
-      @supported_versions.each do |ver|
-        f.puts "#define RBX_DEFAULT_#{ver}       #{ver == @default_version}"
-      end
-
-      @version_list.each do |ver|
-        f.puts "#define RBX_ENABLED_#{ver}       1"
-      end
 
       if @little_endian
         f.puts "#define RBX_LITTLE_ENDIAN    1"
@@ -1858,6 +1839,9 @@ end
 
     process
     write_config
+    record_revision
+    write_release @vm_release_h, version, @release_date, read_revision
+    write_version @vm_version_h, @language_version, @supported_versions
 
     check_force_clean if verify_config
 
@@ -2021,6 +2005,5 @@ Available commands are:
   end
 end
 
-record_revision
 STDOUT.sync = true
 Configure.new(root).run

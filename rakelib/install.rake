@@ -94,8 +94,8 @@ end
 
 def install_lib_excludes(prefix, list)
   list.exclude("#{prefix}/**/ext/melbourne/build/*.*")
-  ["18", "19", "20"].each do |ver|
-    unless BUILD_CONFIG[:version_list].include? ver
+  BUILD_CONFIG[:supported_versions].each do |ver|
+    unless BUILD_CONFIG[:language_version] == ver
       list.exclude("#{prefix}/#{ver}")
     end
   end
