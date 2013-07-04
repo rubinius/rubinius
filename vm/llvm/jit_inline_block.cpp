@@ -99,7 +99,7 @@ namespace jit {
 
     setup_inline_scope(self, constant(cNil, obj_type), mod);
 
-    if(ctx_->llvm_state()->config().version >= 19) {
+    if(!LANGUAGE_18_ENABLED) {
       // We don't support splat in an block method!
       assert(machine_code_->splat_position < 0);
 

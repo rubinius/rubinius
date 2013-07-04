@@ -61,7 +61,7 @@ namespace jit {
 
     setup_block_scope();
 
-    if(ctx_->llvm_state()->config().version >= 19) {
+    if(!LANGUAGE_18_ENABLED) {
       import_args_19_style();
     }
 
