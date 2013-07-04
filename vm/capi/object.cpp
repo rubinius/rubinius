@@ -15,7 +15,7 @@ using namespace rubinius::capi;
 extern "C" {
 
   void rb_error_frozen(const char* what) {
-    if(LANGUAGE_18_ENABLED(NativeMethodEnvironment::get()->state())){
+    if(LANGUAGE_18_ENABLED){
       rb_raise(rb_eTypeError, "can't modify frozen %s", what);
     } else {
       rb_raise(rb_eRuntimeError, "can't modify frozen %s", what);
@@ -208,7 +208,7 @@ extern "C" {
       if(rb_obj_is_kind_of(obj, rb_cStruct)) return T_STRUCT;
       if(rb_obj_is_kind_of(obj, rb_cIO)) return T_FILE;
       if(rb_obj_is_kind_of(obj, rb_cMatch)) return T_MATCH;
-      if(!LANGUAGE_18_ENABLED(env->state())) {
+      if(!LANGUAGE_18_ENABLED) {
         if(rb_obj_is_kind_of(obj, rb_cRational)) return T_RATIONAL;
         if(rb_obj_is_kind_of(obj, rb_cComplex)) return T_COMPLEX;
         if(rb_obj_is_kind_of(obj, rb_cEncoding)) return T_ENCODING;

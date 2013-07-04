@@ -71,7 +71,7 @@ namespace rubinius {
     // of the way 'for' works.
     //
     // FIXME
-    if(!LANGUAGE_18_ENABLED(state)) {
+    if(!LANGUAGE_18_ENABLED) {
       if(Fixnum* fix = try_as<Fixnum>(method_->splat())) {
         if(fix->to_native() >= locals_) {
           fail("invalid splat position", -1);

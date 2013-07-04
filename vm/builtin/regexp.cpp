@@ -272,7 +272,7 @@ namespace rubinius {
     OnigOptionType opts = options->to_native();
     Encoding* original_enc = pattern->encoding(state);
 
-    if(LANGUAGE_18_ENABLED(state)) {
+    if(LANGUAGE_18_ENABLED) {
       int kcode = opts & KCODE_MASK;
 
       pat = (UChar*)pattern->byte_address();
@@ -377,7 +377,7 @@ namespace rubinius {
 
     int result = ((int)onig_get_options(onig_source_data(state)) & OPTION_MASK);
 
-    if(LANGUAGE_18_ENABLED(state)) {
+    if(LANGUAGE_18_ENABLED) {
       if(fixed_encoding_) {
         result |= get_kcode_from_enc(onig_get_encoding(onig_source_data(state)));
       }

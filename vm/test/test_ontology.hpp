@@ -15,7 +15,7 @@ public:
 
   void test_object() {
     TS_ASSERT_EQUALS(G(object)->class_object(state), G(klass));
-    if(!LANGUAGE_18_ENABLED(state)) {
+    if(!LANGUAGE_18_ENABLED) {
       TS_ASSERT_EQUALS(G(object)->superclass(), G(basicobject));
     } else {
       TS_ASSERT_EQUALS(G(object)->superclass(), cNil);

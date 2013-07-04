@@ -1109,7 +1109,7 @@ extern "C" {
         parts[i] = str;
       }
 
-      if(!LANGUAGE_18_ENABLED(state)) {
+      if(!LANGUAGE_18_ENABLED) {
         /*
          * TODO: Consider the case when -K is set (not implemented yet).
          */
@@ -1139,7 +1139,7 @@ extern "C" {
         sub_size = data_size;
       }
 
-      if(!LANGUAGE_18_ENABLED(state)) {
+      if(!LANGUAGE_18_ENABLED) {
         if(check_encoding) {
           if(i > 0) {
             str->num_bytes(state, Fixnum::from(str_size));
@@ -1162,7 +1162,7 @@ extern "C" {
       str_size += sub_size;
     }
 
-    if(!LANGUAGE_18_ENABLED(state)) {
+    if(!LANGUAGE_18_ENABLED) {
       /* We had to set the size of the result String before every Encoding check
        * so we have to set it to the final size here.
        */

@@ -1243,7 +1243,7 @@ namespace rubinius {
 
     Object* res = Helpers::const_get(state, calling_environment, sym, &reason);
 
-    if(reason != vFound || (!LANGUAGE_18_ENABLED(state) && kind_of<Autoload>(res))) {
+    if(reason != vFound || (!LANGUAGE_18_ENABLED && kind_of<Autoload>(res))) {
       return Primitives::failure();
     }
 
@@ -1278,7 +1278,7 @@ namespace rubinius {
     Dispatch dis(sym);
 
     Object* responds = RBOOL(dis.resolve(state, sym, lookup));
-    if(!CBOOL(responds) && !LANGUAGE_18_ENABLED(state)) {
+    if(!CBOOL(responds) && !LANGUAGE_18_ENABLED) {
       LookupData lookup(obj, obj->lookup_begin(state), G(sym_private));
       Symbol* name = state->symbol("respond_to_missing?");
       Dispatch dis(name);
@@ -1458,15 +1458,15 @@ namespace rubinius {
   }
 
   Object* System::vm_ruby18_p(STATE) {
-    return RBOOL(LANGUAGE_18_ENABLED(state));
+    return RBOOL(LANGUAGE_18_ENABLED);
   }
 
   Object* System::vm_ruby19_p(STATE) {
-    return RBOOL(LANGUAGE_19_ENABLED(state));
+    return RBOOL(LANGUAGE_19_ENABLED);
   }
 
   Object* System::vm_ruby20_p(STATE) {
-    return RBOOL(LANGUAGE_20_ENABLED(state));
+    return RBOOL(LANGUAGE_20_ENABLED);
   }
 
   Object* System::vm_windows_p(STATE) {

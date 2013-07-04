@@ -983,7 +983,7 @@ namespace rubinius {
         native_int start = i - 1;
         native_int max = ++i < bytes ? str[i] : -1;
         native_int next = max >= 0 ? i + 1 : i;
-        if(max >= 0 && chr > max && !LANGUAGE_18_ENABLED(state)) {
+        if(max >= 0 && chr > max && !LANGUAGE_18_ENABLED) {
           std::ostringstream message;
           if(isprint(chr) && isprint(max)) {
             message << "invalid range \"";
@@ -1351,7 +1351,7 @@ namespace rubinius {
     if(i < 0) i += byte_size();
     if(i >= byte_size() || i < 0) return cNil;
 
-    if(LANGUAGE_18_ENABLED(state)) {
+    if(LANGUAGE_18_ENABLED) {
       return Fixnum::from(byte_address()[i]);
     }
 
@@ -1787,7 +1787,7 @@ namespace rubinius {
   }
 
   Encoding* String::get_encoding_kcode_fallback(STATE) {
-    if(!LANGUAGE_18_ENABLED(state)) {
+    if(!LANGUAGE_18_ENABLED) {
       if(!encoding_->nil_p()) {
         return encoding_;
       }
@@ -1819,7 +1819,7 @@ namespace rubinius {
 
     if(ONIGENC_MBC_MAXLEN(enc) == 1) {
       output = String::create(state, reinterpret_cast<const char*>(cur), 1);
-    } else if(LANGUAGE_18_ENABLED(state)) {
+    } else if(LANGUAGE_18_ENABLED) {
       kcode::table* kcode_tbl = state->shared().kcode_table();
       int len = kcode::mbclen(kcode_tbl, *cur);
       output = String::create(state, reinterpret_cast<const char*>(cur), len);

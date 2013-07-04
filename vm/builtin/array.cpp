@@ -155,14 +155,14 @@ namespace rubinius {
   }
 
   Array* Array::concat(STATE, Array* other) {
-    if(!LANGUAGE_18_ENABLED(state)) {
+    if(!LANGUAGE_18_ENABLED) {
       if(is_frozen_p()) return force_as<Array>(Primitives::failure());
     }
 
     native_int osize = other->size();
 
     if(osize == 0) return this;
-    if(LANGUAGE_18_ENABLED(state)) {
+    if(LANGUAGE_18_ENABLED) {
       if(is_frozen_p()) return force_as<Array>(Primitives::failure());
     }
 

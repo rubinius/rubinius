@@ -44,7 +44,7 @@ namespace rubinius {
   void Encoding::init(STATE) {
     onig_init();  // in regexp.cpp too, but idempotent.
 
-    if(LANGUAGE_18_ENABLED(state)) {
+    if(LANGUAGE_18_ENABLED) {
       Class* ns = ontology::new_class_under(state, "EncodingClass", G(rubinius));
       GO(encoding).set(ontology::new_class_under(state, "Encoding", ns));
     } else {
@@ -290,7 +290,7 @@ namespace rubinius {
     // This shouldn't happen.
     //
     // In the ideal world, everything should be ASCII-8BIT in the 1.8 mode...
-    if(LANGUAGE_18_ENABLED(state)) {
+    if(LANGUAGE_18_ENABLED) {
       return Encoding::ascii8bit_encoding(state);
     }
 

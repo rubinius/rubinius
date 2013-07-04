@@ -151,7 +151,7 @@ namespace rubinius {
   Object* Object::freeze(STATE) {
     if(reference_p()) {
       set_frozen();
-    } else if(!LANGUAGE_18_ENABLED(state)) {
+    } else if(!LANGUAGE_18_ENABLED) {
       LookupTable* tbl = try_as<LookupTable>(G(external_ivars)->fetch(state, this));
 
       if(!tbl) {
@@ -167,7 +167,7 @@ namespace rubinius {
   Object* Object::frozen_p(STATE) {
     if(reference_p()) {
       return RBOOL(is_frozen_p());
-    } else if(!LANGUAGE_18_ENABLED(state)) {
+    } else if(!LANGUAGE_18_ENABLED) {
       LookupTable* tbl = try_as<LookupTable>(G(external_ivars)->fetch(state, this));
       return RBOOL(tbl && tbl->is_frozen_p());
     }
@@ -177,7 +177,7 @@ namespace rubinius {
   void Object::check_frozen(STATE) {
     if(CBOOL(frozen_p(state))) {
       const char* reason = "can't modify frozen object";
-      if(LANGUAGE_18_ENABLED(state)) {
+      if(LANGUAGE_18_ENABLED) {
         Exception::type_error(state, reason);
       } else {
         Exception::runtime_error(state, reason);
@@ -423,7 +423,7 @@ namespace rubinius {
       other->taint(state);
     }
 
-    if(!LANGUAGE_18_ENABLED(state)) {
+    if(!LANGUAGE_18_ENABLED) {
       if(is_untrusted_p()) {
         other->untrust(state);
       }
@@ -839,7 +839,7 @@ namespace rubinius {
     Object* responds = respond_to(state, name, priv);
     Object* self = this;
 
-    if(!CBOOL(responds) && !LANGUAGE_18_ENABLED(state)) {
+    if(!CBOOL(responds) && !LANGUAGE_18_ENABLED) {
       LookupData lookup(self, self->lookup_begin(state), G(sym_private));
       Symbol* missing = state->symbol("respond_to_missing?");
       Dispatch dis(missing);

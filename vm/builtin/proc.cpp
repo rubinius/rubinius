@@ -101,7 +101,7 @@ namespace rubinius {
        * argument is passed. If more than one is passed, 'a' receives an Array
        * of all the arguments.
        */
-      } else if(required == 1 && LANGUAGE_18_ENABLED(state)) {
+      } else if(required == 1 && LANGUAGE_18_ENABLED) {
         arity_ok = true;
       } else {
         arity_ok = args.total() <= (size_t)total &&

@@ -319,7 +319,7 @@ class TestFixnum : public CxxTest::TestSuite, public VMTest {
   }
 
   void test_pow_with_float() {
-    if(LANGUAGE_18_ENABLED(state)) {
+    if(LANGUAGE_18_ENABLED) {
       check_float(as<Float>(Fixnum::from(100)->pow(state, Fixnum::from(-1))),
           Float::create(state,.01));
     }

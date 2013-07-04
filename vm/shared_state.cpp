@@ -367,7 +367,7 @@ namespace rubinius {
     capi_constant_name_map_[cCApiThreadError]         = "ThreadError";
     capi_constant_name_map_[cCApiZeroDivisionError]   = "ZeroDivisionError";
 
-    if(config.version != 18) {
+    if(!LANGUAGE_18_ENABLED) {
       capi_constant_name_map_[cCApiMathDomainError]     = "Math::DomainError";
       capi_constant_name_map_[cCApiEncoding]            = "Encoding";
       capi_constant_name_map_[cCApiEncCompatError]      = "Encoding::CompatibilityError";

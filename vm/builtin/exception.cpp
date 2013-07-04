@@ -93,7 +93,7 @@ namespace rubinius {
 
   void Exception::frozen_error(STATE, CallFrame* call_frame) {
     Class* klass;
-    if(LANGUAGE_18_ENABLED(state)) {
+    if(LANGUAGE_18_ENABLED) {
       klass = G(exc_type);
     } else {
       klass = G(exc_rte);
@@ -308,7 +308,7 @@ namespace rubinius {
     Exception* exc;
     Class* exc_class;
 
-    if(LANGUAGE_18_ENABLED(state)) {
+    if(LANGUAGE_18_ENABLED) {
       exc_class = get_errno_error(state, Fixnum::from(EAGAIN));
     } else {
       exc_class = as<Class>(G(io)->get_const(state, "EAGAINWaitReadable"));

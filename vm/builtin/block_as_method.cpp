@@ -49,7 +49,7 @@ namespace rubinius {
     bool exception = false;
     size_t expected = 0;
     if(splat->nil_p()) {
-      if((!LANGUAGE_18_ENABLED(state) || required != 1)) {
+      if((!LANGUAGE_18_ENABLED || required != 1)) {
         if(args.total() > total_args) {
           exception = true;
           expected = total_args;

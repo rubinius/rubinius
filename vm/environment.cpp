@@ -772,9 +772,9 @@ namespace rubinius {
     std::string path = runtime;
 
     // TODO: Fix this
-    if(LANGUAGE_20_ENABLED(state)) {
+    if(LANGUAGE_20_ENABLED) {
       path += "/20";
-    } else if(LANGUAGE_19_ENABLED(state)) {
+    } else if(LANGUAGE_19_ENABLED) {
       path += "/19";
     } else {
       path += "/18";
@@ -878,9 +878,9 @@ namespace rubinius {
 
     G(rubinius)->set_const(state, "Signature", Integer::from(state, signature_));
 
-    if(LANGUAGE_20_ENABLED(state)) {
+    if(LANGUAGE_20_ENABLED) {
       runtime += "/20";
-    } else if(LANGUAGE_19_ENABLED(state)) {
+    } else if(LANGUAGE_19_ENABLED) {
       runtime += "/19";
     } else {
       runtime += "/18";

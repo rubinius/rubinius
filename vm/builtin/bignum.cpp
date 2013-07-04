@@ -590,7 +590,7 @@ namespace rubinius {
   }
 
   Integer* Bignum::bit_and(STATE, Float* b) {
-    if(!LANGUAGE_18_ENABLED(state)) {
+    if(!LANGUAGE_18_ENABLED) {
       Exception::type_error(state, "can't convert Float into Integer for bitwise arithmetic");
     }
     return bit_and(state, Bignum::from_double(state, b->val));
@@ -609,7 +609,7 @@ namespace rubinius {
   }
 
   Integer* Bignum::bit_or(STATE, Float* b) {
-    if(!LANGUAGE_18_ENABLED(state)) {
+    if(!LANGUAGE_18_ENABLED) {
       Exception::type_error(state, "can't convert Float into Integer for bitwise arithmetic");
     }
     return bit_or(state, Bignum::from_double(state, b->val));
@@ -627,7 +627,7 @@ namespace rubinius {
   }
 
   Integer* Bignum::bit_xor(STATE, Float* b) {
-    if(!LANGUAGE_18_ENABLED(state)) {
+    if(!LANGUAGE_18_ENABLED) {
       Exception::type_error(state, "can't convert Float into Integer for bitwise arithmetic");
     }
     return bit_xor(state, Bignum::from_double(state, b->val));
@@ -740,7 +740,7 @@ namespace rubinius {
 
     native_int exp = exponent->to_native();
 
-    if(!LANGUAGE_18_ENABLED(state) && exp < 0) {
+    if(!LANGUAGE_18_ENABLED && exp < 0) {
       return Primitives::failure();
     }
 
@@ -754,7 +754,7 @@ namespace rubinius {
   }
 
   Object* Bignum::pow(STATE, Bignum *exponent) {
-    if(!LANGUAGE_18_ENABLED(state) && CBOOL(exponent->lt(state, Fixnum::from(0)))) {
+    if(!LANGUAGE_18_ENABLED && CBOOL(exponent->lt(state, Fixnum::from(0)))) {
       return Primitives::failure();
     }
 

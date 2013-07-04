@@ -637,7 +637,7 @@ instruction cast_array() [ value -- array ]
   // Use stack_top and not stack_pop because we may need
   // to preserve and reread the value from the stack below.
   Object* t1 = stack_top();
-  if(!LANGUAGE_18_ENABLED(state) && t1->nil_p()) {
+  if(!LANGUAGE_18_ENABLED && t1->nil_p()) {
     t1 = Array::create(state, 0);
   } else if(Tuple* tup = try_as<Tuple>(t1)) {
     t1 = Array::from_tuple(state, tup);
@@ -1501,7 +1501,7 @@ instruction string_build(count) [ +count -- string ]
       stack_back(i) = str;
     }
 
-    if(!LANGUAGE_18_ENABLED(state)) {
+    if(!LANGUAGE_18_ENABLED) {
       /*
        * TODO: Consider the case when -K is set (not implemented yet).
        */
@@ -1539,7 +1539,7 @@ instruction string_build(count) [ +count -- string ]
       sub_size = data_size;
     }
 
-    if(!LANGUAGE_18_ENABLED(state)) {
+    if(!LANGUAGE_18_ENABLED) {
       if(check_encoding) {
         if(i < count - 1) {
           str->num_bytes(state, Fixnum::from(str_size));
@@ -1562,7 +1562,7 @@ instruction string_build(count) [ +count -- string ]
     str_size += sub_size;
   }
 
-  if(!LANGUAGE_18_ENABLED(state)) {
+  if(!LANGUAGE_18_ENABLED) {
     /* We had to set the size of the result String before every Encoding check
      * so we have to set it to the final size here.
      */

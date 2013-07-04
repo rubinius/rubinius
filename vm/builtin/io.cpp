@@ -615,7 +615,7 @@ namespace rubinius {
         }
       }
 
-      if(LANGUAGE_18_ENABLED(state)) {
+      if(LANGUAGE_18_ENABLED) {
         ::close(fd);
       } else if(io->autoclose_ != cFalse) {
         ::close(fd);

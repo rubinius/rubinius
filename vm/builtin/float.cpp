@@ -72,7 +72,7 @@ namespace rubinius {
         }
 
         // And they return 0.0 in Ruby 1.9.
-        if(!LANGUAGE_18_ENABLED(state)) {
+        if(!LANGUAGE_18_ENABLED) {
           return Float::create(state, 0.0);
         }
       }
@@ -118,7 +118,7 @@ namespace rubinius {
     if(p[0] == '0' && (p[1] == 'x' || p[1] == 'X')) {
       if(CBOOL(strict)) {
         // Only allow hex in Ruby > 1.8.
-        if(LANGUAGE_18_ENABLED(state)) {
+        if(LANGUAGE_18_ENABLED) {
           return nil<Float>();
         }
       } else {
@@ -214,7 +214,7 @@ namespace rubinius {
   }
 
   Object* Float::fpow(STATE, Float* other) {
-    if(!LANGUAGE_18_ENABLED(state) && this->val < 0 && other->val != round(other->val)) {
+    if(!LANGUAGE_18_ENABLED && this->val < 0 && other->val != round(other->val)) {
       return Primitives::failure();
     }
     return Float::create(state, pow(this->val, other->val));
@@ -233,7 +233,7 @@ namespace rubinius {
   }
 
   Float* Float::mod(STATE, Float* other) {
-    if(!LANGUAGE_18_ENABLED(state)) {
+    if(!LANGUAGE_18_ENABLED) {
       if(other->val == 0.0) {
         Exception::zero_division_error(state, "divided by 0");
       }
@@ -252,7 +252,7 @@ namespace rubinius {
   }
 
   Array* Float::divmod(STATE, Float* other) {
-    if(!LANGUAGE_18_ENABLED(state)) {
+    if(!LANGUAGE_18_ENABLED) {
       if(other->val == 0.0) {
         Exception::zero_division_error(state, "divided by 0");
       }

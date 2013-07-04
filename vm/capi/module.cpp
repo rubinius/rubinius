@@ -32,7 +32,7 @@ extern "C" {
   }
 
   int rb_const_defined_at(VALUE module_handle, ID const_id) {
-    if(LANGUAGE_18_ENABLED(NativeMethodEnvironment::get()->state())) {
+    if(LANGUAGE_18_ENABLED) {
       return rb_funcall(module_handle,
           rb_intern("const_defined?"), 1, ID2SYM(const_id));
     } else {
