@@ -442,7 +442,7 @@ class Module
       msg = "Missing or uninitialized constant: #{mod_name}#{name}"
     end
 
-    raise NameError, msg
+    raise NameError.new(msg, name)
   end
 
   def <(other)
