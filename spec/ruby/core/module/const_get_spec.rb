@@ -11,6 +11,11 @@ describe "Module#const_get" do
     lambda { ConstantSpecs.const_get :CS_CONSTX }.should raise_error(NameError)
   end
 
+  it "raises a NameError with the not found constant symbol" do
+    error_inspection = lambda { |e| e.name.should == :CS_CONSTX }
+    lambda { ConstantSpecs.const_get :CS_CONSTX }.should raise_error(NameError, &error_inspection)
+  end
+
   it "raises a NameError if the name does not start with a capital letter" do
     lambda { ConstantSpecs.const_get "name" }.should raise_error(NameError)
   end
