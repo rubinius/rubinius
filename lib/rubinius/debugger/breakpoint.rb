@@ -15,11 +15,12 @@ class Rubinius::Debugger
       @for_step = false
       @paired_bp = nil
       @temp = false
+      @commands = nil
 
       @set = false
     end
 
-    attr_reader :method, :ip, :line, :paired_bp, :descriptor
+    attr_reader :method, :ip, :line, :paired_bp, :descriptor, :commands
 
     def location
       "#{@method.active_path}:#{@line} (+#{ip})"
@@ -74,6 +75,14 @@ class Rubinius::Debugger
 
     def delete!
       remove!
+    end
+
+    def set_commands(commands)
+      @commands = commands
+    end
+
+    def has_commands?
+      !@commands.nil?
     end
   end
 

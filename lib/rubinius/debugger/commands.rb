@@ -540,6 +540,9 @@ Subcommands are:
             @debugger.breakpoints.each_with_index do |bp, i|
               if bp
                 info "%3d: %s" % [i+1, bp.describe]
+                if bp.has_commands?
+                  info "     #{bp.commands}"
+                end
               end
             end
           else
@@ -627,6 +630,25 @@ Quits your current session and shuts down the complete process
 
       def run(args)
         Process.exit!(1)
+      end
+    end
+
+    class CommandsList < Command
+      pattern "commands", "command"
+      help "execute code every time breakpoint is reached"
+      ext_help <<-HELP
+Set commands to be executed when a breakpoint is hit.
+Give breakpoint number as argument after "commands".
+With no argument, the targeted breakpoint is the last one set.
+The commands themselves follow starting on the next line.
+Type a line containing "end" to indicate the end of them.
+Give "silent" as the first line to make the breakpoint silent;
+then no output is printed when it is hit, except what the commands print.
+      HELP
+
+      def run(args)
+        bp = @debugger.breakpoints[args[:bp_id] - 1]
+        bp.set_commands(args[:code])
       end
     end
 
