@@ -80,6 +80,7 @@ namespace rubinius {
         if(encoding_ != obj) {
           ascii_only_ = cNil;
           valid_encoding_ = cNil;
+          num_chars_ = nil<Fixnum>();
         }
         encoding_ = obj;
         this->write_barrier(state, obj);
