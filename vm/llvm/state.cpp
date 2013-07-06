@@ -304,6 +304,34 @@ namespace rubinius {
         uint32_t serial_id = 0;
         Class* cls = req->receiver_class();
         if(cls && !cls->nil_p()) {
+
+          // Apparently already compiled, probably some race
+          if(req->method()->find_specialized(cls)) {
+            if(ls_->config().jit_show_compiling) {
+              CompiledCode* code = req->method();
+              llvm::outs() << "[[[ JIT already compiled "
+                        << ls_->enclosure_name(code) << "#" << ls_->symbol_debug_str(code->name())
+                        << (req->is_block() ? " (block)" : " (method)")
+                        << " ]]]\n";
+            }
+
+            // If someone was waiting on this, wake them up.
+            if(utilities::thread::Condition* cond = req->waiter()) {
+              cond->signal();
+            }
+
+            current_req_ = 0;
+            current_compiler_ = 0;
+            pending_requests_.pop_front();
+            delete req;
+
+            // We don't depend on the GC here, so let it run independent
+            // of us.
+            ls_->gc_independent();
+
+            continue;
+          }
+
           class_id = cls->class_id();
           serial_id = cls->serial_id();
         }

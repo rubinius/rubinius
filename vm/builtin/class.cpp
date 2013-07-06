@@ -49,7 +49,7 @@ namespace rubinius {
 
   void Class::init(uint32_t id) {
     data_.f.class_id = id;
-    data_.f.serial_id = 0;
+    data_.f.serial_id = 1;
     set_packed_size(0);
   }
 
