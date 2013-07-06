@@ -3,6 +3,7 @@
 class Class
   def initialize(sclass=Object, name=nil, under=nil)
     raise TypeError, "already initialized class" if @instance_type
+    raise TypeError, "can't make subclass of Class" if sclass.equal?(Class)
 
     set_superclass sclass
 

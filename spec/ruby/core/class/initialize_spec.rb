@@ -23,4 +23,23 @@ describe "Class#initialize" do
       }.should raise_error(TypeError)
     end
   end
+
+  describe "when given the Class" do
+    before(:each) do
+      @uninitialized = Class.allocate
+    end
+
+    ruby_version_is ""..."1.9" do
+      it "becomes a subclass of the Class" do
+        @uninitialized.send :initialize, Class
+        @uninitialized.superclass.should equal(Class)
+      end
+    end
+
+    ruby_version_is "1.9" do
+      it "raises a TypeError" do
+        lambda{@uninitialized.send(:initialize, Class)}.should raise_error(TypeError)
+      end
+    end
+  end
 end
