@@ -202,7 +202,7 @@ class Module
       mod = mod.direct_superclass
     end
 
-    raise NameError, "undefined method `#{name}' for #{self}"
+    raise NameError.new("undefined method `#{name}' for #{self}", name)
   end
 
   def public_instance_method(name)
