@@ -1,6 +1,16 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
 
+describe "Module#module_function" do
+  it "is a private method" do
+    Module.should have_private_instance_method(:module_function)
+  end
+
+  it "is undefined on the Class" do
+    Class.should_not have_private_instance_method(:module_function)
+  end
+end
+
 describe "Module#module_function with specific method names" do
   it "creates duplicates of the given instance methods on the Module object" do
     m = Module.new do

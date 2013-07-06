@@ -6,6 +6,14 @@ describe "Module#extend_object" do
     ScratchPad.clear
   end
 
+  it "is a private method" do
+    Module.should have_private_instance_method(:extend_object)
+  end
+
+  it "is undefined on the Class" do
+    Class.should_not have_private_instance_method(:extend_object)
+  end
+
   it "is called when #extend is called on an object" do
     ModuleSpecs::ExtendObject.should_receive(:extend_object)
     obj = mock("extended object")

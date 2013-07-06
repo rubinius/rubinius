@@ -2,6 +2,14 @@ require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "Module#append_features" do
+  it "is a private method" do
+    Module.should have_private_instance_method(:append_features)
+  end
+
+  it "is undefined on the Class" do
+    Class.should_not have_private_instance_method(:append_features)
+  end
+
   it "gets called when self is included in another module/class" do
     begin
       m = Module.new do
