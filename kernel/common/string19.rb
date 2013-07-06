@@ -103,7 +103,7 @@ class String
   end
 
   def force_encoding(enc)
-    @ascii_only = @valid_encoding = nil
+    @ascii_only = @valid_encoding = @num_chars = nil
     @encoding = Rubinius::Type.coerce_to_encoding enc
     self
   end
