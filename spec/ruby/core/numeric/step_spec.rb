@@ -257,6 +257,39 @@ describe "Numeric#step" do
     end
   end
 
+  describe "Numeric#step with [infinity, -step]" do
+    it "does not yield when self is -infinity" do
+      (-infinity_value).step(infinity_value, -1, &@prc)
+      ScratchPad.recorded.should == []
+    end
+
+    it "does not yield when self is +infinity" do
+      infinity_value.step(infinity_value, -1, &@prc)
+      ScratchPad.recorded.should == []
+    end
+  end
+
+  describe "Numeric#step with [infinity, step]" do
+    it "does not yield when self is infinity" do
+      (infinity_value).step(infinity_value, 1, &@prc)
+      ScratchPad.recorded.should == []
+    end
+  end
+
+  describe "Numeric#step with [-infinity, step]" do
+    it "does not yield when self is -infinity" do
+      (-infinity_value).step(-infinity_value, 1, &@prc)
+      ScratchPad.recorded.should == []
+    end
+  end
+
+  describe "Numeric#step with [-infinity, -step]" do
+    it "does not yield when self is -infinity" do
+      (-infinity_value).step(-infinity_value, -1, &@prc)
+      ScratchPad.recorded.should == []
+    end
+  end
+
   it "does not rescue ArgumentError exceptions" do
     lambda { 1.step(2) { raise ArgumentError, "" }}.should raise_error(ArgumentError)
   end
