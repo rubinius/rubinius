@@ -663,7 +663,7 @@ halt:
 
   void LLVMState::remove(void* func) {
     shared_.stats.jitted_methods.dec();
-    memory_->deallocateBlock(func);
+    memory_->deallocateFunctionBody(func);
   }
 
   const static int cInlineMaxDepth = 2;

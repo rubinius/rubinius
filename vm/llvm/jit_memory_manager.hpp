@@ -57,6 +57,8 @@ SOFTWARE.
 #include <llvm/Support/Allocator.h>
 #include <llvm/ExecutionEngine/JITMemoryManager.h>
 
+#include "util/thread.hpp"
+
 namespace rubinius {
 namespace jit {
 
@@ -195,6 +197,7 @@ namespace jit {
     // When emitting code into a memory block, this is the block.
     MemoryRangeHeader *CurBlock;
 
+    utilities::thread::SpinLock lock_;
     bool PoisonMemory;
 
   public:
@@ -234,6 +237,7 @@ namespace jit {
     /// startFunctionBody - When a function starts, allocate a block of free
     /// executable memory, returning a pointer to it and its actual size.
     uint8_t *startFunctionBody(const Function *F, uintptr_t &ActualSize) {
+      utilities::thread::SpinLock::LockGuard guard(lock_);
 
       FreeRangeHeader* candidateBlock = FreeMemoryList;
       FreeRangeHeader* head = FreeMemoryList;
@@ -307,6 +311,7 @@ namespace jit {
     /// in the range [FunctionStart,FunctionEnd).
     void endFunctionBody(const Function *F, uint8_t *FunctionStart,
                          uint8_t *FunctionEnd) {
+      utilities::thread::SpinLock::LockGuard guard(lock_);
       assert(FunctionEnd > FunctionStart);
       assert(FunctionStart == (uint8_t *)(CurBlock+1) &&
              "Mismatched function start/end!");
@@ -320,6 +325,8 @@ namespace jit {
     /// allocateSpace - Allocate a memory block of the given size.  This method
     /// cannot be called between calls to startFunctionBody and endFunctionBody.
     uint8_t *allocateSpace(intptr_t Size, unsigned Alignment) {
+      utilities::thread::SpinLock::LockGuard guard(lock_);
+
       CurBlock = FreeMemoryList;
       FreeMemoryList = FreeMemoryList->AllocateBlock();
 
@@ -338,17 +345,20 @@ namespace jit {
     /// allocateStub - Allocate memory for a function stub.
     uint8_t *allocateStub(const GlobalValue* F, unsigned StubSize,
                           unsigned Alignment) {
+      utilities::thread::SpinLock::LockGuard guard(lock_);
       return (uint8_t*)StubAllocator.Allocate(StubSize, Alignment);
     }
 
     /// allocateGlobal - Allocate memory for a global.
     uint8_t *allocateGlobal(uintptr_t Size, unsigned Alignment) {
+      utilities::thread::SpinLock::LockGuard guard(lock_);
       return (uint8_t*)DataAllocator.Allocate(Size, Alignment);
     }
 
     /// allocateCodeSection - Allocate memory for a code section.
     uint8_t *allocateCodeSection(uintptr_t Size, unsigned Alignment,
                                  unsigned SectionID) {
+      utilities::thread::SpinLock::LockGuard guard(lock_);
       // Grow the required block size to account for the block header
       Size += sizeof(*CurBlock);
 
@@ -389,12 +399,14 @@ namespace jit {
     /// allocateDataSection - Allocate memory for a data section.
     uint8_t *allocateDataSection(uintptr_t Size, unsigned Alignment,
                                  unsigned SectionID) {
+      utilities::thread::SpinLock::LockGuard guard(lock_);
       return (uint8_t*)DataAllocator.Allocate(Size, Alignment);
     }
 
     /// startExceptionTable - Use startFunctionBody to allocate memory for the
     /// function's exception table.
     uint8_t* startExceptionTable(const Function* F, uintptr_t &ActualSize) {
+      utilities::thread::SpinLock::LockGuard guard(lock_);
       return startFunctionBody(F, ActualSize);
     }
 
@@ -402,6 +414,7 @@ namespace jit {
     /// and takes the memory in the range [TableStart,TableEnd).
     void endExceptionTable(const Function *F, uint8_t *TableStart,
                            uint8_t *TableEnd, uint8_t* FrameRegister) {
+      utilities::thread::SpinLock::LockGuard guard(lock_);
       assert(TableEnd > TableStart);
       assert(TableStart == (uint8_t *)(CurBlock+1) &&
              "Mismatched table start/end!");
@@ -429,6 +442,7 @@ namespace jit {
     /// deallocateFunctionBody - Deallocate all memory for the specified
     /// function body.
     void deallocateFunctionBody(void *Body) {
+      utilities::thread::SpinLock::LockGuard guard(lock_);
       if(Body) {
         deallocateBlock(Body);
       }
@@ -437,6 +451,7 @@ namespace jit {
     /// deallocateExceptionTable - Deallocate memory for the specified
     /// exception table.
     void deallocateExceptionTable(void *ET) {
+      utilities::thread::SpinLock::LockGuard guard(lock_);
       if (ET) deallocateBlock(ET);
     }
 
