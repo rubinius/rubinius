@@ -204,7 +204,7 @@ dir_names.each do |dir|
 
   kernel_load_order = "kernel/#{dir}/load_order#{BUILD_CONFIG[:language_version]}.txt"
 
-  file load_order => kernel_load_order do |t|
+  file load_order => [kernel_load_order, signature] do |t|
     cp t.prerequisites.first, t.name, :verbose => $verbose
   end
 
