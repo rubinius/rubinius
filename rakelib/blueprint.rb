@@ -207,7 +207,12 @@ Daedalus.blueprint do |i|
     flags << "-DENABLE_LLVM"
 
     ldflags = `#{conf} --ldflags`.strip.split(/\s+/)
-    objects = `#{conf} --libfiles`.strip.split(/\s+/)
+
+    if Rubinius::BUILD_CONFIG[:llvm_shared]
+      objects = ["-lLLVM-#{Rubinius::BUILD_CONFIG[:llvm_version]}"]
+    else
+      objects = `#{conf} --libfiles`.strip.split(/\s+/)
+    end
 
     if Rubinius::BUILD_CONFIG[:windows]
       ldflags = ldflags.sub(%r[-L/([a-zA-Z])/], '-L\1:/')
