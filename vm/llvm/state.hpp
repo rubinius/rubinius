@@ -120,7 +120,6 @@ namespace rubinius {
     static LLVMState* get_if_set(STATE);
     static LLVMState* get_if_set(VM*);
     static void start(STATE);
-    static void on_fork(STATE);
     static void pause(STATE);
     static void unpause(STATE);
 
