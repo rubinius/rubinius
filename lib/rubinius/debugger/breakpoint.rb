@@ -7,7 +7,7 @@ class Rubinius::Debugger
       BreakPoint.new(name, exec, ip, line)
     end
 
-    def initialize(descriptor, method, ip, line)
+    def initialize(descriptor, method, ip, line, condition=nil)
       @descriptor = descriptor
       @method = method
       @ip = ip
@@ -16,11 +16,12 @@ class Rubinius::Debugger
       @paired_bp = nil
       @temp = false
       @commands = nil
+      @condition = condition
 
       @set = false
     end
 
-    attr_reader :method, :ip, :line, :paired_bp, :descriptor, :commands
+    attr_reader :method, :ip, :line, :paired_bp, :descriptor, :commands, :condition
 
     def location
       "#{@method.active_path}:#{@line} (+#{ip})"
@@ -83,6 +84,14 @@ class Rubinius::Debugger
 
     def has_commands?
       !@commands.nil?
+    end
+
+    def set_condition(condition)
+      @condition = condition
+    end
+
+    def has_condition?
+      !@condition.nil?
     end
   end
 

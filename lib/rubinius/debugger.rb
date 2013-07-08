@@ -153,7 +153,13 @@ class Rubinius::Debugger
 
       if bp
         # Only break out if the hit was valid
-        break if bp.hit!(locs.first)
+        if bp.hit!(locs.first)
+          if bp.has_condition?
+            break if @current_frame.run(bp.condition)
+          else
+            break
+          end
+        end
       else
         break
       end
@@ -255,7 +261,7 @@ class Rubinius::Debugger
     end
   end
 
-  def set_breakpoint_method(descriptor, method, line=nil)
+  def set_breakpoint_method(descriptor, method, line=nil, condition=nil)
     exec = method.executable
 
     unless exec.kind_of?(Rubinius::CompiledCode)
@@ -275,7 +281,7 @@ class Rubinius::Debugger
       ip = 0
     end
 
-    bp = BreakPoint.new(descriptor, exec, ip, line)
+    bp = BreakPoint.new(descriptor, exec, ip, line, condition)
     bp.activate
 
     @breakpoints << bp
