@@ -109,12 +109,38 @@ namespace :package do
   ["18", "19", "20"].each do |ruby_version|
     desc_version = ruby_version.split(//).join(".")
 
+    heroku_prefix_version = case ruby_version
+    when "18"
+      "1.8.7"
+    when "19"
+      "1.9.3"
+    when "20"
+      "2.0.0"
+    end
+    heroku_package = "ruby-#{heroku_prefix_version}-rbx-#{BUILD_CONFIG[:version]}"
+
+    namespace :heroku do
+      desc "Build a general Unix/Linux Heroku binary package for #{desc_version}"
+      task ruby_version.to_sym do
+        sh "rake package:binary_builder RBX_BINARY_PACKAGE=#{heroku_package} RBX_BINARY_PREFIX=/app/vendor/#{heroku_package} RBX_BINARY_LANGUAGE=#{ruby_version}"
+      end
+    end
+
     desc "Build a general Unix/Linux binary package for #{desc_version}"
     task ruby_version.to_sym do
       sh "rake package:binary_builder RBX_BINARY_RELEASE=#{decode_release_label(BUILD_CONFIG[:release])} RBX_BINARY_RELEASE_DATE=#{BUILD_CONFIG[:release_date]} RBX_BINARY_LANGUAGE=#{ruby_version}"
     end
 
     [:nightly, :weekly, :monthly].each do |release|
+      namespace :heroku do
+        namespace release do
+          desc "Build a general Unix/Linux #{release} binary package for Heroku"
+          task ruby_version.to_sym do
+            sh "rake package:binary_builder RBX_BINARY_PACKAGE=#{heroku_package} RBX_BINARY_PREFIX=/app/vendor/#{heroku_package} RBX_BINARY_LANGUAGE=#{ruby_version} RBX_BINARY_RELEASE=#{release}"
+          end
+        end
+      end
+
       namespace release do
         desc "Build a general Unix/Linux #{release} binary package for #{desc_version}"
         task ruby_version.to_sym do
