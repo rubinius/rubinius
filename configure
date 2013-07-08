@@ -65,6 +65,7 @@ class Configure
     @llvm_skip_prebuilt     = false
     @llvm_prebuilt_name     = nil
     @llvm_system_name       = get_system_name
+    @llvm_shared            = false
 
     @llvm_version           = "3.2"
     @llvm_api_version       = 302
@@ -325,6 +326,10 @@ class Configure
 
     o.on "--llvm-config", "PROGRAM", "File system path to the llvm-config program" do |program|
       @llvm_configure = program
+    end
+
+    o.on "--llvm-shared", "Link to shared LLVM library" do
+      @llvm_shared = true
     end
 
     o.on "--update-prebuilt", "Update prebuilt LLVM packages from the internet" do
@@ -1599,6 +1604,7 @@ module Rubinius
     :llvm           => :#{@llvm},
     :llvm_configure => "#{@llvm_configure}",
     :llvm_version   => "#{@llvm_version}",
+    :llvm_shared    => #{@llvm_shared},
     :cc             => "#{@cc}",
     :cxx            => "#{@cxx}",
     :ldshared       => "#{@ldshared}",
