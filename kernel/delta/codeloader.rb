@@ -147,7 +147,7 @@ module Rubinius
           begin
             compiled_stat = File::Stat.stat compiled_name
 
-            if compiled_stat and @stat.mtime > compiled_stat.mtime
+            if compiled_stat and @stat.mtime >= compiled_stat.mtime
               code = compile_file @load_path, compiled_name
             else
               begin
