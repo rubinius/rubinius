@@ -14,6 +14,7 @@ namespace rubinius {
 
   private:
     Fixnum* descriptor_; // slot
+    String* path_;       // slot
     Object* ibuffer_;    // slot
     Fixnum* mode_;       // slot
     Object* eof_;        // slot
@@ -27,6 +28,7 @@ namespace rubinius {
     /* accessors */
 
     attr_accessor(descriptor, Fixnum);
+    attr_accessor(path, String);
     attr_accessor(ibuffer, Object);
     attr_accessor(mode, Fixnum);
     attr_accessor(eof, Object);
