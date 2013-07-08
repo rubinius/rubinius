@@ -1,11 +1,22 @@
 # -*- encoding: us-ascii -*-
 
 class Range
+  alias_method :cover?, :__cover__?
+  public :cover?
+
+  def include?(value)
+    if @begin.respond_to?(:to_int) || @end.respond_to?(:to_int) || 
+       @begin.kind_of?(Numeric) || @end.kind_of?(Numeric)
+      __cover__? value
+    else
+      super
+    end
+  end
+  alias_method :member?, :include?
+
   def ===(value)
     include?(value)
   end
-
-  alias_method :cover?, :include?
 
   def each
     return to_enum unless block_given?

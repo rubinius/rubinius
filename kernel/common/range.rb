@@ -32,25 +32,6 @@ class Range
   end
   alias_method :eql?, :==
 
-  def include?(value)
-    # MRI uses <=> to compare, so must we.
-
-    beg_compare = (@begin <=> value)
-    return false unless beg_compare
-
-    if Comparable.compare_int(beg_compare) <= 0
-      end_compare = (value <=> @end)
-      if @excl
-        return true if Comparable.compare_int(end_compare) < 0
-      else
-        return true if Comparable.compare_int(end_compare) <= 0
-      end
-    end
-
-    return false
-  end
-  alias_method :member?, :include?
-
   attr_reader_specific :excl, :exclude_end?
 
   attr_reader :begin
@@ -155,5 +136,24 @@ class Range
 
     super
   end
+
+  def __cover__?(value)
+    # MRI uses <=> to compare, so must we.
+
+    beg_compare = (@begin <=> value)
+    return false unless beg_compare
+
+    if Comparable.compare_int(beg_compare) <= 0
+      end_compare = (value <=> @end)
+      if @excl
+        return true if Comparable.compare_int(end_compare) < 0
+      else
+        return true if Comparable.compare_int(end_compare) <= 0
+      end
+    end
+
+    return false
+  end
+  private :__cover__?
 end
 
