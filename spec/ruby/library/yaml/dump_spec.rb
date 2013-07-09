@@ -33,4 +33,8 @@ describe "YAML.dump" do
   it "dumps Arrays into YAML collection" do
     YAML.dump(["a", "b", "c"]).should match_yaml("--- \n- a\n- b\n- c\n")
   end
+
+  it "dumps StringIO without variables" do
+    YAML.dump(StringIO.new).should match_yaml("--- !ruby/object:StringIO {}\n")
+  end
 end

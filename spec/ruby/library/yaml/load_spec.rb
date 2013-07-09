@@ -95,6 +95,12 @@ describe "YAML.load" do
     YAML.load(string).should == expected
   end
 
+  it "loads a StringIO object as empty" do
+    s = YAML.load("--- !ruby/object:StringIO {}\n\n")
+    s.should be_kind_of(StringIO)
+    s.string.should == ""
+  end
+
   describe "with iso8601 timestamp" do
     it "computes the microseconds" do
       [ [YAML.load("2011-03-22t23:32:11.2233+01:00"),   223300],
