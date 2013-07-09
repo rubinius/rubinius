@@ -74,24 +74,6 @@ module Rubinius
       self
     end
 
-    def fetch(key, absent=undefined)
-      if block_given? and !absent.equal?(undefined)
-        warn "block supersedes default value argument"
-      end
-
-      if value = self[key]
-        return value
-      end
-
-      if block_given?
-        return yield(key)
-      elsif absent.equal?(undefined)
-        raise IndexError, "key not found"
-      end
-
-      return absent
-    end
-
     def include?(key)
       !self[key].nil?
     end
