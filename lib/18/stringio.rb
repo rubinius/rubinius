@@ -519,6 +519,14 @@ class StringIO
     nil
   end
 
+  def to_yaml_properties
+    []
+  end
+
+  def yaml_initialize(type, val)
+    @__data__ = Data.new("")
+  end
+
   protected
 
   def mode_from_string(mode)
