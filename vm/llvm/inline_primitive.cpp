@@ -37,13 +37,14 @@ namespace rubinius {
 
     void log(const char* name) {
       if(ops.llvm_state()->config().jit_inline_debug) {
+        std::string klass_name = ops.llvm_state()->symbol_debug_str(klass->module_name());
         i.context()->inline_log("inlining")
           << ops.llvm_state()->enclosure_name(compiled_code)
           << "#"
           << ops.llvm_state()->symbol_debug_str(compiled_code->name())
           << " into "
           << ops.llvm_state()->symbol_debug_str(ops.method_name())
-          << ". primitive " << name << "\n";
+          << ". primitive " << name << " (" << klass_name << ")\n";
       }
     }
 
@@ -1730,13 +1731,14 @@ namespace rubinius {
       if(Primitives::get_jit_stub(code->prim_index(), stub_res)) {
         if(stub_res.arg_count() == count_) {
           if(ops_.llvm_state()->config().jit_inline_debug) {
+            std::string klass_name = ops_.llvm_state()->symbol_debug_str(klass->module_name());
             ops_.context()->inline_log("inlining")
               << ops_.llvm_state()->enclosure_name(code)
               << "#"
               << ops_.llvm_state()->symbol_debug_str(code->name())
               << " into "
               << ops_.llvm_state()->symbol_debug_str(ops_.method_name())
-              << ". generic primitive: " << stub_res.name() << "\n";
+              << ". generic primitive: " << stub_res.name() << " (" << klass_name << ")\n";
           }
 
           ops_.context()->enter_inline();

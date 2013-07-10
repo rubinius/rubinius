@@ -233,6 +233,10 @@ namespace rubinius {
             default:
               ops_.llvm_state()->log() << "no policy";
             }
+
+            ops_.llvm_state()->log() << " ("
+              << ops_.llvm_state()->symbol_debug_str(klass->module_name()) << ")";
+
             if(mcode->jitted()) {
               ops_.llvm_state()->log() << " (jitted)\n";
             } else {
