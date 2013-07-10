@@ -355,11 +355,11 @@ class SystemCallError < StandardError
     # Otherwise it's called on a Errno subclass and just helps setup
     # a instance of the subclass
     if self.equal? SystemCallError
-      if message.equal? undefined
+      if undefined.equal? message
         raise ArgumentError, "must supply at least a message/errno"
       end
 
-      if errno.equal?(undefined)
+      if undefined.equal? errno
         if message.kind_of?(Fixnum)
           if inst = SystemCallError.errno_error(nil, message)
             return inst
@@ -382,11 +382,11 @@ class SystemCallError < StandardError
 
       return super(message, errno)
     else
-      unless errno.equal? undefined
+      unless undefined.equal? errno
         raise ArgumentError, "message is the only argument"
       end
 
-      if message and !(message.equal?(undefined))
+      if message and !undefined.equal?(message)
         message = StringValue(message)
       end
 

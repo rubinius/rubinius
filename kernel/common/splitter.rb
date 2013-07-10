@@ -6,7 +6,7 @@ module Rubinius
 
       tail_empty = false
 
-      if limit.equal?(undefined)
+      if undefined.equal?(limit)
         limited = false
       else
         limit = Rubinius::Type.coerce_to limit, Fixnum, :to_int
@@ -96,7 +96,7 @@ module Rubinius
       end
 
       # Trim from end
-      if limit.equal?(undefined) || limit == 0
+      if undefined.equal?(limit) || limit == 0
         while s = ret.at(-1) and s.empty?
           ret.pop
         end

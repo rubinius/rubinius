@@ -6,7 +6,7 @@ class Time
   end
 
   def self.at(sec, usec=undefined)
-    if !usec.equal?(undefined)
+    if !undefined.equal?(usec)
       sec  = Rubinius::Type.coerce_to(sec,  Integer, :to_int)
       usec = Rubinius::Type.coerce_to(usec, Integer, :to_int)
 

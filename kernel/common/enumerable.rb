@@ -62,8 +62,8 @@ module Enumerable
   end
 
   def inject(initial=undefined, sym=undefined)
-    if !block_given? or !sym.equal?(undefined)
-      if sym.equal?(undefined)
+    if !block_given? or !undefined.equal?(sym)
+      if undefined.equal?(sym)
         sym = initial
         initial = undefined
       end
@@ -74,7 +74,7 @@ module Enumerable
 
       each do
         o = Rubinius.single_block_arg
-        if initial.equal? undefined
+        if undefined.equal? initial
           initial = o
         else
           initial = initial.__send__(sym, o)
@@ -85,7 +85,7 @@ module Enumerable
     else
       each do
         o = Rubinius.single_block_arg
-        if initial.equal? undefined
+        if undefined.equal? initial
           initial = o
         else
           initial = yield(initial, o)
@@ -93,7 +93,7 @@ module Enumerable
       end
     end
 
-    initial.equal?(undefined) ? nil : initial
+    undefined.equal?(initial) ? nil : initial
   end
   alias_method :reduce, :inject
 
@@ -117,7 +117,7 @@ module Enumerable
 
   def count(item = undefined)
     seq = 0
-    if !item.equal? undefined
+    if !undefined.equal?(item)
       each { |o| seq += 1 if item == o }
     elsif block_given?
       each { |o| seq += 1 if yield(o) }
@@ -247,7 +247,7 @@ module Enumerable
   alias_method :select, :find_all
 
   def find_index(value=undefined)
-    if value.equal? undefined
+    if undefined.equal? value
       return to_enum(:find_index) unless block_given?
 
       i = 0
@@ -266,7 +266,7 @@ module Enumerable
   end
 
   def first(n=undefined)
-    return take(n) unless n.equal?(undefined)
+    return take(n) unless undefined.equal?(n)
     each { |obj| return obj }
     nil
   end
@@ -291,7 +291,7 @@ module Enumerable
     min = undefined
     each do
       o = Rubinius.single_block_arg
-      if min.equal? undefined
+      if undefined.equal? min
         min = o
       else
         comp = block_given? ? yield(o, min) : o <=> min
@@ -305,14 +305,14 @@ module Enumerable
       end
     end
 
-    min.equal?(undefined) ? nil : min
+    undefined.equal?(min) ? nil : min
   end
 
   def max
     max = undefined
     each do
       o = Rubinius.single_block_arg
-      if max.equal? undefined
+      if undefined.equal? max
         max = o
       else
         comp = block_given? ? yield(o, max) : o <=> max
@@ -326,7 +326,7 @@ module Enumerable
       end
     end
 
-    max.equal?(undefined) ? nil : max
+    undefined.equal?(max) ? nil : max
   end
 
   def max_by
@@ -339,7 +339,7 @@ module Enumerable
       object = Rubinius.single_block_arg
       result = yield object
 
-      if max_result.equal? undefined or \
+      if undefined.equal?(max_result) or \
            Rubinius::Type.coerce_to_comparison(max_result, result) < 0
         max_object = object
         max_result = result
@@ -359,7 +359,7 @@ module Enumerable
       object = Rubinius.single_block_arg
       result = yield object
 
-      if min_result.equal? undefined or \
+      if undefined.equal?(min_result) or \
            Rubinius::Type.coerce_to_comparison(min_result, result) > 0
         min_object = object
         min_result = result
@@ -417,13 +417,13 @@ module Enumerable
       object = Rubinius.single_block_arg
       result = yield object
 
-      if min_result.equal? undefined or \
+      if undefined.equal?(min_result) or \
            Rubinius::Type.coerce_to_comparison(min_result, result) > 0
         min_object = object
         min_result = result
       end
 
-      if max_result.equal? undefined or \
+      if undefined.equal?(max_result) or \
            Rubinius::Type.coerce_to_comparison(max_result, result) < 0
         max_object = object
         max_result = result

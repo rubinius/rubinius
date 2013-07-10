@@ -75,9 +75,9 @@ module Enumerable
 
   def slice_before(arg = undefined, &block)
     if block_given?
-      has_init = !(arg.equal? undefined)
+      has_init = !(undefined.equal? arg)
     else
-      raise ArgumentError, "wrong number of arguments (0 for 1)" if arg.equal? undefined
+      raise ArgumentError, "wrong number of arguments (0 for 1)" if undefined.equal? arg
       block = Proc.new{ |elem| arg === elem }
     end
     Enumerator.new do |yielder|

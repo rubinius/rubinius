@@ -19,7 +19,7 @@ class Array
   def initialize(size_or_array=undefined, obj=undefined)
     Rubinius.check_frozen
 
-    if size_or_array.equal? undefined
+    if undefined.equal?(size_or_array)
       unless @total == 0
         @total = @start = 0
         @tuple = Rubinius::Tuple.new 8
@@ -28,7 +28,7 @@ class Array
       return self
     end
 
-    if obj.equal? undefined
+    if undefined.equal?(obj)
       obj = nil
       ary = nil
       if size_or_array.kind_of? Integer
@@ -471,7 +471,7 @@ class Array
         return yield(orig)
       end
 
-      return default unless default.equal? undefined
+      return default unless undefined.equal?(default)
 
       raise IndexError, "index #{idx} out of bounds"
     end
@@ -483,19 +483,19 @@ class Array
     Rubinius.check_frozen
 
     if block_given?
-      if undefined != c
+      unless undefined.equal?(c)
         raise ArgumentError, "wrong number of arguments"
       end
       one, two = a, b
     else
-      if a.equal? undefined
+      if undefined.equal?(a)
         raise ArgumentError, "wrong number of arguments"
       end
       obj, one, two = a, b, c
     end
 
     if one.kind_of? Range
-      raise TypeError, "length invalid with range" unless two.equal? undefined
+      raise TypeError, "length invalid with range" unless undefined.equal?(two)
 
       left = Rubinius::Type.coerce_to one.begin, Fixnum, :to_int
       left += size if left < 0
@@ -506,12 +506,12 @@ class Array
       right += 1 unless one.exclude_end?
       return self if right <= left           # Nothing to modify
 
-    elsif one and one != undefined
+    elsif one and !undefined.equal?(one)
       left = Rubinius::Type.coerce_to one, Fixnum, :to_int
       left += size if left < 0
       left = 0 if left < 0
 
-      if two and two != undefined
+      if two and !undefined.equal?(two)
         begin
           right = Rubinius::Type.coerce_to two, Fixnum, :to_int
         rescue TypeError
@@ -557,7 +557,7 @@ class Array
   end
 
   def first(n = undefined)
-    return at(0) if n.equal? undefined
+    return at(0) if undefined.equal?(n)
 
     n = Rubinius::Type.coerce_to n, Fixnum, :to_int
     raise ArgumentError, "Size must be positive" if n < 0
@@ -649,7 +649,7 @@ class Array
   alias_method :index, :find_index
 
   def last(n=undefined)
-    if n.equal? undefined
+    if undefined.equal?(n)
       return at(-1)
     elsif size < 1
       return []
@@ -677,7 +677,7 @@ class Array
   def permutation(num=undefined, &block)
     return to_enum(:permutation, num) unless block_given?
 
-    if num.equal? undefined
+    if undefined.equal? num
       num = @total
     else
       num = Rubinius::Type.coerce_to num, Fixnum, :to_int
@@ -739,7 +739,7 @@ class Array
   def pop(many=undefined)
     Rubinius.check_frozen
 
-    if many.equal? undefined
+    if undefined.equal?(many)
       return nil if @total == 0
 
       @total -= 1
@@ -816,7 +816,7 @@ class Array
   end
 
   def rindex(obj=undefined)
-    if obj.equal? undefined
+    if undefined.equal?(obj)
       return to_enum(:rindex, obj) unless block_given?
 
       i = @total - 1
@@ -848,7 +848,7 @@ class Array
   def shift(n=undefined)
     Rubinius.check_frozen
 
-    if n.equal? undefined
+    if undefined.equal?(n)
       return nil if @total == 0
       obj = @tuple.at @start
       @tuple.put @start, nil

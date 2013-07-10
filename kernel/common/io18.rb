@@ -78,7 +78,7 @@ class IO
       raise Errno::EINVAL, "offset must not be negative"
     end
 
-    unless length.equal?(undefined)
+    unless undefined.equal?(length)
       length = Rubinius::Type.coerce_to(length, Fixnum, :to_int)
 
       if length < 0
@@ -98,7 +98,7 @@ class IO
     begin
       io.seek(offset) unless offset == 0
 
-      if length.equal?(undefined)
+      if undefined.equal?(length)
         str = io.read
       else
         str = io.read length

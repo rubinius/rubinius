@@ -46,13 +46,13 @@ module Process
     resource =  coerce_rlimit_resource(resource)
     cur_limit = Rubinius::Type.coerce_to cur_limit, Integer, :to_int
 
-    unless max_limit.equal? undefined
+    unless undefined.equal? max_limit
       max_limit = Rubinius::Type.coerce_to max_limit, Integer, :to_int
     end
 
     rlimit = Rlimit.new
     rlimit[:rlim_cur] = cur_limit
-    rlimit[:rlim_max] = max_limit.equal?(undefined) ? cur_limit : max_limit
+    rlimit[:rlim_max] = undefined.equal?(max_limit) ? cur_limit : max_limit
 
     ret = FFI::Platform::POSIX.setrlimit(resource, rlimit.pointer)
     Errno.handle if ret == -1

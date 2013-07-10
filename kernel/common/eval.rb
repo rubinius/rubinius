@@ -90,7 +90,7 @@ class Module
     # we have a custom version with the prc, rather than using instance_exec
     # so that we can setup the ConstantScope properly.
     if prc
-      unless string.equal?(undefined)
+      unless undefined.equal?(string)
         raise ArgumentError, "cannot pass both string and proc"
       end
 
@@ -98,7 +98,7 @@ class Module
       env = prc.block
       constant_scope = env.repoint_scope self
       return env.call_under(self, constant_scope, true, self)
-    elsif string.equal?(undefined)
+    elsif undefined.equal?(string)
       raise ArgumentError, 'block not supplied'
     end
 

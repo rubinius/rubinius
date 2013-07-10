@@ -2,7 +2,7 @@
 
 class Time
   def self.at(sec, usec=undefined)
-    if usec.equal?(undefined)
+    if undefined.equal?(usec)
       if sec.kind_of?(Time)
         return duplicate(sec)
       elsif sec.kind_of?(Integer)
@@ -10,7 +10,7 @@ class Time
       end
     end
 
-    usec = 0 if usec.equal?(undefined)
+    usec = 0 if undefined.equal?(usec)
 
     s = Rubinius::Type.coerce_to_exact_num(sec)
     u = Rubinius::Type.coerce_to_exact_num(usec)
@@ -63,7 +63,7 @@ class Time
   end
 
   def self.new(year=undefined, month=nil, day=nil, hour=nil, minute=nil, second=nil, utc_offset=nil)
-    if year.equal?(undefined)
+    if undefined.equal?(year)
       now
     elsif utc_offset == nil
       compose(:local, year, month, day, hour, minute, second)

@@ -7,7 +7,7 @@ class Array
     Rubinius.check_frozen
 
     ins_length = nil
-    unless fin.equal? undefined
+    unless undefined.equal? fin
       ins_length = Rubinius::Type.coerce_to ent, Fixnum, :to_int
       ent = fin             # 2nd arg (ins_length) is the optional one!
     end
@@ -446,7 +446,7 @@ class Array
   def slice!(start, length=undefined)
     Rubinius.check_frozen
 
-    if length.equal? undefined
+    if undefined.equal? length
       if start.kind_of? Range
         out = self[start]
 

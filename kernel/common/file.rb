@@ -103,7 +103,7 @@ class File < IO
 
     slash = "/"
 
-    ext_not_present = ext.equal?(undefined)
+    ext_not_present = undefined.equal?(ext)
 
     if pos = path.find_string_reverse(slash, path.bytesize)
       # special case. If the string ends with a /, ignore it.

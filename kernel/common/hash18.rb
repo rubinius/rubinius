@@ -104,7 +104,7 @@ class Hash
     # current MRI documentation comment is wrong.  Actual behavior is:
     # Hash.new { 1 }.default # => nil
     if @default_proc
-      Rubinius::Type.object_equal(key, undefined) ? nil : @default.call(self, key)
+      undefined.equal?(key) ? nil : @default.call(self, key)
     else
       @default
     end
@@ -193,7 +193,7 @@ class Hash
     end
 
     return yield(key) if block_given?
-    return default unless default.equal?(undefined)
+    return default unless undefined.equal?(default)
     raise IndexError, 'key not found'
   end
 
@@ -214,14 +214,14 @@ class Hash
   def initialize(default=undefined, &block)
     Rubinius.check_frozen
 
-    if !default.equal?(undefined) and block
+    if !undefined.equal?(default) and block
       raise ArgumentError, "Specify a default or a block, not both"
     end
 
     if block
       @default = block
       @default_proc = true
-    elsif !default.equal?(undefined)
+    elsif !undefined.equal?(default)
       @default = default
       @default_proc = false
     end

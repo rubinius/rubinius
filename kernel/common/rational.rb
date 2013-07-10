@@ -323,7 +323,7 @@ class Rational < Numeric
   private :initialize
 
   def rationalize(eps=undefined)
-    if eps.equal?(undefined)
+    if undefined.equal?(eps)
       self
     else
       e = eps.abs

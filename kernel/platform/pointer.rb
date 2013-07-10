@@ -28,7 +28,7 @@ module FFI
     include PointerAccessors
 
     def initialize(a1, a2=undefined)
-      if a2.equal? undefined
+      if undefined.equal? a2
         self.address = a1
       else
         @type = a1

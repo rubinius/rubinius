@@ -75,7 +75,7 @@ class Encoding
     def self.asciicompat_encoding(string_or_encoding)
       encoding = Rubinius::Type.try_convert_to_encoding string_or_encoding
 
-      return if not encoding or encoding.equal? undefined
+      return if not encoding or undefined.equal? encoding
       return if encoding.ascii_compatible?
 
       transcoding = TranscodingMap[encoding.name.upcase]
@@ -94,7 +94,7 @@ class Encoding
 
       if options.kind_of? Fixnum
         @options = options
-      elsif !options.equal? undefined
+      elsif !undefined.equal? options
         options = Rubinius::Type.coerce_to options, Hash, :to_hash
 
         @options = 0
@@ -293,14 +293,14 @@ class Encoding
       Rubinius.privately do
         exc.source_encoding_name = source_encoding_name
         src = Rubinius::Type.try_convert_to_encoding source_encoding_name
-        exc.source_encoding = src unless src.equal? undefined
+        exc.source_encoding = src unless undefined.equal? src
 
         exc.destination_encoding_name = destination_encoding_name
         dst = Rubinius::Type.try_convert_to_encoding destination_encoding_name
-        exc.destination_encoding = dst unless dst.equal? undefined
+        exc.destination_encoding = dst unless undefined.equal? dst
 
         if error_char
-          error_char.force_encoding src unless src.equal? undefined
+          error_char.force_encoding src unless undefined.equal? src
           exc.error_char = error_char
         end
 
@@ -509,7 +509,7 @@ class Encoding
   private_class_method :set_alias_index
 
   def self.default_external
-    if @default_external.equal? undefined
+    if undefined.equal? @default_external
       @default_external = find "external"
     end
     @default_external
@@ -524,7 +524,7 @@ class Encoding
   end
 
   def self.default_internal
-    if @default_internal.equal? undefined
+    if undefined.equal? @default_internal
       @default_internal = find "internal"
     end
     @default_internal
@@ -537,7 +537,7 @@ class Encoding
 
   def self.find(name)
     enc = Rubinius::Type.try_convert_to_encoding name
-    return enc unless enc.equal? undefined
+    return enc unless undefined.equal? enc
 
     raise ArgumentError, "unknown encoding name - #{name}"
   end

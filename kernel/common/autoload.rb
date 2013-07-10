@@ -39,7 +39,7 @@ class Autoload
     # attempt the lookup again.
     #
 
-    if !constant.equal?(undefined) && Thread.current == thread
+    if !undefined.equal?(constant) && Thread.current == thread
       constant
     else
       worked = resolve
@@ -61,7 +61,7 @@ class Autoload
       if entry = current.constant_table.lookup(name)
         constant = entry.constant
         if constant.equal? self
-          if constant.constant.equal? undefined
+          if undefined.equal?(constant.constant)
             unless Object.constant_table.lookup(name)
               return under.const_missing(name)
             end
@@ -80,7 +80,7 @@ class Autoload
       if entry = Object.constant_table.lookup(name)
         constant = entry.constant
         if constant.equal? self
-          if constant.constant.equal? undefined
+          if undefined.equal?(constant.constant)
             return under.const_missing(name)
           else
             entry.constant = constant.constant

@@ -6,7 +6,7 @@ class Integer
       raise RangeError, "#{self} is outside of the valid character range"
     end
 
-    if enc.equal? undefined
+    if undefined.equal? enc
       if 0xff < self
         enc = Encoding.default_internal
         if enc.nil?
@@ -25,7 +25,7 @@ class Integer
   end
 
   def round(ndigits=undefined)
-    return self if ndigits.equal? undefined
+    return self if undefined.equal? ndigits
 
     if ndigits.kind_of? Numeric
       if ndigits > Fixnum::MAX or ndigits < Fixnum::MIN

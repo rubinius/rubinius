@@ -9,7 +9,7 @@ class Rubinius::Randomizer
   end
 
   def random(limit)
-    if limit.equal?(undefined)
+    if undefined.equal?(limit)
       random_float
     else
       if limit.kind_of?(Range)
@@ -39,7 +39,7 @@ class Random
   end
 
   def self.srand(seed=undefined)
-    if seed.equal? undefined
+    if undefined.equal? seed
       seed = Thread.current.randomizer.generate_seed
     end
 
@@ -53,7 +53,7 @@ class Random
 
   def initialize(seed=undefined)
     @randomizer = Rubinius::Randomizer.new
-    if !seed.equal?(undefined)
+    if !undefined.equal?(seed)
       @randomizer.swap_seed seed.to_int
     end
   end

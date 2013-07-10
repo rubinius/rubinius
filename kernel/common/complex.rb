@@ -49,7 +49,7 @@ class Complex < Numeric
       return real
     end
 
-    if imag.equal? undefined
+    if undefined.equal?(imag)
       if real.kind_of?(Numeric) && !real.real?
         return real
       elsif !real.kind_of?(Numeric)

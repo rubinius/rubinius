@@ -364,14 +364,14 @@ class Hash
   def initialize(default=undefined, &block)
     Rubinius.check_frozen
 
-    if !default.equal?(undefined) and block
+    if !undefined.equal?(default) and block
       raise ArgumentError, "Specify a default value or a block, not both"
     end
 
     if block
       @default = nil
       @default_proc = block
-    elsif !default.equal?(undefined)
+    elsif !undefined.equal?(default)
       @default = default
       @default_proc = nil
     end
@@ -445,7 +445,7 @@ class Hash
   end
 
   def default(key=undefined)
-    if @default_proc and !key.equal?(undefined)
+    if @default_proc and !undefined.equal?(key)
       @default_proc.call(self, key)
     else
       @default
@@ -576,7 +576,7 @@ class Hash
     end
 
     return yield(key) if block_given?
-    return default unless default.equal?(undefined)
+    return default unless undefined.equal?(default)
     raise IndexError, 'key not found'
   end
 

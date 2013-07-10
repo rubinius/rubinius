@@ -49,7 +49,7 @@ class String
       index = Rubinius::Type.coerce_to index_or_range, Fixnum, :to_int
       index += @num_bytes if index < 0
 
-      if length.equal? undefined
+      if undefined.equal?(length)
         return if index == @num_bytes
         length = 1
       else

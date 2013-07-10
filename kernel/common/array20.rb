@@ -4,7 +4,7 @@ class Array
   def sample(count=undefined, options=undefined)
     return at Kernel.rand(size) if count.equal? undefined
 
-    if options.equal? undefined
+    if undefined.equal? options
       if o = Rubinius::Type.check_convert_type(count, Hash, :to_hash)
         options = o
         count = nil

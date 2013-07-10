@@ -140,7 +140,7 @@ class Module
     end
 
     # special case: Module.constants returns Object's constants
-    if self.equal?(Module) && all.equal?(undefined)
+    if self.equal?(Module) && undefined.equal?(all)
       Object.constant_table.each do |name, constant, visibility|
         tbl[name] = true unless visibility == :private
       end

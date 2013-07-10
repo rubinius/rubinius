@@ -14,7 +14,7 @@ class Array
     Rubinius.check_frozen
 
     ins_length = nil
-    unless fin.equal? undefined
+    unless undefined.equal? fin
       ins_length = Rubinius::Type.coerce_to ent, Fixnum, :to_int
       ent = fin             # 2nd arg (ins_length) is the optional one!
     end
@@ -487,9 +487,9 @@ class Array
   end
 
   def sample(count=undefined, options=undefined)
-    return at Kernel.rand(size) if count.equal? undefined
+    return at Kernel.rand(size) if undefined.equal? count
 
-    if options.equal? undefined
+    if undefined.equal? options
       if o = Rubinius::Type.check_convert_type(count, Hash, :to_hash)
         options = o
         count = nil
@@ -551,7 +551,7 @@ class Array
 
     random_generator = Kernel
 
-    unless options.equal? undefined
+    unless undefined.equal? options
       options = Rubinius::Type.coerce_to options, Hash, :to_hash
       random_generator = options[:random] if options[:random].respond_to?(:rand)
     end
@@ -566,7 +566,7 @@ class Array
   def slice!(start, length=undefined)
     Rubinius.check_frozen
 
-    if length.equal? undefined
+    if undefined.equal? length
       if start.kind_of? Range
         range = start
         out = self[range]

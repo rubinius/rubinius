@@ -111,7 +111,7 @@ module Math
     raise DomainError, 'log' unless x >= 0.0
     return -Float::INFINITY if x == 0.0
     y = FFI::Platform::Math.log x
-    unless base.equal? undefined
+    unless undefined.equal? base
       base = Rubinius::Type.coerce_to_float base
       y /= log(base)
     end

@@ -5,7 +5,7 @@ Enumerator = Enumerable::Enumerator
 module Enumerable
   class Enumerator
     def initialize(obj=undefined, iter=:each, *args, &block)
-      if obj.equal? undefined
+      if undefined.equal? obj
         raise ArgumentError, "Enumerator.new expects a block when called without arguments." unless block_given?
 
         obj = Generator.new(&block)

@@ -41,7 +41,7 @@ class String
   end
 
   def initialize(arg = undefined)
-    replace arg unless arg.equal?(undefined)
+    replace arg unless undefined.equal?(arg)
     self
   end
 
@@ -111,7 +111,7 @@ class String
   def [](index, other = undefined)
     Rubinius.primitive :string_aref
 
-    unless other.equal?(undefined)
+    unless undefined.equal?(other)
       if index.kind_of?(Fixnum) && other.kind_of?(Fixnum)
         return substring(index, other)
       elsif index.kind_of? Regexp
@@ -604,7 +604,7 @@ class String
   end
 
   def sub(pattern, replacement=undefined)
-    if replacement.equal?(undefined) and !block_given?
+    if undefined.equal?(replacement) and !block_given?
       raise ArgumentError, "wrong number of arguments (1 for 2)"
     end
 
@@ -617,7 +617,7 @@ class String
 
       Regexp.last_match = match
 
-      if replacement.equal?(undefined)
+      if undefined.equal?(replacement)
         replacement = yield(match[0].dup).to_s
         out.taint if replacement.tainted?
         out.append(replacement).append(match.post_match)

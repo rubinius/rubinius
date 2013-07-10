@@ -4,7 +4,7 @@ module Kernel
 
   def raise(exc=undefined, msg=undefined, ctx=nil)
     skip = false
-    if exc.equal? undefined
+    if undefined.equal? exc
       exc = $!
       if exc
         skip = true
@@ -12,7 +12,7 @@ module Kernel
         exc = RuntimeError.new("No current exception")
       end
     elsif exc.respond_to? :exception
-      if msg.equal? undefined
+      if undefined.equal? msg
         exc = exc.exception
       else
         exc = exc.exception msg

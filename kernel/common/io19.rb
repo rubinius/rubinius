@@ -90,7 +90,7 @@ class IO
     when undefined
       limit = nil
     when Hash
-      if options == undefined
+      if undefined.equal? options
         options = limit
         limit = nil
       else
@@ -190,7 +190,7 @@ class IO
     name = Rubinius::Type.coerce_to_path name
     mode = "r"
 
-    if length_or_options.equal? undefined
+    if undefined.equal? length_or_options
       length = undefined
     elsif Rubinius::Type.object_kind_of? length_or_options, Hash
       length = undefined
@@ -222,7 +222,7 @@ class IO
     begin
       io.seek(offset) unless offset == 0
 
-      if length.equal?(undefined)
+      if undefined.equal?(length)
         str = io.read
       else
         str = io.read length
@@ -321,10 +321,10 @@ class IO
   end
 
   def self.normalize_options(mode, options)
-    mode = nil if mode.equal?(undefined)
+    mode = nil if undefined.equal?(mode)
     autoclose = true
 
-    if options.equal?(undefined)
+    if undefined.equal?(options)
       options = Rubinius::Type.try_convert(mode, Hash, :to_hash)
       mode = nil if options
     elsif !options.nil?
@@ -852,7 +852,7 @@ class IO
       @external = Encoding.find external
     end
 
-    unless options.equal? undefined
+    unless undefined.equal? options
       # TODO: set the encoding options on the IO instance
       if options and not options.kind_of? Hash
         options = Rubinius::Type.coerce_to options, Hash, :to_hash

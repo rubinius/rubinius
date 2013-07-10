@@ -28,7 +28,7 @@ class File
         mode = nil
       end
 
-      if options.equal?(undefined)
+      if undefined.equal?(options)
         options = Rubinius::Type.try_convert(perm, Hash, :to_hash)
         perm = undefined if options
       end
@@ -36,7 +36,7 @@ class File
       nmode, binary, external, internal = IO.normalize_options(mode, options)
       nmode ||= "r"
 
-      perm = 0666 if perm.equal? undefined
+      perm = 0666 if undefined.equal? perm
 
       fd = IO.sysopen(path, nmode, perm)
       if fd < 0

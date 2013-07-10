@@ -37,7 +37,7 @@ class String
     # This is un-DRY, but it's a simple manual argument splitting. Keeps
     # the code fast and clean since the sequence are pretty short.
     #
-    if two.equal?(undefined)
+    if undefined.equal?(two)
       result = slice(one)
 
       if one.kind_of? Regexp
@@ -65,7 +65,7 @@ class String
   def sub!(pattern, replacement=undefined)
     # Copied mostly from sub to keep Regexp.last_match= working right.
 
-    if replacement.equal?(undefined) and !block_given?
+    if undefined.equal?(replacement) and !block_given?
       raise ArgumentError, "wrong number of arguments (1 for 2)"
     end
 
@@ -78,7 +78,7 @@ class String
 
       Regexp.last_match = match
 
-      if replacement.equal?(undefined)
+      if undefined.equal?(replacement)
         replacement = yield(match[0].dup).to_s
         out.taint if replacement.tainted?
         out.append(replacement).append(match.post_match)
@@ -234,7 +234,7 @@ class String
   def chomp!(sep=undefined)
     return if @num_bytes == 0
 
-    if sep.equal? undefined
+    if undefined.equal?(sep)
       sep = $/
     elsif sep
       sep = StringValue(sep)
@@ -443,7 +443,7 @@ class String
         ret.append str
       end
 
-      if replacement.equal?(undefined)
+      if undefined.equal?(replacement)
         Regexp.last_match = match
 
         val = yield(match[0]).to_s
@@ -528,7 +528,7 @@ class String
         ret.append str
       end
 
-      if replacement.equal?(undefined)
+      if undefined.equal?(replacement)
         Regexp.last_match = match
 
         val = yield(match[0]).to_s
@@ -583,7 +583,7 @@ class String
   end
 
   def []=(index, count_or_replacement, replacement=undefined)
-    if replacement.equal? undefined
+    if undefined.equal?(replacement)
       replacement = count_or_replacement
       count = nil
     else
@@ -786,7 +786,7 @@ class String
   end
 
   def rindex(sub, finish=undefined)
-    if finish.equal?(undefined)
+    if undefined.equal?(finish)
       finish = size
     else
       finish = Rubinius::Type.coerce_to(finish, Integer, :to_int)

@@ -201,7 +201,7 @@ class Thread
         @joins << jc
         Rubinius.unlock(self)
         begin
-          if timeout.equal? undefined
+          if undefined.equal? timeout
             while true
               res = jc.receive
               # receive returns false if it was a spurious wakeup
@@ -241,7 +241,7 @@ class Thread
     end
 
     begin
-      if exc.equal?(undefined)
+      if undefined.equal? exc
         no_argument = true
         exc = active_exception
       end

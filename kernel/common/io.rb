@@ -997,7 +997,7 @@ class IO
       flush unless closed?
 
       # If a mode isn't passed in, use the mode that the IO is already in.
-      if mode.equal? undefined
+      if undefined.equal? mode
         mode = @mode
         # If this IO was already opened for writing, we should
         # create the target file if it doesn't already exist.
@@ -1115,7 +1115,7 @@ class IO
     str = read_primitive number_of_bytes
     raise EOFError if str.nil?
 
-    unless buffer.equal? undefined
+    unless undefined.equal? buffer
       StringValue(buffer).replace str
     end
 

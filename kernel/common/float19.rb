@@ -62,7 +62,7 @@ class Float
   alias_method :phase, :arg
 
   def rationalize(eps=undefined)
-    if eps.equal?(undefined)
+    if undefined.equal?(eps)
       f, n = Math.frexp self
       f = Math.ldexp(f, Float::MANT_DIG).to_i
       n -= Float::MANT_DIG

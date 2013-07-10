@@ -61,11 +61,11 @@ class Range
   end
 
   def first(n=undefined)
-    n.equal?(undefined) ? @begin : super
+    undefined.equal?(n) ? @begin : super
   end
 
   def last(n=undefined)
-    n.equal?(undefined) ? @end : to_a.last(n)
+    undefined.equal?(n) ? @end : to_a.last(n)
   end
 
   def max

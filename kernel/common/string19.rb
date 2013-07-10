@@ -293,7 +293,7 @@ class String
   def sub!(pattern, replacement=undefined)
     # Copied mostly from sub to keep Regexp.last_match= working right.
 
-    if replacement.equal?(undefined) and !block_given?
+    if undefined.equal?(replacement) and !block_given?
       raise ArgumentError, "wrong number of arguments (1 for 2)"
     end
 
@@ -308,7 +308,7 @@ class String
 
       Regexp.last_match = match
 
-      if replacement.equal?(undefined)
+      if undefined.equal?(replacement)
         replacement = yield(match[0].dup).to_s
         out.taint if replacement.tainted?
         out.append(replacement).append(match.post_match)
@@ -338,7 +338,7 @@ class String
     # This is un-DRY, but it's a simple manual argument splitting. Keeps
     # the code fast and clean since the sequence are pretty short.
     #
-    if two.equal?(undefined)
+    if undefined.equal?(two)
       result = slice(one)
 
       if one.kind_of? Regexp
@@ -511,7 +511,7 @@ class String
   def chomp!(sep=undefined)
     Rubinius.check_frozen
 
-    if sep.equal? undefined
+    if undefined.equal?(sep)
       sep = $/
     elsif sep
       sep = StringValue(sep)
@@ -587,7 +587,7 @@ class String
     Rubinius.check_frozen
 
     # If we're replacing with ourselves, then we have nothing to do
-    return self if equal?(other)
+    return self if Rubinius::Type.object_equal(self, other)
 
     other = StringValue(other)
 
@@ -940,7 +940,7 @@ class String
   end
 
   def []=(index, count_or_replacement, replacement=undefined)
-    if replacement.equal? undefined
+    if undefined.equal?(replacement)
       replacement = count_or_replacement
       count = nil
     else
@@ -1200,7 +1200,7 @@ class String
   end
 
   def index(str, start=undefined)
-    if start.equal? undefined
+    if undefined.equal?(start)
       start = 0
     else
       start = Rubinius::Type.coerce_to start, Fixnum, :to_int
@@ -1235,7 +1235,7 @@ class String
   end
 
   def rindex(sub, finish=undefined)
-    if finish.equal?(undefined)
+    if undefined.equal?(finish)
       finish = size
     else
       finish = Rubinius::Type.coerce_to(finish, Integer, :to_int)

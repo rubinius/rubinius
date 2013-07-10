@@ -68,8 +68,8 @@ class Time
 
   def self.compose(offset, p1, p2=nil, p3=nil, p4=nil, p5=nil, p6=nil, p7=nil,
                    yday=undefined, is_dst=undefined, tz=undefined)
-    if tz.equal?(undefined)
-      unless is_dst.equal?(undefined)
+    if undefined.equal?(tz)
+      unless undefined.equal?(is_dst)
         raise ArgumentError, "wrong number of arguments (9 for 1..8)"
       end
 

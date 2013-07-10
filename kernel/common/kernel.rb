@@ -139,7 +139,7 @@ module Kernel
   module_function :print
 
   def srand(seed=undefined)
-    if seed.equal? undefined
+    if undefined.equal? seed
       seed = Thread.current.randomizer.generate_seed
     end
 
@@ -184,7 +184,7 @@ module Kernel
     # without an argument, so we call it again passing undefined
     # to mean "sleep forever"
     #
-    if duration.equal? undefined
+    if undefined.equal? duration
       return sleep(undefined)
     end
 

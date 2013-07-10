@@ -260,11 +260,11 @@ class Module
   private :filter_methods
 
   def define_method(name, meth = undefined, &prc)
-    if meth.equal?(undefined) and !block_given?
+    if undefined.equal?(meth) and !block_given?
       raise ArgumentError, "tried to create Proc object without a block"
     end
 
-    meth = prc if meth.equal?(undefined)
+    meth = prc if undefined.equal?(meth)
 
     name = Rubinius::Type.coerce_to_symbol name
 

@@ -84,7 +84,7 @@ class Symbol
 
   def [](index, other = undefined)
     if index.kind_of?(Regexp)
-      if !other.equal?(undefined)
+      unless undefined.equal?(other)
         match, str = to_s.send(:subpattern, index, other)
         Regexp.last_match = match
         return str
