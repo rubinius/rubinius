@@ -1,6 +1,8 @@
 # NOTE! When updating this file, also update INSTALL, if necessary.
 # NOTE! Please keep your tasks grouped together.
 
+require './rakelib/configure'
+
 include Rake::DSL if Rake.const_defined? :DSL
 
 if ENV["RUBYLIB"]
@@ -152,10 +154,10 @@ class SpecRunner
     end
   end
 
-  def run(flags=nil)
+  def run(suite=:ci_files, flags=nil)
     self.class.set_at_exit_handler
 
-    sh("bin/mspec ci #{ENV['CI_MODE_FLAG'] || flags} -d --agent --background", &@handler)
+    sh("bin/mspec ci :#{suite} #{ENV['CI_MODE_FLAG'] || flags} -d --agent --background", &@handler)
   end
 end
 
@@ -165,8 +167,12 @@ else
   task :default => :spec
 end
 
+def check_status
+  exit 1 unless SpecRunner.at_exit_status == 0
+end
+
 task :check_status do
-  exit unless SpecRunner.at_exit_status == 0
+  check_status
 end
 
 task :github do
@@ -186,40 +192,6 @@ task :build => %w[build:build gems:install]
 
 desc "Recompile all ruby system files"
 task :rebuild => %w[clean build]
-
-def run_ci
-  unless system("rake -q")
-    puts "<< ERROR IN CI, CLEANING AND RERUNNING >>"
-    system "rake -q clean"
-    system "find . -name *.rbc -delete"
-    sh "rake -q"
-  end
-end
-
-desc "Run CI in default (configured) mode"
-task :ci => %w[build vm:test] do
-  run_ci
-end
-
-# These tasks run the specs in the specified mode regardless of
-# the default mode with which Rubinius was configured.
-desc "Run CI in 1.8 mode"
-task :ci18 => %w[build vm:test] do
-  ENV['CI_MODE_FLAG'] = "-T -X18"
-  run_ci
-end
-
-desc "Run CI in 1.9 mode"
-task :ci19 => %w[build vm:test] do
-  ENV['CI_MODE_FLAG'] = "-T -X19"
-  run_ci
-end
-
-desc "Run CI in 2.0 mode"
-task :ci20 => %w[build vm:test] do
-  ENV['CI_MODE_FLAG'] = "-T -X20"
-  run_ci
-end
 
 desc 'Remove rubinius build files'
 task :clean => %w[
@@ -256,24 +228,25 @@ end
 
 spec_runner = SpecRunner.new
 
-desc "Run the CI specs in 1.8 mode but do not rebuild on failure"
-task :spec18 => %w[build vm:test] do
-  spec_runner.run "-T -X18"
-end
-
-desc "Run the CI specs in 1.9 mode but do not rebuild on failure"
-task :spec19 => %w[build vm:test] do
-  spec_runner.run "-T -X19"
-end
-
-desc "Run the CI specs in 2.0 mode but do not rebuild on failure"
-task :spec20 => %w[build vm:test] do
-  spec_runner.run "-T -X20"
-end
-
 desc "Run CI in default (configured) mode but do not rebuild on failure"
 task :spec => %w[build vm:test] do
   spec_runner.run
+end
+
+task :travis do
+  BUILD_CONFIG[:supported_versions].each_with_index do |version, index|
+    if index == 0
+      sh "./configure --enable-version=#{version}"
+    else
+      BUILD_CONFIG[:language_version] = version
+      write_config_rb BUILD_CONFIG[:config_file], BUILD_CONFIG
+      write_version BUILD_CONFIG[:vm_version_h], version, BUILD_CONFIG[:supported_versions]
+    end
+
+    sh "rake extensions:clean build vm:test"
+    spec_runner.run :travis
+  end
+  check_status
 end
 
 desc "Print list of items marked to-do in kernel/ (@todo|TODO)"

@@ -114,6 +114,11 @@ class MSpecScript
     '^spec/ruby/optional/capi/encoding',
   ]
 
+  set :travis, get(:ci_files) - [
+    'spec/library',
+    'spec/ruby/library',
+    'spec/ruby/optional/capi'
+  ]
 
   # The set of substitutions to transform a spec filename
   # into a tag filename.

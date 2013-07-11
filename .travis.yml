@@ -3,8 +3,8 @@ compiler:
   - gcc
   - clang
 before_script:
-  - ./configure --enable-version=18,19
-script: rake
+  - ./configure --enable-version=18
+script: rake travis
 branches:
   only:
     - master

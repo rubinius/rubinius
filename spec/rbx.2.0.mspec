@@ -96,6 +96,12 @@ class MSpecScript
     '^spec/ruby/optional/ffi/variadic_spec.rb',
   ] + get(:obsolete_library)
 
+  set :travis, get(:ci_files) - [
+    'spec/library',
+    'spec/ruby/library',
+    'spec/ruby/optional/capi'
+  ]
+
   # The set of substitutions to transform a spec filename
   # into a tag filename.
   set :tags_patterns, [

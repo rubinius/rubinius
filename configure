@@ -5,6 +5,7 @@ if ENV["RUBYLIB"]
   exit 1
 end
 
+require './rakelib/configure'
 require './rakelib/release'
 require 'rbconfig'
 require 'tempfile'
@@ -1573,7 +1574,7 @@ int main() { return tgetnum(""); }
     @log.write "#{@libc} found!"
   end
 
-  def write_config
+  def write_configure_files
     unless @use_llvm
       @llvm = :no
       @llvm_configure = ""
@@ -1581,89 +1582,83 @@ int main() { return tgetnum(""); }
 
     @bin_links.delete @program_name
 
-    # Write the config file used by the build system and rbconfig.rb.
-    File.open @config, "wb" do |f|
-      # TODO: Make this the actual data structure that is written out.
-      f.puts <<-EOC
-module Rubinius
-  # Make this reload friendly without silly constant defined warnings.
-  BUILD_CONFIG = {
-    :command_line   => #{@command_line.join(" ").inspect},
-    :which_ruby     => :#{which_ruby},
-    :build_ruby     => "#{build_ruby}",
-    :build_rake     => "#{@rake}",
-    :build_perl     => "#{@perl}",
-    :llvm           => :#{@llvm},
-    :llvm_configure => "#{@llvm_configure}",
-    :llvm_version   => "#{@llvm_version}",
-    :llvm_shared    => #{@llvm_shared},
-    :cc             => "#{@cc}",
-    :cxx            => "#{@cxx}",
-    :ldshared       => "#{@ldshared}",
-    :ldsharedxx     => "#{@ldsharedxx}",
-    :gcc_major      => "#{@gcc_major}",
-    :user_cflags    => "#{@user_cflags}",
-    :user_cxxflags  => "#{@user_cxxflags}",
-    :user_cppflags  => "#{@user_cppflags}",
-    :user_ldflags   => "#{@user_ldflags}",
-    :system_cflags   => "#{@system_cflags}",
-    :system_cxxflags => "#{@system_cxxflags}",
-    :system_cppflags => "#{@system_cppflags}",
-    :system_ldflags  => "#{@system_ldflags}",
-    :make           => "#{@make}",
-    :include_dirs   => #{@include_dirs.inspect},
-    :lib_dirs       => #{@lib_dirs.inspect},
-    :defines        => #{@defines.inspect},
-    :curses         => #{@curses.inspect},
-    :host           => "#{@host}",
-    :cpu            => "#{@cpu}",
-    :vendor         => "#{@vendor}",
-    :os             => "#{@os}",
-    :little_endian  => #{@little_endian},
-    :sizeof_long    => #{sizeof("long")},
-    :x86_32         => #{@x86_32},
-    :x86_64         => #{@x86_64},
-    :dtrace         => #{@dtrace},
-    :fibers         => #{@fibers},
-    :sourcedir      => "#{@sourcedir}",
-    :stagingdir     => #{@stagingdir.inspect},
-    :prefixdir      => "#{@prefixdir}",
-    :bindir         => "#{@bindir}",
-    :libdir         => "#{@libdir}",
-    :runtimedir     => "#{@runtimedir}",
-    :kerneldir      => "#{@kerneldir}",
-    :sitedir        => "#{@sitedir}",
-    :vendordir      => "#{@vendordir}",
-    :include18dir   => "#{@include18dir}",
-    :include19dir   => "#{@include19dir}",
-    :include20dir   => "#{@include20dir}",
-    :mandir         => "#{@mandir}",
-    :gemsdir        => "#{@gemsdir}",
-    :program_name   => "#{@program_name}",
-    :bin_links      => #{@bin_links.inspect},
-    :use_bin_links  => #{@use_bin_links},
-    :version        => "#{version}",
-    :patch_version  => "#{@patch_version}",
-    :libversion     => "#{@libversion}",
-    :release        => "#{@release}",
-    :release_date   => "#{@release_date}",
-    :revision       => "#{read_revision}",
-    :config_version => #{@config_version},
-    :windows        => #{@windows},
-    :darwin         => #{@darwin},
-    :bsd            => #{@bsd},
-    :linux          => #{@linux},
-    :vendor_zlib    => #{@features["vendor-zlib"].value},
-    :vendor_yaml    => #{@features["vendor-yaml"].value},
-    :readline       => :#{@rb_readline ? :rb_readline : :c_readline},
-    :vm_release_h   => #{@vm_release_h.inspect},
-    :vm_version_h   => #{@vm_version_h.inspect},
-    :language_version => "#{@language_version}",
-    :supported_versions => #{@supported_versions.inspect}
-  }
-end
-      EOC
-    end
+    config_settings = {
+      :command_line       => @command_line,
+      :config_file        => @config,
+      :which_ruby         => which_ruby,
+      :build_ruby         => build_ruby,
+      :build_rake         => @rake,
+      :build_perl         => @perl,
+      :llvm               => @llvm,
+      :llvm_configure     => @llvm_configure,
+      :llvm_version       => @llvm_version,
+      :llvm_shared        => @llvm_shared,
+      :cc                 => @cc,
+      :cxx                => @cxx,
+      :ldshared           => @ldshared,
+      :ldsharedxx         => @ldsharedxx,
+      :gcc_major          => @gcc_major,
+      :user_cflags        => "#{@user_cflags}",
+      :user_cxxflags      => "#{@user_cxxflags}",
+      :user_cppflags      => "#{@user_cppflags}",
+      :user_ldflags       => "#{@user_ldflags}",
+      :system_cflags      => "#{@system_cflags}",
+      :system_cxxflags    => "#{@system_cxxflags}",
+      :system_cppflags    => "#{@system_cppflags}",
+      :system_ldflags     => "#{@system_ldflags}",
+      :make               => @make,
+      :include_dirs       => @include_dirs,
+      :lib_dirs           => @lib_dirs,
+      :defines            => @defines,
+      :curses             => @curses,
+      :host               => @host,
+      :cpu                => @cpu,
+      :vendor             => @vendor,
+      :os                 => @os,
+      :little_endian      => @little_endian,
+      :sizeof_long        => sizeof("long"),
+      :x86_32             => @x86_32,
+      :x86_64             => @x86_64,
+      :dtrace             => @dtrace,
+      :fibers             => @fibers,
+      :sourcedir          => @sourcedir,
+      :stagingdir         => @stagingdir,
+      :prefixdir          => @prefixdir,
+      :bindir             => @bindir,
+      :libdir             => @libdir,
+      :runtimedir         => @runtimedir,
+      :kerneldir          => @kerneldir,
+      :sitedir            => @sitedir,
+      :vendordir          => @vendordir,
+      :include18dir       => @include18dir,
+      :include19dir       => @include19dir,
+      :include20dir       => @include20dir,
+      :mandir             => @mandir,
+      :gemsdir            => @gemsdir,
+      :program_name       => @program_name,
+      :bin_links          => @bin_links,
+      :use_bin_links      => @use_bin_links,
+      :version            => version,
+      :patch_version      => @patch_version,
+      :libversion         => @libversion,
+      :release            => @release,
+      :release_date       => @release_date,
+      :revision           => read_revision,
+      :config_version     => @config_version,
+      :windows            => @windows,
+      :darwin             => @darwin,
+      :bsd                => @bsd,
+      :linux              => @linux,
+      :vendor_zlib        => @features["vendor-zlib"].value,
+      :vendor_yaml        => @features["vendor-yaml"].value,
+      :readline           => @rb_readline ? :rb_readline : :c_readline,
+      :vm_release_h       => @vm_release_h,
+      :vm_version_h       => @vm_version_h,
+      :language_version   => @language_version,
+      :supported_versions => @supported_versions
+    }
+
+    write_config_rb @config, config_settings
 
     Dir.mkdir "lib/rubinius" unless File.directory? "lib/rubinius"
     FileUtils.cp @config, "lib/rubinius/build_config.rb"
@@ -1817,8 +1812,12 @@ end
     end
 
     if File.exists? @config
-      load @config
-      verify_config = true
+      begin
+        load @config
+        verify_config = true
+      rescue Object
+        # ignore errors
+      end
     end
 
     options
@@ -1838,7 +1837,7 @@ end
     end
 
     process
-    write_config
+    write_configure_files
     record_revision
     write_release @vm_release_h, version, @release_date, read_revision
     write_version @vm_version_h, @language_version, @supported_versions
