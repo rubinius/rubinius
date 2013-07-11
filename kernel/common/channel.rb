@@ -7,7 +7,7 @@
 module Rubinius
   class Channel
     def inspect
-      "#<Rubinius::Channel>"
+      "#<Rubinius::Channel:0x#{object_id.to_s(16)}>"
     end
   end
 end
