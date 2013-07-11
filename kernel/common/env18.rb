@@ -12,6 +12,24 @@ module Rubinius
 
     alias_method :store, :[]=
 
+    def fetch(key, absent=undefined)
+      if block_given? and !absent.equal?(undefined)
+        warn "block supersedes default value argument"
+      end
+
+      if value = self[key]
+        return value
+      end
+
+      if block_given?
+        return yield(key)
+      elsif absent.equal?(undefined)
+        raise IndexError, "key not found"
+      end
+
+      return absent
+    end
+
     def set_encoding(value)
       value
     end
