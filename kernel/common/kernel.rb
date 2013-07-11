@@ -273,6 +273,7 @@ module Kernel
   end
 
   def extend(*modules)
+    raise ArgumentError, "wrong number of arguments (0 for 1+)" if modules.empty?
     Rubinius.check_frozen
 
     modules.reverse_each do |mod|
