@@ -51,14 +51,6 @@ module Rubinius
       TOPLEVEL_BINDING.variables.method_visibility = :private
 
       $VERBOSE = false
-
-      # We export the language mode into the environment so subprocesses like
-      # extension compiling during gem installs use the correct mode.
-      options = ENV["RBXOPT"]
-      language_mode = "-X#{Rubinius::RUBY_LIB_VERSION}"
-      unless options and options.include? language_mode
-        ENV["RBXOPT"] = "#{options} #{language_mode}".strip
-      end
     end
 
     # Setup $LOAD_PATH.
