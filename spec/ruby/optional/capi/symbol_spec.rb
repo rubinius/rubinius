@@ -14,6 +14,13 @@ describe "C-API Symbol function" do
     end
   end
 
+  describe "rb_intern2" do
+    it "converts a string to a symbol, uniquely, for a string of given length" do
+      @s.rb_intern2("test_symbol", 4).should == :test
+      @s.rb_intern2_c_compare("test_symbol", 4, :test).should == true
+    end
+  end
+
   describe "rb_id2name" do
     it "converts a symbol to a C char array" do
       @s.rb_id2name(:test_symbol).should == "test_symbol"
