@@ -1919,7 +1919,7 @@ namespace rubinius {
 
   Object* String::valid_encoding_p(STATE) {
     if(valid_encoding_->nil_p()) {
-      if(encoding(state) == Encoding::from_index(state, Encoding::eBinary)) {
+      if(encoding(state) == Encoding::ascii8bit_encoding(state)) {
         valid_encoding(state, cTrue);
         return valid_encoding_;
       }
