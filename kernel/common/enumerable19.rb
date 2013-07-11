@@ -6,7 +6,12 @@ module Enumerable
     ::Enumerator.new do |yielder|
       previous = nil
       accumulate = []
-      block = initial_state.nil? ? original_block : Proc.new{ |val| original_block.yield(val, initial_state.clone)}
+      block = if initial_state.nil?
+        original_block
+      else
+        duplicated_initial_state = initial_state.dup
+        Proc.new{ |val| original_block.yield(val, duplicated_initial_state)}
+      end
       each do |val|
         key = block.yield(val)
         if key.nil? || (key.is_a?(Symbol) && key.to_s[0, 1] == "_")

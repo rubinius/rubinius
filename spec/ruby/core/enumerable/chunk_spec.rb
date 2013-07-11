@@ -76,5 +76,17 @@ ruby_version_is "1.9" do
         EnumerableSpecs::Numerous.new(5,5,2,3,4,5,7,1,9).chunk {|e| e <= 3 && :_singleton }.to_a
       }.should raise_error(RuntimeError)
     end
+
+    describe "with [initial_state]" do
+      it "calls the block with initial_state that duplicated via dup before every first iteration" do
+        initial_state = {:memo => 0}.freeze
+        enum = [0, 1, 2, 3, 4, 5].chunk(initial_state) do |element, state|
+          state[:memo] += element
+          state[:memo].even?
+        end
+        enum.to_a.should == [[true, [0]], [false, [1, 2]], [true, [3, 4]], [false, [5]]]
+        enum.to_a.should == enum.to_a
+      end
+    end
   end
 end
