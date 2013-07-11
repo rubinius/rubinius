@@ -162,7 +162,7 @@ class Rubinius::Debugger
     puts
     info "Breakpoint: #{@current_frame.describe}"
     show_code
-    eval_code(@breakpoint.commands) if @breakpoint.has_commands?
+    eval_code(@breakpoint.commands) if @breakpoint && @breakpoint.has_commands?
 
     if @variables[:show_bytecode]
       decode_one
