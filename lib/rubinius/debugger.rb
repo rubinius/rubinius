@@ -162,6 +162,7 @@ class Rubinius::Debugger
     puts
     info "Breakpoint: #{@current_frame.describe}"
     show_code
+    eval_code(@breakpoint.commands) if @breakpoint.has_commands?
 
     if @variables[:show_bytecode]
       decode_one
@@ -172,6 +173,7 @@ class Rubinius::Debugger
   # Get a command from the user to run using readline
   #
   def accept_commands
+    command_list_code = []
     cmd = Readline.readline "debug> "
 
     if cmd.nil?
@@ -188,6 +190,30 @@ class Rubinius::Debugger
     runner = Command.commands.find { |k| k.match?(command) }
 
     if runner
+      if runner == Command::CommandsList
+        bp_id = (args || @breakpoints.size).to_i
+
+        if @breakpoints.empty?
+          puts "No breakpoint set"
+          return
+        elsif bp_id > @breakpoints.size || bp_id < 1
+          puts "Invalid breakpoint number."
+          return
+        end
+
+        puts "Type commands for breakpoint ##{bp_id}, one per line."
+        puts "End with a line saying just 'END'."
+        code = Readline.readline "> "
+        while code != 'END'
+          command_list_code << code
+          code = Readline.readline "> "
+        end
+        args = {
+          :bp_id => bp_id,
+          :code  => command_list_code.empty? ? nil : command_list_code.join(";")
+        }
+      end
+
       runner.new(self).run args
     else
       puts "Unrecognized command: #{command}"
@@ -196,6 +222,10 @@ class Rubinius::Debugger
 
     # Save it to the history.
     @history_io.puts cmd
+    unless command_list_code.empty?
+      command_list_code << "END"
+      @history_io.puts command_list_code.join("\n")
+    end
   end
 
   def eval_code(args)
