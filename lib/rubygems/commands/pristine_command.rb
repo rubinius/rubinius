@@ -1,5 +1,5 @@
 require 'rubygems/command'
-require 'rubygems/format'
+require 'rubygems/package'
 require 'rubygems/installer'
 require 'rubygems/version_option'
 
@@ -10,7 +10,8 @@ class Gem::Commands::PristineCommand < Gem::Command
   def initialize
     super 'pristine',
           'Restores installed gems to pristine condition from files located in the gem cache',
-          :version => Gem::Requirement.default, :extensions => true,
+          :version => Gem::Requirement.default,
+          :extensions => true,
           :all => false
 
     add_option('--all',
@@ -24,6 +25,11 @@ class Gem::Commands::PristineCommand < Gem::Command
       options[:extensions] = value
     end
 
+    add_option('--only-executables',
+               'Only restore executables') do |value, options|
+      options[:only_executables] = value
+    end
+
     add_version_option('restore to', 'pristine condition')
   end
 
@@ -32,7 +38,7 @@ class Gem::Commands::PristineCommand < Gem::Command
   end
 
   def defaults_str # :nodoc:
-    "--all --extensions"
+    '--extensions'
   end
 
   def description # :nodoc:
@@ -47,8 +53,8 @@ for the gem are regenerated.
 If the cached gem cannot be found, you will need to use `gem install` to
 revert the gem.
 
-If --no-extensions is provided pristine will not attempt to restore gems with
-extensions.
+If --no-extensions is provided pristine will not attempt to restore gems
+with extensions.
     EOF
   end
 
@@ -78,6 +84,11 @@ extensions.
     say "Restoring gems to pristine condition..."
 
     specs.each do |spec|
+      if spec.default_gem?
+        say "Skipped #{spec.full_name}, it is a default gem"
+        next
+      end
+
       unless spec.extensions.empty? or options[:extensions] then
         say "Skipped #{spec.full_name}, it needs to compile an extension"
         next
@@ -96,13 +107,18 @@ extensions.
       # TODO use installer options
       install_defaults = Gem::ConfigFile::PLATFORM_DEFAULTS['install']
       installer_env_shebang = install_defaults.to_s['--env-shebang']
-      
+
       installer = Gem::Installer.new(gem,
                                      :wrappers => true,
                                      :force => true,
                                      :install_dir => spec.base_dir,
-                                     :env_shebang => installer_env_shebang)
-      installer.install
+                                     :env_shebang => installer_env_shebang,
+                                     :build_args => spec.build_args)
+      if options[:only_executables] then
+        installer.generate_bin
+      else
+        installer.install
+      end
 
       say "Restored #{spec.full_name}"
     end

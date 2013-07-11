@@ -1,8 +1,8 @@
 module Gem
-
-  # TODO: move this whole file back into rubygems.rb
+  DEFAULT_HOST = "https://rubygems.org"
 
   @post_install_hooks   ||= []
+  @done_installing_hooks  ||= []
   @post_uninstall_hooks ||= []
   @pre_uninstall_hooks  ||= []
   @pre_install_hooks    ||= []
@@ -11,7 +11,7 @@ module Gem
   # An Array of the default sources that come with RubyGems
 
   def self.default_sources
-    %w[http://rubygems.org/]
+    %w[https://rubygems.org/]
   end
 
   ##
@@ -54,14 +54,23 @@ module Gem
   # Path for gems in the user's home directory
 
   def self.user_dir
-    File.join Gem.user_home, '.gem', ruby_engine, ConfigMap[:ruby_version]
+    parts = [Gem.user_home, '.gem', ruby_engine]
+    parts << ConfigMap[:ruby_version] unless ConfigMap[:ruby_version].empty?
+    File.join parts
+  end
+
+  ##
+  # How String Gem paths should be split.  Overridable for esoteric platforms.
+
+  def self.path_separator
+    File::PATH_SEPARATOR
   end
 
   ##
   # Default gem load path
 
   def self.default_path
-    if File.exist? Gem.user_home then
+    if Gem.user_home && File.exist?(Gem.user_home) then
       [user_dir, default_dir]
     else
       [default_dir]
@@ -94,24 +103,6 @@ module Gem
   end
 
   ##
-  # The default system-wide source info cache directory
-
-  def self.default_system_source_cache_dir
-    File.join(Gem.dir, 'source_cache')
-  end
-
-  ##
-  # The default user-specific source info cache directory
-
-  def self.default_user_source_cache_dir
-    #
-    # NOTE Probably an argument for moving this to per-ruby supported dirs like
-    # user_dir
-    #
-    File.join(Gem.user_home, '.gem', 'source_cache')
-  end
-
-  ##
   # A wrapper around RUBY_ENGINE const that may not be defined
 
   def self.ruby_engine
@@ -120,5 +111,19 @@ module Gem
     else
       'ruby'
     end
+  end
+
+  ##
+  # The default signing key path
+
+  def self.default_key_path
+    File.join Gem.user_home, ".gem", "gem-private_key.pem"
+  end
+
+  ##
+  # The default signing certificate chain path
+
+  def self.default_cert_path
+    File.join Gem.user_home, ".gem", "gem-public_cert.pem"
   end
 end
