@@ -287,9 +287,8 @@ namespace rubinius {
       Thread* cur = Thread::current(state);
       Thread* debugger = cur->debugger_thread();
 
-      // No debugger, bail.
+      // Not for us, bail.
       if(debugger->nil_p()) {
-        std::cout << "no debugger\n";
         return true;
       }
 
@@ -298,12 +297,6 @@ namespace rubinius {
       // Debugger not initialized? bail.
       if(debugger_chan->nil_p()) {
         std::cout << "no debugger channel\n";
-        return true;
-      }
-
-      // No one waiting on it? Well, nevermind then.
-      if(!debugger_chan->has_readers_p()) {
-        std::cout << "no waiters\n";
         return true;
       }
 
