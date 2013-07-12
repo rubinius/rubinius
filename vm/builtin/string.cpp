@@ -634,6 +634,9 @@ namespace rubinius {
         }
 
         num_chars(state, Fixnum::from(chars));
+        if(num_chars_ == num_bytes_) {
+          ascii_only_ = cTrue;
+        }
       }
     }
 
@@ -1352,13 +1355,14 @@ namespace rubinius {
       return Fixnum::from(byte_address()[i]);
     }
 
-    if(byte_compatible_p(encoding_)) {
+    native_int len = char_size(state);
+    if(byte_compatible_p(encoding_) || CBOOL(ascii_only_)) {
       return byte_substring(state, i, 1);
     } else {
       // Assumptions above about size are possibly invalid, recalculate.
       i = index->to_native();
-      if(i < 0) i += char_size(state);
-      if(i >= char_size(state) || i < 0) return cNil;
+      if(i < 0) i += len;
+      if(i >= len || i < 0) return cNil;
 
       return char_substring(state, i, 1);
     }
@@ -1443,6 +1447,7 @@ namespace rubinius {
 
     if(tainted_p(state)->true_p()) sub->taint(state);
     if(untrusted_p(state)->true_p()) sub->untrust(state);
+    sub->ascii_only(state, ascii_only_);
     sub->encoding(state, encoding());
 
     return sub;
