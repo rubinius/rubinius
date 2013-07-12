@@ -837,9 +837,10 @@ namespace rubinius {
 
   Object* Object::respond_to(STATE, Symbol* name, Object* priv, CallFrame* calling_environment) {
     Object* responds = respond_to(state, name, priv);
+    Object* self = this;
 
     if(!CBOOL(responds) && !LANGUAGE_18_ENABLED(state)) {
-      LookupData lookup(this, this->lookup_begin(state), G(sym_private));
+      LookupData lookup(self, self->lookup_begin(state), G(sym_private));
       Symbol* missing = state->symbol("respond_to_missing?");
       Dispatch dis(missing);
 
@@ -847,7 +848,8 @@ namespace rubinius {
       buf[0] = name;
       buf[1] = priv;
 
-      Arguments args(missing, this, 2, buf);
+      Arguments args(missing, self, 2, buf);
+      OnStack<3> os(state, self, name, priv);
       responds = dis.send(state, calling_environment, lookup, args);
       if(!responds) return NULL;
       responds = RBOOL(CBOOL(responds));
@@ -862,7 +864,7 @@ namespace rubinius {
         existing = rct->fallback_call_site();
       }
       RespondToCache* cache = RespondToCache::create(state, existing,
-                                this, name, priv, responds, 1);
+                                self, name, priv, responds, 1);
       state->vm()->global_cache()->add_seen(state, name);
       atomic::memory_barrier();
       existing->update_call_site(state, cache);
