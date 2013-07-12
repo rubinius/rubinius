@@ -53,6 +53,12 @@ namespace rubinius {
     reset_chunks_left();
   }
 
+  ImmixGC::~ImmixGC() {
+    if(marker_) {
+      delete marker_;
+    }
+  }
+
   memory::Address ImmixGC::ObjectDescriber::copy(memory::Address original,
       immix::Allocator& alloc) {
     Object* orig = original.as<Object>();

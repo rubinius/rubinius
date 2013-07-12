@@ -123,6 +123,7 @@ namespace rubinius {
 
   public:
     ImmixGC(ObjectMemory* om);
+    virtual ~ImmixGC();
 
     Object* allocate(int bytes);
     Object* move_object(Object* orig, int bytes);
