@@ -21,10 +21,13 @@ describe "Thread#[]=" do
   ruby_version_is "1.9" do
 
     it "raises a RuntimeError if the thread is frozen" do
+      running = false
       t = Thread.new do
+        Thread.pass until running
         t.freeze
         t[:foo] = "bar"
       end
+      running = true
       lambda { t.join }.should raise_error(RuntimeError)
     end
 
