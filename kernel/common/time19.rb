@@ -214,6 +214,6 @@ class Time
     sec = roundable_time.floor
     nano = ((roundable_time - sec) * 1_000_000_000).floor
 
-    Time.specific(sec, nano, gmt?, utc_offset)
+    Time.specific(sec, nano, @is_gmt, @offset)
   end
 end
