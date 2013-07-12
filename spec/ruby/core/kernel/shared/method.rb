@@ -22,7 +22,7 @@ describe :kernel_method, :shared => true do
           method == :we_handle_this
         end
       end
-      m = KernelSpecs::RespondViaMissing.new.method(:handled_publicly)
+      m = KernelSpecs::RespondViaMissing.new.send(@method, :handled_publicly)
       m.should be_an_instance_of Method
       m.call(42).should == "Done handled_publicly([42])"
     end
