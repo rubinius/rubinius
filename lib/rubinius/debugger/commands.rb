@@ -113,11 +113,15 @@ Array on line 33, use:
 
 To breakpoint on class method start of Debugger line 4, use:
   Debugger.start:4
+
+Conditional breakpoints can be created in this way:
+  <breakpoint declaration> if <condition>
+The breakpoint will be triggered only when the evaluation of the specified condition returns true.
       HELP
 
       # provide this method so it can be overriden for other languages wanting to use this debugger
       def match_method(method_identifier)
-        /([A-Z]\w*(?:::[A-Z]\w*)*)([.#]|::)([a-zA-Z0-9_\[\]]+[!?=]?)(?:[:](\d+))?/.match(method_identifier)
+        /([A-Z]\w*(?:::[A-Z]\w*)*)([.#]|::)([a-zA-Z0-9_\[\]]+[!?=]?)(?:[:](\d+))?(\s+if\s+.*)?/.match(method_identifier)
       end
 
       def run(args, temp=false)
@@ -128,9 +132,10 @@ To breakpoint on class method start of Debugger line 4, use:
         end
 
         klass_name = m[1]
-        which = m[2]
-        name  = m[3]
-        line =  m[4] ? m[4].to_i : nil
+        which      = m[2]
+        name       = m[3]
+        line       = m[4] ? m[4].to_i : nil
+        condition  = m[5] ? m[5].sub(/\A\s+if\s+/, '') : nil
 
         begin
           klass = run_code(klass_name)
@@ -152,7 +157,7 @@ To breakpoint on class method start of Debugger line 4, use:
           return
         end
 
-        bp = @debugger.set_breakpoint_method args.strip, method, line
+        bp = @debugger.set_breakpoint_method args.strip, method, line, condition
 
         bp.set_temp! if temp
 
@@ -543,6 +548,9 @@ Subcommands are:
                 if bp.has_commands?
                   info "     #{bp.commands}"
                 end
+                if bp.has_condition?
+                  info "     stop only if #{bp.condition}"
+                end
               end
             end
           else
@@ -649,6 +657,32 @@ then no output is printed when it is hit, except what the commands print.
       def run(args)
         bp = @debugger.breakpoints[args[:bp_id] - 1]
         bp.set_commands(args[:code])
+      end
+    end
+
+    class Condition < Command
+      pattern "condition", "cond"
+      help "New condition expression on breakpoint N"
+      ext_help <<-HELP
+Specify breakpoint number N to break only if COND is true.
+Usage is `condition N COND', where N is an integer and COND is an
+expression to be evaluated whenever breakpoint N is reached.
+      HELP
+
+      def run(args)
+        bp_id, condition = args.split(/\s+/, 2)
+        bp_id = bp_id.to_i
+
+        if @debugger.breakpoints.empty?
+          error "No breakpoint set"
+          return
+        elsif bp_id > @debugger.breakpoints.size || bp_id < 1
+          error "Invalid breakpoint number."
+          return
+        end
+
+        bp = @debugger.breakpoints[bp_id - 1]
+        bp.set_condition(condition)
       end
     end
 
