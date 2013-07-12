@@ -243,6 +243,7 @@ task :travis do
       write_version BUILD_CONFIG[:vm_version_h], version, BUILD_CONFIG[:supported_versions]
     end
 
+    rm_rf BUILD_CONFIG[:prefixdir] + BUILD_CONFIG[:gemsdir]
     sh "rake extensions:clean build vm:test"
     spec_runner.run :travis
   end
