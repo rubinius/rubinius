@@ -686,6 +686,60 @@ expression to be evaluated whenever breakpoint N is reached.
       end
     end
 
+    class ListCode < Command
+      pattern "l", "list"
+      help "List code"
+      ext_help <<-HELP
+List specified function or line.
+With no argument, lists ten more lines after or around previous listing.
+"list -" lists the ten lines before a previous ten-line listing.
+One argument specifies a line, and ten lines are listed around that line.
+Two arguments with comma between specify starting and ending lines to list.
+Lines can be specified in these ways:
+  LINENUM, to list around that line in current file,
+  FILE:LINENUM, to list around that line in that file,
+      HELP
+
+      def run(args)
+        path         = nil
+        line         = nil
+        lines_around = 10
+
+        if args =~ /^[\w#{File::Separator}]+(\.rb)?:\d+$/
+          path, line = args.split(':')
+          line = line.to_i
+        elsif args.nil?
+          line = if @debugger.variables[:list_command_history][:center_line]
+            @debugger.variables[:list_command_history][:center_line] + 1 + lines_around
+          else
+            @debugger.current_frame.line.to_i
+          end
+          path = @debugger.variables[:list_command_history][:path] || @debugger.current_frame.method.active_path
+        elsif args == "-"
+          if @debugger.variables[:list_command_history][:center_line].nil? || @debugger.variables[:list_command_history][:path].nil?
+            return
+          else
+            line = @debugger.variables[:list_command_history][:center_line] - lines_around
+            path = @debugger.variables[:list_command_history][:path]
+          end
+        elsif args =~ /^\d+$/
+          line = args.to_i
+          path = @debugger.current_frame.method.active_path
+        elsif match = /^(\d+),(\d+)$/.match(args)
+          start_line = match[1].to_i
+          end_line   = match[2].to_i
+          path       = @debugger.current_frame.method.active_path
+
+          @debugger.list_code_range(path, start_line, end_line, end_line)
+          return
+        else
+          error 'Invalid args for list'
+          return
+        end
+
+         @debugger.list_code_around_line(path, line, lines_around)
+      end
+    end
   end
 
 end

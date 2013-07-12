@@ -43,9 +43,13 @@ class Rubinius::Debugger
     @frames = []
 
     @variables = {
-      :show_ip => false,
-      :show_bytecode => false,
-      :highlight => false
+      :show_ip              => false,
+      :show_bytecode        => false,
+      :highlight            => false,
+      :list_command_history => {
+        :path        => nil,
+        :center_line => nil
+      }
     }
 
     @loaded_hook = proc { |file|
@@ -341,9 +345,38 @@ class Rubinius::Debugger
     return nil
   end
 
-  def show_code(line=@current_frame.line)
-    path = @current_frame.method.active_path
+  def list_code_around_line(path, center_line, lines_to_show)
+    lines_around = lines_to_show / 2
+    start_line   = center_line - lines_around
+    end_line     = center_line + lines_around
 
+    list_code_range(path, start_line, end_line, center_line)
+  end
+
+  def list_code_range(path, start_line, end_line, center_line)
+    if !File.exists?(path) && !File.exists?(File.join(@root_dir, path))
+      error "Cannot find file #{path}"
+      return
+    end
+
+    if start_line > @file_lines[path].size
+      error "Line number #{@file_lines[path].size + 1} out of range: #{path} has #{@file_lines[path].size} lines."
+      return
+    end
+
+    start_line = 1 if start_line < 1
+    end_line   = @file_lines[path].size if end_line > @file_lines[path].size
+
+    @variables[:list_command_history][:path]        = path
+    @variables[:list_command_history][:center_line] = center_line
+
+    (start_line).upto(end_line) do |i|
+      show_code(i, path)
+    end
+  end
+
+  def show_code(line = @current_frame.line,
+                path = @current_frame.method.active_path)
     if str = @file_lines[path][line - 1]
       if @variables[:highlight]
         if fin = @current_frame.method.first_ip_on_line(line + 1)
