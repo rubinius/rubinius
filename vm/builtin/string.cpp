@@ -1373,7 +1373,7 @@ namespace rubinius {
    */
   native_int String::find_character_byte_index(STATE, native_int index,
                                                native_int start) {
-    if(byte_compatible_p(encoding_)) {
+    if(byte_compatible_p(encoding_) || CBOOL(ascii_only_)) {
       return start + index;
     } else if(fixed_width_p(encoding_)) {
       return start + index * ONIGENC_MBC_MINLEN(encoding(state)->get_encoding());
@@ -1403,7 +1403,7 @@ namespace rubinius {
    */
   native_int String::find_byte_character_index(STATE, native_int index,
                                                native_int start) {
-    if(byte_compatible_p(encoding_)) {
+    if(byte_compatible_p(encoding_) || CBOOL(ascii_only_)) {
       return index;
     } else if(fixed_width_p(encoding_)) {
       return index / ONIGENC_MBC_MINLEN(encoding(state)->get_encoding());
@@ -1497,15 +1497,9 @@ namespace rubinius {
   String* String::substring(STATE, Fixnum* index, Fixnum* length) {
     native_int i = index->to_native();
     native_int n = length->to_native();
-    native_int size;
+    native_int size = char_size(state);
 
     if(n < 0) return nil<String>();
-
-    if(byte_compatible_p(encoding_)) {
-      size = byte_size();
-    } else {
-      size = char_size(state);
-    }
 
     if(i < 0) {
       i += size;
@@ -1518,7 +1512,7 @@ namespace rubinius {
       n = size - i;
     }
 
-    if(n == 0 || byte_compatible_p(encoding_)) {
+    if(n == 0 || byte_compatible_p(encoding_) || CBOOL(ascii_only_)) {
       return byte_substring(state, i, n);
     } else {
       return char_substring(state, i, n);
@@ -1582,7 +1576,7 @@ namespace rubinius {
     uint8_t* s;
     uint8_t* ss;
 
-    if(byte_compatible_p(encoding())) {
+    if(byte_compatible_p(encoding()) || CBOOL(ascii_only_)) {
       for(s = p += offset, ss = pp; p < e; s = ++p) {
         if(*p != *pp) continue;
 
