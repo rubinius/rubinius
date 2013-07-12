@@ -109,12 +109,21 @@ namespace rubinius {
   }
 
   MachineCode::~MachineCode() {
+#ifdef RBX_GC_DEBUG
+    memset(opcodes, 0xFF, total * sizeof(opcode));
+#endif
     delete[] opcodes;
 
     if(call_site_offsets_) {
+#ifdef RBX_GC_DEBUG
+      memset(call_site_offsets_, 0xFF, number_of_call_sites_ * sizeof(size_t));
+#endif
       delete[] call_site_offsets_;
     }
     if(constant_cache_offsets_) {
+#ifdef RBX_GC_DEBUG
+      memset(constant_cache_offsets_, 0xFF, number_of_constant_caches_ * sizeof(size_t));
+#endif
       delete[] constant_cache_offsets_;
     }
   }
