@@ -22,6 +22,8 @@ namespace rubinius {
 
     void seed(GCData& data);
     Object* next();
+    size_t stack_size();
+    Object** stack_buf();
   };
 }
 

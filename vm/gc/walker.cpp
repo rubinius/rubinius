@@ -59,4 +59,12 @@ namespace rubinius {
 
     return obj;
   }
+
+  size_t ObjectWalker::stack_size() {
+    return stack_.size();
+  }
+
+  Object** ObjectWalker::stack_buf() {
+    return stack_.data();
+  }
 }

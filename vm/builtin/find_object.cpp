@@ -319,6 +319,19 @@ namespace rubinius {
         if(!ary->nil_p()) {
           ary->append(state, obj);
         } else {
+          // We call back into Ruby land here, so that might trigger a GC
+          // This ensures we mark all the locations of the current search
+          // queue for the walker, so we update these object references
+          // properly.
+          Object** stack_buf = walker.stack_buf();
+          size_t stack_size  = walker.stack_size();
+
+          Object** variable_buffer[stack_size];
+          for(size_t i = 0; i < stack_size; ++i) {
+            variable_buffer[i] = &stack_buf[i];
+          }
+          VariableRootBuffer vrb(state->vm()->current_root_buffers(),
+                                 variable_buffer, stack_size);
           args->set(state, 0, obj);
           ret = callable->send(state, calling_environment, G(sym_call),
                                args, cNil, false);
