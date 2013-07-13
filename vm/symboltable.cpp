@@ -1,6 +1,7 @@
 #include "symboltable.hpp"
 #include "exception.hpp"
 #include "configuration.hpp"
+#include "version.h"
 
 #include "builtin/array.hpp"
 #include "builtin/encoding.hpp"

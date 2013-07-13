@@ -8,6 +8,7 @@
 #include "configuration.hpp"
 #include "object_utils.hpp"
 #include "ontology.hpp"
+#include "version.h"
 
 namespace rubinius {
 

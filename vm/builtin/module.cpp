@@ -17,6 +17,7 @@
 #include "object_utils.hpp"
 #include "objectmemory.hpp"
 #include "on_stack.hpp"
+#include "version.h"
 
 #include <string>
 

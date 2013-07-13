@@ -8,6 +8,7 @@
 #include "instruments/timing.hpp"
 #include "machine_code.hpp"
 #include "object_utils.hpp"
+#include "version.h"
 
 namespace rubinius {
   BytecodeVerification::BytecodeVerification(CompiledCode* code)

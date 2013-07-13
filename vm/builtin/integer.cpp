@@ -6,6 +6,7 @@
 #include "object_utils.hpp"
 #include "ontology.hpp"
 #include "configuration.hpp"
+#include "version.h"
 
 namespace rubinius {
 

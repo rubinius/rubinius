@@ -4,6 +4,7 @@
 #include "llvm/jit_inline_block.hpp"
 #include "llvm/stack_args.hpp"
 #include "llvm/method_info.hpp"
+#include "version.h"
 
 #include "call_frame.hpp"
 

@@ -1,4 +1,5 @@
 #include "vm/test/test.hpp"
+#include "version.h"
 
 class TestObjects : public CxxTest::TestSuite, public VMTest {
 public:

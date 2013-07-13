@@ -17,6 +17,7 @@
 #include "builtin/array.hpp"
 #include "builtin/thread.hpp"
 #include "builtin/nativemethod.hpp"
+#include "version.h"
 
 #include <iostream>
 #include <iomanip>

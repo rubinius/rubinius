@@ -3,6 +3,7 @@
 #include "symboltable.hpp"
 #include "configuration.hpp"
 #include "builtin/array.hpp"
+#include "version.h"
 
 #include <algorithm>
 #include <vector>

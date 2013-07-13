@@ -20,6 +20,7 @@
 #include "object_utils.hpp"
 #include "objectmemory.hpp"
 #include "ontology.hpp"
+#include "version.h"
 
 #define OPTION_IGNORECASE         ONIG_OPTION_IGNORECASE
 #define OPTION_EXTENDED           ONIG_OPTION_EXTEND

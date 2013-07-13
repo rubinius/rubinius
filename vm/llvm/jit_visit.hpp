@@ -7,6 +7,7 @@
 #include "builtin/poly_inline_cache.hpp"
 #include "builtin/respond_to_cache.hpp"
 #include "builtin/lookuptable.hpp"
+#include "version.h"
 
 #include "llvm/jit_operations.hpp"
 #include "llvm/inline.hpp"

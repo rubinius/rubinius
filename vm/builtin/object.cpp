@@ -26,6 +26,7 @@
 #include "objectmemory.hpp"
 #include "object_utils.hpp"
 #include "on_stack.hpp"
+#include "version.h"
 
 #include <sstream>
 

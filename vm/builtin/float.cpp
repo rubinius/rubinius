@@ -11,6 +11,7 @@
 #include "object_utils.hpp"
 #include "ontology.hpp"
 #include "util/local_buffer.hpp"
+#include "version.h"
 
 #include <gdtoa.h>
 #include <ctype.h>

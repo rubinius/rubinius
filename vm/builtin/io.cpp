@@ -16,6 +16,7 @@
 #include "ontology.hpp"
 #include "util/spinlock.hpp"
 #include "windows_compat.h"
+#include "version.h"
 
 #include <sstream>
 #include <unistd.h>

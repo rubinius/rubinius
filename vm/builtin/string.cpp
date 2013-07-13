@@ -25,6 +25,7 @@
 #include "util/siphash.h"
 #include "util/spinlock.hpp"
 #include "util/random.h"
+#include "version.h"
 
 #include <unistd.h>
 #include <string.h>

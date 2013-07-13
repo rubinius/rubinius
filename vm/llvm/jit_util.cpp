@@ -38,6 +38,7 @@
 #include "lookup_data.hpp"
 #include "machine_code.hpp"
 #include "configuration.hpp"
+#include "version.h"
 
 #include "gen/instruction_defines.hpp"
 

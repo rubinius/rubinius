@@ -3,6 +3,7 @@
 #include "configuration.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/list.hpp"
+#include "version.h"
 
 class TestFixnum : public CxxTest::TestSuite, public VMTest {
   public:

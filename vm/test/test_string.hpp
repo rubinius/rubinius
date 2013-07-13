@@ -2,6 +2,7 @@
 
 #include "builtin/encoding.hpp"
 #include "builtin/string.hpp"
+#include "version.h"
 
 class TestString : public CxxTest::TestSuite, public VMTest {
 public:

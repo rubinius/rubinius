@@ -8,6 +8,7 @@
 #include "dispatch.hpp"
 #include "object_utils.hpp"
 #include "ontology.hpp"
+#include "version.h"
 
 /* Implementation certain Array methods. These methods are just
  * the ones the VM requires, not the entire set of all Array methods.

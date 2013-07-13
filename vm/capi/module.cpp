@@ -10,6 +10,7 @@
 #include "call_frame.hpp"
 #include "exception_point.hpp"
 #include "on_stack.hpp"
+#include "version.h"
 
 #include "capi/capi.hpp"
 #include "capi/18/include/ruby.h"

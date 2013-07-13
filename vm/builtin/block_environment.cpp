@@ -18,6 +18,7 @@
 #include "object_utils.hpp"
 #include "on_stack.hpp"
 #include "ontology.hpp"
+#include "version.h"
 
 #ifdef ENABLE_LLVM
 #include "llvm/state.hpp"

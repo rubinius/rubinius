@@ -8,6 +8,7 @@
 #include "stack_variables.hpp"
 #include "builtin/constantscope.hpp"
 #include "builtin/module.hpp"
+#include "version.h"
 
 #include "instruments/tooling.hpp"
 

@@ -62,6 +62,7 @@
 #include "configuration.hpp"
 #include "config.h"
 #include "release.h"
+#include "version.h"
 
 #include "ontology.hpp"
 

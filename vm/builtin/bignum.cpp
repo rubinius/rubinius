@@ -12,6 +12,7 @@
 #include "missing/math.h"
 #include "object_utils.hpp"
 #include "ontology.hpp"
+#include "version.h"
 
 #define BASIC_CLASS(blah) G(blah)
 #define NEW_STRUCT(obj, str, kls, kind) \

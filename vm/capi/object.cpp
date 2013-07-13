@@ -8,6 +8,7 @@
 #include "capi/18/include/ruby.h"
 
 #include "configuration.hpp"
+#include "version.h"
 
 using namespace rubinius;
 using namespace rubinius::capi;

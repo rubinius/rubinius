@@ -14,6 +14,7 @@
 #include "objectmemory.hpp"
 #include "ontology.hpp"
 #include "on_stack.hpp"
+#include "version.h"
 
 namespace rubinius {
 

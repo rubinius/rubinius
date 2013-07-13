@@ -19,6 +19,7 @@
 #include "objectmemory.hpp"
 #include "on_stack.hpp"
 #include "ontology.hpp"
+#include "version.h"
 
 #include <ctype.h>
 #include <string.h>

@@ -10,6 +10,7 @@
 #include "configuration.hpp"
 #include "object_utils.hpp"
 #include "ontology.hpp"
+#include "version.h"
 
 #include <sstream>
 

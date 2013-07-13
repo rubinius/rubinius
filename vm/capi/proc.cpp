@@ -2,6 +2,7 @@
 #include "builtin/proc.hpp"
 
 #include "configuration.hpp"
+#include "version.h"
 
 #include "capi/capi.hpp"
 #include "capi/18/include/ruby.h"
