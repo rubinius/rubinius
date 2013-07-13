@@ -65,6 +65,13 @@ describe :kernel_protected_methods_supers, :shared => true do
   end
 end
 
+describe :kernel_protected_methods_with_falsy, :shared => true do
+  it "returns a list of protected methods in without its ancestors" do
+    ReflectSpecs::F.protected_methods(@object).select{|m|/_pro\z/ =~ m}.sort.should == [stasy(:ds_pro), stasy(:fs_pro)]
+    ReflectSpecs::F.new.protected_methods(@object).should == [stasy(:f_pro)]
+  end
+end
+
 describe "Kernel#protected_methods" do
   describe "when not passed an argument" do
     it_behaves_like :kernel_protected_methods_supers, nil, []
@@ -72,5 +79,13 @@ describe "Kernel#protected_methods" do
 
   describe "when passed true" do
     it_behaves_like :kernel_protected_methods_supers, nil, true
+  end
+
+  describe "when passed false" do
+    it_behaves_like :kernel_protected_methods_with_falsy, nil, false
+  end
+
+  describe "when passed nil" do
+    it_behaves_like :kernel_protected_methods_with_falsy, nil, nil
   end
 end
