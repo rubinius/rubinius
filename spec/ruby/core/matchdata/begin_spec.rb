@@ -9,6 +9,11 @@ describe "MatchData#begin" do
     match_data.begin(2).should == 2
   end
 
+  it "returns nil when the nth match isn't found" do
+    match_data = /something is( not)? (right)/.match("something is right")
+    match_data.begin(1).should be_nil
+  end
+
   ruby_version_is ""..."1.9" do
     it "returns the offset for multi byte strings" do
       match_data = /(.)(.)(\d+)(\d)/.match("TñX1138.")
