@@ -450,7 +450,7 @@ module Kernel
   end
 
   def private_methods(all=true)
-    private_singleton_methods() | Rubinius::Type.object_class(self).private_instance_methods()
+    private_singleton_methods() | Rubinius::Type.object_class(self).private_instance_methods(all)
   end
 
   def private_singleton_methods
