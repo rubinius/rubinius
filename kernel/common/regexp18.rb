@@ -178,13 +178,23 @@ end
 class MatchData
 
   def begin(idx)
-    return @full.at(0) if idx == 0
-    return @region.at(idx - 1).at(0)
+    if idx == 0
+      @full.at(0)
+    else
+      start = @region.at(idx - 1).at(0)
+      return nil if start == -1
+      start
+    end
   end
 
   def end(idx)
-    return @full.at(1) if idx == 0
-    @region.at(idx - 1).at(1)
+    if idx == 0
+      @full.at(1)
+    else
+      fin = @region.at(idx - 1).at(1)
+      return nil if fin == -1
+      fin
+    end
   end
 
   def offset(idx)
