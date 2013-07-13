@@ -123,14 +123,11 @@ extern "C" {
   rb_encoding* rb_enc_get(VALUE obj) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    int index = rb_enc_get_index(obj);
-    if(index < 0) return 0;
+    Object* val = env->get_object(obj);
+    if(!val->reference_p() && !val->symbol_p()) return 0;
+    Encoding* enc = Encoding::get_object_encoding(env->state(), val);
 
-    Encoding* enc = try_as<Encoding>(
-        Encoding::encoding_list(env->state())->get(env->state(), index));
-
-    if(!enc) return 0;
-
+    if(enc->nil_p()) return 0;
     return enc->get_encoding();
   }
 
