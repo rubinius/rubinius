@@ -440,7 +440,7 @@ module Marshal
 
       store_unique_object obj
 
-      unless obj.respond_to? :_load_data
+      unless Rubinius::Type.object_respond_to? obj, :_load_data
         raise TypeError,
               "class #{name} needs to have instance method `_load_data'"
       end
@@ -555,7 +555,7 @@ module Marshal
       raise TypeError, 'dump format error' unless Object === obj
 
       store_unique_object obj
-      if obj.kind_of?(Exception)
+      if Rubinius::Type.object_kind_of? obj, Exception
         set_exception_variables obj
       else
         set_instance_variables obj
@@ -642,7 +642,7 @@ module Marshal
 
       extend_object obj if @modules
 
-      unless obj.respond_to? :marshal_load
+      unless Rubinius::Type.object_respond_to? obj, :marshal_load
         raise TypeError, "instance of #{klass} needs to have method `marshal_load'"
       end
 
@@ -710,9 +710,9 @@ module Marshal
         add_object obj
 
         # ORDER MATTERS.
-        if obj.respond_to? :marshal_dump
+        if Rubinius::Type.object_respond_to? obj, :marshal_dump
           str = serialize_user_marshal obj
-        elsif obj.respond_to? :_dump
+        elsif Rubinius::Type.object_respond_to? obj, :_dump
           str = serialize_user_defined obj
         else
           str = obj.__marshal__ self
@@ -846,7 +846,7 @@ module Marshal
     def serialize_user_defined(obj)
       str = obj._dump @depth
 
-      unless str.kind_of? String
+      unless Rubinius::Type.object_kind_of? str, String
         raise TypeError, "_dump() must return string"
       end
 
@@ -931,7 +931,7 @@ module Marshal
 
   def self.dump(obj, an_io=nil, limit=nil)
     unless limit
-      if an_io.kind_of? Fixnum
+      if Rubinius::Type.object_kind_of? an_io, Fixnum
         limit = an_io
         an_io = nil
       else
@@ -942,7 +942,7 @@ module Marshal
     depth = Rubinius::Type.coerce_to limit, Fixnum, :to_int
     ms = State.new nil, depth, nil
 
-    if an_io and !an_io.respond_to? :write
+    if an_io and !Rubinius::Type.object_respond_to? an_io, :write
       raise TypeError, "output must respond to write"
     end
 
@@ -957,7 +957,7 @@ module Marshal
   end
 
   def self.load(obj, prc = nil)
-    if obj.respond_to? :to_str
+    if Rubinius::Type.object_respond_to? obj, :to_str
       data = obj.to_s
 
       major = data.getbyte 0
@@ -965,7 +965,8 @@ module Marshal
 
       ms = StringState.new data, nil, prc
 
-    elsif obj.respond_to?(:read) and obj.respond_to?(:getc)
+    elsif Rubinius::Type.object_respond_to? obj, :read and
+          Rubinius::Type.object_respond_to? obj, :getc
       ms = IOState.new obj, nil, prc
 
       major = ms.consume_byte
