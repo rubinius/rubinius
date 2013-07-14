@@ -16,6 +16,10 @@ describe "Kernel#eval" do
     eval("2 + 3").should == 5
   end
 
+  it "coerces an object to string" do
+    eval(EvalSpecs::CoercedObject.new).should == 5
+  end
+
   it "evaluates within the scope of the eval" do
     EvalSpecs::A::B.name.should == "EvalSpecs::A::B"
   end

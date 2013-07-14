@@ -382,6 +382,16 @@ class EvalSpecs
     end
   end
 
+  class CoercedObject
+    def to_str
+      '2 + 3'
+    end
+
+    def hash
+      nil
+    end
+  end
+
   def f
     yield
   end
