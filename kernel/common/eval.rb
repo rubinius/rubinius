@@ -46,6 +46,7 @@ module Kernel
   # Evaluate and execute code given in the String.
   #
   def eval(string, binding=nil, filename=nil, lineno=nil)
+    string = StringValue(string)
     filename = StringValue(filename) if filename
     lineno = Rubinius::Type.coerce_to lineno, Fixnum, :to_i if lineno
     lineno = 1 if filename && !lineno
