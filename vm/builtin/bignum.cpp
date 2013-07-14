@@ -44,12 +44,6 @@ namespace rubinius {
   static int mp_set_long MPA(mp_int* a, unsigned long b) {
     mp_zero(a);
 
-    int digits = 0;
-    unsigned long tmp = b;
-    do {
-      ++digits;
-    } while((tmp >>= DIGIT_BIT) > 0);
-
     while(b > MP_DIGIT_MAX) {
       a->dp[0] |= (b >> DIGIT_BIT);
       a->used += 1;
@@ -236,7 +230,16 @@ namespace rubinius {
     mp_int* a = o->mp_val();
 
     if(num < 0) {
-      mp_set_int(XST, a, (unsigned int)-num);
+      // We can't invert num if it's the minimal value, since
+      // that is not representable in a signed value. Therefore
+      // we add one, invert it and fix it up.
+      if(num == INT_MIN) {
+        long tmp = num + 1;
+        mp_set_int(XST, a, (unsigned int)-tmp);
+        mp_add_d(XST, a, 1, a);
+      } else {
+        mp_set_int(XST, a, (unsigned int)-num);
+      }
       a->sign = MP_NEG;
     } else {
       mp_set_int(XST, a, (unsigned int)num);
@@ -255,7 +258,16 @@ namespace rubinius {
     mp_int* a = o->mp_val();
 
     if(num < 0) {
-      mp_set_long(XST, a, (unsigned long)-num);
+      // We can't invert num if it's the minimal value, since
+      // that is not representable in a signed value. Therefore
+      // we add one, invert it and fix it up.
+      if(num == LONG_MIN) {
+        long tmp = num + 1;
+        mp_set_long(XST, a, (unsigned long)-tmp);
+        mp_add_d(XST, a, 1, a);
+      } else {
+        mp_set_long(XST, a, (unsigned long)-num);
+      }
       a->sign = MP_NEG;
     } else {
       mp_set_long(XST, a, (unsigned long)num);
@@ -290,7 +302,16 @@ namespace rubinius {
     Bignum* ret;
 
     if(val < 0) {
-      ret = Bignum::from(state, (unsigned long long)-val);
+      // We can't invert num if it's the minimal value, since
+      // that is not representable in a signed value. Therefore
+      // we add one, invert it and fix it up.
+      if(val == LLONG_MIN) {
+        long long tmp = val + 1;
+        ret = Bignum::from(state, (unsigned long long)-tmp);
+        mp_add_d(XST, ret->mp_val(), 1, ret->mp_val());
+      } else {
+        ret = Bignum::from(state, (unsigned long long)-val);
+      }
       ret->mp_val()->sign = MP_NEG;
     } else {
       ret = Bignum::from(state, (unsigned long long)val);
