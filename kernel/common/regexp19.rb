@@ -170,6 +170,7 @@ class MatchData
       start = @full.at(0)
     else
       start = @region.at(idx - 1).at(0)
+      return nil if start == -1
     end
     m = Rubinius::Mirror.reflect @source
     m.byte_to_character_index start
@@ -180,6 +181,7 @@ class MatchData
       fin = @full.at(1)
     else
       fin = @region.at(idx - 1).at(1)
+      return nil if fin == -1
     end
     m = Rubinius::Mirror.reflect @source
     m.byte_to_character_index fin
