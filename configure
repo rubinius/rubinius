@@ -429,7 +429,7 @@ class Configure
     feature "C-readline", true
     feature "ruby-readline", false
     feature "vendor-zlib", false
-    feature "vendor-yaml", true
+    feature "vendor-yaml", false
     feature "alloc-tracking", false
     feature "fibers", true
     feature "dtrace", false
