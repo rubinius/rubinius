@@ -76,6 +76,13 @@ describe :kernel_private_methods_supers, :shared => true do
   end
 end
 
+describe :kernel_private_methods_with_falsy, :shared => true do
+  it "returns a list of private methods in without its ancestors" do
+    ReflectSpecs::F.private_methods(@object).select{|m|/_pri\z/ =~ m}.sort.should == [stasy(:ds_pri), stasy(:fs_pri)]
+    ReflectSpecs::F.new.private_methods(@object).should == [stasy(:f_pri)]
+  end
+end
+
 describe "Kernel#private_methods" do
   describe "when not passed an argument" do
     it_behaves_like :kernel_private_methods_supers, nil, []
@@ -83,5 +90,13 @@ describe "Kernel#private_methods" do
 
   describe "when passed true" do
     it_behaves_like :kernel_private_methods_supers, nil, true
+  end
+
+  describe "when passed false" do
+    it_behaves_like :kernel_private_methods_with_falsy, nil, false
+  end
+
+  describe "when passed nil" do
+    it_behaves_like :kernel_private_methods_with_falsy, nil, nil
   end
 end
