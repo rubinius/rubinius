@@ -104,6 +104,7 @@ range.rbc
 range19.rbc
 struct.rbc
 struct19.rbc
+struct20.rbc
 process.rbc
 process19.rbc
 random.rbc
