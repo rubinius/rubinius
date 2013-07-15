@@ -194,7 +194,7 @@ namespace rubinius {
 
     double to_double(STATE);
 
-    // Rubinius.primitive :bignum_size
+    // Rubinius.primitive+ :bignum_size
     Integer* size(STATE);
     hashval hash_bignum(STATE);
     size_t managed_memory_size(STATE);

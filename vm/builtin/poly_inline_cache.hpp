@@ -62,10 +62,10 @@ namespace rubinius {
       ++hits_;
     }
 
-    // Rubinius.primitive :inline_cache_entry_hits
+    // Rubinius.primitive+ :inline_cache_entry_hits
     Integer* hits_prim(STATE);
 
-    // Rubinius.primitive :inline_cache_entry_method_missing
+    // Rubinius.primitive+ :inline_cache_entry_method_missing
     Symbol* method_missing_prim(STATE);
 
   public:
@@ -161,10 +161,10 @@ namespace rubinius {
       return cache_size();
     }
 
-    // Rubinius.primitive :poly_inline_cache_entries
+    // Rubinius.primitive+ :poly_inline_cache_entries
     Tuple* entries_prim(STATE);
 
-    // Rubinius.primitive :poly_inline_cache_overflows
+    // Rubinius.primitive+ :poly_inline_cache_overflows
     Integer* overflows(STATE);
 
   public: // Rubinius Type stuff

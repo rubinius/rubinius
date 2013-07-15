@@ -107,7 +107,7 @@ namespace rubinius {
     // Rubinius.primitive! :fixnum_divmod
     Array* divmod(STATE, Float* other);
 
-    // Rubinius.primitive :fixnum_neg
+    // Rubinius.primitive+ :fixnum_neg
     Integer* neg(STATE);
 
     // Rubinius.primitive! :fixnum_pow
@@ -183,7 +183,7 @@ namespace rubinius {
     // Rubinius.primitive :fixnum_right_shift
     Integer* right_shift(STATE, Fixnum* bits);
 
-    // Rubinius.primitive :fixnum_size
+    // Rubinius.primitive+ :fixnum_size
     Integer* size(STATE);
 
     // Rubinius.primitive! :fixnum_and
@@ -213,7 +213,7 @@ namespace rubinius {
     // Rubinius.primitive! :fixnum_xor
     Integer* bit_xor(STATE, Float* other);
 
-    // Rubinius.primitive :fixnum_invert
+    // Rubinius.primitive+ :fixnum_invert
     Integer* invert(STATE);
 
     // Rubinius.primitive :fixnum_to_f

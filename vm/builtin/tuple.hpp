@@ -41,7 +41,7 @@ namespace rubinius {
     // Rubinius.primitive :tuple_put
     Object* put_prim(STATE, Fixnum* idx, Object* val);
 
-    // Rubinius.primitive :tuple_fields
+    // Rubinius.primitive+ :tuple_fields
     Object* fields_prim(STATE);
 
     // Rubinius.primitive :tuple_pattern

@@ -61,7 +61,7 @@ namespace rubinius {
       return hits_;
     }
 
-    // Rubinius.primitive :respond_to_cache_hits
+    // Rubinius.primitive+ :respond_to_cache_hits
     Integer* hits_prim(STATE);
 
   public:

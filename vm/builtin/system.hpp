@@ -84,21 +84,21 @@ namespace rubinius {
      *  Retrieve the number of garbage collections
      *
      */
-    // Rubinius.primitive :vm_gc_count
+    // Rubinius.primitive+ :vm_gc_count
     static Integer*  vm_gc_count(STATE);
 
     /**
      *  Retrieve the amount of memory allocated by the gc
      *
      */
-    // Rubinius.primitive :vm_gc_size
+    // Rubinius.primitive+ :vm_gc_size
     static Integer*  vm_gc_size(STATE);
 
     /**
      *  Retrieve the total time spent garbage collecting
      *
      */
-    // Rubinius.primitive :vm_gc_time
+    // Rubinius.primitive+ :vm_gc_time
     static Integer*  vm_gc_time(STATE);
 
     /**
@@ -176,13 +176,13 @@ namespace rubinius {
     // Rubinius.primitive :vm_jit_info
     static Object*  vm_jit_info(STATE);
 
-    // Rubinius.primitive :vm_memory_size
+    // Rubinius.primitive+ :vm_memory_size
     static Fixnum* vm_memory_size(STATE, Object* obj);
 
     // Rubinius.primitive :vm_watch_signal
     static Object*  vm_watch_signal(STATE, Fixnum* sig, Object* ignored);
 
-    // Rubinius.primitive :vm_time
+    // Rubinius.primitive+ :vm_time
     static Object*  vm_time(STATE);
 
     // Rubinius.primitive :vm_sleep

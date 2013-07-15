@@ -30,7 +30,7 @@ namespace rubinius {
     // Rubinius.primitive :bytearray_allocate
     static ByteArray* allocate(STATE, Fixnum* bytes);
 
-    // Rubinius.primitive :bytearray_size
+    // Rubinius.primitive+ :bytearray_size
     Fixnum* size(STATE);
 
     // Return the number of bytes this ByteArray contains

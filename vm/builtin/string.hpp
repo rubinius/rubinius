@@ -137,7 +137,7 @@ namespace rubinius {
 
     native_int char_size(STATE);
 
-    // Rubinius.primitive :string_size
+    // Rubinius.primitive+ :string_size
     Fixnum* size(STATE);
 
     // Access the String as a char* directly. WARNING: doesn't necessarily
@@ -308,13 +308,13 @@ namespace rubinius {
     // Rubinius.primitive :string_resize_capacity
     String* resize_capacity(STATE, Fixnum* count);
 
-    // Rubinius.primitive :string_encoding
+    // Rubinius.primitive+ :string_encoding
     Encoding* encoding(STATE);
 
-    // Rubinius.primitive :string_ascii_only_p
+    // Rubinius.primitive+ :string_ascii_only_p
     Object* ascii_only_p(STATE);
 
-    // Rubinius.primitive :string_valid_encoding_p
+    // Rubinius.primitive+ :string_valid_encoding_p
     Object* valid_encoding_p(STATE);
 
     int codepoint(STATE, bool* found);

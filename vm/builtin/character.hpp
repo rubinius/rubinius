@@ -17,28 +17,28 @@ namespace rubinius {
     static Character* create(STATE, const char* bytes, native_int size);
     static Character* create_from(STATE, String* str, Fixnum* byte);
 
-    // Rubinius.primitive :character_alphabetical_p
+    // Rubinius.primitive+ :character_alphabetical_p
     Object* alphabetical_p(STATE);
 
-    // Rubinius.primitive :character_ascii_p
+    // Rubinius.primitive+ :character_ascii_p
     Object* ascii_p(STATE);
 
-    // Rubinius.primitive :character_digit_p
+    // Rubinius.primitive+ :character_digit_p
     Object* digit_p(STATE);
 
-    // Rubinius.primitive :character_lower_p
+    // Rubinius.primitive+ :character_lower_p
     Object* lower_p(STATE);
 
-    // Rubinius.primitive :character_printable_p
+    // Rubinius.primitive+ :character_printable_p
     Object* printable_p(STATE);
 
-    // Rubinius.primitive :character_punctuation_p
+    // Rubinius.primitive+ :character_punctuation_p
     Object* punctuation_p(STATE);
 
-    // Rubinius.primitive :character_space_p
+    // Rubinius.primitive+ :character_space_p
     Object* space_p(STATE);
 
-    // Rubinius.primitive :character_upper_p
+    // Rubinius.primitive+ :character_upper_p
     Object* upper_p(STATE);
 
     class Info : public String::Info {
