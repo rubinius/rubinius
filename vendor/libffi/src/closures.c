@@ -58,7 +58,12 @@
 /* When defined to 1 check for SELinux and if SELinux is active,
    don't attempt PROT_EXEC|PROT_WRITE mapping at all, as that
    might cause audit messages.  */
+/*
+   We disable this on Rubinius since it causes crashes. The JIT
+   needs to be able to create these mappings anyway, so it doesn't
+   create an additional depedency in FFI.
 #  define FFI_MMAP_EXEC_SELINUX 1
+*/
 # endif
 #endif
 
