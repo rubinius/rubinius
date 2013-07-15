@@ -45,6 +45,8 @@ class StringIO
     string = Rubinius::Type.coerce_to string, String, :to_str
     @__data__ = Data.new string
 
+    set_encoding(nil) if string.empty?
+
     if mode
       if mode.is_a?(Integer)
         mode_from_integer(mode)
