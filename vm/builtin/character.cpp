@@ -23,11 +23,15 @@ namespace rubinius {
   }
 
   Character* Character::create(STATE, native_int size) {
-    Character* chr = state->new_object<Character>(G(character));
+    Character* chr = state->new_object_dirty<Character>(G(character));
 
     chr->num_bytes(state, Fixnum::from(size));
+    chr->num_chars(state, nil<Fixnum>());
     chr->hash_value(state, nil<Fixnum>());
     chr->shared(state, cFalse);
+    chr->encoding(state, nil<Encoding>());
+    chr->ascii_only(state, cNil);
+    chr->valid_encoding(state, cNil);
 
     ByteArray* ba = ByteArray::create(state, size + 1);
     ba->raw_bytes()[size] = 0;
@@ -64,6 +68,8 @@ namespace rubinius {
 
     Character* chr = Character::create(state, (const char*)p, n);
     chr->encoding(state, str->encoding());
+    chr->ascii_only(state, str->ascii_only());
+    chr->valid_encoding(state, str->valid_encoding());
 
     return chr;
   }
