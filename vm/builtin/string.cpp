@@ -771,11 +771,11 @@ namespace rubinius {
     return RBOOL(sum == 0);
   }
 
-  String* String::string_dup(STATE) {
+  String* String::string_dup_slow(STATE) {
     Module* mod = klass_;
     Class*  cls = try_as_instance<Class>(mod);
 
-    if(unlikely(!cls)) {
+    if(!cls) {
       while(!cls) {
         mod = mod->superclass();
 

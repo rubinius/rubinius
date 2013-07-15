@@ -171,8 +171,26 @@ namespace rubinius {
     // Rubinius.primitive :symbol_lookup
     Symbol* to_sym(STATE);
 
+    String* string_dup_slow(STATE);
+
     // Rubinius.primitive :string_dup
-    String* string_dup(STATE);
+    String* string_dup(STATE) {
+      if(likely(klass_ == G(string) && ivars_->nil_p())) {
+        // Optimal case, we have a plain string with no
+        // metaclass or ivars. In that case we don't need
+        // a write barrier and we can copy the raw string
+        // object directly.
+        String* so = state->vm()->new_young_string_dirty();
+        if(likely(so)) {
+          so->copy_body(state->vm(), this);
+          so->shared(state, cTrue);
+          shared(state, cTrue);
+          infect(state, so);
+          return so;
+        }
+      }
+      return string_dup_slow(state);
+    }
 
     String* add(STATE, String* other);
     String* add(STATE, const char* other);

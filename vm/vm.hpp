@@ -389,6 +389,9 @@ namespace rubinius {
         return static_cast<T*>(new_object_typed(cls, bytes, T::type));
       }
 
+    /// Create a String in the young GC space, return NULL if not possible.
+    String* new_young_string_dirty();
+
     /// Create a Tuple in the young GC space, return NULL if not possible.
     Tuple* new_young_tuple_dirty(size_t fields);
 

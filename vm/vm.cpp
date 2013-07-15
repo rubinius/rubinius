@@ -212,6 +212,26 @@ namespace rubinius {
     return obj;
   }
 
+  String* VM::new_young_string_dirty() {
+    State state(this);
+    String* str = local_slab().allocate(sizeof(String)).as<String>();
+
+    if(unlikely(!str)) {
+
+      if(shared.om->refill_slab(&state, local_slab())) {
+        str = local_slab().allocate(sizeof(String)).as<String>();
+      }
+
+      if(!str) return 0;
+    }
+
+    str->init_header(G(string), YoungObjectZone, String::type);
+#ifdef RBX_GC_STRESS
+    state.shared().gc_soon();
+#endif
+    return str;
+  }
+
   Tuple* VM::new_young_tuple_dirty(size_t fields) {
     State state(this);
     size_t bytes = Tuple::fields_offset + (sizeof(Object*) * fields);
