@@ -22,6 +22,7 @@ exception19.rbc
 undefined.rbc
 hash.rbc
 hash19.rbc
+hash20.rbc
 hash_hamt.rbc
 type.rbc
 type19.rbc
@@ -65,6 +66,7 @@ dir_glob.rbc
 encoding.rbc
 env.rbc
 env19.rbc
+env20.rbc
 errno.rbc
 eval.rbc
 eval19.rbc
@@ -96,6 +98,7 @@ missing_method.rbc
 native_method.rbc
 nil.rbc
 nil19.rbc
+nil20.rbc
 objectspace.rbc
 string.rbc
 string19.rbc
@@ -103,6 +106,7 @@ range.rbc
 range19.rbc
 struct.rbc
 struct19.rbc
+struct20.rbc
 process.rbc
 process19.rbc
 random.rbc
