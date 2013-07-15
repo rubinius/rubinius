@@ -678,7 +678,7 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
   def setup_path
     @log.print "Validating '#{@llvm_path}': "
     if File.directory? @llvm_path
-      ["Release", "Debug"].each do |which|
+      ["Release", "Debug", ""].each do |which|
         sub = File.join(@llvm_path, which, "bin")
         if File.directory? sub
           @log.write "Ok! Using #{which}"
