@@ -321,8 +321,8 @@ class String
 
   alias_method :chars, :each_char
 
-  def bytes
-    return to_enum :bytes unless block_given?
+  def each_byte
+    return to_enum :each_byte unless block_given?
     i = 0
     while i < @num_bytes do
       yield @data.get_byte(i)
@@ -331,7 +331,7 @@ class String
     self
   end
 
-  alias_method :each_byte, :bytes
+  alias_method :bytes, :each_byte
 
   def empty?
     @num_bytes == 0

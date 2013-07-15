@@ -10,4 +10,14 @@ class String
       each_char.to_a
     end
   end
+
+  def bytes
+    if block_given?
+      each_byte do |byte|
+        yield byte
+      end
+    else
+      each_byte.to_a
+    end
+  end
 end
