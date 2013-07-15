@@ -8,7 +8,7 @@ class String
   def codepoints
     return to_enum :codepoints unless block_given?
 
-    chars { |c| yield c.ord }
+    each_char { |c| yield c.ord }
     self
   end
 

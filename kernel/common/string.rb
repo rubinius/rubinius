@@ -300,8 +300,8 @@ class String
     return self
   end
 
-  def chars
-    return to_enum :chars unless block_given?
+  def each_char
+    return to_enum :each_char unless block_given?
     # TODO: Use Encodings for KCODE in 1.8 mode
     if Rubinius.kcode == :UTF8 and Rubinius.ruby18?
       scan(/./u) do |c|
@@ -319,7 +319,7 @@ class String
     end
   end
 
-  alias_method :each_char, :chars
+  alias_method :chars, :each_char
 
   def bytes
     return to_enum :bytes unless block_given?
