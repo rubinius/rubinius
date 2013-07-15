@@ -191,4 +191,21 @@ describe "StringIO#initialize when passed no arguments" do
     @io.send(:initialize)
     @io.string.should == ""
   end
+
+  with_feature :encoding do
+    before(:each) do
+      @ext = Encoding.default_external
+    end
+
+    after(:each) do
+      Encoding.default_external = @ext
+    end
+
+    it "sets external encoding according to Encoding.default_external" do
+      Encoding.default_external = Encoding::UTF_8
+      @io.send(:initialize)
+
+      @io.external_encoding.should == Encoding.default_external
+    end
+  end
 end
