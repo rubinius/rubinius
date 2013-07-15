@@ -219,13 +219,16 @@ namespace rubinius {
     int calculate_stack = 0;
     NativeMethod::init_thread(state);
 
+    std::string thread_name;
+
     {
       std::ostringstream tn;
       tn << "rbx.ruby." << vm->thread_id();
       VM::set_current(vm, tn.str());
+      thread_name = tn.str();
     }
 
-    RUBINIUS_THREAD_START(tn.str().c_str(), vm->thread_id(), 0);
+    RUBINIUS_THREAD_START(thread_name.c_str(), vm->thread_id(), 0);
 
     if(cDebugThreading) {
       std::cerr << "[THREAD " << vm->thread_id()
@@ -283,7 +286,7 @@ namespace rubinius {
       std::cerr << "[LOCK thread " << vm->thread_id() << " exited]\n";
     }
 
-    RUBINIUS_THREAD_STOP(tn.str().c_str(), vm->thread_id(), 0);
+    RUBINIUS_THREAD_STOP(thread_name.c_str(), vm->thread_id(), 0);
     return 0;
   }
 
