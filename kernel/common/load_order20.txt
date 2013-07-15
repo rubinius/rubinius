@@ -22,6 +22,7 @@ exception19.rbc
 undefined.rbc
 hash.rbc
 hash19.rbc
+hash20.rbc
 hash_hamt.rbc
 type.rbc
 type19.rbc
