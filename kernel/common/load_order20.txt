@@ -66,6 +66,7 @@ dir_glob.rbc
 encoding.rbc
 env.rbc
 env19.rbc
+env20.rbc
 errno.rbc
 eval.rbc
 eval19.rbc

@@ -32,8 +32,6 @@ module Rubinius
       return absent
     end
 
-    alias_method :to_h, :to_hash
-
     def keep_if(&block)
       return to_enum(:keep_if) unless block_given?
       select!(&block)
