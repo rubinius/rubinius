@@ -39,18 +39,7 @@ module RbConfig
   CONFIG["TEENY"]              = teeny
   CONFIG["ruby_version"]       = "$(MAJOR).$(MINOR)"
   CONFIG["RUBY_SO_NAME"]       = "rubinius-#{Rubinius::VERSION}"
-
-  case
-  when Rubinius.ruby18?
-    CONFIG["rubyhdrdir"]         = "#{Rubinius::HDR18_PATH}"
-  when Rubinius.ruby19?
-    CONFIG["rubyhdrdir"]         = "#{Rubinius::HDR19_PATH}"
-  when Rubinius.ruby20?
-    CONFIG["rubyhdrdir"]         = "#{Rubinius::HDR20_PATH}"
-  else
-    raise Exception, "no C-API header directory defined"
-  end
-
+  CONFIG["rubyhdrdir"]         = "#{Rubinius::HDR_PATH}"
   CONFIG["LIBS"]               = ""
 
   sitedir                      = Rubinius::SITE_PATH

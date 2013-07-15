@@ -96,7 +96,7 @@ def install_lib_excludes(prefix, list)
   list.exclude("#{prefix}/**/ext/melbourne/build/*.*")
   BUILD_CONFIG[:supported_versions].each do |ver|
     unless BUILD_CONFIG[:language_version] == ver
-      list.exclude("#{prefix}/#{ver}")
+      list.exclude("#{prefix}/#{ver}/**/*.*")
     end
   end
 end
@@ -134,6 +134,7 @@ end
 def install_cext(prefix, target)
   list = FileList["#{prefix}/**/ext/**/*.#{$dlext}"]
   list.exclude("**/melbourne/build/*.*")
+  install_lib_excludes prefix, list
 
   list.each do |name|
     install_file name, prefix, "#{target}#{BUILD_CONFIG[:libdir]}"
@@ -191,12 +192,9 @@ exec #{BUILD_CONFIG[:stagingdir]}#{BUILD_CONFIG[:bindir]}/$EXE "$@"
 
   task :capi_include do
     if BUILD_CONFIG[:stagingdir]
-      install_capi_include "#{BUILD_CONFIG[:sourcedir]}/vm/capi/18/include",
-                           "#{BUILD_CONFIG[:stagingdir]}#{BUILD_CONFIG[:include18dir]}"
-      install_capi_include "#{BUILD_CONFIG[:sourcedir]}/vm/capi/19/include",
-                           "#{BUILD_CONFIG[:stagingdir]}#{BUILD_CONFIG[:include19dir]}"
-      install_capi_include "#{BUILD_CONFIG[:sourcedir]}/vm/capi/20/include",
-                           "#{BUILD_CONFIG[:stagingdir]}#{BUILD_CONFIG[:include20dir]}"
+      v = BUILD_CONFIG[:language_version]
+      install_capi_include "#{BUILD_CONFIG[:sourcedir]}/vm/capi/#{v}/include",
+                           "#{BUILD_CONFIG[:stagingdir]}#{BUILD_CONFIG[:"includedir"]}"
     end
   end
 
@@ -255,6 +253,7 @@ site:    #{prefix}#{BUILD_CONFIG[:sitedir]}
 vendor:  #{prefix}#{BUILD_CONFIG[:vendordir]}
 man:     #{prefix}#{BUILD_CONFIG[:mandir]}
 gems:    #{prefix}#{BUILD_CONFIG[:gemsdir]}
+include: #{prefix}#{BUILD_CONFIG[:includedir]}
 
 Please ensure that the paths to these directories are writable
 by the current user. Otherwise, run 'rake install' with the
@@ -267,12 +266,8 @@ oppropriate command to elevate permissions (eg su, sudo).
         destdir = ENV['DESTDIR'] || ''
         prefixdir = File.join(destdir, BUILD_CONFIG[:prefixdir])
 
-        install_capi_include "#{stagingdir}#{BUILD_CONFIG[:include18dir]}",
-                             "#{prefixdir}#{BUILD_CONFIG[:include18dir]}"
-        install_capi_include "#{stagingdir}#{BUILD_CONFIG[:include19dir]}",
-                             "#{prefixdir}#{BUILD_CONFIG[:include19dir]}"
-        install_capi_include "#{stagingdir}#{BUILD_CONFIG[:include20dir]}",
-                             "#{prefixdir}#{BUILD_CONFIG[:include20dir]}"
+        install_capi_include "#{stagingdir}#{BUILD_CONFIG[:includedir]}",
+                             "#{prefixdir}#{BUILD_CONFIG[:includedir]}"
 
         install_runtime "#{stagingdir}#{BUILD_CONFIG[:runtimedir]}", prefixdir
 

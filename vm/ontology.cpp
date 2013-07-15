@@ -488,12 +488,8 @@ namespace rubinius {
       path = prefix + RBX_GEMS_PATH;
       G(rubinius)->set_const(state, "GEMS_PATH", String::create(state, path.c_str()));
 
-      path = prefix + RBX_HDR18_PATH;
-      G(rubinius)->set_const(state, "HDR18_PATH", String::create(state, path.c_str()));
-      path = prefix + RBX_HDR19_PATH;
-      G(rubinius)->set_const(state, "HDR19_PATH", String::create(state, path.c_str()));
-      path = prefix + RBX_HDR20_PATH;
-      G(rubinius)->set_const(state, "HDR20_PATH", String::create(state, path.c_str()));
+      path = prefix + RBX_HDR_PATH;
+      G(rubinius)->set_const(state, "HDR_PATH", String::create(state, path.c_str()));
     }
 
     G(rubinius)->set_const(state, "VERSION", String::create(state, RBX_VERSION));

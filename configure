@@ -105,14 +105,10 @@ class Configure
     @mandir       = nil
     @gemsdir      = nil
     @libdir       = nil
+    @includedir   = nil
 
     @vm_release_h = root + "/vm/gen/release.h"
     @vm_version_h = root + "/vm/gen/version.h"
-
-    # TODO: fix this
-    @include18dir = nil # root + "/vm/capi/18/include"
-    @include19dir = nil # root + "/vm/capi/19/include"
-    @include20dir = nil # root + "/vm/capi/19/include"
 
     @preserve_prefix = false
 
@@ -205,12 +201,10 @@ class Configure
     @vendordir    = @prefixdir + "/vendor" unless @vendordir
     @mandir       = @prefixdir + "/man" unless @mandir
     @gemsdir      = @prefixdir + "/gems" unless @gemsdir
-    @include18dir = @prefixdir + "/vm/capi/18/include" unless @include18dir
-    @include19dir = @prefixdir + "/vm/capi/19/include" unless @include19dir
-    @include20dir = @prefixdir + "/vm/capi/19/include" unless @include20dir
+    @includedir   = @prefixdir + "/vm/capi/include" unless @includedir
 
     dirs = [@bindir, @libdir, @runtimedir, @kerneldir, @sitedir, @vendordir,
-            @mandir, @gemsdir, @include18dir, @include19dir, @include20dir]
+            @mandir, @gemsdir, @includedir]
 
     parts = dirs.map { |d| d.split "/" }
 
@@ -389,10 +383,7 @@ class Configure
     end
 
     o.on "-I", "--includedir", "PATH", "Install Rubinius C-API include files in PATH" do |dir|
-      dir = expand dir
-      @include18dir = dir + "/18"
-      @include19dir = dir + "/19"
-      @include20dir = dir + "/20"
+      @includedir = expand dir
     end
 
     o.on "-A", "--appdir", "PATH", "Install Ruby runtime and libraries in PATH" do |dir|
@@ -1632,9 +1623,7 @@ int main() { return tgetnum(""); }
       :kerneldir          => @kerneldir,
       :sitedir            => @sitedir,
       :vendordir          => @vendordir,
-      :include18dir       => @include18dir,
-      :include19dir       => @include19dir,
-      :include20dir       => @include20dir,
+      :includedir         => @includedir,
       :mandir             => @mandir,
       :gemsdir            => @gemsdir,
       :program_name       => @program_name,
@@ -1681,9 +1670,7 @@ int main() { return tgetnum(""); }
 #define RBX_RUNTIME_PATH     "#{@runtimedir}"
 #define RBX_KERNEL_PATH      "#{@kerneldir}"
 #define RBX_LIB_PATH         "#{@libdir}"
-#define RBX_HDR18_PATH       "#{@include18dir}"
-#define RBX_HDR19_PATH       "#{@include19dir}"
-#define RBX_HDR20_PATH       "#{@include20dir}"
+#define RBX_HDR_PATH         "#{@includedir}"
 #define RBX_SITE_PATH        "#{@sitedir}"
 #define RBX_VENDOR_PATH      "#{@vendordir}"
 #define RBX_LIB_VERSION      "#{@libversion}"
@@ -1885,6 +1872,7 @@ site:    #{@sitedir}
 vendor:  #{@vendordir}
 man:     #{@mandir}
 gems:    #{@gemsdir}
+include: #{@includedir}
 
 Run 'rake' to build, test and install Rubinius.
       EOM
