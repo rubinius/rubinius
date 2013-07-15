@@ -20,4 +20,14 @@ class String
       each_byte.to_a
     end
   end
+
+  def lines(sep=$/)
+    if block_given?
+      each_line(sep) do |line|
+        yield line
+      end
+    else
+      each_line(sep).to_a
+    end
+  end
 end
