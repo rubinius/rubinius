@@ -43,6 +43,7 @@ module Rubinius
 
     # Finish setting up after loading kernel.
     def preamble
+      set_program_name "rbx"
       @stage = "running Loader preamble"
 
       Object.const_set :ENV, EnvironmentVariables.new
