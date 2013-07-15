@@ -1,2 +1,0 @@
-fails:Exception#== returns true if the two exceptions inherit from Exception but have different classes
-fails:Exception#== returns false if the two exceptions inherit from Exception but have different classes
