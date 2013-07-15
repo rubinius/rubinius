@@ -94,10 +94,10 @@ namespace rubinius {
 
     VariableScope* promote(STATE);
 
-    // Rubinius.primitive :variable_scope_of_sender
+    // Rubinius.primitive+ :variable_scope_of_sender
     static VariableScope* of_sender(STATE, CallFrame* calling_environment);
 
-    // Rubinius.primitive :variable_scope_current
+    // Rubinius.primitive+ :variable_scope_current
     static VariableScope* current(STATE, CallFrame* calling_environment);
 
     // Rubinius.primitive :variable_scope_synthesize
@@ -109,19 +109,19 @@ namespace rubinius {
     // Rubinius.primitive :variable_scope_set_local
     Object* set_local_prim(STATE, Fixnum* number, Object* object);
 
-    // Rubinius.primitive :variable_scope_method_visibility
+    // Rubinius.primitive+ :variable_scope_method_visibility
     Object* method_visibility(STATE);
 
-    // Rubinius.primitive :variable_scope_top_level_visibility
+    // Rubinius.primitive+ :variable_scope_top_level_visibility
     Object* top_level_visibility(STATE);
 
-    // Rubinius.primitive :variable_scope_script
+    // Rubinius.primitive+ :variable_scope_script
     Object* script(STATE);
 
-    // Rubinius.primitive :variable_scope_locked
+    // Rubinius.primitive+ :variable_scope_locked
     Object* locked(STATE);
 
-    // Rubinius.primitive :variable_scope_set_locked
+    // Rubinius.primitive+ :variable_scope_set_locked
     Object* set_locked(STATE);
 
   public: // Rubinius Type stuff

@@ -34,7 +34,7 @@ namespace rubinius {
     static void bootstrap_methods(STATE);
     static ConstantScope* create(STATE);
 
-    // Rubinius.primitive :constant_scope_of_sender
+    // Rubinius.primitive+ :constant_scope_of_sender
     static ConstantScope* of_sender(STATE, CallFrame* calling_environment);
 
     // Rubinius.primitive :constant_scope_const_set

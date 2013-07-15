@@ -43,7 +43,7 @@ namespace rubinius {
     // Rubinius.primitive :array_new_reserved
     Array* new_reserved(STATE, Fixnum* count);
 
-    // Rubinius.primitive :array_aref
+    // Rubinius.primitive+ :array_aref
     Object* aref(STATE, Fixnum* idx);
 
     // Rubinius.primitive :array_aset

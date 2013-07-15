@@ -56,7 +56,7 @@ namespace rubinius {
     // Rubinius.primitive :regexp_options
     Fixnum* options(STATE);
 
-    // Rubinius.primitive :regexp_fixed_encoding_p
+    // Rubinius.primitive+ :regexp_fixed_encoding_p
     Object* fixed_encoding_p(STATE);
 
     // Rubinius.primitive :regexp_search_region
@@ -86,7 +86,7 @@ namespace rubinius {
     // Rubinius.primitive :regexp_set_block_last_match
     static Object* set_block_last_match(STATE, CallFrame* calling_environment);
 
-    // Rubinius.primitive :regexp_encoding
+    // Rubinius.primitive+ :regexp_encoding
     Encoding* encoding(STATE);
 
     Encoding* encoding(STATE, Encoding* enc);

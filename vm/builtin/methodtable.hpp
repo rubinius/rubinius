@@ -81,13 +81,13 @@ namespace rubinius {
     MethodTableBucket* find_entry(STATE, Symbol* name);
     MethodTableBucket* find_entry(Symbol* name);
 
-    // Rubinius.primitive :methodtable_lookup
+    // Rubinius.primitive+ :methodtable_lookup
     MethodTableBucket* lookup(STATE, Symbol* name);
 
     // Rubinius.primitive :methodtable_delete
     Executable* remove(STATE, Symbol* name);
 
-    // Rubinius.primitive :methodtable_has_name
+    // Rubinius.primitive+ :methodtable_has_name
     Object* has_name(STATE, Symbol* name);
 
     class Info : public TypeInfo {

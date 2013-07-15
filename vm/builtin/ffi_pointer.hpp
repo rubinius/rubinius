@@ -28,10 +28,10 @@ namespace rubinius {
     // Rubinius.primitive :pointer_malloc
     static Pointer* allocate_memory(STATE, Object* self, Fixnum* bytes);
 
-    // Rubinius.primitive :pointer_address
+    // Rubinius.primitive+ :pointer_address
     Integer* get_address(STATE);
 
-    // Rubinius.primitive :pointer_set_address
+    // Rubinius.primitive+ :pointer_set_address
     Integer* set_address(STATE, Integer* ptr);
 
     // Rubinius.primitive :pointer_set_autorelease

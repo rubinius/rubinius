@@ -36,7 +36,7 @@ namespace rubinius {
     // Rubinius.primitive :dir_close
     Object* close(STATE);
 
-    // Rubinius.primitive :dir_closed_p
+    // Rubinius.primitive+ :dir_closed_p
     Object* closed_p(STATE);
 
     // Rubinius.primitive :dir_read

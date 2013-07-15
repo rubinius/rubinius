@@ -32,10 +32,10 @@ namespace rubinius {
     int ip() const { return ip_; }
     int serial() const { return serial_; }
 
-    // Rubinius.primitive :constant_cache_ip
+    // Rubinius.primitive+ :constant_cache_ip
     Integer* ip_prim(STATE);
 
-    // Rubinius.primitive :constant_cache_serial
+    // Rubinius.primitive+ :constant_cache_serial
     Integer* serial_prim(STATE);
 
     static void init(STATE);

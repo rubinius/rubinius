@@ -35,10 +35,10 @@ namespace rubinius {
 
     static Time* at(STATE, time64_t seconds, long nanoseconds = 0);
 
-    // Rubinius.primitive :time_s_specific
+    // Rubinius.primitive+ :time_s_specific
     static Time* specific(STATE, Object* self, Integer* sec, Integer* nsec, Object* gmt, Object* offset);
 
-    // Rubinius.primitive :time_s_now
+    // Rubinius.primitive+ :time_s_now
     static Time* now(STATE, Object* self);
 
     // Rubinius.primitive :time_s_from_array
@@ -47,17 +47,17 @@ namespace rubinius {
     // Rubinius.primitive :time_s_dup
     static Time* dup(STATE, Object* self, Time* other);
 
-    // Rubinius.primitive :time_seconds
+    // Rubinius.primitive+ :time_seconds
     Integer* seconds(STATE) {
       return Integer::from(state, seconds_);
     }
 
-    // Rubinius.primitive :time_useconds
+    // Rubinius.primitive+ :time_useconds
     Integer* useconds(STATE) {
       return Integer::from(state, nanoseconds_ / 1000);
     }
 
-    // Rubinius.primitive :time_nseconds
+    // Rubinius.primitive+ :time_nseconds
     Integer* nseconds(STATE) {
       return Integer::from(state, nanoseconds_);
     }

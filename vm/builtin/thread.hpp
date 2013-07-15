@@ -128,13 +128,13 @@ namespace rubinius {
      *
      *  This is the currently executing Thread.
      */
-    // Rubinius.primitive :thread_current
+    // Rubinius.primitive+ :thread_current
     static Thread* current(STATE);
 
     /**
      *  Attempt to schedule some other Thread.
      */
-    // Rubinius.primitive :thread_pass
+    // Rubinius.primitive+ :thread_pass
     static Object* pass(STATE, CallFrame* calling_environment);
 
     /**
@@ -174,7 +174,7 @@ namespace rubinius {
      *  but otherwise *potentially* platform-specific for
      *  any other connotations.
      */
-    // Rubinius.primitive :thread_priority
+    // Rubinius.primitive+ :thread_priority
     Object* priority(STATE);
 
     /**
@@ -235,7 +235,7 @@ namespace rubinius {
      * This is done in a primitive because it also has
      * to consider any running fibers.
      */
-    // Rubinius.primitive :thread_locals_aref
+    // Rubinius.primitive+ :thread_locals_aref
     Object* locals_aref(STATE, Symbol* key);
 
     /**
@@ -267,7 +267,7 @@ namespace rubinius {
      * This is done in a primitive because it also has
      * to consider any running fibers.
      */
-    // Rubinius.primitive :thread_locals_has_key
+    // Rubinius.primitive+ :thread_locals_has_key
     Object* locals_has_key(STATE, Symbol* key);
 
     void init_lock();

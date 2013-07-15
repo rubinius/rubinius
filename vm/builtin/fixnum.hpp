@@ -34,7 +34,7 @@ namespace rubinius {
 
     bool positive_p() const;
 
-    // Rubinius.primitive :fixnum_s_eqq
+    // Rubinius.primitive+ :fixnum_s_eqq
     static Object* is_fixnum(STATE, Object* obj) {
       return RBOOL(obj->fixnum_p());
     }

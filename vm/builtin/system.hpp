@@ -149,19 +149,19 @@ namespace rubinius {
     static Object* vm_load_tool(STATE, String* str);
 
     /** Return true if tooling is enabled */
-    // Rubinius.primitive :vm_tooling_available_p
+    // Rubinius.primitive+ :vm_tooling_available_p
     static Object* vm_tooling_available_p(STATE);
 
     /** Return true if tooling is running. */
-    // Rubinius.primitive :vm_tooling_active_p
+    // Rubinius.primitive+ :vm_tooling_active_p
     static Object* vm_tooling_active_p(STATE);
 
     /** Starts tooling. */
-    // Rubinius.primitive :vm_tooling_enable
+    // Rubinius.primitive+ :vm_tooling_enable
     static Object* vm_tooling_enable(STATE);
 
     /** Stops tooling. */
-    // Rubinius.primitive :vm_tooling_disable
+    // Rubinius.primitive+ :vm_tooling_disable
     static Object* vm_tooling_disable(STATE);
 
     /**
@@ -219,7 +219,7 @@ namespace rubinius {
     static Object* vm_attach_method(STATE, GCToken gct, Symbol* name, CompiledCode* meth, ConstantScope* scope, Object* recv, CallFrame* calling_environment);
 
     // A robust way to get the class of an object, since Object#class can be redefined.
-    // Rubinius.primitive :vm_object_class
+    // Rubinius.primitive+ :vm_object_class
     static Class* vm_object_class(STATE, Object* obj);
 
     // A robust way to get the singleton class of an object.
@@ -227,22 +227,22 @@ namespace rubinius {
     static Object* vm_object_singleton_class(STATE, Object* obj);
 
     // A robust way to get the object for the given singleton class.
-    // Rubinius.primitive :vm_singleton_class_object
+    // Rubinius.primitive+ :vm_singleton_class_object
     static Object* vm_singleton_class_object(STATE, Module* mod);
 
     // A robust way to find out if an object responds to a method, since #respond_to?
     // can be redefined.
-    // Rubinius.primitive :vm_object_respond_to
+    // Rubinius.primitive+ :vm_object_respond_to
     static Object* vm_object_respond_to(STATE, Object* obj, Symbol* sym);
 
     // A robust way to find out if two references are the same, since #equal? can
     // be redefined
-    // Rubinius.primitive :vm_object_equal
+    // Rubinius.primitive+ :vm_object_equal
     static Object* vm_object_equal(STATE, Object* a, Object* b);
 
     // A robust way to find out if an object is a kind of a Module, since #kind_of?
     // can be redefined
-    // Rubinius.primitive :vm_object_kind_of
+    // Rubinius.primitive+ :vm_object_kind_of
     static Object* vm_object_kind_of(STATE, Object* obj, Module* mod);
 
     // Increment the internal global serial number, used for caching
@@ -271,10 +271,10 @@ namespace rubinius {
     // Rubinius.primitive :vm_set_class
     static Object* vm_set_class(STATE, Object* obj, Class* cls);
 
-    // Rubinius.primitive :vm_method_missing_reason
+    // Rubinius.primitive+ :vm_method_missing_reason
     static Object* vm_method_missing_reason(STATE);
 
-    // Rubinius.primitive :vm_constant_missing_reason
+    // Rubinius.primitive+ :vm_constant_missing_reason
     static Object* vm_constant_missing_reason(STATE);
 
     // Rubinius.primitive :vm_extended_modules
@@ -325,37 +325,37 @@ namespace rubinius {
     // Rubinius.primitive :vm_object_lock_timed
     static Object* vm_object_lock_timed(STATE, GCToken gct, Object* obj, Integer* time, CallFrame* calling_environment);
 
-    // Rubinius.primitive :vm_object_trylock
+    // Rubinius.primitive+ :vm_object_trylock
     static Object* vm_object_trylock(STATE, GCToken gct, Object* obj, CallFrame* calling_environment);
 
-    // Rubinius.primitive :vm_object_locked_p
+    // Rubinius.primitive+ :vm_object_locked_p
     static Object* vm_object_locked_p(STATE, GCToken gct, Object* obj, CallFrame* calling_environment);
 
     // Rubinius.primitive :vm_object_unlock
     static Object* vm_object_unlock(STATE, GCToken gct, Object* obj, CallFrame* calling_environment);
 
-    // Rubinius.primitive :vm_memory_barrier
+    // Rubinius.primitive+ :vm_memory_barrier
     static Object* vm_memory_barrier(STATE);
 
-    // Rubinius.primitive :vm_ruby18_p
+    // Rubinius.primitive+ :vm_ruby18_p
     static Object* vm_ruby18_p(STATE);
 
-    // Rubinius.primitive :vm_ruby19_p
+    // Rubinius.primitive+ :vm_ruby19_p
     static Object* vm_ruby19_p(STATE);
 
-    // Rubinius.primitive :vm_ruby20_p
+    // Rubinius.primitive+ :vm_ruby20_p
     static Object* vm_ruby20_p(STATE);
 
-    // Rubinius.primitive :vm_windows_p
+    // Rubinius.primitive+ :vm_windows_p
     static Object* vm_windows_p(STATE);
 
-    // Rubinius.primitive :vm_darwin_p
+    // Rubinius.primitive+ :vm_darwin_p
     static Object* vm_darwin_p(STATE);
 
-    // Rubinius.primitive :vm_bsd_p
+    // Rubinius.primitive+ :vm_bsd_p
     static Object* vm_bsd_p(STATE);
 
-    // Rubinius.primitive :vm_linux_p
+    // Rubinius.primitive+ :vm_linux_p
     static Object* vm_linux_p(STATE);
 
     // Rubinius.primitive :sha1_hash

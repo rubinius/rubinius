@@ -200,7 +200,7 @@ namespace rubinius {
      *  Returns true if and only if this and the other object are
      *  the SAME object, false otherwise.
      */
-    // Rubinius.primitive :object_equal
+    // Rubinius.primitive+ :object_equal
     Object*   equal(STATE, Object* other);
 
     /** Sets the frozen flag. Rubinius does NOT currently support freezing. */
@@ -208,7 +208,7 @@ namespace rubinius {
     Object*   freeze(STATE);
 
     /** Returns true if this Object's frozen flag set, false otherwise. */
-    // Rubinius.primitive :object_frozen_p
+    // Rubinius.primitive+ :object_frozen_p
     Object*   frozen_p(STATE);
 
     /**
@@ -246,11 +246,11 @@ namespace rubinius {
     hashval   hash(STATE);
 
     /** Returns the hash value as an Integer. @see hash(). */
-    // Rubinius.primitive :object_hash
+    // Rubinius.primitive+ :object_hash
     Integer*  hash_prim(STATE);
 
     /** Returns an Integer ID for this object. Created as needed. */
-    // Rubinius.primitive :object_id
+    // Rubinius.primitive+ :object_id
     Integer*  id(STATE);
 
     /** Indicates if this object has been assigned an object id. */
@@ -276,7 +276,7 @@ namespace rubinius {
      *  Returns true if given Module is this Object's class,
      *  superclass or an included Module, false otherwise.
      */
-    // Rubinius.primitive :object_kind_of
+    // Rubinius.primitive+ :object_kind_of
     Object*   kind_of_prim(STATE, Module* klass);
 
     /**
@@ -285,7 +285,7 @@ namespace rubinius {
      *  Returns true if given Module is this Object's class,
      *  false otherwise.
      */
-    // Rubinius.primitive :object_instance_of
+    // Rubinius.primitive+ :object_instance_of
     Object*   instance_of_prim(STATE, Module* klass);
 
     /** Return object's MetaClass object. Created as needed.
@@ -328,7 +328,7 @@ namespace rubinius {
     /**
      *  Returns true if this object's tainted flag is set.
      */
-    // Rubinius.primitive :object_tainted_p
+    // Rubinius.primitive+ :object_tainted_p
     Object*   tainted_p(STATE);
 
     /**
@@ -340,7 +340,7 @@ namespace rubinius {
     /**
      * Returns true if this object's untrusted flag is set.
      */
-    // Rubinius.primitive :object_untrusted_p
+    // Rubinius.primitive+ :object_untrusted_p
     Object* untrusted_p(STATE);
 
     /**
@@ -377,7 +377,7 @@ namespace rubinius {
      *
      * Returns cTrue if this responds to method +meth+
      */
-    // Rubinius.primitive :object_respond_to
+    // Rubinius.primitive+ :object_respond_to
     Object* respond_to(STATE, Symbol* name, Object* priv, CallFrame* calling_environment);
 
     Object* respond_to(STATE, Symbol* name, Object* priv);

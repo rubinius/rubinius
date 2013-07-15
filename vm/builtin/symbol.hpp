@@ -22,12 +22,12 @@ namespace rubinius {
 
     native_int index() const;
 
-    // Rubinius.primitive :symbol_s_eqq
+    // Rubinius.primitive+ :symbol_s_eqq
     static Object* is_symbol(STATE, Object* obj) {
       return RBOOL(obj->symbol_p());
     }
 
-    // Rubinius.primitive :symbol_index
+    // Rubinius.primitive+ :symbol_index
     Integer* index(STATE);
 
     static void init(STATE);
@@ -46,16 +46,16 @@ namespace rubinius {
     // Rubinius.primitive :symbol_all_symbols
     static Array* all_symbols(STATE);
 
-    // Rubinius.primitive :symbol_is_ivar
+    // Rubinius.primitive+ :symbol_is_ivar
     Object* is_ivar_p(STATE);
 
-    // Rubinius.primitive :symbol_is_cvar
+    // Rubinius.primitive+ :symbol_is_cvar
     Object* is_cvar_p(STATE);
 
-    // Rubinius.primitive :symbol_is_constant
+    // Rubinius.primitive+ :symbol_is_constant
     Object* is_constant_p(STATE);
 
-    // Rubinius.primitive :symbol_encoding
+    // Rubinius.primitive+ :symbol_encoding
     Encoding* encoding(STATE);
 
     Encoding* encoding(STATE, Encoding* enc);

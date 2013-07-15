@@ -79,13 +79,13 @@ namespace rubinius {
 
     ConstantTableBucket* find_entry(STATE, Symbol* name);
 
-    // Rubinius.primitive :constant_table_lookup
+    // Rubinius.primitive+ :constant_table_lookup
     ConstantTableBucket* lookup(STATE, Symbol* name);
 
     // Rubinius.primitive :constant_table_delete
     Object* remove(STATE, Symbol* name);
 
-    // Rubinius.primitive :constant_table_has_name
+    // Rubinius.primitive+ :constant_table_has_name
     Object* has_name(STATE, Symbol* name);
 
     // Rubinius.primitive :constant_table_keys

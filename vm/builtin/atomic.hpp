@@ -22,20 +22,20 @@ namespace rubinius {
     static AtomicReference* allocate(STATE);
     static AtomicReference* create(STATE, Object* val);
 
-    // Rubinius.primitive :atomic_get
+    // Rubinius.primitive+ :atomic_get
     Object* get(STATE) {
       atomic::memory_barrier();
       return value_;
     }
 
-    // Rubinius.primitive :atomic_set
+    // Rubinius.primitive+ :atomic_set
     Object* set(STATE, Object* val) {
       value(state, val);
       atomic::memory_barrier();
       return val;
     }
 
-    // Rubinius.primitive :atomic_compare_and_set
+    // Rubinius.primitive+ :atomic_compare_and_set
     Object* compare_and_set(STATE, Object* old, Object* new_value);
 
     class Info : public TypeInfo {

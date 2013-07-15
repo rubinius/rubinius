@@ -111,10 +111,10 @@ namespace rubinius {
     // Rubinius.primitive :compiledcode_is_breakpoint
     Object* is_breakpoint(STATE, Fixnum* ip);
 
-    // Rubinius.primitive :compiledcode_of_sender
+    // Rubinius.primitive+ :compiledcode_of_sender
     static CompiledCode* of_sender(STATE, CallFrame* calling_environment);
 
-    // Rubinius.primitive :compiledcode_current
+    // Rubinius.primitive+ :compiledcode_current
     static CompiledCode* current(STATE, CallFrame* calling_environment);
 
     // Rubinius.primitive :compiledcode_dup

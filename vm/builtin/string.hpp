@@ -114,7 +114,7 @@ namespace rubinius {
       return hash_str(bp, sz, state->hash_seed());
     }
 
-    // Rubinius.primitive :string_equal
+    // Rubinius.primitive+ :string_equal
     Object* equal(STATE, String* other) {
       if(Encoding::compatible_p(state, this, other)->nil_p()) return cFalse;
       if(this->num_bytes() != other->num_bytes()) return cFalse;
@@ -127,7 +127,7 @@ namespace rubinius {
     }
 
 
-    // Rubinius.primitive :string_secure_compare
+    // Rubinius.primitive+ :string_secure_compare
     Object* secure_compare(STATE, String* other);
 
     // Returns the number of bytes this String contains

@@ -105,10 +105,10 @@ namespace rubinius {
     // Rubinius.primitive! :float_le
     Object* le(STATE, Integer* other);
 
-    // Rubinius.primitive :float_isinf
+    // Rubinius.primitive+ :float_isinf
     Object* fisinf(STATE);
 
-    // Rubinius.primitive :float_isnan
+    // Rubinius.primitive+ :float_isnan
     Object* fisnan(STATE);
 
     // Rubinius.primitive :float_round

@@ -1431,7 +1431,6 @@ namespace rubinius {
                                     CallFrame* call_frame)
   {
     if(!obj->reference_p()) return Primitives::failure();
-    state->set_call_frame(call_frame);
     return RBOOL(obj->try_lock(state, gct, call_frame) == eLocked);
   }
 
