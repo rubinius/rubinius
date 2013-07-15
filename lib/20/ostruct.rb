@@ -113,6 +113,13 @@ class OpenStruct
   end
 
   #
+  # Converts the OpenStruct to a hash with keys representing
+  # each attribute (as symbols) and their corresponding values
+  def to_h
+    @table.dup
+  end
+
+  #
   # Provides marshalling support for use by the Marshal library. Returning the
   # underlying Hash table that contains the functions defined as the keys and
   # the values assigned to them.
