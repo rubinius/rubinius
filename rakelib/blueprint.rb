@@ -165,7 +165,7 @@ Daedalus.blueprint do |i|
   if Rubinius::BUILD_CONFIG[:vendor_zlib]
     zlib = i.external_lib "vendor/zlib" do |l|
       l.cflags = ["-Ivendor/zlib"] + gcc.cflags
-      l.objects = []
+      l.objects = [l.file("libz.a")]
       l.to_build do |x|
         unless File.exists?("Makefile") and File.exists?("zconf.h")
           x.command "sh -c ./configure"
