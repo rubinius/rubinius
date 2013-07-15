@@ -1368,8 +1368,10 @@ int main() { return tgetnum(""); }
   end
 
   def detect_headers
-    unless has_header("zlib.h")
-      failure "zlib.h is required"
+    unless @features["vendor-zlib"].value
+      unless has_header("zlib.h")
+        failure "zlib.h is required"
+      end
     end
 
     unless has_header("openssl/ssl.h")
