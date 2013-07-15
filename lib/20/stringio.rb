@@ -41,11 +41,14 @@ class StringIO
 
   attr_reader :__data__
 
-  def initialize(string="", mode=nil)
-    string = Rubinius::Type.coerce_to string, String, :to_str
-    @__data__ = Data.new string
-
-    set_encoding(nil) if string.empty?
+  def initialize(string=nil, mode=nil)
+    if string.nil?
+      @__data__ = Data.new ""
+      set_encoding(nil)
+    else
+      string = Rubinius::Type.coerce_to string, String, :to_str
+      @__data__ = Data.new string
+    end
 
     if mode
       if mode.is_a?(Integer)
