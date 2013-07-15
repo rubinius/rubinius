@@ -261,6 +261,7 @@ module Rubinius
       end
 
       options.on "-c", "Only check the syntax" do
+        @run_irb = false
         @check_syntax = true
       end
 
@@ -602,6 +603,7 @@ to rebuild the compiler.
     def evals
       return if @evals.empty?
 
+      @run_irb = false
       @stage = "evaluating command line code"
 
       if @input_loop
@@ -618,6 +620,8 @@ to rebuild the compiler.
     # Run the script passed on the command line
     def script
       return unless @script and @evals.empty?
+
+      @run_irb = false
 
       handle_simple_options(ARGV) if @simple_options
 
@@ -696,7 +700,7 @@ to rebuild the compiler.
 
     # Run IRB unless we were passed -e, -S arguments or a script to run.
     def irb
-      return if $0 or not @run_irb
+      return unless @run_irb
 
       @stage = "running IRB"
 
