@@ -323,8 +323,8 @@ class String
   end
   alias_method :concat, :<<
 
-  def lines(sep=$/)
-    return to_enum(:lines, sep) unless block_given?
+  def each_line(sep=$/)
+    return to_enum(:each_line, sep) unless block_given?
 
     # weird edge case.
     if sep.nil?
@@ -403,8 +403,8 @@ class String
     self
   end
 
-  alias_method :each_line, :lines
-  alias_method :each, :lines
+  alias_method :lines, :each_line
+  alias_method :each, :each_line
 
   def gsub(pattern, replacement=undefined)
     # Because of the behavior of $~, this is duplicated from gsub! because

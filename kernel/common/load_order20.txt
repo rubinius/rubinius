@@ -103,6 +103,7 @@ nil20.rbc
 objectspace.rbc
 string.rbc
 string19.rbc
+string20.rbc
 range.rbc
 range19.rbc
 struct.rbc
