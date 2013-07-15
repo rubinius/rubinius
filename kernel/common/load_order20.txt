@@ -97,6 +97,7 @@ missing_method.rbc
 native_method.rbc
 nil.rbc
 nil19.rbc
+nil20.rbc
 objectspace.rbc
 string.rbc
 string19.rbc
