@@ -477,7 +477,7 @@ class Configure
     version = str.gsub(/[^\d]/, "")
     unless @supported_versions.include? version
       failure <<-EOM
-Unsupported language version requested: #{ver}. Options are #{@supported_versions.join(", ")}
+Unsupported language version requested: #{version}. Options are #{@supported_versions.join(", ")}
       EOM
     end
     version
