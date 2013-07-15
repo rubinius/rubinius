@@ -8,7 +8,7 @@ class String
   def codepoints
     return to_enum :codepoints unless block_given?
 
-    chars { |c| yield c.ord }
+    each_char { |c| yield c.ord }
     self
   end
 
@@ -628,8 +628,8 @@ class String
     substring 0, 1
   end
 
-  def lines(sep=$/)
-    return to_enum(:lines, sep) unless block_given?
+  def each_line(sep=$/)
+    return to_enum(:each_line, sep) unless block_given?
 
     # weird edge case.
     if sep.nil?
@@ -704,7 +704,7 @@ class String
     self
   end
 
-  alias_method :each_line, :lines
+  alias_method :lines, :each_line
 
   def gsub(pattern, replacement=undefined)
     # Because of the behavior of $~, this is duplicated from gsub! because
