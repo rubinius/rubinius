@@ -54,6 +54,8 @@ if %w'z libz zlib1 zlib zdll'.find {|z| have_library(z, 'deflateReset')} and
   message "#{OS_NAMES[os_code]}\n"
   defines << "OS_CODE=#{os_code}"
 
+  $CFLAGS += " -Wno-pointer-sign"
+
   $defs.concat(defines.collect{|d|' -D'+d})
 
   have_func('crc32_combine', 'zlib.h')
