@@ -37,15 +37,8 @@ class Hash
       obj = args.first
       if hash = Rubinius::Type.check_convert_type(obj, Hash, :to_hash)
         return allocate.replace(hash)
-      elsif array = Rubinius::Type.check_convert_type(obj, Array, :to_ary)
-        h = new
-        array.each do |arr|
-          next unless arr.respond_to? :to_ary
-          arr = arr.to_ary
-          next unless (1..2).include? arr.size
-          h[arr.at(0)] = arr.at(1)
-        end
-        return h
+      elsif associate_array = Rubinius::Type.check_convert_type(obj, Array, :to_ary)
+        return new_from_associate_array(associate_array)
       end
     end
 
