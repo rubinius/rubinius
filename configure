@@ -201,7 +201,14 @@ class Configure
     @vendordir    = @prefixdir + "/vendor" unless @vendordir
     @mandir       = @prefixdir + "/man" unless @mandir
     @gemsdir      = @prefixdir + "/gems" unless @gemsdir
-    @includedir   = @prefixdir + "/vm/capi/include" unless @includedir
+
+    unless @includedir
+      if @prefixdir == @sourcedir
+        @includedir   = @prefixdir + "/vm/capi/#{@language_version}/include"
+      else
+        @includedir   = @prefixdir + "/vm/capi/include"
+      end
+    end
 
     dirs = [@bindir, @libdir, @runtimedir, @kerneldir, @sitedir, @vendordir,
             @mandir, @gemsdir, @includedir]
@@ -1657,13 +1664,9 @@ int main() { return tgetnum(""); }
     # Write the config file used to build the C++ VM.
     Dir.mkdir "vm/gen" unless File.directory? "vm/gen"
 
-    vm_config_h = "vm/gen/config.h"
-    File.open vm_config_h, "wb" do |f|
-      f.puts <<-EOC
-#define RBX_HOST             "#{@host}"
-#define RBX_CPU              "#{@cpu}"
-#define RBX_VENDOR           "#{@vendor}"
-#define RBX_OS               "#{@os}"
+    vm_paths_h = "vm/gen/paths.h"
+    File.open vm_paths_h, "wb" do |f|
+      f.puts <<-EOF
 #define RBX_PREFIX_PATH      "#{@prefixdir}"
 #define RBX_BIN_PATH         "#{@bindir}"
 #define RBX_GEMS_PATH        "#{@gemsdir}"
@@ -1673,6 +1676,16 @@ int main() { return tgetnum(""); }
 #define RBX_HDR_PATH         "#{@includedir}"
 #define RBX_SITE_PATH        "#{@sitedir}"
 #define RBX_VENDOR_PATH      "#{@vendordir}"
+      EOF
+    end
+
+    vm_config_h = "vm/gen/config.h"
+    File.open vm_config_h, "wb" do |f|
+      f.puts <<-EOC
+#define RBX_HOST             "#{@host}"
+#define RBX_CPU              "#{@cpu}"
+#define RBX_VENDOR           "#{@vendor}"
+#define RBX_OS               "#{@os}"
 #define RBX_LIB_VERSION      "#{@libversion}"
 #define RBX_LDSHARED         "#{@ldshared}"
 #define RBX_LDSHAREDXX       "#{@ldsharedxx}"
@@ -1706,11 +1719,10 @@ int main() { return tgetnum(""); }
       write_have_defines f
     end
 
-    FileUtils.mkdir_p "vm/capi/18/include/gen"
-    FileUtils.mkdir_p "vm/capi/19/include/gen"
+    vm_capi_header_gen = "vm/capi/#{@language_version}/include/gen"
+    FileUtils.mkdir_p vm_capi_header_gen
 
-    FileUtils.cp vm_config_h, "vm/capi/18/include/gen/rbx_config.h"
-    FileUtils.cp vm_config_h, "vm/capi/19/include/gen/rbx_config.h"
+    FileUtils.cp vm_config_h, "#{vm_capi_header_gen}/rbx_config.h"
 
     # Write the config file for vendor/oniguruma.
     File.open "vendor/oniguruma/config.h", "wb" do |f|
@@ -1748,18 +1760,21 @@ int main() { return tgetnum(""); }
       end
     end
 
-    FileUtils.cp config_h, "vm/capi/18/include/config.h"
-    FileUtils.cp config_h, "vm/capi/19/include/ruby/config.h"
+    if @language_version == "18"
+      vm_capi_header = "vm/capi/18/include"
+    else
+      vm_capi_header = "vm/capi/#{@language_version}/include/ruby"
+    end
+
+    FileUtils.cp config_h, "#{vm_capi_header}/config.h"
 
     # Copy definitions for the MRI Object-Oriented Pointer (OOP) definitions.
     mri_oop_h = "vm/capi/mri_oop.h"
-    FileUtils.cp mri_oop_h, "vm/capi/18/include/mri_oop.h"
-    FileUtils.cp mri_oop_h, "vm/capi/19/include/ruby/mri_oop.h"
+    FileUtils.cp mri_oop_h, "#{vm_capi_header}/mri_oop.h"
 
     # Copy definitions for the C-Api constants
     capi_constants_h = "vm/capi/capi_constants.h"
-    FileUtils.cp capi_constants_h, "vm/capi/18/include/capi_constants.h"
-    FileUtils.cp capi_constants_h, "vm/capi/19/include/ruby/capi_constants.h"
+    FileUtils.cp capi_constants_h, "#{vm_capi_header}/capi_constants.h"
 
     # Write a require file depending on which Readline library we use.
     File.open "lib/readline.rb", "wb" do |f|

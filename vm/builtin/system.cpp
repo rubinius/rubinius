@@ -35,6 +35,7 @@
 #include "signal.hpp"
 #include "windows_compat.h"
 #include "util/sha1.h"
+#include "paths.h"
 #include "version.h"
 
 #include "agent.hpp"

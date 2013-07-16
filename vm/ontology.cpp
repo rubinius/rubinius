@@ -61,6 +61,7 @@
 #include "environment.hpp"
 #include "configuration.hpp"
 #include "config.h"
+#include "paths.h"
 #include "release.h"
 #include "version.h"
 

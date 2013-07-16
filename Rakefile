@@ -234,15 +234,8 @@ task :spec => %w[build vm:test] do
 end
 
 task :travis do
-  BUILD_CONFIG[:supported_versions].each_with_index do |version, index|
-    if index == 0
-      sh "./configure --enable-version=#{version}"
-    else
-      BUILD_CONFIG[:language_version] = version
-      write_config_rb BUILD_CONFIG[:config_file], BUILD_CONFIG
-      write_version BUILD_CONFIG[:vm_version_h], version, BUILD_CONFIG[:supported_versions]
-    end
-
+  BUILD_CONFIG[:supported_versions].each do |version|
+    sh "./configure --enable-version=#{version}"
     rm_rf BUILD_CONFIG[:prefixdir] + BUILD_CONFIG[:gemsdir]
     sh "rake extensions:clean build vm:test"
     spec_runner.run :travis

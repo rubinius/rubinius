@@ -13,6 +13,7 @@
 #include "exception.hpp"
 
 #include "config.h"
+#include "paths.h"
 
 
 using namespace std;

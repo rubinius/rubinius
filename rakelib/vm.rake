@@ -22,8 +22,7 @@ transcoders_database = "vm/gen/transcoder_database.cpp"
 
 vm_release_h = BUILD_CONFIG[:vm_release_h]
 vm_version_h = BUILD_CONFIG[:vm_version_h]
-capi_18_release_h = "vm/capi/18/include/gen/rbx_release.h"
-capi_19_release_h = "vm/capi/19/include/gen/rbx_release.h"
+capi_release_h = "vm/capi/#{BUILD_CONFIG[:language_version]}/include/gen/rbx_release.h"
 
 ENV.delete 'CDPATH' # confuses llvm_config
 
@@ -58,8 +57,7 @@ GENERATED = %W[ vm/gen/config_variables.h
                 #{transcoders_database}
                 #{vm_release_h}
                 #{vm_version_h}
-                #{capi_18_release_h}
-                #{capi_19_release_h}
+                #{capi_release_h}
               ] + TYPE_GEN + INSN_GEN
 
 # Files are in order based on dependencies. For example,
@@ -268,11 +266,7 @@ task vm_release_h do |t|
   end
 end
 
-task capi_18_release_h => vm_release_h do |t|
-  FileUtils.cp vm_release_h, t.name
-end
-
-task capi_19_release_h => vm_release_h do |t|
+task capi_release_h => vm_release_h do |t|
   FileUtils.cp vm_release_h, t.name
 end
 

@@ -6,11 +6,13 @@ test/test_instructions.hpp
 capi/config.h
 capi/18/include/config.h
 capi/18/include/mri_oop.h
-capi/18/include/gen/rbx_config.h
-capi/18/include/gen/rbx_release.h
+capi/18/include/gen/*
 capi/18/include/capi_constants.h
 capi/19/include/ruby/config.h
 capi/19/include/ruby/mri_oop.h
-capi/19/include/gen/rbx_config.h
-capi/19/include/gen/rbx_release.h
+capi/19/include/gen/*
 capi/19/include/ruby/capi_constants.h
+capi/20/include/ruby/config.h
+capi/20/include/ruby/mri_oop.h
+capi/20/include/gen/*
+capi/20/include/ruby/capi_constants.h
