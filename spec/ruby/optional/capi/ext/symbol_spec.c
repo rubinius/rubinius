@@ -1,6 +1,10 @@
 #include "ruby.h"
 #include "rubyspec.h"
 
+#ifdef HAVE_RUBY_ENCODING_H
+#include "ruby/encoding.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
