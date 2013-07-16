@@ -279,6 +279,12 @@ extern "C" {
     return reinterpret_cast<ID>(env->state()->symbol(string));
   }
 
+  ID rb_intern2(const char* string, long len) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    return reinterpret_cast<ID>(env->state()->symbol(string, len));
+  }
+
   VALUE rb_iv_get(VALUE self_handle, const char* name) {
     return rb_ivar_get(self_handle, rb_intern(name));
   }

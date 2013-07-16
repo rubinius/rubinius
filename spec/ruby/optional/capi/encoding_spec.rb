@@ -483,4 +483,18 @@ ruby_version_is "1.9" do
       end
     end
   end
+
+  describe "rb_intern3" do
+    load_extension('symbol')
+    it "converts a string to a symbol, uniquely" do
+      s = CApiSymbolSpecs.new
+      s.rb_intern3("Ω", 2, Encoding::UTF_8).should == :Ω
+      s.rb_intern3_c_compare("Ω", 2, Encoding::UTF_8, :Ω).should == true
+    end
+
+    it "should respect the symbol encoding via rb_intern3" do
+      :Ω.to_s.encoding.should == Encoding::UTF_8
+    end
+  end
+
 end
