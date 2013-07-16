@@ -186,6 +186,7 @@ class Hash
 
   # Sets the default proc to be executed on each key lookup
   def default_proc=(prc)
+    Rubinius.check_frozen
     prc = Rubinius::Type.coerce_to prc, Proc, :to_proc
 
     if prc.lambda? and prc.arity != 2
