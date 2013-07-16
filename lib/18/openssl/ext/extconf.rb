@@ -33,6 +33,9 @@ if with_config("debug") or enable_config("debug")
   end
 end
 
+# Nothing we can do about these problems.
+$CPPFLAGS += " -Wno-deprecated-declarations -Wno-pointer-sign"
+
 message "=== Checking for system dependent stuff... ===\n"
 have_library("nsl", "t_open")
 have_library("socket", "socket")
