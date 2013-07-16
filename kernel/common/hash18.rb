@@ -72,6 +72,7 @@ class Hash
     end
     hash
   end
+  private_class_method :new_from_associate_array
 
   def []=(key, value)
     Rubinius.check_frozen

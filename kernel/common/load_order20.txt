@@ -21,12 +21,12 @@ exception.rbc
 exception19.rbc
 exception20.rbc
 undefined.rbc
+type.rbc
+type19.rbc
 hash.rbc
 hash19.rbc
 hash20.rbc
 hash_hamt.rbc
-type.rbc
-type19.rbc
 kernel.rbc
 kernel19.rbc
 identitymap.rbc
