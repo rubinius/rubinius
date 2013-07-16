@@ -413,4 +413,9 @@ extern "C" {
       rb_raise(rb_eArgError, "invalid byte sequence in %s", rb_enc_name(enc));
     }
   }
+
+  // TODO: respect the encoding parameter
+  ID rb_intern3(const char* string, long len, rb_encoding* enc) {
+    return rb_intern2(string, len);
+  }
 }

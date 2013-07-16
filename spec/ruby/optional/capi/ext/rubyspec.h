@@ -237,7 +237,9 @@
 #ifdef RUBY_VERSION_IS_1_9_3
 #define HAVE_RB_CLASS_SUPERCLASS           1
 #endif
+
 #define HAVE_RB_LONG2INT                   1
+#define HAVE_RB_INTERN3                    1
 #endif
 
 #define HAVE_RB_ITER_BREAK                 1

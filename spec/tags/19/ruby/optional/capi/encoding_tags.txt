@@ -1,0 +1,1 @@
+fails:rb_intern3 should respect the symbol encoding via rb_intern3

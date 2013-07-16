@@ -10,8 +10,28 @@ VALUE symbol_spec_rb_intern(VALUE self, VALUE string) {
   return ID2SYM(rb_intern(RSTRING_PTR(string)));
 }
 
+VALUE symbol_spec_rb_intern2(VALUE self, VALUE string, VALUE len) {
+  return ID2SYM(rb_intern2(RSTRING_PTR(string), FIX2LONG(len)));
+}
+
 VALUE symbol_spec_rb_intern_c_compare(VALUE self, VALUE string, VALUE sym) {
   ID symbol = rb_intern(RSTRING_PTR(string));
+  return (SYM2ID(sym) == symbol) ? Qtrue : Qfalse;
+}
+
+VALUE symbol_spec_rb_intern2_c_compare(VALUE self, VALUE string, VALUE len, VALUE sym) {
+  ID symbol = rb_intern2(RSTRING_PTR(string), FIX2LONG(len));
+  return (SYM2ID(sym) == symbol) ? Qtrue : Qfalse;
+}
+#endif
+
+#ifdef HAVE_RB_INTERN3
+VALUE symbol_spec_rb_intern3(VALUE self, VALUE string, VALUE len, VALUE enc) {
+  return ID2SYM(rb_intern3(RSTRING_PTR(string), FIX2LONG(len), rb_enc_get(enc)));
+}
+
+VALUE symbol_spec_rb_intern3_c_compare(VALUE self, VALUE string, VALUE len, VALUE enc, VALUE sym) {
+  ID symbol = rb_intern3(RSTRING_PTR(string), FIX2LONG(len), rb_enc_get(enc));
   return (SYM2ID(sym) == symbol) ? Qtrue : Qfalse;
 }
 #endif
@@ -53,7 +73,14 @@ void Init_symbol_spec() {
 
 #ifdef HAVE_RB_INTERN
   rb_define_method(cls, "rb_intern", symbol_spec_rb_intern, 1);
+  rb_define_method(cls, "rb_intern2", symbol_spec_rb_intern2, 2);
   rb_define_method(cls, "rb_intern_c_compare", symbol_spec_rb_intern_c_compare, 2);
+  rb_define_method(cls, "rb_intern2_c_compare", symbol_spec_rb_intern2_c_compare, 3);
+#endif
+
+#ifdef HAVE_RB_INTERN3
+  rb_define_method(cls, "rb_intern3", symbol_spec_rb_intern3, 3);
+  rb_define_method(cls, "rb_intern3_c_compare", symbol_spec_rb_intern3_c_compare, 4);
 #endif
 
 #ifdef HAVE_RB_ID2NAME
