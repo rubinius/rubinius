@@ -21,6 +21,16 @@ class String
     end
   end
 
+  def codepoints
+    if block_given?
+      each_codepoint do |codepoint|
+        yield codepoint
+      end
+    else
+      each_codepoint.to_a
+    end
+  end
+
   def lines(sep=$/)
     if block_given?
       each_line(sep) do |line|

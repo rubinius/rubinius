@@ -5,14 +5,14 @@ class String
     Rubinius::Type.try_convert obj, String, :to_str
   end
 
-  def codepoints
-    return to_enum :codepoints unless block_given?
+  def each_codepoint
+    return to_enum :each_codepoint unless block_given?
 
     each_char { |c| yield c.ord }
     self
   end
 
-  alias_method :each_codepoint, :codepoints
+  alias_method :codepoints, :each_codepoint
 
   def encode!(to=undefined, from=undefined, options=undefined)
     Rubinius.check_frozen
