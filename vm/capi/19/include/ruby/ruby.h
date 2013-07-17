@@ -1657,6 +1657,8 @@ VALUE rb_uint2big(unsigned long number);
 
   /** Create a frozen String from an existing string. */
   VALUE   rb_str_new4(VALUE string);
+#define rb_str_new_frozen rb_str_new4
+#define rb_str_dup_frozen rb_str_new4
 
   /** Creates a new String in the external encoding from a pointer and length. */
   VALUE rb_external_str_new(const char* string, long size);
