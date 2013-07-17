@@ -117,9 +117,9 @@ class RubiniusPackager
   # any configure options
   def config
     config = ["--prefix=#{prefix} --preserve-prefix"]
-    config << ["--enable-version=#{ruby_version}"] if single_version?
-    config << ["--release=#{release_type}"] if release_type
-    config << ["--release-date=#{release_date}"]
+    config << "--enable-version=#{ruby_version}" if single_version?
+    config << "--release=#{release_type}" if release_type
+    config << "--release-date=#{release_date}"
     config << @config
     config.join(" ")
   end
