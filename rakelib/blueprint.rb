@@ -149,7 +149,7 @@ Daedalus.blueprint do |i|
 
   if Rubinius::BUILD_CONFIG[:vendor_yaml]
     yaml = i.external_lib "vendor/libyaml" do |l|
-      l.cflags = ["-Ivendor/libyaml -fPIC"] + gcc.cflags
+      l.cflags = ["-Ivendor/libyaml -fPIC -Wno-pointer-sign"] + gcc.cflags
       l.objects = [l.file("src/.libs/libyaml.a")]
       c_cflags = l.cflags.join(" ").inspect
       l.to_build do |x|
