@@ -135,6 +135,10 @@ def include19_dir
   File.expand_path("../../vm/capi/19/include", __FILE__)
 end
 
+def include20_dir
+  File.expand_path("../../vm/capi/20/include", __FILE__)
+end
+
 def add_rbx_capi
   add_cflag Rubinius::BUILD_CONFIG[:system_cflags]
   add_cxxflag Rubinius::BUILD_CONFIG[:system_cxxflags]
@@ -147,10 +151,13 @@ def add_rbx_capi
     add_cflag "-O2"
   end
 
-  if ENV['BUILD_VERSION'] == "18"
+  case ENV['BUILD_VERSION']
+  when "18"
     add_include_dir include18_dir
-  else
+  when "19"
     add_include_dir include19_dir
+  when "20"
+    add_include_dir include20_dir
   end
 end
 
@@ -179,6 +186,7 @@ def common_headers(*extra)
   @common_headers ||= FileList[
     include18_dir + "/*.h",
     include19_dir + "/*.h",
+    include20_dir + "/*.h",
     *extra
   ].existing
 end
@@ -201,7 +209,7 @@ end
 
 def graph_dependencies(sources, directories=[], objects_dir=nil)
   directories = Array(directories)
-  directories.concat [".", include18_dir, include19_dir]
+  directories.concat [".", include18_dir, include19_dir, include20_dir]
 
   grapher = DependencyGrapher.new $CC, sources, directories
   grapher.objects_dir = objects_dir
