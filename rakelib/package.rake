@@ -122,7 +122,9 @@ namespace :package do
     namespace :heroku do
       desc "Build a general Unix/Linux Heroku binary package for #{desc_version}"
       task ruby_version.to_sym do
-        sh "rake package:binary_builder RBX_BINARY_PACKAGE=#{heroku_package} RBX_BINARY_PREFIX=/app/vendor/#{heroku_package} RBX_BINARY_LANGUAGE=#{ruby_version}"
+        sh "rake package:binary_builder RBX_BINARY_PACKAGE=#{heroku_package} " \
+           "RBX_BINARY_PREFIX=/app/vendor/#{heroku_package} " \
+           "RBX_BINARY_LANGUAGE=#{ruby_version} RBX_BINARY_CONFIG=--with-vendor-yaml"
       end
     end
 
@@ -136,7 +138,10 @@ namespace :package do
         namespace release do
           desc "Build a general Unix/Linux #{release} binary package for Heroku"
           task ruby_version.to_sym do
-            sh "rake package:binary_builder RBX_BINARY_PACKAGE=#{heroku_package} RBX_BINARY_PREFIX=/app/vendor/#{heroku_package} RBX_BINARY_LANGUAGE=#{ruby_version} RBX_BINARY_RELEASE=#{release}"
+            sh "rake package:binary_builder RBX_BINARY_PACKAGE=#{heroku_package} " \
+               "RBX_BINARY_PREFIX=/app/vendor/#{heroku_package} " \
+               "RBX_BINARY_LANGUAGE=#{ruby_version} RBX_BINARY_RELEASE=#{release} " \
+               "RBX_BINARY_CONFIG=--with-vendor-yaml"
           end
         end
       end
