@@ -586,6 +586,12 @@ describe "C-API String function" do
     end
   end
 
+  describe "rb_str_update" do
+    it "splices the replacement string into the original at the given location" do
+      @s.rb_str_update("hello", 2, 3, "wuh").should == "hewuh"
+    end
+  end
+
   extended_on :rubinius do
     describe "rb_str_ptr" do
       it "returns struct with a pointer to the string's contents" do

@@ -542,6 +542,13 @@ static VALUE string_spec_rb_str_hash(VALUE self, VALUE str) {
 }
 #endif
 
+#ifdef HAVE_RB_STR_UPDATE
+static VALUE string_spec_rb_str_update(VALUE self, VALUE str, VALUE beg, VALUE end, VALUE replacement) {
+  rb_str_update(str, FIX2LONG(beg), FIX2LONG(end), replacement);
+  return str;
+}
+#endif
+
 #ifdef HAVE_RB_SPRINTF
 static VALUE string_spec_rb_sprintf1(VALUE self, VALUE str, VALUE repl) {
   return rb_sprintf(RSTRING_PTR(str), RSTRING_PTR(repl));
@@ -788,6 +795,10 @@ void Init_string_spec() {
 
 #ifdef HAVE_RB_STR_HASH
   rb_define_method(cls, "rb_str_hash", string_spec_rb_str_hash, 1);
+#endif
+
+#ifdef HAVE_RB_STR_UPDATE
+  rb_define_method(cls, "rb_str_update", string_spec_rb_str_update, 4);
 #endif
 
 #ifdef HAVE_RB_SPRINTF
