@@ -405,7 +405,7 @@ namespace :vm do
       'bin/gem',
       'vm/.deps',
       'staging'
-    ].exclude("vm/gen/config.h")
+    ].exclude("vm/gen/config.h", "vm/gen/paths.h")
 
     files.each do |filename|
       rm_rf filename, :verbose => $verbose
