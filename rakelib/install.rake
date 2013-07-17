@@ -96,7 +96,7 @@ def install_lib_excludes(prefix, list)
   list.exclude("#{prefix}/**/ext/melbourne/build/*.*")
   BUILD_CONFIG[:supported_versions].each do |ver|
     unless BUILD_CONFIG[:language_version] == ver
-      list.exclude("#{prefix}/#{ver}/**/*.*")
+      list.exclude(%r[^#{prefix}/#{ver}/.*])
     end
   end
 end
