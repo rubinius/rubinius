@@ -3881,6 +3881,10 @@ parser_tokadd_string(rb_parser_state *parser_state,
           pushback(c);
           if(func & STR_FUNC_ESCAPE) tokadd('\\');
           c = read_escape(0, &enc);
+          if(!ISASCII(c)) {
+            if(tokadd_mbchar(c) == -1) return -1;
+            continue;
+          }
         } else if((func & STR_FUNC_QWORDS) && ISSPACE(c)) {
           /* ignore backslashed spaces in %w */
         } else if(c != term && !(paren && c == paren)) {
