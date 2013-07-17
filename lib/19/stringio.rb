@@ -45,6 +45,7 @@ class StringIO
     if string.nil?
       @__data__ = Data.new ""
       set_encoding(nil)
+      mode = IO::RDWR
     else
       string = Rubinius::Type.coerce_to string, String, :to_str
       @__data__ = Data.new string
