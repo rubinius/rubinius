@@ -22,5 +22,9 @@ module Rubinius
     class Object < Mirror
       subject = ::Object
     end
+
+    def inspect
+      "#<#{self.class.name}:0x#{self.object_id.to_s(16)} object=#{@object.inspect}>"
+    end
   end
 end
