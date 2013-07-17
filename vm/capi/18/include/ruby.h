@@ -1441,20 +1441,6 @@ VALUE rb_uint2big(unsigned long number);
    */
   char *rb_str_ptr(VALUE self);
 
-  /** Write the contents of the cached data at the pointer returned by
-   * rb_str_ptr to the Ruby object.
-   *
-   * @note This is NOT an MRI C-API function.
-   */
-  void rb_str_flush(VALUE self);
-
-  /** Update the cached data at the pointer returned by rb_str_ptr with the
-   * contents of the Ruby object.
-   *
-   * @note This is NOT an MRI C-API function.
-   */
-  void rb_str_update(VALUE self);
-
   /** Returns a pointer to a persistent char [] that contains the same data as
    * that contained in the Ruby string. The buffer is intended to be
    * read-only. No changes to the buffer will be propagated to the Ruby

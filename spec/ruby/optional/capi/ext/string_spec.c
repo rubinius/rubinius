@@ -341,7 +341,6 @@ VALUE string_spec_rb_str_ptr_assign_funcall(VALUE self, VALUE str) {
   char *ptr = rb_str_ptr(str);
 
   ptr[1] = 'x';
-  rb_str_flush(str);
   rb_funcall(str, rb_intern("<<"), 1, rb_str_new2("e"));
   return str;
 }
@@ -637,9 +636,6 @@ void Init_string_spec() {
 
 #ifdef HAVE_RB_STR_DUP
   rb_define_method(cls, "rb_str_dup", string_spec_rb_str_dup, 1);
-#endif
-
-#ifdef HAVE_RB_STR_FLUSH
 #endif
 
 #ifdef HAVE_RB_STR_FREEZE

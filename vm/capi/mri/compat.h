@@ -67,14 +67,6 @@
 #define rb_str_ptr_readonly(str) RSTRING_PTR(str)
 #endif
 
-#ifndef rb_str_flush
-#define rb_str_flush(str)
-#endif
-
-#ifndef rb_str_update
-#define rb_str_update(str)
-#endif
-
 #ifndef rb_str_len
 #define rb_str_len(str) RSTRING_LEN(str)
 #endif
