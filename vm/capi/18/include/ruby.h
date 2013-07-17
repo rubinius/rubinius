@@ -1566,6 +1566,8 @@ VALUE rb_uint2big(unsigned long number);
 
   long    rb_str_hash(VALUE str);
 
+  void    rb_str_update(VALUE str, long beg, long end, VALUE replacement);
+
   /** Raises an exception from the value of errno. */
   NORETURN(void rb_sys_fail(const char* mesg));
 

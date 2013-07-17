@@ -478,6 +478,16 @@ extern "C" {
     return string->hash_string(env->state());
   }
 
+  void rb_str_update(VALUE self, long beg, long end, VALUE replacement) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    String* string = capi_get_string(env, self);
+    Class* klass = Module::mirror(env->state(), string);
+
+    VALUE mirror = capi_fast_call(env->get_handle(klass), rb_intern("new"), 1, self);
+    capi_fast_call(mirror, rb_intern("splice"), 3, LONG2FIX(beg), LONG2FIX(end), replacement);
+  }
+
   VALUE rb_str_equal(VALUE self, VALUE other) {
     if(self == other) {
       return Qtrue;
