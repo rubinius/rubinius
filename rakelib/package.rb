@@ -116,11 +116,12 @@ class RubiniusPackager
 
   # any configure options
   def config
-    default = ["--prefix=#{prefix} --preserve-prefix"]
-    default << ["--enable-version=#{ruby_version}"] if single_version?
-    default << ["--release=#{release_type}"] if release_type
-    default << ["--release-date=#{release_date}"]
-    @config || default.join(" ")
+    config = ["--prefix=#{prefix} --preserve-prefix"]
+    config << ["--enable-version=#{ruby_version}"] if single_version?
+    config << ["--release=#{release_type}"] if release_type
+    config << ["--release-date=#{release_date}"]
+    config << @config
+    config.join(" ")
   end
 
   # "zip", "tar.gz", "tar.bz2"
