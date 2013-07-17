@@ -1296,6 +1296,7 @@ VALUE rb_uint2big(unsigned long number);
 
   /** Convert string to an ID */
   ID      rb_intern(const char* string);
+  ID      rb_intern2(const char* string, long len);
 
   /** Coerce x and y and perform 'x func y' */
   VALUE rb_num_coerce_bin(VALUE x, VALUE y, ID func);
@@ -1577,20 +1578,6 @@ VALUE rb_uint2big(unsigned long number);
    */
   char *rb_str_ptr(VALUE self);
 
-  /** Write the contents of the cached data at the pointer returned by
-   * rb_str_ptr to the Ruby object.
-   *
-   * @note This is NOT an MRI C-API function.
-   */
-  void rb_str_flush(VALUE self);
-
-  /** Update the cached data at the pointer returned by rb_str_ptr with the
-   * contents of the Ruby object.
-   *
-   * @note This is NOT an MRI C-API function.
-   */
-  void rb_str_update(VALUE self);
-
   /** Returns a pointer to a persistent char [] that contains the same data as
    * that contained in the Ruby string. The buffer is intended to be
    * read-only. No changes to the buffer will be propagated to the Ruby
@@ -1670,6 +1657,8 @@ VALUE rb_uint2big(unsigned long number);
 
   /** Create a frozen String from an existing string. */
   VALUE   rb_str_new4(VALUE string);
+#define rb_str_new_frozen rb_str_new4
+#define rb_str_dup_frozen rb_str_new4
 
   /** Creates a new String in the external encoding from a pointer and length. */
   VALUE rb_external_str_new(const char* string, long size);
@@ -1728,6 +1717,8 @@ VALUE rb_uint2big(unsigned long number);
   char*   rb_str2cstr(VALUE string, long *len);
 
   long    rb_str_hash(VALUE str);
+
+  void    rb_str_update(VALUE str, long beg, long end, VALUE replacement);
 
   VALUE rb_sprintf(const char* format, ...);
 
