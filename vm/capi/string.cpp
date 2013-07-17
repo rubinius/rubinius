@@ -286,8 +286,9 @@ extern "C" {
   }
 
   VALUE rb_str_new4(VALUE string) {
-    if(rb_obj_frozen_p(string))
+    if(rb_obj_frozen_p(string)) {
       return string;
+    }
 
     VALUE str = rb_obj_freeze(rb_str_dup(string));
 
