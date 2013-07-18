@@ -167,6 +167,17 @@ describe "Module#define_method" do
       }.should raise_error(ArgumentError)
     end
   end
+
+  it "does not change the arity check style of the original proc" do
+    class DefineMethodSpecClass
+      prc = Proc.new { || true }
+      method = define_method("proc_style_test", &prc)
+      prc.call(:too_many_arguments).should be_true
+      lambda {
+        method.call :too_many_arguments
+      }.should raise_error(ArgumentError)
+    end
+  end
 end
 
 describe "Module#define_method" do
