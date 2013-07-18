@@ -63,8 +63,8 @@ class CGI
   #   cgi.a("http://www.example.com") { "Example" }
   #     # => "<A HREF=\"http://www.example.com\">Example</A>"
   #
-  # Modules Http3, Http4, etc., contain more basic HTML-generation methods
-  # (:title, :center, etc.).
+  # Modules Html3, Html4, etc., contain more basic HTML-generation methods
+  # (+#title+, +#h1+, etc.).
   #
   # See class CGI for a detailed example.
   #
@@ -334,7 +334,7 @@ class CGI
         body = ""
       end
       if @output_hidden
-        body += @output_hidden.collect{|k,v|
+        body << @output_hidden.collect{|k,v|
           "<INPUT TYPE=\"HIDDEN\" NAME=\"#{k}\" VALUE=\"#{v}\">"
         }.join
       end
@@ -420,18 +420,18 @@ class CGI
 
       if attributes.has_key?("DOCTYPE")
         if attributes["DOCTYPE"]
-          buf += attributes.delete("DOCTYPE")
+          buf << attributes.delete("DOCTYPE")
         else
           attributes.delete("DOCTYPE")
         end
       else
-        buf += doctype
+        buf << doctype
       end
 
       if block_given?
-        buf += super(attributes){ yield }
+        buf << super(attributes){ yield }
       else
-        buf += super(attributes)
+        buf << super(attributes)
       end
 
       if pretty
@@ -845,14 +845,15 @@ class CGI
     # Initialise the HTML generation methods for this version.
     def element_init
       extend TagMaker
+      return if defined?(html)
       methods = ""
       # - -
       for element in %w[ A TT I B U STRIKE BIG SMALL SUB SUP EM STRONG
-          DFN CODE SAMP KBD VAR CITE FONT ADDRESS DIV center MAP
-          APPLET PRE XMP LISTING DL OL UL DIR MENU SELECT table TITLE
+          DFN CODE SAMP KBD VAR CITE FONT ADDRESS DIV CENTER MAP
+          APPLET PRE XMP LISTING DL OL UL DIR MENU SELECT TABLE TITLE
           STYLE SCRIPT H1 H2 H3 H4 H5 H6 TEXTAREA FORM BLOCKQUOTE
           CAPTION ]
-        methods += <<-BEGIN + nn_element_def(element) + <<-END
+        methods << <<-BEGIN + nn_element_def(element) + <<-END
           def #{element.downcase}(attributes = {})
         BEGIN
           end
@@ -862,7 +863,7 @@ class CGI
       # - O EMPTY
       for element in %w[ IMG BASE BASEFONT BR AREA LINK PARAM HR INPUT
           ISINDEX META ]
-        methods += <<-BEGIN + nOE_element_def(element) + <<-END
+        methods << <<-BEGIN + nOE_element_def(element) + <<-END
           def #{element.downcase}(attributes = {})
         BEGIN
           end
@@ -870,9 +871,9 @@ class CGI
       end
 
       # O O or - O
-      for element in %w[ HTML HEAD BODY P PLAINTEXT DT DD LI OPTION tr
-          th td ]
-        methods += <<-BEGIN + nO_element_def(element) + <<-END
+      for element in %w[ HTML HEAD BODY P PLAINTEXT DT DD LI OPTION TR
+          TH TD ]
+        methods << <<-BEGIN + nO_element_def(element) + <<-END
           def #{element.downcase}(attributes = {})
         BEGIN
           end
@@ -895,6 +896,7 @@ class CGI
     # Initialise the HTML generation methods for this version.
     def element_init
       extend TagMaker
+      return if defined?(html)
       methods = ""
       # - -
       for element in %w[ TT I B BIG SMALL EM STRONG DFN CODE SAMP KBD
@@ -902,7 +904,7 @@ class CGI
         H1 H2 H3 H4 H5 H6 PRE Q INS DEL DL OL UL LABEL SELECT OPTGROUP
         FIELDSET LEGEND BUTTON TABLE TITLE STYLE SCRIPT NOSCRIPT
         TEXTAREA FORM A BLOCKQUOTE CAPTION ]
-        methods += <<-BEGIN + nn_element_def(element) + <<-END
+        methods << <<-BEGIN + nn_element_def(element) + <<-END
           def #{element.downcase}(attributes = {})
         BEGIN
           end
@@ -911,7 +913,7 @@ class CGI
 
       # - O EMPTY
       for element in %w[ IMG BASE BR AREA LINK PARAM HR INPUT COL META ]
-        methods += <<-BEGIN + nOE_element_def(element) + <<-END
+        methods << <<-BEGIN + nOE_element_def(element) + <<-END
           def #{element.downcase}(attributes = {})
         BEGIN
           end
@@ -920,8 +922,8 @@ class CGI
 
       # O O or - O
       for element in %w[ HTML BODY P DT DD LI OPTION THEAD TFOOT TBODY
-          COLGROUP TR TH TD HEAD]
-        methods += <<-BEGIN + nO_element_def(element) + <<-END
+          COLGROUP TR TH TD HEAD ]
+        methods << <<-BEGIN + nO_element_def(element) + <<-END
           def #{element.downcase}(attributes = {})
         BEGIN
           end
@@ -944,6 +946,7 @@ class CGI
     # Initialise the HTML generation methods for this version.
     def element_init
       extend TagMaker
+      return if defined?(html)
       methods = ""
       # - -
       for element in %w[ TT I B U S STRIKE BIG SMALL EM STRONG DFN
@@ -952,7 +955,7 @@ class CGI
           INS DEL DL OL UL DIR MENU LABEL SELECT OPTGROUP FIELDSET
           LEGEND BUTTON TABLE IFRAME NOFRAMES TITLE STYLE SCRIPT
           NOSCRIPT TEXTAREA FORM A BLOCKQUOTE CAPTION ]
-        methods += <<-BEGIN + nn_element_def(element) + <<-END
+        methods << <<-BEGIN + nn_element_def(element) + <<-END
           def #{element.downcase}(attributes = {})
         BEGIN
           end
@@ -962,7 +965,7 @@ class CGI
       # - O EMPTY
       for element in %w[ IMG BASE BASEFONT BR AREA LINK PARAM HR INPUT
           COL ISINDEX META ]
-        methods += <<-BEGIN + nOE_element_def(element) + <<-END
+        methods << <<-BEGIN + nOE_element_def(element) + <<-END
           def #{element.downcase}(attributes = {})
         BEGIN
           end
@@ -972,7 +975,7 @@ class CGI
       # O O or - O
       for element in %w[ HTML BODY P DT DD LI OPTION THEAD TFOOT TBODY
           COLGROUP TR TH TD HEAD ]
-        methods += <<-BEGIN + nO_element_def(element) + <<-END
+        methods << <<-BEGIN + nO_element_def(element) + <<-END
           def #{element.downcase}(attributes = {})
         BEGIN
           end
@@ -994,10 +997,11 @@ class CGI
 
     # Initialise the HTML generation methods for this version.
     def element_init
+      return if defined?(frameset)
       methods = ""
       # - -
       for element in %w[ FRAMESET ]
-        methods += <<-BEGIN + nn_element_def(element) + <<-END
+        methods << <<-BEGIN + nn_element_def(element) + <<-END
           def #{element.downcase}(attributes = {})
         BEGIN
           end
@@ -1006,7 +1010,7 @@ class CGI
 
       # - O EMPTY
       for element in %w[ FRAME ]
-        methods += <<-BEGIN + nOE_element_def(element) + <<-END
+        methods << <<-BEGIN + nOE_element_def(element) + <<-END
           def #{element.downcase}(attributes = {})
         BEGIN
           end
@@ -1016,6 +1020,58 @@ class CGI
     end
 
   end # Html4Fr
+
+
+  # Mixin module for HTML version 5 generation methods.
+  module Html5 # :nodoc:
+
+    # The DOCTYPE declaration for this version of HTML
+    def doctype
+      %|<!DOCTYPE HTML>|
+    end
+
+    # Initialise the HTML generation methods for this version.
+    def element_init
+      extend TagMaker
+      return if defined?(html)
+      methods = ""
+      # - -
+      for element in %w[ SECTION NAV ARTICLE ASIDE HGROUP HEADER
+        FOOTER FIGURE FIGCAPTION S TIME U MARK RUBY BDI IFRAME
+        VIDEO AUDIO CANVAS DATALIST OUTPUT PROGRESS METER DETAILS
+        SUMMARY MENU DIALOG I B SMALL EM STRONG DFN CODE SAMP KBD
+        VAR CITE ABBR SUB SUP SPAN BDO ADDRESS DIV MAP OBJECT
+        H1 H2 H3 H4 H5 H6 PRE Q INS DEL DL OL UL LABEL SELECT
+        FIELDSET LEGEND BUTTON TABLE TITLE STYLE SCRIPT NOSCRIPT
+        TEXTAREA FORM A BLOCKQUOTE CAPTION ]
+        methods += <<-BEGIN + nn_element_def(element) + <<-END
+          def #{element.downcase}(attributes = {})
+        BEGIN
+          end
+        END
+      end
+
+      # - O EMPTY
+      for element in %w[ IMG BASE BR AREA LINK PARAM HR INPUT COL META
+        COMMAND EMBED KEYGEN SOURCE TRACK WBR ]
+        methods += <<-BEGIN + nOE_element_def(element) + <<-END
+          def #{element.downcase}(attributes = {})
+        BEGIN
+          end
+        END
+      end
+
+      # O O or - O
+      for element in %w[ HTML HEAD BODY P DT DD LI OPTION THEAD TFOOT TBODY
+          OPTGROUP COLGROUP RT RP TR TH TD ]
+        methods += <<-BEGIN + nO_element_def(element) + <<-END
+          def #{element.downcase}(attributes = {})
+        BEGIN
+          end
+        END
+      end
+      eval(methods)
+    end
+
+  end # Html5
 end
-
-

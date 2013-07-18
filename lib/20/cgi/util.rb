@@ -4,9 +4,10 @@ class CGI
   #   url_encoded_string = CGI::escape("'Stop!' said Fred")
   #      # => "%27Stop%21%27+said+Fred"
   def CGI::escape(string)
-    string.gsub(/([^ a-zA-Z0-9_.-]+)/) do
+    encoding = string.encoding
+    string.dup.force_encoding('ASCII-8BIT').gsub(/([^ a-zA-Z0-9_.-]+)/) do
       '%' + $1.unpack('H2' * $1.bytesize).join('%').upcase
-    end.tr(' ', '+')
+    end.tr(' ', '+').force_encoding(encoding)
   end
 
   # URL-decode a string with encoding(optional).
@@ -21,6 +22,7 @@ class CGI
 
   # The set of special characters and their escaped values
   TABLE_FOR_ESCAPE_HTML__ = {
+    "'" => '&#39;',
     '&' => '&amp;',
     '"' => '&quot;',
     '<' => '&lt;',
@@ -31,7 +33,7 @@ class CGI
   #   CGI::escapeHTML('Usage: foo "bar" <baz>')
   #      # => "Usage: foo &quot;bar&quot; &lt;baz&gt;"
   def CGI::escapeHTML(string)
-    string.gsub(/[&\"<>]/, TABLE_FOR_ESCAPE_HTML__)
+    string.gsub(/['&\"<>]/, TABLE_FOR_ESCAPE_HTML__)
   end
 
   # Unescape a string that has been HTML-escaped
@@ -40,8 +42,9 @@ class CGI
   def CGI::unescapeHTML(string)
     enc = string.encoding
     if [Encoding::UTF_16BE, Encoding::UTF_16LE, Encoding::UTF_32BE, Encoding::UTF_32LE].include?(enc)
-      return string.gsub(Regexp.new('&(amp|quot|gt|lt|#[0-9]+|#x[0-9A-Fa-f]+);'.encode(enc))) do
+      return string.gsub(Regexp.new('&(apos|amp|quot|gt|lt|#[0-9]+|#x[0-9A-Fa-f]+);'.encode(enc))) do
         case $1.encode("US-ASCII")
+        when 'apos'                then "'".encode(enc)
         when 'amp'                 then '&'.encode(enc)
         when 'quot'                then '"'.encode(enc)
         when 'gt'                  then '>'.encode(enc)
@@ -52,9 +55,10 @@ class CGI
       end
     end
     asciicompat = Encoding.compatible?(string, "a")
-    string.gsub(/&(amp|quot|gt|lt|\#[0-9]+|\#x[0-9A-Fa-f]+);/) do
+    string.gsub(/&(apos|amp|quot|gt|lt|\#[0-9]+|\#[xX][0-9A-Fa-f]+);/) do
       match = $1.dup
       case match
+      when 'apos'                then "'"
       when 'amp'                 then '&'
       when 'quot'                then '"'
       when 'gt'                  then '>'
@@ -87,7 +91,7 @@ class CGI
   def CGI::escape_html(str)
     escapeHTML(str)
   end
-  
+
   # Synonym for CGI::unescapeHTML(str)
   def CGI::unescape_html(str)
     unescapeHTML(str)
@@ -141,7 +145,7 @@ class CGI
   def CGI::escape_element(str)
     escapeElement(str)
   end
-  
+
   # Synonym for CGI::unescapeElement(str)
   def CGI::unescape_element(str)
     unescapeElement(str)
