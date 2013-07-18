@@ -165,5 +165,29 @@ module Rubinius
 
       mod.const_missing(name)
     end
+
+    def self.const_exists?(mod, name, inherit = true)
+      name = coerce_to_constant_name name
+
+      current = mod
+
+      while current
+        if bucket = current.constant_table.lookup(name)
+          return !!bucket.constant
+        end
+
+        return false unless inherit
+
+        current = current.direct_superclass
+      end
+
+      if instance_of?(Module)
+        if bucket = Object.constant_table.lookup(name)
+          return !!bucket.constant
+        end
+      end
+
+      false
+    end
   end
 end
