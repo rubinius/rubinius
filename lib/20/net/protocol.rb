@@ -45,6 +45,18 @@ module Net # :nodoc:
   class ProtoRetriableError    < ProtocolError; end
   ProtocRetryError = ProtoRetriableError
 
+  ##
+  # OpenTimeout, a subclass of Timeout::Error, is raised if a connection cannot
+  # be created within the open_timeout.
+
+  class OpenTimeout            < Timeout::Error; end
+
+  ##
+  # ReadTimeout, a subclass of Timeout::Error, is raised if a chunk of the
+  # response cannot be read within the read_timeout.
+
+  class ReadTimeout            < Timeout::Error; end
+
 
   class BufferedIO   #:nodoc: internal use only
     def initialize(io)
@@ -143,7 +155,7 @@ module Net # :nodoc:
         if IO.select([@io], nil, nil, @read_timeout)
           retry
         else
-          raise Timeout::Error
+          raise Net::ReadTimeout
         end
       rescue IO::WaitWritable
         # OpenSSL::Buffering#read_nonblock may fail with IO::WaitWritable.
@@ -151,7 +163,7 @@ module Net # :nodoc:
         if IO.select(nil, [@io], nil, @read_timeout)
           retry
         else
-          raise Timeout::Error
+          raise Net::ReadTimeout
         end
       end
     end
@@ -310,7 +322,7 @@ module Net # :nodoc:
 
     def each_crlf_line(src)
       buffer_filling(@wbuf, src) do
-        while line = @wbuf.slice!(/\A.*(?:\n|\r\n|\r(?!\z))/n)
+        while line = @wbuf.slice!(/\A[^\r\n]*(?:\n|\r(?:\n|(?!\z)))/)
           yield line.chomp("\n") + "\r\n"
         end
       end

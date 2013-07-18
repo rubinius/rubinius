@@ -2,7 +2,7 @@
 #
 # Author:: Akira Yamada <akira@ruby-lang.org>
 # License:: You can redistribute it and/or modify it under the same term as Ruby.
-# Revision:: $Id: http.rb 31907 2011-06-03 00:32:25Z naruse $
+# Revision:: $Id$
 #
 # See URI for general documentation
 #
@@ -49,7 +49,7 @@ module URI
     # Example:
     #
     #     newuri = URI::HTTP.build({:host => 'www.example.com',
-    #       :path> => '/foo/bar'})
+    #       :path => '/foo/bar'})
     #
     #     newuri = URI::HTTP.build([nil, "www.example.com", nil, "/path",
     #       "query", 'fragment'])

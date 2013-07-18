@@ -90,7 +90,7 @@
 # License::
 #  Copyright (c) 2001 akira yamada <akira@ruby-lang.org>
 #  You can redistribute it and/or modify it under the same term as Ruby.
-# Revision:: $Id: uri.rb 31555 2011-05-13 20:03:21Z drbrain $
+# Revision:: $Id$
 #
 
 module URI

@@ -2,7 +2,7 @@
 # = uri/common.rb
 #
 # Author:: Akira Yamada <akira@ruby-lang.org>
-# Revision:: $Id: common.rb 33048 2011-08-24 07:29:33Z naruse $
+# Revision:: $Id$
 # License::
 #   You can redistribute it and/or modify it under the same term as Ruby.
 #
@@ -258,7 +258,7 @@ module URI
     #
     # see also URI::Parser.make_regexp
     #
-    def extract(str, schemes = nil, &block)
+    def extract(str, schemes = nil)
       if block_given?
         str.scan(make_regexp(schemes)) { yield $& }
         nil
@@ -514,16 +514,16 @@ module URI
       ret[:UNSAFE]  = Regexp.new("[^#{pattern[:UNRESERVED]}#{pattern[:RESERVED]}]")
 
       # for Generic#initialize
-      ret[:SCHEME]   = Regexp.new("^#{pattern[:SCHEME]}$")
-      ret[:USERINFO] = Regexp.new("^#{pattern[:USERINFO]}$")
-      ret[:HOST]     = Regexp.new("^#{pattern[:HOST]}$")
-      ret[:PORT]     = Regexp.new("^#{pattern[:PORT]}$")
-      ret[:OPAQUE]   = Regexp.new("^#{pattern[:OPAQUE_PART]}$")
-      ret[:REGISTRY] = Regexp.new("^#{pattern[:REG_NAME]}$")
-      ret[:ABS_PATH] = Regexp.new("^#{pattern[:ABS_PATH]}$")
-      ret[:REL_PATH] = Regexp.new("^#{pattern[:REL_PATH]}$")
-      ret[:QUERY]    = Regexp.new("^#{pattern[:QUERY]}$")
-      ret[:FRAGMENT] = Regexp.new("^#{pattern[:FRAGMENT]}$")
+      ret[:SCHEME]   = Regexp.new("\\A#{pattern[:SCHEME]}\\z")
+      ret[:USERINFO] = Regexp.new("\\A#{pattern[:USERINFO]}\\z")
+      ret[:HOST]     = Regexp.new("\\A#{pattern[:HOST]}\\z")
+      ret[:PORT]     = Regexp.new("\\A#{pattern[:PORT]}\\z")
+      ret[:OPAQUE]   = Regexp.new("\\A#{pattern[:OPAQUE_PART]}\\z")
+      ret[:REGISTRY] = Regexp.new("\\A#{pattern[:REG_NAME]}\\z")
+      ret[:ABS_PATH] = Regexp.new("\\A#{pattern[:ABS_PATH]}\\z")
+      ret[:REL_PATH] = Regexp.new("\\A#{pattern[:REL_PATH]}\\z")
+      ret[:QUERY]    = Regexp.new("\\A#{pattern[:QUERY]}\\z")
+      ret[:FRAGMENT] = Regexp.new("\\A#{pattern[:FRAGMENT]}\\z")
 
       ret
     end
@@ -849,7 +849,22 @@ module URI
   end
 
   TBLENCWWWCOMP_ = {} # :nodoc:
+  256.times do |i|
+    TBLENCWWWCOMP_[i.chr] = '%%%02X' % i
+  end
+  TBLENCWWWCOMP_[' '] = '+'
+  TBLENCWWWCOMP_.freeze
   TBLDECWWWCOMP_ = {} # :nodoc:
+  256.times do |i|
+    h, l = i>>4, i&15
+    TBLDECWWWCOMP_['%%%X%X' % [h, l]] = i.chr
+    TBLDECWWWCOMP_['%%%x%X' % [h, l]] = i.chr
+    TBLDECWWWCOMP_['%%%X%x' % [h, l]] = i.chr
+    TBLDECWWWCOMP_['%%%x%x' % [h, l]] = i.chr
+  end
+  TBLDECWWWCOMP_['+'] = ' '
+  TBLDECWWWCOMP_.freeze
+
   HTML5ASCIIINCOMPAT = [Encoding::UTF_7, Encoding::UTF_16BE, Encoding::UTF_16LE,
     Encoding::UTF_32BE, Encoding::UTF_32LE] # :nodoc:
 
@@ -859,22 +874,10 @@ module URI
   # (ASCII space) to + and converts others to %XX.
   #
   # This is an implementation of
-  # http://www.w3.org/TR/html5/forms.html#url-encoded-form-data
+  # http://www.w3.org/TR/html5/association-of-controls-and-forms.html#url-encoded-form-data
   #
   # See URI.decode_www_form_component, URI.encode_www_form
   def self.encode_www_form_component(str)
-    if TBLENCWWWCOMP_.empty?
-      tbl = {}
-      256.times do |i|
-        tbl[i.chr] = '%%%02X' % i
-      end
-      tbl[' '] = '+'
-      begin
-        TBLENCWWWCOMP_.replace(tbl)
-        TBLENCWWWCOMP_.freeze
-      rescue
-      end
-    end
     str = str.to_s
     if HTML5ASCIIINCOMPAT.include?(str.encoding)
       str = str.encode(Encoding::UTF_8)
@@ -888,26 +891,10 @@ module URI
 
   # Decode given +str+ of URL-encoded form data.
   #
-  # This decods + to SP.
+  # This decodes + to SP.
   #
   # See URI.encode_www_form_component, URI.decode_www_form
   def self.decode_www_form_component(str, enc=Encoding::UTF_8)
-    if TBLDECWWWCOMP_.empty?
-      tbl = {}
-      256.times do |i|
-        h, l = i>>4, i&15
-        tbl['%%%X%X' % [h, l]] = i.chr
-        tbl['%%%x%X' % [h, l]] = i.chr
-        tbl['%%%X%x' % [h, l]] = i.chr
-        tbl['%%%x%x' % [h, l]] = i.chr
-      end
-      tbl['+'] = ' '
-      begin
-        TBLDECWWWCOMP_.replace(tbl)
-        TBLDECWWWCOMP_.freeze
-      rescue
-      end
-    end
     raise ArgumentError, "invalid %-encoding (#{str})" unless /\A[^%]*(?:%\h\h[^%]*)*\z/ =~ str
     str.gsub(/\+|%\h\h/, TBLDECWWWCOMP_).force_encoding(enc)
   end

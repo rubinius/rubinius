@@ -16,6 +16,7 @@
 
 require "socket"
 require "monitor"
+require "net/protocol"
 
 module Net
 
@@ -40,7 +41,7 @@ module Net
   #
   # === Example 1
   #
-  #   ftp = Net::FTP.new('ftp.netlab.co.jp')
+  #   ftp = Net::FTP.new('example.com')
   #   ftp.login
   #   files = ftp.chdir('pub/lang/ruby/contrib')
   #   files = ftp.list('n*')
@@ -49,7 +50,7 @@ module Net
   #
   # === Example 2
   #
-  #   Net::FTP.open('ftp.netlab.co.jp') do |ftp|
+  #   Net::FTP.open('example.com') do |ftp|
   #     ftp.login
   #     files = ftp.chdir('pub/lang/ruby/contrib')
   #     files = ftp.list('n*')
@@ -76,7 +77,7 @@ module Net
     # :stopdoc:
     FTP_PORT = 21
     CRLF = "\r\n"
-    DEFAULT_BLOCKSIZE = 4096
+    DEFAULT_BLOCKSIZE = BufferedIO::BUFSIZE
     # :startdoc:
 
     # When +true+, transfers are performed in binary mode.  Default: +true+.
@@ -92,6 +93,24 @@ module Net
     # Sets or retrieves the +resume+ status, which decides whether incomplete
     # transfers are resumed or restarted.  Default: +false+.
     attr_accessor :resume
+
+    # Number of seconds to wait for the connection to open. Any number
+    # may be used, including Floats for fractional seconds. If the FTP
+    # object cannot open a connection in this many seconds, it raises a
+    # Net::OpenTimeout exception. The default value is +nil+.
+    attr_accessor :open_timeout
+
+    # Number of seconds to wait for one block to be read (via one read(2)
+    # call). Any number may be used, including Floats for fractional
+    # seconds. If the FTP object cannot read data in this many seconds,
+    # it raises a TimeoutError exception. The default value is 60 seconds.
+    attr_reader :read_timeout
+
+    # Setter for the read_timeout attribute.
+    def read_timeout=(sec)
+      @sock.read_timeout = sec
+      @read_timeout = sec
+    end
 
     # The server's welcome message.
     attr_reader :welcome
@@ -135,6 +154,8 @@ module Net
       @resume = false
       @sock = NullSocket.new
       @logged_in = false
+      @open_timeout = nil
+      @read_timeout = 60
       if host
         connect(host)
         if user
@@ -199,12 +220,17 @@ module Net
     # SOCKS_SERVER, then a SOCKSSocket is returned, else a TCPSocket is
     # returned.
     def open_socket(host, port) # :nodoc:
-      if defined? SOCKSSocket and ENV["SOCKS_SERVER"]
-        @passive = true
-        return SOCKSSocket.open(host, port)
-      else
-        return TCPSocket.open(host, port)
-      end
+      return Timeout.timeout(@open_timeout, Net::OpenTimeout) {
+        if defined? SOCKSSocket and ENV["SOCKS_SERVER"]
+          @passive = true
+          sock = SOCKSSocket.open(host, port)
+        else
+          sock = TCPSocket.open(host, port)
+        end
+        io = BufferedSocket.new(sock)
+        io.read_timeout = @read_timeout
+        io
+      }
     end
     private :open_socket
 
@@ -405,7 +431,10 @@ module Net
         if resp[0] != ?1
           raise FTPReplyError, resp
         end
-        conn = sock.accept
+        conn = BufferedSocket.new(sock.accept)
+        conn.read_timeout = @read_timeout
+        sock.shutdown(Socket::SHUT_WR) rescue nil
+        sock.read rescue nil
         sock.close
       end
       return conn
@@ -454,13 +483,19 @@ module Net
     def retrbinary(cmd, blocksize, rest_offset = nil) # :yield: data
       synchronize do
         with_binary(true) do
-          conn = transfercmd(cmd, rest_offset)
-          loop do
-            data = conn.read(blocksize)
-            break if data == nil
-            yield(data)
+          begin
+            conn = transfercmd(cmd, rest_offset)
+            loop do
+              data = conn.read(blocksize)
+              break if data == nil
+              yield(data)
+            end
+            conn.shutdown(Socket::SHUT_WR)
+            conn.read_timeout = 1
+            conn.read
+          ensure
+            conn.close if conn
           end
-          conn.close
           voidresp
         end
       end
@@ -475,13 +510,19 @@ module Net
     def retrlines(cmd) # :yield: line
       synchronize do
         with_binary(false) do
-          conn = transfercmd(cmd)
-          loop do
-            line = conn.gets
-            break if line == nil
-            yield(line.sub(/\r?\n\z/, ""), !line.match(/\n\z/).nil?)
+          begin
+            conn = transfercmd(cmd)
+            loop do
+              line = conn.gets
+              break if line == nil
+              yield(line.sub(/\r?\n\z/, ""), !line.match(/\n\z/).nil?)
+            end
+            conn.shutdown(Socket::SHUT_WR)
+            conn.read_timeout = 1
+            conn.read
+          ensure
+            conn.close if conn
           end
-          conn.close
           voidresp
         end
       end
@@ -493,7 +534,7 @@ module Net
     # +file+ to the server. If the optional block is given, it also passes it
     # the data, in chunks of +blocksize+ characters.
     #
-    def storbinary(cmd, file, blocksize, rest_offset = nil, &block) # :yield: data
+    def storbinary(cmd, file, blocksize, rest_offset = nil) # :yield: data
       if rest_offset
         file.seek(rest_offset, IO::SEEK_SET)
       end
@@ -504,7 +545,7 @@ module Net
             buf = file.read(blocksize)
             break if buf == nil
             conn.write(buf)
-            yield(buf) if block
+            yield(buf) if block_given?
           end
           conn.close
           voidresp
@@ -525,7 +566,7 @@ module Net
     # named +file+ to the server, one line at a time. If the optional block is
     # given, it also passes it the lines.
     #
-    def storlines(cmd, file, &block) # :yield: line
+    def storlines(cmd, file) # :yield: line
       synchronize do
         with_binary(false) do
           conn = transfercmd(cmd)
@@ -536,7 +577,7 @@ module Net
               buf = buf.chomp + CRLF
             end
             conn.write(buf)
-            yield(buf) if block
+            yield(buf) if block_given?
           end
           conn.close
           voidresp
@@ -905,7 +946,16 @@ module Net
     # a new connection with #connect.
     #
     def close
-      @sock.close if @sock and not @sock.closed?
+      if @sock and not @sock.closed?
+        begin
+          @sock.shutdown(Socket::SHUT_WR) rescue nil
+          orig, self.read_timeout = self.read_timeout, 3
+          @sock.read rescue nil
+        ensure
+          @sock.close
+          self.read_timeout = orig
+        end
+      end
     end
 
     #
@@ -923,18 +973,11 @@ module Net
       if resp[0, 3] != "227"
         raise FTPReplyError, resp
       end
-      left = resp.index("(")
-      right = resp.index(")")
-      if left == nil or right == nil
+      if m = /\((?<host>\d+(,\d+){3}),(?<port>\d+,\d+)\)/.match(resp)
+        return parse_pasv_ipv4_host(m["host"]), parse_pasv_port(m["port"])
+      else
         raise FTPProtoError, resp
       end
-      numbers = resp[left + 1 .. right - 1].split(",")
-      if numbers.length != 6
-        raise FTPProtoError, resp
-      end
-      host = numbers[0, 4].join(".")
-      port = (numbers[4].to_i << 8) + numbers[5].to_i
-      return host, port
     end
     private :parse227
 
@@ -946,33 +989,35 @@ module Net
       if resp[0, 3] != "228"
         raise FTPReplyError, resp
       end
-      left = resp.index("(")
-      right = resp.index(")")
-      if left == nil or right == nil
+      if m = /\(4,4,(?<host>\d+(,\d+){3}),2,(?<port>\d+,\d+)\)/.match(resp)
+        return parse_pasv_ipv4_host(m["host"]), parse_pasv_port(m["port"])
+      elsif m = /\(6,16,(?<host>\d+(,(\d+)){15}),2,(?<port>\d+,\d+)\)/.match(resp)
+        return parse_pasv_ipv6_host(m["host"]), parse_pasv_port(m["port"])
+      else
         raise FTPProtoError, resp
-      end
-      numbers = resp[left + 1 .. right - 1].split(",")
-      if numbers[0] == "4"
-        if numbers.length != 9 || numbers[1] != "4" || numbers[2 + 4] != "2"
-          raise FTPProtoError, resp
-        end
-        host = numbers[2, 4].join(".")
-        port = (numbers[7].to_i << 8) + numbers[8].to_i
-      elsif numbers[0] == "6"
-        if numbers.length != 21 || numbers[1] != "16" || numbers[2 + 16] != "2"
-          raise FTPProtoError, resp
-        end
-        v6 = ["", "", "", "", "", "", "", ""]
-        for i in 0 .. 7
-          v6[i] = sprintf("%02x%02x", numbers[(i * 2) + 2].to_i,
-                          numbers[(i * 2) + 3].to_i)
-        end
-        host = v6[0, 8].join(":")
-        port = (numbers[19].to_i << 8) + numbers[20].to_i
       end
       return host, port
     end
     private :parse228
+
+    def parse_pasv_ipv4_host(s)
+      return s.tr(",", ".")
+    end
+    private :parse_pasv_ipv4_host
+
+    def parse_pasv_ipv6_host(s)
+      return s.split(/,/).map { |i|
+        "%02x" % i.to_i
+      }.each_slice(2).map(&:join).join(":")
+    end
+    private :parse_pasv_ipv6_host
+
+    def parse_pasv_port(s)
+      return s.split(/,/).map(&:to_i).inject { |x, y|
+        (x << 8) + y
+      }
+    end
+    private :parse_pasv_port
 
     # handler for response code 229
     # (Extended Passive Mode Entered)
@@ -982,18 +1027,11 @@ module Net
       if resp[0, 3] != "229"
         raise FTPReplyError, resp
       end
-      left = resp.index("(")
-      right = resp.index(")")
-      if left == nil or right == nil
+      if m = /\((?<d>[!-~])\k<d>\k<d>(?<port>\d+)\k<d>\)/.match(resp)
+        return @sock.peeraddr[3], m["port"].to_i
+      else
         raise FTPProtoError, resp
       end
-      numbers = resp[left + 1 .. right - 1].split(resp[left + 1, 1])
-      if numbers.length != 4
-        raise FTPProtoError, resp
-      end
-      port = numbers[3].to_i
-      host = (@sock.peeraddr())[3]
-      return host, port
     end
     private :parse229
 
@@ -1028,8 +1066,46 @@ module Net
 
     # :stopdoc:
     class NullSocket
+      def read_timeout=(sec)
+      end
+
+      def close
+      end
+
       def method_missing(mid, *args)
         raise FTPConnectionError, "not connected"
+      end
+    end
+
+    class BufferedSocket < BufferedIO
+      [:addr, :peeraddr, :send, :shutdown].each do |method|
+        define_method(method) { |*args|
+          @io.__send__(method, *args)
+        }
+      end
+
+      def read(len = nil)
+        if len
+          s = super(len, "", true)
+          return s.empty? ? nil : s
+        else
+          result = ""
+          while s = super(DEFAULT_BLOCKSIZE, "", true)
+            break if s.empty?
+            result << s
+          end
+          return result
+        end
+      end
+
+      def gets
+        return readuntil("\n")
+      rescue EOFError
+        return nil
+      end
+
+      def readline
+        return readuntil("\n")
       end
     end
     # :startdoc:

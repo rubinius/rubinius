@@ -2,7 +2,7 @@
 #
 # Author:: Akira Yamada <akira@ruby-lang.org>
 # License:: You can redistribute it and/or modify it under the same term as Ruby.
-# Revision:: $Id: mailto.rb 31555 2011-05-13 20:03:21Z drbrain $
+# Revision:: $Id$
 #
 # See URI for general documentation
 #
@@ -103,7 +103,7 @@ module URI
         if tmp[:headers].kind_of?(Array)
           tmp[:opaque] << tmp[:headers].collect { |x|
             if x.kind_of?(Array)
-              x[0] + '=' + x[1..-1].to_s
+              x[0] + '=' + x[1..-1].join
             else
               x.to_s
             end

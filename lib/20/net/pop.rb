@@ -42,8 +42,6 @@ module Net
   class POPBadResponse < POPError; end
 
   #
-  # = Net::POP3
-  #
   # == What is This Library?
   #
   # This library provides functionality for retrieving
@@ -326,7 +324,7 @@ module Net
 
     @ssl_params = nil
 
-    # call-seq:
+    # :call-seq:
     #    Net::POP.enable_ssl(params = {})
     #
     # Enable SSL for all new instances.
@@ -375,7 +373,7 @@ module Net
       return @ssl_params[:verify_mode]
     end
 
-    # returns the :ca_file or :ca_path from POP3.ssh_params
+    # returns the :ca_file or :ca_path from POP3.ssl_params
     def POP3.certs
       return @ssl_params[:ca_file] || @ssl_params[:ca_path]
     end
@@ -444,7 +442,7 @@ module Net
       return !@ssl_params.nil?
     end
 
-    # call-seq:
+    # :call-seq:
     #    Net::POP#enable_ssl(params = {})
     #
     # Enables SSL for this instance.  Must be called before the connection is
@@ -498,12 +496,12 @@ module Net
 
     # Seconds to wait until a connection is opened.
     # If the POP3 object cannot open a connection within this time,
-    # it raises a TimeoutError exception.
+    # it raises a Net::OpenTimeout exception. The default value is 30 seconds.
     attr_accessor :open_timeout
 
     # Seconds to wait until reading one block (by one read(1) call).
     # If the POP3 object cannot complete a read() within this time,
-    # it raises a TimeoutError exception.
+    # it raises a Net::ReadTimeout exception. The default value is 60 seconds.
     attr_reader :read_timeout
 
     # Set the read timeout.
@@ -542,7 +540,9 @@ module Net
 
     # internal method for Net::POP3.start
     def do_start(account, password) # :nodoc:
-      s = timeout(@open_timeout) { TCPSocket.open(@address, port) }
+      s = Timeout.timeout(@open_timeout, Net::OpenTimeout) do
+        TCPSocket.open(@address, port)
+      end
       if use_ssl?
         raise 'openssl library not installed' unless defined?(OpenSSL)
         context = OpenSSL::SSL::SSLContext.new
@@ -715,9 +715,9 @@ module Net
   end   # class POP3
 
   # class aliases
-  POP = POP3
-  POPSession  = POP3
-  POP3Session = POP3
+  POP = POP3 # :nodoc:
+  POPSession  = POP3 # :nodoc:
+  POP3Session = POP3 # :nodoc:
 
   #
   # This class is equivalent to POP3, except that it uses APOP authentication.
