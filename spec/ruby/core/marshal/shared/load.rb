@@ -699,4 +699,21 @@ describe :marshal_load, :shared => true do
       lambda { Marshal.send(@method, data) }.should raise_error(ArgumentError)
     end
   end
+
+  describe "when a class with the same name as the dumped one exists outside the namespace" do
+    before(:each) do
+      NamespaceTest.send(:const_set, :SameName, Class.new)
+      @data = Marshal.dump(NamespaceTest::SameName.new)
+      NamespaceTest.send(:remove_const, :SameName)
+    end
+
+    it "raises a NameError" do
+      lambda { Marshal.send(@method, @data) }.should raise_error(NameError)
+    end
+
+    it "invokes Module#const_missing" do
+      NamespaceTest.should_receive(:const_missing).with(:SameName).and_raise(NameError)
+      lambda { Marshal.send(@method, @data) }.should raise_error(NameError)
+    end
+  end
 end

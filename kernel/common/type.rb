@@ -135,5 +135,59 @@ module Rubinius
     def self.check_null_safe(string)
       Rubinius.invoke_primitive(:string_check_null_safe, string)
     end
+
+    def self.const_get(mod, name, inherit = true)
+      name = coerce_to_constant_name name
+
+      current, constant = mod, undefined
+
+      while current
+        if bucket = current.constant_table.lookup(name)
+          constant = bucket.constant
+          constant = constant.call(current) if constant.kind_of?(Autoload)
+          return constant
+        end
+
+        unless inherit
+          return mod.const_missing(name)
+        end
+
+        current = current.direct_superclass
+      end
+
+      if instance_of?(Module)
+        if bucket = Object.constant_table.lookup(name)
+          constant = bucket.constant
+          constant = constant.call(current) if constant.kind_of?(Autoload)
+          return constant
+        end
+      end
+
+      mod.const_missing(name)
+    end
+
+    def self.const_exists?(mod, name, inherit = true)
+      name = coerce_to_constant_name name
+
+      current = mod
+
+      while current
+        if bucket = current.constant_table.lookup(name)
+          return !!bucket.constant
+        end
+
+        return false unless inherit
+
+        current = current.direct_superclass
+      end
+
+      if instance_of?(Module)
+        if bucket = Object.constant_table.lookup(name)
+          return !!bucket.constant
+        end
+      end
+
+      false
+    end
   end
 end
