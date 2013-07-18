@@ -5,15 +5,12 @@
 # File a patch instead and assign it to Ryan Davis.
 ######################################################################
 
-begin
-  require 'rubygems'
-  gem 'minitest'
-rescue Gem::LoadError
-  # do nothing
+class Minitest::Unit::TestCase # :nodoc:
+  class << self
+    alias :old_test_order :test_order
+
+    def test_order # :nodoc:
+      :parallel
+    end
+  end
 end
-
-require 'minitest/unit'
-require 'minitest/spec'
-require 'minitest/mock'
-
-MiniTest::Unit.autorun
