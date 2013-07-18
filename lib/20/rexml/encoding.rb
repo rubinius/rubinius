@@ -1,3 +1,4 @@
+# coding: US-ASCII
 module REXML
   module Encoding
     # ID ---> Encoding name
@@ -18,19 +19,6 @@ module REXML
         @encoding = 'UTF-8'
       end
       true
-    end
-
-    def check_encoding(xml)
-      # We have to recognize UTF-16BE, UTF-16LE, and UTF-8
-      if xml[0, 2] == "\xfe\xff"
-        xml[0, 2] = ""
-        return 'UTF-16BE'
-      elsif xml[0, 2] == "\xff\xfe"
-        xml[0, 2] = ""
-        return 'UTF-16LE'
-      end
-      xml =~ /^\s*<\?xml\s+version\s*=\s*(['"]).*?\1\s+encoding\s*=\s*(["'])(.*?)\2/m
-      return $3 ? $3.upcase : 'UTF-8'
     end
 
     def encode(string)

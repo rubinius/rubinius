@@ -212,7 +212,12 @@ module REXML
             version = version[1] unless version.nil?
             encoding = ENCODING.match(results)
             encoding = encoding[1] unless encoding.nil?
-            @source.encoding = encoding
+            if need_source_encoding_update?(encoding)
+              @source.encoding = encoding
+            end
+            if encoding.nil? and /\AUTF-16(?:BE|LE)\z/i =~ @source.encoding
+              encoding = "UTF-16"
+            end
             standalone = STANDALONE.match(results)
             standalone = standalone[1] unless standalone.nil?
             return [ :xmldecl, version, encoding, standalone ]
@@ -342,7 +347,7 @@ module REXML
                 md = @source.match( COMMENT_PATTERN, true )
 
                 case md[1]
-                when /--/, /-$/
+                when /--/, /-\z/
                   raise REXML::ParseException.new("Malformed comment", @source)
                 end
 
@@ -373,31 +378,31 @@ module REXML
               if md[4].size > 0
                 attrs = md[4].scan( ATTRIBUTE_PATTERN )
                 raise REXML::ParseException.new( "error parsing attributes: [#{attrs.join ', '}], excess = \"#$'\"", @source) if $' and $'.strip.size > 0
-                attrs.each { |a,b,c,d,e|
-                  if b == "xmlns"
-                    if c == "xml"
-                      if e != "http://www.w3.org/XML/1998/namespace"
+                attrs.each do |attr_name, prefix, local_part, quote, value|
+                  if prefix == "xmlns"
+                    if local_part == "xml"
+                      if value != "http://www.w3.org/XML/1998/namespace"
                         msg = "The 'xml' prefix must not be bound to any other namespace "+
                         "(http://www.w3.org/TR/REC-xml-names/#ns-decl)"
                         raise REXML::ParseException.new( msg, @source, self )
                       end
-                    elsif c == "xmlns"
+                    elsif local_part == "xmlns"
                       msg = "The 'xmlns' prefix must not be declared "+
                       "(http://www.w3.org/TR/REC-xml-names/#ns-decl)"
                       raise REXML::ParseException.new( msg, @source, self)
                     end
-                    curr_ns << c
-                  elsif b
-                    prefixes << b unless b == "xml"
+                    curr_ns << local_part
+                  elsif prefix
+                    prefixes << prefix unless prefix == "xml"
                   end
 
-                  if attributes.has_key? a
-                    msg = "Duplicate attribute #{a.inspect}"
-                    raise REXML::ParseException.new( msg, @source, self)
+                  if attributes.has_key?(attr_name)
+                    msg = "Duplicate attribute #{attr_name.inspect}"
+                    raise REXML::ParseException.new(msg, @source, self)
                   end
 
-                  attributes[a] = e
-                }
+                  attributes[attr_name] = value
+                end
               end
 
               # Verify that all of the prefixes have been defined
@@ -492,6 +497,13 @@ module REXML
           rv.gsub!( /&amp;/, '&' )
         end
         rv
+      end
+
+      private
+      def need_source_encoding_update?(xml_declaration_encoding)
+        return false if xml_declaration_encoding.nil?
+        return false if /\AUTF-16\z/i =~ xml_declaration_encoding
+        true
       end
     end
   end
