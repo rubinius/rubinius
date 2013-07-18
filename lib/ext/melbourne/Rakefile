@@ -62,7 +62,9 @@ when ["build:build"]
   else
     puts "Building bootstrap Melbourne for Rubinius"
     add_cflag "-g"
+    add_cflag "-fPIC"
     add_cxxflag "-g"
+    add_cxxflag "-fPIC"
     if ENV['DEV']
       add_cflag "-O0"
       add_cxxflag "-O0"
