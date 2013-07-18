@@ -409,3 +409,8 @@ class ArraySubPush < Array
   alias_method :push, :<<
 end
 
+class SameName
+end
+
+module NamespaceTest
+end

@@ -4,29 +4,7 @@ class Module
   private :remove_class_variable
 
   def const_get(name)
-    name = Rubinius::Type.coerce_to_constant_name name
-
-    current, constant = self, undefined
-
-    while current
-      if bucket = current.constant_table.lookup(name)
-        constant = bucket.constant
-        constant = constant.call(current) if constant.kind_of?(Autoload)
-        return constant
-      end
-
-      current = current.direct_superclass
-    end
-
-    if instance_of?(Module)
-      if bucket = Object.constant_table.lookup(name)
-        constant = bucket.constant
-        constant = constant.call(current) if constant.kind_of?(Autoload)
-        return constant
-      end
-    end
-
-    const_missing(name)
+    Rubinius::Type.const_get(self, name)
   end
 
   def const_defined?(name)
