@@ -15,16 +15,17 @@ require "net/http"
 Net::HTTP::version_1_2 if RUBY_VERSION < "1.7"
 
 module WEBrick
-  NullReader = Object.new
-  class << NullReader
+
+  NullReader = Object.new # :nodoc:
+  class << NullReader # :nodoc:
     def read(*args)
       nil
     end
     alias gets read
   end
 
-  FakeProxyURI = Object.new
-  class << FakeProxyURI
+  FakeProxyURI = Object.new # :nodoc:
+  class << FakeProxyURI # :nodoc:
     def method_missing(meth, *args)
       if %w(scheme host port path query userinfo).member?(meth.to_s)
         return nil
@@ -33,8 +34,38 @@ module WEBrick
     end
   end
 
+  # :startdoc:
+
   ##
   # An HTTP Proxy server which proxies GET, HEAD and POST requests.
+  #
+  # To create a simple proxy server:
+  #
+  #   require 'webrick'
+  #   require 'webrick/httpproxy'
+  #
+  #   proxy = WEBrick::HTTPProxyServer.new Port: 8000
+  #
+  #   trap 'INT'  do proxy.shutdown end
+  #   trap 'TERM' do proxy.shutdown end
+  #
+  #   proxy.start
+  #
+  # See ::new for proxy-specific configuration items.
+  #
+  # == Modifying proxied responses
+  #
+  # To modify content the proxy server returns use the +:ProxyContentHandler+
+  # option:
+  #
+  #   handler = proc do |req, res|
+  #     if res['content-type'] == 'text/plain' then
+  #       res.body << "\nThis content was proxied!\n"
+  #     end
+  #   end
+  #
+  #   proxy =
+  #     WEBrick::HTTPProxyServer.new Port: 8000, ProxyContentHandler: handler
 
   class HTTPProxyServer < HTTPServer
 
@@ -46,7 +77,7 @@ module WEBrick
     #                  request
     # :ProxyVia:: Appended to the via header
     # :ProxyURI:: The proxy server's URI
-    # :ProxyContentHandler:: Called with a request and resopnse and allows
+    # :ProxyContentHandler:: Called with a request and response and allows
     #                        modification of the response
     # :ProxyTimeout:: Sets the proxy timeouts to 30 seconds for open and 60
     #                 seconds for read operations
@@ -57,6 +88,7 @@ module WEBrick
       @via = "#{c[:HTTPVersion]} #{c[:ServerName]}:#{c[:Port]}"
     end
 
+    # :stopdoc:
     def service(req, res)
       if req.request_method == "CONNECT"
         do_CONNECT(req, res)
@@ -154,7 +186,7 @@ module WEBrick
         res.send_response(ua)
         access_log(@config, req, res)
 
-        # Should clear request-line not to send the sesponse twice.
+        # Should clear request-line not to send the response twice.
         # see: HTTPServer#run
         req.parse(NullReader) rescue nil
       end
@@ -301,5 +333,7 @@ module WEBrick
       set_via(res)
       res.body = response.body
     end
+
+    # :stopdoc:
   end
 end

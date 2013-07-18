@@ -15,9 +15,19 @@ require 'webrick/log'
 
 module WEBrick
 
+  ##
+  # Server error exception
+
   class ServerError < StandardError; end
 
+  ##
+  # Base server class
+
   class SimpleServer
+
+    ##
+    # A SimpleServer only yields when you start it
+
     def SimpleServer.start
       yield
     end
@@ -45,8 +55,41 @@ module WEBrick
     end
   end
 
+  ##
+  # Base TCP server class.  You must subclass GenericServer and provide a #run
+  # method.
+
   class GenericServer
-    attr_reader :status, :config, :logger, :tokens, :listeners
+
+    ##
+    # The server status.  One of :Stop, :Running or :Shutdown
+
+    attr_reader :status
+
+    ##
+    # The server configuration
+
+    attr_reader :config
+
+    ##
+    # The server logger.  This is independent from the HTTP access log.
+
+    attr_reader :logger
+
+    ##
+    # Tokens control the number of outstanding clients.  The
+    # <code>:MaxClients</code> configuration sets this.
+
+    attr_reader :tokens
+
+    ##
+    # Sockets listening for connections.
+
+    attr_reader :listeners
+
+    ##
+    # Creates a new generic server from +config+.  The default configuration
+    # comes from +default+.
 
     def initialize(config={}, default=Config::General)
       @config = default.dup.update(config)
@@ -74,13 +117,41 @@ module WEBrick
       end
     end
 
+    ##
+    # Retrieves +key+ from the configuration
+
     def [](key)
       @config[key]
     end
 
+    ##
+    # Adds listeners from +address+ and +port+ to the server.  See
+    # WEBrick::Utils::create_listeners for details.
+
     def listen(address, port)
       @listeners += Utils::create_listeners(address, port, @logger)
     end
+
+    ##
+    # Starts the server and runs the +block+ for each connection.  This method
+    # does not return until the server is stopped from a signal handler or
+    # another thread using #stop or #shutdown.
+    #
+    # If the block raises a subclass of StandardError the exception is logged
+    # and ignored.  If an IOError or Errno::EBADF exception is raised the
+    # exception is ignored.  If an Exception subclass is raised the exception
+    # is logged and re-raised which stops the server.
+    #
+    # To completely shut down a server call #shutdown from ensure:
+    #
+    #   server = WEBrick::GenericServer.new
+    #   # or WEBrick::HTTPServer.new
+    #
+    #   begin
+    #     server.start
+    #   ensure
+    #     server.shutdown
+    #   end
 
     def start(&block)
       raise ServerError, "already started." if @status != :Stop
@@ -93,43 +164,57 @@ module WEBrick
 
         thgroup = ThreadGroup.new
         @status = :Running
-        while @status == :Running
-          begin
-            if svrs = IO.select(@listeners, nil, nil, 2.0)
-              svrs[0].each{|svr|
-                @tokens.pop          # blocks while no token is there.
-                if sock = accept_client(svr)
-                  sock.do_not_reverse_lookup = config[:DoNotReverseLookup]
-                  th = start_thread(sock, &block)
-                  th[:WEBrickThread] = true
-                  thgroup.add(th)
-                else
-                  @tokens.push(nil)
-                end
-              }
+        begin
+          while @status == :Running
+            begin
+              if svrs = IO.select(@listeners, nil, nil, 2.0)
+                svrs[0].each{|svr|
+                  @tokens.pop          # blocks while no token is there.
+                  if sock = accept_client(svr)
+                    sock.do_not_reverse_lookup = config[:DoNotReverseLookup]
+                    th = start_thread(sock, &block)
+                    th[:WEBrickThread] = true
+                    thgroup.add(th)
+                  else
+                    @tokens.push(nil)
+                  end
+                }
+              end
+            rescue Errno::EBADF, IOError => ex
+              # if the listening socket was closed in GenericServer#shutdown,
+              # IO::select raise it.
+            rescue StandardError => ex
+              msg = "#{ex.class}: #{ex.message}\n\t#{ex.backtrace[0]}"
+              @logger.error msg
+            rescue Exception => ex
+              @logger.fatal ex
+              raise
             end
-          rescue Errno::EBADF, IOError => ex
-            # if the listening socket was closed in GenericServer#shutdown,
-            # IO::select raise it.
-          rescue Exception => ex
-            msg = "#{ex.class}: #{ex.message}\n\t#{ex.backtrace[0]}"
-            @logger.error msg
           end
-        end
 
-        @logger.info "going to shutdown ..."
-        thgroup.list.each{|th| th.join if th[:WEBrickThread] }
-        call_callback(:StopCallback)
-        @logger.info "#{self.class}#start done."
-        @status = :Stop
+        ensure
+          @status = :Shutdown
+          @logger.info "going to shutdown ..."
+          thgroup.list.each{|th| th.join if th[:WEBrickThread] }
+          call_callback(:StopCallback)
+          @logger.info "#{self.class}#start done."
+          @status = :Stop
+        end
       }
     end
+
+    ##
+    # Stops the server from accepting new connections.
 
     def stop
       if @status == :Running
         @status = :Shutdown
       end
     end
+
+    ##
+    # Shuts down the server and all listening sockets.  New listeners must be
+    # provided to restart the server.
 
     def shutdown
       stop
@@ -154,11 +239,21 @@ module WEBrick
       @listeners.clear
     end
 
+    ##
+    # You must subclass GenericServer and implement \#run which accepts a TCP
+    # client socket
+
     def run(sock)
       @logger.fatal "run() must be provided by user."
     end
 
     private
+
+    # :stopdoc:
+
+    ##
+    # Accepts a TCP client socket from the TCP server socket +svr+ and returns
+    # the client socket.
 
     def accept_client(svr)
       sock = nil
@@ -169,12 +264,21 @@ module WEBrick
         Utils::set_close_on_exec(sock)
       rescue Errno::ECONNRESET, Errno::ECONNABORTED,
              Errno::EPROTO, Errno::EINVAL => ex
-      rescue Exception => ex
+      rescue StandardError => ex
         msg = "#{ex.class}: #{ex.message}\n\t#{ex.backtrace[0]}"
         @logger.error msg
       end
       return sock
     end
+
+    ##
+    # Starts a server thread for the client socket +sock+ that runs the given
+    # +block+.
+    #
+    # Sets the socket to the <code>:WEBrickSocket</code> thread local variable
+    # in the thread.
+    #
+    # If any errors occur in the block they are logged and handled.
 
     def start_thread(sock, &block)
       Thread.start{
@@ -204,10 +308,13 @@ module WEBrick
           else
             @logger.debug "close: <address unknown>"
           end
-          sock.close
+          sock.close unless sock.closed?
         end
       }
     end
+
+    ##
+    # Calls the callback +callback_name+ from the configuration with +args+
 
     def call_callback(callback_name, *args)
       if cb = @config[callback_name]

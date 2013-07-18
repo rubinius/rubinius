@@ -33,7 +33,7 @@ module WEBrick
     # Sets the close on exec flag for +io+
     def set_close_on_exec(io)
       if defined?(Fcntl::FD_CLOEXEC)
-        io.fcntl(Fcntl::FD_CLOEXEC, 1)
+        io.fcntl(Fcntl::F_SETFD, Fcntl::FD_CLOEXEC)
       end
     end
     module_function :set_close_on_exec
@@ -170,12 +170,17 @@ module WEBrick
         }
       end
 
+      ##
+      # Creates a new TimeoutHandler.  You should use ::register and ::cancel
+      # instead of creating the timeout handler directly.
       def initialize
         @timeout_info = Hash.new
         Thread.start{
           while true
             now = Time.now
-            @timeout_info.each{|thread, ary|
+            @timeout_info.keys.each{|thread|
+              ary = @timeout_info[thread]
+              next unless ary
               ary.dup.each{|info|
                 time, exception = *info
                 interrupt(thread, info.object_id, exception) if time < now
