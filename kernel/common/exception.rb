@@ -276,25 +276,15 @@ class SyntaxError < ScriptError
 
   def self.from(message, column, line, code, file)
     exc = new message
-    exc.import_position column, line, code
     exc.file = file
+    exc.line = line
+    exc.column = column
+    exc.code = code
     exc
-  end
-
-  def import_position(c, l, code)
-    @column = c
-    @line = l
-    @code = code
   end
 
   def reason
     @reason_message
-  end
-
-  def message
-    msg = super
-    msg = "#{file}:#{@line}: #{msg}" if file && @line
-    msg
   end
 end
 

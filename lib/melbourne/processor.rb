@@ -1,7 +1,8 @@
 module Rubinius
   class Melbourne
     def process_parse_error(message, column, line, source)
-      @syntax_errors << SyntaxError.from(message, column, line, source, @name)
+      msg = "#{message}: #{@name}:#{line}:#{column}"
+      @syntax_errors << SyntaxError.from(msg, column, line, source, @name)
     end
 
     def process_dangling_node

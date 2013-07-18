@@ -117,8 +117,7 @@ module Rubinius
 
     def show_syntax_error(e)
       STDERR.puts "A syntax error has occurred:"
-      STDERR.puts "    #{e.reason}"
-      STDERR.puts "    near line #{e.file}:#{e.line}, column #{e.column}"
+      STDERR.puts "    #{e.message}"
       STDERR.puts "\nCode:\n#{e.code}"
       if e.column
         STDERR.puts((" " * (e.column - 1)) + "^")
