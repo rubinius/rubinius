@@ -235,7 +235,7 @@ describe "Kernel#eval" do
     lambda {
       eval('if true',TOPLEVEL_BINDING,expected)
     }.should raise_error(SyntaxError) { |e|
-      e.message.should =~ /^#{expected}:1:.+/
+      e.message.should =~ /#{expected}:1:.+/
     }
   end
 
