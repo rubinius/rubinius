@@ -1,6 +1,6 @@
 #   multi.rb -
 #   	$Release Version: 0.9.6$
-#   	$Revision: 25189 $
+#   	$Revision$
 #   	by Keiju ISHITSUKA(keiju@ruby-lang.org)
 #
 # --
@@ -11,6 +11,7 @@
 require "irb/cmd/nop.rb"
 require "irb/ext/multi-irb"
 
+# :stopdoc:
 module IRB
   module ExtendCommand
     class IrbCommand<Nop
@@ -38,3 +39,4 @@ module IRB
     end
   end
 end
+# :startdoc:

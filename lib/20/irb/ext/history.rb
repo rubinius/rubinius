@@ -1,7 +1,7 @@
 #
 #   history.rb -
 #   	$Release Version: 0.9.6$
-#   	$Revision: 25189 $
+#   	$Revision$
 #   	by Keiju ISHITSUKA(keiju@ruby-lang.org)
 #
 # --
@@ -9,12 +9,13 @@
 #
 #
 
-module IRB
+module IRB # :nodoc:
 
   class Context
 
     NOPRINTING_IVARS.push "@eval_history_values"
 
+    # See #set_last_value
     alias _set_last_value set_last_value
 
     def set_last_value(value)
@@ -29,7 +30,17 @@ module IRB
       @last_value
     end
 
+    # The command result history limit.
     attr_reader :eval_history
+    # Sets command result history limit.
+    #
+    # +no+ is an Integer or +nil+.
+    #
+    # Returns +no+ of history items if greater than 0.
+    #
+    # If +no+ is 0, the number of history items is unlimited.
+    #
+    # If +no+ is +nil+, execution result history isn't used (default).
     def eval_history=(no)
       if no
 	if defined?(@eval_history) && @eval_history
@@ -47,8 +58,8 @@ module IRB
     end
   end
 
-  class History
-    @RCS_ID='-$Id: history.rb 25189 2009-10-02 12:04:37Z akr $-'
+  class History # :nodoc:
+    @RCS_ID='-$Id$-'
 
     def initialize(size = 16)
       @size = size

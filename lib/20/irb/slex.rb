@@ -1,7 +1,7 @@
 #
 #   irb/slex.rb - simple lex analyzer
 #   	$Release Version: 0.9.6$
-#   	$Revision: 25189 $
+#   	$Revision$
 #   	by Keiju ISHITSUKA(keiju@ruby-lang.org)
 #
 # --
@@ -12,9 +12,10 @@
 require "e2mmap"
 require "irb/notifier"
 
+# :stopdoc:
 module IRB
   class SLex
-    @RCS_ID='-$Id: slex.rb 25189 2009-10-02 12:04:37Z akr $-'
+    @RCS_ID='-$Id$-'
 
     extend Exception2MessageMapper
     def_exception :ErrNodeNothing, "node nothing"
@@ -35,7 +36,7 @@ module IRB
       D_DETAIL.pp token
 
       postproc = block if block_given?
-      node = create(token, preproc, postproc)
+      create(token, preproc, postproc)
     end
 
     def def_rules(*tokens, &block)
@@ -75,7 +76,7 @@ module IRB
 	return @head.match_io(token)
       end
       ret = @head.match(token)
-      D_DETAIL.exec_if{D_DEATIL.printf "match end: %s:%s\n", ret, token.inspect}
+      D_DETAIL.exec_if{D_DETAIL.printf "match end: %s:%s\n", ret, token.inspect}
       ret
     end
 
@@ -243,6 +244,7 @@ module IRB
     end
   end
 end
+# :startdoc:
 
 if $0 == __FILE__
   #    Tracer.on

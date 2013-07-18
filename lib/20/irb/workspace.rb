@@ -1,16 +1,18 @@
 #
 #   irb/workspace-binding.rb -
 #   	$Release Version: 0.9.6$
-#   	$Revision: 25189 $
+#   	$Revision$
 #   	by Keiju ISHITSUKA(keiju@ruby-lang.org)
 #
 # --
 #
 #
 #
-module IRB
+module IRB # :nodoc:
   class WorkSpace
-    # create new workspace. set self to main if specified, otherwise
+    # Creates a new workspace.
+    #
+    # set self to main if specified, otherwise
     # inherit main from TOPLEVEL_BINDING.
     def initialize(*main)
       if main[0].kind_of?(Binding)
@@ -38,7 +40,7 @@ EOF
 	  unless defined? BINDING_QUEUE
 	    require "thread"
 
-	    IRB.const_set("BINDING_QUEUE", SizedQueue.new(1))
+	    IRB.const_set(:BINDING_QUEUE, SizedQueue.new(1))
 	    Thread.abort_on_exception = true
 	    Thread.start do
 	      eval "require \"irb/ws-for-case-2\"", TOPLEVEL_BINDING, __FILE__, __LINE__
@@ -48,7 +50,7 @@ EOF
 	  @binding = BINDING_QUEUE.pop
 
 	when 3	# binging in function on TOPLEVEL_BINDING(default)
-	  @binding = eval("def irb_binding; binding; end; irb_binding",
+	  @binding = eval("def irb_binding; private; binding; end; irb_binding",
 		      TOPLEVEL_BINDING,
 		      __FILE__,
 		      __LINE__ - 3)
@@ -73,9 +75,13 @@ EOF
       eval("_=nil", @binding)
     end
 
+    # The Binding of this workspace
     attr_reader :binding
+    # The top-level workspace of this context, also available as
+    # <code>IRB.conf[:__MAIN__]</code>
     attr_reader :main
 
+    # Evaluate the given +statements+ within the  context of this workspace.
     def evaluate(context, statements, file = __FILE__, line = __LINE__)
       eval(statements, @binding, file, line)
     end
@@ -97,7 +103,7 @@ EOF
       when 3
 	return nil if bt =~ /irb\/.*\.rb/
 	return nil if bt =~ /irb\.rb/
-	bt.sub!(/:\s*in `irb_binding'/, '')
+	bt = bt.sub(/:\s*in `irb_binding'/, '')
       end
       bt
     end

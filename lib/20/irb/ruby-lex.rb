@@ -1,7 +1,7 @@
 #
 #   irb/ruby-lex.rb - ruby lexcal analyzer
 #   	$Release Version: 0.9.6$
-#   	$Revision: 30131 $
+#   	$Revision$
 #   	by Keiju ISHITSUKA(keiju@ruby-lang.org)
 #
 # --
@@ -13,8 +13,9 @@ require "e2mmap"
 require "irb/slex"
 require "irb/ruby-token"
 
+# :stopdoc:
 class RubyLex
-  @RCS_ID='-$Id: ruby-lex.rb 30131 2010-12-08 08:09:11Z yugui $-'
+  @RCS_ID='-$Id$-'
 
   extend Exception2MessageMapper
   def_exception(:AlreadyDefinedToken, "Already defined token(%s)")
@@ -53,6 +54,7 @@ class RubyLex
     @lex_state = EXPR_BEG
     @space_seen = false
     @here_header = false
+    @post_symbeg = false
 
     @continue = false
     @line = ""
@@ -86,8 +88,8 @@ class RubyLex
   end
 
   def get_readed
-    if idx = @readed.reverse.index("\n")
-      @base_char_no = idx
+    if idx = @readed.rindex("\n")
+      @base_char_no = @readed.size - (idx + 1)
     else
       @base_char_no += @readed.size
     end
@@ -148,11 +150,11 @@ class RubyLex
     end
     c = c2 unless c
     @rests.unshift c #c =
-      @seek -= 1
+    @seek -= 1
     if c == "\n"
       @line_no -= 1
-      if idx = @readed.reverse.index("\n")
-	@char_no = @readed.size - idx
+      if idx = @readed.rindex("\n")
+	@char_no = idx + 1
       else
 	@char_no = @base_char_no + @readed.size
       end
@@ -217,6 +219,8 @@ class RubyLex
     @here_header = false
 
     @continue = false
+    @post_symbeg = false
+
     prompt
 
     @line = ""
@@ -239,7 +243,7 @@ class RubyLex
 	    end
 	  end
 	  if @line != "\n"
-      @line.force_encoding(@io.encoding)
+            @line.force_encoding(@io.encoding)
 	    yield @line, @exp_line_no
 	  end
 	  break unless l
@@ -285,6 +289,8 @@ class RubyLex
       begin
 	tk = @OP.match(self)
 	@space_seen = tk.kind_of?(TkSPACE)
+	@lex_state = EXPR_END if @post_symbeg && tk.kind_of?(TkOp)
+	@post_symbeg = tk.kind_of?(TkSYMBEG)
       rescue SyntaxError
 	raise if @exception_on_syntax_error
 	tk = TkError.new(@seek, @line_no, @char_no)
@@ -311,6 +317,8 @@ class RubyLex
     "r" => "/",
     "w" => "]",
     "W" => "]",
+    "i" => "]",
+    "I" => "]",
     "s" => ":"
   }
 
@@ -539,7 +547,7 @@ class RubyLex
 	@lex_state = EXPR_BEG
 	Token(TkCOLON)
       else
-	@lex_state = EXPR_FNAME;
+	@lex_state = EXPR_FNAME
 	Token(TkSYMBEG)
       end
     end
@@ -623,7 +631,7 @@ class RubyLex
 	tk_c = TkLPAREN
       end
       @indent_stack.push tk_c
-      tk = Token(tk_c)
+      Token(tk_c)
     end
 
     @OP.def_rule("[]", proc{|op, io| @lex_state == EXPR_FNAME}) do
@@ -677,7 +685,7 @@ class RubyLex
 	@continue = true
 	Token(TkSPACE)
       else
-	ungetc
+	read_escape
 	Token("\\")
       end
     end
@@ -904,10 +912,25 @@ class RubyLex
     end
 
     @here_header = false
-    while l = gets
-      l = l.sub(/(:?\r)?\n\z/, '')
-      if (indent ? l.strip : l) == quoted
- 	break
+#     while l = gets
+#       l = l.sub(/(:?\r)?\n\z/, '')
+#       if (indent ? l.strip : l) == quoted
+#  	break
+#       end
+#     end
+
+    line = ""
+    while ch = getc
+      if ch == "\n"
+	if line == quoted
+	  break
+	end
+	line = ""
+      else
+	line.concat ch unless indent && line == "" && /\s/ =~ ch
+	if @ltype != "'" && ch == "#" && peek(0) == "{"
+	  identify_string_dvar
+	end
       end
     end
 
@@ -1046,7 +1069,7 @@ class RubyLex
       while ch = getc
 	if @quoted == ch and nest == 0
 	  break
-	elsif ch == "#" and peek(0) == "{"
+	elsif @ltype != "'" && ch == "#" && peek(0) == "{"
 	  identify_string_dvar
 	elsif @ltype != "'" && @ltype != "]" && @ltype != ":" and ch == "#"
 	  subtype = true
@@ -1068,7 +1091,7 @@ class RubyLex
 	end
       end
       if @ltype == "/"
-       while peek(0) =~ /i|m|x|o|e|s|u|n/
+        while /[imxoesun]/ =~ peek(0)
 	  getc
 	end
       end
@@ -1100,7 +1123,7 @@ class RubyLex
       @indent = 0
       @indent_stack = []
       @lex_state = EXPR_BEG
-      
+
       loop do
 	@continue = false
 	prompt
@@ -1119,7 +1142,7 @@ class RubyLex
       @quoted = reserve_quoted
     end
   end
-  
+
   def identify_comment
     @ltype = "#"
 
@@ -1185,3 +1208,4 @@ class RubyLex
     end
   end
 end
+# :startdoc:

@@ -1,7 +1,7 @@
 #
 #   use-loader.rb -
 #   	$Release Version: 0.9.6$
-#   	$Revision: 25189 $
+#   	$Revision$
 #   	by Keiju ISHITSUKA(keiju@ruby-lang.org)
 #
 # --
@@ -19,9 +19,11 @@ end
 
 module IRB
   module ExtendCommandBundle
+    # Loads the given file similarly to Kernel#load, see IrbLoader#irb_load
     def irb_load(*opts, &b)
       ExtendCommand::Load.execute(irb_context, *opts, &b)
     end
+    # Loads the given file similarly to Kernel#require
     def irb_require(*opts, &b)
       ExtendCommand::Require.execute(irb_context, *opts, &b)
     end
@@ -31,12 +33,19 @@ module IRB
 
     IRB.conf[:USE_LOADER] = false
 
+    # Returns whether +irb+'s own file reader method is used by
+    # +load+/+require+ or not.
+    #
+    # This mode is globally affected (irb-wide).
     def use_loader
       IRB.conf[:USE_LOADER]
     end
 
     alias use_loader? use_loader
 
+    # Sets IRB.conf[:USE_LOADER]
+    #
+    # See #use_loader for more information.
     def use_loader=(opt)
 
       if IRB.conf[:USE_LOADER] != opt

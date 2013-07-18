@@ -1,13 +1,14 @@
 #
 #   irb/ruby-token.rb - ruby tokens
 #   	$Release Version: 0.9.6$
-#   	$Revision: 25189 $
+#   	$Revision$
 #   	by Keiju ISHITSUKA(keiju@ruby-lang.org)
 #
 # --
 #
 #
 #
+# :stopdoc:
 module RubyToken
   EXPR_BEG = :EXPR_BEG
   EXPR_MID = :EXPR_MID
@@ -16,11 +17,6 @@ module RubyToken
   EXPR_FNAME = :EXPR_FNAME
   EXPR_DOT = :EXPR_DOT
   EXPR_CLASS = :EXPR_CLASS
-
-  # for ruby 1.4X
-  if !defined?(Symbol)
-    Symbol = Integer
-  end
 
   class Token
     def initialize(seek, line_no, char_no)
@@ -268,3 +264,4 @@ module RubyToken
     def_token(*defs)
   end
 end
+# :startdoc:

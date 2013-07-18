@@ -1,7 +1,7 @@
 #
 #   irb/init.rb - irb initialize module
 #   	$Release Version: 0.9.6$
-#   	$Revision: 30310 $
+#   	$Revision$
 #   	by Keiju ISHITSUKA(keiju@ruby-lang.org)
 #
 # --
@@ -9,7 +9,7 @@
 #
 #
 
-module IRB
+module IRB # :nodoc:
 
   # initialize config
   def IRB.setup(ap_path)
@@ -112,10 +112,10 @@ module IRB
 
 #    @CONF[:LC_MESSAGES] = "en"
     @CONF[:LC_MESSAGES] = Locale.new
-    
+
     @CONF[:AT_EXIT] = []
-    
-    @CONF[:DEBUG_LEVEL] = 1
+
+    @CONF[:DEBUG_LEVEL] = 0
   end
 
   def IRB.init_error
@@ -160,7 +160,7 @@ module IRB
 	opt = $1 || ARGV.shift
 	set_encoding(*opt.split(':', 2))
       when "--inspect"
-	if /^-/ !~ ARGV.first 
+	if /^-/ !~ ARGV.first
 	  @CONF[:INSPECT_MODE] = ARGV.shift
 	else
 	  @CONF[:INSPECT_MODE] = true
@@ -197,7 +197,7 @@ module IRB
 	@CONF[:CONTEXT_MODE] = ($1 || ARGV.shift).to_i
       when "--single-irb"
 	@CONF[:SINGLE_IRB] = true
-      when /^--irb_debug=(?:=(.+))?/
+      when /^--irb_debug(?:=(.+))?/
 	@CONF[:DEBUG_LEVEL] = ($1 || ARGV.shift).to_i
       when "-v", "--version"
 	print IRB.version, "\n"
@@ -256,7 +256,12 @@ module IRB
 	end
       end
     end
-    @CONF[:RC_NAME_GENERATOR].call ext
+    case rc_file = @CONF[:RC_NAME_GENERATOR].call(ext)
+    when String
+      return rc_file
+    else
+      IRB.fail IllegalRCNameGenerator
+    end
   end
 
   # enumerate possible rc-file base name generators

@@ -1,7 +1,7 @@
 #
 #   fork.rb -
 #   	$Release Version: 0.9.6 $
-#   	$Revision: 27967 $
+#   	$Revision$
 #   	by Keiju ISHITSUKA(keiju@ruby-lang.org)
 #
 # --
@@ -9,13 +9,13 @@
 #
 #
 
-@RCS_ID='-$Id: fork.rb 27967 2010-05-23 08:48:44Z nobu $-'
+@RCS_ID='-$Id$-'
 
-
+# :stopdoc:
 module IRB
   module ExtendCommand
     class Fork<Nop
-      def execute(&block)
+      def execute
 	pid = send ExtendCommand.irb_original_method_name("fork")
 	unless pid
 	  class << self
@@ -34,5 +34,6 @@ module IRB
     end
   end
 end
+# :startdoc:
 
 
