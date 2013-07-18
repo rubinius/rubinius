@@ -716,4 +716,12 @@ describe :marshal_load, :shared => true do
       lambda { Marshal.send(@method, @data) }.should raise_error(NameError)
     end
   end
+
+  it "raises an ArgumentError with full constant name when the dumped constant is missing" do
+    NamespaceTest.send(:const_set, :KaBoom, Class.new)
+    @data = Marshal.dump(NamespaceTest::KaBoom.new)
+    NamespaceTest.send(:remove_const, :KaBoom)
+
+    lambda { Marshal.send(@method, @data) }.should raise_error(ArgumentError, /NamespaceTest::KaBoom/)
+  end
 end
