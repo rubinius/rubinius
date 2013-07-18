@@ -1,3 +1,24 @@
+require 'prettyprint'
+
+module Kernel
+  # returns a pretty printed object as a string.
+  def pretty_inspect
+    PP.pp(self, '')
+  end
+
+  private
+  # prints arguments in pretty form.
+  #
+  # pp returns argument(s).
+  def pp(*objs) # :doc:
+    objs.each {|obj|
+      PP.pp(obj)
+    }
+    objs.size <= 1 ? objs.first : objs
+  end
+  module_function :pp
+end
+
 # == Pretty-printer for Ruby objects.
 #
 # = Which seems better?
@@ -27,11 +48,13 @@
 #
 # = Usage
 #
-#   pp(obj)
+#   pp(obj)             #=> obj
+#   pp(obj1, obj2, ...) #=> [obj1, obj2, ...]
+#   pp()                #=> nil
 #
-# output +obj+ to +$>+ in pretty printed format.
+# output +obj(s)+ to +$>+ in pretty printed format.
 #
-# It returns +nil+.
+# It returns +obj(s)+.
 #
 # = Output Customization
 # To define your customized pretty printing function for your classes,
@@ -42,28 +65,6 @@
 #
 # = Author
 # Tanaka Akira <akr@m17n.org>
-
-require 'prettyprint'
-
-module Kernel
-  # returns a pretty printed object as a string.
-  def pretty_inspect
-    PP.pp(self, '')
-  end
-
-  private
-  # prints arguments in pretty form.
-  #
-  # pp returns argument(s).
-  def pp(*objs) # :doc:
-    objs.each {|obj|
-      PP.pp(obj)
-    }
-    objs.size <= 1 ? objs.first : objs
-  end
-  module_function :pp
-end
-
 class PP < PrettyPrint
   # Outputs +obj+ to +out+ in pretty printed format of
   # +width+ columns in width.
@@ -264,8 +265,7 @@ class PP < PrettyPrint
   module ObjectMixin
     # 1. specific pretty_print
     # 2. specific inspect
-    # 3. specific to_s
-    # 4. generic pretty_print
+    # 3. generic pretty_print
 
     # A default pretty printing method for general objects.
     # It calls #pretty_print_instance_variables to list instance variables.
@@ -282,18 +282,10 @@ class PP < PrettyPrint
         inspect_method = method_method.call(:inspect)
       rescue NameError
       end
-      begin
-        to_s_method = method_method.call(:to_s)
-      rescue NameError
-      end
       if inspect_method && /\(Kernel\)#/ !~ inspect_method.inspect
         q.text self.inspect
       elsif !inspect_method && self.respond_to?(:inspect)
         q.text self.inspect
-      elsif to_s_method && /\(Kernel\)#/ !~ to_s_method.inspect
-        q.text self.to_s
-      elsif !to_s_method && self.respond_to?(:to_s)
-        q.text self.to_s
       else
         q.pp_object(self)
       end
@@ -396,7 +388,7 @@ class Range
   end
 end
 
-class File
+class File < IO
   class Stat
     def pretty_print(q)
       require 'etc.so'
@@ -503,7 +495,7 @@ class MatchData
   end
 end
 
-class Object
+class Object < BasicObject
   include PP::ObjectMixin
 end
 
