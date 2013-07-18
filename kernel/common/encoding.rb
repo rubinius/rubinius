@@ -458,7 +458,7 @@ class Encoding
           entry = TranscodingMap[path[i]][path[i + 1]]
 
           if entry.kind_of? String
-            lib = "#{Rubinius::LIB_PATH}/19/encoding/converter/#{entry}"
+            lib = "#{Rubinius::ENC_PATH}/#{entry}"
             Rubinius::NativeMethod.load_extension lib, entry
 
             entry = TranscodingMap[path[i]][path[i + 1]]

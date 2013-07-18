@@ -33,7 +33,10 @@ end
 def install_file(source, prefix, dest, name=nil, options={})
   return if File.directory? source
 
-  dest_name = File.join(dest, source[prefix.size..-1])
+  options, name = name, nil if name.kind_of? Hash
+  name = source[prefix.size..-1] unless name
+
+  dest_name = File.join(dest, name)
   dir = File.dirname dest_name
   mkdir_p dir, :verbose => $verbose unless File.directory? dir
 
@@ -114,14 +117,16 @@ def install_lib(prefix, target)
   list = FileList["#{prefix}/**/*.rb", "#{prefix}/**/rubygems/**/*"]
   install_lib_excludes prefix, list
 
-  list.each do |name|
-    install_file name, prefix, "#{target}#{BUILD_CONFIG[:libdir]}"
+  re = %r[/lib/#{BUILD_CONFIG[:language_version]}/]
+  list.each do |source|
+    name = source.gsub(re, "/lib/")[prefix.size..-1]
+    install_file source, prefix, "#{target}#{BUILD_CONFIG[:libdir]}", name
   end
 end
 
 def install_transcoders(prefix, target)
-  FileList["#{prefix}/19/encoding/converter/*#{$dlext}"].each do |name|
-    install_file name, prefix, "#{target}#{BUILD_CONFIG[:libdir]}", :mode => 0755
+  FileList["#{prefix}/*#{$dlext}"].each do |source|
+    install_file source, prefix, "#{target}#{BUILD_CONFIG[:encdir]}", :mode => 0755
   end
 end
 
@@ -136,8 +141,10 @@ def install_cext(prefix, target)
   list.exclude("**/melbourne/build/*.*")
   install_lib_excludes prefix, list
 
-  list.each do |name|
-    install_file name, prefix, "#{target}#{BUILD_CONFIG[:libdir]}"
+  re = %r[/lib/#{BUILD_CONFIG[:language_version]}/]
+  list.each do |source|
+    name = source.gsub(re, "/lib/")[prefix.size..-1]
+    install_file source, prefix, "#{target}#{BUILD_CONFIG[:libdir]}", name
   end
 end
 
@@ -275,7 +282,7 @@ oppropriate command to elevate permissions (eg su, sudo).
 
         install_lib "#{stagingdir}#{BUILD_CONFIG[:libdir]}", prefixdir
 
-        install_transcoders "#{stagingdir}#{BUILD_CONFIG[:libdir]}", prefixdir
+        install_transcoders "#{stagingdir}#{BUILD_CONFIG[:encdir]}", prefixdir
 
         install_tooling "#{stagingdir}#{BUILD_CONFIG[:libdir]}", prefixdir
 

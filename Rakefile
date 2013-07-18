@@ -55,7 +55,7 @@ end
 
 load_configuration
 
-unless BUILD_CONFIG[:config_version] == 177
+unless BUILD_CONFIG[:config_version] == 178
   STDERR.puts "Your configuration is outdated, please run ./configure first"
   exit 1
 end

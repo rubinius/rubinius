@@ -129,8 +129,8 @@ field_extract_headers = %w[
 
 transcoders_src_dir = File.expand_path "../../vendor/oniguruma/enc/trans", __FILE__
 
-libdir = "#{BUILD_CONFIG[:stagingdir] || BUILD_CONFIG[:sourcedir]}/#{BUILD_CONFIG[:libdir]}"
-transcoders_lib_dir = File.expand_path "#{libdir}/19/encoding/converter", __FILE__
+libdir = "#{BUILD_CONFIG[:stagingdir] || BUILD_CONFIG[:sourcedir]}"
+transcoders_lib_dir = "#{libdir}/#{BUILD_CONFIG[:encdir]}"
 directory transcoders_lib_dir
 
 TRANSCODING_LIBS = []

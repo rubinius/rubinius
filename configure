@@ -98,13 +98,13 @@ class Configure
     @bindir       = nil
     @appdir       = nil
     @libdir       = nil
+    @encdir       = nil
     @runtimedir   = nil
     @kerneldir    = nil
     @sitedir      = nil
     @vendordir    = nil
     @mandir       = nil
     @gemsdir      = nil
-    @libdir       = nil
     @includedir   = nil
 
     @vm_release_h = root + "/vm/gen/release.h"
@@ -127,7 +127,7 @@ class Configure
     @patch_version = "0"
     @release = validate_release_label
     @release_date = validate_release_date
-    @config_version = 177
+    @config_version = 178
   end
 
   # Set up system commands to run in cmd.exe on Windows. Either Windows
@@ -191,6 +191,12 @@ class Configure
       @kerneldir  = dir + "/kernel"
       @sitedir    = dir + "/site"
       @vendordir  = dir + "/vendor"
+
+      if @prefixdir == @sourcedir
+        @encdir = "/lib/#{@language_version}"
+      else
+        @encdir = "/lib"
+      end
     end
 
     @bindir       = @prefixdir + "/bin" unless @bindir
@@ -209,6 +215,16 @@ class Configure
         @includedir   = @prefixdir + "/vm/capi/include"
       end
     end
+
+    unless @encdir
+      if @prefixdir == @sourcedir
+        @encdir = "/lib/#{@language_version}"
+      else
+        @encdir = "/lib"
+      end
+    end
+
+    @encdir += "/encoding/converter"
 
     dirs = [@bindir, @libdir, @runtimedir, @kerneldir, @sitedir, @vendordir,
             @mandir, @gemsdir, @includedir]
@@ -1626,6 +1642,7 @@ int main() { return tgetnum(""); }
       :prefixdir          => @prefixdir,
       :bindir             => @bindir,
       :libdir             => @libdir,
+      :encdir             => @encdir,
       :runtimedir         => @runtimedir,
       :kerneldir          => @kerneldir,
       :sitedir            => @sitedir,
@@ -1673,6 +1690,7 @@ int main() { return tgetnum(""); }
 #define RBX_RUNTIME_PATH     "#{@runtimedir}"
 #define RBX_KERNEL_PATH      "#{@kerneldir}"
 #define RBX_LIB_PATH         "#{@libdir}"
+#define RBX_ENC_PATH         "#{@encdir}"
 #define RBX_HDR_PATH         "#{@includedir}"
 #define RBX_SITE_PATH        "#{@sitedir}"
 #define RBX_VENDOR_PATH      "#{@vendordir}"
