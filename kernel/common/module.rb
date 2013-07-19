@@ -121,13 +121,17 @@ class Module
   end
 
   def undef_method(*names)
-    names.each do |name|
+    return self if names.empty?
+    names.map!{ |name| Rubinius::Type.coerce_to_symbol name }
+    Rubinius.check_frozen
+
+    names.each do |name|  
       # Will raise a NameError if the method doesn't exist.
-      instance_method(name)
+      instance_method name
       undef_method! name
     end
 
-    nil
+    self
   end
 
   # Like undef_method, but doesn't even check that the method exists. Used
