@@ -2,7 +2,7 @@
 
 class Exception
   def ==(other)
-    other.kind_of?(Exception) &&
+    other.instance_of?(__class__) &&
       message == other.message &&
       backtrace == other.backtrace
   end

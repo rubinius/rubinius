@@ -71,6 +71,13 @@ Daedalus.blueprint do |i|
   perl = Rubinius::BUILD_CONFIG[:build_perl] || "perl"
 
   # Libraries
+  modes = i.library_group "vm/modes#{Rubinius::BUILD_CONFIG[:language_version]}" do |g|
+    g.static_library "libmodes" do |l|
+      l.source_files "*.cpp"
+    end
+  end
+  files << modes
+
   ltm = i.external_lib "vendor/libtommath" do |l|
     l.cflags = ["-Ivendor/libtommath"] + gcc.cflags
     l.objects = [l.file("libtommath.a")]

@@ -505,13 +505,14 @@ namespace rubinius {
     G(rubinius)->set_const(state, "VENDOR", String::create(state, RBX_VENDOR));
     G(rubinius)->set_const(state, "OS", String::create(state, RBX_OS));
 
-    if(LANGUAGE_20_ENABLED) {
-      G(rubinius)->set_const(state, "RUBY_LIB_VERSION", Fixnum::from(20));
-    } else if(LANGUAGE_19_ENABLED) {
-      G(rubinius)->set_const(state, "RUBY_LIB_VERSION", Fixnum::from(19));
+    G(rubinius)->set_const(state, "RUBY_LIB_VERSION", modes::ruby_lib_version());
+    /*
+    if(LANGUAGE_21_ENABLED) {
+      G(rubinius)->set_const(state, "RUBY_LIB_VERSION", Fixnum::from(21));
     } else {
       G(rubinius)->set_const(state, "RUBY_LIB_VERSION", Fixnum::from(18));
     }
+    */
     G(rubinius)->set_const(state, "LIBC", String::create(state, RBX_LIBC));
 
 #ifdef RBX_LITTLE_ENDIAN

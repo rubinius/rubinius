@@ -12,4 +12,8 @@ class NilClass
   def to_c
     Complex(0)
   end
+
+  def to_h
+    {}
+  end
 end
