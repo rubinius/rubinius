@@ -8,6 +8,7 @@ script: rake travis
 branches:
   only:
     - master
+    - compiler
 notifications:
   recipients:
     - evan+notify@phx.io
