@@ -366,6 +366,14 @@ describe :marshal_load, :shared => true do
         result.should == str
         result.encoding.should equal(Encoding::UTF_16LE)
       end
+
+      it "loads a String as ASCII-8BIT if no encoding is specified at the end" do
+        str = "\xC3\xB8"
+        data = "\x04\b\"\a\xC3\xB8".force_encoding("UTF-8")
+        result = Marshal.load(data)
+        result.encoding.should == Encoding::ASCII_8BIT
+        result.should == str
+      end
     end
   end
 

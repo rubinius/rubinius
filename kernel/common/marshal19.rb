@@ -117,5 +117,14 @@ module Marshal
         obj.__instance_variable_set__ prepare_ivar(ivar), value
       end
     end
+
+    def construct_string
+      obj = get_byte_sequence
+      obj = get_user_class.new obj if @user_class
+
+      set_object_encoding(obj, Encoding::ASCII_8BIT)
+
+      store_unique_object obj
+    end
   end
 end

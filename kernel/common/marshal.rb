@@ -575,13 +575,6 @@ module Marshal
       store_unique_object obj
     end
 
-    def construct_string
-      obj = get_byte_sequence
-      obj = get_user_class.new obj if @user_class
-
-      store_unique_object obj
-    end
-
     def construct_struct
       symbols = []
       values = []
