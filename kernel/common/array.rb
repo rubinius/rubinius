@@ -716,7 +716,7 @@ class Array
     # at those indexes into a new array and yield that array.
     #
     # num: the number of elements in each permutation
-    # p: the array (of size num) that we're filling in
+    # perm: the array (of size num) that we're filling in
     # index: what index we're filling in now
     # used: an array of booleans: whether a given index is already used
     #
