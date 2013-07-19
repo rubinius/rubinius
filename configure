@@ -53,8 +53,8 @@ class Configure
     @perl = nil
 
     # Versions
-    @language_version = "19"
-    @supported_versions = ["18", "19", "20"]
+    @language_version = "21"
+    @supported_versions = ["18", "21"]
     @build_ruby = nil
 
     # LLVM settings
@@ -282,7 +282,7 @@ class Configure
 
     o.doc "\n Language version settings"
 
-    o.on "--enable-version", "VERSION", "Enable Ruby VERSION (supported 1.8, 1.9, 2.0)" do |v|
+    o.on "--enable-version", "VERSION", "Enable Ruby VERSION (supported 1.8, 2.1)" do |v|
       @language_version = normalize_version v
     end
 
