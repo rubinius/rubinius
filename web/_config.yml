@@ -1,7 +1,0 @@
----
-markdown: kramdown
-pygments: true
-permalink: pretty
-host: http://rubini.us
-exclude:
-- drafts

@@ -1,1 +1,0 @@
-require 'iconv/ext/iconv'
