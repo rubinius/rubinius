@@ -150,9 +150,10 @@ class Module
   def remove_method(*names)
     names.each do |name|
       name = Rubinius::Type.coerce_to_symbol(name)
+      Rubinius.check_frozen
 
       unless @method_table.lookup(name)
-        raise NameError, "method `#{name}' not defined in #{self.name}"
+        raise NameError.new("method `#{name}' not defined in #{self.name}", name)
       end
       @method_table.delete name
 
@@ -167,7 +168,7 @@ class Module
       end
     end
 
-    nil
+    self
   end
 
   def public_method_defined?(sym)
