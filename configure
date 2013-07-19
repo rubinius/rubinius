@@ -191,12 +191,6 @@ class Configure
       @kerneldir  = dir + "/kernel"
       @sitedir    = dir + "/site"
       @vendordir  = dir + "/vendor"
-
-      if @prefixdir == @sourcedir
-        @encdir = "/lib/#{@language_version}"
-      else
-        @encdir = "/lib"
-      end
     end
 
     @bindir       = @prefixdir + "/bin" unless @bindir
@@ -218,16 +212,14 @@ class Configure
 
     unless @encdir
       if @prefixdir == @sourcedir
-        @encdir = "/lib/#{@language_version}"
+        @encdir = @libdir + "/#{@language_version}/encoding/converter"
       else
-        @encdir = "/lib"
+        @encdir = @libdir + "/encoding/converter"
       end
     end
 
-    @encdir += "/encoding/converter"
-
     dirs = [@bindir, @libdir, @runtimedir, @kerneldir, @sitedir, @vendordir,
-            @mandir, @gemsdir, @includedir]
+            @mandir, @gemsdir, @includedir, @encdir]
 
     parts = dirs.map { |d| d.split "/" }
 
