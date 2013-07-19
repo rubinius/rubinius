@@ -33,7 +33,7 @@ You can see all of the possible `process_` calls by taking a look at
 
 Note that in many cases, the parser passes the result of calling a
 previous `process_` method as the arguments to a `process_` method. In
-the case of `true if 1`, the parser first calls `process_lit(line 1)` and
+the case of `true if 1`, the parser first calls `process_lit(line, 1)` and
 `process_true(line)`. It also calls `process_nil(line)`, because the
 original parse tree contains a `nil` for the `else` body. It then calls
 `process_if` with the line number, the result of `process_lit`, the
