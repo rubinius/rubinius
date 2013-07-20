@@ -342,7 +342,8 @@ namespace rubinius {
 
           jit.compile(req);
 
-          func = jit.generate_function();
+          bool indy = !ls_->config().jit_sync;
+          func = jit.generate_function(indy);
         }
 
         // We were unable to compile this function, likely
