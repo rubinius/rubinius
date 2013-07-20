@@ -133,6 +133,7 @@ class Module
   # Like undef_method, but doesn't even check that the method exists. Used
   # mainly to implement rb_undef_method.
   def undef_method!(name)
+    Rubinius.check_frozen
     name = Rubinius::Type.coerce_to_symbol(name)
     @method_table.store name, nil, :undef
     Rubinius::VM.reset_method_cache self, name
