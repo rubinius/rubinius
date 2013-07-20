@@ -1823,6 +1823,20 @@ int main() { return tgetnum(""); }
     end
   end
 
+  def bundle
+    @log.write "Bundling development gem dependencies..."
+    system "bundle"
+    if $?.exitstatus != 0
+      @log.write <<-EOM
+Bundling failed
+
+Bundler is required to install development dependencies for building Rubinius.
+Please install Bundler and ensure that superuser privileges are not required to
+run it.
+      EOM
+    end
+  end
+
   def run
     unless which_ruby == :ruby or which_ruby == :rbx
       failure "Sorry, building Rubinius requires MRI or Rubinius."
@@ -1841,6 +1855,7 @@ int main() { return tgetnum(""); }
     parse ARGV
 
     set_filesystem_paths
+    bundle
 
     if File.join(@bindir, @program_name) == build_ruby
       @log.error "\nYou are attempting to build using the instance of Rubinius that you are building.\n\n"
