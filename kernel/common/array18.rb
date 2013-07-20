@@ -275,6 +275,7 @@ class Array
 
     out = new_reserved size
     recursively_flatten(self, out, level)
+    Rubinius::Type.infect(out, self)
     out
   end
 

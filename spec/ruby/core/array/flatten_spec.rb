@@ -112,6 +112,16 @@ describe "Array#flatten" do
       lambda { [@obj].flatten }.should raise_error(TypeError)
     end
   end
+
+  it "returns a tainted array if self is tainted" do
+    [].taint.flatten.tainted?.should be_true
+  end
+
+  ruby_version_is "1.9" do
+    it "returns an untrusted array if self is untrusted" do
+      [].untrust.flatten.untrusted?.should be_true
+    end
+  end
 end
 
 describe "Array#flatten!" do
