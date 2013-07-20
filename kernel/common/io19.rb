@@ -1145,7 +1145,7 @@ class IO
     end
 
     pipe.binmode if binary
-    pipe.set_encoding external, internal
+    pipe.set_encoding(external || Encoding.default_external, internal)
 
     pipe.pid = pid
 
