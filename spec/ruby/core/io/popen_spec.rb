@@ -120,6 +120,24 @@ describe "IO.popen" do
     end
   end
 
+  with_feature :encoding do
+    it "has the given external encoding" do
+      io = IO.popen("true", :external_encoding => Encoding::EUC_JP)
+      io.external_encoding.should == Encoding::EUC_JP
+    end
+
+    it "has the given internal encoding" do
+      io = IO.popen("true", :internal_encoding => Encoding::EUC_JP)
+      io.internal_encoding.should == Encoding::EUC_JP
+    end
+
+    it "sets the internal encoding to nil if it's the same as the external encoding" do
+      io = IO.popen("true", :external_encoding => Encoding::EUC_JP,
+                            :internal_encoding => Encoding::EUC_JP)
+      io.internal_encoding.should be_nil
+    end
+  end
+
   ruby_version_is "1.9.2" do
     platform_is_not :windows do # not sure what commands to use on Windows
       describe "with a leading Array parameter" do
