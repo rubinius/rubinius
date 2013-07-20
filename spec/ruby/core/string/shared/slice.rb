@@ -264,6 +264,12 @@ describe :string_slice_regexp, :shared => true do
     end
   end
 
+  ruby_version_is "1.9" do
+    it "returns an untrusted string if the regexp is untrusted" do
+      "hello".send(@method, /./.untrust).untrusted?.should be_true
+    end
+  end
+
   it "returns subclass instances" do
     s = StringSpecs::MyString.new("hello")
     s.send(@method, //).should be_kind_of(StringSpecs::MyString)
@@ -313,6 +319,12 @@ describe :string_slice_regexp_index, :shared => true do
       str.send(@method, tainted_re, 0).tainted?.should == true
       str.send(@method, tainted_re, 1).tainted?.should == true
       str.send(@method, tainted_re, -1).tainted?.should == true
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "returns an untrusted string if the regexp is untrusted" do
+      "hello".send(@method, /(.)/.untrust, 1).untrusted?.should be_true
     end
   end
 
