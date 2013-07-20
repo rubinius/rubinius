@@ -1773,21 +1773,21 @@ int main() { return tgetnum(""); }
       end
     end
 
-    FileUtils.cp config_h, "vm/capi/18/include/config.h"
-    FileUtils.cp config_h, "vm/capi/19/include/ruby/config.h"
-    FileUtils.cp config_h, "vm/capi/20/include/ruby/config.h"
+    if @language_version == "18"
+      vm_capi_header = "vm/capi/18/include"
+    else
+      vm_capi_header = "vm/capi/#{@language_version}/include/ruby"
+    end
+
+    FileUtils.cp config_h, "#{vm_capi_header}/config.h"
 
     # Copy definitions for the MRI Object-Oriented Pointer (OOP) definitions.
     mri_oop_h = "vm/capi/mri_oop.h"
-    FileUtils.cp mri_oop_h, "vm/capi/18/include/mri_oop.h"
-    FileUtils.cp mri_oop_h, "vm/capi/19/include/ruby/mri_oop.h"
-    FileUtils.cp mri_oop_h, "vm/capi/20/include/ruby/mri_oop.h"
+    FileUtils.cp mri_oop_h, "#{vm_capi_header}/mri_oop.h"
 
     # Copy definitions for the C-Api constants
     capi_constants_h = "vm/capi/capi_constants.h"
-    FileUtils.cp capi_constants_h, "vm/capi/18/include/capi_constants.h"
-    FileUtils.cp capi_constants_h, "vm/capi/19/include/ruby/capi_constants.h"
-    FileUtils.cp capi_constants_h, "vm/capi/20/include/ruby/capi_constants.h"
+    FileUtils.cp capi_constants_h, "#{vm_capi_header}/capi_constants.h"
 
     # Write a require file depending on which Readline library we use.
     File.open "lib/readline.rb", "wb" do |f|
