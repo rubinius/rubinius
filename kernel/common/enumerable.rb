@@ -115,18 +115,6 @@ module Enumerable
     false
   end
 
-  def count(item = undefined)
-    seq = 0
-    if !undefined.equal?(item)
-      each { |o| seq += 1 if item == o }
-    elsif block_given?
-      each { |o| seq += 1 if yield(o) }
-    else
-      each { seq += 1 }
-    end
-    seq
-  end
-
   def cycle(many=nil)
     return to_enum(:cycle, many) unless block_given?
 

@@ -8,8 +8,32 @@ ruby_version_is "1.8.7" do
       @numerous = EnumerableSpecs::Numerous.new(*@elements)
     end
 
-    it "returns size when no argument or a block" do
-      @numerous.count.should == 4
+    describe "when no argument or a block" do
+      it "returns size" do
+        @numerous.count.should == 4
+      end
+
+      describe "with a custom size method" do
+        before(:each) do
+          class << @numerous
+            def size
+              :any_object
+            end
+          end
+        end
+
+        ruby_version_is ""..."1.9" do
+          it "uses the custom size method" do
+            @numerous.count.should == :any_object
+          end
+        end
+
+        ruby_version_is "1.9" do
+          it "ignores the custom size method" do
+            @numerous.count.should == 4
+          end
+        end
+      end
     end
 
     it "counts nils if given nil as an argument" do
