@@ -131,7 +131,7 @@ class String
       Regexp.last_match = match_data
       if match_data
         result = match_data.to_s
-        result.taint if index.tainted?
+        Rubinius::Type.infect result, index
         return result
       end
     when String
@@ -866,7 +866,7 @@ class String
     end
 
     str = match[capture]
-    str.taint if pattern.tainted?
+    Rubinius::Type.infect str, pattern
     [match, str]
   end
   private :subpattern
