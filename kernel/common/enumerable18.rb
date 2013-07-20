@@ -11,6 +11,19 @@ module Enumerable
     end
   end
 
+  def count(item = undefined)
+    seq = 0
+    if !undefined.equal?(item)
+      each { |o| seq += 1 if item == o }
+    elsif block_given?
+      each { |o| seq += 1 if yield(o) }
+    else
+      return size if respond_to? :size
+      each { seq += 1 }
+    end
+    seq
+  end
+
   def each_with_index
     return to_enum(:each_with_index) unless block_given?
 
