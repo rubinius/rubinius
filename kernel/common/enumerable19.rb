@@ -53,6 +53,18 @@ module Enumerable
 
   alias_method :map, :collect
 
+  def count(item = undefined)
+    seq = 0
+    if !undefined.equal?(item)
+      each { |o| seq += 1 if item == o }
+    elsif block_given?
+      each { |o| seq += 1 if yield(o) }
+    else
+      each { seq += 1 }
+    end
+    seq
+  end
+
   def each_entry(*pass)
     return to_enum :each_entry, *pass unless block_given?
     each(*pass) do |*args|
