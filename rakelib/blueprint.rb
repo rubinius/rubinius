@@ -92,7 +92,8 @@ Daedalus.blueprint do |i|
     g.depends_on "config.h", "configure"
 
     gcc.cflags.unshift "-Ivendor/oniguruma"
-    g.cflags = ["-DHAVE_CONFIG_H", "-I.", "-I../../vm/capi/19/include"] + gcc.cflags
+    g.cflags = ["-DHAVE_CONFIG_H", "-I.", "-I../..#{BUILD_CONFIG[:includedir]}"]
+    g.cflags += gcc.cflags
 
     g.static_library "libonig" do |l|
       l.source_files "*.c", "enc/*.c"
