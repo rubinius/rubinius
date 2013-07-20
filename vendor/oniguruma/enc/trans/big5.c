@@ -5,7 +5,7 @@
 /* src="big5-uao-tbl.rb", len=375883, checksum=11045 */
 
 #include "transcoder.h"
-#include "ruby/ruby.h"
+#include "ruby.h"
 
 
 static const unsigned char

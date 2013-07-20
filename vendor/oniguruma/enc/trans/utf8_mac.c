@@ -4,7 +4,7 @@
 /* src="utf8_mac-tbl.rb", len=24587, checksum=65335 */
 
 #include "transcoder.h"
-#include "ruby/ruby.h"
+#include "ruby.h"
 
 
 static const unsigned char

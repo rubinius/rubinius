@@ -3,7 +3,7 @@
 /* src="emoji_sjis_docomo.trans", len=1229, checksum=7666 */
 
 #include "transcoder.h"
-#include "ruby/ruby.h"
+#include "ruby.h"
 
 
 static const unsigned char

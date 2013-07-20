@@ -3,7 +3,7 @@
 /* src="escape.trans", len=1982, checksum=23094 */
 
 #include "transcoder.h"
-#include "ruby/ruby.h"
+#include "ruby.h"
 
 
 static const unsigned char

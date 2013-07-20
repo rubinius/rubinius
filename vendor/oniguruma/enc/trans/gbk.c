@@ -4,7 +4,7 @@
 /* src="gbk-tbl.rb", len=413888, checksum=52830 */
 
 #include "transcoder.h"
-#include "ruby/ruby.h"
+#include "ruby.h"
 
 
 static const unsigned char

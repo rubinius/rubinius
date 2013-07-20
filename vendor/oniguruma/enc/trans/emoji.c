@@ -4,7 +4,7 @@
 /* src="emoji-exchange-tbl.rb", len=524703, checksum=40005 */
 
 #include "transcoder.h"
-#include "ruby/ruby.h"
+#include "ruby.h"
 
 
 static const unsigned char

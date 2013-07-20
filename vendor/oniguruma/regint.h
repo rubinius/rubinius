@@ -30,7 +30,7 @@
  * SUCH DAMAGE.
  */
 
-#include "ruby/ruby.h"
+#include "ruby.h"
 #undef RUBY
 #define USE_UPPER_CASE_TABLE
 

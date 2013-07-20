@@ -54,7 +54,7 @@
 /* src="cp855-tbl.rb", len=2094, checksum=48066 */
 
 #include "transcoder.h"
-#include "ruby/ruby.h"
+#include "ruby.h"
 
 
 static const unsigned char

@@ -4,7 +4,7 @@
 
 #include "transcoder.h"
 
-#include "ruby/ruby.h"
+#include "ruby.h"
 
 static const unsigned char
 utf_16_32_byte_array[1288] = {

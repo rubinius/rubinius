@@ -3,7 +3,7 @@
 /* src="emoji_sjis_softbank.trans", len=1243, checksum=9555 */
 
 #include "transcoder.h"
-#include "ruby/ruby.h"
+#include "ruby.h"
 
 
 static const unsigned char
