@@ -190,6 +190,16 @@ describe :symbol_slice, :shared => true do
         :symbol.send(@method, /[0-9]+/)
         $~.should be_nil
       end
+
+      it "returns a tainted string if the regexp is tainted" do
+        :symbol.send(@method, /./.taint).tainted?.should be_true
+      end
+
+      ruby_version_is "1.9" do
+        it "returns an untrusted string if the regexp is untrusted" do
+          :symbol.send(@method, /./.untrust).untrusted?.should be_true
+        end
+      end
     end
 
     describe "with a capture index" do
@@ -209,6 +219,16 @@ describe :symbol_slice, :shared => true do
 
       it "converts the index to an Integer" do
         :symbol.send(@method, /(sy)(mb)(ol)/, 1.5).should == "sy"
+      end
+
+      it "returns a tainted string if the regexp is tainted" do
+        :symbol.send(@method, /(.)/.taint, 1).tainted?.should be_true
+      end
+
+      ruby_version_is "1.9" do
+        it "returns an untrusted string if the regexp is untrusted" do
+          :symbol.send(@method, /(.)/.untrust, 1).untrusted?.should be_true
+        end
       end
 
       describe "and an index that cannot be converted to an Integer" do
