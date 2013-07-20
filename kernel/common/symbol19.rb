@@ -95,7 +95,7 @@ class Symbol
       Regexp.last_match = match_data
       if match_data
         result = match_data.to_s
-        result.taint if index.tainted?
+        Rubinius::Type.infect result, index
         return result
       end
     else
