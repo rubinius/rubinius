@@ -138,7 +138,7 @@ config_files = FileList[
   "rakelib/*.rake"
 ]
 
-signature_files = compiler_files + parser_files + kernel_files + config_files
+signature_files = kernel_files + config_files #+ compiler_files + parser_files
 
 file signature_file => signature_files do
   require 'digest/sha1'

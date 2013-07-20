@@ -6,6 +6,8 @@ require 'rakelib/release'
 require 'tmpdir'
 require 'ostruct'
 
+require 'daedalus'
+
 config = OpenStruct.new
 config.use_jit = true
 config.compile_with_llvm = false
@@ -35,7 +37,6 @@ INSN_GEN    = %w[ vm/gen/instruction_names.cpp
                   vm/gen/instruction_implementations.hpp
                   vm/gen/instruction_visitors.hpp
                   vm/gen/instruction_effects.hpp
-                  web/_includes/instructions.markdown
                 ]
 TYPE_GEN    = %w[ vm/gen/includes.hpp
                   vm/gen/kind_of.hpp
@@ -281,8 +282,6 @@ file 'vm/dtrace/probes.h' do |t|
   end
 end
 
-require 'projects/daedalus/daedalus'
-
 if jobs = ENV['JOBS']
   @parallel_jobs = jobs.to_i
   if @parallel_jobs < 1
@@ -370,10 +369,6 @@ end
 
 file "vm/gen/instruction_effects.hpp" => insn_deps do |t|
   generate_instruction_file iparser, :generate_stack_effects, t.name
-end
-
-file "web/_includes/instructions.markdown" => insn_deps do |t|
-  generate_instruction_file iparser, :generate_documentation, t.name
 end
 
 namespace :vm do
