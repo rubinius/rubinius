@@ -471,7 +471,18 @@ module Rubinius
             table.each do |name, idx|
               local = g.state.scope.new_local name
               g.last_match 5, idx.last - 1
-              g.set_local local.slot
+              case local
+              when Compiler::LocalVariable
+                g.set_local local.slot
+              when Compiler::EvalLocalVariable
+                g.push_variables
+                g.swap
+                g.push_literal name
+                g.swap
+                g.send :set_eval_local, 2, false
+              else
+                raise CompileError, "unknown type of local #{local.inspect}"
+              end
             end
           end
         end
