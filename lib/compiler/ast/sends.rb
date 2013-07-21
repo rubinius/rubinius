@@ -12,12 +12,11 @@ module Rubinius
         @name = name
         @privately = privately
         @block = nil
-        @check_for_local = false
         @vcall_style = vcall_style
       end
 
       def check_local_reference(g)
-        if @receiver.kind_of? Self and (@check_for_local or g.state.eval?)
+        if @receiver.kind_of? Self
           g.state.scope.search_local(@name)
         end
       end
