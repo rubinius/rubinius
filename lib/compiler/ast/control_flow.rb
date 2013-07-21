@@ -468,7 +468,7 @@ module Rubinius
         if @pattern.kind_of? RegexLiteral
           regexp = Regexp.new(@pattern.source)
           if table = regexp.name_table
-            table.each do |name, idx|
+            table.sort_by {|name, idx| idx }.each do |name, idx|
               local = g.state.scope.new_local name
               g.last_match 5, idx.last - 1
               case local
