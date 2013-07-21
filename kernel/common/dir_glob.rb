@@ -55,25 +55,6 @@ class Dir
       end
     end
 
-    class ConstantSuffixEntry < Node
-      def initialize(nxt, flags, name, suffixes)
-        super nxt, flags
-        @name = name
-        @suffixes = suffixes
-      end
-
-      def call(env, parent)
-        stem = path_join(parent, @name)
-
-        @suffixes.each do |s|
-          path = "#{stem}#{s}"
-          if File.exists?(path)
-            env.matches << path
-          end
-        end
-      end
-    end
-
     class RootDirectory < Node
       def call(env, path)
         @next.call env, "/"
@@ -218,33 +199,6 @@ class Dir
       end
     end
 
-    class SuffixEntryMatch < Match
-      def initialize(nxt, flags, glob, suffixes)
-        super nxt, flags, glob
-        @suffixes = suffixes
-      end
-
-      def call(env, path)
-        return if path and !File.exists?("#{path}/.")
-
-        begin
-          dir = Dir.new(path ? path : ".")
-        rescue SystemCallError
-          return
-        end
-
-        while f = dir.read
-          @suffixes.each do |s|
-            ent = "#{f}#{s}"
-            if match? ent
-              env.matches << path_join(path, ent)
-            end
-          end
-        end
-        dir.close
-      end
-    end
-
     class DirectoriesOnly < Node
       def call(env, path)
         if path and File.exists?("#{path}/.")
@@ -293,7 +247,7 @@ class Dir
       ret
     end
 
-    def self.single_compile(glob, flags=0, suffixes=nil)
+    def self.single_compile(glob, flags=0)
       parts = path_split(glob)
 
       if glob.getbyte(-1) == 47 # ?/
@@ -301,17 +255,9 @@ class Dir
       else
         file = parts.pop
         if /^[a-zA-Z0-9._]+$/.match(file)
-          if suffixes
-            last = ConstantSuffixEntry.new nil, flags, file, suffixes
-          else
-            last = ConstantEntry.new nil, flags, file
-          end
+          last = ConstantEntry.new nil, flags, file
         else
-          if suffixes
-            last = SuffixEntryMatch.new nil, flags, file, suffixes
-          else
-            last = EntryMatch.new nil, flags, file
-          end
+          last = EntryMatch.new nil, flags, file
         end
       end
 
@@ -474,17 +420,6 @@ class Dir
           i += 1
         end
       end
-
-      # Detect if it's a simple suffix brace
-      # if !escapes and lbrace and rbrace == pattern.size - 1
-        # parts = pattern.substring(lbrace+1, rbrace - lbrace - 1).split(",")
-        # front = pattern.substring(0, lbrace)
-
-        # if node = single_compile(front, flags, parts)
-          # patterns << node
-          # return patterns
-        # end
-      # end
 
       # There was a full {} expression detected, expand each part of it
       # recursively.
