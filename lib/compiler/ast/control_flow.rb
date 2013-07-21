@@ -465,6 +465,16 @@ module Rubinius
         @pattern.bytecode(g)
         @value.bytecode(g)
         g.send :=~, 1
+        if @pattern.kind_of? RegexLiteral
+          regexp = Regexp.new(@pattern.source)
+          if table = regexp.name_table
+            table.each do |name, idx|
+              local = g.state.scope.new_local name
+              g.last_match 5, idx.last - 1
+              g.set_local local.slot
+            end
+          end
+        end
       end
 
       def to_sexp
