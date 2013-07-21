@@ -13,8 +13,8 @@ describe "Hash#default_proc" do
   end
 end
 
-describe "Hash#default_proc=" do
-  ruby_version_is "1.9" do
+ruby_version_is "1.9" do
+  describe "Hash#default_proc=" do
     it "replaces the block passed to Hash.new" do
       h = new_hash { |i| 'Paris' }
       h.default_proc = Proc.new { 'Montreal' }
@@ -41,6 +41,11 @@ describe "Hash#default_proc=" do
       lambda{new_hash.default_proc = 42}.should raise_error(TypeError)
     end
 
+    it "returns the passed Proc" do
+      new_proc = Proc.new {}
+      (new_hash.default_proc = new_proc).should equal(new_proc)
+    end
+
     ruby_version_is "1.9"..."2.0" do
       it "raises an error if passed nil" do
         lambda{new_hash.default_proc = nil}.should raise_error(TypeError)
@@ -53,6 +58,10 @@ describe "Hash#default_proc=" do
         h.default_proc = nil
         h.default_proc.should == nil
         h[:city].should == nil
+      end
+
+      it "returns nil if passed nil" do
+        (new_hash.default_proc = nil).should be_nil
       end
     end
 
@@ -71,6 +80,11 @@ describe "Hash#default_proc=" do
       lambda do
         h.default_proc = lambda {|a,b,c| }
       end.should raise_error(TypeError)
+    end
+
+    it "raises a RuntimeError if self is frozen" do
+      lambda { new_hash.freeze.default_proc = Proc.new {} }.should raise_error(RuntimeError)
+      lambda { new_hash.freeze.default_proc = nil }.should raise_error(RuntimeError)
     end
   end
 end

@@ -19,10 +19,10 @@ tuple.rbc
 exception.rbc
 exception18.rbc
 undefined.rbc
-hash.rbc
-hash18.rbc
 type.rbc
 type18.rbc
+hash.rbc
+hash18.rbc
 kernel.rbc
 kernel18.rbc
 identitymap.rbc
