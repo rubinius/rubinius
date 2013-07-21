@@ -2,6 +2,8 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes.rb', __FILE__)
 
+language_version __FILE__, "gsub"
+
 describe "String#gsub with pattern and replacement" do
 
   before :each do
@@ -154,6 +156,10 @@ describe "String#gsub with pattern and replacement" do
 
   it "leaves \\ at the end of replacement untouched" do
     "hello".gsub(/./, 'hah\\').should == 'hah\\' * 5
+  end
+
+  ruby_version_is "1.9" do
+    it_behaves_like :string_gsub_named_capture, :gsub
   end
 
   it "taints the result if the original string or replacement is tainted" do
