@@ -125,7 +125,7 @@ module Rubinius
     # classes
     if Type.singleton_class_object(mod)
       visibility = vis
-    elsif vis == :module or name == :initialize or name == :initialize_copy
+    elsif vis == :module or privatized_method?(name)
       visibility = :private
     else
       visibility = vis
@@ -172,6 +172,11 @@ module Rubinius
 
     return executable
   end
+
+  def self.privatized_method?(name)
+    name == :initialize || name == :initialize_copy
+  end
+  private_class_method :privatized_method?
 
   # Must be AFTER add_method, because otherwise we'll run this attach_method to add
   # add_method itself and fail.
