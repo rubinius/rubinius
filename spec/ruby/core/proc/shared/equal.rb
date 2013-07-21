@@ -2,6 +2,10 @@ require File.expand_path('../../../../spec_helper', __FILE__)
 require File.expand_path('../../fixtures/common', __FILE__)
 
 describe :proc_equal, :shared => true do
+  it "is a public method" do
+    Proc.should have_public_instance_method(@method, false)
+  end
+
   it "returns true if self and other are the same object" do
     p = proc { :foo }
     p.send(@method, p).should be_true
@@ -77,5 +81,22 @@ describe :proc_equal, :shared => true do
     p = lambda { :foo }
     p2 = lambda { :bar }
     p.send(@method, p2).should be_false
+  end
+end
+
+describe :proc_equal_undefined, :shared => true do
+  it "is not defined" do
+    Proc.should_not have_instance_method(@method, false)
+  end
+
+  it "returns false if other is a dup of the original" do
+    p = proc { :foo }
+    p.send(@method, p.dup).should be_false
+
+    p = Proc.new { :foo }
+    p.send(@method, p.dup).should be_false
+
+    p = lambda { :foo }
+    p.send(@method, p.dup).should be_false
   end
 end
