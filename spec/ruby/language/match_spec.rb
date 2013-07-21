@@ -51,3 +51,5 @@ describe "The =~ operator" do
     methodval.should == expected
   end
 end
+
+language_version __FILE__, "match"
