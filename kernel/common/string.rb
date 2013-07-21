@@ -786,6 +786,25 @@ class String
                   match[cap - 48].to_s
                 when 92 # ?\\ escaped backslash
                   '\\'
+                when 107 # \k named capture
+                  if @data[index + 1] == 60
+                    name = ""
+                    i = index + 2
+                    while i < @data.size && @data[i] != 62
+                      name << @data[i]
+                      i += 1
+                    end
+                    if i >= @data.size
+                      '\\'.append(cap.chr)
+                      index += 1
+                      next
+                    end
+                    index = i
+                    name.force_encoding result.encoding
+                    match[name]
+                  else
+                    '\\'.append(cap.chr)
+                  end
                 else     # unknown escape
                   '\\'.append(cap.chr)
                 end
