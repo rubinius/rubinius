@@ -121,18 +121,23 @@ class Module
   end
 
   def undef_method(*names)
-    names.each do |name|
+    return self if names.empty?
+    names.map!{ |name| Rubinius::Type.coerce_to_symbol name }
+    Rubinius.check_frozen
+
+    names.each do |name|  
       # Will raise a NameError if the method doesn't exist.
-      instance_method(name)
+      instance_method name
       undef_method! name
     end
 
-    nil
+    self
   end
 
   # Like undef_method, but doesn't even check that the method exists. Used
   # mainly to implement rb_undef_method.
   def undef_method!(name)
+    Rubinius.check_frozen
     name = Rubinius::Type.coerce_to_symbol(name)
     @method_table.store name, nil, :undef
     Rubinius::VM.reset_method_cache self, name
@@ -150,9 +155,10 @@ class Module
   def remove_method(*names)
     names.each do |name|
       name = Rubinius::Type.coerce_to_symbol(name)
+      Rubinius.check_frozen
 
       unless @method_table.lookup(name)
-        raise NameError, "method `#{name}' not defined in #{self.name}"
+        raise NameError.new("method `#{name}' not defined in #{self.name}", name)
       end
       @method_table.delete name
 
@@ -167,7 +173,7 @@ class Module
       end
     end
 
-    nil
+    self
   end
 
   def public_method_defined?(sym)
