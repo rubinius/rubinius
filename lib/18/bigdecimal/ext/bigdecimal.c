@@ -317,7 +317,6 @@ BigDecimal_dump(int argc, VALUE *argv, VALUE self)
     psz = rb_str_ptr(dump);
     sprintf(psz,"%lu:",VpMaxPrec(vp)*VpBaseFig());
     VpToString(vp, psz+strlen(psz), 0, 0);
-    rb_str_flush(dump);
     rb_str_resize(dump, strlen(psz));
     return dump;
 }
@@ -1566,7 +1565,6 @@ BigDecimal_to_s(int argc, VALUE *argv, VALUE self)
     } else {
         VpToString (vp, psz, mc, fPlus);
     }
-    rb_str_flush(str);
     rb_str_resize(str, strlen(psz));
     return str;
 }
@@ -1619,7 +1617,6 @@ BigDecimal_split(VALUE self)
     }
     if(psz1[0]=='N') s=0; /* NaN */
     e = VpExponent10(vp);
-    rb_str_flush(str);
 
     obj  = rb_ary_new2(4);
     rb_ary_push(obj, INT2FIX(s));
@@ -1672,7 +1669,6 @@ BigDecimal_inspect(VALUE self)
     VpToString(vp, tmp, 10, 0);
     tmp += strlen(tmp);
     sprintf(tmp,"',%lu(%lu)>",VpPrec(vp)*VpBaseFig(),VpMaxPrec(vp)*VpBaseFig());
-    rb_str_flush(obj);
     rb_str_resize(obj, strlen(psz));
     return obj;
 }
