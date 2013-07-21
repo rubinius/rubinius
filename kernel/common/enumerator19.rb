@@ -57,7 +57,12 @@ module Enumerable
       rescue StopIteration
       end
 
-      raise StopIteration, "iteration reached end"
+      exception = StopIteration.new "iteration reached end"
+      Rubinius.privately do
+        exception.result = @generator.result
+      end
+
+      raise exception
     end
 
     def next_values

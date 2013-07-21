@@ -26,6 +26,8 @@ module Enumerable
 
     if Rubinius::Fiber::ENABLED
       class FiberGenerator
+        attr_reader :result
+
         def initialize(obj)
           @object = obj
           rewind
@@ -54,7 +56,7 @@ module Enumerable
           @done = false
           @fiber = Rubinius::Fiber.new(0) do
             obj = @object
-            obj.each do |*val|
+            @result = obj.each do |*val|
               Rubinius::Fiber.yield *val
             end
             @done = true
@@ -66,6 +68,8 @@ module Enumerable
     end
 
     class ThreadGenerator
+      attr_reader :result
+
       def initialize(enum, obj, meth, args)
         @object = obj
         @method = meth
@@ -121,7 +125,7 @@ module Enumerable
         @hold_channel = Rubinius::Channel.new
 
         @thread = Thread.new do
-          @object.__send__(@method, *@args) do |*vals|
+          @result = @object.__send__(@method, *@args) do |*vals|
             @hold_channel.receive
             @channel << vals
           end

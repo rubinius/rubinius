@@ -54,3 +54,8 @@ class SignalException < Exception
     super(@signm)
   end
 end
+
+class StopIteration
+  attr_accessor :result
+  private :result=
+end
