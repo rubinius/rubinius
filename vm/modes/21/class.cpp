@@ -2,7 +2,7 @@
 #include "builtin/string.hpp"
 
 #include "capi/capi.hpp"
-#include "capi/19/include/ruby/ruby.h"
+#include "capi/ruby.h"
 
 using namespace rubinius;
 using namespace rubinius::capi;

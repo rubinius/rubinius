@@ -27,7 +27,7 @@
 #include "arguments.hpp"
 #include "dispatch.hpp"
 #include "capi/capi.hpp"
-#include "capi/18/include/ruby.h"
+#include "capi/ruby.h"
 
 namespace rubinius {
   namespace capi {

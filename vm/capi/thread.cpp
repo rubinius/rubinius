@@ -5,7 +5,7 @@
 #endif
 
 #include "capi/capi.hpp"
-#include "capi/18/include/ruby.h"
+#include "capi/ruby.h"
 
 #include "on_stack.hpp"
 #include "call_frame.hpp"

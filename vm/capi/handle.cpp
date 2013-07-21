@@ -5,7 +5,7 @@
 #include "capi/capi.hpp"
 #include "capi/handle.hpp"
 #include "capi/handles.hpp"
-#include "capi/18/include/ruby.h"
+#include "capi/ruby.h"
 
 namespace rubinius {
   namespace capi {

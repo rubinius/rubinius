@@ -1,8 +1,8 @@
 // TODO: resolve after importing Oniguruma from MRI
 #include <stddef.h>
-#include "capi/19/include/ruby/oniguruma.h"
-#include "capi/19/include/ruby/transcoder.h"
-#include "capi/19/include/ruby/regenc.h"
+#include "capi/oniguruma.h"
+#include "capi/transcoder.h"
+#include "capi/regenc.h"
 
 #include "builtin/array.hpp"
 #include "builtin/encoding.hpp"
@@ -13,8 +13,8 @@
 
 #include "capi/capi.hpp"
 
-#include "capi/19/include/ruby/ruby.h"
-#include "capi/19/include/ruby/encoding.h"
+#include "capi/ruby.h"
+#include "capi/encoding.h"
 
 using namespace rubinius;
 using namespace rubinius::capi;
