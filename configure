@@ -210,13 +210,7 @@ class Configure
       end
     end
 
-    if @prefixdir == @sourcedir
-      @encdir = @libdir + "/#{@language_version}"
-    else
-      @encdir = @libdir
-    end
-
-    @encdir += "/encoding/converter"
+    @encdir = @libdir + "/encoding/converter"
 
     dirs = [@bindir, @libdir, @runtimedir, @kerneldir, @sitedir, @vendordir,
             @mandir, @gemsdir, @includedir, @encdir]
