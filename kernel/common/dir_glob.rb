@@ -87,8 +87,9 @@ class Dir
           while ent = dir.read
             next if ent == "." || ent == ".."
             full = path_join(path, ent)
+            stat = File::Stat.lstat full
 
-            if File.directory? full and (allow_dots or ent.getbyte(0) != 46) # ?.
+            if stat.directory? and (allow_dots or ent.getbyte(0) != 46) # ?.
               stack << full
               @next.call env, full
             end
@@ -120,8 +121,9 @@ class Dir
         dir = Dir.new(".")
         while ent = dir.read
           next if ent == "." || ent == ".."
+          stat = File::Stat.lstat ent
 
-          if File.directory? ent and (allow_dots or ent.getbyte(0) != 46) # ?.
+          if stat.directory? and (allow_dots or ent.getbyte(0) != 46) # ?.
             stack << ent
             @next.call env, ent
           end
@@ -134,8 +136,9 @@ class Dir
           while ent = dir.read
             next if ent == "." || ent == ".."
             full = path_join(path, ent)
+            stat = File::Stat.lstat full
 
-            if File.directory? full and ent.getbyte(0) != 46  # ?.
+            if stat.directory? and ent.getbyte(0) != 46  # ?.
               stack << full
               @next.call env, full
             end
