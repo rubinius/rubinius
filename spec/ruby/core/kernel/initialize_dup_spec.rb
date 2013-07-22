@@ -7,6 +7,18 @@ ruby_version_is "1.9" do
       ScratchPad.clear
     end
 
+    ruby_version_is "1.9"..."2.0" do
+      it "is a public method" do
+        Kernel.should have_public_instance_method(:initialize_dup, false)
+      end
+    end
+
+    ruby_version_is "2.0" do
+      it "is a private method" do
+        Kernel.should have_private_instance_method(:initialize_dup, false)
+      end
+    end
+
     it "is called when object is cloned" do
       obj = KernelSpecs::Dup.new
       obj.dup
@@ -16,7 +28,7 @@ ruby_version_is "1.9" do
     it "calls initialize_copy by default" do
       obj = KernelSpecs::Duplicate.new(1, :a)
       other = KernelSpecs::Duplicate.new(2, :a)
-      obj.initialize_clone(other)
+      obj.send(:initialize_dup, other)
       ScratchPad.recorded.should == obj.object_id
     end
   end

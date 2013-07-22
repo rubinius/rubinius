@@ -29,6 +29,7 @@ hash20.rbc
 hash_hamt.rbc
 kernel.rbc
 kernel19.rbc
+kernel20.rbc
 identitymap.rbc
 array.rbc
 array19.rbc

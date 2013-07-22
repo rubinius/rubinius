@@ -7,6 +7,18 @@ ruby_version_is "1.9" do
       @a = KernelSpecs::A.new
     end
 
+    ruby_version_is "1.9"..."2.0" do
+      it "is a public method" do
+        Kernel.should have_public_instance_method(:respond_to_missing?, false)
+      end
+    end
+
+    ruby_version_is "2.0" do
+      it "is a private method" do
+        Kernel.should have_private_instance_method(:respond_to_missing?, false)
+      end
+    end
+
     it "is not called when #respond_to? would return true" do
       obj = mock('object')
       obj.stub!(:glark)
