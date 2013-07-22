@@ -1,6 +1,8 @@
 # -*- encoding: us-ascii -*-
 
 class Time
+  private :_dump
+
   def inspect
     str = @is_gmt ? strftime("%Y-%m-%d %H:%M:%S UTC") : strftime("%Y-%m-%d %H:%M:%S %z")
     str.force_encoding Encoding::US_ASCII
