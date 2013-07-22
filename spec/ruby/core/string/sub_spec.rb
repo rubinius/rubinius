@@ -433,3 +433,176 @@ describe "String#sub! with pattern and block" do
     end
   end
 end
+
+ruby_version_is "1.9" do
+
+  describe "String#sub with pattern and Hash" do
+
+    it "returns a copy of self with the first occurrence of pattern replaced with the value of the corresponding hash key" do
+      "hello".sub(/./, 'l' => 'L').should == "ello"
+      "hello!".sub(/(.)(.)/, 'he' => 'she ', 'll' => 'said').should == 'she llo!'
+      "hello".sub('l', 'l' => 'el').should == 'heello'
+    end
+
+    it "removes keys that don't correspond to matches" do
+      "hello".sub(/./, 'z' => 'L', 'z' => 'b', 'o' => 'ow').should == "ello"
+    end
+
+    it "ignores non-String keys" do
+      "hello".sub(/(ll)/, 'll' => 'r', :ll => 'z').should == "hero"
+    end
+
+    it "uses a key's value only a single time" do
+      "food".sub(/o/, 'o' => '0').should == "f0od"
+    end
+
+    it "uses the hash's default value for missing keys" do
+      hsh = new_hash
+      hsh.default='?'
+      hsh['o'] = '0'
+      "food".sub(/./, hsh).should == "?ood"
+    end
+
+    it "coerces the hash values with #to_s" do
+      hsh = new_hash
+      hsh.default=[]
+      hsh['o'] = 0
+      obj = mock('!')
+      obj.should_receive(:to_s).and_return('!')
+      hsh['f'] = obj
+      "food!".sub(/./, hsh).should == "!ood!"
+    end
+
+    it "uses the hash's value set from default_proc for missing keys" do
+      hsh = new_hash
+      hsh.default_proc = lambda { |k,v| 'lamb' }
+      "food!".sub(/./, hsh).should == "lambood!"
+    end
+
+    it "sets $~ to MatchData of first match and nil when there's none for access from outside" do
+      'hello.'.sub('l', 'l' => 'L')
+      $~.begin(0).should == 2
+      $~[0].should == 'l'
+
+      'hello.'.sub('not', 'ot' => 'to')
+      $~.should == nil
+
+      'hello.'.sub(/.(.)/, 'o' => ' hole')
+      $~[0].should == 'he'
+
+      'hello.'.sub(/not/, 'z' => 'glark')
+      $~.should == nil
+    end
+
+    it "doesn't interpolate special sequences like \\1 for the block's return value" do
+      repl = '\& \0 \1 \` \\\' \+ \\\\ foo'
+      "hello".sub(/(.+)/, 'hello' => repl ).should == repl
+    end
+
+    it "untrusts the result if the original string is untrusted" do
+      str = "Ghana".untrust
+      str.sub(/[Aa]na/, 'ana' => '').untrusted?.should be_true
+    end
+
+    it "untrusts the result if a hash value is untrusted" do
+      str = "Ghana"
+      str.sub(/a$/, 'a' => 'di'.untrust).untrusted?.should be_true
+    end
+
+    it "taints the result if the original string is tainted" do
+      str = "Ghana".taint
+      str.sub(/[Aa]na/, 'ana' => '').tainted?.should be_true
+    end
+
+    it "taints the result if a hash value is tainted" do
+      str = "Ghana"
+      str.sub(/a$/, 'a' => 'di'.taint).tainted?.should be_true
+    end
+
+  end
+
+  describe "String#sub! with pattern and Hash" do
+
+    it "returns self with the first occurrence of pattern replaced with the value of the corresponding hash key" do
+      "hello".sub!(/./, 'l' => 'L').should == "ello"
+      "hello!".sub!(/(.)(.)/, 'he' => 'she ', 'll' => 'said').should == 'she llo!'
+      "hello".sub!('l', 'l' => 'el').should == 'heello'
+    end
+
+    it "removes keys that don't correspond to matches" do
+      "hello".sub!(/./, 'z' => 'L', 'z' => 'b', 'o' => 'ow').should == "ello"
+    end
+
+    it "ignores non-String keys" do
+      "hello".sub!(/(ll)/, 'll' => 'r', :ll => 'z').should == "hero"
+    end
+
+    it "uses a key's value only a single time" do
+      "food".sub!(/o/, 'o' => '0').should == "f0od"
+    end
+
+    it "uses the hash's default value for missing keys" do
+      hsh = new_hash
+      hsh.default='?'
+      hsh['o'] = '0'
+      "food".sub!(/./, hsh).should == "?ood"
+    end
+
+    it "coerces the hash values with #to_s" do
+      hsh = new_hash
+      hsh.default=[]
+      hsh['o'] = 0
+      obj = mock('!')
+      obj.should_receive(:to_s).and_return('!')
+      hsh['f'] = obj
+      "food!".sub!(/./, hsh).should == "!ood!"
+    end
+
+    it "uses the hash's value set from default_proc for missing keys" do
+      hsh = new_hash
+      hsh.default_proc = lambda { |k,v| 'lamb' }
+      "food!".sub!(/./, hsh).should == "lambood!"
+    end
+
+    it "sets $~ to MatchData of first match and nil when there's none for access from outside" do
+      'hello.'.sub!('l', 'l' => 'L')
+      $~.begin(0).should == 2
+      $~[0].should == 'l'
+
+      'hello.'.sub!('not', 'ot' => 'to')
+      $~.should == nil
+
+      'hello.'.sub!(/.(.)/, 'o' => ' hole')
+      $~[0].should == 'he'
+
+      'hello.'.sub!(/not/, 'z' => 'glark')
+      $~.should == nil
+    end
+
+    it "doesn't interpolate special sequences like \\1 for the block's return value" do
+      repl = '\& \0 \1 \` \\\' \+ \\\\ foo'
+      "hello".sub!(/(.+)/, 'hello' => repl ).should == repl
+    end
+
+    it "keeps untrusted state" do
+      str = "Ghana".untrust
+      str.sub!(/[Aa]na/, 'ana' => '').untrusted?.should be_true
+    end
+
+    it "untrusts self if a hash value is untrusted" do
+      str = "Ghana"
+      str.sub!(/a$/, 'a' => 'di'.untrust).untrusted?.should be_true
+    end
+
+    it "keeps tainted state" do
+      str = "Ghana".taint
+      str.sub!(/[Aa]na/, 'ana' => '').tainted?.should be_true
+    end
+
+    it "taints self if a hash value is tainted" do
+      str = "Ghana"
+      str.sub!(/a$/, 'a' => 'di'.taint).tainted?.should be_true
+    end
+
+  end
+end
