@@ -70,16 +70,11 @@ Daedalus.blueprint do |i|
 
   perl = Rubinius::BUILD_CONFIG[:build_perl] || "perl"
 
-  # Libraries
-  modes = i.library_group "vm/modes/#{Rubinius::BUILD_CONFIG[:language_version]}" do |g|
-    g.static_library "libmodes" do |l|
-      l.source_files "*.cpp"
-    end
-  end
-  files << modes
+  src = Rubinius::BUILD_CONFIG[:sourcedir]
 
+  # Libraries
   ltm = i.external_lib "vendor/libtommath" do |l|
-    l.cflags = ["-Ivendor/libtommath"] + gcc.cflags
+    l.cflags = ["-I#{src}/vendor/libtommath"] + gcc.cflags
     l.objects = [l.file("libtommath.a")]
     l.to_build do |x|
       x.command make
@@ -91,8 +86,8 @@ Daedalus.blueprint do |i|
   oniguruma = i.library_group "vendor/oniguruma" do |g|
     g.depends_on "config.h", "configure"
 
-    gcc.cflags.unshift "-Ivendor/oniguruma"
-    g.cflags = ["-DHAVE_CONFIG_H", "-I.", "-I../..#{BUILD_CONFIG[:includedir]}"]
+    gcc.cflags.unshift "-I#{src}/vendor/oniguruma"
+    g.cflags = ["-DHAVE_CONFIG_H", "-I#{src}#{BUILD_CONFIG[:includedir]}"]
     g.cflags += gcc.cflags
 
     g.static_library "libonig" do |l|
@@ -122,7 +117,7 @@ Daedalus.blueprint do |i|
   files << oniguruma
 
   gdtoa = i.external_lib "vendor/libgdtoa" do |l|
-    l.cflags = ["-Ivendor/libgdtoa"] + gcc.cflags
+    l.cflags = ["-I#{src}/vendor/libgdtoa"] + gcc.cflags
     l.objects = [l.file("libgdtoa.a")]
     l.to_build do |x|
       x.command make
@@ -132,7 +127,7 @@ Daedalus.blueprint do |i|
   files << gdtoa
 
   ffi = i.external_lib "vendor/libffi" do |l|
-    l.cflags = ["-Ivendor/libffi/include"] + gcc.cflags
+    l.cflags = ["-I#{src}/vendor/libffi/include"] + gcc.cflags
     l.objects = [l.file(".libs/libffi.a")]
     l.to_build do |x|
       x.command "sh -c './configure --disable-builddir'" unless File.exists?("Makefile")
@@ -143,7 +138,7 @@ Daedalus.blueprint do |i|
   files << ffi
 
   udis = i.external_lib "vendor/udis86" do |l|
-    l.cflags = ["-Ivendor/udis86"] + gcc.cflags
+    l.cflags = ["-I#{src}/vendor/udis86"] + gcc.cflags
     l.objects = [l.file("libudis86/.libs/libudis86.a")]
     l.to_build do |x|
       unless File.exists?("Makefile") and File.exists?("libudis86/Makefile")
@@ -157,7 +152,7 @@ Daedalus.blueprint do |i|
 
   if Rubinius::BUILD_CONFIG[:vendor_yaml]
     yaml = i.external_lib "vendor/libyaml" do |l|
-      l.cflags = ["-Ivendor/libyaml"] + gcc.cflags
+      l.cflags = ["-I#{src}/vendor/libyaml"] + gcc.cflags
       l.objects = [l.file("src/.libs/libyaml.a")]
       c_cflags = (["-fPIC", "-Wno-pointer-sign"] + l.cflags).join(" ").inspect
       l.to_build do |x|
@@ -173,7 +168,7 @@ Daedalus.blueprint do |i|
 
   if Rubinius::BUILD_CONFIG[:vendor_zlib]
     zlib = i.external_lib "vendor/zlib" do |l|
-      l.cflags = ["-Ivendor/zlib"] + gcc.cflags
+      l.cflags = ["-I#{src}/vendor/zlib"] + gcc.cflags
       l.objects = [l.file("libz.a")]
       l.to_build do |x|
         unless File.exists?("Makefile") and File.exists?("zconf.h")
@@ -193,7 +188,7 @@ Daedalus.blueprint do |i|
 
   if Rubinius::BUILD_CONFIG[:windows]
     winp = i.external_lib "vendor/winpthreads" do |l|
-      l.cflags = ["-Ivendor/winpthreads/include"] + gcc.cflags
+      l.cflags = ["-I#{src}/vendor/winpthreads/include"] + gcc.cflags
       l.objects = [l.file("libpthread.a")]
       l.to_build do |x|
         x.command "sh -c ./configure" unless File.exists?("Makefile")
@@ -209,7 +204,7 @@ Daedalus.blueprint do |i|
   case Rubinius::BUILD_CONFIG[:llvm]
   when :prebuilt, :svn
     llvm = i.external_lib "vendor/llvm" do |l|
-      l.cflags = ["-Ivendor/llvm/include"] + gcc.cflags
+      l.cflags = ["-I#{src}/vendor/llvm/include"] + gcc.cflags
       l.objects = []
     end
 
@@ -258,7 +253,7 @@ Daedalus.blueprint do |i|
   end
 
   # Make sure to push these up front so vm/ stuff has priority
-  gcc.cflags.unshift "-Ivm -Ivm/test/cxxtest -I. "
+  gcc.cflags.unshift "-I#{src} -I#{src}/vm -I#{src}/vm/builtin -Ivm/test/cxxtest -I."
 
   gcc.cflags << "-Wno-unused-function"
   gcc.cflags << "-Werror"
@@ -266,6 +261,15 @@ Daedalus.blueprint do |i|
   gcc.cflags << "-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS"
   gcc.cflags << "-D_LARGEFILE_SOURCE"
   gcc.cflags << "-D_FILE_OFFSET_BITS=64"
+
+  modes = i.library_group "vm/modes/#{Rubinius::BUILD_CONFIG[:language_version]}" do |g|
+    g.cflags = gcc.cflags.dup
+
+    g.static_library "libmodes" do |l|
+      l.source_files "*.cpp"
+    end
+  end
+  files << modes
 
   cli = files.dup
   cli << i.source_file("vm/drivers/cli.cpp")
