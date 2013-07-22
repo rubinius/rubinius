@@ -142,5 +142,6 @@ rational.rbc
 rational20.rbc
 rationalizer.rbc
 complex.rbc
+complex20.rbc
 complexifier.rbc
 gc19.rbc
