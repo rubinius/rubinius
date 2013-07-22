@@ -23,11 +23,11 @@ type.rbc
 type18.rbc
 hash.rbc
 hash18.rbc
+array.rbc
+array18.rbc
 kernel.rbc
 kernel18.rbc
 identitymap.rbc
-array.rbc
-array18.rbc
 loadedfeatures.rbc
 global.rbc
 backtrace.rbc
