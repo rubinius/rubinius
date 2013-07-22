@@ -290,47 +290,141 @@ class String
     self
   end
 
-  def sub!(pattern, replacement=undefined)
-    # Copied mostly from sub to keep Regexp.last_match= working right.
+  def sub(pattern, replacement=undefined)
+    # Because of the behavior of $~, this is duplicated from sub! because
+    # if we call sub! from sub, the last_match can't be updated properly.
 
-    if undefined.equal?(replacement) and !block_given?
-      raise ArgumentError, "wrong number of arguments (1 for 2)"
+    unless valid_encoding?
+      raise ArgumentError, "invalid byte sequence in #{encoding}"
     end
 
-    unless pattern
-      raise ArgumentError, "wrong number of arguments (0 for 2)"
+    if undefined.equal? replacement
+      unless block_given?
+        return to_enum(:sub, pattern, replacement)
+      end
+      use_yield = true
+      tainted = false
+    else
+      tainted = replacement.tainted?
+      untrusted = replacement.untrusted?
+
+      unless replacement.kind_of?(String)
+        hash = Rubinius::Type.check_convert_type(replacement, Hash, :to_hash)
+        replacement = StringValue(replacement) unless hash
+        tainted ||= replacement.tainted?
+        untrusted ||= replacement.untrusted?
+      end
+      use_yield = false
     end
 
-    Rubinius.check_frozen
+    pattern = Rubinius::Type.coerce_to_regexp(pattern, true) unless pattern.kind_of? Regexp
+    match = pattern.match_from(self, 0)
 
-    if match = Rubinius::Type.coerce_to_regexp(pattern, true).match_from(self, 0)
-      out = match.pre_match
+    Regexp.last_match = match
 
-      Regexp.last_match = match
+    ret = byteslice(0, 0) # Empty string and string subclass
 
-      if undefined.equal?(replacement)
-        replacement = yield(match[0].dup).to_s
-        out.taint if replacement.tainted?
-        out.append(replacement).append(match.post_match)
+    if match
+      ret.append match.pre_match
+
+      if use_yield || hash
+        Regexp.last_match = match
+
+        if use_yield
+          val = yield match.to_s
+        else
+          val = hash[match.to_s]
+        end
+        untrusted = true if val.untrusted?
+        val = val.to_s unless val.kind_of?(String)
+
+        tainted ||= val.tainted?
+
+        ret.append val
       else
-        out.taint if replacement.tainted?
-        replacement = StringValue(replacement).to_sub_replacement(out, match)
-        out.append(match.post_match)
+        replacement.to_sub_replacement(ret, match)
       end
 
-      # We have to reset it again to match the specs
-      Regexp.last_match = match
-
-      out.taint if self.tainted?
+      ret.append(match.post_match)
+      tainted ||= val.tainted?
     else
-      out = self
-      Regexp.last_match = nil
+      return self
+    end
+
+    ret.taint if tainted
+    ret.untrust if untrusted
+
+    ret
+  end
+
+  def sub!(pattern, replacement=undefined)
+    # Because of the behavior of $~, this is duplicated from sub! because
+    # if we call sub! from sub, the last_match can't be updated properly.
+
+    unless valid_encoding?
+      raise ArgumentError, "invalid byte sequence in #{encoding}"
+    end
+
+    if undefined.equal? replacement
+      unless block_given?
+        return to_enum(:sub, pattern, replacement)
+      end
+      Rubinius.check_frozen
+      use_yield = true
+      tainted = false
+    else
+      Rubinius.check_frozen
+      tainted = replacement.tainted?
+      untrusted = replacement.untrusted?
+
+      unless replacement.kind_of?(String)
+        hash = Rubinius::Type.check_convert_type(replacement, Hash, :to_hash)
+        replacement = StringValue(replacement) unless hash
+        tainted ||= replacement.tainted?
+        untrusted ||= replacement.untrusted?
+      end
+      use_yield = false
+    end
+
+    pattern = Rubinius::Type.coerce_to_regexp(pattern, true) unless pattern.kind_of? Regexp
+    match = pattern.match_from(self, 0)
+
+    Regexp.last_match = match
+
+    ret = byteslice(0, 0) # Empty string and string subclass
+
+    if match
+      ret.append match.pre_match
+
+      if use_yield || hash
+        Regexp.last_match = match
+
+        if use_yield
+          val = yield match.to_s
+        else
+          val = hash[match.to_s]
+        end
+        untrusted = true if val.untrusted?
+        val = val.to_s unless val.kind_of?(String)
+
+        tainted ||= val.tainted?
+
+        ret.append val
+      else
+        replacement.to_sub_replacement(ret, match)
+      end
+
+      ret.append(match.post_match)
+      tainted ||= val.tainted?
+    else
       return nil
     end
 
-    replace(out)
+    ret.taint if tainted
+    ret.untrust if untrusted
 
-    return self
+    replace(ret)
+    self
   end
 
   def slice!(one, two=undefined)

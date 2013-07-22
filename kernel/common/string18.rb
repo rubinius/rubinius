@@ -62,6 +62,50 @@ class String
     result
   end
 
+  def sub(pattern, replacement=undefined)
+    if undefined.equal?(replacement) and !block_given?
+      raise ArgumentError, "wrong number of arguments (1 for 2)"
+    end
+
+    unless pattern
+      raise ArgumentError, "wrong number of arguments (0 for 2)"
+    end
+
+    if match = Rubinius::Type.coerce_to_regexp(pattern, true).match_from(self, 0)
+      out = match.pre_match
+
+      Regexp.last_match = match
+
+      if undefined.equal?(replacement)
+        replacement = yield(match[0].dup).to_s
+        out.taint if replacement.tainted?
+        out.append(replacement).append(match.post_match)
+      else
+        out.taint if replacement.tainted?
+        StringValue(replacement).to_sub_replacement(out, match)
+        out.append(match.post_match)
+      end
+
+      # We have to reset it again to match the specs
+      Regexp.last_match = match
+
+      out.taint if self.tainted?
+    else
+      out = self
+      Regexp.last_match = nil
+    end
+
+    # MRI behavior emulation. Sub'ing String subclasses doen't return the
+    # subclass, they return String instances.
+    unless instance_of?(String)
+      # Do this instead of using self.class.new because some code
+      # (ActiveModel) redefines initialize and breaks it.
+      Rubinius::Unsafe.set_class out, self.class
+    end
+
+    return out
+  end
+
   def sub!(pattern, replacement=undefined)
     # Copied mostly from sub to keep Regexp.last_match= working right.
 
