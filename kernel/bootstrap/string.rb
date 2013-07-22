@@ -65,9 +65,14 @@ class String
 
   def dup
     other = Rubinius.invoke_primitive :string_dup, self
-    Rubinius.privately do
-      other.initialize_copy self
-    end
+    Rubinius::Type.object_initialize_dup self, other
+    other
+  end
+
+  def clone
+    other = Rubinius.invoke_primitive :string_dup, self
+    Rubinius.invoke_primitive :object_copy_singleton_class, other, self
+    Rubinius::Type.object_initialize_clone self, other
     other
   end
 
