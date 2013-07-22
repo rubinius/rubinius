@@ -148,6 +148,17 @@ describe "An instance method with a default argument" do
     end
     foo(2,3,3).should == [2,3,[3]]
   end
+
+  it "calls a method with the same name as the local" do
+    def bar
+      1
+    end
+    def foo(bar = bar)
+      bar
+    end
+    foo.should == 1
+    foo(2).should == 2
+  end
 end
 
 describe "A singleton method definition" do
