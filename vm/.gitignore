@@ -3,6 +3,12 @@ vm
 gen/*
 test/test_instructions.hpp
 
+# generated files
+capi/encoding.h
+capi/oniguruma.h
+capi/regenc.h
+capi/ruby.h
+capi/transcoder.h
 capi/config.h
 capi/18/include/config.h
 capi/18/include/mri_oop.h
