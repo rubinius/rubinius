@@ -1,6 +1,7 @@
 # -*- encoding: us-ascii -*-
 
 class Time
+  private_class_method :_load
   private :_dump
 
   def inspect
