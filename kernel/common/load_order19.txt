@@ -25,11 +25,11 @@ type19.rbc
 hash.rbc
 hash19.rbc
 hash_hamt.rbc
+array.rbc
+array19.rbc
 kernel.rbc
 kernel19.rbc
 identitymap.rbc
-array.rbc
-array19.rbc
 loadedfeatures.rbc
 global.rbc
 backtrace.rbc
