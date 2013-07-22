@@ -41,5 +41,13 @@ describe "String#clone" do
     clone = @obj.clone
     (class << clone; CLONE; end).should == :clone
   end
+
+  it "does not modify the original string when changing cloned string" do
+    orig = "string"[0..100]
+    clone = orig.clone
+    orig[0] = 'x'
+    orig.should == "xtring"
+    clone.should == "string"
+  end
 end
 
