@@ -139,6 +139,7 @@ true.rbc
 variable_scope.rbc
 capi.rbc
 rational.rbc
+rational20.rbc
 rationalizer.rbc
 complex.rbc
 complexifier.rbc
