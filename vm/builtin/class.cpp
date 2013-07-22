@@ -139,7 +139,14 @@ namespace rubinius {
 #endif
       return new_obj;
     } else if(!type_info_->allow_user_allocate || kind_of<SingletonClass>(this)) {
-      Exception::type_error(state, "direct allocation disabled");
+      std::ostringstream msg;
+      msg << "direct allocation disabled for ";
+      if(kind_of<SingletonClass>(this)) {
+         msg << to_string(state);
+      } else {
+         msg << module_name()->debug_str(state);
+      }
+      Exception::type_error(state, msg.str().c_str());
       return cNil;
     } else if(obj_type == Object::type) {
       // transition all normal object classes to PackedObject
