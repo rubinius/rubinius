@@ -1833,15 +1833,18 @@ int main() { return tgetnum(""); }
 
   def bundle
     @log.write "Bundling development gem dependencies..."
+    ENV["RBX_MODE"] = @language_version
     system "bundle"
     if $?.exitstatus != 0
       @log.write <<-EOM
+
 Bundling failed
 
 Bundler is required to install development dependencies for building Rubinius.
-Please install Bundler and ensure that superuser privileges are not required to
-run it.
+Please ensure that Bundler is installed and superuser privileges are not
+required to run it.
       EOM
+      exit 1
     end
   end
 

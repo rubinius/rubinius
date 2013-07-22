@@ -1,5 +1,5 @@
-# NOTE! When updating this file, also update INSTALL, if necessary.
-# NOTE! Please keep your tasks grouped together.
+require 'rubygems'
+require 'bundler/setup'
 
 require './rakelib/configure'
 
