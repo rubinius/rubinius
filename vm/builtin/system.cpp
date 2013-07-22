@@ -1458,18 +1458,6 @@ namespace rubinius {
     return cNil;
   }
 
-  Object* System::vm_ruby18_p(STATE) {
-    return RBOOL(LANGUAGE_18_ENABLED);
-  }
-
-  Object* System::vm_ruby19_p(STATE) {
-    return RBOOL(LANGUAGE_19_ENABLED);
-  }
-
-  Object* System::vm_ruby20_p(STATE) {
-    return RBOOL(LANGUAGE_20_ENABLED);
-  }
-
   Object* System::vm_windows_p(STATE) {
 #ifdef RBX_WINDOWS
     return cTrue;

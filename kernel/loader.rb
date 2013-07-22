@@ -647,16 +647,7 @@ to rebuild the compiler.
 
     #Check Ruby syntax of source
     def check_syntax
-      case
-      when Rubinius.ruby18?
-        parser = Rubinius::Melbourne
-      when Rubinius.ruby19?
-        parser = Rubinius::Melbourne19
-      when Rubinius.ruby20?
-        parser = Rubinius::Melbourne20
-      else
-        raise "no parser available for this ruby version"
-      end
+      parser = Rubinius::Melbourne
 
       if @script
         if File.exists?(@script)

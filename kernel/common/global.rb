@@ -6,7 +6,7 @@
 module Rubinius
   class GlobalVariables
     def initialize
-      if Rubinius.ruby19?
+      if Rubinius.ruby21?
         load_path = []
       else
         load_path = %w[.]
