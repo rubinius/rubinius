@@ -505,7 +505,7 @@ namespace rubinius {
     G(rubinius)->set_const(state, "VENDOR", String::create(state, RBX_VENDOR));
     G(rubinius)->set_const(state, "OS", String::create(state, RBX_OS));
 
-    G(rubinius)->set_const(state, "RUBY_LIB_VERSION", modes::ruby_lib_version());
+    G(rubinius)->set_const(state, "RUBY_LIB_VERSION", ruby_lib_version());
     /*
     if(LANGUAGE_21_ENABLED) {
       G(rubinius)->set_const(state, "RUBY_LIB_VERSION", Fixnum::from(21));

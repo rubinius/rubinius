@@ -1,7 +1,8 @@
-#include "modes/ontology.hpp"
+#include "vm.hpp"
+#include "builtin/fixnum.hpp"
 
 namespace rubinius {
-  VM::ruby_lib_version() {
+  Object* VM::ruby_lib_version() {
     return Fixnum::from(21);
   }
 };

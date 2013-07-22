@@ -100,7 +100,7 @@ extern "C" {
   }
 
   VALUE rb_cv_set(VALUE module_handle, const char* name, VALUE value) {
-    return rb_cvar_set(module_handle, rb_intern(name), value, 0);
+    return rb_cvar_set(module_handle, rb_intern(name), value);
   }
 
   VALUE rb_cvar_defined(VALUE module_handle, ID name) {
@@ -138,7 +138,7 @@ extern "C" {
 
   void rb_define_class_variable(VALUE klass, const char* name, VALUE val) {
     ID id = rb_intern(name);
-    rb_cvar_set(klass, id,  val, 0);
+    rb_cvar_set(klass, id,  val);
   }
 
   /** @note   Shares code with rb_define_module_under, change there too. --rue */
