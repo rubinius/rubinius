@@ -3,8 +3,7 @@
 module Rubinius
   module AST
     class Send < Node
-      attr_accessor :receiver, :name, :privately, :block, :variable
-      attr_accessor :check_for_local, :vcall_style
+      attr_accessor :receiver, :name, :privately, :block, :variable, :vcall_style
 
       def initialize(line, receiver, name, privately=false, vcall_style=false)
         @line = line
@@ -16,7 +15,7 @@ module Rubinius
       end
 
       def check_local_reference(g)
-        if @receiver.kind_of? Self
+        if @receiver.kind_of? Self and g.state.check_for_locals
           g.state.scope.search_local(@name)
         end
       end

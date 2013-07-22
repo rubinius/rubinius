@@ -261,6 +261,7 @@ module Rubinius
     # instance as each ClosedScope or Iter is entered, and popped when left.
     class State
       attr_reader :scope, :super, :eval
+      attr_accessor :check_for_locals
 
       class << self
         attr_accessor :flip_flops
@@ -277,6 +278,7 @@ module Rubinius
         @op_asgn = 0
         @rescue = []
         @name = []
+        @check_for_locals = true
       end
 
       def push_name(name)

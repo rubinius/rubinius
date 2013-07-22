@@ -318,10 +318,12 @@ module Rubinius
       end
 
       def bytecode(g)
+        g.state.check_for_locals = false
         map_arguments g.state.scope
 
         @defaults.bytecode(g) if @defaults
         @block_arg.bytecode(g) if @block_arg
+        g.state.check_for_locals = true
       end
 
       def required_args
@@ -496,6 +498,7 @@ module Rubinius
       end
 
       def bytecode(g)
+        g.state.check_for_locals = false
         map_arguments g.state.scope
 
         @required.each do |arg|
@@ -508,6 +511,7 @@ module Rubinius
 
         @defaults.bytecode(g) if @defaults
         @block_arg.bytecode(g) if @block_arg
+        g.state.check_for_locals = true
       end
     end
 
