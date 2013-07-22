@@ -49,6 +49,7 @@ tmtags
 /share
 /work
 /staging
+Gemfile.lock
 
 # .revision tracks configure and code revision consistency
 .revision
