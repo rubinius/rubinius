@@ -96,11 +96,9 @@ module Timeout
         if min.left > 0
           before = Time.now
 
-          req = @chan.receive_timeout(min.left)
+          @chan.receive_timeout(min.left)
 
           slept_for = Time.now - before
-
-          reqs << req if req
         else
           slept_for = 0
         end
