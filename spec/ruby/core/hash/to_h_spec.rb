@@ -5,7 +5,7 @@ ruby_version_is "2.0" do
   describe "Hash#to_h" do
     it "returns self for Hash instances" do
       h = new_hash
-      h.to_hash.should equal(h)
+      h.to_h.should equal(h)
     end
 
     describe "when called on a subclass of Hash" do
