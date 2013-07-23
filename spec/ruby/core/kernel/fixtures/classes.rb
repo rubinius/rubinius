@@ -372,6 +372,18 @@ print m.map { |x| x.to_s }.join("")
       @greeting = "hello"
     end
   end
+
+  class PrivateToAry
+    private
+
+    def to_ary
+      [1, 2]
+    end
+
+    def to_a
+      [3, 4]
+    end
+  end
 end
 
 class EvalSpecs

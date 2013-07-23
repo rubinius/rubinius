@@ -61,6 +61,12 @@ describe :kernel_Array, :shared => true do
 
       @object.send(@method, obj).should == [obj]
     end
+
+    it "calls #to_ary first, even if it's private" do
+      obj = KernelSpecs::PrivateToAry.new
+
+      @object.send(@method, obj).should == [1, 2]
+    end
   end
 
   it "returns an Array containing the argument if it responds to neither #to_ary nor #to_a" do
