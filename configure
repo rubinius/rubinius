@@ -1759,6 +1759,10 @@ int main() { return tgetnum(""); }
 #define NORETURN(x) __attribute__ ((noreturn)) x
 #endif
 
+#ifndef UNREACHABLE
+#define UNREACHABLE __builtin_unreachable()
+#endif
+
       EOC
 
       write_have_defines f
