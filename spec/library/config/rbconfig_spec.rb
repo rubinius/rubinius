@@ -73,9 +73,8 @@ describe "RbConfig::CONFIG" do
 end
 
 describe "RbConfig::MAKEFILE_CONFIG" do
-  sitedir    = Rubinius::SITE_PATH
-  sitelibdir = Rubinius::SITE_PATH
-  arch       = "#{Rubinius::CPU}-#{Rubinius::OS}"
+  sitedir    = Rubinius::HDR_PATH
+  sitelibdir = Rubinius::HDR_PATH
 
   entries = {
     "exec_prefix"        => "$(prefix)",
@@ -99,8 +98,8 @@ describe "RbConfig::MAKEFILE_CONFIG" do
     "mandir"             => "$(datarootdir)/man",
     "ruby_version"       => "$(MAJOR).$(MINOR)",
     "rubylibdir"         => sitelibdir,
-    "archdir"            => "#{sitelibdir}/#{arch}",
-    "sitearchdir"        => "#{sitelibdir}/#{arch}",
+    "archdir"            => "#{sitelibdir}",
+    "sitearchdir"        => "#{sitelibdir}",
     "sitedir"            => "#{sitedir}",
   }
 
