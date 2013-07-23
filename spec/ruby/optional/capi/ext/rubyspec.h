@@ -551,6 +551,10 @@
 /* Thread */
 #define HAVE_RB_THREAD_ALONE               1
 #define HAVE_RB_THREAD_BLOCKING_REGION     1
+#ifdef RUBY_VERSION_IS_2_0
+#define HAVE_RB_THREAD_CALL_WITHOUT_GVL    1
+#define HAVE_RB_THREAD_CALL_WITHOUT_GVL2   1
+#endif
 #define HAVE_RB_THREAD_CURRENT             1
 #define HAVE_RB_THREAD_LOCAL_AREF          1
 #define HAVE_RB_THREAD_LOCAL_ASET          1
