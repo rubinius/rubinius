@@ -136,6 +136,30 @@ describe "Operators" do
     (-b % 7).should == 1
   end
 
+  it "+/- should not be treated as unary plus/minus,
+      when applied to block variables with no space
+      between it and the following variable" do
+    class NonUnaryOpTest
+      def add_num(arg)
+        [1].collect { |i| arg + i +1 }
+      end
+      def sub_num(arg)
+        [1].collect { |i| arg + i -1 }
+      end
+      def add_str
+        %w[1].collect { |i| i +'1' }
+      end
+      def add_var
+        [1].collect { |i| i +i }
+      end
+    end
+    a = NonUnaryOpTest.new
+    a.add_num(1).should == [3]
+    a.sub_num(1).should == [1]
+    a.add_str.should == ['11']
+    a.add_var.should == [2]
+  end
+
   it "* / % are left-associative" do
     (2*1/2).should     == (2*1)/2
     # Guard against the Mathn library
