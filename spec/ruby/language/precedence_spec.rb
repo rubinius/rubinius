@@ -1,4 +1,5 @@
 require File.expand_path('../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/precedence', __FILE__)
 
 # Specifying the behavior of operators in combination could
 # lead to combinatorial explosion. A better way seems to be
@@ -134,6 +135,14 @@ describe "Operators" do
     (-b * 5).should == 250
     (-b / 5).should == 10
     (-b % 7).should == 1
+  end
+
+  it "treats +/- as a regular send if the arguments are known locals or block locals" do
+    a = PrecedenceSpecs::NonUnaryOpTest.new
+    a.add_num(1).should == [3]
+    a.sub_num(1).should == [1]
+    a.add_str.should == ['11']
+    a.add_var.should == [2]
   end
 
   it "* / % are left-associative" do
