@@ -384,6 +384,14 @@ print m.map { |x| x.to_s }.join("")
       [3, 4]
     end
   end
+
+  class PrivateToA
+    private
+
+    def to_a
+      [3, 4]
+    end
+  end
 end
 
 class EvalSpecs
