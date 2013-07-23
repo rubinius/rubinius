@@ -73,10 +73,13 @@ namespace rubinius {
     autogen_types::makeLLVMModuleContents(module_);
 
     llvm::EngineBuilder factory(module_);
+    std::string error;
 
     factory.setAllocateGVsWithCode(false);
     memory_ = new jit::RubiniusRequestJITMemoryManager(ls->memory());
     factory.setJITMemoryManager(memory_);
+    factory.setEngineKind(EngineKind::JIT);
+    factory.setErrorStr(&error);
 
 #if RBX_LLVM_API_VER > 300
     llvm::TargetOptions opts;
@@ -90,6 +93,10 @@ namespace rubinius {
     factory.setMCPU(ls_->cpu());
 
     engine_ = factory.create();
+    if(!engine_) {
+      std::cerr << "Error setting up LLVM Execution Engine: "<< error << std::endl;
+      rubinius::bug("error configuring LLVM");
+    }
     if(ls_->jit_event_listener()) {
       engine_->RegisterJITEventListener(ls_->jit_event_listener());
     }
