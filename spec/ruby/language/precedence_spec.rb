@@ -137,7 +137,7 @@ describe "Operators" do
     (-b % 7).should == 1
   end
 
-  it "+/- should not be treated as unary plus/minus" do
+  it "treats +/- as a regular send if the arguments are known locals or block locals" do
     a = PrecedenceSpecs::NonUnaryOpTest.new
     a.add_num(1).should == [3]
     a.sub_num(1).should == [1]
