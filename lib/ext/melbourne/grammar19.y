@@ -4233,7 +4233,7 @@ parser_formal_argument(rb_parser_state* parser_state, ID lhs)
 
 static bool
 parser_lvar_defined(rb_parser_state* parser_state, ID id) {
-  return local_id(id);
+  return (in_block() && bv_defined(id)) || local_id(id);
 }
 
 static long
