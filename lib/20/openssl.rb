@@ -11,7 +11,7 @@
   (See the file 'LICENCE'.)
 
 = Version
-  $Id: openssl.rb 32665 2011-07-25 06:38:44Z nahi $
+  $Id$
 =end
 
 require 'openssl/ext/openssl'
@@ -20,6 +20,5 @@ require 'openssl/bn'
 require 'openssl/cipher'
 require 'openssl/config'
 require 'openssl/digest'
-require 'openssl/ssl-internal'
-require 'openssl/x509-internal'
-
+require 'openssl/x509'
+require 'openssl/ssl'

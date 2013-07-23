@@ -1,5 +1,5 @@
 /*
- * $Id: ossl_pkey.c 33317 2011-09-23 05:17:47Z emboss $
+ * $Id$
  * 'OpenSSL for Ruby' project
  * Copyright (C) 2001-2002  Michal Rokos <m.rokos@sh.cvut.cz>
  * All rights reserved.
@@ -33,6 +33,42 @@ ossl_generate_cb(int p, int n, void *arg)
     rb_yield(ary);
 }
 
+#if HAVE_BN_GENCB
+/* OpenSSL 2nd version of GN generation callback */
+int
+ossl_generate_cb_2(int p, int n, BN_GENCB *cb)
+{
+    VALUE ary;
+    struct ossl_generate_cb_arg *arg;
+    int state;
+
+    arg = (struct ossl_generate_cb_arg *)cb->arg;
+    if (arg->yield) {
+	ary = rb_ary_new2(2);
+	rb_ary_store(ary, 0, INT2NUM(p));
+	rb_ary_store(ary, 1, INT2NUM(n));
+
+	/*
+	* can be break by raising exception or 'break'
+	*/
+	rb_protect(rb_yield, ary, &state);
+	if (state) {
+	    arg->stop = 1;
+	    arg->state = state;
+	}
+    }
+    if (arg->stop) return 0;
+    return 1;
+}
+
+void
+ossl_generate_cb_stop(void *ptr)
+{
+    struct ossl_generate_cb_arg *arg = (struct ossl_generate_cb_arg *)ptr;
+    arg->stop = 1;
+}
+#endif
+
 /*
  * Public
  */
@@ -62,7 +98,8 @@ ossl_pkey_new(EVP_PKEY *pkey)
     default:
 	ossl_raise(ePKeyError, "unsupported key type");
     }
-    return Qnil; /* not reached */
+
+    UNREACHABLE;
 }
 
 VALUE
@@ -75,6 +112,7 @@ ossl_pkey_new_from_file(VALUE filename)
     if (!(fp = fopen(RSTRING_PTR(filename), "r"))) {
 	ossl_raise(ePKeyError, "%s", strerror(errno));
     }
+    rb_fd_fix_cloexec(fileno(fp));
 
     pkey = PEM_read_PrivateKey(fp, NULL, ossl_pem_passwd_cb, NULL);
     fclose(fp);

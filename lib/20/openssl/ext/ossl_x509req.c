@@ -1,5 +1,5 @@
 /*
- * $Id: ossl_x509req.c 32199 2011-06-22 08:41:08Z emboss $
+ * $Id$
  * 'OpenSSL for Ruby' project
  * Copyright (C) 2001-2002  Michal Rokos <m.rokos@sh.cvut.cz>
  * All rights reserved.
@@ -406,13 +406,13 @@ ossl_x509req_set_attributes(VALUE self, VALUE ary)
 
     Check_Type(ary, T_ARRAY);
     for (i=0;i<RARRAY_LEN(ary); i++) {
-	OSSL_Check_Kind(rb_ary_entry(ary, i), cX509Attr);
+	OSSL_Check_Kind(RARRAY_PTR(ary)[i], cX509Attr);
     }
     GetX509Req(self, req);
     sk_X509_ATTRIBUTE_pop_free(req->req_info->attributes, X509_ATTRIBUTE_free);
     req->req_info->attributes = NULL;
     for (i=0;i<RARRAY_LEN(ary); i++) {
-	item = rb_ary_entry(ary, i);
+	item = RARRAY_PTR(ary)[i];
 	attr = DupX509AttrPtr(item);
 	if (!X509_REQ_add1_attr(req, attr)) {
 	    ossl_raise(eX509ReqError, NULL);

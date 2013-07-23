@@ -1,5 +1,5 @@
 /*
- * $Id: ossl_ocsp.c 31166 2011-03-24 07:29:21Z naruse $
+ * $Id$
  * 'OpenSSL for Ruby' project
  * Copyright (C) 2003  Michal Rokos <m.rokos@sh.cvut.cz>
  * Copyright (C) 2003  GOTOU Yuuzou <gotoyuzo@notwork.org>
@@ -466,7 +466,7 @@ ossl_ocspbres_add_status(VALUE self, VALUE cid, VALUE status,
 	/* All ary's members should be X509Extension */
 	Check_Type(ext, T_ARRAY);
 	for (i = 0; i < RARRAY_LEN(ext); i++)
-	    OSSL_Check_Kind(rb_ary_entry(ext, i), cX509Ext);
+	    OSSL_Check_Kind(RARRAY_PTR(ext)[i], cX509Ext);
     }
 
     error = 0;
@@ -495,7 +495,7 @@ ossl_ocspbres_add_status(VALUE self, VALUE cid, VALUE status,
 	sk_X509_EXTENSION_pop_free(single->singleExtensions, X509_EXTENSION_free);
 	single->singleExtensions = NULL;
 	for(i = 0; i < RARRAY_LEN(ext); i++){
-	    x509ext = DupX509ExtPtr(rb_ary_entry(ext, i));
+	    x509ext = DupX509ExtPtr(RARRAY_PTR(ext)[i]);
 	    if(!OCSP_SINGLERESP_add_ext(single, x509ext, -1)){
 		X509_EXTENSION_free(x509ext);
 		error = 1;

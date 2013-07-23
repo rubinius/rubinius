@@ -1,5 +1,5 @@
 /*
- * $Id: ossl_pkey_dsa.c 32344 2011-06-30 20:20:32Z nobu $
+ * $Id$
  * 'OpenSSL for Ruby' project
  * Copyright (C) 2001-2002  Michal Rokos <m.rokos@sh.cvut.cz>
  * All rights reserved.
@@ -75,9 +75,69 @@ ossl_dsa_new(EVP_PKEY *pkey)
 /*
  * Private
  */
+#if defined(HAVE_DSA_GENERATE_PARAMETERS_EX) && HAVE_BN_GENCB
+struct dsa_blocking_gen_arg {
+    DSA *dsa;
+    int size;
+    unsigned char* seed;
+    int seed_len;
+    int *counter;
+    unsigned long *h;
+    BN_GENCB *cb;
+    int result;
+};
+
+static void *
+dsa_blocking_gen(void *arg)
+{
+    struct dsa_blocking_gen_arg *gen = (struct dsa_blocking_gen_arg *)arg;
+    gen->result = DSA_generate_parameters_ex(gen->dsa, gen->size, gen->seed, gen->seed_len, gen->counter, gen->h, gen->cb);
+    return 0;
+}
+#endif
+
 static DSA *
 dsa_generate(int size)
 {
+#if defined(HAVE_DSA_GENERATE_PARAMETERS_EX) && HAVE_BN_GENCB
+    BN_GENCB cb;
+    struct ossl_generate_cb_arg cb_arg;
+    struct dsa_blocking_gen_arg gen_arg;
+    DSA *dsa = DSA_new();
+    unsigned char seed[20];
+    int seed_len = 20, counter;
+    unsigned long h;
+
+    if (!dsa) return 0;
+    if (!RAND_bytes(seed, seed_len)) {
+	DSA_free(dsa);
+	return 0;
+    }
+
+    memset(&cb_arg, 0, sizeof(struct ossl_generate_cb_arg));
+    if (rb_block_given_p())
+	cb_arg.yield = 1;
+    BN_GENCB_set(&cb, ossl_generate_cb_2, &cb_arg);
+    gen_arg.dsa = dsa;
+    gen_arg.size = size;
+    gen_arg.seed = seed;
+    gen_arg.seed_len = seed_len;
+    gen_arg.counter = &counter;
+    gen_arg.h = &h;
+    gen_arg.cb = &cb;
+    if (cb_arg.yield == 1) {
+	/* we cannot release GVL when callback proc is supplied */
+	dsa_blocking_gen(&gen_arg);
+    } else {
+	/* there's a chance to unblock */
+	rb_thread_call_without_gvl(dsa_blocking_gen, &gen_arg, ossl_generate_cb_stop, &cb_arg);
+    }
+    if (!gen_arg.result) {
+	DSA_free(dsa);
+	if (cb_arg.state) rb_jump_tag(cb_arg.state);
+	return 0;
+    }
+#else
     DSA *dsa;
     unsigned char seed[20];
     int seed_len = 20, counter;
@@ -87,9 +147,9 @@ dsa_generate(int size)
 	return 0;
     }
     dsa = DSA_generate_parameters(size, seed, seed_len, &counter, &h,
-	    rb_block_given_p() ? ossl_generate_cb : NULL,
-	    NULL);
+	    rb_block_given_p() ? ossl_generate_cb : NULL, NULL);
     if(!dsa) return 0;
+#endif
 
     if (!DSA_generate_key(dsa)) {
 	DSA_free(dsa);
@@ -184,7 +244,7 @@ ossl_dsa_initialize(int argc, VALUE *argv, VALUE self)
 	BIO_free(in);
 	if (!dsa) {
 	    ERR_clear_error();
-	    ossl_raise(eDSAError, "Neither PUB key nor PRIV key:");
+	    ossl_raise(eDSAError, "Neither PUB key nor PRIV key");
 	}
     }
     if (!EVP_PKEY_assign_DSA(pkey, dsa)) {
@@ -258,7 +318,10 @@ ossl_dsa_export(int argc, VALUE *argv, VALUE self)
     if (!NIL_P(cipher)) {
 	ciph = GetCipherPtr(cipher);
 	if (!NIL_P(pass)) {
-	    passwd = StringValuePtr(pass);
+	    StringValue(pass);
+	    if (RSTRING_LENINT(pass) < OSSL_MIN_PWD_LEN)
+		ossl_raise(eOSSLError, "OpenSSL requires passwords to be at least four characters long");
+	    passwd = RSTRING_PTR(pass);
 	}
     }
     if (!(out = BIO_new(BIO_s_mem()))) {

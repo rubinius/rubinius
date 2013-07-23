@@ -1,5 +1,5 @@
 /*
- * $Id: ossl_engine.h 25189 2009-10-02 12:04:37Z akr $
+ * $Id$
  * 'OpenSSL for Ruby' project
  * Copyright (C) 2003  Michal Rokos <m.rokos@sh.cvut.cz>
  * Copyright (C) 2003  GOTOU Yuuzou <gotoyuzo@notwork.org>

@@ -1,5 +1,5 @@
 /*
- * $Id: ossl_config.c 29359 2010-09-29 03:37:44Z nobu $
+ * $Id$
  * 'OpenSSL for Ruby' project
  * Copyright (C) 2001-2002  Michal Rokos <m.rokos@sh.cvut.cz>
  * All rights reserved.

@@ -493,7 +493,10 @@ static VALUE ossl_ec_key_to_string(VALUE self, VALUE ciph, VALUE pass, int forma
 	    if (!NIL_P(ciph)) {
 		cipher = GetCipherPtr(ciph);
 		if (!NIL_P(pass)) {
-		    password = StringValuePtr(pass);
+		    StringValue(pass);
+		    if (RSTRING_LENINT(pass) < OSSL_MIN_PWD_LEN)
+			ossl_raise(eOSSLError, "OpenSSL requires passwords to be at least four characters long");
+		    password = RSTRING_PTR(pass);
 		}
 	    }
 	    else {
@@ -530,8 +533,8 @@ static VALUE ossl_ec_key_to_string(VALUE self, VALUE ciph, VALUE pass, int forma
 
 /*
  *  call-seq:
- *     key.to_pem   => String
- *     key.to_pem(cipher, pass_phrase) => String
+ *     key.export   => String
+ *     key.export(cipher, pass_phrase) => String
  *
  * Outputs the EC key in PEM encoding.  If +cipher+ and +pass_phrase+ are
  * given they will be used to encrypt the key.  +cipher+ must be an
@@ -540,7 +543,7 @@ static VALUE ossl_ec_key_to_string(VALUE self, VALUE ciph, VALUE pass, int forma
  * text.
  *
  */
-static VALUE ossl_ec_key_to_pem(int argc, VALUE *argv, VALUE self)
+static VALUE ossl_ec_key_export(int argc, VALUE *argv, VALUE self)
 {
     VALUE cipher, passwd;
     rb_scan_args(argc, argv, "02", &cipher, &passwd);
@@ -700,6 +703,8 @@ static VALUE ossl_ec_key_dsa_verify_asn1(VALUE self, VALUE data, VALUE sig)
     }
 
     ossl_raise(eECError, "ECDSA_verify");
+
+    UNREACHABLE;
 }
 
 static void ossl_ec_group_free(ossl_ec_group *ec_group)
@@ -1349,6 +1354,8 @@ static VALUE ossl_ec_point_is_at_infinity(VALUE self)
     case 0: return Qfalse;
     default: ossl_raise(cEC_POINT, "EC_POINT_is_at_infinity");
     }
+
+    UNREACHABLE;
 }
 
 /*
@@ -1370,6 +1377,8 @@ static VALUE ossl_ec_point_is_on_curve(VALUE self)
     case 0: return Qfalse;
     default: ossl_raise(cEC_POINT, "EC_POINT_is_on_curve");
     }
+
+    UNREACHABLE;
 }
 
 /*
@@ -1461,6 +1470,78 @@ static VALUE ossl_ec_point_to_bn(VALUE self)
     return bn_obj;
 }
 
+/*
+ *  call-seq:
+ *     point.mul(bn)  => point
+ *     point.mul(bn, bn) => point
+ *     point.mul([bn], [point]) => point
+ *     point.mul([bn], [point], bn) => point
+ */
+static VALUE ossl_ec_point_mul(int argc, VALUE *argv, VALUE self)
+{
+    EC_POINT *point1, *point2;
+    const EC_GROUP *group;
+    VALUE group_v = rb_iv_get(self, "@group");
+    VALUE bn_v1, bn_v2, r, points_v;
+    BIGNUM *bn1 = NULL, *bn2 = NULL;
+
+    Require_EC_POINT(self, point1);
+    SafeRequire_EC_GROUP(group_v, group);
+
+    r = rb_obj_alloc(cEC_POINT);
+    ossl_ec_point_initialize(1, &group_v, r);
+    Require_EC_POINT(r, point2);
+
+    argc = rb_scan_args(argc, argv, "12", &bn_v1, &points_v, &bn_v2);
+
+    if (rb_obj_is_kind_of(bn_v1, cBN)) {
+        bn1 = GetBNPtr(bn_v1);
+        if (argc >= 2) {
+            bn2 = GetBNPtr(points_v);
+        }
+        if (EC_POINT_mul(group, point2, bn2, point1, bn1, ossl_bn_ctx) != 1)
+            ossl_raise(eEC_POINT, "Multiplication failed");
+    } else {
+        size_t i, points_len, bignums_len;
+        const EC_POINT **points;
+        const BIGNUM **bignums;
+
+        Check_Type(bn_v1, T_ARRAY);
+        bignums_len = RARRAY_LEN(bn_v1);
+        bignums = (const BIGNUM **)OPENSSL_malloc(bignums_len * (int)sizeof(BIGNUM *));
+
+        for (i = 0; i < bignums_len; ++i) {
+            bignums[i] = GetBNPtr(rb_ary_entry(bn_v1, i));
+        }
+
+        if (!rb_obj_is_kind_of(points_v, rb_cArray)) {
+            OPENSSL_free((void *)bignums);
+            rb_raise(rb_eTypeError, "Argument2 must be an array");
+        }
+
+        rb_ary_unshift(points_v, self);
+        points_len = RARRAY_LEN(points_v);
+        points = (const EC_POINT **)OPENSSL_malloc(points_len * (int)sizeof(EC_POINT *));
+
+        for (i = 0; i < points_len; ++i) {
+            Get_EC_POINT(rb_ary_entry(points_v, i), points[i]);
+        }
+
+        if (argc >= 3) {
+            bn2 = GetBNPtr(bn_v2);
+        }
+        if (EC_POINTs_mul(group, point2, bn2, points_len, points, bignums, ossl_bn_ctx) != 1) {
+            OPENSSL_free((void *)bignums);
+            OPENSSL_free((void *)points);
+            ossl_raise(eEC_POINT, "Multiplication failed");
+        }
+        OPENSSL_free((void *)bignums);
+        OPENSSL_free((void *)points);
+    }
+
+    return r;
+}
+
 static void no_copy(VALUE klass)
 {
     rb_undef_method(klass, "copy");
@@ -1527,7 +1608,8 @@ void Init_ossl_ec()
     rb_define_method(cEC, "dsa_verify_asn1", ossl_ec_key_dsa_verify_asn1, 2);
 /* do_sign/do_verify */
 
-    rb_define_method(cEC, "to_pem", ossl_ec_key_to_pem, -1);
+    rb_define_method(cEC, "export", ossl_ec_key_export, -1);
+    rb_define_alias(cEC, "to_pem", "export");
     rb_define_method(cEC, "to_der", ossl_ec_key_to_der, 0);
     rb_define_method(cEC, "to_text", ossl_ec_key_to_text, 0);
 
@@ -1581,6 +1663,7 @@ void Init_ossl_ec()
 /* all the other methods */
 
     rb_define_method(cEC_POINT, "to_bn", ossl_ec_point_to_bn, 0);
+    rb_define_method(cEC_POINT, "mul", ossl_ec_point_mul, -1);
 
     no_copy(cEC);
     no_copy(cEC_GROUP);

@@ -1,5 +1,5 @@
 /*
- * $Id: ossl_bn.c 31166 2011-03-24 07:29:21Z naruse $
+ * $Id$
  * 'OpenSSL for Ruby' project
  * Copyright (C) 2001-2002  Technorama team <oss-ruby@technorama.net>
  * All rights reserved.
@@ -119,11 +119,11 @@ ossl_bn_initialize(int argc, VALUE *argv, VALUE self)
     if (rb_scan_args(argc, argv, "11", &str, &bs) == 2) {
 	base = NUM2INT(bs);
     }
-    StringValue(str);
-    GetBN(self, bn);
+
     if (RTEST(rb_obj_is_kind_of(str, cBN))) {
 	BIGNUM *other;
 
+	GetBN(self, bn);
 	GetBN(str, other); /* Safe - we checked kind_of? above */
 	if (!BN_copy(bn, other)) {
 	    ossl_raise(eBNError, NULL);
@@ -131,6 +131,8 @@ ossl_bn_initialize(int argc, VALUE *argv, VALUE self)
 	return self;
     }
 
+    StringValue(str);
+    GetBN(self, bn);
     switch (base) {
     case 0:
 	if (!BN_mpi2bn((unsigned char *)RSTRING_PTR(str), RSTRING_LENINT(str), bn)) {

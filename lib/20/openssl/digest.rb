@@ -3,18 +3,18 @@
 # $RCSfile$
 #
 # = Ruby-space predefined Digest subclasses
-# 
+#
 # = Info
 # 'OpenSSL for Ruby 2' project
 # Copyright (C) 2002  Michal Rokos <m.rokos@sh.cvut.cz>
 # All rights reserved.
-# 
+#
 # = Licence
 # This program is licenced under the same licence as Ruby.
 # (See the file 'LICENCE'.)
-# 
+#
 # = Version
-# $Id: digest.rb 33067 2011-08-25 00:52:10Z drbrain $
+# $Id$
 #
 #++
 
@@ -31,7 +31,7 @@ module OpenSSL
     #
     # === Examples
     #
-    #   OpenSSL::Digest.digest("SHA256, "abc")
+    #   OpenSSL::Digest.digest("SHA256", "abc")
     #
     # which is equivalent to:
     #
@@ -68,5 +68,22 @@ module OpenSSL
     end
 
   end # Digest
+
+  # Returns a Digest subclass by +name+.
+  #
+  #   require 'openssl'
+  #
+  #   OpenSSL::Digest("MD5")
+  #   # => OpenSSL::Digest::MD5
+  #
+  #   Digest("Foo")
+  #   # => NameError: wrong constant name Foo
+
+  def Digest(name)
+    OpenSSL::Digest.const_get(name)
+  end
+
+  module_function :Digest
+
 end # OpenSSL
 

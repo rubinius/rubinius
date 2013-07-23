@@ -1,5 +1,5 @@
 /*
- * $Id: ossl_engine.c 32605 2011-07-22 00:19:32Z emboss $
+ * $Id$
  * 'OpenSSL for Ruby' project
  * Copyright (C) 2003  GOTOU Yuuzou <gotoyuzo@notwork.org>
  * All rights reserved.
@@ -64,29 +64,47 @@ ossl_engine_s_load(int argc, VALUE *argv, VALUE klass)
 #if HAVE_ENGINE_LOAD_DYNAMIC
     OSSL_ENGINE_LOAD_IF_MATCH(dynamic);
 #endif
-#if HAVE_ENGINE_LOAD_CSWIFT
-    OSSL_ENGINE_LOAD_IF_MATCH(cswift);
-#endif
-#if HAVE_ENGINE_LOAD_CHIL
-    OSSL_ENGINE_LOAD_IF_MATCH(chil);
-#endif
-#if HAVE_ENGINE_LOAD_ATALLA
-    OSSL_ENGINE_LOAD_IF_MATCH(atalla);
-#endif
-#if HAVE_ENGINE_LOAD_NURON
-    OSSL_ENGINE_LOAD_IF_MATCH(nuron);
-#endif
-#if HAVE_ENGINE_LOAD_UBSEC
-    OSSL_ENGINE_LOAD_IF_MATCH(ubsec);
+#if HAVE_ENGINE_LOAD_4758CCA
+    OSSL_ENGINE_LOAD_IF_MATCH(4758cca);
 #endif
 #if HAVE_ENGINE_LOAD_AEP
     OSSL_ENGINE_LOAD_IF_MATCH(aep);
 #endif
+#if HAVE_ENGINE_LOAD_ATALLA
+    OSSL_ENGINE_LOAD_IF_MATCH(atalla);
+#endif
+#if HAVE_ENGINE_LOAD_CHIL
+    OSSL_ENGINE_LOAD_IF_MATCH(chil);
+#endif
+#if HAVE_ENGINE_LOAD_CSWIFT
+    OSSL_ENGINE_LOAD_IF_MATCH(cswift);
+#endif
+#if HAVE_ENGINE_LOAD_NURON
+    OSSL_ENGINE_LOAD_IF_MATCH(nuron);
+#endif
 #if HAVE_ENGINE_LOAD_SUREWARE
     OSSL_ENGINE_LOAD_IF_MATCH(sureware);
 #endif
-#if HAVE_ENGINE_LOAD_4758CCA
-    OSSL_ENGINE_LOAD_IF_MATCH(4758cca);
+#if HAVE_ENGINE_LOAD_UBSEC
+    OSSL_ENGINE_LOAD_IF_MATCH(ubsec);
+#endif
+#if HAVE_ENGINE_LOAD_PADLOCK
+    OSSL_ENGINE_LOAD_IF_MATCH(padlock);
+#endif
+#if HAVE_ENGINE_LOAD_CAPI
+    OSSL_ENGINE_LOAD_IF_MATCH(capi);
+#endif
+#if HAVE_ENGINE_LOAD_GMP
+    OSSL_ENGINE_LOAD_IF_MATCH(gmp);
+#endif
+#if HAVE_ENGINE_LOAD_GOST
+    OSSL_ENGINE_LOAD_IF_MATCH(gost);
+#endif
+#if HAVE_ENGINE_LOAD_CRYPTODEV
+    OSSL_ENGINE_LOAD_IF_MATCH(cryptodev);
+#endif
+#if HAVE_ENGINE_LOAD_AESNI
+    OSSL_ENGINE_LOAD_IF_MATCH(aesni);
 #endif
 #endif
 #ifdef HAVE_ENGINE_LOAD_OPENBSD_DEV_CRYPTO
@@ -118,7 +136,7 @@ ossl_engine_s_engines(VALUE klass)
 	/* Need a ref count of two here because of ENGINE_free being
 	 * called internally by OpenSSL when moving to the next ENGINE
 	 * and by us when releasing the ENGINE reference */
-	ENGINE_up_ref(e); 
+	ENGINE_up_ref(e);
 	WrapEngine(klass, obj, e);
         rb_ary_push(ary, obj);
     }

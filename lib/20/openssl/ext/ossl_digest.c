@@ -1,5 +1,5 @@
 /*
- * $Id: ossl_digest.c 33067 2011-08-25 00:52:10Z drbrain $
+ * $Id$
  * 'OpenSSL for Ruby' project
  * Copyright (C) 2001-2002  Michal Rokos <m.rokos@sh.cvut.cz>
  * All rights reserved.
@@ -409,7 +409,7 @@ Init_ossl_digest()
      *   data1 = File.read('file1')
      *   sha256 = OpenSSL::Digest::SHA256.new
      *   digest1 = sha256.digest(data1)
-     *   
+     *
      *   data2 = File.read('file2')
      *   sha256.reset
      *   digest2 = sha256.digest(data2)

@@ -1,5 +1,5 @@
 /*
- * $Id: ossl_x509store.c 31165 2011-03-24 04:49:18Z naruse $
+ * $Id$
  * 'OpenSSL for Ruby' project
  * Copyright (C) 2001-2002  Michal Rokos <m.rokos@sh.cvut.cz>
  * All rights reserved.
@@ -204,6 +204,15 @@ ossl_x509store_set_time(VALUE self, VALUE time)
     return time;
 }
 
+/*
+ * call-seq:
+ *   store.add_file(file) -> store
+ *
+ *
+ * Adds the certificates in +file+ to the certificate store.  The +file+ can
+ * contain multiple PEM-encoded certificates.
+ */
+
 static VALUE
 ossl_x509store_add_file(VALUE self, VALUE file)
 {
@@ -246,6 +255,16 @@ ossl_x509store_add_path(VALUE self, VALUE dir)
     return self;
 }
 
+/*
+ * call-seq:
+ *   store.set_default_path
+ *
+ * Adds the default certificates to the certificate store.  These certificates
+ * are loaded from the default configuration directory which can usually be
+ * determined by:
+ *
+ *   File.dirname OpenSSL::Config::DEFAULT_CONFIG_FILE
+ */
 static VALUE
 ossl_x509store_set_default_paths(VALUE self)
 {
@@ -258,6 +277,13 @@ ossl_x509store_set_default_paths(VALUE self)
 
     return Qnil;
 }
+
+/*
+ * call-seq:
+ *   store.add_cert(cert)
+ *
+ * Adds the OpenSSL::X509::Certificate +cert+ to the certificate store.
+ */
 
 static VALUE
 ossl_x509store_add_cert(VALUE self, VALUE arg)
@@ -571,7 +597,46 @@ Init_ossl_x509store()
 {
     VALUE x509stctx;
 
+#if 0
+    mOSSL = rb_define_module("OpenSSL"); /* let rdoc know about mOSSL */
+    mX509 = rb_define_module_under(mOSSL, "X509");
+#endif
+
     eX509StoreError = rb_define_class_under(mX509, "StoreError", eOSSLError);
+
+    /* Document-class: OpenSSL::X509::Store
+     *
+     * The X509 certificate store holds trusted CA certificates used to verify
+     * peer certificates.
+     *
+     * The easiest way to create a useful certificate store is:
+     *
+     *   cert_store = OpenSSL::X509::Store.new
+     *   cert_store.set_default_paths
+     *
+     * This will use your system's built-in certificates.
+     *
+     * If your system does not have a default set of certificates you can
+     * obtain a set from Mozilla here: http://curl.haxx.se/docs/caextract.html
+     * (Note that this set does not have an HTTPS download option so you may
+     * wish to use the firefox-db2pem.sh script to extract the certificates
+     * from a local install to avoid man-in-the-middle attacks.)
+     *
+     * After downloading or generating a cacert.pem from the above link you
+     * can create a certificate store from the pem file like this:
+     *
+     *   cert_store = OpenSSL::X509::Store.new
+     *   cert_store.add_file 'cacert.pem'
+     *
+     * The certificate store can be used with an SSLSocket like this:
+     *
+     *   ssl_context = OpenSSL::SSL::SSLContext.new
+     *   ssl_context.cert_store = cert_store
+     *
+     *   tcp_socket = TCPSocket.open 'example.com', 443
+     *
+     *   ssl_socket = OpenSSL::SSL::SSLSocket.new tcp_socket, ssl_context
+     */
 
     cX509Store = rb_define_class_under(mX509, "Store", rb_cObject);
     rb_attr(cX509Store, rb_intern("verify_callback"), 1, 0, Qfalse);

@@ -1,5 +1,5 @@
 /*
- * $Id: ossl_pkey_rsa.c 32199 2011-06-22 08:41:08Z emboss $
+ * $Id$
  * 'OpenSSL for Ruby' project
  * Copyright (C) 2001-2002  Michal Rokos <m.rokos@sh.cvut.cz>
  * All rights reserved.
@@ -76,12 +76,77 @@ ossl_rsa_new(EVP_PKEY *pkey)
 /*
  * Private
  */
-static RSA *
-rsa_generate(int size, int exp)
+#if defined(HAVE_RSA_GENERATE_KEY_EX) && HAVE_BN_GENCB
+struct rsa_blocking_gen_arg {
+    RSA *rsa;
+    BIGNUM *e;
+    int size;
+    BN_GENCB *cb;
+    int result;
+};
+
+static void *
+rsa_blocking_gen(void *arg)
 {
-    return RSA_generate_key(size, exp,
-	    rb_block_given_p() ? ossl_generate_cb : NULL,
-	    NULL);
+    struct rsa_blocking_gen_arg *gen = (struct rsa_blocking_gen_arg *)arg;
+    gen->result = RSA_generate_key_ex(gen->rsa, gen->size, gen->e, gen->cb);
+    return 0;
+}
+#endif
+
+static RSA *
+rsa_generate(int size, unsigned long exp)
+{
+#if defined(HAVE_RSA_GENERATE_KEY_EX) && HAVE_BN_GENCB
+    int i;
+    BN_GENCB cb;
+    struct ossl_generate_cb_arg cb_arg;
+    struct rsa_blocking_gen_arg gen_arg;
+    RSA *rsa = RSA_new();
+    BIGNUM *e = BN_new();
+
+    if (!rsa || !e) {
+	if (e) BN_free(e);
+	if (rsa) RSA_free(rsa);
+	return 0;
+    }
+    for (i = 0; i < (int)sizeof(exp) * 8; ++i) {
+	if (exp & (1UL << i)) {
+	    if (BN_set_bit(e, i) == 0) {
+		BN_free(e);
+		RSA_free(rsa);
+		return 0;
+	    }
+	}
+    }
+
+    memset(&cb_arg, 0, sizeof(struct ossl_generate_cb_arg));
+    if (rb_block_given_p())
+	cb_arg.yield = 1;
+    BN_GENCB_set(&cb, ossl_generate_cb_2, &cb_arg);
+    gen_arg.rsa = rsa;
+    gen_arg.e = e;
+    gen_arg.size = size;
+    gen_arg.cb = &cb;
+    if (cb_arg.yield == 1) {
+	/* we cannot release GVL when callback proc is supplied */
+	rsa_blocking_gen(&gen_arg);
+    } else {
+	/* there's a chance to unblock */
+	rb_thread_call_without_gvl(rsa_blocking_gen, &gen_arg, ossl_generate_cb_stop, &cb_arg);
+    }
+    if (!gen_arg.result) {
+	BN_free(e);
+	RSA_free(rsa);
+	if (cb_arg.state) rb_jump_tag(cb_arg.state);
+	return 0;
+    }
+
+    BN_free(e);
+    return rsa;
+#else
+    return RSA_generate_key(size, exp, rb_block_given_p() ? ossl_generate_cb : NULL, NULL);
+#endif
 }
 
 /*
@@ -103,7 +168,7 @@ ossl_rsa_s_generate(int argc, VALUE *argv, VALUE klass)
 
     rb_scan_args(argc, argv, "11", &size, &exp);
 
-    rsa = rsa_generate(NUM2INT(size), NIL_P(exp) ? RSA_F4 : NUM2INT(exp)); /* err handled by rsa_instance */
+    rsa = rsa_generate(NUM2INT(size), NIL_P(exp) ? RSA_F4 : NUM2ULONG(exp)); /* err handled by rsa_instance */
     obj = rsa_instance(klass, rsa);
 
     if (obj == Qfalse) {
@@ -148,7 +213,7 @@ ossl_rsa_initialize(int argc, VALUE *argv, VALUE self)
 	rsa = RSA_new();
     }
     else if (FIXNUM_P(arg)) {
-	rsa = rsa_generate(FIX2INT(arg), NIL_P(pass) ? RSA_F4 : NUM2INT(pass));
+	rsa = rsa_generate(FIX2INT(arg), NIL_P(pass) ? RSA_F4 : NUM2ULONG(pass));
 	if (!rsa) ossl_raise(eRSAError, NULL);
     }
     else {
@@ -178,7 +243,7 @@ ossl_rsa_initialize(int argc, VALUE *argv, VALUE self)
 	}
 	BIO_free(in);
 	if (!rsa) {
-	    ossl_raise(eRSAError, "Neither PUB key nor PRIV key:");
+	    ossl_raise(eRSAError, "Neither PUB key nor PRIV key");
 	}
     }
     if (!EVP_PKEY_assign_RSA(pkey, rsa)) {
@@ -249,7 +314,10 @@ ossl_rsa_export(int argc, VALUE *argv, VALUE self)
     if (!NIL_P(cipher)) {
 	ciph = GetCipherPtr(cipher);
 	if (!NIL_P(pass)) {
-	    passwd = StringValuePtr(pass);
+	    StringValue(pass);
+	    if (RSTRING_LENINT(pass) < OSSL_MIN_PWD_LEN)
+		ossl_raise(eOSSLError, "OpenSSL requires passwords to be at least four characters long");
+	    passwd = RSTRING_PTR(pass);
 	}
     }
     if (!(out = BIO_new(BIO_s_mem()))) {
