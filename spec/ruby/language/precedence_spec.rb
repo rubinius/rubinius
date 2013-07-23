@@ -1,4 +1,5 @@
 require File.expand_path('../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/precedence', __FILE__)
 
 # Specifying the behavior of operators in combination could
 # lead to combinatorial explosion. A better way seems to be
@@ -136,24 +137,8 @@ describe "Operators" do
     (-b % 7).should == 1
   end
 
-  it "+/- should not be treated as unary plus/minus,
-      when applied to block variables with no space
-      between it and the following variable" do
-    class NonUnaryOpTest
-      def add_num(arg)
-        [1].collect { |i| arg + i +1 }
-      end
-      def sub_num(arg)
-        [1].collect { |i| arg + i -1 }
-      end
-      def add_str
-        %w[1].collect { |i| i +'1' }
-      end
-      def add_var
-        [1].collect { |i| i +i }
-      end
-    end
-    a = NonUnaryOpTest.new
+  it "+/- should not be treated as unary plus/minus" do
+    a = PrecedenceSpecs::NonUnaryOpTest.new
     a.add_num(1).should == [3]
     a.sub_num(1).should == [1]
     a.add_str.should == ['11']
