@@ -62,5 +62,9 @@ module VariablesSpecs
     def to_ary
       [1, 2]
     end
+
+    def to_a
+      [3, 4]
+    end
   end
 end

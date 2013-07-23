@@ -346,6 +346,14 @@ describe "Basic multiple assignment" do
         b.should be_nil
       end
     end
+
+    it "calls #to_a even if it's private" do
+      x = VariablesSpecs::PrivateMethods.new
+
+      a, b = *x
+      a.should == 3
+      b.should == 4
+    end
   end
 end
 
