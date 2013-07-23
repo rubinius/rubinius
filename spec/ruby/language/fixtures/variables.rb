@@ -55,4 +55,12 @@ module VariablesSpecs
 
   class ArraySubclass < Array
   end
+
+  class PrivateMethods
+    private
+
+    def to_ary
+      [1, 2]
+    end
+  end
 end
