@@ -42,7 +42,7 @@ module RbConfig
   CONFIG["rubyhdrdir"]         = "#{Rubinius::HDR_PATH}"
   CONFIG["LIBS"]               = ""
 
-  sitedir                      = Rubinius::SITE_PATH
+  sitedir                      = Rubinius::HDR_PATH
   sitelibdir                   = sitedir
   arch                         = "#{Rubinius::CPU}-#{Rubinius::OS}"
 
@@ -51,8 +51,9 @@ module RbConfig
   CONFIG["arch"]               = arch
   CONFIG["sitearch"]           = arch
   CONFIG["rubylibdir"]         = sitelibdir
-  CONFIG["archdir"]            = "#{sitelibdir}/#{arch}"
-  CONFIG["sitearchdir"]        = "#{sitelibdir}/#{arch}"
+  CONFIG["archdir"]            = "#{sitelibdir}"
+  CONFIG["sitearchdir"]        = "#{sitelibdir}"
+  CONFIG["rubyarchhdrdir"]     = "#{sitelibdir}"
   CONFIG["topdir"]             = File.dirname(__FILE__)
   # some of these only relevant to cross-compiling
   cpu                          = Rubinius::CPU
