@@ -31,6 +31,9 @@ if with_config("debug") or enable_config("debug")
   $defs.push("-DOSSL_DEBUG") unless $defs.include? "-DOSSL_DEBUG"
 end
 
+# Nothing we can do about these problems.
+$CPPFLAGS += " -Wno-deprecated-declarations -Wno-pointer-sign"
+
 Logging::message "=== Checking for system dependent stuff... ===\n"
 have_library("nsl", "t_open")
 have_library("socket", "socket")
