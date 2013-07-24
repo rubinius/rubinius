@@ -32,17 +32,6 @@ module Rubinius
     end
 
     #
-    # Bytewise iterator.
-    #
-    # @see  #each_byte
-    #
-    def bytes(&b)
-      return to_enum(:each_byte) unless block_given?
-      each_byte(&b)
-      self
-    end
-
-    #
     # Set stream into binary mode.
     #
     # Stream is set into binary mode, i.e. 8-bit ASCII.
@@ -52,17 +41,6 @@ module Rubinius
     # @todo Not implemented! Intentional? --rue
     #
     def binmode
-      self
-    end
-
-    #
-    # Character iterator.
-    #
-    # @see  #each_char
-    #
-    def chars(&b)
-      return to_enum(:each_char) unless block_given?
-      each_char(&b)
       self
     end
 
@@ -96,26 +74,17 @@ module Rubinius
     #
     # @see  #gets.
     #
-    def each_line
-      return to_enum :each_line unless block_given?
+    def each_line(sep=$/)
+      return to_enum :each_line, sep unless block_given?
       return nil unless advance!
 
-      while line = gets()
+      while line = gets(sep)
         yield line
       end
       self
     end
-
-    #
-    # Linewise iteration.
-    #
-    # @see  #each_line.
-    #
-    def each(&block)
-      return to_enum :each unless block_given?
-      each_line(&block)
-      self
-    end
+    alias_method :lines, :each_line
+    alias_method :each, :each_line
 
     #
     # Bytewise iteration.
@@ -133,6 +102,7 @@ module Rubinius
       end
       self
     end
+    alias_method :bytes, :each_byte
 
     #
     # Character-wise iteration.
@@ -152,6 +122,7 @@ module Rubinius
       end
       self
     end
+    alias_method :chars, :each_char
 
     #
     # Query whether stream is at end-of-file.
@@ -260,18 +231,6 @@ module Rubinius
         $. = @lineno
         return line
       end
-    end
-
-    #
-    # Returns Enumerator for linewise iteration.
-    #
-    # Does not iterate directly, returns an Enumerator.
-    # If iteration is desired, use #each_line.
-    #
-    # @see  #each_line.
-    #
-    def lines(*args)
-      to_enum :each_line, *args
     end
 
     #
