@@ -51,8 +51,8 @@ module RbConfig
   CONFIG["arch"]               = arch
   CONFIG["sitearch"]           = arch
   CONFIG["rubylibdir"]         = sitelibdir
-  CONFIG["archdir"]            = "#{sitelibdir}"
-  CONFIG["sitearchdir"]        = "#{sitelibdir}"
+  CONFIG["archdir"]            = "#{sitelibdir}/#{arch}"
+  CONFIG["sitearchdir"]        = "#{sitelibdir}/#{arch}"
   CONFIG["rubyarchhdrdir"]     = "#{sitelibdir}"
   CONFIG["topdir"]             = File.dirname(__FILE__)
   # some of these only relevant to cross-compiling
