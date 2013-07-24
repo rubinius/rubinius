@@ -96,26 +96,17 @@ module Rubinius
     #
     # @see  #gets.
     #
-    def each_line
-      return to_enum :each_line unless block_given?
+    def each_line(sep=$/)
+      return to_enum :each_line, sep unless block_given?
       return nil unless advance!
 
-      while line = gets()
+      while line = gets(sep)
         yield line
       end
       self
     end
-
-    #
-    # Linewise iteration.
-    #
-    # @see  #each_line.
-    #
-    def each(&block)
-      return to_enum :each unless block_given?
-      each_line(&block)
-      self
-    end
+    alias_method :lines, :each_line
+    alias_method :each, :each_line
 
     #
     # Bytewise iteration.
@@ -260,18 +251,6 @@ module Rubinius
         $. = @lineno
         return line
       end
-    end
-
-    #
-    # Returns Enumerator for linewise iteration.
-    #
-    # Does not iterate directly, returns an Enumerator.
-    # If iteration is desired, use #each_line.
-    #
-    # @see  #each_line.
-    #
-    def lines(*args)
-      to_enum :each_line, *args
     end
 
     #
