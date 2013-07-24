@@ -32,17 +32,6 @@ module Rubinius
     end
 
     #
-    # Bytewise iterator.
-    #
-    # @see  #each_byte
-    #
-    def bytes(&b)
-      return to_enum(:each_byte) unless block_given?
-      each_byte(&b)
-      self
-    end
-
-    #
     # Set stream into binary mode.
     #
     # Stream is set into binary mode, i.e. 8-bit ASCII.
@@ -52,17 +41,6 @@ module Rubinius
     # @todo Not implemented! Intentional? --rue
     #
     def binmode
-      self
-    end
-
-    #
-    # Character iterator.
-    #
-    # @see  #each_char
-    #
-    def chars(&b)
-      return to_enum(:each_char) unless block_given?
-      each_char(&b)
       self
     end
 
@@ -124,6 +102,7 @@ module Rubinius
       end
       self
     end
+    alias_method :bytes, :each_byte
 
     #
     # Character-wise iteration.
@@ -143,6 +122,7 @@ module Rubinius
       end
       self
     end
+    alias_method :chars, :each_char
 
     #
     # Query whether stream is at end-of-file.
