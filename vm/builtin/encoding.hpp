@@ -114,6 +114,7 @@ namespace rubinius {
     // Rubinius.primitive :encoding_replicate
     Encoding* replicate(STATE, String* name);
 
+    bool ascii_compatible();
     // Rubinius.primitive+ :encoding_ascii_compatible_p
     Object* ascii_compatible_p(STATE);
 

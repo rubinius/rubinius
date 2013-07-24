@@ -103,8 +103,15 @@ class String
   end
 
   def force_encoding(enc)
-    @ascii_only = @valid_encoding = @num_chars = nil
     @encoding = Rubinius::Type.coerce_to_encoding enc
+    unless @ascii_only && @encoding.ascii_compatible?
+      @ascii_only = @valid_encoding = @num_chars = nil
+    end
+    if bytesize == 0 && @encoding.ascii_compatible?
+      @ascii_only = true
+      @valid_encoding = true
+      @num_chars = 0
+    end
     self
   end
 
@@ -699,7 +706,7 @@ class String
   end
 
   def <<(other)
-    modify!
+    Rubinius.check_frozen
 
     unless other.kind_of? String
       if other.kind_of? Integer

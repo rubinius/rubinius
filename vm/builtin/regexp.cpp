@@ -682,6 +682,7 @@ namespace rubinius {
     }
 
     string->encoding(state, source_->encoding());
+    string->ascii_only(state, source_->ascii_only());
 
     return string;
   }
@@ -705,6 +706,7 @@ namespace rubinius {
     }
 
     string->encoding(state, source_->encoding());
+    string->ascii_only(state, source_->ascii_only());
 
     return string;
   }
@@ -729,6 +731,7 @@ namespace rubinius {
     }
 
     string->encoding(state, source_->encoding());
+    string->ascii_only(state, source_->ascii_only());
 
     return string;
   }
@@ -759,6 +762,7 @@ namespace rubinius {
 
     String* string = String::create(state, str + b, sz);
     string->encoding(state, source_->encoding());
+    string->ascii_only(state, source_->ascii_only());
 
     return string;
   }

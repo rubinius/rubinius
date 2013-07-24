@@ -128,9 +128,7 @@ namespace rubinius {
    */
   String* String::create(STATE, const char* str, native_int bytes) {
 
-    String *so;
-
-    so = state->new_object_dirty<String>(G(string));
+    String* so = state->new_object_dirty<String>(G(string));
 
     so->num_bytes_      = Fixnum::from(bytes);
     so->num_chars_      = nil<Fixnum>();
@@ -609,7 +607,7 @@ namespace rubinius {
 
   native_int String::char_size(STATE) {
     if(num_chars_->nil_p()) {
-      if(byte_compatible_p(encoding_)) {
+      if(byte_compatible_p(encoding_) || CBOOL(ascii_only_)) {
         num_chars(state, num_bytes_);
       } else {
         OnigEncodingType* enc = encoding(state)->get_encoding();
@@ -808,14 +806,17 @@ namespace rubinius {
     native_int length = other->byte_size();
     native_int data_length = as<ByteArray>(other->data_)->size();
 
-    if (encoding() != other->encoding()) {
+    if(encoding() != other->encoding()) {
       Encoding* new_encoding = Encoding::compatible_p(state, this, other);
       if(new_encoding->nil_p()) {
         Exception::encoding_compatibility_error(state, other, this);
       }
-      ascii_only(state, cNil);
       valid_encoding(state, cNil);
       encoding(state, new_encoding);
+    }
+
+    if(CBOOL(ascii_only_) && !CBOOL(other->ascii_only_p(state))) {
+      ascii_only(state, cFalse);
     }
 
     if(unlikely(length > data_length)) {
@@ -1440,11 +1441,9 @@ namespace rubinius {
       length = data_size - index;
     }
 
-    String* sub = String::create(state, Fixnum::from(length));
+    const char* buf = (const char*)byte_address() + index;
+    String* sub = String::create(state, buf, length);
     sub->klass(state, class_object(state));
-
-    uint8_t* buf = byte_address() + index;
-    memcpy(sub->byte_address(), buf, length);
 
     if(tainted_p(state)->true_p()) sub->taint(state);
     if(untrusted_p(state)->true_p()) sub->untrust(state);

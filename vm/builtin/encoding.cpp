@@ -457,8 +457,12 @@ namespace rubinius {
     return Encoding::replicate(state, name->c_str(state), this);
   }
 
+  bool Encoding::ascii_compatible() {
+    return encoding_->min_enc_len == 1 && dummy_ == cFalse;
+  }
+
   Object* Encoding::ascii_compatible_p(STATE) {
-    return RBOOL(encoding_->min_enc_len == 1 && dummy_ == cFalse);
+    return RBOOL(ascii_compatible());
   }
 
   void Encoding::make_managed(STATE, const char* name, OnigEncodingType* enc) {
@@ -818,6 +822,7 @@ namespace rubinius {
     target->num_bytes(state, Fixnum::from(output_size));
     target->shared(state, cFalse);
     target->hash_value(state, nil<Fixnum>());
+    target->ascii_only(state, cNil);
     target->encoding(state, destination_encoding());
 
     return converter_result_symbol(state, result);

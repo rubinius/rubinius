@@ -77,9 +77,16 @@ namespace rubinius {
 
     template <class T>
       void encoding(T state, Encoding* obj) {
-        ascii_only_ = cNil;
-        valid_encoding_ = cNil;
-        num_chars_ = nil<Fixnum>();
+        if(obj->nil_p() || (!CBOOL(ascii_only_) && obj->ascii_compatible())) {
+          ascii_only_ = cNil;
+          num_chars_ = nil<Fixnum>();
+          valid_encoding_ = cNil;
+        }
+        if(byte_size() == 0 && !obj->nil_p() && obj->ascii_compatible()) {
+          ascii_only_ = cTrue;
+          num_chars_ = Fixnum::from(0);
+          valid_encoding_ = cTrue;
+        }
         encoding_ = obj;
         this->write_barrier(state, obj);
       }
