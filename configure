@@ -127,7 +127,10 @@ class Configure
     @patch_version = "0"
     @release = validate_release_label
     @release_date = validate_release_date
+
+    # Configure settings
     @config_version = 178
+    @bundle = true
   end
 
   # Set up system commands to run in cmd.exe on Windows. Either Windows
@@ -250,6 +253,10 @@ class Configure
       old_log = @log.path
       @log = Logger.new name, false
       @log.replace old_log
+    end
+
+    o.on "--skip-bundle", "Don't run 'bundle install'" do
+      @bundle = false
     end
 
     o.on "--rake", "NAME", "Use NAME as 'rake' during build" do |name|
@@ -1832,6 +1839,8 @@ int main() { return tgetnum(""); }
   end
 
   def bundle
+    return unless @bundle
+
     @log.write "Bundling development gem dependencies..."
     ENV["RBX_MODE"] = @language_version
     system "bundle"
