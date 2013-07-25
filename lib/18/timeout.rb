@@ -92,15 +92,14 @@ module Timeout
         end
 
         min = reqs.min { |a,b| a.left <=> b.left }
+        new_req = nil
 
         if min.left > 0
           before = Time.now
 
-          req = @chan.receive_timeout(min.left)
+          new_req = @chan.receive_timeout(min.left)
 
           slept_for = Time.now - before
-
-          reqs << req if req
         else
           slept_for = 0
         end
@@ -113,6 +112,7 @@ module Timeout
             false
           end
         end
+        reqs << new_req if new_req
 
       rescue Exception => e
         e.render("ERROR IN TIMEOUT THREAD")
