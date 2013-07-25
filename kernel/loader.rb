@@ -647,8 +647,6 @@ to rebuild the compiler.
 
     #Check Ruby syntax of source
     def check_syntax
-      syntax_ok = false
-
       case
       when Rubinius.ruby18?
         parser = Rubinius::Melbourne
