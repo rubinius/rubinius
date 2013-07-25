@@ -86,7 +86,7 @@ module Process
       rescue SystemExit => e
         status = e.status
       rescue Exception => e
-        e.render "An exception occured in a forked block"
+        e.render "An exception occurred in a forked block"
         status = 1
       end
 
