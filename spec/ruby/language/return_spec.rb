@@ -278,4 +278,14 @@ describe "The return keyword" do
       ReturnSpecs::DefineMethod.new.outer.should == :good
     end
   end
+
+  ruby_version_is "1.9" do
+    require File.expand_path('../fixtures/return19', __FILE__)
+    describe "invoked with a method call without parentheses with a block" do
+      it "returns the value returned from the method call" do
+        ReturnSpecs::MethodWithBlock.new.method1.should == 5
+        ReturnSpecs::MethodWithBlock.new.method2.should == [0, 1, 2]
+      end
+    end
+  end
 end

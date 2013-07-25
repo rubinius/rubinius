@@ -650,6 +650,10 @@ module Rubinius
         @splat = nil
       end
 
+      def block=(node)
+        @value.block = node if @value
+      end
+
       def bytecode(g, force=false)
         pos(g)
 
