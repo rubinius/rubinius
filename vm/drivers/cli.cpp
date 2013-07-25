@@ -130,8 +130,8 @@ int main(int argc, char** argv) {
       exit_code = 1;
     }
 
+    env.halt(env.state);
     if(!exit_code) {
-      env.halt(env.state);
       exit_code = env.exit_code(env.state);
     }
   }
