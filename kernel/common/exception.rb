@@ -53,6 +53,7 @@ class Exception
     message_lines = message.to_s.split("\n")
 
     io.puts header
+    io.puts
     io.puts "    #{message_lines.shift} (#{self.class})"
 
     message_lines.each do |line|
@@ -61,12 +62,14 @@ class Exception
 
     if @custom_backtrace
       io.puts "\nUser defined backtrace:"
+      io.puts
       @custom_backtrace.each do |line|
         io.puts "    #{line}"
       end
     end
 
     io.puts "\nBacktrace:"
+    io.puts
     io.puts awesome_backtrace.show("\n", color)
 
     extra = @parent
@@ -75,12 +78,14 @@ class Exception
 
       if @custom_backtrace
         io.puts "\nUser defined backtrace:"
+        io.puts
         @custom_backtrace.each do |line|
           io.puts "    #{line}"
         end
       end
 
       io.puts "\nBacktrace:"
+      io.puts
       io.puts extra.awesome_backtrace.show
 
       extra = extra.parent
