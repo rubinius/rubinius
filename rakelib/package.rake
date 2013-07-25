@@ -139,7 +139,8 @@ namespace :package do
           desc "Build a general Unix/Linux #{release} binary package for Heroku"
           task ruby_version.to_sym do
             release_label = validate_release_label release.to_s
-            heroku_package = "ruby-#{heroku_prefix_version}-rbx-#{release_label}"
+            rbx_version = BUILD_CONFIG[:version].split(".")[0...-1].join(".")
+            heroku_package = "ruby-#{heroku_prefix_version}-rbx-#{rbx_version}.#{release_label}"
             sh "rake package:binary_builder RBX_BINARY_PACKAGE=#{heroku_package} " \
                "RBX_BINARY_PREFIX=/app/vendor/#{heroku_package} " \
                "RBX_BINARY_LANGUAGE=#{ruby_version} RBX_BINARY_RELEASE=#{release} " \
