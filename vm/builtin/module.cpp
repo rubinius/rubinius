@@ -523,6 +523,7 @@ namespace rubinius {
     IncludedModule* imod = IncludedModule::create(state);
 
     imod->klass(state, as<Class>(self));
+    imod->origin(state, imod);
 
     return imod;
   }

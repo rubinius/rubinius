@@ -202,10 +202,10 @@ class Module
 
   def instance_methods(all=true)
     ary = []
-    if all and self.direct_superclass
+    if all
       table = Rubinius::LookupTable.new
 
-      mod = self
+      mod = self.origin
 
       while mod
         mod.method_table.each do |name, obj, vis|
@@ -572,6 +572,12 @@ class Module
       end
 
       @constant_table.store(name, val, :public)
+    end
+
+    if other == other.origin
+      @origin = self
+    else
+      @origin = other.origin.dup
     end
 
     self
