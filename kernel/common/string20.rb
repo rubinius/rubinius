@@ -62,4 +62,8 @@ class String
     end
     false
   end
+
+  def b
+    dup.force_encoding Encoding::ASCII_8BIT
+  end
 end
