@@ -16,6 +16,32 @@ describe "Kernel#warn" do
     Kernel.should have_private_instance_method(:warn)
   end
 
+  ruby_version_is "" ... "2.0" do
+    it "requires an argument" do
+      Kernel.method(:warn).arity.should == 1
+    end
+
+    it "appends line-end if last character is line-end" do
+      lambda {
+        $VERBOSE = true
+        warn("this is some simple text with line-end\n")
+      }.should output(nil, "this is some simple text with line-end\n\n")
+    end
+  end
+
+  ruby_version_is "2.0" do
+    it "requires multiple arguments" do
+      Kernel.method(:warn).arity.should < 0
+    end
+
+    it "does not append line-end if last character is line-end" do
+      lambda {
+        $VERBOSE = true
+        warn("this is some simple text with line-end\n")
+      }.should output(nil, "this is some simple text with line-end\n")
+    end
+  end
+
   it "calls #write on $stderr if $VERBOSE is true" do
     lambda {
       $VERBOSE = true
@@ -35,6 +61,22 @@ describe "Kernel#warn" do
       $VERBOSE = nil
       warn("this is some simple text")
     }.should output(nil, "")
+  end
+
+  ruby_version_is "2.0" do
+    it "writes each argument on a line when passed multiple arguments" do
+      lambda {
+        $VERBOSE = true
+        warn("line 1", "line 2")
+      }.should output(nil, "line 1\nline 2\n")
+    end
+
+    it "does not write strings when passed no arguments" do
+      lambda {
+        $VERBOSE = true
+        warn
+      }.should output("", "")
+    end
   end
 
   it "writes the default record separator and NOT $/ to $stderr after the warning message" do
