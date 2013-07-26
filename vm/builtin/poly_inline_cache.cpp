@@ -94,7 +94,7 @@ namespace rubinius {
   Object* PolyInlineCache::check_cache(STATE, CallSite* call_site, CallFrame* call_frame,
                                    Arguments& args)
   {
-    Class* const recv_class = args.recv()->lookup_begin(state);
+    Class* const recv_class = args.recv()->direct_class(state);
 
     PolyInlineCache* cache = static_cast<PolyInlineCache*>(call_site);
     InlineCacheEntry* entry = cache->get_entry(recv_class);
@@ -113,7 +113,7 @@ namespace rubinius {
   Object* PolyInlineCache::check_cache_mm(STATE, CallSite* call_site, CallFrame* call_frame,
                                       Arguments& args)
   {
-    Class* const recv_class = args.recv()->lookup_begin(state);
+    Class* const recv_class = args.recv()->direct_class(state);
 
     PolyInlineCache* cache = static_cast<PolyInlineCache*>(call_site);
     InlineCacheEntry* entry = cache->get_entry(recv_class);

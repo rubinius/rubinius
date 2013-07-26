@@ -67,14 +67,14 @@ namespace rubinius {
                                    Arguments& args)
   {
     Object* const recv = args.recv();
-    Class* const recv_class = recv->lookup_begin(state);
+    Class*  const recv_class  = recv->direct_class(state);
 
-    LookupData lookup(call_frame->self(), recv_class, G(sym_public));
+    LookupData lookup(call_frame->self(), recv->lookup_begin(state), G(sym_public));
     Dispatch dis(call_site->name());
 
     if(!dis.resolve(state, call_site->name(), lookup)) {
 
-      LookupData missing_lookup(call_frame->self(), recv_class, G(sym_private));
+      LookupData missing_lookup(call_frame->self(), recv->lookup_begin(state), G(sym_private));
       Dispatch missing_dis(G(sym_method_missing));
       missing_dis.resolve(state, G(sym_method_missing), missing_lookup);
 
@@ -114,14 +114,14 @@ namespace rubinius {
                                    Arguments& args)
   {
     Object* const recv = args.recv();
-    Class* const recv_class = recv->lookup_begin(state);
+    Class* const recv_class = recv->direct_class(state);
 
-    LookupData lookup(call_frame->self(), recv_class, G(sym_private));
+    LookupData lookup(call_frame->self(), recv->lookup_begin(state), G(sym_private));
     Dispatch dis(call_site->name());
 
     if(!dis.resolve(state, call_site->name(), lookup)) {
 
-      LookupData missing_lookup(call_frame->self(), recv_class, G(sym_private));
+      LookupData missing_lookup(call_frame->self(), recv->lookup_begin(state), G(sym_private));
       Dispatch missing_dis(G(sym_method_missing));
       missing_dis.resolve(state, G(sym_method_missing), missing_lookup);
 
@@ -162,14 +162,14 @@ namespace rubinius {
   {
 
     Object* const recv = args.recv();
-    Class* const recv_class = recv->lookup_begin(state);
+    Class* const recv_class = recv->direct_class(state);
 
-    LookupData lookup(call_frame->self(), recv_class, G(sym_private));
+    LookupData lookup(call_frame->self(), recv->lookup_begin(state), G(sym_private));
     Dispatch dis(call_site->name());
 
     if(!dis.resolve(state, call_site->name(), lookup)) {
 
-      LookupData missing_lookup(call_frame->self(), recv_class, G(sym_private));
+      LookupData missing_lookup(call_frame->self(), recv->lookup_begin(state), G(sym_private));
       Dispatch missing_dis(G(sym_method_missing));
       missing_dis.resolve(state, G(sym_method_missing), missing_lookup);
 
@@ -216,7 +216,7 @@ namespace rubinius {
     }
 
     Object* const recv = args.recv();
-    Class* const recv_class = recv->lookup_begin(state);
+    Class* const recv_class = recv->direct_class(state);
     Module* const start = call_frame->module()->superclass();
 
 
@@ -225,7 +225,7 @@ namespace rubinius {
 
     if(start->nil_p() || !dis.resolve(state, call_site->name(), lookup)) {
 
-      LookupData missing_lookup(call_frame->self(), recv_class, G(sym_private));
+      LookupData missing_lookup(call_frame->self(), recv->lookup_begin(state), G(sym_private));
       Dispatch missing_dis(G(sym_method_missing));
       missing_dis.resolve(state, G(sym_method_missing), missing_lookup);
 
@@ -269,7 +269,7 @@ namespace rubinius {
 
   bool CallSite::update_and_validate(STATE, CallFrame* call_frame, Object* recv, Symbol* vis, int serial) {
 
-    Class* const recv_class = recv->lookup_begin(state);
+    Class* const recv_class = recv->direct_class(state);
 
     if(MonoInlineCache* mono = try_as<MonoInlineCache>(this)) {
       if(recv_class->data_raw() == mono->receiver_data_raw()) {
@@ -282,7 +282,7 @@ namespace rubinius {
       if(likely(ice)) return ice->method()->serial()->to_native() == serial;
     }
 
-    LookupData lookup(call_frame->self(), recv_class, G(sym_public));
+    LookupData lookup(call_frame->self(), recv->lookup_begin(state), G(sym_public));
     Dispatch dis(name_);
 
     if(dis.resolve(state, name_, lookup)) {
@@ -297,4 +297,3 @@ namespace rubinius {
   }
 
 }
-

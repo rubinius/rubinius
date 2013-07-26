@@ -80,7 +80,7 @@ namespace rubinius {
 
     /* interface */
 
-    void init(uint32_t id);
+    void init(STATE);
 
     /** Returns actual superclass, skipping over IncludedModules */
     Class* true_superclass(STATE);

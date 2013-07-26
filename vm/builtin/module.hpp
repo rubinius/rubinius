@@ -16,6 +16,7 @@ namespace rubinius {
     Symbol* module_name_;           // slot
     ConstantTable* constant_table_; // slot
     Module* superclass_;            // slot
+    Module* origin_;                // slot
     Array* seen_ivars_;             // slot
     Class* mirror_;                 // slot
     Array* hierarchy_subclasses_;   // slot
@@ -27,6 +28,7 @@ namespace rubinius {
     attr_accessor(module_name, Symbol);
     attr_accessor(constant_table, ConstantTable);
     attr_accessor(superclass, Module);
+    attr_accessor(origin, Module);
     attr_accessor(seen_ivars, Array);
     attr_accessor(mirror, Class);
     attr_accessor(hierarchy_subclasses, Array);

@@ -20,7 +20,7 @@ namespace rubinius {
     RespondToCache* cache =
       state->vm()->new_object<RespondToCache>(G(respond_to_cache));
 
-    Class* recv_class = recv->lookup_begin(state);
+    Class* recv_class = recv->direct_class(state);
     cache->fallback_call_site(state, fallback);
     cache->executable(state, fallback->executable());
     cache->name(state, fallback->name());
@@ -42,7 +42,7 @@ namespace rubinius {
                                    Arguments& args) {
     RespondToCache* cache = static_cast<RespondToCache*>(call_site);
 
-    Class* const recv_class = args.recv()->lookup_begin(state);
+    Class* const recv_class = args.recv()->direct_class(state);
     if(args.total() > 0) {
       Object* const message   = args.get_argument(0);
       Object* visibility      = cFalse;

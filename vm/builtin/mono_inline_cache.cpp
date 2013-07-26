@@ -64,7 +64,7 @@ namespace rubinius {
                                        Arguments& args) {
 
     MonoInlineCache* cache = reinterpret_cast<MonoInlineCache*>(call_site);
-    Class* const recv_class = args.recv()->lookup_begin(state);
+    Class* const recv_class = args.recv()->direct_class(state);
 
     register uint64_t recv_data = recv_class->data_raw();
 
@@ -80,7 +80,7 @@ namespace rubinius {
                                    Arguments& args) {
     MonoInlineCache* cache = reinterpret_cast<MonoInlineCache*>(call_site);
 
-    Class* const recv_class = args.recv()->lookup_begin(state);
+    Class* const recv_class = args.recv()->direct_class(state);
 
     register uint64_t recv_data = recv_class->data_raw();
 

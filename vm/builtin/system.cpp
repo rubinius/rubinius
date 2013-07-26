@@ -914,10 +914,10 @@ namespace rubinius {
     return module;
   }
 
-  static Tuple* find_method(STATE, Class* klass, Symbol* name, Symbol* min_visibility) {
+  static Tuple* find_method(STATE, Module* lookup_begin, Symbol* name, Symbol* min_visibility) {
     // Use cUndef for the self type so protected checks never pass
     // and work as expected.
-    LookupData lookup(cUndef, klass, min_visibility);
+    LookupData lookup(cUndef, lookup_begin, min_visibility);
 
     Dispatch dis(name);
 
@@ -1274,9 +1274,7 @@ namespace rubinius {
   Object* System::vm_check_callable(STATE, Object* obj, Symbol* sym,
                                     Object* self, CallFrame* calling_environment)
   {
-    Class* recv_class = obj->lookup_begin(state);
-
-    LookupData lookup(self, recv_class, G(sym_public));
+    LookupData lookup(self, obj->lookup_begin(state), G(sym_public));
     Dispatch dis(sym);
 
     Object* responds = RBOOL(dis.resolve(state, sym, lookup));

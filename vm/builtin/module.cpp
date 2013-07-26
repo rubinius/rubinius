@@ -54,6 +54,7 @@ namespace rubinius {
   void Module::setup(STATE) {
     constant_table(state, ConstantTable::create(state));
     method_table(state, MethodTable::create(state));
+    origin(state, this);
     if(!superclass()->nil_p()) {
       superclass()->track_subclass(state, this);
     }
@@ -513,6 +514,7 @@ namespace rubinius {
 
     imod->module_name(state, state->symbol("<included module>"));
     imod->superclass(state, nil<Module>());
+    imod->origin(state, imod);
 
     return imod;
   }
