@@ -241,6 +241,7 @@ class Configure
 
     unless @prefixdir == @sourcedir
       @stagingdir = "#{@sourcedir}/staging"
+      FileUtils.rm_rf @stagingdir
       @stagingdir = File.join @stagingdir, @prefixdir if @preserve_prefix
     end
   end
