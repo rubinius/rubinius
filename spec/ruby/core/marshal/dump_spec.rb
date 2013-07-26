@@ -2,6 +2,10 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/marshal_data', __FILE__)
 
+ruby_version_is "1.9" do
+  require File.expand_path('../fixtures/marshal_data19', __FILE__)
+end
+
 describe "Marshal.dump" do
   it "dumps nil" do
     Marshal.dump(nil).should == "\004\b0"
