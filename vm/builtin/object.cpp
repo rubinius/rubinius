@@ -745,7 +745,9 @@ namespace rubinius {
     } else {
       name << "#<";
       if(Module* mod = try_as<Module>(this)) {
-        if(mod->module_name()->nil_p()) {
+        if(IncludedModule* im = try_as<IncludedModule>(mod)) {
+          name << im->module()->module_name()->debug_str(state);
+        } else if(mod->module_name()->nil_p()) {
           name << "Class";
         } else {
           name << mod->debug_str(state);
