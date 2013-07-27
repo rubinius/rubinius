@@ -1,6 +1,9 @@
 source 'https://rubygems.org'
 
 gem "rake", "~> 10.0"
+
+gem "rubinius-toolset"
+gem "rubinius-bridge"
 gem "daedalus-core"
 
 case mode = ENV["RBX_MODE"]
