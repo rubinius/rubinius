@@ -274,7 +274,7 @@ namespace rubinius {
       // Use a block objects on the stack are properly deconstructed when
       // we do a potential longjmp.
       {
-        LookupData lookup(recv, mod->superclass(), env->state()->globals().sym_private.get());
+        LookupData lookup(recv, mod->lookup_superclass(), env->state()->globals().sym_private.get());
         Arguments args_o(name, recv, arg_count, args);
         Dispatch dis(name);
 

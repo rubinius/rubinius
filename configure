@@ -238,6 +238,7 @@ class Configure
 
     unless @prefixdir == @sourcedir
       @stagingdir = "#{@sourcedir}/staging"
+      FileUtils.rm_rf @stagingdir
       @stagingdir = File.join @stagingdir, @prefixdir if @preserve_prefix
     end
   end
@@ -391,6 +392,7 @@ class Configure
     o.doc "\n File system paths for installing Rubinius"
 
     o.on "-P", "--prefix", "PATH", "Install Rubinius in subdirectories of PATH" do |dir|
+      warn_prefix dir
       @prefixdir = dir
     end
 
@@ -1437,6 +1439,26 @@ int main() { return tgetnum(""); }
       @log.write "yes"
     else
       @log.write "no"
+    end
+  end
+
+  def warn_prefix(dir)
+    delimiter = "-------------------------%s-----------------------"
+
+    if File.file? dir
+      @log.write delimiter % " ERROR "
+      @log.write "The specified prefix '#{dir}' is a regular file."
+      @log.write "Remove the file or specify a different prefix."
+      @log.write delimiter % "-------"
+      exit 1
+    elsif File.directory? dir
+      @log.write delimiter % " WARNING "
+      @log.write "The specified prefix '#{dir}' already exists."
+      @log.write "Installing Rubinius into an existing directory may"
+      @log.write "overwrite existing unrelated files or cause conflicts"
+      @log.write "between different versions of Rubinius files."
+      @log.write delimiter % "---------"
+      sleep 2
     end
   end
 

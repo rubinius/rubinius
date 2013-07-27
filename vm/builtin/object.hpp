@@ -159,8 +159,11 @@ namespace rubinius {
 
   public:   /* Method dispatch stuff */
 
-    /** Class object in which to look for the MethodTable for this Object. */
-    Class*      lookup_begin(STATE);
+    /** Actual class for this object. Also handles immediates */
+    Class*       direct_class(STATE) const;
+
+    /** Module where to start looking for the MethodTable for this Object. */
+    Module*      lookup_begin(STATE) const;
 
     /**
      *  Directly send a method to this Object.
@@ -419,7 +422,7 @@ namespace rubinius {
     return __FIXNUM_P__(this);
   }
 
-  inline Class* Object::lookup_begin(STATE) {
+  inline Class* Object::direct_class(STATE) const {
     if(reference_p()) {
       return klass_;
     }

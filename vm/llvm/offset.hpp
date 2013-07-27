@@ -135,9 +135,10 @@ namespace Module {
   const static int module_name = 2;
   const static int constants = 3;
   const static int superclass = 4;
-  const static int seen_ivars = 5;
-  const static int mirror = 6;
-  const static int subclasses = 7;
+  const static int origin = 5;
+  const static int seen_ivars = 6;
+  const static int mirror = 7;
+  const static int subclasses = 8;
 }
 namespace MonoInlineCache {
   const static int header = 0;

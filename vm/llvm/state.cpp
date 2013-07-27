@@ -713,11 +713,11 @@ halt:
 
     if(candidate->block_p()) {
       compile_soon(state, gct, candidate->compiled_code, call_frame,
-                   candidate->self()->lookup_begin(state), candidate->block_env(), true);
+                   candidate->self()->direct_class(state), candidate->block_env(), true);
     } else {
       if(candidate->compiled_code->can_specialize_p()) {
         compile_soon(state, gct, candidate->compiled_code, call_frame,
-                     candidate->self()->lookup_begin(state));
+                     candidate->self()->direct_class(state));
       } else {
         compile_soon(state, gct, candidate->compiled_code, call_frame, NULL);
       }

@@ -276,6 +276,7 @@ declare void @outputFloat(%"struct.rubinius::Float"*)
        %"struct.rubinius::Symbol"*, ; module_name
   %"struct.rubinius::LookupTable"*, ; constants
        %"struct.rubinius::Module"*, ; superclass
+       %"struct.rubinius::Module"*, ; origin
         %"struct.rubinius::Array"*, ; seen_ivars
         %"struct.rubinius::Class"*, ; mirror
         %"struct.rubinius::Array"*  ; subclasses

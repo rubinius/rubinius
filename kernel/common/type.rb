@@ -85,11 +85,7 @@ module Rubinius
     end
 
     def self.each_ancestor(mod)
-      unless singleton_class_object(mod)
-        yield mod
-      end
-
-      sup = mod.direct_superclass()
+      sup = mod.origin
       while sup
         if object_kind_of?(sup, IncludedModule)
           yield sup.module
@@ -98,7 +94,7 @@ module Rubinius
         else
           yield sup
         end
-        sup = sup.direct_superclass()
+        sup = sup.direct_superclass
       end
     end
 

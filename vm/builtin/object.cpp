@@ -48,6 +48,16 @@ namespace rubinius {
     return state->globals().special_classes[((uintptr_t)this) & SPECIAL_CLASS_MASK].get();
   }
 
+  Module* Object::lookup_begin(STATE) const {
+    Class* klass = NULL;
+    if(reference_p()) {
+      klass = klass_;
+    } else {
+      klass = state->globals().special_classes[((uintptr_t)this) & SPECIAL_CLASS_MASK].get();
+    }
+    return klass->origin();
+  }
+
   Object* Object::duplicate(STATE) {
     if(!reference_p()) return this;
 
@@ -432,13 +442,7 @@ namespace rubinius {
   }
 
   bool Object::kind_of_p(STATE, Object* module) {
-    Module* found = NULL;
-
-    if(!reference_p()) {
-      found = state->globals().special_classes[((uintptr_t)this) & SPECIAL_CLASS_MASK].get();
-    } else {
-      found = try_as<Module>(klass_);
-    }
+    Module* found = lookup_begin(state);
 
     while(found) {
       if(found == module) return true;

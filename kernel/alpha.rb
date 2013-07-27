@@ -443,8 +443,9 @@ end
 
 class Module
   def method_table   ; @method_table ; end
-  def constant_table; @constant_table ; end
+  def constant_table ; @constant_table ; end
   def name           ; @module_name.to_s ; end
+  def origin         ; @origin ; end
 
   # Specialised allocator.
   #
@@ -721,6 +722,17 @@ module Rubinius
       @superclass = cls.direct_superclass
       cls.superclass = self
       @module.track_subclass(cls)
+      self
+    end
+
+    # :internal"
+    #
+    # Inject self inbetween class and the original origin
+    #
+    def attach_before(cls)
+      @superclass = cls.origin
+      cls.origin = self
+      @superclass.track_subclass(@module)
       self
     end
 

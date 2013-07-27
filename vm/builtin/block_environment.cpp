@@ -284,7 +284,7 @@ namespace rubinius {
         GCTokenImpl gct;
         OnStack<1> os(state, env);
         ls->compile_soon(state, gct, env->compiled_code(), previous,
-                         invocation.self->lookup_begin(state), env, true);
+                         invocation.self->direct_class(state), env, true);
 
       } else {
         mcode->call_count++;

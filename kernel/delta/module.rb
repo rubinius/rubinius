@@ -108,7 +108,7 @@ class Module
     # taint other from self
 
     insert_at = klass
-    mod = self
+    mod = self.origin
     changed = false
     constants_changed = false
 

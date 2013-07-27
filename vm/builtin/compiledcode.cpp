@@ -169,7 +169,7 @@ namespace rubinius {
   {
     CompiledCode* code = as<CompiledCode>(exec);
 
-    Class* cls = args.recv()->lookup_begin(state);
+    Class* cls = args.recv()->direct_class(state);
     uint64_t class_data = cls->data_raw();
 
     MachineCode* v = code->machine_code();
@@ -226,7 +226,7 @@ namespace rubinius {
   {
     CompiledCode* code = as<CompiledCode>(exec);
 
-    Class* cls = args.recv()->lookup_begin(state);
+    Class* cls = args.recv()->direct_class(state);
     uint64_t class_data = cls->data_raw();
 
     MachineCode* v = code->machine_code();

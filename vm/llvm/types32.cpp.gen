@@ -152,6 +152,7 @@ StructTy_struct_rubinius__Module_fields.push_back(PointerTy_12);
 PointerType* PointerTy_13 = PointerType::get(StructTy_struct_rubinius__Module, 0);
 
 StructTy_struct_rubinius__Module_fields.push_back(PointerTy_13);
+StructTy_struct_rubinius__Module_fields.push_back(PointerTy_13);
 StructType *StructTy_struct_rubinius__Array = mod->getTypeByName("struct.rubinius::Array");
 if (!StructTy_struct_rubinius__Array) {
 StructTy_struct_rubinius__Array = StructType::create(mod->getContext(), "struct.rubinius::Array");

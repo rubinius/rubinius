@@ -17,7 +17,7 @@ namespace rubinius {
   Class* Class::create(STATE, Class* super) {
     Class* cls = state->memory()->new_object_enduring<Class>(state, G(klass));
 
-    cls->init(state->shared().inc_class_count(state));
+    cls->init(state);
 
     cls->module_name(state, nil<Symbol>());
     cls->instance_type(state, super->instance_type());
@@ -40,14 +40,16 @@ namespace rubinius {
   Class* Class::s_allocate(STATE) {
     Class* cls = as<Class>(state->memory()->new_object_enduring<Class>(state, G(klass)));
 
-    cls->init(state->shared().inc_class_count(state));
+    cls->init(state);
     cls->setup(state);
 
     cls->set_type_info(state->memory()->type_info[ObjectType]);
     return cls;
   }
 
-  void Class::init(uint32_t id) {
+  void Class::init(STATE) {
+    uint32_t id = state->shared().inc_class_count(state);
+    origin(state, this);
     data_.f.class_id = id;
     data_.f.serial_id = 1;
     set_packed_size(0);
@@ -305,7 +307,7 @@ namespace rubinius {
   SingletonClass* SingletonClass::attach(STATE, Object* obj, Class* sup) {
     SingletonClass *sc;
     sc = state->memory()->new_object_enduring<SingletonClass>(state, G(klass));
-    sc->init(state->shared().inc_class_count(state));
+    sc->init(state);
 
     sc->attached_instance(state, obj);
     sc->setup(state);

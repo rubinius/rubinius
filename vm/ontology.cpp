@@ -74,7 +74,7 @@ namespace rubinius {
   namespace ontology {
     Class* new_basic_class(STATE, Class* sup) {
       Class *cls = state->memory()->new_object_enduring<Class>(state, G(klass));
-      cls->init(state->shared().inc_class_count(state));
+      cls->init(state);
 
       if(sup->nil_p()) {
         cls->instance_type(state, Fixnum::from(ObjectType));
@@ -136,7 +136,7 @@ namespace rubinius {
     cls->ivars(state, cNil);
 
     cls->set_object_type(state, ClassType);
-    cls->set_class_id(state->shared().inc_class_count(state));
+    cls->init(state);
     cls->set_packed_size(0);
 
     // Set Class into the globals
