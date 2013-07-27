@@ -378,23 +378,14 @@ module Kernel
   end
   private :remove_instance_variable
 
-  def all_instance_variables
-    Rubinius.primitive :object_ivar_names
-
-    raise PrimitiveFailure, "Object#instance_variables failed"
-  end
-  private :all_instance_variables
-
   def instance_variables
     ary = []
-    all_instance_variables.each do |sym|
+    __all_instance_variables__.each do |sym|
       ary << sym if sym.is_ivar?
     end
 
     Rubinius::Type.convert_to_names ary
   end
-
-  alias_method :__instance_variables__, :instance_variables
 
   def instance_variable_defined?(name)
     Rubinius.primitive :object_ivar_defined
