@@ -126,6 +126,22 @@ ruby_version_is "2.0" do
       s.new.chain.should == [:class, :module, :subclass]
     end
 
+    it "throws a NoMethodError when there is no more superclass" do
+      m = Module.new do
+        def chain
+          super << :module
+        end
+      end
+
+      c = Class.new do
+        prepend m
+        def chain
+          super << :class
+        end
+      end
+      lambda { c.new.chain }.should raise_error(NoMethodError)
+    end
+
     it "calls prepended after prepend_features" do
       ScratchPad.record []
 
