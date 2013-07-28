@@ -65,11 +65,11 @@ ruby_version_is "2.0" do
       c.new.calc(1).should == 1
     end
 
-    it "allows prepending chains of modules" do
-      m1 = Module.new { def calc(x) x end }
-      m2 = Module.new { prepend(m1) }
-      c = Class.new { prepend(m2) }
-      c.new.calc(1).should == 1
+    it "prepends multiple modules in the right order" do
+      m1 = Module.new { def chain; super << :m1; end }
+      m2 = Module.new { def chain; super << :m2; end; prepend(m1) }
+      c = Class.new { def chain; [:c]; end; prepend(m2) }
+      c.new.chain.should == [:c, :m2, :m1]
     end
 
     it "includes prepended modules in ancestors" do
