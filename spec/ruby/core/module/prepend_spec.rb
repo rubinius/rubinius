@@ -103,6 +103,16 @@ ruby_version_is "2.0" do
       Class.new { prepend(m) }.ancestors.should_not include(m)
     end
 
+    it "inserts a later prepended module into the chain" do
+      m1 = Module.new { def chain; super << :m1; end }
+      m2 = Module.new { def chain; super << :m2; end }
+      c1 = Class.new { def chain; [:c1]; end; prepend m1 }
+      c2 = Class.new(c1) { def chain; super << :c2; end }
+      c2.new.chain.should == [:c1, :m1, :c2]
+      c1.send(:prepend, m2)
+      c2.new.chain.should == [:c1, :m1, :m2, :c2]
+    end
+
     it "works with subclasses" do
       m = Module.new do
         def chain
