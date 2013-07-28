@@ -217,7 +217,7 @@ namespace rubinius {
 
     Object* const recv = args.recv();
     Class* const recv_class = recv->direct_class(state);
-    Module* const start = call_frame->module()->lookup_superclass();
+    Module* const start = call_frame->module()->superclass();
 
     LookupData lookup(call_frame->self(), start, G(sym_private));
     Dispatch dis(call_site->name());

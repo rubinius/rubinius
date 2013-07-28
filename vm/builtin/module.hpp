@@ -95,10 +95,6 @@ namespace rubinius {
 
     void add_method(STATE, Symbol* name, Executable* exec, Symbol* vis = 0);
 
-    Module* lookup_superclass() {
-      return origin_->superclass();
-    }
-
     Object* reset_method_cache(STATE, Symbol* name);
 
     Executable* find_method(Symbol* name, Module** defined_in = 0);
