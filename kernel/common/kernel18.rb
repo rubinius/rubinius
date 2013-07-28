@@ -1,6 +1,15 @@
 # -*- encoding: us-ascii -*-
 
 module Kernel
+  alias_method :__instance_variables__, :instance_variables
+  
+  def __all_instance_variables__
+    Rubinius.primitive :object_ivar_names
+
+    raise PrimitiveFailure, "Object#instance_variables failed"
+  end
+  private :__all_instance_variables__
+
   def method(name)
     name = Rubinius::Type.coerce_to_symbol name
     code = Rubinius.find_method(self, name)

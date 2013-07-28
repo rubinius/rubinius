@@ -12,6 +12,10 @@ class String
     self
   end
 
+  def b
+    dup.force_encoding Encoding::ASCII_8BIT
+  end
+
   def bytes
     if block_given?
       each_byte do |byte|

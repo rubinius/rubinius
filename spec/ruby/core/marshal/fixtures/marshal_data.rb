@@ -154,12 +154,6 @@ Struct.new "Pyramid"
 Struct.new "Useful", :a, :b
 
 module MarshalSpec
-  class BasicObjectSubWithRespondToFalse
-    def respond_to?(a)
-      false
-    end
-  end
-  
   class StructWithUserInitialize < Struct.new(:a)
     THREADLOCAL_KEY = :marshal_load_struct_args
     def initialize(*args)
