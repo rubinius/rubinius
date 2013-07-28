@@ -1,0 +1,2 @@
+fails:Module#prepend prepends multiple modules in the right order
+fails:Module#prepend inserts a later prepended module into the chain
