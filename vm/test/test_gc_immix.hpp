@@ -192,7 +192,7 @@ public:
   void test_SingleBlockAllocator_allocate_indicates_failure() {
     immix::Block& block = gc->get_block();
 
-    for(int i = 0; i < immix::cLineTableSize; i++) {
+    for(uint32_t i = 0; i < immix::cLineTableSize; i++) {
       block.mark_line(i);
     }
 
@@ -258,7 +258,7 @@ public:
   void test_Block_update_stats_finds_unavailable_blocks() {
     immix::Block& block = gc->get_block();
 
-    for(int i = 0; i < immix::cLineTableSize; i++) {
+    for(uint32_t i = 0; i < immix::cLineTableSize; i++) {
       block.mark_line(i);
     }
 
@@ -468,7 +468,7 @@ public:
 
     TS_ASSERT_EQUALS(&ba.current_chunk(), c1);
 
-    for(int i = 0; i < immix::cBlocksPerChunk + 1; i++) {
+    for(uint32_t i = 0; i < immix::cBlocksPerChunk + 1; i++) {
       ba.get_block();
     }
 
@@ -501,7 +501,7 @@ public:
     immix::ExpandingAllocator ea(gc->block_allocator());
     immix::Block& block = ea.current_block();
 
-    for(int i = 0; i < immix::cLineTableSize; i++) {
+    for(uint32_t i = 0; i < immix::cLineTableSize; i++) {
       block.mark_line(i);
     }
 
