@@ -1,4 +1,10 @@
 module LangSendSpecs
+
+  class Attr19Set
+    attr_reader :result
+    def []=(*args); @result = args; end
+  end
+
   module_function
 
   def fooR(*r); r; end

@@ -244,3 +244,14 @@ describe "Invoking a method" do
 
 end
 
+describe "allows []= with arguments after splat" do
+  before :each do
+    @obj = LangSendSpecs::Attr19Set.new
+    @ary = ["a"]
+  end
+
+  it "with *args in the [] and post args" do
+    @obj[1,*@ary,123] = 2
+    @obj.result.should == [1, "a", 123, 2]
+  end
+end
