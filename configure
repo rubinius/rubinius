@@ -89,6 +89,8 @@ class Configure
     @x86_64       = false
     @fibers       = false
     @dtrace       = false
+    @have_lchmod  = false
+    @have_lchown  = false
     @include_dirs = []
     @lib_dirs     = []
 
@@ -129,7 +131,7 @@ class Configure
     @release_date = validate_release_date
 
     # Configure settings
-    @config_version = 178
+    @config_version = 179
     @bundle = true
   end
 
@@ -1196,8 +1198,8 @@ int main() { return tgetnum(""); }
     end
   end
 
-  def has_function(name, includes=[])
-    compile_check "function '#{name}'" do |src|
+  def has_function(name, includes=[], defines = [])
+    compile_check "function '#{name}'", defines do |src|
       includes.each do |i|
         src.puts "#include <#{i}>"
       end
@@ -1241,7 +1243,7 @@ int main() { return tgetnum(""); }
     end
   end
 
-  def compile_check(logpart, &block)
+  def compile_check(logpart, defines = [], &block)
     @log.print "Checking for #{logpart}: "
 
     source = StringIO.new
@@ -1256,7 +1258,7 @@ int main() { return tgetnum(""); }
 
     @log.log string
 
-    cmd = "#{@cxx} -S -o - -x c #{@user_cppflags} #{@user_cxxflags} #{@user_cflags} #{@user_ldflags} #{@system_cppflags} #{@system_cxxflags} #{@system_cflags} #{@system_ldflags} #{file.path} >>#{@log.path} 2>&1"
+    cmd = "#{@cxx} -S -o - -x c #{defines.join(" ")} #{@user_cppflags} #{@user_cxxflags} #{@user_cflags} #{@user_ldflags} #{@system_cppflags} #{@system_cxxflags} #{@system_cflags} #{@system_ldflags} #{file.path} >>#{@log.path} 2>&1"
     @log.log cmd
     system cmd
 
@@ -1349,6 +1351,14 @@ int main() { return tgetnum(""); }
 
     if has_function("posix_fadvise", ["fcntl.h"])
       @defines << "HAVE_POSIX_FADVISE"
+    end
+
+    if has_function("lchmod", ["sys/stat.h", "unistd.h"], ["-D_XOPEN_SOURCE", "-D_XOPEN_SOURCE_EXTENDED"])
+      @have_lchmod = true
+    end
+
+    if has_function("lchown", ["sys/stat.h", "unistd.h"], ["-D_XOPEN_SOURCE", "-D_XOPEN_SOURCE_EXTENDED"])
+      @have_lchown = true
     end
   end
 
@@ -1730,6 +1740,8 @@ int main() { return tgetnum(""); }
 #define RBX_SIZEOF_LONG      #{sizeof("long")}
 #define RBX_LLVM_API_VER     #{@llvm_api_version}
 #define RBX_LIBC             "#{@libc}"
+#define RBX_HAVE_LCHMOD      #{@have_lchmod}
+#define RBX_HAVE_LCHOWN      #{@have_lchown}
       EOC
 
       if @little_endian
