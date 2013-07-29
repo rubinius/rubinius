@@ -36,7 +36,7 @@ namespace memory {
     {}
 
     Address(void* addr)
-      : address_(reinterpret_cast<intptr_t>(addr))
+      : address_(reinterpret_cast<uintptr_t>(addr))
     {}
 
     /**
