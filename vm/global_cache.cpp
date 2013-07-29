@@ -19,6 +19,11 @@ namespace rubinius {
     bool skip_vis_check = false;
 
     do {
+
+      if(module != module->origin()) {
+        module = module->superclass();
+      }
+
       entry = module->method_table()->find_entry(state, name);
 
       /* Nothing, there? Ok, keep looking. */

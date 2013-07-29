@@ -55,7 +55,7 @@ namespace rubinius {
     } else {
       klass = state->globals().special_classes[((uintptr_t)this) & SPECIAL_CLASS_MASK].get();
     }
-    return klass->origin();
+    return klass;
   }
 
   Object* Object::duplicate(STATE) {

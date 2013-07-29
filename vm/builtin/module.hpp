@@ -27,17 +27,7 @@ namespace rubinius {
     attr_accessor(method_table, MethodTable);
     attr_accessor(module_name, Symbol);
     attr_accessor(constant_table, ConstantTable);
-    attr_reader(superclass, Module);
-
-    template <class T>
-      void superclass(T state, Module* sup) {
-        if(!sup->nil_p()) {
-          sup = sup->origin();
-        }
-        superclass_ = sup;
-        this->write_barrier(state, sup);
-      }
-
+    attr_accessor(superclass, Module);
     attr_accessor(origin, Module);
     attr_accessor(seen_ivars, Array);
     attr_accessor(mirror, Class);

@@ -725,17 +725,6 @@ module Rubinius
       self
     end
 
-    # :internal"
-    #
-    # Inject self inbetween class and the original origin
-    #
-    def attach_before(cls)
-      @superclass = cls.origin
-      cls.origin = self
-      @superclass.track_subclass(@module)
-      self
-    end
-
     # :internal:
     #
     # Name of the included Module.
