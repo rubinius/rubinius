@@ -1,1 +1,0 @@
-fails:String#chars uses the String's encoding to determine what characters it contains
