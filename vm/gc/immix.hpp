@@ -125,8 +125,8 @@ namespace rubinius {
     ImmixGC(ObjectMemory* om);
     virtual ~ImmixGC();
 
-    Object* allocate(int bytes);
-    Object* move_object(Object* orig, int bytes);
+    Object* allocate(uint32_t bytes);
+    Object* move_object(Object* orig, uint32_t bytes);
 
     virtual Object* saw_object(Object*);
     virtual void scanned_object(Object*);

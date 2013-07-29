@@ -80,7 +80,7 @@ namespace rubinius {
     return addr.as<Object>()->size_in_bytes(object_memory_->state());
   }
 
-  Object* ImmixGC::allocate(int bytes) {
+  Object* ImmixGC::allocate(uint32_t bytes) {
     if(bytes > immix::cMaxObjectSize) return 0;
 
     Object* obj = allocator_.allocate(bytes).as<Object>();
@@ -90,7 +90,7 @@ namespace rubinius {
     return obj;
   }
 
-  Object* ImmixGC::move_object(Object* orig, int bytes) {
+  Object* ImmixGC::move_object(Object* orig, uint32_t bytes) {
     if(bytes > immix::cMaxObjectSize) return 0;
 
     Object* obj = allocator_.allocate(bytes).as<Object>();
