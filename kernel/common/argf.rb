@@ -44,6 +44,10 @@ module Rubinius
       self
     end
 
+    def binmode?
+      !@binmode.nil?
+    end
+
     #
     # Close stream.
     #
@@ -309,7 +313,8 @@ module Rubinius
     #
     def read(bytes=nil, output=nil)
       # The user might try to pass in nil, so we have to check here
-      output ||= ""
+      output ||= "".encode(Encoding::ASCII_8BIT)
+
 
       if bytes
         bytes_left = bytes
@@ -438,7 +443,7 @@ module Rubinius
           @use_stdin_only = true
           return true
         end
-
+        @binmode = true
         @init = true
       end
 
@@ -449,7 +454,7 @@ module Rubinius
       @advance = false
 
       file = ARGV.shift
-      @stream = (file == "-" ? STDIN : File.open(file, "r"))
+      @stream = (file == "-" ? STDIN : File.open(file, "r", :encoding => "ASCII-8BIT"))
       @filename = file
 
       if $-i && @stream != STDIN
