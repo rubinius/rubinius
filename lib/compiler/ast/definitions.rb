@@ -520,12 +520,40 @@ module Rubinius
 
       def self.from_masgn(node)
         array = []
-        node.left.body.map do |n|
+        size = 0
+        if node.left
+          size += node.left.body.size
+          node.left.body.map do |n|
+            case n
+            when MultipleAssignment
+              array << PatternArguments.from_masgn(n)
+            when LocalVariable
+              array << LeftPatternVariable.new(n.line, n.name)
+            end
+          end
+        end
+
+        if node.post
+          idx = 0
+          post_args = []
+          node.post.body.map do |n|
+            case n
+            when MultipleAssignment
+              post_args << PatternArguments.from_masgn(n)
+            when LocalVariable
+              post_args << PostPatternVariable.new(n.line, n.name, idx)
+            end
+            idx += 1
+          end
+          array.concat(post_args.reverse)
+        end
+
+        if node.splat
+          n = node.splat
           case n
-          when MultipleAssignment
-            array << PatternArguments.from_masgn(n)
-          when LocalVariable
-            array << PatternVariable.new(n.line, n.name)
+          when EmptySplat
+          when SplatAssignment, SplatWrapped, SplatArray
+            array << SplatPatternVariable.new(n.value.line, n.value.name)
           end
         end
 
@@ -545,7 +573,8 @@ module Rubinius
         arguments = @arguments.body
         while arguments
           node = arguments.first
-          if node.kind_of? PatternVariable
+          case node
+          when LeftPatternVariable, PostPatternVariable, SplatPatternVariable
             @argument = node
             scope.new_local node.name
             scope.assign_local_reference node

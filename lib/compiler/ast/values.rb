@@ -18,6 +18,10 @@ module Rubinius
       def to_sexp
         [:splat, @value.to_sexp]
       end
+
+      def splat?
+        true
+      end
     end
 
     class ConcatArgs < Node
@@ -60,6 +64,10 @@ module Rubinius
       def to_sexp
         [:argscat, @array.to_sexp, @rest.to_sexp]
       end
+
+      def splat?
+        true
+      end
     end
 
     class PushArgs < Node
@@ -80,6 +88,14 @@ module Rubinius
 
       def to_sexp
         [:argspush, @arguments.to_sexp, @value.to_sexp]
+      end
+
+      def size
+        1
+      end
+
+      def splat?
+        @arguments.splat?
       end
     end
 

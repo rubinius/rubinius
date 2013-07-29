@@ -549,7 +549,7 @@ module Rubinius
     end
 
     class MultipleAssignment < Node
-      attr_accessor :left, :right, :splat, :block
+      attr_accessor :left, :right, :splat, :block, :post
 
       def initialize(line, left, right, splat)
         @line = line
@@ -752,7 +752,7 @@ module Rubinius
       end
     end
 
-    class PatternVariable < Node
+    class LeftPatternVariable < Node
       include LocalVariable
 
       attr_accessor :name, :value
@@ -776,6 +776,82 @@ module Rubinius
         end
 
         g.shift_array
+        @variable.set_bytecode(g)
+        g.pop
+      end
+    end
+
+    class SplatPatternVariable < Node
+      include LocalVariable
+
+      attr_accessor :name, :value
+
+      def initialize(line, name)
+        @line = line
+        @name = name
+        @variable = nil
+      end
+
+      def position_bytecode(g)
+        @variable.get_bytecode(g)
+        g.cast_array
+      end
+
+      def bytecode(g)
+        pos(g)
+
+        unless @variable
+          g.state.scope.assign_local_reference self
+        end
+
+        g.dup
+        @variable.set_bytecode(g)
+        g.pop
+      end
+    end
+
+    class PostPatternVariable < Node
+      include LocalVariable
+
+      attr_accessor :name, :value
+
+      def initialize(line, name, idx)
+        @line = line
+        @name = name
+        @pos  = idx
+        @variable = nil
+      end
+
+      def position_bytecode(g)
+        @variable.get_bytecode(g)
+        g.cast_array
+      end
+
+      def bytecode(g)
+        pos(g)
+
+        unless @variable
+          g.state.scope.assign_local_reference self
+        end
+
+        too_big = g.new_label
+        done    = g.new_label
+
+        g.dup
+        g.send :size, 0
+        g.push_int @pos
+        g.send :>, 1
+        g.gif too_big
+        g.dup
+        g.send :pop, 0
+
+        g.goto done
+        too_big.set!
+        g.push_nil
+        @variable.set_bytecode(g)
+        g.goto done
+
+        done.set!
         @variable.set_bytecode(g)
         g.pop
       end
