@@ -1,1 +1,0 @@
-fails:String#each_char uses the String's encoding to determine what characters it contains
