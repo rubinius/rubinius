@@ -163,4 +163,12 @@ describe "Post-args" do
       end.call(2, 3).should == [2, 6, [], 3]
     end
   end
+
+  describe "with pattern matching" do
+    it "extracts matched blocks with post arguments" do
+      proc do |(a, *b, c), d, e|
+        [a, b, c, d, e]
+      end.call([1, 2, 3, 4], 5, 6).should == [1, [2, 3], 4, 5, 6]
+    end
+  end
 end

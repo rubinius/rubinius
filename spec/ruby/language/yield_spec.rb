@@ -126,3 +126,5 @@ describe "The yield call" do
     end
   end
 end
+
+language_version __FILE__, "yield"
