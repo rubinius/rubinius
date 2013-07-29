@@ -48,16 +48,6 @@ namespace rubinius {
     return state->globals().special_classes[((uintptr_t)this) & SPECIAL_CLASS_MASK].get();
   }
 
-  Module* Object::lookup_begin(STATE) const {
-    Class* klass = NULL;
-    if(reference_p()) {
-      klass = klass_;
-    } else {
-      klass = state->globals().special_classes[((uintptr_t)this) & SPECIAL_CLASS_MASK].get();
-    }
-    return klass;
-  }
-
   Object* Object::duplicate(STATE) {
     if(!reference_p()) return this;
 

@@ -430,6 +430,10 @@ namespace rubinius {
     return state->globals().special_classes[((uintptr_t)this) & SPECIAL_CLASS_MASK].get();
   }
 
+  inline Module* Object::lookup_begin(STATE) const {
+    return reinterpret_cast<Module*>(direct_class(state));
+  }
+
   inline bool Object::symbol_p() const {
     return __SYMBOL_P__(this);
   }
