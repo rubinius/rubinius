@@ -232,7 +232,7 @@ namespace rubinius {
     world_->become_independent(state);
   }
 
-  const unsigned int* SharedState::object_memory_mark_address() {
+  const unsigned int* SharedState::object_memory_mark_address() const {
     return om->mark_address();
   }
 

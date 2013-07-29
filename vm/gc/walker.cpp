@@ -20,13 +20,12 @@ namespace rubinius {
   }
 
   void ObjectWalker::seed(GCData& data) {
-    Object* tmp;
     ObjectArray *current_rs = object_memory_->remember_set();
 
     for(ObjectArray::iterator oi = current_rs->begin();
         oi != current_rs->end();
         ++oi) {
-      tmp = *oi;
+      Object* tmp = *oi;
       // unremember_object throws a NULL in to remove an object
       // so we don't have to compact the set in unremember
       if(tmp) saw_object(tmp);

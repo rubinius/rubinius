@@ -79,7 +79,7 @@ namespace memory {
       return Address(0);
     }
 
-    intptr_t as_int() const {
+    uintptr_t as_int() const {
       return address_;
     }
 

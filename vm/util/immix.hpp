@@ -270,14 +270,14 @@ namespace immix {
      * Returns the offset in bytes from the start of the block to the start of
      * the specified +line+.
      */
-    int offset_of_line(int line) const {
+    static int offset_of_line(int line) {
       return line * cLineSize;
     }
 
     /**
      * Returns the memory Address of the start of the specified line.
      */
-    Address address_of_line(int line) {
+    Address address_of_line(int line) const {
       return address_ + (line * cLineSize);
     }
 

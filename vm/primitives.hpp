@@ -77,10 +77,6 @@ namespace rubinius {
       return reinterpret_cast<Object*>(kPrimitiveFailed);
     }
 
-#ifdef ENABLE_LLVM
-    static void queue_for_jit(STATE, CallFrame* call_frame, int which);
-#endif
-
     /*
      * The primitive generator emits one 'executor' function per
      * primitive. This simply checks the argument types and then

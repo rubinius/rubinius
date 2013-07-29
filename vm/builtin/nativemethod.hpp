@@ -47,9 +47,6 @@ namespace rubinius {
     /** Create or retrieve VALUE for obj. */
     VALUE get_handle(Object* obj);
 
-    /** Delete a global Object and its VALUE. */
-    void delete_global(VALUE handle);
-
     /** GC marking for Objects behind VALUEs. */
     void mark_handles(ObjectMark& mark);
 

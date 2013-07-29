@@ -279,7 +279,7 @@ namespace rubinius {
       return &check_global_interrupts_;
     }
 
-    const unsigned int* object_memory_mark_address();
+    const unsigned int* object_memory_mark_address() const;
 
     void set_use_capi_lock(bool s) {
       use_capi_lock_ = s;

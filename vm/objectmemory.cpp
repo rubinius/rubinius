@@ -807,23 +807,23 @@ step1:
     }
   }
 
-  size_t ObjectMemory::young_bytes_allocated() {
+  size_t ObjectMemory::young_bytes_allocated() const {
     return young_->bytes_size();
   }
 
-  size_t ObjectMemory::mature_bytes_allocated() {
+  size_t ObjectMemory::mature_bytes_allocated() const {
     return immix_->bytes_allocated() + mark_sweep_->allocated_bytes;
   }
 
-  size_t ObjectMemory::code_bytes_allocated() {
+  size_t ObjectMemory::code_bytes_allocated() const {
     return code_manager_.size();
   }
 
-  size_t ObjectMemory::symbol_bytes_allocated() {
+  size_t ObjectMemory::symbol_bytes_allocated() const {
     return shared_.symbols.size();
   }
 
-  size_t ObjectMemory::jit_bytes_allocated() {
+  size_t ObjectMemory::jit_bytes_allocated() const {
 #if ENABLE_LLVM
     return shared_.llvm_state->code_bytes();
 #else

@@ -140,24 +140,6 @@ namespace rubinius {
     }
   }
 
-  int CodeManager::calculate_size() {
-    Chunk* chunk = first_chunk_;
-
-    int total = 0;
-
-    while(chunk) {
-      for(int i = 0; i < chunk_size_; i++) {
-        if(CodeResource* cr = chunk->resources[i]) {
-          total += cr->size();
-        }
-      }
-
-      chunk = chunk->next;
-    }
-
-    return total;
-  }
-
   void CodeManager::clear_marks() {
     Chunk* chunk = first_chunk_;
 

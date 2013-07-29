@@ -553,7 +553,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     void set_untrusted(int val=1);
 
-    uint32_t object_id(STATE) {
+    uint32_t object_id(STATE) const {
       // Pull this out into a local so that we don't see any concurrent
       // changes to header.
       HeaderWord tmp = header;

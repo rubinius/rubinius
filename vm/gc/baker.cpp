@@ -160,7 +160,6 @@ namespace rubinius {
 
     check_growth_start();
 
-    Object* tmp;
     ObjectArray *current_rs = object_memory_->swap_remember_set();
 
     total_objects = 0;
@@ -172,7 +171,7 @@ namespace rubinius {
     for(ObjectArray::iterator oi = current_rs->begin();
         oi != current_rs->end();
         ++oi) {
-      tmp = *oi;
+      Object* tmp = *oi;
       // unremember_object throws a NULL in to remove an object
       // so we don't have to compact the set in unremember
       if(tmp) {

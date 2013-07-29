@@ -225,7 +225,6 @@ namespace rubinius {
     VariableScope* promote_scope_full(STATE);
 
     VariableScope* promote_scope(STATE) {
-      if(!scope) rubinius::bug("bad CallFrame to promote");
       if(VariableScope* vs = scope->on_heap()) return vs;
       return promote_scope_full(state);
     }
