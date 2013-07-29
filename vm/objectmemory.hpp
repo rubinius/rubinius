@@ -373,11 +373,11 @@ namespace rubinius {
     ObjectPosition validate_object(Object* obj);
     bool valid_young_object_p(Object* obj);
 
-    size_t young_bytes_allocated();
-    size_t mature_bytes_allocated();
-    size_t code_bytes_allocated();
-    size_t symbol_bytes_allocated();
-    size_t jit_bytes_allocated();
+    size_t young_bytes_allocated() const;
+    size_t mature_bytes_allocated() const;
+    size_t code_bytes_allocated() const;
+    size_t symbol_bytes_allocated() const;
+    size_t jit_bytes_allocated() const;
 
     void collect_maybe(STATE, GCToken gct, CallFrame* call_frame);
 

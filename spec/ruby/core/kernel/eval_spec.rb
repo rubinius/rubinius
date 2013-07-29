@@ -160,6 +160,13 @@ describe "Kernel#eval" do
       eval("y=3", level2)
       eval("y", level2).should == 3
     end
+
+    it "uses the same scope for local variables when given the same binding" do
+      outer_binding = binding
+
+      eval("if false; a = 1; end", outer_binding)
+      eval("a", outer_binding).should be_nil
+    end
   end
 
   ruby_version_is ""..."1.9" do

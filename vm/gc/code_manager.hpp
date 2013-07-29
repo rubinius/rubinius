@@ -81,6 +81,10 @@ namespace rubinius {
       return bytes_used_;
     }
 
+    size_t size() const {
+      return bytes_used_;
+    }
+
   public:
     CodeManager(SharedState* shared, int chunk_size=cDefaultChunkSize);
     ~CodeManager();
@@ -88,7 +92,6 @@ namespace rubinius {
     void add_resource(CodeResource* cr, bool* collect_now);
     void clear_marks();
     void sweep();
-    int  calculate_size();
 
   private:
     void add_chunk();

@@ -101,23 +101,23 @@ namespace rubinius {
     }
 #endif
 
-    size_t young_bytes_allocated() {
+    size_t young_bytes_allocated() const {
       return young_bytes_allocated_;
     }
 
-    size_t mature_bytes_allocated() {
+    size_t mature_bytes_allocated() const {
       return mature_bytes_allocated_;
     }
 
-    size_t code_bytes_allocated() {
+    size_t code_bytes_allocated() const {
       return code_bytes_allocated_;
     }
 
-    size_t symbol_bytes_allocated() {
+    size_t symbol_bytes_allocated() const {
       return symbol_bytes_allocated_;
     }
 
-    size_t jit_bytes_allocated();
+    size_t jit_bytes_allocated() const;
   };
 
   class AddressDisplacement {

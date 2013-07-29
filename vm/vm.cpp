@@ -208,7 +208,7 @@ namespace rubinius {
 
   Object* VM::new_object_typed(Class* cls, size_t size, object_type type) {
     Object* obj = new_object_typed_dirty(cls, size, type);
-    obj->clear_fields(size);
+    if(obj) obj->clear_fields(size);
     return obj;
   }
 

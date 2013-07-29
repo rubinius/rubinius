@@ -205,7 +205,7 @@ class Module
     if all
       table = Rubinius::LookupTable.new
 
-      mod = self.origin
+      mod = self
 
       while mod
         mod.method_table.each do |name, obj, vis|

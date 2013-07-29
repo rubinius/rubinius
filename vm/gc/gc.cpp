@@ -479,7 +479,7 @@ namespace rubinius {
     }
   }
 
-  size_t GCData::jit_bytes_allocated() {
+  size_t GCData::jit_bytes_allocated() const {
 #ifdef ENABLE_LLVM
     if(llvm_state_) {
       return llvm_state_->code_bytes();

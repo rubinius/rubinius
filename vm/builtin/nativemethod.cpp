@@ -142,10 +142,6 @@ namespace rubinius {
     return 0; // keep compiler happy
   }
 
-  void NativeMethodEnvironment::delete_global(VALUE val) {
-    rubinius::bug("NME::delete_global was used");
-  }
-
   Object* NativeMethodEnvironment::block() {
     if(!current_native_frame_) return cNil;
     return get_object(current_native_frame_->block());

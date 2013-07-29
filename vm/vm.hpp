@@ -398,8 +398,7 @@ namespace rubinius {
 
     TypeInfo* find_type(int type);
 
-    void init_ffi(STATE);
-    void init_native_libraries();
+    static void init_ffi(STATE);
 
     /// Check the GC flags in ObjectMemory and collect if we need to.
     void collect_maybe(GCToken gct, CallFrame* call_frame);

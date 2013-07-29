@@ -65,11 +65,11 @@ ruby_version_is "2.0" do
       c.new.calc(1).should == 1
     end
 
-    it "allows prepending chains of modules" do
-      m1 = Module.new { def calc(x) x end }
-      m2 = Module.new { prepend(m1) }
-      c = Class.new { prepend(m2) }
-      c.new.calc(1).should == 1
+    it "prepends multiple modules in the right order" do
+      m1 = Module.new { def chain; super << :m1; end }
+      m2 = Module.new { def chain; super << :m2; end; prepend(m1) }
+      c = Class.new { def chain; [:c]; end; prepend(m2) }
+      c.new.chain.should == [:c, :m2, :m1]
     end
 
     it "includes prepended modules in ancestors" do
@@ -103,6 +103,16 @@ ruby_version_is "2.0" do
       Class.new { prepend(m) }.ancestors.should_not include(m)
     end
 
+    it "inserts a later prepended module into the chain" do
+      m1 = Module.new { def chain; super << :m1; end }
+      m2 = Module.new { def chain; super << :m2; end }
+      c1 = Class.new { def chain; [:c1]; end; prepend m1 }
+      c2 = Class.new(c1) { def chain; super << :c2; end }
+      c2.new.chain.should == [:c1, :m1, :c2]
+      c1.send(:prepend, m2)
+      c2.new.chain.should == [:c1, :m1, :m2, :c2]
+    end
+
     it "works with subclasses" do
       m = Module.new do
         def chain
@@ -124,6 +134,22 @@ ruby_version_is "2.0" do
       end
 
       s.new.chain.should == [:class, :module, :subclass]
+    end
+
+    it "throws a NoMethodError when there is no more superclass" do
+      m = Module.new do
+        def chain
+          super << :module
+        end
+      end
+
+      c = Class.new do
+        prepend m
+        def chain
+          super << :class
+        end
+      end
+      lambda { c.new.chain }.should raise_error(NoMethodError)
     end
 
     it "calls prepended after prepend_features" do

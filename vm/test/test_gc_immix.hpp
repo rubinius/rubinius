@@ -90,7 +90,7 @@ public:
     TS_ASSERT_EQUALS(block.size(), immix::cBlockSize);
     TS_ASSERT(block.address() != 0);
     TS_ASSERT_EQUALS(block.status(), immix::cFree);
-    TS_ASSERT_EQUALS(block.lines_used(), 1);
+    TS_ASSERT_EQUALS(block.lines_used(), 1U);
   }
 
   void test_Block_is_line_free() {
@@ -105,8 +105,8 @@ public:
   void test_Block_address_of_line() {
     immix::Block& block = gc->get_block();
     memory::Address top = block.address();
-    TS_ASSERT_EQUALS(block.address_of_line(0), top);
-    TS_ASSERT_EQUALS(block.address_of_line(1), top + immix::cLineSize);
+    TS_ASSERT_EQUALS(block.address_of_line(0U), top);
+    TS_ASSERT_EQUALS(block.address_of_line(1U), top + immix::cLineSize);
   }
 
   void test_SingleBlockAllocator_allocate() {
@@ -192,7 +192,7 @@ public:
   void test_SingleBlockAllocator_allocate_indicates_failure() {
     immix::Block& block = gc->get_block();
 
-    for(int i = 0; i < immix::cLineTableSize; i++) {
+    for(uint32_t i = 0; i < immix::cLineTableSize; i++) {
       block.mark_line(i);
     }
 
@@ -241,8 +241,8 @@ public:
 
     block.update_stats();
     TS_ASSERT_EQUALS(block.status(), immix::cRecyclable);
-    TS_ASSERT_EQUALS(block.holes(), 5);
-    TS_ASSERT_EQUALS(block.lines_used(), 6);
+    TS_ASSERT_EQUALS(block.holes(), 5U);
+    TS_ASSERT_EQUALS(block.lines_used(), 6U);
   }
 
   void test_Block_update_stats_finds_empty_blocks() {
@@ -251,20 +251,20 @@ public:
     block.set_status(immix::cRecyclable);
     block.update_stats();
     TS_ASSERT_EQUALS(block.status(), immix::cFree);
-    TS_ASSERT_EQUALS(block.holes(), 1);
-    TS_ASSERT_EQUALS(block.lines_used(), 1);
+    TS_ASSERT_EQUALS(block.holes(), 1U);
+    TS_ASSERT_EQUALS(block.lines_used(), 1U);
   }
 
   void test_Block_update_stats_finds_unavailable_blocks() {
     immix::Block& block = gc->get_block();
 
-    for(int i = 0; i < immix::cLineTableSize; i++) {
+    for(uint32_t i = 0; i < immix::cLineTableSize; i++) {
       block.mark_line(i);
     }
 
     block.update_stats();
     TS_ASSERT_EQUALS(block.status(), immix::cUnavailable);
-    TS_ASSERT_EQUALS(block.holes(), 0);
+    TS_ASSERT_EQUALS(block.holes(), 0U);
     TS_ASSERT_EQUALS(block.lines_used(), immix::cLineTableSize);
   }
 
@@ -445,11 +445,11 @@ public:
     block.mark_line(1);
     block.mark_line(3);
 
-    TS_ASSERT_EQUALS(block.lines_used(), 1);
+    TS_ASSERT_EQUALS(block.lines_used(), 1U);
     immix::BlockAllocator& ba = gc->block_allocator();
     ba.reset();
 
-    TS_ASSERT_EQUALS(block.lines_used(), 3);
+    TS_ASSERT_EQUALS(block.lines_used(), 3U);
   }
 
   void test_BlockAllocator_get_free_block() {
@@ -468,7 +468,7 @@ public:
 
     TS_ASSERT_EQUALS(&ba.current_chunk(), c1);
 
-    for(int i = 0; i < immix::cBlocksPerChunk + 1; i++) {
+    for(uint32_t i = 0; i < immix::cBlocksPerChunk + 1; i++) {
       ba.get_block();
     }
 
@@ -501,7 +501,7 @@ public:
     immix::ExpandingAllocator ea(gc->block_allocator());
     immix::Block& block = ea.current_block();
 
-    for(int i = 0; i < immix::cLineTableSize; i++) {
+    for(uint32_t i = 0; i < immix::cLineTableSize; i++) {
       block.mark_line(i);
     }
 
@@ -563,11 +563,11 @@ public:
     alloc.reset(&block);
 
     TS_ASSERT_EQUALS(alloc.cursor(), block.first_address());
-    TS_ASSERT_EQUALS(alloc.limit(),  block.address_of_line(11));
-    TS_ASSERT_EQUALS(alloc.hole_start_line(), 11);
+    TS_ASSERT_EQUALS(alloc.limit(),  block.address_of_line(11U));
+    TS_ASSERT_EQUALS(alloc.hole_start_line(), 11U);
 
     alloc.find_hole();
-    TS_ASSERT_EQUALS(alloc.cursor(), block.address_of_line(12));
+    TS_ASSERT_EQUALS(alloc.cursor(), block.address_of_line(12U));
     TS_ASSERT_EQUALS(alloc.limit(),  block.address() + immix::cBlockSize);
     TS_ASSERT_EQUALS(alloc.hole_start_line(), immix::cLineTableSize);
   }

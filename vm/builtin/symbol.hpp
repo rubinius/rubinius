@@ -17,7 +17,7 @@ namespace rubinius {
     const static object_type type = SymbolType;
 
     static Symbol* from_index(size_t index) {
-      return (Symbol*)APPLY_SYMBOL_TAG(index);
+      return reinterpret_cast<Symbol*>(APPLY_SYMBOL_TAG(index));
     }
 
     native_int index() const;

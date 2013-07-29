@@ -134,37 +134,46 @@ describe "Invoking a method" do
     specs.weird_parens().should == "55"
   end
 
-  ruby_version_is "" ... "1.9" do
-    describe "allows []=" do
-      before :each do
-        @obj = LangSendSpecs::AttrSet.new
-      end
+  describe "allows []=" do
+    before :each do
+      @obj = LangSendSpecs::AttrSet.new
+    end
 
-      it "with *args in the [] expanded to individual arguments" do
-        ary = [2,3]
-        (@obj[1, *ary] = 4).should == 4
-        @obj.result.should == [1,2,3,4]
-      end
+    it "with *args in the [] expanded to individual arguments" do
+      ary = [2,3]
+      (@obj[1, *ary] = 4).should == 4
+      @obj.result.should == [1,2,3,4]
+    end
 
-      it "with multiple *args" do
-        ary = [2,3]
-        post = [4,5]
-        (@obj[1, *ary] = *post).should == [4,5]
-        @obj.result.should == [1,2,3,[4,5]]
-      end
+    it "with multiple *args" do
+      ary = [2,3]
+      post = [4,5]
+      (@obj[1, *ary] = *post).should == [4,5]
+      @obj.result.should == [1,2,3,[4,5]]
+    end
 
+    ruby_version_is "" ... "1.9" do
       it "with multiple *args and unwraps the last splat" do
         ary = [2,3]
         post = [4]
         (@obj[1, *ary] = *post).should == 4
         @obj.result.should == [1,2,3,4]
       end
+    end
 
-      it "with a *args and multiple rhs args" do
+    ruby_version_is "1.9" do
+      it "with multiple *args and does not unwrap the last splat" do
         ary = [2,3]
-        (@obj[1, *ary] = 4, 5).should == [4,5]
-        @obj.result.should == [1,2,3,[4,5]]
+        post = [4]
+        (@obj[1, *ary] = *post).should == [4]
+        @obj.result.should == [1,2,3,[4]]
       end
+    end
+
+    it "with a *args and multiple rhs args" do
+      ary = [2,3]
+      (@obj[1, *ary] = 4, 5).should == [4,5]
+      @obj.result.should == [1,2,3,[4,5]]
     end
   end
 

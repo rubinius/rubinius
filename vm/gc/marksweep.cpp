@@ -185,42 +185,6 @@ namespace rubinius {
                 << "  objects: " << i->second.objects << "\n"
                 << "    bytes: " << i->second.bytes << "\n";
     }
-
-    /*
-    int count = 0;
-
-    for(std::list<Object*>::reverse_iterator i = entries.rbegin();
-        i != entries.rend();
-        i++) {
-      Object* obj = *i;
-      if(ByteArray* ba = try_as<ByteArray>(obj)) {
-        ba->show(object_memory_->state());
-        if(++count == 10) break;
-      }
-    }
-    */
-
-    /*
-    std::list<Object*> sorted = entries;
-    sorted.sort(sort_by_size);
-
-    std::list<Object*>::iterator i;
-
-    std::cout << "Top 30:\n";
-
-    int count = 0;
-
-    for(i = sorted.begin(); i != sorted.end();) {
-      Object* obj = *i;
-
-      size_t sz = obj->size_in_bytes(object_memory_->state());
-
-      std::cout << obj->to_s(object_memory_->state(), true)->c_str() << " bytes=" << sz << "\n";
-      if(++count == 30) break;
-
-      i++;
-    }
-    */
   }
 
   ObjectPosition MarkSweepGC::validate_object(Object* obj) {

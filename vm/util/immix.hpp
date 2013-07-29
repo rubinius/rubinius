@@ -18,37 +18,37 @@ using memory::Address;
 namespace immix {
 
   /// Size of a Block; 32K, to match the size of a page of virtual memory
-  const int cBlockSize = 32768;
+  const uint32_t cBlockSize = 32768;
 
   /// Mask bits, used to align blocks at cBlockSize boundaries
-  const int cBlockMask = cBlockSize - 1;
+  const uintptr_t cBlockMask = cBlockSize - 1;
 
   /// Number of bits needed to hold the line size; used to derive cLineSize,
   /// and to calculate the number of lines an object of a given size would
   /// occupy.
-  const int cLineBits  = 7;
+  const uint32_t cLineBits  = 7;
 
   /// The size of a Line; should be a multiple of the processor cache line size,
   /// and sufficient to hold several typical objects; we use 128 bytes.
   /// @todo Check impact of different line sizes
-  const int cLineSize  = 1 << cLineBits;
+  const uint32_t cLineSize  = 1 << cLineBits;
 
   /// Line mask used to convert an objects Address to the Address of the start
   /// of the line.
-  const int cLineMask  = cLineSize - 1;
+  const uintptr_t cLineMask  = cLineSize - 1;
 
   /// Each block consists of an array of lines, known as the line table.
   /// The line table array is sized to fill the Block.
-  const int cLineTableSize = cBlockSize / cLineSize;
+  const uint32_t cLineTableSize = cBlockSize / cLineSize;
 
   /// Memory for blocks is allocated in chunks; these are set to be 10 MB, thus
   /// each chunk has space for 320 blocks.
-  const int cChunkSize = 10 * 1024 * 1024;
+  const uint32_t cChunkSize = 10 * 1024 * 1024;
 
   /// Number of Blocks that fit within a Chunk
-  const int cBlocksPerChunk = cChunkSize / cBlockSize;
+  const uint32_t cBlocksPerChunk = cChunkSize / cBlockSize;
 
-  const int cMaxObjectSize = cBlockSize - cLineSize; // one reserved line
+  const uint32_t cMaxObjectSize = cBlockSize - cLineSize; // one reserved line
 
   /// Objects above a certain number of lines in size are considered to be
   /// medium sized objects, which should be allocated only in free blocks.
@@ -56,7 +56,7 @@ namespace immix {
   /// recycled block rapidly diminishes as the number of lines increases,
   /// we don't bother searching partially free blocks if the size of the
   /// object is at or above this number of lines.
-  const int cMediumObjectLimit = cLineSize * 4; //< @todo calculate this
+  const uint32_t cMediumObjectLimit = cLineSize * 4; //< @todo calculate this
 
   /**
    * Enumeration of possible block states.
@@ -108,16 +108,16 @@ namespace immix {
 
     /// Number of holes in the block from which allocations can be made.
     /// A Block starts with one hole the size of the free memory in the block.
-    int holes_;
+    uint32_t holes_;
 
     /// Number of lines used in this Block
-    int lines_used_;
+    uint32_t lines_used_;
 
     /// Number of objects stored in this Blocks memory
-    int objects_;
+    uint32_t objects_;
 
     /// Number of bytes used by objects stored in this Blocks memory
-    int object_bytes_;
+    uint32_t object_bytes_;
 
     /// Map of in-use lines in the Block
     LineEntry lines_[cLineTableSize];
@@ -163,7 +163,7 @@ namespace immix {
      */
     void clear_memory() {
       Address start = address_;
-      for(int i = 0; i < cLineTableSize; ++i) {
+      for(uint32_t i = 0; i < cLineTableSize; ++i) {
         if(!lines_[i]) {
           memset((void*)start.address_, 0xFF, cLineSize);
         }
@@ -182,14 +182,14 @@ namespace immix {
      * Returns the size of the memory managed by this Block. All Blocks have
      * a fixed size.
      */
-    static int size() {
+    static uint32_t size() {
       return immix::cBlockSize;
     }
 
     /**
      * Returns the number of holes in the Blocks memory.
      */
-    int holes() const {
+    uint32_t holes() const {
       return holes_;
     }
 
@@ -226,7 +226,7 @@ namespace immix {
     /**
      * Returns the number of lines in use in the Block.
      */
-    int lines_used() const {
+    uint32_t lines_used() const {
       return lines_used_;
     }
 
@@ -234,35 +234,35 @@ namespace immix {
      * Returns a count of the number of objects currently allocated in the
      * memory managed by this Block.
      */
-    int objects() const {
+    uint32_t objects() const {
       return objects_;
     }
 
     /**
      * Returns the number of bytes allocated to objects in this Block.
      */
-    int object_bytes() const {
+    uint32_t object_bytes() const {
       return object_bytes_;
     }
 
     /**
      * Marks a line of memory as in use.
      */
-    void mark_line(int line) {
+    void mark_line(uint32_t line) {
       marks_[line] = 1;
     }
 
     /**
      * Marks a line of memory as free.
      */
-    void free_line(int line) {
+    void free_line(uint32_t line) {
       marks_[line] = 0;
     }
 
     /**
      * Returns true if +line+ is currently free.
      */
-    bool is_line_free(int line) const {
+    bool is_line_free(uint32_t line) const {
       return lines_[line] == 0;
     }
 
@@ -270,14 +270,14 @@ namespace immix {
      * Returns the offset in bytes from the start of the block to the start of
      * the specified +line+.
      */
-    int offset_of_line(int line) const {
+    static uint32_t offset_of_line(uint32_t line) {
       return line * cLineSize;
     }
 
     /**
      * Returns the memory Address of the start of the specified line.
      */
-    Address address_of_line(int line) {
+    Address address_of_line(uint32_t line) const {
       return address_ + (line * cLineSize);
     }
 
@@ -308,10 +308,10 @@ namespace immix {
      * bytes as being in use. This involves ensuring the line map records each
      * line occupied by the range as in use.
      */
-    void mark_address(Address addr, int size) {
+    void mark_address(Address addr, uint32_t size) {
       // Mark the line containing +addr+ as in use
       size_t offset = addr - address_;
-      int line = offset / cLineSize;
+      uint32_t line = offset / cLineSize;
       mark_line(line);
 
       // Next, determine how many lines this object is occupying.
@@ -322,10 +322,10 @@ namespace immix {
       if(size <= cLineSize && line + 1 < cLineTableSize) {
         mark_line(line + 1);
       } else {
-        int line_offset = (addr & cLineMask).as_int();
-        int additional_lines = ((line_offset + size - 1) >> cLineBits);
+        uint32_t line_offset = (addr & cLineMask).as_int();
+        uint32_t additional_lines = ((line_offset + size - 1) >> cLineBits);
 
-        for(int i = 1; i <= additional_lines; i++) {
+        for(uint32_t i = 1; i <= additional_lines; i++) {
           mark_line(line + i);
         }
       }
@@ -345,7 +345,7 @@ namespace immix {
       holes_ = 0;
       lines_used_ = 0;
       bool in_hole = false;
-      for(int i = 0; i < cLineTableSize; i++) {
+      for(uint32_t i = 0; i < cLineTableSize; i++) {
         if(marks_[i] == 0) {
           if(!in_hole) holes_++;
           in_hole = true;
@@ -370,7 +370,7 @@ namespace immix {
      * unavailable. This differs from object_bytes in that it includes the
      * cost of wasted bytes in lines that are only partially filled.
      */
-    int bytes_from_lines() const {
+    uint32_t bytes_from_lines() const {
       return lines_used_ * cLineSize;
     }
 
@@ -488,7 +488,7 @@ namespace immix {
 
       Address current = base_;
 
-      for(int index = 0; index < cBlocksPerChunk; index++) {
+      for(uint32_t index = 0; index < cBlocksPerChunk; index++) {
         Block& block = blocks_[index];
         block.set_address(current);
         BlockHeader* header = current.as<BlockHeader>();
@@ -500,7 +500,7 @@ namespace immix {
     /**
      * Returns a reference to the +index+-th block.
      */
-    Block& get_block(int index) {
+    Block& get_block(uint32_t index) {
       return blocks_[index];
     }
 
@@ -508,7 +508,7 @@ namespace immix {
      * Updates the stats (and status) for all Blocks in this Chunk.
      */
     void update_stats() {
-      for(int i = 0; i < cBlocksPerChunk; i++) {
+      for(uint32_t i = 0; i < cBlocksPerChunk; i++) {
         blocks_[i].update_stats();
       }
     }
@@ -567,7 +567,7 @@ namespace immix {
      * Callback called when the BlockAllocator allocates a new Chunk.
      * /param count The total number of chunks currently allocated.
      */
-    virtual void added_chunk(int count) = 0;
+    virtual void added_chunk(uint32_t count) = 0;
 
     /**
      * Callback called when the BlockAllocator is approaching the end of the
@@ -685,7 +685,7 @@ namespace immix {
         return current_chunk_->get_block(0);
       }
 
-      for(int i = block_cursor_; i < cBlocksPerChunk; i++) {
+      for(uint32_t i = block_cursor_; i < cBlocksPerChunk; i++) {
         Block& block = current_chunk_->get_block(i);
         if(block.status() == cFree) return block;
       }
@@ -739,7 +739,7 @@ namespace immix {
   protected:
     Address cursor_;
     Address limit_;
-    int hole_start_line_;
+    uint32_t hole_start_line_;
     Block* block_;
 
   public:
@@ -768,7 +768,7 @@ namespace immix {
      * Returns the current line the seach is at.
      * Used for testing.
      */
-    int hole_start_line() const {
+    uint32_t hole_start_line() const {
       return hole_start_line_;
     }
 
@@ -823,7 +823,7 @@ namespace immix {
      * Note: Relies on caller to determine that +size+ is valid, and will fit
      * the current hole.
      */
-    Address bump(int size) {
+    Address bump(uint32_t size) {
       Address alloc = cursor_;
       cursor_ += size;
       return alloc;
@@ -840,7 +840,7 @@ namespace immix {
   class Allocator {
   public:
     virtual ~Allocator() {}
-    virtual Address allocate(int bytes) = 0;
+    virtual Address allocate(uint32_t bytes) = 0;
   };
 
 
@@ -866,7 +866,7 @@ namespace immix {
      * @returns the Address allocated, or a null address if no space is
      * available.
      */
-    Address allocate(int size) {
+    Address allocate(uint32_t size) {
       while(cursor_ + size > limit_) {
         if(!find_hole()) {
           return Address::null();
@@ -931,7 +931,7 @@ namespace immix {
      * If unsuccessful at finding space in the current Block memory, a new
      * Block is obtained from the BlockAllocator.
      */
-    Address allocate(int size) {
+    Address allocate(uint32_t size) {
       while(cursor_ + size > limit_) {
         if(!find_hole()) {
           get_new_block(size >= cMediumObjectLimit);
@@ -1120,7 +1120,7 @@ namespace immix {
     /**
      * Notify the garbage collector that we have added a new Chunk.
      */
-    void added_chunk(int count) {
+    void added_chunk(uint32_t count) {
       desc.added_chunk(count);
     }
 

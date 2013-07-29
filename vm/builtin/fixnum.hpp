@@ -18,7 +18,7 @@ namespace rubinius {
     /* WARNING. Do not use this version if +num+ has the chance of being
      * greater than FIXNUM_MAX or less than FIXNUM_MIN. */
     static Fixnum* from(native_int num) {
-      return (Fixnum*)APPLY_FIXNUM_TAG(num);
+      return reinterpret_cast<Fixnum*>(APPLY_FIXNUM_TAG(num));
     }
 
     native_int to_native() const {

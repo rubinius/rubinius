@@ -36,7 +36,7 @@ namespace memory {
     {}
 
     Address(void* addr)
-      : address_(reinterpret_cast<intptr_t>(addr))
+      : address_(reinterpret_cast<uintptr_t>(addr))
     {}
 
     /**
@@ -79,7 +79,7 @@ namespace memory {
       return Address(0);
     }
 
-    intptr_t as_int() const {
+    uintptr_t as_int() const {
       return address_;
     }
 
