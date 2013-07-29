@@ -5622,7 +5622,7 @@ retry:
   default:
     if(!parser_is_identchar()) {
       rb_compile_error(parser_state, "Invalid char `\\x%02X' in expression", c);
-      goto retry;
+      return -1;
     }
 
     newtok();

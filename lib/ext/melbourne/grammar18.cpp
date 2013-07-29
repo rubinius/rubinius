@@ -9905,7 +9905,7 @@ yylex(void *yylval_v, void *vstate)
       default:
         if (!is_identchar(c)) {
             rb_compile_error(parser_state, "Invalid char `\\%03o' in expression", c);
-            goto retry;
+            return -1;
         }
 
         newtok(parser_state);
