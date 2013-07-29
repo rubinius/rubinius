@@ -7,6 +7,7 @@ file.rbc
 rubinius.rbc
 rubinius21.rbc
 module.rbc
+module21.rbc
 filetest.rbc
 kernel.rbc
 math.rbc

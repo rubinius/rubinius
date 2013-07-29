@@ -1,6 +1,13 @@
 # -*- encoding: us-ascii -*-
 
 module Rubinius
+  def self.privatized_method?(name)
+    [:initialize,
+     :initialize_copy, :initialize_dup, :initialize_clone,
+     :respond_to_missing?].include? name
+  end
+  private_class_method :privatized_method?
+
   def self.open_class_under(name, sup, mod)
     unless Type.object_kind_of? mod, Module
       raise TypeError, "'#{mod.inspect}' is not a class/module"
