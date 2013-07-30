@@ -29,7 +29,7 @@ fact that pointers to Ruby objects in virtual machine are always aligned
 and therefore not every possible word sized value is a valid pointer.
 
 On for example a 32 bit system pointers are 32 bit aligned, so that means
-that for example 0x1 can never be a valid pointer. This means that we
+that for example `0x1` can never be a valid pointer. This means that we
 can use these address values for other purposes. The same of course is
 also valid for 64 bit systems where pointers are aligned too.
 
@@ -37,14 +37,14 @@ We use the available space for a few different types, namely the
 following ones:
 
 1. __Fixnum__: We represent Fixnums with an immediate, where we use the tag
-   0x1. This means that for example the value 1 is stored in memory as
-   0x3. This means that operations on Fixnums have to remove the tag,
+   `0x1`. This means that for example the value `1` is stored in memory as
+   `0x3`. This means that operations on Fixnums have to remove the tag,
    run the operation and re-tag the resulting value. This is however
-   much more efficient that to have to allocate memory for each Fixnum used.
+   much more efficient that to have to allocate memory for each `Fixnum` used.
 
 1. __Symbol__: Symbols are represented by an immediate too and use the tag
-   0x6. A separate symbol table stores the map from these immediate
-   values to the corresponding string representation of the Symbol.
+   `0x6`. A separate symbol table stores the map from these immediate
+   values to the corresponding string representation of the `Symbol`.
 
 1. __True__, __False__, __Nil__ and __Undef__: These special literals are also
    presented this way. The bit patterns for these values are as follows:
@@ -56,14 +56,14 @@ following ones:
 
    Undef is actually something only used in the Rubinius kernel in order
    to distinguish between having an optional argument provided or not,
-   since using nil in that case would not allow for properly recognizing
-   the case where nil is actually passed in. You might also see that the
-   bit pattern for false and nil end in the same bits, this way we can just
-   check that patter for a Ruby false match.
+   since using `nil` in that case would not allow for properly recognizing
+   the case where `nil` is actually passed in. You might also see that the
+   bit pattern for `false` and `nil` end in the same bits, this way we can just
+   check that patter for a Ruby `false` match.
 
 The use of these immediates means that we don't have to allocate any
 memory for these types of objects. It also means that each instance of
-for example the Fixnum value 1 is indistinguishable from other ones.
+for example the `Fixnum` value `1` is indistinguishable from other ones.
 
 ## Objects that really need memory
 
@@ -80,13 +80,13 @@ objects. The essence of this layout is as follows:
     | Object* ivars_    |
     +-------------------+
 
-The klass\_ pointer points to the Class this object is an instance of. The
-ivars\_ pointer points at a table that contains the instance variables
+The `klass_` pointer points to the `Class` this object is an instance of. The
+`ivars_` pointer points at a table that contains the instance variables
 for this object. This is however not always used for all instance
 variables, which can be read about in the section on [Packed object
 layout].
 
-This leaves us with the meaning of the first part, the HeaderWord. This
+This leaves us with the meaning of the first part, the `HeaderWord`. This
 contains a 32 bit integer which consists of a number of flags and basic
 properties about this object. It also has 32 bit of auxiliary data which
 contains information depending on the meaning stored in the flags.
@@ -124,9 +124,9 @@ unsigned int unused          : 5;
 #### inflated
 
 This header might actually not be a normal header but a pointer to an
-inflated header. This bit is 1 when this is the case. It means that this
-1 bit should be masked and the header then be treated as a pointer to an
-InflatedHeader.
+inflated header. This bit is `1` when this is the case. It means that this
+`1` bit should be masked and the header then be treated as a pointer to an
+`InflatedHeader`.
 
 InflatedHeaders are used when the regular header doesn't provide enough
 room, such as the case when this object is used as a full mutex in
@@ -144,7 +144,7 @@ meanings defined:
 1. __eAuxWordLock__: This object is optimistically locked to a specific
    running thread. The auxiliary 32 bit of data contain the thread id
    that this object is locked for.
-1. __eAuxWordHandle__: The aux_word contains an index to a C-API handle.
+1. __eAuxWordHandle__: The `aux_word` contains an index to a C-API handle.
    This happens when this object is used in a C extension and needs a
    non moving handle to support MRI's C-API semantics.
 
@@ -160,7 +160,7 @@ ByteArray ba = as<ByteArray>(obj);
 {% endhighlight %}
 
 In this case it validates that the given object is actually of the
-correct obj\_type and can throw an exception that bubbles back into Ruby
+correct `obj_type` and can throw an exception that bubbles back into Ruby
 land so we don't crash the virtual machine but just get an exception.
 
 #### zone
@@ -198,7 +198,7 @@ write barrier. For documentation on the write barrier, please see
 #### Marked
 
 Mark used when garbage collecting. A rotating mark is used here, so
-possible values are 0 for no mark or 1 or 2 depending on the rotation.
+possible values are `0` for no mark or `1` or `2` depending on the rotation.
 
 #### InImmix
 
@@ -235,11 +235,11 @@ is stored in the inflated header.
 The virtual machine knows about a number of object types in order to be
 able to work with them. These objects also have a corresponding C++ class
 that mimics the Ruby class and makes using them in C++ very easy and almost
-transparent. As can be read in the previous section the obj\_type flag
+transparent. As can be read in the previous section the `obj_type` flag
 indicates this type.
 
-These objects are also C++ objects and inherit from the C++ type Object
-which in its turn inherits from ObjectHeader. Instance variables that
+These objects are also C++ objects and inherit from the C++ type `Object`
+which in its turn inherits from `ObjectHeader`. Instance variables that
 are defined in the C++ class can be made available in Ruby very easily
 as can be seen in the following code snippet that can be found in these
 C++ classes:
@@ -255,14 +255,14 @@ namespace rubinius {
 }
 {% endhighlight %}
 
-In this case you see here the String class defined which has a
-hash\_value\_ instance variable. This instance variable is made
+In this case you see here the `String` class defined which has a
+`hash_value_` instance variable. This instance variable is made
 available with accessors that work from both C++, but also are used
-when the @hash_value instance variable in this case is set in Ruby.
+when the `@hash_value` instance variable in this case is set in Ruby.
 Please note that this doesn't setup accessor methods in Ruby itself.
 This means that setting an instance variable from Ruby goes through this
 accessor in C++. If this instance variable should also be exposed in
-Ruby, you still need to add an attr_accessor in Ruby in the given class.
+Ruby, you still need to add an `attr_accessor` in Ruby in the given class.
 
 This mapping between the types that the virtual machine is aware of
 makes it a very easy mental model when switching from C++ to Ruby code
@@ -277,16 +277,16 @@ instance variables, just like the object types the virtual machine is
 aware of.
 
 As you might have seen earlier in this part of the documentation, the
-generic object layout also includes an Object pointer called ivars. As
-you might already thought, this is a pointer to a so called LookupTable
-that contains the instance variables for this object. A LookupTable is a
-structure much like Ruby's Hash, but it uses only Symbols as the keys.
+generic object layout also includes an `Object` pointer called `ivars`. As
+you might already thought, this is a pointer to a so called `LookupTable`
+that contains the instance variables for this object. A `LookupTable` is a
+structure much like Ruby's `Hash`, but it uses only Symbols as the keys.
 
 ## Packed object layout
 
 Since Ruby is a very flexible language, you never know up front what the
 instance variables will be that people will use in their objects. This
-is the reason that we need the LookupTable as described in the previous
+is the reason that we need the `LookupTable` as described in the previous
 section.
 
 Even though Ruby is very dynamic, a lot of code that is executed
@@ -296,9 +296,9 @@ actually use this property to optimize this both in terms of memory
 usage and speed.
 
 What the Rubinius compiler actually does is that it tracks all the
-instance variables it sees for a Module or Class during compilation.
-Each of those variables it encounters is stored in the given Module or
-Class, as can be seen in this code snippet.
+instance variables it sees for a `Module` or `Class` during compilation.
+Each of those variables it encounters is stored in the given `Module` or
+`Class`, as can be seen in this code snippet.
 
 {% highlight ruby %}
 class Foo
@@ -311,14 +311,14 @@ Foo.instance_variable_get("@seen_ivars") => [:@str]
 {% endhighlight %}
 
 As you can see here, the compiler has tracked the compilation and has
-seen the @str instance variable. The virtual machine can then use this
-information to create an optimized object layout for the class Foo. This
+seen the `@str` instance variable. The virtual machine can then use this
+information to create an optimized object layout for the class `Foo`. This
 tracking also works for modules that are included into classes. In that
 case the instance variables tracked for the module are added to the
 class it is included into.
 
-The first time a new instance of Foo is created, the virtual machine
-creates a specific layout for Foo. In this layout, room is reserved for
+The first time a new instance of `Foo` is created, the virtual machine
+creates a specific layout for `Foo`. In this layout, room is reserved for
 the seen instance variables. If you would write this out in a C++
 object, it would look something like this:
 
@@ -334,15 +334,14 @@ the overhead of a LookupTable for storing them, so we use less memory
 when we make objects like this.
 
 Another advantage is that using this also results in faster code.
-Retrieving or setting an instance variable doesn't incur a LookupTable
+Retrieving or setting an instance variable doesn't incur a `LookupTable`
 lookup anymore. The location of where the instance variable is stored
 can be determined with just the address of the object and an offset
-because this offset is always the same for all Foo instances.
+because this offset is always the same for all `Foo` instances.
 
 Of course it is still possible to set an instance variable on an
-instance of Foo after the first instance has been created. Maybe it's
-happening due to reopening the class later on after the first Foo is
+instance of `Foo` after the first instance has been created. Maybe it's
+happening due to reopening the class later on after the first `Foo` is
 instantiated or we're doing some metaprogramming. In that case we use
-the ivars LookupTable as the fallback mechanism so we can keep providing
+the `ivars` `LookupTable` as the fallback mechanism so we can keep providing
 the flexibility that Ruby gives you.
-
