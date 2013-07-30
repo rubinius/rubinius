@@ -925,21 +925,6 @@ class Array
     self
   end
 
-  def inspect
-    return "[]" if @total == 0
-
-    comma = ", "
-    result = "["
-
-    return "[...]" if Thread.detect_recursion self do
-      each { |o| result << o.inspect << comma }
-    end
-
-    Rubinius::Type.infect(result, self)
-    result.shorten!(2)
-    result << "]"
-  end
-
   def transpose
     return [] if empty?
 
