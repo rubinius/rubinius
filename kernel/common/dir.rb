@@ -7,7 +7,9 @@ class Dir
 
   def self.[](*patterns)
     if patterns.size == 1
-      patterns = Rubinius::Type.coerce_to_path(patterns[0]).split("\0")
+      pattern = Rubinius::Type.coerce_to_path(patterns[0])
+      return [] if pattern.empty?
+      patterns = glob_split pattern
     end
 
     glob patterns
@@ -39,7 +41,7 @@ class Dir
 
       return [] if pattern.empty?
 
-      patterns = pattern.split("\0")
+      patterns = glob_split pattern
     end
 
     matches = []
@@ -62,6 +64,16 @@ class Dir
     end
 
     return matches
+  end
+
+  def self.glob_split(pattern)
+    result = []
+    start = 0
+    while idx = pattern.find_string("\0", start)
+      result << pattern.byteslice(start, idx)
+      start = idx + 1
+    end
+    result << pattern.byteslice(start, pattern.bytesize)
   end
 
   def self.foreach(path)

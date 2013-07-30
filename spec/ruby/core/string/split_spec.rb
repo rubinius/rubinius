@@ -12,6 +12,17 @@ describe "String#split with String" do
     $KCODE = @kcode
   end
 
+  with_feature :encoding do
+    it "returns an ArgumentError if the pattern is a invalid string" do
+      str = 'проверка' 
+      broken_str = 'проверка' 
+      broken_str.force_encoding('binary')
+      broken_str.chop!
+      broken_str.force_encoding('utf-8')
+      lambda { str.split(broken_str) }.should raise_error(ArgumentError)
+    end
+  end
+
   it "returns an array of substrings based on splitting on the given string" do
     "mellow yellow".split("ello").should == ["m", "w y", "w"]
   end
@@ -373,7 +384,7 @@ describe "String#split with Regexp" do
       "That's why eﬃciency could not be helped".split("").size.should == 39
     end
 
-    it "returns an ArgumentError if an invalid UTF-8 string is supplied" do
+    it "throws an ArgumentError if a pattern is supplied with an invalid encoding" do
       broken_str = 'проверка' # in russian, means "test"
       broken_str.force_encoding('binary')
       broken_str.chop!
