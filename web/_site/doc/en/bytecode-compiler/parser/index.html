@@ -185,7 +185,7 @@ end
 
 <p>Note that in many cases, the parser passes the result of calling a
 previous <code>process_</code> method as the arguments to a <code>process_</code> method. In
-the case of <code>true if 1</code>, the parser first calls <code>process_lit(line 1)</code> and
+the case of <code>true if 1</code>, the parser first calls <code>process_lit(line, 1)</code> and
 <code>process_true(line)</code>. It also calls <code>process_nil(line)</code>, because the
 original parse tree contains a <code>nil</code> for the <code>else</code> body. It then calls
 <code>process_if</code> with the line number, the result of <code>process_lit</code>, the
