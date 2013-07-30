@@ -10,8 +10,8 @@ binding.rbc
 binding19.rbc
 proc.rbc
 proc19.rbc
-enumerable19.rbc
 enumerable.rbc
+enumerable19.rbc
 enumerator.rbc
 enumerator19.rbc
 argf.rbc
