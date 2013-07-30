@@ -10,7 +10,7 @@ next_url: memory-system/garbage-collector
 ## Introduction
 
 The virtual machines knows about various types of objects. These objects
-can be divided into different categories where each has it's specific
+can be divided into different categories where each has its specific
 properties. The first category is the so-called immediates, also known
 as tagged pointers. This is a very efficient way of storing things like
 smaller numbers and symbols.
@@ -91,7 +91,7 @@ contains a 32 bit integer which consists of a number of flags and basic
 properties about this object. It also has 32 bit of auxiliary data which
 contains information depending on the meaning stored in the flags.
 
-This is the order of the flags on a little endian architectures such as
+This is the order of the flags on a little endian architecture such as
 x86. On big endian systems this order is reversed, which is necessary
 since we use the meaning bits to mark if we have an inflated header or
 not. What exactly an inflated header is, can be read in [the section on
@@ -142,7 +142,7 @@ meanings defined:
 1. __eAuxWordObjID__: This value means an object id was stored inside this
    header.
 1. __eAuxWordLock__: This object is optimistically locked to a specific
-   running thread. The auxilary 32 bit of data contain the thread id
+   running thread. The auxiliary 32 bit of data contain the thread id
    that this object is locked for.
 1. __eAuxWordHandle__: The aux_word contains an index to a C-API handle.
    This happens when this object is used in a C extension and needs a
@@ -152,7 +152,7 @@ meanings defined:
 
 This flag contains the object type and indicates the layout of this
 object in memory. These types match the C++ types we have for the
-objects in the virtual machine. This allows for us using C++ templates
+objects in the virtual machine. This allows us using C++ templates
 such as these for type safe operations:
 
 {% highlight cpp %}
@@ -208,7 +208,7 @@ Flag for whether this object is in the Immix space or not.
 
 A pinned object is not moved by the garbage collector. This is for
 example used when reading data with the read system call which can block
-and allows the garbage collector to run in the mean while. In this case
+and allows the garbage collector to run in the meanwhile. In this case
 the buffer used to store the read data can't be moved.
 
 #### Frozen
@@ -239,7 +239,7 @@ transparent. As can be read in the previous section the obj\_type flag
 indicates this type.
 
 These objects are also C++ objects and inherit from the C++ type Object
-which in it's turn inherits from ObjectHeader. Instance variables that
+which in its turn inherits from ObjectHeader. Instance variables that
 are defined in the C++ class can be made available in Ruby very easily
 as can be seen in the following code snippet that can be found in these
 C++ classes:
@@ -291,7 +291,7 @@ section.
 
 Even though Ruby is very dynamic, a lot of code that is executed
 actually is pretty static. You almost never create all kinds of dynamic
-instance variables are runtime and this set is pretty static. We can
+instance variables at runtime and this set is pretty static. We can
 actually use this property to optimize this both in terms of memory
 usage and speed.
 
@@ -317,7 +317,7 @@ tracking also works for modules that are included into classes. In that
 case the instance variables tracked for the module are added to the
 class it is included into.
 
-The first time a new instance of Foo is create, the virtual machine
+The first time a new instance of Foo is created, the virtual machine
 creates a specific layout for Foo. In this layout, room is reserved for
 the seen instance variables. If you would write this out in a C++
 object, it would look something like this:
