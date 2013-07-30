@@ -10,14 +10,16 @@ module Enumerable
     ary = []
 
     if block_given?
-      each do |o|
+      each do
+        o = Rubinius.single_block_arg
         if pattern === o
           Regexp.set_block_last_match
           ary << yield(o)
         end
       end
     else
-      each do |o|
+      each do
+        o = Rubinius.single_block_arg
         if pattern === o
           Regexp.set_block_last_match
           ary << o
