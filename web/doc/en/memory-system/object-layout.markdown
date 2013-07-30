@@ -88,7 +88,7 @@ layout].
 
 This leaves us with the meaning of the first part, the HeaderWord. This
 contains a 32 bit integer which consists of a number of flags and basic
-properties about this object. It also has 32 bit of auxilary data which
+properties about this object. It also has 32 bit of auxiliary data which
 contains information depending on the meaning stored in the flags.
 
 This is the order of the flags on a little endian architectures such as
