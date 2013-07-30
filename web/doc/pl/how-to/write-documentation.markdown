@@ -65,10 +65,10 @@ To add documentation for an existing topic or to fix existing documentation:
 1. Open the file for the topic under `web/doc/LANG`.
 1. Add or improve the documentation.
 1. To view your updates while you are working on them, run
-   `rbx -S jekyll --server --auto` in the `web/` directory.
+   `rbx -S jekyll serve --watch` in the `web/` directory.
 1. Once finished adding or editing documentation, commit your changes to the
    source files.
-1. Run `rbx -S jekyll` in the `web/` directory to force update of all
+1. Run `rbx -S jekyll build` in the `web/` directory to force update of all
    generated files in `web/_site`.
 1. Commit the generated files. If making a small change, the generated files
    can be committed with the documentation source files. If making many
@@ -86,11 +86,11 @@ To add documentation for which no existing topic exists:
    files to insert the new file, as well as adding an entry to
    `index.markdown`.
 1. To view your updates while you are working on them, run
-   `rbx -S jekyll --server --auto`
+   `rbx -S jekyll serve --watch`
 1. Edit the new file using Markdown syntax.
 1. Once finished adding or editing documentation, commit your changes to the
    source files.
-1. Run `rbx -S jekyll` in the `web/` directory to force update of all
+1. Run `rbx -S jekyll build` in the `web/` directory to force update of all
    generated files in `web/_site`.
 1. Commit the generated files. If making a small change, the generated files
    can be committed with the documentation source files. If making many

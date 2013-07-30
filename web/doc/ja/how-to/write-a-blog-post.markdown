@@ -22,7 +22,7 @@ Rubiniusのブログは、Jekyllを使用して、Webサイトと統合されて
 1. Create a file in `web/_posts/` using the format
    `YYYY-MM-DD-perma-link.markdown` for the file name.
 1. Write the post.
-1. In the `web/` directory, run `rbx -S jekyll`.
+1. In the `web/` directory, run `rbx -S jekyll build`.
 1. Create a commit of all the changes in the `web/` directory.
 1. Submit a patch, or if you have commit rights, push the commit to master.
 1. Tell us that there is a new blog post. We may have some feedback for you

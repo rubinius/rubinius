@@ -71,7 +71,7 @@ _previous_と_previous\_url_属性は、タイトルとリンクを与える
    files to insert the new file, as well as adding an entry to
    `index.markdown`.
 1. To view your updates while you are working on them, run
-   `rbx -S jekyll --server --auto`
+   `rbx -S jekyll serve --watch`
 1. Edit the new file using Markdown syntax.
-1. In the `web/` directory, run `rbx -S jekyll`.
+1. In the `web/` directory, run `rbx -S jekyll build`.
 1. Commit all the changes in the `web/` directory.

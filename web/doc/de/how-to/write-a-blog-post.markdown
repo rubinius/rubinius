@@ -23,7 +23,7 @@ verfasst werden.
 1. Erstelle eine Datei in `web/_posts/` mit dem Format 
    `YYYY-MM-DD-perma-link.markdown` als Dateinamen
 1. Schreibe den Eintrag
-1. Im `web/` Verzeichnis, führe `rbx -S jekyll` aus
+1. Im `web/` Verzeichnis, führe `rbx -S jekyll build` aus
 1. Erstelle einen Commiteintrag mit allen Veränderungen im `web/` Verzeichnis.
 1. Reiche einen Patch ein oder falls du Commitrechte besitzt push den
    Commiteintrag in den master Zweig.

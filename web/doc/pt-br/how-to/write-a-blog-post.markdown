@@ -37,7 +37,7 @@ Write your brilliant post.
 Run jekyll to compile the website, including your post.
 
     cd ../web/
-    rbx -S jekyll
+    rbx -S jekyll build
 
 Create a commit of all the changes in the `web/` directory.
 

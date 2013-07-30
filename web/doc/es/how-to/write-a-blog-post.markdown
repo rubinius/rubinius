@@ -39,7 +39,7 @@ Escriba un post brillante.
 Ejecute jekyll para compilar su website, inlcuyendo su post.
 
     cd ../web/
-    rbx -S jekyll
+    rbx -S jekyll build
 
 Cree un commit para todos los cambios en el directorio `web/`.
 

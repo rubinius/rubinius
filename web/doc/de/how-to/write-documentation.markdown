@@ -72,7 +72,7 @@ Um neue Dokumentation für bisher nicht dokumentierte Themen hinzuzufügen:
    werden.
 1. Damit du Veränderungen noch beim Bearbeiten überprüfen kannst, führe 
    folgenden Befehl aus und besuche die vom Server angegebene URL:
-   `rbx -S jekyll --server --auto`
+   `rbx -S jekyll serve --watch`
 1. Bearbeite die neue Datei mit dem Markdown Syntax.
-1. Im `web/` Verzeichnis, führe `rbx -S jekyll` aus.
+1. Im `web/` Verzeichnis, führe `rbx -S jekyll build` aus.
 1. Mach ein Commit für alle Veränderungen im `web/` Verzeichnis.

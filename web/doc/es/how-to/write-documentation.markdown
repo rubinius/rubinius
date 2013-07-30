@@ -67,10 +67,10 @@ existente:
 1. Abre el archivo para el tema en `web/doc/LANG`.
 1. Agrega o mejora la documentación.
 1. Para ver tus modificaciones mientras trabajas en ellas, ejecuta
-   `rbx -S jekyll --server --auto`
+   `rbx -S jekyll serve --watch`
 1. Una vez que finalices de agregar o editar documentación, haz commit de tus
    cambios a los archivos fuente.
-1. Ejecuta `rbx -S jekyll` en el directorio `web/` para forzar la
+1. Ejecuta `rbx -S jekyll build` en el directorio `web/` para forzar la
    actualización de todos los archivos generados en `web/_site`.
 1. Haz commit de los archivos generados. Si haces un cambio pequeño, puedes
    hacer commit de los archivos generados junto con los fuentes de la
@@ -89,11 +89,11 @@ Para agregar documentación para la cuál no existe un tema:
    archivos ya existentes para insertar el nuevo archivo, así como también
    agregar una entrada en `index.markdown`.
 1. Para ver tus modificaciones mientras trabajas en ellas, ejecuta
-   `rbx -S jekyll --server --auto`
+   `rbx -S jekyll serve --watch`
 1. Edita el nuevo archivo utilizando sintaxis Markdown.
 1. Una vez que finalices de agregar o editar documentación, haz commit de tus
    cambios a los archivos fuente.
-1. Ejecuta `rbx -S jekyll` en el directorio `web/` para forzar la
+1. Ejecuta `rbx -S jekyll build` en el directorio `web/` para forzar la
    actualización de todos los archivos generados en `web/_site`.
 1. Haz commit de los archivos generados. Si haces un cambio pequeño, puedes
    hacer commit de los archivos generados junto con los fuentes de la

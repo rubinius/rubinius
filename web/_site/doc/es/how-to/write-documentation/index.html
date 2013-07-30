@@ -212,10 +212,10 @@ existente:</p>
   <li>Abre el archivo para el tema en <code>web/doc/LANG</code>.</li>
   <li>Agrega o mejora la documentación.</li>
   <li>Para ver tus modificaciones mientras trabajas en ellas, ejecuta
-<code>rbx -S jekyll --server --auto</code></li>
+<code>rbx -S jekyll serve --watch</code></li>
   <li>Una vez que finalices de agregar o editar documentación, haz commit de tus
 cambios a los archivos fuente.</li>
-  <li>Ejecuta <code>rbx -S jekyll</code> en el directorio <code>web/</code> para forzar la
+  <li>Ejecuta <code>rbx -S jekyll build</code> en el directorio <code>web/</code> para forzar la
 actualización de todos los archivos generados en <code>web/_site</code>.</li>
   <li>Haz commit de los archivos generados. Si haces un cambio pequeño, puedes
 hacer commit de los archivos generados junto con los fuentes de la
@@ -235,11 +235,11 @@ existentes. Esto requerirá editar los atributos <em>previous</em> y <em>next</e
 archivos ya existentes para insertar el nuevo archivo, así como también
 agregar una entrada en <code>index.markdown</code>.</li>
   <li>Para ver tus modificaciones mientras trabajas en ellas, ejecuta
-<code>rbx -S jekyll --server --auto</code></li>
+<code>rbx -S jekyll serve --watch</code></li>
   <li>Edita el nuevo archivo utilizando sintaxis Markdown.</li>
   <li>Una vez que finalices de agregar o editar documentación, haz commit de tus
 cambios a los archivos fuente.</li>
-  <li>Ejecuta <code>rbx -S jekyll</code> en el directorio <code>web/</code> para forzar la
+  <li>Ejecuta <code>rbx -S jekyll build</code> en el directorio <code>web/</code> para forzar la
 actualización de todos los archivos generados en <code>web/_site</code>.</li>
   <li>Haz commit de los archivos generados. Si haces un cambio pequeño, puedes
 hacer commit de los archivos generados junto con los fuentes de la

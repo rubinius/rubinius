@@ -210,10 +210,10 @@ topics that merely need to have documentation written for them.</p>
   <li>Open the file for the topic under <code>web/doc/LANG</code>.</li>
   <li>Add or improve the documentation.</li>
   <li>To view your updates while you are working on them, run
-<code>rbx -S jekyll --server --auto</code> in the <code>web/</code> directory.</li>
+<code>rbx -S jekyll serve --watch</code> in the <code>web/</code> directory.</li>
   <li>Once finished adding or editing documentation, commit your changes to the
 source files.</li>
-  <li>Run <code>rbx -S jekyll</code> in the <code>web/</code> directory to force update of all
+  <li>Run <code>rbx -S jekyll build</code> in the <code>web/</code> directory to force update of all
 generated files in <code>web/_site</code>.</li>
   <li>Commit the generated files. If making a small change, the generated files
 can be committed with the documentation source files. If making many
@@ -232,11 +232,11 @@ will require editing the <em>previous</em> and <em>next</em> attributes of the e
 files to insert the new file, as well as adding an entry to
 <code>index.markdown</code>.</li>
   <li>To view your updates while you are working on them, run
-<code>rbx -S jekyll --server --auto</code></li>
+<code>rbx -S jekyll serve --watch</code></li>
   <li>Edit the new file using Markdown syntax.</li>
   <li>Once finished adding or editing documentation, commit your changes to the
 source files.</li>
-  <li>Run <code>rbx -S jekyll</code> in the <code>web/</code> directory to force update of all
+  <li>Run <code>rbx -S jekyll build</code> in the <code>web/</code> directory to force update of all
 generated files in <code>web/_site</code>.</li>
   <li>Commit the generated files. If making a small change, the generated files
 can be committed with the documentation source files. If making many

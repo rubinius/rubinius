@@ -39,7 +39,7 @@ Ecrivez votre billet génial
 Lancez jekyll pour compiler le site web, qui incluera votre billet
 
     cd ../web/
-    rbx -S jekyll
+    rbx -S jekyll build
 
 Créez un commit pour tous vos changements dans le dossier `web/`
 
