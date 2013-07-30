@@ -40,5 +40,21 @@ describe "Enumerable#take_while" do
       a = [1,2,3]
       a.take_while{true}.should_not equal(a)
     end
+
+    ruby_version_is "" ... "1.9" do
+      it "calls the block with an array when yielded with multiple arguments" do
+        yields = []
+        EnumerableSpecs::YieldsMixed.new.take_while{ |v| yields << v }
+        yields.should == [1, [2], [3, 4], [5, 6, 7], [8, 9], nil, []]
+      end
+    end
+
+    ruby_version_is "1.9" do
+      it "calls the block with initial args when yielded with multiple arguments" do
+        yields = []
+        EnumerableSpecs::YieldsMixed.new.take_while{ |v| yields << v }
+        yields.should == [1, [2], 3, 5, [8, 9], nil, []]
+      end
+    end
   end
 end
