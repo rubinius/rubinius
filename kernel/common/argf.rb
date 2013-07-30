@@ -29,7 +29,6 @@ module Rubinius
       @advance = true
       @init = false
       @use_stdin_only = false
-      @binmode = false
     end
 
     #
@@ -453,7 +452,6 @@ module Rubinius
           @stream = STDIN
           @filename = "-"
           @use_stdin_only = true
-          @binmode = false
           return true
         end
         @init = true
