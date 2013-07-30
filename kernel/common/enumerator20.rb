@@ -45,6 +45,15 @@ module Enumerable
         self
       end
       private :initialize
+
+      def map
+        raise ArgumentError, 'Lazy#{map,collect} requires a block' unless block_given?
+
+        Lazy.new(self, enumerator_size) do |yielder, *args|
+          yielder.yield yield(*args)
+        end
+      end
+      alias_method :collect, :map
     end
 
   end
