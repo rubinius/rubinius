@@ -29,6 +29,7 @@ module Rubinius
       @advance = true
       @init = false
       @use_stdin_only = false
+      @binmode = false
     end
 
     #
@@ -41,7 +42,13 @@ module Rubinius
     # @todo Not implemented! Intentional? --rue
     #
     def binmode
+      @binmode = true
+      @encoding = Encoding::ASCII_8BIT
       self
+    end
+
+    def binmode?
+      !@binmode.nil?
     end
 
     #
@@ -219,7 +226,6 @@ module Rubinius
       while true
         return nil unless advance!
         line = @stream.gets(sep)
-
         unless line
           return nil if @use_stdin_only
           @stream.close unless @stream.closed?
@@ -230,6 +236,7 @@ module Rubinius
         @lineno += 1
         $. = @lineno
         return line
+
       end
     end
 
@@ -309,7 +316,9 @@ module Rubinius
     #
     def read(bytes=nil, output=nil)
       # The user might try to pass in nil, so we have to check here
-      output ||= ""
+      set_encoding if @encoding.nil?
+
+      output ||= "".encode(@encoding)
 
       if bytes
         bytes_left = bytes
@@ -413,6 +422,14 @@ module Rubinius
       "ARGF"
     end
 
+    #
+    # Return the default encoding if binmode is not set, else default 
+    # to ASCII-8BIT
+    #
+    def set_encoding
+      @encoding = binmode? ? Encoding::ASCII_8BIT : (Encoding.default_external || Encoding.default_internal)
+    end
+
 
     # Internals
 
@@ -428,7 +445,7 @@ module Rubinius
     #
     def advance!
       return true unless @advance
-
+      
       unless @init
 
         if ARGV.empty?
@@ -436,9 +453,9 @@ module Rubinius
           @stream = STDIN
           @filename = "-"
           @use_stdin_only = true
+          @binmode = false
           return true
         end
-
         @init = true
       end
 
@@ -446,12 +463,13 @@ module Rubinius
 
       return false if @use_stdin_only || ARGV.empty?
 
+      set_encoding
+
       @advance = false
 
       file = ARGV.shift
-      @stream = (file == "-" ? STDIN : File.open(file, "r"))
+      @stream = (file == "-" ? STDIN : File.open(file, "r", :encoding => @encoding.to_s))
       @filename = file
-
       if $-i && @stream != STDIN
         backup_extension = $-i == "" ? ".bak" : $-i
         @backup_filename = "#{@filename}#{backup_extension}"
@@ -459,7 +477,6 @@ module Rubinius
         @stream = File.open(@backup_filename, "r")
         $stdout = File.open(@filename, "w")
       end
-
       return true
     end
     private :advance!
