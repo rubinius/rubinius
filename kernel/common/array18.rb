@@ -495,6 +495,21 @@ class Array
     dup.sort_inplace(&block)
   end
 
+  def inspect
+    return "[]" if @total == 0
+
+    comma = ", "
+    result = "["
+
+    return "[...]" if Thread.detect_recursion self do
+      each { |o| result << o.inspect << comma }
+    end
+
+    Rubinius::Type.infect(result, self)
+    result.shorten!(2)
+    result << "]"
+  end
+
   def to_s
     join
   end
