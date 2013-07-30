@@ -676,6 +676,25 @@ class Array
     replace sort_by(&block)
   end
 
+  def inspect
+    return "[]" if @total == 0
+    comma = ", "
+    result = "["
+
+    return "[...]" if Thread.detect_recursion self do
+      each_with_index do |element, index|
+        temp = element.inspect
+        result.force_encoding(temp.encoding) if index == 0
+        result << temp << comma
+      end
+    end
+
+    Rubinius::Type.infect(result, self)
+    result.shorten!(2)
+    result << "]"
+    result
+  end
+
   alias_method :to_s, :inspect
 
   def uniq(&block)
