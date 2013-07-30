@@ -2,7 +2,6 @@
 
 module Enumerable
   class Enumerator
-
     def initialize(object_or_size=undefined, iter=:each, *args, &block)
       if block_given?
         if undefined.equal? object_or_size
@@ -30,6 +29,10 @@ module Enumerable
       self
     end
     private :initialize
+
+    def size
+      @size.kind_of?(Proc) ? @size.call : @size
+    end
 
     class Lazy < self
       class StopLazyError < Exception; end
@@ -84,6 +87,5 @@ module Enumerable
       end
       alias_method :collect, :map
     end
-
   end
 end
