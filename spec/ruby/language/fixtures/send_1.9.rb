@@ -24,5 +24,8 @@ module LangSendSpecs
   def destructure2((a,b)); a+b; end
   def destructure2b((a,b)); [a,b]; end
   def destructure4r((a,b,*c,d,e)); [a,b,c,d,e]; end
+  def destructure4o(a=1,(b,c),d,&e); [a,b,c,d]; end
+  def destructure5o(a=1, f=2, (b,c),d,&e); [a,f,b,c,d]; end
+  def destructure4os(a=1,(b,*c)); [a,b,c]; end
 
 end

@@ -168,6 +168,13 @@ describe "Invoking a method" do
     specs.destructure4r([1, 2, 3, 4, 5]).should == [1, 2, [3], 4, 5]
   end
 
+  it "with optional argument(s), expands an array to arguments grouped in parentheses" do
+    specs.destructure4o(1, [2, 3]).should == [1, 1, nil, [2, 3]]
+    specs.destructure4o(1, [], 2).should == [1, nil, nil, 2]
+    specs.destructure4os(1, [2, 3]).should == [1, 2, [3]]
+    specs.destructure5o(1, [2, 3]).should == [1, 2, 1, nil, [2, 3]]
+  end
+
   describe "new-style hash arguments" do
     describe "as the only parameter" do
       it "passes without curly braces" do
