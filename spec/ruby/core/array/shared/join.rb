@@ -27,7 +27,7 @@ describe :array_join_with_default_separator, :shared => true do
 
   it "separates elements with default separator when the passed separator is nil" do
     $, = "_"
-    [1, 2, 3].join(nil).should == '1_2_3'
+    [1, 2, 3].send(@method, nil).should == '1_2_3'
   end
 
   ruby_version_is ""..."1.9" do
