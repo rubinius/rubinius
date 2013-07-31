@@ -115,6 +115,27 @@ module Enumerable
         end
       end
 
+      def drop(n)
+        n = Rubinius::Type.coerce_to n, Integer, :to_int
+        raise ArgumentError, "attempt to drop negative size" if n < 0
+
+        current_size = enumerator_size
+        set_size = if current_size.kind_of?(Integer)
+          n < current_size ? current_size - n : 0
+        else
+          current_size
+        end
+
+        dropped = 0
+        Lazy.new(self, set_size) do |yielder, *args|
+          if dropped < n
+            dropped += 1
+          else
+            yielder.yield(*args)
+          end
+        end
+      end
+
       def select
         raise ArgumentError, 'Lazy#{select,find_all} requires a block' unless block_given?
 
