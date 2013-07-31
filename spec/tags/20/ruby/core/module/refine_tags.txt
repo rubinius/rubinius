@@ -1,9 +1,0 @@
-fails:Module#refine runs its block in an anonymous Module
-fails:Module#refine uses the same anonymous module for future refines of the same class
-fails:Module#refine adds methods defined in its block to the anon module's public instance methods
-fails:Module#refine raises ArgumentError if not passed an argument
-fails:Module#refine raises TypeError if not passed a class or module
-fails:Module#refine raises ArgumentError if not given a block
-fails:Module#refine applies refinements to calls in the refine block
-fails:Module#refine doesn't apply refinements outside the refine block
-fails:Module#refine does not apply refinements to external scopes not using the module

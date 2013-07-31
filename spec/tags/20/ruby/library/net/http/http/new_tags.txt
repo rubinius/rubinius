@@ -1,1 +1,0 @@
-fails:Net::HTTP.new when passed address, port, *proxy_options returns a Net::HTTP instance
