@@ -3,6 +3,5 @@ fails:Predefined global $~ changes the value of derived capture globals when ass
 fails:Predefined global $~ changes the value of the derived preceding match global
 fails:Predefined global $~ changes the value of the derived following match global
 fails:Predefined global $~ changes the value of the derived full match global
-fails:Processing RUBYOPT prints the version number for '-v'
 fails:The predefined global constant STDIN has the same external encoding as Encoding.default_external
 fails:The predefined global constant STDIN has the same external encoding as Encoding.default_external when that encoding is changed
