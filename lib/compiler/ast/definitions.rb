@@ -552,7 +552,7 @@ module Rubinius
           n = node.splat
           case n
           when EmptySplat
-            array << SplatPatternVariable.new(n.line, n.name)
+            array << SplatPatternVariable.new(n.line, :*)
           when SplatAssignment, SplatWrapped, SplatArray
             array << SplatPatternVariable.new(n.value.line, n.value.name)
           end

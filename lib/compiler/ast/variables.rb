@@ -412,16 +412,9 @@ module Rubinius
     end
 
     class EmptySplat < Node
-
-      EMPTYSPLAT_NAME = '*'
-
       def initialize(line, size)
         @line = line
         @size = size
-      end
-
-      def name
-        EMPTYSPLAT_NAME
       end
 
       def bytecode(g)
