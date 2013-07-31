@@ -266,10 +266,10 @@ describe :array_slice, :shared => true do
     a.send(@method, 1..0).should == []
     a.send(@method, 1...0).should == []
 
-    lambda { a.slice("a" .. "b") }.should raise_error(TypeError)
-    lambda { a.slice("a" ... "b") }.should raise_error(TypeError)
-    lambda { a.slice(from .. "b") }.should raise_error(TypeError)
-    lambda { a.slice(from ... "b") }.should raise_error(TypeError)
+    lambda { a.send(@method, "a" .. "b") }.should raise_error(TypeError)
+    lambda { a.send(@method, "a" ... "b") }.should raise_error(TypeError)
+    lambda { a.send(@method, from .. "b") }.should raise_error(TypeError)
+    lambda { a.send(@method, from ... "b") }.should raise_error(TypeError)
   end
 
   it "returns the same elements as [m..n] and [m...n] with Range subclasses" do
