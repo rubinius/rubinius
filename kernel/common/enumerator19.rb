@@ -117,7 +117,10 @@ module Enumerable
         raise LocalJumpError, "Expected a block to be given" unless block_given?
 
         @proc = block
+
+        self
       end
+      private :initialize
 
       def each
         enclosed_yield = Proc.new { |*args| yield *args }
