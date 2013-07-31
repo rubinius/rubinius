@@ -16,7 +16,10 @@ module Enumerable
       @args = args
       @generator = nil
       @lookahead = []
+
+      self
     end
+    private :initialize
 
     def with_index(offset=0)
       if offset

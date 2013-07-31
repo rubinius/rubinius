@@ -7,7 +7,10 @@ module Enumerable
       @iter = iter.to_sym
       @args = args
       @generator = nil
+
+      self
     end
+    private :initialize
 
     def next
       unless @generator
