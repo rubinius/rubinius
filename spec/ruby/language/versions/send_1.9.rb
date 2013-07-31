@@ -174,6 +174,9 @@ describe "Invoking a method" do
     specs.destructure4os(1, [2, 3]).should == [1, 2, [3]]
     specs.destructure5o(1, [2, 3]).should == [1, 2, 1, nil, [2, 3]]
     specs.destructure7o(1, [2, 3]).should == [1, 2, 1, nil, 2, 3]
+    specs.destructure7b(1, [2, 3]) do |(a,*b,c)|
+      [a, c]
+    end.should == [1, 3]
   end
 
   describe "new-style hash arguments" do
