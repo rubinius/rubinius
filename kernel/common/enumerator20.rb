@@ -111,6 +111,16 @@ module Enumerable
         end
       end
 
+      def select
+        raise ArgumentError, 'Lazy#{select,find_all} requires a block' unless block_given?
+
+        Lazy.new(self, nil) do |yielder, *args|
+          val = args.length >= 2 ? args : args.first
+          yielder.yield(*args) if yield(val)
+        end
+      end
+      alias_method :find_all, :select
+
       def map
         raise ArgumentError, 'Lazy#{map,collect} requires a block' unless block_given?
 
