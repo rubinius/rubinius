@@ -42,7 +42,25 @@ describe "Enumerator#initialize" do
     end
 
     ruby_version_is "2.0" do
-      it "needs to be reviewed for spec completeness"
+      it "sets size to nil if size is not given" do
+        @uninitialized.send(:initialize) {}.size.should be_nil
+      end
+
+      it "sets size to nil if the given size is nil" do
+        @uninitialized.send(:initialize, nil) {}.size.should be_nil
+      end
+
+      it "sets size to the given size if the given size is Float::INFINITY" do
+        @uninitialized.send(:initialize, Float::INFINITY) {}.size.should equal(Float::INFINITY)
+      end
+
+      it "sets size to the given size if the given size is a Fixnum" do
+        @uninitialized.send(:initialize, 100) {}.size.should == 100
+      end
+
+      it "sets size to the given size if the given size is a Proc" do
+        @uninitialized.send(:initialize, lambda { 200 }) {}.size.should == 200
+      end
     end
   end
 end
