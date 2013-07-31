@@ -87,6 +87,10 @@ module Enumerable
       end
       private :initialize
 
+      def lazy
+        self
+      end
+
       alias_method :force, :to_a
 
       def take(n)
