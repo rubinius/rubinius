@@ -136,6 +136,18 @@ module Enumerable
         end
       end
 
+      def take_while
+        raise ArgumentError, "Lazy#take_while requires a block" unless block_given?
+
+        Lazy.new(self, nil) do |yielder, *args|
+          if yield(*args)
+            yielder.yield(*args)
+          else
+            raise StopLazyError
+          end
+        end
+      end
+
       def select
         raise ArgumentError, 'Lazy#{select,find_all} requires a block' unless block_given?
 
