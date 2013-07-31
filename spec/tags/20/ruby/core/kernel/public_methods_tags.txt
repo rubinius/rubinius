@@ -1,1 +1,0 @@
-fails:Kernel#public_methods returns public methods mixed in to the metaclass

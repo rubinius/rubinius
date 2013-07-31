@@ -1,1 +1,0 @@
-fails:A singleton class is a subclass of the same level of Class's singleton class

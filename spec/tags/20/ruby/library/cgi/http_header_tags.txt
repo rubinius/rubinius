@@ -1,7 +1,0 @@
-fails:CGI#http_header CGI#http_header when passed no arguments returns a HTTP header specifiying the Content-Type as text/html
-fails:CGI#http_header CGI#http_header when passed no arguments includes Cookies in the @output_cookies field
-fails:CGI#http_header CGI#http_header when passed String returns a HTTP header specifiying the Content-Type as the passed String's content
-fails:CGI#http_header CGI#http_header when passed String includes Cookies in the @output_cookies field
-fails:CGI#http_header CGI#http_header when passed Hash returns a HTTP header based on the Hash's key/value pairs
-fails:CGI#http_header CGI#http_header when passed Hash includes Cookies in the @output_cookies field
-fails:CGI#http_header CGI#http_header when passed Hash returns a HTTP header specifiying the Content-Type as text/html when passed an empty Hash

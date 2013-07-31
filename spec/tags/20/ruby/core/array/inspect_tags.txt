@@ -1,2 +1,1 @@
 fails:Array#inspect copies the ASCII-compatible encoding of the result of inspecting the first element
-fails:Array#inspect copies the ASCII-incompatible encoding of the result of inspecting the first element
