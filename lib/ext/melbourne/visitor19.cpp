@@ -723,6 +723,9 @@ namespace melbourne {
               masgn = post_args->nd_next->nd_2nd;
               if (masgn) {
                   next = masgn->nd_next;
+                  if (nd_type(masgn) == NODE_BLOCK) {
+                      masgn = masgn->nd_head;
+                  }
               }
           }
       }
