@@ -121,6 +121,26 @@ module Enumerable
       end
       alias_method :find_all, :select
 
+      def grep(pattern)
+        if block_given?
+          Lazy.new(self, nil) do |yielder, *args|
+            val = args.length >= 2 ? args : args.first
+            if pattern === val
+              Regexp.set_block_last_match
+              yielder.yield yield(val)
+            end
+          end
+        else
+          Lazy.new(self, nil) do |yielder, *args|
+            val = args.length >= 2 ? args : args.first
+            if pattern === val
+              Regexp.set_block_last_match
+              yielder.yield val
+            end
+          end
+        end
+      end
+
       def map
         raise ArgumentError, 'Lazy#{map,collect} requires a block' unless block_given?
 
