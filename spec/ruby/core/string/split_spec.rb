@@ -12,6 +12,17 @@ describe "String#split with String" do
     $KCODE = @kcode
   end
 
+  with_feature :encoding do
+    it "throws an ArgumentError if the pattern is not a valid string" do
+      str = 'проверка'
+      broken_str = 'проверка'
+      broken_str.force_encoding('binary')
+      broken_str.chop!
+      broken_str.force_encoding('utf-8')
+      lambda { str.split(broken_str) }.should raise_error(ArgumentError)
+    end
+  end
+
   it "returns an array of substrings based on splitting on the given string" do
     "mellow yellow".split("ello").should == ["m", "w y", "w"]
   end
