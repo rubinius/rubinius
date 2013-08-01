@@ -39,5 +39,9 @@ module Rubinius
 
       return ret
     end
+
+    def self.valid_encoding?(string)
+    end
+
   end
 end

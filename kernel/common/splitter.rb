@@ -33,9 +33,11 @@ module Rubinius
 
         return Rubinius.invoke_primitive :string_awk_split, string, lim
       elsif pattern.kind_of?(Regexp)
-        # Pass
       else
         pattern = StringValue(pattern) unless pattern.kind_of?(String)
+
+        valid_encoding?(string)
+        valid_encoding?(pattern) 
 
         trim_end = !tail_empty || limit == 0
 
