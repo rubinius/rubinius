@@ -2,11 +2,12 @@ require 'digest/sha1'
 require 'openssl'
 require 'openssl/digest'
 require 'benchmark'
+require 'benchmark/ips'
 
 amount = 1_000_000
 input  = 'hello, world!'
 
-Benchmark.bmbm(40) do |bench|
+Benchmark.ips do |bench|
   bench.report 'Digest::SHA1' do
     digest = Digest::SHA1.new
 
