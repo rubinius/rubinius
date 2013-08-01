@@ -59,6 +59,14 @@ module Enumerable
       @size.kind_of?(Proc) ? @size.call : @size
     end
 
+    class Generator
+      def each(*args)
+        enclosed_yield = Proc.new { |*enclosed_args| yield *enclosed_args }
+
+        @proc.call Yielder.new(&enclosed_yield), *args
+      end
+    end
+
     class Lazy < self
       class StopLazyError < Exception; end
 
