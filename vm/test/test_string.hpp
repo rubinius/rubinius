@@ -243,7 +243,7 @@ public:
     TS_ASSERT_EQUALS(ret, cNil);
 
     str = String::create(state, "0x3.4");
-    ret = str->to_f(state, cTrue);
+    ret = str->to_f(state, cFalse);
     val = Float::create(state, 0.0);
     if(LANGUAGE_18_ENABLED) {
       TS_ASSERT_EQUALS(ret, cNil);
