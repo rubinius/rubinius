@@ -7,7 +7,7 @@ require 'benchmark/ips'
 input = 'hello, world!'
 
 Benchmark.ips do |bench|
-  bench.report 'Digest::SHA1' do |times|
+  bench.report 'Digest SHA1' do |times|
     digest = Digest::SHA1.new
     i      = 0
 
@@ -17,7 +17,7 @@ Benchmark.ips do |bench|
     end
   end
 
-  bench.report 'OpenSSL::Digest::SHA1' do |times|
+  bench.report 'OpenSSL SHA1' do |times|
     digest = OpenSSL::Digest::SHA1.new
     i      = 0
 
