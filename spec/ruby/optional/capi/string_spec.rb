@@ -643,6 +643,16 @@ end
 
 ruby_version_is "1.9" do
 
+  describe "rb_str_free" do
+    # This spec only really exists to make sure the symbol
+    # is available. There is no guarantee this even does
+    # anything at all
+    it "indicates data for a string might be freed" do
+      str = "xyz"
+      @s.rb_str_free("xyz").should be_nil
+    end
+  end
+
   describe :rb_external_str_new, :shared => true do
     it "returns a String in the default external encoding" do
       Encoding.default_external = "UTF-8"

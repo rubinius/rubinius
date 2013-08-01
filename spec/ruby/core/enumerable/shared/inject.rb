@@ -40,7 +40,7 @@ describe :enumerable_inject, :shared => true do
 
    it "gathers whole arrays as elements when each yields multiple" do
      multi = EnumerableSpecs::YieldsMulti.new
-     multi.inject([]) {|acc, e| acc << e }.should == [[1, 2], [3, 4, 5], [6, 7, 8, 9]]
+     multi.send(@method, []) {|acc, e| acc << e }.should == [[1, 2], [3, 4, 5], [6, 7, 8, 9]]
    end
 
   it "with inject arguments(legacy rubycon)" do

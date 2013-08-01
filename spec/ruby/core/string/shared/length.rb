@@ -13,9 +13,9 @@ describe :string_length, :shared => true do
   with_feature :encoding do
     it "returns the length of the new self after encoding is changed" do
       str = 'こにちわ'
-      str.size
+      str.send(@method)
 
-      str.force_encoding('ASCII-8BIT').size.should == 12
+      str.force_encoding('ASCII-8BIT').send(@method).should == 12
     end
   end
 end

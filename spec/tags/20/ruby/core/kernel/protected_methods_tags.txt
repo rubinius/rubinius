@@ -1,1 +1,0 @@
-fails:Kernel#protected_methods returns protected methods mixed in to the metaclass

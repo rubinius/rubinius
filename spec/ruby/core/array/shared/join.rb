@@ -2,11 +2,11 @@ require File.expand_path('../../fixtures/classes', __FILE__)
 require File.expand_path('../../fixtures/encoded_strings', __FILE__)
 
 describe :array_join_with_default_separator, :shared => true do
-  before do
+  before(:each) do
     @separator = $,
   end
 
-  after do
+  after(:each) do
     $, = @separator
   end
 
@@ -23,11 +23,6 @@ describe :array_join_with_default_separator, :shared => true do
   it "returns a string formed by concatenating each String element separated by $," do
     $, = " | "
     ["1", "2", "3"].send(@method).should == "1 | 2 | 3"
-  end
-
-  it "separates elements with default separator when the passed separator is nil" do
-    $, = "_"
-    [1, 2, 3].join(nil).should == '1_2_3'
   end
 
   ruby_version_is ""..."1.9" do

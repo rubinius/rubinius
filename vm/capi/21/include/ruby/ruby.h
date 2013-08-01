@@ -1719,6 +1719,7 @@ VALUE rb_uint2big(unsigned long number);
   long    rb_str_hash(VALUE str);
 
   void    rb_str_update(VALUE str, long beg, long end, VALUE replacement);
+  void    rb_str_free(VALUE str);
 
   VALUE rb_sprintf(const char* format, ...);
 

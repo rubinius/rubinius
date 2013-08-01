@@ -16,7 +16,10 @@ module Enumerable
       @args = args
       @generator = nil
       @lookahead = []
+
+      self
     end
+    private :initialize
 
     def with_index(offset=0)
       if offset
@@ -92,7 +95,10 @@ module Enumerable
         raise LocalJumpError, "Expected a block to be given" unless block_given?
 
         @proc = block
+
+        self
       end
+      private :initialize
 
       def yield(*args)
         @proc.call *args
@@ -111,7 +117,10 @@ module Enumerable
         raise LocalJumpError, "Expected a block to be given" unless block_given?
 
         @proc = block
+
+        self
       end
+      private :initialize
 
       def each
         enclosed_yield = Proc.new { |*args| yield *args }

@@ -25,6 +25,9 @@ namespace rubinius {
 }
 
 extern "C" {
+
+  void rb_str_free(VALUE str) {}
+
   VALUE rb_enc_str_new(const char *ptr, long len, rb_encoding *enc)
   {
     VALUE str = rb_str_new(ptr, len);

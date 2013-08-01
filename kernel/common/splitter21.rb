@@ -12,5 +12,10 @@ module Rubinius
         ret
       end
     end
+
+    def self.valid_encoding?(string)
+      raise ArgumentError, "invalid byte sequence in #{string.encoding.name}" unless string.valid_encoding?
+    end
+
   end
 end

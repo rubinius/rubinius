@@ -11,7 +11,7 @@ describe :enumerable_entries, :shared => true do
 
     it "passes arguments to each" do
       count = EnumerableSpecs::EachCounter.new(1, 2, 3)
-      count.to_a(:hello, "world").should == [1, 2, 3]
+      count.send(@method, :hello, "world").should == [1, 2, 3]
       count.arguments_passed.should == [:hello, "world"]
     end
   end

@@ -519,6 +519,7 @@
 #define HAVE_STRINGVALUE                   1
 
 #ifdef RUBY_VERSION_IS_1_9
+#define HAVE_RB_STR_FREE                   1
 #define HAVE_RB_SPRINTF                    1
 #define HAVE_RB_LOCALE_STR_NEW             1
 #define HAVE_RB_LOCALE_STR_NEW_CSTR        1

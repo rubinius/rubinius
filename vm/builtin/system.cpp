@@ -575,9 +575,13 @@ namespace rubinius {
     state->shared().stats.methods_cache_resets++;
 
     if(state->shared().config.ic_debug) {
-      std::cout << "[IC Increase serial for " << mod->get_name(state)->c_str(state) << "]" << std::endl;
+      String* mod_name = mod->get_name(state);
+      if(mod_name->nil_p()) {
+        mod_name = String::create(state, "");
+      }
+      std::cout << "[IC Increase serial for " << mod_name->c_str(state) << "]" << std::endl;
 
-      std::cout << "[IC Reset method cache for " << mod->get_name(state)->c_str(state)
+      std::cout << "[IC Reset method cache for " << mod_name->c_str(state)
                 << "#" << name->debug_str(state).c_str() << "]" << std::endl;
       CallFrame* call_frame = calling_environment->previous;
       call_frame->print_backtrace(state, 6, true);

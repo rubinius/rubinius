@@ -1,3 +1,2 @@
 fails:Regexps with modifers supports (?imx-imx) (inline modifiers)
 fails:Regexps with modifers supports (?imx-imx:expr) (scoped inline modifiers)
-fails:Regexps with modifers supports ASII/Unicode modifiers

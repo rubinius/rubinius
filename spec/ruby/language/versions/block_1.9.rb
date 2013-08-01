@@ -170,5 +170,11 @@ describe "Post-args" do
         [a, b, c, d, e]
       end.call([1, 2, 3, 4], 5, 6).should == [1, [2, 3], 4, 5, 6]
     end
+
+    it "allows empty splats" do
+      proc do |a, (*), b|
+        [a, b]
+      end.call([1, 2, 3]).should == [1, 3]
+    end
   end
 end

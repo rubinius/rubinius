@@ -8,24 +8,24 @@ describe :string_to_sym, :shared => true do
   end
 
   it "special cases +(binary) and -(binary)" do
-    "+(binary)".to_sym.should == :+
-    "-(binary)".to_sym.should == :-
+    "+(binary)".send(@method).should == :+
+    "-(binary)".send(@method).should == :-
   end
 
   ruby_version_is ""..."1.9" do
     it "special cases !@ and ~@" do
-      "!@".to_sym.should == :"!"
-      "~@".to_sym.should == :~
+      "!@".send(@method).should == :"!"
+      "~@".send(@method).should == :~
     end
 
     it "special cases !(unary) and ~(unary)" do
-      "!(unary)".to_sym.should == :"!"
-      "~(unary)".to_sym.should == :~
+      "!(unary)".send(@method).should == :"!"
+      "~(unary)".send(@method).should == :~
     end
 
     it "special cases +(unary) and -(unary)" do
-      "+(unary)".to_sym.should == :"+@"
-      "-(unary)".to_sym.should == :"-@"
+      "+(unary)".send(@method).should == :"+@"
+      "-(unary)".send(@method).should == :"-@"
     end
 
     it "raises an ArgumentError when self can't be converted to symbol" do
@@ -42,7 +42,7 @@ describe :string_to_sym, :shared => true do
         ["~(unary)", :"~(unary)"],
         ["+(unary)", :"+(unary)"],
         ["-(unary)", :"-(unary)"]
-      ].should be_computed_by(:to_sym)
+      ].should be_computed_by(@method)
     end
   end
 end

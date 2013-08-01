@@ -1,7 +1,5 @@
 fails:Addrinfo#initialize with a sockaddr string without a family stores the ip address from the sockaddr
 fails:Addrinfo#initialize with a sockaddr string without a family stores the port number from the sockaddr
-fails:Addrinfo#initialize with a sockaddr string without a family returns the Socket::UNSPEC family
-fails:Addrinfo#initialize with a sockaddr string without a family returns the default socket type
 fails:Addrinfo#initialize with a sockaddr string without a family returns the Socket::UNSPEC pfamily
 fails:Addrinfo#initialize with a sockaddr string without a family returns the INET6 afamily
 fails:Addrinfo#initialize with a sockaddr string without a family returns the 0 socket type
