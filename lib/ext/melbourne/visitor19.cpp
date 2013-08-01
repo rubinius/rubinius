@@ -709,25 +709,25 @@ namespace melbourne {
       NODE* next = 0;
 
       if(post_args && post_args->nd_next && nd_type(post_args->nd_next) == NODE_AND) {
-          if(post_args->nd_next->nd_head) {
-              if (nd_type(post_args->nd_next->nd_head) == NODE_BLOCK) {
-                  masgn = post_args->nd_next->nd_head->nd_head;
-                  next = post_args->nd_next->nd_head->nd_next;
-              } else {
-                  masgn = post_args->nd_next->nd_head;
-                  next = masgn->nd_next;
-                  // -1 comes from: mlhs_head tSTAR
-                  if(masgn->nd_cnt == -1) next = 0;
-              }
+        if(post_args->nd_next->nd_head) {
+          if (nd_type(post_args->nd_next->nd_head) == NODE_BLOCK) {
+            masgn = post_args->nd_next->nd_head->nd_head;
+            next = post_args->nd_next->nd_head->nd_next;
           } else {
-              masgn = post_args->nd_next->nd_2nd;
-              if (masgn) {
-                  next = masgn->nd_next;
-                  if (nd_type(masgn) == NODE_BLOCK) {
-                      masgn = masgn->nd_head;
-                  }
-              }
+            masgn = post_args->nd_next->nd_head;
+            next = masgn->nd_next;
+            // -1 comes from: mlhs_head tSTAR
+            if(masgn->nd_cnt == -1) next = 0;
           }
+        } else {
+          masgn = post_args->nd_next->nd_2nd;
+          if(masgn) {
+            next = masgn->nd_next;
+            if (nd_type(masgn) == NODE_BLOCK) {
+              masgn = masgn->nd_head;
+            }
+          }
+        }
       }
 
       if(node->nd_argc > 0) {
