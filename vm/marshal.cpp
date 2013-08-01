@@ -9,7 +9,8 @@
 #include "object_utils.hpp"
 
 #include <tommath.h>
-#include <gdtoa.h>
+#include <double-conversion.h>
+#include <ieee.h>
 
 #include "builtin/array.hpp"
 #include "builtin/compiledcode.hpp"
@@ -167,7 +168,13 @@ namespace rubinius {
       double x;
       long   e;
 
-      x = ::ruby_strtod(data, NULL);
+      int flags = double_conversion::StringToDoubleConverter::ALLOW_LEADING_SPACES |
+          double_conversion::StringToDoubleConverter::ALLOW_SPACES_AFTER_SIGN |
+          double_conversion::StringToDoubleConverter::ALLOW_TRAILING_SPACES;
+      double_conversion::StringToDoubleConverter sd(flags, 0.0, double_conversion::Double::NaN(), NULL, NULL);
+
+      int processed;
+      x = sd.StringToDouble(data, FLOAT_EXP_OFFSET - 1, &processed);
       e = strtol(data+FLOAT_EXP_OFFSET, NULL, 10);
 
       // This is necessary because exp2(1024) yields inf

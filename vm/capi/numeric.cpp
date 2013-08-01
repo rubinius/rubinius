@@ -10,8 +10,6 @@
 #include "capi/capi.hpp"
 #include "capi/18/include/ruby.h"
 
-#include <gdtoa.h>
-
 using namespace rubinius;
 using namespace rubinius::capi;
 
@@ -190,19 +188,11 @@ extern "C" {
     const char *q;
     char *end;
     double d;
-    const char *ellipsis = "";
-    int w;
-#define OutOfRange() (((w = end - p) > 20) ? (w = 20, ellipsis = "...") : (ellipsis = ""))
 
     if(!p) return 0.0;
     q = p;
     while (ISSPACE(*p)) p++;
-    d = ::ruby_strtod(p, &end);
-    if(errno == ERANGE) {
-      OutOfRange();
-      rb_warning("Float %.*s%s out of range", w, p, ellipsis);
-      errno = 0;
-    }
+    d = Float::string_to_double(p, strlen(p), badcheck, &end);
     if(p == end) {
       if(badcheck) {
         bad:
@@ -234,22 +224,12 @@ extern "C" {
       }
       *n = '\0';
       p = buf;
-      d = ::ruby_strtod(p, &end);
-      if(errno == ERANGE) {
-        OutOfRange();
-        rb_warning("Float %.*s%s out of range", w, p, ellipsis);
-        errno = 0;
-      }
+      d = Float::string_to_double(p, strlen(p), badcheck, &end);
       if(badcheck) {
         if(!end || p == end) goto bad;
         while (*end && ISSPACE(*end)) end++;
         if(*end) goto bad;
       }
-    }
-    if(errno == ERANGE) {
-      errno = 0;
-      OutOfRange();
-      rb_raise(rb_eArgError, "Float %.*s%s out of range", w, q, ellipsis);
     }
     return d;
   }

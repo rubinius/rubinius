@@ -123,6 +123,16 @@ Daedalus.blueprint do |i|
   gcc.add_library gdtoa
   files << gdtoa
 
+  double_conversion = i.external_lib "vendor/double-conversion" do |l|
+    l.cflags = ["-Ivendor/double-conversion/src"] + gcc.cflags
+    l.objects = [l.file("libdoubleconversion.a")]
+    l.to_build do |x|
+      x.command make
+    end
+  end
+  gcc.add_library double_conversion
+  files << double_conversion
+
   ffi = i.external_lib "vendor/libffi" do |l|
     l.cflags = ["-Ivendor/libffi/include"] + gcc.cflags
     l.objects = [l.file(".libs/libffi.a")]
