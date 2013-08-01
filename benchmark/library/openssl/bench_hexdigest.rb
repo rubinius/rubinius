@@ -4,7 +4,7 @@ require 'openssl/digest'
 require 'benchmark'
 require 'benchmark/ips'
 
-input = 'hello, world!'
+input = 'hello, world!' * 100
 
 Benchmark.ips do |bench|
   bench.report 'Digest SHA1' do |times|
