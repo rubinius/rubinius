@@ -395,17 +395,21 @@ namespace rubinius {
 #define FLOAT_TO_S_STRLEN   1280
 
   String* Float::to_s_formatted(STATE, String* format) {
-    char str[FLOAT_TO_S_STRLEN];
+    char buf[FLOAT_TO_S_STRLEN];
 
-    size_t size = snprintf(str, FLOAT_TO_S_STRLEN, format->c_str(state), val);
+    size_t size = snprintf(buf, FLOAT_TO_S_STRLEN, format->c_str(state), val);
 
     if(size >= FLOAT_TO_S_STRLEN) {
       std::ostringstream msg;
       msg << "formatted string exceeds " << FLOAT_TO_S_STRLEN << " bytes";
       Exception::argument_error(state, msg.str().c_str());
     }
-
-    return String::create(state, str, size);
+    String* str = String::create(state, buf, size);
+    if(is_tainted_p()) str->set_tainted();
+    str->ascii_only(state, cTrue);
+    str->valid_encoding(state, cTrue);
+    str->encoding(state, Encoding::usascii_encoding(state));
+    return str;
   }
 
   String* Float::to_s_minimal(STATE) {
@@ -417,6 +421,8 @@ namespace rubinius {
 
     String* str = String::create(state, buffer);
     if(is_tainted_p()) str->set_tainted();
+    str->ascii_only(state, cTrue);
+    str->valid_encoding(state, cTrue);
     str->encoding(state, Encoding::usascii_encoding(state));
 
     return str;
