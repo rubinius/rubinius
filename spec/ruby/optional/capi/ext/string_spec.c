@@ -549,6 +549,13 @@ static VALUE string_spec_rb_str_update(VALUE self, VALUE str, VALUE beg, VALUE e
 }
 #endif
 
+#ifdef HAVE_RB_STR_FREE
+static VALUE string_spec_rb_str_free(VALUE self, VALUE str) {
+  rb_str_free(str);
+  return Qnil;
+}
+#endif
+
 #ifdef HAVE_RB_SPRINTF
 static VALUE string_spec_rb_sprintf1(VALUE self, VALUE str, VALUE repl) {
   return rb_sprintf(RSTRING_PTR(str), RSTRING_PTR(repl));
@@ -799,6 +806,10 @@ void Init_string_spec() {
 
 #ifdef HAVE_RB_STR_UPDATE
   rb_define_method(cls, "rb_str_update", string_spec_rb_str_update, 4);
+#endif
+
+#ifdef HAVE_RB_STR_FREE
+  rb_define_method(cls, "rb_str_free", string_spec_rb_str_free, 1);
 #endif
 
 #ifdef HAVE_RB_SPRINTF
