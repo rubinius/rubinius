@@ -113,16 +113,6 @@ Daedalus.blueprint do |i|
   end
   files << oniguruma
 
-  gdtoa = i.external_lib "vendor/libgdtoa" do |l|
-    l.cflags = ["-Ivendor/libgdtoa"] + gcc.cflags
-    l.objects = [l.file("libgdtoa.a")]
-    l.to_build do |x|
-      x.command make
-    end
-  end
-  gcc.add_library gdtoa
-  files << gdtoa
-
   double_conversion = i.external_lib "vendor/double-conversion" do |l|
     l.cflags = ["-Ivendor/double-conversion/src"] + gcc.cflags
     l.objects = [l.file("libdoubleconversion.a")]
