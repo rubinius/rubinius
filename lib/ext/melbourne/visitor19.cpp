@@ -708,12 +708,9 @@ namespace melbourne {
       NODE* masgn = 0;
       NODE* next = 0;
 
-      if(node->nd_argc > 0) {
-        total_args = (int)locals[0];
-        args_ary = locals + 1;
-
-        if(post_args && post_args->nd_next && nd_type(post_args->nd_next) == NODE_AND) {
-          if(nd_type(post_args->nd_next->nd_head) == NODE_BLOCK) {
+      if(post_args && post_args->nd_next && nd_type(post_args->nd_next) == NODE_AND) {
+        if(post_args->nd_next->nd_head) {
+          if (nd_type(post_args->nd_next->nd_head) == NODE_BLOCK) {
             masgn = post_args->nd_next->nd_head->nd_head;
             next = post_args->nd_next->nd_head->nd_next;
           } else {
@@ -722,7 +719,20 @@ namespace melbourne {
             // -1 comes from: mlhs_head tSTAR
             if(masgn->nd_cnt == -1) next = 0;
           }
+        } else {
+          masgn = post_args->nd_next->nd_2nd;
+          if(masgn) {
+            next = masgn->nd_next;
+            if (nd_type(masgn) == NODE_BLOCK) {
+              masgn = masgn->nd_head;
+            }
+          }
         }
+      }
+
+      if(node->nd_argc > 0) {
+        total_args = (int)locals[0];
+        args_ary = locals + 1;
 
         args = rb_ary_new();
         for(int i = 0; i < node->nd_argc && i < total_args; i++) {
@@ -773,7 +783,21 @@ namespace melbourne {
 
         post = rb_ary_new();
         for(int i = 0; i < post_args->nd_argc && start + i < total_args; i++) {
-          rb_ary_push(post, ID2SYM(args_ary[start + i]));
+          VALUE arg = Qnil;
+
+          if(!INTERNAL_ID_P(args_ary[start + i])) {
+            arg = ID2SYM(args_ary[start + i]);
+          } else if(masgn) {
+            arg = process_parse_tree(parser_state, ptp, masgn, locals);
+            if(next && nd_type(next) == NODE_BLOCK) {
+              masgn = next->nd_head;
+              next = next->nd_next;
+            } else {
+              masgn = next;
+              if(masgn) next = masgn->nd_next;
+            }
+          }
+          rb_ary_push(post, arg);
         }
       }
 

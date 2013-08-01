@@ -439,11 +439,17 @@ module Rubinius
           splat = nil
         end
 
+        @post = []
         if post
-          names.concat post
-          @post = post
-        else
-          @post = []
+          post.each do |arg|
+            case arg
+            when MultipleAssignment
+              @post << PatternArguments.from_masgn(arg)
+            when Symbol
+              @post << arg
+              names << arg
+            end
+          end
         end
 
         if block
@@ -493,8 +499,18 @@ module Rubinius
 
         @defaults.map_arguments scope if @defaults
         scope.new_local @splat if @splat.kind_of? Symbol
-        @post.each { |arg| scope.new_local arg }
+
+        @post.each do |arg|
+          case arg
+          when PatternArguments
+            arg.map_arguments scope
+          when Symbol
+            scope.new_local arg
+          end
+        end
+
         scope.assign_local_reference @block_arg if @block_arg
+
       end
 
       def bytecode(g)
@@ -508,9 +524,15 @@ module Rubinius
             g.pop
           end
         end
-
         @defaults.bytecode(g) if @defaults
         @block_arg.bytecode(g) if @block_arg
+        @post.each do |arg|
+          if arg.kind_of? PatternArguments
+            arg.argument.position_bytecode(g)
+            arg.bytecode(g)
+            g.pop
+          end
+        end
         g.state.check_for_locals = true
       end
     end
