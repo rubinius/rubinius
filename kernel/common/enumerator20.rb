@@ -2,6 +2,9 @@
 
 module Enumerable
   class Enumerator
+    attr_writer :args
+    private :args=
+    
     def initialize(object_or_size=undefined, iter=:each, *args, &block)
       if block_given?
         if undefined.equal? object_or_size
@@ -29,6 +32,28 @@ module Enumerable
       self
     end
     private :initialize
+
+    def each(*args, &block)
+      enumerator = self
+      new_args = @args
+
+      unless args.empty?
+        enumerator = dup
+        new_args = @args.empty? ? args : (@args + args)
+      end
+
+      Rubinius.privately do
+        enumerator.args = new_args
+      end
+
+      if block_given?
+        Rubinius.privately do
+          enumerator.each_with_block(&block)
+        end
+      else
+        enumerator
+      end
+    end
 
     def size
       @size.kind_of?(Proc) ? @size.call : @size

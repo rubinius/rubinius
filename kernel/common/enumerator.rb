@@ -4,8 +4,17 @@ module Enumerable
   class Enumerator
     include Enumerable
 
+    def each_with_block(&block)
+      @object.__send__ @iter, *@args, &block
+    end
+    private :each_with_block
+
     def each(&block)
-      @object.__send__(@iter, *@args, &block)
+      if block_given?
+        each_with_block(&block)
+      else
+        self
+      end
     end
 
     def each_with_index
