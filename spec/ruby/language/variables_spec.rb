@@ -260,6 +260,14 @@ describe "Basic multiple assignment" do
         a.should == 1
         b.should == 2
       end
+
+      it "doesn't take in account #to_ary if it returns nil" do
+        x = VariablesSpecs::ToAryNil.new
+
+        a, b = x
+        a.should == x
+        b.should be_nil
+      end
     end
   end
 

@@ -67,4 +67,9 @@ module VariablesSpecs
       [3, 4]
     end
   end
+
+  class ToAryNil
+    def to_ary
+    end
+  end
 end
