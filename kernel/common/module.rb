@@ -373,6 +373,7 @@ class Module
   def set_class_visibility(meth, vis)
     Rubinius::Type.object_singleton_class(self).set_visibility meth, vis, "class "
   end
+  private :set_class_visibility
 
   def protected(*args)
     if args.empty?
