@@ -66,6 +66,7 @@ namespace rubinius {
   class Fiber;
   class GarbageCollector;
   class Park;
+  class NativeMethodEnvironment;
 
   enum MethodMissingReason {
     eNone, ePrivate, eProtected, eSuper, eVCall, eNormal
@@ -123,6 +124,7 @@ namespace rubinius {
     /// Root fiber, if any (lazily initialized)
     TypedRoot<Fiber*> root_fiber;
 
+    NativeMethodEnvironment* native_method_environment;
     InflatedHeader* waiting_header_;
 
     void (*custom_wakeup_)(void*);

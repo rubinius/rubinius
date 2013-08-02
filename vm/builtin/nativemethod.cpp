@@ -30,8 +30,9 @@ namespace rubinius {
     return native_method_environment.get();
   }
 
-  NativeMethodFrame::NativeMethodFrame(NativeMethodFrame* prev, NativeMethod* method)
+  NativeMethodFrame::NativeMethodFrame(NativeMethodEnvironment* env, NativeMethodFrame* prev, NativeMethod* method)
     : previous_(prev)
+    , env_(env)
     , capi_lock_index_(method ? method->capi_lock_index() : 0)
     , check_handles_(false)
     , block_(Qnil)
@@ -52,7 +53,7 @@ namespace rubinius {
     if(handles_.add_if_absent(handle)) {
       // We're seeing this object for the first time in this function.
       // Be sure that it's updated.
-      handle->update(NativeMethodEnvironment::get());
+      handle->update(env_);
     }
   }
 
@@ -64,7 +65,7 @@ namespace rubinius {
       if(handles_.add_if_absent(handle)) {
         // We're seeing this object for the first time in this function.
         // Be sure that it's updated.
-        handle->update(NativeMethodEnvironment::get());
+        handle->update(env_);
       }
     } else {
       handle = state->memory()->add_capi_handle(state, obj);
@@ -84,37 +85,33 @@ namespace rubinius {
   }
 
   void NativeMethodFrame::flush_cached_data() {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
     if(check_handles_) {
-      handles_.flush_all(env);
+      handles_.flush_all(env_);
     }
 
-    if(env->state()->shared().config.capi_global_flush) {
-      std::list<capi::Handle*>* handles = env->state()->memory()->cached_capi_handles();
+    if(env_->state()->shared().config.capi_global_flush) {
+      std::list<capi::Handle*>* handles = env_->state()->memory()->cached_capi_handles();
 
       for(std::list<capi::Handle*>::iterator i = handles->begin();
           i != handles->end();
           ++i) {
-        (*i)->flush(env);
+        (*i)->flush(env_);
       }
     }
   }
 
   void NativeMethodFrame::update_cached_data() {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
     if(check_handles_) {
-      handles_.update_all(env);
+      handles_.update_all(env_);
     }
 
-    if(env->state()->shared().config.capi_global_flush) {
-      std::list<capi::Handle*>* handles = env->state()->memory()->cached_capi_handles();
+    if(env_->state()->shared().config.capi_global_flush) {
+      std::list<capi::Handle*>* handles = env_->state()->memory()->cached_capi_handles();
 
       for(std::list<capi::Handle*>::iterator i = handles->begin();
           i != handles->end();
           ++i) {
-        (*i)->update(env);
+        (*i)->update(env_);
       }
     }
   }
@@ -191,10 +188,12 @@ namespace rubinius {
   void NativeMethod::init_thread(STATE) {
     NativeMethodEnvironment* env = new NativeMethodEnvironment(state);
     native_method_environment.set(env);
+    state->vm()->native_method_environment = env;
   }
 
   void NativeMethod::cleanup_thread(STATE) {
-    delete native_method_environment.get();
+    delete state->vm()->native_method_environment;
+    state->vm()->native_method_environment = NULL;
     native_method_environment.set(NULL);
   }
 
@@ -631,7 +630,7 @@ namespace rubinius {
       return NULL;
     }
 
-    NativeMethodEnvironment* env = native_method_environment.get();
+    NativeMethodEnvironment* env = state->vm()->native_method_environment;
 
     // Optionally get the handles back to the proper state.
     if(state->shared().config.capi_global_flush) {
@@ -644,7 +643,7 @@ namespace rubinius {
       }
     }
 
-    NativeMethodFrame nmf(env->current_native_frame(), nm);
+    NativeMethodFrame nmf(env, env->current_native_frame(), nm);
     CallFrame* call_frame = ALLOCA_CALLFRAME(0);
     call_frame->previous = previous;
     call_frame->constant_scope_ = 0;

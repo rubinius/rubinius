@@ -262,14 +262,14 @@ namespace rubinius {
   }
 
   void SharedState::enter_capi(STATE, const char* file, int line) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    NativeMethodEnvironment* env = state->vm()->native_method_environment;
     if(int lock_index = env->current_native_frame()->capi_lock_index()) {
       capi_locks_[lock_index - 1]->lock(state->vm(), file, line);
     }
   }
 
   void SharedState::leave_capi(STATE) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    NativeMethodEnvironment* env = state->vm()->native_method_environment;
     if(int lock_index = env->current_native_frame()->capi_lock_index()) {
       capi_locks_[lock_index - 1]->unlock(state->vm());
     }

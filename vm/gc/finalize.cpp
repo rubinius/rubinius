@@ -258,8 +258,8 @@ namespace rubinius {
     case eNative:
       if(process_item_->finalizer) {
 
-        NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-        NativeMethodFrame nmf(0, 0);
+        NativeMethodEnvironment* env = state->vm()->native_method_environment;
+        NativeMethodFrame nmf(env, 0, 0);
         CallFrame* call_frame = ALLOCA_CALLFRAME(0);
         call_frame->previous = 0;
         call_frame->constant_scope_ = 0;
