@@ -136,6 +136,10 @@ module Rubinius
       end
     end
 
+    def self.object_respond_to_ary?(obj)
+      object_respond_to?(obj, :to_ary, true)
+    end
+
     def self.binary_string(string)
       string.force_encoding Encoding::BINARY
     end
