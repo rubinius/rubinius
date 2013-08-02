@@ -10,20 +10,18 @@ namespace rubinius {
 
   class InflatedHeaders {
   private:
-    VM* state_;
     Allocator<InflatedHeader>* allocator_;
 
   public:
-    InflatedHeaders(VM* state)
-      : state_(state)
-      , allocator_(new Allocator<InflatedHeader>())
+    InflatedHeaders()
+      : allocator_(new Allocator<InflatedHeader>())
     {}
 
     ~InflatedHeaders() {
       delete allocator_;
     }
 
-    InflatedHeader* allocate(ObjectHeader* obj, uint32_t* index);
+    InflatedHeader* allocate(STATE, ObjectHeader* obj, uint32_t* index);
 
     InflatedHeader* find_index(uintptr_t index) {
       return allocator_->from_index(index);
