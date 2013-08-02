@@ -17,6 +17,12 @@ describe "Rubinius::Type.check_convert_type" do
     Rubinius::Type.check_convert_type(obj, TypeSpecs::A, :coerce).should equal(val)
   end
 
+  it "returns the result of calling the private method on the object if it is not the specified type" do
+    obj = TypeSpecs::PrivateToAry.new
+
+    Rubinius::Type.check_convert_type(obj, Array, :to_ary).should == [1, 2, 3]
+  end
+
   it "returns nil if the method raises an exception" do
     obj = mock("Type.coerce_to")
     obj.should_receive(:coerce).and_raise(Exception)
