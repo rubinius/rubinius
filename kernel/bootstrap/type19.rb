@@ -5,7 +5,7 @@ module Rubinius
     def self.coerce_to_array(obj)
       return [obj] unless obj
 
-      return obj.to_a if obj.respond_to?(:to_a)
+      return Rubinius.privately { obj.to_a } if obj.respond_to?(:to_a, true)
       return obj.to_ary if obj.respond_to?(:to_ary)
 
       # On 1.9, #to_a is not defined on all objects, so wrap the object in a
