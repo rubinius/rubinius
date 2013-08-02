@@ -27,4 +27,14 @@ module TypeSpecs
       [1, 2, 3]
     end
   end
+
+  class MethodVisibility
+    def public_method
+    end
+
+    private
+
+    def private_method
+    end
+  end
 end
