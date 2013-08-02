@@ -572,6 +572,8 @@ namespace rubinius {
 
     native_int fd = io->descriptor()->to_native();
 
+    if(fd == -1) return;
+
     // Flush the buffer to disk if it's not write sync'd
     if(IOBuffer* buf = try_as<IOBuffer>(io->ibuffer())) {
       if(!CBOOL(buf->write_synced())) {
