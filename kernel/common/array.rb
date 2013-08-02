@@ -35,7 +35,7 @@ class Array
         # Do nothing, fall through to later case.
       elsif size_or_array.kind_of? Array
         ary = size_or_array
-      elsif size_or_array.respond_to? :to_ary
+      elsif Rubinius::Type.object_respond_to_ary?(size_or_array)
         ary = Rubinius::Type.coerce_to size_or_array, Array, :to_ary
       end
 
