@@ -94,10 +94,8 @@ namespace rubinius {
     if(Tuple* tup = try_as<Tuple>(value)) {
       return Array::from_tuple(state, tup);
     } else if(CBOOL(value->respond_to(state, G(sym_to_ary), cTrue))) {
-      Arguments args(G(sym_to_ary), value, 0, 0);
-      Dispatch dis(args.name());
 
-      Object* res = dis.send(state, call_frame, args);
+      Object* res = value->send(state, call_frame, G(sym_to_ary));
       if(!res) return 0;
 
       if(Array* ary = try_as<Array>(res)) {
