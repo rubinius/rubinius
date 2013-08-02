@@ -28,6 +28,12 @@ module TypeSpecs
     end
   end
 
+  class PublicToAry
+    def to_ary
+      [1, 2, 3]
+    end
+  end
+
   class MethodVisibility
     def public_method
     end
