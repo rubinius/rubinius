@@ -146,21 +146,21 @@ namespace rubinius {
   /** Same as fetch(state, key). */
   Object* LookupTable::aref(STATE, Object* key) {
     LookupTableBucket* entry = find_entry(state, key);
-    if(entry == cNil) return cNil;
+    if(entry->nil_p()) return cNil;
     return entry->value();
   }
 
   /** Same as aref(state, key). */
   Object* LookupTable::fetch(STATE, Object* key) {
     LookupTableBucket* entry = find_entry(state, key);
-    if(entry == cNil) return cNil;
+    if(entry->nil_p()) return cNil;
     return entry->value();
   }
 
   Object* LookupTable::fetch(STATE, Object* key, Object* return_on_failure) {
     LookupTableBucket* entry = find_entry(state, key);
 
-    if(entry == cNil) {
+    if(entry->nil_p()) {
       return return_on_failure;
     }
 
@@ -169,7 +169,7 @@ namespace rubinius {
 
   Object* LookupTable::fetch(STATE, Object* key, bool* found) {
     LookupTableBucket* entry = find_entry(state, key);
-    if(entry == cNil) {
+    if(entry->nil_p()) {
       *found = false;
       return cNil;
     }
@@ -185,7 +185,7 @@ namespace rubinius {
    */
   Object* LookupTable::find(STATE, Object* key) {
     LookupTableBucket* entry = find_entry(state, key);
-    if(entry == cNil) {
+    if(entry->nil_p()) {
       return cUndef;
     }
     return entry->value();
@@ -230,7 +230,7 @@ namespace rubinius {
   Object* LookupTable::has_key(STATE, Object* key) {
     LookupTableBucket* entry = find_entry(state, key);
 
-    if(entry == cNil) return cFalse;
+    if(entry->nil_p()) return cFalse;
     return cTrue;
   }
 

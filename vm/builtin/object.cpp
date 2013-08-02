@@ -245,7 +245,7 @@ namespace rubinius {
 
         Object** baa = reinterpret_cast<Object**>(pointer_to_body());
         Object* obj = baa[which->to_native()];
-        if(obj == cUndef) return cNil;
+        if(obj->undef_p()) return cNil;
         return obj;
       }
     default:

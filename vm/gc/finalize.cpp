@@ -243,7 +243,7 @@ namespace rubinius {
         CallFrame* call_frame = 0;
         // Rubinius specific code. If the finalizer is cTrue, then send the
         // object the __finalize__ message.
-        if(process_item_->ruby_finalizer == cTrue) {
+        if(process_item_->ruby_finalizer->true_p()) {
           process_item_->object->send(state, call_frame, state->symbol("__finalize__"));
         } else {
           Array* ary = Array::create(state, 1);

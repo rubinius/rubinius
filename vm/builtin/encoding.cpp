@@ -458,7 +458,7 @@ namespace rubinius {
   }
 
   bool Encoding::ascii_compatible() {
-    return encoding_->min_enc_len == 1 && dummy_ == cFalse;
+    return encoding_->min_enc_len == 1 && dummy_->false_p();
   }
 
   Object* Encoding::ascii_compatible_p(STATE) {

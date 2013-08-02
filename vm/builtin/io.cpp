@@ -126,7 +126,7 @@ namespace rubinius {
     Fixnum* old_fd = as<Fixnum>(ref->get(state));
 
     while(old_fd->to_native() < new_fd &&
-          ref->compare_and_set(state, old_fd, Fixnum::from(new_fd)) == cFalse) {
+          ref->compare_and_set(state, old_fd, Fixnum::from(new_fd))->false_p()) {
       old_fd = as<Fixnum>(ref->get(state));
     }
   }
@@ -620,7 +620,7 @@ namespace rubinius {
 
       if(LANGUAGE_18_ENABLED) {
         ::close(fd);
-      } else if(io->autoclose_ != cFalse) {
+      } else if(!io->autoclose_->false_p()) {
         ::close(fd);
       }
     }

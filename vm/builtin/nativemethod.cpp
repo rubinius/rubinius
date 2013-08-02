@@ -131,7 +131,7 @@ namespace rubinius {
       return Qfalse;
     } else if(obj->true_p()) {
       return Qtrue;
-    } else if(obj == cUndef) {
+    } else if(obj->undef_p()) {
       return Qundef;
     }
 

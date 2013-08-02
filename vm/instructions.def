@@ -1663,7 +1663,7 @@ end
 #   whether the consumed value was the special value `nil`.
 
 instruction is_nil() [ value -- boolean ]
-  stack_push(RBOOL(stack_pop() == cNil));
+  stack_push(RBOOL(stack_pop()->nil_p()));
 end
 
 # [Description]
