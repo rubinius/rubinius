@@ -296,7 +296,7 @@ module Process
 
     IO.pipe do |read, write|
       pid = Process.fork do
-        read.close
+        read.close_on_exec = true
         write.close_on_exec = true
 
         begin
