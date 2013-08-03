@@ -39,6 +39,7 @@ namespace {
     static char ID;
     GuardEliminator()
       : FunctionPass(ID)
+      , float_type_(0)
     {}
 
     virtual bool doInitialization(Module& mod) {
@@ -322,6 +323,9 @@ namespace {
     RubiniusAliasAnalysis()
       : FunctionPass(ID)
       , class_type_(0)
+      , object_type_(0)
+      , args_type_(0)
+      , float_type_(0)
     {}
 
     virtual void getAnalysisUsage(llvm::AnalysisUsage& usage) const {
