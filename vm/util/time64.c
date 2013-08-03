@@ -233,8 +233,8 @@ int tm_to_tm64(struct tm* tm, struct tm64* tm64) {
 
 static const int month_offsets[] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
 int day_of_week(int64_t y, int m, int d) {
-   y -= m < 3;
-   return (y + y/4 - y/100 + y/400 + month_offsets[m-1] + d) % 7;
+   y -= m < 2;
+   return (y + y/4 - y/100 + y/400 + month_offsets[m] + d) % 7;
 }
 
 /* Whether the given year is a leap year or not.
@@ -337,7 +337,7 @@ time64_t timestamp64(time_t (*func)(struct tm*), struct tm64* tm64) {
   if(year < 1902) {
     /* For years below the 32 bit size time_t value we need to use
     * the lower comparable years */
-    int day = day_of_week(year, tm64->tm_mon + 1, tm64->tm_mday);
+    int day = day_of_week(year, tm64->tm_mon, 1);
     if(tm64->tm_mon == 2 && leap_year(year)) {
       tm.tm_year = lower_leap_month_table[day] - 1900;
     } else {
@@ -346,7 +346,7 @@ time64_t timestamp64(time_t (*func)(struct tm*), struct tm64* tm64) {
   } else if(year > 2037) {
     /* For years above the 32 bit size time_t value we need to use
      * the lower comparable years */
-    int day = day_of_week(year, tm64->tm_mon + 1, tm64->tm_mday);
+    int day = day_of_week(year, tm64->tm_mon, 1);
     if(tm64->tm_mon == 2 && leap_year(year)) {
       tm.tm_year = higher_leap_month_table[day] - 1900;
     } else {
@@ -517,7 +517,7 @@ struct tm64* localtime64_r(const time64_t* time64, struct tm64* tm64) {
   if(gm_year < 1902) {
     /* For years below the 32 bit size time_t value we need to use
     * the lower comparable years */
-    int day = day_of_week(gm_year, gm.tm_mon + 1, gm.tm_mday);
+    int day = day_of_week(gm_year, gm.tm_mon, 1);
     if(gm.tm_mon == 2 && leap_year(gm_year)) {
       gm.tm_year = lower_leap_month_table[day];
     } else {
@@ -526,7 +526,7 @@ struct tm64* localtime64_r(const time64_t* time64, struct tm64* tm64) {
   } else if(gm_year > 2037) {
     /* For years above the 32 bit size time_t value we need to use
      * the lower comparable years */
-    int day = day_of_week(gm_year, gm.tm_mon + 1, gm.tm_mday);
+    int day = day_of_week(gm_year, gm.tm_mon, 1);
     if(gm.tm_mon == 2 && leap_year(gm_year)) {
       gm.tm_year = higher_leap_month_table[day];
     } else {

@@ -89,7 +89,7 @@ public:
     String* path = String::create(state, dir);
     d->open(state, path);
     d->read(state);
-    Fixnum* pos = (Fixnum*)d->control(state, Fixnum::from(2), Fixnum::from(0));
+    Fixnum* pos = force_as<Fixnum>(d->control(state, Fixnum::from(2), Fixnum::from(0)));
     String* first = as<String>(d->read(state));
 
     d->control(state, Fixnum::from(0), pos);

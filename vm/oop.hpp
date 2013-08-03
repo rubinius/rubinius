@@ -596,6 +596,10 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
       return this == reinterpret_cast<ObjectHeader*>(cFalse);
     }
 
+    bool undef_p() const {
+      return this == reinterpret_cast<ObjectHeader*>(cUndef);
+    }
+
     object_type type_id() const {
       return flags().obj_type;
     }

@@ -238,7 +238,7 @@ extern "C" {
     self->locals_remove(state, state->symbol("function"));
     self->locals_remove(state, state->symbol("argument"));
 
-    NativeMethodFrame nmf(0, nm);
+    NativeMethodFrame nmf(env, 0, nm);
     CallFrame cf;
     cf.previous = 0;
     cf.constant_scope_ = 0;

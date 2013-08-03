@@ -181,8 +181,8 @@ extern "C" {
     if(obj == Qundef) return T_UNDEF;
     if(SYMBOL_P(obj)) return T_SYMBOL;
 
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    Object* object = env->get_object(obj);
+    capi::Handle* handle = capi::Handle::from(obj);
+    Object* object = handle->object();
     switch(object->type_id()) {
     case ArrayType:
       return T_ARRAY;

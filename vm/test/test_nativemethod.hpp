@@ -18,7 +18,8 @@ class TestNativeMethod : public CxxTest::TestSuite, public VMTest {
   }
 
   void test_native_method_frame_get_object() {
-    NativeMethodFrame nmf(NULL, NULL);
+    NativeMethodEnvironment* nme = create_native_method_environment();
+    NativeMethodFrame nmf(nme, NULL, NULL);
     String* str = String::create(state, "test");
     Integer* id = str->id(state);
     VALUE handle = nmf.get_handle(state, str);
@@ -27,9 +28,9 @@ class TestNativeMethod : public CxxTest::TestSuite, public VMTest {
   }
 
   NativeMethodEnvironment* create_native_method_environment() {
-    NativeMethodFrame* nmf = new NativeMethodFrame(NULL, NULL);
-    CallFrame* cf = new CallFrame;
     NativeMethodEnvironment* nme = new NativeMethodEnvironment(state);
+    NativeMethodFrame* nmf = new NativeMethodFrame(nme, NULL, NULL);
+    CallFrame* cf = new CallFrame;
 
     nme->set_current_call_frame(cf);
     nme->set_current_native_frame(nmf);

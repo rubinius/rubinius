@@ -789,17 +789,17 @@ void #{@name}::Info::auto_mark(Object* _t, ObjectMark& mark) {
   def kind_of_code(what)
     case @name
     when "Fixnum"
-      return "__FIXNUM_P__(#{what})"
+      return "#{what}->fixnum_p()"
     when "Symbol"
-      return "__SYMBOL_P__(#{what})"
+      return "#{what}->symbol_p()"
     when "TrueClass"
-      return "#{what} == cTrue"
+      return "#{what}->true_p()"
     when "FalseClass"
-      return "#{what} == cFalse"
+      return "#{what}->false_p()"
     when "NilClass"
-      return "#{what} == cNil"
+      return "#{what}->nil_p()"
     else
-      return "(__REFERENCE_P__(#{what}) && #{what}->type_id() == #{@name}Type)"
+      return "(#{what}->reference_p() && #{what}->type_id() == #{@name}Type)"
     end
   end
 

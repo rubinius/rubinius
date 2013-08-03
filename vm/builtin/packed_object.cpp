@@ -20,7 +20,7 @@ namespace rubinius {
     }
 
     Object* obj = body_as_array()[which->to_native()];
-    if(obj == cUndef) return cFalse;
+    if(obj->undef_p()) return cFalse;
     return cTrue;
   }
 
@@ -49,7 +49,7 @@ namespace rubinius {
     while(i.advance()) {
       Object* key = i.key();
       if(Fixnum* which = try_as<Fixnum>(tbl->fetch(state, key))) {
-        if(body_as_array()[which->to_native()] != cUndef) {
+        if(!body_as_array()[which->to_native()]->undef_p()) {
           ary->append(state, key);
         }
       }

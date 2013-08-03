@@ -218,6 +218,8 @@ module Rubinius
           key.reopen(File.open(file, mode_string, perms))
         else
           val = fd_to_io(val)
+          val.close_on_exec = false
+          val.autoclose = false
           key.reopen(val)
         end
       end
@@ -238,11 +240,20 @@ module Rubinius
       if umask = options[:umask]
         File.umask(umask)
       end
+
+      unless options[:close_others] == false
+        3.upto(IO.max_open_fd).each do |fd|
+          begin
+            IO.for_fd(fd, :autoclose => false).close_on_exec = true
+          rescue Errno::EBADF
+          end
+        end
+      end
     end
 
     def self.exec(env, prog, argv, redirects, options)
-      setup_redirects(redirects)
       setup_options(options)
+      setup_redirects(redirects)
       ENV.update(env)
       Process.perform_exec prog, argv
     end
@@ -285,18 +296,9 @@ module Process
   def self.spawn(*args)
     env, prog, argv, redirects, options = Rubinius::Spawn.extract_arguments(*args)
 
-    unless options[:close_others] == false
-      3.upto(IO.max_open_fd).each do |fd|
-        begin
-          IO.for_fd(fd, :autoclose => false).close_on_exec = true
-        rescue Errno::EBADF
-        end
-      end
-    end
-
     IO.pipe do |read, write|
       pid = Process.fork do
-        read.close
+        read.close_on_exec = true
         write.close_on_exec = true
 
         begin

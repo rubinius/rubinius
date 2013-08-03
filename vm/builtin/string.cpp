@@ -191,7 +191,7 @@ namespace rubinius {
     capi::Handle* handle = this->handle(state);
     if(!handle) return;
 
-    handle->update(NativeMethodEnvironment::get());
+    handle->update(state->vm()->native_method_environment);
   }
 
   static bool byte_compatible_p(Encoding* enc) {

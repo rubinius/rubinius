@@ -17,10 +17,43 @@ namespace rubinius {
   class String;
   class Tuple;
   class LookupTable;
+  class Regexp;
 
   // Cache up to 4 entries, for ASCII, Binary, UTF-8
   // and other encodings.
   const static int cCachedOnigDatas = 4;
+
+  class MatchData : public Object {
+  public:
+    const static object_type type = MatchDataType;
+
+  private:
+    String* source_; // slot
+    Regexp* regexp_; // slot
+    Tuple* full_;    // slot
+    Tuple* region_;  // slot
+
+  public:
+    /* accessors */
+
+    attr_accessor(source, String);
+    attr_accessor(regexp, Regexp);
+    attr_accessor(full, Tuple);
+    attr_accessor(region, Tuple);
+
+    String* matched_string(STATE);
+    String* pre_matched(STATE);
+    String* post_matched(STATE);
+    String* last_capture(STATE);
+    String* nth_capture(STATE, native_int which);
+
+    /* interface */
+
+    class Info : public TypeInfo {
+    public:
+      BASIC_TYPEINFO(TypeInfo)
+    };
+  };
 
   class Regexp : public Object {
   public:
@@ -60,13 +93,13 @@ namespace rubinius {
     Object* fixed_encoding_p(STATE);
 
     // Rubinius.primitive :regexp_search_region
-    Object* match_region(STATE, String* string, Fixnum* start, Fixnum* end, Object* forward);
+    MatchData* match_region(STATE, String* string, Fixnum* start, Fixnum* end, Object* forward);
 
     // Rubinius.primitive :regexp_match_start
-    Object* match_start(STATE, String* string, Fixnum* start);
+    MatchData* match_start(STATE, String* string, Fixnum* start);
 
     // Rubinius.primitive :regexp_search_from
-    Object* search_from(STATE, String* string, Fixnum* start);
+    MatchData* search_from(STATE, String* string, Fixnum* start);
 
     // Rubinius.primitive :regexp_allocate
     static Regexp* allocate(STATE, Object* self);
@@ -107,38 +140,6 @@ namespace rubinius {
 
     friend class Info;
 
-  };
-
-  class MatchData : public Object {
-  public:
-    const static object_type type = MatchDataType;
-
-  private:
-    String* source_; // slot
-    Regexp* regexp_; // slot
-    Tuple* full_;    // slot
-    Tuple* region_;  // slot
-
-  public:
-    /* accessors */
-
-    attr_accessor(source, String);
-    attr_accessor(regexp, Regexp);
-    attr_accessor(full, Tuple);
-    attr_accessor(region, Tuple);
-
-    String* matched_string(STATE);
-    String* pre_matched(STATE);
-    String* post_matched(STATE);
-    Object* last_capture(STATE);
-    Object* nth_capture(STATE, native_int which);
-
-    /* interface */
-
-    class Info : public TypeInfo {
-    public:
-      BASIC_TYPEINFO(TypeInfo)
-    };
   };
 
 }

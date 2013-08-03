@@ -57,7 +57,7 @@ namespace rubinius {
     : young_(new BakerGC(this, config.gc_young_initial_bytes * 2))
     , mark_sweep_(new MarkSweepGC(this, config))
     , immix_(new ImmixGC(this))
-    , inflated_headers_(new InflatedHeaders(state))
+    , inflated_headers_(new InflatedHeaders)
     , capi_handles_(new capi::Handles)
     , code_manager_(&state->shared)
     , mark_(2)
@@ -148,7 +148,7 @@ namespace rubinius {
     }
 
     uint32_t ih_header = 0;
-    InflatedHeader* ih = inflated_headers_->allocate(obj, &ih_header);
+    InflatedHeader* ih = inflated_headers_->allocate(state, obj, &ih_header);
     ih->update(state, orig);
     ih->initialize_mutex(state->vm()->thread_id(), count);
     ih->mark(this, mark_);
@@ -316,7 +316,7 @@ step1:
     case eAuxWordObjID:
       // We could be have made a header before trying again, so
       // keep using the original one.
-      ih = inflated_headers_->allocate(obj, &ih_index);
+      ih = inflated_headers_->allocate(state, obj, &ih_index);
       ih->set_object_id(orig.f.aux_word);
       break;
     case eAuxWordLock:
@@ -325,12 +325,12 @@ step1:
         return false;
       }
 
-      ih = inflated_headers_->allocate(obj, &ih_index);
+      ih = inflated_headers_->allocate(state, obj, &ih_index);
       initial_count = orig.f.aux_word & cAuxLockRecCountMask;
       break;
     case eAuxWordHandle:
       // Handle in use so inflate and update handle
-      ih = inflated_headers_->allocate(obj, &ih_index);
+      ih = inflated_headers_->allocate(state, obj, &ih_index);
       ih->set_handle(state, obj->handle(state));
       break;
     case eAuxWordInflated:
@@ -379,16 +379,16 @@ step1:
 
       switch(orig.f.meaning) {
       case eAuxWordEmpty:
-        ih = inflated_headers_->allocate(obj, &ih_header);
+        ih = inflated_headers_->allocate(state, obj, &ih_header);
         break;
       case eAuxWordObjID:
         // We could be have made a header before trying again, so
         // keep using the original one.
-        ih = inflated_headers_->allocate(obj, &ih_header);
+        ih = inflated_headers_->allocate(state, obj, &ih_header);
         ih->set_object_id(orig.f.aux_word);
         break;
       case eAuxWordHandle:
-        ih = inflated_headers_->allocate(obj, &ih_header);
+        ih = inflated_headers_->allocate(state, obj, &ih_header);
         ih->set_handle(state, obj->handle(state));
         break;
       case eAuxWordLock:
@@ -403,7 +403,7 @@ step1:
           std::cerr << "[LOCK " << state->vm()->thread_id() << " being unlocked and inflated atomicly]" << std::endl;
         }
 
-        ih = inflated_headers_->allocate(obj, &ih_header);
+        ih = inflated_headers_->allocate(state, obj, &ih_header);
         break;
       case eAuxWordInflated:
         if(cDebugThreading) {
@@ -742,7 +742,7 @@ step1:
     }
 
     uint32_t ih_index = 0;
-    InflatedHeader* ih = inflated_headers_->allocate(obj, &ih_index);
+    InflatedHeader* ih = inflated_headers_->allocate(state, obj, &ih_index);
     ih->update(state, orig);
     ih->set_object_id(id);
     ih->mark(this, mark_);
@@ -772,7 +772,7 @@ step1:
     }
 
     uint32_t ih_index = 0;
-    InflatedHeader* ih = inflated_headers_->allocate(obj, &ih_index);
+    InflatedHeader* ih = inflated_headers_->allocate(state, obj, &ih_index);
     ih->update(state, orig);
     ih->set_handle(state, handle);
     ih->mark(this, mark_);

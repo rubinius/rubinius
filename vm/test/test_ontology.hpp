@@ -38,8 +38,8 @@ public:
     Class *cls;
     SingletonClass *sc;
 
-    cls = (Class*)G(klass);
-    sc = (SingletonClass*)cls->klass();
+    cls = G(klass);
+    sc = as<SingletonClass>(cls->klass());
     TS_ASSERT(kind_of<SingletonClass>(G(object)->klass()));
     TS_ASSERT(kind_of<MethodTable>(sc->method_table()));
     TS_ASSERT(kind_of<ConstantTable>(sc->constant_table()));
@@ -48,7 +48,7 @@ public:
   void test_module() {
     Class *mod;
 
-    mod = (Class*)G(module);
+    mod = G(module);
     TS_ASSERT_EQUALS(mod->class_object(state), G(klass));
     TS_ASSERT_EQUALS(mod->superclass(), G(object));
     check_const(module, "Module");

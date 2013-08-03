@@ -141,6 +141,10 @@ namespace rubinius {
     static int mant_dig()   { return DBL_MANT_DIG; }
     static double epsilon() { return DBL_EPSILON; }
 
+    static double string_to_double(const char* buf, size_t len, bool strict, char** end);
+    static int double_to_string(char* buf, size_t len, double val);
+    static int double_to_ascii(char* buf, size_t len, double val, bool* sign, int* decpt);
+
     class Info : public TypeInfo {
     public:
       Info(object_type type)

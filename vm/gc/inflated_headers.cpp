@@ -7,7 +7,7 @@
 
 namespace rubinius {
 
-  InflatedHeader* InflatedHeaders::allocate(ObjectHeader* obj, uint32_t* index) {
+  InflatedHeader* InflatedHeaders::allocate(STATE, ObjectHeader* obj, uint32_t* index) {
     bool needs_gc = false;
     uintptr_t header_index = allocator_->allocate_index(&needs_gc);
     if(header_index > UINT32_MAX) {
@@ -16,7 +16,7 @@ namespace rubinius {
     *index = (uint32_t)header_index;
     InflatedHeader* header = allocator_->from_index(header_index);
     if(needs_gc) {
-      state_->om->collect_mature_now = true;
+      state->memory()->collect_mature_now = true;
     }
     atomic::memory_barrier();
     return header;

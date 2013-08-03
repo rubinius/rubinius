@@ -240,10 +240,10 @@ namespace rubinius {
 
     // See?
     if(!LANGUAGE_18_ENABLED) {
-      assert(basicobject->superclass() == cNil);
+      assert(basicobject->superclass()->nil_p());
       assert(object->superclass() == basicobject);
     } else {
-      assert(object->superclass() == cNil);
+      assert(object->superclass()->nil_p());
       assert(object->klass()->superclass() == cls);
     }
 

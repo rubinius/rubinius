@@ -91,7 +91,7 @@ namespace rubinius {
     size_t byte_size() const;
 
     size_t add(std::string str);
-    Kind detect_kind(const char* str, size_t size) const;
+    static Kind detect_kind(const char* str, size_t size);
   };
 };
 

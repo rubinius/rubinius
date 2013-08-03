@@ -66,13 +66,13 @@ public:
     TS_ASSERT_EQUALS(as<Integer>(tbl->entries())->to_native(), 3);
 
     LookupTableBucket* entry = tbl->find_entry(state, k1);
-    TS_ASSERT(entry != cNil);
+    TS_ASSERT(!entry->nil_p());
 
-    TS_ASSERT(entry->next() != cNil);
+    TS_ASSERT(!entry->next()->nil_p());
     TS_ASSERT_EQUALS(entry->next()->key(), k2);
 
     entry = tbl->find_entry(state, k3);
-    TS_ASSERT(entry != cNil);
+    TS_ASSERT(!entry->nil_p());
     TS_ASSERT_EQUALS(entry->key(), k3);
   }
 
@@ -116,12 +116,12 @@ public:
     tbl->store(state, k, cTrue);
 
     LookupTableBucket* entry = tbl->find_entry(state, k);
-    TS_ASSERT(entry != cNil);
+    TS_ASSERT(!entry->nil_p());
     TS_ASSERT_EQUALS(entry->key(),k);
     TS_ASSERT_EQUALS(entry->value(),cTrue);
 
     entry = tbl->find_entry(state, Fixnum::from(40));
-    TS_ASSERT(entry == cNil);
+    TS_ASSERT(entry->nil_p());
   }
 
   void test_find() {
@@ -132,7 +132,7 @@ public:
     TS_ASSERT_EQUALS(out, cTrue);
 
     out = tbl->find(state, Fixnum::from(40));
-    TS_ASSERT(out == cUndef);
+    TS_ASSERT(out->undef_p());
   }
 
   void test_remove() {
@@ -160,9 +160,8 @@ public:
 
     TS_ASSERT(bins < (size_t)tbl-> bins()->to_native());
 
-    Object* out;
     for(size_t i = 0; i < bound; i++) {
-      out = tbl->remove(state, Fixnum::from(i));
+      Object* out = tbl->remove(state, Fixnum::from(i));
       TS_ASSERT_EQUALS(out, cTrue);
     }
 

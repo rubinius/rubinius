@@ -124,7 +124,7 @@ public:
 
     obj->raw_bytes()[0] = 8;
 
-    ByteArray* obj2 = (ByteArray*)obj->duplicate(state);
+    ByteArray* obj2 = as<ByteArray>(obj->duplicate(state));
 
     TS_ASSERT_EQUALS(obj2->raw_bytes()[0], 8);
   }
@@ -260,7 +260,7 @@ public:
     obj->set_ivar(state, sym1, one);
     obj->set_ivar(state, sym2, two);
 
-    CompactLookupTable* ivars = (CompactLookupTable*)obj->ivars();
+    CompactLookupTable* ivars = as<CompactLookupTable>(obj->ivars());
 
     TS_ASSERT_EQUALS(ivars->fetch(state, sym1), one);
     TS_ASSERT_EQUALS(ivars->fetch(state, sym2), two);

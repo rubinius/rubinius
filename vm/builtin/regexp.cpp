@@ -423,7 +423,7 @@ namespace rubinius {
     return tup;
   }
 
-  static Object* get_match_data(STATE, OnigRegion *region, String* string, Regexp* regexp, int pos) {
+  static MatchData* get_match_data(STATE, OnigRegion *region, String* string, Regexp* regexp, int pos) {
     MatchData* md = state->new_object<MatchData>(G(matchdata));
     md->source(state, string->string_dup(state));
     md->regexp(state, regexp);
@@ -447,12 +447,11 @@ namespace rubinius {
     return md;
   }
 
-  Object* Regexp::match_region(STATE, String* string, Fixnum* start,
+  MatchData* Regexp::match_region(STATE, String* string, Fixnum* start,
                                Fixnum* end, Object* forward)
   {
     int beg, max;
     const UChar *str;
-    Object* md;
 
     if(unlikely(!onig_source_data(state))) {
       Exception::argument_error(state, "Not properly initialized Regexp");
@@ -466,7 +465,7 @@ namespace rubinius {
 
     // Bounds check.
     if(i_start < 0 || i_end < 0 || i_start > max || i_end > max) {
-      return cNil;
+      return nil<MatchData>();
     }
 
     lock_.lock();
@@ -520,19 +519,18 @@ namespace rubinius {
 
     if(beg == ONIG_MISMATCH) {
       onig_region_free(&region, 0);
-      return cNil;
+      return nil<MatchData>();
     }
 
-    md = get_match_data(state, &region, string, this, 0);
+    MatchData* md = get_match_data(state, &region, string, this, 0);
     onig_region_free(&region, 0);
     return md;
   }
 
-  Object* Regexp::match_start(STATE, String* string, Fixnum* start) {
+  MatchData* Regexp::match_start(STATE, String* string, Fixnum* start) {
     int beg, max;
     const UChar *str;
     const UChar *fin;
-    Object* md = cNil;
 
     if(unlikely(!onig_source_data(state))) {
       Exception::argument_error(state, "Not properly initialized Regexp");
@@ -545,7 +543,7 @@ namespace rubinius {
     fin = str + max;
 
     // Bounds check.
-    if(pos > max) return cNil;
+    if(pos > max) return nil<MatchData>();
     str += pos;
 
     lock_.lock();
@@ -587,6 +585,7 @@ namespace rubinius {
 
     lock_.unlock();
 
+    MatchData* md = nil<MatchData>();
     if(beg != ONIG_MISMATCH) {
       md = get_match_data(state, &region, string, this, pos);
     }
@@ -595,11 +594,10 @@ namespace rubinius {
     return md;
   }
 
-  Object* Regexp::search_from(STATE, String* string, Fixnum* start) {
+  MatchData* Regexp::search_from(STATE, String* string, Fixnum* start) {
     int beg, max;
     const UChar *str;
     const UChar *fin;
-    Object* md = cNil;
 
     if(unlikely(!onig_source_data(state))) {
       Exception::argument_error(state, "Not properly initialized Regexp");
@@ -653,6 +651,7 @@ namespace rubinius {
 
     lock_.unlock();
 
+    MatchData* md = nil<MatchData>();
     if(beg != ONIG_MISMATCH) {
       md = get_match_data(state, &region, string, this, pos);
     }
@@ -736,11 +735,11 @@ namespace rubinius {
     return string;
   }
 
-  Object* MatchData::nth_capture(STATE, native_int which) {
-    if(region_->num_fields() <= which) return cNil;
+  String* MatchData::nth_capture(STATE, native_int which) {
+    if(region_->num_fields() <= which) return nil<String>();
 
     Tuple* sub = try_as<Tuple>(region_->at(state, which));
-    if(!sub) return cNil;
+    if(!sub) return nil<String>();
 
     Fixnum* beg = try_as<Fixnum>(sub->at(state, 0));
     Fixnum* fin = try_as<Fixnum>(sub->at(state, 1));
@@ -752,7 +751,7 @@ namespace rubinius {
     if(!beg || !fin ||
         f > max ||
         b < 0) {
-      return cNil;
+      return nil<String>();
     }
 
     const char* str = (char*)source_->byte_address();
@@ -767,16 +766,16 @@ namespace rubinius {
     return string;
   }
 
-  Object* MatchData::last_capture(STATE) {
-    if(region_->num_fields() == 0) return cNil;
+  String* MatchData::last_capture(STATE) {
+    if(region_->num_fields() == 0) return nil<String>();
     native_int captures = region_->num_fields();
     while(captures--) {
-      Object* capture = nth_capture(state, captures);
+      String* capture = nth_capture(state, captures);
       if(!capture->nil_p()) {
         return capture;
       }
     }
-    return cNil;
+    return nil<String>();
   }
 
   Object* Regexp::last_match_result(STATE, Fixnum* mode, Fixnum* which,

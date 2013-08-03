@@ -1115,11 +1115,11 @@ namespace rubinius {
         stack_push(constant(sym), type::KnownType::symbol(sym->index()));
       } else if(Fixnum* fix = try_as<Fixnum>(lit)) {
         stack_push(constant(fix), type::KnownType::fixnum(fix->to_native()));
-      } else if(lit == cTrue) {
+      } else if(lit->true_p()) {
         stack_push(constant(cTrue), type::KnownType::true_());
-      } else if(lit == cFalse) {
+      } else if(lit->false_p()) {
         stack_push(constant(cFalse), type::KnownType::false_());
-      } else if(lit == cNil) {
+      } else if(lit->nil_p()) {
         stack_push(constant(cNil), type::KnownType::nil());
       } else if(lit->reference_p()) {
         Class* klass = lit->klass();

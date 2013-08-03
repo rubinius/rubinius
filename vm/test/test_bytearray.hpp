@@ -190,13 +190,13 @@ class TestByteArray : public CxxTest::TestSuite, public VMTest {
 
     String* foo_nl = String::create(state, "foo\n");
 
-    TS_ASSERT_EQUALS(three, (Fixnum*)ba->locate(state, String::create(state, ""), three, size));
+    TS_ASSERT_EQUALS(three, ba->locate(state, String::create(state, ""), three, size));
     TS_ASSERT_EQUALS(cNil, ba->locate(state, String::create(state, "\n\n"), zero, size));
-    TS_ASSERT_EQUALS(seven, (Fixnum*)ba->locate(state, String::create(state, "\n"), zero, size));
+    TS_ASSERT_EQUALS(seven, ba->locate(state, String::create(state, "\n"), zero, size));
     TS_ASSERT_EQUALS(cNil, ba->locate(state, foo_nl, four, size));
-    TS_ASSERT_EQUALS(seven, (Fixnum*)ba->locate(state, foo_nl, two, size));
-    TS_ASSERT_EQUALS(seven, (Fixnum*)ba->locate(state, foo_nl, three, size));
-    TS_ASSERT_EQUALS(Fixnum::from(10), (Fixnum*)ba->locate(state,
+    TS_ASSERT_EQUALS(seven, ba->locate(state, foo_nl, two, size));
+    TS_ASSERT_EQUALS(seven, ba->locate(state, foo_nl, three, size));
+    TS_ASSERT_EQUALS(Fixnum::from(10), ba->locate(state,
                      String::create(state, "yx"), three, size));
   }
 };

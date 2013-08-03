@@ -13,7 +13,9 @@
 #include "util/local_buffer.hpp"
 #include "version.h"
 
-#include <gdtoa.h>
+#include <double-conversion.h>
+#include <ieee.h>
+
 #include <ctype.h>
 #include <string.h>
 #include <math.h>
@@ -166,14 +168,12 @@ namespace rubinius {
       }
     }
 
-    p = buffer;
-
-    char *rest;
-    double value = ruby_strtod(p, &rest);
+    char* rest;
+    double value = string_to_double(buffer, strlen(buffer), CBOOL(strict), &rest);
 
     if(CBOOL(strict)) {
       // Disallow empty strings in strict mode.
-      if(p == rest) {
+      if(buffer == rest) {
         return nil<Float>();
       }
 
@@ -395,46 +395,47 @@ namespace rubinius {
 #define FLOAT_TO_S_STRLEN   1280
 
   String* Float::to_s_formatted(STATE, String* format) {
-    char str[FLOAT_TO_S_STRLEN];
+    char buf[FLOAT_TO_S_STRLEN];
 
-    size_t size = snprintf(str, FLOAT_TO_S_STRLEN, format->c_str(state), val);
+    size_t size = snprintf(buf, FLOAT_TO_S_STRLEN, format->c_str(state), val);
 
     if(size >= FLOAT_TO_S_STRLEN) {
       std::ostringstream msg;
       msg << "formatted string exceeds " << FLOAT_TO_S_STRLEN << " bytes";
       Exception::argument_error(state, msg.str().c_str());
     }
-
-    return String::create(state, str, size);
+    String* str = String::create(state, buf, size);
+    if(is_tainted_p()) str->set_tainted();
+    str->ascii_only(state, cTrue);
+    str->valid_encoding(state, cTrue);
+    str->encoding(state, Encoding::usascii_encoding(state));
+    return str;
   }
 
   String* Float::to_s_minimal(STATE) {
     char buffer[FLOAT_TO_S_STRLEN];
 
-    if(g_dfmt(buffer, &val, 0, FLOAT_TO_S_STRLEN) == 0) {
-      return force_as<String>(Primitives::failure());
-    }
-
-    String* str = String::create(state, buffer);
+    int len = double_to_string(buffer, FLOAT_TO_S_STRLEN, val);
+    String* str = String::create(state, buffer, len);
     if(is_tainted_p()) str->set_tainted();
+    str->ascii_only(state, cTrue);
+    str->valid_encoding(state, cTrue);
     str->encoding(state, Encoding::usascii_encoding(state));
 
     return str;
   }
 
   Tuple* Float::dtoa(STATE) {
-    int decpt, sign;
-    char *s, *se;
+    int decpt;
+    bool sign;
+    char buf[FLOAT_TO_S_STRLEN];
 
-    s = ::dtoa(val, 0, 0, &decpt, &sign, &se);
-
+    int length = double_to_ascii(buf, FLOAT_TO_S_STRLEN, val, &sign, &decpt);
     Tuple* result = Tuple::create(state, 4);
-    result->put(state, 0, String::create(state, s, se - s));
+    result->put(state, 0, String::create(state, buf, length));
     result->put(state, 1, Fixnum::from(decpt));
     result->put(state, 2, Fixnum::from(sign));
-    result->put(state, 3, Fixnum::from((int)(se - s)));
-
-    ::freedtoa(s);
+    result->put(state, 3, Fixnum::from(length));
 
     return result;
   }
@@ -455,6 +456,46 @@ namespace rubinius {
     }
 
     return String::create(state, str, sz);
+  }
+
+  double Float::string_to_double(const char* buf, size_t len, bool strict, char** end) {
+    int flags = double_conversion::StringToDoubleConverter::ALLOW_HEX |
+        double_conversion::StringToDoubleConverter::ALLOW_TRAILING_SPACES;
+
+    if(!strict) {
+      flags |= double_conversion::StringToDoubleConverter::ALLOW_TRAILING_JUNK |
+        double_conversion::StringToDoubleConverter::ALLOW_LEADING_SPACES |
+        double_conversion::StringToDoubleConverter::ALLOW_SPACES_AFTER_SIGN;
+    }
+
+    double_conversion::StringToDoubleConverter sd(flags, 0.0, 0.0, NULL, NULL);
+
+    int processed;
+    double value = sd.StringToDouble(buf, len, &processed);
+    *end = (char*)buf + processed;
+
+    return value;
+  }
+
+  int Float::double_to_string(char* buf, size_t len, double val) {
+    double_conversion::StringBuilder builder(buf, len);
+    int flags = double_conversion::DoubleToStringConverter::EMIT_TRAILING_DECIMAL_POINT |
+       double_conversion::DoubleToStringConverter::EMIT_TRAILING_ZERO_AFTER_POINT |
+       double_conversion::DoubleToStringConverter::EMIT_POSITIVE_EXPONENT_SIGN;
+    double_conversion::DoubleToStringConverter dc(flags, "Infinity", "NaN", 'e', -4, 15, 0, 0);
+
+    dc.ToShortest(val, &builder);
+
+    int end = builder.position();
+    builder.Finalize();
+    return end;
+  }
+
+  int Float::double_to_ascii(char* buf, size_t len, double val, bool* sign, int* decpt) {
+    int length;
+    double_conversion::DoubleToStringConverter::DoubleToAscii(val,
+      double_conversion::DoubleToStringConverter::SHORTEST, 0, buf, FLOAT_TO_S_STRLEN, sign, &length, decpt);
+    return length;
   }
 
   void Float::into_string(STATE, char* buf, size_t sz) {

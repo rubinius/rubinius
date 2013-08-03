@@ -66,7 +66,7 @@ class Dir
         return unless File.exists? start
 
         # Even though the recursive entry is zero width
-        # in this case, it's left seperator is still the
+        # in this case, its left separator is still the
         # dominant one, so we fix things up to use it.
         switched = @next.dup
         switched.separator = @separator
@@ -104,7 +104,7 @@ class Dir
         raise "invalid usage" if start
 
         # Even though the recursive entry is zero width
-        # in this case, it's left seperator is still the
+        # in this case, its left separator is still the
         # dominant one, so we fix things up to use it.
         if @separator
           switched = @next.dup
@@ -151,7 +151,7 @@ class Dir
     class Match < Node
       def initialize(nxt, flags, glob)
         super nxt, flags
-        @glob = glob
+        @glob = glob || ""
       end
 
       def match?(str)

@@ -1015,7 +1015,7 @@ namespace rubinius {
       }
     }
 
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    NativeMethodEnvironment* env = state->vm()->native_method_environment;
     CallFrame* saved_frame = env->current_call_frame();
     env->set_current_call_frame(call_frame);
 
