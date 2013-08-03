@@ -160,9 +160,8 @@ public:
 
     TS_ASSERT(bins < (size_t)tbl-> bins()->to_native());
 
-    Object* out;
     for(size_t i = 0; i < bound; i++) {
-      out = tbl->remove(state, Fixnum::from(i));
+      Object* out = tbl->remove(state, Fixnum::from(i));
       TS_ASSERT_EQUALS(out, cTrue);
     }
 

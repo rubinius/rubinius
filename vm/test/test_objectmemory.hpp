@@ -99,14 +99,7 @@ public:
     util_new_object(om);
     util_new_object(om);
     util_new_object(om);
-    obj = util_new_object(om);
-
-    // Commented this test, since objects are allocated from slabs
-    // now by default. This means that the bytes used doesn't increase
-    // since the slab where the objects are allocated is already
-    // allocated in the young space.
-
-    // TS_ASSERT_EQUALS(om.young_->bytes_used(), start + obj->size_in_bytes(state) * 5);
+    util_new_object(om);
 
     om.collect_young(state, gc_data);
 
@@ -124,8 +117,8 @@ public:
     ObjectMemory& om = *state->memory();
     Tuple *obj, *obj2, *obj3;
 
-    obj =  (Tuple*)util_new_object(om);
-    obj2 = (Tuple*)util_new_object(om);
+    obj =  as<Tuple>(util_new_object(om));
+    obj2 = as<Tuple>(util_new_object(om));
 
     obj->field[0] = obj2;
     obj2->field[0] = cTrue;
@@ -141,10 +134,10 @@ public:
 
     Object* new_obj = roots->front()->get();
     TS_ASSERT(obj != new_obj);
-    obj = (Tuple*)new_obj;
+    obj = as<Tuple>(new_obj);
 
     TS_ASSERT(om.young_->in_current_p(obj));
-    obj3 = (Tuple*)obj->field[0];
+    obj3 = as<Tuple>(obj->field[0]);
     TS_ASSERT(obj2 != obj3);
 
     TS_ASSERT_EQUALS(obj2->field[0], cTrue);
@@ -206,11 +199,11 @@ public:
     ObjectMemory& om = *state->memory();
     Tuple *young, *mature;
 
-    om.large_object_threshold = 50 * 8 * sizeof(void *) / 32;
+    om.large_object_threshold = sizeof(void *) * 50 * 8 / 32;
 
-    young =  (Tuple*)util_new_object(om);
+    young =  as<Tuple>(util_new_object(om));
     TS_ASSERT_EQUALS(young->zone(), YoungObjectZone);
-    mature = (Tuple*)util_new_object(om,20);
+    mature = as<Tuple>(util_new_object(om,20));
     TS_ASSERT_EQUALS(mature->zone(), MatureObjectZone);
 
     young->field[0] = cTrue;
@@ -222,7 +215,7 @@ public:
     om.collect_young(state, gc_data);
 
     TS_ASSERT(mature->field[0] != young);
-    TS_ASSERT_EQUALS(((Tuple*)mature->field[0])->field[0], cTrue);
+    TS_ASSERT_EQUALS((as<Tuple>(mature->field[0])->field[0]), cTrue);
   }
 
   void test_collect_young_promotes_objects() {
@@ -247,10 +240,10 @@ public:
     ObjectMemory& om = *state->memory();
     Tuple *young, *mature;
 
-    om.large_object_threshold = 50 * 8 * sizeof(void *) / 32;
+    om.large_object_threshold = sizeof(void *) * 50 * 8 / 32;
 
-    young =  (Tuple*)util_new_object(om);
-    mature = (Tuple*)util_new_object(om,20);
+    young =  as<Tuple>(util_new_object(om));
+    mature = as<Tuple>(util_new_object(om,20));
 
     TS_ASSERT(mature->mature_object_p());
     TS_ASSERT(young->young_object_p());
@@ -272,8 +265,8 @@ public:
     ObjectMemory& om = *state->memory();
     Tuple *obj, *obj2;
 
-    obj =  (Tuple*)util_new_object(om);
-    obj2 = (Tuple*)util_new_object(om);
+    obj =  as<Tuple>(util_new_object(om));
+    obj2 = as<Tuple>(util_new_object(om));
 
     obj->field[0] = obj2;
     obj->field[1] = obj2;
@@ -285,9 +278,9 @@ public:
 
     om.collect_young(state, gc_data);
 
-    obj = (Tuple*)roots->front()->get();
+    obj = as<Tuple>(roots->front()->get());
 
-    obj2 = (Tuple*)obj->field[0];
+    obj2 = as<Tuple>(obj->field[0]);
     TS_ASSERT_EQUALS(obj2, obj->field[1]);
     TS_ASSERT_EQUALS(obj2, obj->field[2]);
   }
@@ -304,7 +297,7 @@ public:
 
     om.collect_young(state, gc_data);
 
-    obj = (ByteArray*)roots->front()->get();
+    obj = as<ByteArray>(roots->front()->get());
     TS_ASSERT_EQUALS(obj->raw_bytes()[0], static_cast<char>(47));
   }
 
@@ -336,7 +329,7 @@ public:
     Tuple* young;
     Object* mature;
 
-    om.large_object_threshold = 50 * 8 * sizeof(void *) / 32;
+    om.large_object_threshold = sizeof(void *) * 50 * 8 / 32;
 
     young =  util_new_object(om);
     mature = util_new_object(om,20);
@@ -361,8 +354,8 @@ public:
 
     om.large_object_threshold = 50;
 
-    young =  (Tuple*)util_new_object(om);
-    mature = (Tuple*)util_new_object(om,20);
+    young =  as<Tuple>(util_new_object(om));
+    mature = as<Tuple>(util_new_object(om,20));
 
     young->field[0] = mature;
     mature->field[0] = young;
@@ -376,7 +369,7 @@ public:
     om.wait_for_mature_marker(state);
     gc_data = NULL;
 
-    mature = (Tuple*)young->field[0];
+    mature = as<Tuple>(young->field[0]);
 
     TS_ASSERT_EQUALS(mature->field[0], young);
   }
@@ -385,8 +378,8 @@ public:
     ObjectMemory& om = *state->memory();
     Tuple *obj, *obj2;
 
-    obj =  (Tuple*)util_new_object(om);
-    obj2 = (Tuple*)util_new_object(om);
+    obj =  as<Tuple>(util_new_object(om));
+    obj2 = as<Tuple>(util_new_object(om));
 
     obj2->field[1] = cTrue;
     obj->field[0] = obj2;
@@ -399,8 +392,8 @@ public:
 
     om.collect_young(state, gc_data);
 
-    obj = (Tuple*)roots->front()->get();
-    obj2 = (Tuple*)obj->field[0];
+    obj = as<Tuple>(roots->front()->get());
+    obj2 = as<Tuple>(obj->field[0]);
 
     TS_ASSERT_EQUALS(obj2->field[0], obj);
     TS_ASSERT_EQUALS(obj2->field[1], cTrue);
