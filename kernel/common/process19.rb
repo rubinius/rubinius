@@ -218,6 +218,8 @@ module Rubinius
           key.reopen(File.open(file, mode_string, perms))
         else
           val = fd_to_io(val)
+          val.close_on_exec = false
+          val.autoclose = false
           key.reopen(val)
         end
       end
@@ -250,8 +252,8 @@ module Rubinius
     end
 
     def self.exec(env, prog, argv, redirects, options)
-      setup_redirects(redirects)
       setup_options(options)
+      setup_redirects(redirects)
       ENV.update(env)
       Process.perform_exec prog, argv
     end
