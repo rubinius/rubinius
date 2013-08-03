@@ -29,12 +29,20 @@ class KernelCompiler
 
     parser = compiler.parser
     parser.root Rubinius::ToolSet::Build::AST::Script
+
+    if transforms.kind_of? Array
+      transforms.each { |t| parser.enable_category t }
+    else
+      parser.enable_category transforms
+    end
+
     parser.input file, line
 
     generator = compiler.generator
     generator.processor Rubinius::ToolSet::Build::Generator
 
     writer = compiler.writer
+    writer.version = BUILD_CONFIG[:language_version]
     writer.name = output
 
     compiler.run
@@ -75,9 +83,6 @@ end
 def compiler_file_task(runtime, signature, rb, rbc=nil)
   file_task(/^lib/, runtime, signature, rb, rbc)
 end
-
-# Compile all compiler files during build stage
-opcodes = "lib/compiler/opcodes.rb"
 
 # Generate a digest of the Rubinius runtime files
 signature_file = "kernel/signature.rb"
