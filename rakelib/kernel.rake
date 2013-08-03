@@ -22,43 +22,17 @@ def kernel_clean
     :verbose => $verbose
 end
 
-require 'kernel/bootstrap/iseq.rb'
-
-# So that the compiler can try and use the config
-module Rubinius
-  Config = { 'eval.cache' => false }
-end
-
 # TODO: Build this functionality into the compiler
 class KernelCompiler
   def self.compile(file, output, line, transforms)
-    compiler = Rubinius::Compiler.new :file, :compiled_file
+    compiler = Rubinius::ToolSet::Build::Compiler.new :file, :compiled_file
 
     parser = compiler.parser
-    parser.root Rubinius::AST::Script
-
-    writer = compiler.writer
-
-    # Not ready to enable them yet
-    case BUILD_CONFIG[:language_version]
-    when "18"
-      parser.processor Rubinius::Melbourne
-      writer.version = 18
-    when "19"
-      parser.processor Rubinius::Melbourne19
-      writer.version = 19
-    when "20"
-      parser.processor Rubinius::Melbourne20
-      writer.version = 20
-    end
-
-    if transforms.kind_of? Array
-      transforms.each { |t| parser.enable_category t }
-    else
-      parser.enable_category transforms
-    end
-
+    parser.root Rubinius::ToolSet::Build::AST::Script
     parser.input file, line
+
+    generator = compiler.generator
+    generator.processor Rubinius::ToolSet::Build::Generator
 
     writer = compiler.writer
     writer.name = output
@@ -107,24 +81,6 @@ opcodes = "lib/compiler/opcodes.rb"
 
 # Generate a digest of the Rubinius runtime files
 signature_file = "kernel/signature.rb"
-
-compiler_files = FileList[
-  "lib/compiler.rb",
-  "lib/compiler/**/*.rb",
-  opcodes,
-  "lib/compiler/generator_methods.rb",
-  "lib/melbourne.rb",
-  "lib/melbourne/**/*.rb",
-  "vm/marshal.[ch]pp"
-]
-
-parser_files = FileList[
-  "lib/ext/melbourne/**/*.{c,h}pp",
-  "lib/ext/melbourne/grammar18.y",
-  "lib/ext/melbourne/grammar19.y",
-  "lib/ext/melbourne/lex.c.tab",
-  "lib/ext/melbourne/lex.c.blt"
-]
 
 kernel_files = FileList[
   "kernel/**/*.txt",
@@ -226,14 +182,6 @@ end
   kernel_file_task runtime, signature_file, name
 end
 
-compiler_files.map { |f| File.dirname f }.uniq.each do |dir|
-  directory dir
-end
-
-compiler_files.each do |name|
-  compiler_file_task runtime, signature_file, name
-end
-
 namespace :compiler do
   signature_path = File.expand_path("../../kernel/signature", __FILE__)
 
@@ -241,19 +189,17 @@ namespace :compiler do
   Rubinius::PARSER_PATH = "#{libprefixdir}/melbourne"
   Rubinius::PARSER_EXT_PATH = "#{libprefixdir}/ext/melbourne/build/melbourne20"
 
-  melbourne = "lib/ext/melbourne/build/melbourne.#{$dlext}"
+  task :load => ['compiler:generate'] do
+    require "rubinius/bridge"
+    require "rubinius/toolset"
 
-  file melbourne => "extensions:melbourne_build"
+    Rubinius::ToolSet.start
+    require "rubinius/melbourne"
+    require "rubinius/processor"
+    require "rubinius/compiler"
+    require "rubinius/ast"
+    Rubinius::ToolSet.finish :build
 
-  task :load => ['compiler:generate', melbourne] + compiler_files do
-
-    if BUILD_CONFIG[:which_ruby] == :ruby
-      require "#{Rubinius::COMPILER_PATH}/mri_bridge"
-    elsif BUILD_CONFIG[:which_ruby] == :rbx && RUBY_VERSION =~ /^1\.8/
-      require "#{Rubinius::COMPILER_PATH}/rbx_bridge"
-    end
-
-    require "#{Rubinius::COMPILER_PATH}/compiler"
     require signature_path
   end
 
