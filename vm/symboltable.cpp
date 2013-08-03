@@ -14,7 +14,7 @@
 
 namespace rubinius {
 
-  SymbolTable::Kind SymbolTable::detect_kind(const char* str, size_t size) const {
+  SymbolTable::Kind SymbolTable::detect_kind(const char* str, size_t size) {
     const char one = str[0];
 
     // A constant begins with an uppercase letter.
