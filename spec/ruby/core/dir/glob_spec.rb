@@ -121,6 +121,10 @@ describe "Dir.glob" do
     Dir.glob("spec/**/*.rb").should == []
   end
 
+  it "matches nothing when given an empty list of paths" do
+    Dir.glob('{}').should == []
+  end
+
   platform_is_not(:windows) do
     it "matches the literal character '\\' with option File::FNM_NOESCAPE" do
       Dir.mkdir 'foo?bar'
