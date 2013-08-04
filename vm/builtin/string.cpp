@@ -82,8 +82,6 @@ namespace rubinius {
 
     native_int bytes = size->to_native() + 1;
     ByteArray* ba = ByteArray::create(state, bytes);
-    ba->raw_bytes()[bytes-1] = 0;
-
     so->data(state, ba);
 
     return so;
@@ -105,7 +103,6 @@ namespace rubinius {
 
     native_int bytes = size->to_native() + 1;
     ByteArray* ba = ByteArray::create_pinned(state, bytes);
-    ba->raw_bytes()[bytes-1] = 0;
 
     so->data(state, ba);
 
