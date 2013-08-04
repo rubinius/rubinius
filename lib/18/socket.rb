@@ -897,7 +897,11 @@ class UNIXSocket < BasicSocket
 
     return fd unless klass
 
-    klass.for_fd(fd, mode)
+    if klass < BasicSocket
+      klass.for_fd(fd)
+    else
+      klass.for_fd(fd, mode)
+    end
   end
 
   class << self
