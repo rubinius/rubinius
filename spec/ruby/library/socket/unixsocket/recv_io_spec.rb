@@ -37,5 +37,15 @@ describe "UNIXSocket#recv_io" do
 
       io.should be_kind_of(File)
     end
+
+    it "uses the optional IO class even if it's a BasicSocket" do
+      path = File.expand_path('../../fixtures/send_io.txt', __FILE__)
+      f = File.open(path)
+
+      @client.send_io(f)
+      io = @server.accept.recv_io(UNIXSocket)
+
+      io.should be_kind_of(UNIXSocket)
+    end
   end
 end
