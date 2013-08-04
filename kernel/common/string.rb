@@ -14,7 +14,7 @@ class String
 
   def self.allocate
     str = __allocate__
-    str.__data__ = Rubinius::ByteArray.new(1)
+    str.__data__ = Rubinius::ByteArray.allocate_sized(1)
     str.num_bytes = 0
     str
   end
