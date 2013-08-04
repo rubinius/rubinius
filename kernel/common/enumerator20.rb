@@ -211,6 +211,31 @@ module Enumerable
         end
       end
       alias_method :collect, :map
+
+      def collect_concat
+        raise ArgumentError, 'Lazy#{collect_concat,flat_map} requires a block' unless block_given?
+
+        Lazy.new(self, nil) do |yielder, *args|
+          yield_ret = yield(*args)
+
+          if Rubinius::Type.object_respond_to?(yield_ret, :force) &&
+             Rubinius::Type.object_respond_to?(yield_ret, :each)
+            yield_ret.each do |v|
+              yielder.yield v
+            end
+          else
+            array = Rubinius::Type.check_convert_type yield_ret, Array, :to_ary
+            if array
+              array.each do |v|
+                yielder.yield v
+              end
+            else
+              yielder.yield yield_ret
+            end
+          end
+        end
+      end
+      alias_method :flat_map, :collect_concat
     end
   end
 end
