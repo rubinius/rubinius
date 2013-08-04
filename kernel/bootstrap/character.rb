@@ -8,7 +8,7 @@ module Rubinius
 
     def self.allocate
       chr = __allocate__
-      chr.__data__ = Rubinius::ByteArray.new(1)
+      chr.__data__ = Rubinius::ByteArray.allocate_sized(1)
       chr.num_bytes = 0
       chr
     end

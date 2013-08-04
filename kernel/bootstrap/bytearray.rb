@@ -51,9 +51,8 @@ module Rubinius
       raise PrimitiveFailure, "ByteArray#size primitive failed"
     end
 
-    def dup(cls=nil)
-      cls ||= Rubinius::Type.object_class(self)
-      obj = cls.new(self.size)
+    def dup
+      obj = Rubinius::Type.object_class(self).allocate_sized(self.size)
 
       Rubinius.invoke_primitive :object_copy_object, obj, self
 

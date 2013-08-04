@@ -14,7 +14,7 @@ class String
 
   def self.allocate
     str = __allocate__
-    str.__data__ = Rubinius::ByteArray.new(1)
+    str.__data__ = Rubinius::ByteArray.allocate_sized(1)
     str.num_bytes = 0
     str
   end
@@ -791,20 +791,26 @@ class String
   def count_table(*strings)
     table = String.pattern 256, 1
 
-    i, size = 0, strings.size
+    i = 0
+    size = strings.size
     while i < size
       str = StringValue(strings[i]).dup
-      if str.size > 1 && str.getbyte(0) == 94 # ?^
-        pos, neg = 0, 1
+      if str.bytesize > 1 && str.getbyte(0) == 94 # ?^
+        pos = 0
+        neg = 1
         str.slice!(0)
       else
-        pos, neg = 1, 0
+        pos = 1
+        neg = 0
       end
 
       set = String.pattern 256, neg
+      set_data = set.__data__
       str.tr_expand! nil, true
-      j, chars = -1, str.bytesize
-      set.setbyte(str.getbyte(j), pos) while (j += 1) < chars
+      str_data = str.__data__
+      j = -1
+      chars = str.bytesize
+      set_data[str_data[j]] = pos while (j += 1) < chars
 
       table.apply_and! set
       i += 1

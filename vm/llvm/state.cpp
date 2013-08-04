@@ -619,7 +619,7 @@ halt:
       return;
     }
 
-    int hits = code->machine_code()->call_count;
+    int hits = code->machine_code()->method_call_count();
     code->machine_code()->set_compiling();
 
     BackgroundCompileRequest* req =
@@ -646,6 +646,7 @@ halt:
         llvm::outs() << "[[[ JIT compiled "
           << enclosure_name(code) << "#" << symbol_debug_str(code->name())
           << (req_block ? " (block) " : " (method) ")
+          << " (" << hits << ") "
           << queued_methods() << "/"
           << jitted_methods() << " ]]]\n";
       }
@@ -656,6 +657,7 @@ halt:
         llvm::outs() << "[[[ JIT queued "
           << enclosure_name(code) << "#" << symbol_debug_str(code->name())
           << (req->is_block() ? " (block) " : " (method) ")
+          << " (" << hits << ") "
           << queued_methods() << "/"
           << jitted_methods() << " ]]]\n";
       }

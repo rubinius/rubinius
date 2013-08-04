@@ -980,21 +980,6 @@ extern "C" {
     return cNil;
   }
 
-  Object* rbx_push_system_object(STATE, int which) {
-    switch(which) {
-    case 0:
-      return G(object);
-    case 1:
-      return G(rubinius);
-    case 2:
-      return G(type);
-    case 3:
-      return G(mirror);
-    default:
-      return cNil;
-    }
-  }
-
   Object* rbx_push_ivar(STATE, Object* self, Symbol* name) {
     return self->get_ivar(state, name);
   }

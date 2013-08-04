@@ -82,8 +82,6 @@ namespace rubinius {
 
     native_int bytes = size->to_native() + 1;
     ByteArray* ba = ByteArray::create(state, bytes);
-    ba->raw_bytes()[bytes-1] = 0;
-
     so->data(state, ba);
 
     return so;
@@ -105,16 +103,12 @@ namespace rubinius {
 
     native_int bytes = size->to_native() + 1;
     ByteArray* ba = ByteArray::create_pinned(state, bytes);
-    ba->raw_bytes()[bytes-1] = 0;
 
     so->data(state, ba);
 
     return so;
   }
 
-  /* +bytes+ should NOT attempt to take the trailing null into account
-   * +bytes+ is the number of 'real' characters in the string
-   */
   String* String::create(STATE, const char* str) {
     if(!str) return String::create(state, Fixnum::from(0));
 

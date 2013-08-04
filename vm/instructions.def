@@ -1640,7 +1640,10 @@ instruction check_interrupts() [ -- ]
   flush_ip();
 
   // This is used in loops, and allows loops to heat a method up.
-  if(mcode->call_count >= 0) mcode->call_count++;
+  if(mcode->call_count >= 0) {
+    mcode->loop_count++;
+    mcode->call_count++;
+  }
 
   if(!state->check_async(call_frame)) RUN_EXCEPTION();
 
