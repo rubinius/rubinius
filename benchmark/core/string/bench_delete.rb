@@ -8,14 +8,6 @@ Benchmark.ips do |x|
   non_matching_other = "z"
   matching_other = "y"
 
-  x.report "Empty string delete!" do |times|
-    i = 0
-    while i < times
-      empty_string.dup.delete!(empty_string)
-      i += 1
-    end
-  end
-
   x.report "Long string delete! with empty argument" do |times|
     i = 0
     while i < times
@@ -64,6 +56,62 @@ Benchmark.ips do |x|
     end
   end
 
+  x.report "Empty string delete!" do |times|
+    i = 0
+    while i < times
+      empty_string.dup.delete!(empty_string)
+      i += 1
+    end
+  end
+
+  x.report "Long string delete with empty argument" do |times|
+    i = 0
+    while i < times
+      long_string.delete(empty_string)
+      i += 1
+    end
+  end
+
+  x.report "Long string delete with non match" do |times|
+    i = 0
+    while i < times
+      long_string.delete(non_matching_other)
+      i += 1
+    end
+  end
+
+  x.report "Long string delete with match" do |times|
+    i = 0
+    while i < times
+      long_string.delete(matching_other)
+      i += 1
+    end
+  end
+
+  x.report "Huge string delete with empty argument" do |times|
+    i = 0
+    while i < times
+      huge_string.delete(empty_string)
+      i += 1
+    end
+  end
+
+  x.report "Huge string delete with non match" do |times|
+    i = 0
+    while i < times
+      huge_string.delete(non_matching_other)
+      i += 1
+    end
+  end
+
+  x.report "Huge string delete with match" do |times|
+    i = 0
+    while i < times
+      huge_string.delete(matching_other)
+      i += 1
+    end
+  end
+
   x.report "Empty string delete" do |times|
     i = 0
     while i < times
@@ -71,4 +119,5 @@ Benchmark.ips do |x|
       i += 1
     end
   end
+
 end
