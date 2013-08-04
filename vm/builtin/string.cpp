@@ -109,9 +109,6 @@ namespace rubinius {
     return so;
   }
 
-  /* +bytes+ should NOT attempt to take the trailing null into account
-   * +bytes+ is the number of 'real' characters in the string
-   */
   String* String::create(STATE, const char* str) {
     if(!str) return String::create(state, Fixnum::from(0));
 
