@@ -102,7 +102,7 @@ namespace rubinius {
     static void init_hash();
     static void init(STATE);
 
-    // Rubinius.primitive :string_allocate
+    // Rubinius.primitive+ :string_allocate
     static String* allocate(STATE, Object* self);
 
     static String* create(STATE, Fixnum* size);

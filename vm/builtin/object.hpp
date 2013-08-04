@@ -262,7 +262,7 @@ namespace rubinius {
     /** Reset the object id */
     void reset_id(STATE);
 
-    // Rubinius.primitive :object_infect
+    // Rubinius.primitive+ :object_infect
     Object* infect_prim(STATE, Object* obj, Object* other) {
       other->infect(state, obj);
       return obj;
