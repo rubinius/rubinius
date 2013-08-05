@@ -207,7 +207,7 @@ class IO
     end
 
     if options
-      mode = options[:mode] || "r"
+      mode = options.delete(:mode) || "r"
     end
 
     # Detect pipe mode
@@ -215,7 +215,7 @@ class IO
       io = IO.popen(name[1..-1], "r")
       return nil unless io # child process
     else
-      io = File.new(name, mode)
+      io = File.new(name, mode, options)
     end
 
     str = nil
