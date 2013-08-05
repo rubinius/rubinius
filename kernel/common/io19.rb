@@ -382,7 +382,12 @@ class IO
 
       if !external and !internal
         encoding = options[:encoding]
-        external, internal = encoding.split(':') if encoding.kind_of? String
+
+        if encoding.kind_of? String
+          external, internal = encoding.split(':')
+        elsif encoding.kind_of? Encoding
+          external = encoding
+        end
       end
     end
 
