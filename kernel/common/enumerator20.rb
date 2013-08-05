@@ -4,6 +4,8 @@ module Enumerable
   class Enumerator
     attr_writer :args
     private :args=
+    attr_writer :size
+    private :size=
     
     def initialize(object_or_size=undefined, iter=:each, *args, &block)
       if block_given?
@@ -70,6 +72,9 @@ module Enumerable
     class Lazy < self
       class StopLazyError < Exception; end
 
+      alias_method :initialize_enumerator, :initialize
+      private :initialize_enumerator
+
       def initialize(receiver, size=nil)
         raise ArgumentError, "Lazy#initialize requires a block" unless block_given?
         Rubinius.check_frozen
@@ -86,6 +91,22 @@ module Enumerable
         self
       end
       private :initialize
+
+      def to_enum(iter=:each, *args, &block)
+        size = block_given? ? block : nil
+        ret = Lazy.allocate
+
+        Rubinius.privately do
+          ret.initialize_enumerator @object, iter, *args
+        end
+
+        Rubinius.privately do
+          ret.size = size
+        end
+
+        ret
+      end
+      alias_method :enum_for, :to_enum
 
       def lazy
         self
