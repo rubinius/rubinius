@@ -132,7 +132,7 @@ module Kernel
 
     return ary if ary
 
-    if obj.respond_to? :to_a
+    if obj.respond_to? :to_a, true
       Rubinius::Type.coerce_to(obj, Array, :to_a)
     else
       [obj]

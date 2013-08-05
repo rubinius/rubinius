@@ -28,9 +28,8 @@ module Rubinius
       raise PrimitiveFailure, "Rubinius::Type.singleton_class_object primitive failed"
     end
 
-    def self.object_respond_to?(obj, name)
-      Rubinius.primitive :vm_object_respond_to
-      raise PrimitiveFailure, "Rubinius::Type.object_respond_to? primitive failed"
+    def self.object_respond_to?(obj, name, include_private = false)
+      Rubinius.invoke_primitive :vm_object_respond_to, obj, name, include_private
     end
 
     def self.object_equal(a, b)

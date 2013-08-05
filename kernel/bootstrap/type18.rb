@@ -9,7 +9,7 @@ module Rubinius
 
       # Just call #to_a, which wraps the reciever in an
       # array if it's not one.
-      return obj.to_a
+      return Rubinius.privately { obj.to_a }
     end
 
     def self.coerce_to_float(obj, strict=true, must_be_numeric=true)
