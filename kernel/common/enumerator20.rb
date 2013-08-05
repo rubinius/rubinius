@@ -236,6 +236,42 @@ module Enumerable
         end
       end
       alias_method :flat_map, :collect_concat
+
+      def zip(*lists)
+        return super(*lists) { |entry| yield entry } if block_given?
+
+        lists.map! do |list|
+          array = Rubinius::Type.check_convert_type list, Array, :to_ary
+
+          case
+          when array
+            array
+          when Rubinius::Type.object_respond_to?(list, :each)
+            list.to_enum :each
+          else
+            raise TypeError, "wrong argument type #{list.class} (must respond to :each)"
+          end
+        end
+
+        index = 0
+        Lazy.new(self, enumerator_size) do |yielder, *args|
+          val = args.length >= 2 ? args : args.first
+          rests = lists.map { |list|
+                    case list
+                    when Array
+                      list[index]
+                    else
+                      begin
+                        list.next
+                      rescue StopIteration
+                        nil
+                      end
+                    end
+                  }
+          yielder.yield [val, *rests]
+          index += 1
+        end
+      end
     end
   end
 end
