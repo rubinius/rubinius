@@ -34,6 +34,30 @@ module TypeSpecs
     end
   end
 
+  class PrivateMarshalMethods
+    private
+
+    def _dump
+    end
+
+    def marshal_dump
+    end
+
+    def marshal_load
+    end
+  end
+
+  class PublicMarshalMethods
+    def _dump
+    end
+
+    def marshal_dump
+    end
+
+    def marshal_load
+    end
+  end
+
   class MethodVisibility
     def public_method
     end
