@@ -185,8 +185,14 @@ class Rational < Numeric
         return Rational(other.even? ? 1 : -1)
       end
       Float(self) ** other
-    elsif other.kind_of?(Float) || other.kind_of?(Rational)
+    elsif other.kind_of?(Float)
       Float(self) ** other
+    elsif other.kind_of?(Rational)
+      if self == 0 && other < 0
+        raise ZeroDivisionError, "divided by 0"
+      else
+        Float(self) ** other
+      end
     else
       x, y = other.coerce(self)
       x ** y

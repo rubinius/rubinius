@@ -1,1 +1,0 @@
-fails:Rational#** raises ZeroDivisionError for Rational(0, 1) passed a negative Rational
