@@ -253,6 +253,22 @@ describe "Basic multiple assignment" do
       a.should == x
       b.should be_nil
     end
+
+    ruby_version_is "1.9" do
+      it "calls #to_ary on an object even if it's private" do
+        a, b = VariablesSpecs::PrivateMethods.new
+        a.should == 1
+        b.should == 2
+      end
+
+      it "doesn't take in account #to_ary if it returns nil" do
+        x = VariablesSpecs::ToAryNil.new
+
+        a, b = x
+        a.should == x
+        b.should be_nil
+      end
+    end
   end
 
   describe "with a splatted single RHS value" do
@@ -337,6 +353,14 @@ describe "Basic multiple assignment" do
         a.should == x
         b.should be_nil
       end
+    end
+
+    it "calls #to_a even if it's private" do
+      x = VariablesSpecs::PrivateMethods.new
+
+      a, b = *x
+      a.should == 3
+      b.should == 4
     end
   end
 end

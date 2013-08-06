@@ -42,7 +42,7 @@ module Rubinius
     #
     def self.check_convert_type(obj, cls, meth)
       return obj if object_kind_of?(obj, cls)
-      return nil unless obj.respond_to?(meth)
+      return nil unless obj.respond_to?(meth, true)
       execute_check_convert_type(obj, cls, meth)
     end
 

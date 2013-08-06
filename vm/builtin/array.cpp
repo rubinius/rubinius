@@ -93,25 +93,27 @@ namespace rubinius {
   Array* Array::to_ary(STATE, Object* value, CallFrame* call_frame) {
     if(Tuple* tup = try_as<Tuple>(value)) {
       return Array::from_tuple(state, tup);
-    } else if(CBOOL(value->respond_to(state, G(sym_to_ary), cTrue))) {
-      Arguments args(G(sym_to_ary), value, 0, 0);
-      Dispatch dis(args.name());
+    }
 
-      Object* res = dis.send(state, call_frame, args);
+    if(CBOOL(value->respond_to(state, G(sym_to_ary), cTrue))) {
+      Object* res = value->send(state, call_frame, G(sym_to_ary));
       if(!res) return 0;
 
       if(Array* ary = try_as<Array>(res)) {
         return ary;
       }
 
-      Exception::type_error(state, "to_ary should return an Array", call_frame);
-      return 0;
+      if(LANGUAGE_18_ENABLED || !res->nil_p()) {
+        Exception::type_error(state, "to_ary should return an Array", call_frame);
+        return 0;
+      }
 
-    } else {
-      Array* ary = Array::create(state, 1);
-      ary->set(state, 0, value);
-      return ary;
+      // NOTE: On >= 1.9, if res is nil just fall through and return [value]
     }
+
+    Array* ary = Array::create(state, 1);
+    ary->set(state, 0, value);
+    return ary;
   }
 
   void Array::setup(STATE, native_int size) {
