@@ -292,20 +292,30 @@ describe :process_spawn, :shared => true do
     end.should output_to_fd(Dir.pwd)
   end
 
-  it "uses the given working directory if :chdir => dir is supplied" do
-    dir = File.expand_path('../')
-    lambda do
-      Process.wait @object.spawn(ruby_cmd("print Dir.pwd"), :chdir => dir)
-    end.should output_to_fd(dir)
-  end
+  describe "when passed :chdir" do
+    before do
+      @dir = tmp("spawn_chdir", false)
+      Dir.mkdir @dir
+    end
 
-  it "calls #to_path to convert the :chdir option value" do
-    dir = File.expand_path('../')
-    o = mock("to_path")
-    o.should_receive(:to_path).and_return(dir)
-    lambda do
-      Process.wait @object.spawn(ruby_cmd("print Dir.pwd"), :chdir => o)
-    end.should output_to_fd(dir)
+    after do
+      rm_r @dir
+    end
+
+    it "changes to the directory passed for :chdir" do
+      lambda do
+        Process.wait @object.spawn(ruby_cmd("print Dir.pwd"), :chdir => @dir)
+      end.should output_to_fd(@dir)
+    end
+
+    it "calls #to_path to convert the :chdir value" do
+      dir = mock("spawn_to_path")
+      dir.should_receive(:to_path).and_return(@dir)
+
+      lambda do
+        Process.wait @object.spawn(ruby_cmd("print Dir.pwd"), :chdir => dir)
+      end.should output_to_fd(@dir)
+    end
   end
 
   # :umask
