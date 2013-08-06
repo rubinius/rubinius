@@ -285,7 +285,7 @@ class Configure
 
     o.doc "\n Language version settings"
 
-    o.on "--enable-version", "VERSION", "Enable Ruby VERSION (supported 1.8, 1.9, 2.0)" do |v|
+    o.on "--enable-version", "VERSION", "Enable Ruby VERSION (supported 18, 19, 20)" do |v|
       @language_version = normalize_version v
     end
 
