@@ -48,8 +48,7 @@ Rubinius comes with RubyGems built-in. To install a gem, run the following:
 
 5. Language Modes
 
-The default language mode is 1.9. You can change which language modes are
-enabled and which one is the default mode with configure options.
+The default language mode is ruby 1.9. You can change the language mode with a configure option.
 
 For example, to compile 2.0 mode, use the following configure options:
 
