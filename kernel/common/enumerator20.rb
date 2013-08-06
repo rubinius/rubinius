@@ -4,32 +4,39 @@ module Enumerable
   class Enumerator
     attr_writer :args
     private :args=
-    attr_writer :size
-    private :size=
     
-    def initialize(object_or_size=undefined, iter=:each, *args, &block)
+    def initialize_enumerator(receiver, size, method_name, *method_args)
+      @object = receiver
+      @size = size
+      @iter = method_name
+      @args = method_args
+      @generator = nil
+      @lookahead = []
+
+      self
+    end
+    private :initialize_enumerator
+
+    def initialize(receiver_or_size=undefined, method_name=:each, *method_args, &block)
+      size = nil
+
       if block_given?
-        if undefined.equal? object_or_size
-          size = nil
-        else
-          size = object_or_size
+        unless undefined.equal? receiver_or_size
+          size = receiver_or_size
         end
 
-        object = Generator.new(&block)
+        receiver = Generator.new(&block)
       else
-        if undefined.equal? object_or_size
+        if undefined.equal? receiver_or_size
           raise ArgumentError, "Enumerator#initialize requires a block when called without arguments"
         end
 
-        object = object_or_size
+        receiver = receiver_or_size
       end
 
-      @object = object
-      @size = size
-      @iter = Rubinius::Type.coerce_to iter, Symbol, :to_sym
-      @args = args
-      @generator = nil
-      @lookahead = []
+      method_name = Rubinius::Type.coerce_to method_name, Symbol, :to_sym
+
+      initialize_enumerator receiver, size, method_name, *method_args
 
       self
     end
@@ -72,9 +79,6 @@ module Enumerable
     class Lazy < self
       class StopLazyError < Exception; end
 
-      alias_method :initialize_enumerator, :initialize
-      private :initialize_enumerator
-
       def initialize(receiver, size=nil)
         raise ArgumentError, "Lazy#initialize requires a block" unless block_given?
         Rubinius.check_frozen
@@ -85,6 +89,7 @@ module Enumerable
               yield yielder, *args
             end
           rescue Exception
+            nil
           end
         end
 
@@ -92,16 +97,12 @@ module Enumerable
       end
       private :initialize
 
-      def to_enum(iter=:each, *args, &block)
+      def to_enum(method_name=:each, *method_args, &block)
         size = block_given? ? block : nil
         ret = Lazy.allocate
 
         Rubinius.privately do
-          ret.initialize_enumerator @object, iter, *args
-        end
-
-        Rubinius.privately do
-          ret.size = size
+          ret.initialize_enumerator @object, size, method_name, *method_args
         end
 
         ret
