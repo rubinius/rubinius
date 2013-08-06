@@ -133,6 +133,7 @@ throw_catch.rbc
 throw_catch19.rbc
 time.rbc
 time19.rbc
+time20.rbc
 true.rbc
 variable_scope.rbc
 capi.rbc
