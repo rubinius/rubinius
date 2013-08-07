@@ -8,6 +8,6 @@ describe "Range#to_s" do
     ('A'..'Z').to_s.should == 'A..Z'
     ('A'...'Z').to_s.should == 'A...Z'
     (0xfff..0xfffff).to_s.should == "4095..1048575"
-    (0.5..2.4).inspect.should == "0.5..2.4"
+    (0.5..2.4).to_s.should == "0.5..2.4"
   end
 end
