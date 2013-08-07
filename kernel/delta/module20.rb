@@ -37,6 +37,7 @@ class Module
       klass.origin = im
     end
     Rubinius::Type.include_modules_from(self, klass)
+    Rubinius::Type.infect(klass, self)
     self
   end
 end
