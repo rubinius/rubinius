@@ -319,7 +319,6 @@ static int parser_yyerror(rb_parser_state*, const char *);
 #define yy_error(msg)   parser_yyerror(parser_state, msg)
 #define yyerror         parser_yyerror
 
-#define YYLEX_PARAM parser_state
 
 #define is_notop_id(id) ((id)>tLAST_TOKEN)
 #define is_local_id(id) (is_notop_id(id)&&((id)&ID_SCOPE_MASK)==ID_LOCAL)
@@ -703,7 +702,7 @@ typedef union YYSTYPE
     const struct vtable* vars;
 }
 /* Line 193 of yacc.c.  */
-#line 707 "grammar19.cpp"
+#line 706 "grammar19.cpp"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
@@ -716,7 +715,7 @@ typedef union YYSTYPE
 
 
 /* Line 216 of yacc.c.  */
-#line 720 "grammar19.cpp"
+#line 719 "grammar19.cpp"
 
 #ifdef short
 # undef short
@@ -3985,7 +3984,7 @@ while (YYID (0))
 #ifdef YYLEX_PARAM
 # define YYLEX yylex (&yylval, YYLEX_PARAM)
 #else
-# define YYLEX yylex (&yylval)
+# define YYLEX yylex (&yylval, parser_state)
 #endif
 
 /* Enable debugging if requested.  */
@@ -8164,7 +8163,7 @@ yyreduce:
 
 
 /* Line 1267 of yacc.c.  */
-#line 8168 "grammar19.cpp"
+#line 8167 "grammar19.cpp"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);

@@ -57,16 +57,14 @@ namespace grammar18 {
 #define string_new2(ptr) cstr2bstr(ptr)
 
 static int
-mel_yyerror(const char *, rb_parser_state*);
+mel_yyerror(rb_parser_state*, const char *);
 #define yyparse mel_yyparse
 #define yylex mel_yylex
-#define yyerror(str) mel_yyerror(str, (rb_parser_state*)parser_state)
+#define yy_error(msg)   mel_yyerror(parser_state, msg)
+#define yyerror mel_yyerror
 #define yylval mel_yylval
 #define yychar mel_yychar
 #define yydebug mel_yydebug
-
-#define YYPARSE_PARAM parser_state
-#define YYLEX_PARAM parser_state
 
 #define ID_SCOPE_SHIFT 3
 #define ID_SCOPE_MASK 0x07
@@ -275,7 +273,7 @@ void pt_free(rb_parser_state *parser_state) {
 
 #define SHOW_PARSER_WARNS 0
 
-static int rb_compile_error(rb_parser_state *st, const char *fmt, ...) {
+static int rb_compile_error(rb_parser_state *parser_state, const char *fmt, ...) {
   va_list ar;
   char msg[256];
   int count;
@@ -284,7 +282,7 @@ static int rb_compile_error(rb_parser_state *st, const char *fmt, ...) {
   count = vsnprintf(msg, 256, fmt, ar);
   va_end(ar);
 
-  mel_yyerror(msg, st);
+  yy_error(msg);
 
   return count;
 }
@@ -376,6 +374,8 @@ static NODE *extract_block_vars(rb_parser_state *parser_state, NODE* node, var_t
 %}
 
 %pure-parser
+%parse-param {rb_parser_state* parser_state}
+%lex-param {rb_parser_state* parser_state}
 
 %union {
     VALUE val;
@@ -598,7 +598,7 @@ stmt            : kALIAS fitem {lex_state = EXPR_FNAME;} fitem
                     }
                 | kALIAS tGVAR tNTH_REF
                     {
-                        yyerror("can't make alias for the number variables");
+                        yy_error("can't make alias for the number variables");
                         $$ = 0;
                     }
                 | kUNDEF undef_list
@@ -655,7 +655,7 @@ stmt            : kALIAS fitem {lex_state = EXPR_FNAME;} fitem
                 | klBEGIN
                     {
                         if (in_def || in_single) {
-                            yyerror("BEGIN in method");
+                            yy_error("BEGIN in method");
                         }
                         local_push(0);
                     }
@@ -992,13 +992,13 @@ mlhs_node       : variable
                 | primary_value tCOLON2 tCONSTANT
                     {
                         if (in_def || in_single)
-                            yyerror("dynamic constant assignment");
+                            yy_error("dynamic constant assignment");
                         $$ = NEW_CDECL(0, 0, NEW_COLON2($1, $3));
                     }
                 | tCOLON3 tCONSTANT
                     {
                         if (in_def || in_single)
-                            yyerror("dynamic constant assignment");
+                            yy_error("dynamic constant assignment");
                         $$ = NEW_CDECL(0, 0, NEW_COLON3($2));
                     }
                 | backref
@@ -1031,13 +1031,13 @@ lhs             : variable
                 | primary_value tCOLON2 tCONSTANT
                     {
                         if (in_def || in_single)
-                            yyerror("dynamic constant assignment");
+                            yy_error("dynamic constant assignment");
                         $$ = NEW_CDECL(0, 0, NEW_COLON2($1, $3));
                     }
                 | tCOLON3 tCONSTANT
                     {
                         if (in_def || in_single)
-                            yyerror("dynamic constant assignment");
+                            yy_error("dynamic constant assignment");
                         $$ = NEW_CDECL(0, 0, NEW_COLON3($2));
                     }
                 | backref
@@ -1049,7 +1049,7 @@ lhs             : variable
 
 cname           : tIDENTIFIER
                     {
-                        yyerror("class/module name must be CONSTANT");
+                        yy_error("class/module name must be CONSTANT");
                     }
                 | tCONSTANT
                 ;
@@ -1228,12 +1228,12 @@ arg             : lhs '=' arg
                     }
                 | primary_value tCOLON2 tCONSTANT tOP_ASGN arg
                     {
-                        yyerror("constant re-assignment");
+                        yy_error("constant re-assignment");
                         $$ = 0;
                     }
                 | tCOLON3 tCONSTANT tOP_ASGN arg
                     {
-                        yyerror("constant re-assignment");
+                        yy_error("constant re-assignment");
                         $$ = 0;
                     }
                 | backref tOP_ASGN arg
@@ -1810,7 +1810,7 @@ primary         : literal
                     {
                         PUSH_LINE("class");
                         if (in_def || in_single)
-                            yyerror("class definition in method body");
+                            yy_error("class definition in method body");
                         class_nest++;
                         local_push(0);
                         $<num>$ = sourceline;
@@ -1852,7 +1852,7 @@ primary         : literal
                     {
                         PUSH_LINE("module");
                         if (in_def || in_single)
-                            yyerror("module definition in method body");
+                            yy_error("module definition in method body");
                         class_nest++;
                         local_push(0);
                         $<num>$ = sourceline;
@@ -2414,7 +2414,7 @@ dsym            : tSYMBEG xstring_contents tSTRING_END
                     {
                         lex_state = EXPR_END;
                         if (!($$ = $2)) {
-                            yyerror("empty symbol literal");
+                            yy_error("empty symbol literal");
                         }
                         else {
                             switch (nd_type($$)) {
@@ -2549,26 +2549,26 @@ f_args          : f_arg ',' f_optarg ',' f_rest_arg opt_f_block_arg
 
 f_norm_arg      : tCONSTANT
                     {
-                        yyerror("formal argument cannot be a constant");
+                        yy_error("formal argument cannot be a constant");
                     }
                 | tIVAR
                     {
-                        yyerror("formal argument cannot be an instance variable");
+                        yy_error("formal argument cannot be an instance variable");
                     }
                 | tGVAR
                     {
-                        yyerror("formal argument cannot be a global variable");
+                        yy_error("formal argument cannot be a global variable");
                     }
                 | tCVAR
                     {
-                        yyerror("formal argument cannot be a class variable");
+                        yy_error("formal argument cannot be a class variable");
                     }
                 | tIDENTIFIER
                     {
                         if (!is_local_id($1))
-                            yyerror("formal argument must be local variable");
+                            yy_error("formal argument must be local variable");
                         else if (local_id($1))
-                            yyerror("duplicate argument name");
+                            yy_error("duplicate argument name");
                         local_cnt($1);
                         $$ = 1;
                     }
@@ -2584,9 +2584,9 @@ f_arg           : f_norm_arg
 f_opt           : tIDENTIFIER '=' arg_value
                     {
                         if (!is_local_id($1))
-                            yyerror("formal argument must be local variable");
+                            yy_error("formal argument must be local variable");
                         else if (local_id($1))
-                            yyerror("duplicate optional argument name");
+                            yy_error("duplicate optional argument name");
                         $$ = assignable($1, $3, vps);
                     }
                 ;
@@ -2609,9 +2609,9 @@ restarg_mark    : '*'
 f_rest_arg      : restarg_mark tIDENTIFIER
                     {
                         if (!is_local_id($2))
-                            yyerror("rest argument must be local variable");
+                            yy_error("rest argument must be local variable");
                         else if (local_id($2))
-                            yyerror("duplicate rest argument name");
+                            yy_error("duplicate rest argument name");
                         $$ = local_cnt($2) + 1;
                     }
                 | restarg_mark
@@ -2627,9 +2627,9 @@ blkarg_mark     : '&'
 f_block_arg     : blkarg_mark tIDENTIFIER
                     {
                         if (!is_local_id($2))
-                            yyerror("block argument must be local variable");
+                            yy_error("block argument must be local variable");
                         else if (local_id($2))
-                            yyerror("duplicate block argument name");
+                            yy_error("duplicate block argument name");
                         $$ = NEW_BLOCK_ARG($2);
                     }
                 ;
@@ -2649,7 +2649,7 @@ singleton       : var_ref
                 | '(' {lex_state = EXPR_BEG;} expr opt_nl ')'
                     {
                         if ($3 == 0) {
-                            yyerror("can't define singleton method for ().");
+                            yy_error("can't define singleton method for ().");
                         }
                         else {
                             switch (nd_type($3)) {
@@ -2661,7 +2661,7 @@ singleton       : var_ref
                               case NODE_LIT:
                               case NODE_ARRAY:
                               case NODE_ZARRAY:
-                                yyerror("can't define singleton method for literals");
+                                yy_error("can't define singleton method for literals");
                               default:
                                 value_expr($3);
                                 break;
@@ -2679,7 +2679,7 @@ assoc_list      : none
                 | args trailer
                     {
                         if ($1->nd_alen%2 != 0) {
-                            yyerror("odd number list for Hash");
+                            yy_error("odd number list for Hash");
                         }
                         $$ = $1;
                     }
@@ -2759,7 +2759,7 @@ none            : /* none */ {$$ = 0;}
 #define LEAVE_BS 1
 
 static int
-mel_yyerror(const char *msg, rb_parser_state *parser_state)
+mel_yyerror(rb_parser_state *parser_state, const char *msg)
 {
     create_error(parser_state, (char *)msg);
 
@@ -3064,7 +3064,7 @@ read_escape(rb_parser_state *parser_state)
 
             c = scan_hex(lex_p, 2, &numlen);
             if (numlen == 0) {
-                yyerror("Invalid escape character syntax");
+                yy_error("Invalid escape character syntax");
                 return 0;
             }
             lex_p += numlen;
@@ -3079,7 +3079,7 @@ read_escape(rb_parser_state *parser_state)
 
       case 'M':
         if ((c = nextc()) != '-') {
-            yyerror("Invalid escape character syntax");
+            yy_error("Invalid escape character syntax");
             pushback(c, parser_state);
             return '\0';
         }
@@ -3093,7 +3093,7 @@ read_escape(rb_parser_state *parser_state)
 
       case 'C':
         if ((c = nextc()) != '-') {
-            yyerror("Invalid escape character syntax");
+            yy_error("Invalid escape character syntax");
             pushback(c, parser_state);
             return '\0';
         }
@@ -3108,7 +3108,7 @@ read_escape(rb_parser_state *parser_state)
 
       eof:
       case -1:
-        yyerror("Invalid escape character syntax");
+        yy_error("Invalid escape character syntax");
         return '\0';
 
       default:
@@ -3152,7 +3152,7 @@ tokadd_escape(int term, rb_parser_state *parser_state)
             tokadd((char)c, parser_state);
             scan_hex(lex_p, 2, &numlen);
             if (numlen == 0) {
-                yyerror("Invalid escape character syntax");
+                yy_error("Invalid escape character syntax");
                 return -1;
             }
             while (numlen--)
@@ -3162,7 +3162,7 @@ tokadd_escape(int term, rb_parser_state *parser_state)
 
       case 'M':
         if ((c = nextc()) != '-') {
-            yyerror("Invalid escape character syntax");
+            yy_error("Invalid escape character syntax");
             pushback(c, parser_state);
             return 0;
         }
@@ -3173,7 +3173,7 @@ tokadd_escape(int term, rb_parser_state *parser_state)
 
       case 'C':
         if ((c = nextc()) != '-') {
-            yyerror("Invalid escape character syntax");
+            yy_error("Invalid escape character syntax");
             pushback(c, parser_state);
             return 0;
         }
@@ -3195,7 +3195,7 @@ tokadd_escape(int term, rb_parser_state *parser_state)
 
       eof:
       case -1:
-        yyerror("Invalid escape character syntax");
+        yy_error("Invalid escape character syntax");
         return -1;
 
       default:
@@ -4102,7 +4102,7 @@ yylex(void *yylval_v, void *vstate)
         }
         pushback(c, parser_state);
         if (ISDIGIT(c)) {
-            yyerror("no .<digit> floating literal anymore; put 0 before dot");
+            yy_error("no .<digit> floating literal anymore; put 0 before dot");
         }
         lex_state = EXPR_DOT;
         return '.';
@@ -4141,7 +4141,7 @@ yylex(void *yylval_v, void *vstate)
                     pushback(c, parser_state);
                     tokfix();
                     if (toklen() == start) {
-                        yyerror("numeric literal without digits");
+                        yy_error("numeric literal without digits");
                     }
                     else if (nondigit) goto trailing_uc;
                     pslval->node = NEW_HEXNUM(string_new2(tok()));
@@ -4165,7 +4165,7 @@ yylex(void *yylval_v, void *vstate)
                     pushback(c, parser_state);
                     tokfix();
                     if (toklen() == start) {
-                        yyerror("numeric literal without digits");
+                        yy_error("numeric literal without digits");
                     }
                     else if (nondigit) goto trailing_uc;
                     pslval->node = NEW_BINNUM(string_new2(tok()));
@@ -4189,7 +4189,7 @@ yylex(void *yylval_v, void *vstate)
                     pushback(c, parser_state);
                     tokfix();
                     if (toklen() == start) {
-                        yyerror("numeric literal without digits");
+                        yy_error("numeric literal without digits");
                     }
                     else if (nondigit) goto trailing_uc;
                     pslval->node = NEW_NUMBER(string_new2(tok()));
@@ -4203,7 +4203,7 @@ yylex(void *yylval_v, void *vstate)
                     /* prefixed octal */
                     c = nextc();
                     if (c == '_') {
-                        yyerror("numeric literal without digits");
+                        yy_error("numeric literal without digits");
                     }
                 }
                 if (c >= '0' && c <= '7') {
@@ -4232,7 +4232,7 @@ yylex(void *yylval_v, void *vstate)
                     }
                 }
                 if (c > '7' && c <= '9') {
-                    yyerror("Illegal octal digit");
+                    yy_error("Illegal octal digit");
                 }
                 else if (c == '.' || c == 'e' || c == 'E') {
                     tokadd('0', parser_state);
@@ -4310,7 +4310,7 @@ yylex(void *yylval_v, void *vstate)
                 char tmp[30];
               trailing_uc:
                 snprintf(tmp, sizeof(tmp), "trailing `%c' in number", nondigit);
-                yyerror(tmp);
+                yy_error(tmp);
             }
             if (is_float) {
                 pslval->node = NEW_FLOAT(string_new2(tok()));
@@ -5275,22 +5275,22 @@ assignable(QUID id, NODE *val, rb_parser_state *parser_state)
 {
     value_expr(val);
     if (id == kSELF) {
-        yyerror("Can't change the value of self");
+        yy_error("Can't change the value of self");
     }
     else if (id == kNIL) {
-        yyerror("Can't assign to nil");
+        yy_error("Can't assign to nil");
     }
     else if (id == kTRUE) {
-        yyerror("Can't assign to true");
+        yy_error("Can't assign to true");
     }
     else if (id == kFALSE) {
-        yyerror("Can't assign to false");
+        yy_error("Can't assign to false");
     }
     else if (id == k__FILE__) {
-        yyerror("Can't assign to __FILE__");
+        yy_error("Can't assign to __FILE__");
     }
     else if (id == k__LINE__) {
-        yyerror("Can't assign to __LINE__");
+        yy_error("Can't assign to __LINE__");
     }
     else if (is_local_id(id)) {
         if(variables->block_vars) {
@@ -5306,7 +5306,7 @@ assignable(QUID id, NODE *val, rb_parser_state *parser_state)
     }
     else if (is_const_id(id)) {
         if (in_def || in_single)
-            yyerror("dynamic constant assignment");
+            yy_error("dynamic constant assignment");
         return NEW_CDECL(id, val, 0);
     }
     else if (is_class_id(id)) {
@@ -5430,7 +5430,7 @@ value_expr0(NODE *node, rb_parser_state *parser_state)
           case NODE_NEXT:
           case NODE_REDO:
           case NODE_RETRY:
-            if (!cond) yyerror("void value expression");
+            if (!cond) yy_error("void value expression");
             /* or "control never reach"? */
             return FALSE;
 
@@ -5600,7 +5600,7 @@ assign_in_cond(NODE *node, rb_parser_state *parser_state)
 {
     switch (nd_type(node)) {
       case NODE_MASGN:
-        yyerror("multiple assignment in conditional");
+        yy_error("multiple assignment in conditional");
         return 1;
 
       case NODE_LASGN:

@@ -328,16 +328,14 @@ namespace grammar18 {
 #define string_new2(ptr) cstr2bstr(ptr)
 
 static int
-mel_yyerror(const char *, rb_parser_state*);
+mel_yyerror(rb_parser_state*, const char *);
 #define yyparse mel_yyparse
 #define yylex mel_yylex
-#define yyerror(str) mel_yyerror(str, (rb_parser_state*)parser_state)
+#define yy_error(msg)   mel_yyerror(parser_state, msg)
+#define yyerror mel_yyerror
 #define yylval mel_yylval
 #define yychar mel_yychar
 #define yydebug mel_yydebug
-
-#define YYPARSE_PARAM parser_state
-#define YYLEX_PARAM parser_state
 
 #define ID_SCOPE_SHIFT 3
 #define ID_SCOPE_MASK 0x07
@@ -546,7 +544,7 @@ void pt_free(rb_parser_state *parser_state) {
 
 #define SHOW_PARSER_WARNS 0
 
-static int rb_compile_error(rb_parser_state *st, const char *fmt, ...) {
+static int rb_compile_error(rb_parser_state *parser_state, const char *fmt, ...) {
   va_list ar;
   char msg[256];
   int count;
@@ -555,7 +553,7 @@ static int rb_compile_error(rb_parser_state *st, const char *fmt, ...) {
   count = vsnprintf(msg, 256, fmt, ar);
   va_end(ar);
 
-  mel_yyerror(msg, st);
+  yy_error(msg);
 
   return count;
 }
@@ -675,7 +673,7 @@ typedef union YYSTYPE
     var_table vars;
 }
 /* Line 193 of yacc.c.  */
-#line 679 "grammar18.cpp"
+#line 677 "grammar18.cpp"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
@@ -688,7 +686,7 @@ typedef union YYSTYPE
 
 
 /* Line 216 of yacc.c.  */
-#line 692 "grammar18.cpp"
+#line 690 "grammar18.cpp"
 
 #ifdef short
 # undef short
@@ -3832,7 +3830,7 @@ do								\
     }								\
   else								\
     {								\
-      yyerror (YY_("syntax error: cannot back up")); \
+      yyerror (parser_state, YY_("syntax error: cannot back up")); \
       YYERROR;							\
     }								\
 while (YYID (0))
@@ -3889,7 +3887,7 @@ while (YYID (0))
 #ifdef YYLEX_PARAM
 # define YYLEX yylex (&yylval, YYLEX_PARAM)
 #else
-# define YYLEX yylex (&yylval)
+# define YYLEX yylex (&yylval, parser_state)
 #endif
 
 /* Enable debugging if requested.  */
@@ -3912,7 +3910,7 @@ do {									  \
     {									  \
       YYFPRINTF (stderr, "%s ", Title);					  \
       yy_symbol_print (stderr,						  \
-		  Type, Value); \
+		  Type, Value, parser_state); \
       YYFPRINTF (stderr, "\n");						  \
     }									  \
 } while (YYID (0))
@@ -3926,17 +3924,19 @@ do {									  \
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 static void
-yy_symbol_value_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvaluep)
+yy_symbol_value_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvaluep, rb_parser_state* parser_state)
 #else
 static void
-yy_symbol_value_print (yyoutput, yytype, yyvaluep)
+yy_symbol_value_print (yyoutput, yytype, yyvaluep, parser_state)
     FILE *yyoutput;
     int yytype;
     YYSTYPE const * const yyvaluep;
+    rb_parser_state* parser_state;
 #endif
 {
   if (!yyvaluep)
     return;
+  YYUSE (parser_state);
 # ifdef YYPRINT
   if (yytype < YYNTOKENS)
     YYPRINT (yyoutput, yytoknum[yytype], *yyvaluep);
@@ -3958,13 +3958,14 @@ yy_symbol_value_print (yyoutput, yytype, yyvaluep)
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 static void
-yy_symbol_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvaluep)
+yy_symbol_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvaluep, rb_parser_state* parser_state)
 #else
 static void
-yy_symbol_print (yyoutput, yytype, yyvaluep)
+yy_symbol_print (yyoutput, yytype, yyvaluep, parser_state)
     FILE *yyoutput;
     int yytype;
     YYSTYPE const * const yyvaluep;
+    rb_parser_state* parser_state;
 #endif
 {
   if (yytype < YYNTOKENS)
@@ -3972,7 +3973,7 @@ yy_symbol_print (yyoutput, yytype, yyvaluep)
   else
     YYFPRINTF (yyoutput, "nterm %s (", yytname[yytype]);
 
-  yy_symbol_value_print (yyoutput, yytype, yyvaluep);
+  yy_symbol_value_print (yyoutput, yytype, yyvaluep, parser_state);
   YYFPRINTF (yyoutput, ")");
 }
 
@@ -4012,12 +4013,13 @@ do {								\
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 static void
-yy_reduce_print (YYSTYPE *yyvsp, int yyrule)
+yy_reduce_print (YYSTYPE *yyvsp, int yyrule, rb_parser_state* parser_state)
 #else
 static void
-yy_reduce_print (yyvsp, yyrule)
+yy_reduce_print (yyvsp, yyrule, parser_state)
     YYSTYPE *yyvsp;
     int yyrule;
+    rb_parser_state* parser_state;
 #endif
 {
   int yynrhs = yyr2[yyrule];
@@ -4031,7 +4033,7 @@ yy_reduce_print (yyvsp, yyrule)
       fprintf (stderr, "   $%d = ", yyi + 1);
       yy_symbol_print (stderr, yyrhs[yyprhs[yyrule] + yyi],
 		       &(yyvsp[(yyi + 1) - (yynrhs)])
-		       		       );
+		       		       , parser_state);
       fprintf (stderr, "\n");
     }
 }
@@ -4039,7 +4041,7 @@ yy_reduce_print (yyvsp, yyrule)
 # define YY_REDUCE_PRINT(Rule)		\
 do {					\
   if (yydebug)				\
-    yy_reduce_print (yyvsp, Rule); \
+    yy_reduce_print (yyvsp, Rule, parser_state); \
 } while (YYID (0))
 
 /* Nonzero means print parse trace.  It is left uninitialized so that
@@ -4290,16 +4292,18 @@ yysyntax_error (char *yyresult, int yystate, int yychar)
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 static void
-yydestruct (const char *yymsg, int yytype, YYSTYPE *yyvaluep)
+yydestruct (const char *yymsg, int yytype, YYSTYPE *yyvaluep, rb_parser_state* parser_state)
 #else
 static void
-yydestruct (yymsg, yytype, yyvaluep)
+yydestruct (yymsg, yytype, yyvaluep, parser_state)
     const char *yymsg;
     int yytype;
     YYSTYPE *yyvaluep;
+    rb_parser_state* parser_state;
 #endif
 {
   YYUSE (yyvaluep);
+  YYUSE (parser_state);
 
   if (!yymsg)
     yymsg = "Deleting";
@@ -4324,7 +4328,7 @@ int yyparse ();
 #endif
 #else /* ! YYPARSE_PARAM */
 #if defined __STDC__ || defined __cplusplus
-int yyparse (void);
+int yyparse (rb_parser_state* parser_state);
 #else
 int yyparse ();
 #endif
@@ -4353,11 +4357,11 @@ yyparse (YYPARSE_PARAM)
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 int
-yyparse (void)
+yyparse (rb_parser_state* parser_state)
 #else
 int
-yyparse ()
-
+yyparse (parser_state)
+    rb_parser_state* parser_state;
 #endif
 #endif
 {
@@ -4720,7 +4724,7 @@ yyreduce:
   case 14:
 #line 600 "grammar18.y"
     {
-                        yyerror("can't make alias for the number variables");
+                        yy_error("can't make alias for the number variables");
                         (yyval.node) = 0;
                     ;}
     break;
@@ -4798,7 +4802,7 @@ yyreduce:
 #line 656 "grammar18.y"
     {
                         if (in_def || in_single) {
-                            yyerror("BEGIN in method");
+                            yy_error("BEGIN in method");
                         }
                         local_push(0);
                     ;}
@@ -5255,7 +5259,7 @@ yyreduce:
 #line 993 "grammar18.y"
     {
                         if (in_def || in_single)
-                            yyerror("dynamic constant assignment");
+                            yy_error("dynamic constant assignment");
                         (yyval.node) = NEW_CDECL(0, 0, NEW_COLON2((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].id)));
                     ;}
     break;
@@ -5264,7 +5268,7 @@ yyreduce:
 #line 999 "grammar18.y"
     {
                         if (in_def || in_single)
-                            yyerror("dynamic constant assignment");
+                            yy_error("dynamic constant assignment");
                         (yyval.node) = NEW_CDECL(0, 0, NEW_COLON3((yyvsp[(2) - (2)].id)));
                     ;}
     break;
@@ -5316,7 +5320,7 @@ yyreduce:
 #line 1032 "grammar18.y"
     {
                         if (in_def || in_single)
-                            yyerror("dynamic constant assignment");
+                            yy_error("dynamic constant assignment");
                         (yyval.node) = NEW_CDECL(0, 0, NEW_COLON2((yyvsp[(1) - (3)].node), (yyvsp[(3) - (3)].id)));
                     ;}
     break;
@@ -5325,7 +5329,7 @@ yyreduce:
 #line 1038 "grammar18.y"
     {
                         if (in_def || in_single)
-                            yyerror("dynamic constant assignment");
+                            yy_error("dynamic constant assignment");
                         (yyval.node) = NEW_CDECL(0, 0, NEW_COLON3((yyvsp[(2) - (2)].id)));
                     ;}
     break;
@@ -5341,7 +5345,7 @@ yyreduce:
   case 92:
 #line 1051 "grammar18.y"
     {
-                        yyerror("class/module name must be CONSTANT");
+                        yy_error("class/module name must be CONSTANT");
                     ;}
     break;
 
@@ -5647,7 +5651,7 @@ yyreduce:
   case 183:
 #line 1230 "grammar18.y"
     {
-                        yyerror("constant re-assignment");
+                        yy_error("constant re-assignment");
                         (yyval.node) = 0;
                     ;}
     break;
@@ -5655,7 +5659,7 @@ yyreduce:
   case 184:
 #line 1235 "grammar18.y"
     {
-                        yyerror("constant re-assignment");
+                        yy_error("constant re-assignment");
                         (yyval.node) = 0;
                     ;}
     break;
@@ -6569,7 +6573,7 @@ yyreduce:
     {
                         PUSH_LINE("class");
                         if (in_def || in_single)
-                            yyerror("class definition in method body");
+                            yy_error("class definition in method body");
                         class_nest++;
                         local_push(0);
                         (yyval.num) = sourceline;
@@ -6624,7 +6628,7 @@ yyreduce:
     {
                         PUSH_LINE("module");
                         if (in_def || in_single)
-                            yyerror("module definition in method body");
+                            yy_error("module definition in method body");
                         class_nest++;
                         local_push(0);
                         (yyval.num) = sourceline;
@@ -7331,7 +7335,7 @@ yyreduce:
     {
                         lex_state = EXPR_END;
                         if (!((yyval.node) = (yyvsp[(2) - (3)].node))) {
-                            yyerror("empty symbol literal");
+                            yy_error("empty symbol literal");
                         }
                         else {
                             switch (nd_type((yyval.node))) {
@@ -7524,28 +7528,28 @@ yyreduce:
   case 474:
 #line 2551 "grammar18.y"
     {
-                        yyerror("formal argument cannot be a constant");
+                        yy_error("formal argument cannot be a constant");
                     ;}
     break;
 
   case 475:
 #line 2555 "grammar18.y"
     {
-                        yyerror("formal argument cannot be an instance variable");
+                        yy_error("formal argument cannot be an instance variable");
                     ;}
     break;
 
   case 476:
 #line 2559 "grammar18.y"
     {
-                        yyerror("formal argument cannot be a global variable");
+                        yy_error("formal argument cannot be a global variable");
                     ;}
     break;
 
   case 477:
 #line 2563 "grammar18.y"
     {
-                        yyerror("formal argument cannot be a class variable");
+                        yy_error("formal argument cannot be a class variable");
                     ;}
     break;
 
@@ -7553,9 +7557,9 @@ yyreduce:
 #line 2567 "grammar18.y"
     {
                         if (!is_local_id((yyvsp[(1) - (1)].id)))
-                            yyerror("formal argument must be local variable");
+                            yy_error("formal argument must be local variable");
                         else if (local_id((yyvsp[(1) - (1)].id)))
-                            yyerror("duplicate argument name");
+                            yy_error("duplicate argument name");
                         local_cnt((yyvsp[(1) - (1)].id));
                         (yyval.num) = 1;
                     ;}
@@ -7572,9 +7576,9 @@ yyreduce:
 #line 2585 "grammar18.y"
     {
                         if (!is_local_id((yyvsp[(1) - (3)].id)))
-                            yyerror("formal argument must be local variable");
+                            yy_error("formal argument must be local variable");
                         else if (local_id((yyvsp[(1) - (3)].id)))
-                            yyerror("duplicate optional argument name");
+                            yy_error("duplicate optional argument name");
                         (yyval.node) = assignable((yyvsp[(1) - (3)].id), (yyvsp[(3) - (3)].node), vps);
                     ;}
     break;
@@ -7598,9 +7602,9 @@ yyreduce:
 #line 2610 "grammar18.y"
     {
                         if (!is_local_id((yyvsp[(2) - (2)].id)))
-                            yyerror("rest argument must be local variable");
+                            yy_error("rest argument must be local variable");
                         else if (local_id((yyvsp[(2) - (2)].id)))
-                            yyerror("duplicate rest argument name");
+                            yy_error("duplicate rest argument name");
                         (yyval.id) = local_cnt((yyvsp[(2) - (2)].id)) + 1;
                     ;}
     break;
@@ -7616,9 +7620,9 @@ yyreduce:
 #line 2628 "grammar18.y"
     {
                         if (!is_local_id((yyvsp[(2) - (2)].id)))
-                            yyerror("block argument must be local variable");
+                            yy_error("block argument must be local variable");
                         else if (local_id((yyvsp[(2) - (2)].id)))
-                            yyerror("duplicate block argument name");
+                            yy_error("duplicate block argument name");
                         (yyval.node) = NEW_BLOCK_ARG((yyvsp[(2) - (2)].id));
                     ;}
     break;
@@ -7647,7 +7651,7 @@ yyreduce:
 #line 2650 "grammar18.y"
     {
                         if ((yyvsp[(3) - (5)].node) == 0) {
-                            yyerror("can't define singleton method for ().");
+                            yy_error("can't define singleton method for ().");
                         }
                         else {
                             switch (nd_type((yyvsp[(3) - (5)].node))) {
@@ -7659,7 +7663,7 @@ yyreduce:
                               case NODE_LIT:
                               case NODE_ARRAY:
                               case NODE_ZARRAY:
-                                yyerror("can't define singleton method for literals");
+                                yy_error("can't define singleton method for literals");
                               default:
                                 value_expr((yyvsp[(3) - (5)].node));
                                 break;
@@ -7680,7 +7684,7 @@ yyreduce:
 #line 2680 "grammar18.y"
     {
                         if ((yyvsp[(1) - (2)].node)->nd_alen%2 != 0) {
-                            yyerror("odd number list for Hash");
+                            yy_error("odd number list for Hash");
                         }
                         (yyval.node) = (yyvsp[(1) - (2)].node);
                     ;}
@@ -7717,7 +7721,7 @@ yyreduce:
 
 
 /* Line 1267 of yacc.c.  */
-#line 7721 "grammar18.cpp"
+#line 7725 "grammar18.cpp"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -7753,7 +7757,7 @@ yyerrlab:
     {
       ++yynerrs;
 #if ! YYERROR_VERBOSE
-      yyerror (YY_("syntax error"));
+      yyerror (parser_state, YY_("syntax error"));
 #else
       {
 	YYSIZE_T yysize = yysyntax_error (0, yystate, yychar);
@@ -7777,11 +7781,11 @@ yyerrlab:
 	if (0 < yysize && yysize <= yymsg_alloc)
 	  {
 	    (void) yysyntax_error (yymsg, yystate, yychar);
-	    yyerror (yymsg);
+	    yyerror (parser_state, yymsg);
 	  }
 	else
 	  {
-	    yyerror (YY_("syntax error"));
+	    yyerror (parser_state, YY_("syntax error"));
 	    if (yysize != 0)
 	      goto yyexhaustedlab;
 	  }
@@ -7805,7 +7809,7 @@ yyerrlab:
       else
 	{
 	  yydestruct ("Error: discarding",
-		      yytoken, &yylval);
+		      yytoken, &yylval, parser_state);
 	  yychar = YYEMPTY;
 	}
     }
@@ -7861,7 +7865,7 @@ yyerrlab1:
 
 
       yydestruct ("Error: popping",
-		  yystos[yystate], yyvsp);
+		  yystos[yystate], yyvsp, parser_state);
       YYPOPSTACK (1);
       yystate = *yyssp;
       YY_STACK_PRINT (yyss, yyssp);
@@ -7899,7 +7903,7 @@ yyabortlab:
 | yyexhaustedlab -- memory exhaustion comes here.  |
 `-------------------------------------------------*/
 yyexhaustedlab:
-  yyerror (YY_("memory exhausted"));
+  yyerror (parser_state, YY_("memory exhausted"));
   yyresult = 2;
   /* Fall through.  */
 #endif
@@ -7907,7 +7911,7 @@ yyexhaustedlab:
 yyreturn:
   if (yychar != YYEOF && yychar != YYEMPTY)
      yydestruct ("Cleanup: discarding lookahead",
-		 yytoken, &yylval);
+		 yytoken, &yylval, parser_state);
   /* Do not reclaim the symbols of the rule which action triggered
      this YYABORT or YYACCEPT.  */
   YYPOPSTACK (yylen);
@@ -7915,7 +7919,7 @@ yyreturn:
   while (yyssp != yyss)
     {
       yydestruct ("Cleanup: popping",
-		  yystos[*yyssp], yyvsp);
+		  yystos[*yyssp], yyvsp, parser_state);
       YYPOPSTACK (1);
     }
 #ifndef yyoverflow
@@ -7950,7 +7954,7 @@ yyreturn:
 #define LEAVE_BS 1
 
 static int
-mel_yyerror(const char *msg, rb_parser_state *parser_state)
+mel_yyerror(rb_parser_state *parser_state, const char *msg)
 {
     create_error(parser_state, (char *)msg);
 
@@ -8255,7 +8259,7 @@ read_escape(rb_parser_state *parser_state)
 
             c = scan_hex(lex_p, 2, &numlen);
             if (numlen == 0) {
-                yyerror("Invalid escape character syntax");
+                yy_error("Invalid escape character syntax");
                 return 0;
             }
             lex_p += numlen;
@@ -8270,7 +8274,7 @@ read_escape(rb_parser_state *parser_state)
 
       case 'M':
         if ((c = nextc()) != '-') {
-            yyerror("Invalid escape character syntax");
+            yy_error("Invalid escape character syntax");
             pushback(c, parser_state);
             return '\0';
         }
@@ -8284,7 +8288,7 @@ read_escape(rb_parser_state *parser_state)
 
       case 'C':
         if ((c = nextc()) != '-') {
-            yyerror("Invalid escape character syntax");
+            yy_error("Invalid escape character syntax");
             pushback(c, parser_state);
             return '\0';
         }
@@ -8299,7 +8303,7 @@ read_escape(rb_parser_state *parser_state)
 
       eof:
       case -1:
-        yyerror("Invalid escape character syntax");
+        yy_error("Invalid escape character syntax");
         return '\0';
 
       default:
@@ -8343,7 +8347,7 @@ tokadd_escape(int term, rb_parser_state *parser_state)
             tokadd((char)c, parser_state);
             scan_hex(lex_p, 2, &numlen);
             if (numlen == 0) {
-                yyerror("Invalid escape character syntax");
+                yy_error("Invalid escape character syntax");
                 return -1;
             }
             while (numlen--)
@@ -8353,7 +8357,7 @@ tokadd_escape(int term, rb_parser_state *parser_state)
 
       case 'M':
         if ((c = nextc()) != '-') {
-            yyerror("Invalid escape character syntax");
+            yy_error("Invalid escape character syntax");
             pushback(c, parser_state);
             return 0;
         }
@@ -8364,7 +8368,7 @@ tokadd_escape(int term, rb_parser_state *parser_state)
 
       case 'C':
         if ((c = nextc()) != '-') {
-            yyerror("Invalid escape character syntax");
+            yy_error("Invalid escape character syntax");
             pushback(c, parser_state);
             return 0;
         }
@@ -8386,7 +8390,7 @@ tokadd_escape(int term, rb_parser_state *parser_state)
 
       eof:
       case -1:
-        yyerror("Invalid escape character syntax");
+        yy_error("Invalid escape character syntax");
         return -1;
 
       default:
@@ -9293,7 +9297,7 @@ yylex(void *yylval_v, void *vstate)
         }
         pushback(c, parser_state);
         if (ISDIGIT(c)) {
-            yyerror("no .<digit> floating literal anymore; put 0 before dot");
+            yy_error("no .<digit> floating literal anymore; put 0 before dot");
         }
         lex_state = EXPR_DOT;
         return '.';
@@ -9332,7 +9336,7 @@ yylex(void *yylval_v, void *vstate)
                     pushback(c, parser_state);
                     tokfix();
                     if (toklen() == start) {
-                        yyerror("numeric literal without digits");
+                        yy_error("numeric literal without digits");
                     }
                     else if (nondigit) goto trailing_uc;
                     pslval->node = NEW_HEXNUM(string_new2(tok()));
@@ -9356,7 +9360,7 @@ yylex(void *yylval_v, void *vstate)
                     pushback(c, parser_state);
                     tokfix();
                     if (toklen() == start) {
-                        yyerror("numeric literal without digits");
+                        yy_error("numeric literal without digits");
                     }
                     else if (nondigit) goto trailing_uc;
                     pslval->node = NEW_BINNUM(string_new2(tok()));
@@ -9380,7 +9384,7 @@ yylex(void *yylval_v, void *vstate)
                     pushback(c, parser_state);
                     tokfix();
                     if (toklen() == start) {
-                        yyerror("numeric literal without digits");
+                        yy_error("numeric literal without digits");
                     }
                     else if (nondigit) goto trailing_uc;
                     pslval->node = NEW_NUMBER(string_new2(tok()));
@@ -9394,7 +9398,7 @@ yylex(void *yylval_v, void *vstate)
                     /* prefixed octal */
                     c = nextc();
                     if (c == '_') {
-                        yyerror("numeric literal without digits");
+                        yy_error("numeric literal without digits");
                     }
                 }
                 if (c >= '0' && c <= '7') {
@@ -9423,7 +9427,7 @@ yylex(void *yylval_v, void *vstate)
                     }
                 }
                 if (c > '7' && c <= '9') {
-                    yyerror("Illegal octal digit");
+                    yy_error("Illegal octal digit");
                 }
                 else if (c == '.' || c == 'e' || c == 'E') {
                     tokadd('0', parser_state);
@@ -9501,7 +9505,7 @@ yylex(void *yylval_v, void *vstate)
                 char tmp[30];
               trailing_uc:
                 snprintf(tmp, sizeof(tmp), "trailing `%c' in number", nondigit);
-                yyerror(tmp);
+                yy_error(tmp);
             }
             if (is_float) {
                 pslval->node = NEW_FLOAT(string_new2(tok()));
@@ -9905,7 +9909,7 @@ yylex(void *yylval_v, void *vstate)
       default:
         if (!is_identchar(c)) {
             rb_compile_error(parser_state, "Invalid char `\\%03o' in expression", c);
-            return -1;
+            goto retry;
         }
 
         newtok(parser_state);
@@ -10466,22 +10470,22 @@ assignable(QUID id, NODE *val, rb_parser_state *parser_state)
 {
     value_expr(val);
     if (id == kSELF) {
-        yyerror("Can't change the value of self");
+        yy_error("Can't change the value of self");
     }
     else if (id == kNIL) {
-        yyerror("Can't assign to nil");
+        yy_error("Can't assign to nil");
     }
     else if (id == kTRUE) {
-        yyerror("Can't assign to true");
+        yy_error("Can't assign to true");
     }
     else if (id == kFALSE) {
-        yyerror("Can't assign to false");
+        yy_error("Can't assign to false");
     }
     else if (id == k__FILE__) {
-        yyerror("Can't assign to __FILE__");
+        yy_error("Can't assign to __FILE__");
     }
     else if (id == k__LINE__) {
-        yyerror("Can't assign to __LINE__");
+        yy_error("Can't assign to __LINE__");
     }
     else if (is_local_id(id)) {
         if(variables->block_vars) {
@@ -10497,7 +10501,7 @@ assignable(QUID id, NODE *val, rb_parser_state *parser_state)
     }
     else if (is_const_id(id)) {
         if (in_def || in_single)
-            yyerror("dynamic constant assignment");
+            yy_error("dynamic constant assignment");
         return NEW_CDECL(id, val, 0);
     }
     else if (is_class_id(id)) {
@@ -10621,7 +10625,7 @@ value_expr0(NODE *node, rb_parser_state *parser_state)
           case NODE_NEXT:
           case NODE_REDO:
           case NODE_RETRY:
-            if (!cond) yyerror("void value expression");
+            if (!cond) yy_error("void value expression");
             /* or "control never reach"? */
             return FALSE;
 
@@ -10791,7 +10795,7 @@ assign_in_cond(NODE *node, rb_parser_state *parser_state)
 {
     switch (nd_type(node)) {
       case NODE_MASGN:
-        yyerror("multiple assignment in conditional");
+        yy_error("multiple assignment in conditional");
         return 1;
 
       case NODE_LASGN:

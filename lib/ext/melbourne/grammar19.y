@@ -38,7 +38,6 @@ static int parser_yyerror(rb_parser_state*, const char *);
 #define yy_error(msg)   parser_yyerror(parser_state, msg)
 #define yyerror         parser_yyerror
 
-#define YYLEX_PARAM parser_state
 
 #define is_notop_id(id) ((id)>tLAST_TOKEN)
 #define is_local_id(id) (is_notop_id(id)&&((id)&ID_SCOPE_MASK)==ID_LOCAL)
@@ -395,6 +394,7 @@ static int scan_hex(const char *start, size_t len, size_t *retlen);
 
 %pure-parser
 %parse-param {rb_parser_state* parser_state}
+%lex-param {rb_parser_state* parser_state}
 
 %union {
     VALUE val;
