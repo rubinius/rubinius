@@ -288,6 +288,7 @@ class Hash
       ary << [item.key, item.value]
     end
 
+    Rubinius::Type.infect ary, self
     ary
   end
 
