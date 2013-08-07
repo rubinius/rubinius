@@ -501,18 +501,6 @@ module Enumerable
     array
   end
 
-  def to_a(*arg)
-    ary = []
-    each(*arg) do
-      o = Rubinius.single_block_arg
-      ary << o
-      nil
-    end
-    ary
-  end
-
-  alias_method :entries, :to_a
-
   def include?(obj)
     each { return true if Rubinius.single_block_arg == obj }
     false

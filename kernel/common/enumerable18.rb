@@ -58,6 +58,17 @@ module Enumerable
     h
   end
 
+  def to_a(*arg)
+    ary = []
+    each(*arg) do
+      o = Rubinius.single_block_arg
+      ary << o
+      nil
+    end
+    ary
+  end
+  alias_method :entries, :to_a
+
   def zip(*args)
     args.map! { |a| a.to_a }
 

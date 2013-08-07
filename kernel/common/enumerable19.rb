@@ -131,6 +131,18 @@ module Enumerable
     end
   end
 
+  def to_a(*arg)
+    ary = []
+    each(*arg) do
+      o = Rubinius.single_block_arg
+      ary << o
+      nil
+    end
+    Rubinius::Type.infect ary, self
+    ary
+  end
+  alias_method :entries, :to_a
+
   def zip(*args)
     args.map! do |a|
       if a.respond_to? :to_ary
