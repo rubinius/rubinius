@@ -131,7 +131,7 @@ class Regexp
       end
     end 
 
-    raise ArgumentError if !ascii.empty? && !non_ascii.empty?
+    raise ArgumentError, "incompatible encodings: #{non_ascii.first} and #{ascii.first}" if !ascii.empty? && !non_ascii.empty?
     compatible?(ascii + non_ascii) 
     encoding
   end
@@ -148,7 +148,7 @@ class Regexp
   def self.compatible?(encodings)
     last_enc = encodings.pop
     encodings.each do |encoding|
-      raise ArgumentError unless Encoding.compatible?(last_enc, encoding)
+      raise ArgumentError, "incompatible encodings: #{encoding} and #{last_enc}" unless Encoding.compatible?(last_enc, encoding)
       last_enc = encoding
     end
   end
