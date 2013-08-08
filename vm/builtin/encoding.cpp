@@ -818,6 +818,17 @@ namespace rubinius {
       memcpy(buffer->raw_bytes(), target->data()->raw_bytes(), byte_offset);
     }
 
+    if(src) {
+      // Removing consumed bytes from src.
+      native_int bytes_to_drop = source_ptr - (const unsigned char*)src->c_str(state);
+      native_int index = bytes_to_drop;
+      native_int length = src->byte_size() - index;
+
+      String *replacement = src->byte_substring(state, index, length);
+      src->data(state, replacement->data());
+      src->num_bytes(state, Fixnum::from(length));
+    }
+
     target->data(state, buffer);
     target->num_bytes(state, Fixnum::from(output_size));
     target->shared(state, cFalse);
