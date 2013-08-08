@@ -222,6 +222,10 @@ class Encoding
         options |= AFTER_OUTPUT if opts[:after_output]
       end
 
+      if primitive_errinfo.first == :invalid_byte_sequence
+        source.prepend putback
+      end
+
       Rubinius.invoke_primitive(:encoding_converter_primitive_convert,
                                 self, source, target, offset, size, options)
     end
