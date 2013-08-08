@@ -74,7 +74,7 @@ class String
     elsif to_enc and from_enc != to_enc
       ec = Encoding::Converter.new from_enc, to_enc, options
       dest = ""
-      status = ec.primitive_convert self, dest, nil, nil, ec.options
+      status = ec.primitive_convert self.dup, dest, nil, nil, ec.options
       raise ec.last_error unless status == :finished
       replace dest
     end

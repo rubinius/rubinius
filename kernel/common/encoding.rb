@@ -167,7 +167,7 @@ class Encoding
       str = StringValue(str)
 
       dest = ""
-      status = primitive_convert str, dest, nil, nil, @options | PARTIAL_INPUT
+      status = primitive_convert str.dup, dest, nil, nil, @options | PARTIAL_INPUT
 
       if status == :invalid_byte_sequence or
          status == :undefined_conversion or
