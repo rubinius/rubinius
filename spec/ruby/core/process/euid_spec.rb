@@ -17,13 +17,25 @@ end
 describe "Process.euid=" do
 
   platform_is_not :windows do 
-    it "raises TypeError if not passed an int" do 
-      lambda { Process.euid = "100"}.should raise_error(TypeError)
+    it "raises TypeError if not passed an Integer" do 
+      lambda { Process.euid = Object.new }.should raise_error(TypeError)
     end
-    
+
+    ruby_version_is "" ... "2.0" do
+      it "raises TypeError if passed a String" do 
+        lambda { Process.euid = "100" }.should raise_error(TypeError)
+      end
+    end
+
     as_user do
       it "raises Errno::ERPERM if run by a non superuser trying to set the superuser id" do 
         lambda { (Process.euid = 0)}.should raise_error(Errno::EPERM)
+      end
+
+      ruby_version_is "2.0" do
+        it "raises Errno::ERPERM if run by a non superuser trying to set the superuser id from username" do 
+          lambda { Process.euid = "root" }.should raise_error(Errno::EPERM)
+        end
       end
     end
     
