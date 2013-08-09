@@ -6,6 +6,7 @@ class19.rbc
 autoload.rbc
 module.rbc
 module19.rbc
+module20.rbc
 binding.rbc
 binding19.rbc
 proc.rbc

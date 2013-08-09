@@ -7,6 +7,8 @@ class Module
     mod, entry = lookup_method(current_name, true, false)
 
     if entry
+      method_visibility = visibility_for_aliased_method(new_name, entry.visibility)
+
       # If we're aliasing a method we contain, just reference it directly, no
       # need for the alias wrapper
       #
@@ -14,9 +16,9 @@ class Module
       # when the original method exists only to change the visibility of
       # a parent method.
       if mod == self and entry.method
-        @method_table.store new_name, entry.method, entry.visibility
+        @method_table.store new_name, entry.method, method_visibility
       else
-        @method_table.alias new_name, entry.visibility, current_name,
+        @method_table.alias new_name, method_visibility, current_name,
                             entry.method, mod
       end
 
