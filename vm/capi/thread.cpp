@@ -232,11 +232,14 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     Thread* self = state->vm()->thread.get();
-    NativeMethod* nm = as<NativeMethod>(self->locals_aref(state, state->symbol("function")));
-    Pointer* ptr = as<Pointer>(self->locals_aref(state, state->symbol("argument")));
+
+    NativeMethod* nm = capi::c_as<NativeMethod>(self->locals_aref(state, state->symbol("function")));
+    Pointer* ptr = capi::c_as<Pointer>(self->locals_aref(state, state->symbol("argument")));
 
     self->locals_remove(state, state->symbol("function"));
     self->locals_remove(state, state->symbol("argument"));
+
+    GCTokenImpl gct;
 
     NativeMethodFrame nmf(env, 0, nm);
     CallFrame cf;
@@ -260,6 +263,11 @@ extern "C" {
         env->get_handle(nm),
         env->get_handle(nm->module()));
 
+    {
+      OnStack<3> os(state, self, nm, ptr);
+      self->hard_unlock(state, gct, &cf);
+    }
+
     ENTER_CAPI(state);
 
     Object* ret = NULL;
@@ -272,8 +280,17 @@ extern "C" {
       // Setup exception in thread so it's raised when joining
       // Reload self because it might have been moved
       self = state->vm()->thread.get();
-      Exception* exc = capi::c_as<Exception>(self->current_exception(state));
-      self->exception(state, exc);
+      CallFrame* call_frame = env->current_call_frame();
+
+      {
+        OnStack<1> os(state, self);
+        self->hard_lock(state, gct, call_frame, false);
+        Exception* exc = capi::c_as<Exception>(self->current_exception(state));
+        self->exception(state, exc);
+        self->release_joins(state, gct, call_frame);
+        self->alive(state, cFalse);
+        self->hard_unlock(state, gct, call_frame);
+      }
       return NULL;
     } else {
       ret = env->get_object(nm->func()(ptr->pointer));
@@ -284,6 +301,15 @@ extern "C" {
     env->set_current_call_frame(saved_frame);
     env->set_current_native_frame(nmf.previous());
     ep.pop(env);
+
+    self = state->vm()->thread.get();
+
+    OnStack<1> os(state, self);
+
+    self->hard_lock(state, gct, &cf, false);
+    self->release_joins(state, gct, &cf);
+    self->alive(state, cFalse);
+    self->hard_unlock(state, gct, &cf);
 
     return ret;
   }
@@ -308,6 +334,13 @@ extern "C" {
 
     VALUE thr_handle = env->get_handle(thr);
     thr->fork(state);
+    GCTokenImpl gct;
+    // We do a lock and unlock here so we wait until the started
+    // thread is actually ready. This is to prevent we GC stuff on
+    // the stack in the C-API caller that might be stuffed in the void* argument
+    thr->hard_lock(state, gct, env->current_call_frame());
+    thr->hard_unlock(state, gct, env->current_call_frame());
+
     return thr_handle;
   }
 
