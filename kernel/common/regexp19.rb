@@ -116,36 +116,17 @@ class Regexp
     source.encoding
   end
 
-  def self.compatible_encodings(*patterns)
-    ascii = []
-    non_ascii = []
-    first_pattern = patterns.first
-    encoding = convert(first_pattern).encoding
-
-    patterns.each do |pattern|
-      pattern = convert(pattern)
-      if pattern.encoding.ascii_compatible?
-        ascii << pattern.encoding
-      else
-        non_ascii << pattern.encoding
-      end
-    end 
-
-    raise ArgumentError, "incompatible encodings: #{non_ascii.first} and #{ascii.first}" if !ascii.empty? && !non_ascii.empty?
-    compatible?(ascii + non_ascii) 
-    encoding
-  end
-
   def self.convert(pattern)
     return pattern if pattern.kind_of? Regexp
     if pattern.kind_of? Array
       return union(*pattern)
     else
-      return Regexp.new(pattern.to_s)
+      return Regexp.quote(pattern.to_s)
     end
   end
 
-  def self.compatible?(encodings)
+  def self.compatible?(*patterns)
+    encodings = patterns.map{ |r| convert(r).encoding } 
     last_enc = encodings.pop
     encodings.each do |encoding|
       raise ArgumentError, "incompatible encodings: #{encoding} and #{last_enc}" unless Encoding.compatible?(last_enc, encoding)
@@ -168,7 +149,8 @@ class Regexp
         return Regexp.new(Regexp.quote(StringValue(pat)))
       end
     else
-      enc = compatible_encodings(*patterns)
+      compatible?(*patterns)
+      enc = convert(patterns.first).encoding
     end
 
     str = "".encode(enc)
