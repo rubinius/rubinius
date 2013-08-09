@@ -4,14 +4,18 @@ module Enumerable
   class Enumerator
     include Enumerable
 
-    def each_with_block(&block)
-      @object.__send__ @iter, *@args, &block
+    def each_with_block
+      @object.__send__ @iter, *@args do |*args|
+        yield(*args)
+      end
     end
     private :each_with_block
 
-    def each(&block)
+    def each
       if block_given?
-        each_with_block(&block)
+        each_with_block do |*args|
+          yield(*args)
+        end
       else
         self
       end

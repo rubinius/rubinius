@@ -42,7 +42,7 @@ module Enumerable
     end
     private :initialize
 
-    def each(*args, &block)
+    def each(*args)
       enumerator = self
       new_args = @args
 
@@ -57,7 +57,9 @@ module Enumerable
 
       if block_given?
         Rubinius.privately do
-          enumerator.each_with_block(&block)
+          enumerator.each_with_block do |*yield_args|
+            yield(*yield_args)
+          end
         end
       else
         enumerator
