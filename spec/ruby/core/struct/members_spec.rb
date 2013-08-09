@@ -19,5 +19,5 @@ describe "Struct#members" do
     end
   end
 
-  it_behaves_like :struct_accessor, :length
+  it_behaves_like :struct_accessor, :members
 end

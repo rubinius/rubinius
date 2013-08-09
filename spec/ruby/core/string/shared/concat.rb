@@ -39,7 +39,7 @@ describe :string_concat, :shared => true do
 
   it "works when given a subclass instance" do
     a = "hello"
-    a << StringSpecs::MyString.new(" world")
+    a.send(@method, StringSpecs::MyString.new(" world"))
     a.should == "hello world"
   end
 
@@ -83,19 +83,19 @@ describe :string_concat, :shared => true do
 
       ruby_bug "#5855", "2.0" do
         it "returns a ASCII-8BIT string if self is US-ASCII and the argument is between 128-255 (inclusive)" do
-          a = ("".encode(Encoding::US_ASCII) << 128)
+          a = ("".encode(Encoding::US_ASCII).send(@method, 128))
           a.encoding.should == Encoding::ASCII_8BIT
           a.should == 128.chr
 
-          a = ("".encode(Encoding::US_ASCII) << 255)
+          a = ("".encode(Encoding::US_ASCII).send(@method, 255))
           a.encoding.should == Encoding::ASCII_8BIT
           a.should == 255.chr
         end
       end
 
       it "raises RangeError if the argument is an invalid codepoint for self's encoding" do
-        lambda { "".encode(Encoding::US_ASCII) << 256 }.should raise_error(RangeError)
-        lambda { "".encode(Encoding::EUC_JP) << 0x81  }.should raise_error(RangeError)
+        lambda { "".encode(Encoding::US_ASCII).send(@method, 256) }.should raise_error(RangeError)
+        lambda { "".encode(Encoding::EUC_JP).send(@method, 0x81)  }.should raise_error(RangeError)
       end
 
       it "raises RangeError if the argument is negative" do

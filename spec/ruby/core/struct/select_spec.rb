@@ -17,5 +17,5 @@ describe "Struct#select" do
     struct.select { true }.should be_kind_of(Array)
   end
 
-  it_behaves_like :struct_accessor, :length
+  it_behaves_like :struct_accessor, :select
 end
