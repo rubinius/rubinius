@@ -32,5 +32,21 @@ ruby_version_is "1.8.7" do
                     [6, 7, 8, 9] => [[6, 7, 8, 9]],
                     [3, 4, 5] => [[3, 4, 5]] }
     end
+
+    ruby_version_is "" ... "1.9" do
+      it "does not copy tainted status to the returning value if self is tainted" do
+        EnumerableSpecs::Numerous.new.taint.group_by {}.tainted?.should be_false
+      end
+    end
+
+    ruby_version_is "1.9" do
+      it "returns a tainted hash if self is tainted" do
+        EnumerableSpecs::Empty.new.taint.group_by {}.tainted?.should be_true
+      end
+
+      it "returns an untrusted hash if self is untrusted" do
+        EnumerableSpecs::Empty.new.untrust.group_by {}.untrusted?.should be_true
+      end
+    end
   end
 end

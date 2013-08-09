@@ -105,6 +105,7 @@ class Module
     end
 
     Rubinius::Type.include_modules_from(self, klass.origin)
+    Rubinius::Type.infect(klass, self)
 
     self
   end
