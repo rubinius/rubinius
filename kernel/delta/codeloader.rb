@@ -89,18 +89,26 @@ module Rubinius
       # Loads the pre-compiled bytecode compiler. Sets up paths needed by the
       # compiler to find dependencies like the parser.
       def load_compiler
-        Rubinius.const_set :COMPILER_PATH, Rubinius::RUNTIME_PATH
-        Rubinius.const_set :PARSER_PATH, "#{Rubinius::RUNTIME_PATH}/melbourne"
+        load_path = $LOAD_PATH
 
-        # TODO: handle install
-        # ext_path = "#{Rubinius::LIB_PATH}/ext/melbourne/rbx/melbourne20"
-        # Rubinius.const_set :PARSER_EXT_PATH, ext_path
+        Dir["#{Rubinius::RUNTIME_PATH}/gems/**/lib"].each do |path|
+          $LOAD_PATH.unshift path
+        end
 
         begin
-          require_compiled "#{Rubinius::COMPILER_PATH}/compiler"
-        rescue Rubinius::InvalidRBC => e
+          require_compiled "rubinius/toolset"
+
+          Rubinius::ToolSet.start
+          require_compiled "rubinius/melbourne"
+          require_compiled "rubinius/processor"
+          require_compiled "rubinius/compiler"
+          require_compiled "rubinius/ast"
+          Rubinius::ToolSet.finish :runtime
+        rescue Object => e
           raise LoadError, "Unable to load the bytecode compiler", e
         end
+
+        $LOAD_PATH.replace load_path
       end
 
       def require_compiled(name, check_version=true)

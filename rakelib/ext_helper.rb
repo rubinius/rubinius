@@ -127,16 +127,8 @@ def add_mri_capi
   end
 end
 
-def include18_dir
-  File.expand_path("../../vm/capi/18/include", __FILE__)
-end
-
-def include19_dir
-  File.expand_path("../../vm/capi/19/include", __FILE__)
-end
-
-def include20_dir
-  File.expand_path("../../vm/capi/20/include", __FILE__)
+def ruby_include_dir
+  File.expand_path("../../vm/capi/#{ENV['BUILD_VERSION']}/include", __FILE__)
 end
 
 def add_rbx_capi
@@ -151,14 +143,7 @@ def add_rbx_capi
     add_cflag "-O2"
   end
 
-  case ENV['BUILD_VERSION']
-  when "18"
-    add_include_dir include18_dir
-  when "19"
-    add_include_dir include19_dir
-  when "20"
-    add_include_dir include20_dir
-  end
+  add_include_dir ruby_include_dir
 end
 
 # Setup some initial computed values
@@ -166,7 +151,7 @@ end
 add_include_dir "."
 add_link_dir "."
 
-add_define *Rubinius::BUILD_CONFIG[:defines]
+add_define(*Rubinius::BUILD_CONFIG[:defines])
 
 # To quiet MRI's warnings about ivars being uninitialized.
 # Doesn't need to be a method, but it's nicely encapsulated.
@@ -184,9 +169,7 @@ init
 #
 def common_headers(*extra)
   @common_headers ||= FileList[
-    include18_dir + "/*.h",
-    include19_dir + "/*.h",
-    include20_dir + "/*.h",
+    ruby_include_dir + "/*.h",
     *extra
   ].existing
 end
@@ -209,7 +192,7 @@ end
 
 def graph_dependencies(sources, directories=[], objects_dir=nil)
   directories = Array(directories)
-  directories.concat [".", include18_dir, include19_dir, include20_dir]
+  directories.concat [".", ruby_include_dir]
 
   grapher = DependencyGrapher.new $CC, sources, directories
   grapher.objects_dir = objects_dir

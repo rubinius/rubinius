@@ -45,7 +45,7 @@ class DependencyGrapher
     end
 
     def add_else
-      message = "invalid \#else for #{@parser.stack_top.class} at line #{@parser.line}"
+      "invalid \#else for #{@parser.stack_top.class} at line #{@parser.line}"
     end
 
     # TODO: remove

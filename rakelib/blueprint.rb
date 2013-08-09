@@ -66,7 +66,8 @@ Daedalus.blueprint do |i|
     "vm/#{x}/*.{cpp,c}"
   end
 
-  files = i.source_files "vm/*.{cpp,c}", *subdirs
+  mode = "vm/modes/#{Rubinius::BUILD_CONFIG[:language_version]}/*.cpp"
+  files = i.source_files "vm/*.{cpp,c}", mode, *subdirs
 
   perl = Rubinius::BUILD_CONFIG[:build_perl] || "perl"
 
@@ -261,15 +262,6 @@ Daedalus.blueprint do |i|
   gcc.cflags << "-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS"
   gcc.cflags << "-D_LARGEFILE_SOURCE"
   gcc.cflags << "-D_FILE_OFFSET_BITS=64"
-
-  modes = i.library_group "vm/modes/#{Rubinius::BUILD_CONFIG[:language_version]}" do |g|
-    g.cflags = gcc.cflags.dup
-
-    g.static_library "libmodes" do |l|
-      l.source_files "*.cpp"
-    end
-  end
-  files << modes
 
   cli = files.dup
   cli << i.source_file("vm/drivers/cli.cpp")
