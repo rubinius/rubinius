@@ -928,7 +928,27 @@ namespace rubinius {
   }
 
   String* Converter::putback(STATE, Object* maxbytes) {
-    return nil<String>();
+    native_int n;
+    native_int putbackable;
+
+    if(Fixnum* max_bytes = try_as<Fixnum>(maxbytes)) {
+      n = max_bytes->to_native();
+      putbackable = rb_econv_putbackable(get_converter());
+      if(putbackable < n) {
+        n = putbackable;
+      }
+    } else {
+      n = rb_econv_putbackable(get_converter());
+    }
+
+    ByteArray* ba = ByteArray::create(state, n);
+
+    rb_econv_putback(get_converter(), (unsigned char *)ba->raw_bytes(), n);
+
+    String* str = String::from_bytearray(state, ba, n);
+    str->encoding(state, source_encoding());
+
+    return str;
   }
 
   void Converter::finalize(STATE, Converter* converter) {

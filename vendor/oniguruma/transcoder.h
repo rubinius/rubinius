@@ -228,6 +228,8 @@ rb_econv_result_t econv_convert(rb_econv_t *ec,
                                 unsigned char **output_ptr,
                                 unsigned char *output_stop,
                                 int flags);
+int rb_econv_putbackable(rb_econv_t *ec);
+void rb_econv_putback(rb_econv_t *ec, unsigned char *p, int n);
 
 int rb_econv_add_transcoder_at(rb_econv_t *ec, const rb_transcoder *tr, int i);
 
