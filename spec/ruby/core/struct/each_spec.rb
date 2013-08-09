@@ -30,5 +30,5 @@ describe "Struct#each" do
     end
   end
 
-  it_behaves_like :struct_accessor, :length
+  it_behaves_like :struct_accessor, :each
 end

@@ -29,5 +29,5 @@ describe "Struct#each_pair" do
     end
   end
 
-  it_behaves_like :struct_accessor, :length
+  it_behaves_like :struct_accessor, :each_pair
 end
