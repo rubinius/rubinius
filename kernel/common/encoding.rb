@@ -222,6 +222,10 @@ class Encoding
         options |= AFTER_OUTPUT if opts[:after_output]
       end
 
+      if source && read_again_bytes = primitive_errinfo[4]
+        source.prepend(read_again_bytes)
+      end
+
       Rubinius.invoke_primitive(:encoding_converter_primitive_convert,
                                 self, source, target, offset, size, options)
     end
