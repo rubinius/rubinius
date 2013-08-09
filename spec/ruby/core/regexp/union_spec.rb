@@ -58,6 +58,10 @@ describe "Regexp.union" do
       Regexp.union(/probl[éeè]me/i, /help/i).encoding.should == Encoding::UTF_8
     end
 
+    it "returns a Regexp if a array of string with special characters is passed" do
+      Regexp.union(["+","-"]).should == /\+|\-/  
+    end
+
     it "raises ArgumentError if the arguments include conflicting ASCII-incompatible Strings" do
       lambda {
         Regexp.union("a".encode("UTF-16LE"), "b".encode("UTF-16BE"))
