@@ -202,6 +202,9 @@ module ModuleSpecs
     def protected_one; 1; end
   end
 
+  class AliasingSubclass < Aliasing
+  end
+
   module AliasingSuper
 
     module Parent

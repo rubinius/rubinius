@@ -127,4 +127,8 @@ class Module
     raise NameError, "undefined method `#{name}' for #{self}"
   end
 
+  def visibility_for_aliased_method(new_name, current_name_visibility)
+    current_name_visibility
+  end
+  private :visibility_for_aliased_method
 end
