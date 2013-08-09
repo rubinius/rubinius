@@ -15,4 +15,20 @@ describe :enumerable_entries, :shared => true do
       count.arguments_passed.should == [:hello, "world"]
     end
   end
+
+  ruby_version_is "" ... "1.9" do
+    it "does not copy tainted status to the returning value if self is tainted" do
+      EnumerableSpecs::Numerous.new.taint.send(@method).tainted?.should be_false
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "returns a tainted array if self is tainted" do
+      EnumerableSpecs::Empty.new.taint.send(@method).tainted?.should be_true
+    end
+
+    it "returns an untrusted array if self is untrusted" do
+      EnumerableSpecs::Empty.new.untrust.send(@method).untrusted?.should be_true
+    end
+  end
 end
