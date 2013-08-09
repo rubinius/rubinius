@@ -167,7 +167,7 @@ class Encoding
       str = StringValue(str)
 
       dest = ""
-      status = primitive_convert str, dest, nil, nil, @options | PARTIAL_INPUT
+      status = primitive_convert str.dup, dest, nil, nil, @options | PARTIAL_INPUT
 
       if status == :invalid_byte_sequence or
          status == :undefined_conversion or
@@ -220,6 +220,10 @@ class Encoding
         options = 0
         options |= PARTIAL_INPUT if opts[:partial_input]
         options |= AFTER_OUTPUT if opts[:after_output]
+      end
+
+      if source && read_again_bytes = primitive_errinfo[4]
+        source.prepend(read_again_bytes)
       end
 
       Rubinius.invoke_primitive(:encoding_converter_primitive_convert,
