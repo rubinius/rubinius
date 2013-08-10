@@ -17,6 +17,15 @@ describe "Time#getlocal" do
       t.utc_offset.should == 3630
     end
 
+    it "returns a new time with the correct utc_offset according to the set timezone" do
+      t = Time.new(2005, 2, 27, 22, 50, 0, -3600)
+      t.utc_offset.should == -3600
+
+      with_timezone("US/Eastern") do
+        t.getlocal.utc_offset.should == -18000
+      end
+    end
+
     describe "with an argument that responds to #to_int" do
       it "coerces using #to_int" do
         o = mock('integer')
