@@ -74,10 +74,11 @@ class Time
 
   def inspect
     if @is_gmt
-      strftime("%Y-%m-%d %H:%M:%S UTC")
+      str = strftime("%Y-%m-%d %H:%M:%S UTC")
     else
-      strftime("%Y-%m-%d %H:%M:%S %z")
+      str = strftime("%Y-%m-%d %H:%M:%S %z")
     end
+    str.force_encoding Encoding::US_ASCII
   end
 
   alias_method :to_s, :inspect
