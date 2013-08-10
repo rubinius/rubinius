@@ -127,6 +127,34 @@ describe :time_params, :shared => true do
       t.sec.should == 1
       t.usec.should == 0
     end
+
+    it "handles years from 0 to 38 as 2000 to 2038" do
+      0.upto(38) do |year|
+        t = Time.send(@method, year)
+        t.year.should == (2000 + year)
+      end
+    end
+
+    it "handles years from 39 to 68 as such" do
+      39.upto(68) do |year|
+        t = Time.send(@method, year)
+        t.year.should == year
+      end
+    end
+
+    it "handles years from 69 to 138 as 1969 to 2038" do
+      69.upto(138) do |year|
+        t = Time.send(@method, year)
+        t.year.should == (1900 + year)
+      end
+    end
+
+    it "handles years from 139 as such" do
+      139.upto(2100) do |year|
+        t = Time.send(@method, year)
+        t.year.should == year
+      end
+    end
   end
 
   ruby_version_is "1.9" do
