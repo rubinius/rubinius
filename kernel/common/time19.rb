@@ -168,12 +168,14 @@ class Time
   end
 
   def localtime(offset=nil)
-    offset = Rubinius::Type.coerce_to_utc_offset(offset) unless offset.nil?
+    @is_gmt = false
+    @offset = nil
+    @decomposed = nil
 
-    if @is_gmt or offset
-      @is_gmt = false
-      @offset = offset
-      @decomposed = nil
+    if offset
+      @offset = Rubinius::Type.coerce_to_utc_offset(offset)
+    else
+      @offset = gmt_offset
     end
 
     self
