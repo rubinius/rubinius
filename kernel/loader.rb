@@ -78,6 +78,10 @@ module Rubinius
         rubylib_paths = ENV['RUBYLIB'].split(File::PATH_SEPARATOR)
         $LOAD_PATH.unshift(*rubylib_paths)
       end
+
+      Dir["#{Rubinius::RUNTIME_PATH}/gems/**/lib"].each do |path|
+        $LOAD_PATH << path
+      end
     end
 
     # Load customization code:
