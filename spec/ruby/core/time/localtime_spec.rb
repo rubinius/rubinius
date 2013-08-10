@@ -67,6 +67,17 @@ describe "Time#localtime" do
       t.utc_offset.should == -3600
     end
 
+    it "changes the timezone according to the set one" do
+      t = Time.new(2005, 2, 27, 22, 50, 0, -3600)
+      t.utc_offset.should == -3600
+
+      with_timezone("US/Eastern") do
+        t.localtime
+      end
+
+      t.utc_offset.should == -18000
+    end
+
     describe "with an argument that responds to #to_str" do
       it "coerces using #to_str" do
         o = mock('string')
