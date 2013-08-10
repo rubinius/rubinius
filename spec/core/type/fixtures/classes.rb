@@ -19,4 +19,28 @@ module TypeSpecs
     alias_method :is_a?, :kind_of?
     alias_method :instance_of?, :kind_of?
   end
+
+  class PrivateToAry
+    private
+
+    def to_ary
+      [1, 2, 3]
+    end
+  end
+
+  class PublicToAry
+    def to_ary
+      [1, 2, 3]
+    end
+  end
+
+  class MethodVisibility
+    def public_method
+    end
+
+    private
+
+    def private_method
+    end
+  end
 end

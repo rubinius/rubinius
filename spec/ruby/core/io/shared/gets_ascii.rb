@@ -5,7 +5,7 @@ describe :io_gets_ascii, :shared => true do
       @name = tmp("gets_specs.txt")
       touch(@name, "wb") { |f| f.print "this is a test\xFFtesty\ntestier" }
 
-      File.open(@name, "rb") { |f| @data = f.gets("\xFF") }
+      File.open(@name, "rb") { |f| @data = f.send(@method, "\xFF") }
     end
 
     after :each do

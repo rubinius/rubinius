@@ -447,7 +447,7 @@ VM Options
      This option is recognized by the VM before any ruby code is loaded.
      It is used to set VM configuration options.
 
-     Use -Xconfig.print to see the list of options the VM recognizes.
+     Use -Xhelp to see the list of options the VM recognizes.
      All variables, even ones that the VM doesn't understand, are available
      in Rubinius::Config.
 

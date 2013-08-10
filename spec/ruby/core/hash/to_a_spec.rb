@@ -26,4 +26,14 @@ describe "Hash#to_a" do
     ent.should be_kind_of(Array)
     ent.should == pairs
   end
+
+  it "returns a tainted array if self is tainted" do
+    new_hash.taint.to_a.tainted?.should be_true
+  end
+
+  ruby_version_is "1.9" do
+    it "returns an untrusted array if self is untrusted" do
+      new_hash.untrust.to_a.untrusted?.should be_true
+    end
+  end
 end

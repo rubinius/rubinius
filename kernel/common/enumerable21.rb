@@ -90,6 +90,23 @@ module Enumerable
   end
   alias_method :collect_concat, :flat_map
 
+  def group_by
+    return to_enum(:group_by) unless block_given?
+
+    h = {}
+    each do
+      o = Rubinius.single_block_arg
+      key = yield(o)
+      if h.key?(key)
+        h[key] << o
+      else
+        h[key] = [o]
+      end
+    end
+    Rubinius::Type.infect h, self
+    h
+  end
+
   def slice_before(arg = undefined, &block)
     if block_given?
       has_init = !(undefined.equal? arg)
@@ -113,6 +130,18 @@ module Enumerable
       yielder.yield accumulator if accumulator
     end
   end
+
+  def to_a(*arg)
+    ary = []
+    each(*arg) do
+      o = Rubinius.single_block_arg
+      ary << o
+      nil
+    end
+    Rubinius::Type.infect ary, self
+    ary
+  end
+  alias_method :entries, :to_a
 
   def zip(*args)
     args.map! do |a|

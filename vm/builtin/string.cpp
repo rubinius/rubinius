@@ -832,6 +832,9 @@ namespace rubinius {
     if(unlikely(length > data_length)) {
       length = data_length;
     }
+    if(!other->ascii_only()->true_p()) {
+      ascii_only_ = cNil;
+    }
     return append(state,
                   reinterpret_cast<const char*>(other->byte_address()),
                   length);

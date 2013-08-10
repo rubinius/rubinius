@@ -1035,8 +1035,8 @@ namespace rubinius {
     return cNil;
   }
 
-  Object* System::vm_object_respond_to(STATE, Object* obj, Symbol* name) {
-    return obj->respond_to(state, name, cFalse);
+  Object* System::vm_object_respond_to(STATE, Object* obj, Symbol* name, Object* include_private) {
+    return obj->respond_to(state, name, include_private);
   }
 
   Object* System::vm_object_equal(STATE, Object* a, Object* b) {

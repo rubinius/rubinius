@@ -34,16 +34,22 @@ describe :process_exec, :shared => true do
 
   describe "with a single argument" do
     before(:each) do
-      @path = tmp("tmp")
+      @dir = tmp("exec_with_dir", false)
+      Dir.mkdir @dir
+
+      @name = "some_file"
+      @path = tmp("exec_with_dir/#{@name}", false)
       touch @path
     end
 
     after(:each) do
       rm_r @path
+      rm_r @dir
     end
 
     it "subjects the specified command to shell expansion" do
-      ruby_exe('exec "echo *"', :escape => true, :dir => tmp("")).should == "#{File.basename(@path)}\n"
+      result = ruby_exe('exec "echo *"', :escape => true, :dir => @dir)
+      result.chomp.should == @name
     end
 
     it "creates an argument array with shell parsing semantics for whitespace" do

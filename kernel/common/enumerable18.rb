@@ -42,6 +42,33 @@ module Enumerable
   alias_method :enum_slice, :each_slice
   alias_method :enum_with_index, :each_with_index
 
+  def group_by
+    return to_enum(:group_by) unless block_given?
+
+    h = {}
+    each do
+      o = Rubinius.single_block_arg
+      key = yield(o)
+      if h.key?(key)
+        h[key] << o
+      else
+        h[key] = [o]
+      end
+    end
+    h
+  end
+
+  def to_a(*arg)
+    ary = []
+    each(*arg) do
+      o = Rubinius.single_block_arg
+      ary << o
+      nil
+    end
+    ary
+  end
+  alias_method :entries, :to_a
+
   def zip(*args)
     args.map! { |a| a.to_a }
 

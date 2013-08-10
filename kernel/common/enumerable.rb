@@ -261,22 +261,6 @@ module Enumerable
     nil
   end
 
-  def group_by
-    return to_enum(:group_by) unless block_given?
-
-    h = {}
-    each do
-      o = Rubinius.single_block_arg
-      key = yield(o)
-      if h.key?(key)
-        h[key] << o
-      else
-        h[key] = [o]
-      end
-    end
-    h
-  end
-
   def min
     min = undefined
     each do
@@ -516,18 +500,6 @@ module Enumerable
 
     array
   end
-
-  def to_a(*arg)
-    ary = []
-    each(*arg) do
-      o = Rubinius.single_block_arg
-      ary << o
-      nil
-    end
-    ary
-  end
-
-  alias_method :entries, :to_a
 
   def include?(obj)
     each { return true if Rubinius.single_block_arg == obj }

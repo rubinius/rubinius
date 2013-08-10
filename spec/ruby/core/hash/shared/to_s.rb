@@ -64,4 +64,16 @@ describe :to_s, :shared => true do
       y.send(@method).should == "{{{...}=>{...}}=>{...}}"
     end
   end
+
+  it "returns a tainted string if self is tainted and not empty" do
+    new_hash.taint.send(@method).tainted?.should be_false
+    new_hash(nil => nil).taint.send(@method).tainted?.should be_true
+  end
+
+  ruby_version_is "1.9" do
+    it "returns an untrusted string if self is untrusted and not empty" do
+      new_hash.untrust.send(@method).untrusted?.should be_false
+      new_hash(nil => nil).untrust.send(@method).untrusted?.should be_true
+    end
+  end
 end

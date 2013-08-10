@@ -178,4 +178,18 @@ class Module
 
     raise NameError, "undefined method `#{name}' for #{self}"
   end
+
+  def visibility_for_aliased_method(new_name, current_name_visibility)
+    special_methods = [
+      :initialize,
+      :initialize_copy
+    ]
+
+    if special_methods.include?(new_name)
+      :private
+    else
+      current_name_visibility
+    end
+  end
+  private :visibility_for_aliased_method
 end

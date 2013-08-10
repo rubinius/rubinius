@@ -116,6 +116,24 @@ class Regexp
     source.encoding
   end
 
+  def self.convert(pattern)
+    return pattern if pattern.kind_of? Regexp
+    if pattern.kind_of? Array
+      return union(*pattern)
+    else
+      return Regexp.quote(pattern.to_s)
+    end
+  end
+
+  def self.compatible?(*patterns)
+    encodings = patterns.map{ |r| convert(r).encoding } 
+    last_enc = encodings.pop
+    encodings.each do |encoding|
+      raise ArgumentError, "incompatible encodings: #{encoding} and #{last_enc}" unless Encoding.compatible?(last_enc, encoding)
+      last_enc = encoding
+    end
+  end
+
   def self.union(*patterns)
     case patterns.size
     when 0
@@ -130,12 +148,15 @@ class Regexp
       else
         return Regexp.new(Regexp.quote(StringValue(pat)))
       end
+    else
+      compatible?(*patterns)
+      enc = convert(patterns.first).encoding
     end
 
-    str = ""
+    str = "".encode(enc)
+    sep = "|".encode(enc)
     patterns.each_with_index do |pat, idx|
-      str << "|" if idx != 0
-
+      str << sep if idx != 0
       if pat.kind_of? Regexp
         str << pat.to_s
       else

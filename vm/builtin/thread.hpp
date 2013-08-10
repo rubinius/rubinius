@@ -272,6 +272,7 @@ namespace rubinius {
 
     void init_lock();
     void cleanup();
+    void release_joins(STATE, GCToken gct, CallFrame* calling_environment);
 
     /**
      *  Create a Thread object.

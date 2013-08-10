@@ -369,8 +369,8 @@ module FFI
 
     # Release the memory pointed to back to the OS.
     def free
-      self.autorelease = false
-      FFI::Platform::POSIX.free(self) unless null?
+      Rubinius.primitive :pointer_free
+      raise PrimitiveFailure, "FFI::MemoryPointer#free primitive failed"
     end
 
     ##

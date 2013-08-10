@@ -427,6 +427,14 @@ namespace rubinius {
     return Location::mri_backtrace(state, cf);
   }
 
+  void Thread::release_joins(STATE, GCToken gct, CallFrame* calling_environment) {
+    for(native_int i = 0; i < joins_->size(); ++i) {
+      if(Channel* chn = try_as<Channel>(joins_->get(state, i))) {
+        chn->send(state, gct, this, calling_environment);
+      }
+    }
+  }
+
   void Thread::cleanup() {
     vm_ = NULL;
   }

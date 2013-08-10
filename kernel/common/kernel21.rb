@@ -225,7 +225,7 @@ module Kernel
 
     return ary if ary
 
-    if obj.respond_to?(:to_a) && array = Rubinius::Type.check_convert_type(obj, Array, :to_a)
+    if array = Rubinius::Type.check_convert_type(obj, Array, :to_a)
       array
     else
       [obj]

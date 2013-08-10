@@ -109,6 +109,14 @@ describe :stringio_write_string, :shared => true do
       @enc_io.string.should == "Hëllø\000x9"
     end
 
+    it "updates ascii_only status" do
+      io = StringIO.new("")
+      io.string.ascii_only?.should be_true
+      data = "hellö"
+      io.send(@method, data)
+      io.string.ascii_only?.should be_false
+    end
+
   end
 
 end

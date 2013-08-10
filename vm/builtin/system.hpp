@@ -233,7 +233,7 @@ namespace rubinius {
     // A robust way to find out if an object responds to a method, since #respond_to?
     // can be redefined.
     // Rubinius.primitive+ :vm_object_respond_to
-    static Object* vm_object_respond_to(STATE, Object* obj, Symbol* sym);
+    static Object* vm_object_respond_to(STATE, Object* obj, Symbol* sym, Object* include_private);
 
     // A robust way to find out if two references are the same, since #equal? can
     // be redefined
