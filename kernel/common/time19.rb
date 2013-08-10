@@ -216,4 +216,11 @@ class Time
 
     Time.specific(sec, nano, @is_gmt, @offset)
   end
+
+  class << self
+    def compose_deal_with_year(year)
+      year
+    end
+    private :compose_deal_with_year
+  end
 end
