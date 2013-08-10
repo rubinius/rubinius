@@ -169,6 +169,13 @@ describe :time_params, :shared => true do
       t.sec.should == 9
       t.usec.should == 900000
     end
+
+    it "handles years from 0 as such" do
+      0.upto(2100) do |year|
+        t = Time.send(@method, year)
+        t.year.should == year
+      end
+    end
   end
 
   ruby_version_is ""..."1.9.1" do
