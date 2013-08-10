@@ -43,7 +43,7 @@ module Rubinius
     end
 
     def debug_print
-      printer = Compiler::MethodPrinter.new
+      printer = Rubinius::ToolSet::Runtime::Compiler::MethodPrinter.new
       printer.input(method(:call).executable)
       printer.bytecode = true
       printer.run

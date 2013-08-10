@@ -149,7 +149,8 @@ module Rubinius
       if CodeLoader.load_compiled
         code = load_compiled_file @load_path, signature, version
       else
-        compiled_name = Compiler.compiled_name @load_path
+        c = Rubinius::ToolSet::Runtime::Compiler
+        compiled_name = c.compiled_name @load_path
 
         if compiled_name
           begin
@@ -186,10 +187,11 @@ module Rubinius
     # Compile a Ruby source file and save the compiled file. Return the
     # internal representation (CompiledCode) of the Ruby source file.
     def compile_file(file, compiled)
+      c = Rubinius::ToolSet::Runtime::Compiler
       if CodeLoader.save_compiled?
-        Compiler.compile file, compiled
+        c.compile file, compiled
       else
-        Compiler.compile_file file
+        c.compile_file file
       end
     end
 

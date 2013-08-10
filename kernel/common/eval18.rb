@@ -58,8 +58,8 @@ module Kernel
                               Rubinius::CompiledCode.of_sender,
                               constant_scope)
 
-      be = Rubinius::Compiler.construct_block string, binding,
-                                              filename, line
+      c = Rubinius::ToolSet::Runtime::Compiler
+      be = c.construct_block string, binding, filename, line
 
       be.call_on_instance(self)
     else

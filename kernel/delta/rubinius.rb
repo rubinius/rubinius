@@ -263,7 +263,7 @@ module Rubinius
   end
 
   def self.compile_file(name)
-    Compiler.compile name
+    ToolSet::Runtime::Compiler.compile name
   end
 
   def self.allocation_site(obj)
