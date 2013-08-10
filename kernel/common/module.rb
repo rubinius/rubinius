@@ -125,7 +125,7 @@ class Module
     names.map!{ |name| Rubinius::Type.coerce_to_symbol name }
     Rubinius.check_frozen
 
-    names.each do |name|  
+    names.each do |name|
       # Will raise a NameError if the method doesn't exist.
       instance_method name
       undef_method! name
@@ -615,7 +615,7 @@ class Module
   end
 
   def dynamic_method(name, file="(dynamic)", line=1)
-    g = Rubinius::Generator.new
+    g = Rubinius::ToolSet::Runtime::Generator.new
     g.name = name.to_sym
     g.file = file.to_sym
     g.set_line Integer(line)
