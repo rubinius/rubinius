@@ -102,16 +102,7 @@ class Time
       nsec = (usec * 1000).to_i
     end
 
-    # This logic is taken from MRI, on how to deal with 2 digit dates.
-    if y < 200
-      if 0 <= y and y < 39
-        warn "2 digit year used: #{y}" if $VERBOSE
-        y += 2000
-      elsif 69 <= y and y < 139
-        warn "2 or 3 digit year used: #{y}" if $VERBOSE
-        y += 1900
-      end
-    end
+    y = compose_deal_with_year(y)
 
     case offset
       when :utc

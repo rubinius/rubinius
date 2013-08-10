@@ -127,4 +127,24 @@ class Time
   def to_f
     seconds + (usec * 0.000001)
   end
+
+  class << self
+    def compose_deal_with_year(year)
+      # This logic is taken from MRI, on how to deal with 2 digit dates.
+
+      return year if year >= 139
+
+      case year
+      when 0...39
+        warn "2 digit year used: #{year}" if $VERBOSE
+        year + 2000
+      when 69...139
+        warn "2 or 3 digit year used: #{year}" if $VERBOSE
+        year + 1900
+      else
+        year
+      end
+    end
+    private :compose_deal_with_year
+  end
 end
