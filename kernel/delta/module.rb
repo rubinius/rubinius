@@ -67,7 +67,12 @@ class Module
 
   def private(*args)
     if args.empty?
-      Rubinius::VariableScope.of_sender.method_visibility = :private
+      vs = Rubinius::VariableScope.of_sender
+      until vs.top_level_visibility?
+        break unless vs.parent
+        vs = vs.parent
+      end
+      vs.method_visibility = :private
     else
       args.each { |meth| set_visibility(meth, :private) }
     end
