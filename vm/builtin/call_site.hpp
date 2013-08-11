@@ -107,7 +107,7 @@ namespace rubinius {
       }
     }
 
-    static void lookup_method_missing(STATE, CallFrame* call_frame, Arguments& args, Dispatch& dis, Object* self, Module* begin);
+    static bool lookup_method_missing(STATE, CallFrame* call_frame, Arguments& args, Dispatch& dis, Object* self, Module* begin);
 
     Object* execute(STATE, CallFrame* call_frame, Arguments& args) {
       return (*executor_)(state, this, call_frame, args);
