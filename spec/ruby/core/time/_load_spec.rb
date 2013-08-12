@@ -1,7 +1,19 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/methods', __FILE__)
 
-describe "Time#_load" do
+describe "Time._load" do
+  ruby_version_is ""..."2.0" do
+    it "is a public method" do
+      Time.public_methods(false).should include(stasy(:_load))
+    end
+  end
+
+  ruby_version_is "2.0" do
+    it "is a private method" do
+      Time.should have_private_method(:_load, false)
+    end
+  end
+
   ruby_bug("http://redmine.ruby-lang.org/issues/show/627", "1.8.7") do
     it "loads a time object in the new format" do
       t = Time.local(2000, 1, 15, 20, 1, 1)
@@ -59,8 +71,4 @@ describe "Time#_load" do
       t.to_s.should == "2013-04-08 12:47:45 UTC"
     end
   end
-end
-
-describe "Time._load" do
-  it "needs to be reviewed for spec completeness"
 end
