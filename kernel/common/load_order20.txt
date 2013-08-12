@@ -13,8 +13,10 @@ proc.rbc
 proc19.rbc
 enumerable.rbc
 enumerable19.rbc
+enumerable20.rbc
 enumerator.rbc
 enumerator19.rbc
+enumerator20.rbc
 argf.rbc
 argf19.rbc
 argf20.rbc
