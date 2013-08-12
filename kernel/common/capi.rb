@@ -85,7 +85,7 @@ module Rubinius
       ec.replacement = opts[:replace] if opts
 
       result = ""
-      status = ec.primitive_convert str, result, 0, nil, flags
+      status = ec.primitive_convert str.dup, result, 0, nil, flags
 
       return status == :finished ? result : str
     end
