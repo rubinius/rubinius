@@ -90,7 +90,7 @@ bootstrap_files = FileList[
 
 gem_files = FileList[
   "runtime/gems/**/*.rb"
-]
+].exclude "runtime/gems/**/spec/**/*.rb"
 
 ext_files = FileList[
   "runtime/gems/**/*.{c,h}pp",
