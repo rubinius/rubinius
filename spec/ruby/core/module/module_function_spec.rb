@@ -223,17 +223,31 @@ describe "Module#module_function as a toggle (no arguments) in a Module body" do
     m.respond_to?(:test1).should == true
   end
 
-  it "affects definitions when inside an eval even if the definitions are outside of it" do
-    m = Module.new {
-          eval "module_function"
+  ruby_version_is "" ... "2.1" do
+    it "affects definitions when inside an eval even if the definitions are outside of it" do
+      m = Module.new {
+            eval "module_function"
 
-          def test1() end
-        }
+            def test1() end
+          }
 
-    m.respond_to?(:test1).should == true
+      m.respond_to?(:test1).should be_true
+    end
   end
 
-  it "functions normally if both toggle and definitions inside a module_eval" do
+  ruby_version_is "2.1" do
+    it "does not affect definitions when inside an eval even if the definitions are outside of it" do
+      m = Module.new {
+            eval "module_function"
+
+            def test1() end
+          }
+
+      m.respond_to?(:test1).should be_false
+    end
+  end
+
+  it "functions normally if both toggle and definitions inside a eval" do
     m = Module.new {
           eval <<-CODE
             module_function

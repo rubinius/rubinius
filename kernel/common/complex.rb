@@ -320,6 +320,8 @@ class Complex < Numeric
     ary
   end
 
+  private :marshal_dump
+
   def marshal_load(ary)
     @real, @imag = ary
     ary.instance_variables.each do |ivar|

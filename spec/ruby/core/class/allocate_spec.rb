@@ -12,6 +12,13 @@ describe "Class#allocate" do
     klass.methods.should_not == nil
   end
 
+  it "throws an exception when calling a method on a new instance" do
+    klass = Class.allocate
+    lambda do
+      klass.new
+    end.should raise_error(Exception)
+  end
+
   it "does not call initialize on the new instance" do
     klass = Class.new do
       def initialize(*args)

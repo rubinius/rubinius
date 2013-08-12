@@ -10,6 +10,18 @@ describe "Time#_dump" do
     @s = @t.send(:_dump)
   end
 
+  ruby_version_is ""..."2.0" do
+    it "is a public method" do
+      Time.should have_public_instance_method(:_dump, false)
+    end
+  end
+
+  ruby_version_is "2.0" do
+    it "is a private method" do
+      Time.should have_private_instance_method(:_dump, false)
+    end
+  end
+
   ruby_bug("http://redmine.ruby-lang.org/issues/show/627", "1.8.7") do
     it "preserves the GMT flag" do
       @t.gmt?.should == true

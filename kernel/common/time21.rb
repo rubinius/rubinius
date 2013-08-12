@@ -1,6 +1,9 @@
 # -*- encoding: us-ascii -*-
 
 class Time
+  private_class_method :_load
+  private :_dump
+
   def self.at(sec, usec=undefined)
     if undefined.equal?(usec)
       if sec.kind_of?(Time)
@@ -169,12 +172,14 @@ class Time
   end
 
   def localtime(offset=nil)
-    offset = Rubinius::Type.coerce_to_utc_offset(offset) unless offset.nil?
+    @is_gmt = false
+    @offset = nil
+    @decomposed = nil
 
-    if @is_gmt or offset
-      @is_gmt = false
-      @offset = offset
-      @decomposed = nil
+    if offset
+      @offset = Rubinius::Type.coerce_to_utc_offset(offset)
+    else
+      @offset = gmt_offset
     end
 
     self
@@ -216,5 +221,12 @@ class Time
     nano = ((roundable_time - sec) * 1_000_000_000).floor
 
     Time.specific(sec, nano, @is_gmt, @offset)
+  end
+
+  class << self
+    def compose_deal_with_year(year)
+      year
+    end
+    private :compose_deal_with_year
   end
 end

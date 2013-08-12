@@ -47,7 +47,7 @@ with_feature :encoding do
     it "raises an UndefinedConversionError is the argument cannot be converted into the destination encoding" do
       ec = Encoding::Converter.new("sjis", "ascii")
       utf8_q = "\u{986}".force_encoding('utf-8')
-      ec.primitive_convert(utf8_q,"").should == :undefined_conversion
+      ec.primitive_convert(utf8_q.dup, "").should == :undefined_conversion
       lambda { ec.replacement = utf8_q }.should \
         raise_error(Encoding::UndefinedConversionError)
     end
@@ -55,7 +55,7 @@ with_feature :encoding do
     it "does not change the replacement character if the argument cannot be converted into the destination encoding" do
       ec = Encoding::Converter.new("sjis", "ascii")
       utf8_q = "\u{986}".force_encoding('utf-8')
-      ec.primitive_convert(utf8_q,"").should == :undefined_conversion
+      ec.primitive_convert(utf8_q.dup, "").should == :undefined_conversion
       lambda { ec.replacement = utf8_q }.should \
         raise_error(Encoding::UndefinedConversionError)
       ec.replacement.should == "?".force_encoding('us-ascii')

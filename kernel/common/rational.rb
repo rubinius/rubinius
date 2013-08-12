@@ -368,6 +368,8 @@ class Rational < Numeric
     ary
   end
 
+  private :marshal_dump
+
   def marshal_load(ary)
     @numerator, @denominator = ary
     ary.instance_variables.each do |ivar|

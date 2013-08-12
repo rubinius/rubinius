@@ -1,7 +1,10 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
+require File.expand_path('../shared/set_visibility', __FILE__)
 
 describe "Module#private" do
+  it_behaves_like :set_visibility, :private
+
   it "makes the target method uncallable from other types" do
     obj = Object.new
     class << obj

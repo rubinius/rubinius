@@ -99,7 +99,6 @@ namespace rubinius {
     int current_ip_;
     JITInlineBlock* current_block_;
     int block_arg_shift_;
-    bool skip_yield_stack_;
 
     JITBasicBlock* current_jbb_;
 
@@ -128,7 +127,6 @@ namespace rubinius {
       , current_ip_(0)
       , current_block_(NULL)
       , block_arg_shift_(0)
-      , skip_yield_stack_(false)
       , current_jbb_(0)
     {}
 
@@ -2128,6 +2126,17 @@ use_send:
       stack_push(prc);
     }
 
+    void visit_push_block_arg() {
+
+      Value* args = b().CreateLoad(
+          b().CreateConstGEP2_32(call_frame_, 0, offset::CallFrame::arguments, "args_pos"),
+          "args");
+
+      stack_push(b().CreateLoad(
+          b().CreateConstGEP2_32(args, 0, offset::Arguments::block, "block_pos"),
+          "block"));
+    }
+
     void visit_send_super_stack_with_block(opcode& which, opcode args) {
       set_has_side_effects();
 
@@ -2875,11 +2884,6 @@ use_send:
     }
 
     void visit_yield_stack(opcode count) {
-      if(skip_yield_stack_) {
-        skip_yield_stack_ = false;
-        return;
-      }
-
       set_has_side_effects();
 
       JITInlineBlock* ib = info().inline_block();

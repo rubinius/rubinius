@@ -638,6 +638,26 @@ describe :marshal_load, :shared => true do
     end
   end
 
+  ruby_version_is "1.9" do
+    describe "for a Rational" do
+      it "loads" do
+        Marshal.send(@method, Marshal.dump(Rational(1, 3))).should == Rational(1, 3)
+      end
+    end
+
+    describe "for a Complex" do
+      it "loads" do
+        Marshal.send(@method, Marshal.dump(Complex(4, 3))).should == Complex(4, 3)
+      end
+    end
+  end
+
+  describe "for a Time" do
+    it "loads" do
+      Marshal.send(@method, Marshal.dump(Time.at(1))).should == Time.at(1)
+    end
+  end
+
   describe "for nil" do
     it "loads" do
       Marshal.send(@method, "\x04\b0").should be_nil

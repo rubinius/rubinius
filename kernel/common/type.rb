@@ -258,5 +258,17 @@ module Rubinius
         Rubinius.inc_global_serial
       end
     end
+
+    def self.object_respond_to__dump?(obj)
+      object_respond_to? obj, :_dump
+    end
+
+    def self.object_respond_to_marshal_dump?(obj)
+      object_respond_to? obj, :marshal_dump
+    end
+
+    def self.object_respond_to_marshal_load?(obj)
+      object_respond_to? obj, :marshal_load
+    end
   end
 end

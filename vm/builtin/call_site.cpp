@@ -74,7 +74,10 @@ namespace rubinius {
     Dispatch dis(call_site->name());
 
     if(!dis.resolve(state, call_site->name(), lookup)) {
-      lookup_method_missing(state, call_frame, args, dis, call_frame->self(), recv->lookup_begin(state));
+      if(!lookup_method_missing(state, call_frame, args,
+          dis, call_frame->self(), recv->lookup_begin(state))) {
+        return NULL;
+      }
     }
 
     call_site->update(state, recv_class, dis);
@@ -103,7 +106,10 @@ namespace rubinius {
     Dispatch dis(call_site->name());
 
     if(!dis.resolve(state, dis.name, lookup)) {
-      lookup_method_missing(state, call_frame, args, dis, call_frame->self(), recv->lookup_begin(state));
+      if(!lookup_method_missing(state, call_frame, args,
+          dis, call_frame->self(), recv->lookup_begin(state))) {
+        return NULL;
+      }
     }
 
     call_site->update(state, recv_class, dis);
@@ -133,7 +139,10 @@ namespace rubinius {
     Dispatch dis(call_site->name());
 
     if(!dis.resolve(state, call_site->name(), lookup)) {
-      lookup_method_missing(state, call_frame, args, dis, call_frame->self(), recv->lookup_begin(state));
+      if(!lookup_method_missing(state, call_frame, args,
+          dis, call_frame->self(), recv->lookup_begin(state))) {
+        return NULL;
+      }
     }
 
     call_site->update(state, recv_class, dis);
@@ -238,7 +247,7 @@ namespace rubinius {
     return false;
   }
 
-  void CallSite::lookup_method_missing(STATE, CallFrame* call_frame, Arguments& args, Dispatch& dis, Object* self, Module* begin) {
+  bool CallSite::lookup_method_missing(STATE, CallFrame* call_frame, Arguments& args, Dispatch& dis, Object* self, Module* begin) {
     LookupData missing_lookup(self, begin, G(sym_private));
     Dispatch missing_dis(G(sym_method_missing));
     missing_dis.resolve(state, G(sym_method_missing), missing_lookup);
@@ -250,6 +259,7 @@ namespace rubinius {
       msg << "#" << dis.name->to_string(state);
 
       Exception::internal_error(state, call_frame, msg.str().c_str());
+      return false;
     }
 
     args.unshift(state, dis.name);
@@ -257,6 +267,7 @@ namespace rubinius {
     dis.module = missing_dis.module;
     state->vm()->set_method_missing_reason(dis.method_missing);
     state->vm()->global_cache()->add_seen(state, dis.name);
+    return true;
   }
 
   void CallSite::Info::mark(Object* obj, ObjectMark& mark) {

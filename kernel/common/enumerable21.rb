@@ -90,6 +90,17 @@ module Enumerable
   end
   alias_method :collect_concat, :flat_map
 
+  def lazy
+    Enumerator::Lazy.new(self, enumerator_size) do |yielder, *args|
+      yielder.<<(*args)
+    end
+  end
+
+  def enumerator_size
+    Rubinius::Type.object_respond_to?(self, :size) ? size : nil
+  end
+  private :enumerator_size
+
   def group_by
     return to_enum(:group_by) unless block_given?
 

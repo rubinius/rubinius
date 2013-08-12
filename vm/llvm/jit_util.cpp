@@ -1224,9 +1224,7 @@ extern "C" {
     MachineCode* mcode = call_frame->compiled_code->machine_code();
 
     if(call_frame->is_inline_frame() && creator_call_frame) {
-      // Fix up this inlined block.
-      VariableScope* parent = creator_call_frame->promote_scope(state);
-      call_frame->scope->set_parent(parent);
+      call_frame->jit_fixup(state, creator_call_frame);
     }
 
     state->vm()->unwinds().set_current(unwind_count);
@@ -1247,9 +1245,7 @@ extern "C" {
     MachineCode* mcode = call_frame->compiled_code->machine_code();
 
     if(call_frame->is_inline_frame() && creator_call_frame) {
-      // Fix up this inlined block.
-      VariableScope* parent = creator_call_frame->promote_scope(state);
-      call_frame->scope->set_parent(parent);
+      call_frame->jit_fixup(state, creator_call_frame);
     }
 
     call_frame->ip_ = entry_ip;
@@ -1417,7 +1413,7 @@ extern "C" {
   }
 
   Object* rbx_make_proc(STATE, CallFrame* call_frame) {
-    Object* obj = call_frame->scope->block();
+    Object* obj = call_frame->arguments->block();
     if(CBOOL(obj)) {
       Proc* prc = Proc::from_env(state, G(proc), obj);
       if(!prc) {

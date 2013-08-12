@@ -608,7 +608,10 @@ module Marshal
         @has_ivar[ivar_index] = false
       end
 
-      obj = klass._load data
+      obj = nil
+      Rubinius.privately do
+        obj = klass._load data
+      end
 
       store_unique_object obj
 
@@ -624,14 +627,16 @@ module Marshal
 
       extend_object obj if @modules
 
-      unless Rubinius::Type.object_respond_to? obj, :marshal_load
+      unless Rubinius::Type.object_respond_to_marshal_load? obj
         raise TypeError, "instance of #{klass} needs to have method `marshal_load'"
       end
 
       store_unique_object obj
 
       data = construct
-      obj.marshal_load data
+      Rubinius.privately do
+        obj.marshal_load data
+      end
 
       obj
     end
@@ -692,9 +697,9 @@ module Marshal
         add_object obj
 
         # ORDER MATTERS.
-        if Rubinius::Type.object_respond_to? obj, :marshal_dump
+        if Rubinius::Type.object_respond_to_marshal_dump? obj
           str = serialize_user_marshal obj
-        elsif Rubinius::Type.object_respond_to? obj, :_dump
+        elsif Rubinius::Type.object_respond_to__dump? obj
           str = serialize_user_defined obj
         else
           str = obj.__marshal__ self
@@ -826,7 +831,10 @@ module Marshal
     end
 
     def serialize_user_defined(obj)
-      str = obj._dump @depth
+      str = nil
+      Rubinius.privately do
+        str = obj._dump @depth
+      end
 
       unless Rubinius::Type.object_kind_of? str, String
         raise TypeError, "_dump() must return string"
@@ -841,7 +849,10 @@ module Marshal
     end
 
     def serialize_user_marshal(obj)
-      val = obj.marshal_dump
+      val = nil
+      Rubinius.privately do
+        val = obj.marshal_dump
+      end
 
       add_object val
 

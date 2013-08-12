@@ -177,5 +177,17 @@ module Rubinius
       index_b = Encoding::EncodingMap[b.name.upcase][1]
       index_a <=> index_b
     end
+
+    def self.object_respond_to__dump?(obj)
+      object_respond_to? obj, :_dump, true
+    end
+
+    def self.object_respond_to_marshal_dump?(obj)
+      object_respond_to? obj, :marshal_dump, true
+    end
+
+    def self.object_respond_to_marshal_load?(obj)
+      object_respond_to? obj, :marshal_load, true
+    end
   end
 end
