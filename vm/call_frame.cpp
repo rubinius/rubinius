@@ -196,6 +196,12 @@ namespace rubinius {
     return false;
   }
 
+  void CallFrame::jit_fixup(STATE, CallFrame* creator) {
+    VariableScope* parent = creator->promote_scope(state);
+    scope->set_parent(parent);
+    scope->set_block(creator->scope->block());
+  }
+
   void CallFrame::dump() {
     VM* vm = VM::current();
     State state_obj(vm), *state = &state_obj;

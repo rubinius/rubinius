@@ -42,6 +42,10 @@ namespace rubinius {
       parent_ = scope;
     }
 
+    void set_block(Object* block) {
+      block_ = block;
+    }
+
     Object* self() const {
       return self_;
     }

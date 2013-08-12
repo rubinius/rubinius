@@ -203,6 +203,8 @@ namespace rubinius {
       return cf;
     }
 
+    void jit_fixup(STATE, CallFrame* creator);
+
     Object* last_match(STATE);
     void set_last_match(STATE, Object* obj);
 
