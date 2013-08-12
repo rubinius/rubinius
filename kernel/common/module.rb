@@ -377,7 +377,12 @@ class Module
 
   def protected(*args)
     if args.empty?
-      Rubinius::VariableScope.of_sender.method_visibility = :protected
+      vs = Rubinius::VariableScope.of_sender
+      until vs.top_level_visibility?
+        break unless vs.parent
+        vs = vs.parent
+      end
+      vs.method_visibility = :protected
     else
       args.each { |meth| set_visibility(meth, :protected) }
     end
@@ -387,7 +392,12 @@ class Module
 
   def public(*args)
     if args.empty?
-      Rubinius::VariableScope.of_sender.method_visibility = nil
+      vs = Rubinius::VariableScope.of_sender
+      until vs.top_level_visibility?
+        break unless vs.parent
+        vs = vs.parent
+      end
+      vs.method_visibility = nil
     else
       args.each { |meth| set_visibility(meth, :public) }
     end
