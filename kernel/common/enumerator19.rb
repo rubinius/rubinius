@@ -104,8 +104,8 @@ module Enumerable
         @proc.call *args
       end
 
-      def <<(value)
-        self.yield value
+      def <<(*args)
+        self.yield(*args)
 
         self
       end
