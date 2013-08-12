@@ -83,6 +83,10 @@ namespace rubinius {
       throw Unsupported();
     }
 
+    void visit_push_block_arg() {
+      throw Unsupported();
+    }
+
     void visit_setup_unwind(opcode where, opcode type) {
       if(!options_.allow_exceptions) throw Unsupported();
     }

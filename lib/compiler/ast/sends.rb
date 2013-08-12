@@ -336,8 +336,7 @@ module Rubinius
       end
 
       def assignment_bytecode(g)
-        g.push_block_arg
-        convert(g)
+        g.push_proc
         @body.bytecode(g)
       end
 

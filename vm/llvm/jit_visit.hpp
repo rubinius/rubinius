@@ -2126,6 +2126,17 @@ use_send:
       stack_push(prc);
     }
 
+    void visit_push_block_arg() {
+
+      Value* args = b().CreateLoad(
+          b().CreateConstGEP2_32(call_frame_, 0, offset::CallFrame::arguments, "args_pos"),
+          "args");
+
+      stack_push(b().CreateLoad(
+          b().CreateConstGEP2_32(args, 0, offset::Arguments::block, "block_pos"),
+          "block"));
+    }
+
     void visit_send_super_stack_with_block(opcode& which, opcode args) {
       set_has_side_effects();
 
