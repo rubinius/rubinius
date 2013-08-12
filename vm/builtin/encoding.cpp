@@ -818,6 +818,17 @@ namespace rubinius {
       memcpy(buffer->raw_bytes(), target->data()->raw_bytes(), byte_offset);
     }
 
+    if(src) {
+      // Removing consumed bytes from src.
+      native_int bytes_to_drop = source_ptr - (const unsigned char*)src->c_str(state);
+      native_int index = bytes_to_drop;
+      native_int length = src->byte_size() - index;
+
+      String *replacement = src->byte_substring(state, index, length);
+      src->data(state, replacement->data());
+      src->num_bytes(state, Fixnum::from(length));
+    }
+
     target->data(state, buffer);
     target->num_bytes(state, Fixnum::from(output_size));
     target->shared(state, cFalse);
@@ -928,7 +939,27 @@ namespace rubinius {
   }
 
   String* Converter::putback(STATE, Object* maxbytes) {
-    return nil<String>();
+    native_int n;
+    native_int putbackable;
+
+    if(Fixnum* max_bytes = try_as<Fixnum>(maxbytes)) {
+      n = max_bytes->to_native();
+      putbackable = rb_econv_putbackable(get_converter());
+      if(putbackable < n) {
+        n = putbackable;
+      }
+    } else {
+      n = rb_econv_putbackable(get_converter());
+    }
+
+    ByteArray* ba = ByteArray::create(state, n);
+
+    rb_econv_putback(get_converter(), (unsigned char *)ba->raw_bytes(), n);
+
+    String* str = String::from_bytearray(state, ba, n);
+    str->encoding(state, source_encoding());
+
+    return str;
   }
 
   void Converter::finalize(STATE, Converter* converter) {
