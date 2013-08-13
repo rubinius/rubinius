@@ -32,28 +32,15 @@ module Rubinius
     end
 
     #
-    # Set stream into binary mode.
-    #
-    # Stream is set into binary mode, i.e. 8-bit ASCII.
-    # Once set, the binary mode cannot be undone. Returns
-    # self.
-    #
-    # @todo Not implemented! Intentional? --rue
-    #
-    def binmode
-      self
-    end
-
-    #
     # Close stream.
     #
     def close
       advance!
       @stream.close
-
       @advance = true unless @use_stdin_only
       @lineno = 0
-
+      @binmode = false
+      @external = nil
       self
     end
 
@@ -309,7 +296,7 @@ module Rubinius
     #
     def read(bytes=nil, output=nil)
       # The user might try to pass in nil, so we have to check here
-      output ||= ""
+      output ||= default_value
 
       if bytes
         bytes_left = bytes
@@ -438,7 +425,6 @@ module Rubinius
           @use_stdin_only = true
           return true
         end
-
         @init = true
       end
 
@@ -449,7 +435,7 @@ module Rubinius
       @advance = false
 
       file = ARGV.shift
-      @stream = (file == "-" ? STDIN : File.open(file, "r"))
+      @stream = stream(file) 
       @filename = file
 
       if $-i && @stream != STDIN
@@ -463,7 +449,6 @@ module Rubinius
       return true
     end
     private :advance!
-
   end
 end
 
