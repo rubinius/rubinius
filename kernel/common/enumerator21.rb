@@ -1,5 +1,7 @@
 # -*- encoding: us-ascii -*-
 
+Enumerator = Enumerable::Enumerator
+
 module Enumerable
   class Enumerator
     attr_writer :args
