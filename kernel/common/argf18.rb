@@ -3,6 +3,11 @@
 module Rubinius
   class ARGFClass
 
+    
+    def binmode
+      self
+    end
+
     #
     # Read all lines from stream.
     #
@@ -23,5 +28,14 @@ module Rubinius
     end
 
     alias_method :to_a, :readlines
+
+
+    def default_value
+      ""
+    end
+
+    def stream(file)
+      file == "-" ? STDIN : File.open(file, "r")
+    end
   end
 end

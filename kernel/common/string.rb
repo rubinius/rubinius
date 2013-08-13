@@ -377,42 +377,6 @@ class String
     !!find_string(str_needle, 0)
   end
 
-  def insert(index, other)
-    other = StringValue(other)
-    index = Rubinius::Type.coerce_to index, Fixnum, :to_int
-    index = length + 1 + index if index < 0
-
-    if index > length or index < 0 then
-      raise IndexError, "index #{index} out of string"
-    end
-
-    osize = other.bytesize
-    size = @num_bytes + osize
-    str = self.class.pattern size, "\0"
-
-    self_m = Rubinius::Mirror.reflect self
-    index = self_m.character_to_byte_index index
-
-    Rubinius.check_frozen
-    @hash_value = nil
-
-    m = Rubinius::Mirror.reflect str
-    if index == @num_bytes
-      m.copy_from self, 0, @num_bytes, 0
-      m.copy_from other, 0, osize, @num_bytes
-    else
-      m.copy_from self, 0, index, 0 if index > 0
-      m.copy_from other, 0, osize, index
-      m.copy_from self, index, @num_bytes - index, index + osize
-    end
-
-    self.num_bytes = size
-    @data = str.__data__
-    Rubinius::Type.infect self, other
-
-    self
-  end
-
   ControlCharacters = [10, 9, 7, 11, 12, 13, 27, 8]
   ControlPrintValue = ["\\n", "\\t", "\\a", "\\v", "\\f", "\\r", "\\e", "\\b"]
 
