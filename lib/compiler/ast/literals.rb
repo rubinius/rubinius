@@ -21,7 +21,19 @@ module Rubinius
       end
 
       def defined(g)
+        not_found = g.new_label
+        done = g.new_label
+        @body.each do |x|
+          x.defined(g)
+          g.gif not_found
+        end
         g.push_literal "expression"
+        g.goto done
+        not_found.set!
+        g.push_nil
+        g.goto done
+
+        done.set!
       end
 
       def to_sexp
