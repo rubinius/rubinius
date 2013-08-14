@@ -1,6 +1,5 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
-require "rational"
 
 describe :kernel_integer, :shared => true do
   it "returns a Bignum for a Bignum" do
@@ -40,9 +39,11 @@ describe :kernel_integer, :shared => true do
     Integer(90.8).should == 90
   end
 
-  it "calls to_i on Rationals" do
-    Integer(Rational(8,3)).should == 2
-    Integer(3.quo(2)).should == 1
+  ruby_version_is "1.9" do
+    it "calls to_i on Rationals" do
+      Integer(Rational(8,3)).should == 2
+      Integer(3.quo(2)).should == 1
+    end
   end
 
   it "returns the value of to_int if the result is a Fixnum" do
