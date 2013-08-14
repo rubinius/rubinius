@@ -1,1 +1,0 @@
-fails:Splat operator used to assign a splatted object to an object assigns the splatted object contained into an array when the splatted object is a result of 'obj || []'

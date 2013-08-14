@@ -1,1 +1,0 @@
-fails:TCPServer#accept can be interrupted by Thread#raise

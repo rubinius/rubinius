@@ -1,1 +1,0 @@
-critical:Matrix::EigenvalueDecomposition#initialize never hangs

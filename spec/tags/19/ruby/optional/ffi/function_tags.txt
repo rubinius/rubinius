@@ -1,6 +1,0 @@
-fails:FFI::Function is initialized with a signature and a block
-fails:FFI::Function raises an error when passing a wrong signature
-fails:FFI::Function returns a native pointer
-fails:FFI::Function autorelease flag is set to true by default
-fails:FFI::Function can explicity free itself
-fails:FFI::Function can't explicity free itself if not previously allocated

@@ -1,2 +1,0 @@
-fails:Time#strftime with %z rounds fixed offset to the nearest second
-fails:Time#strftime with %N formats the picoseconds of of the second with %12N
