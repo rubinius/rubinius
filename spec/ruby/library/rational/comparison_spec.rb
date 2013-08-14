@@ -1,4 +1,5 @@
 require File.expand_path('../../../shared/rational/comparison', __FILE__)
+require 'rational'
 
 ruby_version_is ""..."1.9" do
   describe "Rational#<=> when passed a Rational object" do
