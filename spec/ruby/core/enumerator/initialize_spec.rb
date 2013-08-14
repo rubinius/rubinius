@@ -62,5 +62,15 @@ describe "Enumerator#initialize" do
         @uninitialized.send(:initialize, lambda { 200 }) {}.size.should == 200
       end
     end
+
+    describe "on frozen instance" do
+      ruby_version_is "2.1" do
+        it "raises a RuntimeError" do
+          lambda {
+            @uninitialized.freeze.send(:initialize) {}
+          }.should raise_error(RuntimeError)
+        end
+      end
+    end
   end
 end
