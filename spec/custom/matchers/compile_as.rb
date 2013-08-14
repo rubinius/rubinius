@@ -13,7 +13,8 @@ class CompileAsMatcher
   end
 
   def matches?(actual)
-    @actual = Rubinius::Compiler.compile_test_bytecode actual, @plugins
+    c = Rubinius::ToolSet::Runtime::Compiler
+    @actual = c.compile_test_bytecode actual, @plugins
     @actual == @expected
   end
 

@@ -98,7 +98,7 @@ describe "A For node" do
       end
 
       ruby_version_is "1.9" do
-        d.push_literal Rubinius::Compiler::Runtime
+        d.push_literal Compiler::Runtime
         d.push_local 0
         d.send :unwrap_block_arg, 1
         d.cast_array

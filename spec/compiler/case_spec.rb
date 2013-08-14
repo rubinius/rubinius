@@ -435,7 +435,7 @@ describe "A Case node" do
       g.push :self
       g.send :c, 0, true
       g.cast_array
-      g.push_literal Rubinius::Compiler::Runtime
+      g.push_literal Compiler::Runtime
       g.rotate(3)
       g.send :matches_when, 2
       g.git c1

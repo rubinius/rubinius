@@ -9,7 +9,7 @@ module CodeLoadingSpecs
       touch(rb) { |f| f.puts "ScratchPad << :loaded" }
     end
 
-    Rubinius::Compiler.compile rb, rbc
+    Rubinius::ToolSet::Runtime::Compiler.compile rb, rbc
     return rb, rbc
   end
 end

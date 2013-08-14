@@ -8,7 +8,6 @@ class CompilerScript
     @files        = []
     @strings      = []
     @stdin        = false
-    @use_19       = false
   end
 
   def options(argv=ARGV)
@@ -75,11 +74,11 @@ class CompilerScript
     @options.doc " How to print representations of data structures"
 
     @options.on "-A", "--print-ast", "Print an ascii graph of the AST" do
-      @print_ast = Rubinius::Compiler::ASTPrinter
+      @print_ast = Rubinius::ToolSet::Runtime::Compiler::ASTPrinter
     end
 
     @options.on "-S", "--print-sexp", "Print the AST as an S-expression" do
-      @print_ast = Rubinius::Compiler::SexpPrinter
+      @print_ast = Rubinius::ToolSet::Runtime::Compiler::SexpPrinter
     end
 
     @options.on "-B", "--print-bytecode", "Print bytecode for compiled methods" do
@@ -91,7 +90,7 @@ class CompilerScript
     end
 
     @options.on "-P", "--print", "Enable all stage printers" do
-      @print_ast = Rubinius::Compiler::ASTPrinter
+      @print_ast = Rubinius::ToolSet::Runtime::Compiler::ASTPrinter
       @print_bytecode = true
     end
 
@@ -100,10 +99,6 @@ class CompilerScript
 
     @options.on "-i", "--ignore", "Continue on errors" do
       @ignore = true
-    end
-
-    @options.on "--1.9", "Use the 1.9 parser" do
-      @use_19 = true
     end
 
 
@@ -142,7 +137,7 @@ class CompilerScript
   def set_output(compiler, name)
     if writer = compiler.writer
       writer.name = name
-      writer.version = @use_19 ? 19 : 18
+      writer.version = Rubinius::RUBY_LIB_VERSION
     end
   end
 
@@ -172,12 +167,10 @@ class CompilerScript
   end
 
   def new_compiler(from, to)
-    compiler = Rubinius::Compiler.new from, to
+    compiler = Rubinius::ToolSet::Runtime::Compiler.new from, to
 
     parser = compiler.parser
     parser.root Rubinius::AST::Script
-
-    parser.processor Rubinius::Melbourne19 if @use_19
 
     enable_transforms parser
 
