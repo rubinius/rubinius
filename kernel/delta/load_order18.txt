@@ -1,12 +1,12 @@
 agent.rbc
 ctype18.rbc
 ctype.rbc
-class.rbc
 exception.rbc
 file.rbc
 rubinius.rbc
 rubinius18.rbc
 module.rbc
+class.rbc
 filetest.rbc
 kernel.rbc
 kernel18.rbc

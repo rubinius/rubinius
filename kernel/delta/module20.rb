@@ -30,6 +30,10 @@ class Module
       raise TypeError, "invalid argument class #{klass.class}, expected Module"
     end
 
+    if kind_of? Class
+      raise TypeError, "invalid receiver class #{__class__}, expected Module"
+    end
+
     if klass == klass.origin
       im = Rubinius::IncludedModule.new(klass)
       im.superclass = klass.direct_superclass
@@ -40,4 +44,5 @@ class Module
     Rubinius::Type.infect(klass, self)
     self
   end
+  private :prepend_features
 end
