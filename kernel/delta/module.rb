@@ -115,6 +115,10 @@ class Module
       raise TypeError, "invalid argument class #{klass.class}, expected Module"
     end
 
+    if kind_of? Class
+      raise TypeError, "invalid receiver class #{__class__}, expected Module"
+    end
+
     Rubinius::Type.include_modules_from(self, klass.origin)
     Rubinius::Type.infect(klass, self)
 
