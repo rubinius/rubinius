@@ -7,6 +7,7 @@ class Module
   end
 
   def prepended(mod); end
+  private :prepended
 
   def prepend(*modules)
     modules.reverse_each do |mod|
