@@ -24,6 +24,7 @@ class Module
     end
     self
   end
+  private :prepend
 
   def prepend_features(klass)
     unless klass.kind_of? Module
