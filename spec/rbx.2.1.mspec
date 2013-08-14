@@ -105,7 +105,7 @@ class MSpecScript
   # The set of substitutions to transform a spec filename
   # into a tag filename.
   set :tags_patterns, [
-                        [%r(spec/), 'spec/tags/20/'],
+                        [%r(spec/), 'spec/tags/21/'],
                         [/_spec.rb$/, '_tags.txt']
                       ]
 
