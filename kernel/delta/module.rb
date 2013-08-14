@@ -44,6 +44,10 @@ class Module
   end
 
   def module_function(*args)
+    if kind_of? Class
+      raise TypeError, "invalid receiver class #{__class__}, expected Module"
+    end
+
     if args.empty?
       vs = Rubinius::VariableScope.of_sender
       until vs.top_level_visibility?
