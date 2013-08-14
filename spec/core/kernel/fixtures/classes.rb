@@ -26,7 +26,9 @@ module KernelSpecs
 
     c = Rubinius::ToolSet::Runtime::Compiler
     be = c.construct_block code, empty_binding, name
-    Rubinius::CompiledFile.dump be.compiled_code, cache, 0, 0
+
+    cf = Rubinius::ToolSet::Runtime::CompiledFile
+    cf.dump be.compiled_code, cache, 0, 0
   end
 
   def self.run_cache(cache)
