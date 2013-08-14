@@ -16,5 +16,15 @@ ruby_version_is "1.9" do
     it "returns self when given a block" do
       @uninitialized.send(:initialize) {}.should equal(@uninitialized)
     end
+
+    describe "on frozen instance" do
+      ruby_version_is "2.1" do
+        it "raises a RuntimeError" do
+          lambda {
+            @uninitialized.freeze.send(:initialize) {}
+          }.should raise_error(RuntimeError)
+        end
+      end
+    end
   end
 end

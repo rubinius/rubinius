@@ -538,6 +538,56 @@ describe "A Defined node" do
     end
   end
 
+  relates "defined? [X]" do
+    compile do |g|
+      g.push_exception_state
+      outer_exc_state = g.new_stack_local
+      g.set_stack_local outer_exc_state
+      g.pop
+
+      f = g.new_label
+      done = g.new_label
+
+      ex = g.new_label
+      ok = g.new_label
+      g.setup_unwind ex
+
+      g.push_literal :X
+      g.invoke_primitive :vm_const_defined, 1
+      g.pop_unwind
+      g.goto ok
+
+      ex.set!
+      g.clear_exception
+      g.push_stack_local outer_exc_state
+      g.restore_exception_state
+      g.goto f
+
+      ok.set!
+      g.pop
+      g.push_literal "constant"
+      g.goto done
+
+      f.set!
+      g.push :nil
+
+      done.set!
+
+      not_found = g.new_label
+      finished  = g.new_label
+
+      g.gif not_found
+      g.push_literal "expression"
+      g.goto finished
+
+      not_found.set!
+      g.push_nil
+      g.goto finished
+
+      finished.set!
+    end
+  end
+
   relates <<-ruby do
       a = 1
       defined? a.to_s
