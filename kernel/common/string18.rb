@@ -209,16 +209,6 @@ class String
   alias_method :next, :succ
   alias_method :next!, :succ!
 
-  def unpack(directives)
-    Rubinius.primitive :string_unpack18
-
-    unless directives.kind_of? String
-      return unpack(StringValue(directives))
-    end
-
-    raise ArgumentError, "invalid directives string: #{directives}"
-  end
-
   def rstrip!
     return if @num_bytes == 0
 

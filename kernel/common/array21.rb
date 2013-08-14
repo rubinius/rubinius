@@ -330,16 +330,6 @@ class Array
     replace select(&block)
   end
 
-  def pack(directives)
-    Rubinius.primitive :array_pack19
-
-    unless directives.kind_of? String
-      return pack(StringValue(directives))
-    end
-
-    raise ArgumentError, "invalid directives string: #{directives}"
-  end
-
   # Implementation notes: We build a block that will generate all the
   # combinations by building it up successively using "inject" and starting
   # with one responsible to append the values.

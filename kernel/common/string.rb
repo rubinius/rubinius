@@ -648,6 +648,16 @@ class String
     tr_trans(source, replacement, true)
   end
 
+  def unpack(directives)
+    Rubinius.primitive :string_unpack
+
+    unless directives.kind_of? String
+      return unpack(StringValue(directives))
+    end
+
+    raise ArgumentError, "invalid directives string: #{directives}"
+  end
+
   def upcase
     str = dup
     str.upcase! || str

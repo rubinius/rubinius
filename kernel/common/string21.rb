@@ -578,16 +578,6 @@ class String
     Rationalizer.new(self).convert
   end
 
-  def unpack(directives)
-    Rubinius.primitive :string_unpack19
-
-    unless directives.kind_of? String
-      return unpack(StringValue(directives))
-    end
-
-    raise ArgumentError, "invalid directives string: #{directives}"
-  end
-
   def rstrip!
     Rubinius.check_frozen
     return if @num_bytes == 0

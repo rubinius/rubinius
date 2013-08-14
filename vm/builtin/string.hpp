@@ -306,11 +306,8 @@ namespace rubinius {
     // Rubinius.primitive :string_awk_split
     Array* awk_split(STATE, Fixnum* limit);
 
-    // Rubinius.primitive :string_unpack18
-    Array* unpack18(STATE, String *directives);
-
-    // Rubinius.primitive :string_unpack19
-    Array* unpack19(STATE, String *directives);
+    // Rubinius.primitive :string_unpack
+    Array* unpack(STATE, String *directives);
 
     // Rubinius.primitive :string_resize_capacity
     String* resize_capacity(STATE, Fixnum* count);

@@ -674,6 +674,16 @@ class Array
     sum
   end
 
+  def pack(directives)
+    Rubinius.primitive :array_pack
+
+    unless directives.kind_of? String
+      return pack(StringValue(directives))
+    end
+
+    raise ArgumentError, "invalid directives string: #{directives}"
+  end
+
   def permutation(num=undefined, &block)
     return to_enum(:permutation, num) unless block_given?
 
