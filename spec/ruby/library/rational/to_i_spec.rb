@@ -1,4 +1,5 @@
 require File.expand_path('../../../shared/rational/to_i', __FILE__)
+require 'rational'
 
 ruby_version_is ""..."1.9" do
   describe "Rational#to_i" do

@@ -1,5 +1,4 @@
 require File.expand_path('../../../spec_helper', __FILE__)
-require 'rational'
 
 describe :rational_initialize, :shared => true do
   # Rational#initialize doesn't accept any arguments on 1.9, nor do we

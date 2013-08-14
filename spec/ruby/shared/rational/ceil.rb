@@ -16,8 +16,6 @@ end
 
 ruby_version_is ""..."1.9" do
 
-  require 'rational'
-
   describe :rational_ceil, :shared => true do
     it "returns an Integer" do
       Rational(19).ceil.should be_kind_of(Integer)
