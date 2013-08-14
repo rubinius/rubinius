@@ -1,3 +1,1 @@
-$: << File.expand_path('../', __FILE__)
-
-require 'spec/ruby/spec_helper'
+require File.expand_path('../ruby/spec_helper', __FILE__)
