@@ -21,6 +21,25 @@ describe "The defined? keyword for literals" do
     ret = defined?(false)
     ret.should == "false"
   end
+
+  describe "for a literal Array" do
+
+    it "returns 'expression' if each element is defined" do
+      ret = defined?([Object, Array])
+      ret.should == "expression"
+    end
+
+    it "returns nil if one element is not defined" do
+      ret = defined?([NonExistantConstant, Array])
+      ret.should == nil
+    end
+
+    it "returns nil if all elements are not defined" do
+      ret = defined?([NonExistantConstant, AnotherNonExistantConstant])
+      ret.should == nil
+    end
+
+  end
 end
 
 describe "The defined? keyword when called with a method name" do
