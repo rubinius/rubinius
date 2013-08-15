@@ -45,6 +45,7 @@ class StringIO
     if string.nil?
       @__data__ = Data.new ""
       set_encoding(nil)
+      mode = IO::RDWR
     else
       string = Rubinius::Type.coerce_to string, String, :to_str
       @__data__ = Data.new string
@@ -697,37 +698,37 @@ class StringIO
 
     if sep.nil?
       if limit
-        line = string.byteslice(pos...pos + limit)
+        line = string.byteslice(pos, limit)
       else
-        line = string.byteslice(pos..-1)
+        line = string.byteslice(pos, string.bytesize - pos)
       end
       d.pos += line.bytesize
     elsif sep.empty?
-      if stop = string.index("\n\n", pos)
+      if stop = string.find_string("\n\n", pos)
         stop += 2
-        line = string.byteslice(pos...stop)
-        while string[stop] == ?\n
+        line = string.byteslice(pos, stop - pos)
+        while string.getbyte(stop) == 10
           stop += 1
         end
         d.pos = stop
       else
-        line = string.byteslice(pos..-1)
+        line = string.byteslice(pos, string.bytesize - pos)
         d.pos = string.bytesize
       end
     else
-      if stop = string.index(sep, pos)
+      if stop = string.find_string(sep, pos)
         if limit && stop - pos >= limit
           stop = pos + limit
         else
-          stop += sep.length
+          stop += sep.bytesize
         end
-        line = string.byteslice(pos...stop)
+        line = string.byteslice(pos, stop - pos)
         d.pos = stop
       else
         if limit
-          line = string.byteslice(pos...pos + limit)
+          line = string.byteslice(pos, limit)
         else
-          line = string.byteslice(pos..-1)
+          line = string.byteslice(pos, string.bytesize - pos)
         end
         d.pos += line.bytesize
       end
