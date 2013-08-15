@@ -119,7 +119,7 @@ class Rubinius::Stat
   end
 
   def grpowned?
-    gid == Rubinius::FFI::Platform::POSIX.getegid
+    Process.groups.include?(gid)
   end
 
   def owned?
