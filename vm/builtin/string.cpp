@@ -1400,15 +1400,20 @@ namespace rubinius {
    */
   native_int String::find_byte_character_index(STATE, native_int index,
                                                native_int start) {
+    OnigEncodingType* enc = encoding(state)->get_encoding();
     if(byte_compatible_p(encoding_) || CBOOL(ascii_only_)) {
       return index;
     } else if(fixed_width_p(encoding_)) {
-      return index / ONIGENC_MBC_MINLEN(encoding(state)->get_encoding());
+      return index / ONIGENC_MBC_MINLEN(enc);
+    } else if(enc == ONIG_ENCODING_UTF_8 && CBOOL(valid_encoding_p(state))) {
+      return Encoding::find_byte_character_index_utf8(byte_address() + start,
+                                                 byte_address() + byte_size(),
+                                                 index);
     } else {
       return Encoding::find_byte_character_index(byte_address() + start,
                                                  byte_address() + byte_size(),
                                                  index,
-                                                 encoding(state)->get_encoding());
+                                                 enc);
     }
   }
 

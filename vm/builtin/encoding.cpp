@@ -488,6 +488,7 @@ namespace rubinius {
 #define UTF8_NON_START 0x80
 #define UTF8_START_OF_CHAR(p) ((p & UTF8_MASK) != UTF8_NON_START)
 #define UTF8_SKIP_NON_START_CHARACTERS(p, e) { while(!UTF8_START_OF_CHAR(*p) && p < e) ++p; }
+#define UTF8_SKIP_NON_START_CHARACTERS_WITH_INDEX(p, e, i) { while(!UTF8_START_OF_CHAR(*p) && p < e) { ++p; --i; } }
 
 #define UTF8_ONES_MASK ((uintptr_t)(-1) / 0xFF)
 #define UTF8_WORD_NON_START UTF8_ONES_MASK * 0x80
@@ -526,11 +527,27 @@ namespace rubinius {
     uint8_t* p = (uint8_t*) start;
     native_int char_index = 0;
 
+    while((uintptr_t)(p) & (sizeof(uintptr_t) - 1) && p < end && index > 0) {
+      ++p;
+      --index;
+      ++char_index;
+      UTF8_SKIP_NON_START_CHARACTERS_WITH_INDEX(p, end, index);
+    }
+
+    UTF8_SKIP_NON_START_CHARACTERS_WITH_INDEX(p, end, index);
+    while(p < (end - sizeof(uintptr_t)) && index > sizeof(uintptr_t)) {
+      uintptr_t w = *(uintptr_t*)(p);
+      p += sizeof(uintptr_t);
+      index -= sizeof(uintptr_t);
+      char_index += sizeof(uintptr_t) - count_non_utf8_bytes_in_word(w);
+    }
+
+    UTF8_SKIP_NON_START_CHARACTERS_WITH_INDEX(p, end, index);
     while(p < end && index > 0) {
-      native_int char_len = mbclen(p, end, ONIG_ENCODING_UTF_8);
-      p += char_len;
-      index -= char_len;
-      char_index++;
+      ++p;
+      --index;
+      ++char_index;
+      UTF8_SKIP_NON_START_CHARACTERS_WITH_INDEX(p, end, index);
     }
 
     return char_index;
@@ -549,13 +566,13 @@ namespace rubinius {
   native_int Encoding::find_character_byte_index_utf8(const uint8_t* start, const uint8_t* end, native_int index) {
     uint8_t* p = (uint8_t*) start;
 
-    UTF8_SKIP_NON_START_CHARACTERS(p, end);
     while((uintptr_t)(p) & (sizeof(uintptr_t) - 1) && p < end && index > 0) {
       ++p;
       --index;
       UTF8_SKIP_NON_START_CHARACTERS(p, end);
     }
 
+    UTF8_SKIP_NON_START_CHARACTERS(p, end);
     while(p < (end - sizeof(uintptr_t)) && index > sizeof(uintptr_t)) {
       uintptr_t w = *(uintptr_t*)(p);
       p += sizeof(uintptr_t);
