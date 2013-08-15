@@ -243,6 +243,19 @@ describe "C-API String function" do
     end
   end
 
+  ruby_version_is "1.9" do
+    describe "rb_str_new5" do
+      it "returns a new string with the same class as the passed string" do
+        string_class = Class.new(String)
+        template_string = string_class.new("hello world")
+        new_string = @s.rb_str_new5(template_string, "hello world", 11)
+
+        new_string.should == "hello world"
+        new_string.class.should == string_class
+      end
+    end
+  end
+
   describe "rb_str_append" do
     it "appends a string to another string" do
       @s.rb_str_append("Hello", " Goodbye").should == "Hello Goodbye"
