@@ -91,6 +91,8 @@ describe "Regexp with character classes" do
     lambda { eval('/[[:alpha:]-[:digit:]]/') }.should raise_error(SyntaxError) # can't use character class as a start value of range
   end
 
-  language_version __FILE__, "character_classes"
+  ruby_version_is "1.9" do
+    require File.expand_path("../versions/character_classes_1.9", __FILE__)
+  end
 end
 

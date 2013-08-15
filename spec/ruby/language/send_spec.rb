@@ -232,5 +232,10 @@ describe "Invoking a private getter method" do
   end
 end
 
-language_version __FILE__, "send"
+ruby_version_is "1.8"..."1.9" do
+  require File.expand_path("../versions/send_1.8", __FILE__)
+end
 
+ruby_version_is "1.9" do
+  require File.expand_path("../versions/send_1.9", __FILE__)
+end

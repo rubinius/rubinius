@@ -1358,4 +1358,6 @@ describe "A local variable in a #define_method scope" do
   end
 end
 
-language_version __FILE__, "variables"
+ruby_version_is "1.9" do
+  require File.expand_path("../versions/variables_1.9", __FILE__)
+end

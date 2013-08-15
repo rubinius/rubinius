@@ -405,10 +405,10 @@ namespace rubinius {
       Exception::argument_error(state, msg.str().c_str());
     }
     String* str = String::create(state, buf, size);
-    if(is_tainted_p()) str->set_tainted();
+    infect(state, str);
+    str->encoding(state, Encoding::usascii_encoding(state));
     str->ascii_only(state, cTrue);
     str->valid_encoding(state, cTrue);
-    str->encoding(state, Encoding::usascii_encoding(state));
     return str;
   }
 
@@ -417,10 +417,10 @@ namespace rubinius {
 
     int len = double_to_string(buffer, FLOAT_TO_S_STRLEN, val);
     String* str = String::create(state, buffer, len);
-    if(is_tainted_p()) str->set_tainted();
+    infect(state, str);
+    str->encoding(state, Encoding::usascii_encoding(state));
     str->ascii_only(state, cTrue);
     str->valid_encoding(state, cTrue);
-    str->encoding(state, Encoding::usascii_encoding(state));
 
     return str;
   }

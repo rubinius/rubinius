@@ -466,4 +466,6 @@ describe "Assignment via next" do
   end
 end
 
-language_version __FILE__, "next"
+ruby_version_is "1.8"..."1.9" do
+  require File.expand_path("../versions/next_1.8", __FILE__)
+end

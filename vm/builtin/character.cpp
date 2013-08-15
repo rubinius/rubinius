@@ -67,9 +67,8 @@ namespace rubinius {
     if(i + n > size) return nil<Character>();
 
     Character* chr = Character::create(state, (const char*)p, n);
-    chr->encoding(state, str->encoding());
-    chr->ascii_only(state, str->ascii_only());
-    chr->valid_encoding(state, str->valid_encoding());
+    str->infect(state, chr);
+    chr->encoding_from(state, str);
 
     return chr;
   }

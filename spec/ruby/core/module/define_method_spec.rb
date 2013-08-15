@@ -1,9 +1,11 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
 
-language_version __FILE__, "define_method"
-
 class DefineMethodSpecClass
+end
+
+ruby_version_is "1.9" do
+  require File.expand_path("../versions/define_method_1.9", __FILE__)
 end
 
 describe "Module#define_method when given an UnboundMethod" do

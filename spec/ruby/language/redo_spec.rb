@@ -62,4 +62,6 @@ describe "The redo statement" do
   end
 end
 
-language_version __FILE__, "redo"
+ruby_version_is "1.8"..."1.9" do
+  require File.expand_path("../versions/redo_1.8", __FILE__)
+end
