@@ -17,4 +17,6 @@ describe "MatchData#[]" do
   end
 end
 
-language_version __FILE__, "element_reference"
+ruby_version_is "1.9" do
+  require File.expand_path("../versions/element_reference_1.9", __FILE__)
+end

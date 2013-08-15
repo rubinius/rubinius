@@ -2,7 +2,9 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes.rb', __FILE__)
 
-language_version __FILE__, "gsub"
+ruby_version_is "1.9" do
+  require File.expand_path("../versions/gsub_1.9", __FILE__)
+end
 
 describe "String#gsub with pattern and replacement" do
 

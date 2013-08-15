@@ -30,7 +30,9 @@ describe "The not keyword" do
   end
 end
 
-language_version __FILE__, "not"
+ruby_version_is "1.9" do
+  require File.expand_path("../versions/not_1.9", __FILE__)
+end
 
 describe "The `!' keyword" do
   it "negates a `true' value" do

@@ -1,7 +1,7 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 
 ruby_version_is "1.9" do
-  language_version __FILE__, "encoding"
+  require File.expand_path("../versions/encoding_1.9", __FILE__)
 
   describe "Symbol#encoding for ASCII symbols" do
     it "is US-ASCII" do

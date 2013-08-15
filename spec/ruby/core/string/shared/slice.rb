@@ -419,4 +419,6 @@ describe :string_slice_string, :shared => true do
   end
 end
 
-language_version __FILE__, "slice"
+ruby_version_is "1.9" do
+  require File.expand_path("../versions/slice_1.9", __FILE__)
+end

@@ -86,4 +86,10 @@ describe "A Symbol literal" do
   end
 end
 
-language_version __FILE__, 'symbol'
+ruby_version_is "1.8"..."1.9" do
+  require File.expand_path("../versions/symbol_1.8", __FILE__)
+end
+
+ruby_version_is "1.9" do
+  require File.expand_path("../versions/symbol_1.9", __FILE__)
+end

@@ -42,4 +42,6 @@ describe "The unless expression" do
   end
 end
 
-language_version __FILE__, "unless"
+ruby_version_is "1.8"..."1.9" do
+  require File.expand_path("../versions/unless_1.8", __FILE__)
+end
