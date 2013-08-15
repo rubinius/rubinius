@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 require File.expand_path('../../../spec_helper', __FILE__)
 require "stringio"
 
@@ -243,4 +244,65 @@ describe "StringIO#gets when in write-only mode" do
     io.close_read
     lambda { io.gets }.should raise_error(IOError)
   end
+end
+
+with_feature :encoding do
+
+  describe "StringIO#gets when passed [separator]" do
+    before(:each) do
+      @io = StringIO.new("thüs>ïs>ān>exañple")
+    end
+
+    it "returns the data read till the next occurence of the passed separator" do
+      @io.gets(">").should == "thüs>"
+      @io.gets(">").should == "ïs>"
+      @io.gets(">").should == "ān>"
+      @io.gets(">").should == "exañple"
+    end
+
+    it "updates self's position based on bytes" do
+      @io.gets(">")
+      @io.pos.should eql(6)
+
+      @io.gets(">")
+      @io.pos.should eql(10)
+
+      @io.gets(">")
+      @io.pos.should eql(14)
+    end
+
+  end
+
+  describe "StringIO#gets when passed no argument" do
+    before(:each) do
+      @io = StringIO.new("thís ïs\nāǹ exañple\nfür StringIO#gets")
+    end
+
+    it "returns the data read till the next occurence of $/ or till eof" do
+      @io.gets.should == "thís ïs\n"
+
+      begin
+        old_sep, $/ = $/, " "
+        @io.gets.should == "āǹ "
+        @io.gets.should == "exañple\nfür "
+        @io.gets.should == "StringIO#gets"
+      ensure
+        $/ = old_sep
+      end
+    end
+
+    it "updates self's position based on bytes" do
+      @io.gets
+      @io.pos.should eql(10)
+
+      @io.gets
+      @io.pos.should eql(24)
+
+      @io.gets
+      @io.pos.should eql(42)
+    end
+
+  end
+
+
 end
