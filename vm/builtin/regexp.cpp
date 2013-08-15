@@ -680,6 +680,7 @@ namespace rubinius {
       string = String::create(state, str + beg->to_native(), sz);
     }
 
+    source_->infect(state, string);
     string->encoding_from(state, source_);
     return string;
   }
@@ -702,6 +703,7 @@ namespace rubinius {
       string = String::create(state, str, sz);
     }
 
+    source_->infect(state, string);
     string->encoding_from(state, source_);
     return string;
   }
@@ -725,6 +727,7 @@ namespace rubinius {
       string = String::create(state, str + f, sz);
     }
 
+    source_->infect(state, string);
     string->encoding_from(state, source_);
     return string;
   }
@@ -754,6 +757,7 @@ namespace rubinius {
     if(sz > max) sz = max;
 
     String* string = String::create(state, str + b, sz);
+    source_->infect(state, string);
     string->encoding_from(state, source_);
     return string;
   }
