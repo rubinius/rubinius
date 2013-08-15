@@ -1258,7 +1258,7 @@ namespace rubinius {
 
     if(Fixnum* chr = try_as<Fixnum>(pattern)) {
       memset(s->byte_address(), (int)chr->to_native(), cnt);
-      enc = Encoding::ascii8bit_encoding(state);
+      s->encoding(state, Encoding::ascii8bit_encoding(state));
     } else if(String* pat = try_as<String>(pattern)) {
       enc = pat->encoding();
       pat->infect(state, s);
@@ -1279,11 +1279,10 @@ namespace rubinius {
           s->byte_address()[i] = pat->byte_address()[j];
         }
       }
+      s->encoding_from(state, pat);
     } else {
       Exception::argument_error(state, "pattern must be a Fixnum or String");
     }
-
-    s->encoding(state, enc);
 
     return s;
   }
