@@ -484,6 +484,19 @@ namespace rubinius {
     managed_ = true;
   }
 
+#define UTF8_MASK 0xC0
+#define UTF8_NON_START 0x80
+#define UTF8_START_OF_CHAR(p) ((p & UTF8_MASK) != UTF8_NON_START)
+#define UTF8_SKIP_NON_START_CHARACTERS(p, e) { while(!UTF8_START_OF_CHAR(*p) && p < e) ++p; }
+
+#define UTF8_ONES_MASK ((uintptr_t)(-1) / 0xFF)
+#define UTF8_WORD_NON_START UTF8_ONES_MASK * 0x80
+
+  static inline native_int count_non_utf8_bytes_in_word(uintptr_t w) {
+    w = ((w & (UTF8_WORD_NON_START)) >> 7) & ((~w) >> 6);
+    return (w * UTF8_ONES_MASK) >> ((sizeof(uintptr_t) - 1) * 8);
+  }
+
   native_int Encoding::find_non_ascii_index(const uint8_t* start, const uint8_t* end) {
     uint8_t* p = (uint8_t*) start;
     while(p < end) {
@@ -535,8 +548,25 @@ namespace rubinius {
 
   native_int Encoding::find_character_byte_index_utf8(const uint8_t* start, const uint8_t* end, native_int index) {
     uint8_t* p = (uint8_t*) start;
-    while(p < end && index--) {
-      p += mbclen(p, end, ONIG_ENCODING_UTF_8);
+
+    UTF8_SKIP_NON_START_CHARACTERS(p, end);
+    while((uintptr_t)(p) & (sizeof(uintptr_t) - 1) && p < end && index > 0) {
+      ++p;
+      --index;
+      UTF8_SKIP_NON_START_CHARACTERS(p, end);
+    }
+
+    while(p < (end - sizeof(uintptr_t)) && index > sizeof(uintptr_t)) {
+      uintptr_t w = *(uintptr_t*)(p);
+      p += sizeof(uintptr_t);
+      index -= sizeof(uintptr_t) - count_non_utf8_bytes_in_word(w);
+    }
+
+    UTF8_SKIP_NON_START_CHARACTERS(p, end);
+    while(p < end && index > 0) {
+      ++p;
+      --index;
+      UTF8_SKIP_NON_START_CHARACTERS(p, end);
     }
 
     if(p > end) p = (uint8_t*) end;
