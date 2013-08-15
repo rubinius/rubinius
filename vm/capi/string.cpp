@@ -295,6 +295,19 @@ extern "C" {
     return str;
   }
 
+  VALUE rb_str_new5(VALUE object, const char* ptr, long len) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    VALUE str = rb_str_new(ptr, len);
+
+    String* new_string = capi_get_string(env, str);
+    String* template_string = capi_get_string(env, object);
+
+    new_string->klass(env->state(), template_string->klass());
+
+    return str;
+  }
+
   VALUE rb_str_plus(VALUE self, VALUE other) {
     return rb_str_append(rb_str_dup(self), other);
   }
