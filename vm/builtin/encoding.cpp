@@ -607,21 +607,28 @@ namespace rubinius {
     return chars;
   }
 
-  native_int Encoding::string_character_length_utf8(const uint8_t* p, const uint8_t* e) {
-    native_int chars;
+  native_int Encoding::string_character_length_utf8(const uint8_t* start, const uint8_t* end) {
 
-    for(chars = 0; p < e; chars++) {
-      int n = Encoding::precise_mbclen(p, e, ONIG_ENCODING_UTF_8);
+    native_int non_utf8_count = 0;
+    const uint8_t* p = start;
 
-      if(ONIGENC_MBCLEN_CHARFOUND_P(n)) {
-        p += ONIGENC_MBCLEN_CHARFOUND_LEN(n);
-      } else if(p + ONIGENC_MBC_MINLEN(ONIG_ENCODING_UTF_8) <= e) {
-        p += ONIGENC_MBC_MINLEN(ONIG_ENCODING_UTF_8);
-      } else {
-        p = e;
-      }
+    while((uintptr_t)(p) & (sizeof(uintptr_t) - 1) && p < end && index > 0) {
+      non_utf8_count += !UTF8_START_OF_CHAR(*p);
+      ++p;
     }
-    return chars;
+
+    while(p < (end - sizeof(uintptr_t))) {
+      uintptr_t w = *(uintptr_t*)(p);
+      p += sizeof(uintptr_t);
+      non_utf8_count += count_non_utf8_bytes_in_word(w);
+    }
+
+    while(p < end && index > 0) {
+      non_utf8_count += !UTF8_START_OF_CHAR(*p);
+      ++p;
+    }
+
+    return end - start - non_utf8_count;
   }
 
   int Encoding::mbclen(const uint8_t* p, const uint8_t* e, OnigEncodingType* enc) {
