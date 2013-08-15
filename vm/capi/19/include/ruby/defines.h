@@ -17,6 +17,8 @@
  * explicit defines for now.
  */
 #define HAVE_RB_STR_SET_LEN                1
+#define HAVE_RB_STR_NEW5                   1
+#define HAVE_RB_STR_NEW_WITH_CLASS         1
 #define HAVE_RB_DEFINE_ALLOC_FUNC          1
 
 #define HAVE_RB_HASH_FOREACH               1

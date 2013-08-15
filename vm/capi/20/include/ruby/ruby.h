@@ -1660,6 +1660,9 @@ VALUE rb_uint2big(unsigned long number);
 #define rb_str_new_frozen rb_str_new4
 #define rb_str_dup_frozen rb_str_new4
 
+  VALUE   rb_str_new5(VALUE object, const char* ptr, long size);
+#define rb_str_new_with_class rb_str_new5
+
   /** Creates a new String in the external encoding from a pointer and length. */
   VALUE rb_external_str_new(const char* string, long size);
 
