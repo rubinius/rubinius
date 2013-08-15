@@ -805,12 +805,15 @@ namespace rubinius {
       if(new_encoding->nil_p()) {
         Exception::encoding_compatibility_error(state, other, this);
       }
-      valid_encoding(state, cNil);
       encoding(state, new_encoding);
     }
 
     if(CBOOL(ascii_only_) && !CBOOL(other->ascii_only_p(state))) {
       ascii_only(state, cFalse);
+    }
+
+    if(CBOOL(valid_encoding_) && !CBOOL(other->valid_encoding_p(state))) {
+      valid_encoding(state, cFalse);
     }
 
     if(unlikely(length > data_length)) {
@@ -834,6 +837,9 @@ namespace rubinius {
     }
     if(!other->ascii_only()->true_p()) {
       ascii_only_ = cNil;
+    }
+    if(!other->valid_encoding()->true_p()) {
+      valid_encoding_ = cNil;
     }
     return append(state,
                   reinterpret_cast<const char*>(other->byte_address()),
@@ -1442,10 +1448,8 @@ namespace rubinius {
     String* sub = String::create(state, buf, length);
     sub->klass(state, class_object(state));
 
-    if(tainted_p(state)->true_p()) sub->taint(state);
-    if(untrusted_p(state)->true_p()) sub->untrust(state);
-    sub->ascii_only(state, ascii_only_);
-    sub->encoding(state, encoding());
+    infect(state, sub);
+    sub->encoding_from(state, this);
 
     return sub;
   }
@@ -1830,8 +1834,8 @@ namespace rubinius {
     }
 
     output->klass(state, class_object(state));
-    output->encoding(state, encoding());
-    if(CBOOL(tainted_p(state))) output->taint(state);
+    infect(state, output);
+    output->encoding_from(state, this);
 
     return output;
   }
@@ -1852,7 +1856,6 @@ namespace rubinius {
     Array* ary = Array::create(state, 3);
 
     Class* out_class = class_object(state);
-    int taint = (is_tainted_p() ? 1 : 0);
 
     // Algorithm ported from MRI
 
@@ -1869,8 +1872,8 @@ namespace rubinius {
         if(ISSPACE(*ptr)) {
           String* str = String::create(state, (const char*)start+begin, end-begin);
           str->klass(state, out_class);
-          str->set_tainted(taint);
-          str->encoding(state, encoding());
+          infect(state, str);
+          str->encoding_from(state, this);
 
           ary->append(state, str);
           skip = true;
@@ -1887,8 +1890,8 @@ namespace rubinius {
     if(fin_sz > 0 || (limit > 0 && i <= limit) || limit < 0) {
       String* str = String::create(state, (const char*)start+begin, fin_sz);
       str->klass(state, out_class);
-      str->set_tainted(taint);
-      str->encoding(state, encoding());
+      infect(state, str);
+      str->encoding_from(state, this);
 
       ary->append(state, str);
     }

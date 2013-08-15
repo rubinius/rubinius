@@ -199,6 +199,22 @@ namespace rubinius {
       return string_dup_slow(state);
     }
 
+    void encoding_from(STATE, String* other) {
+      encoding_ = other->encoding();
+      this->write_barrier(state, encoding_);
+
+      if(other->ascii_only()->true_p()) {
+        ascii_only_ = cTrue;
+      } else {
+        ascii_only_ = cNil;
+      }
+      if(other->valid_encoding()->true_p()) {
+        valid_encoding_ = cTrue;
+      } else {
+        valid_encoding_ = cNil;
+      }
+    }
+
     String* add(STATE, String* other);
     String* add(STATE, const char* other);
 
