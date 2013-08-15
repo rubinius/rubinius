@@ -93,7 +93,12 @@ namespace rubinius {
      */
     static native_int find_non_ascii_index(const uint8_t* start, const uint8_t* end);
     static native_int find_byte_character_index(const uint8_t* start, const uint8_t* end, native_int index, OnigEncodingType* enc);
+    static native_int find_byte_character_index_utf8(const uint8_t* start, const uint8_t* end, native_int index);
     static native_int find_character_byte_index(const uint8_t* start, const uint8_t* end, native_int index, OnigEncodingType* enc);
+    static native_int find_character_byte_index_utf8(const uint8_t* start, const uint8_t* end, native_int index);
+
+    static native_int string_character_length(const uint8_t* start, const uint8_t* end, OnigEncodingType* enc);
+    static native_int string_character_length_utf8(const uint8_t* start, const uint8_t* end);
 
     static int mbclen(const uint8_t* start, const uint8_t* end, OnigEncodingType* enc);
     static int precise_mbclen(const uint8_t* start, const uint8_t* end, OnigEncodingType* enc);

@@ -601,32 +601,19 @@ namespace rubinius {
 
   native_int String::char_size(STATE) {
     if(num_chars_->nil_p()) {
+      OnigEncodingType* enc = encoding(state)->get_encoding();
       if(byte_compatible_p(encoding_) || CBOOL(ascii_only_)) {
         num_chars(state, num_bytes_);
+      } else if(fixed_width_p(encoding_)) {
+        num_chars(state, Fixnum::from((byte_size() + ONIGENC_MBC_MINLEN(enc) - 1) / ONIGENC_MBC_MINLEN(enc)));
       } else {
-        OnigEncodingType* enc = encoding(state)->get_encoding();
-        native_int chars;
-
-        if(fixed_width_p(encoding_)) {
-          chars = (byte_size() + ONIGENC_MBC_MINLEN(enc) - 1) / ONIGENC_MBC_MINLEN(enc);
+        uint8_t* p = byte_address();
+        uint8_t* e = p + byte_size();
+        if(enc == ONIG_ENCODING_UTF_8 && CBOOL(valid_encoding_p(state))) {
+          num_chars(state, Fixnum::from(Encoding::string_character_length_utf8(p, e)));
         } else {
-          uint8_t* p = byte_address();
-          uint8_t* e = p + byte_size();
-
-          for(chars = 0; p < e; chars++) {
-            int n = Encoding::precise_mbclen(p, e, enc);
-
-            if(ONIGENC_MBCLEN_CHARFOUND_P(n)) {
-              p += ONIGENC_MBCLEN_CHARFOUND_LEN(n);
-            } else if(p + ONIGENC_MBC_MINLEN(enc) <= e) {
-              p += ONIGENC_MBC_MINLEN(enc);
-            } else {
-              p = e;
-            }
-          }
+          num_chars(state, Fixnum::from(Encoding::string_character_length(p, e, enc)));
         }
-
-        num_chars(state, Fixnum::from(chars));
         if(num_chars_ == num_bytes_) {
           ascii_only_ = cTrue;
         }
@@ -1377,15 +1364,21 @@ namespace rubinius {
    */
   native_int String::find_character_byte_index(STATE, native_int index,
                                                native_int start) {
+    OnigEncodingType* enc = encoding(state)->get_encoding();
     if(byte_compatible_p(encoding_) || CBOOL(ascii_only_)) {
       return start + index;
     } else if(fixed_width_p(encoding_)) {
-      return start + index * ONIGENC_MBC_MINLEN(encoding(state)->get_encoding());
+      return start + index * ONIGENC_MBC_MINLEN(enc);
+    } else if(enc == ONIG_ENCODING_UTF_8 && CBOOL(valid_encoding_p(state))) {
+      native_int offset = Encoding::find_character_byte_index_utf8(byte_address() + start,
+                                                 byte_address() + byte_size(),
+                                                 index);
+      return start + offset;
     } else {
       native_int offset = Encoding::find_character_byte_index(byte_address() + start,
                                                  byte_address() + byte_size(),
                                                  index,
-                                                 encoding(state)->get_encoding());
+                                                 enc);
       return start + offset;
     }
   }

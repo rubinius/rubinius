@@ -509,6 +509,20 @@ namespace rubinius {
     return char_index;
   }
 
+  native_int Encoding::find_byte_character_index_utf8(const uint8_t* start, const uint8_t* end, native_int index) {
+    uint8_t* p = (uint8_t*) start;
+    native_int char_index = 0;
+
+    while(p < end && index > 0) {
+      native_int char_len = mbclen(p, end, ONIG_ENCODING_UTF_8);
+      p += char_len;
+      index -= char_len;
+      char_index++;
+    }
+
+    return char_index;
+  }
+
   native_int Encoding::find_character_byte_index(const uint8_t* start, const uint8_t* end, native_int index, OnigEncodingType* enc) {
     uint8_t* p = (uint8_t*) start;
     while(p < end && index--) {
@@ -517,6 +531,50 @@ namespace rubinius {
 
     if(p > end) p = (uint8_t*) end;
     return p - start;
+  }
+
+  native_int Encoding::find_character_byte_index_utf8(const uint8_t* start, const uint8_t* end, native_int index) {
+    uint8_t* p = (uint8_t*) start;
+    while(p < end && index--) {
+      p += mbclen(p, end, ONIG_ENCODING_UTF_8);
+    }
+
+    if(p > end) p = (uint8_t*) end;
+    return p - start;
+  }
+
+  native_int Encoding::string_character_length(const uint8_t* p, const uint8_t* e, OnigEncodingType* enc) {
+    native_int chars;
+
+    for(chars = 0; p < e; chars++) {
+      int n = Encoding::precise_mbclen(p, e, enc);
+
+      if(ONIGENC_MBCLEN_CHARFOUND_P(n)) {
+        p += ONIGENC_MBCLEN_CHARFOUND_LEN(n);
+      } else if(p + ONIGENC_MBC_MINLEN(enc) <= e) {
+        p += ONIGENC_MBC_MINLEN(enc);
+      } else {
+        p = e;
+      }
+    }
+    return chars;
+  }
+
+  native_int Encoding::string_character_length_utf8(const uint8_t* p, const uint8_t* e) {
+    native_int chars;
+
+    for(chars = 0; p < e; chars++) {
+      int n = Encoding::precise_mbclen(p, e, ONIG_ENCODING_UTF_8);
+
+      if(ONIGENC_MBCLEN_CHARFOUND_P(n)) {
+        p += ONIGENC_MBCLEN_CHARFOUND_LEN(n);
+      } else if(p + ONIGENC_MBC_MINLEN(ONIG_ENCODING_UTF_8) <= e) {
+        p += ONIGENC_MBC_MINLEN(ONIG_ENCODING_UTF_8);
+      } else {
+        p = e;
+      }
+    }
+    return chars;
   }
 
   int Encoding::mbclen(const uint8_t* p, const uint8_t* e, OnigEncodingType* enc) {
