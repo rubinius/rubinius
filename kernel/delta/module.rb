@@ -44,6 +44,10 @@ class Module
   end
 
   def module_function(*args)
+    if kind_of? Class
+      raise TypeError, "invalid receiver class #{__class__}, expected Module"
+    end
+
     if args.empty?
       vs = Rubinius::VariableScope.of_sender
       until vs.top_level_visibility?
@@ -109,6 +113,10 @@ class Module
   def include_into(klass)
     unless klass.kind_of? Module
       raise TypeError, "invalid argument class #{klass.class}, expected Module"
+    end
+
+    if kind_of? Class
+      raise TypeError, "invalid receiver class #{__class__}, expected Module"
     end
 
     Rubinius::Type.include_modules_from(self, klass.origin)

@@ -1,7 +1,6 @@
 agent.rbc
 ctype19.rbc
 ctype.rbc
-class.rbc
 exception.rbc
 file.rbc
 rubinius.rbc
@@ -9,6 +8,8 @@ rubinius19.rbc
 rubinius20.rbc
 module.rbc
 module20.rbc
+class.rbc
+class20.rbc
 filetest.rbc
 kernel.rbc
 math.rbc

@@ -3,6 +3,10 @@ require File.expand_path('../fixtures/classes', __FILE__)
 
 ruby_version_is "2.0" do
   describe "Module#prepend" do
+    it "is a private method" do
+      Module.should have_private_instance_method(:prepend, true)
+    end
+
     it "calls #prepend_features(self) in reversed order on each module" do
       ScratchPad.record []
 

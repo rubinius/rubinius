@@ -7,6 +7,7 @@ class Module
   end
 
   def prepended(mod); end
+  private :prepended
 
   def prepend(*modules)
     modules.reverse_each do |mod|
@@ -24,10 +25,15 @@ class Module
     end
     self
   end
+  private :prepend
 
   def prepend_features(klass)
     unless klass.kind_of? Module
       raise TypeError, "invalid argument class #{klass.class}, expected Module"
+    end
+
+    if kind_of? Class
+      raise TypeError, "invalid receiver class #{__class__}, expected Module"
     end
 
     if klass == klass.origin
@@ -40,4 +46,5 @@ class Module
     Rubinius::Type.infect(klass, self)
     self
   end
+  private :prepend_features
 end
