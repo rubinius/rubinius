@@ -535,7 +535,7 @@ namespace rubinius {
     }
 
     UTF8_SKIP_NON_START_CHARACTERS_WITH_INDEX(p, end, index);
-    while(p < (end - sizeof(uintptr_t)) && index > sizeof(uintptr_t)) {
+    while(p < (end - sizeof(uintptr_t)) && index > (native_int)sizeof(uintptr_t)) {
       uintptr_t w = *(uintptr_t*)(p);
       p += sizeof(uintptr_t);
       index -= sizeof(uintptr_t);
@@ -573,7 +573,7 @@ namespace rubinius {
     }
 
     UTF8_SKIP_NON_START_CHARACTERS(p, end);
-    while(p < (end - sizeof(uintptr_t)) && index > sizeof(uintptr_t)) {
+    while(p < (end - sizeof(uintptr_t)) && index > (native_int)sizeof(uintptr_t)) {
       uintptr_t w = *(uintptr_t*)(p);
       p += sizeof(uintptr_t);
       index -= sizeof(uintptr_t) - count_non_utf8_bytes_in_word(w);
@@ -612,7 +612,7 @@ namespace rubinius {
     native_int non_utf8_count = 0;
     const uint8_t* p = start;
 
-    while((uintptr_t)(p) & (sizeof(uintptr_t) - 1) && p < end && index > 0) {
+    while((uintptr_t)(p) & (sizeof(uintptr_t) - 1) && p < end) {
       non_utf8_count += !UTF8_START_OF_CHAR(*p);
       ++p;
     }
@@ -623,7 +623,7 @@ namespace rubinius {
       non_utf8_count += count_non_utf8_bytes_in_word(w);
     }
 
-    while(p < end && index > 0) {
+    while(p < end) {
       non_utf8_count += !UTF8_START_OF_CHAR(*p);
       ++p;
     }
