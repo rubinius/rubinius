@@ -11,6 +11,13 @@ describe :string_length, :shared => true do
   end
 
   with_feature :encoding do
+    it "returns the length of a string in different encodings" do
+      utf8_str = 'こにちわ' * 100
+      utf8_str.size.should == 400
+      utf8_str.encode(Encoding::UTF_32BE).size.should == 400
+      utf8_str.encode(Encoding::SHIFT_JIS).size.should == 400
+    end
+
     it "returns the length of the new self after encoding is changed" do
       str = 'こにちわ'
       str.send(@method)
