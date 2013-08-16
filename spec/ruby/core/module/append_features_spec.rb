@@ -6,8 +6,16 @@ describe "Module#append_features" do
     Module.should have_private_instance_method(:append_features)
   end
 
-  it "is undefined on the Class" do
-    Class.should_not have_private_instance_method(:append_features)
+  describe "on Class" do
+    it "is undefined" do
+      Class.should_not have_private_instance_method(:append_features, true)
+    end
+
+    it "raises a TypeError if calling after rebinded to Class" do
+      lambda {
+        Module.instance_method(:append_features).bind(Class.new).call Module.new
+      }.should raise_error(TypeError)
+    end
   end
 
   it "gets called when self is included in another module/class" do

@@ -10,8 +10,16 @@ describe "Module#extend_object" do
     Module.should have_private_instance_method(:extend_object)
   end
 
-  it "is undefined on the Class" do
-    Class.should_not have_private_instance_method(:extend_object)
+  describe "on Class" do
+    it "is undefined" do
+      Class.should_not have_private_instance_method(:extend_object, true)
+    end
+
+    it "raises a TypeError if calling after rebinded to Class" do
+      lambda {
+        Module.instance_method(:extend_object).bind(Class.new).call Object.new
+      }.should raise_error(TypeError)
+    end
   end
 
   it "is called when #extend is called on an object" do
