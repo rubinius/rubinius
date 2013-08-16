@@ -1241,13 +1241,10 @@ namespace rubinius {
 
     native_int cnt = size->to_native();
 
-    Encoding* enc = 0;
-
     if(Fixnum* chr = try_as<Fixnum>(pattern)) {
       memset(s->byte_address(), (int)chr->to_native(), cnt);
       s->encoding(state, Encoding::ascii8bit_encoding(state));
     } else if(String* pat = try_as<String>(pattern)) {
-      enc = pat->encoding();
       pat->infect(state, s);
 
       native_int psz = pat->byte_size();
