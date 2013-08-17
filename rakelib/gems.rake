@@ -9,6 +9,8 @@ namespace :gems do
       rbx = "#{BUILD_CONFIG[:sourcedir]}/bin/#{BUILD_CONFIG[:program_name]}"
     end
 
-    sh "#{rbx} #{BUILD_CONFIG[:sourcedir]}/rakelib/preinstall_gems.rb"
+    Dir.chdir "preinstalled-gems" do
+      sh "#{rbx} #{BUILD_CONFIG[:sourcedir]}/rakelib/preinstall_gems.rb"
+    end
   end
 end
