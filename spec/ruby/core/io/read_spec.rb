@@ -92,6 +92,13 @@ describe "IO.read" do
     lambda { IO.read @fname, 0, -1  }.should raise_error(Errno::EINVAL)
     lambda { IO.read @fname, -1, -1 }.should raise_error(Errno::EINVAL)
   end
+
+  with_feature :encoding do
+    it "uses the external encoding specified via the :external_encoding option" do
+      str = IO.read(@fname, :external_encoding => Encoding::ISO_8859_1)
+      str.encoding.should == Encoding::ISO_8859_1
+    end
+  end
 end
 
 describe "IO.read from a pipe" do
