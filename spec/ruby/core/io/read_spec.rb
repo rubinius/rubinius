@@ -98,6 +98,11 @@ describe "IO.read" do
       str = IO.read(@fname, :external_encoding => Encoding::ISO_8859_1)
       str.encoding.should == Encoding::ISO_8859_1
     end
+
+    it "uses the external encoding specified via the :encoding option" do
+      str = IO.read(@fname, :encoding => Encoding::ISO_8859_1)
+      str.encoding.should == Encoding::ISO_8859_1
+    end
   end
 end
 

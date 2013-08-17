@@ -78,6 +78,16 @@ describe :io_new, :shared => true do
       @io.internal_encoding.to_s.should == 'ISO-8859-1'
     end
 
+    it "uses the :encoding option as the external encoding when only one is given" do
+      @io = IO.send(@method, @fd, 'w', {:encoding => 'ISO-8859-1'})
+      @io.external_encoding.to_s.should == 'ISO-8859-1'
+    end
+
+    it "uses the :encoding options as the external encoding when it's an Encoding object" do
+      @io = IO.send(@method, @fd, 'w', {:encoding => Encoding::ISO_8859_1})
+      @io.external_encoding.should == Encoding::ISO_8859_1
+    end
+
     it "ingores the :encoding option when the :external_encoding option is present" do
       @io = IO.send(@method, @fd, 'w', {:external_encoding => 'utf-8', :encoding => 'iso-8859-1:iso-8859-1'})
       @io.external_encoding.to_s.should == 'UTF-8'
