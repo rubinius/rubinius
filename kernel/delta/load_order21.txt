@@ -1,13 +1,14 @@
 agent.rbc
 ctype21.rbc
 ctype.rbc
-class.rbc
 exception.rbc
 file.rbc
 rubinius.rbc
 rubinius21.rbc
 module.rbc
 module21.rbc
+class.rbc
+class21.rbc
 filetest.rbc
 kernel.rbc
 math.rbc
