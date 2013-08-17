@@ -25,6 +25,7 @@ artifacts/
 .libs
 .spec/bm.yml
 .depends.mf
+/preinstalled-gems
 /rubinius_tasks.dot
 /nbproject
 /coverage
