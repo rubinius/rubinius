@@ -264,7 +264,7 @@ describe :time_params, :shared => true do
 
   it "returns subclass instances" do
     c = Class.new(Time)
-    c.send(@method, 2008, "12").should be_kind_of(c)
+    c.send(@method, 2008, "12").should be_an_instance_of(c)
   end
 end
 
