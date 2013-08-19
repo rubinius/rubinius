@@ -39,15 +39,29 @@ module Kernel
 
   def FloatValue(obj)
     exception = TypeError.new 'no implicit conversion to float'
-    raise exception if obj.kind_of?(String)
 
-    begin
-      Float(obj)
-    rescue
+    case obj
+    when String
       raise exception
+    else
+      begin
+        Float_from_except_string(obj)
+      rescue
+        raise exception
+      end
     end
   end
   private :FloatValue
+
+  def Float(obj)
+    case obj
+    when String
+      Rubinius::Type.coerce_string_to_float obj, true
+    else
+      Float_from_except_string(obj)
+    end
+  end
+  module_function :Float
 
   def initialize_copy(source)
     unless instance_of?(Rubinius::Type.object_class(source))

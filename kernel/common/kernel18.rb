@@ -140,23 +140,21 @@ module Kernel
   end
   module_function :Array
 
-  def Float(obj)
-    raise TypeError, "can't convert nil into Float" if obj.nil?
-
+  def Float_from_except_string(obj)
     case obj
     when Float
       obj
-    when String
-      Rubinius::Type.coerce_to_float(obj, true, false)
+    when nil
+      raise TypeError, "can't convert nil into Float"
     else
-      coerced_value = Rubinius::Type.coerce_to(obj, Float, :to_f)
+      coerced_value = Rubinius::Type.coerce_to obj, Float, :to_f
       if coerced_value.nan?
         raise ArgumentError, "invalid value for Float(): #{coerced_value.inspect}"
       end
       coerced_value
     end
   end
-  module_function :Float
+  private :Float_from_except_string
 
   def id
     Kernel.warn "Object#id IS deprecated; use Object#object_id OR ELSE."

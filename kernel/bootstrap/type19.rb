@@ -15,9 +15,7 @@ module Rubinius
 
     def self.coerce_to_float(obj, strict=true, must_be_numeric=true)
       if !must_be_numeric && object_kind_of?(obj, String)
-        value = Rubinius.invoke_primitive :string_to_f, obj, strict
-        raise ArgumentError, "invalid value for Float" if value.nil?
-        return value
+        return coerce_string_to_float(obj, strict)
       end
 
       case obj
