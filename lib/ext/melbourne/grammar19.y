@@ -471,7 +471,7 @@ static int scan_hex(const char *start, size_t len, size_t *retlen);
 %type <node> args call_args opt_call_args
 %type <node> paren_args opt_paren_args
 %type <node> command_args aref_args opt_block_arg block_arg var_ref var_lhs
-%type <node> mrhs superclass block_call block_command
+%type <node> command_asgn mrhs superclass block_call block_command
 %type <node> f_block_optarg f_block_opt
 %type <node> f_arglist f_args f_arg f_arg_item f_optarg f_marg f_marg_list f_margs
 %type <node> assoc_list assocs assoc undef_list backref string_dvar for_var
@@ -480,7 +480,7 @@ static int scan_hex(const char *start, size_t len, size_t *retlen);
 %type <node> lambda f_larglist lambda_body
 %type <node> brace_block cmd_brace_block do_block lhs none fitem
 %type <node> mlhs mlhs_head mlhs_basic mlhs_item mlhs_node mlhs_post mlhs_inner
-%type <id>   fsym variable sym symbol operation operation2 operation3
+%type <id>   fsym keyword_variable user_variable sym symbol operation operation2 operation3
 %type <id>   cname fname op f_rest_arg f_block_arg opt_f_block_arg f_norm_arg f_bad_arg
 
 %token tUPLUS           /* unary+ */
@@ -719,11 +719,7 @@ stmt            : keyword_alias fitem {lex_state = EXPR_FNAME;} fitem
                     $$ = NEW_POSTEXE(NEW_NODE(NODE_SCOPE,
                             0 /* tbl */, $3 /* body */, 0 /* args */));
                   }
-                | lhs '=' command_call
-                  {
-                    value_expr($3);
-                    $$ = node_assign($1, $3);
-                  }
+                | command_asgn
                 | mlhs '=' command_call
                   {
                     value_expr($3);
@@ -835,7 +831,17 @@ stmt            : keyword_alias fitem {lex_state = EXPR_FNAME;} fitem
                   }
                 | expr
                 ;
-
+command_asgn    : lhs '=' command_call
+                  {
+                    value_expr($3);
+                    $$ = node_assign($1, $3);
+                  }
+                | lhs '=' command_asgn
+                  {
+                    value_expr($3);
+                    $$ = node_assign($1, $3);
+                  }
+                ;
 expr            : command_call
                 | expr keyword_and expr
                   {
@@ -1037,7 +1043,11 @@ mlhs_post       : mlhs_item
                   }
                 ;
 
-mlhs_node       : variable
+mlhs_node       : user_variable
+                  {
+                    $$ = assignable($1, 0);
+                  }
+                | keyword_variable
                   {
                     $$ = assignable($1, 0);
                   }
@@ -1076,7 +1086,12 @@ mlhs_node       : variable
                   }
                 ;
 
-lhs             : variable
+lhs             : user_variable
+                  {
+                    $$ = assignable($1, 0);
+                    if(!$$) $$ = NEW_BEGIN(0);
+                  }
+                | keyword_variable
                   {
                     $$ = assignable($1, 0);
                     if(!$$) $$ = NEW_BEGIN(0);
@@ -2699,12 +2714,14 @@ numeric         : tINTEGER
                   }
                 ;
 
-variable        : tIDENTIFIER
+user_variable   : tIDENTIFIER
                 | tIVAR
                 | tGVAR
                 | tCONSTANT
                 | tCVAR
-                | keyword_nil {$$ = keyword_nil;}
+                ;
+
+keyword_variable: keyword_nil {$$ = keyword_nil;}
                 | keyword_self {$$ = keyword_self;}
                 | keyword_true {$$ = keyword_true;}
                 | keyword_false {$$ = keyword_false;}
@@ -2713,7 +2730,13 @@ variable        : tIDENTIFIER
                 | keyword__ENCODING__ {$$ = keyword__ENCODING__;}
                 ;
 
-var_ref         : variable
+var_ref         : user_variable
+                  {
+                    if(!($$ = gettable($1))) {
+                      $$ = NEW_BEGIN(0);
+                    }
+                  }
+                | keyword_variable
                   {
                     if(!($$ = gettable($1))) {
                       $$ = NEW_BEGIN(0);
@@ -2721,7 +2744,11 @@ var_ref         : variable
                   }
                 ;
 
-var_lhs         : variable
+var_lhs         : user_variable
+                  {
+                    $$ = assignable($1, 0);
+                  }
+                | keyword_variable
                   {
                     $$ = assignable($1, 0);
                   }
