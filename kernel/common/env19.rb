@@ -15,7 +15,7 @@ module Rubinius
     alias_method :store, :[]=
 
     def fetch(key, absent=undefined)
-      if block_given? and !absent.equal?(undefined)
+      if block_given? and !undefined.equal?(absent)
         warn "block supersedes default value argument"
       end
 
@@ -25,7 +25,7 @@ module Rubinius
 
       if block_given?
         return yield(key)
-      elsif absent.equal?(undefined)
+      elsif undefined.equal?(absent)
         raise KeyError, "key not found"
       end
 
