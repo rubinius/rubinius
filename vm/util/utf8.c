@@ -6,6 +6,9 @@
  *
  * http://www.daemonology.net/blog/2008-06-05-faster-utf8-strlen.html
  *
+ * This code has been placed in the public domain by Colin Percival,
+ * the author of the blog post.
+ *
  * This is adapted to the usage in Rubinius where strings are not
  * null terminated, but have a known length. This also uses a slightly
  * easier check for the non aligned characters at the beginning
