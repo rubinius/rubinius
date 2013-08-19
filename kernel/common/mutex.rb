@@ -66,6 +66,10 @@ class Mutex
   end
 
   def sleep(duration=undefined)
+    if duration.kind_of?(Numeric) && duration < 0
+      raise ArgumentError, "time interval must be positive"
+    end
+
     unlock
     begin
       Kernel.sleep(duration)
