@@ -736,8 +736,14 @@ namespace rubinius {
     bool use_timed_wait = true;
 
     if(Fixnum* fix = try_as<Fixnum>(duration)) {
+      if(!fix->positive_p()) {
+        Exception::argument_error(state, "time interval must be positive");
+      }
       ts.tv_sec = fix->to_native();
     } else if(Float* flt = try_as<Float>(duration)) {
+      if(flt->val < 0.0) {
+        Exception::argument_error(state, "time interval must be positive");
+      }
       uint64_t nano = (uint64_t)(flt->val * NANOSECONDS);
       ts.tv_sec  =  (time_t)(nano / NANOSECONDS);
       ts.tv_nsec =    (long)(nano % NANOSECONDS);
