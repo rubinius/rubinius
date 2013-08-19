@@ -2,6 +2,7 @@
 #define RBX_ENCODING_HPP
 
 #include "builtin/object.hpp"
+#include "util/utf8.h"
 
 // See comment in regexp.hpp
 #ifndef ONIGURUMA_H
@@ -93,12 +94,21 @@ namespace rubinius {
      */
     static native_int find_non_ascii_index(const uint8_t* start, const uint8_t* end);
     static native_int find_byte_character_index(const uint8_t* start, const uint8_t* end, native_int index, OnigEncodingType* enc);
-    static native_int find_byte_character_index_utf8(const uint8_t* start, const uint8_t* end, native_int index);
+    static native_int find_byte_character_index_utf8(const uint8_t* start, const uint8_t* end, native_int index) {
+      return utf8_find_byte_character_index(start, end, index);
+    }
+
     static native_int find_character_byte_index(const uint8_t* start, const uint8_t* end, native_int index, OnigEncodingType* enc);
-    static native_int find_character_byte_index_utf8(const uint8_t* start, const uint8_t* end, native_int index);
+
+    static native_int find_character_byte_index_utf8(const uint8_t* start, const uint8_t* end, native_int index) {
+      return utf8_find_character_byte_index(start, end, index);
+    }
 
     static native_int string_character_length(const uint8_t* start, const uint8_t* end, OnigEncodingType* enc);
-    static native_int string_character_length_utf8(const uint8_t* start, const uint8_t* end);
+
+    static native_int string_character_length_utf8(const uint8_t* start, const uint8_t* end) {
+      return utf8_string_length(start, end);
+    }
 
     static int mbclen(const uint8_t* start, const uint8_t* end, OnigEncodingType* enc);
     static int precise_mbclen(const uint8_t* start, const uint8_t* end, OnigEncodingType* enc);
