@@ -212,57 +212,57 @@ describe :io_new, :shared => true do
 
     it "coerces mode with #to_str" do
       mode = mock("mode")
-      mode.should_receive(:to_str).any_number_of_times.and_return('w')
+      mode.should_receive(:to_str).and_return('w')
       @io = IO.send(@method, @fd, mode)
     end
 
     it "coerces mode with #to_int" do
       mode = mock("mode")
-      mode.should_receive(:to_int).any_number_of_times.and_return(File::WRONLY)
+      mode.should_receive(:to_int).and_return(File::WRONLY)
       @io = IO.send(@method, @fd, mode)
     end
 
     it "coerces mode with #to_str when passed in options" do
       mode = mock("mode")
-      mode.should_receive(:to_str).any_number_of_times.and_return('w')
+      mode.should_receive(:to_str).and_return('w')
       @io = IO.send(@method, @fd, :mode => mode)
     end
 
     ruby_version_is "1.9.3" do
       it "coerces mode with #to_int when passed in options" do
         mode = mock("mode")
-        mode.should_receive(:to_int).any_number_of_times.and_return(File::WRONLY)
+        mode.should_receive(:to_int).and_return(File::WRONLY)
         @io = IO.send(@method, @fd, :mode => mode)
       end
     end
 
     it "coerces :encoding option with #to_str" do
       encoding = mock("encoding")
-      encoding.should_receive(:to_str).any_number_of_times.and_return('utf-8')
+      encoding.should_receive(:to_str).and_return('utf-8')
       @io = IO.send(@method, @fd, 'w', :encoding => encoding)
     end
 
     it "coerces :external_encoding option with #to_str" do
       encoding = mock("encoding")
-      encoding.should_receive(:to_str).any_number_of_times.and_return('utf-8')
+      encoding.should_receive(:to_str).and_return('utf-8')
       @io = IO.send(@method, @fd, 'w', :external_encoding => encoding)
     end
 
     it "coerces :internal_encoding option with #to_str" do
       encoding = mock("encoding")
-      encoding.should_receive(:to_str).any_number_of_times.and_return('utf-8')
+      encoding.should_receive(:to_str).at_least(:once).and_return('utf-8')
       @io = IO.send(@method, @fd, 'w', :internal_encoding => encoding)
     end
 
     it "coerces options as third argument with #to_hash" do
       options = mock("options")
-      options.should_receive(:to_hash).any_number_of_times.and_return({})
+      options.should_receive(:to_hash).and_return({})
       @io = IO.send(@method, @fd, 'w', options)
     end
 
     it "coerces options as second argument with #to_hash" do
       options = mock("options")
-      options.should_receive(:to_hash).any_number_of_times.and_return({})
+      options.should_receive(:to_hash).and_return({})
       @io = IO.send(@method, @fd, options)
     end
 
