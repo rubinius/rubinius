@@ -66,4 +66,24 @@ class String
   def b
     dup.force_encoding Encoding::ASCII_8BIT
   end
+
+  def <=>(orig)
+    other = Rubinius::Type.check_convert_type orig, String, :to_str
+    return 0 if equal? other
+    if other.nil?
+      if orig.respond_to? :<=>
+        return -tmp if tmp = orig <=> self
+      end
+      return nil
+    end
+
+    result = @data.compare_bytes(other.__data__, @num_bytes, other.bytesize)
+    if result == 0
+      return result if Encoding.compatible?(self, other)
+      Rubinius::Type.encoding_order(encoding, other.encoding)
+    else
+      result
+    end
+  end
+
 end
