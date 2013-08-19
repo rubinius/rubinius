@@ -97,9 +97,9 @@ describe "Time#-" do
     end
   end
 
-  it "does not returns a subclass instance" do
+  it "does not return a subclass instance" do
     c = Class.new(Time)
     x = c.now + 1
-    x.should be_kind_of(Time)
+    x.should be_an_instance_of(Time)
   end
 end
