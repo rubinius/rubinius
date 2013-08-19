@@ -56,7 +56,7 @@ class String
       end
     end
 
-    if from_enc.equal? undefined or to_enc.equal? undefined
+    if undefined.equal? from_enc or undefined.equal? to_enc
       raise Encoding::ConverterNotFoundError, "undefined code converter (#{from} to #{to})"
     end
 
