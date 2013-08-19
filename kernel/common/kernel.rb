@@ -38,10 +38,13 @@ module Kernel
   # If we can, we should probably get rid of this.
 
   def FloatValue(obj)
+    exception = TypeError.new 'no implicit conversion to float'
+    raise exception if obj.kind_of?(String)
+
     begin
       Float(obj)
     rescue
-      raise TypeError, 'no implicit conversion to float'
+      raise exception
     end
   end
   private :FloatValue
