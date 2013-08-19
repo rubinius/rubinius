@@ -21,10 +21,10 @@ module Rubinius
       end
 
       case obj
+      when Float
+        obj
       when Numeric
         coerce_to obj, Float, :to_f
-      when Float
-        return obj
       when nil, true, false
         raise TypeError, "can't convert #{obj.inspect} into Float"
       else
