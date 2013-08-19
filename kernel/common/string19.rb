@@ -1558,4 +1558,11 @@ class String
       return -tmp # We're not supposed to convert to integer here
     end
   end
+
+  def dump
+    s = self.class.allocate
+    str = %{"#{transform(Rubinius::CType::Printed, false).force_encoding(Encoding::US_ASCII)}"}
+    str += ".force_encoding(\"#{encoding}\")" unless encoding.ascii_compatible?
+    s.replace(str)
+  end
 end
