@@ -457,6 +457,12 @@ namespace rubinius {
       Exception::argument_error(state, "Not properly initialized Regexp");
     }
 
+    if(unlikely(!CBOOL(string->valid_encoding_p(state)))) {
+      std::ostringstream msg;
+      msg << "invalid byte sequence in " << string->encoding(state)->name()->to_string(state);
+      Exception::argument_error(state, msg.str().c_str());
+    }
+
     max = string->byte_size();
     str = (UChar*)string->byte_address();
 
@@ -536,6 +542,12 @@ namespace rubinius {
       Exception::argument_error(state, "Not properly initialized Regexp");
     }
 
+    if(unlikely(!CBOOL(string->valid_encoding_p(state)))) {
+      std::ostringstream msg;
+      msg << "invalid byte sequence in " << string->encoding(state)->name()->to_string(state);
+      Exception::argument_error(state, msg.str().c_str());
+    }
+
     max = string->byte_size();
     native_int pos = start->to_native();
 
@@ -601,6 +613,12 @@ namespace rubinius {
 
     if(unlikely(!onig_source_data(state))) {
       Exception::argument_error(state, "Not properly initialized Regexp");
+    }
+
+    if(unlikely(!CBOOL(string->valid_encoding_p(state)))) {
+      std::ostringstream msg;
+      msg << "invalid byte sequence in " << string->encoding(state)->name()->to_string(state);
+      Exception::argument_error(state, msg.str().c_str());
     }
 
     lock_.lock();
