@@ -206,6 +206,12 @@ describe "Marshal.dump" do
       Marshal.dump(encode(UserString.new.extend(Meths), "binary")).should == "\004\be:\nMethsC:\017UserString\"\000"
     end
 
+    it "dumps a String with instance variables" do
+      str = ""
+      str.instance_variable_set("@foo", "bar")
+      Marshal.dump(encode(str, "binary")).should == "\x04\bI\"\x00\x06:\t@fooI\"\bbar\x06:\x06EF"
+    end
+
     with_feature :encoding do
       it "dumps a US-ASCII String" do
         str = "abc".force_encoding("us-ascii")
