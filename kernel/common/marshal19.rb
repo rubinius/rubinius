@@ -131,7 +131,7 @@ module Marshal
 
     def construct_string
       obj = get_byte_sequence
-      obj = get_user_class.new obj if @user_class
+      Rubinius::Unsafe.set_class(obj, get_user_class) if @user_class
 
       set_object_encoding(obj, Encoding::ASCII_8BIT)
 
