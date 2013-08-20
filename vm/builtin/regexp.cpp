@@ -457,7 +457,7 @@ namespace rubinius {
       Exception::argument_error(state, "Not properly initialized Regexp");
     }
 
-    if(unlikely(!CBOOL(string->valid_encoding_p(state)))) {
+    if(unlikely(!LANGUAGE_18_ENABLED && !CBOOL(string->valid_encoding_p(state)))) {
       std::ostringstream msg;
       msg << "invalid byte sequence in " << string->encoding(state)->name()->to_string(state);
       Exception::argument_error(state, msg.str().c_str());
@@ -542,7 +542,7 @@ namespace rubinius {
       Exception::argument_error(state, "Not properly initialized Regexp");
     }
 
-    if(unlikely(!CBOOL(string->valid_encoding_p(state)))) {
+    if(unlikely(!LANGUAGE_18_ENABLED && !CBOOL(string->valid_encoding_p(state)))) {
       std::ostringstream msg;
       msg << "invalid byte sequence in " << string->encoding(state)->name()->to_string(state);
       Exception::argument_error(state, msg.str().c_str());
@@ -615,7 +615,7 @@ namespace rubinius {
       Exception::argument_error(state, "Not properly initialized Regexp");
     }
 
-    if(unlikely(!CBOOL(string->valid_encoding_p(state)))) {
+    if(unlikely(!LANGUAGE_18_ENABLED && !CBOOL(string->valid_encoding_p(state)))) {
       std::ostringstream msg;
       msg << "invalid byte sequence in " << string->encoding(state)->name()->to_string(state);
       Exception::argument_error(state, msg.str().c_str());
