@@ -126,6 +126,11 @@ end
 class UserString < String
 end
 
+class UserCustomConstructorString < String
+  def initialize(arg1, arg2)
+  end
+end
+
 require 'openssl'
 
 class UserData < OpenSSL::X509::Name

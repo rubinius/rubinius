@@ -347,6 +347,11 @@ describe :marshal_load, :shared => true do
       str.instance_variable_get("@foo").should == "bar"
     end
 
+    it "loads a String subclass with custom constructor" do
+      str = Marshal.send(@method, "\x04\bC: UserCustomConstructorString\"\x00")
+      str.should be_an_instance_of(UserCustomConstructorString)
+    end
+
     with_feature :encoding do
       it "loads a US-ASCII String" do
         str = "abc".force_encoding("us-ascii")
