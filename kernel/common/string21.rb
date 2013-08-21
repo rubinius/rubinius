@@ -88,7 +88,7 @@ class String
       end
     end
 
-    if from_enc.equal? undefined or to_enc.equal? undefined
+    if undefined.equal? from_enc or undefined.equal? to_enc
       raise Encoding::ConverterNotFoundError, "undefined code converter (#{from} to #{to})"
     end
 
@@ -1610,5 +1610,12 @@ class String
       return unless tmp = (other <=> self)
       return -tmp # We're not supposed to convert to integer here
     end
+  end
+
+  def dump
+    s = self.class.allocate
+    str = %{"#{transform(Rubinius::CType::Printed, false).force_encoding(Encoding::US_ASCII)}"}
+    str += ".force_encoding(\"#{encoding}\")" unless encoding.ascii_compatible?
+    s.replace(str)
   end
 end

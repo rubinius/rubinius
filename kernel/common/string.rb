@@ -844,12 +844,6 @@ class String
     self.num_bytes -= size
   end
 
-  def dump
-    s = self.class.allocate
-    s.replace %{"#{transform(Rubinius::CType::Printed, false)}"}
-    s
-  end
-
   def shared!
     @shared = true
   end

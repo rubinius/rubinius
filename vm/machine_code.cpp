@@ -52,12 +52,24 @@ namespace rubinius {
    * Turns a CompiledCode's InstructionSequence into a C array of opcodes.
    */
   MachineCode::MachineCode(STATE, CompiledCode* meth)
-    : type(NULL)
+    : run(MachineCode::interpreter)
+    , total(meth->iseq()->opcodes()->num_fields())
+    , type(NULL)
+    , total_args(meth->total_args()->to_native())
+    , required_args(meth->required_args()->to_native())
+    , post_args(meth->post_args()->to_native())
+    , splat_position(-1)
+    , stack_size(meth->stack_size()->to_native())
+    , number_of_locals(meth->number_of_locals())
+    , call_count(0)
+    , loop_count(0)
     , uncommon_count(0)
     , number_of_call_sites_(0)
     , call_site_offsets_(0)
     , number_of_constant_caches_(0)
     , constant_cache_offsets_(0)
+    , unspecialized(NULL)
+    , fallback(NULL)
     , execute_status_(eInterpret)
     , name_(meth->name())
     , method_id_(state->shared().inc_method_count(state))
@@ -66,38 +78,21 @@ namespace rubinius {
   {
     if(state->shared().tool_broker()->tooling_interpreter_p()) {
       run = MachineCode::tooling_interpreter;
-    } else {
-      run = MachineCode::interpreter;
     }
-
-    total = meth->iseq()->opcodes()->num_fields();
 
     opcodes = new opcode[total];
 
     fill_opcodes(state, meth);
-    stack_size = meth->stack_size()->to_native();
-    number_of_locals = meth->number_of_locals();
-
-    total_args = meth->total_args()->to_native();
-    required_args = meth->required_args()->to_native();
-    post_args = meth->post_args()->to_native();
 
     if(Fixnum* pos = try_as<Fixnum>(meth->splat())) {
       splat_position = pos->to_native();
-    } else {
-      splat_position = -1;
     }
 
     // Disable JIT for large methods
-    if(!state->shared().config.jit_disabled &&
-        total < (size_t)state->shared().config.jit_max_method_size) {
-      call_count = 0;
-    } else {
+    if(state->shared().config.jit_disabled ||
+        total > (size_t)state->shared().config.jit_max_method_size) {
       call_count = -1;
     }
-
-    unspecialized = 0;
-    fallback = 0;
 
     for(int i = 0; i < cMaxSpecializations; i++) {
       specializations[i].class_data.raw = 0;

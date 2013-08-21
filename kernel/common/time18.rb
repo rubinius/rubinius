@@ -90,7 +90,6 @@ class Time
       other_sec = other
       other_usec = 0
     else
-      other = FloatValue(other)
       other_sec, usec_frac = FloatValue(other).divmod(1)
       other_usec = (usec_frac * 1_000_000 + 0.5).to_i
     end

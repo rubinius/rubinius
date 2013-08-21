@@ -72,4 +72,10 @@ module VariablesSpecs
     def to_ary
     end
   end
+
+  class Chain
+    def self.without_parenthesis a
+      a
+    end
+  end
 end

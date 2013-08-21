@@ -20,7 +20,7 @@ describe "Time.at" do
     it "returns a subclass instance on a Time subclass" do
       c = Class.new(Time)
       t = c.at(0)
-      t.should be_kind_of(c)
+      t.should be_an_instance_of(c)
     end
   end
 
@@ -49,7 +49,7 @@ describe "Time.at" do
     it "returns a subclass instance" do
       c = Class.new(Time)
       t = c.at(Time.now)
-      t.should be_kind_of(c)
+      t.should be_an_instance_of(c)
     end
   end
 

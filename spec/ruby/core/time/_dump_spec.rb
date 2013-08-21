@@ -34,7 +34,7 @@ describe "Time#_dump" do
     end
 
     it "dumps a Time object to a bytestring" do
-      @s.should be_kind_of(String)
+      @s.should be_an_instance_of(String)
       @s.should == [3222863947, 2235564032].pack("VV")
     end
 

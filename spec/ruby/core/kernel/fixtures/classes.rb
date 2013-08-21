@@ -9,6 +9,14 @@ module KernelSpecs
     Kernel.Array(arg)
   end
 
+  def self.Hash_function(arg)
+    Hash(arg)
+  end
+
+  def self.Hash_method(arg)
+    Kernel.Hash(arg)
+  end
+
   def self.putc_function(arg)
     putc arg
   end

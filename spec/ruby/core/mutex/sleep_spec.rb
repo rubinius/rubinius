@@ -2,9 +2,24 @@ require File.expand_path('../../../spec_helper', __FILE__)
 
 ruby_version_is "1.9" do
   describe "Mutex#sleep" do
-    it "raises ThreadError if not locked by the current thread" do
+    describe "when not locked by the current thread" do
+      it "raises a ThreadError" do
+        m = Mutex.new
+        lambda { m.sleep }.should raise_error(ThreadError)
+      end
+
+      it "raises an ArgumentError if passed a negative duration" do
+        m = Mutex.new
+        lambda { m.sleep -0.1 }.should raise_error(ArgumentError)
+        lambda { m.sleep -1 }.should raise_error(ArgumentError)
+      end
+    end
+
+    it "raises an ArgumentError if passed a negative duration" do
       m = Mutex.new
-      lambda { m.sleep }.should raise_error(ThreadError)
+      m.lock
+      lambda { m.sleep -0.1 }.should raise_error(ArgumentError)
+      lambda { m.sleep -1 }.should raise_error(ArgumentError)
     end
 
     it "pauses execution for approximately the duration requested" do

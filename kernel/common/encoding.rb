@@ -258,7 +258,8 @@ class Encoding
       return if error.nil?
 
       result = error[:result]
-      error_bytes = error[:error_bytes].dump
+      error_bytes = error[:error_bytes]
+      error_bytes_msg = error_bytes.dump
       source_encoding_name = error[:source_encoding_name]
       destination_encoding_name = error[:destination_encoding_name]
 
@@ -266,27 +267,27 @@ class Encoding
       when :invalid_byte_sequence
         read_again_string = error[:read_again_string]
         if read_again_string
-          msg = "#{error_bytes} followed by #{read_again_string.dump} on #{source_encoding_name}"
+          msg = "#{error_bytes_msg} followed by #{read_again_string.dump} on #{source_encoding_name}"
         else
-          msg = "#{error_bytes} on #{source_encoding_name}"
+          msg = "#{error_bytes_msg} on #{source_encoding_name}"
         end
 
         exc = InvalidByteSequenceError.new msg
       when :incomplete_input
-        msg = "incomplete #{error_bytes} on #{source_encoding_name}"
+        msg = "incomplete #{error_bytes_msg} on #{source_encoding_name}"
 
         exc = InvalidByteSequenceError.new msg
       when :undefined_conversion
         error_char = error_bytes
         if codepoint = error[:codepoint]
-          error_bytes = "U+%04X" % codepoint
+          error_bytes_msg = "U+%04X" % codepoint
         end
 
         if source_encoding_name.to_sym == @source_encoding.name and
            destination_encoding_name.to_sym == @destination_encoding.name
-          msg = "#{error_bytes} from #{source_encoding_name} to #{destination_encoding_name}"
+          msg = "#{error_bytes_msg} from #{source_encoding_name} to #{destination_encoding_name}"
         else
-          msg = "#{error_bytes} to #{destination_encoding_name} in conversion from #{source_encoding_name}"
+          msg = "#{error_bytes_msg} to #{destination_encoding_name} in conversion from #{source_encoding_name}"
           transcoder = @converters.first
           msg << " to #{transcoder.target}"
         end

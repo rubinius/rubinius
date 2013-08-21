@@ -188,7 +188,12 @@ module Kernel
       return sleep(undefined)
     end
 
-    raise TypeError, 'time interval must be a numeric value'
+    if duration.kind_of? Numeric
+      float = Rubinius::Type.coerce_to duration, Float, :to_f
+      return sleep(float)
+    else
+      raise TypeError, 'time interval must be a numeric value'
+    end
   end
   module_function :sleep
 

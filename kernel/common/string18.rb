@@ -985,4 +985,11 @@ class String
       return -tmp # We're not supposed to convert to integer here
     end
   end
+
+  def dump
+    s = self.class.allocate
+    s.replace %{"#{transform(Rubinius::CType::Printed, false)}"}
+    s
+  end
+
 end

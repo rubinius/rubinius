@@ -342,6 +342,16 @@ describe :marshal_load, :shared => true do
         Marshal.send(@method, StringIO.new(Marshal.dump(obj))).should == obj
     end
 
+    it "loads a string with an ivar" do
+      str = Marshal.send(@method, "\x04\bI\"\x00\x06:\t@fooI\"\bbar\x06:\x06EF")
+      str.instance_variable_get("@foo").should == "bar"
+    end
+
+    it "loads a String subclass with custom constructor" do
+      str = Marshal.send(@method, "\x04\bC: UserCustomConstructorString\"\x00")
+      str.should be_an_instance_of(UserCustomConstructorString)
+    end
+
     with_feature :encoding do
       it "loads a US-ASCII String" do
         str = "abc".force_encoding("us-ascii")
