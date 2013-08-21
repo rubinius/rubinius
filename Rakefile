@@ -150,6 +150,8 @@ class SpecRunner
     end
 
     ENV.delete("RUBYOPT")
+    ENV.delete("GEM_HOME")
+    ENV.delete("GEM_PATH")
 
     @handler = lambda do |ok, status|
       self.class.set_at_exit_status(status.exitstatus) unless ok
