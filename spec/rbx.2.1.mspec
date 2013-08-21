@@ -71,36 +71,12 @@ class MSpecScript
     'spec/compiler',
     'spec/command_line',
     'spec/ruby/optional/capi',
-    'spec/ruby/library',
     'spec/library',
 
     'spec/build',
-
-    # We use the FFI gem now
-    '^spec/ruby/optional/ffi',
-
-    # Excluded because the specs are extremely system dependent.
-    '^spec/ruby/library/syslog',
-
-    # Excluded because they fail to load at the moment
-    '^spec/ruby/optional/ffi/buffer_spec.rb',
-    '^spec/ruby/optional/ffi/callback_spec.rb',
-    '^spec/ruby/optional/ffi/custom_type_spec.rb',
-    '^spec/ruby/optional/ffi/ffi_spec.rb',
-    '^spec/ruby/optional/ffi/function_spec.rb',
-    '^spec/ruby/optional/ffi/number_spec.rb',
-    '^spec/ruby/optional/ffi/pointer_spec.rb',
-    '^spec/ruby/optional/ffi/strptr_spec.rb',
-    '^spec/ruby/optional/ffi/struct_initialize_spec.rb',
-    '^spec/ruby/optional/ffi/struct_spec.rb',
-    '^spec/ruby/optional/ffi/variadic_spec.rb',
   ] + get(:obsolete_library)
 
-  set :travis, get(:ci_files) - [
-    'spec/library',
-    'spec/ruby/library',
-    'spec/ruby/optional/capi'
-  ]
+  set :travis, get(:ci_files)
 
   # The set of substitutions to transform a spec filename
   # into a tag filename.
