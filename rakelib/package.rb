@@ -162,7 +162,7 @@ class RubiniusPackager
     load_configuration
 
     sh "rake -q clean; rake -q build"
-    sh "strip -S #{BUILD_CONFIG[:stagingdir]}#{BUILD_CONFIG[:bindir]}/#{BUILD_CONFIG[:program_name]}"
+    sh "strip -S #{BUILD_CONFIG[:build_exe]}"
 
     if bin
       sh "mkdir -p #{root}#{File.dirname(bin)}"

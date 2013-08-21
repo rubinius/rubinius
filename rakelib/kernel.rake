@@ -90,7 +90,7 @@ bootstrap_files = FileList[
 
 gem_files = FileList[
   "runtime/gems/**/*.rb"
-].exclude "runtime/gems/**/spec/**/*.rb"
+].exclude("runtime/gems/**/spec/**/*.rb", "runtime/gems/**/test/**/*.rb")
 
 ext_files = FileList[
   "runtime/gems/**/*.{c,h}pp",
@@ -209,11 +209,36 @@ gem_files.each do |name|
 end
 
 task :melbourne do
-  prefix = BUILD_CONFIG[:stagingdir] || BUILD_CONFIG[:sourcedir]
   path = Dir["runtime/gems/rubinius-melbourne-*/ext/rubinius/melbourne"].first
   Dir.chdir path do
-    sh "#{prefix}#{BUILD_CONFIG[:bindir]}/#{BUILD_CONFIG[:program_name]} --compiled ./extconf.rbc"
+    sh "#{BUILD_CONFIG[:build_exe]} --compiled ./extconf.rbc"
     sh "make && make install"
+  end
+end
+
+task :gem_extensions do
+  gems_dir = File.expand_path "../../runtime/gems", __FILE__
+  names = FileList["#{gems_dir}/**/extconf.rb"].exclude(/.*\/rubinius-melbourne.*/)
+
+  re = %r[(.*)/ext/[^/]+/(.*extconf.rb)]
+  names.each do |name|
+    next unless m = re.match(name)
+
+    ext_name = "#{File.basename(File.dirname(name))}.#{$dlext}"
+    dest_path = File.join m[1], "lib", File.dirname(m[2])
+    next if File.exists? File.join(dest_path, ext_name)
+
+    Dir.chdir File.dirname(name) do
+      puts "Building #{m[1]}..."
+
+      unless File.exists? "Makefile"
+        sh "#{BUILD_CONFIG[:build_exe]} extconf.rb", :verbose => $verbose
+      end
+      sh "make", :verbose => $verbose
+
+      FileUtils.mkdir_p dest_path
+      FileUtils.cp ext_name, dest_path
+    end
   end
 end
 
@@ -241,7 +266,7 @@ task :kernel => 'kernel:build'
 
 namespace :kernel do
   desc "Build all kernel files"
-  task :build => ['compiler:load'] + runtime_files + [:melbourne]
+  task :build => ['compiler:load'] + runtime_files + [:melbourne, :gem_extensions]
 
   desc "Delete all .rbc files"
   task :clean do

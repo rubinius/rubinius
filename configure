@@ -1639,6 +1639,7 @@ int main() { return tgetnum(""); }
     end
 
     @bin_links.delete @program_name
+    @build_prefix = @stagingdir || @sourcedir
 
     config_settings = {
       :command_line       => @command_line,
@@ -1681,6 +1682,8 @@ int main() { return tgetnum(""); }
       :fibers             => @fibers,
       :sourcedir          => @sourcedir,
       :stagingdir         => @stagingdir,
+      :build_prefix       => @build_prefix,
+      :build_exe          => "#{@build_prefix}#{@bindir}/#{@program_name}",
       :prefixdir          => @prefixdir,
       :bindir             => @bindir,
       :libdir             => @libdir,
