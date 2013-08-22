@@ -119,6 +119,12 @@ class Configure
     @bin_links = ["rbx", "ruby", "rake", "gem", "irb", "rdoc", "ri"]
     @use_bin_links = true
 
+    # Gems
+    @build_tool_gems = nil
+    @build_c_ext_gems = nil
+    @rubygems_gems = nil
+    @runtime_gems = nil
+
     # Vendored library settings
     @vendored_libdir = root + "/vendor"
 
@@ -2001,6 +2007,34 @@ required to run it.
     end
   end
 
+  def unpack_gems
+    @log.write "\nUnpacking bootstrap gems..."
+
+    gems = @build_tool_gems + @build_c_ext_gems + @rubygems_gems
+
+    runtime_gems = File.expand_path "../runtime/gems", __FILE__
+    unpacked = Dir["#{runtime_gems}/*"]
+
+    # Remove unpacked gems not specified by these configure settings
+    unpacked.each do |dir|
+      unless gems.find { |name, version| dir =~ /#{name}-#{version}/ }
+        FileUtils.rm_rf dir
+      end
+    end
+
+    # Unpack gems not found for these configure settings
+    gem_sources = File.expand_path "../preinstalled-gems", __FILE__
+
+    Dir.chdir runtime_gems do
+      gems.each do |name, version|
+        unless unpacked.find { |dir| dir =~ /#{name}-#{version}/ }
+          gem = Dir["#{gem_sources}/#{name}-#{version}*"].first
+          system("gem unpack #{gem}")
+        end
+      end
+    end
+  end
+
   def run
     unless which_ruby == :ruby or which_ruby == :rbx
       failure "Sorry, building Rubinius requires MRI or Rubinius."
@@ -2034,6 +2068,7 @@ required to run it.
 
     process
     fetch_gems
+    unpack_gems
     write_configure_files
     record_revision
     write_release @vm_release_h, version, @release_date, read_revision
