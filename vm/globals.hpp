@@ -59,6 +59,7 @@ namespace rubinius {
 
     /* the primary symbol table */
     TypedRoot<Symbol*> sym_method_missing;
+    TypedRoot<Symbol*> sym_respond_to_missing;
     TypedRoot<Symbol*> sym_inherited;
     TypedRoot<Symbol*> sym_from_literal, sym_method_added, sym_s_method_added, sym_init_copy;
     TypedRoot<Symbol*> sym_plus, sym_minus, sym_equal, sym_nequal, sym_tequal, sym_lt, sym_gt;
@@ -170,6 +171,7 @@ namespace rubinius {
       iobuffer(&roots),
       included_module(&roots),
       sym_method_missing(&roots),
+      sym_respond_to_missing(&roots),
       sym_inherited(&roots),
       sym_from_literal(&roots),
       sym_method_added(&roots),
