@@ -20,7 +20,7 @@ namespace rubinius {
  */
 #define attr_writer(name, type) \
   template <class T> \
-  inline void name(T state, type* obj) { \
+  void name(T state, type* obj) { \
     name ## _ = obj; \
     this->write_barrier(state, obj); \
   }
@@ -32,7 +32,7 @@ namespace rubinius {
  *  instance variable foo_. A const version is also generated.
  */
 #define attr_reader(name, type) \
-  inline type* name() const { return name ## _; }
+  type* name() const { return name ## _; }
 
 /**
  *  Ruby-like accessor creation for a slot.
