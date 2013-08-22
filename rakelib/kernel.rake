@@ -220,7 +220,7 @@ task :gem_extensions do
   gems_dir = File.expand_path "../../runtime/gems", __FILE__
   names = FileList["#{gems_dir}/**/extconf.rb"].exclude(/.*\/rubinius-melbourne.*/)
 
-  re = %r[(.*)/ext/[^/]+/(.*extconf.rb)]
+  re = %r[(.*)/(ext|lib)/[^/]+/(.*extconf.rb)]
   names.each do |name|
     next unless m = re.match(name)
 
@@ -236,8 +236,10 @@ task :gem_extensions do
       end
       sh "make", :verbose => $verbose
 
-      FileUtils.mkdir_p dest_path
-      FileUtils.cp ext_name, dest_path
+      if File.exists? ext_name
+        FileUtils.mkdir_p dest_path
+        FileUtils.cp ext_name, dest_path
+      end
     end
   end
 end
