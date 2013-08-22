@@ -76,8 +76,6 @@ class MSpecScript
     'spec/ruby/optional/capi',
     'spec/library',
 
-    'spec/build',
-
     # 1.9 features
     '^spec/ruby/core/basicobject',
     '^spec/ruby/optional/capi/encoding',

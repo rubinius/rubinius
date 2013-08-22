@@ -72,8 +72,6 @@ class MSpecScript
     'spec/command_line',
     'spec/ruby/optional/capi',
     'spec/library',
-
-    'spec/build',
   ] + get(:obsolete_library)
 
   set :travis, get(:ci_files)
