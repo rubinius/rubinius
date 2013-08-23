@@ -431,7 +431,7 @@ namespace rubinius {
     char buf[FLOAT_TO_S_STRLEN];
 
     int length = double_to_ascii(buf, FLOAT_TO_S_STRLEN, val, &sign, &decpt);
-    Tuple* result = Tuple::create(state, 4);
+    Tuple* result = Tuple::create_dirty(state, 4);
     result->put(state, 0, String::create(state, buf, length));
     result->put(state, 1, Fixnum::from(decpt));
     result->put(state, 2, Fixnum::from(sign));

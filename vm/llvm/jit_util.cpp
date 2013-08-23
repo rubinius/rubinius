@@ -193,7 +193,7 @@ extern "C" {
       }
     }
 
-    Tuple* tup = Tuple::create(state, arg_count);
+    Tuple* tup = Tuple::create_dirty(state, arg_count);
     for(int i = 0; i < v->total_args; i++) {
       tup->put(state, i, scope->get_local(state, i));
     }

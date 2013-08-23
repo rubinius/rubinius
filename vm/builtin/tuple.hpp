@@ -21,6 +21,7 @@ namespace rubinius {
 
     static void init(STATE);
     static Tuple* create(STATE, native_int fields);
+    static Tuple* create_dirty(STATE, native_int fields);
     static Tuple* from(STATE, native_int fields, ...);
 
     /** Shift all elements leftward, clear old slots. */
@@ -36,7 +37,11 @@ namespace rubinius {
     // Rubinius.primitive :tuple_at
     Object* at_prim(STATE, Fixnum* pos);
 
-    Object* put(STATE, native_int idx, Object* val);
+    Object* put(STATE, native_int idx, Object* val) {
+      field[idx] = val;
+      write_barrier(state, val);
+      return val;
+    }
 
     // Rubinius.primitive :tuple_put
     Object* put_prim(STATE, Fixnum* idx, Object* val);

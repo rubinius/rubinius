@@ -55,7 +55,7 @@ namespace rubinius {
       ary->total(state, Fixnum::from(0));
       ary->tuple(state, Tuple::create(state, 0));
     } else {
-      Tuple* tup = Tuple::create(state, total);
+      Tuple* tup = Tuple::create_dirty(state, total);
       Tuple* orig = tuple_;
 
       for(native_int i = 0, j = start->to_native(); i < total; i++, j++) {
@@ -236,7 +236,7 @@ namespace rubinius {
       start(state, Fixnum::from(lend-1));
       total(state, Fixnum::from(new_size));
     } else {
-      Tuple* nt = Tuple::create(state, new_size);
+      Tuple* nt = Tuple::create_dirty(state, new_size);
       nt->copy_from(state, tuple_, start_, total_,
 		    Fixnum::from(1));
       nt->put(state, 0, val);
