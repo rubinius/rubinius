@@ -1320,16 +1320,15 @@ namespace rubinius {
 #else
     struct passwd pw;
     struct passwd *pwd;
-    String* home = 0;
+    String* home = nil<String>();
 
     long len = sysconf(_SC_GETPW_R_SIZE_MAX);
-    char buf[len];
+    ByteArray* buf = ByteArray::create_pinned(state, len);
 
-    getpwnam_r(name->c_str_null_safe(state), &pw, buf, len, &pwd);
+    getpwnam_r(name->c_str_null_safe(state), &pw,
+               reinterpret_cast<char*>(buf->raw_bytes()), len, &pwd);
     if(pwd) {
       home = String::create(state, pwd->pw_dir);
-    } else {
-      home = nil<String>();
     }
 
     return home;
