@@ -32,8 +32,19 @@ namespace rubinius {
   Array* Array::create(STATE, native_int size) {
     Array* ary;
     ary = state->new_object_dirty<Array>(G(array));
+    ary->tuple(state, Tuple::create(state, size));
+    ary->start(state, Fixnum::from(0));
+    ary->total(state, Fixnum::from(0));
 
-    ary->setup(state, size);
+    return ary;
+  }
+
+  Array* Array::create_dirty(STATE, native_int size) {
+    Array* ary;
+    ary = state->new_object_dirty<Array>(G(array));
+    ary->tuple(state, Tuple::create_dirty(state, size));
+    ary->start(state, Fixnum::from(0));
+    ary->total(state, Fixnum::from(0));
 
     return ary;
   }
@@ -114,12 +125,6 @@ namespace rubinius {
     Array* ary = Array::create(state, 1);
     ary->set(state, 0, value);
     return ary;
-  }
-
-  void Array::setup(STATE, native_int size) {
-    this->tuple(state, Tuple::create(state, size));
-    this->start(state, Fixnum::from(0));
-    this->total(state, Fixnum::from(0));
   }
 
   // NOTE: We don't use Primitives::failure() here because the wrapper
