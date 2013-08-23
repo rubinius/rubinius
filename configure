@@ -1975,7 +1975,8 @@ required to run it.
     @runtime_gems = [
       [ "json", "1.8" ],
       [ "rake", "10.1" ],
-      [ "rdoc", "4.0" ]
+      [ "rdoc", "4.0" ],
+      [ "rubysl-prettyprint", gem_version ]
     ]
 
     gems = @build_tool_gems + @build_c_ext_gems + @rubygems_gems + @runtime_gems
