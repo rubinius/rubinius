@@ -1313,6 +1313,8 @@ namespace rubinius {
     return RBOOL(dis.resolve(state, sym, lookup));
   }
 
+#define GETPW_R_SIZE 2048
+
   String* System::vm_get_user_home(STATE, String* name) {
 #ifdef RBX_WINDOWS
     // TODO: Windows
@@ -1320,18 +1322,26 @@ namespace rubinius {
 #else
     struct passwd pw;
     struct passwd *pwd;
-    String* home = nil<String>();
 
     long len = sysconf(_SC_GETPW_R_SIZE_MAX);
-    ByteArray* buf = ByteArray::create_pinned(state, len);
+    if(len < 0) len = GETPW_R_SIZE;
 
-    getpwnam_r(name->c_str_null_safe(state), &pw,
-               reinterpret_cast<char*>(buf->raw_bytes()), len, &pwd);
-    if(pwd) {
-      home = String::create(state, pwd->pw_dir);
+retry:
+    ByteArray* buf = ByteArray::create_dirty(state, len);
+
+    int err = getpwnam_r(name->c_str_null_safe(state), &pw,
+                         reinterpret_cast<char*>(buf->raw_bytes()), len, &pwd);
+    if(err) {
+      if(errno == ERANGE) {
+        len *= 2;
+        goto retry;
+      }
+      Exception::errno_error(state, "retrieving user home directory", errno, "getpwnam_r(3)");
     }
-
-    return home;
+    if(pwd) {
+      return String::create(state, pwd->pw_dir);
+    }
+    return nil<String>();
 #endif
   }
 
