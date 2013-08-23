@@ -3,4 +3,8 @@
 paths = ENV["RUBYLIB"]
 ENV["RUBYLIB"] = paths ? paths + ":." : "."
 
+# Don't override Rubinius rubygems
+ENV.delete "GEM_HOME"
+ENV.delete "GEM_PATH"
+
 exec 'mspec/bin/mspec', *ARGV
