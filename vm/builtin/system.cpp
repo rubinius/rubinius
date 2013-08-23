@@ -1334,7 +1334,8 @@ retry:
     if(err) {
       if(errno == ERANGE) {
         len *= 2;
-        if(len < LONG_MAX) goto retry;
+        // Check for overflow
+        if(len > 0) goto retry;
         Exception::runtime_error(state, "getpwnam_r(3) buffer exceeds maximum size");
       }
       Exception::errno_error(state, "retrieving user home directory", errno, "getpwnam_r(3)");
