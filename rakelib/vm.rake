@@ -174,39 +174,20 @@ namespace :build do
 
   # Issue the actual build commands. NEVER USE DIRECTLY.
   task :build => %W[
-                     build:llvm
-                     #{VM_EXE}
-                     build:ffi:preprocessor
-                     compiler:generate
-                     stage:bin
-                     stage:extra_bins
-                     stage:capi_include
-                     stage:lib
-                     stage:tooling
-                     stage:kernel
-                     kernel:build
-                     stage:runtime
-                     stage:documentation
-                     stage:manpages
-                   ] + TRANSCODING_LIBS
-
-  namespace :ffi do
-
-    FFI_PREPROCESSABLES = %w[ lib/fcntl.rb
-                            ]
-
-    unless BUILD_CONFIG[:windows]
-      FFI_PREPROCESSABLES.concat %w[ lib/etc.rb
-                                     lib/syslog.rb
-                                   ]
-    end
-
-    # Generate the .rb files from lib/*.rb.ffi
-    task :preprocessor => FFI_PREPROCESSABLES
-
-    Rubinius::FFI::FileProcessor::Task.new FFI_PREPROCESSABLES
-
-  end
+    build:llvm
+    #{VM_EXE}
+    compiler:generate
+    stage:bin
+    stage:extra_bins
+    stage:capi_include
+    stage:lib
+    stage:tooling
+    stage:kernel
+    kernel:build
+    stage:runtime
+    stage:documentation
+    stage:manpages
+  ] + TRANSCODING_LIBS
 end
 
 # Compilation tasks
