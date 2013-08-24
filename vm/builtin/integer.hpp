@@ -31,7 +31,7 @@ namespace rubinius {
     static Integer* from(STATE, long long i);
     static Integer* from(STATE, unsigned long long i);
 
-    static Integer* from_cstr(STATE, const char* str, int base, Object* strict);
+    static Integer* from_cstr(STATE, const char* str, const char* end, int base, Object* strict);
 
     unsigned int        to_uint();
     long                to_long();

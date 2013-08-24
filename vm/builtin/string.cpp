@@ -702,7 +702,7 @@ namespace rubinius {
 
   const char* String::c_str_null_safe(STATE) {
     const char* str = c_str(state);
-    if(byte_size() > (native_int) strlen(str)) {
+    if(byte_size() > (native_int) strnlen(str, byte_size())) {
       Exception::argument_error(state, "string contains NULL byte");
     }
     return str;
@@ -927,13 +927,13 @@ namespace rubinius {
   }
 
   Float* String::to_f(STATE, Object* strict) {
-    const char* str = c_str(state);
+    const char* str = reinterpret_cast<const char*>(byte_address());
 
-    if(CBOOL(strict) && byte_size() > (native_int)strlen(str)) {
+    if(CBOOL(strict) && byte_size() > (native_int)strnlen(str, byte_size())) {
       return nil<Float>();
     }
 
-    return Float::from_cstr(state, str, strict);
+    return Float::from_cstr(state, str, str + byte_size(), strict);
   }
 
   // Character-wise logical AND of two strings. Modifies the receiver.
@@ -1315,15 +1315,15 @@ namespace rubinius {
   }
 
   Integer* String::to_i(STATE, Fixnum* fix_base, Object* strict) {
-    const char* str = c_str(state);
+    const char* str = reinterpret_cast<const char*>(byte_address());
     int base = fix_base->to_native();
 
     if(CBOOL(strict)) {
       // In strict mode the string can't have null bytes.
-      if(byte_size() > (native_int)strlen(str)) return nil<Integer>();
+      if(byte_size() > (native_int)strnlen(str, byte_size())) return nil<Integer>();
     }
 
-    return Integer::from_cstr(state, str, base, strict);
+    return Integer::from_cstr(state, str, str + byte_size(), base, strict);
   }
 
   Integer* String::to_inum_prim(STATE, Fixnum* base, Object* strict) {
