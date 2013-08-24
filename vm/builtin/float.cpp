@@ -65,7 +65,7 @@ namespace rubinius {
     return Float::create(state, 0.0);
   }
 
-  Float* Float::from_cstr(STATE, const char* str, Object* strict) {
+  Float* Float::from_cstr(STATE, const char* str, const char* end, Object* strict) {
     // Skip leading whitespace and underscores.
     while(isspace(*str) || *str == '_') {
       if(*str == '_') {
@@ -83,12 +83,13 @@ namespace rubinius {
       str++;
     }
 
-    LocalBuffer b(strlen(str) + 1);
+    native_int len = end - str;
+    LocalBuffer b(len + 1);
     char* buffer = (char*)b.buffer;
     char* p = buffer;
     char prev = '\0';
 
-    while(*str) {
+    while(str < end) {
       // Remove underscores between digits.
       if(*str == '_') {
         if(CBOOL(strict)) {
@@ -169,7 +170,7 @@ namespace rubinius {
     }
 
     char* rest;
-    double value = string_to_double(buffer, strlen(buffer), CBOOL(strict), &rest);
+    double value = string_to_double(buffer, strnlen(buffer, len), CBOOL(strict), &rest);
 
     if(CBOOL(strict)) {
       // Disallow empty strings in strict mode.
