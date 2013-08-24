@@ -2017,6 +2017,8 @@ required to run it.
     gems = @build_tool_gems + @build_c_ext_gems + @rubygems_gems
 
     runtime_gems = File.expand_path "../runtime/gems", __FILE__
+    Dir.mkdir runtime_gems unless File.directory? runtime_gems
+
     unpacked = Dir["#{runtime_gems}/*"]
 
     # Remove unpacked gems not specified by these configure settings
