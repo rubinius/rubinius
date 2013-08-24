@@ -1784,6 +1784,14 @@ VALUE rb_uint2big(unsigned long number);
   typedef void* (*rb_thread_call_func)(void*);
 
   void* rb_thread_call_with_gvl(void* (*func)(void*), void* data);
+  void *rb_thread_call_without_gvl(void *(*func)(void *), void *data1,
+             rb_unblock_function_t *ubf, void *data2);
+  void *rb_thread_call_without_gvl2(void *(*func)(void *), void *data1,
+             rb_unblock_function_t *ubf, void *data2);
+
+#define HAVE_RB_THREAD_CALL_WITH_GVL 1
+#define HAVE_RB_THREAD_CALL_WITHOUT_GVL 1
+#define HAVE_RB_THREAD_CALL_WITHOUT_GVL2 1
 
   // Exists only to make extensions happy. It can be read and written to, but
   // it controls nothing.
