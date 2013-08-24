@@ -218,14 +218,27 @@ end
 
 task :gem_extensions do
   gems_dir = File.expand_path "../../runtime/gems", __FILE__
-  names = FileList["#{gems_dir}/**/extconf.rb"].exclude(/.*\/rubinius-melbourne.*/)
+
+  # Build the gems needed to run mkmf.rb
+  names = FileList["#{gems_dir}/rubysl-{etc,fcntl}*/**/extconf.rb"]
+  names.each do |name|
+    Dir.chdir File.dirname(name) do
+      sh "#{BUILD_CONFIG[:build_exe]} extconf.rb", :verbose => $verbose
+    end
+  end
+
+  # Build the rest of the gems
+  names = FileList["#{gems_dir}/**/extconf.rb"].exclude(
+    %r[.*/rubinius-melbourne-.*],
+    %r[.*/rubysl-(etc|fcntl)-.*]
+  )
 
   re = %r[(.*)/(ext|lib)/[^/]+/(.*extconf.rb)]
   names.each do |name|
     next unless m = re.match(name)
 
     ext_name = "#{File.basename(File.dirname(name))}.#{$dlext}"
-    dest_path = File.join m[1], "lib", File.dirname(m[2])
+    dest_path = File.join m[1], "lib", File.dirname(m[3])
     next if File.exists? File.join(dest_path, ext_name)
 
     Dir.chdir File.dirname(name) do
