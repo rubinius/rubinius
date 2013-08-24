@@ -1976,7 +1976,9 @@ required to run it.
       [ "json", "1.8" ],
       [ "rake", "10.1" ],
       [ "rdoc", "4.0" ],
-      [ "rubysl-prettyprint", gem_version ]
+      [ "rubysl-prettyprint", gem_version ],
+      [ "rubinius-profiler", "0.1" ],
+      [ "rubinius-coverage", "0.1" ],
     ]
 
     gems = @build_tool_gems + @build_c_ext_gems + @rubygems_gems + @runtime_gems
