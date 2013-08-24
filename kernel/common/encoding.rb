@@ -367,8 +367,8 @@ class Encoding
       def self.paths
         if load_cache? and cache_threshold?
           begin
-            path = "#{Rubinius::RUNTIME_PATH}/delta/converter_paths.rbc"
-            Rubinius::CodeLoader.load_compiled_file path
+            path = "#{Rubinius::RUNTIME_PATH}/delta/converter_paths"
+            Rubinius::CodeLoader.require_compiled path
             cache_loaded
           rescue Object
             disable_cache

@@ -193,7 +193,7 @@ extern "C" {
       }
     }
 
-    Tuple* tup = Tuple::create(state, arg_count);
+    Tuple* tup = Tuple::create_dirty(state, arg_count);
     for(int i = 0; i < v->total_args; i++) {
       tup->put(state, i, scope->get_local(state, i));
     }
@@ -294,14 +294,14 @@ extern "C" {
   Object* rbx_construct_splat(STATE, Arguments& args, size_t start, size_t total) {
     int splat_size = args.total() - total;
     if(splat_size > 0) {
-      Array* ary = Array::create(state, splat_size);
+      Array* ary = Array::create_dirty(state, splat_size);
 
       for(int i = 0, n = start; i < splat_size; i++, n++) {
         ary->set(state, i, args.get_argument(n));
       }
       return ary;
     } else {
-      return Array::create(state, 0);
+      return Array::create_dirty(state, 0);
     }
   }
 
@@ -409,11 +409,11 @@ extern "C" {
           }
         }
       }
-      Array* ary = Array::create(state, 1);
+      Array* ary = Array::create_dirty(state, 1);
       ary->set(state, 0, obj);
       return ary;
     } else {
-      Array* ary = Array::create(state, args.total());
+      Array* ary = Array::create_dirty(state, args.total());
       for(size_t i = 0; i < args.total(); i++) {
         ary->set(state, i, args.get_argument(i));
       }
@@ -443,15 +443,11 @@ extern "C" {
       // and let it be wrapped in an array.
     }
 
-    Array* ary = Array::create(state, args.total());
-    assert(kind_of<Array>(ary));
+    Array* ary = Array::create_dirty(state, args.total());
 
     for(size_t i = 0; i < args.total(); i++) {
-      assert(kind_of<Array>(ary));
       ary->set(state, i, args.get_argument(i));
     }
-
-    assert(kind_of<Array>(ary));
 
     return ary;
   }
@@ -486,7 +482,7 @@ extern "C" {
       }
 
       if(obj) {
-        Array* ary = Array::create(state, 1);
+        Array* ary = Array::create_dirty(state, 1);
         ary->set(state, 0, obj);
         obj = ary;
       }
@@ -495,7 +491,7 @@ extern "C" {
       return obj;
     }
 
-    Array* ary = Array::create(state, count);
+    Array* ary = Array::create_dirty(state, count);
 
     va_start(ap, count);
     for(int i = 0; i < count; i++) {
@@ -526,7 +522,7 @@ extern "C" {
           obj = 0;
         }
       } else {
-        Array* ary = Array::create(state, 1);
+        Array* ary = Array::create_dirty(state, 1);
         ary->set(state, 0, obj);
         obj = ary;
       }
@@ -535,7 +531,7 @@ extern "C" {
       return obj;
     }
 
-    Array* ary = Array::create(state, count);
+    Array* ary = Array::create_dirty(state, count);
 
     va_start(ap, count);
     for(int i = 0; i < count; i++) {
@@ -554,7 +550,7 @@ extern "C" {
       return args.get_argument(0);
     }
 
-    Array* ary = Array::create(state, k);
+    Array* ary = Array::create_dirty(state, k);
     for(int i = 0; i < k; i++) {
       ary->set(state, i, args.get_argument(i));
     }
@@ -639,7 +635,7 @@ extern "C" {
   }
 
   Object* rbx_make_array(STATE, int count, Object** args) {
-    Array* ary = Array::create(state, count);
+    Array* ary = Array::create_dirty(state, count);
     Tuple* tup = ary->tuple();
     for(int i = 0; i < count; i++) {
       tup->put(state, i, args[i]);
@@ -652,7 +648,7 @@ extern "C" {
   Object* rbx_create_array(STATE, int count, ...) {
     va_list ap;
 
-    Array* ary = Array::create(state, count);
+    Array* ary = Array::create_dirty(state, count);
     Tuple* tup = ary->tuple();
 
     va_start(ap, count);
@@ -1028,7 +1024,7 @@ extern "C" {
 
     size_t j = size - 1;
     Object* shifted_value = array->get(state, 0);
-    Array* smaller_array = Array::create(state, j);
+    Array* smaller_array = Array::create_dirty(state, j);
 
     for(size_t i = 0; i < j; i++) {
       smaller_array->set(state, i, array->get(state, i+1));
@@ -1397,7 +1393,7 @@ extern "C" {
       s = p = cNil;
     }
 
-    Array* ary = Array::create(state, 2);
+    Array* ary = Array::create_dirty(state, 2);
     ary->set(state, 0, s);
     ary->set(state, 1, p);
 

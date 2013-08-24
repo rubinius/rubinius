@@ -29,10 +29,9 @@ namespace rubinius {
     native_int offset();
     void set_size(native_int size);
     static Array* create(STATE, native_int size);
+    static Array* create_dirty(STATE, native_int size);
     static Array* from_tuple(STATE, Tuple* tup);
     static Array* to_ary(STATE, Object* obj, CallFrame* frame);
-
-    void   setup(STATE, native_int size);
 
     // Rubinius.primitive :array_allocate
     static Array* allocate(STATE, Object* self);

@@ -69,7 +69,7 @@ namespace rubinius {
   }
 
   Tuple* VariableScope::locals(STATE) {
-    Tuple* tup = Tuple::create(state, number_of_locals_);
+    Tuple* tup = Tuple::create_dirty(state, number_of_locals_);
     for(int i = 0; i < number_of_locals_; i++) {
       tup->put(state, i, get_local(state, i));
     }
@@ -184,7 +184,7 @@ namespace rubinius {
 
   void VariableScope::flush_to_heap_internal(STATE) {
     if(isolated_) return;
-     Tuple* new_locals = Tuple::create(state, number_of_locals_);
+     Tuple* new_locals = Tuple::create_dirty(state, number_of_locals_);
      for(int i = 0; i < number_of_locals_; i++) {
        new_locals->put(state, i, locals_[i]);
      }

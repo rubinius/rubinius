@@ -838,7 +838,7 @@ namespace rubinius {
 
     if(!CBOOL(responds) && !LANGUAGE_18_ENABLED) {
       LookupData lookup(self, self->lookup_begin(state), G(sym_private));
-      Symbol* missing = state->symbol("respond_to_missing?");
+      Symbol* missing = G(sym_respond_to_missing);
       Dispatch dis(missing);
 
       Object* buf[2];

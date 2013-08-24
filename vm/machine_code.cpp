@@ -299,7 +299,7 @@ namespace rubinius {
   }
 
   Tuple* MachineCode::call_sites(STATE) {
-    Tuple* sites = Tuple::create(state, number_of_call_sites_);
+    Tuple* sites = Tuple::create_dirty(state, number_of_call_sites_);
     for(size_t i = 0; i < number_of_call_sites_; ++i) {
       sites->put(state, i, call_site(state, call_site_offsets_[i]));
     }
@@ -307,7 +307,7 @@ namespace rubinius {
   }
 
   Tuple* MachineCode::constant_caches(STATE) {
-    Tuple* caches = Tuple::create(state, number_of_constant_caches_);
+    Tuple* caches = Tuple::create_dirty(state, number_of_constant_caches_);
     for(size_t i = 0; i < number_of_constant_caches_; ++i) {
       caches->put(state, i, constant_cache(state, constant_cache_offsets_[i]));
     }

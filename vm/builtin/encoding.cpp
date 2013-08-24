@@ -114,7 +114,7 @@ namespace rubinius {
   }
 
   static Tuple* encoding_reference(STATE, int index, const char* alias_name = 0) {
-    Tuple* pair = Tuple::create(state, 2);
+    Tuple* pair = Tuple::create_dirty(state, 2);
     if(!alias_name) {
       pair->put(state, 0, cNil);
     } else {

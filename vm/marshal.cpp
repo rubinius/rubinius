@@ -140,7 +140,7 @@ namespace rubinius {
     size_t count;
     stream >> count;
 
-    Tuple* tup = Tuple::create(state, count);
+    Tuple* tup = Tuple::create_dirty(state, count);
 
     for(size_t i = 0; i < count; i++) {
       tup->put(state, i, unmarshal());

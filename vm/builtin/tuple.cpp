@@ -42,16 +42,6 @@ namespace rubinius {
     return field[index];
   }
 
-  Object* Tuple::put(STATE, native_int idx, Object* val) {
-    if(idx < 0 || idx >= num_fields()) {
-      rubinius::bug("Invalid tuple index");
-    }
-
-    field[idx] = val;
-    write_barrier(state, val);
-    return val;
-  }
-
   /* The Tuple#put primitive. */
   Object* Tuple::put_prim(STATE, Fixnum* index, Object* val) {
     native_int idx = index->to_native();
@@ -99,6 +89,25 @@ namespace rubinius {
     return tup;
   }
 
+  Tuple* Tuple::create_dirty(STATE, native_int fields) {
+    // Fast path using GC optimized tuple creation
+    Tuple* tup = state->vm()->new_young_tuple_dirty(fields);
+
+    if(likely(tup)) return tup;
+
+    // Slow path.
+
+    size_t bytes = 0;
+
+    tup = state->vm()->new_object_variable<Tuple>(G(tuple), fields, bytes);
+    if(unlikely(!tup)) {
+      Exception::memory_error(state);
+    } else {
+      tup->full_size_ = bytes;
+    }
+    return tup;
+  }
+
   Tuple* Tuple::allocate(STATE, Fixnum* fields) {
     native_int size = fields->to_native();
 
@@ -110,12 +119,8 @@ namespace rubinius {
   }
 
   Tuple* Tuple::from(STATE, native_int fields, ...) {
-    if(fields < 0) {
-      rubinius::bug("Invalid tuple size");
-    }
-
     va_list ar;
-    Tuple* tup = create(state, fields);
+    Tuple* tup = create_dirty(state, fields);
 
     va_start(ar, fields);
     for(native_int i = 0; i < fields; i++) {
@@ -300,7 +305,7 @@ namespace rubinius {
       Exception::argument_error(state, "negative tuple size");
     }
 
-    Tuple* tuple = Tuple::create(state, cnt);
+    Tuple* tuple = Tuple::create_dirty(state, cnt);
 
     for(native_int i = 0; i < cnt; i++) {
       // bounds checking is covered because we instantiated the tuple

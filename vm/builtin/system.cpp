@@ -1290,7 +1290,7 @@ namespace rubinius {
     Object* responds = RBOOL(dis.resolve(state, sym, lookup));
     if(!CBOOL(responds) && !LANGUAGE_18_ENABLED) {
       LookupData lookup(obj, obj->lookup_begin(state), G(sym_private));
-      Symbol* name = state->symbol("respond_to_missing?");
+      Symbol* name = G(sym_respond_to_missing);
       Dispatch dis(name);
 
       Object* buf[2];
@@ -1313,6 +1313,8 @@ namespace rubinius {
     return RBOOL(dis.resolve(state, sym, lookup));
   }
 
+#define GETPW_R_SIZE 2048
+
   String* System::vm_get_user_home(STATE, String* name) {
 #ifdef RBX_WINDOWS
     // TODO: Windows
@@ -1320,19 +1322,28 @@ namespace rubinius {
 #else
     struct passwd pw;
     struct passwd *pwd;
-    String* home = 0;
 
     long len = sysconf(_SC_GETPW_R_SIZE_MAX);
-    char buf[len];
+    if(len < 0) len = GETPW_R_SIZE;
 
-    getpwnam_r(name->c_str_null_safe(state), &pw, buf, len, &pwd);
-    if(pwd) {
-      home = String::create(state, pwd->pw_dir);
-    } else {
-      home = nil<String>();
+retry:
+    ByteArray* buf = ByteArray::create_dirty(state, len);
+
+    int err = getpwnam_r(name->c_str_null_safe(state), &pw,
+                         reinterpret_cast<char*>(buf->raw_bytes()), len, &pwd);
+    if(err) {
+      if(errno == ERANGE) {
+        len *= 2;
+        // Check for overflow
+        if(len > 0) goto retry;
+        Exception::runtime_error(state, "getpwnam_r(3) buffer exceeds maximum size");
+      }
+      Exception::errno_error(state, "retrieving user home directory", errno, "getpwnam_r(3)");
     }
-
-    return home;
+    if(pwd) {
+      return String::create(state, pwd->pw_dir);
+    }
+    return nil<String>();
 #endif
   }
 
@@ -1524,7 +1535,7 @@ namespace rubinius {
 
   Tuple* System::vm_thread_state(STATE) {
     VMThreadState* ts = state->vm()->thread_state();
-    Tuple* tuple = Tuple::create(state, 5);
+    Tuple* tuple = Tuple::create_dirty(state, 5);
 
     Symbol* reason = 0;
     switch(ts->raise_reason()) {

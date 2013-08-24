@@ -602,7 +602,7 @@ section "Manipulate arrays"
 
 instruction make_array(count) [ +count -- array ]
   Object* t2;
-  Array* ary = Array::create(state, count);
+  Array* ary = Array::create_dirty(state, count);
   Tuple* tup = ary->tuple();
 
 #ifdef RBX_ALLOC_TRACKING
@@ -638,7 +638,7 @@ instruction cast_array() [ value -- array ]
   // to preserve and reread the value from the stack below.
   Object* t1 = stack_top();
   if(!LANGUAGE_18_ENABLED && t1->nil_p()) {
-    t1 = Array::create(state, 0);
+    t1 = Array::create_dirty(state, 0);
   } else if(Tuple* tup = try_as<Tuple>(t1)) {
     t1 = Array::from_tuple(state, tup);
   } else if(!kind_of<Array>(t1)) {
@@ -651,7 +651,7 @@ instruction cast_array() [ value -- array ]
     // If the send still doesn't produce an array, wrap
     // the value in one.
     if(res && !kind_of<Array>(res)) {
-      Array* ary = Array::create(state, 1);
+      Array* ary = Array::create_dirty(state, 1);
       // Don't read t1 here, it's not GC safe because we called
       // a method.
       ary->set(state, 0, stack_top());
@@ -689,7 +689,7 @@ instruction shift_array() [ array -- array value ]
   } else {
     native_int j = size - 1;
     Object* shifted_value = array->get(state, 0);
-    Array* smaller_array = Array::create(state, j);
+    Array* smaller_array = Array::create_dirty(state, j);
 
     for(native_int i = 0; i < j; i++) {
       smaller_array->set(state, i, array->get(state, i+1));
@@ -1222,7 +1222,7 @@ instruction cast_for_single_block_arg() [ -- argument ]
   } else if(k == 1) {
     stack_push(call_frame->arguments->get_argument(0));
   } else {
-    Array* ary = Array::create(state, k);
+    Array* ary = Array::create_dirty(state, k);
     for(int i = 0; i < k; i++) {
       ary->set(state, i, call_frame->arguments->get_argument(i));
     }
@@ -1282,12 +1282,12 @@ instruction cast_for_multi_block_arg() [ -- array ]
         RUN_EXCEPTION();
       }
     } else {
-      Array* ary = Array::create(state, 1);
+      Array* ary = Array::create_dirty(state, 1);
       ary->set(state, 0, obj);
       stack_push(ary);
     }
   } else {
-    Array* ary = Array::create(state, call_frame->arguments->total());
+    Array* ary = Array::create_dirty(state, call_frame->arguments->total());
     for(size_t i = 0; i < call_frame->arguments->total(); i++) {
       ary->set(state, i, call_frame->arguments->get_argument(i));
     }
@@ -1325,11 +1325,11 @@ instruction cast_for_splat_block_arg() [ -- arguments ]
         }
       }
     }
-    Array* ary = Array::create(state, 1);
+    Array* ary = Array::create_dirty(state, 1);
     ary->set(state, 0, obj);
     stack_push(ary);
   } else {
-    Array* ary = Array::create(state, call_frame->arguments->total());
+    Array* ary = Array::create_dirty(state, call_frame->arguments->total());
     for(size_t i = 0; i < call_frame->arguments->total(); i++) {
       ary->set(state, i, call_frame->arguments->get_argument(i));
     }
@@ -2061,7 +2061,7 @@ instruction zsuper(literal) [ block -- value ]
     }
   }
 
-  Tuple* tup = Tuple::create(state, arg_count);
+  Tuple* tup = Tuple::create_dirty(state, arg_count);
   for(int i = 0; i < mc->total_args; i++) {
     tup->put(state, i, scope->get_local(state, i));
   }

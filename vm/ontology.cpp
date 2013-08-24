@@ -556,6 +556,7 @@ namespace rubinius {
     add_sym(coerce_to_array);
     add_sym(to_ary);
 #undef add_sym
+    GO(sym_respond_to_missing).set(state->symbol("respond_to_missing?"));
     GO(sym_s_method_added).set(state->symbol("singleton_method_added"));
     GO(sym_init_copy).set(state->symbol("initialize_copy"));
     GO(sym_plus).set(state->symbol("+"));

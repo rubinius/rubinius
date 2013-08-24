@@ -2,7 +2,7 @@
 
 namespace rubinius {
   void Arguments::append(STATE, Array* ary) {
-    Tuple* tup = Tuple::create(state, ary->size() + total());
+    Tuple* tup = Tuple::create_dirty(state, ary->size() + total());
 
     for(uint32_t i = 0; i < total(); i++) {
       tup->put(state, i, get_argument(i));
@@ -17,7 +17,7 @@ namespace rubinius {
   }
 
   void Arguments::prepend(STATE, Array* ary) {
-    Tuple* tup = Tuple::create(state, ary->size() + total());
+    Tuple* tup = Tuple::create_dirty(state, ary->size() + total());
 
     for(native_int i = 0; i < ary->size(); i++) {
       tup->put(state, i, ary->get(state, i));
@@ -42,7 +42,7 @@ namespace rubinius {
   }
 
   void Arguments::unshift(STATE, Object* val) {
-    Tuple* tup = Tuple::create(state, total() + 1);
+    Tuple* tup = Tuple::create_dirty(state, total() + 1);
 
     tup->put(state, 0, val);
 
@@ -54,7 +54,7 @@ namespace rubinius {
   }
 
   void Arguments::unshift2(STATE, Object* one, Object* two) {
-    Tuple* tup = Tuple::create(state, total() + 2);
+    Tuple* tup = Tuple::create_dirty(state, total() + 2);
 
     tup->put(state, 0, one);
     tup->put(state, 1, two);
@@ -70,7 +70,7 @@ namespace rubinius {
     Object* first = arguments_[0];
 
     if(argument_container_) {
-      Tuple* tup = Tuple::create(state, total() - 1);
+      Tuple* tup = Tuple::create_dirty(state, total() - 1);
       for(uint32_t i = 1; i < total_; i++) {
         tup->put(state, i - 1, get_argument(i));
       }
