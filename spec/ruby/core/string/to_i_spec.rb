@@ -160,4 +160,10 @@ describe "String#to_i" do
     "                            -10".to_i.should == -10
     "                            -10".to_i.should be_an_instance_of(Fixnum)
   end
+
+  it "returns the correct Bignum for long strings" do
+    "245789127594125924165923648312749312749327482".to_i.should == 245789127594125924165923648312749312749327482
+    "-245789127594125924165923648312749312749327482".to_i.should == -245789127594125924165923648312749312749327482
+  end
+
 end
