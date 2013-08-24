@@ -1939,6 +1939,7 @@ required to run it.
 
     # Standard library gems for building gem C-extensions
     @build_c_ext_gems = [
+      [ "rubysl-etc", gem_version ],
       [ "rubysl-fileutils", gem_version ],
       [ "rubysl-mkmf", gem_version ],
       [ "rubysl-shellwords", gem_version ]
