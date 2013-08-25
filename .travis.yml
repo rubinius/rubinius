@@ -2,6 +2,8 @@ language: cpp
 compiler:
   - gcc
   - clang
+before_install:
+  - rvm use $RVM --install --binary --fuzzy
 before_script:
   - ./configure
 script: rake travis
@@ -17,6 +19,6 @@ notifications:
   email:
     on_success: change
     on_failure: always
-rvm:
-  - 1.8.7
-  - 1.9.3
+env:
+  - RVM=1.8.7
+  - RVM=1.9.3
