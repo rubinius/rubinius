@@ -244,14 +244,6 @@ describe "Predefined global $stdout" do
     end
   end
 
-  it "is the same as $DEFAULT_OUTPUT from 'English' library" do
-    require 'English'
-    $stdout.should == $DEFAULT_OUTPUT
-
-    $stdout = IOStub.new
-    $stdout.should == $DEFAULT_OUTPUT
-  end
-
   it "raises TypeError error if assigned to nil" do
     lambda { $stdout = nil }.should raise_error(TypeError)
   end
