@@ -626,7 +626,7 @@ namespace rubinius {
     }
   }
 
-#define STACK_BUF_SZ 8096
+#define STACK_BUF_SZ 8192
 
   Object* IO::sysread(STATE, Fixnum* number_of_bytes,
                              CallFrame* calling_environment)
