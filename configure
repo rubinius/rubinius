@@ -1902,7 +1902,7 @@ int main() { return tgetnum(""); }
 
     @log.write "Bundling development gem dependencies..."
     ENV["RBX_MODE"] = @language_version
-    system "bundle"
+    system "bundle update"
     if $?.exitstatus != 0
       @log.write <<-EOM
 
