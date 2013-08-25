@@ -287,16 +287,6 @@ class String
     self
   end
 
-  def reverse!
-    Rubinius.check_frozen
-
-    return self if @num_bytes <= 1
-    self.modify!
-
-    @data.reverse(0, @num_bytes)
-    self
-  end
-
   def sub(pattern, replacement=undefined)
     # Because of the behavior of $~, this is duplicated from sub! because
     # if we call sub! from sub, the last_match can't be updated properly.

@@ -25,14 +25,6 @@ class String
     self
   end
 
-  def reverse!
-    return self if @num_bytes <= 1
-    self.modify!
-
-    @data.reverse(0, @num_bytes)
-    self
-  end
-
   def slice!(one, two=undefined)
     # This is un-DRY, but it's a simple manual argument splitting. Keeps
     # the code fast and clean since the sequence are pretty short.

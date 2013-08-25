@@ -110,6 +110,8 @@ namespace rubinius {
       return utf8_string_length(start, end);
     }
 
+    static void string_reverse(uint8_t* start, uint8_t* end, OnigEncodingType* enc);
+
     static int mbclen(const uint8_t* start, const uint8_t* end, OnigEncodingType* enc);
     static int precise_mbclen(const uint8_t* start, const uint8_t* end, OnigEncodingType* enc);
 

@@ -133,4 +133,9 @@ class String
     Rubinius.primitive :string_transform
     raise PrimitiveFailure, "String#transform primitive failed"
   end
+
+  def reverse!
+    Rubinius.primitive :string_reverse
+    raise PrimitiveFailure, "String#reverse primitive failed"
+  end
 end
