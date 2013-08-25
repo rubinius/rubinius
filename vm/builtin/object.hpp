@@ -394,15 +394,7 @@ namespace rubinius {
   public:   /* accessors */
 
     /* klass_ from ObjectHeader. */
-    attr_reader(klass, Class);
-
-    template <class T>
-      inline void klass(T state, Class* cls) {
-        if(klass_ != cls) {
-          klass_ = cls;
-          this->write_barrier(state, cls);
-        }
-      }
+    attr_accessor(klass, Class);
 
     /* ivars_ from ObjectHeader. */
     attr_accessor(ivars, Object);
