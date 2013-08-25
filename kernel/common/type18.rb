@@ -16,20 +16,23 @@ module Rubinius
     end
 
     def self.ivar_validate(name)
-      # adapted from rb_to_id
       case name
-      when String
-        return name.to_sym if name[0] == ?@
       when Symbol
-        return name if name.is_ivar?
+        # do nothing
+      when String
+        name = name.to_sym
       when Fixnum
         raise ArgumentError, "#{name.inspect} is not a symbol"
       else
         name = Rubinius::Type.coerce_to(name, String, :to_str)
-        return name.to_sym if name[0] == ?@
+        name = name.to_sym
       end
 
-      raise NameError, "`#{name}' is not allowed as an instance variable name"
+      unless name.is_ivar?
+        raise NameError, "`#{name}' is not allowed as an instance variable name"
+      end
+
+      name
     end
 
     def self.coerce_to_binding(obj)
