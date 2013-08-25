@@ -1970,6 +1970,24 @@ namespace rubinius {
     return Character::create_from(state, this, byte);
   }
 
+  String* String::reverse(STATE) {
+
+    if(!LANGUAGE_18_ENABLED) check_frozen(state);
+    if(byte_size() <= 1) return this;
+    if(LANGUAGE_18_ENABLED) check_frozen(state);
+
+    unshare(state);
+    hash_value(state, nil<Fixnum>());
+
+    if(byte_compatible_p(encoding_) || CBOOL(ascii_only_p(state))) {
+      data_->reverse(state, Fixnum::from(0), num_bytes_);
+    } else {
+      Encoding::string_reverse(byte_address(), byte_address() + byte_size(), encoding_->get_encoding());
+    }
+    return this;
+  }
+
+
   void String::Info::show(STATE, Object* self, int level) {
     String* str = as<String>(self);
     std::cout << "\"" << str->c_str(state) << "\"" << std::endl;

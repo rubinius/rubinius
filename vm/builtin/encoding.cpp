@@ -537,6 +537,37 @@ namespace rubinius {
     return chars;
   }
 
+#define STACK_BUF_SZ 8192
+
+  void Encoding::string_reverse(uint8_t* start, uint8_t* end, OnigEncodingType* enc) {
+
+    size_t len = end - start;
+    if(len <= 0) return;
+
+    uint8_t stack_buf[STACK_BUF_SZ];
+    uint8_t* malloc_buf = 0;
+
+    uint8_t* buf = stack_buf;
+
+    if(len > STACK_BUF_SZ) {
+      malloc_buf = (uint8_t*)malloc(len);
+      buf = malloc_buf;
+    }
+
+    uint8_t* p = buf + len;
+    uint8_t* s = start;
+
+    while(s < end) {
+      int clen = mbclen(s, end, enc);
+      p -= clen;
+      memcpy(p, s, clen);
+      s += clen;
+    }
+
+    memcpy(start, buf, len);
+    if(malloc_buf) free(malloc_buf);
+  }
+
   int Encoding::mbclen(const uint8_t* p, const uint8_t* e, OnigEncodingType* enc) {
     int n = ONIGENC_PRECISE_MBC_ENC_LEN(enc, (UChar*)p, (UChar*)e);
 

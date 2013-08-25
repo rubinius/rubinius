@@ -346,6 +346,9 @@ namespace rubinius {
     // Rubinius.primitive :string_chr_at
     Object* chr_at(STATE, Fixnum* byte);
 
+    // Rubinius.primitive :string_reverse
+    String* reverse(STATE);
+
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)
