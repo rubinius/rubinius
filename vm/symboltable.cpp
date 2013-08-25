@@ -33,6 +33,11 @@ namespace rubinius {
         return SymbolTable::CVar;
       }
 
+      // An instance variable can't start with a digit
+      if(size > 1 && ISDIGIT(str[1])) {
+        return SymbolTable::Normal;
+      }
+
       // An instance variable begins with @
       return SymbolTable::IVar;
     }
