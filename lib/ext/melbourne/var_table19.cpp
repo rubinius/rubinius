@@ -29,6 +29,18 @@ namespace melbourne {
       }
     }
 
+    void vtable_free_all(struct vtable* tbl) {
+      if(tbl) {
+        if(tbl->tbl) {
+          xfree(tbl->tbl);
+        }
+        if(tbl->prev) {
+          vtable_free_all(tbl->prev);
+        }
+        xfree(tbl);
+      }
+    }
+
     void vtable_add(struct vtable* tbl, ID id) {
       if(!tbl) {
         rb_bug("vtable_add: vtable is not allocated (%p)", (void *)tbl);
@@ -55,8 +67,8 @@ namespace melbourne {
     void local_vars_free(struct local_vars* vars) {
       struct local_vars* prev;
       for(struct local_vars* local = vars; local; local = prev) {
-        if(local->args) xfree(local->args);
-        if(local->vars) xfree(local->vars);
+        if(local->args) vtable_free_all(local->args);
+        if(local->vars) vtable_free_all(local->vars);
         prev = local->prev;
         xfree(local);
       }
