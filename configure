@@ -5,6 +5,7 @@ if ENV["RUBYLIB"]
   exit 1
 end
 
+require 'rubygems'
 require './rakelib/configure'
 require './rakelib/release'
 require 'rbconfig'
