@@ -1984,8 +1984,11 @@ required to run it.
 
     gems = @build_tool_gems + @build_c_ext_gems + @rubygems_gems + @runtime_gems
 
+    gems_cache = File.expand_path "../preinstalled-gems", __FILE__
+    FileUtils.mkdir_p gems_cache
+
     failed = false
-    Dir.chdir "preinstalled-gems" do
+    Dir.chdir gems_cache do
       files = Dir["*.gem"]
 
       gems.reject! { |name, version| not files.grep(/#{name}-#{version}/).empty? }
