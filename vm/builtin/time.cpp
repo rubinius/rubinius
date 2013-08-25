@@ -276,39 +276,28 @@ namespace rubinius {
       off = offset->to_int();
     }
 
+    if(format->byte_size() == 0) return String::create(state, NULL, 0);
+
     char stack_str[STRFTIME_STACK_BUF];
 
     size_t chars = ::strftime_extended(stack_str, STRFTIME_STACK_BUF,
                        format->c_str(state), &tm, &ts, CBOOL(is_gmt_) ? 1 : 0,
                        off);
 
-    size_t buf_size = format->byte_size() * 2;
+    size_t buf_size = format->byte_size();
 
     String* result = 0;
 
-    if(chars == 0 && format->byte_size() > 0) {
+    if(chars == 0) {
+      buf_size *= 2;
       char* malloc_str = (char*)malloc(buf_size);
 
       chars = ::strftime_extended(malloc_str, buf_size,
                   format->c_str(state), &tm, &ts, CBOOL(is_gmt_) ? 1 : 0,
                   off);
-
-      while (chars == 0 && format->byte_size() > 0) {
-        buf_size *= 2;
-        char* new_malloc_str = (char*)realloc(malloc_str, buf_size);
-        if(!new_malloc_str) {
-          free(malloc_str);
-          Exception::memory_error(state);
-          return NULL;
-        }
-        malloc_str = new_malloc_str;
-
-        chars = ::strftime_extended(malloc_str, buf_size,
-                    format->c_str(state), &tm, &ts, CBOOL(is_gmt_) ? 1 : 0,
-                    off);
+      if(chars) {
+        result = String::create(state, malloc_str, chars);
       }
-
-      result = String::create(state, malloc_str, chars);
 
       free(malloc_str);
     } else {
