@@ -79,6 +79,8 @@ Gemfile.lock
 /vm/.deps
 /vm/vm.exe
 
+/vm/test/ruby.h
+
 /kernel/signature.rb
 
 /lib/compiler/opcodes.rb

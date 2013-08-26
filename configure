@@ -1847,6 +1847,11 @@ int main() { return tgetnum(""); }
 
     FileUtils.cp config_h, "#{vm_capi_header}/config.h"
 
+    # Create C-API header for vm/test
+    File.open "vm/test/ruby.h", "w" do |f|
+      f.puts %[#include "#{vm_capi_header}/ruby.h"]
+    end
+
     # Copy definitions for the MRI Object-Oriented Pointer (OOP) definitions.
     mri_oop_h = "vm/capi/mri_oop.h"
     FileUtils.cp mri_oop_h, "#{vm_capi_header}/mri_oop.h"
