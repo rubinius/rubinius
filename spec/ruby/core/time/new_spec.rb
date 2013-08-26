@@ -67,16 +67,20 @@ ruby_version_is "1.9" do
       end
     end
 
+    it "returns a Time when the minute value greater than 60" do
+      Time.new(2000, 1, 1, 0, 0, 0, "+01:60").utc_offset.should == 7200
+    end
+
+    it "raises a ArgumentError if the minute value is greater than 99" do
+      lambda { Time.new(2000, 1, 1, 0, 0, 0, "+01:100") }.should raise_error(ArgumentError)
+    end
+
     it "raises ArgumentError if the String argument is not of the form (+|-)HH:MM" do
       lambda { Time.new(2000, 1, 1, 0, 0, 0, "3600") }.should raise_error(ArgumentError)
     end
 
     it "raises ArgumentError if the hour value is greater than 23" do
       lambda { Time.new(2000, 1, 1, 0, 0, 0, "+24:00") }.should raise_error(ArgumentError)
-    end
-
-    it "raises ArgumentError if the minute value is greater than 59" do
-      lambda { Time.new(2000, 1, 1, 0, 0, 0, "+01:60") }.should raise_error(ArgumentError)
     end
 
     it "raises ArgumentError if the String argument is not in an ASCII-compatible encoding" do
