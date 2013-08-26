@@ -22,7 +22,8 @@ notifications:
     on_success: change
     on_failure: always
 env:
-  - RVM=1.8.7 RBX_MODE=18
-  - RVM=1.9.3 RBX_MODE=18
-  - RVM=1.8.7 RBX_MODE=21
+#  - RVM=1.8.7 RBX_MODE=18
+#  - RVM=1.9.3 RBX_MODE=18
+#  - RVM=1.8.7 RBX_MODE=21
   - RVM=1.9.3 RBX_MODE=21
+  - RVM=2.0.0 RBX_MODE=21
