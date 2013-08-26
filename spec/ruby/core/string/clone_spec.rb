@@ -42,6 +42,11 @@ describe "String#clone" do
     (class << clone; CLONE; end).should == :clone
   end
 
+  it "copies frozen state" do
+    @obj.freeze.clone.frozen?.should be_true
+    "".freeze.clone.frozen?.should be_true
+  end
+
   it "does not modify the original string when changing cloned string" do
     orig = "string"[0..100]
     clone = orig.clone
