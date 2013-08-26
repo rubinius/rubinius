@@ -1962,6 +1962,7 @@ required to run it.
       [ "rubysl-resolv", gem_version ],
       [ "rubysl-socket", gem_version ],
       [ "rubysl-stringio", gem_version ],
+      [ "rubysl-strscan", gem_version ],
       [ "rubysl-tempfile", gem_version ],
       [ "rubysl-thread", gem_version ],
       [ "rubysl-time", gem_version ],
