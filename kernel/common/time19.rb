@@ -10,6 +10,10 @@ class Time
       end
     end
 
+    if sec.kind_of?(Time) && usec.kind_of?(Integer)
+      raise TypeError, "can't convert Time into an exact number"
+    end
+
     usec = 0 if undefined.equal?(usec)
 
     s = Rubinius::Type.coerce_to_exact_num(sec)
