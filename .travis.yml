@@ -5,8 +5,7 @@ compiler:
 before_install:
   - rvm use $RVM --install --binary --fuzzy
 before_script:
-  - ./configure
-script: rake travis
+  - ./configure $RBX_MODE
 branches:
   only:
     - master
@@ -22,3 +21,5 @@ notifications:
 env:
   - RVM=1.8.7
   - RVM=1.9.3
+  - RBX_MODE=18
+  - RBX_MODE=21
