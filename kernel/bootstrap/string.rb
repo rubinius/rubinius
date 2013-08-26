@@ -73,6 +73,7 @@ class String
     other = Rubinius.invoke_primitive :string_dup, self
     Rubinius.invoke_primitive :object_copy_singleton_class, other, self
     Rubinius::Type.object_initialize_clone self, other
+    other.freeze if frozen?
     other
   end
 

@@ -60,6 +60,10 @@ describe "Kernel#instance_variable_get when passed Symbol" do
     lambda { @obj.instance_variable_get(:test) }.should raise_error(NameError)
   end
 
+  it "raises a NameError when the passed Symbol is an invalid instance variable name" do
+    lambda { @obj.instance_variable_get(:"@0") }.should raise_error(NameError)
+  end
+
   it "returns nil when passed just '@'" do
     @obj.instance_variable_get(:"@").should be_nil
   end
@@ -77,6 +81,10 @@ describe "Kernel#instance_variable_get when passed String" do
 
   it "raises a NameError when the passed String does not start with an '@'" do
     lambda { @obj.instance_variable_get("test") }.should raise_error(NameError)
+  end
+
+  it "raises a NameError when the passed String is an invalid instance variable name" do
+    lambda { @obj.instance_variable_get("@0") }.should raise_error(NameError)
   end
 
   it "returns nil when passed just '@'" do

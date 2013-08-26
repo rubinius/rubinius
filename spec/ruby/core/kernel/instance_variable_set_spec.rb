@@ -21,6 +21,11 @@ describe "Kernel#instance_variable_set" do
     lambda { NoDog.new.instance_variable_set(:c, "cat") }.should raise_error(NameError)
   end
 
+  it "raises a NameError exception if the argument is an invalid instance variable name" do
+    class DigitDog; end
+    lambda { DigitDog.new.instance_variable_set(:"@0", "cat") }.should raise_error(NameError)
+  end
+
   it "sets the value of the instance variable if argument is '@'" do
     class DogAt; end
     DogAt.new.instance_variable_set(:'@', "cat").should == "cat"
