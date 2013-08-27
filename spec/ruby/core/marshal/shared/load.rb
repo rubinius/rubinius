@@ -64,7 +64,7 @@ describe :marshal_load, :shared => true do
   end
 
   ruby_version_is ""..."1.9" do
-    it "loads a array containing objects having _dump method, and with proc" do
+    it "loads an array containing objects having _dump method, and with proc" do
       arr = []
       proc = Proc.new { |o| arr << o }
       o1 = UserDefined.new;
@@ -78,7 +78,7 @@ describe :marshal_load, :shared => true do
   end
 
   ruby_version_is "1.9" do
-    it "loads a array containing objects having _dump method, and with proc" do
+    it "loads an array containing objects having _dump method, and with proc" do
       arr = []
       myproc = Proc.new { |o| arr << o; o }
       o1 = UserDefined.new;
@@ -278,7 +278,7 @@ describe :marshal_load, :shared => true do
   end
 
   describe "for an Array" do
-    it "loads a array containing the same objects" do
+    it "loads an array containing the same objects" do
       s = 'oh'
       b = 'hi'
       r = //
@@ -491,7 +491,7 @@ describe :marshal_load, :shared => true do
       Marshal.send(@method, "\004\bo:\017UserObject\000").should be_kind_of(UserObject)
     end
 
-    it "loads a object" do
+    it "loads an object" do
       Marshal.send(@method, "\004\bo:\vObject\000").should be_kind_of(Object)
     end
 
@@ -528,7 +528,7 @@ describe :marshal_load, :shared => true do
       end
     end
 
-    it "loads a object having ivar" do
+    it "loads an object having ivar" do
       s = 'hi'
       arr = [:so, :so, s, s]
       obj = Object.new

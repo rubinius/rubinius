@@ -36,7 +36,7 @@ describe "IO#reopen" do
     lambda { @io.reopen obj }.should raise_error(IOError)
   end
 
-  it "raises an TypeError if #to_io does not return an IO instance" do
+  it "raises a TypeError if #to_io does not return an IO instance" do
     obj = mock("io")
     obj.should_receive(:to_io).and_return("something else")
     lambda { @io.reopen obj }.should raise_error(TypeError)

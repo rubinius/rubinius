@@ -22,7 +22,7 @@ describe "Math.atan2" do
   end
 
   ruby_version_is "1.9" do
-    it "raises an TypeError if the argument cannot be coerced with Float()" do
+    it "raises a TypeError if the argument cannot be coerced with Float()" do
       lambda { Math.atan2(1.0, "test")    }.should raise_error(TypeError)
       lambda { Math.atan2("test", 0.0)    }.should raise_error(TypeError)
       lambda { Math.atan2("test", "this") }.should raise_error(TypeError)

@@ -20,7 +20,7 @@ describe "Matrix#+" do
     lambda { @a + Matrix[ [1] ] }.should raise_error(Matrix::ErrDimensionMismatch)
   end
 
-  it "raises a ExceptionForMatrix::ErrOperationNotDefined if other is a Numeric Type" do
+  it "raises an ExceptionForMatrix::ErrOperationNotDefined if other is a Numeric Type" do
     lambda { @a + 2            }.should raise_error(ExceptionForMatrix::ErrOperationNotDefined)
     lambda { @a + 1.2          }.should raise_error(ExceptionForMatrix::ErrOperationNotDefined)
     lambda { @a + bignum_value }.should raise_error(ExceptionForMatrix::ErrOperationNotDefined)

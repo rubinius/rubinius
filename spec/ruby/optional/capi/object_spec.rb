@@ -306,7 +306,7 @@ describe "CApiObject" do
   end
 
   describe "rb_class_of" do
-    it "returns the class of a object" do
+    it "returns the class of an object" do
       @o.rb_class_of(nil).should == NilClass
       @o.rb_class_of(0).should == Fixnum
       @o.rb_class_of(0.1).should == Float
@@ -315,7 +315,7 @@ describe "CApiObject" do
   end
 
   describe "rb_obj_classname" do
-    it "returns the class name of a object" do
+    it "returns the class name of an object" do
       @o.rb_obj_classname(nil).should == 'NilClass'
       @o.rb_obj_classname(0).should == 'Fixnum'
       @o.rb_obj_classname(0.1).should == 'Float'
