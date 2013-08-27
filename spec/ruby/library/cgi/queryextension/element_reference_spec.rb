@@ -13,7 +13,7 @@ describe "CGI::QueryExtension#[]" do
     ENV['QUERY_STRING']   = @old_query_string
   end
 
-  it "it returns the value for the parameter with the given key" do
+  it "returns the value for the parameter with the given key" do
     @cgi["one"].should == "a"
   end
 

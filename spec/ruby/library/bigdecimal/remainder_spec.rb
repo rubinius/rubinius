@@ -19,7 +19,7 @@ describe "BigDecimal#remainder" do
     @frac_2 = BigDecimal("0.9E-99999")
   end
 
-  it "it equals modulo, if both values are of same sign" do
+  it "equals modulo, if both values are of same sign" do
     BigDecimal('1234567890123456789012345679').remainder(BigDecimal('1')).should == @zero
     BigDecimal('123456789').remainder(BigDecimal('333333333333333333333333333E-50')).should == BigDecimal('0.12233333333333333333345679E-24')
 

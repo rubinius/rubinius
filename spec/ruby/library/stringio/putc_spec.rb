@@ -59,7 +59,7 @@ describe "StringIO#putc when passed [Object]" do
     @io = StringIO.new('example')
   end
 
-  it "it writes the passed Integer % 256 to self" do
+  it "writes the passed Integer % 256 to self" do
     @io.putc(333) # 333 % 256 == ?M
     @io.string.should == "Mxample"
 
