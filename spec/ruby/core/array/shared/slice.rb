@@ -29,7 +29,7 @@ describe :array_slice, :shared => true do
     a.should == [1, 2, 3, 4]
   end
 
-  it "return count elements starting from index with [index, count]" do
+  it "returns count elements starting from index with [index, count]" do
     [ "a", "b", "c", "d", "e" ].send(@method, 2, 3).should == ["c", "d", "e"]
 
     a = [1, 2, 3, 4]

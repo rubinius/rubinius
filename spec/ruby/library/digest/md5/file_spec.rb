@@ -33,7 +33,7 @@ describe "Digest::MD5.file" do
 
   it_behaves_like :file_read_directory, :file, Digest::MD5
 
-  it "raises a Errno::ENOENT when passed a path that does not exist" do
+  it "raises an Errno::ENOENT when passed a path that does not exist" do
     lambda { Digest::MD5.file("") }.should raise_error(Errno::ENOENT)
   end
 

@@ -319,7 +319,7 @@ describe "C-API Kernel function" do
     end
 
     ruby_version_is "1.9" do
-      it "raises a ArgumentError if the throw symbol isn't caught" do
+      it "raises an ArgumentError if the throw symbol isn't caught" do
         lambda { @s.rb_catch("foo", lambda { throw :bar }) }.should raise_error(ArgumentError)
       end
     end
@@ -347,7 +347,7 @@ describe "C-API Kernel function" do
         ScratchPad.recorded.should == [:before_throw]
       end
 
-      it "raises a ArgumentError if the throw symbol isn't caught" do
+      it "raises an ArgumentError if the throw symbol isn't caught" do
         lambda { @s.rb_catch("foo", lambda { throw :bar }) }.should raise_error(ArgumentError)
       end
     end

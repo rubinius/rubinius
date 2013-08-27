@@ -31,7 +31,7 @@ describe "BigDecimal.mode" do
         BigDecimal("Infinity")
     end
 
-    it "raise an exception if the flag is true" do
+    it "raises an exception if the flag is true" do
       BigDecimal::mode(BigDecimal::EXCEPTION_NaN, true)
       lambda { BigDecimal("NaN").add(BigDecimal("1"),0) }.should raise_error(FloatDomainError)
       BigDecimal::mode(BigDecimal::EXCEPTION_INFINITY, true)
@@ -50,7 +50,7 @@ describe "BigDecimal.mode" do
       (BigDecimal("1E1000000000000000000")**10).should == BigDecimal("Infinity")
     end
 
-    it "raise an exception if the flag is true" do
+    it "raises an exception if the flag is true" do
       BigDecimal::mode(BigDecimal::EXCEPTION_NaN, true)
       lambda { BigDecimal("NaN").add(BigDecimal("1"),0) }.should raise_error(FloatDomainError)
       BigDecimal::mode(BigDecimal::EXCEPTION_INFINITY, true)

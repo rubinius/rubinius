@@ -13,7 +13,7 @@ describe "Enumerable#drop" do
     end
 
     describe "passed a number n as an argument" do
-      it "raise ArgumentError if n < 0" do
+      it "raises ArgumentError if n < 0" do
         lambda{ @enum.drop(-1) }.should raise_error(ArgumentError)
       end
 

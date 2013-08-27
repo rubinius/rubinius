@@ -28,7 +28,7 @@ describe "Hash#keys" do
   end
 
 
-  it "it uses the same order as #values" do
+  it "uses the same order as #values" do
     h = new_hash(1 => "1", 2 => "2", 3 => "3", 4 => "4")
 
     h.size.times do |i|

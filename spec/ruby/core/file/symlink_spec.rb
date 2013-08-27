@@ -15,12 +15,12 @@ describe "File.symlink" do
   end
 
   platform_is_not :windows do
-    it "create a symlink between a source and target file" do
+    it "creates a symlink between a source and target file" do
       File.symlink(@file, @link).should == 0
       File.identical?(@file, @link).should == true
     end
 
-    it "create a symbolic link" do
+    it "creates a symbolic link" do
       File.symlink(@file, @link)
       File.symlink?(@link).should == true
     end

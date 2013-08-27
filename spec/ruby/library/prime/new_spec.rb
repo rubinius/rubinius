@@ -6,7 +6,7 @@ describe "Prime.new" do
     Prime.new.should be_kind_of(Prime)
   end
 
-  it "returns a object with obsolete featrues" do
+  it "returns an object with obsolete featrues" do
     Prime.new.should be_kind_of(Prime::OldCompatibility)
     Prime.new.should respond_to(:succ)
     Prime.new.should respond_to(:next)
@@ -16,7 +16,7 @@ describe "Prime.new" do
     lambda { Prime.new }.should complain(/obsolete.*use.*Prime::instance/)
   end
 
-  it "raises a ArgumentError when is called with some arguments" do
+  it "raises an ArgumentError when is called with some arguments" do
     lambda { Prime.new(1) }.should raise_error(ArgumentError)
   end
 end

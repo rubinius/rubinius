@@ -131,11 +131,11 @@ describe :math_atanh_no_complex, :shared => true do
   end
 
   ruby_version_is "1.9" do
-    it "raises an Math::DomainError for arguments greater than 1.0" do
+    it "raises a Math::DomainError for arguments greater than 1.0" do
       lambda { @object.send(@method, 1.0 + Float::EPSILON)  }.should raise_error(Math::DomainError)
     end
 
-    it "raises an Math::DomainError for arguments less than -1.0" do
+    it "raises a Math::DomainError for arguments less than -1.0" do
       lambda { @object.send(@method, -1.0 - Float::EPSILON) }.should raise_error(Math::DomainError)
     end
   end

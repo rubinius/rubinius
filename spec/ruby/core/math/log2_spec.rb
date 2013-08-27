@@ -47,11 +47,11 @@ ruby_version_is "1.9" do
       lambda { Math.log2(-1e-15) }.should raise_error( Math::DomainError)
     end
 
-    it "raises an TypeError if the argument cannot be coerced with Float()" do
+    it "raises a TypeError if the argument cannot be coerced with Float()" do
       lambda { Math.log2("test") }.should raise_error(TypeError)
     end
 
-    it "raises an TypeError if passed a numerical argument as a string" do
+    it "raises a TypeError if passed a numerical argument as a string" do
       lambda { Math.log2("1.0") }.should raise_error(TypeError)
     end
 

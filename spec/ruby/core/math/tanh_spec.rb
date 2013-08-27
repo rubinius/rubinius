@@ -22,7 +22,7 @@ describe "Math.tanh" do
   end
 
   ruby_version_is "1.9" do
-    it "raises an TypeError if the argument cannot be coerced with Float()" do
+    it "raises a TypeError if the argument cannot be coerced with Float()" do
       lambda { Math.tanh("test") }.should raise_error(TypeError)
     end
   end

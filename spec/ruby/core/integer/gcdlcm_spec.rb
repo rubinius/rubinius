@@ -47,7 +47,7 @@ describe "Integer#gcdlcm" do
       lambda { 12.gcdlcm(30, 20) }.should raise_error(ArgumentError)
     end
 
-    it "raises an TypeError unless the argument is an Integer" do
+    it "raises a TypeError unless the argument is an Integer" do
       lambda { 39.gcdlcm(3.8)   }.should raise_error(TypeError)
       lambda { 45872.gcdlcm([]) }.should raise_error(TypeError)
     end

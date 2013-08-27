@@ -179,7 +179,7 @@ describe "Module#autoload" do
   end
 
   ruby_version_is '1.9' ... '1.9.3' do
-    it "return nil on refering the constant with defined?()" do
+    it "returns nil on refering the constant with defined?()" do
       module ModuleSpecs::Autoload::Q
         autoload :R, fixture(__FILE__, "autoload.rb")
         defined?(R).should be_nil
@@ -189,7 +189,7 @@ describe "Module#autoload" do
   end
 
   ruby_version_is '1.9.3' do
-    it "return 'constant' on refering the constant with defined?()" do
+    it "returns 'constant' on refering the constant with defined?()" do
       module ModuleSpecs::Autoload::Q
         autoload :R, fixture(__FILE__, "autoload.rb")
         defined?(R).should == 'constant'

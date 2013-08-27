@@ -24,7 +24,7 @@ describe ":long_double arguments and return values" do
     LibTest.ret_f128(ld).should be_within(tolerance).of(ld)
   end
 
-  it "add two long double numbers" do
+  it "adds two long double numbers" do
     LibTest.add_f128(0.1, 0.2).should be_within(0.01).of(0.3)
   end
 end

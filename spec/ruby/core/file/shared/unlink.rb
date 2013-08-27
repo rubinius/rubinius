@@ -30,7 +30,7 @@ describe :file_unlink, :shared => true do
     File.exists?(@file2).should == false
   end
 
-  it "raises an TypeError if not passed a String type" do
+  it "raises a TypeError if not passed a String type" do
     lambda { File.send(@method, 1) }.should raise_error(TypeError)
   end
 

@@ -18,7 +18,7 @@ describe "Range#step" do
     r.step { }.should equal(r)
   end
 
-  it "raises TypeError if step " do
+  it "raises TypeError if step" do
     obj = mock("mock")
     lambda { (1..10).step(obj) { } }.should raise_error(TypeError)
   end

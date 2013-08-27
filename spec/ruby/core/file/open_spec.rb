@@ -333,7 +333,7 @@ describe "File.open" do
     }.should raise_error(Errno::EEXIST)
   end
 
-  it "create a new file when use File::WRONLY|File::APPEND mode" do
+  it "creates a new file when use File::WRONLY|File::APPEND mode" do
     @fh = File.open(@file, File::WRONLY|File::APPEND)
     @fh.should be_kind_of(File)
     File.exist?(@file).should == true

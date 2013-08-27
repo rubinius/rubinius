@@ -385,7 +385,7 @@ describe "Callback" do
 end
 
 
-describe "Callback with " do
+describe "Callback with" do
   #
   # Test callbacks that take an argument, returning void
   #

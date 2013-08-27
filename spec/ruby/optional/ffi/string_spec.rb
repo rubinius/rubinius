@@ -45,7 +45,7 @@ describe "String tests" do
   it "casts nil as NULL pointer" do
     StrLibTest.string_dummy(nil)
   end
-  it "return nil for NULL char*" do
+  it "returns nil for NULL char*" do
     StrLibTest.string_null.should == nil
   end
   it "reads an array of strings until encountering a NULL pointer" do

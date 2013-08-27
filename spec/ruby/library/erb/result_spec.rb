@@ -4,7 +4,7 @@ require File.expand_path('../../../spec_helper', __FILE__)
 describe "ERB#result" do
 
 
-  it "return the result of compiled ruby code" do
+  it "returns the result of compiled ruby code" do
     input = <<'END'
 <ul>
 <% for item in list %>
@@ -61,7 +61,7 @@ END
   end
 
 
-  it "use TOPLEVEL_BINDING if binding is not passed" do
+  it "uses TOPLEVEL_BINDING if binding is not passed" do
     class MyERB2
       include ERB::Util
       def main1

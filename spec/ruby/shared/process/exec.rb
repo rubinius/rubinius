@@ -103,7 +103,7 @@ describe :process_exec, :shared => true do
       ruby_exe('o = Object.new; def o.to_ary; ["/bin/sh", "argv_zero"]; end; exec(o, "-c", "echo $0")', :escape => true).should == "argv_zero\n"
     end
 
-    it "raises Argument error if the Array does not have exactly two elements" do
+    it "raises an ArgumentError if the Array does not have exactly two elements" do
       lambda { @object.exec([]) }.should raise_error(ArgumentError)
       lambda { @object.exec([:a]) }.should raise_error(ArgumentError)
       lambda { @object.exec([:a, :b, :c]) }.should raise_error(ArgumentError)

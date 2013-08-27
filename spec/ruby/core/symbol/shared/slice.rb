@@ -94,7 +94,7 @@ describe :symbol_slice, :shared => true do
   end
 
   describe "with a Float index" do
-    it "converts the index to a Integer" do
+    it "converts the index to an Integer" do
       :symbol.send(@method, 1.5).should == ?y
     end
   end
