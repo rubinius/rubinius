@@ -145,6 +145,7 @@ namespace rubinius {
                                        Index index, OnigEncodingType* enc)
   {
     Encoding* e = create(state, enc);
+    e->index_       = (int) index;
     e->cache_index_ = (int) index;
 
     Tuple* ref = encoding_reference(state, index);
@@ -169,6 +170,7 @@ namespace rubinius {
 
     Array* list = encoding_list(state);
     size_t index = list->size();
+    e->index_ = (int) index;
 
     Tuple* ref = encoding_reference(state, index);
     encoding_map(state)->store(state, encoding_symbol(state, name), ref);
