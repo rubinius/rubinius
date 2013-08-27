@@ -1,1 +1,1 @@
-fails:Kernel#taint raises error on fixnum values
+fails:Kernel#taint raises an error on fixnum values
