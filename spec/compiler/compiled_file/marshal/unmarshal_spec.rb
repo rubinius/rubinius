@@ -43,7 +43,7 @@ describe "Rubinius::CompiledFile::Marshal#unmarshal" do
 
   it "unmarshals a Symbol" do
     marshal = Rubinius::CompiledFile::Marshal.new
-    marshal.unmarshal("x\n12\nHello world!\n").should == :"Hello world!"
+    marshal.unmarshal("x\nE\n8\nUS-ASCII\n12\nHello world!\n").should == :"Hello world!"
   end
 
   it "unmarshals a constant" do

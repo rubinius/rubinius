@@ -116,6 +116,8 @@ namespace rubinius {
     char *data = stack_data;
     size_t count;
 
+    try_as<Encoding>(unmarshal());
+
     stream >> count;
     stream.get();
 

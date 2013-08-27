@@ -140,8 +140,10 @@ module Rubinius
           str.force_encoding enc if enc and defined?(Encoding)
           return str
         when 120 # ?x
+          enc = unmarshal_data
           count = next_string.to_i
           str = next_bytes count
+          str.force_encoding enc if enc and defined?(Encoding)
           return str.to_sym
         when 99  # ?c
           count = next_string.to_i
@@ -264,7 +266,18 @@ module Rubinius
           "s\n#{enc_name}#{val.bytesize}\n#{val}\n"
         when Symbol
           s = val.to_s
-          "x\n#{s.bytesize}\n#{s}\n"
+          if defined?(Encoding)
+            # We manually construct the Encoding data to avoid recursion
+            # marshaling an Encoding name as a String.
+            name = s.encoding.name
+            enc_name = "E\n#{name.bytesize}\n#{name}\n"
+          else
+            # The kernel code is all US-ASCII. When building melbourne for 1.8
+            # Ruby, we fake a bunch of encoding stuff so force US-ASCII here.
+            enc_name = "E\n8\nUS-ASCII\n"
+          end
+
+          "x\n#{enc_name}#{s.bytesize}\n#{s}\n"
         when Tuple
           str = "p\n#{val.size}\n"
           val.each do |ele|
