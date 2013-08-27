@@ -12424,7 +12424,7 @@ parser_local_tbl(rb_parser_state* parser_state)
 VALUE
 rb_symbol_new(const char* name, long len, rb_encoding* enc)
 {
-  VALUE str = rb_str_new(name, len);
+  VALUE str = parser_enc_str_new(name, len, enc);
   return rb_funcall(str, rb_intern("to_sym"), 0);
 }
 
@@ -12491,7 +12491,7 @@ parser_intern(const char* name)
 ID
 parser_intern_str(VALUE str)
 {
-  return parser_intern2(RSTRING_PTR(str), RSTRING_LEN(str));
+  return parser_intern3(RSTRING_PTR(str), RSTRING_LEN(str), parser_enc_get(str));
 }
 
 char*
