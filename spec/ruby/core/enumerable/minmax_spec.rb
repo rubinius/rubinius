@@ -43,7 +43,7 @@ ruby_version_is "1.8.7" do
       end
     end
 
-    it "returns the minimun when using a block rule" do
+    it "returns the minimum when using a block rule" do
       @enum.minmax {|a,b| b <=> a }.should == [10, 4]
       @strs.minmax {|a,b| a.length <=> b.length }.should == ["2", "55555"]
     end

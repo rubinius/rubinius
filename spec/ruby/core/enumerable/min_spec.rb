@@ -13,7 +13,7 @@ describe "Enumerable#min" do
     EnumerableSpecs::Numerous.new.min.should == 1
   end
 
-  it "returns the minimun (basic cases)" do
+  it "returns the minimum (basic cases)" do
     EnumerableSpecs::EachDefiner.new(55).min.should == 55
 
     EnumerableSpecs::EachDefiner.new(11,99).min.should ==  11
@@ -62,7 +62,7 @@ describe "Enumerable#min" do
     end.should raise_error(ArgumentError)
   end
 
-  it "returns the minimun when using a block rule" do
+  it "returns the minimum when using a block rule" do
     EnumerableSpecs::EachDefiner.new("2","33","4","11").min {|a,b| a <=> b }.should == "11"
     EnumerableSpecs::EachDefiner.new( 2 , 33 , 4 , 11 ).min {|a,b| a <=> b }.should == 2
 
