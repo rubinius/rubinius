@@ -6,7 +6,7 @@ describe "Thread#value" do
     Thread.new { 3 }.value.should == 3
   end
 
-  it "re-raises error for an uncaught exception" do
+  it "re-raises an error for an uncaught exception" do
     t = Thread.new { raise "Hello" }
     lambda { t.value }.should raise_error(RuntimeError, "Hello")
   end

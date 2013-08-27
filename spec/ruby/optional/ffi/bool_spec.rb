@@ -23,7 +23,7 @@ describe "Function with primitive boolean arguments and return values" do
     LibTest.bool_reverse_val(true).should == false
     LibTest.bool_reverse_val(false).should == true
   end
-  it "raises error on invalid types" do
+  it "raises an error on invalid types" do
     lambda { LibTest.bool_return_val(nil) }.should raise_error(::TypeError)
   end
 end

@@ -21,7 +21,7 @@ describe "Socket::IPSocket#peeraddr" do
     BasicSocket.do_not_reverse_lookup = @do_not_reverse_lookup
   end
 
-  it "raises error if socket is not connected" do
+  it "raises an error if socket is not connected" do
     lambda { @server.peeraddr }.should raise_error
   end
 
