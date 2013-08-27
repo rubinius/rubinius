@@ -72,8 +72,7 @@ namespace rubinius {
   }
 
   Encoding* Symbol::encoding(STATE) {
-    // TODO
-    return Encoding::usascii_encoding(state);
+    return Encoding::from_index(state, state->shared().symbols.lookup_encoding(this));
   }
 
   void Symbol::Info::show(STATE, Object* self, int level) {
