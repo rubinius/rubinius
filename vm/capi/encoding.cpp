@@ -412,8 +412,8 @@ extern "C" {
     }
   }
 
-  // TODO: respect the encoding parameter
   ID rb_intern3(const char* string, long len, rb_encoding* enc) {
-    return rb_intern2(string, len);
+    VALUE str = rb_enc_str_new(string, len, enc);
+    return rb_str_intern(str);
   }
 }
