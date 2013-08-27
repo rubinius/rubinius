@@ -177,6 +177,7 @@ namespace rubinius {
           return NULL;
         }
       }
+      enc = Encoding::eAscii;
     } else {
       if(CBOOL(str->ascii_only_p(state))) {
         enc = Encoding::eAscii;
