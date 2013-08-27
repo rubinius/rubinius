@@ -76,11 +76,6 @@ namespace rubinius {
     return Encoding::usascii_encoding(state);
   }
 
-  Encoding* Symbol::encoding(STATE, Encoding* enc) {
-    // TODO
-    return enc;
-  }
-
   void Symbol::Info::show(STATE, Object* self, int level) {
     Symbol* sym = try_as<Symbol>(self);
     std::cout << ":" << sym->debug_str(state) << std::endl;

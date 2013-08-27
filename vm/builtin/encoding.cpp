@@ -259,8 +259,8 @@ namespace rubinius {
       str->encoding(state, enc);
     } else if(Regexp* reg = try_as<Regexp>(obj)) {
       reg->encoding(state, enc);
-    } else if(Symbol* sym = try_as<Symbol>(obj)) {
-      sym->encoding(state, enc);
+    } else if(try_as<Symbol>(obj)) {
+      // Can't change th encoding of a symbol
     } else if(try_as<IO>(obj)) {
       // TODO
     } else {

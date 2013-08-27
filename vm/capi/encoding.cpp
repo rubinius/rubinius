@@ -225,8 +225,8 @@ extern "C" {
       str->encoding(env->state(), enc);
     } else if(Regexp* reg = try_as<Regexp>(val)) {
       reg->encoding(env->state(), enc);
-    } else if(Symbol* sym = try_as<Symbol>(val)) {
-      sym->encoding(env->state(), enc);
+    } else if(try_as<Symbol>(val)) {
+      // Can't change Symbol encoding
     } else {
       rb_raise(rb_eArgError, "object does not have an associated Encoding");
     }
