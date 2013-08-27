@@ -59,6 +59,10 @@ namespace rubinius {
       return shared_.symbols.lookup(this, str, len);
     }
 
+    Symbol* symbol(const char* str, size_t len, int enc) {
+      return shared_.symbols.lookup(this, str, len, enc);
+    }
+
     Symbol* symbol(std::string str) {
       return shared_.symbols.lookup(this, str);
     }
