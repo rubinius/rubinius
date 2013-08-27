@@ -157,12 +157,10 @@ namespace rubinius {
     size_t size = str->byte_size();
 
     if(LANGUAGE_18_ENABLED) {
-      for(size_t i = 0; i < size; i++) {
-        if(bytes[i] == 0) {
-          Exception::argument_error(state,
-              "cannot create a symbol from a string containing `\\0'");
-          return NULL;
-        }
+      if(strnlen(bytes, size) < size) {
+        Exception::argument_error(state,
+            "cannot create a symbol from a string containing `\\0'");
+        return NULL;
       }
     }
 
