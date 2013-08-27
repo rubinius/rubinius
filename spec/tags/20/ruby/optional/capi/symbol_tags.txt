@@ -1,0 +1,1 @@
+fails:C-API Symbol function rb_id2str creates a string with the same encoding as the symbol
