@@ -1953,7 +1953,7 @@ required to run it.
 
     # Standard library gems to bootstrap rubygems
     @rubygems_gems = [
-      [ "psych", gem_version ],
+      [ "psych", "2.0" ],
       [ "rubysl-date", gem_version ],
       [ "rubysl-delegate", gem_version ],
       [ "rubysl-digest", gem_version ],
