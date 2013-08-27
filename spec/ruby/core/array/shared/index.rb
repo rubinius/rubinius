@@ -24,7 +24,7 @@ describe :array_index, :shared => true do
       [4, 2, 1, 5, 1, 3].send(@method) {|x| x < 2}.should == 2
     end
 
-    it "ignore the block if there is an argument" do
+    it "ignores the block if there is an argument" do
       [4, 2, 1, 5, 1, 3].send(@method, 5) {|x| x < 2}.should == 3
     end
 

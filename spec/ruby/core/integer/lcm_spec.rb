@@ -52,7 +52,7 @@ describe "Integer#lcm" do
       lambda { 12.lcm(30, 20) }.should raise_error(ArgumentError)
     end
 
-    it "raises an TypeError unless the argument is an Integer" do
+    it "raises a TypeError unless the argument is an Integer" do
       lambda { 39.lcm(3.8)   }.should raise_error(TypeError)
       lambda { 45872.lcm([]) }.should raise_error(TypeError)
     end

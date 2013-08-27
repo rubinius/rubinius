@@ -13,7 +13,7 @@ describe "CGI#out" do
     ENV['REQUEST_METHOD'] = @old_request_method
   end
 
-  it "it writes a HTMl header based on the passed argument to $stdout" do
+  it "writes a HTML header based on the passed argument to $stdout" do
     @cgi.out { "" }
     $stdout.should == "Content-Type: text/html\r\nContent-Length: 0\r\n\r\n"
   end

@@ -71,7 +71,7 @@ ruby_version_is "1.9" do
       ]
     end
 
-    it "raises an RuntimeError if the block returned a Symbol that is undefined but reserved format (first character is an underscore)" do
+    it "raises a RuntimeError if the block returned a Symbol that is undefined but reserved format (first character is an underscore)" do
       lambda {
         EnumerableSpecs::Numerous.new(5,5,2,3,4,5,7,1,9).chunk {|e| e <= 3 && :_singleton }.to_a
       }.should raise_error(RuntimeError)

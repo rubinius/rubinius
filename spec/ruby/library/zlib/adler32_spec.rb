@@ -39,7 +39,7 @@ describe "Zlib.adler32" do
     Zlib.adler32((2**64).to_s).should == Zlib.adler32((2**64).to_s, orig_crc)
   end
 
-  it "it returns the CRC initial value, if string is omitted" do
+  it "returns the CRC initial value, if string is omitted" do
     Zlib.adler32.should == 1
   end
 

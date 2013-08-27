@@ -11,7 +11,7 @@ describe "BigDecimal.limit" do
     BigDecimal.limit(old)
   end
 
-  it "use the global limit if no precision is specified" do
+  it "uses the global limit if no precision is specified" do
     BigDecimalSpecs::with_limit(0) do
       (BigDecimal('0.888') + BigDecimal('0')).should == BigDecimal('0.888')
       (BigDecimal('0.888') * BigDecimal('3')).should == BigDecimal('2.664')

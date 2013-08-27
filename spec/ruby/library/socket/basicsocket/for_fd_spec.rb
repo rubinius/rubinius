@@ -30,7 +30,7 @@ describe "BasicSocket#for_fd" do
     end
   end
 
-  it "return a Socket instance wrapped around the descriptor" do
+  it "returns a Socket instance wrapped around the descriptor" do
     @s2 = TCPServer.for_fd(@server.fileno)
     @s2.should be_kind_of(TCPServer)
     @s2.fileno.should == @server.fileno

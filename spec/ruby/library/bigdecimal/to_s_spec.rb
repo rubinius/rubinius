@@ -10,7 +10,7 @@ describe "BigDecimal#to_s" do
     @bigneg = BigDecimal(@bigneg_str)
   end
 
-  it "return type is of class String" do
+  it "returns a string" do
     @bigdec.to_s.kind_of?(String).should == true
     @bigneg.to_s.kind_of?(String).should == true
   end

@@ -67,7 +67,7 @@ describe "File.new" do
     File.read(@file).should == "test\n"
   end
 
-  it "returns a new File with modus fd " do
+  it "returns a new File with modus fd" do
     begin
       @fh_orig = File.new(@file)
       @fh = File.new(@fh_orig.fileno)
@@ -81,7 +81,7 @@ describe "File.new" do
     end
   end
 
-  it "creates a new file when use File::EXCL mode " do
+  it "creates a new file when use File::EXCL mode" do
     @fh = File.new(@file, File::EXCL)
     @fh.should be_kind_of(File)
     File.exists?(@file).should == true

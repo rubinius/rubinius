@@ -11,7 +11,7 @@ describe :file_directory, :shared => true do
     rm_r @dir, @file
   end
 
-  it "return true if the argument is a directory" do
+  it "returns true if the argument is a directory" do
     @object.send(@method, @dir).should be_true
   end
 
@@ -52,7 +52,7 @@ describe :file_directory_io, :shared => true do
     @object.send(@method, STDIN).should be_false
   end
 
-  it "return true if the argument is an IO that is a directory" do
+  it "returns true if the argument is an IO that is a directory" do
     File.open(@dir, "r") do |f|
       @object.send(@method, f).should be_true
     end

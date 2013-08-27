@@ -21,7 +21,7 @@ ruby_version_is ""..."1.9" do
       Fixnum.induced_from(-10).should eql(-10)
     end
 
-    it "tries to convert non-Integers to a Integers using #to_int" do
+    it "tries to convert non-Integers to an Integer using #to_int" do
       obj = mock("Converted to Integer")
       obj.should_receive(:to_int).and_return(10)
       Fixnum.induced_from(obj)

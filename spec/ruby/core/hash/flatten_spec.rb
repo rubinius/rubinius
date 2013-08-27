@@ -55,7 +55,7 @@ ruby_version_is "1.9" do
       a[7].should == [:influenced_by, :mill]
     end
 
-    it "raises an TypeError if given a non-Integer argument" do
+    it "raises a TypeError if given a non-Integer argument" do
       lambda do
         @h.flatten(Object.new)
       end.should raise_error(TypeError)

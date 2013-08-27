@@ -6,7 +6,7 @@ platform_is :windows do
       @ie = WIN32OLE.new 'InternetExplorer.application'
     end
 
-    it "get name by invoking 'Name' OLE method" do
+    it "gets name by invoking 'Name' OLE method" do
       @ie.invoke('Name').should =~ /explorer/i
     end
   end

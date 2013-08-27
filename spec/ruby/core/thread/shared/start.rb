@@ -12,7 +12,7 @@ describe :thread_start, :shared => true do
   end
 
   ruby_version_is '1.9' do
-    it "raises a ArgumentError if not passed a block" do
+    it "raises an ArgumentError if not passed a block" do
       lambda {
         Thread.send(@method)
       }.should raise_error(ArgumentError)

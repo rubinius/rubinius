@@ -24,7 +24,7 @@ ruby_version_is "1.9" do
       floats_a.should == floats_b
     end
 
-    it "returns a Integer if an Integer argument is passed" do
+    it "returns an Integer if an Integer argument is passed" do
       Random.rand(20).should be_kind_of(Integer)
     end
 

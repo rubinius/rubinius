@@ -12,7 +12,7 @@ describe "Math.acosh" do
   end
 
   conflicts_with :Complex do
-    it "it raises Errno::EDOM if the passed argument is less than -1.0 or greater than 1.0" do
+    it "raises Errno::EDOM if the passed argument is less than -1.0 or greater than 1.0" do
       lambda { Math.acosh(1.0 - TOLERANCE) }.should raise_error(Errno::EDOM)
       lambda { Math.acosh(0) }.should raise_error(Errno::EDOM)
       lambda { Math.acosh(-1.0) }.should raise_error(Errno::EDOM)

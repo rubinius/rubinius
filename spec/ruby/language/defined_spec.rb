@@ -997,7 +997,7 @@ describe "The defined? keyword for a scoped constant" do
     defined?(DefinedSpecs::Undefined::Undefined).should be_nil
   end
 
-  it "return 'constant' if the scoped-scoped constant is defined" do
+  it "returns 'constant' if the scoped-scoped constant is defined" do
     defined?(DefinedSpecs::Child::A).should == "constant"
   end
 
@@ -1047,7 +1047,7 @@ describe "The defined? keyword for a top-level scoped constant" do
     defined?(::DefinedSpecs::Undefined::Undefined).should be_nil
   end
 
-  it "return 'constant' if the scoped-scoped constant is defined" do
+  it "returns 'constant' if the scoped-scoped constant is defined" do
     defined?(::DefinedSpecs::Child::A).should == "constant"
   end
 

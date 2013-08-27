@@ -156,7 +156,7 @@ describe "Kernel#caller in a Proc or eval" do
     end
   end
 
-  it "it returns one frame for new and one frame for initialize when creating objects" do
+  it "returns one frame for new and one frame for initialize when creating objects" do
     stack = CallerFixture::InitializeRecorder.new(0).caller_on_initialize
     stack[0].should =~ /initialize/
     stack[1].should =~ /new/

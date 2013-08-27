@@ -62,7 +62,7 @@ describe :getoptlong_get, :shared => true do
     end
   end
 
-  it "raises a if an argument was required, but none given" do
+  it "raises GetoptLong::MissingArgument if an argument was required and not given" do
     begin
       old_argv = ARGV
       ARGV = [ "--size" ]

@@ -2,7 +2,7 @@ require File.expand_path('../../../../../spec_helper', __FILE__)
 require 'net/http'
 
 describe "Net::HTTPResponse#value" do
-  it "raises an HTTP error for non 2xx HTTP Responses" do
+  it "raises a HTTP error for non 2xx HTTP Responses" do
     res = Net::HTTPUnknownResponse.new("1.0", "???", "test response")
     lambda { res.value }.should raise_error(Net::HTTPError)
 

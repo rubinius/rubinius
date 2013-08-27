@@ -32,7 +32,7 @@ with_feature :encoding do
       ec.replacement.should == "?!?" * 9999
     end
 
-    it "raises an TypeError if assigned a non-String argument" do
+    it "raises a TypeError if assigned a non-String argument" do
       ec = Encoding::Converter.new("utf-8", "us-ascii")
       lambda { ec.replacement = nil }.should raise_error(TypeError)
     end

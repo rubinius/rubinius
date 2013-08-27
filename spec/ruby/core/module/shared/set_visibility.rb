@@ -107,7 +107,7 @@ describe :set_visibility, :shared => true do
       end
     end
 
-    it "affects evaled method definitions when itself is outside the eval " do
+    it "affects evaled method definitions when itself is outside the eval" do
       visibility = @method
       mod = Module.new {
             send visibility

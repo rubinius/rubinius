@@ -11,28 +11,28 @@ describe "Function with variadic arguments" do
     attach_function :pack_varargs, [ :buffer_out, :string, :varargs ], :void
   end
   [ 0, 127, -128, -1 ].each do |i|
-    it "call variadic with (:char (#{i})) argument" do
+    it "calls variadic with (:char (#{i})) argument" do
       buf = FFI::Buffer.new :long_long
       LibTest.pack_varargs(buf, "c", :char, i)
       buf.get_int64(0).should == i
     end
   end
   [ 0, 0x7f, 0x80, 0xff ].each do |i|
-    it "call variadic with (:uchar (#{i})) argument" do
+    it "calls variadic with (:uchar (#{i})) argument" do
       buf = FFI::Buffer.new :long_long
       LibTest.pack_varargs(buf, "C", :uchar, i)
       buf.get_int64(0).should == i
     end
   end
   [ 0, 1.234567, 9.87654321 ].each do |v|
-    it "call variadic with (:float (#{v})) argument" do
+    it "calls variadic with (:float (#{v})) argument" do
       buf = FFI::Buffer.new :long_long
       LibTest.pack_varargs(buf, "f", :float, v.to_f)
       buf.get_float64(0).should == v
     end
   end
   [ 0, 1.234567, 9.87654321 ].each do |v|
-    it "call variadic with (:double (#{v})) argument" do
+    it "calls variadic with (:double (#{v})) argument" do
       buf = FFI::Buffer.new :long_long
       LibTest.pack_varargs(buf, "f", :double, v.to_f)
       buf.get_float64(0).should == v

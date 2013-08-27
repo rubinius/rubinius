@@ -116,7 +116,7 @@ describe "A tagged typedef enum" do
 end
 
 describe "All enums" do
-  it "have autonumbered constants when defined with names only" do
+  it "has autonumbered constants when defined with names only" do
     TestEnum1.enum_value(:c1).should == 0
     TestEnum1.enum_value(:c2).should == 1
     TestEnum1.enum_value(:c3).should == 2
@@ -160,7 +160,7 @@ describe "All enums" do
     TestEnum3.enum_value(:c15).should == 424242
     TestEnum3.enum_value(:c16).should == 42424242
   end
-  it "return the constant corresponding to a specific value" do
+  it "returns the constant corresponding to a specific value" do
     enum = TestEnum3.enum_type(:enum_type1)
     enum[0].should == :c1
     enum[1].should == :c2
@@ -185,7 +185,7 @@ describe "All enums" do
     enum[424242].should == :c15
     enum[42424242].should == :c16
   end
-  it "return nil for values that don't have a symbol" do
+  it "returns nil for values that don't have a symbol" do
     enum = TestEnum3.enum_type(:enum_type1)
     enum[-1].should == nil
     enum[4].should == nil

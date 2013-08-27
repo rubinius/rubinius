@@ -29,7 +29,7 @@ ruby_version_is '1.8.7' do
       end
     end
 
-    it "raises error if not convertible to string" do
+    it "raises an error if not convertible to string" do
       lambda{ "hello".rpartition(5) }.should raise_error(TypeError)
       lambda{ "hello".rpartition(nil) }.should raise_error(TypeError)
     end

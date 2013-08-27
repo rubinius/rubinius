@@ -23,7 +23,7 @@ describe "Array#initialize" do
     a.should_not == [1, 2, 3]
   end
 
-  it "raise an ArgumentError if passed 3 or more arguments" do
+  it "raises an ArgumentError if passed 3 or more arguments" do
     lambda do
       [1, 2].send :initialize, 1, 'x', true
     end.should raise_error(ArgumentError)

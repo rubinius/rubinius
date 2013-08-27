@@ -7,7 +7,7 @@ describe "Math.log10" do
     Math.log10(1).should be_kind_of(Float)
   end
 
-  it "return the base-10 logarithm of the argument" do
+  it "returns the base-10 logarithm of the argument" do
     Math.log10(0.0001).should be_close(-4.0, TOLERANCE)
     Math.log10(0.000000000001e-15).should be_close(-27.0, TOLERANCE)
     Math.log10(1).should be_close(0.0, TOLERANCE)
