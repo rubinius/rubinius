@@ -50,7 +50,7 @@ describe "Net::HTTP.new" do
 
   describe "when passed address, port, *proxy_options" do
     ruby_version_is ""..."2.0" do
-      it "returns an instance of singletone class" do
+      it "returns an instance of singleton class" do
         http = Net::HTTP.new("localhost", 3333, "localhost")
         http.proxy?.should be_true
         http.instance_of?(Net::HTTP).should be_false
