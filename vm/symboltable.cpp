@@ -64,11 +64,6 @@ namespace rubinius {
   }
 
   Symbol* SymbolTable::lookup(STATE, const char* str, size_t length) {
-    if(length == 0 && LANGUAGE_18_ENABLED) {
-      Exception::argument_error(state, "Cannot create a symbol from an empty string");
-      return NULL;
-    }
-
     return lookup(str, length, state->hash_seed());
   }
 
@@ -157,6 +152,11 @@ namespace rubinius {
     size_t size = str->byte_size();
 
     if(LANGUAGE_18_ENABLED) {
+      if(size == 0) {
+        Exception::argument_error(state, "Cannot create a symbol from an empty string");
+        return NULL;
+      }
+
       if(strnlen(bytes, size) < size) {
         Exception::argument_error(state,
             "cannot create a symbol from a string containing `\\0'");
