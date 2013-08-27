@@ -153,6 +153,8 @@ namespace rubinius {
     const char* bytes = (const char*) str->byte_address();
     size_t size = str->byte_size();
 
+    int enc = str->encoding(state)->index();
+
     if(LANGUAGE_18_ENABLED) {
       if(size == 0) {
         Exception::argument_error(state, "Cannot create a symbol from an empty string");
@@ -164,9 +166,14 @@ namespace rubinius {
             "cannot create a symbol from a string containing `\\0'");
         return NULL;
       }
+
+      enc = Encoding::eAscii;
     }
 
-    return lookup(bytes, size, Encoding::eAscii, state->hash_seed());
+    if(CBOOL(str->ascii_only_p(state))) {
+      enc = Encoding::eAscii;
+    }
+    return lookup(bytes, size, enc, state->hash_seed());
   }
 
   String* SymbolTable::lookup_string(STATE, const Symbol* sym) {
