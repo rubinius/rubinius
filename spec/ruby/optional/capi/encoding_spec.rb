@@ -486,10 +486,22 @@ ruby_version_is "1.9" do
 
   describe "rb_intern3" do
     load_extension('symbol')
-    it "converts a string to a symbol, uniquely" do
-      s = CApiSymbolSpecs.new
-      s.rb_intern3("Ω", 2, Encoding::UTF_8).should == :Ω
-      s.rb_intern3_c_compare("Ω", 2, Encoding::UTF_8, :Ω).should == true
+
+    before :each do
+      @s = CApiSymbolSpecs.new
+    end
+
+    it "converts a multibyte symbol with the encoding" do
+      sym = @s.rb_intern3("Ω", 2, Encoding::UTF_8)
+      sym.encoding.should == Encoding::UTF_8
+      sym.should == :Ω
+      @s.rb_intern3_c_compare("Ω", 2, Encoding::UTF_8, :Ω).should == true
+    end
+
+    it "converts an ascii compatible symbol with the ascii encoding" do
+      sym = @s.rb_intern3("foo", 3, Encoding::UTF_8)
+      sym.encoding.should == Encoding::US_ASCII
+      sym.should == :foo
     end
 
     it "should respect the symbol encoding via rb_intern3" do
