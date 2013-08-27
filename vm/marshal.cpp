@@ -116,7 +116,7 @@ namespace rubinius {
     char *data = stack_data;
     size_t count;
 
-    Encoding* enc = try_as<Encoding>(unmarshal());
+    try_as<Encoding>(unmarshal());
 
     stream >> count;
     stream.get();
@@ -129,7 +129,7 @@ namespace rubinius {
     stream.read(data, count + 1);
     data[count] = 0; // clamp
 
-    Symbol* sym = state->symbol(data, count, enc->index());
+    Symbol* sym = state->symbol(data, count);
 
     if(malloc_data) {
       free(malloc_data);

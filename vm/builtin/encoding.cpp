@@ -145,7 +145,6 @@ namespace rubinius {
                                        Index index, OnigEncodingType* enc)
   {
     Encoding* e = create(state, enc);
-    e->index_       = (int) index;
     e->cache_index_ = (int) index;
 
     Tuple* ref = encoding_reference(state, index);
@@ -170,7 +169,6 @@ namespace rubinius {
 
     Array* list = encoding_list(state);
     size_t index = list->size();
-    e->index_ = (int)index;
 
     Tuple* ref = encoding_reference(state, index);
     encoding_map(state)->store(state, encoding_symbol(state, name), ref);
@@ -206,7 +204,7 @@ namespace rubinius {
     encoding_map(state)->store(state, encoding_symbol(state, name), ref);
     add_constant(state, name, from_index(state, index));
 
-    return as<Encoding>(from_index(state, index));
+    return as<Encoding>(encoding_list(state)->get(state, index));
   }
 
   Encoding* Encoding::default_external(STATE) {
@@ -261,8 +259,8 @@ namespace rubinius {
       str->encoding(state, enc);
     } else if(Regexp* reg = try_as<Regexp>(obj)) {
       reg->encoding(state, enc);
-    } else if(try_as<Symbol>(obj)) {
-      // Can't change the encoding of a symbol
+    } else if(Symbol* sym = try_as<Symbol>(obj)) {
+      sym->encoding(state, enc);
     } else if(try_as<IO>(obj)) {
       // TODO
     } else {
@@ -452,7 +450,7 @@ namespace rubinius {
   Encoding* Encoding::find(STATE, const char* name) {
     int index = find_index(state, name);
     if(index < 0) return nil<Encoding>();
-    return as<Encoding>(from_index(state, index));
+    return as<Encoding>(encoding_list(state)->get(state, index));
   }
 
   // Encoding#replicate primitive

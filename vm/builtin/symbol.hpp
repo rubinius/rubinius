@@ -58,6 +58,8 @@ namespace rubinius {
     // Rubinius.primitive+ :symbol_encoding
     Encoding* encoding(STATE);
 
+    Encoding* encoding(STATE, Encoding* enc);
+
     class Info : public TypeInfo {
     public:
       Info(object_type type)
