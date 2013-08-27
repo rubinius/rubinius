@@ -6,7 +6,7 @@ describe "StringScanner#unscan" do
     @s = StringScanner.new("This is a test")
   end
 
-  it "set the scan pointer to the previous position" do
+  it "sets the scan pointer to the previous position" do
     @s.scan(/This/)
     @s.unscan
     @s.matched.should == nil

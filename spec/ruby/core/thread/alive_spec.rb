@@ -39,7 +39,7 @@ describe "Thread#alive?" do
   end
 
   ruby_version_is '1.9' do
-    it "return true for a killed but still running thread" do
+    it "returns true for a killed but still running thread" do
       exit = false
       t = Thread.new do
         begin

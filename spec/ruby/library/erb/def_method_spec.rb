@@ -3,7 +3,7 @@ require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "ERB#def_method" do
 
-  it "define module's instance method to render eRuby file" do
+  it "defines module's instance method to render eRuby file" do
     input = <<'END'
 arg1=<%= arg1.inspect %>
 arg2=<%= arg2.inspect %>

@@ -418,7 +418,7 @@ describe "CApiObject" do
   end
 
   describe "rb_extend_object" do
-    it "add the module's instance methods to the object" do
+    it "adds the module's instance methods to the object" do
       module CApiObjectSpecs::Extend
         def reach
           :extended

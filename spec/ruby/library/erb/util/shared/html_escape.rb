@@ -32,7 +32,7 @@ describe :erb_util_html_escape, :shared => true do
     end
   end
 
-  it "return empty string when argument is nil" do
+  it "returns empty string when argument is nil" do
     input = nil
     expected = ''
     ERB::Util.__send__(@method, input).should == expected

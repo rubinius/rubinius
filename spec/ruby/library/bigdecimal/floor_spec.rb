@@ -49,7 +49,7 @@ describe "BigDecimal#floor" do
   end
 
   ruby_version_is "1.9" do
-    it "raise exception, if self is special value" do
+    it "raises exception, if self is special value" do
       lambda { @infinity.floor }.should raise_error(FloatDomainError)
       lambda { @infinity_neg.floor }.should raise_error(FloatDomainError)
       lambda { @nan.floor }.should raise_error(FloatDomainError)

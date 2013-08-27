@@ -13,7 +13,7 @@ describe "Enumerable#max" do
     EnumerableSpecs::Numerous.new.max.should == 6
   end
 
-  it "return the maximum element (basics cases)" do
+  it "returns the maximum element (basics cases)" do
     EnumerableSpecs::EachDefiner.new(55).max.should == 55
 
     EnumerableSpecs::EachDefiner.new(11,99).max.should == 99
@@ -62,7 +62,7 @@ describe "Enumerable#max" do
     end.should raise_error(ArgumentError)
   end
 
-  it "return the maximum element (with block" do
+  it "returns the maximum element (with block" do
     # with a block
     EnumerableSpecs::EachDefiner.new("2","33","4","11").max {|a,b| a <=> b }.should == "4"
     EnumerableSpecs::EachDefiner.new( 2 , 33 , 4 , 11 ).max {|a,b| a <=> b }.should == 33

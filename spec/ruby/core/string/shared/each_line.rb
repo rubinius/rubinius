@@ -121,7 +121,7 @@ describe :string_each_line, :shared => true do
   end
 
   ruby_version_is '1.9' do
-    it "accept string separator" do
+    it "accepts string separator" do
       "hello world".send(@method, ?o).to_a.should == ["hello", " wo", "rld"]
     end
 

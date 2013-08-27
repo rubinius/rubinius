@@ -53,7 +53,7 @@ describe "Dir.mkdir" do
   end
 
   ruby_version_is ""..."1.9" do
-    it "call #to_str on non-String arguments" do
+    it "calls #to_str on non-String arguments" do
       DirSpecs.clear_dirs
       p = mock('path')
       p.should_receive(:to_str).and_return('nonexisting')

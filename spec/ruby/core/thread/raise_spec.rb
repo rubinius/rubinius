@@ -132,7 +132,7 @@ describe "Thread#raise on a running thread" do
     lambda {t.value}.should raise_error(RuntimeError)
   end
 
-  it "raise the given argument even when there is an active exception" do
+  it "raises the given argument even when there is an active exception" do
     raised = false
     t = Thread.new do
       begin

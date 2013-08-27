@@ -22,7 +22,7 @@ describe :process_fork, :shared => true do
         rm_r @file
       end
 
-      it "return nil for the child process" do
+      it "returns nil for the child process" do
         child_id = @object.fork
         if child_id == nil
           touch(@file) { |f| f.write 'rubinius' }

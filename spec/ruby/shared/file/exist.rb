@@ -1,10 +1,10 @@
 describe :file_exist, :shared => true do
-  it "return true if the file exist" do
+  it "returns true if the file exist" do
     @object.send(@method, __FILE__).should == true
     @object.send(@method, 'a_fake_file').should == false
   end
 
-  it "return true if the file exist using the alias exists?" do
+  it "returns true if the file exist using the alias exists?" do
     @object.send(@method, __FILE__).should == true
     @object.send(@method, 'a_fake_file').should == false
   end

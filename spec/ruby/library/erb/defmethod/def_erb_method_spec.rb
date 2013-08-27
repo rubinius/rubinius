@@ -11,7 +11,7 @@ describe "ERB::DefMethod.def_erb_method" do
 END
 
 
-  it "define method to render eRuby file as an instance method of current module" do
+  it "defines method to render eRuby file as an instance method of current module" do
     expected = <<'END'
 
 <b>10</b>
@@ -40,7 +40,7 @@ END
   end
 
 
-  it "define method to render eRuby object as an instance method of current module" do
+  it "defines method to render eRuby object as an instance method of current module" do
     expected = <<'END'
 <b>10</b>
 <b>20</b>
