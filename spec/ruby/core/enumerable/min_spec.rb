@@ -33,7 +33,7 @@ describe "Enumerable#min" do
     @e_ints.min.should == 22
   end
 
-  it "returns nil for an empty Enumerable " do
+  it "returns nil for an empty Enumerable" do
     EnumerableSpecs::EachDefiner.new.min.should be_nil
   end
 

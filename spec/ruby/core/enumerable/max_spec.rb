@@ -33,7 +33,7 @@ describe "Enumerable#max" do
     @e_ints.max.should == 1010101010
   end
 
-  it "returns nil for an empty Enumerable " do
+  it "returns nil for an empty Enumerable" do
     EnumerableSpecs::EachDefiner.new.max.should == nil
   end
 

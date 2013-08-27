@@ -98,7 +98,7 @@ describe "Array#fill with (filler, index, length)" do
     [true, false, true, false, true, false, true].fill(1, 4) { |i| i + 3 }.should == [true, 4, 5, 6, 7, false, true]
   end
 
-  it "replaces all elements after the index if given an index and no length " do
+  it "replaces all elements after the index if given an index and no length" do
     ary = [1, 2, 3]
     ary.fill('x', 1).should == [1, 'x', 'x']
     ary.fill(1){|i| i*2}.should == [1, 2, 4]

@@ -235,7 +235,7 @@ describe "A singleton method definition" do
 end
 
 describe "Redefining a singleton method" do
-  it "does not inherit a previously set visibility " do
+  it "does not inherit a previously set visibility" do
     o = Object.new
 
     class << o; private; def foo; end; end;
@@ -251,7 +251,7 @@ describe "Redefining a singleton method" do
 end
 
 describe "Redefining a singleton method" do
-  it "does not inherit a previously set visibility " do
+  it "does not inherit a previously set visibility" do
     o = Object.new
 
     class << o; private; def foo; end; end;

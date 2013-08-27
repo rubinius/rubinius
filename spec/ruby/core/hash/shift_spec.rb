@@ -16,7 +16,7 @@ describe "Hash#shift" do
     h.should == new_hash
   end
 
-  it "returns nil from an empty hash " do
+  it "returns nil from an empty hash" do
     new_hash.shift.should == nil
   end
 

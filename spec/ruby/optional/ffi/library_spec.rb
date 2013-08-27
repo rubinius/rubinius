@@ -42,7 +42,7 @@ describe "Library" do
         end.getpid.should == Process.pid
       }.should_not raise_error
     end
-    it "attach_function :getpid from [ 'c', 'libc.so.6'] " do
+    it "attach_function :getpid from [ 'c', 'libc.so.6']" do
       lambda {
         Module.new do |m|
           m.extend FFI::Library
@@ -51,7 +51,7 @@ describe "Library" do
         end.getpid.should == Process.pid
       }.should_not raise_error
     end
-    it "attach_function :getpid from [ 'libc.so.6', 'c' ] " do
+    it "attach_function :getpid from [ 'libc.so.6', 'c' ]" do
       lambda {
         Module.new do |m|
           m.extend FFI::Library
@@ -60,7 +60,7 @@ describe "Library" do
         end.getpid.should == Process.pid
       }.should_not raise_error
     end
-    it "attach_function :getpid from [ 'libfubar.so.0xdeadbeef', nil, 'c' ] " do
+    it "attach_function :getpid from [ 'libfubar.so.0xdeadbeef', nil, 'c' ]" do
       lambda {
         Module.new do |m|
           m.extend FFI::Library
@@ -69,7 +69,7 @@ describe "Library" do
         end.getpid.should == Process.pid
       }.should_not raise_error
     end
-    it "attach_function :getpid from [ 'libfubar.so.0xdeadbeef' ] " do
+    it "attach_function :getpid from [ 'libfubar.so.0xdeadbeef' ]" do
       lambda {
         Module.new do |m|
           m.extend FFI::Library
