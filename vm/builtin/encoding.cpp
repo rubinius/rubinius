@@ -204,7 +204,7 @@ namespace rubinius {
     encoding_map(state)->store(state, encoding_symbol(state, name), ref);
     add_constant(state, name, from_index(state, index));
 
-    return as<Encoding>(encoding_list(state)->get(state, index));
+    return as<Encoding>(from_index(state, index));
   }
 
   Encoding* Encoding::default_external(STATE) {
@@ -450,7 +450,7 @@ namespace rubinius {
   Encoding* Encoding::find(STATE, const char* name) {
     int index = find_index(state, name);
     if(index < 0) return nil<Encoding>();
-    return as<Encoding>(encoding_list(state)->get(state, index));
+    return as<Encoding>(from_index(state, index));
   }
 
   // Encoding#replicate primitive
