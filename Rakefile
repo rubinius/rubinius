@@ -202,7 +202,6 @@ task :clean => %w[
   vm:clean
   kernel:clean
   clean:crap
-  extensions:clean
 ]
 
 desc 'Remove rubinius build files and external library build files'
