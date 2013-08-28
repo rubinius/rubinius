@@ -1953,7 +1953,6 @@ required to run it.
 
     # Standard library gems to bootstrap rubygems
     @rubygems_gems = [
-      [ "psych", "2.0" ],
       [ "rubysl-date", gem_version ],
       [ "rubysl-delegate", gem_version ],
       [ "rubysl-digest", gem_version ],
@@ -1979,11 +1978,16 @@ required to run it.
       [ "rubysl-zlib", gem_version ]
     ]
 
-    if @language_version == "18"
+    case @language_version
+    when"18"
       @rubygems_gems.concat [
         [ "rubysl-parsedate", "1.0" ],
         [ "rubysl-rational", "1.0" ],
         [ "rubysl-syck", "1.0" ],
+      ]
+    when "21"
+      @rubygems_gems.concat [
+        [ "psych", "2.0" ],
       ]
     end
 
