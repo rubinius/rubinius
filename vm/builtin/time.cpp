@@ -304,6 +304,8 @@ namespace rubinius {
       result = String::create(state, stack_str, chars);
     }
 
+    result->encoding(state, format->encoding());
+
     return result;
   }
 }
