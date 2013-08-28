@@ -304,10 +304,6 @@ namespace profiler {
     void accumulate(uint64_t time) {
       total_ += time;
     }
-
-    Node* find_node(Method* method);
-    Method* find_callee(method_id id, rsymbol container,
-                        rsymbol name, Kind kind);
   };
 
   class Profiler;
