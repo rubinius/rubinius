@@ -175,6 +175,16 @@ class IO
     end
 
     open_args = opts[:open_args] || [mode, :encoding => (external || "ASCII-8BIT")]
+
+    if opts[:open_args]
+      if open_args.last.kind_of?(Hash)
+        external = open_args.last[:encoding]
+        string = string.encode(external) if external
+      end
+    else
+      string = string.encode(external) if external
+    end
+
     File.open(file, *open_args) do |f|
       f.seek(offset || 0)
       f.write(string)
