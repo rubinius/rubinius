@@ -254,7 +254,7 @@ describe "A Proc" do
         @l.call(obj).should == [1, 2]
       end
 
-      it "raises an TypeError if #to_ary does not return an Array" do
+      it "raises a TypeError if #to_ary does not return an Array" do
         obj = mock("block yield to_ary invalid")
         obj.should_receive(:to_ary).and_return(1)
 

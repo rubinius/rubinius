@@ -21,7 +21,7 @@ ruby_version_is "1.9" do
       h.keep_if { true }.should equal(h)
     end
 
-    it "raises an RuntimeError if called on a frozen instance" do
+    it "raises a RuntimeError if called on a frozen instance" do
       lambda { HashSpecs.frozen_hash.keep_if { true } }.should raise_error(RuntimeError)
       lambda { HashSpecs.empty_frozen_hash.keep_if { false } }.should raise_error(RuntimeError)
     end

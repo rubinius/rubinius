@@ -176,8 +176,7 @@ extern "C" {
     int index = rb_to_encoding_index(obj);
     if(index < 0) return 0;
 
-    Encoding* enc = try_as<Encoding>(
-        Encoding::encoding_list(env->state())->get(env->state(), index));
+    Encoding* enc = try_as<Encoding>(Encoding::from_index(env->state(), index));
 
     if(!enc) return 0;
     return enc->get_encoding();
@@ -216,8 +215,7 @@ extern "C" {
   VALUE rb_enc_associate_index(VALUE obj, int index) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    Encoding* enc = try_as<Encoding>(
-        Encoding::encoding_list(env->state())->get(env->state(), index));
+    Encoding* enc = try_as<Encoding>(Encoding::from_index(env->state(), index));
 
     if(!enc) return obj;
 
@@ -227,8 +225,8 @@ extern "C" {
       str->encoding(env->state(), enc);
     } else if(Regexp* reg = try_as<Regexp>(val)) {
       reg->encoding(env->state(), enc);
-    } else if(Symbol* sym = try_as<Symbol>(val)) {
-      sym->encoding(env->state(), enc);
+    } else if(try_as<Symbol>(val)) {
+      // Can't change Symbol encoding
     } else {
       rb_raise(rb_eArgError, "object does not have an associated Encoding");
     }
@@ -414,8 +412,8 @@ extern "C" {
     }
   }
 
-  // TODO: respect the encoding parameter
   ID rb_intern3(const char* string, long len, rb_encoding* enc) {
-    return rb_intern2(string, len);
+    VALUE str = rb_enc_str_new(string, len, enc);
+    return rb_str_intern(str);
   }
 }

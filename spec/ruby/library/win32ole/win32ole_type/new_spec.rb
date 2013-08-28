@@ -16,7 +16,7 @@ platform_is :windows do
       should raise_error TypeError
     end
 
-    it "raise WIN32OLERuntimeError if OLE object specified is not found" do
+    it "raises WIN32OLERuntimeError if OLE object specified is not found" do
       lambda { WIN32OLE_TYPE.new('Microsoft Shell Controls And Automation','foo') }.
       should raise_error WIN32OLERuntimeError
       lambda { WIN32OLE_TYPE.new('Microsoft Shell Controls And Automation','Application') }.

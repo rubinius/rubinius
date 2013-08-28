@@ -20,7 +20,7 @@ describe :file_executable, :shared => true do
       @object.send(@method, @file2).should == false
     end
 
-    it "return true if the argument is an executable file" do
+    it "returns true if the argument is an executable file" do
       @object.send(@method, @file1).should == true
       @object.send(@method, @file2).should == false
     end

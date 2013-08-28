@@ -244,7 +244,10 @@ module Rubinius
       options.on "-", "Read and evaluate code from STDIN" do
         @run_irb = false
         set_program_name "-"
-        CodeLoader.execute_script STDIN.read
+        stdin = STDIN.dup
+        script = STDIN.read
+        STDIN.reopen(stdin)
+        CodeLoader.execute_script script
       end
 
       options.on "--", "Stop processing command line arguments" do

@@ -32,11 +32,11 @@ describe "String#tr" do
   end
 
   ruby_version_is '1.9.2' do
-    it "raises a ArgumentError a descending range in the replacement as containing just the start character" do
+    it "raises an ArgumentError a descending range in the replacement as containing just the start character" do
       lambda { "hello".tr("a-y", "z-b") }.should raise_error(ArgumentError)
     end
 
-    it "raises a ArgumentError a descending range in the source as empty" do
+    it "raises an ArgumentError a descending range in the source as empty" do
       lambda { "hello".tr("l-a", "z") }.should raise_error(ArgumentError)
     end
   end

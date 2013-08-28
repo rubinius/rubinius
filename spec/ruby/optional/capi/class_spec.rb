@@ -183,7 +183,7 @@ describe "C-API Class function" do
       cls.name.should == "CApiClassSpecs::ClassUnder3"
     end
 
-    it "call #inherited on the superclass" do
+    it "calls #inherited on the superclass" do
       CApiClassSpecs::Super.should_receive(:inherited)
       cls = @s.rb_define_class_under(CApiClassSpecs,
                                      "ClassUnder4", CApiClassSpecs::Super)

@@ -100,7 +100,7 @@ describe "IO.pipe" do
       end
     end
 
-    it "sets the internal encoding to nil if the same as the external " do
+    it "sets the internal encoding to nil if the same as the external" do
       Encoding.default_external = Encoding::UTF_8
       Encoding.default_internal = Encoding::UTF_8
 

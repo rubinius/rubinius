@@ -15,7 +15,7 @@ describe :strscan_peek, :shared => true do
     @s.send(@method, 0).should == ""
   end
 
-  it "raises a ArgumentError when the passed argument is negative" do
+  it "raises an ArgumentError when the passed argument is negative" do
     lambda { @s.send(@method, -2) }.should raise_error(ArgumentError)
   end
 

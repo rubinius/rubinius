@@ -31,7 +31,7 @@ describe :file_file, :shared => true do
 
 
   platform_is_not :windows do
-    it "return true if the null device exists and is a regular file." do
+    it "returns true if the null device exists and is a regular file." do
       @object.send(@method, @null).should == false # May fail on MS Windows
     end
   end

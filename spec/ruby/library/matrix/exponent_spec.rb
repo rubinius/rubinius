@@ -15,7 +15,7 @@ describe "Matrix#**" do
       (m ** 5).should == m * m * m * m * m
     end
 
-    it "raises a ErrDimensionMismatch for non square matrices" do
+    it "raises an ErrDimensionMismatch for non square matrices" do
       m = Matrix[ [1, 1], [1, 2], [2, 3]]
       lambda { m ** 3 }.should raise_error(Matrix::ErrDimensionMismatch)
       lambda { m ** 0 }.should raise_error(Matrix::ErrDimensionMismatch)
@@ -28,7 +28,7 @@ describe "Matrix#**" do
         (m ** -4).should == (m.inverse ** 4)
       end
 
-      it "raises a ErrDimensionMismatch for irregular matrices" do
+      it "raises an ErrDimensionMismatch for irregular matrices" do
         m = Matrix[ [1, 1], [1, 1] ]
         lambda { m ** -2 }.should raise_error(Matrix::ErrNotRegular)
         lambda { m ** 0 }.should raise_error(Matrix::ErrNotRegular)
@@ -37,14 +37,14 @@ describe "Matrix#**" do
   end
 
   ruby_version_is "" ... "1.9.1" do
-    it "raises a ErrOperationNotDefined exception for powers that aren't Integers" do
+    it "raises an ErrOperationNotDefined exception for powers that aren't Integers" do
       lambda {Matrix[ [1,2], [8,2] ] ** 2.5}.should \
 	raise_error(Matrix::ErrOperationNotDefined)
     end
   end
 
   ruby_version_is "1.9.1" ... "1.9.3" do
-    it "raises a ErrOperationNotImplemented exception for powers that aren't Integers" do
+    it "raises an ErrOperationNotImplemented exception for powers that aren't Integers" do
       lambda {Matrix[ [1,2], [8,2] ] ** 2.5}.should \
 	raise_error(Matrix::ErrOperationNotImplemented)
     end

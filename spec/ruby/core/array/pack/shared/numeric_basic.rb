@@ -36,7 +36,7 @@ end
 
 describe :array_pack_float, :shared => true do
   ruby_version_is ""..."1.9" do
-    it "raises a ArgumentError if a String does not represent a floating point number" do
+    it "raises an ArgumentError if a String does not represent a floating point number" do
       lambda { ["a"].pack(pack_format) }.should raise_error(ArgumentError)
     end
   end

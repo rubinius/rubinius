@@ -171,7 +171,6 @@ namespace rubinius {
         paused_ = false;
       }
 
-      target_->set_check_local_interrupts();
       target_->wakeup(state, gct, 0);
     }
     RUBINIUS_THREAD_STOP(thread_name, state->vm()->thread_id(), 1);

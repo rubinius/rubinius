@@ -108,7 +108,7 @@ describe "The throw keyword" do
   end
 
   ruby_version_is "1.9" do
-    it "raises a ArgumentError if used to exit a thread" do
+    it "raises an ArgumentError if used to exit a thread" do
       lambda {
         catch(:what) do
           Thread.new do

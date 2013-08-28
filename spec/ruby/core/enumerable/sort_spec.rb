@@ -2,7 +2,7 @@ require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "Enumerable#sort" do
-  it "sorts by the natural order as defined by <=> " do
+  it "sorts by the natural order as defined by <=>" do
     EnumerableSpecs::Numerous.new.sort.should == [1, 2, 3, 4, 5, 6]
     sorted = EnumerableSpecs::ComparesByVowelCount.wrap("a" * 1, "a" * 2, "a"*3, "a"*4, "a"*5)
     EnumerableSpecs::Numerous.new(sorted[2],sorted[0],sorted[1],sorted[3],sorted[4]).sort.should == sorted

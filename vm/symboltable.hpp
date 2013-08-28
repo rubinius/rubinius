@@ -33,6 +33,7 @@ namespace rubinius {
   class SharedState;
 
   typedef std::vector<std::string> SymbolStrings;
+  typedef std::vector<int> SymbolEncodings;
   typedef std::vector<std::size_t> SymbolIds;
   typedef std_unordered_map<hashval, SymbolIds> SymbolMap;
 
@@ -56,11 +57,12 @@ namespace rubinius {
   private:
     SymbolMap symbols;
     SymbolStrings strings;
+    SymbolEncodings encodings;
     SymbolKinds kinds;
     utilities::thread::SpinLock lock_;
     size_t bytes_used_;
 
-    Symbol* lookup(const char* str, size_t length, uint32_t seed);
+    Symbol* lookup(const char* str, size_t length, int enc, uint32_t seed);
 
   public:
 
@@ -81,6 +83,7 @@ namespace rubinius {
     String* lookup_string(STATE, const Symbol* sym);
 
     std::string& lookup_cppstring(const Symbol* sym);
+    int lookup_encoding(const Symbol* sym);
     std::string lookup_debug_string(const Symbol* sym);
 
     size_t size() const;
@@ -90,7 +93,7 @@ namespace rubinius {
 
     size_t byte_size() const;
 
-    size_t add(std::string str);
+    size_t add(std::string str, int enc);
     static Kind detect_kind(const char* str, size_t size);
   };
 };

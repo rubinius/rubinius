@@ -55,21 +55,17 @@ namespace rubinius {
     return kinds[sym->index()];
   }
 
-  size_t SymbolTable::add(std::string str) {
+  size_t SymbolTable::add(std::string str, int enc) {
     bytes_used_ += (str.size() + sizeof(str));
 
     strings.push_back(str);
+    encodings.push_back(enc);
     kinds.push_back(detect_kind(str.data(), str.size()));
     return strings.size() - 1;
   }
 
   Symbol* SymbolTable::lookup(STATE, const char* str, size_t length) {
-    if(length == 0 && LANGUAGE_18_ENABLED) {
-      Exception::argument_error(state, "Cannot create a symbol from an empty string");
-      return NULL;
-    }
-
-    return lookup(str, length, state->hash_seed());
+    return lookup(str, length, Encoding::eAscii, state->hash_seed());
   }
 
   struct SpecialOperator {
@@ -104,14 +100,14 @@ namespace rubinius {
   }
 
   Symbol* SymbolTable::lookup(SharedState* shared, const std::string& str) {
-    return lookup(str.data(), str.size(), shared->hash_seed);
+    return lookup(str.data(), str.size(), Encoding::eAscii, shared->hash_seed);
   }
 
   Symbol* SymbolTable::lookup(STATE, const std::string& str) {
-    return lookup(str.data(), str.size(), state->hash_seed());
+    return lookup(str.data(), str.size(), Encoding::eAscii, state->hash_seed());
   }
 
-  Symbol* SymbolTable::lookup(const char* str, size_t length, uint32_t seed) {
+  Symbol* SymbolTable::lookup(const char* str, size_t length, int enc, uint32_t seed) {
     size_t sym;
 
     if(const char* op = find_special(str, length)) {
@@ -127,17 +123,18 @@ namespace rubinius {
       utilities::thread::SpinLock::LockGuard guard(lock_);
       SymbolMap::iterator entry = symbols.find(hash);
       if(entry == symbols.end()) {
-        sym = add(std::string(str, length));
+        sym = add(std::string(str, length), enc);
         SymbolIds v(1, sym);
         symbols[hash] = v;
       } else {
         SymbolIds& v = entry->second;
         for(SymbolIds::const_iterator i = v.begin(); i != v.end(); ++i) {
           std::string& s = strings[*i];
+          int e = encodings[*i];
 
-          if(!strncmp(s.data(), str, length)) return Symbol::from_index(*i);
+          if(!strncmp(s.data(), str, length) && e == enc) return Symbol::from_index(*i);
         }
-        sym = add(std::string(str, length));
+        sym = add(std::string(str, length), enc);
         v.push_back(sym);
       }
     }
@@ -156,17 +153,27 @@ namespace rubinius {
     const char* bytes = (const char*) str->byte_address();
     size_t size = str->byte_size();
 
+    int enc = str->encoding(state)->index();
+
     if(LANGUAGE_18_ENABLED) {
-      for(size_t i = 0; i < size; i++) {
-        if(bytes[i] == 0) {
-          Exception::argument_error(state,
-              "cannot create a symbol from a string containing `\\0'");
-          return NULL;
-        }
+      if(size == 0) {
+        Exception::argument_error(state, "Cannot create a symbol from an empty string");
+        return NULL;
       }
+
+      if(strnlen(bytes, size) < size) {
+        Exception::argument_error(state,
+            "cannot create a symbol from a string containing `\\0'");
+        return NULL;
+      }
+
+      enc = Encoding::eAscii;
     }
 
-    return lookup(state, bytes, size);
+    if(CBOOL(str->ascii_only_p(state))) {
+      enc = Encoding::eAscii;
+    }
+    return lookup(bytes, size, enc, state->hash_seed());
   }
 
   String* SymbolTable::lookup_string(STATE, const Symbol* sym) {
@@ -180,13 +187,18 @@ namespace rubinius {
       return NULL;
     }
     std::string& str = strings[sym_index];
+    int enc = encodings[sym_index];
     String* s = String::create(state, str.data(), str.size());
-    s->encoding(state, Encoding::usascii_encoding(state));
+    s->encoding(state, Encoding::from_index(state, enc));
     return s;
   }
 
   std::string& SymbolTable::lookup_cppstring(const Symbol* sym) {
     return strings[sym->index()];
+  }
+
+  int SymbolTable::lookup_encoding(const Symbol* sym) {
+    return encodings[sym->index()];
   }
 
   std::string SymbolTable::lookup_debug_string(const Symbol* sym) {

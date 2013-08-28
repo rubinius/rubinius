@@ -24,7 +24,7 @@ describe "Syslog.close" do
       lambda { Syslog.close }.should raise_error(RuntimeError)
     end
 
-    it "it does not work inside blocks" do
+    it "does not work inside blocks" do
       lambda {
         Syslog.open { |s| s.close }
       }.should raise_error(RuntimeError)

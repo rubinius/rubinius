@@ -12,19 +12,19 @@ describe "Date#>>" do
     d.should == Date.civil(2008, 4, 30)
   end
 
-  it "raise a TypeError when passed a Symbol" do
+  it "raises a TypeError when passed a Symbol" do
     lambda { Date.civil(2007,2,27) >> :hello }.should raise_error(TypeError)
   end
 
-  it "raise a TypeError when passed a String" do
+  it "raises a TypeError when passed a String" do
     lambda { Date.civil(2007,2,27) >> "hello" }.should raise_error(TypeError)
   end
 
-  it "raise a TypeError when passed a Date" do
+  it "raises a TypeError when passed a Date" do
     lambda { Date.civil(2007,2,27) >> Date.new }.should raise_error(TypeError)
   end
 
-  it "raise a TypeError when passed an Object" do
+  it "raises a TypeError when passed an Object" do
     lambda { Date.civil(2007,2,27) >> Object.new }.should raise_error(TypeError)
   end
 end

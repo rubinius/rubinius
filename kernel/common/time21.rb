@@ -13,6 +13,10 @@ class Time
       end
     end
 
+    if sec.kind_of?(Time) && usec.kind_of?(Integer)
+      raise TypeError, "can't convert Time into an exact number"
+    end
+
     usec = 0 if undefined.equal?(usec)
 
     s = Rubinius::Type.coerce_to_exact_num(sec)
@@ -81,7 +85,8 @@ class Time
     else
       str = strftime("%Y-%m-%d %H:%M:%S %z")
     end
-    str.force_encoding Encoding::US_ASCII
+
+    str.force_encoding Encoding::ASCII_8BIT
   end
 
   alias_method :to_s, :inspect

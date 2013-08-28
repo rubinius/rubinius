@@ -109,7 +109,7 @@ public:
   }
 
   void test_symbol() {
-    mar->sstream.str(std::string("x\n4\nblah\n"));
+    mar->sstream.str(std::string("x\nE\n8\nUS-ASCII\n4\nblah\n"));
     Object* obj = mar->unmarshal();
 
     TS_ASSERT(obj->symbol_p());
@@ -207,7 +207,7 @@ public:
   }
 
   void test_compiled_code() {
-    std::string str = "M\n1\nn\nx\n12\nobject_equal\nx\n4\ntest\ni\n1\n0\nI\na\nI\n0\nI\n0\nI\n0\nI\n0\nn\np\n2\nI\n1\nI\n2\np\n1\np\n3\nI\n0\nI\n1\nI\n1\nx\n8\nnot_real\np\n1\nx\n4\nblah\n";
+    std::string str = "M\n1\nn\nx\nE\n8\nUS-ASCII\n12\nobject_equal\nx\nE\n8\nUS-ASCII\n4\ntest\ni\n1\n0\nI\na\nI\n0\nI\n0\nI\n0\nI\n0\nn\np\n2\nI\n1\nI\n2\np\n1\np\n3\nI\n0\nI\n1\nI\n1\nx\nE\n8\nUS-ASCII\n8\nnot_real\np\n1\nx\nE\n8\nUS-ASCII\n4\nblah\n";
     mar->sstream.str(str);
 
     Object* obj = mar->unmarshal();

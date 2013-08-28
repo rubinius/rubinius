@@ -12,7 +12,7 @@ describe :erb_util_url_encode, :shared => true do
     ERB::Util.__send__(@method, input).should == expected
   end
 
-  it "returns empty string when argument is nil" do
+  it "returns an empty string when the argument is nil" do
     input = nil
     expected = ''
     ERB::Util.__send__(@method, input).should == expected

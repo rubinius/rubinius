@@ -7,7 +7,7 @@ describe "Math.atan" do
     Math.atan(1).should be_kind_of(Float)
   end
 
-  it "return the arctangent of the argument" do
+  it "returns the arctangent of the argument" do
     Math.atan(1).should be_close(Math::PI/4, TOLERANCE)
     Math.atan(0).should be_close(0.0, TOLERANCE)
     Math.atan(-1).should be_close(-Math::PI/4, TOLERANCE)

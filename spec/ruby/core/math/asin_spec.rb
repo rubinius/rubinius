@@ -3,7 +3,7 @@ require File.expand_path('../fixtures/classes', __FILE__)
 
 # arcsine : (-1.0, 1.0) --> (-PI/2, PI/2)
 describe "Math.asin" do
-  it "return a float" do
+  it "returns a float" do
     Math.asin(1).should be_kind_of(Float)
   end
 

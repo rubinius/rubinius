@@ -269,7 +269,7 @@ describe :process_spawn, :shared => true do
       lambda { @object.spawn("echo", :pgroup => -1) }.should raise_error(ArgumentError)
     end
 
-    it "raises an TypeError if given a symbol as :pgroup option" do
+    it "raises a TypeError if given a symbol as :pgroup option" do
       lambda { @object.spawn("echo", :pgroup => :true) }.should raise_error(TypeError)
     end
   end

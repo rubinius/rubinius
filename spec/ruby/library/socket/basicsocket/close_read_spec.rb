@@ -15,7 +15,7 @@ describe "Socket::BasicSocket#close_read" do
     lambda { @server.read }.should raise_error(IOError)
   end
 
-  it "it works on sockets with closed ends" do
+  it "works on sockets with closed ends" do
     @server.close_read
     lambda { @server.close_read }.should_not raise_error(Exception)
     lambda { @server.read }.should raise_error(IOError)

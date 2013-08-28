@@ -34,7 +34,7 @@ describe "File.expand_path" do
   end
 
   not_compliant_on :ironruby do
-    it "converts a pathname to an absolute pathname, Ruby-Talk:18512 " do
+    it "converts a pathname to an absolute pathname, Ruby-Talk:18512" do
       # See Ruby-Talk:18512
       File.expand_path('.a').should == File.join(@base, '.a')
       File.expand_path('..a').should == File.join(@base, '..a')
@@ -89,7 +89,7 @@ describe "File.expand_path" do
 
   platform_is_not :windows do
     # FIXME: these are insane!
-    it "expand path with " do
+    it "expand path with" do
       File.expand_path("../../bin", "/tmp/x").should == "/bin"
       File.expand_path("../../bin", "/tmp").should == "/bin"
       File.expand_path("../../bin", "/").should == "/bin"
