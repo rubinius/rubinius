@@ -35,6 +35,7 @@
 #include "signal.hpp"
 #include "windows_compat.h"
 #include "util/sha1.h"
+#include "util/timing.h"
 #include "paths.h"
 #include "version.h"
 
@@ -61,10 +62,6 @@
 #include "llvm/state.hpp"
 #include "llvm/jit_context.hpp"
 #include "llvm/jit_compiler.hpp"
-#endif
-
-#ifdef OS_X_10_5
-#include <mach/mach.h>
 #endif
 
 #include "missing/setproctitle.h"
@@ -806,41 +803,12 @@ namespace rubinius {
     ary->set(state, 2, Float::create(state, tv_to_dbl(&buf.ru_utime)));
     ary->set(state, 3, Float::create(state, tv_to_dbl(&buf.ru_stime)));
 
-    // Get Thread info too
-#if defined(OS_X_10_5)
-    mach_msg_type_number_t count = THREAD_BASIC_INFO_COUNT;
-    thread_basic_info_data_t info;
-    kern_return_t err;
+    uint64_t sys = 0;
+    uint64_t usr = 0;
+    thread_cpu_usage(&usr, &sys);
 
-    mach_port_t port = mach_thread_self();
-    err = thread_info(port, THREAD_BASIC_INFO, (thread_info_t)&info, &count);
-    mach_port_deallocate(mach_task_self(), port);
-
-    if(err == KERN_SUCCESS) {
-      ary->set(state, 4, Float::create(state, to_dbl(
-              info.user_time.seconds, info.user_time.microseconds)));
-      ary->set(state, 5, Float::create(state, to_dbl(
-              info.system_time.seconds, info.system_time.microseconds)));
-    } else {
-      ary->set(state, 4, ary->get(state, 0));
-      ary->set(state, 5, ary->get(state, 1));
-    }
-#elif defined(RUSAGE_THREAD)
-    getrusage(RUSAGE_THREAD, &buf);
-    ary->set(state, 4, Float::create(state, tv_to_dbl(&buf.ru_utime)));
-    ary->set(state, 5, Float::create(state, tv_to_dbl(&buf.ru_stime)));
-#elif defined(_WIN32)
-    FILETIME unused, unused2;
-    FILETIME sys, usr;
-
-    GetThreadTimes(GetCurrentThread(), &unused, &unused2, &sys, &user);
-
-    ary->set(state, 4, Float::create(state, ((double)usr) / 10000));
-    ary->set(state, 5, Float::create(state, ((double)sys) / 10000));
-#else
-    ary->set(state, 4, ary->get(state, 0));
-    ary->set(state, 5, ary->get(state, 1));
-#endif
+    ary->set(state, 4, Float::create(state, (double)usr / 1000000.0));
+    ary->set(state, 5, Float::create(state, (double)sys / 1000000.0));
 
     return ary;
 #endif
