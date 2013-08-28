@@ -86,7 +86,7 @@ class Time
       str = strftime("%Y-%m-%d %H:%M:%S %z")
     end
 
-    str.force_encoding Encoding::ASCII_8BIT
+    str.force_encoding Encoding::US_ASCII
   end
 
   alias_method :to_s, :inspect
