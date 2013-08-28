@@ -1214,7 +1214,7 @@ failed: /* try next '*' position */
       if(errno == EAGAIN || errno == EINTR) {
         if(state->check_async(calling_environment)) goto retry;
       } else {
-        Exception::errno_error(state, "read(2) failed");
+        Exception::errno_error(state, "accept(2) failed");
       }
 
       return NULL;
@@ -1413,7 +1413,7 @@ failed: /* try next '*' position */
 
     {
       GCIndependent guard(state, calling_environment);
-      bytes_read = read(fd, temp_buffer, count);
+      bytes_read = ::read(fd, temp_buffer, count);
     }
 
     state->vm()->thread->sleep(state, cFalse);
