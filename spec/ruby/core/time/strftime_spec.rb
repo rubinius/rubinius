@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/methods', __FILE__)
 
@@ -294,6 +296,16 @@ describe "Time#strftime" do
       time.strftime("%-e").should == "8"
       time.strftime("%-k%p").should == "8AM"
       time.strftime("%-l%p").should == "8AM"
+    end
+  end
+
+  with_feature :encoding do
+    it "passes the format string's encoding to the result string" do
+      time = Time.local(2010, 8, 8, 8, 10, 42)
+      result = time.strftime("%d. März %Y %H:%M")
+
+      result.encoding.should == Encoding::UTF_8
+      result.should == "08. März 2010 08:10"
     end
   end
 end
