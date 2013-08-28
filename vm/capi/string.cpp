@@ -122,16 +122,20 @@ namespace rubinius {
           } else {
             env->check_tracked_handle(this, false);
           }
+          // The underlying String may have changed since we last got the
+          // associated RString structure.
+          ensure_pinned(env, string, as_.rstring);
+
           atomic::memory_barrier();
           type_ = cRString;
         }
 
         env->shared().capi_ds_lock().unlock();
+      } else {
+        // The underlying String may have changed since we last got the
+        // associated RString structure.
+        ensure_pinned(env, string, as_.rstring);
       }
-
-      // The underlying String may have changed since we last got the
-      // associated RString structure.
-      ensure_pinned(env, string, as_.rstring);
 
       /* In Ruby, regardless of the contents in the ByteArray for a String,
        * the String's size is the authority on the length of the String.

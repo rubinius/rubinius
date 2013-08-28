@@ -15,7 +15,7 @@ namespace rubinius {
 namespace tooling {
 
   ToolBroker::ToolBroker()
-    : tool_ids_(0)
+    : tool_ids_(1)
     , global_tool_data_(0)
     , results_func_(0)
     , enable_func_(0)
