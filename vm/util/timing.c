@@ -24,8 +24,8 @@ int thread_cpu_usage(uint64_t* user, uint64_t* system) {
 #elif defined(RUSAGE_THREAD)
   struct rusage buf;
   if(getrusage(RUSAGE_THREAD, &buf)) return -1;
-  *user   = (uint64_t)buf.ru_utime;
-  *system = (uint64_t)buf.ru_stime;
+  *user   = (uint64_t)buf.ru_utime.tv_sec * 1000000 + buf.ru_utime.tv_usec;
+  *system = (uint64_t)buf.ru_stime.tv_sec * 1000000 + buf.ru_stime.tv_usec;
   return 0;
 #elif defined(_WIN32)
   FILETIME unused, unused2;
