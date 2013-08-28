@@ -18,13 +18,13 @@
 #define get_current_time() mach_absolute_time()
 #define TIMING_METHOD "mach_absolute_time"
 
-#elif defined(CLOCK_REALTIME)
+#elif defined(CLOCK_MONOTONIC)
 
 #include <time.h>
 
 static inline uint64_t get_current_time() {
   timespec tp;
-  if(clock_gettime(CLOCK_REALTIME, &tp)) {
+  if(clock_gettime(CLOCK_MONOTONIC, &tp)) {
     // error! Do something about it?
     return 0U;
   }
