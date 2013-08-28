@@ -7,7 +7,7 @@ before_install:
   - gem update --system
   - gem --version
 before_script:
-  - ./configure $RBX_MODE
+  - ./configure --enable-version=$RBX_MODE
 script: rake
 branches:
   only:
