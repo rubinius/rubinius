@@ -1979,6 +1979,14 @@ required to run it.
       [ "rubysl-zlib", gem_version ]
     ]
 
+    if @language_version == "18"
+      @rubygems_gems.concat [
+        [ "rubysl-parsedate", "1.0" ],
+        [ "rubysl-rational", "1.0" ],
+        [ "rubysl-syck", "1.0" ],
+      ]
+    end
+
     # Preinstalled runtime gems
     @runtime_gems = [
       [ "json", "1.8" ],
@@ -1988,6 +1996,12 @@ required to run it.
       [ "rubinius-profiler", "0.1" ],
       [ "rubinius-coverage", "0.1" ],
     ]
+
+    if @language_version == "18"
+      @runtime_gems.concat [
+        [ "rubysl-iconv", "1.0" ],
+      ]
+    end
 
     gems = @build_tool_gems + @build_c_ext_gems + @rubygems_gems + @runtime_gems
 
