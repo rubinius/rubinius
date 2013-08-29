@@ -53,6 +53,7 @@ class Configure
     @tar = nil
     @perl = nil
     @gem = nil
+    @bundle = nil
 
     # Versions
     @language_version = "21"
@@ -140,7 +141,7 @@ class Configure
 
     # Configure settings
     @config_version = 179
-    @bundle = true
+    @run_bundle = true
     @fetch_gems = true
   end
 
@@ -268,7 +269,7 @@ class Configure
     end
 
     o.on "--skip-bundle", "Don't run 'bundle install'" do
-      @bundle = false
+      @run_bundle = false
     end
 
     o.on "--skip-gems", "Don't fetch gems" do
@@ -289,6 +290,10 @@ class Configure
 
     o.on "--gem", "NAME", "Use NAME as 'gem' during build" do |name|
       @gem = name
+    end
+
+    o.on "--bundle", "NAME", "Use NAME as 'bundle' during build" do |name|
+      @bundle = name
     end
 
     o.doc "\n Release Settings"
@@ -868,6 +873,7 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
     @tar = ENV['TAR'] || (@windows ? 'bsdtar' : 'tar')
     @perl = ENV['PERL'] || 'perl'
     @gem = ENV['GEM'] || 'gem'
+    @bundle = ENV['BUNDLE'] || 'bundle'
 
     @gcc_major = `#{@cc} -dumpversion`.strip.split(".")[0,2].join(".")
     if @host == "i686-pc-linux-gnu" || @host == "x86_64-unknown-linux-gnu"
@@ -1903,11 +1909,11 @@ int main() { return tgetnum(""); }
   end
 
   def bundle
-    return unless @bundle
+    return unless @run_bundle
 
-    @log.write "Bundling development gem dependencies..."
+    @log.write "\nBundling development gem dependencies..."
     ENV["RBX_MODE"] = @language_version
-    system "bundle update"
+    system "#{build_ruby} -S #{@bundle} update"
     if $?.exitstatus != 0
       @log.write <<-EOM
 
@@ -2088,7 +2094,6 @@ required to run it.
     parse ARGV
 
     set_filesystem_paths
-    bundle
 
     if File.join(@bindir, @program_name) == build_ruby
       @log.error "\nYou are attempting to build using the instance of Rubinius that you are building.\n\n"
@@ -2102,6 +2107,7 @@ required to run it.
     end
 
     process
+    bundle
     fetch_gems
     unpack_gems
     write_configure_files
