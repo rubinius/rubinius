@@ -1179,7 +1179,7 @@ class IO
       end
     end
 
-    data.size
+    data.bytesize
   end
 
   def syswrite(data)

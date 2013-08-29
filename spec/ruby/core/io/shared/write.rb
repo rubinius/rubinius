@@ -1,3 +1,4 @@
+# encoding: utf-8
 require File.expand_path('../../fixtures/classes', __FILE__)
 
 describe :io_write, :shared => true do
@@ -66,5 +67,11 @@ describe :io_write, :shared => true do
 
   it "raises IOError on closed stream" do
     lambda { IOSpecs.closed_io.send(@method, "hello") }.should raise_error(IOError)
+  end
+
+  with_feature :encoding do
+    it "returns the number of bytes written" do
+      @file.send(@method, "hellø").should == 6
+    end
   end
 end
