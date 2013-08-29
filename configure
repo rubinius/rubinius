@@ -869,11 +869,11 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
     check_tool_version @cxx, '-dumpversion', [4, 1]
     check_tool_version 'bison', '--version', [2, 3]
 
-    @rake = ENV['RAKE'] || 'rake'
-    @tar = ENV['TAR'] || (@windows ? 'bsdtar' : 'tar')
-    @perl = ENV['PERL'] || 'perl'
-    @gem = ENV['GEM'] || 'gem'
-    @bundle = ENV['BUNDLE'] || 'bundle'
+    @rake ||= ENV['RAKE'] || 'rake'
+    @tar ||= ENV['TAR'] || (@windows ? 'bsdtar' : 'tar')
+    @perl ||= ENV['PERL'] || 'perl'
+    @gem ||= ENV['GEM'] || 'gem'
+    @bundle ||= ENV['BUNDLE'] || 'bundle'
 
     @gcc_major = `#{@cc} -dumpversion`.strip.split(".")[0,2].join(".")
     if @host == "i686-pc-linux-gnu" || @host == "x86_64-unknown-linux-gnu"
