@@ -2064,7 +2064,7 @@ required to run it.
       gems.each do |name, version|
         unless unpacked.find { |dir| dir =~ /#{name}-#{version}/ }
           gem = Dir["#{gem_sources}/#{name}-#{version}*"].first
-          system("gem unpack #{gem}")
+          system("#{@gem} unpack #{gem}")
         end
       end
     end
