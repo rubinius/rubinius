@@ -618,6 +618,9 @@ describe :kernel_require, :shared => true do
 
         t1 = Thread.new do
           Thread.pass until start
+          # Yes, using sleep for synchronization is broken and wrong. See the
+          # comment above. Alternatively, fix Ruby.
+          sleep 0.1
           @object.require(@path2).should be_true
           ScratchPad.recorded << :t1_post
         end
