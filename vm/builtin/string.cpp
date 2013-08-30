@@ -614,9 +614,6 @@ namespace rubinius {
         } else {
           num_chars(state, Fixnum::from(Encoding::string_character_length(p, e, enc)));
         }
-        if(num_chars_ == num_bytes_) {
-          ascii_only_ = cTrue;
-        }
       }
     }
 
