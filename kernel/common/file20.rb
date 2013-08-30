@@ -1,46 +1,10 @@
+# -*- encoding: us-ascii -*-
+
 class File
-  def initialize(path_or_fd, mode=nil, perm=0666)
-    if path_or_fd.kind_of? Integer
-      super(path_or_fd, mode)
-      @path = nil
-    else
-      path = Rubinius::Type.coerce_to_path path_or_fd
 
-      mode ||= "r"
-      fd = IO.sysopen(path, mode, perm)
-      if fd < 0
-        begin
-          Errno.handle path
-        rescue Errno::EMFILE
-          # true means force to run, don't ignore it.
-          GC.run(true)
-
-          fd = IO.sysopen(path, mode, perm)
-          Errno.handle if fd < 0
-        end
-      end
-
-      @path = path
-      super(fd)
-    end
-  end
-
-  private :initialize
-
-  ##
-  # Converts a pathname to an absolute pathname. Relative
-  # paths are referenced from the current working directory
-  # of the process unless dir_string is given, in which case
-  # it will be used as the starting point. The given pathname
-  # may start with a ``~’’, which expands to the process owner‘s
-  # home directory (the environment variable HOME must be set
-  # correctly). "~user" expands to the named user‘s home directory.
-  #
-  #  File.expand_path("~oracle/bin")           #=> "/home/oracle/bin"
-  #  File.expand_path("../../bin", "/tmp/x")   #=> "/bin"
   def self.expand_path(path, dir=nil)
     path = Rubinius::Type.coerce_to_path(path)
-
+    enc = path.encoding
     first = path[0]
     if first == ?~
       case path[1]
@@ -109,8 +73,7 @@ class File
       items.each { |x| str.append "/#{x}" }
     end
 
-    return Rubinius::Type.external_string(str)
+    return Rubinius::Type.external_string(str).encode(enc)
   end
-
 
 end
