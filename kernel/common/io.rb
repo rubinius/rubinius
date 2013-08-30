@@ -583,13 +583,13 @@ class IO
       real_arg = 1
     elsif arg.kind_of? String
       # This could be faster.
-      buffer_size = arg.length
+      buffer_size = arg.bytesize
       # On BSD and Linux, we could read the buffer size out of the ioctl value.
       # Most Linux ioctl codes predate the convention, so a fallback like this
       # is still necessary.
       buffer_size = 4096 if buffer_size < 4096
       buffer = FFI::MemoryPointer.new buffer_size
-      buffer.write_string arg, arg.length
+      buffer.write_string arg, arg.bytesize
       real_arg = buffer.address
     else
       real_arg = Rubinius::Type.coerce_to arg, Fixnum, :to_int
@@ -938,7 +938,7 @@ class IO
     if buffer
       buffer = StringValue(buffer)
 
-      buffer.shorten! buffer.size
+      buffer.shorten! buffer.bytesize
 
       return buffer if size == 0
 
@@ -1163,7 +1163,7 @@ class IO
 
   def syswrite(data)
     data = String data
-    return 0 if data.length == 0
+    return 0 if data.bytesize == 0
 
     ensure_open_and_writable
     @ibuffer.unseek!(self) unless @sync
@@ -1175,7 +1175,7 @@ class IO
     ensure_open_and_writable
 
     data = String data
-    return 0 if data.length == 0
+    return 0 if data.bytesize == 0
 
     @ibuffer.unseek!(self) unless @sync
 

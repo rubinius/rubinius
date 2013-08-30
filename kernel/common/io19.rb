@@ -295,7 +295,7 @@ class IO
       begin
         while data = @from.send(@method, size, "")
           @to.write data
-          bytes += data.size
+          bytes += data.bytesize
 
           break if @length && bytes >= @length
         end
