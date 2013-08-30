@@ -62,6 +62,10 @@ ruby_version_is "1.9.3" do
       File.read(@filename).should == "\0\0hi"
     end
 
+    it "uses the given encoding and returns the number of bytes written" do
+      IO.write(@filename, 'hi', :mode => "w", :encoding => Encoding::UTF_32LE).should == 8
+    end
+
     it "needs to be reviewed for spec completeness"
   end
 end

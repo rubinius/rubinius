@@ -165,6 +165,27 @@ class IO
     end
   end
 
+  def write(data)
+    data = String data
+    return 0 if data.bytesize == 0
+
+    ensure_open_and_writable
+
+    if @sync
+      prim_write(data)
+    else
+      @ibuffer.unseek! self
+      bytes_to_write = data.bytesize
+
+      while bytes_to_write > 0
+        bytes_to_write -= @ibuffer.unshift(data, data.bytesize - bytes_to_write)
+        @ibuffer.empty_to self if @ibuffer.full? or sync
+      end
+    end
+
+    data.bytesize
+  end
+
   ##
   # Chains together buckets of input from the buffer until
   # locating +sep+. If +sep+ is +nil+, returns +read_all+.
