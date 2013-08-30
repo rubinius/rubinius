@@ -1,1 +1,0 @@
-fails:File.expand_path returns a String in the same encoding as the argument

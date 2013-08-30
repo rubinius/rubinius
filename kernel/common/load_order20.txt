@@ -84,6 +84,7 @@ io.rbc
 io19.rbc
 file.rbc
 file19.rbc
+file20.rbc
 dir19.rbc
 filetest.rbc
 stat.rbc
