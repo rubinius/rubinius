@@ -1161,27 +1161,6 @@ class IO
   alias_method :prim_write, :write
   alias_method :prim_close, :close
 
-  def write(data)
-    data = String data
-    return 0 if data.length == 0
-
-    ensure_open_and_writable
-
-    if @sync
-      prim_write(data)
-    else
-      @ibuffer.unseek! self
-      bytes_to_write = data.size
-
-      while bytes_to_write > 0
-        bytes_to_write -= @ibuffer.unshift(data, data.size - bytes_to_write)
-        @ibuffer.empty_to self if @ibuffer.full? or sync
-      end
-    end
-
-    data.bytesize
-  end
-
   def syswrite(data)
     data = String data
     return 0 if data.length == 0

@@ -70,8 +70,34 @@ describe :io_write, :shared => true do
   end
 
   with_feature :encoding do
+    before :each do
+      @external = Encoding.default_external
+      @internal = Encoding.default_internal
+
+      Encoding.default_external = Encoding::UTF_8
+    end
+
+    after :each do
+      Encoding.default_external = @external
+      Encoding.default_internal = @internal
+    end
+
     it "returns the number of bytes written" do
       @file.send(@method, "hellø").should == 6
     end
+
+    it "uses the encoding from the given option for non-ascii encoding" do
+      File.open(@filename, "w", :encoding => Encoding::UTF_32LE) do |file|
+        file.write("hi").should == 8
+      end
+      File.binread(@filename).should == "h\u0000\u0000\u0000i\u0000\u0000\u0000"
+    end
+
+    it "raises a invalid byte sequence error if invalid bytes are being written" do
+      File.open(@filename, "w", :encoding => Encoding::US_ASCII) do |file|
+        lambda { file.write("\xFEhi") }.should raise_error(Encoding::InvalidByteSequenceError)
+      end
+    end
+
   end
 end
