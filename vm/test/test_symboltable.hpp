@@ -65,7 +65,7 @@ public:
 
       TS_ASSERT_EQUALS(cTrue, str1->equal(state, str3));
       TS_ASSERT_EQUALS(cTrue, str2->equal(state, str4));
-      TS_ASSERT_EQUALS(symbols->size(), 2U);
+      TS_ASSERT_EQUALS(symbols->all_as_array(state)->size(), 2U);
     }
   }
 
@@ -135,26 +135,6 @@ public:
     Symbol* sym2 = symbols->lookup(state, str2);
     std::string symstr2 = symbols->lookup_debug_string(sym2);
     TS_ASSERT(!strncmp("blah\\xc3\\xa9wha", symstr2.c_str(), 11));
-  }
-
-  void test_size() {
-    symbols->lookup(state, "uno");
-    symbols->lookup(state, "dos");
-    symbols->lookup(state, "tres");
-
-    TS_ASSERT_EQUALS(symbols->size(), 3U);
-  }
-
-  void test_many_symbols() {
-    size_t size = symbols->size();
-
-    for(size_t i = 0; i < 100; i++) {
-      std::ostringstream stream;
-      stream << "sym" << i;
-      symbols->lookup(state, stream.str().c_str());
-    }
-
-    TS_ASSERT(symbols->size() > size);
   }
 
   void test_all_as_array() {

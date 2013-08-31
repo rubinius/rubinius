@@ -51,12 +51,13 @@ namespace rubinius {
     return SymbolTable::Normal;
   }
 
-  SymbolTable::Kind SymbolTable::kind(STATE, const Symbol* sym) const {
+  SymbolTable::Kind SymbolTable::kind(STATE, const Symbol* sym) {
+    utilities::thread::SpinLock::LockGuard guard(lock_);
     return kinds[sym->index()];
   }
 
   size_t SymbolTable::add(std::string str, int enc) {
-    bytes_used_ += (str.size() + sizeof(str));
+    bytes_used_ += (str.size() + sizeof(std::string) + sizeof(int) + sizeof(Kind));
 
     strings.push_back(str);
     encodings.push_back(enc);
@@ -218,25 +219,6 @@ namespace rubinius {
       }
     }
     return os.str();
-  }
-
-  size_t SymbolTable::size() {
-    utilities::thread::SpinLock::LockGuard guard(lock_);
-    return strings.size();
-  }
-
-  size_t SymbolTable::byte_size() {
-    utilities::thread::SpinLock::LockGuard guard(lock_);
-    size_t total = 0;
-
-    for(SymbolStrings::const_iterator i = strings.begin();
-        i != strings.end();
-        ++i) {
-      total += i->size();
-      total += sizeof(std::string);
-    }
-
-    return total;
   }
 
   Array* SymbolTable::all_as_array(STATE) {

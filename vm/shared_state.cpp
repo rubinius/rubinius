@@ -104,7 +104,7 @@ namespace rubinius {
   int SharedState::size() {
     return sizeof(SharedState) +
       sizeof(WorldState) +
-      symbols.byte_size();
+      symbols.bytes_used();
   }
 
   void SharedState::discard(SharedState* ss) {
