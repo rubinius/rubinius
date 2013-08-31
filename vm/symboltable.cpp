@@ -177,6 +177,7 @@ namespace rubinius {
   }
 
   String* SymbolTable::lookup_string(STATE, const Symbol* sym) {
+    utilities::thread::SpinLock::LockGuard guard(lock_);
     if(sym->nil_p()) {
       Exception::argument_error(state, "Cannot look up Symbol from nil");
       return NULL;
@@ -194,15 +195,18 @@ namespace rubinius {
   }
 
   std::string& SymbolTable::lookup_cppstring(const Symbol* sym) {
+    utilities::thread::SpinLock::LockGuard guard(lock_);
     return strings[sym->index()];
   }
 
   int SymbolTable::lookup_encoding(const Symbol* sym) {
+    utilities::thread::SpinLock::LockGuard guard(lock_);
     return encodings[sym->index()];
   }
 
   std::string SymbolTable::lookup_debug_string(const Symbol* sym) {
-    std::string str = lookup_cppstring(sym);
+    utilities::thread::SpinLock::LockGuard guard(lock_);
+    std::string str = strings[sym->index()];
     std::ostringstream os;
     unsigned char* cstr = (unsigned char*) str.data();
     size_t size = str.size();
@@ -216,11 +220,13 @@ namespace rubinius {
     return os.str();
   }
 
-  size_t SymbolTable::size() const {
+  size_t SymbolTable::size() {
+    utilities::thread::SpinLock::LockGuard guard(lock_);
     return strings.size();
   }
 
-  size_t SymbolTable::byte_size() const {
+  size_t SymbolTable::byte_size() {
+    utilities::thread::SpinLock::LockGuard guard(lock_);
     size_t total = 0;
 
     for(SymbolStrings::const_iterator i = strings.begin();
@@ -234,8 +240,9 @@ namespace rubinius {
   }
 
   Array* SymbolTable::all_as_array(STATE) {
+    utilities::thread::SpinLock::LockGuard guard(lock_);
     size_t idx = 0;
-    Array* ary = Array::create(state, this->size());
+    Array* ary = Array::create(state, strings.size());
 
     for(SymbolMap::iterator s = symbols.begin(); s != symbols.end(); ++s) {
       for(SymbolIds::iterator i = s->second.begin(); i != s->second.end(); ++i) {

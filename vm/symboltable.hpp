@@ -86,12 +86,12 @@ namespace rubinius {
     int lookup_encoding(const Symbol* sym);
     std::string lookup_debug_string(const Symbol* sym);
 
-    size_t size() const;
+    size_t size();
     Array* all_as_array(STATE);
 
     Kind kind(STATE, const Symbol* sym) const;
 
-    size_t byte_size() const;
+    size_t byte_size();
 
     size_t add(std::string str, int enc);
     static Kind detect_kind(const char* str, size_t size);

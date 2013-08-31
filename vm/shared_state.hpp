@@ -138,7 +138,7 @@ namespace rubinius {
 
     static void discard(SharedState* ss);
 
-    int size() const;
+    int size();
 
     void set_initialized() {
       setup_capi_constant_names();
