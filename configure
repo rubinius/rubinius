@@ -253,6 +253,8 @@ class Configure
       FileUtils.rm_rf @stagingdir
       @stagingdir = File.join @stagingdir, @prefixdir if @preserve_prefix
     end
+
+    @build_prefix = @stagingdir || @sourcedir
   end
 
   def options
@@ -1640,7 +1642,7 @@ int main() { return tgetnum(""); }
   end
 
   def write_capi_header(name, ref)
-    File.open "#{@prefixdir}/vm/capi/#{name}", "wb" do |f|
+    File.open "#{@build_prefix}/vm/capi/#{name}", "wb" do |f|
       f.puts ref
     end
   end
@@ -1652,7 +1654,6 @@ int main() { return tgetnum(""); }
     end
 
     @bin_links.delete @program_name
-    @build_prefix = @stagingdir || @sourcedir
 
     config_settings = {
       :command_line       => @command_line,
@@ -1846,11 +1847,12 @@ int main() { return tgetnum(""); }
     end
 
     if @language_version == "18"
-      vm_capi_header = "#{@prefixdir}#{@includedir}"
+      vm_capi_header = "#{@build_prefix}#{@includedir}"
     else
-      vm_capi_header = "#{@prefixdir}#{@includedir}/ruby"
+      vm_capi_header = "#{@build_prefix}#{@includedir}/ruby"
     end
 
+    FileUtils.mkdir_p vm_capi_header
     FileUtils.cp config_h, "#{vm_capi_header}/config.h"
 
     # Create C-API header for vm/test
@@ -1867,7 +1869,9 @@ int main() { return tgetnum(""); }
     FileUtils.cp capi_constants_h, "#{vm_capi_header}/capi_constants.h"
 
     # Create C-API headers that reference specific language mode headers
-    vm_capi_header_rel = vm_capi_header[@prefixdir.size+1..-1]
+    vm_capi_header_rel = vm_capi_header[@build_prefix.size+1..-1]
+    FileUtils.mkdir_p vm_capi_header_rel
+
     write_capi_header "encoding.h", %[\#include "#{vm_capi_header_rel}/encoding.h"]
     write_capi_header "oniguruma.h", %[\#include "#{vm_capi_header_rel}/oniguruma.h"]
     write_capi_header "regenc.h", %[\#include "#{vm_capi_header_rel}/regenc.h"]

@@ -180,11 +180,12 @@ namespace :build do
     stage:bin
     stage:extra_bins
     stage:capi_include
-    stage:lib
-    stage:tooling
-    stage:kernel
     kernel:build
+    stage:kernel
     stage:runtime
+    stage:lib
+    gems:melbourne
+    gems:extensions
     stage:documentation
     stage:manpages
   ] + TRANSCODING_LIBS
