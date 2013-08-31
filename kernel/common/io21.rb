@@ -295,7 +295,7 @@ class IO
       begin
         while data = @from.send(@method, size, "")
           @to.write data
-          bytes += data.size
+          bytes += data.bytesize
 
           break if @length && bytes >= @length
         end
@@ -723,6 +723,33 @@ class IO
       buffer.clear if buffer
       nil
     end
+  end
+
+  def write(data)
+    data = String data
+    return 0 if data.bytesize == 0
+
+    ensure_open_and_writable
+
+    if !binmode? && external_encoding && external_encoding != data.encoding
+      unless data.ascii_only? && external_encoding.ascii_compatible?
+        data.encode!(external_encoding) 
+      end
+    end
+
+    if @sync
+      prim_write(data)
+    else
+      @ibuffer.unseek! self
+      bytes_to_write = data.bytesize
+
+      while bytes_to_write > 0
+        bytes_to_write -= @ibuffer.unshift(data, data.bytesize - bytes_to_write)
+        @ibuffer.empty_to self if @ibuffer.full? or sync
+      end
+    end
+
+    data.bytesize
   end
 
   def getbyte
