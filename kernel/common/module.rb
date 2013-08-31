@@ -430,6 +430,7 @@ class Module
 
   def const_set(name, value)
     name = Rubinius::Type.coerce_to_constant_name name
+    Rubinius.check_frozen
 
     if Rubinius::Type.object_kind_of? value, Module
       Rubinius::Type.set_module_name value, name, self
