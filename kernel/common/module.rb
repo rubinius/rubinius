@@ -650,6 +650,7 @@ class Module
 
   def freeze
     @method_table.freeze
+    @constant_table.freeze
     super
   end
 
