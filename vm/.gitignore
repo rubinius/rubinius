@@ -4,17 +4,6 @@ gen/*
 test/test_instructions.hpp
 
 # generated files
-capi/encoding.h
-capi/oniguruma.h
-capi/regenc.h
-capi/ruby.h
-capi/transcoder.h
-capi/config.h
-capi/18/include/config.h
-capi/18/include/mri_oop.h
-capi/18/include/gen/*
-capi/18/include/capi_constants.h
-capi/21/include/ruby/config.h
-capi/21/include/ruby/mri_oop.h
-capi/21/include/gen/*
-capi/21/include/ruby/capi_constants.h
+include/capi/*
+!include/capi/capi_oop.h
+!include/capi/capi_constants.h

@@ -2,7 +2,7 @@
 #include "objectmemory.hpp"
 
 #include "capi/ruby.h"
-#include "capi/encoding.h"
+#include "capi/ruby/encoding.h"
 
 #include "builtin/bytearray.hpp"
 #include "builtin/encoding.hpp"

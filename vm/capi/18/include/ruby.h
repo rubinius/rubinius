@@ -35,7 +35,7 @@
 #include <alloca.h>
 #endif
 
-#include "mri_oop.h"
+#include "capi_oop.h"
 #include "capi_constants.h"
 #include "intern.h"
 #include "defines.h"

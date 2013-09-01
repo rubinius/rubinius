@@ -88,7 +88,7 @@ Daedalus.blueprint do |i|
     g.depends_on "config.h", "configure"
 
     gcc.cflags.unshift "-I#{src}/vendor/oniguruma"
-    g.cflags = ["-DHAVE_CONFIG_H", "-I#{src}#{BUILD_CONFIG[:includedir]}"]
+    g.cflags = [ "-DHAVE_CONFIG_H", "-I#{src}/vm/include/capi" ]
     g.cflags += gcc.cflags
 
     g.static_library "libonig" do |l|
@@ -254,7 +254,8 @@ Daedalus.blueprint do |i|
   end
 
   # Make sure to push these up front so vm/ stuff has priority
-  gcc.cflags.unshift "-I#{src} -I#{src}/vm -I#{src}/vm/builtin -Ivm/test/cxxtest -I."
+  dirs = %w[ /vm /vm/include /vm/builtin ]
+  gcc.cflags.unshift "#{dirs.map { |d| "-I#{src}#{d}" }.join(" ")} -I. -Ivm/test/cxxtest"
 
   gcc.cflags << "-Wno-unused-function"
   gcc.cflags << "-Werror"

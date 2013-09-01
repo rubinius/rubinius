@@ -24,7 +24,7 @@ transcoders_database = "vm/gen/transcoder_database.cpp"
 
 vm_release_h = BUILD_CONFIG[:vm_release_h]
 vm_version_h = BUILD_CONFIG[:vm_version_h]
-capi_release_h = "vm/capi/#{BUILD_CONFIG[:language_version]}/include/gen/rbx_release.h"
+capi_release_h = "vm/include/capi/gen/rbx_release.h"
 
 ENV.delete 'CDPATH' # confuses llvm_config
 
