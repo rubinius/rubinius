@@ -29,6 +29,11 @@ class Float < Numeric
     FFI::Platform::Math.fabs(self)
   end
 
+  def negative?
+    Rubinius.primitive :float_negative
+    raise PrimitiveFailure, "Float#negative primitive failed"
+  end
+
   def +(other)
     Rubinius.primitive :float_add
     b, a = math_coerce other

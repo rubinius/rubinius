@@ -16,4 +16,8 @@
 #define isnan   std::isnan
 #endif
 
+#ifndef signbit
+#define signbit std::signbit
+#endif
+
 #endif

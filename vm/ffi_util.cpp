@@ -47,8 +47,4 @@ long ffi_minor(dev_t n) {
   return minor(n);
 }
 
-int ffi_signbit(double x) {
-  return signbit(x);
-}
-
 }
