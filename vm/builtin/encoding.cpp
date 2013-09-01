@@ -792,7 +792,7 @@ namespace rubinius {
 
     int flags = converter_->flags = options->to_native();
 
-    if(!replacement()->nil_p()) {
+    if(!replacement()->nil_p() && !converter_->replacement_str) {
       native_int byte_size = replacement()->byte_size();
       char* buf = (char*)XMALLOC(byte_size + 1);
       strncpy(buf, replacement()->c_str(state), byte_size + 1);
