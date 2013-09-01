@@ -1280,9 +1280,9 @@ namespace rubinius {
     s->num_chars(state, nil<Fixnum>());
     s->hash_value(state, nil<Fixnum>());
     s->shared(state, cFalse);
-    s->encoding(state, enc);
     s->ascii_only(state, cNil);
     s->valid_encoding(state, cNil);
+    s->encoding(state, enc);
 
     ByteArray* ba = ByteArray::create_dirty(state, n);
 
