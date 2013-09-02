@@ -19,6 +19,7 @@ describe "Module#autoload" do
 
   before :each do
     @loaded_features = $".dup
+    @frozen_module = Module.new.freeze
 
     ScratchPad.clear
   end
@@ -368,6 +369,22 @@ describe "Module#autoload" do
       name.should_receive(:to_path).and_return("autoload_name.rb")
 
       lambda { ModuleSpecs::Autoload.autoload :Str, name }.should_not raise_error
+    end
+  end
+
+  describe "on a frozen module" do
+    ruby_version_is "" ... "1.9" do
+      it "raises a TypeError before setting the name" do
+        lambda { @frozen_module.autoload :Foo, @non_existent }.should raise_error(TypeError)
+        @frozen_module.should_not have_constant(:Foo)
+      end
+    end
+
+    ruby_version_is "1.9" do
+      it "raises a RuntimeError before setting the name" do
+        lambda { @frozen_module.autoload :Foo, @non_existent }.should raise_error(RuntimeError)
+        @frozen_module.should_not have_constant(:Foo)
+      end
     end
   end
 

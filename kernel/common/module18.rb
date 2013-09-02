@@ -47,6 +47,8 @@ class Module
 
     name = Rubinius::Type.coerce_to_constant_name name
 
+    Rubinius.check_frozen
+
     if entry = @constant_table.lookup(name)
       if entry.constant.kind_of? Autoload
         # If there is already an Autoload here, just change the path to
