@@ -52,7 +52,7 @@ class Float
   def arg
     if nan?
       self
-    elsif FFI::Platform::Math.signbit(self) != 0
+    elsif negative?
       Math::PI
     else
       0

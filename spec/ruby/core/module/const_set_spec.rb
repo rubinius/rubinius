@@ -51,4 +51,25 @@ describe "Module#const_set" do
     name.should_receive(:to_str).and_return(123)
     lambda { ConstantSpecs.const_set name, 1 }.should raise_error(TypeError)
   end
+
+  describe "on a frozen module" do
+    before(:each) do
+      @frozen = Module.new.freeze
+      @name = :Foo
+    end
+
+    ruby_version_is "" ... "1.9" do
+      it "raises a TypeError before setting the name" do
+        lambda { @frozen.const_set @name, nil }.should raise_error(TypeError)
+        @frozen.should_not have_constant(@name)
+      end
+    end
+
+    ruby_version_is "1.9" do
+      it "raises a RuntimeError before setting the name" do
+        lambda { @frozen.const_set @name, nil }.should raise_error(RuntimeError)
+        @frozen.should_not have_constant(@name)
+      end
+    end
+  end
 end

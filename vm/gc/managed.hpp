@@ -79,6 +79,7 @@ namespace rubinius {
       // Often we will remove the last locked object
       // because how locks are used in a stack wise manner.
       // Therefore we optimize here for this case and have a fast path
+      if(locked_objects_.size() == 0) return;
       ObjectHeader* last = locked_objects_.back();
       if(obj == last) {
         locked_objects_.pop_back();

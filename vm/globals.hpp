@@ -120,6 +120,7 @@ namespace rubinius {
     TypedRoot<Class*> fiber;
     TypedRoot<Class*> alias;
     TypedRoot<Class*> encoding;
+    TypedRoot<Object*> encoding_list;
     TypedRoot<Module*> type;
     TypedRoot<Class*> vm_class;
     TypedRoot<Class*> atomic_ref;
@@ -247,6 +248,7 @@ namespace rubinius {
       fiber(&roots),
       alias(&roots),
       encoding(&roots),
+      encoding_list(&roots),
       type(&roots),
       vm_class(&roots),
       atomic_ref(&roots),

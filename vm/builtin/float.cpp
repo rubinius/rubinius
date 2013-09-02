@@ -459,6 +459,10 @@ namespace rubinius {
     return String::create(state, str, sz);
   }
 
+  Object* Float::negative(STATE) {
+    return signbit(this->val) ? cTrue : cFalse;
+  }
+
   double Float::string_to_double(const char* buf, size_t len, bool strict, char** end) {
     int flags = double_conversion::StringToDoubleConverter::ALLOW_HEX |
         double_conversion::StringToDoubleConverter::ALLOW_TRAILING_SPACES;

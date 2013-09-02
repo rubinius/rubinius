@@ -94,7 +94,10 @@ namespace rubinius {
     for(LockedObjects::iterator i = los.begin();
         i != los.end();
         ++i) {
-      (*i)->unlock_for_terminate(state, gct, calling_environment);
+      ObjectHeader* locked = *i;
+      if(locked != this) {
+        locked->unlock_for_terminate(state, gct, calling_environment);
+      }
     }
     los.clear();
     return cNil;

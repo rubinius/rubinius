@@ -820,7 +820,7 @@ step1:
   }
 
   size_t ObjectMemory::symbol_bytes_allocated() const {
-    return shared_.symbols.size();
+    return shared_.symbols.bytes_used();
   }
 
   size_t ObjectMemory::jit_bytes_allocated() const {

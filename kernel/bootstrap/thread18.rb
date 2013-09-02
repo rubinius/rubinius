@@ -74,6 +74,7 @@ class Thread
           # either case, we jump to the following ensure clause.
           Rubinius.check_interrupts
         ensure
+          unlock_locks
           @joins.each { |join| join.send self }
         end
       end
@@ -90,7 +91,6 @@ class Thread
       end
       @alive = false
       Rubinius.unlock(self)
-      unlock_locks
     end
 
     unless @exception

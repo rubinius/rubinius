@@ -56,8 +56,9 @@ namespace rubinius {
 
     G(encoding)->set_object_type(state, EncodingType);
 
+    GO(encoding_list).set(Array::create(state, 3));
     G(encoding)->set_const(state, "EncodingMap", LookupTable::create(state));
-    G(encoding)->set_const(state, "EncodingList", Array::create(state, 3));
+    G(encoding)->set_const(state, "EncodingList", G(encoding_list));
 
     G(encoding)->set_ivar(state, state->symbol("@default_external"), G(undefined));
     G(encoding)->set_ivar(state, state->symbol("@default_internal"), G(undefined));
@@ -419,7 +420,7 @@ namespace rubinius {
   }
 
   Array* Encoding::encoding_list(STATE) {
-    return as<Array>(G(encoding)->get_const(state, state->symbol("EncodingList")));
+    return as<Array>(G(encoding_list));
   }
 
   LookupTable* Encoding::transcoding_map(STATE) {
@@ -791,7 +792,7 @@ namespace rubinius {
 
     int flags = converter_->flags = options->to_native();
 
-    if(!replacement()->nil_p()) {
+    if(!replacement()->nil_p() && !converter_->replacement_str) {
       native_int byte_size = replacement()->byte_size();
       char* buf = (char*)XMALLOC(byte_size + 1);
       strncpy(buf, replacement()->c_str(state), byte_size + 1);
