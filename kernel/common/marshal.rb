@@ -935,8 +935,13 @@ module Marshal
     depth = Rubinius::Type.coerce_to limit, Fixnum, :to_int
     ms = State.new nil, depth, nil
 
-    if an_io and !Rubinius::Type.object_respond_to? an_io, :write
-      raise TypeError, "output must respond to write"
+    if an_io
+      if !Rubinius::Type.object_respond_to? an_io, :write
+        raise TypeError, "output must respond to write"
+      end
+      if Rubinius::Type.object_respond_to? an_io, :binmode
+        an_io.binmode
+      end
     end
 
     str = Rubinius::Type.binary_string(VERSION_STRING) + ms.serialize(obj)
