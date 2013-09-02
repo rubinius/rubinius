@@ -502,19 +502,34 @@ describe "Marshal.dump" do
     Marshal.dump([[[]]], -1).should == "\004\b[\006[\006[\000"
   end
 
-  it "writes the serialized data to the IO-Object" do
-    (obj = mock('test')).should_receive(:write).at_least(1)
-    Marshal.dump("test", obj)
-  end
+  describe "when passed an IO" do
 
-  it "returns the IO-Object" do
-    (obj = mock('test')).should_receive(:write).at_least(1)
-    Marshal.dump("test", obj).should == obj
-  end
+    it "writes the serialized data to the IO-Object" do
+      (obj = mock('test')).should_receive(:write).at_least(1)
+      Marshal.dump("test", obj)
+    end
 
-  it "raises an Error when the IO-Object does not respond to #write" do
-    obj = mock('test')
-    lambda { Marshal.dump("test", obj) }.should raise_error(TypeError)
+    it "returns the IO-Object" do
+      (obj = mock('test')).should_receive(:write).at_least(1)
+      Marshal.dump("test", obj).should == obj
+    end
+
+    it "raises an Error when the IO-Object does not respond to #write" do
+      obj = mock('test')
+      lambda { Marshal.dump("test", obj) }.should raise_error(TypeError)
+    end
+
+    with_feature :encoding do
+
+      it "calls binmode when it's defined" do
+        obj = mock('test')
+        obj.should_receive(:write).at_least(1)
+        obj.should_receive(:binmode).at_least(1)
+        Marshal.dump("test", obj)
+      end
+
+    end
+
   end
 
   it "raises a TypeError if marshalling a Method instance" do
