@@ -1843,7 +1843,7 @@ int main() { return tgetnum(""); }
     # Copy language-mode-specific headers to language-mode-agnostic include
     # directory.
     include_prefix = "#{@sourcedir}/vm/capi/#{@language_version}/include"
-    headers = Dir["#{include_prefix}/**/*.h"]
+    headers = Dir["#{include_prefix}/**/*.{h,hpp}"]
     headers.each do |name|
       dest = "#{vm_capi_include}#{name[-(name.size-include_prefix.size)..-1]}"
       FileUtils.mkdir_p File.dirname(dest)
