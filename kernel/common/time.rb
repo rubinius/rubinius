@@ -173,7 +173,7 @@ class Time
   end
 
   def zone
-    @zone ||= to_a[9]
+    to_a[9]
   end
 
   def gmt?

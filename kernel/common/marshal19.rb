@@ -85,7 +85,7 @@ class Time
     extra_values[:offset] = gmt_offset unless gmt?
     extra_values[:zone] = zone.encode(Encoding.find('locale'))
 
-    ivars = ms.serializable_instance_variables(self, [:@zone])
+    ivars = ms.serializable_instance_variables(self, false)
     out << Rubinius::Type.binary_string("I")
     out << Rubinius::Type.binary_string("u#{ms.serialize(self.class.name.to_sym)}")
 

@@ -65,7 +65,7 @@ end
 
 class Time
   def __custom_marshal__(ms)
-    out = ms.serialize_instance_variables_prefix(self, [:@zone])
+    out = ms.serialize_instance_variables_prefix(self, false)
     out << Rubinius::Type.binary_string("u#{ms.serialize(self.class.name.to_sym)}")
     str = _dump
     out << ms.serialize_integer(str.length) + str

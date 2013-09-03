@@ -22,12 +22,14 @@ namespace rubinius {
     Array* decomposed_; // slot
     Object* is_gmt_;  // slot
     Object* offset_; // slot
+    Object* zone_; // slot
 
   public:
     /* accessors */
     attr_accessor(decomposed, Array);
     attr_accessor(is_gmt, Object);
     attr_accessor(offset, Object);
+    attr_accessor(zone, Object);
 
     /* interface */
 

@@ -41,6 +41,7 @@ namespace rubinius {
     tm->decomposed(state, nil<Array>());
     tm->is_gmt(state, cFalse);
     tm->offset(state, nil<Fixnum>());
+    tm->zone(state, nil<String>());
 
     return tm;
   }
@@ -52,6 +53,7 @@ namespace rubinius {
     tm->decomposed(state, nil<Array>());
     tm->is_gmt(state, cFalse);
     tm->offset(state, nil<Fixnum>());
+    tm->zone(state, nil<String>());
     return tm;
   }
 
@@ -81,6 +83,7 @@ namespace rubinius {
     tm->decomposed(state, nil<Array>());
     tm->is_gmt(state, RBOOL(CBOOL(gmt)));
     tm->offset(state, offset);
+    tm->zone(state, nil<String>());
 
     return tm;
   }
@@ -154,6 +157,7 @@ namespace rubinius {
     }
 
     obj->decomposed(state, nil<Array>());
+    obj->zone(state, nil<String>());
 
     return obj;
   }
@@ -165,6 +169,7 @@ namespace rubinius {
     tm->decomposed(state, other->decomposed_);
     tm->is_gmt(state, other->is_gmt_);
     tm->offset(state, other->offset_);
+    tm->zone(state, other->zone_);
 
     return tm;
   }
@@ -251,11 +256,14 @@ namespace rubinius {
     ary->set(state, 7, Integer::from(state, tm.tm_yday + 1));
     ary->set(state, 8, RBOOL(tm.tm_isdst));
 
-    if(offset_->nil_p() && tm.tm_zone) {
-      ary->set(state, 9, String::create(state, tm.tm_zone));
-    } else {
-      ary->set(state, 9, cNil);
+    if (zone_->nil_p()) {
+      if(offset_->nil_p() && tm.tm_zone) {
+        zone(state, String::create(state, tm.tm_zone));
+      } else {
+        zone(state, nil<String>());
+      }
     }
+    ary->set(state, 9, zone());
 
     // Cache it.
     decomposed(state, ary);
