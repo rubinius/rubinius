@@ -30,8 +30,8 @@ describe "Module#define_method when given an UnboundMethod" do
     klass.new.should have_method(:another_test_method)
   end
 
-  ruby_bug "redmine:2117", "1.8.7" do
-    it "defines a method on a singleton class" do
+  describe "defining a method on a singleton class" do
+    before do
       klass = Class.new
       class << klass
         def test_method
@@ -41,7 +41,15 @@ describe "Module#define_method when given an UnboundMethod" do
       child = Class.new(klass)
       sc = class << child; self; end
       sc.send :define_method, :another_test_method, klass.method(:test_method).unbind
-      child.another_test_method.should == :foo
+
+      @class = child
+    end
+
+    ruby_version_is "1.8" ... "1.9" do
+      it "raises TypeError when calling the method" do
+        lambda { @class.another_test_method }.should raise_error(TypeError)
+      end
+    end
     end
   end
 end
