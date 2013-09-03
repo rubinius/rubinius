@@ -1,4 +1,5 @@
 require File.expand_path('../../fixtures/marshal_data', __FILE__)
+require File.expand_path('../../../time/fixtures/methods', __FILE__)
 require 'stringio'
 
 describe :marshal_load, :shared => true do
@@ -665,6 +666,22 @@ describe :marshal_load, :shared => true do
   describe "for a Time" do
     it "loads" do
       Marshal.send(@method, Marshal.dump(Time.at(1))).should == Time.at(1)
+    end
+
+    it "loads serialized instance variables" do
+      t = Time.new
+      t.instance_variable_set(:@foo, 'bar')
+
+      Marshal.load(Marshal.dump(t)).instance_variable_get(:@foo).should == 'bar'
+    end
+
+    ruby_version_is "2.0" do
+      it "loads the zone" do
+        with_timezone 'AST', 3 do
+          t = Time.local(2012, 1, 1)
+          Marshal.load(Marshal.dump(t)).zone.should == t.zone
+        end
+      end
     end
   end
 
