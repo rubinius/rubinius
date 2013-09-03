@@ -1,6 +1,7 @@
 # -*- encoding: US-ASCII -*-
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/marshal_data', __FILE__)
+require File.expand_path('../../time/fixtures/methods', __FILE__)
 
 ruby_version_is "1.9" do
   require File.expand_path('../fixtures/marshal_data19', __FILE__)
@@ -434,6 +435,55 @@ describe "Marshal.dump" do
       dump = Marshal.dump(1...2)
       load = Marshal.load(dump)
       load.should == (1...2)
+    end
+  end
+
+  describe "with a Time" do
+    before do
+      @utc = Time.utc(2012, 1, 1)
+      @utc_dump = @utc.send(:_dump)
+
+      with_timezone 'AST', 3 do
+        @t = Time.local(2012, 1, 1)
+        @fract = Time.local(2012, 1, 1, 1, 59, 56.2)
+        @t_dump = @t.send(:_dump)
+        @fract_dump = @fract.send(:_dump)
+      end
+    end
+
+    ruby_version_is "" ... "1.9" do
+      it "just dumps the string from #_dump" do
+        dump = Marshal.dump(@t)
+        dump.should == "\004\bu:\tTime\r#{@t_dump}"
+      end
+    end
+
+    ruby_version_is "1.9" ... "2.0" do
+      it "dumps the offset" do
+        with_timezone 'AST', 3 do
+          dump = Marshal.dump(@t)
+          dump.should == "\x04\bIu:\tTime\r#{@t_dump}\x06:\voffseti\x020*"
+        end
+      end
+
+      it "doesn't dump the offset if zone is UTC" do
+        dump = Marshal.dump(@utc)
+        dump.should == "\x04\bu:\tTime\r#{@utc_dump}"
+      end
+    end
+
+    ruby_version_is "2.0" do
+      it "dumps the zone and the offset" do
+        with_timezone 'AST', 3 do
+          dump = Marshal.dump(@t)
+          dump.should == "\x04\bIu:\tTime\r#{@t_dump}\a:\voffseti\x020*:\tzoneI\"\bAST\x06:\x06ET"
+        end
+      end
+
+      it "dumps the zone, but not the offset if zone is UTC" do
+        dump = Marshal.dump(@utc)
+        dump.should == "\x04\bIu:\tTime\r#{@utc_dump}\x06:\tzoneI\"\bUTC\x06:\x06ET"
+      end
     end
   end
 

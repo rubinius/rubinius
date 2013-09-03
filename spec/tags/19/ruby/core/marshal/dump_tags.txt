@@ -1,1 +1,3 @@
 fails:Marshal.dump with a Symbol dumps an encoded Symbol
+fails:Marshal.dump with a Time dumps the offset
+fails:Marshal.dump with a Time doesn't dump the offset if zone is UTC
