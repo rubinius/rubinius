@@ -50,6 +50,11 @@ describe "Module#define_method when given an UnboundMethod" do
         lambda { @class.another_test_method }.should raise_error(TypeError)
       end
     end
+
+    ruby_version_is "1.9" do
+      it "doesn't raise TypeError when calling the method" do
+        @class.another_test_method.should == :foo
+      end
     end
   end
 end
