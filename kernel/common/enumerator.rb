@@ -34,8 +34,6 @@ module Enumerable
       end
     end
 
-    alias_method :with_index, :each_with_index
-
     if Rubinius::Fiber::ENABLED
       class FiberGenerator
         attr_reader :result
