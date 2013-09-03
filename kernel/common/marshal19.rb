@@ -76,6 +76,41 @@ class Exception
   end
 end
 
+class Time
+  def __custom_marshal__(ms)
+    out = Rubinius::Type.binary_string("")
+
+    # Order matters.
+    extra_values = {}
+    extra_values[:offset] = gmt_offset unless gmt?
+    extra_values[:zone] = zone.encode(Encoding.find('locale'))
+
+    ivars = ms.serializable_instance_variables(self, false)
+    out << Rubinius::Type.binary_string("I")
+    out << Rubinius::Type.binary_string("u#{ms.serialize(self.class.name.to_sym)}")
+
+    str = _dump
+    out << ms.serialize_integer(str.length) + str
+
+    count = ivars.size + extra_values.size
+    out << ms.serialize_integer(count)
+
+    ivars.each do |ivar|
+      sym = ivar.to_sym
+      val = __instance_variable_get__(sym)
+      out << ms.serialize(sym)
+      out << ms.serialize(val)
+    end
+
+    extra_values.each_pair do |key, value|
+      out << ms.serialize(key)
+      out << ms.serialize(value)
+    end
+
+    out
+  end
+end
+
 module Marshal
   class State
     def serialize_encoding?(obj)
