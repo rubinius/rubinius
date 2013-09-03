@@ -193,6 +193,35 @@ describe "Module#define_method" do
       }.should raise_error(ArgumentError)
     end
   end
+
+  describe "method body is an UnboundMethod" do
+    before do
+      @lazy_class_def = lambda {
+        LazyClass = Class.new do
+          define_method :bar, ModuleSpecs::UnboundMethodTest.instance_method(:foo)
+        end
+      }
+    end
+
+    ruby_version_is "1.8" ... "1.9" do
+      it "raises a TypeError when calling a method from a different object" do
+        obj = @lazy_class_def.call.new
+        lambda { obj.bar }.should raise_error(TypeError)
+      end
+    end
+
+    ruby_version_is "1.9" ... "2.0" do
+      it "raises a TypeError when defining a method from a different object" do
+        lambda { @lazy_class_def.call }.should raise_error(TypeError)
+      end
+    end
+
+    ruby_version_is "2.0" do
+      it "allows methods defined on a different object" do
+        @lazy_class_def.call.new.bar.should == 'bar'
+      end
+    end
+  end
 end
 
 describe "Module#define_method" do
