@@ -104,7 +104,7 @@ module Enumerable
         ret = Lazy.allocate
 
         Rubinius.privately do
-          ret.initialize_enumerator @object, size, method_name, *method_args
+          ret.initialize_enumerator self, size, method_name, *method_args
         end
 
         ret
