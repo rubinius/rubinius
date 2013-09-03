@@ -141,14 +141,6 @@ class SpecRunner
   end
 
   def initialize
-    unless File.directory? BUILD_CONFIG[:runtimedir]
-      # Setting these enables the specs to run when rbx has been configured
-      # to be installed, but rake install has not been run yet.
-      ENV["RBX_RUNTIME"] = File.expand_path "../runtime", __FILE__
-      ENV["RBX_LIB"]     = File.expand_path "../lib", __FILE__
-      ENV["CFLAGS"]      = "-Ivm/capi"
-    end
-
     ENV.delete("RUBYOPT")
     ENV.delete("GEM_HOME")
     ENV.delete("GEM_PATH")
