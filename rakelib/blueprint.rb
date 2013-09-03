@@ -120,8 +120,9 @@ Daedalus.blueprint do |i|
   double_conversion = i.external_lib "vendor/double-conversion" do |l|
     l.cflags = ["-Ivendor/double-conversion/src"] + gcc.cflags
     l.objects = [l.file("libdoubleconversion.a")]
+    c_cflags = l.cflags.join(" ").inspect
     l.to_build do |x|
-      x.command make
+      x.command "#{make} CXXFLAGS=#{c_cflags}"
     end
   end
   gcc.add_library double_conversion
@@ -130,8 +131,9 @@ Daedalus.blueprint do |i|
   ffi = i.external_lib "vendor/libffi" do |l|
     l.cflags = ["-I#{src}/vendor/libffi/include"] + gcc.cflags
     l.objects = [l.file(".libs/libffi.a")]
+    c_cflags = l.cflags.join(" ").inspect
     l.to_build do |x|
-      x.command "sh -c './configure --disable-builddir'" unless File.exists?("Makefile")
+      x.command "sh -c 'CFLAGS=#{c_cflags} ./configure --disable-builddir'" unless File.exists?("Makefile")
       x.command make
     end
   end
@@ -141,9 +143,10 @@ Daedalus.blueprint do |i|
   udis = i.external_lib "vendor/udis86" do |l|
     l.cflags = ["-I#{src}/vendor/udis86"] + gcc.cflags
     l.objects = [l.file("libudis86/.libs/libudis86.a")]
+    c_cflags = l.cflags.join(" ").inspect
     l.to_build do |x|
       unless File.exists?("Makefile") and File.exists?("libudis86/Makefile")
-        x.command "sh -c ./configure"
+        x.command "sh -c 'CFLAGS=#{c_cflags} ./configure'"
       end
       x.command make
     end
@@ -171,9 +174,10 @@ Daedalus.blueprint do |i|
     zlib = i.external_lib "vendor/zlib" do |l|
       l.cflags = ["-I#{src}/vendor/zlib"] + gcc.cflags
       l.objects = [l.file("libz.a")]
+      c_cflags = l.cflags.join(" ").inspect
       l.to_build do |x|
         unless File.exists?("Makefile") and File.exists?("zconf.h")
-          x.command "sh -c ./configure"
+          x.command "sh -c 'CFLAGS=#{c_cflags} ./configure'"
         end
 
         if Rubinius::BUILD_CONFIG[:windows]
