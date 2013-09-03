@@ -30,6 +30,10 @@ class UnboundMethod
       raise TypeError, "Must be bound to an object of kind #{@defined_in}"
     end
 
+    if Rubinius::Type.singleton_class_object(@defined_in)
+      raise TypeError, "illegal attempt to rebind a singleton method to another object"
+    end
+
     @executable.invoke(@name, @defined_in, obj, args, block)
   end
 end
