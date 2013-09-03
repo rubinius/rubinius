@@ -144,6 +144,19 @@ class Hash
   end
 end
 
+class Time
+  def self.__construct__(ms, data, ivar_index, has_ivar)
+    obj = _load(data)
+
+    if ivar_index and has_ivar[ivar_index]
+      ms.set_instance_variables obj
+      has_ivar[ivar_index] = false
+    end
+
+    obj
+  end
+end
+
 module Unmarshalable
   def __marshal__(ms)
     raise TypeError, "marshaling is undefined for class #{self.class}"
@@ -602,6 +615,12 @@ module Marshal
       klass = const_lookup name, Class
 
       data = get_byte_sequence
+
+      if Rubinius::Type.object_respond_to? klass, :__construct__
+        obj = klass.__construct__(self, data, ivar_index, @has_ivar)
+        store_unique_object obj
+        return obj
+      end
 
       if ivar_index and @has_ivar[ivar_index]
         set_instance_variables data
