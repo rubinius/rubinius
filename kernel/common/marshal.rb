@@ -831,6 +831,10 @@ module Marshal
     end
 
     def serialize_user_defined(obj)
+      if Rubinius::Type.object_respond_to? obj, :__custom_marshal__
+        return obj.__custom_marshal__(self)
+      end
+
       str = nil
       Rubinius.privately do
         str = obj._dump @depth
