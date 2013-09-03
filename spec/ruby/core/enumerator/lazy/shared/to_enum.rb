@@ -25,6 +25,10 @@ describe :enumerator_lazy_to_enum, :shared => true do
     enumerator_class::Lazy.new(Object.new, 100) {}.send(@method) { 30 }.size.should == 30
   end
 
+  it "generates a lazy enumerator from the given name" do
+    @infinite.send(@method, :with_index, 10).first(3).should == [[0, 10], [1, 11], [2, 12]]
+  end
+
   it "passes given arguments to wrapped method" do
     @infinite.send(@method, :each_slice, 2).map { |assoc| assoc.first * assoc.last }.first(4).should == [0, 6, 20, 42] 
   end
