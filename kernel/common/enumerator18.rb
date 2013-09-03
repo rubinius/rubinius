@@ -42,5 +42,8 @@ module Enumerable
       @generator.rewind if @generator
       self
     end
+
+    alias_method :with_index, :each_with_index
+    alias_method :enum_with_index, :each_with_index
   end
 end
