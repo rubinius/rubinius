@@ -144,6 +144,19 @@ class Hash
   end
 end
 
+class Time
+  def self.__construct__(ms, data, ivar_index, has_ivar)
+    obj = _load(data)
+
+    if ivar_index and has_ivar[ivar_index]
+      ms.set_instance_variables obj
+      has_ivar[ivar_index] = false
+    end
+
+    obj
+  end
+end
+
 module Unmarshalable
   def __marshal__(ms)
     raise TypeError, "marshaling is undefined for class #{self.class}"
@@ -603,6 +616,12 @@ module Marshal
 
       data = get_byte_sequence
 
+      if Rubinius::Type.object_respond_to? klass, :__construct__
+        obj = klass.__construct__(self, data, ivar_index, @has_ivar)
+        store_unique_object obj
+        return obj
+      end
+
       if ivar_index and @has_ivar[ivar_index]
         set_instance_variables data
         @has_ivar[ivar_index] = false
@@ -831,6 +850,10 @@ module Marshal
     end
 
     def serialize_user_defined(obj)
+      if Rubinius::Type.object_respond_to? obj, :__custom_marshal__
+        return obj.__custom_marshal__(self)
+      end
+
       str = nil
       Rubinius.privately do
         str = obj._dump @depth
@@ -935,8 +958,13 @@ module Marshal
     depth = Rubinius::Type.coerce_to limit, Fixnum, :to_int
     ms = State.new nil, depth, nil
 
-    if an_io and !Rubinius::Type.object_respond_to? an_io, :write
-      raise TypeError, "output must respond to write"
+    if an_io
+      if !Rubinius::Type.object_respond_to? an_io, :write
+        raise TypeError, "output must respond to write"
+      end
+      if Rubinius::Type.object_respond_to? an_io, :binmode
+        an_io.binmode
+      end
     end
 
     str = Rubinius::Type.binary_string(VERSION_STRING) + ms.serialize(obj)
