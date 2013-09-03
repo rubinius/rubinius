@@ -286,6 +286,8 @@ class Module
         meth.lambda_style!
       end
     when Method
+      check_if_method_can_be_bound! meth
+
       exec = meth.executable
       # We see through delegated methods because code creates these crazy calls
       # to define_method over and over again and if we don't check, we create
@@ -297,6 +299,8 @@ class Module
         code = Rubinius::DelegatedMethod.new(name, :call_on_instance, meth.unbind, true)
       end
     when UnboundMethod
+      check_if_method_can_be_bound! meth
+
       exec = meth.executable
       # Same reasoning as above.
       if exec.kind_of? Rubinius::DelegatedMethod
