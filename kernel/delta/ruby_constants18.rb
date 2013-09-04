@@ -6,4 +6,4 @@ RUBY_PATCHLEVEL   = 0
 # Deprecated Ruby constants
 #
 VERSION           = RUBY_VERSION
-PLATFORM          = Rubinius::HOST.dup
+PLATFORM          = "#{Rubinius::CPU}-#{Rubinius::OS}"
