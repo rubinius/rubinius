@@ -2,6 +2,10 @@
 
 class Module
 
+  # Rather than dedicating an entire file to marking :include private, we just
+  # rewrite its visibility for 2.1 language mode here.
+  public :include
+
   def origin= origin
     @origin = origin
   end
@@ -25,7 +29,6 @@ class Module
     end
     self
   end
-  private :prepend
 
   def prepend_features(klass)
     unless klass.kind_of? Module
