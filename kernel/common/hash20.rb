@@ -16,7 +16,11 @@ class Hash
   private_class_method :new_from_associate_array
 
   def to_h
-    instance_of?(Hash) ? self : Hash[self]
+    if instance_of? Hash
+      self
+    else
+      Hash.allocate.replace(to_hash)
+    end
   end
 
   # Sets the default proc to be executed on each key lookup

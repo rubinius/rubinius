@@ -116,4 +116,9 @@ describe "Hash.[]" do
   it "does not call #initialize on the subclass instance" do
     HashSpecs::MyInitializerHash[hash_class[1, 2]].should be_kind_of(HashSpecs::MyInitializerHash)
   end
+
+  it "removes the default_proc" do
+    hash = Hash.new { |h, k| h[k] = [] }
+    hash_class[hash].default_proc.should be_nil
+  end
 end
