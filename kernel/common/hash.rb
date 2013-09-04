@@ -36,7 +36,9 @@ class Hash
     if args.size == 1
       obj = args.first
       if hash = Rubinius::Type.check_convert_type(obj, Hash, :to_hash)
-        return allocate.replace(hash)
+        new_hash = allocate.replace(hash)
+        new_hash.default = nil
+        return new_hash
       elsif associate_array = Rubinius::Type.check_convert_type(obj, Array, :to_ary)
         return new_from_associate_array(associate_array)
       end
