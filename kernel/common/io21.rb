@@ -731,7 +731,9 @@ class IO
 
     ensure_open_and_writable
 
-    if !binmode? && external_encoding && external_encoding != data.encoding
+    if !binmode? && external_encoding &&
+       external_encoding != data.encoding &&
+       external_encoding != Encoding::ASCII_8BIT
       unless data.ascii_only? && external_encoding.ascii_compatible?
         data.encode!(external_encoding) 
       end

@@ -497,7 +497,11 @@ class Hash
   private :__setup__
 
   def to_h
-    instance_of?(Hash) ? self : Hash[self]
+    if instance_of? Hash
+      self
+    else
+      Hash.allocate.replace(to_hash)
+    end
   end
 
   # Returns an external iterator for the bins. See +Iterator+

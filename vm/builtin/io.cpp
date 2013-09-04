@@ -659,7 +659,7 @@ namespace rubinius {
     state->vm()->clear_waiter();
 
     if(bytes_read == -1) {
-      if(errno == EINTR) {
+      if(errno == EAGAIN || errno == EINTR) {
         if(state->check_async(calling_environment)) goto retry;
 
       } else {
