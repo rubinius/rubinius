@@ -593,9 +593,13 @@ VALUE rb_uint2big(unsigned long number);
 
 /* Real API */
 
+  /** Convert a VALUE into an int. */
+  long    rb_num2int(VALUE obj);
   /** Convert a VALUE into a long int. */
   long    rb_num2long(VALUE obj);
 
+  /** Convert a VALUE to an unsigned int. */
+  unsigned long rb_num2uint(VALUE obj);
   /** Convert a VALUE to an unsigned long int. */
   unsigned long rb_num2ulong(VALUE obj);
 
