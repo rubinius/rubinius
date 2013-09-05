@@ -23,6 +23,7 @@
 struct RArray;
 struct RString;
 struct RData;
+struct RTypedData;
 struct RFloat;
 struct RIO;
 struct RFile;
@@ -55,14 +56,15 @@ namespace rubinius {
       CApiCacheUpdater update_;
 
       union {
-        RArray*   rarray;
-        RString*  rstring;
-        RData*    rdata;
-        RFloat*   rfloat;
-        RIO*      rio;
-        RFile*    rfile;
-        uintptr_t next_index_;
-        intptr_t  cache_data;
+        RArray*     rarray;
+        RString*    rstring;
+        RData*      rdata;
+        RTypedData* rtypeddata;
+        RFloat*     rfloat;
+        RIO*        rio;
+        RFile*      rfile;
+        uintptr_t   next_index_;
+        intptr_t    cache_data;
       } as_;
 
     public:
@@ -191,6 +193,7 @@ namespace rubinius {
       }
 
       RData*  as_rdata(NativeMethodEnvironment* env);
+      RTypedData*  as_rtypeddata(NativeMethodEnvironment* env);
       RArray* as_rarray(NativeMethodEnvironment* env);
       RString* as_rstring(NativeMethodEnvironment* env, int cache_level);
       RFloat* as_rfloat(NativeMethodEnvironment* env);

@@ -31,6 +31,14 @@ extern "C" {
     return chr;
   }
 
+  long rb_num2int(VALUE obj) {
+    long num = rb_num2long(obj);
+    if((int)num != num) {
+      rb_raise(rb_eRangeError, "integer too big to convert into int");
+    }
+    return num;
+  }
+
   long rb_num2long(VALUE obj) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
@@ -60,6 +68,14 @@ extern "C" {
     obj = rb_funcall(obj, to_int_id, 0);
 
     return rb_num2long(obj);
+  }
+
+  unsigned long rb_num2uint(VALUE obj) {
+    unsigned long num = rb_num2ulong(obj);
+    if((unsigned int)num != num) {
+      rb_raise(rb_eRangeError, "integer too big to convert into int");
+    }
+    return num;
   }
 
   unsigned long rb_num2ulong(VALUE obj) {

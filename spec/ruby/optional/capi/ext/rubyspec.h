@@ -176,6 +176,11 @@
 #define HAVE_DATA_WRAP_STRUCT              1
 #define HAVE_RDATA                         1
 
+#ifdef RUBY_VERSION_IS_1_9
+#define HAVE_TYPEDDATA_WRAP_STRUCT         1
+#define HAVE_RTYPEDDATA
+#endif
+
 /* Encoding */
 #ifdef RUBY_VERSION_IS_1_9
 #define HAVE_ENCODING_GET                  1
@@ -394,7 +399,9 @@
 #define HAVE_RB_INTEGER                    1
 #define HAVE_RB_LL2INUM                    1
 #define HAVE_RB_NUM2DBL                    1
+#define HAVE_RB_NUM2INT                    1
 #define HAVE_RB_NUM2LONG                   1
+#define HAVE_RB_NUM2UINT                   1
 #define HAVE_RB_NUM2ULONG                  1
 #define HAVE_RB_NUM_COERCE_BIN             1
 #define HAVE_RB_NUM_COERCE_CMP             1
