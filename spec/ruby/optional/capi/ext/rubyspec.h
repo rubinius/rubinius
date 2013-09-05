@@ -176,6 +176,11 @@
 #define HAVE_DATA_WRAP_STRUCT              1
 #define HAVE_RDATA                         1
 
+#ifdef RUBY_VERSION_IS_1_9
+#define HAVE_TYPEDDATA_WRAP_STRUCT         1
+#define HAVE_RTYPEDDATA
+#endif
+
 /* Encoding */
 #ifdef RUBY_VERSION_IS_1_9
 #define HAVE_ENCODING_GET                  1
