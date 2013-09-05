@@ -281,6 +281,7 @@ struct RData {
 };
 
 #define RDATA(d)        capi_rdata_struct(d)
+#define RTYPEDDATA(d)   capi_rtypeddata_struct(d)
 
 struct RFloat {
   double value;
@@ -681,6 +682,7 @@ VALUE rb_uint2big(unsigned long number);
 
   struct RArray* capi_rarray_struct(VALUE array);
   struct RData* capi_rdata_struct(VALUE data);
+  struct RTypedData* capi_rtypeddata_struct(VALUE data);
   struct RString* capi_rstring_struct(VALUE string, int cache_level);
   struct RFloat* capi_rfloat_struct(VALUE data);
   struct RIO* capi_rio_struct(VALUE handle);
@@ -710,19 +712,67 @@ VALUE rb_uint2big(unsigned long number);
   VALUE rb_equal(VALUE a, VALUE b);
   VALUE rb_class_inherited_p(VALUE mod, VALUE arg);
 
-#define   Data_Make_Struct(klass, type, mark, free, sval) (\
-            sval = ALLOC(type), \
-            memset(sval, 0, sizeof(type)), \
-            Data_Wrap_Struct(klass, mark, free, sval)\
-          )
+  typedef struct rb_data_type_struct rb_data_type_t;
 
-#define   Data_Wrap_Struct(klass, mark, free, sval) \
-            rb_data_object_alloc(klass, (void*)sval, (RUBY_DATA_FUNC)mark, \
-                                 (RUBY_DATA_FUNC)free)
+  struct rb_data_type_struct {
+    const char *wrap_struct_name;
+    struct {
+      void (*dmark)(void*);
+      void (*dfree)(void*);
+      size_t (*dsize)(const void *);
+      void *reserved[2]; /* For future extension.
+                            This array *must* be filled with ZERO. */
+    } function;
+    const rb_data_type_t *parent;
+    void *data;        /* This area can be used for any purpose
+                          by a programmer who define the type. */
+  };
 
-#define   Data_Get_Struct(obj,type,sval) do {\
-            Check_Type(obj, T_DATA); \
-            sval = (type*)DATA_PTR(obj);\
+#define HAVE_TYPE_RB_DATA_TYPE_T 1
+#define HAVE_RB_DATA_TYPE_T_FUNCTION 1
+#define HAVE_RB_DATA_TYPE_T_PARENT 1
+
+struct RTypedData {
+    const rb_data_type_t *type;
+    VALUE typed_flag; /* 1 or not */
+    void *data;
+};
+
+#define RTYPEDDATA_P(v)    (RTYPEDDATA(v)->typed_flag == 1)
+#define RTYPEDDATA_TYPE(v) (RTYPEDDATA(v)->type)
+#define RTYPEDDATA_DATA(v) (RTYPEDDATA(v)->data)
+
+  VALUE rb_data_object_alloc(VALUE,void*,RUBY_DATA_FUNC,RUBY_DATA_FUNC);
+  VALUE rb_data_typed_object_alloc(VALUE klass, void *datap, const rb_data_type_t *);
+  int rb_typeddata_inherited_p(const rb_data_type_t *child, const rb_data_type_t *parent);
+  int rb_typeddata_is_kind_of(VALUE, const rb_data_type_t *);
+  void *rb_check_typeddata(VALUE, const rb_data_type_t *);
+
+#define Data_Wrap_Struct(klass,mark,free,sval)\
+    rb_data_object_alloc((klass),(sval),(RUBY_DATA_FUNC)(mark),(RUBY_DATA_FUNC)(free))
+
+#define Data_Make_Struct(klass,type,mark,free,sval) (\
+    (sval) = ALLOC(type),\
+    memset((sval), 0, sizeof(type)),\
+    Data_Wrap_Struct((klass),(mark),(free),(sval))\
+)
+
+#define TypedData_Wrap_Struct(klass,data_type,sval)\
+  rb_data_typed_object_alloc((klass),(sval),(data_type))
+
+#define TypedData_Make_Struct(klass, type, data_type, sval) (\
+    (sval) = ALLOC(type),\
+    memset((sval), 0, sizeof(type)),\
+    TypedData_Wrap_Struct((klass),(data_type),(sval))\
+)
+
+#define Data_Get_Struct(obj,type,sval) do {\
+    Check_Type((obj), T_DATA); \
+    (sval) = (type*)DATA_PTR(obj);\
+} while (0)
+
+#define TypedData_Get_Struct(obj,type,data_type,sval) do {\
+    (sval) = (type*)rb_check_typeddata((obj), (data_type)); \
 } while (0)
 
   /** Return Qtrue if obj is an immediate, Qfalse or Qnil. */
@@ -1023,9 +1073,6 @@ VALUE rb_uint2big(unsigned long number);
 
   /** Set module's named class variable to given value. */
   void rb_define_class_variable(VALUE klass, const char* name, VALUE val);
-
-  VALUE   rb_data_object_alloc(VALUE klass, void* sval,
-      RUBY_DATA_FUNC mark, RUBY_DATA_FUNC free);
 
   /** Alias method by old name as new name. Methods are independent of eachother. */
   void    rb_define_alias(VALUE module, const char *new_name, const char *old_name);
