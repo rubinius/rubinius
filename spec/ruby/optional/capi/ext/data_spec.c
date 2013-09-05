@@ -12,10 +12,17 @@ struct sample_wrapped_struct {
     int foo;
 };
 
+void sample_wrapped_struct_free(void* st) {
+  free(st);
+}
+
+void sample_wrapped_struct_mark(void* st) {
+}
+
 VALUE sdaf_alloc_func(VALUE klass) {
     struct sample_wrapped_struct* bar = (struct sample_wrapped_struct *)malloc(sizeof(struct sample_wrapped_struct));
     bar->foo = 42;
-    return Data_Wrap_Struct(klass, NULL, NULL, bar);
+    return Data_Wrap_Struct(klass, &sample_wrapped_struct_mark, &sample_wrapped_struct_free, bar);
 }
 
 VALUE sdaf_get_struct(VALUE self) {
@@ -28,13 +35,13 @@ VALUE sdaf_get_struct(VALUE self) {
 VALUE sws_wrap_struct(VALUE self, VALUE val) {
     struct sample_wrapped_struct* bar = (struct sample_wrapped_struct *)malloc(sizeof(struct sample_wrapped_struct));
     bar->foo = FIX2INT(val);
-    return Data_Wrap_Struct(rb_cObject, NULL, NULL, bar);
+    return Data_Wrap_Struct(rb_cObject, &sample_wrapped_struct_mark, &sample_wrapped_struct_free, bar);
 }
 
 VALUE sws_wrap_struct_null(VALUE self, VALUE val) {
     struct sample_wrapped_struct* bar = (struct sample_wrapped_struct *)malloc(sizeof(struct sample_wrapped_struct));
     bar->foo = FIX2INT(val);
-    return Data_Wrap_Struct(0, NULL, NULL, bar);
+    return Data_Wrap_Struct(0, &sample_wrapped_struct_mark, &sample_wrapped_struct_free, bar);
 }
 
 VALUE sws_get_struct(VALUE self, VALUE obj) {
