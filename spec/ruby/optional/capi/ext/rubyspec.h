@@ -399,7 +399,9 @@
 #define HAVE_RB_INTEGER                    1
 #define HAVE_RB_LL2INUM                    1
 #define HAVE_RB_NUM2DBL                    1
+#define HAVE_RB_NUM2INT                    1
 #define HAVE_RB_NUM2LONG                   1
+#define HAVE_RB_NUM2UINT                   1
 #define HAVE_RB_NUM2ULONG                  1
 #define HAVE_RB_NUM_COERCE_BIN             1
 #define HAVE_RB_NUM_COERCE_CMP             1

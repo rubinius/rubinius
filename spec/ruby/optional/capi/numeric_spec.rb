@@ -7,6 +7,76 @@ describe "CApiNumericSpecs" do
     @s = CApiNumericSpecs.new
   end
 
+  describe "rb_num2int" do
+    it "raises a TypeError if passed nil" do
+      lambda { @s.rb_num2int(nil) }.should raise_error(TypeError)
+    end
+
+    it "converts a Float" do
+      @s.rb_num2int(4.2).should == 4
+    end
+
+    it "converts a Bignum" do
+      @s.rb_num2int(0x7fff_ffff).should == 0x7fff_ffff
+    end
+
+    it "converts a Fixnum" do
+      @s.rb_num2int(5).should == 5
+    end
+
+    it "converts -1 to an signed number" do
+      @s.rb_num2int(-1).should == -1
+    end
+
+    it "converts a negative Bignum into an signed number" do
+      @s.rb_num2int(-2147442171).should == -2147442171
+    end
+
+    it "raises a RangeError if the value is more than 32bits" do
+      lambda { @s.rb_num2int(0xffff_ffff+1) }.should raise_error(RangeError)
+    end
+
+    it "calls #to_int to coerce the value" do
+      obj = mock("number")
+      obj.should_receive(:to_int).and_return(2)
+      @s.rb_num2long(obj).should == 2
+    end
+  end
+
+  describe "rb_num2uint" do
+    it "raises a TypeError if passed nil" do
+      lambda { @s.rb_num2uint(nil) }.should raise_error(TypeError)
+    end
+
+    it "converts a Float" do
+      @s.rb_num2uint(4.2).should == 4
+    end
+
+    it "converts a Bignum" do
+      @s.rb_num2uint(0xffff_ffff).should == 0xffff_ffff
+    end
+
+    it "converts a Fixnum" do
+      @s.rb_num2uint(5).should == 5
+    end
+
+    it "raises a RangeError if the value is more than 32bits" do
+      lambda { @s.rb_num2uint(0xffff_ffff+1) }.should raise_error(RangeError)
+    end
+
+    it "raises a RangeError if the value is more than 64bits" do
+      lambda do
+        @s.rb_num2uint(0xffff_ffff_ffff_ffff+1)
+      end.should raise_error(RangeError)
+    end
+
+    it "calls #to_int to coerce the value" do
+      obj = mock("number")
+      obj.should_receive(:to_int).and_return(2)
+      @s.rb_num2ulong(obj).should == 2
+    end
+  end
+
   describe "rb_num2long" do
     it "raises a TypeError if passed nil" do
       lambda { @s.rb_num2long(nil) }.should raise_error(TypeError)
