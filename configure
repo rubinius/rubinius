@@ -112,6 +112,10 @@ class Configure
     @gemsdir      = nil
     @includedir   = nil
 
+    @stagingdir       = nil
+    @build_prefix     = nil
+    @capi_includedir  = "#{@sourcedir}/vm/include/capi"
+
     @vm_release_h = root + "/vm/gen/release.h"
     @vm_version_h = root + "/vm/gen/version.h"
 
@@ -140,7 +144,7 @@ class Configure
     @release_date = validate_release_date
 
     # Configure settings
-    @config_version = 179
+    @config_version = 180
     @run_bundle = true
     @fetch_gems = true
   end
@@ -1684,6 +1688,7 @@ int main() { return tgetnum(""); }
       :sourcedir          => @sourcedir,
       :stagingdir         => @stagingdir,
       :build_prefix       => @build_prefix,
+      :capi_includedir    => @capi_includedir,
       :build_exe          => "#{@build_prefix}#{@bindir}/#{@program_name}",
       :prefixdir          => @prefixdir,
       :bindir             => @bindir,
@@ -1801,18 +1806,16 @@ int main() { return tgetnum(""); }
       write_sizeof_defines f
     end
 
-    # Write the Rubinius-specific C-API config header.
-    vm_capi_include = "#{@sourcedir}/vm/include/capi"
-
-    vm_capi_header_gen = "#{vm_capi_include}/gen"
+    # Write the rubinius-specific c-api config header.
+    vm_capi_header_gen = "#{@capi_includedir}/gen"
     FileUtils.mkdir_p vm_capi_header_gen
     FileUtils.cp vm_config_h, "#{vm_capi_header_gen}/rbx_config.h"
 
     # Write the config file used in the C-API.
     if @language_version == "18"
-      capi_config_h = "#{vm_capi_include}/config.h"
+      capi_config_h = "#{@capi_includedir}/config.h"
     else
-      capi_config_h = "#{vm_capi_include}/ruby/config.h"
+      capi_config_h = "#{@capi_includedir}/ruby/config.h"
     end
 
     FileUtils.mkdir_p File.dirname(capi_config_h)
@@ -1841,19 +1844,9 @@ int main() { return tgetnum(""); }
       end
     end
 
-    # Copy language-mode-specific headers to language-mode-agnostic include
-    # directory.
-    include_prefix = "#{@sourcedir}/vm/capi/#{@language_version}/include"
-    headers = Dir["#{include_prefix}/**/*.{h,hpp}"]
-    headers.each do |name|
-      dest = "#{vm_capi_include}#{name[-(name.size-include_prefix.size)..-1]}"
-      FileUtils.mkdir_p File.dirname(dest)
-      FileUtils.cp name, dest
-    end
-
     # Create C-API header for vm/test
     File.open "vm/test/ruby.h", "w" do |f|
-      f.puts %[#include "#{vm_capi_include}/ruby.h"]
+      f.puts %[#include "#{@capi_includedir}/ruby.h"]
     end
 
     # Write a require file depending on which Readline library we use.

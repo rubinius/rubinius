@@ -51,6 +51,32 @@ TYPE_GEN    = %w[ vm/gen/includes.hpp
                   vm/gen/jit_resolver.cpp
                   vm/gen/invoke_resolver.cpp ]
 
+# Copy language-mode-specific headers to language-mode-agnostic include
+# directory.
+CAPI_HDR_GEN = []
+include_prefix = "#{BUILD_CONFIG[:sourcedir]}/vm/capi/#{BUILD_CONFIG[:language_version]}/include"
+headers = FileList["#{include_prefix}/**/*.{h,hpp}"]
+
+capi_includedir = BUILD_CONFIG[:capi_includedir] || raise("missing C-API include dir")
+
+files = FileList["#{capi_includedir}/**/*.{h,hpp}"]
+files.exclude(%r[.*/(capi|rbx)_.*\.h])
+files.exclude(%r[.*/config.h])
+files.each do |name|
+  src = "#{include_prefix}#{name[-(name.size-capi_includedir.size)..-1]}"
+  FileUtils.rm_f name unless headers.include? src
+end
+
+headers.each do |name|
+  dest = "#{capi_includedir}#{name[-(name.size-include_prefix.size)..-1]}"
+
+  CAPI_HDR_GEN << dest
+
+  file dest => name do |t|
+    FileUtils.cp t.prerequisites.first, t.name
+  end
+end
+
 GENERATED = %W[ vm/gen/config_variables.h
                 vm/gen/signature.h
                 vm/dtrace/probes.h
@@ -59,7 +85,7 @@ GENERATED = %W[ vm/gen/config_variables.h
                 #{vm_release_h}
                 #{vm_version_h}
                 #{capi_release_h}
-              ] + TYPE_GEN + INSN_GEN
+              ] + TYPE_GEN + INSN_GEN + CAPI_HDR_GEN
 
 # Files are in order based on dependencies. For example,
 # CompactLookupTable inherits from Tuple, so the header

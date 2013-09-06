@@ -192,7 +192,7 @@ exec #{BUILD_CONFIG[:stagingdir]}#{BUILD_CONFIG[:bindir]}/$EXE "$@"
 
   task :capi_include do
     if BUILD_CONFIG[:stagingdir]
-      install_capi_include "#{BUILD_CONFIG[:sourcedir]}/vm/include/capi",
+      install_capi_include "#{BUILD_CONFIG[:capi_includedir]}",
                            "#{BUILD_CONFIG[:stagingdir]}#{BUILD_CONFIG[:"includedir"]}"
     end
   end
