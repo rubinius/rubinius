@@ -73,6 +73,7 @@ headers.each do |name|
   CAPI_HDR_GEN << dest
 
   file dest => name do |t|
+    FileUtils.mkdir_p File.dirname(t.name)
     FileUtils.cp t.prerequisites.first, t.name
   end
 end
