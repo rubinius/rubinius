@@ -15,7 +15,7 @@ ruby_version_is "1.8.7" do
         end
       end
 
-      it "returns if there are no elements" do
+      it "returns nil if there are no elements" do
         out = EnumerableSpecs::Empty.new.cycle { break :nope }
         out.should be_nil
       end
