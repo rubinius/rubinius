@@ -7,8 +7,13 @@ ruby_version_is '1.8.7' do
       @prc = lambda { |x| ScratchPad << x }
     end
 
-    it "does not yield and returns nil when the array is empty" do
+    it "does not yield and returns nil when the array is empty and passed value is an integer" do
       [].cycle(6, &@prc).should be_nil
+      ScratchPad.recorded.should == []
+    end
+
+    it "does not yield and returns nil when the array is empty and passed value is nil" do
+      [].cycle(nil, &@prc).should be_nil
       ScratchPad.recorded.should == []
     end
 
