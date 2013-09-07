@@ -119,6 +119,12 @@ extern "C" {
 # error ---->> ruby requires sizeof(void*) == sizeof(long) to be compiled. <<----
 #endif
 
+#ifdef __GNUC__
+#define RB_UNUSED_VAR(x) x __attribute__ ((unused))
+#else
+#define RB_UNUSED_VAR(x) x
+#endif
+
 #ifndef RUBY_EXTERN
 #define RUBY_EXTERN extern
 #endif
