@@ -461,7 +461,6 @@ class Configure
     feature "C-readline", true
     feature "ruby-readline", false
     feature "vendor-zlib", false
-    feature "vendor-yaml", false
     feature "alloc-tracking", false
     feature "fibers", true
     feature "dtrace", false
@@ -1302,11 +1301,6 @@ int main() { return tgetnum(""); }
       @include_dirs << "#{@vendored_libdir}/zlib"
       @lib_dirs     << "#{@vendored_libdir}/zlib"
     end
-
-    if @features["vendor-yaml"].value
-      @include_dirs << "#{@vendored_libdir}/libyaml/include"
-      @lib_dirs     << "#{@vendored_libdir}/libyaml/src/.libs"
-    end
   end
 
   def detect_features
@@ -1349,14 +1343,6 @@ int main() { return tgetnum(""); }
     end
 
     @defines << "HAVE_SPT_REUSEARGV" if @linux || @darwin || @bsd
-  end
-
-  def detect_libraries
-    if @language_version == "19" or @language_version == "20"
-      unless has_library("libyaml", "yaml_parser_initialize", ["yaml"], ["yaml.h"])
-        failure "libyaml is required for 1.9 and above"
-      end
-    end
   end
 
   def detect_functions
@@ -1531,7 +1517,6 @@ int main() { return tgetnum(""); }
     detect_tr1_hash
     detect_x86
     detect_features
-    detect_libraries
     detect_functions
     detect_structures
     detect_globals
@@ -1716,7 +1701,6 @@ int main() { return tgetnum(""); }
       :bsd                => @bsd,
       :linux              => @linux,
       :vendor_zlib        => @features["vendor-zlib"].value,
-      :vendor_yaml        => @features["vendor-yaml"].value,
       :readline           => @rb_readline ? :rb_readline : :c_readline,
       :vm_release_h       => @vm_release_h,
       :vm_version_h       => @vm_version_h,
