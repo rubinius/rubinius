@@ -18,7 +18,7 @@ describe "String.new" do
     str1 = "test"
     str = String.new(str1)
     str.should be_an_instance_of(String)
-    str.should == str
+    str.should == str1
     str << "more"
     str.should == "testmore"
   end
