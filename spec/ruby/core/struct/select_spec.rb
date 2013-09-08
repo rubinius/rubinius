@@ -17,5 +17,21 @@ describe "Struct#select" do
     struct.select { true }.should be_an_instance_of(Array)
   end
 
+  describe "without block" do
+    ruby_version_is "" ... "1.9" do
+      it "raises a LocalJumpError" do
+        struct = Struct.new(:foo).new
+        lambda { struct.select }.should raise_error(LocalJumpError)
+      end
+    end
+
+    ruby_version_is "1.9" do
+      it "returns an instance of Enumerator" do
+        struct = Struct.new(:foo).new
+        struct.select.should be_an_instance_of(enumerator_class)
+      end
+    end
+  end
+
   it_behaves_like :struct_accessor, :select
 end
