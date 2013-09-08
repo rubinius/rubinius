@@ -160,8 +160,8 @@ describe "String#slice! with index, length" do
 
   it "returns subclass instances" do
     s = StringSpecs::MyString.new("hello")
-    s.slice!(0, 0).should be_kind_of(StringSpecs::MyString)
-    s.slice!(0, 4).should be_kind_of(StringSpecs::MyString)
+    s.slice!(0, 0).should be_an_instance_of(StringSpecs::MyString)
+    s.slice!(0, 4).should be_an_instance_of(StringSpecs::MyString)
   end
 
   with_feature :encoding do
@@ -214,8 +214,8 @@ describe "String#slice! Range" do
 
   it "returns subclass instances" do
     s = StringSpecs::MyString.new("hello")
-    s.slice!(0...0).should be_kind_of(StringSpecs::MyString)
-    s.slice!(0..4).should be_kind_of(StringSpecs::MyString)
+    s.slice!(0...0).should be_an_instance_of(StringSpecs::MyString)
+    s.slice!(0..4).should be_an_instance_of(StringSpecs::MyString)
   end
 
   it "calls to_int on range arguments" do
@@ -329,8 +329,8 @@ describe "String#slice! with Regexp" do
 
   it "returns subclass instances" do
     s = StringSpecs::MyString.new("hello")
-    s.slice!(//).should be_kind_of(StringSpecs::MyString)
-    s.slice!(/../).should be_kind_of(StringSpecs::MyString)
+    s.slice!(//).should be_an_instance_of(StringSpecs::MyString)
+    s.slice!(/../).should be_an_instance_of(StringSpecs::MyString)
   end
 
   with_feature :encoding do
@@ -427,8 +427,8 @@ describe "String#slice! with Regexp, index" do
 
   it "returns subclass instances" do
     s = StringSpecs::MyString.new("hello")
-    s.slice!(/(.)(.)/, 0).should be_kind_of(StringSpecs::MyString)
-    s.slice!(/(.)(.)/, 1).should be_kind_of(StringSpecs::MyString)
+    s.slice!(/(.)(.)/, 0).should be_an_instance_of(StringSpecs::MyString)
+    s.slice!(/(.)(.)/, 1).should be_an_instance_of(StringSpecs::MyString)
   end
 
   with_feature :encoding do
@@ -523,7 +523,7 @@ describe "String#slice! with String" do
     s = StringSpecs::MyString.new("el")
     r = "hello".slice!(s)
     r.should == "el"
-    r.should be_kind_of(StringSpecs::MyString)
+    r.should be_an_instance_of(StringSpecs::MyString)
   end
 
   ruby_version_is ""..."1.9" do

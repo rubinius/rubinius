@@ -4,7 +4,7 @@ require File.expand_path('../fixtures/classes', __FILE__)
 describe "String.new" do
   it "returns an instance of String" do
     str = String.new
-    str.should be_kind_of(String)
+    str.should be_an_instance_of(String)
   end
 
   it "returns a fully-formed String" do
@@ -17,7 +17,7 @@ describe "String.new" do
   it "returns a new string given a string argument" do
     str1 = "test"
     str = String.new(str1)
-    str.should be_kind_of(String)
+    str.should be_an_instance_of(String)
     str.should == str
     str << "more"
     str.should == "testmore"
@@ -25,7 +25,7 @@ describe "String.new" do
 
   it "returns an instance of a subclass" do
     a = StringSpecs::MyString.new("blah")
-    a.should be_kind_of(StringSpecs::MyString)
+    a.should be_an_instance_of(StringSpecs::MyString)
     a.should == "blah"
   end
 

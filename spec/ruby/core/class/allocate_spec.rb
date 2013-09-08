@@ -3,7 +3,7 @@ require File.expand_path('../../../spec_helper', __FILE__)
 describe "Class#allocate" do
   it "returns an instance of self" do
     klass = Class.new
-    klass.allocate.should be_kind_of(klass)
+    klass.allocate.should be_an_instance_of(klass)
   end
 
   it "returns a fully-formed instance of Module" do
