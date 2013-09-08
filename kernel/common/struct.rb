@@ -207,12 +207,6 @@ class Struct
     return self.class.members
   end
 
-  def select
-    to_a.select do |v|
-      yield v
-    end
-  end
-
   def to_a
     return _attrs.map { |var| instance_variable_get :"@#{var}" }
   end

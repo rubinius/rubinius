@@ -1,6 +1,12 @@
 # -*- encoding: us-ascii -*-
 
 class Struct
+  def select
+    to_a.select do |v|
+      yield v
+    end
+  end
+  
   def to_s
     return "[...]" if Thread.guarding? self
 
