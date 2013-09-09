@@ -1790,6 +1790,11 @@ int main() { return tgetnum(""); }
       write_sizeof_defines f
     end
 
+    # Write release and version header files.
+    record_revision
+    write_release @vm_release_h, version, @release_date, read_revision
+    write_version @vm_version_h, @language_version, @supported_versions
+
     # Clean up C-API language-mode-agnostic header directory.
     FileUtils.rm_rf @capi_includedir
 
@@ -2293,9 +2298,6 @@ required to run it.
     bundle
     fetch_gems
     unpack_gems
-    record_revision
-    write_release @vm_release_h, version, @release_date, read_revision
-    write_version @vm_version_h, @language_version, @supported_versions
     write_configure_files
 
     check_force_clean if verify_config
