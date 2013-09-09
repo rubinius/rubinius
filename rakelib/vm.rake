@@ -24,7 +24,6 @@ transcoders_database = "vm/gen/transcoder_database.cpp"
 
 vm_release_h = BUILD_CONFIG[:vm_release_h]
 vm_version_h = BUILD_CONFIG[:vm_version_h]
-capi_release_h = "vm/include/capi/gen/rbx_release.h"
 
 ENV.delete 'CDPATH' # confuses llvm_config
 
@@ -85,7 +84,6 @@ GENERATED = %W[ vm/gen/config_variables.h
                 #{transcoders_database}
                 #{vm_release_h}
                 #{vm_version_h}
-                #{capi_release_h}
               ] + TYPE_GEN + INSN_GEN + CAPI_HDR_GEN
 
 # Files are in order based on dependencies. For example,
@@ -272,10 +270,6 @@ task vm_release_h do |t|
   else
     write_release t.name, config_rubinius_version, config_release_date, build_revision
   end
-end
-
-task capi_release_h => vm_release_h do |t|
-  FileUtils.cp vm_release_h, t.name
 end
 
 file 'vm/gen/config_variables.h' => %w[lib/rubinius/configuration.rb config.rb] do |t|

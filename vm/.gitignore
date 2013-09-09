@@ -5,5 +5,3 @@ test/test_instructions.hpp
 
 # generated files
 include/capi/*
-!include/capi/capi_oop.h
-!include/capi/capi_constants.h
