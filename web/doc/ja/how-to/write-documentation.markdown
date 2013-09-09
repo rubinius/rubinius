@@ -33,7 +33,7 @@ Rubiniusのドキュメントは、Webサイトとブログで構成されてい
     ---
 
 _layout_は、どのレイアウトをjekyllが使用するか指定します。
-_layout_の_LANG_は、ISO-639-2の`doc_LANGにしなければいけません。
+_layout_の_LANG_は、ISO-639-2の`doc_LANG`にしなければいけません。
 
 _title_は、ページの上部に表示されるドキュメントのタイトルを指定します。
 
