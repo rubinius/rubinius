@@ -45,38 +45,6 @@ namespace rubinius {
     return data;
   }
 
-  Data* Data::create_typed(STATE, void* data_ptr, const struct rb_data_type_struct_shadow* type) {
-    Data* data;
-
-    data = state->new_object<Data>(G(data));
-    data->freed_ = false;
-
-    // Data is just a heap alias for the handle, so go ahead and create
-    // the handle and populate it as an RData now.
-    capi::Handle* handle = data->handle(state);
-
-    assert(!handle && "can't already have a handle, it's brand new!");
-
-    handle = state->memory()->add_capi_handle(state, data);
-
-    // Don't call ->ref() on handle! We don't want the handle to keep the object
-    // alive by default. The handle needs to have the lifetime of the object.
-
-    RDataShadow* rdata = reinterpret_cast<RDataShadow*>(handle->as_rtypeddata(0));
-
-    rdata->data = data_ptr;
-    rdata->d.typed.typed = 1;
-    rdata->d.typed.type = type;
-
-    data->internal_ = rdata;
-
-    if(type->function.dmark || type->function.dfree) {
-      state->memory()->needs_finalization(data, (FinalizerFunction)&Data::finalize);
-    }
-
-    return data;
-  }
-
   void* Data::data() {
     return rdata()->data;
   }
