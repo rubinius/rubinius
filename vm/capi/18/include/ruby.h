@@ -1722,6 +1722,11 @@ VALUE rb_uint2big(unsigned long number);
   /** Retrieve the nth match for the given MatchData */
   VALUE   rb_reg_nth_match(long nth, VALUE match_data);
 
+#define rb_thread_create(func, arg) capi_thread_create(func, arg, #func, __FILE__)
+  /** Lock functions used by Onigmo */
+  void    capi_reg_lock();
+  void    capi_reg_unlock();
+
   /** New Enumerator. */
   VALUE   rb_enumeratorize(VALUE obj, VALUE meth, int argc, VALUE *argv);
 
