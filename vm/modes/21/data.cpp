@@ -66,6 +66,7 @@ namespace rubinius {
       }
     }
   }
+}
 
 extern "C" {
   struct RTypedData* capi_rtypeddata_struct(VALUE data_handle) {
