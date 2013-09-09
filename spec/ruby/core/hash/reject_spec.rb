@@ -26,8 +26,8 @@ describe "Hash#reject" do
   end
 
   it "returns subclass instance for subclasses" do
-    HashSpecs::MyHash[1 => 2, 3 => 4].reject { false }.should be_kind_of(HashSpecs::MyHash)
-    HashSpecs::MyHash[1 => 2, 3 => 4].reject { true }.should be_kind_of(HashSpecs::MyHash)
+    HashSpecs::MyHash[1 => 2, 3 => 4].reject { false }.should be_an_instance_of(HashSpecs::MyHash)
+    HashSpecs::MyHash[1 => 2, 3 => 4].reject { true }.should be_an_instance_of(HashSpecs::MyHash)
   end
 
   it "taints the resulting hash" do

@@ -59,9 +59,9 @@ describe :string_succ, :shared => true do
   end
 
   it "returns subclass instances when called on a subclass" do
-    StringSpecs::MyString.new("").send(@method).should be_kind_of(StringSpecs::MyString)
-    StringSpecs::MyString.new("a").send(@method).should be_kind_of(StringSpecs::MyString)
-    StringSpecs::MyString.new("z").send(@method).should be_kind_of(StringSpecs::MyString)
+    StringSpecs::MyString.new("").send(@method).should be_an_instance_of(StringSpecs::MyString)
+    StringSpecs::MyString.new("a").send(@method).should be_an_instance_of(StringSpecs::MyString)
+    StringSpecs::MyString.new("z").send(@method).should be_an_instance_of(StringSpecs::MyString)
   end
 
   it "taints the result if self is tainted" do

@@ -65,7 +65,7 @@ describe :string_slice_regexp_group, :shared => true do
 
   it "returns subclass instances" do
     s = StringSpecs::MyString.new("hello")
-    s.send(@method, /(?<q>.)/, 'q').should be_kind_of(StringSpecs::MyString)
+    s.send(@method, /(?<q>.)/, 'q').should be_an_instance_of(StringSpecs::MyString)
   end
 
   it "sets $~ to MatchData when there is a match and nil when there's none" do

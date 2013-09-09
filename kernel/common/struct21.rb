@@ -1,6 +1,14 @@
 # -*- encoding: us-ascii -*-
 
 class Struct
+  def select
+    return to_enum(:select) unless block_given?
+
+    to_a.select do |v|
+      yield v
+    end
+  end
+
   def to_h
     Hash[each_pair.to_a]
   end
