@@ -42,7 +42,7 @@ ruby_version_is "2.0" do
     end
 
     describe "on Class" do
-      ruby_bug "GH-376", "2.1" do
+      ruby_bug "GH-376", "2.0.0.312" do
         it "is undefined" do
           Class.should_not have_private_instance_method(:prepend_features, true)
         end
