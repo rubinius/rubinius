@@ -4,7 +4,7 @@ class File
 
   def self.expand_path(path, dir=nil)
     path = Rubinius::Type.coerce_to_path(path)
-    enc = path.encoding
+    str = path.to_s.dup.clear
     first = path[0]
     if first == ?~
       case path[1]
@@ -67,13 +67,12 @@ class File
     end
 
     if items.empty?
-      str = "/"
+      str << "/"
     else
-      str = ""
       items.each { |x| str.append "/#{x}" }
     end
 
-    return Rubinius::Type.external_string(str).encode(enc)
+    str
   end
 
 end
