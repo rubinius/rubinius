@@ -6,6 +6,7 @@ if ENV["RUBYLIB"]
 end
 
 require 'rubygems'
+require 'gems'
 require './rakelib/configure'
 require './rakelib/release'
 require 'rbconfig'
@@ -518,7 +519,7 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
     return Digest::MD5.file(full_path).hexdigest == File.read(md5_path).strip.split(" ").first
   end
 
-  def download(url, full_path)
+  def download(url, full_path, follows=0)
     begin
       dir = File.dirname full_path
       Dir.mkdir dir unless File.exists? dir
@@ -531,12 +532,21 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
         http = Net::HTTP
       end
 
-      @log.write "    Downloading #{File.basename(full_path)}..."
       http.get_response(URI(url)) do |res|
         case res
         when Net::HTTPNotFound
-          @log.write "      Not found."
+          @log.write "      #{url} not found."
           return false
+        when Net::HTTPMovedPermanently,
+             Net::HTTPFound,
+             Net::HTTPSeeOther,
+             Net::HTTPTemporaryRedirect
+          if follows > 3
+            @log.write "      ERROR: too many redirects: #{url}"
+            return false
+          end
+
+          return download URI.parse(res['Location']), full_path, follows + 1
         when Net::HTTPClientError
           @log.write "      ERROR: #{res.inspect}"
           return false
@@ -545,6 +555,7 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
         size = 0
         total = res.header['Content-Length'].to_i
 
+        @log.write "    Downloading #{File.basename(full_path)}..."
         File.open full_path, "wb" do |f|
           res.read_body do |chunk|
             f << chunk
@@ -2190,6 +2201,7 @@ required to run it.
       [ "json", "1.8" ],
       [ "rake", "10.1" ],
       [ "rdoc", "4.0" ],
+      [ "rubysl-rake", gem_version ],
       [ "rubysl-prettyprint", gem_version ],
       [ "rubinius-profiler", "0.1" ],
       [ "rubinius-coverage", "0.1" ],
@@ -2201,30 +2213,67 @@ required to run it.
       ]
     end
 
+    # Resolve requirements to specific versions.
+    failed = false
+    lists = [@build_tool_gems, @build_c_ext_gems, @rubygems_gems, @runtime_gems]
+    lists.each do |list|
+      list.map! do |name, version|
+        @log.print "Checking #{name} (~> #{version})"
+
+        req = Gem::Requirement.new "~> #{version}"
+        unless v = resolve_gem_version(name, req)
+          failed = true
+          @log.write ": no matching versions found"
+          next
+        end
+
+        @log.write ""
+        [name, v]
+      end
+    end
+
+    @log.write ""
+
+    # Resolve dependencies for runtime gems.
+    deps = []
+    @runtime_gems.each do |name, version|
+      @log.print "Checking dependencies for #{name} (#{version})"
+
+      req = Gem::Requirement.new "= #{version}"
+      g = Gems.dependencies(name).find { |x| req =~ Gem::Version.new(x[:number]) }
+      next unless g
+
+      ds = g[:dependencies]
+      unless ds.empty?
+        ds.each do |n, r|
+          req = Gem::Requirement.new r
+          unless v = resolve_gem_version(n, req)
+            @log.write "\nunable to find dependency: #{n} (#{r})"
+            failed = true
+            next
+          end
+
+          deps << [n, v]
+        end
+      end
+
+      @log.write ""
+    end
+    @runtime_gems.concat deps
+
+    # Fetch missing gems.
+    @log.write "\nFetching gems..."
     gems = @build_tool_gems + @build_c_ext_gems + @rubygems_gems + @runtime_gems
 
     gems_cache = File.expand_path "../preinstalled-gems", __FILE__
     FileUtils.mkdir_p gems_cache
 
-    failed = false
     Dir.chdir gems_cache do
-      files = Dir["*.gem"]
-
-      gems.reject! { |name, version| not files.grep(/#{name}-#{version}/).empty? }
-
       gems.each do |name, version|
-        dep = Gem::Dependency.new name, "~> #{version}"
+        gem = "#{name}-#{version}.gem"
+        next if File.exists? gem
 
-        specs_and_sources, _ = Gem::SpecFetcher.fetcher.spec_for_dependency dep
-        spec, source = specs_and_sources.sort_by { |s, | s.version }.last
-
-        if spec.nil?
-          @log.write "Unable to fetch gem: #{name} ~> #{version}"
-          failed = true
-          next
-        end
-
-        source.download spec
+        failed = true unless download "https://rubygems.org/gems/#{gem}", "./#{gem}"
       end
     end
 
@@ -2232,6 +2281,11 @@ required to run it.
       @log.write "Failed to download required gems, exiting."
       exit 1
     end
+  end
+
+  def resolve_gem_version(name, req)
+    versions = Gems.versions(name).map { |g| Gem::Version.new g["number"] }
+    versions.select { |v| req =~ v }.sort { |a, b| b <=> a }.first.to_s
   end
 
   def unpack_gems

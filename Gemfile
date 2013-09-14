@@ -2,6 +2,7 @@ source 'https://rubygems.org'
 
 gem "bundler", "~> 1.3"
 gem "rake", "~> 10.0"
+gem "gems", "~> 0.8"
 
 gem "rubinius-toolset"
 gem "rubinius-bridge"
