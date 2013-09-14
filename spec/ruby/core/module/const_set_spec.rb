@@ -14,10 +14,58 @@ describe "Module#const_set" do
     ConstantSpecs.const_set(:CS_CONST403, :const403).should == :const403
   end
 
-  it "sets the name of an anonymous module" do
-    m = Module.new
-    ConstantSpecs.const_set(:CS_CONST1000, m)
-    m.name.should == "ConstantSpecs::CS_CONST1000"
+  describe "on a named Module" do
+    before(:each) do
+      @named_module = ConstantSpecs
+      @first_defined = :TemporaryConstantForModuleConstSet1
+      @second_defined = :TemporaryConstantForModuleConstSet2
+      @anonymous_module = Module.new
+      @named_module.const_set @first_defined, @anonymous_module
+      @first_constant_path = "#{@named_module}::#{@first_defined}"
+    end
+
+    after(:each) do
+      @named_module.send :remove_const, @second_defined
+    end
+
+    it "sets the name of an anonymous module only once" do
+      @anonymous_module.name.should == @first_constant_path
+      @named_module.send :remove_const, @first_defined
+      @named_module.const_set @second_defined, @anonymous_module
+      @anonymous_module.name.should == @first_constant_path
+    end
+  end
+
+  describe "on Object" do
+    it "sets the name of an anonymous module only once" do
+      foo, bar, baz = Module.new, Module.new, Module.new
+      foo::Bar = bar
+      foo::Bar::Baz = baz
+
+      foo.name.to_s.should == ""
+      bar.name.to_s.should == ""
+      baz.name.to_s.should == ""
+
+      Object.const_set :TemporaryConstantForModuleConstSet1, foo
+
+      begin
+        foo.name.should == "TemporaryConstantForModuleConstSet1"
+        bar.name.should == "TemporaryConstantForModuleConstSet1::Bar"
+        baz.name.should == "TemporaryConstantForModuleConstSet1::Bar::Baz"
+      ensure
+        Object.send :remove_const, :TemporaryConstantForModuleConstSet1
+      end
+
+      Object.const_set :TemporaryConstantForModuleConstSet2, foo
+
+      begin
+        foo.name.should == "TemporaryConstantForModuleConstSet1"
+        bar.name.should == "TemporaryConstantForModuleConstSet1::Bar"
+        baz.name.should == "TemporaryConstantForModuleConstSet1::Bar::Baz"
+      ensure
+        Object.send :remove_const, :TemporaryConstantForModuleConstSet2
+      end
+    end
   end
 
   it "raises a NameError if the name does not start with a capital letter" do
