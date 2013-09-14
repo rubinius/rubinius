@@ -2201,6 +2201,7 @@ required to run it.
       [ "json", "1.8" ],
       [ "rake", "10.1" ],
       [ "rdoc", "4.0" ],
+      [ "rubysl-irb", gem_version ],
       [ "rubysl-rake", gem_version ],
       [ "rubysl-prettyprint", gem_version ],
       [ "rubinius-profiler", "0.1" ],
