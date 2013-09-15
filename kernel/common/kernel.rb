@@ -38,13 +38,30 @@ module Kernel
   # If we can, we should probably get rid of this.
 
   def FloatValue(obj)
-    begin
-      Float(obj)
-    rescue
-      raise TypeError, 'no implicit conversion to float'
+    exception = TypeError.new 'no implicit conversion to float'
+
+    case obj
+    when String
+      raise exception
+    else
+      begin
+        Float_from_except_string(obj)
+      rescue
+        raise exception
+      end
     end
   end
   private :FloatValue
+
+  def Float(obj)
+    case obj
+    when String
+      Rubinius::Type.coerce_string_to_float obj, true
+    else
+      Float_from_except_string(obj)
+    end
+  end
+  module_function :Float
 
   def initialize_copy(source)
     unless instance_of?(Rubinius::Type.object_class(source))

@@ -15,11 +15,9 @@ module Rubinius
     def self.coerce_to_float(obj, strict=true, must_be_numeric=true)
       case obj
       when String
-        value = Rubinius.invoke_primitive :string_to_f, obj, strict
-        raise ArgumentError, "invalid value for Float" if value.nil?
-        value
+        coerce_string_to_float obj, strict
       else
-        Float(obj)
+        Float_from_except_string(obj)
       end
     end
 

@@ -237,19 +237,17 @@ module Kernel
     nil
   end
 
-  def Float(obj)
-    raise TypeError, "can't convert nil into Float" if obj.nil?
-
+  def Float_from_except_string(obj)
     case obj
     when Float
       obj
-    when String
-      Rubinius::Type.coerce_to_float(obj, true, false)
+    when nil
+      raise TypeError, "can't convert nil into Float"
     else
-      Rubinius::Type.coerce_to(obj, Float, :to_f)
+      Rubinius::Type.coerce_to obj, Float, :to_f
     end
   end
-  module_function :Float
+  private :Float_from_except_string
 
   def Complex(*args)
     Rubinius.privately do
