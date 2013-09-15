@@ -54,95 +54,131 @@ describe "Array#sample" do
   end
 
   ruby_version_is "1.9.3" do
-    it "calls #to_hash to convert the passed Object" do
-      obj = mock("array_sample")
-      obj.should_receive(:to_hash).and_return({})
-      obj.should_not_receive(:to_int)
+    describe "with options" do
+      it "calls #to_hash to convert the passed Object" do
+        obj = mock("array_sample")
+        obj.should_receive(:to_hash).and_return({})
+        obj.should_not_receive(:to_int)
 
-      [1, 2].sample(obj).should be_an_instance_of(Fixnum)
+        [1, 2].sample(obj).should be_an_instance_of(Fixnum)
+      end
+
+      it "calls #to_int on the first argument and #to_hash on the second when passed Objects" do
+        count = mock("array_sample_count")
+        count.should_receive(:to_int).and_return(2)
+        options = mock("array_sample_options")
+        options.should_receive(:to_hash).and_return({})
+
+        [1, 2].sample(count, options).size.should == 2
+      end
+
+      it "calls #rand on the Object passed by the :random key in the arguments Hash" do
+        obj = mock("array_sample_random")
+        obj.should_receive(:rand).and_return(0.5)
+
+        [1, 2].sample(:random => obj).should be_an_instance_of(Fixnum)
+      end
+
+      it "ignores an Object passed for the RNG if it does not define #rand" do
+        obj = mock("array_sample_random")
+
+        [1, 2].sample(:random => obj).should be_an_instance_of(Fixnum)
+      end
+
+      describe "when the object returned by #rand is a Fixnum" do
+        ruby_version_is "2.0" do
+          it "uses the fixnum as index" do
+            random = mock("array_sample_random_ret")
+            random.should_receive(:rand).and_return(0)
+
+            [1, 2].sample(:random => random).should == 1
+
+            random = mock("array_sample_random_ret")
+            random.should_receive(:rand).and_return(1)
+
+            [1, 2].sample(:random => random).should == 2
+          end
+        end
+
+        it "raises a RangeError if the value is less than zero" do
+          random = mock("array_sample_random")
+          random.should_receive(:rand).and_return(-1)
+
+          lambda { [1, 2].sample(:random => random) }.should raise_error(RangeError)
+        end
+
+        it "raises a RangeError if the value is equal to the Array size" do
+          random = mock("array_sample_random")
+          random.should_receive(:rand).and_return(2)
+
+          lambda { [1, 2].sample(:random => random) }.should raise_error(RangeError)
+        end
+      end
     end
 
-    it "calls #to_int on the first argument and #to_hash on the second when passed Objects" do
-      count = mock("array_sample_count")
-      count.should_receive(:to_int).and_return(2)
-      options = mock("array_sample_options")
-      options.should_receive(:to_hash).and_return({})
+    ruby_version_is "1.9.3"..."2.0" do
+      it "calls #to_f on the Object returned by #rand" do
+        value = mock("array_sample_random_value")
+        value.should_receive(:to_f).and_return(0.3)
+        random = mock("array_sample_random")
+        random.should_receive(:rand).and_return(value)
 
-      [1, 2].sample(count, options).size.should == 2
+        [1, 2].sample(:random => random).should be_an_instance_of(Fixnum)
+      end
+
+      it "raises a RangeError if the random generator returns a value less than 0.0" do
+        obj = mock("array_sample_random")
+        obj.should_receive(:rand).and_return(-0.1)
+
+        lambda { [1, 2].sample(:random => obj) }.should raise_error(RangeError)
+      end
+
+      it "raises a RangeError if the random generator returns a value equal to 1.0" do
+        obj = mock("array_sample_random")
+        obj.should_receive(:rand).and_return(1.0)
+
+        lambda { [1, 2].sample(:random => obj) }.should raise_error(RangeError)
+      end
+
+      it "raises a RangeError if the random generator returns a value greater than 1.0" do
+        obj = mock("array_sample_random")
+        obj.should_receive(:rand).and_return(1.1)
+
+        lambda { [1, 2].sample(:random => obj) }.should raise_error(RangeError)
+      end
     end
 
-    it "calls #rand on the Object passed by the :random key in the arguments Hash" do
-      obj = mock("array_sample_random")
-      obj.should_receive(:rand).and_return(0.5)
+    ruby_version_is "2.0" do
+      describe "when the object returned by #rand is not a Fixnum but responds to #to_int" do
+        ruby_bug "GH-379", "2.1" do
+          it "calls #to_int on the Object" do
+            value = mock("array_sample_random_value")
+            value.should_receive(:to_int).and_return(1)
+            random = mock("array_sample_random")
+            random.should_receive(:rand).and_return(value)
 
-      [1, 2].sample(:random => obj).should be_an_instance_of(Fixnum)
-    end
+            [1, 2].sample(:random => random).should == 2
+          end
 
-    it "ignores an Object passed for the RNG if it does not define #rand" do
-      obj = mock("array_sample_random")
+          it "raises a RangeError if the value is less than zero" do
+            value = mock("array_sample_random_value")
+            value.should_receive(:to_int).and_return(-1)
+            random = mock("array_sample_random")
+            random.should_receive(:rand).and_return(value)
 
-      [1, 2].sample(:random => obj).should be_an_instance_of(Fixnum)
-    end
-  end
+            lambda { [1, 2].sample(:random => random) }.should raise_error(RangeError)
+          end
 
-  ruby_version_is "1.9.3"..."2.0" do
-    it "calls #to_f on the Object returned by #rand" do
-      value = mock("array_sample_random_value")
-      value.should_receive(:to_f).and_return(0.3)
-      random = mock("array_sample_random")
-      random.should_receive(:rand).and_return(value)
+          it "raises a RangeError if the value is equal to the Array size" do
+            value = mock("array_sample_random_value")
+            value.should_receive(:to_int).and_return(2)
+            random = mock("array_sample_random")
+            random.should_receive(:rand).and_return(value)
 
-      [1, 2].sample(:random => random).should be_an_instance_of(Fixnum)
-    end
-
-    it "raises a RangeError if the random generator returns a value less than 0.0" do
-      obj = mock("array_sample_random")
-      obj.should_receive(:rand).and_return(-0.1)
-
-      lambda { [1, 2].sample(:random => obj) }.should raise_error(RangeError)
-    end
-
-    it "raises a RangeError if the random generator returns a value equal to 1.0" do
-      obj = mock("array_sample_random")
-      obj.should_receive(:rand).and_return(1.0)
-
-      lambda { [1, 2].sample(:random => obj) }.should raise_error(RangeError)
-    end
-
-    it "raises a RangeError if the random generator returns a value greater than 1.0" do
-      obj = mock("array_sample_random")
-      obj.should_receive(:rand).and_return(1.1)
-
-      lambda { [1, 2].sample(:random => obj) }.should raise_error(RangeError)
-    end
-  end
-
-  ruby_version_is "2.0" do
-    it "calls #to_int on the Object returned by #rand" do
-      value = mock("array_sample_random_value")
-      value.should_receive(:to_int).and_return(1)
-      random = mock("array_sample_random")
-      random.should_receive(:rand).and_return(value)
-
-      [1, 2].sample(:random => random).should be_an_instance_of(Fixnum)
-    end
-
-    it "raises a RangeError if the value is less than zero" do
-      value = mock("array_sample_random_value")
-      value.should_receive(:to_int).and_return(-1)
-      random = mock("array_sample_random")
-      random.should_receive(:rand).and_return(value)
-
-      lambda { [1, 2].sample(:random => random) }.should raise_error(RangeError)
-    end
-
-    it "raises a RangeError if the value is equal to the Array size" do
-      value = mock("array_sample_random_value")
-      value.should_receive(:to_int).and_return(2)
-      random = mock("array_sample_random")
-      random.should_receive(:rand).and_return(value)
-
-      lambda { [1, 2].sample(:random => random) }.should raise_error(RangeError)
+            lambda { [1, 2].sample(:random => random) }.should raise_error(RangeError)
+          end
+        end
+      end
     end
   end
 end
