@@ -67,5 +67,11 @@ module Rubinius
       Rubinius.primitive :vm_set_module_name
       raise PrimitiveFailure, "Rubinius::Type.set_module_name primitive failed"
     end
+
+    def self.coerce_string_to_float(string, strict)
+      value = Rubinius.invoke_primitive :string_to_f, string, strict
+      raise ArgumentError, "invalid string for Float" if value.nil?
+      value
+    end
   end
 end
