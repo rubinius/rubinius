@@ -43,11 +43,9 @@ describe "Module#private_class_method" do
   end
 
   it "raises a NameError if class method doesn't exist" do
-    lambda { ModuleSpecs.private_class_method :no_method_here }.should(
-      raise_error(NameError) do |err|
-        err.should be_an_instance_of(NameError)
-      end
-    )
+    lambda do
+      ModuleSpecs.private_class_method :no_method_here
+    end.should raise_exception(NameError)
   end
 
   it "makes a class method private" do
@@ -59,27 +57,19 @@ describe "Module#private_class_method" do
   end
 
   it "raises a NameError when the given name is not a method" do
-    lambda {
+    lambda do
       c = Class.new do
         private_class_method :foo
       end
-    }.should(
-      raise_error(NameError) do |err|
-        err.should be_an_instance_of(NameError)
-      end
-    )
+    end.should raise_exception(NameError)
   end
 
   it "raises a NameError when the given name is an instance method" do
-    lambda {
+    lambda do
       c = Class.new do
         def foo() "foo" end
         private_class_method :foo
       end
-    }.should(
-      raise_error(NameError) do |err|
-        err.should be_an_instance_of(NameError)
-      end
-    )
+    end.should raise_exception(NameError)
   end
 end
