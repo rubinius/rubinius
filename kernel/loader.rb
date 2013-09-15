@@ -857,13 +857,14 @@ to rebuild the compiler.
       show_syntax_error(e)
 
       STDERR.puts "\nBacktrace:"
+      STDERR.puts
       STDERR.puts e.awesome_backtrace.show
       epilogue
     rescue Interrupt => e
       @exit_code = 1
 
       write_last_error(e)
-      e.render "An exception occurred #{@stage}"
+      e.render "An exception occurred #{@stage}:"
       epilogue
     rescue SignalException => e
       Signal.trap(e.signo, "SIG_DFL")
@@ -873,7 +874,7 @@ to rebuild the compiler.
       @exit_code = 1
 
       write_last_error(e)
-      e.render "An exception occurred #{@stage}"
+      e.render "An exception occurred #{@stage}:"
       epilogue
     else
       # We do this, run epilogue both in the rescue blocks and also here,
