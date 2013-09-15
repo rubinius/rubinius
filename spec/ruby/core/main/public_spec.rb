@@ -14,4 +14,12 @@ describe "main#public" do
   it "returns Object" do
     eval("public :main_private_method", TOPLEVEL_BINDING).should equal(Object)
   end
+
+  it "raises a NameError when given an undefined name" do
+    lambda {eval "public :main_undefined_method", TOPLEVEL_BINDING}.should(
+      raise_error(NameError) do |err|
+        err.should be_an_instance_of(NameError)
+      end
+    )
+  end
 end
