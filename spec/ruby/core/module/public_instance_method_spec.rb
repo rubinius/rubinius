@@ -33,39 +33,35 @@ ruby_version_is "1.9" do
     end
 
     it "raises a NameError when given a protected method name" do
-      lambda { ModuleSpecs::Basic.public_instance_method(:protected_module) }.should(
-        raise_error(NameError) do |error|
-          error.should be_an_instance_of(NameError)
-          error.name.should == :protected_module
-        end
-      )
+      lambda do
+        ModuleSpecs::Basic.public_instance_method(:protected_module)
+      end.should raise_exception(NameError)
     end
 
-    it "raises a NameError when given a private method name" do
-      lambda { ModuleSpecs::Basic.public_instance_method(:private_module) }.should(
-        raise_error(NameError) do |error|
-          error.should be_an_instance_of(NameError)
-          error.name.should == :private_module
-        end
-      )
+    it "raises a NameError if the method is private" do
+      lambda do
+        ModuleSpecs::Basic.public_instance_method(:private_module)
+      end.should raise_exception(NameError)
     end
 
-    it "raises a NameError when given an undefined method name" do
-      lambda { ModuleSpecs::Parent.public_instance_method(:undefed_method) }.should(
-        raise_error(NameError) do |error|
-          error.should be_an_instance_of(NameError)
-          error.name.should == :undefed_method
-        end
-      )
+    it "raises a NameError if the method has been undefined" do
+      lambda do
+        ModuleSpecs::Parent.public_instance_method(:undefed_method)
+      end.should raise_exception(NameError)
     end
 
-    it "raises a NameError when given a not existing method name" do
-      lambda { Module.new.public_instance_method(:this_is_not_exist) }.should(
-        raise_error(NameError) do |error|
-          error.should be_an_instance_of(NameError)
-          error.name.should == :this_is_not_exist
-        end
-      )
+    it "raises a NameError if the method does not exist" do
+      lambda do
+        Module.new.public_instance_method(:missing)
+      end.should raise_exception(NameError)
+    end
+
+    it "sets the NameError#name attribute to the name of the missing method" do
+      begin
+        Module.new.public_instance_method(:missing)
+      rescue NameError => e
+        e.name.should == :missing
+      end
     end
   end
 end
