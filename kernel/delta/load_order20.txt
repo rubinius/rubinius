@@ -25,3 +25,4 @@ ruby_constants20.rbc
 ruby_constants.rbc
 pack.rbc
 pack19.rbc
+proc20.rbc
