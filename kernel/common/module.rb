@@ -362,7 +362,7 @@ class Module
     elsif lookup_method(name)
       @method_table.store name, nil, vis
     else
-      raise NoMethodError, "Unknown #{where}method '#{name}' to make #{vis.to_s} (#{self})"
+      raise NameError.new("Unknown #{where}method '#{name}' to make #{vis.to_s} (#{self})", name)
     end
 
     Rubinius::VM.reset_method_cache self, name
