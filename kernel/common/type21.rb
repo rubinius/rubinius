@@ -190,6 +190,10 @@ module Rubinius
     end
 
     def self.object_respond_to_marshal_load?(obj)
+      object_respond_to? obj, :marshal_load, true
+    end
+
+    def self.bindable_method?(source, destination)
       unless object_kind_of? source, Module or
              object_kind_of? source, destination
         if singleton_class_object source

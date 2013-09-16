@@ -3,7 +3,6 @@
 class Proc
 
   alias_method :===, :call
-  alias_method :eql?, :==
 
   def curry(curried_arity = nil)
     if lambda? && curried_arity

@@ -1,6 +1,18 @@
 # -*- encoding: us-ascii -*-
 
 class Proc
+  def ==(other)
+    return false unless other.kind_of? self.class
+
+    if @ruby_method
+      @ruby_method == other.ruby_method
+    elsif @bound_method
+      @bound_method == other.bound_method
+    else
+      @block == other.block
+    end
+  end
+
   def to_s
     if @ruby_method
       code = @ruby_method.executable

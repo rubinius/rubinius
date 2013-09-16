@@ -64,18 +64,6 @@ class Proc
     bind
   end
 
-  def ==(other)
-    return false unless other.kind_of? self.class
-
-    if @ruby_method
-      @ruby_method == other.ruby_method
-    elsif @bound_method
-      @bound_method == other.bound_method
-    else
-      @block == other.block
-    end
-  end
-
   def arity
     if @ruby_method
       return @ruby_method.arity
