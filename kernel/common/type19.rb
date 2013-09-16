@@ -181,10 +181,10 @@ module Rubinius
       index_a <=> index_b
     end
 
-    def self.bindable_method?(method)
+    def self.bindable_method?(klass, method)
       defined_in = method.defined_in
 
-      unless object_kind_of? defined_in, self.class
+      unless object_kind_of? defined_in, klass
         if singleton_class_object defined_in
           raise TypeError, "illegal attempt to rebind a singleton method to another object"
         end
