@@ -863,10 +863,9 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
   end
 
   def failure(message=nil)
-    message ||= "'configure' has failed."
-    @log.error message
+    @log.error message if message
 
-    STDERR.puts "\n#{message} Please check configure.log for more details."
+    STDERR.puts "\nRunning 'configure' failed. Please check configure.log for more details."
     exit 1
   end
 
