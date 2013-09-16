@@ -30,8 +30,8 @@ describe "Module#define_method when given an UnboundMethod" do
     klass.new.should have_method(:another_test_method)
   end
 
-  ruby_bug "redmine:2117", "1.8.7" do
-    it "defines a method on a singleton class" do
+  describe "defining a method on a singleton class" do
+    before do
       klass = Class.new
       class << klass
         def test_method
@@ -41,7 +41,20 @@ describe "Module#define_method when given an UnboundMethod" do
       child = Class.new(klass)
       sc = class << child; self; end
       sc.send :define_method, :another_test_method, klass.method(:test_method).unbind
-      child.another_test_method.should == :foo
+
+      @class = child
+    end
+
+    ruby_version_is "1.8" ... "1.9" do
+      it "raises TypeError when calling the method" do
+        lambda { @class.another_test_method }.should raise_error(TypeError)
+      end
+    end
+
+    ruby_version_is "1.9" do
+      it "doesn't raise TypeError when calling the method" do
+        @class.another_test_method.should == :foo
+      end
     end
   end
 end
@@ -178,6 +191,35 @@ describe "Module#define_method" do
       lambda {
         method.call :too_many_arguments
       }.should raise_error(ArgumentError)
+    end
+  end
+
+  describe "method body is an UnboundMethod" do
+    before do
+      @lazy_class_def = lambda {
+        LazyClass = Class.new do
+          define_method :bar, ModuleSpecs::UnboundMethodTest.instance_method(:foo)
+        end
+      }
+    end
+
+    ruby_version_is "1.8" ... "1.9" do
+      it "raises a TypeError when calling a method from a different object" do
+        obj = @lazy_class_def.call.new
+        lambda { obj.bar }.should raise_error(TypeError)
+      end
+    end
+
+    ruby_version_is "1.9" ... "2.0" do
+      it "raises a TypeError when defining a method from a different object" do
+        lambda { @lazy_class_def.call }.should raise_error(TypeError)
+      end
+    end
+
+    ruby_version_is "2.0" do
+      it "allows methods defined on a different object" do
+        @lazy_class_def.call.new.bar.should == 'bar'
+      end
     end
   end
 end

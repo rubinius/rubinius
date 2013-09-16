@@ -133,4 +133,8 @@ class Module
     current_name_visibility
   end
   private :visibility_for_aliased_method
+
+  def check_if_method_can_be_bound!(method)
+  end
+  private :check_if_method_can_be_bound!
 end
