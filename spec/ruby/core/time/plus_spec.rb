@@ -43,6 +43,12 @@ describe "Time#+" do
     end
   end
 
+  it "raises a TypeError if given argument is a coercible String" do
+    lambda { Time.now + "1" }.should raise_error(TypeError)
+    lambda { Time.now + "0.1" }.should raise_error(TypeError)
+    lambda { Time.now + "1/3" }.should raise_error(TypeError)
+  end
+
   ruby_version_is "" ... "1.9" do
     it "increments the time by the specified amount as float numbers" do
       (Time.at(1.1) + 0.9).should == Time.at(2)

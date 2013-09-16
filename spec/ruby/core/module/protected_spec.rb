@@ -46,5 +46,11 @@ describe "Module#protected" do
       protected.should equal(self)
     end
   end
+
+  it "raises a NameError when given an undefined name" do
+    lambda do
+      Module.new.send(:protected, :undefined)
+    end.should raise_exception(NameError)
+  end
 end
 

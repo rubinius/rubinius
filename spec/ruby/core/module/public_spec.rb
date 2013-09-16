@@ -35,4 +35,10 @@ describe "Module#public" do
       public.should equal(self)
     end
   end
+
+  it "raises a NameError when given an undefined name" do
+    lambda do
+      Module.new.send(:public, :undefined)
+    end.should raise_exception(NameError)
+  end
 end

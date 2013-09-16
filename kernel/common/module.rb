@@ -286,6 +286,8 @@ class Module
         meth.lambda_style!
       end
     when Method
+      Rubinius::Type.bindable_method? meth.defined_in, self.class
+
       exec = meth.executable
       # We see through delegated methods because code creates these crazy calls
       # to define_method over and over again and if we don't check, we create
@@ -297,6 +299,8 @@ class Module
         code = Rubinius::DelegatedMethod.new(name, :call_on_instance, meth.unbind, true)
       end
     when UnboundMethod
+      Rubinius::Type.bindable_method? meth.defined_in, self.class
+
       exec = meth.executable
       # Same reasoning as above.
       if exec.kind_of? Rubinius::DelegatedMethod
@@ -362,7 +366,7 @@ class Module
     elsif lookup_method(name)
       @method_table.store name, nil, vis
     else
-      raise NoMethodError, "Unknown #{where}method '#{name}' to make #{vis.to_s} (#{self})"
+      raise NameError.new("Unknown #{where}method '#{name}' to make #{vis.to_s} (#{self})", name)
     end
 
     Rubinius::VM.reset_method_cache self, name

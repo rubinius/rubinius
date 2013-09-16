@@ -34,7 +34,7 @@ ruby_version_is "2.0" do
       end
     end
 
-    ruby_bug "#8735", "2.1" do
+    ruby_bug "#8735", "2.0.0.305" do
       it "calls the block with a gathered array when yield with multiple arguments" do
         yields = @yieldsmixed.zip(EnumeratorLazySpecs::YieldsMixed.new.to_enum).force
         yields.should == [EnumeratorLazySpecs::YieldsMixed.gathered_yields,

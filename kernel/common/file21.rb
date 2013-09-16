@@ -208,6 +208,11 @@ class File
   def self.realdirpath(path, basedir = nil)
     dirname(realpath(path, basedir))
   end
+
+  def self.expand_path_buffer(path)
+    path.to_s.dup.clear
+  end
+  private_class_method :expand_path_buffer
 end
 
 class File::Stat

@@ -45,4 +45,10 @@ describe "Module#private" do
       private.should equal(self)
     end
   end
+
+  it "raises a NameError when given an undefined name" do
+    lambda do
+      Module.new.send(:private, :undefined)
+    end.should raise_exception(NameError)
+  end
 end

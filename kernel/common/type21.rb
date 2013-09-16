@@ -190,7 +190,14 @@ module Rubinius
     end
 
     def self.object_respond_to_marshal_load?(obj)
-      object_respond_to? obj, :marshal_load, true
+      unless object_kind_of? source, Module or
+             object_kind_of? source, destination
+        if singleton_class_object source
+          raise TypeError, "illegal attempt to rebind a singleton method to another object"
+        end
+
+        raise TypeError, "Must be bound to an object of kind #{source}"
+      end
     end
   end
 end

@@ -178,7 +178,37 @@ class Module
       mod = mod.direct_superclass
     end
 
-    raise NameError, "undefined method `#{name}' for #{self}"
+    raise NameError.new("undefined method `#{name}' for #{self}", name)
+  end
+
+  def public_instance_method(name)
+    name = Rubinius::Type.coerce_to_symbol name
+
+    mod = self
+    while mod
+      if entry = mod.method_table.lookup(name)
+        vis = entry.visibility
+        break if vis == :undef
+
+        if meth = entry.method
+          if meth.kind_of? Rubinius::Alias
+            meth = meth.original_exec
+          end
+
+          mod = mod.module if mod.class == Rubinius::IncludedModule
+
+          if vis == :public
+            return UnboundMethod.new(mod, meth, self, name)
+          else
+            raise NameError.new("method `#{name}' for module `#{self}' is #{vis}", name)
+          end
+        end
+      end
+
+      mod = mod.direct_superclass
+    end
+
+    raise NameError.new("undefined method `#{name}' for #{self}", name)
   end
 
   def visibility_for_aliased_method(new_name, current_name_visibility)
