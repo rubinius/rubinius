@@ -14,16 +14,14 @@ module Rubinius
       object_respond_to? obj, :marshal_load, true
     end
 
-    def self.bindable_method?(klass, method)
-      defined_in = method.defined_in
-
-      unless object_kind_of? defined_in, Module or
-             object_kind_of? defined_in, klass
-        if singleton_class_object defined_in
+    def self.bindable_method?(source, destination)
+      unless object_kind_of? source, Module or
+             object_kind_of? source, destination
+        if singleton_class_object source
           raise TypeError, "illegal attempt to rebind a singleton method to another object"
         end
 
-        raise TypeError, "Must be bound to an object of kind #{defined_in}"
+        raise TypeError, "Must be bound to an object of kind #{source}"
       end
     end
   end

@@ -95,7 +95,7 @@ module Rubinius
     def self.compatible_encoding(a, b)
     end
 
-    def self.bindable_method?(klass, method)
+    def self.bindable_method?(source, destination)
     end
   end
 end
