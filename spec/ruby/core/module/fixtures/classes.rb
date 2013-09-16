@@ -479,6 +479,12 @@ module ModuleSpecs
       end
     end
   end
+
+  module UnboundMethodTest
+    def foo
+      'bar'
+    end
+  end
 end
 
 class Object
