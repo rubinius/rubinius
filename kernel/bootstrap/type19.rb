@@ -30,6 +30,17 @@ module Rubinius
       end
     end
 
+    def self.coerce_object_to_float(obj)
+      case obj
+      when Float
+        obj
+      when nil
+        raise TypeError, "can't convert nil into Float"
+      else
+        coerce_to obj, Float, :to_f
+      end
+    end
+
     def self.object_encoding(obj)
       Rubinius.primitive :encoding_get_object_encoding
       raise PrimitiveFailure, "Rubinius::Type.object_encoding primitive failed"

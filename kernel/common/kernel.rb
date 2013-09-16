@@ -45,7 +45,7 @@ module Kernel
       raise exception
     else
       begin
-        Float_from_except_string(obj)
+        Rubinius::Type.coerce_object_to_float obj
       rescue
         raise exception
       end
@@ -58,7 +58,7 @@ module Kernel
     when String
       Rubinius::Type.coerce_string_to_float obj, true
     else
-      Float_from_except_string(obj)
+      Rubinius::Type.coerce_object_to_float obj
     end
   end
   module_function :Float
