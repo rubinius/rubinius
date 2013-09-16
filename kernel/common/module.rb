@@ -286,7 +286,7 @@ class Module
         meth.lambda_style!
       end
     when Method
-      check_if_method_can_be_bound! meth
+      Rubinius::Type.bindable_method? meth
 
       exec = meth.executable
       # We see through delegated methods because code creates these crazy calls
@@ -299,7 +299,7 @@ class Module
         code = Rubinius::DelegatedMethod.new(name, :call_on_instance, meth.unbind, true)
       end
     when UnboundMethod
-      check_if_method_can_be_bound! meth
+      Rubinius::Type.bindable_method? meth
 
       exec = meth.executable
       # Same reasoning as above.

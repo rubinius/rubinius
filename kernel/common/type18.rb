@@ -94,5 +94,8 @@ module Rubinius
 
     def self.compatible_encoding(a, b)
     end
+
+    def self.bindable_method?(method)
+    end
   end
 end

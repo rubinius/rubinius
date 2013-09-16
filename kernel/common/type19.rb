@@ -180,5 +180,17 @@ module Rubinius
       index_b = Encoding::EncodingMap[b.name.upcase][1]
       index_a <=> index_b
     end
+
+    def self.bindable_method?(method)
+      defined_in = method.defined_in
+
+      unless object_kind_of? defined_in, self.class
+        if singleton_class_object defined_in
+          raise TypeError, "illegal attempt to rebind a singleton method to another object"
+        end
+
+        raise TypeError, "Must be bound to an object of kind #{defined_in}"
+      end
+    end
   end
 end
