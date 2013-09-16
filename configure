@@ -2222,7 +2222,8 @@ required to run it.
         @log.print "Checking #{name} (~> #{version})"
 
         req = Gem::Requirement.new "~> #{version}"
-        unless v = resolve_gem_version(name, req)
+        v = resolve_gem_version(name, req)
+        if v.empty?
           failed = true
           @log.write ": no matching versions found"
           next
@@ -2233,6 +2234,7 @@ required to run it.
       end
     end
 
+    failure "Unable to find required gems." if failed
     @log.write ""
 
     # Resolve dependencies for runtime gems.
@@ -2248,7 +2250,8 @@ required to run it.
       unless ds.empty?
         ds.each do |n, r|
           req = Gem::Requirement.new r
-          unless v = resolve_gem_version(n, req)
+          v = resolve_gem_version(n, req)
+          if v.empty?
             @log.write "\nunable to find dependency: #{n} (#{r})"
             failed = true
             next
@@ -2260,6 +2263,9 @@ required to run it.
 
       @log.write ""
     end
+
+    failure "Unable to resolve dependencies for required gems." if failed
+
     @runtime_gems.concat deps
 
     # Fetch missing gems.
@@ -2278,10 +2284,7 @@ required to run it.
       end
     end
 
-    if failed
-      @log.write "Failed to download required gems, exiting."
-      exit 1
-    end
+    failure "Unable to download required gems." if failed
   end
 
   def resolve_gem_version(name, req)
