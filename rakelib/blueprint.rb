@@ -66,8 +66,7 @@ Daedalus.blueprint do |i|
     "vm/#{x}/*.{cpp,c}"
   end
 
-  mode = "vm/modes/#{Rubinius::BUILD_CONFIG[:language_version]}/*.cpp"
-  files = i.source_files "vm/*.{cpp,c}", mode, *subdirs
+  files = i.source_files "vm/*.{cpp,c}", *subdirs
 
   perl = Rubinius::BUILD_CONFIG[:build_perl] || "perl"
 

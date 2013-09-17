@@ -101,17 +101,8 @@ def install_capi_include(prefix, destination)
   end
 end
 
-def install_lib_excludes(prefix, list)
-  BUILD_CONFIG[:supported_versions].each do |ver|
-    unless BUILD_CONFIG[:language_version] == ver
-      list.exclude(%r[^#{prefix}/#{ver}/.*])
-    end
-  end
-end
-
 def install_build_lib(prefix, target)
   list = FileList["#{prefix}/**/*.*", "#{prefix}/**/*"]
-  install_lib_excludes prefix, list
 
   list.each do |name|
     install_file name, prefix, "#{target}#{BUILD_CONFIG[:libdir]}"
@@ -120,12 +111,9 @@ end
 
 def install_lib(prefix, target)
   list = FileList["#{prefix}/**/*.rb", "#{prefix}/**/rubygems/**/*"]
-  install_lib_excludes prefix, list
 
-  re = %r[/lib/#{BUILD_CONFIG[:language_version]}/]
   list.each do |source|
-    name = source.gsub(re, "/lib/")[prefix.size..-1]
-    install_file source, prefix, "#{target}#{BUILD_CONFIG[:libdir]}", name
+    install_file source, prefix, "#{target}#{BUILD_CONFIG[:libdir]}"
   end
 end
 

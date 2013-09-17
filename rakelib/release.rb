@@ -31,14 +31,6 @@ def rubinius_version
   "#{BUILD_CONFIG[:libversion]}.#{BUILD_CONFIG[:patch_version]}"
 end
 
-def write_version(path, version, versions)
-  File.open path, "wb" do |f|
-    versions.each do |v|
-      f.puts "#define LANGUAGE_#{v}_ENABLED  (#{version == v})"
-    end
-  end
-end
-
 def write_release(path, version, date, revision)
   File.open path, "wb" do |f|
     f.puts %[#define RBX_VERSION       "#{version}"]

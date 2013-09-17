@@ -23,7 +23,6 @@ encoding_database = "vm/gen/encoding_database.cpp"
 transcoders_database = "vm/gen/transcoder_database.cpp"
 
 vm_release_h = BUILD_CONFIG[:vm_release_h]
-vm_version_h = BUILD_CONFIG[:vm_version_h]
 
 ENV.delete 'CDPATH' # confuses llvm_config
 
@@ -50,33 +49,6 @@ TYPE_GEN    = %w[ vm/gen/includes.hpp
                   vm/gen/jit_resolver.cpp
                   vm/gen/invoke_resolver.cpp ]
 
-# Copy language-mode-specific headers to language-mode-agnostic include
-# directory.
-CAPI_HDR_GEN = []
-include_prefix = "#{BUILD_CONFIG[:sourcedir]}/vm/capi/#{BUILD_CONFIG[:language_version]}/include"
-headers = FileList["#{include_prefix}/**/*.{h,hpp}"]
-
-capi_includedir = BUILD_CONFIG[:capi_includedir] || raise("missing C-API include dir")
-
-files = FileList["#{capi_includedir}/**/*.{h,hpp}"]
-files.exclude(%r[.*/(capi|rbx)_.*\.h])
-files.exclude(%r[.*/config.h])
-files.each do |name|
-  src = "#{include_prefix}#{name[-(name.size-capi_includedir.size)..-1]}"
-  FileUtils.rm_f name unless headers.include? src
-end
-
-headers.each do |name|
-  dest = "#{capi_includedir}#{name[-(name.size-include_prefix.size)..-1]}"
-
-  CAPI_HDR_GEN << dest
-
-  file dest => name do |t|
-    FileUtils.mkdir_p File.dirname(t.name)
-    FileUtils.cp t.prerequisites.first, t.name
-  end
-end
-
 GENERATED = %W[ vm/gen/config_variables.h
                 vm/gen/signature.h
                 vm/dtrace/probes.h
@@ -84,7 +56,7 @@ GENERATED = %W[ vm/gen/config_variables.h
                 #{transcoders_database}
                 #{vm_release_h}
                 #{vm_version_h}
-              ] + TYPE_GEN + INSN_GEN + CAPI_HDR_GEN
+              ] + TYPE_GEN + INSN_GEN
 
 # Files are in order based on dependencies. For example,
 # CompactLookupTable inherits from Tuple, so the header
@@ -250,10 +222,6 @@ transcoders_extract = 'vm/codegen/transcoders_extract.rb'
 
 file transcoders_database => [transcoders_lib_dir, transcoders_extract] do |t|
   ruby transcoders_extract, transcoders_src_dir, t.name
-end
-
-task vm_version_h do |t|
-  write_version t.name, BUILD_CONFIG[:language_version], BUILD_CONFIG[:supported_versions]
 end
 
 task vm_release_h do |t|

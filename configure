@@ -54,11 +54,6 @@ class Configure
     @gem = nil
     @bundle = nil
 
-    # Versions
-    @language_version = "21"
-    @supported_versions = ["18", "21"]
-    @build_ruby = nil
-
     # LLVM settings
     @use_llvm               = true
     @llvm                   = :no
@@ -143,7 +138,8 @@ class Configure
     @release_date = validate_release_date
 
     # Configure settings
-    @config_version = 180
+    @build_ruby = nil
+    @config_version = 181
     @run_bundle = true
     @fetch_gems = true
   end
@@ -302,12 +298,6 @@ class Configure
 
     o.on "--release-date", "DATE", "Set release date to DATE in yyyy-mm-dd format" do |date|
       @release_date = validate_release_date date
-    end
-
-    o.doc "\n Language version settings"
-
-    o.on "--enable-version", "VERSION", "Enable Ruby VERSION (supported 1.8, 2.1)" do |v|
-      @language_version = normalize_version v
     end
 
     o.doc "\n Compiler settings"
@@ -1712,7 +1702,6 @@ int main() { return tgetnum(""); }
       :readline           => @rb_readline ? :rb_readline : :c_readline,
       :vm_release_h       => @vm_release_h,
       :vm_version_h       => @vm_version_h,
-      :language_version   => @language_version,
       :supported_versions => @supported_versions,
       :build_tool_gems    => @build_tool_gems,
       :build_c_ext_gems   => @build_c_ext_gems,
@@ -1801,7 +1790,6 @@ int main() { return tgetnum(""); }
     # Write release and version header files.
     record_revision
     write_release @vm_release_h, version, @release_date, read_revision
-    write_version @vm_version_h, @language_version, @supported_versions
 
     # Clean up C-API language-mode-agnostic header directory.
     FileUtils.rm_rf @capi_includedir
@@ -1813,12 +1801,7 @@ int main() { return tgetnum(""); }
     FileUtils.cp @vm_release_h, "#{vm_capi_header_gen}/rbx_release.h"
 
     # Write the config file used in the C-API.
-    if @language_version == "18"
-      capi_config_h = "#{@capi_includedir}/config.h"
-    else
-      capi_config_h = "#{@capi_includedir}/ruby/config.h"
-    end
-
+    capi_config_h = "#{@capi_includedir}/ruby/config.h"
     FileUtils.mkdir_p File.dirname(capi_config_h)
     File.open capi_config_h, "wb" do |f|
       f.puts <<-EOC
@@ -2108,7 +2091,6 @@ typedef enum {
     return unless @run_bundle
 
     @log.write "\nBundling development gem dependencies..."
-    ENV["RBX_MODE"] = @language_version
     system "#{build_ruby} -S #{@bundle} update"
     if $?.exitstatus != 0
       @log.write <<-EOM
@@ -2128,88 +2110,63 @@ required to run it.
 
     @log.write "\nFetching bootstrap gems..."
 
-    case @language_version
-    when "18"
-      gem_version = "1.0"
-    when "21"
-      gem_version = "2.0"
-    end
-
     # Rubinius build tools
     @build_tool_gems = [
-      [ "rubinius-ast", gem_version ],
-      [ "rubinius-compiler", gem_version ],
-      [ "rubinius-melbourne", gem_version ],
-      [ "rubinius-processor", gem_version ],
+      [ "rubinius-ast", "2.0" ],
+      [ "rubinius-compiler", "2.0" ],
+      [ "rubinius-melbourne", "2.0" ],
+      [ "rubinius-processor", "2.0" ],
       [ "rubinius-toolset", "0.1" ],
       [ "ffi2-generators", "0.1" ]
     ]
 
     # Standard library gems for building gem C-extensions
     @build_c_ext_gems = [
-      [ "rubysl-etc", gem_version ],
-      [ "rubysl-fileutils", gem_version ],
-      [ "rubysl-mkmf", gem_version ],
-      [ "rubysl-shellwords", gem_version ]
+      [ "rubysl-etc", "2.0" ],
+      [ "rubysl-fileutils", "2.0" ],
+      [ "rubysl-mkmf", "2.0" ],
+      [ "rubysl-shellwords", "2.0" ]
     ]
 
     # Standard library gems to bootstrap rubygems
     @rubygems_gems = [
-      [ "rubysl-date", gem_version ],
-      [ "rubysl-delegate", gem_version ],
-      [ "rubysl-digest", gem_version ],
-      [ "rubysl-fcntl", gem_version ],
-      [ "rubysl-monitor", gem_version ],
-      [ "rubysl-net-http", gem_version ],
-      [ "rubysl-net-protocol", gem_version ],
-      [ "rubysl-openssl", gem_version ],
-      [ "rubysl-optparse", gem_version ],
-      [ "rubysl-ostruct", gem_version ],
-      [ "rubysl-resolv", gem_version ],
-      [ "rubysl-socket", gem_version ],
-      [ "rubysl-stringio", gem_version ],
-      [ "rubysl-strscan", gem_version ],
-      [ "rubysl-tempfile", gem_version ],
-      [ "rubysl-thread", gem_version ],
-      [ "rubysl-time", gem_version ],
-      [ "rubysl-timeout", gem_version ],
-      [ "rubysl-tmpdir", gem_version ],
-      [ "rubysl-tsort", gem_version ],
-      [ "rubysl-uri", gem_version ],
-      [ "rubysl-yaml", gem_version ],
-      [ "rubysl-zlib", gem_version ]
+      [ "psych", "2.0" ],
+      [ "rubysl-date", "2.0" ],
+      [ "rubysl-delegate", "2.0" ],
+      [ "rubysl-digest", "2.0" ],
+      [ "rubysl-fcntl", "2.0" ],
+      [ "rubysl-monitor", "2.0" ],
+      [ "rubysl-net-http", "2.0" ],
+      [ "rubysl-net-protocol", "2.0" ],
+      [ "rubysl-openssl", "2.0" ],
+      [ "rubysl-optparse", "2.0" ],
+      [ "rubysl-ostruct", "2.0" ],
+      [ "rubysl-resolv", "2.0" ],
+      [ "rubysl-socket", "2.0" ],
+      [ "rubysl-stringio", "2.0" ],
+      [ "rubysl-strscan", "2.0" ],
+      [ "rubysl-tempfile", "2.0" ],
+      [ "rubysl-thread", "2.0" ],
+      [ "rubysl-time", "2.0" ],
+      [ "rubysl-timeout", "2.0" ],
+      [ "rubysl-tmpdir", "2.0" ],
+      [ "rubysl-tsort", "2.0" ],
+      [ "rubysl-uri", "2.0" ],
+      [ "rubysl-yaml", "2.0" ],
+      [ "rubysl-zlib", "2.0" ]
     ]
-
-    case @language_version
-    when"18"
-      @rubygems_gems.concat [
-        [ "rubysl-parsedate", "1.0" ],
-        [ "rubysl-rational", "1.0" ],
-        [ "rubysl-syck", "1.0" ],
-      ]
-    when "21"
-      @rubygems_gems.concat [
-        [ "psych", "2.0" ],
-      ]
-    end
 
     # Preinstalled runtime gems
     @runtime_gems = [
       [ "json", "1.8" ],
       [ "rake", "10.1" ],
       [ "rdoc", "4.0" ],
-      [ "rubysl-irb", gem_version ],
-      [ "rubysl-rake", gem_version ],
-      [ "rubysl-prettyprint", gem_version ],
+      [ "rubysl-irb", "2.0" ],
+      [ "rubysl-rake", "2.0" ],
+      [ "rubysl-prettyprint", "2.0" ],
       [ "rubinius-profiler", "0.1" ],
       [ "rubinius-coverage", "0.1" ],
     ]
-
-    if @language_version == "18"
-      @runtime_gems.concat [
-        [ "rubysl-iconv", "1.0" ],
-      ]
-    end
 
     # Require these after Bundler has run.
     require 'rubygems'
@@ -2294,6 +2251,8 @@ required to run it.
   end
 
   def unpack_gems
+    return unless @fetch_gems
+
     @log.write "\nUnpacking bootstrap gems..."
 
     gems = @build_tool_gems + @build_c_ext_gems + @rubygems_gems

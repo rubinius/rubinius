@@ -52,7 +52,7 @@ end
 
 load_configuration
 
-unless BUILD_CONFIG[:config_version] == 180
+unless BUILD_CONFIG[:config_version] == 181
   STDERR.puts "Your configuration is outdated, please run ./configure first"
   exit 1
 end
@@ -62,8 +62,6 @@ unless BUILD_CONFIG[:which_ruby] == :ruby or BUILD_CONFIG[:which_ruby] == :rbx
   STDERR.puts "Sorry, building Rubinius requires MRI or Rubinius"
   exit 1
 end
-
-ENV["RBX_MODE"] = BUILD_CONFIG[:language_version]
 
 require 'rubygems'
 require 'bundler/setup'

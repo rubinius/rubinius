@@ -42,7 +42,7 @@ class KernelCompiler
     generator.processor Rubinius::ToolSet::Build::Generator
 
     writer = compiler.writer
-    writer.version = BUILD_CONFIG[:language_version]
+    writer.version = "21"
     writer.name = output
 
     compiler.run
@@ -174,7 +174,7 @@ dir_names.each do |dir|
   load_order = "runtime/#{dir}/load_order.txt"
   runtime_files << load_order
 
-  kernel_load_order = "kernel/#{dir}/load_order#{BUILD_CONFIG[:language_version]}.txt"
+  kernel_load_order = "kernel/#{dir}/load_order.txt"
 
   file load_order => [kernel_load_order, signature] do |t|
     cp t.prerequisites.first, t.name, :verbose => $verbose
