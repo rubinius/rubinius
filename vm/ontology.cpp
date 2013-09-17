@@ -63,7 +63,6 @@
 #include "config.h"
 #include "paths.h"
 #include "release.h"
-#include "version.h"
 
 #include "ontology.hpp"
 
@@ -145,15 +144,11 @@ namespace rubinius {
     // Now do Object
     Class* basicobject = 0;
     Class* object;
-    if(!LANGUAGE_18_ENABLED) {
-      basicobject = ontology::new_basic_class(state, force_as<Class>(cNil));
-      GO(basicobject).set(basicobject);
-      basicobject->set_object_type(state, BasicObjectType);
+    basicobject = ontology::new_basic_class(state, force_as<Class>(cNil));
+    GO(basicobject).set(basicobject);
+    basicobject->set_object_type(state, BasicObjectType);
 
-      object = ontology::new_basic_class(state, basicobject);
-    } else {
-      object = ontology::new_basic_class(state, nil<Class>());
-    }
+    object = ontology::new_basic_class(state, basicobject);
 
     GO(object).set(object);
     object->set_object_type(state, ObjectType);
@@ -173,11 +168,7 @@ namespace rubinius {
     G(array)->set_object_type(state, ArrayType);
 
     // Create WeakRef
-    if(!LANGUAGE_18_ENABLED) {
-      GO(cls_weakref).set(ontology::new_basic_class(state, basicobject));
-    } else {
-      GO(cls_weakref).set(ontology::new_basic_class(state, object));
-    }
+    GO(cls_weakref).set(ontology::new_basic_class(state, basicobject));
     G(cls_weakref)->set_object_type(state, WeakRefType);
 
     // Create LookupTable
@@ -226,9 +217,7 @@ namespace rubinius {
      */
 
     // BasicObject's SingletonClass instance has Class for a superclass
-    if(!LANGUAGE_18_ENABLED) {
-      SingletonClass::attach(state, basicobject, cls);
-    }
+    SingletonClass::attach(state, basicobject, cls);
 
     // Object's SingletonClass instance has Class for a superclass
     Class* sc = SingletonClass::attach(state, object, cls);
@@ -239,13 +228,8 @@ namespace rubinius {
     SingletonClass::attach(state, cls, sc);
 
     // See?
-    if(!LANGUAGE_18_ENABLED) {
-      assert(basicobject->superclass()->nil_p());
-      assert(object->superclass() == basicobject);
-    } else {
-      assert(object->superclass()->nil_p());
-      assert(object->klass()->superclass() == cls);
-    }
+    assert(basicobject->superclass()->nil_p());
+    assert(object->superclass() == basicobject);
 
     assert(G(module)->superclass() == object);
     assert(G(module)->klass()->superclass() == object->klass());
@@ -267,9 +251,7 @@ namespace rubinius {
 
     // Now, finish initializing the basic Class/Module
     G(object)->setup(state, "Object");
-    if(!LANGUAGE_18_ENABLED) {
-      G(basicobject)->setup(state, "BasicObject", G(object));
-    }
+    G(basicobject)->setup(state, "BasicObject", G(object));
     G(klass)->setup(state, "Class");
     G(module)->setup(state, "Module");
 
@@ -505,14 +487,8 @@ namespace rubinius {
     G(rubinius)->set_const(state, "VENDOR", String::create(state, RBX_VENDOR));
     G(rubinius)->set_const(state, "OS", String::create(state, RBX_OS));
 
-    G(rubinius)->set_const(state, "RUBY_LIB_VERSION", ruby_lib_version());
-    /*
-    if(LANGUAGE_21_ENABLED) {
-      G(rubinius)->set_const(state, "RUBY_LIB_VERSION", Fixnum::from(21));
-    } else {
-      G(rubinius)->set_const(state, "RUBY_LIB_VERSION", Fixnum::from(18));
-    }
-    */
+    G(rubinius)->set_const(state, "RUBY_LIB_VERSION", Fixnum::from(RBX_RUBY_LIB_VERSION));
+
     G(rubinius)->set_const(state, "LIBC", String::create(state, RBX_LIBC));
 
     G(rubinius)->set_const(state, "HAVE_LCHMOD", RBX_HAVE_LCHMOD ? cTrue : cFalse);

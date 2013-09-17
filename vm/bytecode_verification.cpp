@@ -8,7 +8,6 @@
 #include "instruments/timing.hpp"
 #include "machine_code.hpp"
 #include "object_utils.hpp"
-#include "version.h"
 
 namespace rubinius {
   BytecodeVerification::BytecodeVerification(CompiledCode* code)
@@ -65,50 +64,40 @@ namespace rubinius {
       return false;
     }
 
-    // FIXME
-    //
-    // This is conditional because in 1.8 mode, CM's for blocks have arity
-    // info that isn't used, but therefore fails these checks because
-    // of the way 'for' works.
-    //
-    // FIXME
-    if(!LANGUAGE_18_ENABLED) {
-      if(Fixnum* fix = try_as<Fixnum>(method_->splat())) {
-        if(fix->to_native() >= locals_) {
-          fail("invalid splat position", -1);
-          return false;
-        }
-      }
-
-      Fixnum* tot = try_as<Fixnum>(method_->total_args());
-      Fixnum* req = try_as<Fixnum>(method_->required_args());
-      Fixnum* post = try_as<Fixnum>(method_->post_args());
-
-      if(!tot || !req || !post) {
-        fail("method not initialized properly (missing arg counts)", -1);
+    if(Fixnum* fix = try_as<Fixnum>(method_->splat())) {
+      if(fix->to_native() >= locals_) {
+        fail("invalid splat position", -1);
         return false;
       }
+    }
 
-      if(tot->to_native() > locals_) {
-        fail("more arguments than local slots", -1);
-        return false;
-      }
+    Fixnum* tot = try_as<Fixnum>(method_->total_args());
+    Fixnum* req = try_as<Fixnum>(method_->required_args());
+    Fixnum* post = try_as<Fixnum>(method_->post_args());
 
-      if(req->to_native() > tot->to_native()) {
-        fail("more required arguments than total", -1);
-        return false;
-      }
+    if(!tot || !req || !post) {
+      fail("method not initialized properly (missing arg counts)", -1);
+      return false;
+    }
 
-      if(post->to_native() > req->to_native()) {
-        fail("more post arguments than required", -1);
-        return false;
-      }
+    if(tot->to_native() > locals_) {
+      fail("more arguments than local slots", -1);
+      return false;
+    }
 
-      if(post->to_native() > tot->to_native()) {
-        fail("more post arguments than total", -1);
-        return false;
-      }
+    if(req->to_native() > tot->to_native()) {
+      fail("more required arguments than total", -1);
+      return false;
+    }
 
+    if(post->to_native() > req->to_native()) {
+      fail("more post arguments than required", -1);
+      return false;
+    }
+
+    if(post->to_native() > tot->to_native()) {
+      fail("more post arguments than total", -1);
+      return false;
     }
 
     total_ = ops_->num_fields();

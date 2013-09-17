@@ -14,7 +14,6 @@
 #include "objectmemory.hpp"
 #include "ontology.hpp"
 #include "on_stack.hpp"
-#include "version.h"
 
 namespace rubinius {
 
@@ -97,13 +96,6 @@ namespace rubinius {
           }
         }
 
-      /* For blocks taking one argument { |a|  }, in 1.8, there is a warning
-       * issued but no exception raised when less than or more than one
-       * argument is passed. If more than one is passed, 'a' receives an Array
-       * of all the arguments.
-       */
-      } else if(required == 1 && LANGUAGE_18_ENABLED) {
-        arity_ok = true;
       } else {
         arity_ok = args.total() <= (size_t)total &&
                    args.total() >= (size_t)required;

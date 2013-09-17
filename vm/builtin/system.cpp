@@ -37,7 +37,6 @@
 #include "util/sha1.h"
 #include "util/timing.h"
 #include "paths.h"
-#include "version.h"
 
 #include "agent.hpp"
 
@@ -1223,7 +1222,7 @@ namespace rubinius {
 
     Object* res = Helpers::const_get(state, calling_environment, sym, &reason);
 
-    if(reason != vFound || (!LANGUAGE_18_ENABLED && kind_of<Autoload>(res))) {
+    if(reason != vFound || kind_of<Autoload>(res)) {
       return Primitives::failure();
     }
 
@@ -1256,7 +1255,7 @@ namespace rubinius {
     Dispatch dis(sym);
 
     Object* responds = RBOOL(dis.resolve(state, sym, lookup));
-    if(!CBOOL(responds) && !LANGUAGE_18_ENABLED) {
+    if(!CBOOL(responds)) {
       LookupData lookup(obj, obj->lookup_begin(state), G(sym_private));
       Symbol* name = G(sym_respond_to_missing);
       Dispatch dis(name);

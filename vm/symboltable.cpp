@@ -1,7 +1,6 @@
 #include "symboltable.hpp"
 #include "exception.hpp"
 #include "configuration.hpp"
-#include "version.h"
 
 #include "builtin/array.hpp"
 #include "builtin/encoding.hpp"
@@ -155,21 +154,6 @@ namespace rubinius {
     size_t size = str->byte_size();
 
     int enc = str->encoding(state)->index();
-
-    if(LANGUAGE_18_ENABLED) {
-      if(size == 0) {
-        Exception::argument_error(state, "Cannot create a symbol from an empty string");
-        return NULL;
-      }
-
-      if(strnlen(bytes, size) < size) {
-        Exception::argument_error(state,
-            "cannot create a symbol from a string containing `\\0'");
-        return NULL;
-      }
-
-      enc = Encoding::eAscii;
-    }
 
     if(CBOOL(str->ascii_only_p(state))) {
       enc = Encoding::eAscii;

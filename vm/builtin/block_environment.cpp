@@ -18,7 +18,6 @@
 #include "object_utils.hpp"
 #include "on_stack.hpp"
 #include "ontology.hpp"
-#include "version.h"
 
 #ifdef ENABLE_LLVM
 #include "llvm/state.hpp"
@@ -316,10 +315,8 @@ namespace rubinius {
                                     | CallFrame::cBlock;
 
     // TODO: this is a quick hack to process block arguments in 1.9.
-    if(!LANGUAGE_18_ENABLED) {
-      if(!GenericArguments::call(state, frame, mcode, scope, args, invocation.flags)) {
-        return NULL;
-      }
+    if(!GenericArguments::call(state, frame, mcode, scope, args, invocation.flags)) {
+      return NULL;
     }
 
 #ifdef RBX_PROFILER

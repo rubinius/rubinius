@@ -111,7 +111,6 @@ class Configure
     @capi_includedir  = "#{@sourcedir}/vm/include/capi"
 
     @vm_release_h = root + "/vm/gen/release.h"
-    @vm_version_h = root + "/vm/gen/version.h"
 
     @preserve_prefix = false
 
@@ -132,7 +131,7 @@ class Configure
     @rb_readline = false
 
     # Essential settings (modify these for creating releases)
-    @libversion = "2.0"
+    @libversion = "2.1"
     @patch_version = "0"
     @release = validate_release_label
     @release_date = validate_release_date
@@ -1701,7 +1700,6 @@ int main() { return tgetnum(""); }
       :vendor_zlib        => @features["vendor-zlib"].value,
       :readline           => @rb_readline ? :rb_readline : :c_readline,
       :vm_release_h       => @vm_release_h,
-      :vm_version_h       => @vm_version_h,
       :supported_versions => @supported_versions,
       :build_tool_gems    => @build_tool_gems,
       :build_c_ext_gems   => @build_c_ext_gems,
@@ -1740,6 +1738,7 @@ int main() { return tgetnum(""); }
 #define RBX_VENDOR           "#{@vendor}"
 #define RBX_OS               "#{@os}"
 #define RBX_LIB_VERSION      "#{@libversion}"
+#define RBX_RUBY_LIB_VERSION #{@libversion.gsub(/\D/, "").to_i}
 #define RBX_LDSHARED         "#{@ldshared}"
 #define RBX_LDSHAREDXX       "#{@ldsharedxx}"
 #define RBX_SIZEOF_LONG      #{sizeof("long")}

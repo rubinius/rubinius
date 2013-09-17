@@ -20,7 +20,6 @@
 #include "on_stack.hpp"
 #include "ontology.hpp"
 #include "util/utf8.h"
-#include "version.h"
 
 #include <ctype.h>
 #include <string.h>
@@ -46,13 +45,8 @@ namespace rubinius {
   void Encoding::init(STATE) {
     onig_init();  // in regexp.cpp too, but idempotent.
 
-    if(LANGUAGE_18_ENABLED) {
-      Class* ns = ontology::new_class_under(state, "EncodingClass", G(rubinius));
-      GO(encoding).set(ontology::new_class_under(state, "Encoding", ns));
-    } else {
-      GO(encoding).set(ontology::new_class(state, "Encoding"));
-      G(rubinius)->set_const(state, "EncodingClass", G(encoding));
-    }
+    GO(encoding).set(ontology::new_class(state, "Encoding"));
+    G(rubinius)->set_const(state, "EncodingClass", G(encoding));
 
     G(encoding)->set_object_type(state, EncodingType);
 
@@ -280,24 +274,6 @@ namespace rubinius {
     if(enc_b->nil_p()) return nil<Encoding>();
 
     if(enc_a == enc_b) return enc_a;
-
-    // XXX This is an ugly hack for the 1.8 mode to avoid unwanted encoding
-    // errors.
-    //
-    // String literals are encoded as US-ASCII in .rbc files (See,
-    // Rubinius::CompiledFile::Marshal#marshal in lib/compiler/compiled_file.rb)
-    //
-    // Normally, the 1.8 mode operates on ASCII-8BIT strings. However, US-ASCII
-    // string can come from rbc files. So, ASCII-8BIT binary string and
-    // US-ASCII binary string are sometimes checked for compatibility.
-    //
-    // Finally, the normal logic would return nil and String::append fails.
-    // This shouldn't happen.
-    //
-    // In the ideal world, everything should be ASCII-8BIT in the 1.8 mode...
-    if(LANGUAGE_18_ENABLED) {
-      return Encoding::ascii8bit_encoding(state);
-    }
 
     String* str_a = try_as<String>(a);
     String* str_b = try_as<String>(b);

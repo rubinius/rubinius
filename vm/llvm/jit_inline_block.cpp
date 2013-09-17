@@ -4,7 +4,6 @@
 #include "llvm/jit_inline_block.hpp"
 #include "llvm/stack_args.hpp"
 #include "llvm/method_info.hpp"
-#include "version.h"
 
 #include "call_frame.hpp"
 
@@ -100,52 +99,47 @@ namespace jit {
 
     setup_inline_scope(self, constant(cNil, obj_type), mod);
 
-    if(!LANGUAGE_18_ENABLED) {
-      // We don't support splat in an block method!
-      assert(machine_code_->splat_position < 0);
+    // We don't support splat in an block method!
+    assert(machine_code_->splat_position < 0);
 
-      if(stack_args.size() == 1 && machine_code_->total_args > 1) {
-        Signature sig(ctx_, "Object");
-        sig << "State";
-        sig << "CallFrame";
-        sig << "Object";
-        sig << vars->getType();
-        sig << ctx_->Int32Ty;
+    if(stack_args.size() == 1 && machine_code_->total_args > 1) {
+      Signature sig(ctx_, "Object");
+      sig << "State";
+      sig << "CallFrame";
+      sig << "Object";
+      sig << vars->getType();
+      sig << ctx_->Int32Ty;
 
-        Value* call_args[] = { info_.state(), info_.call_frame(),
-                               stack_args.at(0), vars, cint(machine_code_->total_args) };
+      Value* call_args[] = { info_.state(), info_.call_frame(),
+                             stack_args.at(0), vars, cint(machine_code_->total_args) };
 
-        Value* val = sig.call("rbx_destructure_inline_args", call_args, 5, "", b());
-        Value* null = Constant::getNullValue(val->getType());
-        Value* is_null = b().CreateICmpEQ(val, null);
+      Value* val = sig.call("rbx_destructure_inline_args", call_args, 5, "", b());
+      Value* null = Constant::getNullValue(val->getType());
+      Value* is_null = b().CreateICmpEQ(val, null);
 
-        info_.add_return_value(null, b().GetInsertBlock());
+      info_.add_return_value(null, b().GetInsertBlock());
 
-        BasicBlock* cont = info_.new_block("continue");
-        b().CreateCondBr(is_null, info_.return_pad(), cont);
-        b().SetInsertPoint(cont);
-      } else {
-        // block logic has no arity checking, so we process
-        // up to the minimum of stack_args.size and machine_code_->total_args;
-        size_t limit = MIN((int)stack_args.size(), (int)machine_code_->total_args);
-
-        for(size_t i = 0; i < limit; i++) {
-          Value* int_pos = cint(i);
-
-          Value* idx2[] = {
-            cint(0),
-            cint(offset::StackVariables::locals),
-            int_pos
-          };
-
-          Value* pos = b().CreateGEP(vars, idx2, "local_pos");
-
-          b().CreateStore(stack_args.at(i), pos);
-        }
-      }
+      BasicBlock* cont = info_.new_block("continue");
+      b().CreateCondBr(is_null, info_.return_pad(), cont);
+      b().SetInsertPoint(cont);
     } else {
-      // No argument handling, there are bytecodes in the body that
-      // do that. We just have to make stack_args available.
+      // block logic has no arity checking, so we process
+      // up to the minimum of stack_args.size and machine_code_->total_args;
+      size_t limit = MIN((int)stack_args.size(), (int)machine_code_->total_args);
+
+      for(size_t i = 0; i < limit; i++) {
+        Value* int_pos = cint(i);
+
+        Value* idx2[] = {
+          cint(0),
+          cint(offset::StackVariables::locals),
+          int_pos
+        };
+
+        Value* pos = b().CreateGEP(vars, idx2, "local_pos");
+
+        b().CreateStore(stack_args.at(i), pos);
+      }
     }
 
     b().CreateBr(body);

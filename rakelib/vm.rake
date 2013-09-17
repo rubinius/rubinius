@@ -55,7 +55,6 @@ GENERATED = %W[ vm/gen/config_variables.h
                 #{encoding_database}
                 #{transcoders_database}
                 #{vm_release_h}
-                #{vm_version_h}
               ] + TYPE_GEN + INSN_GEN
 
 # Files are in order based on dependencies. For example,

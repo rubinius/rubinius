@@ -6,7 +6,6 @@
 #include "object_utils.hpp"
 #include "ontology.hpp"
 #include "configuration.hpp"
-#include "version.h"
 
 namespace rubinius {
 
@@ -345,7 +344,7 @@ return_value:
       if(*str == '_') {
         if(CBOOL(strict)) {
           return nil<Integer>();
-        } else if(!LANGUAGE_18_ENABLED) {
+        } else {
           return Fixnum::from(0);
         }
       }

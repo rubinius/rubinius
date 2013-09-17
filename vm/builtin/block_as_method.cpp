@@ -7,7 +7,6 @@
 #include "call_frame.hpp"
 #include "configuration.hpp"
 #include "object_utils.hpp"
-#include "version.h"
 
 namespace rubinius {
   BlockAsMethod* BlockAsMethod::create(STATE, Object* self, BlockEnvironment* be) {
@@ -50,15 +49,13 @@ namespace rubinius {
     bool exception = false;
     size_t expected = 0;
     if(splat->nil_p()) {
-      if((!LANGUAGE_18_ENABLED || required != 1)) {
-        if(args.total() > total_args) {
-          exception = true;
-          expected = total_args;
-        }
-        if(args.total() < required) {
-          exception = true;
-          expected = required;
-        }
+      if(args.total() > total_args) {
+        exception = true;
+        expected = total_args;
+      }
+      if(args.total() < required) {
+        exception = true;
+        expected = required;
       }
     } else {
       if(required > args.total()) {

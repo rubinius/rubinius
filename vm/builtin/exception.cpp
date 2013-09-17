@@ -10,7 +10,6 @@
 #include "configuration.hpp"
 #include "object_utils.hpp"
 #include "ontology.hpp"
-#include "version.h"
 
 #include <sstream>
 
@@ -93,14 +92,7 @@ namespace rubinius {
   }
 
   void Exception::frozen_error(STATE, CallFrame* call_frame) {
-    Class* klass;
-    if(LANGUAGE_18_ENABLED) {
-      klass = G(exc_type);
-    } else {
-      klass = G(exc_rte);
-    }
-
-    Exception* exc = Exception::make_exception(state, klass,
+    Exception* exc = Exception::make_exception(state, G(exc_rte),
                         "unable to modify frozen object");
     exc->locations(state, Location::from_call_stack(state, call_frame));
     state->raise_exception(exc);
@@ -307,13 +299,7 @@ namespace rubinius {
 
   void Exception::errno_eagain_error(STATE, const char* reason) {
     Exception* exc;
-    Class* exc_class;
-
-    if(LANGUAGE_18_ENABLED) {
-      exc_class = get_errno_error(state, Fixnum::from(EAGAIN));
-    } else {
-      exc_class = as<Class>(G(io)->get_const(state, "EAGAINWaitReadable"));
-    }
+    Class* exc_class = as<Class>(G(io)->get_const(state, "EAGAINWaitReadable"));
 
     String* message = nil<String>();
 

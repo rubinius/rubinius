@@ -33,7 +33,6 @@
 #include "instructions.hpp"
 #include "configuration.hpp"
 #include "on_stack.hpp"
-#include "version.h"
 
 #include "helpers.hpp"
 
