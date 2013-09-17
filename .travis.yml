@@ -7,7 +7,7 @@ before_install:
   - gem update --system
   - gem --version
 before_script:
-  - ./configure --enable-version=$RBX_MODE
+  - ./configure
 script: rake
 branches:
   only:
@@ -15,30 +15,10 @@ branches:
     - compiler
 notifications:
   recipients:
-    - evan+notify@phx.io
     - brixen@gmail.com
     - d.bussink@gmail.com
   email:
     on_success: change
     on_failure: always
 env:
-  - RVM=1.8.7 RBX_MODE=18
-  - RVM=1.9.3 RBX_MODE=18
-  - RVM=2.0.0 RBX_MODE=18
-  - RVM=1.8.7 RBX_MODE=21
-  - RVM=1.9.3 RBX_MODE=21
-  - RVM=2.0.0 RBX_MODE=21
-matrix:
-  exclude:
-    - compiler: gcc
-      env: RVM=1.8.7 RBX_MODE=18
-    - compiler: gcc
-      env: RVM=2.0.0 RBX_MODE=18
-    - compiler: gcc
-      env: RVM=1.9.3 RBX_MODE=21
-    - compiler: clang
-      env: RVM=1.9.3 RBX_MODE=18
-    - compiler: clang
-      env: RVM=1.8.7 RBX_MODE=21
-    - compiler: clang
-      env: RVM=2.0.0 RBX_MODE=21
+  - RVM=2.0.0
