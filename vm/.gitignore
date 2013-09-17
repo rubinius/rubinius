@@ -2,6 +2,3 @@ vm
 .depends.mf
 gen/*
 test/test_instructions.hpp
-
-# generated files
-include/capi/*
