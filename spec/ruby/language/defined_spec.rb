@@ -1328,3 +1328,18 @@ describe "The defined? keyword for instance variables" do
   end
 end
 
+describe "The defined? keyword for pseudo-variables" do
+  it "returns 'expression' for __FILE__" do
+    defined?(__FILE__).should == "expression"
+  end
+
+  it "returns 'expression' for __LINE__" do
+    defined?(__LINE__).should == "expression"
+  end
+
+  ruby_version_is "1.9" do
+    it "returns 'expression' for __ENCODING__" do
+      defined?(__ENCODING__).should == "expression"
+    end
+  end
+end
