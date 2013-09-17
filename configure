@@ -5,8 +5,6 @@ if ENV["RUBYLIB"]
   exit 1
 end
 
-require 'rubygems'
-require 'gems'
 require './rakelib/configure'
 require './rakelib/release'
 require 'rbconfig'
@@ -2212,6 +2210,10 @@ required to run it.
         [ "rubysl-iconv", "1.0" ],
       ]
     end
+
+    # Require these after Bundler has run.
+    require 'rubygems'
+    require 'gems'
 
     # Resolve requirements to specific versions.
     failed = false
