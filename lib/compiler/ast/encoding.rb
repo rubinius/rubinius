@@ -18,6 +18,10 @@ module Rubinius
         g.send :get_encoding, 1
       end
 
+      def defined(g)
+        g.push_literal "expression"
+      end
+
       def to_sexp
         [:encoding, @name]
       end
