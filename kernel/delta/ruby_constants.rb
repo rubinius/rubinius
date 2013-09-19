@@ -4,6 +4,8 @@
 #
 
 RUBY_ENGINE       = "rbx"
+RUBY_VERSION      = "2.1.0"
+RUBY_PATCHLEVEL   = 0
 RUBY_PLATFORM     = "#{Rubinius::CPU}-#{Rubinius::OS}"
 RUBY_RELEASE_DATE = Rubinius::RELEASE_DATE.dup
 RUBY_COPYRIGHT    = "rubinius - Copyright (C) 2006-2011 Evan Phoenix"

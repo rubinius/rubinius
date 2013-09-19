@@ -30,6 +30,9 @@ module FFI::Platform::Math
   attach_function :hypot, [:double, :double], :double
   attach_function :erf,   [:double], :double
   attach_function :erfc,  [:double], :double
+  attach_function :cbrt, [:double], :double
+  attach_function :tgamma, [:double], :double
+  attach_function :lgamma_r, [:double, :pointer], :double
 
   # Rubinius-specific, used in Marshal
   attach_function :modf,  [:double, :pointer], :double

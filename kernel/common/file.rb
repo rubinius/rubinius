@@ -59,6 +59,12 @@ class File < IO
     FNM_PATHNAME = 0x02
     FNM_DOTMATCH = 0x04
     FNM_CASEFOLD = 0x08
+
+    if Rubinius.windows?
+      NULL = 'NUL'
+    else
+      NULL = '/dev/null'
+    end
   end
 
   FFI = Rubinius::FFI
@@ -80,6 +86,15 @@ class File < IO
     mode < 0 || mode > 0xffff ? 0 : mode
   end
   module_function :clamp_short
+
+  def self.absolute_path(obj, dir = nil)
+    obj = path(obj)
+    if obj[0] == "~"
+      File.join Dir.getwd, dir.to_s, obj
+    else
+      expand_path(obj, dir)
+    end
+  end
 
   ##
   # Returns the last access time for the named file as a Time object).
@@ -482,6 +497,11 @@ class File < IO
     str
   end
 
+  def self.expand_path_buffer(path)
+    path.to_s.dup.clear
+  end
+  private_class_method :expand_path_buffer
+
   ##
   # Returns the extension (the portion of file name in
   # path after the period).
@@ -734,6 +754,12 @@ class File < IO
     Stat.new(path).mtime
   end
 
+  def self.path(obj)
+    return obj.to_path if obj.respond_to? :to_path
+
+    StringValue(obj)
+  end
+
   ##
   # Returns true if the named file is a pipe.
   def self.pipe?(path)
@@ -770,6 +796,46 @@ class File < IO
 
       return ptr.read_string(n)
     end
+  end
+
+  def self.realpath(path, basedir = nil)
+    path = expand_path(path, basedir || Dir.pwd)
+    real = ''
+    symlinks = {}
+
+    while !path.empty?
+      pos = path.index(SEPARATOR, 1)
+
+      if pos
+        name = path[0...pos]
+        path = path[pos..-1]
+      else
+        name = path
+        path = ''
+      end
+
+      real = join(real, name)
+      if symlink?(real)
+        raise Errno::ELOOP if symlinks[real]
+        symlinks[real] = true
+        if path.empty?
+          path = expand_path(readlink(real), dirname(real))
+        else
+          path = expand_path(join(readlink(real), path), dirname(real))
+        end
+        real = ''
+      end
+    end
+
+    unless exists? real
+      raise Errno::ENOENT, real
+    end
+
+    real
+  end
+
+  def self.realdirpath(path, basedir = nil)
+    dirname(realpath(path, basedir))
   end
 
   ##
@@ -947,6 +1013,27 @@ class File < IO
     end
   end
 
+  def self.world_readable?(path)
+    path = Rubinius::Type.coerce_to_path path
+    return nil unless exists? path
+    mode = Stat.new(path).mode
+    if (mode & Stat::S_IROTH) == Stat::S_IROTH
+      tmp = mode & (Stat::S_IRUGO | Stat::S_IWUGO | Stat::S_IXUGO)
+      return Rubinius::Type.coerce_to tmp, Fixnum, :to_int
+    end
+    nil
+  end
+
+  def self.world_writable?(path)
+    path = Rubinius::Type.coerce_to_path path
+    return nil unless exists? path
+    mode = Stat.new(path).mode
+    if (mode & Stat::S_IWOTH) == Stat::S_IWOTH
+      tmp = mode & (Stat::S_IRUGO | Stat::S_IWUGO | Stat::S_IXUGO)
+      return Rubinius::Type.coerce_to tmp, Fixnum, :to_int
+    end
+  end
+
   ##
   # Returns true if the named file is writable by the effective
   # user id of this process.
@@ -1010,6 +1097,57 @@ class File < IO
     alias_method :fnmatch?, :fnmatch
   end
 
+  def initialize(path_or_fd, mode=undefined, perm=undefined, options=undefined)
+    if path_or_fd.kind_of? Integer
+      super(path_or_fd, mode, options)
+      @path = nil
+    else
+      path = Rubinius::Type.coerce_to_path path_or_fd
+
+      # TODO: fix normalize_options
+      case mode
+      when String, Fixnum
+        # do nothing
+      when nil, undefined
+        mode = "r"
+      when Hash
+        options = mode
+        mode = nil
+      else
+        options = Rubinius::Type.coerce_to mode, Hash, :to_hash
+        mode = nil
+      end
+
+      if undefined.equal?(options)
+        options = Rubinius::Type.try_convert(perm, Hash, :to_hash)
+        perm = undefined if options
+      end
+
+      nmode, binary, external, internal = IO.normalize_options(mode, options)
+      nmode ||= "r"
+
+      perm = 0666 if undefined.equal? perm
+
+      fd = IO.sysopen(path, nmode, perm)
+      if fd < 0
+        begin
+          Errno.handle path
+        rescue Errno::EMFILE
+          # true means force to run, don't ignore it.
+          GC.run(true)
+
+          fd = IO.sysopen(path, nmode, perm)
+          Errno.handle if fd < 0
+        end
+      end
+
+      @path = path
+      super(fd, mode, options)
+    end
+  end
+
+  private :initialize
+
   def atime
     Stat.new(@path).atime
   end
@@ -1047,6 +1185,8 @@ class File < IO
     Stat.fstat @descriptor
   end
 
+  alias_method :to_path, :path
+
   def truncate(length)
     length = Rubinius::Type.coerce_to length, Integer, :to_int
 
@@ -1073,4 +1213,18 @@ end
 File::Stat = Rubinius::Stat
 class File::Stat
   @module_name = :"File::Stat"
+
+  def world_readable?
+    if mode & S_IROTH == S_IROTH
+      tmp = mode & (S_IRUGO | S_IWUGO | S_IXUGO)
+      return Rubinius::Type.coerce_to tmp, Fixnum, :to_int
+    end
+  end
+
+  def world_writable?
+    if mode & S_IWOTH == S_IWOTH
+      tmp = mode & (S_IRUGO | S_IWUGO | S_IXUGO)
+      return Rubinius::Type.coerce_to tmp, Fixnum, :to_int
+    end
+  end
 end

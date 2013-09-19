@@ -64,4 +64,8 @@ class Regexp
     raise PrimitiveFailure, "Regexp#set_block_last_match primitive failed"
   end
 
+  def fixed_encoding?
+    Rubinius.primitive :regexp_fixed_encoding_p
+    raise PrimitiveFailure, "Regexp.fixed_encoding? primitive failed"
+  end
 end

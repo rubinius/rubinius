@@ -12,6 +12,11 @@ class Binding
     @proc_environment
   end
 
+  def self.self_context(recv, variables)
+    recv.equal?(Kernel) ? recv : variables.self
+  end
+  private :self_context
+
   # Create a new Binding object. MRI does not allow .new to be called, so
   # we used .setup(). Any code can use this as they wish, provided they have
   # all the right arguments.

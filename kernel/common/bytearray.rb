@@ -9,6 +9,11 @@ module Rubinius
     alias_method :[], :get_byte
     alias_method :[]=, :set_byte
 
+    # TODO: encoding
+    def character_at_index(index)
+      "" << self[index]
+    end
+
     def each
       i = 0
       max = size()

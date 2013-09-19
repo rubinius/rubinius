@@ -29,6 +29,23 @@ class Method
   attr_reader :defined_in
   attr_reader :executable
 
+  def name
+    @name
+  end
+
+  ##
+  # Method objects are equal if they have the same body and are bound to the
+  # same object.
+
+  def ==(other)
+    other.class == Method &&
+      @receiver.equal?(other.receiver) &&
+      (@executable == other.executable ||
+       Rubinius::MethodEquality.method_equal_to_delegated_method_receiver?(self, other))
+  end
+
+  alias_method :eql?, :==
+
   ##
   # Indication of how many arguments this method takes. It is defined so that
   # a non-negative Integer means the method takes that fixed amount of
@@ -171,6 +188,18 @@ class UnboundMethod
 
   attr_reader :executable
   attr_reader :defined_in
+
+  def name
+    @name
+  end
+
+  ##
+  # Convenience method for #binding to the given receiver object and calling
+  # it with the optionally supplied arguments.
+
+  def call_on_instance(obj, *args, &block)
+    @executable.invoke(@name, @defined_in, obj, args, block)
+  end
 
   ##
   # UnboundMethod objects are equal if and only if they refer to the same

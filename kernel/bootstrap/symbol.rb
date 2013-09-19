@@ -6,6 +6,11 @@ class Symbol
     super
   end
 
+  def encoding
+    Rubinius.primitive :symbol_encoding
+    raise PrimitiveFailure, "Symbol#encoding primitive failed"
+  end
+
   def index
     Rubinius.primitive :symbol_index
     raise PrimitiveFailure, "Symbol#index primitive failed."

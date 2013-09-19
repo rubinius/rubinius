@@ -40,3 +40,5 @@ module Rubinius
     end
   end
 end
+
+Fiber = Rubinius::Fiber

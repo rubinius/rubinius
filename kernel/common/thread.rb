@@ -7,6 +7,11 @@
 #++
 
 class Thread
+  MUTEX_FOR_THREAD_EXCLUSIVE = Mutex.new
+
+  def self.exclusive
+    MUTEX_FOR_THREAD_EXCLUSIVE.synchronize { yield }
+  end
 
   attr_reader :recursive_objects
 

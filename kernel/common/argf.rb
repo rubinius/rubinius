@@ -32,6 +32,23 @@ module Rubinius
     end
 
     #
+    # Set stream into binary mode.
+    #
+    # Stream is set into binary mode, i.e. 8-bit ASCII.
+    # Once set, the binary mode cannot be undone. Returns
+    # self.
+    #
+    def binmode
+      @binmode = true
+      @external = Encoding::ASCII_8BIT
+      self
+    end
+
+    def binmode?
+      @binmode
+    end
+
+    #
     # Close stream.
     #
     def close
@@ -50,6 +67,10 @@ module Rubinius
     def closed?
       advance!
       @stream.closed?
+    end
+
+    def default_value
+      "".encode(encoding)
     end
 
     #
@@ -110,6 +131,21 @@ module Rubinius
       self
     end
     alias_method :chars, :each_char
+
+    def each_codepoint
+      return to_enum :each_codepoint unless block_given?
+
+      while c = getc
+        yield c.ord
+      end
+
+      self
+    end
+    alias_method :codepoints, :each_codepoint
+
+    def encoding
+      @external || Encoding.default_external
+    end
 
     #
     # Query whether stream is at end-of-file.
@@ -348,6 +384,27 @@ module Rubinius
     end
 
     #
+    # Read all lines from stream.
+    #
+    # Reads all lines into an Array using #gets and
+    # returns the Array.
+    #
+    # @see  #gets
+    #
+    def readlines(sep=$/)
+      return [] unless advance!
+
+      lines = []
+      while line = gets(sep)
+        lines << line
+      end
+
+      lines
+    end
+
+    alias_method :to_a, :readlines
+
+    #
     # Rewind the stream to its beginning.
     #
     # Line number is updated accordingly.
@@ -381,6 +438,10 @@ module Rubinius
       @stream.close unless @stream.closed?
       @advance = true
       self
+    end
+
+    def stream(file)
+      file == "-" ? STDIN : File.open(file, "r", :external_encoding => encoding)
     end
 
     #
