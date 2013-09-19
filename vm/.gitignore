@@ -1,4 +1,6 @@
 vm
 .depends.mf
 gen/*
+include/capi/gen/*
+include/capi/ruby/config.h
 test/test_instructions.hpp
