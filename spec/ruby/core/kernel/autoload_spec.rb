@@ -55,6 +55,34 @@ describe "Kernel#autoload" do
       KSAutoloadD.loaded.should == :ksautoload_d
     end
   end
+
+  describe "when Object is frozen" do
+    before(:each) do
+      non_existent = fixture __FILE__, "no_autoload.rb"
+
+      @script = <<-"EOD"
+        Object.freeze
+
+        begin
+          autoload :ANY_CONSTANT, "#{non_existent}"
+        rescue Exception => e
+          print e.class, " - ", defined?(ANY_CONSTANT).inspect
+        end
+      EOD
+    end
+
+    ruby_version_is "" ... "1.9" do
+      it "raises a TypeError before defining the constant" do
+        ruby_exe(@script, :args => "2>&1", :escape => true).should == "TypeError - nil"
+      end
+    end
+
+    ruby_version_is "1.9" do
+      it "raises a RuntimeError before defining the constant" do
+        ruby_exe(@script, :args => "2>&1", :escape => true).should == "RuntimeError - nil"
+      end
+    end
+  end
 end
 
 describe "Kernel#autoload?" do
