@@ -1790,9 +1790,6 @@ int main() { return tgetnum(""); }
     record_revision
     write_release @vm_release_h, version, @release_date, read_revision
 
-    # Clean up C-API language-mode-agnostic header directory.
-    FileUtils.rm_rf @capi_includedir
-
     # Write the rubinius-specific C-API config headers.
     vm_capi_header_gen = "#{@capi_includedir}/gen"
     FileUtils.mkdir_p vm_capi_header_gen
