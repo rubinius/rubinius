@@ -157,16 +157,6 @@ module Rubinius
     raise PrimitiveFailure, "Rubinius.memory_barrier primitive failed"
   end
 
-  def self.ruby18?
-    Rubinius.primitive :vm_ruby18_p
-    raise PrimitiveFailure, "Rubinius.ruby18? primitive failed"
-  end
-
-  def self.ruby21?
-    Rubinius.primitive :vm_ruby21_p
-    raise PrimitiveFailure, "Rubinius.ruby21? primitive failed"
-  end
-
   def self.windows?
     Rubinius.primitive :vm_windows_p
     raise PrimitiveFailure, "Rubinius.windows? primitive failed"

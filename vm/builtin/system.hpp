@@ -337,12 +337,6 @@ namespace rubinius {
     // Rubinius.primitive+ :vm_memory_barrier
     static Object* vm_memory_barrier(STATE);
 
-    // Rubinius.primitive+ :vm_ruby18_p
-    static Object* vm_ruby18_p(STATE);
-
-    // Rubinius.primitive+ :vm_ruby21_p
-    static Object* vm_ruby21_p(STATE);
-
     // Rubinius.primitive+ :vm_windows_p
     static Object* vm_windows_p(STATE);
 

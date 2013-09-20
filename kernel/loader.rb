@@ -308,32 +308,15 @@ module Rubinius
         @load_paths << dir
       end
 
-      if Rubinius.ruby18?
-        options.on "-K", "[code]", "Set $KCODE" do |k|
-          case k
-          when 'a', 'A', 'n', 'N', nil
-            $KCODE = "NONE"
-          when 'e', 'E'
-            $KCODE = "EUC"
-          when 's', 'S'
-            $KCODE = "SJIS"
-          when 'u', 'U'
-            $KCODE = "UTF8"
-          else
-            $KCODE = "NONE"
-          end
-        end
-      else
-        options.on "-K", "Ignored $KCODE option for compatibility"
-        options.on "-U", "Set Encoding.default_internal to UTF-8" do
-          set_default_internal_encoding('UTF-8')
-        end
+      options.on "-K", "Ignored $KCODE option for compatibility"
+      options.on "-U", "Set Encoding.default_internal to UTF-8" do
+        set_default_internal_encoding('UTF-8')
+      end
 
-        options.on "-E", "ENC", "Set external:internal character encoding to ENC" do |enc|
-          ext, int = enc.split(":")
-          Encoding.default_external = ext if ext and !ext.empty?
-          set_default_internal_encoding(int) if int and !int.empty?
-        end
+      options.on "-E", "ENC", "Set external:internal character encoding to ENC" do |enc|
+        ext, int = enc.split(":")
+        Encoding.default_external = ext if ext and !ext.empty?
+        set_default_internal_encoding(int) if int and !int.empty?
       end
 
       options.on "-n", "Wrap running code in 'while(gets()) ...'" do
