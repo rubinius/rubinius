@@ -1,18 +1,13 @@
 agent.rbc
-ctype21.rbc
 ctype.rbc
 exception.rbc
 file.rbc
 rubinius.rbc
-rubinius21.rbc
 module.rbc
-module21.rbc
 class.rbc
-class21.rbc
 filetest.rbc
 kernel.rbc
 math.rbc
-math21.rbc
 options.rbc
 stats.rbc
 signal.rbc
@@ -20,7 +15,5 @@ struct.rbc
 thread.rbc
 codeloader.rbc
 ffi.rbc
-ruby_constants21.rbc
 ruby_constants.rbc
 pack.rbc
-pack21.rbc

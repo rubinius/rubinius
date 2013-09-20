@@ -6,7 +6,6 @@ pointer.rbc
 env.rbc
 file.rbc
 math.rbc
-math21.rbc
 posix.rbc
 struct.rbc
 union.rbc
