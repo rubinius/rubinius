@@ -1,9 +1,6 @@
 # -*- encoding: us-ascii -*-
 
 class IO
-  attr_accessor :external
-  attr_accessor :internal
-
   FFI = Rubinius::FFI
 
   include Enumerable
@@ -17,9 +14,6 @@ class IO
 
   class EAGAINWaitWritable < Errno::EAGAIN
     include ::IO::WaitWritable
-  end
-
-  class InternalBuffer
   end
 
   # Import platform constants
@@ -59,25 +53,6 @@ class IO
     attr_reader :start
     attr_reader :used
     attr_reader :channel
-
-    # TODO: fix this when IO buffering is re-written.
-    def getchar(io)
-      return if size == 0 and fill_from(io) == 0
-
-      Rubinius.synchronize(self) do
-        char = ""
-        while size > 0
-          char.force_encoding Encoding::ASCII_8BIT
-          char << @storage[@start]
-          @start += 1
-
-          char.force_encoding(io.external_encoding || Encoding.default_external)
-          if char.chr_at(0)
-            return IO.read_encode io, char
-          end
-        end
-      end
-    end
 
     ##
     # Returns +true+ if the buffer can be filled.
@@ -210,6 +185,25 @@ class IO
       end
     end
 
+    # TODO: fix this when IO buffering is re-written.
+    def getchar(io)
+      return if size == 0 and fill_from(io) == 0
+
+      Rubinius.synchronize(self) do
+        char = ""
+        while size > 0
+          char.force_encoding Encoding::ASCII_8BIT
+          char << @storage[@start]
+          @start += 1
+
+          char.force_encoding(io.external_encoding || Encoding.default_external)
+          if char.chr_at(0)
+            return IO.read_encode io, char
+          end
+        end
+      end
+    end
+
     ##
     # Prepends the byte +chr+ to the internal buffer, so that future
     # reads will return it.
@@ -242,6 +236,8 @@ class IO
   end
 
   attr_accessor :descriptor
+  attr_accessor :external
+  attr_accessor :internal
   attr_accessor :mode
 
   def self.binread(file, length=nil, offset=0)
@@ -269,6 +265,88 @@ class IO
       f.seek(offset || 0)
       f.write(string)
     end
+  end
+
+  class StreamCopier
+    def initialize(from, to, length, offset)
+      @length = length
+      @offset = offset
+
+      @from_io, @from = to_io(from, "rb")
+      @to_io, @to = to_io(to, "wb")
+
+      @method = read_method @from
+    end
+
+    def to_io(obj, mode)
+      if obj.kind_of? IO
+        flag = true
+        io = obj
+      else
+        flag = false
+
+        if obj.kind_of? String
+          io = File.open obj, mode
+        elsif obj.respond_to? :to_path
+          path = Rubinius::Type.coerce_to obj, String, :to_path
+          io = File.open path, mode
+        else
+          io = obj
+        end
+      end
+
+      return flag, io
+    end
+
+    def read_method(obj)
+      if obj.respond_to? :readpartial
+        :readpartial
+      else
+        :read
+      end
+    end
+
+    def run
+      @from.ensure_open_and_readable if @from.kind_of? IO
+      @to.ensure_open_and_writable if @to.kind_of? IO
+
+      if @from_io && !@from.pipe?
+        saved_pos = @from.pos
+      else
+        saved_pos = 0
+      end
+
+      @from.seek @offset, IO::SEEK_CUR if @offset
+
+      size = @length ? @length : 16384
+      bytes = 0
+
+      begin
+        while data = @from.send(@method, size, "")
+          @to.write data
+          bytes += data.bytesize
+
+          break if @length && bytes >= @length
+        end
+      rescue EOFError
+        # done reading
+      end
+
+      @to.flush if @to.kind_of? IO
+      return bytes
+    ensure
+      if @from_io
+        @from.pos = saved_pos if @offset
+      else
+        @from.close if @from.kind_of? IO
+      end
+
+      @to.close if @to.kind_of? IO unless @to_io
+    end
+  end
+
+  def self.copy_stream(from, to, max_length=nil, offset=nil)
+    StreamCopier.new(from, to, max_length, offset).run
   end
 
   def self.foreach(name, separator=undefined, limit=undefined, options=undefined)
@@ -446,88 +524,6 @@ class IO
     Rubinius::Type.try_convert obj, IO, :to_io
   end
 
-  class StreamCopier
-    def initialize(from, to, length, offset)
-      @length = length
-      @offset = offset
-
-      @from_io, @from = to_io(from, "rb")
-      @to_io, @to = to_io(to, "wb")
-
-      @method = read_method @from
-    end
-
-    def to_io(obj, mode)
-      if obj.kind_of? IO
-        flag = true
-        io = obj
-      else
-        flag = false
-
-        if obj.kind_of? String
-          io = File.open obj, mode
-        elsif obj.respond_to? :to_path
-          path = Rubinius::Type.coerce_to obj, String, :to_path
-          io = File.open path, mode
-        else
-          io = obj
-        end
-      end
-
-      return flag, io
-    end
-
-    def read_method(obj)
-      if obj.respond_to? :readpartial
-        :readpartial
-      else
-        :read
-      end
-    end
-
-    def run
-      @from.ensure_open_and_readable if @from.kind_of? IO
-      @to.ensure_open_and_writable if @to.kind_of? IO
-
-      if @from_io && !@from.pipe?
-        saved_pos = @from.pos
-      else
-        saved_pos = 0
-      end
-
-      @from.seek @offset, IO::SEEK_CUR if @offset
-
-      size = @length ? @length : 16384
-      bytes = 0
-
-      begin
-        while data = @from.send(@method, size, "")
-          @to.write data
-          bytes += data.bytesize
-
-          break if @length && bytes >= @length
-        end
-      rescue EOFError
-        # done reading
-      end
-
-      @to.flush if @to.kind_of? IO
-      return bytes
-    ensure
-      if @from_io
-        @from.pos = saved_pos if @offset
-      else
-        @from.close if @from.kind_of? IO
-      end
-
-      @to.close if @to.kind_of? IO unless @to_io
-    end
-  end
-
-  def self.copy_stream(from, to, max_length=nil, offset=nil)
-    StreamCopier.new(from, to, max_length, offset).run
-  end
-
   def self.normalize_options(mode, options)
     mode = nil if undefined.equal?(mode)
     autoclose = true
@@ -603,6 +599,369 @@ class IO
     [mode, binary, external, internal, autoclose]
   end
 
+  def self.open(*args)
+    io = new(*args)
+
+    return io unless block_given?
+
+    begin
+      yield io
+    ensure
+      begin
+        io.close unless io.closed?
+      rescue StandardError
+        # nothing, just swallow them.
+      end
+    end
+  end
+
+  def self.parse_mode(mode)
+    return mode if Rubinius::Type.object_kind_of? mode, Integer
+
+    mode = StringValue(mode)
+
+    ret = 0
+
+    case mode[0]
+    when ?r
+      ret |= RDONLY
+    when ?w
+      ret |= WRONLY | CREAT | TRUNC
+    when ?a
+      ret |= WRONLY | CREAT | APPEND
+    else
+      raise ArgumentError, "invalid mode -- #{mode}"
+    end
+
+    return ret if mode.length == 1
+
+    case mode[1]
+    when ?+
+      ret &= ~(RDONLY | WRONLY)
+      ret |= RDWR
+    when ?b
+      ret |= BINARY
+    when ?:
+      warn("encoding options not supported in 1.8")
+      return ret
+    else
+      raise ArgumentError, "invalid mode -- #{mode}"
+    end
+
+    return ret if mode.length == 2
+
+    case mode[2]
+    when ?+
+      ret &= ~(RDONLY | WRONLY)
+      ret |= RDWR
+    when ?b
+      ret |= BINARY
+    when ?:
+      warn("encoding options not supported in 1.8")
+      return ret
+    else
+      raise ArgumentError, "invalid mode -- #{mode}"
+    end
+
+    ret
+  end
+
+  def self.pipe(external=nil, internal=nil, options=nil)
+    lhs = allocate
+    rhs = allocate
+
+    begin
+      connect_pipe(lhs, rhs)
+    rescue Errno::EMFILE
+      GC.run(true)
+      connect_pipe(lhs, rhs)
+    end
+
+    lhs.set_encoding external || Encoding.default_external,
+                     internal || Encoding.default_internal, options
+
+    lhs.sync = true
+    rhs.sync = true
+
+    lhs.pipe = true
+    rhs.pipe = true
+
+    if block_given?
+      begin
+        yield lhs, rhs
+      ensure
+        lhs.close unless lhs.closed?
+        rhs.close unless rhs.closed?
+      end
+    else
+      [lhs, rhs]
+    end
+  end
+
+  ##
+  # Runs the specified command string as a subprocess;
+  # the subprocess‘s standard input and output will be
+  # connected to the returned IO object. If cmd_string
+  # starts with a ``-’’, then a new instance of Ruby is
+  # started as the subprocess. The default mode for the
+  # new file object is ``r’’, but mode may be set to any
+  # of the modes listed in the description for class IO.
+  #
+  # If a block is given, Ruby will run the command as a
+  # child connected to Ruby with a pipe. Ruby‘s end of
+  # the pipe will be passed as a parameter to the block.
+  # At the end of block, Ruby close the pipe and sets $?.
+  # In this case IO::popen returns the value of the block.
+  #
+  # If a block is given with a cmd_string of ``-’’, the
+  # block will be run in two separate processes: once in
+  # the parent, and once in a child. The parent process
+  # will be passed the pipe object as a parameter to the
+  # block, the child version of the block will be passed
+  # nil, and the child‘s standard in and standard out will
+  # be connected to the parent through the pipe.
+  # Not available on all platforms.
+  #
+  #  f = IO.popen("uname")
+  #  p f.readlines
+  #  puts "Parent is #{Process.pid}"
+  #  IO.popen ("date") { |f| puts f.gets }
+  #  IO.popen("-") { |f| $stderr.puts "#{Process.pid} is here, f is #{f}"}
+  #  p $?
+  # produces:
+  #
+  #  ["Linux\n"]
+  #  Parent is 26166
+  #  Wed Apr  9 08:53:52 CDT 2003
+  #  26169 is here, f is
+  #  26166 is here, f is #<IO:0x401b3d44>
+  #  #<Process::Status: pid=26166,exited(0)>
+  def self.popen(str, mode=undefined, options=undefined)
+    mode, binary, external, internal, autoclose = IO.normalize_options(mode, options)
+    mode = parse_mode(mode || 'r')
+
+    readable = false
+    writable = false
+
+    if mode & IO::RDWR != 0
+      readable = true
+      writable = true
+    elsif mode & IO::WRONLY != 0
+      writable = true
+    else # IO::RDONLY
+      readable = true
+    end
+
+    pa_read, ch_write = pipe if readable
+    ch_read, pa_write = pipe if writable
+
+    pid = Process.fork
+
+    # child
+    if !pid
+      if readable
+        pa_read.close
+        STDOUT.reopen ch_write
+      end
+
+      if writable
+        pa_write.close
+        STDIN.reopen ch_read
+      end
+
+      if str == "-"
+        if block_given?
+          yield nil
+          exit! 0
+        else
+          return nil
+        end
+      elsif str.kind_of? Array
+        if str.first.kind_of? Hash
+          env = str.first
+          env.each { |k, v| ENV[k] = v }
+          cmd = str[1..-1]
+        else
+          cmd = str
+        end
+
+        if str.last.kind_of? Hash
+          redirects, options = Rubinius::Spawn.adjust_options(str.pop)
+          Rubinius::Spawn.setup_redirects(redirects)
+          Rubinius::Spawn.setup_options(options)
+        end
+
+        Process.perform_exec cmd.first, cmd.map(&:to_s)
+      else
+        Process.perform_exec str, []
+      end
+    end
+
+    ch_write.close if readable
+    ch_read.close  if writable
+
+    # We only need the Bidirectional pipe if we're reading and writing.
+    # If we're only doing one, we can just return the IO object for
+    # the proper half.
+    #
+    if readable and writable
+      # Transmogrify pa_read into a BidirectionalPipe object,
+      # and then tell it abou it's pid and pa_write
+
+      Rubinius::Unsafe.set_class pa_read, IO::BidirectionalPipe
+
+      pipe = pa_read
+      pipe.set_pipe_info(pa_write)
+    elsif readable
+      pipe = pa_read
+    elsif writable
+      pipe = pa_write
+    else
+      raise ArgumentError, "IO is neither readable nor writable"
+    end
+
+    pipe.binmode if binary
+    pipe.set_encoding(external || Encoding.default_external, internal)
+
+    pipe.pid = pid
+
+    return pipe unless block_given?
+
+    begin
+      yield pipe
+    ensure
+      pipe.close unless pipe.closed?
+    end
+  end
+
+  #
+  # +select+ examines the IO object Arrays that are passed in
+  # as +readables+, +writables+, and +errorables+ to see if any
+  # of their descriptors are ready for reading, are ready for
+  # writing, or have an exceptions pending respectively. An IO
+  # may appear in more than one of the sets. Any of the three
+  # sets may be +nil+ if you are not interested in those events.
+  #
+  # If +timeout+ is not nil, it specifies the number of seconds
+  # to wait for events (maximum.) The number may be fractional,
+  # conceptually up to a microsecond resolution.
+  #
+  # A +timeout+ of 0 indicates that each descriptor should be
+  # checked once only, effectively polling the sets.
+  #
+  # Leaving the +timeout+ to +nil+ causes +select+ to block
+  # infinitely until an event transpires.
+  #
+  # If the timeout expires without events, +nil+ is returned.
+  # Otherwise, an [readable, writable, errors] Array of Arrays
+  # is returned, only, with the IO objects that have events.
+  #
+  # @compatibility  MRI 1.8 and 1.9 require the +readables+ Array,
+  #                 Rubinius does not.
+  #
+  def self.select(readables=nil, writables=nil, errorables=nil, timeout=nil)
+    if timeout
+      unless Rubinius::Type.object_kind_of? timeout, Numeric
+        raise TypeError, "Timeout must be numeric"
+      end
+
+      raise ArgumentError, 'timeout must be positive' if timeout < 0
+
+      # Microseconds, rounded down
+      timeout = Integer(timeout * 1_000_000)
+    end
+
+    if readables
+      readables =
+        Rubinius::Type.coerce_to(readables, Array, :to_ary).map do |obj|
+          if obj.kind_of? IO
+            raise IOError, "closed stream" if obj.closed?
+            return [[obj],[],[]] unless obj.buffer_empty?
+            obj
+          else
+            io = Rubinius::Type.coerce_to(obj, IO, :to_io)
+            raise IOError, "closed stream" if io.closed?
+            [obj, io]
+          end
+        end
+    end
+
+    if writables
+      writables =
+        Rubinius::Type.coerce_to(writables, Array, :to_ary).map do |obj|
+          if obj.kind_of? IO
+            raise IOError, "closed stream" if obj.closed?
+            obj
+          else
+            io = Rubinius::Type.coerce_to(obj, IO, :to_io)
+            raise IOError, "closed stream" if io.closed?
+            [obj, io]
+          end
+        end
+    end
+
+    if errorables
+      errorables =
+        Rubinius::Type.coerce_to(errorables, Array, :to_ary).map do |obj|
+          if obj.kind_of? IO
+            raise IOError, "closed stream" if obj.closed?
+            obj
+          else
+            io = Rubinius::Type.coerce_to(obj, IO, :to_io)
+            raise IOError, "closed stream" if io.closed?
+            [obj, io]
+          end
+        end
+    end
+
+    IO.select_primitive(readables, writables, errorables, timeout)
+  end
+
+  ##
+  # Opens the given path, returning the underlying file descriptor as a Fixnum.
+  #  IO.sysopen("testfile")   #=> 3
+  def self.sysopen(path, mode = nil, perm = nil)
+    path = Rubinius::Type.coerce_to_path path
+    mode = parse_mode(mode || "r")
+    perm ||= 0666
+
+    open_with_mode path, mode, perm
+  end
+
+  #
+  # Internally associate +io+ with the given descriptor.
+  #
+  # The +mode+ will be checked and set as the current mode if
+  # the underlying descriptor allows it.
+  #
+  # The +sync+ attribute will also be set.
+  #
+  def self.setup(io, fd, mode=nil, sync=false)
+    cur_mode = FFI::Platform::POSIX.fcntl(fd, F_GETFL, 0)
+    Errno.handle if cur_mode < 0
+
+    cur_mode &= ACCMODE
+
+    if mode
+      mode = parse_mode(mode)
+      mode &= ACCMODE
+
+      if (cur_mode == RDONLY or cur_mode == WRONLY) and mode != cur_mode
+        raise Errno::EINVAL, "Invalid new mode for existing descriptor #{fd}"
+      end
+    end
+
+    io.descriptor = fd
+    io.mode       = mode || cur_mode
+    io.sync       = !!sync
+    io.sync     ||= STDOUT.fileno == fd if STDOUT.respond_to?(:fileno)
+    io.sync     ||= STDERR.fileno == fd if STDERR.respond_to?(:fileno)
+  end
+
+  def self.max_open_fd
+    @max_open_fd.get
+  end
+
   #
   # Create a new IO associated with the given fd.
   #
@@ -646,12 +1005,139 @@ class IO
 
   private :initialize
 
+  ##
+  # Obtains a new duplicate descriptor for the current one.
+  def initialize_copy(original) # :nodoc:
+    @descriptor = FFI::Platform::POSIX.dup(@descriptor)
+  end
+
+  private :initialize_copy
+
+  alias_method :prim_write, :write
+  alias_method :prim_close, :close
+
+  def advise(advice, offset = 0, len = 0)
+    raise IOError, "stream is closed" if closed?
+    raise TypeError, "advice must be a Symbol" unless advice.kind_of?(Symbol)
+
+    if offset.kind_of?(Bignum) || len.kind_of?(Bignum)
+      raise RangeError, "bignum too big to convert into `long'"
+    end
+
+    unless [:normal, :sequential, :random, :noreuse, :dontneed, :willneed].include? advice
+      raise NotImplementedError, "Unsupported advice: #{advice}"
+    end
+
+    offset = Rubinius::Type.coerce_to offset, Integer, :to_int
+    len = Rubinius::Type.coerce_to len, Integer, :to_int
+
+    Rubinius.primitive :io_advise
+    nil
+  end
+
   def autoclose?
     @autoclose
   end
 
   def autoclose=(autoclose)
     @autoclose = !!autoclose
+  end
+
+  def binmode
+    ensure_open
+
+    @binmode = true
+    @external = Encoding::BINARY
+    @internal = nil
+
+    # HACK what to do?
+    self
+  end
+
+  def binmode?
+    !@binmode.nil?
+  end
+  # Used to find out if there is buffered data available.
+  def buffer_empty?
+    @ibuffer.empty?
+  end
+
+  def close_on_exec=(value)
+    if value
+      fcntl(F_SETFD, fcntl(F_GETFD) | FD_CLOEXEC)
+    else
+      fcntl(F_SETFD, fcntl(F_GETFD) & ~FD_CLOEXEC)
+    end
+    nil
+  end
+
+  def close_on_exec?
+    (fcntl(F_GETFD) & FD_CLOEXEC) != 0
+  end
+
+  def <<(obj)
+    write(obj.to_s)
+    return self
+  end
+
+  ##
+  # Closes the read end of a duplex I/O stream (i.e., one
+  # that contains both a read and a write stream, such as
+  # a pipe). Will raise an IOError if the stream is not duplexed.
+  #
+  #  f = IO.popen("/bin/sh","r+")
+  #  f.close_read
+  #  f.readlines
+  # produces:
+  #
+  #  prog.rb:3:in `readlines': not opened for reading (IOError)
+  #   from prog.rb:3
+  def close_read
+    if @mode == WRONLY || @mode == RDWR
+      raise IOError, 'closing non-duplex IO for reading'
+    end
+    close
+  end
+
+  ##
+  # Closes the write end of a duplex I/O stream (i.e., one
+  # that contains both a read and a write stream, such as
+  # a pipe). Will raise an IOError if the stream is not duplexed.
+  #
+  #  f = IO.popen("/bin/sh","r+")
+  #  f.close_write
+  #  f.print "nowhere"
+  # produces:
+  #
+  #  prog.rb:3:in `write': not opened for writing (IOError)
+  #   from prog.rb:3:in `print'
+  #   from prog.rb:3
+  def close_write
+    if @mode == RDONLY || @mode == RDWR
+      raise IOError, 'closing non-duplex IO for writing'
+    end
+    close
+  end
+
+  ##
+  # Returns true if ios is completely closed (for duplex
+  # streams, both reader and writer), false otherwise.
+  #
+  #  f = File.new("testfile")
+  #  f.close         #=> nil
+  #  f.closed?       #=> true
+  #  f = IO.popen("/bin/sh","r+")
+  #  f.close_write   #=> nil
+  #  f.closed?       #=> false
+  #  f.close_read    #=> nil
+  #  f.closed?       #=> true
+  def closed?
+    @descriptor == -1
+  end
+
+  def dup
+    ensure_open
+    super
   end
 
   # Argument matrix for IO#gets and IO#each:
@@ -836,6 +1322,24 @@ class IO
     @lineno += 1
   end
 
+  ##
+  # Return a string describing this IO object.
+  def inspect
+    if @descriptor != -1
+      "#<#{self.class}:fd #{@descriptor}>"
+    else
+      "#<#{self.class}:(closed)"
+    end
+  end
+
+  def lines(*args, &block)
+    if block_given?
+      each_line(*args, &block)
+    else
+      to_enum :each_line, *args
+    end
+  end
+
   def each(sep_or_limit=$/, limit=nil, &block)
     return to_enum(:each, sep_or_limit, limit) unless block_given?
 
@@ -867,6 +1371,16 @@ class IO
 
   alias_method :each_line, :each
 
+  def each_byte
+    return to_enum(:each_byte) unless block_given?
+
+    yield getbyte until eof?
+
+    self
+  end
+
+  alias_method :bytes, :each_byte
+
   def each_char
     return to_enum :each_char unless block_given?
     ensure_open_and_readable
@@ -893,833 +1407,6 @@ class IO
 
   alias_method :codepoints, :each_codepoint
 
-  def read(length=nil, buffer=nil)
-    ensure_open_and_readable
-    buffer = StringValue(buffer) if buffer
-
-    unless length
-      str = IO.read_encode self, read_all
-      return str unless buffer
-
-      return buffer.replace(str)
-    end
-
-    if @ibuffer.exhausted?
-      buffer.clear if buffer
-      return nil
-    end
-
-    str = ""
-    needed = length
-    while needed > 0 and not @ibuffer.exhausted?
-      available = @ibuffer.fill_from self
-
-      count = available > needed ? needed : available
-      str << @ibuffer.shift(count)
-      str = nil if str.empty?
-
-      needed -= count
-    end
-
-    if str
-      if buffer
-        buffer.replace str.force_encoding(buffer.encoding)
-      else
-        str.force_encoding Encoding::ASCII_8BIT
-      end
-    else
-      buffer.clear if buffer
-      nil
-    end
-  end
-
-  def write(data)
-    data = String data
-    return 0 if data.bytesize == 0
-
-    ensure_open_and_writable
-
-    if !binmode? && external_encoding &&
-       external_encoding != data.encoding &&
-       external_encoding != Encoding::ASCII_8BIT
-      unless data.ascii_only? && external_encoding.ascii_compatible?
-        data.encode!(external_encoding) 
-      end
-    end
-
-    if @sync
-      prim_write(data)
-    else
-      @ibuffer.unseek! self
-      bytes_to_write = data.bytesize
-
-      while bytes_to_write > 0
-        bytes_to_write -= @ibuffer.unshift(data, data.bytesize - bytes_to_write)
-        @ibuffer.empty_to self if @ibuffer.full? or sync
-      end
-    end
-
-    data.bytesize
-  end
-
-  def getbyte
-    ensure_open
-
-    return @ibuffer.getbyte(self)
-  end
-
-  def ungetbyte(obj)
-    ensure_open
-
-    case obj
-    when String
-      str = obj
-    when Integer
-      @ibuffer.put_back(obj & 0xff)
-      return
-    when nil
-      return
-    else
-      str = StringValue(obj)
-    end
-
-    str.bytes.reverse_each { |byte| @ibuffer.put_back byte }
-
-    nil
-  end
-
-  def ungetc(obj)
-    ensure_open
-
-    case obj
-    when String
-      str = obj
-    when Integer
-      @ibuffer.put_back(obj)
-      return
-    when nil
-      return
-    else
-      str = StringValue(obj)
-    end
-
-    str.bytes.reverse_each { |b| @ibuffer.put_back b }
-
-    nil
-  end
-
-  def gets(sep_or_limit=$/, limit=nil)
-    each sep_or_limit, limit do |line|
-      $_ = line if line
-      return line
-    end
-
-    nil
-  end
-
-  ##
-  # Writes the given objects to ios as with IO#print.
-  # Writes a record separator (typically a newline)
-  # after any that do not already end with a newline
-  # sequence. If called with an array argument, writes
-  # each element on a new line. If called without arguments,
-  # outputs a single record separator.
-  #
-  #  $stdout.puts("this", "is", "a", "test")
-  # produces:
-  #
-  #  this
-  #  is
-  #  a
-  #  test
-  def puts(*args)
-    if args.empty?
-      write DEFAULT_RECORD_SEPARATOR
-    else
-      args.each do |arg|
-        if arg.equal? nil
-          str = ""
-        elsif Thread.guarding? arg
-          str = "[...]"
-        elsif arg.kind_of?(Array)
-          Thread.recursion_guard arg do
-            arg.each do |a|
-              puts a
-            end
-          end
-        else
-          str = arg.to_s
-        end
-
-        if str
-          write str
-          write DEFAULT_RECORD_SEPARATOR unless str.suffix?(DEFAULT_RECORD_SEPARATOR)
-        end
-      end
-    end
-
-    nil
-  end
-
-  def set_encoding(external, internal=nil, options=undefined)
-    case external
-    when Encoding
-      @external = external
-    when String
-      @external = nil
-    when nil
-      if @mode == RDONLY || @external
-        @external = nil
-      else
-        @external = Encoding.default_external
-      end
-    else
-      @external = nil
-      external = StringValue(external)
-    end
-
-    if @external.nil? and not external.nil?
-      if index = external.index(":")
-        internal = external[index+1..-1]
-        external = external[0, index]
-      end
-
-      if external[3] == ?|
-        if encoding = strip_bom
-          external = encoding
-        else
-          external = external[4..-1]
-        end
-      end
-
-      @external = Encoding.find external
-    end
-
-    unless undefined.equal? options
-      # TODO: set the encoding options on the IO instance
-      if options and not options.kind_of? Hash
-        options = Rubinius::Type.coerce_to options, Hash, :to_hash
-      end
-    end
-
-    case internal
-    when Encoding
-      @internal = nil if @external == internal
-    when String
-      # do nothing
-    when nil
-      internal = Encoding.default_internal
-    else
-      internal = StringValue(internal)
-    end
-
-    if internal.kind_of? String
-      return self if internal == "-"
-      internal = Encoding.find internal
-    end
-
-    @internal = internal unless internal && @external == internal
-
-    self
-  end
-
-  def read_bom_byte
-    read_ios, _, _ = IO.select [self], nil, nil, 0.1
-    return getbyte if read_ios
-  end
-
-  def strip_bom
-    return unless File::Stat.fstat(@descriptor).file?
-
-    case b1 = getbyte
-    when 0x00
-      b2 = getbyte
-      if b2 == 0x00
-        b3 = getbyte
-        if b3 == 0xFE
-          b4 = getbyte
-          if b4 == 0xFF
-            return "UTF-32BE"
-          end
-          ungetbyte b4
-        end
-        ungetbyte b3
-      end
-      ungetbyte b2
-
-    when 0xFF
-      b2 = getbyte
-      if b2 == 0xFE
-        b3 = getbyte
-        if b3 == 0x00
-          b4 = getbyte
-          if b4 == 0x00
-            return "UTF-32LE"
-          end
-          ungetbyte b4
-        else
-          ungetbyte b3
-          return "UTF-16LE"
-        end
-        ungetbyte b3
-      end
-      ungetbyte b2
-
-    when 0xFE
-      b2 = getbyte
-      if b2 == 0xFF
-        return "UTF-16BE"
-      end
-      ungetbyte b2
-
-    when 0xEF
-      b2 = getbyte
-      if b2 == 0xBB
-        b3 = getbyte
-        if b3 == 0xBF
-          return "UTF-8"
-        end
-        ungetbyte b3
-      end
-      ungetbyt b2
-    end
-
-    ungetbyte b1
-    nil
-  end
-
-  def external_encoding
-    return @external if @external
-    return Encoding.default_external if @mode == RDONLY
-  end
-
-  def internal_encoding
-    @internal
-  end
-
-  def binmode
-    ensure_open
-
-    @binmode = true
-    @external = Encoding::BINARY
-    @internal = nil
-
-    # HACK what to do?
-    self
-  end
-
-  def binmode?
-    !@binmode.nil?
-  end
-
-  def close_on_exec=(value)
-    if value
-      fcntl(F_SETFD, fcntl(F_GETFD) | FD_CLOEXEC)
-    else
-      fcntl(F_SETFD, fcntl(F_GETFD) & ~FD_CLOEXEC)
-    end
-    nil
-  end
-
-  def close_on_exec?
-    (fcntl(F_GETFD) & FD_CLOEXEC) != 0
-  end
-
-  def pipe=(v)
-    @pipe = !!v
-  end
-
-  def pipe?
-    @pipe
-  end
-
-  def self.pipe(external=nil, internal=nil, options=nil)
-    lhs = allocate
-    rhs = allocate
-
-    begin
-      connect_pipe(lhs, rhs)
-    rescue Errno::EMFILE
-      GC.run(true)
-      connect_pipe(lhs, rhs)
-    end
-
-    lhs.set_encoding external || Encoding.default_external,
-                     internal || Encoding.default_internal, options
-
-    lhs.sync = true
-    rhs.sync = true
-
-    lhs.pipe = true
-    rhs.pipe = true
-
-    if block_given?
-      begin
-        yield lhs, rhs
-      ensure
-        lhs.close unless lhs.closed?
-        rhs.close unless rhs.closed?
-      end
-    else
-      [lhs, rhs]
-    end
-  end
-
-  ##
-  # Runs the specified command string as a subprocess;
-  # the subprocess‘s standard input and output will be
-  # connected to the returned IO object. If cmd_string
-  # starts with a ``-’’, then a new instance of Ruby is
-  # started as the subprocess. The default mode for the
-  # new file object is ``r’’, but mode may be set to any
-  # of the modes listed in the description for class IO.
-  #
-  # If a block is given, Ruby will run the command as a
-  # child connected to Ruby with a pipe. Ruby‘s end of
-  # the pipe will be passed as a parameter to the block.
-  # At the end of block, Ruby close the pipe and sets $?.
-  # In this case IO::popen returns the value of the block.
-  #
-  # If a block is given with a cmd_string of ``-’’, the
-  # block will be run in two separate processes: once in
-  # the parent, and once in a child. The parent process
-  # will be passed the pipe object as a parameter to the
-  # block, the child version of the block will be passed
-  # nil, and the child‘s standard in and standard out will
-  # be connected to the parent through the pipe.
-  # Not available on all platforms.
-  #
-  #  f = IO.popen("uname")
-  #  p f.readlines
-  #  puts "Parent is #{Process.pid}"
-  #  IO.popen ("date") { |f| puts f.gets }
-  #  IO.popen("-") { |f| $stderr.puts "#{Process.pid} is here, f is #{f}"}
-  #  p $?
-  # produces:
-  #
-  #  ["Linux\n"]
-  #  Parent is 26166
-  #  Wed Apr  9 08:53:52 CDT 2003
-  #  26169 is here, f is
-  #  26166 is here, f is #<IO:0x401b3d44>
-  #  #<Process::Status: pid=26166,exited(0)>
-  def self.popen(str, mode=undefined, options=undefined)
-    mode, binary, external, internal, autoclose = IO.normalize_options(mode, options)
-    mode = parse_mode(mode || 'r')
-
-    readable = false
-    writable = false
-
-    if mode & IO::RDWR != 0
-      readable = true
-      writable = true
-    elsif mode & IO::WRONLY != 0
-      writable = true
-    else # IO::RDONLY
-      readable = true
-    end
-
-    pa_read, ch_write = pipe if readable
-    ch_read, pa_write = pipe if writable
-
-    pid = Process.fork
-
-    # child
-    if !pid
-      if readable
-        pa_read.close
-        STDOUT.reopen ch_write
-      end
-
-      if writable
-        pa_write.close
-        STDIN.reopen ch_read
-      end
-
-      if str == "-"
-        if block_given?
-          yield nil
-          exit! 0
-        else
-          return nil
-        end
-      elsif str.kind_of? Array
-        if str.first.kind_of? Hash
-          env = str.first
-          env.each { |k, v| ENV[k] = v }
-          cmd = str[1..-1]
-        else
-          cmd = str
-        end
-
-        if str.last.kind_of? Hash
-          redirects, options = Rubinius::Spawn.adjust_options(str.pop)
-          Rubinius::Spawn.setup_redirects(redirects)
-          Rubinius::Spawn.setup_options(options)
-        end
-
-        Process.perform_exec cmd.first, cmd.map(&:to_s)
-      else
-        Process.perform_exec str, []
-      end
-    end
-
-    ch_write.close if readable
-    ch_read.close  if writable
-
-    # We only need the Bidirectional pipe if we're reading and writing.
-    # If we're only doing one, we can just return the IO object for
-    # the proper half.
-    #
-    if readable and writable
-      # Transmogrify pa_read into a BidirectionalPipe object,
-      # and then tell it abou it's pid and pa_write
-
-      Rubinius::Unsafe.set_class pa_read, IO::BidirectionalPipe
-
-      pipe = pa_read
-      pipe.set_pipe_info(pa_write)
-    elsif readable
-      pipe = pa_read
-    elsif writable
-      pipe = pa_write
-    else
-      raise ArgumentError, "IO is neither readable nor writable"
-    end
-
-    pipe.binmode if binary
-    pipe.set_encoding(external || Encoding.default_external, internal)
-
-    pipe.pid = pid
-
-    return pipe unless block_given?
-
-    begin
-      yield pipe
-    ensure
-      pipe.close unless pipe.closed?
-    end
-  end
-
-  ##
-  # Return a string describing this IO object.
-  def inspect
-    if @descriptor != -1
-      "#<#{self.class}:fd #{@descriptor}>"
-    else
-      "#<#{self.class}:(closed)"
-    end
-  end
-
-  def lines(*args, &block)
-    if block_given?
-      each_line(*args, &block)
-    else
-      to_enum :each_line, *args
-    end
-  end
-
-  def advise(advice, offset = 0, len = 0)
-    raise IOError, "stream is closed" if closed?
-    raise TypeError, "advice must be a Symbol" unless advice.kind_of?(Symbol)
-
-    if offset.kind_of?(Bignum) || len.kind_of?(Bignum)
-      raise RangeError, "bignum too big to convert into `long'"
-    end
-
-    unless [:normal, :sequential, :random, :noreuse, :dontneed, :willneed].include? advice
-      raise NotImplementedError, "Unsupported advice: #{advice}"
-    end
-
-    offset = Rubinius::Type.coerce_to offset, Integer, :to_int
-    len = Rubinius::Type.coerce_to len, Integer, :to_int
-
-    Rubinius.primitive :io_advise
-    nil
-  end
-
-  def self.open(*args)
-    io = new(*args)
-
-    return io unless block_given?
-
-    begin
-      yield io
-    ensure
-      begin
-        io.close unless io.closed?
-      rescue StandardError
-        # nothing, just swallow them.
-      end
-    end
-  end
-
-  def self.parse_mode(mode)
-    return mode if Rubinius::Type.object_kind_of? mode, Integer
-
-    mode = StringValue(mode)
-
-    ret = 0
-
-    case mode[0]
-    when ?r
-      ret |= RDONLY
-    when ?w
-      ret |= WRONLY | CREAT | TRUNC
-    when ?a
-      ret |= WRONLY | CREAT | APPEND
-    else
-      raise ArgumentError, "invalid mode -- #{mode}"
-    end
-
-    return ret if mode.length == 1
-
-    case mode[1]
-    when ?+
-      ret &= ~(RDONLY | WRONLY)
-      ret |= RDWR
-    when ?b
-      ret |= BINARY
-    when ?:
-      warn("encoding options not supported in 1.8")
-      return ret
-    else
-      raise ArgumentError, "invalid mode -- #{mode}"
-    end
-
-    return ret if mode.length == 2
-
-    case mode[2]
-    when ?+
-      ret &= ~(RDONLY | WRONLY)
-      ret |= RDWR
-    when ?b
-      ret |= BINARY
-    when ?:
-      warn("encoding options not supported in 1.8")
-      return ret
-    else
-      raise ArgumentError, "invalid mode -- #{mode}"
-    end
-
-    ret
-  end
-
-  #
-  # +select+ examines the IO object Arrays that are passed in
-  # as +readables+, +writables+, and +errorables+ to see if any
-  # of their descriptors are ready for reading, are ready for
-  # writing, or have an exceptions pending respectively. An IO
-  # may appear in more than one of the sets. Any of the three
-  # sets may be +nil+ if you are not interested in those events.
-  #
-  # If +timeout+ is not nil, it specifies the number of seconds
-  # to wait for events (maximum.) The number may be fractional,
-  # conceptually up to a microsecond resolution.
-  #
-  # A +timeout+ of 0 indicates that each descriptor should be
-  # checked once only, effectively polling the sets.
-  #
-  # Leaving the +timeout+ to +nil+ causes +select+ to block
-  # infinitely until an event transpires.
-  #
-  # If the timeout expires without events, +nil+ is returned.
-  # Otherwise, an [readable, writable, errors] Array of Arrays
-  # is returned, only, with the IO objects that have events.
-  #
-  # @compatibility  MRI 1.8 and 1.9 require the +readables+ Array,
-  #                 Rubinius does not.
-  #
-  def self.select(readables=nil, writables=nil, errorables=nil, timeout=nil)
-    if timeout
-      unless Rubinius::Type.object_kind_of? timeout, Numeric
-        raise TypeError, "Timeout must be numeric"
-      end
-
-      raise ArgumentError, 'timeout must be positive' if timeout < 0
-
-      # Microseconds, rounded down
-      timeout = Integer(timeout * 1_000_000)
-    end
-
-    if readables
-      readables =
-        Rubinius::Type.coerce_to(readables, Array, :to_ary).map do |obj|
-          if obj.kind_of? IO
-            raise IOError, "closed stream" if obj.closed?
-            return [[obj],[],[]] unless obj.buffer_empty?
-            obj
-          else
-            io = Rubinius::Type.coerce_to(obj, IO, :to_io)
-            raise IOError, "closed stream" if io.closed?
-            [obj, io]
-          end
-        end
-    end
-
-    if writables
-      writables =
-        Rubinius::Type.coerce_to(writables, Array, :to_ary).map do |obj|
-          if obj.kind_of? IO
-            raise IOError, "closed stream" if obj.closed?
-            obj
-          else
-            io = Rubinius::Type.coerce_to(obj, IO, :to_io)
-            raise IOError, "closed stream" if io.closed?
-            [obj, io]
-          end
-        end
-    end
-
-    if errorables
-      errorables =
-        Rubinius::Type.coerce_to(errorables, Array, :to_ary).map do |obj|
-          if obj.kind_of? IO
-            raise IOError, "closed stream" if obj.closed?
-            obj
-          else
-            io = Rubinius::Type.coerce_to(obj, IO, :to_io)
-            raise IOError, "closed stream" if io.closed?
-            [obj, io]
-          end
-        end
-    end
-
-    IO.select_primitive(readables, writables, errorables, timeout)
-  end
-
-  ##
-  # Opens the given path, returning the underlying file descriptor as a Fixnum.
-  #  IO.sysopen("testfile")   #=> 3
-  def self.sysopen(path, mode = nil, perm = nil)
-    path = Rubinius::Type.coerce_to_path path
-    mode = parse_mode(mode || "r")
-    perm ||= 0666
-
-    open_with_mode path, mode, perm
-  end
-
-  #
-  # Internally associate +io+ with the given descriptor.
-  #
-  # The +mode+ will be checked and set as the current mode if
-  # the underlying descriptor allows it.
-  #
-  # The +sync+ attribute will also be set.
-  #
-  def self.setup(io, fd, mode=nil, sync=false)
-    cur_mode = FFI::Platform::POSIX.fcntl(fd, F_GETFL, 0)
-    Errno.handle if cur_mode < 0
-
-    cur_mode &= ACCMODE
-
-    if mode
-      mode = parse_mode(mode)
-      mode &= ACCMODE
-
-      if (cur_mode == RDONLY or cur_mode == WRONLY) and mode != cur_mode
-        raise Errno::EINVAL, "Invalid new mode for existing descriptor #{fd}"
-      end
-    end
-
-    io.descriptor = fd
-    io.mode       = mode || cur_mode
-    io.sync       = !!sync
-    io.sync     ||= STDOUT.fileno == fd if STDOUT.respond_to?(:fileno)
-    io.sync     ||= STDERR.fileno == fd if STDERR.respond_to?(:fileno)
-  end
-
-  def self.max_open_fd
-    @max_open_fd.get
-  end
-
-  ##
-  # Obtains a new duplicate descriptor for the current one.
-  def initialize_copy(original) # :nodoc:
-    @descriptor = FFI::Platform::POSIX.dup(@descriptor)
-  end
-
-  private :initialize_copy
-
-  # Used to find out if there is buffered data available.
-  def buffer_empty?
-    @ibuffer.empty?
-  end
-
-  def <<(obj)
-    write(obj.to_s)
-    return self
-  end
-
-  ##
-  # Closes the read end of a duplex I/O stream (i.e., one
-  # that contains both a read and a write stream, such as
-  # a pipe). Will raise an IOError if the stream is not duplexed.
-  #
-  #  f = IO.popen("/bin/sh","r+")
-  #  f.close_read
-  #  f.readlines
-  # produces:
-  #
-  #  prog.rb:3:in `readlines': not opened for reading (IOError)
-  #   from prog.rb:3
-  def close_read
-    if @mode == WRONLY || @mode == RDWR
-      raise IOError, 'closing non-duplex IO for reading'
-    end
-    close
-  end
-
-  ##
-  # Closes the write end of a duplex I/O stream (i.e., one
-  # that contains both a read and a write stream, such as
-  # a pipe). Will raise an IOError if the stream is not duplexed.
-  #
-  #  f = IO.popen("/bin/sh","r+")
-  #  f.close_write
-  #  f.print "nowhere"
-  # produces:
-  #
-  #  prog.rb:3:in `write': not opened for writing (IOError)
-  #   from prog.rb:3:in `print'
-  #   from prog.rb:3
-  def close_write
-    if @mode == RDONLY || @mode == RDWR
-      raise IOError, 'closing non-duplex IO for writing'
-    end
-    close
-  end
-
-  ##
-  # Returns true if ios is completely closed (for duplex
-  # streams, both reader and writer), false otherwise.
-  #
-  #  f = File.new("testfile")
-  #  f.close         #=> nil
-  #  f.closed?       #=> true
-  #  f = IO.popen("/bin/sh","r+")
-  #  f.close_write   #=> nil
-  #  f.closed?       #=> false
-  #  f.close_read    #=> nil
-  #  f.closed?       #=> true
-  def closed?
-    @descriptor == -1
-  end
-
-  def dup
-    ensure_open
-    super
-  end
-
-  def each_byte
-    return to_enum(:each_byte) unless block_given?
-
-    yield getbyte until eof?
-
-    self
-  end
-
-  alias_method :bytes, :each_byte
 
   ##
   # Set the pipe so it is at the end of the file
@@ -1771,6 +1458,11 @@ class IO
     raise IOError, "not opened for writing" if read_only
   end
 
+  def external_encoding
+    return @external if @external
+    return Encoding.default_external if @mode == RDONLY
+  end
+
   ##
   # Provides a mechanism for issuing low-level commands to
   # control or query file-oriented I/O streams. Arguments
@@ -1794,6 +1486,10 @@ class IO
 
     command = Rubinius::Type.coerce_to command, Fixnum, :to_int
     FFI::Platform::POSIX.fcntl descriptor, command, arg
+  end
+
+  def internal_encoding
+    @internal
   end
 
   ##
@@ -1879,6 +1575,12 @@ class IO
     err
   end
 
+  def getbyte
+    ensure_open
+
+    return @ibuffer.getbyte(self)
+  end
+
   ##
   # Gets the next 8-bit byte (0..255) from ios.
   # Returns nil if called at end of file.
@@ -1890,6 +1592,15 @@ class IO
     ensure_open
 
     return @ibuffer.getchar(self)
+  end
+
+  def gets(sep_or_limit=$/, limit=nil)
+    each sep_or_limit, limit do |line|
+      $_ = line if line
+      return line
+    end
+
+    nil
   end
 
   ##
@@ -1954,6 +1665,14 @@ class IO
 
   attr_writer :pid
 
+  def pipe=(v)
+    @pipe = !!v
+  end
+
+  def pipe?
+    @pipe
+  end
+
   ##
   #
   def pos
@@ -2017,6 +1736,90 @@ class IO
     end
 
     return obj
+  end
+
+  ##
+  # Writes the given objects to ios as with IO#print.
+  # Writes a record separator (typically a newline)
+  # after any that do not already end with a newline
+  # sequence. If called with an array argument, writes
+  # each element on a new line. If called without arguments,
+  # outputs a single record separator.
+  #
+  #  $stdout.puts("this", "is", "a", "test")
+  # produces:
+  #
+  #  this
+  #  is
+  #  a
+  #  test
+  def puts(*args)
+    if args.empty?
+      write DEFAULT_RECORD_SEPARATOR
+    else
+      args.each do |arg|
+        if arg.equal? nil
+          str = ""
+        elsif Thread.guarding? arg
+          str = "[...]"
+        elsif arg.kind_of?(Array)
+          Thread.recursion_guard arg do
+            arg.each do |a|
+              puts a
+            end
+          end
+        else
+          str = arg.to_s
+        end
+
+        if str
+          write str
+          write DEFAULT_RECORD_SEPARATOR unless str.suffix?(DEFAULT_RECORD_SEPARATOR)
+        end
+      end
+    end
+
+    nil
+  end
+
+  def read(length=nil, buffer=nil)
+    ensure_open_and_readable
+    buffer = StringValue(buffer) if buffer
+
+    unless length
+      str = IO.read_encode self, read_all
+      return str unless buffer
+
+      return buffer.replace(str)
+    end
+
+    if @ibuffer.exhausted?
+      buffer.clear if buffer
+      return nil
+    end
+
+    str = ""
+    needed = length
+    while needed > 0 and not @ibuffer.exhausted?
+      available = @ibuffer.fill_from self
+
+      count = available > needed ? needed : available
+      str << @ibuffer.shift(count)
+      str = nil if str.empty?
+
+      needed -= count
+    end
+
+    if str
+      if buffer
+        buffer.replace str.force_encoding(buffer.encoding)
+      else
+        str.force_encoding Encoding::ASCII_8BIT
+      end
+    else
+      buffer.clear if buffer
+      nil
+    end
   end
 
   ##
@@ -2291,6 +2094,133 @@ class IO
     return 0
   end
 
+  def set_encoding(external, internal=nil, options=undefined)
+    case external
+    when Encoding
+      @external = external
+    when String
+      @external = nil
+    when nil
+      if @mode == RDONLY || @external
+        @external = nil
+      else
+        @external = Encoding.default_external
+      end
+    else
+      @external = nil
+      external = StringValue(external)
+    end
+
+    if @external.nil? and not external.nil?
+      if index = external.index(":")
+        internal = external[index+1..-1]
+        external = external[0, index]
+      end
+
+      if external[3] == ?|
+        if encoding = strip_bom
+          external = encoding
+        else
+          external = external[4..-1]
+        end
+      end
+
+      @external = Encoding.find external
+    end
+
+    unless undefined.equal? options
+      # TODO: set the encoding options on the IO instance
+      if options and not options.kind_of? Hash
+        options = Rubinius::Type.coerce_to options, Hash, :to_hash
+      end
+    end
+
+    case internal
+    when Encoding
+      @internal = nil if @external == internal
+    when String
+      # do nothing
+    when nil
+      internal = Encoding.default_internal
+    else
+      internal = StringValue(internal)
+    end
+
+    if internal.kind_of? String
+      return self if internal == "-"
+      internal = Encoding.find internal
+    end
+
+    @internal = internal unless internal && @external == internal
+
+    self
+  end
+
+  def read_bom_byte
+    read_ios, _, _ = IO.select [self], nil, nil, 0.1
+    return getbyte if read_ios
+  end
+
+  def strip_bom
+    return unless File::Stat.fstat(@descriptor).file?
+
+    case b1 = getbyte
+    when 0x00
+      b2 = getbyte
+      if b2 == 0x00
+        b3 = getbyte
+        if b3 == 0xFE
+          b4 = getbyte
+          if b4 == 0xFF
+            return "UTF-32BE"
+          end
+          ungetbyte b4
+        end
+        ungetbyte b3
+      end
+      ungetbyte b2
+
+    when 0xFF
+      b2 = getbyte
+      if b2 == 0xFE
+        b3 = getbyte
+        if b3 == 0x00
+          b4 = getbyte
+          if b4 == 0x00
+            return "UTF-32LE"
+          end
+          ungetbyte b4
+        else
+          ungetbyte b3
+          return "UTF-16LE"
+        end
+        ungetbyte b3
+      end
+      ungetbyte b2
+
+    when 0xFE
+      b2 = getbyte
+      if b2 == 0xFF
+        return "UTF-16BE"
+      end
+      ungetbyte b2
+
+    when 0xEF
+      b2 = getbyte
+      if b2 == 0xBB
+        b3 = getbyte
+        if b3 == 0xBF
+          return "UTF-8"
+        end
+        ungetbyte b3
+      end
+      ungetbyt b2
+    end
+
+    ungetbyte b1
+    nil
+  end
+
   ##
   # Returns status information for ios as an object of type File::Stat.
   #
@@ -2388,9 +2318,6 @@ class IO
 
   alias_method :isatty, :tty?
 
-  alias_method :prim_write, :write
-  alias_method :prim_close, :close
-
   def syswrite(data)
     data = String data
     return 0 if data.bytesize == 0
@@ -2399,6 +2326,75 @@ class IO
     @ibuffer.unseek!(self) unless @sync
 
     prim_write(data)
+  end
+
+  def ungetbyte(obj)
+    ensure_open
+
+    case obj
+    when String
+      str = obj
+    when Integer
+      @ibuffer.put_back(obj & 0xff)
+      return
+    when nil
+      return
+    else
+      str = StringValue(obj)
+    end
+
+    str.bytes.reverse_each { |byte| @ibuffer.put_back byte }
+
+    nil
+  end
+
+  def ungetc(obj)
+    ensure_open
+
+    case obj
+    when String
+      str = obj
+    when Integer
+      @ibuffer.put_back(obj)
+      return
+    when nil
+      return
+    else
+      str = StringValue(obj)
+    end
+
+    str.bytes.reverse_each { |b| @ibuffer.put_back b }
+
+    nil
+  end
+
+  def write(data)
+    data = String data
+    return 0 if data.bytesize == 0
+
+    ensure_open_and_writable
+
+    if !binmode? && external_encoding &&
+       external_encoding != data.encoding &&
+       external_encoding != Encoding::ASCII_8BIT
+      unless data.ascii_only? && external_encoding.ascii_compatible?
+        data.encode!(external_encoding)
+      end
+    end
+
+    if @sync
+      prim_write(data)
+    else
+      @ibuffer.unseek! self
+      bytes_to_write = data.bytesize
+
+      while bytes_to_write > 0
+        bytes_to_write -= @ibuffer.unshift(data, data.bytesize - bytes_to_write)
+        @ibuffer.empty_to self if @ibuffer.full? or sync
+      end
+    end
+
+    data.bytesize
   end
 
   def write_nonblock(data)
