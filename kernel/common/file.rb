@@ -1203,6 +1203,11 @@ class File < IO
     return_string << " (closed)" if closed?
     return_string << ">"
   end
+
+  def size
+    raise IOError, "closed stream" if closed?
+    stat.size
+  end
 end     # File
 
 # Inject the constants into IO

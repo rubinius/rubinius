@@ -1044,12 +1044,18 @@ module Rubinius
       AtomMap[?c] = CharAtom
       AtomMap[?s] = StringAtom
       AtomMap[?p] = InspectAtom
-      AtomMap[?e] = AtomMap[?E] = FloatAtom
-      AtomMap[?g] = AtomMap[?G] = FloatAtom
+      AtomMap[?e] = FloatAtom
+      AtomMap[?E] = FloatAtom
+      AtomMap[?g] = FloatAtom
+      AtomMap[?G] = FloatAtom
       AtomMap[?f] = FloatAtom
-      AtomMap[?d] = AtomMap[?i] = IntegerAtom
-      AtomMap[?b] = AtomMap[?B] = ExtIntegerAtom
-      AtomMap[?x] = AtomMap[?X] = ExtIntegerAtom
+      AtomMap[?d] = IntegerAtom
+      AtomMap[?i] = IntegerAtom
+      AtomMap[?u] = IntegerAtom
+      AtomMap[?b] = ExtIntegerAtom
+      AtomMap[?B] = ExtIntegerAtom
+      AtomMap[?x] = ExtIntegerAtom
+      AtomMap[?X] = ExtIntegerAtom
       AtomMap[?o] = ExtIntegerAtom
 
       RE = /

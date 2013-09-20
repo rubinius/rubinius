@@ -22,7 +22,9 @@ module Rubinius
       false
     end
   end
+end
 
+module Kernel
   def catch(obj = Object.new, &block)
     raise LocalJumpError unless block_given?
 

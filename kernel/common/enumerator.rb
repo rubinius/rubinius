@@ -75,16 +75,6 @@ module Enumerable
     end
     private :each_with_block
 
-    def each
-      if block_given?
-        each_with_block do |*args|
-          yield(*args)
-        end
-      else
-        self
-      end
-    end
-
     def each_with_index
       return to_enum(:each_with_index) unless block_given?
 

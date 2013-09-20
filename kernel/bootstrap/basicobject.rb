@@ -11,7 +11,7 @@ class BasicObject
     raise ::PrimitiveFailure, "BasicObject#equal? primitive failed"
   end
 
-  alias_method :==,   :equal?
+  alias_method :==, :equal?
 
   def !
     Rubinius::Type.object_equal(self, false) ||

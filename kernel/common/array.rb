@@ -1458,6 +1458,11 @@ class Array
     end
   end
 
+  def shuffle(options = undefined)
+    return dup.shuffle!(options) if instance_of? Array
+    Array.new(self).shuffle!(options)
+  end
+
   def shuffle!(options = undefined)
     Rubinius.check_frozen
 
@@ -1696,34 +1701,6 @@ class Array
 
         finish += @total if finish < 0
         finish -= 1 if elem.exclude_end?
-
-        next if finish < start
-
-        start.upto(finish) { |i| out << at(i) }
-
-      else
-        i = Rubinius::Type.coerce_to elem, Fixnum, :to_int
-        out << at(i)
-      end
-    end
-
-    out
-  end
-  def values_at(*args)
-    out = []
-
-    args.each do |elem|
-      # Cannot use #[] because of subtly different errors
-      if elem.kind_of? Range
-        finish = Rubinius::Type.coerce_to elem.last, Fixnum, :to_int
-        start = Rubinius::Type.coerce_to elem.first, Fixnum, :to_int
-
-        start += @total if start < 0
-        next if start < 0
-
-        finish += @total if finish < 0
-        finish -= 1 if elem.exclude_end?
-        finish = @total unless finish < @total
 
         next if finish < start
 

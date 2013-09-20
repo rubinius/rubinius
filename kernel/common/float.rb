@@ -26,8 +26,6 @@ class Float < Numeric
     a ** b
   end
 
-  alias_method :magnitude, :abs
-
   def imaginary
     0
   end
@@ -121,6 +119,8 @@ class Float < Numeric
   def abs
     FFI::Platform::Math.fabs(self)
   end
+
+  alias_method :magnitude, :abs
 
   def negative?
     Rubinius.primitive :float_negative

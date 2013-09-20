@@ -407,8 +407,6 @@ class Hash
   end
   private :initialize
 
-  alias_method :to_s, :inspect
-
   def merge!(other)
     Rubinius.check_frozen
 
@@ -689,6 +687,8 @@ class Hash
     Rubinius::Type.infect(ret, self) unless empty?
     ret
   end
+
+  alias_method :to_s, :inspect
 
   def invert
     inverted = {}

@@ -41,7 +41,7 @@ class Range
     return to_enum unless block_given?
     first, last = @begin, @end
 
-    unless object.respond_to?(:succ) && !object.kind_of?(Time)
+    unless first.respond_to?(:succ) && !first.kind_of?(Time)
       raise TypeError, "can't iterate from #{first.class}"
     end
 
@@ -96,9 +96,9 @@ class Range
   end
 
   def include?(value)
-    if @begin.respond_to?(:to_int) || @end.respond_to?(:to_int) || 
+    if @begin.respond_to?(:to_int) || @end.respond_to?(:to_int) ||
        @begin.kind_of?(Numeric) || @end.kind_of?(Numeric)
-      __cover__? value
+      cover? value
     else
       super
     end

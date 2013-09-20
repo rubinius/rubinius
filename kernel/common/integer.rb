@@ -15,15 +15,15 @@ class Integer < Numeric
   end
 
   def &(other)
-    self & Rubinius::Type.coerce_to(other, Integer, :to_int)
+    self & Rubinius::Type.coerce_to_bitwise_operand(other)
   end
 
   def |(other)
-    self | Rubinius::Type.coerce_to(other, Integer, :to_int)
+    self | Rubinius::Type.coerce_to_bitwise_operand(other)
   end
 
   def ^(other)
-    self ^ Rubinius::Type.coerce_to(other, Integer, :to_int)
+    self ^ Rubinius::Type.coerce_to_bitwise_operand(other)
   end
 
   def to_i

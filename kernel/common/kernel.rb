@@ -290,13 +290,6 @@ module Kernel
   private :initialize_dup
   private :initialize_clone
   private :respond_to_missing?
-  public :remove_instance_variable
-
-  def warn(*messages)
-    $stderr.puts(*messages) if !$VERBOSE.nil? && !messages.empty?
-    nil
-  end
-  module_function :warn
 
   ##
   # MRI uses a macro named StringValue which has essentially the same
@@ -355,8 +348,8 @@ module Kernel
   end
   private :initialize_copy
 
-  def warn(warning)
-    $stderr.write "#{warning}\n" unless $VERBOSE.nil?
+  def warn(*messages)
+    $stderr.puts(*messages) if !$VERBOSE.nil? && !messages.empty?
     nil
   end
   module_function :warn
@@ -569,14 +562,6 @@ module Kernel
     equal?(other) || self == other
   end
 
-  ##
-  # Regexp matching fails by default but may be overridden by subclasses,
-  # notably Regexp and String.
-
-  def =~(other)
-    false
-  end
-
   def extend(*modules)
     raise ArgumentError, "wrong number of arguments (0 for 1+)" if modules.empty?
     Rubinius.check_frozen
@@ -681,7 +666,6 @@ module Kernel
     # Otherwise because sym isn't a symbol, coerce it and try again.
     remove_instance_variable Rubinius::Type.ivar_validate(sym)
   end
-  private :remove_instance_variable
 
   def instance_variables
     ary = []

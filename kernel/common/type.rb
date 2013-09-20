@@ -396,6 +396,13 @@ module Rubinius
       Rubinius::Type.coerce_to obj, Integer, :to_int
     end
 
+    def self.coerce_to_bitwise_operand(obj)
+      if object_kind_of? obj, Float
+        raise TypeError, "can't convert Float into Integer for bitwise arithmetic"
+      end
+      coerce_to obj, Integer, :to_int
+    end
+
     def self.object_initialize_dup(obj, copy)
       Rubinius.privately do
         copy.initialize_dup obj
