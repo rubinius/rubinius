@@ -587,12 +587,7 @@ namespace rubinius {
     loe = dexc(LoadError, scp);
     rte = dexc(RuntimeError, std);
     sce = dexc(SystemCallError, std);
-    // SystemStackError has a different superclass in 1.9
-    if(LANGUAGE_18_ENABLED) {
-      stk = dexc(SystemStackError, std);
-    } else {
-      stk = dexc(SystemStackError, exc);
-    }
+    stk = dexc(SystemStackError, exc);
     lje = dexc(LocalJumpError, std);
     rng = dexc(RangeError, std);
     dexc(FloatDomainError, rng);

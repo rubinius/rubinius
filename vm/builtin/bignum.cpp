@@ -590,7 +590,7 @@ namespace rubinius {
   }
 
   Integer* Bignum::bit_and(STATE, Float* b) {
-    return force_as<Integer>(Primitives::failure);
+    return force_as<Integer>(Primitives::failure());
   }
 
   Integer* Bignum::bit_or(STATE, Integer* b) {
@@ -606,7 +606,7 @@ namespace rubinius {
   }
 
   Integer* Bignum::bit_or(STATE, Float* b) {
-    return force_as<Integer>(Primitives::failure);
+    return force_as<Integer>(Primitives::failure());
   }
 
   Integer* Bignum::bit_xor(STATE, Integer* b) {
@@ -621,7 +621,7 @@ namespace rubinius {
   }
 
   Integer* Bignum::bit_xor(STATE, Float* b) {
-    return force_as<Integer>(Primitives::failure);
+    return force_as<Integer>(Primitives::failure());
   }
 
   Integer* Bignum::invert(STATE) {

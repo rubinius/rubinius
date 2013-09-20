@@ -1,3 +1,10 @@
+#include "capi/capi.hpp"
+#include "capi/ruby.h"
+#include "capi/ruby/encoding.h"
+
+#include "vm.hpp"
+#include "objectmemory.hpp"
+
 #include "builtin/bytearray.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/integer.hpp"
@@ -5,8 +12,7 @@
 #include "builtin/object.hpp"
 #include "builtin/string.hpp"
 
-#include "capi/capi.hpp"
-#include "capi/ruby.h"
+#include "util/vsnprintf.h"
 
 #include <string.h>
 
