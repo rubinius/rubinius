@@ -26,6 +26,10 @@ extern "C" {
     return env->get_handle(class_object);
   }
 
+  VALUE rb_class_superclass(VALUE klass) {
+    return rb_funcall(klass, rb_intern("superclass"), 0);
+  }
+
   // MUST return the immediate object in the class field, not the real class!
   VALUE CLASS_OF(VALUE object_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
@@ -199,5 +203,12 @@ extern "C" {
 
     Class* sc = env->get_object(object_handle)->singleton_class(env->state());
     return env->get_handle(sc);
+  }
+
+  VALUE rb_path_to_class(VALUE str) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    String* string = c_as<String>(env->get_object(str));
+
+    return rb_path2class(string->c_str(env->state()));
   }
 }

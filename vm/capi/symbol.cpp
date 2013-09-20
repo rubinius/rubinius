@@ -13,6 +13,12 @@ extern "C" {
     return reinterpret_cast<Symbol*>(sym)->cpp_str(env->state()).c_str();
   }
 
+  VALUE rb_id2str(ID sym) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    String* str = reinterpret_cast<Symbol*>(sym)->to_str(env->state());
+    return env->get_handle(str);
+  }
+
   int rb_is_const_id(ID sym) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
