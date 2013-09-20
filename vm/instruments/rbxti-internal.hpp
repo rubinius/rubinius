@@ -1,7 +1,7 @@
 #ifndef RBX_INSTRUMENTS_RBXTI_INTERNALS_HPP
 #define RBX_INSTRUMENTS_RBXTI_INTERNALS_HPP
 
-#include "capi/18/include/rbxti.hpp"
+#include "include/capi/rbxti.hpp"
 
 namespace rubinius {
   class VM;
