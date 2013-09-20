@@ -6,9 +6,6 @@ class Float < Numeric
 
   FFI = Rubinius::FFI
 
-  INFINITY = 1.0 / 0.0
-  NAN = 0.0 / 0.0
-
   def self.induced_from(obj)
     case obj
     when Float, Bignum, Fixnum
@@ -161,6 +158,8 @@ class Float < Numeric
   alias_method :quo, :/
   alias_method :fdiv, :/
 
+  INFINITY = 1.0 / 0.0
+  NAN = 0.0 / 0.0
 
   def divmod(other)
     Rubinius.primitive :float_divmod

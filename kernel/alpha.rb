@@ -573,6 +573,20 @@ class Module
   #
   # Redefined in kernel/delta/module.rb.
   #
+  def public(name)
+    if entry = @method_table.lookup(name)
+      entry.visibility = :public
+    end
+  end
+
+  # :internal:
+  #
+  # Basic version used in kernel code.
+  # Cannot be used as a toggle, and only
+  # takes a single method name.
+  #
+  # Redefined in kernel/delta/module.rb.
+  #
   def private(name)
     if entry = @method_table.lookup(name)
       entry.visibility = :private

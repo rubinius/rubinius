@@ -48,8 +48,6 @@ class Dir
     PrivateFile.expand_path("~#{user}")
   end
 
-  alias_method :to_path, :path
-
   def self.[](*patterns)
     if patterns.size == 1
       pattern = Rubinius::Type.coerce_to_path(patterns[0])
@@ -196,6 +194,8 @@ class Dir
   end
 
   attr_reader :path
+
+  alias_method :to_path, :path
 
   SeekKind = 0
   RewindKind = 1

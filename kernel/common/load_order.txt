@@ -38,9 +38,7 @@ compiled_code.rbc
 continuation.rbc
 delegated_method.rbc
 fixnum.rbc
-dir.rbc
 lrucache.rbc
-dir_glob.rbc
 encoding.rbc
 env.rbc
 errno.rbc
@@ -50,6 +48,7 @@ fiber.rbc
 io.rbc
 file.rbc
 dir.rbc
+dir_glob.rbc
 filetest.rbc
 stat.rbc
 float.rbc
@@ -76,10 +75,9 @@ signal.rbc
 splitter.rbc
 sprinter.rbc
 symbol.rbc
-thread.rbc
-thread_group.rbc
 mutex.rbc
 thread.rbc
+thread_group.rbc
 throw_catch.rbc
 time.rbc
 true.rbc

@@ -8,9 +8,6 @@ class Time
     'JUL' => 7, 'AUG' => 8, 'SEP' => 9, 'OCT' =>10, 'NOV' =>11, 'DEC' =>12
   }
 
-  private_class_method :_load
-  private :_dump
-
   def self.at(sec, usec=undefined)
     if undefined.equal?(usec)
       if sec.kind_of?(Time)
@@ -274,6 +271,8 @@ class Time
     end
   end
 
+  private_class_method :_load
+
   #--
   # TODO: doesn't dump ivars
   #++
@@ -299,6 +298,8 @@ class Time
 
     [major, minor].pack 'VV'
   end
+
+  private :_dump
 
   def self.compose(offset, p1, p2=nil, p3=nil, p4=nil, p5=nil, p6=nil, p7=nil,
                    yday=undefined, is_dst=undefined, tz=undefined)

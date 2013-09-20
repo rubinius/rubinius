@@ -8,8 +8,6 @@ module Rubinius
     include Enumerable
     include Rubinius::EnvironmentAccess
 
-    alias_method :to_h, :to_hash
-
     def [](key)
       value = getenv(StringValue(key))
       if value
@@ -96,6 +94,7 @@ module Rubinius
 
     alias_method :has_key?, :include?
     alias_method :key?, :include?
+
     # More efficient than using the one from Enumerable
     alias_method :member?, :include?
 
@@ -253,6 +252,8 @@ module Rubinius
       each { |k, v| hsh[k] = v }
       hsh
     end
+
+    alias_method :to_h, :to_hash
 
     def update(other)
       if block_given?

@@ -636,8 +636,6 @@ module Rubinius
         end
       end
 
-      AtomMap[?c] = CharAtom
-
       class IntegerAtom < Atom
         def fast_common_case?
           @f_zero && @width_static && !@has_precision && !@f_space && !@f_plus && !@f_ljust
@@ -783,186 +781,6 @@ module Rubinius
         end
       end
 
-      class IntegerAtom < Atom
-        def bytecode
-          if fast_common_case?
-            @g.push :self
-
-            push_value
-
-            if @width_static == 2
-              @g.send :zero_two_expand_integer, 1
-            else
-              @g.push_int @width_static
-              @g.send :zero_expand_integer, 2
-            end
-
-            @b.append_str
-          else
-            @g.push :self
-            push_value
-            @g.send :as_int, 1
-
-            val_idx = @g.new_stack_local
-            @g.set_stack_local val_idx
-            @g.pop
-
-            # generic case
-
-            if @f_space
-              @g.push :self
-              @g.push_stack_local val_idx
-              @g.send :compute_space, 1
-              @b.append_str
-            elsif @f_plus
-              @g.push :self
-              @g.push_stack_local val_idx
-              @g.send :compute_plus, 1
-              @b.append_str
-            end
-
-            if @has_precision
-              @g.push :self
-              @g.push_stack_local val_idx
-
-              push_precision_value
-
-              @g.send :digit_expand_precision, 2
-
-              if @has_width
-                @g.push :self
-                @g.swap
-                push_width_value
-
-                if @f_ljust
-                  @g.send :space_expand_left, 2
-                else
-                  @g.send :space_expand, 2
-                end
-              end
-
-              @b.append_str
-
-            elsif @has_width
-              @g.push :self
-              @g.push_stack_local val_idx
-
-              push_width_value
-
-              expand_with_width
-
-              @b.append_str
-            else
-              @g.push_stack_local val_idx
-              @g.send :to_s, 0
-
-              @b.append_str
-            end
-          end
-        end
-      end
-
-      AtomMap[?u] = IntegerAtom
-
-      class ExtIntegerAtom < Atom
-        def format_negative_int(radix)
-          # (num + radix ** num.to_s(radix).size).to_s(radix)
-          @g.push radix
-          @g.dup_many 2
-          @g.send :to_s, 1
-          @g.send :size, 0
-          @g.send :**, 1
-          @g.meta_send_op_plus @g.find_literal(:+)
-          @g.push radix
-          @g.send :to_s, 1
-
-          (radix - 1).to_s(radix)
-        end
-
-        def bytecode
-          radix = RADIX[@format_code]
-
-          push_value
-
-          # Bignum is obviously also perfectly acceptable. But we
-          # just address the most common case by avoiding the call
-          # if we've been given a Fixnum. The call is enough
-          # overhead to bother, but not something to panic about.
-          @b.force_type :Fixnum, :Integer
-
-
-          if @f_plus || @f_space
-            @g.dup
-
-            # stash away whether it's negative
-            @b.is_negative
-            @g.dup
-            @g.move_down 2
-
-            @b.if_true do
-              # but treat it as positive for now
-              @b.invert
-            end
-
-            @g.push radix
-            @g.send :to_s, 1
-          else
-            have_formatted = @g.new_label
-
-            @g.dup
-            @b.is_negative
-
-            @b.if_false do
-              @g.push radix
-              @g.send :to_s, 1
-              @g.goto have_formatted
-            end
-
-            padding = format_negative_int(radix)
-            pad_negative_int(padding)
-
-            have_formatted.set!
-          end
-
-          # 'B' also returns an uppercase string, but there, the
-          # only alpha character is in the prefix -- and that's
-          # already uppercase
-          if @format_code == 'X'
-            @g.send :upcase, 0
-          end
-
-          zero_pad
-
-          if @prefix
-            prepend_prefix_bytecode
-          end
-
-          if @f_plus || @f_space
-            append_sign = @g.new_label
-
-            @g.swap
-            @b.if_true do
-              @g.push_literal '-'
-
-              @g.goto append_sign
-            end
-
-            @g.push_literal positive_sign
-
-            append_sign.set!
-            @g.string_dup
-            @g.string_append
-          end
-
-
-          if @has_precision || !@f_zero
-            justify_width false
-          end
-
-          @b.append_str
-        end
-      end
-
       class LiteralAtom < Atom
         def set_value(ref)
           @value = ref
@@ -1048,6 +866,8 @@ module Rubinius
       end
 
       AtomMap = Rubinius::LookupTable.new
+
+      AtomMap[?c] = CharAtom
       AtomMap[?s] = StringAtom
       AtomMap[?p] = InspectAtom
       AtomMap[?e] = AtomMap[?E] = FloatAtom

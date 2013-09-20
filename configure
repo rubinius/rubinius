@@ -1940,8 +1940,9 @@ required to run it.
       [ "rubysl-irb", "2.0" ],
       [ "rubysl-rake", "2.0" ],
       [ "rubysl-prettyprint", "2.0" ],
-      [ "rubinius-profiler", "0.1" ],
-      [ "rubinius-coverage", "0.1" ],
+      [ "rubinius-profiler", "2.0" ],
+      [ "rubinius-coverage", "2.0" ],
+      [ "rubinius-debugger", "2.0" ],
     ]
 
     # Require these after Bundler has run.

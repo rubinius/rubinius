@@ -378,8 +378,6 @@ class Hash
     to_a.flatten(level)
   end
 
-  alias_method :key, :index
-
   def keep_if
     return to_enum(:keep_if) unless block_given?
 
@@ -673,6 +671,8 @@ class Hash
       return item.key if item.value == value
     end
   end
+
+  alias_method :key, :index
 
   def inspect
     out = []
