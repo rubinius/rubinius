@@ -25,7 +25,6 @@ artifacts/
 .libs
 .spec/bm.yml
 .depends.mf
-/preinstalled-gems
 /rubinius_tasks.dot
 /nbproject
 /coverage
@@ -99,3 +98,7 @@ web/doc/*/*.new
 
 # Ignore generated DTrace header
 vm/dtrace/probes.h
+
+# Ignore rubygems except bundled ones
+preinstalled-gems/*
+!preinstalled-gems/json-1.8.0.gem
