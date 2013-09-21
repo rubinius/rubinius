@@ -15,7 +15,7 @@ class Gem::Commands::UninstallCommand < Gem::Command
   def initialize
     super 'uninstall', 'Uninstall gems from the local repository',
           :version => Gem::Requirement.default, :user_install => true,
-          :install_dir => Gem.dir, :check_dev => false
+          :check_dev => false
 
     add_option('-a', '--[no-]all',
       'Uninstall all matching versions'
@@ -84,8 +84,17 @@ class Gem::Commands::UninstallCommand < Gem::Command
 
   def defaults_str # :nodoc:
     "--version '#{Gem::Requirement.default}' --no-force " +
-    "--install-dir #{Gem.dir}\n" +
     "--user-install"
+  end
+
+  def description # :nodoc:
+    <<-EOF
+The uninstall command removes a previously installed gem.
+
+RubyGems will ask for confirmation if you are attempting to uninstall a gem
+that is a dependency of an existing gem.  You can use the
+--ignore-dependencies option to skip this check.
+    EOF
   end
 
   def usage # :nodoc:
@@ -94,8 +103,7 @@ class Gem::Commands::UninstallCommand < Gem::Command
 
   def execute
     if options[:all] and not options[:args].empty? then
-      alert_error 'Gem names and --all may not be used together'
-      terminate_interaction 1
+      uninstall_specific
     elsif options[:all] then
       uninstall_all
     else
@@ -104,15 +112,18 @@ class Gem::Commands::UninstallCommand < Gem::Command
   end
 
   def uninstall_all
-    install_dir = options[:install_dir]
+    _, specs = Gem::Specification.partition { |spec| spec.default_gem? }
 
-    dirs_to_be_emptied = Dir[File.join(install_dir, '*')]
-    dirs_to_be_emptied.delete_if { |dir| dir.end_with? 'build_info' }
+    specs.each do |spec|
+      options[:version] = spec.version
 
-    dirs_to_be_emptied.each do |dir|
-      FileUtils.rm_rf Dir[File.join(dir, '*')]
+      begin
+        Gem::Uninstaller.new(spec.name, options).uninstall
+      rescue Gem::InstallError
+      end
     end
-    alert("Successfully uninstalled all gems in #{install_dir}")
+
+    alert "Uninstalled all gems in #{options[:install_dir]}"
   end
 
   def uninstall_specific

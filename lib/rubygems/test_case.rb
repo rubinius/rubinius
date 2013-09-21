@@ -785,7 +785,7 @@ Also, a list:
     @a_evil9 = quick_gem('a_evil', '9', &init)
     @b2      = quick_gem('b', '2',      &init)
     @c1_2    = quick_gem('c', '1.2',    &init)
-    @x       = quick_gem('x', '1', &init)
+    @x       = quick_gem('x', '1',      &init)
     @dep_x   = quick_gem('dep_x', '1') do |s|
       s.files = %w[lib/code.rb]
       s.require_paths = %w[lib]
@@ -805,14 +805,15 @@ Also, a list:
       util_build_gem @a2_pre
     end
 
-    write_file File.join(*%W[gems #{@a1.original_name}   lib code.rb])
-    write_file File.join(*%W[gems #{@a2.original_name}   lib code.rb])
-    write_file File.join(*%W[gems #{@a3a.original_name}  lib code.rb])
-    write_file File.join(*%W[gems #{@b2.original_name}   lib code.rb])
-    write_file File.join(*%W[gems #{@c1_2.original_name} lib code.rb])
-    write_file File.join(*%W[gems #{@pl1.original_name}  lib code.rb])
-    write_file File.join(*%W[gems #{@x.original_name}  lib code.rb])
-    write_file File.join(*%W[gems #{@dep_x.original_name}  lib code.rb])
+    write_file File.join(*%W[gems #{@a1.original_name}      lib code.rb])
+    write_file File.join(*%W[gems #{@a2.original_name}      lib code.rb])
+    write_file File.join(*%W[gems #{@a3a.original_name}     lib code.rb])
+    write_file File.join(*%W[gems #{@a_evil9.original_name} lib code.rb])
+    write_file File.join(*%W[gems #{@b2.original_name}      lib code.rb])
+    write_file File.join(*%W[gems #{@c1_2.original_name}    lib code.rb])
+    write_file File.join(*%W[gems #{@pl1.original_name}     lib code.rb])
+    write_file File.join(*%W[gems #{@x.original_name}       lib code.rb])
+    write_file File.join(*%W[gems #{@dep_x.original_name}   lib code.rb])
 
     [@a1, @a2, @a3a, @a_evil9, @b2, @c1_2, @pl1, @x, @dep_x].each do |spec|
       util_build_gem spec
@@ -1096,7 +1097,11 @@ Also, a list:
 
   class StaticSet
     def initialize(specs)
-      @specs = specs.sort_by { |s| s.full_name }
+      @specs = specs
+    end
+
+    def add spec
+      @specs << spec
     end
 
     def find_spec(dep)
@@ -1107,6 +1112,15 @@ Also, a list:
 
     def find_all(dep)
       @specs.find_all { |s| dep.matches_spec? s }
+    end
+
+    def load_spec name, ver, platform, source
+      dep = Gem::Dependency.new name, ver
+      spec = find_spec dep
+
+      Gem::Specification.new spec.name, spec.version do |s|
+        s.platform = spec.platform
+      end
     end
 
     def prefetch(reqs)
