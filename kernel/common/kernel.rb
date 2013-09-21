@@ -1,17 +1,58 @@
 # -*- encoding: us-ascii -*-
 
 module Kernel
-  def __method__
-    scope = Rubinius::VariableScope.of_sender
+  def Array(obj)
+    ary = Rubinius::Type.check_convert_type obj, Array, :to_ary
 
-    name = scope.method.name
+    return ary if ary
 
-    return nil if scope.method.for_module_body?
-    # If the name is still __block__, then it's in a script, so return nil
-    return nil if name == :__block__ or name == :__script__
-    name
+    if array = Rubinius::Type.check_convert_type(obj, Array, :to_a)
+      array
+    else
+      [obj]
+    end
   end
-  module_function :__method__
+  module_function :Array
+
+  def Complex(*args)
+    Rubinius.privately do
+      Complex.convert *args
+    end
+  end
+  module_function :Complex
+
+  def Float(obj)
+    case obj
+    when String
+      Rubinius::Type.coerce_string_to_float obj, true
+    else
+      Rubinius::Type.coerce_object_to_float obj
+    end
+  end
+  module_function :Float
+
+  ##
+  # MRI uses a macro named NUM2DBL which has essentially the same semantics as
+  # Float(), with the difference that it raises a TypeError and not a
+  # ArgumentError. It is only used in a few places (in MRI and Rubinius).
+  #--
+  # If we can, we should probably get rid of this.
+
+  def FloatValue(obj)
+    exception = TypeError.new 'no implicit conversion to float'
+
+    case obj
+    when String
+      raise exception
+    else
+      begin
+        Rubinius::Type.coerce_object_to_float obj
+      rescue
+        raise exception
+      end
+    end
+  end
+  private :FloatValue
 
   def Hash(obj)
     return {} if obj.nil? || obj == []
@@ -23,70 +64,6 @@ module Kernel
     raise TypeError, "can't convert #{obj.class} into Hash"
   end
   module_function :Hash
-
-  def method(name)
-    name = Rubinius::Type.coerce_to_symbol name
-    code = Rubinius.find_method(self, name)
-
-    if code
-      Method.new(self, code[1], code[0], name)
-    elsif respond_to_missing?(name, true)
-      Method.new(self, self.class, Rubinius::MissingMethod.new(self,  name), name)
-    else
-      raise NameError, "undefined method `#{name}' for #{self.inspect}"
-    end
-  end
-
-  def public_method(name)
-    name = Rubinius::Type.coerce_to_symbol name
-    code = Rubinius.find_public_method(self, name)
-
-    if code
-      Method.new(self, code[1], code[0], name)
-    elsif respond_to_missing?(name, false)
-      Method.new(self, self.class, Rubinius::MissingMethod.new(self,  name), name)
-    else
-      raise NameError, "undefined method `#{name}' for #{self.inspect}"
-    end
-  end
-
-  alias_method :__callee__, :__method__
-  module_function :__callee__
-
-  def define_singleton_method(*args, &block)
-    singleton_class.send(:define_method, *args, &block)
-  end
-
-  def loop
-    return to_enum(:loop) unless block_given?
-
-    begin
-      while true
-        yield
-      end
-    rescue StopIteration
-    end
-  end
-  module_function :loop
-
-  def rand(limit=0)
-    if limit == 0
-      return Thread.current.randomizer.random_float
-    end
-
-    if limit.kind_of?(Range)
-      return Thread.current.randomizer.random_range(limit)
-    else
-      limit = Integer(limit).abs
-
-      if limit == 0
-        Thread.current.randomizer.random_float
-      else
-        Thread.current.randomizer.random_integer(limit - 1)
-      end
-    end
-  end
-  module_function :rand
 
   def Integer(obj, base=nil)
     if obj.kind_of? String
@@ -128,99 +105,12 @@ module Kernel
   end
   module_function :Integer
 
-  def to_enum(method=:each, *args)
-    Enumerator.new(self, method, *args)
-  end
-  alias_method :enum_for, :to_enum
-
-  # Send message to object with given arguments.
-  #
-  # Ignores visibility of method, and may therefore be used to invoke
-  # protected or private methods.
-  #
-  # As denoted by the double-underscore, this method must not be removed or
-  # redefined by user code.
-  #
-  # In 1.8, :send is an alias to :__send__ because both methods are defined on
-  # Kernel. But in 1.9, :__send__ is defined on BasicObject.
-  #
-  def send(message, *args)
-    Rubinius.primitive :object_send
-    raise PrimitiveFailure, "Kernel#send primitive failed"
-  end
-
-  def public_send(message, *args)
-    Rubinius.primitive :object_public_send
-    raise PrimitiveFailure, "Kernel#public_send primitive failed"
-  end
-
-  # In 1.8, :object_id is an alias to :__id__ because both methods are defined
-  # on Kernel. But in 1.9, :__id__ is defined on BasicObject.
-  #
-  def object_id
-    Rubinius.primitive :object_id
-    raise PrimitiveFailure, "Kernel#object_id primitive failed"
-  end
-
-  def open(obj, *rest, &block)
-    if obj.respond_to?(:to_open)
-      obj = obj.to_open(*rest)
-
-      if block_given?
-        return yield(obj)
-      else
-        return obj
-      end
+  def Rational(a, b = 1)
+    Rubinius.privately do
+      Rational.convert a, b
     end
-
-    path = Rubinius::Type.coerce_to_path obj
-
-    if path.kind_of? String and path.prefix? '|'
-      return IO.popen(path[1..-1], *rest, &block)
-    end
-
-    File.open(path, *rest, &block)
   end
-  module_function :open
-
-  # Attempt to load the given file, returning true if successful. Works just
-  # like Kernel#require, except that it searches relative to the current
-  # directory.
-  #
-  def require_relative(name)
-    scope = Rubinius::ConstantScope.of_sender
-    Rubinius::CodeLoader.require_relative(name, scope)
-  end
-  module_function :require_relative
-
-  def lambda
-    env = nil
-
-    Rubinius.asm do
-      push_block
-      # assign a pushed block to the above local variable "env"
-      # Note that "env" is indexed at 0.
-      set_local 0
-    end
-
-    raise ArgumentError, "block required" unless env
-
-    prc = Proc.__from_block__(env)
-
-    # Make a proc lambda only when passed an actual block (ie, not using the
-    # "&block" notation), otherwise don't modify it at all.
-    prc.lambda_style! if env.is_a?(Rubinius::BlockEnvironment)
-
-    return prc
-  end
-
-  module_function :lambda
-
-  def proc(&prc)
-    raise ArgumentError, "block required" unless prc
-    return prc
-  end
-  module_function :proc
+  module_function :Rational
 
   def String(obj)
     return obj if obj.kind_of? String
@@ -243,54 +133,6 @@ module Kernel
   end
   module_function :String
 
-  def Array(obj)
-    ary = Rubinius::Type.check_convert_type obj, Array, :to_ary
-
-    return ary if ary
-
-    if array = Rubinius::Type.check_convert_type(obj, Array, :to_a)
-      array
-    else
-      [obj]
-    end
-  end
-  module_function :Array
-
-  def =~(other)
-    nil
-  end
-
-  def Complex(*args)
-    Rubinius.privately do
-      Complex.convert *args
-    end
-  end
-  module_function :Complex
-
-  def Rational(a, b = 1)
-    Rubinius.privately do
-      Rational.convert a, b
-    end
-  end
-  module_function :Rational
-
-  # obj <=> other -> 0 or nil
-  def <=>(other)
-    self == other ? 0 : nil
-  end
-
-  def initialize_dup(other)
-    initialize_copy(other)
-  end
-
-  def initialize_clone(other)
-    initialize_copy(other)
-  end
-
-  private :initialize_dup
-  private :initialize_clone
-  private :respond_to_missing?
-
   ##
   # MRI uses a macro named StringValue which has essentially the same
   # semantics as obj.coerce_to(String, :to_str), but rather than using that
@@ -308,138 +150,64 @@ module Kernel
   end
   module_function :StringValue
 
-  ##
-  # MRI uses a macro named NUM2DBL which has essentially the same semantics as
-  # Float(), with the difference that it raises a TypeError and not a
-  # ArgumentError. It is only used in a few places (in MRI and Rubinius).
-  #--
-  # If we can, we should probably get rid of this.
+  def __method__
+    scope = Rubinius::VariableScope.of_sender
 
-  def FloatValue(obj)
-    exception = TypeError.new 'no implicit conversion to float'
+    name = scope.method.name
 
-    case obj
-    when String
-      raise exception
-    else
-      begin
-        Rubinius::Type.coerce_object_to_float obj
-      rescue
-        raise exception
-      end
-    end
+    return nil if scope.method.for_module_body?
+    # If the name is still __block__, then it's in a script, so return nil
+    return nil if name == :__block__ or name == :__script__
+    name
   end
-  private :FloatValue
+  module_function :__method__
 
-  def Float(obj)
-    case obj
-    when String
-      Rubinius::Type.coerce_string_to_float obj, true
-    else
-      Rubinius::Type.coerce_object_to_float obj
-    end
-  end
-  module_function :Float
+  alias_method :__callee__, :__method__
+  module_function :__callee__
 
-  def initialize_copy(source)
-    unless instance_of?(Rubinius::Type.object_class(source))
-      raise TypeError, "initialize_copy should take same class object"
-    end
-  end
-  private :initialize_copy
-
-  def warn(*messages)
-    $stderr.puts(*messages) if !$VERBOSE.nil? && !messages.empty?
+  def =~(other)
     nil
   end
-  module_function :warn
 
-  def warning(message)
-    $stderr.puts message if $VERBOSE
+  def <=>(other)
+    self == other ? 0 : nil
   end
-  module_function :warning
 
-  def exec(*args)
-    Process.exec(*args)
+  def ===(other)
+    equal?(other) || self == other
   end
-  module_function :exec
-
-  def exit(code=0)
-    Process.exit(code)
-  end
-  module_function :exit
-
-  def exit!(code=1)
-    Process.exit!(code)
-  end
-  module_function :exit!
 
   def abort(msg=nil)
     Process.abort msg
   end
   module_function :abort
 
-  def printf(target, *args)
-    case target
-    when IO
-      target.printf(*args)
-    when String
-      $stdout << Rubinius::Sprinter.get(target).call(*args)
+  def at_exit(prc=nil, &block)
+    if prc
+      unless prc.respond_to?(:call)
+        raise "Argument must respond to #call"
+      end
     else
-      raise TypeError, "The first arg to printf should be an IO or a String"
-    end
-    nil
-  end
-  module_function :printf
-
-  def sprintf(str, *args)
-    Rubinius::Sprinter.get(str).call(*args)
-  end
-
-  alias_method :format, :sprintf
-  module_function :sprintf
-  module_function :format
-
-  def puts(*a)
-    $stdout.puts(*a)
-    nil
-  end
-  module_function :puts
-
-  # For each object given, prints obj.inspect followed by the
-  # system record separator to standard output (thus, separator
-  # cannot be overridden.) Prints nothing if no objects given.
-  def p(*a)
-    return nil if a.empty?
-    a.each { |obj| $stdout.puts obj.inspect }
-    $stdout.flush
-
-    a.size == 1 ? a.first : a
-  end
-  module_function :p
-
-  # Object oriented version of Kernel.p
-  def display(port=$>)
-    port.write self
-  end
-
-  def print(*args)
-    args.each do |obj|
-      $stdout.write obj.to_s
-    end
-    nil
-  end
-  module_function :print
-
-  def srand(seed=undefined)
-    if undefined.equal? seed
-      seed = Thread.current.randomizer.generate_seed
+      prc = block
     end
 
-    seed = Rubinius::Type.coerce_to seed, Integer, :to_int
-    Thread.current.randomizer.swap_seed seed
+    unless prc
+      raise "must pass a #call'able or block"
+    end
+
+    Rubinius::AtExit.unshift(prc)
   end
-  module_function :srand
+  module_function :at_exit
+
+  def autoload(name, file)
+    Object.autoload(name, file)
+  end
+  private :autoload
+
+  def autoload?(name)
+    Object.autoload?(name)
+  end
+  private :autoload?
 
   def block_given?
     Rubinius::VariableScope.of_sender.block != nil
@@ -462,105 +230,28 @@ module Kernel
   end
   module_function :caller
 
-  def global_variables
-    Rubinius::Type.convert_to_names Rubinius::Globals.variables
-  end
-  module_function :global_variables
-
-  #
-  # Sleeps the current thread for +duration+ seconds.
-  #
-  def sleep(duration=undefined)
-    Rubinius.primitive :vm_sleep
-
-    # The primitive will fail on arg count if sleep is called
-    # without an argument, so we call it again passing undefined
-    # to mean "sleep forever"
-    #
-    if undefined.equal? duration
-      return sleep(undefined)
-    end
-
-    if duration.kind_of? Numeric
-      float = Rubinius::Type.coerce_to duration, Float, :to_f
-      return sleep(float)
-    else
-      raise TypeError, 'time interval must be a numeric value'
-    end
-  end
-  module_function :sleep
-
-  def at_exit(prc=nil, &block)
-    if prc
-      unless prc.respond_to?(:call)
-        raise "Argument must respond to #call"
-      end
-    else
-      prc = block
-    end
-
-    unless prc
-      raise "must pass a #call'able or block"
-    end
-
-    Rubinius::AtExit.unshift(prc)
-  end
-  module_function :at_exit
-
-  def test(cmd, file1, file2=nil)
-    case cmd
-    when ?d
-      File.directory? file1
-    when ?e
-      File.exist? file1
-    when ?f
-      File.file? file1
-    when ?l
-      File.symlink? file1
-    else
-      raise NotImplementedError, "command ?#{cmd.chr} not implemented"
-    end
-  end
-  module_function :test
-
-  def trap(sig, prc=nil, &block)
-    Signal.trap(sig, prc, &block)
-  end
-  module_function :trap
-
-  def tap
-    yield self
-    self
+  def define_singleton_method(*args, &block)
+    singleton_class.send(:define_method, *args, &block)
   end
 
-  # The "sorta" operator, also known as the case equality operator.
-  # Generally while #eql? and #== are stricter, #=== is often used
-  # to denote an acceptable match or inclusion. It returns true if
-  # the match is considered to be valid and false otherwise. It has
-  # one special purpose: it is the operator used by the case expression.
-  # So in this expression:
-  #
-  #   case obj
-  #   when /Foo/
-  #     ...
-  #   when "Hi"
-  #     ...
-  #   end
-  #
-  # What really happens is that `/Foo/ === obj` is attempted and so
-  # on down until a match is found or the expression ends. The use
-  # by Regexp is very illustrative: while obj may satisfy the pattern,
-  # it may not be the only option.
-  #
-  # The default #=== operator checks if the other object is #equal?
-  # to this one (i.e., is the same object) or if #== returns true.
-  # If neither is true, false is returned instead. Many classes opt
-  # to override this behaviour to take advantage of its use in a
-  # case expression and to implement more relaxed matching semantics.
-  # Notably, the above Regexp as well as String, Module and many others.
-  def ===(other)
-    equal?(other) || self == other
+  def display(port=$>)
+    port.write self
   end
+
+  def exec(*args)
+    Process.exec(*args)
+  end
+  module_function :exec
+
+  def exit(code=0)
+    Process.exit(code)
+  end
+  module_function :exit
+
+  def exit!(code=1)
+    Process.exit!(code)
+  end
+  module_function :exit!
 
   def extend(*modules)
     raise ArgumentError, "wrong number of arguments (0 for 1+)" if modules.empty?
@@ -579,6 +270,38 @@ module Kernel
   end
 
   alias_method :__extend__, :extend
+
+  def getc
+    $stdin.getc
+  end
+  module_function :getc
+
+  def gets(sep=$/)
+    ARGF.gets(sep)
+  end
+  module_function :gets
+
+  def global_variables
+    Rubinius::Type.convert_to_names Rubinius::Globals.variables
+  end
+  module_function :global_variables
+
+  def initialize_dup(other)
+    initialize_copy(other)
+  end
+  private :initialize_dup
+
+  def initialize_clone(other)
+    initialize_copy(other)
+  end
+  private :initialize_clone
+
+  def initialize_copy(source)
+    unless instance_of?(Rubinius::Type.object_class(source))
+      raise TypeError, "initialize_copy should take same class object"
+    end
+  end
+  private :initialize_copy
 
   def inspect
     # The protocol here seems odd, but it's to match MRI.
@@ -655,18 +378,6 @@ module Kernel
 
   alias_method :__instance_variable_set__, :instance_variable_set
 
-  def remove_instance_variable(sym)
-    Rubinius.primitive :object_del_ivar
-
-    # If it's already a symbol, then we're here because it doesn't exist.
-    if sym.kind_of? Symbol
-      raise NameError, "instance variable '#{sym}' not defined"
-    end
-
-    # Otherwise because sym isn't a symbol, coerce it and try again.
-    remove_instance_variable Rubinius::Type.ivar_validate(sym)
-  end
-
   def instance_variables
     ary = []
     __all_instance_variables__.each do |sym|
@@ -687,22 +398,65 @@ module Kernel
   alias_method :__instance_variable_defined_p__, :instance_variable_defined?
   alias_method :__respond_to_p__, :respond_to?
 
-  def singleton_method_added(name)
-  end
-  private :singleton_method_added
-
-  def singleton_method_removed(name)
-  end
-  private :singleton_method_removed
-
-  def singleton_method_undefined(name)
-  end
-  private :singleton_method_undefined
-
   alias_method :is_a?, :kind_of?
 
-  def nil?
-    false
+  def lambda
+    env = nil
+
+    Rubinius.asm do
+      push_block
+      # assign a pushed block to the above local variable "env"
+      # Note that "env" is indexed at 0.
+      set_local 0
+    end
+
+    raise ArgumentError, "block required" unless env
+
+    prc = Proc.__from_block__(env)
+
+    # Make a proc lambda only when passed an actual block (ie, not using the
+    # "&block" notation), otherwise don't modify it at all.
+    prc.lambda_style! if env.is_a?(Rubinius::BlockEnvironment)
+
+    return prc
+  end
+  module_function :lambda
+
+  def load(name, wrap=false)
+    cl = Rubinius::CodeLoader.new(name)
+    cl.load(wrap)
+
+    Rubinius.run_script cl.compiled_code
+
+    Rubinius::CodeLoader.loaded_hook.trigger!(name)
+
+    return true
+  end
+  module_function :load
+
+  def loop
+    return to_enum(:loop) unless block_given?
+
+    begin
+      while true
+        yield
+      end
+    rescue StopIteration
+    end
+  end
+  module_function :loop
+
+  def method(name)
+    name = Rubinius::Type.coerce_to_symbol name
+    code = Rubinius.find_method(self, name)
+
+    if code
+      Method.new(self, code[1], code[0], name)
+    elsif respond_to_missing?(name, true)
+      Method.new(self, self.class, Rubinius::MissingMethod.new(self,  name), name)
+    else
+      raise NameError, "undefined method `#{name}' for #{self.inspect}"
+    end
   end
 
   def methods(all=true)
@@ -729,6 +483,66 @@ module Kernel
     return methods - undefs
   end
 
+  def nil?
+    false
+  end
+
+  def object_id
+    Rubinius.primitive :object_id
+    raise PrimitiveFailure, "Kernel#object_id primitive failed"
+  end
+
+  def open(obj, *rest, &block)
+    if obj.respond_to?(:to_open)
+      obj = obj.to_open(*rest)
+
+      if block_given?
+        return yield(obj)
+      else
+        return obj
+      end
+    end
+
+    path = Rubinius::Type.coerce_to_path obj
+
+    if path.kind_of? String and path.prefix? '|'
+      return IO.popen(path[1..-1], *rest, &block)
+    end
+
+    File.open(path, *rest, &block)
+  end
+  module_function :open
+
+  def p(*a)
+    return nil if a.empty?
+    a.each { |obj| $stdout.puts obj.inspect }
+    $stdout.flush
+
+    a.size == 1 ? a.first : a
+  end
+  module_function :p
+
+  def print(*args)
+    args.each do |obj|
+      $stdout.write obj.to_s
+    end
+    nil
+  end
+  module_function :print
+
+  def printf(target, *args)
+    case target
+    when IO
+      target.printf(*args)
+    when String
+      $stdout << Rubinius::Sprinter.get(target).call(*args)
+    else
+      raise TypeError, "The first arg to printf should be an IO or a String"
+    end
+    nil
+  end
+  module_function :printf
+
   def private_methods(all=true)
     private_singleton_methods() | Rubinius::Type.object_class(self).private_instance_methods(all)
   end
@@ -752,6 +566,12 @@ module Kernel
   end
   private :private_singleton_methods
 
+  def proc(&prc)
+    raise ArgumentError, "block required" unless prc
+    return prc
+  end
+  module_function :proc
+
   def protected_methods(all=true)
     protected_singleton_methods() | Rubinius::Type.object_class(self).protected_instance_methods(all)
   end
@@ -773,8 +593,26 @@ module Kernel
   end
   private :protected_singleton_methods
 
+  def public_method(name)
+    name = Rubinius::Type.coerce_to_symbol name
+    code = Rubinius.find_public_method(self, name)
+
+    if code
+      Method.new(self, code[1], code[0], name)
+    elsif respond_to_missing?(name, false)
+      Method.new(self, self.class, Rubinius::MissingMethod.new(self,  name), name)
+    else
+      raise NameError, "undefined method `#{name}' for #{self.inspect}"
+    end
+  end
+
   def public_methods(all=true)
     public_singleton_methods | Rubinius::Type.object_class(self).public_instance_methods(all)
+  end
+
+  def public_send(message, *args)
+    Rubinius.primitive :object_public_send
+    raise PrimitiveFailure, "Kernel#public_send primitive failed"
   end
 
   def public_singleton_methods
@@ -793,6 +631,165 @@ module Kernel
     Rubinius::Type.convert_to_names methods
   end
   private :public_singleton_methods
+
+  def putc(int)
+    $stdout.putc(int)
+  end
+  module_function :putc
+
+  def puts(*a)
+    $stdout.puts(*a)
+    nil
+  end
+  module_function :puts
+
+  def rand(limit=0)
+    if limit == 0
+      return Thread.current.randomizer.random_float
+    end
+
+    if limit.kind_of?(Range)
+      return Thread.current.randomizer.random_range(limit)
+    else
+      limit = Integer(limit).abs
+
+      if limit == 0
+        Thread.current.randomizer.random_float
+      else
+        Thread.current.randomizer.random_integer(limit - 1)
+      end
+    end
+  end
+  module_function :rand
+
+  def readline(sep=$/)
+    ARGF.readline(sep)
+  end
+  module_function :readline
+
+  def readlines(sep=$/)
+    ARGF.readlines(sep)
+  end
+  module_function :readlines
+
+  def remove_instance_variable(sym)
+    Rubinius.primitive :object_del_ivar
+
+    # If it's already a symbol, then we're here because it doesn't exist.
+    if sym.kind_of? Symbol
+      raise NameError, "instance variable '#{sym}' not defined"
+    end
+
+    # Otherwise because sym isn't a symbol, coerce it and try again.
+    remove_instance_variable Rubinius::Type.ivar_validate(sym)
+  end
+
+  def require(name)
+    Rubinius::CodeLoader.require name
+  end
+  module_function :require
+
+  def require_relative(name)
+    scope = Rubinius::ConstantScope.of_sender
+    Rubinius::CodeLoader.require_relative(name, scope)
+  end
+  module_function :require_relative
+
+  def select(*args)
+    IO.select(*args)
+  end
+  module_function :select
+
+  def send(message, *args)
+    Rubinius.primitive :object_send
+    raise PrimitiveFailure, "Kernel#send primitive failed"
+  end
+
+  def set_trace_func(*args)
+    raise NotImplementedError
+  end
+  module_function :set_trace_func
+
+  def sprintf(str, *args)
+    Rubinius::Sprinter.get(str).call(*args)
+  end
+  module_function :sprintf
+
+  alias_method :format, :sprintf
+  module_function :format
+
+  def sleep(duration=undefined)
+    Rubinius.primitive :vm_sleep
+
+    # The primitive will fail on arg count if sleep is called
+    # without an argument, so we call it again passing undefined
+    # to mean "sleep forever"
+    #
+    if undefined.equal? duration
+      return sleep(undefined)
+    end
+
+    if duration.kind_of? Numeric
+      float = Rubinius::Type.coerce_to duration, Float, :to_f
+      return sleep(float)
+    else
+      raise TypeError, 'time interval must be a numeric value'
+    end
+  end
+  module_function :sleep
+
+  def srand(seed=undefined)
+    if undefined.equal? seed
+      seed = Thread.current.randomizer.generate_seed
+    end
+
+    seed = Rubinius::Type.coerce_to seed, Integer, :to_int
+    Thread.current.randomizer.swap_seed seed
+  end
+  module_function :srand
+
+  def tap
+    yield self
+    self
+  end
+
+  def test(cmd, file1, file2=nil)
+    case cmd
+    when ?d
+      File.directory? file1
+    when ?e
+      File.exist? file1
+    when ?f
+      File.file? file1
+    when ?l
+      File.symlink? file1
+    else
+      raise NotImplementedError, "command ?#{cmd.chr} not implemented"
+    end
+  end
+  module_function :test
+
+  def to_enum(method=:each, *args)
+    Enumerator.new(self, method, *args)
+  end
+  alias_method :enum_for, :to_enum
+
+  def trap(sig, prc=nil, &block)
+    Signal.trap(sig, prc, &block)
+  end
+  module_function :trap
+
+  def singleton_method_added(name)
+  end
+  private :singleton_method_added
+
+  def singleton_method_removed(name)
+  end
+  private :singleton_method_removed
+
+  def singleton_method_undefined(name)
+  end
+  private :singleton_method_undefined
 
   def singleton_methods(all=true)
     m = Rubinius::Type.object_singleton_class self
@@ -815,130 +812,14 @@ module Kernel
     Rubinius::Type.convert_to_names methods.uniq
   end
 
-  def to_s
-    Rubinius::Type.infect("#<#{self.class}:0x#{self.__id__.to_s(16)}>", self)
-  end
-
-  ##
-  # Loads the given file as executable code and returns true. If
-  # the file cannot be found, cannot be compiled or some other
-  # error occurs, LoadError is raised with an explanation.
-  #
-  # Unlike #require, the file extension if any must be present but
-  # is not restricted to .rb, .rbc or .<platform shared lib ext>.
-  # Any other extensions (or no extension) are assumed to be plain
-  # Ruby files. The only exceptions to this rule are:
-  #
-  # 1.  if given a .rb or no/any-extensioned file and there is a
-  #     compiled version of the same file that is not older than
-  #     the source file (based on File.mtime), the compiled one
-  #     is loaded directly to avoid the compilation overhead.
-  # 2.  if a .rb file is given but it does not exist, the system
-  #     will try to load the corresponding .rbc instead (to allow
-  #     distributing just .rbc files.)
-  #
-  # If the path given starts with ./, ../, ~/ or /, it is treated
-  # as a "qualified" file and will be loaded directly (after path
-  # expansion) instead of matching against $LOAD_PATH. The relative
-  # paths use Dir.pwd.
-  #
-  # If the filename is plain (unqualified) then it is sequentially
-  # prefixed with each path in $LOAD_PATH ($:) to locate the file,
-  # using the first one that exists. If none of the resulting paths
-  # exist, LoadError is raised. Unqualified names may contain path
-  # elements so directories are valid targets and can be used with
-  # $LOAD_PATH.
-  #
-  # A few extra options are supported. If the second parameter is
-  # true, then the module is wrapped inside an anonymous module for
-  # loading to avoid polluting the namespace. This is actually a
-  # shorthand for passing in :wrap => true-ish in the second arg
-  # which may be an option Hash.
-  #
-  # If :recompile in option Hash is true-ish then the file in
-  # question is recompiled each time. If the source file is not
-  # present when recompiling is requested, a LoadError is raised.
-  #
-  # TODO: Support non-UNIX paths.
-  #
-  def load(name, wrap=false)
-    cl = Rubinius::CodeLoader.new(name)
-    cl.load(wrap)
-
-    Rubinius.run_script cl.compiled_code
-
-    Rubinius::CodeLoader.loaded_hook.trigger!(name)
-
-    return true
-  end
-  module_function :load
-
-  # Attempt to load the given file, returning true if successful.
-  # If the file has already been successfully loaded and exists
-  # in $LOADED_FEATURES, it will not be re-evaluated and false
-  # is returned instead. If the filename cannot be resolved,
-  # a LoadError is raised.
-  #
-  # The file can have one of the following extensions:
-  #
-  # [.rb]                   Plain Ruby source file.
-  # [.rbc]                  Compiled Ruby source file.
-  # [.o, .so, .dylib, .dll] Shared library (platform-specific.)
-  # [<none>]                Filename without extension.
-  #
-  # (.rba files should be loaded using CodeArchive.load_everything.)
-  #
-  # If the file does not have an extension, #require attempts to
-  # match it using .rb, .rbc and .<shared extension> as extensions,
-  # in that order, instead. If foo.rb does not exist but foo.rbc
-  # does, the latter will be loaded even if called with foo.rb.
-  #
-  # If the path given starts with ./, ../, ~/ or /, it is treated
-  # as a "qualified" file and will be loaded directly (after path
-  # expansion) instead of matching against $LOAD_PATH. The relative
-  # paths use Dir.pwd.
-  #
-  # If the filename is plain (unqualified) then it is sequentially
-  # prefixed with each path in $LOAD_PATH ($:) to locate the file,
-  # using the first one that exists. If none of the resulting paths
-  # exist, LoadError is raised. Unqualified names may contain path
-  # elements so directories are valid targets and can be used with
-  # $LOAD_PATH.
-  #
-  # TODO: Support non-UNIX paths.
-  #
-  # TODO: See if we can safely use 1.9 rules with $LOADED_FEATURES,
-  #       i.e. expand paths into it. This should be possible if it
-  #       is completely transparent to the user in all normal cases.
-  #
-  # Each successfully loaded file is added to $LOADED_FEATURES
-  # ($"), using the original unexpanded filename (with the
-  # exception that the file extension is added.)
-  #
-  def require(name)
-    Rubinius::CodeLoader.require name
-  end
-  module_function :require
-
-  def autoload(name, file)
-    Object.autoload(name, file)
-  end
-  private :autoload
-
-  def autoload?(name)
-    Object.autoload?(name)
-  end
-  private :autoload?
-
-  def set_trace_func(*args)
-    raise NotImplementedError
-  end
-  module_function :set_trace_func
-
   def syscall(*args)
     raise NotImplementedError
   end
   module_function :syscall
+
+  def to_s
+    Rubinius::Type.infect("#<#{self.class}:0x#{self.__id__.to_s(16)}>", self)
+  end
 
   def trace_var(*args)
     raise NotImplementedError
@@ -950,36 +831,15 @@ module Kernel
   end
   module_function :untrace_var
 
-  # Perlisms.
-
-  def getc
-    $stdin.getc
+  def warn(*messages)
+    $stderr.puts(*messages) if !$VERBOSE.nil? && !messages.empty?
+    nil
   end
-  module_function :getc
+  module_function :warn
 
-  def putc(int)
-    $stdout.putc(int)
+  def warning(message)
+    $stderr.puts message if $VERBOSE
   end
-  module_function :putc
-
-  def gets(sep=$/)
-    ARGF.gets(sep)
-  end
-  module_function :gets
-
-  def readline(sep=$/)
-    ARGF.readline(sep)
-  end
-  module_function :readline
-
-  def readlines(sep=$/)
-    ARGF.readlines(sep)
-  end
-  module_function :readlines
-
-  def select(*args)
-    IO.select(*args)
-  end
-  module_function :select
+  module_function :warning
 end
 

@@ -89,6 +89,7 @@ module Kernel
   def respond_to_missing?(meth, include_private)
     false
   end
+  private :respond_to_missing?
 
   def yield_gdb(obj)
     Rubinius.primitive :yield_gdb
