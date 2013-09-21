@@ -7,7 +7,7 @@ before_install:
   - gem update --system
   - gem --version
 before_script:
-  - ./configure
+  - ./configure --skip-stdlib
 script: rake
 branches:
   only:
