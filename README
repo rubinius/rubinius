@@ -1,18 +1,19 @@
 1. What is Rubinius
 
-Rubinius is an implementation of the Ruby programming language.
+Rubinius is an implementation of the Ruby programming language. Rubinius is
+compatible with Ruby version 2.1.
 
-Rubinius includes a bytecode virtual machine, parser, bytecode compiler,
-garbage collector, and just-in-time (JIT) native machine code compiler. The
-Ruby core library is written almost entirely in Ruby. Rubinius provides the
-same standard libraries as Matz's Ruby implementation (MRI). Rubinius also
-provides C-API compatibility for native C extensions.
+Rubinius includes a Ruby parser, bytecode virtual machine, bytecode compiler,
+generational garbage collector, and just-in-time (JIT) native machine code
+compiler. Rubinius uses native OS threads with no global interpreter lock.
+Rubinius also provides C-API compatibility for native C extensions.
 
-Rubinius currently is compatible with Ruby version 1.8.7. Full support for Ruby
-version 1.9.3 is in progress.
+The Ruby core library is written almost entirely in Ruby. Rubinius tools, such
+as the bytecode compiler and debugger, are also written in Ruby.  Rubinius
+provides the same standard libraries as Matz's Ruby implementation (MRI). 
 
-Rubinius runs on Mac OS X and many Unix/Linux operating systems. Support for
-Microsoft Windows is coming soon.
+Rubinius runs on Mac OS X and many Unix/Linux operating systems.  Microsoft
+Windows is not yet supported.
 
 Most popular Ruby applications, like Rails, run on Rubinius.
 
@@ -26,17 +27,15 @@ Rubinius uses the BSD license. See LICENSE for details.
 
 To install Rubinius, use the following steps:
 
-  1. Ensure that MRI 1.8.7+, rubygems, rake, and git are installed
+  1. Ensure that MRI 2.0+, rubygems, rake, and git are installed
   2. git clone git://github.com/rubinius/rubinius.git
   3. cd rubinius
-  4. ./configure --prefix=/path/to/install/dir
-  5. rake install
+  4. bundle
+  5. ./configure --prefix=/path/to/install/dir
+  6. rake
 
 When the install process finishes, follow the directions printed to the
 terminal to add the Rubinius executable (bin) directory to your PATH.
-
-See Section 5. Language Modes below for more information about configuring
-Rubinius for different Ruby language versions.
 
 
 4. Using RubyGems
@@ -46,29 +45,20 @@ Rubinius comes with RubyGems built-in. To install a gem, run the following:
   rbx -S gem install <gem_name>
 
 
-5. Language Modes
-
-The default language mode is ruby 1.9. You can change the language mode with a configure option.
-
-For example, to compile 2.0 mode, use the following configure options:
-
-  ./configure --enable-version=20
-
-
-6. Documentation
+5. Documentation
 
 After installing Rubinius, run 'rbx docs' to access the built-in documentation
 at any time.
 
 
-7. Tickets
+6. Tickets
 
 Please file tickets for bugs or problems. The issue tracker is:
 
   http://github.com/rubinius/rubinius/issues
 
 
-8. Contributing
+7. Contributing
 
 The Rubinius team welcomes contributions. For more information read the
 CONTRIBUTING file in the root directory of Rubinius.
