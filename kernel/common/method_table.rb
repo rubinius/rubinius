@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 ##
 # Holds Executables for lookup by the VM.
 #

@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 class BasicObject
   def __marshal__(ms, strip_ivars = false)
     out = ms.serialize_extended_object self

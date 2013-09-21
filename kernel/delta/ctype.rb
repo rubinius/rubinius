@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 module Rubinius::CType
   def self.toprint(num)
     # The character literals (?x) are Fixnums in 1.8 and Strings in 1.9

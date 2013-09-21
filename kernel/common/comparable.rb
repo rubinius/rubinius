@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 module Comparable
   def ==(other)
     return true if equal?(other)

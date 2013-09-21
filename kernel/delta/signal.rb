@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 module Signal
   Rubinius::Config.section 'rbx.platform.signal.' do |key, value|
     name = key[23, key.length]

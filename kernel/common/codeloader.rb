@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 # CodeLoader implements the logic for Kernel#load and Kernel#require. Only the
 # implementation-agnostic behavior is provided in this file. That includes
 # resolving files according to $LOAD_PATH and updating $LOADED_FEATURES.

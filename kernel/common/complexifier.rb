@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 class String
   class Complexifier
     SPACE = Rationalizer::SPACE

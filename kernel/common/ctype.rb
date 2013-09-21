@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 ##
 # Mixin containing byte classification methods.
 #--

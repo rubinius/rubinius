@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 ##
 # Some terminology notes:
 #

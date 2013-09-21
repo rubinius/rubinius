@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 # Default Ruby Record Separator
 # Used in this file and by various methods that need to ignore $/
 DEFAULT_RECORD_SEPARATOR = "\n"

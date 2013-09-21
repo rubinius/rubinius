@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 # Just to save you 10 seconds, the reason we always use #each to extract
 # elements instead of something simpler is because Enumerable can not assume
 # any other methods than #each. If needed, class-specific versions of any of

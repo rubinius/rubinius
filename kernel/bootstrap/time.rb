@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 class Time
   def self.now
     Rubinius.primitive :time_s_now

@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 module Kernel
   def equal?(other)
     Rubinius.primitive :object_equal

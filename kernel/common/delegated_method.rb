@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 ##
 # DelegatedMethod is used to implement Module#define_method
 

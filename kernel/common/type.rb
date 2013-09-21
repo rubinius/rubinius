@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 ##
 # Namespace for coercion functions between various ruby objects.
 

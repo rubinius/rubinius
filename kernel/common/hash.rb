@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 unless Rubinius::Config['hash.hamt']
 class Hash
   include Enumerable

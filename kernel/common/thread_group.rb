@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 class ThreadGroup
   def initialize
     @threads = []

@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 class Continuation
 #  def self.create(task=nil)
 #    cont = self.allocate

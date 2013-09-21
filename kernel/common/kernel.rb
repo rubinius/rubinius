@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 module Kernel
   def Array(obj)
     ary = Rubinius::Type.check_convert_type obj, Array, :to_ary

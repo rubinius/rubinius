@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 class Array
   attr_accessor :total
   attr_accessor :tuple

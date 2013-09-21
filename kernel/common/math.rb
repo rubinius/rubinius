@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 module Math
   FFI = Rubinius::FFI
 

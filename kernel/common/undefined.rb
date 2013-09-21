@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 class << undefined
   def to_s
     "undefined"

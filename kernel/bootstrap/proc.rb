@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 class Proc
   def self.allocate
     raise TypeError, "allocator undefined for Proc"

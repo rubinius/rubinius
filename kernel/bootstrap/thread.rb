@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 class Thread
   def self.start(*args)
     raise ArgumentError.new("no block passed to Thread.start") unless block_given?

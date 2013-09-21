@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 ##
 # Used to implement Module#autoload.
 

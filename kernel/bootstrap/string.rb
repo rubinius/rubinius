@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 class String
   attr_reader :num_bytes
   attr_reader_specific :num_bytes, :bytesize

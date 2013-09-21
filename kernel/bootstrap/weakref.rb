@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 class WeakRef < BasicObject
 
   class RefError < ::RuntimeError; end

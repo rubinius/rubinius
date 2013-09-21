@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 module Rubinius
   module Spawn
     # Turns the various varargs incantations supported by Process.spawn into a

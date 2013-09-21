@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 class Bignum < Integer
 
   # see README-DEVELOPERS regarding safe math compiler plugin

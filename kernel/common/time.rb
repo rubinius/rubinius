@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 class Time
   include Comparable
 

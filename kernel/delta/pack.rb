@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 module Rubinius
   def self.pack_to_float(obj)
     unless obj.kind_of?(Numeric)
