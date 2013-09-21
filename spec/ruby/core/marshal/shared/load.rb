@@ -379,7 +379,7 @@ describe :marshal_load, :shared => true do
       end
 
       it "loads a String as ASCII-8BIT if no encoding is specified at the end" do
-        str = "\xC3\xB8"
+        str = "\xC3\xB8".force_encoding("ASCII-8BIT")
         data = "\x04\b\"\a\xC3\xB8".force_encoding("UTF-8")
         result = Marshal.load(data)
         result.encoding.should == Encoding::ASCII_8BIT
