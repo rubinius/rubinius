@@ -1343,3 +1343,33 @@ describe "The defined? keyword for pseudo-variables" do
     end
   end
 end
+
+describe "The defined? keyword for conditional expressions" do
+  it "returns 'expression' for an 'if' conditional" do
+    defined?(if x then 'x' else '' end).should == "expression"
+  end
+
+  it "returns 'expression' for an 'unless' conditional" do
+    defined?(unless x then '' else 'x' end).should == "expression"
+  end
+
+  it "returns 'expression' for ternary expressions" do
+    defined?(x ? 'x' : '').should == "expression"
+  end
+end
+
+describe "The defined? keyword for case expressions" do
+  it "returns 'expression'" do
+    defined?(case x; when 'x'; 'y' end).should == "expression"
+  end
+end
+
+describe "The defined? keyword for loop expressions" do
+  it "returns 'expression' for a 'while' expression" do
+    defined?(while x do y end).should == "expression"
+  end
+
+  it "returns 'expression' for an 'until' expression" do
+    defined?(until x do y end).should == "expression"
+  end
+end
