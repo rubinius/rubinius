@@ -5,6 +5,7 @@ if ENV["RUBYLIB"]
   exit 1
 end
 
+require 'bundler/setup'
 require './rakelib/configure'
 require './rakelib/release'
 require 'rbconfig'
@@ -14,6 +15,8 @@ require 'stringio'
 require 'date'
 require 'digest/md5'
 require 'net/http'
+require 'gems'
+
 
 root = File.expand_path File.dirname(__FILE__)
 
@@ -52,7 +55,6 @@ class Configure
     @tar = nil
     @perl = nil
     @gem = nil
-    @bundle = nil
 
     # LLVM settings
     @use_llvm               = true
@@ -139,7 +141,6 @@ class Configure
     # Configure settings
     @build_ruby = nil
     @config_version = 181
-    @run_bundle = true
     @fetch_gems = true
   end
 
@@ -261,10 +262,6 @@ class Configure
       @log.replace old_log
     end
 
-    o.on "--skip-bundle", "Don't run 'bundle install'" do
-      @run_bundle = false
-    end
-
     o.on "--skip-gems", "Don't fetch gems" do
       @fetch_gems = false
     end
@@ -283,10 +280,6 @@ class Configure
 
     o.on "--gem", "NAME", "Use NAME as 'gem' during build" do |name|
       @gem = name
-    end
-
-    o.on "--bundle", "NAME", "Use NAME as 'bundle' during build" do |name|
-      @bundle = name
     end
 
     o.doc "\n Release Settings"
@@ -868,7 +861,6 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
     @tar ||= ENV['TAR'] || (@windows ? 'bsdtar' : 'tar')
     @perl ||= ENV['PERL'] || 'perl'
     @gem ||= ENV['GEM'] || 'gem'
-    @bundle ||= ENV['BUNDLE'] || 'bundle'
 
     @gcc_major = `#{@cc} -dumpversion`.strip.split(".")[0,2].join(".")
     if @host == "i686-pc-linux-gnu" || @host == "x86_64-unknown-linux-gnu"
@@ -1863,24 +1855,6 @@ int main() { return tgetnum(""); }
     end
   end
 
-  def bundle
-    return unless @run_bundle
-
-    @log.write "\nBundling development gem dependencies..."
-    system "#{build_ruby} -S #{@bundle} update"
-    if $?.exitstatus != 0
-      @log.write <<-EOM
-
-Bundling failed
-
-Bundler is required to install development dependencies for building Rubinius.
-Please ensure that Bundler is installed and superuser privileges are not
-required to run it.
-      EOM
-      exit 1
-    end
-  end
-
   def fetch_gems
     return unless @fetch_gems
 
@@ -1944,10 +1918,6 @@ required to run it.
       [ "rubinius-coverage", "2.0" ],
       [ "rubinius-debugger", "2.0" ],
     ]
-
-    # Require these after Bundler has run.
-    require 'rubygems'
-    require 'gems'
 
     # Resolve requirements to specific versions.
     failed = false
@@ -2090,7 +2060,6 @@ required to run it.
     end
 
     process
-    bundle
     fetch_gems
     unpack_gems
     write_configure_files

@@ -1,3 +1,4 @@
+require 'bundler/setup'
 require './rakelib/configure'
 
 include Rake::DSL if Rake.const_defined? :DSL
@@ -62,9 +63,6 @@ unless BUILD_CONFIG[:which_ruby] == :ruby or BUILD_CONFIG[:which_ruby] == :rbx
   STDERR.puts "Sorry, building Rubinius requires MRI or Rubinius"
   exit 1
 end
-
-require 'rubygems'
-require 'bundler/setup'
 
 def libprefixdir
   if BUILD_CONFIG[:stagingdir]
