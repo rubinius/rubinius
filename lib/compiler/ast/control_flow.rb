@@ -32,6 +32,10 @@ module Rubinius
         nil
       end
 
+      def defined(g)
+        g.push_literal "expression"
+      end
+
       def to_sexp
         else_sexp = @else.kind_of?(NilLiteral) ? nil : @else.to_sexp
         sexp = [:case, receiver_sexp]
@@ -328,6 +332,10 @@ module Rubinius
         done.set!
       end
 
+      def defined(g)
+        g.push_literal "expression"
+      end
+
       def to_sexp
         else_sexp = @else.kind_of?(NilLiteral) ? nil : @else.to_sexp
         [:if, @condition.to_sexp, @body.to_sexp, else_sexp]
@@ -403,6 +411,10 @@ module Rubinius
         g.break.set!
 
         g.pop_modifiers
+      end
+
+      def defined(g)
+        g.push_literal "expression"
       end
 
       def sexp_name
