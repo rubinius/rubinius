@@ -16,6 +16,7 @@ require 'date'
 require 'digest/md5'
 require 'net/http'
 require 'gems'
+require 'redcard'
 
 
 root = File.expand_path File.dirname(__FILE__)
@@ -1519,14 +1520,6 @@ int main() { return tgetnum(""); }
     detect_strerror
  end
 
-  def which_ruby
-    if Object.const_defined?(:RUBY_ENGINE)
-      @which_ruby = RUBY_ENGINE.to_sym
-    else
-      @which_ruby = :ruby
-    end
-  end
-
   # Records the full path to the ruby executable that runs this configure
   # script. That path will be made available to the rest of the build system
   # so the same version of ruby is invoked as needed.
@@ -1628,7 +1621,6 @@ int main() { return tgetnum(""); }
     config_settings = {
       :command_line       => @command_line,
       :config_file        => @config,
-      :which_ruby         => which_ruby,
       :build_ruby         => build_ruby,
       :build_rake         => @rake,
       :build_perl         => @perl,
@@ -2044,8 +2036,13 @@ int main() { return tgetnum(""); }
   end
 
   def run
-    unless which_ruby == :ruby or which_ruby == :rbx
+    unless RedCard.check :ruby, :rubinius
       failure "Sorry, building Rubinius requires MRI or Rubinius."
+    end
+
+    unless RedCard.check "2.0"
+      @log.write "Ruby version 2.0+ is required to build Rubinius."
+      @log.write "Your version may work but is unsupported."
     end
 
     if File.exists? @config

@@ -1,4 +1,5 @@
 require 'bundler/setup'
+require 'redcard'
 require './rakelib/configure'
 
 include Rake::DSL if Rake.const_defined? :DSL
@@ -59,7 +60,7 @@ unless BUILD_CONFIG[:config_version] == 181
 end
 
 # Yes, this is duplicated from the configure script for now.
-unless BUILD_CONFIG[:which_ruby] == :ruby or BUILD_CONFIG[:which_ruby] == :rbx
+unless RedCard.check :ruby, :rubinius
   STDERR.puts "Sorry, building Rubinius requires MRI or Rubinius"
   exit 1
 end
