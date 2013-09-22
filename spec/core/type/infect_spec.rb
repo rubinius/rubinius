@@ -1,6 +1,10 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "Rubinius::Type.infect" do
+  before do
+    @tainted = Object.new.taint
+  end
+
   it "returns the first argument" do
     a = Object.new
     b = Object.new
@@ -12,7 +16,7 @@ describe "Rubinius::Type.infect" do
   end
 
   it "taints the first argument if the second is tainted" do
-    Rubinius::Type.infect(Object.new, Object.new.taint).tainted?.should be_true
+    Rubinius::Type.infect(Object.new, @tainted).tainted?.should be_true
   end
 
   ruby_version_is "1.9" do
@@ -25,14 +29,33 @@ describe "Rubinius::Type.infect" do
     end
   end
 
-  it "is a no-op for immediate types" do
-    Rubinius::Type.infect(1,     Object.new.taint).tainted?.should be_false
-    Rubinius::Type.infect(:a,    Object.new.taint).tainted?.should be_false
-    Rubinius::Type.infect(true,  Object.new.taint).tainted?.should be_false
-    Rubinius::Type.infect(false, Object.new.taint).tainted?.should be_false
-    Rubinius::Type.infect(1,     1).tainted?.should be_false
-    Rubinius::Type.infect(:a,    :a).tainted?.should be_false
-    Rubinius::Type.infect(true,  true).tainted?.should be_false
-    Rubinius::Type.infect(false, false).tainted?.should be_false
+  ruby_version_is "2.1" do
+    it "raises a RuntimeError for Fixnum" do
+      lambda { Rubinius::Type.infect(1,  @tainted) }.should raise_error(RuntimeError)
+    end
+
+    it "raises a RuntimeError for Bignum" do
+      lambda { Rubinius::Type.infect(bignum_value,  @tainted) }.should raise_error(RuntimeError)
+    end
+
+    it "raises a RuntimeError for Float" do
+      lambda { Rubinius::Type.infect(2.0,  @tainted) }.should raise_error(RuntimeError)
+    end
+
+    it "raises a RuntimeError for Symbol" do
+      lambda { Rubinius::Type.infect(:a,  @tainted) }.should raise_error(RuntimeError)
+    end
+  end
+
+  it "is a no-op for true" do
+    Rubinius::Type.infect(true,  @tainted).tainted?.should be_false
+  end
+
+  it "is a no-op for false" do
+    Rubinius::Type.infect(false, @tainted).tainted?.should be_false
+  end
+
+  it "is a no-op for nil" do
+    Rubinius::Type.infect(nil, @tainted).tainted?.should be_false
   end
 end
