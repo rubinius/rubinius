@@ -14,6 +14,10 @@ module Rubinius
         @rescue.bytecode(g)
       end
 
+      def defined(g)
+        g.push_literal "expression"
+      end
+
       def to_sexp
         @rescue.to_sexp
       end
