@@ -41,6 +41,7 @@ namespace rubinius {
   Float* Float::create(STATE, double val) {
     Float* flt = state->new_object_dirty<Float>(G(floatpoint));
     flt->val = val;
+    flt->set_frozen();
     return flt;
   }
 

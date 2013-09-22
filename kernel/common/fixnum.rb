@@ -62,13 +62,4 @@ class Fixnum < Integer
 
     redo_coerced :**, o
   end
-
-  # taint and untaint are noops on Fixnum
-  def taint
-    self
-  end
-
-  def untaint
-    self
-  end
 end
