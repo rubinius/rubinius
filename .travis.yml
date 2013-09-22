@@ -7,8 +7,8 @@ before_install:
   - gem update --system
   - gem --version
 before_script:
-  - bundle
-  - ./configure --skip-stdlib
+  - travis_retry bundle
+  - travis_retry ./configure --skip-stdlib
 script: rake
 branches:
   only:
