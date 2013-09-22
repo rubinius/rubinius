@@ -559,6 +559,10 @@ module Rubinius
         end
       end
 
+      def defined(g)
+        g.push_literal "expression"
+      end
+
       def sexp_name
         :break
       end
@@ -693,6 +697,10 @@ module Rubinius
         else
           g.ret
         end
+      end
+
+      def defined(g)
+        g.push_literal "expression"
       end
 
       def to_sexp

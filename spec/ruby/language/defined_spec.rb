@@ -1372,4 +1372,36 @@ describe "The defined? keyword for loop expressions" do
   it "returns 'expression' for an 'until' expression" do
     defined?(until x do y end).should == "expression"
   end
+
+  it "returns 'expression' for a 'for' expression" do
+    defined?(for n in 1..3 do true end).should == "expression"
+  end
+
+  it "returns 'expression' for a 'break' expression" do
+    defined?(break).should == "expression"
+  end
+
+  it "returns 'expression' for a 'next' expression" do
+    defined?(next).should == "expression"
+  end
+
+  it "returns 'expression' for a 'redo' expression" do
+    defined?(redo).should == "expression"
+  end
+
+  it "returns 'expression' for a 'retry' expression" do
+    defined?(retry).should == "expression"
+  end
+end
+
+describe "The defined? keyword for return expressions" do
+  it "returns 'expression'" do
+    defined?(return).should == "expression"
+  end
+end
+
+describe "The defined? keyword for exception expressions" do
+  it "returns 'expression'" do
+    defined?(begin end).should == "expression"
+  end
 end
