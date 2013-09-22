@@ -53,7 +53,7 @@ class Configure
     @perl = nil
 
     # Versions
-    @language_version = "19"
+    @language_version = "18"
     @supported_versions = ["18", "19", "20"]
     @build_ruby = nil
 
