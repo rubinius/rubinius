@@ -43,13 +43,13 @@ class CompilerScript
     @options.doc ""
 
     @options.on "-t", "--transform", "NAME", "Enable AST transform NAME" do |t|
-      transform = Rubinius::AST::Transforms[t.to_sym]
+      transform = Rubinius::ToolSet::Runtime::AST::Transforms[t.to_sym]
       @transforms << transform if transform
     end
 
     @options.on("-T", "--transforms", "NAME",
                 "Enable NAME category of AST transforms") do |c|
-      transforms = Rubinius::AST::Transforms.category c.to_sym
+      transforms = Rubinius::ToolSet::Runtime::AST::Transforms.category c.to_sym
       @transforms.concat transforms if transforms
     end
 
@@ -61,7 +61,7 @@ class CompilerScript
     @options.doc "       Category: all"
     @options.doc "         Includes all transforms\n"
 
-    Rubinius::AST::Transforms.category_map.each do |category, transforms|
+    Rubinius::ToolSet::Runtime::AST::Transforms.category_map.each do |category, transforms|
       @options.doc "       Category: #{category}"
       transforms.each do |t|
         text = "         %-19s  %s" % [t.transform_name, t.transform_comment]
@@ -170,7 +170,7 @@ class CompilerScript
     compiler = Rubinius::ToolSet::Runtime::Compiler.new from, to
 
     parser = compiler.parser
-    parser.root Rubinius::AST::Script
+    parser.root Rubinius::ToolSet::Runtime::AST::Script
 
     enable_transforms parser
 
