@@ -1,1 +1,0 @@
-incomplete:CSV::Reader#get_row needs to be reviewed for spec completeness

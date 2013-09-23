@@ -1,1 +1,0 @@
-incomplete:Kernel.puts needs to be reviewed for spec completeness

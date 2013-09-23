@@ -1,1 +1,0 @@
-incomplete:File::Stat#setgid? needs to be reviewed for spec completeness

@@ -1,1 +1,0 @@
-incomplete:CSV.open needs to be reviewed for spec completeness

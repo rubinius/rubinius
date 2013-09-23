@@ -1,1 +1,0 @@
-incomplete:Mailbox::Filter#when needs to be reviewed for spec completeness

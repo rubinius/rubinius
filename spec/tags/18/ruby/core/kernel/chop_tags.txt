@@ -1,2 +1,0 @@
-incomplete:Kernel.chop needs to be reviewed for spec completeness
-incomplete:Kernel.chop! needs to be reviewed for spec completeness

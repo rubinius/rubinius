@@ -1,1 +1,0 @@
-incomplete:CSV::Reader#terminate needs to be reviewed for spec completeness

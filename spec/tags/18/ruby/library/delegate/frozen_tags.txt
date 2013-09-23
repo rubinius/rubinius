@@ -1,4 +1,0 @@
-fails:SimpleDelegator when frozen is not writeable
-fails:SimpleDelegator when frozen creates a frozen clone
-fails:SimpleDelegator when frozen creates an unfrozen dup
-fails:SimpleDelegator when frozen causes mutative calls to raise TypeError

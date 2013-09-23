@@ -1,1 +1,0 @@
-incomplete:Kernel#extend needs to be reviewed for spec completeness

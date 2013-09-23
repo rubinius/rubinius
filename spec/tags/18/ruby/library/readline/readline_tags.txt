@@ -1,2 +1,0 @@
-critical:Readline.readline returns the input string
-critical:Readline.readline taints the returned strings

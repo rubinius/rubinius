@@ -1,6 +1,0 @@
-fails:Library attach_function with no library specified
-fails:Library attach_function :getpid from this process
-fails:Library :ushort variable
-fails:Library structure
-fails:Library #ffi_convention defaults to :default
-fails:Library #ffi_convention should be settable

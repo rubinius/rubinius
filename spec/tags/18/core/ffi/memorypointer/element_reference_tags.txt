@@ -1,1 +1,0 @@
-incomplete:FFI::MemoryPointer#[] needs to be reviewed for spec completeness

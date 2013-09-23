@@ -1,1 +1,0 @@
-incomplete:FFI::MemoryPointer#read_array_of_int needs to be reviewed for spec completeness

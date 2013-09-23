@@ -1,1 +1,0 @@
-incomplete:CSV::BasicWriter#initialize needs to be reviewed for spec completeness

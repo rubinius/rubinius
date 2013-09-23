@@ -1,1 +1,0 @@
-incomplete:Net::Telnet#login needs to be reviewed for spec completeness

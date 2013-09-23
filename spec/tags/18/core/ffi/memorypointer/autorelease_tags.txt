@@ -1,1 +1,0 @@
-incomplete:FFI::MemoryPointer#autorelease= needs to be reviewed for spec completeness
