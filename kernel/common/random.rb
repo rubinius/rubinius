@@ -30,7 +30,11 @@ class Rubinius::Randomizer
       random_float
     else
       if limit.kind_of?(Range)
-        random_range(limit)
+        if time_value?(limit.min)
+          random_time_range(limit)
+        else
+          random_range(limit)
+        end
       elsif limit.kind_of?(Float)
         raise ArgumentError, "invalid argument - #{limit}" if limit <= 0
         random_float * limit
@@ -71,6 +75,47 @@ class Rubinius::Randomizer
   def generate_seed
     Rubinius.primitive :randomizer_gen_seed
     raise PrimitiveFailure, "Randomizer#gen_seed primitive failed"
+  end
+
+  ##
+  # Returns a random value from a range made out of Time, Date or DateTime
+  # instances.
+  #
+  # @param [Range] range
+  # @return [Time|Date|DateTime]
+  #
+  def random_time_range(range)
+    min  = time_to_float(range.min)
+    max  = time_to_float(range.max)
+    time = Time.at(random(min..max))
+
+    if defined?(DateTime) && range.min.is_a?(DateTime)
+      time = time.to_datetime
+    elsif range.min.is_a?(Date)
+      time = time.to_date
+    end
+
+    return time
+  end
+
+  ##
+  # Casts a Time/Date/DateTime instance to a Float.
+  #
+  # @param [Time|Date|DateTime] input
+  # @return [Float]
+  #
+  def time_to_float(input)
+    return input.respond_to?(:to_time) ? input.to_time.to_f : input.to_f
+  end
+
+  ##
+  # Checks if a given value is a Time, Date or DateTime object.
+  #
+  # @param [Mixed] input
+  # @return [TrueClass|FalseClass]
+  #
+  def time_value?(input)
+    return input.is_a?(Time) || input.is_a?(Date)
   end
 end
 
