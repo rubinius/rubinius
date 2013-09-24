@@ -546,7 +546,7 @@ module Marshal
 
       call obj if @proc and call_proc
 
-      @stream.tainted? ? obj.taint : obj
+      @stream.tainted? && !obj.frozen? ? obj.taint : obj
     end
 
     def construct_class
