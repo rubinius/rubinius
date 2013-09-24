@@ -600,6 +600,8 @@ to rebuild the compiler.
       @run_irb = false
       @stage = "evaluating command line code"
 
+      Dir.chdir(@directory) if @directory
+
       if @input_loop
         while gets
           $F = $_.split if @input_loop_split
