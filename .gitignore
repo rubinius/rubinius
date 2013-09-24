@@ -82,15 +82,6 @@ Gemfile.lock
 
 /kernel/signature.rb
 
-/lib/compiler/opcodes.rb
-/lib/compiler/generator_methods.rb
-
-/lib/etc.rb
-/lib/kernel.rb
-/lib/fcntl.rb
-/lib/syslog.rb
-/lib/readline.rb
-
 # Generated documentation
 doc/generated/vm
 web/doc/*/*.bak
