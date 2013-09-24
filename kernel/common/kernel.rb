@@ -647,7 +647,7 @@ module Kernel
     end
 
     if limit.kind_of?(Range)
-      return Thread.current.randomizer.random_range(limit)
+      return Thread.current.randomizer.random(limit)
     else
       limit = Integer(limit).abs
 

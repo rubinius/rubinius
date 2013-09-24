@@ -64,5 +64,16 @@ describe "Kernel.rand" do
     values.min.should be_kind_of(Fixnum)
     values.max.should be_kind_of(Bignum)
   end
-end
 
+  it 'generates a random Time value' do
+    script = <<-EOF
+    start = Time.new(2013, 1, 1)
+    stop  = Time.new(2014, 1, 1)
+    value = rand(start..stop)
+
+    print value.class
+    EOF
+
+    ruby_exe(script, :escape => true).should == 'Time'
+  end
+end
