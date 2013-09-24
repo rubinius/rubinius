@@ -709,7 +709,7 @@ section "Manipulate instance variables"
 
 instruction set_ivar(literal) [ value -- value ]
   if(CBOOL(call_frame->self()->frozen_p(state))) {
-    Exception::frozen_error(state, call_frame);
+    Exception::frozen_error(state, call_frame, call_frame->self());
     RUN_EXCEPTION();
   }
   Symbol* sym = as<Symbol>(call_frame->compiled_code->literals()->at(state, literal));
@@ -2178,7 +2178,7 @@ instruction check_frozen() [ value -- value ]
   Object* value = stack_top();
 
   if(value->reference_p() && value->is_frozen_p()) {
-    Exception::frozen_error(state, call_frame);
+    Exception::frozen_error(state, call_frame, value);
     RUN_EXCEPTION();
   }
 end

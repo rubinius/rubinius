@@ -50,7 +50,7 @@ namespace rubinius {
     Object* recv = args.recv();
 
     if(CBOOL(recv->frozen_p(state))) {
-      Exception::frozen_error(state, call_frame);
+      Exception::frozen_error(state, call_frame, recv);
       return 0;
     }
 
@@ -67,7 +67,7 @@ namespace rubinius {
     /* The writer case. */
     if(access->write()->true_p()) {
       if(CBOOL(self->frozen_p(state))) {
-        Exception::frozen_error(state, call_frame);
+        Exception::frozen_error(state, call_frame, self);
         return 0;
       }
 

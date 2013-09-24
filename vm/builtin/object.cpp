@@ -180,8 +180,7 @@ namespace rubinius {
 
   void Object::check_frozen(STATE) {
     if(CBOOL(frozen_p(state))) {
-      const char* reason = "can't modify frozen object";
-      Exception::runtime_error(state, reason);
+      Exception::frozen_error(state, this);
     }
   }
 

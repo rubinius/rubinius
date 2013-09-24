@@ -91,9 +91,20 @@ namespace rubinius {
     state->raise_exception(exc);
   }
 
-  void Exception::frozen_error(STATE, CallFrame* call_frame) {
-    Exception* exc = Exception::make_exception(state, G(exc_rte),
-                        "unable to modify frozen object");
+  Exception* Exception::make_frozen_exception(STATE, Object* obj) {
+    std::ostringstream msg;
+    msg << "can't modify frozen instance of ";
+    msg << obj->class_object(state)->module_name()->debug_str(state);
+
+    return Exception::make_exception(state, G(exc_rte), msg.str().c_str());
+  }
+
+  void Exception::frozen_error(STATE, Object* obj) {
+    RubyException::raise(Exception::make_frozen_exception(state, obj));
+  }
+
+  void Exception::frozen_error(STATE, CallFrame* call_frame, Object* obj) {
+    Exception* exc = Exception::make_frozen_exception(state, obj);
     exc->locations(state, Location::from_call_stack(state, call_frame));
     state->raise_exception(exc);
   }

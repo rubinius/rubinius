@@ -76,7 +76,7 @@ extern "C" {
 
   Object* rbx_check_frozen(STATE, CallFrame* call_frame, Object* obj) {
     if(obj->reference_p() && obj->is_frozen_p()) {
-      Exception::frozen_error(state, call_frame);
+      Exception::frozen_error(state, call_frame, obj);
       return NULL;
     }
 
@@ -981,7 +981,7 @@ extern "C" {
 
   Object* rbx_set_ivar(STATE, CallFrame* call_frame, Object* self, Symbol* name, Object* val) {
     if(self->reference_p() && self->is_frozen_p()) {
-      Exception::frozen_error(state, call_frame);
+      Exception::frozen_error(state, call_frame, self);
       return NULL;
     }
 
