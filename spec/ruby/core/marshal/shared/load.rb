@@ -213,20 +213,51 @@ describe :marshal_load, :shared => true do
     y.tainted?.should be_false
   end
 
-  it "returns a tainted object if source is tainted" do
-    x = Object.new
-    x.taint
-    s = Marshal.dump(x)
-    y = Marshal.send(@method, s)
-    y.tainted?.should be_true
+  describe "when source is tainted" do
+    it "returns a tainted object" do
+      x = Object.new
+      x.taint
+      s = Marshal.dump(x)
+      y = Marshal.send(@method, s)
+      y.tainted?.should be_true
 
-    # note that round-trip via Marshal does not preserve
-    # the taintedness at each level of the nested structure
-    y = Marshal.send(@method, Marshal.dump([[x]]))
-    y.tainted?.should be_true
-    y.first.tainted?.should be_true
-    y.first.first.tainted?.should be_true
+      # note that round-trip via Marshal does not preserve
+      # the taintedness at each level of the nested structure
+      y = Marshal.send(@method, Marshal.dump([[x]]))
+      y.tainted?.should be_true
+      y.first.tainted?.should be_true
+      y.first.first.tainted?.should be_true
+    end
 
+    ruby_version_is "2.1" do
+      it "does not taint Symbols" do
+        x = [:x]
+        y = Marshal.send(@method, Marshal.dump(x).taint)
+        y.tainted?.should be_true
+        y.first.tainted?.should be_false
+      end
+
+      it "does not taint Fixnums" do
+        x = [1]
+        y = Marshal.send(@method, Marshal.dump(x).taint)
+        y.tainted?.should be_true
+        y.first.tainted?.should be_false
+      end
+
+      it "does not taint Bignums" do
+        x = [bignum_value]
+        y = Marshal.send(@method, Marshal.dump(x).taint)
+        y.tainted?.should be_true
+        y.first.tainted?.should be_false
+      end
+
+      it "does not taint Floats" do
+        x = [1.2]
+        y = Marshal.send(@method, Marshal.dump(x).taint)
+        y.tainted?.should be_true
+        y.first.tainted?.should be_false
+      end
+    end
   end
 
   it "preserves taintedness of nested structure" do
