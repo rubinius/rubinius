@@ -84,6 +84,7 @@ module Rubinius
       attr_accessor :load_compiled
       attr_accessor :check_version
       attr_accessor :bootstrap_load_path
+      attr_accessor :runtime_load_path
 
       # Raises a LoadError with an informative message when a require for a
       # gemified standard library fails.
@@ -129,18 +130,24 @@ The source code for "#{name}" is on GitHub:
         raise LoadError, msg
       end
 
+      def set_bootstrap_load_path
+        @bootstrap_load_path ||= Dir["#{Rubinius::RUNTIME_PATH}/gems/**/lib"] + $LOAD_PATH
+
+        @runtime_load_path = $LOAD_PATH.dup
+        $LOAD_PATH.replace @bootstrap_load_path
+      end
+
+      def unset_bootstrap_load_path
+        $LOAD_PATH.replace @runtime_load_path
+      end
+
       # Sets $LOAD_PATH to the bootstrap standard library files and yields to
       # the passed block.
       def bootstrap
-        load_path = $LOAD_PATH
-
-        Dir["#{Rubinius::RUNTIME_PATH}/gems/**/lib"].each do |path|
-          $LOAD_PATH.unshift path
-        end
-
+        set_bootstrap_load_path
         yield
-
-        $LOAD_PATH.replace load_path
+      ensure
+        unset_bootstrap_load_path
       end
 
       # Loads rubygems using the bootstrap standard library files.
