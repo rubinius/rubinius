@@ -134,7 +134,7 @@ class Configure
     @rb_readline = false
 
     # Essential settings (modify these for creating releases)
-    @libversion = "2.1"
+    @libversion = "2.0"
     @patch_version = "0"
     @release = validate_release_label
     @release_date = validate_release_date
