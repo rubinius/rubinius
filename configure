@@ -130,9 +130,6 @@ class Configure
     # Vendored library settings
     @vendored_libdir = root + "/vendor"
 
-    # Library configuration
-    @rb_readline = false
-
     # Essential settings (modify these for creating releases)
     @libversion = "2.0"
     @patch_version = "0"
@@ -445,8 +442,6 @@ class Configure
     o.doc "\n Optional features"
 
     feature "execinfo", true
-    feature "C-readline", true
-    feature "ruby-readline", false
     feature "vendor-zlib", false
     feature "alloc-tracking", false
     feature "fibers", true
@@ -1173,9 +1168,6 @@ int main() { return tgetnum(""); }
 
     if @curses
       @log.write(@curses)
-    else
-      @log.write("using rb-readline")
-      @rb_readline = true
     end
   end
 
@@ -1310,18 +1302,6 @@ int main() { return tgetnum(""); }
 
     if @features["alloc-tracking"].value
       @defines << "RBX_ALLOC_TRACKING"
-    end
-
-    if @features["ruby-readline"].value
-      @rb_readline = true
-    else
-      if @features["C-readline"].value and
-          (has_function("readline", ["stdio.h", "stdlib.h", "readline/readline.h"]) or
-           has_function("readline", ["stdio.h", "stdlib.h", "editline/readline.h"]))
-        @rb_readline = false
-      else
-        @rb_readline = true
-      end
     end
 
     if @features["fibers"].value
@@ -1687,7 +1667,6 @@ int main() { return tgetnum(""); }
       :bsd                => @bsd,
       :linux              => @linux,
       :vendor_zlib        => @features["vendor-zlib"].value,
-      :readline           => @rb_readline ? :rb_readline : :c_readline,
       :vm_release_h       => @vm_release_h,
       :supported_versions => @supported_versions,
       :build_tool_gems    => @build_tool_gems,
@@ -1816,15 +1795,6 @@ int main() { return tgetnum(""); }
     # Create C-API header for vm/test
     File.open "vm/test/ruby.h", "w" do |f|
       f.puts %[#include "#{@capi_includedir}/ruby.h"]
-    end
-
-    # Write a require file depending on which Readline library we use.
-    File.open "lib/readline.rb", "wb" do |f|
-      if @rb_readline
-        f.puts "require 'rb-readline/readline'"
-      else
-        f.puts "require 'c-readline'"
-      end
     end
   end
 
