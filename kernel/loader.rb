@@ -686,20 +686,7 @@ to rebuild the compiler.
       @stage = "running IRB"
 
       if Terminal
-        repr = ENV['RBX_REPR'] || "bin/irb"
-        set_program_name repr
-        prog = File.join @main_lib, repr
-        begin
-          # HACK: this was load but load raises LoadError
-          # with prog == "lib/bin/irb". However, require works.
-          # Investigate when we have specs running.
-          require prog
-        rescue LoadError => e
-          STDERR.puts "Unable to load REPL named '#{repr}'"
-          STDERR.puts e.message
-          puts e.awesome_backtrace.show
-          exit 1
-        end
+        require "irb"
       else
         set_program_name "(eval)"
         CodeLoader.execute_script "p #{STDIN.read}"
