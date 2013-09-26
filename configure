@@ -140,7 +140,6 @@ class Configure
     @build_ruby = nil
     @config_version = 181
     @fetch_gems = true
-    @skip_stdlib = false
   end
 
   # Set up system commands to run in cmd.exe on Windows. Either Windows
@@ -263,10 +262,6 @@ class Configure
 
     o.on "--skip-gems", "Don't fetch gems" do
       @fetch_gems = false
-    end
-
-    o.on "--skip-stdlib", "Don't install standard library gems" do
-      @skip_stdlib = true
     end
 
     o.on "--rake", "NAME", "Use NAME as 'rake' during build" do |name|
@@ -441,6 +436,7 @@ class Configure
 
     o.doc "\n Optional features"
 
+    feature "stdlib", true
     feature "execinfo", true
     feature "vendor-zlib", false
     feature "alloc-tracking", false
@@ -1885,14 +1881,14 @@ int main() { return tgetnum(""); }
       [ "rubinius-debugger", "2.0" ],
     ]
 
-    if @skip_stdlib
+    if @features["stdlib"].value
       @runtime_gems.concat [
-        [ "rubysl-irb", "2.0" ],
-        [ "rubysl-prettyprint", "2.0" ],
+        [ "rubysl", "2.0" ],
       ]
     else
       @runtime_gems.concat [
-        [ "rubysl", "2.0" ],
+        [ "rubysl-irb", "2.0" ],
+        [ "rubysl-prettyprint", "2.0" ],
       ]
     end
 
