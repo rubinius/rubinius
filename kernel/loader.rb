@@ -69,6 +69,8 @@ module Rubinius
 
       $LOAD_PATH.unshift(*additions)
 
+      CodeLoader.set_bootstrap_load_path if ENV["RBX_BOOTSTRAP_LOAD_PATH"]
+
       if ENV['RUBYLIB'] and not ENV['RUBYLIB'].empty? then
         rubylib_paths = ENV['RUBYLIB'].split(File::PATH_SEPARATOR)
         $LOAD_PATH.unshift(*rubylib_paths)
@@ -521,19 +523,20 @@ VM Options
       end
     end
 
-    def compiled
-      if ARGV[0] == "--compiled"
-        script = ARGV[1]
-        begin
-          CodeLoader.require_compiled script
-        rescue Object => e
-          STDERR.puts "Unable to run compiled file: #{script}"
-          e.render
-          exit 1
-        end
+    def run_compiled
+      return unless ENV["RBX_RUN_COMPILED"]
 
-        exit 0
+      begin
+        ARGV.each do |script|
+          CodeLoader.require_compiled script
+        end
+      rescue Object => e
+        STDERR.puts "Unable to run compiled file: #{script}"
+        e.render
+        exit 1
       end
+
+      exit 0
     end
 
     def load_compiler
@@ -805,7 +808,7 @@ to rebuild the compiler.
       preamble
       system_load_path
       signals
-      compiled
+      run_compiled
       load_compiler
       preload
       detect_alias
