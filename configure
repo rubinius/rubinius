@@ -1879,6 +1879,7 @@ int main() { return tgetnum(""); }
       [ "rake", "10.1" ],
       [ "rdoc", "4.0" ],
       [ "rubysl-rake", "2.0" ],
+      [ "ffi2-generators", "0.1" ],
       [ "rubinius-profiler", "2.0" ],
       [ "rubinius-coverage", "2.0" ],
       [ "rubinius-debugger", "2.0" ],

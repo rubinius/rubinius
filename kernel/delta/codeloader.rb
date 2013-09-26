@@ -88,7 +88,7 @@ module Rubinius
 
       # Raises a LoadError with an informative message when a require for a
       # gemified standard library fails.
-      def missing_standard_library(name)
+      def missing_standard_library(name, exc=nil)
         library = name.sub(/^rubysl-/, "").sub(/-/, "/")
 
         msg = <<-EOM
@@ -127,7 +127,7 @@ The source code for "#{name}" is on GitHub:
 
       EOM
 
-        raise LoadError, msg
+        raise LoadError, msg, exc
       end
 
       def set_bootstrap_load_path
