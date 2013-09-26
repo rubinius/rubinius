@@ -690,6 +690,7 @@ to rebuild the compiler.
 
       if Terminal
         require "irb"
+        IRB.start(__FILE__)
       else
         set_program_name "(eval)"
         CodeLoader.execute_script "p #{STDIN.read}"
