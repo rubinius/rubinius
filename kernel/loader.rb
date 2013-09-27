@@ -13,7 +13,7 @@ module Rubinius
       @evals        = []
       @script       = nil
       @debugging    = false
-      @run_irb      = true
+      @repl         = true
       @printed_version = false
       @input_loop   = false
       @input_loop_print = false
@@ -238,7 +238,7 @@ module Rubinius
 
       options.doc "\nRuby options"
       options.on "-", "Read and evaluate code from STDIN" do
-        @run_irb = false
+        @repl = false
         set_program_name "-"
         stdin = STDIN.dup
         script = STDIN.read
@@ -257,7 +257,7 @@ module Rubinius
       end
 
       options.on "-c", "Only check the syntax" do
-        @run_irb = false
+        @repl = false
         @check_syntax = true
       end
 
@@ -275,7 +275,7 @@ module Rubinius
       end
 
       options.on "-e", "CODE", "Compile and execute CODE" do |code|
-        @run_irb = false
+        @repl = false
         set_program_name "(eval)"
         @evals << code
       end
@@ -289,7 +289,7 @@ module Rubinius
       end
 
       options.on "-h", "--help", "Display this help" do
-        @run_irb = false
+        @repl = false
         puts options
         done
       end
@@ -338,7 +338,7 @@ module Rubinius
       options.on("-S", "SCRIPT",
                  "Run SCRIPT using PATH environment variable to find it") do |script|
         options.stop_parsing
-        @run_irb = false
+        @repl = false
 
         # Load a gemfile now if we need to so that -S can see binstubs
         # internal to the Gemfile
@@ -367,7 +367,7 @@ module Rubinius
       end
 
       options.on "-v", "Display the version and set $VERBOSE to true" do
-        @run_irb = false
+        @repl = false
         $VERBOSE = true
 
         unless @printed_version
@@ -397,7 +397,7 @@ module Rubinius
       end
 
       options.on "--version", "Display the version" do
-        @run_irb = false
+        @repl = false
         puts Rubinius.version
       end
 
@@ -596,7 +596,7 @@ to rebuild the compiler.
     def evals
       return if @evals.empty?
 
-      @run_irb = false
+      @repl = false
       @stage = "evaluating command line code"
 
       Dir.chdir(@directory) if @directory
@@ -616,7 +616,7 @@ to rebuild the compiler.
     def script
       return unless @script and @evals.empty?
 
-      @run_irb = false
+      @repl = false
 
       handle_simple_options(ARGV) if @simple_options
 
@@ -683,14 +683,16 @@ to rebuild the compiler.
     end
 
     # Run IRB unless we were passed -e, -S arguments or a script to run.
-    def irb
-      return unless @run_irb
+    def repl
+      return unless @repl
 
       @stage = "running IRB"
 
+      # Check if a different REPL is set.
+      repl = ENV["RBX_REPL"] || "irb"
+
       if Terminal
-        require "irb"
-        IRB.start(__FILE__)
+        load File.join(Rubinius::GEMS_PATH, "bin", repl)
       else
         set_program_name "(eval)"
         CodeLoader.execute_script "p #{STDIN.read}"
@@ -821,7 +823,7 @@ to rebuild the compiler.
       requires
       evals
       script
-      irb
+      repl
 
     rescue SystemExit => e
       @exit_code = e.status
