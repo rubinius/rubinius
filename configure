@@ -1333,6 +1333,10 @@ int main() { return tgetnum(""); }
       @defines << "HAVE_POSIX_FADVISE"
     end
 
+    if has_function("strnlen", ["string.h"])
+      @defines << "HAVE_STRNLEN"
+    end
+
     if has_function("lchmod", ["sys/stat.h", "unistd.h"], ["-D_XOPEN_SOURCE", "-D_XOPEN_SOURCE_EXTENDED"])
       @have_lchmod = true
     end
