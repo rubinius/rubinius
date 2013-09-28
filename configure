@@ -133,8 +133,7 @@ class Configure
     # Essential settings (modify these for creating releases)
     @libversion = "2.0"
     @patch_version = "0"
-    @release = validate_release_label
-    @release_date = validate_release_date
+    @release_date = nil
 
     # Configure settings
     @build_ruby = nil
@@ -278,16 +277,6 @@ class Configure
 
     o.on "--gem", "NAME", "Use NAME as 'gem' during build" do |name|
       @gem = name
-    end
-
-    o.doc "\n Release Settings"
-
-    o.on "--release", "LABEL", "Set release from { nightly, weekly, monthly, rcN, final }" do |label|
-      @release = validate_release_label label
-    end
-
-    o.on "--release-date", "DATE", "Set release date to DATE in yyyy-mm-dd format" do |date|
-      @release_date = validate_release_date date
     end
 
     o.doc "\n Compiler settings"
@@ -478,7 +467,7 @@ class Configure
 
   def version
     version = "#{@libversion}.#{@patch_version}"
-    version += ".#{@release}" if @release
+    version += "n#{Time.now.strftime("%j").to_i}" unless @release_date
     version
   end
 
@@ -1658,8 +1647,7 @@ int main() { return tgetnum(""); }
       :version            => version,
       :patch_version      => @patch_version,
       :libversion         => @libversion,
-      :release            => @release,
-      :release_date       => @release_date,
+      :release_date       => @release_date || default_release_date,
       :revision           => read_revision,
       :config_version     => @config_version,
       :windows            => @windows,

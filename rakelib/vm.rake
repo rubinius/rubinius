@@ -225,17 +225,14 @@ end
 
 task vm_release_h do |t|
   if git_directory
-    if validate_revision
-      write_release t.name, config_rubinius_version, config_release_date, build_revision
-    else
-      write_release t.name, default_rubinius_version, default_release_date, build_revision
-    end
+    date = validate_revision ? BUILD_CONFIG[:release_date] : default_release_date
+    write_release t.name, BUILD_CONFIG[:version], date, build_revision
   elsif File.file? release_revision
     unless File.exists? t.name
-      write_release t.name, default_rubinius_version, default_release_date, build_revision
+      write_release t.name, BUILD_CONFIG[:version], default_release_date, build_revision
     end
   else
-    write_release t.name, config_rubinius_version, config_release_date, build_revision
+    write_release t.name, BUILD_CONFIG[:version], BUILD_CONFIG[:release_date], build_revision
   end
 end
 

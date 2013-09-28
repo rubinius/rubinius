@@ -32,6 +32,8 @@ def rubinius_version
 end
 
 def write_release(path, version, date, revision)
+  date ||= default_release_date
+
   File.open path, "wb" do |f|
     f.puts %[#define RBX_VERSION       "#{version}"]
     f.puts %[#define RBX_RELEASE_DATE  "#{date}"]
@@ -39,46 +41,10 @@ def write_release(path, version, date, revision)
   end
 end
 
-def config_rubinius_version
-  version = rubinius_version
-  version += ".#{BUILD_CONFIG[:release]}" if BUILD_CONFIG[:release]
-  version
-end
-
-def config_release_date
-  BUILD_CONFIG[:release_date]
-end
-
-def default_rubinius_version
-  rubinius_version + ".#{validate_release_label}"
-end
-
 def default_release_date
-  validate_release_date
+  Time.now.strftime "%F"
 end
 
 def validate_revision
   read_revision == BUILD_CONFIG[:revision]
-end
-
-def validate_release_label(label="nightly")
-  date = Time.now
-  case label
-  when "nightly"
-    "n#{date.strftime("%j").to_i}"
-  when "weekly"
-    "w#{date.strftime("%V").to_i}"
-  when "monthly"
-    "m#{date.month}"
-  when /^rc\d+/
-    label
-  when "final"
-    nil
-  else
-    raise "unknown release label #{label}"
-  end
-end
-
-def validate_release_date(date=Time.now.to_s)
-  Date.parse(date).strftime
 end
