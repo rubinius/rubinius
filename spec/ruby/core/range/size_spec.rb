@@ -11,16 +11,18 @@ ruby_version_is "2.0" do
       (1.0..15.9).size.should == 15
       (1.1..16.0).size.should == 15
       (1.1..15.9).size.should == 15
-
-      (0..Float::INFINITY).size.should == Float::INFINITY
-      (-Float::INFINITY..0).size.should == Float::INFINITY
-      (-Float::INFINITY..Float::INFINITY).size.should == Float::INFINITY
     end
 
     it "returns 0 if last is less than first" do
       (16..0).size.should == 0
       (16.0..0.0).size.should == 0
       (Float::INFINITY..0).size.should == 0
+    end
+
+    it 'returns Float::INFINITY for increasing, infinite ranges' do
+      (0..Float::INFINITY).size.should == Float::INFINITY
+      (-Float::INFINITY..0).size.should == Float::INFINITY
+      (-Float::INFINITY..Float::INFINITY).size.should == Float::INFINITY
     end
 
     it "returns nil if first and last are not Numeric" do
