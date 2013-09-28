@@ -245,7 +245,7 @@ class Range
   end
 
   def size
-    return nil if !@begin.kind_of?(Numeric) && !@end.kind_of?(Numeric)
+    return nil unless @begin.kind_of?(Numeric)
 
     delta = @end - @begin
 
