@@ -430,7 +430,7 @@ module Rubinius
     # exactly match the bytecode currently held by the CompiledCode, typically
     # as a result of substituting yield_debugger instructions into the bytecode.
     def decode(bytecodes = @iseq)
-      require 'compiler/iseq'
+      require 'rubinius/compiler/iseq'
 
       decoder = Rubinius::InstructionDecoder.new(bytecodes)
       stream = decoder.decode(false)
