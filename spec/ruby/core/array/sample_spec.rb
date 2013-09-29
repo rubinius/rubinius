@@ -150,7 +150,7 @@ describe "Array#sample" do
 
     ruby_version_is "2.0" do
       describe "when the object returned by #rand is not a Fixnum but responds to #to_int" do
-        ruby_bug "GH-379", "2.1" do
+        ruby_bug "GH-379", "2.0.0.322" do
           it "calls #to_int on the Object" do
             value = mock("array_sample_random_value")
             value.should_receive(:to_int).and_return(1)
