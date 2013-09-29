@@ -6,6 +6,7 @@ ruby_version_is "1.8.7" do
     before :each do
       @elements = [2, 4, 6, 8, 10]
       @numerous = EnumerableSpecs::Numerous.new(*@elements)
+      @yieldsmixed = EnumerableSpecs::YieldsMixed2.new
     end
 
     it "passes each entry in enum to block while block when block is false" do
@@ -47,17 +48,51 @@ ruby_version_is "1.8.7" do
       @numerous.find_index.should be_an_instance_of(enumerator_class)
     end
 
-    ruby_version_is ""..."1.9" do
+    describe "without block" do
       it "gathers whole arrays as elements when each yields multiple" do
-        multi = EnumerableSpecs::YieldsMulti.new
-        multi.find_index {|e| e == [1, 2] }.should == 0
+        @yieldsmixed.find_index([0, 1, 2]).should == 3
       end
     end
 
-    ruby_version_is "1.9" do
-      it "gathers initial args as elements when each yields multiple" do
-        multi = EnumerableSpecs::YieldsMulti.new
-        multi.find_index {|e| e == 1 }.should == 0
+    describe "with block" do
+      before(:each) do
+        ScratchPad.record []
+      end
+
+      after(:each) do
+        ScratchPad.clear
+      end
+
+      ruby_version_is ""..."1.9" do
+        describe "given a single yield parameter" do
+          it "passes a gathered array to the parameter if yielded with multiple parameters" do
+            @yieldsmixed.find_index {|a| ScratchPad << a; false }
+            ScratchPad.recorded.should == EnumerableSpecs::YieldsMixed2.gathered_yields
+          end
+        end
+
+        describe "given a greedy yield parameter" do
+          it "passes a gathered array to the parameter if yielded with multiple parameters" do
+            @yieldsmixed.find_index {|*args| ScratchPad << args; false }
+            ScratchPad.recorded.should == EnumerableSpecs::YieldsMixed2.gathered_yields.map { |e| [e] }
+          end
+        end
+      end
+
+      ruby_version_is "1.9" do
+        describe "given a single yield parameter" do
+          it "passes first element to the parameter" do
+            @yieldsmixed.find_index {|a| ScratchPad << a; false }
+            ScratchPad.recorded.should == EnumerableSpecs::YieldsMixed2.first_yields
+          end
+        end
+
+        describe "given a greedy yield parameter" do
+          it "passes a gathered array to the parameter" do
+            @yieldsmixed.find_index {|*args| ScratchPad << args; false }
+            ScratchPad.recorded.should == EnumerableSpecs::YieldsMixed2.greedy_yields
+          end
+        end
       end
     end
   end
