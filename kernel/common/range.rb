@@ -243,4 +243,23 @@ class Range
 
     return false
   end
+
+  def size
+    return nil unless @begin.kind_of?(Numeric)
+
+    delta = @end - @begin
+
+    return 0 if delta < 0
+    return delta if delta == Float::INFINITY
+
+    if @begin.kind_of?(Float) || @end.kind_of?(Float)
+      err = (@begin.abs + @end.abs + (@end - @begin).abs) * Float::EPSILON
+      err = 0.5 if err > 0.5
+
+      (@excl ? delta - err : delta + err).floor + 1
+    else
+      delta += 1 unless @excl
+      delta
+    end
+  end
 end
