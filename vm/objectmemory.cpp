@@ -1023,14 +1023,6 @@ step1:
     code_manager_.add_resource(cr, &collect_mature_now);
   }
 
-  void* ObjectMemory::young_start() {
-    return young_->start_address();
-  }
-
-  void* ObjectMemory::yound_end() {
-    return young_->last_address();
-  }
-
   void ObjectMemory::needs_finalization(Object* obj, FinalizerFunction func) {
     if(FinalizerHandler* fh = shared_.finalizer_handler()) {
       fh->record(obj, func);

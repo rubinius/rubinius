@@ -384,9 +384,6 @@ namespace rubinius {
     void needs_finalization(Object* obj, FinalizerFunction func);
     void set_ruby_finalizer(Object* obj, Object* finalizer);
 
-    void* young_start();
-    void* yound_end();
-
     size_t& loe_usage();
     size_t& young_usage();
     size_t& immix_usage();
