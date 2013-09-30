@@ -88,6 +88,10 @@ bootstrap_files = FileList[
   "lib/rubinius/build_config.rb",
 ]
 
+ffi_files = FileList[
+  "runtime/gems/**/*.ffi"
+].each { |f| f.gsub!(/.ffi\z/, '') }
+
 gem_files = FileList[
   "runtime/gems/**/*.rb"
 ].exclude("runtime/gems/**/spec/**/*.rb", "runtime/gems/**/test/**/*.rb")
@@ -110,7 +114,7 @@ config_files = FileList[
   "rakelib/*.rake"
 ]
 
-signature_files = kernel_files + config_files + gem_files + ext_files
+signature_files = kernel_files + config_files + gem_files + ext_files - ffi_files
 
 file signature_file => signature_files do
   require 'digest/sha1'
