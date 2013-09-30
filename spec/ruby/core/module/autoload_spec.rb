@@ -436,6 +436,24 @@ describe "Module#autoload" do
     end
   end
 
+  describe "when changing $LOAD_PATH" do
+
+    before do
+      $LOAD_PATH.unshift(File.expand_path('../fixtures/path1', __FILE__))
+    end
+
+    after do
+      $LOAD_PATH.shift
+      $LOAD_PATH.shift
+    end
+
+    it "does not reload a file due to a different load path" do
+      ModuleSpecs::Autoload.autoload :LoadPath, "load_path"
+      ModuleSpecs::Autoload::LoadPath.loaded.should == :autoload_load_path
+    end
+
+  end
+
   ruby_version_is "2.0" do
     describe "(concurrently)" do
       it "blocks others threads while doing an autoload" do
