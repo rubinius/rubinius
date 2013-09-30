@@ -176,11 +176,11 @@ namespace bert {
       : reader_(reader)
     {}
 
-    int from_32(char* buffer) const {
+    static int from_32(char* buffer) {
       return ntohl(*(uint32_t*)buffer);
     }
 
-    int from_16(char* buffer) const {
+    static int from_16(char* buffer) {
       return ntohs(*(uint16_t*)buffer);
     }
 
@@ -288,7 +288,7 @@ namespace bert {
         buf[31] = 0;
 
         double val;
-        if(sscanf(buf, "%lf", &val) < 0) return false;
+        if(sscanf(buf, "%32lf", &val) < 0) return false;
         term->set_float(val);
       }
 
