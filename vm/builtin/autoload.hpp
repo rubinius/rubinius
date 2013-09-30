@@ -17,6 +17,7 @@ namespace rubinius {
     Object* path_; // slot
     Object* constant_; // slot
     Thread* thread_; // slot
+    Object* loaded_; // slot
 
   public:
     attr_accessor(name, Symbol);
@@ -24,6 +25,7 @@ namespace rubinius {
     attr_accessor(path, Object);
     attr_accessor(constant, Object);
     attr_accessor(thread, Thread);
+    attr_accessor(loaded, Object);
 
     /**  Register class with the VM. */
     static void   init(STATE);

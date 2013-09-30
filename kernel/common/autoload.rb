@@ -49,7 +49,11 @@ class Autoload
   end
 
   def resolve
-    Rubinius::CodeLoader.require @path
+    unless @loaded && @thread == Thread.current
+      @loaded = true
+      @thread = Thread.current
+      Rubinius::CodeLoader.require @path
+    end
   end
 
   def find_const under
