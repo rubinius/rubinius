@@ -359,7 +359,6 @@ return_value:
       str++;
     }
 
-    char chr;
     int detected_base = 0;
     const char* str_start = str;
 
@@ -375,7 +374,7 @@ return_value:
     //
     if(*str == '0') {
       str++;
-      switch(chr = *str++) {
+      switch(*str++) {
       case 'b': case 'B':
         detected_base = 2;
         break;
