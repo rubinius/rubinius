@@ -520,7 +520,7 @@ namespace rubinius {
 
   void Encoding::string_reverse(uint8_t* start, uint8_t* end, OnigEncodingType* enc) {
 
-    size_t len = end - start;
+    ssize_t len = end - start;
     if(len <= 0) return;
 
     uint8_t stack_buf[STACK_BUF_SZ];
