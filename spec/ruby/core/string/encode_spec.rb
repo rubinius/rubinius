@@ -55,6 +55,11 @@ with_feature :encoding do
         str = "あ"
         str.encode("utf-8", "utf-8").should_not equal(str)
       end
+
+      it "returns the transcoded string" do
+        str = "\x00\x00\x00\x1F"
+        str.encode(Encoding::UTF_8, Encoding::UTF_16BE).should == "\u0000\u001f"
+      end
     end
 
     describe "when passed to, options" do
