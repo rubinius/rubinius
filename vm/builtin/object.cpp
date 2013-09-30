@@ -547,7 +547,11 @@ namespace rubinius {
     // source, not this object to have correct visibility checks
     // for protected.
     Dispatch dis(sym);
-    LookupData lookup(call_frame->self(), this->lookup_begin(state), min_visibility);
+    Object* scope = this;
+    if(!call_frame->native_method_p()) {
+      scope = call_frame->self();
+    }
+    LookupData lookup(scope, this->lookup_begin(state), min_visibility);
 
     return dis.send(state, call_frame, lookup, args);
   }
