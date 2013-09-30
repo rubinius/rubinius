@@ -155,7 +155,7 @@ namespace rubinius {
       flags |= eNoInline;
     }
 
-    native_int method_call_count() {
+    native_int method_call_count() const {
       return call_count - loop_count;
     }
 
