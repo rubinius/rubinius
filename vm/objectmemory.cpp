@@ -1013,10 +1013,6 @@ step1:
     return mark_sweep_->validate_object(obj);
   }
 
-  bool ObjectMemory::valid_young_object_p(Object* obj) {
-    return obj->young_object_p() && young_->in_current_p(obj);
-  }
-
   void ObjectMemory::add_code_resource(CodeResource* cr) {
     SYNC_TL;
 

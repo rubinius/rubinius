@@ -781,10 +781,6 @@ namespace rubinius {
     return (double)tv->tv_sec + ((double)tv->tv_usec / 1000000.0);
   }
 
-  static inline double to_dbl(long sec, long msec) {
-    return (double)sec + ((double)msec / 1000000.0);
-  }
-
   Array* System::vm_times(STATE) {
 #ifdef RBX_WINDOWS
     // TODO: Windows

@@ -189,9 +189,4 @@ namespace rubinius {
     return self->value()->shift(state);
   }
 
-
-  bool Channel::has_readers_p() {
-    return waiters_ > 0;
-  }
-
 }

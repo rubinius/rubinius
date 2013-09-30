@@ -62,36 +62,6 @@ namespace rubinius {
     return enc;
   }
 
-  static OnigEncoding get_enc_from_kcode(int kcode) {
-    OnigEncoding r;
-
-    r = ONIG_ENCODING_ASCII;
-    switch (kcode) {
-      case KCODE_NONE:
-        r = ONIG_ENCODING_ASCII;
-        break;
-      case KCODE_EUC:
-        r = ONIG_ENCODING_EUC_JP;
-        break;
-      case KCODE_SJIS:
-        r = ONIG_ENCODING_Shift_JIS;
-        break;
-      case KCODE_UTF8:
-        r = ONIG_ENCODING_UTF_8;
-        break;
-    }
-    return r;
-  }
-
-  int get_kcode_from_enc(OnigEncoding enc) {
-    int r = 0;
-    if(enc == ONIG_ENCODING_ASCII)       r = KCODE_NONE;
-    if(enc == ONIG_ENCODING_EUC_JP)      r = KCODE_EUC;
-    if(enc == ONIG_ENCODING_Shift_JIS)   r = KCODE_SJIS;
-    if(enc == ONIG_ENCODING_UTF_8)       r = KCODE_UTF8;
-    return r;
-  }
-
   struct _gather_data {
     STATE;
     LookupTable* tbl;

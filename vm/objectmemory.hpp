@@ -371,7 +371,6 @@ namespace rubinius {
     void clear_fiber_marks(std::list<ManagedThread*>* threads);
 
     ObjectPosition validate_object(Object* obj);
-    bool valid_young_object_p(Object* obj);
 
     size_t young_bytes_allocated() const;
     size_t mature_bytes_allocated() const;
