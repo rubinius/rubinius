@@ -441,13 +441,14 @@ module Enumerable
       return to_enum(:find_index) unless block_given?
 
       i = 0
-      each do |e|
-        return i if yield(e)
+      each do |*args|
+        return i if yield(*args)
         i += 1
       end
     else
       i = 0
-      each do |e|
+      each do
+        e = Rubinius.single_block_arg
         return i if e == value
         i += 1
       end
