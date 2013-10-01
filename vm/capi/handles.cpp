@@ -1,5 +1,5 @@
-#include "builtin/nativemethod.hpp"
-#include "objectmemory.hpp"
+#include "builtin/native_method.hpp"
+#include "object_memory.hpp"
 #include "gc/baker.hpp"
 #include "capi/capi.hpp"
 #include "capi/handles.hpp"

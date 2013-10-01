@@ -7,7 +7,7 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/float.hpp"
 #include "builtin/string.hpp"
-#include "builtin/bytearray.hpp"
+#include "builtin/byte_array.hpp"
 #include "configuration.hpp"
 #include "missing/math.h"
 #include "object_utils.hpp"

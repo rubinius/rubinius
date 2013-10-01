@@ -2,7 +2,7 @@
 #define RBX_STRING_HPP
 
 #include "builtin/object.hpp"
-#include "builtin/bytearray.hpp"
+#include "builtin/byte_array.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/encoding.hpp"
 #include "configuration.hpp"

@@ -4,7 +4,7 @@
 #include "llvm/jit_context.hpp"
 
 #include "builtin/fixnum.hpp"
-#include "builtin/constantscope.hpp"
+#include "builtin/constant_scope.hpp"
 #include "builtin/module.hpp"
 #include "builtin/block_environment.hpp"
 #include "field_offset.hpp"
@@ -12,7 +12,7 @@
 #include "call_frame.hpp"
 #include "configuration.hpp"
 
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 
 #if RBX_LLVM_API_VER >= 303
 #include <llvm/IR/DataLayout.h>

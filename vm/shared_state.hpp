@@ -12,7 +12,7 @@
 
 #include "auxiliary_threads.hpp"
 #include "globals.hpp"
-#include "symboltable.hpp"
+#include "symbol_table.hpp"
 
 #include "primitives.hpp"
 

@@ -5,7 +5,7 @@
 #include "environment.hpp"
 #include "config_parser.hpp"
 #include "compiled_file.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 
 #include "exception.hpp"
 
@@ -16,7 +16,7 @@
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/module.hpp"
-#include "builtin/nativemethod.hpp"
+#include "builtin/native_method.hpp"
 
 #ifdef ENABLE_LLVM
 #include "llvm/state.hpp"

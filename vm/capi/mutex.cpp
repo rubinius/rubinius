@@ -1,4 +1,4 @@
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 #include "capi/capi.hpp"
 #include "capi/ruby.h"
 

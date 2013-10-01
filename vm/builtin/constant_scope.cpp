@@ -1,5 +1,5 @@
 #include "builtin/class.hpp"
-#include "builtin/constantscope.hpp"
+#include "builtin/constant_scope.hpp"
 #include "builtin/system.hpp"
 #include "call_frame.hpp"
 #include "ontology.hpp"

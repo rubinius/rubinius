@@ -1,4 +1,4 @@
-#include "builtin/nativemethod.hpp"
+#include "builtin/native_method.hpp"
 #include "builtin/proc.hpp"
 
 #include "configuration.hpp"

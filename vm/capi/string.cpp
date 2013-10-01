@@ -3,12 +3,12 @@
 #include "capi/ruby/encoding.h"
 
 #include "vm.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 
-#include "builtin/bytearray.hpp"
+#include "builtin/byte_array.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/integer.hpp"
-#include "builtin/nativemethod.hpp"
+#include "builtin/native_method.hpp"
 #include "builtin/object.hpp"
 #include "builtin/string.hpp"
 

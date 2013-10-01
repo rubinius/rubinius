@@ -28,7 +28,7 @@
 #include "agent_components.hpp"
 #include "environment.hpp"
 
-#include "builtin/nativemethod.hpp"
+#include "builtin/native_method.hpp"
 #include "builtin/io.hpp"
 #include "builtin/thread.hpp"
 

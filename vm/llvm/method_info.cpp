@@ -6,7 +6,7 @@
 #include "llvm/jit_context.hpp"
 #include "llvm/jit_runtime.hpp"
 
-#include "builtin/compiledcode.hpp"
+#include "builtin/compiled_code.hpp"
 #include "object_utils.hpp"
 
 namespace rubinius {

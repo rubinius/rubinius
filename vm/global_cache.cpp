@@ -1,7 +1,7 @@
 #include "vm.hpp"
 #include "global_cache.hpp"
 #include "object_position.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 #include "lookup_data.hpp"
 #include "dispatch.hpp"
 
@@ -9,7 +9,7 @@
 #include "builtin/class.hpp"
 #include "builtin/module.hpp"
 #include "builtin/object.hpp"
-#include "builtin/methodtable.hpp"
+#include "builtin/method_table.hpp"
 #include "builtin/alias.hpp"
 
 namespace rubinius {

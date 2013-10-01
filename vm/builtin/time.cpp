@@ -4,7 +4,7 @@
 #include "builtin/integer.hpp"
 #include "builtin/string.hpp"
 #include "builtin/time.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 #include "object_utils.hpp"
 #include "ontology.hpp"
 #include "util/time64.h"

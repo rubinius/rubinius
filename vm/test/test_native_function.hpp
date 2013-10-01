@@ -1,6 +1,6 @@
 #include "vm/test/test.hpp"
 #include "prelude.hpp"
-#include "builtin/nativefunction.hpp"
+#include "builtin/native_function.hpp"
 #include "builtin/ffi_pointer.hpp"
 
 State *global_state;

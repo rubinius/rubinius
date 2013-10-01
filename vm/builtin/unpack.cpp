@@ -14,10 +14,10 @@
 #include "vm.hpp"
 #include "object_utils.hpp"
 #include "on_stack.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 
 #include "builtin/array.hpp"
-#include "builtin/bytearray.hpp"
+#include "builtin/byte_array.hpp"
 #include "builtin/encoding.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"

@@ -7,7 +7,7 @@
 #include "oop.hpp"
 #include "type_info.hpp"
 #include "executor.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 
 namespace rubinius {
 

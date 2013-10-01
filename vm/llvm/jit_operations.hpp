@@ -6,7 +6,7 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
-#include "builtin/bytearray.hpp"
+#include "builtin/byte_array.hpp"
 #include "builtin/regexp.hpp"
 #include "builtin/constant_cache.hpp"
 #include "object_utils.hpp"

@@ -9,7 +9,7 @@
 #include "capi/handles.hpp"
 #include "gc/inflated_headers.hpp"
 
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 #include "configuration.hpp"
 
 #include "on_stack.hpp"

@@ -4,7 +4,7 @@
 #include "builtin/symbol.hpp"
 #include "call_frame.hpp"
 #include "dispatch.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 #include "object_utils.hpp"
 #include "ontology.hpp"
 

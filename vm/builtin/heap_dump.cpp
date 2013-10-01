@@ -3,7 +3,7 @@
 // all that be in it's own file.
 
 #include "builtin/array.hpp"
-#include "builtin/bytearray.hpp"
+#include "builtin/byte_array.hpp"
 #include "builtin/class.hpp"
 #include "builtin/object.hpp"
 #include "builtin/string.hpp"
@@ -13,7 +13,7 @@
 #include "builtin/variable_scope.hpp"
 #include "gc/gc.hpp"
 #include "gc/walker.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 #include "object_utils.hpp"
 
 #include <fcntl.h>

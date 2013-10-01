@@ -1,6 +1,6 @@
 
 #include "type_info.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 #include "gen/includes.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/symbol.hpp"

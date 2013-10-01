@@ -5,7 +5,7 @@
 #include "util/bert.hpp"
 #include "agent_components.hpp"
 
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 
 #include "builtin/thread.hpp"
 #include "builtin/string.hpp"

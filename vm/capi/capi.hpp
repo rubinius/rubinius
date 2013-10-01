@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "builtin/nativemethod.hpp"
+#include "builtin/native_method.hpp"
 
 #include "object_utils.hpp"
 

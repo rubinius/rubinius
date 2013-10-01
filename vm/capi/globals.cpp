@@ -3,7 +3,7 @@
 #include "builtin/regexp.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 
 #include "capi/capi.hpp"
 #include "capi/ruby.h"

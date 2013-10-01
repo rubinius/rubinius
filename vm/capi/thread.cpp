@@ -12,7 +12,7 @@
 #include "exception_point.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/thread.hpp"
-#include "builtin/nativemethod.hpp"
+#include "builtin/native_method.hpp"
 #include "builtin/ffi_pointer.hpp"
 #include "builtin/string.hpp"
 

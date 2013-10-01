@@ -2,7 +2,7 @@
 #include "builtin/encoding.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/location.hpp"
-#include "builtin/lookuptable.hpp"
+#include "builtin/lookup_table.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/string.hpp"

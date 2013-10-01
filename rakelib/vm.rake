@@ -61,7 +61,7 @@ GENERATED = %W[ vm/gen/config_variables.h
 # CompactLookupTable inherits from Tuple, so the header
 # for compactlookuptable.hpp has to come after tuple.hpp
 field_extract_headers = %w[
-  vm/builtin/basicobject.hpp
+  vm/builtin/basic_object.hpp
   vm/builtin/object.hpp
   vm/builtin/integer.hpp
   vm/builtin/fixnum.hpp
@@ -72,13 +72,13 @@ field_extract_headers = %w[
   vm/builtin/alias.hpp
   vm/builtin/block_environment.hpp
   vm/builtin/block_as_method.hpp
-  vm/builtin/bytearray.hpp
+  vm/builtin/byte_array.hpp
   vm/builtin/io.hpp
   vm/builtin/channel.hpp
   vm/builtin/module.hpp
   vm/builtin/constant_table.hpp
   vm/builtin/class.hpp
-  vm/builtin/compiledcode.hpp
+  vm/builtin/compiled_code.hpp
   vm/builtin/data.hpp
   vm/builtin/dir.hpp
   vm/builtin/exception.hpp
@@ -86,23 +86,23 @@ field_extract_headers = %w[
   vm/builtin/immediates.hpp
   vm/builtin/iseq.hpp
   vm/builtin/list.hpp
-  vm/builtin/lookuptable.hpp
+  vm/builtin/lookup_table.hpp
   vm/builtin/ffi_pointer.hpp
-  vm/builtin/methodtable.hpp
-  vm/builtin/nativefunction.hpp
+  vm/builtin/method_table.hpp
+  vm/builtin/native_function.hpp
   vm/builtin/packed_object.hpp
   vm/builtin/randomizer.hpp
   vm/builtin/regexp.hpp
-  vm/builtin/constantscope.hpp
+  vm/builtin/constant_scope.hpp
   vm/builtin/encoding.hpp
   vm/builtin/string.hpp
   vm/builtin/symbol.hpp
   vm/builtin/thread.hpp
   vm/builtin/tuple.hpp
-  vm/builtin/compactlookuptable.hpp
+  vm/builtin/compact_lookup_table.hpp
   vm/builtin/time.hpp
   vm/builtin/stat.hpp
-  vm/builtin/nativemethod.hpp
+  vm/builtin/native_method.hpp
   vm/builtin/system.hpp
   vm/builtin/autoload.hpp
   vm/builtin/proc.hpp

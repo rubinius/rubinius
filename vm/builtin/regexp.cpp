@@ -3,12 +3,12 @@
 
 #include "arguments.hpp"
 #include "builtin/block_environment.hpp"
-#include "builtin/bytearray.hpp"
+#include "builtin/byte_array.hpp"
 #include "builtin/class.hpp"
 #include "builtin/encoding.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/integer.hpp"
-#include "builtin/lookuptable.hpp"
+#include "builtin/lookup_table.hpp"
 #include "builtin/proc.hpp"
 #include "builtin/regexp.hpp"
 #include "builtin/string.hpp"
@@ -18,7 +18,7 @@
 #include "call_frame.hpp"
 #include "configuration.hpp"
 #include "object_utils.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 #include "ontology.hpp"
 
 #define OPTION_IGNORECASE         ONIG_OPTION_IGNORECASE

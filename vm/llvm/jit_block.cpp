@@ -6,7 +6,7 @@
 
 #include "call_frame.hpp"
 #include "stack_variables.hpp"
-#include "builtin/constantscope.hpp"
+#include "builtin/constant_scope.hpp"
 #include "builtin/module.hpp"
 
 #include "instruments/tooling.hpp"

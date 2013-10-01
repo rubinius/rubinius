@@ -2,7 +2,7 @@
 #include "shared_state.hpp"
 #include "config_parser.hpp"
 #include "config.h"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 #include "environment.hpp"
 #include "instruments/tooling.hpp"
 #include "instruments/timing.hpp"
@@ -16,7 +16,7 @@
 #include "builtin/randomizer.hpp"
 #include "builtin/array.hpp"
 #include "builtin/thread.hpp"
-#include "builtin/nativemethod.hpp"
+#include "builtin/native_method.hpp"
 
 #include <iostream>
 #include <iomanip>

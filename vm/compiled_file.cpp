@@ -7,14 +7,14 @@
  * it. */
 
 #include "arguments.hpp"
-#include "builtin/constantscope.hpp"
-#include "builtin/compiledcode.hpp"
+#include "builtin/constant_scope.hpp"
+#include "builtin/compiled_code.hpp"
 #include "builtin/class.hpp"
 #include "builtin/thread.hpp"
 #include "call_frame.hpp"
 #include "compiled_file.hpp"
 #include "marshal.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 #include "object_utils.hpp"
 
 namespace rubinius {

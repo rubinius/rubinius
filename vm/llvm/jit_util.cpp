@@ -4,7 +4,7 @@
 #include "llvm/method_info.hpp"
 
 #include "vm.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 #include "call_frame.hpp"
 #include "on_stack.hpp"
 
@@ -14,7 +14,7 @@
 #include "builtin/class.hpp"
 #include "builtin/string.hpp"
 #include "builtin/block_environment.hpp"
-#include "builtin/constantscope.hpp"
+#include "builtin/constant_scope.hpp"
 #include "builtin/proc.hpp"
 #include "builtin/autoload.hpp"
 #include "builtin/constant_cache.hpp"

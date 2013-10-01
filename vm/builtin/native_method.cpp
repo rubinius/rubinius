@@ -5,7 +5,7 @@
 #include "builtin/ffi_pointer.hpp"
 #include "builtin/float.hpp"
 #include "builtin/location.hpp"
-#include "builtin/nativemethod.hpp"
+#include "builtin/native_method.hpp"
 #include "builtin/string.hpp"
 #include "builtin/tuple.hpp"
 #include "call_frame.hpp"
@@ -16,7 +16,7 @@
 #include "exception.hpp"
 #include "exception_point.hpp"
 #include "instruments/tooling.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 #include "ontology.hpp"
 #include "on_stack.hpp"
 

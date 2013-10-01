@@ -5,7 +5,7 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/array.hpp"
 #include "builtin/iseq.hpp"
-#include "builtin/compiledcode.hpp"
+#include "builtin/compiled_code.hpp"
 #include "builtin/symbol.hpp"
 
 #include "arguments.hpp"

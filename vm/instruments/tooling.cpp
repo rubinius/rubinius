@@ -6,7 +6,7 @@
 #include "instruments/rbxti-internal.hpp"
 #include "instruments/tooling.hpp"
 
-#include "builtin/compiledcode.hpp"
+#include "builtin/compiled_code.hpp"
 #include "builtin/block_environment.hpp"
 #include "builtin/variable_scope.hpp"
 #include "builtin/system.hpp"

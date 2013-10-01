@@ -8,7 +8,7 @@
 #include "gc/gc.hpp"
 
 #include "builtin/symbol.hpp"
-#include "builtin/compiledcode.hpp"
+#include "builtin/compiled_code.hpp"
 #include "builtin/module.hpp"
 
 namespace rubinius {

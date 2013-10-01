@@ -8,7 +8,7 @@
 #include "unwind_info.hpp"
 
 #include "builtin/class.hpp"
-#include "builtin/compiledcode.hpp"
+#include "builtin/compiled_code.hpp"
 #include "gc/code_resource.hpp"
 
 #ifdef ENABLE_LLVM

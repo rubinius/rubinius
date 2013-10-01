@@ -6,7 +6,7 @@
 
 #include "builtin/array.hpp"
 #include "builtin/encoding.hpp"
-#include "builtin/nativemethod.hpp"
+#include "builtin/native_method.hpp"
 #include "builtin/regexp.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"

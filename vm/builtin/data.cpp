@@ -1,7 +1,7 @@
 #include "builtin/data.hpp"
 #include "builtin/class.hpp"
 #include "capi/capi.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 #include "object_utils.hpp"
 #include "ontology.hpp"
 #include "on_stack.hpp"

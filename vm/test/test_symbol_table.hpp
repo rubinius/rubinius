@@ -1,6 +1,6 @@
 #include "vm/test/test.hpp"
 
-#include "symboltable.hpp"
+#include "symbol_table.hpp"
 #include "configuration.hpp"
 #include "builtin/array.hpp"
 

@@ -3,7 +3,7 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/tuple.hpp"
 #include "object_utils.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 #include "ontology.hpp"
 
 #include <stdarg.h>

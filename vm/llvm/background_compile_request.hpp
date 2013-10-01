@@ -3,7 +3,7 @@
 
 #include "llvm/state.hpp"
 
-#include "builtin/compiledcode.hpp"
+#include "builtin/compiled_code.hpp"
 #include "builtin/class.hpp"
 
 #include "object_utils.hpp"

@@ -3,7 +3,7 @@
 #include "object.hpp"
 #include "type_info.hpp"
 #include "compiled_file.hpp"
-#include "builtin/compiledcode.hpp"
+#include "builtin/compiled_code.hpp"
 #include "llvm.hpp"
 
 #include <llvm/Module.h>

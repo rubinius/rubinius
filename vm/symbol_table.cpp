@@ -1,4 +1,4 @@
-#include "symboltable.hpp"
+#include "symbol_table.hpp"
 #include "exception.hpp"
 #include "configuration.hpp"
 

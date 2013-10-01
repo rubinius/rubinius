@@ -6,7 +6,7 @@
 #include "builtin/packed_object.hpp"
 #include "builtin/symbol.hpp"
 #include "object_utils.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 #include "ontology.hpp"
 
 namespace rubinius {

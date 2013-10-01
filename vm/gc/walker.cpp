@@ -1,5 +1,5 @@
 #include "gc/walker.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 
 #include "capi/handles.hpp"
 

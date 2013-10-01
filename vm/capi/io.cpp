@@ -4,7 +4,7 @@
 #include "builtin/array.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/io.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 #include "primitives.hpp"
 
 #include "capi/capi.hpp"

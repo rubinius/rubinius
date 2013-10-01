@@ -3,11 +3,11 @@
 #include "builtin/class.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fiber.hpp"
-#include "builtin/lookuptable.hpp"
+#include "builtin/lookup_table.hpp"
 #include "builtin/object.hpp"
 #include "call_frame.hpp"
 #include "gc/gc.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 #include "ontology.hpp"
 
 namespace rubinius {

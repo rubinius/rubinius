@@ -2,7 +2,7 @@
 #include "object_utils.hpp"
 #include "gc/gc.hpp"
 
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 
 #include "gc/object_mark.hpp"
 
@@ -12,11 +12,11 @@
 #include "builtin/module.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/weakref.hpp"
-#include "builtin/compiledcode.hpp"
-#include "builtin/nativemethod.hpp"
+#include "builtin/compiled_code.hpp"
+#include "builtin/native_method.hpp"
 #include "call_frame.hpp"
 #include "builtin/variable_scope.hpp"
-#include "builtin/constantscope.hpp"
+#include "builtin/constant_scope.hpp"
 #include "builtin/block_environment.hpp"
 #include "capi/handle.hpp"
 

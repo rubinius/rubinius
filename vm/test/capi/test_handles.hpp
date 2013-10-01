@@ -1,8 +1,8 @@
 #include "vm/test/test.hpp"
 
 #include "vm.hpp"
-#include "objectmemory.hpp"
-#include "builtin/nativemethod.hpp"
+#include "object_memory.hpp"
+#include "builtin/native_method.hpp"
 
 #include "capi/capi.hpp"
 #include "vm/test/ruby.h"

@@ -3,8 +3,8 @@
 #include "builtin/object.hpp"
 #include "builtin/proc.hpp"
 #include "builtin/thread.hpp"
-#include "builtin/lookuptable.hpp"
-#include "objectmemory.hpp"
+#include "builtin/lookup_table.hpp"
+#include "object_memory.hpp"
 
 #include "arguments.hpp"
 #include "dispatch.hpp"

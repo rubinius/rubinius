@@ -1,5 +1,5 @@
-#include "builtin/compactlookuptable.hpp"
-#include "builtin/lookuptable.hpp"
+#include "builtin/compact_lookup_table.hpp"
+#include "builtin/lookup_table.hpp"
 #include "builtin/object.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
