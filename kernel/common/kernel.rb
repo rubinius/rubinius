@@ -529,14 +529,13 @@ module Kernel
   module_function :print
 
   def printf(target, *args)
-    case target
-    when IO
-      target.printf(*args)
-    when String
-      $stdout << Rubinius::Sprinter.get(target).call(*args)
+    if target.kind_of?(String)
+      output = $stdout
     else
-      raise TypeError, "The first arg to printf should be an IO or a String"
+      output = target
+      target = args.shift
     end
+    output.write Rubinius::Sprinter.get(target).call(*args)
     nil
   end
   module_function :printf
