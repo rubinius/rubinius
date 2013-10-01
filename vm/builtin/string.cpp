@@ -1231,40 +1231,52 @@ namespace rubinius {
       Exception::argument_error(state, "size must be positive");
     }
 
-    String* s = String::create(state, size);
-    s->klass(state, (Class*)self);
-
-    self->infect(state, s);
-
     native_int cnt = size->to_native();
 
+    String* s = state->new_object_dirty<String>(as<Class>(self));
+
+    s->num_bytes(state, size);
+    s->num_chars(state, nil<Fixnum>());
+    s->hash_value(state, nil<Fixnum>());
+    s->shared(state, cFalse);
+
+    ByteArray* ba = ByteArray::create_dirty(state, cnt);
+
     if(Fixnum* chr = try_as<Fixnum>(pattern)) {
-      memset(s->byte_address(), (int)chr->to_native(), cnt);
+      memset(ba->raw_bytes(), (int)chr->to_native(), cnt);
       s->encoding(state, Encoding::ascii8bit_encoding(state));
+      s->ascii_only(state, cNil);
+      s->valid_encoding(state, cTrue);
     } else if(String* pat = try_as<String>(pattern)) {
       pat->infect(state, s);
 
       native_int psz = pat->byte_size();
+      uint8_t* raw = ba->raw_bytes();
       if(psz == 1) {
-        memset(s->byte_address(), pat->byte_address()[0], cnt);
+        memset(raw, pat->byte_address()[0], cnt);
       } else if(psz > 1) {
-        native_int i, j, n;
-
         native_int sz = cnt / psz;
-        for(n = i = 0; i < sz; i++) {
-          for(j = 0; j < psz; j++, n++) {
-            s->byte_address()[n] = pat->byte_address()[j];
+        native_int len = sz * psz;
+        if(len >= psz) {
+          memcpy(raw, pat->byte_address(), psz);
+          while(psz <= len / 2) {
+            memcpy(raw + psz, raw, psz);
+            psz *= 2;
           }
+          memcpy(raw + psz, raw, len - psz);
         }
-        for(i = n, j = 0; i < cnt; i++, j++) {
-          s->byte_address()[i] = pat->byte_address()[j];
+        for(native_int i = len, j = 0; i < cnt; i++, j++) {
+          raw[i] = pat->byte_address()[j];
         }
       }
       s->encoding_from(state, pat);
+      s->ascii_only(state, pat->ascii_only_p(state));
+      s->valid_encoding(state, pat->valid_encoding_p(state));
     } else {
       Exception::argument_error(state, "pattern must be a Fixnum or String");
     }
 
+    s->data(state, ba);
     return s;
   }
 
