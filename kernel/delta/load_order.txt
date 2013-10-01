@@ -5,7 +5,7 @@ file.rbc
 rubinius.rbc
 module.rbc
 class.rbc
-filetest.rbc
+file_test.rbc
 kernel.rbc
 math.rbc
 options.rbc
@@ -13,7 +13,7 @@ stats.rbc
 signal.rbc
 struct.rbc
 thread.rbc
-codeloader.rbc
+code_loader.rbc
 ffi.rbc
 ruby_constants.rbc
 pack.rbc
