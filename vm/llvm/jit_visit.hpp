@@ -3027,7 +3027,6 @@ use_send:
       Function* func = cast<Function>(
           module_->getOrInsertFunction("rbx_check_interrupts", ft));
 
-      func->setDoesNotCapture(0);
       func->setDoesNotCapture(1);
       func->setDoesNotCapture(2);
 
