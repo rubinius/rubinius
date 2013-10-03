@@ -2434,8 +2434,13 @@ class String
         result
       end
     else
-      return unless other.respond_to?(:to_str) && other.respond_to?(:<=>)
-      return unless tmp = (other <=> self)
+      if other.respond_to?(:<=>) && !other.respond_to?(:to_str)
+        return unless tmp = (other <=> self)
+      elsif other.respond_to?(:to_str)
+        return unless tmp = (other.to_str <=> self)
+      else
+        return
+      end
       return -tmp # We're not supposed to convert to integer here
     end
   end
