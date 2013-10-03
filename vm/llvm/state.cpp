@@ -505,6 +505,7 @@ halt:
     llvm::NoFramePointerElim = true;
 #endif
     llvm::InitializeNativeTarget();
+    llvm::InitializeNativeTargetAsmPrinter();
 
     memory_ = new jit::RubiniusJITMemoryManager();
 #if RBX_LLVM_API_VER > 300
