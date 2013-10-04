@@ -156,8 +156,12 @@ class Rational < Numeric
     (@numerator < 0) ? Rational.new(-@numerator, @denominator) : self
   end
 
-  def ceil
-    -(-@numerator / @denominator)
+  def ceil(precision = 0)
+    if precision == 0
+      -(-@numerator / @denominator)
+    else
+      with_precision(:ceil, precision)
+    end
   end
 
   def coerce(other)
@@ -171,8 +175,12 @@ class Rational < Numeric
     end
   end
 
-  def floor
-    @numerator / @denominator
+  def floor(precision = 0)
+    if precision == 0
+      @numerator / @denominator
+    else
+      with_precision(:floor, precision)
+    end
   end
 
   def hash
@@ -213,24 +221,19 @@ class Rational < Numeric
 
   def round(precision = 0)
     return 0 if @numerator == 0
-    return @numerator if @denominator == 1
 
-    adj = (10 ** precision.abs).to_i
-    adj = Rational(1, adj) if precision < 0
+    if precision == 0
+      return @numerator if @denominator == 1
 
-    value = self * adj
+      num = @numerator.abs * 2 + @denominator
+      den = @denominator * 2
 
-    value = if self > 0
-      (value + Rational.new(1, 2)).floor
+      approx = num / den
+
+      (@numerator < 0) ? -approx : approx
     else
-      (value - Rational.new(1, 2)).ceil
+      with_precision(:round, precision)
     end
-
-    result = Rational(value, adj)
-
-    return result.numerator if result.denominator == 1
-
-    result
   end
 
   def to_f
@@ -249,8 +252,12 @@ class Rational < Numeric
     "#{@numerator.to_s}/#{@denominator.to_s}"
   end
 
-  def truncate
-    @numerator < 0 ? ceil : floor
+  def truncate(precision = 0)
+    if precision == 0
+      @numerator < 0 ? ceil : floor
+    else
+      with_precision(:truncate, precision)
+    end
   end
 
   def self.convert(num, den, mathn = true)
@@ -352,4 +359,16 @@ class Rational < Numeric
     self
   end
   private :marshal_load
+
+  def with_precision(method, n)
+    raise TypeError, "not an Integer" unless n.kind_of?(Integer)
+
+    p = 10 ** n
+    s = self * p
+
+    r = Rational(s.send(method), p)
+
+    n < 1 ? r.to_i : r
+  end
+  private :with_precision
 end
