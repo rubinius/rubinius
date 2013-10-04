@@ -288,7 +288,9 @@
 #define HAVE_RB_RS                         1
 #define HAVE_RB_OUTPUT_RS                  1
 #define HAVE_RB_OUTPUT_FS                  1
+#ifdef RUBY_VERSION_IS_1_8_EX_1_9
 #define HAVE_RB_SET_KCODE                  1
+#endif
 
 #define HAVE_RB_LASTLINE_SET               1
 #define HAVE_RB_LASTLINE_GET               1
