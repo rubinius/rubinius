@@ -101,6 +101,24 @@ class Rational < Numeric
     end
   end
 
+  def /(other)
+    case other
+    when Rational
+      num = @numerator * other.denominator
+      den = @denominator * other.numerator
+      Rational(num, den)
+    when Integer
+      raise ZeroDivisionError, "divided by 0" if other == 0
+      Rational(@numerator, @denominator * other)
+    when Float
+      to_f / other
+    else
+      redo_coerced :/, other
+    end
+  end
+  alias_method :divide, :/
+  alias_method :quo, :/
+
   def <=>(other)
     case other
     when Rational
@@ -152,23 +170,6 @@ class Rational < Numeric
       super
     end
   end
-
-  def divide(other)
-    case other
-    when Rational
-      num = @numerator * other.denominator
-      den = @denominator * other.numerator
-      Rational(num, den)
-    when Integer
-      raise ZeroDivisionError, "divided by 0" if other == 0
-      Rational(@numerator, @denominator * other)
-    when Float
-      to_f / other
-    else
-      redo_coerced :/, other
-    end
-  end
-  alias_method :/, :divide
 
   def floor
     @numerator / @denominator
