@@ -17,7 +17,7 @@ class Rational < Numeric
       den = @denominator * other.denominator
       Rational(num, den)
     when Integer
-      self * Rational.new(other, 1)
+      Rational(@numerator * other, @denominator)
     when Float
       Float(self) * other
     else
@@ -76,7 +76,7 @@ class Rational < Numeric
       den = @denominator * other.denominator
       Rational(num, den)
     when Integer
-      self + Rational.new(other, 1)
+      Rational(@numerator + other * @denominator, @denominator)
     when Float
       Float(self) + other
     else
@@ -92,7 +92,7 @@ class Rational < Numeric
       den = @denominator * other.denominator
       Rational(num, den)
     when Integer
-      self - Rational.new(other, 1)
+      Rational(@numerator - other * @denominator, @denominator)
     when Float
       Float(self) - other
     else
@@ -107,7 +107,8 @@ class Rational < Numeric
       diff = @numerator * other.denominator - @denominator * other.numerator
       diff <=> 0
     when Integer
-      return self <=> Rational.new(other, 1)
+      diff = @numerator - @denominator * other
+      diff <=> 0
     when Float
       return Float(self) <=> other
     else
@@ -125,7 +126,7 @@ class Rational < Numeric
     when Rational
       @numerator == other.numerator && @denominator == other.denominator
     when Integer
-      self == Rational.new(other, 1)
+      @numerator == other && @denominator == 1
     when Float
       Float(self) == other
     else
@@ -160,7 +161,7 @@ class Rational < Numeric
       Rational(num, den)
     when Integer
       raise ZeroDivisionError, "divided by 0" if other == 0
-      self / Rational.new(other, 1)
+      Rational(@numerator, @denominator * other)
     when Float
       Float(self) / other
     else
