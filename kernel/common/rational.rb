@@ -19,7 +19,7 @@ class Rational < Numeric
     when Integer
       Rational(@numerator * other, @denominator)
     when Float
-      Float(self) * other
+      to_f * other
     else
       a, b = other.coerce(self)
       a * b
@@ -54,15 +54,15 @@ class Rational < Numeric
         return Rational(other.even? ? 1 : -1)
       end
 
-      Float(self) ** other
+      to_f ** other
     when Float
-      Float(self) ** other
+      to_f ** other
     when Rational
       if self == 0 && other < 0
         raise ZeroDivisionError, "divided by 0"
       end
 
-      Float(self) ** other
+      to_f ** other
     else
       a, b = other.coerce(self)
       a ** b
@@ -78,7 +78,7 @@ class Rational < Numeric
     when Integer
       Rational(@numerator + other * @denominator, @denominator)
     when Float
-      Float(self) + other
+      to_f + other
     else
       a, b = other.coerce(self)
       a + b
@@ -94,7 +94,7 @@ class Rational < Numeric
     when Integer
       Rational(@numerator - other * @denominator, @denominator)
     when Float
-      Float(self) - other
+      to_f - other
     else
       a, b = other.coerce(self)
       a - b
@@ -110,7 +110,7 @@ class Rational < Numeric
       diff = @numerator - @denominator * other
       diff <=> 0
     when Float
-      return Float(self) <=> other
+      to_f <=> other
     else
       if defined?(other.coerce)
         a, b = other.coerce(self)
@@ -128,7 +128,7 @@ class Rational < Numeric
     when Integer
       @numerator == other && @denominator == 1
     when Float
-      Float(self) == other
+      to_f == other
     else
       other == self
     end
@@ -163,7 +163,7 @@ class Rational < Numeric
       raise ZeroDivisionError, "divided by 0" if other == 0
       Rational(@numerator, @denominator * other)
     when Float
-      Float(self) / other
+      to_f / other
     else
       redo_coerced :/, other
     end
