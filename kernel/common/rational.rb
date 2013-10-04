@@ -197,30 +197,6 @@ class Rational < Numeric
     end
   end
 
-  def div(other)
-    if other.is_a?(Float) && other == 0.0
-      raise ZeroDivisionError, "division by zero"
-    end
-
-    (self / other).floor
-  end
-
-  def % (other)
-    if other == 0.0
-      raise ZeroDivisionError, "division by zero"
-    end
-    value = (self / other).floor
-    return self - other * value
-  end
-
-  def divmod(other)
-    if other.is_a?(Float) && other == 0.0
-      raise ZeroDivisionError, "division by zero"
-    end
-    value = (self / other).floor
-    return value, self - other * value
-  end
-
   def abs
     if @numerator > 0
       self
