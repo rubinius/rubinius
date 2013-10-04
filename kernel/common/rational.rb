@@ -292,19 +292,6 @@ class Rational < Numeric
 
   alias_method :to_i, :truncate
 
-  def round
-    if @numerator < 0
-      num = -@numerator
-      num = num * 2 + @denominator
-      den = @denominator * 2
-      -(num.div(den))
-    else
-      num = @numerator * 2 + @denominator
-      den = @denominator * 2
-      num.div(den)
-    end
-  end
-
   def to_f
     @numerator.to_f/@denominator.to_f
   end
