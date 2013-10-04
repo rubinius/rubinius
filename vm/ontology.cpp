@@ -359,9 +359,7 @@ namespace rubinius {
     Fiber::init(state);
     Alias::init(state);
     Randomizer::init(state);
-
     Encoding::init(state);
-    kcode::init(state);
   }
 
   // @todo document all the sections of bootstrap_ontology

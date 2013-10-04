@@ -158,7 +158,7 @@ class String
   end
 
   # In time, the JIT should be able to handle this as a ruby method.
-  def transform(tbl, respect_kcode)
+  def transform(tbl)
     Rubinius.primitive :string_transform
     raise PrimitiveFailure, "String#transform primitive failed"
   end

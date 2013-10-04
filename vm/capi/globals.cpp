@@ -120,10 +120,4 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     rb_funcall(Globals, rb_intern("read_only"), 1, env->get_handle(prefixed_by(env->state(), '$', rb_intern(name))));
   }
-
-  void rb_set_kcode(const char *code) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    System::vm_set_kcode(env->state(), String::create(env->state(), code));
-  }
 }

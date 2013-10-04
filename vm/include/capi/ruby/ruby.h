@@ -1608,9 +1608,6 @@ struct RTypedData {
   /** Sets the value of the key. */
   VALUE rb_struct_aset(VALUE s, VALUE key, VALUE value);
 
-  /** Sets the $KCODE variable. */
-  void    rb_set_kcode(const char *code);
-
   /** Returns a String in locale encoding. */
   VALUE rb_locale_str_new_cstr(const char* string);
 

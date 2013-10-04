@@ -186,7 +186,7 @@ namespace rubinius {
 
     if(fixed_encoding_) return onig_source_data(state);
 
-    Encoding* string_enc = string->get_encoding_kcode_fallback(state);
+    Encoding* string_enc = string->encoding(state);
     regex_t* onig_encoded = onig_data_encoded(state, string_enc);
 
     if(onig_encoded) return onig_encoded;

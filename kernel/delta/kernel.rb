@@ -1,16 +1,4 @@
 module Kernel
-  get = proc do
-    warn "$KCODE is unused in Ruby 1.9"
-    nil
-  end
-
-  set = proc do |key, io|
-    warn "$KCODE is unused in Ruby 1.9, changes are ignored"
-    nil
-  end
-
-  Rubinius::Globals.set_hook(:$KCODE, get, set)
-
   def raise(exc=undefined, msg=undefined, ctx=nil)
     skip = false
     if undefined.equal? exc
@@ -133,9 +121,16 @@ module Kernel
   Rubinius::Globals.set_filter(:$stdout, write_filter)
   Rubinius::Globals.set_filter(:$stderr, write_filter)
 
-  # Proper kcode support
-  get = proc { |key| Rubinius.kcode.to_s }
-  set = proc { |key, val| Rubinius.kcode = val }
+  get = proc do
+    warn "$KCODE is unused in Ruby 1.9 and later"
+    nil
+  end
+
+  set = proc do |key, io|
+    warn "$KCODE is unused in Ruby 1.9 and later, changes are ignored"
+    nil
+  end
+
   Rubinius::Globals.set_hook(:$KCODE, get, set)
 
   set = proc do |key, val|

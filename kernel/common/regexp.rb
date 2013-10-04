@@ -110,7 +110,7 @@ class Regexp
 
   def self.escape(str)
     str = str.to_s if str.is_a?(Symbol)
-    escaped = StringValue(str).transform(ESCAPE_TABLE, true)
+    escaped = StringValue(str).transform(ESCAPE_TABLE)
     if escaped.ascii_only?
       escaped.force_encoding Encoding::US_ASCII
     elsif str.valid_encoding?

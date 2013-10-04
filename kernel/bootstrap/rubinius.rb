@@ -86,16 +86,6 @@ module Rubinius
     end
   end
 
-  def self.kcode=(str)
-    Rubinius.primitive :vm_set_kcode
-    raise PrimitiveFailure, "Rubinius.kcode= primitive failed"
-  end
-
-  def self.kcode
-    Rubinius.primitive :vm_get_kcode
-    raise PrimitiveFailure, "Rubinius.kcode primitive failed"
-  end
-
   def self.get_user_home(name)
     Rubinius.primitive :vm_get_user_home
     raise PrimitiveFailure, "Rubinius.get_user_home primitive failed"

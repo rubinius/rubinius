@@ -170,7 +170,7 @@ class String
   def capitalize
     return dup if @num_bytes == 0
 
-    str = transform(Rubinius::CType::Lowered, true)
+    str = transform(Rubinius::CType::Lowered)
 
     str.modify!
 
@@ -285,7 +285,7 @@ class String
 
   def downcase
     return dup if @num_bytes == 0
-    transform(Rubinius::CType::Lowered, true)
+    transform(Rubinius::CType::Lowered)
   end
 
   def downcase!
@@ -293,7 +293,7 @@ class String
 
     return if @num_bytes == 0
 
-    str = transform(Rubinius::CType::Lowered, true)
+    str = transform(Rubinius::CType::Lowered)
 
     return nil if str == self
 
@@ -2447,7 +2447,7 @@ class String
 
   def dump
     s = self.class.allocate
-    str = %{"#{transform(Rubinius::CType::Printed, false).force_encoding(Encoding::US_ASCII)}"}
+    str = %{"#{transform(Rubinius::CType::Printed).force_encoding(Encoding::US_ASCII)}"}
     str += ".force_encoding(\"#{encoding}\")" unless encoding.ascii_compatible?
     s.replace(str)
   end

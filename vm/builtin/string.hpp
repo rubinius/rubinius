@@ -289,7 +289,6 @@ namespace rubinius {
     String* byte_substring(STATE, native_int index, native_int length);
     String* char_substring(STATE, native_int index, native_int length);
 
-    Encoding* get_encoding_kcode_fallback(STATE);
     native_int find_character_byte_index(STATE, native_int index, native_int start = 0);
     native_int find_byte_character_index(STATE, native_int index, native_int start = 0);
 
@@ -315,7 +314,7 @@ namespace rubinius {
     Fixnum* previous_byte_index(STATE, Fixnum* index);
 
     // Rubinius.primitive :string_transform
-    String* transform(STATE, Tuple* table, Object* respect_kcode);
+    String* transform(STATE, Tuple* table);
 
     // Rubinius.primitive :string_find_character
     String* find_character(STATE, Fixnum* offset);

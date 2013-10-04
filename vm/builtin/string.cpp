@@ -1029,7 +1029,7 @@ namespace rubinius {
     return start + replace_length;
   }
 
-  String* String::transform(STATE, Tuple* tbl, Object* respect_kcode) {
+  String* String::transform(STATE, Tuple* tbl) {
     uint8_t invalid[5];
 
     if(tbl->num_fields() < 256) {
@@ -1037,13 +1037,6 @@ namespace rubinius {
     }
 
     Object** tbl_ptr = tbl->field;
-
-    kcode::table* kcode_tbl = 0;
-    if(CBOOL(respect_kcode)) {
-      kcode_tbl = state->shared().kcode_table();
-    } else {
-      kcode_tbl = kcode::null_table();
-    }
 
     // Pointers to iterate input bytes.
     uint8_t* in_p = byte_address();
@@ -1069,17 +1062,7 @@ namespace rubinius {
       uint8_t byte = *in_p;
       uint8_t* cur_p = 0;
 
-      if(kcode::mbchar_p(kcode_tbl, byte)) {
-        len = kcode::mbclen(kcode_tbl, byte);
-        native_int rem = in_end - in_p;
-
-        // if the character length is greater than the remaining
-        // bytes, we have a malformed character. Handled below.
-        if(rem >= len) {
-          cur_p = in_p;
-          in_p += len;
-        }
-      } else if(String* str = try_as<String>(tbl_ptr[byte])) {
+      if(String* str = try_as<String>(tbl_ptr[byte])) {
         cur_p = str->byte_address();
         len = str->byte_size();
         in_p++;
@@ -1786,24 +1769,6 @@ namespace rubinius {
     return Fixnum::from(b - s);
   }
 
-  Encoding* String::get_encoding_kcode_fallback(STATE) {
-    if(!encoding_->nil_p()) {
-      return encoding_;
-    }
-
-    switch(state->shared().kcode_page()) {
-    default:
-    case kcode::eAscii:
-      return Encoding::ascii8bit_encoding(state);
-    case kcode::eEUC:
-      return Encoding::find(state, "EUC-JP");
-    case kcode::eSJIS:
-      return Encoding::find(state, "Windows-31J");
-    case kcode::eUTF8:
-      return Encoding::utf8_encoding(state);
-    }
-  }
-
   String* String::find_character(STATE, Fixnum* offset) {
     native_int o = offset->to_native();
     if(o >= byte_size()) return nil<String>();
@@ -1813,7 +1778,7 @@ namespace rubinius {
 
     String* output = 0;
 
-    OnigEncodingType* enc = get_encoding_kcode_fallback(state)->get_encoding();
+    OnigEncodingType* enc = encoding(state)->get_encoding();
 
     if(ONIGENC_MBC_MAXLEN(enc) == 1) {
       output = String::create(state, reinterpret_cast<const char*>(cur), 1);
