@@ -40,7 +40,6 @@ namespace rubinius {
   const static int cImmCode =    'i';
   const static int cTupleCode =  't';
   const static int cBytesCode =  'b';
-  const static int cCharsCode =  'c';
   const static int cFooterCode = '-';
 
   class Encoder {
