@@ -181,16 +181,6 @@ class Rational < Numeric
     "(#{to_s})"
   end
 
-  def marshal_load(ary)
-    @numerator, @denominator = ary
-
-    ary.instance_variables.each do |ivar|
-      instance_variable_set(ivar, ary.instance_variable_get(ivar))
-    end
-
-    self
-  end
-
   def rationalize(eps = undefined)
     return self if undefined.equal?(eps)
 
@@ -348,4 +338,15 @@ class Rational < Numeric
     ary
   end
   private :marshal_dump
+
+  def marshal_load(ary)
+    @numerator, @denominator = ary
+
+    ary.instance_variables.each do |ivar|
+      instance_variable_set(ivar, ary.instance_variable_get(ivar))
+    end
+
+    self
+  end
+  private :marshal_load
 end
