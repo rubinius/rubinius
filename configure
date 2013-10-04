@@ -490,15 +490,20 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
       dir = File.dirname full_path
       Dir.mkdir dir unless File.exists? dir
 
+      uri = URI(url)
+
       if ENV['http_proxy']
         protocol, userinfo, host, port  = URI::split(ENV['http_proxy'])
         proxy_user, proxy_pass = userinfo.split(/:/) if userinfo
         http = Net::HTTP::Proxy(host, port, proxy_user, proxy_pass)
       else
-        http = Net::HTTP
+        http = Net::HTTP.new(uri.host, uri.port)
       end
 
-      http.get_response(URI(url)) do |res|
+      http.use_ssl = true if uri.scheme == 'https'
+      request = Net::HTTP::Get.new(uri.request_uri)
+
+      http.request(request) do |res|
         case res
         when Net::HTTPNotFound
           @log.write "      #{url} not found."
