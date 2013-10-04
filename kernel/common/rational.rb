@@ -46,12 +46,12 @@ class Rational < Numeric
         if other < 0
           raise ZeroDivisionError, "divided by 0"
         elsif other > 0
-          return Rational(0)
+          return Rational.new(0, 1)
         end
       elsif self == 1
-        return Rational(1)
+        return Rational.new(1, 1)
       elsif self == -1
-        return Rational(other.even? ? 1 : -1)
+        return Rational.new(other.even? ? 1 : -1, 1)
       end
 
       to_f ** other
@@ -135,7 +135,7 @@ class Rational < Numeric
   end
 
   def abs
-    (@numerator < 0) ? Rational(-@numerator, @denominator) : self
+    (@numerator < 0) ? Rational.new(-@numerator, @denominator) : self
   end
 
   def ceil
@@ -206,7 +206,8 @@ class Rational < Numeric
       p0, q0, p1, q1 = p1, q1, p2, q2
     end
 
-    Rational(c * p1 + p0, c * q1 + q0)
+    # The rational number is guaranteed to be in lowest terms.
+    Rational.new(c * p1 + p0, c * q1 + q0)
   end
 
   def round(precision = 0)
@@ -219,9 +220,9 @@ class Rational < Numeric
     value = self * adj
 
     value = if self > 0
-      (value + Rational(1,2)).floor
+      (value + Rational.new(1, 2)).floor
     else
-      (value - Rational(1,2)).ceil
+      (value - Rational.new(1, 2)).ceil
     end
 
     result = Rational(value, adj)
