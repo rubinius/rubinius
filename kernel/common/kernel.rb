@@ -760,6 +760,14 @@ module Kernel
       File.file? file1
     when ?l
       File.symlink? file1
+    when ?r
+      File.readable? file1
+    when ?R
+      File.readable_real? file1
+    when ?w
+      File.writable? file1
+    when ?W
+      File.writable_real? file1
     else
       raise NotImplementedError, "command ?#{cmd.chr} not implemented"
     end
