@@ -177,7 +177,7 @@ ruby_version_is "1.9" do
       end
 
       it "loads a path for a file already loaded with a relative path" do
-        $LOAD_PATH << s = File.expand_path(@dir)
+        $LOAD_PATH << File.expand_path(@dir)
         $LOADED_FEATURES << "load_fixture.rb" << "load_fixture"
         require_relative(@path).should be_true
         $LOADED_FEATURES.should include(@abs_path)
@@ -341,7 +341,7 @@ ruby_version_is "1.9" do
       end
 
       it "loads a path for a file already loaded with a relative path" do
-        $LOAD_PATH << s = File.expand_path(@dir)
+        $LOAD_PATH << File.expand_path(@dir)
         $LOADED_FEATURES << "load_fixture.rb" << "load_fixture"
         require_relative(@path).should be_true
         $LOADED_FEATURES.should include(@abs_path)
