@@ -36,6 +36,22 @@ describe "Kernel#test" do
     Kernel.test(?l, @link).should be_true
   end
 
+  it "returns true when passed ?r if the argument is readable by the effective uid" do
+    Kernel.test(?r, @file).should be_true
+  end
+
+  it "returns true when passed ?R if the argument is readable by the real uid" do
+    Kernel.test(?R, @file).should be_true
+  end
+
+  it "returns true when passed ?w if the argument is readable by the effective uid" do
+    Kernel.test(?w, @file).should be_true
+  end
+
+  it "returns true when passed ?W if the argument is readable by the real uid" do
+    Kernel.test(?W, @file).should be_true
+  end
+
   ruby_version_is "1.9" do
     it "calls #to_path on second argument when passed ?f and a filename" do
       p = mock('path')
