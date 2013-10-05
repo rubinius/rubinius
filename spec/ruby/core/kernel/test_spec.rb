@@ -52,6 +52,28 @@ describe "Kernel#test" do
     Kernel.test(?W, @file).should be_true
   end
 
+  context "time commands" do
+    before :all do
+      @tmp_file = File.new(tmp("file.kernel.test"), "w") { |f| f.write "foo" }
+    end
+
+    after :all do
+      rm_r @tmp_file
+    end
+
+    it "returns the last access time for the provided file when passed ?A" do
+      Kernel.test(?A, @tmp_file).should == @tmp_file.atime
+    end
+
+    it "returns the time at which the file was created when passed ?C" do
+      Kernel.test(?C, @tmp_file).should == @tmp_file.ctime
+    end
+
+    it "returns the time at which the file was modified when passed ?M" do
+      Kernel.test(?M, @tmp_file).should == @tmp_file.mtime
+    end
+  end
+
   ruby_version_is "1.9" do
     it "calls #to_path on second argument when passed ?f and a filename" do
       p = mock('path')
