@@ -18,7 +18,7 @@ module Rubinius
       @simple_options = false
       @early_option_stop = false
       @check_syntax = false
-
+      @load_profiler = false
       @enable_gems = true
       @load_gemfile = false
 
@@ -457,7 +457,7 @@ VM Options
       end
 
       if Rubinius::Config['profile'] || Rubinius::Config['jit.profile']
-        require 'profile'
+        @load_profiler = true
       end
 
       if @check_syntax
@@ -580,6 +580,13 @@ to rebuild the compiler.
         require 'bundler/setup'
         @load_gemfile = false
       end
+    end
+
+    def profiler
+      return unless @load_profiler
+      @stage = "loading profiler"
+
+      require 'profile'
     end
 
     # Require any -r arguments
@@ -817,6 +824,7 @@ to rebuild the compiler.
       debugger
       rubygems
       gemfile
+      profiler
       requires
       evals
       script
