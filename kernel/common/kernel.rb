@@ -768,6 +768,12 @@ module Kernel
       File.writable? file1
     when ?W
       File.writable_real? file1
+    when ?A
+      File.atime file1
+    when ?C
+      File.ctime file1
+    when ?M
+      File.mtime file1
     else
       raise NotImplementedError, "command ?#{cmd.chr} not implemented"
     end
