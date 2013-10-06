@@ -255,6 +255,8 @@ class RegexpError < StandardError
 end
 
 class LoadError < ScriptError
+  attr_accessor :path
+
   class InvalidExtensionError < LoadError
   end
 

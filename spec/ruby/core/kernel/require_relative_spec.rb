@@ -55,6 +55,18 @@ ruby_version_is "1.9" do
       lambda { eval("require_relative('#{@dir}/nonexistent.rb')") }.should raise_error(LoadError)
     end
 
+    ruby_version_is "2.0" do
+      it "stores the missing path in a LoadError object" do
+        path = "#{@dir}/nonexistent.rb"
+
+        lambda {
+          require_relative(path)
+        }.should(raise_error(LoadError) { |e|
+          e.path.should == File.expand_path(path, @abs_dir)
+        })
+      end
+    end
+
     it "calls #to_str on non-String objects" do
       name = mock("load_fixture.rb mock")
       name.should_receive(:to_str).and_return(@path)
@@ -165,7 +177,7 @@ ruby_version_is "1.9" do
       end
 
       it "loads a path for a file already loaded with a relative path" do
-        $LOAD_PATH << s = File.expand_path(@dir)
+        $LOAD_PATH << File.expand_path(@dir)
         $LOADED_FEATURES << "load_fixture.rb" << "load_fixture"
         require_relative(@path).should be_true
         $LOADED_FEATURES.should include(@abs_path)
@@ -207,6 +219,18 @@ ruby_version_is "1.9" do
       lambda { eval("require_relative('#{@dir}/nonexistent.rb')") }.should raise_error(LoadError)
     end
 
+    ruby_version_is "2.0" do
+      it "stores the missing path in a LoadError object" do
+        path = "#{@dir}/nonexistent.rb"
+
+        lambda {
+          require_relative(path)
+        }.should(raise_error(LoadError) { |e|
+          e.path.should == File.expand_path(path, @abs_dir)
+        })
+      end
+    end
+
     it "calls #to_str on non-String objects" do
       name = mock("load_fixture.rb mock")
       name.should_receive(:to_str).and_return(@path)
@@ -317,7 +341,7 @@ ruby_version_is "1.9" do
       end
 
       it "loads a path for a file already loaded with a relative path" do
-        $LOAD_PATH << s = File.expand_path(@dir)
+        $LOAD_PATH << File.expand_path(@dir)
         $LOADED_FEATURES << "load_fixture.rb" << "load_fixture"
         require_relative(@path).should be_true
         $LOADED_FEATURES.should include(@abs_path)

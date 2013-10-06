@@ -731,5 +731,17 @@ describe :kernel_require, :shared => true do
         end
       end
     end
+
+    ruby_version_is "2.0" do
+      it "stores the missing path in a LoadError object" do
+        path = "abcd1234"
+
+        lambda {
+          @object.send(@method, path)
+        }.should(raise_error(LoadError) { |e|
+          e.path.should == path
+        })
+      end
+    end
   end
 end
