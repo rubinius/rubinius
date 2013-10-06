@@ -4,23 +4,6 @@ require './rakelib/configure'
 
 include Rake::DSL if Rake.const_defined? :DSL
 
-if ENV["RUBYLIB"]
-  STDERR.puts <<-EOM
-WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
-WARNING                                                                 WARNING
-WARNING   You have the RUBYLIB environment variable set. This can       WARNING
-WARNING   cause serious problems building Rubinius, including but       WARNING
-WARNING   not limited to causing the build to fail or specs to fail     WARNING
-WARNING   or your computer to randomly emit strange beeping sounds      WARNING
-WARNING   or burst into flames. Not all these possible catastrophic     WARNING
-WARNING   effects have been observed in the wild, but you have been     WARNING
-WARNING   warned. We recommend unsetting this environment variable      WARNING
-WARNING   and running the build again.                                  WARNING
-WARNING                                                                 WARNING
-WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
-  EOM
-end
-
 # Wipe out CDPATH, it interferes with building in some cases,
 # see http://github.com/rubinius/rubinius/issues#issue/555
 if ENV["CDPATH"]
