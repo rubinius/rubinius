@@ -433,7 +433,10 @@ module Rubinius
       # but NOT LoadError.exception, so this code must use LoadError.new
       # directly here to match the behavior.
       message ||= "no such file to load -- #{@path}"
-      raise LoadError.new(message)
+
+      error = LoadError.new(message)
+      error.path = @path
+      raise error
     end
 
     # Implementation specific method to load a Ruby source file. Overridden in
