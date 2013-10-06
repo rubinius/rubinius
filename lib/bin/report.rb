@@ -2,36 +2,36 @@
 
 require 'open-uri'
 require 'net/https'
+require 'json'
 
 GistSubmissionError = Class.new(StandardError)
 
 module Gist
   extend self
 
-  @@gist_url = 'https://gist.github.com/%s.txt'
-
-  def read(gist_id)
-    return help if gist_id == '-h' || gist_id.nil? || gist_id[/help/]
-    open(@@gist_url % gist_id).read
-  end
-
   def write(content, private_gist, name, report_file)
-    url = URI.parse('https://gist.github.com/gists')
+    url = URI.parse('https://api.github.com/gists')
 
     http = Net::HTTP.new(url.host, url.port)
     http.use_ssl = true
     http.verify_mode = OpenSSL::SSL::VERIFY_NONE
 
     req = Net::HTTP::Post.new(url.path)
-    req.form_data = data(name, nil, content, private_gist)
+    req.body = data(name, content, private_gist).to_json
+
+    token = gh_personal_token
+    unless token.empty?
+      req.basic_auth token, 'x-oauth-basic'
+    end
 
     res = http.start {|h| h.request(req) }
 
-    unless res.kind_of?(Net::HTTPRedirection)
+    unless res.code == '201' # Created
       raise GistSubmissionError, %Q{Could not submit gist (#{res.code} #{res.message}). Make sure you've set github.user and github.token in your Git config, or submit the crash report located at '#{report_file}' manually.}
     end
 
-    copy res['Location']
+    gist = JSON.parse res.body
+    copy gist['html_url']
   end
 
   def help
@@ -52,19 +52,20 @@ private
     content
   end
 
-  def data(name, ext, content, private_gist)
+  def data(file_name, content, private_gist)
     return {
-      'file_ext[gistfile1]'      => ext,
-      'file_name[gistfile1]'     => name,
-      'file_contents[gistfile1]' => content
-    }.merge(private_gist ? { 'private' => 'on' } : {}).merge(auth)
+      'public' => !private_gist,
+      'files' => {
+        file_name => { 'content' => content }
+      }
+    }
   end
 
-  def auth
-    user  = `git config --global github.user`.strip
-    token = `git config --global github.token`.strip
-
-    user.empty? ? {} : { :login => user, :token => token }
+  # For GitHub API v3 you can create your
+  # own personal access tokens to allow scripts
+  # like this to authenticate with your user.
+  def gh_personal_token
+    `git config github.token`.strip
   end
 end
 
