@@ -3688,6 +3688,13 @@ use_send:
     void visit_passed_arg(opcode count) {
       count += machine_code()->post_args;
 
+      // Mark the local as set here. This is done so we make sure that
+      // when we pass an argument, we properly see this as having two
+      // code paths through which the local can be set.
+
+      LocalInfo* li = info().get_local(count);
+      li->inc_set();
+
       if(called_args_ >= 0) {
         if((int)count < called_args_) {
           stack_push(constant(cTrue));
