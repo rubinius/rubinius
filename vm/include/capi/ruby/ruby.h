@@ -1980,6 +1980,10 @@ struct RTypedData {
                             (argc), (argv));                    \
 } while (0)
 
+#define rb_obj_hide(obj) obj
+#define rb_obj_reveal(obj, klass) obj
+#define rb_str_resurrect(obj) obj
+
   // include an extconf.h if one is provided
 #ifdef RUBY_EXTCONF_H
 #include RUBY_EXTCONF_H
