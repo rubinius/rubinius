@@ -3640,6 +3640,8 @@ use_send:
       };
 
       Value* val = sig.call("rbx_make_array", call_args, 3, "constant", b());
+      type::KnownType kt = type::KnownType::instance(llvm_state()->array_class_id());
+      kt.associate(ctx_, val);
 
       stack_remove(count);
       stack_push(val);
