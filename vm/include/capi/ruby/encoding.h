@@ -19,6 +19,9 @@ typedef OnigEncodingType rb_encoding;
 #define ENC_CODERANGE_BROKEN        4
 
 #define MBCLEN_CHARFOUND_P(ret)     ONIGENC_MBCLEN_CHARFOUND_P(ret)
+#define MBCLEN_CHARFOUND_LEN(ret)   ONIGENC_MBCLEN_CHARFOUND_LEN(ret)
+#define MBCLEN_NEEDMORE_P(ret)      ONIGENC_MBCLEN_NEEDMORE_P(ret)
+#define MBCLEN_NEEDMORE_LEN(ret)    ONIGENC_MBCLEN_NEEDMORE_LEN(ret)
 
 #define rb_enc_isctype(c, t, enc)   ONIGENC_IS_CODE_CTYPE(enc, c, t)
 #define rb_enc_isascii(c, enc)      ONIGENC_IS_CODE_ASCII(c)
