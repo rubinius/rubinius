@@ -424,7 +424,7 @@ class File < IO
   #  File.expand_path("../../bin", "/tmp/x")   #=> "/bin"
   def self.expand_path(path, dir=nil)
     path = Rubinius::Type.coerce_to_path(path)
-    str = expand_path_buffer path
+    str = "".force_encoding path.encoding
     first = path[0]
     if first == ?~
       case path[1]
@@ -494,11 +494,6 @@ class File < IO
 
     str
   end
-
-  def self.expand_path_buffer(path)
-    path.to_s.dup.clear
-  end
-  private_class_method :expand_path_buffer
 
   ##
   # Returns the extension (the portion of file name in
