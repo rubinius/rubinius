@@ -257,6 +257,11 @@ namespace rubinius {
       walk_finalizers();
       // Scan any fibers that aren't running but still active
       scan_fibers(data, false);
+      // Scanning finalizers and fibers can result in
+      // new objects in the mark set when we do a young GC
+      // during a mature mark phase.
+      scan_mark_set();
+
       handle_promotions();
     } while(!promoted_stack_.empty() && !fully_scanned_p());
 
