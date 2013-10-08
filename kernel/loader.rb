@@ -821,9 +821,9 @@ to rebuild the compiler.
       detect_alias
       options
       load_paths
-      debugger
       rubygems
       gemfile
+      debugger
       profiler
       requires
       evals
