@@ -301,7 +301,10 @@ namespace rubinius {
 
     OnStack<1> os(state, str);
 
-    if(pipe(fds) != 0) return Primitives::failure();
+    if(pipe(fds) != 0) {
+      Exception::errno_error(state, "error setting up pipes", errno, "pipe(2)");
+      return 0;
+    }
 
     {
       // TODO: Make this guard unnecessary
@@ -316,7 +319,8 @@ namespace rubinius {
     if(pid == -1) {
       close(fds[0]);
       close(fds[1]);
-      return Primitives::failure();
+      Exception::errno_error(state, "error forking", errno, "fork(2)");
+      return 0;
     }
 
     // child
