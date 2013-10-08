@@ -1113,12 +1113,14 @@ namespace rubinius {
 
   Object* System::vm_set_class(STATE, Object* obj, Class* cls) {
     if(!obj->reference_p()) return Primitives::failure();
-    if(obj->type_id() != cls->type_info()->type)
+    if(obj->type_id() != cls->type_info()->type) {
       return Primitives::failure();
+    }
 
     if(kind_of<PackedObject>(obj)) {
-      if(obj->klass()->packed_size() != cls->packed_size())
+      if(obj->klass()->packed_size() != cls->packed_size()) {
         return Primitives::failure();
+      }
     }
 
     obj->klass(state, cls);
