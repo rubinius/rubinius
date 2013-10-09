@@ -242,7 +242,7 @@ namespace rubinius {
     }
 
     void new_bytes(int len) {
-      ba = ByteArray::create(state, len);
+      ba = ByteArray::create(state, len + 1);
       bp = ba->raw_bytes();
       be = bp + ba->size();
     }
@@ -1223,7 +1223,7 @@ namespace rubinius {
     s->hash_value(state, nil<Fixnum>());
     s->shared(state, cFalse);
 
-    ByteArray* ba = ByteArray::create_dirty(state, cnt);
+    ByteArray* ba = ByteArray::create_dirty(state, cnt + 1);
 
     if(Fixnum* chr = try_as<Fixnum>(pattern)) {
       memset(ba->raw_bytes(), (int)chr->to_native(), cnt);
@@ -1279,7 +1279,7 @@ namespace rubinius {
     s->valid_encoding(state, cNil);
     s->encoding(state, enc);
 
-    ByteArray* ba = ByteArray::create_dirty(state, n);
+    ByteArray* ba = ByteArray::create_dirty(state, n + 1);
 
     n = ONIGENC_CODE_TO_MBC(enc->get_encoding(), c, (UChar*)ba->raw_bytes());
     if(Encoding::precise_mbclen(ba->raw_bytes(), ba->raw_bytes() + n, enc->get_encoding()) != n) {
