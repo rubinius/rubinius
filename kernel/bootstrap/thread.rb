@@ -444,6 +444,7 @@ class Thread
     Rubinius.synchronize(self) do
       kill_prim
     end
+    self
   end
 
   alias_method :exit, :kill
