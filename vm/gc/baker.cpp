@@ -393,12 +393,16 @@ namespace rubinius {
   }
 
   void BakerGC::scan_mark_set() {
-    // Update the marked set and remove young not forwarded objects
+    // Scan any mature objects in the mark set
+    // since they might refer to young objects.
     ObjectArray* marked_set = object_memory_->marked_set();
 
-    for(ObjectArray::iterator oi = marked_set->begin();
-        oi != marked_set->end(); ++oi) {
-      Object* obj = *oi;
+    // This explicitly does not use an iterator. This is because
+    // there might be elements appended to this list by scanning
+    // which in turn can trigger a vector resize. This would invalidate
+    // the iterator and result in invalid memory being read.
+    for(ObjectArray::size_type i = 0; i < marked_set->size(); ++i) {
+      Object* obj = marked_set->at(i);
       if(obj && obj->mature_object_p()) {
         scan_object(obj);
       }
