@@ -475,7 +475,7 @@ namespace rubinius {
                                   const char** p, const char** pe)
     {
       native_int size = directives->byte_size();
-      ByteArray* ba = ByteArray::create_pinned(state, size);
+      ByteArray* ba = ByteArray::create_pinned(state, size + 1);
       char* b = reinterpret_cast<char*>(ba->raw_bytes());
       char* d = reinterpret_cast<char*>(directives->byte_address());
       int i = 0, j = 0;
