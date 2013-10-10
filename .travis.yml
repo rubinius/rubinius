@@ -21,5 +21,10 @@ notifications:
   email:
     on_success: change
     on_failure: always
+  irc:
+    channels:
+      - "chat.freenode.net#rubinius"
+    template:
+      - "%{repository}/%{branch} (%{commit} - %{author}): %{message}"
 env:
   - RVM=2.0.0
