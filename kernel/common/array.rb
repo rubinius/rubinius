@@ -822,7 +822,7 @@ class Array
   end
 
   def inspect
-    return "[]" if @total == 0
+    return "[]".force_encoding(Encoding::US_ASCII) if @total == 0
     comma = ", "
     result = "["
 
@@ -843,7 +843,7 @@ class Array
   alias_method :to_s, :inspect
 
   def join(sep=nil)
-    return "" if @total == 0
+    return "".force_encoding(Encoding::US_ASCII) if @total == 0
 
     out = ""
     raise ArgumentError, "recursive array join" if Thread.detect_recursion self do
