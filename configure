@@ -2073,15 +2073,15 @@ Run 'rake' to build and test Rubinius.
 Rubinius has been configured for the following paths:
 
 prefix:  #{@prefixdir}
-bin:     #{@bindir}
-lib:     #{@libdir}
-runtime: #{@runtimedir}
-kernel:  #{@kerneldir}
-site:    #{@sitedir}
-vendor:  #{@vendordir}
-man:     #{@mandir}
-gems:    #{@gemsdir}
-include: #{@includedir}
+bin:     #{@prefixdir}#{@bindir}
+lib:     #{@prefixdir}#{@libdir}
+runtime: #{@prefixdir}#{@runtimedir}
+kernel:  #{@prefixdir}#{@kerneldir}
+site:    #{@prefixdir}#{@sitedir}
+vendor:  #{@prefixdir}#{@vendordir}
+man:     #{@prefixdir}#{@mandir}
+gems:    #{@prefixdir}#{@gemsdir}
+include: #{@prefixdir}#{@includedir}
 
 Run 'rake' to build, test and install Rubinius.
       EOM
