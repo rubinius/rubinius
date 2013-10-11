@@ -464,6 +464,8 @@ namespace rubinius {
       G(rubinius)->set_const(state, "LIB_PATH", String::create(state, path.c_str()));
       path = prefix + RBX_ENC_PATH;
       G(rubinius)->set_const(state, "ENC_PATH", String::create(state, path.c_str()));
+      path = prefix + RBX_SITE_PATH;
+      G(rubinius)->set_const(state, "SITE_PATH", String::create(state, path.c_str()));
       path = prefix + RBX_VENDOR_PATH;
       G(rubinius)->set_const(state, "VENDOR_PATH", String::create(state, path.c_str()));
       path = prefix + RBX_GEMS_PATH;

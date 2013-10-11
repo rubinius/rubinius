@@ -59,6 +59,9 @@ module Rubinius
       # This conforms more closely to MRI. It is necessary to support
       # paths that mkmf adds when compiling and installing native exts.
       additions = [
+        Rubinius::SITE_PATH,
+        "#{Rubinius::SITE_PATH}/#{RUBY_VERSION}",
+        "#{Rubinius::SITE_PATH}/#{Rubinius::CPU}-#{Rubinius::OS}",
         Rubinius::VENDOR_PATH,
         @main_lib,
       ]

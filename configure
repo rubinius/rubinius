@@ -1687,6 +1687,7 @@ int main() { return tgetnum(""); }
 #define RBX_LIB_PATH         "#{@libdir}"
 #define RBX_ENC_PATH         "#{@encdir}"
 #define RBX_HDR_PATH         "#{@includedir}"
+#define RBX_SITE_PATH        "#{@sitedir}"
 #define RBX_VENDOR_PATH      "#{@vendordir}"
       EOF
     end
