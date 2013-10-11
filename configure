@@ -316,7 +316,7 @@ class Configure
     end
 
     o.on "--llvm-path", "PATH", "File system path to the directory containing LLVM" do |dir|
-      @llvm_path = dir
+      @llvm_path = dir.dup
     end
 
     o.on "--llvm-config", "PROGRAM", "File system path to the llvm-config program" do |program|
@@ -384,7 +384,7 @@ class Configure
 
     o.on "-P", "--prefix", "PATH", "Install Rubinius in subdirectories of PATH" do |dir|
       warn_prefix dir
-      @prefixdir = dir
+      @prefixdir = dir.dup
     end
 
     o.on "-B", "--bindir", "PATH", "Install Rubinius executable in PATH" do |dir|
@@ -396,11 +396,11 @@ class Configure
     end
 
     o.on "-A", "--appdir", "PATH", "Install Ruby runtime and libraries in PATH" do |dir|
-      @appdir = dir
+      @appdir = dir.dup
     end
 
     o.on "-L", "--libdir", "PATH", "Install Rubinius shared library in PATH" do |dir|
-      @libdir = dir
+      @libdir = dir.dup
     end
 
     o.on "-M", "--mandir", "PATH", "Install man pages in PATH" do |dir|
