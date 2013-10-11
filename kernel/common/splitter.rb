@@ -96,12 +96,9 @@ module Rubinius
           end
         end
 
+        start = match.full.at(1)
         if collapsed
           start += 1
-        elsif last_match && last_match.collapsing?
-          start = match.full.at(1) + 1
-        else
-          start = match.full.at(1)
         end
 
         last_match = match
