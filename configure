@@ -1,10 +1,4 @@
 #!/usr/bin/env ruby
-
-if ENV["RUBYLIB"]
-  STDERR.puts "ERROR: Please unset RUBYLIB to configure Rubinius"
-  exit 1
-end
-
 require 'bundler/setup'
 require './rakelib/configure'
 require './rakelib/release'
