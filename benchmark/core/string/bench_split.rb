@@ -29,4 +29,25 @@ Benchmark.ips do |x|
   x.report "awk split (on spaces)" do
     irc_str.split(' ')
   end
+
+  newline_string = "string with newline\n" * 100
+
+  x.report "regexp split on newlines" do |times|
+    i = 0
+    while i < times
+      newline_string.split(/\n/)
+      i += 1
+    end
+  end
+
+  no_newline_string = "string with newline" * 100
+
+  x.report "regexp split with no newlines" do |times|
+    i = 0
+    while i < times
+      newline_string.split(/\n/)
+      i += 1
+    end
+  end
+
 end
