@@ -320,6 +320,7 @@ end
 class Time
   def self.__construct__(ms, data, ivar_index, has_ivar)
     obj = _load(data)
+    ms.store_unique_object obj
 
     if ivar_index and has_ivar[ivar_index]
       ms.set_instance_variables obj
@@ -790,9 +791,7 @@ module Marshal
       data = get_byte_sequence
 
       if Rubinius::Type.object_respond_to? klass, :__construct__
-        obj = klass.__construct__(self, data, ivar_index, @has_ivar)
-        store_unique_object obj
-        return obj
+        return klass.__construct__(self, data, ivar_index, @has_ivar)
       end
 
       if ivar_index and @has_ivar[ivar_index]
