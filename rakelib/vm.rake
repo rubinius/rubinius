@@ -1,4 +1,3 @@
-require 'rakelib/rubinius'
 require 'rakelib/instruction_parser'
 require 'rakelib/generator_task'
 require 'rakelib/release'
@@ -236,7 +235,7 @@ task vm_release_h do |t|
   end
 end
 
-file 'vm/gen/config_variables.h' => %w[lib/rubinius/configuration.rb config.rb] do |t|
+file 'vm/gen/config_variables.h' => %w[library/rubinius/configuration.rb config.rb] do |t|
   puts "GEN #{t.name}"
   ruby 'vm/codegen/config_vars.rb', t.name
 end

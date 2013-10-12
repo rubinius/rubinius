@@ -84,8 +84,8 @@ end
 signature_file = "kernel/signature.rb"
 
 bootstrap_files = FileList[
-  "lib/rbconfig.rb",
-  "lib/rubinius/build_config.rb",
+  "library/rbconfig.rb",
+  "library/rubinius/build_config.rb",
 ]
 
 ffi_files = FileList[

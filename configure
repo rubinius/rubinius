@@ -197,7 +197,7 @@ class Configure
     if @appdir
       dir = expand_install_dir @appdir
 
-      @libdir     = dir + "/lib"
+      @libdir     = dir + "/library"
       @runtimedir = dir + "/runtime"
       @kerneldir  = dir + "/kernel"
       @sitedir    = dir + "/site"
@@ -205,7 +205,7 @@ class Configure
     end
 
     @bindir       = @prefixdir + "/bin" unless @bindir
-    @libdir       = @prefixdir + "/lib" unless @libdir
+    @libdir       = @prefixdir + "/library" unless @libdir
     @runtimedir   = @prefixdir + "/runtime" unless @runtimedir
     @kerneldir    = @prefixdir + "/kernel" unless @kerneldir
     @sitedir      = @prefixdir + "/site" unless @sitedir
@@ -1670,8 +1670,9 @@ int main() { return tgetnum(""); }
 
     write_config_rb @config, config_settings
 
-    Dir.mkdir "lib/rubinius" unless File.directory? "lib/rubinius"
-    FileUtils.cp @config, "lib/rubinius/build_config.rb"
+    lib_rubinius_dir = "#{@sourcedir}/library/rubinius"
+    FileUtils.mkdir_p lib_rubinius_dir unless File.directory? lib_rubinius_dir
+    FileUtils.cp @config, "#{lib_rubinius_dir}/build_config.rb"
 
     # Write the config file used to build the C++ VM.
     Dir.mkdir "vm/gen" unless File.directory? "vm/gen"

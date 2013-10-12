@@ -1,4 +1,4 @@
-require File.expand_path('../../lib/ffi/generators', __FILE__)
+require File.expand_path('../../library/ffi/generators', __FILE__)
 
 directory "runtime"
 

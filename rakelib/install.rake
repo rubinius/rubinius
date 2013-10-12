@@ -187,7 +187,7 @@ exec #{BUILD_CONFIG[:stagingdir]}#{BUILD_CONFIG[:bindir]}/$EXE "$@"
 
   task :lib do
     if BUILD_CONFIG[:stagingdir]
-      install_build_lib "#{BUILD_CONFIG[:sourcedir]}/lib", BUILD_CONFIG[:stagingdir]
+      install_build_lib "#{BUILD_CONFIG[:sourcedir]}/library", BUILD_CONFIG[:stagingdir]
     end
   end
 
@@ -205,7 +205,7 @@ exec #{BUILD_CONFIG[:stagingdir]}#{BUILD_CONFIG[:bindir]}/$EXE "$@"
 
   task :documentation do
     if BUILD_CONFIG[:stagingdir]
-      install_documentation "#{BUILD_CONFIG[:sourcedir]}/lib", BUILD_CONFIG[:stagingdir]
+      install_documentation "#{BUILD_CONFIG[:sourcedir]}/library", BUILD_CONFIG[:stagingdir]
     end
   end
 
