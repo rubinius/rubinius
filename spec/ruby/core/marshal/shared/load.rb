@@ -706,6 +706,13 @@ describe :marshal_load, :shared => true do
       Marshal.load(Marshal.dump(t)).instance_variable_get(:@foo).should == 'bar'
     end
 
+    it "loads Time objects stored as links" do
+      t = Time.new
+
+      t1, t2 = Marshal.load(Marshal.dump([t, t]))
+      t1.should equal t2
+    end
+
     ruby_version_is "2.0" do
       it "loads the zone" do
         with_timezone 'AST', 3 do
