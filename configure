@@ -133,7 +133,7 @@ class Configure
 
     # Configure settings
     @build_ruby = nil
-    @config_version = 182
+    @config_version = 183
     @fetch_gems = true
   end
 
