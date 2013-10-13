@@ -685,7 +685,7 @@ module Marshal
       return 0 if c == 0
       return c - 5 if 4 < c and c < 128
 
-      # negative, but checked known it's instead in 2's compliment
+      # negative, but checked known it's instead in 2's complement
       return c - 251 if 252 > c and c > 127
 
       # otherwise c (now in the 1 to 4 range) indicates how many
