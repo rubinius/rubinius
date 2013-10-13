@@ -486,7 +486,7 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
       dir = File.dirname full_path
       Dir.mkdir dir unless File.exists? dir
 
-      uri = URI(url)
+      uri = url.kind_of?(URI) ? url : URI(url)
 
       if ENV['http_proxy']
         protocol, userinfo, host, port  = URI::split(ENV['http_proxy'])
