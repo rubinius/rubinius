@@ -720,6 +720,11 @@ describe :marshal_load, :shared => true do
           Marshal.load(Marshal.dump(t)).zone.should == t.zone
         end
       end
+
+      it "loads nanoseconds" do
+        t = Time.now
+        Marshal.load(Marshal.dump(t)).nsec.should == t.nsec
+      end
     end
   end
 
