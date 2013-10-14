@@ -93,7 +93,7 @@ module Rubinius
       def standard_library(name)
         gem_name = name.gsub(/\//, "-")
         gem_path = "#{Rubinius::GEMS_PATH}/gems/#{gem_name}-*/lib"
-        path = Dir[gem_path].first
+        path = Dir[gem_path].last
         $:.unshift path if path
         begin
           require name
