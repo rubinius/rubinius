@@ -94,11 +94,16 @@ class Time
   alias_method :to_s, :inspect
 
   def nsec
-    Rubinius.primitive :time_nseconds
-    raise PrimitiveFailure, "Time#nsec primitive failed"
+    @nanoseconds
   end
 
   alias_method :tv_nsec, :nsec
+
+  def usec
+    @nanoseconds / 1000
+  end
+
+  alias_method :tv_usec, :usec
 
   def subsec
     if nsec == 0
@@ -449,7 +454,6 @@ class Time
   alias_method :mday,       :day
   alias_method :to_i,       :seconds
   alias_method :tv_sec,     :seconds
-  alias_method :tv_usec,    :usec
   alias_method :utc,        :gmtime
   alias_method :isdst,      :dst?
   alias_method :utc_offset, :gmt_offset

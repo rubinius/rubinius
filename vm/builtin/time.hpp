@@ -17,12 +17,12 @@ namespace rubinius {
 
   private:
     time64_t seconds_;
-    long nanoseconds_;
 
     Array* decomposed_; // slot
     Object* is_gmt_;  // slot
     Object* offset_; // slot
     Object* zone_; // slot
+    Integer* nanoseconds_; // slot
 
   public:
     /* accessors */
@@ -30,6 +30,7 @@ namespace rubinius {
     attr_accessor(is_gmt, Object);
     attr_accessor(offset, Object);
     attr_accessor(zone, Object);
+    attr_accessor(nanoseconds, Integer);
 
     /* interface */
 
@@ -52,16 +53,6 @@ namespace rubinius {
     // Rubinius.primitive+ :time_seconds
     Integer* seconds(STATE) {
       return Integer::from(state, seconds_);
-    }
-
-    // Rubinius.primitive+ :time_useconds
-    Integer* useconds(STATE) {
-      return Integer::from(state, nanoseconds_ / 1000);
-    }
-
-    // Rubinius.primitive+ :time_nseconds
-    Integer* nseconds(STATE) {
-      return Integer::from(state, nanoseconds_);
     }
 
     // Rubinius.primitive :time_utc_offset
