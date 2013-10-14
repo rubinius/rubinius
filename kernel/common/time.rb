@@ -191,8 +191,10 @@ class Time
 
     if offset
       @offset = Rubinius::Type.coerce_to_utc_offset(offset)
+      @zone = nil
     else
       @offset = gmt_offset
+      @zone = Rubinius.invoke_primitive(:time_env_zone, self)
     end
 
     self
