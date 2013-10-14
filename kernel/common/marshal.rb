@@ -83,6 +83,15 @@ class Time
     extra_values[:offset] = gmt_offset unless gmt?
     extra_values[:zone] = zone.encode(Encoding.find('locale'))
 
+    if nsec > 0
+      # MRI serializes nanoseconds as a Rational using an
+      # obscure and implementation-dependent method.
+      # To keep compatibility we can just put nanoseconds
+      # in the numerator and set the denominator to 1.
+      extra_values[:nano_num] = nsec
+      extra_values[:nano_den] = 1
+    end
+
     ivars = ms.serializable_instance_variables(self, false)
     out << Rubinius::Type.binary_string("I")
     out << Rubinius::Type.binary_string("u#{ms.serialize(self.class.name.to_sym)}")
@@ -325,6 +334,12 @@ class Time
     if ivar_index and has_ivar[ivar_index]
       ms.set_instance_variables obj
       has_ivar[ivar_index] = false
+    end
+
+    nano_num = obj.instance_variable_get(:@nano_num)
+    nano_den = obj.instance_variable_get(:@nano_den)
+    if nano_num && nano_den
+      obj.send(:nsec=, Rational(nano_num, nano_den).to_i)
     end
 
     obj
