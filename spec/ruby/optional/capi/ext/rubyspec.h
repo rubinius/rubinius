@@ -410,6 +410,10 @@
 #define HAVE_RB_NUM_COERCE_RELOP           1
 #define HAVE_RB_NUM_ZERODIV                1
 
+/* Fixnum */
+#define HAVE_RB_FIX2UINT                   1
+#define HAVE_RB_FIX2INT                    1
+
 /* Object */
 #define HAVE_OBJ_TAINT                     1
 #define HAVE_OBJ_TAINTED                   1
