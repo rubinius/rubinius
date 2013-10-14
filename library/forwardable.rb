@@ -1,5 +1,1 @@
-begin
-  require "rubysl/forwardable"
-rescue LoadError => e
-  Rubinius::CodeLoader.missing_standard_library "rubysl-forwardable", e
-end
+Rubinius::CodeLoader.standard_library "rubysl/forwardable"
