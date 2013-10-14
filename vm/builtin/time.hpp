@@ -79,6 +79,9 @@ namespace rubinius {
     // Rubinius.primitive :time_strftime
     String* strftime(STATE, String* format);
 
+    // Rubinius.primitive :time_env_zone
+    String* env_zone(STATE);
+
     struct tm64 get_tm();
 
     class Info : public TypeInfo {
