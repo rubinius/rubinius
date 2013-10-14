@@ -55,11 +55,6 @@ namespace rubinius {
       return Integer::from(state, seconds_);
     }
 
-    // Rubinius.primitive+ :time_useconds
-    Integer* useconds(STATE) {
-      return Integer::from(state, nanoseconds_ / 1000);
-    }
-
     // Rubinius.primitive :time_utc_offset
     Object* utc_offset(STATE);
 

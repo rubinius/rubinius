@@ -23,11 +23,6 @@ class Time
     raise PrimitiveFailure, "Time#second primitive failed"
   end
 
-  def usec
-    Rubinius.primitive :time_useconds
-    raise PrimitiveFailure, "Time#usec primitive failed"
-  end
-
   def to_a
     Rubinius.primitive :time_decompose
     raise PrimitiveFailure, "Time#to_a primitive failed"

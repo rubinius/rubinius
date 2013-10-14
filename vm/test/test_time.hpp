@@ -19,7 +19,6 @@ public:
     Time* tm = Time::now(state, G(time_class));
 
     TS_ASSERT(kind_of<Integer>(tm->seconds(state)));
-    TS_ASSERT(kind_of<Integer>(tm->useconds(state)));
     TS_ASSERT_EQUALS(tm->is_gmt(), cFalse);
   }
 };
