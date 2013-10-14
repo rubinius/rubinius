@@ -86,6 +86,22 @@ module Rubinius
       attr_accessor :bootstrap_load_path
       attr_accessor :runtime_load_path
 
+      # First attempts to load the standard library 'name' with the existing
+      # $LOAD_PATH or through whatever mechanism has hooked #require. If a
+      # LoadError is raised, attempts to find the standard library gem in the
+      # default gems path, otherwise raises LoadError.
+      def standard_library(name)
+        gem_name = name.gsub(/\//, "-")
+        gem_path = "#{Rubinius::GEMS_PATH}/gems/#{gem_name}-*/lib"
+        path = Dir[gem_path].first
+        $:.unshift path if path
+        begin
+          require name
+        rescue LoadError => e
+          missing_standard_library gem_name, e
+        end
+      end
+
       # Raises a LoadError with an informative message when a require for a
       # gemified standard library fails.
       def missing_standard_library(name, exc=nil)
