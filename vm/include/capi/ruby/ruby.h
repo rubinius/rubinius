@@ -458,6 +458,28 @@ struct RFile {
 /** Convert a VALUE into an unsigned long int. */
 #define NUM2ULONG(x)      rb_num2ulong((VALUE)x)
 
+#if SIZEOF_INT < SIZEOF_LONG
+
+/** Convert a Fixnum into an int. */
+long rb_fix2int(VALUE);
+
+/** Convert a Fixnum into an unsigned int. */
+unsigned long rb_fix2uint(VALUE);
+
+/** Convert a Fixnum into an int. */
+#define FIX2INT(x) ((int)rb_fix2int((VALUE)(x)))
+
+/** Convert a VALUE into an int. */
+#define NUM2INT(x) ((int)rb_num2int(x))
+
+/** Convert a Fixnum into an unsigned int. */
+#define FIX2UINT(x) ((unsigned int)rb_fix2uint(x))
+
+/** Convert a VALUE into an unsigned int. */
+#define NUM2UINT(x) ((unsigned int)rb_num2uint(x))
+
+#else
+
 /** Convert a VALUE into an int. */
 #define NUM2INT(x)        ((int)NUM2LONG(x))
 
@@ -469,6 +491,8 @@ struct RFile {
 
 /** Convert a Fixnum into an unsigned int. */
 #define FIX2UINT(x)       ((unsigned int)FIX2ULONG(x))
+
+#endif
 
 /** Get a handle for the Symbol object represented by ID. */
 #define ID2SYM(id)        (id)
