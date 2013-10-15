@@ -60,7 +60,7 @@ class Integer < Numeric
     return self if undefined.equal? ndigits
 
     if ndigits.kind_of? Numeric
-      if ndigits > Fixnum::MAX or ndigits < Fixnum::MIN
+      if ndigits > Fixnum::MAX or ndigits <= Fixnum::MIN
         raise RangeError, "precision is outside of the range of Fixnum"
       end
     end
