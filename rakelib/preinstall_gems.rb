@@ -24,7 +24,7 @@ options = {
 gems.each do |name, version|
   next if File.directory? "#{install_dir}/gems/#{name}-#{version}"
 
-  file = File.expand_path "../../preinstalled-gems/#{name}-#{version}.gem", __FILE__
+  file = File.expand_path "../../vendor/cache/#{name}-#{version}.gem", __FILE__
   installer = Gem::Installer.new file, options
   spec = installer.install
   puts "Installed #{spec.name} (#{spec.version})"

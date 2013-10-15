@@ -91,5 +91,5 @@ web/doc/*/*.new
 vm/dtrace/probes.h
 
 # Ignore rubygems except bundled ones
-preinstalled-gems/*
-!preinstalled-gems/json-1.8.0.gem
+vendor/cache/*
+!vendor/cache/json-1.8.0.gem

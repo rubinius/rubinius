@@ -1945,7 +1945,7 @@ int main() { return tgetnum(""); }
     @log.write "\nFetching gems..."
     gems = @build_tool_gems + @build_c_ext_gems + @rubygems_gems + @runtime_gems
 
-    gems_cache = File.expand_path "../preinstalled-gems", __FILE__
+    gems_cache = File.expand_path "../vendor/cache", __FILE__
     FileUtils.mkdir_p gems_cache
 
     Dir.chdir gems_cache do
@@ -1985,7 +1985,7 @@ int main() { return tgetnum(""); }
     end
 
     # Unpack gems not found for these configure settings
-    gem_sources = File.expand_path "../preinstalled-gems", __FILE__
+    gem_sources = File.expand_path "../vendor/cache", __FILE__
 
     Dir.chdir runtime_gems do
       gems.each do |name, version|
