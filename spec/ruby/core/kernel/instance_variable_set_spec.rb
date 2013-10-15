@@ -26,9 +26,18 @@ describe "Kernel#instance_variable_set" do
     lambda { DigitDog.new.instance_variable_set(:"@0", "cat") }.should raise_error(NameError)
   end
 
-  it "sets the value of the instance variable if argument is '@'" do
-    class DogAt; end
-    DogAt.new.instance_variable_set(:'@', "cat").should == "cat"
+  ruby_version_is "" ... "2.1" do
+    it "sets the value of the instance variable if argument is '@'" do
+      class DogAt; end
+      DogAt.new.instance_variable_set(:'@', "cat").should == "cat"
+    end
+  end
+
+  ruby_version_is "2.1" do
+    it "raises a NameError when the argument is '@'" do
+      class DogAt; end
+      lambda { DogAt.new.instance_variable_set(:"@", "cat") }.should raise_error(NameError)
+    end
   end
 
   ruby_version_is ""..."1.9" do
