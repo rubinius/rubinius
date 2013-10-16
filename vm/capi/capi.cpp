@@ -411,7 +411,7 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     env->shared().capi_constant_lock().lock();
-    CApiConstantHandleMap map = env->state()->shared().capi_constant_handle_map();
+    CApiConstantHandleMap& map = env->state()->shared().capi_constant_handle_map();
 
     CApiConstantHandleMap::iterator entry = map.find(type);
     if(entry == map.end()) {
