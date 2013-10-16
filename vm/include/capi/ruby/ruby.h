@@ -293,7 +293,7 @@ struct RFloat {
 };
 
 #define RFLOAT(d)       capi_rfloat_struct(d)
-#define RFLOAT_VALUE(d) RFLOAT(d)->value
+#define RFLOAT_VALUE(d) capi_rfloat_value(d)
 
 // Do not define these messages as strings. We want a syntax error.
 #define RHASH(obj)      ({ C_API_RHASH_is_not_supported_in_Rubinius })

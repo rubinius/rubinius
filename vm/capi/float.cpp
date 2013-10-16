@@ -54,6 +54,14 @@ extern "C" {
     return handle->as_rfloat(env);
   }
 
+  double capi_rfloat_value(VALUE flt) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Handle* handle = Handle::from(flt);
+    Float* f = c_as<Float>(handle->object());
+    return f->to_double(env->state());
+  }
+
   VALUE rb_float_new(double val) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     return env->get_handle(Float::create(env->state(), val));
