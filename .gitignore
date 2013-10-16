@@ -1,6 +1,7 @@
 artifacts/
 *.a
 *.bundle
+!.bundle
 *.dSYM
 *.dot
 *.dylib
@@ -8,7 +9,6 @@ artifacts/
 *.lo
 *.o
 *.so
-*.bundle
 *.rbc
 .rbx
 *.so
