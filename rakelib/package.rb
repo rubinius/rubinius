@@ -21,28 +21,11 @@ def write_sha1_digest_file(filename)
   puts "Computed SHA1 to #{digest_file}"
 end
 
-def decode_release_label(label)
-  case label
-  when /^n\d+$/
-    "nightly"
-  when /^w\d+$/
-    "weekly"
-  when /^m\d+$/
-    "monthly"
-  when /^$/
-    "final"
-  else
-    label
-  end
-end
-
 class RubiniusPackager
   attr_writer :ruby_version, :release, :prefix, :root, :bin, :config, :archive, :package
 
   def initialize(options={})
     @ruby_version = options[:ruby_version]
-    @release_type = options[:release]
-    @release_date = options[:release_date]
     @prefix = options[:prefix]
     @root = options[:root]
     @bin = options[:bin]
@@ -61,37 +44,18 @@ class RubiniusPackager
   end
 
   def rbx_version
-    BUILD_CONFIG[:version].match(/^(\d+\.\d+\.\d+)/)[0]
-  end
-
-  # "nightly", "weekly", "monthly". no value indicates standard release
-  def release_type
-    @release_type
-  end
-
-  def release_label
-    BUILD_CONFIG[:release] unless BUILD_CONFIG[:release].empty?
-  end
-
-  def release_date
-    @release_date || DateTime.now.strftime("%F")
+    BUILD_CONFIG[:version]
   end
 
   # passed verbatim to --prefix
   def prefix
     default = "/rubinius/#{rbx_version}"
-    default += ".#{release_label}" if release_label
-    default += "-#{ruby_version}" if single_version?
     @prefix || default
   end
 
   # root directory of the build
   def root
-    if BUILD_CONFIG[:stagingdir]
-      default = BUILD_CONFIG[:stagingdir][0...-BUILD_CONFIG[:prefixdir].size]
-    else
-      default = BUILD_CONFIG[:sourcedir]
-    end
+    default = BUILD_CONFIG[:build_prefix]
     @root || default
   end
 
@@ -103,9 +67,6 @@ class RubiniusPackager
   # any configure options
   def config
     config = ["--prefix=#{prefix} --preserve-prefix"]
-    config << "--enable-version=#{ruby_version}" if single_version?
-    config << "--release=#{release_type}" if release_type
-    config << "--release-date=#{release_date}"
     config << @config
     config.join(" ")
   end
@@ -118,20 +79,7 @@ class RubiniusPackager
   # name of the final package file minus #archive
   def package
     default = "rubinius-#{rbx_version}"
-    case release_type
-    when /^rc\d+/
-      default += "-#{release_type}"
-    when "final", nil
-      # stable release, no release label
-    else
-      default += "-#{release_type}#{date_stamp}"
-    end
-    default += "-d#{ruby_version}" if single_version?
     @package || default
-  end
-
-  def date_stamp
-    Time.now.strftime("%Y%m%d")
   end
 
   def create_archive(package_name)
