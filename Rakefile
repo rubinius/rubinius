@@ -208,16 +208,6 @@ task :spec => %w[build vm:test] do
   spec_runner.run
 end
 
-task :travis do
-  BUILD_CONFIG[:supported_versions].each do |version|
-    sh "./configure --enable-version=#{version}"
-    rm_rf BUILD_CONFIG[:prefixdir] + BUILD_CONFIG[:gemsdir]
-    sh "rake extensions:clean build vm:test"
-    spec_runner.run :travis
-  end
-  check_status
-end
-
 desc "Print list of items marked to-do in kernel/ (@todo|TODO)"
 task :todos do
 
