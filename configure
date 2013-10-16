@@ -1649,7 +1649,7 @@ int main() { return tgetnum(""); }
       :patch_version      => @patch_version,
       :libversion         => @libversion,
       :release_date       => @release_date || default_release_date,
-      :revision           => read_revision,
+      :revision           => build_revision,
       :config_version     => @config_version,
       :windows            => @windows,
       :darwin             => @darwin,
@@ -1747,7 +1747,7 @@ int main() { return tgetnum(""); }
 
     # Write release and version header files.
     record_revision
-    write_release @vm_release_h, version, @release_date, read_revision
+    write_release @vm_release_h, version, @release_date, build_revision
 
     # Write the rubinius-specific C-API config headers.
     vm_capi_header_gen = "#{@capi_includedir}/gen"
