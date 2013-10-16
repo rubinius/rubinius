@@ -22,25 +22,15 @@ def write_sha1_digest_file(filename)
 end
 
 class RubiniusPackager
-  attr_writer :ruby_version, :release, :prefix, :root, :bin, :config, :archive, :package
+  attr_writer :prefix, :root, :bin, :config, :archive, :package
 
   def initialize(options={})
-    @ruby_version = options[:ruby_version]
     @prefix = options[:prefix]
     @root = options[:root]
     @bin = options[:bin]
     @config = options[:config]
     @archive = options[:archive]
     @package = options[:package]
-  end
-
-  # eg "18", "1.8", "18,19", "1.8,1.9"
-  def ruby_version
-    (@ruby_version || "18").gsub(/\s|\./, "")
-  end
-
-  def single_version?
-    not ruby_version.index(",")
   end
 
   def rbx_version
