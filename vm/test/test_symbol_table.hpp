@@ -52,7 +52,7 @@ public:
 
     TS_ASSERT_EQUALS(cTrue, str1->equal(state, str3));
     TS_ASSERT_EQUALS(cTrue, str2->equal(state, str4));
-    TS_ASSERT_EQUALS(symbols->all_as_array(state)->size(), 2U);
+    TS_ASSERT_EQUALS(symbols->all_as_array(state)->size(), 2);
   }
 
   void notest_lookup_colliding_hash() {
