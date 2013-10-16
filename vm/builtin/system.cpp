@@ -1183,7 +1183,7 @@ namespace rubinius {
 
     Object* res = Helpers::const_get(state, calling_environment, sym, &reason);
 
-    if(reason != vFound || kind_of<Autoload>(res)) {
+    if(reason != vFound) {
       return Primitives::failure();
     }
 
