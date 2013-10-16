@@ -76,11 +76,19 @@ namespace rubinius {
       return recv_;
     }
 
+    Object*& recv_location() {
+      return recv_;
+    }
+
     void set_recv(Object* val) {
       recv_ = val;
     }
 
     Object* block() const {
+      return block_;
+    }
+
+    Object*& block_location() {
       return block_;
     }
 
@@ -93,6 +101,10 @@ namespace rubinius {
     }
 
     Object** arguments() const {
+      return arguments_;
+    }
+
+    Object**& arguments_location() {
       return arguments_;
     }
 
@@ -122,10 +134,6 @@ namespace rubinius {
 
     void use_tuple(Tuple* tup, uint32_t size) {
       use_tuple(tup, size, 0);
-    }
-
-    Tuple*& argument_container_location() {
-      return argument_container_;
     }
 
     Array* as_array(STATE);

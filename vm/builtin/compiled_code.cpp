@@ -207,7 +207,10 @@ namespace rubinius {
       const char* reason = 0;
       int ip = -1;
 
-      OnStack<4> os(state, code, exec, mod, args.argument_container_location());
+      OnStack<5> os(state, code, exec, mod, args.recv_location(), args.block_location());
+
+      VariableRootBuffer vrb(state->vm()->current_root_buffers(),
+                             &args.arguments_location(), args.total());
       GCTokenImpl gct;
 
       if(!code->internalize(state, gct, call_frame, &reason, &ip)) {

@@ -68,7 +68,9 @@ namespace rubinius {
     MachineCode* mcode = env->compiled_code_->machine_code();
 
     if(!mcode) {
-      OnStack<2> os(state, env, args.argument_container_location());
+      OnStack<3> os(state, env, args.recv_location(), args.block_location());
+      VariableRootBuffer vrb(state->vm()->current_root_buffers(),
+                             &args.arguments_location(), args.total());
       GCTokenImpl gct;
 
       mcode = env->machine_code(state, gct, previous);
