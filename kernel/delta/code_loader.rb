@@ -92,7 +92,7 @@ module Rubinius
       # default gems path, otherwise raises LoadError.
       def standard_library(name)
         gem_name = name.gsub(/\//, "-")
-        gem_path = "#{Rubinius::GEMS_PATH}/gems/#{gem_name}-*/lib"
+        gem_path = "#{Rubinius::GEMS_PATH}/gems/#{gem_name}-[0-9]*/lib"
         path = Dir[gem_path].last
         $:.unshift path if path
         begin
