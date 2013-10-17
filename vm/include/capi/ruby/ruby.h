@@ -716,6 +716,7 @@ VALUE rb_uint2big(unsigned long number);
   struct RFloat* capi_rfloat_struct(VALUE data);
   struct RIO* capi_rio_struct(VALUE handle);
   struct RFile* capi_rfile_struct(VALUE file);
+  double capi_rfloat_value(VALUE flt);
 
 /* Real API */
 
@@ -1904,6 +1905,9 @@ struct RTypedData {
   /** Return a new time object based on the given offset from the epoch */
   VALUE   rb_time_new(time_t sec, long usec);
   VALUE   rb_time_nano_new(time_t sec, long nsec);
+
+#define HAVE_RB_TIME_NEW 1
+#define HAVE_RB_TIME_NANO_NEW 1
 
   /** Returns an integer value representing the object's type. */
   int     rb_type(VALUE object);
