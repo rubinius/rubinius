@@ -586,6 +586,10 @@
 #define HAVE_RB_TIME_NEW                   1
 #ifdef RUBY_VERSION_IS_1_9
 #define HAVE_RB_TIME_NANO_NEW              1
+#define HAVE_RB_TIME_NUM_NEW               1
+#define HAVE_RB_TIME_INTERVAL              1
+#define HAVE_RB_TIME_TIMEVAL               1
+#define HAVE_RB_TIME_TIMESPEC              1
 #endif
 
 /* Util */
