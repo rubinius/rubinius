@@ -411,8 +411,10 @@
 #define HAVE_RB_NUM_ZERODIV                1
 
 /* Fixnum */
+#if SIZEOF_INT < SIZEOF_LONG
 #define HAVE_RB_FIX2UINT                   1
 #define HAVE_RB_FIX2INT                    1
+#endif
 
 /* Object */
 #define HAVE_OBJ_TAINT                     1
