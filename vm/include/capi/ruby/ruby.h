@@ -1905,9 +1905,17 @@ struct RTypedData {
   /** Return a new time object based on the given offset from the epoch */
   VALUE   rb_time_new(time_t sec, long usec);
   VALUE   rb_time_nano_new(time_t sec, long nsec);
+  VALUE   rb_time_num_new(VALUE ts, VALUE offset);
+  struct timeval rb_time_interval(VALUE num);
+  struct timeval rb_time_timeval(VALUE time);
+  struct timespec rb_time_timespec(VALUE time);
 
 #define HAVE_RB_TIME_NEW 1
 #define HAVE_RB_TIME_NANO_NEW 1
+#define HAVE_RB_TIME_NUM_NEW 1
+#define HAVE_RB_TIME_INTERVAL 1
+#define HAVE_RB_TIME_TIMEVAL 1
+#define HAVE_RB_TIME_TIMESPEC 1
 
   /** Returns an integer value representing the object's type. */
   int     rb_type(VALUE object);
