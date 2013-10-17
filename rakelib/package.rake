@@ -19,11 +19,12 @@ namespace :package do
     write_sha1_digest_file prebuilt_archive
   end
 
-  desc "Create a tarball from the source"
+  desc "Create a release tarball from the source"
   task :tar do
-    stamp = Time.now.strftime("%Y%m%d")
-    archive = "rubinius-#{RBX_VERSION}-#{stamp}.tar.gz"
-    sh "git archive --format=tar --prefix=rubinius-#{RBX_VERSION}/ HEAD | gzip > #{archive}"
+    archive = "rubinius-#{BUILD_CONFIG[:version]}.tar.bz2"
+    files = "{ git ls-files; ls config.rb; ls vendor/cache/*.gem; }"
+    prefix = "-s '|^|rubinius-#{BUILD_CONFIG[:version]}/|'"
+    sh "#{files} | sort | uniq | tar -c #{prefix} -T - -f - | bzip2 > #{archive}"
 
     write_md5_digest_file archive
     write_sha1_digest_file archive
