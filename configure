@@ -14,6 +14,9 @@ require 'net/http'
 require 'gems'
 require 'redcard'
 
+module Rubinius
+  BUILD_CONFIG = {}
+end
 
 root = File.expand_path File.dirname(__FILE__)
 
@@ -1662,10 +1665,10 @@ int main() { return tgetnum(""); }
 
     release_config = {
       :config_file        => @config,
-      :build_tool_gems    => BUILD_CONFIG[:build_tool_gems] || @build_tool_gems,
-      :build_c_ext_gems   => BUILD_CONFIG[:build_c_ext_gems] || @build_c_ext_gems,
-      :rubygems_gems      => BUILD_CONFIG[:rubygems_gems] || @rubygems_gems,
-      :runtime_gems       => BUILD_CONFIG[:runtime_gems] || @runtime_gems,
+      :build_tool_gems    => Rubinius::BUILD_CONFIG[:build_tool_gems] || @build_tool_gems,
+      :build_c_ext_gems   => Rubinius::BUILD_CONFIG[:build_c_ext_gems] || @build_c_ext_gems,
+      :rubygems_gems      => Rubinius::BUILD_CONFIG[:rubygems_gems] || @rubygems_gems,
+      :runtime_gems       => Rubinius::BUILD_CONFIG[:runtime_gems] || @runtime_gems,
       :version            => version,
       :libversion         => @libversion,
       :patch_version      => @patch_version,
@@ -2016,8 +2019,6 @@ int main() { return tgetnum(""); }
     if File.exists? @config
       begin
         load @config
-        Object.const_set :BUILD_CONFIG, Rubinius::BUILD_CONFIG
-        verify_config = true
       rescue Object => e
         # ignore errors if not building from a release tarball
         if @release_config
@@ -2051,7 +2052,7 @@ int main() { return tgetnum(""); }
 
     return if @release_config
 
-    check_force_clean if verify_config
+    check_force_clean
 
     print_debug if @verbose
 
