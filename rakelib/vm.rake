@@ -223,16 +223,7 @@ file transcoders_database => [transcoders_lib_dir, transcoders_extract] do |t|
 end
 
 task vm_release_h do |t|
-  if git_directory
-    date = validate_revision ? BUILD_CONFIG[:release_date] : default_release_date
-    write_release t.name, BUILD_CONFIG[:version], date, build_revision
-  elsif File.file? release_revision
-    unless File.exists? t.name
-      write_release t.name, BUILD_CONFIG[:version], default_release_date, build_revision
-    end
-  else
-    write_release t.name, BUILD_CONFIG[:version], BUILD_CONFIG[:release_date], build_revision
-  end
+  write_release t.name, BUILD_CONFIG[:version], BUILD_CONFIG[:release_date]
 end
 
 file 'vm/gen/config_variables.h' => %w[library/rubinius/configuration.rb config.rb] do |t|

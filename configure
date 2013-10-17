@@ -118,10 +118,64 @@ class Configure
     @use_bin_links = true
 
     # Gems
-    @build_tool_gems = nil
-    @build_c_ext_gems = nil
-    @rubygems_gems = nil
-    @runtime_gems = nil
+    #
+    # Rubinius build tools
+    @build_tool_gems = [
+      [ "rubinius-ast", "2.0" ],
+      [ "rubinius-compiler", "2.0" ],
+      [ "rubinius-melbourne", "2.0" ],
+      [ "rubinius-processor", "2.0" ],
+      [ "rubinius-toolset", "0.1" ],
+      [ "ffi2-generators", "0.1" ]
+    ]
+
+    # Standard library gems for building gem C-extensions
+    @build_c_ext_gems = [
+      [ "rubysl-etc", "2.0" ],
+      [ "rubysl-fileutils", "2.0" ],
+      [ "rubysl-mkmf", "2.0" ],
+      [ "rubysl-shellwords", "2.0" ]
+    ]
+
+    # Standard library gems to bootstrap rubygems
+    @rubygems_gems = [
+      [ "psych", "2.0" ],
+      [ "rubysl-date", "2.0" ],
+      [ "rubysl-delegate", "2.0" ],
+      [ "rubysl-digest", "2.0" ],
+      [ "rubysl-fcntl", "2.0" ],
+      [ "rubysl-monitor", "2.0" ],
+      [ "rubysl-net-http", "2.0" ],
+      [ "rubysl-net-protocol", "2.0" ],
+      [ "rubysl-openssl", "2.0" ],
+      [ "rubysl-optparse", "2.0" ],
+      [ "rubysl-ostruct", "2.0" ],
+      [ "rubysl-resolv", "2.0" ],
+      [ "rubysl-socket", "2.0" ],
+      [ "rubysl-stringio", "2.0" ],
+      [ "rubysl-strscan", "2.0" ],
+      [ "rubysl-tempfile", "2.0" ],
+      [ "rubysl-thread", "2.0" ],
+      [ "rubysl-time", "2.0" ],
+      [ "rubysl-timeout", "2.0" ],
+      [ "rubysl-tmpdir", "2.0" ],
+      [ "rubysl-tsort", "2.0" ],
+      [ "rubysl-uri", "2.0" ],
+      [ "rubysl-yaml", "2.0" ],
+      [ "rubysl-zlib", "2.0" ]
+    ]
+
+    # Preinstalled runtime gems
+    @runtime_gems = [
+      [ "json", "1.8" ],
+      [ "rake", "10.1" ],
+      [ "rdoc", "4.0" ],
+      [ "rubysl-rake", "2.0" ],
+      [ "ffi2-generators", "0.1" ],
+      [ "rubinius-profiler", "2.0" ],
+      [ "rubinius-coverage", "2.0" ],
+      [ "rubinius-debugger", "2.0" ],
+    ]
 
     # Vendored library settings
     @vendored_libdir = root + "/vendor"
@@ -134,7 +188,8 @@ class Configure
     # Configure settings
     @build_ruby = nil
     @config_version = 183
-    @fetch_gems = true
+    @release_build = !git_directory
+    @release_config = false
   end
 
   # Set up system commands to run in cmd.exe on Windows. Either Windows
@@ -255,10 +310,6 @@ class Configure
       @log.replace old_log
     end
 
-    o.on "--skip-gems", "Don't fetch gems" do
-      @fetch_gems = false
-    end
-
     o.on "--rake", "NAME", "Use NAME as 'rake' during build" do |name|
       @rake = name
     end
@@ -273,6 +324,14 @@ class Configure
 
     o.on "--gem", "NAME", "Use NAME as 'gem' during build" do |name|
       @gem = name
+    end
+
+    o.on "--release-build", "Build from local files instead of accessing the network" do
+      @release_build = true
+    end
+
+    o.on "--release-config", "Write configuration settings for release builds" do
+      @release_config = true
     end
 
     o.doc "\n Compiler settings"
@@ -1274,6 +1333,17 @@ int main() { return tgetnum(""); }
       @include_dirs << "#{@vendored_libdir}/zlib"
       @lib_dirs     << "#{@vendored_libdir}/zlib"
     end
+
+    if @features["stdlib"].value
+      @runtime_gems.concat [
+        [ "rubysl", "2.0" ],
+      ]
+    else
+      @runtime_gems.concat [
+        [ "rubysl-irb", "2.0" ],
+        [ "rubysl-prettyprint", "2.0" ],
+      ]
+    end
   end
 
   def detect_features
@@ -1581,6 +1651,8 @@ int main() { return tgetnum(""); }
   end
 
   def write_configure_files
+    @log.write "\nWriting configuration files..."
+
     unless @use_llvm
       @llvm = :no
       @llvm_configure = ""
@@ -1588,9 +1660,23 @@ int main() { return tgetnum(""); }
 
     @bin_links.delete @program_name
 
-    config_settings = {
-      :command_line       => @command_line,
+    release_config = {
       :config_file        => @config,
+      :build_tool_gems    => BUILD_CONFIG[:build_tool_gems] || @build_tool_gems,
+      :build_c_ext_gems   => BUILD_CONFIG[:build_c_ext_gems] || @build_c_ext_gems,
+      :rubygems_gems      => BUILD_CONFIG[:rubygems_gems] || @rubygems_gems,
+      :runtime_gems       => BUILD_CONFIG[:runtime_gems] || @runtime_gems,
+      :version            => version,
+      :libversion         => @libversion,
+      :patch_version      => @patch_version,
+      :release_date       => @release_date || default_release_date,
+      :revision           => build_revision,
+      :config_version     => @config_version,
+      :vm_release_h       => @vm_release_h,
+    }
+
+    build_config = {
+      :command_line       => @command_line,
       :build_ruby         => build_ruby,
       :build_rake         => @rake,
       :build_perl         => @perl,
@@ -1645,24 +1731,18 @@ int main() { return tgetnum(""); }
       :program_name       => @program_name,
       :bin_links          => @bin_links,
       :use_bin_links      => @use_bin_links,
-      :version            => version,
-      :patch_version      => @patch_version,
-      :libversion         => @libversion,
-      :release_date       => @release_date || default_release_date,
-      :revision           => build_revision,
-      :config_version     => @config_version,
       :windows            => @windows,
       :darwin             => @darwin,
       :bsd                => @bsd,
       :linux              => @linux,
       :vendor_zlib        => @features["vendor-zlib"].value,
-      :vm_release_h       => @vm_release_h,
-      :supported_versions => @supported_versions,
-      :build_tool_gems    => @build_tool_gems,
-      :build_c_ext_gems   => @build_c_ext_gems,
-      :rubygems_gems      => @rubygems_gems,
-      :runtime_gems       => @runtime_gems
     }
+
+    if @release_config
+      config_settings = release_config
+    else
+      config_settings = release_config.merge build_config
+    end
 
     write_config_rb @config, config_settings
 
@@ -1745,9 +1825,8 @@ int main() { return tgetnum(""); }
       write_sizeof_defines f
     end
 
-    # Write release and version header files.
-    record_revision
-    write_release @vm_release_h, version, @release_date, build_revision
+    # Write release header file.
+    write_release @vm_release_h, version, @release_date
 
     # Write the rubinius-specific C-API config headers.
     vm_capi_header_gen = "#{@capi_includedir}/gen"
@@ -1814,78 +1893,7 @@ int main() { return tgetnum(""); }
   end
 
   def fetch_gems
-    return unless @fetch_gems
-
     @log.write "\nFetching bootstrap gems..."
-
-    # Rubinius build tools
-    @build_tool_gems = [
-      [ "rubinius-ast", "2.0" ],
-      [ "rubinius-compiler", "2.0" ],
-      [ "rubinius-melbourne", "2.0" ],
-      [ "rubinius-processor", "2.0" ],
-      [ "rubinius-toolset", "0.1" ],
-      [ "ffi2-generators", "0.1" ]
-    ]
-
-    # Standard library gems for building gem C-extensions
-    @build_c_ext_gems = [
-      [ "rubysl-etc", "2.0" ],
-      [ "rubysl-fileutils", "2.0" ],
-      [ "rubysl-mkmf", "2.0" ],
-      [ "rubysl-shellwords", "2.0" ]
-    ]
-
-    # Standard library gems to bootstrap rubygems
-    @rubygems_gems = [
-      [ "psych", "2.0" ],
-      [ "rubysl-date", "2.0" ],
-      [ "rubysl-delegate", "2.0" ],
-      [ "rubysl-digest", "2.0" ],
-      [ "rubysl-fcntl", "2.0" ],
-      [ "rubysl-monitor", "2.0" ],
-      [ "rubysl-net-http", "2.0" ],
-      [ "rubysl-net-protocol", "2.0" ],
-      [ "rubysl-openssl", "2.0" ],
-      [ "rubysl-optparse", "2.0" ],
-      [ "rubysl-ostruct", "2.0" ],
-      [ "rubysl-resolv", "2.0" ],
-      [ "rubysl-socket", "2.0" ],
-      [ "rubysl-stringio", "2.0" ],
-      [ "rubysl-strscan", "2.0" ],
-      [ "rubysl-tempfile", "2.0" ],
-      [ "rubysl-thread", "2.0" ],
-      [ "rubysl-time", "2.0" ],
-      [ "rubysl-timeout", "2.0" ],
-      [ "rubysl-tmpdir", "2.0" ],
-      [ "rubysl-tsort", "2.0" ],
-      [ "rubysl-uri", "2.0" ],
-      [ "rubysl-yaml", "2.0" ],
-      [ "rubysl-zlib", "2.0" ]
-    ]
-
-    # Preinstalled runtime gems
-    @runtime_gems = [
-      [ "json", "1.8" ],
-      [ "rake", "10.1" ],
-      [ "rdoc", "4.0" ],
-      [ "rubysl-rake", "2.0" ],
-      [ "ffi2-generators", "0.1" ],
-      [ "rubinius-profiler", "2.0" ],
-      [ "rubinius-coverage", "2.0" ],
-      [ "rubinius-debugger", "2.0" ],
-    ]
-
-    if @features["stdlib"].value
-      @runtime_gems.concat [
-        [ "rubysl", "2.0" ],
-      ]
-    else
-      @runtime_gems.concat [
-        [ "rubysl-irb", "2.0" ],
-        [ "rubysl-prettyprint", "2.0" ],
-      ]
-    end
 
     # Resolve requirements to specific versions.
     failed = false
@@ -1966,8 +1974,6 @@ int main() { return tgetnum(""); }
   end
 
   def unpack_gems
-    return unless @fetch_gems
-
     @log.write "\nUnpacking bootstrap gems..."
 
     gems = @build_tool_gems + @build_c_ext_gems + @rubygems_gems
@@ -2010,9 +2016,15 @@ int main() { return tgetnum(""); }
     if File.exists? @config
       begin
         load @config
+        Object.const_set :BUILD_CONFIG, Rubinius::BUILD_CONFIG
         verify_config = true
-      rescue Object
-        # ignore errors
+      rescue Object => e
+        # ignore errors if not building from a release tarball
+        if @release_config
+          @log.write e.message
+          @log.write e.backtrace.join("\n")
+          failure "Unable to load release configuration"
+        end
       end
     end
 
@@ -2033,9 +2045,11 @@ int main() { return tgetnum(""); }
     end
 
     process
-    fetch_gems
-    unpack_gems
+    fetch_gems unless @release_build
+    unpack_gems unless @release_config
     write_configure_files
+
+    return if @release_config
 
     check_force_clean if verify_config
 
