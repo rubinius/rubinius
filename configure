@@ -184,9 +184,9 @@ class Configure
     @vendored_libdir = root + "/vendor"
 
     # Essential settings (modify these for creating releases)
-    @libversion = "2.0"
+    @libversion = "2.1"
     @patch_version = "0"
-    @release_date = nil
+    @release_date = "2013-10-18"
 
     # Configure settings
     @build_ruby = nil
