@@ -72,7 +72,7 @@ def build_ruby
   @build_ruby
 end
 
-unless BUILD_CONFIG[:build_ruby] == build_ruby
+unless BUILD_CONFIG[:build_ruby] == build_ruby || ENV["RBX_SKIP_BUILD_RUBY_CHECK"]
   STDERR.puts "\nUnable to build using the running Ruby executable (#{build_ruby}). Expected #{BUILD_CONFIG[:build_ruby]}\n\n"
 
   STDERR.puts "To resolve this issue:"
