@@ -45,7 +45,11 @@ class RubiniusPackager
 
   # root directory of the build
   def root
-    default = BUILD_CONFIG[:build_prefix]
+    if BUILD_CONFIG[:stagingdir]
+      default = BUILD_CONFIG[:stagingdir][0...-BUILD_CONFIG[:prefixdir].size]
+    else
+      default = BUILD_CONFIG[:sourcedir]
+    end
     @root || default
   end
 

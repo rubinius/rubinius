@@ -184,6 +184,7 @@ class Configure
     @vendored_libdir = root + "/vendor"
 
     # Essential settings (modify these for creating releases)
+    @ruby_version = "2.1.0"
     @libversion = "2.1"
     @patch_version = "1"
     @release_date = nil
@@ -1669,6 +1670,7 @@ int main() { return tgetnum(""); }
       :build_c_ext_gems   => Rubinius::BUILD_CONFIG[:build_c_ext_gems] || @build_c_ext_gems,
       :rubygems_gems      => Rubinius::BUILD_CONFIG[:rubygems_gems] || @rubygems_gems,
       :runtime_gems       => Rubinius::BUILD_CONFIG[:runtime_gems] || @runtime_gems,
+      :ruby_version       => @ruby_version,
       :version            => version,
       :libversion         => @libversion,
       :patch_version      => @patch_version,

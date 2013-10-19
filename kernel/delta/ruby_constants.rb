@@ -2,7 +2,7 @@
 #
 
 RUBY_ENGINE       = "rbx"
-RUBY_VERSION      = "2.1.0"
+RUBY_VERSION      = Rubinius::RUBY_VERSION
 RUBY_PATCHLEVEL   = 0
 RUBY_PLATFORM     = "#{Rubinius::CPU}-#{Rubinius::OS}"
 RUBY_RELEASE_DATE = Rubinius::RELEASE_DATE.dup

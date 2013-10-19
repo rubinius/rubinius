@@ -23,6 +23,7 @@ def write_release(path, version, date)
   date ||= default_release_date
 
   File.open path, "wb" do |f|
+    f.puts %[#define RBX_RUBY_VERSION  "#{Rubinius::BUILD_CONFIG[:ruby_version]}"]
     f.puts %[#define RBX_VERSION       "#{version}"]
     f.puts %[#define RBX_RELEASE_DATE  "#{date}"]
     f.puts %[#define RBX_BUILD_REV     "#{build_revision}"]

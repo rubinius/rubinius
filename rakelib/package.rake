@@ -50,8 +50,7 @@ namespace :package do
 
   desc "Build a general Linux Heroku binary package"
   task :heroku do
-    ruby_version = "#{BUILD_CONFIG[:libversion]}.#{BUILD_CONFIG[:patch_version]}"
-    heroku_package = "ruby-#{ruby_version}-rbx-#{BUILD_CONFIG[:version]}"
+    heroku_package = "ruby-#{BUILD_CONFIG[:ruby_version]}-rbx-#{BUILD_CONFIG[:version]}"
 
     sh "rake package:binary_builder RBX_BINARY_PACKAGE=#{heroku_package} " \
        "RBX_BINARY_PREFIX=/app/vendor/#{heroku_package}"
