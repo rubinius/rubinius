@@ -1698,7 +1698,6 @@ namespace rubinius {
     }
 
     virtual void check_for_exception(llvm::Value* val, bool pass_top=true) = 0;
-    virtual void propagate_exception() = 0;
   };
 }
 

@@ -300,15 +300,6 @@ namespace rubinius {
       stack_push(phi);
     }
 
-    void propagate_exception() {
-      // If there are handlers...
-      if(has_exception_handler()) {
-        b().CreateBr(exception_handler());
-      } else {
-        b().CreateBr(bail_out_);
-      }
-    }
-
     BasicBlock* check_for_exception_then(Value* val, BasicBlock* cont,
                                          bool pass_top=true)
     {
