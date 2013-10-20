@@ -74,6 +74,8 @@ namespace rubinius {
     for(Stacks::iterator i = stacks_.begin(); i != stacks_.end(); ++i) {
       i->free();
     }
+
+    if(trampoline_) free(trampoline_);
   }
 
   void FiberStacks::gc_scan(GarbageCollector* gc, bool marked_only) {
