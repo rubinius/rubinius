@@ -22,11 +22,7 @@ namespace rubinius {
     G(integer)->set_object_type(state, IntegerType);
   }
 
-  native_int Integer::slow_to_native() {
-    if(fixnum_p()) {
-      return (force_as<Fixnum>(this))->to_native();
-    }
-
+  native_int Integer::bignum_to_native() {
     return as<Bignum>(this)->to_native();
   }
 
