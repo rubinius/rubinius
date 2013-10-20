@@ -305,7 +305,7 @@ namespace rubinius {
       if(has_exception_handler()) {
         b().CreateBr(exception_handler());
       } else {
-        b().CreateBr(bail_out_fast_);
+        b().CreateBr(bail_out_);
       }
     }
 
@@ -322,7 +322,7 @@ namespace rubinius {
       if(has_exception_handler()) {
         b().CreateCondBr(is_exception, exception_handler(), check_active);
       } else {
-        b().CreateCondBr(is_exception, bail_out_fast_, check_active);
+        b().CreateCondBr(is_exception, bail_out_, check_active);
       }
 
       set_block(check_active);
