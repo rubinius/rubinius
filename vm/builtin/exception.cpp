@@ -42,9 +42,9 @@ namespace rubinius {
   }
 
   const char* Exception::message_c_str(STATE) {
-    if(message()->nil_p()) return "<no message>";
+    if(reason_message()->nil_p()) return "<no message>";
 
-    if(String* str = try_as<String>(message())) {
+    if(String* str = try_as<String>(reason_message())) {
       return str->c_str(state);
     }
 
@@ -54,7 +54,7 @@ namespace rubinius {
   Exception* Exception::make_exception(STATE, Class* exc_class, const char* message) {
     Exception* exc = state->new_object<Exception>(exc_class);
 
-    exc->message(state, String::create(state, message));
+    exc->reason_message(state, String::create(state, message));
 
     return exc;
   }
@@ -263,7 +263,7 @@ namespace rubinius {
         message = str;
       }
     }
-    exc->message(state, message);
+    exc->reason_message(state, message);
 
     exc->set_ivar(state, state->symbol("@errno"),
                   exc_class->get_const(state, "Errno"));
@@ -435,7 +435,7 @@ namespace rubinius {
     Exception* exc = as<Exception>(self);
 
     class_header(state, self);
-    indent_attribute(++level, "message"); exc->message()->show(state, level);
+    indent_attribute(++level, "message"); exc->reason_message()->show(state, level);
     indent_attribute(level, "locations"); exc->locations()->show_simple(state, level);
     close_body(level);
   }

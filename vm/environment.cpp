@@ -557,8 +557,8 @@ namespace rubinius {
       std::ostringstream msg;
 
       msg << "exception detected at toplevel: ";
-      if(!exc->message()->nil_p()) {
-        if(String* str = try_as<String>(exc->message())) {
+      if(!exc->reason_message()->nil_p()) {
+        if(String* str = try_as<String>(exc->reason_message())) {
           msg << str->c_str(state);
         } else {
           msg << "<non-string Exception message>";

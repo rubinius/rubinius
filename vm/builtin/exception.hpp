@@ -28,14 +28,6 @@ namespace rubinius {
     attr_accessor(backtrace, Object);
     attr_accessor(custom_backtrace, Object);
 
-    Object* message() {
-      return reason_message_;
-    }
-
-    void message(STATE, Object* obj) {
-      reason_message(state, obj);
-    }
-
     /* interface */
 
     static void init(STATE);
