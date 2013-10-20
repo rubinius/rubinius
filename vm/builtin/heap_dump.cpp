@@ -280,11 +280,6 @@ namespace rubinius {
       return id;
     }
 
-    bool seen_object_p(Object* obj) const {
-      Identities::const_iterator i = ids.find(obj);
-      return i != ids.end();
-    }
-
     void dump_reference(STATE, Object* sub) {
       if(sub->reference_p()) {
         int sub_id = object_id(sub);
