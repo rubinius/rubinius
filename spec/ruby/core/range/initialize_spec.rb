@@ -25,4 +25,12 @@ describe "Range#initialize" do
     lambda { (1..3).__send__(:initialize, 1, 3, 5, 7, 9) }.
       should raise_error(ArgumentError)
   end
+
+  it "raises an ArgumentError if arguments don't respond to <=> but are Comparable" do
+    o1 = Object.new
+    o1.extend(Comparable)
+    o2 = Object.new
+    o2.extend(Comparable)
+    lambda { Range.new(o1, o2) }.should raise_error(ArgumentError)
+  end
 end
