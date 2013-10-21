@@ -8,7 +8,7 @@ module Comparable
       end
 
       return Comparable.compare_int(comp) == 0
-    rescue StandardError
+    rescue StandardError, SystemStackError
       return false
     end
   end
