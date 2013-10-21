@@ -2,11 +2,11 @@
 
 Gem::Specification.new do |spec|
   spec.name          = "rubinius"
-  spec.version       = "2.0.0"
+  spec.version       = "2.0.1"
   spec.authors       = ["Brian Shirai"]
   spec.email         = ["brixen@gmail.com"]
-  spec.description   = %q{A meta-gem for the Rubinius components that compile Ruby source code to bytecode.}
-  spec.summary       = %q{A meta-gem for the Rubinius build toolchain.}
+  spec.description   = %q{A meta-gem for all the Rubinius components that are provided as gems.}
+  spec.summary       = %q{A meta-gem for all the Rubinius components that are provided as gems.}
   spec.homepage      = "http://rubini.us"
   spec.license       = "BSD"
 
