@@ -78,7 +78,6 @@ namespace rubinius {
 
     // bail out destinations
     llvm::BasicBlock* bail_out_;
-    llvm::BasicBlock* bail_out_fast_;
 
     Value* method_entry_;
     Value* args_;
@@ -154,7 +153,7 @@ namespace rubinius {
       Value* isit = f.return_to_here.call(call_args, 2, "rth", b());
 
       BasicBlock* ret_raise_val = new_block("ret_raise_val");
-      bail_out_fast_ = new_block("ret_null");
+      BasicBlock* bail_out_fast_ = new_block("ret_null");
 
       start->moveAfter(bail_out_fast_);
 
