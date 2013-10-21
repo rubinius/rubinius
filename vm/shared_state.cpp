@@ -334,6 +334,7 @@ namespace rubinius {
     capi_constant_name_map_[cCApiComplex]    = "Complex";
     capi_constant_name_map_[cCApiEnumerator] = "Enumerable::Enumerator";
     capi_constant_name_map_[cCApiMutex]      = "Mutex";
+    capi_constant_name_map_[cCApiDir]        = "Dir";
 
     capi_constant_name_map_[cCApiArgumentError]       = "ArgumentError";
     capi_constant_name_map_[cCApiEOFError]            = "EOFError";

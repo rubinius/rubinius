@@ -375,6 +375,7 @@ struct RFile {
 #define rb_cEncoding          (capi_get_constant(cCApiEncoding))
 #define rb_cEnumerator        (capi_get_constant(cCApiEnumerator))
 #define rb_cMutex             (capi_get_constant(cCApiMutex))
+#define rb_cDir               (capi_get_constant(cCApiDir))
 
 /* Global Module objects. */
 
