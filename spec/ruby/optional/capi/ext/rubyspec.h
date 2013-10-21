@@ -171,6 +171,7 @@
 #define HAVE_RB_MENUMERABLE                1
 #define HAVE_RB_MERRNO                     1
 #define HAVE_RB_MKERNEL                    1
+#define HAVE_RB_CDIR                       1
 
 /* Data */
 #define HAVE_DATA_WRAP_STRUCT              1

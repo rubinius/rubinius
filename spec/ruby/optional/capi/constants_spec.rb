@@ -118,6 +118,11 @@ describe "C-API constant" do
   specify "rb_cMethod references the Method class" do
     @s.rb_cMethod.should == Method
   end
+
+  specify "rb_cDir references the Dir class" do
+    @s.rb_cDir.should == Dir
+  end
+
 end
 
 describe "C-API exception constant" do
