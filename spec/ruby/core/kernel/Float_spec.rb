@@ -139,6 +139,14 @@ describe :kernel_float, :shared => true do
     @object.send(:Float, "1 ").should == 1.0
   end
 
+  it "returns a value for a String with any leading whitespace" do
+    @object.send(:Float, "\t\n1").should == 1.0
+  end
+
+  it "returns a value for a String with any trailing whitespace" do
+    @object.send(:Float, "1\t\n").should == 1.0
+  end
+
   %w(e E).each do |e|
     it "raises an ArgumentError if #{e} is the trailing character" do
       lambda { @object.send(:Float, "2#{e}") }.should raise_error(ArgumentError)

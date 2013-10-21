@@ -38,6 +38,11 @@ describe "Kernel#open" do
       @output = open("|date") { |f| f.gets }
       @output.should_not == ''
     end
+
+    it "opens an io for writing" do
+      bytes = open("|cat", "w") { |io| io.write(".") }
+      bytes.should == 1
+    end
   end
 
   platform_is :windows do

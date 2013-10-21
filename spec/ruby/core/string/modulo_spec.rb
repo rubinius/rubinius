@@ -386,6 +386,7 @@ describe "String#%" do
       ("%-7#{f}" % 10).should == "10     "
       ("%04#{f}" % 10).should == "0010"
       ("%*#{f}" % [10, 4]).should == "         4"
+      ("%6.4#{f}" % 123).should == "  0123"
     end
 
     it "supports negative integers using #{format}" do
@@ -393,7 +394,9 @@ describe "String#%" do
       ("%3#{f}" % -5).should == " -5"
       ("%03#{f}" % -5).should == "-05"
       ("%+03#{f}" % -5).should == "-05"
+      ("%+.2#{f}" % -5).should == "-05"
       ("%-3#{f}" % -5).should == "-5 "
+      ("%6.4#{f}" % -123).should == " -0123"
     end
 
     # The following version inconsistency in negative-integers is explained in

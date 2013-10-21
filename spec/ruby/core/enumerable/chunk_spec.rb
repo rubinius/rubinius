@@ -3,6 +3,10 @@ require File.expand_path('../fixtures/classes', __FILE__)
 
 ruby_version_is "1.9" do
   describe "Enumerable#chunk" do
+    before do
+      ScratchPad.record []
+    end
+
     it "raises an ArgumentError if called without a block" do
       lambda do
         EnumerableSpecs::Numerous.new.chunk
@@ -13,79 +17,57 @@ ruby_version_is "1.9" do
       EnumerableSpecs::Numerous.new.chunk {}.should be_an_instance_of(enumerator_class)
     end
 
-    it "yields each element of the Enumerable to the block" do
-      yields = []
-      EnumerableSpecs::Numerous.new.chunk {|e| yields << e}.to_a
-      EnumerableSpecs::Numerous.new.to_a.should == yields
+    it "yields the current element and the current chunk to the block" do
+      e = EnumerableSpecs::Numerous.new(1, 2, 3)
+      e.chunk { |x| ScratchPad << x }.to_a
+      ScratchPad.recorded.should == [1, 2, 3]
     end
 
-    it "returns an Enumerator of 2-element Arrays" do
-      EnumerableSpecs::Numerous.new.chunk {|e| true}.each do |a|
-        a.should be_an_instance_of(Array)
-        a.size.should == 2
-      end
+    it "returns elements of the Enumerable in an Array of Arrays, [v, ary], where 'ary' contains the consecutive elements for which the block returned the value 'v'" do
+      e = EnumerableSpecs::Numerous.new(1, 2, 3, 2, 3, 2, 1)
+      result = e.chunk { |x| x < 3 && 1 || 0 }.to_a
+      result.should == [[1, [1, 2]], [0, [3]], [1, [2]], [0, [3]], [1, [2, 1]]]
     end
 
-    it "sets the first element of each sub-Array to the return value of the block" do
-      EnumerableSpecs::Numerous.new.chunk {|e| -e }.each do |a|
-        a.first.should == -a.last.first
-      end
+    it "returns elements for which the block returns :_alone in separate Arrays" do
+      e = EnumerableSpecs::Numerous.new(1, 2, 3, 2, 1)
+      result = e.chunk { |x| x < 2 && :_alone }.to_a
+      result.should == [[:_alone, [1]], [false, [2, 3, 2]], [:_alone, [1]]]
     end
 
-    it "sets the last element of each sub-Array to the consecutive values for which the block returned the first element" do
-      ret = EnumerableSpecs::Numerous.new(5,5,2,3,4,5,7,1,9).chunk {|e| e >= 5 }.to_a
-      ret[0].last.should == [5, 5]
-      ret[1].last.should == [2, 3, 4]
-      ret[2].last.should == [5, 7]
-      ret[3].last.should == [1]
-      ret[4].last.should == [9]
+    it "does not return elements for which the block returns :_separator" do
+      e = EnumerableSpecs::Numerous.new(1, 2, 3, 3, 2, 1)
+      result = e.chunk { |x| x == 2 ? :_separator : 1 }.to_a
+      result.should == [[1, [1]], [1, [3, 3]], [1, [1]]]
     end
 
-    it "sets a 2-element Array if the block returned :_alone" do
-      ret = EnumerableSpecs::Numerous.new(5,5,2,3,4,5,7,1,9).chunk {|e| e <= 3 && :_alone }.to_a
-      ret.should == [
-        [false,   [5, 5]],
-        [:_alone, [2]],
-        [:_alone, [3]],
-        [false,   [4, 5, 7]],
-        [:_alone, [1]],
-        [false,   [9]]
-      ]
+    it "does not return elements for which the block returns nil" do
+      e = EnumerableSpecs::Numerous.new(1, 2, 3, 2, 1)
+      result = e.chunk { |x| x == 2 ? nil : 1 }.to_a
+      result.should == [[1, [1]], [1, [3]], [1, [1]]]
     end
 
-    it "rejects 2-element Arrays if the block returned nil" do
-      ret = EnumerableSpecs::Numerous.new(5,5,2,3,4,5,7,1,9).chunk {|e| e <= 3 && nil }.to_a
-      ret.should == [
-        [false, [5, 5]],
-        [false, [4, 5, 7]],
-        [false, [9]]
-      ]
-    end
-
-    it "rejects 2-element Arrays if the block returned :_separator" do
-      ret = EnumerableSpecs::Numerous.new(5,5,2,3,4,5,7,1,9).chunk {|e| e <= 3 && :_separator }.to_a
-      ret.should == [
-        [false, [5, 5]],
-        [false, [4, 5, 7]],
-        [false, [9]]
-      ]
-    end
-
-    it "raises a RuntimeError if the block returned a Symbol that is undefined but reserved format (first character is an underscore)" do
-      lambda {
-        EnumerableSpecs::Numerous.new(5,5,2,3,4,5,7,1,9).chunk {|e| e <= 3 && :_singleton }.to_a
-      }.should raise_error(RuntimeError)
+    it "raises a RuntimeError if the block returns a Symbol starting with an underscore other than :_alone or :_separator" do
+      e = EnumerableSpecs::Numerous.new(1, 2, 3, 2, 1)
+      lambda { e.chunk { |x| :_arbitrary }.to_a }.should raise_error(RuntimeError)
     end
 
     describe "with [initial_state]" do
-      it "calls the block with initial_state that duplicated via dup before every first iteration" do
-        initial_state = {:memo => 0}.freeze
-        enum = [0, 1, 2, 3, 4, 5].chunk(initial_state) do |element, state|
-          state[:memo] += element
-          state[:memo].even?
-        end
-        enum.to_a.should == [[true, [0]], [false, [1, 2]], [true, [3, 4]], [false, [5]]]
-        enum.to_a.should == enum.to_a
+      it "yields an element and an object value-equal but not identical to the object passed to #chunk" do
+        e = EnumerableSpecs::Numerous.new(1)
+        value = "value"
+
+        e.chunk(value) do |x, v|
+          x.should == 1
+          v.should == value
+          v.should_not equal(value)
+        end.to_a
+      end
+
+      it "does not yield the object passed to #chunk if it is nil" do
+        e = EnumerableSpecs::Numerous.new(1)
+        e.chunk(nil) { |*x| ScratchPad << x }.to_a
+        ScratchPad.recorded.should == [[1]]
       end
     end
   end

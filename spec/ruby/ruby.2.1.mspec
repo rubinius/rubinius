@@ -1,8 +1,8 @@
-# Configuration file for Ruby 2.0-compatible Ruby implementations.
+# Configuration file for Ruby 2.1-compatible Ruby implementations.
 #
 # Unless you passed to --config (or -B) to MSpec, MSpec will automatically
 # use this config file if the Ruby interpreter with which MSpec advertises
-# itself with RUBY_VERSION =~ /2.0/
+# itself with RUBY_VERSION =~ /2.1/
 
 class MSpecScript
   # Language features specs
@@ -32,9 +32,9 @@ class MSpecScript
   set :backtrace_filter, /mspec\//
 
   set :tags_patterns, [
-                        [%r(language/),     'tags/2.0/language/'],
-                        [%r(core/),         'tags/2.0/core/'],
-                        [%r(command_line/), 'tags/2.0/command_line/'],
+                        [%r(language/),     'tags/2.1/language/'],
+                        [%r(core/),         'tags/2.1/core/'],
+                        [%r(command_line/), 'tags/2.1/command_line/'],
                         [/_spec.rb$/,       '_tags.txt']
                       ]
 

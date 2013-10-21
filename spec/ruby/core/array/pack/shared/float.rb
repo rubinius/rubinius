@@ -57,7 +57,8 @@ describe :array_pack_float_le, :shared => true do
   end
 
   it "encodes NaN" do
-    [nan_value].pack(pack_format).should == "\x00\x00\xc0\xff"
+    # mumble mumble NaN mumble https://bugs.ruby-lang.org/issues/5884
+    [nan_value].pack(pack_format).unpack(pack_format).first.nan?.should be_true
   end
 
   it "encodes a positive Float outside the range of a single precision float" do
@@ -126,7 +127,8 @@ describe :array_pack_float_be, :shared => true do
   end
 
   it "encodes NaN" do
-    [nan_value].pack(pack_format).should == "\xff\xc0\x00\x00"
+    # mumble mumble NaN mumble https://bugs.ruby-lang.org/issues/5884
+    [nan_value].pack(pack_format).unpack(pack_format).first.nan?.should be_true
   end
 
   it "encodes a positive Float outside the range of a single precision float" do
@@ -195,7 +197,8 @@ describe :array_pack_double_le, :shared => true do
   end
 
   it "encodes NaN" do
-    [nan_value].pack(pack_format).should == "\x00\x00\x00\x00\x00\x00\xf8\xff"
+    # mumble mumble NaN mumble https://bugs.ruby-lang.org/issues/5884
+    [nan_value].pack(pack_format).unpack(pack_format).first.nan?.should be_true
   end
 
   it "encodes a positive Float outside the range of a single precision float" do
@@ -264,7 +267,8 @@ describe :array_pack_double_be, :shared => true do
   end
 
   it "encodes NaN" do
-    [nan_value].pack(pack_format).should == "\xff\xf8\x00\x00\x00\x00\x00\x00"
+    # mumble mumble NaN mumble https://bugs.ruby-lang.org/issues/5884
+    [nan_value].pack(pack_format).unpack(pack_format).first.nan?.should be_true
   end
 
   it "encodes a positive Float outside the range of a single precision float" do

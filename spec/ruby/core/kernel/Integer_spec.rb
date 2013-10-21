@@ -67,13 +67,6 @@ describe :kernel_integer, :shared => true do
     Integer(obj).should == 1
   end
 
-  it "uncritically return the value of to_int even if it is not an Integer" do
-    obj = mock("object")
-    obj.should_receive(:to_int).and_return("1")
-    obj.should_not_receive(:to_i)
-    Integer(obj).should == "1"
-  end
-
   it "raises a TypeError if to_i returns a value that is not an Integer" do
     obj = mock("object")
     obj.should_receive(:to_i).and_return("1")
@@ -120,11 +113,13 @@ describe "Integer() given a String", :shared => true do
   it "ignores leading whitespace" do
     Integer(" 1").should == 1
     Integer("   1").should == 1
+    Integer("\t\n1").should == 1
   end
 
   it "ignores trailing whitespace" do
     Integer("1 ").should == 1
     Integer("1   ").should == 1
+    Integer("1\t\n").should == 1
   end
 
   it "raises an ArgumentError if there are leading _s" do
@@ -291,11 +286,13 @@ describe "Integer() given a String and base", :shared => true do
   it "ignores leading whitespace" do
     Integer(" 16", 16).should == 22
     Integer("   16", 16).should == 22
+    Integer("\t\n16", 16).should == 22
   end
 
   it "ignores trailing whitespace" do
     Integer("16 ", 16).should == 22
     Integer("16   ", 16).should == 22
+    Integer("16\t\n", 16).should == 22
   end
 
   it "raises an ArgumentError if there are leading _s" do

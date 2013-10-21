@@ -59,6 +59,30 @@ describe "Module#define_method when given an UnboundMethod" do
   end
 end
 
+describe "Module#define_method when name is :initialize" do
+  ruby_version_is "1.9" do
+    describe "passed a block" do
+      it "sets visibility to private when method name is :initialize" do
+        klass = Class.new do
+          define_method(:initialize) { }
+        end
+        klass.should have_private_instance_method(:initialize)
+      end
+    end
+
+    describe "given an UnboundMethod" do
+      it "sets the visibility to private when method is named :initialize" do
+        klass = Class.new do
+          def test_method
+          end
+          define_method(:initialize, instance_method(:test_method))
+        end
+        klass.should have_private_instance_method(:initialize)
+      end
+    end
+  end
+end
+
 describe "Module#define_method" do
   it "defines the given method as an instance method with the given name in self" do
     class DefineMethodSpecClass
@@ -109,6 +133,17 @@ describe "Module#define_method" do
     lambda {
       Class.new { define_method(:test) }
     }.should raise_error(ArgumentError)
+  end
+
+  it "does not change the arity check style of the original proc" do
+    class DefineMethodSpecClass
+      prc = Proc.new { || true }
+      method = define_method("proc_style_test", &prc)
+      prc.call(:too_many_arguments).should be_true
+      lambda {
+        method.call :too_many_arguments
+      }.should raise_error(ArgumentError)
+    end
   end
 
   ruby_version_is ""..."1.9" do
@@ -172,25 +207,25 @@ describe "Module#define_method" do
     Module.should have_private_instance_method(:define_method)
   end
 
-  it "returns a Proc" do
-    class DefineMethodSpecClass
-      method = define_method("return_test") { || true }
-      method.is_a?(Proc).should be_true
-      # check if it is a lambda:
-      lambda {
-        method.call :too_many_arguments
-      }.should raise_error(ArgumentError)
+  ruby_version_is ""..."2.1" do
+    it "returns a Proc" do
+      class DefineMethodSpecClass
+        method = define_method("return_test") { || true }
+        method.is_a?(Proc).should be_true
+        # check if it is a lambda:
+        lambda {
+          method.call :too_many_arguments
+        }.should raise_error(ArgumentError)
+      end
     end
   end
 
-  it "does not change the arity check style of the original proc" do
-    class DefineMethodSpecClass
-      prc = Proc.new { || true }
-      method = define_method("proc_style_test", &prc)
-      prc.call(:too_many_arguments).should be_true
-      lambda {
-        method.call :too_many_arguments
-      }.should raise_error(ArgumentError)
+  ruby_version_is "2.1" do
+    it "returns its symbol" do
+      class DefineMethodSpecClass
+        method = define_method("return_test") { || true }
+        method.should == :return_test
+      end
     end
   end
 

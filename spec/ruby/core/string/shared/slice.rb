@@ -141,6 +141,20 @@ describe :string_slice_index_length, :shared => true do
     s.send(@method, 0,4).should be_an_instance_of(StringSpecs::MyString)
     s.send(@method, 1,4).should be_an_instance_of(StringSpecs::MyString)
   end
+
+  it "handles repeated application" do
+    "hello world".send(@method, 6, 5).send(@method, 0, 1).should == 'w'
+    "hello world".send(@method, 6, 5).send(@method, 0, 5).should == 'world'
+
+    "hello world".send(@method, 6, 5).send(@method, 1, 1).should == 'o'
+    "hello world".send(@method, 6, 5).send(@method, 1, 4).should == 'orld'
+
+    "hello world".send(@method, 6, 5).send(@method, 4, 1).should == 'd'
+    "hello world".send(@method, 6, 5).send(@method, 5, 0).should == ''
+
+    "hello world".send(@method, 6, 0).send(@method, -1, 0).should == nil
+    "hello world".send(@method, 6, 0).send(@method, 1, 1).should == nil
+  end
 end
 
 describe :string_slice_range, :shared => true do
@@ -236,6 +250,20 @@ describe :string_slice_range, :shared => true do
 
     a.send(@method, range_incl).should == "OO"
     a.send(@method, range_excl).should == "OO"
+  end
+
+  it "handles repeated application" do
+    "hello world".send(@method, 6..11).send(@method, 0..0).should == 'w'
+    "hello world".send(@method, 6..11).send(@method, 0..4).should == 'world'
+
+    "hello world".send(@method, 6..11).send(@method, 1..1).should == 'o'
+    "hello world".send(@method, 6..11).send(@method, 1..4).should == 'orld'
+
+    "hello world".send(@method, 6..11).send(@method, 4..4).should == 'd'
+    "hello world".send(@method, 6..11).send(@method, 5..4).should == ''
+
+    "hello world".send(@method, 6..5).send(@method, -1..-1).should == nil
+    "hello world".send(@method, 6..5).send(@method, 1..1).should == nil
   end
 end
 

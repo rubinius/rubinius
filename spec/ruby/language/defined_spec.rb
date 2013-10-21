@@ -1459,20 +1459,9 @@ describe "The defined? keyword for exception expressions" do
     end
   end
 
-  ruby_version_is "1.9"..."2.1" do
+  ruby_version_is "1.9" do
     it "returns 'expression'" do
       defined?(begin end).should == "expression"
-    end
-  end
-
-  ruby_version_is "2.1" do
-    it "returns 'nil' for an empty expression" do
-      defined?(begin end).should == "nil"
-    end
-
-    it "returns the value of 'defined?' for the contained expression" do
-      defined?(begin retry end).should == "expression"
-      defined?(begin x end).should be_nil
     end
   end
 end

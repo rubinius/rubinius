@@ -43,7 +43,6 @@ describe "IO#write on a file" do
     @file.write('').should == 0
   end
 
-
   with_feature :encoding do
     before :each do
       @external = Encoding.default_external
@@ -80,19 +79,12 @@ describe "IO#write on a file" do
       end
       File.binread(@filename).should == "H\xEBll\xF6".force_encoding(Encoding::ASCII_8BIT)
     end
-
   end
-
 end
 
 ruby_version_is "1.9.3" do
   describe "IO.write" do
     it_behaves_like :io_binwrite, :write
-
-    it "uses encoding from given options, if provided" do
-      IO.write(@filename, 'hello', :encoding => 'UTF-16').should == 12
-      IO.binread(@filename).should == "\xFE\xFF\x00h\x00e\x00l\x00l\x00o".force_encoding(Encoding::ASCII_8BIT)
-    end
 
     it "uses an :open_args option" do
       IO.write(@filename, 'hi', :open_args => ["w", nil, {:encoding => Encoding::UTF_32LE}]).should == 8
@@ -111,7 +103,6 @@ ruby_version_is "1.9.3" do
       IO.write(@filename, 'Hëllö'.encode('ISO-8859-1'))
       File.binread(@filename).should == "H\xEBll\xF6".force_encoding(Encoding::ASCII_8BIT)
     end
-
   end
 end
 

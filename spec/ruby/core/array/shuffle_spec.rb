@@ -42,15 +42,89 @@ describe "Array#shuffle" do
       [2, 3].shuffle(obj)
     end
 
-    it "uses default random generator" do
-      Kernel.should_receive(:rand).exactly(2).and_return(1, 0)
-      [2, 3].shuffle(:random => Object.new).should == [3, 2]
+    it "calls #rand on the Object passed by the :random key in the arguments Hash" do
+      obj = mock("array_shuffle_random")
+      obj.should_receive(:rand).at_least(1).times.and_return(0.5)
+
+      result = [1, 2].shuffle(:random => obj)
+      result.size.should == 2
+      result.should include(1, 2)
     end
 
-    it "uses given random generator" do
-      random = Random.new
-      random.should_receive(:rand).exactly(2).and_return(1, 0)
-      [2, 3].shuffle(:random => random).should == [3, 2]
+    it "ignores an Object passed for the RNG if it does not define #rand" do
+      obj = mock("array_shuffle_random")
+
+      result = [1, 2].shuffle(:random => obj)
+      result.size.should == 2
+      result.should include(1, 2)
+    end
+
+    it "accepts a Float for the value returned by #rand" do
+      random = mock("array_shuffle_random")
+      random.should_receive(:rand).at_least(1).times.and_return(0.3)
+
+      [1, 2].shuffle(:random => random).should be_an_instance_of(Array)
+    end
+  end
+
+  ruby_version_is "1.9.3"..."2.0" do
+    it "calls #to_f on the Object returned by #rand" do
+      value = mock("array_shuffle_random_value")
+      value.should_receive(:to_f).at_least(1).times.and_return(0.3)
+      random = mock("array_shuffle_random")
+      random.should_receive(:rand).at_least(1).times.and_return(value)
+
+      [1, 2].shuffle(:random => random).should be_an_instance_of(Array)
+    end
+
+    it "raises a RangeError if the random generator returns a value less than 0.0" do
+      obj = mock("array_shuffle_random")
+      obj.should_receive(:rand).and_return(-0.1)
+
+      lambda { [1, 2].shuffle(:random => obj) }.should raise_error(RangeError)
+    end
+
+    it "raises a RangeError if the random generator returns a value equal to 1.0" do
+      obj = mock("array_shuffle_random")
+      obj.should_receive(:rand).and_return(1.0)
+
+      lambda { [1, 2].shuffle(:random => obj) }.should raise_error(RangeError)
+    end
+
+    it "raises a RangeError if the random generator returns a value greater than 1.0" do
+      obj = mock("array_shuffle_random")
+      obj.should_receive(:rand).and_return(1.1)
+
+      lambda { [1, 2].shuffle(:random => obj) }.should raise_error(RangeError)
+    end
+  end
+
+  ruby_version_is "2.0" do
+    it "calls #to_int on the Object returned by #rand" do
+      value = mock("array_shuffle_random_value")
+      value.should_receive(:to_int).at_least(1).times.and_return(0)
+      random = mock("array_shuffle_random")
+      random.should_receive(:rand).at_least(1).times.and_return(value)
+
+      [1, 2].shuffle(:random => random).should be_an_instance_of(Array)
+    end
+
+    it "raises a RangeError if the value is less than zero" do
+      value = mock("array_shuffle_random_value")
+      value.should_receive(:to_int).and_return(-1)
+      random = mock("array_shuffle_random")
+      random.should_receive(:rand).and_return(value)
+
+      lambda { [1, 2].shuffle(:random => random) }.should raise_error(RangeError)
+    end
+
+    it "raises a RangeError if the value is equal to one" do
+      value = mock("array_shuffle_random_value")
+      value.should_receive(:to_int).at_least(1).times.and_return(1)
+      random = mock("array_shuffle_random")
+      random.should_receive(:rand).at_least(1).times.and_return(value)
+
+      lambda { [1, 2].shuffle(:random => random) }.should raise_error(RangeError)
     end
   end
 end

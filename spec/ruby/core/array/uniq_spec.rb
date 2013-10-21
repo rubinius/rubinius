@@ -85,6 +85,18 @@ describe "Array#uniq" do
       a = [1, 2, 3, 4]
       a.uniq { |x| x >= 2 ? 1 : 0 }.should == [1, 2]
     end
+
+    it "yields items in order" do
+      a = [1, 2, 3]
+      yielded = []
+      a.uniq { |v| yielded << v }
+      yielded.should == a
+    end
+
+    it "handles nil and false like any other values" do
+      [nil, false, 42].uniq { :foo }.should == [nil]
+      [false, nil, 42].uniq { :bar }.should == [false]
+    end
   end
 
   it "returns subclass instance on Array subclasses" do
