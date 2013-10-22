@@ -67,7 +67,7 @@ class Regexp
   end
 
   def self.compatible?(*patterns)
-    encodings = patterns.map{ |r| convert(r).encoding } 
+    encodings = patterns.map{ |r| convert(r).encoding }
     last_enc = encodings.pop
     encodings.each do |encoding|
       raise ArgumentError, "incompatible encodings: #{encoding} and #{last_enc}" unless Encoding.compatible?(last_enc, encoding)
@@ -616,14 +616,16 @@ class MatchData
       end
     when String
       if @regexp.name_table
-        num = @regexp.name_table[idx.to_sym]
-        return self[num.last] if num
+        return self[idx.to_sym]
       end
       raise IndexError, "Unknown named group '#{idx}'"
     when Symbol
       if @regexp.name_table
-        num = @regexp.name_table[idx]
-        return self[num.last] if num
+        nums = @regexp.name_table[idx]
+        if nums
+          num = nums.reverse_each.find { |n| !self[n].nil? }
+          return num && self[num]
+        end
       end
       raise IndexError, "Unknown named group '#{idx}'"
     end
