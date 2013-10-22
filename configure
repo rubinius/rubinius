@@ -192,7 +192,7 @@ class Configure
 
     # Configure settings
     @build_ruby = nil
-    @config_version = 183
+    @config_version = 184
     @release_build = !git_directory
     @release_config = false
   end
