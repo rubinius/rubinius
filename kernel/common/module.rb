@@ -537,7 +537,8 @@ class Module
     end
 
     Rubinius.add_method name, code, self, :public
-    meth
+
+    name
   end
 
   private :define_method
