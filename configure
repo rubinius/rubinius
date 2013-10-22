@@ -51,6 +51,7 @@ class Configure
     # Build tools
     @cc = nil
     @cxx = nil
+    @make = nil
     @rake = nil
     @tar = nil
     @perl = nil
@@ -312,6 +313,10 @@ class Configure
       old_log = @log.path
       @log = Logger.new name, false
       @log.replace old_log
+    end
+
+    o.on "--make", "NAME", "Use NAME as 'make' during build" do |name|
+      @make = name
     end
 
     o.on "--rake", "NAME", "Use NAME as 'rake' during build" do |name|
@@ -907,6 +912,7 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
     check_tool_version @cxx, '-dumpversion', [4, 1]
     check_tool_version 'bison', '--version', [2, 3]
 
+    @make ||= ENV['MAKE'] || 'make'
     @rake ||= ENV['RAKE'] || 'rake'
     @tar ||= ENV['TAR'] || (@windows ? 'bsdtar' : 'tar')
     @perl ||= ENV['PERL'] || 'perl'
@@ -935,7 +941,6 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
   def setup_platform
     @ldsharedxx = "#{@cxx} -shared -lstdc++"
     @ldshared   = "#{@cc} -shared"
-    @make       = "make"
 
     @include_dirs.each do |d|
       @system_cflags << "-I#{d} "
@@ -1683,6 +1688,7 @@ int main() { return tgetnum(""); }
     build_config = {
       :command_line       => @command_line,
       :build_ruby         => build_ruby,
+      :build_make         => @make,
       :build_rake         => @rake,
       :build_perl         => @perl,
       :llvm               => @llvm,
@@ -1702,7 +1708,6 @@ int main() { return tgetnum(""); }
       :system_cxxflags    => "#{@system_cxxflags}",
       :system_cppflags    => "#{@system_cppflags}",
       :system_ldflags     => "#{@system_ldflags}",
-      :make               => @make,
       :include_dirs       => @include_dirs,
       :lib_dirs           => @lib_dirs,
       :defines            => @defines,

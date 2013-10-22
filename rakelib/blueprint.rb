@@ -51,7 +51,7 @@ Daedalus.blueprint do |i|
 
   gcc.ldflags << "-lstdc++" << "-lm"
 
-  make = Rubinius::BUILD_CONFIG[:make]
+  make = Rubinius::BUILD_CONFIG[:build_make]
 
   if RUBY_PLATFORM =~ /bsd/ and
       Rubinius::BUILD_CONFIG[:defines].include?('HAS_EXECINFO')
