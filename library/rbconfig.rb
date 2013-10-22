@@ -197,8 +197,8 @@ module RbConfig
   # properly link files not located in paths in LD_LIBRARY_PATH. On other
   # platforms this is not necessary and it is linked properly even for
   # paths outside LD_LIBRARY_PATH.
-  CONFIG["LIBPATHFLAG"]        = Rubinius.linux? ? " -L%1$-s"     : " -L%s"
-  CONFIG["RPATHFLAG"]          = Rubinius.linux? ? " -Wl,-R%1$-s" : ""
+  CONFIG["LIBPATHFLAG"]        = Rubinius::BUILD_CONFIG[:rpath] ? " -L%1$-s"     : " -L%s"
+  CONFIG["RPATHFLAG"]          = Rubinius::BUILD_CONFIG[:rpath] ? " -Wl,-R%1$-s" : ""
   CONFIG["LIBPATHENV"]         = "DYLD_LIBRARY_PATH"
   CONFIG["TRY_LINK"]           = ""
   CONFIG["EXTSTATIC"]          = ""
