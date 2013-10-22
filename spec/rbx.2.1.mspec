@@ -13,42 +13,10 @@ class MSpecScript
     'spec/core',
   ]
 
-  set :obsolete_library, [
-    # obsolete libraries
-    '^library/cgi-lib',
-    '^library/date2',
-    '^library/enumerator',
-    '^library/eregex',
-    '^library/finalize',
-    '^library/ftools',
-    '^library/generator',
-    '^library/getopts',
-    '^library/importenv',
-    '^library/jcode',
-    '^library/mailread',
-    '^library/parsearg',
-    '^library/parsedate',
-    '^library/ping',
-    '^library/readbytes',
-    '^library/rubyunit',
-    '^library/runit',
-    '^library/soap',
-    '^library/wsdl',
-    '^library/xsd',
-    '^library/Win32API',
-
-    '^library/test/unit/collector',
-    '^library/test/unit/ui',
-    '^library/test/unit/util',
-
-    '^library/dl',  # reimplemented and API changed
-  ]
-
   # Standard library specs
   set :library, [
-    'spec/ruby/library',
     'spec/library',
-  ] + get(:obsolete_library)
+  ]
 
   # An ordered list of the directories containing specs to run
   set :files, get(:language) + get(:core) + get(:library) +
@@ -57,8 +25,7 @@ class MSpecScript
   set :ruby, [
     'spec/ruby/language',
     'spec/ruby/core',
-    'spec/ruby/library',
-  ] + get(:obsolete_library)
+  ]
 
   # An ordered list of the directories containing specs to run
   # as the CI process.
@@ -72,14 +39,14 @@ class MSpecScript
     'spec/command_line',
     'spec/ruby/optional/capi',
     'spec/library',
-  ] + get(:obsolete_library)
+  ]
 
   set :travis, get(:ci_files)
 
   # The set of substitutions to transform a spec filename
   # into a tag filename.
   set :tags_patterns, [
-                        [%r(spec/), 'spec/tags/21/'],
+                        [%r(spec/), 'spec/tags/'],
                         [/_spec.rb$/, '_tags.txt']
                       ]
 
