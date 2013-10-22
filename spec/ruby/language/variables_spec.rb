@@ -1289,40 +1289,20 @@ end
 # containing all the elements on the rhs. As this result is never used, the cost
 # of creating and then discarding this array is avoided
 describe "Multiple assignment, array-style" do
-  not_compliant_on :rubinius do
-    it "returns an array of all rhs values" do
-      (a,b = 5,6,7).should == [5,6,7]
-      a.should == 5
-      b.should == 6
+  it "returns an array of all rhs values" do
+    (a,b = 5,6,7).should == [5,6,7]
+    a.should == 5
+    b.should == 6
 
-      (c,d,*e = 99,8).should == [99,8]
-      c.should == 99
-      d.should == 8
-      e.should == []
+    (c,d,*e = 99,8).should == [99,8]
+    c.should == 99
+    d.should == 8
+    e.should == []
 
-      (f,g,h = 99,8).should == [99,8]
-      f.should == 99
-      g.should == 8
-      h.should == nil
-    end
-  end
-
-  deviates_on :rubinius do
-    it "returns true" do
-      (a,b = 5,6,7).should == true
-      a.should == 5
-      b.should == 6
-
-      (c,d,*e = 99,8).should == true
-      c.should == 99
-      d.should == 8
-      e.should == []
-
-      (f,g,h = 99,8).should == true
-      f.should == 99
-      g.should == 8
-      h.should == nil
-    end
+    (f,g,h = 99,8).should == [99,8]
+    f.should == 99
+    g.should == 8
+    h.should == nil
   end
 end
 
