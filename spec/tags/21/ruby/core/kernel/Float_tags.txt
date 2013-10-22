@@ -1,0 +1,2 @@
+fails:Kernel.Float returns a value for a String with any trailing whitespace
+fails:Kernel#Float returns a value for a String with any trailing whitespace

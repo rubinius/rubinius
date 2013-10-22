@@ -1,0 +1,1 @@
+fails:IO.binwrite uses encoding from given options, if provided

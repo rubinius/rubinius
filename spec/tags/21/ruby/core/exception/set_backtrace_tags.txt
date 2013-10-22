@@ -1,0 +1,3 @@
+fails:Exception#set_backtrace accepts a String
+fails:Exception#set_backtrace raises a TypeError when when passed a Symbol
+fails:Exception#set_backtrace raises a TypeError when the Array contains a Symbol

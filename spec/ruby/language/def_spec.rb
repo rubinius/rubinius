@@ -596,5 +596,6 @@ ruby_version_is "1.8"..."1.9" do
 end
 
 ruby_version_is "2.0" do
-  require File.expand_path('../versions/def_2.0.rb', __FILE__)
+  # Temporarily excluded until keyword args are added.
+  # require File.expand_path('../versions/def_2.0.rb', __FILE__)
 end
