@@ -24,7 +24,7 @@ namespace :gems do
         ENV["RBX_RUN_COMPILED"] = "1"
         ENV["RBX_PREFIX_PATH"] = BUILD_CONFIG[:build_prefix]
         sh "#{BUILD_CONFIG[:build_exe]} ./extconf.rbc"
-        sh "make && make install"
+        sh "#{BUILD_CONFIG[:build_make]} && #{BUILD_CONFIG[:build_make]} install"
       ensure
         ENV.delete "RBX_RUN_COMPILED"
         ENV.delete "RBX_PREFIX_PATH"
@@ -62,7 +62,7 @@ namespace :gems do
         puts "Building #{m[1]}..."
 
         bootstrap_rubinius build_gem_extconf unless File.exists? "Makefile"
-        sh "make", :verbose => $verbose
+        sh "#{BUILD_CONFIG[:build_make]}", :verbose => $verbose
 
         if File.exists? ext_name
           FileUtils.mkdir_p dest_path
