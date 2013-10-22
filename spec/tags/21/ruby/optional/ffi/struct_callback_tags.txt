@@ -1,3 +1,0 @@
-fails:FFI::Struct  with inline callback functions should be able to define inline callback field
-fails:FFI::Struct  with inline callback functions should take methods as callbacks
-fails:FFI::Struct  with inline callback functions should return callable object from []

@@ -1,1 +1,0 @@
-fails:Function with primitive boolean arguments and return values raise error on invalid types

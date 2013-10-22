@@ -1,2 +1,0 @@
-fails:Custom type definitions variadic invoker with custom typedef
-fails:Custom type definitions detects the correct type for size_t
