@@ -139,11 +139,10 @@ describe "Module#define_method" do
     class DefineMethodSpecClass
       prc = Proc.new { || true }
       method = define_method("proc_style_test", &prc)
-      prc.call(:too_many_arguments).should be_true
-      lambda {
-        method.call :too_many_arguments
-      }.should raise_error(ArgumentError)
     end
+
+    obj = DefineMethodSpecClass.new
+    lambda { obj.proc_style_test :arg }.should raise_error(ArgumentError)
   end
 
   ruby_version_is ""..."1.9" do
