@@ -2003,6 +2003,10 @@ int main() { return tgetnum(""); }
         unless unpacked.find { |dir| dir =~ /#{name}-#{version}/ }
           gem = Dir["#{gem_sources}/#{name}-#{version}*"].first
           system("#{@gem} unpack #{gem}")
+
+          unless $?.exitstatus == 0
+            failure "Unable to unpack bootstrap gems."
+          end
         end
       end
     end
