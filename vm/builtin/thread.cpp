@@ -62,6 +62,7 @@ namespace rubinius {
     thr->dying(state, cFalse);
     thr->joins(state, Array::create(state, 1));
     thr->killed(state, cFalse);
+    thr->priority(state, Fixnum::from(0));
 
     thr->vm_ = target;
     thr->klass(state, as<Class>(self));
@@ -332,17 +333,13 @@ namespace rubinius {
     return state->shared().vm_threads(state);
   }
 
-  Object* Thread::priority(STATE) {
-    pthread_t id = vm_->os_thread();
+  Object* Thread::set_priority(STATE, Fixnum* new_priority) {
+    priority(state, new_priority);
+    return new_priority;
+  }
 
-    int _policy;
-    struct sched_param params;
-
-    if(pthread_getschedparam(id, &_policy, &params) == 0) {
-      return Fixnum::from(params.sched_priority);
-    }
-
-    return cNil;
+  Object* Thread::get_priority(STATE) {
+    return priority();
   }
 
   Object* Thread::raise(STATE, GCToken gct, Exception* exc, CallFrame* calling_environment) {
@@ -384,10 +381,6 @@ namespace rubinius {
       vm->wakeup(state, gct, calling_environment);
       return self;
     }
-  }
-
-  Object* Thread::set_priority(STATE, Fixnum* new_priority) {
-    return new_priority;
   }
 
   Thread* Thread::wakeup(STATE, GCToken gct, CallFrame* calling_environment) {
