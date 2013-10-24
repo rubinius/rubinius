@@ -1496,10 +1496,12 @@ class Array
           range_end = range_end + @total
         elsif range_end >= @total
           range_end = @total - 1
+          range_end += 1 if range.exclude_end?
         end
 
         range_length = range_end - range_start
         range_length += 1 unless range.exclude_end?
+        range_end    -= 1 if     range.exclude_end?
 
         if range_start < @total && range_start >= 0 && range_end < @total && range_end >= 0 && range_length > 0
           delete_range(range_start, range_length)
