@@ -621,10 +621,12 @@ class MatchData
       raise IndexError, "Unknown named group '#{idx}'"
     when Symbol
       if @regexp.name_table
-        nums = @regexp.name_table[idx]
-        if nums
-          num = nums.reverse_each.find { |n| !self[n].nil? }
-          return num && self[num]
+        if nums = @regexp.name_table[idx]
+          nums.reverse_each do |num|
+            val = self[num]
+            return val if val
+          end
+          return nil
         end
       end
       raise IndexError, "Unknown named group '#{idx}'"
