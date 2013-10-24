@@ -545,6 +545,7 @@ describe "A block" do
     ruby_version_is "1.9" do
       it "extracts arguments with _" do
         @y.m([[1, 2, 3], 4]) { |(_, a, _), _| a }.should == 2
+        @y.m([1, [2, 3, 4]]) { |_, (_, a, _)| a }.should == 3
       end
 
       it "assigns the first variable named" do
