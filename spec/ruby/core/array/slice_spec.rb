@@ -79,6 +79,12 @@ describe "Array#slice!" do
     a.should == []
   end
 
+  it "removes and returns elements in end-exclusive ranges" do
+    a = [1, 2, 3, 4, 5, 6, 7, 8]
+    a.slice!(4...a.length).should == [5, 6, 7, 8]
+    a.should == [1, 2, 3, 4]
+  end
+
   it "calls to_int on range arguments" do
     from = mock('from')
     to = mock('to')
