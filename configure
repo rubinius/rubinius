@@ -532,7 +532,7 @@ class Configure
 
   def version
     version = "#{@libversion}.#{@patch_version}"
-    version += "n#{Time.now.strftime("%j").to_i}" unless @release_date
+    version += ".n#{Time.now.strftime("%j").to_i}" unless @release_date
     version
   end
 
