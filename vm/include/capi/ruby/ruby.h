@@ -967,7 +967,8 @@ struct RTypedData {
 # define BDIGIT_DBL_SIGNED long
 #endif
 
-#define RBIGNUM_LEN(obj) (rb_big_bytes_used(obj) / SIZEOF_BDIGITS)
+#define CEIL(x,y) (((x) + (y) - 1) / (y))
+#define RBIGNUM_LEN(obj) CEIL(rb_big_bytes_used(obj), SIZEOF_BDIGITS)
   /** Calls this method in a superclass. */
   VALUE rb_call_super(int argc, const VALUE *argv);
 
