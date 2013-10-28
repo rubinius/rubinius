@@ -39,17 +39,23 @@ extern "C" {
   ID rb_frame_last_func() {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    CallFrame* rcf = env->current_call_frame()->previous->top_ruby_frame();
+    CallFrame* rcf = env->current_call_frame()->previous;
+    Symbol* name = rcf->name();
 
-    return env->get_handle(rcf->name());
+    if(name->nil_p()) return rb_intern("<nil>");
+
+    return env->get_handle(name);
   }
 
   ID rb_frame_this_func() {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    CallFrame* rcf = env->current_call_frame()->top_ruby_frame();
+    CallFrame* rcf = env->current_call_frame();
+    Symbol* name = rcf->name();
 
-    return env->get_handle(rcf->name());
+    if(name->nil_p()) return rb_intern("<nil>");
+
+    return env->get_handle(name);
   }
 
   static VALUE const_missing(VALUE klass, ID id) {
