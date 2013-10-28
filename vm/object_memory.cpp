@@ -519,7 +519,7 @@ step1:
 
 
     if(collect_young_now) {
-      GCData gc_data(state->vm(), gct);
+      GCData gc_data(state->vm());
       YoungCollectStats stats;
 
       RUBINIUS_GC_BEGIN(0);
@@ -538,7 +538,7 @@ step1:
     }
 
     if(collect_mature_now) {
-      GCData* gc_data = new GCData(state->vm(), gct);
+      GCData* gc_data = new GCData(state->vm());
       RUBINIUS_GC_BEGIN(1);
 #ifdef RBX_PROFILER
       if(unlikely(state->vm()->tooling())) {

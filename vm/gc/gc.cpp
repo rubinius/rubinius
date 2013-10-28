@@ -39,24 +39,6 @@ namespace rubinius {
     , global_cache_(state->shared.global_cache)
     , threads_(state->shared.threads())
     , global_handle_locations_(state->om->global_capi_handle_locations())
-    , gc_token_(0)
-#ifdef ENABLE_LLVM
-    , llvm_state_(LLVMState::get_if_set(state))
-#endif
-    , young_bytes_allocated_(state->om->young_bytes_allocated())
-    , mature_bytes_allocated_(state->om->mature_bytes_allocated())
-    , code_bytes_allocated_(state->om->code_bytes_allocated())
-    , symbol_bytes_allocated_(state->om->symbol_bytes_allocated())
-  {}
-
-  GCData::GCData(VM* state, GCToken gct)
-    : roots_(state->globals().roots)
-    , handles_(state->om->capi_handles())
-    , cached_handles_(state->om->cached_capi_handles())
-    , global_cache_(state->shared.global_cache)
-    , threads_(state->shared.threads())
-    , global_handle_locations_(state->om->global_capi_handle_locations())
-    , gc_token_(&gct)
 #ifdef ENABLE_LLVM
     , llvm_state_(LLVMState::get_if_set(state))
 #endif

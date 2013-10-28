@@ -34,7 +34,6 @@ namespace rubinius {
     GlobalCache* global_cache_;
     std::list<ManagedThread*>* threads_;
     std::list<capi::GlobalHandle*>* global_handle_locations_;
-    GCTokenImpl* gc_token_;
 #ifdef ENABLE_LLVM
     LLVMState* llvm_state_;
 #endif
@@ -44,7 +43,6 @@ namespace rubinius {
     size_t symbol_bytes_allocated_;
 
   public:
-    GCData(VM*, GCToken gct);
     GCData(VM*);
 
     GCData(Roots& r,
@@ -57,7 +55,6 @@ namespace rubinius {
       , global_cache_(cache)
       , threads_(ths)
       , global_handle_locations_(global_handle_locations)
-      , gc_token_(NULL)
 #ifdef ENABLE_LLVM
       , llvm_state_(0)
 #endif
@@ -89,10 +86,6 @@ namespace rubinius {
 
     std::list<capi::GlobalHandle*>* global_handle_locations() {
       return global_handle_locations_;
-    }
-
-    GCTokenImpl* gc_token() {
-      return gc_token_;
     }
 
 #ifdef ENABLE_LLVM
