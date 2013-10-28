@@ -160,7 +160,7 @@ namespace :build do
           llvm_config_flags = "--build=#{host} --host=#{host} " \
                               "--enable-optimized --disable-assertions "\
                               " --enable-targets=host,cpp"
-          sh %[sh -c "#{expand("./configure")} #{llvm_config_flags}"]
+          sh %[sh -c "#{File.expand_path("./configure")} #{llvm_config_flags}"]
           sh make
         end
       end
