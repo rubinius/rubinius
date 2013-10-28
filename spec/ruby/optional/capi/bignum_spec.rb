@@ -125,5 +125,12 @@ describe "CApiBignumSpecs" do
         @s.RBIGNUM_NEGATIVE_P(-bignum_value()).should be_true
       end
     end
+
+    describe "RBIGNUM_LEN" do
+      it "returns the number of BDIGITS needed for the bignum" do
+        @s.RBIGNUM_LEN(bignum_value * 2).should == 3
+      end
+    end
+
   end
 end
