@@ -1122,17 +1122,7 @@ class File < IO
       perm = 0666 if undefined.equal? perm
 
       fd = IO.sysopen(path, nmode, perm)
-      if fd < 0
-        begin
-          Errno.handle path
-        rescue Errno::EMFILE
-          # true means force to run, don't ignore it.
-          GC.run(true)
-
-          fd = IO.sysopen(path, nmode, perm)
-          Errno.handle if fd < 0
-        end
-      end
+      Errno.handle path if fd < 0
 
       @path = path
       super(fd, mode, options)

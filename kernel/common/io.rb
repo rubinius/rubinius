@@ -668,12 +668,7 @@ class IO
     lhs = allocate
     rhs = allocate
 
-    begin
-      connect_pipe(lhs, rhs)
-    rescue Errno::EMFILE
-      GC.run(true)
-      connect_pipe(lhs, rhs)
-    end
+    connect_pipe(lhs, rhs)
 
     lhs.set_encoding external || Encoding.default_external,
                      internal || Encoding.default_internal, options
