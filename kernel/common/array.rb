@@ -1472,7 +1472,8 @@ class Array
     end
 
     size.times do |i|
-      r = i + random_generator.rand(size - i)
+      r = i + random_generator.rand(size - i).to_int
+      raise RangeError, "random number too big #{r - i}" if r < 0 || r >= size
       @tuple.swap(@start + i, @start + r)
     end
     self
