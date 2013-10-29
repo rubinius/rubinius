@@ -558,13 +558,12 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
       uri = url.kind_of?(URI) ? url : URI(url)
 
       if ENV['http_proxy']
-        protocol, userinfo, host, port  = URI::split(ENV['http_proxy'])
-        proxy_user, proxy_pass = userinfo.split(/:/) if userinfo
-        http = Net::HTTP::Proxy(host, port, proxy_user, proxy_pass)
+        protocol, userinfo, p_host, p_port  = URI::split(ENV['http_proxy'])
+        p_user, p_pass = userinfo.split(/:/) if userinfo
+        http = Net::HTTP.new(uri.host, uri.port, p_host, p_port, p_user, p_pass)
       else
         http = Net::HTTP.new(uri.host, uri.port)
       end
-
       http.use_ssl = true if uri.scheme == 'https'
       request = Net::HTTP::Get.new(uri.request_uri)
 
