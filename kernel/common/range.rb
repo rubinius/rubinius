@@ -157,7 +157,8 @@ class Range
       end
     else
       step_size = Integer(from = step_size)
-      if ! step_size.kind_of? Integer
+
+      unless step_size.kind_of? Integer
         raise TypeError, "can't convert #{from.class} to Integer (#{from.class}#to_int gives #{step_size.class})"
       end
     end
@@ -167,38 +168,42 @@ class Range
       raise ArgumentError, "step can't be 0"
     end
 
-    if first.kind_of?(Float)
+    case first
+    when Float
       err = (first.abs + last.abs + (last - first).abs) / step_size.abs * Float::EPSILON
       err = 0.5 if err > 0.5
+
       if @excl
-        n = ((last - first) / step_size - err).floor
-        n += 1 if n * step_size + first < last
+        iterations = ((last - first) / step_size - err).floor
+        iterations += 1 if iterations * step_size + first < last
       else
-        n = ((last - first) / step_size + err).floor + 1
+        iterations = ((last - first) / step_size + err).floor + 1
       end
 
       i = 0
-      while i < n
-        d = i * step_size + first
-        d = last if last < d
-        yield d
+      while i < iterations
+        curr = i * step_size + first
+        curr = last if last < curr
+        yield curr
         i += 1
       end
-    elsif first.kind_of?(Numeric)
-      d = first
-      while @excl ? d < last : d <= last
-        yield d
-        d += step_size
+    when Numeric
+      curr = first
+      last -= 1 if @excl
+
+      while curr <= last
+        yield curr
+        curr += step_size
       end
     else
-      counter = 0
-      each do |o|
-        yield o if counter % step_size == 0
-        counter += 1
+      i = 0
+      each do |curr|
+        yield curr if i % step_size == 0
+        i += 1
       end
     end
 
-    return self
+    self
   end
 
   def to_s
