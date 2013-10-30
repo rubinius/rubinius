@@ -101,11 +101,19 @@ describe "C-API Class function" do
     it "returns the class name" do
       @s.rb_class2name(CApiClassSpecs).should == "CApiClassSpecs"
     end
+
+    it "returns a string for an anonymous class" do
+      @s.rb_class2name(Class.new).should be_kind_of(String)
+    end
   end
 
   describe "rb_class_name" do
     it "returns the class name" do
-      @s.rb_class2name(CApiClassSpecs).should == "CApiClassSpecs"
+      @s.rb_class_name(CApiClassSpecs).should == "CApiClassSpecs"
+    end
+
+    it "returns a string for an anonymous class" do
+      @s.rb_class_name(Class.new).should be_kind_of(String)
     end
   end
 
