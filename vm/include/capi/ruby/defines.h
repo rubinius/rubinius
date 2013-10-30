@@ -28,4 +28,6 @@
 
 #define HAVE_RB_ENCDB_ALIAS                1
 
+#define HAVE_RB_ARY_SUBSEQ                 1
+
 #endif
