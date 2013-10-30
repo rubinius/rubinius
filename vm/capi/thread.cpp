@@ -15,6 +15,8 @@
 #include "builtin/native_method.hpp"
 #include "builtin/ffi_pointer.hpp"
 #include "builtin/string.hpp"
+#include "builtin/symbol.hpp"
+#include "builtin/thread.hpp"
 
 #include "windows_compat.h"
 
@@ -108,11 +110,16 @@ extern "C" {
   }
 
   VALUE rb_thread_local_aref(VALUE thread, ID id) {
-    return rb_funcall(thread, rb_intern("[]"), 1, ID2SYM(id));
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    Thread* thr = capi::c_as<Thread>(env->get_object(thread));
+    return env->get_handle(thr->locals_aref(env->state(), reinterpret_cast<Symbol*>(id)));
   }
 
   VALUE rb_thread_local_aset(VALUE thread, ID id, VALUE value) {
-    return rb_funcall(thread, rb_intern("[]="), 2, ID2SYM(id), value);
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    Thread* thr = capi::c_as<Thread>(env->get_object(thread));
+    return env->get_handle(thr->locals_store(env->state(), reinterpret_cast<Symbol*>(id),
+                                             env->get_object(value)));
   }
 
   VALUE rb_thread_wakeup(VALUE thread) {
