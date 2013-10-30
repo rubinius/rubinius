@@ -63,8 +63,20 @@ describe "CApiNumericSpecs" do
         @s.rb_num2uint(5).should == 5
       end
 
+      it "converts a negative number to the complement" do
+        @s.rb_num2uint(-1).should == 18446744073709551615
+      end
+
+      it "converts a signed int value to the complement" do
+        @s.rb_num2uint(-0x8000_0000).should == 18446744071562067968
+      end
+
       it "raises a RangeError if the value is more than 32bits" do
         lambda { @s.rb_num2uint(0xffff_ffff+1) }.should raise_error(RangeError)
+      end
+
+      it "raises a RangeError if the value is less than 32bits negative" do
+        lambda { @s.rb_num2uint(-0x8000_0000-1) }.should raise_error(RangeError)
       end
 
       it "raises a RangeError if the value is more than 64bits" do
