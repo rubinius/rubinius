@@ -282,9 +282,14 @@ extern "C" {
 
   const char* rb_class2name(VALUE module_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    State* state = env->state();
     Module* module_object = c_as<Module>(env->get_object(module_handle));
 
-    String* str = module_object->get_name(env->state());
+    String* str = module_object->get_name(state);
+    if(str->nil_p()) {
+      std::string desc = module_object->to_string(state);
+      str = String::create(state, desc.c_str(), desc.size());
+    }
     return RSTRING_PTR(env->get_handle(str));
   }
 }
