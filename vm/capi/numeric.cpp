@@ -81,7 +81,7 @@ extern "C" {
       }
     } else {
       if(num > UINT_MAX) {
-        rb_raise(rb_eRangeError, "integer %lu too big small to convert into int", num);
+        rb_raise(rb_eRangeError, "integer %lu too big to convert into int", num);
       }
     }
     return num;
