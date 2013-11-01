@@ -308,13 +308,15 @@ class IO
       @from.ensure_open_and_readable if @from.kind_of? IO
       @to.ensure_open_and_writable if @to.kind_of? IO
 
-      if @from_io && !@from.pipe?
-        saved_pos = @from.pos
-      else
-        saved_pos = 0
-      end
+      if @offset
+        if @from_io && !@from.pipe?
+          saved_pos = @from.pos
+        else
+          saved_pos = 0
+        end
 
-      @from.seek @offset, IO::SEEK_CUR if @offset
+        @from.seek @offset, IO::SEEK_CUR
+      end
 
       size = @length ? @length : 16384
       bytes = 0
