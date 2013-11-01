@@ -320,7 +320,7 @@ class IO
       bytes = 0
 
       begin
-        while data = @from.send(@method, size, "")
+        while data = @from.__send__(@method, size, "")
           @to.write data
           bytes += data.bytesize
 
