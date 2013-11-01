@@ -265,6 +265,12 @@ ruby_version_is "1.9" do
 
         IO.copy_stream(@from_name, to)
       end
+
+      it "does not call #pos on the source if no offset is given" do
+        @io.should_not_receive(:pos)
+        IO.copy_stream(@io, @to_name)
+      end
+
     end
   end
 end
