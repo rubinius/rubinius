@@ -1898,16 +1898,15 @@ class String
   def match(pattern, pos=0)
     pattern = Rubinius::Type.coerce_to_regexp(pattern) unless pattern.kind_of? Regexp
 
-    m = Rubinius::Mirror.reflect self
-    pos = pos < 0 ? pos + size : pos
-    pos = m.character_to_byte_index pos
-    match_data = pattern.search_region(self, pos, @num_bytes, true)
-    Regexp.last_match = match_data
-    if match_data && block_given?
-      yield match_data
+    result = if block_given?
+      pattern.match self, pos do |match|
+        yield match
+      end
     else
-      match_data
+      pattern.match self, pos
     end
+    Regexp.propagate_last_match
+    result
   end
 
   def []=(index, count_or_replacement, replacement=undefined)

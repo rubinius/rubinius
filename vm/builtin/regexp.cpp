@@ -794,9 +794,7 @@ namespace rubinius {
 
   Object* Regexp::propagate_last_match(STATE, CallFrame* call_frame) {
     Object* obj = call_frame->last_match(state);
-    if(CBOOL(obj)) {
-      Regexp::set_last_match(state, obj, call_frame);
-    }
+    Regexp::set_last_match(state, obj, call_frame);
     return obj;
   }
 
