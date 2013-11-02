@@ -137,4 +137,10 @@ describe "String#match" do
     $~.should == nil
     Regexp.last_match.should == nil
   end
+
+  it "calls match on the regular expression" do
+    regexp = /./
+    regexp.should_receive(:match).and_return(:foo)
+    'hello'.match(regexp).should == :foo
+  end
 end
