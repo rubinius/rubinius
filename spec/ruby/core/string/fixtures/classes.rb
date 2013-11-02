@@ -46,4 +46,24 @@ module StringSpecs
       self.replace(str)
     end
   end
+
+  class RegexpHasBeenCalled < Regexp
+    attr_reader :match_called
+
+    def initialize *args
+      super *args
+      @match_called = 'no'
+    end
+
+    def match *args
+      super *args
+      @match_called = 'yes'
+    end
+  end
+
+  class RegexpChangeMatch < Regexp
+    def match *args
+      "regexp_match"
+    end
+  end
 end
