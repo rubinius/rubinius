@@ -413,16 +413,10 @@ module Rubinius
 
       return false if CodeLoader.feature_provided?(@path)
 
-      if @type
-        if verify_load_path(@path)
-          return false if CodeLoader.feature_provided?(@feature)
-          return true
-        end
-      else
-        if verify_require_path(@path)
-          return false if CodeLoader.feature_provided?(@feature)
-          return true
-        end
+      verified = @type ? verify_load_path(@path) : verify_require_path(@path)
+      if verified
+        return false if CodeLoader.feature_provided?(@feature)
+        return true
       end
 
       return false if CodeLoader.loaded? @path
