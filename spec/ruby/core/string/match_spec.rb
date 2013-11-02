@@ -137,4 +137,17 @@ describe "String#match" do
     $~.should == nil
     Regexp.last_match.should == nil
   end
+
+  it "calls the Regexp's match function" do
+    reg = StringSpecs::RegexpHasBeenCalled.new("foo")
+
+    reg.match_called.should == 'no'
+    "bar".match(reg)
+    reg.match_called.should == 'yes'
+  end
+
+  it "returns the Regexp's match result" do
+    reg = StringSpecs::RegexpChangeMatch.new("foo")
+    "bar".match(reg).should == "regexp_match"
+  end
 end
