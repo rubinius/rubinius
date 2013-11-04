@@ -100,7 +100,7 @@ namespace rubinius {
   }
 
   void Exception::frozen_error(STATE, Object* obj) {
-    RubyException::raise(Exception::make_frozen_exception(state, obj));
+    RubyException::raise(Exception::make_frozen_exception(state, obj), true);
   }
 
   void Exception::frozen_error(STATE, CallFrame* call_frame, Object* obj) {
