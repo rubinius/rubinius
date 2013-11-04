@@ -143,7 +143,6 @@ class Configure
 
     # Standard library gems to bootstrap rubygems
     @rubygems_gems = [
-      [ "psych", "2.0" ],
       [ "rubysl-date", "2.0" ],
       [ "rubysl-delegate", "2.0" ],
       [ "rubysl-digest", "2.0" ],
@@ -174,7 +173,6 @@ class Configure
       [ "json", "1.8" ],
       [ "rake", "10.1" ],
       [ "rdoc", "4.0" ],
-      [ "rubysl-rake", "2.0" ],
       [ "ffi2-generators", "0.1" ],
       [ "rubinius-profiler", "2.0" ],
       [ "rubinius-coverage", "2.0" ],
@@ -192,7 +190,7 @@ class Configure
 
     # Configure settings
     @build_ruby = nil
-    @config_version = 185
+    @config_version = 186
     @release_build = !git_directory
     @release_config = false
   end
@@ -1347,6 +1345,7 @@ int main() { return tgetnum(""); }
       ]
     else
       @runtime_gems.concat [
+        [ "rubysl-rake", "2.0" ],
         [ "rubysl-irb", "2.0" ],
         [ "rubysl-prettyprint", "2.0" ],
       ]
