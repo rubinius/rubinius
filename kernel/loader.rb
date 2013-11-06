@@ -69,8 +69,6 @@ module Rubinius
 
       $LOAD_PATH.unshift(*additions)
 
-      CodeLoader.set_bootstrap_load_path if ENV["RBX_BOOTSTRAP_LOAD_PATH"]
-
       if ENV['RUBYLIB'] and not ENV['RUBYLIB'].empty? then
         rubylib_paths = ENV['RUBYLIB'].split(File::PATH_SEPARATOR)
         $LOAD_PATH.unshift(*rubylib_paths)

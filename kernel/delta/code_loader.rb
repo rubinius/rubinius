@@ -86,64 +86,32 @@ module Rubinius
       attr_accessor :bootstrap_load_path
       attr_accessor :runtime_load_path
 
-      # First attempts to load the standard library 'name' with the existing
-      # $LOAD_PATH or through whatever mechanism has hooked #require. If a
-      # LoadError is raised, attempts to find the standard library gem in the
-      # default gems path, otherwise raises LoadError.
-      def standard_library(name)
-        gem_name = name.gsub(/\//, "-")
-        gem_path = "#{Rubinius::GEMS_PATH}/gems/#{gem_name}-[0-9]*/lib"
-        path = Dir[gem_path].last
-        $:.unshift path if path
-        begin
-          require name
-        rescue LoadError => e
-          missing_standard_library gem_name, e
-        end
-      end
-
-      # Raises a LoadError with an informative message when a require for a
-      # gemified standard library fails.
-      def missing_standard_library(name, exc=nil)
-        library = name.sub(/^rubysl-/, "").sub(/-/, "/")
-
-        msg = <<-EOM
-
-The library "#{library}" is a provided by the "#{name}" gem and needs to be
-installed to be loaded.
-
-If using Bundler, add this library or the standard library meta-gem to the
-Gemfile as follows:
-
-  gem "#{name}", "~> #{Rubinius::LIB_VERSION}"
-
-    OR
-
-  gem "rubysl", "~> #{Rubinius::LIB_VERSION}"
-
-Otherwise, install the gem with the following command:
-
-  gem install #{name}
-
-    OR
-
-  gem install rubysl
-
-If the "#{name}" gem should be installed, ensure that the GEM_HOME or GEM_PATH
-environment variables are either not set or set correctly to the directories
-containing Rubinius gems.
-
-If these instructions do not help resolve the issue, please open a ticket at:
-
-  https://github.com/rubinius/rubinius/issues
-
-The source code for "#{name}" is on GitHub:
-
-  https://github.com/rubysl/#{name}
-
-      EOM
-
-        raise LoadError, msg, exc
+      def rubygems_libraries
+        @rubygems_libraries ||= [
+          "date",
+          "delegate",
+          "digest",
+          "fcntl",
+          "monitor",
+          "net/http",
+          "net/protocol",
+          "openssl",
+          "optparse",
+          "ostruct",
+          "resolv",
+          "socket",
+          "stringio",
+          "strscan",
+          "tempfile",
+          "thread",
+          "time",
+          "timeout",
+          "tmpdir",
+          "tsort",
+          "uri",
+          "yaml",
+          "zlib",
+        ]
       end
 
       def set_bootstrap_load_path
@@ -164,6 +132,27 @@ The source code for "#{name}" is on GitHub:
         yield
       ensure
         unset_bootstrap_load_path
+      end
+
+      # If 'name' is in the list of standard library files that RubyGems
+      # requires and a suspected RubyGems file is invoking the require, load
+      # the library from the bootstrap libraries.
+      def rubygems_require(name)
+        return false unless rubygems_libraries.include? name
+
+        locations = Rubinius::VM.backtrace 0, false
+        locations.reverse_each do |l|
+          if l.file.start_with? "#{Rubinius::LIB_PATH}/rubygems" and
+             l.file != "#{Rubinius::LIB_PATH}/rubygems/core_ext/kernel_require.rb"
+            begin
+              bootstrap { return CodeLoader.require(name) }
+            rescue LoadError
+              return false
+            end
+          end
+        end
+
+        false
       end
 
       # Loads rubygems using the bootstrap standard library files.
