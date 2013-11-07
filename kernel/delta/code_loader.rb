@@ -140,23 +140,19 @@ module Rubinius
       end
 
       # If 'name' is in the list of standard library files that RubyGems
-      # requires and a suspected RubyGems file is invoking the require, load
-      # the library from the bootstrap libraries.
+      # requires, load the library from the bootstrap libraries.
+      #
+      # Hopefully, rubygems will make this unnecessary in the near future by
+      # defining a hook we can use to know when rubygems itself is requiring
+      # these libraries.
       def rubygems_require(name)
         return false unless rubygems_libraries.include? name
 
-        locations = Rubinius::VM.backtrace 0, false
-        locations.reverse_each do |l|
-          if l.file.start_with? "#{Rubinius::LIB_PATH}/rubygems"
-            begin
-              bootstrap { return CodeLoader.require(name) }
-            rescue LoadError
-              return false
-            end
-          end
+        begin
+          bootstrap { return CodeLoader.require(name) }
+        rescue LoadError
+          return false
         end
-
-        false
       end
 
       # Loads rubygems using the bootstrap standard library files.
