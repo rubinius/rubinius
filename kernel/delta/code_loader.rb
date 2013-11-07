@@ -91,7 +91,11 @@ module Rubinius
           "date",
           "delegate",
           "digest",
+          "etc",
           "fcntl",
+          "ffi2/generators",
+          "fileutils",
+          "mkmf",
           "monitor",
           "net/http",
           "net/protocol",
@@ -99,6 +103,7 @@ module Rubinius
           "optparse",
           "ostruct",
           "resolv",
+          "shellwords",
           "socket",
           "stringio",
           "strscan",
@@ -142,8 +147,7 @@ module Rubinius
 
         locations = Rubinius::VM.backtrace 0, false
         locations.reverse_each do |l|
-          if l.file.start_with? "#{Rubinius::LIB_PATH}/rubygems" and
-             l.file != "#{Rubinius::LIB_PATH}/rubygems/core_ext/kernel_require.rb"
+          if l.file.start_with? "#{Rubinius::LIB_PATH}/rubygems"
             begin
               bootstrap { return CodeLoader.require(name) }
             rescue LoadError
