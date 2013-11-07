@@ -147,6 +147,7 @@ class Configure
       [ "rubysl-delegate", "2.0" ],
       [ "rubysl-digest", "2.0" ],
       [ "rubysl-fcntl", "2.0" ],
+      [ "rubysl-forwardable", "2.0" ],
       [ "rubysl-monitor", "2.0" ],
       [ "rubysl-net-http", "2.0" ],
       [ "rubysl-net-protocol", "2.0" ],
