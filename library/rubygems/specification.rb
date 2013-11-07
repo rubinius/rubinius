@@ -35,18 +35,8 @@ class Date; end
 #   end
 #
 # Starting in RubyGems 2.0, a Specification can hold arbitrary
-# metadata. This metadata is accessed via Specification#metadata
-# and has the following restrictions:
-#
-# * Must be a Hash object
-# * All keys and values must be Strings
-# * Keys can be a maximum of 128 bytes and values can be a
-#   maximum of 1024 bytes
-# * All strings must be UTF8, no binary data is allowed
-#
-# For example, to add metadata for the location of a bugtracker:
-#
-#   s.metadata = { "bugtracker" => "http://somewhere.com/blah" }
+# metadata.  See #metadata for restrictions on the format and size of metadata
+# items you may add to a specification.
 
 class Gem::Specification < Gem::BasicSpecification
 
@@ -398,10 +388,21 @@ class Gem::Specification < Gem::BasicSpecification
   ##
   # :attr_accessor: metadata
   #
-  # Arbitrary metadata for this gem. An instance of Hash.
+  # The metadata holds extra data for this gem that may be useful to other
+  # consumers and is settable by gem authors without requiring an update to
+  # the rubygems software.
   #
-  # metadata is simply a Symbol => String association that contains arbitary
-  # data that could be useful to other consumers.
+  # Metadata items have the following restrictions:
+  #
+  # * The metadata must be a Hash object
+  # * All keys and values must be Strings
+  # * Keys can be a maximum of 128 bytes and values can be a maximum of 1024
+  #   bytes
+  # * All strings must be UTF-8, no binary data is allowed
+  #
+  # To add metadata for the location of a issue tracker:
+  #
+  #   s.metadata = { "issue_tracker" => "https://example/issues" }
 
   attr_accessor :metadata
 
@@ -510,6 +511,9 @@ class Gem::Specification < Gem::BasicSpecification
   # This should just be the name of your license. The full
   # text of the license should be inside of the gem when you build it.
   #
+  # See http://opensource.org/licenses/alphabetical for a list of licenses and
+  # their abbreviations (or short names).
+  #
   # You can set multiple licenses with #licenses=
   #
   # Usage:
@@ -526,6 +530,8 @@ class Gem::Specification < Gem::BasicSpecification
   #
   # This should just be the name of your license. The full
   # text of the license should be inside of the gem when you build it.
+  #
+  # See #license= for more discussion
   #
   # Usage:
   #   spec.licenses = ['MIT', 'GPL-2']
@@ -1725,6 +1731,7 @@ class Gem::Specification < Gem::BasicSpecification
   end
 
   def init_with coder # :nodoc:
+    @installed_by_version ||= nil
     yaml_initialize coder.tag, coder.map
   end
 
@@ -1835,6 +1842,8 @@ class Gem::Specification < Gem::BasicSpecification
 
   ##
   # Plural accessor for setting licenses
+  #
+  # See #license= for details
 
   def licenses
     @licenses ||= []
@@ -2450,7 +2459,10 @@ class Gem::Specification < Gem::BasicSpecification
       end
     }
 
-    alert_warning 'licenses is empty' if licenses.empty?
+    alert_warning <<-warning if licenses.empty?
+licenses is empty.  Use a license abbreviation from:
+  http://opensource.org/licenses/alphabetical
+    warning
 
     validate_permissions
 
@@ -2579,6 +2591,8 @@ class Gem::Specification < Gem::BasicSpecification
 
       instance_variable_set "@#{attribute}", value
     end
+
+    @installed_by_version ||= nil
   end
 
   extend Gem::Deprecate
