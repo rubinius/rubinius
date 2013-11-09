@@ -22,7 +22,7 @@ describe "CApiFixnumSpecs" do
       end
 
       it "converts the maximum uint value" do
-        @s.rb_fix2uint(0x7fff_ffff).should == 0x7fff_ffff
+        @s.rb_fix2uint(0xffff_ffff).should == 0xffff_ffff
       end
 
       it "converts a Float" do
