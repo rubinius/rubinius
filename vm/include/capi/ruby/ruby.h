@@ -896,6 +896,9 @@ struct RTypedData {
   /** Array coercion method */
   VALUE   rb_ary_to_ary(VALUE ary);
 
+  /** Array subsequence */
+  VALUE   rb_ary_subseq(VALUE, long, long);
+
   void    rb_mem_clear(VALUE* ary, int len);
 
   /** Return new Array with elements first and second. */

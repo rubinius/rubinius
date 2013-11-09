@@ -508,4 +508,17 @@ extern "C" {
     }
   }
 
+  VALUE rb_ary_subseq(VALUE ary, long beg, long len) {
+    if (beg > RARRAY_LEN(ary)) return Qnil;
+    if (beg < 0 || len < 0) return Qnil;
+
+    if (RARRAY_LEN(ary) < len || RARRAY_LEN(ary) < beg + len) {
+      len = RARRAY_LEN(ary) - beg;
+    }
+
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Array* array = c_as<Array>(env->get_object(ary));
+    return env->get_handle(array->new_range(env->state(), Fixnum::from(beg), Fixnum::from(len)));
+  }
 }
