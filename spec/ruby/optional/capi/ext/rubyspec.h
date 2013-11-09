@@ -66,6 +66,9 @@
 #define HAVE_RB_ARY_STORE                  1
 #define HAVE_RB_ARY_CONCAT                 1
 #define HAVE_RB_ARY_TO_ARY                 1
+#ifdef RUBY_VERSION_IS_1_9
+#define HAVE_RB_ARY_SUBSEQ                 1
+#endif
 #define HAVE_RB_ARY_TO_S                   1
 #define HAVE_RB_ARY_UNSHIFT                1
 #define HAVE_RB_ASSOC_NEW                  1

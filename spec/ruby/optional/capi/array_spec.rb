@@ -486,4 +486,31 @@ describe "C-API Array function" do
 
   end
 
+  ruby_version_is "1.9" do
+
+    describe "rb_ary_subseq" do
+
+      it "returns a subsequence of the given array" do
+        @s.rb_ary_subseq([1, 2, 3, 4, 5], 1, 3).should == [2, 3, 4]
+      end
+
+      it "returns an empty array for a subsequence of 0 elements" do
+        @s.rb_ary_subseq([1, 2, 3, 4, 5], 1, 0).should == []
+      end
+
+      it "returns nil if the begin index is out of bound" do
+        @s.rb_ary_subseq([1, 2, 3, 4, 5], 6, 3).should be_nil
+      end
+
+      it "returns the existing subsequence of the length is out of bounds" do
+        @s.rb_ary_subseq([1, 2, 3, 4, 5], 4, 3).should == [5]
+      end
+
+      it "returns nil if the size is negative" do
+        @s.rb_ary_subseq([1, 2, 3, 4, 5], 1, -1).should be_nil
+      end
+
+    end
+
+  end
 end
