@@ -4,7 +4,7 @@ extern "C" {
   unsigned long rb_fix2uint(VALUE obj) {
     unsigned long num = rb_num2ulong(obj);
 
-    if((int)num < 0) {
+    if((long)num < 0) {
       rb_raise(rb_eRangeError, "integer too small to convert into unsigned int");
     }
 
