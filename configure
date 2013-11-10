@@ -143,9 +143,11 @@ class Configure
 
     # Standard library gems to bootstrap rubygems
     @rubygems_gems = [
+      [ "rubysl-cgi", "2.0" ],
       [ "rubysl-date", "2.0" ],
       [ "rubysl-delegate", "2.0" ],
       [ "rubysl-digest", "2.0" ],
+      [ "rubysl-erb", "2.0" ],
       [ "rubysl-fcntl", "2.0" ],
       [ "rubysl-forwardable", "2.0" ],
       [ "rubysl-monitor", "2.0" ],
@@ -154,6 +156,7 @@ class Configure
       [ "rubysl-openssl", "2.0" ],
       [ "rubysl-optparse", "2.0" ],
       [ "rubysl-ostruct", "2.0" ],
+      [ "rubysl-pathname", "2.0" ],
       [ "rubysl-resolv", "2.0" ],
       [ "rubysl-socket", "2.0" ],
       [ "rubysl-stringio", "2.0" ],

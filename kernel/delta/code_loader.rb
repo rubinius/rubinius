@@ -88,10 +88,12 @@ module Rubinius
 
       def rubygems_libraries
         @rubygems_libraries ||= [
+          "cgi",
           "date",
           "delegate",
           "digest",
           "digest/sha1",
+          "erb",
           "etc",
           "fcntl",
           "ffi2/generators",
@@ -100,10 +102,12 @@ module Rubinius
           "mkmf",
           "monitor",
           "net/http",
+          "net/https",
           "net/protocol",
           "openssl",
           "optparse",
           "ostruct",
+          "pathname",
           "resolv",
           "shellwords",
           "socket",
