@@ -755,16 +755,26 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
   end
 
   def setup_path
-    @log.print "Validating '#{@llvm_path}': "
+    @log.print "  Checking for '#{@llvm_path}': "
     if File.directory? @llvm_path
       ["Release", "Debug", ""].each do |which|
         sub = File.join(@llvm_path, which, "bin")
         if File.directory? sub
-          @log.write "Ok! Using #{which}"
           config = File.join(@llvm_path, which, "bin", "llvm-config")
-          @llvm = :config
-          @llvm_configure = llvm_config_cmd config
-          return true
+          version = `#{config} --version`.strip
+          parts = version.sub(/svn$/, "").split(".").map { |i| i.to_i }
+          api_version = ("%d%02d" % parts[0..1]).to_i
+          if version >= "3.0"
+            @log.write "found!"
+            @llvm = :config
+            @llvm_version     = version
+            @llvm_api_version = api_version
+            @llvm_configure = llvm_config_cmd config
+            return true
+          else
+            @log.write "outdated (version #{version})"
+            return false
+          end
         end
       end
 
