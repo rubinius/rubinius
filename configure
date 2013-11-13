@@ -194,7 +194,7 @@ class Configure
 
     # Configure settings
     @build_ruby = nil
-    @config_version = 187
+    @config_version = 188
     @release_build = !git_directory
     @release_config = false
   end
@@ -1672,10 +1672,10 @@ int main() { return tgetnum(""); }
 
     release_config = {
       :config_file        => @config,
-      :build_tool_gems    => Rubinius::BUILD_CONFIG[:build_tool_gems] || @build_tool_gems,
-      :build_c_ext_gems   => Rubinius::BUILD_CONFIG[:build_c_ext_gems] || @build_c_ext_gems,
-      :rubygems_gems      => Rubinius::BUILD_CONFIG[:rubygems_gems] || @rubygems_gems,
-      :runtime_gems       => Rubinius::BUILD_CONFIG[:runtime_gems] || @runtime_gems,
+      :build_tool_gems    => @build_tool_gems,
+      :build_c_ext_gems   => @build_c_ext_gems,
+      :rubygems_gems      => @rubygems_gems,
+      :runtime_gems       => @runtime_gems,
       :ruby_version       => @ruby_version,
       :version            => version,
       :libversion         => @libversion,
@@ -2059,7 +2059,14 @@ int main() { return tgetnum(""); }
     end
 
     process
-    fetch_gems unless @release_build
+    if @release_build
+      @build_tool_gems  = Rubinius::BUILD_CONFIG.fetch :build_tool_gems, @build_tool_gems
+      @build_c_ext_gems = Rubinius::BUILD_CONFIG.fetch :build_c_ext_gems, @build_c_ext_gems
+      @rubygems_gems    = Rubinius::BUILD_CONFIG.fetch :rubygems_gems, @rubygems_gems
+      @runtime_gems     = Rubinius::BUILD_CONFIG.fetch :runtime_gems, @runtime_gems
+    else
+      fetch_gems
+    end
     unpack_gems unless @release_config
     write_configure_files
 
