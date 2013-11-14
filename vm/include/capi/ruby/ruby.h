@@ -255,16 +255,16 @@ struct RString {
 #define RSTRING_CACHE_UNSAFE    1
 #define RSTRING_CACHE_SAFE      2
 
-#ifdef RSTRING_NOT_MODIFIED
-  /* Define this macro if the C extension never modifies, but
-   * only reads from, RSTRING(str)->ptr and RSTRING(str)->len.
-   */
-#define RSTRING(str)    capi_rstring_struct(str, RSTRING_CACHE_SAFE)
-#else
+#ifdef RSTRING_MODIFIED
   /* The default is to update the string when RSTRING(str)->len is
    * modified. We raise an exception if RSTRING(str)->ptr is changed.
    */
 #define RSTRING(str)    capi_rstring_struct(str, RSTRING_CACHE_UNSAFE)
+#else
+  /* Define this macro if the C extension never modifies, but
+   * only reads from, RSTRING(str)->ptr and RSTRING(str)->len.
+   */
+#define RSTRING(str)    capi_rstring_struct(str, RSTRING_CACHE_SAFE)
 #endif
 
 struct RArray {
