@@ -37,15 +37,15 @@ describe :string_to_sym, :shared => true do
   ruby_version_is "1.9" do
     ruby_bug "#9048", "1.9.3.481" do
       it "does not special case certain operators" do
-        [ ["!@", :"!@"],
-          ["~@", :"~@"],
-          ["!(unary)", :"!(unary)"],
-          ["~(unary)", :"~(unary)"],
-          ["+(unary)", :"+(unary)"],
-          ["-(unary)", :"-(unary)"],
-          ["+(binary)", :"+(binary)"],
-          ["-(binary)", :"-(binary)"]
-        ].should be_computed_by(@method)
+        [ ["!@".send(@method), "!@"],
+          ["~@".send(@method), "~@"],
+          ["!(unary)".send(@method), "!(unary)"],
+          ["~(unary)".send(@method), "~(unary)"],
+          ["+(unary)".send(@method), "+(unary)"],
+          ["-(unary)".send(@method), "-(unary)"],
+          ["+(binary)".send(@method), "+(binary)"],
+          ["-(binary)".send(@method), "-(binary)"]
+        ].should be_computed_by(:to_s)
       end
     end
   end
