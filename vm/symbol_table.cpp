@@ -68,37 +68,6 @@ namespace rubinius {
     return lookup(str, length, Encoding::eAscii, state->hash_seed());
   }
 
-  struct SpecialOperator {
-    const char* name;
-    const char* symbol;
-  };
-
-  // These are a set of special operators that MRI
-  // changes the symbol value of.
-  static SpecialOperator SpecialOperators[] = {
-    {"+(binary)", "+"},
-    {"-(binary)", "-"},
-    {"+(unary)", "+@"},
-    {"-(unary)", "-@"},
-    {"!(unary)", "!"},
-    {"~(unary)", "~"},
-    {"!@", "!"},
-    {"~@", "~"}
-  };
-
-  const static int cNumSpecialOperators = 8;
-
-  static const char* find_special(const char* check, size_t length) {
-    for(int i = 0; i < cNumSpecialOperators; i++) {
-      SpecialOperator* op = &SpecialOperators[i];
-      if(*op->name == *check && strncmp(op->name, check, length) == 0) {
-        return op->symbol;
-      }
-    }
-
-    return 0;
-  }
-
   Symbol* SymbolTable::lookup(SharedState* shared, const std::string& str) {
     return lookup(str.data(), str.size(), Encoding::eAscii, shared->hash_seed);
   }
@@ -109,11 +78,6 @@ namespace rubinius {
 
   Symbol* SymbolTable::lookup(const char* str, size_t length, int enc, uint32_t seed) {
     size_t sym;
-
-    if(const char* op = find_special(str, length)) {
-      str = op;
-      length = strlen(str);
-    }
 
     hashval hash = String::hash_str((unsigned char*)str, length, seed);
 
