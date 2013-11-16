@@ -43,4 +43,14 @@ describe "Exception#set_backtrace" do
     err = RuntimeError.new
     lambda { err.set_backtrace ["String", :unhappy] }.should raise_error(TypeError)
   end
+
+  it "raises a TypeError when the array contains nil" do
+    err = Exception.new
+    lambda { err.set_backtrace ["String", nil] }.should raise_error(TypeError)
+  end
+
+  it "raises a TypeError when the argument is a nested array" do
+    err = Exception.new
+    lambda { err.set_backtrace ["String", ["String"]] }.should raise_error(TypeError)
+  end
 end
