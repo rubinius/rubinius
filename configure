@@ -141,14 +141,15 @@ class Configure
       [ "rubysl-shellwords", "2.0" ]
     ]
 
-    # Standard library gems to bootstrap rubygems
-    @rubygems_gems = [
+    # Standard library gems to bootstrap rubygems and Bundler
+    @bootstrap_gems = [
       [ "rubysl-cgi", "2.0" ],
       [ "rubysl-date", "2.0" ],
       [ "rubysl-delegate", "2.0" ],
       [ "rubysl-digest", "2.0" ],
       [ "rubysl-erb", "2.0" ],
       [ "rubysl-fcntl", "2.0" ],
+      [ "rubysl-fileutils", "2.0" ],
       [ "rubysl-forwardable", "2.0" ],
       [ "rubysl-monitor", "2.0" ],
       [ "rubysl-net-http", "2.0" ],
@@ -157,7 +158,9 @@ class Configure
       [ "rubysl-optparse", "2.0" ],
       [ "rubysl-ostruct", "2.0" ],
       [ "rubysl-pathname", "2.0" ],
+      [ "rubysl-prettyprint", "2.0" ],
       [ "rubysl-resolv", "2.0" ],
+      [ "rubysl-set", "2.0" ],
       [ "rubysl-socket", "2.0" ],
       [ "rubysl-stringio", "2.0" ],
       [ "rubysl-strscan", "2.0" ],
@@ -1674,7 +1677,7 @@ int main() { return tgetnum(""); }
       :config_file        => @config,
       :build_tool_gems    => @build_tool_gems,
       :build_c_ext_gems   => @build_c_ext_gems,
-      :rubygems_gems      => @rubygems_gems,
+      :bootstrap_gems     => @bootstrap_gems,
       :runtime_gems       => @runtime_gems,
       :ruby_version       => @ruby_version,
       :version            => version,
@@ -1909,7 +1912,7 @@ int main() { return tgetnum(""); }
 
     # Resolve requirements to specific versions.
     failed = false
-    lists = [@build_tool_gems, @build_c_ext_gems, @rubygems_gems, @runtime_gems]
+    lists = [@build_tool_gems, @build_c_ext_gems, @bootstrap_gems, @runtime_gems]
     lists.each do |list|
       list.map! do |name, version|
         @log.print "Checking #{name} (~> #{version})"
@@ -1963,7 +1966,7 @@ int main() { return tgetnum(""); }
 
     # Fetch missing gems.
     @log.write "\nFetching gems..."
-    gems = @build_tool_gems + @build_c_ext_gems + @rubygems_gems + @runtime_gems
+    gems = @build_tool_gems + @build_c_ext_gems + @bootstrap_gems + @runtime_gems
 
     gems_cache = File.expand_path "../vendor/cache", __FILE__
     FileUtils.mkdir_p gems_cache
@@ -1988,7 +1991,7 @@ int main() { return tgetnum(""); }
   def unpack_gems
     @log.write "\nUnpacking bootstrap gems..."
 
-    gems = @build_tool_gems + @build_c_ext_gems + @rubygems_gems
+    gems = @build_tool_gems + @build_c_ext_gems + @bootstrap_gems
 
     runtime_gems = File.expand_path "../runtime/gems", __FILE__
     FileUtils.mkdir_p runtime_gems unless File.directory? runtime_gems
@@ -2062,7 +2065,7 @@ int main() { return tgetnum(""); }
     if @release_build
       @build_tool_gems  = Rubinius::BUILD_CONFIG.fetch :build_tool_gems, @build_tool_gems
       @build_c_ext_gems = Rubinius::BUILD_CONFIG.fetch :build_c_ext_gems, @build_c_ext_gems
-      @rubygems_gems    = Rubinius::BUILD_CONFIG.fetch :rubygems_gems, @rubygems_gems
+      @bootstrap_gems   = Rubinius::BUILD_CONFIG.fetch :bootstrap_gems, @bootstrap_gems
       @runtime_gems     = Rubinius::BUILD_CONFIG.fetch :runtime_gems, @runtime_gems
     else
       fetch_gems
