@@ -7,7 +7,7 @@ describe "Math.erfc" do
     Math.erf(1).should be_kind_of(Float)
   end
 
-  it "returns the complimentary error function of the argument" do
+  it "returns the complementary error function of the argument" do
     Math.erfc(0).should be_close(1.0, TOLERANCE)
     Math.erfc(1).should be_close(0.157299207050285, TOLERANCE)
     Math.erfc(-1).should be_close(1.84270079294971, TOLERANCE)
