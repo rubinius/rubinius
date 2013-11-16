@@ -97,13 +97,15 @@ describe :set_visibility, :shared => true do
     ruby_version_is "2.1" do
       it "does not affect method definitions when itself is inside an eval and method definitions are outside" do
         visibility = @method
+        initialized_visibility = [:public, :protected, :private].find {|sym| sym != visibility }
         mod = Module.new {
+              send initialized_visibility
               eval visibility.to_s
 
               def test1() end
             }
 
-        mod.should have_public_instance_method(:test1, false)
+        mod.should send(:"have_#{initialized_visibility}_instance_method", :test1, false)
       end
     end
 

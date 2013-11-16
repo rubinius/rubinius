@@ -607,10 +607,6 @@ class Module
   def protected(*args)
     if args.empty?
       vs = Rubinius::VariableScope.of_sender
-      until vs.top_level_visibility?
-        break unless vs.parent
-        vs = vs.parent
-      end
       vs.method_visibility = :protected
     else
       args.each { |meth| set_visibility(meth, :protected) }

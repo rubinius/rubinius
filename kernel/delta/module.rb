@@ -48,10 +48,6 @@ class Module
 
     if args.empty?
       vs = Rubinius::VariableScope.of_sender
-      until vs.top_level_visibility?
-        break unless vs.parent
-        vs = vs.parent
-      end
       vs.method_visibility = :module
     else
       sc = Rubinius::Type.object_singleton_class(self)
@@ -70,10 +66,6 @@ class Module
   def public(*args)
     if args.empty?
       vs = Rubinius::VariableScope.of_sender
-      until vs.top_level_visibility?
-        break unless vs.parent
-        vs = vs.parent
-      end
       vs.method_visibility = nil
     else
       args.each { |meth| set_visibility(meth, :public) }
@@ -85,10 +77,6 @@ class Module
   def private(*args)
     if args.empty?
       vs = Rubinius::VariableScope.of_sender
-      until vs.top_level_visibility?
-        break unless vs.parent
-        vs = vs.parent
-      end
       vs.method_visibility = :private
     else
       args.each { |meth| set_visibility(meth, :private) }
