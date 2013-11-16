@@ -113,7 +113,21 @@ class Exception
       if hidden_bt = Rubinius::Backtrace.detect_backtrace(bt)
         @backtrace = hidden_bt
       else
-        @custom_backtrace = bt
+        type_error = TypeError.new "backtrace must be Array of String"
+        case bt
+        when Array
+          if bt.all? { |s| s.kind_of? String }
+            @custom_backtrace = bt
+          else
+            raise type_error
+          end
+        when String
+          @custom_backtrace = [bt]
+        when nil
+          @custom_backtrace = nil
+        else
+          raise type_error
+        end
       end
     end
   end
