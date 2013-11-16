@@ -34,7 +34,7 @@ describe "Exception#set_backtrace" do
     err.backtrace.should be_nil
   end
 
-  it "raises a TypeError when when passed a Symbol" do
+  it "raises a TypeError when passed a Symbol" do
     err = RuntimeError.new
     lambda { err.set_backtrace :unhappy }.should raise_error(TypeError)
   end
