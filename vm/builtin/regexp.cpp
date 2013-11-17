@@ -648,6 +648,8 @@ namespace rubinius {
 
     source_->infect(state, string);
     string->encoding_from(state, source_);
+    string->klass(state, source_->class_object(state));
+    
     return string;
   }
 
@@ -671,6 +673,8 @@ namespace rubinius {
 
     source_->infect(state, string);
     string->encoding_from(state, source_);
+    string->klass(state, source_->class_object(state));
+
     return string;
   }
 
@@ -695,6 +699,8 @@ namespace rubinius {
 
     source_->infect(state, string);
     string->encoding_from(state, source_);
+    string->klass(state, source_->class_object(state));
+
     return string;
   }
 
@@ -725,6 +731,8 @@ namespace rubinius {
     String* string = String::create(state, str + b, sz);
     source_->infect(state, string);
     string->encoding_from(state, source_);
+    string->klass(state, source_->class_object(state));
+
     return string;
   }
 
