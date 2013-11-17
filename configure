@@ -193,8 +193,8 @@ class Configure
     # Essential settings (modify these for creating releases)
     @ruby_version = "2.1.0"
     @libversion = "2.2"
-    @patch_version = "0"
-    @release_date = nil
+    @patch_version = "1"
+    @release_date = "2013-11-17"
 
     # Configure settings
     @build_ruby = nil
