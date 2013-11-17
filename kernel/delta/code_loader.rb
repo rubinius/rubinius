@@ -105,6 +105,7 @@ module Rubinius
           "net/http",
           "net/https",
           "net/protocol",
+          "open-uri",
           "openssl",
           "optparse",
           "ostruct",
