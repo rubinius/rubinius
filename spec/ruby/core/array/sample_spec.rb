@@ -40,6 +40,20 @@ describe "Array#sample" do
       [4, 4].sample(2).should == [4,4]
     end
 
+    it "returns usually different values when not passed a count" do
+      a = (1..100).to_a
+      result = (1..10).map { a.sample }
+
+      result.uniq.size.should == 10
+    end
+
+    it "returns usually different arrays when passed a count" do
+      a = (1..100).to_a
+      result = (1..10).map { a.sample(3) }
+
+      result.uniq.size.should == 10
+    end
+
     it "calls #to_int to convert the count when passed an Object" do
       [1, 2, 3, 4].sample(mock_int(2)).size.should == 2
     end
@@ -83,6 +97,12 @@ describe "Array#sample" do
         obj = mock("array_sample_random")
 
         [1, 2].sample(:random => obj).should be_an_instance_of(Fixnum)
+      end
+
+      it "returns usually different result" do
+        a = (1..100).to_a
+        result = (1..10).map { a.sample(:random => Random.new) }
+        result.uniq.size.should == 10
       end
 
       describe "when the object returned by #rand is a Fixnum" do
