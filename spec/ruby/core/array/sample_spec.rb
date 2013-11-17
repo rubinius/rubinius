@@ -40,9 +40,11 @@ describe "Array#sample" do
       [4, 4].sample(2).should == [4,4]
     end
 
-    it "returns usually different arrays when passed a count" do
+    it "returns different arrays usually" do
+      # Probability of random failure: 1 in 10**30
+
       a = (1..100).to_a
-      result = (1..10).map { a.sample(3) }
+      result = (1..10).map { a.sample(10) }
 
       result.uniq.size.should == 10
     end
