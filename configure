@@ -152,6 +152,7 @@ class Configure
       [ "rubysl-fileutils", "2.0" ],
       [ "rubysl-forwardable", "2.0" ],
       [ "rubysl-monitor", "2.0" ],
+      [ "rubysl-net-ftp", "2.0" ],
       [ "rubysl-net-http", "2.0" ],
       [ "rubysl-net-protocol", "2.0" ],
       [ "rubysl-open-uri", "2.0" ],
