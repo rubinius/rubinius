@@ -130,7 +130,27 @@ module Rubinius
       Rubinius.invoke_primitive(:string_check_null_safe, string)
     end
 
-    def self.const_get(mod, name, inherit = true)
+    def self.const_lookup(mod, name, inherit)
+      parts = name.split '::'
+
+      if name.start_with? '::'
+        mod = Object
+        parts.shift
+      end
+
+      parts.each do |part|
+        mod = const_get mod, part, inherit
+      end
+
+      mod
+    end
+
+    def self.const_get(mod, name, inherit=true)
+      unless object_kind_of? name, Symbol
+        name = StringValue(name)
+        return const_lookup mod, name, inherit if name.index '::' and name.size > 2
+      end
+
       name = coerce_to_constant_name name
 
       current, constant = mod, undefined
