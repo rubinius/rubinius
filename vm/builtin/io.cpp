@@ -115,9 +115,16 @@ namespace rubinius {
     if(fd < 0) {
       Exception::errno_error(state, p->c_str_null_safe(state));
     }
-    update_max_fd(state, fd);
+    new_open_fd(state, fd);
 
     return Fixnum::from(fd);
+  }
+
+  void IO::new_open_fd(STATE, native_int new_fd) {
+    if(new_fd > 2) {
+      fcntl(new_fd, F_SETFD, fcntl(new_fd, F_GETFD) | FD_CLOEXEC);
+    }
+    update_max_fd(state, new_fd);
   }
 
   void IO::update_max_fd(STATE, native_int new_fd) {
@@ -345,7 +352,7 @@ namespace rubinius {
       Exception::errno_error(state, p->c_str_null_safe(state));
     }
 
-    update_max_fd(state, other_fd);
+    new_open_fd(state, other_fd);
 
     if(dup2(other_fd, cur_fd) == -1) {
       if(errno == EBADF) { // this means cur_fd is closed
@@ -385,8 +392,8 @@ namespace rubinius {
       Exception::errno_error(state, "creating pipe");
     }
 
-    update_max_fd(state, fds[0]);
-    update_max_fd(state, fds[1]);
+    new_open_fd(state, fds[0]);
+    new_open_fd(state, fds[1]);
 
     lhs->descriptor(state, Fixnum::from(fds[0]));
     rhs->descriptor(state, Fixnum::from(fds[1]));

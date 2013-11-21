@@ -60,6 +60,7 @@ namespace rubinius {
     // Rubinius.primitive :io_open
     static Fixnum*  open(STATE, String* path, Fixnum* mode, Fixnum* perm, CallFrame* calling_environment);
 
+    static void new_open_fd(STATE, native_int fd);
     static void update_max_fd(STATE, native_int fd);
 
     /**
