@@ -244,7 +244,6 @@ namespace rubinius {
     GCTokenImpl gct;
 
     // Lock the thread object and unlock it at __run__ in the ruby land.
-    vm->thread->hard_lock(state, gct, 0);
     vm->thread->alive(state, cTrue);
     vm->thread->init_lock_.unlock();
 
@@ -252,6 +251,7 @@ namespace rubinius {
     // gc_dependent may lock when it detects GC is happening. Also the parent
     // thread is locked until init_lock_ is unlocked by this child thread.
     state->gc_dependent(gct, 0);
+    vm->thread->hard_lock(state, gct, 0);
 
     vm->shared.tool_broker()->thread_start(state);
     Object* ret = vm->thread->runner_(state);
