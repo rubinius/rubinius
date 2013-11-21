@@ -361,4 +361,9 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     IO::update_max_fd(env->state(), fd);
   }
+
+  void rb_fd_fix_cloexec(int fd) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    IO::new_open_fd(env->state(), fd);
+  }
 }

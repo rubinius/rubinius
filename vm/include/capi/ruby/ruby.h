@@ -1316,6 +1316,7 @@ struct RTypedData {
   FILE *  rb_io_stdio_file(rb_io_t *fptr);
 
   void    rb_update_max_fd(int fd);
+  void    rb_fd_fix_cloexec(int fd);
 
   void    rb_thread_wait_fd(int fd);
   void    rb_thread_fd_writable(int fd);
