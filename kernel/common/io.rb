@@ -641,6 +641,8 @@ class IO
       ret |= RDWR
     when ?b
       ret |= BINARY
+    when ?t
+      ret &= ~BINARY
     when ?:
       warn("encoding options not supported in 1.8")
       return ret
@@ -656,6 +658,8 @@ class IO
       ret |= RDWR
     when ?b
       ret |= BINARY
+    when ?t
+      ret &= ~BINARY
     when ?:
       warn("encoding options not supported in 1.8")
       return ret
