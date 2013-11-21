@@ -362,6 +362,26 @@ ruby_version_is "1.9" do
     end
   end
 
+  describe "IO#read in text mode" do
+    before :each do
+      @internal = Encoding.default_internal
+      @name = fixture __FILE__, "read_text.txt"
+    end
+
+    after :each do
+      Encoding.default_internal = @internal
+    end
+
+    it "reads data according to the internal encoding" do
+      Encoding.default_internal = "utf-8"
+
+      result = File.open(@name, "rt") { |f| f.read }.chomp
+
+      result.encoding.should == Encoding::UTF_8
+      result.should == "abcâdef"
+    end
+  end
+
   describe "IO.read with BOM" do
     it "reads a file without a bom" do
       name = fixture __FILE__, "no_bom_UTF-8.txt"
