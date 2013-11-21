@@ -276,3 +276,30 @@ describe "C-API IO function" do
   end
 
 end
+
+ruby_version_is "2.0" do
+  describe "rb_fd_fix_cloexec" do
+
+    before :each do
+      @o = CApiIOSpecs.new
+
+      @name = tmp("c_api_rb_io_specs")
+      touch @name
+
+      @io = new_io @name, fmode("w:utf-8")
+      @io.close_on_exec = false
+      @io.sync = true
+    end
+
+    after :each do
+      @io.close unless @io.closed?
+      rm_r @name
+    end
+
+    it "sets close_on_exec on the IO" do
+      @o.rb_fd_fix_cloexec(@io)
+      @io.close_on_exec?.should be_true
+    end
+
+  end
+end

@@ -339,6 +339,10 @@
 #define HAVE_RB_MUTEX_SYNCHRONIZE          1
 #endif
 
+#ifdef RUBY_VERSION_IS_2_0
+#define HAVE_RB_FD_FIX_CLOEXEC             1
+#endif
+
 /* Kernel */
 #define HAVE_RB_BLOCK_GIVEN_P              1
 #define HAVE_RB_BLOCK_PROC                 1
