@@ -73,7 +73,7 @@ namespace rubinius {
         for(SlowHandleSet::iterator i = slow_->begin();
             i != slow_->end();
             ++i) {
-          capi::Handle* handle = *i;
+          Handle* handle = *i;
           handle->deref();
         }
       }
@@ -88,7 +88,7 @@ namespace rubinius {
         for(SlowHandleSet::iterator i = slow_->begin();
             i != slow_->end();
             ++i) {
-          capi::Handle* handle = *i;
+          Handle* handle = *i;
           handle->flush(env);
         }
       }
@@ -103,7 +103,7 @@ namespace rubinius {
         for(SlowHandleSet::iterator i = slow_->begin();
             i != slow_->end();
             ++i) {
-          capi::Handle* handle = *i;
+          Handle* handle = *i;
           handle->update(env);
         }
       }
@@ -111,7 +111,7 @@ namespace rubinius {
 
     void HandleSet::gc_scan(GarbageCollector* gc) {
       for(int i = 0; i < cFastHashSize; i++) {
-        if(capi::Handle* handle = table_[i]) {
+        if(Handle* handle = table_[i]) {
           handle->set_object(gc->mark_object(handle->object()));
         }
       }
@@ -120,7 +120,7 @@ namespace rubinius {
         for(SlowHandleSet::iterator i = slow_->begin();
             i != slow_->end();
             ++i) {
-          capi::Handle* handle = *i;
+          Handle* handle = *i;
           handle->set_object(gc->mark_object(handle->object()));
         }
       }
