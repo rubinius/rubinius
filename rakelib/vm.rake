@@ -161,7 +161,7 @@ namespace :build do
                               "--enable-optimized --disable-assertions "\
                               " --enable-targets=host,cpp"
           sh %[sh -c "#{File.expand_path("./configure")} #{llvm_config_flags}"]
-          sh make
+          sh Rubinius::BUILD_CONFIG[:build_make]
         end
       end
     end
