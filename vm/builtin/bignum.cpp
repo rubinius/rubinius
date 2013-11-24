@@ -1152,6 +1152,102 @@ namespace rubinius {
     return Bignum::normalize(state, n_obj);
   }
 
+  Integer* Bignum::from_cstr(STATE, const char* str, const char* end,
+                            native_int start, bool negative,
+                            int base, Object* strict) {
+    mp_int n;
+    mp_init(&n);
+
+    mp_set_long(XST, &n, start);
+    char chr;
+    bool underscore = false;
+
+    while(str < end) {
+      chr = *str++;
+
+      // If we see space characters
+      if(chr == ' ' || chr == '\t' || chr == '\n' || chr == '\r') {
+
+        // Eat them all
+        while(chr == ' ' || chr == '\t' || chr == '\n' || chr == '\r') {
+          chr = *str++;
+        }
+
+        // If there is more stuff after the spaces, get out of dodge.
+        if(chr) {
+          if(CBOOL(strict)) {
+            return nil<Integer>();
+          } else {
+            goto return_value;
+          }
+        }
+
+        break;
+      }
+
+      // If it's an underscore, remember that. An underscore is valid iff
+      // it followed by a valid character for this base.
+      if(chr == '_') {
+        if(underscore) {
+          // Double underscore is forbidden in strict mode.
+          if(CBOOL(strict)) {
+            return nil<Integer>();
+          } else {
+            // Stop parse number after two underscores in a row
+            goto return_value;
+          }
+        }
+        underscore = true;
+        continue;
+      } else {
+        underscore = false;
+      }
+
+      // We use A-Z (and a-z) here so we support up to base 36.
+      if(chr >= '0' && chr <= '9') {
+        chr -= '0';
+      } else if(chr >= 'A' && chr <= 'Z') {
+        chr -= ('A' - 10);
+      } else if(chr >= 'a' && chr <= 'z') {
+        chr -= ('a' - 10);
+      } else {
+        //Invalid character, stopping right here.
+        if(CBOOL(strict)) {
+          return nil<Integer>();
+        } else {
+          break;
+        }
+      }
+
+      // Bail if the current chr is greater or equal to the base,
+      // mean it's invalid.
+      if(chr >= base) {
+        if(CBOOL(strict)) {
+          return nil<Integer>();
+        } else {
+          break;
+        }
+      }
+
+      mp_mul_d((void*)state, &n, base, &n);
+      mp_add_d((void*)state, &n, chr, &n);
+    }
+
+    // If we last saw an underscore and we're strict, bail.
+    if(underscore && CBOOL(strict)) {
+      return nil<Integer>();
+    }
+
+return_value:
+    if(negative) {
+      mp_neg((void*)state, &n, &n);
+    }
+
+    Integer* res = Bignum::from(state, &n);
+    mp_clear(&n);
+    return res;
+  }
+
   Array* Bignum::coerce(STATE, Bignum* other) {
     Array* ary = Array::create(state, 2);
 

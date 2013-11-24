@@ -221,112 +221,6 @@ return_value:
     return Fixnum::from(value);
   }
 
-  Integer* from_cstr_bignum(STATE, const char* str, const char* end,
-                            native_int start, bool negative,
-                            int base, Object* strict) {
-    Integer* value = Fixnum::from(start);
-
-    char chr;
-    bool underscore = false;
-
-    while(str < end) {
-      chr = *str++;
-
-      // If we see space characters
-      if(chr == ' ' || chr == '\t' || chr == '\n' || chr == '\r') {
-
-        // Eat them all
-        while(chr == ' ' || chr == '\t' || chr == '\n' || chr == '\r') {
-          chr = *str++;
-        }
-
-        // If there is more stuff after the spaces, get out of dodge.
-        if(chr) {
-          if(CBOOL(strict)) {
-            return nil<Integer>();
-          } else {
-            goto return_value;
-          }
-        }
-
-        break;
-      }
-
-      // If it's an underscore, remember that. An underscore is valid iff
-      // it followed by a valid character for this base.
-      if(chr == '_') {
-        if(underscore) {
-          // Double underscore is forbidden in strict mode.
-          if(CBOOL(strict)) {
-            return nil<Integer>();
-          } else {
-            // Stop parse number after two underscores in a row
-            goto return_value;
-          }
-        }
-        underscore = true;
-        continue;
-      } else {
-        underscore = false;
-      }
-
-      // We use A-Z (and a-z) here so we support up to base 36.
-      if(chr >= '0' && chr <= '9') {
-        chr -= '0';
-      } else if(chr >= 'A' && chr <= 'Z') {
-        chr -= ('A' - 10);
-      } else if(chr >= 'a' && chr <= 'z') {
-        chr -= ('a' - 10);
-      } else {
-        //Invalid character, stopping right here.
-        if(CBOOL(strict)) {
-          return nil<Integer>();
-        } else {
-          break;
-        }
-      }
-
-      // Bail if the current chr is greater or equal to the base,
-      // mean it's invalid.
-      if(chr >= base) {
-        if(CBOOL(strict)) {
-          return nil<Integer>();
-        } else {
-          break;
-        }
-      }
-
-      if(Fixnum *fix = try_as<Fixnum>(value)) {
-        value = fix->mul(state, Fixnum::from(base));
-      } else {
-        value = as<Bignum>(value)->mul(state, Fixnum::from(base));
-      }
-
-      if(Fixnum *fix = try_as<Fixnum>(value)) {
-        value = fix->add(state, Fixnum::from(chr));
-      } else {
-        value = as<Bignum>(value)->add(state, Fixnum::from(chr));
-      }
-    }
-
-    // If we last saw an underscore and we're strict, bail.
-    if(underscore && CBOOL(strict)) {
-      return nil<Integer>();
-    }
-
-return_value:
-    if(negative) {
-      if(Fixnum* fix = try_as<Fixnum>(value)) {
-        value = fix->neg(state);
-      } else {
-        value = as<Bignum>(value)->neg(state);
-      }
-    }
-
-    return value;
-  }
-
-
   Integer* Integer::from_cstr(STATE, const char* str, const char* end,
                               int base, Object* strict) {
 
@@ -427,7 +321,7 @@ return_value:
     bool fits = true;
     Fixnum* small = from_cstr_fixnum(state, &str, end, negative, base, strict, &fits);
     if(fits) return small;
-    return from_cstr_bignum(state, str, end, small->to_native(), negative, base, strict);
+    return Bignum::from_cstr(state, str, end, small->to_native(), negative, base, strict);
   }
 
 }
