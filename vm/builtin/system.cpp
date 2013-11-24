@@ -536,7 +536,7 @@ namespace rubinius {
     if(!ent) return cNil;
 
     if(ent->is_number()) {
-      return Bignum::from_string(state, ent->value.c_str(), 10);
+      return Integer::from_cppstr(state, ent->value, 10);
     } else if(ent->is_true()) {
       return cTrue;
     }

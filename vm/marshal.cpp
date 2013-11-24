@@ -87,7 +87,7 @@ namespace rubinius {
     std::string data;
     stream >> data;
 
-    return Bignum::from_string(state, data.c_str(), 16);
+    return Integer::from_cppstr(state, data, 16);
   }
 
   String* UnMarshaller::get_string() {

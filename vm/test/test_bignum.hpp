@@ -1066,34 +1066,6 @@ class TestBignum : public CxxTest::TestSuite, public VMTest {
     TS_ASSERT_EQUALS(as<Integer>(s)->to_native(), -1);
   }
 
-  void test_from_string_detect() {
-    Object* b = Bignum::from_string_detect(state, "0x47");
-    TS_ASSERT(b->fixnum_p());
-    TS_ASSERT_EQUALS(as<Integer>(b)->to_native(), 0x47);
-
-    b = Bignum::from_string_detect(state, "0b1000111");
-    TS_ASSERT(b->fixnum_p());
-    TS_ASSERT_EQUALS(as<Integer>(b)->to_native(), 0x47);
-
-    b = Bignum::from_string_detect(state, "+0o107");
-    TS_ASSERT(b->fixnum_p());
-    TS_ASSERT_EQUALS(as<Integer>(b)->to_native(), 0x47);
-
-    b = Bignum::from_string_detect(state, "-0d71");
-    TS_ASSERT(b->fixnum_p());
-    TS_ASSERT_EQUALS(as<Integer>(b)->to_native(), -0x47);
-
-    b = Bignum::from_string_detect(state, "0107");
-    TS_ASSERT(b->fixnum_p());
-    TS_ASSERT_EQUALS(as<Integer>(b)->to_native(), 0x47);
-  }
-
-  void test_from_string() {
-    Object* b = Bignum::from_string(state, "47", 10);
-    TS_ASSERT(b->fixnum_p());
-    TS_ASSERT_EQUALS(as<Integer>(b)->to_native(), 47);
-  }
-
   void test_to_s() {
     /* Make sure we have a big enough bignum */
     char* buf = new char[2048];
@@ -1101,7 +1073,7 @@ class TestBignum : public CxxTest::TestSuite, public VMTest {
       buf[i] = '1';
     }
     buf[2047] = '\0';
-    Bignum* b = as<Bignum>(Bignum::from_string(state, buf, 10));
+    Bignum* b = as<Bignum>(Integer::from_cppstr(state, std::string(buf), 10));
     String* s = b->to_s(state, Fixnum::from(10));
 
     TS_ASSERT_EQUALS(std::string(buf), s->c_str(state));

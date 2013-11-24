@@ -34,6 +34,9 @@ namespace rubinius {
     static Integer* from(STATE, unsigned long long i);
 
     static Integer* from_cstr(STATE, const char* str, const char* end, int base, Object* strict);
+    static Integer* from_cppstr(STATE, std::string str, int base) {
+      return from_cstr(state, str.data(), str.data() + str.size(), base, cTrue);
+    }
 
     unsigned int        to_uint();
     long                to_long();
