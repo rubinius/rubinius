@@ -740,7 +740,15 @@ module Process
       end
 
       write.close
-      raise Marshal.load(read) unless read.eof?
+
+      unless read.eof?
+        error = Marshal.load(read)
+
+        # Intercepting the "command not found" error to set $?
+        set_status_global Process::Status.new(pid, 127) if Errno::ENOENT === error
+
+        raise error
+      end
 
       pid
     end
