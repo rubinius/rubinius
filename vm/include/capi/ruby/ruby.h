@@ -441,7 +441,7 @@ struct RFile {
 #define CHECK_INTS        /* No-op */
 
 /** Rubinius doesn't need gc guards */
-#define RB_GC_GUARD       /* No-op */
+#define RB_GC_GUARD(v)    /* No-op */
 
 #define POSFIXABLE(f)     ((f) <= FIXNUM_MAX)
 #define NEGFIXABLE(f)     ((f) >= FIXNUM_MIN)
