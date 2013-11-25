@@ -68,6 +68,15 @@ namespace rubinius {
       }
     }
 
+    /**
+     * Called when a thread is shutting down. This is done so it needs
+     * no access to a VM structure since that is already deallocated while
+     * still being gc dependent.
+     */
+    void become_independent() {
+      atomic::fetch_and_sub(&pending_threads_, 1);
+    }
+
     void become_dependent(THREAD, utilities::thread::Condition* cond = NULL) {
       switch(state->run_state()) {
       case ManagedThread::eAlone:

@@ -279,8 +279,8 @@ namespace rubinius {
     vm->thread->cleanup();
     vm->thread->init_lock_.unlock();
 
-    vm->shared.gc_independent(state, 0);
     vm->shared.clear_critical(state);
+    SharedState& shared = vm->shared;
 
     VM::discard(state, vm);
 
@@ -289,6 +289,7 @@ namespace rubinius {
     }
 
     RUBINIUS_THREAD_STOP(thread_name.c_str(), vm->thread_id(), 0);
+    shared.gc_independent();
     return 0;
   }
 

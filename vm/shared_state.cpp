@@ -229,6 +229,10 @@ namespace rubinius {
     world_->become_independent(state);
   }
 
+  void SharedState::gc_independent() {
+    world_->become_independent();
+  }
+
   const unsigned int* SharedState::object_memory_mark_address() const {
     return om->mark_address();
   }

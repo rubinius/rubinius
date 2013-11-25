@@ -300,6 +300,7 @@ namespace rubinius {
 
     void gc_dependent(THREAD, utilities::thread::Condition* = NULL);
     void gc_independent(THREAD);
+    void gc_independent();
 
     void set_critical(STATE, CallFrame* call_frame);
     void clear_critical(STATE);
