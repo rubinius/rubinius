@@ -81,9 +81,7 @@ namespace rubinius {
 
   Thread* Thread::allocate(STATE, Object* self) {
     VM* vm = state->shared().new_vm();
-    Thread* thread = Thread::create(state, vm, self, send_run);
-
-    return thread;
+    return Thread::create(state, vm, self, send_run);
   }
 
   Thread* Thread::current(STATE) {
