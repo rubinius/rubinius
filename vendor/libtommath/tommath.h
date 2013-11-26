@@ -234,6 +234,9 @@ int mp_init_size(mp_int *a, int size);
 #define mp_iseven(a) (((a)->used > 0 && (((a)->dp[0] & 1) == 0)) ? MP_YES : MP_NO)
 #define mp_isodd(a)  (((a)->used > 0 && (((a)->dp[0] & 1) == 1)) ? MP_YES : MP_NO)
 
+/* NOTE: assumes that the structure was initialized to zeros. */
+#define mp_isinitialized(a) ((a)->dp != 0)
+
 /* set to zero */
 void mp_zero(mp_int *a);
 
@@ -243,14 +246,23 @@ void mp_set(mp_int *a, mp_digit b);
 /* set a 32-bit const */
 int mp_set_int MPA(mp_int *a, unsigned long b);
 
+/* set an unsigned long const */
+int mp_set_long MPA(mp_int* a, unsigned long b);
+
 /* get a 32-bit value */
 unsigned long mp_get_int(mp_int * a);
+
+/* get the lower (unsigned long)-bits of an mp_int */
+unsigned long mp_get_long(mp_int* a);
 
 /* initialize and set a digit */
 int mp_init_set (mp_int * a, mp_digit b);
 
 /* initialize and set 32-bit value */
 int mp_init_set_int MPA(mp_int * a, unsigned long b);
+
+/* initialize and set (unsigned long)-bit value */
+int mp_init_set_long MPA(mp_int * a, unsigned long b);
 
 /* copy, b = a */
 int mp_copy MPA(mp_int *a, mp_int *b);
