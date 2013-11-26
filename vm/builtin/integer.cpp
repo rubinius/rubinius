@@ -7,6 +7,10 @@
 #include "ontology.hpp"
 #include "configuration.hpp"
 
+#include <tommath.h>
+
+#define XST ((void*)state)
+
 namespace rubinius {
 
   void Numeric::init(STATE) {
@@ -121,111 +125,35 @@ namespace rubinius {
     return (Fixnum*)APPLY_FIXNUM_TAG((native_int)num);
   }
 
-  inline Fixnum* from_cstr_fixnum(STATE, const char** str_ptr, const char* end,
-                           bool negative, int base, Object* strict,
-                           bool* fits) {
+  // Adopted from MRI.
+  static const signed char digit_value[] = {
+    /*     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f */
+    /*0*/ -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    /*1*/ -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    /*2*/ -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    /*3*/  0, 1, 2, 3, 4, 5, 6, 7, 8, 9,-1,-1,-1,-1,-1,-1,
+    /*4*/ -1,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,
+    /*5*/ 25,26,27,28,29,30,31,32,33,34,35,-1,-1,-1,-1,-1,
+    /*6*/ -1,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,
+    /*7*/ 25,26,27,28,29,30,31,32,33,34,35,-1,-1,-1,-1,-1,
+    /*8*/ -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    /*9*/ -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    /*a*/ -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    /*b*/ -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    /*c*/ -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    /*d*/ -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    /*e*/ -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    /*f*/ -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+  };
 
-    char chr;
-    const char* str = *str_ptr;
-    bool underscore = false;
-    native_int value = 0;
-
-    while(str < end) {
-
-      if(value > FIXNUM_MAX / 36) {
-        *fits = false;
-        *str_ptr = str;
-        return Fixnum::from(value);
-      }
-
-      chr = *str++;
-
-      // If we see space characters
-      if(chr == ' ' || chr == '\t' || chr == '\n' || chr == '\r') {
-
-        // Eat them all
-        while(chr == ' ' || chr == '\t' || chr == '\n' || chr == '\r') {
-          chr = *str++;
-        }
-
-        // If there is more stuff after the spaces, get out of dodge.
-        if(chr) {
-          if(CBOOL(strict)) {
-            return nil<Fixnum>();
-          } else {
-            goto return_value;
-          }
-        }
-
-        break;
-      }
-
-      // If it's an underscore, remember that. An underscore is valid iff
-      // it followed by a valid character for this base.
-      if(chr == '_') {
-        if(underscore) {
-          // Double underscore is forbidden in strict mode.
-          if(CBOOL(strict)) {
-            return nil<Fixnum>();
-          } else {
-            // Stop parse number after two underscores in a row
-            goto return_value;
-          }
-        }
-        underscore = true;
-        continue;
-      } else {
-        underscore = false;
-      }
-
-      // We use A-Z (and a-z) here so we support up to base 36.
-      if(chr >= '0' && chr <= '9') {
-        chr -= '0';
-      } else if(chr >= 'A' && chr <= 'Z') {
-        chr -= ('A' - 10);
-      } else if(chr >= 'a' && chr <= 'z') {
-        chr -= ('a' - 10);
-      } else {
-        //Invalid character, stopping right here.
-        if(CBOOL(strict)) {
-          return nil<Fixnum>();
-        } else {
-          break;
-        }
-      }
-
-      // Bail if the current chr is greater or equal to the base,
-      // mean it's invalid.
-      if(chr >= base) {
-        if(CBOOL(strict)) {
-          return nil<Fixnum>();
-        } else {
-          break;
-        }
-      }
-
-      value *= base;
-      value += chr;
-    }
-
-    // If we last saw an underscore and we're strict, bail.
-    if(underscore && CBOOL(strict)) {
-      return nil<Fixnum>();
-    }
-
-return_value:
-    if(negative) {
-      return Fixnum::from(-value);
-    }
-
-    return Fixnum::from(value);
-  }
+  static const int digit_bits[] = {
+    1, 1, 1, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5,
+    5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6
+  };
 
   Integer* Integer::from_cstr(STATE, const char* str, const char* end,
-                              int base, Object* strict) {
-
-    bool negative = false;
-
+                              int base, Object* strict)
+  {
     if(base == 1 || base > 36) return nil<Integer>();
 
     // Skip any combination of leading whitespace and underscores.
@@ -241,6 +169,8 @@ return_value:
 
       str++;
     }
+
+    bool negative = false;
 
     if(*str == '-') {
       str++;
@@ -318,11 +248,121 @@ return_value:
       str = str_start;
     }
 
-    bool fits = true;
-    Fixnum* small = from_cstr_fixnum(state, &str, end, negative, base, strict, &fits);
-    if(fits) return small;
-    return Bignum::from_cstr(state, str, end, small->to_native(), negative, base, strict);
+    int max_digits = DIGIT_BIT / digit_bits[base];
+    int count = 0;
+
+    int chr, digit;
+    mp_digit shift = base, value = 0;
+    mp_int a = { 0 };
+
+    bool underscore = false;
+
+    while(str < end) {
+      chr = *str++;
+
+      // If we see space characters
+      if(chr == ' ' || chr == '\t' || chr == '\n' || chr == '\r') {
+
+        // Eat them all
+        while(chr == ' ' || chr == '\t' || chr == '\n' || chr == '\r') {
+          chr = *str++;
+        }
+
+        // If there is more stuff after the spaces, get out of dodge.
+        if(chr) {
+          if(CBOOL(strict)) {
+            goto error;
+          } else {
+            goto return_value;
+          }
+        }
+
+        break;
+      }
+
+      // If it's an underscore, remember that. An underscore is valid iff
+      // it followed by a valid character for this base.
+      if(chr == '_') {
+        if(underscore) {
+          // Double underscore is forbidden in strict mode.
+          if(CBOOL(strict)) {
+            goto error;
+          } else {
+            // Stop parse number after two underscores in a row
+            goto return_value;
+          }
+        }
+        underscore = true;
+        continue;
+      } else {
+        underscore = false;
+      }
+
+      if((digit = digit_value[chr]) < 0 || digit >= base) {
+        //Invalid character, stopping right here.
+        if(CBOOL(strict)) {
+          goto error;
+        } else {
+          break;
+        }
+      }
+
+      if(++count <= max_digits) {
+        value = value * base + digit;
+      } else {
+        if(!mp_isinitialized(&a)) {
+          mp_init_set_long(XST, &a, value);
+          for(int i = 0; i < max_digits - 1; i++) {
+            shift *= base;
+          }
+        } else {
+          mp_mul_d(XST, &a, shift, &a);
+          mp_add_d(XST, &a, value, &a);
+        }
+
+        value = digit;
+        count = 1;
+      }
+    }
+
+    // If we last saw an underscore and we're strict, bail.
+    if(underscore && CBOOL(strict)) {
+error:
+      if(mp_isinitialized(&a)) mp_clear(&a);
+
+      return nil<Integer>();
+    }
+
+return_value:
+
+    if(!mp_isinitialized(&a)) {
+      if(value < FIXNUM_MAX) {
+        Fixnum* result = Fixnum::from(value);
+        if(negative) {
+          return result->neg(state);
+        } else {
+          return result;
+        }
+      }
+
+      mp_init_set_long(XST, &a, value);
+    } else {
+      shift = base;
+      for(int i = 0; i < count - 1; i++) {
+        shift *= base;
+      }
+
+      mp_mul_d(XST, &a, shift, &a);
+      mp_add_d(XST, &a, value, &a);
+    }
+
+    if(negative) {
+      mp_neg(XST, &a, &a);
+    }
+
+    Integer* result = Bignum::from(state, &a);
+    mp_clear(&a);
+
+    return result;
   }
-
 }
-

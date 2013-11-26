@@ -45,9 +45,6 @@ namespace rubinius {
     static Integer* normalize(STATE, Bignum* obj);
     static Integer* from_double(STATE, double d);
     static Integer* from_array(STATE, uint32_t *ary, size_t sz);
-    static Integer* from_cstr(STATE, const char* str, const char* end,
-                              native_int start, bool negative,
-                              int base, Object* strict);
 
     Integer* abs(STATE);
 
