@@ -364,10 +364,8 @@ module FFI
 
         # Try with a prefix
         unless @handle
-          FFI::LIB_SUFFIXES.detect do |suffix|
-            @name = "lib#{name}"
-            @handle = DynamicLibrary.open_library @name, flags
-          end
+          @name = "lib#{name}"
+          @handle = DynamicLibrary.open_library @name, flags
         end
 
         # Try with suffixes and a prefix
