@@ -125,15 +125,15 @@ namespace rubinius {
     return (Fixnum*)APPLY_FIXNUM_TAG((native_int)num);
   }
 
-  // Adopted from MRI.
+  // Adapted from MRI.
   static const signed char digit_value[] = {
     /*     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f */
-    /*0*/ -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    /*0*/ -1,-1,-1,-1,-1,-1,-1,-1,-1,-2,-2,-1,-1,-2,-1,-1,
     /*1*/ -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
-    /*2*/ -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    /*2*/ -2,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
     /*3*/  0, 1, 2, 3, 4, 5, 6, 7, 8, 9,-1,-1,-1,-1,-1,-1,
     /*4*/ -1,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,
-    /*5*/ 25,26,27,28,29,30,31,32,33,34,35,-1,-1,-1,-1,-1,
+    /*5*/ 25,26,27,28,29,30,31,32,33,34,35,-1,-1,-1,-1,'_',
     /*6*/ -1,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,
     /*7*/ 25,26,27,28,29,30,31,32,33,34,35,-1,-1,-1,-1,-1,
     /*8*/ -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
@@ -156,8 +156,8 @@ namespace rubinius {
   {
     if(base == 1 || base > 36) return nil<Integer>();
 
-    // Skip any combination of leading whitespace and underscores.
-    // Leading whitespace is OK in strict mode, but underscores are not.
+    // Skip any combination of leading whitespace and underscores.  Leading
+    // whitespace is OK in strict mode, but underscores are not.
     while(isspace(*str) || *str == '_') {
       if(*str == '_') {
         if(CBOOL(strict)) {
@@ -182,16 +182,14 @@ namespace rubinius {
     int detected_base = 0;
     const char* str_start = str;
 
-    // Try and detect a base prefix on the front. We have to do this
-    // even though we might have been told the base, because we have
-    // to know if we should discard the bytes that make up the prefix
-    // if it's redundant with passed in base.
-    //
-    // For example, if base == 16 and str == "0xa", we return
-    // to return 10. But if base == 10 and str == "0xa", we fail
-    // because we rewind and try to process 0x as part of the
-    // base 10 string.
-    //
+    /* Try to detect a base prefix. We have to do this even though we might
+     * have been told the base, we have to know if we should discard the bytes
+     * that make up the prefix if it's redundant with the passed in base.
+     *
+     * For example, if base == 16 and str == "0xa", we return 10.  But if base
+     * == 10 and str == "0xa", we fail because we rewind and try to process 0x
+     * as part of the base 10 string.
+     */
     if(*str == '0') {
       str++;
       switch(*str++) {
@@ -208,9 +206,8 @@ namespace rubinius {
         detected_base = 16;
         break;
       default:
-        // If passed "017" and a base of 0, that is octal 15.
-        // Otherwise, it is whatever those digits would be in the
-        // specified base.
+        // If passed "017" and a base of 0, that is octal 15.  Otherwise, it
+        // is whatever those digits would be in the specified base.
         str--;
         detected_base = 8;
       }
@@ -239,101 +236,72 @@ namespace rubinius {
         base = detected_base;
       }
 
-    // If the passed in base and the detected base contradict
-    // each other, then rewind and process the whole string as
-    // digits of the passed in base.
+    // If the passed in base and the detected base contradict each other, then
+    // rewind and process the whole string as digits of the passed in base.
     } else if(base != detected_base) {
-      // rewind the stream, and try and consume the prefix as
-      // digits in the number.
+      // Rewind the stream and try and consume the prefix as digits in the
+      // number.
       str = str_start;
     }
 
     int max_digits = DIGIT_BIT / digit_bits[base];
     int count = 0;
 
-    int chr, digit;
+    int digit;
     mp_digit shift = base, value = 0;
     mp_int a = { 0 };
 
-    bool underscore = false;
-
     while(str < end) {
-      chr = *str++;
+      digit = digit_value[int(*str++)];
 
-      // If we see space characters
-      if(chr == ' ' || chr == '\t' || chr == '\n' || chr == '\r') {
-
-        // Eat them all
-        while(chr == ' ' || chr == '\t' || chr == '\n' || chr == '\r') {
-          chr = *str++;
-        }
-
-        // If there is more stuff after the spaces, get out of dodge.
-        if(chr) {
-          if(CBOOL(strict)) {
-            goto error;
+      if(digit >= 0 && digit < base) {
+        if(++count <= max_digits) {
+          value = value * base + digit;
+        } else {
+          if(!mp_isinitialized(&a)) {
+            mp_init_set_long(XST, &a, value);
+            for(int i = 0; i < max_digits - 1; i++) {
+              shift *= base;
+            }
           } else {
-            goto return_value;
+            mp_mul_d(XST, &a, shift, &a);
+            mp_add_d(XST, &a, value, &a);
           }
+
+          value = digit;
+          count = 1;
         }
 
-        break;
-      }
-
-      // If it's an underscore, remember that. An underscore is valid iff
-      // it followed by a valid character for this base.
-      if(chr == '_') {
-        if(underscore) {
-          // Double underscore is forbidden in strict mode.
-          if(CBOOL(strict)) {
-            goto error;
-          } else {
-            // Stop parse number after two underscores in a row
-            goto return_value;
-          }
-        }
-        underscore = true;
         continue;
-      } else {
-        underscore = false;
       }
 
-      if((digit = digit_value[chr]) < 0 || digit >= base) {
-        //Invalid character, stopping right here.
-        if(CBOOL(strict)) {
-          goto error;
-        } else {
-          break;
-        }
+      // An underscore is valid iff it is followed by a valid character for
+      // this base.
+      if(digit == '_') {
+        if(*str == '_') goto error_check;
+
+        continue;
       }
 
-      if(++count <= max_digits) {
-        value = value * base + digit;
-      } else {
-        if(!mp_isinitialized(&a)) {
-          mp_init_set_long(XST, &a, value);
-          for(int i = 0; i < max_digits - 1; i++) {
-            shift *= base;
-          }
-        } else {
-          mp_mul_d(XST, &a, shift, &a);
-          mp_add_d(XST, &a, value, &a);
-        }
+      if(digit >= base) goto error_check;
 
-        value = digit;
-        count = 1;
+      // Consume any whitespace characters.
+      if(digit < -1) {
+        while(digit_value[int(*str++)] < -1) /* skip whitespace */ ;
+
+        goto error_check;
       }
+
+      // Done parsing.
+      break;
     }
 
-    // If we last saw an underscore and we're strict, bail.
-    if(underscore && CBOOL(strict)) {
-error:
-      if(mp_isinitialized(&a)) mp_clear(&a);
+error_check:
 
+    if(*str && CBOOL(strict)) {
+      if(mp_isinitialized(&a)) mp_clear(&a);
       return nil<Integer>();
     }
-
-return_value:
 
     if(!mp_isinitialized(&a)) {
       if(value < FIXNUM_MAX) {
