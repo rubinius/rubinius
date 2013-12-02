@@ -247,12 +247,12 @@ namespace rubinius {
     int max_digits = DIGIT_BIT / digit_bits[base];
     int count = 0;
 
-    int digit;
+    int digit = 0;
     mp_digit shift = base, value = 0;
     mp_int a = { 0 };
 
-    while(str < end) {
-      digit = digit_value[int(*str++)];
+    for( ; str < end; str++) {
+      digit = digit_value[int(*str)];
 
       if(digit >= 0 && digit < base) {
         if(++count <= max_digits) {
@@ -277,8 +277,8 @@ namespace rubinius {
 
       // An underscore is valid iff it is followed by a valid character for
       // this base.
-      if(digit == '_') {
-        if(*str == '_') goto error_check;
+      if(*str == '_') {
+        if(!*(str + 1) || *(str + 1) == '_') goto error_check;
 
         continue;
       }
@@ -287,7 +287,7 @@ namespace rubinius {
 
       // Consume any whitespace characters.
       if(digit < -1) {
-        while(digit_value[int(*str++)] < -1) /* skip whitespace */ ;
+        while(digit_value[int(*++str)] < -1) /* skip whitespace */ ;
 
         goto error_check;
       }
@@ -298,7 +298,7 @@ namespace rubinius {
 
 error_check:
 
-    if(*str && CBOOL(strict)) {
+    if(str < end && CBOOL(strict)) {
       if(mp_isinitialized(&a)) mp_clear(&a);
       return nil<Integer>();
     }
