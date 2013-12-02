@@ -17,6 +17,14 @@ module KernelSpecs
     Kernel.Hash(arg)
   end
 
+  def self.Integer_function(arg)
+    Integer(arg)
+  end
+
+  def self.Integer_method(arg)
+    Kernel.Integer(arg)
+  end
+
   def self.putc_function(arg)
     putc arg
   end
