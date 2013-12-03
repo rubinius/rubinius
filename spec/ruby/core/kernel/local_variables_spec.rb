@@ -18,7 +18,7 @@ describe "Kernel#local_variables" do
       local_variables.length.should == 2
     end
 
-    it "is accessable from bindings" do
+    it "is accessible from bindings" do
       def local_var_foo
         a = 1
         b = 2
@@ -30,7 +30,7 @@ describe "Kernel#local_variables" do
       res.length.should == 2
     end
 
-    it "is accessable in eval" do
+    it "is accessible in eval" do
       eval "a=1; b=2; ScratchPad.record local_variables"
       ScratchPad.recorded.should include("a", "b")
       ScratchPad.recorded.length.should == 2
@@ -50,7 +50,7 @@ describe "Kernel#local_variables" do
       local_variables.length.should == 2
     end
 
-    it "is accessable from bindings" do
+    it "is accessible from bindings" do
       def local_var_foo
         a = 1
         b = 2
@@ -62,7 +62,7 @@ describe "Kernel#local_variables" do
       res.length.should == 2
     end
 
-    it "is accessable in eval" do
+    it "is accessible in eval" do
       eval "a=1; b=2; ScratchPad.record local_variables"
       ScratchPad.recorded.should include(:a, :b)
       ScratchPad.recorded.length.should == 2
