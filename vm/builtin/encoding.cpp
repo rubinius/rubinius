@@ -729,7 +729,8 @@ namespace rubinius {
       }
     }
 
-    OnStack<3> os(state, source, src, target);
+    Converter* self = this;
+    OnStack<4> os(state, self, source, src, target);
 
     const unsigned char* source_ptr = 0;
     const unsigned char* source_end = 0;
@@ -739,18 +740,18 @@ namespace rubinius {
 
   retry:
 
-    if(!converter_) {
-      size_t num_converters = converters()->size();
+    if(!self->converter_) {
+      size_t num_converters = self->converters()->size();
 
-      converter_ = rb_econv_alloc(num_converters);
+      self->set_converter(rb_econv_alloc(num_converters));
 
       for(size_t i = 0; i < num_converters; i++) {
-        Transcoding* transcoding = as<Transcoding>(converters()->get(state, i));
+        Transcoding* transcoding = as<Transcoding>(self->converters()->get(state, i));
         rb_transcoder* tr = transcoding->get_transcoder();
 
-        if(rb_econv_add_transcoder_at(converter_, tr, i) == -1) {
-          rb_econv_free(converter_);
-          converter_ = NULL;
+        if(rb_econv_add_transcoder_at(self->converter_, tr, i) == -1) {
+          rb_econv_free(self->get_converter());
+          self->set_converter(NULL);
           return force_as<Symbol>(Primitives::failure());
         }
       }
@@ -766,36 +767,37 @@ namespace rubinius {
       byte_size = src ? src->byte_size() : 4096;
     }
 
-    int flags = converter_->flags = options->to_native();
+    int flags = self->converter_->flags = options->to_native();
 
-    if(!replacement()->nil_p() && !converter_->replacement_str) {
-      native_int byte_size = replacement()->byte_size();
+    if(!self->replacement()->nil_p() && !self->converter_->replacement_str) {
+      native_int byte_size = self->replacement()->byte_size();
       char* buf = (char*)XMALLOC(byte_size + 1);
-      strncpy(buf, replacement()->c_str(state), byte_size + 1);
-      converter_->replacement_str = (const unsigned char*)buf;
-      converter_->replacement_len = replacement()->byte_size();
+      strncpy(buf, self->replacement()->c_str(state), byte_size + 1);
+      self->converter_->replacement_str = (const unsigned char*)buf;
+      self->converter_->replacement_len = self->replacement()->byte_size();
 
-      String* name = replacement()->encoding()->name();
+      String* name = self->replacement()->encoding()->name();
       byte_size = name->byte_size();
       buf = (char*)XMALLOC(byte_size + 1);
       strncpy(buf, name->c_str(state), byte_size + 1);
-      converter_->replacement_enc = (const char*)buf;
-      converter_->replacement_allocated = 1;
+      self->converter_->replacement_enc = (const char*)buf;
+      self->converter_->replacement_allocated = 1;
 
-      size_t num_converters = replacement_converters()->size();
-      rb_econv_alloc_replacement_converters(converter_, num_converters / 2);
+      size_t num_converters = self->replacement_converters()->size();
+      rb_econv_alloc_replacement_converters(self->converter_, num_converters / 2);
 
       for(size_t i = 0, k = 0; i < num_converters; k++, i += 2) {
         rb_econv_replacement_converters* repl_converter;
-        repl_converter = converter_->replacement_converters + k;
+        repl_converter = self->converter_->replacement_converters + k;
 
-        name = as<String>(replacement_converters()->get(state, i));
+        name = as<String>(self->replacement_converters()->get(state, i));
         byte_size = name->byte_size();
         buf = (char*)XMALLOC(byte_size + 1);
         strncpy(buf, name->c_str(state), byte_size + 1);
         repl_converter->destination_encoding_name = (const char*)buf;
 
         Array* trs = as<Array>(replacement_converters()->get(state, i + 1));
+
         size_t num_transcoders = trs->size();
 
         repl_converter->num_transcoders = num_transcoders;
@@ -823,14 +825,14 @@ namespace rubinius {
     unsigned char* buffer_ptr = (unsigned char*)buffer->raw_bytes() + byte_offset;
     unsigned char* buffer_end = buffer_ptr + byte_size;
 
-    rb_econv_result_t result = econv_convert(converter_, &source_ptr, source_end,
+    rb_econv_result_t result = econv_convert(self->converter_, &source_ptr, source_end,
         &buffer_ptr, buffer_end, flags);
 
     native_int output_size = buffer_ptr - (unsigned char*)buffer->raw_bytes();
 
     if(result == econv_destination_buffer_full && size->to_native() == -1) {
-      rb_econv_free(converter_);
-      converter_ = NULL;
+      rb_econv_free(self->converter_);
+      self->set_converter(NULL);
 
       byte_size = byte_size < 2 ? 2 : byte_size * 2;
 
@@ -862,7 +864,7 @@ namespace rubinius {
     target->shared(state, cFalse);
     target->hash_value(state, nil<Fixnum>());
     target->ascii_only(state, cNil);
-    target->encoding(state, destination_encoding());
+    target->encoding(state, self->destination_encoding());
 
     return converter_result_symbol(state, result);
   }
@@ -993,6 +995,7 @@ namespace rubinius {
   void Converter::finalize(STATE, Converter* converter) {
     if(rb_econv_t* ec = converter->get_converter()) {
       rb_econv_free(ec);
+      converter->set_converter(NULL);
     }
   }
 }
