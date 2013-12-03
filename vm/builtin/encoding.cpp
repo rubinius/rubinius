@@ -770,6 +770,16 @@ namespace rubinius {
     int flags = self->converter_->flags = options->to_native();
 
     if(!self->replacement()->nil_p() && !self->converter_->replacement_str) {
+      // First check the array's whether they exist so we don't
+      // leak memory or create badly initialized C structures
+
+      size_t num_converters = self->replacement_converters()->size();
+
+      for(size_t i = 0, k = 0; i < num_converters; k++, i += 2) {
+        as<String>(self->replacement_converters()->get(state, i));
+        as<Array>(self->replacement_converters()->get(state, i + 1));
+      }
+
       native_int byte_size = self->replacement()->byte_size();
       char* buf = (char*)XMALLOC(byte_size + 1);
       strncpy(buf, self->replacement()->c_str(state), byte_size + 1);
@@ -783,20 +793,20 @@ namespace rubinius {
       self->converter_->replacement_enc = (const char*)buf;
       self->converter_->replacement_allocated = 1;
 
-      size_t num_converters = self->replacement_converters()->size();
       rb_econv_alloc_replacement_converters(self->converter_, num_converters / 2);
 
       for(size_t i = 0, k = 0; i < num_converters; k++, i += 2) {
         rb_econv_replacement_converters* repl_converter;
         repl_converter = self->converter_->replacement_converters + k;
 
-        name = as<String>(self->replacement_converters()->get(state, i));
+        // We can use force_as here since we know type has been checked above
+        name = force_as<String>(self->replacement_converters()->get(state, i));
         byte_size = name->byte_size();
         buf = (char*)XMALLOC(byte_size + 1);
         strncpy(buf, name->c_str(state), byte_size + 1);
         repl_converter->destination_encoding_name = (const char*)buf;
 
-        Array* trs = as<Array>(replacement_converters()->get(state, i + 1));
+        Array* trs = force_as<Array>(replacement_converters()->get(state, i + 1));
 
         size_t num_transcoders = trs->size();
 
