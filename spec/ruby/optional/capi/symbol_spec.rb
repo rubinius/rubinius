@@ -38,6 +38,13 @@ describe "C-API Symbol function" do
         @s.rb_id2str(str.to_sym).encoding.should == Encoding::UTF_16LE
       end
     end
+
+    describe "rb_intern_str" do
+      it "converts a Ruby String to a Symbol" do
+        str = "test_symbol"
+        @s.rb_intern_str(str).should == :test_symbol
+      end
+    end
   end
 
   describe "rb_is_const_id" do

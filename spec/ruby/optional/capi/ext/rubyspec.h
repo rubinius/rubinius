@@ -570,6 +570,7 @@
 #define HAVE_RB_ID2NAME                    1
 #ifdef RUBY_VERSION_IS_1_9
 #define HAVE_RB_ID2STR                     1
+#define HAVE_RB_INTERN_STR                 1
 #endif
 #define HAVE_RB_INTERN                     1
 #define HAVE_RB_IS_CLASS_ID                1
