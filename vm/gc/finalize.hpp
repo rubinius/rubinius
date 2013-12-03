@@ -7,7 +7,7 @@
 #include "gc/finalize.hpp"
 #include "gc/root.hpp"
 
-#include <deque>
+#include <list>
 
 namespace rubinius {
   class VM;
@@ -50,8 +50,8 @@ namespace rubinius {
     }
   };
 
-  typedef std::deque<FinalizeObject> FinalizeObjects;
-  typedef std::deque<FinalizeObjects*> FinalizeObjectsList;
+  typedef std::list<FinalizeObject> FinalizeObjects;
+  typedef std::list<FinalizeObjects*> FinalizeObjectsList;
 
   class FinalizerHandler : public AuxiliaryThread, public Lockable {
   public:
