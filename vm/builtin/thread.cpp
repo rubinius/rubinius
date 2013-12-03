@@ -89,12 +89,15 @@ namespace rubinius {
   }
 
   Object* Thread::unlock_locks(STATE, GCToken gct, CallFrame* calling_environment) {
-    LockedObjects& los = vm_->locked_objects();
+    Thread* self = this;
+    OnStack<1> os(state, self);
+
+    LockedObjects& los = self->vm_->locked_objects();
     for(LockedObjects::iterator i = los.begin();
         i != los.end();
         ++i) {
       ObjectHeader* locked = *i;
-      if(locked != this) {
+      if(locked != self) {
         locked->unlock_for_terminate(state, gct, calling_environment);
       }
     }
@@ -282,6 +285,7 @@ namespace rubinius {
     vm->shared.clear_critical(state);
     SharedState& shared = vm->shared;
 
+    vm->thread->vm_ = NULL;
     VM::discard(state, vm);
 
     if(cDebugThreading) {
