@@ -1385,6 +1385,8 @@ struct RTypedData {
   /** Convert string to an ID */
   ID      rb_intern(const char* string);
   ID      rb_intern2(const char* string, long len);
+  ID      rb_intern_str(VALUE string);
+#define HAVE_RB_INTERN_STR 1
 
   /** Coerce x and y and perform 'x func y' */
   VALUE rb_num_coerce_bin(VALUE x, VALUE y, ID func);
