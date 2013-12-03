@@ -1,4 +1,11 @@
+#include "builtin/bignum.hpp"
+#include "builtin/fixnum.hpp"
+#include "builtin/native_method.hpp"
+
 #include "capi/ruby.h"
+#include "object_utils.hpp"
+
+using namespace rubinius;
 
 extern "C" {
   unsigned long rb_fix2uint(VALUE obj) {
@@ -23,5 +30,25 @@ extern "C" {
     }
 
     return num;
+  }
+
+  VALUE rb_int_positive_pow(long x, unsigned long y) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    State* state = env->state();
+    Integer* base = Integer::from(state, x);
+    Integer* exp  = Integer::from(state, y);
+    if(Fixnum* base_fix = try_as<Fixnum>(base)) {
+      if(Fixnum* exp_fix = try_as<Fixnum>(exp)) {
+        return env->get_handle(base_fix->pow(state, exp_fix));
+      } else {
+        return env->get_handle(base_fix->pow(state, as<Bignum>(exp_fix)));
+      }
+    } else {
+       if(Fixnum* exp_fix = try_as<Fixnum>(exp)) {
+        return env->get_handle(as<Bignum>(base)->pow(state, exp_fix));
+      } else {
+        return env->get_handle(as<Bignum>(base)->pow(state, as<Bignum>(exp_fix)));
+      }
+    }
   }
 }

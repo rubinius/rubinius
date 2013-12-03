@@ -495,6 +495,8 @@ unsigned long rb_fix2uint(VALUE);
 
 #endif
 
+VALUE rb_int_positive_pow(long x, unsigned long y);
+
 /** Get a handle for the Symbol object represented by ID. */
 #define ID2SYM(id)        (id)
 
