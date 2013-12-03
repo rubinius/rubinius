@@ -2,6 +2,10 @@ require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "Kernel#local_variables" do
+  after(:each) do
+    ScratchPad.clear
+  end
+
   it "is a private method" do
     Kernel.should have_private_instance_method(:local_variables)
   end
@@ -24,6 +28,12 @@ describe "Kernel#local_variables" do
       res = eval("local_variables",foo_binding)
       res.should include("a", "b")
       res.length.should == 2
+    end
+
+    it "is accessable in eval" do
+      eval "a=1; b=2; ScratchPad.record local_variables"
+      ScratchPad.recorded.should include("a", "b")
+      ScratchPad.recorded.length.should == 2
     end
 
     it "can see locals introduced by a previous eval" do
@@ -50,6 +60,12 @@ describe "Kernel#local_variables" do
       res = eval("local_variables",foo_binding)
       res.should include(:a, :b)
       res.length.should == 2
+    end
+
+    it "is accessable in eval" do
+      eval "a=1; b=2; ScratchPad.record local_variables"
+      ScratchPad.recorded.should include(:a, :b)
+      ScratchPad.recorded.length.should == 2
     end
   end
 end
