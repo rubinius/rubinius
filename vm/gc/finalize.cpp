@@ -71,6 +71,8 @@ namespace rubinius {
 
   Object* finalizer_handler_tramp(STATE) {
     state->shared().finalizer_handler()->perform(state);
+    GCTokenImpl gct;
+    state->gc_dependent(gct, 0);
     return cNil;
   }
 

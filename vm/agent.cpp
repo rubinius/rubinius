@@ -47,6 +47,8 @@ namespace rubinius {
 
   Object* query_agent_tramp(STATE) {
     state->shared().query_agent()->perform(state);
+    GCTokenImpl gct;
+    state->gc_dependent(gct, 0);
     return cNil;
   }
 

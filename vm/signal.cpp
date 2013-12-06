@@ -27,6 +27,8 @@ namespace rubinius {
 
   Object* signal_handler_tramp(STATE) {
     state->shared().signal_handler()->perform(state);
+    GCTokenImpl gct;
+    state->gc_dependent(gct, 0);
     return cNil;
   }
 
