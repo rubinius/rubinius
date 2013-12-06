@@ -48,8 +48,9 @@ namespace rubinius {
   Thread* Thread::create(STATE, VM* target, Object* self, Run runner,
                          bool main_thread, bool system_thread)
   {
-    Thread* thr = state->new_object<Thread>(G(thread));
+    Thread* thr = state->vm()->new_object_mature<Thread>(G(thread));
 
+    thr->pin();
     thr->thread_id(state, Fixnum::from(target->thread_id()));
     thr->sleep(state, cFalse);
     thr->control_channel(state, nil<Channel>());
@@ -198,7 +199,7 @@ namespace rubinius {
     OnStack<1> os(state, self);
 
     self->init_lock_.lock();
-    int error = pthread_create(&vm_->os_thread(), &attrs, in_new_thread, (void*)vm_);
+    int error = pthread_create(&self->vm_->os_thread(), &attrs, in_new_thread, (void*)self->vm_);
     if(error) {
       return error;
     }
