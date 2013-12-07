@@ -57,13 +57,10 @@ namespace rubinius {
 
     friend class CompiledCode::Info;
 
-    static Object* check_cache(STATE, CallSite* cache, CallFrame* call_frame,
-                               Arguments& args);
+    static CacheExecuteFunc check_cache;
+    static CacheExecuteFunc check_cache_mm;
 
-    static Object* check_cache_mm(STATE, CallSite* cache, CallFrame* call_frame,
-                                  Arguments& args);
-
-    static void mono_cache_updater(STATE, CallSite* call_site, Class* klass, Dispatch& dispatch);
+    static CacheUpdateFunc mono_cache_updater;
 
   public: // Rubinius Type stuff
     class Info : public CallSite::Info {

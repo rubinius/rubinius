@@ -25,8 +25,7 @@ namespace rubinius {
       return hits_;
     }
 
-    static Object* check_cache(STATE, CallSite* cache, CallFrame* call_frame,
-                               Arguments& args);
+    static CacheExecuteFunc check_cache;
 
   public: // Rubinius Type stuff
     class Info : public CallSite::Info {
