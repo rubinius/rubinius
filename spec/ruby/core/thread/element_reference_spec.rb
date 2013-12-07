@@ -23,7 +23,7 @@ describe "Thread#[]" do
     t2[:value].should == 2
   end
 
-  it "is accessable using strings or symbols" do
+  it "is accessible using strings or symbols" do
     t1 = Thread.new do
       Thread.current[:value] = 1
     end
