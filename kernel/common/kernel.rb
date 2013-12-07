@@ -163,6 +163,26 @@ module Kernel
   alias_method :__callee__, :__method__
   module_function :__callee__
 
+  def __dir__
+    scope = Rubinius::ConstantScope.of_sender
+    script = scope.current_script
+    basepath = script.file_path
+    fullpath = nil
+
+    return nil unless basepath
+
+    fullpath = if script.data_path
+      script.data_path
+    else
+      Rubinius.privately do
+        File.basic_realpath(basepath)
+      end
+    end
+
+    File.dirname fullpath
+  end
+  module_function :__dir__
+
   def =~(other)
     nil
   end

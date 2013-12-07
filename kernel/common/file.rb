@@ -792,6 +792,27 @@ class File < IO
   end
 
   def self.realpath(path, basedir = nil)
+    real = basic_realpath path, basedir
+
+    unless exist? real
+      raise Errno::ENOENT, real
+    end
+
+    real
+  end
+
+  def self.realdirpath(path, basedir = nil)
+    real = basic_realpath path, basedir
+    dir = dirname real
+
+    unless directory? dir
+      raise Errno::ENOENT, real
+    end
+
+    real
+  end
+
+  def self.basic_realpath(path, basedir = nil)
     path = expand_path(path, basedir || Dir.pwd)
     real = ''
     symlinks = {}
@@ -820,16 +841,9 @@ class File < IO
       end
     end
 
-    unless exists? real
-      raise Errno::ENOENT, real
-    end
-
     real
   end
-
-  def self.realdirpath(path, basedir = nil)
-    dirname(realpath(path, basedir))
-  end
+  private_class_method :basic_realpath
 
   ##
   # Renames the given file to the new name. Raises a SystemCallError
