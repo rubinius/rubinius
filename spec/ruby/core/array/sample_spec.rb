@@ -40,6 +40,15 @@ describe "Array#sample" do
       [4, 4].sample(2).should == [4,4]
     end
 
+    it "returns different arrays usually" do
+      # Probability of random failure: 1 in 10**30
+
+      a = (1..100).to_a
+      result = (1..10).map { a.sample(10) }
+
+      result.uniq.size.should == 10
+    end
+
     it "calls #to_int to convert the count when passed an Object" do
       [1, 2, 3, 4].sample(mock_int(2)).size.should == 2
     end
