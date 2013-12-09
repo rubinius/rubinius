@@ -13,6 +13,7 @@ as the bytecode compiler and debugger, are also written in Ruby.  Rubinius
 provides the same standard libraries as Matz's Ruby implementation (MRI) with
 the following exceptions:
 
+* Continuation
 * Ripper
 * Tracer
 
