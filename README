@@ -14,6 +14,7 @@ provides the same standard libraries as Matz's Ruby implementation (MRI) with
 the following exceptions:
 
 * Ripper
+* Tracer
 
 Rubinius runs on Mac OS X and many Unix/Linux operating systems.  Microsoft
 Windows is not yet supported.
