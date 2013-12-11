@@ -7,6 +7,7 @@
   short_text = long_text.slice(0,100)
 
   Benchmark.ips do |x|
+
     x.report "string scan (long length)" do |times|
       i = 0
       while i < times
@@ -14,6 +15,7 @@
          i += 1
       end
     end
+
     x.report "string scan (medium length)" do |times|
       i = 0
       while i < times
@@ -21,6 +23,7 @@
          i += 1
       end
     end
+
     x.report "string scan (short length)" do |times|
       i = 0
       while i < times
@@ -28,4 +31,5 @@
          i += 1
       end
     end
+
   end
