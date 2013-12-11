@@ -1,8 +1,8 @@
   require 'benchmark'
   require 'benchmark/ips'
 
-  long_text = File.new('holmes.txt').read.downcase
-    #holmes.txt @  http://norvig.com/holmes.txt
+  long_file = File.join(File.dirname(__FILE__), 'large.txt')
+  long_text = File.new(long_file).read.downcase
   medium_text = long_text.slice(0,1000)
   short_text = long_text.slice(0,100)
 
