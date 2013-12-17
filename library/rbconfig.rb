@@ -11,8 +11,8 @@ module RbConfig
   CONFIG["install_prefix"]     = ''
   CONFIG["DLEXT"]              = Rubinius::LIBSUFFIX[1..-1]
   CONFIG["EXEEXT"]             = ""
-  CONFIG["ruby_install_name"]  = RUBY_ENGINE.dup
-  CONFIG["RUBY_INSTALL_NAME"]  = RUBY_ENGINE.dup
+  CONFIG["ruby_install_name"]  = Rubinius::PROGRAM_NAME.dup
+  CONFIG["RUBY_INSTALL_NAME"]  = Rubinius::PROGRAM_NAME.dup
   CONFIG["exec_prefix"]        = "$(prefix)"
   CONFIG["bindir"]             = Rubinius::BIN_PATH
   CONFIG["sbindir"]            = "$(exec_prefix)/sbin"

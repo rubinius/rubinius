@@ -346,6 +346,7 @@ namespace :vm do
       'vm/test/runner.cpp',
       'vm/test/runner.o',
       VM_EXE,
+      BUILD_CONFIG[:program_name],
       'bin/rbx',
       'bin/ruby',
       'bin/rake',
