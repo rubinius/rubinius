@@ -15,6 +15,18 @@ class Dir
     glob patterns
   end
 
+  def self.entries(path)
+    ret = []
+
+    open(path) do |dir|
+      while s = dir.read
+        ret << s
+      end
+    end
+
+    ret
+  end
+
   #   files = []
   #   index = 0
 
@@ -119,6 +131,21 @@ class Dir
     error = FFI::Platform::POSIX.mkdir(Rubinius::Type.coerce_to_path(path), mode)
     Errno.handle path if error != 0
     error
+  end
+
+  def self.open(path)
+    dir = new path
+    if block_given?
+      begin
+        value = yield dir
+      ensure
+        dir.close
+      end
+
+      return value
+    else
+      return dir
+    end
   end
 
   def self.rmdir(path)

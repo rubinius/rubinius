@@ -117,6 +117,31 @@ module Enumerable
     false
   end
 
+  def collect
+    if block_given?
+      ary = []
+      each { |o| ary << yield(o) }
+      ary
+    else
+      to_a
+    end
+  end
+
+  alias_method :map, :collect
+
+  def count(item = undefined)
+    seq = 0
+    if !undefined.equal?(item)
+      each { |o| seq += 1 if item == o }
+    elsif block_given?
+      each { |o| seq += 1 if yield(o) }
+    else
+      return size if respond_to? :size
+      each { seq += 1 }
+    end
+    seq
+  end
+
   def cycle(many=nil)
     return to_enum(:cycle, many) unless block_given?
 
@@ -190,6 +215,8 @@ module Enumerable
     nil
   end
 
+  alias_method :enum_cons, :each_cons
+
   def each_slice(slice_size)
     return to_enum(:each_slice, slice_size) unless block_given?
 
@@ -208,6 +235,21 @@ module Enumerable
 
     yield a unless a.empty?
     nil
+  end
+
+  alias_method :enum_slice, :each_slice
+
+  def each_with_index
+    return to_enum(:each_with_index) unless block_given?
+
+    idx = 0
+    each do
+      o = Rubinius.single_block_arg
+      yield o, idx
+      idx += 1
+    end
+
+    self
   end
 
   def find(ifnone=nil)
@@ -232,6 +274,24 @@ module Enumerable
       ary << o if yield(o)
     end
     ary
+  end
+
+  alias_method :enum_with_index, :each_with_index
+
+  def group_by
+    return to_enum(:group_by) unless block_given?
+
+    h = {}
+    each do
+      o = Rubinius.single_block_arg
+      key = yield(o)
+      if h.key?(key)
+        h[key] << o
+      else
+        h[key] = [o]
+      end
+    end
+    h
   end
 
   alias_method :select, :find_all
@@ -503,6 +563,18 @@ module Enumerable
     array
   end
 
+  def to_a(*arg)
+    ary = []
+    each(*arg) do
+      o = Rubinius.single_block_arg
+      ary << o
+      nil
+    end
+    ary
+  end
+
+  alias_method :entries, :to_a
+
   def include?(obj)
     each { return true if Rubinius.single_block_arg == obj }
     false
@@ -510,4 +582,22 @@ module Enumerable
 
   alias_method :member?, :include?
 
+  def zip(*args)
+    args.map! { |a| a.to_a }
+
+    results = []
+    i = 0
+    each do
+      o = Rubinius.single_block_arg
+      entry = args.inject([o]) { |ary, a| ary << a[i] }
+
+      yield entry if block_given?
+
+      results << entry
+      i += 1
+    end
+
+    return nil if block_given?
+    results
+  end
 end

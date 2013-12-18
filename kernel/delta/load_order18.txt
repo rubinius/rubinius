@@ -1,15 +1,12 @@
 agent.rbc
-ctype18.rbc
 ctype.rbc
 exception.rbc
 file.rbc
 rubinius.rbc
-rubinius18.rbc
 module.rbc
 class.rbc
 filetest.rbc
 kernel.rbc
-kernel18.rbc
 math.rbc
 options.rbc
 stats.rbc
@@ -18,7 +15,5 @@ struct.rbc
 thread.rbc
 codeloader.rbc
 ffi.rbc
-ruby_constants18.rbc
 ruby_constants.rbc
 pack.rbc
-pack18.rbc

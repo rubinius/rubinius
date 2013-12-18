@@ -125,6 +125,16 @@ module Rubinius
       return nil
     end
 
+    def const_defined?(name)
+      scope = self
+      while scope and scope.module != Object
+        return true if scope.module.const_defined?(name)
+        scope = scope.parent
+      end
+
+      return Object.const_defined?(name)
+    end
+
     def current_script
       scope = self
       while scope and !scope.script

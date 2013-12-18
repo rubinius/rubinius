@@ -31,6 +31,10 @@ module Rubinius
       @use_stdin_only = false
     end
 
+    def binmode
+      self
+    end
+
     #
     # Close stream.
     #
@@ -50,6 +54,10 @@ module Rubinius
     def closed?
       advance!
       @stream.closed?
+    end
+
+    def default_value
+      ""
     end
 
     #
@@ -348,6 +356,27 @@ module Rubinius
     end
 
     #
+    # Read all lines from stream.
+    #
+    # Reads all lines into an Array using #gets and
+    # returns the Array.
+    #
+    # @see  #gets
+    #
+    def readlines(sep=$/)
+      return nil unless advance!
+
+      lines = []
+      while line = gets(sep)
+        lines << line
+      end
+
+      lines
+    end
+
+    alias_method :to_a, :readlines
+
+    #
     # Rewind the stream to its beginning.
     #
     # Line number is updated accordingly.
@@ -381,6 +410,10 @@ module Rubinius
       @stream.close unless @stream.closed?
       @advance = true
       self
+    end
+
+    def stream(file)
+      file == "-" ? STDIN : File.open(file, "r")
     end
 
     #

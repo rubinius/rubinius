@@ -26,10 +26,18 @@ class Integer < Numeric
     self ^ Rubinius::Type.coerce_to(other, Integer, :to_int)
   end
 
+  def chr
+    if self > 255 || self < 0
+      raise RangeError, "#{self} is out of the valid character range"
+    end
+    String.pattern 1, self
+  end
+
   def to_i
     self
   end
 
+  alias_method :round, :to_i
   alias_method :to_int, :to_i
   alias_method :truncate, :to_i
   alias_method :ceil, :to_i

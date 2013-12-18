@@ -8,6 +8,18 @@ module Rubinius
     include Enumerable
     include Rubinius::EnvironmentAccess
 
+    def []=(key, value)
+      key = StringValue(key)
+      if value.nil?
+        unsetenv(key)
+      else
+        setenv key, StringValue(value), 1
+      end
+      value
+    end
+
+    alias_method :store, :[]=
+
     def [](key)
       value = getenv(StringValue(key))
       if value
@@ -72,6 +84,24 @@ module Rubinius
       return to_enum(:delete_if) unless block_given?
       reject!(&block)
       self
+    end
+
+    def fetch(key, absent=undefined)
+      if block_given? and !undefined.equal?(absent)
+        warn "block supersedes default value argument"
+      end
+
+      if value = self[key]
+        return value
+      end
+
+      if block_given?
+        return yield(key)
+      elsif undefined.equal?(absent)
+        raise IndexError, "key not found"
+      end
+
+      return absent
     end
 
     def include?(key)
@@ -207,6 +237,12 @@ module Rubinius
 
       return [key, value]
     end
+
+    def set_encoding(value)
+      value
+    end
+
+    private :set_encoding
 
     def to_a
       ary = []

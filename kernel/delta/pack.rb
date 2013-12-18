@@ -1,6 +1,10 @@
 # -*- encoding: us-ascii -*-
 
 module Rubinius
+  def self.pack_to_float(obj)
+    Float(obj)
+  end
+
   def self.pack_to_int(obj)
     Rubinius::Type.coerce_to obj, Integer, :to_int
   end

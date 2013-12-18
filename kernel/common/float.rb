@@ -52,6 +52,12 @@ class Float < Numeric
     a * b
   end
 
+  def **(other)
+    Rubinius.primitive :float_pow
+    b, a = math_coerce other
+    a ** b
+  end
+
   #--
   # see README-DEVELOPERS regarding safe math compiler plugin
   #++
@@ -194,5 +200,9 @@ class Float < Numeric
     return int if self > 0 or self == int
     return int - 1
   end
-end
 
+  def round
+    Rubinius.primitive :float_round
+    raise PrimitiveFailure, "Float#round primitive failed"
+  end
+end

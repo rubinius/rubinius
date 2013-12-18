@@ -25,6 +25,10 @@ class WeakRef
     return obj
   end
 
+  def respond_to?(method, include_private=false)
+    super || __getobj__.respond_to?(method, include_private)
+  end
+
   def weakref_alive?
     !!__object__
   end

@@ -1,6 +1,5 @@
 alias.rbc
 array.rbc
-array18.rbc
 atomic.rbc
 bignum.rbc
 block_environment.rbc
@@ -23,13 +22,12 @@ fixnum.rbc
 gc.rbc
 io.rbc
 iseq.rbc
-kernel18.rbc
 kernel.rbc
 lookuptable.rbc
 method_table.rbc
 mono_inline_cache.rbc
 nil.rbc
-object18.rbc
+object.rbc
 proc.rbc
 process.rbc
 poly_inline_cache.rbc
@@ -40,14 +38,11 @@ stat.rbc
 string.rbc
 symbol.rbc
 thread.rbc
-thread18.rbc
 thunk.rbc
 time.rbc
 true.rbc
 tuple.rbc
 type.rbc
-type18.rbc
 variable_scope.rbc
 vm.rbc
 weakref.rbc
-weakref18.rbc

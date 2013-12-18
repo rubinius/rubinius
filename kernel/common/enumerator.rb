@@ -4,6 +4,16 @@ module Enumerable
   class Enumerator
     include Enumerable
 
+    def initialize(obj, iter=:each, *args)
+      @object = obj
+      @iter = iter.to_sym
+      @args = args
+      @generator = nil
+
+      self
+    end
+    private :initialize
+
     def each_with_block
       @object.__send__ @iter, *@args do |*args|
         yield(*args)
@@ -33,6 +43,40 @@ module Enumerable
         val
       end
     end
+
+    def next
+      unless @generator
+        # Allow #to_generator to return nil, indicating it has none for
+        # this method.
+        if @object.respond_to? :to_generator
+          @generator = @object.to_generator(@iter)
+        end
+
+        if !@generator and gen = FiberGenerator
+          @generator = gen.new(self)
+        else
+          @generator = ThreadGenerator.new(self, @object, @iter, @args)
+        end
+      end
+
+      begin
+        return @generator.next if @generator.next?
+      rescue StopIteration
+      end
+
+      @generator.rewind
+
+      raise StopIteration, "iteration reached end"
+    end
+
+    def rewind
+      @object.rewind if @object.respond_to? :rewind
+      @generator.rewind if @generator
+      self
+    end
+
+    alias_method :with_index, :each_with_index
+    alias_method :enum_with_index, :each_with_index
 
     if Rubinius::Fiber::ENABLED
       class FiberGenerator

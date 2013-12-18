@@ -3,6 +3,14 @@
 class Range
   include Enumerable
 
+  attr_reader_specific :excl, :exclude_end?
+
+  attr_reader :begin
+  alias_method :first, :begin
+
+  attr_reader :end
+  alias_method :last, :end
+
   def initialize(first, last, exclude_end = false)
     raise NameError, "`initialize' called twice" if @begin
 
@@ -32,10 +40,49 @@ class Range
   end
   alias_method :eql?, :==
 
-  attr_reader_specific :excl, :exclude_end?
+  def each
+    return to_enum unless block_given?
+    first, last = @begin, @end
 
-  attr_reader :begin
+    raise TypeError, "can't iterate from #{first.class}" unless can_iterate_from?(first)
 
+    case first
+    when Fixnum
+      last -= 1 if @excl
+
+      i = first
+      while i <= last
+        yield i
+        i += 1
+      end
+
+    when String
+      first.upto(last, @excl) do |i|
+        yield i
+      end
+    else
+      current = first
+      if @excl
+        while (current <=> last) < 0
+          yield current
+          current = current.succ
+        end
+      else
+        while (c = current <=> last) && c <= 0
+          yield current
+          break if c == 0
+          current = current.succ
+        end
+      end
+    end
+    return self
+  end
+
+  def can_iterate_from?(object)
+    object.respond_to? :succ
+  end
+
+  private :can_iterate_from?
   def hash
     excl = @excl ? 1 : 0
     hash = excl
@@ -49,8 +96,6 @@ class Range
   def inspect
     "#{@begin.inspect}#{@excl ? "..." : ".."}#{@end.inspect}"
   end
-
-  attr_reader :end
 
   def step(step_size=1) # :yields: object
     return to_enum(:step, step_size) unless block_given?
@@ -154,6 +199,10 @@ class Range
 
     return false
   end
-  private :__cover__?
-end
 
+  alias_method :include?, :__cover__?
+  private :__cover__?
+
+  alias_method :member?, :include?
+  alias_method :===, :include?
+end
