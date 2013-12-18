@@ -641,6 +641,17 @@ module Rubinius
 
         return str
       end
+      
+      ##
+      # Returns the name symbol.
+      #
+      # When a method is defined and the CompiledCode object is returned,
+      # it can be used to coerce for compatibility with the MRI 2.1 behavior
+      # of returning the defined method name as a symbol.
+      #
+      def to_sym
+        name
+      end
     end
   end
 end
