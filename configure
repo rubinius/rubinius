@@ -2040,8 +2040,8 @@ int main() { return tgetnum(""); }
       failure "Sorry, building Rubinius requires MRI or Rubinius."
     end
 
-    unless RedCard.check "2.0"
-      @log.write "Ruby version 2.0+ is required to build Rubinius."
+    unless RedCard.check "1.8.7"
+      @log.write "Ruby version 1.8.7+ is required to build Rubinius."
       @log.write "Your version may work but is unsupported."
     end
 
