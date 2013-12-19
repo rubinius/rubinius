@@ -301,9 +301,10 @@ class Configure
     dirs.each { |d| d.replace d[size..-1] }
 
     unless @prefixdir == @sourcedir
-      @stagingdir = "#{@sourcedir}/staging"
+      @stagingdir ||= "#{@sourcedir}/staging"
       FileUtils.rm_rf @stagingdir
       @stagingdir = File.join @stagingdir, @prefixdir if @preserve_prefix
+      FileUtils.mkdir_p @stagingdir
     end
 
     @build_prefix = @stagingdir || @sourcedir
@@ -492,6 +493,10 @@ class Configure
 
     o.on "--preserve-prefix", "Use the configure prefix for staging Rubinius to install" do
       @preserve_prefix = true
+    end
+
+    o.on "--stagingdir", "PATH", "Use PATH to build and prepare all files for install" do |dir|
+      @stagingdir = expand dir
     end
 
     o.doc "\n Optional features"
