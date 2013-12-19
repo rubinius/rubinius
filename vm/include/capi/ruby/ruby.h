@@ -133,6 +133,16 @@ extern "C" {
 #define EXTERN RUBY_EXTERN  /* deprecated */
 #endif
 
+/*
+Added to fix https://github.com/rubinius/rubinius/issues/2840. The original
+definition comes from some Makefile file that, looking at the directory it was
+in, should only be used for win32. Alas, apparently MRI makes it available and
+uses it so we have to also define these aliases.
+*/
+#define rb_pid_t int
+#define rb_gid_t int
+#define rb_uid_t int
+
 void* XMALLOC(size_t bytes);
 void  XFREE(void* ptr);
 void* XREALLOC(void* ptr, size_t bytes);
