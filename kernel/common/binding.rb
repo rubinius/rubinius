@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 class Binding
   attr_accessor :variables
   attr_accessor :compiled_code

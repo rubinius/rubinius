@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 class NilClass
   def &(other)
     false

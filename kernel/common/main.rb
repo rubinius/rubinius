@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 class << MAIN
   def include(*mods)
     Rubinius.privately do

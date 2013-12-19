@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 ##
 # Channel is a FIFO, thread-aware value passing class that can hold any number
 # of objects similar to Queue.  Use #send to add objects to the channel and

@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 module ObjectSpace
   def self.find_object(query, callable)
     Rubinius.primitive :vm_find_object

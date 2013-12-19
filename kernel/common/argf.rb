@@ -1,7 +1,3 @@
-# -*- encoding: us-ascii -*-
-
-
-
 module Rubinius
 
   # :internal:

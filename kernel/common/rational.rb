@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 #
 #   rational.rb -
 #       $Release Version: 0.5 $

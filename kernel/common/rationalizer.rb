@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 # Float#rationalize and String#to_r require complex algorithms. The Regexp
 # required for String#to_r cannot be created at class scope when loading the
 # kernel because Regexp needs to load after String and making a simpler

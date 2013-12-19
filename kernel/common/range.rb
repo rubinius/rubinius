@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 class Range
   include Enumerable
 

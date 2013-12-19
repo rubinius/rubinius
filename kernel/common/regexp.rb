@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 class Regexp
   IGNORECASE         = 1
   EXTENDED           = 2

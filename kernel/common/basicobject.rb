@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 class BasicObject
   def method_missing(meth, *args)
     ::Kernel.raise ::NoMethodError, "Unable to send '#{meth}' on instance of BasicObject"

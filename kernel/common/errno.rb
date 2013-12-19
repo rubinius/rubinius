@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 ##
 # Interface to the C errno integer.
 

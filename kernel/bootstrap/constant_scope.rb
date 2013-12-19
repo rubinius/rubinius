@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 module Rubinius
   class ConstantScope
     def self.of_sender

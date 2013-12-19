@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 class Bignum < Integer
   def **(o)
     Rubinius.primitive :bignum_pow

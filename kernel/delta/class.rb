@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 code = Class.method_table.lookup(:new).method
 code.serial = Rubinius::CompiledCode::KernelMethodSerial
 

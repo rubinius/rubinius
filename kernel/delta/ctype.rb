@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 module Rubinius::CType
   # TODO: rethink this.
   def self.unprintable_chr(num)

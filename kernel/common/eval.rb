@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 module Kernel
   ##
   # :call-seq:

@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 module Rubinius
   module EnvironmentAccess
     extend FFI::Library

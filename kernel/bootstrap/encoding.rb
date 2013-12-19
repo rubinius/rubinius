@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 class Encoding
   attr_reader :name
   attr_reader :dummy

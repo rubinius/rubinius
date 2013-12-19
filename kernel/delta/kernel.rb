@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 module Kernel
 
   def raise(exc=undefined, msg=undefined, ctx=nil)

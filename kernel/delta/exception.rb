@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 # MRI has an Exception class named "fatal" that is raised
 # by the rb_fatal function. The class is not accessible from
 # ruby because the name is begins with a lower-case letter.

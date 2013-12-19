@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 module Process
   module Constants
     EXIT_SUCCESS = Rubinius::Config['rbx.platform.process.EXIT_SUCCESS'] || 0

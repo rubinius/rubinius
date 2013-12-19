@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 class Dir
   module Glob
     class Node

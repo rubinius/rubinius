@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 module Math
   module_function \
     :acos,

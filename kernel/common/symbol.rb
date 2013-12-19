@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 class Symbol
   def self.all_symbols
     Rubinius.primitive :symbol_all_symbols

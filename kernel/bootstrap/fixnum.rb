@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 class Fixnum < Integer
 
   def self.===(obj)

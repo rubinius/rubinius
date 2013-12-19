@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 ##
 # Platform specific behavior for the File class.
 

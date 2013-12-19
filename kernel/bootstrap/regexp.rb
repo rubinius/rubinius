@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 class Regexp
 
   def self.allocate

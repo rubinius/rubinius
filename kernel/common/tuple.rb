@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 ##
 # The tuple data type.
 # A simple storage class. Created to contain a fixed number of elements.

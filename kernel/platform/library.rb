@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 class Rubinius::NativeFunction
   attr_accessor :return_type
   attr_accessor :argument_types

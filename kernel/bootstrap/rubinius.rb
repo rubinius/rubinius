@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 module Rubinius
   def self.watch_signal(sig, ignored)
     Rubinius.primitive :vm_watch_signal

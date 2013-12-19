@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 module FileTest
   def blockdev?(path)
     File.blockdev? path
