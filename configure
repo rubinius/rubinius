@@ -35,6 +35,7 @@ class Configure
     @features = {}
     @defines = []
     @config = File.join(root, "config.rb")
+    @config_in = File.join(root, "config.rb.in")
 
     # Platform settings
     @host = `sh -c ./rakelib/config.guess`.chomp
@@ -187,6 +188,9 @@ class Configure
       [ "rubinius-coverage", "2.0" ],
       [ "rubinius-debugger", "2.0" ],
     ]
+
+    @gems_cache = File.expand_path "../vendor/cache", __FILE__
+    FileUtils.mkdir_p @gems_cache
 
     # Vendored library settings
     @vendored_libdir = root + "/vendor"
@@ -1772,15 +1776,17 @@ int main() { return tgetnum(""); }
 
     if @release_config
       config_settings = release_config
+      config_name = @config_in
     else
       config_settings = release_config.merge build_config
+      config_name = @config
     end
 
-    write_config_rb @config, config_settings
+    write_config_rb config_name, config_settings
 
     lib_rubinius_dir = "#{@sourcedir}/library/rubinius"
     FileUtils.mkdir_p lib_rubinius_dir unless File.directory? lib_rubinius_dir
-    FileUtils.cp @config, "#{lib_rubinius_dir}/build_config.rb"
+    FileUtils.cp config_name, "#{lib_rubinius_dir}/build_config.rb"
 
     # Write the config file used to build the C++ VM.
     Dir.mkdir "vm/gen" unless File.directory? "vm/gen"
@@ -1986,10 +1992,7 @@ int main() { return tgetnum(""); }
     @log.write "\nFetching gems..."
     gems = @build_tool_gems + @build_c_ext_gems + @bootstrap_gems + @runtime_gems
 
-    gems_cache = File.expand_path "../vendor/cache", __FILE__
-    FileUtils.mkdir_p gems_cache
-
-    Dir.chdir gems_cache do
+    Dir.chdir @gems_cache do
       gems.each do |name, version|
         gem = "#{name}-#{version}.gem"
         next if File.exists? gem
@@ -2040,6 +2043,28 @@ int main() { return tgetnum(""); }
     end
   end
 
+  def load_config
+    if @release_build
+      unless File.exist? @config_in
+        failure "--release-build option requires config.rb.in but it is missing"
+      end
+
+      begin
+        load @config_in
+      rescue Object => e
+        @log.write e.message
+        @log.write e.backtrace.join("\n")
+        failure "Unable to load release configuration"
+      end
+    else
+      begin
+        load @config
+      rescue Object
+        # ignore errors loading config.rb and create a new config
+      end
+    end
+  end
+
   def run
     unless RedCard.check :ruby, :rubinius
       failure "Sorry, building Rubinius requires MRI or Rubinius."
@@ -2050,19 +2075,7 @@ int main() { return tgetnum(""); }
       @log.write "Your version may work but is unsupported."
     end
 
-    if File.exists? @config
-      begin
-        load @config
-      rescue Object => e
-        # ignore errors if not building from a release tarball
-        if @release_config
-          @log.write e.message
-          @log.write e.backtrace.join("\n")
-          failure "Unable to load release configuration"
-        end
-      end
-    end
-
+    load_config
     options
     parse ARGV
 
