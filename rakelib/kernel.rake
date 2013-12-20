@@ -221,7 +221,6 @@ end
 [ signature_file,
   "kernel/alpha.rb",
   "kernel/loader.rb",
-  "kernel/delta/converter_paths.rb"
 ].each do |name|
   kernel_file_task runtime, signature_file, name
 end
