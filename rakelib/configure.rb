@@ -1,5 +1,5 @@
 def write_config_rb(path, config)
-  File.open config[:config_file], "wb" do |f|
+  File.open path, "wb" do |f|
     f.puts <<-EOC
 module Rubinius
   config = {}

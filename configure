@@ -2009,6 +2009,21 @@ int main() { return tgetnum(""); }
     versions.select { |v| req =~ v }.sort { |a, b| b <=> a }.first.to_s
   end
 
+  def verify_gems(list)
+    failed = false
+    list.each do |name, version|
+      gem_name = "#{name}-#{version}.gem"
+      unless File.file? "#{@gems_cache}/#{gem_name}"
+        @log.write "unable to find gem #{gem_name}"
+        failed = true
+      end
+    end
+
+    failure "Unable to find required gems." if failed
+
+    list
+  end
+
   def unpack_gems
     @log.write "\nUnpacking bootstrap gems..."
 
@@ -2094,10 +2109,11 @@ int main() { return tgetnum(""); }
 
     process
     if @release_build
-      @build_tool_gems  = Rubinius::BUILD_CONFIG.fetch :build_tool_gems, @build_tool_gems
-      @build_c_ext_gems = Rubinius::BUILD_CONFIG.fetch :build_c_ext_gems, @build_c_ext_gems
-      @bootstrap_gems   = Rubinius::BUILD_CONFIG.fetch :bootstrap_gems, @bootstrap_gems
-      @runtime_gems     = Rubinius::BUILD_CONFIG.fetch :runtime_gems, @runtime_gems
+      [:build_tool_gems, :build_c_ext_gems, :bootstrap_gems, :runtime_gems].each do |s|
+        var = :"@#{s}"
+        gem_list = Rubinius::BUILD_CONFIG.fetch s, instance_variable_get(var)
+        instance_variable_set var, verify_gems(gem_list)
+      end
     else
       fetch_gems
     end
