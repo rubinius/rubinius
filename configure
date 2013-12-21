@@ -1694,21 +1694,25 @@ int main() { return tgetnum(""); }
 
     @bin_links.delete @program_name
 
-    release_config = {
-      :config_file        => @config,
-      :build_tool_gems    => @build_tool_gems,
-      :build_c_ext_gems   => @build_c_ext_gems,
-      :bootstrap_gems     => @bootstrap_gems,
-      :runtime_gems       => @runtime_gems,
-      :ruby_version       => @ruby_version,
-      :version            => version,
-      :libversion         => @libversion,
-      :patch_version      => @patch_version,
-      :release_date       => @release_date || default_release_date,
-      :revision           => build_revision,
-      :config_version     => @config_version,
-      :vm_release_h       => @vm_release_h,
-    }
+    if @release_build
+      release_config = Rubinius::BUILD_CONFIG
+    else
+      release_config = {
+        :config_file        => @config,
+        :build_tool_gems    => @build_tool_gems,
+        :build_c_ext_gems   => @build_c_ext_gems,
+        :bootstrap_gems     => @bootstrap_gems,
+        :runtime_gems       => @runtime_gems,
+        :ruby_version       => @ruby_version,
+        :version            => version,
+        :libversion         => @libversion,
+        :patch_version      => @patch_version,
+        :release_date       => @release_date || default_release_date,
+        :revision           => build_revision,
+        :config_version     => @config_version,
+        :vm_release_h       => @vm_release_h,
+      }
+    end
 
     build_config = {
       :command_line       => @command_line,
@@ -2009,19 +2013,22 @@ int main() { return tgetnum(""); }
     versions.select { |v| req =~ v }.sort { |a, b| b <=> a }.first.to_s
   end
 
-  def verify_gems(list)
+  def verify_gems
+    @log.write "\nVerifying gems..."
+
     failed = false
-    list.each do |name, version|
-      gem_name = "#{name}-#{version}.gem"
-      unless File.file? "#{@gems_cache}/#{gem_name}"
-        @log.write "unable to find gem #{gem_name}"
-        failed = true
+
+    [:build_tool_gems, :build_c_ext_gems, :bootstrap_gems, :runtime_gems].each do |s|
+      Rubinius::BUILD_CONFIG[s].each do |name, version|
+        gem_name = "#{name}-#{version}.gem"
+        unless File.file? "#{@gems_cache}/#{gem_name}"
+          @log.write "unable to find gem #{gem_name}"
+          failed = true
+        end
       end
     end
 
     failure "Unable to find required gems." if failed
-
-    list
   end
 
   def unpack_gems
@@ -2071,12 +2078,6 @@ int main() { return tgetnum(""); }
         @log.write e.backtrace.join("\n")
         failure "Unable to load release configuration"
       end
-    else
-      begin
-        load @config
-      rescue Object
-        # ignore errors loading config.rb and create a new config
-      end
     end
   end
 
@@ -2090,9 +2091,9 @@ int main() { return tgetnum(""); }
       @log.write "Your version may work but is unsupported."
     end
 
-    load_config
     options
     parse ARGV
+    load_config
 
     set_filesystem_paths
 
@@ -2109,11 +2110,7 @@ int main() { return tgetnum(""); }
 
     process
     if @release_build
-      [:build_tool_gems, :build_c_ext_gems, :bootstrap_gems, :runtime_gems].each do |s|
-        var = :"@#{s}"
-        gem_list = Rubinius::BUILD_CONFIG.fetch s, instance_variable_get(var)
-        instance_variable_set var, verify_gems(gem_list)
-      end
+      verify_gems
     else
       fetch_gems
     end
