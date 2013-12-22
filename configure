@@ -1711,7 +1711,6 @@ int main() { return tgetnum(""); }
         :release_date       => @release_date || default_release_date,
         :revision           => build_revision,
         :config_version     => @config_version,
-        :vm_release_h       => @vm_release_h,
       }
     end
 
@@ -1777,6 +1776,7 @@ int main() { return tgetnum(""); }
       :bsd                => @bsd,
       :linux              => @linux,
       :vendor_zlib        => @features["vendor-zlib"].value,
+      :vm_release_h       => @vm_release_h,
     }
 
     if @release_config
