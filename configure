@@ -1431,11 +1431,12 @@ int main() { return tgetnum(""); }
       @defines << "HAVE_STRNLEN"
     end
 
-    if has_function("lchmod", ["sys/stat.h", "unistd.h"], ["-D_XOPEN_SOURCE", "-D_XOPEN_SOURCE_EXTENDED"])
+    # glibc has useless lchmod() so we don't try to use lchmod() on linux
+    if !@linux and has_function("lchmod", ["sys/stat.h", "unistd.h"])
       @have_lchmod = true
     end
 
-    if has_function("lchown", ["sys/stat.h", "unistd.h"], ["-D_XOPEN_SOURCE", "-D_XOPEN_SOURCE_EXTENDED"])
+    if has_function("lchown", ["sys/stat.h", "unistd.h"])
       @have_lchown = true
     end
   end
