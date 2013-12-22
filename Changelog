@@ -1,0 +1,33 @@
+Version: 2.2.2
+
+* The --llvm-path configure option checks llvm version. (Gabriel Southern)
+* Module#const_get resolves qualified names like '::A::B' (Brian Shirai)
+* Bootstrap gem dependencies are included for mini_portile. (Brian Shirai)
+* The close_on_exec state is set for new file descriptors. (Dirkjan Bussink)
+* The C-API provides the rb_fix_fd_cloexec function. (Dirkjan Bussink)
+* The 't' modifier is supported in file modes. (Dirkjan Bussink)
+* A deadlock in thread startup is fixed. (Dirkjan Bussink)
+* The configured 'make' program is used building llvm. (Dirkjan Bussink)
+* A race condition on thread shutdown is fixed. (Dirkjan Bussink)
+* An issue is fixed handling memory when parsing a Bignum. (Dirkjan Bussink)
+* Improved parsing a Bignum. (Brian Shirai)
+* The C-API provides the rb_intern_str function. (Dirkjan Bussink)
+* The C-API provides the rb_int_positive_pow function. (Dirkjan Bussink)
+* An issue is fixed with Kernel.local_variables and eval. (Kenichi Kamiya)
+* An issue is fixed with File.realdirpath. (Kenichi Kamiya)
+* Kernel#__dir__ is implemented. (Kenichi Kamiya)
+* An issue is fixed allocating Thread objects. (Dirkjan Bussink)
+* An issue is fixed locking objects. (Dirkjan Bussink)
+* An encoding issue is fixed with IO#gets(limit). (Ryo Onodera)
+* The README is updated with a list of unimplemented standard library gems.
+	(Erik Michaels-Ober)
+* Removed use of lchmod on Linux. (r-stu31)
+* The C-API provides rb_pid_t. (Yorick Peterse)
+* The Rubinius::PROGRAM_NAME constant is the name of the Rubinius executable
+	set by configure. (Brian Shirai)
+* The config.rb.in file is used by the --release-build configure option.
+	(Brian Shirai)
+* The --stagingdir configure option enables setting the directory used to
+	prepare all files for installation. (Brian Shirai)
+* Ruby 1.8.7+ is supported for building Rubinius. (Brian Shirai)
+* A Changelog file is added. (Brian Shirai)
