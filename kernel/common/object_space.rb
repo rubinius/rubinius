@@ -21,7 +21,7 @@ module ObjectSpace
 
   # @todo rewrite each_object
 
-  # Tryes to handle as much as it can.
+  # Tries to handle as much as it can.
   def self.each_object(what=nil, &block)
     return to_enum :each_object, what unless block_given?
 
