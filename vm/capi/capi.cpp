@@ -3,9 +3,9 @@
 #include "builtin/array.hpp"
 #include "builtin/data.hpp"
 #include "builtin/fixnum.hpp"
-#include "builtin/lookuptable.hpp"
+#include "builtin/lookup_table.hpp"
 #include "builtin/module.hpp"
-#include "builtin/nativemethod.hpp"
+#include "builtin/native_method.hpp"
 #include "builtin/object.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
@@ -27,7 +27,7 @@
 #include "arguments.hpp"
 #include "dispatch.hpp"
 #include "capi/capi.hpp"
-#include "capi/18/include/ruby.h"
+#include "capi/ruby.h"
 
 namespace rubinius {
   namespace capi {
@@ -411,7 +411,7 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     env->shared().capi_constant_lock().lock();
-    CApiConstantHandleMap map = env->state()->shared().capi_constant_handle_map();
+    CApiConstantHandleMap& map = env->state()->shared().capi_constant_handle_map();
 
     CApiConstantHandleMap::iterator entry = map.find(type);
     if(entry == map.end()) {

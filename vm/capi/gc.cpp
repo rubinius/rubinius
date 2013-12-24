@@ -1,9 +1,9 @@
 #include "builtin/object.hpp"
 #include "util/thread.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 
 #include "capi/capi.hpp"
-#include "capi/18/include/ruby.h"
+#include "capi/ruby.h"
 
 using namespace rubinius;
 using namespace rubinius::capi;

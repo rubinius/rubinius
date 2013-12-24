@@ -28,14 +28,6 @@ namespace rubinius {
     attr_accessor(backtrace, Object);
     attr_accessor(custom_backtrace, Object);
 
-    Object* message() {
-      return reason_message_;
-    }
-
-    void message(STATE, Object* obj) {
-      reason_message(state, obj);
-    }
-
     /* interface */
 
     static void init(STATE);
@@ -52,6 +44,8 @@ namespace rubinius {
 
     static Exception* make_argument_error(STATE, int expected, int given, Symbol* name=0);
     static Exception* make_encoding_compatibility_error(STATE, Object* a, Object* b);
+    static Exception* make_frozen_exception(STATE, Object* obj);
+
     static void argument_error(STATE, int expected, int given);
     static void argument_error(STATE, const char* reason);
     static void regexp_error(STATE, const char* reason);
@@ -82,7 +76,8 @@ namespace rubinius {
     static void internal_error(STATE, CallFrame* frame, const char* reason);
     static void bytecode_error(STATE, CallFrame* frame, CompiledCode* code,
                                int ip, const char* reason);
-    static void frozen_error(STATE, CallFrame* frame);
+    static void frozen_error(STATE, Object* obj);
+    static void frozen_error(STATE, CallFrame* frame, Object* obj);
 
     static void encoding_compatibility_error(STATE, Object* a, Object* b);
     static void encoding_compatibility_error(STATE, Object* a, Object* b,

@@ -6,8 +6,7 @@
 #include "builtin/mono_inline_cache.hpp"
 #include "builtin/poly_inline_cache.hpp"
 #include "builtin/respond_to_cache.hpp"
-#include "builtin/lookuptable.hpp"
-#include "version.h"
+#include "builtin/lookup_table.hpp"
 
 #include "llvm/jit_operations.hpp"
 #include "llvm/inline.hpp"
@@ -79,7 +78,6 @@ namespace rubinius {
 
     // bail out destinations
     llvm::BasicBlock* bail_out_;
-    llvm::BasicBlock* bail_out_fast_;
 
     Value* method_entry_;
     Value* args_;
@@ -155,7 +153,7 @@ namespace rubinius {
       Value* isit = f.return_to_here.call(call_args, 2, "rth", b());
 
       BasicBlock* ret_raise_val = new_block("ret_raise_val");
-      bail_out_fast_ = new_block("ret_null");
+      BasicBlock* bail_out_fast_ = new_block("ret_null");
 
       start->moveAfter(bail_out_fast_);
 
@@ -301,15 +299,6 @@ namespace rubinius {
       stack_push(phi);
     }
 
-    void propagate_exception() {
-      // If there are handlers...
-      if(has_exception_handler()) {
-        b().CreateBr(exception_handler());
-      } else {
-        b().CreateBr(bail_out_fast_);
-      }
-    }
-
     BasicBlock* check_for_exception_then(Value* val, BasicBlock* cont,
                                          bool pass_top=true)
     {
@@ -323,7 +312,7 @@ namespace rubinius {
       if(has_exception_handler()) {
         b().CreateCondBr(is_exception, exception_handler(), check_active);
       } else {
-        b().CreateCondBr(is_exception, bail_out_fast_, check_active);
+        b().CreateCondBr(is_exception, bail_out_, check_active);
       }
 
       set_block(check_active);
@@ -1839,11 +1828,7 @@ namespace rubinius {
           // Run the policy on the block code here, if we're not going to
           // inline it, don't inline this either.
           InlineOptions opts;
-          if(LANGUAGE_18_ENABLED) {
-            opts.inlining_block();
-          } else {
-            opts.inlining_block_19();
-          }
+          opts.inlining_block_19();
 
           InlineDecision decision = inline_policy()->inline_p(
                                       block_code->machine_code(), opts);
@@ -3032,7 +3017,6 @@ use_send:
       Function* func = cast<Function>(
           module_->getOrInsertFunction("rbx_check_interrupts", ft));
 
-      func->setDoesNotCapture(0);
       func->setDoesNotCapture(1);
       func->setDoesNotCapture(2);
 
@@ -3646,6 +3630,8 @@ use_send:
       };
 
       Value* val = sig.call("rbx_make_array", call_args, 3, "constant", b());
+      type::KnownType kt = type::KnownType::instance(llvm_state()->array_class_id());
+      kt.associate(ctx_, val);
 
       stack_remove(count);
       stack_push(val);
@@ -3693,6 +3679,13 @@ use_send:
 
     void visit_passed_arg(opcode count) {
       count += machine_code()->post_args;
+
+      // Mark the local as set here. This is done so we make sure that
+      // when we pass an argument, we properly see this as having two
+      // code paths through which the local can be set.
+
+      LocalInfo* li = info().get_local(count);
+      li->inc_set();
 
       if(called_args_ >= 0) {
         if((int)count < called_args_) {

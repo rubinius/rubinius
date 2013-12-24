@@ -1,5 +1,4 @@
 #include "vm/test/test.hpp"
-#include "version.h"
 
 class TestObjects : public CxxTest::TestSuite, public VMTest {
 public:
@@ -16,11 +15,7 @@ public:
 
   void test_object() {
     TS_ASSERT_EQUALS(G(object)->class_object(state), G(klass));
-    if(!LANGUAGE_18_ENABLED) {
-      TS_ASSERT_EQUALS(G(object)->superclass(), G(basicobject));
-    } else {
-      TS_ASSERT_EQUALS(G(object)->superclass(), cNil);
-    }
+    TS_ASSERT_EQUALS(G(object)->superclass(), G(basicobject));
     check_const(object, "Object");
   }
 

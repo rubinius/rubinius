@@ -9,7 +9,7 @@
 #include "machine_code.hpp"
 #include "instruments/tooling.hpp"
 
-#include "builtin/constantscope.hpp"
+#include "builtin/constant_scope.hpp"
 #include "builtin/module.hpp"
 #include "builtin/class.hpp"
 

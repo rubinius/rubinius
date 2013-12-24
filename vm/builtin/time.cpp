@@ -4,7 +4,7 @@
 #include "builtin/integer.hpp"
 #include "builtin/string.hpp"
 #include "builtin/time.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 #include "object_utils.hpp"
 #include "ontology.hpp"
 #include "util/time64.h"
@@ -315,5 +315,19 @@ namespace rubinius {
     result->encoding(state, format->encoding());
 
     return result;
+  }
+
+  // Returns the environment time zone.
+  String* Time::env_zone(STATE) {
+    struct tm64 tm;
+
+    tzset();
+    localtime64_r(&seconds_, &tm);
+
+    if(tm.tm_zone) {
+      return String::create(state, tm.tm_zone);
+    } else {
+      return nil<String>();
+    }
   }
 }

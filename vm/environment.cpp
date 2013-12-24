@@ -5,7 +5,7 @@
 #include "environment.hpp"
 #include "config_parser.hpp"
 #include "compiled_file.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 
 #include "exception.hpp"
 
@@ -16,7 +16,7 @@
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/module.hpp"
-#include "builtin/nativemethod.hpp"
+#include "builtin/native_method.hpp"
 
 #ifdef ENABLE_LLVM
 #include "llvm/state.hpp"
@@ -557,8 +557,8 @@ namespace rubinius {
       std::ostringstream msg;
 
       msg << "exception detected at toplevel: ";
-      if(!exc->message()->nil_p()) {
-        if(String* str = try_as<String>(exc->message())) {
+      if(!exc->reason_message()->nil_p()) {
+        if(String* str = try_as<String>(exc->reason_message())) {
           msg << str->c_str(state);
         } else {
           msg << "<non-string Exception message>";

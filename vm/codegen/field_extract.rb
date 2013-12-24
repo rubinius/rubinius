@@ -1280,9 +1280,6 @@ class PrimitiveCodeGenerator
       end
 
       f.puts <<-EOC
-  //  if(!state->probe()->nil_p()) {
-  //    state->probe()->missing_primitive(state, name->c_str(state));
-  //  }
   return &Primitives::unknown_primitive;
   // commented out while we have soft primitive failures
   // throw std::runtime_error(msg.c_str());

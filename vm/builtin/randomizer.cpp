@@ -1,4 +1,4 @@
-#include "builtin/bytearray.hpp"
+#include "builtin/byte_array.hpp"
 #include "builtin/bignum.hpp"
 #include "builtin/class.hpp"
 #include "builtin/float.hpp"

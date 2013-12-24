@@ -1,12 +1,12 @@
 #include "builtin/array.hpp"
 #include "builtin/autoload.hpp"
 #include "builtin/class.hpp"
-#include "builtin/compactlookuptable.hpp"
+#include "builtin/compact_lookup_table.hpp"
 #include "builtin/constant_table.hpp"
 #include "builtin/executable.hpp"
-#include "builtin/lookuptable.hpp"
+#include "builtin/lookup_table.hpp"
 #include "builtin/module.hpp"
-#include "builtin/methodtable.hpp"
+#include "builtin/method_table.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/system.hpp"
@@ -15,9 +15,8 @@
 #include "configuration.hpp"
 #include "global_cache.hpp"
 #include "object_utils.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 #include "on_stack.hpp"
-#include "version.h"
 
 #include <string>
 
@@ -100,11 +99,7 @@ namespace rubinius {
 
   String* Module::get_name(STATE) {
     if(module_name()->nil_p()) {
-      if(LANGUAGE_18_ENABLED) {
-        return String::create(state, "");
-      } else {
-        return nil<String>();
-      }
+      return String::create(state, "", 0);
     } else {
       return module_name()->to_str(state);
     }

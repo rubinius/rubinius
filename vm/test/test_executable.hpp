@@ -1,6 +1,6 @@
 #include "builtin/executable.hpp"
 #include "vm.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 
 #include <cxxtest/TestSuite.h>
 

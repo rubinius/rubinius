@@ -48,9 +48,6 @@ namespace rubinius {
     // Rubinius.primitive :channel_receive_timeout
     Object* receive_timeout(STATE, GCToken gct, Object* duration, CallFrame* calling_environment);
 
-    bool has_readers_p();
-
-
     class Info : public TypeInfo {
     public:
       BASIC_TYPEINFO(TypeInfo)

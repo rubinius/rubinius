@@ -6,11 +6,11 @@
 #include "builtin/io.hpp"
 #include "builtin/regexp.hpp"
 #include "builtin/string.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 #include "primitives.hpp"
 
 #include "capi/capi.hpp"
-#include "capi/18/include/ruby.h"
+#include "capi/ruby.h"
 
 #include "util/spinlock.hpp"
 

@@ -3,7 +3,7 @@
 #include "builtin/autoload.hpp"
 #include "builtin/block_environment.hpp"
 #include "builtin/class.hpp"
-#include "builtin/compiledcode.hpp"
+#include "builtin/compiled_code.hpp"
 #include "builtin/encoding.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
@@ -11,9 +11,9 @@
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/iseq.hpp"
-#include "builtin/constantscope.hpp"
-#include "builtin/nativemethod.hpp"
-#include "builtin/lookuptable.hpp"
+#include "builtin/constant_scope.hpp"
+#include "builtin/native_method.hpp"
+#include "builtin/lookup_table.hpp"
 #include "builtin/proc.hpp"
 #include "builtin/thread.hpp"
 #include "builtin/system.hpp"
@@ -27,13 +27,12 @@
 
 #include "call_frame.hpp"
 
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 #include "arguments.hpp"
 #include "dispatch.hpp"
 #include "instructions.hpp"
 #include "configuration.hpp"
 #include "on_stack.hpp"
-#include "version.h"
 
 #include "helpers.hpp"
 

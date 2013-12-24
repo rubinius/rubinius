@@ -2,14 +2,14 @@
 #include "builtin/class.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
-#include "builtin/lookuptable.hpp"
-#include "builtin/methodtable.hpp"
+#include "builtin/lookup_table.hpp"
+#include "builtin/method_table.hpp"
 #include "builtin/module.hpp"
 #include "builtin/packed_object.hpp"
 #include "builtin/symbol.hpp"
 #include "configuration.hpp"
 #include "object_utils.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 #include "on_stack.hpp"
 
 namespace rubinius {

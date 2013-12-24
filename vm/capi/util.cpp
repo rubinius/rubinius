@@ -4,7 +4,7 @@
 #include "call_frame.hpp"
 #include "builtin/string.hpp"
 #include "capi/capi.hpp"
-#include "capi/18/include/ruby.h"
+#include "capi/ruby.h"
 
 #include <stdarg.h>
 

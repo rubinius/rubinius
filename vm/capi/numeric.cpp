@@ -8,7 +8,7 @@
 #include "object_utils.hpp"
 
 #include "capi/capi.hpp"
-#include "capi/18/include/ruby.h"
+#include "capi/ruby.h"
 
 using namespace rubinius;
 using namespace rubinius::capi;
@@ -71,9 +71,18 @@ extern "C" {
   }
 
   unsigned long rb_num2uint(VALUE obj) {
-    unsigned long num = rb_num2ulong(obj);
-    if((unsigned int)num != num) {
-      rb_raise(rb_eRangeError, "integer too big to convert into int");
+    long sign = rb_num2long(obj);
+    bool negative = sign < 0;
+
+    unsigned long num = (unsigned long)sign;
+    if(negative) {
+      if(num < (unsigned long)INT_MIN) {
+        rb_raise(rb_eRangeError, "integer %ld too small to convert into int", sign);
+      }
+    } else {
+      if(num > UINT_MAX) {
+        rb_raise(rb_eRangeError, "integer %lu too big to convert into int", num);
+      }
     }
     return num;
   }

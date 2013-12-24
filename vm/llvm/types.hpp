@@ -120,7 +120,7 @@ namespace rubinius {
         return kind_;
       }
 
-      int value() {
+      uintptr_t value() {
         return value_;
       }
 

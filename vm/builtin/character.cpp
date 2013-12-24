@@ -2,7 +2,7 @@
 #include "regenc.h"
 #include "transcoder.h"
 
-#include "builtin/bytearray.hpp"
+#include "builtin/byte_array.hpp"
 #include "builtin/character.hpp"
 #include "builtin/class.hpp"
 #include "builtin/encoding.hpp"

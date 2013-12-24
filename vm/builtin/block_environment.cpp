@@ -1,12 +1,12 @@
 #include "arguments.hpp"
 #include "builtin/block_environment.hpp"
 #include "builtin/class.hpp"
-#include "builtin/compiledcode.hpp"
-#include "builtin/constantscope.hpp"
+#include "builtin/compiled_code.hpp"
+#include "builtin/constant_scope.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/location.hpp"
-#include "builtin/nativemethod.hpp"
+#include "builtin/native_method.hpp"
 #include "builtin/object.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/system.hpp"
@@ -18,7 +18,6 @@
 #include "object_utils.hpp"
 #include "on_stack.hpp"
 #include "ontology.hpp"
-#include "version.h"
 
 #ifdef ENABLE_LLVM
 #include "llvm/state.hpp"
@@ -69,7 +68,10 @@ namespace rubinius {
     MachineCode* mcode = env->compiled_code_->machine_code();
 
     if(!mcode) {
-      OnStack<2> os(state, env, args.argument_container_location());
+      OnStack<3> os(state, env, args.recv_location(), args.block_location());
+      OnStack<3> iv(state, invocation.self, invocation.constant_scope, invocation.module);
+      VariableRootBuffer vrb(state->vm()->current_root_buffers(),
+                             &args.arguments_location(), args.total());
       GCTokenImpl gct;
 
       mcode = env->machine_code(state, gct, previous);
@@ -314,13 +316,6 @@ namespace rubinius {
     frame->top_scope_ = env->top_scope_;
     frame->flags = invocation.flags | CallFrame::cMultipleScopes
                                     | CallFrame::cBlock;
-
-    // TODO: this is a quick hack to process block arguments in 1.9.
-    if(!LANGUAGE_18_ENABLED) {
-      if(!GenericArguments::call(state, frame, mcode, scope, args, invocation.flags)) {
-        return NULL;
-      }
-    }
 
 #ifdef RBX_PROFILER
     if(unlikely(state->vm()->tooling())) {

@@ -19,6 +19,8 @@ namespace rubinius {
   };
 
   class Integer : public Numeric {
+  private:
+    native_int bignum_to_native();
   public:
     static const object_type type = IntegerType;
 
@@ -32,6 +34,9 @@ namespace rubinius {
     static Integer* from(STATE, unsigned long long i);
 
     static Integer* from_cstr(STATE, const char* str, const char* end, int base, Object* strict);
+    static Integer* from_cppstr(STATE, std::string str, int base) {
+      return from_cstr(state, str.data(), str.data() + str.size(), base, cTrue);
+    }
 
     unsigned int        to_uint();
     long                to_long();
@@ -41,10 +46,9 @@ namespace rubinius {
 
     bool positive_p();
 
-    native_int slow_to_native();
     native_int to_native() {
       if(fixnum_p()) return STRIP_FIXNUM_TAG(this);
-      return slow_to_native();
+      return bignum_to_native();
     }
 
     class Info : public TypeInfo {

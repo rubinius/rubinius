@@ -9,9 +9,13 @@ namespace rubinius {
 
   class Dispatch;
 
-  typedef Object* (*CacheExecutor)(STATE, CallSite*, CallFrame*, Arguments&);
-  typedef Object* (*FallbackExecutor)(STATE, CallSite*, CallFrame*, Arguments&);
-  typedef void (*CacheUpdater)(STATE, CallSite*, Class*, Dispatch&);
+  typedef Object* (CacheExecuteFunc)(STATE, CallSite*, CallFrame*, Arguments&);
+  typedef Object* (FallbackExecuteFunc)(STATE, CallSite*, CallFrame*, Arguments&);
+  typedef void (CacheUpdateFunc)(STATE, CallSite*, Class*, Dispatch&);
+
+  typedef CacheExecuteFunc* CacheExecutor;
+  typedef FallbackExecuteFunc* FallbackExecutor;
+  typedef CacheUpdateFunc* CacheUpdater;
 
   class CallSiteInformation {
   public:
@@ -51,22 +55,13 @@ namespace rubinius {
 
     static CallSite* empty(STATE, Symbol* name, Executable* executable, int ip);
 
-    static Object* empty_cache(STATE, CallSite* call_site, CallFrame* call_frame,
-                               Arguments& args);
+    static CacheExecuteFunc empty_cache;
+    static CacheExecuteFunc empty_cache_private;
+    static CacheExecuteFunc empty_cache_vcall;
+    static CacheExecuteFunc empty_cache_super;
+    static CacheExecuteFunc empty_cache_custom;
 
-    static Object* empty_cache_private(STATE, CallSite* call_site, CallFrame* call_frame,
-                               Arguments& args);
-
-    static Object* empty_cache_vcall(STATE, CallSite* call_site, CallFrame* call_frame,
-                               Arguments& args);
-
-    static Object* empty_cache_super(STATE, CallSite* call_site, CallFrame* call_frame,
-                               Arguments& args);
-
-    static Object* empty_cache_custom(STATE, CallSite* call_site, CallFrame* call_frame,
-                                          Arguments& args);
-
-    static void empty_cache_updater(STATE, CallSite* call_site, Class* klass, Dispatch& dispatch);
+    static CacheUpdateFunc empty_cache_updater;
 
     bool regular_call() const {
       return type_id() == MonoInlineCacheType || type_id() == PolyInlineCacheType;

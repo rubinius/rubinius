@@ -1,7 +1,7 @@
 #include "vm/test/test.hpp"
 
 #include "builtin/object.hpp"
-#include "builtin/compactlookuptable.hpp"
+#include "builtin/compact_lookup_table.hpp"
 
 class TestObject : public CxxTest::TestSuite, public VMTest {
 public:
@@ -309,34 +309,12 @@ public:
     TS_ASSERT_EQUALS(obj2->tainted_p(state), cTrue);
   }
 
-  void test_infect_non_reference() {
-    Object* obj1 = util_new_object();
-    Object* obj2 = Integer::from(state, 5);
-
-    obj1->infect(state, obj2);
-
-    TS_ASSERT_EQUALS(obj2->tainted_p(state), cFalse);
-
-    obj1->taint(state);
-    obj1->infect(state, obj2);
-
-    TS_ASSERT_EQUALS(obj2->tainted_p(state), cFalse);
-  }
-
   void test_tainted_p() {
     Object* obj = util_new_object();
 
     TS_ASSERT_EQUALS(obj->tainted_p(state), cFalse);
     obj->taint(state);
     TS_ASSERT_EQUALS(obj->tainted_p(state), cTrue);
-  }
-
-  void test_tainted_p_non_reference() {
-    Object* obj = Integer::from(state, 5);
-
-    TS_ASSERT_EQUALS(obj->tainted_p(state), cFalse);
-    obj->taint(state);
-    TS_ASSERT_EQUALS(obj->tainted_p(state), cFalse);
   }
 
   void test_taint() {

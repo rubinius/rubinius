@@ -9,7 +9,7 @@
 #include "capi/handles.hpp"
 #include "gc/inflated_headers.hpp"
 
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 #include "configuration.hpp"
 
 #include "on_stack.hpp"
@@ -549,7 +549,7 @@ step2:
     return eLockError;
   }
 
-  bool ObjectHeader::locked_p(STATE, GCToken gct, CallFrame* call_frame) const {
+  bool ObjectHeader::locked_p(STATE, GCToken gct, CallFrame* call_frame) {
     HeaderWord orig = header;
 
     switch(orig.f.meaning) {
@@ -561,7 +561,7 @@ step2:
       return false;
     case eAuxWordInflated:
       InflatedHeader* ih = ObjectHeader::header_to_inflated_header(state, orig);
-      return ih->locked_mutex_p(state, gct, call_frame);
+      return ih->locked_mutex_p(state, gct, call_frame, this);
     }
 
     rubinius::bug("Invalid header meaning");
@@ -933,8 +933,10 @@ step2:
     return locked ? eLocked : eUnlocked;
   }
 
-  bool InflatedHeader::locked_mutex_p(STATE, GCToken gct, CallFrame* call_frame) {
+  bool InflatedHeader::locked_mutex_p(STATE, GCToken gct, CallFrame* call_frame, ObjectHeader* obj) {
     // Gain exclusive access to the insides of the InflatedHeader.
+    OnStack<1> os(state, obj);
+
     GCLockGuard lg(state, gct, call_frame, mutex_);
 
     return owner_id_ != 0;

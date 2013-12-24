@@ -64,6 +64,12 @@ namespace rubinius {
       return Integer::from(state, nanoseconds_);
     }
 
+    // Rubinius.primitive+ :time_set_nseconds
+    Integer* set_nseconds(STATE, Integer* nanoseconds) {
+      this->nanoseconds_ = nanoseconds->to_long();
+      return nanoseconds;
+    }
+
     // Rubinius.primitive :time_utc_offset
     Object* utc_offset(STATE);
 
@@ -72,6 +78,9 @@ namespace rubinius {
 
     // Rubinius.primitive :time_strftime
     String* strftime(STATE, String* format);
+
+    // Rubinius.primitive :time_env_zone
+    String* env_zone(STATE);
 
     struct tm64 get_tm();
 

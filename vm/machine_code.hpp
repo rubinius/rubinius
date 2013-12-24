@@ -8,7 +8,7 @@
 #include "unwind_info.hpp"
 
 #include "builtin/class.hpp"
-#include "builtin/compiledcode.hpp"
+#include "builtin/compiled_code.hpp"
 #include "gc/code_resource.hpp"
 
 #ifdef ENABLE_LLVM
@@ -155,7 +155,7 @@ namespace rubinius {
       flags |= eNoInline;
     }
 
-    native_int method_call_count() {
+    native_int method_call_count() const {
       return call_count - loop_count;
     }
 

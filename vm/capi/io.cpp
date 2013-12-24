@@ -4,11 +4,11 @@
 #include "builtin/array.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/io.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 #include "primitives.hpp"
 
 #include "capi/capi.hpp"
-#include "capi/18/include/ruby.h"
+#include "capi/ruby.h"
 
 #include "windows_compat.h"
 
@@ -360,5 +360,10 @@ extern "C" {
   void rb_update_max_fd(int fd) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     IO::update_max_fd(env->state(), fd);
+  }
+
+  void rb_fd_fix_cloexec(int fd) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    IO::new_open_fd(env->state(), fd);
   }
 }

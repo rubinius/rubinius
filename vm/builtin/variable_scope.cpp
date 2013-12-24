@@ -8,7 +8,7 @@
 #include "call_frame.hpp"
 #include "fiber_data.hpp"
 #include "gc/gc.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 #include "ontology.hpp"
 
 namespace rubinius {

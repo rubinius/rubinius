@@ -2,7 +2,7 @@
 #include "builtin/encoding.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/location.hpp"
-#include "builtin/lookuptable.hpp"
+#include "builtin/lookup_table.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/string.hpp"
@@ -10,7 +10,6 @@
 #include "configuration.hpp"
 #include "object_utils.hpp"
 #include "ontology.hpp"
-#include "version.h"
 
 #include <sstream>
 
@@ -43,9 +42,9 @@ namespace rubinius {
   }
 
   const char* Exception::message_c_str(STATE) {
-    if(message()->nil_p()) return "<no message>";
+    if(reason_message()->nil_p()) return "<no message>";
 
-    if(String* str = try_as<String>(message())) {
+    if(String* str = try_as<String>(reason_message())) {
       return str->c_str(state);
     }
 
@@ -55,7 +54,7 @@ namespace rubinius {
   Exception* Exception::make_exception(STATE, Class* exc_class, const char* message) {
     Exception* exc = state->new_object<Exception>(exc_class);
 
-    exc->message(state, String::create(state, message));
+    exc->reason_message(state, String::create(state, message));
 
     return exc;
   }
@@ -92,16 +91,20 @@ namespace rubinius {
     state->raise_exception(exc);
   }
 
-  void Exception::frozen_error(STATE, CallFrame* call_frame) {
-    Class* klass;
-    if(LANGUAGE_18_ENABLED) {
-      klass = G(exc_type);
-    } else {
-      klass = G(exc_rte);
-    }
+  Exception* Exception::make_frozen_exception(STATE, Object* obj) {
+    std::ostringstream msg;
+    msg << "can't modify frozen instance of ";
+    msg << obj->class_object(state)->module_name()->debug_str(state);
 
-    Exception* exc = Exception::make_exception(state, klass,
-                        "unable to modify frozen object");
+    return Exception::make_exception(state, G(exc_type), msg.str().c_str());
+  }
+
+  void Exception::frozen_error(STATE, Object* obj) {
+    RubyException::raise(Exception::make_frozen_exception(state, obj), true);
+  }
+
+  void Exception::frozen_error(STATE, CallFrame* call_frame, Object* obj) {
+    Exception* exc = Exception::make_frozen_exception(state, obj);
     exc->locations(state, Location::from_call_stack(state, call_frame));
     state->raise_exception(exc);
   }
@@ -260,7 +263,7 @@ namespace rubinius {
         message = str;
       }
     }
-    exc->message(state, message);
+    exc->reason_message(state, message);
 
     exc->set_ivar(state, state->symbol("@errno"),
                   exc_class->get_const(state, "Errno"));
@@ -307,13 +310,7 @@ namespace rubinius {
 
   void Exception::errno_eagain_error(STATE, const char* reason) {
     Exception* exc;
-    Class* exc_class;
-
-    if(LANGUAGE_18_ENABLED) {
-      exc_class = get_errno_error(state, Fixnum::from(EAGAIN));
-    } else {
-      exc_class = as<Class>(G(io)->get_const(state, "EAGAINWaitReadable"));
-    }
+    Class* exc_class = get_errno_error(state, Fixnum::from(EAGAIN));
 
     String* message = nil<String>();
 
@@ -438,7 +435,7 @@ namespace rubinius {
     Exception* exc = as<Exception>(self);
 
     class_header(state, self);
-    indent_attribute(++level, "message"); exc->message()->show(state, level);
+    indent_attribute(++level, "message"); exc->reason_message()->show(state, level);
     indent_attribute(level, "locations"); exc->locations()->show_simple(state, level);
     close_body(level);
   }

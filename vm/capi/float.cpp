@@ -1,6 +1,6 @@
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 #include "capi/capi.hpp"
-#include "capi/18/include/ruby.h"
+#include "capi/ruby.h"
 
 #include "builtin/float.hpp"
 
@@ -52,6 +52,14 @@ extern "C" {
     env->check_tracked_handle(handle);
 
     return handle->as_rfloat(env);
+  }
+
+  double capi_rfloat_value(VALUE flt) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Handle* handle = Handle::from(flt);
+    Float* f = c_as<Float>(handle->object());
+    return f->to_double(env->state());
   }
 
   VALUE rb_float_new(double val) {

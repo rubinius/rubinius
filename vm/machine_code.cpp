@@ -2,14 +2,14 @@
 #include "arguments.hpp"
 #include "dispatch.hpp"
 #include "call_frame.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 #include "prelude.hpp"
 #include "machine_code.hpp"
 
 #include "object_utils.hpp"
 
 #include "builtin/array.hpp"
-#include "builtin/compiledcode.hpp"
+#include "builtin/compiled_code.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/iseq.hpp"

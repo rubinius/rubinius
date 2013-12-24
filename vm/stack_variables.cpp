@@ -1,6 +1,6 @@
 #include "stack_variables.hpp"
 #include "builtin/variable_scope.hpp"
-#include "builtin/lookuptable.hpp"
+#include "builtin/lookup_table.hpp"
 #include "machine_code.hpp"
 #include "call_frame.hpp"
 #include "on_stack.hpp"

@@ -1,10 +1,10 @@
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 
 #include "builtin/class.hpp"
 #include "builtin/data.hpp"
 
 #include "capi/capi.hpp"
-#include "capi/20/include/ruby.h"
+#include "capi/ruby.h"
 
 using namespace rubinius;
 using namespace rubinius::capi;
@@ -69,15 +69,6 @@ extern "C" {
     return handle->as_rdata(env);
   }
 
-  struct RTypedData* capi_rtypeddata_struct(VALUE data_handle) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    Handle* handle = Handle::from(data_handle);
-    env->check_tracked_handle(handle, false);
-
-    return handle->as_rtypeddata(env);
-  }
-
   VALUE rb_data_object_alloc(VALUE klass, void* ptr,
       RUBY_DATA_FUNC mark, RUBY_DATA_FUNC free) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
@@ -91,6 +82,15 @@ extern "C" {
     data->klass(env->state(), data_klass);
 
     return env->get_handle(data);
+  }
+
+  struct RTypedData* capi_rtypeddata_struct(VALUE data_handle) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Handle* handle = Handle::from(data_handle);
+    env->check_tracked_handle(handle, false);
+
+    return handle->as_rtypeddata(env);
   }
 
   VALUE rb_data_typed_object_alloc(VALUE klass, void* ptr, const rb_data_type_t* type) {
@@ -137,5 +137,4 @@ extern "C" {
     if(!data || !data->typed()) return 0;
     return rb_typeddata_inherited_p(RTYPEDDATA_TYPE(obj), data_type);
   }
-
 }

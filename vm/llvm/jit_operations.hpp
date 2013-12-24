@@ -6,7 +6,7 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
-#include "builtin/bytearray.hpp"
+#include "builtin/byte_array.hpp"
 #include "builtin/regexp.hpp"
 #include "builtin/constant_cache.hpp"
 #include "object_utils.hpp"
@@ -626,61 +626,61 @@ namespace rubinius {
           ctx_->inline_log("inlining") << "direct class used for kind_of ";
         }
 
-          BasicBlock* use_cache = new_block("use_cache");
+        BasicBlock* use_cache = new_block("use_cache");
 
-          type::KnownType recv_type = type::KnownType::extract(ctx_, obj);
-          uint32_t recv_class_id = recv_type.class_id();
+        type::KnownType recv_type = type::KnownType::extract(ctx_, obj);
+        uint32_t recv_class_id = recv_type.class_id();
 
-          if(recv_type.instance_p() && class_id == recv_class_id) {
-            if(llvm_state()->config().jit_inline_debug) {
-              ctx_->log() << "(eliding because of staticly known match)\n";
-            }
-            create_branch(positive);
-          } else if(class_id == llvm_state()->fixnum_class_id()) {
-            if(llvm_state()->config().jit_inline_debug) {
-              ctx_->log() << "(against Fixnum)\n";
-            }
-            Value* is_fixnum = check_is_fixnum(obj);
-            create_conditional_branch(positive, negative, is_fixnum);
-          } else if(class_id == llvm_state()->integer_class_id() ||
-                    class_id == llvm_state()->numeric_class_id()) {
-            if(llvm_state()->config().jit_inline_debug) {
-              ctx_->log() << "(against Integer / Numeric)\n";
-            }
-            Value* is_fixnum = check_is_fixnum(obj);
-            create_conditional_branch(positive, use_call, is_fixnum);
-          } else if(class_id == llvm_state()->bignum_class_id()) {
-            if(llvm_state()->config().jit_inline_debug) {
-              ctx_->log() << "(against Bignum)\n";
-            }
-            Value* is_ref = check_is_reference(obj);
-            create_conditional_branch(use_cache, negative, is_ref);
-            set_block(use_cache);
+        if(recv_type.instance_p() && class_id == recv_class_id) {
+          if(llvm_state()->config().jit_inline_debug) {
+            ctx_->log() << "(eliding because of staticly known match)\n";
+          }
+          create_branch(positive);
+        } else if(class_id == llvm_state()->fixnum_class_id()) {
+          if(llvm_state()->config().jit_inline_debug) {
+            ctx_->log() << "(against Fixnum)\n";
+          }
+          Value* is_fixnum = check_is_fixnum(obj);
+          create_conditional_branch(positive, negative, is_fixnum);
+        } else if(class_id == llvm_state()->integer_class_id() ||
+                  class_id == llvm_state()->numeric_class_id()) {
+          if(llvm_state()->config().jit_inline_debug) {
+            ctx_->log() << "(against Integer / Numeric)\n";
+          }
+          Value* is_fixnum = check_is_fixnum(obj);
+          create_conditional_branch(positive, use_call, is_fixnum);
+        } else if(class_id == llvm_state()->bignum_class_id()) {
+          if(llvm_state()->config().jit_inline_debug) {
+            ctx_->log() << "(against Bignum)\n";
+          }
+          Value* is_ref = check_is_reference(obj);
+          create_conditional_branch(use_cache, negative, is_ref);
+          set_block(use_cache);
 
-            Value* is_type = check_type_bits(obj, BignumType);
-            create_conditional_branch(positive, negative, is_type);
-          } else if(class_id == llvm_state()->float_class_id()) {
-            if(llvm_state()->config().jit_inline_debug) {
-              ctx_->log() << "(against Float)\n";
-            }
-            Value* is_ref = check_is_reference(obj);
-            create_conditional_branch(use_cache, negative, is_ref);
-            set_block(use_cache);
+          Value* is_type = check_type_bits(obj, BignumType);
+          create_conditional_branch(positive, negative, is_type);
+        } else if(class_id == llvm_state()->float_class_id()) {
+          if(llvm_state()->config().jit_inline_debug) {
+            ctx_->log() << "(against Float)\n";
+          }
+          Value* is_ref = check_is_reference(obj);
+          create_conditional_branch(use_cache, negative, is_ref);
+          set_block(use_cache);
 
-            Value* is_type = check_type_bits(obj, FloatType);
-            create_conditional_branch(positive, negative, is_type);
-          } else if(class_id == llvm_state()->symbol_class_id()) {
-            if(llvm_state()->config().jit_inline_debug) {
-              ctx_->log() << "(against Symbol)\n";
-            }
-            Value* is_symbol = check_is_symbol(obj);
-            create_conditional_branch(positive, negative, is_symbol);
-          } else if(class_id == llvm_state()->string_class_id()) {
-            if(llvm_state()->config().jit_inline_debug) {
-              ctx_->log() << "(against String)\n";
-            }
-            Value* is_ref = check_is_reference(obj);
-            create_conditional_branch(use_cache, negative, is_ref);
+          Value* is_type = check_type_bits(obj, FloatType);
+          create_conditional_branch(positive, negative, is_type);
+        } else if(class_id == llvm_state()->symbol_class_id()) {
+          if(llvm_state()->config().jit_inline_debug) {
+            ctx_->log() << "(against Symbol)\n";
+          }
+          Value* is_symbol = check_is_symbol(obj);
+          create_conditional_branch(positive, negative, is_symbol);
+        } else if(class_id == llvm_state()->string_class_id()) {
+          if(llvm_state()->config().jit_inline_debug) {
+            ctx_->log() << "(against String)\n";
+          }
+          Value* is_ref = check_is_reference(obj);
+          create_conditional_branch(use_cache, negative, is_ref);
           set_block(use_cache);
 
           Value* is_type = check_type_bits(obj, StringType);
@@ -1698,7 +1698,6 @@ namespace rubinius {
     }
 
     virtual void check_for_exception(llvm::Value* val, bool pass_top=true) = 0;
-    virtual void propagate_exception() = 0;
   };
 }
 

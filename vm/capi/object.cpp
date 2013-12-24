@@ -1,14 +1,13 @@
-#include "builtin/compactlookuptable.hpp"
-#include "builtin/lookuptable.hpp"
+#include "builtin/compact_lookup_table.hpp"
+#include "builtin/lookup_table.hpp"
 #include "builtin/object.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 
 #include "capi/capi.hpp"
-#include "capi/18/include/ruby.h"
+#include "capi/ruby.h"
 
 #include "configuration.hpp"
-#include "version.h"
 
 using namespace rubinius;
 using namespace rubinius::capi;
@@ -16,11 +15,7 @@ using namespace rubinius::capi;
 extern "C" {
 
   void rb_error_frozen(const char* what) {
-    if(LANGUAGE_18_ENABLED){
-      rb_raise(rb_eTypeError, "can't modify frozen %s", what);
-    } else {
-      rb_raise(rb_eRuntimeError, "can't modify frozen %s", what);
-    }
+    rb_raise(rb_eTypeError, "can't modify frozen %s", what);
   }
 
   VALUE rb_obj_frozen_p(VALUE obj) {
@@ -209,11 +204,6 @@ extern "C" {
       if(rb_obj_is_kind_of(obj, rb_cStruct)) return T_STRUCT;
       if(rb_obj_is_kind_of(obj, rb_cIO)) return T_FILE;
       if(rb_obj_is_kind_of(obj, rb_cMatch)) return T_MATCH;
-      if(!LANGUAGE_18_ENABLED) {
-        if(rb_obj_is_kind_of(obj, rb_cRational)) return T_RATIONAL;
-        if(rb_obj_is_kind_of(obj, rb_cComplex)) return T_COMPLEX;
-        if(rb_obj_is_kind_of(obj, rb_cEncoding)) return T_ENCODING;
-      }
     }
 
     return T_OBJECT;
@@ -283,6 +273,12 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     return reinterpret_cast<ID>(env->state()->symbol(string, len));
+  }
+
+  ID rb_intern_str(VALUE str) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    String* string = capi_get_string(env, str);
+    return reinterpret_cast<ID>(string->to_sym(env->state()));
   }
 
   VALUE rb_iv_get(VALUE self_handle, const char* name) {

@@ -10,10 +10,9 @@
 #include "call_frame.hpp"
 #include "exception_point.hpp"
 #include "on_stack.hpp"
-#include "version.h"
 
 #include "capi/capi.hpp"
-#include "capi/18/include/ruby.h"
+#include "capi/ruby.h"
 
 using namespace rubinius;
 using namespace rubinius::capi;
@@ -33,29 +32,30 @@ extern "C" {
   }
 
   int rb_const_defined_at(VALUE module_handle, ID const_id) {
-    if(LANGUAGE_18_ENABLED) {
-      return rb_funcall(module_handle,
-          rb_intern("const_defined?"), 1, ID2SYM(const_id));
-    } else {
-      return rb_funcall(module_handle,
-          rb_intern("const_defined?"), 2, ID2SYM(const_id), Qfalse);
-    }
+    return rb_funcall(module_handle,
+        rb_intern("const_defined?"), 1, ID2SYM(const_id));
   }
 
   ID rb_frame_last_func() {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    CallFrame* rcf = env->current_call_frame()->previous->top_ruby_frame();
+    CallFrame* rcf = env->current_call_frame()->previous;
+    Symbol* name = rcf->name();
 
-    return env->get_handle(rcf->name());
+    if(name->nil_p()) return rb_intern("<nil>");
+
+    return env->get_handle(name);
   }
 
   ID rb_frame_this_func() {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
-    CallFrame* rcf = env->current_call_frame()->top_ruby_frame();
+    CallFrame* rcf = env->current_call_frame();
+    Symbol* name = rcf->name();
 
-    return env->get_handle(rcf->name());
+    if(name->nil_p()) return rb_intern("<nil>");
+
+    return env->get_handle(name);
   }
 
   static VALUE const_missing(VALUE klass, ID id) {
@@ -282,9 +282,14 @@ extern "C" {
 
   const char* rb_class2name(VALUE module_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    State* state = env->state();
     Module* module_object = c_as<Module>(env->get_object(module_handle));
 
-    String* str = module_object->get_name(env->state());
+    String* str = module_object->get_name(state);
+    if(str->nil_p()) {
+      std::string desc = module_object->to_string(state);
+      str = String::create(state, desc.c_str(), desc.size());
+    }
     return RSTRING_PTR(env->get_handle(str));
   }
 }

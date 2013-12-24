@@ -7,12 +7,11 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/float.hpp"
 #include "builtin/string.hpp"
-#include "builtin/bytearray.hpp"
+#include "builtin/byte_array.hpp"
 #include "configuration.hpp"
 #include "missing/math.h"
 #include "object_utils.hpp"
 #include "ontology.hpp"
-#include "version.h"
 
 #define BASIC_CLASS(blah) G(blah)
 #define NEW_STRUCT(obj, str, kls, kind) \
@@ -33,54 +32,6 @@
 #define XST ((void*)state)
 
 namespace rubinius {
-
-  /*
-   * LibTomMath actually stores stuff internally in longs.
-   * The problem with it's API is that it's int based, so
-   * this will create problems on 64 bit platforms if
-   * everything is cut down to 32 bits. Hence the existence
-   * of the mp_set_long, mp_init_set_long and mp_get_long
-   * functions here.
-   */
-  static int mp_set_long MPA(mp_int* a, unsigned long b) {
-    mp_zero(a);
-
-    while(b > MP_DIGIT_MAX) {
-      a->dp[0] |= (b >> DIGIT_BIT);
-      a->used += 1;
-      int err = mp_mul_2d(MPST, a, DIGIT_BIT, a);
-      if(err != MP_OKAY) {
-        return err;
-      }
-
-      b &= MP_MASK;
-    }
-
-    a->dp[0] |= b;
-    a->used += 1;
-
-    mp_clamp(a);
-    return MP_OKAY;
-  }
-
-  static unsigned long mp_get_long(mp_int* a) {
-      int i;
-      unsigned long res;
-
-      if(a->used == 0) return 0;
-
-      /* get number of digits of the lsb we have to read */
-      i = MIN(a->used,(int)((sizeof(unsigned long)*CHAR_BIT+DIGIT_BIT-1)/DIGIT_BIT))-1;
-
-      /* get most significant digit of result */
-      res = DIGIT(a,i);
-
-      while(--i >= 0) {
-        res = (res << DIGIT_BIT) | DIGIT(a,i);
-      }
-
-      return res;
-  }
 
   static void twos_complement MPA(mp_int* a) {
     int i = a->used;
@@ -218,6 +169,7 @@ namespace rubinius {
   Bignum* Bignum::create(STATE) {
     Bignum* o = state->new_object_dirty<Bignum>(G(bignum));
     mp_init_managed(state, o->mp_val());
+    o->set_frozen();
     return o;
   }
 
@@ -591,9 +543,6 @@ namespace rubinius {
   }
 
   Integer* Bignum::bit_and(STATE, Float* b) {
-    if(!LANGUAGE_18_ENABLED) {
-      Exception::type_error(state, "can't convert Float into Integer for bitwise arithmetic");
-    }
     return bit_and(state, Bignum::from_double(state, b->val));
   }
 
@@ -610,9 +559,6 @@ namespace rubinius {
   }
 
   Integer* Bignum::bit_or(STATE, Float* b) {
-    if(!LANGUAGE_18_ENABLED) {
-      Exception::type_error(state, "can't convert Float into Integer for bitwise arithmetic");
-    }
     return bit_or(state, Bignum::from_double(state, b->val));
   }
 
@@ -628,9 +574,6 @@ namespace rubinius {
   }
 
   Integer* Bignum::bit_xor(STATE, Float* b) {
-    if(!LANGUAGE_18_ENABLED) {
-      Exception::type_error(state, "can't convert Float into Integer for bitwise arithmetic");
-    }
     return bit_xor(state, Bignum::from_double(state, b->val));
   }
 
@@ -741,10 +684,6 @@ namespace rubinius {
 
     native_int exp = exponent->to_native();
 
-    if(!LANGUAGE_18_ENABLED && exp < 0) {
-      return Primitives::failure();
-    }
-
     if(exp < 0) {
       return this->to_float(state)->fpow(state, exponent);
     }
@@ -755,10 +694,6 @@ namespace rubinius {
   }
 
   Object* Bignum::pow(STATE, Bignum *exponent) {
-    if(!LANGUAGE_18_ENABLED && CBOOL(exponent->lt(state, Fixnum::from(0)))) {
-      return Primitives::failure();
-    }
-
     return this->to_float(state)->fpow(state, exponent);
   }
 
@@ -1021,81 +956,6 @@ namespace rubinius {
     str->encoding(state, Encoding::usascii_encoding(state));
 
     return str;
-  }
-
-  Integer* Bignum::from_string_detect(STATE, const char *str) {
-    const char *s;
-    int radix;
-    int sign;
-    mp_int n;
-    mp_init(&n);
-
-    s = str;
-    sign = 1;
-
-    while(isspace(*s)) { s++; }
-
-    if(*s == '+') {
-      s++;
-    } else if(*s == '-') {
-      sign = 0;
-      s++;
-    }
-
-    radix = 10;
-    if(*s == '0') {
-      switch(s[1]) {
-      case 'x': case 'X':
-        radix = 16; s += 2;
-        break;
-      case 'b': case 'B':
-        radix = 2; s += 2;
-        break;
-      case 'o': case 'O':
-        radix = 8; s += 2;
-        break;
-      case 'd': case 'D':
-        radix = 10; s += 2;
-        break;
-      default:
-        radix = 8; s += 1;
-      }
-    }
-
-    mp_read_radix(XST, &n, s, radix);
-
-    if(!sign) {
-      n.sign = MP_NEG;
-    }
-
-    Integer* res = Bignum::from(state, &n);
-
-    mp_clear(&n);
-
-    return res;
-  }
-
-  Integer* Bignum::from_string(STATE, const char *str, size_t radix) {
-    char *endptr = NULL;
-    long l;
-
-    errno = 0;
-    l = strtol(str, &endptr, radix);
-
-    if(endptr != str && errno == 0 &&
-       l >= FIXNUM_MIN && l <= FIXNUM_MAX) {
-      return Fixnum::from(l);
-    }
-
-    mp_int n;
-    mp_init(&n);
-    mp_read_radix(XST, &n, str, radix);
-
-    Integer* res = Bignum::from(state, &n);
-
-    mp_clear(&n);
-
-    return res;
   }
 
   void Bignum::into_string(STATE, size_t radix, char *buf, size_t sz) {

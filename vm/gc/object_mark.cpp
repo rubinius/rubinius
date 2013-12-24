@@ -1,7 +1,7 @@
 #include "gc/object_mark.hpp"
 #include "gc/gc.hpp"
 #include "object_utils.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 
 #include "vm.hpp"
 

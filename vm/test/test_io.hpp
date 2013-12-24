@@ -114,8 +114,8 @@ public:
   }
 
   void test_query_ttyname() {
-    IO* rb_stdout = as<IO>(G(object)->get_const(state, "STDOUT"));
-    String* tty = try_as<String>(rb_stdout->query(state, state->symbol("ttyname")));
+    IO* io = as<IO>(G(object)->get_const(state, "STDOUT"));
+    String* tty = try_as<String>(io->query(state, state->symbol("ttyname")));
 
     // TODO: /dev/ttyxxx won't be portable to e.g. windoze
     TS_ASSERT(tty);

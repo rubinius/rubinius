@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "builtin/nativemethod.hpp"
+#include "builtin/native_method.hpp"
 
 #include "object_utils.hpp"
 
@@ -17,8 +17,6 @@
 
 #define ENTER_CAPI(state) (state->vm()->shared.enter_capi(state, __FILE__, __LINE__))
 #define LEAVE_CAPI(state) (state->vm()->shared.leave_capi(state))
-
-#define RSTRING_NOT_MODIFIED 1
 
 namespace rubinius {
   class Integer;

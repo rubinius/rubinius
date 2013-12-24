@@ -1,14 +1,14 @@
 #include "config.h"
 #include "vm.hpp"
 #include "on_stack.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 #include "call_frame.hpp"
 
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
 #include "builtin/module.hpp"
 #include "builtin/thread.hpp"
-#include "builtin/nativemethod.hpp"
+#include "builtin/native_method.hpp"
 
 #include "capi/handle.hpp"
 
@@ -71,6 +71,8 @@ namespace rubinius {
 
   Object* finalizer_handler_tramp(STATE) {
     state->shared().finalizer_handler()->perform(state);
+    GCTokenImpl gct;
+    state->gc_dependent(gct, 0);
     return cNil;
   }
 

@@ -36,7 +36,6 @@ namespace rubinius {
     std::string host = llvm::sys::getHostTriple();
 #endif
     std::string error;
-    llvm::InitializeNativeTargetAsmPrinter();
 #if RBX_LLVM_API_VER > 300
     llvm::InitializeNativeTargetDisassembler();
 #else

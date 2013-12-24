@@ -2,7 +2,7 @@
 #define RBX_STRING_HPP
 
 #include "builtin/object.hpp"
-#include "builtin/bytearray.hpp"
+#include "builtin/byte_array.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/encoding.hpp"
 #include "configuration.hpp"
@@ -315,7 +315,7 @@ namespace rubinius {
     Fixnum* previous_byte_index(STATE, Fixnum* index);
 
     // Rubinius.primitive :string_transform
-    String* transform(STATE, Tuple* table, Object* respect_kcode);
+    String* transform(STATE, Tuple* table);
 
     // Rubinius.primitive :string_find_character
     String* find_character(STATE, Fixnum* offset);
@@ -323,11 +323,8 @@ namespace rubinius {
     // Rubinius.primitive :string_awk_split
     Array* awk_split(STATE, Fixnum* limit);
 
-    // Rubinius.primitive :string_unpack18
-    Array* unpack18(STATE, String *directives);
-
-    // Rubinius.primitive :string_unpack19
-    Array* unpack19(STATE, String *directives);
+    // Rubinius.primitive :string_unpack
+    Array* unpack(STATE, String *directives);
 
     // Rubinius.primitive :string_resize_capacity
     String* resize_capacity(STATE, Fixnum* count);

@@ -1,20 +1,19 @@
 #include "arguments.hpp"
 #include "builtin/block_environment.hpp"
 #include "builtin/class.hpp"
-#include "builtin/compiledcode.hpp"
+#include "builtin/compiled_code.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/location.hpp"
-#include "builtin/nativemethod.hpp"
-#include "builtin/nativefunction.hpp"
+#include "builtin/native_method.hpp"
+#include "builtin/native_function.hpp"
 #include "builtin/proc.hpp"
 #include "call_frame.hpp"
 #include "configuration.hpp"
 #include "dispatch.hpp"
 #include "object_utils.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 #include "ontology.hpp"
 #include "on_stack.hpp"
-#include "version.h"
 
 namespace rubinius {
 
@@ -96,13 +95,7 @@ namespace rubinius {
             arity_ok = true;
           }
         }
-
-      /* For blocks taking one argument { |a|  }, in 1.8, there is a warning
-       * issued but no exception raised when less than or more than one
-       * argument is passed. If more than one is passed, 'a' receives an Array
-       * of all the arguments.
-       */
-      } else if(required == 1 && LANGUAGE_18_ENABLED) {
+      } else if(required == 1) {
         arity_ok = true;
       } else {
         arity_ok = args.total() <= (size_t)total &&

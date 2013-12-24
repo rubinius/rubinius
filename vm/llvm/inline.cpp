@@ -9,9 +9,9 @@
 #include "llvm/stack_args.hpp"
 
 #include "builtin/alias.hpp"
-#include "builtin/methodtable.hpp"
-#include "builtin/nativefunction.hpp"
-#include "builtin/lookuptable.hpp"
+#include "builtin/method_table.hpp"
+#include "builtin/native_function.hpp"
+#include "builtin/lookup_table.hpp"
 #include "builtin/mono_inline_cache.hpp"
 #include "builtin/poly_inline_cache.hpp"
 

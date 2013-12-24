@@ -637,7 +637,7 @@ instruction cast_array() [ value -- array ]
   // Use stack_top and not stack_pop because we may need
   // to preserve and reread the value from the stack below.
   Object* t1 = stack_top();
-  if(!LANGUAGE_18_ENABLED && t1->nil_p()) {
+  if(t1->nil_p()) {
     t1 = Array::create_dirty(state, 0);
   } else if(Tuple* tup = try_as<Tuple>(t1)) {
     t1 = Array::from_tuple(state, tup);
@@ -709,7 +709,7 @@ section "Manipulate instance variables"
 
 instruction set_ivar(literal) [ value -- value ]
   if(CBOOL(call_frame->self()->frozen_p(state))) {
-    Exception::frozen_error(state, call_frame);
+    Exception::frozen_error(state, call_frame, call_frame->self());
     RUN_EXCEPTION();
   }
   Symbol* sym = as<Symbol>(call_frame->compiled_code->literals()->at(state, literal));
@@ -1501,18 +1501,16 @@ instruction string_build(count) [ +count -- string ]
       stack_back(i) = str;
     }
 
-    if(!LANGUAGE_18_ENABLED) {
-      /*
-       * TODO: Consider the case when -K is set (not implemented yet).
-       */
-      if(!check_encoding) {
-        Encoding* str_enc = str->encoding(state);
-        if(enc->nil_p()) {
-          enc = str_enc;
-        } else if(str_enc != enc) {
-          check_encoding = true;
-          enc = nil<Encoding>();
-        }
+    /*
+     * TODO: Consider the case when -K is set (not implemented yet).
+     */
+    if(!check_encoding) {
+      Encoding* str_enc = str->encoding(state);
+      if(enc->nil_p()) {
+        enc = str_enc;
+      } else if(str_enc != enc) {
+        check_encoding = true;
+        enc = nil<Encoding>();
       }
     }
   }
@@ -1539,22 +1537,20 @@ instruction string_build(count) [ +count -- string ]
       sub_size = data_size;
     }
 
-    if(!LANGUAGE_18_ENABLED) {
-      if(check_encoding) {
-        if(i < count - 1) {
-          str->num_bytes(state, Fixnum::from(str_size));
+    if(check_encoding) {
+      if(i < count - 1) {
+        str->num_bytes(state, Fixnum::from(str_size));
 
-          Encoding* enc = Encoding::compatible_p(state, str, sub);
+        Encoding* enc = Encoding::compatible_p(state, str, sub);
 
-          if(enc->nil_p()) {
-            Exception::encoding_compatibility_error(state, str, sub);
-            RUN_EXCEPTION();
-          } else {
-            str->encoding(state, enc);
-          }
+        if(enc->nil_p()) {
+          Exception::encoding_compatibility_error(state, str, sub);
+          RUN_EXCEPTION();
         } else {
-          str->encoding(state, sub->encoding());
+          str->encoding(state, enc);
         }
+      } else {
+        str->encoding(state, sub->encoding());
       }
     }
 
@@ -1562,16 +1558,14 @@ instruction string_build(count) [ +count -- string ]
     str_size += sub_size;
   }
 
-  if(!LANGUAGE_18_ENABLED) {
-    /* We had to set the size of the result String before every Encoding check
-     * so we have to set it to the final size here.
-     */
-    if(check_encoding) {
-      str->num_bytes(state, Fixnum::from(size));
-      str->ascii_only(state, cNil);
-    }
-    if(!enc->nil_p()) str->encoding(state, enc);
+  /* We had to set the size of the result String before every Encoding check
+   * so we have to set it to the final size here.
+   */
+  if(check_encoding) {
+    str->num_bytes(state, Fixnum::from(size));
+    str->ascii_only(state, cNil);
   }
+  if(!enc->nil_p()) str->encoding(state, enc);
 
   if(tainted) str->set_tainted();
   if(untrusted) str->set_untrusted();
@@ -2184,7 +2178,7 @@ instruction check_frozen() [ value -- value ]
   Object* value = stack_top();
 
   if(value->reference_p() && value->is_frozen_p()) {
-    Exception::frozen_error(state, call_frame);
+    Exception::frozen_error(state, call_frame, value);
     RUN_EXCEPTION();
   }
 end

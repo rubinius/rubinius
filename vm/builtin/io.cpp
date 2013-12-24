@@ -1,6 +1,6 @@
 #include "builtin/atomic.hpp"
 #include "builtin/array.hpp"
-#include "builtin/bytearray.hpp"
+#include "builtin/byte_array.hpp"
 #include "builtin/channel.hpp"
 #include "builtin/class.hpp"
 #include "builtin/exception.hpp"
@@ -10,13 +10,12 @@
 #include "builtin/thread.hpp"
 #include "capi/handle.hpp"
 #include "configuration.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 #include "object_utils.hpp"
 #include "on_stack.hpp"
 #include "ontology.hpp"
 #include "util/spinlock.hpp"
 #include "windows_compat.h"
-#include "version.h"
 
 #include <sstream>
 #include <unistd.h>
@@ -116,9 +115,16 @@ namespace rubinius {
     if(fd < 0) {
       Exception::errno_error(state, p->c_str_null_safe(state));
     }
-    update_max_fd(state, fd);
+    new_open_fd(state, fd);
 
     return Fixnum::from(fd);
+  }
+
+  void IO::new_open_fd(STATE, native_int new_fd) {
+    if(new_fd > 2) {
+      fcntl(new_fd, F_SETFD, fcntl(new_fd, F_GETFD) | FD_CLOEXEC);
+    }
+    update_max_fd(state, new_fd);
   }
 
   void IO::update_max_fd(STATE, native_int new_fd) {
@@ -258,7 +264,7 @@ namespace rubinius {
 
 
     /* And the main event, pun intended */
-    retry:
+  retry:
     state->vm()->interrupt_with_signal();
     state->vm()->thread->sleep(state, cTrue);
 
@@ -346,7 +352,7 @@ namespace rubinius {
       Exception::errno_error(state, p->c_str_null_safe(state));
     }
 
-    update_max_fd(state, other_fd);
+    new_open_fd(state, other_fd);
 
     if(dup2(other_fd, cur_fd) == -1) {
       if(errno == EBADF) { // this means cur_fd is closed
@@ -386,8 +392,8 @@ namespace rubinius {
       Exception::errno_error(state, "creating pipe");
     }
 
-    update_max_fd(state, fds[0]);
-    update_max_fd(state, fds[1]);
+    new_open_fd(state, fds[0]);
+    new_open_fd(state, fds[1]);
 
     lhs->descriptor(state, Fixnum::from(fds[0]));
     rhs->descriptor(state, Fixnum::from(fds[1]));
@@ -618,11 +624,7 @@ namespace rubinius {
         }
       }
 
-      if(LANGUAGE_18_ENABLED) {
-        ::close(fd);
-      } else if(!io->autoclose_->false_p()) {
-        ::close(fd);
-      }
+      ::close(fd);
     }
   }
 
@@ -660,8 +662,9 @@ namespace rubinius {
 
     if(bytes_read == -1) {
       if(errno == EAGAIN || errno == EINTR) {
-        if(state->check_async(calling_environment)) goto retry;
-
+        if(!state->check_async(calling_environment)) return NULL;
+        ensure_open(state);
+        goto retry;
       } else {
         Exception::errno_error(state, "read(2) failed");
       }
@@ -937,7 +940,9 @@ namespace rubinius {
 
     if(bytes_read == -1) {
       if(errno == EINTR) {
-        if(state->check_async(calling_environment)) goto retry;
+        if(!state->check_async(calling_environment)) return NULL;
+        ensure_open(state);
+        goto retry;
       } else {
         Exception::errno_error(state, "read(2) failed");
       }
@@ -1212,7 +1217,9 @@ failed: /* try next '*' position */
 
     if(new_fd == -1) {
       if(errno == EAGAIN || errno == EINTR) {
-        if(state->check_async(calling_environment)) goto retry;
+        if(!state->check_async(calling_environment)) return NULL;
+        ensure_open(state);
+        goto retry;
       } else {
         Exception::errno_error(state, "accept(2) failed");
       }
@@ -1309,7 +1316,7 @@ failed: /* try next '*' position */
 
     int code = -1;
 
-    retry:
+  retry:
     state->vm()->interrupt_with_signal();
     state->vm()->thread->sleep(state, cTrue);
 
@@ -1324,6 +1331,7 @@ failed: /* try next '*' position */
     if(code == -1) {
       if(errno == EAGAIN || errno == EINTR) {
         if(!state->check_async(calling_environment)) return NULL;
+        ensure_open(state);
         goto retry;
       }
 
@@ -1428,8 +1436,9 @@ failed: /* try next '*' position */
         break;
       case EAGAIN:
       case EINTR:
-        if(state->check_async(calling_environment)) goto retry;
-        return NULL;
+        if(!state->check_async(calling_environment)) return NULL;
+        io->ensure_open(state);
+        goto retry;
       default:
         Exception::errno_error(state, "read(2) failed");
         return NULL;

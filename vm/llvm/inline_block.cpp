@@ -3,7 +3,7 @@
 #include "llvm/state.hpp"
 
 #include "llvm/inline_block.hpp"
-#include "builtin/compiledcode.hpp"
+#include "builtin/compiled_code.hpp"
 
 namespace rubinius {
 

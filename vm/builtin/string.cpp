@@ -3,7 +3,7 @@
 #include "regenc.h"
 
 #include "builtin/array.hpp"
-#include "builtin/bytearray.hpp"
+#include "builtin/byte_array.hpp"
 #include "builtin/character.hpp"
 #include "builtin/class.hpp"
 #include "builtin/encoding.hpp"
@@ -11,7 +11,7 @@
 #include "builtin/fixnum.hpp"
 #include "builtin/float.hpp"
 #include "builtin/integer.hpp"
-#include "builtin/nativemethod.hpp"
+#include "builtin/native_method.hpp"
 #include "builtin/regexp.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
@@ -19,13 +19,13 @@
 #include "capi/handle.hpp"
 #include "configuration.hpp"
 #include "object_utils.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 #include "ontology.hpp"
 #include "util/murmur_hash3.hpp"
 #include "util/siphash.h"
 #include "util/spinlock.hpp"
 #include "util/random.h"
-#include "version.h"
+#include "missing/string.h"
 
 #include <unistd.h>
 #include <string.h>
@@ -242,7 +242,7 @@ namespace rubinius {
     }
 
     void new_bytes(int len) {
-      ba = ByteArray::create(state, len);
+      ba = ByteArray::create(state, len + 1);
       bp = ba->raw_bytes();
       be = bp + ba->size();
     }
@@ -972,17 +972,7 @@ namespace rubinius {
         native_int start = i - 1;
         native_int max = ++i < bytes ? str[i] : -1;
         native_int next = max >= 0 ? i + 1 : i;
-        if(max >= 0 && chr > max && !LANGUAGE_18_ENABLED) {
-          std::ostringstream message;
-          if(isprint(chr) && isprint(max)) {
-            message << "invalid range \"";
-            message << (char)chr << "-" << (char)max;
-            message << "\" in string transliteration";
-          } else {
-            message << "invalid range in string transliteration";
-          }
-          Exception::argument_error(state, message.str().c_str());
-        } else if(max >= 0) {
+        if(max >= 0) {
           if(chr > max) {
             max = CBOOL(invalid_as_empty) ? chr - 1 : chr;
           }
@@ -1231,40 +1221,52 @@ namespace rubinius {
       Exception::argument_error(state, "size must be positive");
     }
 
-    String* s = String::create(state, size);
-    s->klass(state, (Class*)self);
-
-    self->infect(state, s);
-
     native_int cnt = size->to_native();
 
+    String* s = state->new_object_dirty<String>(as<Class>(self));
+
+    s->num_bytes(state, size);
+    s->num_chars(state, nil<Fixnum>());
+    s->hash_value(state, nil<Fixnum>());
+    s->shared(state, cFalse);
+
+    ByteArray* ba = ByteArray::create_dirty(state, cnt + 1);
+
     if(Fixnum* chr = try_as<Fixnum>(pattern)) {
-      memset(s->byte_address(), (int)chr->to_native(), cnt);
+      memset(ba->raw_bytes(), (int)chr->to_native(), cnt);
+      s->ascii_only(state, cNil);
+      s->valid_encoding(state, cTrue);
       s->encoding(state, Encoding::ascii8bit_encoding(state));
     } else if(String* pat = try_as<String>(pattern)) {
       pat->infect(state, s);
 
       native_int psz = pat->byte_size();
+      uint8_t* raw = ba->raw_bytes();
       if(psz == 1) {
-        memset(s->byte_address(), pat->byte_address()[0], cnt);
+        memset(raw, pat->byte_address()[0], cnt);
       } else if(psz > 1) {
-        native_int i, j, n;
-
         native_int sz = cnt / psz;
-        for(n = i = 0; i < sz; i++) {
-          for(j = 0; j < psz; j++, n++) {
-            s->byte_address()[n] = pat->byte_address()[j];
+        native_int len = sz * psz;
+        if(len >= psz) {
+          memcpy(raw, pat->byte_address(), psz);
+          while(psz <= len / 2) {
+            memcpy(raw + psz, raw, psz);
+            psz *= 2;
           }
+          memcpy(raw + psz, raw, len - psz);
         }
-        for(i = n, j = 0; i < cnt; i++, j++) {
-          s->byte_address()[i] = pat->byte_address()[j];
+        for(native_int i = len, j = 0; i < cnt; i++, j++) {
+          raw[i] = pat->byte_address()[j];
         }
       }
+      s->ascii_only(state, pat->ascii_only_p(state));
+      s->valid_encoding(state, pat->valid_encoding_p(state));
       s->encoding_from(state, pat);
     } else {
       Exception::argument_error(state, "pattern must be a Fixnum or String");
     }
 
+    s->data(state, ba);
     return s;
   }
 
@@ -1284,7 +1286,7 @@ namespace rubinius {
     s->valid_encoding(state, cNil);
     s->encoding(state, enc);
 
-    ByteArray* ba = ByteArray::create_dirty(state, n);
+    ByteArray* ba = ByteArray::create_dirty(state, n + 1);
 
     n = ONIGENC_CODE_TO_MBC(enc->get_encoding(), c, (UChar*)ba->raw_bytes());
     if(Encoding::precise_mbclen(ba->raw_bytes(), ba->raw_bytes() + n, enc->get_encoding()) != n) {
@@ -1336,21 +1338,7 @@ namespace rubinius {
     if(i < 0) i += byte_size();
     if(i >= byte_size() || i < 0) return cNil;
 
-    if(LANGUAGE_18_ENABLED) {
-      return Fixnum::from(byte_address()[i]);
-    }
-
-    native_int len = char_size(state);
-    if(byte_compatible_p(encoding_) || CBOOL(ascii_only_)) {
-      return byte_substring(state, i, 1);
-    } else {
-      // Assumptions above about size are possibly invalid, recalculate.
-      i = index->to_native();
-      if(i < 0) i += len;
-      if(i >= len || i < 0) return cNil;
-
-      return char_substring(state, i, 1);
-    }
+    return Fixnum::from(byte_address()[i]);
   }
 
   /* Returns the byte index of the character at logical 'index'. The 'start'
@@ -1811,17 +1799,10 @@ namespace rubinius {
 
     if(ONIGENC_MBC_MAXLEN(enc) == 1) {
       output = String::create(state, reinterpret_cast<const char*>(cur), 1);
-    } else if(LANGUAGE_18_ENABLED) {
+    } else {
       kcode::table* kcode_tbl = state->shared().kcode_table();
       int len = kcode::mbclen(kcode_tbl, *cur);
       output = String::create(state, reinterpret_cast<const char*>(cur), len);
-    } else {
-      int clen = Encoding::precise_mbclen(cur, cur + ONIGENC_MBC_MAXLEN(enc), enc);
-      if(ONIGENC_MBCLEN_CHARFOUND_P(clen)) {
-        output = String::create(state, reinterpret_cast<const char*>(cur), clen);
-      } else {
-        output = String::create(state, reinterpret_cast<const char*>(cur), 1);
-      }
     }
 
     output->klass(state, class_object(state));
@@ -1968,10 +1949,8 @@ namespace rubinius {
   }
 
   String* String::reverse(STATE) {
-
-    if(!LANGUAGE_18_ENABLED) check_frozen(state);
     if(byte_size() <= 1) return this;
-    if(LANGUAGE_18_ENABLED) check_frozen(state);
+    check_frozen(state);
 
     unshare(state);
     hash_value(state, nil<Fixnum>());

@@ -28,7 +28,7 @@
 #include "agent_components.hpp"
 #include "environment.hpp"
 
-#include "builtin/nativemethod.hpp"
+#include "builtin/native_method.hpp"
 #include "builtin/io.hpp"
 #include "builtin/thread.hpp"
 
@@ -47,6 +47,8 @@ namespace rubinius {
 
   Object* query_agent_tramp(STATE) {
     state->shared().query_agent()->perform(state);
+    GCTokenImpl gct;
+    state->gc_dependent(gct, 0);
     return cNil;
   }
 

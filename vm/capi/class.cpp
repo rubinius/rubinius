@@ -8,7 +8,7 @@
 #include "on_stack.hpp"
 
 #include "capi/capi.hpp"
-#include "capi/18/include/ruby.h"
+#include "capi/ruby.h"
 
 #include <string.h>
 
@@ -26,6 +26,10 @@ extern "C" {
     return env->get_handle(class_object);
   }
 
+  VALUE rb_class_superclass(VALUE klass) {
+    return rb_funcall(klass, rb_intern("superclass"), 0);
+  }
+
   // MUST return the immediate object in the class field, not the real class!
   VALUE CLASS_OF(VALUE object_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
@@ -35,8 +39,14 @@ extern "C" {
 
   VALUE rb_class_name(VALUE class_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    State* state = env->state();
     Class* class_object = c_as<Class>(env->get_object(class_handle));
-    return env->get_handle(class_object->get_name(env->state()));
+    String* str = class_object->get_name(state);
+    if(str->nil_p()) {
+      std::string desc = class_object->to_string(state);
+      str = String::create(state, desc.c_str(), desc.size());
+    }
+    return env->get_handle(str);
   }
 
   VALUE rb_class_inherited(VALUE super_handle, VALUE class_handle)
@@ -100,7 +110,7 @@ extern "C" {
   }
 
   VALUE rb_cv_set(VALUE module_handle, const char* name, VALUE value) {
-    return rb_cvar_set(module_handle, rb_intern(name), value, 0);
+    return rb_cvar_set_internal(module_handle, rb_intern(name), value);
   }
 
   VALUE rb_cvar_defined(VALUE module_handle, ID name) {
@@ -138,7 +148,7 @@ extern "C" {
 
   void rb_define_class_variable(VALUE klass, const char* name, VALUE val) {
     ID id = rb_intern(name);
-    rb_cvar_set(klass, id,  val, 0);
+    rb_cvar_set_internal(klass, id,  val);
   }
 
   /** @note   Shares code with rb_define_module_under, change there too. --rue */
@@ -199,5 +209,12 @@ extern "C" {
 
     Class* sc = env->get_object(object_handle)->singleton_class(env->state());
     return env->get_handle(sc);
+  }
+
+  VALUE rb_path_to_class(VALUE str) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    String* string = c_as<String>(env->get_object(str));
+
+    return rb_path2class(string->c_str(env->state()));
   }
 }

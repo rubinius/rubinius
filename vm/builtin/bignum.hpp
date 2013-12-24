@@ -43,8 +43,6 @@ namespace rubinius {
     bool even_p();
 
     static Integer* normalize(STATE, Bignum* obj);
-    static Integer* from_string_detect(STATE, const char* str);
-    static Integer* from_string(STATE, const char* str, size_t radix);
     static Integer* from_double(STATE, double d);
     static Integer* from_array(STATE, uint32_t *ary, size_t sz);
 

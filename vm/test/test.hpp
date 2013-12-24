@@ -4,7 +4,7 @@
 #include "vm.hpp"
 #include "config_parser.hpp"
 #include "vm/object_utils.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 #include "configuration.hpp"
 #include "vm/detection.hpp"
 

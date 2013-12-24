@@ -4,18 +4,18 @@
 #include <unistd.h>
 #include <errno.h>
 
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 #include "vm.hpp"
 
 #include "builtin/access_variable.hpp"
 #include "builtin/array.hpp"
-#include "builtin/basicobject.hpp"
+#include "builtin/basic_object.hpp"
 #include "builtin/block_environment.hpp"
-#include "builtin/bytearray.hpp"
+#include "builtin/byte_array.hpp"
 #include "builtin/character.hpp"
 #include "builtin/class.hpp"
-#include "builtin/compactlookuptable.hpp"
-#include "builtin/compiledcode.hpp"
+#include "builtin/compact_lookup_table.hpp"
+#include "builtin/compiled_code.hpp"
 #include "builtin/channel.hpp"
 #include "builtin/data.hpp"
 #include "builtin/dir.hpp"
@@ -26,13 +26,13 @@
 #include "builtin/io.hpp"
 #include "builtin/iseq.hpp"
 #include "builtin/list.hpp"
-#include "builtin/lookuptable.hpp"
-#include "builtin/methodtable.hpp"
+#include "builtin/lookup_table.hpp"
+#include "builtin/method_table.hpp"
 #include "builtin/ffi_pointer.hpp"
-#include "builtin/nativefunction.hpp"
-#include "builtin/nativemethod.hpp"
+#include "builtin/native_function.hpp"
+#include "builtin/native_method.hpp"
 #include "builtin/regexp.hpp"
-#include "builtin/constantscope.hpp"
+#include "builtin/constant_scope.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/system.hpp"
@@ -63,7 +63,6 @@
 #include "config.h"
 #include "paths.h"
 #include "release.h"
-#include "version.h"
 
 #include "ontology.hpp"
 
@@ -145,15 +144,11 @@ namespace rubinius {
     // Now do Object
     Class* basicobject = 0;
     Class* object;
-    if(!LANGUAGE_18_ENABLED) {
-      basicobject = ontology::new_basic_class(state, force_as<Class>(cNil));
-      GO(basicobject).set(basicobject);
-      basicobject->set_object_type(state, BasicObjectType);
+    basicobject = ontology::new_basic_class(state, force_as<Class>(cNil));
+    GO(basicobject).set(basicobject);
+    basicobject->set_object_type(state, BasicObjectType);
 
-      object = ontology::new_basic_class(state, basicobject);
-    } else {
-      object = ontology::new_basic_class(state, nil<Class>());
-    }
+    object = ontology::new_basic_class(state, basicobject);
 
     GO(object).set(object);
     object->set_object_type(state, ObjectType);
@@ -173,11 +168,7 @@ namespace rubinius {
     G(array)->set_object_type(state, ArrayType);
 
     // Create WeakRef
-    if(!LANGUAGE_18_ENABLED) {
-      GO(cls_weakref).set(ontology::new_basic_class(state, basicobject));
-    } else {
-      GO(cls_weakref).set(ontology::new_basic_class(state, object));
-    }
+    GO(cls_weakref).set(ontology::new_basic_class(state, basicobject));
     G(cls_weakref)->set_object_type(state, WeakRefType);
 
     // Create LookupTable
@@ -226,9 +217,7 @@ namespace rubinius {
      */
 
     // BasicObject's SingletonClass instance has Class for a superclass
-    if(!LANGUAGE_18_ENABLED) {
-      SingletonClass::attach(state, basicobject, cls);
-    }
+    SingletonClass::attach(state, basicobject, cls);
 
     // Object's SingletonClass instance has Class for a superclass
     Class* sc = SingletonClass::attach(state, object, cls);
@@ -239,13 +228,8 @@ namespace rubinius {
     SingletonClass::attach(state, cls, sc);
 
     // See?
-    if(!LANGUAGE_18_ENABLED) {
-      assert(basicobject->superclass()->nil_p());
-      assert(object->superclass() == basicobject);
-    } else {
-      assert(object->superclass()->nil_p());
-      assert(object->klass()->superclass() == cls);
-    }
+    assert(basicobject->superclass()->nil_p());
+    assert(object->superclass() == basicobject);
 
     assert(G(module)->superclass() == object);
     assert(G(module)->klass()->superclass() == object->klass());
@@ -267,9 +251,7 @@ namespace rubinius {
 
     // Now, finish initializing the basic Class/Module
     G(object)->setup(state, "Object");
-    if(!LANGUAGE_18_ENABLED) {
-      G(basicobject)->setup(state, "BasicObject", G(object));
-    }
+    G(basicobject)->setup(state, "BasicObject", G(object));
     G(klass)->setup(state, "Class");
     G(module)->setup(state, "Module");
 
@@ -377,9 +359,7 @@ namespace rubinius {
     Fiber::init(state);
     Alias::init(state);
     Randomizer::init(state);
-
     Encoding::init(state);
-    kcode::init(state);
   }
 
   // @todo document all the sections of bootstrap_ontology
@@ -484,6 +464,8 @@ namespace rubinius {
       G(rubinius)->set_const(state, "LIB_PATH", String::create(state, path.c_str()));
       path = prefix + RBX_ENC_PATH;
       G(rubinius)->set_const(state, "ENC_PATH", String::create(state, path.c_str()));
+      path = prefix + RBX_SITE_PATH;
+      G(rubinius)->set_const(state, "SITE_PATH", String::create(state, path.c_str()));
       path = prefix + RBX_VENDOR_PATH;
       G(rubinius)->set_const(state, "VENDOR_PATH", String::create(state, path.c_str()));
       path = prefix + RBX_GEMS_PATH;
@@ -493,6 +475,8 @@ namespace rubinius {
       G(rubinius)->set_const(state, "HDR_PATH", String::create(state, path.c_str()));
     }
 
+    G(rubinius)->set_const(state, "PROGRAM_NAME", String::create(state, RBX_PROGRAM_NAME));
+    G(rubinius)->set_const(state, "RUBY_VERSION", String::create(state, RBX_RUBY_VERSION));
     G(rubinius)->set_const(state, "VERSION", String::create(state, RBX_VERSION));
     G(rubinius)->set_const(state, "LIB_VERSION", String::create(state, RBX_LIB_VERSION));
     G(rubinius)->set_const(state, "BUILD_REV", String::create(state, RBX_BUILD_REV));
@@ -505,13 +489,8 @@ namespace rubinius {
     G(rubinius)->set_const(state, "VENDOR", String::create(state, RBX_VENDOR));
     G(rubinius)->set_const(state, "OS", String::create(state, RBX_OS));
 
-    if(LANGUAGE_20_ENABLED) {
-      G(rubinius)->set_const(state, "RUBY_LIB_VERSION", Fixnum::from(20));
-    } else if(LANGUAGE_19_ENABLED) {
-      G(rubinius)->set_const(state, "RUBY_LIB_VERSION", Fixnum::from(19));
-    } else {
-      G(rubinius)->set_const(state, "RUBY_LIB_VERSION", Fixnum::from(18));
-    }
+    G(rubinius)->set_const(state, "RUBY_LIB_VERSION", Fixnum::from(RBX_RUBY_LIB_VERSION));
+
     G(rubinius)->set_const(state, "LIBC", String::create(state, RBX_LIBC));
 
     G(rubinius)->set_const(state, "HAVE_LCHMOD", RBX_HAVE_LCHMOD ? cTrue : cFalse);
@@ -610,12 +589,7 @@ namespace rubinius {
     loe = dexc(LoadError, scp);
     rte = dexc(RuntimeError, std);
     sce = dexc(SystemCallError, std);
-    // SystemStackError has a different superclass in 1.9
-    if(LANGUAGE_18_ENABLED) {
-      stk = dexc(SystemStackError, std);
-    } else {
-      stk = dexc(SystemStackError, exc);
-    }
+    stk = dexc(SystemStackError, exc);
     lje = dexc(LocalJumpError, std);
     rng = dexc(RangeError, std);
     dexc(FloatDomainError, rng);

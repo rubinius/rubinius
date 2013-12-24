@@ -8,7 +8,6 @@
 #include "dispatch.hpp"
 #include "object_utils.hpp"
 #include "ontology.hpp"
-#include "version.h"
 
 /* Implementation certain Array methods. These methods are just
  * the ones the VM requires, not the entire set of all Array methods.
@@ -114,12 +113,8 @@ namespace rubinius {
         return ary;
       }
 
-      if(LANGUAGE_18_ENABLED || !res->nil_p()) {
-        Exception::type_error(state, "to_ary should return an Array", call_frame);
-        return 0;
-      }
-
-      // NOTE: On >= 1.9, if res is nil just fall through and return [value]
+      Exception::type_error(state, "to_ary should return an Array", call_frame);
+      return 0;
     }
 
     Array* ary = Array::create(state, 1);
@@ -163,16 +158,11 @@ namespace rubinius {
   }
 
   Array* Array::concat(STATE, Array* other) {
-    if(!LANGUAGE_18_ENABLED) {
-      if(is_frozen_p()) return force_as<Array>(Primitives::failure());
-    }
-
     native_int osize = other->size();
 
     if(osize == 0) return this;
-    if(LANGUAGE_18_ENABLED) {
-      if(is_frozen_p()) return force_as<Array>(Primitives::failure());
-    }
+
+    if(is_frozen_p()) return force_as<Array>(Primitives::failure());
 
     if(osize == 1) {
       set(state, size(), other->get(state, 0));

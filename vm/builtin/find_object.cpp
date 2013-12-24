@@ -12,7 +12,7 @@
 #include "builtin/system.hpp"
 #include "gc/gc.hpp"
 #include "gc/walker.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 #include "object_utils.hpp"
 #include "on_stack.hpp"
 

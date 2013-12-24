@@ -93,13 +93,10 @@ namespace rubinius {
     static void init(STATE);
     static PolyInlineCache* create(STATE, MonoInlineCache* mono);
 
-    static Object* check_cache(STATE, CallSite* cache, CallFrame* call_frame,
-                               Arguments& args);
+    static CacheExecuteFunc check_cache;
+    static CacheExecuteFunc check_cache_mm;
 
-    static Object* check_cache_mm(STATE, CallSite* cache, CallFrame* call_frame,
-                                  Arguments& args);
-
-    static void inline_cache_updater(STATE, CallSite* call_site, Class* klass, Dispatch& dispatch);
+    static CacheUpdateFunc inline_cache_updater;
 
     void print(STATE, std::ostream& stream);
 

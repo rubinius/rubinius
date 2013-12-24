@@ -1,7 +1,7 @@
 #include "prelude.hpp"
 #include "gc/gc.hpp"
 #include "gc/debug.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 
 #include <iostream>
 #include <stdexcept>

@@ -3,7 +3,7 @@
 
 #include "oop.hpp"
 #include "object_utils.hpp"
-#include "builtin/compiledcode.hpp"
+#include "builtin/compiled_code.hpp"
 #include "builtin/symbol.hpp"
 
 #include "missing/unordered_set.hpp"

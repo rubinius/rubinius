@@ -5,7 +5,7 @@
 #include "environment.hpp"
 #include "config_parser.hpp"
 
-#include "builtin/compiledcode.hpp"
+#include "builtin/compiled_code.hpp"
 #include "builtin/machine_method.hpp"
 #include "compiled_file.hpp"
 

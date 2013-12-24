@@ -3,7 +3,7 @@
 // all that be in it's own file.
 
 #include "builtin/array.hpp"
-#include "builtin/bytearray.hpp"
+#include "builtin/byte_array.hpp"
 #include "builtin/class.hpp"
 #include "builtin/object.hpp"
 #include "builtin/string.hpp"
@@ -13,7 +13,7 @@
 #include "builtin/variable_scope.hpp"
 #include "gc/gc.hpp"
 #include "gc/walker.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 #include "object_utils.hpp"
 
 #include <fcntl.h>
@@ -40,7 +40,6 @@ namespace rubinius {
   const static int cImmCode =    'i';
   const static int cTupleCode =  't';
   const static int cBytesCode =  'b';
-  const static int cCharsCode =  'c';
   const static int cFooterCode = '-';
 
   class Encoder {
@@ -279,11 +278,6 @@ namespace rubinius {
       int id = total_ids++;
       ids[obj] = id;
       return id;
-    }
-
-    bool seen_object_p(Object* obj) const {
-      Identities::const_iterator i = ids.find(obj);
-      return i != ids.end();
     }
 
     void dump_reference(STATE, Object* sub) {

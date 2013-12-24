@@ -2,7 +2,7 @@
 #include "shared_state.hpp"
 #include "config_parser.hpp"
 #include "config.h"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 #include "environment.hpp"
 #include "instruments/tooling.hpp"
 #include "instruments/timing.hpp"
@@ -16,8 +16,7 @@
 #include "builtin/randomizer.hpp"
 #include "builtin/array.hpp"
 #include "builtin/thread.hpp"
-#include "builtin/nativemethod.hpp"
-#include "version.h"
+#include "builtin/native_method.hpp"
 
 #include <iostream>
 #include <iomanip>
@@ -42,8 +41,6 @@ namespace rubinius {
     , ruby_critical_set_(false)
     , check_global_interrupts_(false)
     , check_gc_(false)
-    , kcode_page_(kcode::eAscii)
-    , kcode_table_(kcode::null_table())
     , agent_(0)
     , root_vm_(0)
     , env_(env)
@@ -232,6 +229,10 @@ namespace rubinius {
     world_->become_independent(state);
   }
 
+  void SharedState::gc_independent() {
+    world_->become_independent();
+  }
+
   const unsigned int* SharedState::object_memory_mark_address() const {
     return om->mark_address();
   }
@@ -337,6 +338,7 @@ namespace rubinius {
     capi_constant_name_map_[cCApiComplex]    = "Complex";
     capi_constant_name_map_[cCApiEnumerator] = "Enumerable::Enumerator";
     capi_constant_name_map_[cCApiMutex]      = "Mutex";
+    capi_constant_name_map_[cCApiDir]        = "Dir";
 
     capi_constant_name_map_[cCApiArgumentError]       = "ArgumentError";
     capi_constant_name_map_[cCApiEOFError]            = "EOFError";
@@ -368,13 +370,11 @@ namespace rubinius {
     capi_constant_name_map_[cCApiThreadError]         = "ThreadError";
     capi_constant_name_map_[cCApiZeroDivisionError]   = "ZeroDivisionError";
 
-    if(!LANGUAGE_18_ENABLED) {
-      capi_constant_name_map_[cCApiMathDomainError]     = "Math::DomainError";
-      capi_constant_name_map_[cCApiEncoding]            = "Encoding";
-      capi_constant_name_map_[cCApiEncCompatError]      = "Encoding::CompatibilityError";
-      capi_constant_name_map_[cCApiWaitReadable]        = "IO::WaitReadable";
-      capi_constant_name_map_[cCApiWaitWritable]        = "IO::WaitWritable";
-    }
+    capi_constant_name_map_[cCApiMathDomainError]     = "Math::DomainError";
+    capi_constant_name_map_[cCApiEncoding]            = "Encoding";
+    capi_constant_name_map_[cCApiEncCompatError]      = "Encoding::CompatibilityError";
+    capi_constant_name_map_[cCApiWaitReadable]        = "IO::WaitReadable";
+    capi_constant_name_map_[cCApiWaitWritable]        = "IO::WaitWritable";
 
   }
 

@@ -6,13 +6,12 @@
 #include "util/refcount.hpp"
 #include "gc/variable_buffer.hpp"
 #include "gc/root_buffer.hpp"
-#include "kcode.hpp"
 
 #include "stats.hpp"
 
 #include "auxiliary_threads.hpp"
 #include "globals.hpp"
-#include "symboltable.hpp"
+#include "symbol_table.hpp"
 
 #include "primitives.hpp"
 
@@ -95,9 +94,6 @@ namespace rubinius {
     bool ruby_critical_set_;
     bool check_global_interrupts_;
     bool check_gc_;
-
-    kcode::CodePage kcode_page_;
-    kcode::table* kcode_table_;
 
     QueryAgent* agent_;
     VM* root_vm_;
@@ -215,19 +211,6 @@ namespace rubinius {
       return primitive_hits_[primitive];
     }
 
-    kcode::table* kcode_table() const {
-      return kcode_table_;
-    }
-
-    kcode::CodePage kcode_page() const {
-      return kcode_page_;
-    }
-
-    void set_kcode_table(kcode::table* tbl, kcode::CodePage page) {
-      kcode_table_ = tbl;
-      kcode_page_ = page;
-    }
-
     QueryAgent* agent() const {
       return agent_;
     }
@@ -317,6 +300,7 @@ namespace rubinius {
 
     void gc_dependent(THREAD, utilities::thread::Condition* = NULL);
     void gc_independent(THREAD);
+    void gc_independent();
 
     void set_critical(STATE, CallFrame* call_frame);
     void clear_critical(STATE);

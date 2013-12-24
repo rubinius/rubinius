@@ -47,6 +47,7 @@ namespace rubinius {
     Object* dying_; // slot
     Array* joins_; // slot
     Object* killed_; // slot
+    Fixnum* priority_; // slot
 
     utilities::thread::SpinLock init_lock_;
 
@@ -91,6 +92,7 @@ namespace rubinius {
     attr_accessor(dying, Object);
     attr_accessor(joins, Array);
     attr_accessor(killed, Object);
+    attr_accessor(priority, Fixnum);
 
     VM* vm() const {
       return vm_;
@@ -174,8 +176,8 @@ namespace rubinius {
      *  but otherwise *potentially* platform-specific for
      *  any other connotations.
      */
-    // Rubinius.primitive+ :thread_priority
-    Object* priority(STATE);
+    // Rubinius.primitive+ :thread_get_priority
+    Object* get_priority(STATE);
 
     /**
      *  Process an exception raised for this Thread.

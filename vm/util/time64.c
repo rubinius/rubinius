@@ -285,7 +285,6 @@ time64_t year_diff_to_seconds(int64_t from, int64_t to, int pre_leap_day) {
 }
 
 time64_t timestamp64_mktime(time_t (*func)(struct tm*), struct tm* tm) {
-  int orig_tm_isdst;
   time_t time;
 
   time = func(tm);
@@ -297,7 +296,7 @@ time64_t timestamp64_mktime(time_t (*func)(struct tm*), struct tm* tm) {
      * Some implementations of mktime() return -1 with errno of EOVERFLOW if isdst flag is set to 1 and the time
      * point is not in a DST period. Observed on NetBSD.
      */
-    orig_tm_isdst = tm->tm_isdst;
+    int orig_tm_isdst = tm->tm_isdst;
     tm->tm_isdst = 0;
     time = func(tm);
     if(time == -1 && (errno == EINVAL || errno == EOVERFLOW)) {

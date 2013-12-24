@@ -3,7 +3,7 @@
 #include <math.h>
 #include <iomanip>
 
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 #include "marshal.hpp"
 
 #include "object_utils.hpp"
@@ -13,7 +13,7 @@
 #include <ieee.h>
 
 #include "builtin/array.hpp"
-#include "builtin/compiledcode.hpp"
+#include "builtin/compiled_code.hpp"
 #include "builtin/encoding.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
@@ -87,7 +87,7 @@ namespace rubinius {
     std::string data;
     stream >> data;
 
-    return Bignum::from_string(state, data.c_str(), 16);
+    return Integer::from_cppstr(state, data, 16);
   }
 
   String* UnMarshaller::get_string() {

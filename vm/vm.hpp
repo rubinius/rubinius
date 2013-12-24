@@ -356,6 +356,7 @@ namespace rubinius {
     void initialize_fundamental_constants(STATE);
     void initialize_builtin_classes(STATE);
     void initialize_platform_data(STATE);
+    Object* ruby_lib_version();
 
     void set_current_fiber(Fiber* fib);
 

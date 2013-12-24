@@ -13,16 +13,16 @@
 #include "llvm/detection.hpp"
 
 #include "builtin/fixnum.hpp"
-#include "builtin/constantscope.hpp"
+#include "builtin/constant_scope.hpp"
 #include "builtin/module.hpp"
-#include "builtin/compiledcode.hpp"
+#include "builtin/compiled_code.hpp"
 #include "builtin/class.hpp"
 #include "builtin/block_environment.hpp"
 
 #include "auxiliary_threads.hpp"
 #include "machine_code.hpp"
 #include "field_offset.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 
 #include "call_frame.hpp"
 #include "configuration.hpp"
@@ -505,6 +505,7 @@ halt:
     llvm::NoFramePointerElim = true;
 #endif
     llvm::InitializeNativeTarget();
+    llvm::InitializeNativeTargetAsmPrinter();
 
     memory_ = new jit::RubiniusJITMemoryManager();
 #if RBX_LLVM_API_VER > 300

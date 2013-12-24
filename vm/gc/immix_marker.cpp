@@ -16,6 +16,8 @@ namespace rubinius {
 
   Object* immix_marker_tramp(STATE) {
     state->memory()->immix_marker()->perform(state);
+    GCTokenImpl gct;
+    state->gc_dependent(gct, 0);
     return cNil;
   }
 

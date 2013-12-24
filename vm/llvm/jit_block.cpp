@@ -6,9 +6,8 @@
 
 #include "call_frame.hpp"
 #include "stack_variables.hpp"
-#include "builtin/constantscope.hpp"
+#include "builtin/constant_scope.hpp"
 #include "builtin/module.hpp"
-#include "version.h"
 
 #include "instruments/tooling.hpp"
 
@@ -62,9 +61,7 @@ namespace jit {
 
     setup_block_scope();
 
-    if(!LANGUAGE_18_ENABLED) {
-      import_args_19_style();
-    }
+    import_args_19_style();
 
     if(ctx_->llvm_state()->include_profiling()) {
       Value* test = b().CreateLoad(ctx_->profiling(), "profiling");

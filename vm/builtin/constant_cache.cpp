@@ -1,6 +1,6 @@
 #include "builtin/constant_cache.hpp"
 #include "builtin/class.hpp"
-#include "builtin/constantscope.hpp"
+#include "builtin/constant_scope.hpp"
 #include "object_utils.hpp"
 #include "ontology.hpp"
 

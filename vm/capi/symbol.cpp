@@ -1,7 +1,8 @@
+#include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 
 #include "capi/capi.hpp"
-#include "capi/18/include/ruby.h"
+#include "capi/ruby.h"
 
 using namespace rubinius;
 using namespace rubinius::capi;
@@ -11,6 +12,12 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     return reinterpret_cast<Symbol*>(sym)->cpp_str(env->state()).c_str();
+  }
+
+  VALUE rb_id2str(ID sym) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    String* str = reinterpret_cast<Symbol*>(sym)->to_str(env->state());
+    return env->get_handle(str);
   }
 
   int rb_is_const_id(ID sym) {

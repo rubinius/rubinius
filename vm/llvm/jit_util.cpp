@@ -4,7 +4,7 @@
 #include "llvm/method_info.hpp"
 
 #include "vm.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 #include "call_frame.hpp"
 #include "on_stack.hpp"
 
@@ -14,7 +14,7 @@
 #include "builtin/class.hpp"
 #include "builtin/string.hpp"
 #include "builtin/block_environment.hpp"
-#include "builtin/constantscope.hpp"
+#include "builtin/constant_scope.hpp"
 #include "builtin/proc.hpp"
 #include "builtin/autoload.hpp"
 #include "builtin/constant_cache.hpp"
@@ -38,7 +38,6 @@
 #include "lookup_data.hpp"
 #include "machine_code.hpp"
 #include "configuration.hpp"
-#include "version.h"
 
 #include "gen/instruction_defines.hpp"
 
@@ -77,7 +76,7 @@ extern "C" {
 
   Object* rbx_check_frozen(STATE, CallFrame* call_frame, Object* obj) {
     if(obj->reference_p() && obj->is_frozen_p()) {
-      Exception::frozen_error(state, call_frame);
+      Exception::frozen_error(state, call_frame, obj);
       return NULL;
     }
 
@@ -982,7 +981,7 @@ extern "C" {
 
   Object* rbx_set_ivar(STATE, CallFrame* call_frame, Object* self, Symbol* name, Object* val) {
     if(self->reference_p() && self->is_frozen_p()) {
-      Exception::frozen_error(state, call_frame);
+      Exception::frozen_error(state, call_frame, self);
       return NULL;
     }
 
@@ -1091,18 +1090,16 @@ extern "C" {
         parts[i] = str;
       }
 
-      if(!LANGUAGE_18_ENABLED) {
-        /*
-         * TODO: Consider the case when -K is set (not implemented yet).
-         */
-        if(!check_encoding) {
-          Encoding* str_enc = str->encoding(state);
-          if(enc->nil_p()) {
-            enc = str_enc;
-          } else if(str_enc != enc) {
-            check_encoding = true;
-            enc = nil<Encoding>();
-          }
+      /*
+       * TODO: Consider the case when -K is set (not implemented yet).
+       */
+      if(!check_encoding) {
+        Encoding* str_enc = str->encoding(state);
+        if(enc->nil_p()) {
+          enc = str_enc;
+        } else if(str_enc != enc) {
+          check_encoding = true;
+          enc = nil<Encoding>();
         }
       }
     }
@@ -1121,22 +1118,20 @@ extern "C" {
         sub_size = data_size;
       }
 
-      if(!LANGUAGE_18_ENABLED) {
-        if(check_encoding) {
-          if(i > 0) {
-            str->num_bytes(state, Fixnum::from(str_size));
+      if(check_encoding) {
+        if(i > 0) {
+          str->num_bytes(state, Fixnum::from(str_size));
 
-            Encoding* enc = Encoding::compatible_p(state, str, sub);
+          Encoding* enc = Encoding::compatible_p(state, str, sub);
 
-            if(enc->nil_p()) {
-              Exception::encoding_compatibility_error(state, str, sub, call_frame);
-              return 0;
-            } else {
-              str->encoding(state, enc);
-            }
+          if(enc->nil_p()) {
+            Exception::encoding_compatibility_error(state, str, sub, call_frame);
+            return 0;
           } else {
-            str->encoding(state, sub->encoding());
+            str->encoding(state, enc);
           }
+        } else {
+          str->encoding(state, sub->encoding());
         }
       }
 
@@ -1144,16 +1139,14 @@ extern "C" {
       str_size += sub_size;
     }
 
-    if(!LANGUAGE_18_ENABLED) {
-      /* We had to set the size of the result String before every Encoding check
-       * so we have to set it to the final size here.
-       */
-      if(check_encoding) {
-        str->num_bytes(state, Fixnum::from(size));
-        str->ascii_only(state, cNil);
-      }
-      if(!enc->nil_p()) str->encoding(state, enc);
+    /* We had to set the size of the result String before every Encoding check
+     * so we have to set it to the final size here.
+     */
+    if(check_encoding) {
+      str->num_bytes(state, Fixnum::from(size));
+      str->ascii_only(state, cNil);
     }
+    if(!enc->nil_p()) str->encoding(state, enc);
 
     if(tainted) str->set_tainted();
     if(untrusted) str->set_untrusted();

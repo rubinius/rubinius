@@ -3,7 +3,7 @@
 #include "builtin/class.hpp"
 #include "vm/object_utils.hpp"
 #include "builtin/constant_table.hpp"
-#include "builtin/methodtable.hpp"
+#include "builtin/method_table.hpp"
 #include "object_types.hpp"
 
 class TestClass : public CxxTest::TestSuite, public VMTest {

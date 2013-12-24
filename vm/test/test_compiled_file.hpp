@@ -2,9 +2,9 @@
 
 #include "compiled_file.hpp"
 #include "builtin/class.hpp"
-#include "builtin/compiledcode.hpp"
-#include "builtin/lookuptable.hpp"
-#include "builtin/constantscope.hpp"
+#include "builtin/compiled_code.hpp"
+#include "builtin/lookup_table.hpp"
+#include "builtin/constant_scope.hpp"
 #include "builtin/symbol.hpp"
 
 #include <cxxtest/TestSuite.h>

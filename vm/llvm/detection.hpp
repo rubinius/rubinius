@@ -14,6 +14,8 @@
 #ifndef RBX_LLVM_DETECTION_HPP
 #define RBX_LLVM_DETECTION_HPP
 
+#include "config.h"
+
 #include <llvm/Support/Host.h>
 #if RBX_LLVM_API_VER >= 302
 #include <llvm/Support/DataStream.h>

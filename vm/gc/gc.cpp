@@ -2,7 +2,7 @@
 #include "object_utils.hpp"
 #include "gc/gc.hpp"
 
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 
 #include "gc/object_mark.hpp"
 
@@ -12,11 +12,11 @@
 #include "builtin/module.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/weakref.hpp"
-#include "builtin/compiledcode.hpp"
-#include "builtin/nativemethod.hpp"
+#include "builtin/compiled_code.hpp"
+#include "builtin/native_method.hpp"
 #include "call_frame.hpp"
 #include "builtin/variable_scope.hpp"
-#include "builtin/constantscope.hpp"
+#include "builtin/constant_scope.hpp"
 #include "builtin/block_environment.hpp"
 #include "capi/handle.hpp"
 
@@ -39,24 +39,6 @@ namespace rubinius {
     , global_cache_(state->shared.global_cache)
     , threads_(state->shared.threads())
     , global_handle_locations_(state->om->global_capi_handle_locations())
-    , gc_token_(0)
-#ifdef ENABLE_LLVM
-    , llvm_state_(LLVMState::get_if_set(state))
-#endif
-    , young_bytes_allocated_(state->om->young_bytes_allocated())
-    , mature_bytes_allocated_(state->om->mature_bytes_allocated())
-    , code_bytes_allocated_(state->om->code_bytes_allocated())
-    , symbol_bytes_allocated_(state->om->symbol_bytes_allocated())
-  {}
-
-  GCData::GCData(VM* state, GCToken gct)
-    : roots_(state->globals().roots)
-    , handles_(state->om->capi_handles())
-    , cached_handles_(state->om->cached_capi_handles())
-    , global_cache_(state->shared.global_cache)
-    , threads_(state->shared.threads())
-    , global_handle_locations_(state->om->global_capi_handle_locations())
-    , gc_token_(&gct)
 #ifdef ENABLE_LLVM
     , llvm_state_(LLVMState::get_if_set(state))
 #endif

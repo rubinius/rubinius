@@ -3,15 +3,15 @@
 #include "builtin/object.hpp"
 #include "builtin/proc.hpp"
 #include "builtin/thread.hpp"
-#include "builtin/lookuptable.hpp"
-#include "objectmemory.hpp"
+#include "builtin/lookup_table.hpp"
+#include "object_memory.hpp"
 
 #include "arguments.hpp"
 #include "dispatch.hpp"
 #include "exception_point.hpp"
 
 #include "capi/capi.hpp"
-#include "capi/18/include/ruby.h"
+#include "capi/ruby.h"
 
 #include <stdarg.h>
 
@@ -508,4 +508,17 @@ extern "C" {
     }
   }
 
+  VALUE rb_ary_subseq(VALUE ary, long beg, long len) {
+    if (beg > RARRAY_LEN(ary)) return Qnil;
+    if (beg < 0 || len < 0) return Qnil;
+
+    if (RARRAY_LEN(ary) < len || RARRAY_LEN(ary) < beg + len) {
+      len = RARRAY_LEN(ary) - beg;
+    }
+
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Array* array = c_as<Array>(env->get_object(ary));
+    return env->get_handle(array->new_range(env->state(), Fixnum::from(beg), Fixnum::from(len)));
+  }
 }
