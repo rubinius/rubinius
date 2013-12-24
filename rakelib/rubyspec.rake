@@ -17,6 +17,7 @@ namespace :rubyspec do
     rm_rf "#{dir}/optional/capi/ext/rubyspec_version.h"
     rsync "#{dir}/*", "spec/ruby"
     cp "#{dir}/.gitignore", "spec/ruby"
+    rm_rf "spec/ruby/library"
 
     version = Dir.chdir(dir) { `git log --pretty=oneline -1`[0..7] }
     sh "git add spec/ruby/"

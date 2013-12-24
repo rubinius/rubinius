@@ -18,21 +18,7 @@ class MSpecScript
 
   # Standard library specs
   set :library, [
-    'spec/ruby/library',
     'spec/library',
-
-    # 1.9 features
-    '^library/cmath',
-    '^library/continuation',
-    '^library/coverage',
-    '^library/fiber',
-    '^library/json',
-    '^library/minitest',
-    '^library/prime',
-    '^library/ripper',
-    '^library/rake',
-    '^library/rubygems',
-    '^library/socket/addrinfo',
   ]
 
   set :capi, [
@@ -46,21 +32,6 @@ class MSpecScript
   set :ruby, [
     'spec/ruby/language',
     'spec/ruby/core',
-    'spec/ruby/library',
-
-    # 1.9 features
-    '^spec/ruby/core/basicobject',
-    '^spec/ruby/library/cmath',
-    '^spec/ruby/library/continuation',
-    '^spec/ruby/library/coverage',
-    '^spec/ruby/library/fiber',
-    '^spec/ruby/library/json',
-    '^spec/ruby/library/minitest',
-    '^spec/ruby/library/prime',
-    '^spec/ruby/library/ripper',
-    '^spec/ruby/library/rake',
-    '^spec/ruby/library/rubygems',
-    '^spec/ruby/library/socket/addrinfo',
   ]
 
   # An ordered list of the directories containing specs to run
@@ -74,56 +45,21 @@ class MSpecScript
     'spec/compiler',
     'spec/command_line',
     'spec/ruby/optional/capi',
-    'spec/ruby/library',
     'spec/library',
 
     'spec/build',
 
-    # We use the FFI gem now
-    '^spec/ruby/optional/ffi',
-
-    # Excluded because the specs are extremely system dependent.
-    '^spec/ruby/library/syslog',
-
-    # Excluded because they fail to load at the moment
-    '^spec/ruby/optional/ffi/buffer_spec.rb',
-    '^spec/ruby/optional/ffi/callback_spec.rb',
-    '^spec/ruby/optional/ffi/custom_type_spec.rb',
-    '^spec/ruby/optional/ffi/ffi_spec.rb',
-    '^spec/ruby/optional/ffi/function_spec.rb',
-    '^spec/ruby/optional/ffi/number_spec.rb',
-    '^spec/ruby/optional/ffi/pointer_spec.rb',
-    '^spec/ruby/optional/ffi/strptr_spec.rb',
-    '^spec/ruby/optional/ffi/struct_initialize_spec.rb',
-    '^spec/ruby/optional/ffi/struct_spec.rb',
-    '^spec/ruby/optional/ffi/variadic_spec.rb',
-
     # 1.9 features
     '^spec/ruby/core/basicobject',
-    '^spec/ruby/library/cmath',
-    '^spec/ruby/library/continuation',
-    '^spec/ruby/library/coverage',
-    '^spec/ruby/library/fiber',
-    '^spec/ruby/library/json',
-    '^spec/ruby/library/minitest',
-    '^spec/ruby/library/prime',
-    '^spec/ruby/library/ripper',
-    '^spec/ruby/library/rake',
-    '^spec/ruby/library/rubygems',
-    '^spec/ruby/library/socket/addrinfo',
     '^spec/ruby/optional/capi/encoding',
   ]
 
-  set :travis, get(:ci_files) - [
-    'spec/library',
-    'spec/ruby/library',
-    'spec/ruby/optional/capi'
-  ]
+  set :travis, get(:ci_files)
 
   # The set of substitutions to transform a spec filename
   # into a tag filename.
   set :tags_patterns, [
-                        [%r(spec/), 'spec/tags/18/'],
+                        [%r(spec/), 'spec/tags/'],
                         [/_spec.rb$/, '_tags.txt']
                       ]
 
