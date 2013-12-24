@@ -21,9 +21,6 @@ module Rubinius
       under = Object
     end
 
-    if sup and !sup.kind_of? Class
-      "open_class: sup: #{sup.class}, #{sup.name}, #{sup.file}:#{sup.first_line}".__show__
-    end
     open_class_under name, sup, under
   end
 

@@ -29,8 +29,6 @@ class Fixnum < Integer
     divide(o).floor
   end
 
-  alias_method :quo, :fdiv
-
   def **(o)
     Rubinius.primitive :fixnum_pow
     redo_coerced :**, o
@@ -50,6 +48,8 @@ class Fixnum < Integer
       redo_coerced :fdiv, n
     end
   end
+
+  alias_method :quo, :fdiv
 
   # taint and untaint are noops on Fixnum
   def taint
