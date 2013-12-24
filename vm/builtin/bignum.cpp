@@ -688,10 +688,6 @@ namespace rubinius {
       return Primitives::failure();
     }
 
-    if(exp < 0) {
-      return this->to_float(state)->fpow(state, exponent);
-    }
-
     mp_expt_d(XST, mp_val(), exp, n);
 
     return Bignum::normalize(state, n_obj);
