@@ -15,8 +15,8 @@ type.rbc
 hash.rbc
 array.rbc
 kernel.rbc
-identitymap.rbc
-loadedfeatures.rbc
+identity_map.rbc
+loaded_features.rbc
 global.rbc
 backtrace.rbc
 comparable.rbc
@@ -31,7 +31,7 @@ channel.rbc
 executable.rbc
 constant_scope.rbc
 hook.rbc
-codeloader.rbc
+code_loader.rbc
 compiled_code.rbc
 continuation.rbc
 delegated_method.rbc
@@ -51,7 +51,7 @@ stat.rbc
 float.rbc
 immediate.rbc
 location.rbc
-lookuptable.rbc
+lookup_table.rbc
 main.rbc
 marshal.rbc
 math.rbc
@@ -59,7 +59,7 @@ method.rbc
 method_table.rbc
 native_method.rbc
 nil.rbc
-objectspace.rbc
+object_space.rbc
 string.rbc
 range.rbc
 struct.rbc
