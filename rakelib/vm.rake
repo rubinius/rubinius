@@ -1,10 +1,11 @@
-require 'rakelib/rubinius'
 require 'rakelib/instruction_parser'
 require 'rakelib/generator_task'
 require 'rakelib/release'
 
 require 'tmpdir'
 require 'ostruct'
+
+require 'daedalus'
 
 config = OpenStruct.new
 config.use_jit = true
@@ -21,8 +22,6 @@ encoding_database = "vm/gen/encoding_database.cpp"
 transcoders_database = "vm/gen/transcoder_database.cpp"
 
 vm_release_h = BUILD_CONFIG[:vm_release_h]
-vm_version_h = BUILD_CONFIG[:vm_version_h]
-capi_release_h = "vm/capi/#{BUILD_CONFIG[:language_version]}/include/gen/rbx_release.h"
 
 ENV.delete 'CDPATH' # confuses llvm_config
 
@@ -35,7 +34,6 @@ INSN_GEN    = %w[ vm/gen/instruction_names.cpp
                   vm/gen/instruction_implementations.hpp
                   vm/gen/instruction_visitors.hpp
                   vm/gen/instruction_effects.hpp
-                  web/_includes/instructions.markdown
                 ]
 TYPE_GEN    = %w[ vm/gen/includes.hpp
                   vm/gen/kind_of.hpp
@@ -56,15 +54,13 @@ GENERATED = %W[ vm/gen/config_variables.h
                 #{encoding_database}
                 #{transcoders_database}
                 #{vm_release_h}
-                #{vm_version_h}
-                #{capi_release_h}
               ] + TYPE_GEN + INSN_GEN
 
 # Files are in order based on dependencies. For example,
 # CompactLookupTable inherits from Tuple, so the header
 # for compactlookuptable.hpp has to come after tuple.hpp
 field_extract_headers = %w[
-  vm/builtin/basicobject.hpp
+  vm/builtin/basic_object.hpp
   vm/builtin/object.hpp
   vm/builtin/integer.hpp
   vm/builtin/fixnum.hpp
@@ -75,13 +71,13 @@ field_extract_headers = %w[
   vm/builtin/alias.hpp
   vm/builtin/block_environment.hpp
   vm/builtin/block_as_method.hpp
-  vm/builtin/bytearray.hpp
+  vm/builtin/byte_array.hpp
   vm/builtin/io.hpp
   vm/builtin/channel.hpp
   vm/builtin/module.hpp
   vm/builtin/constant_table.hpp
   vm/builtin/class.hpp
-  vm/builtin/compiledcode.hpp
+  vm/builtin/compiled_code.hpp
   vm/builtin/data.hpp
   vm/builtin/dir.hpp
   vm/builtin/exception.hpp
@@ -89,23 +85,23 @@ field_extract_headers = %w[
   vm/builtin/immediates.hpp
   vm/builtin/iseq.hpp
   vm/builtin/list.hpp
-  vm/builtin/lookuptable.hpp
+  vm/builtin/lookup_table.hpp
   vm/builtin/ffi_pointer.hpp
-  vm/builtin/methodtable.hpp
-  vm/builtin/nativefunction.hpp
+  vm/builtin/method_table.hpp
+  vm/builtin/native_function.hpp
   vm/builtin/packed_object.hpp
   vm/builtin/randomizer.hpp
   vm/builtin/regexp.hpp
-  vm/builtin/constantscope.hpp
+  vm/builtin/constant_scope.hpp
   vm/builtin/encoding.hpp
   vm/builtin/string.hpp
   vm/builtin/symbol.hpp
   vm/builtin/thread.hpp
   vm/builtin/tuple.hpp
-  vm/builtin/compactlookuptable.hpp
+  vm/builtin/compact_lookup_table.hpp
   vm/builtin/time.hpp
   vm/builtin/stat.hpp
-  vm/builtin/nativemethod.hpp
+  vm/builtin/native_method.hpp
   vm/builtin/system.hpp
   vm/builtin/autoload.hpp
   vm/builtin/proc.hpp
@@ -129,7 +125,7 @@ field_extract_headers = %w[
 
 transcoders_src_dir = File.expand_path "../../vendor/oniguruma/enc/trans", __FILE__
 
-libdir = "#{BUILD_CONFIG[:stagingdir] || BUILD_CONFIG[:sourcedir]}"
+libdir = "#{BUILD_CONFIG[:build_prefix]}"
 transcoders_lib_dir = "#{libdir}/#{BUILD_CONFIG[:encdir]}"
 directory transcoders_lib_dir
 
@@ -164,8 +160,8 @@ namespace :build do
           llvm_config_flags = "--build=#{host} --host=#{host} " \
                               "--enable-optimized --disable-assertions "\
                               " --enable-targets=host,cpp"
-          sh %[sh -c "#{expand("./configure")} #{llvm_config_flags}"]
-          sh make
+          sh %[sh -c "#{File.expand_path("./configure")} #{llvm_config_flags}"]
+          sh Rubinius::BUILD_CONFIG[:build_make]
         end
       end
     end
@@ -173,41 +169,21 @@ namespace :build do
 
   # Issue the actual build commands. NEVER USE DIRECTLY.
   task :build => %W[
-                     build:llvm
-                     #{VM_EXE}
-                     build:ffi:preprocessor
-                     compiler:generate
-                     stage:bin
-                     stage:extra_bins
-                     stage:capi_include
-                     stage:lib
-                     stage:tooling
-                     stage:kernel
-                     kernel:build
-                     extensions:melbourne_build_clean
-                     stage:runtime
-                     stage:documentation
-                     stage:manpages
-                     extensions
-                   ] + TRANSCODING_LIBS
-
-  namespace :ffi do
-
-    FFI_PREPROCESSABLES = %w[ lib/fcntl.rb
-                            ]
-
-    unless BUILD_CONFIG[:windows]
-      FFI_PREPROCESSABLES.concat %w[ lib/etc.rb
-                                     lib/syslog.rb
-                                   ]
-    end
-
-    # Generate the .rb files from lib/*.rb.ffi
-    task :preprocessor => FFI_PREPROCESSABLES
-
-    Rubinius::FFI::FileProcessor::Task.new FFI_PREPROCESSABLES
-
-  end
+    build:llvm
+    #{VM_EXE}
+    compiler:generate
+    stage:bin
+    stage:extra_bins
+    stage:capi_include
+    kernel:build
+    stage:kernel
+    stage:runtime
+    stage:lib
+    gems:melbourne
+    gems:extensions
+    stage:documentation
+    stage:manpages
+  ] + TRANSCODING_LIBS
 end
 
 # Compilation tasks
@@ -246,31 +222,11 @@ file transcoders_database => [transcoders_lib_dir, transcoders_extract] do |t|
   ruby transcoders_extract, transcoders_src_dir, t.name
 end
 
-task vm_version_h do |t|
-  write_version t.name, BUILD_CONFIG[:language_version], BUILD_CONFIG[:supported_versions]
-end
-
 task vm_release_h do |t|
-  if git_directory
-    if validate_revision
-      write_release t.name, config_rubinius_version, config_release_date, build_revision
-    else
-      write_release t.name, default_rubinius_version, default_release_date, build_revision
-    end
-  elsif File.file? release_revision
-    unless File.exists? t.name
-      write_release t.name, default_rubinius_version, default_release_date, build_revision
-    end
-  else
-    write_release t.name, config_rubinius_version, config_release_date, build_revision
-  end
+  write_release t.name, BUILD_CONFIG[:version], BUILD_CONFIG[:release_date]
 end
 
-task capi_release_h => vm_release_h do |t|
-  FileUtils.cp vm_release_h, t.name
-end
-
-file 'vm/gen/config_variables.h' => %w[lib/rubinius/configuration.rb config.rb] do |t|
+file 'vm/gen/config_variables.h' => %w[library/rubinius/configuration.rb config.rb] do |t|
   puts "GEN #{t.name}"
   ruby 'vm/codegen/config_vars.rb', t.name
 end
@@ -280,8 +236,6 @@ file 'vm/dtrace/probes.h' do |t|
     sh %[dtrace -h -o vm/dtrace/probes.h -s vm/dtrace/probes.d]
   end
 end
-
-require 'projects/daedalus/daedalus'
 
 if jobs = ENV['JOBS']
   @parallel_jobs = jobs.to_i
@@ -372,10 +326,6 @@ file "vm/gen/instruction_effects.hpp" => insn_deps do |t|
   generate_instruction_file iparser, :generate_stack_effects, t.name
 end
 
-file "web/_includes/instructions.markdown" => insn_deps do |t|
-  generate_instruction_file iparser, :generate_documentation, t.name
-end
-
 namespace :vm do
   desc 'Run all VM tests.  Uses its argument as a filter of tests to run.'
   task :test, :filter do |task, args|
@@ -396,6 +346,7 @@ namespace :vm do
       'vm/test/runner.cpp',
       'vm/test/runner.o',
       VM_EXE,
+      BUILD_CONFIG[:program_name],
       'bin/rbx',
       'bin/ruby',
       'bin/rake',

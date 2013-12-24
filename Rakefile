@@ -1,26 +1,8 @@
-# NOTE! When updating this file, also update INSTALL, if necessary.
-# NOTE! Please keep your tasks grouped together.
-
+require 'bundler/setup'
+require 'redcard'
 require './rakelib/configure'
 
 include Rake::DSL if Rake.const_defined? :DSL
-
-if ENV["RUBYLIB"]
-  STDERR.puts <<-EOM
-WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
-WARNING                                                                 WARNING
-WARNING   You have the RUBYLIB environment variable set. This can       WARNING
-WARNING   cause serious problems building Rubinius, including but       WARNING
-WARNING   not limited to causing the build to fail or specs to fail     WARNING
-WARNING   or your computer to randomly emit strange beeping sounds      WARNING
-WARNING   or burst into flames. Not all these possible catastrophic     WARNING
-WARNING   effects have been observed in the wild, but you have been     WARNING
-WARNING   warned. We recommend unsetting this environment variable      WARNING
-WARNING   and running the build again.                                  WARNING
-WARNING                                                                 WARNING
-WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
-  EOM
-end
 
 # Wipe out CDPATH, it interferes with building in some cases,
 # see http://github.com/rubinius/rubinius/issues#issue/555
@@ -55,13 +37,13 @@ end
 
 load_configuration
 
-unless BUILD_CONFIG[:config_version] == 179
+unless BUILD_CONFIG[:config_version] == 188
   STDERR.puts "Your configuration is outdated, please run ./configure first"
   exit 1
 end
 
 # Yes, this is duplicated from the configure script for now.
-unless BUILD_CONFIG[:which_ruby] == :ruby or BUILD_CONFIG[:which_ruby] == :rbx
+unless RedCard.check :ruby, :rubinius
   STDERR.puts "Sorry, building Rubinius requires MRI or Rubinius"
   exit 1
 end
@@ -90,7 +72,7 @@ def build_ruby
   @build_ruby
 end
 
-unless BUILD_CONFIG[:build_ruby] == build_ruby
+unless BUILD_CONFIG[:build_ruby] == build_ruby || ENV["RBX_SKIP_BUILD_RUBY_CHECK"]
   STDERR.puts "\nUnable to build using the running Ruby executable (#{build_ruby}). Expected #{BUILD_CONFIG[:build_ruby]}\n\n"
 
   STDERR.puts "To resolve this issue:"
@@ -139,15 +121,9 @@ class SpecRunner
   end
 
   def initialize
-    unless File.directory? BUILD_CONFIG[:runtimedir]
-      # Setting these enables the specs to run when rbx has been configured
-      # to be installed, but rake install has not been run yet.
-      ENV["RBX_RUNTIME"] = File.expand_path "../runtime", __FILE__
-      ENV["RBX_LIB"]     = File.expand_path "../lib", __FILE__
-      ENV["CFLAGS"]      = "-Ivm/capi"
-    end
-
     ENV.delete("RUBYOPT")
+    ENV.delete("GEM_HOME")
+    ENV.delete("GEM_PATH")
 
     @handler = lambda do |ok, status|
       self.class.set_at_exit_status(status.exitstatus) unless ok
@@ -198,7 +174,6 @@ task :clean => %w[
   vm:clean
   kernel:clean
   clean:crap
-  extensions:clean
 ]
 
 desc 'Remove rubinius build files and external library build files'
@@ -231,16 +206,6 @@ spec_runner = SpecRunner.new
 desc "Run CI in default (configured) mode but do not rebuild on failure"
 task :spec => %w[build vm:test] do
   spec_runner.run
-end
-
-task :travis do
-  BUILD_CONFIG[:supported_versions].each do |version|
-    sh "./configure --enable-version=#{version}"
-    rm_rf BUILD_CONFIG[:prefixdir] + BUILD_CONFIG[:gemsdir]
-    sh "rake extensions:clean build vm:test"
-    spec_runner.run :travis
-  end
-  check_status
 end
 
 desc "Print list of items marked to-do in kernel/ (@todo|TODO)"

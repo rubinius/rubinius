@@ -1,32 +1,31 @@
 require 'rubygems'
-require 'rubygems/dependency_installer'
+require 'rubygems/installer'
+require 'rubinius/build_config'
 
 puts "Pre-installing gems for #{RUBY_VERSION}..."
 
-gems = Dir["preinstalled-gems/*.gem"]
+BUILD_CONFIG = Rubinius::BUILD_CONFIG
+gems = BUILD_CONFIG[:runtime_gems]
+install_dir = "#{BUILD_CONFIG[:build_prefix]}#{BUILD_CONFIG[:gemsdir]}"
 options = {
-  :wrappers             => true,
-  :domain               => :local,
-  :generate_ri          => false,
-  :generate_rdoc        => false,
+  :bin_dir              => nil,
+  :build_args           => [],
+  :env_shebang          => false,
+  :force                => false,
+  :format_executable    => false,
   :ignore_dependencies  => true,
-  :conservative         => true
+  :security_policy      => nil,
+  :user_install         => nil,
+  :wrappers             => true,
+  :install_as_default   => false,
+  :install_dir          => install_dir
 }
 
-gems.each do |gem|
-  parts = File.basename(gem, ".gem").split "-"
-  gem_name = parts[0..-2].join "-"
-  gem_version = parts[-1]
+gems.each do |name, version|
+  next if File.directory? "#{install_dir}/gems/#{name}-#{version}"
 
-  name_re = /#{gem_name}/
-  version_req = Gem::Requirement.create "=#{gem_version}"
-  unless Gem::Specification.any? { |s| s.name =~ name_re and version_req =~ s.version }
-    options[:args]        = gem
-    options[:version]     = version_req
-    options[:env_shebang] = true
-    inst = Gem::DependencyInstaller.new options
-    inst.install gem, version_req
-
-    puts "Installed #{gem_name}-#{gem_version}"
-  end
+  file = File.expand_path "../../vendor/cache/#{name}-#{version}.gem", __FILE__
+  installer = Gem::Installer.new file, options
+  spec = installer.install
+  puts "Installed #{spec.name} (#{spec.version})"
 end

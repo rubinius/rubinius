@@ -76,7 +76,13 @@ def install_runtime(prefix, target)
     "#{prefix}/platform.conf",
     "#{prefix}/**/index",
     "#{prefix}/**/signature",
+    "#{prefix}/**/*.rb",
     "#{prefix}/**/*.rb{a,c}",
+    "#{prefix}/**/*.{c,h}pp",
+    "#{prefix}/**/*.{c,h}",
+    "#{prefix}/**/*.c.*",
+    "#{prefix}/**/*.ffi",
+    "#{prefix}/**/*.#{$dlext}",
     "#{prefix}/**/load_order*.txt"
   ].each do |name|
     install_file name, prefix, "#{target}#{BUILD_CONFIG[:runtimedir]}"
@@ -95,18 +101,8 @@ def install_capi_include(prefix, destination)
   end
 end
 
-def install_lib_excludes(prefix, list)
-  list.exclude("#{prefix}/**/ext/melbourne/build/*.*")
-  BUILD_CONFIG[:supported_versions].each do |ver|
-    unless BUILD_CONFIG[:language_version] == ver
-      list.exclude(%r[^#{prefix}/#{ver}/.*])
-    end
-  end
-end
-
 def install_build_lib(prefix, target)
   list = FileList["#{prefix}/**/*.*", "#{prefix}/**/*"]
-  install_lib_excludes prefix, list
 
   list.each do |name|
     install_file name, prefix, "#{target}#{BUILD_CONFIG[:libdir]}"
@@ -115,12 +111,9 @@ end
 
 def install_lib(prefix, target)
   list = FileList["#{prefix}/**/*.rb", "#{prefix}/**/rubygems/**/*"]
-  install_lib_excludes prefix, list
 
-  re = %r[/lib/#{BUILD_CONFIG[:language_version]}/]
   list.each do |source|
-    name = source.gsub(re, "/lib/")[prefix.size..-1]
-    install_file source, prefix, "#{target}#{BUILD_CONFIG[:libdir]}", name
+    install_file source, prefix, "#{target}#{BUILD_CONFIG[:libdir]}"
   end
 end
 
@@ -133,18 +126,6 @@ end
 def install_tooling(prefix, target)
   FileList["#{prefix}/tooling/**/*.#{$dlext}"].each do |name|
     install_file name, prefix, "#{target}#{BUILD_CONFIG[:libdir]}"
-  end
-end
-
-def install_cext(prefix, target)
-  list = FileList["#{prefix}/**/ext/**/*.#{$dlext}"]
-  list.exclude("**/melbourne/build/*.*")
-  install_lib_excludes prefix, list
-
-  re = %r[/lib/#{BUILD_CONFIG[:language_version]}/]
-  list.each do |source|
-    name = source.gsub(re, "/lib/")[prefix.size..-1]
-    install_file source, prefix, "#{target}#{BUILD_CONFIG[:libdir]}", name
   end
 end
 
@@ -199,21 +180,14 @@ exec #{BUILD_CONFIG[:stagingdir]}#{BUILD_CONFIG[:bindir]}/$EXE "$@"
 
   task :capi_include do
     if BUILD_CONFIG[:stagingdir]
-      v = BUILD_CONFIG[:language_version]
-      install_capi_include "#{BUILD_CONFIG[:sourcedir]}/vm/capi/#{v}/include",
+      install_capi_include "#{BUILD_CONFIG[:capi_includedir]}",
                            "#{BUILD_CONFIG[:stagingdir]}#{BUILD_CONFIG[:"includedir"]}"
     end
   end
 
   task :lib do
     if BUILD_CONFIG[:stagingdir]
-      install_build_lib "#{BUILD_CONFIG[:sourcedir]}/lib", BUILD_CONFIG[:stagingdir]
-    end
-  end
-
-  task :tooling do
-    if BUILD_CONFIG[:stagingdir]
-      install_tooling "#{BUILD_CONFIG[:sourcedir]}/lib/tooling", BUILD_CONFIG[:stagingdir]
+      install_build_lib "#{BUILD_CONFIG[:sourcedir]}/library", BUILD_CONFIG[:stagingdir]
     end
   end
 
@@ -231,7 +205,7 @@ exec #{BUILD_CONFIG[:stagingdir]}#{BUILD_CONFIG[:bindir]}/$EXE "$@"
 
   task :documentation do
     if BUILD_CONFIG[:stagingdir]
-      install_documentation "#{BUILD_CONFIG[:sourcedir]}/lib", BUILD_CONFIG[:stagingdir]
+      install_documentation "#{BUILD_CONFIG[:sourcedir]}/library", BUILD_CONFIG[:stagingdir]
     end
   end
 
@@ -289,8 +263,6 @@ oppropriate command to elevate permissions (eg su, sudo).
         install_documentation "#{stagingdir}#{BUILD_CONFIG[:libdir]}", prefixdir
 
         install_manpages "#{stagingdir}#{BUILD_CONFIG[:mandir]}", prefixdir
-
-        install_cext "#{stagingdir}#{BUILD_CONFIG[:libdir]}", prefixdir
 
         bin = "#{BUILD_CONFIG[:bindir]}/#{BUILD_CONFIG[:program_name]}"
         install_bin "#{stagingdir}#{bin}", prefixdir

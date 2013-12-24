@@ -1,7 +1,7 @@
 require 'rake'
 require 'rake/tasklib'
 
-require 'lib/ffi/file_processor'
+require 'library/ffi/file_processor'
 
 
 ##
