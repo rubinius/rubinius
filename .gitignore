@@ -1,12 +1,14 @@
 artifacts/
 *.a
 *.bundle
+!.bundle
 *.dSYM
 *.dot
 *.dylib
 *.la
 *.lo
 *.o
+*.so
 *.rbc
 .rbx
 *.so
@@ -49,6 +51,7 @@ tmtags
 /share
 /work
 /staging
+Gemfile.lock
 
 # .revision tracks configure and code revision consistency
 .revision
@@ -75,16 +78,9 @@ tmtags
 /vm/.deps
 /vm/vm.exe
 
+/vm/test/ruby.h
+
 /kernel/signature.rb
-
-/lib/compiler/opcodes.rb
-/lib/compiler/generator_methods.rb
-
-/lib/etc.rb
-/lib/kernel.rb
-/lib/fcntl.rb
-/lib/syslog.rb
-/lib/readline.rb
 
 # Generated documentation
 doc/generated/vm
@@ -93,3 +89,6 @@ web/doc/*/*.new
 
 # Ignore generated DTrace header
 vm/dtrace/probes.h
+
+# Ignore rubygems except bundled ones
+vendor/cache/*
