@@ -5,9 +5,9 @@ gem "gems", "~> 0.8"
 gem "redcard", "~> 1.0"
 
 platform :rbx do
-  gem "rubysl-rake", "~> 1.0"
-  gem "rubysl-bundler", "~> 1.0"
-  gem "rubysl-digest", "~> 1.0"
+  gem "rubysl-rake"
+  gem "rubysl-bundler"
+  gem "rubysl-digest"
 end
 
 gem "rubinius-toolset", "~> 0.1"
