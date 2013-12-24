@@ -62,8 +62,7 @@ namespace rubinius {
       // The scope chain always ends with an entry at the top that contains
       // a parent of nil, and a module of Object. This entry is put in
       // regardless of lexical scoping, it's the fallback scope (the default
-      // scope). This is not case when deriving from BasicObject, which is
-      // explained later.
+      // scope).
       //
       // When looking up a constant, we don't want to consider the fallback
       // scope (ie, Object) initially because we need to lookup up
@@ -89,12 +88,6 @@ namespace rubinius {
       // the scope walk, NOT during the superclass walk.
       //
       // So, in this case, foo would print "1", not "2".
-      //
-      // As indicated above, the fallback scope isn't used when the superclass
-      // chain directly rooted from BasicObject. To determine this is the
-      // case, we record whether Object is seen when looking up the superclass
-      // chain. If Object isn't seen, this means we are directly deriving from
-      // BasicObject.
 
       cur = call_frame->constant_scope();
       while(!cur->nil_p()) {

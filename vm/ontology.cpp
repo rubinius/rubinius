@@ -142,13 +142,7 @@ namespace rubinius {
     GO(klass).set(cls);
 
     // Now do Object
-    Class* basicobject = 0;
-    Class* object;
-    basicobject = ontology::new_basic_class(state, force_as<Class>(cNil));
-    GO(basicobject).set(basicobject);
-    basicobject->set_object_type(state, BasicObjectType);
-
-    object = ontology::new_basic_class(state, basicobject);
+    Class* object = ontology::new_basic_class(state, cNil);
 
     GO(object).set(object);
     object->set_object_type(state, ObjectType);
@@ -216,9 +210,6 @@ namespace rubinius {
      *  superclass.
      */
 
-    // BasicObject's SingletonClass instance has Class for a superclass
-    SingletonClass::attach(state, basicobject, cls);
-
     // Object's SingletonClass instance has Class for a superclass
     Class* sc = SingletonClass::attach(state, object, cls);
 
@@ -251,7 +242,6 @@ namespace rubinius {
 
     // Now, finish initializing the basic Class/Module
     G(object)->setup(state, "Object");
-    G(basicobject)->setup(state, "BasicObject", G(object));
     G(klass)->setup(state, "Class");
     G(module)->setup(state, "Module");
 
