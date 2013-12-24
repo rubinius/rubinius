@@ -1,1 +1,0 @@
-require 'dl/ext/dl'

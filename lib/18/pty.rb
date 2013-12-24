@@ -1,1 +1,0 @@
-require 'pty/ext/pty'

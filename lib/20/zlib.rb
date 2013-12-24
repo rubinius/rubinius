@@ -1,1 +1,0 @@
-require "zlib/ext/zlib"
