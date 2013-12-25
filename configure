@@ -184,9 +184,9 @@ class Configure
       [ "rake", "10.1" ],
       [ "rdoc", "4.0" ],
       [ "ffi2-generators", "0.1" ],
-      [ "rubinius-profiler", "1.0" ],
-      [ "rubinius-coverage", "1.0" ],
-      [ "rubinius-debugger", "1.0" ],
+      [ "rubinius-profiler", "2.0" ],
+      [ "rubinius-coverage", "2.0" ],
+      [ "rubinius-debugger", "2.0" ],
     ]
 
     @gems_cache = File.expand_path "../vendor/cache", __FILE__
