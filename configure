@@ -569,7 +569,7 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
   def download(url, full_path, follows=0)
     begin
       dir = File.dirname full_path
-      Dir.mkdir dir unless File.exists? dir
+      Dir.mkdir dir unless File.exist? dir
 
       uri = url.kind_of?(URI) ? url : URI(url)
 
@@ -617,10 +617,10 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
         @log.write ": done!"
       end
     rescue Interrupt
-      File.unlink full_path if File.exists?(full_path)
+      File.unlink full_path if File.exist?(full_path)
       raise
     rescue StandardError => e
-      File.unlink full_path if File.exists?(full_path)
+      File.unlink full_path if File.exist?(full_path)
       @log.write " ERROR: #{e.message}"
       return false
     end
@@ -637,13 +637,13 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
     md5_path = "#{full_path}.md5"
 
     dir = File.dirname full_path
-    Dir.mkdir dir unless File.exists? dir
+    Dir.mkdir dir unless File.exist? dir
     url = File.join @llvm_asset_path, file
 
-    unless File.exists? full_path
+    unless File.exist? full_path
       download url, full_path
 
-      unless File.exists? full_path
+      unless File.exist? full_path
         @log.write "ERROR. No #{file} available on server." if warn
         return false
       end
@@ -652,7 +652,7 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
     md5_url = "#{url}.md5"
     download md5_url, md5_path
 
-    if File.exists? md5_path
+    if File.exist? md5_path
       unless md5_checksum md5_path, full_path
         @log.write "ERROR. #{file} was corrupted or MD5 checksum is outdated."
         return false
@@ -668,9 +668,9 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
   end
 
   def verify_llvm_source
-    return false unless File.exists? @llvm_default
+    return false unless File.exist? @llvm_default
 
-    if File.exists?(@llvm_include_path)
+    if File.exist?(@llvm_include_path)
       @llvm = :svn
       @llvm_configure = llvm_config_cmd "#{@llvm_default}/Release/bin/llvm-config"
       return true
@@ -694,12 +694,12 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
     url = @llvm_source_url
     path = File.join @llvm_prebuilt_path, @llvm_source
 
-    unless File.exists?(path)
+    unless File.exist?(path)
       @log.write "  Downloading #{url}..."
       return false unless download(url, path)
     end
 
-    if File.exists?(path)
+    if File.exist?(path)
       @log.print "  Unpacking LLVM source: "
       Dir.chdir @llvm_parent_path do
         succeeded = system "#{@tar} xzf #{path}"
@@ -748,9 +748,9 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
     prebuilt_files.each do |file|
       path = File.join @llvm_prebuilt_path, file
 
-      update_prebuilt file, false unless File.exists?(path)
+      update_prebuilt file, false unless File.exist?(path)
 
-      if File.exists?(path)
+      if File.exist?(path)
         @log.print "  Unpacking prebuilt LLVM: #{file}: "
         dir = File.join @llvm_parent_path, "llvm"
         FileUtils.mkdir_p dir
@@ -801,7 +801,7 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
   end
 
   def remove_default
-    if File.exists?(File.join(@llvm_default, "Makefile.common"))
+    if File.exist?(File.join(@llvm_default, "Makefile.common"))
       failure "ABORT: Unwilling to override custom LLVM tree, please update it manually."
     else
       @log.write "    Removing outdated tree..."
@@ -825,7 +825,7 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
       api_version = ("%d%02d" % parts[0..1]).to_i
       if version >= "3.0"
         @log.write "found!"
-        if File.exists?(File.join(@llvm_default, "Makefile.common"))
+        if File.exist?(File.join(@llvm_default, "Makefile.common"))
           @llvm = :svn
         else
           @llvm = :prebuilt
@@ -869,7 +869,7 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
     config = @llvm_configure
     if !config
       which = ENV['PATH'].split(":").find do |path|
-        File.exists? File.join(path, "llvm-config")
+        File.exist? File.join(path, "llvm-config")
       end
       if which
         config = File.join(which, "llvm-config")
@@ -1627,7 +1627,7 @@ int main() { return tgetnum(""); }
 
   def get_system_name
     return unless @os =~ /linux/
-    return unless File.exists? "/etc/issue"
+    return unless File.exist? "/etc/issue"
 
     data = IO.readlines("/etc/issue").first
     data =~ /([^ ]+)[^\d\.]*([\d\.]*)/
@@ -1635,7 +1635,7 @@ int main() { return tgetnum(""); }
     name = $1.downcase
     version = $2
 
-    if name == "debian" and File.exists? "/etc/debian_version"
+    if name == "debian" and File.exist? "/etc/debian_version"
       version = IO.read("/etc/debian_version").split.first.gsub(/\W/, "-")
     end
 
@@ -2000,7 +2000,7 @@ int main() { return tgetnum(""); }
     Dir.chdir @gems_cache do
       gems.each do |name, version|
         gem = "#{name}-#{version}.gem"
-        next if File.exists? gem
+        next if File.exist? gem
 
         failed = true unless download "https://rubygems.org/gems/#{gem}", "./#{gem}"
       end

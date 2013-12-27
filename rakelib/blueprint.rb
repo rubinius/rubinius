@@ -130,7 +130,7 @@ Daedalus.blueprint do |i|
     l.cflags = ["-I#{src}/vendor/libffi/include"] + gcc.cflags
     l.objects = [l.file(".libs/libffi.a")]
     l.to_build do |x|
-      x.command "sh -c './configure --disable-builddir'" unless File.exists?("Makefile")
+      x.command "sh -c './configure --disable-builddir'" unless File.exist?("Makefile")
       x.command make
     end
   end
@@ -141,7 +141,7 @@ Daedalus.blueprint do |i|
     l.cflags = ["-I#{src}/vendor/udis86"] + gcc.cflags
     l.objects = [l.file("libudis86/.libs/libudis86.a")]
     l.to_build do |x|
-      unless File.exists?("Makefile") and File.exists?("libudis86/Makefile")
+      unless File.exist?("Makefile") and File.exist?("libudis86/Makefile")
         x.command "sh -c ./configure"
       end
       x.command make
@@ -155,7 +155,7 @@ Daedalus.blueprint do |i|
       l.cflags = ["-I#{src}/vendor/zlib"] + gcc.cflags
       l.objects = [l.file("libz.a")]
       l.to_build do |x|
-        unless File.exists?("Makefile") and File.exists?("zconf.h")
+        unless File.exist?("Makefile") and File.exist?("zconf.h")
           x.command "sh -c ./configure"
         end
 
@@ -175,7 +175,7 @@ Daedalus.blueprint do |i|
       l.cflags = ["-I#{src}/vendor/winpthreads/include"] + gcc.cflags
       l.objects = [l.file("libpthread.a")]
       l.to_build do |x|
-        x.command "sh -c ./configure" unless File.exists?("Makefile")
+        x.command "sh -c ./configure" unless File.exist?("Makefile")
         x.command make
       end
     end

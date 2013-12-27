@@ -243,7 +243,7 @@ if jobs = ENV['JOBS']
     STDERR.puts "Illegal number of parallel jobs: #{jobs}. Setting to 1."
     @parallel_jobs = 1
   end
-elsif File.exists? ".be_gentle"
+elsif File.exist? ".be_gentle"
   @parallel_jobs = 1
 else
   @parallel_jobs = nil
