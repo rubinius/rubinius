@@ -58,7 +58,7 @@ def install_bin(source, target)
     begin
       BUILD_CONFIG[:bin_links].each do |name|
         link = "#{target}/#{BUILD_CONFIG[:bindir]}/#{name}"
-        File.delete link if File.exists? link
+        File.delete link if File.exist? link
         File.symlink BUILD_CONFIG[:program_name], link
       end
     rescue NotImplementedError

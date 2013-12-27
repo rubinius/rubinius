@@ -26,7 +26,7 @@ def load_configuration
   config_rb = File.expand_path "../config.rb", __FILE__
   config_h  = File.expand_path "../vm/gen/config.h", __FILE__
 
-  unless File.exists?(config_rb) and File.exists?(config_h)
+  unless File.exist?(config_rb) and File.exist?(config_h)
     STDERR.puts "Please run ./configure first"
     exit 1
   end
