@@ -133,7 +133,7 @@ class SpecRunner
   def run(suite=:ci_files, flags=nil)
     self.class.set_at_exit_handler
 
-    sh("bin/mspec ci :#{suite} #{ENV['CI_MODE_FLAG'] || flags} -d --agent --background", &@handler)
+    sh("bin/mspec ci :#{suite} #{ENV['CI_MODE_FLAG'] || flags} -t bin/#{BUILD_CONFIG[:program_name]} -d --agent --background", &@handler)
   end
 end
 
