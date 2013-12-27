@@ -307,7 +307,6 @@ namespace rubinius {
     CompactLookupTable::init(state);
     ByteArray::init(state);
     String::init(state);
-    Character::init(state);
     Executable::init(state);
     CompiledCode::init(state);
     AtomicReference::init(state);
@@ -348,7 +347,6 @@ namespace rubinius {
     Fiber::init(state);
     Alias::init(state);
     Randomizer::init(state);
-    Encoding::init(state);
   }
 
   // @todo document all the sections of bootstrap_ontology

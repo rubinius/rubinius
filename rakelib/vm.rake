@@ -18,9 +18,6 @@ VM_EXE = RUBY_PLATFORM =~ /mingw|mswin/ ? 'vm/vm.exe' : 'vm/vm'
 ############################################################
 # Files, Flags, & Constants
 
-encoding_database = "vm/gen/encoding_database.cpp"
-transcoders_database = "vm/gen/transcoder_database.cpp"
-
 vm_release_h = BUILD_CONFIG[:vm_release_h]
 
 ENV.delete 'CDPATH' # confuses llvm_config
@@ -51,8 +48,6 @@ TYPE_GEN    = %w[ vm/gen/includes.hpp
 GENERATED = %W[ vm/gen/config_variables.h
                 vm/gen/signature.h
                 vm/dtrace/probes.h
-                #{encoding_database}
-                #{transcoders_database}
                 #{vm_release_h}
               ] + TYPE_GEN + INSN_GEN
 
@@ -92,7 +87,6 @@ field_extract_headers = %w[
   vm/builtin/randomizer.hpp
   vm/builtin/regexp.hpp
   vm/builtin/constant_scope.hpp
-  vm/builtin/encoding.hpp
   vm/builtin/string.hpp
   vm/builtin/symbol.hpp
   vm/builtin/thread.hpp
@@ -118,7 +112,6 @@ field_extract_headers = %w[
   vm/builtin/call_unit.hpp
   vm/builtin/call_unit_adapter.hpp
   vm/builtin/atomic.hpp
-  vm/builtin/character.hpp
   vm/builtin/thread_state.hpp
 ]
 
@@ -206,19 +199,6 @@ task :run_field_extract do
 end
 
 files TYPE_GEN, field_extract_headers + %w[vm/codegen/field_extract.rb] + [:run_field_extract] do
-end
-
-encoding_extract = 'vm/codegen/encoding_extract.rb'
-
-file encoding_database => encoding_extract do |t|
-  dir = File.expand_path "../../vendor/oniguruma", __FILE__
-  ruby encoding_extract, dir, t.name
-end
-
-transcoders_extract = 'vm/codegen/transcoders_extract.rb'
-
-file transcoders_database => [transcoders_lib_dir, transcoders_extract] do |t|
-  ruby transcoders_extract, transcoders_src_dir, t.name
 end
 
 task vm_release_h do |t|
