@@ -1879,7 +1879,7 @@ int main() { return tgetnum(""); }
     FileUtils.cp @vm_release_h, "#{vm_capi_header_gen}/rbx_release.h"
 
     # Write the config file used in the C-API.
-    capi_config_h = "#{@capi_includedir}/ruby/config.h"
+    capi_config_h = "#{@capi_includedir}/config.h"
     FileUtils.mkdir_p File.dirname(capi_config_h)
     File.open capi_config_h, "wb" do |f|
       f.puts <<-EOC
