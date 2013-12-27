@@ -26,7 +26,7 @@ def rbx(*args)
 end
 
 def newer?(file, cmp)
-  File.exists?(cmp) and File.mtime(cmp) >= File.mtime(file)
+  File.exist?(cmp) and File.mtime(cmp) >= File.mtime(file)
 end
 
 def source_name(compiled)
@@ -42,11 +42,11 @@ def compile(name, output=nil, check_mtime=false)
   if output
     dir = File.dirname(output)
 
-    unless File.exists?(dir)
+    unless File.exist?(dir)
       FileUtils.mkdir_p dir
     end
 
-    if check_mtime and File.exists?(output) and File.mtime(output) > File.mtime(name)
+    if check_mtime and File.exist?(output) and File.mtime(output) > File.mtime(name)
       return
     end
   end
@@ -130,7 +130,7 @@ class CodeGroup
   end
 
   def make_tasks
-    FileUtils.mkdir_p @compile_dir unless File.exists? @compile_dir
+    FileUtils.mkdir_p @compile_dir unless File.exist? @compile_dir
 
     compile_task
     load_order_task

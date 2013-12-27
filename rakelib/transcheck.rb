@@ -41,7 +41,7 @@ class Transcheck
       else
         @tr_list.each do |lcode|
           tfname = File.join @base, lcode, (lname.gsub leader, '')
-          if File.exists? tfname
+          if File.exist? tfname
             @bugs[lname] = "is younger than its '#{lcode}' version" if File.mtime(tfname) < File.mtime(lname)
           else
             @bugs[lname] = "doesn't exist in '#{lcode}' edition"

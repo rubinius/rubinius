@@ -56,15 +56,15 @@ namespace :gems do
 
       ext_name = "#{File.basename(File.dirname(name))}.#{$dlext}"
       dest_path = File.join m[1], "lib", File.dirname(m[3])
-      next if File.exists? File.join(dest_path, ext_name)
+      next if File.exist? File.join(dest_path, ext_name)
 
       Dir.chdir File.dirname(name) do
         puts "Building #{m[1]}..."
 
-        bootstrap_rubinius build_gem_extconf unless File.exists? "Makefile"
+        bootstrap_rubinius build_gem_extconf unless File.exist? "Makefile"
         sh "#{BUILD_CONFIG[:build_make]}", :verbose => $verbose
 
-        if File.exists? ext_name
+        if File.exist? ext_name
           FileUtils.mkdir_p dest_path
           FileUtils.cp ext_name, dest_path
         end
