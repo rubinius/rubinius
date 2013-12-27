@@ -1,4 +1,5 @@
 # -*- ruby -*-
+require 'find'
 
 task :todo do
   excludes = Hash.new 0
