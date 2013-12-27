@@ -1,6 +1,7 @@
 artifacts/
 *.a
 *.bundle
+.bundle/install.log
 !.bundle
 *.dSYM
 *.dot
