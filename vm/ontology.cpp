@@ -9,7 +9,6 @@
 
 #include "builtin/access_variable.hpp"
 #include "builtin/array.hpp"
-#include "builtin/basic_object.hpp"
 #include "builtin/block_environment.hpp"
 #include "builtin/byte_array.hpp"
 #include "builtin/character.hpp"

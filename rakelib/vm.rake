@@ -60,7 +60,6 @@ GENERATED = %W[ vm/gen/config_variables.h
 # CompactLookupTable inherits from Tuple, so the header
 # for compactlookuptable.hpp has to come after tuple.hpp
 field_extract_headers = %w[
-  vm/builtin/basic_object.hpp
   vm/builtin/object.hpp
   vm/builtin/integer.hpp
   vm/builtin/fixnum.hpp
