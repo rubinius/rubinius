@@ -87,7 +87,8 @@ bn_mp_fread.o bn_mp_fwrite.o bn_mp_cnt_lsb.o bn_error.o \
 bn_mp_init_multi.o bn_mp_clear_multi.o bn_mp_exteuclid.o bn_mp_toradix_n.o bn_mp_toradix_nd.o \
 bn_mp_prime_random_ex.o bn_mp_get_int.o bn_mp_sqrt.o bn_mp_is_square.o bn_mp_init_set.o \
 bn_mp_init_set_int.o bn_mp_invmod_slow.o bn_mp_prime_rabin_miller_trials.o \
-bn_mp_to_signed_bin_n.o bn_mp_to_unsigned_bin_n.o
+bn_mp_to_signed_bin_n.o bn_mp_to_unsigned_bin_n.o \
+bn_mp_set_long.o bn_mp_init_set_long.o bn_mp_get_long.o
 
 $(LIBNAME):  $(OBJECTS)
 	$(AR) $(ARFLAGS) $@ $(OBJECTS)
