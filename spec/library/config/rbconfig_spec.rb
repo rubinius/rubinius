@@ -65,7 +65,7 @@ describe "RbConfig::CONFIG" do
 
   entries = {
     "RUBY_SO_NAME"      => "rubinius-#{Rubinius::VERSION}",
-    "ruby_install_name" => "rbx",
+    "ruby_install_name" => Rubinius::PROGRAM_NAME,
     "rubyhdrdir"        => Rubinius::HDR_PATH
   }
 
