@@ -91,28 +91,8 @@ Daedalus.blueprint do |i|
     g.cflags += gcc.cflags
 
     g.static_library "libonig" do |l|
-      l.source_files "*.c", "enc/*.c"
+      l.source_files "*.c"
     end
-
-    g.shared_library "enc/trans/big5"
-    g.shared_library "enc/trans/chinese"
-    g.shared_library "enc/trans/emoji"
-    g.shared_library "enc/trans/emoji_iso2022_kddi"
-    g.shared_library "enc/trans/emoji_sjis_docomo"
-    g.shared_library "enc/trans/emoji_sjis_kddi"
-    g.shared_library "enc/trans/emoji_sjis_softbank"
-    g.shared_library "enc/trans/escape"
-    g.shared_library "enc/trans/gb18030"
-    g.shared_library "enc/trans/gbk"
-    g.shared_library "enc/trans/iso2022"
-    g.shared_library "enc/trans/japanese"
-    g.shared_library "enc/trans/japanese_euc"
-    g.shared_library "enc/trans/japanese_sjis"
-    g.shared_library "enc/trans/korean"
-    g.shared_library "enc/trans/newline"
-    g.shared_library "enc/trans/single_byte"
-    g.shared_library "enc/trans/utf8_mac"
-    g.shared_library "enc/trans/utf_16_32"
   end
   files << oniguruma
 
