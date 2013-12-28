@@ -1,5 +1,4 @@
 #include "builtin/class.hpp"
-#include "builtin/encoding.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/location.hpp"
 #include "builtin/lookup_table.hpp"

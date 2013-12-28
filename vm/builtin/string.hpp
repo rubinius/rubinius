@@ -11,6 +11,11 @@
 #include <ctype.h> // For isdigit and friends
 #include <errno.h> // For ERANGE
 
+// See comment in regexp.hpp
+#ifndef ONIGURUMA_H
+struct OnigEncodingType;
+#endif
+
 // copied from ruby 1.8.x source, ruby.h
 /* need to include <ctype.h> to use these macros */
 #ifndef ISPRINT
@@ -28,6 +33,7 @@
 
 namespace rubinius {
   class ByteArray;
+  class Encoding;
   class Float;
 
   class String : public Object {
@@ -40,6 +46,7 @@ namespace rubinius {
     ByteArray* data_;         // slot
     Fixnum* hash_value_;      // slot
     Object* shared_;          // slot
+    Encoding* encoding_;      // slot
     Object* ascii_only_;      // slot
     Object* valid_encoding_;  // slot
 
@@ -48,6 +55,7 @@ namespace rubinius {
 
     attr_reader(num_bytes, Fixnum);
     attr_reader(data, ByteArray);
+    attr_reader(encoding, Encoding);
 
     void update_handle(STATE);
     void update_handle(VM* vm);
@@ -65,6 +73,22 @@ namespace rubinius {
         this->write_barrier(state, obj);
 
         update_handle(state);
+      }
+
+    template <class T>
+      void encoding(T state, Encoding* obj) {
+        if(obj->nil_p() || (!CBOOL(ascii_only_) && obj->ascii_compatible())) {
+          ascii_only_ = cNil;
+          num_chars_ = nil<Fixnum>();
+          valid_encoding_ = cNil;
+        }
+        if(byte_size() == 0 && !obj->nil_p() && obj->ascii_compatible()) {
+          ascii_only_ = cTrue;
+          num_chars_ = Fixnum::from(0);
+          valid_encoding_ = cTrue;
+        }
+        encoding_ = obj;
+        this->write_barrier(state, obj);
       }
 
     attr_accessor(num_chars, Fixnum);
@@ -99,6 +123,8 @@ namespace rubinius {
 
     // Rubinius.primitive+ :string_equal
     Object* equal(STATE, String* other) {
+      if(encoding_ != other->encoding() &&
+         Encoding::compatible_p(state, this, other)->nil_p()) return cFalse;
       if(this->num_bytes() != other->num_bytes()) return cFalse;
       int comp = memcmp(
           this->byte_address(),
@@ -145,6 +171,8 @@ namespace rubinius {
 
     // Rubinius.primitive :string_check_null_safe
     String* check_null_safe(STATE);
+
+    String* convert_escaped(STATE, Encoding*& enc, bool& fixed_encoding);
 
     void unshare(STATE);
     hashval hash_string(STATE);
@@ -246,6 +274,9 @@ namespace rubinius {
     // Rubinius.primitive :string_pattern
     static String* pattern(STATE, Object* self, Fixnum* size, Object* pattern);
 
+    // Rubinius.primitive :string_from_codepoint
+    static String* from_codepoint(STATE, Object* self, Integer* code, Encoding* enc);
+
     // Rubinius.primitive :string_aref
     Object* aref(STATE, Fixnum* index);
 
@@ -258,6 +289,7 @@ namespace rubinius {
     String* byte_substring(STATE, native_int index, native_int length);
     String* char_substring(STATE, native_int index, native_int length);
 
+    Encoding* get_encoding_kcode_fallback(STATE);
     native_int find_character_byte_index(STATE, native_int index, native_int start = 0);
     native_int find_byte_character_index(STATE, native_int index, native_int start = 0);
 
@@ -296,6 +328,9 @@ namespace rubinius {
 
     // Rubinius.primitive :string_resize_capacity
     String* resize_capacity(STATE, Fixnum* count);
+
+    // Rubinius.primitive+ :string_encoding
+    Encoding* encoding(STATE);
 
     // Rubinius.primitive+ :string_ascii_only_p
     Object* ascii_only_p(STATE);

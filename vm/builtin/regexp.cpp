@@ -5,7 +5,6 @@
 #include "builtin/block_environment.hpp"
 #include "builtin/byte_array.hpp"
 #include "builtin/class.hpp"
-#include "builtin/encoding.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/integer.hpp"
 #include "builtin/lookup_table.hpp"

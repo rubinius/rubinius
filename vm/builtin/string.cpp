@@ -1,3 +1,7 @@
+#include "oniguruma.h" // Must be first.
+#include "transcoder.h"
+#include "regenc.h"
+
 #include "builtin/array.hpp"
 #include "builtin/byte_array.hpp"
 #include "builtin/character.hpp"
@@ -72,6 +76,7 @@ namespace rubinius {
     so->num_chars_      = nil<Fixnum>();
     so->hash_value_     = nil<Fixnum>();
     so->shared_         = cFalse;
+    so->encoding_       = nil<Encoding>();
     so->ascii_only_     = cNil;
     so->valid_encoding_ = cNil;
 
@@ -123,6 +128,7 @@ namespace rubinius {
     so->num_chars_      = nil<Fixnum>();
     so->hash_value_     = nil<Fixnum>();
     so->shared_         = cFalse;
+    so->encoding_       = nil<Encoding>();
     so->ascii_only_     = cNil;
     so->valid_encoding_ = cNil;
 
@@ -146,6 +152,7 @@ namespace rubinius {
     s->num_chars_      = nil<Fixnum>();
     s->hash_value_     = nil<Fixnum>();
     s->shared_         = cFalse;
+    s->encoding_       = nil<Encoding>();
     s->ascii_only_     = cNil;
     s->valid_encoding_ = cNil;
 
@@ -179,6 +186,17 @@ namespace rubinius {
     if(!handle) return;
 
     handle->update(state->vm()->native_method_environment);
+  }
+
+  static bool byte_compatible_p(Encoding* enc) {
+    return enc->nil_p() || ONIGENC_MBC_MAXLEN(enc->get_encoding()) == 1;
+  }
+
+  static bool fixed_width_p(Encoding* enc) {
+    if(enc->nil_p()) return true;
+
+    OnigEncodingType* e = enc->get_encoding();
+    return ONIGENC_MBC_MAXLEN(e) == ONIGENC_MBC_MINLEN(e);
   }
 
   static void invalid_codepoint_error(STATE, unsigned int c) {

@@ -1,6 +1,5 @@
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
-#include "builtin/encoding.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/float.hpp"

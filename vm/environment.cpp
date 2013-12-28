@@ -11,7 +11,6 @@
 
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
-#include "builtin/encoding.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
