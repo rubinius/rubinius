@@ -4,7 +4,6 @@
 #include "builtin/object.hpp"
 
 namespace rubinius {
-  class Encoding;
   class String;
   class Tuple;
 
@@ -54,9 +53,6 @@ namespace rubinius {
 
     // Rubinius.primitive+ :symbol_is_constant
     Object* is_constant_p(STATE);
-
-    // Rubinius.primitive+ :symbol_encoding
-    Encoding* encoding(STATE);
 
     class Info : public TypeInfo {
     public:

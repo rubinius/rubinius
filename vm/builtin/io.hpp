@@ -6,7 +6,6 @@
 namespace rubinius {
   class ByteArray;
   class String;
-  class Encoding;
 
   class IO : public Object {
   public:
@@ -20,8 +19,6 @@ namespace rubinius {
     Object* eof_;        // slot
     Integer* lineno_;    // slot
     Object* sync_;       // slot
-    Encoding* external_; // slot
-    Encoding* internal_; // slot
     Object* autoclose_;  // slot
 
   public:
@@ -34,8 +31,6 @@ namespace rubinius {
     attr_accessor(eof, Object);
     attr_accessor(lineno, Integer);
     attr_accessor(sync, Object);
-    attr_accessor(external, Encoding);
-    attr_accessor(internal, Encoding);
     attr_accessor(autoclose, Object);
 
     /* interface */

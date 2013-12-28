@@ -4,17 +4,11 @@
 #include "builtin/object.hpp"
 #include "builtin/byte_array.hpp"
 #include "builtin/fixnum.hpp"
-#include "builtin/encoding.hpp"
 #include "configuration.hpp"
 #include "object_utils.hpp"
 
 #include <ctype.h> // For isdigit and friends
 #include <errno.h> // For ERANGE
-
-// See comment in regexp.hpp
-#ifndef ONIGURUMA_H
-struct OnigEncodingType;
-#endif
 
 // copied from ruby 1.8.x source, ruby.h
 /* need to include <ctype.h> to use these macros */
@@ -33,7 +27,6 @@ struct OnigEncodingType;
 
 namespace rubinius {
   class ByteArray;
-  class Encoding;
   class Float;
 
   class String : public Object {
@@ -46,16 +39,12 @@ namespace rubinius {
     ByteArray* data_;         // slot
     Fixnum* hash_value_;      // slot
     Object* shared_;          // slot
-    Encoding* encoding_;      // slot
-    Object* ascii_only_;      // slot
-    Object* valid_encoding_;  // slot
 
   public:
     /* accessors */
 
     attr_reader(num_bytes, Fixnum);
     attr_reader(data, ByteArray);
-    attr_reader(encoding, Encoding);
 
     void update_handle(STATE);
     void update_handle(VM* vm);
@@ -75,27 +64,9 @@ namespace rubinius {
         update_handle(state);
       }
 
-    template <class T>
-      void encoding(T state, Encoding* obj) {
-        if(obj->nil_p() || (!CBOOL(ascii_only_) && obj->ascii_compatible())) {
-          ascii_only_ = cNil;
-          num_chars_ = nil<Fixnum>();
-          valid_encoding_ = cNil;
-        }
-        if(byte_size() == 0 && !obj->nil_p() && obj->ascii_compatible()) {
-          ascii_only_ = cTrue;
-          num_chars_ = Fixnum::from(0);
-          valid_encoding_ = cTrue;
-        }
-        encoding_ = obj;
-        this->write_barrier(state, obj);
-      }
-
     attr_accessor(num_chars, Fixnum);
     attr_accessor(hash_value, Fixnum);
     attr_accessor(shared, Object);
-    attr_accessor(ascii_only, Object);
-    attr_accessor(valid_encoding, Object);
 
     /* interface */
 
@@ -274,9 +245,6 @@ namespace rubinius {
     // Rubinius.primitive :string_pattern
     static String* pattern(STATE, Object* self, Fixnum* size, Object* pattern);
 
-    // Rubinius.primitive :string_from_codepoint
-    static String* from_codepoint(STATE, Object* self, Integer* code, Encoding* enc);
-
     // Rubinius.primitive :string_aref
     Object* aref(STATE, Fixnum* index);
 
@@ -328,9 +296,6 @@ namespace rubinius {
 
     // Rubinius.primitive :string_resize_capacity
     String* resize_capacity(STATE, Fixnum* count);
-
-    // Rubinius.primitive+ :string_encoding
-    Encoding* encoding(STATE);
 
     // Rubinius.primitive+ :string_ascii_only_p
     Object* ascii_only_p(STATE);
