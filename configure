@@ -101,7 +101,6 @@ class Configure
     @bindir       = nil
     @appdir       = nil
     @libdir       = nil
-    @encdir       = nil
     @runtimedir   = nil
     @kerneldir    = nil
     @sitedir      = nil
@@ -281,10 +280,8 @@ class Configure
     @gemsdir      = @prefixdir + "/gems" unless @gemsdir
     @includedir   = @prefixdir + "/vm/include/capi" unless @includedir
 
-    @encdir = @libdir + "/encoding/converter"
-
     dirs = [@bindir, @libdir, @runtimedir, @kerneldir, @sitedir, @vendordir,
-            @mandir, @gemsdir, @includedir, @encdir]
+            @mandir, @gemsdir, @includedir]
 
     parts = dirs.map { |d| d.split "/" }
 
@@ -1759,7 +1756,6 @@ int main() { return tgetnum(""); }
       :prefixdir          => @prefixdir,
       :bindir             => @bindir,
       :libdir             => @libdir,
-      :encdir             => @encdir,
       :runtimedir         => @runtimedir,
       :kerneldir          => @kerneldir,
       :sitedir            => @sitedir,
@@ -1805,7 +1801,6 @@ int main() { return tgetnum(""); }
 #define RBX_RUNTIME_PATH     "#{@runtimedir}"
 #define RBX_KERNEL_PATH      "#{@kerneldir}"
 #define RBX_LIB_PATH         "#{@libdir}"
-#define RBX_ENC_PATH         "#{@encdir}"
 #define RBX_HDR_PATH         "#{@includedir}"
 #define RBX_SITE_PATH        "#{@sitedir}"
 #define RBX_VENDOR_PATH      "#{@vendordir}"
