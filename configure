@@ -200,7 +200,7 @@ class Configure
     @ruby_version = "2.1.0"
     @libversion = "2.2"
     @patch_version = "3"
-    @release_date = "2013-12-29"
+    @release_date = nil
 
     # Configure settings
     @build_ruby = nil
