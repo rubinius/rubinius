@@ -93,7 +93,7 @@ namespace rubinius {
     }
 
     // Rubinius.primitive+ :string_equal
-    Object* equal(STATE, String* other) {
+    Object* equal(STATE, String* other) 
       if(encoding_ != other->encoding() &&
          Encoding::compatible_p(state, this, other)->nil_p()) return cFalse;
       if(this->num_bytes() != other->num_bytes()) return cFalse;
@@ -255,7 +255,6 @@ namespace rubinius {
     String* byte_substring(STATE, Fixnum* index, Fixnum* length);
 
     String* byte_substring(STATE, native_int index, native_int length);
-    String* char_substring(STATE, native_int index, native_int length);
 
     Encoding* get_encoding_kcode_fallback(STATE);
     native_int find_character_byte_index(STATE, native_int index, native_int start = 0);
@@ -264,23 +263,11 @@ namespace rubinius {
     // Rubinius.primitive :string_character_byte_index
     Fixnum* find_character_byte_index_prim(STATE, Fixnum* index, Fixnum* start);
 
-    // Rubinius.primitive :string_byte_character_index
-    Fixnum* find_byte_character_index_prim(STATE, Fixnum* index, Fixnum* start);
-
     // Rubinius.primitive :string_index
     Fixnum* index(STATE, String* pattern, Fixnum* start);
 
-    // Rubinius.primitive :string_character_index
-    Fixnum* character_index(STATE, String* pattern, Fixnum* start);
-
     // Rubinius.primitive :string_rindex
     Fixnum* rindex(STATE, String* pattern, Fixnum* start);
-
-    // Rubinius.primitive :string_byte_index
-    Fixnum* byte_index(STATE, Object* value, Fixnum* start);
-
-    // Rubinius.primitive :string_previous_byte_index
-    Fixnum* previous_byte_index(STATE, Fixnum* index);
 
     // Rubinius.primitive :string_transform
     String* transform(STATE, Tuple* table);
@@ -296,20 +283,6 @@ namespace rubinius {
 
     // Rubinius.primitive :string_resize_capacity
     String* resize_capacity(STATE, Fixnum* count);
-
-    // Rubinius.primitive+ :string_ascii_only_p
-    Object* ascii_only_p(STATE);
-
-    // Rubinius.primitive+ :string_valid_encoding_p
-    Object* valid_encoding_p(STATE);
-
-    int codepoint(STATE, bool* found);
-
-    // Rubinius.primitive :string_codepoint
-    Fixnum* codepoint(STATE);
-
-    // Rubinius.primitive :string_chr_at
-    Object* chr_at(STATE, Fixnum* byte);
 
     // Rubinius.primitive :string_reverse
     String* reverse(STATE);
