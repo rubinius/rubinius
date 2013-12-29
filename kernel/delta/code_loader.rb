@@ -86,8 +86,8 @@ module Rubinius
       attr_accessor :bootstrap_load_path
       attr_accessor :runtime_load_path
 
-      def rubygems_libraries
-        @rubygems_libraries ||= [
+      def bootstrap_libraries
+        @bootstrap_libraries ||= [
           "cgi",
           "date",
           "delegate",
@@ -101,6 +101,7 @@ module Rubinius
           "ffi2/generators",
           "fileutils",
           "forwardable",
+          "logger",
           "mkmf",
           "monitor",
           "net/ftp",
@@ -158,8 +159,8 @@ module Rubinius
       # Hopefully, rubygems will make this unnecessary in the near future by
       # defining a hook we can use to know when rubygems itself is requiring
       # these libraries.
-      def rubygems_require(name)
-        return false unless rubygems_libraries.include? name
+      def bootstrap_require(name)
+        return false unless bootstrap_libraries.include? name
 
         begin
           bootstrap { return CodeLoader.require(name) }
