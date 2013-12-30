@@ -98,6 +98,11 @@ VALUE io_spec_rb_io_write(VALUE self, VALUE io, VALUE str) {
 }
 #endif
 
+#ifdef HAVE_RB_IO_CHECK_IO
+VALUE io_spec_rb_io_check_io(VALUE self, VALUE io) {
+  return rb_io_check_io(io);
+}
+#endif
 
 #ifdef HAVE_RB_IO_CHECK_READABLE
 VALUE io_spec_rb_io_check_readable(VALUE self, VALUE io) {
@@ -235,6 +240,10 @@ void Init_io_spec() {
 
 #ifdef HAVE_RB_IO_CLOSE
   rb_define_method(cls, "rb_io_close", io_spec_rb_io_close, 1);
+#endif
+
+#ifdef HAVE_RB_IO_CHECK_IO
+  rb_define_method(cls, "rb_io_check_io", io_spec_rb_io_check_io, 1);
 #endif
 
 #ifdef HAVE_RB_IO_CHECK_READABLE

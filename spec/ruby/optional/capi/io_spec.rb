@@ -129,6 +129,16 @@ describe "C-API IO function" do
     end
   end
 
+  describe "rb_io_check_io" do
+    it "returns the IO object if it is valid" do
+      @o.rb_io_check_io(@io).should == @io
+    end
+
+    it "returns nil for non IO objects" do
+      @o.rb_io_check_io(new_hash).should be_nil
+    end
+  end
+
   describe "rb_io_check_closed" do
     it "does not raise an exception if the IO is not closed" do
       # The MRI function is void, so we use should_not raise_error
