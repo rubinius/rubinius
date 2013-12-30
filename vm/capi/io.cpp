@@ -327,6 +327,10 @@ extern "C" {
     io->set_nonblock(env->state());
   }
 
+  VALUE rb_io_check_io(VALUE io) {
+    return rb_check_convert_type(io, T_FILE, "IO", "to_io");
+  }
+
   void rb_io_check_closed(rb_io_t* iot) {
     VALUE io_handle = iot->handle;
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
