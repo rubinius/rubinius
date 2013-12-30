@@ -25,6 +25,7 @@ module Rubinius
       @advance = true
       @init = false
       @use_stdin_only = false
+      @encoding_args = nil
     end
 
     #
@@ -423,6 +424,13 @@ module Rubinius
       @stream.seek(*args)
     end
 
+    def set_encoding(*args)
+      @encoding_args = args
+      if @stream and !@stream.closed?
+        @stream.set_encoding *args
+      end
+    end
+
     #
     # Close file stream and return self.
     #
@@ -437,7 +445,15 @@ module Rubinius
     end
 
     def stream(file)
-      file == "-" ? STDIN : File.open(file, "r", :external_encoding => encoding)
+      stream = file == "-" ? STDIN : File.open(file, "r", :external_encoding => encoding)
+
+      if @encoding_args
+        stream.set_encoding *@encoding_args
+      elsif encoding
+        stream.set_encoding encoding
+      end
+
+      stream
     end
 
     #
