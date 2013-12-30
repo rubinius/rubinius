@@ -716,6 +716,14 @@ describe "Global variable $0" do
     $0.should == "rbx"
   end
 
+  platform_is :linux, :darwin do
+    it "actually sets the program name" do
+      $0 = "rbx-custom"
+
+      `ps -f`.include?('rbx-custom').should == true
+    end
+  end
+
   it "returns the given value when set" do
     ($0 = "rbx").should == "rbx"
   end
