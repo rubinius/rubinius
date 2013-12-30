@@ -61,7 +61,7 @@ class Dir
 
     class RecursiveDirectories < Node
       def call(env, start)
-        return unless File.exists? start
+        return if !start || !File.exists?(start)
 
         # Even though the recursive entry is zero width
         # in this case, its left separator is still the

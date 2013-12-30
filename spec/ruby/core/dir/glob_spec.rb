@@ -125,6 +125,10 @@ describe "Dir.glob" do
     Dir.glob('{}').should == []
   end
 
+  it "handles infinite directory wildcards" do
+    Dir.glob('**/**/**').empty?.should == false
+  end
+
   platform_is_not(:windows) do
     it "matches the literal character '\\' with option File::FNM_NOESCAPE" do
       Dir.mkdir 'foo?bar'
