@@ -302,6 +302,19 @@ module Process
     config "rbx.platform.rlimit", :rlim_cur, :rlim_max
   end
 
+  ##
+  # Sets the process title. Calling this method does not affect the value of
+  # `$0` as per MRI behaviour. This method returns the title set.
+  #
+  # @param [String] title
+  # @return [Title]
+  #
+  def self.setproctitle(title)
+    val = Rubinius::Type.coerce_to(title, String, :to_str)
+
+    Rubinius.invoke_primitive(:vm_set_process_title, val)
+  end
+
   def self.setrlimit(resource, cur_limit, max_limit=undefined)
     resource =  coerce_rlimit_resource(resource)
     cur_limit = Rubinius::Type.coerce_to cur_limit, Integer, :to_int
