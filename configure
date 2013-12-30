@@ -119,7 +119,7 @@ class Configure
     @preserve_prefix = false
 
     @program_name = "rbx"
-    @bin_links = ["rbx", "ruby", "rake", "gem", "irb", "rdoc", "ri"]
+    @bin_links = ["rbx", "ruby", "rake", "gem", "irb", "rdoc", "ri", "erb"]
     @use_bin_links = true
 
     # Gems
