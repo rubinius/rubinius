@@ -1,4 +1,4 @@
-#!/usr/bin/env rubinius
+#!/usr/bin/ruby
 
 require 'bytecode/compiler'
 require 'bytecode/rubinius'

@@ -1,4 +1,4 @@
-#!/usr/local/bin/ruby
+#!/usr/bin/ruby
 # This program is contributed by Shin Nishiyama
 
 

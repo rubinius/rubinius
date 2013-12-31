@@ -1,4 +1,4 @@
-#!ruby
+#
 # vim: noet ts=2 sts=8 sw=2
 
 require 'rubygems'
