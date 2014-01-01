@@ -170,7 +170,7 @@ describe "CApiObject" do
       @o.rb_check_convert_type(h).should == nil
     end
 
-    it "raises when the coercion method returns a different object" do
+    it "raises a TypeError when the coercion method returns a different object" do
       dummy = mock('to_ary')
       dummy.should_receive(:to_ary).and_return(10)
 
