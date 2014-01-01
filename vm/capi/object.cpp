@@ -135,14 +135,14 @@ extern "C" {
     }
 
     // If the method returns nil we can bail out right away.
-    if ( NIL_P(retval) ) return retval;
+    if (NIL_P(retval)) return retval;
 
     /*
     When the coercion method exists but returns a different type than specified
     in `type` MRI will raise an error. This code is mostly a copy-paste job
     from the MRI source code.
     */
-    if ( type != -1 && TYPE(retval) != type ) {
+    if (type != -1 && TYPE(retval) != type) {
       const char *cname = rb_obj_classname(object_handle);
 
       rb_raise(rb_eTypeError, "can't convert %s to %s (%s#%s gives %s)",
