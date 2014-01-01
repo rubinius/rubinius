@@ -119,10 +119,10 @@ extern "C" {
   }
 
   /*
-  NOTE: when `0` is given as the `type` no error will be raised. This is due to
-  the way this function is used in Rbx itself and Rbx not having MRI's
-  `convert_type` function.
-  */
+   * NOTE: when `0` is given as the `type` no error will be raised. This is due
+   * to the way this function is used in Rbx itself and Rbx not having MRI's
+   * `convert_type` function.
+   */
   VALUE rb_check_convert_type(VALUE object_handle, int type,
                               const char* type_name, const char* method_name)
   {
@@ -138,10 +138,10 @@ extern "C" {
     if (NIL_P(retval)) return retval;
 
     /*
-    When the coercion method exists but returns a different type than specified
-    in `type` MRI will raise an error. This code is mostly a copy-paste job
-    from the MRI source code.
-    */
+     * When the coercion method exists but returns a different type than
+     * specified in `type` MRI will raise an error. This code is mostly a
+     * copy-paste job from the MRI source code.
+     */
     if (type != -1 && TYPE(retval) != type) {
       const char *cname = rb_obj_classname(object_handle);
 
