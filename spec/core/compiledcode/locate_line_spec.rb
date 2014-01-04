@@ -1,15 +1,15 @@
 module CompiledCodeSpec
-  LineTest = def line_test
+  LineTest = instance_method(def line_test
     1 + 1
     2 + 2
-  end
+  end).executable
 
-  BlockLineTest = def block_line_test
+  BlockLineTest = instance_method(def block_line_test
     1 + 1
     1.times do
       2 + 2
     end
-  end
+  end).executable
 end
 
 # Line numbers are important! Thats why the above module is in
