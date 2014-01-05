@@ -1,7 +1,7 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 
-describe "Array" do
+describe "Range" do
   it "includes Enumerable" do
-    Array.include?(Enumerable).should == true
+    Range.include?(Enumerable).should == true
   end
 end
