@@ -1,4 +1,6 @@
 class Symbol
+  include Comparable
+
   def <=>(other)
     return unless other.kind_of? Symbol
 
