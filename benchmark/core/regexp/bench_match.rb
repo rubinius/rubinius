@@ -7,6 +7,8 @@ strings = ["zombies".force_encoding("US-ASCII"),
            "zümbies".force_encoding("UTF-8"),
            "z\x00mbies".force_encoding("ASCII-8BIT")]
 
+string  = "zombies"
+
 # Benchmark for showing issues when encodings of strings change.
 # This behavior is present in Rails where it happens often for example
 # for escaping html safe buffers.
@@ -15,7 +17,9 @@ Benchmark.ips do |x|
   x.report "Regexp#match on same strings" do |times|
     i = 0
     while i < times
-      /a-z/.match "zombies"
+      strings.each do
+        /a-z/.match string
+      end
       i += 1
     end
   end
