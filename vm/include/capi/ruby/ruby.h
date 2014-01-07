@@ -1324,8 +1324,10 @@ struct RTypedData {
   void    rb_io_check_closed(rb_io_t* io);
   void    rb_io_check_readable(rb_io_t* io);
   void    rb_io_check_writable(rb_io_t* io);
+  VALUE   rb_io_check_io(VALUE io);
 
   FILE *  rb_io_stdio_file(rb_io_t *fptr);
+
 
   void    rb_update_max_fd(int fd);
   void    rb_fd_fix_cloexec(int fd);
