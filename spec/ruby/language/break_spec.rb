@@ -163,6 +163,11 @@ describe "Break inside a while loop" do
       a = while true; break []; end;       a.should == []
       a = while true; break [1]; end;      a.should == [1]
     end
+
+    it "passes the value returned by a method with omitted parenthesis and passed block" do
+      obj = BreakSpecs::Block.new
+      lambda { break obj.method :value do |x| x end }.call.should == :value
+    end
   end
 
   describe "with a splat" do

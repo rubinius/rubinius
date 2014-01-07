@@ -105,6 +105,10 @@ module BreakSpecs
       note yielding(&b)
       note :d
     end
+
+    def method(v)
+      yield v
+    end
   end
 
   class Lambda < Driver

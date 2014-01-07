@@ -99,6 +99,11 @@ describe "The next statement from within the block" do
     ScratchPad.recorded.should == [
       :begin, :ensure, :begin, :begin_end, :ensure, :after, :begin, :ensure]
   end
+
+  it "passes the value returned by a method with omitted parenthesis and passed block" do
+    obj = NextSpecs::Block.new
+    lambda { next obj.method :value do |x| x end }.call.should == :value
+  end
 end
 
 describe "The next statement" do
