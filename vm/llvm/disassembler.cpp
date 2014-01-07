@@ -46,18 +46,25 @@ namespace rubinius {
 #if RBX_LLVM_API_VER > 300
     llvm::TargetOptions options;
     options.NoFramePointerElim = true;
+#if RBX_LLVM_API_VER < 304
     options.NoFramePointerElimNonLeaf = true;
+#endif
     target_machine = target->createTargetMachine(host, llvm::sys::getHostCPUName(), "", options);
 #else
     target_machine = target->createTargetMachine(host, llvm::sys::getHostCPUName(), "");
 #endif
 
     sub_target = target->createMCSubtargetInfo(host, llvm::sys::getHostCPUName(), "");
-    asm_info = target->createMCAsmInfo(host);
 
 #if RBX_LLVM_API_VER > 300
     instr_info = target->createMCInstrInfo();
     reg_info = target->createMCRegInfo(host);
+#endif
+
+#if RBX_LLVM_API_VER > 303
+    asm_info = target->createMCAsmInfo(*reg_info, host);
+#else
+    asm_info = target->createMCAsmInfo(host);
 #endif
 
     if(asm_info) {

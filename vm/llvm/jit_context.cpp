@@ -84,7 +84,9 @@ namespace rubinius {
 #if RBX_LLVM_API_VER > 300
     llvm::TargetOptions opts;
     opts.NoFramePointerElim = true;
+#if RBX_LLVM_API_VER < 304
     opts.NoFramePointerElimNonLeaf = true;
+#endif
     opts.JITEmitDebugInfo = true;
 
     factory.setTargetOptions(opts);

@@ -56,12 +56,21 @@ namespace jit {
         "", "rubinius", true, "", 0);
     DIFile file = debug_builder().createFile(file_str, "");
 
+#if RBX_LLVM_API_VER > 303
+    DIType dummy_return_type = debug_builder().createNullPtrType();
+    Value* dummy_signature[] = {
+      &*dummy_return_type,
+    };
+    DICompositeType dummy_subroutine_type = debug_builder().createSubroutineType(file,
+        debug_builder().getOrCreateArray(dummy_signature));
+#else
     DIType dummy_return_type = debug_builder().createNullPtrType("dummy type");
     Value* dummy_signature[] = {
       &*dummy_return_type,
     };
     DIType dummy_subroutine_type = debug_builder().createSubroutineType(file,
         debug_builder().getOrCreateArray(dummy_signature));
+#endif
 
 #if RBX_LLVM_API_VER > 300
     DISubprogram subprogram = debug_builder().createFunction(file, "", "",
