@@ -403,16 +403,22 @@ namespace jit {
 
     /// allocateDataSection - Allocate memory for a data section.
     /// TODO: currently IsReadOnly is ignored.
-#if RBX_LLVM_API_VER > 303
+#if RBX_LLVM_API_VER >= 304
     virtual uint8_t *allocateDataSection(uintptr_t Size, unsigned Alignment,
                                  unsigned SectionID, StringRef SectionName,
                                  bool IsReadOnly) {
       utilities::thread::SpinLock::LockGuard guard(lock_);
       return (uint8_t*)DataAllocator.Allocate(Size, Alignment);
     }
-#else
+#elif RBX_LLVM_API_VER >= 303
     uint8_t *allocateDataSection(uintptr_t Size, unsigned Alignment,
                                  unsigned SectionID, bool IsReadOnly) {
+      utilities::thread::SpinLock::LockGuard guard(lock_);
+      return (uint8_t*)DataAllocator.Allocate(Size, Alignment);
+    }
+#else
+    uint8_t *allocateDataSection(uintptr_t Size, unsigned Alignment,
+                                 unsigned SectionID) {
       utilities::thread::SpinLock::LockGuard guard(lock_);
       return (uint8_t*)DataAllocator.Allocate(Size, Alignment);
     }
