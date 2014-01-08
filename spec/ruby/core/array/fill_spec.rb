@@ -43,22 +43,12 @@ describe "Array#fill" do
     [nil, nil, nil, nil].fill { |i| i * 2 }.should == [0, 2, 4, 6]
   end
 
-  ruby_version_is '' ... '1.9' do
-    it "raises a TypeError on a frozen array" do
-      lambda { ArraySpecs.frozen_array.fill('x') }.should raise_error(TypeError)
-    end
-    it "raises a TypeError on an empty frozen array" do
-      lambda { ArraySpecs.empty_frozen_array.fill('x') }.should raise_error(TypeError)
-    end
+  it "raises a RuntimeError on a frozen array" do
+    lambda { ArraySpecs.frozen_array.fill('x') }.should raise_error(RuntimeError)
   end
 
-  ruby_version_is '1.9' do
-    it "raises a RuntimeError on a frozen array" do
-      lambda { ArraySpecs.frozen_array.fill('x') }.should raise_error(RuntimeError)
-    end
-    it "raises a RuntimeError on an empty frozen array" do
-      lambda { ArraySpecs.empty_frozen_array.fill('x') }.should raise_error(RuntimeError)
-    end
+  it "raises a RuntimeError on an empty frozen array" do
+    lambda { ArraySpecs.empty_frozen_array.fill('x') }.should raise_error(RuntimeError)
   end
 
   it "raises an ArgumentError if 4 or more arguments are passed when no block given" do

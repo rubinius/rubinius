@@ -42,19 +42,6 @@ describe "Regexps with back-references" do
     /(foo.)\1/.match("foo1foo2").should be_nil
   end
 
-  it "saves captures with the matched string's class" do
-    class NewString < String; end
-    NewString.new("hello") =~ /h(e)(l)lo/
-
-    $~[0].class.should == NewString
-    $1.class.should == NewString
-    $2.class.should == NewString
-    $&.class.should == NewString
-    $`.class.should == NewString
-    $'.class.should == NewString
-    $+.class.should == NewString
-  end
-
   not_compliant_on :ironruby do
     it "resets nested \<n> backreference before match of outer subexpression" do
       /(a\1?){2}/.match("aaaa").to_a.should == ["aa", "a"]

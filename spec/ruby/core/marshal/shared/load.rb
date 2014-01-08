@@ -333,8 +333,10 @@ describe :marshal_load, :shared => true do
       s.instance_variable_set(:@foo, 10)
       obj = ['5', s, 'hi'].extend(Meths, MethsMore)
       obj.instance_variable_set(:@mix, s)
-      Marshal.send(@method, "\004\bI[\b\"\0065I\"\twell\006:\t@fooi\017\"\ahi\006:\t@mix@\a").should ==
-        obj
+      new_obj = Marshal.send(@method, "\004\bI[\b\"\0065I\"\twell\006:\t@fooi\017\"\ahi\006:\t@mix@\a")
+      new_obj.should == obj
+      new_obj.instance_variable_get(:@mix).should equal new_obj[1]
+      new_obj[1].instance_variable_get(:@foo).should == 10
     end
   end
 

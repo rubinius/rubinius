@@ -480,22 +480,8 @@ describe :process_spawn, :shared => true do
     lambda { @object.spawn "" }.should raise_error(Errno::ENOENT)
   end
 
-  describe "when the command does not exist" do
-    before do
-      @code = lambda { @object.spawn "nonesuch" }
-    end
-
-    it "raises an Errno::ENOENT" do
-      lambda { @code.call }.should raise_error(Errno::ENOENT)
-    end
-
-    it "sets $? to a Process::Status with the pid of the failed fork and exit code 127" do
-      begin; @code.call; rescue Errno::ENOENT; end
-
-      $?.should be_kind_of(Process::Status)
-      $?.pid.should be_kind_of(Fixnum)
-      $?.exitstatus.should == 127
-    end
+  it "raises an Errno::ENOENT if the command does not exist" do
+    lambda { @object.spawn "nonesuch" }.should raise_error(Errno::ENOENT)
   end
 
   it "raises an Errno::EACCES when the file does not have execute permissions" do

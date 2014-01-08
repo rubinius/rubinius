@@ -63,6 +63,15 @@ ruby_version_is "2.0" do
   end
 end
 
+ruby_version_is "2.1" do
+  describe "Defining a method" do
+    it "returns a symbol of the method name" do
+      method_name = def some_method; end
+      method_name.should == :some_method
+    end
+  end
+end
+
 describe "An instance method definition with a splat" do
   it "accepts an unnamed '*' argument" do
     def foo(*); end;

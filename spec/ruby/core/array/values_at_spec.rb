@@ -44,36 +44,15 @@ describe "Array#values_at" do
   end
 
   describe "when passed a range" do
-    ruby_version_is "" ... "2.0" do
-      it "fills with nil once if the index is out of the range" do
-        [0, 1].values_at(0..3).should == [0, 1, nil]
-        [0, 1].values_at(2..4).should == [nil]
-      end
-    end
-
-    ruby_version_is "2.0" do
-      it "fills with nil if the index is out of the range" do
-        [0, 1].values_at(0..3).should == [0, 1, nil, nil]
-        [0, 1].values_at(2..4).should == [nil, nil, nil]
-      end
+    it "fills with nil if the index is out of the range" do
+      [0, 1].values_at(0..3).should == [0, 1, nil, nil]
+      [0, 1].values_at(2..4).should == [nil, nil, nil]
     end
 
     describe "on an empty array" do
-      ruby_version_is "" ... "2.0" do
-        it "fills with nil once if the index is out of the range and starts at 0" do
-          [].values_at(0..2).should == [nil]
-        end
-
-        it "returns an empty array if the index is out of the range and starts at 1" do
-          [].values_at(1..3).should == []
-        end
-      end
-
-      ruby_version_is "2.0" do
-        it "fills with nils if the index is out of the range" do
-          [].values_at(0..2).should == [nil, nil, nil]
-          [].values_at(1..3).should == [nil, nil, nil]
-        end
+      it "fills with nils if the index is out of the range" do
+        [].values_at(0..2).should == [nil, nil, nil]
+        [].values_at(1..3).should == [nil, nil, nil]
       end
     end
   end

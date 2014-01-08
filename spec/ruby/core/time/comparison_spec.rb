@@ -76,6 +76,15 @@ describe "Time#<=>" do
         obj.should_receive(:<=>).with(t).and_return(r)
         (t <=> obj).should == 0
       end
+
+      it "returns nil if argument also uses an inverse comparison for <=>" do
+        t = Time.now
+        r = mock('r')
+        def r.<=>(other); other <=> self; end
+        r.should_receive(:<=>).once
+
+        (t <=> r).should be_nil
+      end
     end
   end
 end

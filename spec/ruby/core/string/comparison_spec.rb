@@ -121,5 +121,13 @@ describe "String#<=>" do
 
       ("abc" <=> obj).should == 1
     end
+
+    it "returns nil if argument also uses an inverse comparison for <=>" do
+      obj = mock('x')
+      def obj.<=>(other); other <=> self; end
+      obj.should_receive(:<=>).once
+
+      ("abc" <=> obj).should be_nil
+    end
   end
 end
