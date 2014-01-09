@@ -1,14 +1,11 @@
-require File.expand_path('../fixtures/classes.rb', __FILE__)
+require File.expand_path('../../fixtures/call_site.rb', __FILE__)
 
 describe "Rubinius::CallSite#executable" do
   before :each do
-    @call_site = CallSiteSpec::CallSiteTest.call_sites[0]
+    @call_site = CallSiteSpecs::A.call_sites(:a).first
   end
 
-  it "has the correct executable for the call site" do
-    @call_site.executable.should == CallSiteSpec::CallSiteTest
+  it "returns the CompiledCode instance containing the call site" do
+    @call_site.executable.should == CallSiteSpecs::A.executable(:a)
   end
 end
-
-
-

@@ -1,12 +1,11 @@
-require File.expand_path('../fixtures/classes.rb', __FILE__)
+require File.expand_path('../../fixtures/call_site.rb', __FILE__)
 
 describe "Rubinius::CallSite#ip" do
   before :each do
-    @call_site = CallSiteSpec::CallSiteTest.call_sites[0]
+    @call_site = CallSiteSpecs::A.call_sites(:a).first
   end
 
-  it "sets the correct ip for the call" do
-    @call_site.ip.should == 3
+  it "returns the IP of the call site" do
+    @call_site.ip.should == 2
   end
-
 end

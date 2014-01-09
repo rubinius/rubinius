@@ -1,14 +1,12 @@
-require File.expand_path('../fixtures/classes.rb', __FILE__)
+require File.expand_path('../../fixtures/call_site.rb', __FILE__)
 
 describe "Rubinius::ConstantCache#scope" do
   before :each do
-    ConstantCacheSpec.new.constant_cache_test
-    @constant_cache_base  = ConstantCacheSpec::ConstantCacheTest.constant_caches[0]
-    @constant_cache_under = ConstantCacheSpec::ConstantCacheTest.constant_caches[1]
+    CallSiteSpecs::C.new.c
+    @cache = CallSiteSpecs::C.constant_caches(:c).first
   end
 
-  it "has a scope after the method is called" do
-    @constant_cache_base.scope.should be_an_instance_of(Rubinius::ConstantScope)
-    @constant_cache_under.scope.should be_an_instance_of(Rubinius::ConstantScope)
+  it "returns the ConstantScope instance for the cache's scope" do
+    @cache.scope.should be_an_instance_of(Rubinius::ConstantScope)
   end
 end

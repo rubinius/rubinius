@@ -1,13 +1,12 @@
-require File.expand_path('../fixtures/classes.rb', __FILE__)
+require File.expand_path('../../fixtures/call_site.rb', __FILE__)
 
 describe "Rubinius::PolyInlineCache#executable" do
   before :each do
-    PolyInlineCacheSpec::Bar.new.run
-    PolyInlineCacheSpec::Qux.new.run
-    @poly_inline_cache = PolyInlineCacheSpec::Foo::FooCallSite.call_sites[0]
+    CallSiteSpecs::A.new.p
+    @cache = CallSiteSpecs::A.call_sites(:a).first
   end
 
-  it "has the correct executable" do
-    @poly_inline_cache.executable.should == PolyInlineCacheSpec::Foo::FooCallSite
+  it "returns the CompiledCode instance containing the call site" do
+    @cache.executable.should == CallSiteSpecs::A.executable(:a)
   end
 end

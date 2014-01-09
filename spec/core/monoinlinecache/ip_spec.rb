@@ -1,13 +1,12 @@
-require File.expand_path('../fixtures/classes.rb', __FILE__)
+require File.expand_path('../../fixtures/call_site.rb', __FILE__)
 
 describe "Rubinius::MonoInlineCache#ip" do
   before :each do
-    MonoInlineCacheSpec::Bar.new.call_site_test
-    @mono_inline_cache = MonoInlineCacheSpec::Bar::CallSiteTest.call_sites[0]
+    CallSiteSpecs::A.new.c
+    @cache = CallSiteSpecs::A.call_sites(:c).first
   end
 
-  it "sets the correct ip for the call" do
-    @mono_inline_cache.ip.should == 1
+  it "returns the IP of the call site" do
+    @cache.ip.should == 1
   end
-
 end

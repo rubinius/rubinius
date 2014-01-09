@@ -1,13 +1,11 @@
-require File.expand_path('../fixtures/classes.rb', __FILE__)
+require File.expand_path('../../fixtures/call_site.rb', __FILE__)
 
-describe "Rubinius::ConstantCache#scope" do
+describe "Rubinius::ConstantCache#serial" do
   before :each do
-    @constant_cache_base  = ConstantCacheSpec::ConstantCacheTest.constant_caches[0]
-    @constant_cache_under = ConstantCacheSpec::ConstantCacheTest.constant_caches[1]
+    @cache = CallSiteSpecs::C.constant_caches(:c).first
   end
 
-  it "returns an integer for the serial" do
-    @constant_cache_base.serial.should be_kind_of(Integer)
-    @constant_cache_under.serial.should be_kind_of(Integer)
+  it "returns an Integer" do
+    @cache.serial.should be_kind_of(Integer)
   end
 end

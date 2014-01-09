@@ -1,13 +1,11 @@
-require File.expand_path('../fixtures/classes.rb', __FILE__)
+require File.expand_path('../../fixtures/call_site.rb', __FILE__)
 
 describe "Rubinius::CallSite#name" do
   before :each do
-    @call_site = CallSiteSpec::CallSiteTest.call_sites[0]
+    @call_site = CallSiteSpecs::A.call_sites(:a).first
   end
 
-  it "has the correct name for the call site" do
-    @call_site.name.should == :length
+  it "returns the name of the call site" do
+    @call_site.name.should == :c
   end
 end
-
-

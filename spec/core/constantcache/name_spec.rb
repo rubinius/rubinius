@@ -1,14 +1,11 @@
-require File.expand_path('../fixtures/classes.rb', __FILE__)
+require File.expand_path('../../fixtures/call_site.rb', __FILE__)
 
 describe "Rubinius::ConstantCache#name" do
   before :each do
-    @constant_cache_base  = ConstantCacheSpec::ConstantCacheTest.constant_caches[0]
-    @constant_cache_under = ConstantCacheSpec::ConstantCacheTest.constant_caches[1]
-
+    @cache = CallSiteSpecs::C.constant_caches(:c).first
   end
 
-  it "has the correct name for the constant cache" do
-    @constant_cache_base.name.should == :Rubinius
-    @constant_cache_under.name.should == :VariableScope
+  it "returns the name of the constant" do
+    @cache.name.should == :CC
   end
 end

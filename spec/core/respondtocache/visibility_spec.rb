@@ -1,16 +1,13 @@
-require File.expand_path('../fixtures/classes.rb', __FILE__)
+require File.expand_path('../../fixtures/call_site.rb', __FILE__)
 
 describe "Rubinius::RespondToCache#visibility" do
-  before :each do
-    RespondToCacheSpec::Bar.new.call_site_true
-    RespondToCacheSpec::Bar.new.call_site_false
-
-    @respond_to_cache_true = RespondToCacheSpec::Bar::CallSiteTrue.call_sites[0]
-    @respond_to_cache_false = RespondToCacheSpec::Bar::CallSiteFalse.call_sites[0]
+  it "returns false if #respond_to? does not search for private methods" do
+    CallSiteSpecs::RR.new.a
+    CallSiteSpecs::RR.call_sites(:a).first.visibility.should be_false
   end
 
-  it "stores when visibility is true" do
-    @respond_to_cache_true.visibility.should be_false
-    @respond_to_cache_true.visibility.should be_false
+  it "returns true if #respond_to? searches for private methods" do
+    CallSiteSpecs::RR.new.b
+    CallSiteSpecs::RR.call_sites(:b).first.visibility.should be_true
   end
 end

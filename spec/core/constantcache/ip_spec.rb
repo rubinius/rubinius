@@ -1,11 +1,11 @@
-require File.expand_path('../fixtures/classes.rb', __FILE__)
+require File.expand_path('../../fixtures/call_site.rb', __FILE__)
 
 describe "Rubinius::ConstantCache#ip" do
   before :each do
-    @constant_cache = ConstantCacheSpec::ConstantCacheTest.constant_caches[0]
+    @cache = CallSiteSpecs::C.constant_caches(:c).first
   end
 
-  it "has the correct ip for the constant cache" do
-    @constant_cache.ip.should == 0
+  it "returns the IP of the call site" do
+    @cache.ip.should == 0
   end
 end

@@ -1,14 +1,15 @@
-require File.expand_path('../fixtures/classes.rb', __FILE__)
+require File.expand_path('../../fixtures/call_site.rb', __FILE__)
 
 describe "Rubinius::RespondToCache#hits" do
   before :each do
-    RespondToCacheSpec::Bar.new.hits_test
-    RespondToCacheSpec::Bar.new.hits_test
+    obj = CallSiteSpecs::R.new
+    obj.n
+    obj.n
 
-    @respond_to_cache = RespondToCacheSpec::Bar::HitTest.call_sites[0]
+    @cache = CallSiteSpecs::R.call_sites(:n).first
   end
 
-  it "has the correct number of hits" do
-    @respond_to_cache.hits.should == 2
+  it "returns the number of times the call site has executed" do
+    @cache.hits.should == 2
   end
 end

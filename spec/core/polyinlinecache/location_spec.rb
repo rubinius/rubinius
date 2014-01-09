@@ -1,13 +1,12 @@
-require File.expand_path('../fixtures/classes.rb', __FILE__)
+require File.expand_path('../../fixtures/call_site.rb', __FILE__)
 
 describe "Rubinius::PolyInlineCache#location" do
   before :each do
-    PolyInlineCacheSpec::Bar.new.run
-    PolyInlineCacheSpec::Qux.new.run
-    @poly_inline_cache = PolyInlineCacheSpec::Foo::FooCallSite.call_sites[0]
+    CallSiteSpecs::A.new.p
+    @cache = CallSiteSpecs::A.call_sites(:a).first
   end
 
-  it "has the correct location" do
-    @poly_inline_cache.location.should =~ %r{spec/core/polyinlinecache/fixtures/classes\.rb:4$}
+  it "returns the file and line number of the call site" do
+    @cache.location.should =~ %r{spec/core/fixtures/call_site\.rb:26$}
   end
 end

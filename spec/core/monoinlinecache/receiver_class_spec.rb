@@ -1,13 +1,12 @@
-require File.expand_path('../fixtures/classes.rb', __FILE__)
+require File.expand_path('../../fixtures/call_site.rb', __FILE__)
 
 describe "Rubinius::MonoInlineCache#receiver_class" do
   before :each do
-    MonoInlineCacheSpec::Bar.new.call_site_test
-    @mono_inline_cache = MonoInlineCacheSpec::Bar::CallSiteTest.call_sites[0]
+    CallSiteSpecs::A.new.c
+    @cache = CallSiteSpecs::A.call_sites(:c).first
   end
 
-  it "has the correct receiver class" do
-    @mono_inline_cache.receiver_class.should == MonoInlineCacheSpec::Bar
+  it "returns the class of the receiver at the call site" do
+    @cache.receiver_class.should == CallSiteSpecs::A
   end
 end
-

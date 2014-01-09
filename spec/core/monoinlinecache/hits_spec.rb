@@ -1,13 +1,15 @@
-require File.expand_path('../fixtures/classes.rb', __FILE__)
+require File.expand_path('../../fixtures/call_site.rb', __FILE__)
 
 describe "Rubinius::MonoInlineCache#hits" do
   before :each do
-    MonoInlineCacheSpec::Bar.new.hits_test
-    MonoInlineCacheSpec::Bar.new.hits_test
-    @mono_inline_cache = MonoInlineCacheSpec::Bar::HitTest.call_sites[0]
+    obj = CallSiteSpecs::A.new
+    obj.n
+    obj.n
+
+    @cache = CallSiteSpecs::A.call_sites(:n).first
   end
 
-  it "has 2 hits after promotion to mono cache and additional call" do
-    @mono_inline_cache.hits.should == 2
+  it "returns the number of times the call site has executed" do
+    @cache.hits.should == 2
   end
 end

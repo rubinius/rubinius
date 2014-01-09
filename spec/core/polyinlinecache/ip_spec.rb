@@ -1,14 +1,13 @@
-require File.expand_path('../fixtures/classes.rb', __FILE__)
+require File.expand_path('../../fixtures/call_site.rb', __FILE__)
 
 describe "Rubinius::PolyInlineCache#ip" do
   before :each do
-    PolyInlineCacheSpec::Bar.new.run
-    PolyInlineCacheSpec::Qux.new.run
-    @poly_inline_cache = PolyInlineCacheSpec::Foo::FooCallSite.call_sites[0]
+    CallSiteSpecs::A.new.p
+    @cache = CallSiteSpecs::A.call_sites(:a).first
   end
 
-  it "has the correct ip" do
-    @poly_inline_cache.ip.should == 1
+  it "returns the IP of the call site" do
+    @cache.ip.should == 2
   end
 end
 

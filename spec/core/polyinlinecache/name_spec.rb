@@ -1,13 +1,12 @@
-require File.expand_path('../fixtures/classes.rb', __FILE__)
+require File.expand_path('../../fixtures/call_site.rb', __FILE__)
 
 describe "Rubinius::PolyInlineCache#name" do
   before :each do
-    PolyInlineCacheSpec::Bar.new.run
-    PolyInlineCacheSpec::Qux.new.run
-    @poly_inline_cache = PolyInlineCacheSpec::Foo::FooCallSite.call_sites[0]
+    CallSiteSpecs::A.new.p
+    @cache = CallSiteSpecs::A.call_sites(:a).first
   end
 
-  it "has the correct name" do
-    @poly_inline_cache.name.should == :sub
+  it "returns the name of method at the call site" do
+    @cache.name.should == :c
   end
 end

@@ -1,21 +1,21 @@
-require File.expand_path('../fixtures/classes.rb', __FILE__)
+require File.expand_path('../../fixtures/call_site.rb', __FILE__)
 
 describe "Rubinius::PolyInlineCache#entries" do
   before :each do
-    PolyInlineCacheSpec::Bar.new.run
-    PolyInlineCacheSpec::Qux.new.run
-    @poly_inline_cache = PolyInlineCacheSpec::Foo::FooCallSite.call_sites[0]
+    CallSiteSpecs::A.new.p
+    @cache = CallSiteSpecs::A.call_sites(:a).first
   end
 
-  it "has the correct entries" do
-    entries = @poly_inline_cache.entries
-    entries[0].receiver_class.should == PolyInlineCacheSpec::Bar
-    entries[0].stored_module.should == PolyInlineCacheSpec::Foo
-    entries[0].method.should == PolyInlineCacheSpec::Foo::FooCompiledCode
+  it "returns the entries for the cache" do
+    entries = @cache.entries
 
-    entries[1].receiver_class.should == PolyInlineCacheSpec::Qux
-    entries[1].stored_module.should == PolyInlineCacheSpec::Foo
-    entries[0].method.should == PolyInlineCacheSpec::Foo::FooCompiledCode
+    entries[0].receiver_class.should == CallSiteSpecs::B
+    entries[0].stored_module.should == CallSiteSpecs::B
+    entries[0].method.should == CallSiteSpecs::B.executable(:c)
+
+    entries[1].receiver_class.should == CallSiteSpecs::BB
+    entries[1].stored_module.should == CallSiteSpecs::BB
+    entries[1].method.should == CallSiteSpecs::BB.executable(:c)
 
     entries[2].should be_nil
   end

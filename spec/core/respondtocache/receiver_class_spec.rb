@@ -1,14 +1,13 @@
-require File.expand_path('../fixtures/classes.rb', __FILE__)
+require File.expand_path('../../fixtures/call_site.rb', __FILE__)
 
-describe "Rubinius::RespondToCache#name" do
+describe "Rubinius::RespondToCache#receiver_class" do
   before :each do
-    RespondToCacheSpec::Bar.new.call_site_true
-    RespondToCacheSpec::Bar.new.call_site_false
+    CallSiteSpecs::R.new.c
 
-    @respond_to_cache = RespondToCacheSpec::Bar::CallSiteTrue.call_sites[0]
+    @cache = CallSiteSpecs::R.call_sites(:c).first
   end
 
-  it "has the correct receiver class" do
-    @respond_to_cache.receiver_class.should == RespondToCacheSpec::Bar
+  it "returns the class of the receiver at the call site" do
+    @cache.receiver_class.should == CallSiteSpecs::R
   end
 end

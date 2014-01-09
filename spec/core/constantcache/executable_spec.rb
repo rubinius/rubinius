@@ -1,11 +1,11 @@
-require File.expand_path('../fixtures/classes.rb', __FILE__)
+require File.expand_path('../../fixtures/call_site.rb', __FILE__)
 
 describe "Rubinius::ConstantCache#executable" do
   before :each do
-    @constant_cache = ConstantCacheSpec::ConstantCacheTest.constant_caches[0]
+    @cache = CallSiteSpecs::C.constant_caches(:c).first
   end
 
-  it "has the correct executable for the constant cache" do
-    @constant_cache.executable.should == ConstantCacheSpec::ConstantCacheTest
+  it "returns the CompiledCode instance containing the call site" do
+    @cache.executable.should == CallSiteSpecs::C.executable(:c)
   end
 end

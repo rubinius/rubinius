@@ -1,11 +1,11 @@
-require File.expand_path('../fixtures/classes.rb', __FILE__)
+require File.expand_path('../../fixtures/call_site.rb', __FILE__)
 
 describe "Rubinius::ConstantCache#location" do
   before :each do
-    @constant_cache = ConstantCacheSpec::ConstantCacheTest.constant_caches[0]
+    @cache = CallSiteSpecs::C.constant_caches(:c).first
   end
 
-  it "has the correct location for the constant cache" do
-    @constant_cache.location.should =~ %r{spec/core/constantcache/fixtures/classes\.rb:4$}
+  it "returns the file and line number of the call site" do
+    @cache.location.should =~ %r{spec/core/fixtures/call_site\.rb:74$}
   end
 end
