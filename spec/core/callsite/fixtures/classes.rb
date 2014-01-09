@@ -1,8 +1,8 @@
 class CallSiteSpec
 
-  CallSiteTest = instance_method(def call_site_test
+  CallSiteTest = def call_site_test
     "".length
-  end).executable
+  end
 
 end
 

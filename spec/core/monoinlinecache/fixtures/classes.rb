@@ -1,18 +1,18 @@
 module MonoInlineCacheSpec
   module Foo
-    FooCompiledCode = instance_method(def foo
-    end).executable
+    FooCompiledCode = def foo
+    end
   end
 
   class Bar
     include Foo
-    CallSiteTest = instance_method(def call_site_test
+    CallSiteTest = def call_site_test
       foo
-    end).executable
+    end
 
-    HitTest = instance_method(def hits_test
+    HitTest = def hits_test
       foo
-    end).executable
+    end
   end
 end
 
