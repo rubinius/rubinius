@@ -1,15 +1,15 @@
 module PolyInlineCacheSpec
   module Foo
-    FooCallSite = def foo
+    FooCallSite = instance_method(def foo
       sub
-    end
+    end).executable
 
-    FooHitSite = def foo_hit
+    FooHitSite = instance_method(def foo_hit
       sub
-    end
+    end).executable
 
-    FooCompiledCode = def sub
-    end
+    FooCompiledCode = instance_method(def sub
+    end).executable
   end
 
   class Bar

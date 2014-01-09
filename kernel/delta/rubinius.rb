@@ -168,7 +168,7 @@ module Rubinius
 
     @add_method_hook.trigger! mod, name, executable
 
-    return executable
+    return name
   end
 
   def self.privatized_method?(name)

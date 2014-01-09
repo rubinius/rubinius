@@ -1,8 +1,8 @@
 class ConstantCacheSpec
 
-  ConstantCacheTest = def constant_cache_test
+  ConstantCacheTest = instance_method(def constant_cache_test
     Rubinius::VariableScope
-  end
+  end).executable
 
 end
 

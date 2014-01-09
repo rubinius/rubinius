@@ -1,27 +1,27 @@
 module RespondToCacheSpec
 
   class Bar
-    CallSiteTrue = def call_site_true
+    CallSiteTrue = instance_method(def call_site_true
       respond_to?(:hits_test)
-    end
+    end).executable
 
-    CallSiteFalse = def call_site_false
+    CallSiteFalse = instance_method(def call_site_false
       respond_to?(:hits_test_non_existing)
-    end
+    end).executable
 
-    HitTest = def hits_test
+    HitTest = instance_method(def hits_test
       respond_to?(:hits_test)
-    end
+    end).executable
 
-    CacheTest = def call_site_respond_to_cache
+    CacheTest = instance_method(def call_site_respond_to_cache
       respond_to?(:call_site_respond_to_cache_method)
-    end
+    end).executable
   end
 
   class BarMissing
-    CallSiteTrue = def call_site_true
+    CallSiteTrue = instance_method(def call_site_true
       respond_to?(:hits_test)
-    end
+    end).executable
 
     def respond_to_missing?(name, include_private)
       true
