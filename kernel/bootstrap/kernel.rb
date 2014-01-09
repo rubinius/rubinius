@@ -80,6 +80,12 @@ module Kernel
     raise PrimitiveFailure, "Kernel#untrusted? primitive failed"
   end
 
+  # NOTE: The bootstrap method used to add method definitions to the class
+  # method_table still returns a CompiledCode instance, so this chaining
+  # works.
+  #
+  # TODO: Fix this chaining by introducing a proper facility to operate on
+  # methods.
   def respond_to?(meth, include_private=false)
     respond_to_prim?(meth, include_private)
   end.custom_call_site

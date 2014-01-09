@@ -114,6 +114,7 @@ module Rubinius
     end
 
     add_method name, executable, mod, vis
+    name
   end
 
   def self.add_method(name, executable, mod, vis)
@@ -195,6 +196,7 @@ module Rubinius
     mod = Rubinius::Type.object_singleton_class recv
 
     add_method name, executable, mod, :public
+    name
   end
 
 
