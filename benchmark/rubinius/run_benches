@@ -1,9 +1,0 @@
-#!/bin/bash
-
-echo "Running RBX" 1>&2
-bin/rbx benchmark/rubinius/bm_string.rb -x "String#unpack" > rbx_times
-echo "Running MRI" 1>&2
-ruby benchmark/rubinius/bm_string.rb -x "String#unpack" > mri_times
-echo "Executing compare" 1>&2
-benchmark/rubinius/compare.rb -MRI ./mri_times -RBX ./rbx_times
-rm rbx_times mri_times
