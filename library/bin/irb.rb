@@ -1,4 +1,4 @@
-#!/System/Library/Frameworks/Ruby.framework/Versions/1.8/usr/bin/ruby
+#!/usr/bin/env ruby
 #
 #   irb.rb - intaractive ruby
 #   	$Release Version: 0.9.5 $
