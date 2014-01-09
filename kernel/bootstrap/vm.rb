@@ -62,12 +62,12 @@ class Rubinius::VM
 
   def self.jit_cache_resets
     Rubinius.primitive :vm_jit_cache_resets
-    raise PrimitiveFailure, "Rubinius::VM.vm_jit_cache_resets primitive failed"
+    raise PrimitiveFailure, "Rubinius::VM.jit_cache_resets primitive failed"
   end
 
   def self.jit_global_serial
     Rubinius.primitive :vm_jit_global_serial
-    raise PrimitiveFailure, "Rubinius::VM.vm_jit_global_serial primitive failed"
+    raise PrimitiveFailure, "Rubinius::VM.jit_global_serial primitive failed"
   end
 
   def self.load_library(path, name)
