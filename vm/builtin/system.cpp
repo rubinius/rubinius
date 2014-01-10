@@ -708,11 +708,11 @@ namespace rubinius {
 #endif
   }
 
-  Fixnum* System::vm_jit_cache_resets(STATE) {
+  Fixnum* System::vm_methods_cache_resets(STATE) {
     return Fixnum::from(state->shared().stats.methods_cache_resets.read());
   }
 
-  Fixnum* System::vm_jit_global_serial(STATE) {
+  Fixnum* System::vm_global_serial(STATE) {
     return Fixnum::from(*state->shared().global_serial_address());
   }
 
