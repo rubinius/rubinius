@@ -3,6 +3,7 @@
 #include "builtin/io.hpp"
 #include "builtin/string.hpp"
 
+#include <unistd.h>
 #include <stdio.h>
 #include <sys/stat.h>
 
@@ -115,10 +116,12 @@ public:
 
   void test_query_ttyname() {
     IO* io = as<IO>(G(object)->get_const(state, "STDOUT"));
-    String* tty = try_as<String>(io->query(state, state->symbol("ttyname")));
+    if(isatty(io->to_fd())) {
+      String* tty = try_as<String>(io->query(state, state->symbol("ttyname")));
 
-    // TODO: /dev/ttyxxx won't be portable to e.g. windoze
-    TS_ASSERT(tty);
+      // TODO: /dev/ttyxxx won't be portable to e.g. windoze
+      TS_ASSERT(tty);
+    }
   }
 
   void test_create_buffer() {
