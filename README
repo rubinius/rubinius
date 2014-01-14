@@ -68,3 +68,12 @@ Please file tickets for bugs or problems. The issue tracker is:
 
 The Rubinius team welcomes contributions. For more information read the
 CONTRIBUTING file in the root directory of Rubinius.
+
+
+8. Features Currently Not Supported
+
+The following features of Ruby/MRI are currently not (yet) supported by
+Rubinius:
+
+* Keyword arguments (https://github.com/rubinius/rubinius/issues/2669)
+* Refinements
