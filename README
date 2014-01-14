@@ -77,3 +77,4 @@ Rubinius:
 
 * Keyword arguments (https://github.com/rubinius/rubinius/issues/2669)
 * Refinements
+* $SAFE levels
