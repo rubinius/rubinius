@@ -80,7 +80,7 @@ namespace rubinius {
 
   Environment::Environment(int argc, char** argv)
     : argc_(argc)
-    , argv_(argv)
+    , argv_(0)
     , signature_(0)
     , version_(0)
     , signal_handler_(NULL)
@@ -95,6 +95,9 @@ namespace rubinius {
     String::init_hash();
 
     VM::init_stack_size();
+
+    copy_argv(argc, argv);
+    ruby_init_setproctitle(argc, argv);
 
     shared = new SharedState(this, config, config_parser);
 
@@ -135,6 +138,11 @@ namespace rubinius {
     VM::discard(state, root_vm);
     SharedState::discard(shared);
     delete state;
+
+    for(int i = 0; i < argc_; i++) {
+      delete argv_[i];
+    }
+    delete argv_;
   }
 
   void cpp_exception_bug() {
@@ -344,6 +352,17 @@ namespace rubinius {
     finalizer_handler_ = new FinalizerHandler(state);
   }
 
+  void Environment::copy_argv(int argc, char** argv) {
+    argv_ = new char* [argc+1];
+    argv_[argc] = 0;
+
+    for(int i = 0; i < argc; i++) {
+      size_t size = strlen(argv[i]) + 1;
+      argv_[i] = new char[size];
+      strncpy(argv_[i], argv[i], size);
+    }
+  }
+
   void Environment::load_vm_options(int argc, char**argv) {
     /* Parse -X options from RBXOPT environment variable.  We parse these
      * first to permit arguments passed directly to the VM to override
@@ -439,8 +458,6 @@ namespace rubinius {
     }
 
     state->vm()->set_const("ARGV", ary);
-
-    ruby_init_setproctitle(argc, argv);
 
     // Now finish up with the config
     if(config.print_config > 1) {
