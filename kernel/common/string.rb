@@ -939,7 +939,7 @@ class String
       options = Rubinius::Type.coerce_to options, Hash, :to_hash
     end
 
-    if ascii_only? and from_enc.ascii_compatible? and to_enc.ascii_compatible?
+    if ascii_only? and from_enc.ascii_compatible? and to_enc and to_enc.ascii_compatible?
       force_encoding to_enc
     elsif to_enc and from_enc != to_enc
       ec = Encoding::Converter.new from_enc, to_enc, options
