@@ -119,6 +119,14 @@ with_feature :encoding do
       end
     end
 
+    describe "when passed options" do
+      it "returns self for ASCII-only String when Encoding.default_internal is nil" do
+        Encoding.default_internal = nil
+        str = "abc"
+        str.encode!(:invalid => :replace).should equal(str)
+      end
+    end
+
     describe "when passed to encoding" do
       it "returns self" do
         str = "abc"
