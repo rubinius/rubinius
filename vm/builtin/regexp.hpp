@@ -118,9 +118,9 @@ namespace rubinius {
     // Rubinius.primitive :regexp_set_block_last_match
     static Object* set_block_last_match(STATE, CallFrame* calling_environment);
 
-    regex_t* make_managed(STATE, Encoding* enc, regex_t* reg);
+    // regex_t* make_managed(STATE, Encoding* enc, regex_t* reg);
     regex_t* onig_source_data(STATE);
-    regex_t* onig_data_encoded(STATE, Encoding* enc);
+    // regex_t* onig_data_encoded(STATE, Encoding* enc);
 
     class Info : public TypeInfo {
     public:

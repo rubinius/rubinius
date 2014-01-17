@@ -708,10 +708,6 @@ namespace rubinius {
 
     if(String* str = try_as<String>(this)) {
       return std::string(str->c_str(state), str->byte_size());
-    } else if(Encoding* enc = try_as<Encoding>(this)) {
-      name << "#<Encoding::";
-      name << enc->name()->c_str(state) << ">";
-      return name.str();
     } else {
       name << "#<";
       if(Module* mod = try_as<Module>(this)) {

@@ -1,5 +1,4 @@
 #include "oniguruma.h" // Must be first.
-#include "transcoder.h"
 
 #include "arguments.hpp"
 #include "builtin/block_environment.hpp"
@@ -52,15 +51,6 @@ namespace rubinius {
     return (char*)onig_version();
   }
 
-  Encoding* Regexp::encoding(STATE) {
-    return source_->encoding(state);
-  }
-
-  Encoding* Regexp::encoding(STATE, Encoding* enc) {
-    source_->encoding(state, enc);
-    return enc;
-  }
-
   static OnigEncoding get_enc_from_kcode(int kcode) {
     OnigEncoding r;
 
@@ -80,6 +70,20 @@ namespace rubinius {
         break;
     }
     return r;
+  }
+
+  static OnigEncoding current_encoding(STATE) {
+    switch(state->shared.kcode_page()) {
+    default:
+    case kcode::eAscii:
+      return ONIG_ENCODING_ASCII;
+    case kcode::eEUC:
+      return ONIG_ENCODING_EUC_JP;
+    case kcode::eSJIS:
+      return ONIG_ENCODING_SJIS;
+    case kcode::eUTF8:
+      return ONIG_ENCODING_UTF8;
+    }
   }
 
   int get_kcode_from_enc(OnigEncoding enc) {
@@ -120,8 +124,7 @@ namespace rubinius {
       o_reg->onig_data[i] = NULL;
     }
     o_reg->lock_.init();
-    o_reg->fixed_encoding_ = false;
-    o_reg->no_encoding_ = false;
+    o_reg->forced_encoding_ = false;
 
     return o_reg;
   }
@@ -213,10 +216,11 @@ namespace rubinius {
     OnigErrorInfo err_info;
     int err;
 
-    if(fixed_encoding_) return onig_source_data(state);
+    if(forced_encoding_) return onig_source_data(state);
 
-    Encoding* string_enc = string->get_encoding_kcode_fallback(state);
-    regex_t* onig_encoded = onig_data_encoded(state, string_enc);
+    enc = current_encoding(state);
+    // TODO: Fix
+    if(enc == onig_data->enc) return onig_source_data(state);
 
     if(onig_encoded) return onig_encoded;
 

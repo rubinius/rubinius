@@ -10,7 +10,6 @@
 #include "object_utils.hpp"
 #include "ontology.hpp"
 #include "util/local_buffer.hpp"
-#include "missing/string.h"
 
 #include <double-conversion.h>
 #include <ieee.h>
@@ -384,9 +383,6 @@ namespace rubinius {
     }
     String* str = String::create(state, buf, size);
     infect(state, str);
-    str->encoding(state, Encoding::usascii_encoding(state));
-    str->ascii_only(state, cTrue);
-    str->valid_encoding(state, cTrue);
     return str;
   }
 
@@ -396,9 +392,6 @@ namespace rubinius {
     int len = double_to_string(buffer, FLOAT_TO_S_STRLEN, val);
     String* str = String::create(state, buffer, len);
     infect(state, str);
-    str->encoding(state, Encoding::usascii_encoding(state));
-    str->ascii_only(state, cTrue);
-    str->valid_encoding(state, cTrue);
 
     return str;
   }

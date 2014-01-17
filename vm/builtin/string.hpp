@@ -93,9 +93,7 @@ namespace rubinius {
     }
 
     // Rubinius.primitive+ :string_equal
-    Object* equal(STATE, String* other) 
-      if(encoding_ != other->encoding() &&
-         Encoding::compatible_p(state, this, other)->nil_p()) return cFalse;
+    Object* equal(STATE, String* other) {
       if(this->num_bytes() != other->num_bytes()) return cFalse;
       int comp = memcmp(
           this->byte_address(),
@@ -143,8 +141,6 @@ namespace rubinius {
     // Rubinius.primitive :string_check_null_safe
     String* check_null_safe(STATE);
 
-    String* convert_escaped(STATE, Encoding*& enc, bool& fixed_encoding);
-
     void unshare(STATE);
     hashval hash_string(STATE);
     // Rubinius.primitive :symbol_lookup
@@ -169,22 +165,6 @@ namespace rubinius {
         }
       }
       return string_dup_slow(state);
-    }
-
-    void encoding_from(STATE, String* other) {
-      encoding_ = other->encoding();
-      this->write_barrier(state, encoding_);
-
-      if(other->ascii_only()->true_p()) {
-        ascii_only_ = cTrue;
-      } else {
-        ascii_only_ = cNil;
-      }
-      if(other->valid_encoding()->true_p()) {
-        valid_encoding_ = cTrue;
-      } else {
-        valid_encoding_ = cNil;
-      }
     }
 
     String* add(STATE, String* other);
@@ -256,7 +236,6 @@ namespace rubinius {
 
     String* byte_substring(STATE, native_int index, native_int length);
 
-    Encoding* get_encoding_kcode_fallback(STATE);
     native_int find_character_byte_index(STATE, native_int index, native_int start = 0);
     native_int find_byte_character_index(STATE, native_int index, native_int start = 0);
 

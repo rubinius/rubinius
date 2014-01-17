@@ -952,7 +952,6 @@ namespace rubinius {
     mp_toradix_nd(XST, mp_val(), (char*)str->byte_address(), b, sz, &digits);
     if(self->sign == MP_NEG) { digits++; }
     str->num_bytes(state, Fixnum::from(digits));
-    str->encoding(state, Encoding::usascii_encoding(state));
 
     return str;
   }

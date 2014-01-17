@@ -1,12 +1,12 @@
 #include "arguments.hpp"
 #include "builtin/call_site.hpp"
 #include "builtin/class.hpp"
-#include "builtin/compiledcode.hpp"
-#include "builtin/constantscope.hpp"
+#include "builtin/compiled_code.hpp"
+#include "builtin/constant_scope.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/iseq.hpp"
-#include "builtin/lookuptable.hpp"
+#include "builtin/lookup_table.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
 #include "bytecode_verification.hpp"
@@ -207,7 +207,10 @@ namespace rubinius {
       const char* reason = 0;
       int ip = -1;
 
-      OnStack<4> os(state, code, exec, mod, args.argument_container_location());
+      OnStack<5> os(state, code, exec, mod, args.recv_location(), args.block_location());
+
+      VariableRootBuffer vrb(state->vm()->current_root_buffers(),
+                             &args.arguments_location(), args.total());
       GCTokenImpl gct;
 
       if(!code->internalize(state, gct, call_frame, &reason, &ip)) {

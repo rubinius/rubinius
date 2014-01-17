@@ -442,7 +442,6 @@ namespace rubinius {
     }
 
     String* str = String::create(state, b, buf + sizeof(buf) - b - 1);
-    str->encoding(state, Encoding::usascii_encoding(state));
 
     return str;
   }

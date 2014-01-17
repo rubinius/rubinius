@@ -2,11 +2,11 @@
 #include "builtin/class.hpp"
 #include "builtin/executable.hpp"
 #include "builtin/fixnum.hpp"
-#include "builtin/methodtable.hpp"
+#include "builtin/method_table.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
 #include "object_utils.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 
 #define METHODTABLE_MAX_DENSITY 0.75
 #define METHODTABLE_MIN_DENSITY 0.3

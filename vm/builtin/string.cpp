@@ -1,12 +1,9 @@
 #include "oniguruma.h" // Must be first.
-#include "transcoder.h"
-#include "regenc.h"
 
 #include "builtin/array.hpp"
 #include "builtin/byte_array.hpp"
 #include "builtin/character.hpp"
 #include "builtin/class.hpp"
-#include "builtin/encoding.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/float.hpp"
@@ -72,9 +69,9 @@ namespace rubinius {
 
     so = state->new_object_dirty<String>(G(string));
 
-    so->num_bytes_      = size;
-    so->hash_value_     = nil<Fixnum>();
-    so->shared_         = cFalse;
+    so->num_bytes_  = size;
+    so->hash_value_ = nil<Fixnum>();
+    so->shared_     = cFalse;
 
     native_int bytes = size->to_native() + 1;
     ByteArray* ba = ByteArray::create(state, bytes);
@@ -120,9 +117,9 @@ namespace rubinius {
 
     String* so = state->new_object_dirty<String>(G(string));
 
-    so->num_bytes_      = Fixnum::from(bytes);
-    so->hash_value_     = nil<Fixnum>();
-    so->shared_         = cFalse;
+    so->num_bytes_  = Fixnum::from(bytes);
+    so->hash_value_ = nil<Fixnum>();
+    so->shared_     = cFalse;
 
     ByteArray* ba = ByteArray::create_dirty(state, bytes + 1);
 
@@ -140,9 +137,9 @@ namespace rubinius {
   String* String::from_bytearray(STATE, ByteArray* ba, native_int size) {
     String* s = state->new_object_dirty<String>(G(string));
 
-    s->num_bytes_      = Fixnum::from(size);
-    s->hash_value_     = nil<Fixnum>();
-    s->shared_         = cFalse;
+    s->num_bytes_   = Fixnum::from(size);
+    s->hash_value_  = nil<Fixnum>();
+    s->shared_      = cFalse;
 
     s->data(state, ba);
 
@@ -330,7 +327,7 @@ namespace rubinius {
 
   String* String::append(STATE, String* other) {
     // Clamp the length of the other string to the maximum byte array size
-    native_int length = other->byte_size();
+    native_int length = other->size();
     native_int data_length = as<ByteArray>(other->data_)->size();
 
     if(unlikely(length > data_length)) {
@@ -343,24 +340,6 @@ namespace rubinius {
 
   String* String::append(STATE, const char* other) {
     return append(state, other, strlen(other));
-  }
-
-  String* String::byte_append(STATE, String* other) {
-    native_int length = other->byte_size();
-    native_int data_length = as<ByteArray>(other->data_)->size();
-
-    if(unlikely(length > data_length)) {
-      length = data_length;
-    }
-    if(!other->ascii_only()->true_p()) {
-      ascii_only_ = cNil;
-    }
-    if(!other->valid_encoding()->true_p()) {
-      valid_encoding_ = cNil;
-    }
-    return append(state,
-                  reinterpret_cast<const char*>(other->byte_address()),
-                  length);
   }
 
   String* String::append(STATE, const char* other, native_int length) {

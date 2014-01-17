@@ -1,7 +1,7 @@
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
-#include "builtin/lookuptable.hpp"
+#include "builtin/lookup_table.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
