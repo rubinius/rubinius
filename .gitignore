@@ -37,6 +37,7 @@ TAGS
 autom4te.cache
 code-cache
 /config.rb
+/config.rb.in
 cscope.files
 cscope.out
 configure.log
