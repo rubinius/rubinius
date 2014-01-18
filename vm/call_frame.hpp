@@ -58,7 +58,7 @@ namespace rubinius {
     Arguments* arguments;
 
     // Stack
-    Object* stk[];
+    Object* stk[0];
 
     // ACCESS
 
