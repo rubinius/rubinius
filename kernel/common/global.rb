@@ -130,6 +130,10 @@ module Rubinius
       end
     end
 
+    def remove_hook(var)
+      @hooks.delete(var)
+    end
+
     def nil_return
       nil
     end
