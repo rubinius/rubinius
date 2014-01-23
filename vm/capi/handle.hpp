@@ -3,7 +3,7 @@
 
 #include "detection.hpp"
 
-#if __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ < 1070
+#if defined(__APPLE__) && __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ < 1070
 #ifndef RBX_HAVE_TR1_HASH
 #include "missing/leopard_hashtable.hpp"
 #endif
