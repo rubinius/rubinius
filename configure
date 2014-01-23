@@ -966,7 +966,7 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
   end
 
   def setup_platform
-    @ldsharedxx = "#{@cxx} -shared -lstdc++"
+    @ldsharedxx = "#{@cxx} -shared"
     @ldshared   = "#{@cc} -shared"
 
     @include_dirs.each do |d|
@@ -996,7 +996,7 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
       @features["rpath"].configured = false
       @make = "gmake"
     when /freebsd/i
-      @ldsharedxx = "#{@cxx} -shared -lstdc++ -fPIC"
+      @ldsharedxx = "#{@cxx} -shared -fPIC"
       @ldshared   = "#{@cc} -shared -fPIC"
       @system_cflags << "-fPIC"
       @system_ldflags << "-lcrypt -pthread -rdynamic"
@@ -1020,7 +1020,7 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
     when /darwin/i
       # on Unix we need a g++ link, not gcc.
       # Ff line contributed by Daniel Harple.
-      @ldsharedxx = "#{@cxx} -bundle -undefined suppress -flat_namespace -lstdc++"
+      @ldsharedxx = "#{@cxx} -bundle -undefined suppress -flat_namespace"
       @ldshared   = "#{@cc} -bundle -undefined suppress -flat_namespace"
       @system_cflags << "-fPIC -D_DARWIN_USE_64_BIT_INODE"
       @features["rpath"].configured = false
@@ -1062,7 +1062,7 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
 
       libs = (default_link_libs + link_libs).map { |l| "-l#{l}" }.join(" ")
 
-      cmd = "#{@cxx} #{@user_cppflags} #{@user_cflags} #{@user_cxxflags} #{@user_ldflags} -o #{basename} #{source} #{@system_cppflags} #{@system_cflags} #{@system_cxxflags} #{@system_ldflags} -lstdc++ #{libs} >>#{@log.path} 2>&1"
+      cmd = "#{@cxx} #{@user_cppflags} #{@user_cflags} #{@user_cxxflags} #{@user_ldflags} -o #{basename} #{source} #{@system_cppflags} #{@system_cflags} #{@system_cxxflags} #{@system_ldflags} #{libs} >>#{@log.path} 2>&1"
       @log.log cmd
       system cmd
       return $?.exitstatus unless run
