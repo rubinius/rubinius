@@ -67,8 +67,6 @@ namespace rubinius {
    * /param obj The Object to be scanned for references to other Objects.
    */
   void GarbageCollector::scan_object(Object* obj) {
-    Object* slot;
-
 #ifdef ENABLE_OBJECT_WATCH
     if(watched_p(obj)) {
       std::cout << "detected " << obj << " during scan_object.\n";
@@ -80,15 +78,13 @@ namespace rubinius {
     // the phase where the object is partially scanned.
     scanned_object(obj);
 
-    slot = saw_object(obj->klass());
-    if(slot && slot != obj->klass()) {
-      obj->klass(object_memory_, force_as<Class>(slot));
+    if(Object* klass = saw_object(obj->klass())) {
+      obj->klass(object_memory_, force_as<Class>(klass));
     }
 
     if(obj->ivars()->reference_p()) {
-      slot = saw_object(obj->ivars());
-      if(slot && slot != obj->ivars()) {
-        obj->ivars(object_memory_, slot);
+      if(Object* ivars = saw_object(obj->ivars())) {
+        obj->ivars(object_memory_, ivars);
       }
     }
 
@@ -97,10 +93,9 @@ namespace rubinius {
       native_int size = tup->num_fields();
 
       for(native_int i = 0; i < size; i++) {
-        slot = tup->field[i];
+        Object* slot = tup->field[i];
         if(slot->reference_p()) {
-          Object* moved = saw_object(slot);
-          if(moved && moved != slot) {
+          if(Object* moved = saw_object(slot)) {
             tup->field[i] = moved;
             object_memory_->write_barrier(tup, moved);
           }
@@ -329,7 +324,9 @@ namespace rubinius {
 
   void GarbageCollector::scan(ManagedThread* thr, bool young_only) {
     for(Roots::Iterator ri(thr->roots()); ri.more(); ri.advance()) {
-      ri->set(saw_object(ri->get()));
+      if(Object* fwd = saw_object(ri->get())) {
+        ri->set(fwd);
+      }
     }
 
     scan(thr->variable_root_buffers(), young_only);
@@ -366,10 +363,12 @@ namespace rubinius {
       Object*** buffer = displace(vrb->buffer(), offset);
       for(int idx = 0; idx < vrb->size(); idx++) {
         Object** var = displace(buffer[idx], offset);
-        Object* tmp = *var;
+        Object* cur = *var;
 
-        if(tmp && tmp->reference_p() && (!young_only || tmp->young_object_p())) {
-          *var = saw_object(tmp);
+        if(cur && cur->reference_p() && (!young_only || cur->young_object_p())) {
+          if(Object* tmp = saw_object(cur)) {
+            *var = tmp;
+          }
         }
       }
 
@@ -384,10 +383,12 @@ namespace rubinius {
     {
       Object** buffer = i->buffer();
       for(int idx = 0; idx < i->size(); idx++) {
-        Object* tmp = buffer[idx];
+        Object* cur = buffer[idx];
 
-        if(tmp->reference_p() && (!young_only || tmp->young_object_p())) {
-          buffer[idx] = saw_object(tmp);
+        if(cur->reference_p() && (!young_only || cur->young_object_p())) {
+          if(Object* tmp = saw_object(cur)) {
+            buffer[idx] = tmp;
+          }
         }
       }
     }

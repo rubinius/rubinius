@@ -583,9 +583,7 @@ namespace rubinius {
     if(!enc) return;
 
     ByteArray* enc_ba = ByteArray::from_body(enc);
-    ByteArray* tmp_ba = force_as<ByteArray>(mark.call(enc_ba));
-
-    if(tmp_ba && tmp_ba != enc_ba) {
+    if(ByteArray* tmp_ba = force_as<ByteArray>(mark.call(enc_ba))) {
       enc_o->set_encoding(reinterpret_cast<OnigEncodingType*>(tmp_ba->raw_bytes()));
       mark.just_set(obj, tmp_ba);
 
@@ -594,8 +592,7 @@ namespace rubinius {
 
     if(enc->name) {
       ByteArray* ba = ByteArray::from_body(const_cast<char*>(enc->name));
-      ByteArray* tmp = force_as<ByteArray>(mark.call(ba));
-      if(tmp && tmp != ba) {
+      if(ByteArray* tmp = force_as<ByteArray>(mark.call(ba))) {
         enc->name = reinterpret_cast<const char*>(tmp->raw_bytes());
         mark.just_set(obj, tmp);
       }

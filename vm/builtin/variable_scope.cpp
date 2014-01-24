@@ -225,8 +225,9 @@ namespace rubinius {
       size_t locals = vs->number_of_locals();
 
       for(size_t i = 0; i < locals; i++) {
-        Object* tmp = mark.call(ary[i]);
-        if(tmp && tmp != ary[i]) { ary[i] = tmp; }
+        if(Object* tmp = mark.call(ary[i])) {
+          ary[i] = tmp;
+        }
       }
     }
   }

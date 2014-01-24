@@ -16,7 +16,8 @@ namespace rubinius {
       }
     }
 
-    return obj;
+    // Always return NULL because we don't move objects
+    return NULL;
   }
 
   void ObjectWalker::seed(GCData& data) {

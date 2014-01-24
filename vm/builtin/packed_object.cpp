@@ -73,8 +73,7 @@ namespace rubinius {
     Object** body = po->body_as_array();
 
     for(size_t i = 0; i < fields; i++) {
-      Object* tmp = mark.call(body[i]);
-      if(tmp && tmp != body[i]) {
+      if(Object* tmp = mark.call(body[i])) {
         mark.set(obj, &body[i], tmp);
       }
     }

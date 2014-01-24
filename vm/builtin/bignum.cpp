@@ -1184,8 +1184,7 @@ namespace rubinius {
     mp_int* n = big->mp_val();
     assert(MANAGED(n));
 
-    Object* tmp = mark.call(static_cast<Object*>(n->managed));
-    if(tmp && tmp != n->managed) {
+    if(Object* tmp = mark.call(static_cast<Object*>(n->managed))) {
       n->managed = reinterpret_cast<void*>(tmp);
       ByteArray* ba = force_as<ByteArray>(tmp);
       n->dp = OPT_CAST(mp_digit)ba->raw_bytes();
