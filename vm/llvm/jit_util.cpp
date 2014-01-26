@@ -265,7 +265,6 @@ extern "C" {
     VariableScope* top = 0;
     VariableScope* parent = 0;
 
-    assert(count > 0);
     va_start(ap, count);
     for(int i = 0; i < count; i++) {
       closest = va_arg(ap, CallFrame*);
@@ -281,6 +280,7 @@ extern "C" {
     }
     va_end(ap);
 
+    assert(closest);
     MachineCode* mcode = closest->compiled_code->machine_code();
     GCTokenImpl gct;
     return BlockEnvironment::under_call_frame(state, gct, code, mcode, closest);
