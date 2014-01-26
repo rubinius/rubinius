@@ -1765,6 +1765,8 @@ namespace rubinius {
           nfo = nfo->creator_info();
         }
 
+        if(mis.size() == 0) rubinius::bug("no method info in inlined block");
+
         call_args.push_back(cint(mis.size()));
 
         for(std::vector<JITMethodInfo*>::reverse_iterator i = mis.rbegin();

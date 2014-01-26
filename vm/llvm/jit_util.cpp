@@ -265,6 +265,7 @@ extern "C" {
     VariableScope* top = 0;
     VariableScope* parent = 0;
 
+    assert(count > 0);
     va_start(ap, count);
     for(int i = 0; i < count; i++) {
       closest = va_arg(ap, CallFrame*);
