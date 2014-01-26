@@ -222,7 +222,6 @@ strftime_extended(char *s, size_t maxsize, const char *format, const struct tm64
 			savetz[tzlen] = 0;
 		}
 		tzset();
-		first = 0;
 	}
 	/* if we have a saved TZ, and it is different, recapture and reset */
 	if (tz && savetz && (tz[0] != savetz[0] || strcmp(tz, savetz) != 0)) {
@@ -230,7 +229,6 @@ strftime_extended(char *s, size_t maxsize, const char *format, const struct tm64
 		if (i > savetzlen) {
 			savetz = (char *) realloc(savetz, i);
 			if (savetz) {
-				savetzlen = i;
 				strncpy(savetz, tz, i);
 			}
 		} else
@@ -282,7 +280,6 @@ strftime_extended(char *s, size_t maxsize, const char *format, const struct tm64
 			*s++ = *format;
 			continue;
 		}
-		tp = tbuf;
 		sp = format;
 		precision = -1;
 		flags = 0;
