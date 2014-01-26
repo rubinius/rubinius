@@ -87,7 +87,7 @@ unless report_file = ARGV.shift
   report_file = files.sort { |a, b| File.mtime(a) <=> File.mtime(b) }.last
 end
 
-unless File.exists?(report_file)
+unless File.exist?(report_file)
   puts "Unable to find last error report."
   puts "Please specify the file path to the report."
   exit 1

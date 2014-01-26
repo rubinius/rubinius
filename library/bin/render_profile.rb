@@ -603,7 +603,7 @@ end
 
 file = ARGV.shift
 
-unless File.exists? file
+unless File.exist? file
   puts "File '#{file}' does not exist"
   exit 1
 end
