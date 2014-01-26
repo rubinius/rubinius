@@ -190,9 +190,6 @@ void XSHA1_Transform(uint32_t state[5], const uint8_t buffer[64])
     state[2] += c;
     state[3] += d;
     state[4] += e;
-
-    /* Wipe variables */
-    a = b = c = d = e = 0;
 }
 
 
