@@ -53,6 +53,7 @@ tmtags
 /share
 /work
 /staging
+/bootstrap
 Gemfile.lock
 
 # .revision tracks configure and code revision consistency
