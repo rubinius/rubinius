@@ -114,6 +114,9 @@ class Configure
     @build_prefix     = nil
     @capi_includedir  = "#{@sourcedir}/vm/include/capi"
 
+    @runtime_gems_dir   = nil
+    @bootstrap_gems_dir = nil
+
     @vm_release_h = root + "/vm/gen/release.h"
 
     @preserve_prefix = false
@@ -131,11 +134,11 @@ class Configure
       [ "rubinius-melbourne", "2.0" ],
       [ "rubinius-processor", "2.0" ],
       [ "rubinius-toolset", "0.1" ],
-      [ "ffi2-generators", "0.1" ]
     ]
 
     # Standard library gems for building gem C-extensions
     @build_c_ext_gems = [
+      [ "ffi2-generators", "0.1" ],
       [ "rubysl-etc", "2.0" ],
       [ "rubysl-fileutils", "2.0" ],
       [ "rubysl-mkmf", "2.0" ],
@@ -313,6 +316,8 @@ class Configure
     end
 
     @build_prefix = @stagingdir || @sourcedir
+    @bootstrap_gems_dir ||= "#{@sourcedir}/bootstrap/gems"
+    @runtime_gems_dir ||= "#{@build_prefix}#{@runtimedir}/gems"
   end
 
   def options
@@ -1755,6 +1760,8 @@ int main() { return tgetnum(""); }
       :sourcedir          => @sourcedir,
       :stagingdir         => @stagingdir,
       :build_prefix       => @build_prefix,
+      :runtime_gems_dir   => @runtime_gems_dir,
+      :bootstrap_gems_dir => @bootstrap_gems_dir,
       :capi_includedir    => @capi_includedir,
       :build_exe          => "#{@build_prefix}#{@bindir}/#{@program_name}",
       :prefixdir          => @prefixdir,
@@ -2033,15 +2040,8 @@ int main() { return tgetnum(""); }
     failure "Unable to find required gems." if failed
   end
 
-  def unpack_gems
-    @log.write "\nUnpacking bootstrap gems..."
-
-    gems = @build_tool_gems + @build_c_ext_gems + @bootstrap_gems
-
-    runtime_gems = File.expand_path "../runtime/gems", __FILE__
-    FileUtils.mkdir_p runtime_gems unless File.directory? runtime_gems
-
-    unpacked = Dir["#{runtime_gems}/*"]
+  def clean_gems(dir, gems)
+    unpacked = Dir["#{dir}/*"]
 
     # Remove unpacked gems not specified by these configure settings
     unpacked.each do |dir|
@@ -2049,14 +2049,16 @@ int main() { return tgetnum(""); }
         FileUtils.rm_rf dir
       end
     end
+  end
 
-    # Unpack gems not found for these configure settings
-    gem_sources = File.expand_path "../vendor/cache", __FILE__
+  def unpack_gems(source, destination, list)
+    FileUtils.mkdir_p destination unless File.directory? destination
 
-    Dir.chdir runtime_gems do
-      gems.each do |name, version|
-        unless unpacked.find { |dir| dir =~ /#{name}-#{version}/ }
-          gem = Dir["#{gem_sources}/#{name}-#{version}*"].first
+    Dir.chdir destination do
+      list.each do |name, version|
+        gem_name = "#{name}-#{version}"
+        unless File.directory? gem_name
+          gem = "#{source}/#{gem_name}.gem"
           system("#{@gem} unpack #{gem}")
 
           unless $?.exitstatus == 0
@@ -2065,6 +2067,22 @@ int main() { return tgetnum(""); }
         end
       end
     end
+  end
+
+  def setup_gems
+    @log.write "\nSetting up bootstrap gems..."
+
+    runtime_gems = @build_tool_gems
+    bootstrap_gems = @build_c_ext_gems + @bootstrap_gems
+
+    # Remove unpacked gems not specified by these configure settings
+    clean_gems @runtime_gems_dir, runtime_gems
+    clean_gems @bootstrap_gems_dir, bootstrap_gems
+
+    # Unpack gems not found for these configure settings
+    gem_sources = File.expand_path "../vendor/cache", __FILE__
+    unpack_gems gem_sources, @runtime_gems_dir, runtime_gems
+    unpack_gems gem_sources, @bootstrap_gems_dir, bootstrap_gems
   end
 
   def load_config
@@ -2116,7 +2134,7 @@ int main() { return tgetnum(""); }
     else
       fetch_gems
     end
-    unpack_gems unless @release_config
+    setup_gems unless @release_config
     write_configure_files
 
     return if @release_config
