@@ -4270,6 +4270,7 @@ _resume:
     }
 
     if(rest || stop > bytes_size) {
+      assert(width);
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -4755,6 +4756,7 @@ _again:
     }
 
     if(rest || stop > bytes_size) {
+      assert(width);
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
