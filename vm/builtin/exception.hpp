@@ -46,30 +46,30 @@ namespace rubinius {
     static Exception* make_encoding_compatibility_error(STATE, Object* a, Object* b);
     static Exception* make_frozen_exception(STATE, Object* obj);
 
-    static void argument_error(STATE, int expected, int given);
-    static void argument_error(STATE, const char* reason);
-    static void regexp_error(STATE, const char* reason);
-    static void type_error(STATE, const char* reason);
-    static void type_error(STATE, object_type type, Object* object,
-                           const char* reason = NULL);
+    NORETURN(static void argument_error(STATE, int expected, int given));
+    NORETURN(static void argument_error(STATE, const char* reason));
+    NORETURN(static void regexp_error(STATE, const char* reason));
+    NORETURN(static void type_error(STATE, const char* reason));
+    NORETURN(static void type_error(STATE, object_type type, Object* object,
+                           const char* reason = NULL));
     static void type_error(STATE, const char* reason, CallFrame* call_frame);
-    static void float_domain_error(STATE, const char* reason = NULL);
-    static void zero_division_error(STATE, const char* reason = NULL);
-    static void io_error(STATE, const char* reason);
-    static void range_error(STATE, const char* reason);
-    static void runtime_error(STATE, const char* reason);
+    NORETURN(static void float_domain_error(STATE, const char* reason = NULL));
+    NORETURN(static void zero_division_error(STATE, const char* reason = NULL));
+    NORETURN(static void io_error(STATE, const char* reason));
+    NORETURN(static void range_error(STATE, const char* reason));
+    NORETURN(static void runtime_error(STATE, const char* reason));
 
-    static void assertion_error(STATE, const char* reason = NULL);
-    static void object_bounds_exceeded_error(STATE, Object* obj, int index);
-    static void object_bounds_exceeded_error(STATE, const char* reason);
+    NORETURN(static void assertion_error(STATE, const char* reason = NULL));
+    NORETURN(static void object_bounds_exceeded_error(STATE, Object* obj, int index));
+    NORETURN(static void object_bounds_exceeded_error(STATE, const char* reason));
 
     /** Raise a SystemCallError with given message. */
-    static void system_call_error(STATE, const char* reason);
-    static void system_call_error(STATE, const std::string& reason);
+    NORETURN(static void system_call_error(STATE, const char* reason));
+    NORETURN(static void system_call_error(STATE, const std::string& reason));
 
-    static void thread_error(STATE, const char* reason);
-    static void fiber_error(STATE, const char* reason);
-    static void memory_error(STATE);
+    NORETURN(static void thread_error(STATE, const char* reason));
+    NORETURN(static void fiber_error(STATE, const char* reason));
+    NORETURN(static void memory_error(STATE));
 
     static Exception* make_lje(STATE, CallFrame* frame);
 

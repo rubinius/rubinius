@@ -72,7 +72,7 @@ namespace rubinius {
     /**
      *  Throws an Assertion exception with explanation +reason+.
      */
-    static void raise(const char* reason);
+    NORETURN(static void raise(const char* reason));
   };
 
   class TypeError : public VMException {
@@ -88,7 +88,7 @@ namespace rubinius {
 
   public:   /* Interface */
 
-    static void raise(object_type type, Object* obj, const char* reason = NULL);
+    NORETURN(static void raise(object_type type, Object* obj, const char* reason = NULL));
   };
 
   /**
@@ -108,7 +108,7 @@ namespace rubinius {
 
   public:   /* Interface */
 
-    static void raise(Exception* exception, bool make_backtrace = false);
+    NORETURN(static void raise(Exception* exception, bool make_backtrace = false));
 
     /**
      * Prints out the exception message and the Ruby backtrace.
