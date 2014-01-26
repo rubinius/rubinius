@@ -305,14 +305,14 @@ namespace rubinius {
                   off);
       if(chars) {
         result = String::create(state, malloc_str, chars);
+        result->encoding(state, format->encoding());
       }
 
       free(malloc_str);
     } else {
       result = String::create(state, stack_str, chars);
+      result->encoding(state, format->encoding());
     }
-
-    result->encoding(state, format->encoding());
 
     return result;
   }
