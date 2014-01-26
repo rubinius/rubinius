@@ -753,7 +753,7 @@ st_foreach(st_table *table, int (*func)(ANYARGS), st_data_t arg)
                 }
                 if (j == table->num_entries) {
                     /* call func with error notice */
-                    retval = (enum st_retval)func(0, 0, arg, 1);
+                    func(0, 0, arg, 1);
                     return 1;
                 }
                 /* fall through */
@@ -789,7 +789,7 @@ st_foreach(st_table *table, int (*func)(ANYARGS), st_data_t arg)
                 for (tmp = table->bins[i]; tmp != ptr; tmp = tmp->next) {
                     if (!tmp) {
                         /* call func with error notice */
-                        retval = (enum st_retval)func(0, 0, arg, 1);
+                        func(0, 0, arg, 1);
                         return 1;
                     }
                 }
