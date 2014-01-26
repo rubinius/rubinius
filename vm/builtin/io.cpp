@@ -664,7 +664,10 @@ namespace rubinius {
 
     if(bytes_read == -1) {
       if(errno == EAGAIN || errno == EINTR) {
-        if(!state->check_async(calling_environment)) return NULL;
+        if(!state->check_async(calling_environment)) {
+          if(malloc_buf) free(malloc_buf);
+          return NULL;
+        }
         ensure_open(state);
         goto retry;
       } else {
