@@ -16,6 +16,14 @@ Please include the following:
 * Please include the simplest possible reproduction you can. This last point is
   vital to fixing issues.
 
+Regarding the formatting of the README:
+
+The Rubinius team will not merge pull requests that change the formatting of
+the README to Markdown. The intent of the README is to give a basic
+understanding of the project in a platform-independent format that renders
+well on all devices, as a plain text document. Please see #859 & #1007 for
+the specific reasoning.
+
 2. Running Specs
 
 MSpec provides several different scripts to run the specs under different
