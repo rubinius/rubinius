@@ -88,18 +88,27 @@ bootstrap_files = FileList[
   "library/rubinius/build_config.rb",
 ]
 
+runtime_gems_dir = BUILD_CONFIG[:runtime_gems_dir]
+bootstrap_gems_dir = BUILD_CONFIG[:bootstrap_gems_dir]
+
 ffi_files = FileList[
-  "runtime/gems/**/*.ffi"
+  "#{bootstrap_gems_dir}/**/*.ffi"
 ].each { |f| f.gsub!(/.ffi\z/, '') }
 
-gem_files = FileList[
-  "runtime/gems/**/*.rb"
-].exclude("runtime/gems/**/spec/**/*.rb", "runtime/gems/**/test/**/*.rb")
+runtime_gem_files = FileList[
+  "#{runtime_gems_dir}/**/*.rb"
+].exclude("#{runtime_gems_dir}/**/spec/**/*.rb",
+          "#{runtime_gems_dir}/**/test/**/*.rb")
+
+bootstrap_gem_files = FileList[
+  "#{bootstrap_gems_dir}/**/*.rb"
+].exclude("#{bootstrap_gems_dir}/**/spec/**/*.rb",
+          "#{bootstrap_gems_dir}/**/test/**/*.rb")
 
 ext_files = FileList[
-  "runtime/gems/**/*.{c,h}pp",
-  "runtime/gems/**/grammar.y",
-  "runtime/gems/**/lex.c.*"
+  "#{bootstrap_gems_dir}/**/*.{c,h}pp",
+  "#{bootstrap_gems_dir}/**/grammar.y",
+  "#{bootstrap_gems_dir}/**/lex.c.*"
 ]
 
 kernel_files = FileList[
@@ -114,7 +123,7 @@ config_files = FileList[
   "rakelib/*.rake"
 ]
 
-signature_files = kernel_files + config_files + gem_files + ext_files - ffi_files
+signature_files = kernel_files + config_files + runtime_gem_files + ext_files - ffi_files
 
 file signature_file => signature_files do
   require 'digest/sha1'
@@ -208,7 +217,12 @@ bootstrap_files.each do |name|
 end
 
 # Build the gem files
-gem_files.each do |name|
+runtime_gem_files.each do |name|
+  file_task nil, runtime_files, signature_file, name, nil
+end
+
+# Build the bootstrap gem files
+bootstrap_gem_files.each do |name|
   file_task nil, runtime_files, signature_file, name, nil
 end
 
