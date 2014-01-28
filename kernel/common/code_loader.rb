@@ -421,7 +421,7 @@ module Rubinius
       end
 
       load_error unless CodeLoader.loaded? @path or
-                        CodeLoader.bootstrap_require @path
+                        CodeLoader.rubygems_require @path
     end
 
     # Raises a LoadError if the requested file cannot be found or loaded.

@@ -83,111 +83,50 @@ module Rubinius
     class << self
       attr_accessor :load_compiled
       attr_accessor :check_version
-      attr_accessor :bootstrap_load_path
-      attr_accessor :runtime_load_path
 
-      def bootstrap_libraries
-        @bootstrap_libraries ||= [
-          "cgi",
-          "date",
-          "delegate",
-          "digest",
-          "digest/md5",
-          "digest/sha1",
-          "digest/sha2",
-          "erb",
-          "etc",
-          "fcntl",
-          "ffi2/generators",
-          "fileutils",
-          "forwardable",
-          "logger",
-          "mkmf",
-          "monitor",
-          "net/ftp",
-          "net/http",
-          "net/https",
-          "net/protocol",
-          "open-uri",
-          "openssl",
-          "optparse",
-          "ostruct",
-          "pathname",
-          "pp",
-          "prettyprint",
-          "resolv",
-          "set",
-          "shellwords",
-          "socket",
-          "stringio",
-          "strscan",
-          "tempfile",
-          "thread",
-          "time",
-          "timeout",
-          "tmpdir",
-          "tsort",
-          "uri",
-          "yaml",
-          "zlib",
-        ]
-      end
-
-      def set_bootstrap_load_path
-        @bootstrap_load_path ||= Dir["#{Rubinius::RUNTIME_PATH}/gems/**/lib"] + $LOAD_PATH
-
-        @runtime_load_path = $LOAD_PATH.dup
-        $LOAD_PATH.replace @bootstrap_load_path
-      end
-
-      def unset_bootstrap_load_path
-        $LOAD_PATH.replace @runtime_load_path
-      end
-
-      # Sets $LOAD_PATH to the bootstrap standard library files and yields to
-      # the passed block.
-      def bootstrap
-        set_bootstrap_load_path
-        yield
-      ensure
-        unset_bootstrap_load_path
-      end
-
-      # If 'name' is in the list of standard library files that RubyGems
-      # requires, load the library from the bootstrap libraries.
+      # Requires pre-installed gems directly to prevent Bundler and RubyGems
+      # from disabling the gems and to permit bootstrapping RubyGems.
       #
-      # Hopefully, rubygems will make this unnecessary in the near future by
-      # defining a hook we can use to know when rubygems itself is requiring
-      # these libraries.
-      def bootstrap_require(name)
-        return false unless bootstrap_libraries.include? name
+      # TODO: Patch Bundler to recognize pre-installed gems when resolving
+      # dependencies and fix RubyGems hijacking #require.
+      def rubygems_require(name)
+        @rubygems_dirs ||= Dir["#{Rubinius::GEMS_PATH}/gems/**/lib"]
 
-        begin
-          bootstrap { return CodeLoader.require(name) }
-        rescue LoadError
-          return false
+        lib_name = name.end_with?(".rb") ? name : name + ".rb"
+
+        @rubygems_dirs.each_with_index do |dir, index|
+          if dir and File.exist? "#{dir}/#{lib_name}"
+            $LOAD_PATH.unshift dir
+            @rubygems_dirs[index] = nil
+
+            return require(name)
+          end
         end
+
+        return false
       end
 
       # Loads rubygems using the bootstrap standard library files.
       def load_rubygems
-        bootstrap { require "rubygems" }
+        require "rubygems"
       end
 
       # Loads the pre-compiled bytecode compiler. Sets up paths needed by the
       # compiler to find dependencies like the parser.
       def load_compiler
         begin
-          bootstrap do
-            require_compiled "rubinius/toolset"
-
-            Rubinius::ToolSet.start
-            require_compiled "rubinius/melbourne"
-            require_compiled "rubinius/processor"
-            require_compiled "rubinius/compiler"
-            require_compiled "rubinius/ast"
-            Rubinius::ToolSet.finish :runtime
+          Dir["#{Rubinius::RUNTIME_PATH}/gems/**/lib"].each do |dir|
+            $LOAD_PATH.unshift dir
           end
+
+          require_compiled "rubinius/toolset"
+
+          Rubinius::ToolSet.start
+          require_compiled "rubinius/melbourne"
+          require_compiled "rubinius/processor"
+          require_compiled "rubinius/compiler"
+          require_compiled "rubinius/ast"
+          Rubinius::ToolSet.finish :runtime
         rescue Object => e
           raise LoadError, "Unable to load the bytecode compiler", e
         end
