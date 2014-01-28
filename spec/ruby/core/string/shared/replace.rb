@@ -45,6 +45,11 @@ describe :string_replace, :shared => true do
       a.send(@method, b)
       a.encoding.should == Encoding::UTF_8
     end
+
+    it "carries over the encoding invalidity" do
+      a = "\u{8765}".force_encoding('ascii')
+      "".send(@method, a).valid_encoding?.should be_false
+    end
   end
 
   it "tries to convert other to string using to_str" do
