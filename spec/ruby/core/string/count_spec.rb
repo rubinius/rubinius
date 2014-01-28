@@ -90,6 +90,12 @@ describe "String#count" do
       lambda { s.count("h-e") }.should raise_error(ArgumentError)
       lambda { s.count("^h-e") }.should raise_error(ArgumentError)
     end
+
+    it 'returns the number of occurrences of a multi-byte character' do
+      str = "\u{2605}"
+      str.count(str).should == 1
+      "asd#{str}zzz#{str}ggg".count(str).should == 2
+    end
   end
 
   it "calls #to_str to convert each set arg to a String" do
