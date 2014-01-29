@@ -233,10 +233,10 @@ class String
 
     table = count_table(*strings).__data__
 
-    count = i = 0
-    while i < @num_bytes
-      count += 1 if table[@data[i]] == 1
-      i += 1
+    count = bytes = 0
+    while bytes < @num_bytes
+      count += 1 if table[@data[bytes]] == 1
+      bytes += find_character(bytes).num_bytes
     end
 
     count
