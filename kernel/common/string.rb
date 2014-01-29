@@ -304,11 +304,12 @@ class String
 
   def each_char
     return to_enum :each_char unless block_given?
-    i = 0
-    n = size
-    while i < n
-      yield substring(i, 1)
-      i += 1
+
+    bytes = 0
+    while bytes < @num_bytes
+      char = find_character(bytes)
+      yield char
+      bytes += char.num_bytes
     end
 
     self
