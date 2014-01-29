@@ -2313,109 +2313,106 @@ class String
     source = StringValue(source).dup
     replacement = StringValue(replacement).dup
 
-    self.modify!
-
-    return self.delete!(source) if replacement.empty?
+    return delete!(source) if replacement.empty?
     return if @num_bytes == 0
 
     invert = source[0] == ?^ && source.length > 1
-    if invert
-      source.slice!(0)
-    end
-    expanded = source.tr_expand! nil, true
-    size = source.size
-    src = source.__data__
+
+    source.slice!(0) if invert
+    source.tr_expand! nil, true
+    replacement.tr_expand! nil, false
+
+    multi_table = {}
 
     if invert
-      replacement.tr_expand! nil, false
-      r = replacement.__data__[replacement.size-1]
+      r = replacement.__data__[replacement.size - 1]
       table = Rubinius::Tuple.pattern 256, r
-      multi_table = nil
 
       source.each_char do |chr|
         if chr.bytesize > 1
-          multi_table ||= Hash.new { r }
           multi_table[chr] = -1
         else
           table[chr.ord] = -1
         end
       end
     else
-      table = Rubinius::Tuple.pattern 256, -1
-      multi_table = nil
-
-      replacement.tr_expand! nil, false
       repl = replacement.__data__
       rsize = replacement.size
+      table = Rubinius::Tuple.pattern 256, -1
+
       i = 0
       source.each_char do |chr|
         repl_char = replacement[i]
+
         if repl_char && (chr.bytesize > 1 || repl_char.bytesize > 1)
-          multi_table ||= {}
           multi_table[chr] = repl_char
         else
           r = repl[i] if i < rsize
           table[chr.ord] = r
         end
+
         i += 1
       end
     end
 
-    self.modify!
+    destination = dup
     modified = false
 
     if squeeze
       last = nil
+      byte_size = 0
 
       i = 0
-      byte_size = 0
       each_char do |chr|
         c = -1
-        if chr.bytesize == 1
-          c = table[chr.ord]
-        end
+        c = table[chr.ord] if chr.bytesize == 1
+
         if c >= 0
           c_char = c.chr
           next if last == c_char
           byte_size += 1
-          self[i] = c_char
+          destination[i] = c_char
           last = c_char
           modified = true
-        elsif multi_table && (c = multi_table[chr])
+        elsif c = multi_table[chr]
           next if last == c
-          self[i] = c
+          destination[i] = c
           last = c
           modified = true
           byte_size += c.bytesize
         else
-          self[i] = chr
+          destination[i] = chr
           byte_size += chr.bytesize
           last = nil
         end
+
         i += 1
       end
 
-      self.num_bytes = byte_size if byte_size < @num_bytes
+      destination.num_bytes = byte_size if byte_size < @num_bytes
     else
       i = 0
       each_char do |chr|
         c = -1
-        if chr.bytesize == 1
-          c = table[chr.ord]
-        end
+        c = table[chr.ord] if chr.bytesize == 1
+
         if c >= 0
           c_char = c.chr
-          self[i] = c_char
+          destination[i] = c_char
           modified = true
-        elsif multi_table && (c = multi_table[chr])
-          self[i] = c
+        elsif c = multi_table[chr]
+          destination[i] = c
           modified = true
         end
         i += 1
       end
     end
 
-    return modified ? self : nil
+    if modified
+      replace(destination)
+    else
+      nil
+    end
   end
 
   def <=>(other)
