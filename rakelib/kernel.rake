@@ -13,12 +13,13 @@
 
 # drake does not allow invoke to be called inside tasks
 def kernel_clean
-  rm_f Dir["**/*.rbc",
+  rm_rf Dir["**/*.rbc",
            "**/.*.rbc",
            "kernel/**/signature.rb",
            "spec/capi/ext/*.{o,sig,#{$dlext}}",
-           "runtime/**/load_order*.txt",
-           "runtime/platform.conf"],
+           "runtime",
+           "bootstrap",
+          ],
     :verbose => $verbose
 end
 
