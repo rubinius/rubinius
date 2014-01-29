@@ -2114,6 +2114,7 @@ int main() { return tgetnum(""); }
     options
     parse ARGV
     load_config
+    check_force_clean
 
     set_filesystem_paths
 
@@ -2138,8 +2139,6 @@ int main() { return tgetnum(""); }
     write_configure_files
 
     return if @release_config
-
-    check_force_clean
 
     print_debug if @verbose
 
