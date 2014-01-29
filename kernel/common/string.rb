@@ -1489,7 +1489,6 @@ class String
       chr = chr_at bytes
       return unless chr.ascii?
 
-      code = chr.ord
       case chr.ord
       when 13
         # do nothing
