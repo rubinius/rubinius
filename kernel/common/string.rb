@@ -1559,6 +1559,7 @@ class String
     self.num_bytes = other.num_bytes
     @hash_value = nil
     force_encoding(other.encoding)
+    @valid_encoding = other.valid_encoding?
 
     Rubinius::Type.infect(self, other)
   end
