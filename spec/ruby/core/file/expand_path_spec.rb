@@ -88,6 +88,10 @@ describe "File.expand_path" do
   end
 
   platform_is_not :windows do
+    before do
+      @home = ENV['HOME'].chomp('/')
+    end
+
     # FIXME: these are insane!
     it "expand path with" do
       File.expand_path("../../bin", "/tmp/x").should == "/bin"
@@ -104,10 +108,10 @@ describe "File.expand_path" do
       File.expand_path('./////').should == Dir.pwd
       File.expand_path('.').should == Dir.pwd
       File.expand_path(Dir.pwd).should == Dir.pwd
-      File.expand_path('~/').should == ENV['HOME']
-      File.expand_path('~/..badfilename').should == "#{ENV['HOME']}/..badfilename"
+      File.expand_path('~/').should == @home
+      File.expand_path('~/..badfilename').should == "#{@home}/..badfilename"
       File.expand_path('..').should == Dir.pwd.split('/')[0...-1].join("/")
-      File.expand_path('~/a','~/b').should == "#{ENV['HOME']}/a"
+      File.expand_path('~/a','~/b').should == "#{@home}/a"
     end
 
     not_compliant_on :rubinius, :macruby do
@@ -131,8 +135,8 @@ describe "File.expand_path" do
     end
 
     it "expands ~ENV['USER'] to the user's home directory" do
-      File.expand_path("~#{ENV['USER']}").should == ENV['HOME']
-      File.expand_path("~#{ENV['USER']}/a").should == "#{ENV['HOME']}/a"
+      File.expand_path("~#{ENV['USER']}").should == @home
+      File.expand_path("~#{ENV['USER']}/a").should == "#{@home}/a"
     end
 
     it "does not expand ~ENV['USER'] when it's not at the start" do
@@ -140,7 +144,7 @@ describe "File.expand_path" do
     end
 
     it "expands ../foo with ~/dir as base dir to /path/to/user/home/foo" do
-      File.expand_path('../foo', '~/dir').should == "#{ENV['HOME']}/foo"
+      File.expand_path('../foo', '~/dir').should == "#{@home}/foo"
     end
   end
 
@@ -215,7 +219,9 @@ describe "File.expand_path" do
 
   it "does not modify a HOME string argument" do
     str = "~/a"
-    File.expand_path(str).should == "#{home_directory.tr('\\', '/')}/a"
+    home = home_directory.tr('\\', '/').chomp('/')
+
+    File.expand_path(str).should == "#{home}/a"
     str.should == "~/a"
   end
 

@@ -16,7 +16,7 @@ ruby_version_is "1.9" do
     end
 
     it "returns the named user's home directory as a string if called with an argument" do
-      Dir.home(ENV['USER']).should == home_directory
+      Dir.home(ENV['USER']).should == home_directory.chomp('/')
     end
 
     it "raises an ArgumentError if the named user doesn't exist" do
