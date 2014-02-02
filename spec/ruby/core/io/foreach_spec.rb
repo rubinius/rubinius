@@ -10,13 +10,6 @@ describe "IO.foreach" do
     ScratchPad.record []
   end
 
-  ruby_version_is "1.8.7" do
-    it "returns an Enumerator when called without a block" do
-      IO.foreach(@name).should be_an_instance_of(enumerator_class)
-      IO.foreach(@name).to_a.should == IOSpecs.lines
-    end
-  end
-
   it "updates $. with each yield" do
     IO.foreach(@name) { $..should == @count += 1 }
   end
@@ -44,6 +37,13 @@ describe "IO.foreach" do
 end
 
 ruby_version_is ""..."1.9" do
+  ruby_version_is "1.8.7" do
+    it "returns an Enumerator when called without a block" do
+      IO.foreach(@name).should be_an_instance_of(enumerator_class)
+      IO.foreach(@name).to_a.should == IOSpecs.lines
+    end
+  end
+
   describe "IO.foreach" do
     before :each do
       @name = fixture __FILE__, "lines.txt"
@@ -73,6 +73,11 @@ ruby_version_is "1.9" do
       $_ = "test"
       IO.foreach(@name) { }
       $_.should be_nil
+    end
+
+    it "returns an Enumerator when called without a block" do
+      IO.foreach(@name).should be_an_instance_of(enumerator_class)
+      IO.foreach(@name).to_a.should == IOSpecs.lines
     end
 
     it_behaves_like :io_readlines, :foreach, IOSpecs.collector
