@@ -41,6 +41,21 @@ describe :process_fork, :shared => true do
         Process.waitpid(pid)
         File.exist?(@file).should == true
       end
+
+      it "marks threads from the parent as killed" do
+        t = Thread.new { sleep }
+        pid = @object.fork {
+          touch(@file) do |f|
+            f.write Thread.current.alive?
+            f.write t.alive?
+          end
+          Process.exit!
+        }
+        Process.waitpid(pid)
+        t.kill
+        t.join
+        File.read(@file).should == "truefalse"
+      end
     end
   end
 end
