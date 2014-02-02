@@ -473,6 +473,15 @@ describe "Marshal.dump" do
     end
 
     ruby_version_is "2.0" do
+      before :each do
+        @internal = Encoding.default_internal
+        Encoding.default_internal = Encoding::UTF_8
+      end
+
+      after :each do
+        Encoding.default_internal = @internal
+      end
+
       it "dumps the zone and the offset" do
         with_timezone 'AST', 3 do
           dump = Marshal.dump(@t)

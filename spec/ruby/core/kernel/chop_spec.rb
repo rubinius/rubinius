@@ -44,6 +44,15 @@ end
 
 with_feature :encoding do
   describe :kernel_chop_encoded, :shared => true do
+    before :each do
+      @external = Encoding.default_external
+      Encoding.default_external = Encoding::UTF_8
+    end
+
+    after :each do
+      Encoding.default_external = @external
+    end
+
     it "removes the final multi-byte character from $_" do
       script = fixture __FILE__, "#{@method}.rb"
       KernelSpecs.encoded_chop(script).should == "あ"
