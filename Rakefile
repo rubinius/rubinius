@@ -201,9 +201,10 @@ task :docs do
   Rubinius::Documentation.main
 end
 
+spec_runner = SpecRunner.new
+
 desc "Run CI in default (configured) mode but do not rebuild on failure"
 task :spec => %w[build vm:test] do
-  spec_runner = SpecRunner.new
   spec_runner.run
 end
 
