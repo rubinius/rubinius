@@ -2012,13 +2012,17 @@ int main() { return tgetnum(""); }
     failed = false
 
     [:build_tool_gems, :build_c_ext_gems, :bootstrap_gems, :runtime_gems].each do |s|
-      Rubinius::BUILD_CONFIG[s].each do |name, version|
+      list = Rubinius::BUILD_CONFIG[s]
+
+      list.each do |name, version|
         gem_name = "#{name}-#{version}.gem"
         unless File.file? "#{@gems_cache}/#{gem_name}"
           @log.write "unable to find gem #{gem_name}"
           failed = true
         end
       end
+
+      instance_variable_set :"@#{s}", list
     end
 
     failure "Unable to find required gems." if failed
