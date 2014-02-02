@@ -279,8 +279,7 @@ namespace rubinius {
     vm->thread->init_lock_.lock();
     NativeMethod::cleanup_thread(state);
 
-    vm->thread->alive(state, cFalse);
-    vm->thread->cleanup();
+    vm->thread->stopped();
     vm->thread->init_lock_.unlock();
 
     vm->shared.clear_critical(state);
@@ -435,7 +434,8 @@ namespace rubinius {
     }
   }
 
-  void Thread::cleanup() {
+  void Thread::stopped() {
+    alive_ = cFalse;
     vm_ = NULL;
   }
 

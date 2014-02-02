@@ -173,8 +173,7 @@ namespace rubinius {
       if(VM* vm = (*i)->as_vm()) {
         if(vm == current) continue;
         Thread* thread = vm->thread.get();
-        thread->alive(state, cFalse);
-        thread->killed(state, cTrue);
+        thread->stopped();
       }
     }
     threads_.clear();

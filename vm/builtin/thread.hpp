@@ -273,7 +273,7 @@ namespace rubinius {
     Object* locals_has_key(STATE, Symbol* key);
 
     void init_lock();
-    void cleanup();
+    void stopped();
     void release_joins(STATE, GCToken gct, CallFrame* calling_environment);
 
     /**
