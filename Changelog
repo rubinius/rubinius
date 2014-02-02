@@ -1,3 +1,27 @@
+version: 2.2.4
+
+* The erb command is available by default. (Brian Shirai)
+* ARGF.set_encoding is supported. (Brian Shirai)
+* Dir.glob handles infinite wildcards. (Yorick Peterse)
+* Process.setproctitle is supported. (Yorick Peterse)
+* The C-API provides the rb_io_check_io function. (Yorick Peterse)
+* The method name as Symbol is returned from def. (Joe Eli Mac, Brian Shirai)
+* Symbol is comparable. (Erik Michaels-Ober)
+* RubyGems is updated to 2.2.1. (Brian Shirai)
+* String#encode! with options compatibility is improved. (Sylvester Keil)
+* LLVM 3.4 is supported. (Jan Alexander Steffens)
+* Compiling with clang 3.4 is fixed. (Yorick Peterse)
+* Linking with other than libstdc++ is supported. (Dirkjan Bussink)
+* A GC issue overwriting field values is fixed. (Dirkjan Bussink)
+* A memory leak in IO#sysread is fixed. (Dirkjan Bussink)
+* String#count is fixed for multi-byte strings. (Federico Ravasio)
+* String#replace is fixed for strings with invalid encodings.
+	(Federico Ravasio)
+* Performance of String#each_char is improved. (Federico Ravasio)
+* String#split is improved for multi-byte patterns. (Dirkjan Bussink)
+* Thread status is updated after fork(). (Dirkjan Bussink)
+* Time handling of zone and encoding is improved. (Dirkjan Bussink)
+
 Version: 2.2.3
 
 * Use the configured program name in build scripts. (Chad Slaughter)
