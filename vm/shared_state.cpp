@@ -142,7 +142,7 @@ namespace rubinius {
     SYNC_TL;
 
     Array* threads = Array::create(state, 0);
-    for(std::list<ManagedThread*>::iterator i = threads_.begin();
+    for(ThreadList::iterator i = threads_.begin();
         i != threads_.end();
         ++i) {
       if(VM* vm = (*i)->as_vm()) {

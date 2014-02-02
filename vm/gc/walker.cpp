@@ -37,7 +37,7 @@ namespace rubinius {
     }
 
     if(data.threads()) {
-      for(std::list<ManagedThread*>::iterator i = data.threads()->begin();
+      for(ThreadList::iterator i = data.threads()->begin();
           i != data.threads()->end();
           ++i) {
         scan(*i, false);

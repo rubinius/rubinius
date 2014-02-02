@@ -339,7 +339,7 @@ namespace rubinius {
 
   void GarbageCollector::verify(GCData* data) {
     if(data->threads()) {
-      for(std::list<ManagedThread*>::iterator i = data->threads()->begin();
+      for(ThreadList::iterator i = data->threads()->begin();
           i != data->threads()->end();
           ++i) {
         ManagedThread* thr = *i;
@@ -396,7 +396,7 @@ namespace rubinius {
 
   void GarbageCollector::scan_fibers(GCData* data, bool marked_only) {
     if(data->threads()) {
-      for(std::list<ManagedThread*>::iterator i = data->threads()->begin();
+      for(ThreadList::iterator i = data->threads()->begin();
           i != data->threads()->end();
           ++i) {
         if(VM* vm = (*i)->as_vm()) {
