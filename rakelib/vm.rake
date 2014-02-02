@@ -355,7 +355,6 @@ namespace :vm do
       'bin/irb',
       'bin/gem',
       'vm/.deps',
-      'staging'
     ].exclude("vm/gen/config.h", "vm/gen/paths.h")
 
     files.each do |filename|

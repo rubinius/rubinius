@@ -17,8 +17,6 @@ def kernel_clean
            "**/.*.rbc",
            "kernel/**/signature.rb",
            "spec/capi/ext/*.{o,sig,#{$dlext}}",
-           "runtime",
-           "bootstrap",
           ],
     :verbose => $verbose
 end
