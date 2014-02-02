@@ -126,8 +126,8 @@ module Rubinius
 
       ret = []
 
-      pat_size = pattern.size
-      str_size = string.num_bytes
+      pat_size = pattern.bytesize
+      str_size = string.bytesize
 
       while pos < str_size
         nxt = string.find_string(pattern, pos)
