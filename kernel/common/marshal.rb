@@ -81,7 +81,7 @@ class Time
     # Order matters.
     extra_values = {}
     extra_values[:offset] = gmt_offset unless gmt?
-    extra_values[:zone] = zone.encode(Encoding.find('locale'))
+    extra_values[:zone] = zone
 
     if nsec > 0
       # MRI serializes nanoseconds as a Rational using an

@@ -24,6 +24,8 @@ namespace rubinius {
     Object* offset_; // slot
     Object* zone_; // slot
 
+    String* locale_string(STATE, const char* data);
+
   public:
     /* accessors */
     attr_accessor(decomposed, Array);
