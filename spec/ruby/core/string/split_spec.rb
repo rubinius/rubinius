@@ -21,6 +21,10 @@ describe "String#split with String" do
       broken_str.force_encoding('utf-8')
       lambda { str.split(broken_str) }.should raise_error(ArgumentError)
     end
+
+    it "splits on multibyte characters" do
+      "ありがりがとう".split("が").should == ["あり", "り", "とう"]
+    end
   end
 
   it "returns an array of substrings based on splitting on the given string" do
