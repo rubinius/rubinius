@@ -119,6 +119,8 @@ namespace rubinius {
     bool use_capi_lock_;
     int primitive_hits_[Primitives::cTotalPrimitives];
 
+    void reset_threads(STATE);
+
   public:
     Globals globals;
     ObjectMemory* om;

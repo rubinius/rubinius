@@ -165,6 +165,22 @@ namespace rubinius {
     return agent_;
   }
 
+  void SharedState::reset_threads(STATE) {
+    VM* current = state->vm();
+    for(ThreadList::iterator i = threads_.begin();
+           i != threads_.end();
+           ++i) {
+      if(VM* vm = (*i)->as_vm()) {
+        if(vm == current) continue;
+        Thread* thread = vm->thread.get();
+        thread->alive(state, cFalse);
+        thread->killed(state, cTrue);
+      }
+    }
+    threads_.clear();
+    threads_.push_back(current);
+  }
+
   void SharedState::reinit(STATE) {
     // For now, we disable inline debugging here. This makes inspecting
     // it much less confusing.
@@ -172,8 +188,8 @@ namespace rubinius {
     config.jit_inline_debug.set("no");
 
     env_->set_root_vm(state->vm());
-    threads_.clear();
-    threads_.push_back(state->vm());
+
+    reset_threads(state);
 
     // Reinit the locks for this object
     lock_init(state->vm());
