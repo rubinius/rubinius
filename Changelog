@@ -1,4 +1,4 @@
-version: 2.2.4
+Version: 2.2.4
 
 * The erb command is available by default. (Brian Shirai)
 * ARGF.set_encoding is supported. (Brian Shirai)
