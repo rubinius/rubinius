@@ -121,10 +121,6 @@ class SpecRunner
   end
 
   def initialize
-    ENV.delete("RUBYOPT")
-    ENV.delete("GEM_HOME")
-    ENV.delete("GEM_PATH")
-
     @handler = lambda do |ok, status|
       self.class.set_at_exit_status(status.exitstatus) unless ok
     end
@@ -145,6 +141,10 @@ end
 
 def check_status
   exit 1 unless SpecRunner.at_exit_status == 0
+end
+
+def clean_environment
+  ENV['GEM_PATH'] = ENV['GEM_HOME'] = ENV['RUBYOPT'] = nil
 end
 
 task :check_status do
@@ -201,10 +201,11 @@ task :docs do
   Rubinius::Documentation.main
 end
 
-spec_runner = SpecRunner.new
-
 desc "Run CI in default (configured) mode but do not rebuild on failure"
 task :spec => %w[build vm:test] do
+  clean_environment
+
+  spec_runner = SpecRunner.new
   spec_runner.run
 end
 

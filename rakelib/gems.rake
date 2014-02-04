@@ -9,7 +9,8 @@ end
 namespace :gems do
   desc 'Install the pre-installed gems'
   task :install do
-    ENV['GEM_HOME'] = ENV['GEM_PATH'] = nil
+    clean_environment
+
     cmd = "#{BUILD_CONFIG[:sourcedir]}/rakelib/preinstall_gems.rb"
 
     Dir.chdir "vendor/cache" do
@@ -34,6 +35,8 @@ namespace :gems do
   end
 
   task :extensions do
+    clean_environment
+
     gems_dir = BUILD_CONFIG[:bootstrap_gems_dir]
     build_gem_extconf = "extconf.rb"
 
