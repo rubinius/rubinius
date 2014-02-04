@@ -1548,8 +1548,6 @@ int main() { return tgetnum(""); }
     enable_features
     detect_build_dirs
 
-    check_tools
-
     if @use_llvm
       @log.write "Configuring LLVM..."
       setup_auto
@@ -2102,6 +2100,7 @@ int main() { return tgetnum(""); }
     options
     parse ARGV
     load_config
+    check_tools
     check_force_clean
 
     set_filesystem_paths
