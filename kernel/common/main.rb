@@ -21,6 +21,12 @@ class << MAIN
     Object
   end
 
+  def define_method(*args, &block)
+    Rubinius.privately do
+      Object.define_method(*args, &block)
+    end
+  end
+
   def to_s
     "main"
   end
