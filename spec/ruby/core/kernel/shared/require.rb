@@ -244,6 +244,19 @@ describe :kernel_require, :shared => true do
     end
   end
 
+  describe "(non-extensioned path)" do
+    before :each do
+      a = File.expand_path "a", CODE_LOADING_DIR
+      b = File.expand_path "b", CODE_LOADING_DIR
+      $LOAD_PATH.replace [a, b]
+    end
+
+    it "loads a .rb extensioned file when a C-extension file exists on an earlier load path" do
+      @object.require("load_fixture").should be_true
+      ScratchPad.recorded.should == [:loaded]
+    end
+  end
+
   describe "(file extensions)" do
     it "loads a .rb extensioned file when passed a non-extensioned path" do
       path = File.expand_path "load_fixture", CODE_LOADING_DIR
