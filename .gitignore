@@ -56,6 +56,12 @@ tmtags
 /bootstrap
 Gemfile.lock
 
+# .build_ruby tracks the path to the Ruby executable
+.build_ruby
+
+# .build_signature tracks changes to the build system files
+.build_signature
+
 # .revision tracks configure and code revision consistency
 .revision
 

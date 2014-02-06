@@ -4,6 +4,7 @@ require 'rubygems'
 require 'bundler/setup'
 require './rakelib/configure'
 require './rakelib/release'
+require './rakelib/build_signature'
 require 'rbconfig'
 require 'tempfile'
 require 'fileutils'
@@ -190,8 +191,6 @@ class Configure
     @release_date = nil
 
     # Configure settings
-    @build_ruby = nil
-    @config_version = 189
     @release_build = !git_directory
     @release_config = false
   end
@@ -1587,18 +1586,6 @@ int main() { return tgetnum(""); }
     detect_strerror
  end
 
-  # Records the full path to the ruby executable that runs this configure
-  # script. That path will be made available to the rest of the build system
-  # so the same version of ruby is invoked as needed.
-  def build_ruby
-    unless @build_ruby
-      bin = RbConfig::CONFIG["RUBY_INSTALL_NAME"] || RbConfig::CONFIG["ruby_install_name"]
-      bin += (RbConfig::CONFIG['EXEEXT'] || RbConfig::CONFIG['exeext'] || '')
-      @build_ruby = File.join(RbConfig::CONFIG['bindir'], bin)
-    end
-    @build_ruby
-  end
-
   # Checks whether the given config file is a Perl script by checking its first
   # line for a Perl hashbang.
   def llvm_config_cmd(config)
@@ -1702,13 +1689,11 @@ int main() { return tgetnum(""); }
         :patch_version      => @patch_version,
         :release_date       => @release_date || default_release_date,
         :revision           => build_revision,
-        :config_version     => @config_version,
       }
     end
 
     build_config = {
       :command_line       => @command_line,
-      :build_ruby         => build_ruby,
       :build_make         => @make,
       :build_rake         => @rake,
       :build_perl         => @perl,
@@ -1924,7 +1909,7 @@ int main() { return tgetnum(""); }
   end
 
   def check_force_clean
-    if Rubinius::BUILD_CONFIG[:config_version] != @config_version
+    unless verify_build_signature
       @log.write "\nDetected old configuration settings, forcing a clean build"
       system("#{build_ruby} -S #{@rake} clean")
     end
@@ -2109,17 +2094,6 @@ int main() { return tgetnum(""); }
 
     set_filesystem_paths
 
-    if File.join(@bindir, @program_name) == build_ruby
-      @log.error "\nYou are attempting to build using the instance of Rubinius that you are building.\n\n"
-
-      @log.error "To resolve this issue:"
-      if ENV['PATH'] =~ /#{@bindir}/
-        @log.error "  * Remove '#{@bindir}' from your PATH."
-      end
-
-      failure "  * Use a Ruby executable other than '#{build_ruby}' to build."
-    end
-
     process
     if @release_build
       verify_gems
@@ -2128,6 +2102,7 @@ int main() { return tgetnum(""); }
     end
     setup_gems unless @release_config
     write_configure_files
+    write_build_signature
 
     return if @release_config
 

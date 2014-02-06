@@ -1,6 +1,7 @@
 require 'bundler/setup'
 require 'redcard'
 require './rakelib/configure'
+require './rakelib/build_signature'
 
 include Rake::DSL if Rake.const_defined? :DSL
 
@@ -27,8 +28,8 @@ def load_configuration
   config_h  = File.expand_path "../vm/gen/config.h", __FILE__
 
   unless File.exist?(config_rb) and File.exist?(config_h)
-    STDERR.puts "Please run ./configure first"
-    exit 1
+    sh "./configure"
+    return load_configuration
   end
 
   load config_rb
@@ -37,7 +38,8 @@ end
 
 load_configuration
 
-unless BUILD_CONFIG[:config_version] == 189
+unless verify_build_signature or
+       Rake.application.top_level_tasks.include?("clean")
   STDERR.puts "Your configuration is outdated, please run ./configure first"
   exit 1
 end
@@ -54,42 +56,6 @@ def libprefixdir
   else
     "#{BUILD_CONFIG[:sourcedir]}/lib"
   end
-end
-
-# Records the full path to the ruby executable that runs this configure
-# script. That path will be made available to the rest of the build system
-# so the same version of ruby is invoked as needed.
-#
-# This is duplicated from the configure script for now.
-@build_ruby = nil
-
-def build_ruby
-  unless @build_ruby
-    bin = RbConfig::CONFIG["RUBY_INSTALL_NAME"] || RbConfig::CONFIG["ruby_install_name"]
-    bin += (RbConfig::CONFIG['EXEEXT'] || RbConfig::CONFIG['exeext'] || '')
-    @build_ruby = File.join(RbConfig::CONFIG['bindir'], bin)
-  end
-  @build_ruby
-end
-
-unless BUILD_CONFIG[:build_ruby] == build_ruby || ENV["RBX_SKIP_BUILD_RUBY_CHECK"]
-  STDERR.puts "\nUnable to build using the running Ruby executable (#{build_ruby}). Expected #{BUILD_CONFIG[:build_ruby]}\n\n"
-
-  STDERR.puts "To resolve this issue:"
-  if ENV['PATH'] =~ /#{BUILD_CONFIG[:bindir]}/
-    STDERR.puts "  * Remove '#{BUILD_CONFIG[:bindir]}' from your PATH."
-  elsif build_ruby == File.join(BUILD_CONFIG[:bindir], BUILD_CONFIG[:program_name])
-    # This may occur using rbx from the build directory to build a version
-    # of rbx to install. The rbx in the build directory will pick up the
-    # lib/rubinius/build_config.rb that was just written by configure.
-    # Obviously, this chewing gum, duct tape, bailing wire, and toilet paper
-    # system needs fixing.
-    STDERR.puts "  * Configure using a Ruby executable other than the one in your build directory."
-  else
-    STDERR.puts "  * Use '#{BUILD_CONFIG[:build_ruby]}' to build."
-  end
-
-  exit 1
 end
 
 # Set the build compiler to the configured compiler unless

@@ -11,6 +11,8 @@
 # parts of the build (including the top-level build task for generating the
 # entire kernel).
 
+require "rakelib/digest_files"
+
 # drake does not allow invoke to be called inside tasks
 def kernel_clean
   rm_rf Dir["**/*.rbc",
@@ -125,19 +127,8 @@ config_files = FileList[
 signature_files = kernel_files + config_files + runtime_gem_files + ext_files - ffi_files
 
 file signature_file => signature_files do
-  require 'digest/sha1'
-  digest = Digest::SHA1.new
-
-  signature_files.each do |name|
-    File.open name, "r" do |file|
-      while chunk = file.read(1024)
-        digest << chunk
-      end
-    end
-  end
-
   # Collapse the digest to a 64bit quantity
-  hd = digest.hexdigest
+  hd = digest_files signature_files
   SIGNATURE_HASH = hd[0, 16].to_i(16) ^ hd[16,16].to_i(16) ^ hd[32,8].to_i(16)
 
   File.open signature_file, "wb" do |file|
