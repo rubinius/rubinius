@@ -181,8 +181,5 @@ Rubinius::ConfigurationVariables.define do |c|
   c.vm_variable "vm.crash_report_path", :string,
     :as => "report_path",
     :description => "Set a custom path to write crash reports"
-
-  c.vm_variable "thread.debug", false,
-    "Print threading notices when they occur"
 end
 

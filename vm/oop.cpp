@@ -578,11 +578,6 @@ step2:
       case eAuxWordEmpty:
       case eAuxWordObjID:
       case eAuxWordHandle:
-        // Um. well geez. We don't have this object locked.
-        if(state->shared().config.thread_debug) {
-          std::cerr << "[THREAD] Attempted to unlock an unlocked object.\n";
-        }
-
         if(cDebugThreading) {
           std::cerr << "[LOCK " << state->vm()->thread_id() << " attempted to unlock an unlocked header]\n";
         }
@@ -598,13 +593,6 @@ step2:
               << "]\n";
           }
 
-          if(state->shared().config.thread_debug) {
-            std::cerr
-              << "[THREAD] Attempted to unlock an object locked by other thread."
-              << "locker=" << locker_tid
-              << ", current=" << state->vm()->thread_id()
-              << "\n";
-          }
           return eLockError;
         }
 
