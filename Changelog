@@ -1,4 +1,4 @@
-Version: 2.2.4
+Version: 2.2.4 (2014-02-02)
 
 * The erb command is available by default. (Brian Shirai)
 * ARGF.set_encoding is supported. (Brian Shirai)
@@ -22,14 +22,14 @@ Version: 2.2.4
 * Thread status is updated after fork(). (Dirkjan Bussink)
 * Time handling of zone and encoding is improved. (Dirkjan Bussink)
 
-Version: 2.2.3
+Version: 2.2.3 (2013-12-29)
 
 * Use the configured program name in build scripts. (Chad Slaughter)
 * Require 'find' for the utility script listing TODOs. (Benny Klotz)
 * Use File.exist? in build scripts. (Mike Dorst)
 * Provide logger library for bootstrapping Bundler 1.5+. (Brian Shirai)
 
-Version: 2.2.2
+Version: 2.2.2 (2013-12-22)
 
 * The --llvm-path configure option checks llvm version. (Gabriel Southern)
 * Module#const_get resolves qualified names like '::A::B' (Brian Shirai)
