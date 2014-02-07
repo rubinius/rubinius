@@ -340,18 +340,23 @@ module Rubinius
       return nil
     end
 
-    # Searches $LOAD_PATH for a file named +name+, appending ".rb" and the
-    # platform's shared library file extension in that order to locate an
-    # existing file. Returns true if a file is found. Used by #require only.
+    # Searches $LOAD_PATH for a file named +name+, appending ".rb" and returns
+    # true if found. If a file with the platform's shared library extension is
+    # found, the path is saved. If no file with ".rb" is found but a file with
+    # the shared library extension is found, returns true. Otherwise, returns
+    # false.
     def search_require_path(name)
+      library_found = false
+
       $LOAD_PATH.each do |dir|
-        if check_path(dir, name, CodeLoader.source_extension, :ruby) or
-           check_path(dir, name, LIBSUFFIX, :library)
+        if check_path(dir, name, CodeLoader.source_extension, :ruby)
           return true
+        elsif check_path(dir, name, LIBSUFFIX, :library)
+          library_found = true
         end
       end
 
-      return false
+      library_found
     end
 
     # Checks that +name+ plus +extension+ is a #loadable? file. If it is, sets
