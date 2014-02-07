@@ -425,8 +425,10 @@ module Rubinius
         end
       end
 
-      load_error unless CodeLoader.loaded? @path or
-                        CodeLoader.rubygems_require @path
+      return false if CodeLoader.loaded? @path
+      return true if rubygems_require
+
+      load_error
     end
 
     # Raises a LoadError if the requested file cannot be found or loaded.

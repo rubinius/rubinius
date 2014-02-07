@@ -80,30 +80,42 @@ module Rubinius
     # Default check_version flag to true
     @check_version = true
 
+    # Requires pre-installed gems directly to prevent Bundler and RubyGems
+    # from disabling the gems and to permit bootstrapping RubyGems.
+    #
+    # TODO: Patch Bundler to recognize pre-installed gems when resolving
+    # dependencies and fix RubyGems hijacking #require.
+    def rubygems_require
+      if dir = rubygems_search_require
+        $LOAD_PATH.unshift dir
+        return true
+      end
+
+      return false
+    end
+
+    def rubygems_search_require
+      library_found = nil
+
+      self.class.rubygems_dirs.each do |dir|
+        if @type and check_path(dir, @path, "", @type)
+          return dir
+        elsif check_path(dir, @path, CodeLoader.source_extension, :ruby)
+          return dir
+        elsif check_path(dir, @path, LIBSUFFIX, :library)
+          library_found = dir
+        end
+      end
+
+      library_found
+    end
+
     class << self
       attr_accessor :load_compiled
       attr_accessor :check_version
 
-      # Requires pre-installed gems directly to prevent Bundler and RubyGems
-      # from disabling the gems and to permit bootstrapping RubyGems.
-      #
-      # TODO: Patch Bundler to recognize pre-installed gems when resolving
-      # dependencies and fix RubyGems hijacking #require.
-      def rubygems_require(name)
+      def rubygems_dirs
         @rubygems_dirs ||= Dir["#{Rubinius::GEMS_PATH}/gems/**/lib"]
-
-        lib_name = name.end_with?(".rb") ? name : name + ".rb"
-
-        @rubygems_dirs.each_with_index do |dir, index|
-          if dir and File.exist? "#{dir}/#{lib_name}"
-            $LOAD_PATH.unshift dir
-            @rubygems_dirs[index] = nil
-
-            return require(name)
-          end
-        end
-
-        return false
       end
 
       # Loads rubygems using the bootstrap standard library files.
