@@ -14,6 +14,7 @@ end
 $trace ||= false
 $VERBOSE = true
 $verbose = Rake.application.options.trace || ARGV.delete("-v")
+$cleaning = Rake.application.top_level_tasks.include?("clean")
 
 if !$verbose and respond_to?(:verbose)
   verbose(false) if verbose() == :default
@@ -28,8 +29,12 @@ def load_configuration
   config_h  = File.expand_path "../vm/gen/config.h", __FILE__
 
   unless File.exist?(config_rb) and File.exist?(config_h)
-    sh "./configure"
-    return load_configuration
+    if $cleaning
+      exit 0
+    else
+      sh "./configure"
+      return load_configuration
+    end
   end
 
   load config_rb
@@ -38,8 +43,7 @@ end
 
 load_configuration
 
-unless verify_build_signature or
-       Rake.application.top_level_tasks.include?("clean")
+unless verify_build_signature or $cleaning
   STDERR.puts "Your configuration is outdated, please run ./configure first"
   exit 1
 end
