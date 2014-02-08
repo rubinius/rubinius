@@ -315,6 +315,7 @@ namespace rubinius {
 
     // Let all the builtin classes initialize themselves. this
     // typically means creating a Ruby class.
+    BasicObject::init(state);
     CompactLookupTable::init(state);
     ByteArray::init(state);
     String::init(state);
