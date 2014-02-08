@@ -83,7 +83,7 @@ ruby_version_is "1.9" do
   end
 
   describe "BasicObject references" do
-    it "BasicObject can refer to BasicObject from within itself" do
+    it "can refer to BasicObject from within itself" do
       lambda { BasicObject::BasicObject }.should_not raise_error
     end
   end
