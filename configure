@@ -1362,7 +1362,6 @@ int main() { return tgetnum(""); }
         [ "rubysl-test-unit", "2.0" ],
         [ "racc", "1.4" ],
         [ "minitest", "4.7" ],
-        [ "psych", "2.0" ],
       ]
     else
       @runtime_gems.concat [
