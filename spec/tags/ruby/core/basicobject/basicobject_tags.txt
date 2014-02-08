@@ -1,1 +1,0 @@
-fails:BasicObject references can refer to BasicObject from within itself
