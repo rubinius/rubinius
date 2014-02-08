@@ -257,8 +257,7 @@ end
 
 class Struct
   def __marshal__(ms)
-    attr_syms = _attrs.map { |a| "@#{a}".to_sym }
-    exclude = Rubinius::Type.convert_to_names attr_syms
+    exclude = _attrs.map { |a| "@#{a}".to_sym }
 
     out =  ms.serialize_instance_variables_prefix(self, exclude)
     out << ms.serialize_extended_object(self)
@@ -301,11 +300,10 @@ class Hash
   def __marshal__(ms)
     raise TypeError, "can't dump hash with default proc" if default_proc
 
-    exclude_syms = %w[
+    excluded_ivars = %w[
       @capacity @mask @max_entries @size @entries @default_proc @default
       @state @compare_by_identity @head @tail @table
     ].map { |a| a.to_sym }
-    excluded_ivars = Rubinius::Type.convert_to_names exclude_syms
 
     out =  ms.serialize_instance_variables_prefix(self, excluded_ivars)
     out << ms.serialize_extended_object(self)

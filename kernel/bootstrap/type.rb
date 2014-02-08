@@ -115,13 +115,5 @@ module Rubinius
       Rubinius.primitive :encoding_get_object_encoding
       raise PrimitiveFailure, "Rubinius::Type.object_encoding primitive failed"
     end
-
-    def self.convert_to_names(list)
-      list
-    end
-
-    def self.convert_to_name(sym)
-      sym
-    end
   end
 end

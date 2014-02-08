@@ -26,6 +26,6 @@ class BasicObject
       ary << sym if sym.is_ivar?
     end
 
-    Rubinius::Type.convert_to_names ary
+    ary
   end
 end

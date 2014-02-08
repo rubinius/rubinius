@@ -29,8 +29,8 @@ class Exception
   # source means it's easy to forget about.
   def to_yaml_properties
     list = super
-    list.delete Rubinius::Type.convert_to_name(:@backtrace)
-    list.delete Rubinius::Type.convert_to_name(:@custom_backtrace)
+    list.delete :@backtrace
+    list.delete :@custom_backtrace
     return list
   end
 

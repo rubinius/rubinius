@@ -149,7 +149,7 @@ class Module
       end
     end
 
-    Rubinius::Type.convert_to_names tbl.keys
+    tbl.keys
   end
 
   def private_constant(*names)
@@ -298,10 +298,7 @@ class Module
 
     raise PrimitiveFailure, "Module#__class_variables__ primitive failed"
   end
-
-  def class_variables
-    Rubinius::Type.convert_to_names(__class_variables__)
-  end
+  alias_method :class_variables, :__class_variables__
 
   def name
     Rubinius::Type.module_name self
@@ -443,7 +440,7 @@ class Module
       end
     end
 
-    Rubinius::Type.convert_to_names ary
+    ary
   end
 
   def public_instance_methods(all=true)
@@ -480,7 +477,7 @@ class Module
       end
     end
 
-    Rubinius::Type.convert_to_names ary
+    ary
   end
 
   private :filter_methods

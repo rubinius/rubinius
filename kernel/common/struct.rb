@@ -103,8 +103,7 @@ class Struct
 
   def instance_variables
     # Hide the ivars used to store the struct fields
-    attr_syms = _attrs.map { |a| "@#{a}".to_sym }
-    super() - Rubinius::Type.convert_to_names(attr_syms)
+    super() - _attrs.map { |a| "@#{a}".to_sym }
   end
 
   def initialize(*args)
@@ -233,7 +232,7 @@ class Struct
   end
 
   def self.members
-    return Rubinius::Type.convert_to_names(self::STRUCT_ATTRS.dup)
+    self::STRUCT_ATTRS.dup
   end
 
   def members
