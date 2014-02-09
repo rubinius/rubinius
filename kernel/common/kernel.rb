@@ -800,8 +800,10 @@ module Kernel
   end
   module_function :test
 
-  def to_enum(method=:each, *args)
-    Enumerator.new(self, method, *args)
+  def to_enum(method=:each, *args, &block)
+    Enumerator.new(self, method, *args).tap do |enum|
+      Rubinius.privately { enum.size = block } if block_given?
+    end
   end
   alias_method :enum_for, :to_enum
 
