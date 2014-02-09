@@ -205,7 +205,7 @@ namespace rubinius {
         call_frame->compiled_code = (CompiledCode*)mark_object(call_frame->compiled_code);
       }
 
-      if(call_frame->compiled_code && call_frame->stk) {
+      if(call_frame->compiled_code) {
         native_int stack_size = call_frame->compiled_code->stack_size()->to_native();
         for(native_int i = 0; i < stack_size; i++) {
           Object* obj = call_frame->stk[i];
@@ -285,7 +285,7 @@ namespace rubinius {
         call_frame->compiled_code->validate();
       }
 
-      if(call_frame->compiled_code && call_frame->stk) {
+      if(call_frame->compiled_code) {
         native_int stack_size = call_frame->compiled_code->stack_size()->to_native();
         for(native_int i = 0; i < stack_size; i++) {
           Object* obj = call_frame->stk[i];
