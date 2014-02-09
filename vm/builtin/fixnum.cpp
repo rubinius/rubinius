@@ -186,14 +186,7 @@ namespace rubinius {
     if(exp == 0) return Fixnum::from(1);
     if(base == 1) return this;
 
-    if(base == 0) {
-      if(exp > 0) return Fixnum::from(0);
-      return Float::create(state, INFINITY);
-    }
-
-    if(exp < 0) {
-      return this->to_f(state)->fpow(state, exponent);
-    }
+    if(base == 0) return Fixnum::from(0);
 
     native_int result = 1;
 
