@@ -1,3 +1,14 @@
+Version: 2.2.5 (2014-02-08)
+
+* The 'main' object defines define_method. (Federico Ravasio)
+* When passed a name with no file extension, #require will search all load
+	paths for a file with a '.rb' extension before loading a file with the
+	platform's dynamic library extension. (Brian Shirai)
+* BasicObject can refer to BasicObject. (Federico Ravasio, Yorick Peterse)
+* Standard library gems 'racc', 'minitest', and 'rubysl-test-unit' are now
+	pre-installed, in addition to json and the RubySL gems. (Brian Shirai)
+* RubyGems is updated to 2.2.2. (Brian Shirai)
+
 Version: 2.2.4 (2014-02-02)
 
 * The erb command is available by default. (Brian Shirai)
