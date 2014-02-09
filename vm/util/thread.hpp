@@ -236,37 +236,34 @@ namespace thread {
   class LockGuardTemplate {
   public:
     T& lock_;
-    bool locked_;
 
     LockGuardTemplate(T& in_lock, bool initial = false)
       : lock_(in_lock)
-      , locked_(initial)
-    { }
+    {
+      if(initial) lock_.lock();
+    }
 
     LockGuardTemplate(T* in_lock, bool initial = false)
       : lock_(*in_lock)
-      , locked_(initial)
-    { }
+    {
+      if(initial) lock_.lock();
+    }
 
     void lock() {
-      if(locked_) return;
       if(cDebugLockGuard) {
         std::cout << "[[ " << thread_debug_self() << "   Locking " << lock_.describe() << " ]]\n";
       }
       lock_.lock();
-      locked_ = true;
       if(cDebugLockGuard) {
         std::cout << "[[ " << thread_debug_self() << "   Locked " << lock_.describe() << " ]]\n";
       }
     }
 
     void unlock() {
-      if(!locked_) return;
       if(cDebugLockGuard) {
         std::cout << "[[ " << thread_debug_self() << " Unlocking " << lock_.describe() << " ]]\n";
       }
       lock_.unlock();
-      locked_ = false;
     }
   };
 
