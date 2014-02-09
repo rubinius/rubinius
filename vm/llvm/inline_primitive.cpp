@@ -1309,14 +1309,15 @@ namespace rubinius {
       type::KnownType kt = type::KnownType::extract(ops.context(), cls);
       if(kt.constant_cache_p()) {
         ConstantCache* constant_cache = kt.constant_cache();
-        klass = try_as<Class>(constant_cache->value());
-        type::KnownType kt = type::KnownType::unknown();
-        if(kind_of<SingletonClass>(klass)) {
-          kt = type::KnownType::singleton_instance(klass->class_id());
-        } else {
-          kt = type::KnownType::instance(klass->class_id());
+        if(Class* cache_klass = try_as<Class>(constant_cache->value())) {
+          type::KnownType kt = type::KnownType::unknown();
+          if(kind_of<SingletonClass>(cache_klass)) {
+            kt = type::KnownType::singleton_instance(cache_klass->class_id());
+          } else {
+            kt = type::KnownType::instance(cache_klass->class_id());
+          }
+          kt.associate(ops.context(), out);
         }
-        kt.associate(ops.context(), out);
       }
 
       i.set_result(out);
