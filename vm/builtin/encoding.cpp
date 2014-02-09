@@ -304,13 +304,11 @@ namespace rubinius {
       bool ascii_a = CBOOL(str_a->ascii_only_p(state));
       bool ascii_b = CBOOL(str_b->ascii_only_p(state));
 
-      if(ascii_a != ascii_b) {
-        if(ascii_a) return enc_b;
-        if(ascii_b) return enc_a;
+      if(ascii_b) {
+        return enc_a;
+      } else if(ascii_a) {
+        return enc_b;
       }
-
-      if(ascii_b) return enc_a;
-      if(ascii_a) return enc_b;
     } else if(!str_b) {
       if(str_a && CBOOL(str_a->ascii_only_p(state))) return enc_b;
     }
