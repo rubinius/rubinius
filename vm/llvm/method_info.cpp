@@ -24,6 +24,7 @@ namespace rubinius {
     , call_frame_(0)
     , stack_(0)
     , args_(0)
+    , variables_(0)
     , previous_(0)
     , profiling_entry_(0)
     , parent_info_(parent)
@@ -43,6 +44,7 @@ namespace rubinius {
     , inline_policy(0)
     , fin_block(0)
     , called_args(-1)
+    , hits(0)
     , stack_args(0)
     , root(0)
   {
