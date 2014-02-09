@@ -36,6 +36,9 @@ namespace rubinius {
     , capi_lock_index_(method ? method->capi_lock_index() : 0)
     , check_handles_(false)
     , block_(Qnil)
+    , receiver_(Qnil)
+    , module_(Qnil)
+    , method_(Qnil)
   {}
 
   NativeMethodFrame::~NativeMethodFrame() {
