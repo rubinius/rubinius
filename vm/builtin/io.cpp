@@ -1201,8 +1201,7 @@ failed: /* try next '*' position */
   /** Socket methods */
   Object* IO::accept(STATE, CallFrame* calling_environment) {
     int fd = descriptor()->to_native();
-    int new_fd = 0;
-    bool set = false;
+    int new_fd = -1;
 
     struct sockaddr_storage socka;
     socklen_t sock_len = sizeof(socka);
@@ -1214,7 +1213,6 @@ failed: /* try next '*' position */
     {
       GCIndependent guard(state, calling_environment);
       new_fd = ::accept(fd, (struct sockaddr*)&socka, &sock_len);
-      set = true;
     }
 
     state->vm()->thread->sleep(state, cFalse);
@@ -1232,7 +1230,6 @@ failed: /* try next '*' position */
       return NULL;
     }
 
-    if(!set) return cNil;
     return Fixnum::from(new_fd);
   }
 
