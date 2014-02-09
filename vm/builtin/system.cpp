@@ -681,6 +681,7 @@ namespace rubinius {
       }
     }
 
+    dlclose(handle);
     return Tuple::from(state, 1, cTrue);
   }
 
