@@ -415,7 +415,8 @@ class Time
 
   def zone
     zone = to_a[9]
-    if Encoding.default_internal
+
+    if zone && Encoding.default_internal
       zone.encode Encoding.default_internal
     else
       zone
