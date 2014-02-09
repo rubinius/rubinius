@@ -29,6 +29,31 @@ describe "Time#zone" do
         t.getlocal("+05:00").zone.should be_nil
       end
     end
+
+    describe "Encoding.default_internal is set" do
+      before :each do
+        @encoding = Encoding.default_internal
+        Encoding.default_internal = Encoding::UTF_8
+      end
+
+      after :each do
+        Encoding.default_internal = @encoding
+      end
+
+      it "returns the string with the default internal encoding" do
+        t = Time.new(2005, 2, 27, 22, 50, 0, -3600)
+
+        with_timezone("US/Eastern") do
+          t.getlocal.zone.encoding.should == Encoding::UTF_8
+        end
+      end
+
+      it "doesn't raise errors for a Time with a fixed offset" do
+        lambda {
+          Time.new(2001, 1, 1, 0, 0, 0, "+05:00").zone
+        }.should_not raise_error
+      end
+    end
   end
 
   it "returns UTC when called on a UTC time" do
