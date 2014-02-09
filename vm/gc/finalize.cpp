@@ -111,11 +111,12 @@ namespace rubinius {
     if(iterator_) delete iterator_;
     if(live_list_) delete live_list_;
 
-    for(FinalizeObjectsList::iterator i = lists_->begin(); i != lists_->end(); ++i) {
-      delete *i;
+    if(lists_) {
+      for(FinalizeObjectsList::iterator i = lists_->begin(); i != lists_->end(); ++i) {
+        delete *i;
+      }
+      delete lists_;
     }
-
-    if(lists_) delete lists_;
   }
 
   void FinalizerHandler::start_thread(STATE) {
