@@ -8,6 +8,8 @@ namespace jit {
   public:
     BlockBuilder(Context* ctx, JITMethodInfo& info)
       : Builder(ctx, info)
+      , module_(NULL)
+      , inv_flags_(NULL)
     {}
 
     void initialize_frame(int stack_size);
