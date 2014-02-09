@@ -181,9 +181,8 @@ namespace rubinius {
 
       LookupData missing_lookup(call_frame->self(), recv->lookup_begin(state), G(sym_private));
       Dispatch missing_dis(G(sym_method_missing));
-      missing_dis.resolve(state, G(sym_method_missing), missing_lookup);
 
-      if(missing_dis.method_missing != eNone) {
+      if(!missing_dis.resolve(state, G(sym_method_missing), missing_lookup)) {
         std::ostringstream msg;
         msg << "no method_missing for ";
         msg << recv_class->to_string(state);
@@ -250,9 +249,8 @@ namespace rubinius {
   bool CallSite::lookup_method_missing(STATE, CallFrame* call_frame, Arguments& args, Dispatch& dis, Object* self, Module* begin) {
     LookupData missing_lookup(self, begin, G(sym_private));
     Dispatch missing_dis(G(sym_method_missing));
-    missing_dis.resolve(state, G(sym_method_missing), missing_lookup);
 
-    if(missing_dis.method_missing != eNone) {
+    if(!missing_dis.resolve(state, G(sym_method_missing), missing_lookup)) {
       std::ostringstream msg;
       msg << "no method_missing for ";
       msg << begin->to_string(state);
