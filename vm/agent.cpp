@@ -69,6 +69,8 @@ namespace rubinius {
     shared_.auxiliary_threads()->register_thread(this);
     shared_.set_query_agent(this);
 
+    vars_ = new agent::VariableAccess(state);
+
     initialize(state);
     start_thread(state);
   }
@@ -80,8 +82,6 @@ namespace rubinius {
 
   void QueryAgent::initialize(STATE) {
     FD_ZERO(&fds_);
-
-    vars_ = new agent::VariableAccess(state);
 
     tmp_path[0] = 0;
 
