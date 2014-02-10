@@ -47,7 +47,7 @@ extern "C" {
        if(Fixnum* exp_fix = try_as<Fixnum>(exp)) {
         return env->get_handle(as<Bignum>(base)->pow(state, exp_fix));
       } else {
-        return env->get_handle(as<Bignum>(base)->pow(state, as<Bignum>(exp_fix)));
+        return env->get_handle(as<Bignum>(base)->pow(state, as<Bignum>(exp)));
       }
     }
   }
