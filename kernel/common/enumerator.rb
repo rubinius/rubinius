@@ -5,6 +5,9 @@ module Enumerable
     attr_writer :args
     private :args=
 
+    attr_writer :size
+    private :size=
+
     def initialize_enumerator(receiver, size, method_name, *method_args)
       @object = receiver
       @size = size
