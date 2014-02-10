@@ -139,7 +139,7 @@ module Kernel
       Rubinius::VariableScope.of_sender,
       Rubinius::CompiledCode.of_sender,
       Rubinius::ConstantScope.of_sender,
-      self,
+      Rubinius::VariableScope.of_sender.self,
       Rubinius::Location.of_closest_ruby_method
     )
   end
