@@ -1,6 +1,20 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
 
+describe "Kernel.binding" do
+  ruby_version_is "" ... "1.9" do
+    it "returns a binding for Kernel" do
+      Kernel.binding.eval("self").should == Kernel
+    end
+  end
+
+  ruby_version_is "1.9" .. "2.1" do
+    it "returns a binding for the caller" do
+      Kernel.binding.eval("self").should == self
+    end
+  end
+end
+
 describe "Kernel#binding" do
   it "is a private method" do
     Kernel.should have_private_instance_method(:binding)
