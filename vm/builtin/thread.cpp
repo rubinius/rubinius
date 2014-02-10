@@ -46,7 +46,7 @@ namespace rubinius {
   }
 
   Thread* Thread::create(STATE, VM* target, Object* self, Run runner,
-                         bool main_thread, bool system_thread)
+                         bool system_thread)
   {
     Thread* thr = state->vm()->new_object_mature<Thread>(G(thread));
 
