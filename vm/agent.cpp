@@ -444,7 +444,7 @@ auth_error:
 
     vm_ = state->shared().new_vm();
     exit_ = false;
-    thread_.set(Thread::create(state, vm_, G(thread), query_agent_tramp, false, true));
+    thread_.set(Thread::create(state, vm_, G(thread), query_agent_tramp, true));
     run(state);
   }
 

@@ -69,7 +69,7 @@ namespace rubinius {
     self_ = state->shared().new_vm();
     paused_ = false;
     exit_ = false;
-    thread_.set(Thread::create(state, self_, G(thread), signal_handler_tramp, false, true));
+    thread_.set(Thread::create(state, self_, G(thread), signal_handler_tramp, true));
     run(state);
   }
 
