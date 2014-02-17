@@ -744,7 +744,6 @@ namespace rubinius {
         std::cerr << "Tool '" << path << "' reported failure to init.\n";
       }
     }
-    dlclose(handle);
   }
 
   std::string Environment::executable_name() {
