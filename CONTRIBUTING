@@ -70,7 +70,7 @@ We love these!
 * Include benchmarks before and after the change. Please include your hardware
   specs, namely CPU speed, # of cores, speed of hard drive (if SSD, then SSD is
   fine) and amount of RAM.
-* ALWAYS RUN THE FULL SPEC SUITE! rake will ensure you didn't accidentally
+* ALWAYS RUN THE FULL SPEC SUITE! 'rake' will ensure you didn't accidentally
   break anything.
 
 For more details on how to contribute, please see Contributing to Rubinius
