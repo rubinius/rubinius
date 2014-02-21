@@ -24,4 +24,10 @@ describe "Array#drop" do
   it "returns an empty Array if more elements than exist are dropped" do
     [1, 2].drop(3).should == []
   end
+
+  it 'acts correctly after a shift' do
+    ary = [nil, 1, 2]
+    ary.shift
+    ary.drop(1).should == [2]
+  end
 end
