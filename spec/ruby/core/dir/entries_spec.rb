@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/common', __FILE__)
 
@@ -29,6 +31,11 @@ describe "Dir.entries" do
     it "accepts an options Hash" do
       a = Dir.entries("#{DirSpecs.mock_dir}/deeply/nested", :encoding => "utf-8").sort
       a.should == %w|. .. .dotfile.ext directory|
+    end
+
+    it "returns non-ascii entries properly encoded" do
+      entries = Dir.entries File.join(DirSpecs.mock_dir, 'special')
+      entries.should include("こんにちは.txt")
     end
   end
 
