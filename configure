@@ -1648,7 +1648,7 @@ int main() { return tgetnum(""); }
       @libc = "libc.dylib"
     else
       begin
-        ldd_output = `ldd #{build_ruby}`
+        ldd_output = `ldd #{ENV["SHELL"]}`
 
         @libc = ldd_output[/libc\.so\.[0-9]+/]
       rescue
