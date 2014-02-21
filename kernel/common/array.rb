@@ -1559,7 +1559,7 @@ class Array
     new_size = @total - n
     return [] if new_size <= 0
 
-    new_range n, new_size
+    new_range @start + n, new_size
   end
 
   def sort(&block)
