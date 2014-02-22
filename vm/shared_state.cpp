@@ -396,5 +396,6 @@ namespace rubinius {
 #define CAPI_BLACK_LIST(name) capi_black_list_.insert(std::string("Init_" # name))
   void SharedState::initialize_capi_black_list() {
     CAPI_BLACK_LIST(nkf);
+    CAPI_BLACK_LIST(nokogiri);
   }
 }
