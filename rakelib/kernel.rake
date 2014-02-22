@@ -92,25 +92,29 @@ bootstrap_files = FileList[
 runtime_gems_dir = BUILD_CONFIG[:runtime_gems_dir]
 bootstrap_gems_dir = BUILD_CONFIG[:bootstrap_gems_dir]
 
-ffi_files = FileList[
-  "#{bootstrap_gems_dir}/**/*.ffi"
-].each { |f| f.gsub!(/.ffi\z/, '') }
+if runtime_gems_dir and bootstrap_gems_dir
+  ffi_files = FileList[
+    "#{bootstrap_gems_dir}/**/*.ffi"
+  ].each { |f| f.gsub!(/.ffi\z/, '') }
 
-runtime_gem_files = FileList[
-  "#{runtime_gems_dir}/**/*.rb"
-].exclude("#{runtime_gems_dir}/**/spec/**/*.rb",
-          "#{runtime_gems_dir}/**/test/**/*.rb")
+  runtime_gem_files = FileList[
+    "#{runtime_gems_dir}/**/*.rb"
+  ].exclude("#{runtime_gems_dir}/**/spec/**/*.rb",
+            "#{runtime_gems_dir}/**/test/**/*.rb")
 
-bootstrap_gem_files = FileList[
-  "#{bootstrap_gems_dir}/**/*.rb"
-].exclude("#{bootstrap_gems_dir}/**/spec/**/*.rb",
-          "#{bootstrap_gems_dir}/**/test/**/*.rb")
+  bootstrap_gem_files = FileList[
+    "#{bootstrap_gems_dir}/**/*.rb"
+  ].exclude("#{bootstrap_gems_dir}/**/spec/**/*.rb",
+            "#{bootstrap_gems_dir}/**/test/**/*.rb")
 
-ext_files = FileList[
-  "#{bootstrap_gems_dir}/**/*.{c,h}pp",
-  "#{bootstrap_gems_dir}/**/grammar.y",
-  "#{bootstrap_gems_dir}/**/lex.c.*"
-]
+  ext_files = FileList[
+    "#{bootstrap_gems_dir}/**/*.{c,h}pp",
+    "#{bootstrap_gems_dir}/**/grammar.y",
+    "#{bootstrap_gems_dir}/**/lex.c.*"
+  ]
+else
+  ffi_files = runtime_gem_files = bootstrap_gem_files = ext_files = []
+end
 
 kernel_files = FileList[
   "kernel/**/*.txt",
