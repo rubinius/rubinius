@@ -70,15 +70,11 @@ Gemfile.lock
 /bin/*
 
 # don't ignore our commands
-!/bin/bm
-!/bin/bm-automatic
-!/bin/cmspec
-!/bin/contributors.rb
-!/bin/contributors.sh
+!/bin/benchmark
 !/bin/laces.rb
 !/bin/mkspec
 !/bin/mspec
-!/bin/prof.rb
+!/bin/testrb
 
 # don't ignore spec/tags
 !/spec/tags
