@@ -7,10 +7,12 @@
 #include "gc/root.hpp"
 
 #include <list>
+#include <string>
 
 namespace rubinius {
   class VM;
   class State;
+  class Configuration;
   struct CallFrame;
   class Thread;
 
@@ -40,8 +42,10 @@ namespace rubinius {
       eCustom
     };
 
-    SignalHandler(STATE);
+    SignalHandler(STATE, Configuration& config);
     virtual ~SignalHandler();
+
+    void setup_default_handlers(std::string path);
 
     void perform(STATE);
 

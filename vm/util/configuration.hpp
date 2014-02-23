@@ -160,9 +160,9 @@ namespace config {
   public:
     std::string value;
 
-    String(Configuration* config, const char* name)
+    String(Configuration* config, const char* name, const char* def = "")
       : ConfigItem(config, name)
-      , value("")
+      , value(def)
     {}
 
     virtual void set(const char* str) {
