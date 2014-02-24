@@ -385,7 +385,6 @@ class Dir
 
       rbrace = nil
       lbrace = nil
-      escapes = false
 
       # Do a quick search for a { to start the search better
       i = pattern.index("{")
@@ -393,18 +392,16 @@ class Dir
       # If there was a { found, then search
       if i
         nest = 0
-        data = pattern.data
-        total = pattern.size
 
-        while i < total
-          char = data.get_byte(i)
+        while i < pattern.size
+          char = pattern[i]
 
-          if char == 123  # ?{
+          if char == "{"
             lbrace = i if nest == 0
             nest += 1
           end
 
-          if char == 125  # ?}
+          if char == "}"
             nest -= 1
           end
 
@@ -413,8 +410,7 @@ class Dir
             break
           end
 
-          if char == 92 and escape  # ?\\
-            escapes = true
+          if char == "\\" and escape
             i += 1
           end
 
@@ -434,16 +430,16 @@ class Dir
           pos += 1
           last = pos
 
-          while pos < rbrace and not (pattern.getbyte(pos) == 44 and nest == 0) # ?,
-            nest += 1 if pattern.getbyte(pos) == 123  # ?{
-              nest -= 1 if pattern.getbyte(pos) == 125  # ?}
+          while pos < rbrace and not (pattern[pos] == "," and nest == 0)
+            nest += 1 if pattern[pos] == "{"
+            nest -= 1 if pattern[pos] == "}"
 
-              if pattern.getbyte(pos) == 92 and escape # ?\\
-                pos += 1
-                break if pos == rbrace
-              end
-
+            if pattern[pos] == "\\" and escape
               pos += 1
+              break if pos == rbrace
+            end
+
+            pos += 1
           end
 
           brace_pattern = "#{front}#{pattern[last...pos]}#{back}"
@@ -462,7 +458,7 @@ class Dir
         end
       end
 
-      return patterns
+      patterns
     end
   end
 end

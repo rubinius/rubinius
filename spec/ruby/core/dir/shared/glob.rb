@@ -277,6 +277,12 @@ describe :dir_glob, :shared => true do
   it "ignores matching only directories under an nonexistant path" do
     Dir.send(@method, "deeply/notthere/blah/").should == []
   end
+
+  ruby_version_is "1.9" do
+    it "matches UTF-8 paths" do
+      Dir.send(@method, "special/こんにちは{,.txt}").should == ["special/こんにちは.txt"]
+    end
+  end
 end
 
 describe :dir_glob_recursive, :shared => true do
