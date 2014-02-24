@@ -11,7 +11,8 @@ class Dir
       enc = nil
     else
       options = Rubinius::Type.coerce_to options, Hash, :to_hash
-      enc = Rubinius::Type.coerce_to_encoding options[:encoding]
+      enc = options[:encoding]
+      enc = Rubinius::Type.coerce_to_encoding enc if enc
     end
 
     Rubinius.invoke_primitive :dir_open, self, path, enc
