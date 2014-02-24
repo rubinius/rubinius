@@ -36,26 +36,26 @@ public:
 
   void test_open() {
     String* path = String::create(state, ".");
-    TS_ASSERT_EQUALS(d->open(state, path), cTrue);
+    TS_ASSERT_EQUALS(d->open(state, path, cNil), cTrue);
   }
 
   void test_close() {
     String* path = String::create(state, ".");
-    d->open(state, path);
+    d->open(state, path, cNil);
     TS_ASSERT_EQUALS(d->close(state), cNil);
   }
 
   void test_closed_p() {
     TS_ASSERT_EQUALS(d->closed_p(state), cTrue);
     String* path = String::create(state, ".");
-    d->open(state, path);
+    d->open(state, path, cNil);
     TS_ASSERT_EQUALS(d->closed_p(state), cFalse);
   }
 
   void test_read() {
     char *dir = make_directory();
     String* path = String::create(state, dir);
-    d->open(state, path);
+    d->open(state, path, cNil);
     String* name = as<String>(d->read(state));
     TS_ASSERT_EQUALS(name->c_str(state)[0], '.');
     remove_directory(dir);
@@ -64,7 +64,7 @@ public:
   void test_read_returns_nil_when_no_more_entries() {
     char *dir = make_directory();
     String* path = String::create(state, dir);
-    d->open(state, path);
+    d->open(state, path, cNil);
     d->read(state);
     d->read(state);
     TS_ASSERT(d->read(state)->nil_p());
@@ -74,7 +74,7 @@ public:
   void test_control_rewinds_read_location() {
     char *dir = make_directory();
     String* path = String::create(state, dir);
-    d->open(state, path);
+    d->open(state, path, cNil);
     d->read(state);
     d->read(state);
     TS_ASSERT(d->read(state)->nil_p());
@@ -87,7 +87,7 @@ public:
   void test_control_seeks_to_a_known_position() {
     char *dir = make_directory();
     String* path = String::create(state, dir);
-    d->open(state, path);
+    d->open(state, path, cNil);
     d->read(state);
     Fixnum* pos = force_as<Fixnum>(d->control(state, Fixnum::from(2), Fixnum::from(0)));
     String* first = as<String>(d->read(state));
