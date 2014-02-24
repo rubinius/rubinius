@@ -6,6 +6,7 @@
 
 namespace rubinius {
   class String;
+  class Encoding;
 
   class Dir : public Object {
   public:
@@ -14,10 +15,12 @@ namespace rubinius {
   private:
     DIR *os_;
     String *path_; // slot
+    Encoding* encoding_; // slot
 
   public:
 
     attr_accessor(path, String);
+    attr_accessor(encoding, Encoding);
 
     /* interface */
 
@@ -31,7 +34,7 @@ namespace rubinius {
     static Dir* allocate(STATE, Object* self);
 
     // Rubinius.primitive :dir_open
-    Object* open(STATE, String *path);
+    Object* open(STATE, String *path, Object* enc);
 
     // Rubinius.primitive :dir_close
     Object* close(STATE);

@@ -1,6 +1,7 @@
 #include "builtin/dir.hpp"
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
+#include "builtin/encoding.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/string.hpp"
@@ -46,7 +47,7 @@ namespace rubinius {
     }
   }
 
-  Object* Dir::open(STATE, String* path) {
+  Object* Dir::open(STATE, String* path, Object* enc) {
     if(os_) closedir(os_);
 
     os_ = opendir(path->c_str_null_safe(state));
@@ -57,6 +58,14 @@ namespace rubinius {
     }
 
     this->path(state, path);
+
+    Encoding* encoding = 0;
+    if(enc->nil_p()) {
+      encoding = Encoding::filesystem_encoding(state);
+    } else {
+      encoding = as<Encoding>(enc);
+    }
+    this->encoding(state, encoding);
 
     return cTrue;
   }
@@ -88,7 +97,7 @@ namespace rubinius {
     if(!entp) return cNil;
 
     String* str = String::create(state, ent.d_name);
-    str->encoding(state, Encoding::default_external(state));
+    str->encoding(state, encoding());
     return str;
   }
 

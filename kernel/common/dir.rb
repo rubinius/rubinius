@@ -8,7 +8,7 @@ class Dir
   FFI = Rubinius::FFI
 
   def self.open(path, options=undefined)
-    dir = new path
+    dir = new path, options
     if block_given?
       begin
         value = yield dir
@@ -25,7 +25,7 @@ class Dir
   def self.entries(path, options=undefined)
     ret = []
 
-    open(path) do |dir|
+    open(path, options) do |dir|
       while s = dir.read
         ret << s
       end

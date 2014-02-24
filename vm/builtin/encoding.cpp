@@ -56,6 +56,7 @@ namespace rubinius {
 
     G(encoding)->set_ivar(state, state->symbol("@default_external"), G(undefined));
     G(encoding)->set_ivar(state, state->symbol("@default_internal"), G(undefined));
+    G(encoding)->set_ivar(state, state->symbol("@filesystem_encoding"), G(undefined));
 
     Encoding* binary = create_bootstrap(state, "ASCII-8BIT", eBinary, ONIG_ENCODING_ASCII);
     Encoding* utf8 = create_bootstrap(state, "UTF-8", eUtf8, ONIG_ENCODING_UTF_8);
@@ -225,6 +226,19 @@ namespace rubinius {
     if(!(enc = try_as<Encoding>(obj))) {
       enc = Encoding::find(state, "internal");
       G(encoding)->set_ivar(state, default_internal, enc);
+    }
+
+    return enc;
+  }
+
+  Encoding* Encoding::filesystem_encoding(STATE) {
+    Encoding* enc;
+    Symbol* filesystem_encoding = state->symbol("filesystem_encoding");
+    Object* obj = G(encoding)->get_ivar(state, filesystem_encoding);
+
+    if(!(enc = try_as<Encoding>(obj))) {
+      enc = Encoding::find(state, "filesystem");
+      G(encoding)->set_ivar(state, filesystem_encoding, enc);
     }
 
     return enc;

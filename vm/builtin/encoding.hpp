@@ -72,6 +72,7 @@ namespace rubinius {
 
     static Encoding* default_external(STATE);
     static Encoding* default_internal(STATE);
+    static Encoding* filesystem_encoding(STATE);
 
     static Encoding* create_bootstrap(STATE, const char* name,
                                       Index index, OnigEncodingType* enc);
