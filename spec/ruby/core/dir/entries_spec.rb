@@ -6,10 +6,12 @@ require File.expand_path('../fixtures/common', __FILE__)
 describe "Dir.entries" do
   before :all do
     DirSpecs.create_mock_dirs
+    @internal = Encoding.default_internal
   end
 
   after :all do
     DirSpecs.delete_mock_dirs
+    Encoding.default_internal = @internal
   end
 
   it "returns an Array of filenames in an existing directory including dotfiles" do
@@ -33,9 +35,22 @@ describe "Dir.entries" do
       a.should == %w|. .. .dotfile.ext directory|
     end
 
-    it "returns non-ascii entries properly encoded" do
+    it "returns entries encoded with the filesystem encoding by default" do
       entries = Dir.entries File.join(DirSpecs.mock_dir, 'special')
       entries.should include("こんにちは.txt")
+      entries.first.encoding.should equal(Encoding.find("filesystem"))
+    end
+
+    it "returns entries encoded with the specified encoding" do
+      dir = File.join(DirSpecs.mock_dir, 'special')
+      entries = Dir.entries dir, :encoding => "euc-jp"
+      entries.first.encoding.should equal(Encoding::EUC_JP)
+    end
+
+    it "returns entries transcoded to the default internal encoding" do
+      Encoding.default_internal = Encoding::EUC_KR
+      entries = Dir.entries File.join(DirSpecs.mock_dir, 'special')
+      entries.first.encoding.should equal(Encoding::EUC_KR)
     end
   end
 
