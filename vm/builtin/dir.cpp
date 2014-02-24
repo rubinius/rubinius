@@ -86,7 +86,10 @@ namespace rubinius {
     }
 
     if(!entp) return cNil;
-    return String::create(state, ent.d_name);
+
+    String* str = String::create(state, ent.d_name);
+    str->encoding(state, Encoding::default_external(state));
+    return str;
   }
 
   Object* Dir::control(STATE, Fixnum* kind, Integer* pos) {
