@@ -64,5 +64,10 @@ describe :dir_open, :shared => true do
       dir = Dir.send(@method, DirSpecs.mock_dir, options) {|dir| dir }
       dir.should be_kind_of(Dir)
     end
+
+    it "ignores the :encoding option if it is nil" do
+      dir = Dir.send(@method, DirSpecs.mock_dir, :encoding => nil) {|dir| dir }
+      dir.should be_kind_of(Dir)
+    end
   end
 end
