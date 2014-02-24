@@ -10,8 +10,8 @@ describe "Dir.entries" do
   end
 
   after :all do
-    DirSpecs.delete_mock_dirs
     Encoding.default_internal = @internal
+    DirSpecs.delete_mock_dirs
   end
 
   it "returns an Array of filenames in an existing directory including dotfiles" do
