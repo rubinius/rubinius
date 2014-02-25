@@ -1279,7 +1279,7 @@ int main() { return tgetnum(""); }
       includes.each do |i|
         src.puts "#include <#{i}>"
       end
-      src.puts "int main() { void* ptr = &#{name}; }"
+      src.puts "int main() { void* ptr = (void *) &#{name}; }"
     end
   end
 
@@ -1334,7 +1334,7 @@ int main() { return tgetnum(""); }
 
     @log.log string
 
-    cmd = "#{@cxx} -S -o - -x c #{defines.join(" ")} #{@user_cppflags} #{@user_cxxflags} #{@user_cflags} #{@user_ldflags} #{@system_cppflags} #{@system_cxxflags} #{@system_cflags} #{@system_ldflags} #{file.path} >>#{@log.path} 2>&1"
+    cmd = "#{@cxx} -S -o - -x c++ #{defines.join(" ")} #{@user_cppflags} #{@user_cxxflags} #{@user_cflags} #{@user_ldflags} #{@system_cppflags} #{@system_cxxflags} #{@system_cflags} #{@system_ldflags} #{file.path} >>#{@log.path} 2>&1"
     @log.log cmd
     system cmd
 
