@@ -68,7 +68,7 @@ namespace rubinius {
 
   Float* Float::from_cstr(STATE, const char* str, const char* end, Object* strict) {
     // Skip leading whitespace and underscores.
-    while(isspace(*str) || *str == '_') {
+    while(str < end && (isspace(*str) || *str == '_')) {
       if(*str == '_') {
         // Leading underscores are not allowed in strict mode.
         if(CBOOL(strict)) {
