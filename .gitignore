@@ -53,7 +53,14 @@ tmtags
 /share
 /work
 /staging
+/bootstrap
 Gemfile.lock
+
+# .build_ruby tracks the path to the Ruby executable
+.build_ruby
+
+# .build_signature tracks changes to the build system files
+.build_signature
 
 # .revision tracks configure and code revision consistency
 .revision
@@ -63,15 +70,11 @@ Gemfile.lock
 /bin/*
 
 # don't ignore our commands
-!/bin/bm
-!/bin/bm-automatic
-!/bin/cmspec
-!/bin/contributors.rb
-!/bin/contributors.sh
+!/bin/benchmark
 !/bin/laces.rb
 !/bin/mkspec
 !/bin/mspec
-!/bin/prof.rb
+!/bin/testrb
 
 # don't ignore spec/tags
 !/spec/tags
