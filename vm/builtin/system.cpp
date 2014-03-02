@@ -708,6 +708,14 @@ namespace rubinius {
 #endif
   }
 
+  Fixnum* System::vm_methods_cache_resets(STATE) {
+    return Fixnum::from(state->shared().stats.methods_cache_resets.read());
+  }
+
+  Fixnum* System::vm_global_serial(STATE) {
+    return Fixnum::from(*state->shared().global_serial_address());
+  }
+
   Object* System::vm_watch_signal(STATE, Fixnum* sig, Object* ignored) {
     SignalHandler* h = state->shared().signal_handler();
     if(h) {

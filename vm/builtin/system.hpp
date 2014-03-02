@@ -176,6 +176,12 @@ namespace rubinius {
     // Rubinius.primitive :vm_jit_info
     static Object*  vm_jit_info(STATE);
 
+    // Rubinius.primitive :vm_methods_cache_resets
+    static Fixnum* vm_methods_cache_resets(STATE);
+
+    // Rubinius.primitive :vm_global_serial
+    static Fixnum* vm_global_serial(STATE);
+
     // Rubinius.primitive+ :vm_memory_size
     static Fixnum* vm_memory_size(STATE, Object* obj);
 
