@@ -128,6 +128,8 @@ class Regexp
     if pattern.kind_of?(Regexp)
       opts = pattern.options
       pattern = pattern.source
+    elsif pattern.kind_of?(Fixnum) or pattern.kind_of?(Float)
+      raise TypeError, "can't convert Fixnum into String"
     elsif opts.kind_of?(Fixnum)
       opts = opts & (OPTION_MASK | KCODE_MASK) if opts > 0
     elsif opts
