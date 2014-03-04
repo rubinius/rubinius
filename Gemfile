@@ -4,13 +4,7 @@ gem "rake", "~> 10.0"
 gem "gems", "~> 0.8"
 gem "redcard", "~> 1.0"
 
-platform :rbx do
-  gem "rubysl-rake"
-  gem "rubysl-bundler"
-  gem "rubysl-digest"
-end
-
-gem "rubinius-toolset", "~> 0.1"
+gem "rubinius-toolset", "~> 2.2"
 gem "rubinius-bridge", "~> 1.0"
 gem "daedalus-core", "~> 0.0.3"
 
