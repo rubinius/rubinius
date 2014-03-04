@@ -133,12 +133,12 @@ module Rubinius
 
           require_compiled "rubinius/toolset"
 
-          Rubinius::ToolSet.start
-          require_compiled "rubinius/melbourne"
-          require_compiled "rubinius/processor"
-          require_compiled "rubinius/compiler"
-          require_compiled "rubinius/ast"
-          Rubinius::ToolSet.finish :runtime
+          Rubinius::ToolSets.create :runtime do
+            require_compiled "rubinius/melbourne"
+            require_compiled "rubinius/processor"
+            require_compiled "rubinius/compiler"
+            require_compiled "rubinius/ast"
+          end
         rescue Object => e
           raise LoadError, "Unable to load the bytecode compiler", e
         end
@@ -174,7 +174,7 @@ module Rubinius
       if CodeLoader.load_compiled
         code = load_compiled_file @load_path, signature, version
       else
-        c = Rubinius::ToolSet::Runtime::Compiler
+        c = Rubinius::ToolSets::Runtime::Compiler
         compiled_name = c.compiled_name @load_path
 
         if compiled_name
@@ -212,7 +212,7 @@ module Rubinius
     # Compile a Ruby source file and save the compiled file. Return the
     # internal representation (CompiledCode) of the Ruby source file.
     def compile_file(file, compiled)
-      c = Rubinius::ToolSet::Runtime::Compiler
+      c = Rubinius::ToolSets::Runtime::Compiler
       if CodeLoader.save_compiled?
         c.compile file, compiled
       else

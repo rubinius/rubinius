@@ -56,7 +56,7 @@ class BasicObject
                                 ::Rubinius::CompiledCode.of_sender,
                                 constant_scope)
 
-      c = ::Rubinius::ToolSet::Runtime::Compiler
+      c = ::Rubinius::ToolSets::Runtime::Compiler
       be = c.construct_block string, binding, filename, line
 
       be.call_on_instance(self)
@@ -170,7 +170,7 @@ module Kernel
     existing_scope = binding.constant_scope
     binding.constant_scope = existing_scope.dup
 
-    c = Rubinius::ToolSet::Runtime::Compiler
+    c = Rubinius::ToolSets::Runtime::Compiler
     be = c.construct_block string, binding, filename, lineno
 
     result = be.call_on_instance(binding.self)
@@ -215,7 +215,7 @@ class Module
                             Rubinius::CompiledCode.of_sender,
                             cs)
 
-    c = Rubinius::ToolSet::Runtime::Compiler
+    c = Rubinius::ToolSets::Runtime::Compiler
     be = c.construct_block string, binding, filename, line
 
     be.call_under self, cs, true, self

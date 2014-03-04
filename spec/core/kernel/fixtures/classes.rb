@@ -24,10 +24,10 @@ module KernelSpecs
   def self.cache_file(name, cache)
     code = File.read name
 
-    c = Rubinius::ToolSet::Runtime::Compiler
+    c = Rubinius::ToolSets::Runtime::Compiler
     be = c.construct_block code, empty_binding, name
 
-    cf = Rubinius::ToolSet::Runtime::CompiledFile
+    cf = Rubinius::ToolSets::Runtime::CompiledFile
     cf.dump be.compiled_code, cache, 0, 0
   end
 

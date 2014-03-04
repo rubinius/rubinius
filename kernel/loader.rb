@@ -651,7 +651,7 @@ to rebuild the compiler.
 
     #Check Ruby syntax of source
     def check_syntax
-      parser = Rubinius::ToolSet::Runtime::Melbourne
+      parser = Rubinius::ToolSets::Runtime::Melbourne
 
       if @script
         if File.exists?(@script)

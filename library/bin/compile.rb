@@ -43,13 +43,13 @@ class CompilerScript
     @options.doc ""
 
     @options.on "-t", "--transform", "NAME", "Enable AST transform NAME" do |t|
-      transform = Rubinius::ToolSet::Runtime::AST::Transforms[t.to_sym]
+      transform = Rubinius::ToolSets::Runtime::AST::Transforms[t.to_sym]
       @transforms << transform if transform
     end
 
     @options.on("-T", "--transforms", "NAME",
                 "Enable NAME category of AST transforms") do |c|
-      transforms = Rubinius::ToolSet::Runtime::AST::Transforms.category c.to_sym
+      transforms = Rubinius::ToolSets::Runtime::AST::Transforms.category c.to_sym
       @transforms.concat transforms if transforms
     end
 
@@ -61,7 +61,7 @@ class CompilerScript
     @options.doc "       Category: all"
     @options.doc "         Includes all transforms\n"
 
-    Rubinius::ToolSet::Runtime::AST::Transforms.category_map.each do |category, transforms|
+    Rubinius::ToolSets::Runtime::AST::Transforms.category_map.each do |category, transforms|
       @options.doc "       Category: #{category}"
       transforms.each do |t|
         text = "         %-19s  %s" % [t.transform_name, t.transform_comment]
@@ -74,11 +74,11 @@ class CompilerScript
     @options.doc " How to print representations of data structures"
 
     @options.on "-A", "--print-ast", "Print an ascii graph of the AST" do
-      @print_ast = Rubinius::ToolSet::Runtime::Compiler::ASTPrinter
+      @print_ast = Rubinius::ToolSets::Runtime::Compiler::ASTPrinter
     end
 
     @options.on "-S", "--print-sexp", "Print the AST as an S-expression" do
-      @print_ast = Rubinius::ToolSet::Runtime::Compiler::SexpPrinter
+      @print_ast = Rubinius::ToolSets::Runtime::Compiler::SexpPrinter
     end
 
     @options.on "-B", "--print-bytecode", "Print bytecode for compiled methods" do
@@ -90,7 +90,7 @@ class CompilerScript
     end
 
     @options.on "-P", "--print", "Enable all stage printers" do
-      @print_ast = Rubinius::ToolSet::Runtime::Compiler::ASTPrinter
+      @print_ast = Rubinius::ToolSets::Runtime::Compiler::ASTPrinter
       @print_bytecode = true
     end
 
@@ -167,10 +167,10 @@ class CompilerScript
   end
 
   def new_compiler(from, to)
-    compiler = Rubinius::ToolSet::Runtime::Compiler.new from, to
+    compiler = Rubinius::ToolSets::Runtime::Compiler.new from, to
 
     parser = compiler.parser
-    parser.root Rubinius::ToolSet::Runtime::AST::Script
+    parser.root Rubinius::ToolSets::Runtime::AST::Script
 
     enable_transforms parser
 

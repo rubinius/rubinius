@@ -829,7 +829,7 @@ class Module
   end
 
   def dynamic_method(name, file="(dynamic)", line=1)
-    g = Rubinius::ToolSet::Runtime::Generator.new
+    g = Rubinius::ToolSets::Runtime::Generator.new
     g.name = name.to_sym
     g.file = file.to_sym
     g.set_line Integer(line)

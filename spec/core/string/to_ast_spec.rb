@@ -2,7 +2,7 @@ require File.expand_path('../../../spec_helper', __FILE__)
 
 describe "String#to_ast" do
   before :all do
-    @ast_class = Rubinius::ToolSet::Runtime::AST
+    @ast_class = Rubinius::ToolSets::Runtime::AST
   end
 
   it "converts to AST nodes from Ruby code" do

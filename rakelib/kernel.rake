@@ -26,10 +26,10 @@ end
 # TODO: Build this functionality into the compiler
 class KernelCompiler
   def self.compile(file, output, line, transforms)
-    compiler = Rubinius::ToolSet::Build::Compiler.new :file, :compiled_file
+    compiler = Rubinius::ToolSets::Build::Compiler.new :file, :compiled_file
 
     parser = compiler.parser
-    parser.root Rubinius::ToolSet::Build::AST::Script
+    parser.root Rubinius::ToolSets::Build::AST::Script
 
     if transforms.kind_of? Array
       transforms.each { |t| parser.enable_category t }
@@ -40,7 +40,7 @@ class KernelCompiler
     parser.input file, line
 
     generator = compiler.generator
-    generator.processor Rubinius::ToolSet::Build::Generator
+    generator.processor Rubinius::ToolSets::Build::Generator
 
     writer = compiler.writer
     writer.version = BUILD_CONFIG[:libversion].sub(/\D/, "")
@@ -226,12 +226,12 @@ namespace :compiler do
     require "rubinius/bridge"
     require "rubinius/toolset"
 
-    Rubinius::ToolSet.start
-    require "rubinius/melbourne"
-    require "rubinius/processor"
-    require "rubinius/compiler"
-    require "rubinius/ast"
-    Rubinius::ToolSet.finish :build
+    Rubinius::ToolSets.create :build do
+      require "rubinius/melbourne"
+      require "rubinius/processor"
+      require "rubinius/compiler"
+      require "rubinius/ast"
+    end
 
     require File.expand_path("../../kernel/signature", __FILE__)
   end

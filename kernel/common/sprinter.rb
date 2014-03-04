@@ -41,7 +41,7 @@ module Rubinius
     end
 
     def debug_print
-      printer = Rubinius::ToolSet::Runtime::Compiler::MethodPrinter.new
+      printer = Rubinius::ToolSets::Runtime::Compiler::MethodPrinter.new
       printer.input(method(:call).executable)
       printer.bytecode = true
       printer.run
@@ -1178,7 +1178,7 @@ module Rubinius
           @g.passed_arg @arg_count
           @g.gif no_exception
 
-          gva = Rubinius::ToolSet::Runtime::AST::GlobalVariableAccess
+          gva = Rubinius::ToolSets::Runtime::AST::GlobalVariableAccess
           gva.new(1, :$DEBUG).bytecode(@g)
           @g.gif no_exception
 
