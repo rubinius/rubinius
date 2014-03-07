@@ -7,6 +7,10 @@
 
 #include "rubyspec_version.h"
 
+#if RUBY_VERSION_MAJOR >=2 && RUBY_VERSION_MINOR >= 1
+#define RUBY_VERSION_IS_2_1
+#endif
+
 #if RUBY_VERSION_MAJOR >= 2
 #define RUBY_VERSION_IS_2_0
 #endif
@@ -310,6 +314,11 @@
 #define HAVE_RB_HASH_LOOKUP                1
 #define HAVE_RB_HASH_NEW                   1
 #define HAVE_RB_HASH_SIZE                  1
+
+/* Integer */
+#ifdef RUBY_VERSION_IS_2_1
+#define HAVE_RB_INTEGER_PACK               1
+#endif
 
 /* IO */
 #define HAVE_GET_OPEN_FILE                 1
