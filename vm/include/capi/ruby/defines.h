@@ -30,4 +30,6 @@
 
 #define HAVE_RB_ARY_SUBSEQ                 1
 
+#define HAVE_RB_INTEGER_PACK               1
+
 #endif

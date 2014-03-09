@@ -87,5 +87,88 @@ module Rubinius
 
       return status == :finished ? result : str
     end
+
+    INTEGER_PACK_MSWORD_FIRST       = 0x01
+    INTEGER_PACK_LSWORD_FIRST       = 0x02
+    INTEGER_PACK_MSBYTE_FIRST       = 0x10
+    INTEGER_PACK_LSBYTE_FIRST       = 0x20
+    INTEGER_PACK_NATIVE_BYTE_ORDER  = 0x40
+    INTEGER_PACK_2COMP              = 0x80
+    INTEGER_PACK_FORCE_BIGNUM       = 0x100
+    INTEGER_PACK_NEGATIVE           = 0x200
+
+    INTEGER_PACK_LITTLE_ENDIAN  = INTEGER_PACK_LSWORD_FIRST|INTEGER_PACK_LSBYTE_FIRST
+    INTEGER_PACK_BIG_ENDIAN     = INTEGER_PACK_MSWORD_FIRST|INTEGER_PACK_MSBYTE_FIRST
+
+    INTEGER_PACK_DIGITS = [
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0,10,11,12,13,14,15, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    ]
+
+    def self.rb_integer_pack(value, words, numwords, wordsize, nails, flags)
+      digits = INTEGER_PACK_DIGITS
+      numbytes = numwords * wordsize
+      nibble_size = numbytes * 2
+
+      nibbles = value.abs.to_s(16)
+
+      if nibble_size < nibbles.size
+        nibbles = nibbles[0, nibble_size]
+      end
+
+      complement = value < 0 && (flags & INTEGER_PACK_2COMP) != 0
+
+      if (ENDIAN == :little and (flags & INTEGER_PACK_BIG_ENDIAN) != 0) or
+         (ENDIAN == :big and (flags & INTEGER_PACK_LITTLE_ENDIAN) != 0)
+        c_index = index = numbytes - 1
+        incr = -1
+      else
+        c_index = index = 0
+        incr = 1
+      end
+
+      i = nibbles.size - 1
+      stop = nibbles.size & 1
+
+      while i > stop
+        high = digits[nibbles.getbyte(i - 1)]
+        low = digits[nibbles.getbyte(i)]
+        byte = (high << 4) | low
+
+        byte ^= 0xff if complement
+        words.setbyte index, byte
+
+        index += incr
+        i -= 2
+      end
+
+      if stop == 1
+        byte = digits[nibbles.getbyte(0)]
+        byte ^= 0xff if complement
+        words.setbyte index, byte
+      end
+
+      if complement
+        words.setbyte(c_index, words.getbyte(c_index) + 1)
+      end
+
+      result = value.size * 2 > nibble_size ? 2 : 1
+
+      value < 0 ? -result : result
+    end
   end
 end

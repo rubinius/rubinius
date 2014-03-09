@@ -1328,6 +1328,27 @@ struct RTypedData {
 
   FILE *  rb_io_stdio_file(rb_io_t *fptr);
 
+/* Imported from MRI for rb_integer_pack and rb_integer_unpack: */
+/* "MS" in MSWORD and MSBYTE means "most significant" */
+/* "LS" in LSWORD and LSBYTE means "least significant" */
+#define INTEGER_PACK_MSWORD_FIRST       0x01
+#define INTEGER_PACK_LSWORD_FIRST       0x02
+#define INTEGER_PACK_MSBYTE_FIRST       0x10
+#define INTEGER_PACK_LSBYTE_FIRST       0x20
+#define INTEGER_PACK_NATIVE_BYTE_ORDER  0x40
+#define INTEGER_PACK_2COMP              0x80
+#define INTEGER_PACK_FORCE_GENERIC_IMPLEMENTATION 0x400
+/* For rb_integer_unpack: */
+#define INTEGER_PACK_FORCE_BIGNUM       0x100
+#define INTEGER_PACK_NEGATIVE           0x200
+/* Combinations: */
+#define INTEGER_PACK_LITTLE_ENDIAN \
+    (INTEGER_PACK_LSWORD_FIRST | INTEGER_PACK_LSBYTE_FIRST)
+#define INTEGER_PACK_BIG_ENDIAN \
+    (INTEGER_PACK_MSWORD_FIRST | INTEGER_PACK_MSBYTE_FIRST)
+
+  int     rb_integer_pack(VALUE value, void *words, size_t numwords, size_t wordsize,
+                          size_t nails, int flags);
 
   void    rb_update_max_fd(int fd);
   void    rb_fd_fix_cloexec(int fd);
