@@ -304,6 +304,13 @@ namespace rubinius {
   }
 
   static void segv_handler(int sig) {
+    struct sigaction action;
+
+    // Unset our handler for this signal.
+    action.sa_handler = SIG_DFL;
+    action.sa_flags = 0;
+    sigaction(sig, &action, NULL);
+
     void* array[64];
     size_t size;
     int fd = STDERR_FILENO;
