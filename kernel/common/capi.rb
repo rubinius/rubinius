@@ -125,10 +125,7 @@ module Rubinius
       nibble_size = numbytes * 2
 
       nibbles = value.abs.to_s(16)
-
-      if nibble_size < nibbles.size
-        nibbles = nibbles[0, nibble_size]
-      end
+      nibbles = nibbles[-nibble_size..-1] if nibble_size < nibbles.size
 
       complement = value < 0 && (flags & INTEGER_PACK_2COMP) != 0
 
@@ -163,12 +160,31 @@ module Rubinius
       end
 
       if complement
-        words.setbyte(c_index, words.getbyte(c_index) + 1)
+        c_stop = c_index == 0 ? numbytes : -1
+
+        while c_index != c_stop
+          byte = words.getbyte(c_index) + 1
+          words.setbyte(c_index, byte)
+
+          break if byte <= 0xff
+
+          c_index += incr
+        end
       end
 
-      result = value.size * 2 > nibble_size ? 2 : 1
+      overflow = 2**(numwords * wordsize * 8)
 
-      value < 0 ? -result : result
+      if value < 0
+        if complement
+          return -2 if value < -overflow
+        else
+          return -2 if value <= -overflow
+        end
+        return -1
+      else
+        return 2 if value >= overflow
+        return 1
+      end
     end
   end
 end
