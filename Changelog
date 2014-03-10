@@ -1,3 +1,24 @@
+Version: 2.2.6 (2014-03-10)
+
+* Kernel#to_enum uses block as Enumerable#size. (Federico Ravasio)
+* Time#zone only encodes a non-nil zone. (Federico Ravasio)
+* Kernel.binding returns a Binding for the caller. (Robert Gleeson)
+* Failures in readdir_r() are handled. (Dirkjan Bussink)
+* Various VM objects are properly (de)constructed. (Dirkjan Bussink)
+* The JIT converts splatted nil to []. (Federico Ravasio, Dirkjan Bussink)
+* The reference_p() VM predicate returns false for NULL. (Brian Shirai)
+* The configure script uses ENV["SHELL"] to find libc.so. (Brian Shirai)
+* Dir.glob matches non-ASCII paths. (Federico Ravasio)
+* Dir.entries returns paths with encoding. (Federico Ravasio)
+* Array#drop accounts for shifted start from Array#shift. (Federico Ravasio)
+* Dir.open respects :encoding option. (Brian Shirai)
+* String::from_cstr C++ method checks bounds. (Yorick Peterse)
+* Compiling with clang++ using -std=c++11 is supported. (Gabriel Southern)
+* Basic String#scrub is supported. (Yorick Peterse)
+* Signals like SIGSEGV will cause additional logging information to be printed
+	and then allow default system proccesing (e.g. core dumps). (Brian Shirai)
+* The C-API supports rb_integer_pack with basic flags. (Brian Shirai)
+
 Version: 2.2.5 (2014-02-08)
 
 * The 'main' object defines define_method. (Federico Ravasio)
