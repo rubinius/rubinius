@@ -23,7 +23,7 @@ extern "C" {
 
     value = rb_to_int(value);
 
-    int numbytes = numwords * wordsize;
+    size_t numbytes = numwords * wordsize;
     memset(words, 0, numbytes);
 
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
