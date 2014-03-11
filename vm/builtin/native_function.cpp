@@ -905,7 +905,7 @@ namespace rubinius {
           if(!mp) {
             if(String* so = try_as<String>(obj)) {
               size_t size;
-              size = so->byte_size();
+              size = so->size();
 
               char data[size + 1];
               memcpy(data, so->byte_address(), size);
@@ -986,7 +986,7 @@ namespace rubinius {
           String* so;
 
           so = as<String>(obj);
-          size = so->byte_size();
+          size = so->size();
 
           char* data = ALLOC_N(char, size + 1);
 

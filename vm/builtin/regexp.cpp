@@ -18,6 +18,7 @@
 #include "object_utils.hpp"
 #include "object_memory.hpp"
 #include "ontology.hpp"
+#include "shared_state.hpp"
 
 #define OPTION_IGNORECASE         ONIG_OPTION_IGNORECASE
 #define OPTION_EXTENDED           ONIG_OPTION_EXTEND
@@ -27,14 +28,12 @@
 #define OPTION_MASK               (OPTION_IGNORECASE|OPTION_EXTENDED|OPTION_MULTILINE|ONIG_OPTION_DONT_CAPTURE_GROUP|ONIG_OPTION_CAPTURE_GROUP)
 
 // Must match up with options/kcode definitions in grammar and regexp.rb
-#define KCODE_NONE        (1 << 9)
-#define KCODE_EUC         (2 << 9)
-#define KCODE_SJIS        (3 << 9)
-#define KCODE_UTF8        (4 << 9)
-#define KCODE_MASK        (KCODE_NONE|KCODE_EUC|KCODE_SJIS|KCODE_UTF8)
-
-#define OPTION_FIXEDENCODING 16
-#define OPTION_NOENCODING    32
+#define KCODE_ASCII       0
+#define KCODE_NONE        16
+#define KCODE_EUC         32
+#define KCODE_SJIS        48
+#define KCODE_UTF8        64
+#define KCODE_MASK        (KCODE_EUC|KCODE_SJIS|KCODE_UTF8)
 
 namespace rubinius {
 
@@ -73,16 +72,16 @@ namespace rubinius {
   }
 
   static OnigEncoding current_encoding(STATE) {
-    switch(state->shared.kcode_page()) {
+    switch(state->shared().kcode_page()) {
     default:
     case kcode::eAscii:
       return ONIG_ENCODING_ASCII;
     case kcode::eEUC:
       return ONIG_ENCODING_EUC_JP;
     case kcode::eSJIS:
-      return ONIG_ENCODING_SJIS;
+      return ONIG_ENCODING_Shift_JIS;
     case kcode::eUTF8:
-      return ONIG_ENCODING_UTF8;
+      return ONIG_ENCODING_UTF_8;
     }
   }
 
@@ -120,37 +119,31 @@ namespace rubinius {
   Regexp* Regexp::create(STATE) {
     Regexp* o_reg = state->new_object<Regexp>(G(regexp));
 
-    for(int i = 0; i < cCachedOnigDatas; ++i) {
-      o_reg->onig_data[i] = NULL;
-    }
-    o_reg->lock_.init();
+    o_reg->onig_data = NULL;
     o_reg->forced_encoding_ = false;
+
+    o_reg->lock_.init();
 
     return o_reg;
   }
 
-  regex_t* Regexp::onig_source_data(STATE) {
-    if(source()->nil_p()) return NULL;
-    return onig_data[source()->encoding(state)->cache_index()];
-  }
-
-  regex_t* Regexp::onig_data_encoded(STATE, Encoding* enc) {
-    return onig_data[enc->cache_index()];
-  }
-
-  regex_t* Regexp::make_managed(STATE, Encoding* enc, regex_t* reg) {
+  void Regexp::make_managed(STATE) {
     Regexp* obj = this;
-    regex_t* orig = reg;
+    regex_t* reg = onig_data;
 
     assert(reg->chain == 0);
 
-    ByteArray* reg_ba = ByteArray::create_dirty(state, sizeof(regex_t));
+    ByteArray* reg_ba = ByteArray::create(state, sizeof(regex_t));
     memcpy(reg_ba->raw_bytes(), reg, sizeof(regex_t));
 
+    regex_t* old_reg = reg;
     reg = reinterpret_cast<regex_t*>(reg_ba->raw_bytes());
 
+    obj->onig_data = reg;
+    write_barrier(state, reg_ba);
+
     if(reg->p) {
-      ByteArray* pattern = ByteArray::create_dirty(state, reg->alloc);
+      ByteArray* pattern = ByteArray::create(state, reg->alloc);
       memcpy(pattern->raw_bytes(), reg->p, reg->alloc);
 
       reg->p = reinterpret_cast<unsigned char*>(pattern->raw_bytes());
@@ -160,7 +153,7 @@ namespace rubinius {
 
     if(reg->exact) {
       int exact_size = reg->exact_end - reg->exact;
-      ByteArray* exact = ByteArray::create_dirty(state, exact_size);
+      ByteArray* exact = ByteArray::create(state, exact_size);
       memcpy(exact->raw_bytes(), reg->exact, exact_size);
 
       reg->exact = reinterpret_cast<unsigned char*>(exact->raw_bytes());
@@ -172,7 +165,7 @@ namespace rubinius {
     int int_map_size = sizeof(int) * ONIG_CHAR_TABLE_SIZE;
 
     if(reg->int_map) {
-      ByteArray* intmap = ByteArray::create_dirty(state, int_map_size);
+      ByteArray* intmap = ByteArray::create(state, int_map_size);
       memcpy(intmap->raw_bytes(), reg->int_map, int_map_size);
 
       reg->int_map = reinterpret_cast<int*>(intmap->raw_bytes());
@@ -181,7 +174,7 @@ namespace rubinius {
     }
 
     if(reg->int_map_backward) {
-      ByteArray* intmap_back = ByteArray::create_dirty(state, int_map_size);
+      ByteArray* intmap_back = ByteArray::create(state, int_map_size);
       memcpy(intmap_back->raw_bytes(), reg->int_map_backward, int_map_size);
 
       reg->int_map_backward = reinterpret_cast<int*>(intmap_back->raw_bytes());
@@ -191,7 +184,7 @@ namespace rubinius {
 
     if(reg->repeat_range) {
       int rrange_size = sizeof(OnigRepeatRange) * reg->repeat_range_alloc;
-      ByteArray* rrange = ByteArray::create_dirty(state, rrange_size);
+      ByteArray* rrange = ByteArray::create(state, rrange_size);
       memcpy(rrange->raw_bytes(), reg->repeat_range, rrange_size);
 
       reg->repeat_range = reinterpret_cast<OnigRepeatRange*>(rrange->raw_bytes());
@@ -199,50 +192,38 @@ namespace rubinius {
       obj->write_barrier(state, rrange);
     }
 
-    obj->onig_data[enc->cache_index()] = reg;
-    obj->write_barrier(state, reg_ba);
-
-    onig_free(orig);
-    return reg;
+    onig_free(old_reg);
   }
 
 #define REGEXP_ONIG_ERROR_MESSAGE_LEN   ONIG_MAX_ERROR_MESSAGE_LEN + 1024
 
   // Called with the individual regexp lock held.
-  regex_t* Regexp::maybe_recompile(STATE, String* string) {
+  void Regexp::maybe_recompile(STATE) {
     const UChar *pat;
     const UChar *end;
     OnigEncoding enc;
     OnigErrorInfo err_info;
     int err;
 
-    if(forced_encoding_) return onig_source_data(state);
+    if(forced_encoding_) return;
 
     enc = current_encoding(state);
-    // TODO: Fix
-    if(enc == onig_data->enc) return onig_source_data(state);
+    if(enc == onig_data->enc) return;
 
-    if(onig_encoded) return onig_encoded;
+    pat = (UChar*)source()->byte_address();
+    end = pat + source()->size();
 
-    enc = string_enc->get_encoding();
+    int options = onig_data->options;
+    OnigEncoding orig_enc = onig_data->enc;
 
-    Encoding* source_enc = source()->encoding(state);
-    String* converted = source()->convert_escaped(state, source_enc, fixed_encoding_);
-    pat = (UChar*)converted->byte_address();
-    end = pat + converted->byte_size();
-
-    int options = onig_source_data(state)->options;
-    OnigEncoding orig_enc = onig_source_data(state)->enc;
-    regex_t* reg;
-
-    err = onig_new(&reg, pat, end, options,
+    err = onig_new(&this->onig_data, pat, end, options,
                    enc, ONIG_SYNTAX_RUBY, &err_info);
 
     // If it doesn't work out, then abort and reset the encoding back
     // and say that it's forced.
     if(err != ONIG_NORMAL) {
 
-      err = onig_new(&reg, pat, end, options,
+      err = onig_new(&this->onig_data, pat, end, options,
                      orig_enc, ONIG_SYNTAX_RUBY, &err_info);
 
       // Ok, wtf. Well, no way to proceed now.
@@ -253,14 +234,13 @@ namespace rubinius {
         snprintf(err_buf, REGEXP_ONIG_ERROR_MESSAGE_LEN, "%s: %s", onig_err_buf, pat);
 
         Exception::regexp_error(state, err_buf);
-        return NULL;
+        return;
       }
 
-      string_enc = source_enc;
-      fixed_encoding_ = true;
+      forced_encoding_ = true;
     }
 
-    return make_managed(state, string_enc, reg);
+    make_managed(state);
   }
 
   /*
@@ -270,50 +250,41 @@ namespace rubinius {
     const UChar *pat;
     const UChar *end;
     OnigErrorInfo err_info;
+    OnigOptionType opts;
     OnigEncoding enc;
-
-    OnigOptionType opts = options->to_native();
-    Encoding* original_enc = pattern->encoding(state);
-
-    int kcode = opts & KCODE_MASK;
+    int err, num_names, kcode;
 
     pat = (UChar*)pattern->byte_address();
-    end = pat + pattern->byte_size();
+    end = pat + pattern->size();
+
+    opts  = options->to_native();
+    kcode = opts & KCODE_MASK;
+    opts &= OPTION_MASK;
 
     if(kcode == 0) {
-      enc = pattern->get_encoding_kcode_fallback(state)->get_encoding();
+      enc = current_encoding(state);
     } else {
       // Don't attempt to fix the encoding later, it's been specified by the
       // user.
       enc = get_enc_from_kcode(kcode);
-      fixed_encoding_ = true;
+      forced_encoding_ = true;
     }
 
-    regex_t* reg;
-
-    int err = onig_new(&reg, pat, end, opts & OPTION_MASK, enc, ONIG_SYNTAX_RUBY, &err_info);
+    err = onig_new(&this->onig_data, pat, end, opts, enc, ONIG_SYNTAX_RUBY, &err_info);
 
     if(err != ONIG_NORMAL) {
+      UChar onig_err_buf[ONIG_MAX_ERROR_MESSAGE_LEN];
+      char err_buf[1024];
+      onig_error_code_to_str(onig_err_buf, err, &err_info);
+      snprintf(err_buf, 1024, "%s: %s", onig_err_buf, pat);
 
-      enc = original_enc->get_encoding();
-      fixed_encoding_ = true;
-      err = onig_new(&reg, pat, end, opts & OPTION_MASK, enc, ONIG_SYNTAX_RUBY, &err_info);
-      pattern->encoding(state, original_enc);
-
-      if(err != ONIG_NORMAL) {
-        UChar onig_err_buf[ONIG_MAX_ERROR_MESSAGE_LEN];
-        char err_buf[REGEXP_ONIG_ERROR_MESSAGE_LEN];
-        onig_error_code_to_str(onig_err_buf, err, &err_info);
-        snprintf(err_buf, REGEXP_ONIG_ERROR_MESSAGE_LEN, "%s: %s", onig_err_buf, pat);
-
-        Exception::regexp_error(state, err_buf);
-        return 0;
-      }
+      Exception::regexp_error(state, err_buf);
+      return 0;
     }
 
     this->source(state, pattern);
 
-    int num_names = onig_number_of_names(reg);
+    num_names = onig_number_of_names(this->onig_data);
 
     if(num_names == 0) {
       this->names(state, nil<LookupTable>());
@@ -322,11 +293,11 @@ namespace rubinius {
       gd.state = state;
       LookupTable* tbl = LookupTable::create(state);
       gd.tbl = tbl;
-      onig_foreach_name(reg, (int (*)(const OnigUChar*, const OnigUChar*,int,int*,OnigRegex,void*))_gather_names, (void*)&gd);
+      onig_foreach_name(this->onig_data, (int (*)(const OnigUChar*, const OnigUChar*,int,int*,OnigRegex,void*))_gather_names, (void*)&gd);
       this->names(state, tbl);
     }
 
-    make_managed(state, pattern->encoding(), reg);
+    make_managed(state);
 
     return this;
   }
@@ -339,21 +310,17 @@ namespace rubinius {
   }
 
   Fixnum* Regexp::options(STATE) {
-    if(unlikely(!onig_source_data(state))) {
-      Exception::type_error(state, "Not properly initialized Regexp");
+    if(unlikely(!onig_data)) {
+      Exception::argument_error(state, "Not properly initialized Regexp");
     }
 
-    int result = ((int)onig_get_options(onig_source_data(state)) & OPTION_MASK);
+    int result = ((int)onig_get_options(onig_data) & OPTION_MASK);
 
-    if(fixed_encoding_) {
-      result |= get_kcode_from_enc(onig_get_encoding(onig_source_data(state)));
+    if(forced_encoding_) {
+      result |= get_kcode_from_enc(onig_get_encoding(onig_data));
     }
 
     return Fixnum::from(result);
-  }
-
-  Object* Regexp::fixed_encoding_p(STATE) {
-    return RBOOL(fixed_encoding_);
   }
 
   static Tuple* _md_region_to_tuple(STATE, OnigRegion *region, int pos) {
@@ -411,11 +378,13 @@ namespace rubinius {
     int beg, max;
     const UChar *str;
 
-    if(unlikely(!onig_source_data(state))) {
+    if(unlikely(!onig_data)) {
       Exception::argument_error(state, "Not properly initialized Regexp");
     }
 
-    max = string->byte_size();
+    maybe_recompile(state);
+
+    max = string->size();
     str = (UChar*)string->byte_address();
 
     native_int i_start = start->to_native();
@@ -428,8 +397,7 @@ namespace rubinius {
 
     lock_.lock();
 
-    regex_t* data = maybe_recompile(state, string);
-    if(!data) return 0;
+    maybe_recompile(state);
 
     OnigPosition begin_reg[10] = { ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
                          ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
@@ -444,15 +412,15 @@ namespace rubinius {
 
     OnigRegion region = { 10, 0, begin_reg, end_reg, 0, 0 };
 
-    int* back_match = data->int_map_backward;
+    int* back_match = onig_data->int_map_backward;
 
     if(!CBOOL(forward)) {
-      beg = onig_search(data, str, str + max,
+      beg = onig_search(onig_data, str, str + max,
                         str + i_end,
                         str + i_start,
                         &region, ONIG_OPTION_NONE);
     } else {
-      beg = onig_search(data, str, str + max,
+      beg = onig_search(onig_data, str, str + max,
                         str + i_start,
                         str + i_end,
                         &region, ONIG_OPTION_NONE);
@@ -460,15 +428,15 @@ namespace rubinius {
 
     // Seems like onig must setup int_map_backward lazily, so we have to watch
     // for it to appear here.
-    if(data->int_map_backward != back_match) {
+    if(onig_data->int_map_backward != back_match) {
       native_int size = sizeof(int) * ONIG_CHAR_TABLE_SIZE;
       ByteArray* ba = ByteArray::create_dirty(state, size);
-      memcpy(ba->raw_bytes(), data->int_map_backward, size);
+      memcpy(ba->raw_bytes(), onig_data->int_map_backward, size);
 
       // Dispose of the old one.
-      free(data->int_map_backward);
+      free(onig_data->int_map_backward);
 
-      data->int_map_backward = reinterpret_cast<int*>(ba->raw_bytes());
+      onig_data->int_map_backward = reinterpret_cast<int*>(ba->raw_bytes());
 
       write_barrier(state, ba);
     }
@@ -490,11 +458,11 @@ namespace rubinius {
     const UChar *str;
     const UChar *fin;
 
-    if(unlikely(!onig_source_data(state))) {
+    if(unlikely(!onig_data)) {
       Exception::argument_error(state, "Not properly initialized Regexp");
     }
 
-    max = string->byte_size();
+    max = string->size();
     native_int pos = start->to_native();
 
     str = (UChar*)string->byte_address();
@@ -506,8 +474,7 @@ namespace rubinius {
 
     lock_.lock();
 
-    regex_t* data = maybe_recompile(state, string);
-    if(!data) return 0;
+    maybe_recompile(state);
 
     OnigPosition begin_reg[10] = { ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
                          ONIG_REGION_NOTPOS, ONIG_REGION_NOTPOS,
@@ -522,21 +489,21 @@ namespace rubinius {
 
     OnigRegion region = { 10, 0, begin_reg, end_reg, 0, 0 };
 
-    int* back_match = data->int_map_backward;
-    beg = onig_match(data, str, fin, str, &region,
+    int* back_match = onig_data->int_map_backward;
+    beg = onig_match(onig_data, str, fin, str, &region,
                      ONIG_OPTION_NONE);
 
     // Seems like onig must setup int_map_backward lazily, so we have to watch
     // for it to appear here.
-    if(data->int_map_backward != back_match) {
+    if(onig_data->int_map_backward != back_match) {
       native_int size = sizeof(int) * ONIG_CHAR_TABLE_SIZE;
       ByteArray* ba = ByteArray::create_dirty(state, size);
-      memcpy(ba->raw_bytes(), data->int_map_backward, size);
+      memcpy(ba->raw_bytes(), onig_data->int_map_backward, size);
 
       // Dispose of the old one.
-      free(data->int_map_backward);
+      free(onig_data->int_map_backward);
 
-      data->int_map_backward = reinterpret_cast<int*>(ba->raw_bytes());
+      onig_data->int_map_backward = reinterpret_cast<int*>(ba->raw_bytes());
 
       write_barrier(state, ba);
     }
@@ -557,16 +524,15 @@ namespace rubinius {
     const UChar *str;
     const UChar *fin;
 
-    if(unlikely(!onig_source_data(state))) {
+    if(unlikely(!onig_data)) {
       Exception::argument_error(state, "Not properly initialized Regexp");
     }
 
     lock_.lock();
 
-    regex_t* data = maybe_recompile(state, string);
-    if(!data) return 0;
+    maybe_recompile(state);
 
-    max = string->byte_size();
+    max = string->size();
     native_int pos = start->to_native();
 
     str = (UChar*)string->byte_address();
@@ -587,22 +553,22 @@ namespace rubinius {
 
     OnigRegion region = { 10, 0, begin_reg, end_reg, 0, 0 };
 
-    int* back_match = data->int_map_backward;
+    int* back_match = onig_data->int_map_backward;
 
-    beg = onig_search(data, str, fin, str, fin,
+    beg = onig_search(onig_data, str, fin, str, fin,
                       &region, ONIG_OPTION_NONE);
 
     // Seems like onig must setup int_map_backward lazily, so we have to watch
     // for it to appear here.
-    if(data->int_map_backward != back_match) {
+    if(onig_data->int_map_backward != back_match) {
       native_int size = sizeof(int) * ONIG_CHAR_TABLE_SIZE;
       ByteArray* ba = ByteArray::create_dirty(state, size);
-      memcpy(ba->raw_bytes(), data->int_map_backward, size);
+      memcpy(ba->raw_bytes(), onig_data->int_map_backward, size);
 
       // Dispose of the old one.
-      free(data->int_map_backward);
+      free(onig_data->int_map_backward);
 
-      data->int_map_backward = reinterpret_cast<int*>(ba->raw_bytes());
+      onig_data->int_map_backward = reinterpret_cast<int*>(ba->raw_bytes());
 
       write_barrier(state, ba);
     }
@@ -622,7 +588,7 @@ namespace rubinius {
     Fixnum* beg = try_as<Fixnum>(full_->at(state, 0));
     Fixnum* fin = try_as<Fixnum>(full_->at(state, 1));
 
-    native_int max = source_->byte_size();
+    native_int max = source_->size();
     native_int f = fin->to_native();
     native_int b = beg->to_native();
 
@@ -639,7 +605,6 @@ namespace rubinius {
     }
 
     source_->infect(state, string);
-    string->encoding_from(state, source_);
     string->klass(state, source_->class_object(state));
 
     return string;
@@ -648,7 +613,7 @@ namespace rubinius {
   String* MatchData::pre_matched(STATE) {
     Fixnum* beg = try_as<Fixnum>(full_->at(state, 0));
 
-    native_int max = source_->byte_size();
+    native_int max = source_->size();
     native_int sz = beg->to_native();
 
     String* string;
@@ -664,7 +629,6 @@ namespace rubinius {
     }
 
     source_->infect(state, string);
-    string->encoding_from(state, source_);
     string->klass(state, source_->class_object(state));
 
     return string;
@@ -674,7 +638,7 @@ namespace rubinius {
     Fixnum* fin = try_as<Fixnum>(full_->at(state, 1));
 
     native_int f = fin->to_native();
-    native_int max = source_->byte_size();
+    native_int max = source_->size();
 
     String* string;
 
@@ -690,7 +654,6 @@ namespace rubinius {
     }
 
     source_->infect(state, string);
-    string->encoding_from(state, source_);
     string->klass(state, source_->class_object(state));
 
     return string;
@@ -707,7 +670,7 @@ namespace rubinius {
 
     native_int b = beg->to_native();
     native_int f = fin->to_native();
-    native_int max = source_->byte_size();
+    native_int max = source_->size();
 
     if(!beg || !fin ||
         f > max ||
@@ -722,7 +685,6 @@ namespace rubinius {
 
     String* string = String::create(state, str + b, sz);
     source_->infect(state, string);
-    string->encoding_from(state, source_);
     string->klass(state, source_->class_object(state));
 
     return string;
@@ -816,68 +778,69 @@ namespace rubinius {
     auto_mark(obj, mark);
 
     Regexp* reg_o = force_as<Regexp>(obj);
-    for(int i = 0; i < cCachedOnigDatas; ++i) {
-      regex_t* reg = reg_o->onig_data[i];
-      if(!reg) continue;
+    regex_t* reg = reg_o->onig_data;
 
-      ByteArray* reg_ba = ByteArray::from_body(reg);
-      ByteArray* reg_tmp = force_as<ByteArray>(mark.call(reg_ba));
-      if(reg_tmp && reg_tmp != reg_ba) {
-        reg_o->onig_data[i] = reinterpret_cast<regex_t*>(reg_tmp->raw_bytes());
-        mark.just_set(obj, reg_tmp);
-        reg = reg_o->onig_data[i];
+    if(!reg) return;
+
+    ByteArray* reg_ba = ByteArray::from_body(reg);
+
+    if(ByteArray* reg_tmp = force_as<ByteArray>(mark.call(reg_ba))) {
+      reg_o->onig_data = reinterpret_cast<regex_t*>(reg_tmp->raw_bytes());
+      mark.just_set(obj, reg_tmp);
+
+      reg_ba = reg_tmp;
+      reg = reg_o->onig_data;
+    }
+
+    if(reg->p) {
+      ByteArray* ba = ByteArray::from_body(reg->p);
+
+      ByteArray* tmp = force_as<ByteArray>(mark.call(ba));
+      if(tmp) {
+        reg->p = reinterpret_cast<unsigned char*>(tmp->raw_bytes());
+        mark.just_set(obj, tmp);
       }
+    }
 
-      if(reg->p) {
-        ByteArray* ba = ByteArray::from_body(reg->p);
+    if(reg->exact) {
+      int exact_size = reg->exact_end - reg->exact;
+      ByteArray* ba = ByteArray::from_body(reg->exact);
 
-        ByteArray* tmp = force_as<ByteArray>(mark.call(ba));
-        if(tmp && tmp != ba) {
-          reg->p = reinterpret_cast<unsigned char*>(tmp->raw_bytes());
-          mark.just_set(obj, tmp);
-        }
+      ByteArray* tmp = force_as<ByteArray>(mark.call(ba));
+      if(tmp) {
+        reg->exact = reinterpret_cast<unsigned char*>(tmp->raw_bytes());
+        reg->exact_end = reg->exact + exact_size;
+        mark.just_set(obj, tmp);
       }
+    }
 
-      if(reg->exact) {
-        int exact_size = reg->exact_end - reg->exact;
-        ByteArray* ba = ByteArray::from_body(reg->exact);
+    if(reg->int_map) {
+      ByteArray* ba = ByteArray::from_body(reg->int_map);
 
-        ByteArray* tmp = force_as<ByteArray>(mark.call(ba));
-        if(tmp && tmp != ba) {
-          reg->exact = reinterpret_cast<unsigned char*>(tmp->raw_bytes());
-          reg->exact_end = reg->exact + exact_size;
-          mark.just_set(obj, tmp);
-        }
+      ByteArray* tmp = force_as<ByteArray>(mark.call(ba));
+      if(tmp) {
+        reg->int_map = reinterpret_cast<int*>(tmp->raw_bytes());
+        mark.just_set(obj, tmp);
       }
+    }
 
-      if(reg->int_map) {
-        ByteArray* ba = ByteArray::from_body(reg->int_map);
+    if(reg->int_map_backward) {
+      ByteArray* ba = ByteArray::from_body(reg->int_map_backward);
 
-        ByteArray* tmp = force_as<ByteArray>(mark.call(ba));
-        if(tmp && tmp != ba) {
-          reg->int_map = reinterpret_cast<int*>(tmp->raw_bytes());
-          mark.just_set(obj, tmp);
-        }
+      ByteArray* tmp = force_as<ByteArray>(mark.call(ba));
+      if(tmp) {
+        reg->int_map_backward = reinterpret_cast<int*>(tmp->raw_bytes());
+        mark.just_set(obj, tmp);
       }
+    }
 
-      if(reg->int_map_backward) {
-        ByteArray* ba = ByteArray::from_body(reg->int_map_backward);
+    if(reg->repeat_range) {
+      ByteArray* ba = ByteArray::from_body(reg->repeat_range);
 
-        ByteArray* tmp = force_as<ByteArray>(mark.call(ba));
-        if(tmp && tmp != ba) {
-          reg->int_map_backward = reinterpret_cast<int*>(tmp->raw_bytes());
-          mark.just_set(obj, tmp);
-        }
-      }
-
-      if(reg->repeat_range) {
-        ByteArray* ba = ByteArray::from_body(reg->repeat_range);
-
-        ByteArray* tmp = force_as<ByteArray>(mark.call(ba));
-        if(tmp && tmp != ba) {
-          reg->repeat_range = reinterpret_cast<OnigRepeatRange*>(tmp->raw_bytes());
-          mark.just_set(obj, tmp);
-        }
+      ByteArray* tmp = force_as<ByteArray>(mark.call(ba));
+      if(tmp) {
+        reg->repeat_range = reinterpret_cast<OnigRepeatRange*>(tmp->raw_bytes());
+        mark.just_set(obj, tmp);
       }
     }
   }

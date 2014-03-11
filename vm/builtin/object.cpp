@@ -707,7 +707,7 @@ namespace rubinius {
     }
 
     if(String* str = try_as<String>(this)) {
-      return std::string(str->c_str(state), str->byte_size());
+      return std::string(str->c_str(state), str->size());
     } else {
       name << "#<";
       if(Module* mod = try_as<Module>(this)) {

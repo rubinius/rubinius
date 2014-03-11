@@ -2,7 +2,6 @@
 
 #include "builtin/array.hpp"
 #include "builtin/byte_array.hpp"
-#include "builtin/character.hpp"
 #include "builtin/class.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
@@ -173,10 +172,6 @@ namespace rubinius {
     handle->update(state->vm()->native_method_environment);
   }
 
-  Fixnum* String::size(STATE) {
-    return Fixnum::from(num_bytes());
-  }
-
   hashval String::hash_string(STATE) {
     if(!hash_value_->nil_p()) {
       return (hashval)as<Fixnum>(hash_value_)->to_native();
@@ -184,7 +179,7 @@ namespace rubinius {
 
     unsigned char* bp = (unsigned char*)(byte_address());
 
-    hashval h = hash_str(state, bp, byte_size());
+    hashval h = hash_str(state, bp, size());
     hash_value(state, Fixnum::from(h));
 
     return h;
@@ -212,7 +207,7 @@ namespace rubinius {
 
   const char* String::c_str(STATE) {
     char* c_string = (char*)byte_address();
-    native_int current_size = byte_size();
+    native_int current_size = size();
 
     /*
      * Oh Oh... String's don't need to be \0 terminated..
@@ -245,7 +240,7 @@ namespace rubinius {
 
   const char* String::c_str_null_safe(STATE) {
     const char* str = c_str(state);
-    if(byte_size() > (native_int) strnlen(str, byte_size())) {
+    if(size() > (native_int) strnlen(str, size())) {
       Exception::argument_error(state, "string contains NULL byte");
     }
     return str;
@@ -343,7 +338,7 @@ namespace rubinius {
   }
 
   String* String::append(STATE, const char* other, native_int length) {
-    native_int current_size = byte_size();
+    native_int current_size = size();
     native_int data_size = as<ByteArray>(data_)->size();
 
     // Clamp the string size to the maximum underlying byte array size
@@ -438,11 +433,11 @@ namespace rubinius {
   Float* String::to_f(STATE, Object* strict) {
     const char* str = reinterpret_cast<const char*>(byte_address());
 
-    if(CBOOL(strict) && byte_size() > (native_int)strnlen(str, byte_size())) {
+    if(CBOOL(strict) && size() > (native_int)strnlen(str, size())) {
       return nil<Float>();
     }
 
-    return Float::from_cstr(state, str, str + byte_size(), strict);
+    return Float::from_cstr(state, str, str + size(), strict);
   }
 
   // Character-wise logical AND of two strings. Modifies the receiver.
@@ -472,7 +467,7 @@ namespace rubinius {
     }
 
     uint8_t* str = byte_address();
-    native_int bytes = byte_size();
+    native_int bytes = size();
 
     for(native_int i = 0; i < bytes;) {
       native_int chr = str[i];
@@ -490,15 +485,15 @@ namespace rubinius {
           }
           i = tr_replace(state, chr, max + 1, start, next);
           str = byte_address();
-          bytes = byte_size();
+          bytes = size();
         }
       }
     }
 
-    if(lim > 0 && byte_size() > lim) {
+    if(lim > 0 && size() > lim) {
       unshare(state);
       num_bytes(state, Fixnum::from(lim));
-      byte_address()[byte_size()] = 0;
+      byte_address()[size()] = 0;
     }
     return num_bytes();
   }
@@ -506,11 +501,11 @@ namespace rubinius {
   native_int String::tr_replace(STATE, native_int first, native_int last, native_int start, native_int next) {
     native_int replace_length = last - first;
     native_int added_chars = replace_length - next + start;
-    native_int new_size = byte_size() + added_chars + 1;
+    native_int new_size = size() + added_chars + 1;
 
-    if(new_size > byte_size() || shared_->true_p()) {
+    if(new_size > size() || shared_->true_p()) {
       ByteArray* ba = ByteArray::create(state, new_size);
-      memcpy(ba->raw_bytes(), byte_address(), byte_size());
+      memcpy(ba->raw_bytes(), byte_address(), size());
 
       data(state, ba);
       shared(state, cFalse);
@@ -518,7 +513,7 @@ namespace rubinius {
 
     memmove(byte_address() + start + replace_length,
             byte_address() + next,
-            byte_size() - next);
+            size() - next);
 
     uint8_t* address_start = byte_address() + start;
     while(first < last) {
@@ -550,7 +545,7 @@ namespace rubinius {
     // Pointers to iterate input bytes.
     uint8_t* in_p = byte_address();
 
-    native_int str_size = byte_size();
+    native_int str_size = size();
     native_int data_size = as<ByteArray>(data_)->size();
     if(unlikely(str_size > data_size)) {
       str_size = data_size;
@@ -583,7 +578,7 @@ namespace rubinius {
         }
       } else if(String* str = try_as<String>(tbl_ptr[byte])) {
         cur_p = str->byte_address();
-        len = str->byte_size();
+        len = str->size();
         in_p++;
       } else {
         Tuple* tbl = as<Tuple>(tbl_ptr[byte]);
@@ -592,13 +587,13 @@ namespace rubinius {
           String* key = as<String>(tbl->at(i));
 
           native_int rem = in_end - in_p;
-          native_int klen = key->byte_size();
+          native_int klen = key->size();
           if(rem < klen) continue;
 
           if(memcmp(in_p, key->byte_address(), klen) == 0) {
             String* str = as<String>(tbl->at(i+1));
             cur_p = str->byte_address();
-            len = str->byte_size();
+            len = str->size();
             in_p += klen;
             break;
           }
@@ -656,7 +651,6 @@ namespace rubinius {
     free(output);
 
     infect(state, result);
-    result->encoding(state, encoding());
 
     return result;
   }
@@ -668,7 +662,7 @@ namespace rubinius {
     native_int dst = dest->to_native();
     native_int cnt = size->to_native();
 
-    native_int osz = other->byte_size();
+    native_int osz = other->size();
     if(src >= osz) return this;
     if(cnt < 0) return this;
     if(src < 0) src = 0;
@@ -692,8 +686,8 @@ namespace rubinius {
   {
     native_int src = start->to_native();
     native_int cnt = size->to_native();
-    native_int sz = byte_size();
-    native_int osz = other->byte_size();
+    native_int sz = this->size();
+    native_int osz = other->size();
     native_int dsz = as<ByteArray>(data_)->size();
     native_int odsz = as<ByteArray>(other->data_)->size();
 
@@ -738,7 +732,6 @@ namespace rubinius {
     String* s = state->new_object_dirty<String>(as<Class>(self));
 
     s->num_bytes(state, size);
-    s->num_chars(state, nil<Fixnum>());
     s->hash_value(state, nil<Fixnum>());
     s->shared(state, cFalse);
 
@@ -749,7 +742,7 @@ namespace rubinius {
     } else if(String* pat = try_as<String>(pattern)) {
       pat->infect(state, s);
 
-      native_int psz = pat->byte_size();
+      native_int psz = pat->size();
       uint8_t* raw = ba->raw_bytes();
       if(psz == 1) {
         memset(raw, pat->byte_address()[0], cnt);
@@ -768,9 +761,6 @@ namespace rubinius {
           raw[i] = pat->byte_address()[j];
         }
       }
-      s->ascii_only(state, pat->ascii_only_p(state));
-      s->valid_encoding(state, pat->valid_encoding_p(state));
-      s->encoding_from(state, pat);
     } else {
       Exception::argument_error(state, "pattern must be a Fixnum or String");
     }
@@ -799,10 +789,10 @@ namespace rubinius {
 
     if(CBOOL(strict)) {
       // In strict mode the string can't have null bytes.
-      if(byte_size() > (native_int)strnlen(str, byte_size())) return nil<Integer>();
+      if(size() > (native_int)strnlen(str, size())) return nil<Integer>();
     }
 
-    return Integer::from_cstr(state, str, str + byte_size(), base, strict);
+    return Integer::from_cstr(state, str, str + size(), base, strict);
   }
 
   Integer* String::to_inum_prim(STATE, Fixnum* base, Object* strict) {
@@ -815,8 +805,8 @@ namespace rubinius {
   Object* String::aref(STATE, Fixnum* index) {
     native_int i = index->to_native();
 
-    if(i < 0) i += byte_size();
-    if(i >= byte_size() || i < 0) return cNil;
+    if(i < 0) i += size();
+    if(i >= size() || i < 0) return cNil;
 
     return Fixnum::from(byte_address()[i]);
   }
@@ -839,75 +829,45 @@ namespace rubinius {
     return Fixnum::from(this->find_character_byte_index(state, index->to_native(), start->to_native()));
   }
 
-  /* The 'index' and 'length' parameters are byte based. This method is a
-   * worker method called from other methods that have already computed the
-   * canonical byte (0 <= index < byte_size) and (0 <= length < byte_size).
-   */
-  String* String::byte_substring(STATE, native_int index, native_int length) {
+  String* String::substring(STATE, Fixnum* index, Fixnum* length) {
+    native_int i = index->to_native();
+    native_int n = length->to_native();
+    native_int size = num_bytes_->to_native();
+
+    if(n < 0) return nil<String>();
+
+    if(i < 0) {
+      i += size;
+      if(i < 0) return nil<String>();
+    } else if(i > size) {
+      return nil<String>();
+    }
+
+    if(i + n > size) {
+      n = size - i;
+    }
+
     native_int data_size = as<ByteArray>(data_)->size();
 
     // Clamp the range to the underlying byte array size
-    if(unlikely(index > data_size)) index = data_size;
+    if(unlikely(i > data_size)) i = data_size;
 
-    if(unlikely(index + length > data_size)) {
-      length = data_size - index;
+    if(unlikely(i + n > data_size)) {
+      n = data_size - i;
     }
 
-    const char* buf = (const char*)byte_address() + index;
-    String* sub = String::create(state, buf, length);
+    const char* buf = (const char*)byte_address() + i;
+    String* sub = String::create(state, buf, n);
     sub->klass(state, class_object(state));
 
     infect(state, sub);
-    sub->encoding_from(state, this);
 
     return sub;
   }
 
-  String* String::byte_substring(STATE, Fixnum* index, Fixnum* length) {
-    native_int i = index->to_native();
-    native_int n = length->to_native();
-    native_int size = byte_size();
-
-    if(n < 0) return nil<String>();
-
-    if(i < 0) {
-      i += size;
-      if(i < 0) return nil<String>();
-    } else if(i > size) {
-      return nil<String>();
-    }
-
-    if(i + n > size) {
-      n = size - i;
-    }
-
-    return byte_substring(state, i, n);
-  }
-
-  String* String::substring(STATE, Fixnum* index, Fixnum* length) {
-    native_int i = index->to_native();
-    native_int n = length->to_native();
-    native_int size = char_size(state);
-
-    if(n < 0) return nil<String>();
-
-    if(i < 0) {
-      i += size;
-      if(i < 0) return nil<String>();
-    } else if(i > size) {
-      return nil<String>();
-    }
-
-    if(i + n > size) {
-      n = size - i;
-    }
-
-    return byte_substring(state, i, n);
-  }
-
   Fixnum* String::index(STATE, String* pattern, Fixnum* start) {
-    native_int total = byte_size();
-    native_int match_size = pattern->byte_size();
+    native_int total = size();
+    native_int match_size = pattern->size();
 
     if(start->to_native() < 0) {
       Exception::argument_error(state, "negative start given");
@@ -950,8 +910,8 @@ namespace rubinius {
   }
 
   Fixnum* String::rindex(STATE, String* pattern, Fixnum* start) {
-    native_int total = byte_size();
-    native_int match_size = pattern->byte_size();
+    native_int total = size();
+    native_int match_size = pattern->size();
     native_int pos = start->to_native();
 
     if(pos < 0) {
@@ -997,42 +957,29 @@ namespace rubinius {
     }
   }
 
-  Encoding* String::get_encoding_kcode_fallback(STATE) {
-    switch(state->shared().kcode_page()) {
-    default:
-    case kcode::eAscii:
-      return Encoding::ascii8bit_encoding(state);
-    case kcode::eEUC:
-      return Encoding::find(state, "EUC-JP");
-    case kcode::eSJIS:
-      return Encoding::find(state, "Windows-31J");
-    case kcode::eUTF8:
-      return Encoding::utf8_encoding(state);
-    }
-  }
-
   String* String::find_character(STATE, Fixnum* offset) {
     native_int o = offset->to_native();
-    if(o >= byte_size()) return nil<String>();
+    if(o >= size()) return nil<String>();
     if(o < 0) return nil<String>();
 
     uint8_t* cur = byte_address() + o;
 
     String* output = 0;
 
-    OnigEncodingType* enc = get_encoding_kcode_fallback(state)->get_encoding();
+    kcode::table* tbl = state->shared.kcode_table();
+    if(kcode::mbchar_p(tbl, *cur)) {
+      native_int clen = kcode::mbclen(tbl, *cur);
+      if(o + clen <= size()) {
+        output = String::create(state, reinterpret_cast<const char*>(cur), clen);
+      }
+    }
 
-    if(ONIGENC_MBC_MAXLEN(enc) == 1) {
+    if(!output) {
       output = String::create(state, reinterpret_cast<const char*>(cur), 1);
-    } else {
-      kcode::table* kcode_tbl = state->shared().kcode_table();
-      int len = kcode::mbclen(kcode_tbl, *cur);
-      output = String::create(state, reinterpret_cast<const char*>(cur), len);
     }
 
     output->klass(state, class_object(state));
     infect(state, output);
-    output->encoding_from(state, this);
 
     return output;
   }
@@ -1040,7 +987,7 @@ namespace rubinius {
   Array* String::awk_split(STATE, Fixnum* f_limit) {
     native_int limit = f_limit->to_native();
 
-    native_int sz = byte_size();
+    native_int sz = size();
     uint8_t* start = byte_address();
     int end = 0;
     int begin = 0;
@@ -1070,7 +1017,6 @@ namespace rubinius {
           String* str = String::create(state, (const char*)start+begin, end-begin);
           str->klass(state, out_class);
           infect(state, str);
-          str->encoding_from(state, this);
 
           ary->append(state, str);
           skip = true;
@@ -1088,7 +1034,6 @@ namespace rubinius {
       String* str = String::create(state, (const char*)start+begin, fin_sz);
       str->klass(state, out_class);
       infect(state, str);
-      str->encoding_from(state, this);
 
       ary->append(state, str);
     }
@@ -1096,20 +1041,16 @@ namespace rubinius {
   }
 
   String* String::reverse(STATE) {
-    if(byte_size() <= 1) return this;
+    if(size() <= 1) return this;
     check_frozen(state);
 
     unshare(state);
     hash_value(state, nil<Fixnum>());
 
-    if(byte_compatible_p(encoding_) || CBOOL(ascii_only_p(state))) {
-      data_->reverse(state, Fixnum::from(0), num_bytes_);
-    } else {
-      Encoding::string_reverse(byte_address(), byte_address() + byte_size(), encoding_->get_encoding());
-    }
+    data_->reverse(state, Fixnum::from(0), num_bytes_);
+
     return this;
   }
-
 
   void String::Info::show(STATE, Object* self, int level) {
     String* str = as<String>(self);

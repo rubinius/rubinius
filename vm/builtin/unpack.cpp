@@ -14,10 +14,10 @@
 #include "vm.hpp"
 #include "object_utils.hpp"
 #include "on_stack.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 
 #include "builtin/array.hpp"
-#include "builtin/bytearray.hpp"
+#include "builtin/byte_array.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/float.hpp"
@@ -480,7 +480,7 @@ namespace rubinius {
     ByteArray* prepare_directives(STATE, String* directives,
                                   const char** p, const char** pe)
     {
-      native_int size = directives->byte_size();
+      native_int size = directives->size();
       ByteArray* ba = ByteArray::create_pinned(state, size);
       char* b = reinterpret_cast<char*>(ba->raw_bytes());
       char* d = reinterpret_cast<char*>(directives->byte_address());
@@ -626,7 +626,7 @@ namespace rubinius {
     const char* bytes = 0;
     const char* bytes_end = 0;
 
-    native_int bytes_size = self->byte_size();
+    native_int bytes_size = self->size();
     native_int index UNUSED = 0;
     native_int stop = 0;
     native_int width = 0;
@@ -3092,6 +3092,7 @@ _resume:
     }
 
     if(rest || stop > bytes_size) {
+      assert(width);
       stop = index + ((bytes_size - index) / width) * width;
     }
   }
@@ -3468,6 +3469,7 @@ _again:
     }
 
     if(rest || stop > bytes_size) {
+      assert(width);
       stop = index + ((bytes_size - index) / width) * width;
     }
   }

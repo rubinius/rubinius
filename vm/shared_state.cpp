@@ -41,6 +41,8 @@ namespace rubinius {
     , ruby_critical_set_(false)
     , check_global_interrupts_(false)
     , check_gc_(false)
+    , kcode_page_(kcode::eAscii)
+    , kcode_table_(kcode::null_table())
     , agent_(0)
     , root_vm_(0)
     , env_(env)

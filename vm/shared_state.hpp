@@ -6,6 +6,7 @@
 #include "util/refcount.hpp"
 #include "gc/variable_buffer.hpp"
 #include "gc/root_buffer.hpp"
+#include "kcode.hpp"
 
 #include "stats.hpp"
 
@@ -94,6 +95,9 @@ namespace rubinius {
     bool ruby_critical_set_;
     bool check_global_interrupts_;
     bool check_gc_;
+
+    kcode::CodePage kcode_page_;
+    kcode::table* kcode_table_;
 
     QueryAgent* agent_;
     VM* root_vm_;
@@ -209,6 +213,19 @@ namespace rubinius {
 
     int& primitive_hits(int primitive) {
       return primitive_hits_[primitive];
+    }
+
+    kcode::table* kcode_table() const {
+      return kcode_table_;
+    }
+
+    kcode::CodePage kcode_page() const {
+      return kcode_page_;
+    }
+
+    void set_kcode_table(kcode::table* tbl, kcode::CodePage page) {
+      kcode_table_ = tbl;
+      kcode_page_ = page;
     }
 
     QueryAgent* agent() const {

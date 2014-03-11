@@ -61,10 +61,9 @@ namespace rubinius {
   private:
     String* source_;     // slot
     LookupTable* names_; // slot
-    regex_t* onig_data[cCachedOnigDatas];
+    regex_t* onig_data;
     utilities::thread::SpinLock lock_;
-    bool fixed_encoding_;
-    bool no_encoding_;
+    bool forced_encoding_;
 
   public:
     /* accessors */
@@ -83,13 +82,10 @@ namespace rubinius {
      */
     // Rubinius.primitive :regexp_initialize
     Regexp* initialize(STATE, String* pattern, Fixnum* options);
-    regex_t* maybe_recompile(STATE, String* string);
+    void maybe_recompile(STATE);
 
     // Rubinius.primitive :regexp_options
     Fixnum* options(STATE);
-
-    // Rubinius.primitive+ :regexp_fixed_encoding_p
-    Object* fixed_encoding_p(STATE);
 
     // Rubinius.primitive :regexp_search_region
     MatchData* match_region(STATE, String* string, Fixnum* start, Fixnum* end, Object* forward);
@@ -118,9 +114,7 @@ namespace rubinius {
     // Rubinius.primitive :regexp_set_block_last_match
     static Object* set_block_last_match(STATE, CallFrame* calling_environment);
 
-    // regex_t* make_managed(STATE, Encoding* enc, regex_t* reg);
-    regex_t* onig_source_data(STATE);
-    // regex_t* onig_data_encoded(STATE, Encoding* enc);
+    void make_managed(STATE);
 
     class Info : public TypeInfo {
     public:

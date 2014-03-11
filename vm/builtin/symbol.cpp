@@ -70,10 +70,6 @@ namespace rubinius {
     return RBOOL(state->shared().symbols.kind(state, this) == SymbolTable::Constant);
   }
 
-  Encoding* Symbol::encoding(STATE) {
-    return Encoding::from_index(state, state->shared().symbols.lookup_encoding(this));
-  }
-
   void Symbol::Info::show(STATE, Object* self, int level) {
     Symbol* sym = try_as<Symbol>(self);
     std::cout << ":" << sym->debug_str(state) << std::endl;

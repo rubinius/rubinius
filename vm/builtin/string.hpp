@@ -35,7 +35,6 @@ namespace rubinius {
 
   private:
     Fixnum* num_bytes_;       // slot
-    Fixnum* num_chars_;       // slot
     ByteArray* data_;         // slot
     Fixnum* hash_value_;      // slot
     Object* shared_;          // slot
@@ -52,7 +51,6 @@ namespace rubinius {
     template <class T>
       void num_bytes(T state, Fixnum* obj) {
         num_bytes_ = obj;
-        num_chars_ = nil<Fixnum>();
         update_handle(state);
       }
 
@@ -64,7 +62,6 @@ namespace rubinius {
         update_handle(state);
       }
 
-    attr_accessor(num_chars, Fixnum);
     attr_accessor(hash_value, Fixnum);
     attr_accessor(shared, Object);
 
@@ -108,14 +105,9 @@ namespace rubinius {
     Object* secure_compare(STATE, String* other);
 
     // Returns the number of bytes this String contains
-    native_int byte_size() const {
+    native_int size() const {
       return num_bytes_->to_native();
     }
-
-    native_int char_size(STATE);
-
-    // Rubinius.primitive+ :string_size
-    Fixnum* size(STATE);
 
     // Access the String as a char* directly. WARNING: doesn't necessarily
     // return a null terminated char*, so be sure to use byte_size() with it.
@@ -249,7 +241,7 @@ namespace rubinius {
     Fixnum* rindex(STATE, String* pattern, Fixnum* start);
 
     // Rubinius.primitive :string_transform
-    String* transform(STATE, Tuple* table);
+    String* transform(STATE, Tuple* table, Object* respect_kcode);
 
     // Rubinius.primitive :string_find_character
     String* find_character(STATE, Fixnum* offset);

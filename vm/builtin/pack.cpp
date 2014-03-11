@@ -15,10 +15,10 @@
 #include "vm.hpp"
 #include "object_utils.hpp"
 #include "on_stack.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 
 #include "builtin/array.hpp"
-#include "builtin/bytearray.hpp"
+#include "builtin/byte_array.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/float.hpp"
 #include "builtin/module.hpp"
@@ -168,7 +168,7 @@ namespace rubinius {
       char buf[QUOTABLE_PRINTABLE_BUFSIZE];
 
       uint8_t* b = s->byte_address();
-      uint8_t* e = b + s->byte_size();
+      uint8_t* e = b + s->size();
       int i = 0, n = 0, prev = -1;
 
       for(; b < e; b++) {
@@ -229,7 +229,7 @@ namespace rubinius {
                               const char* table, int padding, bool encode_size)
     {
       char *buf = ALLOCA_N(char, count * 4 / 3 + 6);
-      native_int i, chars, line, total = s->byte_size();
+      native_int i, chars, line, total = s->size();
       uint8_t* b = s->byte_address();
 
       for(i = 0; total > 0; i = 0, total -= line) {
@@ -349,9 +349,9 @@ namespace rubinius {
       native_int extra = 0;
 
       if(rest) {
-        count = s->byte_size();
+        count = s->size();
       } else {
-        native_int size = s->byte_size();
+        native_int size = s->size();
         if(count > size) {
           extra = (count - size + 1) / 2;
           count = size;
@@ -407,9 +407,9 @@ namespace rubinius {
       native_int extra = 0;
 
       if(rest) {
-        count = s->byte_size();
+        count = s->size();
       } else {
-        native_int size = s->byte_size();
+        native_int size = s->size();
         if(count > size) {
           extra = (count + 1) / 2 - (size + 1) / 2;
           count = size;
@@ -470,7 +470,7 @@ namespace rubinius {
     ByteArray* prepare_directives(STATE, String* directives,
                                   const char** p, const char** pe)
     {
-      native_int size = directives->byte_size();
+      native_int size = directives->size();
       ByteArray* ba = ByteArray::create_pinned(state, size);
       char* b = reinterpret_cast<char*>(ba->raw_bytes());
       char* d = reinterpret_cast<char*>(directives->byte_address());
@@ -2647,7 +2647,7 @@ _resume:
 	case 22:
 	{
     if(CBOOL(string_value->tainted_p(state))) tainted = true;
-    native_int size = string_value->byte_size();
+    native_int size = string_value->size();
     if(rest) count = size;
     if(count <= size) {
       str.append((const char*)string_value->byte_address(), count);
@@ -2934,7 +2934,7 @@ _again:
 	case 22:
 	{
     if(CBOOL(string_value->tainted_p(state))) tainted = true;
-    native_int size = string_value->byte_size();
+    native_int size = string_value->size();
     if(rest) count = size;
     if(count <= size) {
       str.append((const char*)string_value->byte_address(), count);
