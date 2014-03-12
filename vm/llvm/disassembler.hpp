@@ -13,6 +13,7 @@
 namespace rubinius {
 
   class JITMemoryObject: public llvm::MemoryObject {
+    using llvm::MemoryObject::readBytes;
 
     public:
 
