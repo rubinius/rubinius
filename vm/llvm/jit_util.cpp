@@ -1048,9 +1048,6 @@ extern "C" {
     bool tainted = false;
     bool untrusted = false;
 
-    bool check_encoding = false;
-    Encoding* enc = nil<Encoding>();
-
     // Figure out the total size
     for(int i = 0; i < count; i++) {
       Object* obj = parts[i];
@@ -1063,7 +1060,7 @@ extern "C" {
       String* str = try_as<String>(obj);
 
       if(str) {
-        native_int cur_size = str->byte_size();
+        native_int cur_size = str->size();
         native_int data_size = as<ByteArray>(str->data())->size();
         if(unlikely(cur_size > data_size)) {
           cur_size = data_size;
@@ -1079,7 +1076,7 @@ extern "C" {
 
         tainted |= str->is_tainted_p();
         untrusted |= str->is_untrusted_p();
-        native_int cur_size = str->byte_size();
+        native_int cur_size = str->size();
         native_int data_size = as<ByteArray>(str->data())->size();
         if(unlikely(cur_size > data_size)) {
           cur_size = data_size;
@@ -1087,19 +1084,6 @@ extern "C" {
         size += cur_size;
 
         parts[i] = str;
-      }
-
-      /*
-       * TODO: Consider the case when -K is set (not implemented yet).
-       */
-      if(!check_encoding) {
-        Encoding* str_enc = str->encoding(state);
-        if(enc->nil_p()) {
-          enc = str_enc;
-        } else if(str_enc != enc) {
-          check_encoding = true;
-          enc = nil<Encoding>();
-        }
       }
     }
 
@@ -1111,41 +1095,15 @@ extern "C" {
       // We can force here because we've typed check them above.
       String* sub = force_as<String>(parts[i]);
 
-      native_int sub_size = sub->byte_size();
+      native_int sub_size = sub->size();
       native_int data_size = as<ByteArray>(sub->data())->size();
       if(unlikely(sub_size > data_size)) {
         sub_size = data_size;
       }
 
-      if(check_encoding) {
-        if(i > 0) {
-          str->num_bytes(state, Fixnum::from(str_size));
-
-          Encoding* enc = Encoding::compatible_p(state, str, sub);
-
-          if(enc->nil_p()) {
-            Exception::encoding_compatibility_error(state, str, sub, call_frame);
-            return 0;
-          } else {
-            str->encoding(state, enc);
-          }
-        } else {
-          str->encoding(state, sub->encoding());
-        }
-      }
-
       memcpy(pos + str_size, sub->byte_address(), sub_size);
       str_size += sub_size;
     }
-
-    /* We had to set the size of the result String before every Encoding check
-     * so we have to set it to the final size here.
-     */
-    if(check_encoding) {
-      str->num_bytes(state, Fixnum::from(size));
-      str->ascii_only(state, cNil);
-    }
-    if(!enc->nil_p()) str->encoding(state, enc);
 
     if(tainted) str->set_tainted();
     if(untrusted) str->set_untrusted();

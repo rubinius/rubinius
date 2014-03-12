@@ -54,34 +54,6 @@ namespace rubinius {
     return cls;
   }
 
-  Object* UnMarshaller::get_encoding() {
-    char stack_data[STACK_BUF_SZ];
-    char *malloc_data = NULL;
-    char *data = stack_data;
-    size_t count;
-
-    stream >> count;
-    stream.get();
-
-    if(count >= STACK_BUF_SZ) {
-      malloc_data = (char*)malloc(count + 1);
-      data = malloc_data;
-    }
-
-    stream.read(data, count + 1);
-    data[count] = 0; // clamp
-
-    if(count > 0) {
-      Encoding* enc = Encoding::find(state, data);
-      if(malloc_data) {
-        free(malloc_data);
-      }
-      return enc;
-    } else {
-      return cNil;
-    }
-  }
-
   Object* UnMarshaller::get_int() {
     std::string data;
     stream >> data;
@@ -91,8 +63,6 @@ namespace rubinius {
 
   String* UnMarshaller::get_string() {
     size_t count;
-
-    Encoding* enc = try_as<Encoding>(unmarshal());
 
     stream >> count;
     // String::create adds room for a trailing null on its own
@@ -104,8 +74,6 @@ namespace rubinius {
     stream.read(reinterpret_cast<char*>(str->byte_address()), count);
     stream.get(); // read off newline
 
-    if(enc) str->encoding(state, enc);
-
     return str;
   }
 
@@ -114,8 +82,6 @@ namespace rubinius {
     char *malloc_data = NULL;
     char *data = stack_data;
     size_t count;
-
-    Encoding* enc = try_as<Encoding>(unmarshal());
 
     stream >> count;
     stream.get();
@@ -129,7 +95,6 @@ namespace rubinius {
     data[count] = 0; // clamp
 
     String* str = String::create(state, data, count);
-    if(enc) str->encoding(state, enc);
 
     Symbol* sym = state->symbol(str);
 
@@ -285,8 +250,6 @@ namespace rubinius {
       return get_compiled_code();
     case 'c':
       return get_constant();
-    case 'E':
-      return get_encoding();
     default:
       std::string str = "unknown marshal code: ";
       str.append( 1, code );

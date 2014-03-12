@@ -263,7 +263,7 @@ namespace rubinius {
     if(argc) {
       (void)::execvp(c_path, argv);
     } else {
-      exec_sh_fallback(state, c_path, path->byte_size());
+      exec_sh_fallback(state, c_path, path->size());
     }
 
     int erno = errno;
@@ -329,7 +329,7 @@ namespace rubinius {
       dup2(fds[1], STDOUT_FILENO);
       close(fds[1]);
 
-      exec_sh_fallback(state, c_str, str->byte_size());
+      exec_sh_fallback(state, c_str, str->size());
 
       // bad news, shouldn't be here.
       perror(c_str);
@@ -1190,7 +1190,7 @@ namespace rubinius {
   }
 
   Object* System::vm_set_kcode(STATE, String* what) {
-    if(what->byte_size() < 1) {
+    if(what->size() < 1) {
       kcode::set(state, kcode::eAscii);
     } else {
       const char* str = what->c_str(state);
@@ -1474,7 +1474,7 @@ retry:
   String* System::sha1_hash(STATE, String* str) {
     XSHA1_CTX ctx;
     XSHA1_Init(&ctx);
-    XSHA1_Update(&ctx, str->byte_address(), str->byte_size());
+    XSHA1_Update(&ctx, str->byte_address(), str->size());
 
     uint8_t digest[20];
     XSHA1_Finish(&ctx, digest);
@@ -1652,7 +1652,7 @@ retry:
   Object* System::vm_dtrace_fire(STATE, String* payload) {
 #if HAVE_DTRACE
     if(RUBINIUS_RUBY_PROBE_ENABLED()) {
-      RUBINIUS_RUBY_PROBE((const char*)payload->byte_address(), payload->byte_size());
+      RUBINIUS_RUBY_PROBE((const char*)payload->byte_address(), payload->size());
       return cTrue;
     }
     return cFalse;

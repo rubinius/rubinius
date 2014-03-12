@@ -336,11 +336,6 @@ namespace rubinius {
     capi_constant_name_map_[cCApiGC]         = "GC";
     capi_constant_name_map_[cCApiCAPI]       = "Rubinius::CAPI";
     capi_constant_name_map_[cCApiMethod]     = "Method";
-    capi_constant_name_map_[cCApiRational]   = "Rational";
-    capi_constant_name_map_[cCApiComplex]    = "Complex";
-    capi_constant_name_map_[cCApiEnumerator] = "Enumerable::Enumerator";
-    capi_constant_name_map_[cCApiMutex]      = "Mutex";
-    capi_constant_name_map_[cCApiDir]        = "Dir";
 
     capi_constant_name_map_[cCApiArgumentError]       = "ArgumentError";
     capi_constant_name_map_[cCApiEOFError]            = "EOFError";
@@ -371,13 +366,6 @@ namespace rubinius {
     capi_constant_name_map_[cCApiTypeError]           = "TypeError";
     capi_constant_name_map_[cCApiThreadError]         = "ThreadError";
     capi_constant_name_map_[cCApiZeroDivisionError]   = "ZeroDivisionError";
-
-    capi_constant_name_map_[cCApiMathDomainError]     = "Math::DomainError";
-    capi_constant_name_map_[cCApiEncoding]            = "Encoding";
-    capi_constant_name_map_[cCApiEncCompatError]      = "Encoding::CompatibilityError";
-    capi_constant_name_map_[cCApiWaitReadable]        = "IO::WaitReadable";
-    capi_constant_name_map_[cCApiWaitWritable]        = "IO::WaitWritable";
-
   }
 
 #define CAPI_BLACK_LIST(name) capi_black_list_.insert(std::string("Init_" # name))

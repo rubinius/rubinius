@@ -91,7 +91,7 @@ Daedalus.blueprint do |i|
     g.cflags += gcc.cflags
 
     g.static_library "libonig" do |l|
-      l.source_files "*.c"
+      l.source_files "*.c", "enc/*.c"
     end
   end
   files << oniguruma

@@ -5,7 +5,7 @@
 
 #include "config.h"
 #include "vm.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 #include "capi/tag.hpp"
 #include "gc/marksweep.hpp"
 #include "gc/baker.hpp"
@@ -27,7 +27,7 @@
 #include "builtin/io.hpp"
 #include "builtin/fiber.hpp"
 #include "builtin/string.hpp"
-#include "builtin/lookuptable.hpp"
+#include "builtin/lookup_table.hpp"
 #include "builtin/ffi_pointer.hpp"
 #include "builtin/data.hpp"
 #include "builtin/dir.hpp"
@@ -519,7 +519,7 @@ step1:
 
 
     if(collect_young_now) {
-      GCData gc_data(state->vm(), gct);
+      GCData gc_data(state->vm());
       YoungCollectStats stats;
 
       RUBINIUS_GC_BEGIN(0);
@@ -538,7 +538,7 @@ step1:
     }
 
     if(collect_mature_now) {
-      GCData* gc_data = new GCData(state->vm(), gct);
+      GCData* gc_data = new GCData(state->vm());
       RUBINIUS_GC_BEGIN(1);
 #ifdef RBX_PROFILER
       if(unlikely(state->vm()->tooling())) {

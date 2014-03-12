@@ -536,6 +536,14 @@ VALUE rb_uint2big(unsigned long number);
   VALUE rb_ll2inum(long long val);
   VALUE rb_ull2inum(unsigned long long val);
 
+#if SIZEOF_TIME_T == 8
+#define TIMET2NUM(v)   LL2NUM(v)
+#define NUM2TIMET(v)   NUM2LL(v)
+#else
+#define TIMET2NUM(v)   LONG2NUM(v)
+#define NUM2TIMET(v)   NUM2LONG(v)
+#endif
+
 
 /* Secret extra stuff */
 
@@ -1721,6 +1729,10 @@ VALUE rb_uint2big(unsigned long number);
 
   /** Retrieve the nth match for the given MatchData */
   VALUE   rb_reg_nth_match(long nth, VALUE match_data);
+
+  /** Lock functions used by Onigmo */
+  void    capi_reg_lock();
+  void    capi_reg_unlock();
 
   /** New Enumerator. */
   VALUE   rb_enumeratorize(VALUE obj, VALUE meth, int argc, VALUE *argv);

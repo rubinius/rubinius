@@ -7,40 +7,9 @@ namespace rubinius {
   // Copied from here because you can't include capi/include/ruby.h into
   // our C++ files.
 
-  struct rb_data_type_struct_shadow {
-    const char *wrap_struct_name;
-    struct {
-      void (*dmark)(void*);
-      void (*dfree)(void*);
-      size_t (*dsize)(const void *);
-      void *reserved[2]; /* For future extension.
-                            This array *must* be filled with ZERO. */
-    } function;
-    const struct rb_data_type_struct_shadow* parent;
-    void *data;        /* This area can be used for any purpose
-                          by a programmer who define the type. */
-  };
-
-  // This union crazyness is needed because these should be compatible
-  // for the data pointer. It is valid behavior to use DATA_PTR on both
-  // typed and untyped and get a valid result back.
-  // MRI constructs this differently, but this approach allows us to
-  // use this in a slightly more type safe and explicit way.
-  struct RUntypedDataShadow {
+  struct RDataShadow {
     void (*dmark)(void*);
     void (*dfree)(void*);
-  };
-
-  struct RTypedDataShadow {
-    const struct rb_data_type_struct_shadow* type;
-    native_int typed;
-  };
-
-  struct RDataShadow {
-    union {
-      RUntypedDataShadow untyped;
-      RTypedDataShadow   typed;
-    } d;
     void *data;
   };
 
@@ -67,9 +36,6 @@ namespace rubinius {
     /** New Data instance. */
     static Data*  create(STATE, void* data, MarkFunctor mark, FreeFunctor free);
 
-    /** New typed Data instance. */
-    static Data*  create_typed(STATE, void* data, const struct rb_data_type_struct_shadow* type);
-
     static void finalize(STATE, Data* data);
 
     bool freed_p() const {
@@ -86,17 +52,6 @@ namespace rubinius {
 
     RDataShadow* rdata() {
       return internal_;
-    }
-
-    bool typed() {
-      return rdata()->d.typed.typed == 1;
-    }
-
-    const struct rb_data_type_struct_shadow* data_type() {
-      if(typed()) {
-        return rdata()->d.typed.type;
-      }
-      return NULL;
     }
 
     void* data();

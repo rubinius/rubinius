@@ -284,7 +284,7 @@ namespace rubinius {
       off = offset->to_int();
     }
 
-    if(format->byte_size() == 0) return String::create(state, NULL, 0);
+    if(format->size() == 0) return String::create(state, NULL, 0);
 
     char stack_str[STRFTIME_STACK_BUF];
 
@@ -292,7 +292,7 @@ namespace rubinius {
                        format->c_str(state), &tm, &ts, CBOOL(is_gmt_) ? 1 : 0,
                        off);
 
-    size_t buf_size = format->byte_size();
+    size_t buf_size = format->size();
 
     String* result = 0;
 
@@ -311,8 +311,6 @@ namespace rubinius {
     } else {
       result = String::create(state, stack_str, chars);
     }
-
-    result->encoding(state, format->encoding());
 
     return result;
   }

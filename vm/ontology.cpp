@@ -11,7 +11,6 @@
 #include "builtin/array.hpp"
 #include "builtin/block_environment.hpp"
 #include "builtin/byte_array.hpp"
-#include "builtin/character.hpp"
 #include "builtin/class.hpp"
 #include "builtin/compact_lookup_table.hpp"
 #include "builtin/compiled_code.hpp"
@@ -140,7 +139,7 @@ namespace rubinius {
     GO(klass).set(cls);
 
     // Now do Object
-    Class* object = ontology::new_basic_class(state, cNil);
+    Class* object = ontology::new_basic_class(state, force_as<Class>(cNil));
 
     GO(object).set(object);
     object->set_object_type(state, ObjectType);
@@ -160,7 +159,7 @@ namespace rubinius {
     G(array)->set_object_type(state, ArrayType);
 
     // Create WeakRef
-    GO(cls_weakref).set(ontology::new_basic_class(state, basicobject));
+    GO(cls_weakref).set(ontology::new_basic_class(state, object));
     G(cls_weakref)->set_object_type(state, WeakRefType);
 
     // Create LookupTable
@@ -217,8 +216,8 @@ namespace rubinius {
     SingletonClass::attach(state, cls, sc);
 
     // See?
-    assert(basicobject->superclass()->nil_p());
-    assert(object->superclass() == basicobject);
+    assert(object->superclass()->nil_p());
+    assert(object->superclass() == object);
 
     assert(G(module)->superclass() == object);
     assert(G(module)->klass()->superclass() == object->klass());

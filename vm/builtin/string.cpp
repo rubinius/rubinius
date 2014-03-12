@@ -966,7 +966,7 @@ namespace rubinius {
 
     String* output = 0;
 
-    kcode::table* tbl = state->shared.kcode_table();
+    kcode::table* tbl = state->shared().kcode_table();
     if(kcode::mbchar_p(tbl, *cur)) {
       native_int clen = kcode::mbclen(tbl, *cur);
       if(o + clen <= size()) {
