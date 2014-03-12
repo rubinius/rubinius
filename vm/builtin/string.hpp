@@ -171,12 +171,6 @@ namespace rubinius {
     String* append(STATE, String* other);
 
     /**
-     * Append byte strings, ignores encoding
-     */
-    // Rubinius.primitive :string_byte_append
-    String* byte_append(STATE, String* other);
-
-    /**
      *  Append C string to self.
      *
      *  strlen() is used to calculate number of bytes to append.
@@ -222,11 +216,6 @@ namespace rubinius {
 
     // Rubinius.primitive :string_substring
     String* substring(STATE, Fixnum* index, Fixnum* length);
-
-    // Rubinius.primitive :string_byte_substring
-    String* byte_substring(STATE, Fixnum* index, Fixnum* length);
-
-    String* byte_substring(STATE, native_int index, native_int length);
 
     native_int find_character_byte_index(STATE, native_int index, native_int start = 0);
     native_int find_byte_character_index(STATE, native_int index, native_int start = 0);
