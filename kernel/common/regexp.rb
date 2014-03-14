@@ -599,7 +599,7 @@ class MatchData
         return nil if x == -1
 
         y = tup.at(1)
-        return @source.byteslice(x, y-x)
+        return @source.substring(x, y-x)
       end
     when Symbol
       num = @regexp.name_table[idx]
@@ -641,7 +641,7 @@ class MatchData
         val = nil
       else
         y = tup.at(1)
-        val = @source.byteslice(x, y-x)
+        val = @source.substring(x, y-x)
       end
 
       out[idx] = val
@@ -656,15 +656,15 @@ class MatchData
   end
 
   def pre_match
-    return @source.byteslice(0, 0) if @full.at(0) == 0
+    return @source.substring(0, 0) if @full.at(0) == 0
     nd = @full.at(0) - 1
-    @source.byteslice(0, nd+1)
+    @source.substring(0, nd+1)
   end
 
   def pre_match_from(idx)
-    return @source.byteslice(0, 0) if @full.at(0) == 0
+    return @source.substring(0, 0) if @full.at(0) == 0
     nd = @full.at(0) - 1
-    @source.byteslice(idx, nd-idx+1)
+    @source.substring(idx, nd-idx+1)
   end
 
   def collapsing?
@@ -674,7 +674,7 @@ class MatchData
   def post_match
     nd = @source.size - 1
     st = @full.at(1)
-    @source.byteslice(st, nd-st+1)
+    @source.substring(st, nd-st+1)
   end
 
   def inspect
@@ -720,7 +720,7 @@ class MatchData
   def matched_area
     x = @full.at(0)
     y = @full.at(1)
-    @source.byteslice(x, y-x)
+    @source.substring(x, y-x)
   end
 
   alias_method :to_s, :matched_area
@@ -730,7 +730,7 @@ class MatchData
     x, y = @region[num]
     return nil if !y or x == -1
 
-    return @source.byteslice(x, y-x)
+    return @source.substring(x, y-x)
   end
 
   private :get_capture
@@ -738,7 +738,7 @@ class MatchData
   def each_capture
     @region.each do |tup|
       x, y = *tup
-      yield @source.byteslice(x, y-x)
+      yield @source.substring(x, y-x)
     end
   end
 

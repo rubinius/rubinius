@@ -28,10 +28,10 @@ module Rubinius
             start += c.size
           end
 
-          # Use #byteslice because it returns the right class and taints
+          # Use #substring because it returns the right class and taints
           # automatically. This is just appending a "", which is this
           # strange protocol if a negative limit is passed in
-          ret << string.byteslice(0,0) if tail_empty
+          ret << string.substring(0,0) if tail_empty
         end
       ensure
         $KCODE = kcode
@@ -163,13 +163,13 @@ module Rubinius
         break unless nxt
 
         match_size = nxt - pos
-        ret << string.byteslice(pos, match_size)
+        ret << string.substring(pos, match_size)
 
         pos = nxt + pat_size
       end
 
       # No more separators, but we need to grab the last part still.
-      ret << string.byteslice(pos, str_size - pos)
+      ret << string.substring(pos, str_size - pos)
 
       if trim_end
         while s = ret.at(-1) and s.empty?

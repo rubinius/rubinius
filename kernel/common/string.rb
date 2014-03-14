@@ -800,7 +800,7 @@ class String
         # string ends with \n's
         break if pos == @num_bytes
 
-        str = byteslice(pos, match_size)
+        str = substring(pos, match_size)
         yield str unless str.empty?
 
         # detect mutation within the block
@@ -812,7 +812,7 @@ class String
       end
 
       # No more separates, but we need to grab the last part still.
-      fin = byteslice(pos, @num_bytes - pos)
+      fin = substring(pos, @num_bytes - pos)
       yield fin if fin and !fin.empty?
 
     else
@@ -825,7 +825,7 @@ class String
         break unless nxt
 
         match_size = nxt - pos
-        str = byteslice(pos, match_size + pat_size)
+        str = substring(pos, match_size + pat_size)
         yield str unless str.empty?
 
         # detect mutation within the block
@@ -837,7 +837,7 @@ class String
       end
 
       # No more separates, but we need to grab the last part still.
-      fin = byteslice(pos, @num_bytes - pos)
+      fin = substring(pos, @num_bytes - pos)
       yield fin unless fin.empty?
     end
 
@@ -942,7 +942,7 @@ class String
 
     last_match = nil
 
-    ret = byteslice(0, 0) # Empty string and string subclass
+    ret = substring(0, 0) # Empty string and string subclass
     offset = match.full.at(0) if match
 
     while match
@@ -988,7 +988,7 @@ class String
 
     Regexp.last_match = last_match
 
-    str = byteslice(last_end, @num_bytes-last_end+1)
+    str = substring(last_end, @num_bytes-last_end+1)
     ret.append str if str
 
     ret.taint if tainted || self.tainted?
@@ -1027,7 +1027,7 @@ class String
 
     last_match = nil
 
-    ret = byteslice(0, 0) # Empty string and string subclass
+    ret = substring(0, 0) # Empty string and string subclass
     offset = match.full.at(0)
 
     while match
@@ -1073,7 +1073,7 @@ class String
 
     Regexp.last_match = last_match
 
-    str = byteslice(last_end, @num_bytes-last_end+1)
+    str = substring(last_end, @num_bytes-last_end+1)
     ret.append str if str
 
     ret.taint if tainted || self.tainted?
@@ -1488,7 +1488,7 @@ class String
       while current < @num_bytes && @data[current] != 92  # ?\\
         current += 1
       end
-      result.append(byteslice(index, current - index))
+      result.append(substring(index, current - index))
       break if current == @num_bytes
 
       # found backslash escape, looking next

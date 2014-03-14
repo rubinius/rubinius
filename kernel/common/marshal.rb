@@ -1042,7 +1042,7 @@ module Marshal
 
     def consume(bytes)
       raise ArgumentError, "marshal data too short" if @consumed > @stream.size
-      data = @stream.byteslice @consumed, bytes
+      data = @stream.substring @consumed, bytes
       @consumed += bytes
       data
     end

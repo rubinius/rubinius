@@ -80,10 +80,10 @@ class Dir
     result = []
     start = 0
     while idx = pattern.find_string("\0", start)
-      result << pattern.byteslice(start, idx)
+      result << pattern.substring(start, idx)
       start = idx + 1
     end
-    result << pattern.byteslice(start, pattern.size)
+    result << pattern.substring(start, pattern.size)
   end
 
   def self.foreach(path)
