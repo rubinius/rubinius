@@ -83,7 +83,7 @@ class Dir
       result << pattern.byteslice(start, idx)
       start = idx + 1
     end
-    result << pattern.byteslice(start, pattern.bytesize)
+    result << pattern.byteslice(start, pattern.size)
   end
 
   def self.foreach(path)

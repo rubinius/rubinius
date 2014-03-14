@@ -120,7 +120,7 @@ module FFI
 
     # Write a String +str+ as bytes to the memory pointed to.
     def write_string(str, len=nil)
-      len = str.bytesize unless len
+      len = str.size unless len
 
       write_string_length(str, len);
     end
@@ -321,7 +321,7 @@ module FFI
     end
 
     def self.from_string(str)
-      ptr = new str.bytesize + 1
+      ptr = new str.size + 1
       ptr.write_string str + "\0"
 
       ptr

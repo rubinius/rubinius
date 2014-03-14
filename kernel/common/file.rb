@@ -103,9 +103,9 @@ class File < IO
 
     ext_not_present = undefined.equal?(ext)
 
-    if pos = path.find_string_reverse(slash, path.bytesize)
+    if pos = path.find_string_reverse(slash, path.size)
       # special case. If the string ends with a /, ignore it.
-      if pos == path.bytesize - 1
+      if pos == path.size - 1
 
         # Find the first non-/ from the right
         data = path.data
@@ -122,14 +122,14 @@ class File < IO
         return slash unless found
 
         # Now that we've trimmed the /'s at the end, search again
-        pos = path.find_string_reverse(slash, path.bytesize)
+        pos = path.find_string_reverse(slash, path.size)
         if ext_not_present and !pos
           # No /'s found and ext not present, return path.
           return path
         end
       end
 
-      path = path.byteslice(pos + 1, path.bytesize - pos) if pos
+      path = path.byteslice(pos + 1, path.size - pos) if pos
     end
 
     return path if ext_not_present
@@ -139,12 +139,12 @@ class File < IO
     ext = StringValue(ext)
 
     if ext == ".*"
-      if pos = path.find_string_reverse(".", path.bytesize)
+      if pos = path.find_string_reverse(".", path.size)
         return path.byteslice(0, pos)
       end
-    elsif pos = path.find_string_reverse(ext, path.bytesize)
+    elsif pos = path.find_string_reverse(ext, path.size)
       # Check that ext is the last thing in the string
-      if pos == path.bytesize - ext.size
+      if pos == path.size - ext.size
         return path.byteslice(0, pos)
       end
     end
@@ -423,7 +423,7 @@ class File < IO
           raise ArgumentError, "couldn't find HOME environment variable when expanding '~'"
         end
 
-        path = ENV["HOME"] + path.byteslice(1, path.bytesize - 1)
+        path = ENV["HOME"] + path.byteslice(1, path.size - 1)
       when nil
         unless home = ENV["HOME"]
           raise ArgumentError, "couldn't find HOME environment variable when expanding '~'"
@@ -436,7 +436,7 @@ class File < IO
         return home.dup
       else
         unless length = path.find_string("/", 1)
-          length = path.bytesize
+          length = path.size
         end
 
         name = path.byteslice 1, length - 1
@@ -444,7 +444,7 @@ class File < IO
           raise ArgumentError, "user #{name} does not exist"
         end
 
-        path = dir + path.byteslice(length, path.bytesize - length)
+        path = dir + path.byteslice(length, path.size - length)
       end
     elsif first != ?/
       if dir
@@ -458,7 +458,7 @@ class File < IO
 
     items = []
     start = 0
-    size = path.bytesize
+    size = path.size
 
     while index = path.find_string("/", start) or (start < size and index = size)
       length = index - start
@@ -495,7 +495,7 @@ class File < IO
   #  File.extname(".profile")        #=> ""
   def self.extname(path)
     path = Rubinius::Type.coerce_to_path(path)
-    path_size = path.bytesize
+    path_size = path.size
 
     dot_idx = path.find_string_reverse(".", path_size)
 

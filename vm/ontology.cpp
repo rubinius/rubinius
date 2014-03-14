@@ -217,7 +217,6 @@ namespace rubinius {
 
     // See?
     assert(object->superclass()->nil_p());
-    assert(object->superclass() == object);
 
     assert(G(module)->superclass() == object);
     assert(G(module)->klass()->superclass() == object->klass());

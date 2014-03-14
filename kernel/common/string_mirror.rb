@@ -37,8 +37,8 @@ module Rubinius
         # TODO: copy_from unshares
         str.modify!
 
-        bs = str.bytesize
-        rbs = replacement.bytesize
+        bs = str.size
+        rbs = replacement.size
 
         bytes = bs - count + rbs
 

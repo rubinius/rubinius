@@ -90,7 +90,7 @@ class Regexp
 
   def match_from(str, count)
     return nil unless str
-    search_region(str, count, str.bytesize, true)
+    search_region(str, count, str.size, true)
   end
 
   class SourceParser
@@ -348,7 +348,7 @@ class Regexp
 
     str = StringValue(str)
 
-    Regexp.last_match = search_region(str, 0, str.bytesize, true)
+    Regexp.last_match = search_region(str, 0, str.size, true)
   end
 
   # Returns the index of the first character in the region that
@@ -672,7 +672,7 @@ class MatchData
   end
 
   def post_match
-    nd = @source.bytesize - 1
+    nd = @source.size - 1
     st = @full.at(1)
     @source.byteslice(st, nd-st+1)
   end

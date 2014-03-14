@@ -23,7 +23,7 @@ class String
   alias_method :__data__, :data
   alias_method :__data__=, :data=
 
-  alias_method :bytesize, :size
+  alias_method :size, :size
 
   ##
   # Creates a new string from copying _count_ bytes from the
@@ -107,9 +107,9 @@ class String
       return false
     end
 
-    return false unless @num_bytes == other.bytesize
+    return false unless @num_bytes == other.size
     return false unless Encoding.compatible?(self, other)
-    return @data.compare_bytes(other.__data__, @num_bytes, other.bytesize) == 0
+    return @data.compare_bytes(other.__data__, @num_bytes, other.size) == 0
   end
 
   def =~(pattern)
@@ -172,7 +172,7 @@ class String
       replacement = StringValue replacement
 
       m = Rubinius::Mirror.reflect self
-      m.splice start, index.bytesize, replacement
+      m.splice start, index.size, replacement
     when Range
       start = Rubinius::Type.coerce_to index.first, Fixnum, :to_int
 
@@ -489,7 +489,7 @@ class String
       raise IndexError, "index #{index} out of string"
     end
 
-    osize = other.bytesize
+    osize = other.size
     size = @num_bytes + osize
     str = self.class.pattern size, "\0"
 
@@ -593,7 +593,7 @@ class String
 
   def <=>(other)
     if other.kind_of?(String)
-      @data.compare_bytes(other.__data__, @num_bytes, other.bytesize)
+      @data.compare_bytes(other.__data__, @num_bytes, other.size)
     else
       return unless other.respond_to?(:to_str) && other.respond_to?(:<=>)
       return unless tmp = (other <=> self)
@@ -897,9 +897,9 @@ class String
   def eql?(other)
     Rubinius.primitive :string_equal
 
-    return false unless other.kind_of?(String) && other.bytesize == @num_bytes
+    return false unless other.kind_of?(String) && other.size == @num_bytes
     return false unless Encoding.compatible?(self, other)
-    return @data.compare_bytes(other.__data__, @num_bytes, other.bytesize) == 0
+    return @data.compare_bytes(other.__data__, @num_bytes, other.size) == 0
   end
 
   # This method is specifically part of 1.9 but we enable it in 1.8 also
@@ -907,8 +907,8 @@ class String
   def getbyte(index)
     index = Rubinius::Type.coerce_to index, Fixnum, :to_int
 
-    index += bytesize if index < 0
-    return if index < 0 or index >= bytesize
+    index += size if index < 0
+    return if index < 0 or index >= size
 
     @data[index]
   end
@@ -970,7 +970,7 @@ class String
 
       if match.collapsing?
         if char = find_character(offset)
-          offset += char.bytesize
+          offset += char.size
         else
           offset += 1
         end
@@ -1055,7 +1055,7 @@ class String
 
       if match.collapsing?
         if char = find_character(offset)
-          offset += char.bytesize
+          offset += char.size
         else
           offset += 1
         end
@@ -1255,7 +1255,7 @@ class String
 
       if match.collapsing?
         if char = find_character(fin)
-          index = fin + char.bytesize
+          index = fin + char.size
         else
           index = fin + 1
         end
@@ -1287,8 +1287,8 @@ class String
     index = Rubinius::Type.coerce_to index, Fixnum, :to_int
     byte = Rubinius::Type.coerce_to byte, Fixnum, :to_int
 
-    index += bytesize if index < 0
-    if index < 0 or index >= bytesize
+    index += size if index < 0
+    if index < 0 or index >= size
       raise IndexError, "byte index #{index} is outside bounds of String"
     end
 
@@ -1566,7 +1566,7 @@ class String
     size = strings.size
     while i < size
       str = StringValue(strings[i]).dup
-      if str.bytesize > 1 && str.getbyte(0) == 94 # ?^
+      if str.size > 1 && str.getbyte(0) == 94 # ?^
         pos = 0
         neg = 1
         str.slice!(0)
@@ -1580,7 +1580,7 @@ class String
       str.tr_expand! nil, true
       str_data = str.__data__
       j = -1
-      chars = str.bytesize
+      chars = str.size
       set_data[str_data[j]] = pos while (j += 1) < chars
 
       table.apply_and! set

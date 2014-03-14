@@ -906,11 +906,11 @@ module Marshal
 
     def serialize_symbol(obj)
       str = obj.to_s
-      Rubinius::Type.binary_string(":#{serialize_integer(str.bytesize)}#{str}")
+      Rubinius::Type.binary_string(":#{serialize_integer(str.size)}#{str}")
     end
 
     def serialize_string(str)
-      output = Rubinius::Type.binary_string("\"#{serialize_integer(str.bytesize)}")
+      output = Rubinius::Type.binary_string("\"#{serialize_integer(str.size)}")
       output + Rubinius::Type.binary_string(str.dup)
     end
 
@@ -1041,14 +1041,14 @@ module Marshal
     end
 
     def consume(bytes)
-      raise ArgumentError, "marshal data too short" if @consumed > @stream.bytesize
+      raise ArgumentError, "marshal data too short" if @consumed > @stream.size
       data = @stream.byteslice @consumed, bytes
       @consumed += bytes
       data
     end
 
     def consume_byte
-      raise ArgumentError, "marshal data too short" if @consumed >= @stream.bytesize
+      raise ArgumentError, "marshal data too short" if @consumed >= @stream.size
       data = @byte_array.get_byte @consumed
       @consumed += 1
       return data

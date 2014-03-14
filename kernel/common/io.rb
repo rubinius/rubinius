@@ -902,13 +902,13 @@ class IO
       real_arg = 1
     elsif arg.kind_of? String
       # This could be faster.
-      buffer_size = arg.bytesize
+      buffer_size = arg.size
       # On BSD and Linux, we could read the buffer size out of the ioctl value.
       # Most Linux ioctl codes predate the convention, so a fallback like this
       # is still necessary.
       buffer_size = 4096 if buffer_size < 4096
       buffer = FFI::MemoryPointer.new buffer_size
-      buffer.write_string arg, arg.bytesize
+      buffer.write_string arg, arg.size
       real_arg = buffer.address
     else
       real_arg = Rubinius::Type.coerce_to arg, Fixnum, :to_int
@@ -1438,7 +1438,7 @@ class IO
     if buffer
       buffer = StringValue(buffer)
 
-      buffer.shorten! buffer.bytesize
+      buffer.shorten! buffer.size
 
       return buffer if size == 0
 
@@ -1663,7 +1663,7 @@ class IO
 
   def syswrite(data)
     data = String data
-    return 0 if data.bytesize == 0
+    return 0 if data.size == 0
 
     ensure_open_and_writable
     @ibuffer.unseek!(self) unless @sync
@@ -1673,7 +1673,7 @@ class IO
 
   def write(data)
     data = String data
-    return 0 if data.bytesize == 0
+    return 0 if data.size == 0
 
     ensure_open_and_writable
 
@@ -1681,22 +1681,22 @@ class IO
       prim_write(data)
     else
       @ibuffer.unseek! self
-      bytes_to_write = data.bytesize
+      bytes_to_write = data.size
 
       while bytes_to_write > 0
-        bytes_to_write -= @ibuffer.unshift(data, data.bytesize - bytes_to_write)
+        bytes_to_write -= @ibuffer.unshift(data, data.size - bytes_to_write)
         @ibuffer.empty_to self if @ibuffer.full? or sync
       end
     end
 
-    data.bytesize
+    data.size
   end
 
   def write_nonblock(data)
     ensure_open_and_writable
 
     data = String data
-    return 0 if data.bytesize == 0
+    return 0 if data.size == 0
 
     @ibuffer.unseek!(self) unless @sync
 
