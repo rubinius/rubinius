@@ -10,7 +10,7 @@ platform :rbx do
   gem "rubysl-digest"
 end
 
-gem "rubinius-toolset", "~> 0.1"
+gem "rubinius-toolset", "~> 2.0"
 gem "rubinius-bridge", "~> 1.0"
 gem "daedalus-core", "~> 0.0.1"
 
