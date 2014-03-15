@@ -14,7 +14,7 @@ module Rubinius
   if Rubinius.constants.map { |x| x.to_s }.include?("BUILD_CONFIG")
     self::BUILD_CONFIG.replace config
   else
-    self::BUILD_CONFIG = config 
+    self::BUILD_CONFIG = config
   end
 end
     EOC

@@ -451,8 +451,13 @@ namespace rubinius {
       G(rubinius)->set_const(state, "SITE_PATH", String::create(state, path.c_str()));
       path = prefix + RBX_VENDOR_PATH;
       G(rubinius)->set_const(state, "VENDOR_PATH", String::create(state, path.c_str()));
-      path = prefix + RBX_GEMS_PATH;
-      G(rubinius)->set_const(state, "GEMS_PATH", String::create(state, path.c_str()));
+
+      if(char* gems_path = getenv("RBX_GEMS_PATH")) {
+        G(rubinius)->set_const(state, "GEMS_PATH", String::create(state, gems_path));
+      } else {
+        path = prefix + RBX_GEMS_PATH;
+        G(rubinius)->set_const(state, "GEMS_PATH", String::create(state, path.c_str()));
+      }
 
       path = prefix + RBX_HDR_PATH;
       G(rubinius)->set_const(state, "HDR_PATH", String::create(state, path.c_str()));

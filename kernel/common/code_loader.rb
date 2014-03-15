@@ -405,7 +405,10 @@ module Rubinius
         end
       end
 
-      load_error unless CodeLoader.loaded? @path
+      return false if CodeLoader.loaded? @path
+      return true if rubygems_require
+
+      load_error
     end
 
     # Sets +@feature+, +@file_path+, +@load_path+ with the correct format.
