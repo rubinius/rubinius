@@ -1355,16 +1355,16 @@ int main() { return tgetnum(""); }
 
     if @features["stdlib"].value
       @runtime_gems.concat [
-        [ "rubysl", "2.0" ],
-        [ "rubysl-test-unit", "2.0" ],
+        [ "rubysl", "1.0" ],
+        [ "rubysl-test-unit", "1.0" ],
         [ "racc", "1.4" ],
         [ "minitest", "4.7" ],
       ]
     else
       @runtime_gems.concat [
-        [ "rubysl-rake", "2.0" ],
-        [ "rubysl-irb", "2.0" ],
-        [ "rubysl-prettyprint", "2.0" ],
+        [ "rubysl-rake", "1.0" ],
+        [ "rubysl-irb", "1.0" ],
+        [ "rubysl-prettyprint", "1.0" ],
       ]
     end
   end
