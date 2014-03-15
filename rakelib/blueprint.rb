@@ -49,7 +49,7 @@ Daedalus.blueprint do |i|
     gcc.cflags << "-D#{flag}"
   end
 
-  gcc.ldflags << "-lstdc++" << "-lm"
+  gcc.ldflags << "-lm"
 
   make = Rubinius::BUILD_CONFIG[:build_make]
 

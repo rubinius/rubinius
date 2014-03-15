@@ -4,6 +4,7 @@ require 'rubygems'
 require 'bundler/setup'
 require './rakelib/configure'
 require './rakelib/release'
+require './rakelib/build_signature'
 require 'rbconfig'
 require 'tempfile'
 require 'fileutils'
@@ -113,12 +114,15 @@ class Configure
     @build_prefix     = nil
     @capi_includedir  = "#{@sourcedir}/vm/include/capi"
 
+    @runtime_gems_dir   = nil
+    @bootstrap_gems_dir = nil
+
     @vm_release_h = root + "/vm/gen/release.h"
 
     @preserve_prefix = false
 
     @program_name = "rbx"
-    @bin_links = ["rbx", "ruby", "rake", "gem", "irb", "rdoc", "ri"]
+    @bin_links = ["rbx", "ruby", "rake", "gem", "irb", "rdoc", "ri", "erb"]
     @use_bin_links = true
 
     # Gems
@@ -129,12 +133,12 @@ class Configure
       [ "rubinius-compiler", "1.0" ],
       [ "rubinius-melbourne", "1.0" ],
       [ "rubinius-processor", "1.0" ],
-      [ "rubinius-toolset", "0.1" ],
-      [ "ffi2-generators", "0.1" ]
+      [ "rubinius-toolset", "2.2" ],
     ]
 
     # Standard library gems for building gem C-extensions
     @build_c_ext_gems = [
+      [ "ffi2-generators", "0.1" ],
       [ "rubysl-etc", "1.0" ],
       [ "rubysl-fileutils", "1.0" ],
       [ "rubysl-mkmf", "1.0" ],
@@ -143,35 +147,20 @@ class Configure
 
     # Standard library gems to bootstrap rubygems and Bundler
     @bootstrap_gems = [
-      [ "rubysl-cgi", "1.0" ],
       [ "rubysl-date", "1.0" ],
       [ "rubysl-delegate", "1.0" ],
       [ "rubysl-digest", "1.0" ],
-      [ "rubysl-erb", "1.0" ],
+      [ "rubysl-etc", "1.0" ],
       [ "rubysl-fcntl", "1.0" ],
       [ "rubysl-fileutils", "1.0" ],
-      [ "rubysl-forwardable", "1.0" ],
       [ "rubysl-monitor", "1.0" ],
-      [ "rubysl-net-ftp", "1.0" ],
-      [ "rubysl-net-http", "1.0" ],
-      [ "rubysl-net-protocol", "1.0" ],
-      [ "rubysl-open-uri", "1.0" ],
       [ "rubysl-openssl", "1.0" ],
       [ "rubysl-optparse", "1.0" ],
-      [ "rubysl-ostruct", "1.0" ],
-      [ "rubysl-pathname", "1.0" ],
-      [ "rubysl-prettyprint", "1.0" ],
-      [ "rubysl-resolv", "1.0" ],
-      [ "rubysl-set", "1.0" ],
-      [ "rubysl-socket", "1.0" ],
       [ "rubysl-stringio", "1.0" ],
       [ "rubysl-strscan", "1.0" ],
       [ "rubysl-tempfile", "1.0" ],
       [ "rubysl-thread", "1.0" ],
-      [ "rubysl-time", "1.0" ],
-      [ "rubysl-timeout", "1.0" ],
       [ "rubysl-tmpdir", "1.0" ],
-      [ "rubysl-tsort", "1.0" ],
       [ "rubysl-uri", "1.0" ],
       [ "rubysl-yaml", "1.0" ],
       [ "rubysl-zlib", "1.0" ]
@@ -201,8 +190,6 @@ class Configure
     @release_date = nil
 
     # Configure settings
-    @build_ruby = nil
-    @config_version = 188
     @release_build = !git_directory
     @release_config = false
   end
@@ -309,6 +296,8 @@ class Configure
     end
 
     @build_prefix = @stagingdir || @sourcedir
+    @bootstrap_gems_dir ||= "#{@sourcedir}/bootstrap/gems"
+    @runtime_gems_dir ||= "#{@build_prefix}#{@runtimedir}/gems"
   end
 
   def options
@@ -962,7 +951,7 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
   end
 
   def setup_platform
-    @ldsharedxx = "#{@cxx} -shared -lstdc++"
+    @ldsharedxx = "#{@cxx} -shared"
     @ldshared   = "#{@cc} -shared"
 
     @include_dirs.each do |d|
@@ -992,7 +981,7 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
       @features["rpath"].configured = false
       @make = "gmake"
     when /freebsd/i
-      @ldsharedxx = "#{@cxx} -shared -lstdc++ -fPIC"
+      @ldsharedxx = "#{@cxx} -shared -fPIC"
       @ldshared   = "#{@cc} -shared -fPIC"
       @system_cflags << "-fPIC"
       @system_ldflags << "-lcrypt -pthread -rdynamic"
@@ -1016,7 +1005,7 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
     when /darwin/i
       # on Unix we need a g++ link, not gcc.
       # Ff line contributed by Daniel Harple.
-      @ldsharedxx = "#{@cxx} -bundle -undefined suppress -flat_namespace -lstdc++"
+      @ldsharedxx = "#{@cxx} -bundle -undefined suppress -flat_namespace"
       @ldshared   = "#{@cc} -bundle -undefined suppress -flat_namespace"
       @system_cflags << "-fPIC -D_DARWIN_USE_64_BIT_INODE"
       @features["rpath"].configured = false
@@ -1058,7 +1047,7 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
 
       libs = (default_link_libs + link_libs).map { |l| "-l#{l}" }.join(" ")
 
-      cmd = "#{@cxx} #{@user_cppflags} #{@user_cflags} #{@user_cxxflags} #{@user_ldflags} -o #{basename} #{source} #{@system_cppflags} #{@system_cflags} #{@system_cxxflags} #{@system_ldflags} -lstdc++ #{libs} >>#{@log.path} 2>&1"
+      cmd = "#{@cxx} #{@user_cppflags} #{@user_cflags} #{@user_cxxflags} #{@user_ldflags} -o #{basename} #{source} #{@system_cppflags} #{@system_cflags} #{@system_cxxflags} #{@system_ldflags} #{libs} >>#{@log.path} 2>&1"
       @log.log cmd
       system cmd
       return $?.exitstatus unless run
@@ -1287,7 +1276,7 @@ int main() { return tgetnum(""); }
       includes.each do |i|
         src.puts "#include <#{i}>"
       end
-      src.puts "int main() { void* ptr = &#{name}; }"
+      src.puts "int main() { void* ptr = (void *) &#{name}; }"
     end
   end
 
@@ -1342,7 +1331,7 @@ int main() { return tgetnum(""); }
 
     @log.log string
 
-    cmd = "#{@cxx} -S -o - -x c #{defines.join(" ")} #{@user_cppflags} #{@user_cxxflags} #{@user_cflags} #{@user_ldflags} #{@system_cppflags} #{@system_cxxflags} #{@system_cflags} #{@system_ldflags} #{file.path} >>#{@log.path} 2>&1"
+    cmd = "#{@cxx} -S -o - -x c++ #{defines.join(" ")} #{@user_cppflags} #{@user_cxxflags} #{@user_cflags} #{@user_ldflags} #{@system_cppflags} #{@system_cxxflags} #{@system_cflags} #{@system_ldflags} #{file.path} >>#{@log.path} 2>&1"
     @log.log cmd
     system cmd
 
@@ -1366,13 +1355,16 @@ int main() { return tgetnum(""); }
 
     if @features["stdlib"].value
       @runtime_gems.concat [
-        [ "rubysl", "1.0" ],
+        [ "rubysl", "2.0" ],
+        [ "rubysl-test-unit", "2.0" ],
+        [ "racc", "1.4" ],
+        [ "minitest", "4.7" ],
       ]
     else
       @runtime_gems.concat [
-        [ "rubysl-rake", "1.0" ],
-        [ "rubysl-irb", "1.0" ],
-        [ "rubysl-prettyprint", "1.0" ],
+        [ "rubysl-rake", "2.0" ],
+        [ "rubysl-irb", "2.0" ],
+        [ "rubysl-prettyprint", "2.0" ],
       ]
     end
   end
@@ -1555,8 +1547,6 @@ int main() { return tgetnum(""); }
     enable_features
     detect_build_dirs
 
-    check_tools
-
     if @use_llvm
       @log.write "Configuring LLVM..."
       setup_auto
@@ -1591,18 +1581,6 @@ int main() { return tgetnum(""); }
     detect_curses
     detect_strerror
  end
-
-  # Records the full path to the ruby executable that runs this configure
-  # script. That path will be made available to the rest of the build system
-  # so the same version of ruby is invoked as needed.
-  def build_ruby
-    unless @build_ruby
-      bin = RbConfig::CONFIG["RUBY_INSTALL_NAME"] || RbConfig::CONFIG["ruby_install_name"]
-      bin += (RbConfig::CONFIG['EXEEXT'] || RbConfig::CONFIG['exeext'] || '')
-      @build_ruby = File.join(RbConfig::CONFIG['bindir'], bin)
-    end
-    @build_ruby
-  end
 
   # Checks whether the given config file is a Perl script by checking its first
   # line for a Perl hashbang.
@@ -1667,7 +1645,7 @@ int main() { return tgetnum(""); }
       @libc = "libc.dylib"
     else
       begin
-        ldd_output = `ldd #{build_ruby}`
+        ldd_output = `ldd #{ENV["SHELL"]}`
 
         @libc = ldd_output[/libc\.so\.[0-9]+/]
       rescue
@@ -1707,13 +1685,11 @@ int main() { return tgetnum(""); }
         :patch_version      => @patch_version,
         :release_date       => @release_date || default_release_date,
         :revision           => build_revision,
-        :config_version     => @config_version,
       }
     end
 
     build_config = {
       :command_line       => @command_line,
-      :build_ruby         => build_ruby,
       :build_make         => @make,
       :build_rake         => @rake,
       :build_perl         => @perl,
@@ -1751,6 +1727,8 @@ int main() { return tgetnum(""); }
       :sourcedir          => @sourcedir,
       :stagingdir         => @stagingdir,
       :build_prefix       => @build_prefix,
+      :runtime_gems_dir   => @runtime_gems_dir,
+      :bootstrap_gems_dir => @bootstrap_gems_dir,
       :capi_includedir    => @capi_includedir,
       :build_exe          => "#{@build_prefix}#{@bindir}/#{@program_name}",
       :prefixdir          => @prefixdir,
@@ -1925,7 +1903,7 @@ int main() { return tgetnum(""); }
   end
 
   def check_force_clean
-    if Rubinius::BUILD_CONFIG[:config_version] != @config_version
+    unless verify_build_signature
       @log.write "\nDetected old configuration settings, forcing a clean build"
       system("#{build_ruby} -S #{@rake} clean")
     end
@@ -2015,27 +1993,24 @@ int main() { return tgetnum(""); }
     failed = false
 
     [:build_tool_gems, :build_c_ext_gems, :bootstrap_gems, :runtime_gems].each do |s|
-      Rubinius::BUILD_CONFIG[s].each do |name, version|
+      list = Rubinius::BUILD_CONFIG[s]
+
+      list.each do |name, version|
         gem_name = "#{name}-#{version}.gem"
         unless File.file? "#{@gems_cache}/#{gem_name}"
           @log.write "unable to find gem #{gem_name}"
           failed = true
         end
       end
+
+      instance_variable_set :"@#{s}", list
     end
 
     failure "Unable to find required gems." if failed
   end
 
-  def unpack_gems
-    @log.write "\nUnpacking bootstrap gems..."
-
-    gems = @build_tool_gems + @build_c_ext_gems + @bootstrap_gems
-
-    runtime_gems = File.expand_path "../runtime/gems", __FILE__
-    FileUtils.mkdir_p runtime_gems unless File.directory? runtime_gems
-
-    unpacked = Dir["#{runtime_gems}/*"]
+  def clean_gems(dir, gems)
+    unpacked = Dir["#{dir}/*"]
 
     # Remove unpacked gems not specified by these configure settings
     unpacked.each do |dir|
@@ -2043,14 +2018,16 @@ int main() { return tgetnum(""); }
         FileUtils.rm_rf dir
       end
     end
+  end
 
-    # Unpack gems not found for these configure settings
-    gem_sources = File.expand_path "../vendor/cache", __FILE__
+  def unpack_gems(source, destination, list)
+    FileUtils.mkdir_p destination unless File.directory? destination
 
-    Dir.chdir runtime_gems do
-      gems.each do |name, version|
-        unless unpacked.find { |dir| dir =~ /#{name}-#{version}/ }
-          gem = Dir["#{gem_sources}/#{name}-#{version}*"].first
+    Dir.chdir destination do
+      list.each do |name, version|
+        gem_name = "#{name}-#{version}"
+        unless File.directory? gem_name
+          gem = "#{source}/#{gem_name}.gem"
           system("#{@gem} unpack #{gem}")
 
           unless $?.exitstatus == 0
@@ -2059,6 +2036,22 @@ int main() { return tgetnum(""); }
         end
       end
     end
+  end
+
+  def setup_gems
+    @log.write "\nSetting up bootstrap gems..."
+
+    runtime_gems = @build_tool_gems
+    bootstrap_gems = @build_c_ext_gems + @bootstrap_gems
+
+    # Remove unpacked gems not specified by these configure settings
+    clean_gems @runtime_gems_dir, runtime_gems
+    clean_gems @bootstrap_gems_dir, bootstrap_gems
+
+    # Unpack gems not found for these configure settings
+    gem_sources = File.expand_path "../vendor/cache", __FILE__
+    unpack_gems gem_sources, @runtime_gems_dir, runtime_gems
+    unpack_gems gem_sources, @bootstrap_gems_dir, bootstrap_gems
   end
 
   def load_config
@@ -2090,19 +2083,10 @@ int main() { return tgetnum(""); }
     options
     parse ARGV
     load_config
+    check_tools
+    check_force_clean
 
     set_filesystem_paths
-
-    if File.join(@bindir, @program_name) == build_ruby
-      @log.error "\nYou are attempting to build using the instance of Rubinius that you are building.\n\n"
-
-      @log.error "To resolve this issue:"
-      if ENV['PATH'] =~ /#{@bindir}/
-        @log.error "  * Remove '#{@bindir}' from your PATH."
-      end
-
-      failure "  * Use a Ruby executable other than '#{build_ruby}' to build."
-    end
 
     process
     if @release_build
@@ -2110,12 +2094,11 @@ int main() { return tgetnum(""); }
     else
       fetch_gems
     end
-    unpack_gems unless @release_config
+    setup_gems unless @release_config
     write_configure_files
+    write_build_signature
 
     return if @release_config
-
-    check_force_clean
 
     print_debug if @verbose
 

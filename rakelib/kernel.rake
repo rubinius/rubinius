@@ -11,14 +11,15 @@
 # parts of the build (including the top-level build task for generating the
 # entire kernel).
 
+require "rakelib/digest_files"
+
 # drake does not allow invoke to be called inside tasks
 def kernel_clean
-  rm_f Dir["**/*.rbc",
+  rm_rf Dir["**/*.rbc",
            "**/.*.rbc",
            "kernel/**/signature.rb",
            "spec/capi/ext/*.{o,sig,#{$dlext}}",
-           "runtime/**/load_order*.txt",
-           "runtime/platform.conf"],
+          ],
     :verbose => $verbose
 end
 
@@ -88,19 +89,32 @@ bootstrap_files = FileList[
   "library/rubinius/build_config.rb",
 ]
 
-ffi_files = FileList[
-  "runtime/gems/**/*.ffi"
-].each { |f| f.gsub!(/.ffi\z/, '') }
+runtime_gems_dir = BUILD_CONFIG[:runtime_gems_dir]
+bootstrap_gems_dir = BUILD_CONFIG[:bootstrap_gems_dir]
 
-gem_files = FileList[
-  "runtime/gems/**/*.rb"
-].exclude("runtime/gems/**/spec/**/*.rb", "runtime/gems/**/test/**/*.rb")
+if runtime_gems_dir and bootstrap_gems_dir
+  ffi_files = FileList[
+    "#{bootstrap_gems_dir}/**/*.ffi"
+  ].each { |f| f.gsub!(/.ffi\z/, '') }
 
-ext_files = FileList[
-  "runtime/gems/**/*.{c,h}pp",
-  "runtime/gems/**/grammar.y",
-  "runtime/gems/**/lex.c.*"
-]
+  runtime_gem_files = FileList[
+    "#{runtime_gems_dir}/**/*.rb"
+  ].exclude("#{runtime_gems_dir}/**/spec/**/*.rb",
+            "#{runtime_gems_dir}/**/test/**/*.rb")
+
+  bootstrap_gem_files = FileList[
+    "#{bootstrap_gems_dir}/**/*.rb"
+  ].exclude("#{bootstrap_gems_dir}/**/spec/**/*.rb",
+            "#{bootstrap_gems_dir}/**/test/**/*.rb")
+
+  ext_files = FileList[
+    "#{bootstrap_gems_dir}/**/*.{c,h}pp",
+    "#{bootstrap_gems_dir}/**/grammar.y",
+    "#{bootstrap_gems_dir}/**/lex.c.*"
+  ]
+else
+  ffi_files = runtime_gem_files = bootstrap_gem_files = ext_files = []
+end
 
 kernel_files = FileList[
   "kernel/**/*.txt",
@@ -114,22 +128,11 @@ config_files = FileList[
   "rakelib/*.rake"
 ]
 
-signature_files = kernel_files + config_files + gem_files + ext_files - ffi_files
+signature_files = kernel_files + config_files + runtime_gem_files + ext_files - ffi_files
 
 file signature_file => signature_files do
-  require 'digest/sha1'
-  digest = Digest::SHA1.new
-
-  signature_files.each do |name|
-    File.open name, "r" do |file|
-      while chunk = file.read(1024)
-        digest << chunk
-      end
-    end
-  end
-
   # Collapse the digest to a 64bit quantity
-  hd = digest.hexdigest
+  hd = digest_files signature_files
   SIGNATURE_HASH = hd[0, 16].to_i(16) ^ hd[16,16].to_i(16) ^ hd[32,8].to_i(16)
 
   File.open signature_file, "wb" do |file|
@@ -207,7 +210,12 @@ bootstrap_files.each do |name|
 end
 
 # Build the gem files
-gem_files.each do |name|
+runtime_gem_files.each do |name|
+  file_task nil, runtime_files, signature_file, name, nil
+end
+
+# Build the bootstrap gem files
+bootstrap_gem_files.each do |name|
   file_task nil, runtime_files, signature_file, name, nil
 end
 
