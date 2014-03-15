@@ -80,23 +80,66 @@ module Rubinius
     # Default check_version flag to true
     @check_version = true
 
+    # Requires pre-installed gems directly to prevent Bundler and RubyGems
+    # from disabling the gems and to permit bootstrapping RubyGems.
+    #
+    # TODO: Patch Bundler to recognize pre-installed gems when resolving
+    # dependencies and fix RubyGems hijacking #require.
+    def rubygems_require
+      if dir = rubygems_search_require
+        $LOAD_PATH.unshift dir
+        return true
+      end
+
+      return false
+    end
+
+    def rubygems_search_require
+      library_found = nil
+
+      self.class.rubygems_dirs.each do |dir|
+        if @type and check_path(dir, @path, "", @type)
+          return dir
+        elsif check_path(dir, @path, CodeLoader.source_extension, :ruby)
+          return dir
+        elsif check_path(dir, @path, LIBSUFFIX, :library)
+          library_found = dir
+        end
+      end
+
+      library_found
+    end
+
     class << self
       attr_accessor :load_compiled
       attr_accessor :check_version
 
+      def rubygems_dirs
+        @rubygems_dirs ||= Dir["#{Rubinius::GEMS_PATH}/gems/**/lib"]
+      end
+
+      # Loads rubygems using the bootstrap standard library files.
+      def load_rubygems
+        require "rubygems"
+      end
+
       # Loads the pre-compiled bytecode compiler. Sets up paths needed by the
       # compiler to find dependencies like the parser.
       def load_compiler
-        Rubinius.const_set :COMPILER_PATH, Rubinius::RUNTIME_PATH
-        Rubinius.const_set :PARSER_PATH, "#{Rubinius::RUNTIME_PATH}/melbourne"
-
-        # TODO: handle install
-        # ext_path = "#{Rubinius::LIB_PATH}/ext/melbourne/rbx/melbourne20"
-        # Rubinius.const_set :PARSER_EXT_PATH, ext_path
-
         begin
-          require_compiled "#{Rubinius::COMPILER_PATH}/compiler"
-        rescue Rubinius::InvalidRBC => e
+          Dir["#{Rubinius::RUNTIME_PATH}/gems/**/lib"].each do |dir|
+            $LOAD_PATH.unshift dir
+          end
+
+          require_compiled "rubinius/toolset"
+
+          Rubinius::ToolSets.create :runtime do
+            require_compiled "rubinius/melbourne"
+            require_compiled "rubinius/processor"
+            require_compiled "rubinius/compiler"
+            require_compiled "rubinius/ast"
+          end
+        rescue Object => e
           raise LoadError, "Unable to load the bytecode compiler", e
         end
       end
@@ -131,7 +174,8 @@ module Rubinius
       if CodeLoader.load_compiled
         code = load_compiled_file @load_path, signature, version
       else
-        compiled_name = Compiler.compiled_name @load_path
+        c = Rubinius::ToolSets::Runtime::Compiler
+        compiled_name = c.compiled_name @load_path
 
         if compiled_name
           begin
@@ -168,10 +212,11 @@ module Rubinius
     # Compile a Ruby source file and save the compiled file. Return the
     # internal representation (CompiledCode) of the Ruby source file.
     def compile_file(file, compiled)
+      c = Rubinius::ToolSets::Runtime::Compiler
       if CodeLoader.save_compiled?
-        Compiler.compile file, compiled
+        c.compile file, compiled
       else
-        Compiler.compile_file file
+        c.compile_file file
       end
     end
 

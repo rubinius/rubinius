@@ -4,11 +4,7 @@
 module Rubinius
   class GlobalVariables
     def initialize
-      if Rubinius.ruby19?
-        load_path = []
-      else
-        load_path = %w[.]
-      end
+      load_path = %w[.]
 
       loaded_features = LoadedFeatures.new
 

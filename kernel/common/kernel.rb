@@ -202,9 +202,7 @@ module Kernel
     a.each { |obj| $stdout.puts obj.inspect }
     $stdout.flush
 
-    return nil if Rubinius.ruby18?
-
-    a.size == 1 ? a.first : a
+    return nil
   end
   module_function :p
 

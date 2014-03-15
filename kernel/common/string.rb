@@ -75,9 +75,10 @@ class String
   end
 
   def +(other)
-    other = StringValue(other)
-    Rubinius::Type.compatible_encoding self, other
-    String.new(self) << other
+    r = "#{self}#{StringValue(other)}"
+    Rubinius::Type.infect(r, self)
+    Rubinius::Type.infect(r, other)
+    r
   end
 
   def <<(other)
@@ -108,7 +109,6 @@ class String
     end
 
     return false unless @num_bytes == other.size
-    return false unless Encoding.compatible?(self, other)
     return @data.compare_bytes(other.__data__, @num_bytes, other.size) == 0
   end
 
@@ -849,8 +849,8 @@ class String
 
   def each_char
     return to_enum :each_char unless block_given?
-    # TODO: Use Encodings for KCODE in 1.8 mode
-    if Rubinius.kcode == :UTF8 and Rubinius.ruby18?
+
+    if Rubinius.kcode == :UTF8
       scan(/./u) do |c|
         yield c
       end
@@ -1297,7 +1297,167 @@ class String
   end
 
   def split(pattern=nil, limit=undefined)
-    Rubinius::Splitter.split(self, pattern, limit)
+
+    # Odd edge case
+    return [] if empty?
+
+    tail_empty = false
+
+    if limit.equal?(undefined)
+      limited = false
+    else
+      limit = Rubinius::Type.coerce_to limit, Fixnum, :to_int
+
+      if limit > 0
+        return [self.dup] if limit == 1
+        limited = true
+      else
+        tail_empty = true
+        limited = false
+      end
+    end
+
+    pattern ||= ($; || " ")
+
+    if pattern == ' '
+      if limited
+        lim = limit
+      elsif tail_empty
+        lim = -1
+      else
+        lim = 0
+      end
+
+      return Rubinius.invoke_primitive :string_awk_split, self, lim
+    elsif pattern.nil?
+      pattern = /\s+/
+    elsif pattern.kind_of?(Regexp)
+      # Pass
+    else
+      pattern = StringValue(pattern) unless pattern.kind_of?(String)
+
+      if !limited and limit.equal?(undefined)
+        if pattern.empty?
+          ret = []
+          pos = 0
+
+          while pos < @num_bytes
+            ret << substring(pos, 1)
+            pos += 1
+          end
+
+          return ret
+        else
+          return split_on_string(pattern)
+        end
+      end
+
+      pattern = Regexp.new(Regexp.quote(pattern))
+    end
+
+    start = 0
+    ret = []
+
+    # Handle // as a special case.
+    if pattern.source.empty?
+      kcode = $KCODE
+
+      begin
+        if pattern.options and kc = pattern.kcode
+          $KCODE = kc
+        end
+
+        if limited
+          iterations = limit - 1
+          while c = self.find_character(start)
+            ret << c
+            start += c.size
+            iterations -= 1
+
+            break if iterations == 0
+          end
+
+          ret << self[start..-1]
+        else
+          while c = self.find_character(start)
+            ret << c
+            start += c.size
+          end
+
+          # Use #substring because it returns the right class and taints
+          # automatically. This is just appending a "", which is this
+          # strange protocol if a negative limit is passed in
+          ret << substring(0,0) if tail_empty
+        end
+      ensure
+        $KCODE = kcode
+      end
+
+      return ret
+    end
+
+    last_match = nil
+
+    while match = pattern.match_from(self, start)
+      break if limited && limit - ret.size <= 1
+
+      collapsed = match.collapsing?
+
+      unless collapsed && (match.begin(0) == 0)
+        ret << match.pre_match_from(last_match ? last_match.end(0) : 0)
+        ret.push(*match.captures.compact)
+      end
+
+      if collapsed
+        start += 1
+      elsif last_match && last_match.collapsing?
+        start = match.end(0) + 1
+      else
+        start = match.end(0)
+      end
+
+      last_match = match
+    end
+
+    if last_match
+      ret << last_match.post_match
+    elsif ret.empty?
+      ret << dup
+    end
+
+    # Trim from end
+    if !ret.empty? and (limit.equal?(undefined) || limit == 0)
+      while s = ret.last and s.empty?
+        ret.pop
+      end
+    end
+
+    ret
+  end
+
+  def split_on_string(pattern)
+    pos = 0
+
+    ret = []
+
+    pat_size = pattern.size
+
+    while pos < @num_bytes
+      nxt = find_string(pattern, pos)
+      break unless nxt
+
+      match_size = nxt - pos
+      ret << substring(pos, match_size)
+
+      pos = nxt + pat_size
+    end
+
+    # No more separators, but we need to grab the last part still.
+    ret << substring(pos, @num_bytes - pos)
+
+    ret.pop while !ret.empty? and ret.last.empty?
+
+    ret
   end
 
   def squeeze(*strings)

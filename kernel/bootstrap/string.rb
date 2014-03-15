@@ -1,5 +1,6 @@
 class String
-  attr_reader :num_bytes
+  attr_reader_specific :num_bytes, :length
+  alias_method :size, :length
 
   def self.pattern(size, str)
     Rubinius.primitive :string_pattern
@@ -70,13 +71,6 @@ class String
     Rubinius.primitive :string_find_character
     raise PrimitiveFailure, "String#find_character primitive failed"
   end
-
-  def size
-    Rubinius.primitive :string_size
-    raise PrimitiveFailure, "String#size primitive failed"
-  end
-
-  alias_method :length, :size
 
   # This is a work-in-progress. String is entirely coded around the idea of
   # bytes, but we have to convert to the idea of characters, even for 1.8

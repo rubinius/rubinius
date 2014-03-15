@@ -22,7 +22,7 @@ module Rubinius
       @early_option_stop = false
       @check_syntax = false
 
-      @enable_gems = !Rubinius.ruby18?
+      @enable_gems = false
       @load_gemfile = false
 
       version = RUBY_VERSION.split(".").first(2).join(".")
@@ -271,12 +271,6 @@ module Rubinius
         $DEBUG = true
       end
 
-      unless Rubinius.ruby18?
-        options.on "--disable-gems", "Do not automatically load rubygems on startup" do
-          @enable_gems = false
-        end
-      end
-
       options.on "-e", "CODE", "Compile and execute CODE" do |code|
         @run_irb = false
         set_program_name "(eval)"
@@ -307,31 +301,18 @@ module Rubinius
         @load_paths << dir
       end
 
-      if Rubinius.ruby18?
-        options.on "-K", "[code]", "Set $KCODE" do |k|
-          case k
-          when 'a', 'A', 'n', 'N', nil
-            $KCODE = "NONE"
-          when 'e', 'E'
-            $KCODE = "EUC"
-          when 's', 'S'
-            $KCODE = "SJIS"
-          when 'u', 'U'
-            $KCODE = "UTF8"
-          else
-            $KCODE = "NONE"
-          end
-        end
-      else
-        options.on "-K", "Ignored $KCODE option for compatibility"
-        options.on "-U", "Set Encoding.default_internal to UTF-8" do
-          set_default_internal_encoding('UTF-8')
-        end
-
-        options.on "-E", "ENC", "Set external:internal character encoding to ENC" do |enc|
-          ext, int = enc.split(":")
-          Encoding.default_external = ext if ext and !ext.empty?
-          set_default_internal_encoding(int) if int and !int.empty?
+      options.on "-K", "[code]", "Set $KCODE" do |k|
+        case k
+        when 'a', 'A', 'n', 'N', nil
+          $KCODE = "NONE"
+        when 'e', 'E'
+          $KCODE = "EUC"
+        when 's', 'S'
+          $KCODE = "SJIS"
+        when 'u', 'U'
+          $KCODE = "UTF8"
+        else
+          $KCODE = "NONE"
         end
       end
 
@@ -648,16 +629,7 @@ to rebuild the compiler.
 
     #Check Ruby syntax of source
     def check_syntax
-      case
-      when Rubinius.ruby18?
-        parser = Rubinius::Melbourne
-      when Rubinius.ruby19?
-        parser = Rubinius::Melbourne19
-      when Rubinius.ruby20?
-        parser = Rubinius::Melbourne20
-      else
-        raise "no parser available for this ruby version"
-      end
+      parser = Rubinius::ToolSets::Runtime::Melbourne
 
       if @script
         if File.exists?(@script)
