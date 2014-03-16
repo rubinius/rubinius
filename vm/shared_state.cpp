@@ -336,6 +336,7 @@ namespace rubinius {
     capi_constant_name_map_[cCApiGC]         = "GC";
     capi_constant_name_map_[cCApiCAPI]       = "Rubinius::CAPI";
     capi_constant_name_map_[cCApiMethod]     = "Method";
+    capi_constant_name_map_[cCApiEnumerator] = "Enumerable::Enumerator";
 
     capi_constant_name_map_[cCApiArgumentError]       = "ArgumentError";
     capi_constant_name_map_[cCApiEOFError]            = "EOFError";

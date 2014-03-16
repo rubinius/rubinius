@@ -72,6 +72,7 @@ typedef enum {
   cCApiThreadError,
   cCApiZeroDivisionError,
   cCApiMethod,
+  cCApiEnumerator,
 
   // MUST be last
   cCApiMaxConstant

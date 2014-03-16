@@ -318,6 +318,7 @@ struct RFile {
 #define rb_cTrueClass         (capi_get_constant(cCApiTrue))
 #define rb_cProc              (capi_get_constant(cCApiProc))
 #define rb_cMethod            (capi_get_constant(cCApiMethod))
+#define rb_cEnumerator        (capi_get_constant(cCApiEnumerator))
 
 /* Global Module objects. */
 
