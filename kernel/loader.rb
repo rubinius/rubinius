@@ -57,15 +57,15 @@ module Rubinius
       @stage = "setting up system load path"
 
       @main_lib = Rubinius::LIB_PATH
-
       @main_lib_bin = File.join @main_lib, "bin"
-      Rubinius.const_set :PARSER_EXT_PATH, "#{@main_lib}/ext/melbourne/rbx/melbourne20"
 
       # This conforms more closely to MRI. It is necessary to support
       # paths that mkmf adds when compiling and installing native exts.
       additions = [
+        Rubinius::SITE_PATH,
+        "#{Rubinius::SITE_PATH}/#{RUBY_VERSION}",
+        "#{Rubinius::SITE_PATH}/#{Rubinius::CPU}-#{Rubinius::OS}",
         Rubinius::VENDOR_PATH,
-        "#{@main_lib}/#{Rubinius::RUBY_LIB_VERSION}",
         @main_lib,
       ]
       additions.uniq!
