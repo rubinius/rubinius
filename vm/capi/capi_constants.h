@@ -72,15 +72,6 @@ typedef enum {
   cCApiThreadError,
   cCApiZeroDivisionError,
   cCApiMethod,
-  cCApiRational,
-  cCApiComplex,
-  cCApiMathDomainError,
-  cCApiEncoding,
-  cCApiEncCompatError,
-  cCApiWaitReadable,
-  cCApiWaitWritable,
-  cCApiEnumerator,
-  cCApiMutex,
 
   // MUST be last
   cCApiMaxConstant

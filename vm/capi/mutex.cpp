@@ -8,7 +8,8 @@ using namespace rubinius::capi;
 extern "C" {
 
   VALUE rb_mutex_new() {
-    return capi_fast_call(rb_cMutex, rb_intern("new"), 0);
+    VALUE cls = rb_const_get(rb_cObject, rb_intern("Mutex"));
+    return capi_fast_call(cls, rb_intern("new"), 0);
   }
 
   VALUE rb_mutex_locked_p(VALUE self) {

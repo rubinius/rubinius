@@ -886,7 +886,7 @@ class Array
   end
 
   def pack(directives)
-    Rubinius.primitive :array_pack18
+    Rubinius.primitive :array_pack
 
     unless directives.kind_of? String
       return pack(StringValue(directives))

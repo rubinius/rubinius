@@ -1213,7 +1213,8 @@ module Rubinius
           @g.passed_arg @arg_count
           @g.gif no_exception
 
-          Rubinius::AST::GlobalVariableAccess.new(1, :$DEBUG).bytecode(@g)
+          gva = Rubinius::ToolSets::Runtime::AST::GlobalVariableAccess
+          gva.new(1, :$DEBUG).bytecode(@g)
           @g.gif no_exception
 
           raise_ArgumentError "too many arguments for format string"

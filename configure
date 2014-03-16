@@ -156,6 +156,7 @@ class Configure
       [ "rubysl-monitor", "1.0" ],
       [ "rubysl-openssl", "1.0" ],
       [ "rubysl-optparse", "1.0" ],
+      [ "rubysl-rational", "1.0" ],
       [ "rubysl-stringio", "1.0" ],
       [ "rubysl-strscan", "1.0" ],
       [ "rubysl-tempfile", "1.0" ],

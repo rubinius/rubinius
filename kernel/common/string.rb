@@ -1590,7 +1590,7 @@ class String
   end
 
   def unpack(directives)
-    Rubinius.primitive :string_unpack18
+    Rubinius.primitive :string_unpack
 
     unless directives.kind_of? String
       return unpack(StringValue(directives))

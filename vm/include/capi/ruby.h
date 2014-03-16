@@ -318,11 +318,6 @@ struct RFile {
 #define rb_cTrueClass         (capi_get_constant(cCApiTrue))
 #define rb_cProc              (capi_get_constant(cCApiProc))
 #define rb_cMethod            (capi_get_constant(cCApiMethod))
-#define rb_cRational          (capi_get_constant(cCApiRational))
-#define rb_cComplex           (capi_get_constant(cCApiComplex))
-#define rb_cEncoding          (capi_get_constant(cCApiEncoding))
-#define rb_cEnumerator        (capi_get_constant(cCApiEnumerator))
-#define rb_cMutex             (capi_get_constant(cCApiMutex))
 
 /* Global Module objects. */
 
@@ -330,8 +325,6 @@ struct RFile {
 #define rb_mEnumerable        (capi_get_constant(cCApiEnumerable))
 #define rb_mKernel            (capi_get_constant(cCApiKernel))
 #define rb_mGC                (capi_get_constant(cCApiGC))
-#define rb_mWaitReadable      (capi_get_constant(cCApiWaitReadable))
-#define rb_mWaitWritable      (capi_get_constant(cCApiWaitWritable))
 
 /* Utility modules */
 #define rb_mCAPI              (capi_get_constant(cCApiCAPI))
