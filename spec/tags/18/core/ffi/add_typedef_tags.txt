@@ -1,1 +1,0 @@
-incomplete:FFI.add_typedef needs to be reviewed for spec completeness

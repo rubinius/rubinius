@@ -1,0 +1,2 @@
+fails:Regexp.union propagates the kcode setting to the output Regexp
+fails:Regexp.union raises ArgumentError if the kcodes conflict

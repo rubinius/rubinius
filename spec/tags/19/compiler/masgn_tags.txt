@@ -1,5 +1,0 @@
-fails:A Masgn node is compiled from '*a.m = b'
-fails:A Masgn node is compiled from '*$a = b'
-fails:A Masgn node is compiled from '*@a = b'
-fails:A Masgn node is compiled from '*a = b'
-fails:A Masgn node is compiled from '*a = lambda { a = 8 }'

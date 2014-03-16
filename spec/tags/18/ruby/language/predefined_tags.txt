@@ -1,5 +1,0 @@
-fails:Execution variable $: does not include '.' when the taint check level > 1
-fails:Predefined global $~ changes the value of derived capture globals when assigned
-fails:Predefined global $~ changes the value of the derived preceding match global
-fails:Predefined global $~ changes the value of the derived following match global
-fails:Predefined global $~ changes the value of the derived full match global

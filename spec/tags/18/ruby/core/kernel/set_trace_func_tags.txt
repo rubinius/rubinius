@@ -1,1 +1,0 @@
-incomplete:Kernel.set_trace_func needs to be reviewed for spec completeness

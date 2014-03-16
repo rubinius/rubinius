@@ -1,1 +1,0 @@
-incomplete:CSV::StreamBuf#[] needs to be reviewed for spec completeness

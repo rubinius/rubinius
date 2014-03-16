@@ -1,0 +1,6 @@
+fails:Regexp.compile given a String enables EUC encoding if third argument is 'e' or 'euc' (case-insensitive)
+fails:Regexp.compile given a String enables SJIS encoding if third argument is 's' or 'sjis' (case-insensitive)
+fails:Regexp.compile given a String enables UTF-8 encoding if third argument is 'u' or 'utf8' (case-insensitive)
+fails:Regexp.compile given a String disables multibyte support if third argument is 'n' or 'none' (case insensitive)
+fails:Regexp.compile given a Regexp enables multibyte support if given in the literal
+fails:Regexp.compile given a Regexp with $KCODE set falls back to ASCII for an invalid UTF-8 regexp

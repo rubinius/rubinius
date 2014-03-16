@@ -1,0 +1,1 @@
+fails:Rubinius::Loader.main catches any uncaught exceptions raised while running

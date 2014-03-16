@@ -1,1 +1,0 @@
-fails:Encoding.compatible? Symbol, Symbol returns the first's Encoding if it is not ASCII only

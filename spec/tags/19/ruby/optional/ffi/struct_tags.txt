@@ -1,4 +1,0 @@
-fails:FFI::Struct  with a nested struct field should be able to assign struct instance to nested field
-fails:BuggedStruct should return its correct size
-fails:Struct allocation Buffer.new(Struct, 2)
-fails:Struct allocation supports :bool as a struct member

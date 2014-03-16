@@ -1,0 +1,1 @@
+fails:Regexp#options raises a TypeError on an uninitialized Regexp

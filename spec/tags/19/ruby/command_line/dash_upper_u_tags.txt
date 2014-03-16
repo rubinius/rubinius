@@ -1,1 +1,0 @@
-fails:ruby -U does not affect the source encoding

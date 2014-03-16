@@ -1,0 +1,2 @@
+fails:Regexp#inspect returns options in the order 'mixn'
+fails:Regexp#inspect includes the character set code after other options

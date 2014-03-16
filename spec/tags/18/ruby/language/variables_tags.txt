@@ -1,1 +1,0 @@
-fails:Basic assignment supports the {|r,| } form of block assignment

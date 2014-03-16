@@ -1,1 +1,0 @@
-incomplete:Kernel.gets needs to be reviewed for spec completeness

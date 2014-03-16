@@ -1,1 +1,0 @@
-incomplete:CSV::StreamBuf#add_buf needs to be reviewed for spec completeness

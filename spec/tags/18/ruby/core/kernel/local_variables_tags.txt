@@ -1,1 +1,0 @@
-incomplete:Kernel#local_variables needs to be reviewed for spec completeness

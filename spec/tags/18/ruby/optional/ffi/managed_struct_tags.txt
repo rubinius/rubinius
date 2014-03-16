@@ -1,3 +1,0 @@
-fails:Managed Struct should raise an error if release() is not defined
-fails:Managed Struct should be the right class
-fails:Managed Struct should release memory properly

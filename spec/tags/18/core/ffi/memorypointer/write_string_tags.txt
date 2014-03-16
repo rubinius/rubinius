@@ -1,1 +1,0 @@
-incomplete:FFI::MemoryPointer#write_string needs to be reviewed for spec completeness

@@ -1,2 +1,0 @@
-fails:A singleton method definition raises TypeError if frozen
-fails:A method definition inside a metaclass scope raises TypeError if frozen

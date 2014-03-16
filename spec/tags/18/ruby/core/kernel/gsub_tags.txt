@@ -1,2 +1,0 @@
-incomplete:Kernel.gsub! needs to be reviewed for spec completeness
-fails:Kernel#gsub with pattern and block acts similarly to using $_.gsub

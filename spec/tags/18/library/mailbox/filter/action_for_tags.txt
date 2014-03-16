@@ -1,1 +1,0 @@
-incomplete:Mailbox::Filter#action_for needs to be reviewed for spec completeness

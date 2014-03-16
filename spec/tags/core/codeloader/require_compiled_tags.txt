@@ -1,0 +1,4 @@
+fails:Rubinius::CodeLoader#require_compiled loads a .rbc file directly
+fails:Rubinius::CodeLoader#require_compiled loads a .rbc file even if the related .rb file is missing
+fails:Rubinius::CodeLoader#require_compiled adds the .rb name to $LOADED_FEATURES when loading a .rbc file
+fails:Rubinius::CodeLoader#require_compiled raise an exception if loader can not load the file

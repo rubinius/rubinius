@@ -1,1 +1,0 @@
-incomplete:IO#initialize_copy needs to be reviewed for spec completeness

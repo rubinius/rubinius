@@ -1,1 +1,0 @@
-fails:Literal Regexps throws SyntaxError for malformed literals

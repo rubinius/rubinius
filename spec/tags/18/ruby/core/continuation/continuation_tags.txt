@@ -1,7 +1,0 @@
-critical:Creating a Continuation object must be done through Kernel.callcc, no .new
-critical:Executing a Continuation using #call transfers execution to right after the Kernel.callcc block
-critical:Executing a Continuation arguments given to #call (or nil) are returned by the Kernel.callcc block (as Array unless only one object)
-critical:Executing a Continuation #[] is an alias for #call
-critical:Executing a Continuation closes over lexical environments
-critical:Executing a Continuation escapes an inner ensure block
-critical:Executing a Continuation executes an outer ensure block

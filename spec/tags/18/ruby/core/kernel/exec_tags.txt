@@ -1,2 +1,0 @@
-fails:Kernel#exec with a single argument subjects the specified command to shell expansion
-fails:Kernel.exec with a single argument subjects the specified command to shell expansion

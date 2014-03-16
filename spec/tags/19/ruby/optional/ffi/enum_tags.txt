@@ -1,7 +1,0 @@
-fails:A library with no enum defined returns nil when asked for an enum
-fails:An untagged enum constants can be used as function parameters and return value
-fails:All enums have autonumbered constants when defined with names only
-fails:All enums can have an explicit first constant and autonumbered subsequent constants
-fails:All enums can have a mix of explicit and autonumbered constants
-fails:All enums can have all its constants explicitely valued
-fails:All enums return the constant corresponding to a specific value

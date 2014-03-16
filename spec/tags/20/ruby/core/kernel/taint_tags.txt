@@ -1,3 +1,0 @@
-fails:Kernel#taint on a Fixnum raises a RuntimeError
-fails:Kernel#taint on a Bignum raises a RuntimeError
-fails:Kernel#taint on a Float raises a RuntimeError

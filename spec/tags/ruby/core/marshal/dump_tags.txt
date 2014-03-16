@@ -1,0 +1,2 @@
+fails:Marshal.dump with a String dumps a String subclass
+fails:Marshal.dump with a String dumps a String subclass extended with a Module

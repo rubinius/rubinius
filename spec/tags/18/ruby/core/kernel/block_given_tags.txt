@@ -1,2 +1,0 @@
-incomplete:Kernel.block_given? needs to be reviewed for spec completeness
-fails:self.send(:block_given?) always returns false

@@ -1,1 +1,0 @@
-fails:Array#pack with format 'Z' returns a string in encoding of common to the concatenated results

@@ -1,1 +1,0 @@
-incomplete:CSV::StringReader#initialize needs to be reviewed for spec completeness

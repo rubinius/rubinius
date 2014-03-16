@@ -1,1 +1,0 @@
-fails:Regexp with character classes supports [[:alpha:][:digit:][:etc:]] (predefined character classes)

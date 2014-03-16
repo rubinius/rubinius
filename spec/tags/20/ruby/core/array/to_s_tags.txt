@@ -1,1 +1,0 @@
-fails:Array#to_s copies the ASCII-compatible encoding of the result of inspecting the first element

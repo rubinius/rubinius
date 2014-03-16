@@ -1,1 +1,0 @@
-fails:IO.popen with a leading Array parameter uses a trailing Hash in the Array for spawn-like settings

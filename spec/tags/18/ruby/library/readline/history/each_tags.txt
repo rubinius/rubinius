@@ -1,2 +1,0 @@
-fails:Readline::HISTORY.each yields tainted Objects
-fails:Readline::HISTORY.each yields each item in the history

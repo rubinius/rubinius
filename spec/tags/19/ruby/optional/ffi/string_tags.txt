@@ -1,9 +1,0 @@
-fails:String tests MemoryPointer#get_string returns a tainted string
-fails:String tests String returned by a method is tainted
-fails:String tests Poison null byte raises error
-fails:String tests casts nil as NULL pointer
-fails:String tests reads an array of strings until encountering a NULL pointer
-fails:String tests reads an array of strings of the size specified, substituting nil when a pointer is NULL
-fails:String tests reads an array of strings, taking a memory offset parameter
-fails:String tests raises an IndexError when trying to read an array of strings out of bounds
-fails:String tests raises an IndexError when trying to read an array of strings using a negative offset

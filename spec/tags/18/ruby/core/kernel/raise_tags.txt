@@ -1,1 +1,0 @@
-incomplete:Kernel.raise needs to be reviewed for spec completeness

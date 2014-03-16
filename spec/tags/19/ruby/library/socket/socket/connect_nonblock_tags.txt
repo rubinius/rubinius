@@ -1,1 +1,0 @@
-fails:Socket#connect_nonblock raises Errno::EINPROGRESS with IO::WaitWritable mixed in when the connect would block

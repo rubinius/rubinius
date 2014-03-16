@@ -1,5 +1,0 @@
-fails:MemoryPointer makes a pointer from a string
-fails:MemoryPointer does not make a pointer from non-strings
-fails:MemoryPointer makes a pointer from a string with multibyte characters
-fails:MemoryPointer raises an error if you try putting a long into a pointer of size 1
-fails:MemoryPointer raises an error if you try putting an int into a pointer of size 1
