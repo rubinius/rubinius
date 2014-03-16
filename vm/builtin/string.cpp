@@ -957,6 +957,57 @@ namespace rubinius {
     }
   }
 
+  Fixnum* String::byte_index(STATE, Object* value, Fixnum* start) {
+    native_int total = size();
+    native_int offset = start->to_native();
+
+    if(String* pattern = try_as<String>(value)) {
+      native_int match_size = pattern->size();
+
+      if(offset < 0) {
+        Exception::argument_error(state, "negative start given");
+      }
+
+      if(match_size == 0) return start;
+
+      uint8_t* p = byte_address() + offset;
+      uint8_t* e = byte_address() + total;
+      uint8_t* pp = pattern->byte_address();
+      uint8_t* pe = pp + pattern->size();
+      uint8_t* s;
+      uint8_t* ss;
+
+      for(s = p, ss = pp; p < e; s = ++p) {
+        if(*p != *pp) continue;
+
+        while(p < e && pp < pe && *(++p) == *(++pp))
+          ; // memcmp
+
+        if(pp < pe) {
+          p = s;
+          pp = ss;
+        } else {
+          return Fixnum::from(s - byte_address());
+        }
+      }
+
+      return nil<Fixnum>();
+    } else if(Fixnum* index = try_as<Fixnum>(value)) {
+      native_int i = index->to_native();
+
+      if(i < 0) {
+        Exception::argument_error(state, "character index is negative");
+      } else if(i > total) {
+        return nil<Fixnum>();
+      } else {
+        return index;
+      }
+    }
+
+    Exception::argument_error(state, "argument is not a String or Fixnum");
+    return nil<Fixnum>(); // satisfy compiler
+  }
+
   String* String::find_character(STATE, Fixnum* offset) {
     native_int o = offset->to_native();
     if(o >= size()) return nil<String>();
