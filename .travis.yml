@@ -2,21 +2,29 @@ language: cpp
 compiler:
   - gcc
   - clang
+before_install:
+  - rvm use $RVM --install --binary --fuzzy
+  - gem update --system
+  - gem --version
 before_script:
-  - ./configure --enable-version=18
-script: rake travis
+  - travis_retry bundle
+  - travis_retry ./configure
+script: rake
 branches:
   only:
     - master
-    - compiler
+    - 1.8.7
 notifications:
   recipients:
-    - evan+notify@phx.io
     - brixen@gmail.com
     - d.bussink@gmail.com
   email:
     on_success: change
     on_failure: always
-rvm:
-  - 1.8.7
-  - 1.9.3
+  irc:
+    channels:
+      - "chat.freenode.net#rubinius"
+    template:
+      - "%{repository}/%{branch} (%{commit} - %{author}): %{message}"
+env:
+  - RVM=2.0.0
