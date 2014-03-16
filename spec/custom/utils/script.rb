@@ -4,7 +4,6 @@ class MSpecScript
   def custom_register
     GCStatsAction.new.register if config[:gc_stats]
     ProfilerAction.new.register if config[:profiler]
-    Parser19Action.new.register if config[:parser_19]
     MemoryAction.new.register if config[:memory]
   end
 end
@@ -22,7 +21,6 @@ end
 class MSpecRun
   def custom_options(options)
     options.compiler
-    options.parser_19
     options.memory
     options.gc_stats
     options.profiler
@@ -34,7 +32,6 @@ end
 class MSpecCI
   def custom_options(options)
     options.compiler
-    options.parser_19
     options.memory
     options.gc_stats
     options.profiler

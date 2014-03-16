@@ -1,4 +1,4 @@
-require 'tooling/profiler/profiler'
+require 'rubinius/profiler'
 
 class ProfilerGuard < SpecGuard
   def match?
