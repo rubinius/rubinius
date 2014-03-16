@@ -89,13 +89,13 @@ public:
     String* path = String::create(state, dir);
     d->open(state, path);
     d->read(state);
-    Fixnum* pos = force_as<Fixnum>(d->control(state, Fixnum::from(2), Fixnum::from(0)));
+    Fixnum* pos = (Fixnum*)d->control(state, Fixnum::from(2), Fixnum::from(0));
     String* first = as<String>(d->read(state));
 
     d->control(state, Fixnum::from(0), pos);
     String* second = as<String>(d->read(state));
-    TS_ASSERT_EQUALS(first->byte_size(), second->byte_size());
-    TS_ASSERT_SAME_DATA(first, second, first->byte_size());
+    TS_ASSERT_EQUALS(first->size(), second->size());
+    TS_ASSERT_SAME_DATA(first, second, first->size());
     remove_directory(dir);
   }
 };

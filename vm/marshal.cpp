@@ -209,7 +209,6 @@ namespace rubinius {
     code->stack_size(state, force_as<Fixnum>(unmarshal()));
     code->local_count(state, force_as<Fixnum>(unmarshal()));
     code->required_args(state, force_as<Fixnum>(unmarshal()));
-    code->post_args(state, force_as<Fixnum>(unmarshal()));
     code->total_args(state, force_as<Fixnum>(unmarshal()));
     code->splat(state, force_as<Fixnum>(unmarshal()));
     code->literals(state, force_as<Tuple>(unmarshal()));

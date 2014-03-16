@@ -33,6 +33,7 @@ namespace rubinius {
 
   CompiledCode* CompiledCode::create(STATE) {
     CompiledCode* code = state->new_object<CompiledCode>(G(compiled_code));
+    code->post_args(state, Fixnum::from(0));
     code->local_count(state, Fixnum::from(0));
     code->inliners_ = 0;
     code->prim_index_ = -1;

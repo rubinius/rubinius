@@ -7,7 +7,7 @@
 #include "vm.hpp"
 #include "object_memory.hpp"
 #include "capi/tag.hpp"
-#include "gc/marksweep.hpp"
+#include "gc/mark_sweep.hpp"
 #include "gc/baker.hpp"
 #include "gc/immix.hpp"
 #include "gc/inflated_headers.hpp"

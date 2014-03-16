@@ -17,24 +17,24 @@ public:
 
   void test_create_with_size() {
     str = String::create(state, Fixnum::from(4));
-    TS_ASSERT_EQUALS(str->byte_size(), 4);
+    TS_ASSERT_EQUALS(str->size(), 4);
     TS_ASSERT_EQUALS(str->data()->size(), 8);
   }
 
   void test_create() {
     str = String::create(state, "blah");
-    TS_ASSERT_EQUALS(str->byte_size(), 4);
+    TS_ASSERT_EQUALS(str->size(), 4);
   }
 
   void test_create_with_substring() {
     str = String::create(state, "blah", 2);
-    TS_ASSERT_EQUALS(str->byte_size(), 2);
+    TS_ASSERT_EQUALS(str->size(), 2);
     TS_ASSERT_SAME_DATA("bl\0", str->c_str(state), 3);
   }
 
   void test_create_with_null_and_zero_count() {
     str = String::create(state, NULL, 0);
-    TS_ASSERT_EQUALS(str->byte_size(), 0);
+    TS_ASSERT_EQUALS(str->size(), 0);
     TS_ASSERT_EQUALS(str->byte_address()[0], 0);
   }
 
@@ -61,11 +61,7 @@ public:
   }
 
   void test_string_dup() {
-    Encoding* enc = Encoding::ascii8bit_encoding(state);
     str = String::create(state, "blah");
-    str->encoding(state, enc);
-    str->valid_encoding(state, cTrue);
-    str->ascii_only(state, cFalse);
 
     String* str2 = str->string_dup(state);
 
@@ -73,10 +69,6 @@ public:
     TS_ASSERT_EQUALS(str2->shared(), cTrue);
 
     TS_ASSERT_EQUALS(str->data(), str2->data());
-
-    TS_ASSERT_EQUALS(enc, str2->encoding());
-    TS_ASSERT_EQUALS(cFalse, str2->ascii_only());
-    TS_ASSERT_EQUALS(cTrue, str2->valid_encoding());
   }
 
   void test_unshare() {
@@ -113,8 +105,8 @@ public:
 
     s1->append(state, "u\0ra");
 
-    TS_ASSERT_EQUALS(7, s1->byte_size());
-    TS_ASSERT(s1->byte_size() < s1->data()->size());
+    TS_ASSERT_EQUALS(7, s1->size());
+    TS_ASSERT(s1->size() < s1->data()->size());
     TS_ASSERT_SAME_DATA("omote u\0", s1->byte_address(), 8);
   }
 
@@ -123,8 +115,8 @@ public:
 
     str->append(state, "bar", 1U);
 
-    TS_ASSERT_EQUALS(4, str->byte_size());
-    TS_ASSERT(str->byte_size() < str->data()->size());
+    TS_ASSERT_EQUALS(4, str->size());
+    TS_ASSERT(str->size() < str->data()->size());
     TS_ASSERT_SAME_DATA("foob\0", str->byte_address(), 5);
   }
 
@@ -138,8 +130,8 @@ public:
     s1->append(state, s2);
     TS_ASSERT_EQUALS(s1->hash_value(), cNil);
 
-    TS_ASSERT_EQUALS(10, s1->byte_size());
-    TS_ASSERT(s1->byte_size() < s1->data()->size());
+    TS_ASSERT_EQUALS(10, s1->size());
+    TS_ASSERT(s1->size() < s1->data()->size());
     TS_ASSERT_SAME_DATA("omote u\0ra\0", s1->byte_address(), 11);
   }
 
@@ -147,7 +139,7 @@ public:
     str = String::create(state, "blah");
     str->append(state, " foo");
 
-    TS_ASSERT_EQUALS(8, str->byte_size())
+    TS_ASSERT_EQUALS(8, str->size())
     TS_ASSERT_SAME_DATA("blah foo\0", str->byte_address(), 9);
   }
 
@@ -408,7 +400,7 @@ public:
     str = String::create(state, "_12");
     val = str->to_i(state, Fixnum::from(10), cFalse);
     TS_ASSERT(kind_of<Fixnum>(val));
-    TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 0);
+    TS_ASSERT_EQUALS(as<Fixnum>(val)->to_native(), 12);
 
     str = String::create(state, "-45q");
     val = str->to_i(state, Fixnum::from(10), cFalse);

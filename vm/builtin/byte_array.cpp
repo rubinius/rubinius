@@ -25,6 +25,7 @@ namespace rubinius {
     if(bytes < 0) {
       rubinius::bug("Invalid byte array size");
     }
+    if(bytes == 0) bytes = 1;
 
     size_t body = bytes;
     ByteArray* ba = state->vm()->new_object_bytes_dirty<ByteArray>(G(bytearray), body);

@@ -15,7 +15,7 @@ public:
 
   void test_object() {
     TS_ASSERT_EQUALS(G(object)->class_object(state), G(klass));
-    TS_ASSERT_EQUALS(G(object)->superclass(), G(basicobject));
+    TS_ASSERT_EQUALS(G(object)->superclass(), cNil);
     check_const(object, "Object");
   }
 

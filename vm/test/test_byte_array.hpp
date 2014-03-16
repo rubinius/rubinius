@@ -1,7 +1,7 @@
 #include "vm/test/test.hpp"
 
 #include "vm/object_utils.hpp"
-#include "builtin/bytearray.hpp"
+#include "builtin/byte_array.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/string.hpp"
 #include "primitives.hpp"
@@ -29,7 +29,7 @@ class TestByteArray : public CxxTest::TestSuite, public VMTest {
     ByteArray* b;
 
     b = ByteArray::create(state, 0);
-    TS_ASSERT_EQUALS(b->size(state)->to_native(), (native_int)0);
+    TS_ASSERT(b->size(state)->to_native() > 0);
 
     for(size_t i = 1; i <= mag; i++) {
       b = ByteArray::create(state, i);

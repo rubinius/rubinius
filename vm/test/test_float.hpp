@@ -308,11 +308,20 @@ public:
     String* s = f->to_s_formatted(state, format);
 
     TS_ASSERT_SAME_DATA("3.14159000000000", s->c_str(state), 16);
-    TS_ASSERT_EQUALS(16, s->byte_size());
+    TS_ASSERT_EQUALS(16, s->size());
 
     format = String::create(state, "%#.1280g");
     TS_ASSERT_THROWS_ASSERT(f->to_s_formatted(state, format), const RubyException &e,
                             TS_ASSERT(Exception::argument_error_p(state, e.exception)));
+  }
+
+  void test_from_cstr_with_whitespace() {
+    const char *str = "\n  \n  ";
+
+    Float *received = Float::from_cstr(state, str, str + 0, cFalse);
+    Float *expected = Float::create(state, 0.0);
+
+    TS_ASSERT_EQUALS(expected->equal(state, received), cTrue);
   }
 };
 

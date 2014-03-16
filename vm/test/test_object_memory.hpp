@@ -5,7 +5,7 @@
 #include "gc/gc.hpp"
 #include "gc/root.hpp"
 #include "gc/baker.hpp"
-#include "gc/marksweep.hpp"
+#include "gc/mark_sweep.hpp"
 #include "capi/handles.hpp"
 
 #include "object_utils.hpp"
@@ -28,8 +28,7 @@ public:
   void setUp() {
     create();
     roots = &state->globals().roots;
-    gc_data = new GCData(*roots, &handles,
-                         &cached_handles, state->vm()->global_cache());
+    gc_data = new GCData(state->vm());
   }
 
   void tearDown() {

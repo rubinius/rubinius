@@ -110,7 +110,7 @@ namespace rubinius {
     }
 
     // Access the String as a char* directly. WARNING: doesn't necessarily
-    // return a null terminated char*, so be sure to use byte_size() with it.
+    // return a null terminated char*, so be sure to use size() with it.
     //
     // NOTE: do not free() or realloc() this buffer.
     uint8_t* byte_address() const {

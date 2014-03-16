@@ -1,8 +1,8 @@
 #include "vm/test/test.hpp"
 
-#include "builtin/nativemethod.hpp"
+#include "builtin/native_method.hpp"
 #include "vm.hpp"
-#include "objectmemory.hpp"
+#include "object_memory.hpp"
 
 using namespace rubinius;
 
