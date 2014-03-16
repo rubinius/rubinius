@@ -1271,7 +1271,7 @@ class PrimitiveCodeGenerator
         @indexes[name] = index
 
         f.puts <<-EOC
-  if(name == state->symbol("#{name}", #{name.bytesize})) {
+  if(name == state->symbol("#{name}", #{name.size})) {
     if(index) *index = #{index};
     return &Primitives::#{name};
   }
@@ -1314,7 +1314,7 @@ class PrimitiveCodeGenerator
 
       @invoke_functions.each do |n, |
         f.puts <<-EOC
-  if(name == state->symbol("#{n}", #{n.bytesize})) {
+  if(name == state->symbol("#{n}", #{n.size})) {
     return &invoke_#{n};
   }
         EOC
