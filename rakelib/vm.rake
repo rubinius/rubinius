@@ -153,7 +153,7 @@ namespace :build do
     gems:extensions
     stage:documentation
     stage:manpages
-  ] + TRANSCODING_LIBS
+  ]
 end
 
 # Compilation tasks
