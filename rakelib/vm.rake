@@ -115,28 +115,6 @@ field_extract_headers = %w[
   vm/builtin/thread_state.hpp
 ]
 
-transcoders_src_dir = File.expand_path "../../vendor/oniguruma/enc/trans", __FILE__
-
-libdir = "#{BUILD_CONFIG[:build_prefix]}"
-transcoders_lib_dir = "#{libdir}/#{BUILD_CONFIG[:encdir]}"
-directory transcoders_lib_dir
-
-TRANSCODING_LIBS = []
-
-Dir["#{transcoders_src_dir}/*.c"].each do |name|
-  name.sub!(/\.c$/, ".#{$dlext}")
-  target = File.join transcoders_lib_dir, File.basename(name)
-
-  task name do
-  end
-
-  file target => name do |t|
-    cp t.prerequisites.first, t.name, :preserve => true, :verbose => $verbose
-  end
-
-  TRANSCODING_LIBS << target
-end
-
 ############################################################
 # Other Tasks
 

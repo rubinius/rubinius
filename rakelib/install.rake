@@ -117,12 +117,6 @@ def install_lib(prefix, target)
   end
 end
 
-def install_transcoders(prefix, target)
-  FileList["#{prefix}/*#{$dlext}"].each do |source|
-    install_file source, prefix, "#{target}#{BUILD_CONFIG[:encdir]}", :mode => 0755
-  end
-end
-
 def install_tooling(prefix, target)
   FileList["#{prefix}/tooling/**/*.#{$dlext}"].each do |name|
     install_file name, prefix, "#{target}#{BUILD_CONFIG[:libdir]}"
@@ -255,8 +249,6 @@ oppropriate command to elevate permissions (eg su, sudo).
         install_kernel "#{stagingdir}#{BUILD_CONFIG[:kerneldir]}", prefixdir
 
         install_lib "#{stagingdir}#{BUILD_CONFIG[:libdir]}", prefixdir
-
-        install_transcoders "#{stagingdir}#{BUILD_CONFIG[:encdir]}", prefixdir
 
         install_tooling "#{stagingdir}#{BUILD_CONFIG[:libdir]}", prefixdir
 
