@@ -577,7 +577,7 @@ namespace rubinius {
     loe = dexc(LoadError, scp);
     rte = dexc(RuntimeError, std);
     sce = dexc(SystemCallError, std);
-    stk = dexc(SystemStackError, exc);
+    stk = dexc(SystemStackError, std);
     lje = dexc(LocalJumpError, std);
     rng = dexc(RangeError, std);
     dexc(FloatDomainError, rng);
