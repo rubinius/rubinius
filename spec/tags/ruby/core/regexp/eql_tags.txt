@@ -1,1 +1,0 @@
-fails:Regexp#eql? is true if self and other have the same character set code
