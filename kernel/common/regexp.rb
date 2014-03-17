@@ -5,11 +5,17 @@ class Regexp
   DONT_CAPTURE_GROUP = 128
   CAPTURE_GROUP      = 256
 
-  KCODE_NONE = (1 << 9)
-  KCODE_EUC  = (2 << 9)
-  KCODE_SJIS = (3 << 9)
-  KCODE_UTF8 = (4 << 9)
-  KCODE_MASK = KCODE_NONE | KCODE_EUC | KCODE_SJIS | KCODE_UTF8
+  OPTION_MASK = IGNORECASE | EXTENDED | MULTILINE | DONT_CAPTURE_GROUP | CAPTURE_GROUP
+
+  KCODE_ASCII   = 0
+  KCODE_NONE    = 16
+  KCODE_EUC     = 32
+  KCODE_SJIS    = 48
+  KCODE_UTF8    = 64
+  KCODE_MASK    = 112
+
+  ValidKcode = [?n, ?e, ?s, ?u]
+  KcodeValue = [KCODE_NONE, KCODE_EUC, KCODE_SJIS, KCODE_UTF8]
 
   ESCAPE_TABLE = Rubinius::Tuple.new(256)
 
@@ -20,35 +26,28 @@ class Regexp
     i += 1
   end
 
-  # The character literals (?x) are Fixnums in 1.8 and Strings in 1.9
-  # so we use literal values instead so this is 1.8/1.9 compatible.
-  ESCAPE_TABLE[9]   = '\\t'
-  ESCAPE_TABLE[10]  = '\\n'
-  ESCAPE_TABLE[11]  = '\\v'
-  ESCAPE_TABLE[12]  = '\\f'
-  ESCAPE_TABLE[13]  = '\\r'
-  ESCAPE_TABLE[32]  = '\\ '
-  ESCAPE_TABLE[35]  = '\\#'
-  ESCAPE_TABLE[36]  = '\\$'
-  ESCAPE_TABLE[40]  = '\\('
-  ESCAPE_TABLE[41]  = '\\)'
-  ESCAPE_TABLE[42]  = '\\*'
-  ESCAPE_TABLE[43]  = '\\+'
-  ESCAPE_TABLE[45]  = '\\-'
-  ESCAPE_TABLE[46]  = '\\.'
-  ESCAPE_TABLE[63]  = '\\?'
-  ESCAPE_TABLE[91]  = '\\['
-  ESCAPE_TABLE[92]  = '\\\\'
-  ESCAPE_TABLE[93]  = '\\]'
-  ESCAPE_TABLE[94]  = '\\^'
-  ESCAPE_TABLE[123] = '\\{'
-  ESCAPE_TABLE[124] = '\\|'
-  ESCAPE_TABLE[125] = '\\}'
-
-  OPTION_MASK = IGNORECASE | EXTENDED | MULTILINE | DONT_CAPTURE_GROUP | CAPTURE_GROUP
-
-  ValidKcode = [?n, ?e, ?s, ?u]
-  KcodeValue = [KCODE_NONE, KCODE_EUC, KCODE_SJIS, KCODE_UTF8]
+  ESCAPE_TABLE[?\ ] = '\\ ' # '?\ ' is a space
+  ESCAPE_TABLE[?[ ] = '\\['
+  ESCAPE_TABLE[?] ] = '\\]'
+  ESCAPE_TABLE[?{ ] = '\\{'
+  ESCAPE_TABLE[?} ] = '\\}'
+  ESCAPE_TABLE[?( ] = '\\('
+  ESCAPE_TABLE[?) ] = '\\)'
+  ESCAPE_TABLE[?| ] = '\\|'
+  ESCAPE_TABLE[?- ] = '\\-'
+  ESCAPE_TABLE[?* ] = '\\*'
+  ESCAPE_TABLE[?. ] = '\\.'
+  ESCAPE_TABLE[?\\] = '\\\\'
+  ESCAPE_TABLE[?? ] = '\\?'
+  ESCAPE_TABLE[?+ ] = '\\+'
+  ESCAPE_TABLE[?^ ] = '\\^'
+  ESCAPE_TABLE[?$ ] = '\\$'
+  ESCAPE_TABLE[?# ] = '\\#'
+  ESCAPE_TABLE[?\n] = '\\n'
+  ESCAPE_TABLE[?\r] = '\\r'
+  ESCAPE_TABLE[?\f] = '\\f'
+  ESCAPE_TABLE[?\t] = '\\t'
+  ESCAPE_TABLE[?\v] = '\\v'
 
   class << self
     alias_method :compile, :new
