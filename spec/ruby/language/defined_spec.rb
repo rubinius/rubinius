@@ -1250,20 +1250,16 @@ describe "The defined? keyword for super" do
       DefinedSpecs::Super.new.method_no_args.should == "super"
     end
 
-    ruby_bug '#6644', '1.9.3' do
-      it "returns 'super' from a block when a superclass method exists" do
-        DefinedSpecs::Super.new.method_block_no_args.should == nil
-      end
+    it "returns 'super' from a block when a superclass method exists" do
+      DefinedSpecs::Super.new.method_block_no_args.should == "super"
     end
 
     it "returns 'super' from a #define_method when a superclass method exists" do
       DefinedSpecs::Super.new.define_method_no_args.should == "super"
     end
 
-    ruby_bug '#6644', '1.9.3' do
-      it "returns 'super' from a block in a #define_method when a superclass method exists" do
-        DefinedSpecs::Super.new.define_method_block_no_args.should == nil
-      end
+    it "returns 'super' from a block in a #define_method when a superclass method exists" do
+      DefinedSpecs::Super.new.define_method_block_no_args.should == "super"
     end
 
     it "returns 'super' when the method exists in a supermodule" do
@@ -1292,20 +1288,16 @@ describe "The defined? keyword for super" do
       DefinedSpecs::Super.new.method_args.should == "super"
     end
 
-    ruby_bug '#6644', '1.9.3' do
-      it "returns 'super' from a block when a superclass method exists" do
-        DefinedSpecs::Super.new.method_block_args.should == nil
-      end
+    it "returns 'super' from a block when a superclass method exists" do
+      DefinedSpecs::Super.new.method_block_args.should == "super"
     end
 
     it "returns 'super' from a #define_method when a superclass method exists" do
       DefinedSpecs::Super.new.define_method_args.should == "super"
     end
 
-    ruby_bug '#6644', '1.9.3' do
-      it "returns 'super' from a block in a #define_method when a superclass method exists" do
-        DefinedSpecs::Super.new.define_method_block_args.should == nil
-      end
+    it "returns 'super' from a block in a #define_method when a superclass method exists" do
+      DefinedSpecs::Super.new.define_method_block_args.should == "super"
     end
   end
 
@@ -1345,31 +1337,131 @@ describe "The defined? keyword for pseudo-variables" do
 end
 
 describe "The defined? keyword for conditional expressions" do
-  it "returns 'expression' for an 'if' conditional" do
-    defined?(if x then 'x' else '' end).should == "expression"
+  ruby_version_is "" ... "1.9" do
+    it "returns nil for an 'if' conditional" do
+      defined?(if x then 'x' else '' end).should be_nil
+    end
+
+    it "returns nil for an 'unless' conditional" do
+      defined?(unless x then '' else 'x' end).should be_nil
+    end
+
+    it "returns nil for ternary expressions" do
+      defined?(x ? 'x' : '').should be_nil
+    end
   end
 
-  it "returns 'expression' for an 'unless' conditional" do
-    defined?(unless x then '' else 'x' end).should == "expression"
-  end
+  ruby_version_is "1.9" do
+    it "returns 'expression' for an 'if' conditional" do
+      defined?(if x then 'x' else '' end).should == "expression"
+    end
 
-  it "returns 'expression' for ternary expressions" do
-    defined?(x ? 'x' : '').should == "expression"
+    it "returns 'expression' for an 'unless' conditional" do
+      defined?(unless x then '' else 'x' end).should == "expression"
+    end
+
+    it "returns 'expression' for ternary expressions" do
+      defined?(x ? 'x' : '').should == "expression"
+    end
   end
 end
 
 describe "The defined? keyword for case expressions" do
-  it "returns 'expression'" do
-    defined?(case x; when 'x'; 'y' end).should == "expression"
+  ruby_version_is "" ... "1.9" do
+    it "returns nil" do
+      defined?(case x; when 'x'; 'y' end).should be_nil
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "returns 'expression'" do
+      defined?(case x; when 'x'; 'y' end).should == "expression"
+    end
   end
 end
 
 describe "The defined? keyword for loop expressions" do
-  it "returns 'expression' for a 'while' expression" do
-    defined?(while x do y end).should == "expression"
+  it "returns 'expression' for a 'for' expression" do
+    defined?(for n in 1..3 do true end).should == "expression"
   end
 
-  it "returns 'expression' for an 'until' expression" do
-    defined?(until x do y end).should == "expression"
+  ruby_version_is "" ... "1.9" do
+    it "returns nil for a 'while' expression" do
+      defined?(while x do y end).should be_nil
+    end
+
+    it "returns nil for an 'until' expression" do
+      defined?(until x do y end).should be_nil
+    end
+
+    it "returns nil for a 'break' expression" do
+      defined?(break).should be_nil
+    end
+
+    it "returns nil for a 'next' expression" do
+      defined?(next).should be_nil
+    end
+
+    it "returns nil for a 'redo' expression" do
+      defined?(redo).should be_nil
+    end
+
+    it "returns nil for a 'retry' expression" do
+      defined?(retry).should be_nil
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "returns 'expression' for a 'while' expression" do
+      defined?(while x do y end).should == "expression"
+    end
+
+    it "returns 'expression' for an 'until' expression" do
+      defined?(until x do y end).should == "expression"
+    end
+
+    it "returns 'expression' for a 'break' expression" do
+      defined?(break).should == "expression"
+    end
+
+    it "returns 'expression' for a 'next' expression" do
+      defined?(next).should == "expression"
+    end
+
+    it "returns 'expression' for a 'redo' expression" do
+      defined?(redo).should == "expression"
+    end
+
+    it "returns 'expression' for a 'retry' expression" do
+      defined?(retry).should == "expression"
+    end
+  end
+end
+
+describe "The defined? keyword for return expressions" do
+  ruby_version_is "" ... "1.9" do
+    it "returns nil" do
+      defined?(return).should be_nil
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "returns 'expression'" do
+      defined?(return).should == "expression"
+    end
+  end
+end
+
+describe "The defined? keyword for exception expressions" do
+  ruby_version_is "" ... "1.9" do
+    it "returns 'nil'" do
+      defined?(begin end).should == "nil"
+    end
+  end
+
+  ruby_version_is "1.9" do
+    it "returns 'expression'" do
+      defined?(begin end).should == "expression"
+    end
   end
 end
