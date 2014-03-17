@@ -870,19 +870,5 @@ to rebuild the compiler.
     ensure
       done
     end
-
-    # Creates an instance of the Loader and runs it. We catch any uncaught
-    # exceptions here and report them before exiting.
-    def self.main
-      begin
-        new.main
-      rescue Object => exc
-        STDERR.puts "\n====================================="
-        STDERR.puts "Exception occurred during top-level exception output! (THIS IS BAD)"
-        STDERR.puts
-        STDERR.puts "Exception: #{exc.inspect} (#{exc.class})"
-      end
-    end
   end
 end
-
