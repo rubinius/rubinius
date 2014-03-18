@@ -15,6 +15,11 @@ Please include the following:
   add a failing spec, that's great!
 * Please include the simplest possible reproduction you can. This last point is
   vital to fixing issues.
+  
+If you are unable to build from source, please also include
+
+* configure.log
+* config.rb
 
 Regarding the formatting of the README:
 
