@@ -49,19 +49,23 @@ extern "C" {
     if(object->nil_p()) {
       rb_raise(rb_eTypeError, "no implicit conversion from nil to unsigned long");
     } else if(Bignum* big = try_as<Bignum>(object)) {
-      if((size_t)mp_count_bits(big->mp_val()) > sizeof(long) * CHAR_BIT) {
-        rb_raise(rb_eRangeError, "bignum too big to convert into long");
+      size_t bits = (size_t)mp_count_bits(big->mp_val());
+      size_t bound = sizeof(long) * CHAR_BIT;
+      unsigned long val = big->to_ulong();
+
+      if(big->mp_val()->sign == MP_NEG) {
+        if(bits < bound) {
+          return -val;
+        } else if (bits == bound && val == 1+(unsigned long)(-(LONG_MIN+1))) {
+          return LONG_MIN;
+        }
+      } else if(bits <= bound) {
+        return val;
       }
 
-      unsigned long val = big->to_ulong();
-      if(big->mp_val()->sign == MP_NEG) {
-        if((long)val < 0) {
-          rb_raise(rb_eRangeError, "bignum out of range of unsigned long");
-        }
-        return -val;
-      }
-      return val;
+      rb_raise(rb_eRangeError, "bignum out of range of unsigned long");
     }
+
     rb_raise(rb_eArgError, "parameter is not a Bignum");
 
     return 0;
