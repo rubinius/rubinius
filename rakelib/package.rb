@@ -103,8 +103,10 @@ class RubiniusPackager
     sh "./configure #{config}"
     load_configuration
 
-    sh "rake -q clean; rake -q build"
-    sh "strip -S #{BUILD_CONFIG[:build_exe]}"
+    sh "rake -q clean"
+    sh "rake -q build"
+
+    sh "strip -S #{BUILD_CONFIG[:build_exe]}" unless BUILD_CONFIG[:debug_build]
 
     if bin
       sh "mkdir -p #{root}#{File.dirname(bin)}"

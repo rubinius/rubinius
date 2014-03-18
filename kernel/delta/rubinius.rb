@@ -260,6 +260,8 @@ module Rubinius
       end
     end
 
+    extra << "D" if Rubinius::DEBUG_BUILD
+
     str = "rubinius #{VERSION} (#{RUBY_VERSION} #{BUILD_REV[0..7]} #{RUBY_RELEASE_DATE}"
 
     unless extra.empty?

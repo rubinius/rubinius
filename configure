@@ -93,6 +93,7 @@ class Configure
     @dtrace       = false
     @have_lchmod  = false
     @have_lchown  = false
+    @debug_build  = false
     @include_dirs = []
     @lib_dirs     = []
 
@@ -332,6 +333,10 @@ class Configure
 
     o.on "--gem", "NAME", "Use NAME as 'gem' during build" do |name|
       @gem = name
+    end
+
+    o.on "--debug-build", "Disable C++ optimizations and retain debugging symbols" do
+      @debug_build = true
     end
 
     o.on "--release-build", "Build from local files instead of accessing the network" do
@@ -1725,6 +1730,7 @@ int main() { return tgetnum(""); }
       :x86_64             => @x86_64,
       :dtrace             => @dtrace,
       :fibers             => @fibers,
+      :debug_build        => @debug_build,
       :sourcedir          => @sourcedir,
       :stagingdir         => @stagingdir,
       :build_prefix       => @build_prefix,
@@ -1803,6 +1809,7 @@ int main() { return tgetnum(""); }
 #define RBX_LIBC             "#{@libc}"
 #define RBX_HAVE_LCHMOD      #{@have_lchmod}
 #define RBX_HAVE_LCHOWN      #{@have_lchown}
+#define RBX_DEBUG_BUILD      #{@debug_build.inspect}
       EOC
 
       if @little_endian
