@@ -71,6 +71,7 @@ class Dir
     index = 0
 
     patterns.each do |pat|
+      pat = Rubinius::Type.coerce_to_path pat
       enc = Rubinius::Type.ascii_compatible_encoding pat
       Dir::Glob.glob pat, flags, matches
 
