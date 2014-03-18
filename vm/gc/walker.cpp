@@ -16,7 +16,8 @@ namespace rubinius {
       }
     }
 
-    return obj;
+    // Always return NULL because we don't move objects
+    return NULL;
   }
 
   void ObjectWalker::seed(GCData& data) {
@@ -36,7 +37,7 @@ namespace rubinius {
     }
 
     if(data.threads()) {
-      for(std::list<ManagedThread*>::iterator i = data.threads()->begin();
+      for(ThreadList::iterator i = data.threads()->begin();
           i != data.threads()->end();
           ++i) {
         scan(*i, false);

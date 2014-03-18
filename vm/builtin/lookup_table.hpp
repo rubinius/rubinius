@@ -93,7 +93,6 @@ namespace rubinius {
 
     static Array* collect(STATE, LookupTable* tbl,
                           Object* (*action)(STATE, LookupTableBucket*));
-    static Object* get_key(STATE, LookupTableBucket* entry);
 
     // Rubinius.primitive :lookuptable_keys
     Array* all_keys(STATE);

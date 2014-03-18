@@ -273,7 +273,7 @@ namespace rubinius {
     Object* locals_has_key(STATE, Symbol* key);
 
     void init_lock();
-    void cleanup();
+    void stopped();
     void release_joins(STATE, GCToken gct, CallFrame* calling_environment);
 
     /**
@@ -287,7 +287,7 @@ namespace rubinius {
      *  @see  Thread::allocate().
      */
     static Thread* create(STATE, VM* target, Object* self, Run runner,
-                          bool main_thread = false, bool system_thread = false);
+                          bool system_thread = false);
 
     int start_new_thread(STATE, const pthread_attr_t &attrs);
     static void* in_new_thread(void*);

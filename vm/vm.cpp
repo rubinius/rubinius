@@ -98,12 +98,12 @@ namespace rubinius {
   }
 
   VM::~VM() {
+    rbxti::destroy_env(tooling_env_);
     delete park_;
   }
 
   void VM::discard(STATE, VM* vm) {
     vm->lock(state->vm());
-    rbxti::destroy_env(vm->tooling_env_);
     vm->saved_call_frame_ = 0;
     vm->shared.remove_vm(vm);
     vm->unlock(state->vm());
@@ -134,7 +134,7 @@ namespace rubinius {
 
     // Setup the main Thread, which is wrapper of the main native thread
     // when the VM boots.
-    thread.set(Thread::create(&state, this, G(thread), 0, true), &globals().roots);
+    thread.set(Thread::create(&state, this, G(thread), 0), &globals().roots);
     thread->alive(&state, cTrue);
     thread->sleep(&state, cFalse);
 

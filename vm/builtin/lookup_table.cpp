@@ -277,10 +277,6 @@ namespace rubinius {
     return ary;
   }
 
-  Object* LookupTable::get_key(STATE, LookupTableBucket* entry) {
-    return entry->key();
-  }
-
   Array* LookupTable::all_keys(STATE) {
     class all_keys : public CollectAction {
     public:

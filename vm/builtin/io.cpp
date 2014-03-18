@@ -122,7 +122,10 @@ namespace rubinius {
 
   void IO::new_open_fd(STATE, native_int new_fd) {
     if(new_fd > 2) {
-      fcntl(new_fd, F_SETFD, fcntl(new_fd, F_GETFD) | FD_CLOEXEC);
+      int flags = fcntl(new_fd, F_GETFD);
+      if(flags == -1) Exception::errno_error(state, "fcntl(2) failed");
+      flags = fcntl(new_fd, F_SETFD, fcntl(new_fd, F_GETFD) | FD_CLOEXEC);
+      if(flags == -1) Exception::errno_error(state, "fcntl(2) failed");
     }
     update_max_fd(state, new_fd);
   }
@@ -624,7 +627,9 @@ namespace rubinius {
         }
       }
 
-      ::close(fd);
+      if(!io->autoclose_->false_p()) {
+        ::close(fd);
+      }
     }
   }
 
@@ -662,7 +667,10 @@ namespace rubinius {
 
     if(bytes_read == -1) {
       if(errno == EAGAIN || errno == EINTR) {
-        if(!state->check_async(calling_environment)) return NULL;
+        if(!state->check_async(calling_environment)) {
+          if(malloc_buf) free(malloc_buf);
+          return NULL;
+        }
         ensure_open(state);
         goto retry;
       } else {
@@ -1196,8 +1204,7 @@ failed: /* try next '*' position */
   /** Socket methods */
   Object* IO::accept(STATE, CallFrame* calling_environment) {
     int fd = descriptor()->to_native();
-    int new_fd = 0;
-    bool set = false;
+    int new_fd = -1;
 
     struct sockaddr_storage socka;
     socklen_t sock_len = sizeof(socka);
@@ -1209,7 +1216,6 @@ failed: /* try next '*' position */
     {
       GCIndependent guard(state, calling_environment);
       new_fd = ::accept(fd, (struct sockaddr*)&socka, &sock_len);
-      set = true;
     }
 
     state->vm()->thread->sleep(state, cFalse);
@@ -1227,7 +1233,6 @@ failed: /* try next '*' position */
       return NULL;
     }
 
-    if(!set) return cNil;
     return Fixnum::from(new_fd);
   }
 
@@ -1354,14 +1359,15 @@ failed: /* try next '*' position */
   void IO::set_nonblock(STATE) {
 #ifdef F_GETFL
     int flags = fcntl(descriptor_->to_native(), F_GETFL);
-    if(flags == -1) return;
+    if(flags == -1) Exception::errno_error(state, "fcntl(2) failed");
 #else
     int flags = 0;
 #endif
 
     if((flags & O_NONBLOCK) == 0) {
       flags |= O_NONBLOCK;
-      fcntl(descriptor_->to_native(), F_SETFL, flags);
+      flags = fcntl(descriptor_->to_native(), F_SETFL, flags);
+      if(flags == -1) Exception::errno_error(state, "fcntl(2) failed");
     }
   }
 

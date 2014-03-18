@@ -177,7 +177,7 @@ namespace rubinius {
       backtrace = new VMException::Backtrace(*other.backtrace);
     }
     if(other.reason) {
-      reason = strdup(reason);
+      reason = strdup(other.reason);
     }
   }
 

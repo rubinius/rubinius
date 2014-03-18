@@ -36,6 +36,9 @@ namespace rubinius {
     , capi_lock_index_(method ? method->capi_lock_index() : 0)
     , check_handles_(false)
     , block_(Qnil)
+    , receiver_(Qnil)
+    , module_(Qnil)
+    , method_(Qnil)
   {}
 
   NativeMethodFrame::~NativeMethodFrame() {
@@ -677,48 +680,58 @@ namespace rubinius {
     Object* ret;
     ExceptionPoint ep(env);
 
+    try {
 #ifdef RBX_PROFILER
-    // This is organized like this so that we don't jump past the destructor of
-    // MethodEntry. It's duplicated, but it's much easier to understand than
-    // trying to de-dup it.
+      // This is organized like this so that we don't jump past the destructor of
+      // MethodEntry. It's duplicated, but it's much easier to understand than
+      // trying to de-dup it.
 
-    OnStack<2> os(state, exec, mod);
-    if(unlikely(state->vm()->tooling())) {
-      tooling::MethodEntry method(state, exec, mod, args);
-      RUBINIUS_METHOD_NATIVE_ENTRY_HOOK(state, mod, args.name(), call_frame);
+      OnStack<2> os(state, exec, mod);
+      if(unlikely(state->vm()->tooling())) {
+        tooling::MethodEntry method(state, exec, mod, args);
+        RUBINIUS_METHOD_NATIVE_ENTRY_HOOK(state, mod, args.name(), call_frame);
 
-      PLACE_EXCEPTION_POINT(ep);
+        PLACE_EXCEPTION_POINT(ep);
 
-      if(unlikely(ep.jumped_to())) {
-        ret = NULL;
+        if(unlikely(ep.jumped_to())) {
+          ret = NULL;
+        } else {
+          ret = ArgumentHandler::invoke(state, nm, env, args);
+        }
+        RUBINIUS_METHOD_NATIVE_RETURN_HOOK(state, mod, args.name(), call_frame);
       } else {
-        ret = ArgumentHandler::invoke(state, nm, env, args);
-      }
-      RUBINIUS_METHOD_NATIVE_RETURN_HOOK(state, mod, args.name(), call_frame);
-    } else {
-      RUBINIUS_METHOD_NATIVE_ENTRY_HOOK(state, mod, args.name(), call_frame);
+        RUBINIUS_METHOD_NATIVE_ENTRY_HOOK(state, mod, args.name(), call_frame);
 
-      PLACE_EXCEPTION_POINT(ep);
+        PLACE_EXCEPTION_POINT(ep);
 
-      if(unlikely(ep.jumped_to())) {
-        ret = NULL;
-      } else {
-        ret = ArgumentHandler::invoke(state, nm, env, args);
+        if(unlikely(ep.jumped_to())) {
+          ret = NULL;
+        } else {
+          ret = ArgumentHandler::invoke(state, nm, env, args);
+        }
+        RUBINIUS_METHOD_NATIVE_RETURN_HOOK(state, mod, args.name(), call_frame);
       }
-      RUBINIUS_METHOD_NATIVE_RETURN_HOOK(state, mod, args.name(), call_frame);
-    }
 #else
-    RUBINIUS_METHOD_NATIVE_ENTRY_HOOK(state, mod, args.name(), call_frame);
+      RUBINIUS_METHOD_NATIVE_ENTRY_HOOK(state, mod, args.name(), call_frame);
 
-    PLACE_EXCEPTION_POINT(ep);
+      PLACE_EXCEPTION_POINT(ep);
 
-    if(unlikely(ep.jumped_to())) {
-      ret = NULL;
-    } else {
-      ret = ArgumentHandler::invoke(state, nm, env, args);
-    }
-    RUBINIUS_METHOD_NATIVE_RETURN_HOOK(state, mod, args.name(), call_frame);
+      if(unlikely(ep.jumped_to())) {
+        ret = NULL;
+      } else {
+        ret = ArgumentHandler::invoke(state, nm, env, args);
+      }
+      RUBINIUS_METHOD_NATIVE_RETURN_HOOK(state, mod, args.name(), call_frame);
 #endif
+    } catch(const RubyException& exc) {
+      LEAVE_CAPI(state);
+
+      env->set_current_call_frame(saved_frame);
+      env->set_current_native_frame(nmf.previous());
+      ep.pop(env);
+
+      throw(exc);
+    }
 
     LEAVE_CAPI(state);
 

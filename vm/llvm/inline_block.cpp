@@ -14,6 +14,7 @@ namespace rubinius {
                    JITMethodInfo* scope, int which, Value* stack_ptr)
       : block_break_result_(NULL)
       , block_break_loc_(NULL)
+      , block_emit_loc_(NULL)
       , machine_code_(mcode)
       , method_(&ctx->llvm_state()->roots())
       , scope_(scope)

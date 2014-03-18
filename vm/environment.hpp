@@ -93,6 +93,7 @@ namespace rubinius {
     std::string system_prefix();
     bool verify_paths(std::string prefix);
     bool load_signature(std::string dir);
+    void copy_argv(int argc, char** argv);
     void load_vm_options(int argc, char** argv);
     void load_argv(int argc, char** argv);
     void load_kernel(std::string root);

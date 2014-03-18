@@ -111,11 +111,12 @@ namespace rubinius {
     if(iterator_) delete iterator_;
     if(live_list_) delete live_list_;
 
-    for(FinalizeObjectsList::iterator i = lists_->begin(); i != lists_->end(); ++i) {
-      delete *i;
+    if(lists_) {
+      for(FinalizeObjectsList::iterator i = lists_->begin(); i != lists_->end(); ++i) {
+        delete *i;
+      }
+      delete lists_;
     }
-
-    if(lists_) delete lists_;
   }
 
   void FinalizerHandler::start_thread(STATE) {
@@ -125,7 +126,7 @@ namespace rubinius {
     self_ = state->shared().new_vm();
     paused_ = false;
     exit_ = false;
-    thread_.set(Thread::create(state, self_, G(thread), finalizer_handler_tramp, false, true));
+    thread_.set(Thread::create(state, self_, G(thread), finalizer_handler_tramp, true));
     run(state);
   }
 

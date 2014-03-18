@@ -133,7 +133,7 @@ namespace rubinius {
 
     assert(reg->chain == 0);
 
-    ByteArray* reg_ba = ByteArray::create(state, sizeof(regex_t));
+    ByteArray* reg_ba = ByteArray::create_dirty(state, sizeof(regex_t));
     memcpy(reg_ba->raw_bytes(), reg, sizeof(regex_t));
 
     regex_t* old_reg = reg;
@@ -143,7 +143,7 @@ namespace rubinius {
     write_barrier(state, reg_ba);
 
     if(reg->p) {
-      ByteArray* pattern = ByteArray::create(state, reg->alloc);
+      ByteArray* pattern = ByteArray::create_dirty(state, reg->alloc);
       memcpy(pattern->raw_bytes(), reg->p, reg->alloc);
 
       reg->p = reinterpret_cast<unsigned char*>(pattern->raw_bytes());
@@ -153,7 +153,7 @@ namespace rubinius {
 
     if(reg->exact) {
       int exact_size = reg->exact_end - reg->exact;
-      ByteArray* exact = ByteArray::create(state, exact_size);
+      ByteArray* exact = ByteArray::create_dirty(state, exact_size);
       memcpy(exact->raw_bytes(), reg->exact, exact_size);
 
       reg->exact = reinterpret_cast<unsigned char*>(exact->raw_bytes());
@@ -165,7 +165,7 @@ namespace rubinius {
     int int_map_size = sizeof(int) * ONIG_CHAR_TABLE_SIZE;
 
     if(reg->int_map) {
-      ByteArray* intmap = ByteArray::create(state, int_map_size);
+      ByteArray* intmap = ByteArray::create_dirty(state, int_map_size);
       memcpy(intmap->raw_bytes(), reg->int_map, int_map_size);
 
       reg->int_map = reinterpret_cast<int*>(intmap->raw_bytes());
@@ -174,7 +174,7 @@ namespace rubinius {
     }
 
     if(reg->int_map_backward) {
-      ByteArray* intmap_back = ByteArray::create(state, int_map_size);
+      ByteArray* intmap_back = ByteArray::create_dirty(state, int_map_size);
       memcpy(intmap_back->raw_bytes(), reg->int_map_backward, int_map_size);
 
       reg->int_map_backward = reinterpret_cast<int*>(intmap_back->raw_bytes());
@@ -184,7 +184,7 @@ namespace rubinius {
 
     if(reg->repeat_range) {
       int rrange_size = sizeof(OnigRepeatRange) * reg->repeat_range_alloc;
-      ByteArray* rrange = ByteArray::create(state, rrange_size);
+      ByteArray* rrange = ByteArray::create_dirty(state, rrange_size);
       memcpy(rrange->raw_bytes(), reg->repeat_range, rrange_size);
 
       reg->repeat_range = reinterpret_cast<OnigRepeatRange*>(rrange->raw_bytes());

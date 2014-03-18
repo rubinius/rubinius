@@ -81,15 +81,15 @@ namespace rubinius {
     }
 #endif
 
-    if(!obj->reference_p()) return obj;
+    if(!obj->reference_p()) return NULL;
 
-    if(!obj->young_object_p()) return obj;
+    if(!obj->young_object_p()) return NULL;
 
     if(obj->forwarded_p()) return obj->forward();
 
     // This object is already in the next space, we don't want to
     // copy it again!
-    if(next->contains_p(obj)) return obj;
+    if(next->contains_p(obj)) return NULL;
 
     if(unlikely(obj->inc_age() >= lifetime_)) {
       copy = object_memory_->promote_object(obj);
@@ -113,7 +113,6 @@ namespace rubinius {
 
     return copy;
   }
-
 
   /**
    * Scans the remaining unscanned portion of the Next heap.
@@ -187,11 +186,13 @@ namespace rubinius {
     scan_mature_mark_stack();
 
     for(Roots::Iterator i(data->roots()); i.more(); i.advance()) {
-      i->set(saw_object(i->get()));
+      if(Object* fwd = saw_object(i->get())) {
+        i->set(fwd);
+      }
     }
 
     if(data->threads()) {
-      for(std::list<ManagedThread*>::iterator i = data->threads()->begin();
+      for(ThreadList::iterator i = data->threads()->begin();
           i != data->threads()->end();
           ++i) {
         scan(*i, true);
@@ -202,7 +203,9 @@ namespace rubinius {
       if(!i->in_use_p()) continue;
 
       if(!i->weak_p() && i->object()->young_object_p()) {
-        i->set_object(saw_object(i->object()));
+        if(Object* fwd = saw_object(i->object())) {
+          i->set_object(fwd);
+        }
 
       // Users manipulate values accessible from the data* within an
       // RData without running a write barrier. Thusly if we see a mature
@@ -226,7 +229,9 @@ namespace rubinius {
           if(hdl->valid_p()) {
             Object* obj = hdl->object();
             if(obj && obj->reference_p() && obj->young_object_p()) {
-              hdl->set_object(saw_object(obj));
+              if(Object* fwd = saw_object(obj)) {
+                hdl->set_object(fwd);
+              }
             }
           } else {
             std::cerr << "Detected bad handle checking global capi handles\n";
@@ -267,7 +272,7 @@ namespace rubinius {
 
     // Remove unreachable locked objects still in the list
     if(data->threads()) {
-      for(std::list<ManagedThread*>::iterator i = data->threads()->begin();
+      for(ThreadList::iterator i = data->threads()->begin();
           i != data->threads()->end();
           ++i) {
         clean_locked_objects(*i, true);
@@ -484,7 +489,9 @@ namespace rubinius {
 
       if(fi.object->young_object_p()) {
         live = fi.object->forwarded_p();
-        fi.object = saw_object(fi.object);
+        if(Object* fwd = saw_object(fi.object)) {
+          fi.object = fwd;
+        }
       } else {
         // If this object is mature, scan it. This
         // means that any young objects it refers to are properly
@@ -495,7 +502,9 @@ namespace rubinius {
       Object* fin = fi.ruby_finalizer;
       if(fin && fin->reference_p()) {
         if(fin->young_object_p()) {
-          fi.ruby_finalizer = saw_object(fin);
+          if(Object* fwd = saw_object(fin)) {
+            fi.ruby_finalizer = fwd;
+          }
         } else {
           // If this object is mature, scan it. This
           // means that any young objects it refers to are properly

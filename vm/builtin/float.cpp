@@ -10,6 +10,7 @@
 #include "object_utils.hpp"
 #include "ontology.hpp"
 #include "util/local_buffer.hpp"
+#include "missing/string.h"
 
 #include <double-conversion.h>
 #include <ieee.h>

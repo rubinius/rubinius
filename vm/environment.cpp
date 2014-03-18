@@ -27,10 +27,6 @@
 #include <llvm/Support/ManagedStatic.h>
 #endif
 
-#ifdef USE_EXECINFO
-#include <execinfo.h>
-#endif
-
 #include "gc/finalize.hpp"
 
 #include "signal.hpp"
@@ -49,7 +45,6 @@
 #ifdef RBX_WINDOWS
 #include "windows_compat.h"
 #else
-#include <sys/utsname.h>
 #include <dlfcn.h>
 #endif
 #include <fcntl.h>
@@ -71,15 +66,9 @@
 
 namespace rubinius {
 
-  // Used by the segfault reporter. Calculated up front to avoid
-  // crashing inside the crash handler.
-  static struct utsname machine_info;
-  static char report_path[PATH_MAX];
-  static const char* report_file_name = "rubinius_last_error";
-
   Environment::Environment(int argc, char** argv)
     : argc_(argc)
-    , argv_(argv)
+    , argv_(0)
     , signature_(0)
     , version_(0)
     , signal_handler_(NULL)
@@ -95,36 +84,14 @@ namespace rubinius {
 
     VM::init_stack_size();
 
+    copy_argv(argc, argv);
+    ruby_init_setproctitle(argc, argv);
+
     shared = new SharedState(this, config, config_parser);
 
     load_vm_options(argc_, argv_);
     root_vm = shared->new_vm();
     state = new State(root_vm);
-
-    uname(&machine_info);
-
-    // Calculate the report_path
-    if(char* home = getenv("HOME")) {
-      snprintf(report_path, PATH_MAX, "%s/.rbx", home);
-
-      pid_t pid = getpid();
-
-      bool use_dir = false;
-      struct stat s;
-      if(stat(report_path, &s) != 0) {
-        if(mkdir(report_path, S_IRWXU) == 0) use_dir = true;
-      } else if(S_ISDIR(s.st_mode)) {
-        use_dir = true;
-      }
-      if(use_dir) {
-        snprintf(report_path + strlen(report_path), PATH_MAX, "/%s_%d", report_file_name, pid);
-      } else {
-        snprintf(report_path, PATH_MAX, "%s/.%s_%d", home, report_file_name, pid);
-      }
-    } else {
-      // We check and ignore the report_path if it's 'empty'
-      report_path[0] = 0;
-    }
   }
 
   Environment::~Environment() {
@@ -134,6 +101,11 @@ namespace rubinius {
     VM::discard(state, root_vm);
     SharedState::discard(shared);
     delete state;
+
+    for(int i = 0; i < argc_; i++) {
+      delete argv_[i];
+    }
+    delete argv_;
   }
 
   void cpp_exception_bug() {
@@ -151,196 +123,24 @@ namespace rubinius {
     std::set_terminate(cpp_exception_bug);
   }
 
-#ifndef RBX_WINDOWS
-  static void null_func(int sig) {}
-#endif
-
-#ifdef USE_EXECINFO
-
-  static void safe_write(int fd, const char* str, int len=0) {
-    if(!len) len = strlen(str);
-    if(write(fd, str, len) == 0) exit(101);
-  }
-
-  static void write_sig(int fd, int sig) {
-    switch(sig) {
-    case SIGSEGV:
-      safe_write(fd, "SIGSEGV");
-      break;
-    case SIGBUS:
-      safe_write(fd, "SIGBUS");
-      break;
-    case SIGILL:
-      safe_write(fd, "SIGILL");
-      break;
-    case SIGABRT:
-      safe_write(fd, "SIGABRT");
-      break;
-    case SIGFPE:
-      safe_write(fd, "SIGFPE");
-      break;
-    default:
-      safe_write(fd, "UNKNOWN");
-      break;
-    }
-  }
-
-  static void segv_handler(int sig) {
-    static int crashing = 0;
-    void* array[64];
-    size_t size;
-
-    // So we don't recurse!
-    if(crashing) exit(101);
-
-    crashing = 1;
-
-    int fd = STDERR_FILENO;
-
-    char* pause_env = getenv("RBX_PAUSE_ON_CRASH");
-
-    if(pause_env) {
-      long timeout = strtol(pause_env, NULL, 10);
-      if(timeout <= 0) {
-        timeout = 60;
-      } else {
-        timeout *= 60;
-      }
-      std::cerr << "\n========== CRASH (" << getpid();
-      std::cerr << "), pausing for " << timeout << " seconds to attach debugger\n";
-      sleep(timeout);
-    }
-
-    // If there is a report_path setup..
-    if(report_path[0]) {
-      fd = open(report_path, O_WRONLY | O_CREAT | O_TRUNC, 0666);
-      // If we can't open this path, use stderr.
-      if(fd == -1) fd = STDERR_FILENO;
-    }
-
-    // print out all the frames to stderr
-    static const char header[] =
-      "Rubinius Crash Report #rbxcrashreport\n\n"
-      "Error: signal ";
-
-    safe_write(fd, header, sizeof(header));
-    write_sig(fd, sig);
-
-    safe_write(fd, "\n\n[[Backtrace]]\n");
-
-    // get void*'s for all entries on the stack
-    size = backtrace(array, 64);
-
-    backtrace_symbols_fd(array, size, fd);
-
-    // Try to get the output to flush...
-    safe_write(fd, "\n[[System Info]]\n");
-    safe_write(fd, "sysname: ");
-    safe_write(fd, machine_info.sysname);
-    safe_write(fd, "\n");
-    safe_write(fd, "nodename: ");
-    safe_write(fd, machine_info.nodename);
-    safe_write(fd, "\n");
-    safe_write(fd, "release: ");
-    safe_write(fd, machine_info.release);
-    safe_write(fd, "\n");
-    safe_write(fd, "version: ");
-    safe_write(fd, machine_info.version);
-    safe_write(fd, "\n");
-    safe_write(fd, "machine: ");
-    safe_write(fd, machine_info.machine);
-    safe_write(fd, "\n");
-
-    // If we didn't write to stderr, then close the file down and
-    // write info to stderr about reporting the error.
-    if(fd != STDERR_FILENO) {
-      close(fd);
-      safe_write(STDERR_FILENO, "\n---------------------------------------------\n");
-      safe_write(STDERR_FILENO, "CRASH: A fatal error has occurred.\n\nBacktrace:\n");
-      backtrace_symbols_fd(array, size, 2);
-      safe_write(STDERR_FILENO, "\n\n");
-      safe_write(STDERR_FILENO, "Wrote full error report to: ");
-      safe_write(STDERR_FILENO, report_path);
-      safe_write(STDERR_FILENO, "\nRun 'rbx report' to submit this crash report!\n");
-    }
-
-    exit(100);
-  }
-#endif
-
-  static void quit_handler(int sig) {
-
-    if(getpgrp() == getpid()) {
-      static const char msg[] = "Terminated: signal ";
-      if(write(STDERR_FILENO, msg, sizeof(msg)) == 0) exit(1);
-
-      switch(sig) {
-      case SIGTERM:
-        if(write(STDERR_FILENO, "SIGTERM\n", 8) == 0) exit(1);
-        break;
-#ifndef RBX_WINDOWS
-      case SIGHUP:
-        if(write(STDERR_FILENO, "SIGHUP\n", 7) == 0) exit(1);
-        break;
-      case SIGUSR1:
-        if(write(STDERR_FILENO, "SIGUSR1\n", 8) == 0) exit(1);
-        break;
-      case SIGUSR2:
-        if(write(STDERR_FILENO, "SIGUSR2\n", 8) == 0) exit(1);
-        break;
-#endif
-      default:
-        if(write(STDERR_FILENO, "UNKNOWN\n", 9) == 0) exit(1);
-        break;
-      }
-    }
-
-    _exit(1);
-  }
-
   void Environment::start_signals() {
-#ifndef RBX_WINDOWS
-    struct sigaction action;
-    action.sa_handler = null_func;
-    action.sa_flags = 0;
-    sigfillset(&action.sa_mask);
-    sigaction(SIGVTALRM, &action, NULL);
-#endif
-
     state->vm()->set_run_signals(true);
-    signal_handler_ = new SignalHandler(state);
-
-#ifndef RBX_WINDOWS
-    // Ignore sigpipe.
-    signal(SIGPIPE, SIG_IGN);
-
-    // Some extensions expect SIGALRM to be defined, because MRI does.
-    // We'll just use a noop for it.
-    signal(SIGALRM, null_func);
-
-    // If we have execinfo, setup some crash handlers
-#ifdef USE_EXECINFO
-    if(!getenv("DISABLE_SEGV")) {
-      signal(SIGSEGV, segv_handler);
-      signal(SIGBUS,  segv_handler);
-      signal(SIGILL,  segv_handler);
-      signal(SIGFPE,  segv_handler);
-      signal(SIGABRT, segv_handler);
-    }
-#endif  // USE_EXEC_INFO
-
-    // Setup some other signal that normally just cause the process
-    // to terminate so that we print out a message, then terminate.
-    signal(SIGHUP,  quit_handler);
-    signal(SIGUSR1, quit_handler);
-    signal(SIGUSR2, quit_handler);
-#endif  // ifndef RBX_WINDOWS
-
-    signal(SIGTERM, quit_handler);
+    signal_handler_ = new SignalHandler(state, config);
   }
 
   void Environment::start_finalizer() {
     finalizer_handler_ = new FinalizerHandler(state);
+  }
+
+  void Environment::copy_argv(int argc, char** argv) {
+    argv_ = new char* [argc+1];
+    argv_[argc] = 0;
+
+    for(int i = 0; i < argc; i++) {
+      size_t size = strlen(argv[i]) + 1;
+      argv_[i] = new char[size];
+      strncpy(argv_[i], argv[i], size);
+    }
   }
 
   void Environment::load_vm_options(int argc, char**argv) {
@@ -451,24 +251,6 @@ namespace rubinius {
       int port = config.agent_start;
       if(port == 1) port = 0;
       start_agent(port);
-    }
-
-    if(config.report_path.set_p()) {
-      // Test that we can actually use this path
-      int fd = open(config.report_path, O_RDONLY | O_CREAT, 0666);
-      if(!fd) {
-        char buf[RBX_STRERROR_BUFSIZE];
-        char* err = RBX_STRERROR(errno, buf, RBX_STRERROR_BUFSIZE);
-        std::cerr << "Unable to use " << config.report_path << " for crash reports.\n";
-        std::cerr << "Unable to open path: " << err << "\n";
-
-        // Don't use the home dir path even, just use stderr
-        report_path[0] = 0;
-      } else {
-        close(fd);
-        unlink(config.report_path);
-        strncpy(report_path, config.report_path, sizeof(report_path) - 1);
-      }
     }
 
     state->shared().set_use_capi_lock(config.capi_lock);

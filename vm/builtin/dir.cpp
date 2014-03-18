@@ -81,7 +81,9 @@ namespace rubinius {
 
     struct dirent ent;
     struct dirent* entp = &ent;
-    readdir_r(os_, entp, &entp);
+    if(int erno = readdir_r(os_, entp, &entp)) {
+      Exception::errno_error(state, "readdir_r(3) failed", erno);
+    }
 
     if(!entp) return cNil;
     return String::create(state, ent.d_name);

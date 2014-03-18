@@ -363,8 +363,9 @@ namespace rubinius {
     Tuple* tup = as<Tuple>(obj);
 
     for(native_int i = 0; i < tup->num_fields(); i++) {
-      Object* tmp = mark.call(tup->field[i]);
-      if(tmp && tmp != tup->field[i]) mark.set(obj, &tup->field[i], tmp);
+      if(Object* tmp = mark.call(tup->field[i])) {
+        mark.set(obj, &tup->field[i], tmp);
+      }
     }
   }
 

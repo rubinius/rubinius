@@ -54,7 +54,7 @@ namespace rubinius {
  * various object types and are used to define predicates. Use the predicates
  * (ie reference_p(), fixnum_p(), symbol_p()) directly.
  */
-#define __REFERENCE_P__(v) (((intptr_t)(v) & TAG_REF_MASK) == TAG_REF)
+#define __REFERENCE_P__(v) ((v) && (((intptr_t)(v) & TAG_REF_MASK) == TAG_REF))
 #define __FIXNUM_P__(v)    (((intptr_t)(v) & TAG_FIXNUM_MASK) == TAG_FIXNUM)
 #define __SYMBOL_P__(v)    (((intptr_t)(v) & TAG_SYMBOL_MASK) == TAG_SYMBOL)
 

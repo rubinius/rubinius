@@ -202,7 +202,7 @@ namespace jit {
 
   public:
     RubiniusJITMemoryManager();
-    ~RubiniusJITMemoryManager();
+    virtual ~RubiniusJITMemoryManager();
 
     /// allocateNewSlab - Allocates a new MemoryBlock and remembers it as the
     /// last slab it allocated, so that subsequent allocations follow it.
@@ -356,8 +356,13 @@ namespace jit {
     }
 
     /// allocateCodeSection - Allocate memory for a code section.
+#if RBX_LLVM_API_VER > 303
+    virtual uint8_t *allocateCodeSection(uintptr_t Size, unsigned Alignment,
+                                 unsigned SectionID, StringRef SectionName) {
+#else
     uint8_t *allocateCodeSection(uintptr_t Size, unsigned Alignment,
                                  unsigned SectionID) {
+#endif
       utilities::thread::SpinLock::LockGuard guard(lock_);
       // Grow the required block size to account for the block header
       Size += sizeof(*CurBlock);
@@ -397,11 +402,27 @@ namespace jit {
     }
 
     /// allocateDataSection - Allocate memory for a data section.
+    /// TODO: currently IsReadOnly is ignored.
+#if RBX_LLVM_API_VER >= 304
+    virtual uint8_t *allocateDataSection(uintptr_t Size, unsigned Alignment,
+                                 unsigned SectionID, StringRef SectionName,
+                                 bool IsReadOnly) {
+      utilities::thread::SpinLock::LockGuard guard(lock_);
+      return (uint8_t*)DataAllocator.Allocate(Size, Alignment);
+    }
+#elif RBX_LLVM_API_VER >= 303
+    uint8_t *allocateDataSection(uintptr_t Size, unsigned Alignment,
+                                 unsigned SectionID, bool IsReadOnly) {
+      utilities::thread::SpinLock::LockGuard guard(lock_);
+      return (uint8_t*)DataAllocator.Allocate(Size, Alignment);
+    }
+#else
     uint8_t *allocateDataSection(uintptr_t Size, unsigned Alignment,
                                  unsigned SectionID) {
       utilities::thread::SpinLock::LockGuard guard(lock_);
       return (uint8_t*)DataAllocator.Allocate(Size, Alignment);
     }
+#endif
 
     /// startExceptionTable - Use startFunctionBody to allocate memory for the
     /// function's exception table.
@@ -495,7 +516,7 @@ namespace jit {
       , GOTBase(NULL)
     {}
 
-    ~RubiniusRequestJITMemoryManager() {
+    virtual ~RubiniusRequestJITMemoryManager() {
       if(GOTBase) delete[] GOTBase;
     }
 
@@ -504,17 +525,32 @@ namespace jit {
       return mgr_->getPointerToNamedFunction(Name, AbortOnFailure);
     }
 
+#if RBX_LLVM_API_VER >= 304
+    virtual uint8_t *allocateCodeSection(uintptr_t Size, unsigned Alignment,
+                                 unsigned SectionID, StringRef SectionName) {
+      return mgr_->allocateCodeSection(Size, Alignment, SectionID,
+                                       SectionName);
+    }
+#else
     uint8_t *allocateCodeSection(uintptr_t Size, unsigned Alignment,
                                  unsigned SectionID) {
       return mgr_->allocateCodeSection(Size, Alignment, SectionID);
     }
+#endif
 
     /// allocateDataSection - Allocate memory for a data section.
-#if RBX_LLVM_API_VER >= 303
+#if RBX_LLVM_API_VER >= 304
+    virtual uint8_t *allocateDataSection(uintptr_t Size, unsigned Alignment,
+                                 unsigned SectionID, StringRef SectionName,
+                                 bool IsReadOnly) {
+      return mgr_->allocateDataSection(Size, Alignment, SectionID,
+                                       SectionName, IsReadOnly);
+    }
+#elif RBX_LLVM_API_VER >= 303
     uint8_t *allocateDataSection(uintptr_t Size, unsigned Alignment,
                                  unsigned SectionID, bool IsReadOnly) {
-      // TODO: currently IsReadOnly is ignored.
-      return mgr_->allocateDataSection(Size, Alignment, SectionID);
+      return mgr_->allocateDataSection(Size, Alignment, SectionID,
+                                       IsReadOnly);
     }
 #else
     uint8_t *allocateDataSection(uintptr_t Size, unsigned Alignment,
@@ -601,6 +637,12 @@ namespace jit {
     void resetGeneratedFunction() {
       GeneratedFunction = NULL;
     }
+
+#if RBX_LLVM_API_VER > 303
+    virtual bool finalizeMemory(std::string* ErrMsg = 0) {
+      return false;
+    }
+#endif
   };
 
 

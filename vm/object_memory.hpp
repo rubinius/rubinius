@@ -368,10 +368,9 @@ namespace rubinius {
 
     void validate_handles(capi::Handles* handles);
     void prune_handles(capi::Handles* handles, std::list<capi::Handle*>* cached, BakerGC* young);
-    void clear_fiber_marks(std::list<ManagedThread*>* threads);
+    void clear_fiber_marks(ThreadList* threads);
 
     ObjectPosition validate_object(Object* obj);
-    bool valid_young_object_p(Object* obj);
 
     size_t young_bytes_allocated() const;
     size_t mature_bytes_allocated() const;
@@ -383,9 +382,6 @@ namespace rubinius {
 
     void needs_finalization(Object* obj, FinalizerFunction func);
     void set_ruby_finalizer(Object* obj, Object* finalizer);
-
-    void* young_start();
-    void* yound_end();
 
     size_t& loe_usage();
     size_t& young_usage();

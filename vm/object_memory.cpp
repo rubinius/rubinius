@@ -579,7 +579,7 @@ step1:
     data->global_cache()->prune_young();
 
     if(data->threads()) {
-      for(std::list<ManagedThread*>::iterator i = data->threads()->begin();
+      for(ThreadList::iterator i = data->threads()->begin();
           i != data->threads()->end();
           ++i) {
         gc::Slab& slab = (*i)->local_slab();
@@ -795,9 +795,9 @@ step1:
     handles->deallocate_handles(cached, mark(), young);
   }
 
-  void ObjectMemory::clear_fiber_marks(std::list<ManagedThread*>* threads) {
+  void ObjectMemory::clear_fiber_marks(ThreadList* threads) {
     if(threads) {
-      for(std::list<ManagedThread*>::iterator i = threads->begin();
+      for(ThreadList::iterator i = threads->begin();
           i != threads->end();
           ++i) {
         if(VM* vm = (*i)->as_vm()) {
@@ -1013,22 +1013,10 @@ step1:
     return mark_sweep_->validate_object(obj);
   }
 
-  bool ObjectMemory::valid_young_object_p(Object* obj) {
-    return obj->young_object_p() && young_->in_current_p(obj);
-  }
-
   void ObjectMemory::add_code_resource(CodeResource* cr) {
     SYNC_TL;
 
     code_manager_.add_resource(cr, &collect_mature_now);
-  }
-
-  void* ObjectMemory::young_start() {
-    return young_->start_address();
-  }
-
-  void* ObjectMemory::yound_end() {
-    return young_->last_address();
   }
 
   void ObjectMemory::needs_finalization(Object* obj, FinalizerFunction func) {

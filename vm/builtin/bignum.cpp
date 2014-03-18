@@ -12,18 +12,15 @@
 #include "object_utils.hpp"
 #include "ontology.hpp"
 
-#define BASIC_CLASS(blah) G(blah)
-#define NEW_STRUCT(obj, str, kls, kind) \
-  obj = (typeof(obj))Bignum::create(state); \
-  str = (kind *)(obj->mp_val())
-#define DATA_STRUCT(obj, type) ((type)(obj->mp_val()))
+#define NEW_STRUCT(obj, str) \
+  obj = Bignum::create(state); \
+  str = (obj->mp_val())
 
 #define NMP mp_int *n; Bignum* n_obj; \
-  NEW_STRUCT(n_obj, n, BASIC_CLASS(bignum), mp_int);
+  NEW_STRUCT(n_obj, n);
 
 #define MMP mp_int *m; Bignum* m_obj; \
-  NEW_STRUCT(m_obj, m, BASIC_CLASS(bignum), mp_int);
-
+  NEW_STRUCT(m_obj, m);
 
 #define BDIGIT_DBL long long
 #define DIGIT_RADIX (1UL << DIGIT_BIT)
@@ -1177,8 +1174,7 @@ namespace rubinius {
     mp_int* n = big->mp_val();
     assert(MANAGED(n));
 
-    Object* tmp = mark.call(static_cast<Object*>(n->managed));
-    if(tmp && tmp != n->managed) {
+    if(Object* tmp = mark.call(static_cast<Object*>(n->managed))) {
       n->managed = reinterpret_cast<void*>(tmp);
       ByteArray* ba = force_as<ByteArray>(tmp);
       n->dp = OPT_CAST(mp_digit)ba->raw_bytes();

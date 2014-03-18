@@ -63,6 +63,8 @@ namespace rubinius {
   typedef std::vector<std::string> CApiConstantNameMap;
   typedef std_unordered_map<int, capi::Handle*> CApiConstantHandleMap;
 
+  typedef std::list<ManagedThread*> ThreadList;
+
   /**
    * SharedState represents the global shared state that needs to be shared
    * across all VM instances.
@@ -84,7 +86,7 @@ namespace rubinius {
     CApiConstantHandleMap capi_constant_handle_map_;
 
     WorldState* world_;
-    std::list<ManagedThread*> threads_;
+    ThreadList threads_;
 
     uint64_t method_count_;
     unsigned int class_count_;
@@ -120,6 +122,8 @@ namespace rubinius {
 
     bool use_capi_lock_;
     int primitive_hits_[Primitives::cTotalPrimitives];
+
+    void reset_threads(STATE);
 
   public:
     Globals globals;
@@ -176,7 +180,7 @@ namespace rubinius {
     VM* new_vm();
     void remove_vm(VM*);
 
-    std::list<ManagedThread*>* threads() {
+    ThreadList* threads() {
       return &threads_;
     }
 

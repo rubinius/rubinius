@@ -279,6 +279,7 @@ extern "C" {
     }
     va_end(ap);
 
+    assert(closest);
     MachineCode* mcode = closest->compiled_code->machine_code();
     GCTokenImpl gct;
     return BlockEnvironment::under_call_frame(state, gct, code, mcode, closest);

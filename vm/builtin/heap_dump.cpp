@@ -269,6 +269,10 @@ namespace rubinius {
       root = mgr.new_layout(0);
     }
 
+    ~HeapDump() {
+      delete root;
+    }
+
     int object_id(Object* obj) {
       Identities::iterator i = ids.find(obj);
       if(i != ids.end()) {

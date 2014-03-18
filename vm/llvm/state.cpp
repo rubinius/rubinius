@@ -447,11 +447,15 @@ halt:
         }
 
         if(Class* receiver_class = req->receiver_class()) {
-          req->set_receiver_class(as<Class>(gc->saw_object(receiver_class)));
+          if(Object* obj = gc->saw_object(receiver_class)) {
+            req->set_receiver_class(force_as<Class>(obj));
+          }
         }
 
         if(BlockEnvironment* block_env = req->block_env()) {
-          req->set_block_env(as<BlockEnvironment>(gc->saw_object(block_env)));
+          if(Object* obj = gc->saw_object(block_env)) {
+            req->set_block_env(force_as<BlockEnvironment>(obj));
+          }
         }
       }
 

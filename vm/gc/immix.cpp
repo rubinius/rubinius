@@ -112,7 +112,7 @@ namespace rubinius {
     }
 #endif
 
-    if(!obj->reference_p()) return obj;
+    if(!obj->reference_p()) return NULL;
 
     memory::Address fwd = gc_.mark_address(memory::Address(obj), allocator_);
     Object* copy = fwd.as<Object>();
@@ -120,9 +120,11 @@ namespace rubinius {
     // Check and update an inflated header
     if(copy && copy != obj) {
       obj->set_forward(copy);
+      return copy;
     }
 
-    return copy;
+    // Always return NULL for non moved objects
+    return NULL;
   }
 
   void ImmixGC::scanned_object(Object* obj) {
@@ -159,12 +161,13 @@ namespace rubinius {
 
   void ImmixGC::collect_scan(GCData* data) {
     for(Roots::Iterator i(data->roots()); i.more(); i.advance()) {
-      Object* tmp = i->get();
-      if(tmp->reference_p()) saw_object(tmp);
+      if(Object* fwd = saw_object(i->get())) {
+        i->set(fwd);
+      }
     }
 
     if(data->threads()) {
-      for(std::list<ManagedThread*>::iterator i = data->threads()->begin();
+      for(ThreadList::iterator i = data->threads()->begin();
           i != data->threads()->end();
           ++i) {
         scan(*i, false);
@@ -173,7 +176,9 @@ namespace rubinius {
 
     for(Allocator<capi::Handle>::Iterator i(data->handles()->allocator()); i.more(); i.advance()) {
       if(i->in_use_p() && !i->weak_p()) {
-        saw_object(i->object());
+        if(Object* fwd = saw_object(i->object())) {
+          i->set_object(fwd);
+        }
       }
     }
 
@@ -189,7 +194,9 @@ namespace rubinius {
           if(hdl->valid_p()) {
             Object* obj = hdl->object();
             if(obj && obj->reference_p()) {
-              saw_object(obj);
+              if(Object* fwd = saw_object(obj)) {
+                hdl->set_object(fwd);
+              }
             }
           } else {
             std::cerr << "Detected bad handle checking global capi handles\n";
@@ -211,7 +218,11 @@ namespace rubinius {
         oi != marked_set->end();
         ++oi) {
       Object* obj = *oi;
-      if(obj) saw_object(obj);
+      if(obj) {
+        if(Object* fwd = saw_object(obj)) {
+          *oi = fwd;
+        }
+      }
     }
     delete marked_set;
 
@@ -249,7 +260,7 @@ namespace rubinius {
 
     // Remove unreachable locked objects still in the list
     if(data->threads()) {
-      for(std::list<ManagedThread*>::iterator i = data->threads()->begin();
+      for(ThreadList::iterator i = data->threads()->begin();
           i != data->threads()->end();
           ++i) {
         clean_locked_objects(*i, false);
@@ -388,10 +399,14 @@ namespace rubinius {
       bool live = fi.object->marked_p(object_memory_->mark());
 
       if(fi.ruby_finalizer) {
-        fi.ruby_finalizer = saw_object(fi.ruby_finalizer);
+        if(Object* fwd = saw_object(fi.ruby_finalizer)) {
+          fi.ruby_finalizer = fwd;
+        }
       }
 
-      fi.object = saw_object(fi.object);
+      if(Object* fwd = saw_object(fi.object)) {
+        fi.object = fwd;
+      }
 
       i.next(live);
     }

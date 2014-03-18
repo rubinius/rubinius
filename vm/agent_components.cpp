@@ -289,13 +289,13 @@ namespace agent {
     virtual void read(Output& output) {
       state_->shared().stop_threads_externally();
 
-      std::list<ManagedThread*>* threads = state_->shared().threads();
+      ThreadList* threads = state_->shared().threads();
 
       output.ok("value");
 
       output.e().write_tuple(threads->size());
 
-      for(std::list<ManagedThread*>::iterator i = threads->begin();
+      for(ThreadList::iterator i = threads->begin();
           i != threads->end();
           ++i) {
         if(VM* vm = (*i)->as_vm()) {
@@ -325,11 +325,11 @@ namespace agent {
 
       output.ok("list");
 
-      std::list<ManagedThread*>* thrs = state_->shared().threads();
+      ThreadList* thrs = state_->shared().threads();
 
       output.e().write_tuple(thrs->size());
 
-      for(std::list<ManagedThread*>::iterator i = thrs->begin();
+      for(ThreadList::iterator i = thrs->begin();
           i != thrs->end();
           ++i) {
         ManagedThread* thr = *i;
@@ -374,7 +374,7 @@ namespace agent {
 
       output.ok("value");
 
-      std::list<ManagedThread*>* thrs = state_->shared().threads();
+      ThreadList* thrs = state_->shared().threads();
 
       output.e().write_integer(thrs->size());
 

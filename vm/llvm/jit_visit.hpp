@@ -115,10 +115,14 @@ namespace rubinius {
       , block_map_(bm)
       , allow_private_(false)
       , call_flags_(0)
+      , bail_out_(NULL)
       , method_entry_(info.profiling_entry())
       , args_(info.args())
+      , ip_pos_(NULL)
       , vars_(info.variables())
       , use_full_scope_(false)
+      , global_serial_pos(NULL)
+      , check_global_interrupts_pos(NULL)
       , called_args_(-1)
       , sends_done_(0)
       , has_side_effects_(false)
@@ -126,6 +130,7 @@ namespace rubinius {
       , current_block_(NULL)
       , block_arg_shift_(0)
       , current_jbb_(0)
+      , machine_code_debugging_(NULL)
     {}
 
     ~JITVisit() {
@@ -1764,6 +1769,8 @@ namespace rubinius {
           mis.push_back(nfo);
           nfo = nfo->creator_info();
         }
+
+        if(mis.size() == 0) rubinius::bug("no method info in inlined block");
 
         call_args.push_back(cint(mis.size()));
 

@@ -5,6 +5,7 @@
 
 #include "oop.hpp"
 #include "builtin/object.hpp"
+#include "shared_state.hpp"
 
 namespace rubinius {
 
@@ -32,7 +33,7 @@ namespace rubinius {
     capi::Handles* handles_;
     std::list<capi::Handle*>* cached_handles_;
     GlobalCache* global_cache_;
-    std::list<ManagedThread*>* threads_;
+    ThreadList* threads_;
     std::list<capi::GlobalHandle*>* global_handle_locations_;
 #ifdef ENABLE_LLVM
     LLVMState* llvm_state_;
@@ -49,7 +50,7 @@ namespace rubinius {
       return roots_;
     }
 
-    std::list<ManagedThread*>* threads() {
+    ThreadList* threads() {
       return threads_;
     }
 

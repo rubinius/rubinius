@@ -11,6 +11,8 @@
 #include "builtin/compiled_code.hpp"
 #include "builtin/module.hpp"
 
+#include "object_utils.hpp"
+
 namespace rubinius {
 namespace jit {
 
@@ -38,33 +40,28 @@ namespace jit {
   }
 
   void RuntimeDataHolder::mark_all(Object* obj, ObjectMark& mark) {
-    Object* tmp;
-
     for(std::vector<jit::RuntimeData*>::iterator i = runtime_data_.begin();
         i != runtime_data_.end();
         ++i) {
       jit::RuntimeData* rd = *i;
 
       if(rd->method()) {
-        tmp = mark.call(rd->method());
-        if(tmp) {
-          rd->method_ = (CompiledCode*)tmp;
+        if(Object* tmp = mark.call(rd->method())) {
+          rd->method_ = force_as<CompiledCode>(tmp);
           if(obj) mark.just_set(obj, tmp);
         }
       }
 
       if(rd->name()) {
-        tmp = mark.call(rd->name());
-        if(tmp) {
-          rd->name_ = (Symbol*)tmp;
+        if(Object* tmp = mark.call(rd->name())) {
+          rd->name_ = force_as<Symbol>(tmp);
           if(obj) mark.just_set(obj, tmp);
         }
       }
 
       if(rd->module()) {
-        tmp = mark.call(rd->module());
-        if(tmp) {
-          rd->module_ = (Module*)tmp;
+        if(Object* tmp = mark.call(rd->module())) {
+          rd->module_ = force_as<Module>(tmp);
           if(obj) mark.just_set(obj, tmp);
         }
       }
