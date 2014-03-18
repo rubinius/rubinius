@@ -1677,7 +1677,6 @@ int main() { return tgetnum(""); }
       release_config = Rubinius::BUILD_CONFIG
     else
       release_config = {
-        :config_file        => @config,
         :build_tool_gems    => @build_tool_gems,
         :build_c_ext_gems   => @build_c_ext_gems,
         :bootstrap_gems     => @bootstrap_gems,
@@ -1692,6 +1691,7 @@ int main() { return tgetnum(""); }
     end
 
     build_config = {
+      :config_file        => @config,
       :command_line       => @command_line,
       :build_make         => @make,
       :build_rake         => @rake,
