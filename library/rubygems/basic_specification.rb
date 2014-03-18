@@ -53,8 +53,6 @@ class Gem::BasicSpecification
   # Return true if this spec can require +file+.
 
   def contains_requirable_file? file
-    build_extensions
-
     suffixes = Gem.suffixes
 
     full_require_paths.any? do |dir|

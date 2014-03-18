@@ -54,6 +54,7 @@ class Gem::StubSpecification < Gem::BasicSpecification
   end
 
   def build_extensions # :nodoc:
+    return
     return if default_gem?
     return if extensions.empty?
 

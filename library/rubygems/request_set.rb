@@ -125,8 +125,6 @@ class Gem::RequestSet
 
     sorted_requests.each do |req|
       if req.installed? then
-        req.spec.spec.build_extensions
-
         if @always_install.none? { |spec| spec == req.spec.spec } then
           yield req, nil if block_given?
           next

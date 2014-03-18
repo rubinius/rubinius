@@ -1414,6 +1414,7 @@ class Gem::Specification < Gem::BasicSpecification
   # the gem.build_complete file is missing.
 
   def build_extensions # :nodoc:
+    return
     return if default_gem?
     return if extensions.empty?
     return if installed_by_version < Gem::Version.new('2.2.0.preview.2')
