@@ -17,7 +17,7 @@ describe :dir_glob, :shared => true do
   end
 
   ruby_version_is "1.9" do
-    it "calls #to_path to convert patterns" do
+    it "calls #to_path to convert a pattern" do
       obj = mock('file_one.ext')
       obj.should_receive(:to_path).and_return('file_one.ext')
 

@@ -58,6 +58,15 @@ describe "Dir.glob" do
                %w!file_one.ext file_two.ext!
   end
 
+  it "calls #to_path to convert multiple patterns" do
+    pat1 = mock('file_one.ext')
+    pat1.should_receive(:to_path).and_return('file_one.ext')
+    pat2 = mock('file_two.ext')
+    pat2.should_receive(:to_path).and_return('file_two.ext')
+
+    Dir.glob([pat1, pat2]).should == %w[file_one.ext file_two.ext]
+  end
+
   it "matches both dot and non-dotfiles with '*' and option File::FNM_DOTMATCH" do
     Dir.glob('*', File::FNM_DOTMATCH).sort.should == DirSpecs.expected_paths
   end
