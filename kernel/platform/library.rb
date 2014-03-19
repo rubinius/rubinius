@@ -356,24 +356,13 @@ module FFI
       unless @handle
         orig_error = last_error
 
-        # Try with suffixes
-        FFI::LIB_SUFFIXES.detect do |suffix|
-          @name = "#{name}.#{suffix}"
-          @handle = DynamicLibrary.open_library @name, flags
-        end
-      end
+        libnames = FFI::LIB_SUFFIXES.map {|suffix| "#{name}.#{suffix}" }
+        libnames << "lib#{name}"
+        libnames += FFI::LIB_SUFFIXES.map {|suffix| "lib#{name}.#{suffix}" }
 
-      # Try with a prefix
-      unless @handle
-        @name = "lib#{name}"
-        @handle = DynamicLibrary.open_library @name, flags
-      end
-
-      # Try with suffixes and a prefix
-      unless @handle
-        FFI::LIB_SUFFIXES.detect do |suffix|
-          @name = "lib#{name}.#{suffix}"
-          @handle = DynamicLibrary.open_library @name, flags
+        libnames.detect do |libname|
+          @name = libname
+          @handle = DynamicLibrary.open_library libname, flags
         end
       end
 
