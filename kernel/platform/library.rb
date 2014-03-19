@@ -361,26 +361,26 @@ module FFI
           @name = "#{name}.#{suffix}"
           @handle = DynamicLibrary.open_library @name, flags
         end
+      end
 
-        # Try with a prefix
-        unless @handle
-          @name = "lib#{name}"
+      # Try with a prefix
+      unless @handle
+        @name = "lib#{name}"
+        @handle = DynamicLibrary.open_library @name, flags
+      end
+
+      # Try with suffixes and a prefix
+      unless @handle
+        FFI::LIB_SUFFIXES.detect do |suffix|
+          @name = "lib#{name}.#{suffix}"
           @handle = DynamicLibrary.open_library @name, flags
         end
+      end
 
-        # Try with suffixes and a prefix
-        unless @handle
-          FFI::LIB_SUFFIXES.detect do |suffix|
-            @name = "lib#{name}.#{suffix}"
-            @handle = DynamicLibrary.open_library @name, flags
-          end
-        end
-
-        unless @handle
-          orig_error = orig_error.split("\n").first
-          # API Compat. LoadError is wrong here.
-          raise LoadError, "Could not open library #{name} - #{orig_error}"
-        end
+      unless @handle
+        orig_error = orig_error.split("\n").first
+        # API Compat. LoadError is wrong here.
+        raise LoadError, "Could not open library #{name} - #{orig_error}"
       end
     end
 
