@@ -38,8 +38,8 @@
 # the 'receiver' and 'count' additional items.
 #
 # Finally, for instructions that alter the normal sequential flow of execution,
-# the type of control flow change will be specified in curly braces, e.g.
-# {branch}. The control flow behavior defaults to next, but for those
+# the type of control flow change will be specified with a hashrocket e.g.
+# '=> branch'. The control flow behavior defaults to next, but for those
 # instructions where control is (or may) change, one of the following flow
 # types must be specified:
 #   branch - for instructions that branch within the same method
