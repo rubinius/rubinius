@@ -1,0 +1,211 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\" First parameter, NAME, should be all caps
+.\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
+.\" Third paramenter, Please adjust this date whenever revising the manpage.
+.TH RBX2.2 1 "December 2013"
+.\"
+.SH NAME
+rbx2.2 \- an implementation of the Ruby programming language
+.SH SYNOPSIS
+.\": rbx [subcommand] [options] [--] [script] [arguments]
+.B rbx2.2
+[
+.I subcommand
+]
+[
+.I options
+] 
+[
+.I \-\-
+]  
+[
+.I script
+] 
+[
+.I 
+arguments
+]
+.\" .br
+.SH DESCRIPTION
+\fBrbx2.2\fP is the Rubinius primary command. 
+This manual page documents briefly the
+.B rbx2.2
+command. 
+.PP
+Rubinius is an implementation of the Ruby programming language
+An implementation of Ruby designed for concurrency using native threads to run
+Ruby code on all the CPU cores. Rubinius runs Ruby code fast with 
+a low\-pause generational garbage collector and LLVM\-based just\-in\-time (JIT) 
+native machine code compiler.
+.PP
+The Rubinius core library and tools are built using Ruby, making a smaller,
+consistent system that's easier for Ruby programmers to understand and modify.
+.PP
+Rubinius includes a bytecode virtual machine, Ruby syntax parser, bytecode
+compiler, generational garbage collector, just\-in\-time (JIT) native machine
+code compiler, and Ruby Core and Standard libraries.
+.PP
+Rubinius created and maintains RubySpec, containing more than 20,000
+specifications, to monitor compatibility with Matz's Ruby Implementation (MRI).
+.PP
+Rubinius provides a C\-API interface for running C\-extensions to ease migrating
+from MRI.
+.PP
+ Rubinius currently implements Ruby language version 2.
+.\"1.8.7, 1.9, 
+.\" TeX users may be more comfortable with the \fB<whatever>\fP and
+.\" \fI<whatever>\fP escape sequences to invode bold face and italics,
+.\" respectively.
+Script is any valid Ruby source code file
+.SH OPTIONS
+.TP
+.B \-h, \-\-help
+Display help. 
+.TP
+.B \-\-version
+Display version 
+.TP
+.B  \-
+Read and evaluate code from STDIN
+.TP
+.B  \-\-
+Stop processing command line arguments
+.TP
+.B \-a
+Used with \-n and \-p, splits $_ into $F
+.TP
+.B  \-c
+Only check the syntax
+.TP
+.B \-C \fIDIR\fP
+Change directory to \fIDIR\fP before running scripts
+.TP
+.B   \-d 
+Enable debugging output and set $DEBUG to true
+.TP
+.B \-\-disable\-gems
+Do not automatically load rubygems on startup
+.TP
+.B   \-e \fICODE\fP
+Compile and execute \fICODE\fP
+.TP
+.B  \-F \fIPATTERN\fP
+Set $; to \fIPATTERN\fP
+.TP
+.B \-G, \-\-gemfile
+Respect a Gemfile in the current path
+.TP
+.\"   -h, --help            Display this help
+.TP
+.B \-i [\fIEXT\fP]
+Edit ARGV files in place, making backup with optional \fIEXT\fP
+.TP
+.B \-I \fIDIR1\fP[:\fIDIR2\fP]
+Add directories to $LOAD_PATH
+.TP
+.B \-K
+Ignored $KCODE option for compatibility
+.TP
+.B \-U
+Set Encoding.default_internal to UTF-8
+.TP
+.B \-E \fIENC\fP
+Set external:internal character encoding to \fIENC\fP
+.TP
+.B \-n
+Wrap running code in 'while(gets()) ...'
+.TP
+.B \-p
+Same as \-n, but also print $_
+.TP
+.B -r \fILIBRARY\fP 
+Require library before execution
+.TP
+.B \-s
+Process options after the script into globals
+.TP
+.B \-S \fISCRIPT\fP
+Run \fISCRIPT\fP using PATH environment variable to find it
+.TP
+.B \-v
+Display the version and set $VERBOSE to true
+.TP
+.B \-w
+Enable warnings
+.TP
+.B \-W [\fIlevel\fP]
+Set warning level: 0=silence, 1=medium, 2=verbose (default)
+.\"   --version             Display the version
+.TP
+.B \-X\fIvariable\fP[=\fIvalue\fP]
+Set VM Configuration options and access numerious Rubinius features
+.TP
+.B \-Xhelp
+List of options the VM recognizes.
+.br
+.SH SUBCOMMANDS
+.sp
+Rubinius provides subcommands that implement various facilities. Each 
+subcommand provides its own help. For example:
+.RS
+.PP
+.nf
+.ft CW
+% rbx compile \-h
+.ft R
+.fi
+.RE
+.SS "Available subcommands"
+.PP
+\fBcompile\fR
+.RS 4
+Run the bytecode compiler\&.
+.RE
+.PP
+\fBconsole\fR
+.RS 4
+Run the Agent CLI\&.
+.RE
+.PP
+\fBdocs\fR
+.RS 4
+Run a local HTTP documentation server\&.
+.RE
+.PP
+\fBgem\fR 
+.RS 4
+Run RubyGems "\fBgem\fP" command\&.
+.RE
+.PP
+\fBreport\fR
+.RS 4
+Create a gist of the last Rubinius toplevel exception\&.
+.RE
+.SH FILES AND DIRECTORIES
+These are subject to difference depending on local installation
+conventions; ${prefix} is installation-dependent
+and should be interpreted as for GNU software; they may be the same.
+On Debian GNU/{Hurd,Linux} the default for both is \fI/usr\fP.
+.IP \fI${prefix}/bin/rbx2.2\fP
+Recommended location of the interpreter.
+.PP
+.I ${prefix}/lib/rubinius<version>
+.RS
+Locations of the directories containing the standard libraries and runtime.
+.RE
+.PP
+.I ${prefix}/include/rubinius<version>
+.RS
+Locations of the directories containing the include files
+needed for building Ruby native extensions in Rubinius.
+.RE
+.SH SEE ALSO
+.BR irb-rbx2.2 (1),
+.BR gem-rbx2.2 (1).
+.br
+.SH AUTHOR
+rubinius-2.2 was written by great people listed in 
+\fI/usr/share/doc/rubinius-2.2/AUTHORS.gz\fP\&.
+.PP
+.\" This manual page was compiled by Chad Slaughter (and may be used by others).
+

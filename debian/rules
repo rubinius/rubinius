@@ -1,0 +1,77 @@
+#!/usr/bin/make -f
+
+DEB_MAKE_INVOKE = rake
+DPKG_EXPORT_BUILDFLAGS = 1
+
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/rules/patchsys-quilt.mk
+include /usr/share/cdbs/1/class/makefile-vars.mk
+include /usr/share/cdbs/1/class/makefile.mk
+include /usr/share/dpkg/buildflags.mk
+
+RUBINIUS_MAJOR_VERSION = 2.2
+PROGRAM_NAME=rbx$(RUBINIUS_MAJOR_VERSION) 
+
+DEB_MAKE_BUILD_TARGET   = build
+DEB_MAKE_INSTALL_TARGET = install:files DESTDIR=$(DEB_DESTDIR)
+DEB_MAKE_CHECK_TARGET   = spec
+
+# clean target doesn't work with rake.
+# rake does not understand -k
+# must use an explict rule.
+DEB_MAKE_CLEAN_TARGET   = 
+
+cleanbuilddir:: 
+	-rake distclean
+
+clean:: 
+	-@rm -f debian/stamp-configure-rbx debian/stamp-makefile-build 
+	-@rm -f debian/stamp-makefile-check debian/stamp-makefile-install debian/stamp-patched 
+
+install/rubinius-2.2::
+	mv $(DEB_DESTDIR)/usr/bin/testrb $(DEB_DESTDIR)/usr/bin/testrb-rbx2.2
+
+RUBINIUS_PREFIX=/usr/lib/rubinius/$(RUBINIUS_MAJOR_VERSION)
+RUBINIUS_BINDIR=/usr/bin
+RUBINIUS_LIBDIR=/usr/lib/rubinius/$(RUBINIUS_MAJOR_VERSION) 
+RUBINIUS_APPDIR=/usr/lib/rubinius/$(RUBINIUS_MAJOR_VERSION) 
+RUBINIUS_GEMSDIR=/var/lib/gems/rubinius/$(RUBINIUS_MAJOR_VERSION) 
+RUBINIUS_INCDIR=/usr/include/rubinius/$(RUBINIUS_MAJOR_VERSION) 
+
+Gemfile.lock:
+	bundle install --local --path vendor/bundle
+
+common-configure-arch::  Gemfile.lock debian/stamp-configure-rbx
+
+debian/stamp-configure-rbx:
+	./configure                               \
+						--mandir=/usr/share/man/man1    \
+						--prefix=$(RUBINIUS_PREFIX)     \
+						--bindir=$(RUBINIUS_BINDIR)     \
+						--includedir=$(RUBINIUS_INCDIR) \
+						--appdir=$(RUBINIUS_APPDIR)     \
+						--libdir=$(RUBINIUS_LIBDIR)     \
+						--gemsdir=$(RUBINIUS_GEMSDIR)   \
+						--program-name $(PROGRAM_NAME)  \
+						--without-rpath                 \
+						--preserve-prefix               \
+						--no-bin-links                  \
+						--release-build 	              
+	touch $@
+
+# LLVM settings
+#   --disable-llvm             Don't build with LLVM
+#   --enable-llvm              Enable llvm (default)
+#   --skip-system              Don't consider a system LLVM installation
+#   --skip-prebuilt            Don't try to use a prebuilt version of LLVM
+#   --prebuilt-name NAME       Full name of LLVM prebuilt archive
+#   --llvm-path PATH           File system path to the directory containing LLVM
+#   --llvm-config PROGRAM      File system path to the llvm-config program
+#   --llvm-shared              Link to shared LLVM library
+#   --update-prebuilt          Update prebuilt LLVM packages from the internet
+#   --with-include-dir DIR     Add DIR to the default include search paths
+#   --with-lib-dir DIR         Add DIR to the default library search paths
+#   --with-opt-dir DIR         Add DIR/include and DIR/lib to include and library search paths
+# File system paths for installing Rubinius
+#   --sitedir PATH             Install site-specific Ruby code in PATH
+#   --vendordir PATH           Install vendor-specific Ruby code in PATH
