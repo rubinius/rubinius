@@ -50,7 +50,6 @@ class IO
     attr_reader :total
     attr_reader :start
     attr_reader :used
-    attr_reader :channel
 
     ##
     # Returns +true+ if the buffer can be filled.
