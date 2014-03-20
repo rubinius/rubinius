@@ -633,7 +633,7 @@ namespace rubinius {
 
         if(recv_type.instance_p() && class_id == recv_class_id) {
           if(llvm_state()->config().jit_inline_debug) {
-            ctx_->log() << "(eliding because of staticly known match)\n";
+            ctx_->log() << "(eliding because of statically known match)\n";
           }
           create_branch(positive);
         } else if(class_id == llvm_state()->fixnum_class_id()) {
