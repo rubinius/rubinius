@@ -7,14 +7,14 @@ module RbConfig
 
   CONFIG = {}
 
-  CONFIG["prefix"]             = Rubinius::PREFIX_PATH
+  CONFIG["prefix"]             = Rubinius::PREFIX_PATH.dup
   CONFIG["install_prefix"]     = ''
   CONFIG["DLEXT"]              = Rubinius::LIBSUFFIX[1..-1]
   CONFIG["EXEEXT"]             = ""
-  CONFIG["ruby_install_name"]  = RUBY_ENGINE.dup
-  CONFIG["RUBY_INSTALL_NAME"]  = RUBY_ENGINE.dup
+  CONFIG["ruby_install_name"]  = Rubinius::PROGRAM_NAME.dup
+  CONFIG["RUBY_INSTALL_NAME"]  = Rubinius::PROGRAM_NAME.dup
   CONFIG["exec_prefix"]        = "$(prefix)"
-  CONFIG["bindir"]             = Rubinius::BIN_PATH
+  CONFIG["bindir"]             = Rubinius::BIN_PATH.dup
   CONFIG["sbindir"]            = "$(exec_prefix)/sbin"
   CONFIG["libexecdir"]         = "$(exec_prefix)/libexec"
   CONFIG["datarootdir"]        = "$(prefix)/share"
@@ -42,7 +42,7 @@ module RbConfig
   CONFIG["rubyhdrdir"]         = "#{Rubinius::HDR_PATH}"
   CONFIG["LIBS"]               = ""
 
-  sitedir                      = Rubinius::HDR_PATH
+  sitedir                      = Rubinius::SITE_PATH.dup
   sitelibdir                   = sitedir
   arch                         = "#{Rubinius::CPU}-#{Rubinius::OS}"
 
@@ -53,12 +53,12 @@ module RbConfig
   CONFIG["rubylibdir"]         = sitelibdir
   CONFIG["archdir"]            = "#{sitelibdir}/#{arch}"
   CONFIG["sitearchdir"]        = "#{sitelibdir}/#{arch}"
-  CONFIG["rubyarchhdrdir"]     = "#{sitelibdir}"
+  CONFIG["rubyarchhdrdir"]     = Rubinius::HDR_PATH.dup
   CONFIG["topdir"]             = File.dirname(__FILE__)
   # some of these only relevant to cross-compiling
-  cpu                          = Rubinius::CPU
-  vendor                       = Rubinius::VENDOR
-  os                           = Rubinius::OS
+  cpu                          = Rubinius::CPU.dup
+  vendor                       = Rubinius::VENDOR.dup
+  os                           = Rubinius::OS.dup
   CONFIG["build"]              = "#{cpu}-#{vendor}-#{os}"
   CONFIG["build_cpu"]          = "#{cpu}"
   CONFIG["build_vendor"]       = "#{vendor}"
@@ -197,8 +197,8 @@ module RbConfig
   # properly link files not located in paths in LD_LIBRARY_PATH. On other
   # platforms this is not necessary and it is linked properly even for
   # paths outside LD_LIBRARY_PATH.
-  CONFIG["LIBPATHFLAG"]        = Rubinius.linux? ? " -L%1$-s"     : " -L%s"
-  CONFIG["RPATHFLAG"]          = Rubinius.linux? ? " -Wl,-R%1$-s" : ""
+  CONFIG["LIBPATHFLAG"]        = Rubinius::BUILD_CONFIG[:rpath] ? " -L%1$-s"     : " -L%s"
+  CONFIG["RPATHFLAG"]          = Rubinius::BUILD_CONFIG[:rpath] ? " -Wl,-R%1$-s" : ""
   CONFIG["LIBPATHENV"]         = "DYLD_LIBRARY_PATH"
   CONFIG["TRY_LINK"]           = ""
   CONFIG["EXTSTATIC"]          = ""
@@ -209,9 +209,9 @@ module RbConfig
   CONFIG["PACKAGE_VERSION"]    = ""
   CONFIG["PACKAGE_STRING"]     = ""
   CONFIG["PACKAGE_BUGREPORT"]  = ""
-  CONFIG["LDSHARED"]           = Rubinius::LDSHARED
-  CONFIG["LIBRUBY_LDSHARED"]   = Rubinius::LDSHARED
-  CONFIG["LDSHAREDXX"]         = Rubinius::LDSHAREDXX
+  CONFIG["LDSHARED"]           = Rubinius::LDSHARED.dup
+  CONFIG["LIBRUBY_LDSHARED"]   = Rubinius::LDSHARED.dup
+  CONFIG["LDSHAREDXX"]         = Rubinius::LDSHAREDXX.dup
 
   # absolute path to ruby executable (pulled directly from MRI's mkconfig.rb)
   def RbConfig.ruby
