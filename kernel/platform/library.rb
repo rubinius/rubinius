@@ -344,44 +344,32 @@ module FFI
       # Accept nil and check for ruby-ffi API compat
       flags ||= RTLD_LAZY | RTLD_GLOBAL
 
-      if name
-        @name = name
-        @handle = DynamicLibrary.open_library name, flags
-
-        unless @handle
-          orig_error = last_error
-
-          # Try with suffixes
-          FFI::LIB_SUFFIXES.detect do |suffix|
-            @name = "#{name}.#{suffix}"
-            @handle = DynamicLibrary.open_library @name, flags
-          end
-
-          # Try with a prefix
-          unless @handle
-            FFI::LIB_SUFFIXES.detect do |suffix|
-              @name = "lib#{name}"
-              @handle = DynamicLibrary.open_library @name, flags
-            end
-          end
-
-          # Try with suffixes and a prefix
-          unless @handle
-            FFI::LIB_SUFFIXES.detect do |suffix|
-              @name = "lib#{name}.#{suffix}"
-              @handle = DynamicLibrary.open_library @name, flags
-            end
-          end
-
-          unless @handle
-            orig_error = orig_error.split("\n").first
-            # API Compat. LoadError is wrong here.
-            raise LoadError, "Could not open library #{name} - #{orig_error}"
-          end
-        end
-      else
+      unless name
         @name = "[current process]"
         @handle = FFI::Pointer::CURRENT_PROCESS
+        return
+      end
+
+      @name = name
+      @handle = DynamicLibrary.open_library name, flags
+
+      unless @handle
+        orig_error = last_error
+
+        libnames = FFI::LIB_SUFFIXES.map {|suffix| "#{name}.#{suffix}" }
+        libnames << "lib#{name}"
+        libnames += FFI::LIB_SUFFIXES.map {|suffix| "lib#{name}.#{suffix}" }
+
+        libnames.detect do |libname|
+          @name = libname
+          @handle = DynamicLibrary.open_library libname, flags
+        end
+      end
+
+      unless @handle
+        orig_error = orig_error.split("\n").first
+        # API Compat. LoadError is wrong here.
+        raise LoadError, "Could not open library #{name} - #{orig_error}"
       end
     end
 

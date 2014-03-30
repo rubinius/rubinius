@@ -656,35 +656,22 @@ to rebuild the compiler.
       if @script
         if File.exists?(@script)
           mel = parser.new @script, 1, []
-
-          begin
-            mel.parse_file
-          rescue SyntaxError => e
-            show_syntax_errors(mel.syntax_errors)
-            exit 1
-          end
+          mel.parse_file
         else
           puts "rbx: Unable to find file -- #{@script} (LoadError)"
           exit 1
         end
       elsif not @evals.empty?
-        begin
-          mel = parser.parse_string @evals.join("\n")
-        rescue SyntaxError => e
-          show_syntax_errors(mel.syntax_errors)
-          exit 1
-        end
+        mel = parser.parse_string @evals.join("\n")
       else
-        begin
-          mel = parser.parse_string STDIN.read
-        rescue SyntaxError => e
-          show_syntax_errors(mel.syntax_errors)
-          exit 1
-        end
+        mel = parser.parse_string STDIN.read
       end
 
       puts "Syntax OK"
       exit 0
+    rescue SyntaxError => e
+      show_syntax_errors(mel.syntax_errors)
+      exit 1
     end
 
     # Run IRB unless we were passed -e, -S arguments or a script to run.
