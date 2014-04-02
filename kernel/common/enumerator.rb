@@ -15,6 +15,7 @@ module Enumerable
       @args = method_args
       @generator = nil
       @lookahead = []
+      @feedvalue = nil
 
       self
     end
@@ -71,7 +72,12 @@ module Enumerable
 
     def each_with_block
       @object.__send__ @iter, *@args do |*args|
-        yield(*args)
+        ret = yield(*args)
+        unless @feedvalue.nil?
+          ret = @feedvalue
+          @feedvalue = nil
+        end
+        ret
       end
     end
     private :each_with_block
@@ -160,6 +166,12 @@ module Enumerable
         offset += 1
         val
       end
+    end
+
+    def feed val
+      raise TypeError, "Feed value already set" unless @feedvalue.nil?
+      @feedvalue = val
+      nil
     end
 
     class Yielder
