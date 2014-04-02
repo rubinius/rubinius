@@ -63,9 +63,9 @@ describe "Enumerator#feed" do
     e.feed "c"
     @x = nil
     begin
-        e.next
+      e.next
     rescue StopIteration
-        @x = $!.result
+      @x = $!.result
     end
     @x.should == ["a", "b", "c"]
   end
