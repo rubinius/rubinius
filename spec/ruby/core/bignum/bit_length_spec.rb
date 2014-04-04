@@ -1,7 +1,7 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 
 ruby_version_is '2.1' do
-  describe "Fixnum#bit_length" do
+  describe "Bignum#bit_length" do
     it "returns the position of the leftmost bit of a positive number" do
       (1 << 100).bit_length.should == 101
       (1 << 100).succ.bit_length.should == 101
