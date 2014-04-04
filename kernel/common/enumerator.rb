@@ -168,7 +168,7 @@ module Enumerable
       end
     end
 
-    def feed val
+    def feed(val)
       raise TypeError, "Feed value already set" unless @feedvalue.nil?
       @feedvalue = val
       nil
