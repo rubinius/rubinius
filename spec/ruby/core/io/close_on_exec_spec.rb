@@ -60,9 +60,7 @@ describe "IO#close_on_exec=" do
     end
   end
 end
-end
 
-ruby_version_is "1.9" do
 describe "IO#close_on_exec?" do
   before :each do
     @name = tmp('io_close_on_exec.txt')
