@@ -13,20 +13,10 @@ describe "Enumerable#sort" do
     EnumerableSpecs::Numerous.new(2,0,1,3,4).sort { |n, m| -(n <=> m) }.should == [4,3,2,1,0]
   end
 
-  ruby_version_is ""..."1.9" do
-    it "raises a NoMethodError if elements do not define <=>" do
-      lambda {
-        EnumerableSpecs::Numerous.new(Object.new, Object.new, Object.new).sort
-      }.should raise_error(NoMethodError)
-    end
-  end
-
-  ruby_version_is "1.9" do
-    it "raises a NoMethodError if elements do not define <=>" do
-      lambda do
-        EnumerableSpecs::Numerous.new(BasicObject.new, BasicObject.new, BasicObject.new).sort
-      end.should raise_error(NoMethodError)
-    end
+  it "raises a NoMethodError if elements do not define <=>" do
+    lambda do
+      EnumerableSpecs::Numerous.new(BasicObject.new, BasicObject.new, BasicObject.new).sort
+    end.should raise_error(NoMethodError)
   end
 
   it "sorts enumerables that contain nils" do

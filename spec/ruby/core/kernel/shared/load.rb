@@ -20,12 +20,10 @@ describe :kernel_load, :shared => true do
     ScratchPad.recorded.should == [:no_rb_ext]
   end
 
-  ruby_version_is "1.9" do
-    it "loads from the current working directory" do
-      Dir.chdir CODE_LOADING_DIR do
-        @object.load("load_fixture.rb").should be_true
-        ScratchPad.recorded.should == [:loaded]
-      end
+  it "loads from the current working directory" do
+    Dir.chdir CODE_LOADING_DIR do
+      @object.load("load_fixture.rb").should be_true
+      ScratchPad.recorded.should == [:loaded]
     end
   end
 

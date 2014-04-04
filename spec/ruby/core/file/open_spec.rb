@@ -498,27 +498,21 @@ describe "File.open" do
     lambda { File.open(@file, 'fake') }.should raise_error(ArgumentError)
   end
 
-  ruby_version_is "1.9.2" do
-    it "defaults external_encoding to ASCII-8BIT for binary modes" do
-      File.open(@file, 'rb') {|f| f.external_encoding.should == Encoding::ASCII_8BIT}
-      File.open(@file, 'wb+') {|f| f.external_encoding.should == Encoding::ASCII_8BIT}
-    end
-
-    it "uses the second argument as an options Hash" do
-      @fh = File.open(@file, :mode => "r")
-      @fh.should be_an_instance_of(File)
-    end
-
-    it "calls #to_hash to convert the second argument to a Hash" do
-      options = mock("file open options")
-      options.should_receive(:to_hash).and_return({ :mode => "r" })
-
-      @fh = File.open(@file, options)
-    end
+  it "defaults external_encoding to ASCII-8BIT for binary modes" do
+    File.open(@file, 'rb') {|f| f.external_encoding.should == Encoding::ASCII_8BIT}
+    File.open(@file, 'wb+') {|f| f.external_encoding.should == Encoding::ASCII_8BIT}
   end
 
-  ruby_version_is "1.9" do
-    it "needs to be completed for hash argument"
+  it "uses the second argument as an options Hash" do
+    @fh = File.open(@file, :mode => "r")
+    @fh.should be_an_instance_of(File)
+  end
+
+  it "calls #to_hash to convert the second argument to a Hash" do
+    options = mock("file open options")
+    options.should_receive(:to_hash).and_return({ :mode => "r" })
+
+    @fh = File.open(@file, options)
   end
 
   platform_is_not :windows do

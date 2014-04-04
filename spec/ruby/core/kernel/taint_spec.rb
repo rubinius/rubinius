@@ -13,18 +13,9 @@ describe "Kernel#taint" do
     o.tainted?.should == true
   end
 
-  ruby_version_is ""..."1.9" do
-    it "raises TypeError on an untainted, frozen object" do
-      o = Object.new.freeze
-      lambda { o.taint }.should raise_error(TypeError)
-    end
-  end
-
-  ruby_version_is "1.9" do
-    it "raises RuntimeError on an untainted, frozen object" do
-      o = Object.new.freeze
-      lambda { o.taint }.should raise_error(RuntimeError)
-    end
+  it "raises RuntimeError on an untainted, frozen object" do
+    o = Object.new.freeze
+    lambda { o.taint }.should raise_error(RuntimeError)
   end
 
   it "does not raise an error on a tainted, frozen object" do
@@ -44,17 +35,8 @@ describe "Kernel#taint" do
       @fixnum = 1
     end
 
-    ruby_version_is "" ... "2.0" do
-      it "has no effect" do
-        @fixnum.taint
-        @fixnum.tainted?.should be_false
-      end
-    end
-
-    ruby_version_is "2.0" do
-      it "raises a RuntimeError" do
-        lambda { @fixnum.taint }.should raise_exception(RuntimeError)
-      end
+    it "raises a RuntimeError" do
+      lambda { @fixnum.taint }.should raise_exception(RuntimeError)
     end
   end
 
@@ -67,17 +49,8 @@ describe "Kernel#taint" do
       @bignum.untaint if @bignum.tainted?
     end
 
-    ruby_version_is "" ... "2.0" do
-      it "taints the bignum" do
-        @bignum.taint
-        @bignum.tainted?.should be_true
-      end
-    end
-
-    ruby_version_is "2.0" do
-      it "raises a RuntimeError" do
-        lambda { @bignum.taint }.should raise_exception(RuntimeError)
-      end
+    it "raises a RuntimeError" do
+      lambda { @bignum.taint }.should raise_exception(RuntimeError)
     end
   end
 
@@ -90,17 +63,8 @@ describe "Kernel#taint" do
       @float.untaint if @float.tainted?
     end
 
-    ruby_version_is "" ... "2.0" do
-      it "taints the float" do
-        @float.taint
-        @float.tainted?.should be_true
-      end
-    end
-
-    ruby_version_is "2.0" do
-      it "raises a RuntimeError" do
-        lambda { @float.taint }.should raise_exception(RuntimeError)
-      end
+    it "raises a RuntimeError" do
+      lambda { @float.taint }.should raise_exception(RuntimeError)
     end
   end
 
@@ -109,17 +73,8 @@ describe "Kernel#taint" do
       @symbol = :symbol
     end
 
-    ruby_version_is "" ... "2.1" do
-      it "has no effect" do
-        @symbol.taint
-        @symbol.tainted?.should be_false
-      end
-    end
-
-    ruby_version_is "2.1" do
-      it "raises a RuntimeError" do
-        lambda { @symbol.taint }.should raise_exception(RuntimeError)
-      end
+    it "raises a RuntimeError" do
+      lambda { @symbol.taint }.should raise_exception(RuntimeError)
     end
   end
 end

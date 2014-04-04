@@ -31,9 +31,7 @@ describe "Hash#to_a" do
     new_hash.taint.to_a.tainted?.should be_true
   end
 
-  ruby_version_is "1.9" do
-    it "returns an untrusted array if self is untrusted" do
-      new_hash.untrust.to_a.untrusted?.should be_true
-    end
+  it "returns an untrusted array if self is untrusted" do
+    new_hash.untrust.to_a.untrusted?.should be_true
   end
 end

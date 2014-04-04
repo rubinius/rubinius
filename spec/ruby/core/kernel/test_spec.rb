@@ -74,24 +74,22 @@ describe "Kernel#test" do
     end
   end
 
-  ruby_version_is "1.9" do
-    it "calls #to_path on second argument when passed ?f and a filename" do
-      p = mock('path')
-      p.should_receive(:to_path).and_return @file
-      Kernel.test(?f, p)
-    end
+  it "calls #to_path on second argument when passed ?f and a filename" do
+    p = mock('path')
+    p.should_receive(:to_path).and_return @file
+    Kernel.test(?f, p)
+  end
 
-    it "calls #to_path on second argument when passed ?e and a filename" do
-      p = mock('path')
-      p.should_receive(:to_path).and_return @file
-      Kernel.test(?e, p)
-    end
+  it "calls #to_path on second argument when passed ?e and a filename" do
+    p = mock('path')
+    p.should_receive(:to_path).and_return @file
+    Kernel.test(?e, p)
+  end
 
-    it "calls #to_path on second argument when passed ?d and a directory" do
-      p = mock('path')
-      p.should_receive(:to_path).and_return @dir
-      Kernel.test(?d, p)
-    end
+  it "calls #to_path on second argument when passed ?d and a directory" do
+    p = mock('path')
+    p.should_receive(:to_path).and_return @dir
+    Kernel.test(?d, p)
   end
 end
 

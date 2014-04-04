@@ -205,21 +205,12 @@ describe :kernel_float, :shared => true do
     @object.send(:Float, obj).should == 1.2
   end
 
-  ruby_version_is '' ... '1.8.7' do
-    it "raises an Argument Error if to_f is called and it returns NaN" do
-      (nan = mock('NaN')).should_receive(:to_f).once.and_return(nan_value)
-      lambda { @object.send(:Float, nan) }.should raise_error(ArgumentError)
-    end
-  end
-
-  ruby_version_is '1.8.7' do
-    it "returns the identical NaN if to_f is called and it returns NaN" do
-      nan = nan_value
-      (nan_to_f = mock('NaN')).should_receive(:to_f).once.and_return(nan)
-      nan2 = @object.send(:Float, nan_to_f)
-      nan2.nan?.should be_true
-      nan2.should equal(nan)
-    end
+  it "returns the identical NaN if to_f is called and it returns NaN" do
+    nan = nan_value
+    (nan_to_f = mock('NaN')).should_receive(:to_f).once.and_return(nan)
+    nan2 = @object.send(:Float, nan_to_f)
+    nan2.nan?.should be_true
+    nan2.should equal(nan)
   end
 
   it "returns the identical Infinity if to_f is called and it returns Infinity" do

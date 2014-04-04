@@ -22,24 +22,10 @@ describe "Kernel.chop" do
   it_behaves_like :kernel_chop, "Kernel.chop"
 end
 
-ruby_version_is ""..."1.9" do
-  describe ".chop!" do
-    it_behaves_like :kernel_chop, "Kernel.chop!"
-  end
-end
-
 describe "#chop" do
   it_behaves_like :kernel_chop_private, :chop
 
   it_behaves_like :kernel_chop, "chop"
-end
-
-ruby_version_is ""..."1.9" do
-  describe "#chop!" do
-    it_behaves_like :kernel_chop_private, :chop!
-
-    it_behaves_like :kernel_chop, "chop!"
-  end
 end
 
 with_feature :encoding do

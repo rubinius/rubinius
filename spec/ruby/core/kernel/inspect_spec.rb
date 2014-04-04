@@ -10,9 +10,7 @@ describe "Kernel#inspect" do
     Object.new.taint.inspect.tainted?.should be_true
   end
 
-  ruby_version_is "1.9" do
-    it "returns an untrusted string if self is untrusted" do
-      Object.new.untrust.inspect.untrusted?.should be_true
-    end
+  it "returns an untrusted string if self is untrusted" do
+    Object.new.untrust.inspect.untrusted?.should be_true
   end
 end

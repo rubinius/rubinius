@@ -3,8 +3,6 @@
 require File.expand_path('../../../../spec_helper', __FILE__)
 require File.expand_path('../shared/collect', __FILE__)
 
-ruby_version_is "2.0" do
-  describe "Enumerator::Lazy#collect" do
-    it_behaves_like :enumerator_lazy_collect, :collect
-  end
+describe "Enumerator::Lazy#collect" do
+  it_behaves_like :enumerator_lazy_collect, :collect
 end

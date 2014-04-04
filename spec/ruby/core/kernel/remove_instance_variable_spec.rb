@@ -18,16 +18,8 @@ describe "Kernel#remove_instance_variable" do
     @instance = KernelSpecs::InstanceVariable.new
   end
 
-  ruby_version_is "" ... "2.0" do
-    it "is a private method" do
-      Kernel.should have_private_instance_method(:remove_instance_variable, false)
-    end
-  end
-
-  ruby_version_is "2.0" do
-    it "is a public method" do
-      Kernel.should have_public_instance_method(:remove_instance_variable, false)
-    end
+  it "is a public method" do
+    Kernel.should have_public_instance_method(:remove_instance_variable, false)
   end
 
   it "raises a NameError if the instance variable is not defined" do

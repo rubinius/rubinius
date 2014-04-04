@@ -2,6 +2,14 @@ require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "Kernel#`" do
+  before :each do
+    @original_external = Encoding.default_external
+  end
+
+  after :each do
+    Encoding.default_external = @original_external
+  end
+
   it "is a private method" do
     Kernel.should have_private_instance_method(:`)
   end
@@ -16,19 +24,9 @@ describe "Kernel#`" do
     Kernel.`(obj).should == "test\n"
   end
 
-  ruby_version_is "1.9" do
-    before :each do
-      @original_external = Encoding.default_external
-    end
-
-    after :each do
-      Encoding.default_external = @original_external
-    end
-
-    it "produces a String in the default external encoding" do
-      Encoding.default_external = Encoding::SHIFT_JIS
-      `echo disc`.encoding.should equal(Encoding::SHIFT_JIS)
-    end
+  it "produces a String in the default external encoding" do
+    Encoding.default_external = Encoding::SHIFT_JIS
+    `echo disc`.encoding.should equal(Encoding::SHIFT_JIS)
   end
 
   platform_is_not :windows do

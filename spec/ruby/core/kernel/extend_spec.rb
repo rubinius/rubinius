@@ -66,16 +66,8 @@ describe "Kernel#extend" do
       lambda { @frozen.extend }.should raise_error(ArgumentError)
     end
 
-    ruby_version_is ""..."1.9" do
-      it "raises a TypeError" do
-        lambda { @frozen.extend @module }.should raise_error(TypeError)
-      end
-    end
-
-    ruby_version_is "1.9" do
-      it "raises a RuntimeError" do
-        lambda { @frozen.extend @module }.should raise_error(RuntimeError)
-      end
+    it "raises a RuntimeError" do
+      lambda { @frozen.extend @module }.should raise_error(RuntimeError)
     end
   end
 end

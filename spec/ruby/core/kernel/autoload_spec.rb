@@ -71,16 +71,8 @@ describe "Kernel#autoload" do
       EOD
     end
 
-    ruby_version_is "" ... "1.9" do
-      it "raises a TypeError before defining the constant" do
-        ruby_exe(@script, :args => "2>&1", :escape => true).should == "TypeError - nil"
-      end
-    end
-
-    ruby_version_is "1.9" do
-      it "raises a RuntimeError before defining the constant" do
-        ruby_exe(@script, :args => "2>&1", :escape => true).should == "RuntimeError - nil"
-      end
+    it "raises a RuntimeError before defining the constant" do
+      ruby_exe(@script, :args => "2>&1", :escape => true).should == "RuntimeError - nil"
     end
   end
 end
@@ -121,24 +113,16 @@ describe "Kernel.autoload" do
     Kernel.autoload?(:KSAutoloadAA).should == @non_existent
   end
 
-  ruby_version_is "" ... "1.9" do
-    it "sets the autoload constant in Object's constant table" do
-      Object.should have_constant(:KSAutoloadBB)
+  it "sets the autoload constant in Object's metaclass's constant table" do
+    class << Object
+      should have_constant(:KSAutoloadBB)
     end
   end
 
-  ruby_version_is "1.9" do
-    it "sets the autoload constant in Object's metaclass's constant table" do
-      class << Object
-        should have_constant(:KSAutoloadBB)
-      end
-    end
-
-    it "calls #to_path on non-String filenames" do
-      p = mock('path')
-      p.should_receive(:to_path).and_return @non_existent
-      Kernel.autoload :KSAutoloadAA, p
-    end
+  it "calls #to_path on non-String filenames" do
+    p = mock('path')
+    p.should_receive(:to_path).and_return @non_existent
+    Kernel.autoload :KSAutoloadAA, p
   end
 end
 

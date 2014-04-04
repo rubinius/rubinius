@@ -25,10 +25,8 @@ describe "File#reopen" do
     @file.read.should == @content_b
   end
 
-  ruby_version_is "1.9" do
-    it "calls #to_path to convern an Object" do
-      @file = File.new(@name_a).reopen(mock_to_path(@name_b), "r")
-      @file.read.should == @content_b
-    end
+  it "calls #to_path to convern an Object" do
+    @file = File.new(@name_a).reopen(mock_to_path(@name_b), "r")
+    @file.read.should == @content_b
   end
 end

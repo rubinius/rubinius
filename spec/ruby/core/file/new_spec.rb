@@ -131,13 +131,11 @@ describe "File.new" do
     File.exists?(@file).should == true
   end
 
-  ruby_version_is "1.9" do
-    it "coerces filename using #to_path" do
-      name = mock("file")
-      name.should_receive(:to_path).and_return(@file)
-      @fh = File.new(name, "w")
-      File.exists?(@file).should == true
-    end
+  it "coerces filename using #to_path" do
+    name = mock("file")
+    name.should_receive(:to_path).and_return(@file)
+    @fh = File.new(name, "w")
+    File.exists?(@file).should == true
   end
 
   it "raises a TypeError if the first parameter can't be coerced to a string" do

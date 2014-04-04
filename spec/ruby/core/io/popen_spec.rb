@@ -138,25 +138,23 @@ describe "IO.popen" do
     end
   end
 
-  ruby_version_is "1.9.2" do
-    platform_is_not :windows do # not sure what commands to use on Windows
-      describe "with a leading Array parameter" do
-        it "uses the Array as command plus args for the child process" do
-          IO.popen(["yes", "hello"]) do |i|
-            i.read(5).should == 'hello'
-          end
+  platform_is_not :windows do # not sure what commands to use on Windows
+    describe "with a leading Array parameter" do
+      it "uses the Array as command plus args for the child process" do
+        IO.popen(["yes", "hello"]) do |i|
+          i.read(5).should == 'hello'
         end
+      end
 
-        it "uses a leading Hash in the Array as additional environment variables" do
-          IO.popen([{'foo' => 'bar'}, 'env']) do |i|
-            i.read.should =~ /foo=bar/
-          end
+      it "uses a leading Hash in the Array as additional environment variables" do
+        IO.popen([{'foo' => 'bar'}, 'env']) do |i|
+          i.read.should =~ /foo=bar/
         end
+      end
 
-        it "uses a trailing Hash in the Array for spawn-like settings" do
-          IO.popen(['sh', '-c', 'does_not_exist', {:err => [:child, :out]}]) do |i|
-            i.read.should =~ /not found/
-          end
+      it "uses a trailing Hash in the Array for spawn-like settings" do
+        IO.popen(['sh', '-c', 'does_not_exist', {:err => [:child, :out]}]) do |i|
+          i.read.should =~ /not found/
         end
       end
     end

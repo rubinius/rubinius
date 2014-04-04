@@ -46,29 +46,14 @@ describe "Kernel#binding" do
     lambda { eval("a_fake_variable", @b1) }.should raise_error(NameError)
   end
 
-  ruby_version_is ""..."1.9" do
-    it "uses the receiver of #binding as self in the binding" do
-      m = mock(:whatever)
-      eval('self', m.send(:binding)).should == m
-    end
-
-    it "uses the receiver of #binding as self in a Class.new block" do
-      m = mock(:whatever)
-      cls = Class.new { ScratchPad.record eval('self', m.send(:binding)) }
-      ScratchPad.recorded.should == m
-    end
+  it "uses the closure's self as self in the binding" do
+    m = mock(:whatever)
+    eval('self', m.send(:binding)).should == self
   end
 
-  ruby_version_is "1.9" do
-    it "uses the closure's self as self in the binding" do
-      m = mock(:whatever)
-      eval('self', m.send(:binding)).should == self
-    end
-
-    it "uses the class as self in a Class.new block" do
-      m = mock(:whatever)
-      cls = Class.new { ScratchPad.record eval('self', m.send(:binding)) }
-      ScratchPad.recorded.should == cls
-    end
+  it "uses the class as self in a Class.new block" do
+    m = mock(:whatever)
+    cls = Class.new { ScratchPad.record eval('self', m.send(:binding)) }
+    ScratchPad.recorded.should == cls
   end
 end

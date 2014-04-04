@@ -17,16 +17,8 @@ describe :kernel_integer, :shared => true do
     Integer(obj).should == "1"
   end
 
-  ruby_version_is "1.9" do
-    it "raises a TypeError when passed nil" do
-      lambda { Integer(nil) }.should raise_error(TypeError)
-    end
-  end
-
-  ruby_version_is ""..."1.9" do
-    it "returns 0 when passed nil" do
-      Integer(nil).should == 0
-    end
+  it "raises a TypeError when passed nil" do
+    lambda { Integer(nil) }.should raise_error(TypeError)
   end
 
   it "returns a Fixnum or Bignum object" do
@@ -39,11 +31,9 @@ describe :kernel_integer, :shared => true do
     Integer(90.8).should == 90
   end
 
-  ruby_version_is "1.9" do
-    it "calls to_i on Rationals" do
-      Integer(Rational(8,3)).should == 2
-      Integer(3.quo(2)).should == 1
-    end
+  it "calls to_i on Rationals" do
+    Integer(Rational(8,3)).should == 2
+    Integer(3.quo(2)).should == 1
   end
 
   it "returns the value of to_int if the result is a Fixnum" do
@@ -681,9 +671,7 @@ describe "Kernel.Integer" do
   it_behaves_like :kernel_integer, :Integer, Kernel
   it_behaves_like "Integer() given a String", :Integer
 
-  ruby_version_is "1.9" do
-    it_behaves_like "Integer() given a String and base", :Integer
-  end
+  it_behaves_like "Integer() given a String and base", :Integer
 
   it "is a public method" do
     Kernel.Integer(10).should == 10
@@ -697,9 +685,7 @@ describe "Kernel#Integer" do
   it_behaves_like :kernel_integer, :Integer, Object.new
   it_behaves_like "Integer() given a String", :Integer
 
-  ruby_version_is "1.9" do
-    it_behaves_like "Integer() given a String and base", :Integer
-  end
+  it_behaves_like "Integer() given a String and base", :Integer
 
   it "is a private method" do
     Kernel.should have_private_instance_method(:Integer)

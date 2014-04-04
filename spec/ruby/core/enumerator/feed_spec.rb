@@ -1,72 +1,52 @@
 require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/common', __FILE__)
 
 describe "Enumerator#feed" do
   before :each do
-    # An object to keep track of the last yield return value
-    @o = Object.new
-    class << @o
-      attr_reader :last_yield
-
-      def each
-        while true
-          @last_yield = yield
-        end
-      end
-    end
+    ScratchPad.record []
+    @enum = EnumeratorSpecs::Feed.new.to_enum(:each)
   end
 
-  it "changes the next return value of yield" do
-    e = @o.to_enum
-    e.next
-    e.feed "bar"
-    e.next
-    @o.last_yield.should == "bar"
+  it "sets the future return value of yield if called before advancing the iterator" do
+    @enum.feed :a
+    @enum.next
+    @enum.next
+    @enum.next
+    ScratchPad.recorded.should == [:a, nil]
   end
 
-  it "clears the feed value after being yielded" do
-    e = @o.to_enum
-    e.next
-    e.feed "bar"
-    e.next
-    e.next
-    @o.last_yield.should be_nil
+  it "causes yield to return the value if called during iteration" do
+    @enum.next
+    @enum.feed :a
+    @enum.next
+    @enum.next
+    ScratchPad.recorded.should == [:a, nil]
   end
 
-  it "raises a TypeError when called repeatedly" do
-    e = [].to_enum
-    e.feed 0
-    lambda { e.feed 0 }.should raise_error(TypeError)
-    lambda { e.feed 0 }.should raise_error(TypeError)
+  it "can be called for each iteration" do
+    @enum.next
+    @enum.feed :a
+    @enum.next
+    @enum.feed :b
+    @enum.next
+    ScratchPad.recorded.should == [:a, :b]
   end
 
   it "returns nil" do
-    e = [].to_enum
-    e.feed(5).should be_nil
+    @enum.feed(:a).should be_nil
   end
 
-  it "resets if rewind is called" do
-    e = @o.to_enum
-    e.next
-    e.feed "bar"
-    e.rewind
-    e.next
-    @o.last_yield.should be_nil
+  it "raises a TypeError if called more than once without advancing the enumerator" do
+    @enum.feed :a
+    @enum.next
+    lambda { @enum.feed :b }.should raise_error(TypeError)
   end
 
-  it "matches the ruby-doc example" do
-    e = [1,2,3].map
-    e.next
-    e.feed "a"
-    e.next
-    e.feed "b"
-    e.next
-    e.feed "c"
-    @x = nil
-    begin
-      e.next
-    rescue StopIteration
-      @x = $!.result
-    end
-    @x.should == ["a", "b", "c"]
+  it "sets the return value of Yielder#yield" do
+    enum = Enumerator.new { |y| ScratchPad << y.yield }
+    enum.next
+    enum.feed :a
+    lambda { enum.next }.should raise_error(StopIteration)
+    ScratchPad.recorded.should == [:a]
   end
 end

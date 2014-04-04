@@ -73,6 +73,12 @@ describe "Array#[]=" do
     a.should == [nil, 3, 4, 5]
   end
 
+  it 'expands and nil-pads the array if section assigned by range is outside array boundaries' do
+    a = ['a']
+    a[3..4] = ['b', 'c']
+    a.should == ['a', nil, nil, 'b', 'c']
+  end
+
   it "calls to_int on its start and length arguments" do
     obj = mock('to_int')
     obj.stub!(:to_int).and_return(2)

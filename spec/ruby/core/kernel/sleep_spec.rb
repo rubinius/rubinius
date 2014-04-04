@@ -28,13 +28,11 @@ describe "Kernel#sleep" do
     lambda { sleep('2')   }.should raise_error(TypeError)
   end
 
-  ruby_version_is "1.9" do
-    it "accepts a Rational" do
-      duration = Rational 1, 9
-      start = Time.now
-      sleep duration
-      (Time.now - start).should be_close(duration, 0.01)
-    end
+  it "accepts a Rational" do
+    duration = Rational 1, 9
+    start = Time.now
+    sleep duration
+    (Time.now - start).should be_close(duration, 0.01)
   end
 
   it "pauses execution indefinitely if not given a duration" do

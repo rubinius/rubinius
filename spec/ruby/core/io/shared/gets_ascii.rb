@@ -12,16 +12,8 @@ describe :io_gets_ascii, :shared => true do
       rm_r @name
     end
 
-    ruby_version_is ""..."1.9" do
-      it "returns the separator's number representation" do
-        @data.should == "this is a test\377"
-      end
-    end
-
-    ruby_version_is "1.9" do
-      it "returns the separator's character representation" do
-        @data.should == "this is a test\xFF"
-      end
+    it "returns the separator's character representation" do
+      @data.should == "this is a test\xFF"
     end
   end
 end

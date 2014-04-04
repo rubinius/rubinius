@@ -108,12 +108,10 @@ describe "IO#reopen with a String" do
     @tmp_file.should have_data("from system\nfrom exec", "r")
   end
 
-  ruby_version_is "1.9" do
-    it "calls #to_path on non-String arguments" do
-      obj = mock('path')
-      obj.should_receive(:to_path).and_return(@other_name)
-      @io.reopen(obj)
-    end
+  it "calls #to_path on non-String arguments" do
+    obj = mock('path')
+    obj.should_receive(:to_path).and_return(@other_name)
+    @io.reopen(obj)
   end
 end
 

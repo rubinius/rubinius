@@ -12,24 +12,16 @@ describe :enumerable_inject, :shared => true do
     a.should == [[0, 1], [1, 2]]
   end
 
-  ruby_version_is ''...'1.8.7' do
-    it "takes only one argument" do
-      lambda { EnumerableSpecs::Numerous.new.send(@method, 0, 1) { |memo, i| i } }.should raise_error(ArgumentError)
-    end
+  it "can take two argument" do
+    EnumerableSpecs::Numerous.new(1, 2, 3).send(@method, 10, :-).should == 4
   end
 
-  ruby_version_is '1.8.7' do
-    it "can take two argument" do
-      EnumerableSpecs::Numerous.new(1, 2, 3).send(@method, 10, :-).should == 4
-    end
+  it "ignores the block if two arguments" do
+    EnumerableSpecs::Numerous.new(1, 2, 3).send(@method, 10, :-){ raise "we never get here"}.should == 4
+  end
 
-    it "ignores the block if two arguments" do
-      EnumerableSpecs::Numerous.new(1, 2, 3).send(@method, 10, :-){ raise "we never get here"}.should == 4
-    end
-
-    it "can take a symbol argument" do
-      EnumerableSpecs::Numerous.new(10, 1, 2, 3).send(@method, :-).should == 4
-    end
+  it "can take a symbol argument" do
+    EnumerableSpecs::Numerous.new(10, 1, 2, 3).send(@method, :-).should == 4
   end
 
   it "without argument takes a block with an accumulator (with first element as initial value) and the current element. Value of block becomes new accumulator" do

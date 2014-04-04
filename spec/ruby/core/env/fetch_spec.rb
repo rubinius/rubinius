@@ -11,16 +11,8 @@ describe "ENV.fetch" do
     lambda { ENV.fetch :should_never_be_set }.should raise_error(TypeError)
   end
 
-  ruby_version_is ""..."1.9" do
-    it "raises an IndexError if the key is not found" do
-      lambda { ENV.fetch "should_never_be_set" }.should raise_error(IndexError)
-    end
-  end
-
-  ruby_version_is "1.9" do
-    it "raises a KeyError if the key is not found" do
-      lambda { ENV.fetch "should_never_be_set" }.should raise_error(KeyError)
-    end
+  it "raises a KeyError if the key is not found" do
+    lambda { ENV.fetch "should_never_be_set" }.should raise_error(KeyError)
   end
 
   it "provides the given default parameter" do
@@ -37,9 +29,7 @@ describe "ENV.fetch" do
     end.should complain(/block supersedes default value argument/)
   end
 
-  ruby_version_is "1.9" do
-    it "uses the locale encoding" do
-      ENV.fetch(ENV.keys.first).encoding.should == Encoding.find('locale')
-    end
+  it "uses the locale encoding" do
+    ENV.fetch(ENV.keys.first).encoding.should == Encoding.find('locale')
   end
 end

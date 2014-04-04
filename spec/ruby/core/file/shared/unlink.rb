@@ -48,9 +48,7 @@ describe :file_unlink, :shared => true do
     File.send(@method, Coercable.new).should == 1
   end
 
-  ruby_version_is "1.9" do
-    it "accepts an object that has a #to_path method" do
-      File.send(@method, mock_to_path(@file1)).should == 1
-    end
+  it "accepts an object that has a #to_path method" do
+    File.send(@method, mock_to_path(@file1)).should == 1
   end
 end

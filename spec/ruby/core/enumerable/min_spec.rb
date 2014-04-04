@@ -37,20 +37,10 @@ describe "Enumerable#min" do
     EnumerableSpecs::EachDefiner.new.min.should be_nil
   end
 
-  ruby_version_is ""..."1.9" do
-    it "raises a NoMethodError for elements without #<=>" do
-      lambda do
-        EnumerableSpecs::EachDefiner.new(Object.new, Object.new).min
-      end.should raise_error(NoMethodError)
-    end
-  end
-
-  ruby_version_is "1.9" do
-    it "raises a NoMethodError for elements without #<=>" do
-      lambda do
-        EnumerableSpecs::EachDefiner.new(BasicObject.new, BasicObject.new).min
-      end.should raise_error(NoMethodError)
-    end
+  it "raises a NoMethodError for elements without #<=>" do
+    lambda do
+      EnumerableSpecs::EachDefiner.new(BasicObject.new, BasicObject.new).min
+    end.should raise_error(NoMethodError)
   end
 
   it "raises an ArgumentError for incomparable elements" do

@@ -3,16 +3,8 @@ require File.expand_path('../../../time/fixtures/methods', __FILE__)
 require 'stringio'
 
 describe :marshal_load, :shared => true do
-  ruby_version_is ""..."2.1" do
-    before :all do
-      @num_self_class = 0
-    end
-  end
-
-  ruby_version_is "2.1" do
-    before :all do
-      @num_self_class = 1
-    end
+  before :all do
+    @num_self_class = 1
   end
 
   it "raises an ArgumentError when the dumped data is truncated" do
@@ -28,145 +20,64 @@ describe :marshal_load, :shared => true do
     lambda { Marshal.send(@method, kaboom) }.should raise_error(ArgumentError)
   end
 
-  ruby_version_is "1.9" do
-    it "returns the value of the proc when called with a proc" do
-      Marshal.send(@method, Marshal.dump([1,2]), proc { [3,4] }).should ==  [3,4]
-    end
+  it "returns the value of the proc when called with a proc" do
+    Marshal.send(@method, Marshal.dump([1,2]), proc { [3,4] }).should ==  [3,4]
   end
 
-  ruby_version_is ""..."1.9" do
-    it "ignores the value of the proc when called with a proc" do
-      Marshal.send(@method, Marshal.dump([1,2]), proc { [3,4] }).should ==  [1,2]
-    end
+  it "calls the proc for recursively visited data" do
+    a = [1]
+    a << a
+    ret = []
+    Marshal.send(@method, Marshal.dump(a), proc { |arg| ret << arg; arg })
+    ret.first.should == 1
+    ret[1].should == [1,a]
+    ret[2].should == a
+    ret.size.should == 3
   end
 
-  ruby_version_is "1.9" do
-    it "calls the proc for recursively visited data" do
-      a = [1]
-      a << a
-      ret = []
-      Marshal.send(@method, Marshal.dump(a), proc { |arg| ret << arg; arg })
-      ret.first.should == 1
-      ret[1].should == [1,a]
-      ret[2].should == a
-      ret.size.should == 3
-    end
+  it "loads an array containing objects having _dump method, and with proc" do
+    arr = []
+    myproc = Proc.new { |o| arr << o; o }
+    o1 = UserDefined.new;
+    o2 = UserDefinedWithIvar.new
+    obj = [o1, o2, o1, o2]
+
+    Marshal.send(@method, "\x04\b[\tu:\x10UserDefined\x18\x04\b[\aI\"\nstuff\x06:\x06EF@\x06u:\x18UserDefinedWithIvar>\x04\b[\bI\"\nstuff\a:\x06EF:\t@foo:\x18UserDefinedWithIvarI\"\tmore\x06;\x00F@\a@\x06@\a", myproc)
+
+    arr.should == [o1, o2, o1, o2, obj]
   end
 
-  ruby_version_is ""..."1.9" do
-    it "doesn't call the proc for recursively visited data" do
-      a = [1]
-      a << a
-      ret = []
-      Marshal.send(@method, Marshal.dump(a), proc { |arg| ret << arg })
-      ret.first.should == 1
-      ret.size.should == 2
-    end
+  it "loads an array containing objects having marshal_dump method, and with proc" do
+    arr = []
+    proc = Proc.new { |o| arr << o; o }
+    o1 = UserMarshal.new
+    o2 = UserMarshalWithIvar.new
+    obj = [o1, o2, o1, o2]
+
+    Marshal.send(@method, "\004\b[\tU:\020UserMarshal\"\nstuffU:\030UserMarshalWithIvar[\006\"\fmy data@\006@\b", proc)
+
+    arr.should == ['stuff', o1, 'my data', ['my data'], o2, o1, o2, obj]
   end
 
-  ruby_version_is ""..."1.9" do
-    it "loads an array containing objects having _dump method, and with proc" do
-      arr = []
-      proc = Proc.new { |o| arr << o }
-      o1 = UserDefined.new;
-      o2 = UserDefinedWithIvar.new
-      obj = [o1, o2, o1, o2]
+  it "loads an Array with proc" do
+    arr = []
+    s = 'hi'
+    s.instance_variable_set(:@foo, 5)
+    st = Struct.new("Brittle", :a).new
+    st.instance_variable_set(:@clue, 'none')
+    st.a = 0.0
+    h = Hash.new('def')
+    h['nine'] = 9
+    a = [:a, :b, :c]
+    a.instance_variable_set(:@two, 2)
+    obj = [s, 10, s, s, st, a]
+    obj.instance_variable_set(:@zoo, 'ant')
+    proc = Proc.new { |o| arr << o; o}
 
-      Marshal.send(@method, "\004\b[\tu:\020UserDefined\022\004\b[\a\"\nstuff@\006u:\030UserDefinedWithIvar5\004\b[\bI\"\nstuff\006:\t@foo:\030UserDefinedWithIvar\"\tmore@\a@\006@\a", proc)
+    Marshal.send(@method, "\x04\bI[\vI\"\ahi\a:\x06EF:\t@fooi\ni\x0F@\x06@\x06IS:\x14Struct::Brittle\x06:\x06af\x060\x06:\n@clueI\"\tnone\x06;\x00FI[\b;\b:\x06b:\x06c\x06:\t@twoi\a\x06:\t@zooI\"\bant\x06;\x00F", proc)
 
-      arr.should == [o1, o2, obj]
-    end
-  end
-
-  ruby_version_is "1.9" do
-    it "loads an array containing objects having _dump method, and with proc" do
-      arr = []
-      myproc = Proc.new { |o| arr << o; o }
-      o1 = UserDefined.new;
-      o2 = UserDefinedWithIvar.new
-      obj = [o1, o2, o1, o2]
-
-      Marshal.send(@method, "\x04\b[\tu:\x10UserDefined\x18\x04\b[\aI\"\nstuff\x06:\x06EF@\x06u:\x18UserDefinedWithIvar>\x04\b[\bI\"\nstuff\a:\x06EF:\t@foo:\x18UserDefinedWithIvarI\"\tmore\x06;\x00F@\a@\x06@\a", myproc)
-
-      arr.should == [o1, o2, o1, o2, obj]
-    end
-  end
-
-  ruby_version_is ""..."1.9" do
-    it "loads an array containing objects having marshal_dump method, and with proc" do
-      arr = []
-      proc = Proc.new { |o| arr << o }
-      o1 = UserMarshal.new
-      o2 = UserMarshalWithIvar.new
-      obj = [o1, o2, o1, o2]
-
-      Marshal.send(@method, "\004\b[\tU:\020UserMarshal\"\nstuffU:\030UserMarshalWithIvar[\006\"\fmy data@\006@\b", proc)
-
-      arr.should == ['stuff', o1, 'my data', ['my data'], o2, obj]
-    end
-  end
-
-  ruby_version_is "1.9" do
-    it "loads an array containing objects having marshal_dump method, and with proc" do
-      arr = []
-      proc = Proc.new { |o| arr << o; o }
-      o1 = UserMarshal.new
-      o2 = UserMarshalWithIvar.new
-      obj = [o1, o2, o1, o2]
-
-      Marshal.send(@method, "\004\b[\tU:\020UserMarshal\"\nstuffU:\030UserMarshalWithIvar[\006\"\fmy data@\006@\b", proc)
-
-      arr.should == ['stuff', o1, 'my data', ['my data'], o2, o1, o2, obj]
-    end
-  end
-
-  ruby_version_is ""..."1.9" do
-    it "loads an Array with proc" do
-      arr = []
-      s = 'hi'
-      s.instance_variable_set(:@foo, 5)
-      st = Struct.new("Brittle", :a).new
-      st.instance_variable_set(:@clue, 'none')
-      st.a = 0.0
-      h = Hash.new('def')
-      h['nine'] = 9
-      a = [:a, :b, :c]
-      a.instance_variable_set(:@two, 2)
-      obj = [s, 10, s, s, st, h, a]
-      obj.instance_variable_set(:@zoo, 'ant')
-      proc = Proc.new { |o| arr << o }
-
-      new_obj = Marshal.send(@method, "\004\bI[\fI\"\ahi\006:\t@fooi\ni\017@\006@\006IS:\024Struct::Brittle\006:\006af\0060\006:\n@clue\"\tnone}\006\"\tninei\016\"\bdefI[\b;\a:\006b:\006c\006:\t@twoi\a\006:\t@zoo\"\bant", proc)
-
-      new_obj.should == obj
-      new_obj.instance_variable_get(:@zoo).should == 'ant'
-
-      arr.should ==
-        [5, s, 10, 0.0, 'none', st, 'nine', 9, 'def', h, :b, :c, 2, a, 'ant', obj]
-    end
-  end
-
-  ruby_version_is "1.9" do
-    it "loads an Array with proc" do
-      arr = []
-      s = 'hi'
-      s.instance_variable_set(:@foo, 5)
-      st = Struct.new("Brittle", :a).new
-      st.instance_variable_set(:@clue, 'none')
-      st.a = 0.0
-      h = Hash.new('def')
-      h['nine'] = 9
-      a = [:a, :b, :c]
-      a.instance_variable_set(:@two, 2)
-      obj = [s, 10, s, s, st, a]
-      obj.instance_variable_set(:@zoo, 'ant')
-      proc = Proc.new { |o| arr << o; o}
-
-      Marshal.send(@method, "\x04\bI[\vI\"\ahi\a:\x06EF:\t@fooi\ni\x0F@\x06@\x06IS:\x14Struct::Brittle\x06:\x06af\x060\x06:\n@clueI\"\tnone\x06;\x00FI[\b;\b:\x06b:\x06c\x06:\t@twoi\a\x06:\t@zooI\"\bant\x06;\x00F", proc)
-
-      arr.should == ["hi", false, 5, 10, "hi", "hi", 0.0, st, "none", false,
-        :b, :c, a, 2, ["hi", 10, "hi", "hi", st, [:a, :b, :c]], "ant", false]
-    end
+    arr.should == ["hi", false, 5, 10, "hi", "hi", 0.0, st, "none", false,
+      :b, :c, a, 2, ["hi", 10, "hi", "hi", st, [:a, :b, :c]], "ant", false]
   end
 
   it "assigns classes to nested subclasses of Array correctly" do
@@ -229,34 +140,32 @@ describe :marshal_load, :shared => true do
       y.first.first.tainted?.should be_true
     end
 
-    ruby_version_is "2.1" do
-      it "does not taint Symbols" do
-        x = [:x]
-        y = Marshal.send(@method, Marshal.dump(x).taint)
-        y.tainted?.should be_true
-        y.first.tainted?.should be_false
-      end
+    it "does not taint Symbols" do
+      x = [:x]
+      y = Marshal.send(@method, Marshal.dump(x).taint)
+      y.tainted?.should be_true
+      y.first.tainted?.should be_false
+    end
 
-      it "does not taint Fixnums" do
-        x = [1]
-        y = Marshal.send(@method, Marshal.dump(x).taint)
-        y.tainted?.should be_true
-        y.first.tainted?.should be_false
-      end
+    it "does not taint Fixnums" do
+      x = [1]
+      y = Marshal.send(@method, Marshal.dump(x).taint)
+      y.tainted?.should be_true
+      y.first.tainted?.should be_false
+    end
 
-      it "does not taint Bignums" do
-        x = [bignum_value]
-        y = Marshal.send(@method, Marshal.dump(x).taint)
-        y.tainted?.should be_true
-        y.first.tainted?.should be_false
-      end
+    it "does not taint Bignums" do
+      x = [bignum_value]
+      y = Marshal.send(@method, Marshal.dump(x).taint)
+      y.tainted?.should be_true
+      y.first.tainted?.should be_false
+    end
 
-      it "does not taint Floats" do
-        x = [1.2]
-        y = Marshal.send(@method, Marshal.dump(x).taint)
-        y.tainted?.should be_true
-        y.first.tainted?.should be_false
-      end
+    it "does not taint Floats" do
+      x = [1.2]
+      y = Marshal.send(@method, Marshal.dump(x).taint)
+      y.tainted?.should be_true
+      y.first.tainted?.should be_false
     end
   end
 
@@ -270,28 +179,24 @@ describe :marshal_load, :shared => true do
     y.first.first.tainted?.should be_true
   end
 
-  ruby_version_is "1.9" do
+  it "returns a trusted object if source is trusted" do
+    x = Object.new
+    y = Marshal.send(@method, Marshal.dump(x))
+    y.untrusted?.should be_false
+  end
 
-    it "returns a trusted object if source is trusted" do
-      x = Object.new
-      y = Marshal.send(@method, Marshal.dump(x))
-      y.untrusted?.should be_false
-    end
+  it "returns an untrusted object if source is untrusted" do
+    x = Object.new
+    x.untrust
+    y = Marshal.send(@method, Marshal.dump(x))
+    y.untrusted?.should be_true
 
-    it "returns an untrusted object if source is untrusted" do
-      x = Object.new
-      x.untrust
-      y = Marshal.send(@method, Marshal.dump(x))
-      y.untrusted?.should be_true
-
-      # note that round-trip via Marshal does not preserve
-      # the untrustedness at each level of the nested structure
-      y = Marshal.send(@method, Marshal.dump([[x]]))
-      y.untrusted?.should be_true
-      y.first.untrusted?.should be_true
-      y.first.first.untrusted?.should be_true
-
-    end
+    # note that round-trip via Marshal does not preserve
+    # the untrustedness at each level of the nested structure
+    y = Marshal.send(@method, Marshal.dump([[x]]))
+    y.untrusted?.should be_true
+    y.first.untrusted?.should be_true
+    y.first.first.untrusted?.should be_true
   end
 
   # Note: Ruby 1.9 should be compatible with older marshal format
@@ -301,11 +206,9 @@ describe :marshal_load, :shared => true do
     end
   end
 
-  ruby_version_is "1.9" do
-    MarshalSpec::DATA_19.each do |description, (object, marshal, attributes)|
-      it "loads a #{description}" do
-        Marshal.send(@method, marshal).should == object
-      end
+  MarshalSpec::DATA_19.each do |description, (object, marshal, attributes)|
+    it "loads a #{description}" do
+      Marshal.send(@method, marshal).should == object
     end
   end
 
@@ -443,36 +346,20 @@ describe :marshal_load, :shared => true do
       Marshal.send(@method, "\004\bS:\021Struct::Ure1\a:\006a0:\006b0").should == obj
     end
 
-    ruby_version_is ""..."1.9" do
-      it "calls initialize on the unmarshaled struct" do
-        s = MarshalSpec::StructWithUserInitialize.new('foo')
-        Thread.current[MarshalSpec::StructWithUserInitialize::THREADLOCAL_KEY].should == ['foo']
-        s.a.should == 'foo'
+    it "does not call initialize on the unmarshaled struct" do
+      threadlocal_key = MarshalSpec::StructWithUserInitialize::THREADLOCAL_KEY
 
-        dumped = Marshal.dump(s)
-        loaded = Marshal.send(@method, dumped)
+      s = MarshalSpec::StructWithUserInitialize.new('foo')
+      Thread.current[threadlocal_key].should == ['foo']
+      s.a.should == 'foo'
 
-        Thread.current[MarshalSpec::StructWithUserInitialize::THREADLOCAL_KEY].should == [nil]
-        loaded.a.should == 'foo'
-      end
-    end
+      Thread.current[threadlocal_key] = nil
 
-    ruby_version_is "1.9" do
-      it "does not call initialize on the unmarshaled struct" do
-        threadlocal_key = MarshalSpec::StructWithUserInitialize::THREADLOCAL_KEY
+      dumped = Marshal.dump(s)
+      loaded = Marshal.send(@method, dumped)
 
-        s = MarshalSpec::StructWithUserInitialize.new('foo')
-        Thread.current[threadlocal_key].should == ['foo']
-        s.a.should == 'foo'
-
-        Thread.current[threadlocal_key] = nil
-
-        dumped = Marshal.dump(s)
-        loaded = Marshal.send(@method, dumped)
-
-        Thread.current[threadlocal_key].should == nil
-        loaded.a.should == 'foo'
-      end
+      Thread.current[threadlocal_key].should == nil
+      loaded.a.should == 'foo'
     end
   end
 
@@ -682,17 +569,15 @@ describe :marshal_load, :shared => true do
     end
   end
 
-  ruby_version_is "1.9" do
-    describe "for a Rational" do
-      it "loads" do
-        Marshal.send(@method, Marshal.dump(Rational(1, 3))).should == Rational(1, 3)
-      end
+  describe "for a Rational" do
+    it "loads" do
+      Marshal.send(@method, Marshal.dump(Rational(1, 3))).should == Rational(1, 3)
     end
+  end
 
-    describe "for a Complex" do
-      it "loads" do
-        Marshal.send(@method, Marshal.dump(Complex(4, 3))).should == Complex(4, 3)
-      end
+  describe "for a Complex" do
+    it "loads" do
+      Marshal.send(@method, Marshal.dump(Complex(4, 3))).should == Complex(4, 3)
     end
   end
 
@@ -715,18 +600,16 @@ describe :marshal_load, :shared => true do
       t1.should equal t2
     end
 
-    ruby_version_is "2.0" do
-      it "loads the zone" do
-        with_timezone 'AST', 3 do
-          t = Time.local(2012, 1, 1)
-          Marshal.load(Marshal.dump(t)).zone.should == t.zone
-        end
+    it "loads the zone" do
+      with_timezone 'AST', 3 do
+        t = Time.local(2012, 1, 1)
+        Marshal.load(Marshal.dump(t)).zone.should == t.zone
       end
+    end
 
-      it "loads nanoseconds" do
-        t = Time.now
-        Marshal.load(Marshal.dump(t)).nsec.should == t.nsec
-      end
+    it "loads nanoseconds" do
+      t = Time.now
+      Marshal.load(Marshal.dump(t)).nsec.should == t.nsec
     end
   end
 

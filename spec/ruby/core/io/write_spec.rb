@@ -82,27 +82,25 @@ describe "IO#write on a file" do
   end
 end
 
-ruby_version_is "1.9.3" do
-  describe "IO.write" do
-    it_behaves_like :io_binwrite, :write
+describe "IO.write" do
+  it_behaves_like :io_binwrite, :write
 
-    it "uses an :open_args option" do
-      IO.write(@filename, 'hi', :open_args => ["w", nil, {:encoding => Encoding::UTF_32LE}]).should == 8
-    end
+  it "uses an :open_args option" do
+    IO.write(@filename, 'hi', :open_args => ["w", nil, {:encoding => Encoding::UTF_32LE}]).should == 8
+  end
 
-    it "disregards other options if :open_args is given" do
-      IO.write(@filename, 'hi', 2, :mode => "r", :encoding => Encoding::UTF_32LE, :open_args => ["w"]).should == 2
-      File.read(@filename).should == "\0\0hi"
-    end
+  it "disregards other options if :open_args is given" do
+    IO.write(@filename, 'hi', 2, :mode => "r", :encoding => Encoding::UTF_32LE, :open_args => ["w"]).should == 2
+    File.read(@filename).should == "\0\0hi"
+  end
 
-    it "uses the given encoding and returns the number of bytes written" do
-      IO.write(@filename, 'hi', :mode => "w", :encoding => Encoding::UTF_32LE).should == 8
-    end
+  it "uses the given encoding and returns the number of bytes written" do
+    IO.write(@filename, 'hi', :mode => "w", :encoding => Encoding::UTF_32LE).should == 8
+  end
 
-    it "writes binary data if no encoding is given" do
-      IO.write(@filename, 'Hëllö'.encode('ISO-8859-1'))
-      File.binread(@filename).should == "H\xEBll\xF6".force_encoding(Encoding::ASCII_8BIT)
-    end
+  it "writes binary data if no encoding is given" do
+    IO.write(@filename, 'Hëllö'.encode('ISO-8859-1'))
+    File.binread(@filename).should == "H\xEBll\xF6".force_encoding(Encoding::ASCII_8BIT)
   end
 end
 
