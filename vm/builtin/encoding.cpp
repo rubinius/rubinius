@@ -97,13 +97,14 @@ namespace rubinius {
 
   static Symbol* encoding_symbol(STATE, const char* name) {
     char* upper = strdup(name);
+    size_t len  = strlen(name);
     if(!upper) return nil<Symbol>();
 
     for(char *p = upper; *p; p++) {
       *p = toupper((int)*p);
     }
 
-    Symbol* sym = state->symbol(upper);
+    Symbol* sym = state->symbol(upper, len);
     free(upper);
 
     return sym;
@@ -336,6 +337,7 @@ namespace rubinius {
     if(ISDIGIT(*name)) return;
 
     char* s = const_cast<char*>(name);
+    size_t name_len = strlen(name);
     bool has_lower = false;
     bool has_upper = false;
     bool valid = false;
@@ -351,7 +353,7 @@ namespace rubinius {
       if(s - name > ENCODING_NAMELEN_MAX) return;
 
       valid = true;
-      G(encoding)->set_const(state, state->symbol(name), enc);
+      G(encoding)->set_const(state, state->symbol(name, name_len), enc);
     }
 
     if(!valid || has_lower) {
@@ -379,7 +381,7 @@ namespace rubinius {
           if(!ISALNUM(*s)) *s = '_';
         }
         if(has_upper) {
-          G(encoding)->set_const(state, state->symbol(name), enc);
+          G(encoding)->set_const(state, state->symbol(name, name_len), enc);
         }
       }
 
@@ -387,7 +389,7 @@ namespace rubinius {
         for(s = (char *)name; *s; ++s) {
           if(ISLOWER(*s)) *s = ONIGENC_ASCII_CODE_TO_UPPER_CASE((int)*s);
         }
-        G(encoding)->set_const(state, state->symbol(name), enc);
+        G(encoding)->set_const(state, state->symbol(name, name_len), enc);
       }
 
       free(p);
