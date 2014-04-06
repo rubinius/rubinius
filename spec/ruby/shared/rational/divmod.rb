@@ -38,15 +38,7 @@ describe :rational_divmod_float, :shared => true do
     end
   end
 
-  ruby_version_is ""..."1.9" do
-    it "raises a FloatDomainError when passed 0" do
-      lambda { Rational(7, 4).divmod(0.0) }.should raise_error(FloatDomainError)
-    end
-  end
-
-  ruby_version_is "1.9" do
-    it "raises a ZeroDivisionError when passed 0" do
-      lambda { Rational(7, 4).divmod(0.0) }.should raise_error(ZeroDivisionError)
-    end
+  it "raises a ZeroDivisionError when passed 0" do
+    lambda { Rational(7, 4).divmod(0.0) }.should raise_error(ZeroDivisionError)
   end
 end

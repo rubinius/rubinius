@@ -145,15 +145,11 @@ describe "C-API Thread function" do
       it_behaves_like :rb_thread_blocking_region, :rb_thread_blocking_region
     end
 
-    ruby_version_is "1.9" do
-      it_behaves_like :rb_thread_blocking_region, :rb_thread_blocking_region_with_ubf_io
-      it_behaves_like :rb_thread_blocking_region, :rb_thread_blocking_region
-    end
+    it_behaves_like :rb_thread_blocking_region, :rb_thread_blocking_region_with_ubf_io
+    it_behaves_like :rb_thread_blocking_region, :rb_thread_blocking_region
 
-    ruby_version_is "2.0" do
-      it_behaves_like :rb_thread_blocking_region, :rb_thread_call_without_gvl
-      it_behaves_like :rb_thread_blocking_region, :rb_thread_call_without_gvl2
-    end
+    it_behaves_like :rb_thread_blocking_region, :rb_thread_call_without_gvl
+    it_behaves_like :rb_thread_blocking_region, :rb_thread_call_without_gvl2
   end
 end
 

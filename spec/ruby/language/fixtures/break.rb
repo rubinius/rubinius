@@ -157,7 +157,7 @@ module BreakSpecs
       end
       note :d
 
-      note invoke_yield(&l)
+      invoke_yield(&l)
 
       note :e
     end

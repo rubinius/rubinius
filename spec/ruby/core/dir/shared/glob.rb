@@ -16,13 +16,11 @@ describe :dir_glob, :shared => true do
     end
   end
 
-  ruby_version_is "1.9" do
-    it "calls #to_path to convert a pattern" do
-      obj = mock('file_one.ext')
-      obj.should_receive(:to_path).and_return('file_one.ext')
+  it "calls #to_path to convert a pattern" do
+    obj = mock('file_one.ext')
+    obj.should_receive(:to_path).and_return('file_one.ext')
 
-      Dir.send(@method, obj).should == %w[file_one.ext]
-    end
+    Dir.send(@method, obj).should == %w[file_one.ext]
   end
 
   it "splits the string on \\0 if there is only one string given" do
@@ -278,10 +276,8 @@ describe :dir_glob, :shared => true do
     Dir.send(@method, "deeply/notthere/blah/").should == []
   end
 
-  ruby_version_is "1.9" do
-    it "matches UTF-8 paths" do
-      Dir.send(@method, "special/こんにちは{,.txt}").should == ["special/こんにちは.txt"]
-    end
+  it "matches UTF-8 paths" do
+    Dir.send(@method, "special/こんにちは{,.txt}").should == ["special/こんにちは.txt"]
   end
 end
 

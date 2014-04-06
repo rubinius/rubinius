@@ -19,10 +19,8 @@ describe :file_directory, :shared => true do
     @object.send(@method, @file).should be_false
   end
 
-  ruby_version_is "1.9" do
-    it "accepts an object that has a #to_path method" do
-      @object.send(@method, mock_to_path(@dir)).should be_true
-    end
+  it "accepts an object that has a #to_path method" do
+    @object.send(@method, mock_to_path(@dir)).should be_true
   end
 
   it "raises a TypeError when passed an Integer" do
@@ -62,13 +60,5 @@ describe :file_directory_io, :shared => true do
     io = mock('FileDirectoryIO')
     io.should_receive(:to_io).and_return(STDIN)
     @object.send(@method, io).should be_false
-  end
-
-  ruby_version_is ""..."1.9" do
-    it "raises a TypeError when passed a Dir instance" do
-      Dir.open(@dir) do |d|
-        lambda { @object.send(@method, d) }.should raise_error(TypeError)
-      end
-    end
   end
 end

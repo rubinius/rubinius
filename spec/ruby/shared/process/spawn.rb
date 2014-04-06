@@ -417,32 +417,15 @@ describe :process_spawn, :shared => true do
     end
   end
 
-  ruby_version_is ""..."2.0" do
-    it "does not close file descriptors >= 3 in the child process when given a false :close_others option" do
-      IO.pipe do |r, w|
-        begin
-          pid = @object.spawn(ruby_cmd(""), :close_others => false)
-          w.close
-          lambda { r.read_nonblock(1) }.should raise_error(Errno::EAGAIN)
-        ensure
-          Process.kill(:TERM, pid)
-          Process.wait(pid)
-        end
-      end
-    end
-  end
-
-  ruby_version_is "2.0" do
-    it "closes file descriptors >= 3 in the child process even if given a false :close_others option because they are set close_on_exec" do
-      IO.pipe do |r, w|
-        begin
-          pid = @object.spawn(ruby_cmd(""), :close_others => false)
-          w.close
-          lambda { r.read_nonblock(1) }.should raise_error(EOFError)
-        ensure
-          Process.kill(:TERM, pid)
-          Process.wait(pid)
-        end
+  it "closes file descriptors >= 3 in the child process even if given a false :close_others option because they are set close_on_exec" do
+    IO.pipe do |r, w|
+      begin
+        pid = @object.spawn(ruby_cmd(""), :close_others => false)
+        w.close
+        lambda { r.read_nonblock(1) }.should raise_error(EOFError)
+      ensure
+        Process.kill(:TERM, pid)
+        Process.wait(pid)
       end
     end
   end

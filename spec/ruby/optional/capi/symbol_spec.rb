@@ -27,23 +27,21 @@ describe "C-API Symbol function" do
     end
   end
 
-  ruby_version_is "1.9" do
-    describe "rb_id2str" do
-      it "converts a symbol to a Ruby string" do
-        @s.rb_id2str(:test_symbol).should == "test_symbol"
-      end
-
-      it "creates a string with the same encoding as the symbol" do
-        str = "test_symbol".encode(Encoding::UTF_16LE)
-        @s.rb_id2str(str.to_sym).encoding.should == Encoding::UTF_16LE
-      end
+  describe "rb_id2str" do
+    it "converts a symbol to a Ruby string" do
+      @s.rb_id2str(:test_symbol).should == "test_symbol"
     end
 
-    describe "rb_intern_str" do
-      it "converts a Ruby String to a Symbol" do
-        str = "test_symbol"
-        @s.rb_intern_str(str).should == :test_symbol
-      end
+    it "creates a string with the same encoding as the symbol" do
+      str = "test_symbol".encode(Encoding::UTF_16LE)
+      @s.rb_id2str(str.to_sym).encoding.should == Encoding::UTF_16LE
+    end
+  end
+
+  describe "rb_intern_str" do
+    it "converts a Ruby String to a Symbol" do
+      str = "test_symbol"
+      @s.rb_intern_str(str).should == :test_symbol
     end
   end
 

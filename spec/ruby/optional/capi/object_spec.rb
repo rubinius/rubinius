@@ -144,18 +144,9 @@ describe "CApiObject" do
   end
 
   describe "rb_obj_instance_variables" do
-    ruby_version_is "1.9" do
-      it "returns an array with instance variable names as symbols" do
-        o = ObjectTest.new
-        @o.rb_obj_instance_variables(o).should include(:@foo)
-      end
-    end
-
-    ruby_version_is ""..."1.9" do
-      it "returns an array with instance variable names as strings" do
-        o = ObjectTest.new
-        @o.rb_obj_instance_variables(o).should include("@foo")
-      end
+    it "returns an array with instance variable names as symbols" do
+      o = ObjectTest.new
+      @o.rb_obj_instance_variables(o).should include(:@foo)
     end
   end
 
@@ -267,20 +258,18 @@ describe "CApiObject" do
     end
   end
 
-  ruby_version_is "1.8.7" do
-    describe "rb_check_to_integer" do
-      it "tries to coerce to an integer, otherwise returns nil" do
-        x = mock("to_int")
-        x.should_receive(:to_int).and_return(5)
-        y = mock("fake_to_int")
-        y.should_receive(:to_int).and_return("Hello")
+  describe "rb_check_to_integer" do
+    it "tries to coerce to an integer, otherwise returns nil" do
+      x = mock("to_int")
+      x.should_receive(:to_int).and_return(5)
+      y = mock("fake_to_int")
+      y.should_receive(:to_int).and_return("Hello")
 
-        @o.rb_check_to_integer(5, "non_existing").should == 5
-        @o.rb_check_to_integer(5, "to_int").should == 5
-        @o.rb_check_to_integer(x, "to_int").should == 5
-        @o.rb_check_to_integer(y, "to_int").should == nil
-        @o.rb_check_to_integer("Hello", "to_int").should == nil
-      end
+      @o.rb_check_to_integer(5, "non_existing").should == 5
+      @o.rb_check_to_integer(5, "to_int").should == 5
+      @o.rb_check_to_integer(x, "to_int").should == 5
+      @o.rb_check_to_integer(y, "to_int").should == nil
+      @o.rb_check_to_integer("Hello", "to_int").should == nil
     end
   end
 
@@ -338,20 +327,18 @@ describe "CApiObject" do
     end
   end
 
-  ruby_version_is "1.9" do
-    describe "rb_type_p" do
-      it "returns whether object is of the given type" do
-        class DescArray < Array
-        end
-        @o.rb_is_rb_type_p_nil(nil).should == true
-        @o.rb_is_rb_type_p_object([]).should == false
-        @o.rb_is_rb_type_p_object(ObjectTest.new).should == true
-        @o.rb_is_rb_type_p_array([]).should == true
-        @o.rb_is_rb_type_p_array(DescArray.new).should == true
-        @o.rb_is_rb_type_p_module(ObjectTest).should == false
-        @o.rb_is_rb_type_p_class(ObjectTest).should == true
-        @o.rb_is_rb_type_p_data(Time.now).should == true
+  describe "rb_type_p" do
+    it "returns whether object is of the given type" do
+      class DescArray < Array
       end
+      @o.rb_is_rb_type_p_nil(nil).should == true
+      @o.rb_is_rb_type_p_object([]).should == false
+      @o.rb_is_rb_type_p_object(ObjectTest.new).should == true
+      @o.rb_is_rb_type_p_array([]).should == true
+      @o.rb_is_rb_type_p_array(DescArray.new).should == true
+      @o.rb_is_rb_type_p_module(ObjectTest).should == false
+      @o.rb_is_rb_type_p_class(ObjectTest).should == true
+      @o.rb_is_rb_type_p_data(Time.now).should == true
     end
   end
 
@@ -467,28 +454,26 @@ describe "CApiObject" do
       host.tainted?.should be_true
     end
 
-    ruby_version_is "1.9" do
-      it "does not untrust the first argument if the second argument is trusted" do
-        host   = mock("host")
-        source = mock("source")
-        @o.OBJ_INFECT(host, source)
-        host.untrusted?.should be_false
-      end
+    it "does not untrust the first argument if the second argument is trusted" do
+      host   = mock("host")
+      source = mock("source")
+      @o.OBJ_INFECT(host, source)
+      host.untrusted?.should be_false
+    end
 
-      it "untrusts the first argument if the second argument is untrusted" do
-        host   = mock("host")
-        source = mock("source").untrust
-        @o.OBJ_INFECT(host, source)
-        host.untrusted?.should be_true
-      end
+    it "untrusts the first argument if the second argument is untrusted" do
+      host   = mock("host")
+      source = mock("source").untrust
+      @o.OBJ_INFECT(host, source)
+      host.untrusted?.should be_true
+    end
 
-      it "propagates both taint and distrust" do
-        host   = mock("host")
-        source = mock("source").taint.untrust
-        @o.OBJ_INFECT(host, source)
-        host.tainted?.should be_true
-        host.untrusted?.should be_true
-      end
+    it "propagates both taint and distrust" do
+      host   = mock("host")
+      source = mock("source").taint.untrust
+      @o.OBJ_INFECT(host, source)
+      host.tainted?.should be_true
+      host.untrusted?.should be_true
     end
   end
 
@@ -532,30 +517,14 @@ describe "CApiObject" do
       obj.tainted?.should == true
     end
 
-    ruby_version_is ""..."1.9" do
-      it "raises a TypeError if the object passed is frozen" do
-        lambda { @o.rb_obj_taint("".freeze) }.should raise_error(TypeError)
-      end
-    end
-
-    ruby_version_is "1.9" do
-      it "raises a RuntimeError if the object passed is frozen" do
-        lambda { @o.rb_obj_taint("".freeze) }.should raise_error(RuntimeError)
-      end
+    it "raises a RuntimeError if the object passed is frozen" do
+      lambda { @o.rb_obj_taint("".freeze) }.should raise_error(RuntimeError)
     end
   end
 
   describe "rb_check_frozen" do
-    ruby_version_is ""..."1.9" do
-      it "raises a TypeError if the obj is frozen" do
-        lambda { @o.rb_check_frozen("".freeze) }.should raise_error(TypeError)
-      end
-    end
-
-    ruby_version_is "1.9" do
-      it "raises a RuntimeError if the obj is frozen" do
-        lambda { @o.rb_check_frozen("".freeze) }.should raise_error(RuntimeError)
-      end
+    it "raises a RuntimeError if the obj is frozen" do
+      lambda { @o.rb_check_frozen("".freeze) }.should raise_error(RuntimeError)
     end
 
     it "does nothing when object isn't frozen" do

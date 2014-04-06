@@ -25,14 +25,14 @@ describe "Hash#reject" do
     h.reject { false }.to_a.should == [[1, 2]]
   end
 
-  it "returns subclass instance for subclasses" do
-    HashSpecs::MyHash[1 => 2, 3 => 4].reject { false }.should be_an_instance_of(HashSpecs::MyHash)
-    HashSpecs::MyHash[1 => 2, 3 => 4].reject { true }.should be_an_instance_of(HashSpecs::MyHash)
+  it "returns a Hash when called on subclasses" do
+    HashSpecs::MyHash[1 => 2, 3 => 4].reject { false }.should be_an_instance_of(Hash)
+    HashSpecs::MyHash[1 => 2, 3 => 4].reject { true }.should be_an_instance_of(Hash)
   end
 
-  it "taints the resulting hash" do
+  it "does not taint the result" do
     h = new_hash(:a => 1).taint
-    h.reject {false}.tainted?.should == true
+    h.reject { false }.tainted?.should be_false
   end
 
   it "processes entries with the same order as reject!" do

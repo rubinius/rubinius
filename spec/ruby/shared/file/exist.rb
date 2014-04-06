@@ -18,9 +18,7 @@ describe :file_exist, :shared => true do
     lambda { @object.send(@method, nil) }.should raise_error(TypeError)
   end
 
-  ruby_version_is "1.9" do
-    it "accepts an object that has a #to_path method" do
-      @object.send(@method, mock_to_path(__FILE__)).should == true
-    end
+  it "accepts an object that has a #to_path method" do
+    @object.send(@method, mock_to_path(__FILE__)).should == true
   end
 end

@@ -1,13 +1,11 @@
 describe :process_fork, :shared => true do
-  ruby_version_is "1.9" do
-    platform_is :windows do
-      it "returns false from #respond_to?" do
-        @object.respond_to?(:fork).should be_false
-      end
+  platform_is :windows do
+    it "returns false from #respond_to?" do
+      @object.respond_to?(:fork).should be_false
+    end
 
-      it "raises a NotImplementedError when called" do
-        lambda { @object.fork }.should raise_error(NotImplementedError)
-      end
+    it "raises a NotImplementedError when called" do
+      lambda { @object.fork }.should raise_error(NotImplementedError)
     end
   end
 

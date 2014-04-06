@@ -170,14 +170,12 @@ describe "C-API exception constant" do
     @s.rb_eLocalJumpError.should == LocalJumpError
   end
 
-  ruby_version_is "1.9" do
-    specify "rb_eMathDomainError references the Math::DomainError class" do
-      @s.rb_eMathDomainError.should == Math::DomainError
-    end
+  specify "rb_eMathDomainError references the Math::DomainError class" do
+    @s.rb_eMathDomainError.should == Math::DomainError
+  end
 
-    specify "rb_eEncCompatError references the Encoding::CompatibilityError" do
-      @s.rb_eEncCompatError.should == Encoding::CompatibilityError
-    end
+  specify "rb_eEncCompatError references the Encoding::CompatibilityError" do
+    @s.rb_eEncCompatError.should == Encoding::CompatibilityError
   end
 
   specify "rb_eNameError references the NameError class" do
@@ -248,14 +246,12 @@ describe "C-API exception constant" do
     @s.rb_eThreadError.should == ThreadError
   end
 
-  ruby_version_is "1.9" do
-    specify "rb_mWaitReadable references the IO::WaitReadable module" do
-      @s.rb_mWaitReadable.should == IO::WaitReadable
-    end
+  specify "rb_mWaitReadable references the IO::WaitReadable module" do
+    @s.rb_mWaitReadable.should == IO::WaitReadable
+  end
 
-    specify "rb_mWaitWritable references the IO::WaitWritable module" do
-      @s.rb_mWaitWritable.should == IO::WaitWritable
-    end
+  specify "rb_mWaitWritable references the IO::WaitWritable module" do
+    @s.rb_mWaitWritable.should == IO::WaitWritable
   end
 
   specify "rb_eZeroDivError references the ZeroDivisionError class" do

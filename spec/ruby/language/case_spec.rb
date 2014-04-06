@@ -305,12 +305,23 @@ describe "The 'case'-construct with no target expression" do
     when 'foo'; 'good'
     end.should == 'good'
   end
-end
 
-ruby_version_is "1.8"..."1.9" do
-  require File.expand_path("../versions/case_1.8", __FILE__)
-end
+  it "takes multiple expanded arrays" do
+    a1 = ['f', 'o', 'o']
+    a2 = ['b', 'a', 'r']
 
-ruby_version_is "1.9" do
-  require File.expand_path("../versions/case_1.9", __FILE__)
+    case 'f'
+      when *a1, *['x', 'y', 'z']
+        "foo"
+      when *a2, *['x', 'y', 'z']
+        "bar"
+    end.should == "foo"
+
+    case 'b'
+      when *a1, *['x', 'y', 'z']
+        "foo"
+      when *a2, *['x', 'y', 'z']
+        "bar"
+    end.should == "bar"
+  end
 end

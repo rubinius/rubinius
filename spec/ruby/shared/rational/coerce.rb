@@ -19,22 +19,4 @@ describe :rational_coerce, :shared => true do
   it "returns [argument, self] when given a Rational" do
     Rational(3, 7).coerce(Rational(9, 2)).should == [Rational(9, 2), Rational(3, 7)]
   end
-
-  ruby_version_is ""..."1.9" do
-    it "tries to convert the passed argument into a Float (using #to_f)" do
-      obj = mock("something")
-      obj.should_receive(:to_f).and_return(1.1)
-      Rational(3, 4).coerce(obj)
-    end
-
-    it "returns the passed argument, self converted to Float, when given object with #to_f" do
-      obj = mock("something")
-      obj.should_receive(:to_f).and_return(1.1)
-
-      result = Rational(3, 4).coerce(obj)
-      result.should == [1.1, 0.75]
-      result.first.is_a?(Float).should be_true
-      result.last.is_a?(Float).should be_true
-    end
-  end
 end

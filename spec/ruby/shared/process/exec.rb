@@ -32,6 +32,11 @@ describe :process_exec, :shared => true do
     ruby_exe('exec "echo hello"; puts "fail"', :escape => true).should == "hello\n"
   end
 
+  it "sets the current directory when given the :chdir option" do
+    tmpdir = tmp("")[0..-2]
+    ruby_exe("exec(\"pwd\", :chdir => #{tmpdir.inspect})", :escape => true).should == "#{tmpdir}\n"
+  end
+
   describe "with a single argument" do
     before(:each) do
       @dir = tmp("exec_with_dir", false)
@@ -63,7 +68,7 @@ describe :process_exec, :shared => true do
     end
   end
 
-  ruby_version_is "1.9.2" do
+  describe "(environment variables)" do
     before(:each) do
       ENV["FOO"] = "FOO"
     end
@@ -86,11 +91,6 @@ describe :process_exec, :shared => true do
 
     it "unsets other environment variables when given a true :unsetenv_others option" do
       ruby_exe('exec("echo $FOO", :unsetenv_others => true)', :escape => true).should == "\n"
-    end
-
-    it "sets the current directory when given the :chdir option" do
-      tmpdir = tmp("")[0..-2]
-      ruby_exe("exec(\"pwd\", :chdir => #{tmpdir.inspect})", :escape => true).should == "#{tmpdir}\n"
     end
   end
 

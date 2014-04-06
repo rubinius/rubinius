@@ -31,44 +31,40 @@ describe "Defining an 'initialize_copy' method" do
   end
 end
 
-ruby_version_is "2.0" do
-  describe "Defining an 'initialize_dup' method" do
-    it "sets the method's visibility to private" do
-      class DefInitializeDupSpec
-        def initialize_dup
-        end
+describe "Defining an 'initialize_dup' method" do
+  it "sets the method's visibility to private" do
+    class DefInitializeDupSpec
+      def initialize_dup
       end
-      DefInitializeDupSpec.should have_private_instance_method(:initialize_dup, false)
     end
-  end
-
-  describe "Defining an 'initialize_clone' method" do
-    it "sets the method's visibility to private" do
-      class DefInitializeCloneSpec
-        def initialize_clone
-        end
-      end
-      DefInitializeCloneSpec.should have_private_instance_method(:initialize_clone, false)
-    end
-  end
-
-  describe "Defining a 'respond_to_missing?' method" do
-    it "sets the method's visibility to private" do
-      class DefRespondToMissingPSpec
-        def respond_to_missing?
-        end
-      end
-      DefRespondToMissingPSpec.should have_private_instance_method(:respond_to_missing?, false)
-    end
+    DefInitializeDupSpec.should have_private_instance_method(:initialize_dup, false)
   end
 end
 
-ruby_version_is "2.1" do
-  describe "Defining a method" do
-    it "returns a symbol of the method name" do
-      method_name = def some_method; end
-      method_name.should == :some_method
+describe "Defining an 'initialize_clone' method" do
+  it "sets the method's visibility to private" do
+    class DefInitializeCloneSpec
+      def initialize_clone
+      end
     end
+    DefInitializeCloneSpec.should have_private_instance_method(:initialize_clone, false)
+  end
+end
+
+describe "Defining a 'respond_to_missing?' method" do
+  it "sets the method's visibility to private" do
+    class DefRespondToMissingPSpec
+      def respond_to_missing?
+      end
+    end
+    DefRespondToMissingPSpec.should have_private_instance_method(:respond_to_missing?, false)
+  end
+end
+
+describe "Defining a method" do
+  it "returns a symbol of the method name" do
+    method_name = def some_method; end
+    method_name.should == :some_method
   end
 end
 
@@ -226,20 +222,10 @@ describe "A singleton method definition" do
     (obj==2).should == 2
   end
 
-  ruby_version_is ""..."1.9" do
-    it "raises TypeError if frozen" do
-      obj = Object.new
-      obj.freeze
-      lambda { def obj.foo; end }.should raise_error(TypeError)
-    end
-  end
-
-  ruby_version_is "1.9" do
-    it "raises RuntimeError if frozen" do
-      obj = Object.new
-      obj.freeze
-      lambda { def obj.foo; end }.should raise_error(RuntimeError)
-    end
+  it "raises RuntimeError if frozen" do
+    obj = Object.new
+    obj.freeze
+    lambda { def obj.foo; end }.should raise_error(RuntimeError)
   end
 end
 
@@ -379,25 +365,12 @@ describe "A method definition inside a metaclass scope" do
     lambda { Object.new.a_singleton_method }.should raise_error(NoMethodError)
   end
 
-  ruby_version_is ""..."1.9" do
-    it "raises TypeError if frozen" do
-      obj = Object.new
-      obj.freeze
+  it "raises RuntimeError if frozen" do
+    obj = Object.new
+    obj.freeze
 
-      class << obj
-        lambda { def foo; end }.should raise_error(TypeError)
-      end
-    end
-  end
-
-  ruby_version_is "1.9" do
-    it "raises RuntimeError if frozen" do
-      obj = Object.new
-      obj.freeze
-
-      class << obj
-        lambda { def foo; end }.should raise_error(RuntimeError)
-      end
+    class << obj
+      lambda { def foo; end }.should raise_error(RuntimeError)
     end
   end
 end
@@ -598,10 +571,6 @@ describe "The def keyword" do
       DefSpecsLambdaVisibility.should have_private_instance_method("some_method")
     end
   end
-end
-
-ruby_version_is "1.8"..."1.9" do
-  require File.expand_path("../versions/def_1.8", __FILE__)
 end
 
 ruby_version_is "2.0" do

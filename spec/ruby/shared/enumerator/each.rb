@@ -63,30 +63,22 @@ describe :enum_each, :shared => true do
     @enum_with_arguments.each.to_a.should == [[:arg0, :arg1, :arg2]]
   end
 
-  ruby_version_is "" ... "2.0" do
-    it "does not require arguments" do
-      enumerator_class.instance_method(:each).arity.should == 0
-    end
+  it "requires multiple arguments" do
+    enumerator_class.instance_method(:each).arity.should < 0
   end
 
-  ruby_version_is "2.0" do
-    it "requires multiple arguments" do
-      enumerator_class.instance_method(:each).arity.should < 0
-    end
+  it "appends given arguments to receiver.each" do
+    @enum_with_arguments.each(:each0, :each1).to_a.should == [[:arg0, :arg1, :arg2, :each0, :each1]]
+    @enum_with_arguments.each(:each2, :each3).to_a.should == [[:arg0, :arg1, :arg2, :each2, :each3]]
+  end
 
-    it "appends given arguments to receiver.each" do
-      @enum_with_arguments.each(:each0, :each1).to_a.should == [[:arg0, :arg1, :arg2, :each0, :each1]]
-      @enum_with_arguments.each(:each2, :each3).to_a.should == [[:arg0, :arg1, :arg2, :each2, :each3]]
-    end
+  it "returns the same value from receiver.each if block and arguments are given" do
+    @enum_with_arguments.each(:each1, :each2) {}.should equal(:method_returned)
+  end
 
-    it "returns the same value from receiver.each if block and arguments are given" do
-      @enum_with_arguments.each(:each1, :each2) {}.should equal(:method_returned)
-    end
-
-    it "returns new Enumerator if given arguments but not given a block" do
-      ret = @enum_with_arguments.each 1
-      ret.should be_an_instance_of(enumerator_class)
-      ret.should_not equal(@enum_with_arguments)
-    end
+  it "returns new Enumerator if given arguments but not given a block" do
+    ret = @enum_with_arguments.each 1
+    ret.should be_an_instance_of(enumerator_class)
+    ret.should_not equal(@enum_with_arguments)
   end
 end
