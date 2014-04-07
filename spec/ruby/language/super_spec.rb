@@ -111,7 +111,7 @@ describe "The super keyword" do
     sub.new.a.should == "a"
   end
 
-  it "can be used with implicit arguments from a method defined with define_method" do
+  it "raises a RuntimeError when called with implicit arguments from a method defined with define_method" do
     super_class = Class.new do
       def a(arg)
         arg

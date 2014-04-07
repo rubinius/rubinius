@@ -1,1 +1,0 @@
-fails:Thread#value re-raises error for an uncaught exception
