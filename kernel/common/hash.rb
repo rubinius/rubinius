@@ -753,8 +753,8 @@ class Hash
   def reject(&block)
     return to_enum(:reject) unless block_given?
 
-    hsh = dup.delete_if(&block)
-    hsh.taint if tainted?
+    hsh = Hash.new
+    each { |k, v| hsh[k] = v unless block.call(k, v) }
     hsh
   end
 
