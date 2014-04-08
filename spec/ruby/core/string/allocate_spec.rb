@@ -13,9 +13,7 @@ describe "String.allocate" do
     str.should == "more"
   end
 
-  ruby_version_is "1.9" do
-    it "returns a binary String" do
-      String.new.encoding.should == Encoding::BINARY
-    end
+  it "returns a binary String" do
+    String.new.encoding.should == Encoding::BINARY
   end
 end

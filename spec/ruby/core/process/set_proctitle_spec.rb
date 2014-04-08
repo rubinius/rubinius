@@ -5,21 +5,19 @@ require File.expand_path('../../../spec_helper', __FILE__)
 # way to get the process title is to shell out.
 describe 'Process.setproctitle' do
   platform_is :linux, :darwin do
-    ruby_version_is '2.1' do
-      before :each do
-        @old_title = $0
-      end
+    before :each do
+      @old_title = $0
+    end
 
-      after :each do
-        Process.setproctitle(@old_title)
-      end
+    after :each do
+      Process.setproctitle(@old_title)
+    end
 
-      it 'should set the process title' do
-        title = 'rubinius-proctitle-test'
+    it 'should set the process title' do
+      title = 'rubinius-proctitle-test'
 
-        Process.setproctitle(title).should == title
-        `ps -f`.include?(title).should     == true
-      end
+      Process.setproctitle(title).should == title
+      `ps -f`.include?(title).should     == true
     end
   end
 end

@@ -54,18 +54,9 @@ describe "String#delete" do
       'NonAuthoritativeInformation'
   end
 
-  ruby_version_is ""..."1.9" do
-    it "regards invalid ranges as nothing" do
-      "hello".delete("h-e").should == "hello"
-      "hello".delete("^h-e").should == ""
-    end
-  end
-
-  ruby_version_is "1.9" do
-    it "raises if the given ranges are invalid" do
-      lambda { "hello".delete("h-e") }.should raise_error(ArgumentError)
-      lambda { "hello".delete("^h-e") }.should raise_error(ArgumentError)
-    end
+  it "raises if the given ranges are invalid" do
+    lambda { "hello".delete("h-e") }.should raise_error(ArgumentError)
+    lambda { "hello".delete("^h-e") }.should raise_error(ArgumentError)
   end
 
   it "taints result when self is tainted" do
@@ -109,23 +100,11 @@ describe "String#delete!" do
     a.should == "hello"
   end
 
-  ruby_version_is ""..."1.9" do
-    it "raises a TypeError when self is frozen" do
-      a = "hello"
-      a.freeze
+  it "raises a RuntimeError when self is frozen" do
+    a = "hello"
+    a.freeze
 
-      lambda { a.delete!("")            }.should raise_error(TypeError)
-      lambda { a.delete!("aeiou", "^e") }.should raise_error(TypeError)
-    end
-  end
-
-  ruby_version_is "1.9" do
-    it "raises a RuntimeError when self is frozen" do
-      a = "hello"
-      a.freeze
-
-      lambda { a.delete!("")            }.should raise_error(RuntimeError)
-      lambda { a.delete!("aeiou", "^e") }.should raise_error(RuntimeError)
-    end
+    lambda { a.delete!("")            }.should raise_error(RuntimeError)
+    lambda { a.delete!("aeiou", "^e") }.should raise_error(RuntimeError)
   end
 end

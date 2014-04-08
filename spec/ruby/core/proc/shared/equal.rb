@@ -36,28 +36,26 @@ describe :proc_equal, :shared => true do
     a.send(@method, b).should be_false
   end
 
-  ruby_version_is "1.9" do
-    it "returns true if both procs have the same body and environment" do
-      p = proc { :foo }
-      p2 = proc { :foo }
-      p.send(@method, p2).should be_true
-    end
+  it "returns true if both procs have the same body and environment" do
+    p = proc { :foo }
+    p2 = proc { :foo }
+    p.send(@method, p2).should be_true
+  end
 
-    it "returns true if both lambdas with the same body and environment" do
-      x = lambda { :foo }
-      x2 = lambda { :foo }
-      x.send(@method, x2).should be_true
-    end
+  it "returns true if both lambdas with the same body and environment" do
+    x = lambda { :foo }
+    x2 = lambda { :foo }
+    x.send(@method, x2).should be_true
+  end
 
-    it "returns true if both different kinds of procs with the same body and env" do
-      p = lambda { :foo }
-      p2 = proc { :foo }
-      p.send(@method, p2).should be_true
+  it "returns true if both different kinds of procs with the same body and env" do
+    p = lambda { :foo }
+    p2 = proc { :foo }
+    p.send(@method, p2).should be_true
 
-      x = proc { :bar }
-      x2 = lambda { :bar }
-      x.send(@method, x2).should be_true
-    end
+    x = proc { :bar }
+    x2 = lambda { :bar }
+    x.send(@method, x2).should be_true
   end
 
   it "returns false if other is not a Proc" do

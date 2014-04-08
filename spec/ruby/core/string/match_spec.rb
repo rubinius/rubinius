@@ -2,8 +2,10 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes.rb', __FILE__)
 
-ruby_version_is "1.9" do
-  require File.expand_path("../versions/match_1.9", __FILE__)
+describe :string_match_escaped_literal, :shared => true do
+  it "matches a literal Regexp that uses ASCII-only UTF-8 escape sequences" do
+    "a b".match(/([\u{20}-\u{7e}])/)[0].should == "a"
+  end
 end
 
 describe "String#=~" do
@@ -52,50 +54,48 @@ describe "String#match" do
     'hello'.match(/(.)\1/)[0].should == 'll'
   end
 
-  ruby_version_is "1.9" do
-    it_behaves_like :string_match_escaped_literal, :match
+  it_behaves_like :string_match_escaped_literal, :match
 
-    describe "with [pattern, position]" do
-      describe "when given a positive position" do
-        it "matches the pattern against self starting at an optional index" do
-          "01234".match(/(.).(.)/, 1).captures.should == ["1", "3"]
-        end
-
-        with_feature :encoding do
-          it "uses the start as a character offset" do
-            "零一二三四".match(/(.).(.)/, 1).captures.should == ["一", "三"]
-          end
-        end
+  describe "with [pattern, position]" do
+    describe "when given a positive position" do
+      it "matches the pattern against self starting at an optional index" do
+        "01234".match(/(.).(.)/, 1).captures.should == ["1", "3"]
       end
 
-      describe "when given a negative position" do
-        it "matches the pattern against self starting at an optional index" do
-          "01234".match(/(.).(.)/, -4).captures.should == ["1", "3"]
-        end
-
-        with_feature :encoding do
-          it "uses the start as a character offset" do
-            "零一二三四".match(/(.).(.)/, -4).captures.should == ["一", "三"]
-          end
+      with_feature :encoding do
+        it "uses the start as a character offset" do
+          "零一二三四".match(/(.).(.)/, 1).captures.should == ["一", "三"]
         end
       end
     end
 
-    describe "when passed a block" do
-      it "yields the MatchData" do
-        "abc".match(/./) {|m| ScratchPad.record m }
-        ScratchPad.recorded.should be_kind_of(MatchData)
+    describe "when given a negative position" do
+      it "matches the pattern against self starting at an optional index" do
+        "01234".match(/(.).(.)/, -4).captures.should == ["1", "3"]
       end
 
-      it "returns the block result" do
-        "abc".match(/./) { :result }.should == :result
+      with_feature :encoding do
+        it "uses the start as a character offset" do
+          "零一二三四".match(/(.).(.)/, -4).captures.should == ["一", "三"]
+        end
       end
+    end
+  end
 
-      it "does not yield if there is no match" do
-        ScratchPad.record []
-        "b".match(/a/) {|m| ScratchPad << m }
-        ScratchPad.recorded.should == []
-      end
+  describe "when passed a block" do
+    it "yields the MatchData" do
+      "abc".match(/./) {|m| ScratchPad.record m }
+      ScratchPad.recorded.should be_kind_of(MatchData)
+    end
+
+    it "returns the block result" do
+      "abc".match(/./) { :result }.should == :result
+    end
+
+    it "does not yield if there is no match" do
+      ScratchPad.record []
+      "b".match(/a/) {|m| ScratchPad << m }
+      ScratchPad.recorded.should == []
     end
   end
 

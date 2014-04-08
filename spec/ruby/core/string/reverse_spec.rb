@@ -32,27 +32,14 @@ describe "String#reverse!" do
     "".reverse!.should == ""
   end
 
-  ruby_version_is ""..."1.9" do
-    it "raises a TypeError on a frozen instance that is modified" do
-      lambda { "anna".freeze.reverse!  }.should raise_error(TypeError)
-      lambda { "hello".freeze.reverse! }.should raise_error(TypeError)
-    end
-
-    it "does not raise an exception on a frozen instance that would not be modified" do
-      "".freeze.reverse!.should == ""
-    end
+  it "raises a RuntimeError on a frozen instance that is modified" do
+    lambda { "anna".freeze.reverse!  }.should raise_error(RuntimeError)
+    lambda { "hello".freeze.reverse! }.should raise_error(RuntimeError)
   end
 
-  ruby_version_is "1.9" do
-    it "raises a RuntimeError on a frozen instance that is modified" do
-      lambda { "anna".freeze.reverse!  }.should raise_error(RuntimeError)
-      lambda { "hello".freeze.reverse! }.should raise_error(RuntimeError)
-    end
-
-    # see [ruby-core:23666]
-    it "raises a RuntimeError on a frozen instance that would not be modified" do
-      lambda { "".freeze.reverse! }.should raise_error(RuntimeError)
-    end
+  # see [ruby-core:23666]
+  it "raises a RuntimeError on a frozen instance that would not be modified" do
+    lambda { "".freeze.reverse! }.should raise_error(RuntimeError)
   end
 
   with_feature :encoding do

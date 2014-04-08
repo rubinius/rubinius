@@ -41,21 +41,10 @@ describe "String#swapcase!" do
     "".swapcase!.should == nil
   end
 
-  ruby_version_is ""..."1.9" do
-    it "raises a TypeError when self is frozen" do
-      ["", "hello"].each do |a|
-        a.freeze
-        lambda { a.swapcase! }.should raise_error(TypeError)
-      end
-    end
-  end
-
-  ruby_version_is "1.9" do
-    it "raises a RuntimeError when self is frozen" do
-      ["", "hello"].each do |a|
-        a.freeze
-        lambda { a.swapcase! }.should raise_error(RuntimeError)
-      end
+  it "raises a RuntimeError when self is frozen" do
+    ["", "hello"].each do |a|
+      a.freeze
+      lambda { a.swapcase! }.should raise_error(RuntimeError)
     end
   end
 end

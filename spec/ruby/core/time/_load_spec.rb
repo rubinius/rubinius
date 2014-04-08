@@ -2,36 +2,27 @@ require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/methods', __FILE__)
 
 describe "Time._load" do
-  ruby_version_is ""..."2.0" do
-    it "is a public method" do
-      Time.public_methods(false).should include(stasy(:_load))
-    end
+  it "is a private method" do
+    Time.should have_private_method(:_load, false)
   end
 
-  ruby_version_is "2.0" do
-    it "is a private method" do
-      Time.should have_private_method(:_load, false)
-    end
-  end
+  # http://redmine.ruby-lang.org/issues/show/627
+  it "loads a time object in the new format" do
+    t = Time.local(2000, 1, 15, 20, 1, 1)
+    t = t.gmtime
 
-  ruby_bug("http://redmine.ruby-lang.org/issues/show/627", "1.8.7") do
-    it "loads a time object in the new format" do
-      t = Time.local(2000, 1, 15, 20, 1, 1)
-      t = t.gmtime
+    high =               1 << 31 |
+          (t.gmt? ? 1 : 0) << 30 |
+           (t.year - 1900) << 14 |
+              (t.mon  - 1) << 10 |
+                     t.mday << 5 |
+                          t.hour
 
-      high =               1 << 31 |
-            (t.gmt? ? 1 : 0) << 30 |
-             (t.year - 1900) << 14 |
-                (t.mon  - 1) << 10 |
-                       t.mday << 5 |
-                            t.hour
+    low =  t.min  << 26 |
+           t.sec  << 20 |
+                 t.usec
 
-      low =  t.min  << 26 |
-             t.sec  << 20 |
-                   t.usec
-
-      Time.send(:_load, [high, low].pack("VV")).should == t
-    end
+    Time.send(:_load, [high, low].pack("VV")).should == t
   end
 
   it "loads a time object in the old UNIX timestamp based format" do
@@ -45,22 +36,11 @@ describe "Time._load" do
     Time.send(:_load, [high, low].pack("VV")).should == t
   end
 
-  ruby_version_is ''...'1.9' do
-    it "loads MRI's marshaled time format" do
-      t = Marshal.load("\004\bu:\tTime\r\320\246\e\200\320\001\r\347")
-      t.utc
+  it "loads MRI's marshaled time format" do
+    t = Marshal.load("\004\bu:\tTime\r\320\246\e\200\320\001\r\347")
+    t.utc
 
-      t.to_s.should == "Fri Oct 22 16:57:48 UTC 2010"
-    end
-  end
-
-  ruby_version_is '1.9' do
-    it "loads MRI's marshaled time format" do
-      t = Marshal.load("\004\bu:\tTime\r\320\246\e\200\320\001\r\347")
-      t.utc
-
-      t.to_s.should == "2010-10-22 16:57:48 UTC"
-    end
+    t.to_s.should == "2010-10-22 16:57:48 UTC"
   end
 
   with_feature :encoding do

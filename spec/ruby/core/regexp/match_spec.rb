@@ -18,10 +18,8 @@ describe "Regexp#=~" do
     (/(.)(.)(.)/ =~ "abc").should == 0
   end
 
-  ruby_version_is "1.9" do
-    it "returns the index too, when argument is a Symbol" do
-      (/(.)(.)(.)/ =~ :abc).should == 0
-    end
+  it "returns the index too, when argument is a Symbol" do
+    (/(.)(.)(.)/ =~ :abc).should == 0
   end
 end
 
@@ -32,41 +30,39 @@ describe "Regexp#match" do
     /(.)(.)(.)/.match("abc").should be_kind_of(MatchData)
   end
 
-  ruby_version_is "1.9" do
-    it "returns a MatchData object, when argument is a Symbol" do
-      /(.)(.)(.)/.match(:abc).should be_kind_of(MatchData)
-    end
+  it "returns a MatchData object, when argument is a Symbol" do
+    /(.)(.)(.)/.match(:abc).should be_kind_of(MatchData)
+  end
 
-    describe "with [string, position]" do
-      describe "when given a positive position" do
-        it "matches the input at a given position" do
-          /(.).(.)/.match("01234", 1).captures.should == ["1", "3"]
-        end
-
-        with_feature :encoding do
-          it "uses the start as a character offset" do
-            /(.).(.)/.match("零一二三四", 1).captures.should == ["一", "三"]
-          end
-
-          it "raises an ArgumentError for an invalid encoding" do
-            lambda { /(.).(.)/.match("Hello, \x96 world!", 1) }.should raise_error(ArgumentError)
-          end
-        end
+  describe "with [string, position]" do
+    describe "when given a positive position" do
+      it "matches the input at a given position" do
+        /(.).(.)/.match("01234", 1).captures.should == ["1", "3"]
       end
 
-      describe "when given a negative position" do
-        it "matches the input at a given position" do
-          /(.).(.)/.match("01234", -4).captures.should == ["1", "3"]
+      with_feature :encoding do
+        it "uses the start as a character offset" do
+          /(.).(.)/.match("零一二三四", 1).captures.should == ["一", "三"]
         end
 
-        with_feature :encoding do
-          it "uses the start as a character offset" do
-            /(.).(.)/.match("零一二三四", -4).captures.should == ["一", "三"]
-          end
+        it "raises an ArgumentError for an invalid encoding" do
+          lambda { /(.).(.)/.match("Hello, \x96 world!", 1) }.should raise_error(ArgumentError)
+        end
+      end
+    end
 
-          it "raises an ArgumentError for an invalid encoding" do
-            lambda { /(.).(.)/.match("Hello, \x96 world!", -1) }.should raise_error(ArgumentError)
-          end
+    describe "when given a negative position" do
+      it "matches the input at a given position" do
+        /(.).(.)/.match("01234", -4).captures.should == ["1", "3"]
+      end
+
+      with_feature :encoding do
+        it "uses the start as a character offset" do
+          /(.).(.)/.match("零一二三四", -4).captures.should == ["一", "三"]
+        end
+
+        it "raises an ArgumentError for an invalid encoding" do
+          lambda { /(.).(.)/.match("Hello, \x96 world!", -1) }.should raise_error(ArgumentError)
         end
       end
     end
@@ -103,18 +99,9 @@ describe "Regexp#match" do
     lambda { /foo/.match(f)[0] }.should raise_error(TypeError)
   end
 
-  ruby_version_is ""..."1.9" do
-    it "coerces Exceptions into strings" do
-      f = Exception.new("foo")
-      /foo/.match(f)[0].should == "foo"
-    end
-  end
-
-  ruby_version_is "1.9" do
-    it "raises TypeError when the given argument is an Exception" do
-      f = Exception.new("foo")
-      lambda { /foo/.match(f)[0] }.should raise_error(TypeError)
-    end
+  it "raises TypeError when the given argument is an Exception" do
+    f = Exception.new("foo")
+    lambda { /foo/.match(f)[0] }.should raise_error(TypeError)
   end
 end
 

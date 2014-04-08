@@ -21,14 +21,12 @@ describe "Range#inspect" do
     ("a"..."c").taint.inspect.tainted?.should be_false
   end
 
-  ruby_version_is "1.9" do
-    it "returns a untrusted string if either end is untrusted" do
-      (("a".untrust)..."c").inspect.untrusted?.should be_true
-      ("a"...("c".untrust)).inspect.untrusted?.should be_true
-    end
+  it "returns a untrusted string if either end is untrusted" do
+    (("a".untrust)..."c").inspect.untrusted?.should be_true
+    ("a"...("c".untrust)).inspect.untrusted?.should be_true
+  end
 
-    it "ignores own untrusted status" do
-      ("a"..."c").untrust.inspect.untrusted?.should be_false
-    end
+  it "ignores own untrusted status" do
+    ("a"..."c").untrust.inspect.untrusted?.should be_false
   end
 end

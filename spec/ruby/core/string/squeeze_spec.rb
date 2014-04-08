@@ -48,20 +48,10 @@ describe "String#squeeze" do
     "AABBCCaabbcc[[]]".squeeze("A-a").should == "ABCabbcc[]"
   end
 
-  ruby_version_is "1.8" ... "1.9" do
-    it "doesn't change chars when the parameter is out of sequence" do
-      s = "--subbookkeeper--"
-      s.squeeze("e-b").should == s
-      s.squeeze("^e-b").should == s.squeeze
-    end
-  end
-
-  ruby_version_is "1.9" do
-    it "raises an ArgumentError when the parameter is out of sequence" do
-      s = "--subbookkeeper--"
-      lambda { s.squeeze("e-b") }.should raise_error(ArgumentError)
-      lambda { s.squeeze("^e-b") }.should raise_error(ArgumentError)
-    end
+  it "raises an ArgumentError when the parameter is out of sequence" do
+    s = "--subbookkeeper--"
+    lambda { s.squeeze("e-b") }.should raise_error(ArgumentError)
+    lambda { s.squeeze("^e-b") }.should raise_error(ArgumentError)
   end
 
   it "taints the result when self is tainted" do
@@ -107,43 +97,17 @@ describe "String#squeeze!" do
     a.should == "squeeze"
   end
 
-  ruby_version_is "1.8" ... "1.9" do
-    it "returns nil when the parameter is out of sequence" do
-      s = "--subbookkeeper--"
-      s.squeeze!("e-b").should == nil
-    end
-
-    it "removes runs of the same character when the negated sequence is out of order" do
-      s = "--subbookkeeper--"
-      s.squeeze!("^e-b").should == "-subokeper-"
-    end
+  it "raises an ArgumentError when the parameter is out of sequence" do
+    s = "--subbookkeeper--"
+    lambda { s.squeeze!("e-b") }.should raise_error(ArgumentError)
+    lambda { s.squeeze!("^e-b") }.should raise_error(ArgumentError)
   end
 
-  ruby_version_is "1.9" do
-    it "raises an ArgumentError when the parameter is out of sequence" do
-      s = "--subbookkeeper--"
-      lambda { s.squeeze!("e-b") }.should raise_error(ArgumentError)
-      lambda { s.squeeze!("^e-b") }.should raise_error(ArgumentError)
-    end
-  end
+  it "raises a RuntimeError when self is frozen" do
+    a = "yellow moon"
+    a.freeze
 
-  ruby_version_is ""..."1.9" do
-    it "raises a TypeError when self is frozen" do
-      a = "yellow moon"
-      a.freeze
-
-      lambda { a.squeeze!("") }.should raise_error(TypeError)
-      lambda { a.squeeze!     }.should raise_error(TypeError)
-    end
-  end
-
-  ruby_version_is "1.9" do
-    it "raises a RuntimeError when self is frozen" do
-      a = "yellow moon"
-      a.freeze
-
-      lambda { a.squeeze!("") }.should raise_error(RuntimeError)
-      lambda { a.squeeze!     }.should raise_error(RuntimeError)
-    end
+    lambda { a.squeeze!("") }.should raise_error(RuntimeError)
+    lambda { a.squeeze!     }.should raise_error(RuntimeError)
   end
 end
