@@ -1,7 +1,5 @@
 class Float < Numeric
 
-  include Precision
-
   FFI = Rubinius::FFI
 
   def self.induced_from(obj)

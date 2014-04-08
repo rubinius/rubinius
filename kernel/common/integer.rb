@@ -1,6 +1,4 @@
 class Integer < Numeric
-  include Precision
-
   def self.induced_from(obj)
     case obj
     when Fixnum, Bignum
