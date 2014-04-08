@@ -48,12 +48,10 @@ describe "Module#extend_object" do
     other.tainted?.should be_false
   end
 
-  ruby_version_is "1.9" do
-    it "does not copy own untrusted status to the given object" do
-      other = Object.new
-      Module.new.untrust.send :extend_object, other
-      other.untrusted?.should be_false
-    end
+  it "does not copy own untrusted status to the given object" do
+    other = Object.new
+    Module.new.untrust.send :extend_object, other
+    other.untrusted?.should be_false
   end
 
   describe "when given a frozen object" do
@@ -62,18 +60,9 @@ describe "Module#extend_object" do
       @object = Object.new.freeze
     end
 
-    ruby_version_is ""..."1.9" do
-      it "raises a TypeError before extending the object" do
-        lambda { @receiver.send(:extend_object, @object) }.should raise_error(TypeError)
-        @object.should_not be_kind_of(@receiver)
-      end
-    end
-
-    ruby_version_is "1.9" do
-      it "raises a RuntimeError before extending the object" do
-        lambda { @receiver.send(:extend_object, @object) }.should raise_error(RuntimeError)
-        @object.should_not be_kind_of(@receiver)
-      end
+    it "raises a RuntimeError before extending the object" do
+      lambda { @receiver.send(:extend_object, @object) }.should raise_error(RuntimeError)
+      @object.should_not be_kind_of(@receiver)
     end
   end
 end

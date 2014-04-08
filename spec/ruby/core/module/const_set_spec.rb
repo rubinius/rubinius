@@ -58,18 +58,9 @@ describe "Module#const_set" do
       @name = :Foo
     end
 
-    ruby_version_is "" ... "1.9" do
-      it "raises a TypeError before setting the name" do
-        lambda { @frozen.const_set @name, nil }.should raise_error(TypeError)
-        @frozen.should_not have_constant(@name)
-      end
-    end
-
-    ruby_version_is "1.9" do
-      it "raises a RuntimeError before setting the name" do
-        lambda { @frozen.const_set @name, nil }.should raise_error(RuntimeError)
-        @frozen.should_not have_constant(@name)
-      end
+    it "raises a RuntimeError before setting the name" do
+      lambda { @frozen.const_set @name, nil }.should raise_error(RuntimeError)
+      @frozen.should_not have_constant(@name)
     end
   end
 end

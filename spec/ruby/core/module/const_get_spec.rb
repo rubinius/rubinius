@@ -65,28 +65,26 @@ describe "Module#const_get" do
     end.should raise_error(NameError)
   end
 
-  ruby_version_is "1.9" do
-    it "raises a NameError if the constant is defined in the receiver's supperclass and the inherit flag is false" do
-      lambda do
-        ConstantSpecs::ContainerA::ChildA.const_get(:CS_CONST4, false)
-      end.should raise_error(NameError)
-    end
+  it "raises a NameError if the constant is defined in the receiver's supperclass and the inherit flag is false" do
+    lambda do
+      ConstantSpecs::ContainerA::ChildA.const_get(:CS_CONST4, false)
+    end.should raise_error(NameError)
+  end
 
-    it "searches into the receiver superclasses if the inherit flag is true" do
-      ConstantSpecs::ContainerA::ChildA.const_get(:CS_CONST4, true).should == :const4
-    end
+  it "searches into the receiver superclasses if the inherit flag is true" do
+    ConstantSpecs::ContainerA::ChildA.const_get(:CS_CONST4, true).should == :const4
+  end
 
-    it "raises a NameError when the receiver is a Module, the constant is defined at toplevel and the inherit flag is false" do
-      lambda do
-        ConstantSpecs::ModuleA.const_get(:CS_CONST1, false)
-      end.should raise_error(NameError)
-    end
+  it "raises a NameError when the receiver is a Module, the constant is defined at toplevel and the inherit flag is false" do
+    lambda do
+      ConstantSpecs::ModuleA.const_get(:CS_CONST1, false)
+    end.should raise_error(NameError)
+  end
 
-    it "raises a NameError when the receiver is a Class, the constant is defined at toplevel and the inherit flag is false" do
-      lambda do
-        ConstantSpecs::ContainerA::ChildA.const_get(:CS_CONST1, false)
-      end.should raise_error(NameError)
-    end
+  it "raises a NameError when the receiver is a Class, the constant is defined at toplevel and the inherit flag is false" do
+    lambda do
+      ConstantSpecs::ContainerA::ChildA.const_get(:CS_CONST1, false)
+    end.should raise_error(NameError)
   end
 
   it "accepts a toplevel scope qualifier" do

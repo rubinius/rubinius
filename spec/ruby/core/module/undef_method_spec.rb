@@ -57,24 +57,12 @@ describe "Module#undef_method" do
       @frozen = @module.dup.freeze
     end
 
-    ruby_version_is "" ... "1.9" do
-      it "raises a TypeError when passed a name" do
-        lambda { @frozen.send :undef_method, :method_to_undef }.should raise_error(TypeError)
-      end
-
-      it "raises a TypeError when passed a missing name" do
-        lambda { @frozen.send :undef_method, :not_exist }.should raise_error(TypeError)
-      end
+    it "raises a RuntimeError when passed a name" do
+      lambda { @frozen.send :undef_method, :method_to_undef }.should raise_error(RuntimeError)
     end
 
-    ruby_version_is "1.9" do
-      it "raises a RuntimeError when passed a name" do
-        lambda { @frozen.send :undef_method, :method_to_undef }.should raise_error(RuntimeError)
-      end
-
-      it "raises a RuntimeError when passed a missing name" do
-        lambda { @frozen.send :undef_method, :not_exist }.should raise_error(RuntimeError)
-      end
+    it "raises a RuntimeError when passed a missing name" do
+      lambda { @frozen.send :undef_method, :not_exist }.should raise_error(RuntimeError)
     end
 
     it "raises a TypeError when passed a not name" do

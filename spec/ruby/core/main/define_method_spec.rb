@@ -22,15 +22,7 @@ describe "main#define_method" do
     Object.should have_method :boom
   end
 
-  ruby_version_is '2.0'...'2.1' do
-    it 'returns a Proc' do
-      eval(@code, TOPLEVEL_BINDING).is_a?(Proc).should be_true
-    end
-  end
-
-  ruby_version_is '2.1' do
-    it 'returns the method name as symbol' do
-      eval(@code, TOPLEVEL_BINDING).should equal :boom
-    end
+  it 'returns the method name as symbol' do
+    eval(@code, TOPLEVEL_BINDING).should equal :boom
   end
 end

@@ -14,14 +14,12 @@ describe "MatchData#post_match" do
     $'.tainted?.should be_true
   end
 
-  ruby_version_is "1.9" do
-    it "keeps untrusted status from the source string" do
-      str = "THX1138: The Movie"
-      str.untrust
-      res = /(.)(.)(\d+)(\d)/.match(str).post_match
-      res.untrusted?.should be_true
-      $'.untrusted?.should be_true
-    end
+  it "keeps untrusted status from the source string" do
+    str = "THX1138: The Movie"
+    str.untrust
+    res = /(.)(.)(\d+)(\d)/.match(str).post_match
+    res.untrusted?.should be_true
+    $'.untrusted?.should be_true
   end
 
   with_feature :encoding do

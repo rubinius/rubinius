@@ -53,12 +53,10 @@ describe "Module#append_features" do
     other.tainted?.should be_true
   end
 
-  ruby_version_is "1.9" do
-    it "copies own untrusted status to the given module" do
-      other = Module.new
-      Module.new.untrust.send :append_features, other
-      other.untrusted?.should be_true
-    end
+  it "copies own untrusted status to the given module" do
+    other = Module.new
+    Module.new.untrust.send :append_features, other
+    other.untrusted?.should be_true
   end
 
   describe "when other is frozen" do
@@ -67,18 +65,9 @@ describe "Module#append_features" do
       @other = Module.new.freeze
     end
 
-    ruby_version_is ""..."1.9" do
-      it "raises a TypeError before appending self" do
-        lambda { @receiver.send(:append_features, @other) }.should raise_error(TypeError)
-        @other.ancestors.should_not include(@receiver)
-      end
-    end
-
-    ruby_version_is "1.9" do
-      it "raises a RuntimeError before appending self" do
-        lambda { @receiver.send(:append_features, @other) }.should raise_error(RuntimeError)
-        @other.ancestors.should_not include(@receiver)
-      end
+    it "raises a RuntimeError before appending self" do
+      lambda { @receiver.send(:append_features, @other) }.should raise_error(RuntimeError)
+      @other.ancestors.should_not include(@receiver)
     end
   end
 end

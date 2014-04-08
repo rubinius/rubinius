@@ -1,5 +1,3 @@
-require File.expand_path('../caller_fixture1', __FILE__)
-
 module KernelSpecs
   def self.Array_function(arg)
     Array(arg)
@@ -436,13 +434,6 @@ class EvalSpecs
     f = __FILE__
     eval "true", binding, "(eval)", 1
     return f
-  end
-end
-
-module CallerSpecs
-  def self.recurse(n)
-    return caller if n <= 0
-    recurse(n-1)
   end
 end
 

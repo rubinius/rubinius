@@ -20,22 +20,20 @@ describe "Numeric#step" do
     ScratchPad.recorded.should == [1, 2, 3, 4, 5]
   end
 
-  ruby_version_is "1.8.7" do
-    it "returns an Enumerator when step is 0" do
-      1.step(2, 0).should be_an_instance_of(enumerator_class)
-    end
+  it "returns an Enumerator when step is 0" do
+    1.step(2, 0).should be_an_instance_of(enumerator_class)
+  end
 
-    it "returns an Enumerator when not passed a block and self > stop" do
-      1.step(0, 2).should be_an_instance_of(enumerator_class)
-    end
+  it "returns an Enumerator when not passed a block and self > stop" do
+    1.step(0, 2).should be_an_instance_of(enumerator_class)
+  end
 
-    it "returns an Enumerator when not passed a block and self < stop" do
-      1.step(2, 3).should be_an_instance_of(enumerator_class)
-    end
+  it "returns an Enumerator when not passed a block and self < stop" do
+    1.step(2, 3).should be_an_instance_of(enumerator_class)
+  end
 
-    it "returns an Enumerator that uses the given step" do
-      0.step(5, 2).to_a.should == [0, 2, 4]
-    end
+  it "returns an Enumerator that uses the given step" do
+    0.step(5, 2).to_a.should == [0, 2, 4]
   end
 
   describe "with [stop, step]" do
@@ -43,21 +41,6 @@ describe "Numeric#step" do
       @stop = mock("Numeric#step stop value")
       @step = mock("Numeric#step step value")
       @obj = NumericSpecs::Subclass.new
-    end
-
-    ruby_version_is ""..."1.8.7" do
-      it "does not raise a LocalJumpError when not passed a block and self > stop" do
-        @step.should_receive(:>).with(0).and_return(true)
-        @obj.should_receive(:>).with(@stop).and_return(true)
-        @obj.step(@stop, @step)
-      end
-
-      it "raises a LocalJumpError when not passed a block and self < stop" do
-        @step.should_receive(:>).with(0).and_return(true)
-        @obj.should_receive(:>).with(@stop).and_return(false)
-
-        lambda { @obj.step(@stop, @step) }.should raise_error(LocalJumpError)
-      end
     end
 
     it "increments self using #+ until self > stop when step > 0" do

@@ -4,8 +4,28 @@ require File.expand_path('../fixtures/classes', __FILE__)
 class DefineMethodSpecClass
 end
 
-ruby_version_is "1.9" do
-  require File.expand_path("../versions/define_method_1.9", __FILE__)
+describe "passed { |a, b = 1|  } creates a method that" do
+  before :each do
+    @klass = Class.new do
+      define_method(:m) { |a, b = 1| return a, b }
+    end
+  end
+
+  it "raises an ArgumentError when passed zero arguments" do
+    lambda { @klass.new.m }.should raise_error(ArgumentError)
+  end
+
+  it "has a default value for b when passed one argument" do
+    @klass.new.m(1).should == [1, 1]
+  end
+
+  it "overrides the default argument when passed two arguments" do
+    @klass.new.m(1, 2).should == [1, 2]
+  end
+
+  it "raises an ArgumentError when passed three arguments" do
+    lambda { @klass.new.m(1, 2, 3) }.should raise_error(ArgumentError)
+  end
 end
 
 describe "Module#define_method when given an UnboundMethod" do
@@ -45,40 +65,30 @@ describe "Module#define_method when given an UnboundMethod" do
       @class = child
     end
 
-    ruby_version_is "1.8" ... "1.9" do
-      it "raises TypeError when calling the method" do
-        lambda { @class.another_test_method }.should raise_error(TypeError)
-      end
-    end
-
-    ruby_version_is "1.9" do
-      it "doesn't raise TypeError when calling the method" do
-        @class.another_test_method.should == :foo
-      end
+    it "doesn't raise TypeError when calling the method" do
+      @class.another_test_method.should == :foo
     end
   end
 end
 
 describe "Module#define_method when name is :initialize" do
-  ruby_version_is "1.9" do
-    describe "passed a block" do
-      it "sets visibility to private when method name is :initialize" do
-        klass = Class.new do
-          define_method(:initialize) { }
-        end
-        klass.should have_private_instance_method(:initialize)
+  describe "passed a block" do
+    it "sets visibility to private when method name is :initialize" do
+      klass = Class.new do
+        define_method(:initialize) { }
       end
+      klass.should have_private_instance_method(:initialize)
     end
+  end
 
-    describe "given an UnboundMethod" do
-      it "sets the visibility to private when method is named :initialize" do
-        klass = Class.new do
-          def test_method
-          end
-          define_method(:initialize, instance_method(:test_method))
+  describe "given an UnboundMethod" do
+    it "sets the visibility to private when method is named :initialize" do
+      klass = Class.new do
+        def test_method
         end
-        klass.should have_private_instance_method(:initialize)
+        define_method(:initialize, instance_method(:test_method))
       end
+      klass.should have_private_instance_method(:initialize)
     end
   end
 end
@@ -145,20 +155,10 @@ describe "Module#define_method" do
     lambda { obj.proc_style_test :arg }.should raise_error(ArgumentError)
   end
 
-  ruby_version_is ""..."1.9" do
-    it "raises a TypeError if frozen" do
-      lambda {
-        Class.new { freeze; define_method(:foo) {} }
-      }.should raise_error(TypeError)
-    end
-  end
-
-  ruby_version_is "1.9" do
-    it "raises a RuntimeError if frozen" do
-      lambda {
-        Class.new { freeze; define_method(:foo) {} }
-      }.should raise_error(RuntimeError)
-    end
+  it "raises a RuntimeError if frozen" do
+    lambda {
+      Class.new { freeze; define_method(:foo) {} }
+    }.should raise_error(RuntimeError)
   end
 
   it "accepts a Method (still bound)" do
@@ -206,25 +206,10 @@ describe "Module#define_method" do
     Module.should have_private_instance_method(:define_method)
   end
 
-  ruby_version_is ""..."2.1" do
-    it "returns a Proc" do
-      class DefineMethodSpecClass
-        method = define_method("return_test") { || true }
-        method.is_a?(Proc).should be_true
-        # check if it is a lambda:
-        lambda {
-          method.call :too_many_arguments
-        }.should raise_error(ArgumentError)
-      end
-    end
-  end
-
-  ruby_version_is "2.1" do
-    it "returns its symbol" do
-      class DefineMethodSpecClass
-        method = define_method("return_test") { || true }
-        method.should == :return_test
-      end
+  it "returns its symbol" do
+    class DefineMethodSpecClass
+      method = define_method("return_test") { || true }
+      method.should == :return_test
     end
   end
 
@@ -237,23 +222,8 @@ describe "Module#define_method" do
       }
     end
 
-    ruby_version_is "1.8" ... "1.9" do
-      it "raises a TypeError when calling a method from a different object" do
-        obj = @lazy_class_def.call.new
-        lambda { obj.bar }.should raise_error(TypeError)
-      end
-    end
-
-    ruby_version_is "1.9" ... "2.0" do
-      it "raises a TypeError when defining a method from a different object" do
-        lambda { @lazy_class_def.call }.should raise_error(TypeError)
-      end
-    end
-
-    ruby_version_is "2.0" do
-      it "allows methods defined on a different object" do
-        @lazy_class_def.call.new.bar.should == 'bar'
-      end
+    it "allows methods defined on a different object" do
+      @lazy_class_def.call.new.bar.should == 'bar'
     end
   end
 end
@@ -270,24 +240,12 @@ describe "Module#define_method" do
       @klass.new.m().should == :called
     end
 
-    ruby_version_is ""..."1.9" do
-      it "returns the value computed by the block when passed one argument" do
-        @klass.new.m(1).should == :called
-      end
-
-      it "returns the value computed by the block when passed two arguments" do
-        @klass.new.m(1, 2).should == :called
-      end
+    it "raises an ArgumentError when passed one argument" do
+      lambda { @klass.new.m 1 }.should raise_error(ArgumentError)
     end
 
-    ruby_version_is "1.9" do
-      it "raises an ArgumentError when passed one argument" do
-        lambda { @klass.new.m 1 }.should raise_error(ArgumentError)
-      end
-
-      it "raises an ArgumentError when passed two arguments" do
-        lambda { @klass.new.m 1, 2 }.should raise_error(ArgumentError)
-      end
+    it "raises an ArgumentError when passed two arguments" do
+      lambda { @klass.new.m 1, 2 }.should raise_error(ArgumentError)
     end
   end
 
@@ -318,32 +276,16 @@ describe "Module#define_method" do
       end
     end
 
-    ruby_version_is ""..."1.9" do
-      it "receives nil as the argument when passed zero arguments" do
-        @klass.new.m().should be_nil
-      end
-
-      it "receives nil as the argument when passed zero arguments and a block" do
-        @klass.new.m() { :computed }.should be_nil
-      end
-
-      it "returns the value computed by the block when passed two arguments" do
-        @klass.new.m(1, 2).should == [1, 2]
-      end
+    it "raises an ArgumentError when passed zero arguments" do
+      lambda { @klass.new.m }.should raise_error(ArgumentError)
     end
 
-    ruby_version_is "1.9" do
-      it "raises an ArgumentError when passed zero arguments" do
-        lambda { @klass.new.m }.should raise_error(ArgumentError)
-      end
+    it "raises an ArgumentError when passed zero arguments and a block" do
+      lambda { @klass.new.m { :computed } }.should raise_error(ArgumentError)
+    end
 
-      it "raises an ArgumentError when passed zero arguments and a block" do
-        lambda { @klass.new.m { :computed } }.should raise_error(ArgumentError)
-      end
-
-      it "raises an ArgumentError when passed two arguments" do
-        lambda { @klass.new.m 1, 2 }.should raise_error(ArgumentError)
-      end
+    it "raises an ArgumentError when passed two arguments" do
+      lambda { @klass.new.m 1, 2 }.should raise_error(ArgumentError)
     end
 
     it "receives the value passed as the argument when passed one argument" do

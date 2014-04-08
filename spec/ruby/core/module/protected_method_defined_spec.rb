@@ -31,49 +31,22 @@ describe "Module#protected_method_defined?" do
     ModuleSpecs::CountsMixin.protected_method_defined?(:protected_3).should == true
   end
 
-  not_compliant_on :rubinius do
-    ruby_version_is ""..."1.9" do
-      it "raises an ArgumentError if passed a Fixnum" do
-        lambda {
-          ModuleSpecs::CountsMixin.protected_method_defined?(1)
-        }.should raise_error(ArgumentError)
-      end
+  it "raises a TypeError if not passed a Symbol" do
+    lambda {
+      ModuleSpecs::CountsMixin.protected_method_defined?(1)
+    }.should raise_error(TypeError)
+    lambda {
+      ModuleSpecs::CountsMixin.protected_method_defined?(nil)
+    }.should raise_error(TypeError)
+    lambda {
+      ModuleSpecs::CountsMixin.protected_method_defined?(false)
+    }.should raise_error(TypeError)
 
-      it "raises a TypeError if not passed a Symbol" do
-        lambda {
-          ModuleSpecs::CountsMixin.protected_method_defined?(nil)
-        }.should raise_error(TypeError)
-        lambda {
-          ModuleSpecs::CountsMixin.protected_method_defined?(false)
-        }.should raise_error(TypeError)
-
-        sym = mock('symbol')
-        def sym.to_sym() :protected_3 end
-        lambda {
-          ModuleSpecs::CountsMixin.protected_method_defined?(sym)
-        }.should raise_error(TypeError)
-      end
-    end
-
-    ruby_version_is "1.9" do
-      it "raises a TypeError if not passed a Symbol" do
-        lambda {
-          ModuleSpecs::CountsMixin.protected_method_defined?(1)
-        }.should raise_error(TypeError)
-        lambda {
-          ModuleSpecs::CountsMixin.protected_method_defined?(nil)
-        }.should raise_error(TypeError)
-        lambda {
-          ModuleSpecs::CountsMixin.protected_method_defined?(false)
-        }.should raise_error(TypeError)
-
-        sym = mock('symbol')
-        def sym.to_sym() :protected_3 end
-        lambda {
-          ModuleSpecs::CountsMixin.protected_method_defined?(sym)
-        }.should raise_error(TypeError)
-      end
-    end
+    sym = mock('symbol')
+    def sym.to_sym() :protected_3 end
+    lambda {
+      ModuleSpecs::CountsMixin.protected_method_defined?(sym)
+    }.should raise_error(TypeError)
   end
 
   it "accepts any object that is a String type" do
