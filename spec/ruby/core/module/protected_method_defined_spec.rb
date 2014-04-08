@@ -31,35 +31,42 @@ describe "Module#protected_method_defined?" do
     ModuleSpecs::CountsMixin.protected_method_defined?(:protected_3).should == true
   end
 
-  it "raises a TypeError if not passed a Symbol" do
-    lambda {
+  it "raises a TypeError if passed a Fixnum" do
+    lambda do
       ModuleSpecs::CountsMixin.protected_method_defined?(1)
-    }.should raise_error(TypeError)
-    lambda {
-      ModuleSpecs::CountsMixin.protected_method_defined?(nil)
-    }.should raise_error(TypeError)
-    lambda {
-      ModuleSpecs::CountsMixin.protected_method_defined?(false)
-    }.should raise_error(TypeError)
+    end.should raise_error(TypeError)
+  end
 
+  it "raises a TypeError if passed nil" do
+    lambda do
+      ModuleSpecs::CountsMixin.protected_method_defined?(nil)
+    end.should raise_error(TypeError)
+  end
+
+  it "raises a TypeError if passed false" do
+    lambda do
+      ModuleSpecs::CountsMixin.protected_method_defined?(false)
+    end.should raise_error(TypeError)
+  end
+
+  it "raises a TypeError if passed an object that does not defined #to_str" do
+    lambda do
+      ModuleSpecs::CountsMixin.protected_method_defined?(mock('x'))
+    end.should raise_error(TypeError)
+  end
+
+  it "raises a TypeError if passed an object that defines #to_sym" do
     sym = mock('symbol')
     def sym.to_sym() :protected_3 end
-    lambda {
+
+    lambda do
       ModuleSpecs::CountsMixin.protected_method_defined?(sym)
-    }.should raise_error(TypeError)
+    end.should raise_error(TypeError)
   end
 
-  it "accepts any object that is a String type" do
+  it "calls #to_str to convert an Object" do
     str = mock('protected_3')
-    def str.to_str() 'protected_3' end
+    str.should_receive(:to_str).and_return("protected_3")
     ModuleSpecs::CountsMixin.protected_method_defined?(str).should == true
-  end
-
-  deviates_on :rubinius do
-    it "raises a TypeError if not passed a String type" do
-      lambda {
-        ModuleSpecs::CountsMixin.protected_method_defined?(mock('x'))
-      }.should raise_error(TypeError)
-    end
   end
 end
