@@ -394,19 +394,19 @@ class Module
   end
 
   def public_method_defined?(sym)
-    sym = Rubinius::Type.coerce_to_symbol(sym)
+    sym = Rubinius::Type.coerce_to_reflection_name(sym)
     mod, meth = lookup_method(sym, false)
     meth ? meth.public? : false
   end
 
   def private_method_defined?(sym)
-    sym = Rubinius::Type.coerce_to_symbol(sym)
+    sym = Rubinius::Type.coerce_to_reflection_name(sym)
     mod, meth = lookup_method(sym, false)
     meth ? meth.private? : false
   end
 
   def protected_method_defined?(sym)
-    sym = Rubinius::Type.coerce_to_symbol(sym)
+    sym = Rubinius::Type.coerce_to_reflection_name(sym)
     mod, meth = lookup_method(sym, false)
     meth ? meth.protected? : false
   end

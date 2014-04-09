@@ -340,6 +340,12 @@ module Rubinius
       coerce_to(obj, Symbol, :to_sym)
     end
 
+    def self.coerce_to_reflection_name(obj)
+      return obj if object_kind_of? obj, Symbol
+      return obj if object_kind_of? obj, String
+      coerce_to obj, String, :to_str
+    end
+
     def self.ivar_validate(name)
       case name
       when Symbol
