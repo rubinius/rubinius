@@ -27,6 +27,7 @@ namespace :gems do
       begin
         ENV["RBX_RUN_COMPILED"] = "1"
         bootstrap_rubinius "./extconf.rbc"
+        sh "#{BUILD_CONFIG[:build_make]} clean"
         sh "#{BUILD_CONFIG[:build_make]} && #{BUILD_CONFIG[:build_make]} install"
       ensure
         ENV.delete "RBX_RUN_COMPILED"
