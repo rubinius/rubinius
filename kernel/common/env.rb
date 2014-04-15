@@ -286,7 +286,7 @@ module Rubinius
 
     def set_encoding(value)
       return unless value.kind_of? String
-      if Encoding.default_internal
+      if Encoding.default_internal && value.ascii_only?
         value.encode Encoding.default_internal, Encoding.find("locale")
       else
         value.force_encoding Encoding.find("locale")
