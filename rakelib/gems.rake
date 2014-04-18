@@ -1,9 +1,11 @@
 def bootstrap_rubinius(cmd)
   gems_path = File.expand_path "../", BUILD_CONFIG[:bootstrap_gems_dir]
   ENV["RBX_GEMS_PATH"] = gems_path
+  ENV["RBX_PREFIX_PATH"] = BUILD_CONFIG[:build_prefix]
   sh "#{BUILD_CONFIG[:build_exe]} #{cmd}"
 ensure
   ENV.delete "RBX_GEMS_PATH"
+  ENV.delete "RBX_PREFIX_PATH"
 end
 
 namespace :gems do
@@ -24,12 +26,10 @@ namespace :gems do
     Dir.chdir path do
       begin
         ENV["RBX_RUN_COMPILED"] = "1"
-        ENV["RBX_PREFIX_PATH"] = BUILD_CONFIG[:build_prefix]
-        sh "#{BUILD_CONFIG[:build_exe]} ./extconf.rbc"
+        bootstrap_rubinius "./extconf.rbc"
         sh "#{BUILD_CONFIG[:build_make]} && #{BUILD_CONFIG[:build_make]} install"
       ensure
         ENV.delete "RBX_RUN_COMPILED"
-        ENV.delete "RBX_PREFIX_PATH"
       end
     end
   end
