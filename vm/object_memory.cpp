@@ -553,6 +553,7 @@ step1:
       if(!mature_mark_concurrent_) {
         collect_mature_finish(state, gc_data);
         print_mature_stats(state, gc_data);
+        delete gc_data;
       }
     }
 
