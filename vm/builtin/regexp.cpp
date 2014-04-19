@@ -627,8 +627,8 @@ namespace rubinius {
   }
 
   String* MatchData::matched_string(STATE) {
-    Fixnum* beg = try_as<Fixnum>(full_->at(state, 0));
-    Fixnum* fin = try_as<Fixnum>(full_->at(state, 1));
+    Fixnum* beg = as<Fixnum>(full_->at(state, 0));
+    Fixnum* fin = as<Fixnum>(full_->at(state, 1));
 
     native_int max = source_->byte_size();
     native_int f = fin->to_native();
@@ -636,8 +636,7 @@ namespace rubinius {
 
     String* string;
 
-    if(!beg || !fin ||
-        f > max || b > max || b < 0) {
+    if(f > max || b > max || b < 0) {
       string = String::create(state, 0, 0);
     } else {
       const char* str = (char*)source_->byte_address();
@@ -649,19 +648,19 @@ namespace rubinius {
     source_->infect(state, string);
     string->encoding_from(state, source_);
     string->klass(state, source_->class_object(state));
-    
+
     return string;
   }
 
   String* MatchData::pre_matched(STATE) {
-    Fixnum* beg = try_as<Fixnum>(full_->at(state, 0));
+    Fixnum* beg = as<Fixnum>(full_->at(state, 0));
 
     native_int max = source_->byte_size();
     native_int sz = beg->to_native();
 
     String* string;
 
-    if(!beg || sz <= 0) {
+    if(sz <= 0) {
       string = String::create(state, 0, 0);
     } else {
       if(sz > max) sz = max;
@@ -679,14 +678,14 @@ namespace rubinius {
   }
 
   String* MatchData::post_matched(STATE) {
-    Fixnum* fin = try_as<Fixnum>(full_->at(state, 1));
+    Fixnum* fin = as<Fixnum>(full_->at(state, 1));
 
     native_int f = fin->to_native();
     native_int max = source_->byte_size();
 
     String* string;
 
-    if(!fin || f >= max) {
+    if(f >= max) {
       string = String::create(state, 0, 0);
     } else {
       const char* str = (char*)source_->byte_address();
@@ -710,16 +709,15 @@ namespace rubinius {
     Tuple* sub = try_as<Tuple>(region_->at(state, which));
     if(!sub) return nil<String>();
 
-    Fixnum* beg = try_as<Fixnum>(sub->at(state, 0));
-    Fixnum* fin = try_as<Fixnum>(sub->at(state, 1));
+    Fixnum* beg = as<Fixnum>(sub->at(state, 0));
+    Fixnum* fin = as<Fixnum>(sub->at(state, 1));
 
     native_int b = beg->to_native();
     native_int f = fin->to_native();
     native_int max = source_->byte_size();
 
-    if(!beg || !fin ||
-        f > max ||
-        b < 0) {
+    if(f > max ||
+       b < 0) {
       return nil<String>();
     }
 
