@@ -315,16 +315,16 @@ namespace rubinius {
     }
 
 #ifdef IMMIX_DEBUG
-    immix::Chunks& chunks = gc_.block_allocator().chunks();
-    std::cout << "chunks=" << chunks.size() << "\n";
+    immix::Chunks& dbg_chunks = gc_.block_allocator().chunks();
+    std::cout << "chunks=" << dbg_chunks.size() << "\n";
 
-    immix::AllBlockIterator iter(chunks);
+    immix::AllBlockIterator dbg_iter(dbg_chunks);
 
     int blocks_seen = 0;
     int total_objects = 0;
     int total_object_bytes = 0;
 
-    while(immix::Block* block = iter.next()) {
+    while(immix::Block* block = dbg_iter.next()) {
       blocks_seen++;
       std::cout << "block " << block << ", holes=" << block->holes() << " "
                 << "objects=" << block->objects() << " "
@@ -345,9 +345,9 @@ namespace rubinius {
       holes[i] = 0;
     }
 
-    immix::AllBlockIterator iter2(chunks);
+    immix::AllBlockIterator dbg_iter2(dbg_chunks);
 
-    while(immix::Block* block = iter2.next()) {
+    while(immix::Block* block = dbg_iter2.next()) {
       int h = block->holes();
       if(h > 9) h = 9;
 
