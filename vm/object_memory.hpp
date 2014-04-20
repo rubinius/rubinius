@@ -396,6 +396,11 @@ namespace rubinius {
     Object* allocate_object_raw(size_t bytes);
     void collect_mature_finish(STATE, GCData* data);
     void wait_for_mature_marker(STATE);
+
+    bool mature_gc_in_progress() {
+      return mature_gc_in_progress_;
+    }
+
     void clear_mature_mark_in_progress() {
       mature_gc_in_progress_ = false;
     }

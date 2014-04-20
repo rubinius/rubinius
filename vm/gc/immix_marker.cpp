@@ -170,8 +170,8 @@ namespace rubinius {
           while(!state->stop_the_world()) {
             state->checkpoint(gct, 0);
           }
-          state->memory()->collect_mature_finish(state, data_);
           state->memory()->clear_mature_mark_in_progress();
+          state->memory()->collect_mature_finish(state, data_);
         }
         state->memory()->gc_stats.last_full_stop_collection_time.add(initial_stop.value);
         state->memory()->print_mature_stats(state, data_);

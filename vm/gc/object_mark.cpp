@@ -10,6 +10,10 @@ namespace rubinius {
     return gc->state();
   }
 
+  bool ObjectMark::mature_gc_in_progress() {
+    return gc->mature_gc_in_progress();
+  }
+
   /**
    * Checks the reference to the target obj, and if it is valid, notifies the GC
    * that the object is still alive.

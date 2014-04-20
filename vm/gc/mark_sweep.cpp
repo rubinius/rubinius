@@ -108,6 +108,10 @@ namespace rubinius {
     return NULL;
   }
 
+  bool MarkSweepGC::mature_gc_in_progress() {
+    return object_memory_->mature_gc_in_progress();
+  }
+
   void MarkSweepGC::after_marked() {
     times_collected++;
     last_freed = 0;

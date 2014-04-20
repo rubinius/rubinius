@@ -131,6 +131,10 @@ namespace rubinius {
     obj->scanned();
   }
 
+  bool ImmixGC::mature_gc_in_progress() {
+    return object_memory_->mature_gc_in_progress();
+  }
+
   ObjectPosition ImmixGC::validate_object(Object* obj) {
     if(gc_.allocated_address(memory::Address(obj))) {
       if(obj->in_immix_p()) {

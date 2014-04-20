@@ -140,6 +140,15 @@ namespace rubinius {
 
     Data* data = force_as<Data>(t);
 
+    if(mark.mature_gc_in_progress()) {
+      // Don't scan objects concurrently since this might
+      // not be thread safe. The C library in use here
+      // might be in the process of freeing up malloc'ed
+      // resources so we would see objects in an invalid
+      // state and scan wrong pointers etc.
+      return;
+    }
+
     if(data->freed_p()) {
       // TODO: Fix the issue of finalizer ordering.
       // std::cerr << "Data::Info::mark called for already freed object" << std::endl;
