@@ -15,7 +15,7 @@ namespace :gems do
 
     cmd = "#{BUILD_CONFIG[:sourcedir]}/rakelib/preinstall_gems.rb"
 
-    Dir.chdir "vendor/cache" do
+    Dir.chdir BUILD_CONFIG[:gems_cache] do
       bootstrap_rubinius cmd
     end
   end

@@ -179,8 +179,8 @@ class Configure
       [ "rubinius-debugger", "2.0" ],
     ]
 
+    # Default cache directory, can be overwritten by the user.
     @gems_cache = File.expand_path "../vendor/cache", __FILE__
-    FileUtils.mkdir_p @gems_cache
 
     # Vendored library settings
     @vendored_libdir = root + "/vendor"
@@ -450,7 +450,7 @@ class Configure
       @use_bin_links = false
     end
 
-    o.doc "\n File system paths for installing Rubinius"
+    o.doc "\n File system paths for  installing Rubinius"
 
     o.on "-P", "--prefix", "PATH", "Install Rubinius in subdirectories of PATH" do |dir|
       warn_prefix dir
@@ -479,6 +479,10 @@ class Configure
 
     o.on "-G", "--gemsdir", "PATH", "Install gems in PATH" do |dir|
       @gemsdir = expand dir
+    end
+
+    o.on "--gems-cache", "PATH", "Cache Gems in PATH during compilation" do |dir|
+      @gems_cache = expand dir
     end
 
     o.on "--sitedir", "PATH", "Install site-specific Ruby code in PATH" do |dir|
@@ -1751,6 +1755,7 @@ int main() { return tgetnum(""); }
       :includedir         => @includedir,
       :mandir             => @mandir,
       :gemsdir            => @gemsdir,
+      :gems_cache         => @gems_cache,
       :program_name       => @program_name,
       :bin_links          => @bin_links,
       :use_bin_links      => @use_bin_links,
@@ -2061,9 +2066,8 @@ int main() { return tgetnum(""); }
     clean_gems @bootstrap_gems_dir, bootstrap_gems
 
     # Unpack gems not found for these configure settings
-    gem_sources = File.expand_path "../vendor/cache", __FILE__
-    unpack_gems gem_sources, @runtime_gems_dir, runtime_gems
-    unpack_gems gem_sources, @bootstrap_gems_dir, bootstrap_gems
+    unpack_gems @gems_cache, @runtime_gems_dir, runtime_gems
+    unpack_gems @gems_cache, @bootstrap_gems_dir, bootstrap_gems
   end
 
   def load_config
@@ -2082,6 +2086,12 @@ int main() { return tgetnum(""); }
     end
   end
 
+  # Create directories that don't have to be created by the end user
+  # themselves.
+  def create_directories
+    FileUtils.mkdir_p @gems_cache
+  end
+
   def run
     unless RedCard.check :ruby, :rubinius
       failure "Sorry, building Rubinius requires MRI or Rubinius."
@@ -2094,6 +2104,7 @@ int main() { return tgetnum(""); }
 
     options
     parse ARGV
+    create_directories
     load_config
     check_tools
     check_force_clean
@@ -2142,16 +2153,17 @@ Run 'rake' to build and test Rubinius.
       build_msg = <<-EOM
 Rubinius has been configured for the following paths:
 
-prefix:  #{@prefixdir}
-bin:     #{@prefixdir}#{@bindir}
-lib:     #{@prefixdir}#{@libdir}
-runtime: #{@prefixdir}#{@runtimedir}
-kernel:  #{@prefixdir}#{@kerneldir}
-site:    #{@prefixdir}#{@sitedir}
-vendor:  #{@prefixdir}#{@vendordir}
-man:     #{@prefixdir}#{@mandir}
-gems:    #{@prefixdir}#{@gemsdir}
-include: #{@prefixdir}#{@includedir}
+prefix:     #{@prefixdir}
+bin:        #{@prefixdir}#{@bindir}
+lib:        #{@prefixdir}#{@libdir}
+runtime:    #{@prefixdir}#{@runtimedir}
+kernel:     #{@prefixdir}#{@kerneldir}
+site:       #{@prefixdir}#{@sitedir}
+vendor:     #{@prefixdir}#{@vendordir}
+man:        #{@prefixdir}#{@mandir}
+gems:       #{@prefixdir}#{@gemsdir}
+gems cache: #{@gems_cache}
+include:    #{@prefixdir}#{@includedir}
 
 Run 'rake' to build, test and install Rubinius.
       EOM
