@@ -1274,6 +1274,12 @@ int main() { return tgetnum(""); }
 
   def has_header(name)
     compile_check "header '#{name}'" do |src|
+      # Some headers have an implicit dependency on stdio.h. For example,
+      # readline/readline.h requires it but doesn't actually include it for
+      # you. Because there could be an infinite amount of headers that require
+      # stdio.h we'll just always include it.
+      src.puts "#include <stdio.h>"
+
       src.puts "#include <#{name}>"
       src.puts "int main() {return 0;}"
     end
