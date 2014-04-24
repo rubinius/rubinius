@@ -627,21 +627,27 @@ class String
   alias_method :to_str, :to_s
 
   def tr(source, replacement)
-    str = dup
-    str.tr!(source, replacement) || str
+    if ascii_only? && replacement.ascii_only?
+      tr_trans_ascii_only(source, replacement)
+    else
+      tr_trans(source, replacement)
+    end
   end
 
   def tr!(source, replacement)
-    tr_trans(source, replacement, false)
+    replace(tr2(source, replacement))
   end
 
   def tr_s(source, replacement)
-    str = dup
-    str.tr_s!(source, replacement) || str
+    if ascii_only? && replacement.ascii_only?
+      tr_trans_ascii_only(source, replacement, true)
+    else
+      tr_trans(source, replacement, true)
+    end
   end
 
   def tr_s!(source, replacement)
-    tr_trans(source, replacement, true)
+    replace(tr_s(source, replacement, true))
   end
 
   def unpack(directives)
@@ -2362,109 +2368,95 @@ class String
     self
   end
 
-  def tr_trans(source, replacement, squeeze)
-    source = StringValue(source).dup
-    replacement = StringValue(replacement).dup
+  def tr_trans(source, replacement, squeeze = false)
 
-    return delete!(source) if replacement.empty?
-    return if @num_bytes == 0
+    return delete(source) if replacement.empty?
+    return '' if @num_bytes == 0
 
-    invert = source[0] == ?^ && source.length > 1
-
-    source.slice!(0) if invert
-    source.tr_expand! nil, true
-    replacement.tr_expand! nil, false
-
-    multi_table = {}
+    invert   = source.size > 1 && source[0] == ?^
+    rlast    = (invert) ? replacement[-1] : -1
+    table    = Hash.new(rlast)
+    str      = ''
+    str_size = size
 
     if invert
-      r = replacement.__data__[replacement.size - 1]
-      table = Rubinius::Tuple.pattern 256, r
-
-      source.each_char do |chr|
-        if chr.bytesize > 1
-          multi_table[chr] = -1
-        else
-          table[chr.ord] = -1
-        end
-      end
+      source[1..-1].each_char { |c| table[c] = -1  }
     else
-      repl = replacement.__data__
       rsize = replacement.size
-      table = Rubinius::Tuple.pattern 256, -1
-
-      i = 0
-      source.each_char do |chr|
-        repl_char = replacement[i]
-
-        if repl_char && (chr.bytesize > 1 || repl_char.bytesize > 1)
-          multi_table[chr] = repl_char
-        else
-          r = repl[i] if i < rsize
-          table[chr.ord] = r
-        end
-
-        i += 1
+      source.size.times do |i|
+        rlast = replacement[i] if i < rsize
+        table[source[i]] = rlast
       end
     end
 
-    destination = dup
-    modified = false
-
+    i, last = -1, -255
     if squeeze
-      last = nil
-      byte_size = 0
-
-      i = 0
-      each_char do |chr|
-        c = -1
-        c = table[chr.ord] if chr.bytesize == 1
-
-        if c >= 0
-          c_char = c.chr
-          next if last == c_char
-          byte_size += 1
-          destination[i] = c_char
-          last = c_char
-          modified = true
-        elsif c = multi_table[chr]
-          next if last == c
-          destination[i] = c
-          last = c
-          modified = true
-          byte_size += c.bytesize
+      while (i += 1) < str_size
+        c = table[self[i]]
+        if c == -1
+          str << self[i]
+          last = -255
         else
-          destination[i] = chr
-          byte_size += chr.bytesize
-          last = nil
+          next if c == last
+          str << c
+          last = c
         end
-
-        i += 1
       end
-
-      destination.num_bytes = byte_size if byte_size < @num_bytes
+      return str
     else
-      i = 0
-      each_char do |chr|
-        c = -1
-        c = table[chr.ord] if chr.bytesize == 1
-
-        if c >= 0
-          c_char = c.chr
-          destination[i] = c_char
-          modified = true
-        elsif c = multi_table[chr]
-          destination[i] = c
-          modified = true
+      while (i += 1) < str_size
+        c = table[self[i]]
+        if c == -1
+          str << c
+        else
+          str << self[i]
         end
-        i += 1
+      end
+      return str
+    end
+  end
+
+  def tr_trans_ascii_only(source, replacement, squeeze = false)
+
+    return delete(source) if replacement.empty?
+    return '' if @num_bytes == 0
+
+    invert = source.size > 1 && source[0] == ?^
+    rlast  = (invert) ? replacement[-1].ord : -1
+    table  = Rubinius::Tuple.pattern 256, rlast
+    str    = (squeeze) ? Rubinius::ByteArray.new(@num_bytes) : @data.dup
+
+    if invert
+      source[1..-1].each_char { |c| table[c.ord] = -1  }
+    else
+      rsize = replacement.size
+      source.size.times do |i|
+        rlast = replacement[i].ord if i < rsize
+        table[source[i].ord] = rlast
       end
     end
 
-    if modified
-      replace(destination)
+    i = -1
+    if squeeze
+      j, last = -1, -255
+      while (i += 1) < @num_bytes
+        c = table[@data[i]]
+        if c == -1
+          str[j += 1] = @data[i]
+          last = -255
+        else
+          next if c == last
+          str[j += 1] = c
+          last = c
+        end
+      end
+      return String.from_bytearray str, 0, j + 1
     else
-      nil
+      while (i += 1) < @num_bytes
+        c = table[@data[i]]
+        str[i] = c unless c == -1
+      end
+      return String.from_bytearray str, 0, @num_bytes
     end
   end
 
