@@ -627,27 +627,21 @@ class String
   alias_method :to_str, :to_s
 
   def tr(source, replacement)
-    if ascii_only? && replacement.ascii_only?
-      tr_trans_ascii_only(source, replacement)
-    else
-      tr_trans(source, replacement)
-    end
+    str = dup
+    str.tr!(source, replacement) || str
   end
 
   def tr!(source, replacement)
-    replace(tr2(source, replacement))
+    tr_trans(source, replacement, false)
   end
 
   def tr_s(source, replacement)
-    if ascii_only? && replacement.ascii_only?
-      tr_trans_ascii_only(source, replacement, true)
-    else
-      tr_trans(source, replacement, true)
-    end
+    str = dup
+    str.tr_s!(source, replacement) || str
   end
 
   def tr_s!(source, replacement)
-    replace(tr_s(source, replacement, true))
+    tr_trans(source, replacement, true)
   end
 
   def unpack(directives)
@@ -2369,19 +2363,29 @@ class String
   end
 
   def tr_trans(source, replacement, squeeze = false)
+    source = StringValue(source).dup
+    replacement = StringValue(replacement).dup
 
-    return delete(source) if replacement.empty?
-    return '' if @num_bytes == 0
+    return delete!(source) if replacement.empty?
+    return if @num_bytes == 0
+    if ascii_only? && replacement.ascii_only?
+      return tr_trans_ascii_only(source, replacement, squeeze)
+    end
 
-    invert   = source.size > 1 && source[0] == ?^
-    rlast    = (invert) ? replacement[-1] : -1
-    table    = Hash.new(rlast)
-    str      = ''
-    str_size = size
+    invert   = source.size > 1 && source[0] == '^'
+    source.slice!(0) if invert
+
+    source.tr_expand! nil, true
+    replacement.tr_expand! nil, false
+
+    rlast = replacement[-1]
+    des   = dup.clear
 
     if invert
-      source[1..-1].each_char { |c| table[c] = -1  }
+      table = Hash.new(rlast)
+      source.each_char { |c| table[c] = -1 }
     else
+      table = Hash.new(-1)
       rsize = replacement.size
       source.size.times do |i|
         rlast = replacement[i] if i < rsize
@@ -2389,46 +2393,55 @@ class String
       end
     end
 
-    i, last = -1, -255
+    i = 0
     if squeeze
-      while (i += 1) < str_size
-        c = table[self[i]]
-        if c == -1
-          str << self[i]
-          last = -255
+      while i < size
+        c = self[i]
+        if table[c] == -1
+          des << c
         else
-          next if c == last
-          str << c
-          last = c
+          des << table[c]
+          i += 1 while table[self[i+1]] == table[c]
         end
+        i += 1
       end
-      return str
     else
-      while (i += 1) < str_size
-        c = table[self[i]]
-        if c == -1
-          str << c
+      while i < size
+        c = self[i]
+        if table[c] == -1
+          des << c
         else
-          str << self[i]
+          des << table[c]
         end
+        i += 1
       end
-      return str
+    end
+
+    if self == des
+      nil
+    else
+      replace(des)
     end
   end
 
   def tr_trans_ascii_only(source, replacement, squeeze = false)
 
-    return delete(source) if replacement.empty?
-    return '' if @num_bytes == 0
+    invert  = source.size > 1 && source[0] == '^'
+    source.slice!(0) if invert
 
-    invert = source.size > 1 && source[0] == ?^
-    rlast  = (invert) ? replacement[-1].ord : -1
-    table  = Rubinius::Tuple.pattern 256, rlast
-    str    = (squeeze) ? Rubinius::ByteArray.new(@num_bytes) : @data.dup
+    source.tr_expand! nil, true
+    replacement.tr_expand! nil, false
+
+    rlast = replacement[-1].ord
+    copy  = dup
+
+    self.modify!
 
     if invert
-      source[1..-1].each_char { |c| table[c.ord] = -1  }
+      table = Rubinius::Tuple.pattern 265, rlast
+      source.each_char { |c| table[c.ord] = -1 }
     else
+      table = Rubinius::Tuple.pattern 265, -1
       rsize = replacement.size
       source.size.times do |i|
         rlast = replacement[i].ord if i < rsize
@@ -2436,29 +2449,36 @@ class String
       end
     end
 
-    i = -1
+    i = 0
     if squeeze
-      j, last = -1, -255
-      while (i += 1) < @num_bytes
-        c = table[@data[i]]
-        if c == -1
-          str[j += 1] = @data[i]
-          last = -255
+      j = -1
+      while i < @num_bytes
+        c = @data[i]
+        if table[c] == -1
+          @data[j += 1] = c
         else
-          next if c == last
-          str[j += 1] = c
-          last = c
+          @data[j += 1] = table[c]
+          i += 1 while (i + 1 < @num_bytes) && table[@data[i+1]] == table[c]
         end
+        i += 1
       end
-      return String.from_bytearray str, 0, j + 1
+      self.num_bytes = j if (j += 1) < @num_bytes
     else
-      while (i += 1) < @num_bytes
-        c = table[@data[i]]
-        str[i] = c unless c == -1
+      while i < @num_bytes
+        c = @data[i]
+        @data[i] = table[c] unless table[c] == -1
+        i += 1
       end
-      return String.from_bytearray str, 0, @num_bytes
+    end
+
+    if self == copy
+      nil
+    else
+      self
     end
   end
+
+  private :tr_trans_ascii_only
 
   def <=>(other)
     if other.kind_of?(String)

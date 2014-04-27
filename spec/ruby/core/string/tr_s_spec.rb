@@ -78,6 +78,21 @@ describe "String#tr_s" do
       b.encoding.should == Encoding::UTF_8
     end
 
+    it 'can replace a 7-bit ASCII character with a multibye one in invert mode' do
+      a = 'abc'
+      a.encoding.should == Encoding::UTF_8
+      b = a.tr_s('^bc', '我')
+      b.should == '我bc'
+      b.encoding.should == Encoding::UTF_8
+    end
+
+    it 'can replace a multibyte character with another multibyte one and replace a 7-bit ASCII character with a multibye one' do
+      a = '我abc'
+      a.encoding.should == Encoding::UTF_8
+      b = a.tr_s('我a', '你')
+      b.should == '你bc'
+    end
+
     it "can replace a multibyte character with a single byte one" do
       a = "über"
       a.encoding.should == Encoding::UTF_8

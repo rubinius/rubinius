@@ -87,7 +87,7 @@ describe "String#tr" do
       a.encoding.should == Encoding::UTF_8
       b = a.tr("^bc", "我")
       b.should == "我bc"
-      b.incoding.should == Encoding::UTF_8
+      b.encoding.should == Encoding::UTF_8
     end
 
     it "can replace a multibyte character with a single byte one" do
