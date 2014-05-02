@@ -431,9 +431,9 @@ class Hash
 
   # Returns a new +Bucket+ instance having +key+, +key_hash+,
   # and +value+. If +key+ is a kind of +String+, +key+ is
-  # duped and frozen.
+  # duped and frozen (unless compare_by_identity is enabled).
   def new_bucket(key, key_hash, value)
-    if key.kind_of?(String) and !key.frozen?
+    if key.kind_of?(String) and !key.frozen? and !@state.compare_by_identity?
       key = key.dup
       key.freeze
     end
