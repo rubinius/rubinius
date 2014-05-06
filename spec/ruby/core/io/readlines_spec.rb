@@ -172,11 +172,13 @@ describe "IO.readlines" do
     @external = Encoding.default_external
     @internal = Encoding.default_internal
     @name = fixture __FILE__, "lines.txt"
+    @dollar_slash = $/
   end
 
   after :each do
     Encoding.default_external = @external
     Encoding.default_internal = @internal
+    $/ = @dollar_slash
   end
 
   it "encodes lines using the default external encoding" do
@@ -188,6 +190,7 @@ describe "IO.readlines" do
   it "encodes lines using the default internal encoding, when set" do
     Encoding.default_external = Encoding::UTF_8
     Encoding.default_internal = Encoding::UTF_16
+    $/ = $/.encode Encoding::UTF_16
     lines = IO.readlines(@name)
     lines.all? { |s| s.encoding == Encoding::UTF_16 }.should be_true
   end

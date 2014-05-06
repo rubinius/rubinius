@@ -67,6 +67,10 @@ describe "IO#write on a file" do
       File.binread(@filename).should == "h\u0000\u0000\u0000i\u0000\u0000\u0000"
     end
 
+    it "uses an :open_args option" do
+      IO.write(@filename, 'hi', :open_args => ["w", nil, {:encoding => Encoding::UTF_32LE}]).should == 8
+    end
+
     it "raises a invalid byte sequence error if invalid bytes are being written" do
       File.open(@filename, "w", :encoding => Encoding::US_ASCII) do |file|
         lambda { file.write("\xFEhi") }.should raise_error(Encoding::InvalidByteSequenceError)

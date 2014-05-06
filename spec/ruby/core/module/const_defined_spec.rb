@@ -67,15 +67,28 @@ describe "Module#const_defined?" do
     Object.const_defined?(:CS_CONST10).should be_true
   end
 
+  it "returns true for toplevel constant when the name begins with '::'" do
+    ConstantSpecs.const_defined?("::Array").should be_true
+  end
+
+  it "returns false when the name begins with '::' and the toplevel constant does not exist" do
+    ConstantSpecs.const_defined?("::Name").should be_false
+  end
+
   it "raises a NameError if the name does not start with a capital letter" do
     lambda { ConstantSpecs.const_defined? "name" }.should raise_error(NameError)
   end
 
-  it "raises a NameError if the name starts with a non-alphabetic character" do
+  it "raises a NameError if the name starts with '_'" do
     lambda { ConstantSpecs.const_defined? "__CONSTX__" }.should raise_error(NameError)
+  end
+
+  it "raises a NameError if the name starts with '@'" do
     lambda { ConstantSpecs.const_defined? "@Name" }.should raise_error(NameError)
+  end
+
+  it "raises a NameError if the name starts with '!'" do
     lambda { ConstantSpecs.const_defined? "!Name" }.should raise_error(NameError)
-    lambda { ConstantSpecs.const_defined? "::Name" }.should raise_error(NameError)
   end
 
   it "raises a NameError if the name contains non-alphabetic characters except '_'" do
