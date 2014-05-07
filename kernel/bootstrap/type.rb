@@ -26,6 +26,10 @@ module Rubinius
       raise PrimitiveFailure, "Rubinius::Type.singleton_class_object primitive failed"
     end
 
+    def self.object_instance_of?(obj, cls)
+      object_class(obj) == cls
+    end
+
     def self.object_respond_to?(obj, name, include_private = false)
       Rubinius.invoke_primitive :vm_object_respond_to, obj, name, include_private
     end

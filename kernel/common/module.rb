@@ -33,36 +33,13 @@ class Module
     module_eval(&block) if block
   end
 
-  def const_get(name, inherit = true)
-    Rubinius::Type.const_get(self, name, inherit)
+  def const_get(name, inherit=true)
+    Rubinius::Type.const_get self, name, inherit
   end
 
-  def const_defined?(name, search_parents=true)
-    name = Rubinius::Type.coerce_to_constant_name name
-    return true if @constant_table.has_name? name
-
-    # a silly special case
-    if self.equal? Object
-      mod = direct_superclass
-      while mod.kind_of? Rubinius::IncludedModule
-        return true if mod.constant_table.has_name? name
-        mod = mod.direct_superclass
-      end
-    end
-
-    if search_parents
-      current = self.direct_superclass
-      while current
-        return true if current.constant_table.has_name? name
-        current = current.direct_superclass
-      end
-
-      if instance_of?(Module)
-        return true if Object.constant_table.has_name? name
-      end
-    end
-
-    return false
+  def const_defined?(name, inherit=true)
+    c = Rubinius::Type.const_get self, name, inherit, false
+    return c.equal?(undefined) ? false : true
   end
 
   def attr(*attributes)
