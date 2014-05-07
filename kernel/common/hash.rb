@@ -433,7 +433,7 @@ class Hash
   # and +value+. If +key+ is a kind of +String+, +key+ is
   # duped and frozen.
   def new_bucket(key, key_hash, value)
-    if key.kind_of?(String) and !key.frozen?
+    if key.kind_of?(String) and !key.frozen? and !compare_by_identity?
       key = key.dup
       key.freeze
     end

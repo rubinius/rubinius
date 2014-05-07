@@ -80,6 +80,14 @@ describe "Hash#compare_by_identity" do
     @idh.clone.should == @idh
     @idh.clone.size.should == @idh.size
   end
+
+  it "does not copy string keys" do
+    foo = 'foo'
+    @idh[foo] = true
+    @idh[foo] = true
+    @idh.size.should == 1
+    @idh.keys.first.object_id.should == foo.object_id
+  end
 end
 
 describe "Hash#compare_by_identity?" do
