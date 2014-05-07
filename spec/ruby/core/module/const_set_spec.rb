@@ -20,6 +20,26 @@ describe "Module#const_set" do
     m.name.should == "ConstantSpecs::CS_CONST1000"
   end
 
+  it "does not set the name of a module scoped by an anonymous module" do
+    a, b = Module.new, Module.new
+    a.const_set :B, b
+    b.name.should be_nil
+  end
+
+  it "sets the name of contained modules when assigning a toplevel anonymous module" do
+    a, b, c, d = Module.new, Module.new, Module.new, Module.new
+    a::B = b
+    a::B::C = c
+    a::B::C::E = c
+    a::D = d
+
+    Object.const_set :ModuleSpecs_CS3, a
+    a.name.should == "ModuleSpecs_CS3"
+    b.name.should == "ModuleSpecs_CS3::B"
+    c.name.should == "ModuleSpecs_CS3::B::C"
+    d.name.should == "ModuleSpecs_CS3::D"
+  end
+
   it "raises a NameError if the name does not start with a capital letter" do
     lambda { ConstantSpecs.const_set "name", 1 }.should raise_error(NameError)
   end
