@@ -1,6 +1,6 @@
 desc "Create a release tarball"
 task :release do
-  Dir.chdir "vendor/cache" do
+  Dir.chdir BUILD_CONFIG[:gems_cache] do
     sh "rm -f *", :verbose => $verbose
     sh "gem fetch bundler", :verbose => $verbose
   end
