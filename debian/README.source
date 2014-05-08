@@ -1,0 +1,35 @@
+rubinius-2.2 for Debian
+-----------------------
+
+Debian Stable Package files for Rubinius 
+
+This is for version 2.2.6 of rubinius. Version prior to 2.2.4 requires patches
+to complete the package build. This is for Wheezy/Stable of Debian. Oldstable
+patches exist elsewhere.
+
+
+To build the deb on Wheezy/Stable.  
+
+
+# Optionally install git and build-essential
+    sudo apt-get install build-essential   git
+
+# Install the BuildDependencies
+    sudo apt-get install cdbs debhelper ruby1.9.1 build-essential \
+    zlib1g-dev libncurses5-dev libncursesw5-dev libreadline6-dev \
+    libssl-dev quilt ruby1.9.1-dev bison libyaml-dev 
+
+# get source ready
+    bzip2 -dc rubinius-2.2.2.tar.bz2 |tar xf -
+    cd rubinius-2.2.2
+
+# REQUIRED!
+# install bundler on to the system. 
+    sudo gem install vendor/cache/bundler-1.3.5.gem 
+# If using MRI 1.9 you MUST 
+# install the newer verion of rake into the system.
+    sudo gem install vendor/cache/rake-10.1.1.gem 
+
+# build package as usual
+    dpkg-buildpackage -rfakeroot 
+

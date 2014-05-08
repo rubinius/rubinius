@@ -1,0 +1,8 @@
+debian/rbx2.2.1
+debian/manpages/ruby-rbx2.2.1
+debian/manpages/testrb-rbx2.2.1
+debian/manpages/rdoc-rbx2.2.1
+debian/manpages/ri-rbx2.2.1
+debian/manpages/irb-rbx2.2.1
+debian/manpages/gem-rbx2.2.1
+debian/manpages/erb-rbx2.2.1
