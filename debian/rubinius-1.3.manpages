@@ -1,0 +1,8 @@
+debian/rbx1.3.1
+debian/manpages/ruby-rbx1.3.1
+debian/manpages/testrb-rbx1.3.1
+debian/manpages/rdoc-rbx1.3.1
+debian/manpages/ri-rbx1.3.1
+debian/manpages/irb-rbx1.3.1
+debian/manpages/gem-rbx1.3.1
+debian/manpages/erb-rbx1.3.1
