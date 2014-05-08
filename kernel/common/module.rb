@@ -614,6 +614,14 @@ class Module
 
     if Rubinius::Type.object_kind_of? value, Module
       Rubinius::Type.set_module_name value, name, self
+
+      if Object.equal? self
+        value.constant_table.each do |n, c, _|
+          if Rubinius::Type.object_kind_of? c, Module and !c.name
+            Rubinius::Type.set_module_name c, n, value
+          end
+        end
+      end
     end
 
     @constant_table.store(name, value, :public)
