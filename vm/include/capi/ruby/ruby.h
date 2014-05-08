@@ -1049,6 +1049,9 @@ struct RTypedData {
   /** Returns the superclass of a class. */
   VALUE   rb_class_superclass(VALUE klass);
 
+  /** Returns the first superclass of an object that isn't a singleton or intermediate. */
+  VALUE   rb_class_real(VALUE object);
+
   /** Returns the Class object contained in the klass field of object
    * (ie, a singleton class if it's there) */
   VALUE   CLASS_OF(VALUE object);
