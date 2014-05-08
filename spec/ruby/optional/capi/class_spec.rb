@@ -266,4 +266,22 @@ describe "C-API Class function" do
       @s.rb_class_superclass(BasicObject).should be_nil
     end
   end
+
+  describe "rb_class_real" do
+    it "returns the class of an object ignoring the singleton class" do
+      obj = CApiClassSpecs::Sub.new
+      def obj.some_method() end
+
+      @s.rb_class_real(obj).should == CApiClassSpecs::Sub
+    end
+
+    it "returns the class of an object ignoring included modules" do
+      obj = CApiClassSpecs::SubM.new
+      @s.rb_class_real(obj).should == CApiClassSpecs::SubM
+    end
+
+    it "returns 0 if passed 0" do
+      @s.rb_class_real(0).should == 0
+    end
+  end
 end

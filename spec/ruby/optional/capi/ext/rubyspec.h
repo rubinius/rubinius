@@ -101,6 +101,7 @@
 #define HAVE_RB_CLASS_NAME                 1
 #define HAVE_RB_CLASS_NEW                  1
 #define HAVE_RB_CLASS_NEW_INSTANCE         1
+#define HAVE_RB_CLASS_REAL                 1
 #define HAVE_RB_CVAR_DEFINED               1
 #define HAVE_RB_CVAR_GET                   1
 #define HAVE_RB_CVAR_SET                   1
@@ -111,6 +112,10 @@
 #define HAVE_RB_INCLUDE_MODULE             1
 #define HAVE_RB_PATH2CLASS                 1
 #define HAVE_RB_PATH_TO_CLASS              1
+
+#ifdef RUBY_VERSION_IS_1_9_3
+#define HAVE_RB_CLASS_SUPERCLASS           1
+#endif
 
 /* Complex */
 #define HAVE_RB_COMPLEX                    1
@@ -247,10 +252,6 @@
 
 #define HAVE_RSTRING_LENINT                1
 #define HAVE_TIMET2NUM                     1
-
-#ifdef RUBY_VERSION_IS_1_9_3
-#define HAVE_RB_CLASS_SUPERCLASS           1
-#endif
 
 #define HAVE_RB_LONG2INT                   1
 #define HAVE_RB_INTERN3                    1
