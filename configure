@@ -501,6 +501,10 @@ class Configure
       @stagingdir = expand dir
     end
 
+    o.on "--use-gemfile-git", "Use Git sources listed in Gemfile for runtime gems cached in vendor/cache" do
+      @use_gemfile_git= true
+    end
+
     o.doc "\n Optional features"
 
     feature "stdlib", true
@@ -2001,7 +2005,12 @@ int main() { return tgetnum(""); }
       gems.each do |name, version|
         gem = "#{name}-#{version}.gem"
         next if File.exist? gem
-
+        if @use_gemfile_git && Bundler.load.gems[name].first
+          if Bundler.load.gems[name].first.source.respond_to? :app_cache_dirname
+            next
+          end
+        end
+            
         failed = true unless download "https://rubygems.org/gems/#{gem}", "./#{gem}"
       end
     end
@@ -2054,6 +2063,15 @@ int main() { return tgetnum(""); }
       list.each do |name, version|
         gem_name = "#{name}-#{version}"
         unless File.directory? gem_name
+          if @use_gemfile_git && Bundler.load.gems[name].first
+            if Bundler.load.gems[name].first.source.respond_to? :app_cache_dirname
+              gem_src = source + "/" + Bundler.load.gems[name].first.source.app_cache_dirname.to_s
+              FileUtils.cp_r gem_src, gem_name
+              @log.write "Copied   gem: '#{gem_src}'"
+              next
+            end
+          end
+
           gem = "#{source}/#{gem_name}.gem"
           system("#{@gem} unpack #{gem}")
 
