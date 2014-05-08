@@ -26,6 +26,13 @@ extern "C" {
     return env->get_handle(class_object);
   }
 
+  VALUE rb_class_real(VALUE object_handle) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    Object* object = env->get_object(object_handle);
+
+    return env->get_handle(Class::real_class(env->state(), try_as<Class>(object)));
+  }
+
   VALUE rb_class_superclass(VALUE klass) {
     return rb_funcall(klass, rb_intern("superclass"), 0);
   }
