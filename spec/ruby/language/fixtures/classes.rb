@@ -17,6 +17,12 @@ module LanguageSpecs
     undef :to_s
   end
 
+  class BasicObjectClass < ::BasicObject
+    def create_lambda
+      -> { }
+    end
+  end
+
   #############################################################################
   # Regexp support
   #############################################################################

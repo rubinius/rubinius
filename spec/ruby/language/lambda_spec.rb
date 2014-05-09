@@ -1,4 +1,5 @@
 require File.expand_path('../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/classes', __FILE__)
 require File.expand_path('../fixtures/literal_lambda', __FILE__)
 
 describe "->(){}" do
@@ -145,5 +146,9 @@ describe "->(){}" do
   it "evaluates constants as normal blocks do" do
     l = LiteralLambdaMethods.literal_lambda_with_constant
     l.().should == "some value"
+  end
+
+  it "returns a Proc object when used in a BasicObject method" do
+    LanguageSpecs::BasicObjectClass.new.create_lambda.should be_an_instance_of(Proc)
   end
 end
