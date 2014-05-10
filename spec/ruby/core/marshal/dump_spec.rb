@@ -60,7 +60,18 @@ describe "Marshal.dump" do
     end
 
     it "dumps an encoded Symbol" do
-      Marshal.dump("\u2192".encode("utf-8").to_sym).should == "\x04\bI:\b\xE2\x86\x92\x06:\x06ET"
+      s = "\u2192"
+      [ [Marshal, s.encode("utf-8").to_sym,
+            "\x04\bI:\b\xE2\x86\x92\x06:\x06ET"],
+        [Marshal, s.encode("utf-16").to_sym,
+            "\x04\bI:\t\xFE\xFF!\x92\x06:\rencoding\"\vUTF-16"],
+        [Marshal, s.encode("euc-jp").to_sym,
+            "\x04\bI:\a\xA2\xAA\x06:\rencoding\"\vEUC-JP"],
+        [Marshal, s.encode("sjis").to_sym,
+            "\x04\bI:\a\x81\xA8\x06:\rencoding\"\x10Windows-31J"],
+        [Marshal, s.force_encoding("binary").to_sym,
+            "\x04\bI:\b\xE2\x86\x92\x00"]
+      ].should be_computed_by(:dump)
     end
   end
 
