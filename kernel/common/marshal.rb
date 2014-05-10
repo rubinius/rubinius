@@ -52,7 +52,13 @@ class Float
       end
     end
 
-    Rubinius::Type.binary_string("f#{ms.serialize_integer(str.length)}#{str}")
+    sl = str.length
+    if sign == 1
+      ss = "-"
+      sl += 1
+    end
+
+    Rubinius::Type.binary_string("f#{ms.serialize_integer(sl)}#{ss}#{str}")
   end
 end
 
