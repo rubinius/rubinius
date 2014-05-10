@@ -1018,7 +1018,17 @@ module Marshal
 
     def serialize_symbol(obj)
       str = obj.to_s
-      Rubinius::Type.binary_string(":#{serialize_integer(str.bytesize)}#{str}")
+      mf = "I" unless str.ascii_only?
+      if mf
+        if Rubinius::Type.object_encoding(obj).equal? Encoding::BINARY
+          me = serialize_integer(0)
+        elsif serialize_encoding?(obj)
+          me = serialize_integer(1) + serialize_encoding(obj.encoding)
+        end
+      end
+      mi = serialize_integer(str.bytesize)
+      s = Rubinius::Type.binary_string str
+      Rubinius::Type.binary_string("#{mf}:#{mi}#{s}#{me}")
     end
 
     def serialize_string(str)
