@@ -68,6 +68,6 @@ extern "C" {
   }
 
   VALUE rb_Float(VALUE object_handle) {
-    return rb_convert_type(object_handle, 0, "Float", "to_f");
+    return rb_convert_type(object_handle, -1, "Float", "to_f");
   }
 }

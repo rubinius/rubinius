@@ -275,7 +275,7 @@ extern "C" {
       return env->get_handle(ret);
     }
 
-    return rb_convert_type(object_handle, 0, "Integer", "to_i");
+    return rb_convert_type(object_handle, -1, "Integer", "to_i");
   }
 
   void rb_num_zerodiv(void) {

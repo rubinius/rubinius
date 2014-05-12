@@ -118,24 +118,45 @@ extern "C" {
     return rb_funcall(env->get_handle(env->state()->globals().type.get()), rb_intern("try_convert"), 3, object_handle, rb_cString, rb_intern("to_str"));
   }
 
-  VALUE rb_check_convert_type(VALUE object_handle, int /*type*/,
+  /*
+   * NOTE: when `0` is given as the `type` no error will be raised. This is due
+   * to the way this function is used in Rbx itself and Rbx not having MRI's
+   * `convert_type` function.
+   */
+  VALUE rb_check_convert_type(VALUE object_handle, int type,
                               const char* type_name, const char* method_name)
   {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     VALUE name = env->get_handle(String::create(env->state(), method_name));
+    VALUE retval = Qnil;
 
     if(RTEST(rb_funcall(object_handle, rb_intern("respond_to?"), 1, name)) ) {
-      return rb_funcall2(object_handle, rb_intern(method_name), 0, NULL);
+      retval = rb_funcall2(object_handle, rb_intern(method_name), 0, NULL);
     }
 
-    return Qnil;
+    // If the method returns nil we can bail out right away.
+    if (NIL_P(retval)) return retval;
+
+    /*
+     * When the coercion method exists but returns a different type than
+     * specified in `type` MRI will raise an error. This code is mostly a
+     * copy-paste job from the MRI source code.
+     */
+    if (type != -1 && TYPE(retval) != type) {
+      const char *cname = rb_obj_classname(object_handle);
+
+      rb_raise(rb_eTypeError, "can't convert %s to %s (%s#%s gives %s)",
+               cname, type_name, cname, method_name, rb_obj_classname(retval));
+    }
+
+    return retval;
   }
 
   VALUE rb_check_to_integer(VALUE object_handle, const char *method_name) {
     if(FIXNUM_P(object_handle)) {
       return object_handle;
     }
-    VALUE result = rb_check_convert_type(object_handle, 0, "Integer", method_name);
+    VALUE result = rb_check_convert_type(object_handle, -1, "Integer", method_name);
     if(rb_obj_is_kind_of(result, rb_cInteger)) {
       return result;
     }
@@ -375,7 +396,7 @@ extern "C" {
   }
 
   VALUE rb_to_int(VALUE object_handle) {
-    return rb_convert_type(object_handle, 0, "Integer", "to_int");
+    return rb_convert_type(object_handle, -1, "Integer", "to_int");
   }
 
   VALUE rb_hash(VALUE obj) {
