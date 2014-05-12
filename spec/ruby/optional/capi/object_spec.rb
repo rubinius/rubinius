@@ -13,6 +13,12 @@ class CApiObjectSpecs
       @arguments   = args
     end
   end
+
+  class SubArray < ::Array
+    def to_array
+      self
+    end
+  end
 end
 
 describe "CApiObject" do
@@ -151,14 +157,68 @@ describe "CApiObject" do
   end
 
   describe "rb_check_convert_type" do
-    it "tries to coerce to a type, otherwise returns nil" do
-      ac = AryChild.new
-      ao = Array.new
-      h = Hash.new
-      # note that I force the ary information in the spec extension
-      @o.rb_check_convert_type(ac).should == []
-      @o.rb_check_convert_type(ao).should == []
-      @o.rb_check_convert_type(h).should == nil
+    it "returns the passed object and does not call the converting method if the object is the specified type" do
+      ary = [1, 2]
+      ary.should_not_receive(:to_ary)
+
+      @o.rb_check_convert_type(ary, "Array", "to_ary").should equal(ary)
+    end
+
+    it "returns the passed object and does not call the converting method if the object is a subclass of the specified type" do
+      obj = CApiObjectSpecs::SubArray.new
+      obj.should_not_receive(:to_array)
+
+      @o.rb_check_convert_type(obj, "Array", "to_array").should equal(obj)
+    end
+
+    it "returns nil if the converting method returns nil" do
+      obj = mock("rb_check_convert_type")
+      obj.should_receive(:to_array).and_return(nil)
+
+      @o.rb_check_convert_type(obj, "Array", "to_array").should be_nil
+    end
+
+    it "raises a TypeError if the converting method returns an object that is not the specified type" do
+      obj = mock("rb_check_convert_type")
+      obj.should_receive(:to_array).and_return("string")
+
+      lambda do
+        @o.rb_check_convert_type(obj, "Array", "to_array")
+      end.should raise_error(TypeError)
+    end
+  end
+
+  describe "rb_convert_type" do
+    it "returns the passed object and does not call the converting method if the object is the specified type" do
+      ary = [1, 2]
+      ary.should_not_receive(:to_ary)
+
+      @o.rb_convert_type(ary, "Array", "to_ary").should equal(ary)
+    end
+
+    it "returns the passed object and does not call the converting method if the object is a subclass of the specified type" do
+      obj = CApiObjectSpecs::SubArray.new
+      obj.should_not_receive(:to_array)
+
+      @o.rb_convert_type(obj, "Array", "to_array").should equal(obj)
+    end
+
+    it "raises a TypeError if the converting method returns nil" do
+      obj = mock("rb_convert_type")
+      obj.should_receive(:to_array).and_return(nil)
+
+      lambda do
+        @o.rb_convert_type(obj, "Array", "to_array")
+      end.should raise_error(TypeError)
+    end
+
+    it "raises a TypeError if the converting method returns an object that is not the specified type" do
+      obj = mock("rb_convert_type")
+      obj.should_receive(:to_array).and_return("string")
+
+      lambda do
+        @o.rb_convert_type(obj, "Array", "to_array")
+      end.should raise_error(TypeError)
     end
   end
 
@@ -259,29 +319,40 @@ describe "CApiObject" do
   end
 
   describe "rb_check_to_integer" do
-    it "tries to coerce to an integer, otherwise returns nil" do
-      x = mock("to_int")
-      x.should_receive(:to_int).and_return(5)
-      y = mock("fake_to_int")
-      y.should_receive(:to_int).and_return("Hello")
-
-      @o.rb_check_to_integer(5, "non_existing").should == 5
-      @o.rb_check_to_integer(5, "to_int").should == 5
-      @o.rb_check_to_integer(x, "to_int").should == 5
-      @o.rb_check_to_integer(y, "to_int").should == nil
-      @o.rb_check_to_integer("Hello", "to_int").should == nil
+    it "returns the object when passed a Fixnum" do
+      @o.rb_check_to_integer(5, "to_int").should equal(5)
     end
-  end
 
-  describe "rb_convert_type" do
-    it "tries to coerce to a type, otherwise raises a TypeError" do
-      ac = AryChild.new
-      ao = Array.new
-      h = Hash.new
-      # note that the ary information is forced in the spec extension
-      @o.rb_convert_type(ac).should == []
-      @o.rb_convert_type(ao).should == []
-      lambda { @o.rb_convert_type(h) }.should raise_error(TypeError)
+    it "returns the object when passed a Bignum" do
+      @o.rb_check_to_integer(bignum_value, "to_int").should == bignum_value
+    end
+
+    it "calls the converting method and returns a Fixnum value" do
+      obj = mock("rb_check_to_integer")
+      obj.should_receive(:to_integer).and_return(10)
+
+      @o.rb_check_to_integer(obj, "to_integer").should equal(10)
+    end
+
+    it "calls the converting method and returns a Bignum value" do
+      obj = mock("rb_check_to_integer")
+      obj.should_receive(:to_integer).and_return(bignum_value)
+
+      @o.rb_check_to_integer(obj, "to_integer").should == bignum_value
+    end
+
+    it "returns nil when the converting method returns nil" do
+      obj = mock("rb_check_to_integer")
+      obj.should_receive(:to_integer).and_return(nil)
+
+      @o.rb_check_to_integer(obj, "to_integer").should be_nil
+    end
+
+    it "returns nil when the converting method does not return an Integer" do
+      obj = mock("rb_check_to_integer")
+      obj.should_receive(:to_integer).and_return("string")
+
+      @o.rb_check_to_integer(obj, "to_integer").should be_nil
     end
   end
 
