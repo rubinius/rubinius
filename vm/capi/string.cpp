@@ -166,10 +166,6 @@ extern "C" {
     return handle->as_rstring(env, cache_level);
   }
 
-  VALUE rb_String(VALUE object) {
-    return rb_convert_type(object, 0, "String", "to_s");
-  }
-
   void rb_str_modify(VALUE self) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
@@ -363,7 +359,7 @@ extern "C" {
   }
 
   VALUE rb_str_to_str(VALUE object) {
-    return rb_convert_type(object, 0, "String", "to_str");
+    return rb_convert_type(object, T_STRING, "String", "to_str");
   }
 
   VALUE rb_string_value(volatile VALUE* object_variable) {

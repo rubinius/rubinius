@@ -66,8 +66,4 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     return env->get_handle(Float::create(env->state(), val));
   }
-
-  VALUE rb_Float(VALUE object_handle) {
-    return rb_convert_type(object_handle, 0, "Float", "to_f");
-  }
 }

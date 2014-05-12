@@ -118,54 +118,87 @@ extern "C" {
     return rb_funcall(env->get_handle(env->state()->globals().type.get()), rb_intern("try_convert"), 3, object_handle, rb_cString, rb_intern("to_str"));
   }
 
-  VALUE rb_check_convert_type(VALUE object_handle, int /*type*/,
-                              const char* type_name, const char* method_name)
+  static VALUE convert_type(VALUE object, const char* type_name,
+                            const char* method_name, bool raise=false)
   {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     VALUE name = env->get_handle(String::create(env->state(), method_name));
 
-    if(RTEST(rb_funcall(object_handle, rb_intern("respond_to?"), 1, name)) ) {
-      return rb_funcall2(object_handle, rb_intern(method_name), 0, NULL);
+    if(RTEST(rb_funcall(object, rb_intern("respond_to?"), 1, name)) ) {
+      return rb_funcall2(object, rb_intern(method_name), 0, NULL);
     }
 
-    return Qnil;
-  }
-
-  VALUE rb_check_to_integer(VALUE object_handle, const char *method_name) {
-    if(FIXNUM_P(object_handle)) {
-      return object_handle;
-    }
-    VALUE result = rb_check_convert_type(object_handle, 0, "Integer", method_name);
-    if(rb_obj_is_kind_of(result, rb_cInteger)) {
-      return result;
-    }
-    return Qnil;
-  }
-
-  /** @todo   This is horrible. Refactor. --rue */
-  VALUE rb_convert_type(VALUE object_handle, int type,
-                        const char* type_name, const char* method_name)
-  {
-    VALUE return_handle = rb_check_convert_type(object_handle, type,
-                                                type_name, method_name);
-
-    if(NIL_P(return_handle)) {
+    if(raise) {
       rb_raise(rb_eTypeError, "can't convert %s into %s",
-               NIL_P(object_handle) ? "nil" :
-                TRUE_P(object_handle) ? "true" :
-                  FALSE_P(object_handle) ? "false" :
-                    rb_obj_classname(object_handle),
+               NIL_P(object) ? "nil" :
+               TRUE_P(object) ? "true" :
+               FALSE_P(object) ? "false" : rb_obj_classname(object),
                type_name);
     }
 
-    VALUE klass = rb_const_get(rb_cObject, rb_intern(type_name));
+    return Qnil;
+  }
 
-    if(!RTEST(rb_obj_is_kind_of(return_handle, klass))) {
-      rb_raise(rb_eTypeError, "%s#%s should return %s",
-               rb_obj_classname(object_handle), method_name, type_name);
+  NORETURN(static void conversion_mismatch(VALUE, const char*, const char*, VALUE));
+
+  static void conversion_mismatch(VALUE object, const char* type_name,
+                                 const char* method_name, VALUE result)
+  {
+    rb_raise(rb_eTypeError, "expected %s#%s to return kind of %s but it returned %s",
+        rb_obj_classname(object), method_name, type_name, rb_obj_classname(result));
+  }
+
+  VALUE rb_check_convert_type(VALUE object, int type,
+                              const char* type_name, const char* method_name)
+  {
+    if(type != T_DATA && TYPE(object) == type) return object;
+
+    VALUE result = convert_type(object, type_name, method_name);
+    if(NIL_P(result)) return Qnil;
+
+    if(TYPE(result) != type) {
+      conversion_mismatch(object, type_name, method_name, result);
     }
 
-    return return_handle;
+    return result;
+  }
+
+  VALUE rb_convert_type(VALUE object, int type,
+                        const char* type_name, const char* method_name)
+  {
+    if(type != T_DATA && TYPE(object) == type) return object;
+
+    VALUE result = convert_type(object, type_name, method_name, true);
+
+    if(TYPE(result) != type) {
+      conversion_mismatch(object, type_name, method_name, result);
+    }
+
+    return result;
+  }
+
+  static VALUE rb_to_integer(VALUE object, const char* method_name) {
+    if(FIXNUM_P(object)) return object;
+    if(TYPE(object) == T_BIGNUM) return object;
+
+    VALUE result = convert_type(object, "Integer", method_name, true);
+    if(!RTEST(rb_obj_is_kind_of(result, rb_cInteger))) {
+      conversion_mismatch(object, "Integer", method_name, result);
+    }
+
+    return result;
+  }
+
+  VALUE rb_check_to_integer(VALUE object, const char* method_name) {
+    if(FIXNUM_P(object)) return object;
+    if(TYPE(object) == T_BIGNUM) return object;
+
+    VALUE result = convert_type(object, "Integer", method_name);
+    if(RTEST(rb_obj_is_kind_of(result, rb_cInteger))) {
+      return result;
+    }
+
+    return Qnil;
   }
 
   int rb_type(VALUE obj) {
@@ -200,13 +233,13 @@ extern "C" {
     default:
       // This is in the default branch to avoid compiler warnings
       // about other enum values for type_id() not being present.
-      if(rb_obj_is_kind_of(obj, rb_cHash)) return T_HASH;
-      if(rb_obj_is_kind_of(obj, rb_cStruct)) return T_STRUCT;
-      if(rb_obj_is_kind_of(obj, rb_cIO)) return T_FILE;
-      if(rb_obj_is_kind_of(obj, rb_cMatch)) return T_MATCH;
-      if(rb_obj_is_kind_of(obj, rb_cRational)) return T_RATIONAL;
-      if(rb_obj_is_kind_of(obj, rb_cComplex)) return T_COMPLEX;
-      if(rb_obj_is_kind_of(obj, rb_cEncoding)) return T_ENCODING;
+      if(RTEST(rb_obj_is_kind_of(obj, rb_cHash))) return T_HASH;
+      if(RTEST(rb_obj_is_kind_of(obj, rb_cStruct))) return T_STRUCT;
+      if(RTEST(rb_obj_is_kind_of(obj, rb_cIO))) return T_FILE;
+      if(RTEST(rb_obj_is_kind_of(obj, rb_cMatch))) return T_MATCH;
+      if(RTEST(rb_obj_is_kind_of(obj, rb_cRational))) return T_RATIONAL;
+      if(RTEST(rb_obj_is_kind_of(obj, rb_cComplex))) return T_COMPLEX;
+      if(RTEST(rb_obj_is_kind_of(obj, rb_cEncoding))) return T_ENCODING;
     }
 
     return T_OBJECT;
@@ -374,8 +407,8 @@ extern "C" {
                         (const VALUE*)argv, block);
   }
 
-  VALUE rb_to_int(VALUE object_handle) {
-    return rb_convert_type(object_handle, 0, "Integer", "to_int");
+  VALUE rb_to_int(VALUE object) {
+    return rb_to_integer(object, "to_int");
   }
 
   VALUE rb_hash(VALUE obj) {
@@ -422,5 +455,51 @@ extern "C" {
       return RTEST(rb_funcall(cls, rb_intern("private_method_defined?"), 1, ID2SYM(method_name)));
     }
     return 0;
+  }
+
+  VALUE rb_Float(VALUE object) {
+    switch(TYPE(object)) {
+    case T_BIGNUM:
+      return DBL2NUM(rb_big2dbl(object));
+    case T_FIXNUM:
+      return DBL2NUM((double)FIX2LONG(object));
+    case T_FLOAT:
+      return object;
+    case T_NIL:
+      rb_raise(rb_eTypeError, "can't convert nil into Float");
+      break;
+    default:
+      break;
+    }
+
+    return rb_convert_type(object, T_FLOAT, "Float", "to_f");
+  }
+
+  VALUE rb_Integer(VALUE object) {
+    switch(TYPE(object)) {
+    case T_FIXNUM:
+    case T_BIGNUM:
+      return object;
+    case T_NIL:
+      rb_raise(rb_eTypeError, "can't convert nil into Float");
+      break;
+    default:
+      break;
+    }
+
+    VALUE result = convert_type(object, "Integer", "to_int");
+    if(NIL_P(result)) result = rb_to_integer(object, "to_i");
+
+    return result;
+  }
+
+  VALUE rb_String(VALUE object) {
+    VALUE result = rb_check_convert_type(object, T_STRING, "String", "to_str");
+
+    if(NIL_P(result)) {
+      return rb_convert_type(object, T_STRING, "String", "to_s");
+    }
+
+    return result;
   }
 }
