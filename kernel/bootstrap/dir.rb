@@ -34,6 +34,11 @@ class Dir
     entry = Rubinius.invoke_primitive :dir_read, self
     return unless entry
 
+    if Encoding.default_external == Encoding::US_ASCII && !entry.valid_encoding?
+      entry.force_encoding Encoding::ASCII_8BIT
+      return entry
+    end
+
     enc = Encoding.default_internal
     enc ? entry.encode(enc) : entry
   end
