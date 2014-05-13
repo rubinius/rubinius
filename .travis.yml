@@ -28,3 +28,6 @@ notifications:
       - "%{repository}/%{branch} (%{commit} - %{author}): %{message}"
 env:
   - RVM=2.0.0
+os:
+  - linux
+  - osx
