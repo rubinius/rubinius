@@ -6,10 +6,6 @@ describe "Method#source_location" do
     @method = MethodSpecs::SourceLocation.method(:location)
   end
 
-  it "returns nil for built-in methods" do
-    [].method(:size).source_location.should be_nil
-  end
-
   it "returns an Array" do
     @method.source_location.should be_an_instance_of(Array)
   end
