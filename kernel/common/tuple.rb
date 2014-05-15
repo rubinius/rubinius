@@ -11,9 +11,7 @@ module Rubinius
     include Enumerable
 
     def self.[](*args)
-      start = args.start
-      tot = args.size
-      return new(tot).copy_from(args.tuple, start, tot, 0)
+      args.to_tuple
     end
 
     def to_s
@@ -95,10 +93,13 @@ module Rubinius
     end
 
     def to_a
-      ary = Array.allocate
-      ary.tuple = dup
-      ary.total = fields
-      return ary
+      array = Array.allocate
+
+      m = Rubinius::Mirror.reflect array
+      m.tuple = dup
+      m.total = fields
+
+      array
     end
 
     def shift

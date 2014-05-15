@@ -1,5 +1,7 @@
 basic_object.rbc
 alias.rbc
+mirror.rbc
+array_mirror.rbc
 array.rbc
 atomic.rbc
 bignum.rbc

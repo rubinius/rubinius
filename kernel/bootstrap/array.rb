@@ -1,15 +1,14 @@
 class Array
-  attr_accessor :total
-  attr_accessor :tuple
-  attr_accessor :start
-
-  alias_method :size,   :total
-  alias_method :length, :total
-
   def self.allocate
     Rubinius.primitive :array_allocate
     raise PrimitiveFailure, "Array.allocate primitive failed"
   end
+
+  def size
+    @total
+  end
+
+  alias_method :length, :size
 
   def new_range(start, count)
     Rubinius.primitive :array_new_range
@@ -48,9 +47,20 @@ class Array
   # Array. If the index is out of range, nil is
   # returned. Slightly faster than +Array#[]+
   def at(idx)
-    idx = @total + idx if idx < 0
-    return nil if idx > @total
-    @tuple[@start + idx]
+    Rubinius.primitive :array_aref
+    idx = Rubinius::Type.coerce_to idx, Fixnum, :to_int
+
+    total = @start + @total
+
+    if idx < 0
+      idx += total
+    else
+      idx += @start
+    end
+
+    if idx >= @start and idx < total
+      return @tuple.at idx
+    end
   end
 
   # Passes each element in the Array to the given block
@@ -78,13 +88,13 @@ class Array
 
     i = @start
     total = i + @total
-    tuple = @tuple
+    src = @tuple
 
-    out_tuple = out.tuple
+    dest = Rubinius::Mirror.reflect(out).tuple
 
     j = 0
     while i < total
-      out_tuple[j] = yield tuple.at(i)
+      dest[j] = yield src[i]
       i += 1
       j += 1
     end
