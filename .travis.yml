@@ -3,11 +3,11 @@ compiler:
   - gcc
   - clang
 before_install:
+  - echo $LANG
+  - echo $LC_ALL
   - rvm use $RVM --install --binary --fuzzy
   - gem update --system
   - gem --version
-  - echo "LANG: $LANG"
-  - echo "LC_ALL: $LC_ALL"
 before_script:
   - travis_retry bundle
   - travis_retry ./configure
