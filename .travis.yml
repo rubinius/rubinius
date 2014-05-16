@@ -29,7 +29,7 @@ notifications:
     template:
       - "%{repository}/%{branch} (%{commit} - %{author}): %{message}"
 env:
-  - RVM=2.1.2
+  - RVM=2.1.0
 os:
   - linux
   - osx
