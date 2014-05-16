@@ -124,5 +124,14 @@ describe "Splat operator" do
     it "assigns the values of a splatted array when the splatted object contains an splatted array" do
       a,b,*c = *[*[1,2,3]]; [a,b,c].should == [1,2,[3]]
     end
+
+    ruby_version_is '1.9' do
+      it "assigns an array distributing values from the right" do
+        *a,b = [1,2,3,4,5]; [a,b].should == [[1,2,3,4],5]
+        *a,b,c = [1,2,3,4,5]; [a,b,c].should == [[1,2,3],4,5]
+        *a,b,c,d = [1,2,3,4,5]; [a,b,c,d].should == [[1,2],3,4,5]
+        *a,b,c,d,e = [1,2,3,4,5]; [a,b,c,d,e].should == [[1],2,3,4,5]
+      end
+    end
   end
 end
