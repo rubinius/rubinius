@@ -6,6 +6,8 @@ before_install:
   - rvm use $RVM --install --binary --fuzzy
   - gem update --system
   - gem --version
+  - echo "LANG: $LANG"
+  - echo "LC_ALL: $LC_ALL"
 before_script:
   - travis_retry bundle
   - travis_retry ./configure
@@ -27,7 +29,7 @@ notifications:
     template:
       - "%{repository}/%{branch} (%{commit} - %{author}): %{message}"
 env:
-  - RVM=2.0.0
+  - RVM=2.1.2
 os:
   - linux
   - osx
