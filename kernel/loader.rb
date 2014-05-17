@@ -704,6 +704,11 @@ to rebuild the compiler.
       end
     end
 
+    def flush_stdio
+      STDOUT.flush
+      STDERR.flush
+    end
+
     # Cleanup and at_exit processing.
     def epilogue
       @stage = "running at_exit handlers"
@@ -719,6 +724,8 @@ to rebuild the compiler.
       @stage = "running object finalizers"
       ::GC.start
       ObjectSpace.run_finalizers
+
+      flush_stdio
 
       # TODO: Fix these with better -X processing
       if Config['rbx.jit_stats']
