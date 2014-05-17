@@ -37,6 +37,14 @@ describe :process_exec, :shared => true do
     ruby_exe("exec(\"pwd\", :chdir => #{tmpdir.inspect})", :escape => true).should == "#{tmpdir}\n"
   end
 
+  it "flushes STDOUT upon exit when it's not set to sync" do
+    ruby_exe("STDOUT.sync = false; STDOUT.write 'hello'").should == "hello"
+  end
+
+  it "flushes STDERR upon exit when it's not set to sync" do
+    ruby_exe("STDERR.sync = false; STDERR.write 'hello'", :args => "2>&1").should == "hello"
+  end
+
   describe "with a single argument" do
     before(:each) do
       @dir = tmp("exec_with_dir", false)
