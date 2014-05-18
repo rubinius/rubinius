@@ -220,9 +220,8 @@ class Rational < Numeric
   end
 
   def round(precision = 0)
-    return 0 if @numerator == 0
-
     if precision == 0
+      return 0 if @numerator == 0
       return @numerator if @denominator == 1
 
       num = @numerator.abs * 2 + @denominator
