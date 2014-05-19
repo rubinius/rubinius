@@ -121,8 +121,11 @@ describe "Time#strftime" do
   end
 
   describe "with %L" do
-    it "formats the milliseconds of of the second" do
-      Time.local(2009, 1, 1, 0, 0, Rational(999, 1000)).strftime("%L").should == "999"
+    it "formats the milliseconds of a second" do
+      Time.local(2009, 1, 1, 0, 0, Rational(100, 1000)).strftime("%L").should == "100"
+      Time.local(2009, 1, 1, 0, 0, Rational(10, 1000)).strftime("%L").should == "010"
+      Time.local(2009, 1, 1, 0, 0, Rational(1, 1000)).strftime("%L").should == "001"
+      Time.local(2009, 1, 1, 0, 0, Rational(1, 10000)).strftime("%L").should == "000"
     end
   end
 

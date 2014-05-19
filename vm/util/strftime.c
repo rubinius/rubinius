@@ -631,7 +631,8 @@ strftime_extended(char *s, size_t maxsize, const char *format, const struct tm64
 
 
 		case 'L':
-			w = 3;
+			w = 9;
+			precision = 3;
 			goto subsec;
 
 		case 'N':
