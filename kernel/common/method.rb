@@ -224,16 +224,17 @@ class UnboundMethod
 
   ##
   # Creates a new Method object by attaching this method to the supplied
-  # receiver. The receiver must be kind_of? the Module that the method in
-  # question is defined in.
-  #
-  # Notably, this is a difference from MRI which requires that the object is
-  # of the exact Module the method was extracted from. This is safe because
-  # any overridden method will be identified as being defined in a different
-  # Module anyway.
+  # receiver. One of the following must be true:
+  # - the method was defined in a module
+  # - the method is being bound to an instance of a subclass of the method's source
+  # - the method is being bound to an instance of the same class
 
   def bind(receiver)
-    unless Rubinius::Type.object_kind_of? receiver, @defined_in
+    from_module = Rubinius::Type.object_kind_of? @defined_in, Module
+    from_class  = Rubinius::Type.object_kind_of? @defined_in, Class
+    from_module_not_class = from_module && !from_class
+
+    unless Rubinius::Type.object_kind_of?(receiver, @defined_in) or from_module_not_class
       if Rubinius::Type.singleton_class_object(@defined_in)
         raise TypeError, "illegal attempt to rebind a singleton method to another object"
       end
