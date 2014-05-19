@@ -46,15 +46,15 @@ class Rational < Numeric
         if other < 0
           raise ZeroDivisionError, "divided by 0"
         elsif other > 0
-          return Rational.new(0, 1)
+          Rational.new(0, 1)
         end
       elsif self == 1
-        return Rational.new(1, 1)
+        Rational.new(1, 1)
       elsif self == -1
-        return Rational.new(other.even? ? 1 : -1, 1)
+        Rational.new(other.even? ? 1 : -1, 1)
+      else
+        to_f ** other
       end
-
-      to_f ** other
     when Float
       to_f ** other
     when Rational
@@ -133,8 +133,6 @@ class Rational < Numeric
       if defined?(other.coerce)
         a, b = other.coerce(self)
         a <=> b
-      else
-        nil
       end
     end
   end
@@ -153,7 +151,9 @@ class Rational < Numeric
   end
 
   def abs
-    (@numerator < 0) ? Rational.new(-@numerator, @denominator) : self
+    return self if @numerator >= 0
+
+    Rational.new(-@numerator, @denominator)
   end
 
   def ceil(precision = 0)
@@ -220,19 +220,19 @@ class Rational < Numeric
   end
 
   def round(precision = 0)
+    return with_precision(:round, precision) unless precision == 0
     return 0 if @numerator == 0
+    return @numerator if @denominator == 1
 
-    if precision == 0
-      return @numerator if @denominator == 1
+    num = @numerator.abs * 2 + @denominator
+    den = @denominator * 2
 
-      num = @numerator.abs * 2 + @denominator
-      den = @denominator * 2
+    approx = num / den
 
-      approx = num / den
-
-      (@numerator < 0) ? -approx : approx
+    if @numerator < 0
+      -approx
     else
-      with_precision(:round, precision)
+      approx
     end
   end
 

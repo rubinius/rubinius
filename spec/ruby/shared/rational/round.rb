@@ -8,12 +8,16 @@ describe :rational_round, :shared => true do
   describe "with no arguments (precision = 0)" do
     it "returns an integer" do
       @rational.round.should be_kind_of(Integer)
+      Rational(0, 1).round(0).should be_kind_of(Integer)
+      Rational(124, 1).round(0).should be_kind_of(Integer)
     end
 
     it "returns the truncated value toward the nearest integer" do
       @rational.round.should == 314
       Rational(1, 2).round.should == 1
       Rational(-1, 2).round.should == -1
+      Rational(0, 1).round(0).should == 0
+      Rational(2, 1).round(0).should == 2
     end
   end
 
@@ -21,6 +25,8 @@ describe :rational_round, :shared => true do
     it "returns an integer" do
       @rational.round(-2).should be_kind_of(Integer)
       @rational.round(-1).should be_kind_of(Integer)
+      Rational(0, 1).round(-1).should be_kind_of(Integer)
+      Rational(2, 1).round(-1).should be_kind_of(Integer)
     end
 
     it "moves the truncation point n decimal places left" do
@@ -34,12 +40,16 @@ describe :rational_round, :shared => true do
     it "returns a Rational" do
       @rational.round(1).should be_kind_of(Rational)
       @rational.round(2).should be_kind_of(Rational)
+      Rational(0, 1).round(1).should be_kind_of(Rational)
+      Rational(2, 1).round(1).should be_kind_of(Rational)
     end
 
     it "moves the truncation point n decimal places right" do
       @rational.round(1).should == Rational(3143, 10)
       @rational.round(2).should == Rational(31429, 100)
       @rational.round(3).should == Rational(157143, 500)
+      Rational(0, 1).round(1).should == Rational(0, 1)
+      Rational(2, 1).round(1).should == Rational(2, 1)
     end
 
     it "doesn't alter the value if the precision is too great" do
