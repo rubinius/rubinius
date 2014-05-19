@@ -5,7 +5,7 @@ require 'rubinius/build_config'
 puts "Pre-installing gems for #{RUBY_VERSION}..."
 
 BUILD_CONFIG = Rubinius::BUILD_CONFIG
-gems = BUILD_CONFIG[:runtime_gems]
+gems = BUILD_CONFIG[:gem_files]
 install_dir = "#{BUILD_CONFIG[:build_prefix]}#{BUILD_CONFIG[:gemsdir]}"
 options = {
   :bin_dir              => nil,
@@ -21,10 +21,10 @@ options = {
   :install_dir          => install_dir
 }
 
-gems.each do |name, version|
-  next if File.directory? "#{install_dir}/gems/#{name}-#{version}"
+gems.each do |gem|
+  next if File.directory? "#{install_dir}/gems/#{gem[0..-5]}"
 
-  file = File.join(BUILD_CONFIG[:gems_cache], "#{name}-#{version}.gem")
+  file = File.join(BUILD_CONFIG[:gems_cache], "#{gem}")
 
   installer = Gem::Installer.new file, options
   spec = installer.install

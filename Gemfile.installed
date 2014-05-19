@@ -1,0 +1,12 @@
+source 'https://rubygems.org'
+
+gem "rubinius-build_tools", "~> 2.0"
+gem "rubinius-developer_tools", "~> 2.0"
+
+gem "rubysl", "~> 2.0"
+gem "rubysl-test-unit", "~> 2.0"
+gem "minitest", "~> 4.7"
+gem "racc", "~> 1.4"
+gem "rake", "~> 10.1"
+gem "json", "~> 1.8"
+gem "rdoc", "~> 4.0"

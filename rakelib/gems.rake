@@ -9,6 +9,27 @@ ensure
 end
 
 namespace :gems do
+  desc 'Update list of gems to install. Requires Rubinius'
+  task :update_list do
+    RedCard.verify "2.1", :rubinius
+
+    begin
+      ENV["BUNDLE_GEMFILE"] = "Gemfile.installed"
+      sh "bundle package --no-prune"
+
+      File.open BUILD_CONFIG[:gems_list], "w" do |f|
+        `bundle list`.each_line do |line|
+          m = line.match(/\s+\*\s([^ ]+)\s\((\d+\.\d+\.\d+([^ ]*))\)/)
+          next unless m
+
+          f.puts "#{m[1]}-#{m[2]}.gem"
+        end
+      end
+    ensure
+      ENV.delete "BUNDLE_GEMFILE"
+    end
+  end
+
   desc 'Install the pre-installed gems'
   task :install do
     clean_environment

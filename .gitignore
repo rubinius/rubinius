@@ -54,7 +54,6 @@ tmtags
 /work
 /staging
 /bootstrap
-Gemfile.lock
 
 # .build_ruby tracks the path to the Ruby executable
 .build_ruby

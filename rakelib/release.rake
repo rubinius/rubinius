@@ -5,6 +5,6 @@ task :release do
     sh "gem fetch bundler", :verbose => $verbose
   end
   sh "bundle update", :verbose => $verbose
-  sh "./configure --release-config", :verbose => $verbose
+  Rake::Task['gems:update_list'].invoke
   Rake::Task['package:tar'].invoke
 end
