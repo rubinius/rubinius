@@ -219,8 +219,8 @@ namespace rubinius {
     // BasicObject's SingletonClass instance has Class for a superclass
     SingletonClass::attach(state, basicobject, cls);
 
-    // Object's SingletonClass instance has Class for a superclass
-    Class* sc = SingletonClass::attach(state, object, cls);
+    // Object's SingletonClass instance has BasicObject's SingletonClass instance for a superclass
+    Class* sc = SingletonClass::attach(state, object, basicobject->klass());
 
     // Module's metaclass's superclass is Object's metaclass
     sc = SingletonClass::attach(state, G(module), sc);
