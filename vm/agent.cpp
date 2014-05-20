@@ -473,27 +473,39 @@ auth_error:
   }
 
   void QueryAgent::shutdown(STATE) {
+    if(verbose()) std::cerr << "[QA: shutdown: stopping thread]" << std::endl;
+
     cleanup();
     stop_thread(state);
   }
 
   void QueryAgent::before_exec(STATE) {
+    if(verbose()) std::cerr << "[QA: before_exec: stopping thread]" << std::endl;
+
     stop_thread(state);
   }
 
   void QueryAgent::after_exec(STATE) {
+    if(verbose()) std::cerr << "[QA: after_exec: starting thread]" << std::endl;
+
     start_thread(state);
   }
 
   void QueryAgent::before_fork(STATE) {
+    if(verbose()) std::cerr << "[QA: before_fork: stopping thread]" << std::endl;
+
     stop_thread(state);
   }
 
   void QueryAgent::after_fork_parent(STATE) {
+    if(verbose()) std::cerr << "[QA: after_fork_parent: starting thread]" << std::endl;
+
     start_thread(state);
   }
 
   void QueryAgent::after_fork_child(STATE) {
+    if(verbose()) std::cerr << "[QA: after_fork_child: starting thread]" << std::endl;
+
     if(vm_) {
       VM::discard(state, vm_);
       vm_ = NULL;
