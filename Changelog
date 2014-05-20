@@ -1,3 +1,33 @@
+Version: 2.2.7 (2014-05-20)
+
+* Dir[] and Dir.glob call #to_path on multiple patterns. (Brian Shirai)
+* The JIT does not elide Fixnum#hash calculation. (Brian Shirai)
+* Enumerator#feed is implemented. (John DeSilva)
+* Module#{*}_method_defined? compatibility improved. (Brian Shirai)
+* ENV handles non-ASCII values. (Miguel Herranz)
+* Improved support for packaging Rubinius. (Jan Alexander Steffens)
+* The gems cache directory for building is configurable. (Yorick Peterse)
+* Configure checks readline availability. (Sam Kottler)
+* Hash#compare_by_identity does not copy String keys. (Lin Jen-Shin)
+* Module#const_defined? compatibility is improved. (Brian Shirai)
+* Setting a module name is improved. (Kenichi Kamiya, Brian Shirai)
+* The C-API provides rb_class_real. (Brian Shirai)
+* Special operator symbols are removed. (Kenichi Kamiya)
+* Use of -> {} in BasicObject dispatches to Kernel::lambda. (Brian Shirai)
+* Marshal.dump of Symbol includes its encoding. (Brian Shirai)
+* Marshal.dump of negative Float includes its sign. (Brian Shirai)
+* C-API rb_check_convert_type, rb_convert_type, rb_to_integer,
+	rb_check_to_integer, rb_to_int, rb_Float, rb_Integer  compatibility is
+	improved.  (Brian Shirai)
+* Dir returns values encoded to ASCII_8BIT if the filename is invalid
+	US_ASCII. (Dirkjan Bussink)
+* Multiple assignment arguments following a splat argument are assigned in the
+	proper order. (Federico Ravasio)
+* STDOUT and STDERR are flushed on process exit. (Federico Ravasio)
+* Time#strftime with "%L" is improved. (Federico Ravasio)
+* Rational#round is improved. (Federico Ravasio)
+* Binding UnboundMethods is improved. (Jesse Cooke, Jacob Rothstein)
+
 Version: 2.2.6 (2014-03-10)
 
 * Kernel#to_enum uses block as Enumerable#size. (Federico Ravasio)
