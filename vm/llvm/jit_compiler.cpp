@@ -64,7 +64,7 @@ namespace jit {
 
       if(indy) ctx_->llvm_state()->gc_independent();
       if(ctx_->llvm_state()->jit_dump_code() & cSimple) {
-        llvm::outs() << "[[[ LLVM Simple IR ]]]\n";
+        llvm::outs() << "[[[ LLVM Simple IR: " << function_->getName() << " ]]]\n";
         llvm::outs() << *function_ << "\n";
       }
 
@@ -110,7 +110,7 @@ namespace jit {
       ctx_->passes()->run(*function_);
 
       if(ctx_->llvm_state()->jit_dump_code() & cOptimized) {
-        llvm::outs() << "[[[ LLVM Optimized IR: ]]]\n";
+        llvm::outs() << "[[[ LLVM Optimized IR: " << function_->getName() << " ]]]\n";
         llvm::outs() << *function_ << "\n";
       }
 
