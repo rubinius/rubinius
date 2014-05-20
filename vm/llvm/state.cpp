@@ -47,7 +47,7 @@
 #include <llvm/Support/CFG.h>
 #include <llvm/Analysis/Passes.h>
 #include <llvm/Support/TargetSelect.h>
-
+#include <llvm/Support/Format.h>
 #include <llvm/Target/TargetOptions.h>
 
 #include "windows_compat.h"
@@ -922,15 +922,11 @@ halt:
       void* address = reinterpret_cast<void*>(
           reinterpret_cast<uintptr_t>(buffer) + ud_insn_off(&ud));
 
-      std::cout << std::setw(10) << std::right
-                << address
-                << "  ";
-
-      std::cout << std::setw(24) << std::left << ud_insn_asm(&ud);
-
+      llvm::outs() << format("%10p", address) << "  ";
+      llvm::outs() << format("%-24s", ud_insn_asm(&ud));
       if(ud.operand[0].type == UD_OP_JIMM) {
         const void* addr = (const void*)((uintptr_t)buffer + ud.pc + (int)ud.operand[0].lval.udword);
-        std::cout << " ; " << addr;
+        llvm::outs() << " ; " << addr;
         if(ud.mnemonic == UD_Icall) {
           Dl_info info;
           if(dladdr((void*)addr, &info)) {
@@ -940,10 +936,10 @@ halt:
               // Chop off the arg info from the signature output
               char *paren = strstr(cpp_name, "(");
               *paren = 0;
-              std::cout << " " << cpp_name;
+              llvm::outs() << " " << cpp_name;
               free(cpp_name);
             } else {
-              std::cout << " " << info.dli_sname;
+              llvm::outs() << " " << info.dli_sname;
             }
           }
         }
@@ -953,13 +949,13 @@ halt:
         if(ud.operand[i].type == UD_OP_IMM) {
           Dl_info info;
           if(dladdr((void*)ud.operand[i].lval.uqword, &info)) {
-            std::cout << " ; " << info.dli_sname;
+            llvm::outs() << " ; " << info.dli_sname;
             break; // only do one
           }
         }
       }
 
-      std::cout << "\n";
+      llvm::outs() << "\n";
     }
 #endif  // !RBX_WINDOWS
 
