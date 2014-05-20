@@ -35,6 +35,8 @@ describe "Dir.entries" do
   end
 
   it "returns entries encoded with the filesystem encoding by default" do
+    # This spec depends on the locale not being US-ASCII because if it is, the
+    # entries that are not ascii_only? will be ASCII-8BIT encoded.
     entries = Dir.entries File.join(DirSpecs.mock_dir, 'special')
     entries.should include("こんにちは.txt")
     entries.first.encoding.should equal(Encoding.find("filesystem"))
