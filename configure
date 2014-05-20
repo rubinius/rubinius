@@ -1912,8 +1912,6 @@ int main() { return tgetnum(""); }
         @log.write "unable to find gem #{gem_name}"
         failed = true
       end
-
-      instance_variable_set :"@#{s}", list
     end
 
     failure "Unable to find required gems." if failed
