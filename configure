@@ -2018,13 +2018,13 @@ irc.freenode.net and provide the following system information:
 
     unless @stagingdir
       build_msg = <<-EOM
-Rubinius has been configured.
+Rubinius (#{build_revision[0, 8]}) has been configured.
 
 Run 'rake' to build and test Rubinius.
       EOM
     else
       build_msg = <<-EOM
-Rubinius has been configured for the following paths:
+Rubinius (#{build_revision[0, 8]}) has been configured for the following paths:
 
 prefix:     #{@prefixdir}
 bin:        #{@prefixdir}#{@bindir}
