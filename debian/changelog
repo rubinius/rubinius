@@ -1,3 +1,9 @@
+rubinius-2.2 (2.2.7) stable; urgency=low
+
+  * stable build of 2.2.7
+
+ -- slaught <chad.slaughter+debian@gmail.com>  Wed, 21 May 2014 11:40:57 -0500
+
 rubinius-2.2 (2.2.6) stable; urgency=low
 
   * stable build of 2.2.6
