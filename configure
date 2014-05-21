@@ -1922,8 +1922,9 @@ int main() { return tgetnum(""); }
 
     # Remove unpacked gems not specified by these configure settings
     unpacked.each do |dir|
-      unless gems.find { |x| dir =~ /^#{x}/ } and
-             @gem_files.find { |x| dir =~ /^#{x}/ }
+      d = File.basename dir
+      unless gems.find { |x| d =~ /^#{x}/ } and
+             @gem_files.find { |x| d =~ /^#{x[0..-5]}/ }
         FileUtils.rm_rf dir
       end
     end
