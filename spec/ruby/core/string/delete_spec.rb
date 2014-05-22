@@ -1,4 +1,4 @@
-# -*- encoding: US-ASCII -*-
+# -*- encoding: UTF-8 -*-
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes.rb', __FILE__)
 
@@ -47,6 +47,11 @@ describe "String#delete" do
     "abcde".delete("^ac-e").should == "acde"
 
     "ABCabc[]".delete("A-a").should == "bc"
+  end
+
+  it "deletes multibyte characters" do
+    "四月".delete("月").should     == "四"
+    '哥哥我倒'.delete('哥').should == "我倒"
   end
 
   it "respects backslash for escaping a -" do
