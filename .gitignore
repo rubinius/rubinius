@@ -91,3 +91,6 @@ vm/dtrace/probes.h
 
 # Ignore rubygems except bundled ones
 vendor/cache/*
+
+.build_ruby
+.build_signature
