@@ -964,6 +964,10 @@ class String
       else
         raise ArgumentError, "unexpected value for xml option: #{xml.inspect}"
       end
+
+      if options[:universal_newline]
+        gsub!(/\r\n|\r/, "\r\n" => "\n", "\r" => "\n")
+      end
     end
 
     self
