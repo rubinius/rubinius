@@ -54,6 +54,12 @@ with_feature :encoding do
         str = "あ"
         str.encode(:invalid => :replace).should_not equal(str)
       end
+
+      it "normalizes newlines" do
+        "\r\nfoo".encode(:universal_newline => true).should == "\nfoo"
+
+        "\rfoo".encode(:universal_newline => true).should == "\nfoo"
+      end
     end
 
     describe "when passed to, from" do
