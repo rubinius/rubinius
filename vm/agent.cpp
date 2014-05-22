@@ -510,8 +510,15 @@ auth_error:
       VM::discard(state, vm_);
       vm_ = NULL;
     }
+
+    if(server_fd_ > 0) {
+      close(server_fd_);
+      server_fd_ = -1;
+    }
+
     initialize(state);
     start_thread(state);
+    bind(0);
   }
 
   void QueryAgent::run(STATE) {
