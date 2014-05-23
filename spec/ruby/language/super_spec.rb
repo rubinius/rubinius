@@ -154,4 +154,8 @@ describe "The super keyword" do
   it "passes along modified rest args when they were originally empty" do
     Super::RestArgsWithSuper::B.new.a.should == ["foo"]
   end
+
+  it "invokes methods from a chain of anonymous modules" do
+    Super::AnonymousModuleIncludedTwice.new.a([]).should == ["anon", "anon", "non-anon"]
+  end
 end
