@@ -239,5 +239,10 @@ module Rubinius
       Rubinius::primitive :vm_gc_size
       raise PrimitiveFailure, "Rubinius::GC.size primitive failed"
     end
+
+    def self.stat(stats)
+      Rubinius::primitive :vm_gc_stat
+      raise PrimitiveFailure, "Rubinius::GC.stat primitive failed"
+    end
   end
 end

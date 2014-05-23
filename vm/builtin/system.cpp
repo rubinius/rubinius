@@ -531,6 +531,77 @@ namespace rubinius {
                                 state->memory()->gc_stats.total_full_stop_collection_time.read());
   }
 
+  Tuple* System::vm_gc_stat(STATE, Object* s) {
+    Tuple* stats = 0;
+
+    if(s->nil_p()) {
+      stats = Tuple::from(state, 38,
+        state->symbol("gc.young.count"), cNil,
+        state->symbol("gc.young.total_wallclock"), cNil,
+        state->symbol("gc.young.last_wallclock"), cNil,
+        state->symbol("gc.full.count"), cNil,
+        state->symbol("gc.full.total_stop_wallclock"), cNil,
+        state->symbol("gc.full.total_concurrent_wallclock"), cNil,
+        state->symbol("gc.full.last_stop_wallclock"), cNil,
+        state->symbol("gc.full.last_concurrent_wallclock"), cNil,
+        state->symbol("memory.counter.young_objects"), cNil,
+        state->symbol("memory.counter.young_bytes"), cNil,
+        state->symbol("memory.counter.promoted_objects"), cNil,
+        state->symbol("memory.counter.promoted_bytes"), cNil,
+        state->symbol("memory.counter.mature_objects"), cNil,
+        state->symbol("memory.counter.mature_bytes"), cNil,
+        state->symbol("memory.young.bytes"), cNil,
+        state->symbol("memory.mature.bytes"), cNil,
+        state->symbol("memory.large.bytes"), cNil,
+        state->symbol("memory.code.bytes"), cNil,
+        state->symbol("memory.symbols.bytes"), cNil
+      );
+    } else if(!(stats = try_as<Tuple>(s))) {
+      return force_as<Tuple>(Primitives::failure());
+    }
+
+    stats->put(state, 1, Integer::from(state,
+          state->memory()->gc_stats.young_collection_count.read()));
+    stats->put(state, 3, Integer::from(state,
+          state->memory()->gc_stats.total_young_collection_time.read()));
+    stats->put(state, 5, Integer::from(state,
+          state->memory()->gc_stats.last_young_collection_time.read()));
+    stats->put(state, 7, Integer::from(state,
+          state->memory()->gc_stats.full_collection_count.read()));
+    stats->put(state, 9, Integer::from(state,
+          state->memory()->gc_stats.total_full_stop_collection_time.read()));
+    stats->put(state, 11, Integer::from(state,
+          state->memory()->gc_stats.total_full_concurrent_collection_time.read()));
+    stats->put(state, 13, Integer::from(state,
+          state->memory()->gc_stats.last_full_stop_collection_time.read()));
+    stats->put(state, 15, Integer::from(state,
+          state->memory()->gc_stats.last_full_concurrent_collection_time.read()));
+    stats->put(state, 17, Integer::from(state,
+          state->memory()->gc_stats.young_objects_allocated.read()));
+    stats->put(state, 19, Integer::from(state,
+          state->memory()->gc_stats.young_bytes_allocated.read()));
+    stats->put(state, 21, Integer::from(state,
+          state->memory()->gc_stats.promoted_objects_allocated.read()));
+    stats->put(state, 23, Integer::from(state,
+          state->memory()->gc_stats.promoted_bytes_allocated.read()));
+    stats->put(state, 25, Integer::from(state,
+          state->memory()->gc_stats.mature_objects_allocated.read()));
+    stats->put(state, 27, Integer::from(state,
+          state->memory()->gc_stats.mature_bytes_allocated.read()));
+    stats->put(state, 29, Integer::from(state,
+          state->memory()->young_usage()));
+    stats->put(state, 31, Integer::from(state,
+          state->memory()->immix_usage()));
+    stats->put(state, 33, Integer::from(state,
+          state->memory()->loe_usage()));
+    stats->put(state, 35, Integer::from(state,
+          state->memory()->code_usage()));
+    stats->put(state, 37, Integer::from(state,
+          state->shared().symbols.bytes_used()));
+
+    return stats;
+  }
+
   Object* System::vm_get_config_item(STATE, String* var) {
     ConfigParser::Entry* ent = state->shared().user_variables.find(var->c_str(state));
     if(!ent) return cNil;

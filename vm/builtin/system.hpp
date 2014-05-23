@@ -102,6 +102,13 @@ namespace rubinius {
     static Integer*  vm_gc_time(STATE);
 
     /**
+     *  Retrieve object memory and garbage collection metrics.
+     *
+     */
+    // Rubinius.primitive+ :vm_gc_stat
+    static Tuple* vm_gc_stat(STATE, Object* stats);
+
+    /**
      *  Retrieve a value from VM configuration.
      *
      *  The config is essentially a hierarchical set of
