@@ -132,6 +132,13 @@ describe "Splat operator" do
         *a,b,c,d = [1,2,3,4,5]; [a,b,c,d].should == [[1,2],3,4,5]
         *a,b,c,d,e = [1,2,3,4,5]; [a,b,c,d,e].should == [[1],2,3,4,5]
       end
+
+      it "does not modify the right hand side" do
+        arr1 = [1, 2, 3, 4];
+        *a, b, c = *arr1; arr1.should == [1, 2, 3, 4]
+        a, *b, c = *arr1; arr1.should == [1, 2, 3, 4]
+        a, b, *c = *arr1; arr1.should == [1, 2, 3, 4]
+      end
     end
   end
 end
