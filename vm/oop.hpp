@@ -272,7 +272,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     LockStatus unlock_mutex(STATE, GCToken gct, CallFrame* call_frame, ObjectHeader* obj);
     void unlock_mutex_for_terminate(STATE, GCToken gct, CallFrame* call_frame, ObjectHeader* obj);
 
-    void wakeup();
+    void wakeup(STATE, GCToken gct, CallFrame* call_frame, ObjectHeader* obj);
 
     private:
   };

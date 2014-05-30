@@ -449,7 +449,10 @@ step2:
   }
 
   void ObjectHeader::hard_lock(STATE, GCToken gct, CallFrame* call_frame, size_t us) {
-    if(lock(state, gct, call_frame, us) != eLocked) rubinius::bug("Unable to lock object");
+retry:
+    LockStatus status = lock(state, gct, call_frame, us);
+    if(status == eLockInterrupted) goto retry;
+    if(status != eLocked) rubinius::bug("Unable to lock object");
   }
 
   LockStatus ObjectHeader::try_lock(STATE, GCToken gct, CallFrame* call_frame) {
@@ -827,7 +830,7 @@ step2:
         std::cerr << "[LOCK " << state->vm()->thread_id() << " locking native mutex: " << this << "]\n";
       }
 
-      state->vm()->wait_on_inflated_lock(this);
+      state->vm()->wait_on_inflated_lock(reinterpret_cast<Object*>(obj));
 
       // Loop until there is no owner.
       while(owner_id_ != 0) {
@@ -998,8 +1001,9 @@ step2:
     }
   }
 
-  void InflatedHeader::wakeup() {
-    utilities::thread::Mutex::LockGuard lg(mutex_);
+  void InflatedHeader::wakeup(STATE, GCToken gct, CallFrame* call_frame, ObjectHeader* obj) {
+    OnStack<1> os(state, obj);
+    GCLockGuard lg(state, gct, call_frame, mutex_);
     condition_.signal();
 
     if(cDebugThreading) {

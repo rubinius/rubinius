@@ -124,8 +124,10 @@ namespace rubinius {
     /// Root fiber, if any (lazily initialized)
     TypedRoot<Fiber*> root_fiber;
 
+    /// Object that waits for inflation
+    TypedRoot<Object*> waiting_object_;
+
     NativeMethodEnvironment* native_method_environment;
-    InflatedHeader* waiting_header_;
 
     void (*custom_wakeup_)(void*);
     void* custom_wakeup_data_;
@@ -427,7 +429,7 @@ namespace rubinius {
     void run_gc_soon();
 
     void wait_on_channel(Channel* channel);
-    void wait_on_inflated_lock(InflatedHeader* ih);
+    void wait_on_inflated_lock(Object* wait);
     void wait_on_custom_function(void (*func)(void*), void* data);
     void clear_waiter();
     bool wakeup(STATE, GCToken gct, CallFrame* call_frame);

@@ -1404,13 +1404,15 @@ retry:
     if(!obj->reference_p()) return Primitives::failure();
     state->set_call_frame(call_frame);
 
+retry:
     switch(obj->lock(state, gct, call_frame, false)) {
     case eLocked:
       return cTrue;
+    case eLockInterrupted:
+      goto retry;
     case eLockTimeout:
     case eUnlocked:
     case eLockError:
-    case eLockInterrupted:
       return Primitives::failure();
     }
 
