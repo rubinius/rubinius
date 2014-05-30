@@ -340,4 +340,28 @@ module Rubinius
 
     return obj
   end
+
+  # TODO: This is presently duplicated from Kernel::kernel because -> () { }
+  # in MRI dispatches to a hidden function that isn't modifiable by overriding
+  # Kernel::kernel.
+  def self.lambda
+    env = nil
+
+    Rubinius.asm do
+      push_block
+      # assign a pushed block to the above local variable "env"
+      # Note that "env" is indexed at 0.
+      set_local 0
+    end
+
+    raise ArgumentError, "block required" unless env
+
+    prc = Proc.__from_block__(env)
+
+    # Make a proc lambda only when passed an actual block (ie, not using the
+    # "&block" notation), otherwise don't modify it at all.
+    prc.lambda_style! if env.is_a?(Rubinius::BlockEnvironment)
+
+    return prc
+  end
 end
