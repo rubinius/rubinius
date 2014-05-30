@@ -4,6 +4,7 @@
 #include "builtin/array.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/io.hpp"
+#include "builtin/thread.hpp"
 #include "object_memory.hpp"
 #include "primitives.hpp"
 
@@ -169,14 +170,20 @@ extern "C" {
   }
 
   long rb_io_fread(char* ptr, int len, FILE* f) {
-    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
     long ret;
 
-    LEAVE_CAPI(env->state());
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    State* state = env->state();
+    LEAVE_CAPI(state);
     {
       GCIndependent guard(env);
+      state->vm()->interrupt_with_signal();
+      state->vm()->thread->sleep(state, cTrue);
+
       ret = fread(ptr, 1, len, f);
+
+      state->vm()->thread->sleep(state, cFalse);
+      state->vm()->clear_waiter();
     }
 
     ENTER_CAPI(env->state());
@@ -212,16 +219,21 @@ extern "C" {
     FD_SET((int_fd_t)fd, &fds);
 
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-
-    LEAVE_CAPI(env->state());
+    State* state = env->state();
+    LEAVE_CAPI(state);
     {
       GCIndependent guard(env);
+      state->vm()->interrupt_with_signal();
+      state->vm()->thread->sleep(state, cTrue);
 
       int ready = 0;
       while(!ready) {
         ready = select(fd+1, &fds, 0, 0, 0);
         if(!retry) break;
       }
+
+      state->vm()->thread->sleep(state, cFalse);
+      state->vm()->clear_waiter();
     }
 
     ENTER_CAPI(env->state());
@@ -258,15 +270,21 @@ extern "C" {
     FD_SET((int_fd_t)fd, &fds);
 
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    LEAVE_CAPI(env->state());
+    State* state = env->state();
+    LEAVE_CAPI(state);
     {
       GCIndependent guard(env);
+      state->vm()->interrupt_with_signal();
+      state->vm()->thread->sleep(state, cTrue);
 
       int ready = 0;
       while(!ready) {
         ready = select(fd+1, 0, &fds, 0, 0);
         if(!retry) break;
       }
+
+      state->vm()->thread->sleep(state, cFalse);
+      state->vm()->clear_waiter();
     }
     ENTER_CAPI(env->state());
     return Qtrue;
@@ -283,14 +301,20 @@ extern "C" {
     FD_SET((int_fd_t)fd, &fds);
 
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    LEAVE_CAPI(env->state());
+    State* state = env->state();
+    LEAVE_CAPI(state);
     {
       GCIndependent guard(env);
+      state->vm()->interrupt_with_signal();
+      state->vm()->thread->sleep(state, cTrue);
 
       int ready = 0;
       while(!ready) {
         ready = select(fd+1, &fds, 0, 0, 0);
       }
+
+      state->vm()->thread->sleep(state, cFalse);
+      state->vm()->clear_waiter();
     }
     ENTER_CAPI(env->state());
   }
@@ -306,14 +330,20 @@ extern "C" {
     FD_SET((int_fd_t)fd, &fds);
 
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
-    LEAVE_CAPI(env->state());
+    State* state = env->state();
+    LEAVE_CAPI(state);
     {
       GCIndependent guard(env);
+      state->vm()->interrupt_with_signal();
+      state->vm()->thread->sleep(state, cTrue);
 
       int ready = 0;
       while(!ready) {
         ready = select(fd+1, 0, &fds, 0, 0);
       }
+
+      state->vm()->thread->sleep(state, cFalse);
+      state->vm()->clear_waiter();
     }
 
     ENTER_CAPI(env->state());
