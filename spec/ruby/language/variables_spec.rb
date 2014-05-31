@@ -301,11 +301,9 @@ describe "Assigning multiple values" do
     b.should == 1
   end
 
-  not_compliant_on :rubinius do
-    it "returns the rhs values used for assignment as an array" do
-      x = begin; a, b, c = 1, 2, 3; end
-      x.should == [1,2,3]
-    end
+  it "returns the rhs values used for assignment as an array" do
+    x = begin; a, b, c = 1, 2, 3; end
+    x.should == [1,2,3]
   end
 
   it "wraps a single value in an Array if it's not already one" do
@@ -1084,29 +1082,25 @@ end
 # TODO: merge the following two describe blocks and partition the specs
 # into distinct cases.
 describe "Multiple assignment" do
-  not_compliant_on :rubinius do
-    it "has the proper return value" do
-      (a,b,*c = *[5,6,7,8,9,10]).should == [5,6,7,8,9,10]
-      (d,e = VariablesSpecs.reverse_foo(4,3)).should == [3,4]
-      (f,g,h = VariablesSpecs.reverse_foo(6,7)).should == [7,6]
-      (i,*j = *[5,6,7]).should == [5,6,7]
-      (k,*l = [5,6,7]).should == [5,6,7]
-      a.should == 5
-      b.should == 6
-      c.should == [7,8,9,10]
-      d.should == 3
-      e.should == 4
-      f.should == 7
-      g.should == 6
-      h.should == nil
-      i.should == 5
-      j.should == [6,7]
-      k.should == 5
-      l.should == [6,7]
-    end
+  it "has the proper return value" do
+    (a,b,*c = *[5,6,7,8,9,10]).should == [5,6,7,8,9,10]
+    (d,e = VariablesSpecs.reverse_foo(4,3)).should == [3,4]
+    (f,g,h = VariablesSpecs.reverse_foo(6,7)).should == [7,6]
+    (i,*j = *[5,6,7]).should == [5,6,7]
+    (k,*l = [5,6,7]).should == [5,6,7]
+    a.should == 5
+    b.should == 6
+    c.should == [7,8,9,10]
+    d.should == 3
+    e.should == 4
+    f.should == 7
+    g.should == 6
+    h.should == nil
+    i.should == 5
+    j.should == [6,7]
+    k.should == 5
+    l.should == [6,7]
   end
-
-  # TODO: write Rubinius versions
 end
 
 # For now, masgn is deliberately non-compliant with MRI wrt the return val from an masgn.
