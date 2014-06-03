@@ -106,6 +106,7 @@ module RbConfig
   CONFIG["STRIP"]              = "strip -A -n"
   CONFIG["MANTYPE"]            = "doc"
   CONFIG["MAKEFILES"]          = "Makefile"
+  CONFIG["NULLCMD"]            = ":"
   # compile tools flags
   # since we hardcode using gcc, and this flag is only
   # used by mkmf to compile extensions, be sure PIC is in
