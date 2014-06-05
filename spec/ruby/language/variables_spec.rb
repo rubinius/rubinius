@@ -1,6 +1,362 @@
 require File.expand_path('../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/variables', __FILE__)
 
+describe "Multiple assignment" do
+  context "with a single RHS value" do
+    it "assigns a simple MLHS" do
+      a, b, c = 1
+      [a, b, c].should == [1, nil, nil]
+    end
+
+    it "assigns a MLHS with a trailing comma" do
+      a, = 1
+      b, c, = []
+      [a, b, c].should == [1, nil, nil]
+    end
+
+    it "assigns a single LHS splat" do
+      *a = 1
+      a.should == [1]
+    end
+
+    it "calls #to_ary to convert an Object RHS" do
+      x = mock("multi-assign splat")
+      x.should_receive(:to_ary).and_return([1])
+
+      *a = x
+      a.should == [1]
+    end
+
+    it "raises a TypeError if #to_ary does not return an Array" do
+      x = mock("multi-assign splat")
+      x.should_receive(:to_ary).and_return(1)
+
+      lambda { *a = x }.should raise_error(TypeError)
+    end
+
+    it "assigns a MLHS with leading splat" do
+      (*a, b, c = 1).should == 1
+      [a, b, c].should == [[], 1, nil]
+    end
+
+    it "assigns a MLHS with a middle splat" do
+      a, b, *c, d, e = 1
+      [a, b, c, d, e].should == [1, nil, [], nil, nil]
+    end
+
+    it "assigns a MLHS with a trailing splat" do
+      a, b, *c = 1
+      [a, b, c].should == [1, nil, []]
+    end
+
+    it "assigns a grouped LHS without splat" do
+      ((a, b), c), (d, (e,), (f, (g, h))) = 1
+      [a, b, c, d, e, f, g, h].should == [1, nil, nil, nil, nil, nil, nil, nil]
+    end
+
+    it "assigns a single grouped LHS splat" do
+      (*a) = nil
+      a.should == [nil]
+    end
+
+    it "assigns a grouped LHS with splats" do
+      (a, *b), c, (*d, (e, *f, g)) = 1
+      [a, b, c, d, e, f, g].should == [1, [], nil, [], nil, [], nil]
+    end
+
+    it "consumes values for an anonymous splat" do
+      (* = 1).should == 1
+    end
+
+    it "consumes values for a grouped anonymous splat" do
+      ((*) = 1).should == 1
+    end
+
+    it "does not mutate a RHS Array" do
+      x = [1, 2, 3, 4]
+      a, *b, c, d = x
+      [a, b, c, d].should == [1, [2], 3, 4]
+      x.should == [1, 2, 3, 4]
+    end
+
+    it "assigns values from a RHS method call" do
+      def x() 1 end
+
+      a, b = x
+      [a, b].should == [1, nil]
+    end
+
+    it "assigns values from a RHS method call with arguments" do
+      def x(a) a end
+
+      a, b = x []
+      [a, b].should == [nil, nil]
+    end
+
+    it "assigns values from a RHS method call with receiver" do
+      x = mock("multi-assign attributes")
+      x.should_receive(:m).and_return([1, 2, 3])
+
+      a, b = x.m
+      [a, b].should == [1, 2]
+    end
+
+    it "assigns values from a RHS method call with receiver and arguments" do
+      x = mock("multi-assign attributes")
+      x.should_receive(:m).with(1, 2).and_return([1, 2, 3])
+
+      a, b = x.m 1, 2
+      [a, b].should == [1, 2]
+    end
+
+    it "assigns global variables" do
+      $spec_a, $spec_b = 1
+      [$spec_a, $spec_b].should == [1, nil]
+    end
+
+    it "assigns instance variables" do
+      @a, @b = 1
+      [@a, @b].should == [1, nil]
+    end
+
+    it "assigns attributes" do
+      a = mock("multi-assign attributes")
+      a.should_receive(:x=).with(1)
+      a.should_receive(:y=).with(nil)
+
+      a.x, a.y = 1
+    end
+
+    it "assigns indexed elements" do
+      a = []
+      a[1], a[2] = 1
+      a.should == [nil, 1, nil]
+    end
+  end
+
+  context "with a single splatted RHS value" do
+    it "assigns a single grouped LHS splat" do
+      (*a) = *nil
+      a.should == []
+    end
+
+    it "consumes values for an anonymous splat" do
+      a = 1
+      (* = *a).should == [1]
+    end
+
+    it "assigns a single LHS splat" do
+      x = 1
+      *a = *x
+      a.should == [1]
+    end
+
+    it "assigns a MLHS with leading splat" do
+      (*a, b, c = *1).should == [1]
+      [a, b, c].should == [[], 1, nil]
+    end
+
+    it "assigns a MLHS with a middle splat" do
+      a, b, *c, d, e = *1
+      [a, b, c, d, e].should == [1, nil, [], nil, nil]
+    end
+
+    it "assigns a MLHS with a trailing splat" do
+      a, b, *c = *nil
+      [a, b, c].should == [nil, nil, []]
+    end
+
+    it "does not call #to_ary to convert an Object RHS with a single LHS" do
+      x = mock("multi-assign splat")
+      x.should_not_receive(:to_ary)
+
+      a = *x
+      a.should == [x]
+    end
+
+    it "does not call #to_ary to convert an Object RHS with a MLHS" do
+      x = mock("multi-assign splat")
+      x.should_not_receive(:to_ary)
+
+      a, *b = *x
+      [a, b].should == [x, []]
+    end
+
+    it "calls #to_a to convert an Object RHS with a single LHS" do
+      x = mock("multi-assign splat")
+      x.should_receive(:to_a).and_return([1, 2])
+
+      a = *x
+      a.should == [1, 2]
+    end
+
+    it "raises a TypeError if #to_a does not return an Array" do
+      x = mock("multi-assign splat")
+      x.should_receive(:to_a).and_return(1)
+
+      lambda { a = *x }.should raise_error(TypeError)
+    end
+
+    it "calls #to_a to convert an Object RHS with MLHS" do
+      x = mock("multi-assign splat")
+      x.should_receive(:to_a).and_return([1, 2])
+
+      a, *b, c = *x
+      [a, b, c].should == [1, [], 2]
+    end
+
+    it "assigns a grouped LHS without splats" do
+      ((a, b), c), (d, (e,), (f, (g, h))) = *1
+      [a, b, c, d, e, f, g, h].should == [1, nil, nil, nil, nil, nil, nil, nil]
+    end
+
+    it "assigns a grouped LHS with splats" do
+      (a, *b), c, (*d, (e, *f, g)) = *1
+      [a, b, c, d, e, f, g].should == [1, [], nil, [], nil, [], nil]
+    end
+
+    it "consumes values for an anonymous splat" do
+      (* = *1).should == [1]
+    end
+
+    it "consumes values for a grouped anonymous splat" do
+      ((*) = *1).should == [1]
+    end
+
+    it "does not mutate a RHS Array" do
+      x = [1, 2, 3, 4]
+      a, *b, c, d = *x
+      [a, b, c, d].should == [1, [2], 3, 4]
+      x.should == [1, 2, 3, 4]
+    end
+  end
+
+  context "with a MRHS value" do
+    it "consumes values for an anonymous splat" do
+      (* = 1, 2, 3).should == [1, 2, 3]
+    end
+
+    it "consumes values for multiple '_' variables" do
+      a, _, b, _, c = 1, 2, 3, 4, 5
+      [a, b, c].should == [1, 3, 5]
+    end
+
+    it "assigns a grouped LHS without splat from a simple Array" do
+      ((a, b), c), (d, (e,), (f, (g, h))) = 1, 2, 3, 4, 5
+      [a, b, c, d, e, f, g, h].should == [1, nil, nil, 2, nil, nil, nil, nil]
+    end
+
+    it "assigns a grouped LHS without splat from nested Arrays" do
+      ary = [[1, 2, 3], 4], [[5], [6, 7], [8, [9, 10]]]
+      ((a, b), c), (d, (e,), (f, (g, h))) = ary
+      [a, b, c, d, e, f, g, h].should == [1, 2, 4, [5], 6, 8, 9, 10]
+    end
+
+    it "assigns a single grouped LHS splat" do
+      (*a) = 1, 2, 3
+      a.should == [1, 2, 3]
+    end
+
+    it "assigns a grouped LHS with splats from nested Arrays" do
+      (a, *b), c, (*d, (e, *f, g)) = 1, 2, 3, 4
+      [a, b, c, d, e, f, g].should == [1, [], 2, [], 3, [], nil]
+    end
+
+    it "assigns a grouped LHS with splats from nested Arrays" do
+      (a, *b), c, (*d, (e, *f, g)) = [1, [2, 3]], [4, 5], [6, 7, 8]
+      [a, b, c, d, e, f, g].should == [1, [[2, 3]], [4, 5], [6, 7], 8, [], nil]
+    end
+
+    it "consumes values for an anonymous splat" do
+      (* = 1, 2, 3).should == [1, 2, 3]
+    end
+
+    it "consumes values for a grouped anonymous splat" do
+      ((*) = 1, 2, 3).should == [1, 2, 3]
+    end
+
+    it "calls #to_ary to convert an Object when the position receiving the value is a multiple assignment" do
+      x = mock("multi-assign mixed RHS")
+      x.should_receive(:to_ary).and_return([1, 2])
+
+      a, (*b), c, d = 1, x, 3, 4
+      [a, b, c, d].should == [1, [1, 2], 3, 4]
+    end
+
+    it "raises a TypeError if #to_ary does not return an Array" do
+      x = mock("multi-assign mixed RHS")
+      x.should_receive(:to_ary).and_return(x)
+
+      lambda { a, (*b), c, d = 1, x, 3, 4 }.should raise_error(TypeError)
+    end
+
+    it "calls #to_ary to convert a splatted Object when the position receiving the value is a multiple assignment" do
+      x = mock("multi-assign mixed splatted RHS")
+      x.should_receive(:to_ary).and_return([1, 2])
+
+      a, *b, (c, d) = 1, 2, 3, *x
+      [a, b, c, d].should == [1, [2, 3], 1, 2]
+    end
+
+    it "raises a TypeError if #to_ary does not return an Array" do
+      x = mock("multi-assign mixed splatted RHS")
+      x.should_receive(:to_ary).and_return(x)
+
+      lambda { a, *b, (c, d) = 1, 2, 3, *x }.should raise_error(TypeError)
+    end
+
+    it "does not call #to_ary to convert an Object when the position receiving the value is a simple variable" do
+      x = mock("multi-assign mixed RHS")
+      x.should_not_receive(:to_ary)
+
+      a, b, c, d = 1, x, 3, 4
+      [a, b, c, d].should == [1, x, 3, 4]
+    end
+
+    it "does not call #to_ary to convert an Object when the position receiving the value is a rest variable" do
+      x = mock("multi-assign mixed RHS")
+      x.should_not_receive(:to_ary)
+
+      a, *b, c, d = 1, x, 3, 4
+      [a, b, c, d].should == [1, [x], 3, 4]
+    end
+
+    it "does not call #to_ary to convert a splatted Object when the position receiving the value is a simple variable" do
+      x = mock("multi-assign mixed splatted RHS")
+      x.should_not_receive(:to_ary)
+
+      a, *b, c = 1, 2, *x
+      [a, b, c].should == [1, [2], x]
+    end
+
+    it "does not call #to_ary to convert a splatted Object when the position receiving the value is a rest variable" do
+      x = mock("multi-assign mixed splatted RHS")
+      x.should_not_receive(:to_ary)
+
+      a, b, *c = 1, 2, *x
+      [a, b, c].should == [1, 2, [x]]
+    end
+
+    it "does not mutate the assigned Array" do
+      x = ((a, *b, c, d) = 1, 2, 3, 4, 5)
+      x.should == [1, 2, 3, 4, 5]
+    end
+  end
+
+  context "with a RHS assignment value" do
+    it "consumes values for an anonymous splat" do
+      (* = (a = 1)).should == 1
+      a.should == 1
+    end
+
+    it "does not mutate a RHS Array" do
+      a, *b, c, d = (e = [1, 2, 3, 4])
+      [a, b, c, d].should == [1, [2], 3, 4]
+      e.should == [1, 2, 3, 4]
+    end
+  end
+end
+
 # TODO: partition these specs into distinct cases based on the
 # real parsed forms, not the superficial code forms.
 describe "Basic assignment" do
