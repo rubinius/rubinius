@@ -1,5 +1,4 @@
 require File.expand_path('../../../spec_helper', __FILE__)
-require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "Method#arity" do
   SpecEvaluate.desc = "for method definition"
