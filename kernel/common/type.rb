@@ -30,7 +30,13 @@ module Rubinius
 
       return ret if object_kind_of?(ret, cls)
 
-      msg = "Coercion error: obj.#{meth} did NOT return a #{cls} (was #{object_class(ret)})"
+      coerce_to_type_error obj, ret, meth, cls
+    end
+
+    def self.coerce_to_type_error(original, converted, method, klass)
+      oc = object_class original
+      cc = object_class converted
+      msg = "failed to convert #{oc} to #{klass}: #{oc}\##{method} returned #{cc}"
       raise TypeError, msg
     end
 
