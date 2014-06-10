@@ -176,7 +176,7 @@ class Configure
     @ruby_version = "2.1.0"
     @libversion = "2.2"
     @patch_version = "8"
-    @release_date = "2014-06-10"
+    @release_date = nil
 
     # Configure settings
     @release_build = !git_directory
