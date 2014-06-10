@@ -16,6 +16,39 @@ describe "Multiple assignment" do
       [a, b, c].should == [1, 2, nil]
     end
 
+    it "calls #to_ary if it is private" do
+      x = mock("multi-assign single RHS")
+      x.should_receive(:to_ary).and_return([1, 2])
+      class << x; private :to_ary; end
+
+      (a, b, c = x).should == x
+      [a, b, c].should == [1, 2, nil]
+    end
+
+    it "does not call #to_ary if #respond_to? returns false" do
+      x = mock("multi-assign single RHS")
+      x.should_receive(:respond_to?).with(:to_ary, true).and_return(false)
+      x.should_not_receive(:to_ary)
+
+      (a, b, c = x).should == x
+      [a, b, c].should == [x, nil, nil]
+    end
+
+    it "wraps the Object in an Array if #to_ary returns nil" do
+      x = mock("multi-assign single RHS")
+      x.should_receive(:to_ary).and_return(nil)
+
+      (a, b, c = x).should == x
+      [a, b, c].should == [x, nil, nil]
+    end
+
+    it "raises a TypeError of #to_ary does not return an Array" do
+      x = mock("multi-assign single RHS")
+      x.should_receive(:to_ary).and_return(1)
+
+      lambda { a, b, c = x }.should raise_error(TypeError)
+    end
+
     it "does not call #to_a to convert an Object RHS when assigning a simple MLHS" do
       x = mock("multi-assign single RHS")
       x.should_not_receive(:to_a)
@@ -261,6 +294,32 @@ describe "Multiple assignment" do
 
       (*a = *x).should == [1, 2]
       a.should == [1, 2]
+    end
+
+    it "calls #to_a if it is private" do
+      x = mock("multi-assign RHS splat")
+      x.should_receive(:to_a).and_return([1, 2])
+      class << x; private :to_a; end
+
+      (*a = *x).should == [1, 2]
+      a.should == [1, 2]
+    end
+
+    it "does not call #to_a if #respond_to? returns false" do
+      x = mock("multi-assign RHS splat")
+      x.should_receive(:respond_to?).with(:to_a, true).and_return(false)
+      x.should_not_receive(:to_a)
+
+      (*a = *x).should == [x]
+      a.should == [x]
+    end
+
+    it "wraps the Object in an Array if #to_a returns nil" do
+      x = mock("multi-assign RHS splat")
+      x.should_receive(:to_a).and_return(nil)
+
+      (*a = *x).should == [x]
+      a.should == [x]
     end
 
     it "raises a TypeError if #to_a does not return an Array" do
