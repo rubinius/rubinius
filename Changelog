@@ -1,3 +1,15 @@
+Version: 2.2.8 (2014-06-10)
+
+* Module#ancestors includes singleton classes for singleton classes.
+	(Jesse Cooke)
+* String#encode supports :universal_newline. (Yorick Peterse)
+* Agent works across fork(). (Brian Shirai)
+* GC.stat performance improved. (Brian Shirai)
+* Lock inflation deadlock is fixed. (Dirkjan Bussink)
+* C-API system calls for IO are interruptable. (Dirkjan Bussink)
+* RbConfig::CONFIG['NULLCMD'] is set to ':'. (Yorick Peterse)
+* Gem binary wrappers for pre-installed gems are executable. (Brian Shirai)
+
 Version: 2.2.7 (2014-05-20)
 
 * Dir[] and Dir.glob call #to_path on multiple patterns. (Brian Shirai)
