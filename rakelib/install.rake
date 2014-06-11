@@ -153,8 +153,7 @@ end
 
 def install_gems_bins(prefix, target)
   FileList["#{prefix}/*"].each do |name|
-    bin_name = File.basename name
-    install_bin name, "#{target}#{BUILD_CONFIG[:gemsdir]}/bin/#{bin_name}"
+    install_file name, prefix, "#{target}#{BUILD_CONFIG[:gemsdir]}/bin", :mode => 0755
   end
 end
 
