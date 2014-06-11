@@ -1,3 +1,7 @@
+Version: 2.2.9 (2014-06-10)
+
+* Pre-installed gem binary wrappers are executable files. (Brian Shirai)
+
 Version: 2.2.8 (2014-06-10)
 
 * Module#ancestors includes singleton classes for singleton classes.
