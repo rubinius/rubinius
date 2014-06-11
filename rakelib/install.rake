@@ -144,7 +144,6 @@ end
 def install_gems(prefix, target)
   list = FileList["#{prefix}/**/*.*", "#{prefix}/**/*"]
   list.exclude("#{prefix}/bin/*")
-  list.exclude("#{prefix}/cache/*.*")
 
   list.each do |name|
     install_file name, prefix, "#{target}#{BUILD_CONFIG[:gemsdir]}"
