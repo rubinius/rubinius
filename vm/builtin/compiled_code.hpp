@@ -32,6 +32,8 @@ namespace rubinius {
     Tuple* local_names_;        // slot
     Symbol* file_;              // slot
     ConstantScope* scope_;      // slot
+    Tuple* keywords_;           // slot
+    Fixnum* arity_;             // slot
     LookupTable* breakpoints_;  // slot
 
     MachineCode* machine_code_;
@@ -78,6 +80,8 @@ namespace rubinius {
     attr_accessor(local_names, Tuple);
     attr_accessor(file, Symbol);
     attr_accessor(scope, ConstantScope);
+    attr_accessor(keywords, Tuple);
+    attr_accessor(arity, Fixnum);
     attr_accessor(breakpoints, LookupTable);
 
     /* interface */

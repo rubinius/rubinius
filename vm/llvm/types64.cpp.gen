@@ -434,6 +434,8 @@ StructTy_struct_rubinius__CompiledCode_fields.push_back(PointerTy_16);
 StructTy_struct_rubinius__CompiledCode_fields.push_back(PointerTy_16);
 StructTy_struct_rubinius__CompiledCode_fields.push_back(PointerTy_8);
 StructTy_struct_rubinius__CompiledCode_fields.push_back(PointerTy_28);
+StructTy_struct_rubinius__CompiledCode_fields.push_back(PointerTy_16);
+StructTy_struct_rubinius__CompiledCode_fields.push_back(PointerTy_15);
 StructTy_struct_rubinius__CompiledCode_fields.push_back(PointerTy_12);
 StructType *StructTy_struct_rubinius__MachineCode = mod->getTypeByName("struct.rubinius::MachineCode");
 if (!StructTy_struct_rubinius__MachineCode) {
@@ -923,7 +925,7 @@ func_outputVMJIT = Function::Create(
  /*Name=*/"outputVMJIT", mod); // (external, no body)
 func_outputVMJIT->setCallingConv(CallingConv::C);
 }
-AttrListPtr func_outputVMJIT_PAL;
+AttributeSet func_outputVMJIT_PAL;
 func_outputVMJIT->setAttributes(func_outputVMJIT_PAL);
 
 Function* func_outputState = mod->getFunction("outputState");
@@ -934,7 +936,7 @@ func_outputState = Function::Create(
  /*Name=*/"outputState", mod); // (external, no body)
 func_outputState->setCallingConv(CallingConv::C);
 }
-AttrListPtr func_outputState_PAL;
+AttributeSet func_outputState_PAL;
 func_outputState->setAttributes(func_outputState_PAL);
 
 Function* func_outputArguments = mod->getFunction("outputArguments");
@@ -945,7 +947,7 @@ func_outputArguments = Function::Create(
  /*Name=*/"outputArguments", mod); // (external, no body)
 func_outputArguments->setCallingConv(CallingConv::C);
 }
-AttrListPtr func_outputArguments_PAL;
+AttributeSet func_outputArguments_PAL;
 func_outputArguments->setAttributes(func_outputArguments_PAL);
 
 Function* func_outputRuntimeData = mod->getFunction("outputRuntimeData");
@@ -956,7 +958,7 @@ func_outputRuntimeData = Function::Create(
  /*Name=*/"outputRuntimeData", mod); // (external, no body)
 func_outputRuntimeData->setCallingConv(CallingConv::C);
 }
-AttrListPtr func_outputRuntimeData_PAL;
+AttributeSet func_outputRuntimeData_PAL;
 func_outputRuntimeData->setAttributes(func_outputRuntimeData_PAL);
 
 Function* func_outputDispatch = mod->getFunction("outputDispatch");
@@ -967,7 +969,7 @@ func_outputDispatch = Function::Create(
  /*Name=*/"outputDispatch", mod); // (external, no body)
 func_outputDispatch->setCallingConv(CallingConv::C);
 }
-AttrListPtr func_outputDispatch_PAL;
+AttributeSet func_outputDispatch_PAL;
 func_outputDispatch->setAttributes(func_outputDispatch_PAL);
 
 Function* func_outputCallSite = mod->getFunction("outputCallSite");
@@ -978,7 +980,7 @@ func_outputCallSite = Function::Create(
  /*Name=*/"outputCallSite", mod); // (external, no body)
 func_outputCallSite->setCallingConv(CallingConv::C);
 }
-AttrListPtr func_outputCallSite_PAL;
+AttributeSet func_outputCallSite_PAL;
 func_outputCallSite->setAttributes(func_outputCallSite_PAL);
 
 Function* func_outputMonoInlineCache = mod->getFunction("outputMonoInlineCache");
@@ -989,7 +991,7 @@ func_outputMonoInlineCache = Function::Create(
  /*Name=*/"outputMonoInlineCache", mod); // (external, no body)
 func_outputMonoInlineCache->setCallingConv(CallingConv::C);
 }
-AttrListPtr func_outputMonoInlineCache_PAL;
+AttributeSet func_outputMonoInlineCache_PAL;
 func_outputMonoInlineCache->setAttributes(func_outputMonoInlineCache_PAL);
 
 Function* func_outputPolyInlineCache = mod->getFunction("outputPolyInlineCache");
@@ -1000,7 +1002,7 @@ func_outputPolyInlineCache = Function::Create(
  /*Name=*/"outputPolyInlineCache", mod); // (external, no body)
 func_outputPolyInlineCache->setCallingConv(CallingConv::C);
 }
-AttrListPtr func_outputPolyInlineCache_PAL;
+AttributeSet func_outputPolyInlineCache_PAL;
 func_outputPolyInlineCache->setAttributes(func_outputPolyInlineCache_PAL);
 
 Function* func_outputInlineCacheEntry = mod->getFunction("outputInlineCacheEntry");
@@ -1011,7 +1013,7 @@ func_outputInlineCacheEntry = Function::Create(
  /*Name=*/"outputInlineCacheEntry", mod); // (external, no body)
 func_outputInlineCacheEntry->setCallingConv(CallingConv::C);
 }
-AttrListPtr func_outputInlineCacheEntry_PAL;
+AttributeSet func_outputInlineCacheEntry_PAL;
 func_outputInlineCacheEntry->setAttributes(func_outputInlineCacheEntry_PAL);
 
 Function* func_outputConstantCache = mod->getFunction("outputConstantCache");
@@ -1022,7 +1024,7 @@ func_outputConstantCache = Function::Create(
  /*Name=*/"outputConstantCache", mod); // (external, no body)
 func_outputConstantCache->setCallingConv(CallingConv::C);
 }
-AttrListPtr func_outputConstantCache_PAL;
+AttributeSet func_outputConstantCache_PAL;
 func_outputConstantCache->setAttributes(func_outputConstantCache_PAL);
 
 Function* func_outputStackVariables = mod->getFunction("outputStackVariables");
@@ -1033,7 +1035,7 @@ func_outputStackVariables = Function::Create(
  /*Name=*/"outputStackVariables", mod); // (external, no body)
 func_outputStackVariables->setCallingConv(CallingConv::C);
 }
-AttrListPtr func_outputStackVariables_PAL;
+AttributeSet func_outputStackVariables_PAL;
 func_outputStackVariables->setAttributes(func_outputStackVariables_PAL);
 
 Function* func_outputUnwindInfo = mod->getFunction("outputUnwindInfo");
@@ -1044,7 +1046,7 @@ func_outputUnwindInfo = Function::Create(
  /*Name=*/"outputUnwindInfo", mod); // (external, no body)
 func_outputUnwindInfo->setCallingConv(CallingConv::C);
 }
-AttrListPtr func_outputUnwindInfo_PAL;
+AttributeSet func_outputUnwindInfo_PAL;
 func_outputUnwindInfo->setAttributes(func_outputUnwindInfo_PAL);
 
 Function* func_outputHeaderWord = mod->getFunction("outputHeaderWord");
@@ -1055,7 +1057,7 @@ func_outputHeaderWord = Function::Create(
  /*Name=*/"outputHeaderWord", mod); // (external, no body)
 func_outputHeaderWord->setCallingConv(CallingConv::C);
 }
-AttrListPtr func_outputHeaderWord_PAL;
+AttributeSet func_outputHeaderWord_PAL;
 func_outputHeaderWord->setAttributes(func_outputHeaderWord_PAL);
 
 Function* func_outputObject = mod->getFunction("outputObject");
@@ -1066,7 +1068,7 @@ func_outputObject = Function::Create(
  /*Name=*/"outputObject", mod); // (external, no body)
 func_outputObject->setCallingConv(CallingConv::C);
 }
-AttrListPtr func_outputObject_PAL;
+AttributeSet func_outputObject_PAL;
 func_outputObject->setAttributes(func_outputObject_PAL);
 
 Function* func_outputObjectFlags = mod->getFunction("outputObjectFlags");
@@ -1077,7 +1079,7 @@ func_outputObjectFlags = Function::Create(
  /*Name=*/"outputObjectFlags", mod); // (external, no body)
 func_outputObjectFlags->setCallingConv(CallingConv::C);
 }
-AttrListPtr func_outputObjectFlags_PAL;
+AttributeSet func_outputObjectFlags_PAL;
 func_outputObjectFlags->setAttributes(func_outputObjectFlags_PAL);
 
 Function* func_outputObjectHeader = mod->getFunction("outputObjectHeader");
@@ -1088,7 +1090,7 @@ func_outputObjectHeader = Function::Create(
  /*Name=*/"outputObjectHeader", mod); // (external, no body)
 func_outputObjectHeader->setCallingConv(CallingConv::C);
 }
-AttrListPtr func_outputObjectHeader_PAL;
+AttributeSet func_outputObjectHeader_PAL;
 func_outputObjectHeader->setAttributes(func_outputObjectHeader_PAL);
 
 Function* func_outputArray = mod->getFunction("outputArray");
@@ -1099,7 +1101,7 @@ func_outputArray = Function::Create(
  /*Name=*/"outputArray", mod); // (external, no body)
 func_outputArray->setCallingConv(CallingConv::C);
 }
-AttrListPtr func_outputArray_PAL;
+AttributeSet func_outputArray_PAL;
 func_outputArray->setAttributes(func_outputArray_PAL);
 
 Function* func_outputBlockEnvironment = mod->getFunction("outputBlockEnvironment");
@@ -1110,7 +1112,7 @@ func_outputBlockEnvironment = Function::Create(
  /*Name=*/"outputBlockEnvironment", mod); // (external, no body)
 func_outputBlockEnvironment->setCallingConv(CallingConv::C);
 }
-AttrListPtr func_outputBlockEnvironment_PAL;
+AttributeSet func_outputBlockEnvironment_PAL;
 func_outputBlockEnvironment->setAttributes(func_outputBlockEnvironment_PAL);
 
 Function* func_outputBlockInvocation = mod->getFunction("outputBlockInvocation");
@@ -1121,7 +1123,7 @@ func_outputBlockInvocation = Function::Create(
  /*Name=*/"outputBlockInvocation", mod); // (external, no body)
 func_outputBlockInvocation->setCallingConv(CallingConv::C);
 }
-AttrListPtr func_outputBlockInvocation_PAL;
+AttributeSet func_outputBlockInvocation_PAL;
 func_outputBlockInvocation->setAttributes(func_outputBlockInvocation_PAL);
 
 Function* func_outputCallFrame = mod->getFunction("outputCallFrame");
@@ -1132,7 +1134,7 @@ func_outputCallFrame = Function::Create(
  /*Name=*/"outputCallFrame", mod); // (external, no body)
 func_outputCallFrame->setCallingConv(CallingConv::C);
 }
-AttrListPtr func_outputCallFrame_PAL;
+AttributeSet func_outputCallFrame_PAL;
 func_outputCallFrame->setAttributes(func_outputCallFrame_PAL);
 
 Function* func_outputClass = mod->getFunction("outputClass");
@@ -1143,7 +1145,7 @@ func_outputClass = Function::Create(
  /*Name=*/"outputClass", mod); // (external, no body)
 func_outputClass->setCallingConv(CallingConv::C);
 }
-AttrListPtr func_outputClass_PAL;
+AttributeSet func_outputClass_PAL;
 func_outputClass->setAttributes(func_outputClass_PAL);
 
 Function* func_outputCompiledCode = mod->getFunction("outputCompiledCode");
@@ -1154,7 +1156,7 @@ func_outputCompiledCode = Function::Create(
  /*Name=*/"outputCompiledCode", mod); // (external, no body)
 func_outputCompiledCode->setCallingConv(CallingConv::C);
 }
-AttrListPtr func_outputCompiledCode_PAL;
+AttributeSet func_outputCompiledCode_PAL;
 func_outputCompiledCode->setAttributes(func_outputCompiledCode_PAL);
 
 Function* func_outputExecutable = mod->getFunction("outputExecutable");
@@ -1165,7 +1167,7 @@ func_outputExecutable = Function::Create(
  /*Name=*/"outputExecutable", mod); // (external, no body)
 func_outputExecutable->setCallingConv(CallingConv::C);
 }
-AttrListPtr func_outputExecutable_PAL;
+AttributeSet func_outputExecutable_PAL;
 func_outputExecutable->setAttributes(func_outputExecutable_PAL);
 
 Function* func_outputFloat = mod->getFunction("outputFloat");
@@ -1176,7 +1178,7 @@ func_outputFloat = Function::Create(
  /*Name=*/"outputFloat", mod); // (external, no body)
 func_outputFloat->setCallingConv(CallingConv::C);
 }
-AttrListPtr func_outputFloat_PAL;
+AttributeSet func_outputFloat_PAL;
 func_outputFloat->setAttributes(func_outputFloat_PAL);
 
 Function* func_outputModule = mod->getFunction("outputModule");
@@ -1187,7 +1189,7 @@ func_outputModule = Function::Create(
  /*Name=*/"outputModule", mod); // (external, no body)
 func_outputModule->setCallingConv(CallingConv::C);
 }
-AttrListPtr func_outputModule_PAL;
+AttributeSet func_outputModule_PAL;
 func_outputModule->setAttributes(func_outputModule_PAL);
 
 Function* func_outputNumeric = mod->getFunction("outputNumeric");
@@ -1198,7 +1200,7 @@ func_outputNumeric = Function::Create(
  /*Name=*/"outputNumeric", mod); // (external, no body)
 func_outputNumeric->setCallingConv(CallingConv::C);
 }
-AttrListPtr func_outputNumeric_PAL;
+AttributeSet func_outputNumeric_PAL;
 func_outputNumeric->setAttributes(func_outputNumeric_PAL);
 
 Function* func_outputTuple = mod->getFunction("outputTuple");
@@ -1209,7 +1211,7 @@ func_outputTuple = Function::Create(
  /*Name=*/"outputTuple", mod); // (external, no body)
 func_outputTuple->setCallingConv(CallingConv::C);
 }
-AttrListPtr func_outputTuple_PAL;
+AttributeSet func_outputTuple_PAL;
 func_outputTuple->setAttributes(func_outputTuple_PAL);
 
 Function* func_outputVariableScope = mod->getFunction("outputVariableScope");
@@ -1220,7 +1222,7 @@ func_outputVariableScope = Function::Create(
  /*Name=*/"outputVariableScope", mod); // (external, no body)
 func_outputVariableScope->setCallingConv(CallingConv::C);
 }
-AttrListPtr func_outputVariableScope_PAL;
+AttributeSet func_outputVariableScope_PAL;
 func_outputVariableScope->setAttributes(func_outputVariableScope_PAL);
 
 Function* func_outputByteArray = mod->getFunction("outputByteArray");
@@ -1231,7 +1233,7 @@ func_outputByteArray = Function::Create(
  /*Name=*/"outputByteArray", mod); // (external, no body)
 func_outputByteArray->setCallingConv(CallingConv::C);
 }
-AttrListPtr func_outputByteArray_PAL;
+AttributeSet func_outputByteArray_PAL;
 func_outputByteArray->setAttributes(func_outputByteArray_PAL);
 
 Function* func_outputProc = mod->getFunction("outputProc");
@@ -1242,7 +1244,7 @@ func_outputProc = Function::Create(
  /*Name=*/"outputProc", mod); // (external, no body)
 func_outputProc->setCallingConv(CallingConv::C);
 }
-AttrListPtr func_outputProc_PAL;
+AttributeSet func_outputProc_PAL;
 func_outputProc->setAttributes(func_outputProc_PAL);
 
 // Global Variable Declarations

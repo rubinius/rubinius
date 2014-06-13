@@ -81,10 +81,12 @@ namespace CompiledCode {
   const static int local_names = 11;
   const static int file = 12;
   const static int scope = 13;
-  const static int breakpoints = 14;
-  const static int machine_code = 15;
-  const static int jit_data = 16;
-  const static int literals = 17;
+  const static int keywords = 14;
+  const static int arity = 15;
+  const static int breakpoints = 16;
+  const static int machine_code = 17;
+  const static int jit_data = 18;
+  const static int literals = 19;
 }
 namespace ConstantCache {
   const static int header = 0;
