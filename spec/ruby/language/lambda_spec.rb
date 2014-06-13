@@ -1,6 +1,5 @@
 require File.expand_path('../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
-require File.expand_path('../fixtures/literal_lambda', __FILE__)
 
 describe "A lambda literal -> () { }" do
   SpecEvaluate.desc = "for definition"
