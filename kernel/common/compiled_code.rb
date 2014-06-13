@@ -443,14 +443,6 @@ module Rubinius
       end
     end
 
-    def arity
-      if @required_args == @total_args and (@splat.nil? or @splat == -3)
-        @required_args
-      else
-        -(@required_args + 1)
-      end
-    end
-
     def add_metadata(key, val)
       raise TypeError, "key must be a symbol" unless key.kind_of? Symbol
 

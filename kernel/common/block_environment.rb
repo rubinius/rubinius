@@ -54,12 +54,7 @@ module Rubinius
     end
 
     def arity
-      if @compiled_code.splat and
-         (@compiled_code.splat >= 0 or @compiled_code.splat == -2)
-        -(@compiled_code.required_args + 1)
-      else
-        @compiled_code.required_args
-      end
+      @compiled_code.arity
     end
 
     def parameters
