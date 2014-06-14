@@ -3,6 +3,7 @@ ctype.rbc
 exception.rbc
 file.rbc
 rubinius.rbc
+runtime.rbc
 module.rbc
 class.rbc
 file_test.rbc
