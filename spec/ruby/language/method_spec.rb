@@ -1,5 +1,41 @@
 require File.expand_path('../../spec_helper', __FILE__)
 
+describe "A method send" do
+  context "with a splatted Object argument" do
+    before :all do
+      def m(a) a end
+    end
+
+    it "does not call #to_ary" do
+      x = mock("splat argument")
+      x.should_not_receive(:to_ary)
+
+      m(*x).should equal(x)
+    end
+
+    it "calls #to_a" do
+      x = mock("splat argument")
+      x.should_receive(:to_a).and_return([1])
+
+      m(*x).should == 1
+    end
+
+    it "wraps the argument in an Array if #to_a returns nil" do
+      x = mock("splat argument")
+      x.should_receive(:to_a).and_return(nil)
+
+      m(*x).should == x
+    end
+
+    it "raises a TypeError if #to_a does not return an Array" do
+      x = mock("splat argument")
+      x.should_receive(:to_a).and_return(1)
+
+      lambda { m(*x) }.should raise_error(TypeError)
+    end
+  end
+end
+
 describe "A method" do
   SpecEvaluate.desc = "for definition"
 
