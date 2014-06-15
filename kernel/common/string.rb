@@ -50,11 +50,8 @@ class String
   private :initialize
 
   def %(args)
-    if args.respond_to?(:to_ary)
-      ret = Rubinius::Sprinter.get(self).call(*args)
-    else
-      ret = Rubinius::Sprinter.get(self).call(args)
-    end
+    *args = args
+    ret = Rubinius::Sprinter.get(self).call(*args)
 
     ret.taint if tainted?
     return ret
