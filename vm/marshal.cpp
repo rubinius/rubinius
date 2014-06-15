@@ -248,6 +248,8 @@ namespace rubinius {
     code->post_args(state, force_as<Fixnum>(unmarshal()));
     code->total_args(state, force_as<Fixnum>(unmarshal()));
     code->splat(state, force_as<Fixnum>(unmarshal()));
+    code->keywords(state, force_as<Tuple>(unmarshal()));
+    code->arity(state, force_as<Fixnum>(unmarshal()));
     code->literals(state, force_as<Tuple>(unmarshal()));
     code->lines(state, force_as<Tuple>(unmarshal()));
     code->file(state, force_as<Symbol>(unmarshal()));
