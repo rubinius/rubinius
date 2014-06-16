@@ -1374,6 +1374,10 @@ extern "C" {
     }
   }
 
+  Object* rbx_fixnum_hash(STATE, Fixnum* num) {
+    return num->fixnum_hash();
+  }
+
   Object* rbx_string_hash(STATE, String* str) {
     return Integer::from(state, str->hash_string(state));
   }

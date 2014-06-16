@@ -319,8 +319,8 @@ namespace immix {
       // immix paper. This means that for small objects we always
       // mark the current and the next page, only in case of a big
       // object we exactly determine the number of lines it uses.
-      if(size <= cLineSize && line + 1 < cLineTableSize) {
-        mark_line(line + 1);
+      if(size <= cLineSize) {
+        if(line + 1 < cLineTableSize) mark_line(line + 1);
       } else {
         uint32_t line_offset = (addr & cLineMask).as_int();
         uint32_t additional_lines = ((line_offset + size - 1) >> cLineBits);

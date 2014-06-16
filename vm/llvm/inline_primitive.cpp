@@ -1335,6 +1335,25 @@ namespace rubinius {
       i.set_result(imm_value);
     }
 
+    void known_fixnum_hash() {
+      log("Fixnum#hash");
+      i.context()->enter_inline();
+
+      Signature sig(ops.context(), ops.context()->ptr_type("Object"));
+      sig << "State";
+      sig << "Object";
+
+      Value* call_args[] = { ops.state(), i.recv() };
+
+      CallInst* val = sig.call("rbx_fixnum_hash", call_args, 2, "hash", ops.b());
+      val->setOnlyReadsMemory();
+      val->setDoesNotThrow();
+
+      i.exception_safe();
+      i.set_result(val);
+      i.context()->leave_inline();
+    }
+
     void known_string_hash() {
       log("String#hash");
       i.context()->enter_inline();
@@ -1710,15 +1729,8 @@ namespace rubinius {
         if(prim == Primitives::object_hash && count_ == 0) {
           Value* V = recv();
           type::KnownType kt = type::KnownType::extract(ops_.context(), V);
-          if(kt.static_fixnum_p()) {
-            exception_safe();
-            set_result(ops_.constant(Fixnum::from(kt.value())->fixnum_hash()));
-
-            if(ops_.llvm_state()->config().jit_inline_debug) {
-              ops_.context()->inline_log("inlining")
-                << "static hash value of " << kt.value() << "\n";
-            }
-
+          if(kt.fixnum_p()) {
+            ip.known_fixnum_hash();
             return true;
           } else if(kt.class_id() == ops_.llvm_state()->string_class_id()) {
             ip.known_string_hash();

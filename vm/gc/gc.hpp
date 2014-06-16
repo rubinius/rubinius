@@ -150,6 +150,8 @@ namespace rubinius {
      */
     virtual Object* saw_object(Object*) = 0;
     virtual void scanned_object(Object*) = 0;
+    virtual bool mature_gc_in_progress() = 0;
+
     // Scans the specified Object for references to other Objects.
     void scan_object(Object* obj);
     void delete_object(Object* obj);
@@ -180,6 +182,9 @@ namespace rubinius {
     void verify(GCData* data);
 
     VM* state();
+    ObjectMemory* object_memory() {
+      return object_memory_;
+    }
 
     /**
      * Adds a weak reference to the specified object.

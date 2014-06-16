@@ -69,7 +69,7 @@ extern "C" {
 
       va_start(exc_classes, arg2);
       while(VALUE eclass = va_arg(exc_classes, VALUE)) {
-        if(rb_obj_is_kind_of(exc_handle, eclass) == Qtrue) {
+        if(RTEST(rb_obj_is_kind_of(exc_handle, eclass))) {
           handle_exc = true;
           break;
         }

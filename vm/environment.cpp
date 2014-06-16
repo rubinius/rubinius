@@ -103,9 +103,9 @@ namespace rubinius {
     delete state;
 
     for(int i = 0; i < argc_; i++) {
-      delete argv_[i];
+      delete[] argv_[i];
     }
-    delete argv_;
+    delete[] argv_;
   }
 
   void cpp_exception_bug() {

@@ -14,7 +14,7 @@ extern "C" {
   VALUE rb_range_beg_len(VALUE range, long* begp, long* lenp, long len, int err) {
     long beg, end, b, e;
 
-    if(!rb_obj_is_kind_of(range, rb_cRange)) return Qfalse;
+    if(!RTEST(rb_obj_is_kind_of(range, rb_cRange))) return Qfalse;
 
     beg = b = NUM2LONG(rb_funcall(range, rb_intern("begin"), 0));
     end = e = NUM2LONG(rb_funcall(range, rb_intern("end"), 0));
@@ -45,7 +45,7 @@ extern "C" {
   }
 
   int rb_range_values(VALUE range, VALUE *begp, VALUE *endp, int *exclp) {
-    if(!rb_obj_is_kind_of(range, rb_cRange)) return 0;
+    if(!RTEST(rb_obj_is_kind_of(range, rb_cRange))) return 0;
 
     VALUE beg = rb_funcall(range, rb_intern("begin"), 0);
     VALUE end = rb_funcall(range, rb_intern("end"), 0);

@@ -130,6 +130,7 @@ namespace rubinius {
 
     virtual Object* saw_object(Object*);
     virtual void scanned_object(Object*);
+    virtual bool mature_gc_in_progress();
     void collect(GCData* data);
     void collect_start(GCData* data);
     void collect_finish(GCData* data);

@@ -838,6 +838,11 @@ VALUE rb_uint2big(unsigned long number);
   /** Returns the Class object this object is an instance of. */
   VALUE   rb_class_of(VALUE object);
 
+  /** Returns the first superclass of an object that isn't a singleton or
+    * intermediate.
+    */
+  VALUE   rb_class_real(VALUE object);
+
   /** Returns the Class object contained in the klass field of object
    * (ie, a singleton class if it's there) */
   VALUE   CLASS_OF(VALUE object);

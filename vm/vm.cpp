@@ -81,7 +81,7 @@ namespace rubinius {
     , thread(this, nil<Thread>())
     , current_fiber(this, nil<Fiber>())
     , root_fiber(this, nil<Fiber>())
-    , waiting_header_(0)
+    , waiting_object_(this, cNil)
     , custom_wakeup_(0)
     , custom_wakeup_data_(0)
     , om(shared.om)
@@ -361,6 +361,7 @@ namespace rubinius {
     SYNC(state);
 
     set_check_local_interrupts();
+    Object* wait = waiting_object_.get();
 
     if(park_->parked_p()) {
       park_->unpark();
@@ -375,11 +376,12 @@ namespace rubinius {
       // Wakeup any locks hanging around with contention
       om->release_contention(state, gct, call_frame);
       return true;
-    } else if(InflatedHeader* ih = waiting_header_) {
+    } else if(!wait->nil_p()) {
       // We shouldn't hold the VM lock and the IH lock at the same time,
       // other threads can grab them and deadlock.
+      InflatedHeader* ih = wait->inflated_header(state);
       UNSYNC;
-      ih->wakeup();
+      ih->wakeup(state, gct, call_frame, wait);
       return true;
     } else {
       Channel* chan = waiting_channel_.get();
@@ -404,7 +406,7 @@ namespace rubinius {
     SYNC_TL;
     vm_jit_.interrupt_with_signal_ = false;
     waiting_channel_.set(nil<Channel>());
-    waiting_header_ = 0;
+    waiting_object_.set(cNil);
     custom_wakeup_ = 0;
     custom_wakeup_data_ = 0;
   }
@@ -415,9 +417,9 @@ namespace rubinius {
     waiting_channel_.set(chan);
   }
 
-  void VM::wait_on_inflated_lock(InflatedHeader* ih) {
+  void VM::wait_on_inflated_lock(Object* wait) {
     SYNC_TL;
-    waiting_header_ = ih;
+    waiting_object_.set(wait);
   }
 
   void VM::wait_on_custom_function(void (*func)(void*), void* data) {

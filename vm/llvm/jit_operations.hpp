@@ -633,7 +633,7 @@ namespace rubinius {
 
         if(recv_type.instance_p() && class_id == recv_class_id) {
           if(llvm_state()->config().jit_inline_debug) {
-            ctx_->log() << "(eliding because of staticly known match)\n";
+            ctx_->log() << "(eliding because of statically known match)\n";
           }
           create_branch(positive);
         } else if(class_id == llvm_state()->fixnum_class_id()) {
@@ -694,6 +694,16 @@ namespace rubinius {
           set_block(use_cache);
 
           Value* is_type = check_type_bits(obj, RegexpType);
+          create_conditional_branch(positive, negative, is_type);
+        } else if(class_id == llvm_state()->encoding_class_id()) {
+          if(llvm_state()->config().jit_inline_debug) {
+            ctx_->log() << "(against Encoding)\n";
+          }
+          Value* is_ref = check_is_reference(obj);
+          create_conditional_branch(use_cache, negative, is_ref);
+          set_block(use_cache);
+
+          Value* is_type = check_type_bits(obj, EncodingType);
           create_conditional_branch(positive, negative, is_type);
         } else if(class_id == llvm_state()->module_class_id()) {
           if(llvm_state()->config().jit_inline_debug) {

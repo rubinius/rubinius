@@ -312,6 +312,9 @@ namespace rubinius {
     /// Called for each object after the object is scanned
     virtual void scanned_object(Object* obj) {}
 
+    /// Called whether there's a mature mark phase in progress
+    virtual bool mature_gc_in_progress() { return false; }
+
     /// Scans the remaining unscanned portion of what was the Current space.
     void    copy_unscanned();
 

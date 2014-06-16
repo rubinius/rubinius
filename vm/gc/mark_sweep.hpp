@@ -44,6 +44,7 @@ namespace rubinius {
     void   free_object(Object* obj, bool fast = false);
     virtual Object* saw_object(Object* obj);
     virtual void scanned_object(Object* obj) {}
+    virtual bool mature_gc_in_progress();
     void after_marked();
 
     void profile(STATE);

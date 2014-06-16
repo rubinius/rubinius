@@ -24,6 +24,7 @@ namespace rubinius {
     {}
 
     VM* state();
+    bool mature_gc_in_progress();
 
     Object* call(Object*);
     void set(Object* target, Object** pos, Object* val);
