@@ -207,7 +207,7 @@ public:
   }
 
   void test_compiled_code() {
-    std::string str = "M\n1\nn\nx\nE\n8\nUS-ASCII\n12\nobject_equal\nx\nE\n8\nUS-ASCII\n4\ntest\ni\n1\n0\nI\na\nI\n0\nI\n0\nI\n0\nI\n0\nn\np\n2\nI\n1\nI\n2\np\n1\np\n3\nI\n0\nI\n1\nI\n1\nx\nE\n8\nUS-ASCII\n8\nnot_real\np\n1\nx\nE\n8\nUS-ASCII\n4\nblah\n";
+    std::string str = "M\n1\nn\nx\nE\n8\nUS-ASCII\n12\nobject_equal\nx\nE\n8\nUS-ASCII\n4\ntest\ni\n1\n0\nI\na\nI\n0\nI\n0\nI\n0\nI\n0\nn\np\n2\nx\nE\n8\nUS-ASCII\n1\na\nt\nI\n1\np\n2\nI\n1\nI\n2\np\n1\np\n3\nI\n0\nI\n1\nI\n1\nx\nE\n8\nUS-ASCII\n8\nnot_real\np\n1\nx\nE\n8\nUS-ASCII\n4\nblah\n";
     mar->sstream.str(str);
 
     Object* obj = mar->unmarshal();
@@ -226,6 +226,8 @@ public:
     TS_ASSERT_EQUALS(code->post_args(), Fixnum::from(0));
     TS_ASSERT_EQUALS(code->total_args(), Fixnum::from(0));
     TS_ASSERT_EQUALS(code->splat(), cNil);
+    TS_ASSERT(tuple_equals(code->keywords(), Tuple::from(state, 2, state->symbol("a"), cTrue)));
+    TS_ASSERT_EQUALS(code->arity(), Fixnum::from(1));
     TS_ASSERT(tuple_equals(code->literals(), Tuple::from(state, 2, Fixnum::from(1), Fixnum::from(2))));
     TS_ASSERT(tuple_equals(code->lines(), Tuple::from(state, 1,
           Tuple::from(state, 3, Fixnum::from(0), Fixnum::from(1), Fixnum::from(1)))));
