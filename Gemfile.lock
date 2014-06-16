@@ -1,0 +1,30 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    daedalus-core (0.0.3)
+    rake (10.3.2)
+    redcard (1.1.0)
+    rubinius-ast (1.1.2)
+    rubinius-bridge (1.0.8)
+      redcard (~> 1.0)
+    rubinius-build_tools (1.0.0)
+      rubinius-ast (~> 1.0)
+      rubinius-compiler (~> 1.0)
+      rubinius-melbourne (~> 1.0)
+      rubinius-processor (~> 1.0)
+      rubinius-toolset (~> 2.0)
+    rubinius-compiler (1.1.1)
+    rubinius-melbourne (1.1.0.1)
+      rubinius-toolset (~> 2.0)
+    rubinius-processor (1.1.1)
+    rubinius-toolset (2.2.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  daedalus-core (~> 0.0.3)
+  rake (~> 10.0)
+  redcard (~> 1.0)
+  rubinius-bridge (~> 1.0)
+  rubinius-build_tools (~> 1.0)
