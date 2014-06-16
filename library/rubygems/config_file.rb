@@ -5,6 +5,7 @@
 #++
 
 require 'rubygems/user_interaction'
+require 'rbconfig'
 
 ##
 # Gem::ConfigFile RubyGems options and gem command options from gemrc.
@@ -56,7 +57,7 @@ class Gem::ConfigFile
 
   # :stopdoc:
 
-  system_config_path =
+  SYSTEM_CONFIG_PATH =
     begin
       require "etc"
       Etc.sysconfdir
@@ -85,7 +86,7 @@ class Gem::ConfigFile
 
   # :startdoc:
 
-  SYSTEM_WIDE_CONFIG_FILE = File.join system_config_path, 'gemrc'
+  SYSTEM_WIDE_CONFIG_FILE = File.join SYSTEM_CONFIG_PATH, 'gemrc'
 
   ##
   # List of arguments supplied to the config file object.
@@ -136,9 +137,15 @@ class Gem::ConfigFile
   attr_reader :ssl_verify_mode
 
   ##
-  # Path name of directory or file of openssl CA certificate, used for remote https connection
+  # Path name of directory or file of openssl CA certificate, used for remote
+  # https connection
 
-  attr_reader :ssl_ca_cert
+  attr_accessor :ssl_ca_cert
+
+  ##
+  # Path name of directory or file of openssl client certificate, used for remote https connection with client authentication
+
+  attr_reader :ssl_client_cert
 
   ##
   # Create the config file object.  +args+ is the list of arguments
@@ -210,6 +217,7 @@ class Gem::ConfigFile
 
     @ssl_verify_mode  = @hash[:ssl_verify_mode]  if @hash.key? :ssl_verify_mode
     @ssl_ca_cert      = @hash[:ssl_ca_cert]      if @hash.key? :ssl_ca_cert
+    @ssl_client_cert  = @hash[:ssl_client_cert]  if @hash.key? :ssl_client_cert
 
     @api_keys         = nil
     @rubygems_api_key = nil
@@ -245,6 +253,10 @@ Your gem push credentials file located at:
 \t#{credentials_path}
 
 has file permissions of 0#{existing_permissions.to_s 8} but 0600 is required.
+
+To fix this error run:
+
+\tchmod 0600 #{credentials_path}
 
 You should reset your credentials at:
 
@@ -309,6 +321,9 @@ if you believe they were disclosed to a third party.
     @rubygems_api_key = api_key
   end
 
+  YAMLErrors = [ArgumentError]
+  YAMLErrors << Psych::SyntaxError if defined?(Psych::SyntaxError)
+
   def load_file(filename)
     Gem.load_yaml
 
@@ -321,8 +336,8 @@ if you believe they were disclosed to a third party.
         return {}
       end
       return content
-    rescue ArgumentError
-      warn "Failed to load #{filename}"
+    rescue *YAMLErrors => e
+      warn "Failed to load #{filename}, #{e.to_s}"
     rescue Errno::EACCES
       warn "Failed to load #{filename} due to permissions problem."
     end
@@ -368,6 +383,8 @@ if you believe they were disclosed to a third party.
         @backtrace = true
       when /^--debug$/ then
         $DEBUG = true
+
+        warn 'NOTE:  Debugging mode prints all exceptions even when rescued'
       else
         @args << arg
       end
@@ -412,6 +429,15 @@ if you believe they were disclosed to a third party.
                           else
                             DEFAULT_VERBOSITY
                           end
+
+    yaml_hash[:ssl_verify_mode] =
+      @hash[:ssl_verify_mode] if @hash.key? :ssl_verify_mode
+
+    yaml_hash[:ssl_ca_cert] =
+      @hash[:ssl_ca_cert] if @hash.key? :ssl_ca_cert
+
+    yaml_hash[:ssl_client_cert] =
+      @hash[:ssl_client_cert] if @hash.key? :ssl_client_cert
 
     keys = yaml_hash.keys.map { |key| key.to_s }
     keys << 'debug'

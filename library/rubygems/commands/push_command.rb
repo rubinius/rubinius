@@ -8,7 +8,13 @@ class Gem::Commands::PushCommand < Gem::Command
   include Gem::GemcutterUtilities
 
   def description # :nodoc:
-    'Push a gem up to RubyGems.org'
+    <<-EOF
+The push command uploads a gem to the push server (the default is
+https://rubygems.org) and adds it to the index.
+
+The gem can be removed from the index (but only the index) using the yank
+command.  For further discussion see the help for the yank command.
+    EOF
   end
 
   def arguments # :nodoc:
@@ -20,7 +26,7 @@ class Gem::Commands::PushCommand < Gem::Command
   end
 
   def initialize
-    super 'push', description, :host => self.host
+    super 'push', 'Push a gem up to the gem server', :host => self.host
 
     add_proxy_option
     add_key_option
@@ -63,13 +69,18 @@ You can upgrade or downgrade to the latest release version with:
       terminate_interaction 1
     end
 
+    gem_data = Gem::Package.new(name)
+
     unless @host then
-      if gem_data = Gem::Package.new(name) then
-        @host = gem_data.spec.metadata['default_gem_server']
-      end
+      @host = gem_data.spec.metadata['default_gem_server']
     end
 
-    args << @host if @host
+    # Always include this, even if it's nil
+    args << @host
+
+    if gem_data.spec.metadata.has_key?('allowed_push_host')
+      args << gem_data.spec.metadata['allowed_push_host']
+    end
 
     say "Pushing gem to #{@host || Gem.host}..."
 

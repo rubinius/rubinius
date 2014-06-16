@@ -1,9 +1,15 @@
 class Gem::AvailableSet
+
+  include Enumerable
+
   Tuple = Struct.new(:spec, :source)
+
+  attr_accessor :remote # :nodoc:
 
   def initialize
     @set = []
     @sorted = nil
+    @remote = true
   end
 
   attr_reader :set
@@ -36,6 +42,28 @@ class Gem::AvailableSet
     self
   end
 
+  ##
+  # Yields each Tuple in this AvailableSet
+
+  def each
+    return enum_for __method__ unless block_given?
+
+    @set.each do |tuple|
+      yield tuple
+    end
+  end
+
+  ##
+  # Yields the Gem::Specification for each Tuple in this AvailableSet
+
+  def each_spec
+    return enum_for __method__ unless block_given?
+
+    each do |tuple|
+      yield tuple.spec
+    end
+  end
+
   def empty?
     @set.empty?
   end
@@ -64,6 +92,49 @@ class Gem::AvailableSet
   def source_for(spec)
     f = @set.find { |t| t.spec == spec }
     f.source
+  end
+
+  ##
+  # Converts this AvailableSet into a RequestSet that can be used to install
+  # gems.
+  #
+  # If +development+ is :none then no development dependencies are installed.
+  # Other options are :shallow for only direct development dependencies of the
+  # gems in this set or :all for all development dependencies.
+
+  def to_request_set development = :none
+    request_set = Gem::RequestSet.new
+    request_set.development = :all == development
+
+    each_spec do |spec|
+      request_set.always_install << spec
+
+      request_set.gem spec.name, spec.version
+      request_set.import spec.development_dependencies if
+        :shallow == development
+    end
+
+    request_set
+  end
+
+  ##
+  #
+  # Used by the Resolver, the protocol to use a AvailableSet as a
+  # search Set.
+
+  def find_all(req)
+    dep = req.dependency
+
+    match = @set.find_all do |t|
+      dep.match? t.spec
+    end
+
+    match.map do |t|
+      Gem::Resolver::LocalSpecification.new(self, t.spec, t.source)
+    end
+  end
+
+  def prefetch(reqs)
   end
 
   def pick_best!

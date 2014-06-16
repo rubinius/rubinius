@@ -4,15 +4,13 @@
 # See LICENSE.txt for permissions.
 #++
 
-require 'rubygems/ext/builder'
-require 'rubygems/command'
 require 'fileutils'
 require 'tempfile'
 
 class Gem::Ext::ExtConfBuilder < Gem::Ext::Builder
   FileEntry = FileUtils::Entry_ # :nodoc:
 
-  def self.build(extension, directory, dest_path, results, args=[])
+  def self.build(extension, directory, dest_path, results, args=[], lib_dir=nil)
     tmp_dest = Dir.mktmpdir(".gem.", ".")
 
     t = nil
@@ -36,7 +34,11 @@ class Gem::Ext::ExtConfBuilder < Gem::Ext::Builder
         ENV["RUBYOPT"] = ["-r#{siteconf_path}", rubyopt].compact.join(' ')
         cmd = [Gem.ruby, File.basename(extension), *args].join ' '
 
-        run cmd, results
+        begin
+          run cmd, results
+        ensure
+          FileUtils.mv 'mkmf.log', dest_path if File.exist? 'mkmf.log'
+        end
 
         ENV["DESTDIR"] = nil
         ENV["RUBYOPT"] = rubyopt
@@ -45,6 +47,14 @@ class Gem::Ext::ExtConfBuilder < Gem::Ext::Builder
         make dest_path, results
 
         if tmp_dest
+          # TODO remove in RubyGems 3
+          if Gem.install_extension_in_lib and lib_dir then
+            FileUtils.mkdir_p lib_dir
+            entries = Dir.entries(tmp_dest) - %w[. ..]
+            entries = entries.map { |entry| File.join tmp_dest, entry }
+            FileUtils.cp_r entries, lib_dir
+          end
+
           FileEntry.new(tmp_dest).traverse do |ent|
             destent = ent.class.new(dest_path, ent.rel)
             destent.exist? or File.rename(ent.path, destent.path)
