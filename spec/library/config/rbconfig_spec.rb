@@ -73,8 +73,8 @@ describe "RbConfig::CONFIG" do
 end
 
 describe "RbConfig::MAKEFILE_CONFIG" do
-  sitedir    = Rubinius::HDR_PATH
-  sitelibdir = Rubinius::HDR_PATH
+  sitedir    = Rubinius::SITE_PATH
+  sitelibdir = Rubinius::SITE_PATH
   arch       = "#{Rubinius::CPU}-#{Rubinius::OS}"
 
   entries = {
