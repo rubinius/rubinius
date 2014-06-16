@@ -1,7 +1,7 @@
 require File.expand_path('../../spec_helper', __FILE__)
 
 describe "A method send" do
-  context "with a splatted Object argument" do
+  context "with a single splatted Object argument" do
     before :all do
       def m(a) a end
     end
@@ -32,6 +32,266 @@ describe "A method send" do
       x.should_receive(:to_a).and_return(1)
 
       lambda { m(*x) }.should raise_error(TypeError)
+    end
+  end
+
+  context "with a leading splatted Object argument" do
+    before :all do
+      def m(a, b, *c, d, e) [a, b, c, d, e] end
+    end
+
+    it "does not call #to_ary" do
+      x = mock("splat argument")
+      x.should_not_receive(:to_ary)
+
+      m(*x, 1, 2, 3).should == [x, 1, [], 2, 3]
+    end
+
+    it "calls #to_a" do
+      x = mock("splat argument")
+      x.should_receive(:to_a).and_return([1])
+
+      m(*x, 2, 3, 4).should == [1, 2, [], 3, 4]
+    end
+
+    it "wraps the argument in an Array if #to_a returns nil" do
+      x = mock("splat argument")
+      x.should_receive(:to_a).and_return(nil)
+
+      m(*x, 2, 3, 4).should == [x, 2, [], 3, 4]
+    end
+
+    it "raises a TypeError if #to_a does not return an Array" do
+      x = mock("splat argument")
+      x.should_receive(:to_a).and_return(1)
+
+      lambda { m(*x, 2, 3) }.should raise_error(TypeError)
+    end
+  end
+
+  context "with a middle splatted Object argument" do
+    before :all do
+      def m(a, b, *c, d, e) [a, b, c, d, e] end
+    end
+
+    it "does not call #to_ary" do
+      x = mock("splat argument")
+      x.should_not_receive(:to_ary)
+
+      m(1, 2, *x, 3, 4).should == [1, 2, [x], 3, 4]
+    end
+
+    it "calls #to_a" do
+      x = mock("splat argument")
+      x.should_receive(:to_a).and_return([5, 6, 7])
+
+      m(1, 2, *x, 3).should == [1, 2, [5, 6], 7, 3]
+    end
+
+    it "wraps the argument in an Array if #to_a returns nil" do
+      x = mock("splat argument")
+      x.should_receive(:to_a).and_return(nil)
+
+      m(1, 2, *x, 4).should == [1, 2, [], x, 4]
+    end
+
+    it "raises a TypeError if #to_a does not return an Array" do
+      x = mock("splat argument")
+      x.should_receive(:to_a).and_return(1)
+
+      lambda { m(1, *x, 2, 3) }.should raise_error(TypeError)
+    end
+  end
+
+  context "with a trailing splatted Object argument" do
+    before :all do
+      def m(a, *b, c) [a, b, c] end
+    end
+
+    it "does not call #to_ary" do
+      x = mock("splat argument")
+      x.should_not_receive(:to_ary)
+
+      m(1, 2, *x).should == [1, [2], x]
+    end
+
+    it "calls #to_a" do
+      x = mock("splat argument")
+      x.should_receive(:to_a).and_return([5, 6, 7])
+
+      m(1, 2, *x).should == [1, [2, 5, 6], 7]
+    end
+
+    it "wraps the argument in an Array if #to_a returns nil" do
+      x = mock("splat argument")
+      x.should_receive(:to_a).and_return(nil)
+
+      m(1, 2, *x, 4).should == [1, [2, x], 4]
+    end
+
+    it "raises a TypeError if #to_a does not return an Array" do
+      x = mock("splat argument")
+      x.should_receive(:to_a).and_return(1)
+
+      lambda { m(1, 2, *x) }.should raise_error(TypeError)
+    end
+  end
+end
+
+describe "An element assignment method send" do
+  before :each do
+    ScratchPad.clear
+  end
+
+  context "with a single splatted Object argument" do
+    before :all do
+      @o = mock("element set receiver")
+      def @o.[]=(a, b) ScratchPad.record [a, b] end
+    end
+
+    it "does not call #to_ary" do
+      x = mock("splat argument")
+      x.should_not_receive(:to_ary)
+
+      (@o[*x] = 1).should == 1
+      ScratchPad.recorded.should == [x, 1]
+    end
+
+    it "calls #to_a" do
+      x = mock("splat argument")
+      x.should_receive(:to_a).and_return([1])
+
+      (@o[*x] = 2).should == 2
+      ScratchPad.recorded.should == [1, 2]
+    end
+
+    it "wraps the argument in an Array if #to_a returns nil" do
+      x = mock("splat argument")
+      x.should_receive(:to_a).and_return(nil)
+
+      (@o[*x] = 1).should == 1
+      ScratchPad.recorded.should == [x, 1]
+    end
+
+    it "raises a TypeError if #to_a does not return an Array" do
+      x = mock("splat argument")
+      x.should_receive(:to_a).and_return(1)
+
+      lambda { @o[*x] = 1 }.should raise_error(TypeError)
+    end
+  end
+
+  context "with a leading splatted Object argument" do
+    before :all do
+      @o = mock("element set receiver")
+      def @o.[]=(a, b, *c, d, e) ScratchPad.record [a, b, c, d, e] end
+    end
+
+    it "does not call #to_ary" do
+      x = mock("splat argument")
+      x.should_not_receive(:to_ary)
+
+      (@o[*x, 2, 3, 4] = 1).should == 1
+      ScratchPad.recorded.should == [x, 2, [3], 4, 1]
+    end
+
+    it "calls #to_a" do
+      x = mock("splat argument")
+      x.should_receive(:to_a).and_return([1, 2, 3])
+
+      (@o[*x, 4, 5] = 6).should == 6
+      ScratchPad.recorded.should == [1, 2, [3, 4], 5, 6]
+    end
+
+    it "wraps the argument in an Array if #to_a returns nil" do
+      x = mock("splat argument")
+      x.should_receive(:to_a).and_return(nil)
+
+      (@o[*x, 2, 3, 4] = 5).should == 5
+      ScratchPad.recorded.should == [x, 2, [3], 4, 5]
+    end
+
+    it "raises a TypeError if #to_a does not return an Array" do
+      x = mock("splat argument")
+      x.should_receive(:to_a).and_return(1)
+
+      lambda { @o[*x, 2, 3] = 4 }.should raise_error(TypeError)
+    end
+  end
+
+  context "with a middle splatted Object argument" do
+    before :all do
+      @o = mock("element set receiver")
+      def @o.[]=(a, b, *c, d, e) ScratchPad.record [a, b, c, d, e] end
+    end
+
+    it "does not call #to_ary" do
+      x = mock("splat argument")
+      x.should_not_receive(:to_ary)
+
+      (@o[1, *x, 2, 3] = 4).should == 4
+      ScratchPad.recorded.should == [1, x, [2], 3, 4]
+    end
+
+    it "calls #to_a" do
+      x = mock("splat argument")
+      x.should_receive(:to_a).and_return([2, 3])
+
+      (@o[1, *x, 4] = 5).should == 5
+      ScratchPad.recorded.should == [1, 2, [3], 4, 5]
+    end
+
+    it "wraps the argument in an Array if #to_a returns nil" do
+      x = mock("splat argument")
+      x.should_receive(:to_a).and_return(nil)
+
+      (@o[1, 2, *x, 3] = 4).should == 4
+      ScratchPad.recorded.should == [1, 2, [x], 3, 4]
+    end
+
+    it "raises a TypeError if #to_a does not return an Array" do
+      x = mock("splat argument")
+      x.should_receive(:to_a).and_return(1)
+
+      lambda { @o[1, 2, *x, 3] = 4 }.should raise_error(TypeError)
+    end
+  end
+
+  context "with a trailing splatted Object argument" do
+    before :all do
+      @o = mock("element set receiver")
+      def @o.[]=(a, b, *c, d, e) ScratchPad.record [a, b, c, d, e] end
+    end
+
+    it "does not call #to_ary" do
+      x = mock("splat argument")
+      x.should_not_receive(:to_ary)
+
+      (@o[1, 2, 3, 4, *x] = 5).should == 5
+      ScratchPad.recorded.should == [1, 2, [3, 4], x, 5]
+    end
+
+    it "calls #to_a" do
+      x = mock("splat argument")
+      x.should_receive(:to_a).and_return([4, 5])
+
+      (@o[1, 2, 3, *x] = 6).should == 6
+      ScratchPad.recorded.should == [1, 2, [3, 4], 5, 6]
+    end
+
+    it "wraps the argument in an Array if #to_a returns nil" do
+      x = mock("splat argument")
+      x.should_receive(:to_a).and_return(nil)
+
+      (@o[1, 2, 3, *x] = 4).should == 4
+      ScratchPad.recorded.should == [1, 2, [3], x, 4]
+    end
+
+    it "raises a TypeError if #to_a does not return an Array" do
+      x = mock("splat argument")
+      x.should_receive(:to_a).and_return(1)
+
+      lambda { @o[1, 2, 3, *x] = 4 }.should raise_error(TypeError)
     end
   end
 end
