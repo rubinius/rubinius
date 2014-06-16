@@ -2,6 +2,7 @@ class String
   attr_accessor :num_bytes
   attr_reader_specific :num_bytes, :length
   alias_method :size, :length
+  alias_method :bytesize, :length
 
   def self.pattern(size, str)
     Rubinius.primitive :string_pattern
