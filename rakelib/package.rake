@@ -22,7 +22,7 @@ namespace :package do
   desc "Create a release tarball from the source"
   task :tar do
     archive = "rubinius-#{BUILD_CONFIG[:version]}.tar.bz2"
-    files = "{ git ls-files; ls config.rb.in; ls vendor/cache/*.gem; }"
+    files = "{ git ls-files; ls .revision; ls vendor/cache/*.gem; }"
     prefix = "-s '|^|rubinius-#{BUILD_CONFIG[:version]}/|'"
     sh "#{files} | sort | uniq | tar -c #{prefix} -T - -f - | bzip2 > #{archive}"
 

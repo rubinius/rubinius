@@ -12,7 +12,6 @@ require 'stringio'
 require 'date'
 require 'digest/md5'
 require 'net/http'
-require 'gems'
 require 'redcard'
 
 module Rubinius
@@ -36,7 +35,6 @@ class Configure
     @features = {}
     @defines = []
     @config = File.join(root, "config.rb")
-    @config_in = File.join(root, "config.rb.in")
 
     # Platform settings
     @host = `sh -c ./rakelib/config.guess`.chomp
@@ -118,7 +116,7 @@ class Configure
     @runtime_gems_dir   = nil
     @bootstrap_gems_dir = nil
 
-    @vm_release_h = root + "/vm/gen/release.h"
+    @vm_release_h = File.join(root, "/vm/gen/release.h")
 
     @preserve_prefix = false
 
@@ -128,62 +126,50 @@ class Configure
 
     # Gems
     #
-    # Rubinius build tools
-    @build_tool_gems = [
-      [ "rubinius-ast", "1.0" ],
-      [ "rubinius-compiler", "1.0" ],
-      [ "rubinius-melbourne", "1.0" ],
-      [ "rubinius-processor", "1.0" ],
-      [ "rubinius-toolset", "2.2" ],
-    ]
-
-    # Standard library gems for building gem C-extensions
-    @build_c_ext_gems = [
-      [ "ffi2-generators", "0.1" ],
-      [ "rubysl-etc", "1.0" ],
-      [ "rubysl-fileutils", "1.0" ],
-      [ "rubysl-mkmf", "1.0" ],
-      [ "rubysl-shellwords", "1.0" ]
+    # Rubinius build tools installed in the runtime dir
+    @runtime_gems = [
+      "rubinius-ast",
+      "rubinius-compiler",
+      "rubinius-melbourne",
+      "rubinius-processor",
+      "rubinius-toolset",
     ]
 
     # Standard library gems to bootstrap rubygems and Bundler
     @bootstrap_gems = [
-      [ "rubysl-date", "1.0" ],
-      [ "rubysl-delegate", "1.0" ],
-      [ "rubysl-digest", "1.0" ],
-      [ "rubysl-etc", "1.0" ],
-      [ "rubysl-fcntl", "1.0" ],
-      [ "rubysl-fileutils", "1.0" ],
-      [ "rubysl-monitor", "1.0" ],
-      [ "rubysl-openssl", "1.0" ],
-      [ "rubysl-optparse", "1.0" ],
-      [ "rubysl-rational", "1.0" ],
-      [ "rubysl-stringio", "1.0" ],
-      [ "rubysl-strscan", "1.0" ],
-      [ "rubysl-tempfile", "1.0" ],
-      [ "rubysl-thread", "1.0" ],
-      [ "rubysl-tmpdir", "1.0" ],
-      [ "rubysl-uri", "1.0" ],
-      [ "rubysl-yaml", "1.0" ],
-      [ "rubysl-zlib", "1.0" ]
+      "ffi2-generators",
+      "rubysl-etc",
+      "rubysl-fileutils",
+      "rubysl-mkmf",
+      "rubysl-shellwords",
+      "rubysl-date",
+      "rubysl-delegate",
+      "rubysl-digest",
+      "rubysl-etc",
+      "rubysl-fcntl",
+      "rubysl-fileutils",
+      "rubysl-monitor",
+      "rubysl-openssl",
+      "rubysl-optparse",
+      "rubysl-stringio",
+      "rubysl-strscan",
+      "rubysl-tempfile",
+      "rubysl-thread",
+      "rubysl-tmpdir",
+      "rubysl-uri",
+      "rubysl-yaml",
+      "rubysl-zlib",
     ]
 
-    # Preinstalled runtime gems
-    @runtime_gems = [
-      [ "json", "1.8" ],
-      [ "rake", "10.1" ],
-      [ "rdoc", "4.0" ],
-      [ "ffi2-generators", "0.1" ],
-      [ "rubinius-profiler", "2.0" ],
-      [ "rubinius-coverage", "2.0" ],
-      [ "rubinius-debugger", "2.0" ],
-    ]
+    # List of all gems to pre-install.
+    @gems_list = File.join(root, "gems_list.txt")
+    @gem_files = File.readlines(@gems_list).map { |x| x.chomp }
 
+    # Default cache directory, can be overwritten by the user.
     @gems_cache = File.expand_path "../vendor/cache", __FILE__
-    FileUtils.mkdir_p @gems_cache
 
     # Vendored library settings
-    @vendored_libdir = root + "/vendor"
+    @vendored_libdir = File.join(root, "/vendor")
 
     # Essential settings (modify these for creating releases)
     @ruby_version = "1.8.7"
@@ -193,7 +179,6 @@ class Configure
 
     # Configure settings
     @release_build = !git_directory
-    @release_config = false
   end
 
   # Set up system commands to run in cmd.exe on Windows. Either Windows
@@ -343,10 +328,6 @@ class Configure
       @release_build = true
     end
 
-    o.on "--release-config", "Write configuration settings for release builds" do
-      @release_config = true
-    end
-
     o.doc "\n Compiler settings"
 
     o.on "--cc", "COMPILER", "Compiler to use for C code (eg gcc, clang)" do |cc|
@@ -479,6 +460,10 @@ class Configure
       @gemsdir = expand dir
     end
 
+    o.on "--gems-cache", "PATH", "Cache Gems in PATH during compilation" do |dir|
+      @gems_cache = expand dir
+    end
+
     o.on "--sitedir", "PATH", "Install site-specific Ruby code in PATH" do |dir|
       @sitedir = expand dir
     end
@@ -497,7 +482,6 @@ class Configure
 
     o.doc "\n Optional features"
 
-    feature "stdlib", true
     feature "execinfo", true
     feature "vendor-zlib", false
     feature "alloc-tracking", false
@@ -1272,6 +1256,12 @@ int main() { return tgetnum(""); }
 
   def has_header(name)
     compile_check "header '#{name}'" do |src|
+      # Some headers have an implicit dependency on stdio.h. For example,
+      # readline/readline.h requires it but doesn't actually include it for
+      # you. Because there could be an infinite amount of headers that require
+      # stdio.h we'll just always include it.
+      src.puts "#include <stdio.h>"
+
       src.puts "#include <#{name}>"
       src.puts "int main() {return 0;}"
     end
@@ -1357,21 +1347,6 @@ int main() { return tgetnum(""); }
       # as the type.
       @include_dirs << "#{@vendored_libdir}/zlib"
       @lib_dirs     << "#{@vendored_libdir}/zlib"
-    end
-
-    if @features["stdlib"].value
-      @runtime_gems.concat [
-        [ "rubysl", "1.0" ],
-        [ "rubysl-test-unit", "1.0" ],
-        [ "racc", "1.4" ],
-        [ "minitest", "4.7" ],
-      ]
-    else
-      @runtime_gems.concat [
-        [ "rubysl-rake", "1.0" ],
-        [ "rubysl-irb", "1.0" ],
-        [ "rubysl-prettyprint", "1.0" ],
-      ]
     end
   end
 
@@ -1469,6 +1444,10 @@ int main() { return tgetnum(""); }
 
     unless has_header("openssl/ssl.h")
       failure "openssl/ssl.h is required"
+    end
+
+    unless has_header("readline/readline.h")
+      failure "readline/readline.h is required"
     end
 
     if has_header("alloca.h")
@@ -1676,25 +1655,8 @@ int main() { return tgetnum(""); }
 
     @bin_links.delete @program_name
 
-    if @release_build
-      release_config = Rubinius::BUILD_CONFIG
-    else
-      release_config = {
-        :config_file        => @config,
-        :build_tool_gems    => @build_tool_gems,
-        :build_c_ext_gems   => @build_c_ext_gems,
-        :bootstrap_gems     => @bootstrap_gems,
-        :runtime_gems       => @runtime_gems,
-        :ruby_version       => @ruby_version,
-        :version            => version,
-        :libversion         => @libversion,
-        :patch_version      => @patch_version,
-        :release_date       => @release_date || default_release_date,
-        :revision           => build_revision,
-      }
-    end
-
-    build_config = {
+    config_settings = {
+      :config_file        => @config,
       :command_line       => @command_line,
       :build_make         => @make,
       :build_rake         => @rake,
@@ -1731,14 +1693,14 @@ int main() { return tgetnum(""); }
       :dtrace             => @dtrace,
       :fibers             => @fibers,
       :debug_build        => @debug_build,
-      :sourcedir          => File.expand_path(@sourcedir),
-      :stagingdir         => @stagingdir && File.expand_path(@stagingdir),
-      :build_prefix       => File.expand_path(@build_prefix),
+      :sourcedir          => @sourcedir,
+      :stagingdir         => @stagingdir,
+      :build_prefix       => @build_prefix,
       :runtime_gems_dir   => @runtime_gems_dir,
       :bootstrap_gems_dir => @bootstrap_gems_dir,
       :capi_includedir    => @capi_includedir,
       :build_exe          => "#{@build_prefix}#{@bindir}/#{@program_name}",
-      :prefixdir          => File.expand_path(@prefixdir),
+      :prefixdir          => @prefixdir,
       :bindir             => @bindir,
       :libdir             => @libdir,
       :runtimedir         => @runtimedir,
@@ -1748,6 +1710,9 @@ int main() { return tgetnum(""); }
       :includedir         => @includedir,
       :mandir             => @mandir,
       :gemsdir            => @gemsdir,
+      :gems_cache         => @gems_cache,
+      :gems_list          => @gems_list,
+      :gem_files          => @gem_files,
       :program_name       => @program_name,
       :bin_links          => @bin_links,
       :use_bin_links      => @use_bin_links,
@@ -1758,21 +1723,21 @@ int main() { return tgetnum(""); }
       :linux              => @linux,
       :vendor_zlib        => @features["vendor-zlib"].value,
       :vm_release_h       => @vm_release_h,
+      :bootstrap_gems     => @bootstrap_gems,
+      :runtime_gems       => @runtime_gems,
+      :ruby_version       => @ruby_version,
+      :version            => version,
+      :libversion         => @libversion,
+      :patch_version      => @patch_version,
+      :release_date       => @release_date || default_release_date,
+      :revision           => build_revision,
     }
 
-    if @release_config
-      config_settings = release_config
-      config_name = @config_in
-    else
-      config_settings = release_config.merge build_config
-      config_name = @config
-    end
-
-    write_config_rb config_name, config_settings
+    write_config_rb @config, config_settings
 
     lib_rubinius_dir = "#{@sourcedir}/library/rubinius"
     FileUtils.mkdir_p lib_rubinius_dir unless File.directory? lib_rubinius_dir
-    FileUtils.cp config_name, "#{lib_rubinius_dir}/build_config.rb"
+    FileUtils.cp @config, "#{lib_rubinius_dir}/build_config.rb"
 
     # Write the config file used to build the C++ VM.
     Dir.mkdir "vm/gen" unless File.directory? "vm/gen"
@@ -1918,69 +1883,11 @@ int main() { return tgetnum(""); }
   end
 
   def fetch_gems
-    @log.write "\nFetching bootstrap gems..."
-
-    # Resolve requirements to specific versions.
-    failed = false
-    lists = [@build_tool_gems, @build_c_ext_gems, @bootstrap_gems, @runtime_gems]
-    lists.each do |list|
-      list.map! do |name, version|
-        @log.print "Checking #{name} (~> #{version})"
-
-        req = Gem::Requirement.new "~> #{version}"
-        v = resolve_gem_version(name, req)
-        if v.empty?
-          failed = true
-          @log.write ": no matching versions found"
-          next
-        end
-
-        @log.write ""
-        [name, v]
-      end
-    end
-
-    failure "Unable to find required gems." if failed
-    @log.write ""
-
-    # Resolve dependencies for runtime gems.
-    deps = []
-    @runtime_gems.each do |name, version|
-      @log.print "Checking dependencies for #{name} (#{version})"
-
-      req = Gem::Requirement.new "= #{version}"
-      g = Gems.dependencies(name).find { |x| req =~ Gem::Version.new(x[:number]) }
-      next unless g
-
-      ds = g[:dependencies]
-      unless ds.empty?
-        ds.each do |n, r|
-          req = Gem::Requirement.new r
-          v = resolve_gem_version(n, req)
-          if v.empty?
-            @log.write "\nunable to find dependency: #{n} (#{r})"
-            failed = true
-            next
-          end
-
-          deps << [n, v]
-        end
-      end
-
-      @log.write ""
-    end
-
-    failure "Unable to resolve dependencies for required gems." if failed
-
-    @runtime_gems.concat deps
-
-    # Fetch missing gems.
     @log.write "\nFetching gems..."
-    gems = @build_tool_gems + @build_c_ext_gems + @bootstrap_gems + @runtime_gems
+    failed = false
 
     Dir.chdir @gems_cache do
-      gems.each do |name, version|
-        gem = "#{name}-#{version}.gem"
+      @gem_files.each do |gem|
         next if File.exist? gem
 
         failed = true unless download "https://rubygems.org/gems/#{gem}", "./#{gem}"
@@ -1990,28 +1897,16 @@ int main() { return tgetnum(""); }
     failure "Unable to download required gems." if failed
   end
 
-  def resolve_gem_version(name, req)
-    versions = Gems.versions(name).map { |g| Gem::Version.new g["number"] }
-    versions.select { |v| req =~ v }.sort { |a, b| b <=> a }.first.to_s
-  end
-
   def verify_gems
     @log.write "\nVerifying gems..."
 
     failed = false
 
-    [:build_tool_gems, :build_c_ext_gems, :bootstrap_gems, :runtime_gems].each do |s|
-      list = Rubinius::BUILD_CONFIG[s]
-
-      list.each do |name, version|
-        gem_name = "#{name}-#{version}.gem"
-        unless File.file? "#{@gems_cache}/#{gem_name}"
-          @log.write "unable to find gem #{gem_name}"
-          failed = true
-        end
+    @gem_files.each do |gem_name|
+      unless File.file? "#{@gems_cache}/#{gem_name}"
+        @log.write "unable to find gem #{gem_name}"
+        failed = true
       end
-
-      instance_variable_set :"@#{s}", list
     end
 
     failure "Unable to find required gems." if failed
@@ -2022,7 +1917,9 @@ int main() { return tgetnum(""); }
 
     # Remove unpacked gems not specified by these configure settings
     unpacked.each do |dir|
-      unless gems.find { |name, version| dir =~ /#{name}-#{version}/ }
+      d = File.basename dir
+      unless gems.find { |x| d =~ /^#{x}/ } and
+             @gem_files.find { |x| d =~ /^#{x[0..-5]}/ }
         FileUtils.rm_rf dir
       end
     end
@@ -2032,11 +1929,12 @@ int main() { return tgetnum(""); }
     FileUtils.mkdir_p destination unless File.directory? destination
 
     Dir.chdir destination do
-      list.each do |name, version|
-        gem_name = "#{name}-#{version}"
-        unless File.directory? gem_name
-          gem = "#{source}/#{gem_name}.gem"
-          system("#{@gem} unpack #{gem}")
+      list.each do |name|
+        gem_name = @gem_files.find { |x| x =~ /^#{name}/ }
+        failure "Unable to find gem to unpack: #{name}" unless gem_name
+
+        unless File.directory? gem_name[0..-5]
+          system("#{@gem} unpack #{source}/#{gem_name}")
 
           unless $?.exitstatus == 0
             failure "Unable to unpack bootstrap gems."
@@ -2047,35 +1945,21 @@ int main() { return tgetnum(""); }
   end
 
   def setup_gems
-    @log.write "\nSetting up bootstrap gems..."
-
-    runtime_gems = @build_tool_gems
-    bootstrap_gems = @build_c_ext_gems + @bootstrap_gems
+    @log.write "\nSetting up gems..."
 
     # Remove unpacked gems not specified by these configure settings
-    clean_gems @runtime_gems_dir, runtime_gems
-    clean_gems @bootstrap_gems_dir, bootstrap_gems
+    clean_gems @runtime_gems_dir, @runtime_gems
+    clean_gems @bootstrap_gems_dir, @bootstrap_gems
 
     # Unpack gems not found for these configure settings
-    gem_sources = File.expand_path "../vendor/cache", __FILE__
-    unpack_gems gem_sources, @runtime_gems_dir, runtime_gems
-    unpack_gems gem_sources, @bootstrap_gems_dir, bootstrap_gems
+    unpack_gems @gems_cache, @runtime_gems_dir, @runtime_gems
+    unpack_gems @gems_cache, @bootstrap_gems_dir, @bootstrap_gems
   end
 
-  def load_config
-    if @release_build
-      unless File.exist? @config_in
-        failure "--release-build option requires config.rb.in but it is missing"
-      end
-
-      begin
-        load @config_in
-      rescue Object => e
-        @log.write e.message
-        @log.write e.backtrace.join("\n")
-        failure "Unable to load release configuration"
-      end
-    end
+  # Create directories that don't have to be created by the end user
+  # themselves.
+  def create_directories
+    FileUtils.mkdir_p @gems_cache
   end
 
   def run
@@ -2090,7 +1974,7 @@ int main() { return tgetnum(""); }
 
     options
     parse ARGV
-    load_config
+    create_directories
     check_tools
     check_force_clean
 
@@ -2102,7 +1986,7 @@ int main() { return tgetnum(""); }
     else
       fetch_gems
     end
-    setup_gems unless @release_config
+    setup_gems
     write_configure_files
     write_build_signature
 
@@ -2130,24 +2014,25 @@ irc.freenode.net and provide the following system information:
 
     unless @stagingdir
       build_msg = <<-EOM
-Rubinius has been configured.
+Rubinius (#{build_revision[0, 8]}) has been configured.
 
 Run 'rake' to build and test Rubinius.
       EOM
     else
       build_msg = <<-EOM
-Rubinius has been configured for the following paths:
+Rubinius (#{build_revision[0, 8]}) has been configured for the following paths:
 
-prefix:  #{@prefixdir}
-bin:     #{@prefixdir}#{@bindir}
-lib:     #{@prefixdir}#{@libdir}
-runtime: #{@prefixdir}#{@runtimedir}
-kernel:  #{@prefixdir}#{@kerneldir}
-site:    #{@prefixdir}#{@sitedir}
-vendor:  #{@prefixdir}#{@vendordir}
-man:     #{@prefixdir}#{@mandir}
-gems:    #{@prefixdir}#{@gemsdir}
-include: #{@prefixdir}#{@includedir}
+prefix:     #{@prefixdir}
+bin:        #{@prefixdir}#{@bindir}
+lib:        #{@prefixdir}#{@libdir}
+runtime:    #{@prefixdir}#{@runtimedir}
+kernel:     #{@prefixdir}#{@kerneldir}
+site:       #{@prefixdir}#{@sitedir}
+vendor:     #{@prefixdir}#{@vendordir}
+man:        #{@prefixdir}#{@mandir}
+gems:       #{@prefixdir}#{@gemsdir}
+gems cache: #{@gems_cache}
+include:    #{@prefixdir}#{@includedir}
 
 Run 'rake' to build, test and install Rubinius.
       EOM

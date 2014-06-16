@@ -136,8 +136,17 @@ def install_manpages(prefix, target)
 end
 
 def install_gems(prefix, target)
-  FileList["#{prefix}/**/*.*", "#{prefix}/**/*"].each do |name|
+  list = FileList["#{prefix}/**/*.*", "#{prefix}/**/*"]
+  list.exclude("#{prefix}/bin/*")
+
+  list.each do |name|
     install_file name, prefix, "#{target}#{BUILD_CONFIG[:gemsdir]}"
+  end
+end
+
+def install_gems_bins(prefix, target)
+  FileList["#{prefix}/*"].each do |name|
+    install_file name, prefix, "#{target}#{BUILD_CONFIG[:gemsdir]}/bin", :mode => 0755
   end
 end
 
@@ -262,6 +271,7 @@ oppropriate command to elevate permissions (eg su, sudo).
         install_extra_bins "#{stagingdir}/#{BUILD_CONFIG[:bindir]}", prefixdir
 
         install_gems "#{stagingdir}#{BUILD_CONFIG[:gemsdir]}", prefixdir
+        install_gems_bins "#{stagingdir}#{BUILD_CONFIG[:gemsdir]}/bin", prefixdir
 
         # Install the testrb command
         testrb = "#{prefixdir}#{BUILD_CONFIG[:bindir]}/testrb"

@@ -187,6 +187,17 @@ Daedalus.blueprint do |i|
     flags.delete_if { |x| x == "-W" }
     flags.delete_if { |x| x == "-Wextra" }
 
+    # llvm-config may leak FORTIFY_SOURCE in the CFLAGS list on certain
+    # platforms. If this is the case then debug builds will fail. Sadly there's
+    # no strict guarantee on how LLVM formats this option, hence the Regexp.
+    #
+    # For example, on CentOS the option is added as -Wp,-D_FORTIFY_SOURCE=2.
+    # There's no strict guarantee that I know of that it will always be this
+    # exact format.
+    if Rubinius::BUILD_CONFIG[:debug_build]
+      flags.delete_if { |x| x =~ /_FORTIFY_SOURCE/ }
+    end
+
     flags << "-DENABLE_LLVM"
 
     ldflags = `#{conf} --ldflags`.strip.split(/\s+/)

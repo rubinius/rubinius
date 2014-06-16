@@ -7,11 +7,20 @@ def read_revision
   `git rev-parse HEAD`.chomp
 end
 
+def revision_file
+  File.expand_path "../../.revision", __FILE__
+end
+
+def release_revision
+  return unless File.exist? revision_file
+  IO.read revision_file
+end
+
 def build_revision
   if git_directory
     read_revision
   else
-    Rubinius::BUILD_CONFIG[:revision] || "build"
+    Rubinius::BUILD_CONFIG[:revision] || release_revision || "build"
   end
 end
 

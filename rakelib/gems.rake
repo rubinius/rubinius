@@ -1,19 +1,42 @@
 def bootstrap_rubinius(cmd)
   gems_path = File.expand_path "../", BUILD_CONFIG[:bootstrap_gems_dir]
   ENV["RBX_GEMS_PATH"] = gems_path
+  ENV["RBX_PREFIX_PATH"] = BUILD_CONFIG[:build_prefix]
   sh "#{BUILD_CONFIG[:build_exe]} #{cmd}"
 ensure
   ENV.delete "RBX_GEMS_PATH"
+  ENV.delete "RBX_PREFIX_PATH"
 end
 
 namespace :gems do
+  desc 'Update list of gems to install. Requires Rubinius'
+  task :update_list do
+    RedCard.verify "1.3", :rubinius
+
+    begin
+      ENV["BUNDLE_GEMFILE"] = "Gemfile.installed"
+      sh "bundle package --no-prune"
+
+      File.open BUILD_CONFIG[:gems_list], "w" do |f|
+        `bundle list`.each_line do |line|
+          m = line.match(/\s+\*\s([^ ]+)\s\((\d+\.\d+\.\d+([^ ]*))\)/)
+          next unless m
+
+          f.puts "#{m[1]}-#{m[2]}.gem"
+        end
+      end
+    ensure
+      ENV.delete "BUNDLE_GEMFILE"
+    end
+  end
+
   desc 'Install the pre-installed gems'
   task :install do
     clean_environment
 
     cmd = "#{BUILD_CONFIG[:sourcedir]}/rakelib/preinstall_gems.rb"
 
-    Dir.chdir "vendor/cache" do
+    Dir.chdir BUILD_CONFIG[:gems_cache] do
       bootstrap_rubinius cmd
     end
   end
@@ -24,12 +47,10 @@ namespace :gems do
     Dir.chdir path do
       begin
         ENV["RBX_RUN_COMPILED"] = "1"
-        ENV["RBX_PREFIX_PATH"] = BUILD_CONFIG[:build_prefix]
-        sh "#{BUILD_CONFIG[:build_exe]} ./extconf.rbc"
+        bootstrap_rubinius "./extconf.rbc"
         sh "#{BUILD_CONFIG[:build_make]} && #{BUILD_CONFIG[:build_make]} install"
       ensure
         ENV.delete "RBX_RUN_COMPILED"
-        ENV.delete "RBX_PREFIX_PATH"
       end
     end
   end

@@ -43,7 +43,7 @@ end
 
 load_configuration
 
-unless verify_build_signature or $cleaning
+unless verify_build_signature or $cleaning or ENV["RBX_IGNORE_BUILD_SIGNATURE"]
   STDERR.puts "Your configuration is outdated, please run ./configure first"
   exit 1
 end
