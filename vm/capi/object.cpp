@@ -457,9 +457,9 @@ extern "C" {
   VALUE rb_Float(VALUE object) {
     switch(TYPE(object)) {
     case T_BIGNUM:
-      return DBL2NUM(rb_big2dbl(object));
+      return rb_float_new(rb_big2dbl(object));
     case T_FIXNUM:
-      return DBL2NUM((double)FIX2LONG(object));
+      return rb_float_new((double)FIX2LONG(object));
     case T_FLOAT:
       return object;
     case T_NIL:
