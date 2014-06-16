@@ -54,13 +54,7 @@ tmtags
 /work
 /staging
 /bootstrap
-Gemfile.lock
-
-# .build_ruby tracks the path to the Ruby executable
-.build_ruby
-
-# .build_signature tracks changes to the build system files
-.build_signature
+Gemfile.installed.lock
 
 # .revision tracks configure and code revision consistency
 .revision
@@ -97,3 +91,6 @@ vm/dtrace/probes.h
 
 # Ignore rubygems except bundled ones
 vendor/cache/*
+
+.build_ruby
+.build_signature
