@@ -45,7 +45,7 @@ class Gem::Commands::UpdateCommand < Gem::Command
   end
 
   def arguments # :nodoc:
-    "GEMNAME       name of gem to update"
+    "REGEXP        regexp to search for in gem name"
   end
 
   def defaults_str # :nodoc:
@@ -62,7 +62,7 @@ command to remove old versions.
   end
 
   def usage # :nodoc:
-    "#{program_name} GEMNAME [GEMNAME ...]"
+    "#{program_name} REGEXP [REGEXP ...]"
   end
 
   def check_latest_rubygems version # :nodoc:
@@ -97,10 +97,14 @@ command to remove old versions.
 
     updated = update_gems gems_to_update
 
+    updated_names = updated.map { |spec| spec.name }
+    not_updated_names = options[:args].uniq - updated_names
+
     if updated.empty? then
       say "Nothing to update"
     else
-      say "Gems updated: #{updated.map { |spec| spec.name }.join ' '}"
+      say "Gems updated: #{updated_names.join(' ')}"
+      say "Gems already up-to-date: #{not_updated_names.join(' ')}" unless not_updated_names.empty?
     end
   end
 
@@ -259,7 +263,7 @@ command to remove old versions.
 
     highest_installed_gems.each do |l_name, l_spec|
       next if not gem_names.empty? and
-              gem_names.all? { |name| /#{name}/ !~ l_spec.name }
+              gem_names.none? { |name| name == l_spec.name }
 
       highest_remote_ver = highest_remote_version l_spec
 
@@ -272,4 +276,3 @@ command to remove old versions.
   end
 
 end
-

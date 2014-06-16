@@ -54,7 +54,6 @@ class Gem::StubSpecification < Gem::BasicSpecification
   end
 
   def build_extensions # :nodoc:
-    return
     return if default_gem?
     return if extensions.empty?
 
@@ -121,6 +120,13 @@ class Gem::StubSpecification < Gem::BasicSpecification
     super
   end
 
+  def missing_extensions?
+    return false if default_gem?
+    return false if extensions.empty?
+
+    to_spec.missing_extensions?
+  end
+
   ##
   # Name of the gem
 
@@ -149,6 +155,8 @@ class Gem::StubSpecification < Gem::BasicSpecification
 
   def to_spec
     @spec ||= Gem::Specification.load(loaded_from)
+    @spec.ignored = @ignored if instance_variable_defined? :@ignored
+    @spec
   end
 
   ##

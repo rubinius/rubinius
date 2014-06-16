@@ -218,9 +218,11 @@ class Gem::Specification < Gem::BasicSpecification
   # Usage:
   #
   #   # If all library files are in the root directory...
-  #   spec.require_path = '.'
+  #   spec.require_paths = ['.']
 
-  attr_writer :require_paths
+  def require_paths=(val)
+    @require_paths = Array(val)
+  end
 
   ##
   # The version of RubyGems used to create this gem.
@@ -413,6 +415,16 @@ class Gem::Specification < Gem::BasicSpecification
   attr_accessor :post_install_message
 
   ##
+  # The version of Ruby required by this gem
+
+  attr_reader :required_ruby_version
+
+  ##
+  # The RubyGems version required by this gem
+
+  attr_reader :required_rubygems_version
+
+  ##
   # The key used to sign this gem.  See Gem::Security for details.
 
   attr_accessor :signing_key
@@ -471,6 +483,9 @@ class Gem::Specification < Gem::BasicSpecification
   # full path (as in bin/rake); all application-style files are expected to be
   # found in bindir.  These files must be executable Ruby files.  Files that
   # use bash or other interpreters will not work.
+  #
+  # Executables included may only be ruby scripts, not scripts for other
+  # languages or compiled binaries.
   #
   # Usage:
   #
@@ -532,20 +547,26 @@ class Gem::Specification < Gem::BasicSpecification
 
   ##
   # :category: Recommended gemspec attributes
+  #
   # The license for this gem.
   #
-  # The license must be a short name, no more than 64 characters.
+  # The license must be no more than 64 characters.
   #
-  # This should just be the name of your license. The full
-  # text of the license should be inside of the gem when you build it.
+  # This should just be the name of your license. The full text of the license
+  # should be inside of the gem (at the top level) when you build it.
   #
-  # See http://opensource.org/licenses/alphabetical for a list of licenses and
-  # their abbreviations (or short names).  GitHub also provides a
-  # license picker at http://choosealicense.com/
+  # The simplest way, is to specify the standard SPDX ID
+  # https://spdx.org/licenses/ for the license.
+  # Ideally you should pick one that is OSI (Open Source Initiative)
+  # http://opensource.org/licenses/alphabetical approved.
   #
-  #  According to copyright law, not having an OSI-approved open source license
-  #  means you have no rights to use the code for any purpose-- in other words,
-  #  "all rights reserved".
+  # The most commonly used OSI approved licenses are BSD-3-Clause and MIT.
+  # GitHub also provides a license picker at http://choosealicense.com/.
+  #
+  # You should specify a license for your gem so that people know how they are
+  # permitted to use it, and any restrictions you're placing on it.  Not
+  # specifying a license means all rights are reserved; others have no rights
+  # to use the code for any purpose.
   #
   # You can set multiple licenses with #licenses=
   #
@@ -608,6 +629,13 @@ class Gem::Specification < Gem::BasicSpecification
   end
 
   ##
+  # The RubyGems version required by this gem
+
+  def required_rubygems_version= req
+    @required_rubygems_version = Gem::Requirement.create req
+  end
+
+  ##
   # Lists the external (to RubyGems) requirements that must be met for this gem
   # to work.  It's simply information for the user.
   #
@@ -660,16 +688,6 @@ class Gem::Specification < Gem::BasicSpecification
   # Allows deinstallation of gems with legacy platforms.
 
   attr_writer :original_platform # :nodoc:
-
-  ##
-  # The version of Ruby required by this gem
-
-  attr_reader :required_ruby_version
-
-  ##
-  # The RubyGems version required by this gem
-
-  attr_reader :required_rubygems_version
 
   ##
   # The rubyforge project this gem lives under.  i.e. RubyGems'
@@ -1259,9 +1277,13 @@ class Gem::Specification < Gem::BasicSpecification
   # there are conflicts upon activation.
 
   def activate
-    raise_if_conflicts
+    other = Gem.loaded_specs[self.name]
+    if other then
+      check_version_conflict other
+      return false
+    end
 
-    return false if Gem.loaded_specs[self.name]
+    raise_if_conflicts
 
     activate_dependencies
     add_self_to_load_path
@@ -1414,13 +1436,12 @@ class Gem::Specification < Gem::BasicSpecification
   # the gem.build_complete file is missing.
 
   def build_extensions # :nodoc:
-    return
     return if default_gem?
     return if extensions.empty?
     return if installed_by_version < Gem::Version.new('2.2.0.preview.2')
     return if File.exist? gem_build_complete_path
-    return if !File.writable?(base_dir) &&
-              !File.exist?(File.join(base_dir, 'extensions'))
+    return if !File.writable?(base_dir)
+    return if !File.exist?(File.join(base_dir, 'extensions'))
 
     begin
       # We need to require things in $LOAD_PATH without looking for the
@@ -1476,13 +1497,12 @@ class Gem::Specification < Gem::BasicSpecification
 
   def conflicts
     conflicts = {}
-    Gem.loaded_specs.values.each do |spec|
-      bad = self.runtime_dependencies.find_all { |dep|
-        spec.name == dep.name and not spec.satisfies_requirement? dep
-      }
-
-      conflicts[spec] = bad unless bad.empty?
-    end
+    self.runtime_dependencies.each { |dep|
+      spec = Gem.loaded_specs[dep.name]
+      if spec and not spec.satisfies_requirement? dep
+        (conflicts[spec] ||= []) << dep
+      end
+    }
     conflicts
   end
 
@@ -1952,6 +1972,19 @@ class Gem::Specification < Gem::BasicSpecification
   end
 
   ##
+  # Is this specification missing its extensions?  When this returns true you
+  # probably want to build_extensions
+
+  def missing_extensions?
+    return false if default_gem?
+    return false if extensions.empty?
+    return false if installed_by_version < Gem::Version.new('2.2.0.preview.2')
+    return false if File.exist? gem_build_complete_path
+
+    true
+  end
+
+  ##
   # Normalize the list of files so that:
   # * All file lists have redundancies removed.
   # * Files referenced in the extra_rdoc_files are included in the package
@@ -2035,34 +2068,34 @@ class Gem::Specification < Gem::BasicSpecification
   end
 
   ##
+  # Raise an exception if the version of this spec conflicts with the one
+  # that is already loaded (+other+)
+
+  def check_version_conflict other # :nodoc:
+    return if self.version == other.version
+
+    # This gem is already loaded.  If the currently loaded gem is not in the
+    # list of candidate gems, then we have a version conflict.
+
+    msg = "can't activate #{full_name}, already activated #{other.full_name}"
+
+    e = Gem::LoadError.new msg
+    e.name = self.name
+    # TODO: e.requirement = dep.requirement
+
+    raise e
+  end
+
+  private :check_version_conflict
+
+  ##
   # Check the spec for possible conflicts and freak out if there are any.
 
-  def raise_if_conflicts
-    other = Gem.loaded_specs[self.name]
-
-    if other and self.version != other.version then
-      # This gem is already loaded.  If the currently loaded gem is not in the
-      # list of candidate gems, then we have a version conflict.
-
-      msg = "can't activate #{full_name}, already activated #{other.full_name}"
-
-      e = Gem::LoadError.new msg
-      e.name = self.name
-      # TODO: e.requirement = dep.requirement
-
-      raise e
-    end
-
+  def raise_if_conflicts # :nodoc:
     conf = self.conflicts
 
     unless conf.empty? then
-      y = conf.map { |act,con|
-        "#{act.full_name} conflicts with #{con.join(", ")}"
-      }.join ", "
-
-      # TODO: improve message by saying who activated `con`
-
-      raise Gem::LoadError, "Unable to activate #{self.full_name}, because #{y}"
+      raise Gem::ConflictError.new self, conf
     end
   end
 
@@ -2086,14 +2119,7 @@ class Gem::Specification < Gem::BasicSpecification
   # Singular accessor for #require_paths
 
   def require_path= path
-    self.require_paths = [path]
-  end
-
-  ##
-  # The RubyGems version required by this gem
-
-  def required_rubygems_version= req
-    @required_rubygems_version = Gem::Requirement.create req
+    self.require_paths = Array(path)
   end
 
   ##
@@ -2255,7 +2281,7 @@ class Gem::Specification < Gem::BasicSpecification
     mark_version
     result = []
     result << "# -*- encoding: utf-8 -*-"
-    result << "#{Gem::StubSpecification::PREFIX}#{name} #{version} #{platform} #{@require_paths.join("\0")}"
+    result << "#{Gem::StubSpecification::PREFIX}#{name} #{version} #{platform} #{raw_require_paths.join("\0")}"
     result << "#{Gem::StubSpecification::PREFIX}#{extensions.join "\0"}" unless
       extensions.empty?
     result << nil
@@ -2272,7 +2298,7 @@ class Gem::Specification < Gem::BasicSpecification
     if metadata and !metadata.empty?
       result << "  s.metadata = #{ruby_code metadata} if s.respond_to? :metadata="
     end
-    result << "  s.require_paths = #{ruby_code @require_paths}"
+    result << "  s.require_paths = #{ruby_code raw_require_paths}"
 
     handled = [
       :dependencies,
@@ -2360,7 +2386,8 @@ class Gem::Specification < Gem::BasicSpecification
   end
 
   def to_yaml(opts = {}) # :nodoc:
-    if YAML.const_defined?(:ENGINE) && !YAML::ENGINE.syck? then
+    if (YAML.const_defined?(:ENGINE) && !YAML::ENGINE.syck?) ||
+        !defined?(Syck) && defined?(Psych) then
       # Because the user can switch the YAML engine behind our
       # back, we have to check again here to make sure that our
       # psych code was properly loaded, and load it if not.
@@ -2441,7 +2468,7 @@ class Gem::Specification < Gem::BasicSpecification
             "invalid value for attribute name: \"#{name.inspect}\""
     end
 
-    if @require_paths.empty? then
+    if raw_require_paths.empty? then
       raise Gem::InvalidSpecificationException,
             'specification must have at least one require_path'
     end
