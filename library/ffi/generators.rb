@@ -92,7 +92,7 @@ module FFI
 
       def remove(*names)
         names.each do |name|
-          File.delete name if File.exists? name
+          File.delete name if File.exist? name
         end
       end
     end
