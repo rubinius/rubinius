@@ -151,6 +151,7 @@ class Configure
       "rubysl-monitor",
       "rubysl-openssl",
       "rubysl-optparse",
+      "rubysl-rational",
       "rubysl-stringio",
       "rubysl-strscan",
       "rubysl-tempfile",
