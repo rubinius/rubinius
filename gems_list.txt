@@ -79,7 +79,7 @@ rubysl-pstore-1.0.0.gem
 rubysl-pty-1.0.0.gem
 rubysl-rational-1.0.0.gem
 rubysl-readbytes-1.0.0.gem
-rubysl-readline-1.0.0.gem
+rubysl-readline-1.0.1.gem
 rubysl-resolv-1.0.0.gem
 rubysl-rexml-1.0.0.gem
 rubysl-rinda-1.0.0.gem
@@ -90,9 +90,9 @@ rubysl-set-1.0.0.gem
 rubysl-shellwords-1.0.1.gem
 rubysl-singleton-1.0.0.gem
 rubysl-soap-1.0.0.gem
-rubysl-socket-1.0.0.gem
+rubysl-socket-1.0.1.gem
 rubysl-stringio-1.0.1.gem
-rubysl-strscan-1.0.0.gem
+rubysl-strscan-1.0.1.gem
 rubysl-sync-1.0.0.gem
 rubysl-syslog-1.0.0.gem
 rubysl-tempfile-1.0.0.gem
