@@ -326,6 +326,7 @@
 #define HAVE_RB_IO_ADDSTR                  1
 #define HAVE_RB_IO_CHECK_IO                1
 #define HAVE_RB_IO_CHECK_CLOSED            1
+#define HAVE_RB_IO_TAINT_CHECK             1
 #define HAVE_RB_IO_CHECK_READABLE          1
 #define HAVE_RB_IO_CHECK_WRITABLE          1
 #define HAVE_RB_IO_CLOSE                   1
