@@ -89,6 +89,30 @@ describe "CApiGlobalSpecs" do
     end
   end
 
+  describe "rb_stdin" do
+    it "returns STDIN" do
+      @f.rb_stdin.should equal(STDIN)
+    end
+  end
+
+  describe "rb_stdout" do
+    it "returns STDOUT" do
+      @f.rb_stdout.should equal(STDOUT)
+    end
+  end
+
+  describe "rb_stderr" do
+    it "returns STDERR" do
+      @f.rb_stderr.should equal(STDERR)
+    end
+  end
+
+  describe "rb_defout" do
+    it "returns STDOUT" do
+      @f.rb_defout.should equal(STDOUT)
+    end
+  end
+
   describe "rb_default_rs" do
     it "returns \\n" do
       @f.rb_default_rs.should == "\n"

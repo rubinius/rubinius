@@ -285,10 +285,17 @@
 #define HAVE_RB_F_GLOBAL_VARIABLES         1
 #define HAVE_RB_GV_GET                     1
 #define HAVE_RB_GV_SET                     1
-#define HAVE_RB_RS                         1
-#define HAVE_RB_OUTPUT_RS                  1
 #define HAVE_RB_OUTPUT_FS                  1
+#define HAVE_RB_OUTPUT_RS                  1
+#define HAVE_RB_RS                         1
 #define HAVE_RB_SET_KCODE                  1
+#define HAVE_RB_STDERR                     1
+#define HAVE_RB_STDIN                      1
+#define HAVE_RB_STDOUT                     1
+
+#ifdef RUBY_VERSION_IS_1_8_EX_1_9
+#define HAVE_RB_DEFOUT                     1
+#endif
 
 #define HAVE_RB_LASTLINE_SET               1
 #define HAVE_RB_LASTLINE_GET               1
