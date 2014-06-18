@@ -361,6 +361,11 @@ extern "C" {
     return rb_check_convert_type(io, T_FILE, "IO", "to_io");
   }
 
+  VALUE rb_io_taint_check(VALUE io) {
+    rb_check_frozen(io);
+    return io;
+  }
+
   void rb_io_check_closed(rb_io_t* iot) {
     VALUE io_handle = iot->handle;
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();

@@ -1328,6 +1328,7 @@ struct RTypedData {
   void    rb_io_check_readable(rb_io_t* io);
   void    rb_io_check_writable(rb_io_t* io);
   VALUE   rb_io_check_io(VALUE io);
+  VALUE   rb_io_taint_check(VALUE io);
 
   FILE *  rb_io_stdio_file(rb_io_t *fptr);
 
