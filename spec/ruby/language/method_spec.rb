@@ -296,6 +296,148 @@ describe "An element assignment method send" do
   end
 end
 
+describe "An attribute assignment method send" do
+  context "with a single splatted Object argument" do
+    before :all do
+      @o = mock("element set receiver")
+      def @o.m=(a, b) [a, b] end
+    end
+
+    it "does not call #to_ary" do
+      x = mock("splat argument")
+      x.should_not_receive(:to_ary)
+
+      (@o.send :m=, *x, 1).should == [x, 1]
+    end
+
+    it "calls #to_a" do
+      x = mock("splat argument")
+      x.should_receive(:to_a).and_return([1])
+
+      (@o.send :m=, *x, 2).should == [1, 2]
+    end
+
+    it "wraps the argument in an Array if #to_a returns nil" do
+      x = mock("splat argument")
+      x.should_receive(:to_a).and_return(nil)
+
+      (@o.send :m=, *x, 1).should == [x, 1]
+    end
+
+    it "raises a TypeError if #to_a does not return an Array" do
+      x = mock("splat argument")
+      x.should_receive(:to_a).and_return(1)
+
+      lambda { @o.send :m=, *x, 1 }.should raise_error(TypeError)
+    end
+  end
+
+  context "with a leading splatted Object argument" do
+    before :all do
+      @o = mock("element set receiver")
+      def @o.m=(a, b, *c, d, e) [a, b, c, d, e] end
+    end
+
+    it "does not call #to_ary" do
+      x = mock("splat argument")
+      x.should_not_receive(:to_ary)
+
+      (@o.send :m=, *x, 2, 3, 4, 1).should == [x, 2, [3], 4, 1]
+    end
+
+    it "calls #to_a" do
+      x = mock("splat argument")
+      x.should_receive(:to_a).and_return([1, 2, 3])
+
+      (@o.send :m=, *x, 4, 5, 6).should == [1, 2, [3, 4], 5, 6]
+    end
+
+    it "wraps the argument in an Array if #to_a returns nil" do
+      x = mock("splat argument")
+      x.should_receive(:to_a).and_return(nil)
+
+      (@o.send :m=, *x, 2, 3, 4, 5).should == [x, 2, [3], 4, 5]
+    end
+
+    it "raises a TypeError if #to_a does not return an Array" do
+      x = mock("splat argument")
+      x.should_receive(:to_a).and_return(1)
+
+      lambda { @o.send :m=, *x, 2, 3, 4 }.should raise_error(TypeError)
+    end
+  end
+
+  context "with a middle splatted Object argument" do
+    before :all do
+      @o = mock("element set receiver")
+      def @o.m=(a, b, *c, d, e) [a, b, c, d, e] end
+    end
+
+    it "does not call #to_ary" do
+      x = mock("splat argument")
+      x.should_not_receive(:to_ary)
+
+      (@o.send :m=, 1, *x, 2, 3, 4).should == [1, x, [2], 3, 4]
+    end
+
+    it "calls #to_a" do
+      x = mock("splat argument")
+      x.should_receive(:to_a).and_return([2, 3])
+
+      (@o.send :m=, 1, *x, 4, 5).should == [1, 2, [3], 4, 5]
+    end
+
+    it "wraps the argument in an Array if #to_a returns nil" do
+      x = mock("splat argument")
+      x.should_receive(:to_a).and_return(nil)
+
+      (@o.send :m=, 1, 2, *x, 3, 4).should == [1, 2, [x], 3, 4]
+    end
+
+    it "raises a TypeError if #to_a does not return an Array" do
+      x = mock("splat argument")
+      x.should_receive(:to_a).and_return(1)
+
+      lambda { @o.send :m=, 1, 2, *x, 3, 4 }.should raise_error(TypeError)
+    end
+  end
+
+  context "with a trailing splatted Object argument" do
+    before :all do
+      @o = mock("element set receiver")
+      def @o.m=(a, b, *c, d, e) [a, b, c, d, e] end
+    end
+
+    it "does not call #to_ary" do
+      x = mock("splat argument")
+      x.should_not_receive(:to_ary)
+
+      (@o.send :m=, 1, 2, 3, 4, *x, 5).should == [1, 2, [3, 4], x, 5]
+    end
+
+    it "calls #to_a" do
+      x = mock("splat argument")
+      x.should_receive(:to_a).and_return([4, 5])
+
+      (@o.send :m=, 1, 2, 3, *x, 6).should == [1, 2, [3, 4], 5, 6]
+    end
+
+    it "wraps the argument in an Array if #to_a returns nil" do
+      x = mock("splat argument")
+      x.should_receive(:to_a).and_return(nil)
+
+      (@o.send :m=, 1, 2, 3, *x, 4).should == [1, 2, [3], x, 4]
+    end
+
+    it "raises a TypeError if #to_a does not return an Array" do
+      x = mock("splat argument")
+      x.should_receive(:to_a).and_return(1)
+
+      lambda { @o.send :m=, 1, 2, 3, *x, 4 }.should raise_error(TypeError)
+    end
+  end
+end
+
 describe "A method" do
   SpecEvaluate.desc = "for definition"
 
