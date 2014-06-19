@@ -1,1 +1,0 @@
-fails:Method#parameters returns [[:req]] for a define_method method with a grouping as its only argument

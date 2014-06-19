@@ -513,17 +513,13 @@ module Rubinius
 
       local_names.each_with_index do |name, i|
         if i < m
-          params << [:req, name]
+          params << parameter(:req, name)
         elsif i < o
           params << [:opt, name]
         elsif splat == i
-          if name == :*
-            params << [:rest]
-          else
-            params << [:rest, name]
-          end
+          params << parameter(:rest, name)
         elsif i < p
-          params << [:req, name]
+          params << parameter(:req, name)
         elsif block_index == i
           params << [:block, name]
         end
@@ -531,6 +527,13 @@ module Rubinius
 
       params
     end
+
+    def parameter(kind, param)
+      array = [kind]
+      array << param unless param == :* or param[0, 2] == "_:"
+      array
+    end
+    private :parameter
 
     ##
     # Represents virtual machine's CPU instruction.
