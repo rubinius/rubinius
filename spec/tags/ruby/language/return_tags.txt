@@ -1,1 +1,2 @@
 fails:The return keyword in a Thread raises a ThreadError if used to exit a thread
+critical(prevents later specs from running):The return keyword within a block raises a LocalJumpError if there is no lexicaly enclosing method
