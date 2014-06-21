@@ -380,13 +380,6 @@ describe "Multiple assignment" do
       [a, b, c].should == [1, 2, nil]
     end
 
-    it "raises a TypeError if #to_a does not return an Array" do
-      x = mock("multi-assign splat")
-      x.should_receive(:to_a).and_return(1)
-
-      lambda { a, b, c = *x }.should raise_error(TypeError)
-    end
-
     it "does not call #to_ary to convert a splatted Object RHS with a MLHS" do
       x = mock("multi-assign splat")
       x.should_receive(:to_ary).and_return([1, 2])
@@ -463,13 +456,6 @@ describe "Multiple assignment" do
 
       (a, *b = 1, *x).should == [1, 3, 4]
       [a, b].should == [1, [3, 4]]
-    end
-
-    it "raises a TypeError if #to_a does not return an Array" do
-      x = mock("multi-assign splat MRHS")
-      x.should_receive(:to_a).and_return(1)
-
-      lambda { a, *b = 1, *x }.should raise_error(TypeError)
     end
 
     it "calls #to_ary to convert a splatted Object as part of a MRHS with a splat MLHS" do
