@@ -4,7 +4,7 @@ require File.expand_path('../fixtures/variables', __FILE__)
 describe "Multiple assignment" do
   context "with a single RHS value" do
     it "assigns a simple MLHS" do
-      a, b, c = 1
+      (a, b, c = 1).should == 1
       [a, b, c].should == [1, nil, nil]
     end
 
