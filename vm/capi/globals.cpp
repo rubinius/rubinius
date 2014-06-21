@@ -121,6 +121,10 @@ extern "C" {
     rb_funcall(Globals, rb_intern("read_only"), 1, env->get_handle(prefixed_by(env->state(), '$', rb_intern(name))));
   }
 
+  const char* rb_get_kcode() {
+    return RSTRING_PTR(rb_gv_get("$KCODE"));
+  }
+
   void rb_set_kcode(const char *code) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 

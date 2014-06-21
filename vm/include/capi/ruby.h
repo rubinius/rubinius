@@ -1444,6 +1444,9 @@ VALUE rb_uint2big(unsigned long number);
   /** Sets the value of the key. */
   VALUE rb_struct_aset(VALUE s, VALUE key, VALUE value);
 
+  /** Gets the $KCODE variable. */
+  const char* rb_get_kcode();
+
   /** Sets the $KCODE variable. */
   void    rb_set_kcode(const char *code);
 
