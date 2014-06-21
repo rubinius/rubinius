@@ -77,5 +77,45 @@ module Rubinius
       hash[key] = value unless hash.key? key
       hash
     end
+
+    def self.keywords_missing(hash)
+      keywords = CompiledCode.of_sender.keywords
+
+      missing = []
+      total = keywords.size
+      i = 0
+
+      while i < total
+        break unless keywords[i+1]
+
+        key = keywords[i]
+        missing << key unless hash.key? key
+
+        i += 2
+      end
+
+      msg = "missing keyword#{"s"if missing.size > 1}: #{missing.join(", ")}"
+      raise ArgumentError, msg
+    end
+
+    def self.keywords_extra(hash, kwrest)
+      keywords = CompiledCode.of_sender.keywords
+
+      hash = hash.dup
+
+      total = keywords.size
+      i = 0
+
+      while i < total
+        hash.delete keywords[i]
+
+        i += 2
+      end
+
+      return hash if kwrest or hash.size == 0
+
+      msg = "unknown keyword#{"s" if hash.size > 1}: #{hash.keys.join(", ")}"
+      raise ArgumentError, msg
+    end
   end
 end
