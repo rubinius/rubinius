@@ -565,7 +565,7 @@ describe "Multiple assignment" do
       x = mock("multi-assign mixed RHS")
       x.should_receive(:to_ary).and_return([1, 2])
 
-      a, (b, c), d, e = 1, x, 3, 4
+      (a, (b, c), d, e = 1, x, 3, 4).should == [1, x, 3, 4]
       [a, b, c, d, e].should == [1, 1, 2, 3, 4]
     end
 
