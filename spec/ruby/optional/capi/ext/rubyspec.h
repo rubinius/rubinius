@@ -283,6 +283,7 @@
 #define HAVE_RB_DEFINE_READONLY_VARIABLE   1
 #define HAVE_RB_DEFINE_VARIABLE            1
 #define HAVE_RB_F_GLOBAL_VARIABLES         1
+#define HAVE_RB_GET_KCODE                  1
 #define HAVE_RB_GV_GET                     1
 #define HAVE_RB_GV_SET                     1
 #define HAVE_RB_OUTPUT_FS                  1
