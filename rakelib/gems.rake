@@ -15,7 +15,7 @@ namespace :gems do
 
     begin
       ENV["BUNDLE_GEMFILE"] = "Gemfile.installed"
-      sh "bundle package --no-prune"
+      sh "bundle update && bundle package --no-prune"
 
       File.open BUILD_CONFIG[:gems_list], "w" do |f|
         `bundle list`.each_line do |line|
