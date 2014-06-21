@@ -12,7 +12,7 @@ rubinius-compiler-1.1.2.gem
 rubinius-coverage-2.0.3.gem
 rubinius-debugger-2.0.3.gem
 rubinius-developer_tools-2.0.0.gem
-rubinius-melbourne-1.1.1.0.gem
+rubinius-melbourne-1.1.1.1.gem
 rubinius-processor-1.2.0.gem
 rubinius-profiler-2.0.1.gem
 rubinius-toolset-2.2.0.gem
