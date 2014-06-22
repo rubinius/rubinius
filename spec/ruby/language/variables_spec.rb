@@ -380,7 +380,7 @@ describe "Multiple assignment" do
       [a, b, c].should == [1, 2, nil]
     end
 
-    it "does not call #to_ary to convert a splatted Object RHS with a MLHS" do
+    it "calls #to_ary to convert a splatted Object RHS with a MLHS" do
       x = mock("multi-assign splat")
       x.should_receive(:to_ary).and_return([1, 2])
 
