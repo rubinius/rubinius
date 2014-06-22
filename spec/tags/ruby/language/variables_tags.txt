@@ -1,6 +1,0 @@
-fails:Multiple assignment with a single RHS value does not call #to_ary if it is private
-fails:Multiple assignment with a single RHS value does not call #to_ary if #respond_to? returns false
-fails:Multiple assignment with a single splatted RHS value raises a TypeError if #to_a returns nil
-fails:Multiple assignment with a single splatted RHS value raises a TypeError if #to_a does not return an Array
-fails:Multiple assignment with a MRHS value raises a TypeError if #to_a does not return an Array
-fails:Multiple assignment with a MRHS value raises a TypeError if #to_ary does not return an Array
