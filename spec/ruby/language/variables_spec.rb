@@ -513,9 +513,27 @@ describe "Multiple assignment" do
       [a, b, c, d].should == [1, 2, 4, nil]
     end
 
+    it "calls #to_a to convert a splatted Object when the position receiving the value is a multiple assignment and #respond_to? :to_ary returns false" do
+      x = mock("multi-assign mixed splatted RHS")
+      x.should_receive(:respond_to?).with(:to_ary).and_return(false)
+      x.should_receive(:to_a).and_return([4, 5])
+
+      (a, b, (c, d) = 1, 2, *x).should == [1, 2, 4, 5]
+      [a, b, c, d].should == [1, 2, 4, nil]
+    end
+
     it "calls #to_ary to convert a splatted Object when the position receiving the value is a multiple assignment" do
       x = mock("multi-assign mixed splatted RHS")
       x.should_receive(:to_ary).and_return([4, 5])
+
+      (a, b, (c, d) = 1, 2, *x).should == [1, 2, 4, 5]
+      [a, b, c, d].should == [1, 2, 4, nil]
+    end
+
+    it "calls #to_a to convert a splatted Object when the position receiving the value is a multiple assignment and #to_ary returns nil" do
+      x = mock("multi-assign mixed splatted RHS")
+      x.should_receive(:to_ary).and_return(nil)
+      x.should_receive(:to_a).and_return([4, 5])
 
       (a, b, (c, d) = 1, 2, *x).should == [1, 2, 4, 5]
       [a, b, c, d].should == [1, 2, 4, nil]
