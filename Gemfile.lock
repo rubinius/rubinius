@@ -4,7 +4,7 @@ GEM
     daedalus-core (0.0.3)
     rake (10.3.2)
     redcard (1.1.0)
-    rubinius-ast (1.2.0)
+    rubinius-ast (1.2.1)
     rubinius-bridge (1.0.8)
       redcard (~> 1.0)
     rubinius-build_tools (1.0.0)
