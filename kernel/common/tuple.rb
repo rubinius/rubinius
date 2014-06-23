@@ -101,6 +101,8 @@ module Rubinius
       return ary
     end
 
+    alias_method :to_ary, :to_a
+
     def shift
       return self unless fields > 0
       t = Tuple.new(fields-1)
