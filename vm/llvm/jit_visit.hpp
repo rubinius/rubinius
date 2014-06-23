@@ -2832,7 +2832,12 @@ use_send:
 
     void visit_goto(opcode ip) {
       BasicBlock* bb = block_map_[ip].block;
-      assert(bb);
+      if(!bb) {
+        if(llvm_state()->config().jit_show_compiling) {
+          llvm::outs() << "[[[ JIT error: visit_goto: no block at: " << ip << "]]]\n";
+        }
+        throw Unsupported();
+      }
       b().CreateBr(bb);
       set_block(new_block("continue"));
     }
@@ -2850,7 +2855,13 @@ use_send:
 
       BasicBlock* cont = new_block("continue");
       BasicBlock* bb = block_map_[ip].block;
-      assert(bb);
+      if(!bb) {
+        if(llvm_state()->config().jit_show_compiling) {
+          llvm::outs() << "[[[ JIT error: visit_goto_if_true: no block at: "
+                       << ip << "]]]\n";
+        }
+        throw Unsupported();
+      }
       b().CreateCondBr(cmp, bb, cont);
 
       set_block(cont);
@@ -2869,7 +2880,13 @@ use_send:
 
       BasicBlock* cont = new_block("continue");
       BasicBlock* bb = block_map_[ip].block;
-      assert(bb);
+      if(!bb) {
+        if(llvm_state()->config().jit_show_compiling) {
+          llvm::outs() << "[[[ JIT error: visit_goto_if_false: no block at: "
+                       << ip << "]]]\n";
+        }
+        throw Unsupported();
+      }
       b().CreateCondBr(cmp, bb, cont);
 
       set_block(cont);
