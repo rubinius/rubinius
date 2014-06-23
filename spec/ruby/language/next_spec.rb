@@ -390,6 +390,7 @@ describe "Assignment via next" do
     it "assigns splatted objects to a splatted reference via a splatted yield" do
       def r(val); *a = *yield(); val.should == a; end
       r([nil]){next *nil}
+      r([nil]){next nil}
       r([1]){next *1}
       r([nil]){next *[]}
       r([1]){next *[1]}

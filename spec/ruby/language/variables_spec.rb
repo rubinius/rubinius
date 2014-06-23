@@ -265,6 +265,20 @@ describe "Multiple assignment" do
       a.should == [1]
     end
 
+    it "assigns the result of a splatted method call returning nil" do
+      def m() end
+
+      (*a = *m).should == [nil]
+      a.should == [nil]
+    end
+
+    it "assigns the result of a splatted method call returning a non-nil value" do
+      def m() :a end
+
+      (*a = *m).should == [:a]
+      a.should == [:a]
+    end
+
     it "calls #to_a to convert an Object RHS with a single splat LHS" do
       x = mock("multi-assign RHS splat")
       x.should_receive(:to_a).and_return([1, 2])
