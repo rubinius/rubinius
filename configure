@@ -1633,7 +1633,8 @@ int main() { return tgetnum(""); }
       @libc = "libc.dylib"
     else
       begin
-        ldd_output = `ldd #{ENV["SHELL"]}`
+        exe = ENV["SHELL"] || "/usr/sh"
+        ldd_output = `ldd #{exe}`
 
         @libc = ldd_output[/libc\.so\.[0-9]+/]
       rescue
