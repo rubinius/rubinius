@@ -27,7 +27,7 @@ module Kernel
     end
 
     if $DEBUG and $VERBOSE != nil
-      if loc = exc.locations
+      if loc = exc.locations and loc[1]
         pos = loc[1].position
       else
         pos = Rubinius::VM.backtrace(1)[0].position

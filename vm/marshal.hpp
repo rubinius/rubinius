@@ -31,6 +31,8 @@ namespace rubinius {
     Object* unmarshal();
 
     Object* get_int();
+    Object* get_rational();
+    Object* get_complex();
     String* get_string();
     Symbol* get_symbol();
     Tuple* get_tuple();

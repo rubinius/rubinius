@@ -117,5 +117,13 @@ module Rubinius
       msg = "unknown keyword#{"s" if hash.size > 1}: #{hash.keys.join(", ")}"
       raise ArgumentError, msg
     end
+
+    def self.unmarshal_rational(a, b)
+      Rational(a, b)
+    end
+
+    def self.unmarshal_complex(r, i)
+      Complex(r, i)
+    end
   end
 end

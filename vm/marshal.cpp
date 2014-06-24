@@ -3,6 +3,8 @@
 #include <math.h>
 #include <iomanip>
 
+#include "arguments.hpp"
+#include "dispatch.hpp"
 #include "object_memory.hpp"
 #include "marshal.hpp"
 
@@ -13,6 +15,7 @@
 #include <ieee.h>
 
 #include "builtin/array.hpp"
+#include "builtin/class.hpp"
 #include "builtin/compiled_code.hpp"
 #include "builtin/encoding.hpp"
 #include "builtin/exception.hpp"
@@ -88,6 +91,58 @@ namespace rubinius {
     stream >> data;
 
     return Integer::from_cppstr(state, data, 16);
+  }
+
+  static Object* compiler_runtime(STATE) {
+    Object* recv = try_as<Object>(G(rubinius)->get_const(state, "Runtime"));
+
+    if(!recv) {
+      Exception::runtime_error(state,
+          "unable to access Rubinius::Runtime from code unmarshaller");
+      return cNil;
+    } else {
+      return recv;
+    }
+  }
+
+  Object* UnMarshaller::get_rational() {
+    Object* recv = compiler_runtime(state);
+    if(recv->nil_p()) return cNil;
+
+    Object* objs[2];
+
+    objs[0] = unmarshal();
+    objs[1] = unmarshal();
+
+    Symbol* name = state->symbol("unmarshal_rational");
+    Arguments args(name, recv, 2, objs);
+    Dispatch dis(name);
+
+    if(Object* r = dis.send(state, NULL, args)) {
+      return r;
+    } else {
+      return cNil;
+    }
+  }
+
+  Object* UnMarshaller::get_complex() {
+    Object* recv = compiler_runtime(state);
+    if(recv->nil_p()) return cNil;
+
+    Object* objs[2];
+
+    objs[0] = unmarshal();
+    objs[1] = unmarshal();
+
+    Symbol* name = state->symbol("unmarshal_complex");
+    Arguments args(name, recv, 2, objs);
+    Dispatch dis(name);
+
+    if(Object* c = dis.send(state, NULL, args)) {
+      return c;
+    } else {
+      return cNil;
+    }
   }
 
   String* UnMarshaller::get_string() {
@@ -274,6 +329,10 @@ namespace rubinius {
       return cFalse;
     case 'I':
       return get_int();
+    case 'R':
+      return get_rational();
+    case 'C':
+      return get_complex();
     case 's':
       return get_string();
     case 'x':
