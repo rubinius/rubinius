@@ -4,7 +4,7 @@ GEM
     daedalus-core (0.0.3)
     rake (10.3.2)
     redcard (1.1.0)
-    rubinius-ast (2.2.0)
+    rubinius-ast (2.2.1)
     rubinius-bridge (1.1.0)
       redcard (~> 1.0)
     rubinius-build_tools (2.0.0)
@@ -14,7 +14,7 @@ GEM
       rubinius-processor (~> 2.0)
       rubinius-toolset (~> 2.0)
     rubinius-compiler (2.2.0)
-    rubinius-melbourne (2.2.0.0)
+    rubinius-melbourne (2.2.1.0)
     rubinius-processor (2.2.0)
     rubinius-toolset (2.3.0)
 
