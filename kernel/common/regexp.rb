@@ -136,7 +136,8 @@ class Regexp
       opts = 0
     end
 
-    opts |= NOENCODING if lang == 'n'
+    code = lang[0] if lang
+    opts |= NOENCODING if code == ?n or code == ?N
 
     compile pattern, opts
   end
