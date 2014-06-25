@@ -59,6 +59,8 @@ namespace rubinius {
     std::size_t total;
     TypeInfo* type;
 
+    bool keywords;
+
     native_int total_args;
     native_int required_args;
     native_int post_args;

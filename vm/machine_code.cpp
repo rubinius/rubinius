@@ -55,6 +55,7 @@ namespace rubinius {
     : run(MachineCode::interpreter)
     , total(meth->iseq()->opcodes()->num_fields())
     , type(NULL)
+    , keywords(!meth->keywords()->nil_p())
     , total_args(meth->total_args()->to_native())
     , required_args(meth->required_args()->to_native())
     , post_args(meth->post_args()->to_native())
@@ -331,7 +332,9 @@ namespace rubinius {
   // For when the method expects no arguments at all (no splat, nothing)
   class NoArguments {
   public:
-    static bool call(STATE, MachineCode* mcode, StackVariables* scope, Arguments& args) {
+    static bool call(STATE, MachineCode* mcode, StackVariables* scope,
+                     Arguments& args, CallFrame* call_frame)
+    {
       return args.total() == 0;
     }
   };
@@ -339,7 +342,9 @@ namespace rubinius {
   // For when the method expects 1 and only 1 argument
   class OneArgument {
   public:
-    static bool call(STATE, MachineCode* mcode, StackVariables* scope, Arguments& args) {
+    static bool call(STATE, MachineCode* mcode, StackVariables* scope,
+                     Arguments& args, CallFrame* call_frame)
+    {
       if(args.total() != 1) return false;
       scope->set_local(0, args.get_argument(0));
       return true;
@@ -349,7 +354,9 @@ namespace rubinius {
   // For when the method expects 2 and only 2 arguments
   class TwoArguments {
   public:
-    static bool call(STATE, MachineCode* mcode, StackVariables* scope, Arguments& args) {
+    static bool call(STATE, MachineCode* mcode, StackVariables* scope,
+                     Arguments& args, CallFrame* call_frame)
+    {
       if(args.total() != 2) return false;
       scope->set_local(0, args.get_argument(0));
       scope->set_local(1, args.get_argument(1));
@@ -360,7 +367,9 @@ namespace rubinius {
   // For when the method expects 3 and only 3 arguments
   class ThreeArguments {
   public:
-    static bool call(STATE, MachineCode* mcode, StackVariables* scope, Arguments& args) {
+    static bool call(STATE, MachineCode* mcode, StackVariables* scope,
+                     Arguments& args, CallFrame* call_frame)
+    {
       if(args.total() != 3) return false;
       scope->set_local(0, args.get_argument(0));
       scope->set_local(1, args.get_argument(1));
@@ -372,7 +381,9 @@ namespace rubinius {
   // For when the method expects a fixed number of arguments (no splat)
   class FixedArguments {
   public:
-    static bool call(STATE, MachineCode* mcode, StackVariables* scope, Arguments& args) {
+    static bool call(STATE, MachineCode* mcode, StackVariables* scope,
+                     Arguments& args, CallFrame* call_frame)
+    {
       if((native_int)args.total() != mcode->total_args) return false;
 
       for(native_int i = 0; i < mcode->total_args; i++) {
@@ -386,7 +397,9 @@ namespace rubinius {
   // For when a method takes all arguments as a splat
   class SplatOnlyArgument {
   public:
-    static bool call(STATE, MachineCode* mcode, StackVariables* scope, Arguments& args) {
+    static bool call(STATE, MachineCode* mcode, StackVariables* scope,
+                     Arguments& args, CallFrame* call_frame)
+    {
       const size_t total = args.total();
       Array* ary = Array::create(state, total);
 
@@ -402,13 +415,99 @@ namespace rubinius {
   // The fallback, can handle all cases
   class GenericArguments {
   public:
-    static bool call(STATE, MachineCode* mcode, StackVariables* scope, Arguments& args) {
-      const bool has_splat = (mcode->splat_position >= 0);
-      native_int total_args = args.total();
+    static bool call(STATE, MachineCode* mcode, StackVariables* scope,
+                     Arguments& args, CallFrame* call_frame)
+    {
+      /* There are 5 types of arguments, illustrated here:
+       *    m(a, b=1, *c, d, e: 2)
+       *
+       *  where:
+       *    a is a head (pre optional/splat) fixed position argument
+       *    b is an optional argument
+       *    c is a rest argument
+       *    d is a post (optional/splat) argument
+       *    e is a keyword argument, which may be required (having no default
+       *      value), optional, or keyword rest argument (**kw).
+       *
+       * The arity checking above ensures that we have at least one argument
+       * on the stack for each fixed position argument (ie arguments a and d
+       * above).
+       *
+       * We assign the arguments in the following order: first the fixed
+       * arguments (head and post) and possibly the keyword argument, then the
+       * optional arguments, and the remainder (if any) are combined in an
+       * array for the rest argument.
+       *
+       * We assign values from the sender's side to local variables on the
+       * receiver's side. Which values to assign are computed as follows:
+       *
+       *  sender indexes (arguments)
+       *  -v-v-v-v-v-v-v-v-v-v-v-v--
+       *
+       *   0...H  H...H+ON  H+ON...N-P-K  N-P-K...N-K  N-K
+       *   |      |         |             |            |
+       *   H      O         R             P            K
+       *   |      |         |             |            |
+       *   0...H  H...H+O   RI            PI...PI+P    KI
+       *
+       *  -^-^-^-^-^-^-^-^-^-^-^-^-
+       *  receiver indexes (locals)
+       *
+       * where:
+       *
+       *  arguments passed by sender
+       *  --------------------------
+       *    N  : total number of arguments passed
+       *    H* : number of head arguments
+       *    E  : number of extra arguments
+       *    ON : number or arguments assigned to optional parameters
+       *    RN : number of arguments assigned to the rest argument
+       *    P* : number of post arguments
+       *    K  : number of keyword arguments passed, 1 if the last argument is
+       *         a Hash or if #to_hash returns a Hash, 0 otherwise
+       *
+       *  parameters defined by receiver
+       *  ------------------------------
+       *    T  : total number of parameters
+       *    M  : number of head + post parameters
+       *    H* : number of head parameters
+       *    O  : number of optional parameters
+       *    RP : true if a rest parameter is defined, false otherwise
+       *    RI : index of rest parameter if RP is true, else -1
+       *    P* : number of post parameters
+       *    PI : index of the first post parameter
+       *    KP : true if a keyword parameter is defined, false otherwise
+       *    KI : index of keyword rest parameter
+       *
+       *  (*) The values of H and P are fixed and they represent the same
+       *  values at both the sender and receiver, so they are named the same.
+       *
+       *  formulas
+       *  --------
+       *    K  = KP && N > M ? 1 : 0
+       *    E  = N - M - K
+       *    O  = T - M - (keywords ? 1 : 0)
+       *    ON = (X = MIN(O, E)) > 0 ? X : 0
+       *    RN = RP && (X = E - ON) > 0 ? X : 0
+       *    PI = H + O + (RP ? 1 : 0)
+       *    KI = RP ? T : T - 1
+       *
+       */
+
+      const native_int N = args.total();
+      const native_int T = mcode->total_args;
+      const native_int M = mcode->required_args;
+
+      /* TODO: Clean up usage to uniformly refer to 'splat' as N arguments
+       * passed from sender at a single position and 'rest' as N arguments
+       * collected into a single argument at the receiver.
+       */
+      const native_int RI = mcode->splat_position;
+      const bool RP = (RI >= 0);
 
       // expecting 0, got 0.
-      if(mcode->total_args == 0 && total_args == 0) {
-        if(has_splat) {
+      if(T == 0 && N == 0) {
+        if(RP) {
           scope->set_local(mcode->splat_position, Array::create(state, 0));
         }
 
@@ -416,94 +515,97 @@ namespace rubinius {
       }
 
       // Too few args!
-      if(total_args < mcode->required_args) return false;
+      if(N < M) return false;
 
-      // Too many args (no splat!)
-      if(!has_splat && total_args > mcode->total_args) return false;
+      // Too many args (no rest argument!)
+      if(!RP && N > T) return false;
 
-      /* There are 4 types of arguments, illustrated here:
-       *    m(a, b=1, *c, d)
-       *
-       *  where:
-       *    a is a (pre optional/splat) fixed position argument
-       *    b is an optional argument
-       *    c is a splat argument
-       *    d is a post (optional/splat) argument
-       *
-       *  The arity checking above ensures that we have at least one argument
-       *  on the stack for each fixed position argument (ie arguments a and d
-       *  above).
-       *
-       *  The number of (pre) fixed arguments is 'required_args - post_args'.
-       *
-       *  The number of optional arguments is 'total_args - required_args'.
-       *
-       *  We fill in the required arguments, then the optional arguments, and
-       *  the rest (if any) go into an array for the splat.
-       */
+      const native_int P  = mcode->post_args;
+      const native_int H  = M - P;
 
-      const native_int P = mcode->post_args;
-      const native_int R = mcode->required_args;
+      Object* kw = 0;
+      bool KP = false;
 
-      // M is for mandatory
-      const native_int M = R - P;
-      const native_int T = total_args;
+      if(mcode->keywords && N > M) {
+        Object* cls = G(object)->get_const(state, "Hash");
+        Object* obj = args.get_argument(N - 1);
 
-      // DT is for declared total
-      const native_int DT = mcode->total_args;
-      const native_int O = DT - R;
+        if(!cls->nil_p()) {
+          if(obj->kind_of_p(state, cls)) {
+            kw = obj;
+            KP = true;
+          } else {
+            OnStack<1> os(state, cls);
 
-      // HS is for has splat
-      const native_int HS = has_splat ? 1 : 0;
+            Symbol* name = state->symbol("to_hash");
+            Arguments args(name, obj, 0, 0);
+            Dispatch dis(name);
 
-      // Phase 1, mandatory args
-      for(native_int i = 0; i < M; i++) {
-        scope->set_local(i, args.get_argument(i));
+            obj = dis.send(state, call_frame, args);
+            if(obj && obj->kind_of_p(state, cls)) {
+              kw = obj;
+              KP = true;
+            }
+          }
+        }
       }
 
-      // Phase 2, post args
-      for(native_int i = T - P, l = M + O + HS;
-          i < T;
-          i++, l++)
-      {
-        scope->set_local(l, args.get_argument(i));
+      const native_int K = (KP && N > M) ? 1 : 0;
+      const native_int O = T - M - (mcode->keywords ? 1 : 0);
+      const native_int E = N - M - K;
+
+      // A single kwrest argument
+      if(mcode->keywords && !RP && !KP && E > O) return false;
+
+      native_int X;
+
+      const native_int ON = (X = MIN(O, E)) > 0 ? X : 0;
+      const native_int RN = (RP && (X = E - ON) > 0) ? X : 0;
+      const native_int PI = H + O + (RP ? 1 : 0);
+      const native_int KI = RP ? T : T - 1;
+
+      native_int a = 0;   // argument index
+      native_int l = 0;   // local index
+
+      // head arguments
+      for(; a < H; l++, a++) {
+        scope->set_local(l, args.get_argument(a));
       }
 
-      // Phase 3, optionals
-      for(native_int i = M, limit = M + MIN(O, T-R);
-          i < limit;
-          i++)
-      {
-        scope->set_local(i, args.get_argument(i));
+      // optional arguments
+      for(; l < H + O && a < H + ON; l++, a++) {
+        scope->set_local(l, args.get_argument(a));
       }
 
-      // Phase 4, splat
-      if(has_splat) {
+      for(; l < H + O; l++) {
+        scope->set_local(l, G(undefined));
+      }
+
+      // rest arguments
+      if(RP) {
         Array* ary;
-        /* There is a splat. So if the passed in arguments are greater
-         * than the total number of fixed arguments, put the rest of the
-         * arguments into the Array.
-         *
-         * Otherwise, generate an empty Array.
-         *
-         * NOTE: remember that total includes the number of fixed arguments,
-         * even if they're optional, so we can get args.total() == 0, and
-         * total == 1 */
-        int splat_size = T - DT;
-        if(splat_size > 0) {
-          ary = Array::create(state, splat_size);
 
-          for(int i = 0, n = M + O;
-              i < splat_size;
-              i++, n++)
-          {
-            ary->set(state, i, args.get_argument(n));
+        if(RN > 0) {
+          ary = Array::create(state, RN);
+
+          for(int i = 0; i < RN && a < N - P - K; i++, a++) {
+            ary->set(state, i, args.get_argument(a));
           }
         } else {
           ary = Array::create(state, 0);
         }
 
-        scope->set_local(mcode->splat_position, ary);
+        scope->set_local(RI, ary);
+      }
+
+      // post arguments
+      for(l = PI; l < PI + P && a < N - K; l++, a++) {
+        scope->set_local(l, args.get_argument(a));
+      }
+
+      // keywords
+      if(KP && K > 0 && kw) {
+        scope->set_local(KI, kw);
       }
 
       return true;
@@ -560,7 +662,7 @@ namespace rubinius {
           fallback = &MachineCode::execute_specialized<NoArguments>;
 
         // otherwise use the splat only case.
-        } else {
+        } else if(!keywords) {
           fallback = &MachineCode::execute_specialized<SplatOnlyArgument>;
         }
       // Otherwise use the few specialized cases iff there is no splat
@@ -611,7 +713,7 @@ namespace rubinius {
       InterpreterCallFrame* frame = ALLOCA_CALLFRAME(mcode->stack_size);
 
       // If argument handling fails..
-      if(ArgumentHandler::call(state, mcode, scope, args) == false) {
+      if(ArgumentHandler::call(state, mcode, scope, args, previous) == false) {
         Exception* exc =
           Exception::make_argument_error(state, mcode->total_args, args.total(), args.name());
         exc->locations(state, Location::from_call_stack(state, previous));
