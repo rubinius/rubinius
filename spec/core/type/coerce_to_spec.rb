@@ -23,7 +23,7 @@ describe "Rubinius::Type.coerce_to" do
 
     lambda do
       Rubinius::Type.coerce_to(obj, TypeSpecs::A, :coerce)
-    end.should raise_error(Exception)
+    end.should raise_error(TypeError)
   end
 
   it "raises a TypeError if the method does not return the specified type" do
@@ -32,6 +32,14 @@ describe "Rubinius::Type.coerce_to" do
 
     lambda do
       Rubinius::Type.coerce_to(obj, TypeSpecs::A, :coerce)
-    end.should raise_error(Exception)
+    end.should raise_error(TypeError)
+  end
+
+  it "raises a TypeError if the object which should be coerced is BasicObject" do
+    obj = BasicObject.new
+
+    lambda do
+      Rubinius::Type.coerce_to(obj, TypeSpecs::A, :coerce)
+    end.should raise_error(TypeError)
   end
 end

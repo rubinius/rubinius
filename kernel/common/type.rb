@@ -23,9 +23,15 @@ module Rubinius
       begin
         ret = obj.__send__(meth)
       rescue Exception => orig
-        raise TypeError,
+        if object_respond_to?(obj, :inspect)
+          raise TypeError,
               "Coercion error: #{obj.inspect}.#{meth} => #{cls} failed",
               orig
+        else
+          raise TypeError,
+              "Coercion error: #{meth} => #{cls} failed",
+              orig
+        end
       end
 
       return ret if object_kind_of?(ret, cls)
