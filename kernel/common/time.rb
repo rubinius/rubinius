@@ -168,7 +168,7 @@ class Time
 
   def -(other)
     if other.kind_of?(Time)
-      return (seconds - other.seconds) + ((usec - other.usec) * 0.000001)
+      return (seconds - other.seconds) + ((nsec - other.nsec) * 0.000000001)
     end
 
     case other = Rubinius::Type.coerce_to_exact_num(other)
