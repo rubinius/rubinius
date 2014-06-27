@@ -427,6 +427,7 @@
 #define HAVE_RB_NUM2UINT                   1
 #endif
 #define HAVE_RB_NUM2LONG                   1
+#define HAVE_RB_INT2NUM                    1
 #define HAVE_RB_NUM2ULONG                  1
 #define HAVE_RB_NUM_COERCE_BIN             1
 #define HAVE_RB_NUM_COERCE_CMP             1
