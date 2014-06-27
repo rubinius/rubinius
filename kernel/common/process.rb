@@ -155,7 +155,7 @@ module Rubinius
     # Returns nil or an instance of IO.
     def self.fd_to_io(object)
       case object
-      when STDIN, STDOUT, STDERR, $stdin, $stdout, $stderr
+      when IO, STDIN, STDOUT, STDERR, $stdin, $stdout, $stderr
         object
       when :in, 0
         STDIN
@@ -165,8 +165,6 @@ module Rubinius
         STDERR
       when Fixnum
         object >= 0 ? IO.for_fd(object) : nil
-      when IO
-        object
       else
         object.respond_to?(:to_io) ? object.to_io : nil
       end
@@ -209,18 +207,26 @@ module Rubinius
 
     def self.setup_redirects(redirects)
       redirects.each do |key, val|
-        key = fd_to_io(key)
-
         if val == :close
-          key.close_on_exec = true
+          fd_to_io(key).close_on_exec = true
         elsif val.is_a?(Array)
           file, mode_string, perms = *val
-          key.reopen(File.open(file, mode_string, perms))
+          fd_to_io(key).reopen(File.open(file, mode_string, perms))
         else
           val = fd_to_io(val)
           val.close_on_exec = false
           val.autoclose = false
+
+          case key
+          when Symbol
+            key = fd_to_io(key)
+          when Fixnum
+            key = fd_to_io FFI::Platform::POSIX.dup2(val.fileno, key)
+          end
+
           key.reopen(val)
+          key.close_on_exec = false
+          key.autoclose = false
         end
       end
     end
