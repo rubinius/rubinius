@@ -131,12 +131,12 @@ extern "C" {
     return capi_native2num<unsigned long>(number);
   }
 
-  VALUE rb_int2inum(long int number) {
-    return capi_native2num<long int>(number);
+  VALUE rb_int2inum(int number) {
+    return capi_native2num<int>(number);
   }
 
-  VALUE INT2NUM(long int number) {
-    return capi_native2num<long int>(number);
+  VALUE INT2NUM(int number) {
+    return capi_native2num<int>(number);
   }
 
   VALUE LONG2NUM(long int number) {

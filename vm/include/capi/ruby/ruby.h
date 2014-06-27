@@ -744,9 +744,9 @@ VALUE rb_uint2big(unsigned long number);
   unsigned long rb_num2ulong(VALUE obj);
 
   /** Convert a long int into an Integer. */
-  VALUE rb_int2inum(long n);
+  VALUE rb_int2inum(int n);
 #define rb_int_new(v) rb_int2inum(v)
-  VALUE INT2NUM(long n);
+  VALUE INT2NUM(int n);
   VALUE LONG2NUM(long n);
 
   /** Convert a unsigned long int into an Integer. */
