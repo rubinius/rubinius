@@ -1,8 +1,0 @@
-fails:"A lambda literal -> () { } assigns variables from parameters for definition \n    @a = -> (**) {  }"
-fails:"A lambda literal -> () { } assigns variables from parameters for definition \n    @a = -> (*, **k) { k }"
-fails:"A lambda literal -> () { } assigns variables from parameters for definition \n    @a = -> (a, b=1, *c, (*d, (e)), f: 2, g:, h:, **k, &l) do\n      [a, b, c, d, e, f, g, h, k, l]\n    end"
-fails:"A lambda literal -> () { } assigns variables from parameters for definition \n    @a = -> a, b=1, *c, d, e:, f: 2, g:, **k, &l do\n      [a, b, c, d, e, f, g, k, l]\n    end"
-fails:"A lambda expression assigns variables from parameters for definition \n    @a = lambda { |**|  }"
-fails:"A lambda expression assigns variables from parameters for definition \n    @a = lambda { |*, **k| k }"
-fails:"A lambda expression assigns variables from parameters for definition \n    @a = lambda do |a, b=1, *c, (*d, (e)), f: 2, g:, h:, **k, &l|\n      [a, b, c, d, e, f, g, h, k, l]\n    end"
-fails:"A lambda expression assigns variables from parameters for definition \n    @a = lambda do |a, b=1, *c, d, e:, f: 2, g:, **k, &l|\n      [a, b, c, d, e, f, g, k, l]\n    end"
