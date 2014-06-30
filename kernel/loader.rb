@@ -651,28 +651,28 @@ to rebuild the compiler.
 
     #Check Ruby syntax of source
     def check_syntax
-      parser = Rubinius::ToolSets::Runtime::Melbourne
+      parser_class = Rubinius::ToolSets::Runtime::Melbourne
 
       if @script
         if File.exists?(@script)
-          mel = parser.new @script, 1, []
-          mel.parse_file
+          parser = parser_class.new @script, 1, []
+          parser.parse_file
         else
           puts "rbx: Unable to find file -- #{@script} (LoadError)"
           exit 1
         end
       elsif not @evals.empty?
-        mel = parser.new('-e', 1, [])
-        mel.parse_string @evals.join("\n")
+        parser = parser_class.new('-e', 1, [])
+        parser.parse_string(@evals.join("\n"))
       else
-        mel = parser.new('-', 1, [])
-        mel.parse_string STDIN.read
+        parser = parser_class.new('-', 1, [])
+        parser.parse_string(STDIN.read)
       end
 
       puts "Syntax OK"
       exit 0
     rescue SyntaxError => e
-      show_syntax_errors(mel.syntax_errors)
+      show_syntax_errors(parser.syntax_errors)
       exit 1
     end
 
