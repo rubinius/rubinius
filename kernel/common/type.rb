@@ -47,10 +47,18 @@ module Rubinius
     end
 
     ##
-    # BasicObject responds to pretty much no, if any methods at all. This
-    # method provides a simple coercion guard for BasicObject instances.
+    # BasicObject responds to only a select few of methods such as `==` and
+    # `__send__`. It however does not respond to other methods such as `class`,
+    # `respond_to?` and other common methods.
     #
-    # Basic example:
+    # This method provides a guard for code that can not handle BasicObject
+    # instances. The guard itself is quite simple: it simply raises for
+    # BasicObject instances.
+    #
+    # The first argument is the object to check, the second argument the class
+    # name that the object would normally be converted into.
+    #
+    # Basic usage example:
     #
     #     object = BasicObject.new
     #
