@@ -100,4 +100,18 @@ describe :kernel_Rational, :shared => true do
       lambda { Rational(1, :sym) }.should raise_error(TypeError)
     end
   end
+
+  describe "when passed a BasicObject" do
+    it "raises a TypeError if the first argument is a BasicObject" do
+      obj = BasicObject.new
+
+      lambda { Rational(obj) }.should raise_error(TypeError)
+    end
+
+    it "raises a TypeError if the second argument is a BasicObject" do
+      obj = BasicObject.new
+
+      lambda { Rational(1, obj) }.should raise_error(TypeError)
+    end
+  end
 end
