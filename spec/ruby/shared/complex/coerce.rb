@@ -67,4 +67,8 @@ describe :complex_coerce, :shared => true do
   it "raises a TypeError when other is false" do
     lambda { @one.coerce(false) }.should raise_error(TypeError)
   end
+
+  it "raises a TypeError when other is a BasicObject" do
+    lambda { @one.coerce(BasicObject.new) }.should raise_error(TypeError)
+  end
 end
