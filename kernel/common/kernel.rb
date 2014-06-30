@@ -64,6 +64,8 @@ module Kernel
   module_function :Hash
 
   def Integer(obj, base=nil)
+    Rubinius::Type.coerce_basic_object_guard(obj, Integer)
+
     if obj.kind_of? String
       if obj.empty?
         raise ArgumentError, "invalid value for Integer: (empty string)"
