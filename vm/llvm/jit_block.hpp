@@ -15,6 +15,9 @@ namespace jit {
     void initialize_frame(int stack_size);
     void setup_block_scope();
     void setup();
+    void check_arity();
+    void import_args();
+    void assign_fixed_args(llvm::Value*, int, int);
     void import_args_19_style();
 
   protected:

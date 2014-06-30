@@ -638,6 +638,10 @@ namespace jit {
 
     info_.context()->init_variables(b());
 
+    local_index_ = b().CreateAlloca(ctx_->Int32Ty, 0, "local_index");
+    arg_index_ = b().CreateAlloca(ctx_->Int32Ty, 0, "args_index");
+    keyword_object_ = b().CreateAlloca(obj_type, 0, "keyword_object");
+
     counter2_ = b().CreateAlloca(ctx_->Int32Ty, 0, "counter2");
 
     valid_flag = b().CreateAlloca(ctx_->Int1Ty, 0, "valid_flag");

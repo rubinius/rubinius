@@ -290,9 +290,56 @@ extern "C" {
     return call_frame->promote_scope(state);
   }
 
+  Object* rbx_check_keyword(STATE, CallFrame* call_frame, Arguments& args) {
+    Object* cls = G(object)->get_const(state, "Hash");
+    Object* obj = args.get_argument(args.total() - 1);
+
+    if(!cls->nil_p()) {
+      if(obj->kind_of_p(state, cls)) {
+        return obj;
+      } else {
+        OnStack<1> os(state, cls);
+
+        Symbol* name = state->symbol("to_hash");
+        Arguments args(name, obj, 0, 0);
+        Dispatch dis(name);
+
+        obj = dis.send(state, call_frame, args);
+        if(obj) {
+          if(obj->kind_of_p(state, cls)) {
+            return obj;
+          }
+        } else {
+          state->vm()->thread_state()->clear_raise();
+        }
+      }
+    }
+
+    return NULL;
+  }
+
+  Object* rbx_construct_splat_x(STATE, Arguments& args,
+      size_t rest_start, size_t rest_size)
+  {
+      if(rest_size > 0) {
+        Array* ary = Array::create_dirty(state, rest_size);
+
+        for(size_t i = 0, a = rest_start;
+            i < rest_size;
+            i++, a++)
+        {
+          ary->set(state, i, args.get_argument(a));
+        }
+
+        return ary;
+      } else {
+        return Array::create_dirty(state, 0);
+      }
+  }
 
   Object* rbx_construct_splat(STATE, Arguments& args, size_t start, size_t total) {
     int splat_size = args.total() - total;
+
     if(splat_size > 0) {
       Array* ary = Array::create_dirty(state, splat_size);
 

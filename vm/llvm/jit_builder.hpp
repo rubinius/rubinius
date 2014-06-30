@@ -75,6 +75,9 @@ namespace jit {
     JITMethodInfo& info_;
 
   protected:
+    llvm::Value* local_index_;
+    llvm::Value* arg_index_;
+    llvm::Value* keyword_object_;
     llvm::Value* counter2_;
     jit::RuntimeData* runtime_data_;
     llvm::DIBuilder debug_builder_;

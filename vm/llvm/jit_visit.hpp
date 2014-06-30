@@ -425,7 +425,7 @@ namespace rubinius {
     }
 
     /* push a global constant onto the stack
-    *  0 : cpath_top (Object)
+     * 0 : cpath_top (Object)
      * 1 : Rubinius module
      * 2 : Rubinius::Type module
      * 3 : Rubinius::Mirror class
