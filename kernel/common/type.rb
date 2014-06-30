@@ -47,6 +47,23 @@ module Rubinius
     end
 
     ##
+    # BasicObject responds to pretty much no, if any methods at all. This
+    # method provides a simple coercion guard for BasicObject instances.
+    #
+    # Basic example:
+    #
+    #     object = BasicObject.new
+    #
+    #     # TypeError: "BasicObject can't be coerced into String".
+    #     Rubinius::Type.basic_object_guard(object, String)
+    #
+    def self.coerce_basic_object_guard(other, klass)
+      if object_class(other) == BasicObject
+        raise TypeError, "BasicObject can't be coerced into #{klass}"
+      end
+    end
+
+    ##
     # Same as coerce_to but returns nil if conversion fails.
     # Corresponds to MRI's rb_check_convert_type()
     #
