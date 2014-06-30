@@ -59,7 +59,7 @@ module Rubinius
     #
     def self.coerce_basic_object_guard(other, klass)
       if object_class(other) == BasicObject
-        raise TypeError, "BasicObject can't be coerced into #{klass}"
+        raise TypeError, "can't convert BasicObject into #{klass}"
       end
     end
 
