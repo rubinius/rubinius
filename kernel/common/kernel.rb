@@ -113,6 +113,8 @@ module Kernel
   module_function :Rational
 
   def String(obj)
+    Rubinius::Type.coerce_basic_object_guard(obj, String)
+
     return obj if obj.kind_of? String
 
     unless obj.respond_to?(:to_s)
