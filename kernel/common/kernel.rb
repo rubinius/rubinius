@@ -20,6 +20,8 @@ module Kernel
   module_function :Complex
 
   def Float(obj)
+    Rubinius::Type.coerce_basic_object_guard(obj, Float)
+
     case obj
     when String
       Rubinius::Type.coerce_string_to_float obj, true
