@@ -55,6 +55,8 @@ module Kernel
   private :FloatValue
 
   def Hash(obj)
+    Rubinius::Type.coerce_basic_object_guard(obj, Hash)
+
     return {} if obj.nil? || obj == []
 
     if hash = Rubinius::Type.check_convert_type(obj, Hash, :to_hash)
