@@ -46,6 +46,12 @@ describe :kernel_Hash, :shared => true do
 
     lambda { @object.send(@method, obj) }.should raise_error(TypeError)
   end
+
+  it "raises a TypeError when coercing a BasicObject" do
+    obj = BasicObject.new
+
+    lambda { @object.send(@method, obj) }.should raise_error(TypeError)
+  end
 end
 
 describe "Kernel.Hash" do
