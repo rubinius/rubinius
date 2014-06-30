@@ -233,6 +233,12 @@ describe :kernel_float, :shared => true do
     (obj = mock('123')).should_receive(:to_f).once.and_return(123)
     lambda { @object.send(:Float, obj) }.should raise_error(TypeError)
   end
+
+  it "raises a TypeError when coercing a BasicObject" do
+    obj = BasicObject.new
+
+    lambda { @object.send(:Float, obj) }.should raise_error(TypeError)
+  end
 end
 
 describe "Kernel.Float" do
