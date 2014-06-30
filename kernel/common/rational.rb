@@ -165,6 +165,8 @@ class Rational < Numeric
   end
 
   def coerce(other)
+    Rubinius::Type.coerce_basic_object_guard(other, Rational)
+
     case other
     when Integer
       return Rational.new(other, 1), self
