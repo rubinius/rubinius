@@ -165,8 +165,6 @@ class Rational < Numeric
   end
 
   def coerce(other)
-    Rubinius::Type.coerce_basic_object_guard(other, Rational)
-
     case other
     when Integer
       return Rational.new(other, 1), self
@@ -263,6 +261,8 @@ class Rational < Numeric
   end
 
   def self.convert(num, den, mathn = true)
+    Rubinius::Type.coerce_basic_object_guard(num, Rational)
+
     if num.nil? || den.nil?
       raise TypeError, "cannot convert nil into Rational"
     end
