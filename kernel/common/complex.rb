@@ -225,6 +225,8 @@ class Complex < Numeric
   end
 
   def coerce(other)
+    Rubinius::Type.coerce_basic_object_guard(other, Complex)
+
     if other.kind_of?(Numeric) && other.real?
       [Complex.new(other, 0), self]
     elsif other.kind_of?(Complex)
