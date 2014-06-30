@@ -662,9 +662,11 @@ to rebuild the compiler.
           exit 1
         end
       elsif not @evals.empty?
-        mel = parser.parse_string @evals.join("\n")
+        mel = parser.new('-e', 1, [])
+        parser.parse_string @evals.join("\n")
       else
-        mel = parser.parse_string STDIN.read
+        mel = parser.new('-', 1, [])
+        parser.parse_string STDIN.read
       end
 
       puts "Syntax OK"
