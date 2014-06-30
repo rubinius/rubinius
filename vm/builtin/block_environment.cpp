@@ -250,14 +250,15 @@ namespace rubinius {
       // Too many args (no rest argument!)
       if(!RP && N > T) {
         if(lambda) return false;
+
         N = T;
       }
 
-      const native_int HL = (H - N) > 0 ? MIN(N, H - N) : H;
-      const native_int PM = N < M ? (N - H > 0 ? P - (N - H) : 0) : P;
-
       // Too few args!
       if(lambda && N < M) return false;
+
+      const native_int HL = (H - N) > 0 ? MIN(N, H - N) : H;
+      const native_int PM = N < M ? (N - H > 0 ? P - (N - H) : 0) : P;
 
       Object* kw = 0;
       bool KP = false;
@@ -278,23 +279,30 @@ namespace rubinius {
             Dispatch dis(name);
 
             obj = dis.send(state, call_frame, args);
-            if(obj && obj->kind_of_p(state, cls)) {
-              kw = obj;
-              KP = true;
+            if(obj) {
+              if(obj->kind_of_p(state, cls)) {
+                kw = obj;
+                KP = true;
+              }
+            } else {
+              state->vm()->thread_state()->clear_raise();
             }
           }
         }
       }
 
-      const native_int K = (KP && N > M) ? 1 : 0;
       const native_int O = T - M - (mcode->keywords ? 1 : 0);
-      const native_int E = N - M - K;
+
+      native_int K = (KP && N > M) ? 1 : 0;
+      native_int E = N - M - K;
 
       // A single kwrest argument
       if(mcode->keywords && !RP && !KP && E > O) {
         if(lambda) return false;
 
         N = T;
+        K = (KP && N > M) ? 1 : 0;
+        E = N - M - K;
       }
 
       native_int X;
@@ -422,7 +430,7 @@ namespace rubinius {
                                     | CallFrame::cBlock;
 
     if(!GenericArguments::call(state, frame, mcode, scope, args, invocation.flags)) {
-      if(!state->vm()->thread_state()->current_exception()) {
+      if(state->vm()->thread_state()->raise_reason() == cNone) {
         Exception* exc =
           Exception::make_argument_error(state, mcode->required_args, args.total(),
                                          mcode->name());

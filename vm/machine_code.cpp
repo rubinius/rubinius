@@ -542,9 +542,13 @@ namespace rubinius {
             Dispatch dis(name);
 
             obj = dis.send(state, call_frame, args);
-            if(obj && obj->kind_of_p(state, cls)) {
-              kw = obj;
-              KP = true;
+            if(obj) {
+              if(obj->kind_of_p(state, cls)) {
+                kw = obj;
+                KP = true;
+              }
+            } else {
+              state->vm()->thread_state()->clear_raise();
             }
           }
         }
