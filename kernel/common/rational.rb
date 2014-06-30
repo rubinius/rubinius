@@ -263,6 +263,12 @@ class Rational < Numeric
   def self.convert(num, den, mathn = true)
     Rubinius::Type.coerce_basic_object_guard(num, Rational)
 
+    # Extra guard in case `den` is a Basicobject. MRI in this case raises
+    # "TypeError: not an integer" which is a fairly useless error.
+    if Rubinius::Type.object_class(den) == BasicObject
+      raise TypeError, 'can not use BasicObject for the second argument'
+    end
+
     if num.nil? || den.nil?
       raise TypeError, "cannot convert nil into Rational"
     end
