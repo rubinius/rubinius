@@ -98,7 +98,7 @@ namespace jit {
       }
 
       if(Broken or llvm::verifyFunction(*function_, PrintMessageAction)) {
-        llvm::outs() << "ERROR: complication error detected.\n";
+        llvm::outs() << "ERROR: compilation error detected.\n";
         llvm::outs() << "ERROR: Please report the above message and the\n";
         llvm::outs() << "       code below to http://github.com/rubinius/rubinius/issues\n";
         llvm::outs() << *function_ << "\n";
