@@ -1835,7 +1835,7 @@ namespace rubinius {
           // Run the policy on the block code here, if we're not going to
           // inline it, don't inline this either.
           InlineOptions opts;
-          opts.inlining_block_19();
+          opts.inlining_block();
 
           InlineDecision decision = inline_policy()->inline_p(
                                       block_code->machine_code(), opts);
