@@ -18,7 +18,6 @@ namespace jit {
     void check_arity();
     void import_args();
     void assign_fixed_args(llvm::Value*, int, int);
-    void import_args_19_style();
 
   protected:
     llvm::Value* inv_flags_;

@@ -318,7 +318,7 @@ extern "C" {
     return NULL;
   }
 
-  Object* rbx_construct_splat_x(STATE, Arguments& args,
+  Object* rbx_construct_splat(STATE, Arguments& args,
       size_t rest_start, size_t rest_size)
   {
       if(rest_size > 0) {
@@ -335,21 +335,6 @@ extern "C" {
       } else {
         return Array::create_dirty(state, 0);
       }
-  }
-
-  Object* rbx_construct_splat(STATE, Arguments& args, size_t start, size_t total) {
-    int splat_size = args.total() - total;
-
-    if(splat_size > 0) {
-      Array* ary = Array::create_dirty(state, splat_size);
-
-      for(int i = 0, n = start; i < splat_size; i++, n++) {
-        ary->set(state, i, args.get_argument(n));
-      }
-      return ary;
-    } else {
-      return Array::create_dirty(state, 0);
-    }
   }
 
   Object* rbx_cast_array(STATE, CallFrame* call_frame, Object* top) {
