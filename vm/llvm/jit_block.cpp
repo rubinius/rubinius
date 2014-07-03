@@ -585,8 +585,8 @@ namespace jit {
 
     // arg_index_ = N - P - K
     b().CreateStore(
-        b().CreateSub(N,
-          b().CreateSub(cint(P), K)),
+        b().CreateSub(
+          b().CreateSub(N, cint(P)), K),
         arg_index_);
 
     {
