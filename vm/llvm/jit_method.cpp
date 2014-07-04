@@ -47,9 +47,9 @@ namespace jit {
     llvm::Value* args = ai++; args->setName("args");
 
     BasicBlock* block = BasicBlock::Create(ctx_->llvm_context(), "entry", func);
-    builder_.SetInsertPoint(block);
+    b().SetInsertPoint(block);
 
-    info_.context()->set_function(func);
+    ctx_->set_function(func);
 
     info_.set_state(state);
     info_.set_args(args);
@@ -63,6 +63,8 @@ namespace jit {
     initialize_frame(machine_code_->stack_size);
 
     nil_stack(machine_code_->stack_size, constant(cNil, obj_type));
+
+    setup_scope();
 
     import_args();
 
@@ -195,8 +197,6 @@ namespace jit {
   }
 
   void MethodBuilder::import_args() {
-    setup_scope();
-
     Value* N = arg_total;
 
     const native_int T = machine_code_->total_args;
