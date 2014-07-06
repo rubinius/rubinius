@@ -211,43 +211,62 @@ namespace jit {
                          offset::Arguments::arguments, "arg_ary_pos"),
                        "arg_ary");
 
+    BasicBlock* after_args = info_.new_block("after_args");
+    BasicBlock* setup_bounds = info_.new_block("setup_bounds");
+
     if(!RP && M == T) {
       if(H > 0) assign_fixed_args(arg_ary, 0, H);
       if(P > 0) assign_fixed_args(arg_ary, H, H + P);
 
-      return;
+      b().CreateBr(after_args);
+    } else {
+      b().CreateBr(setup_bounds);
     }
 
-    // K = (keyword_object && N > M) ? 1 : 0;
+    b().SetInsertPoint(setup_bounds);
+
     Value* null = Constant::getNullValue(obj_type);
 
+    // K = (keyword_object && N > M) ? 1 : 0;
     Value* K = b().CreateSelect(
         b().CreateAnd(
           b().CreateICmpNE(b().CreateLoad(keyword_object_), null),
           b().CreateICmpSGT(N, cint(M))),
         cint(1), cint(0));
 
-    // const native_int O = T - M - (mcode->keywords ? 1 : 0);
+    // O = T - M - (mcode->keywords ? 1 : 0);
     Value* O = cint(T - M - (machine_code_->keywords ? 1 : 0));
 
-    // const native_int E = N - M - K;
-    Value* E = b().CreateSub(N, b().CreateAdd(cint(M), K));
+    // E = N - M - K;
+    Value* N_M_K = b().CreateSub(N, b().CreateAdd(cint(M), K));
+    Value* E = b().CreateSelect(b().CreateICmpSGE(N_M_K, cint(0)), N_M_K, cint(0));
 
-    // const native_int ON = (X = MIN(O, E)) > 0 ? X : 0;
+    // ON = (X = MIN(O, E)) > 0 ? X : 0;
     Value* X = b().CreateSelect(b().CreateICmpSLE(O, E), O, E);
     Value* ON = b().CreateSelect(b().CreateICmpSGT(X, cint(0)), X, cint(0));
 
     // head arguments
-    assign_fixed_args(arg_ary, 0, H);
+    if(H > 0) {
+      assign_fixed_args(arg_ary, 0, H);
+    }
+
+    // arg limit = H + ON
+    Value* H_ON = b().CreateAdd(cint(H), ON);
+
+    BasicBlock* pre_opts = info_.new_block("pre_optional_args");
+    BasicBlock* post_opts = info_.new_block("post_optional_args");
+
+    b().CreateCondBr(
+        b().CreateICmpSGT(O, cint(0)),
+        pre_opts, post_opts);
 
     // optional arguments
     // for(l = a = H; l < H + O && a < H + ON; l++, a++)
 
+    b().SetInsertPoint(pre_opts);
+
     // local limit = H + O
     Value* H_O = b().CreateAdd(cint(H), O);
-
-    // arg limit = H + ON
-    Value* H_ON = b().CreateAdd(cint(H), ON);
 
     {
       BasicBlock* top = info_.new_block("opt_arg_loop_top");
@@ -305,7 +324,7 @@ namespace jit {
 
       b().CreateCondBr(
           b().CreateICmpSLT(ON, O),
-          pre, after);
+          pre, post_opts);
 
       b().SetInsertPoint(pre);
 
@@ -343,7 +362,12 @@ namespace jit {
       b().CreateBr(top);
 
       b().SetInsertPoint(after);
+      b().CreateBr(post_opts);
     }
+
+    b().SetInsertPoint(post_opts);
+
+    BasicBlock* post_args = info_.new_block("post_args");
 
     // rest arguments
     if(RP) {
@@ -385,65 +409,75 @@ namespace jit {
       b().CreateStore(splat_val, pos);
     }
 
-    // post arguments
-    // PI = H + O + (RP ? 1 : 0)
-    Value* PI = b().CreateAdd(cint(H), RP ? b().CreateAdd(O, cint(1)) : O);
+    b().CreateBr(post_args);
+    b().SetInsertPoint(post_args);
 
-    // l = PI; l < PI + P && a < N - K
-    Value* PI_P = b().CreateAdd(PI, cint(P));
-    Value* N_K = b().CreateSub(N, K);
+    BasicBlock* kw_args = info_.new_block("kw_args");
 
-    // local_index_ = PI
-    b().CreateStore(PI, local_index_);
+    if(P > 0) {
+      // post arguments
+      // PI = H + O + (RP ? 1 : 0)
+      Value* PI = b().CreateAdd(cint(H), RP ? b().CreateAdd(O, cint(1)) : O);
 
-    // arg_index_ = N - P - K
-    b().CreateStore(
-        b().CreateSub(
-          b().CreateSub(N, cint(P)), K),
-        arg_index_);
+      // l = PI; l < PI + P && a < N - K
+      Value* PI_P = b().CreateAdd(PI, cint(P));
+      Value* N_K = b().CreateSub(N, K);
 
-    {
-      BasicBlock* top = info_.new_block("post_arg_loop_top");
-      BasicBlock* body = info_.new_block("post_arg_loop_body");
-      BasicBlock* after = info_.new_block("post_arg_loop_cont");
+      // local_index_ = PI
+      b().CreateStore(PI, local_index_);
 
-      b().CreateBr(top);
-      b().SetInsertPoint(top);
-
-      Value* local_i = b().CreateLoad(local_index_, "local_index");
-      Value* arg_i = b().CreateLoad(arg_index_, "arg_index");
-
-      // l < PI + P && a < N - K
-      Value* loop_test = b().CreateAnd(
-          b().CreateICmpSLT(local_i, PI_P),
-          b().CreateICmpSLT(arg_i, N_K));
-
-      b().CreateCondBr(loop_test, body, after);
-
-      b().SetInsertPoint(body);
-
-      Value* idx[] = {
-        cint(0),
-        cint(offset::StackVariables::locals),
-        local_i
-      };
-
-      // locals[local_index_] = args[local_index_]
+      // arg_index_ = N - P - K
       b().CreateStore(
-          b().CreateLoad(
-            b().CreateGEP(arg_ary, arg_i)),
-          b().CreateGEP(vars, idx));
+          b().CreateSub(
+            b().CreateSub(N, cint(P)), K),
+          arg_index_);
 
-      // local_index_++
-      b().CreateStore(b().CreateAdd(local_i, cint(1)), local_index_);
+      {
+        BasicBlock* top = info_.new_block("post_arg_loop_top");
+        BasicBlock* body = info_.new_block("post_arg_loop_body");
+        BasicBlock* after = info_.new_block("post_arg_loop_cont");
 
-      // arg_index++
-      b().CreateStore(b().CreateAdd(arg_i, cint(1)), arg_index_);
+        b().CreateBr(top);
+        b().SetInsertPoint(top);
 
-      b().CreateBr(top);
+        Value* local_i = b().CreateLoad(local_index_, "local_index");
+        Value* arg_i = b().CreateLoad(arg_index_, "arg_index");
 
-      b().SetInsertPoint(after);
+        // l < PI + P && a < N - K
+        Value* loop_test = b().CreateAnd(
+            b().CreateICmpSLT(local_i, PI_P),
+            b().CreateICmpSLT(arg_i, N_K));
+
+        b().CreateCondBr(loop_test, body, after);
+
+        b().SetInsertPoint(body);
+
+        Value* idx[] = {
+          cint(0),
+          cint(offset::StackVariables::locals),
+          local_i
+        };
+
+        // locals[local_index_] = args[local_index_]
+        b().CreateStore(
+            b().CreateLoad(
+              b().CreateGEP(arg_ary, arg_i)),
+            b().CreateGEP(vars, idx));
+
+        // local_index_++
+        b().CreateStore(b().CreateAdd(local_i, cint(1)), local_index_);
+
+        // arg_index++
+        b().CreateStore(b().CreateAdd(arg_i, cint(1)), arg_index_);
+
+        b().CreateBr(top);
+
+        b().SetInsertPoint(after);
+      }
     }
+
+    b().CreateBr(kw_args);
+    b().SetInsertPoint(kw_args);
 
     // keywords
     {
@@ -473,6 +507,9 @@ namespace jit {
 
       b().SetInsertPoint(after_kw);
     }
+
+    b().CreateBr(after_args);
+    b().SetInsertPoint(after_args);
   }
 
   void MethodBuilder::return_value(Value* ret, BasicBlock* cont) {
