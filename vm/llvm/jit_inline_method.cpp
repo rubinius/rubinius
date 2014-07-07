@@ -110,20 +110,29 @@ namespace jit {
 
     assert(stack_args.size() <= (size_t)machine_code_->total_args);
 
-    for(size_t i = 0; i < stack_args.size(); i++) {
-      Value* int_pos = cint(i);
+    assign_arguments(stack_args);
 
-      Value* idx2[] = {
+    b().CreateBr(body);
+    b().SetInsertPoint(body);
+
+    return entry;
+  }
+
+  void InlineMethodBuilder::assign_fixed_arguments(std::vector<Value*>& stack_args,
+      int local_start, int local_end, int arg_start)
+  {
+    for(int l = local_start, a = arg_start; l < local_end; l++, a++) {
+      Value* idx[] = {
         cint(0),
         cint(offset::StackVariables::locals),
-        int_pos
+        cint(l)
       };
 
-      Value* pos = b().CreateGEP(vars, idx2, "local_pos");
+      Value* pos = b().CreateGEP(vars, idx, "local_pos");
 
-      Value* arg_val = stack_args.at(i);
+      Value* arg_val = stack_args.at(a);
 
-      LocalInfo* li = info_.get_local(i);
+      LocalInfo* li = info_.get_local(l);
       li->make_argument();
 
       if(ctx_->llvm_state()->type_optz()) {
@@ -135,11 +144,343 @@ namespace jit {
 
       b().CreateStore(arg_val, pos);
     }
+  }
 
-    b().CreateBr(body);
-    b().SetInsertPoint(body);
+  void InlineMethodBuilder::assign_arguments(std::vector<Value*>& stack_args) {
+    const native_int T = machine_code_->total_args;
+    const native_int M = machine_code_->required_args;
 
-    return entry;
+    if(stack_args.size() == M && M == T) {
+      assign_fixed_arguments(stack_args, 0, stack_args.size(), 0);
+
+      return;
+    }
+
+    const native_int P  = machine_code_->post_args;
+    const native_int H  = M - P;
+
+    // head arguments
+    if(H > 0) {
+      assign_fixed_arguments(stack_args, 0, H, 0);
+    }
+
+    if(!machine_code_->keywords) {
+      const native_int N = stack_args.size();
+      const native_int O = T - M;
+      const native_int E = N - M;
+
+      native_int X;
+
+      const native_int ON = (X = MIN(O, E)) > 0 ? X : 0;
+      const native_int PI = H + O;
+
+      // optional arguments
+      if(O > 0) {
+        if(ON > 0) {
+          assign_fixed_arguments(stack_args, H, MIN(H + O, H + ON), H);
+        }
+
+        if(ON < O) {
+          // missing optional arguments
+          Type* undef_type = llvm::PointerType::getUnqual(obj_type);
+          Object** addr = ctx_->llvm_state()->shared().globals.undefined.object_address();
+          Value* undef = b().CreateLoad(constant(addr, undef_type));
+
+          for(int l = H + ON; l < H + O; l++) {
+            Value* idx[] = {
+              cint(0),
+              cint(offset::StackVariables::locals),
+              cint(l)
+            };
+
+            Value* pos = b().CreateGEP(vars, idx, "local_pos");
+
+            b().CreateStore(undef, pos);
+          }
+        }
+      }
+
+      // post arguments
+      if(P > 0) {
+        assign_fixed_arguments(stack_args, PI, N, N - P);
+      }
+    } else {
+      BasicBlock* alloca_block = &info_.function()->getEntryBlock();
+
+      Value* args_array = new AllocaInst(obj_type, cint(stack_args.size() - H),
+          "args_array", alloca_block->getTerminator());
+
+      for(int i = H; i < stack_args.size(); i++) {
+        b().CreateStore(stack_args.at(i),
+            b().CreateGEP(args_array, cint(i - H), "args_array_pos"));
+      }
+
+      Value* keyword_object = b().CreateAlloca(obj_type, 0, "keyword_object");
+      Value* local_index = b().CreateAlloca(ctx_->Int32Ty, 0, "local_index");
+      Value* arg_index = b().CreateAlloca(ctx_->Int32Ty, 0, "args_index");
+
+      Value* null = Constant::getNullValue(obj_type);
+
+      if(stack_args.size() > M) {
+        Signature sig(ctx_, "Object");
+        sig << "State";
+        sig << "CallFrame";
+        sig << "Object";
+
+        Value* call_args[] = {
+          info_.state(),
+          info_.previous(),
+          b().CreateLoad(
+              b().CreateGEP(args_array, cint(stack_args.size() - H - 1)))
+        };
+
+        Value* keyword_val = sig.call("rbx_check_keyword",
+            call_args, 3, "keyword_val", b());
+
+        b().CreateStore(keyword_val, keyword_object);
+      } else {
+        b().CreateStore(null, keyword_object);
+      }
+
+      Value* N = cint(stack_args.size());
+
+      // K = (keyword_object && N > M) ? 1 : 0;
+      Value* K = b().CreateSelect(
+          b().CreateAnd(
+            b().CreateICmpNE(b().CreateLoad(keyword_object), null),
+            b().CreateICmpSGT(N, cint(M))),
+          cint(1), cint(0));
+
+      // O = T - M - (mcode->keywords ? 1 : 0);
+      Value* O = cint(T - M - 1);
+
+      // E = N - M - K;
+      Value* N_M_K = b().CreateSub(N, b().CreateAdd(cint(M), K));
+      Value* E = b().CreateSelect(b().CreateICmpSGE(N_M_K, cint(0)), N_M_K, cint(0));
+
+      // ON = (X = MIN(O, E)) > 0 ? X : 0;
+      Value* X = b().CreateSelect(b().CreateICmpSLE(O, E), O, E);
+      Value* ON = b().CreateSelect(b().CreateICmpSGT(X, cint(0)), X, cint(0));
+
+      // arg limit = H + ON
+      Value* H_ON = b().CreateAdd(cint(H), ON);
+
+      BasicBlock* pre_opts = info_.new_block("pre_optional_args");
+      BasicBlock* post_opts = info_.new_block("post_optional_args");
+
+      b().CreateCondBr(
+          b().CreateICmpSGT(O, cint(0)),
+          pre_opts, post_opts);
+
+      // optional arguments
+      // for(l = a = H; l < H + O && a < H + ON; l++, a++)
+
+      b().SetInsertPoint(pre_opts);
+
+      // local limit = H + O
+      Value* H_O = b().CreateAdd(cint(H), O);
+
+      {
+        BasicBlock* top = info_.new_block("opt_arg_loop_top");
+        BasicBlock* body = info_.new_block("opt_arg_loop_body");
+        BasicBlock* after = info_.new_block("opt_arg_loop_cont");
+
+        // local_index = arg_index = H
+        b().CreateStore(cint(H), local_index);
+        b().CreateStore(cint(0), arg_index);
+
+        b().CreateBr(top);
+        b().SetInsertPoint(top);
+
+        Value* local_i = b().CreateLoad(local_index, "local_index");
+        Value* arg_i = b().CreateLoad(arg_index, "arg_index");
+
+        // local_index < H + O && arg_index < H + ON
+        Value* loop_test = b().CreateAnd(
+            b().CreateICmpSLT(local_i, H_O),
+            b().CreateICmpSLT(arg_i, ON));
+
+        b().CreateCondBr(loop_test, body, after);
+
+        b().SetInsertPoint(body);
+
+        Value* idx[] = {
+          cint(0),
+          cint(offset::StackVariables::locals),
+          local_i
+        };
+
+        // locals[local_index] = args[local_index]
+        b().CreateStore(
+            b().CreateLoad(
+              b().CreateGEP(args_array, arg_i)),
+            b().CreateGEP(vars, idx));
+
+        // local_index++
+        b().CreateStore(b().CreateAdd(local_i, cint(1)), local_index);
+
+        // arg_index++
+        b().CreateStore(b().CreateAdd(arg_i, cint(1)), arg_index);
+
+        b().CreateBr(top);
+
+        b().SetInsertPoint(after);
+      }
+
+      // if ON < O : more optional parameters than arguments available
+      {
+        BasicBlock* pre = info_.new_block("missing_opt_arg_loop_pre");
+        BasicBlock* top = info_.new_block("missing_opt_arg_loop_top");
+        BasicBlock* body = info_.new_block("missing_opt_arg_loop_body");
+        BasicBlock* after = info_.new_block("missing_opt_arg_loop_cont");
+
+        b().CreateCondBr(
+            b().CreateICmpSLT(ON, O),
+            pre, post_opts);
+
+        b().SetInsertPoint(pre);
+
+        b().CreateStore(H_ON, local_index);
+
+        Type* undef_type = llvm::PointerType::getUnqual(obj_type);
+        Object** addr = ctx_->llvm_state()->shared().globals.undefined.object_address();
+        Value* undef = b().CreateLoad(constant(addr, undef_type));
+
+        b().CreateBr(top);
+        b().SetInsertPoint(top);
+
+        Value* local_i = b().CreateLoad(local_index, "local_index");
+
+        b().CreateCondBr(
+            b().CreateICmpSLT(local_i, H_O),
+            body, after);
+
+        b().SetInsertPoint(body);
+
+        Value* idx[] = {
+          cint(0),
+          cint(offset::StackVariables::locals),
+          local_i
+        };
+
+        // locals[local_index] = undefined
+        b().CreateStore(
+            undef,
+            b().CreateGEP(vars, idx));
+
+        // local_index++
+        b().CreateStore(b().CreateAdd(local_i, cint(1)), local_index);
+
+        b().CreateBr(top);
+
+        b().SetInsertPoint(after);
+        b().CreateBr(post_opts);
+      }
+
+      b().SetInsertPoint(post_opts);
+
+      BasicBlock* post_args = info_.new_block("post_args");
+
+      b().CreateBr(post_args);
+      b().SetInsertPoint(post_args);
+
+      BasicBlock* kw_args = info_.new_block("kw_args");
+
+      if(P > 0) {
+        // post arguments
+        // PI = H + O
+        Value* PI = H_O;
+
+        // l = PI; l < PI + P && a < N - K - H
+        Value* PI_P = b().CreateAdd(PI, cint(P));
+        Value* N_K_H = b().CreateSub(b().CreateSub(N, K), cint(H));
+
+        // local_index = PI
+        b().CreateStore(PI, local_index);
+
+        // arg_index = N - P - K - H
+        b().CreateStore(
+            b().CreateSub(
+              b().CreateSub(
+                b().CreateSub(N, cint(P)), K), cint(H)),
+            arg_index);
+
+        {
+          BasicBlock* top = info_.new_block("post_arg_loop_top");
+          BasicBlock* body = info_.new_block("post_arg_loop_body");
+          BasicBlock* after = info_.new_block("post_arg_loop_cont");
+
+          b().CreateBr(top);
+          b().SetInsertPoint(top);
+
+          Value* local_i = b().CreateLoad(local_index, "local_index");
+          Value* arg_i = b().CreateLoad(arg_index, "arg_index");
+
+          // l < PI + P && a < N - K
+          Value* loop_test = b().CreateAnd(
+              b().CreateICmpSLT(local_i, PI_P),
+              b().CreateICmpSLT(arg_i, N_K_H));
+
+          b().CreateCondBr(loop_test, body, after);
+
+          b().SetInsertPoint(body);
+
+          Value* idx[] = {
+            cint(0),
+            cint(offset::StackVariables::locals),
+            local_i
+          };
+
+          // locals[local_index] = args[local_index]
+          b().CreateStore(
+              b().CreateLoad(
+                b().CreateGEP(args_array, arg_i)),
+              b().CreateGEP(vars, idx));
+
+          // local_index++
+          b().CreateStore(b().CreateAdd(local_i, cint(1)), local_index);
+
+          // arg_index++
+          b().CreateStore(b().CreateAdd(arg_i, cint(1)), arg_index);
+
+          b().CreateBr(top);
+
+          b().SetInsertPoint(after);
+        }
+      }
+
+      b().CreateBr(kw_args);
+      b().SetInsertPoint(kw_args);
+
+      // keywords
+      {
+        BasicBlock* before_kw = info_.new_block("before_keywords");
+        BasicBlock* after_kw = info_.new_block("after_keywords");
+
+        Value* null = Constant::getNullValue(obj_type);
+        Value* kw_val = b().CreateLoad(keyword_object, "kw_val");
+
+        b().CreateCondBr(
+            b().CreateICmpNE(kw_val, null),
+            before_kw, after_kw);
+
+        b().SetInsertPoint(before_kw);
+
+        Value* idx[] = {
+          cint(0),
+          cint(offset::StackVariables::locals),
+          cint(T - 1)
+        };
+
+        b().CreateStore(
+            b().CreateLoad(keyword_object),
+            b().CreateGEP(vars, idx));
+
+        b().CreateBr(after_kw);
+
+        b().SetInsertPoint(after_kw);
+      }
+    }
   }
 
   void InlineMethodBuilder::setup_inline_scope(Value* self, Value* blk, Value* mod) {

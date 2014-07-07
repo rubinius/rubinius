@@ -40,7 +40,8 @@ namespace rubinius {
     static bool can_inline_p(MachineCode* mcode, InlineOptions& opts) {
       // Reject methods with splat arguments
       if(!opts.allow_splat && mcode->splat_position >= 0) return false;
-      if(mcode->post_args > 0) return false;
+      // TODO: ensure all post_args cases inline
+      // if(mcode->post_args > 0) return false;
 
       InlineEvaluator eval(opts);
 

@@ -325,15 +325,24 @@ namespace jit {
 
       b().SetInsertPoint(kw_check);
 
+      Value* arg_ary = b().CreateLoad(
+          b().CreateConstGEP2_32(info_.args(), 0,
+            offset::Arguments::arguments, "arg_ary_pos"),
+          "arg_ary");
+
+      Value* kw_arg = b().CreateLoad(
+            b().CreateGEP(arg_ary,
+              b().CreateSub(N, cint(1))));
+
       Signature sig(ctx_, "Object");
       sig << "State";
       sig << "CallFrame";
-      sig << "Arguments";
+      sig << "Object";
 
       Value* call_args[] = {
         info_.state(),
         info_.previous(),
-        info_.args()
+        kw_arg
       };
 
       Value* keyword_val = sig.call("rbx_check_keyword",
@@ -397,9 +406,9 @@ namespace jit {
     const bool RP = (RI >= 0);
 
     Value* arg_ary = b().CreateLoad(
-                       b().CreateConstGEP2_32(info_.args(), 0,
-                         offset::Arguments::arguments, "arg_ary_pos"),
-                       "arg_ary");
+        b().CreateConstGEP2_32(info_.args(), 0,
+          offset::Arguments::arguments, "arg_ary_pos"),
+        "arg_ary");
 
     Value* N = b().CreateLoad(
         b().CreateConstGEP2_32(

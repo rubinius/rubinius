@@ -290,9 +290,8 @@ extern "C" {
     return call_frame->promote_scope(state);
   }
 
-  Object* rbx_check_keyword(STATE, CallFrame* call_frame, Arguments& args) {
+  Object* rbx_check_keyword(STATE, CallFrame* call_frame, Object* obj) {
     Object* cls = G(object)->get_const(state, "Hash");
-    Object* obj = args.get_argument(args.total() - 1);
 
     if(!cls->nil_p()) {
       if(obj->kind_of_p(state, cls)) {

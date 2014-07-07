@@ -18,6 +18,9 @@ namespace jit {
     llvm::BasicBlock* setup_inline(llvm::Value* self, llvm::Value* blk,
         std::vector<llvm::Value*>& args);
     void setup_inline_scope(llvm::Value* self, llvm::Value* blk, llvm::Value* mod);
+    void assign_arguments(std::vector<Value*>& stack_args);
+    void assign_fixed_arguments(std::vector<Value*>& stack_args,
+        int local_start, int local_end, int arg_start);
   };
 }
 }
