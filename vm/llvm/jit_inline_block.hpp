@@ -12,6 +12,9 @@ namespace jit {
 
     llvm::BasicBlock* setup_inline_block(llvm::Value* self, llvm::Value* mod,
                                          JITStackArgs& stack_args);
+    void assign_arguments(JITStackArgs& stack_args);
+    void assign_fixed_arguments(JITStackArgs& stack_args,
+        int local_start, int local_end, int arg_start);
   };
 }
 }

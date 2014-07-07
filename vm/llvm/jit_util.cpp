@@ -360,12 +360,12 @@ extern "C" {
         args.use_array(ary);
       } else if(CBOOL(obj->respond_to(state, G(sym_to_ary), cFalse))) {
         obj = obj->send(state, call_frame, G(sym_to_ary));
-        if(!obj) return 0;
+        if(!obj) return NULL;
         if(Array* ary2 = try_as<Array>(obj)) {
           args.use_array(ary2);
         } else {
           Exception::type_error(state, "to_ary must return an Array", call_frame);
-          return 0;
+          return NULL;
         }
       }
     }
@@ -373,8 +373,8 @@ extern "C" {
     return cNil;
   }
 
-  Object* rbx_destructure_inline_args(STATE, CallFrame* call_frame, Object* obj,
-                                      StackVariables* vars, int size)
+  int rbx_destructure_inline_args(STATE, CallFrame* call_frame,
+                                  Object* obj, Object** vars, int size)
   {
     Array* ary = try_as<Array>(obj);
 
@@ -390,17 +390,19 @@ extern "C" {
     }
 
     if(ary) {
-      size_t limit = MIN((int)ary->size(), size);
+      int limit = MIN((int)ary->size(), size);
 
-      for(size_t i = 0; i < limit; i++) {
-        vars->set_local(i, ary->get(state, i));
+      for(int i = 0; i < limit; i++) {
+        vars[i] =  ary->get(state, i);
       }
+
+      return limit;
     } else {
       assert(size > 0);
-      vars->set_local(0, obj);
-    }
+      vars[0] = obj;
 
-    return cNil;
+      return 1;
+    }
   }
 
   Object* rbx_cast_multi_value(STATE, CallFrame* call_frame, Object* top) {
