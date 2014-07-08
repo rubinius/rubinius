@@ -183,16 +183,16 @@ namespace jit {
       info_.add_return_value(Constant::getNullValue(obj_type),
           b().GetInsertBlock());
 
-      BasicBlock* cont = info_.new_block("continue");
+      BasicBlock* after_destructure = info_.new_block("after_destructure");
 
       Value* is_zero = b().CreateICmpEQ(size, cint(0));
-      b().CreateCondBr(is_zero, info_.return_pad(), cont);
+      b().CreateCondBr(is_zero, info_.return_pad(), after_destructure);
+
+      b().SetInsertPoint(after_destructure);
 
       N = b().CreateSelect(
           b().CreateICmpSLT(cint(T), size),
           cint(T), size);
-
-      b().SetInsertPoint(cont);
     } else {
       args_array = new AllocaInst(obj_type, cint(stack_args.size()),
           "args_array", alloca_block->getTerminator());
