@@ -125,18 +125,18 @@ namespace jit {
   }
 
   void InlineBlockBuilder::assign_arguments(JITStackArgs& stack_args) {
+    const native_int SN = stack_args.size();
     const native_int T = machine_code_->total_args;
     const native_int M = machine_code_->required_args;
     const native_int P  = machine_code_->post_args;
     const native_int H  = M - P;
 
-    if(stack_args.size() >= T && !machine_code_->keywords) {
+    if(SN >= T && !machine_code_->keywords) {
       // head arguments
       if(H > 0) {
         assign_fixed_arguments(stack_args, 0, H, 0);
       }
 
-      const native_int N = stack_args.size();
       const native_int O = T - M;
       const native_int PI = H + O;
 
@@ -147,7 +147,7 @@ namespace jit {
 
       // post arguments
       if(P > 0) {
-        assign_fixed_arguments(stack_args, PI, PI + P, N - P);
+        assign_fixed_arguments(stack_args, PI, PI + P, SN - P);
       }
 
       return;
@@ -159,7 +159,7 @@ namespace jit {
     Value* args_array;
 
     // Case: yield x -> m { |a, b, ...| }
-    if(stack_args.size() == 1 && T > 1) {
+    if(SN == 1 && T > 1) {
       args_array = new AllocaInst(obj_type, cint(T),
           "args_array", alloca_block->getTerminator());
 
@@ -194,18 +194,18 @@ namespace jit {
           b().CreateICmpSLT(cint(T), size),
           cint(T), size);
     } else {
-      args_array = new AllocaInst(obj_type, cint(stack_args.size()),
+      args_array = new AllocaInst(obj_type, cint(SN),
           "args_array", alloca_block->getTerminator());
 
-      for(int i = 0; i < stack_args.size(); i++) {
+      for(int i = 0; i < SN; i++) {
         b().CreateStore(stack_args.at(i),
             b().CreateGEP(args_array, cint(i), "args_array_pos"));
       }
 
       N = b().CreateSelect(
           b().CreateICmpSLT(
-            cint(T), cint(stack_args.size())),
-          cint(T), cint(stack_args.size()));
+            cint(T), cint(SN)),
+          cint(T), cint(SN));
     }
 
     Value* keyword_object = b().CreateAlloca(obj_type, 0, "keyword_object");

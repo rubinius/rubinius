@@ -149,8 +149,9 @@ namespace jit {
   void InlineMethodBuilder::assign_arguments(std::vector<Value*>& stack_args) {
     const native_int T = machine_code_->total_args;
     const native_int M = machine_code_->required_args;
+    const native_int SN = stack_args.size();
 
-    if(stack_args.size() == M && M == T) {
+    if(SN == M && M == T) {
       assign_fixed_arguments(stack_args, 0, stack_args.size(), 0);
 
       return;
@@ -165,9 +166,8 @@ namespace jit {
     }
 
     if(!machine_code_->keywords) {
-      const native_int N = stack_args.size();
       const native_int O = T - M;
-      const native_int E = N - M;
+      const native_int E = SN - M;
 
       native_int X;
 
@@ -202,15 +202,15 @@ namespace jit {
 
       // post arguments
       if(P > 0) {
-        assign_fixed_arguments(stack_args, PI, N, N - P);
+        assign_fixed_arguments(stack_args, PI, SN, SN - P);
       }
     } else {
       BasicBlock* alloca_block = &info_.function()->getEntryBlock();
 
-      Value* args_array = new AllocaInst(obj_type, cint(stack_args.size() - H),
+      Value* args_array = new AllocaInst(obj_type, cint(SN - H),
           "args_array", alloca_block->getTerminator());
 
-      for(int i = H; i < stack_args.size(); i++) {
+      for(int i = H; i < SN; i++) {
         b().CreateStore(stack_args.at(i),
             b().CreateGEP(args_array, cint(i - H), "args_array_pos"));
       }
@@ -221,7 +221,7 @@ namespace jit {
 
       Value* null = Constant::getNullValue(obj_type);
 
-      if(stack_args.size() > M) {
+      if(SN > M) {
         Signature sig(ctx_, "Object");
         sig << "State";
         sig << "CallFrame";
@@ -231,7 +231,7 @@ namespace jit {
           info_.state(),
           info_.previous(),
           b().CreateLoad(
-              b().CreateGEP(args_array, cint(stack_args.size() - H - 1)))
+              b().CreateGEP(args_array, cint(SN - H - 1)))
         };
 
         Value* keyword_val = sig.call("rbx_check_keyword",
@@ -242,7 +242,7 @@ namespace jit {
         b().CreateStore(null, keyword_object);
       }
 
-      Value* N = cint(stack_args.size());
+      Value* N = cint(SN);
 
       // K = (keyword_object && N > M) ? 1 : 0;
       Value* K = b().CreateSelect(
