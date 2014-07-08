@@ -209,7 +209,7 @@ namespace jit {
   }
 
   void BlockBuilder::check_arity() {
-    BasicBlock* load_flags = info_.new_block("load_flags");
+    BasicBlock* destruct_check = info_.new_block("destruct_check");
     BasicBlock* arg_error = info_.new_block("arg_error");
     BasicBlock* cont = info_.new_block("import_args");
 
@@ -218,38 +218,41 @@ namespace jit {
     const native_int RI = machine_code_->splat_position;
     const bool RP = (RI >= 0);
 
-    if(T == 0) {
-      if(!RP) {
-        Value* N = b().CreateLoad(
-            b().CreateConstGEP2_32(
-              info_.args(), 0, offset::Arguments::total));
-        Value* cmp = b().CreateICmpNE(N, cint(0), "arg_cmp");
-        b().CreateCondBr(cmp, arg_error, cont);
-      } else {
-        b().CreateBr(cont);
-      }
-    } else {
-      b().CreateBr(load_flags);
-    }
-
-    b().SetInsertPoint(load_flags);
-
-    BasicBlock* n_lt_m = info_.new_block("n_lt_m");
-
     Value* lambda_flag = cint(CallFrame::cIsLambda);
     Value* flags = b().CreateLoad(
         get_field(block_inv, offset::BlockInvocation::flags),
         "invocation.flags");
+    Value* not_lambda = b().CreateICmpNE(
+        b().CreateAnd(flags, lambda_flag), lambda_flag);
 
-    BasicBlock* lambda_check = info_.new_block("lambda_check");
+    if(T == 0) {
+      if(RP) {
+        b().CreateBr(cont);
+        b().SetInsertPoint(cont);
+        return;
+      }
 
-    b().CreateBr(lambda_check);
-    b().SetInsertPoint(lambda_check);
+      BasicBlock* arity_check = info_.new_block("arity_check");
+
+      b().CreateCondBr(not_lambda, cont, arity_check);
+
+      b().SetInsertPoint(arity_check);
+
+      Value* N = b().CreateLoad(
+          b().CreateConstGEP2_32(
+            info_.args(), 0, offset::Arguments::total));
+      Value* cmp = b().CreateICmpNE(N, cint(0), "arg_cmp");
+
+      b().CreateCondBr(cmp, arg_error, cont);
+    } else {
+      b().CreateBr(destruct_check);
+    }
+
+    b().SetInsertPoint(destruct_check);
+
+    BasicBlock* n_lt_m = info_.new_block("n_lt_m");
 
     if(M > 1 || (M == 1 && (RP || RI < -2))) {
-      Value* not_lambda = b().CreateICmpNE(
-          b().CreateAnd(flags, lambda_flag), lambda_flag);
-
       BasicBlock* destruct = info_.new_block("destructure");
       BasicBlock* destruct_cont = info_.new_block("destructure_contuation");
 
