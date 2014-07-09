@@ -202,30 +202,27 @@ namespace rubinius {
 
       // Only do destructuring in non-lambda mode
       if(!lambda) {
-        /* If only one argument was yielded and:
+        /* If only one argument was yielded and the block takes more than one
+         * argument or has form { |a, | }:
          *
-         *  1. the block takes two or more arguments
-         *  2. OR takes one argument and a splat
-         *  3. OR has the form { |a, | }
-         *  4. OR has the form { |(a, b)| }
-         *  5. OR has the form { |(a, b), c| }
-         *
-         * then we check if the one argument is an Array. If it is not, call
-         * #to_ary to convert it to an Array and raise if #to_ary does not
-         * return an Array.
-         *
-         * Finally, in cases 1-3, and 5 above, we destructure the Array into
-         * the block's arguments.
+         *  1. If the object is an Array, assign elements to arguments.
+         *  2. If the object returns 'nil' from #to_ary, assign the object
+         *     to the first argument.
+         *  3. If the object returns an Array from #to_ary, assign the
+         *     elements to the arguments.
+         *  4. If the object returns non-Array from #to_ary, raise a TypeError.
          */
-        if(N == 1 && (M > 1 || (M == 1 && (RP || RI < -2)))) {
+        if(N == 1 && (T > 1 || (RP && T > 0) || RI < -2)) {
           Object* obj = args.get_argument(0);
           Array* ary = 0;
 
           if(!(ary = try_as<Array>(obj))) {
             if(CBOOL(obj->respond_to(state, G(sym_to_ary), cFalse))) {
-              obj = obj->send(state, call_frame, G(sym_to_ary));
-              if(!obj) return false;
-              if(!(ary = try_as<Array>(obj))) {
+              if(!(obj = obj->send(state, call_frame, G(sym_to_ary)))) {
+                return false;
+              }
+
+              if(!(ary = try_as<Array>(obj)) && !obj->nil_p()) {
                 Exception::type_error(state, "to_ary must return an Array", call_frame);
                 return false;
               }
@@ -257,9 +254,6 @@ namespace rubinius {
       // Too few args!
       if(lambda && N < M) return false;
 
-      const native_int HL = (H - N) > 0 ? MIN(N, H - N) : H;
-      const native_int PM = N < M ? (N - H > 0 ? P - (N - H) : 0) : P;
-
       Object* kw = 0;
       bool KP = false;
 
@@ -283,6 +277,9 @@ namespace rubinius {
               if(obj->kind_of_p(state, cls)) {
                 kw = obj;
                 KP = true;
+              } else if(!obj->nil_p()) {
+                Exception::type_error(state, "to_hash must return a Hash", call_frame);
+                return false;
               }
             } else {
               state->vm()->thread_state()->clear_raise();
@@ -293,17 +290,16 @@ namespace rubinius {
 
       const native_int O = T - M - (mcode->keywords ? 1 : 0);
 
-      native_int K = (KP && N > M) ? 1 : 0;
-      native_int E = N - M - K;
-
       // A single kwrest argument
-      if(mcode->keywords && !RP && !KP && E > O) {
+      if(mcode->keywords && !RP && !KP && N >= T) {
         if(lambda) return false;
 
-        N = T;
-        K = (KP && N > M) ? 1 : 0;
-        E = N - M - K;
+        N = T - 1;
       }
+
+      const native_int K = (KP && N > M) ? 1 : 0;
+      const native_int N_M_K = N - M - K;
+      const native_int E = N_M_K > 0 ? N_M_K : 0;
 
       native_int X;
 
@@ -316,23 +312,25 @@ namespace rubinius {
       native_int l = 0;   // local index
 
       // head arguments
-      for(; a < HL; l++, a++) {
-        scope->set_local(l, args.get_argument(a));
-      }
+      if(H > 0) {
+        for(; l < H && a < N; l++, a++) {
+          scope->set_local(l, args.get_argument(a));
+        }
 
-      if(HL < H) {
         for(; l < H; l++) {
           scope->set_local(l, cNil);
         }
       }
 
       // optional arguments
-      for(; l < H + O && a < H + ON; l++, a++) {
-        scope->set_local(l, args.get_argument(a));
-      }
+      if(O > 0) {
+        for(; l < H + O && a < MIN(N, H + ON); l++, a++) {
+          scope->set_local(l, args.get_argument(a));
+        }
 
-      for(; l < H + O; l++) {
-        scope->set_local(l, G(undefined));
+        for(; l < H + O; l++) {
+          scope->set_local(l, G(undefined));
+        }
       }
 
       // rest arguments
@@ -353,12 +351,14 @@ namespace rubinius {
       }
 
       // post arguments
-      for(l = PI; l < PI + PM && a < N - K; l++, a++) {
-        scope->set_local(l, args.get_argument(a));
-      }
+      if(P > 0) {
+        const native_int N_K = (X = MIN(N, N - K)) > 0 ? X : N;
 
-      if(PM < P) {
-        for(; l < PI + P && a < N - K; l++, a++) {
+        for(l = PI; l < PI + P && a < N_K; l++, a++) {
+          scope->set_local(l, args.get_argument(a));
+        }
+
+        for(; l < PI + P; l++) {
           scope->set_local(l, cNil);
         }
       }
