@@ -252,11 +252,17 @@ namespace jit {
 
     BasicBlock* n_lt_m = info_.new_block("n_lt_m");
 
-    if(M > 1 || (M == 1 && (RP || RI < -2))) {
+    if(T > 1 || (RP && T > 0) || RI < -2) {
       BasicBlock* destruct = info_.new_block("destructure");
       BasicBlock* destruct_cont = info_.new_block("destructure_contuation");
 
-      b().CreateCondBr(not_lambda, destruct, n_lt_m);
+      Value* N = b().CreateLoad(
+          b().CreateConstGEP2_32(
+            info_.args(), 0, offset::Arguments::total));
+
+      b().CreateCondBr(b().CreateAnd(
+            b().CreateICmpEQ(N, cint(1)), not_lambda),
+          destruct, n_lt_m);
 
       b().SetInsertPoint(destruct);
 
@@ -308,9 +314,11 @@ namespace jit {
       Value* N = b().CreateLoad(
           b().CreateConstGEP2_32(
             info_.args(), 0, offset::Arguments::total));
+
       Value* cmp = b().CreateAnd(
           lambda,
           b().CreateICmpSGT(N, cint(T), "arg_cmp"));
+
       b().CreateCondBr(cmp, arg_error, update_n);
 
       b().SetInsertPoint(update_n);
@@ -322,6 +330,11 @@ namespace jit {
       Value* N = b().CreateLoad(
           b().CreateConstGEP2_32(
             info_.args(), 0, offset::Arguments::total));
+
+      Value* null = Constant::getNullValue(obj_type);
+
+      b().CreateStore(null, keyword_object_);
+
       b().CreateCondBr(
           b().CreateICmpSGT(N, cint(M)),
           kw_check, cont);
@@ -333,9 +346,18 @@ namespace jit {
             offset::Arguments::arguments, "arg_ary_pos"),
           "arg_ary");
 
+      // RP || (!RP && N < T) ? N - 1 : T
+      Value* kw_index = b().CreateSelect(
+          b().CreateOr(
+            b().CreateICmpEQ(cint(RP), cint(true)),
+            b().CreateAnd(
+              b().CreateICmpEQ(cint(RP), cint(false)),
+              b().CreateICmpSLT(N, cint(T)))),
+          b().CreateSub(N, cint(1)),
+          cint(T));
+
       Value* kw_arg = b().CreateLoad(
-            b().CreateGEP(arg_ary,
-              b().CreateSub(N, cint(1))));
+          b().CreateGEP(arg_ary, kw_index));
 
       Signature sig(ctx_, "Object");
       sig << "State";
@@ -349,9 +371,23 @@ namespace jit {
       };
 
       Value* keyword_val = sig.call("rbx_check_keyword",
-          call_args, 3, "keyword_val", b());
+          call_args, 3, "rbx_check_keyword", b());
 
       b().CreateStore(keyword_val, keyword_object_);
+
+      if(!RP) {
+        BasicBlock* after_kw_arity = info_.new_block("after_kw_arity");
+
+        b().CreateCondBr(
+            b().CreateAnd(
+              lambda,
+              b().CreateAnd(
+                b().CreateICmpEQ(keyword_val, null),
+                b().CreateICmpSGE(N, cint(T)))),
+            arg_error, after_kw_arity);
+
+        b().SetInsertPoint(after_kw_arity);
+      }
     }
 
     b().CreateBr(cont);
@@ -373,7 +409,7 @@ namespace jit {
       cint(machine_code_->total_args)
     };
 
-    Value* val = sig.call("rbx_arg_error", call_args, 4, "ret", b());
+    Value* val = sig.call("rbx_arg_error", call_args, 4, "rbx_arg_error", b());
     info_.add_return_value(val, b().GetInsertBlock());
     b().CreateBr(info_.return_pad());
 
@@ -420,7 +456,18 @@ namespace jit {
     BasicBlock* after_args = info_.new_block("after_args");
     BasicBlock* setup_bounds = info_.new_block("setup_bounds");
 
+    Signature jit_spot(ctx_, ctx_->VoidTy);
+    jit_spot << ctx_->Int32Ty;
+
     if(!RP && M == T) {
+      BasicBlock* assign_args = info_.new_block("assign_args");
+
+      b().CreateCondBr(
+          b().CreateICmpSLE(cint(T), N),
+          assign_args, setup_bounds);
+
+      b().SetInsertPoint(assign_args);
+
       if(H > 0) assign_fixed_args(arg_ary, 0, H);
       if(P > 0) assign_fixed_args(arg_ary, H, H + P);
 
@@ -453,7 +500,92 @@ namespace jit {
 
     // head arguments
     if(H > 0) {
-      assign_fixed_args(arg_ary, 0, H);
+      {
+        BasicBlock* head_top = info_.new_block("head_arg_loop_top");
+        BasicBlock* head_body = info_.new_block("head_arg_loop_body");
+        BasicBlock* head_after = info_.new_block("head_arg_loop_cont");
+
+        // local_index_ = arg_index_ = 0
+        b().CreateStore(cint(0), local_index_);
+        b().CreateStore(cint(0), arg_index_);
+
+        b().CreateBr(head_top);
+        b().SetInsertPoint(head_top);
+
+        Value* local_i = b().CreateLoad(local_index_, "local_index");
+        Value* arg_i = b().CreateLoad(arg_index_, "arg_index");
+
+        // l < H && a < N
+        Value* loop_test = b().CreateAnd(
+            b().CreateICmpSLT(local_i, cint(H)),
+            b().CreateICmpSLT(arg_i, N));
+
+        b().CreateCondBr(loop_test, head_body, head_after);
+
+        b().SetInsertPoint(head_body);
+
+        Value* idx[] = {
+          cint(0),
+          cint(offset::StackVariables::locals),
+          local_i
+        };
+
+        // locals[local_index_] = args[local_index_]
+        b().CreateStore(
+            b().CreateLoad(
+              b().CreateGEP(arg_ary, arg_i)),
+            b().CreateGEP(vars, idx));
+
+        // local_index_++
+        b().CreateStore(b().CreateAdd(local_i, cint(1)), local_index_);
+
+        // arg_index++
+        b().CreateStore(b().CreateAdd(arg_i, cint(1)), arg_index_);
+
+        b().CreateBr(head_top);
+
+        b().SetInsertPoint(head_after);
+      }
+
+      {
+        // if(N < H)
+        BasicBlock* head_missing_top = info_.new_block("head_missing_arg_loop_top");
+        BasicBlock* head_missing_body = info_.new_block("head_missing_arg_loop_body");
+        BasicBlock* head_missing_after = info_.new_block("head_missing_arg_loop_cont");
+
+        b().CreateCondBr(
+            b().CreateICmpSLT(N, cint(H)),
+            head_missing_top, head_missing_after);
+
+        b().SetInsertPoint(head_missing_top);
+
+        Value* local_i = b().CreateLoad(local_index_, "local_index");
+
+        // l < H
+        b().CreateCondBr(
+            b().CreateICmpSLT(local_i, cint(H)),
+            head_missing_body, head_missing_after);
+
+        b().SetInsertPoint(head_missing_body);
+
+        Value* idx[] = {
+          cint(0),
+          cint(offset::StackVariables::locals),
+          local_i
+        };
+
+        // locals[local_index_] = cNil
+        b().CreateStore(
+            constant(cNil, obj_type),
+            b().CreateGEP(vars, idx));
+
+        // local_index_++
+        b().CreateStore(b().CreateAdd(local_i, cint(1)), local_index_);
+
+        b().CreateBr(head_missing_top);
+
+        b().SetInsertPoint(head_missing_after);
+      }
     }
 
     // arg limit = H + ON
@@ -489,10 +621,12 @@ namespace jit {
       Value* local_i = b().CreateLoad(local_index_, "local_index");
       Value* arg_i = b().CreateLoad(arg_index_, "arg_index");
 
-      // l < H + O && a < H + ON
+      // l < H + O && a < MIN(N, H + ON)
       Value* loop_test = b().CreateAnd(
           b().CreateICmpSLT(local_i, H_O),
-          b().CreateICmpSLT(arg_i, H_ON));
+          b().CreateICmpSLT(arg_i,
+            b().CreateSelect(
+              b().CreateICmpSLT(N, H_ON), N, H_ON)));
 
       b().CreateCondBr(loop_test, body, after);
 
@@ -627,15 +761,25 @@ namespace jit {
 
       // l = PI; l < PI + P && a < N - K
       Value* PI_P = b().CreateAdd(PI, cint(P));
-      Value* N_K = b().CreateSub(N, K);
+      X = b().CreateSub(N, K);
+      Value* N_K = b().CreateSelect(
+          b().CreateAnd(
+            b().CreateICmpSGT(X, cint(0)),
+            b().CreateICmpSLT(X, N)),
+          X, N);
 
       // local_index_ = PI
       b().CreateStore(PI, local_index_);
 
       // arg_index_ = N - P - K
+      X = b().CreateSub(
+            b().CreateSub(N, cint(P)), K);
       b().CreateStore(
-          b().CreateSub(
-            b().CreateSub(N, cint(P)), K),
+          b().CreateSelect(
+            b().CreateAnd(
+              b().CreateICmpSGT(X, cint(0)),
+              b().CreateICmpSLT(X, N)),
+            X, N),
           arg_index_);
 
       {
@@ -680,13 +824,55 @@ namespace jit {
 
         b().SetInsertPoint(after);
       }
+
+      {
+        // if(l < PI + P)
+        BasicBlock* post_missing_top = info_.new_block("post_missing_arg_loop_top");
+        BasicBlock* post_missing_body = info_.new_block("post_missing_arg_loop_body");
+        BasicBlock* post_missing_after = info_.new_block("post_missing_arg_loop_cont");
+
+        b().CreateCondBr(
+            b().CreateICmpSLT(
+              b().CreateLoad(local_index_),
+              PI_P),
+            post_missing_top, post_missing_after);
+
+        b().SetInsertPoint(post_missing_top);
+
+        Value* local_i = b().CreateLoad(local_index_, "local_index");
+
+        // l < PI + P
+        b().CreateCondBr(
+            b().CreateICmpSLT(local_i, PI_P),
+            post_missing_body, post_missing_after);
+
+        b().SetInsertPoint(post_missing_body);
+
+        Value* idx[] = {
+          cint(0),
+          cint(offset::StackVariables::locals),
+          local_i
+        };
+
+        // locals[local_index_] = cNil
+        b().CreateStore(
+            constant(cNil, obj_type),
+            b().CreateGEP(vars, idx));
+
+        // local_index_++
+        b().CreateStore(b().CreateAdd(local_i, cint(1)), local_index_);
+
+        b().CreateBr(post_missing_top);
+
+        b().SetInsertPoint(post_missing_after);
+      }
     }
 
     b().CreateBr(kw_args);
     b().SetInsertPoint(kw_args);
 
     // keywords
-    {
+    if(machine_code_->keywords) {
       BasicBlock* before_kw = info_.new_block("before_keywords");
       BasicBlock* after_kw = info_.new_block("after_keywords");
 

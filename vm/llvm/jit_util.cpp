@@ -307,6 +307,9 @@ extern "C" {
         if(obj) {
           if(obj->kind_of_p(state, cls)) {
             return obj;
+          } else if(!obj->nil_p()) {
+            Exception::type_error(state, "to_hash must return a Hash", call_frame);
+            return NULL;
           }
         } else {
           state->vm()->thread_state()->clear_raise();
@@ -354,20 +357,24 @@ extern "C" {
   }
 
   Object* rbx_destructure_args(STATE, CallFrame* call_frame, Arguments& args) {
-    if(args.total() == 1) {
-      Object* obj = args.get_argument(0);
-      if(Array* ary = try_as<Array>(obj)) {
-        args.use_array(ary);
-      } else if(CBOOL(obj->respond_to(state, G(sym_to_ary), cFalse))) {
-        obj = obj->send(state, call_frame, G(sym_to_ary));
-        if(!obj) return NULL;
-        if(Array* ary2 = try_as<Array>(obj)) {
-          args.use_array(ary2);
-        } else {
+    Object* obj = args.get_argument(0);
+    Array* ary = 0;
+
+    if(!(ary = try_as<Array>(obj))) {
+      if(CBOOL(obj->respond_to(state, G(sym_to_ary), cFalse))) {
+        if(!(obj = obj->send(state, call_frame, G(sym_to_ary)))) {
+          return NULL;
+        }
+
+        if(!(ary = try_as<Array>(obj)) && !obj->nil_p()) {
           Exception::type_error(state, "to_ary must return an Array", call_frame);
           return NULL;
         }
       }
+    }
+
+    if(ary) {
+      args.use_array(ary);
     }
 
     return cNil;
