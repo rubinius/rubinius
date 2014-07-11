@@ -271,7 +271,7 @@ describe "A lambda literal -> () { }" do
   end
 end
 
-describe "A lambda expression" do
+describe "A lambda expression 'lambda { ... }'" do
   SpecEvaluate.desc = "for definition"
 
   it "calls the #lambda method" do
@@ -335,6 +335,39 @@ describe "A lambda expression" do
       ruby
 
       @a.(1).should == 1
+    end
+
+    evaluate <<-ruby do
+        def m(*a) yield(*a) end
+        @a = lambda { |a| a }
+      ruby
+
+      lambda { m(&@a) }.should raise_error(ArgumentError)
+      lambda { m(1, 2, &@a) }.should raise_error(ArgumentError)
+    end
+
+    evaluate <<-ruby do
+        @a = lambda { |a, | a }
+      ruby
+
+      @a.(1).should == 1
+      @a.([1, 2]).should == [1, 2]
+
+      lambda { @a.() }.should raise_error(ArgumentError)
+      lambda { @a.(1, 2) }.should raise_error(ArgumentError)
+    end
+
+    evaluate <<-ruby do
+        def m(a) yield a end
+        def m2() yield end
+
+        @a = lambda { |a, | a }
+      ruby
+
+      m(1, &@a).should == 1
+      m([1, 2], &@a).should == [1, 2]
+
+      lambda { m2(&@a) }.should raise_error(ArgumentError)
     end
 
     evaluate <<-ruby do
