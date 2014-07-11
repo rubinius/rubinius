@@ -136,8 +136,8 @@ namespace rubinius {
       if(block_->nil_p()) {
         return call(state, call_frame, args);
       } else {
-        // NOTE! To match MRI semantics, this explicitely ignores lambda_.
-        return block_->call(state, call_frame, args, 0);
+        int flags = CBOOL(lambda_) ? CallFrame::cIsLambda : 0;
+        return block_->call(state, call_frame, args, flags);
       }
     } else if(NativeMethod* nm = try_as<NativeMethod>(bound_method_)) {
       return nm->execute(state, call_frame, nm, G(object), args);
