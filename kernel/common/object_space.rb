@@ -62,7 +62,7 @@ module ObjectSpace
     end
 
     unless Rubinius.invoke_primitive(:vm_set_finalizer, obj, prc)
-      raise ArgumentError, "cannot define a finalizer for a #{obj.class}"
+      raise RuntimeError, "cannot define a finalizer for a #{obj.class}"
     end
 
     [0, prc]
