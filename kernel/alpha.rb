@@ -245,6 +245,13 @@ end
 #
 module Rubinius
 
+  module Runtime
+    def self.dup_as_array(obj)
+      Rubinius.primitive :array_dup_as_array
+      raise PrimitiveFailure, "Rubinius::Runtime.dup_as_array primitive failed"
+    end
+  end
+
   # Executable abstraction for accessors.
   #
   class AccessVariable

@@ -3611,14 +3611,14 @@ use_send:
       Signature sig(ctx_, ObjType);
 
       sig << StateTy;
+      sig << CallFrameTy;
       sig << ObjType;
       sig << ObjType;
 
-      Value* top = stack_pop();
       Value* call_args[] = {
         state_,
         call_frame_,
-        top,
+        stack_pop(),
         stack_pop()
       };
 

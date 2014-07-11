@@ -5,7 +5,7 @@ minitest-4.7.5.gem
 racc-1.4.11.gem
 rake-10.3.2.gem
 rdoc-4.1.1.gem
-rubinius-ast-2.2.3.gem
+rubinius-ast-2.2.5.gem
 rubinius-build_tools-2.0.0.gem
 rubinius-compiler-2.2.1.gem
 rubinius-coverage-2.0.3.gem

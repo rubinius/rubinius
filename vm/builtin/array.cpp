@@ -55,6 +55,22 @@ namespace rubinius {
     return ary;
   }
 
+  Array* Array::dup_as_array(STATE, Object* obj) {
+    Array* sub = as<Array>(obj);
+
+    native_int size = sub->total()->to_native();
+    if(size < 0) return force_as<Array>(Primitives::failure());
+
+    Array* ary = state->new_object_dirty<Array>(G(array));
+    ary->start(state, Fixnum::from(0));
+    ary->total(state, Fixnum::from(size));
+    ary->tuple(state, Tuple::create(state, size < 1 ? 1 : size));
+    ary->tuple()->copy_from(state, sub->tuple(),
+        sub->start(), sub->total(), Fixnum::from(0));
+
+    return ary;
+  }
+
   Array* Array::new_range(STATE, Fixnum* start, Fixnum* count) {
     Array* ary = state->new_object_dirty<Array>(class_object(state));
     ary->total(state, count);
