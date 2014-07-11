@@ -73,6 +73,21 @@ describe "Multiple assignment" do
       [a, b].should == [1, 2]
     end
 
+    it "returns the RHS when it is an Array" do
+      ary = [1, 2]
+
+      x = (a, b = ary)
+      x.should equal(ary)
+    end
+
+    it "returns the RHS when it is an Array subclass" do
+      cls = Class.new(Array)
+      ary = cls.new [1, 2]
+
+      x = (a, b = ary)
+      x.should equal(ary)
+    end
+
     it "does not call #to_ary on an Array subclass instance" do
       x = Class.new(Array).new [1, 2]
       x.should_not_receive(:to_ary)
@@ -113,6 +128,24 @@ describe "Multiple assignment" do
       x.should_receive(:to_ary).and_return(1)
 
       lambda { *a = x }.should raise_error(TypeError)
+    end
+
+    it "does not call #to_ary on an Array subclass" do
+      cls = Class.new(Array)
+      ary = cls.new [1, 2]
+      ary.should_not_receive(:to_ary)
+
+      (*a = ary).should == [1, 2]
+      a.should == [1, 2]
+    end
+
+    it "assigns an Array when the RHS is an Array subclass" do
+      cls = Class.new(Array)
+      ary = cls.new [1, 2]
+
+      x = (*a = ary)
+      x.should equal(ary)
+      a.should be_an_instance_of(Array)
     end
 
     it "calls #to_ary to convert an Object RHS with MLHS" do
@@ -275,6 +308,43 @@ describe "Multiple assignment" do
 
       (*a = *nil).should == []
       a.should == []
+    end
+
+    it "does not call #to_a on an Array" do
+      ary = [1, 2]
+      ary.should_not_receive(:to_a)
+
+      (a = *ary).should == [1, 2]
+      a.should == [1, 2]
+    end
+
+    it "returns a copy of a splatted Array" do
+      ary = [1, 2]
+
+      (a = *ary).should == [1, 2]
+      a.should_not equal(ary)
+    end
+
+    it "does not call #to_a on an Array subclass" do
+      cls = Class.new(Array)
+      ary = cls.new [1, 2]
+      ary.should_not_receive(:to_a)
+
+      (a = *ary).should == [1, 2]
+      a.should == [1, 2]
+    end
+
+    it "returns an Array when the splatted object is an Array subclass" do
+      cls = Class.new(Array)
+      ary = cls.new [1, 2]
+
+      x = (a = *ary)
+
+      x.should == [1, 2]
+      x.should be_an_instance_of(Array)
+
+      a.should == [1, 2]
+      a.should be_an_instance_of(Array)
     end
 
     it "consumes values for an anonymous splat" do
