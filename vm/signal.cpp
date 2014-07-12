@@ -275,6 +275,7 @@ namespace rubinius {
 
   static void null_func(int sig) {}
 
+#ifdef USE_EXECINFO
   static void safe_write(int fd, const char* str, int len=0) {
     if(!len) len = strlen(str);
     if(write(fd, str, len) == 0) exit(101);
@@ -383,6 +384,7 @@ namespace rubinius {
 
     raise(sig);
   }
+#endif
 
   void SignalHandler::setup_default_handlers(std::string path) {
 #ifndef RBX_WINDOWS
