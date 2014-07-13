@@ -338,7 +338,13 @@ namespace :vm do
 
   desc "Clean up vm build files"
   task :clean do
-    blueprint = Daedalus.load "rakelib/blueprint.rb"
+    begin
+      blueprint = Daedalus.load "rakelib/blueprint.rb"
+      blueprint.clean
+    rescue
+      # Ignore clean failures
+    end
+
     files = FileList[
       GENERATED,
       'vm/gen/*',
@@ -360,8 +366,6 @@ namespace :vm do
     files.each do |filename|
       rm_rf filename, :verbose => $verbose
     end
-
-    blueprint.clean
   end
 
   desc "Clean up, including all external libs"
