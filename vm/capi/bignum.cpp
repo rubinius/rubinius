@@ -145,4 +145,8 @@ extern "C" {
 
     return big->mp_val()->sign != MP_NEG;
   }
+
+  VALUE rb_big_cmp(VALUE x, VALUE y) {
+    return rb_funcall(x, rb_intern("<=>"), 1, y);
+  }
 }
