@@ -139,10 +139,11 @@ namespace rubinius {
 
   void ImmixMarker::perform(STATE) {
     GCTokenImpl gct;
-    const char* thread_name = "rbx.immix";
+    RBX_DTRACE_CONST char* thread_name = const_cast<RBX_DTRACE_CONST char*>("rbx.immix");
     self_->set_name(thread_name);
 
-    RUBINIUS_THREAD_START(thread_name, state->vm()->thread_id(), 1);
+    RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CONST char*>(thread_name),
+                          state->vm()->thread_id(), 1);
 
     state->vm()->thread->hard_unlock(state, gct, 0);
 
@@ -193,7 +194,8 @@ namespace rubinius {
       state->gc_dependent(gct, 0);
     }
     state->memory()->clear_mature_mark_in_progress();
-    RUBINIUS_THREAD_STOP(thread_name, state->vm()->thread_id(), 1);
+    RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CONST char*>(thread_name),
+                         state->vm()->thread_id(), 1);
   }
 
 }

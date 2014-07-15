@@ -51,6 +51,18 @@ Daedalus.blueprint do |i|
 
   gcc.ldflags << "-lm"
 
+  if Rubinius::BUILD_CONFIG[:dtrace] and
+     Rubinius::BUILD_CONFIG[:os] =~ /freebsd(9|10)/
+    gcc.ldflags << "-lelf"
+    gcc.ldflags << "vm/dtrace/probes.o"
+
+    gcc.add_pre_link "rm -f vm/dtrace/probes.o"
+
+    blk = lambda { |files| files.select { |f| f =~ %r[vm/.*\.o$] } }
+    cmd = "dtrace -G -s vm/dtrace/probes.d -o vm/dtrace/probes.o %objects%"
+    gcc.add_pre_link(cmd, &blk)
+  end
+
   make = Rubinius::BUILD_CONFIG[:build_make]
 
   if RUBY_PLATFORM =~ /bsd/ and

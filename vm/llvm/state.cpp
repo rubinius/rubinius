@@ -230,12 +230,13 @@ namespace rubinius {
     }
 
     virtual void perform() {
-      const char* thread_name = "rbx.jit";
+      RBX_DTRACE_CONST char* thread_name = const_cast<RBX_DTRACE_CONST char*>("rbx.jit");
       ManagedThread::set_current(ls_, thread_name);
 
       ls_->set_run_state(ManagedThread::eIndependent);
 
-      RUBINIUS_THREAD_START(thread_name, ls_->thread_id(), 1);
+      RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CONST char*>(thread_name),
+                            ls_->thread_id(), 1);
 
 #ifndef RBX_WINDOWS
       sigset_t set;
@@ -431,7 +432,8 @@ namespace rubinius {
       }
 
 halt:
-      RUBINIUS_THREAD_STOP(thread_name, ls_->thread_id(), 1);
+      RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CONST char*>(thread_name),
+                           ls_->thread_id(), 1);
     }
 
     void gc_scan(GarbageCollector* gc) {

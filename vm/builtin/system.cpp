@@ -1696,7 +1696,10 @@ retry:
   Object* System::vm_dtrace_fire(STATE, String* payload) {
 #if HAVE_DTRACE
     if(RUBINIUS_RUBY_PROBE_ENABLED()) {
-      RUBINIUS_RUBY_PROBE((const char*)payload->byte_address(), payload->byte_size());
+      char* bytes = reinterpret_cast<char*>(payload->byte_address());
+      RUBINIUS_RUBY_PROBE(
+          const_cast<RBX_DTRACE_CONST char*>(bytes),
+          payload->byte_size());
       return cTrue;
     }
     return cFalse;

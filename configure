@@ -89,6 +89,7 @@ class Configure
     @x86_64       = false
     @fibers       = false
     @dtrace       = false
+    @dtrace_const = false
     @have_lchmod  = false
     @have_lchown  = false
     @debug_build  = false
@@ -1300,15 +1301,21 @@ int main() { return tgetnum(""); }
     begin
       basename = "rbx-configure-dtrace-test"
       source   = basename + ".d"
+      output   = basename + ".h"
+
       File.open source, "wb" do |f|
-        f.write "provider conftest{ probe fire(); };"
+        f.write "provider conftest{ probe m__entry(const char*); };"
       end
 
-      cmd = "dtrace -h -o #{basename}.h -s #{source}"
+      cmd = "dtrace -h -o #{output} -s #{source}"
       @log.log cmd
       system cmd
+
       @dtrace = $?.exitstatus == 0
-      puts @dtrace ? "yes" : "no"
+      @dtrace_const = !!File.read(output).index("const") if @dtrace
+
+      @log.write(@dtrace ? "yes" : "no")
+
       @dtrace
     ensure
       File.delete(*Dir["#{basename}*"])
@@ -1695,6 +1702,7 @@ int main() { return tgetnum(""); }
       :x86_32             => @x86_32,
       :x86_64             => @x86_64,
       :dtrace             => @dtrace,
+      :dtrace_const       => @dtrace_const,
       :fibers             => @fibers,
       :debug_build        => @debug_build,
       :sourcedir          => @sourcedir,
@@ -1804,6 +1812,8 @@ int main() { return tgetnum(""); }
       if @fibers
         f.puts "#define RBX_FIBER_ENABLED    1"
       end
+
+      f.puts "#define RBX_DTRACE_CONST     #{@dtrace_const ? "const" : ""}"
 
       write_have_defines f
     end

@@ -347,6 +347,7 @@ namespace :vm do
 
     files = FileList[
       GENERATED,
+      'vm/dtrace/probes.o',
       'vm/gen/*',
       'vm/test/runner',
       'vm/test/runner.cpp',
