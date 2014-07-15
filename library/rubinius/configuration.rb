@@ -7,7 +7,7 @@ Rubinius::ConfigurationVariables.define do |c|
     s.vm_variable "young_initial_bytes", 3145728,
       "The initial number of bytes the young generation of the GC should use"
 
-    s.vm_variable "young_max_bytes", 16 * 3145728,
+    s.vm_variable "young_max_bytes", 5 * 3145728,
       "The maximum number of bytes the young generation of the GC should use"
 
     s.vm_variable "young_autotune_size", true,
