@@ -35,6 +35,12 @@ static VALUE bignum_spec_rb_big2ulong(VALUE self, VALUE num) {
 }
 #endif
 
+#ifdef HAVE_RB_BIG_CMP
+static VALUE bignum_spec_rb_big_cmp(VALUE self, VALUE x, VALUE y) {
+  return rb_big_cmp(x, y);
+}
+#endif
+
 #ifdef HAVE_RBIGNUM_SIGN
 static VALUE bignum_spec_RBIGNUM_SIGN(VALUE self, VALUE num) {
   return RBIGNUM_SIGN(num) ? Qtrue : Qfalse;
@@ -81,6 +87,10 @@ void Init_bignum_spec() {
 
 #ifdef HAVE_RB_BIG2ULONG
   rb_define_method(cls, "rb_big2ulong", bignum_spec_rb_big2ulong, 1);
+#endif
+
+#ifdef HAVE_RB_BIG_CMP
+  rb_define_method(cls, "rb_big_cmp", bignum_spec_rb_big_cmp, 2);
 #endif
 
 #ifdef HAVE_RBIGNUM_SIGN
