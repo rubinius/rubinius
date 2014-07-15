@@ -350,6 +350,10 @@ class Encoding
       path
     end
 
+    def inspect
+      "#<Encoding::Converter: #{source_encoding.name} to #{destination_encoding.name}>"
+    end
+
     def replacement=(str)
       str = StringValue(str)
 
