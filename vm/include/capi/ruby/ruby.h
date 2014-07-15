@@ -2002,6 +2002,9 @@ struct RTypedData {
 #define rb_rational_new1(x) rb_rational_new((x), INT2FIX(1))
 #define rb_rational_new2(x,y) rb_rational_new((x), (y))
 
+  VALUE rb_rational_num(VALUE rat);
+  VALUE rb_rational_den(VALUE rat);
+
   VALUE   rb_Complex(VALUE real, VALUE imag);
 #define rb_Complex1(x)   rb_Complex(x, INT2FIX(0))
 #define rb_Complex2(x,y) rb_Complex(x, y)
