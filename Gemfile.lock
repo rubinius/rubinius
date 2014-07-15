@@ -1,7 +1,7 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    daedalus-core (0.0.3)
+    daedalus-core (0.1.0)
     rake (10.3.2)
     redcard (1.1.0)
     rubinius-ast (2.2.5)
@@ -22,7 +22,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  daedalus-core (~> 0.0.3)
+  daedalus-core (~> 0.1)
   rake (~> 10.0)
   redcard (~> 1.0)
   rubinius-bridge (~> 1.0)
