@@ -506,6 +506,8 @@
 #define HAVE_RB_RATIONAL_NEW               1
 #define HAVE_RB_RATIONAL_NEW1              1
 #define HAVE_RB_RATIONAL_NEW2              1
+#define HAVE_RB_RATIONAL_NUM               1
+#define HAVE_RB_RATIONAL_DEN               1
 
 /* Regexp */
 #define HAVE_RB_BACKREF_GET                1
