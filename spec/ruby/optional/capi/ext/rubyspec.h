@@ -89,6 +89,7 @@
 #define HAVE_RBIGNUM_SIGN                  1
 #define HAVE_RBIGNUM_LEN                   1
 #define HAVE_RB_BIG2DBL                    1
+#define HAVE_RB_DBL2BIG                    1
 #define HAVE_RB_BIG2LL                     1
 #define HAVE_RB_BIG2LONG                   1
 #define HAVE_RB_BIG2STR                    1

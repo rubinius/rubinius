@@ -11,6 +11,14 @@ static VALUE bignum_spec_rb_big2dbl(VALUE self, VALUE num) {
 }
 #endif
 
+#ifdef HAVE_RB_DBL2BIG
+static VALUE bignum_spec_rb_dbl2big(VALUE self, VALUE num) {
+  double dnum = NUM2DBL(num);
+
+  return rb_dbl2big(dnum);
+}
+#endif
+
 #ifdef HAVE_RB_BIG2LL
 static VALUE bignum_spec_rb_big2ll(VALUE self, VALUE num) {
   return rb_ll2inum(rb_big2ll(num));
@@ -81,6 +89,10 @@ void Init_bignum_spec() {
 
 #ifdef HAVE_RB_BIG2DBL
   rb_define_method(cls, "rb_big2dbl", bignum_spec_rb_big2dbl, 1);
+#endif
+
+#ifdef HAVE_RB_DBL2BIG
+  rb_define_method(cls, "rb_dbl2big", bignum_spec_rb_dbl2big, 1);
 #endif
 
 #ifdef HAVE_RB_BIG2LL
