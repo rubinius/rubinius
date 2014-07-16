@@ -105,6 +105,15 @@ describe "CApiBignumSpecs" do
     end
   end
 
+  describe "rb_big_pack" do
+    it "packs a Bignum into a Fixnum" do
+      val = @s.rb_big_pack(ensure_bignum(2))
+
+      val.kind_of?(Fixnum).should == true
+      val.should == 2
+    end
+  end
+
   describe "RBIGNUM_SIGN" do
     it "returns C true if the Bignum has a positive sign" do
       @s.RBIGNUM_SIGN(bignum_value()).should be_true
