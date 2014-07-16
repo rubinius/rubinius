@@ -149,4 +149,11 @@ extern "C" {
   VALUE rb_big_cmp(VALUE x, VALUE y) {
     return rb_funcall(x, rb_intern("<=>"), 1, y);
   }
+
+  void rb_big_pack(VALUE val, unsigned long *buf, long num_longs)
+  {
+    rb_integer_pack(val, buf, num_longs, sizeof(long), 0,
+      INTEGER_PACK_LSWORD_FIRST | INTEGER_PACK_NATIVE_BYTE_ORDER |
+      INTEGER_PACK_2COMP);
+  }
 }

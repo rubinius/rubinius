@@ -956,6 +956,7 @@ struct RTypedData {
   int     rb_big_bytes_used(VALUE obj);
 
   VALUE   rb_big_cmp(VALUE x, VALUE y);
+  void    rb_big_pack(VALUE val, unsigned long *buf, long num_longs);
 
   int rb_big_sign(VALUE obj);
 #define RBIGNUM_SIGN(obj) rb_big_sign(obj)
