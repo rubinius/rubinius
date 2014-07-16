@@ -311,6 +311,10 @@ extern "C" {
     return reinterpret_cast<ID>(env->state()->symbol(string, len));
   }
 
+  ID rb_intern_const(const char *string) {
+    return rb_intern2(string, (long)strlen(string));
+  }
+
   ID rb_intern_str(VALUE str) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     String* string = capi_get_string(env, str);

@@ -1429,6 +1429,7 @@ struct RTypedData {
   /** Convert string to an ID */
   ID      rb_intern(const char* string);
   ID      rb_intern2(const char* string, long len);
+  ID      rb_intern_const(const char *string);
   ID      rb_intern_str(VALUE string);
 #define HAVE_RB_INTERN_STR 1
 
