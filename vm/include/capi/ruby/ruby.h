@@ -952,6 +952,7 @@ struct RTypedData {
   unsigned long long rb_big2ull(VALUE);
 
   double  rb_big2dbl(VALUE obj);
+  VALUE   rb_dbl2big(double num);
 
   int     rb_big_bytes_used(VALUE obj);
 

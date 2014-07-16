@@ -130,6 +130,14 @@ extern "C" {
     return d;
   }
 
+  VALUE rb_dbl2big(double num) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Integer* bignum = Bignum::from_double(env->state(), num);
+
+    return env->get_handle(bignum);
+  }
+
   int rb_big_bytes_used(VALUE obj) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
