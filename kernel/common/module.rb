@@ -644,9 +644,9 @@ class Module
     end
     case Rubinius.constant_missing_reason
     when :private
-      msg = "Private constant: #{mod_name}#{name}"
+      msg = "private constant #{mod_name}#{name} referenced"
     else
-      msg = "Missing or uninitialized constant: #{mod_name}#{name}"
+      msg = "uninitialized constant #{mod_name}#{name}"
     end
 
     raise NameError.new(msg, name)
