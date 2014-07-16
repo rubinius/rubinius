@@ -29,14 +29,16 @@ class Hash
     def compare_by_identity
       @compare_by_identity = true
       class << self
-        def match?(this_key, other_key)
-          other_key.equal? this_key
+        def match?(this_key, this_hash, other_key, other_hash)
+          Rubinius::Type.object_equal other_key, this_key
         end
       end
     end
 
-    def match?(this_key, other_key)
-      other_key.eql? this_key
+    def match?(this_key, this_hash, other_key, other_hash)
+      other_hash == this_hash and
+        (Rubinius::Type::object_equal(other_key, this_key) or
+          other_key.eql?(this_key))
     end
   end
 
@@ -45,15 +47,17 @@ class Hash
     attr_accessor :previous
     attr_accessor :next
     attr_accessor :key
+    attr_accessor :key_hash
     attr_accessor :value
 
-    def initialize(key, value, state)
-      if key.kind_of?(String) and !key.frozen?
+    def initialize(key, key_hash, value, state)
+      if key.kind_of?(String) and !key.frozen? and !state.compare_by_identity?
         key = key.dup
         key.freeze
       end
 
       @key = key
+      @key_hash = key_hash
       @value = value
       @state = state
 
@@ -71,22 +75,18 @@ class Hash
       not @state
     end
 
-    def key_hash
-      @key.hash
-    end
-
     def lookup(key, key_hash)
-      return self if @state.match? @key, key
+      return self if @state.match? @key, @key_hash, key, key_hash
     end
 
     def insert(key, key_hash, value)
-      return unless @state.match? @key, key
+      return unless @state.match? @key, @key_hash, key, key_hash
       @value = value
       self
     end
 
     def delete(key, key_hash)
-      if @state.match? @key, key
+      if @state.match? @key, @key_hash, key, key_hash
 
         if @previous
           @previous.next = @next
@@ -131,7 +131,7 @@ class Hash
     def insert(key, key_hash, value)
       @entries.each { |e| return e if e.insert(key, key_hash, value) }
 
-      item = Item.new key, value, @state
+      item = Item.new key, key_hash, value, @state
       @entries = @entries.insert_at_index @entries.size, item
 
       item
@@ -139,7 +139,7 @@ class Hash
 
     def add(item, key, key_hash, value)
       @entries[0] = item
-      @entries[1] = Item.new key, value, @state
+      @entries[1] = Item.new key, key_hash, value, @state
     end
 
     def delete(key, key_hash)
@@ -190,7 +190,7 @@ class Hash
       else
         @bmp = set_bitmap key_hash
         index = item_index key_hash
-        item = Item.new key, value, @state
+        item = Item.new key, key_hash, value, @state
         @entries = @entries.insert_at_index index, item
         return item
       end
@@ -214,7 +214,7 @@ class Hash
       else
         @entries = Vector.new 2
         @entries[item_index(item_hash)] = item
-        @entries[item_index(key_hash)] = Item.new key, value, @state
+        @entries[item_index(key_hash)] = Item.new key, key_hash, value, @state
       end
     end
 
@@ -274,7 +274,7 @@ class Hash
           @entries[index] = trie
         end
       else
-        item = Item.new key, value, @state
+        item = Item.new key, key_hash, value, @state
         @entries[index] = item
       end
     end
@@ -318,19 +318,24 @@ class Hash
     total = args.size
     if total == 1
       obj = args.first
-      if obj.kind_of? Hash
-        return allocate.replace(obj)
-      elsif obj.respond_to? :to_hash
-        return allocate.replace(Rubinius::Type.coerce_to(obj, Hash, :to_hash))
-      elsif obj.kind_of? Array # See redmine # 1385
-        h = allocate
-        args.first.each do |arr|
-          next unless arr.respond_to? :to_ary
-          arr = arr.to_ary
-          next unless (1..2).include? arr.size
-          h[arr.at(0)] = arr.at(1)
+      if hash = Rubinius::Type.check_convert_type(obj, Hash, :to_hash)
+        new_hash = allocate.replace(hash)
+        new_hash.default = nil
+        return new_hash
+      elsif array = Rubinius::Type.check_convert_type(obj, Array, :to_ary)
+        hash = allocate
+        array.each do |a|
+          a = Rubinius::Type.check_convert_type a, Array, :to_ary
+          next unless a
+
+          size = a.size
+          unless size >= 1 and size <= 2
+            raise ArgumentError, "invalid number of elements (#{size} for 1..2)"
+          end
+          hash[a[0]] = a[1]
         end
-        return h
+
+        return hash
       end
     end
 
@@ -382,8 +387,8 @@ class Hash
     val = size
     Thread.detect_outermost_recursion self do
       each_item do |item|
-        val ^= item.key.hash
-        val ^= item.value.hash
+        Rubinius.privately { val ^= item.key.hash }
+        Rubinius.privately { val ^= item.value.hash }
       end
     end
 
@@ -396,7 +401,8 @@ class Hash
   private :initialize_copy
 
   def [](key)
-    if @table and item = @table.lookup(key, key.hash)
+    Rubinius.privately { key_hash = key.hash }
+    if @table and item = @table.lookup(key, key_hash)
       return item.value
     end
 
@@ -411,7 +417,8 @@ class Hash
       @table = Table.new @state
     end
 
-    @table.insert key, key.hash, value
+    Rubinius.privately { key_hash = key.hash }
+    @table.insert key, key_hash, value
 
     value
   end
@@ -460,10 +467,13 @@ class Hash
   end
 
   def default_proc=(prc)
-    prc = Rubinius::Type.coerce_to prc, Proc, :to_proc
+    Rubinius.check_frozen
+    unless prc.nil?
+      prc = Rubinius::Type.coerce_to prc, Proc, :to_proc
 
-    if prc.lambda? and prc.arity != 2
-      raise TypeError, "default proc must have arity 2"
+      if prc.lambda? and prc.arity != 2
+        raise TypeError, "default proc must have arity 2"
+      end
     end
 
     @default = nil
@@ -474,7 +484,8 @@ class Hash
     Rubinius.check_frozen
 
     if @table
-      if item = @table.delete(key, key.hash)
+      Rubinius.privately { key_hash = key.hash }
+      if item = @table.delete(key, key_hash)
         return item.value
       end
     end
@@ -485,9 +496,9 @@ class Hash
   end
 
   def delete_if
-    Rubinius.check_frozen
-
     return to_enum(:delete_if) unless block_given?
+
+    Rubinius.check_frozen
 
     each_item { |e| delete e.key if yield(e.key, e.value) }
 
@@ -553,7 +564,8 @@ class Hash
     Thread.detect_recursion self, other do
       other.each_item do |e|
 
-        return false unless item = @table.lookup(e.key, e.key.hash)
+        Rubinius.privately { key_hash = e.key.hash }
+        return false unless item = @table.lookup(e.key, key_hash)
 
         # Order of the comparison matters! We must compare our value with
         # the other Hash's value and not the other way around.
@@ -564,25 +576,55 @@ class Hash
     true
   end
 
-  alias_method :==, :eql?
+  def ==(other)
+    return true if self.equal? other
+
+    unless other.kind_of? Hash
+      return false unless other.respond_to? :to_hash
+      return other == self
+    end
+
+    return false unless other.size == size
+
+    Thread.detect_recursion self, other do
+      other.each_item do |e|
+
+        Rubinius.privately { key_hash = e.key.hash }
+        item = @table.lookup(e.key, key_hash)
+
+        return false unless item
+
+        # Order of the comparison matters! We must compare our value with
+        # the other Hash's value and not the other way around.
+        unless Rubinius::Type::object_equal(item.value, e.value) or
+               item.value == e.value
+          return false
+        end
+      end
+    end
+
+    true
+  end
 
   def fetch(key, default=undefined)
     unless empty?
-      if item = @table.lookup(key, key.hash)
+      Rubinius.privately { key_hash = key.hash }
+      if item = @table.lookup(key, key_hash)
         return item.value
       end
     end
 
     return yield(key) if block_given?
     return default unless undefined.equal?(default)
-    raise IndexError, 'key not found'
+    raise KeyError, 'key #{key} not found'
   end
 
   # Searches for an item matching +key+. Returns the item
   # if found. Otherwise returns +nil+. Called from the C-API.
   def find_item(key)
     unless empty?
-      if item = @table.lookup(key, key.hash)
+      Rubinius.privately { key_hash = key.hash }
+      if item = @table.lookup(key, key_hash)
         return item
       end
     end
@@ -609,7 +651,10 @@ class Hash
         out << str
       end
     end
-    "{#{out.join ', '}}"
+
+    ret = "{#{out.join ', '}}"
+    Rubinius::Type.infect(ret, self) unless empty?
+    ret
   end
 
   alias_method :to_s, :inspect
@@ -621,9 +666,9 @@ class Hash
   end
 
   def keep_if
-    Rubinius.check_frozen
-
     return to_enum(:keep_if) unless block_given?
+
+    Rubinius.check_frozen
 
     each_item { |e| delete e.key unless yield(e.key, e.value) }
 
@@ -639,7 +684,8 @@ class Hash
   alias_method :index, :key
 
   def key?(key)
-    if @table and @table.lookup(key, key.hash)
+    Rubinius.privately { key_hash = key.hash }
+    if @table and @table.lookup(key, key_hash)
       true
     else
       false
@@ -675,16 +721,18 @@ class Hash
     if block_given?
       other.each_item do |e|
         key = e.key
-        if item = @table.lookup(key, key.hash)
+        Rubinius.privately { key_hash = key.hash }
+        if item = @table.lookup(key, key_hash)
           item.value = yield(key, item.value, e.value)
         else
-          @table.insert key, key.hash, e.value
+          @table.insert key, key_hash, e.value
         end
       end
     else
       other.each_item do |e|
         key = e.key
-        @table.insert key, key.hash, e.value
+        Rubinius.privately { key_hash = key.hash }
+        @table.insert key, key_hash, e.value
       end
     end
 
@@ -708,7 +756,8 @@ class Hash
     table = Table.new @state
 
     while item
-      table.insert item.key, item.key.hash, item.value
+      Rubinius.privately { key_hash = item.key.hash }
+      table.insert item.key, key_hash, item.value
       item = item.next
     end
 
@@ -726,9 +775,9 @@ class Hash
   end
 
   def reject!(&block)
-    Rubinius.check_frozen
-
     return to_enum(:reject!) unless block_given?
+
+    Rubinius.check_frozen
 
     unless empty?
       size = @state.size
@@ -742,7 +791,9 @@ class Hash
   def replace(other)
     Rubinius.check_frozen
 
-    other = Rubinius::Type.coerce_to other, Hash, :to_hash
+    unless other.kind_of? Hash
+      other = Rubinius::Type.coerce_to other, Hash, :to_hash
+    end
     return self if self.equal? other
 
     @state = State.from @state
@@ -750,8 +801,8 @@ class Hash
     @table = Table.new @state
 
     other.each_item do |e|
-      key = e.key
-      @table.insert key, key.hash, e.value
+      Rubinius.privately { key_hash = e.key.hash }
+      @table.insert e.key, key_hash, e.value
     end
 
     @default = other.default
@@ -761,9 +812,9 @@ class Hash
   end
 
   def select
-    Rubinius.check_frozen
-
     return to_enum(:select) unless block_given?
+
+    Rubinius.check_frozen
 
     hsh = Hash.allocate
 
@@ -777,9 +828,9 @@ class Hash
   end
 
   def select!
-    Rubinius.check_frozen
-
     return to_enum(:select!) unless block_given?
+
+    Rubinius.check_frozen
 
     return nil if empty?
 
@@ -796,7 +847,8 @@ class Hash
     return default(nil) if empty?
 
     item = @state.head
-    @table.delete item.key, item.key.hash
+    Rubinius.privately { key_hash = item.key.hash }
+    @table.delete item.key, key_hash
 
     return item.key, item.value
   end
@@ -810,12 +862,22 @@ class Hash
   def to_a
     ary = []
     each_item { |e| ary << [e.key, e.value] }
+
+    Rubinius::Type.infect ary, self
     ary
   end
 
   # Returns an external iterator for the bins. See +Iterator+
   def to_iter
     Iterator.new @state
+  end
+
+  def to_h
+    if instance_of? Hash
+      self
+    else
+      Hash.allocate.replace(to_hash)
+    end
   end
 
   def to_hash
@@ -840,7 +902,8 @@ class Hash
       args.map { |key| default key }
     else
       args.map do |key|
-        if item = @table.lookup(key, key.hash)
+        Rubinius.privately { key_hash = key.hash }
+        if item = @table.lookup(key, key_hash)
           item.value
         else
           default key
