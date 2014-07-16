@@ -448,7 +448,8 @@ struct RFile {
 #define REALLOC_N(ptr, type, n) (ptr)=(type*)realloc(ptr, sizeof(type) * (n));
 
 /** Interrupt checking (no-op). */
-#define CHECK_INTS        /* No-op */
+#define CHECK_INTS             /* No-op */
+#define rb_thread_check_ints() /* No-op */
 
 /** Rubinius doesn't need gc guards */
 #define RB_GC_GUARD       /* No-op */
