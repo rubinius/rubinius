@@ -280,6 +280,11 @@ module ConstantSpecs
 
   class ClassD < ClassC
   end
+
+  class ClassE
+    CS_CONST209 = :foo
+    private_constant :CS_CONST209
+  end
 end
 
 include ConstantSpecs::ModuleA

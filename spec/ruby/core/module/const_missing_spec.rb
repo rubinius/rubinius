@@ -13,7 +13,7 @@ describe "Module#const_missing" do
   it "raises NameError and includes the name of the value that wasn't found" do
     lambda {
       ConstantSpecs.const_missing("HelloMissing")
-    }.should raise_error(NameError, /ConstantSpecs::HelloMissing/)
+    }.should raise_error(NameError, "uninitialized constant ConstantSpecs::HelloMissing")
   end
 
   it "raises NameError and does not include toplevel Object" do
@@ -24,4 +24,9 @@ describe "Module#const_missing" do
     end
   end
 
+  it "raises NameError for private constants" do
+    lambda {
+      ConstantSpecs::ClassE::CS_CONST209
+    }.should raise_error(NameError, "private constant ConstantSpecs::ClassE::CS_CONST209 referenced")
+  end
 end
