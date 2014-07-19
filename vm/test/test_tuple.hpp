@@ -22,7 +22,7 @@ public:
   }
 
   void test_allocate() {
-    Tuple* tuple = Tuple::allocate(state, Fixnum::from(2));
+    Tuple* tuple = Tuple::allocate(state, G(tuple), Fixnum::from(2));
     TS_ASSERT_EQUALS(2, tuple->num_fields());
   }
 

@@ -108,14 +108,16 @@ namespace rubinius {
     return tup;
   }
 
-  Tuple* Tuple::allocate(STATE, Fixnum* fields) {
+  Tuple* Tuple::allocate(STATE, Object* self, Fixnum* fields) {
     native_int size = fields->to_native();
 
     if(size < 0) {
       Exception::argument_error(state, "negative tuple size");
     }
 
-    return create(state, fields->to_native());
+    Tuple* tuple = create(state, fields->to_native());
+    tuple->klass(state, as<Class>(self));
+    return tuple;
   }
 
   Tuple* Tuple::from(STATE, native_int fields, ...) {

@@ -32,7 +32,7 @@ namespace rubinius {
   public:
 
     // Rubinius.primitive :tuple_allocate
-    static Tuple* allocate(STATE, Fixnum* fields);
+    static Tuple* allocate(STATE, Object* self, Fixnum* fields);
 
     // Rubinius.primitive :tuple_at
     Object* at_prim(STATE, Fixnum* pos);
