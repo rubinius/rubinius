@@ -66,7 +66,7 @@ namespace rubinius {
     MonoInlineCache* cache = reinterpret_cast<MonoInlineCache*>(call_site);
     Class* const recv_class = args.recv()->direct_class(state);
 
-    register uint64_t recv_data = recv_class->data_raw();
+    uint64_t recv_data = recv_class->data_raw();
 
     if(likely(cache->receiver_.raw == recv_data)) {
       cache->hits_++;
@@ -82,7 +82,7 @@ namespace rubinius {
 
     Class* const recv_class = args.recv()->direct_class(state);
 
-    register uint64_t recv_data = recv_class->data_raw();
+    uint64_t recv_data = recv_class->data_raw();
 
     if(likely(cache->receiver_.raw == recv_data)) {
       cache->hits_++;

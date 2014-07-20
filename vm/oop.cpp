@@ -765,7 +765,7 @@ step2:
     void** dst = this->__body__;
     size_t field_count = bytes_to_fields(bytes);
 
-    for(register size_t counter = 0; counter < field_count; ++counter) {
+    for(size_t counter = 0; counter < field_count; ++counter) {
       dst[counter] = cNil;
     }
   }
