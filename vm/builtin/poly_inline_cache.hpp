@@ -107,7 +107,7 @@ namespace rubinius {
     }
 
     InlineCacheEntry* get_entry(Class* const recv_class) const {
-      register uint64_t recv_data = recv_class->data_raw();
+      uint64_t recv_data = recv_class->data_raw();
       for(int i = 0; i < cTrackedICHits; ++i) {
         InlineCacheEntry* ice = entries_[i];
         if(likely(ice && ice->receiver_data_raw() == recv_data)) return ice;

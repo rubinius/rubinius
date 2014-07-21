@@ -426,7 +426,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     /* The whole point of this is inlining */
     size_t size_in_bytes(VM* vm) const {
-      register size_t size = TypeInfo::instance_sizes[type_id()];
+      size_t size = TypeInfo::instance_sizes[type_id()];
       if(size != 0) {
         return size;
       } else {

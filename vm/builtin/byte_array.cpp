@@ -177,7 +177,7 @@ namespace rubinius {
 
     uint8_t* pos1 = this->bytes + start;
     uint8_t* pos2 = this->bytes + total - 1;
-    register uint8_t tmp;
+    uint8_t tmp;
 
     while(pos1 < pos2) {
       tmp = *pos1;

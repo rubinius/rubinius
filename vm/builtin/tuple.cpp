@@ -287,7 +287,7 @@ namespace rubinius {
     Object** pos1 = field + start;
     Object** pos2 = field + end;
 
-    register Object* tmp;
+    Object* tmp;
     while(pos1 < pos2) {
       tmp = *pos1;
       *pos1++ = *pos2;

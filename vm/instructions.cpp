@@ -86,8 +86,8 @@ Object* MachineCode::interpreter(STATE,
   InterpreterState is;
   GCTokenImpl gct;
 
-  register opcode* ip_ptr = mcode->opcodes;
-  register Object** stack_ptr = call_frame->stk - 1;
+  opcode* ip_ptr = mcode->opcodes;
+  Object** stack_ptr = call_frame->stk - 1;
 
   UnwindInfoSet unwinds;
 
