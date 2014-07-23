@@ -17,10 +17,7 @@ with_feature :hash_hamt do
     end
 
     it "inserts a Trie if there is an entry at the index" do
-      k1 = mock("Hash key1")
-      k1.should_receive(:hash).and_return(0)
-
-      @trie.insert k1, 0, 1
+      @trie.insert :a, 0, 1
       @trie.insert :b, 0, 2
 
       @trie.entries[0].should be_an_instance_of(Hash::Trie)

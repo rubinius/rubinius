@@ -14,12 +14,9 @@ with_feature :hash_hamt do
 
     it "inserts a Trie if there is an Item at the index" do
       k1 = mock("Hash key1")
-      k1_hash = 0b01000000
-      k1.should_receive(:hash).and_return(k1_hash)
-
       k2 = mock("Hash key2")
 
-      @table.insert(k1, k1_hash, 1)
+      @table.insert(k1, 0b01000000, 1)
       @table.insert(k2, 0b10000000, 2)
 
       @table.entries[0].should be_an_instance_of(Hash::Trie)
