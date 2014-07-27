@@ -13,6 +13,7 @@ namespace rubinius {
   class VM;
   class State;
   class Object;
+  class String;
   class Thread;
 
   namespace console {
@@ -28,6 +29,7 @@ namespace rubinius {
       TypedRoot<Object*> console_;
 
       int request_fd_;
+      int response_fd_;
 
       bool request_exit_;
       bool response_exit_;
@@ -63,6 +65,7 @@ namespace rubinius {
       void process_responses(STATE);
 
       char* read_request(STATE);
+      void write_response(STATE, String* response);
     };
   }
 }

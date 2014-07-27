@@ -51,6 +51,7 @@ namespace rubinius {
       , response_(state)
       , console_(state)
       , request_fd_(-1)
+      , response_fd_(-1)
       , request_exit_(false)
       , response_exit_(false)
       , request_list_(0)
@@ -72,6 +73,11 @@ namespace rubinius {
       if(request_fd_ > 0) {
         close(request_fd_);
         request_fd_ = -1;
+      }
+
+      if(response_fd_ > 0) {
+        close(response_fd_);
+        response_fd_ = -1;
       }
 
       if(request_list_) {
@@ -272,6 +278,28 @@ namespace rubinius {
                            state->vm()->thread_id(), 1);
     }
 
+    void Console::write_response(STATE, String* response) {
+      std::cerr << "console: write_response" << std::endl;
+
+      int status = flock(response_fd_, LOCK_EX);
+      if(status < 0) return;
+
+      status = lseek(response_fd_, 0, SEEK_SET);
+      if(status < 0) {
+        std::cerr << "write_response: lseek: " << strerror(errno) << std::endl;
+        return;
+      }
+      status = ftruncate(response_fd_, 0);
+      if(status < 0) {
+        std::cerr << "write_response: ftruncate: " << strerror(errno) << std::endl;
+        return;
+      }
+
+      ::write(response_fd_, response->byte_address(), response->byte_size());
+
+      flock(request_fd_, LOCK_UN);
+    }
+
     void Console::process_responses(STATE) {
       GCTokenImpl gct;
       RBX_DTRACE_CONST char* thread_name =
@@ -283,6 +311,9 @@ namespace rubinius {
 
       state->vm()->thread->hard_unlock(state, gct, 0);
       state->gc_independent(gct, 0);
+
+      response_fd_ = ::open("/tmp/rbx-console-response", O_CREAT | O_TRUNC | O_RDWR, 0666);
+      if(response_fd_ < 0) { puts("failed to open console response\n"); return; }
 
       char* request = NULL;
 
@@ -303,7 +334,9 @@ namespace rubinius {
           args->aset(state, 0, String::create(state, request));
           Object* result = console_.get()->send(state, 0, state->symbol("evaluate"),
               args, cNil);
-          if(result) std::cerr << as<String>(result)->c_str(state);
+
+          write_response(state, as<String>(result));
+
           request = NULL;
         } else {
           utilities::thread::Mutex::LockGuard lg(response_lock_);
