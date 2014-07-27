@@ -53,4 +53,12 @@ describe "String#scrub with a block" do
 
     replaced.should == "abc\u3042<e380>"
   end
+
+  it "replaces invalid byte sequences using a custom encoding" do
+    replaced = "\x80\x80".scrub do |bad|
+      bad.encode(Encoding::UTF_8, Encoding::Windows_1252)
+    end
+
+    replaced.should == "€€"
+  end
 end
