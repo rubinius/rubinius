@@ -1414,6 +1414,14 @@ int main() { return tgetnum(""); }
       @defines << "HAVE_STRNLEN"
     end
 
+    if has_function("kqueue", ["sys/types.h", "sys/event.h", "sys/time.h"])
+      @defines << "HAVE_KQUEUE"
+    end
+
+    if has_function("inotify_init", ["sys/inotify.h"])
+      @defines << "HAVE_INOTIFY"
+    end
+
     # glibc has useless lchmod() so we don't try to use lchmod() on linux
     if !@linux and has_function("lchmod", ["sys/stat.h", "unistd.h"])
       @have_lchmod = true
