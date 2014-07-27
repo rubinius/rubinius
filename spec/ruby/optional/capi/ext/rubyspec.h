@@ -386,6 +386,7 @@
 #define HAVE_RB_YIELD                      1
 #define HAVE_RB_YIELD_SPLAT                1
 #define HAVE_RB_YIELD_VALUES               1
+#define HAVE_RB_FUNCALL3                   1
 
 /* GC */
 #define HAVE_RB_GC_REGISTER_ADDRESS        1

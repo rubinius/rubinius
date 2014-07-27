@@ -416,4 +416,22 @@ describe "C-API Kernel function" do
       method.name.to_sym.should == :size
     end
   end
+
+  describe "rb_funcall3" do
+    before :each do
+      @obj = Object.new
+      class << @obj
+        def method_public; :method_public end
+        def method_private; :method_private end
+        private :method_private
+      end
+    end
+
+    it "calls a public method" do
+      @s.rb_funcall3(@obj, :method_public).should == :method_public
+    end
+    it "does not call a private method" do
+      lambda { @s.rb_funcall3(@obj, :method_private) }.should raise_error(NoMethodError, /private/)
+    end
+  end
 end
