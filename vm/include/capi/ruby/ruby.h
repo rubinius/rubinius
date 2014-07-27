@@ -1269,10 +1269,9 @@ struct RTypedData {
                           VALUE obj, VALUE arg);
 #define HAVE_RB_EXEC_RECURSIVE 1
 
-  /** @todo define rb_funcall3, which is the same as rb_funcall2 but
-   * will not call private methods.
-   */
-  #define rb_funcall3 rb_funcall2
+  /** Same as rb_funcall2 but will not call private methods. */
+  VALUE   rb_funcall3(VALUE receiver, ID method_name,
+                      int arg_count, const VALUE* args);
 
   /** Return the hash id of the object **/
   VALUE   rb_hash(VALUE self);
