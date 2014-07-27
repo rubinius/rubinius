@@ -12,6 +12,7 @@
 #include "configuration.hpp"
 
 #include "agent.hpp"
+#include "console.hpp"
 #include "world_state.hpp"
 #include "builtin/randomizer.hpp"
 #include "builtin/array.hpp"
@@ -32,6 +33,7 @@ namespace rubinius {
     , signal_handler_(0)
     , finalizer_handler_(0)
     , query_agent_(0)
+    , console_(0)
     , world_(new WorldState(&check_global_interrupts_))
     , method_count_(1)
     , class_count_(1)
@@ -79,6 +81,10 @@ namespace rubinius {
 
     if(agent_) {
       delete agent_;
+    }
+
+    if(console_) {
+      delete console_;
     }
 
     delete tool_broker_;
@@ -163,6 +169,17 @@ namespace rubinius {
     }
 
     return agent_;
+  }
+
+  console::Console* SharedState::start_console(STATE) {
+    SYNC(state);
+
+    if(!console_) {
+      console_ = new console::Console(state);
+      console_->start(state);
+    }
+
+    return console_;
   }
 
   void SharedState::reset_threads(STATE) {

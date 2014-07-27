@@ -41,6 +41,10 @@ namespace rubinius {
     class ToolBroker;
   }
 
+  namespace console {
+    class Console;
+  }
+
   class SignalHandler;
   class FinalizerHandler;
   class ObjectMemory;
@@ -80,6 +84,7 @@ namespace rubinius {
     SignalHandler* signal_handler_;
     FinalizerHandler* finalizer_handler_;
     QueryAgent* query_agent_;
+    console::Console* console_;
 
     CApiConstantNameMap capi_constant_name_map_;
     CApiConstantHandleMap capi_constant_handle_map_;
@@ -220,6 +225,12 @@ namespace rubinius {
     }
 
     QueryAgent* start_agent(STATE);
+
+    console::Console* console() const {
+      return console_;
+    }
+
+    console::Console* start_console(STATE);
 
     Environment* env() const {
       return env_;

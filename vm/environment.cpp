@@ -259,6 +259,8 @@ namespace rubinius {
       start_agent(port);
     }
 
+    state->shared().start_console(state);
+
     state->shared().set_use_capi_lock(config.capi_lock);
   }
 
