@@ -12,6 +12,7 @@
 namespace rubinius {
   class VM;
   class State;
+  class Object;
   class Thread;
 
   namespace console {
@@ -24,6 +25,7 @@ namespace rubinius {
 
       TypedRoot<Thread*> request_;
       TypedRoot<Thread*> response_;
+      TypedRoot<Object*> console_;
 
       int request_fd_;
 

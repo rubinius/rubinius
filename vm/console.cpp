@@ -1,7 +1,11 @@
 #include "vm.hpp"
 #include "console.hpp"
 
+#include "object_utils.hpp"
+
+#include "builtin/array.hpp"
 #include "builtin/class.hpp"
+#include "builtin/string.hpp"
 #include "builtin/thread.hpp"
 
 #include "dtrace/dtrace.h"
@@ -45,6 +49,7 @@ namespace rubinius {
       , response_vm_(NULL)
       , request_(state)
       , response_(state)
+      , console_(state)
       , request_fd_(-1)
       , request_exit_(false)
       , response_exit_(false)
@@ -89,6 +94,10 @@ namespace rubinius {
 
     void Console::start(STATE) {
       initialize(state);
+
+      Class* cls = as<Class>(G(rubinius)->get_const(state, "Console"));
+      console_.set(cls->send(state, 0, state->symbol("new")));
+
       start_threads(state);
     }
 
@@ -290,7 +299,11 @@ namespace rubinius {
         if(response_exit_) break;
 
         if(request) {
-          std::cerr << request;
+          Array* args = Array::create(state, 1);
+          args->aset(state, 0, String::create(state, request));
+          Object* result = console_.get()->send(state, 0, state->symbol("evaluate"),
+              args, cNil);
+          if(result) std::cerr << as<String>(result)->c_str(state);
           request = NULL;
         } else {
           utilities::thread::Mutex::LockGuard lg(response_lock_);

@@ -259,8 +259,6 @@ namespace rubinius {
       start_agent(port);
     }
 
-    state->shared().start_console(state);
-
     state->shared().set_use_capi_lock(config.capi_lock);
   }
 
@@ -658,6 +656,8 @@ namespace rubinius {
     run_file(runtime + "/loader.rbc");
 
     state->vm()->thread_state()->clear();
+
+    state->shared().start_console(state);
 
     Object* loader = G(rubinius)->get_const(state, state->symbol("Loader"));
     if(loader->nil_p()) {
