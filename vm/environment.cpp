@@ -51,6 +51,7 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <string.h>
 #include <stdlib.h>
 #include <sys/param.h>
 #include <sys/stat.h>
@@ -193,6 +194,23 @@ namespace rubinius {
     }
 
     config_parser.update_configuration(config);
+
+    if(!strncmp(config.vm_fsapi_path, "$TMPDIR",
+          MIN(config.vm_fsapi_path.value.size(), 7))) {
+      std::ostringstream path;
+      const char* tmp = getenv("TMPDIR");
+
+      if(tmp) {
+        path << tmp;
+        if(tmp[strlen(tmp)-1] != '/') path << "/";
+      } else {
+        path << "/tmp/";
+      }
+      path << "rbx-" << getlogin() << "-" << getpid();
+      config.vm_fsapi_path.set(path.str().c_str());
+    }
+
+    mkdir(config.vm_fsapi_path.value.c_str(), 0755);
   }
 
   void Environment::load_argv(int argc, char** argv) {
@@ -397,6 +415,8 @@ namespace rubinius {
     }
 
     NativeMethod::cleanup_thread(state);
+
+    rmdir(shared->config.vm_fsapi_path);
   }
 
   /**

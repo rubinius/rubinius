@@ -181,5 +181,8 @@ Rubinius::ConfigurationVariables.define do |c|
   c.vm_variable "vm.crash_report_path", "rubinius_last_error",
     :as => "report_path",
     :description => "Name of crash report with PID appended. Written to $HOME/.rbx if no path is given"
+
+  c.vm_variable "vm.fsapi_path", "$TMPDIR/rbx-$USER/<pid>",
+    "Base directory of the Rubinius File System API files"
 end
 
