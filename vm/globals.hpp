@@ -125,6 +125,7 @@ namespace rubinius {
     TypedRoot<Class*> vm_class;
     TypedRoot<Class*> atomic_ref;
     TypedRoot<Class*> mirror;
+    TypedRoot<Class*> fsevent;
 
     TypedRoot<Encoding*> usascii_encoding, utf8_encoding, ascii8bit_encoding;
 
@@ -253,6 +254,7 @@ namespace rubinius {
       vm_class(&roots),
       atomic_ref(&roots),
       mirror(&roots),
+      fsevent(&roots),
       usascii_encoding(&roots),
       utf8_encoding(&roots),
       ascii8bit_encoding(&roots)

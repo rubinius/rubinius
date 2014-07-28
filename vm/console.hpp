@@ -12,6 +12,7 @@
 namespace rubinius {
   class VM;
   class State;
+  class FSEvent;
   class Object;
   class String;
   class Thread;
@@ -27,6 +28,7 @@ namespace rubinius {
       TypedRoot<Thread*> request_;
       TypedRoot<Thread*> response_;
       TypedRoot<Object*> console_;
+      TypedRoot<FSEvent*> fsevent_;
 
       int request_fd_;
       int response_fd_;

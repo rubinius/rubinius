@@ -5,6 +5,7 @@
 
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
+#include "builtin/fsevent.hpp"
 #include "builtin/string.hpp"
 #include "builtin/thread.hpp"
 
@@ -50,6 +51,7 @@ namespace rubinius {
       , request_(state)
       , response_(state)
       , console_(state)
+      , fsevent_(state)
       , request_fd_(-1)
       , response_fd_(-1)
       , request_exit_(false)
@@ -247,30 +249,32 @@ namespace rubinius {
       request_fd_ = ::open("/tmp/rbx-console-request", O_CREAT | O_TRUNC | O_RDWR, 0666);
       if(request_fd_ < 0) { puts("failed to open console request\n"); return; }
 
-      int kq = kqueue();
-      if(kq < 0) { puts("failed to get kqueue\n"); return; }
+      FSEvent* fsevent = FSEvent::create(state);
+      fsevent->watch_file(state, request_fd_, "/tmp/rbx-console-request");
+      fsevent_.set(fsevent);
 
-      struct kevent filter, event;
-      EV_SET(&filter, request_fd_, EVFILT_VNODE,
-          EV_ADD | EV_ENABLE | EV_CLEAR, NOTE_WRITE, 0, NULL);
+      // int kq = kqueue();
+      // if(kq < 0) { puts("failed to get kqueue\n"); return; }
+
+      // struct kevent filter, event;
+      // EV_SET(&filter, request_fd_, EVFILT_VNODE,
+      //     EV_ADD | EV_ENABLE | EV_CLEAR, NOTE_WRITE, 0, NULL);
 
       // const struct timespec timeout = { 0, 10000000 };
 
       while(!request_exit_) {
-        int status = kevent(kq, &filter, 1, &event, 1, NULL);
+        Object* status = fsevent_.get()->wait_for_event();
+        // int status = kevent(kq, &filter, 1, &event, 1, NULL);
 
         if(request_exit_) break;
-        if(status == 0) continue;
-        if(status < 0) perror("kevent");
+        if(status->nil_p()) continue;
 
-        if(event.fflags & NOTE_WRITE) {
-          char* request = read_request(state);
+        char* request = read_request(state);
 
-          if(request) {
-            utilities::thread::Mutex::LockGuard lg(list_lock_);
-            request_list_->push_back(request);
-            response_cond_.signal();
-          }
+        if(request) {
+          utilities::thread::Mutex::LockGuard lg(list_lock_);
+          request_list_->push_back(request);
+          response_cond_.signal();
         }
       }
 

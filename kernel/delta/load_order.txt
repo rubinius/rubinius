@@ -15,6 +15,7 @@ signal.rbc
 struct.rbc
 thread.rbc
 code_loader.rbc
+fsevent.rbc
 console.rbc
 ffi.rbc
 ruby_constants.rbc

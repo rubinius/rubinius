@@ -23,6 +23,7 @@
 #include "builtin/executable.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/float.hpp"
+#include "builtin/fsevent.hpp"
 #include "builtin/io.hpp"
 #include "builtin/iseq.hpp"
 #include "builtin/list.hpp"
@@ -361,6 +362,7 @@ namespace rubinius {
     Alias::init(state);
     Randomizer::init(state);
     Encoding::init(state);
+    FSEvent::init(state);
   }
 
   // @todo document all the sections of bootstrap_ontology
