@@ -1962,8 +1962,8 @@ class String
     return output.force_encoding(encoding)
   end
 
-  def scrub!(replace = nil)
-    replace(scrub(replace))
+  def scrub!(replace = nil, &block)
+    replace(scrub(replace, &block))
     return self
   end
 
