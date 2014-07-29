@@ -1962,6 +1962,11 @@ class String
     return output.force_encoding(encoding)
   end
 
+  def scrub!(replace = nil)
+    replace(scrub(replace))
+    return self
+  end
+
   def []=(index, count_or_replacement, replacement=undefined)
     if undefined.equal?(replacement)
       replacement = count_or_replacement

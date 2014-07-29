@@ -62,3 +62,11 @@ describe "String#scrub with a block" do
     replaced.should == "€€"
   end
 end
+
+describe "String#scrub!" do
+  it "modifies self for valid strings" do
+    input = "a\x81"
+    input.scrub!
+    input.should == "a\uFFFD"
+  end
+end
