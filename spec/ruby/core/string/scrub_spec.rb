@@ -69,4 +69,10 @@ describe "String#scrub!" do
     input.scrub!
     input.should == "a\uFFFD"
   end
+
+  it "accepts blocks" do
+    input = "a\x81"
+    input.scrub! { |b| "<?>" }
+    input.should == "a<?>"
+  end
 end
