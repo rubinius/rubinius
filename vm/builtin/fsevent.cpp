@@ -39,9 +39,11 @@ namespace rubinius {
   }
 
   Object* FSEvent::wait_for_event() {
-    int status = kevent(kq_, &filter_, 1, &event_, 1, NULL);
+    struct kevent event;
 
-    if(status < 0 || !(event_.fflags & NOTE_WRITE)) {
+    int status = kevent(kq_, &filter_, 1, &event, 1, NULL);
+
+    if(status < 0 || !(event.fflags & NOTE_WRITE)) {
       return cNil;
     }
 

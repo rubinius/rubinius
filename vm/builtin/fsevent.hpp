@@ -34,7 +34,6 @@ namespace rubinius {
   private:
     int kq_;
     struct kevent filter_;
-    struct kevent event_;
 
 #elif HAVE_INOTIFY
 #endif
