@@ -16,16 +16,12 @@
 
 #include <stdio.h>
 
+#include <ostream>
+
 // read
 #include <unistd.h>
 #include <sys/uio.h>
 #include <sys/types.h>
-
-// --- kqueue
-#include <sys/types.h>
-#include <sys/event.h>
-#include <sys/time.h>
-// ----------
 
 namespace rubinius {
   namespace console {
@@ -58,12 +54,16 @@ namespace rubinius {
       , response_exit_(false)
       , request_list_(0)
     {
+      std::string path(shared_.config.vm_fsapi_path.value + "/console");
+
+      request_path_ = path + "-request";
+      response_path_ = path + "-response";
+
       shared_.auxiliary_threads()->register_thread(this);
     }
 
     Console::~Console() {
       shared_.auxiliary_threads()->unregister_thread(this);
-      cleanup();
     }
 
     void Console::wakeup() {
@@ -74,11 +74,13 @@ namespace rubinius {
     void Console::cleanup() {
       if(request_fd_ > 0) {
         close(request_fd_);
+        unlink(request_path_.c_str());
         request_fd_ = -1;
       }
 
       if(response_fd_ > 0) {
         close(response_fd_);
+        unlink(response_path_.c_str());
         response_fd_ = -1;
       }
 
@@ -89,7 +91,9 @@ namespace rubinius {
         {
           delete[] *i;
         }
+
         delete request_list_;
+        request_list_ = NULL;
       }
     }
 
@@ -103,8 +107,14 @@ namespace rubinius {
     void Console::start(STATE) {
       initialize(state);
 
-      Class* cls = as<Class>(G(rubinius)->get_const(state, "Console"));
+      Module* mod = as<Module>(G(rubinius)->get_const(state, "Console"));
+      Class* cls = as<Class>(mod->get_const(state, "Server"));
       console_.set(cls->send(state, 0, state->symbol("new")));
+
+      cls->set_const(state, state->symbol("RequestPath"),
+          String::create(state, request_path_.c_str()));
+      cls->set_const(state, state->symbol("ResponsePath"),
+          String::create(state, response_path_.c_str()));
 
       start_threads(state);
     }
@@ -169,6 +179,7 @@ namespace rubinius {
 
     void Console::shutdown(STATE) {
       stop_threads(state);
+      cleanup();
     }
 
     void Console::before_exec(STATE) {
@@ -202,9 +213,21 @@ namespace rubinius {
       start(state);
     }
 
-    char* Console::read_request(STATE) {
-      std::cerr << "console: read_request" << std::endl;
+    int open_file(std::string path) {
+      int fd = ::open(path.c_str(), O_CREAT | O_TRUNC | O_RDWR, 0666);
 
+      if(fd < 0) {
+        std::ostringstream msg;
+        msg << "failed to open console file: " << path << std::endl;
+        msg << strerror(errno) << std::endl;
+
+        rubinius::bug(msg.str().c_str());
+      }
+
+      return fd;
+    }
+
+    char* Console::read_request(STATE) {
       int status = flock(request_fd_, LOCK_EX);
       if(status < 0) return NULL;
 
@@ -246,25 +269,14 @@ namespace rubinius {
       state->vm()->thread->hard_unlock(state, gct, 0);
       state->gc_independent(gct, 0);
 
-      request_fd_ = ::open("/tmp/rbx-console-request", O_CREAT | O_TRUNC | O_RDWR, 0666);
-      if(request_fd_ < 0) { puts("failed to open console request\n"); return; }
+      request_fd_ = open_file(request_path_);
 
       FSEvent* fsevent = FSEvent::create(state);
-      fsevent->watch_file(state, request_fd_, "/tmp/rbx-console-request");
+      fsevent->watch_file(state, request_fd_, request_path_.c_str());
       fsevent_.set(fsevent);
 
-      // int kq = kqueue();
-      // if(kq < 0) { puts("failed to get kqueue\n"); return; }
-
-      // struct kevent filter, event;
-      // EV_SET(&filter, request_fd_, EVFILT_VNODE,
-      //     EV_ADD | EV_ENABLE | EV_CLEAR, NOTE_WRITE, 0, NULL);
-
-      // const struct timespec timeout = { 0, 10000000 };
-
       while(!request_exit_) {
-        Object* status = fsevent_.get()->wait_for_event();
-        // int status = kevent(kq, &filter, 1, &event, 1, NULL);
+        Object* status = fsevent_.get()->wait_for_event(state);
 
         if(request_exit_) break;
         if(status->nil_p()) continue;
@@ -273,6 +285,7 @@ namespace rubinius {
 
         if(request) {
           utilities::thread::Mutex::LockGuard lg(list_lock_);
+
           request_list_->push_back(request);
           response_cond_.signal();
         }
@@ -282,9 +295,7 @@ namespace rubinius {
                            state->vm()->thread_id(), 1);
     }
 
-    void Console::write_response(STATE, String* response) {
-      std::cerr << "console: write_response" << std::endl;
-
+    void Console::write_response(STATE, const char* response, native_int size) {
       int status = flock(response_fd_, LOCK_EX);
       if(status < 0) return;
 
@@ -299,9 +310,9 @@ namespace rubinius {
         return;
       }
 
-      ::write(response_fd_, response->byte_address(), response->byte_size());
+      ::write(response_fd_, response, size);
 
-      flock(request_fd_, LOCK_UN);
+      flock(response_fd_, LOCK_UN);
     }
 
     void Console::process_responses(STATE) {
@@ -314,16 +325,16 @@ namespace rubinius {
                             state->vm()->thread_id(), 1);
 
       state->vm()->thread->hard_unlock(state, gct, 0);
-      state->gc_independent(gct, 0);
+      state->gc_dependent(gct, 0);
 
-      response_fd_ = ::open("/tmp/rbx-console-response", O_CREAT | O_TRUNC | O_RDWR, 0666);
-      if(response_fd_ < 0) { puts("failed to open console response\n"); return; }
+      response_fd_ = open_file(response_path_);
 
       char* request = NULL;
 
       while(!response_exit_) {
         {
           utilities::thread::Mutex::LockGuard lg(list_lock_);
+          GCIndependent guard(state, 0);
 
           if(request_list_->size() > 0) {
             request = request_list_->back();
@@ -339,11 +350,19 @@ namespace rubinius {
           Object* result = console_.get()->send(state, 0, state->symbol("evaluate"),
               args, cNil);
 
-          write_response(state, as<String>(result));
+          if(String* response = try_as<String>(result)) {
+            GCIndependent guard(state, 0);
+
+            write_response(state,
+                reinterpret_cast<const char*>(response->byte_address()),
+                response->byte_size());
+          }
 
           request = NULL;
         } else {
           utilities::thread::Mutex::LockGuard lg(response_lock_);
+          GCIndependent guard(state, 0);
+
           response_cond_.wait(response_lock_);
         }
       }

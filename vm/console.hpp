@@ -30,6 +30,9 @@ namespace rubinius {
       TypedRoot<Object*> console_;
       TypedRoot<FSEvent*> fsevent_;
 
+      std::string request_path_;
+      std::string response_path_;
+
       int request_fd_;
       int response_fd_;
 
@@ -67,7 +70,7 @@ namespace rubinius {
       void process_responses(STATE);
 
       char* read_request(STATE);
-      void write_response(STATE, String* response);
+      void write_response(STATE, const char* response, native_int size);
     };
   }
 }

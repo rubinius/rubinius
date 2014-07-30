@@ -51,7 +51,7 @@ namespace rubinius {
     Object* watch_file(STATE, int fd, const char* path);
 
     // Rubinius.primitive :fsevent_wait_for_event
-    Object* wait_for_event();
+    Object* wait_for_event(STATE);
 
     class Info : public TypeInfo {
     public:

@@ -38,10 +38,15 @@ namespace rubinius {
     return watch_file(state, Fixnum::from(fd), String::create(state, path));
   }
 
-  Object* FSEvent::wait_for_event() {
+  Object* FSEvent::wait_for_event(STATE) {
     struct kevent event;
+    int status = 0;
 
-    int status = kevent(kq_, &filter_, 1, &event, 1, NULL);
+    {
+      GCIndependent guard(state, 0);
+
+      status = kevent(kq_, &filter_, 1, &event, 1, NULL);
+    }
 
     if(status < 0 || !(event.fflags & NOTE_WRITE)) {
       return cNil;
