@@ -11,16 +11,17 @@ namespace rubinius {
     G(fsevent)->set_object_type(state, FSEventType);
   }
 
-#ifdef HAVE_KQUEUE
-  FSEvent* FSEvent::create(STATE) {
-    FSEvent* fsevent = state->new_object<FSEvent>(G(fsevent));
-    fsevent->kq_ = kqueue();
-    return fsevent;
-  }
-
   FSEvent* FSEvent::allocate(STATE, Object* self) {
     FSEvent* fsevent = create(state);
     fsevent->klass(state, as<Class>(self));
+    return fsevent;
+  }
+
+#ifdef HAVE_KQUEUE
+
+  FSEvent* FSEvent::create(STATE) {
+    FSEvent* fsevent = state->new_object<FSEvent>(G(fsevent));
+    fsevent->kq_ = kqueue();
     return fsevent;
   }
 
@@ -54,6 +55,26 @@ namespace rubinius {
 
     return cTrue;
   }
+
 #elif HAVE_INOTIFY
+
+  FSEvent* FSEvent::create(STATE) {
+    FSEvent* fsevent = state->new_object<FSEvent>(G(fsevent));
+    // TODO: set inotify state
+    return fsevent;
+  }
+
+  Object* FSEvent::watch_file(STATE, Fixnum* fd, String* path) {
+    return cNil;
+  }
+
+  Object* FSEvent::watch_file(STATE, int fd, const char* path) {
+    return watch_file(state, Fixnum::from(fd), String::create(state, path));
+  }
+
+  Object* FSEvent::wait_for_event(STATE) {
+    return cNil;
+  }
+
 #endif
 }
