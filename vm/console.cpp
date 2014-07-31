@@ -16,8 +16,6 @@
 
 #include <stdio.h>
 
-#include <ostream>
-
 // read
 #include <unistd.h>
 #include <sys/uio.h>
@@ -54,11 +52,6 @@ namespace rubinius {
       , response_exit_(false)
       , request_list_(0)
     {
-      std::string path(shared_.config.vm_fsapi_path.value + "/console");
-
-      request_path_ = path + "-request";
-      response_path_ = path + "-response";
-
       shared_.auxiliary_threads()->register_thread(this);
     }
 
@@ -101,7 +94,25 @@ namespace rubinius {
       list_lock_.init();
       response_lock_.init();
       response_cond_.init();
+
+      std::string path(shared_.config.vm_fsapi_path.value + "/console");
+
+      request_path_ = path + "-request";
+      response_path_ = path + "-response";
+
       request_list_ = new RequestList;
+    }
+
+    static int open_file(std::string path) {
+      int fd = ::open(path.c_str(), O_CREAT | O_TRUNC | O_RDWR, 0666);
+
+      if(fd < 0) {
+        // TODO: logging
+        std::cerr << "failed to open console file: " << path << std::endl;
+        std::cerr << strerror(errno) << std::endl;
+      }
+
+      return fd;
     }
 
     void Console::start(STATE) {
@@ -115,6 +126,13 @@ namespace rubinius {
           String::create(state, request_path_.c_str()));
       cls->set_const(state, state->symbol("ResponsePath"),
           String::create(state, response_path_.c_str()));
+
+      request_fd_ = open_file(request_path_);
+      response_fd_ = open_file(response_path_);
+
+      FSEvent* fsevent = FSEvent::create(state);
+      fsevent->watch_file(state, request_fd_, request_path_.c_str());
+      fsevent_.set(fsevent);
 
       start_threads(state);
     }
@@ -132,6 +150,9 @@ namespace rubinius {
     void Console::start_threads(STATE) {
       SYNC(state);
 
+      // Don't start threads if we couldn't open communication channels.
+      if(request_fd_ < 0 || response_fd_ < 0) return;
+
       if(!request_vm_) {
         request_vm_ = state->shared().new_vm();
         request_exit_ = false;
@@ -146,7 +167,9 @@ namespace rubinius {
                      console_response_trampoline, true));
       }
 
-      run(state);
+      if(request_vm_ && response_vm_) {
+        run(state);
+      }
     }
 
     void Console::stop_threads(STATE) {
@@ -213,20 +236,6 @@ namespace rubinius {
       start(state);
     }
 
-    int open_file(std::string path) {
-      int fd = ::open(path.c_str(), O_CREAT | O_TRUNC | O_RDWR, 0666);
-
-      if(fd < 0) {
-        std::ostringstream msg;
-        msg << "failed to open console file: " << path << std::endl;
-        msg << strerror(errno) << std::endl;
-
-        rubinius::bug(msg.str().c_str());
-      }
-
-      return fd;
-    }
-
     char* Console::read_request(STATE) {
       int status = flock(request_fd_, LOCK_EX);
       if(status < 0) return NULL;
@@ -268,12 +277,6 @@ namespace rubinius {
 
       state->vm()->thread->hard_unlock(state, gct, 0);
       state->gc_independent(gct, 0);
-
-      request_fd_ = open_file(request_path_);
-
-      FSEvent* fsevent = FSEvent::create(state);
-      fsevent->watch_file(state, request_fd_, request_path_.c_str());
-      fsevent_.set(fsevent);
 
       while(!request_exit_) {
         Object* status = fsevent_.get()->wait_for_event(state);
@@ -326,8 +329,6 @@ namespace rubinius {
 
       state->vm()->thread->hard_unlock(state, gct, 0);
       state->gc_dependent(gct, 0);
-
-      response_fd_ = open_file(response_path_);
 
       char* request = NULL;
 

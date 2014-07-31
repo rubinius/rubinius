@@ -216,6 +216,8 @@ namespace rubinius {
     capi_constant_lock_.init();
     auxiliary_threads_->init();
 
+    env_->set_fsapi_path();
+
     world_->reinit();
   }
 

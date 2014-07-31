@@ -102,6 +102,7 @@ namespace rubinius {
     void load_conf(std::string path);
     void load_string(std::string str);
     void run_file(std::string path);
+    void set_fsapi_path();
     void load_tool();
     void run_from_filesystem();
     void boot_vm();

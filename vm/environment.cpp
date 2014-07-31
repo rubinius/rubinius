@@ -195,6 +195,10 @@ namespace rubinius {
 
     config_parser.update_configuration(config);
 
+    set_fsapi_path();
+  }
+
+  void Environment::set_fsapi_path() {
     if(!strncmp(config.vm_fsapi_path, "$TMPDIR",
           MIN(config.vm_fsapi_path.value.size(), 7))) {
       std::ostringstream path;
