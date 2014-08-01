@@ -41,6 +41,7 @@ namespace rubinius {
   public:
     static void init(STATE);
 
+    static void finalize(STATE, FSEvent* fsevent);
     static FSEvent* create(STATE);
 
     // Rubinius.primitive+ :fsevent_allocate

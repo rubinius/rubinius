@@ -19,9 +19,16 @@ namespace rubinius {
 
 #ifdef HAVE_KQUEUE
 
+  void FSEvent::finalize(STATE, FSEvent* fsevent) {
+    if(fsevent->kq_ > 0) ::close(fsevent->kq_);
+  }
+
   FSEvent* FSEvent::create(STATE) {
     FSEvent* fsevent = state->new_object<FSEvent>(G(fsevent));
     fsevent->kq_ = kqueue();
+
+    state->memory()->needs_finalization(fsevent, (FinalizerFunction)&FSEvent::finalize);
+
     return fsevent;
   }
 
@@ -57,6 +64,9 @@ namespace rubinius {
   }
 
 #elif HAVE_INOTIFY
+
+  void FSEvent::finalize(STATE, FSEvent* fsevent) {
+  }
 
   FSEvent* FSEvent::create(STATE) {
     FSEvent* fsevent = state->new_object<FSEvent>(G(fsevent));
