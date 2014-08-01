@@ -219,6 +219,9 @@ namespace rubinius {
     env_->set_fsapi_path();
 
     world_->reinit();
+
+    state->vm()->set_run_state(ManagedThread::eIndependent);
+    gc_dependent(state, 0);
   }
 
   bool SharedState::should_stop() const {

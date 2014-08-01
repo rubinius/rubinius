@@ -37,7 +37,8 @@ namespace rubinius {
       // should_stop to 1 so we start off in the proper state
       // and can continue after a fork.
       pending_threads_ = 0;
-      should_stop_ = 1;
+      should_stop_ = 0;
+      time_waiting_ = 0;
       mutex_.init();
       waiting_to_run_.init();
     }
