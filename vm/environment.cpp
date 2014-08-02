@@ -18,6 +18,8 @@
 #include "builtin/module.hpp"
 #include "builtin/native_method.hpp"
 
+#include "util/logger.hpp"
+
 #ifdef ENABLE_LLVM
 #include "llvm/state.hpp"
 #if RBX_LLVM_API_VER == 208
@@ -94,6 +96,8 @@ namespace rubinius {
     load_vm_options(argc_, argv_);
     root_vm = shared->new_vm();
     state = new State(root_vm);
+
+    start_logging();
   }
 
   Environment::~Environment() {
@@ -108,6 +112,8 @@ namespace rubinius {
       delete[] argv_[i];
     }
     delete[] argv_;
+
+    utilities::logger::close();
   }
 
   void cpp_exception_bug() {
@@ -132,6 +138,24 @@ namespace rubinius {
 
   void Environment::start_finalizer() {
     finalizer_handler_ = new FinalizerHandler(state);
+  }
+
+  void Environment::start_logging() {
+    if(!config.vm_log.value.compare("syslog")) {
+      utilities::logger::open(utilities::logger::eSyslog, RBX_PROGRAM_NAME);
+    } else if(!config.vm_log.value.compare("console")) {
+      utilities::logger::open(utilities::logger::eConsoleLogger, RBX_PROGRAM_NAME);
+    } else {
+      const char* place_holder = "$PROGRAM_NAME";
+      size_t index = config.vm_log.value.find(place_holder);
+
+      if(index != std::string::npos) {
+        config.vm_log.value.replace(index, strlen(place_holder), RBX_PROGRAM_NAME);
+      }
+
+      utilities::logger::open(utilities::logger::eFileLogger,
+          config.vm_log.value.c_str());
+    }
   }
 
   void Environment::copy_argv(int argc, char** argv) {

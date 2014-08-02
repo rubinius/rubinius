@@ -184,5 +184,8 @@ Rubinius::ConfigurationVariables.define do |c|
 
   c.vm_variable "vm.fsapi_path", "$TMPDIR/rbx-$USER/<pid>",
     "Base directory of the Rubinius File System API files"
+
+  c.vm_variable "vm.log", "/var/log/$PROGRAM_NAME.log",
+    "Logging facility to use: 'syslog', 'console', or path"
 end
 
