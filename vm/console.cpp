@@ -11,6 +11,9 @@
 
 #include "dtrace/dtrace.h"
 
+#include "util/file.hpp"
+#include "util/logger.hpp"
+
 #include <fcntl.h>
 #include <sys/file.h>
 
@@ -22,6 +25,8 @@
 #include <sys/types.h>
 
 namespace rubinius {
+  using namespace utilities;
+
   namespace console {
     Object* console_request_trampoline(STATE) {
       state->shared().console()->process_requests(state);
@@ -107,9 +112,7 @@ namespace rubinius {
       int fd = ::open(path.c_str(), O_CREAT | O_TRUNC | O_RDWR, 0666);
 
       if(fd < 0) {
-        // TODO: logging
-        std::cerr << "failed to open console file: " << path << std::endl;
-        std::cerr << strerror(errno) << std::endl;
+        logger::error("%s: console: unable to open: %s", strerror(errno), path.c_str());
       }
 
       return fd;
@@ -237,31 +240,33 @@ namespace rubinius {
     }
 
     char* Console::read_request(STATE) {
-      int status = flock(request_fd_, LOCK_EX);
-      if(status < 0) return NULL;
+      file::LockGuard guard(request_fd_, LOCK_EX);
+
+      if(guard.status() != file::eLockSucceeded) {
+        logger::error("%s: console: unable to lock request file", strerror(errno));
+        return NULL;
+      }
 
       char* buf[1024];
 
       lseek(request_fd_, 0, SEEK_SET);
-      ssize_t bytes = read(request_fd_, buf, 1024);
+      ssize_t bytes = ::read(request_fd_, buf, 1024);
 
       char* req = NULL;
       if(bytes > 0) {
         req = new char[bytes+1];
         memcpy(req, buf, bytes);
         req[bytes] = 0;
+      } else if(bytes < 0) {
+        logger::error("%s: console: unable to read request", strerror(errno));
       }
 
-      status = lseek(request_fd_, 0, SEEK_SET);
-      if(status < 0) {
-        std::cerr << "read_request: lseek: " << strerror(errno) << std::endl;
+      if(lseek(request_fd_, 0, SEEK_SET) < 0) {
+        logger::error("%s: console: unable to rewind request file", strerror(errno));
       }
-      status = ftruncate(request_fd_, 0);
-      if(status < 0) {
-        std::cerr << "read_request: ftruncate: " << strerror(errno) << std::endl;
+      if(ftruncate(request_fd_, 0) < 0) {
+        logger::error("%s: console: unable to truncate request file", strerror(errno));
       }
-
-      flock(request_fd_, LOCK_UN);
 
       return req;
     }
@@ -299,23 +304,25 @@ namespace rubinius {
     }
 
     void Console::write_response(STATE, const char* response, native_int size) {
-      int status = flock(response_fd_, LOCK_EX);
-      if(status < 0) return;
+      file::LockGuard guard(response_fd_, LOCK_EX);
 
-      status = lseek(response_fd_, 0, SEEK_SET);
-      if(status < 0) {
-        std::cerr << "write_response: lseek: " << strerror(errno) << std::endl;
-        return;
-      }
-      status = ftruncate(response_fd_, 0);
-      if(status < 0) {
-        std::cerr << "write_response: ftruncate: " << strerror(errno) << std::endl;
+      if(guard.status() != file::eLockSucceeded) {
+        logger::error("%s: unable to lock response file", strerror(errno));
         return;
       }
 
-      ::write(response_fd_, response, size);
+      if(lseek(response_fd_, 0, SEEK_SET) < 0) {
+        logger::error("%s: console: unable to rewind response file", strerror(errno));
+        return;
+      }
+      if(ftruncate(response_fd_, 0) < 0) {
+        logger::error("%s: console: unable to truncate response file", strerror(errno));
+        return;
+      }
 
-      flock(response_fd_, LOCK_UN);
+      if(::write(response_fd_, response, size) < 0) {
+        logger::error("%s: console: unable to write response", strerror(errno));
+      }
     }
 
     void Console::process_responses(STATE) {
