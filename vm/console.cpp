@@ -100,7 +100,7 @@ namespace rubinius {
       response_lock_.init();
       response_cond_.init();
 
-      std::string path(shared_.config.vm_fsapi_path.value + "/console");
+      std::string path(shared_.fsapi_path + "/console");
 
       request_path_ = path + "-request";
       response_path_ = path + "-response";

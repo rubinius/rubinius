@@ -21,6 +21,7 @@
 
 #include "capi/capi_constants.h"
 
+#include <string>
 #include <vector>
 
 #include "missing/unordered_map.hpp"
@@ -135,6 +136,7 @@ namespace rubinius {
     SymbolTable symbols;
     LLVMState* llvm_state;
     Stats stats;
+    std::string fsapi_path;
     uint32_t hash_seed;
 
   public:

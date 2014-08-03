@@ -223,9 +223,9 @@ namespace rubinius {
   }
 
   void Environment::set_fsapi_path() {
-    if(!strncmp(config.vm_fsapi_path, "$TMPDIR",
-          MIN(config.vm_fsapi_path.value.size(), 7))) {
-      std::ostringstream path;
+    std::ostringstream path;
+
+    if(!config.vm_fsapi_path.value.compare("$TMPDIR")) {
       const char* tmp = getenv("TMPDIR");
 
       if(tmp) {
@@ -234,11 +234,17 @@ namespace rubinius {
       } else {
         path << "/tmp/";
       }
-      path << "rbx-" << getlogin() << "-" << getpid();
-      config.vm_fsapi_path.set(path.str().c_str());
+    } else {
+      std::string cpath = config.vm_fsapi_path.value;
+
+      path << cpath;
+      if(cpath[cpath.size() - 1] != '/') path << "/";
     }
 
-    mkdir(config.vm_fsapi_path.value.c_str(), 0755);
+    path << "rbx-" << getlogin() << "-" << getpid();
+    shared->fsapi_path.assign(path.str());
+
+    mkdir(shared->fsapi_path.c_str(), 0755);
   }
 
   void Environment::load_argv(int argc, char** argv) {
@@ -444,7 +450,7 @@ namespace rubinius {
 
     NativeMethod::cleanup_thread(state);
 
-    rmdir(shared->config.vm_fsapi_path);
+    rmdir(shared->fsapi_path.c_str());
   }
 
   /**

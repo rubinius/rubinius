@@ -85,6 +85,7 @@ namespace rubinius {
 
     if(console_) {
       delete console_;
+      console_ = 0;
     }
 
     delete tool_broker_;
