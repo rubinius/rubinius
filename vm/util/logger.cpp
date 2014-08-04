@@ -1,3 +1,4 @@
+#include "util/file.hpp"
 #include "util/logger.hpp"
 #include "util/thread.hpp"
 
@@ -247,6 +248,8 @@ namespace rubinius {
       }
 
       void FileLogger::write_log(const char* level, const char* message, int size) {
+        utilities::file::LockGuard guard(logger_fd_, LOCK_EX);
+
         const char* time = timestamp();
         write(logger_fd_, time, strlen(time));
         write(logger_fd_, identifier_->c_str(), identifier_->size());
