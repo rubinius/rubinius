@@ -69,16 +69,16 @@ namespace rubinius {
       write(request_fd_, "x", 1);
     }
 
-    void Console::cleanup() {
+    void Console::cleanup(bool remove_files) {
       if(request_fd_ > 0) {
         close(request_fd_);
-        unlink(request_path_.c_str());
+        if(remove_files) unlink(request_path_.c_str());
         request_fd_ = -1;
       }
 
       if(response_fd_ > 0) {
         close(response_fd_);
-        unlink(response_path_.c_str());
+        if(remove_files) unlink(response_path_.c_str());
         response_fd_ = -1;
       }
 
@@ -205,7 +205,7 @@ namespace rubinius {
 
     void Console::shutdown(STATE) {
       stop_threads(state);
-      cleanup();
+      cleanup(true);
     }
 
     void Console::before_exec(STATE) {
@@ -235,7 +235,7 @@ namespace rubinius {
         response_vm_ = NULL;
       }
 
-      cleanup();
+      cleanup(false);
       start(state);
     }
 

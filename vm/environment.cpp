@@ -450,7 +450,9 @@ namespace rubinius {
 
     NativeMethod::cleanup_thread(state);
 
-    rmdir(shared->fsapi_path.c_str());
+    if(rmdir(shared->fsapi_path.c_str()) < 0) {
+      utilities::logger::error("%s: unable to remove FSAPI path", strerror(errno));
+    }
   }
 
   /**

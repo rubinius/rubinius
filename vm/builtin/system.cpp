@@ -36,6 +36,7 @@
 #include "windows_compat.h"
 #include "util/sha1.h"
 #include "util/timing.h"
+#include "util/logger.hpp"
 #include "paths.h"
 
 #include "agent.hpp"

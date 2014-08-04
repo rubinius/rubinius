@@ -49,7 +49,7 @@ namespace rubinius {
       Console(STATE);
       virtual ~Console();
 
-      void cleanup();
+      void cleanup(bool remove_files);
       void wakeup();
 
       void start(STATE);
