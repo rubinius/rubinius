@@ -1052,8 +1052,11 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
 
       system expand("./#{basename}")
       return $?.exitstatus
+    rescue => e
+      @log.log "Error in check_program: #{e.class} #{e.message}\n  #{e.backtrace.join("\n  ")}"
+      raise e
     ensure
-      File.delete(*Dir["#{basename}*"])
+      FileUtils.rm_r(Dir["#{basename}*"])
     end
   end
 
