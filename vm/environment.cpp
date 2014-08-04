@@ -184,10 +184,32 @@ namespace rubinius {
   }
 
   void Environment::load_vm_options(int argc, char**argv) {
-    /* Parse -X options from RBXOPT environment variable.  We parse these
-     * first to permit arguments passed directly to the VM to override
-     * settings from the environment.
+    /* We parse -X options from three sources in the following order:
+     *
+     *  1. The file .rbxrc in the current working directory.
+     *  2. The RBXOPT environment variable.
+     *  3. The command line options.
+     *
+     * This order permits environment and command line ot override
+     * "application" configuration. Likewise, command line can override
+     * environment configuration.
      */
+
+#define RBX_CONFIG_FILE_LINE_MAX    256
+
+    // Configuration file.
+    if(FILE* fp = fopen(".rbxrc", "r")) {
+      char buf[RBX_CONFIG_FILE_LINE_MAX];
+      while(fgets(buf, RBX_CONFIG_FILE_LINE_MAX, fp)) {
+        int size = strlen(buf);
+        if(buf[size-1] == '\n') buf[size-1] = '\0';
+        if(strncmp(buf, "-X", 2) == 0) {
+          config_parser.import_line(buf + 2);
+        }
+      }
+    }
+
+    // Environment.
     char* rbxopt = getenv("RBXOPT");
     if(rbxopt) {
       char *e, *b = rbxopt = strdup(rbxopt);
@@ -211,6 +233,7 @@ namespace rubinius {
       free(rbxopt);
     }
 
+    // Command line.
     for(int i=1; i < argc; i++) {
       char* arg = argv[i];
 
