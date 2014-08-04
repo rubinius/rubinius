@@ -12,7 +12,16 @@ namespace rubinius {
         eFileLogger
       };
 
-      void open(logger_type type, const char* identifier);
+      enum logger_level {
+        eFatal  = 1,
+        eError  = 2,
+        eWarn   = 3,
+        eInfo   = 4,
+        eDebug  = 5
+      };
+
+
+      void open(logger_type type, const char* identifier, logger_level level=eWarn);
       void close();
 
       void fatal(const char* message, ...);
@@ -20,6 +29,8 @@ namespace rubinius {
       void warn(const char* message, ...);
       void info(const char* message, ...);
       void debug(const char* message, ...);
+
+      void set_loglevel(logger_level level);
 
       class Logger {
 #define LOGGER_TIME_SIZE    16

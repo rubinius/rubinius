@@ -141,10 +141,24 @@ namespace rubinius {
   }
 
   void Environment::start_logging() {
+    utilities::logger::logger_level level = utilities::logger::eWarn;
+
+    if(!config.vm_log_level.value.compare("fatal")) {
+      level = utilities::logger::eFatal;
+    } else if(!config.vm_log_level.value.compare("error")) {
+      level = utilities::logger::eError;
+    } else if(!config.vm_log_level.value.compare("warn")) {
+      level = utilities::logger::eWarn;
+    } else if(!config.vm_log_level.value.compare("info")) {
+      level = utilities::logger::eInfo;
+    } else if(!config.vm_log_level.value.compare("debug")) {
+      level = utilities::logger::eDebug;
+    }
+
     if(!config.vm_log.value.compare("syslog")) {
-      utilities::logger::open(utilities::logger::eSyslog, RBX_PROGRAM_NAME);
+      utilities::logger::open(utilities::logger::eSyslog, RBX_PROGRAM_NAME, level);
     } else if(!config.vm_log.value.compare("console")) {
-      utilities::logger::open(utilities::logger::eConsoleLogger, RBX_PROGRAM_NAME);
+      utilities::logger::open(utilities::logger::eConsoleLogger, RBX_PROGRAM_NAME, level);
     } else {
       const char* place_holder = "$PROGRAM_NAME";
       size_t index = config.vm_log.value.find(place_holder);
@@ -154,7 +168,7 @@ namespace rubinius {
       }
 
       utilities::logger::open(utilities::logger::eFileLogger,
-          config.vm_log.value.c_str());
+          config.vm_log.value.c_str(), level);
     }
   }
 

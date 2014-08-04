@@ -187,5 +187,8 @@ Rubinius::ConfigurationVariables.define do |c|
 
   c.vm_variable "vm.log", "/var/log/$PROGRAM_NAME.log",
     "Logging facility to use: 'syslog', 'console', or path"
+
+  c.vm_variable "vm.log.level", "Warn",
+    "Logging level: fatal, error, warn, info, debug"
 end
 

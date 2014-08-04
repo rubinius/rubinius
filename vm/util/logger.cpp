@@ -17,8 +17,9 @@ namespace rubinius {
     namespace logger {
       static thread::Mutex mutex_ = 0;
       static Logger* logger_ = 0;
+      static logger_level loglevel_ = eWarn;
 
-      void open(logger_type type, const char* identifier) {
+      void open(logger_type type, const char* identifier, logger_level level) {
         mutex_.init();
 
         switch(type) {
@@ -32,6 +33,8 @@ namespace rubinius {
           logger_ = new FileLogger(identifier);
           break;
         }
+
+        loglevel_ = level;
       }
 
       void close() {
@@ -56,8 +59,14 @@ namespace rubinius {
         return bytes;
       }
 
+      void set_loglevel(logger_level level) {
+        loglevel_ = level;
+      }
+
       void fatal(const char* message, ...) {
         thread::Mutex::LockGuard guard(mutex_);
+
+        if(loglevel_ < eFatal) return;
 
         if(logger_) {
           char buf[LOGGER_MSG_SIZE];
@@ -75,6 +84,8 @@ namespace rubinius {
       void error(const char* message, ...) {
         thread::Mutex::LockGuard guard(mutex_);
 
+        if(loglevel_ < eError) return;
+
         if(logger_) {
           char buf[LOGGER_MSG_SIZE];
 
@@ -89,6 +100,8 @@ namespace rubinius {
 
       void warn(const char* message, ...) {
         thread::Mutex::LockGuard guard(mutex_);
+
+        if(loglevel_ < eWarn) return;
 
         if(logger_) {
           char buf[LOGGER_MSG_SIZE];
@@ -105,6 +118,8 @@ namespace rubinius {
       void info(const char* message, ...) {
         thread::Mutex::LockGuard guard(mutex_);
 
+        if(loglevel_ < eInfo) return;
+
         if(logger_) {
           char buf[LOGGER_MSG_SIZE];
 
@@ -119,6 +134,8 @@ namespace rubinius {
 
       void debug(const char* message, ...) {
         thread::Mutex::LockGuard guard(mutex_);
+
+        if(loglevel_ < eDebug) return;
 
         if(logger_) {
           char buf[LOGGER_MSG_SIZE];
@@ -145,6 +162,28 @@ namespace rubinius {
         : Logger()
       {
         openlog(identifier, LOG_CONS | LOG_PID, LOG_LOCAL7);
+
+        int logmask;
+
+        switch(loglevel_) {
+        case eFatal:
+          logmask = LOG_EMERG;
+          break;
+        case eError:
+          logmask = LOG_ERR;
+          break;
+        case eWarn:
+          logmask = LOG_WARNING;
+          break;
+        case eInfo:
+          logmask = LOG_NOTICE;
+          break;
+        case eDebug:
+          logmask = LOG_DEBUG;
+          break;
+        }
+
+        setlogmask(LOG_UPTO(logmask));
       }
 
       Syslog::~Syslog() {
