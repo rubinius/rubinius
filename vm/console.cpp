@@ -96,6 +96,9 @@ namespace rubinius {
     }
 
     void Console::initialize(STATE) {
+      request_exit_ = false;
+      response_exit_ = false;
+
       list_lock_.init();
       response_lock_.init();
       response_cond_.init();
