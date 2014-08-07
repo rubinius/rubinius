@@ -46,6 +46,10 @@ namespace rubinius {
     class Console;
   }
 
+  namespace metrics {
+    class Metrics;
+  }
+
   class SignalHandler;
   class FinalizerHandler;
   class ObjectMemory;
@@ -86,6 +90,7 @@ namespace rubinius {
     FinalizerHandler* finalizer_handler_;
     QueryAgent* query_agent_;
     console::Console* console_;
+    metrics::Metrics* metrics_;
 
     CApiConstantNameMap capi_constant_name_map_;
     CApiConstantHandleMap capi_constant_handle_map_;
@@ -233,6 +238,12 @@ namespace rubinius {
     }
 
     console::Console* start_console(STATE);
+
+    metrics::Metrics* metrics() const {
+      return metrics_;
+    }
+
+    metrics::Metrics* start_metrics(STATE);
 
     Environment* env() const {
       return env_;

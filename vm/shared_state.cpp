@@ -13,6 +13,7 @@
 
 #include "agent.hpp"
 #include "console.hpp"
+#include "metrics.hpp"
 #include "world_state.hpp"
 #include "builtin/randomizer.hpp"
 #include "builtin/array.hpp"
@@ -181,6 +182,17 @@ namespace rubinius {
     }
 
     return console_;
+  }
+
+  metrics::Metrics* SharedState::start_metrics(STATE) {
+    SYNC(state);
+
+    if(!metrics_) {
+      metrics_ = new metrics::Metrics(state);
+      metrics_->start(state);
+    }
+
+    return metrics_;
   }
 
   void SharedState::reset_threads(STATE) {

@@ -751,6 +751,7 @@ namespace rubinius {
     state->vm()->thread_state()->clear();
 
     state->shared().start_console(state);
+    state->shared().start_metrics(state);
 
     Object* loader = G(rubinius)->get_const(state, state->symbol("Loader"));
     if(loader->nil_p()) {
