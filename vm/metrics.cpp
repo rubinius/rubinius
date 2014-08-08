@@ -2,6 +2,8 @@
 #include "metrics.hpp"
 
 #include "object_utils.hpp"
+#include "shared_state.hpp"
+#include "configuration.hpp"
 
 #include "builtin/class.hpp"
 #include "builtin/thread.hpp"
@@ -11,11 +13,6 @@
 #include "dtrace/dtrace.h"
 
 #include "util/logger.hpp"
-
-// kevent
-#include <sys/types.h>
-#include <sys/event.h>
-#include <sys/time.h>
 
 namespace rubinius {
   namespace metrics {
@@ -32,6 +29,7 @@ namespace rubinius {
       , vm_(NULL)
       , thread_exit_(false)
       , thread_(state)
+      , interval_(state->shared().config.vm_metrics_interval)
     {
       shared_.auxiliary_threads()->register_thread(this);
     }
@@ -47,7 +45,7 @@ namespace rubinius {
     void Metrics::wakeup() {
       thread_exit_ = true;
 
-      close(kq_);
+      timer_.cancel();
     }
 
     void Metrics::cleanup() {
@@ -121,16 +119,11 @@ namespace rubinius {
       state->vm()->thread->hard_unlock(state, gct, 0);
       state->gc_independent(gct, 0);
 
-      kq_ = kqueue();
-      struct kevent filter;
-      struct kevent event;
-      int counter = 1;
-
-      EV_SET(&filter, 1, EVFILT_TIMER, EV_ADD | EV_ENABLE, NOTE_SECONDS, 10, NULL);
+      timer_.set(interval_);
 
       while(!thread_exit_) {
-        kevent(kq_, &filter, 1, &event, 1, NULL);
-        std::cerr << "metrics: beep " << counter++ << std::endl;
+        timer_.wait_for_tick();
+
       }
 
       RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CONST char*>(thread_name),

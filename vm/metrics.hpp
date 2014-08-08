@@ -6,6 +6,8 @@
 
 #include "gc/root.hpp"
 
+#include "util/timer.hpp"
+
 namespace rubinius {
   class VM;
   class State;
@@ -18,7 +20,8 @@ namespace rubinius {
 
       TypedRoot<Thread*> thread_;
 
-      int kq_;
+      int interval_;
+      utilities::timer::Timer timer_;
 
     public:
       Metrics(STATE);
