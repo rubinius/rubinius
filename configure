@@ -948,6 +948,9 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
     @ldsharedxx = "#{@cxx} -shared"
     @ldshared   = "#{@cc} -shared"
 
+    @system_cflags << " -Wno-unused-result "
+    @system_cxxflags << " -Wno-unused-result "
+
     @include_dirs.each do |d|
       @system_cflags << "-I#{d} "
     end
