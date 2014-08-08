@@ -163,7 +163,7 @@ namespace rubinius {
       {
         openlog(identifier, LOG_CONS | LOG_PID, LOG_LOCAL7);
 
-        int logmask;
+        int logmask = eWarn;
 
         switch(loglevel_) {
         case eFatal:
@@ -270,7 +270,7 @@ namespace rubinius {
 
         if(logger_fd_ < 0 && errno == EACCES) {
           // Fall back to cwd if log directory is inaccessible.
-          if(char* s = strrchr(identifier, '/')) {
+          if(const char* s = strrchr(identifier, '/')) {
             logger_fd_ = ::open(s+1, LOGGER_OPEN_FLAGS, LOGGER_OPEN_PERMS);
           }
         }
