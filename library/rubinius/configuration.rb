@@ -188,7 +188,16 @@ Rubinius::ConfigurationVariables.define do |c|
   c.vm_variable "vm.log", "/var/log/$PROGRAM_NAME.log",
     "Logging facility to use: 'syslog', 'console', or path"
 
-  c.vm_variable "vm.log.level", "Warn",
+  c.vm_variable "vm.log.level", "warn",
     "Logging level: fatal, error, warn, info, debug"
+
+  c.vm_variable "vm.metrics.interval", 10000,
+    "Number of milliseconds between aggregation of VM metrics"
+
+  c.vm_variable "vm.metrics.target", "none",
+    "Location to send metrics every interval: 'statsd', 'disk'"
+
+  c.vm_variable "vm.metrics.statsd.host", "none",
+    "The [host:]port of the Statsd server"
 end
 
