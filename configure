@@ -1418,6 +1418,10 @@ int main() { return tgetnum(""); }
       @defines << "HAVE_KQUEUE"
     end
 
+    if has_function("timerfd_create", ["sys/timerfd.h"])
+      @defines << "HAVE_TIMERFD"
+    end
+
     if has_function("inotify_init", ["sys/inotify.h"])
       @defines << "HAVE_INOTIFY"
     end
