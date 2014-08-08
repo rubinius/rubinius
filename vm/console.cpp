@@ -66,7 +66,9 @@ namespace rubinius {
 
     void Console::wakeup() {
       request_exit_ = true;
-      write(request_fd_, "x", 1);
+      if(write(request_fd_, "x", 1) < 0) {
+        logger::error("%s: console: unable to wake request thread", strerror(errno));
+      }
     }
 
     void Console::cleanup(bool remove_files) {
