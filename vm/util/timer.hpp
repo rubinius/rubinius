@@ -19,6 +19,7 @@ namespace rubinius {
         int kq_;
         struct kevent filter_;
 #elif HAVE_TIMERFD
+        int fd_;
 #endif
 
       public:
