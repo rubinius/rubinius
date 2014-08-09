@@ -18,6 +18,7 @@ namespace rubinius {
 #ifdef HAVE_KQUEUE
         int kq_;
         struct kevent filter_;
+        struct timespec ts_;
 #elif HAVE_TIMERFD
         int fd_;
 #endif
@@ -28,6 +29,7 @@ namespace rubinius {
 
         void set(int milliseconds);
         void cancel();
+        void clear();
         int wait_for_tick();
       };
     }

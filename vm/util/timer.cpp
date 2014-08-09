@@ -5,6 +5,10 @@
 #include <unistd.h>
 #include <stdint.h>
 
+#ifdef HAVE_KQUEUE
+#include <sys/errno.h>
+#endif
+
 #ifdef HAVE_TIMERFD
 #include <errno.h>
 #include <sys/timerfd.h>
@@ -15,11 +19,10 @@ namespace rubinius {
     namespace timer {
 #ifdef HAVE_KQUEUE
 
-#define TIMER_INVALID     (-1)
-
-      Timer::Timer()
-        : kq_(TIMER_INVALID)
-      {
+      Timer::Timer() {
+        if((kq_ = kqueue()) < 0) {
+          logger::error("%s: timer: unable to create kqueue", strerror(errno));
+        }
       }
 
       Timer::~Timer() {
@@ -27,29 +30,46 @@ namespace rubinius {
       }
 
       void Timer::set(int milliseconds) {
-        if(kq_ == TIMER_INVALID) {
-          if((kq_ = kqueue() < 0)) {
-            logger::error("%s: timer: unable to create kqueue", strerror(errno));
-            return;
-          }
-        }
-
-        EV_SET(&filter_, 1, EVFILT_TIMER, EV_ADD | EV_ENABLE,
-            NOTE_USECONDS, milliseconds * 1000, NULL);
+        EV_SET(&filter_, 0, EVFILT_TIMER, EV_ADD | EV_ENABLE,
+            0, milliseconds, NULL);
       }
 
       void Timer::cancel() {
-        if(kq_ != TIMER_INVALID) {
-          close(kq_);
-          kq_ = TIMER_INVALID;
-        }
+        struct kevent event;
+
+        ts_.tv_sec = 0;
+        ts_.tv_nsec = 1500000;
+
+        // On OS X, fflags can specify the resolute of the timer, but this is
+        // not portable, so it is unset (ie 0), which means milliseconds.
+        EV_SET(&filter_, 0, EVFILT_TIMER, EV_ADD | EV_ENABLE, 0, 1, &ts_);
+
+        kevent(kq_, &filter_, 1, &event, 1, &ts_);
+      }
+
+      void Timer::clear() {
+        ts_.tv_sec = 0;
+        ts_.tv_nsec = 1500000;
+
+        EV_SET(&filter_, 0, EVFILT_TIMER, EV_DELETE, 0, 0, &ts_);
+
+        kevent(kq_, &filter_, 1, NULL, 0, &ts_);
       }
 
       int Timer::wait_for_tick() {
-        if(kq_ != TIMER_INVALID) {
-          struct kevent event;
+        struct kevent event;
+        int status;
 
-          return kevent(kq_, &filter_, 1, &event, 1, NULL);
+        status = kevent(kq_, &filter_, 1, &event, 1, (struct timespec*)filter_.udata);
+
+        if(status < 0) {
+          logger::error("%s: timer: kevent failed", strerror(errno));
+          return -1;
+        } else if(event.flags & EV_ERROR) {
+          logger::error("%s: timer: kevent failed", strerror(event.data));
+          return -1;
+        } else {
+          return event.data;
         }
       }
 
@@ -69,7 +89,7 @@ namespace rubinius {
         struct itimerspec ts;
 
         if(milliseconds > 1000) {
-	  ts.it_interval.tv_sec = milliseconds / 1000;
+          ts.it_interval.tv_sec = milliseconds / 1000;
           ts.it_interval.tv_nsec = (milliseconds % 1000) * 1000000;
         } else {
           ts.it_interval.tv_sec = 0;
@@ -91,6 +111,9 @@ namespace rubinius {
         ts.it_value.tv_nsec = 10;
 
         timerfd_settime(fd_, 0, &ts, NULL);
+      }
+
+      void Timer::clear() {
       }
 
       int Timer::wait_for_tick() {
