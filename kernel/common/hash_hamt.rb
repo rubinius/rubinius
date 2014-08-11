@@ -304,7 +304,9 @@ class Hash
     if total == 1
       obj = args.first
       if obj.kind_of? Hash
-        return allocate.replace(obj)
+        new_hash = allocate.replace(obj)
+        new_hash.default = nil
+        return new_hash
       elsif obj.respond_to? :to_hash
         return allocate.replace(Rubinius::Type.coerce_to(obj, Hash, :to_hash))
       elsif obj.kind_of? Array # See redmine # 1385
