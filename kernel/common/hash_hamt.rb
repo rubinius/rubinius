@@ -11,7 +11,6 @@ class Hash
 
     def self.from(state)
       new_state = new
-      new_state.compare_by_identity if state and state.compare_by_identity?
       new_state
     end
 
@@ -19,20 +18,6 @@ class Hash
       @size = 0
       @head = nil
       @tail = nil
-      @compare_by_identity = false
-    end
-
-    def compare_by_identity?
-      @compare_by_identity
-    end
-
-    def compare_by_identity
-      @compare_by_identity = true
-      class << self
-        def match?(this_key, other_key)
-          other_key.equal? this_key
-        end
-      end
     end
 
     def match?(this_key, other_key)
@@ -429,19 +414,6 @@ class Hash
     self
   end
 
-  def compare_by_identity
-    Rubinius.check_frozen
-
-    @state = State.new unless @state
-    @state.compare_by_identity
-    self
-  end
-
-  def compare_by_identity?
-    return false unless @state
-    @state.compare_by_identity?
-  end
-
   def default(key=undefined)
     if @default_proc and !undefined.equal?(key)
       @default_proc.call(self, key)
@@ -746,7 +718,6 @@ class Hash
     return self if self.equal? other
 
     @state = State.from @state
-    @state.compare_by_identity if other.compare_by_identity?
     @table = Table.new @state
 
     other.each_item do |e|
