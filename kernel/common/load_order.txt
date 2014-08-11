@@ -13,6 +13,7 @@ exception.rbc
 undefined.rbc
 type.rbc
 hash.rbc
+hash_hamt.rbc
 array.rbc
 kernel.rbc
 identity_map.rbc
