@@ -398,7 +398,9 @@ class Hash
       @table = Table.new @state
     end
 
-    @table.insert key, key.hash, value
+    Rubinius.privately { key_hash = key.hash }
+
+    @table.insert key, key_hash, value
 
     value
   end
@@ -448,7 +450,8 @@ class Hash
     Rubinius.check_frozen
 
     if @table
-      if item = @table.delete(key, key.hash)
+      Rubinius.privately { key_hash = key.hash }
+      if item = @table.delete(key, key_hash)
         return item.value
       end
     end
@@ -723,8 +726,8 @@ class Hash
     @table = Table.new @state
 
     other.each_item do |e|
-      key = e.key
-      @table.insert key, key.hash, e.value
+      Rubinius.privately { key_hash = e.key.hash }
+      @table.insert e.key, key_hash, e.value
     end
 
     @default = other.default
