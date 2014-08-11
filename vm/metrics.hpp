@@ -21,13 +21,12 @@ namespace rubinius {
       TypedRoot<Thread*> thread_;
 
       int interval_;
-      utilities::timer::Timer timer_;
+      utilities::timer::Timer* timer_;
 
     public:
       Metrics(STATE);
       virtual ~Metrics();
 
-      void cleanup();
       void wakeup();
 
       void start(STATE);

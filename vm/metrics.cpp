@@ -15,6 +15,8 @@
 #include "util/logger.hpp"
 
 namespace rubinius {
+  using namespace utilities;
+
   namespace metrics {
     Object* metrics_trampoline(STATE) {
       state->shared().metrics()->process_metrics(state);
@@ -30,25 +32,29 @@ namespace rubinius {
       , thread_exit_(false)
       , thread_(state)
       , interval_(state->shared().config.vm_metrics_interval)
+      , timer_(NULL)
     {
       shared_.auxiliary_threads()->register_thread(this);
     }
 
     Metrics::~Metrics() {
+      if(timer_) delete timer_;
+
       shared_.auxiliary_threads()->unregister_thread(this);
     }
 
     void Metrics::start(STATE) {
+      timer_ = new timer::Timer;
+
       start_thread(state);
     }
 
     void Metrics::wakeup() {
       thread_exit_ = true;
 
-      timer_.cancel();
-    }
+      atomic::memory_barrier();
 
-    void Metrics::cleanup() {
+      if(timer_) timer_->cancel();
     }
 
     void Metrics::start_thread(STATE) {
@@ -72,7 +78,6 @@ namespace rubinius {
         wakeup();
 
         pthread_t os = vm_->os_thread();
-        thread_exit_ = true;
 
         void* return_value;
         pthread_join(os, &return_value);
@@ -83,7 +88,6 @@ namespace rubinius {
 
     void Metrics::shutdown(STATE) {
       stop_thread(state);
-      cleanup();
     }
 
     void Metrics::before_exec(STATE) {
@@ -103,7 +107,6 @@ namespace rubinius {
     }
 
     void Metrics::after_fork_child(STATE) {
-      cleanup();
       start(state);
     }
 
@@ -119,12 +122,18 @@ namespace rubinius {
       state->vm()->thread->hard_unlock(state, gct, 0);
       state->gc_independent(gct, 0);
 
-      timer_.set(interval_);
+      timer_->set(interval_);
 
       while(!thread_exit_) {
-        timer_.wait_for_tick();
-
+        if(timer_->wait_for_tick() < 0) {
+          logger::error("metrics: error waiting for timer, exiting thread");
+          break;
+        }
       }
+
+      timer_->clear();
+
+      state->gc_dependent(gct, 0);
 
       RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CONST char*>(thread_name),
                            state->vm()->thread_id(), 1);
