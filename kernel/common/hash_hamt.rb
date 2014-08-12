@@ -621,7 +621,10 @@ class Hash
         out << str
       end
     end
-    "{#{out.join ', '}}"
+
+    ret = "{#{out.join ', '}}"
+    Rubinius::Type.infect(ret, self) unless empty?
+    ret
   end
 
   alias_method :to_s, :inspect
