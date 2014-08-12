@@ -486,7 +486,15 @@ class Hash
     self
   end
 
-  alias_method :each_pair, :each
+  def each_pair
+    return to_enum(:each_pair) unless block_given?
+
+    each_item do |item|
+      yield item.key, item.value
+    end
+
+    self
+  end
 
   def each_item
     return unless @state
