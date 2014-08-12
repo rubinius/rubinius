@@ -824,6 +824,8 @@ class Hash
   def to_a
     ary = []
     each_item { |e| ary << [e.key, e.value] }
+
+    Rubinius::Type.infect ary, self
     ary
   end
 
