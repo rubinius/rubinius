@@ -30,15 +30,17 @@ class Hash
     attr_accessor :previous
     attr_accessor :next
     attr_accessor :key
+    attr_accessor :key_hash
     attr_accessor :value
 
-    def initialize(key, value, state)
+    def initialize(key, key_hash, value, state)
       if key.kind_of?(String) and !key.frozen?
         key = key.dup
         key.freeze
       end
 
       @key = key
+      @key_hash = key_hash
       @value = value
       @state = state
 
@@ -54,10 +56,6 @@ class Hash
 
     def empty?
       not @state
-    end
-
-    def key_hash
-      @key.hash
     end
 
     def lookup(key, key_hash)
@@ -116,7 +114,7 @@ class Hash
     def insert(key, key_hash, value)
       @entries.each { |e| return e if e.insert(key, key_hash, value) }
 
-      item = Item.new key, value, @state
+      item = Item.new key, key_hash, value, @state
       @entries = @entries.insert_at_index @entries.size, item
 
       item
@@ -124,7 +122,7 @@ class Hash
 
     def add(item, key, key_hash, value)
       @entries[0] = item
-      @entries[1] = Item.new key, value, @state
+      @entries[1] = Item.new key, key_hash, value, @state
     end
 
     def delete(key, key_hash)
@@ -175,7 +173,7 @@ class Hash
       else
         @bmp = set_bitmap key_hash
         index = item_index key_hash
-        item = Item.new key, value, @state
+        item = Item.new key, key_hash, value, @state
         @entries = @entries.insert_at_index index, item
         return item
       end
@@ -199,7 +197,7 @@ class Hash
       else
         @entries = Vector.new 2
         @entries[item_index(item_hash)] = item
-        @entries[item_index(key_hash)] = Item.new key, value, @state
+        @entries[item_index(key_hash)] = Item.new key, key_hash, value, @state
       end
     end
 
@@ -259,7 +257,7 @@ class Hash
           @entries[index] = trie
         end
       else
-        item = Item.new key, value, @state
+        item = Item.new key, key_hash, value, @state
         @entries[index] = item
       end
     end
