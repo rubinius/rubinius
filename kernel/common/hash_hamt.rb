@@ -20,8 +20,10 @@ class Hash
       @tail = nil
     end
 
-    def match?(this_key, other_key)
-      other_key.eql? this_key
+    def match?(this_key, this_hash, other_key, other_hash)
+      other_hash == this_hash and 
+        Rubinius::Type::object_equal(other_key, this_key) or 
+          other_key.eql? this_key
     end
   end
 
@@ -59,17 +61,17 @@ class Hash
     end
 
     def lookup(key, key_hash)
-      return self if @state.match? @key, key
+      return self if @state.match? @key, @key_hash, key, key_hash
     end
 
     def insert(key, key_hash, value)
-      return unless @state.match? @key, key
+      return unless @state.match? @key, @key_hash, key, key_hash
       @value = value
       self
     end
 
     def delete(key, key_hash)
-      if @state.match? @key, key
+      if @state.match? @key, @key_hash, key, key_hash
 
         if @previous
           @previous.next = @next
