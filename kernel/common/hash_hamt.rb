@@ -741,9 +741,9 @@ class Hash
   end
 
   def reject!(&block)
-    Rubinius.check_frozen
-
     return to_enum(:reject!) unless block_given?
+
+    Rubinius.check_frozen
 
     unless empty?
       size = @state.size
