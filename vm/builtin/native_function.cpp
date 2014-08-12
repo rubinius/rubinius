@@ -348,6 +348,8 @@ namespace rubinius {
       State state(vm);
       NativeMethod::init_thread(&state);
       env = NativeMethodEnvironment::get();
+
+      vm->set_metrics(env->metrics());
     }
 
     State* state = env->state();

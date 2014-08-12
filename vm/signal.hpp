@@ -3,6 +3,7 @@
 
 #include "lock.hpp"
 #include "auxiliary_threads.hpp"
+#include "metrics.hpp"
 
 #include "gc/root.hpp"
 
@@ -35,6 +36,8 @@ namespace rubinius {
     utilities::thread::Condition pause_cond_;
     utilities::thread::Mutex worker_lock_;
 
+    metrics::MetricsData metrics_;
+
   public:
     enum HandlerType {
       eDefault,
@@ -45,6 +48,7 @@ namespace rubinius {
     SignalHandler(STATE, Configuration& config);
     virtual ~SignalHandler();
 
+    void initialize(STATE);
     void setup_default_handlers(std::string path);
 
     void perform(STATE);

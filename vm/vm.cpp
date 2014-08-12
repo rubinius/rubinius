@@ -86,6 +86,7 @@ namespace rubinius {
     , custom_wakeup_data_(0)
     , om(shared.om)
     , thread_state_(this)
+    , metrics_(NULL)
   {
     if(shared.om) {
       local_slab_.refill(0, 0);

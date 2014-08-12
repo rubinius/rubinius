@@ -3,6 +3,7 @@
 
 #include "lock.hpp"
 #include "auxiliary_threads.hpp"
+#include "metrics.hpp"
 
 #include "gc/finalize.hpp"
 #include "gc/root.hpp"
@@ -99,6 +100,8 @@ namespace rubinius {
     bool paused_;
     bool exit_;
     bool finishing_;
+
+    metrics::MetricsData metrics_;
 
   public:
 

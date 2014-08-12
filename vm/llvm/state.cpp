@@ -123,6 +123,8 @@ namespace rubinius {
     bool pause_;
     bool paused_;
 
+    metrics::MetricsData* metrics_;
+
   public:
     BackgroundCompilerThread(LLVMState* ls)
       : Thread(0, false)
@@ -133,6 +135,7 @@ namespace rubinius {
       , stop_(false)
       , pause_(false)
       , paused_(false)
+      , metrics_(NULL)
     {
       show_machine_code_ = ls->jit_dump_code() & cMachineCode;
       condition_.init();
@@ -147,9 +150,14 @@ namespace rubinius {
       pending_requests_.clear();
     }
 
+    void set_metrics(metrics::MetricsData* metrics) {
+      metrics_ = metrics;
+    }
+
     void add(BackgroundCompileRequest* req) {
       utilities::thread::Mutex::LockGuard guard(mutex_);
       pending_requests_.push_back(req);
+      metrics_->m.jit_metrics.methods_queued++;
       condition_.signal();
     }
 
@@ -424,6 +432,7 @@ namespace rubinius {
         current_req_ = 0;
         current_compiler_ = 0;
         pending_requests_.pop_front();
+        metrics_->m.jit_metrics.methods_compiled++;
         delete req;
 
         // We don't depend on the GC here, so let it run independent
@@ -539,7 +548,10 @@ halt:
 
     type_optz_ = state->shared().config.jit_type_optz;
 
+    metrics_.init(metrics::eJITMetrics);
+
     background_thread_ = new BackgroundCompilerThread(this);
+    background_thread_->set_metrics(&metrics_);
     background_thread_->run();
 
     cpu_ = rubinius::getHostCPUName();
@@ -580,6 +592,7 @@ halt:
 
   void LLVMState::after_fork_child(STATE) {
     shared_.add_managed_thread(this);
+    metrics_.init(metrics::eJITMetrics);
     background_thread_->restart();
   }
 

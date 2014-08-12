@@ -16,6 +16,7 @@
 #include "object_utils.hpp"
 #include "ontology.hpp"
 #include "on_stack.hpp"
+#include "metrics.hpp"
 
 /* HACK: returns a value that should identify a native thread
  * for debugging threading issues. The winpthreads library
@@ -50,6 +51,13 @@ namespace rubinius {
   {
     Thread* thr = state->vm()->new_object_mature<Thread>(G(thread));
 
+    if(!target) {
+      target = state->shared().new_vm();
+
+      thr->metrics_.init(metrics::eRubyMetrics);
+      target->set_metrics(&thr->metrics_);
+    }
+
     thr->pin();
     thr->thread_id(state, Fixnum::from(target->thread_id()));
     thr->sleep(state, cFalse);
@@ -81,8 +89,7 @@ namespace rubinius {
   }
 
   Thread* Thread::allocate(STATE, Object* self) {
-    VM* vm = state->shared().new_vm();
-    return Thread::create(state, vm, self, send_run);
+    return Thread::create(state, NULL, self, send_run);
   }
 
   Thread* Thread::current(STATE) {

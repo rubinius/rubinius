@@ -94,7 +94,11 @@ namespace rubinius {
     shared = new SharedState(this, config, config_parser);
 
     load_vm_options(argc_, argv_);
+
+    metrics_.init(metrics::eRubyMetrics);
+
     root_vm = shared->new_vm();
+    root_vm->set_metrics(&metrics_);
     state = new State(root_vm);
 
     start_logging();

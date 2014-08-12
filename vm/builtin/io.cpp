@@ -607,6 +607,8 @@ namespace rubinius {
             if(wrote == -1) break;
             data += wrote;
             bytes -= wrote;
+
+            state->vm()->metrics()->m.ruby_metrics.bytes_written += wrote;
           }
         }
       }
@@ -686,6 +688,8 @@ namespace rubinius {
       return cNil;
     }
 
+    state->vm()->metrics()->m.ruby_metrics.bytes_read += bytes_read;
+
     String* str = String::create(state, buf, bytes_read);
     if(malloc_buf) free(malloc_buf);
 
@@ -732,6 +736,8 @@ namespace rubinius {
     }
 
     if(bytes_read == 0) return cNil;
+
+    state->vm()->metrics()->m.ruby_metrics.bytes_read += bytes_read;
 
     buffer->num_bytes(state, Fixnum::from(bytes_read));
     return buffer;
@@ -785,6 +791,8 @@ namespace rubinius {
 
         left -= cnt;
         cur  += cnt;
+
+        state->vm()->metrics()->m.ruby_metrics.bytes_written += cnt;
       }
     }
 
@@ -811,6 +819,9 @@ namespace rubinius {
     // We can use byte_address() here since we use an explicit size
     int n = ::write(descriptor_->to_native(), buf->byte_address(), buf_size);
     if(n == -1) Exception::errno_error(state, "write_nonblock");
+
+    state->vm()->metrics()->m.ruby_metrics.bytes_written += n;
+
     return Fixnum::from(n);
   }
 
@@ -1460,6 +1471,7 @@ failed: /* try next '*' position */
       }
       memcpy(self->at_unused(), temp_buffer, bytes_read);
       self->read_bytes(state, bytes_read);
+      state->vm()->metrics()->m.ruby_metrics.bytes_read += bytes_read;
     }
 
     return Fixnum::from(bytes_read);

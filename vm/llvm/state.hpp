@@ -42,6 +42,7 @@
 #include "gc/managed.hpp"
 #include "auxiliary_threads.hpp"
 #include "configuration.hpp"
+#include "metrics.hpp"
 #include "util/thread.hpp"
 
 namespace rubinius {
@@ -112,6 +113,8 @@ namespace rubinius {
 
     std::string cpu_;
 
+    metrics::MetricsData metrics_;
+
   public:
 
     uint64_t time_spent;
@@ -127,6 +130,10 @@ namespace rubinius {
     virtual ~LLVMState();
 
     void add_internal_functions();
+
+    metrics::MetricsData* metrics() {
+      return &metrics_;
+    }
 
     int jit_dump_code() {
       return config_.jit_dump_code;

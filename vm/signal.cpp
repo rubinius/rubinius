@@ -69,10 +69,7 @@ namespace rubinius {
       pending_signals_[i] = 0;
     }
 
-    worker_lock_.init();
-    worker_cond_.init();
-    pause_cond_.init();
-
+    initialize(state);
     setup_default_handlers(config.report_path.value);
 
     start_thread(state);
@@ -82,11 +79,20 @@ namespace rubinius {
     shared_.auxiliary_threads()->unregister_thread(this);
   }
 
+  void SignalHandler::initialize(STATE) {
+    worker_lock_.init();
+    worker_cond_.init();
+    pause_cond_.init();
+
+    metrics_.init(metrics::eRubyMetrics);
+  }
+
   void SignalHandler::start_thread(STATE) {
     SYNC(state);
     if(self_) return;
     utilities::thread::Mutex::LockGuard lg(worker_lock_);
     self_ = state->shared().new_vm();
+    self_->set_metrics(&metrics_);
     paused_ = false;
     exit_ = false;
     thread_.set(Thread::create(state, self_, G(thread), signal_handler_tramp, true));
@@ -142,9 +148,7 @@ namespace rubinius {
   }
 
   void SignalHandler::after_fork_child(STATE) {
-    worker_lock_.init();
-    worker_cond_.init();
-    pause_cond_.init();
+    initialize(state);
 
     if(self_) {
       VM::discard(state, self_);

@@ -3,6 +3,8 @@
 
 #include "builtin/object.hpp"
 
+#include "metrics.hpp"
+
 #define THREAD_STACK_SIZE 4194304
 
 namespace rubinius {
@@ -50,6 +52,7 @@ namespace rubinius {
     Fixnum* priority_; // slot
 
     utilities::thread::SpinLock init_lock_;
+    metrics::MetricsData metrics_;
 
     /// Whether this is an internal VM thread that should
     /// not be exposed in Ruby land but does need to be a

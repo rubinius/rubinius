@@ -34,10 +34,7 @@ namespace rubinius {
     shared_.auxiliary_threads()->register_thread(this);
     state->memory()->set_immix_marker(this);
 
-    run_lock_.init();
-    run_cond_.init();
-    pause_cond_.init();
-
+    initialize(state);
     start_thread(state);
   }
 
@@ -45,11 +42,20 @@ namespace rubinius {
     shared_.auxiliary_threads()->unregister_thread(this);
   }
 
+  void ImmixMarker::initialize(STATE) {
+    run_lock_.init();
+    run_cond_.init();
+    pause_cond_.init();
+
+    metrics_.init(metrics::eImmixMetrics);
+  }
+
   void ImmixMarker::start_thread(STATE) {
     SYNC(state);
     if(self_) return;
     utilities::thread::Mutex::LockGuard lg(run_lock_);
     self_ = state->shared().new_vm();
+    self_->set_metrics(&metrics_);
     paused_ = false;
     exit_ = false;
     thread_.set(Thread::create(state, self_, G(thread), immix_marker_tramp, true));
@@ -98,9 +104,7 @@ namespace rubinius {
   }
 
   void ImmixMarker::after_fork_child(STATE) {
-    run_lock_.init();
-    run_cond_.init();
-    pause_cond_.init();
+    initialize(state);
 
     if(self_) {
       VM::discard(state, self_);

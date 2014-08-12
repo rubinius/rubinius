@@ -5,6 +5,8 @@
 #include "builtin/class.hpp"
 #include "builtin/executable.hpp"
 
+#include "metrics.hpp"
+
 #include "capi/tag.hpp"
 #include "capi/value.hpp"
 #include "capi/handle.hpp"
@@ -30,6 +32,8 @@ namespace rubinius {
 
     VALUE outgoing_block_;
 
+    metrics::MetricsData metrics_;
+
   public:   /* Class Interface */
     NativeMethodEnvironment(STATE)
       : state_(state->vm())
@@ -50,7 +54,10 @@ namespace rubinius {
     /** GC marking for Objects behind VALUEs. */
     void mark_handles(ObjectMark& mark);
 
-  public:
+    metrics::MetricsData* metrics() {
+      return &metrics_;
+    }
+
     VALUE outgoing_block() const {
       return outgoing_block_;
     }

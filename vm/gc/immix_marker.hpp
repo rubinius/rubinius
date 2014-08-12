@@ -3,6 +3,7 @@
 
 #include "lock.hpp"
 #include "auxiliary_threads.hpp"
+#include "metrics.hpp"
 
 #include "gc/root.hpp"
 
@@ -29,12 +30,16 @@ namespace rubinius {
     utilities::thread::Condition pause_cond_;
     utilities::thread::Mutex run_lock_;
 
+    metrics::MetricsData metrics_;
+
   public:
 
     ImmixMarker(STATE, ImmixGC* immix);
     virtual ~ImmixMarker();
 
     void perform(STATE);
+
+    void initialize(STATE);
 
     void start_thread(STATE);
     void stop_thread(STATE);
