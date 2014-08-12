@@ -309,9 +309,9 @@ class Hash
         return new_hash
       elsif obj.respond_to? :to_hash
         return allocate.replace(Rubinius::Type.coerce_to(obj, Hash, :to_hash))
-      elsif obj.kind_of? Array # See redmine # 1385
+      elsif associate_array = Rubinius::Type.check_convert_type(obj, Array, :to_ary) # See redmine # 1385
         h = allocate
-        args.first.each do |arr|
+        associate_array.each do |arr|
           next unless arr.respond_to? :to_ary
           arr = arr.to_ary
           next unless (1..2).include? arr.size
