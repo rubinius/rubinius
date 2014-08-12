@@ -678,8 +678,6 @@ class Hash
   end
 
   def merge!(other)
-    Rubinius.check_frozen
-
     other = Rubinius::Type.coerce_to other, Hash, :to_hash
 
     return self if other.empty?
@@ -693,15 +691,15 @@ class Hash
       other.each_item do |e|
         key = e.key
         if item = @table.lookup(key, key.hash)
-          item.value = yield(key, item.value, e.value)
+          __store__ key, yield(key, item.value, e.value)
         else
-          @table.insert key, key.hash, e.value
+          __store__ key, e.value
         end
       end
     else
       other.each_item do |e|
         key = e.key
-        @table.insert key, key.hash, e.value
+        __store__ key, e.value
       end
     end
 
