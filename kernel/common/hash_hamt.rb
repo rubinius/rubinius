@@ -383,7 +383,8 @@ class Hash
   private :initialize_copy
 
   def [](key)
-    if @table and item = @table.lookup(key, key.hash)
+    Rubinius.privately { key_hash = key.hash }
+    if @table and item = @table.lookup(key, key_hash)
       return item.value
     end
 
