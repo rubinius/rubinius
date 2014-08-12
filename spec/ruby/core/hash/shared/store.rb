@@ -57,12 +57,6 @@ describe :hash_store, :shared => true do
     end
   end
 
-  ruby_version_is "1.9" do
-    it "raises a RuntimeError if called on a frozen instance" do
-      lambda { HashSpecs.frozen_hash.send(@method, 1, 2) }.should raise_error(RuntimeError)
-    end
-  end
-
   it "does not raise an exception if changing the value of an existing key during iteration" do
       hash = {1 => 2, 3 => 4, 5 => 6}
       hash.each { hash.send(@method, 1, :foo) }

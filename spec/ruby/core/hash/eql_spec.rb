@@ -11,9 +11,4 @@ describe "Hash#eql?" do
   ruby_version_is '1.8.7' do
     it_behaves_like :hash_eql_additional, :eql?
   end
-
-  ruby_version_is '1.9' do
-    it_behaves_like :hash_eql_additional_more, :eql?
-  end
-
 end

@@ -84,15 +84,5 @@ describe "Hash#reject!" do
     end
   end
 
-  ruby_version_is "1.9" do
-    it "raises a RuntimeError if called on a frozen instance that is modified" do
-      lambda { HashSpecs.empty_frozen_hash.reject! { true } }.should raise_error(RuntimeError)
-    end
-
-    it "raises a RuntimeError if called on a frozen instance that would not be modified" do
-      lambda { HashSpecs.frozen_hash.reject! { false } }.should raise_error(RuntimeError)
-    end
-  end
-
   it_behaves_like(:hash_iteration_no_block, :reject!)
 end

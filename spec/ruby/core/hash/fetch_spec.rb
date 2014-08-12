@@ -14,14 +14,6 @@ describe "Hash#fetch" do
     end
   end
 
-  ruby_version_is "1.9" do
-    it "raises a KeyError if key is not found" do
-      lambda { new_hash.fetch(:a)       }.should raise_error(KeyError)
-      lambda { new_hash(5).fetch(:a)    }.should raise_error(KeyError)
-      lambda { new_hash { 5 }.fetch(:a) }.should raise_error(KeyError)
-    end
-  end
-
   it "returns default if key is not found when passed a default" do
     new_hash.fetch(:a, nil).should == nil
     new_hash.fetch(:a, 'not here!').should == "not here!"

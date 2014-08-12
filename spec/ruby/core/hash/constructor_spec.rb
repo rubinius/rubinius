@@ -63,16 +63,6 @@ describe "Hash.[]" do
     end
   end
 
-  ruby_version_is '2.0' do
-    it "raises an ArgumentError for arrays of more than 2 elements" do
-      lambda{ hash_class[[[:a, :b, :c]]].should == new_hash }.should raise_error(ArgumentError)
-    end
-
-    it "raises an ArgumentError when passed a list of value-invalid-pairs in an array" do
-      lambda{ hash_class[[[:a, 1], [:b], 42, [:d, 2], [:e, 2, 3], []]] }.should raise_error(ArgumentError)
-    end
-  end
-
   ruby_version_is '1.8.7' do
     describe "passed a single argument which responds to #to_hash" do
       it "coerces it and returns a copy" do

@@ -31,10 +31,4 @@ describe "Hash#clear" do
       lambda { HashSpecs.empty_frozen_hash.clear }.should raise_error(TypeError)
     end
   end
-  ruby_version_is "1.9" do
-    it "raises a RuntimeError if called on a frozen instance" do
-      lambda { HashSpecs.frozen_hash.clear  }.should raise_error(RuntimeError)
-      lambda { HashSpecs.empty_frozen_hash.clear }.should raise_error(RuntimeError)
-    end
-  end
 end
