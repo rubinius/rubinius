@@ -779,15 +779,15 @@ class Hash
 
     return to_enum(:select) unless block_given?
 
-    hsh = Hash.allocate
+    selected = []
 
     each_item do |e|
-      key = e.key
-      value = e.value
-      hsh[key] = value if yield(key, value)
+      if yield(e.key, e.value)
+        selected << [e.key, e.value]
+      end
     end
 
-    hsh
+    selected
   end
 
   def select!
