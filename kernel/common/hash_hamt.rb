@@ -860,6 +860,9 @@ class Hash
     end
   end
 
+  alias_method :indices, :values_at
+  alias_method :indexes, :values_at
+
   # Used internally in Rubinius to get around subclasses redefining #[]=
   alias_method :__store__, :[]=
 end
