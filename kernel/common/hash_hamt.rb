@@ -463,9 +463,9 @@ class Hash
   end
 
   def delete_if
-    Rubinius.check_frozen
-
     return to_enum(:delete_if) unless block_given?
+
+    Rubinius.check_frozen
 
     each_item { |e| delete e.key if yield(e.key, e.value) }
 
