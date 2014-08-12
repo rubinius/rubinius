@@ -627,7 +627,9 @@ class Hash
     ret
   end
 
-  alias_method :to_s, :inspect
+  def to_s
+    to_a.join
+  end
 
   def invert
     h = Hash.allocate
