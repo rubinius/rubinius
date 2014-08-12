@@ -550,7 +550,33 @@ class Hash
     true
   end
 
-  alias_method :==, :eql?
+  def ==(other)
+    return true if self.equal? other
+
+    unless other.kind_of? Hash
+      return false unless other.respond_to? :to_hash
+      return other == self
+    end
+
+    return false unless other.size == size
+
+    Thread.detect_recursion self, other do
+      other.each_item do |e|
+
+        Rubinius.privately { key_hash = e.key.hash }
+        return false unless item = @table.lookup(e.key, key_hash)
+
+        # Order of the comparison matters! We must compare our value with
+        # the other Hash's valuea nd not the other way around.
+        unless Rubinius::Type::object_equal(item.value, e.value) or
+               item.value == e.value
+          return false
+        end
+      end
+    end
+
+    true
+  end
 
   def fetch(key, default=undefined)
     unless empty?
