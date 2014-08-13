@@ -1,4 +1,5 @@
 require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "Hash" do
   it "includes Enumerable" do
@@ -14,6 +15,11 @@ describe "Hash#hash" do
         new_hash(0=>2, 11=>1).hash.should == new_hash(11=>1, 0=>2).hash
       end
     end
+  end
+  
+  it "generates a hash when its keys have private #hash methods" do
+    key = HashSpecs::KeyWithPrivateHash.new
+    new_hash(key => 5).hash.class.should == Fixnum
   end
 
   it "generates a hash for recursive hash structures" do

@@ -53,6 +53,12 @@ describe "Hash#merge" do
     merge_pairs.should == each_pairs
   end
 
+  it "merges hashes that contain keys with private #hash methods" do
+    key1 = HashSpecs::KeyWithPrivateHash.new
+    key2 = HashSpecs::KeyWithPrivateHash.new
+    h = new_hash(key1 => 1).merge(key2 => 2)
+    h.should == new_hash(key1 => 1, key2 => 2)
+  end
 end
 
 describe "Hash#merge!" do

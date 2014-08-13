@@ -34,6 +34,13 @@ describe "Hash#rehash" do
     h[k1].should == v1
     h[k2].should == v2
   end
+  
+  it "recomputes hash codes for keys with private #hash methods" do
+    key = HashSpecs::KeyWithPrivateHash.new
+    h = new_hash(key => 5)
+    h.rehash
+    h[key].should == 5
+  end
 
   ruby_version_is ""..."1.9" do
     it "raises a TypeError if called on a frozen instance" do

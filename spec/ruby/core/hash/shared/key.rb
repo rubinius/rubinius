@@ -32,4 +32,9 @@ describe :hash_key_p, :shared => true do
 
     new_hash(x => nil).send(@method, y).should == false
   end
+  
+  it "accepts keys with private #hash methods" do
+    key = HashSpecs::KeyWithPrivateHash.new
+    new_hash(key => 1).send(@method, key).should == true
+  end
 end

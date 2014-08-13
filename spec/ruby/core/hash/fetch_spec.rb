@@ -5,6 +5,11 @@ describe "Hash#fetch" do
   it "returns the value for key" do
     new_hash(:a => 1, :b => -1).fetch(:b).should == -1
   end
+  
+  it "returns the value for key with private #hash method" do
+    key = HashSpecs::KeyWithPrivateHash.new
+    new_hash(key => 5).fetch(key).should == 5
+  end
 
   ruby_version_is ""..."1.9" do
     it "raises an IndexError if key is not found" do

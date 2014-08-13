@@ -162,6 +162,17 @@ describe "C-API Hash function" do
         @s.rb_hash_lookup(hsh, :chunky).should be_nil
         @s.rb_hash_lookup_nil(hsh, :chunky).should be_true
       end
+  
+      it "accepts keys with private #hash methods" do
+        class KeyWithPrivateHash
+          private :hash
+        end
+
+        key = KeyWithPrivateHash.new
+        hsh = {key => 1}
+
+        @s.rb_hash_lookup(hsh, key).should == 1
+      end
     end
   end
 end

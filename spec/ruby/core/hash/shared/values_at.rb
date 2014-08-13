@@ -6,4 +6,10 @@ describe :hash_values_at, :shared => true do
     h.send(@method, :a, :d, :b).should be_kind_of(Array)
     h.send(@method, :a, :d, :b).should == [9, nil, 'a']
   end
+  
+  it "accepts keys with private #hash methods" do
+    key = HashSpecs::KeyWithPrivateHash.new
+    h = new_hash(key => 1)
+    h.send(@method, key).should == [1]
+  end
 end

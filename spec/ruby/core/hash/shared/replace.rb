@@ -4,6 +4,15 @@ describe :hash_replace, :shared => true do
     h.send(@method, :c => -1, :d => -2).should equal(h)
     h.should == new_hash(:c => -1, :d => -2)
   end
+  
+  it "accepts an other that has keys with private #hash methods" do
+    key = HashSpecs::KeyWithPrivateHash.new
+    hash_a = new_hash
+    hash_b = new_hash(key => 1)
+
+    hash_a.send(@method, hash_b).should equal(hash_a)
+    hash_a.should == hash_b
+  end
 
   it "tries to convert the passed argument to a hash using #to_hash" do
     obj = mock('{1=>2,3=>4}')

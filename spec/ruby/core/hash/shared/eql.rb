@@ -113,6 +113,14 @@ describe :hash_eql_additional, :shared => true do
     def y.eql?(o) true end
     new_hash(1 => x).send(@method, new_hash(1 => y)).should be_true
   end
+  
+  it "compares hashes that have keys with private #hash methods" do
+    key = HashSpecs::KeyWithPrivateHash.new
+    x = mock('x')
+    def x.==(o) true end
+    def x.eql?(o) true end
+    new_hash(key => x).send(@method, new_hash(key => x)).should be_true
+  end
 
   it "compares keys with eql? semantics" do
     new_hash(1.0 => "x").send(@method, new_hash(1.0 => "x")).should be_true
