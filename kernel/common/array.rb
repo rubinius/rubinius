@@ -1615,6 +1615,10 @@ class Array
     self
   end
 
+  def to_h
+    super
+  end
+
   def transpose
     return [] if empty?
 
