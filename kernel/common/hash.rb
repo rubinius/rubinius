@@ -227,7 +227,7 @@ class Hash
     val = size
     Thread.detect_outermost_recursion self do
       each_item do |item|
-        val ^= item.key.hash
+        Rubinius.privately { val ^= item.key.hash }
         val ^= item.value.hash
       end
     end
@@ -506,7 +506,7 @@ class Hash
       while old
         old.link = nil if nxt = old.link
 
-        index = key_index(old.key_hash = old.key.hash)
+        Rubinius.privately { index = key_index(old.key_hash = old.key.hash) }
         if item = @entries[index]
           old.link = item
         end
