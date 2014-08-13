@@ -251,7 +251,8 @@ module Enumerable
   end
 
   def sort(&prc)
-    to_a.sort!(&prc)
+    ary = to_a
+    ary.frozen? ? ary.sort(&prc) : ary.sort!(&prc)
   end
 
   class SortedElement
