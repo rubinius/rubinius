@@ -228,7 +228,7 @@ class Hash
     Thread.detect_outermost_recursion self do
       each_item do |item|
         Rubinius.privately { val ^= item.key.hash }
-        val ^= item.value.hash
+        Rubinius.privately { val ^= item.value.hash }
       end
     end
 
