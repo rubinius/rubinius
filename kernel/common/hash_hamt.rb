@@ -369,8 +369,8 @@ class Hash
     val = size
     Thread.detect_outermost_recursion self do
       each_item do |item|
-        val ^= item.key.hash
-        val ^= item.value.hash
+        Rubinius.privately { val ^= item.key.hash }
+        Rubinius.privately { val ^= item.value.hash }
       end
     end
 
@@ -539,7 +539,8 @@ class Hash
     Thread.detect_recursion self, other do
       other.each_item do |e|
 
-        return false unless item = @table.lookup(e.key, e.key.hash)
+        Rubinius.privately { key_hash = e.key.hash }
+        return false unless item = @table.lookup(e.key, key_hash)
 
         # Order of the comparison matters! We must compare our value with
         # the other Hash's value and not the other way around.
@@ -580,7 +581,8 @@ class Hash
 
   def fetch(key, default=undefined)
     unless empty?
-      if item = @table.lookup(key, key.hash)
+      Rubinius.privately { key_hash = key.hash }
+      if item = @table.lookup(key, key_hash)
         return item.value
       end
     end
@@ -656,7 +658,8 @@ class Hash
   alias_method :index, :key
 
   def key?(key)
-    if @table and @table.lookup(key, key.hash)
+    Rubinius.privately { key_hash = key.hash }
+    if @table and @table.lookup(key, key_hash)
       true
     else
       false
@@ -690,7 +693,8 @@ class Hash
     if block_given?
       other.each_item do |e|
         key = e.key
-        if item = @table.lookup(key, key.hash)
+        Rubinius.privately { key_hash = key.hash }
+        if item = @table.lookup(key, key_hash)
           __store__ key, yield(key, item.value, e.value)
         else
           __store__ key, e.value
@@ -723,7 +727,8 @@ class Hash
     table = Table.new @state
 
     while item
-      table.insert item.key, item.key.hash, item.value
+      Rubinius.privately { key_hash = item.key.hash }
+      table.insert item.key, key_hash, item.value
       item = item.next
     end
 
@@ -856,7 +861,8 @@ class Hash
       args.map { |key| default key }
     else
       args.map do |key|
-        if item = @table.lookup(key, key.hash)
+        Rubinius.privately { key_hash = key.hash }
+        if item = @table.lookup(key, key_hash)
           item.value
         else
           default key
