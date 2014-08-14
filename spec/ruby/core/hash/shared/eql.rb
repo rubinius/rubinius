@@ -51,47 +51,47 @@ describe :hash_eql, :shared => true do
     new_hash.send(@method, mock_hash).should be_false
   end
 
-  ruby_bug "redmine #2448", "1.9.1" do
-    it "computes equality for complex recursive hashes" do
-      a, b = {}, {}
-      a.merge! :self => a, :other => b
-      b.merge! :self => b, :other => a
-      a.send(@method, b).should be_true # they both have the same structure!
+  # ruby_bug "redmine #2448", "1.9.1"
+  it "computes equality for complex recursive hashes" do
+    a, b = {}, {}
+    a.merge! :self => a, :other => b
+    b.merge! :self => b, :other => a
+    a.send(@method, b).should be_true # they both have the same structure!
 
-      c = {}
-      c.merge! :other => c, :self => c
-      c.send(@method, a).should be_true # subtle, but they both have the same structure!
-      a[:delta] = c[:delta] = a
-      c.send(@method, a).should be_false # not quite the same structure, as a[:other][:delta] = nil
-      c[:delta] = 42
-      c.send(@method, a).should be_false
-      a[:delta] = 42
-      c.send(@method, a).should be_false
-      b[:delta] = 42
-      c.send(@method, a).should be_true
-    end
+    c = {}
+    c.merge! :other => c, :self => c
+    c.send(@method, a).should be_true # subtle, but they both have the same structure!
+    a[:delta] = c[:delta] = a
+    c.send(@method, a).should be_false # not quite the same structure, as a[:other][:delta] = nil
+    c[:delta] = 42
+    c.send(@method, a).should be_false
+    a[:delta] = 42
+    c.send(@method, a).should be_false
+    b[:delta] = 42
+    c.send(@method, a).should be_true
+  end
 
-    it "computes equality for recursive hashes & arrays" do
-      x, y, z = [], [], []
-      a, b, c = {:foo => x, :bar => 42}, {:foo => y, :bar => 42}, {:foo => z, :bar => 42}
-      x << a
-      y << c
-      z << b
-      b.send(@method, c).should be_true # they clearly have the same structure!
-      y.send(@method, z).should be_true
-      a.send(@method, b).should be_true # subtle, but they both have the same structure!
-      x.send(@method, y).should be_true
-      y << x
-      y.send(@method, z).should be_false
-      z << x
-      y.send(@method, z).should be_true
+  # ruby_bug "redmine #2448", "1.9.1"
+  it "computes equality for recursive hashes & arrays" do
+    x, y, z = [], [], []
+    a, b, c = {:foo => x, :bar => 42}, {:foo => y, :bar => 42}, {:foo => z, :bar => 42}
+    x << a
+    y << c
+    z << b
+    b.send(@method, c).should be_true # they clearly have the same structure!
+    y.send(@method, z).should be_true
+    a.send(@method, b).should be_true # subtle, but they both have the same structure!
+    x.send(@method, y).should be_true
+    y << x
+    y.send(@method, z).should be_false
+    z << x
+    y.send(@method, z).should be_true
 
-      a[:foo], a[:bar] = a[:bar], a[:foo]
-      a.send(@method, b).should be_false
-      b[:bar] = b[:foo]
-      b.send(@method, c).should be_false
-    end
-  end # ruby_bug
+    a[:foo], a[:bar] = a[:bar], a[:foo]
+    a.send(@method, b).should be_false
+    b[:bar] = b[:foo]
+    b.send(@method, c).should be_false
+  end
 end
 
 # All these tests are true for ==, and for eql? when Ruby >= 1.8.7
@@ -197,15 +197,13 @@ describe :hash_eql_additional, :shared => true do
 
   # The specs above all pass in 1.8.6p287 for Hash#== but not Hash#eql
   # except this one, which does not pass for Hash#==.
-  ruby_version_is "1.8.7" do
-    it "compares the values in self to values in other hash" do
-      l_val = mock("left")
-      r_val = mock("right")
+  it "compares the values in self to values in other hash" do
+    l_val = mock("left")
+    r_val = mock("right")
 
-      l_val.should_receive(:eql?).with(r_val).and_return(true)
+    l_val.should_receive(:eql?).with(r_val).and_return(true)
 
-      new_hash(1 => l_val).eql?(new_hash(1 => r_val)).should be_true
-    end
+    new_hash(1 => l_val).eql?(new_hash(1 => r_val)).should be_true
   end
 end
 

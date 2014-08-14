@@ -7,8 +7,5 @@ require File.expand_path('../shared/eql', __FILE__)
 
 describe "Hash#eql?" do
   it_behaves_like :hash_eql, :eql?
-
-  ruby_version_is '1.8.7' do
-    it_behaves_like :hash_eql_additional, :eql?
-  end
+  it_behaves_like :hash_eql_additional, :eql?
 end

@@ -77,11 +77,9 @@ describe "Hash#reject!" do
     reject_bang_pairs.should == delete_if_pairs
   end
 
-  ruby_version_is ""..."1.9" do
-    it "raises a TypeError if called on a frozen instance" do
-      lambda { HashSpecs.frozen_hash.reject! { false } }.should raise_error(TypeError)
-      lambda { HashSpecs.empty_frozen_hash.reject! { true } }.should raise_error(TypeError)
-    end
+  it "raises a TypeError if called on a frozen instance" do
+    lambda { HashSpecs.frozen_hash.reject! { false } }.should raise_error(TypeError)
+    lambda { HashSpecs.empty_frozen_hash.reject! { true } }.should raise_error(TypeError)
   end
 
   it_behaves_like(:hash_iteration_no_block, :reject!)

@@ -11,12 +11,10 @@ describe "Hash#fetch" do
     new_hash(key => 5).fetch(key).should == 5
   end
 
-  ruby_version_is ""..."1.9" do
-    it "raises an IndexError if key is not found" do
-      lambda { new_hash.fetch(:a)       }.should raise_error(IndexError)
-      lambda { new_hash(5).fetch(:a)    }.should raise_error(IndexError)
-      lambda { new_hash { 5 }.fetch(:a) }.should raise_error(IndexError)
-    end
+  it "raises an IndexError if key is not found" do
+    lambda { new_hash.fetch(:a)       }.should raise_error(IndexError)
+    lambda { new_hash(5).fetch(:a)    }.should raise_error(IndexError)
+    lambda { new_hash { 5 }.fetch(:a) }.should raise_error(IndexError)
   end
 
   it "returns default if key is not found when passed a default" do
