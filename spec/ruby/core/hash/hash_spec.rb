@@ -22,6 +22,14 @@ describe "Hash#hash" do
     new_hash(key => 5).hash.class.should == Fixnum
   end
 
+  it "generates a hash when its values have private #hash methods" do
+    class ValueWithPrivateHash
+      private :hash
+    end
+
+    new_hash(:a => ValueWithPrivateHash.new).hash.class.should == Fixnum
+  end
+
   it "generates a hash for recursive hash structures" do
     h = new_hash
     h[:a] = h

@@ -53,11 +53,10 @@ describe "Hash#merge" do
     merge_pairs.should == each_pairs
   end
 
-  it "merges hashes that contain keys with private #hash methods" do
+  it "sets any duplicate key to the value of block if passed a block and keys with private #hash methods" do
     key1 = HashSpecs::KeyWithPrivateHash.new
-    key2 = HashSpecs::KeyWithPrivateHash.new
-    h = new_hash(key1 => 1).merge(key2 => 2)
-    h.should == new_hash(key1 => 1, key2 => 2)
+    h = new_hash(key1 => 1).merge(key1 => 2) { |key, oldval, newval| oldval }
+    h.should == new_hash(key1 => 1)
   end
 end
 
