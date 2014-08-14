@@ -596,7 +596,8 @@ class Hash
   # if found. Otherwise returns +nil+. Called from the C-API.
   def find_item(key)
     unless empty?
-      if item = @table.lookup(key, key.hash)
+      Rubinius.privately { key_hash = key.hash }
+      if item = @table.lookup(key, key_hash)
         return item
       end
     end
