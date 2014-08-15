@@ -644,7 +644,7 @@ namespace rubinius {
     state->vm()->global_cache()->clear(state, name);
     mod->reset_method_cache(state, name);
 
-    state->shared().stats.methods_cache_resets++;
+    state->vm()->metrics()->m.ruby_metrics.inline_cache_resets++;
 
     if(state->shared().config.ic_debug) {
       String* mod_name = mod->get_name(state);

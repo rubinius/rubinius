@@ -10,6 +10,9 @@
 #include "builtin/symbol.hpp"
 
 #include "configuration.hpp"
+#include "metrics.hpp"
+
+#include "instruments/timing.hpp"
 
 #include <iostream>
 #include <algorithm>
@@ -47,6 +50,13 @@ namespace rubinius {
 
     entries.push_back(obj);
 
+    object_memory_->state()->metrics()->m.ruby_metrics.memory_large_objects++;
+    object_memory_->state()->metrics()->m.ruby_metrics.memory_large_bytes += bytes;
+
+    object_memory_->state()->metrics()->m.ruby_metrics.memory_total_large_objects++;
+    object_memory_->state()->metrics()->m.ruby_metrics.memory_total_large_bytes += bytes;
+
+    // TODO: delete after metrics
     allocated_objects++;
     allocated_bytes += bytes;
 
@@ -67,6 +77,11 @@ namespace rubinius {
 
       last_freed++;
 
+      object_memory_->state()->metrics()->m.ruby_metrics.memory_large_objects--;
+      object_memory_->state()->metrics()->m.ruby_metrics.memory_large_bytes -=
+        obj->size_in_bytes(object_memory_->state());
+
+      // TODO: delete after metrics
       allocated_objects--;
       allocated_bytes -= obj->size_in_bytes(object_memory_->state());
     }
@@ -113,6 +128,13 @@ namespace rubinius {
   }
 
   void MarkSweepGC::after_marked() {
+    metrics::MetricsData* metrics = object_memory_->state()->metrics();
+
+    timer::StopWatch<timer::milliseconds> timer(
+        metrics->m.ruby_metrics.gc_large_last_sweep_ms,
+        metrics->m.ruby_metrics.gc_large_total_sweep_ms);
+
+    // TODO: delete after metrics
     times_collected++;
     last_freed = 0;
 

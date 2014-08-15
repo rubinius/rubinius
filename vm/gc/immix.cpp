@@ -19,8 +19,9 @@ namespace rubinius {
 #endif
 
     if(object_memory_) {
+      object_memory_->state()->metrics()->m.ruby_metrics.memory_total_immix_chunks++;
+
       if(gc_->dec_chunks_left() <= 0) {
-        // object_memory_->collect_mature_now = true;
         gc_->reset_chunks_left();
       }
     }

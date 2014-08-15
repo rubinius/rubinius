@@ -23,25 +23,112 @@ namespace rubinius {
     enum MetricsType {
       eRubyMetrics,
       eFinalizerMetrics,
-      eImmixMetrics,
       eJITMetrics,
       eConsoleMetrics,
     };
 
     struct RubyMetrics {
-      metric bytes_read;
-      metric bytes_written;
-      metric signals_received;
-      metric signals_processed;
+      // IO metrics
+      metric io_bytes_read;
+      metric io_bytes_written;
+
+      // OS activity metrics
+      metric os_signals_received;
+      metric os_signals_processed;
+
+      // C-API metrics
+      metric total_data_objects;
+      metric total_capi_handles;
+      metric capi_handles;
+      metric inflated_headers;
+
+      // VM metrics
+      metric inline_cache_resets;
+
+      // Object memory metrics
+      metric memory_young_bytes;
+      metric memory_young_objects;
+      metric memory_young_percent_used;
+      metric memory_immix_bytes;
+      metric memory_immix_objects;
+      metric memory_immix_chunks;
+      metric memory_large_bytes;
+      metric memory_large_objects;
+      metric memory_symbols_bytes;
+      metric memory_code_bytes;
+      metric memory_jit_bytes;
+      metric memory_total_young_bytes;
+      metric memory_total_young_objects;
+      metric memory_total_immix_bytes;
+      metric memory_total_immix_objects;
+      metric memory_total_immix_chunks;
+      metric memory_total_large_bytes;
+      metric memory_total_large_objects;
+      metric memory_total_promoted_bytes;
+      metric memory_total_promoted_objects;
+      metric memory_total_slab_refills;
+      metric memory_total_slab_refill_fails;
+
+      // Garbage collector metrics
+      metric gc_young_count;
+      metric gc_young_last_ms;
+      metric gc_young_total_ms;
+      metric gc_immix_count;
+      metric gc_immix_last_stop_ms;
+      metric gc_immix_total_stop_ms;
+      metric gc_immix_last_conc_ms;
+      metric gc_immix_total_conc_ms;
+      metric gc_large_count;
+      metric gc_large_last_sweep_ms;
+      metric gc_large_total_sweep_ms;
 
       void init() {
-        bytes_read = 0;
-        bytes_written = 0;
-        signals_received = 0;
-        signals_processed = 0;
+        io_bytes_read = 0;
+        io_bytes_written = 0;
+        os_signals_received = 0;
+        os_signals_processed = 0;
+        total_data_objects = 0;
+        total_capi_handles = 0;
+        capi_handles = 0;
+        inflated_headers = 0;
+        inline_cache_resets = 0;
+        memory_young_bytes = 0;
+        memory_young_objects = 0;
+        memory_young_percent_used = 0;
+        memory_immix_bytes = 0;
+        memory_immix_objects = 0;
+        memory_immix_chunks = 0;
+        memory_large_bytes = 0;
+        memory_large_objects = 0;
+        memory_symbols_bytes = 0;
+        memory_code_bytes = 0;
+        memory_jit_bytes = 0;
+        memory_total_young_bytes = 0;
+        memory_total_young_objects = 0;
+        memory_total_immix_bytes = 0;
+        memory_total_immix_objects = 0;
+        memory_total_immix_chunks = 0;
+        memory_total_large_bytes = 0;
+        memory_total_large_objects = 0;
+        memory_total_promoted_bytes = 0;
+        memory_total_promoted_objects = 0;
+        memory_total_slab_refills = 0;
+        memory_total_slab_refill_fails = 0;
+        gc_young_count = 0;
+        gc_young_last_ms = 0;
+        gc_young_total_ms = 0;
+        gc_immix_count = 0;
+        gc_immix_last_stop_ms = 0;
+        gc_immix_total_stop_ms = 0;
+        gc_immix_last_conc_ms = 0;
+        gc_immix_total_conc_ms = 0;
+        gc_large_count = 0;
+        gc_large_last_sweep_ms = 0;
+        gc_large_total_sweep_ms = 0;
       }
 
       void add(MetricsData* data);
+      void reset();
     };
 
     struct FinalizerMetrics {
@@ -51,13 +138,6 @@ namespace rubinius {
       void init() {
         objects_queued = 0;
         objects_finalized = 0;
-      }
-
-      void add(MetricsData* data);
-    };
-
-    struct ImmixMetrics {
-      void init() {
       }
 
       void add(MetricsData* data);
@@ -76,7 +156,12 @@ namespace rubinius {
     };
 
     struct ConsoleMetrics {
+      metric requests_received;
+      metric responses_sent;
+
       void init() {
+        requests_received = 0;
+        responses_sent = 0;
       }
 
       void add(MetricsData* data);
@@ -87,7 +172,6 @@ namespace rubinius {
       union Metrics {
         RubyMetrics ruby_metrics;
         FinalizerMetrics finalizer_metrics;
-        ImmixMetrics immix_metrics;
         JITMetrics jit_metrics;
         ConsoleMetrics console_metrics;
       } m;
@@ -102,9 +186,6 @@ namespace rubinius {
         case eFinalizerMetrics:
           m.finalizer_metrics.init();
           break;
-        case eImmixMetrics:
-          m.immix_metrics.init();
-          break;
         case eJITMetrics:
           m.jit_metrics.init();
           break;
@@ -118,14 +199,12 @@ namespace rubinius {
     struct MetricsCollection {
       RubyMetrics ruby_metrics;
       FinalizerMetrics finalizer_metrics;
-      ImmixMetrics immix_metrics;
       JITMetrics jit_metrics;
       ConsoleMetrics console_metrics;
 
       void init() {
         ruby_metrics.init();
         finalizer_metrics.init();
-        immix_metrics.init();
         jit_metrics.init();
         console_metrics.init();
       }
@@ -137,9 +216,6 @@ namespace rubinius {
           break;
         case eFinalizerMetrics:
           finalizer_metrics.add(data);
-          break;
-        case eImmixMetrics:
-          immix_metrics.add(data);
           break;
         case eJITMetrics:
           jit_metrics.add(data);

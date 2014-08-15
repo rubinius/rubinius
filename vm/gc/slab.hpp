@@ -40,7 +40,7 @@ namespace gc {
       return allocations_;
     }
 
-    size_t byte_used() const {
+    size_t bytes_used() const {
       return current_ - start_;
     }
 

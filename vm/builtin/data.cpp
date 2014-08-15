@@ -42,6 +42,8 @@ namespace rubinius {
       state->memory()->needs_finalization(data, (FinalizerFunction)&Data::finalize);
     }
 
+    state->vm()->metrics()->m.ruby_metrics.total_data_objects++;
+
     return data;
   }
 
@@ -73,6 +75,8 @@ namespace rubinius {
     if(type->function.dmark || type->function.dfree) {
       state->memory()->needs_finalization(data, (FinalizerFunction)&Data::finalize);
     }
+
+    state->vm()->metrics()->m.ruby_metrics.total_data_objects++;
 
     return data;
   }
