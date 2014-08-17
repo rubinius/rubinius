@@ -16,55 +16,62 @@
 
 #include "util/logger.hpp"
 
+#include <fcntl.h>
 #include <stdint.h>
+#include <netdb.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/utsname.h>
+
+#include <ostream>
 
 namespace rubinius {
   using namespace utilities;
 
   namespace metrics {
     void RubyMetrics::add(MetricsData* data) {
-      io_bytes_read += data->m.ruby_metrics.io_bytes_read;
-      io_bytes_written += data->m.ruby_metrics.io_bytes_written;
+      io_read_bytes += data->m.ruby_metrics.io_read_bytes;
+      io_write_bytes += data->m.ruby_metrics.io_write_bytes;
       os_signals_received += data->m.ruby_metrics.os_signals_received;
       os_signals_processed += data->m.ruby_metrics.os_signals_processed;
-      total_data_objects += data->m.ruby_metrics.total_data_objects;
-      total_capi_handles += data->m.ruby_metrics.total_capi_handles;
-      capi_handles += data->m.ruby_metrics.capi_handles;
-      inflated_headers += data->m.ruby_metrics.inflated_headers;
       inline_cache_resets += data->m.ruby_metrics.inline_cache_resets;
       memory_young_bytes += data->m.ruby_metrics.memory_young_bytes;
+      memory_young_bytes_total += data->m.ruby_metrics.memory_young_bytes_total;
       memory_young_objects += data->m.ruby_metrics.memory_young_objects;
+      memory_young_objects_total += data->m.ruby_metrics.memory_young_objects_total;
       memory_young_percent_used += data->m.ruby_metrics.memory_young_percent_used;
       memory_immix_bytes += data->m.ruby_metrics.memory_immix_bytes;
+      memory_immix_bytes_total += data->m.ruby_metrics.memory_immix_bytes_total;
       memory_immix_objects += data->m.ruby_metrics.memory_immix_objects;
+      memory_immix_objects_total += data->m.ruby_metrics.memory_immix_objects_total;
       memory_immix_chunks += data->m.ruby_metrics.memory_immix_chunks;
+      memory_immix_chunks_total += data->m.ruby_metrics.memory_immix_chunks_total;
       memory_large_bytes += data->m.ruby_metrics.memory_large_bytes;
+      memory_large_bytes_total += data->m.ruby_metrics.memory_large_bytes_total;
       memory_large_objects += data->m.ruby_metrics.memory_large_objects;
+      memory_large_objects_total += data->m.ruby_metrics.memory_large_objects_total;
       memory_symbols_bytes += data->m.ruby_metrics.memory_symbols_bytes;
       memory_code_bytes += data->m.ruby_metrics.memory_code_bytes;
       memory_jit_bytes += data->m.ruby_metrics.memory_jit_bytes;
-      memory_total_young_bytes += data->m.ruby_metrics.memory_total_young_bytes;
-      memory_total_young_objects += data->m.ruby_metrics.memory_total_young_objects;
-      memory_total_immix_bytes += data->m.ruby_metrics.memory_total_immix_bytes;
-      memory_total_immix_objects += data->m.ruby_metrics.memory_total_immix_objects;
-      memory_total_immix_chunks += data->m.ruby_metrics.memory_total_immix_chunks;
-      memory_total_large_bytes += data->m.ruby_metrics.memory_total_large_bytes;
-      memory_total_large_objects += data->m.ruby_metrics.memory_total_large_objects;
-      memory_total_promoted_bytes += data->m.ruby_metrics.memory_total_promoted_bytes;
-      memory_total_promoted_objects += data->m.ruby_metrics.memory_total_promoted_objects;
-      memory_total_slab_refills += data->m.ruby_metrics.memory_total_slab_refills;
-      memory_total_slab_refill_fails += data->m.ruby_metrics.memory_total_slab_refill_fails;
+      memory_promoted_bytes_total += data->m.ruby_metrics.memory_promoted_bytes_total;
+      memory_promoted_objects_total += data->m.ruby_metrics.memory_promoted_objects_total;
+      memory_slab_refills_total += data->m.ruby_metrics.memory_slab_refills_total;
+      memory_slab_refills_fails += data->m.ruby_metrics.memory_slab_refills_fails;
+      data_objects_total += data->m.ruby_metrics.data_objects_total;
+      capi_handles += data->m.ruby_metrics.capi_handles;
+      capi_handles_total += data->m.ruby_metrics.capi_handles_total;
+      inflated_headers += data->m.ruby_metrics.inflated_headers;
       gc_young_count += data->m.ruby_metrics.gc_young_count;
       gc_young_last_ms += data->m.ruby_metrics.gc_young_last_ms;
       gc_young_total_ms += data->m.ruby_metrics.gc_young_total_ms;
       gc_immix_count += data->m.ruby_metrics.gc_immix_count;
-      gc_immix_last_stop_ms += data->m.ruby_metrics.gc_immix_last_stop_ms;
-      gc_immix_total_stop_ms += data->m.ruby_metrics.gc_immix_total_stop_ms;
-      gc_immix_last_conc_ms += data->m.ruby_metrics.gc_immix_last_conc_ms;
-      gc_immix_total_conc_ms += data->m.ruby_metrics.gc_immix_total_conc_ms;
+      gc_immix_stop_last_ms += data->m.ruby_metrics.gc_immix_stop_last_ms;
+      gc_immix_stop_total_ms += data->m.ruby_metrics.gc_immix_stop_total_ms;
+      gc_immix_conc_last_ms += data->m.ruby_metrics.gc_immix_conc_last_ms;
+      gc_immix_conc_total_ms += data->m.ruby_metrics.gc_immix_conc_total_ms;
       gc_large_count += data->m.ruby_metrics.gc_large_count;
-      gc_large_last_sweep_ms += data->m.ruby_metrics.gc_large_last_sweep_ms;
-      gc_large_total_sweep_ms += data->m.ruby_metrics.gc_large_total_sweep_ms;
+      gc_large_sweep_last_ms += data->m.ruby_metrics.gc_large_sweep_last_ms;
+      gc_large_sweep_total_ms += data->m.ruby_metrics.gc_large_sweep_total_ms;
     }
 
     void FinalizerMetrics::add(MetricsData* data) {
@@ -89,6 +96,123 @@ namespace rubinius {
       return cNil;
     }
 
+    StatsDEmitter::StatsDEmitter(MetricsMap& map, std::string server, std::string prefix)
+      : MetricsEmitter()
+      , metrics_map_(map)
+      , socket_fd_(-1)
+    {
+      size_t colon = server.find(':');
+      if(colon == std::string::npos) {
+        host_ = "localhost";
+        if(server.size() > 0) {
+          port_ = server;
+        } else {
+          port_ = "8125";
+        }
+      } else {
+        host_ = server.substr(0, colon);
+        port_ = server.substr(colon + 1);
+      }
+
+      size_t index = prefix.find("$nodename");
+      if(index != std::string::npos) {
+        struct utsname name;
+
+        if(uname(&name)) {
+          prefix_ = "";
+        } else {
+          std::ostringstream parts;
+          std::string n = name.nodename;
+
+          for(size_t p = n.size(), i = p; i != 0; p = i - 1) {
+            if((i = n.rfind('.', p)) == std::string::npos) {
+              parts << n.substr(0, p);
+              break;
+            } else {
+              parts << n.substr(i + 1, p - i) << ".";
+            }
+
+          }
+
+          prefix_ = prefix;
+          prefix_.replace(index, strlen("$nodename"), parts.str());
+        }
+      } else {
+        prefix_ = prefix;
+      }
+
+      if(prefix_.size() > 0) prefix_ += ".";
+
+      initialize();
+    }
+
+    StatsDEmitter::~StatsDEmitter() {
+      cleanup();
+    }
+
+#define RBX_METRICS_STATSD_BUFLEN   256
+
+    void StatsDEmitter::send_metrics() {
+      char buf[RBX_METRICS_STATSD_BUFLEN];
+
+      for(MetricsMap::iterator i = metrics_map_.begin();
+          i != metrics_map_.end();
+          ++i)
+      {
+        snprintf(buf, RBX_METRICS_STATSD_BUFLEN, "%s%s:%lld|g",
+            prefix_.c_str(), (*i)->first.c_str(), (*i)->second);
+        if(send(socket_fd_, buf, strlen(buf), 0) < 0) {
+          logger::error("%s: unable to send StatsD metrics", strerror(errno));
+        }
+      }
+    }
+
+    void StatsDEmitter::initialize() {
+      struct addrinfo hints, *res, *res0;
+
+      memset(&hints, 0, sizeof(hints));
+      hints.ai_family = PF_UNSPEC;
+      hints.ai_socktype = SOCK_DGRAM;
+
+      if(int error = getaddrinfo(host_.c_str(), port_.c_str(), &hints, &res0) < 0) {
+        logger::error("%s: unable to get StatsD server address info",
+            gai_strerror(error));
+        return;
+      }
+
+      for(res = res0; res; res = res->ai_next) {
+        if((socket_fd_ = socket(res->ai_family, res->ai_socktype, res->ai_protocol)) < 0) {
+          continue;
+        }
+
+        if(connect(socket_fd_, res->ai_addr, res->ai_addrlen) < 0) {
+          close(socket_fd_);
+          socket_fd_ = -1;
+          continue;
+        }
+
+        break;
+      }
+
+      freeaddrinfo(res0);
+
+      if(socket_fd_ < 0) {
+        logger::error("unable to create StatsD UDP socket");
+        return;
+      }
+
+      fcntl(socket_fd_, F_SETFL, O_NONBLOCK);
+    }
+
+    void StatsDEmitter::cleanup() {
+      if(socket_fd_ > 0) close(socket_fd_);
+    }
+
+    void StatsDEmitter::reinit() {
+      cleanup();
+      initialize();
+    }
+
     Metrics::Metrics(STATE)
       : AuxiliaryThread()
       , shared_(state->shared())
@@ -97,18 +221,154 @@ namespace rubinius {
       , thread_(state)
       , interval_(state->shared().config.vm_metrics_interval)
       , timer_(NULL)
+      , emitter_(NULL)
     {
+      map_metrics();
+
       shared_.auxiliary_threads()->register_thread(this);
     }
 
     Metrics::~Metrics() {
       if(timer_) delete timer_;
+      if(emitter_) delete emitter_;
+
+      for(MetricsMap::iterator i = metrics_map_.begin();
+          i != metrics_map_.end();
+          ++i)
+      {
+        delete (*i);
+      }
 
       shared_.auxiliary_threads()->unregister_thread(this);
     }
 
+    void Metrics::map_metrics() {
+      metrics_map_.push_back(new MetricsItem(
+            "io.read.bytes", metrics_collection_.ruby_metrics.io_read_bytes));
+      metrics_map_.push_back(new MetricsItem(
+            "io.write.bytes", metrics_collection_.ruby_metrics.io_write_bytes));
+
+      // OS activity metrics
+      metrics_map_.push_back(new MetricsItem(
+            "os.signals.received", metrics_collection_.ruby_metrics.os_signals_received));
+      metrics_map_.push_back(new MetricsItem(
+            "os.signals.processed", metrics_collection_.ruby_metrics.os_signals_processed));
+
+      // VM metrics
+      metrics_map_.push_back(new MetricsItem(
+            "vm.inline_cache.resets",
+            metrics_collection_.ruby_metrics.inline_cache_resets));
+
+      // Object memory metrics
+      metrics_map_.push_back(new MetricsItem(
+            "memory.young.bytes", metrics_collection_.ruby_metrics.memory_young_bytes));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.young.bytes.total",
+            metrics_collection_.ruby_metrics.memory_young_bytes_total));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.young.objects", metrics_collection_.ruby_metrics.memory_young_objects));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.young.objects.total",
+            metrics_collection_.ruby_metrics.memory_young_objects_total));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.young.percent_used",
+            metrics_collection_.ruby_metrics.memory_young_percent_used));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.immix.bytes", metrics_collection_.ruby_metrics.memory_immix_bytes));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.immix.bytes.total",
+            metrics_collection_.ruby_metrics.memory_immix_bytes_total));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.immix.objects", metrics_collection_.ruby_metrics.memory_immix_objects));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.immix.objects.total",
+            metrics_collection_.ruby_metrics.memory_immix_objects_total));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.immix.chunks", metrics_collection_.ruby_metrics.memory_immix_chunks));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.immix.chunks.total",
+            metrics_collection_.ruby_metrics.memory_immix_chunks_total));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.large.bytes", metrics_collection_.ruby_metrics.memory_large_bytes));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.large.bytes.total",
+            metrics_collection_.ruby_metrics.memory_large_bytes_total));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.large.objects", metrics_collection_.ruby_metrics.memory_large_objects));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.large.objects.total",
+            metrics_collection_.ruby_metrics.memory_large_objects_total));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.symbols.bytes", metrics_collection_.ruby_metrics.memory_symbols_bytes));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.code.bytes", metrics_collection_.ruby_metrics.memory_code_bytes));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.jit.bytes", metrics_collection_.ruby_metrics.memory_jit_bytes));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.promoted.bytes.total",
+            metrics_collection_.ruby_metrics.memory_promoted_bytes_total));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.promoted.objects.total",
+            metrics_collection_.ruby_metrics.memory_promoted_objects_total));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.slab.refills.total",
+            metrics_collection_.ruby_metrics.memory_slab_refills_total));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.slab.refills.fails",
+            metrics_collection_.ruby_metrics.memory_slab_refills_fails));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.data_objects.total",
+            metrics_collection_.ruby_metrics.data_objects_total));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.capi_handles.total",
+            metrics_collection_.ruby_metrics.capi_handles_total));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.capi_handles", metrics_collection_.ruby_metrics.capi_handles));
+      metrics_map_.push_back(new MetricsItem(
+            "memory.inflated_headers",
+            metrics_collection_.ruby_metrics.inflated_headers));
+
+
+      // Garbage collector metrics
+      metrics_map_.push_back(new MetricsItem(
+            "gc.young.count", metrics_collection_.ruby_metrics.gc_young_count));
+      metrics_map_.push_back(new MetricsItem(
+            "gc.young.last.ms", metrics_collection_.ruby_metrics.gc_young_last_ms));
+      metrics_map_.push_back(new MetricsItem(
+            "gc.young.total.ms", metrics_collection_.ruby_metrics.gc_young_total_ms));
+      metrics_map_.push_back(new MetricsItem(
+            "gc.immix.count", metrics_collection_.ruby_metrics.gc_immix_count));
+      metrics_map_.push_back(new MetricsItem(
+            "gc.immix.stop.last.ms",
+            metrics_collection_.ruby_metrics.gc_immix_stop_last_ms));
+      metrics_map_.push_back(new MetricsItem(
+            "gc.immix.stop.total.ms",
+            metrics_collection_.ruby_metrics.gc_immix_stop_total_ms));
+      metrics_map_.push_back(new MetricsItem(
+            "gc.immix.conc.last.ms",
+            metrics_collection_.ruby_metrics.gc_immix_conc_last_ms));
+      metrics_map_.push_back(new MetricsItem(
+            "gc.immix.conc.total.ms",
+            metrics_collection_.ruby_metrics.gc_immix_conc_total_ms));
+      metrics_map_.push_back(new MetricsItem(
+            "gc.large.count", metrics_collection_.ruby_metrics.gc_large_count));
+      metrics_map_.push_back(new MetricsItem(
+            "gc.large.sweep.last.ms",
+            metrics_collection_.ruby_metrics.gc_large_sweep_last_ms));
+      metrics_map_.push_back(new MetricsItem(
+            "gc.large.sweep.total.ms",
+            metrics_collection_.ruby_metrics.gc_large_sweep_total_ms));
+    }
+
     void Metrics::start(STATE) {
+      if(!shared_.config.vm_metrics_target.value.compare("statsd")) {
+        emitter_ = new StatsDEmitter(metrics_map_,
+            shared_.config.vm_metrics_statsd_server.value,
+            shared_.config.vm_metrics_statsd_prefix.value);
+      }
+
       timer_ = new timer::Timer;
+
       metrics_collection_.init();
       metrics_history_.init();
 
@@ -174,6 +434,7 @@ namespace rubinius {
 
     void Metrics::after_fork_child(STATE) {
       start(state);
+      if(emitter_) emitter_->reinit();
     }
 
     void Metrics::process_metrics(STATE) {
@@ -226,6 +487,7 @@ namespace rubinius {
         {
           GCIndependent guard(state, 0);
 
+          if(emitter_) emitter_->send_metrics();
         }
       }
 

@@ -10,6 +10,9 @@
 
 #include <stdint.h>
 
+#include <string>
+#include <vector>
+
 namespace rubinius {
   class VM;
   class State;
@@ -29,102 +32,101 @@ namespace rubinius {
 
     struct RubyMetrics {
       // IO metrics
-      metric io_bytes_read;
-      metric io_bytes_written;
+      metric io_read_bytes;
+      metric io_write_bytes;
 
       // OS activity metrics
       metric os_signals_received;
       metric os_signals_processed;
-
-      // C-API metrics
-      metric total_data_objects;
-      metric total_capi_handles;
-      metric capi_handles;
-      metric inflated_headers;
 
       // VM metrics
       metric inline_cache_resets;
 
       // Object memory metrics
       metric memory_young_bytes;
+      metric memory_young_bytes_total;
       metric memory_young_objects;
+      metric memory_young_objects_total;
       metric memory_young_percent_used;
       metric memory_immix_bytes;
+      metric memory_immix_bytes_total;
       metric memory_immix_objects;
+      metric memory_immix_objects_total;
       metric memory_immix_chunks;
+      metric memory_immix_chunks_total;
       metric memory_large_bytes;
+      metric memory_large_bytes_total;
       metric memory_large_objects;
+      metric memory_large_objects_total;
       metric memory_symbols_bytes;
       metric memory_code_bytes;
       metric memory_jit_bytes;
-      metric memory_total_young_bytes;
-      metric memory_total_young_objects;
-      metric memory_total_immix_bytes;
-      metric memory_total_immix_objects;
-      metric memory_total_immix_chunks;
-      metric memory_total_large_bytes;
-      metric memory_total_large_objects;
-      metric memory_total_promoted_bytes;
-      metric memory_total_promoted_objects;
-      metric memory_total_slab_refills;
-      metric memory_total_slab_refill_fails;
+      metric memory_promoted_bytes_total;
+      metric memory_promoted_objects_total;
+      metric memory_slab_refills_total;
+      metric memory_slab_refills_fails;
+      metric data_objects_total;
+      metric capi_handles;
+      metric capi_handles_total;
+      metric inflated_headers;
+
 
       // Garbage collector metrics
       metric gc_young_count;
       metric gc_young_last_ms;
       metric gc_young_total_ms;
       metric gc_immix_count;
-      metric gc_immix_last_stop_ms;
-      metric gc_immix_total_stop_ms;
-      metric gc_immix_last_conc_ms;
-      metric gc_immix_total_conc_ms;
+      metric gc_immix_stop_last_ms;
+      metric gc_immix_stop_total_ms;
+      metric gc_immix_conc_last_ms;
+      metric gc_immix_conc_total_ms;
       metric gc_large_count;
-      metric gc_large_last_sweep_ms;
-      metric gc_large_total_sweep_ms;
+      metric gc_large_sweep_last_ms;
+      metric gc_large_sweep_total_ms;
 
       void init() {
-        io_bytes_read = 0;
-        io_bytes_written = 0;
+        io_read_bytes = 0;
+        io_write_bytes = 0;
         os_signals_received = 0;
         os_signals_processed = 0;
-        total_data_objects = 0;
-        total_capi_handles = 0;
-        capi_handles = 0;
-        inflated_headers = 0;
         inline_cache_resets = 0;
         memory_young_bytes = 0;
+        memory_young_bytes_total = 0;
         memory_young_objects = 0;
+        memory_young_objects_total = 0;
         memory_young_percent_used = 0;
         memory_immix_bytes = 0;
+        memory_immix_bytes_total = 0;
         memory_immix_objects = 0;
+        memory_immix_objects_total = 0;
         memory_immix_chunks = 0;
+        memory_immix_chunks_total = 0;
         memory_large_bytes = 0;
+        memory_large_bytes_total = 0;
         memory_large_objects = 0;
+        memory_large_objects_total = 0;
         memory_symbols_bytes = 0;
         memory_code_bytes = 0;
         memory_jit_bytes = 0;
-        memory_total_young_bytes = 0;
-        memory_total_young_objects = 0;
-        memory_total_immix_bytes = 0;
-        memory_total_immix_objects = 0;
-        memory_total_immix_chunks = 0;
-        memory_total_large_bytes = 0;
-        memory_total_large_objects = 0;
-        memory_total_promoted_bytes = 0;
-        memory_total_promoted_objects = 0;
-        memory_total_slab_refills = 0;
-        memory_total_slab_refill_fails = 0;
+        memory_promoted_bytes_total = 0;
+        memory_promoted_objects_total = 0;
+        memory_slab_refills_total = 0;
+        memory_slab_refills_fails = 0;
+        data_objects_total = 0;
+        capi_handles = 0;
+        capi_handles_total = 0;
+        inflated_headers = 0;
         gc_young_count = 0;
         gc_young_last_ms = 0;
         gc_young_total_ms = 0;
         gc_immix_count = 0;
-        gc_immix_last_stop_ms = 0;
-        gc_immix_total_stop_ms = 0;
-        gc_immix_last_conc_ms = 0;
-        gc_immix_total_conc_ms = 0;
+        gc_immix_stop_last_ms = 0;
+        gc_immix_stop_total_ms = 0;
+        gc_immix_conc_last_ms = 0;
+        gc_immix_conc_total_ms = 0;
         gc_large_count = 0;
-        gc_large_last_sweep_ms = 0;
-        gc_large_total_sweep_ms = 0;
+        gc_large_sweep_last_ms = 0;
+        gc_large_sweep_total_ms = 0;
       }
 
       void add(MetricsData* data);
@@ -227,6 +229,37 @@ namespace rubinius {
       }
     };
 
+    typedef std::pair<std::string, metric&> MetricsItem;
+    typedef std::vector<MetricsItem*> MetricsMap;
+
+    class MetricsEmitter {
+    public:
+      MetricsEmitter() { }
+      virtual ~MetricsEmitter() { };
+
+      virtual void send_metrics() = 0;
+      virtual void initialize() = 0;
+      virtual void cleanup() = 0;
+      virtual void reinit() = 0;
+    };
+
+    class StatsDEmitter : public MetricsEmitter {
+      MetricsMap& metrics_map_;
+      std::string host_;
+      std::string port_;
+      std::string prefix_;
+      int socket_fd_;
+
+    public:
+      StatsDEmitter(MetricsMap& map, std::string server, std::string prefix);
+      virtual ~StatsDEmitter();
+
+      void send_metrics();
+      void initialize();
+      void cleanup();
+      void reinit();
+    };
+
     class Metrics : public AuxiliaryThread, public Lockable {
       SharedState& shared_;
       VM* vm_;
@@ -240,9 +273,15 @@ namespace rubinius {
       MetricsCollection metrics_collection_;
       MetricsCollection metrics_history_;
 
+      MetricsMap metrics_map_;
+
+      MetricsEmitter* emitter_;
+
     public:
       Metrics(STATE);
       virtual ~Metrics();
+
+      void map_metrics();
 
       void wakeup();
 

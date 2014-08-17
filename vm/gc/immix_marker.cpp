@@ -155,8 +155,8 @@ namespace rubinius {
       if(data_) {
         {
           timer::StopWatch<timer::milliseconds> timerx(
-              state->vm()->metrics()->m.ruby_metrics.gc_immix_last_conc_ms,
-              state->vm()->metrics()->m.ruby_metrics.gc_immix_total_conc_ms
+              state->vm()->metrics()->m.ruby_metrics.gc_immix_conc_last_ms,
+              state->vm()->metrics()->m.ruby_metrics.gc_immix_conc_total_ms
             );
 
           // TODO: delete after metrics
@@ -176,8 +176,8 @@ namespace rubinius {
         atomic::integer initial_stop = state->memory()->gc_stats.last_full_stop_collection_time;
         {
           timer::StopWatch<timer::milliseconds> timerx(
-              state->vm()->metrics()->m.ruby_metrics.gc_immix_last_stop_ms,
-              state->vm()->metrics()->m.ruby_metrics.gc_immix_total_stop_ms
+              state->vm()->metrics()->m.ruby_metrics.gc_immix_stop_last_ms,
+              state->vm()->metrics()->m.ruby_metrics.gc_immix_stop_total_ms
             );
 
           // TODO: delete after metrics

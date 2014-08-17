@@ -197,7 +197,10 @@ Rubinius::ConfigurationVariables.define do |c|
   c.vm_variable "vm.metrics.target", "none",
     "Location to send metrics every interval: 'statsd', 'disk'"
 
-  c.vm_variable "vm.metrics.statsd.host", "none",
-    "The [host:]port of the Statsd server"
+  c.vm_variable "vm.metrics.statsd.server", "localhost:8125",
+    "The [host:]port of the StatsD server"
+
+  c.vm_variable "vm.metrics.statsd.prefix", "host.$nodename.app.rbx",
+    "Prefix for StatsD metric names"
 end
 

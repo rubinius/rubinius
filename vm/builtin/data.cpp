@@ -42,7 +42,7 @@ namespace rubinius {
       state->memory()->needs_finalization(data, (FinalizerFunction)&Data::finalize);
     }
 
-    state->vm()->metrics()->m.ruby_metrics.total_data_objects++;
+    state->vm()->metrics()->m.ruby_metrics.data_objects_total++;
 
     return data;
   }
@@ -76,7 +76,7 @@ namespace rubinius {
       state->memory()->needs_finalization(data, (FinalizerFunction)&Data::finalize);
     }
 
-    state->vm()->metrics()->m.ruby_metrics.total_data_objects++;
+    state->vm()->metrics()->m.ruby_metrics.data_objects_total++;
 
     return data;
   }
