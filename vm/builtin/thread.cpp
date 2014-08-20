@@ -53,9 +53,7 @@ namespace rubinius {
 
     if(!target) {
       target = state->shared().new_vm();
-
-      thr->metrics_.init(metrics::eRubyMetrics);
-      target->set_metrics(&thr->metrics_);
+      target->metrics()->init(metrics::eRubyMetrics);
     }
 
     thr->pin();

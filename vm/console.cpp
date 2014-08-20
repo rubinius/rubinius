@@ -105,8 +105,6 @@ namespace rubinius {
       response_lock_.init();
       response_cond_.init();
 
-      metrics_.init(metrics::eConsoleMetrics);
-
       std::string path(shared_.fsapi_path + "/console");
 
       request_path_ = path + "-request";
@@ -165,7 +163,7 @@ namespace rubinius {
 
       if(!request_vm_) {
         request_vm_ = state->shared().new_vm();
-        request_vm_->set_metrics(&metrics_);
+        request_vm_->metrics()->init(metrics::eConsoleMetrics);
         request_exit_ = false;
         request_.set(Thread::create(state, request_vm_, G(thread),
                      console_request_trampoline, true));
@@ -173,7 +171,7 @@ namespace rubinius {
 
       if(!response_vm_) {
         response_vm_ = state->shared().new_vm();
-        response_vm_->set_metrics(&metrics_);
+        response_vm_->metrics()->init(metrics::eConsoleMetrics);
         response_exit_ = false;
         response_.set(Thread::create(state, response_vm_, G(thread),
                      console_response_trampoline, true));

@@ -56,10 +56,6 @@ namespace rubinius {
     object_memory_->state()->metrics()->m.ruby_metrics.memory_large_objects_total++;
     object_memory_->state()->metrics()->m.ruby_metrics.memory_large_bytes_total += bytes;
 
-    // TODO: delete after metrics
-    allocated_objects++;
-    allocated_bytes += bytes;
-
     next_collection_bytes -= bytes;
     if(next_collection_bytes < 0) {
       *collect_now = true;
@@ -80,10 +76,6 @@ namespace rubinius {
       object_memory_->state()->metrics()->m.ruby_metrics.memory_large_objects--;
       object_memory_->state()->metrics()->m.ruby_metrics.memory_large_bytes -=
         obj->size_in_bytes(object_memory_->state());
-
-      // TODO: delete after metrics
-      allocated_objects--;
-      allocated_bytes -= obj->size_in_bytes(object_memory_->state());
     }
 
     obj->set_zone(UnspecifiedZone);
@@ -134,8 +126,6 @@ namespace rubinius {
         metrics->m.ruby_metrics.gc_large_sweep_last_ms,
         metrics->m.ruby_metrics.gc_large_sweep_total_ms);
 
-    // TODO: delete after metrics
-    times_collected++;
     last_freed = 0;
 
     // Cleanup all weakrefs seen

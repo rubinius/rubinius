@@ -3,7 +3,6 @@
 
 #include "lock.hpp"
 #include "auxiliary_threads.hpp"
-#include "metrics.hpp"
 
 #include "gc/root.hpp"
 
@@ -45,8 +44,6 @@ namespace rubinius {
       utilities::thread::Mutex list_lock_;
       utilities::thread::Mutex response_lock_;
       utilities::thread::Condition response_cond_;
-
-      metrics::MetricsData metrics_;
 
     public:
       Console(STATE);

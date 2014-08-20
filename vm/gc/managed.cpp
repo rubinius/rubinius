@@ -13,7 +13,9 @@ namespace rubinius {
     , run_state_(eIndependent)
     , kind_(kind)
     , id_(id)
-  {}
+  {
+    metrics_.init(metrics::eNone);
+  }
 
   ManagedThread* ManagedThread::current() {
     return _current_thread.get();

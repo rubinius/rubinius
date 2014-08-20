@@ -57,8 +57,9 @@ namespace timer {
     return (double)get_current_time() * 1000000000;
   }
 
-  const int milliseconds = 1000000;
+  const int nanoseconds = 1;
   const int microseconds = 1000;
+  const int milliseconds = 1000000;
   const int seconds = 1000000000;
 
   template <int factor=milliseconds>

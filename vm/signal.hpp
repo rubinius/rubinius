@@ -3,7 +3,6 @@
 
 #include "lock.hpp"
 #include "auxiliary_threads.hpp"
-#include "metrics.hpp"
 
 #include "gc/root.hpp"
 
@@ -35,8 +34,6 @@ namespace rubinius {
     utilities::thread::Condition worker_cond_;
     utilities::thread::Condition pause_cond_;
     utilities::thread::Mutex worker_lock_;
-
-    metrics::MetricsData metrics_;
 
   public:
     enum HandlerType {

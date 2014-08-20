@@ -7,7 +7,6 @@
 #include "vm.hpp"
 #include "config_parser.hpp"
 #include "configuration.hpp"
-#include "metrics.hpp"
 
 namespace rubinius {
 
@@ -62,8 +61,6 @@ namespace rubinius {
     FinalizerHandler* finalizer_handler_;
 
     std::string system_prefix_;
-
-    metrics::MetricsData metrics_;
 
   public:
     SharedState* shared;

@@ -83,8 +83,6 @@ namespace rubinius {
     worker_lock_.init();
     worker_cond_.init();
     pause_cond_.init();
-
-    metrics_.init(metrics::eRubyMetrics);
   }
 
   void SignalHandler::start_thread(STATE) {
@@ -92,7 +90,7 @@ namespace rubinius {
     if(self_) return;
     utilities::thread::Mutex::LockGuard lg(worker_lock_);
     self_ = state->shared().new_vm();
-    self_->set_metrics(&metrics_);
+    self_->metrics()->init(metrics::eRubyMetrics);
     paused_ = false;
     exit_ = false;
     thread_.set(Thread::create(state, self_, G(thread), signal_handler_tramp, true));
@@ -211,7 +209,7 @@ namespace rubinius {
   void SignalHandler::handle_signal(int sig) {
     if(exit_) return;
 
-    metrics_.m.ruby_metrics.os_signals_received++;
+    target_->metrics()->m.ruby_metrics.os_signals_received++;
 
     queued_signals_ = 1;
     pending_signals_[sig] = 1;
@@ -263,7 +261,7 @@ namespace rubinius {
       if(pending_signals_[i] > 0) {
         pending_signals_[i] = 0;
 
-        metrics_.m.ruby_metrics.os_signals_processed++;
+        target_->metrics()->m.ruby_metrics.os_signals_processed++;
 
         Array* args = Array::create(state, 1);
         args->set(state, 0, Fixnum::from(i));

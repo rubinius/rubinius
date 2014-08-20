@@ -3,6 +3,7 @@
 #include "on_stack.hpp"
 #include "object_memory.hpp"
 #include "call_frame.hpp"
+#include "metrics.hpp"
 
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
@@ -103,8 +104,6 @@ namespace rubinius {
 
     supervisor_lock_.init();
     supervisor_cond_.init();
-
-    metrics_.init(metrics::eFinalizerMetrics);
   }
 
   FinalizerHandler::~FinalizerHandler() {
@@ -126,7 +125,7 @@ namespace rubinius {
     if(self_) return;
     utilities::thread::Mutex::LockGuard lg(worker_lock_);
     self_ = state->shared().new_vm();
-    self_->set_metrics(&metrics_);
+    self_->metrics()->init(metrics::eFinalizerMetrics);
     paused_ = false;
     exit_ = false;
     thread_.set(Thread::create(state, self_, G(thread), finalizer_handler_tramp, true));
@@ -332,7 +331,7 @@ namespace rubinius {
         process_list_ = NULL;
         process_item_kind_ = eRuby;
         lists_->pop_back();
-        metrics_.m.finalizer_metrics.objects_finalized++;
+        self_->metrics()->m.finalizer_metrics.objects_finalized++;
         break;
       }
     }
@@ -401,7 +400,7 @@ namespace rubinius {
     // Makes a copy of fi.
     live_list_->push_front(fi);
 
-    metrics_.m.finalizer_metrics.objects_queued++;
+    self_->metrics()->m.finalizer_metrics.objects_queued++;
   }
 
   void FinalizerHandler::set_ruby_finalizer(Object* obj, Object* finalizer) {

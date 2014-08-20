@@ -34,7 +34,7 @@ namespace jit {
        << ctx_->llvm_state()->enclosure_name(info_.method())
        << "#"
        << ctx_->llvm_state()->symbol_debug_str(info_.method()->name())
-       << "@" << ctx_->llvm_state()->add_jitted_method();
+       << "k@" << ++ctx_->llvm_state()->metrics()->m.jit_metrics.methods_compiled;
 
     llvm::Function* func = Function::Create(ft, GlobalValue::ExternalLinkage,
                             ss.str(), ctx_->module());

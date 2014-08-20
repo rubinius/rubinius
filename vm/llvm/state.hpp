@@ -113,8 +113,6 @@ namespace rubinius {
 
     std::string cpu_;
 
-    metrics::MetricsData metrics_;
-
   public:
 
     uint64_t time_spent;
@@ -130,10 +128,6 @@ namespace rubinius {
     virtual ~LLVMState();
 
     void add_internal_functions();
-
-    metrics::MetricsData* metrics() {
-      return &metrics_;
-    }
 
     int jit_dump_code() {
       return config_.jit_dump_code;
@@ -152,16 +146,8 @@ namespace rubinius {
     jit::RubiniusJITMemoryManager* memory() { return memory_; }
     llvm::JITEventListener* jit_event_listener() { return jit_event_listener_; }
 
-    int jitted_methods() {
-      return jitted_methods_;
-    }
-
     int queued_methods() {
       return queued_methods_;
-    }
-
-    int add_jitted_method() {
-      return ++jitted_methods_;
     }
 
     int code_bytes() {

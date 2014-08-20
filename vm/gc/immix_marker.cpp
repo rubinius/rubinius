@@ -8,6 +8,7 @@
 #include "gc/gc.hpp"
 #include "gc/immix.hpp"
 #include "ontology.hpp"
+#include "metrics.hpp"
 
 #include "dtrace/dtrace.h"
 #include "instruments/timing.hpp"
@@ -46,8 +47,6 @@ namespace rubinius {
     run_lock_.init();
     run_cond_.init();
     pause_cond_.init();
-
-    metrics_.init(metrics::eRubyMetrics);
   }
 
   void ImmixMarker::start_thread(STATE) {
@@ -55,7 +54,7 @@ namespace rubinius {
     if(self_) return;
     utilities::thread::Mutex::LockGuard lg(run_lock_);
     self_ = state->shared().new_vm();
-    self_->set_metrics(&metrics_);
+    self_->metrics()->init(metrics::eRubyMetrics);
     paused_ = false;
     exit_ = false;
     thread_.set(Thread::create(state, self_, G(thread), immix_marker_tramp, true));
@@ -159,9 +158,6 @@ namespace rubinius {
               state->vm()->metrics()->m.ruby_metrics.gc_immix_conc_total_ms
             );
 
-          // TODO: delete after metrics
-          timer::Running<1000000> timer(state->memory()->gc_stats.total_full_concurrent_collection_time,
-                                        state->memory()->gc_stats.last_full_concurrent_collection_time);
           // Allow for a young stop the world GC to occur
           // every bunch of marks. 100 is a fairly arbitrary
           // number, based mostly on the fact it didn't cause
@@ -173,16 +169,12 @@ namespace rubinius {
           }
         }
 
-        atomic::integer initial_stop = state->memory()->gc_stats.last_full_stop_collection_time;
         {
           timer::StopWatch<timer::milliseconds> timerx(
               state->vm()->metrics()->m.ruby_metrics.gc_immix_stop_last_ms,
               state->vm()->metrics()->m.ruby_metrics.gc_immix_stop_total_ms
             );
 
-          // TODO: delete after metrics
-          timer::Running<1000000> timer(state->memory()->gc_stats.total_full_stop_collection_time,
-                                      state->memory()->gc_stats.last_full_stop_collection_time);
           // Finish and pause
           while(!state->stop_the_world()) {
             state->checkpoint(gct, 0);
@@ -190,8 +182,6 @@ namespace rubinius {
           state->memory()->clear_mature_mark_in_progress();
           state->memory()->collect_mature_finish(state, data_);
         }
-        state->memory()->gc_stats.last_full_stop_collection_time.add(initial_stop.value);
-        state->memory()->print_mature_stats(state, data_);
         state->restart_world();
       }
 

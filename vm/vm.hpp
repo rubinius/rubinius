@@ -20,7 +20,6 @@
 
 #include "unwind_info.hpp"
 #include "fiber_stack.hpp"
-#include "metrics.hpp"
 
 #include <vector>
 #include <setjmp.h>
@@ -137,8 +136,6 @@ namespace rubinius {
 
     VMThreadState thread_state_;
 
-    metrics::MetricsData* metrics_;
-
     static unsigned long cStackDepthMax;
 
   public: /* Inline methods */
@@ -149,14 +146,6 @@ namespace rubinius {
 
     uint32_t thread_id() const {
       return id_;
-    }
-
-    metrics::MetricsData* metrics() {
-      return metrics_;
-    }
-
-    void set_metrics(metrics::MetricsData* metrics) {
-      metrics_ = metrics;
     }
 
     bool run_signals_p() const {

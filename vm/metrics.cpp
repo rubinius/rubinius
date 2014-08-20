@@ -30,6 +30,8 @@ namespace rubinius {
 
   namespace metrics {
     void RubyMetrics::add(MetricsData* data) {
+      if(data->type != eRubyMetrics) return;
+
       io_read_bytes += data->m.ruby_metrics.io_read_bytes;
       io_write_bytes += data->m.ruby_metrics.io_write_bytes;
       os_signals_received += data->m.ruby_metrics.os_signals_received;
@@ -64,6 +66,7 @@ namespace rubinius {
       gc_young_count += data->m.ruby_metrics.gc_young_count;
       gc_young_last_ms += data->m.ruby_metrics.gc_young_last_ms;
       gc_young_total_ms += data->m.ruby_metrics.gc_young_total_ms;
+      gc_young_lifetime += data->m.ruby_metrics.gc_young_lifetime;
       gc_immix_count += data->m.ruby_metrics.gc_immix_count;
       gc_immix_stop_last_ms += data->m.ruby_metrics.gc_immix_stop_last_ms;
       gc_immix_stop_total_ms += data->m.ruby_metrics.gc_immix_stop_total_ms;
@@ -72,19 +75,29 @@ namespace rubinius {
       gc_large_count += data->m.ruby_metrics.gc_large_count;
       gc_large_sweep_last_ms += data->m.ruby_metrics.gc_large_sweep_last_ms;
       gc_large_sweep_total_ms += data->m.ruby_metrics.gc_large_sweep_total_ms;
+      locks_stop_the_world_last_ns += data->m.ruby_metrics.locks_stop_the_world_last_ns;
+      locks_stop_the_world_total_ns += data->m.ruby_metrics.locks_stop_the_world_total_ns;
     }
 
     void FinalizerMetrics::add(MetricsData* data) {
+      if(data->type != eFinalizerMetrics) return;
+
       objects_queued += data->m.finalizer_metrics.objects_queued;
       objects_finalized += data->m.finalizer_metrics.objects_finalized;
     }
 
     void JITMetrics::add(MetricsData* data) {
+      if(data->type != eJITMetrics) return;
+
       methods_queued += data->m.jit_metrics.methods_queued;
       methods_compiled += data->m.jit_metrics.methods_compiled;
+      time_last_us += data->m.jit_metrics.time_last_us;
+      time_total_us += data->m.jit_metrics.time_total_us;
     }
 
     void ConsoleMetrics::add(MetricsData* data) {
+      if(data->type != eConsoleMetrics) return;
+
       requests_received += data->m.console_metrics.requests_received;
       responses_sent += data->m.console_metrics.responses_sent;
     }
@@ -244,6 +257,15 @@ namespace rubinius {
 
     void Metrics::map_metrics() {
       metrics_map_.push_back(new MetricsItem(
+            "jit.methods.queued", metrics_collection_.jit_metrics.methods_queued));
+      metrics_map_.push_back(new MetricsItem(
+            "jit.methods.compiled", metrics_collection_.jit_metrics.methods_compiled));
+      metrics_map_.push_back(new MetricsItem(
+            "jit.time.last.us", metrics_collection_.jit_metrics.time_last_us));
+      metrics_map_.push_back(new MetricsItem(
+            "jit.time.total.us", metrics_collection_.jit_metrics.time_total_us));
+
+      metrics_map_.push_back(new MetricsItem(
             "io.read.bytes", metrics_collection_.ruby_metrics.io_read_bytes));
       metrics_map_.push_back(new MetricsItem(
             "io.write.bytes", metrics_collection_.ruby_metrics.io_write_bytes));
@@ -337,6 +359,8 @@ namespace rubinius {
       metrics_map_.push_back(new MetricsItem(
             "gc.young.total.ms", metrics_collection_.ruby_metrics.gc_young_total_ms));
       metrics_map_.push_back(new MetricsItem(
+            "gc.young.lifetime", metrics_collection_.ruby_metrics.gc_young_lifetime));
+      metrics_map_.push_back(new MetricsItem(
             "gc.immix.count", metrics_collection_.ruby_metrics.gc_immix_count));
       metrics_map_.push_back(new MetricsItem(
             "gc.immix.stop.last.ms",
@@ -358,6 +382,14 @@ namespace rubinius {
       metrics_map_.push_back(new MetricsItem(
             "gc.large.sweep.total.ms",
             metrics_collection_.ruby_metrics.gc_large_sweep_total_ms));
+
+      // Lock metrics
+      metrics_map_.push_back(new MetricsItem(
+            "locks.stop_the_world.last.ns",
+            metrics_collection_.ruby_metrics.locks_stop_the_world_last_ns));
+      metrics_map_.push_back(new MetricsItem(
+            "locks.stop_the_world.total.ns",
+            metrics_collection_.ruby_metrics.locks_stop_the_world_total_ns));
     }
 
     void Metrics::start(STATE) {

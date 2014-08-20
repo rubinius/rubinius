@@ -17,6 +17,7 @@ namespace rubinius {
   class VM;
   class State;
   class Thread;
+  class SharedState;
 
   namespace metrics {
     typedef uint64_t metric;
@@ -24,6 +25,7 @@ namespace rubinius {
     struct MetricsData;
 
     enum MetricsType {
+      eNone,
       eRubyMetrics,
       eFinalizerMetrics,
       eJITMetrics,
@@ -70,11 +72,11 @@ namespace rubinius {
       metric capi_handles_total;
       metric inflated_headers;
 
-
       // Garbage collector metrics
       metric gc_young_count;
       metric gc_young_last_ms;
       metric gc_young_total_ms;
+      metric gc_young_lifetime;
       metric gc_immix_count;
       metric gc_immix_stop_last_ms;
       metric gc_immix_stop_total_ms;
@@ -83,6 +85,10 @@ namespace rubinius {
       metric gc_large_count;
       metric gc_large_sweep_last_ms;
       metric gc_large_sweep_total_ms;
+
+      // Lock metrics
+      metric locks_stop_the_world_last_ns;
+      metric locks_stop_the_world_total_ns;
 
       void init() {
         io_read_bytes = 0;
@@ -119,6 +125,7 @@ namespace rubinius {
         gc_young_count = 0;
         gc_young_last_ms = 0;
         gc_young_total_ms = 0;
+        gc_young_lifetime = 0;
         gc_immix_count = 0;
         gc_immix_stop_last_ms = 0;
         gc_immix_stop_total_ms = 0;
@@ -127,6 +134,8 @@ namespace rubinius {
         gc_large_count = 0;
         gc_large_sweep_last_ms = 0;
         gc_large_sweep_total_ms = 0;
+        locks_stop_the_world_last_ns = 0;
+        locks_stop_the_world_total_ns = 0;
       }
 
       void add(MetricsData* data);
@@ -148,10 +157,14 @@ namespace rubinius {
     struct JITMetrics {
       metric methods_queued;
       metric methods_compiled;
+      metric time_last_us;
+      metric time_total_us;
 
       void init() {
         methods_queued = 0;
         methods_compiled = 0;
+        time_last_us = 0;
+        time_total_us = 0;
       }
 
       void add(MetricsData* data);
@@ -182,6 +195,8 @@ namespace rubinius {
         type = mtype;
 
         switch(type) {
+        case eNone:
+          break;
         case eRubyMetrics:
           m.ruby_metrics.init();
           break;
@@ -213,6 +228,8 @@ namespace rubinius {
 
       void add(MetricsData* data) {
         switch(data->type) {
+        case eNone:
+          break;
         case eRubyMetrics:
           ruby_metrics.add(data);
           break;

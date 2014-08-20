@@ -123,8 +123,6 @@ namespace rubinius {
     bool pause_;
     bool paused_;
 
-    metrics::MetricsData* metrics_;
-
   public:
     BackgroundCompilerThread(LLVMState* ls)
       : Thread(0, false)
@@ -135,7 +133,6 @@ namespace rubinius {
       , stop_(false)
       , pause_(false)
       , paused_(false)
-      , metrics_(NULL)
     {
       show_machine_code_ = ls->jit_dump_code() & cMachineCode;
       condition_.init();
@@ -150,14 +147,10 @@ namespace rubinius {
       pending_requests_.clear();
     }
 
-    void set_metrics(metrics::MetricsData* metrics) {
-      metrics_ = metrics;
-    }
-
     void add(BackgroundCompileRequest* req) {
       utilities::thread::Mutex::LockGuard guard(mutex_);
       pending_requests_.push_back(req);
-      metrics_->m.jit_metrics.methods_queued++;
+      ls_->metrics()->m.jit_metrics.methods_queued++;
       condition_.signal();
     }
 
@@ -347,7 +340,9 @@ namespace rubinius {
 
         void* func = 0;
         {
-          timer::Running<1000000> timer(ls_->shared().stats.jit_time_spent);
+          timer::StopWatch<timer::microseconds> timer(
+              ls_->metrics()->m.jit_metrics.time_last_us,
+              ls_->metrics()->m.jit_metrics.time_total_us);
 
           jit.compile(req);
 
@@ -413,8 +408,6 @@ namespace rubinius {
 
           rd->run_write_barrier(ls_->shared().om, req->method());
 
-          ls_->shared().stats.jitted_methods++;
-
           if(ls_->config().jit_show_compiling) {
             CompiledCode* code = req->method();
             llvm::outs() << "[[[ JIT finished background compiling "
@@ -432,7 +425,7 @@ namespace rubinius {
         current_req_ = 0;
         current_compiler_ = 0;
         pending_requests_.pop_front();
-        metrics_->m.jit_metrics.methods_compiled++;
+        ls_->metrics()->m.jit_metrics.methods_compiled++;
         delete req;
 
         // We don't depend on the GC here, so let it run independent
@@ -488,8 +481,6 @@ halt:
                     state->shared(), ManagedThread::eSystem)
     , config_(state->shared().config)
     , symbols_(state->shared().symbols)
-    , jitted_methods_(0)
-    , queued_methods_(0)
     , accessors_inlined_(0)
     , uncommons_taken_(0)
     , shared_(state->shared())
@@ -548,10 +539,9 @@ halt:
 
     type_optz_ = state->shared().config.jit_type_optz;
 
-    metrics_.init(metrics::eJITMetrics);
+    metrics()->init(metrics::eJITMetrics);
 
     background_thread_ = new BackgroundCompilerThread(this);
-    background_thread_->set_metrics(&metrics_);
     background_thread_->run();
 
     cpu_ = rubinius::getHostCPUName();
@@ -592,7 +582,7 @@ halt:
 
   void LLVMState::after_fork_child(STATE) {
     shared_.add_managed_thread(this);
-    metrics_.init(metrics::eJITMetrics);
+    metrics()->init(metrics::eJITMetrics);
     background_thread_->restart();
   }
 
@@ -666,9 +656,7 @@ halt:
         llvm::outs() << "[[[ JIT compiled "
           << enclosure_name(code) << "#" << symbol_debug_str(code->name())
           << (req_block ? " (block) " : " (method) ")
-          << " (" << hits << ") "
-          << queued_methods() << "/"
-          << jitted_methods() << " ]]]\n";
+          << " (" << hits << ") " << " ]]]\n";
       }
     } else {
       background_thread_->add(req);
@@ -677,15 +665,13 @@ halt:
         llvm::outs() << "[[[ JIT queued "
           << enclosure_name(code) << "#" << symbol_debug_str(code->name())
           << (req->is_block() ? " (block) " : " (method) ")
-          << " (" << hits << ") "
-          << queued_methods() << "/"
-          << jitted_methods() << " ]]]\n";
+          << " (" << hits << ") " << " ]]]\n";
       }
     }
   }
 
   void LLVMState::remove(void* func) {
-    shared_.stats.jitted_methods.dec();
+    metrics()->m.jit_metrics.methods_compiled--;
     memory_->deallocateFunctionBody(func);
   }
 

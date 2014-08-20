@@ -22,9 +22,8 @@ int main(int argc, char **argv) {
   SharedState * shared = manager->create_shared_state();
   ConfigParser * config = new ConfigParser;
   shared->user_config = config;
-  metrics::Metrics metrics;
   VM* state = shared->new_vm();
-  state->set_metrics(&metrics);
+  state->metrics()->init(metrics::eRubyMetrics);
 
   state->initialize(VM::default_bytes);
   state->boot();

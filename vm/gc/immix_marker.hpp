@@ -3,7 +3,6 @@
 
 #include "lock.hpp"
 #include "auxiliary_threads.hpp"
-#include "metrics.hpp"
 
 #include "gc/root.hpp"
 
@@ -29,8 +28,6 @@ namespace rubinius {
     utilities::thread::Condition run_cond_;
     utilities::thread::Condition pause_cond_;
     utilities::thread::Mutex run_lock_;
-
-    metrics::MetricsData metrics_;
 
   public:
 
