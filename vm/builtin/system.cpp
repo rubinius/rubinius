@@ -39,8 +39,6 @@
 #include "util/logger.hpp"
 #include "paths.h"
 
-#include "agent.hpp"
-
 #include <vector>
 #include <errno.h>
 #include <iostream>
@@ -515,21 +513,18 @@ namespace rubinius {
   }
 
   Integer* System::vm_gc_count(STATE) {
-    return Integer::from(state, state->memory()->gc_stats.young_collection_count.read() +
-                                state->memory()->gc_stats.full_collection_count.read());
+    // TODO: add metrics
+    return Integer::from(state, 0);
   }
 
   Integer* System::vm_gc_size(STATE) {
-    return Integer::from(state, state->memory()->young_usage() +
-                                state->memory()->immix_usage() +
-                                state->memory()->loe_usage() +
-                                state->memory()->code_usage() +
-                                state->shared().symbols.bytes_used());
+    // TODO: add metrics
+    return Integer::from(state, 0);
   }
 
   Integer* System::vm_gc_time(STATE) {
-    return Integer::from(state, state->memory()->gc_stats.total_young_collection_time.read() +
-                                state->memory()->gc_stats.total_full_stop_collection_time.read());
+    // TODO: add metrics
+    return Integer::from(state, 0);
   }
 
   Tuple* System::vm_gc_stat(STATE, Object* s) {
@@ -561,44 +556,26 @@ namespace rubinius {
       return force_as<Tuple>(Primitives::failure());
     }
 
-    stats->put(state, 1, Integer::from(state,
-          state->memory()->gc_stats.young_collection_count.read()));
-    stats->put(state, 3, Integer::from(state,
-          state->memory()->gc_stats.total_young_collection_time.read()));
-    stats->put(state, 5, Integer::from(state,
-          state->memory()->gc_stats.last_young_collection_time.read()));
-    stats->put(state, 7, Integer::from(state,
-          state->memory()->gc_stats.full_collection_count.read()));
-    stats->put(state, 9, Integer::from(state,
-          state->memory()->gc_stats.total_full_stop_collection_time.read()));
-    stats->put(state, 11, Integer::from(state,
-          state->memory()->gc_stats.total_full_concurrent_collection_time.read()));
-    stats->put(state, 13, Integer::from(state,
-          state->memory()->gc_stats.last_full_stop_collection_time.read()));
-    stats->put(state, 15, Integer::from(state,
-          state->memory()->gc_stats.last_full_concurrent_collection_time.read()));
-    stats->put(state, 17, Integer::from(state,
-          state->memory()->gc_stats.young_objects_allocated.read()));
-    stats->put(state, 19, Integer::from(state,
-          state->memory()->gc_stats.young_bytes_allocated.read()));
-    stats->put(state, 21, Integer::from(state,
-          state->memory()->gc_stats.promoted_objects_allocated.read()));
-    stats->put(state, 23, Integer::from(state,
-          state->memory()->gc_stats.promoted_bytes_allocated.read()));
-    stats->put(state, 25, Integer::from(state,
-          state->memory()->gc_stats.mature_objects_allocated.read()));
-    stats->put(state, 27, Integer::from(state,
-          state->memory()->gc_stats.mature_bytes_allocated.read()));
-    stats->put(state, 29, Integer::from(state,
-          state->memory()->young_usage()));
-    stats->put(state, 31, Integer::from(state,
-          state->memory()->immix_usage()));
-    stats->put(state, 33, Integer::from(state,
-          state->memory()->loe_usage()));
-    stats->put(state, 35, Integer::from(state,
-          state->memory()->code_usage()));
-    stats->put(state, 37, Integer::from(state,
-          state->shared().symbols.bytes_used()));
+    // TODO: add metrics
+    stats->put(state, 1, Integer::from(state, 0));
+    stats->put(state, 3, Integer::from(state, 0));
+    stats->put(state, 5, Integer::from(state, 0));
+    stats->put(state, 7, Integer::from(state, 0));
+    stats->put(state, 9, Integer::from(state, 0));
+    stats->put(state, 11, Integer::from(state, 0));
+    stats->put(state, 13, Integer::from(state, 0));
+    stats->put(state, 15, Integer::from(state, 0));
+    stats->put(state, 17, Integer::from(state, 0));
+    stats->put(state, 19, Integer::from(state, 0));
+    stats->put(state, 21, Integer::from(state, 0));
+    stats->put(state, 23, Integer::from(state, 0));
+    stats->put(state, 25, Integer::from(state, 0));
+    stats->put(state, 27, Integer::from(state, 0));
+    stats->put(state, 29, Integer::from(state, 0));
+    stats->put(state, 31, Integer::from(state, 0));
+    stats->put(state, 33, Integer::from(state, 0));
+    stats->put(state, 35, Integer::from(state, 0));
+    stats->put(state, 37, Integer::from(state, 0));
 
     return stats;
   }
@@ -768,9 +745,10 @@ namespace rubinius {
     LLVMState* ls = LLVMState::get(state);
 
     Array* ary = Array::create(state, 5);
-    ary->set(state, 0, Integer::from(state, ls->jitted_methods()));
+    // TODO: add metrics
+    // ary->set(state, 0, Integer::from(state, ls->jitted_methods()));
     ary->set(state, 1, Integer::from(state, ls->code_bytes()));
-    ary->set(state, 2, Integer::from(state, ls->time_spent));
+    // ary->set(state, 2, Integer::from(state, ls->time_spent));
     ary->set(state, 3, Integer::from(state, ls->accessors_inlined()));
     ary->set(state, 4, Integer::from(state, ls->uncommons_taken()));
 
@@ -1345,26 +1323,6 @@ retry:
     }
     return nil<String>();
 #endif
-  }
-
-  Object* System::vm_agent_start(STATE) {
-    state->shared().start_agent(state);
-    return cNil;
-  }
-
-  IO* System::vm_agent_loopback(STATE) {
-    QueryAgent* agent = state->shared().start_agent(state);
-
-    int sock = agent->loopback_socket();
-    if(sock < 0) {
-      if(!agent->setup_local()) return nil<IO>();
-
-      sock = agent->loopback_socket();
-    }
-
-    agent->wakeup();
-    // dup the descriptor so the lifetime of socket is properly controlled.
-    return IO::create(state, dup(sock));
   }
 
   Object* System::vm_set_finalizer(STATE, Object* obj, Object* fin) {

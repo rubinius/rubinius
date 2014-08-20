@@ -11,7 +11,6 @@
 #include "util/thread.hpp"
 #include "configuration.hpp"
 
-#include "agent.hpp"
 #include "console.hpp"
 #include "metrics.hpp"
 #include "world_state.hpp"
@@ -33,7 +32,6 @@ namespace rubinius {
     : auxiliary_threads_(0)
     , signal_handler_(0)
     , finalizer_handler_(0)
-    , query_agent_(0)
     , console_(0)
     , world_(new WorldState(&check_global_interrupts_))
     , method_count_(1)
@@ -44,7 +42,6 @@ namespace rubinius {
     , ruby_critical_set_(false)
     , check_global_interrupts_(false)
     , check_gc_(false)
-    , agent_(0)
     , root_vm_(0)
     , env_(env)
     , tool_broker_(new tooling::ToolBroker)
@@ -70,19 +67,11 @@ namespace rubinius {
   SharedState::~SharedState() {
     if(!initialized_) return;
 
-    if(config.gc_show) {
-      std::cerr << "Time spent waiting for the world to stop: " << world_->time_waiting() << "ns\n";
-    }
-
 #ifdef ENABLE_LLVM
     if(llvm_state) {
       delete llvm_state;
     }
 #endif
-
-    if(agent_) {
-      delete agent_;
-    }
 
     if(console_) {
       delete console_;
@@ -163,16 +152,6 @@ namespace rubinius {
     return threads;
   }
 
-  QueryAgent* SharedState::start_agent(STATE) {
-    SYNC(state);
-
-    if(!agent_) {
-      agent_ = new QueryAgent(state);
-    }
-
-    return agent_;
-  }
-
   console::Console* SharedState::start_console(STATE) {
     SYNC(state);
 
@@ -243,7 +222,7 @@ namespace rubinius {
   }
 
   bool SharedState::stop_the_world(THREAD) {
-    return world_->wait_til_alone(state);
+    return world_->wait_till_alone(state);
   }
 
   void SharedState::stop_threads_externally() {

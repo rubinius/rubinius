@@ -62,65 +62,6 @@ namespace rubinius {
     {}
   };
 
-
-  struct GCStats {
-
-    atomic::integer young_objects_allocated;
-    atomic::integer young_bytes_allocated;
-    atomic::integer promoted_objects_allocated;
-    atomic::integer promoted_bytes_allocated;
-    atomic::integer mature_objects_allocated;
-    atomic::integer mature_bytes_allocated;
-
-    atomic::integer young_collection_count;
-    atomic::integer full_collection_count;
-
-    atomic::integer total_young_collection_time;
-    atomic::integer total_full_stop_collection_time;
-    atomic::integer total_full_concurrent_collection_time;
-    atomic::integer last_young_collection_time;
-    atomic::integer last_full_stop_collection_time;
-    atomic::integer last_full_concurrent_collection_time;
-
-    void young_object_allocated(uint64_t size) {
-      young_objects_allocated.inc();
-      young_bytes_allocated.add(size);
-    }
-
-    void promoted_object_allocated(uint64_t size) {
-      promoted_objects_allocated.inc();
-      promoted_bytes_allocated.add(size);
-    }
-
-    void mature_object_allocated(uint64_t size) {
-      mature_objects_allocated.inc();
-      mature_bytes_allocated.add(size);
-    }
-
-    void slab_allocated(uint64_t count, uint64_t size) {
-      young_objects_allocated.add(count);
-      young_bytes_allocated.add(size);
-    }
-
-    GCStats()
-      : young_objects_allocated(0)
-      , young_bytes_allocated(0)
-      , promoted_objects_allocated(0)
-      , promoted_bytes_allocated(0)
-      , mature_objects_allocated(0)
-      , mature_bytes_allocated(0)
-      , young_collection_count(0)
-      , full_collection_count(0)
-      , total_young_collection_time(0)
-      , total_full_stop_collection_time(0)
-      , total_full_concurrent_collection_time(0)
-      , last_young_collection_time(0)
-      , last_full_stop_collection_time(0)
-      , last_full_concurrent_collection_time(0)
-    {}
-  };
-
-
   /**
    * ObjectMemory is the primary API that the rest of the VM uses to interact
    * with actions such as allocating objects, storing data in objects, and
@@ -215,8 +156,6 @@ namespace rubinius {
     size_t young_max_bytes;
     int young_autotune_factor;
     bool young_autotune_size;
-
-    GCStats gc_stats;
 
   public:
     VM* state() {
@@ -408,9 +347,6 @@ namespace rubinius {
     immix::MarkStack& mature_mark_stack();
 
     void young_autotune();
-
-    void print_young_stats(STATE, GCData* data, YoungCollectStats* stats);
-    void print_mature_stats(STATE, GCData* data);
 
   private:
     Object* allocate_object(size_t bytes);

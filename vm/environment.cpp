@@ -35,8 +35,6 @@
 #include "signal.hpp"
 #include "object_utils.hpp"
 
-#include "agent.hpp"
-
 #include "instruments/tooling.hpp"
 
 #include "on_stack.hpp"
@@ -95,10 +93,8 @@ namespace rubinius {
 
     load_vm_options(argc_, argv_);
 
-    metrics_.init(metrics::eRubyMetrics);
-
     root_vm = shared->new_vm();
-    root_vm->set_metrics(&metrics_);
+    root_vm->metrics()->init(metrics::eRubyMetrics);
     state = new State(root_vm);
 
     start_logging();
@@ -342,16 +338,6 @@ namespace rubinius {
       config.print();
     }
 
-    if(config.agent_start > 0) {
-      // if port_ is 1, the user wants to use a randomly assigned local
-      // port which will be written to the temp file for console to pick
-      // up.
-
-      int port = config.agent_start;
-      if(port == 1) port = 0;
-      start_agent(port);
-    }
-
     state->shared().set_use_capi_lock(config.capi_lock);
   }
 
@@ -519,14 +505,6 @@ namespace rubinius {
     }
 
     return 0;
-  }
-
-  void Environment::start_agent(int port) {
-    QueryAgent* agent = state->shared().start_agent(state);
-
-    if(config.agent_verbose) agent->set_verbose();
-
-    if(!agent->bind(port)) return;
   }
 
   /**

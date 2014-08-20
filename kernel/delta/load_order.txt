@@ -1,4 +1,3 @@
-agent.rbc
 ctype.rbc
 exception.rbc
 file.rbc

@@ -440,9 +440,6 @@ step1:
     metrics->m.ruby_metrics.memory_young_objects_total += slab.allocations();
     metrics->m.ruby_metrics.memory_young_bytes_total += slab.bytes_used();
 
-    // TODO: delete after metrics
-    gc_stats.slab_allocated(slab.allocations(), slab.bytes_used());
-
     if(addr) {
       slab.refill(addr, slab_size_);
       metrics->m.ruby_metrics.memory_slab_refills_total++;
@@ -491,8 +488,6 @@ step1:
     state()->metrics()->m.ruby_metrics.memory_promoted_objects_total++;
     state()->metrics()->m.ruby_metrics.memory_promoted_bytes_total += sz;
 
-    // TODO: delete after metrics
-    gc_stats.promoted_object_allocated(sz);
     if(unlikely(!copy)) {
       copy = mark_sweep_->move_object(obj, sz, &collect_mature_now);
     }
@@ -549,9 +544,8 @@ step1:
       metrics::MetricsData* metrics = state->vm()->metrics();
       metrics->m.ruby_metrics.memory_young_bytes =
         state->memory()->young_bytes_allocated();
-
-      // TODO: delete after metrics
-      print_young_stats(state, &gc_data, &stats);
+      metrics->m.ruby_metrics.memory_young_percent_used = stats.percentage_used;
+      metrics->m.ruby_metrics.gc_young_lifetime = stats.lifetime;
     }
 
     if(collect_mature_now) {
@@ -569,7 +563,6 @@ step1:
 #endif
       if(!mature_mark_concurrent_) {
         collect_mature_finish(state, gc_data);
-        print_mature_stats(state, gc_data);
         delete gc_data;
       }
     }
@@ -589,10 +582,6 @@ step1:
         state->vm()->metrics()->m.ruby_metrics.gc_young_total_ms
       );
 
-    // TODO: delete after metrics
-    timer::Running<1000000> timer(gc_stats.total_young_collection_time,
-                                  gc_stats.last_young_collection_time);
-
     young_gc_while_marking_++;
     young_->reset_stats();
 
@@ -605,9 +594,6 @@ step1:
     metrics->m.ruby_metrics.capi_handles = capi_handles_->size();
     metrics->m.ruby_metrics.inflated_headers = inflated_headers_->size();
 
-    // TODO: delete after metrics
-    gc_stats.young_collection_count++;
-
     data->global_cache()->prune_young();
 
     if(data->threads()) {
@@ -615,8 +601,6 @@ step1:
           i != data->threads()->end();
           ++i) {
         gc::Slab& slab = (*i)->local_slab();
-
-        gc_stats.slab_allocated(slab.allocations(), slab.bytes_used());
 
         // Reset the slab to a size of 0 so that the thread has to do
         // an allocation to get a proper refill. This keeps the number
@@ -640,9 +624,6 @@ step1:
         state->vm()->metrics()->m.ruby_metrics.gc_immix_conc_last_ms,
         state->vm()->metrics()->m.ruby_metrics.gc_immix_conc_total_ms);
 
-    // TODO: delete after metrics
-    timer::Running<1000000> timer(gc_stats.total_full_stop_collection_time,
-                                  gc_stats.last_full_stop_collection_time);
 #ifndef RBX_GC_STRESS_MATURE
     collect_mature_now = false;
 #endif
@@ -696,8 +677,6 @@ step1:
     metrics->m.ruby_metrics.memory_code_bytes = code_manager_.size();
     metrics->m.ruby_metrics.memory_jit_bytes = data->jit_bytes_allocated();
 
-    // TODO: delete after metrics
-    gc_stats.full_collection_count++;
     if(FinalizerHandler* hdl = state->shared().finalizer_handler()) {
       hdl->finish_collection(state);
     }
@@ -734,48 +713,6 @@ step1:
 
   immix::MarkStack& ObjectMemory::mature_mark_stack() {
     return immix_->mark_stack();
-  }
-
-
-  void ObjectMemory::print_young_stats(STATE, GCData* data, YoungCollectStats* stats) {
-    if(state->shared().config.gc_show) {
-      size_t before_kb = data->young_bytes_allocated() / 1024;
-      size_t kb = state->memory()->young_bytes_allocated() / 1024;
-      uint64_t diff = gc_stats.last_young_collection_time.value;
-
-      std::cerr << "[Young GC ";
-      if(before_kb != kb) {
-        std::cerr << before_kb << "kB => ";
-      }
-      std::cerr << kb << "kB " << std::fixed << std::setprecision(1) << stats->percentage_used << "% "
-                << stats->promoted_objects << "/" << stats->excess_objects << " "
-                << stats->lifetime << " " << diff << "ms]" << std::endl;
-
-      if(state->shared().config.gc_noisy) {
-        std::cerr << "\a" << std::flush;
-      }
-    }
-  }
-
-  void ObjectMemory::print_mature_stats(STATE, GCData* data) {
-    if(state->shared().config.gc_show) {
-      uint64_t stop = gc_stats.last_full_stop_collection_time.value;
-      uint64_t concur = gc_stats.last_full_concurrent_collection_time.value;
-      size_t before_mature_kb = data->mature_bytes_allocated() / 1024;
-      size_t mature_kb = mature_bytes_allocated() / 1024;
-      size_t before_code_kb = data->code_bytes_allocated() / 1024;
-      size_t code_kb = code_bytes_allocated() / 1024;
-      std::cerr << "[Full GC mature: " << before_mature_kb << "kB => " << mature_kb << "kB, ";
-      std::cerr << "code: " << before_code_kb << "kB => " << code_kb << "kB, ";
-      std::cerr << "symbols: " << data->symbol_bytes_allocated() / 1024 << "kB, ";
-      std::cerr << "jit: " << data->jit_bytes_allocated() / 1024 << "kB, ";
-      std::cerr << "time: " << stop << "ms (" << concur << "ms), ";
-      std::cerr << capi_handles_->size() << " C-API handles, " << inflated_headers_->size() << " inflated headers]" << std::endl;
-
-      if(state->shared().config.gc_noisy) {
-        std::cerr << "\a\a" << std::flush;
-      }
-    }
   }
 
   void ObjectMemory::inflate_for_id(STATE, ObjectHeader* obj, uint32_t id) {
@@ -903,9 +840,6 @@ step1:
       state()->metrics()->m.ruby_metrics.memory_immix_objects_total++;
       state()->metrics()->m.ruby_metrics.memory_immix_bytes_total += bytes;
 
-      // TODO: delete after metrics
-      gc_stats.mature_object_allocated(bytes);
-
       if(collect_mature_now) shared_.gc_soon();
 
     } else {
@@ -923,16 +857,10 @@ step1:
         state()->metrics()->m.ruby_metrics.memory_immix_objects_total++;
         state()->metrics()->m.ruby_metrics.memory_immix_bytes_total += bytes;
 
-        // TODO: delete after metrics
-        gc_stats.mature_object_allocated(bytes);
-
         if(collect_mature_now) shared_.gc_soon();
       } else {
         state()->metrics()->m.ruby_metrics.memory_young_objects_total++;
         state()->metrics()->m.ruby_metrics.memory_young_bytes_total += bytes;
-
-        // TODO: delete after metrics
-        gc_stats.young_object_allocated(bytes);
       }
     }
 
@@ -961,9 +889,6 @@ step1:
 
       state()->metrics()->m.ruby_metrics.memory_immix_objects_total++;
       state()->metrics()->m.ruby_metrics.memory_immix_bytes_total += bytes;
-
-      // TODO: delete after metrics
-      gc_stats.mature_object_allocated(bytes);
     }
 
     if(collect_mature_now) shared_.gc_soon();
@@ -1032,8 +957,6 @@ step1:
     state()->metrics()->m.ruby_metrics.memory_immix_objects_total++;
     state()->metrics()->m.ruby_metrics.memory_immix_bytes_total += bytes;
 
-    // TODO: delete after metrics
-    gc_stats.mature_object_allocated(bytes);
     obj->clear_fields(bytes);
     return obj;
   }
@@ -1046,9 +969,6 @@ step1:
 
     state->vm()->metrics()->m.ruby_metrics.memory_immix_objects_total++;
     state->vm()->metrics()->m.ruby_metrics.memory_immix_bytes_total += bytes;
-
-    // TODO: delete after metrics
-    gc_stats.mature_object_allocated(bytes);
 
     if(collect_mature_now) shared_.gc_soon();
 

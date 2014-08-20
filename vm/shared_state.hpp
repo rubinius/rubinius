@@ -7,8 +7,6 @@
 #include "gc/variable_buffer.hpp"
 #include "gc/root_buffer.hpp"
 
-#include "stats.hpp"
-
 #include "auxiliary_threads.hpp"
 #include "globals.hpp"
 #include "symbol_table.hpp"
@@ -88,7 +86,6 @@ namespace rubinius {
     AuxiliaryThreads* auxiliary_threads_;
     SignalHandler* signal_handler_;
     FinalizerHandler* finalizer_handler_;
-    QueryAgent* query_agent_;
     console::Console* console_;
     metrics::Metrics* metrics_;
 
@@ -108,7 +105,6 @@ namespace rubinius {
     bool check_global_interrupts_;
     bool check_gc_;
 
-    QueryAgent* agent_;
     VM* root_vm_;
     Environment* env_;
     tooling::ToolBroker* tool_broker_;
@@ -140,7 +136,6 @@ namespace rubinius {
     ConfigParser& user_variables;
     SymbolTable symbols;
     LLVMState* llvm_state;
-    Stats stats;
     std::string fsapi_path;
     uint32_t hash_seed;
 
@@ -175,14 +170,6 @@ namespace rubinius {
 
     void set_finalizer_handler(FinalizerHandler* thr) {
       finalizer_handler_ = thr;
-    }
-
-    QueryAgent* query_agent() const {
-      return query_agent_;
-    }
-
-    void set_query_agent(QueryAgent* thr) {
-      query_agent_ = thr;
     }
 
     VM* new_vm();
@@ -226,12 +213,6 @@ namespace rubinius {
     int& primitive_hits(int primitive) {
       return primitive_hits_[primitive];
     }
-
-    QueryAgent* agent() const {
-      return agent_;
-    }
-
-    QueryAgent* start_agent(STATE);
 
     console::Console* console() const {
       return console_;
