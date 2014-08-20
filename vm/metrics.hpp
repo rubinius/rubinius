@@ -17,6 +17,7 @@ namespace rubinius {
   class VM;
   class State;
   class Thread;
+  class Tuple;
   class SharedState;
 
   namespace metrics {
@@ -283,6 +284,7 @@ namespace rubinius {
       bool thread_exit_;
 
       TypedRoot<Thread*> thread_;
+      TypedRoot<Tuple*> values_;
 
       int interval_;
       utilities::timer::Timer* timer_;
@@ -301,6 +303,9 @@ namespace rubinius {
       void map_metrics();
 
       void wakeup();
+
+      void init_ruby_metrics(STATE);
+      void update_ruby_values(STATE);
 
       void start(STATE);
 

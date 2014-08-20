@@ -169,6 +169,7 @@ namespace rubinius {
     if(!metrics_) {
       metrics_ = new metrics::Metrics(state);
       metrics_->start(state);
+      metrics_->init_ruby_metrics(state);
     }
 
     return metrics_;

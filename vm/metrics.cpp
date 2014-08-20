@@ -4,9 +4,14 @@
 #include "object_utils.hpp"
 #include "shared_state.hpp"
 #include "configuration.hpp"
+#include "ontology.hpp"
 
+#include "builtin/bignum.hpp"
 #include "builtin/class.hpp"
+#include "builtin/fixnum.hpp"
+#include "builtin/lookup_table.hpp"
 #include "builtin/thread.hpp"
+#include "builtin/tuple.hpp"
 
 #include "llvm/state.hpp"
 
@@ -232,6 +237,7 @@ namespace rubinius {
       , vm_(NULL)
       , thread_exit_(false)
       , thread_(state)
+      , values_(state)
       , interval_(state->shared().config.vm_metrics_interval)
       , timer_(NULL)
       , emitter_(NULL)
@@ -392,6 +398,40 @@ namespace rubinius {
             metrics_collection_.ruby_metrics.locks_stop_the_world_total_ns));
     }
 
+    void Metrics::init_ruby_metrics(STATE) {
+      LookupTable* map = LookupTable::create(state);
+      Module* mod = as<Module>(G(rubinius)->get_const(state, state->symbol("Metrics")));
+      mod->set_const(state, "Map", map);
+
+      Tuple* values = Tuple::create(state, metrics_map_.size());
+      values_.set(values);
+      mod->set_const(state, "Values", values);
+
+      int index = 0;
+
+      for(MetricsMap::iterator i = metrics_map_.begin();
+          i != metrics_map_.end();
+          ++i)
+      {
+        values->put(state, index, Bignum::from(state, (*i)->second));
+
+        Object* key = reinterpret_cast<Object*>(state->symbol((*i)->first.c_str()));
+        map->store(state, key, Fixnum::from(index++));
+      }
+    }
+
+    void Metrics::update_ruby_values(STATE) {
+      Tuple* values = values_.get();
+      int index = 0;
+
+      for(MetricsMap::iterator i = metrics_map_.begin();
+          i != metrics_map_.end();
+          ++i)
+      {
+        values->put(state, index++, Bignum::from(state, (*i)->second));
+      }
+    }
+
     void Metrics::start(STATE) {
       if(!shared_.config.vm_metrics_target.value.compare("statsd")) {
         emitter_ = new StatsDEmitter(metrics_map_,
@@ -514,6 +554,8 @@ namespace rubinius {
           if(state->shared().llvm_state) {
             metrics_collection_.add(state->shared().llvm_state->metrics());
           }
+
+          update_ruby_values(state);
         }
 
         {

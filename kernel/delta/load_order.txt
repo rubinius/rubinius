@@ -19,3 +19,4 @@ console.rbc
 ffi.rbc
 ruby_constants.rbc
 pack.rbc
+metrics.rbc
