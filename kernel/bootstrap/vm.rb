@@ -23,43 +23,6 @@ class Rubinius::VM
     raise PrimitiveFailure, "Rubinius::VM.dump_heap primitive failed"
   end
 
-  def self.__jit_info__
-    Rubinius.primitive :vm_jit_info
-    raise PrimitiveFailure, "Rubinius::VM.jit_info primitive failed"
-  end
-
-  class JITInfo
-    def initialize(methods, bytes, nanoseconds, accessors_inlined, uncommons)
-      @jitted_methods = methods
-      @code_bytes = bytes
-      @nanoseconds = nanoseconds
-      @accessors_inlined = accessors_inlined
-      @uncommons = uncommons
-    end
-
-    attr_reader :jitted_methods
-    attr_reader :code_bytes
-    attr_reader :nanoseconds
-    attr_reader :accessors_inlined
-    attr_reader :uncommons
-
-    def milliseconds
-      @nanoseconds / 1_000_000
-    end
-
-    def seconds
-      @nanoseconds.to_f / 1_000_000_000
-    end
-
-    def bytes_per_method
-      @code_bytes.to_f / @jitted_methods
-    end
-  end
-
-  def self.jit_info
-    JITInfo.new(*__jit_info__)
-  end
-
   def self.load_library(path, name)
     Rubinius.primitive :load_library
     raise PrimitiveFailure, "Rubinius::VM.load_library primitive failed"

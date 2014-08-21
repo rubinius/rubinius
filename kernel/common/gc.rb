@@ -1,54 +1,18 @@
 module GC
-  class CompositeKeyHash
-    def initialize(data=nil, prefix=nil)
-      @data = data || {}
-      @keys = data ? {} : @data
-      @prefix = prefix
-    end
-
-    def key?(key)
-      @keys.key? key or (!@prefix and @data.keys.any? { |k| k =~ /^#{key}(\.|$)?/ })
-    end
-
-    def [](key)
-      return @keys[key] if @keys.key? key
-
-      prefix = [@prefix, key].compact.join(".").to_sym
-      return @data[prefix] if @data.key? prefix
-
-      if @data.keys.any? { |k| k =~ /^#{prefix}(\.|$)/ }
-        return @keys[key] = self.class.new(@data, prefix)
-      end
-    end
-
-    def []=(key, value)
-      @keys[key] = value
-    end
-
-    def method_missing(m, *args)
-      @data.send m, *args
-    end
+  def self.count
+    data = stat
+    data[:"gc.young.count"] + data[:"gc.immix.count"]
   end
 
-  def self.count
-    Rubinius::GC.count
+  def self.time
+    data = stat
+    data[:"gc.young.total.ms"] +
+      data[:"gc.immix.stop.total.ms"] +
+      data[:"gc.large.sweep.total.ms"]
   end
 
   def self.stat
-    @stats = Rubinius::GC.stat @stats
-    @metrics ||= CompositeKeyHash.new
-
-    i = 0
-    total = @stats.size
-
-    while i < total
-      @metrics[@stats[i]] = @stats[i + 1]
-      i += 2
-    end
-
-    @metrics[:count] = @metrics[:'gc.young.count'] + @metrics[:'gc.full.count']
-
-    @metrics
+    @stat ||= Rubinius::Metrics.data
   end
 
   module Profiler
@@ -56,7 +20,7 @@ module GC
     @since   = 0
 
     def self.clear
-      @since = Rubinius::GC.time
+      @since = GC.time
       nil
     end
 
@@ -112,7 +76,7 @@ Symbols #{sprintf("% 22d", stats[:'memory.symbols.bytes'])}
     end
 
     def self.total_time
-      (Rubinius::GC.time - @since) / 1000.0
+      (GC.time - @since) / 1000.0
     end
   end
 end

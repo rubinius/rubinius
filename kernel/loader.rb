@@ -729,11 +729,6 @@ to rebuild the compiler.
 
       flush_stdio
 
-      # TODO: Fix these with better -X processing
-      if Config['rbx.jit_stats']
-        p VM.jit_info
-      end
-
     rescue Object => e
       e.render "An exception occurred #{@stage}"
       @exit_code = 1
