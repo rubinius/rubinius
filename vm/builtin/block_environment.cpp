@@ -268,21 +268,23 @@ namespace rubinius {
           } else {
             OnStack<1> os(state, cls);
 
-            Symbol* name = state->symbol("to_hash");
-            Arguments args(name, obj, 0, 0);
-            Dispatch dis(name);
+            Symbol* name = G(sym_to_hash);
+            if(CBOOL(obj->respond_to(state, name, cFalse))) {
+              Arguments args(name, obj, 0, 0);
+              Dispatch dis(name);
 
-            obj = dis.send(state, call_frame, args);
-            if(obj) {
-              if(obj->kind_of_p(state, cls)) {
-                kw = obj;
-                KP = true;
-              } else if(!obj->nil_p()) {
-                Exception::type_error(state, "to_hash must return a Hash", call_frame);
+              obj = dis.send(state, call_frame, args);
+              if(obj) {
+                if(obj->kind_of_p(state, cls)) {
+                  kw = obj;
+                  KP = true;
+                } else if(!obj->nil_p()) {
+                  Exception::type_error(state, "to_hash must return a Hash", call_frame);
+                  return false;
+                }
+              } else {
                 return false;
               }
-            } else {
-              state->vm()->thread_state()->clear_raise();
             }
           }
         }

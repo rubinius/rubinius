@@ -537,18 +537,20 @@ namespace rubinius {
           } else {
             OnStack<1> os(state, cls);
 
-            Symbol* name = state->symbol("to_hash");
-            Arguments args(name, obj, 0, 0);
-            Dispatch dis(name);
+            Symbol* name = G(sym_to_hash);
+            if(CBOOL(obj->respond_to(state, name, cFalse))) {
+              Arguments args(name, obj, 0, 0);
+              Dispatch dis(name);
 
-            obj = dis.send(state, call_frame, args);
-            if(obj) {
-              if(obj->kind_of_p(state, cls)) {
-                kw = obj;
-                KP = true;
+              obj = dis.send(state, call_frame, args);
+              if(obj) {
+                if(obj->kind_of_p(state, cls)) {
+                  kw = obj;
+                  KP = true;
+                }
+              } else {
+                return false;
               }
-            } else {
-              state->vm()->thread_state()->clear_raise();
             }
           }
         }
@@ -718,10 +720,12 @@ namespace rubinius {
 
       // If argument handling fails..
       if(ArgumentHandler::call(state, mcode, scope, args, previous) == false) {
-        Exception* exc =
-          Exception::make_argument_error(state, mcode->total_args, args.total(), args.name());
-        exc->locations(state, Location::from_call_stack(state, previous));
-        state->raise_exception(exc);
+        if(state->vm()->thread_state()->raise_reason() == cNone) {
+          Exception* exc =
+            Exception::make_argument_error(state, mcode->total_args, args.total(), args.name());
+          exc->locations(state, Location::from_call_stack(state, previous));
+          state->raise_exception(exc);
+        }
 
         return NULL;
       }
