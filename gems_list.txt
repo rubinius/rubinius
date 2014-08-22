@@ -28,13 +28,13 @@ rubysl-csv-1.0.1.gem
 rubysl-curses-1.0.0.gem
 rubysl-date-1.0.1.gem
 rubysl-delegate-1.0.0.gem
-rubysl-digest-1.0.0.gem
+rubysl-digest-1.0.1.gem
 rubysl-drb-1.0.0.gem
 rubysl-e2mmap-1.0.0.gem
 rubysl-english-1.0.0.gem
 rubysl-enumerator-1.0.0.gem
 rubysl-erb-1.0.1.gem
-rubysl-etc-1.0.0.gem
+rubysl-etc-1.0.1.gem
 rubysl-expect-1.0.0.gem
 rubysl-fcntl-1.0.1.gem
 rubysl-fileutils-1.0.0.gem
