@@ -56,15 +56,12 @@ at any time.
 
 ## Tickets
 
-Please file tickets for bugs or problems. The issue tracker is:
-
-  http://github.com/rubinius/rubinius/issues
+Please create [issues](http://github.com/rubinius/rubinius/issues) for bugs or problems.
 
 
 ## Contributing
 
-The Rubinius team welcomes contributions. For more information read the
-CONTRIBUTING file in the root directory of Rubinius.
+The Rubinius team welcomes contributions. See [CONTRIBUTING](CONTRIBUTING) for details.
 
 
 ## Features Currently Not Supported
