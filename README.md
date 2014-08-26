@@ -27,7 +27,7 @@ the following exceptions:
 
 Rubinius runs on Mac OS X and many Unix/Linux operating systems.  Microsoft Windows is not yet supported.
 
-Most popular Ruby applications, like Rails, run on Rubinius.
+Most popular Ruby applications, like [Rails](https://github.com/rails/rails), run on Rubinius.
 
 
 ## License
