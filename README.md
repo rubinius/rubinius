@@ -23,7 +23,7 @@ Most popular Ruby applications, like Rails, run on Rubinius.
 
 ## License
 
-Rubinius uses the BSD license. See LICENSE for details.
+Rubinius uses the BSD license. See  [LICENSE](LICENSE) for details.
 
 
 ## Installing Rubinius from Source
