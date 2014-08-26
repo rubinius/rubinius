@@ -441,6 +441,8 @@ namespace rubinius {
     }
 
     void Metrics::start(STATE) {
+      metrics_lock_.init();
+
       if(!shared_.config.vm_metrics_target.value.compare("statsd")) {
         emitter_ = new StatsDEmitter(metrics_map_,
             shared_.config.vm_metrics_statsd_server.value,
@@ -544,7 +546,7 @@ namespace rubinius {
         if(thread_exit_) break;
 
         {
-          StopTheWorld world_lock(state, gct, 0);
+          utilities::thread::Mutex::LockGuard guard(metrics_lock_);
 
           metrics_collection_.init();
           ThreadList* threads = state->shared().threads();

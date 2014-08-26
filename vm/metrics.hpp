@@ -288,6 +288,7 @@ namespace rubinius {
 
       int interval_;
       utilities::timer::Timer* timer_;
+      utilities::thread::Mutex metrics_lock_;
 
       MetricsCollection metrics_collection_;
       MetricsCollection metrics_history_;
