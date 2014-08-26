@@ -78,6 +78,6 @@ The Rubinius team welcomes contributions. See [CONTRIBUTING](CONTRIBUTING) for d
 The following features of Ruby/MRI are currently not (yet) supported by
 Rubinius:
 
-* Keyword arguments (https://github.com/rubinius/rubinius/issues/2669)
+* [Keyword arguments](https://github.com/rubinius/rubinius/issues/2669)
 * Refinements
 * $SAFE levels
