@@ -1,5 +1,15 @@
 # Rubinius: The Ruby Environment
 
+
+- [What is Rubinius](#user-content-what-is-rubinius)
+- [License](#user-content-license)
+- [Installing Rubinius from Source](#user-content-installing-rubinius-from-source)
+- [Using RubyGems](#user-content-using-rubygems)
+- [Documentation](#user-content-documentation)
+- [Tickets](#user-content-tickets)
+- [Contributing](#user-content-contributing)
+- [Features Currently Not Supported](#user-content-features-currently-not-supported)
+
 ## What is Rubinius
 
 Rubinius is an implementation of the Ruby programming language. Rubinius aims to be compatible with Ruby version 2.1.
