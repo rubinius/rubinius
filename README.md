@@ -7,8 +7,9 @@
 - [Using RubyGems](#user-content-using-rubygems)
 - [Documentation](#user-content-documentation)
 - [Tickets](#user-content-tickets)
-- [Contributing](#user-content-contributing)
 - [Features Currently Not Supported](#user-content-features-currently-not-supported)
+- [Contributing](#user-content-contributing)
+- [License](#user-content-license)
 
 ## What is Rubinius?
 
@@ -29,11 +30,6 @@ the following exceptions:
 Rubinius runs on Mac OS X and many Unix/Linux operating systems.  Microsoft Windows is not yet supported.
 
 Most popular Ruby applications, like [Rails](https://github.com/rails/rails), run on Rubinius.
-
-
-## License
-
-Rubinius uses the BSD license. See  [LICENSE](LICENSE) for details.
 
 
 ## Installing Rubinius from Source
@@ -69,11 +65,6 @@ at any time.
 Please create [issues](http://github.com/rubinius/rubinius/issues) for bugs or problems.
 
 
-## Contributing
-
-The Rubinius team welcomes contributions. See [CONTRIBUTING](CONTRIBUTING.md) for details.
-
-
 ## Features Currently Not Supported
 
 The following features of Ruby/MRI are currently not (yet) supported by
@@ -82,3 +73,13 @@ Rubinius:
 * [Keyword arguments](https://github.com/rubinius/rubinius/issues/2669)
 * Refinements
 * $SAFE levels
+
+
+## Contributing
+
+The Rubinius team welcomes contributions. See [CONTRIBUTING](CONTRIBUTING.md) for details.
+
+
+## License
+
+Rubinius uses the BSD license. See  [LICENSE](LICENSE) for details.
