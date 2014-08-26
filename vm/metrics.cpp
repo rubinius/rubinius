@@ -37,74 +37,25 @@ namespace rubinius {
     void RubyMetrics::add(MetricsData* data) {
       if(data->type != eRubyMetrics) return;
 
-      io_read_bytes += data->m.ruby_metrics.io_read_bytes;
-      io_write_bytes += data->m.ruby_metrics.io_write_bytes;
-      os_signals_received += data->m.ruby_metrics.os_signals_received;
-      os_signals_processed += data->m.ruby_metrics.os_signals_processed;
-      inline_cache_resets += data->m.ruby_metrics.inline_cache_resets;
-      memory_young_bytes += data->m.ruby_metrics.memory_young_bytes;
-      memory_young_bytes_total += data->m.ruby_metrics.memory_young_bytes_total;
-      memory_young_objects += data->m.ruby_metrics.memory_young_objects;
-      memory_young_objects_total += data->m.ruby_metrics.memory_young_objects_total;
-      memory_young_percent_used += data->m.ruby_metrics.memory_young_percent_used;
-      memory_immix_bytes += data->m.ruby_metrics.memory_immix_bytes;
-      memory_immix_bytes_total += data->m.ruby_metrics.memory_immix_bytes_total;
-      memory_immix_objects += data->m.ruby_metrics.memory_immix_objects;
-      memory_immix_objects_total += data->m.ruby_metrics.memory_immix_objects_total;
-      memory_immix_chunks += data->m.ruby_metrics.memory_immix_chunks;
-      memory_immix_chunks_total += data->m.ruby_metrics.memory_immix_chunks_total;
-      memory_large_bytes += data->m.ruby_metrics.memory_large_bytes;
-      memory_large_bytes_total += data->m.ruby_metrics.memory_large_bytes_total;
-      memory_large_objects += data->m.ruby_metrics.memory_large_objects;
-      memory_large_objects_total += data->m.ruby_metrics.memory_large_objects_total;
-      memory_symbols_bytes += data->m.ruby_metrics.memory_symbols_bytes;
-      memory_code_bytes += data->m.ruby_metrics.memory_code_bytes;
-      memory_jit_bytes += data->m.ruby_metrics.memory_jit_bytes;
-      memory_promoted_bytes_total += data->m.ruby_metrics.memory_promoted_bytes_total;
-      memory_promoted_objects_total += data->m.ruby_metrics.memory_promoted_objects_total;
-      memory_slab_refills_total += data->m.ruby_metrics.memory_slab_refills_total;
-      memory_slab_refills_fails += data->m.ruby_metrics.memory_slab_refills_fails;
-      data_objects_total += data->m.ruby_metrics.data_objects_total;
-      capi_handles += data->m.ruby_metrics.capi_handles;
-      capi_handles_total += data->m.ruby_metrics.capi_handles_total;
-      inflated_headers += data->m.ruby_metrics.inflated_headers;
-      gc_young_count += data->m.ruby_metrics.gc_young_count;
-      gc_young_last_ms += data->m.ruby_metrics.gc_young_last_ms;
-      gc_young_total_ms += data->m.ruby_metrics.gc_young_total_ms;
-      gc_young_lifetime += data->m.ruby_metrics.gc_young_lifetime;
-      gc_immix_count += data->m.ruby_metrics.gc_immix_count;
-      gc_immix_stop_last_ms += data->m.ruby_metrics.gc_immix_stop_last_ms;
-      gc_immix_stop_total_ms += data->m.ruby_metrics.gc_immix_stop_total_ms;
-      gc_immix_conc_last_ms += data->m.ruby_metrics.gc_immix_conc_last_ms;
-      gc_immix_conc_total_ms += data->m.ruby_metrics.gc_immix_conc_total_ms;
-      gc_large_count += data->m.ruby_metrics.gc_large_count;
-      gc_large_sweep_last_ms += data->m.ruby_metrics.gc_large_sweep_last_ms;
-      gc_large_sweep_total_ms += data->m.ruby_metrics.gc_large_sweep_total_ms;
-      locks_stop_the_world_last_ns += data->m.ruby_metrics.locks_stop_the_world_last_ns;
-      locks_stop_the_world_total_ns += data->m.ruby_metrics.locks_stop_the_world_total_ns;
+      add(&data->m.ruby_metrics);
     }
 
     void FinalizerMetrics::add(MetricsData* data) {
       if(data->type != eFinalizerMetrics) return;
 
-      objects_queued += data->m.finalizer_metrics.objects_queued;
-      objects_finalized += data->m.finalizer_metrics.objects_finalized;
+      add(&data->m.finalizer_metrics);
     }
 
     void JITMetrics::add(MetricsData* data) {
       if(data->type != eJITMetrics) return;
 
-      methods_queued += data->m.jit_metrics.methods_queued;
-      methods_compiled += data->m.jit_metrics.methods_compiled;
-      time_last_us += data->m.jit_metrics.time_last_us;
-      time_total_us += data->m.jit_metrics.time_total_us;
+      add(&data->m.jit_metrics);
     }
 
     void ConsoleMetrics::add(MetricsData* data) {
       if(data->type != eConsoleMetrics) return;
 
-      requests_received += data->m.console_metrics.requests_received;
-      responses_sent += data->m.console_metrics.responses_sent;
+      add(&data->m.console_metrics);
     }
 
     Object* metrics_trampoline(STATE) {
@@ -242,8 +193,8 @@ namespace rubinius {
       , timer_(NULL)
       , emitter_(NULL)
     {
+      metrics_lock_.init();
       map_metrics();
-
       shared_.auxiliary_threads()->register_thread(this);
     }
 
@@ -441,8 +392,6 @@ namespace rubinius {
     }
 
     void Metrics::start(STATE) {
-      metrics_lock_.init();
-
       if(!shared_.config.vm_metrics_target.value.compare("statsd")) {
         emitter_ = new StatsDEmitter(metrics_map_,
             shared_.config.vm_metrics_statsd_server.value,
@@ -515,8 +464,15 @@ namespace rubinius {
     }
 
     void Metrics::after_fork_child(STATE) {
+      metrics_lock_.init();
       start(state);
       if(emitter_) emitter_->reinit();
+    }
+
+    void Metrics::add_historical_metrics(MetricsData* metrics) {
+      utilities::thread::Mutex::LockGuard guard(metrics_lock_);
+
+      metrics_history_.add(metrics);
     }
 
     void Metrics::process_metrics(STATE) {
@@ -564,6 +520,8 @@ namespace rubinius {
           if(state->shared().llvm_state) {
             metrics_collection_.add(state->shared().llvm_state->metrics());
           }
+
+          metrics_collection_.add(&metrics_history_);
 
           update_ruby_values(state);
         }

@@ -33,6 +33,7 @@ namespace rubinius {
     , signal_handler_(0)
     , finalizer_handler_(0)
     , console_(0)
+    , metrics_(0)
     , world_(new WorldState(&check_global_interrupts_))
     , method_count_(1)
     , class_count_(1)

@@ -52,6 +52,7 @@ namespace rubinius {
 
   public:
     ManagedThread(uint32_t id, SharedState& ss, Kind kind);
+    ~ManagedThread();
 
     Roots& roots() {
       return roots_;
