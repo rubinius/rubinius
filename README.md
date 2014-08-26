@@ -70,7 +70,7 @@ Please create [issues](http://github.com/rubinius/rubinius/issues) for bugs or p
 
 ## Contributing
 
-The Rubinius team welcomes contributions. See [CONTRIBUTING](CONTRIBUTING) for details.
+The Rubinius team welcomes contributions. See [CONTRIBUTING](CONTRIBUTING.md) for details.
 
 
 ## Features Currently Not Supported
