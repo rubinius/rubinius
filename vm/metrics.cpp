@@ -289,12 +289,14 @@ namespace rubinius {
 
       // Object memory metrics
       metrics_map_.push_back(new MetricsItem(
-            "memory.young.bytes", metrics_collection_.ruby_metrics.memory_young_bytes));
+            "memory.young.bytes.current",
+            metrics_collection_.ruby_metrics.memory_young_bytes));
       metrics_map_.push_back(new MetricsItem(
             "memory.young.bytes.total",
             metrics_collection_.ruby_metrics.memory_young_bytes_total));
       metrics_map_.push_back(new MetricsItem(
-            "memory.young.objects", metrics_collection_.ruby_metrics.memory_young_objects));
+            "memory.young.objects.current",
+            metrics_collection_.ruby_metrics.memory_young_objects));
       metrics_map_.push_back(new MetricsItem(
             "memory.young.objects.total",
             metrics_collection_.ruby_metrics.memory_young_objects_total));
@@ -302,32 +304,38 @@ namespace rubinius {
             "memory.young.percent_used",
             metrics_collection_.ruby_metrics.memory_young_percent_used));
       metrics_map_.push_back(new MetricsItem(
-            "memory.immix.bytes", metrics_collection_.ruby_metrics.memory_immix_bytes));
+            "memory.immix.bytes.current",
+            metrics_collection_.ruby_metrics.memory_immix_bytes));
       metrics_map_.push_back(new MetricsItem(
             "memory.immix.bytes.total",
             metrics_collection_.ruby_metrics.memory_immix_bytes_total));
       metrics_map_.push_back(new MetricsItem(
-            "memory.immix.objects", metrics_collection_.ruby_metrics.memory_immix_objects));
+            "memory.immix.objects.current",
+            metrics_collection_.ruby_metrics.memory_immix_objects));
       metrics_map_.push_back(new MetricsItem(
             "memory.immix.objects.total",
             metrics_collection_.ruby_metrics.memory_immix_objects_total));
       metrics_map_.push_back(new MetricsItem(
-            "memory.immix.chunks", metrics_collection_.ruby_metrics.memory_immix_chunks));
+            "memory.immix.chunks.current",
+            metrics_collection_.ruby_metrics.memory_immix_chunks));
       metrics_map_.push_back(new MetricsItem(
             "memory.immix.chunks.total",
             metrics_collection_.ruby_metrics.memory_immix_chunks_total));
       metrics_map_.push_back(new MetricsItem(
-            "memory.large.bytes", metrics_collection_.ruby_metrics.memory_large_bytes));
+            "memory.large.bytes.current",
+            metrics_collection_.ruby_metrics.memory_large_bytes));
       metrics_map_.push_back(new MetricsItem(
             "memory.large.bytes.total",
             metrics_collection_.ruby_metrics.memory_large_bytes_total));
       metrics_map_.push_back(new MetricsItem(
-            "memory.large.objects", metrics_collection_.ruby_metrics.memory_large_objects));
+            "memory.large.objects.current",
+            metrics_collection_.ruby_metrics.memory_large_objects));
       metrics_map_.push_back(new MetricsItem(
             "memory.large.objects.total",
             metrics_collection_.ruby_metrics.memory_large_objects_total));
       metrics_map_.push_back(new MetricsItem(
-            "memory.symbols.bytes", metrics_collection_.ruby_metrics.memory_symbols_bytes));
+            "memory.symbols.bytes",
+            metrics_collection_.ruby_metrics.memory_symbols_bytes));
       metrics_map_.push_back(new MetricsItem(
             "memory.code.bytes", metrics_collection_.ruby_metrics.memory_code_bytes));
       metrics_map_.push_back(new MetricsItem(
@@ -351,7 +359,7 @@ namespace rubinius {
             "memory.capi_handles.total",
             metrics_collection_.ruby_metrics.capi_handles_total));
       metrics_map_.push_back(new MetricsItem(
-            "memory.capi_handles", metrics_collection_.ruby_metrics.capi_handles));
+            "memory.capi_handles.current", metrics_collection_.ruby_metrics.capi_handles));
       metrics_map_.push_back(new MetricsItem(
             "memory.inflated_headers",
             metrics_collection_.ruby_metrics.inflated_headers));
