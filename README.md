@@ -31,11 +31,11 @@ Rubinius uses the BSD license. See  [LICENSE](LICENSE) for details.
 To install Rubinius, use the following steps:
 
   1. Ensure that MRI 2.0+, rubygems, rake, and git are installed
-  2. git clone git://github.com/rubinius/rubinius.git
-  3. cd rubinius
-  4. bundle
-  5. ./configure --prefix=/path/to/install/dir
-  6. rake
+  2. `git clone git://github.com/rubinius/rubinius.git`
+  3. `cd rubinius`
+  4. `bundle`
+  5. `./configure --prefix=/path/to/install/dir`
+  6. `rake`
 
 When the install process finishes, follow the directions printed to the
 terminal to add the Rubinius executable (bin) directory to your PATH.
@@ -45,7 +45,7 @@ terminal to add the Rubinius executable (bin) directory to your PATH.
 
 Rubinius comes with RubyGems built-in. To install a gem, run the following:
 
-  rbx -S gem install <gem_name>
+  `rbx -S gem install <gem_name>`
 
 
 ## Documentation
