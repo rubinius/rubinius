@@ -16,6 +16,10 @@ module Rubinius
       def [](key)
         Values[Map[key]]
       end
+
+      def to_hash
+        Map.map { |k, i| [k, Values[i]] }.to_h
+      end
     end
   end
 end
