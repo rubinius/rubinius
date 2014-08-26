@@ -1,13 +1,15 @@
-Version: 2.2.10 (2014-06-27)
+# Rubinius Changelog
+
+## Version: 2.2.10 (2014-06-27)
 
 * Process.spawn and Process.exec duplicate file descriptors when mapping a
 	parent file descriptor to a new child file descriptor. (Brian Shirai)
 
-Version: 2.2.9 (2014-06-10)
+## Version: 2.2.9 (2014-06-10)
 
 * Pre-installed gem binary wrappers are executable files. (Brian Shirai)
 
-Version: 2.2.8 (2014-06-10)
+## Version: 2.2.8 (2014-06-10)
 
 * Module#ancestors includes singleton classes for singleton classes.
 	(Jesse Cooke)
@@ -19,7 +21,7 @@ Version: 2.2.8 (2014-06-10)
 * RbConfig::CONFIG['NULLCMD'] is set to ':'. (Yorick Peterse)
 * Gem binary wrappers for pre-installed gems are executable. (Brian Shirai)
 
-Version: 2.2.7 (2014-05-20)
+## Version: 2.2.7 (2014-05-20)
 
 * Dir[] and Dir.glob call #to_path on multiple patterns. (Brian Shirai)
 * The JIT does not elide Fixnum#hash calculation. (Brian Shirai)
@@ -49,7 +51,7 @@ Version: 2.2.7 (2014-05-20)
 * Rational#round is improved. (Federico Ravasio)
 * Binding UnboundMethods is improved. (Jesse Cooke, Jacob Rothstein)
 
-Version: 2.2.6 (2014-03-10)
+## Version: 2.2.6 (2014-03-10)
 
 * Kernel#to_enum uses block as Enumerable#size. (Federico Ravasio)
 * Time#zone only encodes a non-nil zone. (Federico Ravasio)
@@ -70,7 +72,7 @@ Version: 2.2.6 (2014-03-10)
 	and then allow default system proccesing (e.g. core dumps). (Brian Shirai)
 * The C-API supports rb_integer_pack with basic flags. (Brian Shirai)
 
-Version: 2.2.5 (2014-02-08)
+## Version: 2.2.5 (2014-02-08)
 
 * The 'main' object defines define_method. (Federico Ravasio)
 * When passed a name with no file extension, #require will search all load
@@ -81,7 +83,7 @@ Version: 2.2.5 (2014-02-08)
 	pre-installed, in addition to json and the RubySL gems. (Brian Shirai)
 * RubyGems is updated to 2.2.2. (Brian Shirai)
 
-Version: 2.2.4 (2014-02-02)
+## Version: 2.2.4 (2014-02-02)
 
 * The erb command is available by default. (Brian Shirai)
 * ARGF.set_encoding is supported. (Brian Shirai)
@@ -105,14 +107,14 @@ Version: 2.2.4 (2014-02-02)
 * Thread status is updated after fork(). (Dirkjan Bussink)
 * Time handling of zone and encoding is improved. (Dirkjan Bussink)
 
-Version: 2.2.3 (2013-12-29)
+## Version: 2.2.3 (2013-12-29)
 
 * Use the configured program name in build scripts. (Chad Slaughter)
 * Require 'find' for the utility script listing TODOs. (Benny Klotz)
 * Use File.exist? in build scripts. (Mike Dorst)
 * Provide logger library for bootstrapping Bundler 1.5+. (Brian Shirai)
 
-Version: 2.2.2 (2013-12-22)
+## Version: 2.2.2 (2013-12-22)
 
 * The --llvm-path configure option checks llvm version. (Gabriel Southern)
 * Module#const_get resolves qualified names like '::A::B' (Brian Shirai)
@@ -129,7 +131,7 @@ Version: 2.2.2 (2013-12-22)
 * The C-API provides the rb_int_positive_pow function. (Dirkjan Bussink)
 * An issue is fixed with Kernel.local_variables and eval. (Kenichi Kamiya)
 * An issue is fixed with File.realdirpath. (Kenichi Kamiya)
-* Kernel#__dir__ is implemented. (Kenichi Kamiya)
+* Kernel#\__dir__ is implemented. (Kenichi Kamiya)
 * An issue is fixed allocating Thread objects. (Dirkjan Bussink)
 * An issue is fixed locking objects. (Dirkjan Bussink)
 * An encoding issue is fixed with IO#gets(limit). (Ryo Onodera)

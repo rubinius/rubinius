@@ -1,10 +1,12 @@
+# Contributing
+
 We want to start off by saying thank you for using Rubinius. This project is a
 labor of love, and we appreciate all of the users that catch bugs, make
 performance improvements, and help with documentation. Every contribution is
 meaningful, so thank you for participating. That being said, here are a few
 guidelines that we ask you to follow so we can successfully address your issue.
 
-1. Submitting Issues
+## Submitting Issues
 
 Please include the following:
 
@@ -16,7 +18,7 @@ Please include the following:
 * Please include the simplest possible reproduction you can. This last point is
   vital to fixing issues.
   
-If you are unable to build from source, please also include
+If you are unable to build from source, please also include:
 
 * configure.log
 * config.rb
@@ -29,7 +31,7 @@ understanding of the project in a platform-independent format that renders
 well on all devices, as a plain text document. Please see #859 & #1007 for
 the specific reasoning.
 
-2. Running Specs
+## Running Specs
 
 MSpec provides several different scripts to run the specs under different
 conditions. The default behavior is to simply run all the specs. If you invoke
@@ -51,13 +53,12 @@ Finally, if you are running bin/mspec in the Rubinius source directory, the
 location of the RubySpecs are known (spec/ruby/), so you can use the full path
 or the shortened version core/array above.
 
-3. Fixing a bug
+## Fixing a bug
 
 * Fork the repo, create a topic branch, and include a spec, if appropriate.
   Pull requests that need a spec but are submitted without one will be delayed
   until one is written. The spec should be in a separate commit.
-* Please follow the Coding Style Guide at
-  http://rubini.us/doc/en/contributing/style-guide
+* Please follow the [Coding Style Guide](http://rubini.us/doc/en/contributing/style-guide)
 * ALWAYS RUN THE FULL SPEC SUITE! 'rake' will run the VM specs plus RubySpec.
 * Please add a * detailed commit message. Here is a fantastic example by
   @ryoqun https://github.com/rubinius/rubinius/commit/1f9ddd1
@@ -68,7 +69,7 @@ or the shortened version core/array above.
   days. We strive to address issues in a reasonable time. If we miss yours,
   please remind us.
 
-4. Performance patches
+## Performance patches
 
 We love these!
 
