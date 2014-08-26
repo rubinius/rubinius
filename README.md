@@ -1,5 +1,6 @@
 # Rubinius: The Ruby Environment
 
+[![build-status](https://travis-ci.org/rubinius/rubinius.svg)](https://travis-ci.org/rubinius/rubinius)
 
 - [What is Rubinius?](#user-content-what-is-rubinius)
 - [Installing Rubinius from Source](#user-content-installing-rubinius-from-source)
