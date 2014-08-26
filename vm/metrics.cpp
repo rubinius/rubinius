@@ -334,10 +334,10 @@ namespace rubinius {
             "gc.immix.stop.total.ms",
             metrics_collection_.ruby_metrics.gc_immix_stop_total_ms));
       metrics_map_.push_back(new MetricsItem(
-            "gc.immix.conc.last.ms",
+            "gc.immix.concurrent.last.ms",
             metrics_collection_.ruby_metrics.gc_immix_conc_last_ms));
       metrics_map_.push_back(new MetricsItem(
-            "gc.immix.conc.total.ms",
+            "gc.immix.concurrent.total.ms",
             metrics_collection_.ruby_metrics.gc_immix_conc_total_ms));
       metrics_map_.push_back(new MetricsItem(
             "gc.large.count", metrics_collection_.ruby_metrics.gc_large_count));

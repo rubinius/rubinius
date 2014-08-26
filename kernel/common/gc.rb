@@ -12,7 +12,7 @@ module GC
   end
 
   def self.stat
-    @stat ||= Rubinius::Metrics.data
+    Rubinius::Metrics.data.to_hash
   end
 
   module Profiler
@@ -55,21 +55,21 @@ Complete process runtime statistics
 
 Collections
                          Count       Total time / concurrent (ms)   Last time / concurrent (ms)
-Young   #{sprintf("% 22d", stats[:'gc.young.count'])} #{sprintf("% 16d             ", stats[:'gc.young.total_wallclock'])} #{sprintf("% 16d            ", stats[:'gc.young.last_wallclock'])}
-Full    #{sprintf("% 22d", stats[:'gc.full.count'])} #{sprintf("% 16d / % 10d", stats[:'gc.full.total_stop_wallclock'], stats[:'gc.full.total_concurrent_wallclock'])} #{sprintf("% 16d / % 10d", stats[:'gc.full.last_stop_wallclock'], stats[:'gc.full.last_concurrent_wallclock'])}
+Young   #{sprintf("% 22d", stats[:'gc.young.count'])} #{sprintf("% 16d             ", stats[:'gc.young.total.ms'])} #{sprintf("% 16d            ", stats[:'gc.young.last.ms'])}
+Full    #{sprintf("% 22d", stats[:'gc.immix.count'])} #{sprintf("% 16d / % 10d", stats[:'gc.immix.stop.total.ms'], stats[:'gc.immix.concurrent.total.ms'])} #{sprintf("% 16d / % 10d", stats[:'gc.immix.stop.last.ms'], stats[:'gc.immix.concurrent.last.ms'])}
 
 Allocation
              Objects allocated        Bytes allocated
-Young   #{sprintf("% 22d", stats[:'memory.counter.young_objects'])} #{sprintf("% 22d", stats[:'memory.counter.young_bytes'])}
-Promoted#{sprintf("% 22d", stats[:'memory.counter.promoted_objects'])} #{sprintf("% 22d", stats[:'memory.counter.promoted_bytes'])}
-Mature  #{sprintf("% 22d", stats[:'memory.counter.mature_objects'])} #{sprintf("% 22d", stats[:'memory.counter.mature_bytes'])}
+Young   #{sprintf("% 22d", stats[:'memory.young.objects.total'])} #{sprintf("% 22d", stats[:'memory.young.bytes.total'])}
+Promoted#{sprintf("% 22d", stats[:'memory.promoted.objects.total'])} #{sprintf("% 22d", stats[:'memory.promoted.bytes.total'])}
+Mature  #{sprintf("% 22d", stats[:'memory.immix.objects.total'])} #{sprintf("% 22d", stats[:'memory.immix.bytes.total'])}
 
 
 Usage
                     Bytes used
-Young   #{sprintf("% 22d", stats[:'memory.young.bytes'])}
-Mature  #{sprintf("% 22d", stats[:'memory.mature.bytes'])}
-Large   #{sprintf("% 22d", stats[:'memory.large.bytes'])}
+Young   #{sprintf("% 22d", stats[:'memory.young.bytes.current'])}
+Mature  #{sprintf("% 22d", stats[:'memory.immix.bytes.current'])}
+Large   #{sprintf("% 22d", stats[:'memory.large.bytes.current'])}
 Code    #{sprintf("% 22d", stats[:'memory.code.bytes'])}
 Symbols #{sprintf("% 22d", stats[:'memory.symbols.bytes'])}
       OUT
