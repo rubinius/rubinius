@@ -46,7 +46,7 @@ namespace rubinius {
     virtual ~SignalHandler();
 
     void initialize(STATE);
-    void setup_default_handlers(std::string path);
+    void setup_default_handlers();
 
     void perform(STATE);
 

@@ -9,12 +9,13 @@
 #include "builtin/array.hpp"
 #include "builtin/module.hpp"
 #include "builtin/class.hpp"
+#include "builtin/thread.hpp"
 
 #include <string>
 #include <iostream>
 #include <fcntl.h>
 
-#include "builtin/thread.hpp"
+#include "util/logger.hpp"
 
 #include "dtrace/dtrace.h"
 
@@ -36,12 +37,13 @@
 #endif
 
 namespace rubinius {
+  using namespace utilities;
+
   static SignalHandler* signal_handler_ = 0;
 
   // Used by the segfault reporter. Calculated up front to avoid
   // crashing inside the crash handler.
   static struct utsname machine_info;
-  static char report_path[PATH_MAX];
 
   Object* signal_handler_tramp(STATE) {
     state->shared().signal_handler()->perform(state);
@@ -70,7 +72,7 @@ namespace rubinius {
     }
 
     initialize(state);
-    setup_default_handlers(config.report_path.value);
+    setup_default_handlers();
 
     start_thread(state);
   }
@@ -284,31 +286,20 @@ namespace rubinius {
   static void null_func(int sig) {}
 
 #ifdef USE_EXECINFO
-  static void safe_write(int fd, const char* str, int len=0) {
-    if(!len) len = strlen(str);
-    if(write(fd, str, len) == 0) exit(101);
-  }
-
-  static void write_sig(int fd, int sig) {
+  static const char* rbx_signal_string(int sig) {
     switch(sig) {
     case SIGSEGV:
-      safe_write(fd, "SIGSEGV");
-      break;
+      return "SIGSEGV";
     case SIGBUS:
-      safe_write(fd, "SIGBUS");
-      break;
+      return "SIGBUS";
     case SIGILL:
-      safe_write(fd, "SIGILL");
-      break;
+      return "SIGILL";
     case SIGABRT:
-      safe_write(fd, "SIGABRT");
-      break;
+      return "SIGABRT";
     case SIGFPE:
-      safe_write(fd, "SIGFPE");
-      break;
+      return "SIGFPE";
     default:
-      safe_write(fd, "UNKNOWN");
-      break;
+      return "UNKNOWN";
     }
   }
 
@@ -320,9 +311,6 @@ namespace rubinius {
     action.sa_flags = 0;
     sigaction(sig, &action, NULL);
 
-    void* array[64];
-    size_t size;
-    int fd = STDERR_FILENO;
     char* pause_env = getenv("RBX_PAUSE_ON_CRASH");
 
     if(pause_env) {
@@ -337,110 +325,33 @@ namespace rubinius {
       sleep(timeout);
     }
 
-    // If there is a report_path setup..
-    if(report_path[0]) {
-      fd = open(report_path, O_WRONLY | O_CREAT | O_TRUNC, 0666);
-      // If we can't open this path, use stderr.
-      if(fd == -1) fd = STDERR_FILENO;
+#define RBX_ABORT_CALLSTACK_SIZE    128
+    void* callstack[RBX_ABORT_CALLSTACK_SIZE];
+    int i, frames = backtrace(callstack, RBX_ABORT_CALLSTACK_SIZE);
+    char** symbols = backtrace_symbols(callstack, frames);
+
+    logger::fatal("The Rubinius process is aborting with signal: %s",
+                  rbx_signal_string(sig));
+    logger::fatal("--- begin system backtrace ---");
+    for(i = 0; i < frames; i++) {
+      logger::fatal("%s", symbols[i]);
     }
+    logger::fatal("--- end system backtrace ---");
 
-    // print out all the frames to stderr
-    static const char header[] =
-      "Rubinius Crash Report #rbxcrashreport\n\n"
-      "Error: signal ";
-
-    safe_write(fd, header, sizeof(header));
-    write_sig(fd, sig);
-
-    safe_write(fd, "\n\n[[Backtrace]]\n");
-
-    // get void*'s for all entries on the stack
-    size = backtrace(array, 64);
-
-    backtrace_symbols_fd(array, size, fd);
-
-    // Try to get the output to flush...
-    safe_write(fd, "\n[[System Info]]\n");
-    safe_write(fd, "sysname: ");
-    safe_write(fd, machine_info.sysname);
-    safe_write(fd, "\n");
-    safe_write(fd, "nodename: ");
-    safe_write(fd, machine_info.nodename);
-    safe_write(fd, "\n");
-    safe_write(fd, "release: ");
-    safe_write(fd, machine_info.release);
-    safe_write(fd, "\n");
-    safe_write(fd, "version: ");
-    safe_write(fd, machine_info.version);
-    safe_write(fd, "\n");
-    safe_write(fd, "machine: ");
-    safe_write(fd, machine_info.machine);
-    safe_write(fd, "\n");
-
-    // If we didn't write to stderr, then close the file down and
-    // write info to stderr about reporting the error.
-    if(fd != STDERR_FILENO) {
-      close(fd);
-      safe_write(STDERR_FILENO, "\n---------------------------------------------\n");
-      safe_write(STDERR_FILENO, "CRASH: A fatal error has occurred.\n\nBacktrace:\n");
-      backtrace_symbols_fd(array, size, 2);
-      safe_write(STDERR_FILENO, "\n\n");
-      safe_write(STDERR_FILENO, "Wrote full error report to: ");
-      safe_write(STDERR_FILENO, report_path);
-      safe_write(STDERR_FILENO, "\nRun 'rbx report' to submit this crash report!\n");
-    }
+    logger::fatal("--- begin system info ---");
+    logger::fatal("sysname: %s", machine_info.sysname);
+    logger::fatal("nodename: %s", machine_info.nodename);
+    logger::fatal("release: %s", machine_info.release);
+    logger::fatal("version: %s", machine_info.version);
+    logger::fatal("machine: %s", machine_info.machine);
+    logger::fatal("--- end system info ---");
 
     raise(sig);
   }
 #endif
 
-  void SignalHandler::setup_default_handlers(std::string path) {
+  void SignalHandler::setup_default_handlers() {
 #ifndef RBX_WINDOWS
-    report_path[0] = 0;
-
-    // Calculate the report_path
-    if(path.rfind("/") == std::string::npos) {
-      if(char* home = getenv("HOME")) {
-        snprintf(report_path, PATH_MAX, "%s/.rbx", home);
-
-        pid_t pid = getpid();
-
-        bool use_dir = false;
-        struct stat s;
-        if(stat(report_path, &s) != 0) {
-          if(mkdir(report_path, S_IRWXU) == 0) use_dir = true;
-        } else if(S_ISDIR(s.st_mode)) {
-          use_dir = true;
-        }
-
-        if(use_dir) {
-          snprintf(report_path + strlen(report_path), PATH_MAX, "/%s_%d",
-                   path.c_str(), pid);
-        } else {
-          snprintf(report_path, PATH_MAX, "%s/.%s_%d", home, path.c_str(), pid);
-        }
-      }
-    }
-
-    if(!report_path[0]) {
-      strncpy(report_path, path.c_str(), PATH_MAX-1);
-    }
-
-    // Test that we can actually use this path.
-    int fd = open(report_path, O_RDONLY | O_CREAT, 0666);
-    if(!fd) {
-      char buf[RBX_STRERROR_BUFSIZE];
-      char* err = RBX_STRERROR(errno, buf, RBX_STRERROR_BUFSIZE);
-      std::cerr << "Unable to use " << report_path << " for crash reports.\n";
-      std::cerr << "Unable to open path: " << err << "\n";
-
-      // Don't use the home dir path even, just use stderr
-      report_path[0] = 0;
-    } else {
-      close(fd);
-      unlink(report_path);
-    }
-
     // Get the machine info.
     uname(&machine_info);
 

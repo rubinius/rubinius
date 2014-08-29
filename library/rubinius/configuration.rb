@@ -178,10 +178,6 @@ Rubinius::ConfigurationVariables.define do |c|
   c.vm_variable "profiler.threshold", 1000000,
     "The mininum number of nanoseconds a profiler node must have to be reported"
 
-  c.vm_variable "vm.crash_report_path", "rubinius_last_error",
-    :as => "report_path",
-    :description => "Name of crash report with PID appended. Written to $HOME/.rbx if no path is given"
-
   c.vm_variable "system.fsapi_path", "$TMPDIR",
     "Base directory of the Rubinius File System API files"
 
