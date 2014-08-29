@@ -79,6 +79,9 @@ namespace rubinius {
 
     target->thread.set(thr);
 
+    state->vm()->metrics()->system_metrics.vm_threads++;
+    state->vm()->metrics()->system_metrics.vm_threads_total++;
+
     return thr;
   }
 

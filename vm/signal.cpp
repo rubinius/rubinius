@@ -209,7 +209,7 @@ namespace rubinius {
   void SignalHandler::handle_signal(int sig) {
     if(exit_) return;
 
-    target_->metrics()->m.ruby_metrics.os_signals_received++;
+    target_->metrics()->system_metrics.os_signals_received++;
 
     queued_signals_ = 1;
     pending_signals_[sig] = 1;
@@ -261,7 +261,7 @@ namespace rubinius {
       if(pending_signals_[i] > 0) {
         pending_signals_[i] = 0;
 
-        target_->metrics()->m.ruby_metrics.os_signals_processed++;
+        target_->metrics()->system_metrics.os_signals_processed++;
 
         Array* args = Array::create(state, 1);
         args->set(state, 0, Fixnum::from(i));

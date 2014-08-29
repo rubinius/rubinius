@@ -109,6 +109,8 @@ namespace rubinius {
     vm->unlock(state->vm());
 
     delete vm;
+
+    state->vm()->metrics()->system_metrics.vm_threads--;
   }
 
   void VM::initialize_as_root() {

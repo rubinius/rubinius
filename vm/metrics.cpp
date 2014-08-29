@@ -58,6 +58,10 @@ namespace rubinius {
       add(&data->m.console_metrics);
     }
 
+    void SystemMetrics::add(MetricsData* data) {
+      add(&data->system_metrics);
+    }
+
     Object* metrics_trampoline(STATE) {
       state->shared().metrics()->process_metrics(state);
       GCTokenImpl gct;
@@ -213,6 +217,7 @@ namespace rubinius {
     }
 
     void Metrics::map_metrics() {
+      // JIT metrics
       metrics_map_.push_back(new MetricsItem(
             "jit.methods.queued", metrics_collection_.jit_metrics.methods_queued));
       metrics_map_.push_back(new MetricsItem(
@@ -221,22 +226,6 @@ namespace rubinius {
             "jit.time.last.us", metrics_collection_.jit_metrics.time_last_us));
       metrics_map_.push_back(new MetricsItem(
             "jit.time.total.us", metrics_collection_.jit_metrics.time_total_us));
-
-      metrics_map_.push_back(new MetricsItem(
-            "io.read.bytes", metrics_collection_.ruby_metrics.io_read_bytes));
-      metrics_map_.push_back(new MetricsItem(
-            "io.write.bytes", metrics_collection_.ruby_metrics.io_write_bytes));
-
-      // OS activity metrics
-      metrics_map_.push_back(new MetricsItem(
-            "os.signals.received", metrics_collection_.ruby_metrics.os_signals_received));
-      metrics_map_.push_back(new MetricsItem(
-            "os.signals.processed", metrics_collection_.ruby_metrics.os_signals_processed));
-
-      // VM metrics
-      metrics_map_.push_back(new MetricsItem(
-            "vm.inline_cache.resets",
-            metrics_collection_.ruby_metrics.inline_cache_resets));
 
       // Object memory metrics
       metrics_map_.push_back(new MetricsItem(
@@ -305,16 +294,16 @@ namespace rubinius {
             metrics_collection_.ruby_metrics.memory_slab_refills_fails));
       metrics_map_.push_back(new MetricsItem(
             "memory.data_objects.total",
-            metrics_collection_.ruby_metrics.data_objects_total));
+            metrics_collection_.ruby_metrics.memory_data_objects_total));
       metrics_map_.push_back(new MetricsItem(
             "memory.capi_handles.total",
-            metrics_collection_.ruby_metrics.capi_handles_total));
+            metrics_collection_.ruby_metrics.memory_capi_handles_total));
       metrics_map_.push_back(new MetricsItem(
-            "memory.capi_handles.current", metrics_collection_.ruby_metrics.capi_handles));
+            "memory.capi_handles.current",
+            metrics_collection_.ruby_metrics.memory_capi_handles));
       metrics_map_.push_back(new MetricsItem(
             "memory.inflated_headers",
-            metrics_collection_.ruby_metrics.inflated_headers));
-
+            metrics_collection_.ruby_metrics.memory_inflated_headers));
 
       // Garbage collector metrics
       metrics_map_.push_back(new MetricsItem(
@@ -348,13 +337,38 @@ namespace rubinius {
             "gc.large.sweep.total.ms",
             metrics_collection_.ruby_metrics.gc_large_sweep_total_ms));
 
+      // I/O metrics
+      metrics_map_.push_back(new MetricsItem(
+            "io.read.bytes", metrics_collection_.system_metrics.io_read_bytes));
+      metrics_map_.push_back(new MetricsItem(
+            "io.write.bytes", metrics_collection_.system_metrics.io_write_bytes));
+
+      // OS activity metrics
+      metrics_map_.push_back(new MetricsItem(
+            "os.signals.received",
+            metrics_collection_.system_metrics.os_signals_received));
+      metrics_map_.push_back(new MetricsItem(
+            "os.signals.processed",
+            metrics_collection_.system_metrics.os_signals_processed));
+
+      // VM metrics
+      metrics_map_.push_back(new MetricsItem(
+            "vm.inline_cache.resets",
+            metrics_collection_.system_metrics.vm_inline_cache_resets));
+      metrics_map_.push_back(new MetricsItem(
+            "vm.threads.current",
+            metrics_collection_.system_metrics.vm_threads));
+      metrics_map_.push_back(new MetricsItem(
+            "vm.threads.total",
+            metrics_collection_.system_metrics.vm_threads_total));
+
       // Lock metrics
       metrics_map_.push_back(new MetricsItem(
             "locks.stop_the_world.last.ns",
-            metrics_collection_.ruby_metrics.locks_stop_the_world_last_ns));
+            metrics_collection_.system_metrics.locks_stop_the_world_last_ns));
       metrics_map_.push_back(new MetricsItem(
             "locks.stop_the_world.total.ns",
-            metrics_collection_.ruby_metrics.locks_stop_the_world_total_ns));
+            metrics_collection_.system_metrics.locks_stop_the_world_total_ns));
     }
 
     void Metrics::init_ruby_metrics(STATE) {

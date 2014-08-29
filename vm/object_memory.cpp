@@ -591,8 +591,8 @@ step1:
 
     metrics::MetricsData* metrics = state->vm()->metrics();
     metrics->m.ruby_metrics.gc_young_count++;
-    metrics->m.ruby_metrics.capi_handles = capi_handles_->size();
-    metrics->m.ruby_metrics.inflated_headers = inflated_headers_->size();
+    metrics->m.ruby_metrics.memory_capi_handles = capi_handles_->size();
+    metrics->m.ruby_metrics.memory_inflated_headers = inflated_headers_->size();
 
     data->global_cache()->prune_young();
 
@@ -1029,7 +1029,7 @@ step1:
     if(!obj->reference_p()) {
       rubinius::bug("Trying to add a handle for a non reference");
     }
-    state->vm()->metrics()->m.ruby_metrics.capi_handles_total++;
+    state->vm()->metrics()->m.ruby_metrics.memory_capi_handles_total++;
     uintptr_t handle_index = capi_handles_->allocate_index(state, obj);
     obj->set_handle_index(state, handle_index);
     return obj->handle(state);

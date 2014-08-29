@@ -34,17 +34,6 @@ namespace rubinius {
     };
 
     struct RubyMetrics {
-      // IO metrics
-      metric io_read_bytes;
-      metric io_write_bytes;
-
-      // OS activity metrics
-      metric os_signals_received;
-      metric os_signals_processed;
-
-      // VM metrics
-      metric inline_cache_resets;
-
       // Object memory metrics
       metric memory_young_bytes;
       metric memory_young_bytes_total;
@@ -68,10 +57,10 @@ namespace rubinius {
       metric memory_promoted_objects_total;
       metric memory_slab_refills_total;
       metric memory_slab_refills_fails;
-      metric data_objects_total;
-      metric capi_handles;
-      metric capi_handles_total;
-      metric inflated_headers;
+      metric memory_data_objects_total;
+      metric memory_capi_handles;
+      metric memory_capi_handles_total;
+      metric memory_inflated_headers;
 
       // Garbage collector metrics
       metric gc_young_count;
@@ -87,16 +76,7 @@ namespace rubinius {
       metric gc_large_sweep_last_ms;
       metric gc_large_sweep_total_ms;
 
-      // Lock metrics
-      metric locks_stop_the_world_last_ns;
-      metric locks_stop_the_world_total_ns;
-
       void init() {
-        io_read_bytes = 0;
-        io_write_bytes = 0;
-        os_signals_received = 0;
-        os_signals_processed = 0;
-        inline_cache_resets = 0;
         memory_young_bytes = 0;
         memory_young_bytes_total = 0;
         memory_young_objects = 0;
@@ -119,10 +99,10 @@ namespace rubinius {
         memory_promoted_objects_total = 0;
         memory_slab_refills_total = 0;
         memory_slab_refills_fails = 0;
-        data_objects_total = 0;
-        capi_handles = 0;
-        capi_handles_total = 0;
-        inflated_headers = 0;
+        memory_data_objects_total = 0;
+        memory_capi_handles = 0;
+        memory_capi_handles_total = 0;
+        memory_inflated_headers = 0;
         gc_young_count = 0;
         gc_young_last_ms = 0;
         gc_young_total_ms = 0;
@@ -135,16 +115,9 @@ namespace rubinius {
         gc_large_count = 0;
         gc_large_sweep_last_ms = 0;
         gc_large_sweep_total_ms = 0;
-        locks_stop_the_world_last_ns = 0;
-        locks_stop_the_world_total_ns = 0;
       }
 
       void add(RubyMetrics* data) {
-        io_read_bytes += data->io_read_bytes;
-        io_write_bytes += data->io_write_bytes;
-        os_signals_received += data->os_signals_received;
-        os_signals_processed += data->os_signals_processed;
-        inline_cache_resets += data->inline_cache_resets;
         memory_young_bytes += data->memory_young_bytes;
         memory_young_bytes_total += data->memory_young_bytes_total;
         memory_young_objects += data->memory_young_objects;
@@ -167,10 +140,10 @@ namespace rubinius {
         memory_promoted_objects_total += data->memory_promoted_objects_total;
         memory_slab_refills_total += data->memory_slab_refills_total;
         memory_slab_refills_fails += data->memory_slab_refills_fails;
-        data_objects_total += data->data_objects_total;
-        capi_handles += data->capi_handles;
-        capi_handles_total += data->capi_handles_total;
-        inflated_headers += data->inflated_headers;
+        memory_data_objects_total += data->memory_data_objects_total;
+        memory_capi_handles += data->memory_capi_handles;
+        memory_capi_handles_total += data->memory_capi_handles_total;
+        memory_inflated_headers += data->memory_inflated_headers;
         gc_young_count += data->gc_young_count;
         gc_young_last_ms += data->gc_young_last_ms;
         gc_young_total_ms += data->gc_young_total_ms;
@@ -183,8 +156,6 @@ namespace rubinius {
         gc_large_count += data->gc_large_count;
         gc_large_sweep_last_ms += data->gc_large_sweep_last_ms;
         gc_large_sweep_total_ms += data->gc_large_sweep_total_ms;
-        locks_stop_the_world_last_ns += data->locks_stop_the_world_last_ns;
-        locks_stop_the_world_total_ns += data->locks_stop_the_world_total_ns;
       }
 
       void add(MetricsData* data);
@@ -247,6 +218,51 @@ namespace rubinius {
       void add(MetricsData* data);
     };
 
+    struct SystemMetrics {
+      // I/O metrics
+      metric io_read_bytes;
+      metric io_write_bytes;
+
+      // OS activity metrics
+      metric os_signals_received;
+      metric os_signals_processed;
+
+      // VM metrics
+      metric vm_inline_cache_resets;
+      metric vm_threads;
+      metric vm_threads_total;
+
+      // Lock metrics
+      metric locks_stop_the_world_last_ns;
+      metric locks_stop_the_world_total_ns;
+
+      void init() {
+        io_read_bytes = 0;
+        io_write_bytes = 0;
+        os_signals_received = 0;
+        os_signals_processed = 0;
+        vm_inline_cache_resets = 0;
+        vm_threads = 0;
+        vm_threads_total = 0;
+        locks_stop_the_world_last_ns = 0;
+        locks_stop_the_world_total_ns = 0;
+      }
+
+      void add(SystemMetrics* data) {
+        io_read_bytes += data->io_read_bytes;
+        io_write_bytes += data->io_write_bytes;
+        os_signals_received += data->os_signals_received;
+        os_signals_processed += data->os_signals_processed;
+        vm_inline_cache_resets += data->vm_inline_cache_resets;
+        vm_threads += data->vm_threads;
+        vm_threads_total += data->vm_threads_total;
+        locks_stop_the_world_last_ns += data->locks_stop_the_world_last_ns;
+        locks_stop_the_world_total_ns += data->locks_stop_the_world_total_ns;
+      }
+
+      void add(MetricsData* data);
+    };
+
     struct MetricsData {
       MetricsType type;
       union Metrics {
@@ -255,6 +271,7 @@ namespace rubinius {
         JITMetrics jit_metrics;
         ConsoleMetrics console_metrics;
       } m;
+      SystemMetrics system_metrics;
 
       void init(MetricsType mtype) {
         type = mtype;
@@ -275,6 +292,8 @@ namespace rubinius {
           m.console_metrics.init();
           break;
         }
+
+        system_metrics.init();
       }
     };
 
@@ -283,12 +302,14 @@ namespace rubinius {
       FinalizerMetrics finalizer_metrics;
       JITMetrics jit_metrics;
       ConsoleMetrics console_metrics;
+      SystemMetrics system_metrics;
 
       void init() {
         ruby_metrics.init();
         finalizer_metrics.init();
         jit_metrics.init();
         console_metrics.init();
+        system_metrics.init();
       }
 
       void add(MetricsData* data) {
@@ -308,6 +329,8 @@ namespace rubinius {
           console_metrics.add(data);
           break;
         }
+
+        system_metrics.add(data);
       }
 
       void add(MetricsCollection* data) {
@@ -315,6 +338,7 @@ namespace rubinius {
         finalizer_metrics.add(&data->finalizer_metrics);
         jit_metrics.add(&data->jit_metrics);
         console_metrics.add(&data->console_metrics);
+        system_metrics.add(&data->system_metrics);
       }
     };
 
