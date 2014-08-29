@@ -143,32 +143,32 @@ namespace rubinius {
   void Environment::start_logging() {
     utilities::logger::logger_level level = utilities::logger::eWarn;
 
-    if(!config.vm_log_level.value.compare("fatal")) {
+    if(!config.system_log_level.value.compare("fatal")) {
       level = utilities::logger::eFatal;
-    } else if(!config.vm_log_level.value.compare("error")) {
+    } else if(!config.system_log_level.value.compare("error")) {
       level = utilities::logger::eError;
-    } else if(!config.vm_log_level.value.compare("warn")) {
+    } else if(!config.system_log_level.value.compare("warn")) {
       level = utilities::logger::eWarn;
-    } else if(!config.vm_log_level.value.compare("info")) {
+    } else if(!config.system_log_level.value.compare("info")) {
       level = utilities::logger::eInfo;
-    } else if(!config.vm_log_level.value.compare("debug")) {
+    } else if(!config.system_log_level.value.compare("debug")) {
       level = utilities::logger::eDebug;
     }
 
-    if(!config.vm_log.value.compare("syslog")) {
+    if(!config.system_log.value.compare("syslog")) {
       utilities::logger::open(utilities::logger::eSyslog, RBX_PROGRAM_NAME, level);
-    } else if(!config.vm_log.value.compare("console")) {
+    } else if(!config.system_log.value.compare("console")) {
       utilities::logger::open(utilities::logger::eConsoleLogger, RBX_PROGRAM_NAME, level);
     } else {
       const char* place_holder = "$PROGRAM_NAME";
-      size_t index = config.vm_log.value.find(place_holder);
+      size_t index = config.system_log.value.find(place_holder);
 
       if(index != std::string::npos) {
-        config.vm_log.value.replace(index, strlen(place_holder), RBX_PROGRAM_NAME);
+        config.system_log.value.replace(index, strlen(place_holder), RBX_PROGRAM_NAME);
       }
 
       utilities::logger::open(utilities::logger::eFileLogger,
-          config.vm_log.value.c_str(), level);
+          config.system_log.value.c_str(), level);
     }
   }
 
@@ -262,7 +262,7 @@ namespace rubinius {
   void Environment::set_fsapi_path() {
     std::ostringstream path;
 
-    if(!config.vm_fsapi_path.value.compare("$TMPDIR")) {
+    if(!config.system_fsapi_path.value.compare("$TMPDIR")) {
       const char* tmp = getenv("TMPDIR");
 
       if(tmp) {
@@ -272,7 +272,7 @@ namespace rubinius {
         path << "/tmp/";
       }
     } else {
-      std::string cpath = config.vm_fsapi_path.value;
+      std::string cpath = config.system_fsapi_path.value;
 
       path << cpath;
       if(cpath[cpath.size() - 1] != '/') path << "/";

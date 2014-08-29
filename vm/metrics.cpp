@@ -193,7 +193,7 @@ namespace rubinius {
       , thread_exit_(false)
       , thread_(state)
       , values_(state)
-      , interval_(state->shared().config.vm_metrics_interval)
+      , interval_(state->shared().config.system_metrics_interval)
       , timer_(NULL)
       , emitter_(NULL)
     {
@@ -406,10 +406,10 @@ namespace rubinius {
     }
 
     void Metrics::start(STATE) {
-      if(!shared_.config.vm_metrics_target.value.compare("statsd")) {
+      if(!shared_.config.system_metrics_target.value.compare("statsd")) {
         emitter_ = new StatsDEmitter(metrics_map_,
-            shared_.config.vm_metrics_statsd_server.value,
-            shared_.config.vm_metrics_statsd_prefix.value);
+            shared_.config.system_metrics_statsd_server.value,
+            shared_.config.system_metrics_statsd_prefix.value);
       }
 
       timer_ = new timer::Timer;
