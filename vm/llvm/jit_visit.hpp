@@ -2517,33 +2517,28 @@ use_send:
     void visit_cast_for_multi_block_arg() {
       JITStackArgs* inline_args = incoming_args();
       if(inline_args) {
-        if(inline_args->size() == 1) {
-          std::vector<Type*> types;
-          types.push_back(ctx_->ptr_type("State"));
-          types.push_back(CallFrameTy);
-          types.push_back(ctx_->Int32Ty);
+        std::vector<Type*> types;
+        types.push_back(ctx_->ptr_type("State"));
+        types.push_back(CallFrameTy);
+        types.push_back(ctx_->Int32Ty);
 
-          FunctionType* ft = FunctionType::get(ctx_->ptr_type("Object"), types, true);
-          Function* func = cast<Function>(
-              ctx_->module()->getOrInsertFunction("rbx_cast_for_multi_block_arg_varargs", ft));
+        FunctionType* ft = FunctionType::get(ctx_->ptr_type("Object"), types, true);
+        Function* func = cast<Function>(
+            ctx_->module()->getOrInsertFunction("rbx_cast_for_multi_block_arg_varargs", ft));
 
-          std::vector<Value*> outgoing_args;
-          outgoing_args.push_back(state_);
-          outgoing_args.push_back(call_frame_);
-          outgoing_args.push_back(cint(inline_args->size()));
+        std::vector<Value*> outgoing_args;
+        outgoing_args.push_back(state_);
+        outgoing_args.push_back(call_frame_);
+        outgoing_args.push_back(cint(inline_args->size()));
 
-          for(size_t i = 0; i < inline_args->size(); i++) {
-            outgoing_args.push_back(inline_args->at(i));
-          }
-
-          Value* ary =
-            b().CreateCall(func, outgoing_args, "ary");
-          check_for_exception(ary);
-          stack_push(ary);
-        } else {
-          stack_push(constant(cUndef)); // holder
-          set_hint(cHintLazyBlockArgs);
+        for(size_t i = 0; i < inline_args->size(); i++) {
+          outgoing_args.push_back(inline_args->at(i));
         }
+
+        Value* ary =
+          b().CreateCall(func, outgoing_args, "ary");
+        check_for_exception(ary);
+        stack_push(ary);
       } else {
         Signature sig(ctx_, ObjType);
         sig << StateTy;
