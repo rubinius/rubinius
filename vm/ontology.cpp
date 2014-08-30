@@ -27,6 +27,7 @@
 #include "builtin/io.hpp"
 #include "builtin/iseq.hpp"
 #include "builtin/list.hpp"
+#include "builtin/logger.hpp"
 #include "builtin/lookup_table.hpp"
 #include "builtin/method_table.hpp"
 #include "builtin/ffi_pointer.hpp"
@@ -363,6 +364,7 @@ namespace rubinius {
     Randomizer::init(state);
     Encoding::init(state);
     FSEvent::init(state);
+    Logger::init(state);
   }
 
   // @todo document all the sections of bootstrap_ontology

@@ -86,6 +86,7 @@ field_extract_headers = %w[
   vm/builtin/immediates.hpp
   vm/builtin/iseq.hpp
   vm/builtin/list.hpp
+  vm/builtin/logger.hpp
   vm/builtin/lookup_table.hpp
   vm/builtin/ffi_pointer.hpp
   vm/builtin/method_table.hpp
