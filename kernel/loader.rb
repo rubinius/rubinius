@@ -529,8 +529,7 @@ VM Options
           CodeLoader.require_compiled script
         end
       rescue Object => e
-        STDERR.puts "Unable to run compiled file: #{script}"
-        e.render
+        Rubinius::Logger.log_exception "Unable to run compiled file: #{script}", e
         exit 1
       end
 
@@ -543,13 +542,10 @@ VM Options
       begin
         CodeLoader.load_compiler
       rescue LoadError => e
-        STDERR.puts <<-EOM
-Unable to load the bytecode compiler. Please run 'rake' or 'rake install'
-to rebuild the compiler.
-
-        EOM
-
-        e.render
+        Rubinius::Logger.system.error "Unable to load the bytecode compiler."
+        Rubinius::Logger.system.error(
+          "Please run 'rake' or 'rake install' to rebuild the compiler.")
+        Rubinius::Logger.log_exception message, e
         exit 1
       end
     end
@@ -730,7 +726,7 @@ to rebuild the compiler.
       flush_stdio
 
     rescue Object => e
-      e.render "An exception occurred #{@stage}"
+      Rubinius::Logger.log_exception "An exception occurred #{@stage}", e
       @exit_code = 1
     end
 
@@ -783,25 +779,6 @@ to rebuild the compiler.
       Process.exit! @exit_code
     end
 
-    def write_last_error(e)
-      unless path = Config['vm.crash_report_path']
-        path = "#{ENV['HOME']}/.rbx/rubinius_last_error_#{@process_id}"
-      end
-
-      File.open(path, "wb") do |f|
-        f.puts "Rubinius Crash Report #rbxcrashreport"
-        f.puts ""
-        f.puts "[[Exception]]"
-        e.render("A toplevel exception occurred", f, false)
-
-        f.puts ""
-        f.puts "[[Version]]"
-        f.puts Rubinius.version
-      end
-    rescue SystemCallError
-      # Ignore writing the last error report
-    end
-
     # Orchestrate everything.
     def main
       preamble
@@ -838,8 +815,7 @@ to rebuild the compiler.
     rescue Interrupt => e
       @exit_code = 1
 
-      write_last_error(e)
-      e.render "An exception occurred #{@stage}:"
+      Rubinius::Logger.log_exception "An exception occurred #{@stage}:", e
       epilogue
     rescue SignalException => e
       Signal.trap(e.signo, "SIG_DFL")
@@ -848,8 +824,7 @@ to rebuild the compiler.
     rescue Object => e
       @exit_code = 1
 
-      write_last_error(e)
-      e.render "An exception occurred #{@stage}:"
+      Rubinius::Logger.log_exception "An exception occurred #{@stage}:", e
       epilogue
     else
       # We do this, run epilogue both in the rescue blocks and also here,

@@ -2,6 +2,7 @@ class Exception
 
   attr_accessor :locations
   attr_accessor :parent
+  attr_accessor :custom_backtrace
 
   def initialize(message = nil)
     @reason_message = message

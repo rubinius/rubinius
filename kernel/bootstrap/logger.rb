@@ -12,6 +12,38 @@ module Rubinius
       @system_logger ||= new "system"
     end
 
+    def self.log_exception(message, e)
+      log = system
+
+      log.error message
+      STDERR.puts message, "\n"
+
+      msg = "#{e.message} (#{e.class})"
+      log.error msg
+      STDERR.puts msg, "\nBacktrace:\n\n"
+
+      color = STDERR.tty?
+      exception = e
+
+      while exception
+        if custom_trace = exception.custom_backtrace
+          custom_trace.each do |line|
+            log.error line
+            STDERR.puts line
+          end
+        end
+
+        exception.backtrace.each { |line| log.error line }
+        STDERR.puts exception.awesome_backtrace.show("\n", color)
+
+        if exception = exception.parent
+          msg = "Caused by: #{exception.message} (#{exception.class})"
+          log.error msg
+          STDERR.puts "\n", msg, "\n"
+        end
+      end
+    end
+
     def initialize(name)
       @name = name
       @format = "#{name}: %s"
