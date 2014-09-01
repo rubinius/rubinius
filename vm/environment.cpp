@@ -167,6 +167,29 @@ namespace rubinius {
         config.system_log.value.replace(index, strlen(place_holder), RBX_PROGRAM_NAME);
       }
 
+      int fd;
+
+      if((fd = open(config.system_log.value.c_str(), O_CREAT, 0644)) > 0) {
+        close(fd);
+      } else if(errno == EACCES) {
+        std::ostringstream path;
+
+        if(const char* s = strrchr(config.system_log.value.c_str(), '/')) {
+          path << (s + 1);
+        } else {
+          path << config.system_log.value.c_str();
+        }
+
+        config.system_log.value.assign(config.system_tmp.value + path.str());
+
+        if((fd = open(config.system_log.value.c_str(), O_CREAT, 0644)) > 0) {
+          close(fd);
+        } else {
+          std::cerr << RBX_PROGRAM_NAME << ": unable to open log: "
+                    << config.system_log.value.c_str() << std::endl;
+        }
+      }
+
       utilities::logger::open(utilities::logger::eFileLogger,
           config.system_log.value.c_str(), level);
     }
@@ -256,13 +279,13 @@ namespace rubinius {
 
     config_parser.update_configuration(config);
 
+    set_tmp_path();
     set_fsapi_path();
   }
 
-  void Environment::set_fsapi_path() {
-    std::ostringstream path;
-
-    if(!config.system_fsapi_path.value.compare("$TMPDIR")) {
+  void Environment::set_tmp_path() {
+    if(!config.system_tmp.value.compare("$TMPDIR")) {
+      std::ostringstream path;
       const char* tmp = getenv("TMPDIR");
 
       if(tmp) {
@@ -271,6 +294,16 @@ namespace rubinius {
       } else {
         path << "/tmp/";
       }
+
+      config.system_tmp.value.assign(path.str());
+    }
+  }
+
+  void Environment::set_fsapi_path() {
+    std::ostringstream path;
+
+    if(!config.system_fsapi_path.value.compare("$TMPDIR")) {
+      path << config.system_tmp.value;
     } else {
       std::string cpath = config.system_fsapi_path.value;
 

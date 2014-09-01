@@ -178,6 +178,9 @@ Rubinius::ConfigurationVariables.define do |c|
   c.vm_variable "profiler.threshold", 1000000,
     "The mininum number of nanoseconds a profiler node must have to be reported"
 
+  c.vm_variable "system.tmp", "$TMPDIR",
+    "Default temp/fallback directory for the process"
+
   c.vm_variable "system.fsapi_path", "$TMPDIR",
     "Base directory of the Rubinius File System API files"
 

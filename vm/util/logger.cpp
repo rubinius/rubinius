@@ -268,13 +268,6 @@ namespace rubinius {
 
         logger_fd_ = ::open(identifier, LOGGER_OPEN_FLAGS, LOGGER_OPEN_PERMS);
 
-        if(logger_fd_ < 0 && errno == EACCES) {
-          // Fall back to cwd if log directory is inaccessible.
-          if(const char* s = strrchr(identifier, '/')) {
-            logger_fd_ = ::open(s+1, LOGGER_OPEN_FLAGS, LOGGER_OPEN_PERMS);
-          }
-        }
-
         // Round robin if log file exceeds the limit
         if(lseek(logger_fd_, 0, SEEK_END) > LOGGER_MAX_FILE) {
           lseek(logger_fd_, 0, SEEK_SET);
