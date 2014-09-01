@@ -8,6 +8,8 @@
 #include <sys/event.h>
 #include <sys/time.h>
 #elif HAVE_INOTIFY
+#include <unistd.h>
+#include <sys/inotify.h>
 #else
 #error "No file system event utility is available. Please submit an issue."
 #endif
@@ -36,6 +38,9 @@ namespace rubinius {
     struct kevent filter_;
 
 #elif HAVE_INOTIFY
+  private:
+    int in_;
+    bool watch_set_;
 #endif
 
   public:
