@@ -197,7 +197,8 @@ namespace rubinius {
 
   void FinalizerHandler::perform(STATE) {
     GCTokenImpl gct;
-    RBX_DTRACE_CONST char* thread_name = const_cast<RBX_DTRACE_CONST char*>("rbx.finalizer");
+    RBX_DTRACE_CONST char* thread_name =
+      const_cast<RBX_DTRACE_CONST char*>("rbx.finalizer");
     self_->set_name(thread_name);
 
     RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CONST char*>(thread_name),
@@ -214,18 +215,19 @@ namespace rubinius {
         {
           utilities::thread::Mutex::LockGuard lg(worker_lock_);
 
-          if(finishing_) supervisor_signal();
-
-          // exit_ might have been set in the mean while after
-          // we grabbed the worker_lock
+          // exit_ might have been set after we grabbed the worker_lock
           if(exit_) break;
+
           state->gc_independent(gct, 0);
           paused_ = true;
           pause_cond_.signal();
           worker_wait();
+
           if(exit_) break;
         }
+
         state->gc_dependent(gct, 0);
+
         {
           utilities::thread::Mutex::LockGuard lg(worker_lock_);
           paused_ = false;
@@ -338,15 +340,19 @@ namespace rubinius {
   }
 
   void FinalizerHandler::finish(STATE, GCToken gct) {
-    if(!self_) {
-      if(process_list_ || !lists_->empty() || !live_list_->empty()) {
-        rubinius::bug("FinalizerHandler worker thread dead during halt");
-      } else {
-        return;
-      }
+    finishing_ = true;
+
+    {
+      utilities::thread::Mutex::LockGuard lg(worker_lock_);
+
+      exit_ = true;
+      worker_signal();
     }
 
-    finishing_ = true;
+    if(!(process_list_ || !lists_->empty() || !live_list_->empty())) {
+      stop_thread(state);
+      return;
+    }
 
     while(true) {
       {
@@ -373,18 +379,15 @@ namespace rubinius {
         }
       }
 
-      worker_signal();
-
-      {
-        utilities::thread::Mutex::LockGuard lg(supervisor_lock_);
-
-        GCIndependent indy(state, 0);
-        if(process_list_) supervisor_wait();
+      while(process_list_) {
+        finalize(state);
+        next_process_item();
       }
     }
 
-    if(!lists_->empty() || !live_list_->empty() || process_list_ != NULL)
+    if(!lists_->empty() || !live_list_->empty() || process_list_ != NULL) {
       rubinius::bug("FinalizerHandler exiting with pending finalizers");
+    }
 
     stop_thread(state);
   }
