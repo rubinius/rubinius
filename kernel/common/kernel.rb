@@ -20,6 +20,8 @@ module Kernel
   module_function :Complex
 
   def Float(obj)
+    Rubinius::Type.coerce_basic_object_guard(obj, Float)
+
     case obj
     when String
       Rubinius::Type.coerce_string_to_float obj, true
@@ -53,6 +55,8 @@ module Kernel
   private :FloatValue
 
   def Hash(obj)
+    Rubinius::Type.coerce_basic_object_guard(obj, Hash)
+
     return {} if obj.nil? || obj == []
 
     if hash = Rubinius::Type.check_convert_type(obj, Hash, :to_hash)
@@ -64,6 +68,8 @@ module Kernel
   module_function :Hash
 
   def Integer(obj, base=nil)
+    Rubinius::Type.coerce_basic_object_guard(obj, Integer)
+
     if obj.kind_of? String
       if obj.empty?
         raise ArgumentError, "invalid value for Integer: (empty string)"
@@ -111,6 +117,8 @@ module Kernel
   module_function :Rational
 
   def String(obj)
+    Rubinius::Type.coerce_basic_object_guard(obj, String)
+
     return obj if obj.kind_of? String
 
     unless obj.respond_to?(:to_s)

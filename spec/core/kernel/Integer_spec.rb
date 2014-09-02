@@ -6,4 +6,8 @@ describe "Kernel.Integer" do
     the_answer.should_receive(:to_inum).with(0, true).and_return(66)
     Integer(the_answer).should == 66
   end
+
+  it "raises a TypeError when param is of class BasicObject" do
+    lambda { Integer(BasicObject.new) }.should raise_error(TypeError)
+  end
 end

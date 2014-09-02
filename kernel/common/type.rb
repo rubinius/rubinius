@@ -47,6 +47,31 @@ module Rubinius
     end
 
     ##
+    # BasicObject responds to only a select few of methods such as `==` and
+    # `__send__`. It however does not respond to other methods such as `class`,
+    # `respond_to?` and other common methods.
+    #
+    # This method provides a guard for code that can not handle BasicObject
+    # instances. The guard itself is quite simple: it simply raises for
+    # BasicObject instances.
+    #
+    # The first argument is the object to check, the second argument the class
+    # name that the object would normally be converted into.
+    #
+    # Basic usage example:
+    #
+    #     object = BasicObject.new
+    #
+    #     # TypeError: "BasicObject can't be coerced into String".
+    #     Rubinius::Type.basic_object_guard(object, String)
+    #
+    def self.coerce_basic_object_guard(other, klass)
+      if object_class(other) == BasicObject
+        raise TypeError, "can't convert BasicObject into #{klass}"
+      end
+    end
+
+    ##
     # Same as coerce_to but returns nil if conversion fails.
     # Corresponds to MRI's rb_check_convert_type()
     #
