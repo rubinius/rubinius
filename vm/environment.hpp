@@ -108,9 +108,15 @@ namespace rubinius {
     void run_from_filesystem();
     void boot_vm();
 
+    void before_exec(STATE);
+    void after_exec(STATE);
+
     void halt(STATE);
     void halt_and_exit(STATE);
     int exit_code(STATE);
+
+    void create_fsapi(STATE);
+    void remove_fsapi(STATE);
 
     void start_signals();
     void start_finalizer();

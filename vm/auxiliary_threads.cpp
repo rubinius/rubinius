@@ -1,4 +1,7 @@
+#include "vm.hpp"
 #include "prelude.hpp"
+#include "environment.hpp"
+
 #include "auxiliary_threads.hpp"
 
 namespace rubinius {
@@ -36,6 +39,8 @@ namespace rubinius {
         ++i) {
       (*i)->before_exec(state);
     }
+
+    state->shared().env()->before_exec(state);
   }
 
   void AuxiliaryThreads::after_exec(STATE) {
@@ -46,6 +51,8 @@ namespace rubinius {
         ++i) {
       (*i)->after_exec(state);
     }
+
+    state->shared().env()->after_exec(state);
 
     exec_in_progress_ = false;
   }

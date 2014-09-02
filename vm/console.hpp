@@ -54,6 +54,7 @@ namespace rubinius {
 
       void start(STATE);
       void initialize(STATE);
+      void setup_files(STATE);
       void run(STATE);
 
       void start_threads(STATE);

@@ -314,7 +314,7 @@ namespace rubinius {
     path << "rbx-" << getlogin() << "-" << getpid();
     shared->fsapi_path.assign(path.str());
 
-    mkdir(shared->fsapi_path.c_str(), 0755);
+    create_fsapi(state);
   }
 
   void Environment::load_argv(int argc, char** argv) {
@@ -472,6 +472,24 @@ namespace rubinius {
     delete cf;
   }
 
+  void Environment::before_exec(STATE) {
+    remove_fsapi(state);
+  }
+
+  void Environment::after_exec(STATE) {
+    create_fsapi(state);
+  }
+
+  void Environment::create_fsapi(STATE) {
+    mkdir(shared->fsapi_path.c_str(), 0755);
+  }
+
+  void Environment::remove_fsapi(STATE) {
+    if(rmdir(shared->fsapi_path.c_str()) < 0) {
+      utilities::logger::error("%s: unable to remove FSAPI path", strerror(errno));
+    }
+  }
+
   void Environment::halt_and_exit(STATE) {
     halt(state);
     int code = exit_code(state);
@@ -510,9 +528,7 @@ namespace rubinius {
 
     NativeMethod::cleanup_thread(state);
 
-    if(rmdir(shared->fsapi_path.c_str()) < 0) {
-      utilities::logger::error("%s: unable to remove FSAPI path", strerror(errno));
-    }
+    remove_fsapi(state);
   }
 
   /**

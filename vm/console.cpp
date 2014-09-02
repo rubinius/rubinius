@@ -111,6 +111,15 @@ namespace rubinius {
       response_path_ = path + "-response";
 
       request_list_ = new RequestList;
+
+      Module* mod = as<Module>(G(rubinius)->get_const(state, "Console"));
+      Class* cls = as<Class>(mod->get_const(state, "Server"));
+      console_.set(cls->send(state, 0, state->symbol("new")));
+
+      cls->set_const(state, state->symbol("RequestPath"),
+          String::create(state, request_path_.c_str()));
+      cls->set_const(state, state->symbol("ResponsePath"),
+          String::create(state, response_path_.c_str()));
     }
 
     static int open_file(std::string path) {
@@ -123,25 +132,18 @@ namespace rubinius {
       return fd;
     }
 
-    void Console::start(STATE) {
-      initialize(state);
-
-      Module* mod = as<Module>(G(rubinius)->get_const(state, "Console"));
-      Class* cls = as<Class>(mod->get_const(state, "Server"));
-      console_.set(cls->send(state, 0, state->symbol("new")));
-
-      cls->set_const(state, state->symbol("RequestPath"),
-          String::create(state, request_path_.c_str()));
-      cls->set_const(state, state->symbol("ResponsePath"),
-          String::create(state, response_path_.c_str()));
-
+    void Console::setup_files(STATE) {
       request_fd_ = open_file(request_path_);
       response_fd_ = open_file(response_path_);
 
       FSEvent* fsevent = FSEvent::create(state);
       fsevent->watch_file(state, request_fd_, request_path_.c_str());
       fsevent_.set(fsevent);
+    }
 
+    void Console::start(STATE) {
+      initialize(state);
+      setup_files(state);
       start_threads(state);
     }
 
@@ -217,9 +219,11 @@ namespace rubinius {
 
     void Console::before_exec(STATE) {
       stop_threads(state);
+      cleanup(true);
     }
 
     void Console::after_exec(STATE) {
+      setup_files(state);
       start_threads(state);
     }
 
