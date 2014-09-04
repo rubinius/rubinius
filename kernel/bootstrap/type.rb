@@ -110,6 +110,8 @@ module Rubinius
         obj
       when nil
         raise TypeError, "can't convert nil into Float"
+      when Complex
+        raise RangeError, "can't convert #{obj} into Float"
       else
         coerce_to obj, Float, :to_f
       end

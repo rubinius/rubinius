@@ -233,6 +233,11 @@ describe :kernel_float, :shared => true do
     (obj = mock('123')).should_receive(:to_f).once.and_return(123)
     lambda { @object.send(:Float, obj) }.should raise_error(TypeError)
   end
+
+  it "raises a RangeError when passed a Complex argument" do
+    c = Complex(2, 3)
+    lambda { @object.send(:Float, c) }.should raise_error(RangeError)
+  end
 end
 
 describe "Kernel.Float" do
