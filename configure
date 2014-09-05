@@ -1037,7 +1037,7 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
     end
   end
 
-  def check_program(run=true, link_libs=[])
+  def check_program(run=true, *arguments)
     begin
       basename = "rbx-configure-test"
       source   = basename + ".cpp"
@@ -1049,9 +1049,10 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
         @log.log f.read
       end
 
-      libs = (default_link_libs + link_libs).map { |l| "-l#{l}" }.join(" ")
+      libs = default_link_libs.map { |l| "-l#{l}" }.join(" ")
+      args = arguments.join(" ")
 
-      cmd = "#{@cxx} #{@user_cppflags} #{@user_cflags} #{@user_cxxflags} #{@user_ldflags} -o #{basename} #{source} #{@system_cppflags} #{@system_cflags} #{@system_cxxflags} #{@system_ldflags} #{libs} >>#{@log.path} 2>&1"
+      cmd = "#{@cxx} #{@user_cppflags} #{@user_cflags} #{@user_cxxflags} #{@user_ldflags} -o #{basename} #{source} #{@system_cppflags} #{@system_cflags} #{@system_cxxflags} #{@system_ldflags} #{libs} #{args} >>#{@log.path} 2>&1"
       @log.log cmd
       system cmd
       return $?.exitstatus unless run
@@ -1225,8 +1226,8 @@ return 0;
 int main() { return tgetnum(""); }
     EOP
 
-    ["curses", "ncurses", "termcap"].each do |lib|
-      status = check_program(false, [lib]) do |f|
+    ["-lcurses", "-lncurses", "-ltermcap"].each do |lib|
+      status = check_program(false, lib) do |f|
         f.puts src
         @log.log src
       end
@@ -1296,7 +1297,9 @@ int main() { return tgetnum(""); }
   def has_library(name, function, libraries, includes=[])
     @log.print "Checking for library: #{name}: "
 
-    status = check_program true, libraries do |src|
+    args = libraries.map { |l| "-l#{l}" }
+
+    status = check_program(true, *args) do |src|
       includes.each do |i|
         src.puts "#include <#{i}>"
       end
