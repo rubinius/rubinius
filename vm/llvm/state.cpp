@@ -36,19 +36,24 @@
 #else
 #include <llvm/Target/TargetData.h>
 #endif
-// #include <llvm/LinkAllPasses.h>
+#if RBX_LLVM_API_VER >= 305
+#include <llvm/IR/Verifier.h>
+#include <llvm/IR/CFG.h>
+#else
 #include <llvm/Analysis/Verifier.h>
-#include <llvm/Transforms/Scalar.h>
+#include <llvm/Support/CFG.h>
+#endif
 #if RBX_LLVM_API_VER >= 303
 #include <llvm/IR/CallingConv.h>
 #else
 #include <llvm/CallingConv.h>
 #endif
-#include <llvm/Support/CFG.h>
 #include <llvm/Analysis/Passes.h>
+// #include <llvm/LinkAllPasses.h>
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/Support/Format.h>
 #include <llvm/Target/TargetOptions.h>
+#include <llvm/Transforms/Scalar.h>
 
 #include "windows_compat.h"
 

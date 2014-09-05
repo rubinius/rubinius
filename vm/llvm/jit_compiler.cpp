@@ -21,14 +21,19 @@
 #else
 #include <llvm/Target/TargetData.h>
 #endif
+#if RBX_LLVM_API_VER >= 305
+#include <llvm/IR/Verifier.h>
+#include <llvm/IR/CFG.h>
+#else
 #include <llvm/Analysis/Verifier.h>
-#include <llvm/Transforms/Scalar.h>
+#include <llvm/Support/CFG.h>
+#endif
 #if RBX_LLVM_API_VER >= 303
 #include <llvm/IR/CallingConv.h>
 #else
 #include <llvm/CallingConv.h>
 #endif
-#include <llvm/Support/CFG.h>
+#include <llvm/Transforms/Scalar.h>
 #include <llvm/Analysis/Passes.h>
 
 #include <llvm/Target/TargetOptions.h>
@@ -97,7 +102,11 @@ namespace jit {
         (*i)->eraseFromParent();
       }
 
+#if RBX_LLVM_API_VER >= 305
+      if(Broken or llvm::verifyFunction(*function_, &llvm::outs())) {
+#else
       if(Broken or llvm::verifyFunction(*function_, PrintMessageAction)) {
+#endif
         llvm::outs() << "ERROR: compilation error detected.\n";
         llvm::outs() << "ERROR: Please report the above message and the\n";
         llvm::outs() << "       code below to http://github.com/rubinius/rubinius/issues\n";

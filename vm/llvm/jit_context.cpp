@@ -107,7 +107,10 @@ namespace rubinius {
     builder_->OptLevel = 2;
     passes_ = new llvm::FunctionPassManager(module_);
 
-#if RBX_LLVM_API_VER >= 302
+#if RBX_LLVM_API_VER >= 305
+    module_->setDataLayout(engine_->getDataLayout()->getStringRepresentation());
+    passes_->add(new llvm::DataLayoutPass(module_));
+#elif RBX_LLVM_API_VER >= 302
     module_->setDataLayout(engine_->getDataLayout()->getStringRepresentation());
     passes_->add(new llvm::DataLayout(*engine_->getDataLayout()));
 #else

@@ -3,6 +3,11 @@
 #include "llvm/passes.hpp"
 #include "config.h"
 
+#if RBX_LLVM_API_VER >= 305
+#include <llvm/IR/CallSite.h>
+#else
+#include <llvm/Support/CallSite.h>
+#endif
 #if RBX_LLVM_API_VER >= 303
 #include <llvm/IR/Attributes.h>
 #include <llvm/IR/BasicBlock.h>
@@ -21,7 +26,6 @@
 #include <llvm/Intrinsics.h>
 #endif
 #include <llvm/Transforms/Utils/Cloning.h>
-#include <llvm/Support/CallSite.h>
 #include <llvm/ADT/APInt.h>
 #include <llvm/Analysis/SparsePropagation.h>
 #include <llvm/Analysis/AliasAnalysis.h>

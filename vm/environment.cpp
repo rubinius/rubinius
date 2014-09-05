@@ -76,7 +76,7 @@ namespace rubinius {
     , signal_handler_(NULL)
     , finalizer_handler_(NULL)
   {
-#ifdef ENABLE_LLVM
+#if defined ENABLE_LLVM && RBX_LLVM_API_VER < 305
     if(!llvm::llvm_start_multithreaded()) {
       assert(0 && "llvm doesn't support threading!");
     }

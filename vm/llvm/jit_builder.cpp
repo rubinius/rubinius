@@ -11,7 +11,9 @@
 
 #include "instruments/tooling.hpp"
 #include <llvm/Analysis/CaptureTracking.h>
-#if RBX_LLVM_API_VER > 301
+#if RBX_LLVM_API_VER > 304
+#include <llvm/IR/DebugInfo.h>
+#elif RBX_LLVM_API_VER > 301
 #include <llvm/DebugInfo.h>
 #else
 #include <llvm/Analysis/DebugInfo.h>
