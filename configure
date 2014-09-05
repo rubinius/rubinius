@@ -67,6 +67,7 @@ class Configure
     @llvm_prebuilt_name     = nil
     @llvm_system_name       = get_system_name
     @llvm_shared            = false
+    @llvm_shared_objs       = nil
     @llvm_cxxflags          = ""
 
     @llvm_version           = "3.4.2"
@@ -883,12 +884,49 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
         @llvm_configure = config_cmd
         @llvm_version = version
         @llvm_api_version = api_version
+
+        if @llvm_shared
+          setup_config_shared
+        end
+
         return true
       end
     else
       @log.write "not found"
     end
 
+    false
+  end
+
+  def setup_config_shared
+    @log.print "  Checking for LLVM shared libs: "
+
+    src = <<-EOP
+#include <llvm/IR/LLVMContext.h>
+using namespace llvm;
+int main() { LLVMContext &Context = getGlobalContext(); }
+    EOP
+
+    common_args = `#{@llvm_configure} --cppflags --ldflags`.strip.split(/\s+/)
+    shared_configs = {
+      "libLLVM-#{@llvm_version}"  => ["-lLLVM-#{@llvm_version}"],
+      "#{@llvm_configure} --libs" => `#{@llvm_configure} --libs`.strip.split(/\s+/)
+    }
+
+    shared_configs.each do |desc, objs|
+      status = check_program(false, *common_args, *objs) do |f|
+        f.puts src
+        @log.log src
+      end
+
+      if status == 0
+        @log.write "found! (using #{desc})"
+        @llvm_shared_objs = objs
+        return true
+      end
+    end
+
+    @log.write "not found"
     false
   end
 
@@ -1707,7 +1745,7 @@ int main() { return tgetnum(""); }
       :llvm               => @llvm,
       :llvm_configure     => @llvm_configure,
       :llvm_version       => @llvm_version,
-      :llvm_shared        => @llvm_shared,
+      :llvm_shared_objs   => @llvm_shared_objs,
       :llvm_cxxflags      => @llvm_cxxflags,
       :cc                 => @cc,
       :cxx                => @cxx,

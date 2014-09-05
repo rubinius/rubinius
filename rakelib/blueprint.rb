@@ -236,8 +236,8 @@ Daedalus.blueprint do |i|
 
     ldflags = `#{conf} --ldflags`.strip.split(/\s+/)
 
-    if Rubinius::BUILD_CONFIG[:llvm_shared]
-      objects = ["-lLLVM-#{Rubinius::BUILD_CONFIG[:llvm_version]}"]
+    if Rubinius::BUILD_CONFIG[:llvm_shared_objs]
+      objects = Rubinius::BUILD_CONFIG[:llvm_shared_objs]
     else
       objects = `#{conf} --libfiles`.strip.split(/\s+/)
     end
