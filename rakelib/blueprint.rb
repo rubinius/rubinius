@@ -209,6 +209,8 @@ Daedalus.blueprint do |i|
 
   case Rubinius::BUILD_CONFIG[:llvm]
   when :config, :prebuilt, :svn
+    gcc.cxxflags << Rubinius::BUILD_CONFIG[:llvm_cxxflags]
+
     conf = Rubinius::BUILD_CONFIG[:llvm_configure]
     flags = `#{conf} --cflags`.strip.split(/\s+/)
     flags.delete_if { |x| x.index("-O") == 0 }

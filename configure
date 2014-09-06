@@ -67,6 +67,7 @@ class Configure
     @llvm_prebuilt_name     = nil
     @llvm_system_name       = get_system_name
     @llvm_shared            = false
+    @llvm_cxxflags          = ""
 
     @llvm_version           = "3.4.2"
     @llvm_api_version       = 304
@@ -893,7 +894,7 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
 
   def check_llvm_flags
     if @llvm_api_version >= 305
-      @system_cxxflags << " -std=c++11"
+      @llvm_cxxflags << " -std=c++11"
     end
   end
 
@@ -1704,6 +1705,7 @@ int main() { return tgetnum(""); }
       :llvm_configure     => @llvm_configure,
       :llvm_version       => @llvm_version,
       :llvm_shared        => @llvm_shared,
+      :llvm_cxxflags      => @llvm_cxxflags,
       :cc                 => @cc,
       :cxx                => @cxx,
       :ldshared           => @ldshared,
