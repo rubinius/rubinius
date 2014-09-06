@@ -67,6 +67,15 @@ namespace jit {
   class RubiniusJITMemoryManager;
   class RubiniusRequestJITMemoryManager;
 
+#if RBX_LLVM_API_VER > 304
+  class JITSlabAllocator {
+    RubiniusJITMemoryManager &JMM;
+  public:
+    JITSlabAllocator(RubiniusJITMemoryManager &jmm) : JMM(jmm) { }
+    void *Allocate(size_t Size, size_t /*Alignment*/);
+    void Deallocate(void *Slab, size_t Size);
+  };
+#else
   class JITSlabAllocator : public SlabAllocator {
     RubiniusJITMemoryManager &JMM;
   public:
@@ -75,6 +84,7 @@ namespace jit {
     virtual MemSlab *Allocate(size_t Size);
     virtual void Deallocate(MemSlab *Slab);
   };
+#endif
 
   /// MemoryRangeHeader - For a range of memory, this is the header that we put
   /// on the block of memory.  It is carefully crafted to be one word of memory.
@@ -175,7 +185,23 @@ namespace jit {
 
     friend class RubiniusRequestJITMemoryManager;
 
-    // Whether to poison freed memory.
+#if RBX_LLVM_API_VER > 304
+  public:
+    /// DefaultCodeSlabSize - When we have to go map more memory, we allocate at
+    /// least this much unless more is requested. Currently, in 512k slabs.
+    static const size_t DefaultCodeSlabSize = 512 * 1024;
+
+    /// DefaultSlabSize - Allocate globals and stubs into slabs of 64K (probably
+    /// 16 pages) unless we get an allocation above SizeThreshold.
+    static const size_t DefaultSlabSize = 64 * 1024;
+
+    /// DefaultSizeThreshold - For any allocation larger than 16K (probably
+    /// 4 pages), we should allocate a separate slab to avoid wasted space at
+    /// the end of a normal slab.
+    static const size_t DefaultSizeThreshold = 16 * 1024;
+
+  private:
+#endif
 
     /// LastSlab - This points to the last slab allocated and is used as the
     /// NearBlock parameter to AllocateRWX so that we can attempt to lay out all
@@ -187,9 +213,14 @@ namespace jit {
     // Memory slabs allocated by the JIT.  We refer to them as slabs so we don't
     // confuse them with the blocks of memory described above.
     std::vector<sys::MemoryBlock> CodeSlabs;
+#if RBX_LLVM_API_VER > 304
+    BumpPtrAllocatorImpl<JITSlabAllocator, DefaultSlabSize, DefaultSizeThreshold> StubAllocator;
+    BumpPtrAllocatorImpl<JITSlabAllocator, DefaultSlabSize, DefaultSizeThreshold> DataAllocator;
+#else
     JITSlabAllocator BumpSlabAllocator;
     BumpPtrAllocator StubAllocator;
     BumpPtrAllocator DataAllocator;
+#endif
 
     // Circular list of free blocks.
     FreeRangeHeader *FreeMemoryList;
@@ -198,6 +229,8 @@ namespace jit {
     MemoryRangeHeader *CurBlock;
 
     utilities::thread::SpinLock lock_;
+
+    // Whether to poison freed memory.
     bool PoisonMemory;
 
   public:
@@ -208,6 +241,7 @@ namespace jit {
     /// last slab it allocated, so that subsequent allocations follow it.
     sys::MemoryBlock allocateNewSlab(size_t size);
 
+#if RBX_LLVM_API_VER < 305
     /// DefaultCodeSlabSize - When we have to go map more memory, we allocate at
     /// least this much unless more is requested.
     static const size_t DefaultCodeSlabSize;
@@ -219,6 +253,7 @@ namespace jit {
     /// DefaultSizeThreshold - For any allocation larger than this threshold, we
     /// should allocate a separate slab.
     static const size_t DefaultSizeThreshold;
+#endif
 
     /// getPointerToNamedFunction - This method returns the address of the
     /// specified function by using the dlsym function call.

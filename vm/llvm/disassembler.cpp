@@ -68,7 +68,12 @@ namespace rubinius {
 #endif
 
     if(asm_info) {
+#if RBX_LLVM_API_VER > 304
+      context = new llvm::MCContext(asm_info, reg_info, 0);
+      disassembler = target->createMCDisassembler(*sub_target, *context);
+#else
       disassembler = target->createMCDisassembler(*sub_target);
+#endif
       memory_object = new JITMemoryObject((const uint8_t*)buffer, (uint64_t) size);
     }
   }
@@ -76,6 +81,9 @@ namespace rubinius {
   JITDisassembler::~JITDisassembler() {
     if(memory_object) delete memory_object;
     if(disassembler) delete disassembler;
+#if RBX_LLVM_API_VER > 304
+    if(context) delete context;
+#endif
     if(sub_target) delete sub_target;
     if(target_machine) delete target_machine;
   }

@@ -15,7 +15,9 @@
 #else
 #include <llvm/Support/IRBuilder.h>
 #endif
-#if RBX_LLVM_API_VER > 301
+#if RBX_LLVM_API_VER > 304
+#include <llvm/IR/DIBuilder.h>
+#elif RBX_LLVM_API_VER > 301
 #include <llvm/DIBuilder.h>
 #else
 #include <llvm/Analysis/DIBuilder.h>

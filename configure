@@ -891,6 +891,12 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
     false
   end
 
+  def check_llvm_flags
+    if @llvm_api_version >= 305
+      @system_cxxflags << " -std=c++11"
+    end
+  end
+
   def env(which)
     ENV[which] || ""
   end
@@ -1565,6 +1571,10 @@ int main() { return tgetnum(""); }
       setup_auto
     else
       @log.write "WARNING: LLVM disabled."
+    end
+
+    if @use_llvm
+      check_llvm_flags
     end
 
     @log.write ""

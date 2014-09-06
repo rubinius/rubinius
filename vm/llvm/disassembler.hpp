@@ -9,6 +9,9 @@
 #include <llvm/MC/MCAsmInfo.h>
 #include <llvm/MC/MCDisassembler.h>
 #include <llvm/Support/MemoryObject.h>
+#if RBX_LLVM_API_VER >= 305
+#include <llvm/MC/MCContext.h>
+#endif
 
 namespace rubinius {
 
@@ -79,6 +82,9 @@ namespace rubinius {
 #if RBX_LLVM_API_VER > 300
       const llvm::MCInstrInfo* instr_info;
       const llvm::MCRegisterInfo* reg_info;
+#endif
+#if RBX_LLVM_API_VER > 304
+      llvm::MCContext* context;
 #endif
 
       llvm::MCDisassembler* disassembler;
