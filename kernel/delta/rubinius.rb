@@ -228,7 +228,10 @@ module Rubinius
 
     extra << "D" if Rubinius::DEBUG_BUILD
 
-    str = "rubinius #{VERSION} (#{RUBY_VERSION} #{BUILD_REV[0..7]} #{RUBY_RELEASE_DATE}"
+    rev = BUILD_REV[0..7]
+    llvm = " #{Rubinius::LLVM_VERSION}" if defined?(Rubinius::LLVM_VERSION)
+
+    str = "rubinius #{VERSION} (#{RUBY_VERSION} #{rev} #{RUBY_RELEASE_DATE}#{llvm}"
 
     unless extra.empty?
       str << " #{extra}"

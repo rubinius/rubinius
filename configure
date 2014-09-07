@@ -1862,6 +1862,10 @@ int main() { return tgetnum(""); }
 #define RBX_DEBUG_BUILD      #{@debug_build.inspect}
       EOC
 
+      if @llvm_version
+        f.puts "#define RBX_LLVM_VERSION     #{@llvm_version.inspect}"
+      end
+
       if @little_endian
         f.puts "#define RBX_LITTLE_ENDIAN    1"
       end
