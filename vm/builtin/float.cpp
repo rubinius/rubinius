@@ -83,6 +83,14 @@ namespace rubinius {
     }
 
     native_int len = end - str;
+
+    // Skip trailing whitespace.
+    if (str != end) {
+      while(isspace(*(end - 1))) {
+        --end;
+      }
+    }
+
     LocalBuffer b(len + 1);
     char* buffer = (char*)b.buffer;
     char* p = buffer;
