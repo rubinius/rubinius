@@ -43,6 +43,7 @@
 /* Define all function flags */
 
 /* Array */
+#define HAVE_RB_ARRAY                      1
 #define HAVE_RARRAY                        1
 #define HAVE_RARRAY_LEN                    1
 #define HAVE_RARRAY_PTR                    1
