@@ -188,6 +188,11 @@ extern "C" {
       return object;
     }
 
+    ID to_a_id = rb_intern("to_a");
+    if(rb_respond_to(object, to_a_id)) {
+      return rb_funcall(object, to_a_id, 0);
+    }
+
     Array* array = Array::create(env->state(), 1);
     array->set(env->state(), 0, obj);
 
