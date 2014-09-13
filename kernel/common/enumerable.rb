@@ -87,13 +87,16 @@ module Enumerable
 
   alias_method :with_object, :each_with_object
 
-  def flat_map(&block)
+  def flat_map
     return to_enum(:flat_map) unless block_given?
+
     inject([]) do |a, e|
-      result = block.call(e)
+      result = yield e
+
       Rubinius::Type.object_respond_to_ary?(result) ? a.concat(result) : a.push(result)
     end
   end
+
   alias_method :collect_concat, :flat_map
 
   def lazy
