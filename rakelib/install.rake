@@ -247,7 +247,7 @@ include: #{prefix}#{BUILD_CONFIG[:includedir]}
 
 Please ensure that the paths to these directories are writable
 by the current user. Otherwise, run 'rake install' with the
-oppropriate command to elevate permissions (eg su, sudo).
+appropriate command to elevate permissions (eg su, sudo).
         EOM
 
         exit(1)
