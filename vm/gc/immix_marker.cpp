@@ -153,7 +153,7 @@ namespace rubinius {
     while(!exit_) {
       if(data_) {
         {
-          timer::StopWatch<timer::milliseconds> timerx(
+          timer::StopWatch<timer::milliseconds> timer(
               state->vm()->metrics()->m.ruby_metrics.gc_immix_conc_last_ms,
               state->vm()->metrics()->m.ruby_metrics.gc_immix_conc_total_ms
             );
@@ -170,7 +170,7 @@ namespace rubinius {
         }
 
         {
-          timer::StopWatch<timer::milliseconds> timerx(
+          timer::StopWatch<timer::milliseconds> timer(
               state->vm()->metrics()->m.ruby_metrics.gc_immix_stop_last_ms,
               state->vm()->metrics()->m.ruby_metrics.gc_immix_stop_total_ms
             );
