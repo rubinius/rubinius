@@ -111,6 +111,23 @@ VALUE kernel_spec_rb_eval_string(VALUE self, VALUE str) {
 }
 #endif
 
+#ifdef HAVE_RB_EVAL_STRING_WRAP
+VALUE kernel_spec_rb_eval_string_wrap(VALUE self, VALUE str) {
+  VALUE ary = rb_ary_new();
+
+  int state;
+  VALUE result = rb_eval_string_wrap(RSTRING_PTR(str), &state);
+
+  rb_ary_store(ary, 0, result);
+  rb_ary_store(ary, 1, INT2FIX(state));
+
+  // return a 2-element array
+  // ary[0]: the result of the eval
+  // ary[1]: state
+  return ary;
+}
+#endif
+
 #ifdef HAVE_RB_RAISE
 VALUE kernel_spec_rb_raise(VALUE self, VALUE hash) {
   rb_hash_aset(hash, ID2SYM(rb_intern("stage")), ID2SYM(rb_intern("before")));
@@ -307,6 +324,10 @@ void Init_kernel_spec() {
 
 #ifdef HAVE_RB_EVAL_STRING
   rb_define_method(cls, "rb_eval_string", kernel_spec_rb_eval_string, 1);
+#endif
+
+#ifdef HAVE_RB_EVAL_STRING_WRAP
+  rb_define_method(cls, "rb_eval_string_wrap", kernel_spec_rb_eval_string_wrap, 1);
 #endif
 
 #ifdef HAVE_RB_RAISE

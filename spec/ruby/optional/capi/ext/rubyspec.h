@@ -347,6 +347,7 @@
 #define HAVE_RB_BLOCK_CALL                 1
 #define HAVE_RB_ENSURE                     1
 #define HAVE_RB_EVAL_STRING                1
+#define HAVE_RB_EVAL_STRING_WRAP           1
 #define HAVE_RB_EXEC_RECURSIVE             1
 #define HAVE_RB_F_SPRINTF                  1
 #define HAVE_RB_NEED_BLOCK                 1

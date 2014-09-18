@@ -388,6 +388,23 @@ describe "C-API Kernel function" do
     end
   end
 
+  describe "rb_eval_string_wrap" do
+    it "evaluates a string of ruby code" do
+      eval_result = @s.rb_eval_string_wrap("1+1")[0]
+      eval_result.should == 2
+    end
+
+    it "sets state to 0 on success" do
+      state = @s.rb_eval_string_wrap("1+1")[1]
+      state.should == 0
+    end
+
+    it "sets state to nonzero on failure" do
+      state = @s.rb_eval_string_wrap("5.sort")[1]
+      state.should_not == 0
+    end
+  end
+
   describe "rb_block_proc" do
     it "converts the implicit block into a proc" do
       proc = @s.rb_block_proc() { 1+1 }
