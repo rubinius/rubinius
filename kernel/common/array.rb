@@ -415,6 +415,18 @@ class Array
     concat other
   end
 
+  def count(item = undefined)
+    seq = 0
+    if !undefined.equal?(item)
+      each { |o| seq += 1 if item == o }
+    elsif block_given?
+      each { |o| seq += 1 if yield(o) }
+    else
+      return @total
+    end
+    seq
+  end
+
   def cycle(n=nil)
     return to_enum(:cycle, n) unless block_given?
     return nil if empty?
