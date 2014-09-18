@@ -248,6 +248,17 @@ extern "C" {
     return rb_funcall(rb_mKernel, rb_intern("eval"), 1, rb_str_new2(str));
   }
 
+  VALUE rb_eval_string_wrap(const char* str, int* state) {
+    // ary[0]: the result of the eval
+    // ary[1]: 'true' if the eval succeeds, 'false' otherwise
+    VALUE* ary = RARRAY_PTR(rb_funcall(rb_mCAPI, rb_intern("rb_eval_string_wrap"), 1, rb_str_new2(str)));
+
+    // 6 is an arbitrary value. if the eval fails, state just needs to be set to an nonzero value
+    *state = (ary[1] == Qtrue) ? 0 : 6;
+
+    return ary[0];
+  }
+
   VALUE rb_block_proc() {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     return rb_funcall(rb_cProc, rb_intern("__from_block__"), 1, env->get_handle(env->block()));

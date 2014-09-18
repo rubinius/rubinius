@@ -1594,6 +1594,9 @@ VALUE rb_uint2big(unsigned long number);
   /** Evaluate the given string. */
   VALUE   rb_eval_string(const char* string);
 
+  /** Evaluate the given string in an isolated binding. */
+  VALUE   rb_eval_string_wrap(const char* string, int* state);
+
   /** Create a String from the C string. */
   VALUE   rb_tainted_str_new2(const char* string);
 

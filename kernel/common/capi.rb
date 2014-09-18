@@ -87,5 +87,20 @@ module Rubinius
 
       return status == :finished ? result : str
     end
+
+    def self.rb_eval_string_wrap(str)
+      vs = clean_binding
+      cs = Rubinius::ConstantScope.new(Object)
+      cs = Rubinius::ConstantScope.new(Module.new, cs)
+      binding = Binding.setup(vs, nil, cs)
+
+      [eval(str, binding), true]
+    rescue
+      [nil, false]
+    end
+
+    def self.clean_binding
+      return Rubinius::VariableScope.current
+    end
   end
 end
