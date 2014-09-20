@@ -195,6 +195,10 @@ module Kernel
     equal?(other) || self == other
   end
 
+  def itself
+    self
+  end
+
   def abort(msg=nil)
     Process.abort msg
   end
