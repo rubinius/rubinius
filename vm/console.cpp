@@ -188,13 +188,6 @@ namespace rubinius {
       SYNC(state);
 
       if(request_vm_) {
-        file::LockGuard guard(request_fd_, LOCK_EX);
-
-        if(guard.status() == file::eLockSucceeded) {
-          logger::error("%s: console: unable to lock request file", strerror(errno));
-          return;
-        }
-
         wakeup();
 
         pthread_t os = request_vm_->os_thread();
@@ -207,13 +200,6 @@ namespace rubinius {
       }
 
       if(response_vm_) {
-        file::LockGuard guard(response_fd_, LOCK_EX);
-
-        if(guard.status() != file::eLockSucceeded) {
-          logger::error("%s: unable to lock response file", strerror(errno));
-          return;
-        }
-
         pthread_t os = response_vm_->os_thread();
         response_exit_ = true;
 
