@@ -558,6 +558,10 @@ const size_t RubiniusJITMemoryManager::DefaultCodeSlabSize = 512 * 1024;
 const size_t RubiniusJITMemoryManager::DefaultSlabSize = 64 * 1024;
 
 const size_t RubiniusJITMemoryManager::DefaultSizeThreshold = 16 * 1024;
+#else
+const size_t RubiniusJITMemoryManager::DefaultCodeSlabSize;
+const size_t RubiniusJITMemoryManager::DefaultSlabSize;
+const size_t RubiniusJITMemoryManager::DefaultSizeThreshold;
 #endif
 
 }
