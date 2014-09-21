@@ -234,7 +234,7 @@ Daedalus.blueprint do |i|
 
     flags << "-DENABLE_LLVM"
 
-    ldflags = `#{conf} --ldflags`.strip.split(/\s+/)
+    ldflags = Rubinius::BUILD_CONFIG[:llvm_ldflags]
 
     if Rubinius::BUILD_CONFIG[:llvm_shared_objs]
       objects = Rubinius::BUILD_CONFIG[:llvm_shared_objs]
@@ -253,7 +253,8 @@ Daedalus.blueprint do |i|
 
     gcc.cflags.concat flags
     gcc.ldflags.concat objects
-    gcc.ldflags.concat ldflags
+
+    gcc.ldflags << ldflags
   when :no
     # nothing, not using LLVM
   else
