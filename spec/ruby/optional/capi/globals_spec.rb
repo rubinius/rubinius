@@ -124,27 +124,59 @@ describe "CApiGlobalSpecs" do
     end
   end
 
-  describe "rb_stdin" do
-    it "returns STDIN" do
-      @f.rb_stdin.should equal(STDIN)
+  context "rb_std streams" do
+    before :each do
+      @name = tmp("rb_std_streams")
+      @stream = new_io @name
     end
-  end
 
-  describe "rb_stdout" do
-    it "returns STDOUT" do
-      @f.rb_stdout.should equal(STDOUT)
+    after :each do
+      @stream.close
+      rm_r @name
     end
-  end
 
-  describe "rb_stderr" do
-    it "returns STDERR" do
-      @f.rb_stderr.should equal(STDERR)
+    describe "rb_stdin" do
+      after :each do
+        $stdin = STDIN
+      end
+
+      it "returns $stdin" do
+        $stdin = @stream
+        @f.rb_stdin.should equal($stdin)
+      end
     end
-  end
 
-  describe "rb_defout" do
-    it "returns STDOUT" do
-      @f.rb_defout.should equal(STDOUT)
+    describe "rb_stdout" do
+      after :each do
+        $stdout = STDOUT
+      end
+
+      it "returns $stdout" do
+        $stdout = @stream
+        @f.rb_stdout.should equal($stdout)
+      end
+    end
+
+    describe "rb_stderr" do
+      after :each do
+        $stderr = STDERR
+      end
+
+      it "returns $stderr" do
+        $stderr = @stream
+        @f.rb_stderr.should equal($stderr)
+      end
+    end
+
+    describe "rb_defout" do
+      after :each do
+        $stdout = STDOUT
+      end
+
+      it "returns $stdout" do
+        $stdout = @stream
+        @f.rb_defout.should equal($stdout)
+      end
     end
   end
 
