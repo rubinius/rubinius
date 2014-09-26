@@ -289,10 +289,10 @@ struct RFile {
 #define rb_output_rs    mri_global_rb_output_rs()
 #define rb_output_fs    mri_global_rb_output_fs()
 
-#define rb_stdin        rb_const_get(rb_cObject, rb_intern("STDIN"))
-#define rb_stdout       rb_const_get(rb_cObject, rb_intern("STDOUT"))
-#define rb_stderr       rb_const_get(rb_cObject, rb_intern("STDERR"))
-#define rb_defout       rb_const_get(rb_cObject, rb_intern("STDOUT"))
+#define rb_stdin        rb_gv_get("$stdin")
+#define rb_stdout       rb_gv_get("$stdout")
+#define rb_stderr       rb_gv_get("$stderr")
+#define rb_defout       rb_gv_get("$stdout")
 
 /* Global Class objects */
 
