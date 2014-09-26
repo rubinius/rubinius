@@ -974,8 +974,14 @@ class IO
     io.descriptor = fd
     io.mode       = mode || cur_mode
     io.sync       = !!sync
-    io.sync     ||= STDOUT.fileno == fd if STDOUT.respond_to?(:fileno)
-    io.sync     ||= STDERR.fileno == fd if STDERR.respond_to?(:fileno)
+
+    if STDOUT.respond_to?(:fileno) and not STDOUT.closed?
+      io.sync ||= STDOUT.fileno == fd
+    end
+
+    if STDERR.respond_to?(:fileno) and not STDERR.closed?
+      io.sync ||= STDERR.fileno == fd
+    end
   end
 
   def self.max_open_fd

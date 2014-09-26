@@ -703,8 +703,8 @@ VM Options
     end
 
     def flush_stdio
-      STDOUT.flush
-      STDERR.flush
+      STDOUT.flush unless STDOUT.closed?
+      STDERR.flush unless STDERR.closed?
     end
 
     # Cleanup and at_exit processing.
