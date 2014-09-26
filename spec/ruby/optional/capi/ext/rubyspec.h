@@ -305,6 +305,10 @@
 #ifdef RUBY_VERSION_IS_1_8_EX_1_9
 #define HAVE_RB_SET_KCODE                  1
 #endif
+#define HAVE_RB_STDERR                     1
+#define HAVE_RB_STDIN                      1
+#define HAVE_RB_STDOUT                     1
+#define HAVE_RB_DEFOUT                     1
 
 #define HAVE_RB_LASTLINE_SET               1
 #define HAVE_RB_LASTLINE_GET               1
