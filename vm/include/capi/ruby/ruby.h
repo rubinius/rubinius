@@ -335,9 +335,10 @@ struct RFile {
 // Fake it out, just make the ptr be the val
 // MRI checks also that it's not closed...
 #define GetOpenFile(val, ptr) (ptr) = (capi_rio_struct(val))
-#define rb_stdin              rb_const_get(rb_cObject, rb_intern("STDIN"))
-#define rb_stdout             rb_const_get(rb_cObject, rb_intern("STDOUT"))
-#define rb_stderr             rb_const_get(rb_cObject, rb_intern("STDERR"))
+#define rb_stdin              rb_gv_get("$stdin")
+#define rb_stdout             rb_gv_get("$stdout")
+#define rb_stderr             rb_gv_get("$stderr")
+#define rb_defout             rb_gv_get("$stdout")
 
 #define GetReadFile(ptr)  (ptr->f)
 #define GetWriteFile(ptr) (ptr->f)
