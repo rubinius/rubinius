@@ -1260,6 +1260,11 @@ struct RTypedData {
   VALUE   rb_funcall2b(VALUE receiver, ID method_name, int arg_count,
                        const VALUE* v_args, VALUE block);
 
+  /** Call the method with args provided in a C array and block.
+   *  Does not call private methods. */
+  VALUE   rb_funcall_with_block(VALUE receiver, ID method_name, int arg_count,
+                                const VALUE* v_args, VALUE block);
+
   /** Return name of the function being called */
   ID rb_frame_last_func();
 
