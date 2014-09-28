@@ -217,40 +217,76 @@ typedef void (*RUBY_DATA_FUNC)(void*);
    *  cases.
    */
 
-#define T_ARRAY  0x00
-#define T_NONE   0x01
-#define T_NIL    0x02
-#define T_OBJECT 0x03
-#define T_CLASS  0x04
-#define T_ICLASS 0x05
-#define T_MODULE 0x06
-#define T_FLOAT  0x07
-#define T_STRING 0x08
-#define T_REGEXP 0x09
-#define T_FIXNUM 0x0a
-#define T_HASH   0x0b
-#define T_STRUCT 0x0c
-#define T_BIGNUM 0x0d
-#define T_FILE   0x0e
+#define RUBY_T_ARRAY  0x00
+#define RUBY_T_NONE   0x01
+#define RUBY_T_NIL    0x02
+#define RUBY_T_OBJECT 0x03
+#define RUBY_T_CLASS  0x04
+#define RUBY_T_ICLASS 0x05
+#define RUBY_T_MODULE 0x06
+#define RUBY_T_FLOAT  0x07
+#define RUBY_T_STRING 0x08
+#define RUBY_T_REGEXP 0x09
+#define RUBY_T_FIXNUM 0x0a
+#define RUBY_T_HASH   0x0b
+#define RUBY_T_STRUCT 0x0c
+#define RUBY_T_BIGNUM 0x0d
+#define RUBY_T_FILE   0x0e
 
-#define T_TRUE   0x0f
-#define T_FALSE  0x10
-#define T_DATA   0x11
-#define T_MATCH  0x12
-#define T_SYMBOL 0x13
+#define RUBY_T_TRUE   0x0f
+#define RUBY_T_FALSE  0x10
+#define RUBY_T_DATA   0x11
+#define RUBY_T_MATCH  0x12
+#define RUBY_T_SYMBOL 0x13
 
-#define T_BLKTAG 0x14
-#define T_UNDEF  0x15
-#define T_VARMAP 0x16
-#define T_SCOPE  0x17
-#define T_NODE   0x18
+#define RUBY_T_BLKTAG 0x14
+#define RUBY_T_UNDEF  0x15
+#define RUBY_T_VARMAP 0x16
+#define RUBY_T_SCOPE  0x17
+#define RUBY_T_NODE   0x18
 
-#define T_MASK   0x19
+#define RUBY_T_MASK   0x19
 
-#define T_RATIONAL 0x20
-#define T_COMPLEX  0x21
+#define RUBY_T_RATIONAL 0x20
+#define RUBY_T_COMPLEX  0x21
 
-#define T_ENCODING 0x22
+#define RUBY_T_ENCODING 0x22
+
+/* for backward Rubinius capi compatibility. */
+#define T_ARRAY    RUBY_T_ARRAY
+#define T_NONE     RUBY_T_NODE
+#define T_NIL      RUBY_T_NIL
+#define T_OBJECT   RUBY_T_OBJECT
+#define T_CLASS    RUBY_T_CLASS
+#define T_ICLASS   RUBY_T_ICLASS
+#define T_MODULE   RUBY_T_MODULE
+#define T_FLOAT    RUBY_T_FLOAT
+#define T_STRING   RUBY_T_STRING
+#define T_REGEXP   RUBY_T_REGEXP
+#define T_FIXNUM   RUBY_T_FIXNUM
+#define T_HASH     RUBY_T_HASH
+#define T_STRUCT   RUBY_T_STRUCT
+#define T_BIGNUM   RUBY_T_BIGNUM
+#define T_FILE     RUBY_T_FILE
+
+#define T_TRUE     RUBY_T_TRUE
+#define T_FALSE    RUBY_T_FALSE
+#define T_DATA     RUBY_T_DATA
+#define T_MATCH    RUBY_T_MATCH
+#define T_SYMBOL   RUBY_T_SYMBOL
+
+#define T_BLKTAG   RUBY_T_BLKTAG
+#define T_UNDEF    RUBY_T_UNDEF
+#define T_VARMAP   RUBY_T_VARMAP
+#define T_SCOPE    RUBY_T_SCOPE
+#define T_NODE     RUBY_T_NODE
+
+#define T_MASK     RUBY_T_MASK
+
+#define T_RATIONAL RUBY_T_RATIONAL
+#define T_COMPLEX  RUBY_T_COMPLEX
+
+#define T_ENCODING RUBY_T_ENCODING
 
 struct RString {
   ssize_t len;
