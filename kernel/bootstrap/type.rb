@@ -111,7 +111,11 @@ module Rubinius
       when nil
         raise TypeError, "can't convert nil into Float"
       when Complex
-        raise RangeError, "can't convert #{obj} into Float"
+        if obj.respond_to?(:imag) && obj.imag.equal?(0)
+          coerce_to obj, Float, :to_f
+        else
+          raise RangeError, "can't convert #{obj} into Float"
+        end
       else
         coerce_to obj, Float, :to_f
       end
