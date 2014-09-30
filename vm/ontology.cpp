@@ -26,6 +26,7 @@
 #include "builtin/fsevent.hpp"
 #include "builtin/io.hpp"
 #include "builtin/iseq.hpp"
+#include "builtin/jit.hpp"
 #include "builtin/list.hpp"
 #include "builtin/logger.hpp"
 #include "builtin/lookup_table.hpp"
@@ -365,6 +366,7 @@ namespace rubinius {
     Encoding::init(state);
     FSEvent::init(state);
     Logger::init(state);
+    JIT::init(state);
   }
 
   // @todo document all the sections of bootstrap_ontology

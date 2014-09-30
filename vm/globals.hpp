@@ -37,6 +37,7 @@ namespace rubinius {
   class Symbol;
   class Exception;
   class Encoding;
+  class JIT;
 
   struct Globals {
 
@@ -127,6 +128,7 @@ namespace rubinius {
     TypedRoot<Class*> mirror;
     TypedRoot<Class*> fsevent;
     TypedRoot<Class*> logger;
+    TypedRoot<JIT*> jit;
 
     TypedRoot<Encoding*> usascii_encoding, utf8_encoding, ascii8bit_encoding;
 
@@ -257,6 +259,7 @@ namespace rubinius {
       mirror(&roots),
       fsevent(&roots),
       logger(&roots),
+      jit(&roots),
       usascii_encoding(&roots),
       utf8_encoding(&roots),
       ascii8bit_encoding(&roots)
