@@ -32,10 +32,10 @@ namespace rubinius {
     , use_full_scope_(false)
     , inline_block_(0)
     , block_info_(0)
-    , method_(&ctx->llvm_state()->roots())
+    , method_(ctx->llvm_state()->vm())
     , return_pad_(0)
     , return_phi_(0)
-    , self_class_(&ctx->llvm_state()->roots())
+    , self_class_(ctx->llvm_state()->vm())
 
     , machine_code(mcode)
     , is_block(false)

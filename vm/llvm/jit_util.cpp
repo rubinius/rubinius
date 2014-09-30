@@ -1251,7 +1251,7 @@ extern "C" {
                                 int32_t unwind_count,
                                 bool force_deoptimization) {
 
-    LLVMState::get(state)->add_uncommons_taken();
+    state->shared().llvm_state->add_uncommons_taken();
 
     MachineCode* mcode = call_frame->compiled_code->machine_code();
 

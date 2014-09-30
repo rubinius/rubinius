@@ -120,8 +120,8 @@ namespace rubinius {
 
     void start_signals();
     void start_finalizer();
-    void start_agent(int port);
     void start_logging();
+    void start_jit();
   };
 
 }

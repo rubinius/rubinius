@@ -745,7 +745,7 @@ namespace rubinius {
       // for this method.
       if(mcode->call_count >= 0) {
         if(mcode->call_count >= state->shared().config.jit_call_til_compile) {
-          LLVMState* ls = LLVMState::get(state);
+          LLVMState* ls = state->shared().llvm_state;
           OnStack<3> os(state, exec, mod, code);
           ls->compile_callframe(state, gct, code, frame);
         } else {
@@ -847,7 +847,7 @@ namespace rubinius {
                             bool disable)
   {
 #ifdef ENABLE_LLVM
-    LLVMState* ls = LLVMState::get(state);
+    LLVMState* ls = state->shared().llvm_state;
     ls->start_method_update();
 
     bool still_others = false;

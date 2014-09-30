@@ -393,7 +393,7 @@ namespace rubinius {
 #ifdef ENABLE_LLVM
     if(mcode->call_count >= 0) {
       if(mcode->call_count >= state->shared().config.jit_call_til_compile) {
-        LLVMState* ls = LLVMState::get(state);
+        LLVMState* ls = state->shared().llvm_state;
 
         GCTokenImpl gct;
         OnStack<1> os(state, env);

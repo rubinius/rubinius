@@ -6,7 +6,6 @@
 #include "llvm/jit_method.hpp"
 #include "llvm/jit_block.hpp"
 #include "llvm/method_info.hpp"
-#include "llvm/background_compile_request.hpp"
 #include "llvm/disassembler.hpp"
 #include "llvm/jit_context.hpp"
 #include "llvm/jit_memory_manager.hpp"
@@ -18,11 +17,15 @@
 #include "builtin/compiled_code.hpp"
 #include "builtin/class.hpp"
 #include "builtin/block_environment.hpp"
+#include "builtin/jit.hpp"
+#include "builtin/list.hpp"
+#include "builtin/thread.hpp"
 
 #include "auxiliary_threads.hpp"
 #include "machine_code.hpp"
 #include "field_offset.hpp"
 #include "object_memory.hpp"
+#include "on_stack.hpp"
 
 #include "call_frame.hpp"
 #include "configuration.hpp"
@@ -83,408 +86,14 @@ using namespace llvm;
 
 namespace rubinius {
 
-  LLVMState* LLVMState::get(STATE) {
-    utilities::thread::SpinLock::LockGuard lg(state->shared().llvm_state_lock());
-
-    if(!state->shared().llvm_state) {
-      state->shared().llvm_state = new LLVMState(state);
-    }
-
-    return state->shared().llvm_state;
-  }
-
-  LLVMState* LLVMState::get_if_set(STATE) {
-    utilities::thread::SpinLock::LockGuard lg(state->shared().llvm_state_lock());
-    return state->shared().llvm_state;
-  }
-
-  LLVMState* LLVMState::get_if_set(VM* vm) {
-    utilities::thread::SpinLock::LockGuard lg(vm->shared.llvm_state_lock());
-    return vm->shared.llvm_state;
-  }
-
-  class BackgroundCompilerThread : public utilities::thread::Thread {
-    enum State {
-      cUnknown,
-      cRunning,
-      cPaused,
-      cIdle,
-      cStopped
-    };
-
-    utilities::thread::Mutex mutex_;
-    std::list<BackgroundCompileRequest*> pending_requests_;
-    utilities::thread::Condition condition_;
-    utilities::thread::Condition pause_condition_;
-
-    LLVMState* ls_;
-    bool show_machine_code_;
-
-    jit::Compiler* current_compiler_;
-    BackgroundCompileRequest* current_req_;
-
-    State state;
-    bool stop_;
-    bool pause_;
-    bool paused_;
-
-  public:
-    BackgroundCompilerThread(LLVMState* ls)
-      : Thread(0, false)
-      , ls_(ls)
-      , current_compiler_(0)
-      , current_req_(0)
-      , state(cUnknown)
-      , stop_(false)
-      , pause_(false)
-      , paused_(false)
-    {
-      show_machine_code_ = ls->jit_dump_code() & cMachineCode;
-      condition_.init();
-      pause_condition_.init();
-    }
-
-    ~BackgroundCompilerThread() {
-      for(std::list<BackgroundCompileRequest*>::iterator i = pending_requests_.begin();
-          i != pending_requests_.end(); ++i) {
-        delete *i;
-      }
-      pending_requests_.clear();
-    }
-
-    void add(BackgroundCompileRequest* req) {
-      utilities::thread::Mutex::LockGuard guard(mutex_);
-      pending_requests_.push_back(req);
-      ls_->metrics()->m.jit_metrics.methods_queued++;
-      condition_.signal();
-    }
-
-    void stop() {
-      {
-        utilities::thread::Mutex::LockGuard guard(mutex_);
-        if(state == cStopped) return;
-
-        stop_ = true;
-
-        if(state == cIdle) {
-          condition_.signal();
-        } else if(state == cPaused) {
-          // TODO refactor common from unpause
-          pause_ = false;
-          condition_.signal();
-        }
-      }
-
-      join();
-
-      {
-        utilities::thread::Mutex::LockGuard guard(mutex_);
-        state = cStopped;
-      }
-    }
-
-    void start() {
-      utilities::thread::Mutex::LockGuard guard(mutex_);
-      if(state != cStopped) return;
-      state = cUnknown;
-      stop_ = false;
-      pause_ = false;
-      paused_ = false;
-      run();
-    }
-
-    void pause() {
-      utilities::thread::Mutex::LockGuard guard(mutex_);
-
-      // it's idle, ie paused.
-      if(state == cIdle || state == cPaused) return;
-
-      pause_ = true;
-
-      while(!paused_ && (ls_->run_state() == ManagedThread::eRunning ||
-                         ls_->run_state() == ManagedThread::eIndependent)) {
-        pause_condition_.wait(mutex_);
-      }
-    }
-
-    void unpause() {
-      utilities::thread::Mutex::LockGuard guard(mutex_);
-
-      // idle, just waiting for more work, ok, thats fine.
-      if(state != cPaused) return;
-
-      pause_ = false;
-
-      condition_.signal();
-    }
-
-    void restart() {
-      mutex_.init();
-      condition_.init();
-      pause_condition_.init();
-
-      state = cUnknown;
-      stop_ = false;
-      pause_ = false;
-      paused_ = false;
-
-      run();
-    }
-
-    utilities::thread::Condition* pause_condition() {
-      return &pause_condition_;
-    }
-
-    virtual void perform() {
-      RBX_DTRACE_CONST char* thread_name = const_cast<RBX_DTRACE_CONST char*>("rbx.jit");
-      ManagedThread::set_current(ls_, thread_name);
-
-      ls_->set_run_state(ManagedThread::eIndependent);
-
-      RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CONST char*>(thread_name),
-                            ls_->thread_id(), 1);
-
-#ifndef RBX_WINDOWS
-      sigset_t set;
-      sigfillset(&set);
-      pthread_sigmask(SIG_SETMASK, &set, NULL);
-#endif
-
-      for(;;) { // forever
-
-        BackgroundCompileRequest* req = 0;
-
-        // Lock, wait, get a request, unlock
-        {
-          utilities::thread::Mutex::LockGuard guard(mutex_);
-
-          if(pause_) {
-            state = cPaused;
-
-            paused_ = true;
-            pause_condition_.broadcast();
-
-            if(stop_) goto halt;
-
-            while(pause_) {
-              condition_.wait(mutex_);
-              if(stop_) goto halt;
-            }
-
-            state = cUnknown;
-            paused_ = false;
-          }
-
-          // If we've been asked to stop, do so now.
-          if(stop_) goto halt;
-
-
-          while(pending_requests_.empty()) {
-            state = cIdle;
-
-            // unlock and wait...
-            condition_.wait(mutex_);
-
-            if(stop_) goto halt;
-          }
-
-          // now locked again, shift a request
-          req = pending_requests_.front();
-
-          state = cRunning;
-        }
-
-        // This isn't ideal, but it's the safest. Keep the GC from
-        // running while we're building the IR.
-        ls_->gc_dependent();
-
-        Context ctx(ls_);
-        jit::Compiler jit(&ctx);
-
-        // mutex now unlock, allowing others to push more requests
-        //
-
-        current_req_ = req;
-        current_compiler_ = &jit;
-
-        uint32_t class_id = 0;
-        uint32_t serial_id = 0;
-        Class* cls = req->receiver_class();
-        if(cls && !cls->nil_p()) {
-
-          // Apparently already compiled, probably some race
-          if(req->method()->find_specialized(cls)) {
-            if(ls_->config().jit_show_compiling) {
-              CompiledCode* code = req->method();
-              llvm::outs() << "[[[ JIT already compiled "
-                        << ls_->enclosure_name(code) << "#" << ls_->symbol_debug_str(code->name())
-                        << (req->is_block() ? " (block)" : " (method)")
-                        << " ]]]\n";
-            }
-
-            // If someone was waiting on this, wake them up.
-            if(utilities::thread::Condition* cond = req->waiter()) {
-              cond->signal();
-            }
-
-            current_req_ = 0;
-            current_compiler_ = 0;
-            pending_requests_.pop_front();
-            delete req;
-
-            // We don't depend on the GC here, so let it run independent
-            // of us.
-            ls_->gc_independent();
-
-            continue;
-          }
-
-          class_id = cls->class_id();
-          serial_id = cls->serial_id();
-        }
-
-        void* func = 0;
-        {
-          timer::StopWatch<timer::microseconds> timer(
-              ls_->metrics()->m.jit_metrics.time_last_us,
-              ls_->metrics()->m.jit_metrics.time_total_us);
-
-          jit.compile(req);
-
-          bool indy = !ls_->config().jit_sync;
-          func = jit.generate_function(indy);
-        }
-
-        // We were unable to compile this function, likely
-        // because it's got something we don't support.
-        if(!func) {
-          if(ls_->config().jit_show_compiling) {
-            CompiledCode* code = req->method();
-            llvm::outs() << "[[[ JIT error background compiling "
-                      << ls_->enclosure_name(code) << "#" << ls_->symbol_debug_str(code->name())
-                      << (req->is_block() ? " (block)" : " (method)")
-                      << " ]]]\n";
-          }
-          // If someone was waiting on this, wake them up.
-          if(utilities::thread::Condition* cond = req->waiter()) {
-            cond->signal();
-          }
-
-          current_req_ = 0;
-          current_compiler_ = 0;
-          pending_requests_.pop_front();
-          delete req;
-
-          // We don't depend on the GC here, so let it run independent
-          // of us.
-          ls_->gc_independent();
-
-          continue;
-        }
-
-        if(show_machine_code_) {
-          jit.show_machine_code();
-        }
-
-        // If the method has had jit'ing request disabled since we started
-        // JIT'ing it, discard our work.
-        if(!req->machine_code()->jit_disabled()) {
-
-          jit::RuntimeDataHolder* rd = ctx.runtime_data_holder();
-
-          atomic::memory_barrier();
-          ls_->start_method_update();
-
-          if(!req->is_block()) {
-            if(class_id) {
-              req->method()->add_specialized(class_id, serial_id, reinterpret_cast<executor>(func), rd);
-            } else {
-              req->method()->set_unspecialized(reinterpret_cast<executor>(func), rd);
-            }
-          } else {
-            req->method()->set_unspecialized(reinterpret_cast<executor>(func), rd);
-          }
-
-          req->machine_code()->clear_compiling();
-
-          // assert(req->method()->jit_data());
-
-          ls_->end_method_update();
-
-          rd->run_write_barrier(ls_->shared().om, req->method());
-
-          if(ls_->config().jit_show_compiling) {
-            CompiledCode* code = req->method();
-            llvm::outs() << "[[[ JIT finished background compiling "
-                      << ls_->enclosure_name(code) << "#" << ls_->symbol_debug_str(code->name())
-                      << (req->is_block() ? " (block)" : " (method)")
-                      << " ]]]\n";
-          }
-        }
-
-        // If someone was waiting on this, wake them up.
-        if(utilities::thread::Condition* cond = req->waiter()) {
-          cond->signal();
-        }
-
-        current_req_ = 0;
-        current_compiler_ = 0;
-        pending_requests_.pop_front();
-        ls_->metrics()->m.jit_metrics.methods_compiled++;
-        delete req;
-
-        // We don't depend on the GC here, so let it run independent
-        // of us.
-        ls_->gc_independent();
-      }
-
-halt:
-      RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CONST char*>(thread_name),
-                           ls_->thread_id(), 1);
-    }
-
-    void gc_scan(GarbageCollector* gc) {
-      utilities::thread::Mutex::LockGuard guard(mutex_);
-
-      for(std::list<BackgroundCompileRequest*>::iterator i = pending_requests_.begin();
-          i != pending_requests_.end();
-          ++i)
-      {
-        BackgroundCompileRequest* req = *i;
-        if(Object* obj = gc->saw_object(req->method())) {
-          req->set_method(force_as<CompiledCode>(obj));
-        }
-
-        if(Class* receiver_class = req->receiver_class()) {
-          if(Object* obj = gc->saw_object(receiver_class)) {
-            req->set_receiver_class(force_as<Class>(obj));
-          }
-        }
-
-        if(BlockEnvironment* block_env = req->block_env()) {
-          if(Object* obj = gc->saw_object(block_env)) {
-            req->set_block_env(force_as<BlockEnvironment>(obj));
-          }
-        }
-      }
-
-      if(current_compiler_) {
-        jit::RuntimeDataHolder* rd = current_compiler_->context()->runtime_data_holder();
-        rd->set_mark();
-
-        ObjectMark mark(gc);
-        rd->mark_all(current_req_->method(), mark);
-      }
-    }
-  };
-
   static const bool debug_search = false;
 
   LLVMState::LLVMState(STATE)
     : AuxiliaryThread()
-    , ManagedThread(state->shared().new_thread_id(),
-                    state->shared(), ManagedThread::eSystem)
     , config_(state->shared().config)
+    , vm_(0)
+    , thread_(state)
+    , compile_list_(state)
     , symbols_(state->shared().symbols)
     , accessors_inlined_(0)
     , uncommons_taken_(0)
@@ -492,11 +101,11 @@ halt:
     , include_profiling_(state->shared().config.jit_profile)
     , code_bytes_(0)
     , log_(0)
-    , time_spent(0)
+    , enabled_(false)
+    , thread_exit_(false)
+    , current_compiler_(0)
   {
-
     state->shared().auxiliary_threads()->register_thread(this);
-    state->shared().add_managed_thread(this);
 
     if(state->shared().config.jit_log.value.size() == 0) {
       log_ = &std::cerr;
@@ -544,63 +153,268 @@ halt:
 
     type_optz_ = state->shared().config.jit_type_optz;
 
-    metrics()->init(metrics::eJITMetrics);
-
-    background_thread_ = new BackgroundCompilerThread(this);
-    background_thread_->run();
-
     cpu_ = rubinius::getHostCPUName();
+
+    compile_list_.set(G(jit)->compile_list());
   }
 
   LLVMState::~LLVMState() {
     shared_.auxiliary_threads()->unregister_thread(this);
 
-    shared_.remove_managed_thread(this);
-    delete background_thread_;
     delete memory_;
     delete jit_event_listener_;
+  }
+
+  void LLVMState::enable(STATE) {
+    utilities::thread::SpinLock::LockGuard lg(shared_.llvm_state_lock());
+
+    start_thread(state);
+    enabled_ = true;
   }
 
   bool LLVMState::debug_p() {
     return config_.jit_debug;
   }
 
+  void LLVMState::reset_compile_state(STATE) {
+    compile_list_.get()->clear(state);
+    current_compiler_ = 0;
+  }
+
+  Object* jit_llvm_trampoline(STATE) {
+    state->shared().llvm_state->perform(state);
+    GCTokenImpl gct;
+    state->gc_dependent(gct, 0);
+    return cNil;
+  }
+
+  void LLVMState::start_thread(STATE) {
+    SYNC(state);
+
+    if(!vm_) {
+      vm_ = state->shared().new_vm();
+      thread_exit_ = false;
+
+      Thread* thread = Thread::create(state, vm_, G(thread), jit_llvm_trampoline, true);
+      OnStack<1> os(state, thread);
+
+      if(thread->fork_attached(state)) {
+        rubinius::bug("Unable to start JIT LLVM thread");
+      }
+
+      thread_.set(thread);
+    }
+  }
+
+  void LLVMState::stop_thread(STATE) {
+    SYNC(state);
+
+    if(vm_) {
+      {
+        utilities::thread::Mutex::LockGuard lg(compile_lock_);
+        thread_exit_ = true;
+        compile_cond_.signal();
+      }
+
+      pthread_t os = vm_->os_thread();
+
+      void* return_value;
+      pthread_join(os, &return_value);
+
+      vm_ = NULL;
+    }
+  }
+
   void LLVMState::shutdown(STATE) {
-    background_thread_->stop();
+    stop_thread(state);
   }
 
   void LLVMState::before_exec(STATE) {
-    background_thread_->stop();
+    stop_thread(state);
   }
 
   void LLVMState::after_exec(STATE) {
-    background_thread_->start();
+    start_thread(state);
   }
 
   void LLVMState::before_fork(STATE) {
-    background_thread_->pause();
+    stop_thread(state);
   }
 
   void LLVMState::after_fork_parent(STATE) {
-    background_thread_->unpause();
+    start_thread(state);
   }
 
   void LLVMState::after_fork_child(STATE) {
-    shared_.add_managed_thread(this);
-    metrics()->init(metrics::eJITMetrics);
-    background_thread_->restart();
+    reset_compile_state(state);
+    start_thread(state);
+    vm_->metrics()->init(metrics::eJITMetrics);
+  }
+
+  void LLVMState::perform(STATE) {
+    GCTokenImpl gct;
+    RBX_DTRACE_CONST char* thread_name = const_cast<RBX_DTRACE_CONST char*>("rbx.jit");
+    vm_->set_name(thread_name);
+
+    RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CONST char*>(thread_name),
+                          state->vm()->thread_id(), 1);
+
+    state->vm()->thread->hard_unlock(state, gct, 0);
+    state->gc_dependent(gct, 0);
+
+    bool show_machine_code_ = jit_dump_code() & cMachineCode;
+
+    while(!thread_exit_) {
+      JITCompileRequest* compile_request = nil<JITCompileRequest>();
+      current_compiler_ = 0;
+
+      {
+        GCIndependent guard(state, 0);
+
+        {
+          utilities::thread::Mutex::LockGuard lg(compile_lock_);
+
+          while(compile_list_.get()->empty_p()) {
+            compile_cond_.wait(compile_lock_);
+
+            if(thread_exit_) break;
+          }
+        }
+      }
+
+      if(thread_exit_) break;
+
+      {
+        utilities::thread::Mutex::LockGuard guard(request_lock_);
+
+        compile_request = try_as<JITCompileRequest>(compile_list_.get()->shift(state));
+        if(!compile_request || compile_request->nil_p()) continue;
+      }
+
+      OnStack<1> os(state, compile_request);
+
+      Context ctx(this);
+      jit::Compiler jit(&ctx);
+
+      current_compiler_ = &jit;
+
+      uint32_t class_id = 0;
+      uint32_t serial_id = 0;
+      Class* receiver_class = compile_request->receiver_class();
+
+      OnStack<1> os2(state, receiver_class);
+
+      if(receiver_class && !receiver_class->nil_p()) {
+
+        // Apparently already compiled, probably some race
+        if(compile_request->method()->find_specialized(receiver_class)) {
+          if(config().jit_show_compiling) {
+            CompiledCode* code = compile_request->method();
+            llvm::outs() << "[[[ JIT already compiled "
+                      << enclosure_name(code) << "#" << symbol_debug_str(code->name())
+                      << (compile_request->is_block() ? " (block)" : " (method)")
+                      << " ]]]\n";
+          }
+
+          // If someone was waiting on this, wake them up.
+          if(utilities::thread::Condition* cond = compile_request->waiter()) {
+            cond->signal();
+          }
+
+          current_compiler_ = 0;
+
+          continue;
+        }
+
+        class_id = receiver_class->class_id();
+        serial_id = receiver_class->serial_id();
+      }
+
+      void* func = 0;
+      {
+        timer::StopWatch<timer::microseconds> timer(
+            vm()->metrics()->m.jit_metrics.time_last_us,
+            vm()->metrics()->m.jit_metrics.time_total_us);
+
+        jit.compile(compile_request);
+
+        bool indy = !config().jit_sync;
+        func = jit.generate_function(indy);
+      }
+
+      // We were unable to compile this function, likely
+      // because it's got something we don't support.
+      if(!func) {
+        if(config().jit_show_compiling) {
+          CompiledCode* code = compile_request->method();
+          llvm::outs() << "[[[ JIT error background compiling "
+                    << enclosure_name(code) << "#" << symbol_debug_str(code->name())
+                    << (compile_request->is_block() ? " (block)" : " (method)")
+                    << " ]]]\n";
+        }
+        // If someone was waiting on this, wake them up.
+        if(utilities::thread::Condition* cond = compile_request->waiter()) {
+          cond->signal();
+        }
+
+        current_compiler_ = 0;
+
+        continue;
+      }
+
+      if(show_machine_code_) {
+        jit.show_machine_code();
+      }
+
+      // If the method has had jit'ing request disabled since we started
+      // JIT'ing it, discard our work.
+      if(!compile_request->machine_code()->jit_disabled()) {
+
+        jit::RuntimeDataHolder* rd = ctx.runtime_data_holder();
+
+        atomic::memory_barrier();
+        start_method_update();
+
+        if(!compile_request->is_block()) {
+          if(class_id) {
+            compile_request->method()->add_specialized(class_id, serial_id, reinterpret_cast<executor>(func), rd);
+          } else {
+            compile_request->method()->set_unspecialized(reinterpret_cast<executor>(func), rd);
+          }
+        } else {
+          compile_request->method()->set_unspecialized(reinterpret_cast<executor>(func), rd);
+        }
+
+        compile_request->machine_code()->clear_compiling();
+
+        end_method_update();
+
+        rd->run_write_barrier(shared().om, compile_request->method());
+
+        if(config().jit_show_compiling) {
+          CompiledCode* code = compile_request->method();
+          llvm::outs() << "[[[ JIT finished background compiling "
+                    << enclosure_name(code) << "#" << symbol_debug_str(code->name())
+                    << (compile_request->is_block() ? " (block)" : " (method)")
+                    << " ]]]\n";
+        }
+      }
+
+      // If someone was waiting on this, wake them up.
+      if(utilities::thread::Condition* cond = compile_request->waiter()) {
+        cond->signal();
+      }
+
+      current_compiler_ = 0;
+      vm()->metrics()->m.jit_metrics.methods_compiled++;
+    }
   }
 
   void LLVMState::gc_scan(GarbageCollector* gc) {
-    background_thread_->gc_scan(gc);
-  }
-
-  void LLVMState::gc_dependent() {
-    shared_.gc_dependent(this, background_thread_->pause_condition());
-  }
-
-  void LLVMState::gc_independent() {
-    shared_.gc_independent(this);
+    if(current_compiler_) {
+      jit::RuntimeDataHolder* rd = current_compiler_->context()->runtime_data_holder();
+      rd->set_mark();
+    }
   }
 
   Symbol* LLVMState::symbol(const std::string& sym) {
@@ -621,6 +435,17 @@ halt:
     return symbol_debug_str(cs->module()->module_name());
   }
 
+  void LLVMState::add(STATE, JITCompileRequest* req) {
+    utilities::thread::Mutex::LockGuard guard(request_lock_);
+
+    if(!enabled_) return;
+
+    G(jit)->compile_list()->append(state, req);
+    vm()->metrics()->m.jit_metrics.methods_queued++;
+
+    compile_cond_.signal();
+  }
+
   void LLVMState::compile_soon(STATE, GCToken gct, CompiledCode* code, CallFrame* call_frame,
                                Class* receiver_class, BlockEnvironment* block_env, bool is_block)
   {
@@ -637,17 +462,15 @@ halt:
     int hits = code->machine_code()->method_call_count();
     code->machine_code()->set_compiling();
 
-    BackgroundCompileRequest* req =
-      new BackgroundCompileRequest(state, code, receiver_class, hits, block_env, is_block);
-
-    queued_methods_++;
+    JITCompileRequest* req = JITCompileRequest::create(state, code, receiver_class,
+        hits, block_env, is_block);
 
     if(wait) {
       wait_mutex.lock();
 
       req->set_waiter(&wait_cond);
 
-      background_thread_->add(req);
+      add(state, req);
       bool req_block = req->is_block();
 
       state->set_call_frame(call_frame);
@@ -664,7 +487,7 @@ halt:
           << " (" << hits << ") " << " ]]]\n";
       }
     } else {
-      background_thread_->add(req);
+      add(state, req);
 
       if(state->shared().config.jit_show_compiling) {
         llvm::outs() << "[[[ JIT queued "
@@ -676,7 +499,7 @@ halt:
   }
 
   void LLVMState::remove(void* func) {
-    metrics()->m.jit_metrics.methods_compiled--;
+    vm_->metrics()->m.jit_metrics.methods_compiled--;
     memory_->deallocateFunctionBody(func);
   }
 

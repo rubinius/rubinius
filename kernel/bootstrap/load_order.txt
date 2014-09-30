@@ -28,6 +28,7 @@ fixnum.rbc
 gc.rbc
 io.rbc
 iseq.rbc
+jit.rbc
 kernel.rbc
 lookup_table.rbc
 method_table.rbc

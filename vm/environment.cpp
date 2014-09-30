@@ -13,6 +13,7 @@
 #include "builtin/class.hpp"
 #include "builtin/encoding.hpp"
 #include "builtin/exception.hpp"
+#include "builtin/jit.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/module.hpp"
@@ -129,6 +130,14 @@ namespace rubinius {
     // Install a better terminate function to tell the user
     // there was a rubinius bug.
     std::set_terminate(cpp_exception_bug);
+  }
+
+  void Environment::start_jit() {
+    utilities::thread::SpinLock::LockGuard lg(state->shared().llvm_state_lock());
+
+    if(!state->shared().llvm_state) {
+      state->shared().llvm_state = new LLVMState(state);
+    }
   }
 
   void Environment::start_signals() {
@@ -769,6 +778,8 @@ namespace rubinius {
 
     load_tool();
 
+    start_jit();
+
     G(rubinius)->set_const(state, "Signature", Integer::from(state, signature_));
 
     G(rubinius)->set_const(state, "RUNTIME_PATH", String::create(state,
@@ -790,6 +801,9 @@ namespace rubinius {
     }
 
     OnStack<1> os(state, loader);
+
+    // Enable the JIT after the core library has loaded
+    G(jit)->enable(state);
 
     Object* inst = loader->send(state, 0, state->symbol("new"));
     if(inst) {
