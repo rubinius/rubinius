@@ -38,6 +38,14 @@ namespace rubinius {
     return list;
   }
 
+  List* List::clear(STATE) {
+    first_ = nil<ListNode>();
+    last_ = nil<ListNode>();
+    count(state, Fixnum::from(0));
+
+    return this;
+  }
+
   /* Append +obj+ to the current List. */
   void List::append(STATE, Object* obj) {
     ListNode* node = state->new_object<ListNode>(G(list_node));
