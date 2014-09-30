@@ -5,7 +5,7 @@ GEM
     rake (10.3.2)
     redcard (1.1.0)
     rubinius-ast (1.2.1)
-    rubinius-bridge (1.0.8)
+    rubinius-bridge (1.1.0)
       redcard (~> 1.0)
     rubinius-build_tools (1.0.0)
       rubinius-ast (~> 1.0)
@@ -28,3 +28,4 @@ DEPENDENCIES
   redcard (~> 1.0)
   rubinius-bridge (~> 1.0)
   rubinius-build_tools (~> 1.0)
+  rubinius-toolset (~> 2.2.0)
