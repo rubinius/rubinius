@@ -60,14 +60,14 @@ outline how to build via source.
 3.  tar xzf bison-2.5.1.tar.gz
 4.  tar xzf bison-3.0.2.tar.gz
 5.  cd bison-2.5.1/
-6.  ./configure --program-suffix="-2.5.1" --datadir=/usr/share/bison-2.5.1
+6.  ./configure --program-suffix="-2.5.1" --datarootdir=/usr/share/bison-2.5.1
 7.  make && sudo make install
 8.  cd ../bison-3.0.2/
-9.  ./configure --program-suffix="-3.0.2" --datadir=/usr/share/bison-3.0.2
+9.  ./configure --program-suffix="-3.0.2" --datarootdir=/usr/share/bison-3.0.2
 10. make && sudo make install
 11. sudo update-alternatives \
       --install \
-        /usr/bin/bison \
+        /usr/local/bin/bison \
         bison \
         /usr/local/bin/bison-3.0.2 \
         150 \
@@ -77,7 +77,7 @@ outline how to build via source.
         /usr/share/bison-3.0.2/bison
 12. sudo update-alternatives \
       --install \
-        /usr/bin/bison \
+        /usr/local/bin/bison \
         bison \
         /usr/local/bin/bison-2.5.1 \
         100 \
