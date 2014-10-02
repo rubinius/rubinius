@@ -436,7 +436,6 @@ describe "C-API Kernel function" do
   end
 
   describe 'rb_funcall_with_block' do
-
     before :each do
       @obj = Object.new
       class << @obj
@@ -449,6 +448,7 @@ describe "C-API Kernel function" do
     it "calls a method with block" do
       @s.rb_funcall_with_block(@obj, :method_public, proc { :result }).should == :result
     end
+
     it "does not call a private method" do
       lambda { @s.rb_funcall_with_block(@obj, :method_private, proc { :result }) }.should raise_error(NoMethodError, /private/)
     end
