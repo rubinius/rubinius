@@ -66,6 +66,8 @@ namespace rubinius {
 
     void Console::wakeup() {
       request_exit_ = true;
+      atomic::memory_barrier();
+
       if(write(request_fd_, "x", 1) < 0) {
         logger::error("%s: console: unable to wake request thread", strerror(errno));
       }
@@ -123,7 +125,7 @@ namespace rubinius {
     }
 
     static int open_file(std::string path) {
-      int fd = ::open(path.c_str(), O_CREAT | O_TRUNC | O_RDWR, 0666);
+      int fd = ::open(path.c_str(), O_CREAT | O_TRUNC | O_RDWR | O_SYNC, 0666);
 
       if(fd < 0) {
         logger::error("%s: console: unable to open: %s", strerror(errno), path.c_str());
@@ -190,22 +192,21 @@ namespace rubinius {
       if(request_vm_) {
         wakeup();
 
-        pthread_t os = request_vm_->os_thread();
-        request_exit_ = true;
-
         void* return_value;
+        pthread_t os = request_vm_->os_thread();
         pthread_join(os, &return_value);
 
         request_vm_ = NULL;
       }
 
       if(response_vm_) {
-        pthread_t os = response_vm_->os_thread();
         response_exit_ = true;
+        atomic::memory_barrier();
 
         response_cond_.signal();
 
         void* return_value;
+        pthread_t os = response_vm_->os_thread();
         pthread_join(os, &return_value);
 
         response_vm_ = NULL;
