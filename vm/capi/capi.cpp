@@ -519,8 +519,8 @@ extern "C" {
         arg_count, args, blk, false);
   }
 
-  VALUE rb_funcall2b(VALUE receiver, ID method_name, int arg_count,
-                     const VALUE* v_args, VALUE block)
+  static VALUE call_function_with_block(VALUE receiver, ID method_name, int arg_count,
+                                        const VALUE* v_args, VALUE block, bool allow_private)
   {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
@@ -533,7 +533,19 @@ extern "C" {
     return capi_funcall_backend_native(env, "", 0,
         env->get_object(receiver),
         reinterpret_cast<Symbol*>(method_name),
-        arg_count, args, env->get_object(block), true);
+        arg_count, args, env->get_object(block), allow_private);
+  }
+
+  VALUE rb_funcall2b(VALUE receiver, ID method_name, int arg_count,
+                     const VALUE* v_args, VALUE block)
+  {
+    return call_function_with_block(receiver, method_name, arg_count, v_args, block, true);
+  }
+
+  VALUE rb_funcall_with_block(VALUE receiver, ID method_name, int arg_count,
+                     const VALUE* v_args, VALUE block)
+  {
+    return call_function_with_block(receiver, method_name, arg_count, v_args, block, false);
   }
 
   VALUE rb_yield(VALUE argument_handle) {
