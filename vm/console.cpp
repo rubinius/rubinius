@@ -312,6 +312,8 @@ namespace rubinius {
         }
       }
 
+      state->gc_dependent(gct, 0);
+
       RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CONST char*>(thread_name),
                            state->vm()->thread_id(), 1);
     }
@@ -357,7 +359,6 @@ namespace rubinius {
       while(!response_exit_) {
         {
           utilities::thread::Mutex::LockGuard lg(list_lock_);
-          GCIndependent guard(state, 0);
 
           if(request_list_->size() > 0) {
             request = request_list_->back();
@@ -385,6 +386,9 @@ namespace rubinius {
         } else {
           utilities::thread::Mutex::LockGuard lg(response_lock_);
           GCIndependent guard(state, 0);
+
+          atomic::memory_barrier();
+          if(response_exit_) break;
 
           response_cond_.wait(response_lock_);
         }
