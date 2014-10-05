@@ -43,6 +43,49 @@ To install Rubinius, use the following steps:
 When the install process finishes, follow the directions printed to the
 terminal to add the Rubinius executable (bin) directory to your PATH.
 
+If you are unable to build melbourne during the rake step you may be using an
+incompatible version of bison. Rubinius 2.x/melbourne 2.x can be built with
+bison 3.x but Rubinius 1.x/melbourne 1.x must be built with bison 2.x
+
+On Debian and Ubuntu variants, a good way to have both versions installed is to
+use update-alternatives. You can accomplish this by either installing bison
+via apt-get and then moving files around, or installing both versions by source.
+
+It's unknown at this time if moving the package manager-installed files will
+break updates by the package manager in the future, so the steps below will
+outline how to build via source.
+
+1.  wget http://ftp.gnu.org/gnu/bison/bison-2.5.1.tar.gz
+2.  wget http://ftp.gnu.org/gnu/bison/bison-3.0.2.tar.gz
+3.  tar xzf bison-2.5.1.tar.gz
+4.  tar xzf bison-3.0.2.tar.gz
+5.  cd bison-2.5.1/
+6.  ./configure --program-suffix="-2.5.1" --datarootdir=/usr/share/bison-2.5.1
+7.  make && sudo make install
+8.  cd ../bison-3.0.2/
+9.  ./configure --program-suffix="-3.0.2" --datarootdir=/usr/share/bison-3.0.2
+10. make && sudo make install
+11. sudo update-alternatives \
+      --install \
+        /usr/local/bin/bison \
+        bison \
+        /usr/local/bin/bison-3.0.2 \
+        150 \
+      --slave \
+        /usr/share/bison \
+        bison-share-dir \
+        /usr/share/bison-3.0.2/bison
+12. sudo update-alternatives \
+      --install \
+        /usr/local/bin/bison \
+        bison \
+        /usr/local/bin/bison-2.5.1 \
+        100 \
+      --slave \
+        /usr/share/bison \
+        bison-share-dir \
+        /usr/share/bison-2.5.1/bison
+13. sudo update-alternatives --config bison
 
 4. Using RubyGems
 
