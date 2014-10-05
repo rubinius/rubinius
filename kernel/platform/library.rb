@@ -95,7 +95,6 @@ module FFI
     # additional argument, although currently all options are ignored.
     #
     # The +c_name+ and +mod_name+ can be given as Strings or Symbols.
-    # The +c_name+ can also be given as a Pointer.
     #
     # The types of the arguments to the C function, +c_arg1+, +c_arg2+, etc, are
     # given as an array even if there is only one.
@@ -103,9 +102,8 @@ module FFI
     # The final argument, +ret+, is the type of the return value from the C
     # function.
     def attach_function(name, a2, a3, a4=nil, a5=nil)
-      if a4 && (a2.kind_of?(String) || a2.kind_of?(Symbol) || \
-                a2.kind_of?(Pointer))
-        cname = a2.kind_of?(Pointer) ? a2 : a2.to_s
+      if a4 && (a2.kind_of?(String) || a2.kind_of?(Symbol))
+        cname = a2.to_s
         args = a3
         ret = a4
       else
