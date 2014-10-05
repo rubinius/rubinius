@@ -91,31 +91,27 @@ module FFI
     # In the first form, +c_name+ will also be used for the name of the module
     # method. In the second form, the module method name is +mod_name+.
     #
+    # In either form, an optional options hash will be accepted as an
+    # additional argument, although currently all options are ignored.
+    #
     # The +c_name+ and +mod_name+ can be given as Strings or Symbols.
+    # The +c_name+ can also be given as a Pointer.
     #
     # The types of the arguments to the C function, +c_arg1+, +c_arg2+, etc, are
     # given as an array even if there is only one.
     #
     # The final argument, +ret+, is the type of the return value from the C
     # function.
-    def attach_function(name, a3, a4, a5=nil)
-      if a5
-        cname = a3.to_s
-        if a3.kind_of? Pointer
-          cname = a3
-          int_name = name.to_sym
-        else
-          cname = a3.to_s
-          int_name = cname.to_sym
-        end
-
-        args = a4
-        ret = a5
-      else
-        cname = name.to_s
-        int_name = cname.to_sym
+    def attach_function(name, a2, a3, a4=nil, a5=nil)
+      if a4 && (a2.kind_of?(String) || a2.kind_of?(Symbol) || \
+                a2.kind_of?(Pointer))
+        cname = a2.kind_of?(Pointer) ? a2 : a2.to_s
         args = a3
         ret = a4
+      else
+        cname = name.to_s
+        args = a2
+        ret = a3
       end
 
       mname = name.to_sym
