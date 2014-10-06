@@ -123,7 +123,7 @@ namespace rubinius {
     delete inflated_headers_;
   }
 
-  void ObjectMemory::on_fork(STATE) {
+  void ObjectMemory::after_fork_child(STATE) {
     lock_init(state->vm());
     contention_lock_.init();
     mature_gc_in_progress_ = false;

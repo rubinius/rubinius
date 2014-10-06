@@ -293,7 +293,8 @@ namespace rubinius {
 
     void scheduler_loop();
 
-    void reinit(STATE);
+    void after_fork_exec_child(STATE);
+    void after_fork_child(STATE);
 
     bool should_stop() const;
 

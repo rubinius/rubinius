@@ -41,6 +41,7 @@
 
 #include <vector>
 #include <errno.h>
+#include <fcntl.h>
 #include <iostream>
 #include <fstream>
 #include <stdarg.h>
@@ -211,42 +212,383 @@ namespace rubinius {
     }
   }
 
-  Object* System::vm_exec(STATE, String* path, Array* args,
-                          CallFrame* calling_environment) {
+  class ExecCommand {
+    char* command_;
+    size_t command_size_;
+    size_t argc_;
+    char** argv_;
 
-    const char* c_path = path->c_str_null_safe(state);
-    size_t argc = args->size();
+    char* make_string(STATE, String* source) {
+      const char* src = source->c_str_null_safe(state);
+      size_t len = strnlen(src, source->byte_size());
+      char* str = new char[len + 1];
 
-    char** argv = new char*[argc + 1];
+      memcpy(str, src, len);
+      str[len] = 0;
 
-    /* execvp() requires a NULL as last element */
-    argv[argc] = NULL;
-
-    for(size_t i = 0; i < argc; i++) {
-      // POSIX guarantees that execvp does not modify the characters to which the argv
-      // pointers point, despite the argument not being declared as const char *const[].
-      argv[i] = const_cast<char*>(as<String>(args->get(state, i))->c_str_null_safe(state));
+      return str;
     }
 
-    OnStack<2> os(state, path, args);
-    // Some system (darwin) don't let execvp work if there is more
-    // than one thread running.
+  public:
+    ExecCommand(STATE, String* command)
+      : argc_(0)
+      , argv_(NULL)
+    {
+      command_ = make_string(state, command);
+      command_size_ = command->byte_size();
+    }
+
+    ExecCommand(STATE, String* command, Array* args) {
+      command_ = make_string(state, command);
+      command_size_ = command->byte_size();
+
+      argc_ = args->size();
+      argv_ = NULL;
+
+      if(argc_ > 0) {
+        argv_ = new char*[argc_ + 1];
+
+        /* execvp() requires a NULL as last element */
+        argv_[argc_] = NULL;
+
+        for(size_t i = 0; i < argc_; i++) {
+          /* POSIX guarantees that execvp does not modify the characters to
+           * which the argv pointers point, despite the argument not being
+           * declared as const char *const[].
+           */
+          argv_[i] = make_string(state, as<String>(args->get(state, i)));
+        }
+      }
+    }
+
+    ~ExecCommand() {
+      if(argc_ > 0 && argv_) {
+        for(size_t i = 0; i < argc_; i++) {
+          delete[] argv_[i];
+        }
+
+        delete[] argv_;
+      }
+
+      delete[] command_;
+    }
+
+    char* command() {
+      return command_;
+    }
+
+    size_t command_size() {
+      return command_size_;
+    }
+
+    size_t argc() {
+      return argc_;
+    }
+
+    char** argv() {
+      return argv_;
+    }
+  };
+
+  Object* System::vm_spawn(STATE, GCToken gct, Object* pstate, String* path, Array* args,
+                           CallFrame* calling_environment)
+  {
+    OnStack<1> os(state, pstate);
+
+    /* Setting up the command and arguments may raise an exception so do it
+     * before everything else.
+     */
+    ExecCommand exe(state, path, args);
+
+    {
+      // TODO: Make this guard unnecessary
+      GCIndependent guard(state, calling_environment);
+      state->shared().auxiliary_threads()->before_fork_exec(state);
+    }
+
+    int pid = -1, fds[2];
+
+    if(pipe(fds) != 0) {
+      {
+        // TODO: Make this guard unnecessary
+        GCIndependent guard(state, calling_environment);
+        state->shared().auxiliary_threads()->after_fork_exec_parent(state);
+      }
+
+      Exception::errno_error(state, "error setting up pipes", errno, "pipe(2)");
+      return NULL;
+    }
+
+    // If execvp() succeeds, we'll read EOF and know.
+    fcntl(fds[1], F_SETFD, FD_CLOEXEC);
+
+    {
+      StopTheWorld stw(state, gct, calling_environment);
+
+      pid = ::fork();
+    }
+
+    // error
+    if(pid == -1) {
+      close(fds[0]);
+      close(fds[1]);
+
+      {
+        // TODO: Make this guard unnecessary
+        GCIndependent guard(state, calling_environment);
+        state->shared().auxiliary_threads()->after_fork_exec_parent(state);
+      }
+
+      Exception::errno_error(state, "error forking", errno, "fork(2)");
+      return NULL;
+    }
+
+    if(pid == 0) {
+      close(fds[0]);
+
+      state->vm()->thread->init_lock();
+      state->shared().after_fork_exec_child(state);
+
+      // Setup ENV, redirects, groups, etc. in the child before exec().
+      pstate->send(state, calling_environment, state->symbol("setup_process"));
+
+      state->shared().auxiliary_threads()->after_fork_exec_child(state);
+
+      /* Reset all signal handlers to the defaults, so any we setup in
+       * Rubinius won't leak through. We need to use sigaction() here since
+       * signal() provides no control over SA_RESTART and can use the wrong
+       * value causing blocking I/O methods to become uninterruptable.
+       */
+      for(int i = 1; i < NSIG; i++) {
+        struct sigaction action;
+
+        action.sa_handler = SIG_DFL;
+        action.sa_flags = 0;
+        sigfillset(&action.sa_mask);
+
+        sigaction(i, &action, NULL);
+      }
+
+      if(exe.argc()) {
+        (void)::execvp(exe.command(), exe.argv());
+      } else {
+        exec_sh_fallback(state, exe.command(), exe.command_size());
+      }
+
+      /* execvp() returning means it failed. */
+      std::ostringstream command_line;
+      command_line << exe.command();
+      for(size_t i = 0; i < exe.argc(); i++) {
+        command_line << " " << exe.argv()[i];
+      }
+      utilities::logger::error("%s: spawn: exec failed: %s",
+          strerror(errno), command_line.str().c_str());
+
+      int error_no = errno;
+      write(fds[1], &error_no, sizeof(int));
+      close(fds[1]);
+
+      exit(1);
+    }
+
+    close(fds[1]);
+
+    state->shared().auxiliary_threads()->after_fork_exec_parent(state);
+
+    int error_no;
+    ssize_t size = read(fds[0], &error_no, sizeof(int));
+    close(fds[0]);
+
+    if(size != 0) {
+      Exception::errno_error(state, "execvp(2) failed", error_no);
+      return NULL;
+    }
+
+    return Fixnum::from(pid);
+  }
+
+  Object* System::vm_backtick(STATE, GCToken gct, String* str,
+                              CallFrame* calling_environment)
+  {
+#ifdef RBX_WINDOWS
+    // TODO: Windows
+    return Primitives::failure();
+#else
+    /* Setting up the command may raise an exception so do it before
+     * everything else.
+     */
+    ExecCommand exe(state, str);
+
+    {
+      // TODO: Make this guard unnecessary
+      GCIndependent guard(state, calling_environment);
+      state->shared().auxiliary_threads()->before_fork_exec(state);
+    }
+
+    int pid, errors[2], output[2];
+
+    if(pipe(errors) != 0) {
+      {
+        // TODO: Make this guard unnecessary
+        GCIndependent guard(state, calling_environment);
+        state->shared().auxiliary_threads()->after_fork_exec_parent(state);
+      }
+
+      Exception::errno_error(state, "error setting up pipes", errno, "pipe(2)");
+      return NULL;
+    }
+
+    if(pipe(output) != 0) {
+      {
+        // TODO: Make this guard unnecessary
+        GCIndependent guard(state, calling_environment);
+        state->shared().auxiliary_threads()->after_fork_exec_parent(state);
+      }
+
+      Exception::errno_error(state, "error setting up pipes", errno, "pipe(2)");
+      return NULL;
+    }
+
+    // If execvp() succeeds, we'll read EOF and know.
+    fcntl(errors[1], F_SETFD, FD_CLOEXEC);
+
+    {
+      StopTheWorld stw(state, gct, calling_environment);
+
+      pid = ::fork();
+    }
+
+    // error
+    if(pid == -1) {
+      close(errors[0]);
+      close(errors[1]);
+      close(output[0]);
+      close(output[1]);
+
+      {
+        // TODO: Make this guard unnecessary
+        GCIndependent guard(state, calling_environment);
+        state->shared().auxiliary_threads()->after_fork_exec_parent(state);
+      }
+
+      Exception::errno_error(state, "error forking", errno, "fork(2)");
+      return NULL;
+    }
+
+    if(pid == 0) {
+      state->vm()->thread->init_lock();
+      state->shared().after_fork_exec_child(state);
+
+      close(errors[0]);
+      close(output[0]);
+
+      dup2(output[1], STDOUT_FILENO);
+      close(output[1]);
+
+      state->shared().auxiliary_threads()->after_fork_exec_child(state);
+
+      /* Reset all signal handlers to the defaults, so any we setup in
+       * Rubinius won't leak through. We need to use sigaction() here since
+       * signal() provides no control over SA_RESTART and can use the wrong
+       * value causing blocking I/O methods to become uninterruptable.
+       */
+      for(int i = 1; i < NSIG; i++) {
+        struct sigaction action;
+
+        action.sa_handler = SIG_DFL;
+        action.sa_flags = 0;
+        sigfillset(&action.sa_mask);
+
+        sigaction(i, &action, NULL);
+      }
+
+      exec_sh_fallback(state, exe.command(), exe.command_size());
+
+      /* execvp() returning means it failed. */
+      utilities::logger::error("%s: backtick: exec failed: %s",
+          strerror(errno), exe.command());
+
+      int error_no = errno;
+      write(errors[1], &error_no, sizeof(int));
+      close(errors[1]);
+
+      exit(1);
+    }
+
+    close(errors[1]);
+    close(output[1]);
+
+    state->shared().auxiliary_threads()->after_fork_exec_parent(state);
+
+    int error_no;
+    ssize_t size = read(errors[0], &error_no, sizeof(int));
+    close(errors[0]);
+
+    if(size != 0) {
+      close(output[0]);
+      Exception::errno_error(state, "execvp(2) failed", error_no);
+      return NULL;
+    }
+
+    std::string buf;
+    for(;;) {
+
+      ssize_t bytes = 0;
+      char raw_buf[1024];
+      {
+        GCIndependent guard(state, calling_environment);
+        bytes = read(output[0], raw_buf, 1023);
+      }
+
+      if(bytes < 0) {
+        switch(errno) {
+          case EAGAIN:
+          case EINTR:
+            if(!state->check_async(calling_environment)) {
+              close(output[0]);
+              return NULL;
+            }
+            continue;
+          default:
+            close(output[0]);
+            Exception::errno_error(state, "reading child data", errno, "read(2)");
+        }
+      }
+
+      if(bytes == 0) {
+        break;
+      }
+      buf.append(raw_buf, bytes);
+    }
+
+    close(output[0]);
+
+    return Tuple::from(state, 2, Fixnum::from(pid),
+                       String::create(state, buf.c_str(), buf.size()));
+#endif  // RBX_WINDOWS
+  }
+
+  Object* System::vm_exec(STATE, String* path, Array* args,
+                          CallFrame* calling_environment)
+  {
+    /* Setting up the command and arguments may raise an exception so do it
+     * before everything else.
+     */
+    ExecCommand exe(state, path, args);
+
     {
       // TODO: Make this guard unnecessary
       GCIndependent guard(state, calling_environment);
       state->shared().auxiliary_threads()->before_exec(state);
     }
 
-    // TODO Need to stop and kill off any ruby threads!
-    // We haven't run into this because exec is almost always called
-    // after fork(), which pulls over just one thread anyway.
-
     void* old_handlers[NSIG];
 
-    // Reset all signal handlers to the defaults, so any we setup in Rubinius
-    // won't leak through. We need to use sigaction() here since signal()
-    // provides no control over SA_RESTART and can use the wrong value causing
-    // blocking I/O methods to become uninterruptable.
+    /* Reset all signal handlers to the defaults, so any we setup in Rubinius
+     * won't leak through. We need to use sigaction() here since signal()
+     * provides no control over SA_RESTART and can use the wrong value causing
+     * blocking I/O methods to become uninterruptable.
+     */
     for(int i = 1; i < NSIG; i++) {
       struct sigaction action;
       struct sigaction old_action;
@@ -259,10 +601,10 @@ namespace rubinius {
       old_handlers[i] = (void*)old_action.sa_handler;
     }
 
-    if(argc) {
-      (void)::execvp(c_path, argv);
+    if(exe.argc()) {
+      (void)::execvp(exe.command(), exe.argv());
     } else {
-      exec_sh_fallback(state, c_path, path->byte_size());
+      exec_sh_fallback(state, exe.command(), exe.command_size());
     }
 
     int erno = errno;
@@ -279,102 +621,11 @@ namespace rubinius {
       sigaction(i, &action, NULL);
     }
 
-    delete[] argv;
-
     state->shared().auxiliary_threads()->after_exec(state);
 
     /* execvp() returning means it failed. */
     Exception::errno_error(state, "execvp(2) failed", erno);
     return NULL;
-  }
-
-  Object* System::vm_replace(STATE, String* str,
-                             CallFrame* calling_environment)
-  {
-#ifdef RBX_WINDOWS
-    // TODO: Windows
-    return Primitives::failure();
-#else
-
-    int fds[2];
-
-    OnStack<1> os(state, str);
-
-    if(pipe(fds) != 0) {
-      Exception::errno_error(state, "error setting up pipes", errno, "pipe(2)");
-      return 0;
-    }
-
-    {
-      // TODO: Make this guard unnecessary
-      GCIndependent guard(state, calling_environment);
-      state->shared().auxiliary_threads()->before_fork(state);
-    }
-
-    const char* c_str = str->c_str_null_safe(state);
-    pid_t pid = ::fork();
-
-    // error
-    if(pid == -1) {
-      close(fds[0]);
-      close(fds[1]);
-      Exception::errno_error(state, "error forking", errno, "fork(2)");
-      return 0;
-    }
-
-    // child
-    if(pid == 0) {
-      close(fds[0]);
-      dup2(fds[1], STDOUT_FILENO);
-      close(fds[1]);
-
-      exec_sh_fallback(state, c_str, str->byte_size());
-
-      // bad news, shouldn't be here.
-      perror(c_str);
-      exit(1);
-    } else {
-      state->shared().auxiliary_threads()->after_fork_parent(state);
-    }
-
-    close(fds[1]);
-
-    std::string buf;
-    for(;;) {
-
-      ssize_t bytes = 0;
-      char raw_buf[1024];
-      {
-        GCIndependent guard(state, calling_environment);
-        bytes = read(fds[0], raw_buf, 1023);
-      }
-
-      if(bytes < 0) {
-        switch(errno) {
-          case EAGAIN:
-          case EINTR:
-            if(!state->check_async(calling_environment)) {
-              close(fds[0]);
-              return NULL;
-            }
-            continue;
-          default:
-            close(fds[0]);
-            Exception::errno_error(state, "reading child data", errno, "read(2)");
-        }
-      }
-
-      if(bytes == 0) {
-        break;
-      }
-      buf.append(raw_buf, bytes);
-    }
-
-    close(fds[0]);
-
-    return Tuple::from(state, 2, Fixnum::from(pid),
-                       String::create(state, buf.c_str(), buf.size()));
-#endif  // RBX_WINDOWS
   }
 
   Object* System::vm_wait_pid(STATE, Fixnum* pid_obj, Object* no_hang,
@@ -456,7 +707,7 @@ namespace rubinius {
     // TODO: Windows
     return force_as<Fixnum>(Primitives::failure());
 #else
-    int result = 0;
+    int pid = -1;
 
     /*
      * We have to bring all the threads to a safe point before we can
@@ -469,19 +720,23 @@ namespace rubinius {
       state->shared().auxiliary_threads()->before_fork(state);
     }
 
-    StopTheWorld stw(state, gct, calling_environment);
+    {
+      StopTheWorld stw(state, gct, calling_environment);
 
-    // ok, now fork!
-    result = ::fork();
+      // ok, now fork!
+      pid = ::fork();
+    }
 
     // We're in the child...
-    if(result == 0) {
+    if(pid == 0) {
       /*  @todo any other re-initialisation needed? */
 
       state->vm()->thread->init_lock();
-      state->shared().reinit(state);
-      state->shared().om->on_fork(state);
+      state->shared().after_fork_child(state);
       state->shared().auxiliary_threads()->after_fork_child(state);
+
+      // In the child, the PID is nil in Ruby.
+      return nil<Fixnum>();
     } else {
       {
         // TODO: Make this guard unnecessary
@@ -490,12 +745,12 @@ namespace rubinius {
       }
     }
 
-    if(result == -1) {
+    if(pid == -1) {
       Exception::errno_error(state, "fork(2) failed");
       return NULL;
     }
 
-    return Fixnum::from(result);
+    return Fixnum::from(pid);
 #endif
   }
 

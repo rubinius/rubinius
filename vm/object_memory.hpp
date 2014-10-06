@@ -227,7 +227,7 @@ namespace rubinius {
     ObjectMemory(VM* state, Configuration& config);
     ~ObjectMemory();
 
-    void on_fork(STATE);
+    void after_fork_child(STATE);
 
     Object* new_object_typed_dirty(STATE, Class* cls, size_t bytes, object_type type);
     Object* new_object_typed(STATE, Class* cls, size_t bytes, object_type type);

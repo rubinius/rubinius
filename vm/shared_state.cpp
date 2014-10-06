@@ -191,7 +191,21 @@ namespace rubinius {
     threads_.push_back(current);
   }
 
-  void SharedState::reinit(STATE) {
+  void SharedState::after_fork_exec_child(STATE) {
+    env_->set_root_vm(state->vm());
+
+    reset_threads(state);
+    lock_init(state->vm());
+    auxiliary_threads_->init();
+    world_->reinit();
+
+    om->after_fork_child(state);
+
+    state->vm()->set_run_state(ManagedThread::eIndependent);
+    gc_dependent(state, 0);
+  }
+
+  void SharedState::after_fork_child(STATE) {
     // For now, we disable inline debugging here. This makes inspecting
     // it much less confusing.
 
@@ -214,6 +228,8 @@ namespace rubinius {
     env_->start_logging();
 
     world_->reinit();
+
+    om->after_fork_child(state);
 
     state->vm()->set_run_state(ManagedThread::eIndependent);
     gc_dependent(state, 0);

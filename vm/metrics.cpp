@@ -199,6 +199,13 @@ namespace rubinius {
     {
       metrics_lock_.init();
       map_metrics();
+
+      if(!shared_.config.system_metrics_target.value.compare("statsd")) {
+        emitter_ = new StatsDEmitter(metrics_map_,
+            shared_.config.system_metrics_statsd_server.value,
+            shared_.config.system_metrics_statsd_prefix.value);
+      }
+
       shared_.auxiliary_threads()->register_thread(this);
     }
 
@@ -406,11 +413,8 @@ namespace rubinius {
     }
 
     void Metrics::start(STATE) {
-      if(!shared_.config.system_metrics_target.value.compare("statsd")) {
-        emitter_ = new StatsDEmitter(metrics_map_,
-            shared_.config.system_metrics_statsd_server.value,
-            shared_.config.system_metrics_statsd_prefix.value);
-      }
+      vm_ = NULL;
+      thread_exit_ = false;
 
       timer_ = new timer::Timer;
 
@@ -466,14 +470,6 @@ namespace rubinius {
     }
 
     void Metrics::after_exec(STATE) {
-      start_thread(state);
-    }
-
-    void Metrics::before_fork(STATE) {
-      stop_thread(state);
-    }
-
-    void Metrics::after_fork_parent(STATE) {
       start_thread(state);
     }
 

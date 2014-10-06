@@ -58,8 +58,11 @@ namespace rubinius {
     // Rubinius.primitive :vm_exec
     static Object*  vm_exec(STATE, String* path, Array* args, CallFrame* calling_environment);
 
-    // Rubinius.primitive :vm_replace
-    static Object*  vm_replace(STATE, String* str, CallFrame* calling_environment);
+    // Rubinius.primitive :vm_spawn
+    static Object*  vm_spawn(STATE, GCToken gct, Object* pstate, String* path, Array* args, CallFrame* calling_environment);
+
+    // Rubinius.primitive :vm_backtick
+    static Object*  vm_backtick(STATE, GCToken gct, String* str, CallFrame* calling_environment);
 
     // Rubinius.primitive :vm_wait_pid
     static Object*  vm_wait_pid(STATE, Fixnum* pid, Object* no_hang, CallFrame* calling_environment);

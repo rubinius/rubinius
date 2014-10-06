@@ -413,8 +413,6 @@ namespace rubinius {
       void shutdown(STATE);
       void before_exec(STATE);
       void after_exec(STATE);
-      void before_fork(STATE);
-      void after_fork_parent(STATE);
       void after_fork_child(STATE);
 
       void process_metrics(STATE);

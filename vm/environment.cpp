@@ -495,6 +495,8 @@ namespace rubinius {
 
   void Environment::remove_fsapi(STATE) {
     if(rmdir(shared->fsapi_path.c_str()) < 0) {
+      std::cerr << "environment: remove_fsapi: error" << std::endl;
+      sleep(60);
       utilities::logger::error("%s: unable to remove FSAPI path", strerror(errno));
     }
   }

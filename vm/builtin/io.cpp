@@ -1421,13 +1421,13 @@ failed: /* try next '*' position */
   }
 
   Object* IOBuffer::fill(STATE, IO* io, CallFrame* calling_environment) {
-    ssize_t bytes_read;
+    ssize_t bytes_read = 0;
     native_int fd = io->descriptor()->to_native();
 
     IOBuffer* self = this;
     OnStack<1> os(state, self);
 
-    char temp_buffer[STACK_BUF_SZ];
+    char temp_buffer[STACK_BUF_SZ] = { 0 };
     size_t count = STACK_BUF_SZ;
 
     if(self->left() < count) count = self->left();

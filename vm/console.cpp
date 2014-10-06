@@ -55,13 +55,16 @@ namespace rubinius {
       , response_fd_(-1)
       , request_exit_(false)
       , response_exit_(false)
-      , request_list_(0)
+      , request_list_(NULL)
     {
       shared_.auxiliary_threads()->register_thread(this);
     }
 
     Console::~Console() {
       shared_.auxiliary_threads()->unregister_thread(this);
+
+      delete request_list_;
+      request_list_ = NULL;
     }
 
     void Console::wakeup() {
@@ -73,7 +76,7 @@ namespace rubinius {
       }
     }
 
-    void Console::cleanup(bool remove_files) {
+    void Console::close_files(bool remove_files) {
       if(request_fd_ > 0) {
         close(request_fd_);
         if(remove_files) unlink(request_path_.c_str());
@@ -85,7 +88,9 @@ namespace rubinius {
         if(remove_files) unlink(response_path_.c_str());
         response_fd_ = -1;
       }
+    }
 
+    void Console::empty_request_list() {
       if(request_list_) {
         for(RequestList::const_iterator i = request_list_->begin();
             i != request_list_->end();
@@ -93,13 +98,13 @@ namespace rubinius {
         {
           delete[] *i;
         }
-
-        delete request_list_;
-        request_list_ = NULL;
       }
     }
 
     void Console::initialize(STATE) {
+      request_vm_ = NULL;
+      response_vm_ = NULL;
+
       request_exit_ = false;
       response_exit_ = false;
 
@@ -125,7 +130,7 @@ namespace rubinius {
     }
 
     static int open_file(std::string path) {
-      int fd = ::open(path.c_str(), O_CREAT | O_TRUNC | O_RDWR | O_SYNC, 0666);
+      int fd = ::open(path.c_str(), O_CREAT | O_TRUNC | O_RDWR | O_SYNC | O_CLOEXEC, 0666);
 
       if(fd < 0) {
         logger::error("%s: console: unable to open: %s", strerror(errno), path.c_str());
@@ -215,12 +220,13 @@ namespace rubinius {
 
     void Console::shutdown(STATE) {
       stop_threads(state);
-      cleanup(true);
+      close_files(true);
+      empty_request_list();
     }
 
     void Console::before_exec(STATE) {
       stop_threads(state);
-      cleanup(true);
+      close_files(true);
     }
 
     void Console::after_exec(STATE) {
@@ -228,26 +234,10 @@ namespace rubinius {
       start_threads(state);
     }
 
-    void Console::before_fork(STATE) {
-      stop_threads(state);
-    }
-
-    void Console::after_fork_parent(STATE) {
-      start_threads(state);
-    }
-
     void Console::after_fork_child(STATE) {
-      if(request_vm_) {
-        VM::discard(state, request_vm_);
-        request_vm_ = NULL;
-      }
+      close_files(false);
+      empty_request_list();
 
-      if(response_vm_) {
-        VM::discard(state, response_vm_);
-        response_vm_ = NULL;
-      }
-
-      cleanup(false);
       start(state);
     }
 
