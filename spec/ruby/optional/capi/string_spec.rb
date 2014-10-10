@@ -388,6 +388,19 @@ describe "C-API String function" do
       str.should == "NEW CONTENT"
       ret.should == str
     end
+
+    it "returns a pointer to the contents of enocded pointer-sized string" do
+      s = "70パク".
+        encode(Encoding::UTF_16LE).
+        force_encoding(Encoding::UTF_16LE).
+        encode(Encoding::UTF_8)
+
+      chars = []
+      @s.RSTRING_PTR_iterate(s) do |c|
+        chars << c
+      end
+      chars.should == [55, 48, 227, 131, 145, 227, 130, 175]
+    end
   end
 
   describe "RSTRING_LEN" do
