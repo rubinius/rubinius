@@ -56,6 +56,7 @@
 #include <stdlib.h>
 #include <sys/param.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 
 #include "missing/setproctitle.h"
 
@@ -490,7 +491,14 @@ namespace rubinius {
   }
 
   void Environment::create_fsapi(STATE) {
-    mkdir(shared->fsapi_path.c_str(), 0755);
+    if(mkdir(shared->fsapi_path.c_str(), 0755) < 0) {
+      utilities::logger::error("%s: unable to create FSAPI path", strerror(errno));
+    }
+
+    // The umask setting will override our permissions for mkdir().
+    if(chmod(shared->fsapi_path.c_str(), 0755) < 0) {
+      utilities::logger::error("%s: unable to set mode for FSAPI path", strerror(errno));
+    }
   }
 
   void Environment::remove_fsapi(STATE) {
