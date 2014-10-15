@@ -860,11 +860,16 @@ namespace rubinius {
       if(RespondToCache* rct = try_as<RespondToCache>(existing)) {
         existing = rct->fallback_call_site();
       }
-      RespondToCache* cache = RespondToCache::create(state, existing,
-                                self, name, priv, responds, 1);
-      state->vm()->global_cache()->add_seen(state, name);
-      atomic::memory_barrier();
-      existing->update_call_site(state, cache);
+
+      SingletonClass* cls = try_as<SingletonClass>(self->direct_class(state));
+
+      if(!cls || try_as<Class>(cls->attached_instance())) {
+        RespondToCache* cache = RespondToCache::create(state, existing,
+                                  self, name, priv, responds, 1);
+        state->vm()->global_cache()->add_seen(state, name);
+        atomic::memory_barrier();
+        existing->update_call_site(state, cache);
+      }
     }
 
     return responds;
