@@ -12,7 +12,6 @@ end
 #
 class MSpecMain
   def custom_options(options)
-    options.agent
   end
 end
 
