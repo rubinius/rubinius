@@ -57,6 +57,7 @@
 #include <sys/param.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <pwd.h>
 
 #include "missing/setproctitle.h"
 
@@ -311,6 +312,7 @@ namespace rubinius {
 
   void Environment::set_fsapi_path() {
     std::ostringstream path;
+    struct passwd *user_passwd = getpwuid(getuid());
 
     if(!config.system_fsapi_path.value.compare("$TMPDIR")) {
       path << config.system_tmp.value;
@@ -321,7 +323,8 @@ namespace rubinius {
       if(cpath[cpath.size() - 1] != '/') path << "/";
     }
 
-    path << "rbx-" << getlogin() << "-" << getpid();
+    path << "rbx-" << user_passwd->pw_name << "-" << getpid();
+
     shared->fsapi_path.assign(path.str());
 
     create_fsapi(state);
