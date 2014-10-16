@@ -121,20 +121,6 @@ Rubinius::ConfigurationVariables.define do |c|
       "Enable optimizations based on type flow"
   end
 
-  c.section "agent" do |s|
-    s.vm_variable "start", 0,
-      "Start the QueryAgent on a TCP port. Default port is a random port"
-
-    s.vm_variable "verbose", false,
-      "Whether or not the query agent should print out status to stderr"
-
-    s.vm_variable "tmpdir", :string,
-      "Where to store files used to discover running query agents"
-
-    s.vm_variable "password", :string,
-      "The password required to connect to the agent"
-  end
-
   c.section "fiber" do |s|
     s.vm_variable "stacks", 10,
       "The number of stacks in each Threads stack pool"
