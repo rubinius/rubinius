@@ -455,6 +455,8 @@ namespace rubinius {
   }
 
   Object* Module::track_subclass(STATE, Module* mod) {
+    if(try_as<SingletonClass>(mod)) return cNil;
+
     if(hierarchy_subclasses_->nil_p()) {
       hierarchy_subclasses(state, Array::create(state, 4));
     }
