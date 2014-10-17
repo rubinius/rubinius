@@ -547,6 +547,7 @@ namespace rubinius {
     add_sym(call);
     add_sym(coerce_to_array);
     add_sym(to_ary);
+    add_sym(to_hash);
 #undef add_sym
     GO(sym_respond_to_missing).set(state->symbol("respond_to_missing?"));
     GO(sym_s_method_added).set(state->symbol("singleton_method_added"));
