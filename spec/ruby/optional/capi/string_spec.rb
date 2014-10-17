@@ -63,7 +63,7 @@ describe "C-API String function" do
       str.should == "abcde"
     end
 
-    it "returns a string that can be concatentated to another string" do
+    it "returns a string that can be concatenated to another string" do
       str = @s.rb_str_buf_new(10, "defg")
       ("abcde" + str).should == "abcde"
     end
