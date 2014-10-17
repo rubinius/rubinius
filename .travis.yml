@@ -32,4 +32,3 @@ env:
   - RVM=2.0.0 LANG="en_US.UTF-8"
 os:
   - linux
-  - osx
