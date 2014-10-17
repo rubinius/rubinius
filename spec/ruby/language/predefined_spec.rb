@@ -983,7 +983,6 @@ describe "Processing RUBYOPT" do
   end
 
   it "prints the version number for '-v'" do
-    ENV["RBXOPT"] = '-X19'
     ENV["RUBYOPT"] = '-v'
     ruby_exe("").chomp.should == RUBY_DESCRIPTION
   end
