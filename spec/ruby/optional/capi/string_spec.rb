@@ -389,7 +389,7 @@ describe "C-API String function" do
       ret.should == str
     end
 
-    it "returns a pointer to the contents of enocded pointer-sized string" do
+    it "returns a pointer to the contents of encoded pointer-sized string" do
       s = "70パク".
         encode(Encoding::UTF_16LE).
         force_encoding(Encoding::UTF_16LE).
