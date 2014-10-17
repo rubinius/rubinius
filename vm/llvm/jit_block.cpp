@@ -267,7 +267,7 @@ namespace jit {
 
       b().SetInsertPoint(destruct);
 
-      Signature sig(ctx_, "Object");
+      Signature sig(ctx_, ctx_->Int32Ty);
       sig << "State";
       sig << "CallFrame";
       sig << "Arguments";
@@ -280,13 +280,18 @@ namespace jit {
 
       Value* val = sig.call("rbx_destructure_args", call_args, 3, "", b());
 
-      Value* null = Constant::getNullValue(val->getType());
-      Value* is_null = b().CreateICmpEQ(val, null);
+      Value* is_error = b().CreateICmpEQ(val, cint(-1));
 
-      info_.add_return_value(null, b().GetInsertBlock());
-      b().CreateCondBr(is_null, info_.return_pad(), destruct_cont);
+      info_.add_return_value(Constant::getNullValue(obj_type), b().GetInsertBlock());
+      b().CreateCondBr(is_error, info_.return_pad(), destruct_cont);
 
       b().SetInsertPoint(destruct_cont);
+      Value* idx[] = {
+        cint(0),
+        cint(offset::Arguments::total),
+      };
+
+      b().CreateStore(val, b().CreateGEP(info_.args(), idx));
     }
 
     b().CreateBr(n_lt_m);
