@@ -528,7 +528,9 @@ namespace rubinius {
           }
 
           if(state->shared().llvm_state) {
-            metrics_collection_.add(state->shared().llvm_state->vm()->metrics());
+            if(VM* vm = state->shared().llvm_state->vm()) {
+              metrics_collection_.add(vm->metrics());
+            }
           }
 
           metrics_collection_.add(&metrics_history_);

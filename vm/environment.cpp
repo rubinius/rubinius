@@ -100,7 +100,7 @@ namespace rubinius {
     root_vm->metrics()->init(metrics::eRubyMetrics);
     state = new State(root_vm);
 
-    start_logging();
+    start_logging(state);
   }
 
   Environment::~Environment() {
@@ -134,7 +134,7 @@ namespace rubinius {
     std::set_terminate(cpp_exception_bug);
   }
 
-  void Environment::start_jit() {
+  void Environment::start_jit(STATE) {
     utilities::thread::SpinLock::LockGuard lg(state->shared().llvm_state_lock());
 
     if(!state->shared().llvm_state) {
@@ -142,16 +142,24 @@ namespace rubinius {
     }
   }
 
-  void Environment::start_signals() {
+  void Environment::stop_jit(STATE) {
+    utilities::thread::SpinLock::LockGuard lg(state->shared().llvm_state_lock());
+
+    if(state->shared().llvm_state) {
+      state->shared().llvm_state->shutdown(state);
+    }
+  }
+
+  void Environment::start_signals(STATE) {
     state->vm()->set_run_signals(true);
     signal_handler_ = new SignalHandler(state, config);
   }
 
-  void Environment::start_finalizer() {
+  void Environment::start_finalizer(STATE) {
     finalizer_handler_ = new FinalizerHandler(state);
   }
 
-  void Environment::start_logging() {
+  void Environment::start_logging(STATE) {
     utilities::logger::logger_level level = utilities::logger::eWarn;
 
     if(!config.system_log_level.value.compare("fatal")) {
@@ -522,6 +530,8 @@ namespace rubinius {
   void Environment::halt(STATE) {
     state->shared().tool_broker()->shutdown(state);
 
+    stop_jit(state);
+
     GCTokenImpl gct;
 
     root_vm->set_call_frame(0);
@@ -780,16 +790,16 @@ namespace rubinius {
 
     load_platform_conf(runtime);
     boot_vm();
-    start_finalizer();
+    start_finalizer(state);
 
     load_argv(argc_, argv_);
 
-    start_signals();
+    start_signals(state);
     state->vm()->initialize_config();
 
     load_tool();
 
-    start_jit();
+    start_jit(state);
 
     G(rubinius)->set_const(state, "Signature", Integer::from(state, signature_));
 

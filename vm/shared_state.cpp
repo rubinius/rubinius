@@ -225,7 +225,7 @@ namespace rubinius {
     auxiliary_threads_->init();
 
     env_->set_fsapi_path();
-    env_->start_logging();
+    env_->start_logging(state);
 
     world_->reinit();
 

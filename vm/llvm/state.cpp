@@ -225,7 +225,8 @@ namespace rubinius {
     }
   }
 
-  void LLVMState::shutdown(STATE) {
+  void LLVMState::stop(STATE) {
+    enabled_ = false;
     stop_thread(state);
   }
 

@@ -287,11 +287,11 @@ namespace rubinius {
     void reset_compile_state(STATE);
 
     void perform(STATE);
+    void stop(STATE);
 
     void start_thread(STATE);
     void stop_thread(STATE);
 
-    void shutdown(STATE);
     void before_exec(STATE);
     void after_exec(STATE);
     void before_fork(STATE);
