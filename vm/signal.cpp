@@ -1,5 +1,7 @@
 #include "config.h"
 #include "vm.hpp"
+#include "call_frame.hpp"
+#include "environment.hpp"
 #include "signal.hpp"
 #include "configuration.hpp"
 
@@ -7,8 +9,11 @@
 #include "builtin/array.hpp"
 
 #include "builtin/array.hpp"
-#include "builtin/module.hpp"
 #include "builtin/class.hpp"
+#include "builtin/constant_scope.hpp"
+#include "builtin/module.hpp"
+#include "builtin/native_method.hpp"
+#include "builtin/string.hpp"
 #include "builtin/thread.hpp"
 
 #include <string>
@@ -283,6 +288,97 @@ namespace rubinius {
     return true;
   }
 
+  void SignalHandler::print_backtraces() {
+    STATE = shared_.env()->state;
+    ThreadList* threads = shared_.threads();
+
+    for(ThreadList::iterator i = threads->begin(); i != threads->end(); ++i) {
+      VM* vm = (*i)->as_vm();
+      if(!vm) continue;
+
+      if(vm->saved_call_frame()) {
+        utilities::logger::fatal("--- Thread %d backtrace ---", vm->thread_id());
+      }
+
+      for(CallFrame* frame = vm->saved_call_frame(); frame; frame = frame->previous) {
+        std::ostringstream stream;
+
+        if(NativeMethodFrame* nmf = frame->native_method_frame()) {
+          stream << static_cast<void*>(frame) << ": ";
+          NativeMethod* nm = try_as<NativeMethod>(nmf->get_object(nmf->method()));
+          if(nm && nm->name()->symbol_p()) {
+            stream << "capi:" << nm->name()->debug_str(state) << " at ";
+            stream << nm->file()->c_str(state);
+          } else {
+            stream << "unknown capi";
+          }
+        } else if(frame->compiled_code) {
+          if(frame->is_block_p(state)) {
+            stream << "__block__";
+          } else {
+            if(SingletonClass* sc = try_as<SingletonClass>(frame->module())) {
+              Object* obj = sc->attached_instance();
+
+              if(Module* mod = try_as<Module>(obj)) {
+                stream << mod->debug_str(state) << ".";
+              } else {
+                if(obj == G(main)) {
+                  stream << "MAIN.";
+                } else {
+                  stream << "#<" << obj->class_object(state)->debug_str(state) <<
+                            ":" << (void*)obj->id(state)->to_native() << ">.";
+                }
+              }
+            } else if(IncludedModule* im = try_as<IncludedModule>(frame->module())) {
+              stream <<  im->module()->debug_str(state) << "#";
+            } else {
+              Symbol* name;
+              std::string mod_name;
+
+              if(frame->module()->nil_p()) {
+                mod_name = frame->constant_scope()->module()->debug_str(state);
+              } else {
+                if((name = try_as<Symbol>(frame->module()->module_name()))) {
+                  mod_name = name->debug_str(state);
+                } else if((name = try_as<Symbol>(
+                          frame->constant_scope()->module()->module_name()))) {
+                  mod_name = name->debug_str(state);
+                } else {
+                  mod_name = "<anonymous module>";
+                }
+              }
+              stream << mod_name << "#";
+            }
+
+            Symbol* name = try_as<Symbol>(frame->name());
+            if(name) {
+              stream << name->debug_str(state);
+            } else {
+              stream << frame->compiled_code->name()->debug_str(state);
+            }
+          }
+
+          stream << " in ";
+          if(Symbol* file_sym = try_as<Symbol>(frame->compiled_code->file())) {
+            stream << file_sym->debug_str(state) << ":" << frame->line(state);
+          } else {
+            stream << "<unknown>";
+          }
+
+          stream << " (+" << frame->ip();
+          if(frame->is_inline_frame()) {
+            stream << " inline";
+          } else if(frame->jitted_p()) {
+            stream << " jit";
+          }
+          stream << ")";
+        }
+
+        utilities::logger::fatal(stream.str().c_str());
+      }
+    }
+  }
+
   static void null_func(int sig) {}
 
 #ifdef USE_EXECINFO
@@ -332,12 +428,6 @@ namespace rubinius {
 
     logger::fatal("The Rubinius process is aborting with signal: %s",
                   rbx_signal_string(sig));
-    logger::fatal("--- begin system backtrace ---");
-    for(i = 0; i < frames; i++) {
-      logger::fatal("%s", symbols[i]);
-    }
-    logger::fatal("--- end system backtrace ---");
-
     logger::fatal("--- begin system info ---");
     logger::fatal("sysname: %s", machine_info.sysname);
     logger::fatal("nodename: %s", machine_info.nodename);
@@ -345,6 +435,16 @@ namespace rubinius {
     logger::fatal("version: %s", machine_info.version);
     logger::fatal("machine: %s", machine_info.machine);
     logger::fatal("--- end system info ---");
+
+    logger::fatal("--- begin system backtrace ---");
+    for(i = 0; i < frames; i++) {
+      logger::fatal("%s", symbols[i]);
+    }
+    logger::fatal("--- end system backtrace ---");
+
+    logger::fatal("--- begin Ruby backtraces ---");
+    signal_handler_->print_backtraces();
+    logger::fatal("--- end Ruby backtraces ---");
 
     raise(sig);
   }

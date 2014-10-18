@@ -56,6 +56,8 @@ namespace rubinius {
 
     bool deliver_signals(STATE, CallFrame* call_frame);
 
+    void print_backtraces();
+
     void open_pipes();
     void start_thread(STATE);
     void stop_thread(STATE);
