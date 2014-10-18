@@ -502,12 +502,12 @@ namespace rubinius {
   }
 
   void Environment::create_fsapi(STATE) {
-    if(mkdir(shared->fsapi_path.c_str(), 0755) < 0) {
+    if(mkdir(shared->fsapi_path.c_str(), shared->config.system_fsapi_access) < 0) {
       utilities::logger::error("%s: unable to create FSAPI path", strerror(errno));
     }
 
     // The umask setting will override our permissions for mkdir().
-    if(chmod(shared->fsapi_path.c_str(), 0755) < 0) {
+    if(chmod(shared->fsapi_path.c_str(), shared->config.system_fsapi_access) < 0) {
       utilities::logger::error("%s: unable to set mode for FSAPI path", strerror(errno));
     }
   }

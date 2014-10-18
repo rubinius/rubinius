@@ -16,6 +16,8 @@
 
 #include <fcntl.h>
 #include <sys/file.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include <stdio.h>
 
@@ -129,19 +131,25 @@ namespace rubinius {
           String::create(state, response_path_.c_str()));
     }
 
-    static int open_file(std::string path) {
-      int fd = ::open(path.c_str(), O_CREAT | O_TRUNC | O_RDWR | O_SYNC | O_CLOEXEC, 0666);
+    static int open_file(STATE, std::string path) {
+      int perms = state->shared().config.system_console_access;
+      int fd = ::open(path.c_str(), O_CREAT | O_TRUNC | O_RDWR | O_SYNC | O_CLOEXEC, perms);
 
       if(fd < 0) {
         logger::error("%s: console: unable to open: %s", strerror(errno), path.c_str());
+      }
+
+      // The umask setting will override our permissions for open().
+      if(chmod(path.c_str(), perms) < 0) {
+        logger::error("%s: console: unable to set mode: %s", strerror(errno), path.c_str());
       }
 
       return fd;
     }
 
     void Console::setup_files(STATE) {
-      request_fd_ = open_file(request_path_);
-      response_fd_ = open_file(response_path_);
+      request_fd_ = open_file(state, request_path_);
+      response_fd_ = open_file(state, response_path_);
 
       FSEvent* fsevent = FSEvent::create(state);
       fsevent->watch_file(state, request_fd_, request_path_.c_str());

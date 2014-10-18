@@ -167,25 +167,33 @@ Rubinius::ConfigurationVariables.define do |c|
   c.vm_variable "system.tmp", "$TMPDIR",
     "Default temp/fallback directory for the process"
 
-  c.vm_variable "system.fsapi_path", "$TMPDIR",
-    "Base directory of the Rubinius File System API files"
+  c.section "system" do |s|
+    s.vm_variable "fsapi.path", "$TMPDIR",
+      "Base directory of the Rubinius File System API files"
 
-  c.vm_variable "system.log", "/var/log/$PROGRAM_NAME.log",
-    "Logging facility to use: 'syslog', 'console', or path"
+    s.vm_variable "fsapi.access", 0750,
+      "Permissions on the Rubinius File System API directory"
 
-  c.vm_variable "system.log.level", "warn",
-    "Logging level: fatal, error, warn, info, debug"
+    s.vm_variable "console.access", 0660,
+      "Permissions on the Rubinius Console files"
 
-  c.vm_variable "system.metrics.interval", 10000,
-    "Number of milliseconds between aggregation of VM metrics"
+    s.vm_variable "log", "/var/log/$PROGRAM_NAME.log",
+      "Logging facility to use: 'syslog', 'console', or path"
 
-  c.vm_variable "system.metrics.target", "none",
-    "Location to send metrics every interval: 'statsd', 'disk'"
+    s.vm_variable "log.level", "warn",
+      "Logging level: fatal, error, warn, info, debug"
 
-  c.vm_variable "system.metrics.statsd.server", "localhost:8125",
-    "The [host:]port of the StatsD server"
+    s.vm_variable "metrics.interval", 10000,
+      "Number of milliseconds between aggregation of VM metrics"
 
-  c.vm_variable "system.metrics.statsd.prefix", "host.$nodename.app.rbx",
-    "Prefix for StatsD metric names"
+    s.vm_variable "metrics.target", "none",
+      "Location to send metrics every interval: 'statsd', 'disk'"
+
+    s.vm_variable "metrics.statsd.server", "localhost:8125",
+      "The [host:]port of the StatsD server"
+
+    s.vm_variable "metrics.statsd.prefix", "host.$nodename.app.rbx",
+      "Prefix for StatsD metric names"
+  end
 end
 
