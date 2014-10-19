@@ -13,6 +13,7 @@
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/iseq.hpp"
+#include "builtin/jit.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/class.hpp"
@@ -749,9 +750,9 @@ namespace rubinius {
       // for this method.
       if(mcode->call_count >= 0) {
         if(mcode->call_count >= state->shared().config.jit_call_til_compile) {
-          LLVMState* ls = state->shared().llvm_state;
           OnStack<3> os(state, exec, mod, code);
-          ls->compile_callframe(state, gct, code, frame);
+
+          G(jit)->compile_callframe(state, code, frame);
         } else {
           mcode->call_count++;
         }
@@ -851,8 +852,7 @@ namespace rubinius {
                             bool disable)
   {
 #ifdef ENABLE_LLVM
-    LLVMState* ls = state->shared().llvm_state;
-    ls->start_method_update();
+    G(jit)->start_method_update(state);
 
     bool still_others = false;
 
@@ -903,7 +903,7 @@ namespace rubinius {
       if(!found) rubinius::bug("no specializations!");
     }
 
-    ls->end_method_update();
+    G(jit)->end_method_update(state);
 #endif
   }
 

@@ -137,6 +137,8 @@ namespace rubinius {
   void Environment::start_jit(STATE) {
     utilities::thread::SpinLock::LockGuard lg(state->shared().llvm_state_lock());
 
+    if(state->shared().config.jit_disabled) return;
+
     if(!state->shared().llvm_state) {
       state->shared().llvm_state = new LLVMState(state);
     }
@@ -145,8 +147,10 @@ namespace rubinius {
   void Environment::stop_jit(STATE) {
     utilities::thread::SpinLock::LockGuard lg(state->shared().llvm_state_lock());
 
+    if(state->shared().config.jit_disabled) return;
+
     if(state->shared().llvm_state) {
-      state->shared().llvm_state->shutdown(state);
+      state->shared().llvm_state->stop(state);
     }
   }
 

@@ -20,8 +20,54 @@ namespace rubinius {
   }
 
   Object* JIT::enable(STATE) {
+    if(!CBOOL(enabled())) return cFalse;
+
     state->shared().llvm_state->enable(state);
     enabled(state, cTrue);
+
+    return cTrue;
+  }
+
+  Object* JIT::compile_soon(STATE, CompiledCode* code, CallFrame* call_frame,
+      Class* receiver_class, BlockEnvironment* block_env, bool is_block)
+  {
+    if(!CBOOL(enabled())) return cFalse;
+
+    GCTokenImpl gct;
+
+    LLVMState* ls = state->shared().llvm_state;
+    ls->compile_soon(state, gct, code, call_frame, receiver_class, block_env, is_block);
+
+    return cTrue;
+  }
+
+  Object* JIT::compile_callframe(STATE, CompiledCode* code, CallFrame* call_frame,
+      int primitive)
+  {
+    if(!CBOOL(enabled())) return cFalse;
+
+    GCTokenImpl gct;
+
+    LLVMState* ls = state->shared().llvm_state;
+    ls->compile_callframe(state, gct, code, call_frame, primitive);
+
+    return cTrue;
+  }
+
+  Object* JIT::start_method_update(STATE) {
+    if(!CBOOL(enabled())) return cFalse;
+
+    LLVMState* ls = state->shared().llvm_state;
+    ls->start_method_update();
+
+    return cTrue;
+  }
+
+  Object* JIT::end_method_update(STATE) {
+    if(!CBOOL(enabled())) return cFalse;
+
+    LLVMState* ls = state->shared().llvm_state;
+    ls->end_method_update();
 
     return cTrue;
   }

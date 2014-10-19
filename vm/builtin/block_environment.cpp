@@ -5,6 +5,7 @@
 #include "builtin/constant_scope.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
+#include "builtin/jit.hpp"
 #include "builtin/location.hpp"
 #include "builtin/native_method.hpp"
 #include "builtin/object.hpp"
@@ -395,13 +396,10 @@ namespace rubinius {
 #ifdef ENABLE_LLVM
     if(mcode->call_count >= 0) {
       if(mcode->call_count >= state->shared().config.jit_call_til_compile) {
-        LLVMState* ls = state->shared().llvm_state;
-
-        GCTokenImpl gct;
         OnStack<1> os(state, env);
-        ls->compile_soon(state, gct, env->compiled_code(), previous,
-                         invocation.self->direct_class(state), env, true);
 
+        G(jit)->compile_soon(state, env->compiled_code(), previous,
+            invocation.self->direct_class(state), env, true);
       } else {
         mcode->call_count++;
       }

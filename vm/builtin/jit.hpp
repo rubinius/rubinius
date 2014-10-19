@@ -115,6 +115,13 @@ namespace rubinius {
 
     Object* enable(STATE);
 
+    Object* compile_soon(STATE, CompiledCode* code, CallFrame* call_frame,
+        Class* receiver_class, BlockEnvironment* block_env=NULL, bool is_block=false);
+    Object* compile_callframe(STATE, CompiledCode* code, CallFrame* call_frame,
+        int primitive=-1);
+    Object* start_method_update(STATE);
+    Object* end_method_update(STATE);
+
     class Info : public Module::Info {
     public:
       BASIC_TYPEINFO(Module::Info)

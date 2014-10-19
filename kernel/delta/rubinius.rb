@@ -218,7 +218,7 @@ module Rubinius
   def self.version
     extra = ""
 
-    if jit = Rubinius::JIT.properties
+    if Rubinius::JIT.enabled? and jit = Rubinius::JIT.properties
       extra << "J"
 
       if jit.include? :inline_generic

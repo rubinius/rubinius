@@ -238,14 +238,6 @@ namespace rubinius {
     start_thread(state);
   }
 
-  void LLVMState::before_fork(STATE) {
-    stop_thread(state);
-  }
-
-  void LLVMState::after_fork_parent(STATE) {
-    start_thread(state);
-  }
-
   void LLVMState::after_fork_child(STATE) {
     reset_compile_state(state);
     start_thread(state);

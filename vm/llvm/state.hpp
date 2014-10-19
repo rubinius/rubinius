@@ -294,8 +294,6 @@ namespace rubinius {
 
     void before_exec(STATE);
     void after_exec(STATE);
-    void before_fork(STATE);
-    void after_fork_parent(STATE);
     void after_fork_child(STATE);
 
     void gc_scan(GarbageCollector* gc);
