@@ -216,7 +216,7 @@ class Gem::Dependency
   # NOTE:  Unlike #matches_spec? this method does not return true when the
   # version is a prerelease version unless this is a prerelease dependency.
 
-  def match? obj, version=nil
+  def match? obj, version=nil, allow_prerelease=false
     if !version
       name = obj.name
       version = obj.version
@@ -229,7 +229,9 @@ class Gem::Dependency
     version = Gem::Version.new version
 
     return true if requirement.none? and not version.prerelease?
-    return false if version.prerelease? and not prerelease?
+    return false if version.prerelease? and
+                    not allow_prerelease and
+                    not prerelease?
 
     requirement.satisfied_by? version
   end
@@ -321,6 +323,12 @@ class Gem::Dependency
   def to_spec
     matches = self.to_specs
 
-    matches.find { |spec| spec.activated? } or matches.last
+    active = matches.find { |spec| spec.activated? }
+
+    return active if active
+
+    matches.delete_if { |spec| spec.version.prerelease? } unless prerelease?
+
+    matches.last
   end
 end
