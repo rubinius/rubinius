@@ -465,16 +465,14 @@ namespace rubinius {
       stop_thread(state);
     }
 
-    void Metrics::before_exec(STATE) {
-      stop_thread(state);
-    }
-
-    void Metrics::after_exec(STATE) {
-      start_thread(state);
-    }
-
     void Metrics::after_fork_child(STATE) {
       metrics_lock_.init();
+
+      if(vm_) {
+        VM::discard(state, vm_);
+        vm_ = NULL;
+      }
+
       start(state);
       if(emitter_) emitter_->reinit();
     }

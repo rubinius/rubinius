@@ -707,10 +707,6 @@ step1:
     }
   }
 
-  void ObjectMemory::wait_for_mature_marker(STATE) {
-    immix_->wait_for_marker(state);
-  }
-
   immix::MarkStack& ObjectMemory::mature_mark_stack() {
     return immix_->mark_stack();
   }

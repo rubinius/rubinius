@@ -61,9 +61,8 @@ namespace rubinius {
     : AuxiliaryThread()
     , shared_(state->shared())
     , target_(state->vm())
-    , self_(NULL)
+    , vm_(NULL)
     , queued_signals_(0)
-    , paused_(false)
     , exit_(false)
     , thread_(state)
   {
@@ -89,26 +88,24 @@ namespace rubinius {
   void SignalHandler::initialize(STATE) {
     worker_lock_.init();
     worker_cond_.init();
-    pause_cond_.init();
   }
 
   void SignalHandler::start_thread(STATE) {
     SYNC(state);
-    if(self_) return;
+    if(vm_) return;
     utilities::thread::Mutex::LockGuard lg(worker_lock_);
-    self_ = state->shared().new_vm();
-    self_->metrics()->init(metrics::eRubyMetrics);
-    paused_ = false;
+    vm_ = state->shared().new_vm();
+    vm_->metrics()->init(metrics::eRubyMetrics);
     exit_ = false;
-    thread_.set(Thread::create(state, self_, G(thread), signal_handler_tramp, true));
+    thread_.set(Thread::create(state, vm_, G(thread), signal_handler_tramp, true));
     run(state);
   }
 
   void SignalHandler::stop_thread(STATE) {
     SYNC(state);
-    if(!self_) return;
+    if(!vm_) return;
 
-    pthread_t os = self_->os_thread();
+    pthread_t os = vm_->os_thread();
     {
       utilities::thread::Mutex::LockGuard lg(worker_lock_);
       // Thread might have already been stopped
@@ -118,7 +115,7 @@ namespace rubinius {
 
     void* return_value;
     pthread_join(os, &return_value);
-    self_ = NULL;
+    vm_ = NULL;
   }
 
   void SignalHandler::shutdown(STATE) {
@@ -132,32 +129,12 @@ namespace rubinius {
     stop_thread(state);
   }
 
-  void SignalHandler::before_exec(STATE) {
-    stop_thread(state);
-  }
-
-  void SignalHandler::after_exec(STATE) {
-    start_thread(state);
-  }
-
-  void SignalHandler::before_fork(STATE) {
-    utilities::thread::Mutex::LockGuard lg(worker_lock_);
-    while(!paused_ && self_->run_state() == ManagedThread::eRunning) {
-      pause_cond_.wait(worker_lock_);
-    }
-  }
-
-  void SignalHandler::after_fork_parent(STATE) {
-    utilities::thread::Mutex::LockGuard lg(worker_lock_);
-    pause_cond_.signal();
-  }
-
   void SignalHandler::after_fork_child(STATE) {
     initialize(state);
 
-    if(self_) {
-      VM::discard(state, self_);
-      self_ = NULL;
+    if(vm_) {
+      VM::discard(state, vm_);
+      vm_ = NULL;
     }
 
     start_thread(state);
@@ -177,7 +154,7 @@ namespace rubinius {
 
     GCTokenImpl gct;
     RBX_DTRACE_CONST char* thread_name = const_cast<RBX_DTRACE_CONST char*>("rbx.signal");
-    self_->set_name(thread_name);
+    vm_->set_name(thread_name);
 
     RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CONST char*>(thread_name),
                           state->vm()->thread_id(), 1);
@@ -189,8 +166,6 @@ namespace rubinius {
         utilities::thread::Mutex::LockGuard lg(worker_lock_);
         if(exit_) break;
         state->gc_independent(gct, 0);
-        paused_ = true;
-        pause_cond_.signal();
         worker_cond_.wait(worker_lock_);
         // If we should exit now, don't try to become
         // dependent first but break and exit the thread
@@ -200,7 +175,6 @@ namespace rubinius {
       {
         utilities::thread::Mutex::LockGuard lg(worker_lock_);
         if(exit_) break;
-        paused_ = false;
       }
 
       target_->wakeup(state, gct, 0);

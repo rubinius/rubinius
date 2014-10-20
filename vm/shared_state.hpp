@@ -62,6 +62,8 @@ namespace rubinius {
   class QueryAgent;
   class Environment;
 
+  struct CallFrame;
+
   typedef std_unordered_set<std::string> CApiBlackList;
   typedef std::vector<Mutex*> CApiLocks;
   typedef std_unordered_map<std::string, int> CApiLockMap;
@@ -126,7 +128,7 @@ namespace rubinius {
     bool use_capi_lock_;
     int primitive_hits_[Primitives::cTotalPrimitives];
 
-    void reset_threads(STATE);
+    void reset_threads(STATE, GCToken gct, CallFrame* call_frame);
 
   public:
     Globals globals;
@@ -293,8 +295,8 @@ namespace rubinius {
 
     void scheduler_loop();
 
-    void after_fork_exec_child(STATE);
-    void after_fork_child(STATE);
+    void after_fork_exec_child(STATE, GCToken gct, CallFrame* call_frame);
+    void after_fork_child(STATE, GCToken gct, CallFrame* call_frame);
 
     bool should_stop() const;
 

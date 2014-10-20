@@ -575,6 +575,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     bool locked_p(STATE, GCToken gct, CallFrame* call_frame);
     LockStatus unlock(STATE, GCToken gct, CallFrame* call_frame);
     void unlock_for_terminate(STATE, GCToken gct, CallFrame* call_frame);
+    void unlock_dead_thread(STATE, GCToken gct, CallFrame* call_frame);
 
     // Abort if unable to lock
     void hard_lock(STATE, GCToken gct, CallFrame* call_frame, size_t us=0);

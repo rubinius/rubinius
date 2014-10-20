@@ -19,12 +19,11 @@ namespace rubinius {
   class SignalHandler : public AuxiliaryThread, public Lockable {
     SharedState& shared_;
     VM* target_;
-    VM* self_;
+    VM* vm_;
 
     int pending_signals_[NSIG];
     int queued_signals_;
 
-    bool paused_;
     bool exit_;
 
     TypedRoot<Thread*> thread_;
@@ -32,7 +31,6 @@ namespace rubinius {
     std::list<int> watched_signals_;
 
     utilities::thread::Condition worker_cond_;
-    utilities::thread::Condition pause_cond_;
     utilities::thread::Mutex worker_lock_;
 
   public:
@@ -63,10 +61,6 @@ namespace rubinius {
     void stop_thread(STATE);
 
     void shutdown(STATE);
-    void before_exec(STATE);
-    void after_exec(STATE);
-    void before_fork(STATE);
-    void after_fork_parent(STATE);
     void after_fork_child(STATE);
 
     void run(STATE);

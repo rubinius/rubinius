@@ -1,5 +1,6 @@
 #include "vm.hpp"
 #include "shared_state.hpp"
+#include "call_frame.hpp"
 #include "config_parser.hpp"
 #include "config.h"
 #include "object_memory.hpp"
@@ -176,25 +177,32 @@ namespace rubinius {
     return metrics_;
   }
 
-  void SharedState::reset_threads(STATE) {
+  void SharedState::reset_threads(STATE, GCToken gct, CallFrame* call_frame) {
     VM* current = state->vm();
     for(ThreadList::iterator i = threads_.begin();
            i != threads_.end();
            ++i) {
       if(VM* vm = (*i)->as_vm()) {
-        if(vm == current) continue;
-        Thread* thread = vm->thread.get();
-        thread->stopped();
+        if(vm == current) {
+          vm->metrics()->init(metrics::eRubyMetrics);
+          continue;
+        }
+
+        if(Thread* thread = vm->thread.get()) {
+          thread->unlock_dead_thread(state, gct, call_frame);
+          thread->unlock_locks(state, gct, call_frame);
+          thread->stopped();
+        }
       }
     }
     threads_.clear();
     threads_.push_back(current);
   }
 
-  void SharedState::after_fork_exec_child(STATE) {
+  void SharedState::after_fork_exec_child(STATE, GCToken gct, CallFrame* call_frame) {
     env_->set_root_vm(state->vm());
 
-    reset_threads(state);
+    reset_threads(state, gct, call_frame);
     lock_init(state->vm());
     auxiliary_threads_->init();
     world_->reinit();
@@ -205,7 +213,7 @@ namespace rubinius {
     gc_dependent(state, 0);
   }
 
-  void SharedState::after_fork_child(STATE) {
+  void SharedState::after_fork_child(STATE, GCToken gct, CallFrame* call_frame) {
     // For now, we disable inline debugging here. This makes inspecting
     // it much less confusing.
 
@@ -213,7 +221,7 @@ namespace rubinius {
 
     env_->set_root_vm(state->vm());
 
-    reset_threads(state);
+    reset_threads(state, gct, call_frame);
 
     // Reinit the locks for this object
     lock_init(state->vm());

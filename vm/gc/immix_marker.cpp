@@ -28,7 +28,6 @@ namespace rubinius {
     , self_(NULL)
     , immix_(immix)
     , data_(NULL)
-    , paused_(false)
     , exit_(false)
     , thread_(state)
   {
@@ -46,7 +45,6 @@ namespace rubinius {
   void ImmixMarker::initialize(STATE) {
     run_lock_.init();
     run_cond_.init();
-    pause_cond_.init();
   }
 
   void ImmixMarker::start_thread(STATE) {
@@ -55,7 +53,6 @@ namespace rubinius {
     utilities::thread::Mutex::LockGuard lg(run_lock_);
     self_ = state->shared().new_vm();
     self_->metrics()->init(metrics::eRubyMetrics);
-    paused_ = false;
     exit_ = false;
     thread_.set(Thread::create(state, self_, G(thread), immix_marker_tramp, true));
     run(state);
@@ -82,26 +79,6 @@ namespace rubinius {
     stop_thread(state);
   }
 
-  void ImmixMarker::before_exec(STATE) {
-    stop_thread(state);
-  }
-
-  void ImmixMarker::after_exec(STATE) {
-    start_thread(state);
-  }
-
-  void ImmixMarker::before_fork(STATE) {
-    utilities::thread::Mutex::LockGuard lg(run_lock_);
-    while(!paused_ && self_->run_state() == ManagedThread::eRunning) {
-      pause_cond_.wait(run_lock_);
-    }
-  }
-
-  void ImmixMarker::after_fork_parent(STATE) {
-    utilities::thread::Mutex::LockGuard lg(run_lock_);
-    run_cond_.signal();
-  }
-
   void ImmixMarker::after_fork_child(STATE) {
     initialize(state);
 
@@ -120,19 +97,8 @@ namespace rubinius {
 
   void ImmixMarker::concurrent_mark(GCData* data) {
     utilities::thread::Mutex::LockGuard lg(run_lock_);
-    paused_ = false;
     data_ = data;
     run_cond_.signal();
-  }
-
-  void ImmixMarker::wait_for_marker(STATE) {
-    utilities::thread::Mutex::LockGuard lg(run_lock_);
-    GCTokenImpl gct;
-    while(!paused_) {
-      state->gc_independent(gct, state->vm()->saved_call_frame());
-      pause_cond_.wait(run_lock_);
-      state->gc_dependent(gct, state->vm()->saved_call_frame());
-    }
   }
 
   void ImmixMarker::run(STATE) {
@@ -193,8 +159,6 @@ namespace rubinius {
         }
         if(exit_) break;
         state->gc_independent(gct, 0);
-        paused_ = true;
-        pause_cond_.signal();
         run_cond_.wait(run_lock_);
       }
       state->gc_dependent(gct, 0);

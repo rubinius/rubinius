@@ -284,16 +284,12 @@ namespace rubinius {
 
     std::string enclosure_name(CompiledCode* code);
 
-    void reset_compile_state(STATE);
-
     void perform(STATE);
     void stop(STATE);
 
     void start_thread(STATE);
     void stop_thread(STATE);
 
-    void before_exec(STATE);
-    void after_exec(STATE);
     void after_fork_child(STATE);
 
     void gc_scan(GarbageCollector* gc);

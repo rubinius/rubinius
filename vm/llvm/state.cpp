@@ -91,7 +91,7 @@ namespace rubinius {
   LLVMState::LLVMState(STATE)
     : AuxiliaryThread()
     , config_(state->shared().config)
-    , vm_(0)
+    , vm_(NULL)
     , thread_(state)
     , compile_list_(state)
     , symbols_(state->shared().symbols)
@@ -100,7 +100,7 @@ namespace rubinius {
     , shared_(state->shared())
     , include_profiling_(state->shared().config.jit_profile)
     , code_bytes_(0)
-    , log_(0)
+    , log_(NULL)
     , enabled_(false)
     , thread_exit_(false)
     , current_compiler_(0)
@@ -176,11 +176,6 @@ namespace rubinius {
     return config_.jit_debug;
   }
 
-  void LLVMState::reset_compile_state(STATE) {
-    compile_list_.get()->clear(state);
-    current_compiler_ = 0;
-  }
-
   Object* jit_llvm_trampoline(STATE) {
     state->shared().llvm_state->perform(state);
     GCTokenImpl gct;
@@ -230,16 +225,15 @@ namespace rubinius {
     stop_thread(state);
   }
 
-  void LLVMState::before_exec(STATE) {
-    stop_thread(state);
-  }
-
-  void LLVMState::after_exec(STATE) {
-    start_thread(state);
-  }
-
   void LLVMState::after_fork_child(STATE) {
-    reset_compile_state(state);
+    compile_list_.get()->clear(state);
+    current_compiler_ = 0;
+
+    if(vm_) {
+      VM::discard(state, vm_);
+      vm_ = NULL;
+    }
+
     start_thread(state);
     vm_->metrics()->init(metrics::eJITMetrics);
   }

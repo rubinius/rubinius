@@ -347,7 +347,7 @@ namespace rubinius {
       close(fds[0]);
 
       state->vm()->thread->init_lock();
-      state->shared().after_fork_exec_child(state);
+      state->shared().after_fork_exec_child(state, gct, calling_environment);
 
       // Setup ENV, redirects, groups, etc. in the child before exec().
       pstate->send(state, calling_environment, state->symbol("setup_process"));
@@ -477,7 +477,7 @@ namespace rubinius {
 
     if(pid == 0) {
       state->vm()->thread->init_lock();
-      state->shared().after_fork_exec_child(state);
+      state->shared().after_fork_exec_child(state, gct, calling_environment);
 
       close(errors[0]);
       close(output[0]);
@@ -732,7 +732,7 @@ namespace rubinius {
       /*  @todo any other re-initialisation needed? */
 
       state->vm()->thread->init_lock();
-      state->shared().after_fork_child(state);
+      state->shared().after_fork_child(state, gct, calling_environment);
       state->shared().auxiliary_threads()->after_fork_child(state);
 
       // In the child, the PID is nil in Ruby.
