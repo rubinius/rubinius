@@ -27,6 +27,8 @@
 #include "object_utils.hpp"
 #include "on_stack.hpp"
 
+#include "util/logger.hpp"
+
 #include <sstream>
 
 namespace rubinius {
@@ -131,12 +133,10 @@ namespace rubinius {
       if(LookupTable* lt = try_as<LookupTable>(other->ivars())) {
         ivars(state, lt->duplicate(state));
 
-      } else {
-        // Use as<> so that we throw a TypeError if there is something else
-        // here.
-        CompactLookupTable* clt = as<CompactLookupTable>(other->ivars());
+      } else if(CompactLookupTable* clt = try_as<CompactLookupTable>(other->ivars())) {
         ivars(state, clt->duplicate(state));
-
+      } else {
+        utilities::logger::warn("Object::copy_object: invalid ivars_ reference");
       };
     }
 
