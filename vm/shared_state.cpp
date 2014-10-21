@@ -251,6 +251,9 @@ namespace rubinius {
 
     env_->set_fsapi_path();
 
+    env_->stop_logging(state);
+    env_->start_logging(state);
+
     world_->reinit();
 
     om->after_fork_child(state);

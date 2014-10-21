@@ -123,6 +123,7 @@ namespace rubinius {
     void start_logging(STATE);
     void start_jit(STATE);
 
+    void stop_logging(STATE);
     void stop_jit(STATE);
   };
 

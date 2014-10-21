@@ -104,6 +104,8 @@ namespace rubinius {
   }
 
   Environment::~Environment() {
+    stop_logging(state);
+
     delete signal_handler_;
     delete finalizer_handler_;
 
@@ -115,8 +117,6 @@ namespace rubinius {
       delete[] argv_[i];
     }
     delete[] argv_;
-
-    utilities::logger::close();
   }
 
   void cpp_exception_bug() {
@@ -142,6 +142,10 @@ namespace rubinius {
     if(!state->shared().llvm_state) {
       state->shared().llvm_state = new LLVMState(state);
     }
+  }
+
+  void Environment::stop_logging(state) {
+    utilities::logger::close();
   }
 
   void Environment::stop_jit(STATE) {
