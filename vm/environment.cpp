@@ -144,7 +144,7 @@ namespace rubinius {
     }
   }
 
-  void Environment::stop_logging(state) {
+  void Environment::stop_logging(STATE) {
     utilities::logger::close();
   }
 
