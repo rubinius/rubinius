@@ -572,48 +572,26 @@ step2:
   }
 
   void ObjectHeader::unlock_dead_thread(STATE, GCToken gct, CallFrame* call_frame) {
-    for(;;) {
-      HeaderWord orig = header;
+    switch(header.f.meaning) {
+    case eAuxWordEmpty:
+    case eAuxWordObjID:
+    case eAuxWordHandle:
+      return;
 
-      switch(orig.f.meaning) {
-      case eAuxWordEmpty:
-      case eAuxWordObjID:
-      case eAuxWordHandle:
-        return;
+    case eAuxWordLock: {
+      unsigned int locker_tid = header.f.aux_word >> cAuxLockTIDShift;
 
-      case eAuxWordLock: {
-        unsigned int locker_tid = orig.f.aux_word >> cAuxLockTIDShift;
-
-        if((orig.f.aux_word & cAuxLockRecCountMask) == 0) {
-          if(orig.f.LockContended == 1) {
-            // unlock and inflate as one step to keep things
-            // consistent.
-            if(!state->memory()->inflate_for_contention(state, this)) continue;
-
-            state->vm()->del_locked_object(this);
-            state->memory()->release_contention(state, gct, call_frame);
-          }
-        }
-
-        if(locker_tid == state->vm()->thread_id()) {
-          state->vm()->del_locked_object(this);
-        }
+      if(locker_tid == state->vm()->thread_id()) {
+        state->vm()->del_locked_object(this);
       }
-      case eAuxWordInflated:
-        InflatedHeader* ih = ObjectHeader::header_to_inflated_header(state, orig);
-        ih->unlock_mutex(state, gct, call_frame, this);
-      }
-
-      HeaderWord new_val = orig;
-
-      new_val.f.meaning = eAuxWordEmpty;
-      new_val.f.aux_word = 0;
-
-      // Try it all over again if it fails.
-      if(!header.atomic_set(orig, new_val)) continue;
-
-      if(new_val.f.meaning == eAuxWordEmpty) return;
     }
+      // Fall through
+    case eAuxWordInflated:
+    // Just set the values
+    header.f.meaning = eAuxWordEmpty;
+    header.f.aux_word = 0;
+    }
+
   }
 
   LockStatus ObjectHeader::unlock(STATE, GCToken gct, CallFrame* call_frame) {
