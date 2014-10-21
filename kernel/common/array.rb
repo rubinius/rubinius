@@ -45,7 +45,7 @@ class Array
       end
 
       if ary
-        m = Rubinius::Mirror.reflect ary
+        m = Rubinius::Mirror::Array.reflect ary
         @tuple = m.tuple.dup
         @start = m.start
         @total = m.total
@@ -82,7 +82,7 @@ class Array
 
     other = Rubinius::Type.coerce_to other, Array, :to_ary
 
-    m = Rubinius::Mirror.reflect other
+    m = Rubinius::Mirror::Array.reflect other
     @tuple = m.tuple.dup
     @total = m.total
     @start = m.start
@@ -214,7 +214,7 @@ class Array
         # Easy case
         tuple = Rubinius::Tuple.pattern multiplier, at(0)
         out = self.class.allocate
-        m = Rubinius::Mirror.reflect out
+        m = Rubinius::Mirror::Array.reflect out
         m.tuple = tuple
         m.total = multiplier
         Rubinius::Type.infect(out, self)
@@ -225,7 +225,7 @@ class Array
       new_tuple = Rubinius::Tuple.new(new_total)
 
       out = self.class.allocate
-      m = Rubinius::Mirror.reflect out
+      m = Rubinius::Mirror::Array.reflect out
       m.tuple = new_tuple
       m.total = new_total
       Rubinius::Type.infect(out, self)
@@ -279,7 +279,7 @@ class Array
     return 0 if equal? other
     return nil if other.nil?
 
-    total = Rubinius::Mirror.reflect(other).total
+    total = Rubinius::Mirror::Array.reflect(other).total
 
     Thread.detect_recursion self, other do
       i = 0
@@ -309,7 +309,7 @@ class Array
     return false unless size == other.size
 
     Thread.detect_recursion self, other do
-      m = Rubinius::Mirror.reflect other
+      m = Rubinius::Mirror::Array.reflect other
 
       md = @tuple
       od = m.tuple
@@ -1274,7 +1274,7 @@ class Array
 
     count = size if count > size
     result = Array.new self
-    tuple = Rubinius::Mirror.reflect(result).tuple
+    tuple = Rubinius::Mirror::Array.reflect(result).tuple
 
     count.times do |i|
       random = Rubinius::Type.coerce_to rng.rand(size), Fixnum, :to_int
@@ -1385,7 +1385,7 @@ class Array
         when 0
           # nothing
         else
-          m = Rubinius::Mirror.reflect replacement
+          m = Rubinius::Mirror::Array.reflect replacement
           new_tuple.copy_from m.tuple, m.start, replace_count, index
         end
 
@@ -1413,7 +1413,7 @@ class Array
         when 0
           # nothing
         else
-          m = Rubinius::Mirror.reflect replacement
+          m = Rubinius::Mirror::Array.reflect replacement
           @tuple.copy_from m.tuple, m.start, replace_count, @start + index
         end
 
@@ -1667,7 +1667,7 @@ class Array
     end
     return if im.size == size
 
-    m = Rubinius::Mirror.reflect im.to_array
+    m = Rubinius::Mirror::Array.reflect im.to_array
     @tuple = m.tuple
     @start = m.start
     @total = m.total
@@ -1680,7 +1680,7 @@ class Array
 
     return self if values.empty?
 
-    m = Rubinius::Mirror.reflect values
+    m = Rubinius::Mirror::Array.reflect values
 
     if @start > values.size
       # fit the new values in between 0 and @start if possible
@@ -1804,7 +1804,7 @@ class Array
 
     max_levels -= 1
     recursion = Thread.detect_recursion(array) do
-      m = Rubinius::Mirror.reflect array
+      m = Rubinius::Mirror::Array.reflect array
 
       i = m.start
       total = i + m.total
