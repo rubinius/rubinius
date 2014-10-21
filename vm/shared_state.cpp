@@ -196,6 +196,7 @@ namespace rubinius {
           thread->stopped();
         }
 
+        vm->unlock(state->vm());
         delete vm;
       }
     }
@@ -204,14 +205,26 @@ namespace rubinius {
   }
 
   void SharedState::after_fork_exec_child(STATE, GCToken gct, CallFrame* call_frame) {
+    // For now, we disable inline debugging here. This makes inspecting
+    // it much less confusing.
+
+    config.jit_inline_debug.set("no");
     env_->set_root_vm(state->vm());
 
     reset_threads(state, gct, call_frame);
     lock_init(state->vm());
+    global_cache->reset();
+    ruby_critical_lock_.init();
+    capi_ds_lock_.init();
+    capi_locks_lock_.init();
+    capi_constant_lock_.init();
     auxiliary_threads_->init();
     world_->reinit();
 
     om->after_fork_child(state);
+
+    env_->start_finalizer(state);
+    state->shared().finalizer_handler()->start_thread(state);
 
     state->vm()->set_run_state(ManagedThread::eIndependent);
     gc_dependent(state, 0);

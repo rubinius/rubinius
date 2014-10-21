@@ -348,11 +348,10 @@ namespace rubinius {
 
       state->vm()->thread->init_lock();
       state->shared().after_fork_exec_child(state, gct, calling_environment);
+      state->shared().auxiliary_threads()->after_fork_exec_child(state);
 
       // Setup ENV, redirects, groups, etc. in the child before exec().
       pstate->send(state, calling_environment, state->symbol("setup_process"));
-
-      state->shared().auxiliary_threads()->after_fork_exec_child(state);
 
       /* Reset all signal handlers to the defaults, so any we setup in
        * Rubinius won't leak through. We need to use sigaction() here since
@@ -478,14 +477,13 @@ namespace rubinius {
     if(pid == 0) {
       state->vm()->thread->init_lock();
       state->shared().after_fork_exec_child(state, gct, calling_environment);
+      state->shared().auxiliary_threads()->after_fork_exec_child(state);
 
       close(errors[0]);
       close(output[0]);
 
       dup2(output[1], STDOUT_FILENO);
       close(output[1]);
-
-      state->shared().auxiliary_threads()->after_fork_exec_child(state);
 
       /* Reset all signal handlers to the defaults, so any we setup in
        * Rubinius won't leak through. We need to use sigaction() here since
