@@ -587,11 +587,10 @@ step2:
     }
       // Fall through
     case eAuxWordInflated:
-    // Just set the values
-    header.f.meaning = eAuxWordEmpty;
-    header.f.aux_word = 0;
+      // Just set the values
+      header.f.meaning = eAuxWordEmpty;
+      header.f.aux_word = 0;
     }
-
   }
 
   LockStatus ObjectHeader::unlock(STATE, GCToken gct, CallFrame* call_frame) {

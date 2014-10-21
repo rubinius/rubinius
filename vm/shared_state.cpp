@@ -179,12 +179,14 @@ namespace rubinius {
 
   void SharedState::reset_threads(STATE, GCToken gct, CallFrame* call_frame) {
     VM* current = state->vm();
+
     for(ThreadList::iterator i = threads_.begin();
            i != threads_.end();
            ++i) {
       if(VM* vm = (*i)->as_vm()) {
         if(vm == current) {
           vm->metrics()->init(metrics::eRubyMetrics);
+          state->vm()->metrics()->system_metrics.vm_threads++;
           continue;
         }
 
@@ -193,6 +195,8 @@ namespace rubinius {
           thread->unlock_locks(state, gct, call_frame);
           thread->stopped();
         }
+
+        delete vm;
       }
     }
     threads_.clear();

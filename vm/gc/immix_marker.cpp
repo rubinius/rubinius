@@ -25,7 +25,7 @@ namespace rubinius {
   ImmixMarker::ImmixMarker(STATE, ImmixGC* immix)
     : AuxiliaryThread()
     , shared_(state->shared())
-    , self_(NULL)
+    , vm_(NULL)
     , immix_(immix)
     , data_(NULL)
     , exit_(false)
@@ -45,24 +45,25 @@ namespace rubinius {
   void ImmixMarker::initialize(STATE) {
     run_lock_.init();
     run_cond_.init();
+    vm_ = NULL;
   }
 
   void ImmixMarker::start_thread(STATE) {
     SYNC(state);
-    if(self_) return;
+    if(vm_) return;
     utilities::thread::Mutex::LockGuard lg(run_lock_);
-    self_ = state->shared().new_vm();
-    self_->metrics()->init(metrics::eRubyMetrics);
+    vm_ = state->shared().new_vm();
+    vm_->metrics()->init(metrics::eRubyMetrics);
     exit_ = false;
-    thread_.set(Thread::create(state, self_, G(thread), immix_marker_tramp, true));
+    thread_.set(Thread::create(state, vm_, G(thread), immix_marker_tramp, true));
     run(state);
   }
 
   void ImmixMarker::stop_thread(STATE) {
     SYNC(state);
-    if(!self_) return;
+    if(!vm_) return;
 
-    pthread_t os = self_->os_thread();
+    pthread_t os = vm_->os_thread();
     {
       utilities::thread::Mutex::LockGuard lg(run_lock_);
       // Thread might have already been stopped
@@ -72,7 +73,7 @@ namespace rubinius {
 
     void* return_value;
     pthread_join(os, &return_value);
-    self_ = NULL;
+    vm_ = NULL;
   }
 
   void ImmixMarker::shutdown(STATE) {
@@ -81,11 +82,6 @@ namespace rubinius {
 
   void ImmixMarker::after_fork_child(STATE) {
     initialize(state);
-
-    if(self_) {
-      VM::discard(state, self_);
-      self_ = NULL;
-    }
 
     if(data_) {
       delete data_;
@@ -109,7 +105,7 @@ namespace rubinius {
   void ImmixMarker::perform(STATE) {
     GCTokenImpl gct;
     RBX_DTRACE_CONST char* thread_name = const_cast<RBX_DTRACE_CONST char*>("rbx.immix");
-    self_->set_name(thread_name);
+    vm_->set_name(thread_name);
 
     RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CONST char*>(thread_name),
                           state->vm()->thread_id(), 1);

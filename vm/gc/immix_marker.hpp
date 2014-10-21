@@ -16,7 +16,7 @@ namespace rubinius {
 
   class ImmixMarker : public AuxiliaryThread, public Lockable {
     SharedState& shared_;
-    VM* self_;
+    VM* vm_;
     ImmixGC* immix_;
     GCData* data_;
 

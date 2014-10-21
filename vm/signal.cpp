@@ -88,6 +88,7 @@ namespace rubinius {
   void SignalHandler::initialize(STATE) {
     worker_lock_.init();
     worker_cond_.init();
+    vm_ = NULL;
   }
 
   void SignalHandler::start_thread(STATE) {
@@ -131,11 +132,6 @@ namespace rubinius {
 
   void SignalHandler::after_fork_child(STATE) {
     initialize(state);
-
-    if(vm_) {
-      VM::discard(state, vm_);
-      vm_ = NULL;
-    }
 
     start_thread(state);
   }

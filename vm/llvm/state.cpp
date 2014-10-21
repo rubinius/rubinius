@@ -231,11 +231,7 @@ namespace rubinius {
   void LLVMState::after_fork_child(STATE) {
     compile_list_.get()->clear(state);
     current_compiler_ = 0;
-
-    if(vm_) {
-      VM::discard(state, vm_);
-      vm_ = NULL;
-    }
+    vm_ = NULL;
 
     start_thread(state);
     vm_->metrics()->init(metrics::eJITMetrics);

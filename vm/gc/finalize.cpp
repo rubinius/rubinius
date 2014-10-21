@@ -159,11 +159,7 @@ namespace rubinius {
     supervisor_cond_.init();
     exit_ = false;
     finishing_ = false;
-
-    if(vm_) {
-      VM::discard(state, vm_);
-      vm_ = NULL;
-    }
+    vm_ = NULL;
 
     start_thread(state);
   }

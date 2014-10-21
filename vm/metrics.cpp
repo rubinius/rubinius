@@ -467,11 +467,7 @@ namespace rubinius {
 
     void Metrics::after_fork_child(STATE) {
       metrics_lock_.init();
-
-      if(vm_) {
-        VM::discard(state, vm_);
-        vm_ = NULL;
-      }
+      vm_ = NULL;
 
       start(state);
       if(emitter_) emitter_->reinit();
