@@ -89,9 +89,9 @@ class Rubinius::Randomizer
     max  = time_to_float(range.max)
     time = Time.at(random(min..max))
 
-    if defined?(DateTime) && range.min.is_a?(DateTime)
+    if Object.const_defined?(:DateTime) && range.min.is_a?(DateTime)
       time = time.to_datetime
-    elsif range.min.is_a?(Date)
+    elsif Object.const_defined?(:DateTime) && range.min.is_a?(Date)
       time = time.to_date
     end
 
@@ -115,7 +115,7 @@ class Rubinius::Randomizer
   # @return [TrueClass|FalseClass]
   #
   def time_value?(input)
-    return input.is_a?(Time) || input.is_a?(Date)
+    return input.is_a?(Time) || (Object.const_defined?(:Date) && input.is_a?(Date))
   end
 end
 
