@@ -162,7 +162,10 @@ namespace rubinius {
     shared_.auxiliary_threads()->unregister_thread(this);
 
     delete memory_;
+    memory_ = NULL;
+
     delete jit_event_listener_;
+    jit_event_listener_ = NULL;
   }
 
   void LLVMState::enable(STATE) {
@@ -486,8 +489,8 @@ namespace rubinius {
   }
 
   void LLVMState::remove(void* func) {
-    vm_->metrics()->m.jit_metrics.methods_compiled--;
-    memory_->deallocateFunctionBody(func);
+    if(vm_) vm_->metrics()->m.jit_metrics.methods_compiled--;
+    if(memory_) memory_->deallocateFunctionBody(func);
   }
 
   const static int cInlineMaxDepth = 2;
