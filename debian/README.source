@@ -1,11 +1,11 @@
-rubinius-2.2 for Debian
+rubinius-2.3 for Debian
 -----------------------
 
 Debian Stable Package files for Rubinius 
 
-This is for version 2.2.7 of rubinius. Version prior to 2.2.4 requires patches
-to complete the package build. This is for Wheezy/Stable of Debian. Oldstable
-patches exist elsewhere.
+This is for version 2.2.7 or later of rubinius. Version prior to 2.2.
+4 requires patches to complete the package build. This is for 
+Wheezy/Stable of Debian. Oldstable patches exist elsewhere.
 
 
 To build the deb on Wheezy/Stable.  
@@ -20,8 +20,8 @@ To build the deb on Wheezy/Stable.
     libssl-dev quilt ruby1.9.1-dev bison libyaml-dev 
 
 # get source ready
-    bzip2 -dc rubinius-2.2.2.tar.bz2 |tar xf -
-    cd rubinius-2.2.2
+    bzip2 -dc rubinius-2.3.0.tar.bz2 |tar xf -
+    cd rubinius-2.3.0
 
 # REQUIRED!
 # install bundler on to the system.
