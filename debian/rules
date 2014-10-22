@@ -9,7 +9,7 @@ include /usr/share/cdbs/1/class/makefile-vars.mk
 include /usr/share/cdbs/1/class/makefile.mk
 include /usr/share/dpkg/buildflags.mk
 
-RUBINIUS_MAJOR_VERSION = 2.2
+RUBINIUS_MAJOR_VERSION = 2.3
 PROGRAM_NAME=rbx$(RUBINIUS_MAJOR_VERSION) 
 
 DEB_MAKE_BUILD_TARGET   = build
@@ -28,8 +28,8 @@ clean::
 	-@rm -f debian/stamp-configure-rbx debian/stamp-makefile-build 
 	-@rm -f debian/stamp-makefile-check debian/stamp-makefile-install debian/stamp-patched 
 
-install/rubinius-2.2::
-	mv $(DEB_DESTDIR)/usr/bin/testrb $(DEB_DESTDIR)/usr/bin/testrb-rbx2.2
+install/rubinius-2.3::
+	mv $(DEB_DESTDIR)/usr/bin/testrb $(DEB_DESTDIR)/usr/bin/testrb-rbx$(RUBINIUS_MAJOR_VERSION)
 
 RUBINIUS_PREFIX=/usr/lib/rubinius/$(RUBINIUS_MAJOR_VERSION)
 RUBINIUS_BINDIR=/usr/bin
