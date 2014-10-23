@@ -105,6 +105,7 @@
 #define HAVE_RB_CLASS_NAME                 1
 #define HAVE_RB_CLASS_NEW                  1
 #define HAVE_RB_CLASS_NEW_INSTANCE         1
+#define HAVE_RB_CLASS_PATH                 1
 #define HAVE_RB_CLASS_REAL                 1
 #define HAVE_RB_CVAR_DEFINED               1
 #define HAVE_RB_CVAR_GET                   1
