@@ -488,6 +488,9 @@ struct RFile {
 #define CHECK_INTS             /* No-op */
 #define rb_thread_check_ints() /* No-op */
 
+#define RB_BLOCK_CALL_FUNC_ARGLIST(yielded_arg, callback_arg) \
+    VALUE yielded_arg, VALUE callback_arg, int argc, const VALUE *argv, VALUE blockarg
+
 /** Rubinius doesn't need gc guards */
 #define RB_GC_GUARD       /* No-op */
 
@@ -1073,6 +1076,7 @@ struct RTypedData {
 
   /** Returns String representation of the class' name. */
   VALUE   rb_class_name(VALUE klass);
+#define rb_class_path(k)    rb_class_name(k)
 
   /** Calls the class method 'inherited' on super passing the class.
    *  If super is NULL, calls Object.inherited. */
@@ -1270,6 +1274,9 @@ struct RTypedData {
 
   /** Returns a string formatted with Kernel#sprintf. */
   VALUE rb_f_sprintf(int argc, const VALUE* argv);
+
+  /** Returns a duplicate file discriptor with close-on-exec flag set. */
+  int rb_cloexec_dup(int fd);
 
   /** Returns a File opened with the specified mode. */
   VALUE rb_file_open(const char* name, const char* mode);
