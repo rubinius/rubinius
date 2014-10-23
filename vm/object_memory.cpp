@@ -57,6 +57,7 @@ namespace rubinius {
     : young_(new BakerGC(this, config.gc_young_initial_bytes * 2))
     , mark_sweep_(new MarkSweepGC(this, config))
     , immix_(new ImmixGC(this))
+    , immix_marker_(NULL)
     , inflated_headers_(new InflatedHeaders)
     , capi_handles_(new capi::Handles)
     , code_manager_(&state->shared)

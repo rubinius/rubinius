@@ -31,6 +31,7 @@
 #include <llvm/Support/ManagedStatic.h>
 #endif
 
+#include "gc/immix_marker.hpp"
 #include "gc/finalize.hpp"
 
 #include "signal.hpp"
@@ -537,6 +538,9 @@ namespace rubinius {
 
   void Environment::halt(STATE) {
     state->shared().tool_broker()->shutdown(state);
+    if(ImmixMarker* im = state->memory()->immix_marker()) {
+      im->shutdown(state);
+    }
 
     stop_jit(state);
 

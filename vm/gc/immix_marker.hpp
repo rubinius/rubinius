@@ -21,6 +21,7 @@ namespace rubinius {
     GCData* data_;
 
     bool exit_;
+    bool running_;
 
     TypedRoot<Thread*> thread_;
 

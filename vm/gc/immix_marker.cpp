@@ -29,6 +29,7 @@ namespace rubinius {
     , immix_(immix)
     , data_(NULL)
     , exit_(false)
+    , running_(false)
     , thread_(state)
   {
     shared_.auxiliary_threads()->register_thread(this);
@@ -40,12 +41,19 @@ namespace rubinius {
 
   ImmixMarker::~ImmixMarker() {
     shared_.auxiliary_threads()->unregister_thread(this);
+
+    if(data_) {
+      delete data_;
+      data_ = NULL;
+    }
   }
 
   void ImmixMarker::initialize(STATE) {
     run_lock_.init();
     run_cond_.init();
     vm_ = NULL;
+    running_ = false;
+    exit_ = false;
   }
 
   void ImmixMarker::start_thread(STATE) {
@@ -63,16 +71,22 @@ namespace rubinius {
     SYNC(state);
     if(!vm_) return;
 
-    pthread_t os = vm_->os_thread();
+    exit_ = true;
+    atomic::memory_barrier();
+
     {
-      utilities::thread::Mutex::LockGuard lg(run_lock_);
-      // Thread might have already been stopped
-      exit_ = true;
-      run_cond_.signal();
+      GCIndependent guard(state, 0);
+
+      while(running_) {
+        atomic::pause();
+        run_cond_.signal();
+      }
     }
 
     void* return_value;
+    pthread_t os = vm_->os_thread();
     pthread_join(os, &return_value);
+
     vm_ = NULL;
   }
 
@@ -111,6 +125,7 @@ namespace rubinius {
                           state->vm()->thread_id(), 1);
 
     state->vm()->thread->hard_unlock(state, gct, 0);
+    running_ = true;
 
     while(!exit_) {
       if(data_) {
@@ -131,6 +146,8 @@ namespace rubinius {
           }
         }
 
+        if(exit_) break;
+
         {
           timer::StopWatch<timer::milliseconds> timer(
               state->vm()->metrics()->m.ruby_metrics.gc_immix_stop_last_ms,
@@ -139,6 +156,10 @@ namespace rubinius {
 
           // Finish and pause
           while(!state->stop_the_world()) {
+            if(exit_) {
+              state->restart_world();
+              break;
+            }
             state->checkpoint(gct, 0);
           }
           state->memory()->clear_mature_mark_in_progress();
@@ -159,10 +180,11 @@ namespace rubinius {
       }
       state->gc_dependent(gct, 0);
     }
+
     state->memory()->clear_mature_mark_in_progress();
+    running_ = false;
+
     RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CONST char*>(thread_name),
                          state->vm()->thread_id(), 1);
   }
-
 }
-
