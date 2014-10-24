@@ -1534,10 +1534,6 @@ int main() { return tgetnum(""); }
       failure "openssl/ssl.h is required"
     end
 
-    unless has_header("readline/readline.h")
-      failure "readline/readline.h is required"
-    end
-
     if has_header("alloca.h")
       @defines << "HAVE_ALLOCA_H"
     end
