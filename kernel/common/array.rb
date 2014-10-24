@@ -339,6 +339,42 @@ class Array
     nil
   end
 
+  def bsearch
+    m = Rubinius::Mirror::Array.reflect self
+
+    tuple = m.tuple
+
+    min = start = m.start
+    max = total = start + m.total
+
+    last_true = nil
+    i = start + m.total / 2
+
+    while max > min and i >= start and i <= total
+      x = yield tuple.at(i)
+
+      return tuple.at(i) if x == 0
+
+      if x == false
+        min = i + 1
+      elsif x == true
+        last_true = i
+        max = i - 1
+      elsif x > 0
+        min = i + 1
+      else
+        max = i - 1
+      end
+
+      i = min + (max - min) / 2
+    end
+
+    return tuple.at(i) if max > min
+    return tuple.at(last_true) if last_true
+
+    nil
+  end
+
   def clear
     Rubinius.check_frozen
 
