@@ -126,7 +126,7 @@ module Rubinius
     # path to the subcommand if it does; otherwise, returns nil.
     def find_subcommand(base)
       command = File.join @main_lib_bin, "#{base}.rb"
-      return command if File.exists? command
+      return command if File.exist? command
       return nil
     end
 
@@ -135,7 +135,7 @@ module Rubinius
     def find_gem_wrapper(base)
       @gem_bins.each do |dir|
         wrapper = File.join dir, base
-        return wrapper if File.exists? wrapper
+        return wrapper if File.exist? wrapper
       end
       return nil
     end
@@ -350,7 +350,7 @@ module Rubinius
             search = ENV['PATH'].split(File::PATH_SEPARATOR)
             search.each do |d|
               path = File.join d, script
-              if File.exists? path
+              if File.exist? path
                 file = path
                 break
               end
@@ -624,7 +624,7 @@ VM Options
       @stage = "running #{@script}"
       Dir.chdir @directory if @directory
 
-      if File.exists? @script
+      if File.exist? @script
         if IO.read(@script, 6) == "!RBIX\n"
           raise LoadError, "'#{@script}' is not a Ruby source file"
         end
@@ -633,7 +633,7 @@ VM Options
           raise LoadError, "unable to find '#{@script}'"
         else
           command = File.join @main_lib_bin, "#{@script}.rb"
-          unless File.exists? command
+          unless File.exist? command
             raise LoadError, "unable to find Rubinius command '#{@script}'"
           else
             @script = command
@@ -650,7 +650,7 @@ VM Options
       parser_class = Rubinius::ToolSets::Runtime::Melbourne
 
       if @script
-        if File.exists?(@script)
+        if File.exist?(@script)
           parser = parser_class.new @script, 1, []
           parser.parse_file
         else

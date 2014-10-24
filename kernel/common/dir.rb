@@ -34,12 +34,12 @@ class Dir
     ret
   end
 
-  def self.exists?(path)
+  def self.exist?(path)
     PrivateFile.directory?(path)
   end
 
   class << self
-    alias_method :exist?, :exists?
+    alias_method :exists?, :exist?
   end
 
   def self.home(user=nil)

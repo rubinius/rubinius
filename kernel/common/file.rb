@@ -1022,7 +1022,7 @@ class File < IO
 
   def self.world_readable?(path)
     path = Rubinius::Type.coerce_to_path path
-    return nil unless exists? path
+    return nil unless exist? path
     mode = Stat.new(path).mode
     if (mode & Stat::S_IROTH) == Stat::S_IROTH
       tmp = mode & (Stat::S_IRUGO | Stat::S_IWUGO | Stat::S_IXUGO)
@@ -1033,7 +1033,7 @@ class File < IO
 
   def self.world_writable?(path)
     path = Rubinius::Type.coerce_to_path path
-    return nil unless exists? path
+    return nil unless exist? path
     mode = Stat.new(path).mode
     if (mode & Stat::S_IWOTH) == Stat::S_IWOTH
       tmp = mode & (Stat::S_IRUGO | Stat::S_IWUGO | Stat::S_IXUGO)

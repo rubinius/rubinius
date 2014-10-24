@@ -257,7 +257,7 @@ module Rubinius
     # ignore it.
     return unless name
 
-    if File.exists? name
+    if File.exist? name
       file = File.open name, "r"
       file.seek Integer(offset), IO::SEEK_SET
       Object.const_set :DATA, file
