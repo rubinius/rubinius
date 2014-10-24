@@ -12,6 +12,7 @@ namespace rubinius {
   }
 
   Fixnum* Stat::stat(STATE, String* p) {
+    utilities::logger::warn("stat: %s", p->c_str_null_safe(state));
     path(state, p);
     return Fixnum::from(::stat(p->c_str_null_safe(state), &st_));
   }

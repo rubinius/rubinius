@@ -410,8 +410,13 @@ namespace rubinius {
 
     Module* mod = invocation.module;
     if(!mod) mod = env->module();
-    scope->initialize(invocation.self, env->top_scope_->block(),
-                      mod, mcode->number_of_locals);
+
+    Object* block = cNil;
+    if(VariableScope* scope = env->top_scope_) {
+      if(!scope->nil_p()) block = scope->block();
+    }
+
+    scope->initialize(invocation.self, block, mod, mcode->number_of_locals);
     scope->set_parent(env->scope_);
 
     InterpreterCallFrame* frame = ALLOCA_CALLFRAME(mcode->stack_size);

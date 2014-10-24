@@ -293,8 +293,9 @@ namespace rubinius {
         }
       }
 
-      if(call_frame->multiple_scopes_p() && call_frame->top_scope_) {
-        call_frame->top_scope_->validate();
+      VariableScope* scope = call_frame->top_scope_;
+      if(call_frame->multiple_scopes_p() && scope && !scope->nil_p()) {
+        scope->validate();
       }
 
       if(BlockEnvironment* env = call_frame->block_env()) {
