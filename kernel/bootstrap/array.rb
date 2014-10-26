@@ -48,7 +48,7 @@ class Array
   # returned. Slightly faster than +Array#[]+
   def at(idx)
     Rubinius.primitive :array_aref
-    idx = Rubinius::Type.coerce_to idx, Fixnum, :to_int
+    idx = Rubinius::Type.coerce_to_collection_index idx
 
     total = @start + @total
 
