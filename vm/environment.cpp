@@ -577,16 +577,6 @@ namespace rubinius {
    * Returns the exit code to use when exiting the rbx process.
    */
   int Environment::exit_code(STATE) {
-
-#ifdef ENABLE_LLVM
-    if(LLVMState* ls = shared->llvm_state) {
-      std::ostream& jit_log = ls->log();
-      if(jit_log != std::cerr) {
-        static_cast<std::ofstream&>(jit_log).close();
-      }
-    }
-#endif
-
     if(state->vm()->thread_state()->raise_reason() == cExit) {
       if(Fixnum* fix = try_as<Fixnum>(state->vm()->thread_state()->raise_value())) {
         return fix->to_native();

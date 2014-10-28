@@ -166,6 +166,11 @@ namespace rubinius {
 
     delete jit_event_listener_;
     jit_event_listener_ = NULL;
+
+    if(log_ != &std::cerr) {
+      delete log_;
+      log_ = NULL;
+    }
   }
 
   void LLVMState::enable(STATE) {
