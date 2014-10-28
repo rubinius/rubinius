@@ -1595,7 +1595,7 @@ namespace rubinius {
       // If we have tried to reoptimize here a few times and failed, we use
       // a regular send as the fallback so we don't try to keep reoptimizing in
       // the future.
-      if(poly && poly->seen_classes_overflow() > llvm_state()->shared().config.jit_deoptimize_overflow_threshold) {
+      if(poly && poly->seen_classes_overflow() > llvm_state()->shared().config.jit_limit_deoptimize) {
         inl.use_send_for_failure();
       }
 

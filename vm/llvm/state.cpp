@@ -496,7 +496,6 @@ namespace rubinius {
     if(memory_) memory_->deallocateFunctionBody(func);
   }
 
-  const static int cInlineMaxDepth = 2;
   const static size_t eMaxInlineSendCount = 10;
 
   void LLVMState::compile_callframe(STATE, GCToken gct, CompiledCode* start, CallFrame* call_frame,
@@ -558,7 +557,7 @@ namespace rubinius {
       return call_frame;
     }
 
-    int depth = cInlineMaxDepth;
+    int depth = config().jit_limit_search;
 
     if(!start) rubinius::bug("null start");
     if(!call_frame) rubinius::bug("null call_frame");
@@ -578,11 +577,11 @@ namespace rubinius {
       call_frame->print_backtrace(state, 1);
     }
 
-    if(start->machine_code()->total > (size_t)config_.jit_max_method_inline_size) {
+    if(start->machine_code()->total > (size_t)config_.jit_limit_inline_method) {
       if(debug_search) {
         std::cout << "JIT: STOP. reason: trigger method isn't small: "
               << start->machine_code()->total << " > "
-              << config_.jit_max_method_inline_size
+              << config_.jit_limit_inline_method
               << std::endl;
       }
 
@@ -652,11 +651,11 @@ namespace rubinius {
         return callee;
       }
 
-      if(mcode->call_count < config_.jit_call_inline_threshold) {
+      if(mcode->call_count < config_.jit_threshold_inline) {
         if(debug_search) {
           std::cout << "JIT: STOP. reason: call_count too small: "
                 << mcode->call_count << " < "
-                << config_.jit_call_inline_threshold << std::endl;
+                << config_.jit_threshold_inline << std::endl;
         }
 
         return callee;

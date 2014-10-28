@@ -54,28 +54,45 @@ Rubinius::ConfigurationVariables.define do |c|
     s.vm_variable "dump_code", 0,
       "1 == show simple IR, 2 == show optimized IR, 4 == show machine code"
 
-    s.vm_variable "call_til_compile", 32000,
-      "How many times a method is called before the JIT is run on it"
+    s.section "threshold" do |t|
+      t.vm_variable "compile", 32000,
+        "Number of method calls that trigger the JIT compiler"
 
-    s.vm_variable "call_inline_threshold", 8000,
-      "How many times a method is called to be considered part of the inline path"
+      t.vm_variable "inline", 8000,
+        "Number of method calls that trigger inlining the method"
+    end
 
-    s.vm_variable "deoptimize_threshold", 500,
-      "How many times an uncommon method is called before a method is deoptimized"
+    s.section "limit" do |l|
+      l.vm_variable "deoptimize", 500,
+        "Number of times the JIT assumptions are false before a method is deoptimized"
 
-    s.vm_variable "deoptimize_overflow_threshold", 5000,
-      "How many times an inline cache overflows before we fallback to using send instead of uncommon exit"
+      l.vm_variable "overflow", 5000,
+        "Number of times the inline cache overflows before emitting a send from the JIT to call the method"
 
-    s.vm_variable "max_method_size", 2048,
-      "The max size of a method that will be JIT"
+      l.vm_variable "method_size", 5000,
+        "The maximum size of a method that will be JIT compiled"
 
-    s.vm_variable "max_method_inline_size", 64,
-      "The max size of a method to be considered for inlining"
+      l.vm_variable "search", 5,
+        "The maximum depth to search for an inlininging target"
+
+      l.section "inline" do |i|
+        i.vm_variable "method", 200,
+          "The maximum size of a method to be considered for inlining"
+
+        i.vm_variable "small", 2000,
+          "The maximum total inlining budget size for a small method"
+
+        i.vm_variable "normal", 3000,
+          "The maximum total inlining budget for a normal method"
+
+        i.vm_variable "large", 5000,
+          "The maximum total inlining budget for a large method"
+      end
+    end
 
     s.vm_variable "show", false,
       :as => "jit_show_compiling",
       :description => "Print out a status message when the JIT is operating"
-
 
     s.vm_variable "profile", false,
       "The JIT will emit code to be sure JITd methods can be profile"
@@ -83,20 +100,11 @@ Rubinius::ConfigurationVariables.define do |c|
     s.section "inline" do |i|
       i.vm_variable "generic", true, "Have the JIT inline generic methods"
 
-      i.vm_variable "debug", false,
-        "Have the JIT print out information about inlining"
-
       i.vm_variable "blocks", true,
         "Have the JIT try and inline methods and their literal blocks"
 
-      i.vm_variable "small_method_size", 100,
-        "The maximum size for a small method"
-
-      i.vm_variable "normal_method_size", 500,
-        "The maximum size for a normal method"
-
-      i.vm_variable "large_method_size", 2000,
-        "The maximum size for a large method"
+      i.vm_variable "debug", false,
+        "Have the JIT print out information about inlining"
     end
 
     s.vm_variable "log", :string,

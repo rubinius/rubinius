@@ -92,7 +92,7 @@ namespace rubinius {
 
     // Disable JIT for large methods
     if(state->shared().config.jit_disabled ||
-        total > (size_t)state->shared().config.jit_max_method_size) {
+        total > (size_t)state->shared().config.jit_limit_method_size) {
       call_count = -1;
     }
 
@@ -749,7 +749,7 @@ namespace rubinius {
       // A negative call_count means we've disabled usage based JIT
       // for this method.
       if(mcode->call_count >= 0) {
-        if(mcode->call_count >= state->shared().config.jit_call_til_compile) {
+        if(mcode->call_count >= state->shared().config.jit_threshold_compile) {
           OnStack<3> os(state, exec, mod, code);
 
           G(jit)->compile_callframe(state, code, frame);

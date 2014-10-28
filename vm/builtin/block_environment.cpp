@@ -395,7 +395,7 @@ namespace rubinius {
 
 #ifdef ENABLE_LLVM
     if(mcode->call_count >= 0) {
-      if(mcode->call_count >= state->shared().config.jit_call_til_compile) {
+      if(mcode->call_count >= state->shared().config.jit_threshold_compile) {
         OnStack<1> os(state, env);
 
         G(jit)->compile_soon(state, env->compiled_code(), previous,

@@ -165,12 +165,12 @@ namespace rubinius {
   class SmallMethodInlinePolicy : public InlinePolicy {
   public:
     static bool is_small_p(Context* ctx, MachineCode* mcode) {
-      if(mcode->total < (size_t)ctx->llvm_state()->config().jit_inline_small_method_size) return true;
+      if(mcode->total < (size_t)ctx->llvm_state()->config().jit_limit_inline_small) return true;
       return false;
     }
 
     SmallMethodInlinePolicy(Context* ctx, MachineCode* mcode)
-      : InlinePolicy(mcode, (size_t)ctx->llvm_state()->config().jit_inline_normal_method_size)
+      : InlinePolicy(mcode, (size_t)ctx->llvm_state()->config().jit_limit_inline_normal)
     {}
 
   };
@@ -178,7 +178,7 @@ namespace rubinius {
   class NormalMethodInlinePolicy : public InlinePolicy {
   public:
     static bool is_normal_p(Context* ctx, MachineCode* mcode) {
-      if(mcode->total < (size_t)ctx->llvm_state()->config().jit_inline_normal_method_size) return true;
+      if(mcode->total < (size_t)ctx->llvm_state()->config().jit_limit_inline_normal) return true;
       return false;
     }
 
@@ -191,7 +191,7 @@ namespace rubinius {
   class LargeMethodInlinePolicy : public InlinePolicy {
   public:
     static bool is_large_p(Context* ctx, MachineCode* mcode) {
-      if(mcode->total < (size_t)ctx->llvm_state()->config().jit_inline_large_method_size) return true;
+      if(mcode->total < (size_t)ctx->llvm_state()->config().jit_limit_inline_large) return true;
       return false;
     }
 
