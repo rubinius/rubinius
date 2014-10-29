@@ -43,8 +43,11 @@ namespace jit {
 
     info_.set_stack(stk);
 
+    size_t num_vars = std::max(machine_code_->number_of_locals,
+        machine_code_->total_args);
+
     Value* var_mem = new AllocaInst(obj_type,
-        cint((sizeof(StackVariables) / sizeof(Object*)) + machine_code_->number_of_locals),
+        cint((sizeof(StackVariables) / sizeof(Object*)) + num_vars),
         "var_mem", alloca_block->getTerminator());
 
     vars = b().CreateBitCast(

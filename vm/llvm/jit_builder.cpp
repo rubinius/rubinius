@@ -646,8 +646,11 @@ namespace jit {
         cint((sizeof(CallFrame) / sizeof(Object*)) + machine_code_->stack_size),
         "cfstk");
 
+    size_t num_vars = std::max(machine_code_->number_of_locals,
+        machine_code_->total_args);
+
     Value* var_mem = b().CreateAlloca(obj_type,
-        cint((sizeof(StackVariables) / sizeof(Object*)) + machine_code_->number_of_locals),
+        cint((sizeof(StackVariables) / sizeof(Object*)) + num_vars),
         "var_mem");
 
     call_frame = b().CreateBitCast(
