@@ -68,7 +68,7 @@ rubysl-nkf-2.0.1.gem
 rubysl-observer-2.0.0.gem
 rubysl-open-uri-2.0.0.gem
 rubysl-open3-2.0.0.gem
-rubysl-openssl-2.2.0.gem
+rubysl-openssl-2.2.1.gem
 rubysl-optparse-2.0.1.gem
 rubysl-ostruct-2.0.4.gem
 rubysl-pathname-2.1.0.gem
@@ -80,7 +80,7 @@ rubysl-pstore-2.0.0.gem
 rubysl-pty-2.0.2.gem
 rubysl-rational-2.0.1.gem
 rubysl-resolv-2.1.0.gem
-rubysl-rexml-2.0.2.gem
+rubysl-rexml-2.0.3.gem
 rubysl-rinda-2.0.1.gem
 rubysl-rss-2.0.0.gem
 rubysl-scanf-2.0.0.gem
