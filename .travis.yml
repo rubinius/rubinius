@@ -5,12 +5,13 @@ compiler:
 before_install:
   - echo $LANG
   - echo $LC_ALL
+  - sudo apt-get install -y llvm-3.4 llvm-3.4-dev
   - rvm use $RVM --install --binary --fuzzy
   - gem update --system
   - gem --version
 before_script:
   - travis_retry bundle
-  - travis_retry ./configure
+  - travis_retry ./configure --llvm-config llvm-config-3.4
 script: rake
 branches:
   only:
