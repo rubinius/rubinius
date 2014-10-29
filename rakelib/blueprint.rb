@@ -197,21 +197,13 @@ Daedalus.blueprint do |i|
     files << winp
   end
 
-  case Rubinius::BUILD_CONFIG[:llvm]
-  when :prebuilt, :svn
-    llvm = i.external_lib "vendor/llvm" do |l|
-      l.cflags = ["-I#{src}/vendor/llvm/include"] + gcc.cflags
-      l.objects = []
-    end
+  if Rubinius::BUILD_CONFIG[:llvm_enabled]
+    conf = Rubinius::BUILD_CONFIG[:llvm_configure]
 
-    gcc.add_library llvm
-  end
-
-  case Rubinius::BUILD_CONFIG[:llvm]
-  when :config, :prebuilt, :svn
+    include_dir = `#{conf} --includedir`.chomp
+    gcc.cflags << "-I#{include_dir}"
     gcc.cxxflags << Rubinius::BUILD_CONFIG[:llvm_cxxflags]
 
-    conf = Rubinius::BUILD_CONFIG[:llvm_configure]
     flags = `#{conf} --cflags`.strip.split(/\s+/)
     flags.delete_if { |x| x.index("-O") == 0 }
     flags.delete_if { |x| x =~ /-D__STDC/ }
@@ -255,11 +247,6 @@ Daedalus.blueprint do |i|
     gcc.ldflags.concat objects
 
     gcc.ldflags << ldflags
-  when :no
-    # nothing, not using LLVM
-  else
-    STDERR.puts "Unsupported LLVM configuration: #{Rubinius::BUILD_CONFIG[:llvm]}"
-    raise "get out"
   end
 
   # Make sure to push these up front so vm/ stuff has priority
