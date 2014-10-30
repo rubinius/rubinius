@@ -1,0 +1,97 @@
+This file documents changes made in each version that may be of interest to
+users. The description is high-level and focuses on visible behavior rather
+than implementation details. The content here is not intended to provide
+documentation for features. See http://rubini.us/documentation.
+
+The Changelog file provides summaries of changes that affect behavior but not
+typically changes that are related to specs, build system, or refactoring.
+
+For source changes, see https://github.com/rubinius/rubinius/commits/master.
+
+Version 2.3.0 (2014-10-31)
+
+* Keyword arguments (both optional and required) are supported. Other syntax
+  changes in MRI 2.1, like Complex and Rational literal suffixes and symbol
+  list literals, are also supported.
+
+* Rubinius will read -X configuration options from CWD/.rbxrc. The format of
+  the file is one -X configuration option per line. The available -X
+  configuration options are listed by the -Xhelp option.
+
+* The basic infrastructure has been added for always-on metrics of Rubinius
+  subsystems. The metrics are 64bit monotonic counters. The data is accessible
+  with 'Rubinius::Metrics.data'. The object returned provides the following
+  methods:
+
+    * keys: return a list of symbol keys that name available metrics.
+    * values: return the values of the available metrics.
+    * []: return the value of the metric specified by the given key.
+    * to_hash: return a Hash instance of the available metrics.
+
+  The metrics can be emitted to StatsD at a regular interval. See the
+  following -X configuration options:
+
+    * system.metrics.interval
+    * system.metrics.target
+    * system.metrics.statsd.server
+    * system.metrics.statsd.prefix
+
+  The available metrics will be refined over time. Check the values returned
+  by the 'Rubinius::Metrics.data.keys' method to determine which metrics are
+  available.
+
+* Rubinius provides an interface to the syslog facility. This is used
+  internally in Rubinius subsystems to standardize logging. Since the syslog
+  interface available through libc only allows syslog to be opened once in a
+  process, Rubinius provides the Rubinius::Logger class as a way for
+  applications to use the same handle to syslog but provide a specific prefix
+  for the application (or application components).
+
+    * Logger.system: return new logger using the "system" prefix.
+    * Logger.log_exception(message, exc): write a rendered exception with the
+      system logger prefix.
+    * Logger.new(name): return a new logger using the specified prefix.
+    * Logger#fatal(message): write message to both STDERR and the log with a
+      level of Fatal.
+    * Logger#error(message): write message to the log with level of Error.
+    * Logger#warn(message): write message to the log with level of Warn.
+    * Logger#info(message): write message to the log with level of Info.
+    * Logger#debug(message): write message to the log with level of Debug.
+
+  The default level that will be written to the log is Warn or higher. To
+  change the log level, use the system.log.level -X configuration option.
+
+  The system.log -X configuration variable controls which logger is used. The
+  available loggers are syslog, console, or path. The default logger is the
+  file /var/log/$PROGRAM_NAME.log, where $PROGRAM_NAME is replaced by the
+  value of Rubinius::PROGRAM_NAME. If this file is not writable,
+  $TMPDIR/$PROGRAM_NAME.log (where TMPDIR is an environment variable) or
+  /tmp/$PROGRAM_NAME.log will be used, if writable.
+
+  If using another application component that opens syslog, this will
+  interfere with Rubinius using syslog. In this scenario, consider using the
+  Rubinius::Logger class in your application.
+
+* The infrastructure for Rubinius::Console has been added. Rubinius::Console
+  will eventually replace IRB, the Rubinius debugger and profiler, and all the
+  Rubinius::Agent features, including heap dump. Many of the Rubinius::Console
+  features have not yet been implemented.
+
+  The Rubinius::Console supports attaching to any running Rubinius instance as
+  long as read/write access is available to the file system path specified by
+  the system.fsapi.path -X configuration option. Accordingly, Console relies
+  on the OS process and file system permissions to provide security and access
+  control. With a utility like sshfs, Console can connect to a running
+  Rubinius instance over the network.
+
+  The goal of Console is to provide a single, comprehensive, integrated, and
+  powerful interface to the behavior of the Rubinius system and applications
+  running on it.
+
+* Support for automatically building LLVM from source, or accessing a
+  pre-built binary of LLVM has been removed. Effort is being focused on
+  supporting LLVM packages provided by the system. This is a better use of
+  time and allows Rubinius to better integrate with existing systems. For
+  example, many Linux distributions strenuously discourage alternately
+  packaging system libraries to reduce security risks when defects in the
+  libraries are detected and fixed.
