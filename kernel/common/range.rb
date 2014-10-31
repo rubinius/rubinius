@@ -34,6 +34,74 @@ class Range
   attr_reader :begin
   attr_reader :end
 
+  def bsearch
+    return to_enum :bsearch unless block_given?
+
+    unless @begin.kind_of? Numeric and @end.kind_of? Numeric
+      raise TypeError, "bsearch is not available for #{@begin.class}"
+    end
+
+    min = @begin
+    max = @end
+
+    max -= 1 if max.kind_of? Integer and @excl
+
+    start = min = Rubinius::Type.coerce_to min, Integer, :to_int
+    total = max = Rubinius::Type.coerce_to max, Integer, :to_int
+
+    last_true = nil
+
+    if max < 0 and min < 0
+      value = min + (max - min) / 2
+    elsif min < -max
+      value = -((-1 - min - max) / 2 + 1)
+    else
+      value = (min + max) / 2
+    end
+
+    while min < max
+      x = yield value
+
+      return value if x == 0
+
+      case x
+      when Numeric
+        if x > 0
+          min = value + 1
+        else
+          max = value
+        end
+      when true
+        last_true = value
+        max = value
+      when false, nil
+        min = value + 1
+      else
+        raise TypeError, "Range#bsearch block must return Numeric or boolean"
+      end
+
+      if max < 0 and min < 0
+        value = min + (max - min) / 2
+      elsif min < -max
+        value = -((-1 - min - max) / 2 + 1)
+      else
+        value = (min + max) / 2
+      end
+    end
+
+    if min < max
+      return @begin if value == start
+      return @begin.kind_of?(Float) ? value.to_f : value
+    end
+
+    if last_true
+      return @begin if last_true == start
+      return @begin.kind_of?(Float) ? last_true.to_f : last_true
+    end
+
+    nil
+  end
+
   def each
     return to_enum unless block_given?
     first, last = @begin, @end
