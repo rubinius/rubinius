@@ -13,7 +13,9 @@
 #include "builtin/thread.hpp"
 #include "builtin/tuple.hpp"
 
+#ifdef ENABLE_LLVM
 #include "llvm/state.hpp"
+#endif
 
 #include "gc/managed.hpp"
 
@@ -521,11 +523,13 @@ namespace rubinius {
             }
           }
 
+#ifdef ENABLE_LLVM
           if(state->shared().llvm_state) {
             if(VM* vm = state->shared().llvm_state->vm()) {
               metrics_collection_.add(vm->metrics());
             }
           }
+#endif
 
           metrics_collection_.add(&metrics_history_);
 

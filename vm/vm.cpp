@@ -168,7 +168,7 @@ namespace rubinius {
     }
 #else
     G(jit)->available(&state, cFalse);
-    G(jit)->properties(&state, cNil);
+    G(jit)->properties(&state, nil<Array>());
     G(jit)->enabled(&state, cFalse);
 #endif
   }

@@ -80,10 +80,12 @@ namespace rubinius {
     , signal_handler_(NULL)
     , finalizer_handler_(NULL)
   {
-#if defined ENABLE_LLVM && RBX_LLVM_API_VER < 305
+#ifdef ENABLE_LLVM
+#if RBX_LLVM_API_VER < 305
     if(!llvm::llvm_start_multithreaded()) {
       assert(0 && "llvm doesn't support threading!");
     }
+#endif
 #endif
 
     String::init_hash();
@@ -140,9 +142,11 @@ namespace rubinius {
 
     if(state->shared().config.jit_disabled) return;
 
+#ifdef ENABLE_LLVM
     if(!state->shared().llvm_state) {
       state->shared().llvm_state = new LLVMState(state);
     }
+#endif
   }
 
   void Environment::stop_logging(STATE) {
@@ -154,9 +158,11 @@ namespace rubinius {
 
     if(state->shared().config.jit_disabled) return;
 
+#ifdef ENABLE_LLVM
     if(state->shared().llvm_state) {
       state->shared().llvm_state->stop(state);
     }
+#endif
   }
 
   void Environment::start_signals(STATE) {
