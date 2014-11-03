@@ -10,6 +10,10 @@ describe "Array#flatten" do
     [ 1, 2, [3, [4, 5] ] ].flatten(1).should == [1, 2, 3, [4, 5]]
   end
 
+  it "flattens all levels when the argument is nil" do
+    [[[1, [2, 3]],[2, 3, [4, [4, [5, 5]], [1, 2, 3]]], [4]], []].flatten(nil).should == [1, 2, 3, 2, 3, 4, 4, 5, 5, 1, 2, 3, 4]
+  end
+
   it "returns dup when the level of recursion is 0" do
     a = [ 1, 2, [3, [4, 5] ] ]
     a.flatten(0).should == a
@@ -138,6 +142,10 @@ describe "Array#flatten!" do
 
   it "takes an optional argument that determines the level of recursion" do
     [ 1, 2, [3, [4, 5] ] ].flatten!(1).should == [1, 2, 3, [4, 5]]
+  end
+
+  it "flattens all levels when the argument is nil" do
+    [[[1, [2, 3]],[2, 3, [4, [4, [5, 5]], [1, 2, 3]]], [4]], []].flatten(nil).should == [1, 2, 3, 2, 3, 4, 4, 5, 5, 1, 2, 3, 4]
   end
 
   # redmine #1440
