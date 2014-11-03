@@ -745,7 +745,7 @@ class Array
   end
 
   def flatten(level=-1)
-    level = Rubinius::Type.coerce_to_collection_index level
+    level = level ? Rubinius::Type.coerce_to_collection_index(level) : -1
     return self.dup if level == 0
 
     out = new_reserved size
@@ -757,7 +757,7 @@ class Array
   def flatten!(level=-1)
     Rubinius.check_frozen
 
-    level = Rubinius::Type.coerce_to_collection_index level
+    level = level ? Rubinius::Type.coerce_to_collection_index(level) : -1
     return nil if level == 0
 
     out = new_reserved size
