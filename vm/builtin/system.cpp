@@ -384,7 +384,7 @@ namespace rubinius {
           strerror(errno), command_line.str().c_str());
 
       int error_no = errno;
-      write(fds[1], &error_no, sizeof(int));
+      (void)write(fds[1], &error_no, sizeof(int));
       close(fds[1]);
 
       exit(1);
@@ -507,7 +507,7 @@ namespace rubinius {
           strerror(errno), exe.command());
 
       int error_no = errno;
-      write(errors[1], &error_no, sizeof(int));
+      (void)write(errors[1], &error_no, sizeof(int));
       close(errors[1]);
 
       exit(1);
