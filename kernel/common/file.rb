@@ -57,6 +57,7 @@ class File < IO
     FNM_PATHNAME = 0x02
     FNM_DOTMATCH = 0x04
     FNM_CASEFOLD = 0x08
+    FNM_EXTGLOB  = 0x10
 
     if Rubinius.windows?
       NULL = 'NUL'
