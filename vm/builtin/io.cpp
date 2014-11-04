@@ -1040,6 +1040,7 @@ namespace rubinius {
 #define FNM_PATHNAME	0x02
 #define FNM_DOTMATCH	0x04
 #define FNM_CASEFOLD	0x08
+#define FNM_EXTGLOB 	0x10
 #if CASEFOLD_FILESYSTEM
 #define FNM_SYSCASE	FNM_CASEFOLD
 #else
