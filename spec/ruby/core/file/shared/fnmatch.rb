@@ -7,9 +7,13 @@ describe :file_fnmatch, :shared => true do
     File.send(@method, 'cat', 'category').should == false
   end
 
-  it "does not support { } patterns" do
+  it "does not support { } patterns by default" do
     File.send(@method, 'c{at,ub}s', 'cats').should == false
     File.send(@method, 'c{at,ub}s', 'c{at,ub}s').should == true
+  end
+
+  it "supports { } patterns when File::FNM_EXTGLOB is passed" do
+    File.send(@method, 'c{at,ub}s', 'cats', File::FNM_EXTGLOB).should == true
   end
 
   it "matches a single character for each ? character" do
