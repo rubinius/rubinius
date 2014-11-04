@@ -240,7 +240,7 @@ class Configure
     @vendordir    = @prefixdir + "/vendor" unless @vendordir
     @mandir       = @prefixdir + "/man" unless @mandir
     @gemsdir      = @prefixdir + "/gems" unless @gemsdir
-    @includedir   = @prefixdir + "/vm/include/capi" unless @includedir
+    @includedir   = @prefixdir + "/include/rubinius/capi" unless @includedir
 
     @encdir = @libdir + "/encoding/converter"
 
@@ -1861,6 +1861,7 @@ Rubinius (#{build_revision[0, 8]}) has been configured for the following paths:
 prefix:     #{@prefixdir}
 bin:        #{@prefixdir}#{@bindir}
 lib:        #{@prefixdir}#{@libdir}
+include:    #{@prefixdir}#{@includedir}
 runtime:    #{@prefixdir}#{@runtimedir}
 kernel:     #{@prefixdir}#{@kerneldir}
 site:       #{@prefixdir}#{@sitedir}
@@ -1868,7 +1869,6 @@ vendor:     #{@prefixdir}#{@vendordir}
 man:        #{@prefixdir}#{@mandir}
 gems:       #{@prefixdir}#{@gemsdir}
 gems cache: #{@gems_cache}
-include:    #{@prefixdir}#{@includedir}
 
 Run 'rake' to build, test and install Rubinius.
       EOM

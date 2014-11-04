@@ -55,4 +55,19 @@ namespace :package do
     sh "rake package:binary_builder RBX_BINARY_PACKAGE=#{heroku_package} " \
        "RBX_BINARY_PREFIX=/app/vendor/#{heroku_package}"
   end
+
+  desc "Build a binary package for Homebrew"
+  task :homebrew do
+    version = BUILD_CONFIG[:version]
+    homebrew_package = "rubinius-#{version}"
+    prefix = "/#{homebrew_package}"
+    lib = "lib/rubinius/#{version}"
+    config = "'--bindir=#{prefix}/bin --appdir=#{prefix}/#{lib} " \
+             "--includedir=#{prefix}/include/rubinius " \
+             "--gemsdir=#{prefix}/#{lib}/gems " \
+             "--mandir=#{prefix}/man'"
+
+    sh "rake package:binary_builder RBX_BINARY_PACKAGE=#{homebrew_package} " \
+       "RBX_BINARY_CONFIG=#{config}"
+  end
 end
