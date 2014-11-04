@@ -240,7 +240,7 @@ class Configure
     @vendordir    = @prefixdir + "/vendor" unless @vendordir
     @mandir       = @prefixdir + "/man" unless @mandir
     @gemsdir      = @prefixdir + "/gems" unless @gemsdir
-    @includedir   = @prefixdir + "/include/rubinius/capi" unless @includedir
+    @includedir   = @prefixdir + "/vm/include/capi" unless @includedir
 
     @encdir = @libdir + "/encoding/converter"
 
