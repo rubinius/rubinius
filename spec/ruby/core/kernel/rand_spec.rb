@@ -53,8 +53,12 @@ describe "Kernel.rand" do
     rand(0.25..0.75).should be_kind_of(Float)
   end
 
-  it 'returns nil when range is nonexistent' do
+  it "returns nil when range is backwards" do
     rand(1..0).should be_nil
+  end
+
+  it "returns nil when float range is 0" do
+    rand(1.0..1.0).should be_nil
   end
 end
 
