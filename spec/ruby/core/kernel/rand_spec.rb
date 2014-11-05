@@ -53,6 +53,11 @@ describe "Kernel.rand" do
     rand(0.25..0.75).should be_kind_of(Float)
   end
 
+  it "returns a numeric for an range argument where max is < 1" do
+    require 'bigdecimal'
+    rand(BigDecimal(0.25, 2)..BigDecimal(0.75, 2)).should be_kind_of(Numeric)
+  end
+
   it "returns nil when range is backwards" do
     rand(1..0).should be_nil
   end
