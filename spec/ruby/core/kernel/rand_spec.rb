@@ -52,6 +52,10 @@ describe "Kernel.rand" do
   it "returns a float for an range argument where max is < 1" do
     rand(0.25..0.75).should be_kind_of(Float)
   end
+
+  it 'returns nil when range is nonexistent' do
+    rand(1..0).should be_nil
+  end
 end
 
 describe "Kernel#rand" do
