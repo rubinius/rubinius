@@ -674,10 +674,7 @@ class File < IO
     flags   = Rubinius::Type.coerce_to(flags, Fixnum, :to_int)
 
     if (flags & FNM_EXTGLOB) != 0
-      patterns = braces(pattern, flags)
-      return false if patterns.empty?
-
-      patterns.any? { |p| super(p, path, flags) }
+      braces(pattern, flags).any? { |p| super(p, path, flags) }
     else
       super pattern, path, flags
     end
