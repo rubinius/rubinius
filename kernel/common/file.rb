@@ -596,12 +596,97 @@ class File < IO
   #  File.fnmatch(pattern, 'c:/a/b/c/foo', File::FNM_PATHNAME)  #=> true
   #  File.fnmatch(pattern, 'a/.b/c/foo', File::FNM_PATHNAME)    #=> false
   #  File.fnmatch(pattern, 'a/.b/c/foo', File::FNM_PATHNAME | File::FNM_DOTMATCH) #=> true
+  #def self.fnmatch(pattern, path, flags=0)
+    #pattern = StringValue(pattern)
+    #path    = Rubinius::Type.coerce_to_path(path)
+    #flags   = Rubinius::Type.coerce_to(flags, Fixnum, :to_int)
+
+    #super pattern, path, flags
+  #end
+
+  def self.braces(pattern, flags=0, patterns=[])
+    escape = (flags & FNM_NOESCAPE) == 0
+
+    rbrace = nil
+    lbrace = nil
+
+    # Do a quick search for a { to start the search better
+    i = pattern.index("{")
+
+    if i
+      nest = 0
+
+      while i < pattern.size
+        char = pattern[i]
+
+        if char == "{"
+          lbrace = i if nest == 0
+          nest += 1
+        end
+
+        if char == "}"
+          nest -= 1
+        end
+
+        if nest == 0
+          rbrace = i
+          break
+        end
+
+        if char == "\\" and escape
+          i += 1
+        end
+
+        i += 1
+      end
+    end
+
+    # There was a full {} expression detected, expand each part of it
+    # recursively.
+    if lbrace and rbrace
+      pos = lbrace
+      front = pattern[0...lbrace]
+      back = pattern[(rbrace + 1)..-1]
+
+      while pos < rbrace
+        nest = 0
+        pos += 1
+        last = pos
+
+        while pos < rbrace and not (pattern[pos] == "," and nest == 0)
+          nest += 1 if pattern[pos] == "{"
+          nest -= 1 if pattern[pos] == "}"
+
+          if pattern[pos] == "\\" and escape
+            pos += 1
+            break if pos == rbrace
+          end
+
+          pos += 1
+        end
+
+        brace_pattern = "#{front}#{pattern[last...pos]}#{back}"
+        patterns << brace_pattern
+
+        braces(brace_pattern, flags, patterns)
+      end
+    end
+    patterns
+  end
+
   def self.fnmatch(pattern, path, flags=0)
     pattern = StringValue(pattern)
     path    = Rubinius::Type.coerce_to_path(path)
     flags   = Rubinius::Type.coerce_to(flags, Fixnum, :to_int)
 
-    super pattern, path, flags
+    if (flags & FNM_EXTGLOB) != 0
+      patterns = braces(pattern, flags)
+      return false if patterns.empty?
+
+      patterns.any? { |p| super(p, path, flags) }
+    else
+      super pattern, path, flags
+    end
   end
 
   ##
