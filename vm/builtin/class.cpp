@@ -11,6 +11,8 @@
 #include "object_utils.hpp"
 #include "object_memory.hpp"
 #include "on_stack.hpp"
+#include "call_frame.hpp"
+#include "dtrace/dtrace.h"
 
 namespace rubinius {
 
@@ -139,6 +141,9 @@ namespace rubinius {
 #ifdef RBX_GC_STRESS
       state->shared().gc_soon();
 #endif
+
+      RUBINIUS_OBJECT_ALLOCATE_HOOK(state, new_obj, calling_environment);
+
       return new_obj;
     } else if(!type_info_->allow_user_allocate || kind_of<SingletonClass>(this)) {
       std::ostringstream msg;
@@ -165,6 +170,9 @@ namespace rubinius {
 #ifdef RBX_GC_STRESS
       state->shared().gc_soon();
 #endif
+
+      RUBINIUS_OBJECT_ALLOCATE_HOOK(state, new_obj, calling_environment);
+
       return new_obj;
     } else {
       // type_info_->type is neither PackedObject nor Object, so use the
@@ -179,6 +187,9 @@ namespace rubinius {
 #ifdef RBX_GC_STRESS
       state->shared().gc_soon();
 #endif
+
+      RUBINIUS_OBJECT_ALLOCATE_HOOK(state, new_obj, calling_environment);
+
       return new_obj;
     }
   }

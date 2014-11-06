@@ -46,6 +46,8 @@ extern "C" {
 #define RUBINIUS_THREAD_STOP_ENABLED() 0
 #define RUBINIUS_THREAD_STOP(arg0, arg1, arg2) do { } while(0)
 
+#define RUBINIUS_OBJECT_ALLOCATE_ENABLED() 0
+#define RUBINIUS_OBJECT_ALLOCATE(arg0, arg1. arg2) do { } while(0)
 
 #define RUBINIUS_JIT_FUNCTION_BEGIN_ENABLED() 0
 #define RUBINIUS_JIT_FUNCTION_BEGIN(arg0, arg1, arg2, arg3) do { } while(0)

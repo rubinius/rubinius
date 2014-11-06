@@ -84,6 +84,17 @@ provider rubinius {
   probe gc__end(int full);
 
   /*
+    rubinius::object-allocate(classname, filename, lineno)
+
+    Fired when a new object is allocated
+
+    * `classname` the name of the class/module that was allocated
+    * `filename` the path to the file where the object was allocated
+    * `lineno` the line number of the allocation
+   */
+  probe object__allocate(const char *, const char *, int);
+
+  /*
      rubinius:::thread-start(thread_id);
 
      Fired when a new thread is started
