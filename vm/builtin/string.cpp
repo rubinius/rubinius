@@ -27,6 +27,9 @@
 #include "util/random.h"
 #include "missing/string.h"
 
+#include "call_frame.hpp"
+#include "dtrace/dtrace.h"
+
 #include <unistd.h>
 #include <string.h>
 #include <ctype.h>
@@ -61,6 +64,9 @@ namespace rubinius {
   String* String::allocate(STATE, Object* self) {
     String* str = state->new_object<String>(G(string));
     str->klass(state, as<Class>(self));
+
+    RUBINIUS_OBJECT_ALLOCATE_HOOK(state, str, state->vm()->saved_call_frame());
+
     return str;
   }
 

@@ -9,6 +9,9 @@
 #include "object_utils.hpp"
 #include "ontology.hpp"
 
+#include "call_frame.hpp"
+#include "dtrace/dtrace.h"
+
 /* Implementation certain Array methods. These methods are just
  * the ones the VM requires, not the entire set of all Array methods.
  * This includes methods required to implement certain Array
@@ -52,6 +55,9 @@ namespace rubinius {
   Array* Array::allocate(STATE, Object* self) {
     Array* ary = Array::create(state, 0);
     ary->klass(state, as<Class>(self));
+
+    RUBINIUS_OBJECT_ALLOCATE_HOOK(state, ary, state->vm()->saved_call_frame())
+
     return ary;
   }
 
