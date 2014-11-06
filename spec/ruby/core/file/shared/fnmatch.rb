@@ -16,6 +16,10 @@ describe :file_fnmatch, :shared => true do
     File.send(@method, 'c{at,ub}s', 'cats', File::FNM_EXTGLOB).should == true
   end
 
+  it "doesn't match an extra } when File::FNM_EXTGLOB is passed" do
+    File.send(@method, 'c{at,ub}}s', 'cats', File::FNM_EXTGLOB).should == false
+  end
+
   it "matches a single character for each ? character" do
     File.send(@method, 'c?t', 'cat').should == true
     File.send(@method, 'c??t', 'cat').should == false
