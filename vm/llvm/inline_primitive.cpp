@@ -6,7 +6,7 @@
 // We use the i64 and i32 versions here. We do the bounds checking
 // manually later on, because using i63 / i31 is buggy in LLVM, also
 // see http://llvm.org/bugs/show_bug.cgi?id=13991
-#ifdef IS_X8664
+#ifdef IS_64BIT_ARCH
 #define MUL_WITH_OVERFLOW "llvm.smul.with.overflow.i64"
 #else
 #define MUL_WITH_OVERFLOW "llvm.smul.with.overflow.i32"

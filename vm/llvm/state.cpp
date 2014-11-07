@@ -736,7 +736,7 @@ namespace rubinius {
     ud_t ud;
 
     ud_init(&ud);
-#ifdef IS_X8664
+#ifdef IS_64BIT_ARCH
     ud_set_mode(&ud, 64);
 #else
     ud_set_mode(&ud, 32);
