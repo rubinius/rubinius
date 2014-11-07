@@ -376,7 +376,7 @@ std::string rubinius::getHostCPUName() {
   
   return "generic";
 }
-#elif defined(__linux__) && (defined(__ppc__) || defined(__powerpc__))
+#elif defined(__linux__) && (defined(__ppc__) || defined(__powerpc__) || defined(__powerpc64__))
 std::string rubinius::getHostCPUName() {
   // Access to the Processor Version Register (PVR) on PowerPC is privileged,
   // and so we must use an operating-system interface to determine the current
