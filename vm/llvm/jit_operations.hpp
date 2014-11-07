@@ -140,7 +140,7 @@ namespace rubinius {
       zero_ = ConstantInt::get(ctx_->Int32Ty, 0);
       one_ =  ConstantInt::get(ctx_->Int32Ty, 1);
 
-#ifdef IS_X8664
+#ifdef IS_64BIT_ARCH
       FixnumTy = llvm::IntegerType::get(ctx_->llvm_context(), 63);
 #else
       FixnumTy = llvm::IntegerType::get(ctx_->llvm_context(), 31);

@@ -350,7 +350,7 @@ namespace rubinius {
   hashval Object::hash(STATE) {
     if(!reference_p()) {
 
-#ifdef IS_X8664
+#ifdef IS_64BIT_ARCH
       uintptr_t key = reinterpret_cast<uintptr_t>(this);
       key = (~key) + (key << 21); // key = (key << 21) - key - 1;
       key = key ^ (key >> 24);

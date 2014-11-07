@@ -646,7 +646,7 @@ namespace rubinius {
 
   hashval String::hash_str(const unsigned char *bp, unsigned int sz, uint32_t seed) {
 #ifdef USE_MURMUR3
-#ifdef IS_X8664
+#ifdef IS_64BIT_ARCH
     hashval hv[2];
     MurmurHash3_x64_128(bp, sz, seed, hv);
 #else

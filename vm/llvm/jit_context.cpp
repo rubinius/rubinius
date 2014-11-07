@@ -52,7 +52,7 @@ namespace rubinius {
     Int32Ty = Type::getInt32Ty(ctx_);
     Int64Ty = Type::getInt64Ty(ctx_);
 
-#ifdef IS_X8664
+#ifdef IS_64BIT_ARCH
     IntPtrTy = Int64Ty;
 #else
     IntPtrTy = Int32Ty;
