@@ -74,4 +74,7 @@
 #define RUBINIUS_METHOD_PRIMITIVE_RETURN_HOOK(state, module, method, previous) \
     RUBINIUS_METHOD_HOOK(PRIMITIVE_RETURN, state, module, method, previous)
 
+#define RUBINIUS_METHOD_CACHE_RESET_HOOK(state, module, method, previous) \
+    RUBINIUS_METHOD_HOOK(CACHE_RESET, state, module, method, previous)
+
 #endif

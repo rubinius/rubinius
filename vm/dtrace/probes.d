@@ -68,6 +68,14 @@ provider rubinius {
   probe method__primitive__return(const char*, const char*, const char*, int);
 
   /*
+     rubinius::method-cache-reset(classname, methodname, filename, lineno);
+
+     This probie is fired whenever a method cache is reset. The arguments are
+     the same as "rubinius::method-entry".
+   */
+  probe method__cache__reset(const char*, const char*, const char*, int);
+
+  /*
      rubinius:::gc-begin(full);
 
      Fired at the beginning of a GC.
