@@ -446,7 +446,7 @@ module Marshal
 
       call obj if @proc and call_proc
 
-      @stream.tainted? ? obj.taint : obj
+      @stream.tainted? ? Rubinius::Type.infect(obj, @stream) : obj
     end
 
     def construct_class
