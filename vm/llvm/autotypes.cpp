@@ -39,7 +39,7 @@ namespace llvm {
 #endif
 
 namespace autogen_types {
-#ifdef IS_X8664
+#ifdef IS_64BIT_ARCH
 #include "llvm/types64.cpp.gen"
 #else
 #include "llvm/types32.cpp.gen"

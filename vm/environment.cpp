@@ -13,6 +13,7 @@
 #include "builtin/class.hpp"
 #include "builtin/encoding.hpp"
 #include "builtin/exception.hpp"
+#include "builtin/jit.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/module.hpp"
@@ -30,6 +31,7 @@
 #include <llvm/Support/ManagedStatic.h>
 #endif
 
+#include "gc/immix_marker.hpp"
 #include "gc/finalize.hpp"
 
 #include "signal.hpp"
@@ -55,6 +57,8 @@
 #include <stdlib.h>
 #include <sys/param.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <pwd.h>
 
 #include "missing/setproctitle.h"
 
@@ -76,10 +80,12 @@ namespace rubinius {
     , signal_handler_(NULL)
     , finalizer_handler_(NULL)
   {
-#if defined ENABLE_LLVM && RBX_LLVM_API_VER < 305
+#ifdef ENABLE_LLVM
+#if RBX_LLVM_API_VER < 305
     if(!llvm::llvm_start_multithreaded()) {
       assert(0 && "llvm doesn't support threading!");
     }
+#endif
 #endif
 
     String::init_hash();
@@ -97,10 +103,12 @@ namespace rubinius {
     root_vm->metrics()->init(metrics::eRubyMetrics);
     state = new State(root_vm);
 
-    start_logging();
+    start_logging(state);
   }
 
   Environment::~Environment() {
+    stop_logging(state);
+
     delete signal_handler_;
     delete finalizer_handler_;
 
@@ -112,8 +120,6 @@ namespace rubinius {
       delete[] argv_[i];
     }
     delete[] argv_;
-
-    utilities::logger::close();
   }
 
   void cpp_exception_bug() {
@@ -131,16 +137,44 @@ namespace rubinius {
     std::set_terminate(cpp_exception_bug);
   }
 
-  void Environment::start_signals() {
+  void Environment::start_jit(STATE) {
+    utilities::thread::SpinLock::LockGuard lg(state->shared().llvm_state_lock());
+
+    if(state->shared().config.jit_disabled) return;
+
+#ifdef ENABLE_LLVM
+    if(!state->shared().llvm_state) {
+      state->shared().llvm_state = new LLVMState(state);
+    }
+#endif
+  }
+
+  void Environment::stop_logging(STATE) {
+    utilities::logger::close();
+  }
+
+  void Environment::stop_jit(STATE) {
+    utilities::thread::SpinLock::LockGuard lg(state->shared().llvm_state_lock());
+
+    if(state->shared().config.jit_disabled) return;
+
+#ifdef ENABLE_LLVM
+    if(state->shared().llvm_state) {
+      state->shared().llvm_state->stop(state);
+    }
+#endif
+  }
+
+  void Environment::start_signals(STATE) {
     state->vm()->set_run_signals(true);
     signal_handler_ = new SignalHandler(state, config);
   }
 
-  void Environment::start_finalizer() {
+  void Environment::start_finalizer(STATE) {
     finalizer_handler_ = new FinalizerHandler(state);
   }
 
-  void Environment::start_logging() {
+  void Environment::start_logging(STATE) {
     utilities::logger::logger_level level = utilities::logger::eWarn;
 
     if(!config.system_log_level.value.compare("fatal")) {
@@ -301,6 +335,7 @@ namespace rubinius {
 
   void Environment::set_fsapi_path() {
     std::ostringstream path;
+    struct passwd *user_passwd = getpwuid(getuid());
 
     if(!config.system_fsapi_path.value.compare("$TMPDIR")) {
       path << config.system_tmp.value;
@@ -311,7 +346,8 @@ namespace rubinius {
       if(cpath[cpath.size() - 1] != '/') path << "/";
     }
 
-    path << "rbx-" << getlogin() << "-" << getpid();
+    path << "rbx-" << user_passwd->pw_name << "-" << getpid();
+
     shared->fsapi_path.assign(path.str());
 
     create_fsapi(state);
@@ -481,7 +517,14 @@ namespace rubinius {
   }
 
   void Environment::create_fsapi(STATE) {
-    mkdir(shared->fsapi_path.c_str(), 0755);
+    if(mkdir(shared->fsapi_path.c_str(), shared->config.system_fsapi_access) < 0) {
+      utilities::logger::error("%s: unable to create FSAPI path", strerror(errno));
+    }
+
+    // The umask setting will override our permissions for mkdir().
+    if(chmod(shared->fsapi_path.c_str(), shared->config.system_fsapi_access) < 0) {
+      utilities::logger::error("%s: unable to set mode for FSAPI path", strerror(errno));
+    }
   }
 
   void Environment::remove_fsapi(STATE) {
@@ -501,6 +544,11 @@ namespace rubinius {
 
   void Environment::halt(STATE) {
     state->shared().tool_broker()->shutdown(state);
+    if(ImmixMarker* im = state->memory()->immix_marker()) {
+      im->shutdown(state);
+    }
+
+    stop_jit(state);
 
     GCTokenImpl gct;
 
@@ -535,16 +583,6 @@ namespace rubinius {
    * Returns the exit code to use when exiting the rbx process.
    */
   int Environment::exit_code(STATE) {
-
-#ifdef ENABLE_LLVM
-    if(LLVMState* ls = shared->llvm_state) {
-      std::ostream& jit_log = ls->log();
-      if(jit_log != std::cerr) {
-        static_cast<std::ofstream&>(jit_log).close();
-      }
-    }
-#endif
-
     if(state->vm()->thread_state()->raise_reason() == cExit) {
       if(Fixnum* fix = try_as<Fixnum>(state->vm()->thread_state()->raise_value())) {
         return fix->to_native();
@@ -760,14 +798,16 @@ namespace rubinius {
 
     load_platform_conf(runtime);
     boot_vm();
-    start_finalizer();
+    start_finalizer(state);
 
     load_argv(argc_, argv_);
 
-    start_signals();
+    start_signals(state);
     state->vm()->initialize_config();
 
     load_tool();
+
+    start_jit(state);
 
     G(rubinius)->set_const(state, "Signature", Integer::from(state, signature_));
 
@@ -790,6 +830,9 @@ namespace rubinius {
     }
 
     OnStack<1> os(state, loader);
+
+    // Enable the JIT after the core library has loaded
+    G(jit)->enable(state);
 
     Object* inst = loader->send(state, 0, state->symbol("new"));
     if(inst) {

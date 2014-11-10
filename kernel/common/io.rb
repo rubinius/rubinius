@@ -718,55 +718,44 @@ class IO
     end
   end
 
-  ##
-  # Runs the specified command string as a subprocess;
-  # the subprocess‘s standard input and output will be
-  # connected to the returned IO object. If cmd_string
-  # starts with a ``-’’, then a new instance of Ruby is
-  # started as the subprocess. The default mode for the
-  # new file object is ``r’’, but mode may be set to any
-  # of the modes listed in the description for class IO.
-  #
-  # If a block is given, Ruby will run the command as a
-  # child connected to Ruby with a pipe. Ruby‘s end of
-  # the pipe will be passed as a parameter to the block.
-  # At the end of block, Ruby close the pipe and sets $?.
-  # In this case IO::popen returns the value of the block.
-  #
-  # If a block is given with a cmd_string of ``-’’, the
-  # block will be run in two separate processes: once in
-  # the parent, and once in a child. The parent process
-  # will be passed the pipe object as a parameter to the
-  # block, the child version of the block will be passed
-  # nil, and the child‘s standard in and standard out will
-  # be connected to the parent through the pipe.
-  # Not available on all platforms.
-  #
-  #  f = IO.popen("uname")
-  #  p f.readlines
-  #  puts "Parent is #{Process.pid}"
-  #  IO.popen ("date") { |f| puts f.gets }
-  #  IO.popen("-") { |f| $stderr.puts "#{Process.pid} is here, f is #{f}"}
-  #  p $?
-  # produces:
-  #
-  #  ["Linux\n"]
-  #  Parent is 26166
-  #  Wed Apr  9 08:53:52 CDT 2003
-  #  26169 is here, f is
-  #  26166 is here, f is #<IO:0x401b3d44>
-  #  #<Process::Status: pid=26166,exited(0)>
-  def self.popen(str, mode=undefined, options=undefined)
-    mode, binary, external, internal, autoclose = IO.normalize_options(mode, options)
-    mode = parse_mode(mode || 'r')
+  def self.popen(*args)
+    if env = Rubinius::Type.try_convert(args.first, Hash, :to_hash)
+      args.shift
+    end
+
+    if io_options = Rubinius::Type.try_convert(args.last, Hash, :to_hash)
+      args.pop
+    end
+
+    if args.size > 2
+      raise ArgumentError, "#{__method__}: given #{args.size}, expected 1..2"
+    end
+
+    cmd, mode = args
+    mode ||= "r"
+
+    if cmd.kind_of? Array
+      if sub_env = Rubinius::Type.try_convert(cmd.first, Hash, :to_hash)
+        env = sub_env unless env
+        cmd.shift
+      end
+
+      if exec_options = Rubinius::Type.try_convert(cmd.last, Hash, :to_hash)
+        cmd.pop
+      end
+    end
+
+    mode, binary, external, internal, autoclose =
+      IO.normalize_options(mode, io_options || {})
+    mode_int = parse_mode mode
 
     readable = false
     writable = false
 
-    if mode & IO::RDWR != 0
+    if mode_int & IO::RDWR != 0
       readable = true
       writable = true
-    elsif mode & IO::WRONLY != 0
+    elsif mode_int & IO::WRONLY != 0
       writable = true
     else # IO::RDONLY
       readable = true
@@ -775,55 +764,9 @@ class IO
     pa_read, ch_write = pipe if readable
     ch_read, pa_write = pipe if writable
 
-    pid = Process.fork
-
-    # child
-    if !pid
-      if readable
-        pa_read.close
-        STDOUT.reopen ch_write
-      end
-
-      if writable
-        pa_write.close
-        STDIN.reopen ch_read
-      end
-
-      if str == "-"
-        if block_given?
-          yield nil
-          exit! 0
-        else
-          return nil
-        end
-      elsif str.kind_of? Array
-        if str.first.kind_of? Hash
-          env = str.first
-          env.each { |k, v| ENV[k] = v }
-          cmd = str[1..-1]
-        else
-          cmd = str
-        end
-
-        if str.last.kind_of? Hash
-          redirects, options = Rubinius::Spawn.adjust_options(str.pop)
-          Rubinius::Spawn.setup_redirects(redirects)
-          Rubinius::Spawn.setup_options(options)
-        end
-
-        Process.perform_exec cmd.first, cmd.map(&:to_s)
-      else
-        Process.perform_exec str, []
-      end
-    end
-
-    ch_write.close if readable
-    ch_read.close  if writable
-
     # We only need the Bidirectional pipe if we're reading and writing.
     # If we're only doing one, we can just return the IO object for
     # the proper half.
-    #
     if readable and writable
       # Transmogrify pa_read into a BidirectionalPipe object,
       # and then tell it abou it's pid and pa_write
@@ -843,7 +786,58 @@ class IO
     pipe.binmode if binary
     pipe.set_encoding(external || Encoding.default_external, internal)
 
+    if cmd == "-"
+      pid = Rubinius::Mirror::Process.fork
+
+      if !pid
+        # Child
+        begin
+          if readable
+            pa_read.close
+            STDOUT.reopen ch_write
+          end
+
+          if writable
+            pa_write.close
+            STDIN.reopen ch_read
+          end
+
+          if block_given?
+            yield nil
+            exit! 0
+          else
+            return nil
+          end
+        rescue
+          exit! 0
+        end
+      end
+    else
+      options = {}
+      options[:in] = ch_read.fileno if ch_read
+      options[:out] = ch_write.fileno if ch_write
+
+      if io_options
+        io_options.delete_if do |key, _|
+          [:mode, :external_encoding, :internal_encoding,
+            :encoding, :textmode, :binmode, :autoclose
+          ].include? key
+        end
+
+        options.merge! io_options
+      end
+
+      if exec_options
+        options.merge! exec_options
+      end
+
+      pid = Rubinius::Mirror::Process.spawn(env || {}, *cmd, options)
+    end
+
     pipe.pid = pid
+
+    ch_write.close if readable
+    ch_read.close  if writable
 
     return pipe unless block_given?
 
@@ -974,8 +968,14 @@ class IO
     io.descriptor = fd
     io.mode       = mode || cur_mode
     io.sync       = !!sync
-    io.sync     ||= STDOUT.fileno == fd if STDOUT.respond_to?(:fileno)
-    io.sync     ||= STDERR.fileno == fd if STDERR.respond_to?(:fileno)
+
+    if STDOUT.respond_to?(:fileno) and not STDOUT.closed?
+      io.sync ||= STDOUT.fileno == fd
+    end
+
+    if STDERR.respond_to?(:fileno) and not STDERR.closed?
+      io.sync ||= STDERR.fileno == fd
+    end
   end
 
   def self.max_open_fd

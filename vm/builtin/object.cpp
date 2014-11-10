@@ -27,6 +27,8 @@
 #include "object_utils.hpp"
 #include "on_stack.hpp"
 
+#include "util/logger.hpp"
+
 #include <sstream>
 
 namespace rubinius {
@@ -131,12 +133,10 @@ namespace rubinius {
       if(LookupTable* lt = try_as<LookupTable>(other->ivars())) {
         ivars(state, lt->duplicate(state));
 
-      } else {
-        // Use as<> so that we throw a TypeError if there is something else
-        // here.
-        CompactLookupTable* clt = as<CompactLookupTable>(other->ivars());
+      } else if(CompactLookupTable* clt = try_as<CompactLookupTable>(other->ivars())) {
         ivars(state, clt->duplicate(state));
-
+      } else {
+        utilities::logger::warn("Object::copy_object: invalid ivars_ reference");
       };
     }
 
@@ -350,7 +350,7 @@ namespace rubinius {
   hashval Object::hash(STATE) {
     if(!reference_p()) {
 
-#ifdef IS_X8664
+#ifdef IS_64BIT_ARCH
       uintptr_t key = reinterpret_cast<uintptr_t>(this);
       key = (~key) + (key << 21); // key = (key << 21) - key - 1;
       key = key ^ (key >> 24);
@@ -860,11 +860,16 @@ namespace rubinius {
       if(RespondToCache* rct = try_as<RespondToCache>(existing)) {
         existing = rct->fallback_call_site();
       }
-      RespondToCache* cache = RespondToCache::create(state, existing,
-                                self, name, priv, responds, 1);
-      state->vm()->global_cache()->add_seen(state, name);
-      atomic::memory_barrier();
-      existing->update_call_site(state, cache);
+
+      SingletonClass* cls = try_as<SingletonClass>(self->direct_class(state));
+
+      if(!cls || try_as<Class>(cls->attached_instance())) {
+        RespondToCache* cache = RespondToCache::create(state, existing,
+                                  self, name, priv, responds, 1);
+        state->vm()->global_cache()->add_seen(state, name);
+        atomic::memory_barrier();
+        existing->update_call_site(state, cache);
+      }
     }
 
     return responds;

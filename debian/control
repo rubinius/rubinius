@@ -1,14 +1,14 @@
-Source: rubinius-2.2
+Source: rubinius-2.3
 Section: ruby
 Priority: optional
 Maintainer: Chad Slaughter <chad.slaughter+debian@gmail.com>
-Build-Depends: cdbs, debhelper (>= 7.0.50~), ruby1.9.1-dev|ruby1.8-dev| rubinius-2.2, zlib1g-dev, libncurses5-dev, libncursesw5-dev, libreadline6-dev, libssl-dev, quilt, bison, libyaml-dev, dpkg-dev (>= 1.16.8)
+Build-Depends: cdbs, debhelper (>= 7.0.50~), ruby1.9.1-dev|ruby1.8-dev| rubinius-2.2| rubinius-2.3, zlib1g-dev, libncurses5-dev, libncursesw5-dev, libreadline6-dev, libssl-dev, quilt, bison, libyaml-dev, dpkg-dev (>= 1.16.8)
 Standards-Version: 3.9.5
 Homepage: http://rubini.us/
 #Vcs-Git: https://github.com/rubinius/rubinius.git
 Vcs-Browser: https://github.com/rubinius/rubinius
 
-Package: rubinius-2.2
+Package: rubinius-2.3
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Replaces: ruby, ruby-interpreter, irb, rdoc, rake, rubygems, ruby1.9.1, irb1.9.1, rdoc1.9.1, rubygems1.9.1

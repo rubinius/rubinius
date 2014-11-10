@@ -218,7 +218,7 @@ module Rubinius
   def self.version
     extra = ""
 
-    if jit = Rubinius::JIT
+    if Rubinius::JIT.enabled? and jit = Rubinius::JIT.properties
       extra << "J"
 
       if jit.include? :inline_generic
@@ -257,7 +257,7 @@ module Rubinius
     # ignore it.
     return unless name
 
-    if File.exists? name
+    if File.exist? name
       file = File.open name, "r"
       file.seek Integer(offset), IO::SEEK_SET
       Object.const_set :DATA, file

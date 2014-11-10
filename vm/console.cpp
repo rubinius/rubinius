@@ -16,6 +16,8 @@
 
 #include <fcntl.h>
 #include <sys/file.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include <stdio.h>
 
@@ -55,23 +57,28 @@ namespace rubinius {
       , response_fd_(-1)
       , request_exit_(false)
       , response_exit_(false)
-      , request_list_(0)
+      , request_list_(NULL)
     {
       shared_.auxiliary_threads()->register_thread(this);
     }
 
     Console::~Console() {
       shared_.auxiliary_threads()->unregister_thread(this);
+
+      delete request_list_;
+      request_list_ = NULL;
     }
 
     void Console::wakeup() {
       request_exit_ = true;
+      atomic::memory_barrier();
+
       if(write(request_fd_, "x", 1) < 0) {
         logger::error("%s: console: unable to wake request thread", strerror(errno));
       }
     }
 
-    void Console::cleanup(bool remove_files) {
+    void Console::close_files(bool remove_files) {
       if(request_fd_ > 0) {
         close(request_fd_);
         if(remove_files) unlink(request_path_.c_str());
@@ -83,7 +90,9 @@ namespace rubinius {
         if(remove_files) unlink(response_path_.c_str());
         response_fd_ = -1;
       }
+    }
 
+    void Console::empty_request_list() {
       if(request_list_) {
         for(RequestList::const_iterator i = request_list_->begin();
             i != request_list_->end();
@@ -91,13 +100,13 @@ namespace rubinius {
         {
           delete[] *i;
         }
-
-        delete request_list_;
-        request_list_ = NULL;
       }
     }
 
     void Console::initialize(STATE) {
+      request_vm_ = NULL;
+      response_vm_ = NULL;
+
       request_exit_ = false;
       response_exit_ = false;
 
@@ -122,19 +131,25 @@ namespace rubinius {
           String::create(state, response_path_.c_str()));
     }
 
-    static int open_file(std::string path) {
-      int fd = ::open(path.c_str(), O_CREAT | O_TRUNC | O_RDWR, 0666);
+    static int open_file(STATE, std::string path) {
+      int perms = state->shared().config.system_console_access;
+      int fd = ::open(path.c_str(), O_CREAT | O_TRUNC | O_RDWR | O_SYNC | O_CLOEXEC, perms);
 
       if(fd < 0) {
         logger::error("%s: console: unable to open: %s", strerror(errno), path.c_str());
+      }
+
+      // The umask setting will override our permissions for open().
+      if(chmod(path.c_str(), perms) < 0) {
+        logger::error("%s: console: unable to set mode: %s", strerror(errno), path.c_str());
       }
 
       return fd;
     }
 
     void Console::setup_files(STATE) {
-      request_fd_ = open_file(request_path_);
-      response_fd_ = open_file(response_path_);
+      request_fd_ = open_file(state, request_path_);
+      response_fd_ = open_file(state, response_path_);
 
       FSEvent* fsevent = FSEvent::create(state);
       fsevent->watch_file(state, request_fd_, request_path_.c_str());
@@ -190,22 +205,21 @@ namespace rubinius {
       if(request_vm_) {
         wakeup();
 
-        pthread_t os = request_vm_->os_thread();
-        request_exit_ = true;
-
         void* return_value;
+        pthread_t os = request_vm_->os_thread();
         pthread_join(os, &return_value);
 
         request_vm_ = NULL;
       }
 
       if(response_vm_) {
-        pthread_t os = response_vm_->os_thread();
         response_exit_ = true;
+        atomic::memory_barrier();
 
         response_cond_.signal();
 
         void* return_value;
+        pthread_t os = response_vm_->os_thread();
         pthread_join(os, &return_value);
 
         response_vm_ = NULL;
@@ -214,12 +228,13 @@ namespace rubinius {
 
     void Console::shutdown(STATE) {
       stop_threads(state);
-      cleanup(true);
+      close_files(true);
+      empty_request_list();
     }
 
     void Console::before_exec(STATE) {
       stop_threads(state);
-      cleanup(true);
+      close_files(true);
     }
 
     void Console::after_exec(STATE) {
@@ -227,26 +242,10 @@ namespace rubinius {
       start_threads(state);
     }
 
-    void Console::before_fork(STATE) {
-      stop_threads(state);
-    }
-
-    void Console::after_fork_parent(STATE) {
-      start_threads(state);
-    }
-
     void Console::after_fork_child(STATE) {
-      if(request_vm_) {
-        VM::discard(state, request_vm_);
-        request_vm_ = NULL;
-      }
+      close_files(false);
+      empty_request_list();
 
-      if(response_vm_) {
-        VM::discard(state, response_vm_);
-        response_vm_ = NULL;
-      }
-
-      cleanup(false);
       start(state);
     }
 
@@ -311,6 +310,8 @@ namespace rubinius {
         }
       }
 
+      state->gc_dependent(gct, 0);
+
       RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CONST char*>(thread_name),
                            state->vm()->thread_id(), 1);
     }
@@ -356,7 +357,6 @@ namespace rubinius {
       while(!response_exit_) {
         {
           utilities::thread::Mutex::LockGuard lg(list_lock_);
-          GCIndependent guard(state, 0);
 
           if(request_list_->size() > 0) {
             request = request_list_->back();
@@ -384,6 +384,9 @@ namespace rubinius {
         } else {
           utilities::thread::Mutex::LockGuard lg(response_lock_);
           GCIndependent guard(state, 0);
+
+          atomic::memory_barrier();
+          if(response_exit_) break;
 
           response_cond_.wait(response_lock_);
         }

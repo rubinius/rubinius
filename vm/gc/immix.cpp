@@ -377,12 +377,6 @@ namespace rubinius {
     }
   }
 
-  void ImmixGC::wait_for_marker(STATE) {
-    if(marker_) {
-      marker_->wait_for_marker(state);
-    }
-  }
-
   bool ImmixGC::process_mark_stack(int count) {
     return gc_.process_mark_stack(allocator_, count);
   }

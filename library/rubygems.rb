@@ -6,9 +6,10 @@
 #++
 
 require 'rbconfig'
+require 'thread'
 
 module Gem
-  VERSION = '2.3.0'
+  VERSION = '2.4.2'
 end
 
 # Must be first since it unloads the prelude from 1.9.2
@@ -156,6 +157,7 @@ module Gem
 
   @configuration = nil
   @loaded_specs = {}
+  LOADED_SPECS_MUTEX = Mutex.new
   @path_to_default_spec_map = {}
   @platforms = []
   @ruby = nil
@@ -544,9 +546,9 @@ module Gem
   #   Fetching: minitest-3.0.1.gem (100%)
   #   => [#<Gem::Specification:0x1013b4528 @name="minitest", ...>]
 
-  def self.install name, version = Gem::Requirement.default
+  def self.install name, version = Gem::Requirement.default, *options
     require "rubygems/dependency_installer"
-    inst = Gem::DependencyInstaller.new
+    inst = Gem::DependencyInstaller.new(*options)
     inst.install name, version
     inst.installed_gems
   end

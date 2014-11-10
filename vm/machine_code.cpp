@@ -13,6 +13,7 @@
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/iseq.hpp"
+#include "builtin/jit.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/class.hpp"
@@ -91,7 +92,7 @@ namespace rubinius {
 
     // Disable JIT for large methods
     if(state->shared().config.jit_disabled ||
-        total > (size_t)state->shared().config.jit_max_method_size) {
+        total > (size_t)state->shared().config.jit_limit_method_size) {
       call_count = -1;
     }
 
@@ -537,18 +538,20 @@ namespace rubinius {
           } else {
             OnStack<1> os(state, cls);
 
-            Symbol* name = state->symbol("to_hash");
-            Arguments args(name, obj, 0, 0);
-            Dispatch dis(name);
+            Symbol* name = G(sym_to_hash);
+            if(CBOOL(obj->respond_to(state, name, cFalse))) {
+              Arguments args(name, obj, 0, 0);
+              Dispatch dis(name);
 
-            obj = dis.send(state, call_frame, args);
-            if(obj) {
-              if(obj->kind_of_p(state, cls)) {
-                kw = obj;
-                KP = true;
+              obj = dis.send(state, call_frame, args);
+              if(obj) {
+                if(obj->kind_of_p(state, cls)) {
+                  kw = obj;
+                  KP = true;
+                }
+              } else {
+                return false;
               }
-            } else {
-              state->vm()->thread_state()->clear_raise();
             }
           }
         }
@@ -718,10 +721,12 @@ namespace rubinius {
 
       // If argument handling fails..
       if(ArgumentHandler::call(state, mcode, scope, args, previous) == false) {
-        Exception* exc =
-          Exception::make_argument_error(state, mcode->total_args, args.total(), args.name());
-        exc->locations(state, Location::from_call_stack(state, previous));
-        state->raise_exception(exc);
+        if(state->vm()->thread_state()->raise_reason() == cNone) {
+          Exception* exc =
+            Exception::make_argument_error(state, mcode->total_args, args.total(), args.name());
+          exc->locations(state, Location::from_call_stack(state, previous));
+          state->raise_exception(exc);
+        }
 
         return NULL;
       }
@@ -744,10 +749,10 @@ namespace rubinius {
       // A negative call_count means we've disabled usage based JIT
       // for this method.
       if(mcode->call_count >= 0) {
-        if(mcode->call_count >= state->shared().config.jit_call_til_compile) {
-          LLVMState* ls = LLVMState::get(state);
+        if(mcode->call_count >= state->shared().config.jit_threshold_compile) {
           OnStack<3> os(state, exec, mod, code);
-          ls->compile_callframe(state, gct, code, frame);
+
+          G(jit)->compile_callframe(state, code, frame);
         } else {
           mcode->call_count++;
         }
@@ -847,8 +852,7 @@ namespace rubinius {
                             bool disable)
   {
 #ifdef ENABLE_LLVM
-    LLVMState* ls = LLVMState::get(state);
-    ls->start_method_update();
+    G(jit)->start_method_update(state);
 
     bool still_others = false;
 
@@ -899,7 +903,7 @@ namespace rubinius {
       if(!found) rubinius::bug("no specializations!");
     }
 
-    ls->end_method_update();
+    G(jit)->end_method_update(state);
 #endif
   }
 

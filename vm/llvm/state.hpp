@@ -42,6 +42,7 @@
 #include "gc/managed.hpp"
 #include "auxiliary_threads.hpp"
 #include "configuration.hpp"
+#include "lock.hpp"
 #include "metrics.hpp"
 #include "util/thread.hpp"
 
@@ -53,13 +54,16 @@ namespace rubinius {
 
   namespace jit {
     class Builder;
+    class Compiler;
     class RubiniusJITMemoryManager;
   }
 
-  class BackgroundCompilerThread;
+  class JITCompileRequest;
   class BlockEnvironment;
   class Context;
+  class List;
   class Symbol;
+  class Thread;
 
   enum JitDebug {
     cSimple = 1,
@@ -67,17 +71,18 @@ namespace rubinius {
     cMachineCode = 4
   };
 
-  class LLVMState : public AuxiliaryThread, public ManagedThread {
+  class LLVMState : public AuxiliaryThread, public Lockable {
     jit::RubiniusJITMemoryManager* memory_;
     llvm::JITEventListener* jit_event_listener_;
 
     Configuration& config_;
 
-    BackgroundCompilerThread* background_thread_;
+    VM* vm_;
+    TypedRoot<Thread*> thread_;
+    TypedRoot<List*> compile_list_;
     SymbolTable& symbols_;
 
     int jitted_methods_;
-    int queued_methods_;
     int accessors_inlined_;
     int uncommons_taken_;
 
@@ -107,27 +112,31 @@ namespace rubinius {
 
     bool type_optz_;
 
+    bool enabled_;
+    bool thread_exit_;
+
+    jit::Compiler* current_compiler_;
+
     utilities::thread::SpinLock method_update_lock_;
     utilities::thread::Mutex wait_mutex;
     utilities::thread::Condition wait_cond;
+    utilities::thread::Mutex request_lock_;
+    utilities::thread::Mutex compile_lock_;
+    utilities::thread::Condition compile_cond_;
 
     std::string cpu_;
 
   public:
 
-    uint64_t time_spent;
-
-    static LLVMState* get(STATE);
-    static LLVMState* get_if_set(STATE);
-    static LLVMState* get_if_set(VM*);
-    static void start(STATE);
-    static void pause(STATE);
-    static void unpause(STATE);
-
     LLVMState(STATE);
     virtual ~LLVMState();
 
     void add_internal_functions();
+    void enable(STATE);
+
+    bool enabled() {
+      return enabled_;
+    }
 
     int jit_dump_code() {
       return config_.jit_dump_code;
@@ -145,10 +154,6 @@ namespace rubinius {
 
     jit::RubiniusJITMemoryManager* memory() { return memory_; }
     llvm::JITEventListener* jit_event_listener() { return jit_event_listener_; }
-
-    int queued_methods() {
-      return queued_methods_;
-    }
 
     int code_bytes() {
       return code_bytes_;
@@ -178,6 +183,10 @@ namespace rubinius {
 
     std::ostream& log() {
       return *log_;
+    }
+
+    VM* vm() {
+      return vm_;
     }
 
     uint32_t fixnum_class_id() {
@@ -260,12 +269,10 @@ namespace rubinius {
       method_update_lock_.unlock();
     }
 
-    void gc_dependent();
-    void gc_independent();
-
     void compile_soon(STATE, GCToken gct, CompiledCode* code, CallFrame* call_frame,
                       Class* receiver_class, BlockEnvironment* block_env = NULL, bool is_block=false);
 
+    void add(STATE, JITCompileRequest* req);
     void remove(void* func);
 
     CallFrame* find_candidate(STATE, CompiledCode* start, CallFrame* call_frame);
@@ -277,12 +284,14 @@ namespace rubinius {
 
     std::string enclosure_name(CompiledCode* code);
 
-    void shutdown(STATE);
-    void before_exec(STATE);
-    void after_exec(STATE);
-    void before_fork(STATE);
-    void after_fork_parent(STATE);
+    void perform(STATE);
+    void stop(STATE);
+
+    void start_thread(STATE);
+    void stop_thread(STATE);
+
     void after_fork_child(STATE);
+    void after_fork_exec_child(STATE);
 
     void gc_scan(GarbageCollector* gc);
 

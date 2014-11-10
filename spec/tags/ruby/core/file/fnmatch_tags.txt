@@ -1,0 +1,2 @@
+fails:File.fnmatch supports { } patterns when File::FNM_EXTGLOB is passed
+fails:File.fnmatch? supports { } patterns when File::FNM_EXTGLOB is passed

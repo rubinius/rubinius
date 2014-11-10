@@ -24,10 +24,4 @@ class MSpecOptions
       config[:profiler] = true
     end
   end
-
-  def agent
-    on("--agent", "Start the Rubinius agent") do
-      config[:launch] << "-Xagent.start"
-    end
-  end
 end

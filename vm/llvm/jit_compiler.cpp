@@ -7,6 +7,7 @@
 #include "builtin/constant_scope.hpp"
 #include "builtin/module.hpp"
 #include "builtin/block_environment.hpp"
+#include "builtin/jit.hpp"
 #include "field_offset.hpp"
 
 #include "call_frame.hpp"
@@ -46,7 +47,6 @@
 #include "llvm/jit_compiler.hpp"
 #include "llvm/jit_method.hpp"
 #include "llvm/jit_block.hpp"
-#include "llvm/background_compile_request.hpp"
 
 #include "llvm/method_info.hpp"
 
@@ -67,7 +67,7 @@ namespace jit {
     if(!mci_) {
       if(!function_) return NULL;
 
-      if(indy) ctx_->llvm_state()->gc_independent();
+      if(indy) ctx_->llvm_state()->shared().gc_independent(ctx_->llvm_state()->vm());
       if(ctx_->llvm_state()->jit_dump_code() & cSimple) {
         llvm::outs() << "[[[ LLVM Simple IR: " << function_->getName() << " ]]]\n";
         llvm::outs() << *function_ << "\n";
@@ -112,7 +112,7 @@ namespace jit {
         llvm::outs() << "       code below to http://github.com/rubinius/rubinius/issues\n";
         llvm::outs() << *function_ << "\n";
         function_ = NULL;
-        if(indy) ctx_->llvm_state()->gc_dependent();
+        if(indy) ctx_->llvm_state()->shared().gc_dependent(ctx_->llvm_state()->vm());
         return NULL;
       }
 
@@ -133,7 +133,7 @@ namespace jit {
         function_->dropAllReferences();
       }
 
-      if(indy) ctx_->llvm_state()->gc_dependent();
+      if(indy) ctx_->llvm_state()->shared().gc_dependent(ctx_->llvm_state()->vm());
 
       ctx_->llvm_state()->add_code_bytes(mci_->size());
       // Inject the RuntimeData objects used into the original CompiledCode
@@ -151,7 +151,7 @@ namespace jit {
     return mci_->address();
   }
 
-  void Compiler::compile(BackgroundCompileRequest* req) {
+  void Compiler::compile(JITCompileRequest* req) {
     if(req->is_block()) {
       compile_block(req);
     } else {
@@ -159,7 +159,7 @@ namespace jit {
     }
   }
 
-  void Compiler::compile_block(BackgroundCompileRequest* req) {
+  void Compiler::compile_block(JITCompileRequest* req) {
 
     CompiledCode* code = req->method();
     MachineCode* mcode = req->machine_code();
@@ -224,7 +224,7 @@ namespace jit {
 #endif
   }
 
-  void Compiler::compile_method(BackgroundCompileRequest* req) {
+  void Compiler::compile_method(JITCompileRequest* req) {
     CompiledCode* code = req->method();
 
     if(ctx_->llvm_state()->config().jit_inline_debug) {

@@ -5,6 +5,7 @@
 #include "builtin/constant_scope.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
+#include "builtin/jit.hpp"
 #include "builtin/location.hpp"
 #include "builtin/native_method.hpp"
 #include "builtin/object.hpp"
@@ -268,21 +269,23 @@ namespace rubinius {
           } else {
             OnStack<1> os(state, cls);
 
-            Symbol* name = state->symbol("to_hash");
-            Arguments args(name, obj, 0, 0);
-            Dispatch dis(name);
+            Symbol* name = G(sym_to_hash);
+            if(CBOOL(obj->respond_to(state, name, cFalse))) {
+              Arguments args(name, obj, 0, 0);
+              Dispatch dis(name);
 
-            obj = dis.send(state, call_frame, args);
-            if(obj) {
-              if(obj->kind_of_p(state, cls)) {
-                kw = obj;
-                KP = true;
-              } else if(!obj->nil_p()) {
-                Exception::type_error(state, "to_hash must return a Hash", call_frame);
+              obj = dis.send(state, call_frame, args);
+              if(obj) {
+                if(obj->kind_of_p(state, cls)) {
+                  kw = obj;
+                  KP = true;
+                } else if(!obj->nil_p()) {
+                  Exception::type_error(state, "to_hash must return a Hash", call_frame);
+                  return false;
+                }
+              } else {
                 return false;
               }
-            } else {
-              state->vm()->thread_state()->clear_raise();
             }
           }
         }
@@ -392,14 +395,11 @@ namespace rubinius {
 
 #ifdef ENABLE_LLVM
     if(mcode->call_count >= 0) {
-      if(mcode->call_count >= state->shared().config.jit_call_til_compile) {
-        LLVMState* ls = LLVMState::get(state);
-
-        GCTokenImpl gct;
+      if(mcode->call_count >= state->shared().config.jit_threshold_compile) {
         OnStack<1> os(state, env);
-        ls->compile_soon(state, gct, env->compiled_code(), previous,
-                         invocation.self->direct_class(state), env, true);
 
+        G(jit)->compile_soon(state, env->compiled_code(), previous,
+            invocation.self->direct_class(state), env, true);
       } else {
         mcode->call_count++;
       }
@@ -410,8 +410,13 @@ namespace rubinius {
 
     Module* mod = invocation.module;
     if(!mod) mod = env->module();
-    scope->initialize(invocation.self, env->top_scope_->block(),
-                      mod, mcode->number_of_locals);
+
+    Object* block = cNil;
+    if(VariableScope* scope = env->top_scope_) {
+      if(!scope->nil_p()) block = scope->block();
+    }
+
+    scope->initialize(invocation.self, block, mod, mcode->number_of_locals);
     scope->set_parent(env->scope_);
 
     InterpreterCallFrame* frame = ALLOCA_CALLFRAME(mcode->stack_size);

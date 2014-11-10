@@ -67,6 +67,7 @@ string.rbc
 range.rbc
 struct.rbc
 process.rbc
+process_mirror.rbc
 random.rbc
 regexp.rbc
 signal.rbc

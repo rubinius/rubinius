@@ -14,7 +14,7 @@ module Kernel
 
   def Complex(*args)
     Rubinius.privately do
-      Complex.convert *args
+      Complex.convert(*args)
     end
   end
   module_function :Complex
@@ -183,6 +183,15 @@ module Kernel
   end
   module_function :__dir__
 
+  def `(str) #`
+    str = StringValue(str) unless str.kind_of?(String)
+    pid, output = Rubinius::Mirror::Process.backtick str
+    Process.waitpid(pid)
+
+    Rubinius::Type.external_string output
+  end
+  module_function :` # `
+
   def =~(other)
     nil
   end
@@ -193,6 +202,10 @@ module Kernel
 
   def ===(other)
     equal?(other) || self == other
+  end
+
+  def itself
+    self
   end
 
   def abort(msg=nil)
@@ -288,6 +301,11 @@ module Kernel
   end
 
   alias_method :__extend__, :extend
+
+  def fork(&block)
+    Process.fork(&block)
+  end
+  module_function :fork
 
   def getc
     $stdin.getc
@@ -845,10 +863,27 @@ module Kernel
     methods.uniq
   end
 
+  def spawn(*args)
+    Process.spawn(*args)
+  end
+  module_function :spawn
+
   def syscall(*args)
     raise NotImplementedError
   end
   module_function :syscall
+
+  def system(*args)
+    begin
+      pid = Process.spawn(*args)
+    rescue SystemCallError
+      return nil
+    end
+
+    Process.waitpid pid
+    $?.exitstatus == 0
+  end
+  module_function :system
 
   def to_s
     Rubinius::Type.infect("#<#{self.class}:0x#{self.__id__.to_s(16)}>", self)
@@ -902,3 +937,6 @@ module Kernel
   module_function :warning
 end
 
+module Kernel
+
+end

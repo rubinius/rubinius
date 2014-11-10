@@ -16,7 +16,7 @@ namespace rubinius {
       , block_break_loc_(NULL)
       , block_emit_loc_(NULL)
       , machine_code_(mcode)
-      , method_(&ctx->llvm_state()->roots())
+      , method_(ctx->llvm_state()->vm())
       , scope_(scope)
       , which_(which)
       , stack_ptr_(stack_ptr)

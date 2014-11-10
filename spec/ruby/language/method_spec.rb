@@ -916,6 +916,11 @@ describe "A method" do
       h = mock("keyword splat")
       h.should_receive(:to_hash).and_return({a: 1})
       m(h).should be_nil
+
+      h = mock("keyword splat")
+      error = RuntimeError.new("error while converting to a hash")
+      h.should_receive(:to_hash).and_raise(error)
+      lambda { m(h) }.should raise_error(error)
     end
 
     evaluate <<-ruby do

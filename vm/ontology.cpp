@@ -26,6 +26,7 @@
 #include "builtin/fsevent.hpp"
 #include "builtin/io.hpp"
 #include "builtin/iseq.hpp"
+#include "builtin/jit.hpp"
 #include "builtin/list.hpp"
 #include "builtin/logger.hpp"
 #include "builtin/lookup_table.hpp"
@@ -365,6 +366,7 @@ namespace rubinius {
     Encoding::init(state);
     FSEvent::init(state);
     Logger::init(state);
+    JIT::init(state);
   }
 
   // @todo document all the sections of bootstrap_ontology
@@ -487,7 +489,9 @@ namespace rubinius {
 
     G(rubinius)->set_const(state, "PROGRAM_NAME", String::create(state, RBX_PROGRAM_NAME));
     G(rubinius)->set_const(state, "RUBY_VERSION", String::create(state, RBX_RUBY_VERSION));
+#ifdef ENABLE_LLVM
     G(rubinius)->set_const(state, "LLVM_VERSION", String::create(state, RBX_LLVM_VERSION));
+#endif
     G(rubinius)->set_const(state, "VERSION", String::create(state, RBX_VERSION));
     G(rubinius)->set_const(state, "LIB_VERSION", String::create(state, RBX_LIB_VERSION));
     G(rubinius)->set_const(state, "BUILD_REV", String::create(state, RBX_BUILD_REV));
@@ -545,6 +549,7 @@ namespace rubinius {
     add_sym(call);
     add_sym(coerce_to_array);
     add_sym(to_ary);
+    add_sym(to_hash);
 #undef add_sym
     GO(sym_respond_to_missing).set(state->symbol("respond_to_missing?"));
     GO(sym_s_method_added).set(state->symbol("singleton_method_added"));

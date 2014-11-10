@@ -13,7 +13,9 @@
 #include "builtin/thread.hpp"
 #include "builtin/tuple.hpp"
 
+#ifdef ENABLE_LLVM
 #include "llvm/state.hpp"
+#endif
 
 #include "gc/managed.hpp"
 
@@ -199,6 +201,13 @@ namespace rubinius {
     {
       metrics_lock_.init();
       map_metrics();
+
+      if(!shared_.config.system_metrics_target.value.compare("statsd")) {
+        emitter_ = new StatsDEmitter(metrics_map_,
+            shared_.config.system_metrics_statsd_server.value,
+            shared_.config.system_metrics_statsd_prefix.value);
+      }
+
       shared_.auxiliary_threads()->register_thread(this);
     }
 
@@ -406,11 +415,8 @@ namespace rubinius {
     }
 
     void Metrics::start(STATE) {
-      if(!shared_.config.system_metrics_target.value.compare("statsd")) {
-        emitter_ = new StatsDEmitter(metrics_map_,
-            shared_.config.system_metrics_statsd_server.value,
-            shared_.config.system_metrics_statsd_prefix.value);
-      }
+      vm_ = NULL;
+      thread_exit_ = false;
 
       timer_ = new timer::Timer;
 
@@ -461,24 +467,10 @@ namespace rubinius {
       stop_thread(state);
     }
 
-    void Metrics::before_exec(STATE) {
-      stop_thread(state);
-    }
-
-    void Metrics::after_exec(STATE) {
-      start_thread(state);
-    }
-
-    void Metrics::before_fork(STATE) {
-      stop_thread(state);
-    }
-
-    void Metrics::after_fork_parent(STATE) {
-      start_thread(state);
-    }
-
     void Metrics::after_fork_child(STATE) {
       metrics_lock_.init();
+      vm_ = NULL;
+
       start(state);
       if(emitter_) emitter_->reinit();
     }
@@ -531,9 +523,13 @@ namespace rubinius {
             }
           }
 
+#ifdef ENABLE_LLVM
           if(state->shared().llvm_state) {
-            metrics_collection_.add(state->shared().llvm_state->metrics());
+            if(VM* vm = state->shared().llvm_state->vm()) {
+              metrics_collection_.add(vm->metrics());
+            }
           }
+#endif
 
           metrics_collection_.add(&metrics_history_);
 

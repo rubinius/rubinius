@@ -356,19 +356,19 @@ extern "C" {
     return dis.send(state, call_frame, args);
   }
 
-  Object* rbx_destructure_args(STATE, CallFrame* call_frame, Arguments& args) {
+  int rbx_destructure_args(STATE, CallFrame* call_frame, Arguments& args) {
     Object* obj = args.get_argument(0);
     Array* ary = 0;
 
     if(!(ary = try_as<Array>(obj))) {
       if(CBOOL(obj->respond_to(state, G(sym_to_ary), cFalse))) {
         if(!(obj = obj->send(state, call_frame, G(sym_to_ary)))) {
-          return NULL;
+          return -1;
         }
 
         if(!(ary = try_as<Array>(obj)) && !obj->nil_p()) {
           Exception::type_error(state, "to_ary must return an Array", call_frame);
-          return NULL;
+          return -1;
         }
       }
     }
@@ -377,7 +377,7 @@ extern "C" {
       args.use_array(ary);
     }
 
-    return cNil;
+    return args.total();
   }
 
   int rbx_destructure_inline_args(STATE, CallFrame* call_frame,
@@ -1251,7 +1251,7 @@ extern "C" {
                                 int32_t unwind_count,
                                 bool force_deoptimization) {
 
-    LLVMState::get(state)->add_uncommons_taken();
+    state->shared().llvm_state->add_uncommons_taken();
 
     MachineCode* mcode = call_frame->compiled_code->machine_code();
 

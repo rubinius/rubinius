@@ -200,10 +200,26 @@ class Gem::RequestSet::GemDependencyAPI
     @dependencies       = {}
     @default_sources    = true
     @git_set            = @set.git_set
+    @git_sources        = {}
+    @installing         = false
     @requires           = Hash.new { |h, name| h[name] = [] }
     @vendor_set         = @set.vendor_set
     @gem_sources        = {}
     @without_groups     = []
+
+    git_source :github do |repo_name|
+      repo_name = "#{repo_name}/#{repo_name}" unless repo_name.include? "/"
+
+      "git://github.com/#{repo_name}.git"
+    end
+
+    git_source :bitbucket do |repo_name|
+      repo_name = "#{repo_name}/#{repo_name}" unless repo_name.include? "/"
+
+      user, = repo_name.split "/", 2
+
+      "https://#{user}@bitbucket.org/#{repo_name}.git"
+    end
   end
 
   ##
@@ -244,6 +260,15 @@ class Gem::RequestSet::GemDependencyAPI
         "found multiple gemspecs at #{Dir.pwd}, " +
         "use the name: option to specify the one you want"
     end
+  end
+
+  ##
+  # Changes the behavior of gem dependency file loading to installing mode.
+  # In installing mode certain restrictions are ignored such as ruby version
+  # mismatch checks.
+
+  def installing= installing # :nodoc:
+    @installing = installing
   end
 
   ##
@@ -334,9 +359,11 @@ class Gem::RequestSet::GemDependencyAPI
 
     source_set = false
 
-    source_set ||= gem_path   name, options
-    source_set ||= gem_git    name, options
-    source_set ||= gem_github name, options
+    source_set ||= gem_path       name, options
+    source_set ||= gem_git        name, options
+    source_set ||= gem_git_source name, options
+
+    duplicate = @dependencies.include? name
 
     @dependencies[name] =
       if requirements.empty? and not source_set then
@@ -356,6 +383,12 @@ class Gem::RequestSet::GemDependencyAPI
     pin_gem_source name, :default unless source_set
 
     gem_requires name, options
+
+    if duplicate then
+      warn <<-WARNING
+Gem dependencies file #{@path} requires #{name} more than once.
+      WARNING
+    end
 
     @set.gem name, *requirements
   end
@@ -390,21 +423,27 @@ class Gem::RequestSet::GemDependencyAPI
   private :gem_git
 
   ##
-  # Handles the github: option from +options+ for gem +name+.
+  # Handles a git gem option from +options+ for gem +name+ for a git source
+  # registered through git_source.
   #
-  # Returns +true+ if the path option was handled.
+  # Returns +true+ if the custom source option was handled.
 
-  def gem_github name, options # :nodoc:
-    return unless path = options.delete(:github)
+  def gem_git_source name, options # :nodoc:
+    return unless git_source = (@git_sources.keys & options.keys).last
 
-    options[:git] = "git://github.com/#{path}.git"
+    source_callback = @git_sources[git_source]
+    source_param = options.delete git_source
+
+    git_url = source_callback.call source_param
+
+    options[:git] = git_url
 
     gem_git name, options
 
     true
   end
 
-  private :gem_github
+  private :gem_git_source
 
   ##
   # Handles the :group and :groups +options+ for the gem with the given
@@ -446,7 +485,8 @@ class Gem::RequestSet::GemDependencyAPI
   # platform matches the current platform.
 
   def gem_platforms options # :nodoc:
-    platform_names = Array(options.delete :platforms)
+    platform_names = Array(options.delete :platform)
+    platform_names.concat Array(options.delete :platforms)
     platform_names.concat @current_platforms if @current_platforms
 
     return true if platform_names.empty?
@@ -510,6 +550,15 @@ class Gem::RequestSet::GemDependencyAPI
   end
 
   ##
+  # Defines a custom git source that uses +name+ to expand git repositories
+  # for use in gems built from git repositories.  You must provide a block
+  # that accepts a git repository name for expansion.
+
+  def git_source name, &callback
+    @git_sources[name] = callback
+  end
+
+  ##
   # Returns the basename of the file the dependencies were loaded from
 
   def gem_deps_file # :nodoc:
@@ -547,7 +596,16 @@ class Gem::RequestSet::GemDependencyAPI
 
     groups = gem_group spec.name, {}
 
+    self_dep = Gem::Dependency.new spec.name, spec.version
+
+    add_dependencies groups, [self_dep]
     add_dependencies groups, spec.runtime_dependencies
+
+    @dependencies[spec.name] = '!'
+
+    spec.dependencies.each do |dep|
+      @dependencies[dep.name] = dep.requirement
+    end
 
     groups << development_group
 
@@ -681,6 +739,8 @@ class Gem::RequestSet::GemDependencyAPI
     raise ArgumentError,
           'you must specify engine_version along with the ruby engine' if
             engine and not engine_version
+
+    return true if @installing
 
     unless RUBY_VERSION == version then
       message = "Your Ruby version is #{RUBY_VERSION}, " +

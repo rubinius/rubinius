@@ -14,12 +14,6 @@ require 'rubygems/basic_specification'
 require 'rubygems/stub_specification'
 require 'rubygems/util/stringio'
 
-# :stopdoc:
-# date.rb can't be loaded for `make install` due to miniruby
-# Date is needed for old gems that stored #date as Date instead of Time.
-class Date; end
-# :startdoc:
-
 ##
 # The Specification class contains the information for a Gem.  Typically
 # defined in a .gemspec file or a Rakefile, and looks like this:
@@ -375,7 +369,9 @@ class Gem::Specification < Gem::BasicSpecification
   ##
   # A long description of this gem
   #
-  # The description should be more detailed than the summary.
+  # The description should be more detailed than the summary but not
+  # excessively long.  A few paragraphs is a recommended length with no
+  # examples or formatting.
   #
   # Usage:
   #
@@ -656,7 +652,7 @@ class Gem::Specification < Gem::BasicSpecification
   #   spec.test_files = Dir.glob('test/tc_*.rb')
   #   spec.test_files = ['tests/test-suite.rb']
 
-  def test_files= files
+  def test_files= files # :nodoc:
     @test_files = Array files
   end
 
@@ -1425,7 +1421,10 @@ class Gem::Specification < Gem::BasicSpecification
 
   def build_args
     if File.exist? build_info_file
-      File.readlines(build_info_file).map { |x| x.strip }
+      build_info = File.readlines build_info_file
+      build_info = build_info.map { |x| x.strip }
+      build_info.delete ""
+      build_info
     else
       []
     end
@@ -1453,11 +1452,13 @@ class Gem::Specification < Gem::BasicSpecification
       require 'rubygems/ext'
       require 'rubygems/user_interaction'
 
-      Gem::DefaultUserInteraction.use_ui Gem::SilentUI.new do
+      ui = Gem::SilentUI.new
+      Gem::DefaultUserInteraction.use_ui ui do
         builder = Gem::Ext::Builder.new self
         builder.build_extensions
       end
     ensure
+      ui.close if ui
       Gem::Specification.unresolved_deps.replace unresolved_deps
     end
   end
@@ -1515,6 +1516,11 @@ class Gem::Specification < Gem::BasicSpecification
     @date ||= TODAY
   end
 
+  DateLike = Object.new # :nodoc:
+  def DateLike.===(obj) # :nodoc:
+    defined?(::Date) and Date === obj
+  end
+
   DateTimeFormat = # :nodoc:
     /\A
      (\d{4})-(\d{2})-(\d{2})
@@ -1544,7 +1550,7 @@ class Gem::Specification < Gem::BasicSpecification
                 raise(Gem::InvalidSpecificationException,
                       "invalid date format in specification: #{date.inspect}")
               end
-            when Time, Date then
+            when Time, DateLike then
               Time.utc(date.year, date.month, date.day)
             else
               TODAY
@@ -1798,7 +1804,7 @@ class Gem::Specification < Gem::BasicSpecification
   ##
   # True if this gem has files in test_files
 
-  def has_unit_tests?
+  def has_unit_tests? # :nodoc:
     not test_files.empty?
   end
 
@@ -2154,7 +2160,7 @@ class Gem::Specification < Gem::BasicSpecification
       seg = obj.keys.sort.map { |k| "#{k.to_s.dump} => #{obj[k].to_s.dump}" }
       "{ #{seg.join(', ')} }"
     when Gem::Version      then obj.to_s.dump
-    when Date              then obj.strftime('%Y-%m-%d').dump
+    when DateLike          then obj.strftime('%Y-%m-%d').dump
     when Time              then obj.strftime('%Y-%m-%d').dump
     when Numeric           then obj.inspect
     when true, false, nil  then obj.inspect
@@ -2242,14 +2248,14 @@ class Gem::Specification < Gem::BasicSpecification
   ##
   # Singular accessor for #test_files
 
-  def test_file
+  def test_file # :nodoc:
     val = test_files and val.first
   end
 
   ##
   # Singular mutator for #test_files
 
-  def test_file= file
+  def test_file= file # :nodoc:
     self.test_files = [file]
   end
 
@@ -2257,7 +2263,7 @@ class Gem::Specification < Gem::BasicSpecification
   # Test files included in this gem.  You cannot append to this accessor, you
   # must assign to it.
 
-  def test_files
+  def test_files # :nodoc:
     # Handle the possibility that we have @test_suite_file but not
     # @test_files.  This will happen when an old gem is loaded via
     # YAML.
@@ -2387,7 +2393,7 @@ class Gem::Specification < Gem::BasicSpecification
 
   def to_yaml(opts = {}) # :nodoc:
     if (YAML.const_defined?(:ENGINE) && !YAML::ENGINE.syck?) ||
-        !defined?(Syck) && defined?(Psych) then
+        (defined?(Psych) && YAML == Psych) then
       # Because the user can switch the YAML engine behind our
       # back, we have to check again here to make sure that our
       # psych code was properly loaded, and load it if not.
@@ -2652,7 +2658,8 @@ duplicate dependency on #{dep}, (#{prev.requirement}) use:
         dep.requirement.requirements.any? do |op, version|
           op == '~>' and
             not version.prerelease? and
-            version.segments.length > 2
+            version.segments.length > 2 and
+            version.segments.first != 0
         end
 
       if overly_strict then

@@ -1040,6 +1040,7 @@ namespace rubinius {
 #define FNM_PATHNAME	0x02
 #define FNM_DOTMATCH	0x04
 #define FNM_CASEFOLD	0x08
+#define FNM_EXTGLOB 	0x10
 #if CASEFOLD_FILESYSTEM
 #define FNM_SYSCASE	FNM_CASEFOLD
 #else
@@ -1421,13 +1422,13 @@ failed: /* try next '*' position */
   }
 
   Object* IOBuffer::fill(STATE, IO* io, CallFrame* calling_environment) {
-    ssize_t bytes_read;
+    ssize_t bytes_read = 0;
     native_int fd = io->descriptor()->to_native();
 
     IOBuffer* self = this;
     OnStack<1> os(state, self);
 
-    char temp_buffer[STACK_BUF_SZ];
+    char temp_buffer[STACK_BUF_SZ] = { 0 };
     size_t count = STACK_BUF_SZ;
 
     if(self->left() < count) count = self->left();

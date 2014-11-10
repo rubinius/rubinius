@@ -105,6 +105,7 @@
 #define HAVE_RB_CLASS_NAME                 1
 #define HAVE_RB_CLASS_NEW                  1
 #define HAVE_RB_CLASS_NEW_INSTANCE         1
+#define HAVE_RB_CLASS_PATH                 1
 #define HAVE_RB_CLASS_REAL                 1
 #define HAVE_RB_CVAR_DEFINED               1
 #define HAVE_RB_CVAR_GET                   1
@@ -305,6 +306,10 @@
 #ifdef RUBY_VERSION_IS_1_8_EX_1_9
 #define HAVE_RB_SET_KCODE                  1
 #endif
+#define HAVE_RB_STDERR                     1
+#define HAVE_RB_STDIN                      1
+#define HAVE_RB_STDOUT                     1
+#define HAVE_RB_DEFOUT                     1
 
 #define HAVE_RB_LASTLINE_SET               1
 #define HAVE_RB_LASTLINE_GET               1
@@ -388,6 +393,7 @@
 #define HAVE_RB_YIELD_SPLAT                1
 #define HAVE_RB_YIELD_VALUES               1
 #define HAVE_RB_FUNCALL3                   1
+#define HAVE_RB_FUNCALL_WITH_BLOCK         1
 
 /* GC */
 #define HAVE_RB_GC_REGISTER_ADDRESS        1

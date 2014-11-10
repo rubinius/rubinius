@@ -13,6 +13,10 @@ describe :kernel_float, :shared => true do
     @object.send(:Float, 1).should == 1.0
   end
 
+  it "returns a Float for Complex with only a real part" do
+    @object.send(:Float, Complex(1)).should == 1.0
+  end
+
   it "returns a Float for Bignums" do
     @object.send(:Float, 1000000000000).should == 1000000000000.0
   end

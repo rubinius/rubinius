@@ -28,6 +28,10 @@ extern "C" {
     return Handle::from(file)->as_rfile(env);
   }
 
+  int rb_cloexec_dup(int fd) {
+    return fcntl(fd, F_DUPFD_CLOEXEC, 3);
+  }
+
   VALUE rb_file_open(const char* name, const char* mode) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     VALUE n = env->get_handle(String::create(env->state(), name));

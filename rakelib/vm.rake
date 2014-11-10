@@ -123,6 +123,7 @@ field_extract_headers = %w[
   vm/builtin/atomic.hpp
   vm/builtin/character.hpp
   vm/builtin/thread_state.hpp
+  vm/builtin/jit.hpp
 ]
 
 transcoders_src_dir = File.expand_path "../../vendor/oniguruma/enc/trans", __FILE__
@@ -153,25 +154,8 @@ end
 # Build options.
 namespace :build do
 
-  desc "Build LLVM"
-  task :llvm do
-    if Rubinius::BUILD_CONFIG[:llvm] == :svn
-      unless File.file?("vendor/llvm/Release/bin/llvm-config")
-        Dir.chdir "vendor/llvm" do
-          host = Rubinius::BUILD_CONFIG[:host]
-          llvm_config_flags = "--build=#{host} --host=#{host} " \
-                              "--enable-optimized --disable-assertions "\
-                              " --enable-targets=host,cpp"
-          sh %[sh -c "#{File.expand_path("./configure")} #{llvm_config_flags}"]
-          sh Rubinius::BUILD_CONFIG[:build_make]
-        end
-      end
-    end
-  end
-
   # Issue the actual build commands. NEVER USE DIRECTLY.
   task :build => %W[
-    build:llvm
     #{VM_EXE}
     compiler:generate
     stage:bin

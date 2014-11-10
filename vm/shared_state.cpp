@@ -1,5 +1,6 @@
 #include "vm.hpp"
 #include "shared_state.hpp"
+#include "call_frame.hpp"
 #include "config_parser.hpp"
 #include "config.h"
 #include "object_memory.hpp"
@@ -176,22 +177,60 @@ namespace rubinius {
     return metrics_;
   }
 
-  void SharedState::reset_threads(STATE) {
+  void SharedState::reset_threads(STATE, GCToken gct, CallFrame* call_frame) {
     VM* current = state->vm();
+
     for(ThreadList::iterator i = threads_.begin();
            i != threads_.end();
            ++i) {
       if(VM* vm = (*i)->as_vm()) {
-        if(vm == current) continue;
-        Thread* thread = vm->thread.get();
-        thread->stopped();
+        if(vm == current) {
+          vm->metrics()->init(metrics::eRubyMetrics);
+          state->vm()->metrics()->system_metrics.vm_threads++;
+          continue;
+        }
+
+        if(Thread* thread = vm->thread.get()) {
+          thread->unlock_dead_thread(state, gct, call_frame);
+          thread->unlock_locks(state, gct, call_frame);
+          thread->stopped();
+        }
+
+        vm->unlock(state->vm());
+        delete vm;
       }
     }
     threads_.clear();
     threads_.push_back(current);
   }
 
-  void SharedState::reinit(STATE) {
+  void SharedState::after_fork_exec_child(STATE, GCToken gct, CallFrame* call_frame) {
+    // For now, we disable inline debugging here. This makes inspecting
+    // it much less confusing.
+
+    config.jit_inline_debug.set("no");
+    env_->set_root_vm(state->vm());
+
+    reset_threads(state, gct, call_frame);
+    lock_init(state->vm());
+    global_cache->reset();
+    ruby_critical_lock_.init();
+    capi_ds_lock_.init();
+    capi_locks_lock_.init();
+    capi_constant_lock_.init();
+    auxiliary_threads_->init();
+    world_->reinit();
+
+    om->after_fork_child(state);
+
+    env_->start_finalizer(state);
+    state->shared().finalizer_handler()->start_thread(state);
+
+    state->vm()->set_run_state(ManagedThread::eIndependent);
+    gc_dependent(state, 0);
+  }
+
+  void SharedState::after_fork_child(STATE, GCToken gct, CallFrame* call_frame) {
     // For now, we disable inline debugging here. This makes inspecting
     // it much less confusing.
 
@@ -199,7 +238,7 @@ namespace rubinius {
 
     env_->set_root_vm(state->vm());
 
-    reset_threads(state);
+    reset_threads(state, gct, call_frame);
 
     // Reinit the locks for this object
     lock_init(state->vm());
@@ -211,9 +250,13 @@ namespace rubinius {
     auxiliary_threads_->init();
 
     env_->set_fsapi_path();
-    env_->start_logging();
+
+    env_->stop_logging(state);
+    env_->start_logging(state);
 
     world_->reinit();
+
+    om->after_fork_child(state);
 
     state->vm()->set_run_state(ManagedThread::eIndependent);
     gc_dependent(state, 0);

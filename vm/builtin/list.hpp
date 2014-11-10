@@ -53,6 +53,7 @@ namespace rubinius {
     static void init(STATE);
     static List* create(STATE);
     void append(STATE, Object* obj);
+    List* clear(STATE);
     Object* shift(STATE);
     Object* locate(STATE, size_t index);
     size_t remove(STATE, const Object* obj);

@@ -721,7 +721,7 @@ remember:
 
       case RBX_FFI_TYPE_LONG:
       case RBX_FFI_TYPE_ULONG:
-#ifdef IS_X8664
+#ifdef IS_64BIT_ARCH
         return ops_.context()->Int64Ty;
 #else
         return ops_.context()->Int32Ty;
@@ -954,7 +954,7 @@ remember:
     case RBX_FFI_TYPE_USHORT:
     case RBX_FFI_TYPE_INT:
     case RBX_FFI_TYPE_UINT:
-#ifndef IS_X8664
+#ifndef IS_64BIT_ARCH
     case RBX_FFI_TYPE_LONG:
     case RBX_FFI_TYPE_ULONG:
 #endif
@@ -973,7 +973,7 @@ remember:
 
     case RBX_FFI_TYPE_LONG_LONG:
     case RBX_FFI_TYPE_ULONG_LONG:
-#ifdef IS_X8664
+#ifdef IS_64BIT_ARCH
     case RBX_FFI_TYPE_LONG:
     case RBX_FFI_TYPE_ULONG:
 #endif

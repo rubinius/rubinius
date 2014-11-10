@@ -67,9 +67,10 @@ namespace rubinius {
    * with actions such as allocating objects, storing data in objects, and
    * performing garbage collection.
    *
-   * It is currently split between 3 generations, the BakerGC, which handles
-   * the young objects, the ImmixGC which handles mature objects, and the
-   * MarkSweepGC, which handles large objects.
+   * It is currently split among 3 generations:
+   *   - BakerGC:     handles young objects
+   *   - ImmixGC:     handles mature objects
+   *   - MarkSweepGC: handles large objects
    *
    * ObjectMemory also manages the memory used for CodeResources, which are
    * internal objects used for executing Ruby code. This includes MachineCode,
@@ -226,7 +227,7 @@ namespace rubinius {
     ObjectMemory(VM* state, Configuration& config);
     ~ObjectMemory();
 
-    void on_fork(STATE);
+    void after_fork_child(STATE);
 
     Object* new_object_typed_dirty(STATE, Class* cls, size_t bytes, object_type type);
     Object* new_object_typed(STATE, Class* cls, size_t bytes, object_type type);
@@ -334,7 +335,6 @@ namespace rubinius {
     /// This only has one use! Don't use it!
     Object* allocate_object_raw(size_t bytes);
     void collect_mature_finish(STATE, GCData* data);
-    void wait_for_mature_marker(STATE);
 
     bool mature_gc_in_progress() {
       return mature_gc_in_progress_;

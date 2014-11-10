@@ -57,6 +57,7 @@ namespace rubinius {
     : young_(new BakerGC(this, config.gc_young_initial_bytes * 2))
     , mark_sweep_(new MarkSweepGC(this, config))
     , immix_(new ImmixGC(this))
+    , immix_marker_(NULL)
     , inflated_headers_(new InflatedHeaders)
     , capi_handles_(new capi::Handles)
     , code_manager_(&state->shared)
@@ -123,7 +124,7 @@ namespace rubinius {
     delete inflated_headers_;
   }
 
-  void ObjectMemory::on_fork(STATE) {
+  void ObjectMemory::after_fork_child(STATE) {
     lock_init(state->vm());
     contention_lock_.init();
     mature_gc_in_progress_ = false;
@@ -705,10 +706,6 @@ step1:
         }
       }
     }
-  }
-
-  void ObjectMemory::wait_for_mature_marker(STATE) {
-    immix_->wait_for_marker(state);
   }
 
   immix::MarkStack& ObjectMemory::mature_mark_stack() {

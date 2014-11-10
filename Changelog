@@ -1,3 +1,47 @@
+Version: 2.3.0 (2014-10-31)
+
+* Compatibility of INT2NUM is improved. (Yorick Peterse)
+* Compatibility of -c is improved. (Yorick Peterse)
+* Keyword arguments are supported. (Brian Shirai)
+* Encoding::Convert#inspect is improved. (Robin Dupret)
+* ObjectSpace.define_finalizer raises RuntimeError. (Joe McIlvain)
+* The C-API provides rb_rational_num, rb_rational_den, rb_big_cmp,
+	rb_big_pack, rb_dbl2big, rb_thread_check_ints, rb_intern_const.
+	(Yorick Peterse)
+* Compatibility of HAMT Hash is improved. (Brian Shirai)
+* The C-API rb_funcall3 disallows private methods. (Ryohei Ikegami)
+* The String#scrub! method is implemented. (Robin Dupret)
+* The Kernel#singleton_class? method is implemented. (Robin Dupret)
+* Enumerable#sort handles #to_a returning a frozen Array. (Alex Dowad)
+* Keyword coercion is improved. (Ryo Onodera)
+* JIT support for cast_for_multi_block_arg is fixed. (Sophia Shao)
+* Infrastructure for Rubinius::Console is added. (Brian Shirai)
+* Support for parsing -X options from CWD/.rbxrc is added. (Brian Shirai)
+* Support for aggregating internal metrics with optional export to StatsD is
+	added. (Brian Shirai)
+* Support for Rubinius::Agent is removed as all functionality will be provided
+	through the Rubinius::Console. (Brian Shirai)
+* Support for logging to syslog and file is added. (Brian Shirai)
+* Kernel.Float() raises RangeError with Complex argument. (Jesse Cooke)
+* Suppport for LLVM shard libraries is added. (Jan Alexander Steffens)
+* Kernel.Float() ignores trailing whitespace. (Jesse Cooke)
+* The C-API rb_Array compatibility is improved. (Sophia Shao)
+* PowerPC64 support for LLVM and Atomic is added.
+	(Gustavo Frederico Temple Pedrosa)
+* Array#count specialization is added. (Joe McIlvain)
+* Kernel#itself is added. (Benny)
+* Support for LLVM 3.5 is added. (Yorick Peterse)
+* IO.new handles closed streams (Sophia Shao)
+* Compatibility of C-API functions rb_stdin, rb_stdout, rb_stderr, rb_defout
+	is improved.  (Sophia Shao)
+* Kernel.Float() coerces a Complex with only real part. (Benny)
+* The C-API provides rb_funcall_with_block. (Ryohei Ikegami)
+* Rubinius::FFI::Library#attach_function is improved. (Joe McIlvain)
+* IO.popen is improved. (Brian Shirai)
+* The C-API provides rb_class_path. (Brian Shirai)
+* Array#bsearch is implemented. (Brian Shirai)
+* Range#bsearch is implemented. (Brian Shirai)
+
 Version: 2.2.10 (2014-06-27)
 
 * Process.spawn and Process.exec duplicate file descriptors when mapping a

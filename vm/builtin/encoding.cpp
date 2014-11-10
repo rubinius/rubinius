@@ -841,7 +841,7 @@ namespace rubinius {
     }
 
     native_int buffer_size = byte_offset + byte_size;
-    ByteArray* buffer = ByteArray::create(state, buffer_size);
+    ByteArray* buffer = ByteArray::create(state, buffer_size + 1);
 
     unsigned char* buffer_ptr = (unsigned char*)buffer->raw_bytes() + byte_offset;
     unsigned char* buffer_end = buffer_ptr + byte_size;

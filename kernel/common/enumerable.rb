@@ -87,13 +87,16 @@ module Enumerable
 
   alias_method :with_object, :each_with_object
 
-  def flat_map(&block)
+  def flat_map
     return to_enum(:flat_map) unless block_given?
+
     inject([]) do |a, e|
-      result = block.call(e)
+      result = yield e
+
       Rubinius::Type.object_respond_to_ary?(result) ? a.concat(result) : a.push(result)
     end
   end
+
   alias_method :collect_concat, :flat_map
 
   def lazy
@@ -342,7 +345,7 @@ module Enumerable
     return to_enum(:cycle, many) unless block_given?
 
     if many
-      many = Rubinius::Type.coerce_to(many, Fixnum, :to_int)
+      many = Rubinius::Type.coerce_to_collection_index many
       return nil if many <= 0
     else
       many = nil
@@ -374,7 +377,7 @@ module Enumerable
   end
 
   def drop(n)
-    n = Rubinius::Type.coerce_to(n, Fixnum, :to_int)
+    n = Rubinius::Type.coerce_to_collection_index n
     raise ArgumentError, "attempt to drop negative size" if n < 0
 
     ary = to_a
@@ -398,7 +401,7 @@ module Enumerable
   def each_cons(num)
     return to_enum(:each_cons, num) unless block_given?
 
-    n = Rubinius::Type.coerce_to(num, Fixnum, :to_int)
+    n = Rubinius::Type.coerce_to_collection_index num
     raise ArgumentError, "invalid size: #{n}" if n <= 0
 
     array = []
@@ -414,7 +417,7 @@ module Enumerable
   def each_slice(slice_size)
     return to_enum(:each_slice, slice_size) unless block_given?
 
-    n = Rubinius::Type.coerce_to(slice_size, Fixnum, :to_int)
+    n = Rubinius::Type.coerce_to_collection_index slice_size
     raise ArgumentError, "invalid slice size: #{n}" if n <= 0
 
     a = []
@@ -695,7 +698,7 @@ module Enumerable
   end
 
   def take(n)
-    n = Rubinius::Type.coerce_to(n, Fixnum, :to_int)
+    n = Rubinius::Type.coerce_to_collection_index n
     raise ArgumentError, "attempt to take negative size: #{n}" if n < 0
 
     array = []

@@ -23,20 +23,24 @@ module Rubinius
       begin
         ret = obj.__send__(meth)
       rescue Exception => orig
-        if object_respond_to?(obj, :inspect)
-          raise TypeError,
-              "Coercion error: #{obj.inspect}.#{meth} => #{cls} failed",
-              orig
-        else
-          raise TypeError,
-              "Coercion error: #{meth} => #{cls} failed",
-              orig
-        end
+        coerce_to_failed obj, cls, meth, orig
       end
 
       return ret if object_kind_of?(ret, cls)
 
       coerce_to_type_error obj, ret, meth, cls
+    end
+
+    def self.coerce_to_failed(object, klass, method, exc=nil)
+      if object_respond_to? object, :inspect
+        raise TypeError,
+            "Coercion error: #{object.inspect}.#{method} => #{klass} failed",
+            exc
+      else
+        raise TypeError,
+            "Coercion error: #{method} => #{klass} failed",
+            exc
+      end
     end
 
     def self.coerce_to_type_error(original, converted, method, klass)
@@ -114,6 +118,46 @@ module Rubinius
       end
 
       name
+    end
+
+    def self.coerce_to_collection_index(index)
+      return index if object_kind_of? index, Fixnum
+
+      method = :to_int
+      klass = Fixnum
+
+      begin
+        idx = index.__send__ method
+      rescue Exception => exc
+        coerce_to_failed index, klass, method, exc
+      end
+      return idx if object_kind_of? idx, klass
+
+      if object_kind_of? index, Bignum
+        raise RangeError, "Array index must be a Fixnum (passed Bignum)"
+      else
+        coerce_to_type_error index, idx, method, klass
+      end
+    end
+
+    def self.coerce_to_collection_length(length)
+      return length if object_kind_of? length, Fixnum
+
+      method = :to_int
+      klass = Fixnum
+
+      begin
+        size = length.__send__ method
+      rescue Exception => exc
+        coerce_to_failed length, klass, method, exc
+      end
+      return size if object_kind_of? size, klass
+
+      if object_kind_of? size, Bignum
+        raise ArgumentError, "Array size must be a Fixnum (passed Bignum)"
+      else
+        coerce_to_type_error length, size, :to_int, Fixnum
+      end
     end
 
     def self.coerce_to_regexp(pattern, quote=false)

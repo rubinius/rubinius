@@ -72,6 +72,7 @@ class Gem::DependencyInstaller
   def initialize options = {}
     @only_install_dir = !!options[:install_dir]
     @install_dir = options[:install_dir] || Gem.dir
+    @build_root = options[:build_root]
 
     options = DEFAULT_OPTIONS.merge options
 
@@ -376,13 +377,16 @@ class Gem::DependencyInstaller
     options = {
       :bin_dir             => @bin_dir,
       :build_args          => @build_args,
+      :document            => @document,
       :env_shebang         => @env_shebang,
       :force               => @force,
       :format_executable   => @format_executable,
       :ignore_dependencies => @ignore_dependencies,
+      :prerelease          => @prerelease,
       :security_policy     => @security_policy,
       :user_install        => @user_install,
       :wrappers            => @wrappers,
+      :build_root          => @build_root,
       :install_as_default  => @install_as_default
     }
     options[:install_dir] = @install_dir if @only_install_dir
@@ -420,6 +424,7 @@ class Gem::DependencyInstaller
     request_set.development         = @development
     request_set.development_shallow = @dev_shallow
     request_set.soft_missing = @force
+    request_set.prerelease = @prerelease
     request_set.remote = false unless consider_remote?
 
     installer_set = Gem::Resolver::InstallerSet.new @domain

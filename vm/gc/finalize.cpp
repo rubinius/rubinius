@@ -80,14 +80,13 @@ namespace rubinius {
   FinalizerHandler::FinalizerHandler(STATE)
     : AuxiliaryThread()
     , shared_(state->shared())
-    , self_(NULL)
+    , vm_(NULL)
     , thread_(state)
     , lists_(NULL)
     , live_list_(NULL)
     , process_list_(NULL)
     , iterator_(NULL)
     , process_item_kind_(eRuby)
-    , paused_(false)
     , exit_(false)
     , finishing_(false)
   {
@@ -100,7 +99,6 @@ namespace rubinius {
     live_guard_.init();
     worker_lock_.init();
     worker_cond_.init();
-    pause_cond_.init();
 
     supervisor_lock_.init();
     supervisor_cond_.init();
@@ -122,21 +120,20 @@ namespace rubinius {
 
   void FinalizerHandler::start_thread(STATE) {
     SYNC(state);
-    if(self_) return;
+    if(vm_) return;
     utilities::thread::Mutex::LockGuard lg(worker_lock_);
-    self_ = state->shared().new_vm();
-    self_->metrics()->init(metrics::eFinalizerMetrics);
-    paused_ = false;
+    vm_ = state->shared().new_vm();
+    vm_->metrics()->init(metrics::eFinalizerMetrics);
     exit_ = false;
-    thread_.set(Thread::create(state, self_, G(thread), finalizer_handler_tramp, true));
+    thread_.set(Thread::create(state, vm_, G(thread), finalizer_handler_tramp, true));
     run(state);
   }
 
   void FinalizerHandler::stop_thread(STATE) {
     SYNC(state);
-    if(!self_) return;
+    if(!vm_) return;
 
-    pthread_t os = self_->os_thread();
+    pthread_t os = vm_->os_thread();
     {
       utilities::thread::Mutex::LockGuard lg(worker_lock_);
       // Thread might have already been stopped
@@ -146,7 +143,7 @@ namespace rubinius {
 
     void* return_value;
     pthread_join(os, &return_value);
-    self_ = NULL;
+    vm_ = NULL;
   }
 
   void FinalizerHandler::shutdown(STATE) {
@@ -154,38 +151,15 @@ namespace rubinius {
     // live objects once everything shuts down.
   }
 
-  void FinalizerHandler::before_exec(STATE) {
-    stop_thread(state);
-  }
-
-  void FinalizerHandler::after_exec(STATE) {
-    start_thread(state);
-  }
-
-  void FinalizerHandler::before_fork(STATE) {
-    utilities::thread::Mutex::LockGuard lg(worker_lock_);
-    while(!paused_ && self_->run_state() == ManagedThread::eRunning) {
-      pause_cond_.wait(worker_lock_);
-    }
-  }
-
-  void FinalizerHandler::after_fork_parent(STATE) {
-    utilities::thread::Mutex::LockGuard lg(worker_lock_);
-    pause_cond_.signal();
-  }
-
   void FinalizerHandler::after_fork_child(STATE) {
     live_guard_.init();
     worker_lock_.init();
     worker_cond_.init();
-    pause_cond_.init();
     supervisor_lock_.init();
     supervisor_cond_.init();
-
-    if(self_) {
-      VM::discard(state, self_);
-      self_ = NULL;
-    }
+    exit_ = false;
+    finishing_ = false;
+    vm_ = NULL;
 
     start_thread(state);
   }
@@ -199,7 +173,7 @@ namespace rubinius {
     GCTokenImpl gct;
     RBX_DTRACE_CONST char* thread_name =
       const_cast<RBX_DTRACE_CONST char*>("rbx.finalizer");
-    self_->set_name(thread_name);
+    vm_->set_name(thread_name);
 
     RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CONST char*>(thread_name),
                           state->vm()->thread_id(), 1);
@@ -219,8 +193,6 @@ namespace rubinius {
           if(exit_) break;
 
           state->gc_independent(gct, 0);
-          paused_ = true;
-          pause_cond_.signal();
           worker_wait();
 
           if(exit_) break;
@@ -230,7 +202,6 @@ namespace rubinius {
 
         {
           utilities::thread::Mutex::LockGuard lg(worker_lock_);
-          paused_ = false;
           if(exit_) break;
         }
 
@@ -333,7 +304,7 @@ namespace rubinius {
         process_list_ = NULL;
         process_item_kind_ = eRuby;
         lists_->pop_back();
-        self_->metrics()->m.finalizer_metrics.objects_finalized++;
+        vm_->metrics()->m.finalizer_metrics.objects_finalized++;
         break;
       }
     }
@@ -403,7 +374,7 @@ namespace rubinius {
     // Makes a copy of fi.
     live_list_->push_front(fi);
 
-    self_->metrics()->m.finalizer_metrics.objects_queued++;
+    vm_->metrics()->m.finalizer_metrics.objects_queued++;
   }
 
   void FinalizerHandler::set_ruby_finalizer(Object* obj, Object* finalizer) {

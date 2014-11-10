@@ -21,11 +21,11 @@ module Rubinius
     alias_method :activate, :call
 
     def arity
-      if @method.respond_to? :arity
-        @method.arity
-      else
-        0
-      end
+      @receiver.arity
+    end
+
+    def parameters
+      @receiver.parameters
     end
 
     def source_location

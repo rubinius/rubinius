@@ -82,6 +82,14 @@ describe "A block yielded a single" do
       lambda { m([1, 2, 3, obj]) { |a, *b, c, **k| } }.should raise_error(TypeError)
     end
 
+    it "raises the error raised inside #to_hash" do
+      obj = mock("destructure block keyword arguments")
+      error = RuntimeError.new("error while converting to a hash")
+      obj.should_receive(:to_hash).and_raise(error)
+
+      lambda { m([1, 2, 3, obj]) { |a, *b, c, **k| } }.should raise_error(error)
+    end
+
     it "does not call #to_ary on the Array" do
       ary = [1, 2]
       ary.should_not_receive(:to_ary)

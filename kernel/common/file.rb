@@ -57,6 +57,7 @@ class File < IO
     FNM_PATHNAME = 0x02
     FNM_DOTMATCH = 0x04
     FNM_CASEFOLD = 0x08
+    FNM_EXTGLOB  = 0x10
 
     if Rubinius.windows?
       NULL = 'NUL'
@@ -536,6 +537,76 @@ class File < IO
     st ? st.file? : false
   end
 
+  def self.braces(pattern, flags=0, patterns=[])
+    escape = (flags & FNM_NOESCAPE) == 0
+
+    rbrace = nil
+    lbrace = nil
+
+    # Do a quick search for a { to start the search better
+    i = pattern.index("{")
+
+    if i
+      nest = 0
+
+      while i < pattern.size
+        char = pattern[i]
+
+        if char == "{"
+          lbrace = i if nest == 0
+          nest += 1
+        end
+
+        if char == "}"
+          nest -= 1
+        end
+
+        if nest == 0
+          rbrace = i
+          break
+        end
+
+        if char == "\\" and escape
+          i += 1
+        end
+
+        i += 1
+      end
+    end
+
+    # There was a full {} expression detected, expand each part of it
+    # recursively.
+    if lbrace and rbrace
+      pos = lbrace
+      front = pattern[0...lbrace]
+      back = pattern[(rbrace + 1)..-1]
+
+      while pos < rbrace
+        nest = 0
+        pos += 1
+        last = pos
+
+        while pos < rbrace and not (pattern[pos] == "," and nest == 0)
+          nest += 1 if pattern[pos] == "{"
+          nest -= 1 if pattern[pos] == "}"
+
+          if pattern[pos] == "\\" and escape
+            pos += 1
+            break if pos == rbrace
+          end
+
+          pos += 1
+        end
+
+        brace_pattern = "#{front}#{pattern[last...pos]}#{back}"
+        patterns << brace_pattern
+
+        braces(brace_pattern, flags, patterns)
+      end
+    end
+    patterns
+  end
+
   ##
   # Returns true if path matches against pattern The pattern
   # is not a regular expression; instead it follows rules
@@ -552,6 +623,7 @@ class File < IO
   #  File.fnmatch('cat',       'cat')        #=> true  : match entire string
   #  File.fnmatch('cat',       'category')   #=> false : only match partial string
   #  File.fnmatch('c{at,ub}s', 'cats')       #=> false : { } isn't supported
+  #  File.fnmatch('c{at,ub}s', 'cats', File::FNM_EXTGLOB)       #=> true : { } is supported with FNM_EXTGLOB
   #
   #  File.fnmatch('c?t',     'cat')          #=> true  : '?' match only 1 character
   #  File.fnmatch('c??t',    'cat')          #=> false : ditto
@@ -595,12 +667,17 @@ class File < IO
   #  File.fnmatch(pattern, 'c:/a/b/c/foo', File::FNM_PATHNAME)  #=> true
   #  File.fnmatch(pattern, 'a/.b/c/foo', File::FNM_PATHNAME)    #=> false
   #  File.fnmatch(pattern, 'a/.b/c/foo', File::FNM_PATHNAME | File::FNM_DOTMATCH) #=> true
+
   def self.fnmatch(pattern, path, flags=0)
     pattern = StringValue(pattern)
     path    = Rubinius::Type.coerce_to_path(path)
     flags   = Rubinius::Type.coerce_to(flags, Fixnum, :to_int)
 
-    super pattern, path, flags
+    if (flags & FNM_EXTGLOB) != 0
+      braces(pattern, flags).any? { |p| super(p, path, flags) }
+    else
+      super pattern, path, flags
+    end
   end
 
   ##
@@ -1022,7 +1099,7 @@ class File < IO
 
   def self.world_readable?(path)
     path = Rubinius::Type.coerce_to_path path
-    return nil unless exists? path
+    return nil unless exist? path
     mode = Stat.new(path).mode
     if (mode & Stat::S_IROTH) == Stat::S_IROTH
       tmp = mode & (Stat::S_IRUGO | Stat::S_IWUGO | Stat::S_IXUGO)
@@ -1033,7 +1110,7 @@ class File < IO
 
   def self.world_writable?(path)
     path = Rubinius::Type.coerce_to_path path
-    return nil unless exists? path
+    return nil unless exist? path
     mode = Stat.new(path).mode
     if (mode & Stat::S_IWOTH) == Stat::S_IWOTH
       tmp = mode & (Stat::S_IRUGO | Stat::S_IWUGO | Stat::S_IXUGO)

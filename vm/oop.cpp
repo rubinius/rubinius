@@ -571,6 +571,28 @@ step2:
     return false;
   }
 
+  void ObjectHeader::unlock_dead_thread(STATE, GCToken gct, CallFrame* call_frame) {
+    switch(header.f.meaning) {
+    case eAuxWordEmpty:
+    case eAuxWordObjID:
+    case eAuxWordHandle:
+      return;
+
+    case eAuxWordLock: {
+      unsigned int locker_tid = header.f.aux_word >> cAuxLockTIDShift;
+
+      if(locker_tid == state->vm()->thread_id()) {
+        state->vm()->del_locked_object(this);
+      }
+    }
+      // Fall through
+    case eAuxWordInflated:
+      // Just set the values
+      header.f.meaning = eAuxWordEmpty;
+      header.f.aux_word = 0;
+    }
+  }
+
   LockStatus ObjectHeader::unlock(STATE, GCToken gct, CallFrame* call_frame) {
     // This case is slightly easier than locking.
 

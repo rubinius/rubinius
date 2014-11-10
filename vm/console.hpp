@@ -49,7 +49,8 @@ namespace rubinius {
       Console(STATE);
       virtual ~Console();
 
-      void cleanup(bool remove_files);
+      void close_files(bool remove_files);
+      void empty_request_list();
       void wakeup();
 
       void start(STATE);
@@ -63,8 +64,6 @@ namespace rubinius {
       void shutdown(STATE);
       void before_exec(STATE);
       void after_exec(STATE);
-      void before_fork(STATE);
-      void after_fork_parent(STATE);
       void after_fork_child(STATE);
 
       void process_requests(STATE);

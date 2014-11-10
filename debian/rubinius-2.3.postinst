@@ -1,5 +1,5 @@
 #!/bin/sh
-# postinst script for rubinius-2.2
+# postinst script for rubinius-2.x
 #
 # see: dh_installdeb(1)
 
@@ -17,10 +17,10 @@ set -e
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
-PROGRAM_NAME=rbx2.2
+PROGRAM_NAME=rbx2.3
 BIN=/usr/bin/${PROGRAM_NAME}
-PRIORITY=221
-RUBYVER=-rbx2.2
+PRIORITY=230
+RUBYVER=-rbx2.3
 
 case "$1" in
     configure)

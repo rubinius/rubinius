@@ -58,32 +58,16 @@ class Configure
     @gem = nil
 
     # LLVM settings
-    @use_llvm               = true
-    @llvm                   = :no
+    @llvm_enabled           = true
     @llvm_path              = nil
-    @llvm_configure         = nil
-    @llvm_skip_system       = false
-    @llvm_skip_prebuilt     = false
-    @llvm_prebuilt_name     = nil
     @llvm_system_name       = get_system_name
+    @llvm_configure         = nil
+    @llvm_version           = nil
+    @llvm_api_version       = nil
     @llvm_shared            = false
     @llvm_shared_objs       = nil
     @llvm_cxxflags          = ""
-
-    @llvm_version           = "3.4.2"
-    @llvm_api_version       = 304
-    @llvm_source            = "llvm-3.4.2.tar.gz"
-    @llvm_source_dir        = "llvm-3.4.2.src"
-    @llvm_source_url        = "http://llvm.org/releases/3.4.2/llvm-3.4.2.src.tar.gz"
-    @llvm_asset_path        = "http://asset.rubini.us/prebuilt"
-    @llvm_source_build      = false
-    @llvm_generic_prebuilt  = nil
-    @need_update_prebuilt   = false
-
-    @llvm_parent_path       = File.join(root, "vendor")
-    @llvm_default           = File.join(@llvm_parent_path, "llvm")
-    @llvm_prebuilt_path     = File.join(@llvm_parent_path, "prebuilt")
-    @llvm_include_path      = File.join(@llvm_default, "include")
+    @llvm_ldflags           = ""
 
     # System settings
     @libc         = nil
@@ -177,8 +161,8 @@ class Configure
 
     # Essential settings (modify these for creating releases)
     @ruby_version = "2.1.0"
-    @libversion = "2.2"
-    @patch_version = "10"
+    @libversion = "2.3"
+    @patch_version = "0"
     @release_date = nil
 
     # Configure settings
@@ -347,27 +331,11 @@ class Configure
     o.doc "\n LLVM settings"
 
     o.on "--disable-llvm", "Don't build with LLVM" do
-      @use_llvm = false
-    end
-
-    o.on "--enable-llvm", "Enable llvm (default)" do
-      @use_llvm = true
-    end
-
-    o.on "--skip-system", "Don't consider a system LLVM installation" do
-      @llvm_skip_system = true
-    end
-
-    o.on "--skip-prebuilt", "Don't try to use a prebuilt version of LLVM" do
-      @llvm_skip_prebuilt = true
+      @llvm_enabled = false
     end
 
     o.on "--system-name", "NAME", "Name of OS (eg fedora-8, ubuntu-10.04)" do |name|
       @llvm_system_name = name
-    end
-
-    o.on "--prebuilt-name", "NAME", "Full name of LLVM prebuilt archive" do |name|
-      @llvm_prebuilt_name = name
     end
 
     o.on "--llvm-path", "PATH", "File system path to the directory containing LLVM" do |dir|
@@ -380,10 +348,6 @@ class Configure
 
     o.on "--llvm-shared", "Link to shared LLVM library" do
       @llvm_shared = true
-    end
-
-    o.on "--update-prebuilt", "Update prebuilt LLVM packages from the internet" do
-      @need_update_prebuilt = true
     end
 
     o.doc "\n System settings"
@@ -610,239 +574,18 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
     return true
   end
 
-  # Downloads a pre-built LLVM library for a platform if the file exists.  If
-  # an MD5 checksum file exists for the library, the checksum of the library
-  # is compared and the update fails if it does not match.  If no MD5 checksum
-  # file exists, the library is used without check.
-  def update_prebuilt(file, warn)
-    full_path = File.join @llvm_prebuilt_path, file
-    md5_path = "#{full_path}.md5"
-
-    dir = File.dirname full_path
-    Dir.mkdir dir unless File.exist? dir
-    url = File.join @llvm_asset_path, file
-
-    unless File.exist? full_path
-      download url, full_path
-
-      unless File.exist? full_path
-        @log.write "ERROR. No #{file} available on server." if warn
-        return false
-      end
-    end
-
-    md5_url = "#{url}.md5"
-    download md5_url, md5_path
-
-    if File.exist? md5_path
-      unless md5_checksum md5_path, full_path
-        @log.write "ERROR. #{file} was corrupted or MD5 checksum is outdated."
-        return false
-      else
-        @log.write "    MD5 checksum for prebuilt LLVM verified."
-      end
-    else
-      @log.write "   No MD5 checksum for #{file} available on server."
-      @log.write "   Using LLVM library without checksum validation."
-    end
-
-    @log.write "    Prebuilt packages updated."
-  end
-
-  def verify_llvm_source
-    return false unless File.exist? @llvm_default
-
-    if File.exist?(@llvm_include_path)
-      @llvm = :svn
-      @llvm_configure = llvm_config_cmd "#{@llvm_default}/Release/bin/llvm-config"
-      return true
-    else
-      @log.write "  Code doesn't appear to be proper LLVM tree!"
-      return false
-    end
-  end
-
-  def setup_source
-    @log.print "  Checking for existing LLVM source tree:"
-
-    # Check if source already exists
-    if verify_llvm_source
-      @log.write " found!"
-      return true
-    else
-      @log.write " not found."
-    end
-
-    url = @llvm_source_url
-    path = File.join @llvm_prebuilt_path, @llvm_source
-
-    unless File.exist?(path)
-      @log.write "  Downloading #{url}..."
-      return false unless download(url, path)
-    end
-
-    if File.exist?(path)
-      @log.print "  Unpacking LLVM source: "
-      Dir.chdir @llvm_parent_path do
-        succeeded = system "#{@tar} xzf #{path}"
-        unless succeeded
-          @log.write "Error failed unpacking: #{path}"
-          return false
-        end
-
-        FileUtils.mv @llvm_source_dir, "llvm"
-      end
-      @log.write "done!"
-
-      if verify_llvm_source
-        @log.write "  Code appears to be a proper tree."
-        @llvm_source_build = true
-        return true
-      end
-    end
-  end
-
-  def prebuilt_files
-    files = [@llvm_generic_prebuilt]
-
-    # If we have a system name, try to find a prebuilt specifically
-    # for this system first.
-    if @llvm_system_name
-      files.unshift "llvm-#{@llvm_version}-#{@host}-#{@llvm_system_name}.tar.bz2"
-    end
-
-    # Try one for just the darwin major version (which increases for each
-    # minor OS X version. ie. 10.5 == 9.x.x, 10.6 == 10.x.x)
-    if m = /darwin(\d+)\.(\d+)\.(\d+)/.match(@os)
-      # Try this last
-      files.push "llvm-#{@llvm_version}-#{@cpu}-#{@vendor}-darwin#{m[1]}.tar.bz2"
-    end
-
-    # If the user specified a name, try that before anything.
-    files.unshift @llvm_prebuilt_name if @llvm_prebuilt_name
-
-    files
-  end
-
-  def setup_prebuilt
-    @log.write "  Checking for prebuilt LLVM package..."
-
-    prebuilt_files.each do |file|
-      path = File.join @llvm_prebuilt_path, file
-
-      update_prebuilt file, false unless File.exist?(path)
-
-      if File.exist?(path)
-        @log.print "  Unpacking prebuilt LLVM: #{file}: "
-        dir = File.join @llvm_parent_path, "llvm"
-        FileUtils.mkdir_p dir
-        Dir.chdir dir do
-          system "#{@tar} xjf #{path}"
-        end
-        @log.write "done!"
-        @llvm = :prebuilt
-        @llvm_configure = llvm_config_cmd "#{dir}/Release/bin/llvm-config"
-        return true
-      end
-    end
-
-    @log.write "  Unable to download any LLVM prebuilt"
-    return false
-  end
-
-  def setup_path
-    @log.print "  Checking for '#{@llvm_path}': "
-    if File.directory? @llvm_path
-      ["Release", "Debug", ""].each do |which|
-        sub = File.join(@llvm_path, which, "bin")
-        if File.directory? sub
-          config = File.join(@llvm_path, which, "bin", "llvm-config")
-          version = `#{config} --version`.strip
-          parts = version.sub(/svn$/, "").split(".").map { |i| i.to_i }
-          api_version = ("%d%02d" % parts[0..1]).to_i
-          if version >= "3.0"
-            @log.write "found!"
-            @llvm = :config
-            @llvm_version     = version
-            @llvm_api_version = api_version
-            @llvm_configure = llvm_config_cmd config
-            return true
-          else
-            @log.write "outdated (version #{version})"
-            return false
-          end
-        end
-      end
-
-      @log.write "ERROR. Doesn't appear to be built already!"
+  def setup_llvm
+    unless @llvm_enabled
+      @log.write "WARNING: LLVM disabled."
       return false
     end
 
-    @log.write "ERROR. Path doesn't exist."
-    return false
-  end
-
-  def remove_default
-    if File.exist?(File.join(@llvm_default, "Makefile.common"))
-      failure "ABORT: Unwilling to override custom LLVM tree, please update it manually."
-    else
-      @log.write "    Removing outdated tree..."
-      FileUtils.rm_rf(@llvm_default)
-    end
-  end
-
-  def llvm_options_exist?
-    !@llvm_skip_system and @llvm_configure
-  end
-
-  def setup_auto
-    update_prebuilt @llvm_generic_prebuilt, true if @need_update_prebuilt
-
-    @log.print "  Checking for existing LLVM library tree: "
-    if File.directory?("#{@llvm_default}/Release") and
-       not llvm_options_exist?
-      config = llvm_config_cmd "#{@llvm_default}/Release/bin/llvm-config"
-      version = `#{config} --version`.strip
-      parts = version.sub(/svn$/, "").split(".").map { |i| i.to_i }
-      api_version = ("%d%02d" % parts[0..1]).to_i
-      if version >= "3.0"
-        @log.write "found!"
-        if File.exist?(File.join(@llvm_default, "Makefile.common"))
-          @llvm = :svn
-        else
-          @llvm = :prebuilt
-        end
-        @llvm_version     = version
-        @llvm_api_version = api_version
-        @llvm_configure   = config
-        return
-      else
-        @log.write "outdated (version #{version})"
-        remove_default
-      end
-    else
-      if llvm_options_exist?
-        @log.write "skipping due to explicit LLVM options."
-      else
-        @log.write "not found."
-      end
+    if setup_config
+      check_llvm_flags
+      return true
     end
 
-    # If they explicitly said where LLVM is, use that and fail hard.
-    if @llvm_path
-      unless setup_path
-        failure "ABORT: Path '#{@llvm_path}' not a proper LLVM path."
-      end
-
-      return
-    end
-
-    return if !@llvm_skip_system && setup_config
-    return if !@llvm_skip_prebuilt && setup_prebuilt
-    return if setup_source
-
-    @log.write "WARNING: Unable to configure for LLVM, disabling support."
-    @use_llvm = false
+    failure "ABORT: unable to set up LLVM"
   end
 
   def setup_config
@@ -876,8 +619,8 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
 
       parts = version.sub(/svn$/, "").split(".").map { |i| i.to_i }
       api_version = ("%d%02d" % parts[0..1]).to_i
-      if api_version < 300
-        @log.write "only LLVM 3.x is supported"
+      if api_version < 300 or api_version > 305
+        @log.write "only LLVM 3.0-3.5 is supported"
       else
         @log.write "found! (version #{version} - api: #{api_version})"
         @llvm = :config
@@ -931,9 +674,20 @@ int main() { LLVMContext &Context = getGlobalContext(); }
   end
 
   def check_llvm_flags
+    flags = '--ldflags'
+
     if @llvm_api_version >= 305
       @llvm_cxxflags << " -std=c++11"
+
+      # Starting with LLVM 3.5 the --system-libs option is required in order to
+      # link against libraries such as zlib. Prior to 3.5 this was handled by
+      # --ldflags.
+      flags << ' --system-libs'
     end
+
+    # Generate the actual flags. For whatever reason llvm-config also includes
+    # newlines in the output, so lets get rid of those while we're at it.
+    @llvm_ldflags = `#{@llvm_configure} #{flags}`.strip.gsub("\n", ' ')
   end
 
   def env(which)
@@ -1522,10 +1276,6 @@ int main() { return tgetnum(""); }
       failure "openssl/ssl.h is required"
     end
 
-    unless has_header("readline/readline.h")
-      failure "readline/readline.h is required"
-    end
-
     if has_header("alloca.h")
       @defines << "HAVE_ALLOCA_H"
     end
@@ -1608,16 +1358,7 @@ int main() { return tgetnum(""); }
     enable_features
     detect_build_dirs
 
-    if @use_llvm
-      @log.write "Configuring LLVM..."
-      setup_auto
-    else
-      @log.write "WARNING: LLVM disabled."
-    end
-
-    if @use_llvm
-      check_llvm_flags
-    end
+    setup_llvm
 
     @log.write ""
 
@@ -1729,8 +1470,7 @@ int main() { return tgetnum(""); }
   def write_configure_files
     @log.write "\nWriting configuration files..."
 
-    unless @use_llvm
-      @llvm = :no
+    unless @llvm_enabled
       @llvm_configure = ""
     end
 
@@ -1742,11 +1482,16 @@ int main() { return tgetnum(""); }
       :build_make         => @make,
       :build_rake         => @rake,
       :build_perl         => @perl,
-      :llvm               => @llvm,
+      :llvm_enabled       => @llvm_enabled,
+      :llvm_path          => @llvm_path,
+      :llvm_system_name   => @llvm_system_name,
       :llvm_configure     => @llvm_configure,
       :llvm_version       => @llvm_version,
+      :llvm_api_version   => @llvm_api_version,
+      :llvm_shared        => @llvm_shared,
       :llvm_shared_objs   => @llvm_shared_objs,
       :llvm_cxxflags      => @llvm_cxxflags,
+      :llvm_ldflags       => @llvm_ldflags,
       :cc                 => @cc,
       :cxx                => @cxx,
       :ldshared           => @ldshared,
@@ -2116,6 +1861,7 @@ Rubinius (#{build_revision[0, 8]}) has been configured for the following paths:
 prefix:     #{@prefixdir}
 bin:        #{@prefixdir}#{@bindir}
 lib:        #{@prefixdir}#{@libdir}
+include:    #{@prefixdir}#{@includedir}
 runtime:    #{@prefixdir}#{@runtimedir}
 kernel:     #{@prefixdir}#{@kerneldir}
 site:       #{@prefixdir}#{@sitedir}
@@ -2123,7 +1869,6 @@ vendor:     #{@prefixdir}#{@vendordir}
 man:        #{@prefixdir}#{@mandir}
 gems:       #{@prefixdir}#{@gemsdir}
 gems cache: #{@gems_cache}
-include:    #{@prefixdir}#{@includedir}
 
 Run 'rake' to build, test and install Rubinius.
       EOM

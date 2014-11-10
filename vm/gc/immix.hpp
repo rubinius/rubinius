@@ -135,7 +135,6 @@ namespace rubinius {
     void collect_start(GCData* data);
     void collect_finish(GCData* data);
     void sweep();
-    void wait_for_marker(STATE);
 
     void walk_finalizers();
 

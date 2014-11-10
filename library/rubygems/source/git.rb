@@ -51,7 +51,7 @@ class Gem::Source::Git < Gem::Source
   # will be checked out when the gem is installed.
 
   def initialize name, repository, reference, submodules = false
-    super(nil)
+    super repository
 
     @name            = name
     @repository      = repository
@@ -67,7 +67,7 @@ class Gem::Source::Git < Gem::Source
     case other
     when Gem::Source::Git then
       0
-    when Gem::Source::Installed,
+    when Gem::Source::Vendor,
          Gem::Source::Lock then
       -1
     when Gem::Source then
@@ -178,9 +178,17 @@ class Gem::Source::Git < Gem::Source
   # Converts the git reference for the repository into a commit hash.
 
   def rev_parse # :nodoc:
+    hash = nil
+
     Dir.chdir repo_cache_dir do
-      Gem::Util.popen(@git, 'rev-parse', @reference).strip
+      hash = Gem::Util.popen(@git, 'rev-parse', @reference).strip
     end
+
+    raise Gem::Exception,
+          "unable to find reference #{@reference} in #{@repository}" unless
+            $?.success?
+
+    hash
   end
 
   ##

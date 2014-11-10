@@ -16,7 +16,7 @@ namespace rubinius {
   class LLVMState;
   class JITMethodInfo;
   class MachineCode;
-  class BackgroundCompileRequest;
+  class JITCompileRequest;
 
 namespace jit {
   class Builder;
@@ -58,9 +58,9 @@ namespace jit {
       llvm::BasicBlock* block, llvm::Value* call_frame,
       int stack_size, llvm::Value* stack, llvm::Value* vars);
 
-    void compile(BackgroundCompileRequest* req);
-    void compile_method(BackgroundCompileRequest* req);
-    void compile_block(BackgroundCompileRequest* req);
+    void compile(JITCompileRequest* req);
+    void compile_method(JITCompileRequest* req);
+    void compile_block(JITCompileRequest* req);
     void compile_builder(JITMethodInfo&, rubinius::jit::Builder&);
 
     void* generate_function(bool indy=true);

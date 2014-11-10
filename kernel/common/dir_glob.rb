@@ -47,7 +47,7 @@ class Dir
       def call(env, parent)
         path = path_join(parent, @name)
 
-        if File.exists? path
+        if File.exist? path
           env.matches << path
         end
       end
@@ -61,7 +61,7 @@ class Dir
 
     class RecursiveDirectories < Node
       def call(env, start)
-        return if !start || !File.exists?(start)
+        return if !start || !File.exist?(start)
 
         # Even though the recursive entry is zero width
         # in this case, its left separator is still the
@@ -165,7 +165,7 @@ class Dir
       end
 
       def call(env, path)
-        return if path and !File.exists?("#{path}/.")
+        return if path and !File.exist?("#{path}/.")
 
         dir = Dir.new(path ? path : ".")
         while ent = dir.read
@@ -183,7 +183,7 @@ class Dir
 
     class EntryMatch < Match
       def call(env, path)
-        return if path and !File.exists?("#{path}/.")
+        return if path and !File.exist?("#{path}/.")
 
         begin
           dir = Dir.new(path ? path : ".")
@@ -202,7 +202,7 @@ class Dir
 
     class DirectoriesOnly < Node
       def call(env, path)
-        if path and File.exists?("#{path}/.")
+        if path and File.exist?("#{path}/.")
           env.matches << "#{path}/"
         end
       end
@@ -319,14 +319,13 @@ class Dir
     end
 
     def self.glob(pattern, flags, matches=[])
-      # Rubygems typicall uses Dir[] as basicly a glorified File.exists?
-      # to check for multiple extensions. So we went ahead and sped up
-      # that specific case.
+      # Rubygems uses Dir[] as a glorified File.exist?  to check for multiple
+      # extensions. So we went ahead and sped up that specific case.
 
       if flags == 0 and
              m = /^([a-zA-Z0-9_.\/\s]*[a-zA-Z0-9_.])(?:\{([^{}\/\*\?]*)\})?$/.match(pattern)
         # no meta characters, so this is a glorified
-        # File.exists? check. We allow for a brace expansion
+        # File.exist? check. We allow for a brace expansion
         # only as a suffix.
 
         if braces = m[2]
@@ -334,17 +333,17 @@ class Dir
 
           braces.split(",").each do |s|
             path = "#{stem}#{s}"
-            if File.exists? path
+            if File.exist? path
               matches << path
             end
           end
 
           # Split strips an empty closing part, so we need to add it back in
           if braces.getbyte(-1) == 44 # ?,
-            matches << stem if File.exists? stem
+            matches << stem if File.exist? stem
           end
         else
-          matches << pattern if File.exists?(pattern)
+          matches << pattern if File.exist?(pattern)
         end
 
         return matches

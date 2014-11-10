@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# prerm script for rubinius-2.2
+# prerm script for rubinius-2.x
 # see: dh_installdeb(1)
 
 set -e
@@ -16,7 +16,7 @@ set -e
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
-PROGRAM_NAME=rbx2.2
+PROGRAM_NAME=rbx2.3
 
 case "$1" in
     remove|upgrade|deconfigure|failed-upgrade)

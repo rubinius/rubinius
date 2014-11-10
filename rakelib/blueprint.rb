@@ -51,8 +51,8 @@ Daedalus.blueprint do |i|
 
   gcc.ldflags << "-lm"
 
-  if Rubinius::BUILD_CONFIG[:dtrace] and
-     Rubinius::BUILD_CONFIG[:os] =~ /freebsd(9|10)/
+  if Rubinius::BUILD_CONFIG[:dtrace] #and
+     #Rubinius::BUILD_CONFIG[:os] =~ /freebsd(9|10)/
     gcc.ldflags << "-lelf"
     gcc.ldflags << "vm/dtrace/probes.o"
 
@@ -197,21 +197,13 @@ Daedalus.blueprint do |i|
     files << winp
   end
 
-  case Rubinius::BUILD_CONFIG[:llvm]
-  when :prebuilt, :svn
-    llvm = i.external_lib "vendor/llvm" do |l|
-      l.cflags = ["-I#{src}/vendor/llvm/include"] + gcc.cflags
-      l.objects = []
-    end
+  if Rubinius::BUILD_CONFIG[:llvm_enabled]
+    conf = Rubinius::BUILD_CONFIG[:llvm_configure]
 
-    gcc.add_library llvm
-  end
-
-  case Rubinius::BUILD_CONFIG[:llvm]
-  when :config, :prebuilt, :svn
+    include_dir = `#{conf} --includedir`.chomp
+    gcc.cflags << "-I#{include_dir}"
     gcc.cxxflags << Rubinius::BUILD_CONFIG[:llvm_cxxflags]
 
-    conf = Rubinius::BUILD_CONFIG[:llvm_configure]
     flags = `#{conf} --cflags`.strip.split(/\s+/)
     flags.delete_if { |x| x.index("-O") == 0 }
     flags.delete_if { |x| x =~ /-D__STDC/ }
@@ -234,7 +226,7 @@ Daedalus.blueprint do |i|
 
     flags << "-DENABLE_LLVM"
 
-    ldflags = `#{conf} --ldflags`.strip.split(/\s+/)
+    ldflags = Rubinius::BUILD_CONFIG[:llvm_ldflags]
 
     if Rubinius::BUILD_CONFIG[:llvm_shared_objs]
       objects = Rubinius::BUILD_CONFIG[:llvm_shared_objs]
@@ -253,12 +245,8 @@ Daedalus.blueprint do |i|
 
     gcc.cflags.concat flags
     gcc.ldflags.concat objects
-    gcc.ldflags.concat ldflags
-  when :no
-    # nothing, not using LLVM
-  else
-    STDERR.puts "Unsupported LLVM configuration: #{Rubinius::BUILD_CONFIG[:llvm]}"
-    raise "get out"
+
+    gcc.ldflags << ldflags
   end
 
   # Make sure to push these up front so vm/ stuff has priority

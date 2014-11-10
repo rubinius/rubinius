@@ -108,25 +108,6 @@ describe "RbConfig::MAKEFILE_CONFIG" do
 end
 
 describe "RbConfig#ruby" do
-
-  ruby_version_is "1.8" do
-    before :each do
-      @version_switch = "-X18"
-    end
-  end
-
-  ruby_version_is "1.9" do
-    before :each do
-      @version_switch = "-X19"
-    end
-  end
-
-  ruby_version_is "2.0" do
-    before :each do
-      @version_switch = "-X20"
-    end
-  end
-
   it "returns the path to the running Ruby executable" do
     rb_path = RbConfig.ruby
     rb_path.should be_kind_of(String)
@@ -135,7 +116,7 @@ describe "RbConfig#ruby" do
     File.executable?(rb_path).should eql(true)
 
     # make sure the executable it points to has the same RbConfig we have
-    cmd = "#{rb_path} #{@version_switch} -rrbconfig -e 'puts Marshal.dump(RbConfig::CONFIG)'"
+    cmd = "#{rb_path} -rrbconfig -e 'puts Marshal.dump(RbConfig::CONFIG)'"
     rb_config = Marshal.load(`#{cmd}`)
 
     rb_config.should == RbConfig::CONFIG
