@@ -41,7 +41,7 @@ namespace rubinius {
    *   collection (but not enough for promotion to the mature generation) are
    *   located; and
    * - the Next space, where surviving objects from the Eden and Current spaces
-   *   wil be copied on the next collection.
+   *   will be copied on the next collection.
    *
    * When a young generation collection is required, the garbage collector
    * scans the Eden and Current spaces. When it finds a live object, it either
