@@ -31,7 +31,7 @@
 #if (__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 4))
 #define GCC_BARRIER 1
 
-#elif defined(_LP64) || defined(__LP64__) || defined(__x86_64__) || defined(__amd64__)
+#elif (defined(_LP64) || defined(__LP64__)) && (defined(__x86_64__) || defined(__amd64__))
 #define X86_BARRIER 1
 
 #elif defined(i386) || defined(__i386) || defined(__i386__)
