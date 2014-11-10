@@ -73,6 +73,7 @@ class Configure
     @libc         = nil
     @x86_32       = false
     @x86_64       = false
+    @ppc64        = false
     @fibers       = false
     @dtrace       = false
     @dtrace_const = false
@@ -1008,6 +1009,39 @@ return 0;
     puts @x86_64 ? "yes" : "no"
   end
 
+  def detect_ppc64
+    print "Checking for ppc64: "
+
+    status = check_program do |f|
+      src = <<-EOP
+int main() {
+#if defined(__ppc64__) || defined(__powerpc64__)
+return 1;
+#else
+return 0;
+#endif
+}
+      EOP
+
+      f.puts src
+      @log.log src
+    end
+    @ppc64 = (status == 1)
+
+    puts @ppc64 ? "yes" : "no"
+
+    if @ppc64
+      @log.write "Verifying PowerPC64 errors..."
+      failed = false
+
+      if @llvm_api_version < 305
+        failed = true
+      end
+
+      failure "only LLVM 3.5 is supported." if failed
+    end
+  end
+
   def detect_curses
     @log.print "Checking curses library: "
 
@@ -1379,6 +1413,7 @@ int main() { return tgetnum(""); }
     detect_tr1
     detect_tr1_hash
     detect_x86
+    detect_ppc64
     detect_features
     detect_functions
     detect_structures
@@ -1517,6 +1552,7 @@ int main() { return tgetnum(""); }
       :sizeof_long        => sizeof("long"),
       :x86_32             => @x86_32,
       :x86_64             => @x86_64,
+      :ppc64              => @ppc64,
       :dtrace             => @dtrace,
       :dtrace_const       => @dtrace_const,
       :fibers             => @fibers,
