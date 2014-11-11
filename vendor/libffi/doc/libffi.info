@@ -221,6 +221,8 @@ File: libffi.info,  Node: Types,  Next: Multiple ABIs,  Prev: Simple Example,  U
 * Primitive Types::             Built-in types.
 * Structures::                  Structure types.
 * Type Example::                Structure type example.
+* Complex::                     Complex types.
+* Complex Type Example::        Complex type example.
 
 
 File: libffi.info,  Node: Primitive Types,  Next: Structures,  Up: Types
@@ -300,6 +302,17 @@ to describe argument and return types:
      A generic 'void *' pointer.  You should use this for all pointers,
      regardless of their real type.
 
+'ffi_type_complex_float'
+     The C '_Complex float' type.
+
+'ffi_type_complex_double'
+     The C '_Complex double' type.
+
+'ffi_type_complex_longdouble'
+     The C '_Complex long double' type.  On platforms that have a C
+     'long double' type, this is defined.  On other platforms, it is
+     not.
+
    Each of these is of type 'ffi_type', so you must take the address
 when passing to 'ffi_prep_cif'.
 
@@ -330,7 +343,7 @@ for it.
           objects.  There is one element per field of the struct.
 
 
-File: libffi.info,  Node: Type Example,  Prev: Structures,  Up: Types
+File: libffi.info,  Node: Type Example,  Next: Complex,  Prev: Structures,  Up: Types
 
 2.3.3 Type Example
 ------------------
@@ -376,6 +389,133 @@ The following example initializes a 'ffi_type' object representing the
            /* tm_type can now be used to represent tm argument types and
      	 return types for ffi_prep_cif() */
          }
+
+
+File: libffi.info,  Node: Complex,  Next: Complex Type Example,  Prev: Type Example,  Up: Types
+
+2.3.4 Complex Types
+-------------------
+
+'libffi' supports the complex types defined by the C99 standard
+('_Complex float', '_Complex double' and '_Complex long double' with the
+built-in type descriptors 'ffi_type_complex_float',
+'ffi_type_complex_double' and 'ffi_type_complex_longdouble'.
+
+   Custom complex types like '_Complex int' can also be used.  An
+'ffi_type' object has to be defined to describe the complex type to
+'libffi'.
+
+ -- Data type: ffi_type
+     'size_t size'
+          This must be manually set to the size of the complex type.
+
+     'unsigned short alignment'
+          This must be manually set to the alignment of the complex
+          type.
+
+     'unsigned short type'
+          For a complex type, this must be set to 'FFI_TYPE_COMPLEX'.
+
+     'ffi_type **elements'
+
+          This is a 'NULL'-terminated array of pointers to 'ffi_type'
+          objects.  The first element is set to the 'ffi_type' of the
+          complex's base type.  The second element must be set to
+          'NULL'.
+
+   The section *note Complex Type Example:: shows a way to determine the
+'size' and 'alignment' members in a platform independent way.
+
+   For platforms that have no complex support in 'libffi' yet, the
+functions 'ffi_prep_cif' and 'ffi_prep_args' abort the program if they
+encounter a complex type.
+
+
+File: libffi.info,  Node: Complex Type Example,  Prev: Complex,  Up: Types
+
+2.3.5 Complex Type Example
+--------------------------
+
+This example demonstrates how to use complex types:
+
+     #include <stdio.h>
+     #include <ffi.h>
+     #include <complex.h>
+
+     void complex_fn(_Complex float cf,
+                     _Complex double cd,
+                     _Complex long double cld)
+     {
+       printf("cf=%f+%fi\ncd=%f+%fi\ncld=%f+%fi\n",
+              (float)creal (cf), (float)cimag (cf),
+              (float)creal (cd), (float)cimag (cd),
+              (float)creal (cld), (float)cimag (cld));
+     }
+
+     int main()
+     {
+       ffi_cif cif;
+       ffi_type *args[3];
+       void *values[3];
+       _Complex float cf;
+       _Complex double cd;
+       _Complex long double cld;
+
+       /* Initialize the argument info vectors */
+       args[0] = &ffi_type_complex_float;
+       args[1] = &ffi_type_complex_double;
+       args[2] = &ffi_type_complex_longdouble;
+       values[0] = &cf;
+       values[1] = &cd;
+       values[2] = &cld;
+
+       /* Initialize the cif */
+       if (ffi_prep_cif(&cif, FFI_DEFAULT_ABI, 3,
+                        &ffi_type_void, args) == FFI_OK)
+         {
+           cf = 1.0 + 20.0 * I;
+           cd = 300.0 + 4000.0 * I;
+           cld = 50000.0 + 600000.0 * I;
+           /* Call the function */
+           ffi_call(&cif, (void (*)(void))complex_fn, 0, values);
+         }
+
+       return 0;
+     }
+
+   This is an example for defining a custom complex type descriptor for
+compilers that support them:
+
+     /*
+      * This macro can be used to define new complex type descriptors
+      * in a platform independent way.
+      *
+      * name: Name of the new descriptor is ffi_type_complex_<name>.
+      * type: The C base type of the complex type.
+      */
+     #define FFI_COMPLEX_TYPEDEF(name, type, ffitype)             \
+       static ffi_type *ffi_elements_complex_##name [2] = {      \
+         (ffi_type *)(&ffitype), NULL                             \
+       };                                                        \
+       struct struct_align_complex_##name {                      \
+         char c;                                                  \
+         _Complex type x;                                         \
+       };                                                        \
+       ffi_type ffi_type_complex_##name = {                      \
+         sizeof(_Complex type),                                   \
+         offsetof(struct struct_align_complex_##name, x),         \
+         FFI_TYPE_COMPLEX,                                        \
+         (ffi_type **)ffi_elements_complex_##name                 \
+       }
+
+     /* Define new complex type descriptors using the macro: */
+     /* ffi_type_complex_sint */
+     FFI_COMPLEX_TYPEDEF(sint, int, ffi_type_sint);
+     /* ffi_type_complex_uchar */
+     FFI_COMPLEX_TYPEDEF(uchar, unsigned char, ffi_type_uint8);
+
+   The new type descriptors can then be used like one of the built-in
+type descriptors in the previous example.
 
 
 File: libffi.info,  Node: Multiple ABIs,  Next: The Closure API,  Prev: Types,  Up: Using libffi
@@ -571,6 +711,11 @@ Index
 * ffi_status <2>:                        The Closure API.      (line 34)
 * ffi_type:                              Structures.           (line 11)
 * ffi_type <1>:                          Structures.           (line 11)
+* ffi_type <2>:                          Complex.              (line 15)
+* ffi_type <3>:                          Complex.              (line 15)
+* ffi_type_complex_double:               Primitive Types.      (line 82)
+* ffi_type_complex_float:                Primitive Types.      (line 79)
+* ffi_type_complex_longdouble:           Primitive Types.      (line 85)
 * ffi_type_double:                       Primitive Types.      (line 41)
 * ffi_type_float:                        Primitive Types.      (line 38)
 * ffi_type_longdouble:                   Primitive Types.      (line 71)
@@ -606,13 +751,15 @@ Node: Using libffi3061
 Node: The Basics3547
 Node: Simple Example7198
 Node: Types8229
-Node: Primitive Types8512
-Node: Structures10333
-Node: Type Example11207
-Node: Multiple ABIs12473
-Node: The Closure API12844
-Node: Closure Example15788
-Node: Missing Features17397
-Node: Index17850
+Node: Primitive Types8613
+Node: Structures10734
+Node: Type Example11608
+Node: Complex12890
+Node: Complex Type Example14308
+Node: Multiple ABIs17360
+Node: The Closure API17731
+Node: Closure Example20675
+Node: Missing Features22284
+Node: Index22737
 
-End Tag Table 
+End Tag Table

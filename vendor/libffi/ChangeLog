@@ -1,3 +1,391 @@
+commit 67c0c0705318d2e567fd48e680d63dca3619a235
+Author: Anthony Green <green@moxielogic.com>
+Date:   Tue Nov 11 07:30:49 2014 -0500
+
+    Final 3.2 changes
+
+commit ee826b933bbdeb68ee81876ffb508c3908eed371
+Author: Anthony Green <green@moxielogic.com>
+Date:   Tue Nov 11 07:29:26 2014 -0500
+
+    Final 3.2 changes
+
+commit c81a705d53be97899d314953987936213244b1ba
+Author: Anthony Green <green@moxielogic.com>
+Date:   Tue Nov 4 13:29:58 2014 -0500
+
+    Mention OpenRISC
+
+commit 6a17ad540d7ddb7a812687f4380bd0ef2d2865bb
+Merge: 990eb9d 0f316ab
+Author: Anthony Green <green@moxielogic.com>
+Date:   Sun Sep 28 00:54:00 2014 -0400
+
+    Merge pull request #134 from s-macke/openrisc
+    
+    Add OpenRISC support
+
+commit 990eb9d4c244324771a7d878a168bb8eba1850c0
+Author: Anthony Green <green@moxielogic.com>
+Date:   Sun Sep 28 00:50:29 2014 -0400
+
+    Only run the complex type tests on supported platforms.
+
+commit 0f316ab7c11b8315a838a6ae4645d36ff2c46f4c
+Author: Sebastian Macke <sebastian@macke.de>
+Date:   Sat Sep 27 00:19:15 2014 +0000
+
+    Add OpenRISC support
+    
+    This patch adds support for the OpenRISC architecture.
+    (http://opencores.org/or1k/Main_Page)
+    
+    This patch has been tested under Linux with QEMU-user emulation support.
+    - 32 Bit
+    - big endian
+    - delayed instructions
+    This is the only available configuration under Linux.
+    
+    The description of the ABI can be found on the official website.
+    
+    Is passes the testsuite except of the unwindtest_ffi_call.cc
+    testcase, which seems to be a problem of gcc and not libffi.
+    Some testcases of the gcc testsuite still fail.
+    
+    Signed-off-by: Sebastian Macke <sebastian@macke.de>
+
+commit 6695983d2f0857caab220862de12f3f94a55bcf6
+Author: Anthony Green <green@moxielogic.com>
+Date:   Sat Sep 20 07:44:37 2014 -0400
+
+    Add complex type support. Mostly broken right now
+
+commit fbbf48fbdf9b1491af0aefc00523a1b5d8bb9349
+Author: Anthony Green <green@moxielogic.com>
+Date:   Sat Sep 20 07:43:51 2014 -0400
+
+    Compile tests with -Wno-psabi when using GCC
+
+commit ae8d2554c5f192be54dadc9f99a1449b4df1b222
+Author: Anthony Green <green@moxielogic.com>
+Date:   Sat Sep 20 07:08:37 2014 -0400
+
+    Update version to 3.2
+
+commit b2ca59d39d2192021316561ea9dda3d35d8d35d9
+Author: Anthony Green <green@moxielogic.com>
+Date:   Sat Sep 20 07:08:05 2014 -0400
+
+    More README updates for 3.2
+
+commit f920a01ad8eafc79daaf331499ef9a97696c46a7
+Author: Anthony Green <green@moxielogic.com>
+Date:   Sat Sep 20 06:54:06 2014 -0400
+
+    Update release notes.
+
+commit bfcbf329c5e4bebdb32134d4e53260e17e4e66cc
+Author: Bernd Edlinger <bernd.edlinger@hotmail.de>
+Date:   Sat Sep 20 06:51:45 2014 -0400
+
+    2014-05-11  Bernd Edlinger  <bernd.edlinger@hotmail.de>
+    
+    	Fix current cygwin-64 build problems.
+    	* src/java_raw_api.c: Remove if !defined(FFI_NO_RAW_API).
+    	* src/x86/ffi.c: Add if defined(__CYGWIN__).
+    	* src/x86/win64.S (ffi_closure_win64, ffi_call_win64): Added
+    	handling for FFI_TYPE_UINT64, FFI_TYPE_POINTER and FFI_TYPE_INT.
+    	Added SEH information.  Fixed formatting.
+
+commit 32cb2ce81db9457c6bd43a2587d7fa23a2edb9b1
+Author: Jakub Jelinek <jakub@redhat.com>
+Date:   Sat Sep 20 06:39:55 2014 -0400
+
+    2014-09-10  Jakub Jelinek  <jakub@redhat.com>
+    
+    	* src/powerpc/linux64.S: Emit .note.GNU-stack even when
+    	POWERPC64 is not defined.
+    	* src/powerpc/linux64_closure.S: Likewise.  Also test _CALL_ELF == 2.
+
+commit aaf3101ba81af8f488502881648e3f687721671e
+Author: Matthias Klose <doko@ubuntu.com>
+Date:   Sat Sep 20 06:37:04 2014 -0400
+
+    Fix -Werror=declaration-after-statement problem
+
+commit 6e8a4460833594d5af1b4539178025da0077df19
+Author: Dominik Vogt <vogt@linux.vnet.ibm.com>
+Date:   Sat Sep 20 06:21:19 2014 -0400
+
+    2014-07-22  Dominik Vogt  <vogt@linux.vnet.ibm.com>
+    
+    	* src/types.c (FFI_TYPEDEF, FFI_NONCONST_TYPEDEF): Merge the macros by
+    	adding another argument that controls whether the result is const or not
+    	(FFI_LDBL_CONST): Temporary macro to reduce ifdef confusion
+    	* src/prep_cif.c (ffi_prep_cif_core): Replace list of systems with new
+    	macro FFI_TARGET_SPECIFIC_STACK_SPACE_ALLOCATION
+    	* src/pa/ffitarget.h (FFI_TARGET_SPECIFIC_STACK_SPACE_ALLOCATION):
+    	Define.
+    	* src/s390/ffitarget.h (FFI_TARGET_SPECIFIC_STACK_SPACE_ALLOCATION):
+    	Define.
+    	* src/x86/ffitarget.h (FFI_TARGET_SPECIFIC_STACK_SPACE_ALLOCATION):
+    	Define.
+    
+    2014-07-22  Dominik Vogt  <vogt@linux.vnet.ibm.com>
+    
+    	* doc/libffi.texi (Primitive Types): Document ffi_type_complex_float,
+    	ffi_type_complex_double and ffi_type_complex_longdouble
+    	(Complex Types): New subsection.
+    	(Complex Type Example): Ditto.
+    	* testsuite/libffi.call/cls_align_complex_double.c: New
+    	FFI_TYPE_COMPLEX test.
+    	* testsuite/libffi.call/cls_align_complex_float.c: Ditto.
+    	* testsuite/libffi.call/cls_align_complex_longdouble.c: Ditto.
+    	* testsuite/libffi.call/cls_complex_double.c: Ditto.
+    	* testsuite/libffi.call/cls_complex_float.c: Ditto.
+    	* testsuite/libffi.call/cls_complex_longdouble.c: Ditto.
+    	* testsuite/libffi.call/cls_complex_struct_double.c: Ditto.
+    	* testsuite/libffi.call/cls_complex_struct_float.c: Ditto.
+    	* testsuite/libffi.call/cls_complex_struct_longdouble.c: Ditto.
+    	* testsuite/libffi.call/cls_complex_va_double.c: Ditto.
+    	* testsuite/libffi.call/cls_complex_va_float.c: Ditto.
+    	* testsuite/libffi.call/cls_complex_va_longdouble.c: Ditto.
+    	* testsuite/libffi.call/complex_double.c: Ditto.
+    	* testsuite/libffi.call/complex_defs_double.c: Ditto.
+    	* testsuite/libffi.call/complex_float.c: Ditto.
+    	* testsuite/libffi.call/complex_defs_float.c: Ditto.
+    	* testsuite/libffi.call/complex_longdouble.c: Ditto.
+    	* testsuite/libffi.call/complex_defs_longdouble.c: Ditto.
+    	* testsuite/libffi.call/complex_int.c: Ditto.
+    	* testsuite/libffi.call/many_complex_double.c: Ditto.
+    	* testsuite/libffi.call/many_complex_float.c: Ditto.
+    	* testsuite/libffi.call/many_complex_longdouble.c: Ditto.
+    	* testsuite/libffi.call/return_complex1_double.c: Ditto.
+    	* testsuite/libffi.call/return_complex1_float.c: Ditto.
+    	* testsuite/libffi.call/return_complex1_longdouble.c: Ditto.
+    	* testsuite/libffi.call/return_complex2_double.c: Ditto.
+    	* testsuite/libffi.call/return_complex2_float.c: Ditto.
+    	* testsuite/libffi.call/return_complex2_longdouble.c: Ditto.
+    	* testsuite/libffi.call/return_complex_double.c: Ditto.
+    	* testsuite/libffi.call/return_complex_float.c: Ditto.
+    	* testsuite/libffi.call/return_complex_longdouble.c: Ditto.
+    	* src/raw_api.c (ffi_raw_to_ptrarray): Handle FFI_TYPE_COMPLEX
+    	(ffi_ptrarray_to_raw): Ditto.
+    	* src/prep_cif.c (ffi_prep_cif_core): Abort if FFI_TYPE_COMPLEX is not
+    	implemented in libffi for the target.
+    	* src/java_raw_api.c (ffi_java_raw_size): FFI_TYPE_COMPLEX not supported
+    	yet (abort).
+    	(ffi_java_raw_to_ptrarray): Ditto.
+    	(ffi_java_rvalue_to_raw): Ditto.
+    	(ffi_java_raw_to_rvalue):  Ditto.
+    	* src/debug.c (ffi_type_test): Add debug tests for complex types.
+    	* include/ffi.h.in (FFI_TYPE_COMPLEX): Add new FFI_TYPE_COMPLEX.
+    	(FFI_TYPE_LAST): Bump.
+    	(ffi_type_complex_float): Add new ffi_type_....
+    	(ffi_type_complex_double): Ditto.
+    	(ffi_type_complex_longdouble): Ditto.
+    
+    2014-07-22  Dominik Vogt  <vogt@linux.vnet.ibm.com>
+    
+    	* src/s390/ffitarget.h (FFI_TARGET_HAS_COMPLEX_TYPE): Define to provide
+    	FFI_TYPE_COMPLEX support.
+    	* src/s390/ffi.c (ffi_check_struct_type): Implement FFI_TYPE_COMPLEX
+    	(ffi_prep_args): Ditto.
+    	(ffi_prep_cif_machdep): Ditto.
+    	(ffi_closure_helper_SYSV): Ditto.
+
+commit 4c5c4088aa3e4d8103ff9ca441937da64fdd849a
+Merge: 862f53d 5d6340e
+Author: Anthony Green <green@moxielogic.com>
+Date:   Thu Sep 18 19:10:54 2014 -0400
+
+    Merge pull request #132 from nielsAD/master
+    
+    Pascal and Register calling convention support on x86
+
+commit 862f53de04ff898a128be7eec592bae60930d6df
+Merge: 5df3840 aebf2c3
+Author: Anthony Green <green@moxielogic.com>
+Date:   Thu Sep 18 19:06:08 2014 -0400
+
+    Merge pull request #130 from frida/fix/darwin-aarch64-float-alignment
+    
+    Fix alignment of FFI_TYPE_FLOAT for Apple's ARM64 ABI
+
+commit 5df384077f3633ec8cf2e08f9199e5a44994dbad
+Merge: 7b7a528 0f4e09d
+Author: Anthony Green <green@moxielogic.com>
+Date:   Thu Sep 18 19:05:35 2014 -0400
+
+    Merge pull request #129 from frida/fix/darwin-aarch64-cif-prep
+    
+    Fix non-variadic CIF initialization for Apple/ARM64
+
+commit 7b7a5284de7a99edfcee5ac362dbf76251698e1e
+Merge: 4cd5e84 6172a99
+Author: Anthony Green <green@moxielogic.com>
+Date:   Thu Sep 18 18:28:05 2014 -0400
+
+    Merge pull request #124 from knuesel/master
+    
+    Fix issue with builddir when calling configure with absolute path
+
+commit 4cd5e840122e22636b5838943372c4ed74618e35
+Merge: 1cee07b 08853e3
+Author: Anthony Green <green@moxielogic.com>
+Date:   Thu Sep 18 18:27:15 2014 -0400
+
+    Merge pull request #123 from ehsan/clang-cl
+    
+    Add support for building with clang-cl
+
+commit 5d6340ef2cf81432da79ac8b0b1b1218ab391438
+Author: nielsAD <niels.a.d@gmail.com>
+Date:   Mon Aug 25 17:29:44 2014 +0200
+
+    Determine whether register arguments (THISCALL/FASTCALL/REGISTER) are really passed via register to closures. Use stack if not.
+
+commit 6e346487b879b4b056a847268e381ae6efec4c21
+Author: nielsAD <niels.a.d@gmail.com>
+Date:   Mon Aug 25 12:23:29 2014 +0200
+
+    Fixed THISCALL/FASTCALL closures and added basic support for PASCAL/REGISTER closures.
+
+commit 098dca6b31e42dd0256ed7d966729e31961f1461
+Author: nielsAD <niels.a.d@gmail.com>
+Date:   Sat Aug 23 00:18:47 2014 +0200
+
+    Support for calling functions with PASCAL and REGISTER calling conventions on x86 Windows/Linux.
+    Also changed indentation to be more consistent throughout the (adjusted) files.
+
+commit 08853e32fb6b750cda664ee6d3290d340429dd4d
+Author: Ehsan Akhgari <ehsan@mozilla.com>
+Date:   Thu Jul 31 20:33:33 2014 -0400
+
+    Enable forcing the usage of the static CRT in libffi's msvc wrapper
+    
+    This is required for AddressSanitizer builds with clang-cl.
+
+commit aebf2c3023b5ff056a708dc34169f7b549b2ec4f
+Author: Ole André Vadla Ravnås <ole.andre.ravnas@tillitech.com>
+Date:   Fri Jul 25 21:40:50 2014 +0200
+
+    Fix alignment of FFI_TYPE_FLOAT for Apple's ARM64 ABI
+
+commit 0f4e09d27dc175ce3e95d070b794351663c7220e
+Author: Ole André Vadla Ravnås <ole.andre.ravnas@tillitech.com>
+Date:   Sat Jul 26 00:11:06 2014 +0200
+
+    Fix non-variadic CIF initialization for Apple/ARM64
+    
+    Turns out `aarch64_nfixedargs` wasn't initialized in the non-variadic
+    case, resulting in undefined behavior when allocating arguments.
+
+commit 6172a995e14bdbc6150aa02a361f710626a5c293
+Author: Jeremie Knuesel <jeremie.knusel@sensefly.com>
+Date:   Wed Jun 25 12:28:17 2014 +0200
+
+    Fix issue with builddir when calling configure with absolute path
+
+commit fb25cd08ed5a87640b02f0feeb10a09b37cfddbe
+Author: Ehsan Akhgari <ehsan@mozilla.com>
+Date:   Wed Jun 11 12:07:24 2014 -0400
+
+    Add support for building with clang-cl
+
+commit 1cee07be4712411baa5eb8af22698bc8443a6d6e
+Author: Anthony Green <green@moxielogic.com>
+Date:   Thu Jun 12 06:30:59 2014 -0400
+
+    Remove compiler warning
+
+commit ad0d1d239afc7ad09203847793dcc020856d1035
+Author: Samuli Suominen <ssuominen@gentoo.org>
+Date:   Thu Jun 12 06:30:21 2014 -0400
+
+    Fix paths in libffi.pc.in
+
+commit df31a85103b0cc232bbc340d7e782a3853c7fad5
+Merge: 69289c1 360aa8c
+Author: Anthony Green <green@moxielogic.com>
+Date:   Fri Jun 6 08:24:35 2014 -0400
+
+    Merge pull request #122 from rvandermeulen/1014976
+    
+    Don't make --enable-debug imply using the debug CRT in libffi
+
+commit 360aa8ca1ead2fdaefa7b1c6f01ad001d8abae7e
+Author: Mike Hommey <mh+mozilla@glandium.org>
+Date:   Mon Jun 2 09:21:10 2014 -0400
+
+    Bug 1014976 - Don't make --enable-debug imply using the debug CRT in libffi.
+
+commit 69289c10b0acb4b52c8b5df4cf738193c618db40
+Author: Anthony Green <green@moxielogic.com>
+Date:   Sat May 31 08:54:08 2014 -0400
+
+    Prepare for libffi 3.1.1
+
+commit 978c9540154d320525488db1b7049277122f736d
+Author: Samuli Suominen <ssuominen@gentoo.org>
+Date:   Sat May 31 08:53:10 2014 -0400
+
+    Add missing GNU stack markings in win32.S
+
+commit cbc5a3c0200aa6c2cf8d6798d69a21501557c83f
+Author: Ryan Hill <rhill@gentoo.org>
+Date:   Sat May 31 08:26:34 2014 -0400
+
+    Fix typo
+
+commit 9d8e3018ac3d0d338373bff7eefa9f006746f4ec
+Author: Anthony Green <green@moxielogic.com>
+Date:   Sat May 24 23:28:42 2014 -0400
+
+    Update current version.
+
+commit 18d56cca5a4ee95ad48b129100adf26231518ed0
+Author: Anthony Green <green@moxielogic.com>
+Date:   Mon May 19 18:05:33 2014 -0400
+
+    Increment libtool version number
+
+commit 629f1029c47e522e4331988f02f32c203a070e28
+Merge: 0403f33 c1166d4
+Author: Anthony Green <green@moxielogic.com>
+Date:   Mon May 19 18:04:28 2014 -0400
+
+    Merge pull request #120 from l0kod/tmpfile
+    
+    Create temporary file with O_TMPFILE and O_CLOEXEC when available
+
+commit c1166d4f653bf6d17ad8c265cf5e8da84e2e76dc
+Author: Mickaël Salaün <mic@digikod.net>
+Date:   Mon May 12 19:44:08 2014 +0200
+
+    closures: Check for mkostemp(3)
+
+commit 8daeed9570af72eb135c8ded460d2888f05b2e68
+Author: Mickaël Salaün <mic@digikod.net>
+Date:   Sun May 11 22:54:58 2014 +0200
+
+    closures: Create temporary file with O_TMPFILE and O_CLOEXEC when available
+    
+    The open_temp_exec_file_dir function can create a temporary file without
+    file system accessible link. If the O_TMPFILE flag is not defined (old
+    Linux kernel or libc) the behavior is unchanged.
+    
+    The open_temp_exec_file_name function now need a new argument "flags"
+    (like O_CLOEXEC) used for temporary file creation.
+    
+    The O_TMPFILE flag allow temporary file creation without race condition.
+    This feature/fix prevent another process to access the (future)
+    executable file from the file system.
+    
+    The O_CLOEXEC flag automatically close the temporary file for any
+    execve. This avoid transmitting (executable) file descriptor to a child
+    process.
+
 commit 0403f332b1f478696c30d3d8a0e2f6eef24aaf88
 Author: Anthony Green <green@moxielogic.com>
 Date:   Mon May 19 09:41:32 2014 -0400

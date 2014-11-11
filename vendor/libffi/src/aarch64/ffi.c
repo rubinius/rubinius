@@ -146,6 +146,9 @@ get_basic_type_alignment (unsigned short type)
   switch (type)
     {
     case FFI_TYPE_FLOAT:
+#if defined (__APPLE__)
+      return sizeof (UINT32);
+#endif
     case FFI_TYPE_DOUBLE:
       return sizeof (UINT64);
 #if FFI_TYPE_DOUBLE != FFI_TYPE_LONGDOUBLE
@@ -779,6 +782,8 @@ ffi_prep_cif_machdep (ffi_cif *cif)
           }
     }
 
+  cif->aarch64_nfixedargs = 0;
+
   return FFI_OK;
 }
 
@@ -789,9 +794,13 @@ ffi_status ffi_prep_cif_machdep_var(ffi_cif *cif,
 				    unsigned int nfixedargs,
 				    unsigned int ntotalargs)
 {
+  ffi_status status;
+
+  status = ffi_prep_cif_machdep (cif);
+
   cif->aarch64_nfixedargs = nfixedargs;
 
-  return ffi_prep_cif_machdep(cif);
+  return status;
 }
 
 #endif

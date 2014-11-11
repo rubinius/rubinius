@@ -1,7 +1,7 @@
-/* -----------------------------------------------------------------*-C-*-
-   ffitarget.h - Copyright (c) 2012  Anthony Green
-                 Copyright (c) 1996-2003  Red Hat, Inc.
-   Target configuration macros for S390.
+/* -----------------------------------------------------------------------
+   ffitarget.h - Copyright (c) 2014 Sebastian Macke <sebastian@macke.de>
+
+   OpenRISC Target configuration macros
 
    Permission is hereby granted, free of charge, to any person obtaining
    a copy of this software and associated documentation files (the
@@ -22,20 +22,13 @@
    WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
    DEALINGS IN THE SOFTWARE.
-
    ----------------------------------------------------------------------- */
 
 #ifndef LIBFFI_TARGET_H
 #define LIBFFI_TARGET_H
 
 #ifndef LIBFFI_H
-#error "Please do not include ffitarget.h directly into your source.  Use ffi.h instead."
-#endif
-
-#if defined (__s390x__)
-#ifndef S390X
-#define S390X
-#endif
+#error "Please do not include ffitarget.h directly into your source. Use ffi.h instead."
 #endif
 
 /* ---- System specific configurations ----------------------------------- */
@@ -52,18 +45,14 @@ typedef enum ffi_abi {
 } ffi_abi;
 #endif
 
-#define FFI_TARGET_SPECIFIC_STACK_SPACE_ALLOCATION
-#define FFI_TARGET_HAS_COMPLEX_TYPE
-
 /* ---- Definitions for closures ----------------------------------------- */
 
 #define FFI_CLOSURES 1
-#ifdef S390X
-#define FFI_TRAMPOLINE_SIZE 32
-#else
-#define FFI_TRAMPOLINE_SIZE 16
-#endif
 #define FFI_NATIVE_RAW_API 0
+#define FFI_TRAMPOLINE_SIZE (24)
+
+#define FFI_TARGET_SPECIFIC_VARIADIC 1
+#define FFI_EXTRA_CIF_FIELDS unsigned nfixedargs;
 
 #endif
 

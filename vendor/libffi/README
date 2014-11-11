@@ -1,8 +1,8 @@
 Status
 ======
 
-libffi-3.1 was released on May 19, 2014.  Check the libffi web page
-for updates: <URL:http://sourceware.org/libffi/>.
+libffi-3.2 was released on November 11, 2014.  Check the libffi web
+page for updates: <URL:http://sourceware.org/libffi/>.
 
 
 What is libffi?
@@ -43,7 +43,7 @@ Libffi has been ported to many different platforms.
 For specific configuration details and testing status, please
 refer to the wiki page here:
 
- http://www.moxielogic.org/wiki/index.php?title=Libffi_3.1
+ http://www.moxielogic.org/wiki/index.php?title=Libffi_3.2
 
 At the time of release, the following basic configurations have been
 tested:
@@ -74,6 +74,7 @@ tested:
 | MIPS64          | Linux            | GCC                     |
 | Moxie           | Bare metal       | GCC                     |
 | Nios II         | Linux            | GCC                     |
+| OpenRISC        | Linux            | GCC                     |
 | PowerPC 32-bit  | AIX              | IBM XL C                |
 | PowerPC 64-bit  | AIX              | IBM XL C                |
 | PowerPC         | AMIGA            | GCC                     |
@@ -110,6 +111,7 @@ tested:
 | X86-64          | Linux/x32        | GCC                     |
 | X86-64          | OpenBSD          | GCC                     |
 | X86-64          | Solaris          | Oracle Solaris Studio C |
+| X86-64          | Windows/Cygwin   | GCC                     |
 | X86-64          | Windows/MingW    | GCC                     |
 | Xtensa          | Linux            | GCC                     |
 |-----------------+------------------+-------------------------|
@@ -146,11 +148,16 @@ It's also possible to build libffi on Windows platforms with
 Microsoft's Visual C++ compiler.  In this case, use the msvcc.sh
 wrapper script during configuration like so:
 
-path/to/configure CC=path/to/msvcc.sh CXX=path/to/msvcc.sh LD=link CPP=\"cl -nologo -EP\"
+path/to/configure CC=path/to/msvcc.sh CXX=path/to/msvcc.sh LD=link CPP="cl -nologo -EP"
 
 For 64-bit Windows builds, use CC="path/to/msvcc.sh -m64" and
 CXX="path/to/msvcc.sh -m64".  You may also need to specify --build
 appropriately.
+
+It is also possible to build libffi on Windows platforms with the LLVM
+project's clang-cl compiler, like below:
+
+path/to/configure CC="path/to/msvcc.sh -clang-cl" CXX="path/to/msvcc.sh -clang-cl" LD=link CPP="clang-cl -EP"
 
 When building with MSVC under a MingW environment, you may need to
 remove the line in configure that sets 'fix_srcfile_path' to a 'cygpath'
@@ -174,6 +181,14 @@ History
 =======
 
 See the git log for details at http://github.com/atgreen/libffi.
+
+3.2 Nov-11-14
+        Add C99 Complex Type support (currently only supported on
+          s390).
+	Add support for PASCAL and REGISTER calling conventions on x86
+	  Windows/Linux.
+	Add OpenRISC and Cygwin-64 support.
+        Bug fixes.
 
 3.1 May-19-14
         Add AArch64 (ARM64) iOS support.
@@ -393,6 +408,7 @@ mips		Anthony Green, Casey Marshall
 mips64		David Daney
 moxie		Anthony Green
 nios ii		Sandra Loosemore
+openrisc        Sebastian Macke
 pa		Randolph Chung, Dave Anglin, Andreas Tobler
 powerpc		Geoffrey Keating, Andreas Tobler, 
 			 David Edelsohn, John Hornkvist
