@@ -67,6 +67,20 @@ class UserDefinedWithIvar
   end
 end
 
+class UserDefinedImmediate
+  def _dump(depth)
+    ''
+  end
+
+  def self._load(data)
+    nil
+  end
+end
+
+class UserPreviouslyDefinedWithInitializedIvar
+  attr_accessor :field1, :field2
+end
+
 class UserMarshal
   attr_reader :data
 

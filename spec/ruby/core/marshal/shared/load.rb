@@ -47,6 +47,26 @@ describe :marshal_load, :shared => true do
     arr.should == [o1, o2, o1, o2, obj]
   end
 
+  it "loads an array containing an object with _dump that returns an immediate value, followed by multiple instances of another object" do
+    str = "string"
+
+    marshaled_obj = Marshal.send(@method, "\004\b[\bu:\031UserDefinedImmediate\000\"\vstring@\a")
+
+    marshaled_obj.should == [nil, str, str]
+  end
+
+  it "does not set instance variables of an object with user-defined _dump/_load" do
+    # this string represents: <#UserPreviouslyDefinedWithInitializedIvar @field2=7 @field1=6>
+    dump_str = "\004\bu:-UserPreviouslyDefinedWithInitializedIvar\a:\f@field2i\f:\f@field1i\v"
+
+    UserPreviouslyDefinedWithInitializedIvar.should_receive(:_load).and_return(UserPreviouslyDefinedWithInitializedIvar.new)
+    marshaled_obj = Marshal.send(@method, dump_str)
+
+    marshaled_obj.should be_an_instance_of(UserPreviouslyDefinedWithInitializedIvar)
+    marshaled_obj.field1.should be_nil
+    marshaled_obj.field2.should be_nil
+  end
+
   it "loads an array containing objects having marshal_dump method, and with proc" do
     arr = []
     proc = Proc.new { |o| arr << o; o }
