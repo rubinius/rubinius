@@ -459,9 +459,12 @@ module Marshal
       mod
     end
 
+    def add_non_immediate_object(obj)
+      return if Rubinius::Type.object_kind_of? obj, ImmediateValue
+      add_object(obj)
+    end
 
     def add_object(obj)
-      return if Rubinius::Type.object_kind_of? obj, ImmediateValue
       sz = @links.size
       @objects[sz] = obj
       @links[obj.__id__] = sz
@@ -823,7 +826,7 @@ module Marshal
         obj = klass._load data
       end
 
-      store_unique_object obj
+      add_object obj
 
       obj
     end
@@ -904,7 +907,7 @@ module Marshal
       if link = find_link(obj)
         str = Rubinius::Type.binary_string("@#{serialize_integer(link)}")
       else
-        add_object obj
+        add_non_immediate_object obj
 
         # ORDER MATTERS.
         if Rubinius::Type.object_respond_to_marshal_dump? obj
@@ -1078,7 +1081,7 @@ module Marshal
         val = obj.marshal_dump
       end
 
-      add_object val
+      add_non_immediate_object val
 
       cls = Rubinius::Type.object_class obj
       name = Rubinius::Type.module_inspect cls
@@ -1089,7 +1092,7 @@ module Marshal
       if Symbol === obj
         add_symlink obj
       else
-        add_object obj
+        add_non_immediate_object obj
       end
       obj
     end
