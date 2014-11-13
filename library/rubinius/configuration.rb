@@ -170,7 +170,7 @@ Rubinius::ConfigurationVariables.define do |c|
     "Configure the system to profile ruby code"
 
   c.vm_variable "profiler.threshold", 1000000,
-    "The mininum number of nanoseconds a profiler node must have to be reported"
+    "The minimum number of nanoseconds a profiler node must have to be reported"
 
   c.vm_variable "system.tmp", "$TMPDIR",
     "Default temp/fallback directory for the process"
