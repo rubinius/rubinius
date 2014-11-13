@@ -3,10 +3,8 @@ require File.expand_path('../../../time/fixtures/methods', __FILE__)
 require 'stringio'
 
 describe :marshal_load, :shared => true do
-  ruby_version_is ""..."2.1" do
-    before :all do
-      @num_self_class = 0
-    end
+  before :all do
+    @num_self_class = 0
   end
 
   it "raises an ArgumentError when the dumped data is truncated" do
@@ -22,75 +20,65 @@ describe :marshal_load, :shared => true do
     lambda { Marshal.send(@method, kaboom) }.should raise_error(ArgumentError)
   end
 
-  ruby_version_is ""..."1.9" do
-    it "ignores the value of the proc when called with a proc" do
-      Marshal.send(@method, Marshal.dump([1,2]), proc { [3,4] }).should ==  [1,2]
-    end
+  it "ignores the value of the proc when called with a proc" do
+    Marshal.send(@method, Marshal.dump([1,2]), proc { [3,4] }).should ==  [1,2]
   end
 
-  ruby_version_is ""..."1.9" do
-    it "doesn't call the proc for recursively visited data" do
-      a = [1]
-      a << a
-      ret = []
-      Marshal.send(@method, Marshal.dump(a), proc { |arg| ret << arg })
-      ret.first.should == 1
-      ret.size.should == 2
-    end
+  it "doesn't call the proc for recursively visited data" do
+    a = [1]
+    a << a
+    ret = []
+    Marshal.send(@method, Marshal.dump(a), proc { |arg| ret << arg })
+    ret.first.should == 1
+    ret.size.should == 2
   end
 
-  ruby_version_is ""..."1.9" do
-    it "loads an array containing objects having _dump method, and with proc" do
-      arr = []
-      proc = Proc.new { |o| arr << o }
-      o1 = UserDefined.new;
-      o2 = UserDefinedWithIvar.new
-      obj = [o1, o2, o1, o2]
+  it "loads an array containing objects having _dump method, and with proc" do
+    arr = []
+    proc = Proc.new { |o| arr << o }
+    o1 = UserDefined.new;
+    o2 = UserDefinedWithIvar.new
+    obj = [o1, o2, o1, o2]
 
-      Marshal.send(@method, "\004\b[\tu:\020UserDefined\022\004\b[\a\"\nstuff@\006u:\030UserDefinedWithIvar5\004\b[\bI\"\nstuff\006:\t@foo:\030UserDefinedWithIvar\"\tmore@\a@\006@\a", proc)
+    Marshal.send(@method, "\004\b[\tu:\020UserDefined\022\004\b[\a\"\nstuff@\006u:\030UserDefinedWithIvar5\004\b[\bI\"\nstuff\006:\t@foo:\030UserDefinedWithIvar\"\tmore@\a@\006@\a", proc)
 
-      arr.should == [o1, o2, obj]
-    end
+    arr.should == [o1, o2, obj]
   end
 
-  ruby_version_is ""..."1.9" do
-    it "loads an array containing objects having marshal_dump method, and with proc" do
-      arr = []
-      proc = Proc.new { |o| arr << o }
-      o1 = UserMarshal.new
-      o2 = UserMarshalWithIvar.new
-      obj = [o1, o2, o1, o2]
+  it "loads an array containing objects having marshal_dump method, and with proc" do
+    arr = []
+    proc = Proc.new { |o| arr << o }
+    o1 = UserMarshal.new
+    o2 = UserMarshalWithIvar.new
+    obj = [o1, o2, o1, o2]
 
-      Marshal.send(@method, "\004\b[\tU:\020UserMarshal\"\nstuffU:\030UserMarshalWithIvar[\006\"\fmy data@\006@\b", proc)
+    Marshal.send(@method, "\004\b[\tU:\020UserMarshal\"\nstuffU:\030UserMarshalWithIvar[\006\"\fmy data@\006@\b", proc)
 
-      arr.should == ['stuff', o1, 'my data', ['my data'], o2, obj]
-    end
+    arr.should == ['stuff', o1, 'my data', ['my data'], o2, obj]
   end
 
-  ruby_version_is ""..."1.9" do
-    it "loads an Array with proc" do
-      arr = []
-      s = 'hi'
-      s.instance_variable_set(:@foo, 5)
-      st = Struct.new("Brittle", :a).new
-      st.instance_variable_set(:@clue, 'none')
-      st.a = 0.0
-      h = Hash.new('def')
-      h['nine'] = 9
-      a = [:a, :b, :c]
-      a.instance_variable_set(:@two, 2)
-      obj = [s, 10, s, s, st, h, a]
-      obj.instance_variable_set(:@zoo, 'ant')
-      proc = Proc.new { |o| arr << o }
+  it "loads an Array with proc" do
+    arr = []
+    s = 'hi'
+    s.instance_variable_set(:@foo, 5)
+    st = Struct.new("Brittle", :a).new
+    st.instance_variable_set(:@clue, 'none')
+    st.a = 0.0
+    h = Hash.new('def')
+    h['nine'] = 9
+    a = [:a, :b, :c]
+    a.instance_variable_set(:@two, 2)
+    obj = [s, 10, s, s, st, h, a]
+    obj.instance_variable_set(:@zoo, 'ant')
+    proc = Proc.new { |o| arr << o }
 
-      new_obj = Marshal.send(@method, "\004\bI[\fI\"\ahi\006:\t@fooi\ni\017@\006@\006IS:\024Struct::Brittle\006:\006af\0060\006:\n@clue\"\tnone}\006\"\tninei\016\"\bdefI[\b;\a:\006b:\006c\006:\t@twoi\a\006:\t@zoo\"\bant", proc)
+    new_obj = Marshal.send(@method, "\004\bI[\fI\"\ahi\006:\t@fooi\ni\017@\006@\006IS:\024Struct::Brittle\006:\006af\0060\006:\n@clue\"\tnone}\006\"\tninei\016\"\bdefI[\b;\a:\006b:\006c\006:\t@twoi\a\006:\t@zoo\"\bant", proc)
 
-      new_obj.should == obj
-      new_obj.instance_variable_get(:@zoo).should == 'ant'
+    new_obj.should == obj
+    new_obj.instance_variable_get(:@zoo).should == 'ant'
 
-      arr.should ==
-        [5, s, 10, 0.0, 'none', st, 'nine', 9, 'def', h, :b, :c, 2, a, 'ant', obj]
-    end
+    arr.should ==
+      [5, s, 10, 0.0, 'none', st, 'nine', 9, 'def', h, :b, :c, 2, a, 'ant', obj]
   end
 
   it "assigns classes to nested subclasses of Array correctly" do
@@ -302,18 +290,16 @@ describe :marshal_load, :shared => true do
       Marshal.send(@method, "\004\bS:\021Struct::Ure1\a:\006a0:\006b0").should == obj
     end
 
-    ruby_version_is ""..."1.9" do
-      it "calls initialize on the unmarshaled struct" do
-        s = MarshalSpec::StructWithUserInitialize.new('foo')
-        Thread.current[MarshalSpec::StructWithUserInitialize::THREADLOCAL_KEY].should == ['foo']
-        s.a.should == 'foo'
+    it "calls initialize on the unmarshaled struct" do
+      s = MarshalSpec::StructWithUserInitialize.new('foo')
+      Thread.current[MarshalSpec::StructWithUserInitialize::THREADLOCAL_KEY].should == ['foo']
+      s.a.should == 'foo'
 
-        dumped = Marshal.dump(s)
-        loaded = Marshal.send(@method, dumped)
+      dumped = Marshal.dump(s)
+      loaded = Marshal.send(@method, dumped)
 
-        Thread.current[MarshalSpec::StructWithUserInitialize::THREADLOCAL_KEY].should == [nil]
-        loaded.a.should == 'foo'
-      end
+      Thread.current[MarshalSpec::StructWithUserInitialize::THREADLOCAL_KEY].should == [nil]
+      loaded.a.should == 'foo'
     end
   end
 
