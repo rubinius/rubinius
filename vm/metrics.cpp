@@ -483,11 +483,11 @@ namespace rubinius {
 
     void Metrics::process_metrics(STATE) {
       GCTokenImpl gct;
-      RBX_DTRACE_CONST char* thread_name =
-        const_cast<RBX_DTRACE_CONST char*>("rbx.metrics");
+      RBX_DTRACE_CHAR thread_name =
+        const_cast<RBX_DTRACE_CHAR>("rbx.metrics");
       vm_->set_name(thread_name);
 
-      RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CONST char*>(thread_name),
+      RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CHAR>(thread_name),
                             state->vm()->thread_id(), 1);
 
       state->vm()->thread->hard_unlock(state, gct, 0);
@@ -545,7 +545,7 @@ namespace rubinius {
 
       timer_->clear();
 
-      RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CONST char*>(thread_name),
+      RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CHAR>(thread_name),
                            state->vm()->thread_id(), 1);
     }
   }

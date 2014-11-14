@@ -251,10 +251,10 @@ namespace rubinius {
 
   void LLVMState::perform(STATE) {
     GCTokenImpl gct;
-    RBX_DTRACE_CONST char* thread_name = const_cast<RBX_DTRACE_CONST char*>("rbx.jit");
+    RBX_DTRACE_CHAR thread_name = const_cast<RBX_DTRACE_CHAR>("rbx.jit");
     vm_->set_name(thread_name);
 
-    RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CONST char*>(thread_name),
+    RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CHAR>(thread_name),
                           state->vm()->thread_id(), 1);
 
     state->vm()->thread->hard_unlock(state, gct, 0);
