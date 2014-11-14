@@ -48,8 +48,12 @@
 } \
 
 #else
+
 #include "dtrace/probes_dummy.h"
+
 #define RUBINIUS_METHOD_HOOK(probe, state, mod, method, previous) do { } while(0)
+#define RUBINIUS_OBJECT_ALLOCATE_HOOK(state, obj, frame) do { } while(0)
+
 #endif
 
 #define RUBINIUS_METHOD_ENTRY_HOOK(state, module, method, previous) \
