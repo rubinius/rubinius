@@ -17,7 +17,7 @@
 #elif defined(__APPLE__)
 #define APPLE_SYNC 1
 
-#elif defined(_LP64) || defined(__LP64__) || defined(__x86_64__) || defined(__amd64__)
+#elif (defined(_LP64) || defined(__LP64__)) && (defined(__x86_64__) || defined(__amd64__))
 #define X86_SYNC 1
 #define X86_64_SYNC 1
 
@@ -43,7 +43,7 @@
 
 #endif
 
-#if defined(_LP64) || defined(__LP64__) || defined(__x86_64__) || defined(__amd64__)
+#if (defined(_LP64) || defined(__LP64__)) && (defined(__x86_64__) || defined(__amd64__))
 #define X86_PAUSE 1
 #elif defined(i386) || defined(__i386) || defined(__i386__)
 #define X86_PAUSE 1
