@@ -108,25 +108,23 @@ describe "IO.write" do
   end
 
   platform_is_not :windows do
-    if `which mkfifo`.chomp != ""
-      describe "on a FIFO" do
-        before :each do
-          @fifo = tmp("File_open_fifo")
-          system "mkfifo #{@fifo}"
-        end
+    describe "on a FIFO" do
+      before :each do
+        @fifo = tmp("File_open_fifo")
+        system "mkfifo #{@fifo}"
+      end
 
-        after :each do
-          rm_r @fifo
-        end
+      after :each do
+        rm_r @fifo
+      end
 
-        it "writes correctly" do
-          thr = Thread.new do
-            sleep 0.5
-            system "cat #{@fifo} > /dev/null"
-          end
-          string = "hi"
-          IO.write(@fifo, string).should == string.length
+      it "writes correctly" do
+        thr = Thread.new do
+          sleep 0.5
+          IO.read(@fifo)
         end
+        string = "hi"
+        IO.write(@fifo, string).should == string.length
       end
     end
   end
