@@ -30,7 +30,7 @@ notifications:
     channels:
       - "chat.freenode.net#rubinius"
     template:
-      - "%{repository}/%{branch} (%{commit} - %{author}): %{message}"
+      - "%{repository}/%{branch} (%{commit} - %{author}): %{build_url}: %{message}"
 env:
   - RVM=2.0.0 LANG="en_US.UTF-8"
 os:
