@@ -248,16 +248,24 @@ module Kernel
   alias_method :iterator?, :block_given?
   module_function :iterator?
 
-  def caller(start=1, exclude_kernel=true)
+  def caller(start = 1, length = nil)
+    frames = []
+
     # The + 1 is to skip this frame
     Rubinius.mri_backtrace(start + 1).map do |tup|
-      code = tup[0]
-      line = tup[1]
-      is_block = tup[2]
-      name = tup[3]
+      if length and frames.length == length
+        break
+      end
 
-      "#{code.active_path}:#{line}:in `#{name}'"
+      code     = tup[0]
+      line     = tup[1]
+      is_block = tup[2]
+      name     = tup[3]
+
+      frames << "#{code.active_path}:#{line}:in `#{name}'"
     end
+
+    frames
   end
   module_function :caller
 
