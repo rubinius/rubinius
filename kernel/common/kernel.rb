@@ -261,6 +261,30 @@ module Kernel
   end
   module_function :caller
 
+  ##
+  # Returns the current call stack as an Array of Thread::Backtrace::Location
+  # instances. This method is available starting with Ruby 2.0.
+  #
+  def caller_locations(start = 1, length = nil)
+    full_trace = Rubinius.mri_backtrace(start + 1)
+    locations  = []
+
+    full_trace.each do |tup|
+      if length and locations.length == length
+        break
+      end
+
+      locations << Thread::Backtrace::Location.new(
+        tup[3].to_s,
+        tup[0].active_path,
+        tup[1]
+      )
+    end
+
+    locations
+  end
+  module_function :caller_locations
+
   def define_singleton_method(*args, &block)
     singleton_class.send(:define_method, *args, &block)
   end
