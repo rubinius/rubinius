@@ -36,6 +36,7 @@ namespace rubinius {
   Context::Context(LLVMState* ls)
     : ls_(ls)
     , root_info_(0)
+    , success_(true)
     , inlined_block_(false)
     , inline_depth_(0)
     , rds_(new jit::RuntimeDataHolder)

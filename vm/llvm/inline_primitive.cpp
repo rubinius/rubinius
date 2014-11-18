@@ -25,6 +25,7 @@ namespace rubinius {
     CompiledCode* compiled_code;
     Class* klass;
     ClassData data;
+    bool valid_;
 
     InlinePrimitive(JITOperations& _ops, Inliner& _i, CompiledCode* _code,
                     Class* _klass, ClassData _data)
@@ -33,7 +34,12 @@ namespace rubinius {
       , compiled_code(_code)
       , klass(_klass)
       , data(_data)
+      , valid_(true)
     {}
+
+    bool valid_p() {
+      return valid_;
+    }
 
     void log(const char* name) {
       if(ops.llvm_state()->config().jit_inline_debug) {
@@ -884,7 +890,8 @@ namespace rubinius {
           performed = ops.b().CreateICmpSGE(lint, rint, "fixnum.ge");
           break;
         default:
-          rubinius::bug("Unknown fixnum operation in JIT");
+          valid_ = false;
+          return;
       }
 
       Value* le = ops.b().CreateSelect(
@@ -1076,7 +1083,8 @@ namespace rubinius {
           performed = ops.b().CreateFRem(lhs, rhs, "float.mod");
           break;
         default:
-          rubinius::bug("Unknown float operation in JIT");
+          valid_ = false;
+          return;
       }
 
       Signature sig(ops.context(), ops.context()->ptr_type("Float"));
@@ -1251,7 +1259,8 @@ namespace rubinius {
           performed = ops.b().CreateFCmpUGE(lhs, rhs, "float.ge");
           break;
         default:
-          rubinius::bug("Unknown float operation in JIT");
+          valid_ = false;
+          return;
       }
 
       Value* imm_value = ops.b().CreateSelect(performed,
@@ -1826,6 +1835,11 @@ namespace rubinius {
       }
     }
 
+    if(!ip.valid_p()) {
+      ctx_->set_failure();
+      return false;
+    }
+
     return true;
   }
 
@@ -1847,7 +1861,12 @@ namespace rubinius {
       ip.tuple_swap();
       break;
     default:
-      rubinius::bug("Unknown inline intrinsic in JIT");
+      ctx_->set_failure();
+      return;
+    }
+
+    if(!ip.valid_p()) {
+      ctx_->set_failure();
     }
   }
 }

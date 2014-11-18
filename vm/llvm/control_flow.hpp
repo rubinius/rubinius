@@ -13,10 +13,12 @@ namespace rubinius {
       MachineCode* machine_code_;
       uint8_t* seen_;
       SectionList work_list_;
+      bool valid_;
 
     public:
       ControlFlowWalker(MachineCode* mcode)
         : machine_code_(mcode)
+        , valid_(true)
       {
         seen_ = new uint8_t[mcode->total];
         memset(seen_, 0, mcode->total);
@@ -29,6 +31,10 @@ namespace rubinius {
       void add_section(int ip) {
         if(seen_[ip]) return;
         work_list_.push_back(ip);
+      }
+
+      bool valid_p() {
+        return valid_;
       }
 
       template <class EI>
@@ -57,6 +63,11 @@ namespace rubinius {
               // Non-terminating goto's stop the current block and queue the code
               // right after them.
               if(!iter.terminator_p() && iter.next_p()) add_section(iter.next_ip());
+              break;
+            }
+
+            if(!iter.valid_p()) {
+              valid_ = false;
               break;
             }
 

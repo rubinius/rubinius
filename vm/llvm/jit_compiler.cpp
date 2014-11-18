@@ -293,6 +293,7 @@ namespace jit {
     function_ = info.function();
 
     if(!work.generate_body()) {
+      ctx_->set_failure();
       function_ = NULL;
       // This is too noisy to report
       // llvm::outs() << "not supported yet.\n";

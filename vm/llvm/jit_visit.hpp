@@ -448,7 +448,8 @@ namespace rubinius {
         addr = llvm_state()->shared().globals.mirror.object_address();
         break;
       default:
-        rubinius::bug("invalid system object");
+        ctx_->set_failure();
+        return;
       }
 
       Value* l_addr = constant(addr, ObjArrayTy);
@@ -1770,7 +1771,10 @@ namespace rubinius {
           nfo = nfo->creator_info();
         }
 
-        if(mis.size() == 0) rubinius::bug("no method info in inlined block");
+        if(mis.size() == 0) {
+          ctx_->set_failure();
+          return;
+        }
 
         call_args.push_back(cint(mis.size()));
 
