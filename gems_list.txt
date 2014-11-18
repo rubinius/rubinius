@@ -80,7 +80,7 @@ rubysl-pstore-2.0.0.gem
 rubysl-pty-2.0.2.gem
 rubysl-rational-2.0.1.gem
 rubysl-resolv-2.1.0.gem
-rubysl-rexml-2.0.3.gem
+rubysl-rexml-2.0.4.gem
 rubysl-rinda-2.0.1.gem
 rubysl-rss-2.0.0.gem
 rubysl-scanf-2.0.0.gem
