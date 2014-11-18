@@ -449,6 +449,8 @@ namespace rubinius {
   {
     bool wait = config().jit_sync;
 
+    if(!enabled_) return;
+
     if(code->machine_code()->call_count <= 1) {
       return;
     }
