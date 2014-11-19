@@ -32,6 +32,9 @@ extern "C" {
 #define RUBINIUS_METHOD_PRIMITIVE_RETURN_ENABLED() 0
 #define RUBINIUS_METHOD_PRIMITIVE_RETURN(arg0, arg1, arg2, arg3) do { } while(0)
 
+#define RUBINIUS_METHOD_CACHE_RESET_ENABLED() 0
+#define RUBINIUS_METHOD_CACHE_RESET(arg0, arg1, arg2, arg3) do { } while(0)
+
 
 #define RUBINIUS_GC_BEGIN_ENABLED() 0
 #define RUBINIUS_GC_BEGIN(arg0) do { } while(0)
@@ -46,12 +49,17 @@ extern "C" {
 #define RUBINIUS_THREAD_STOP_ENABLED() 0
 #define RUBINIUS_THREAD_STOP(arg0, arg1, arg2) do { } while(0)
 
+#define RUBINIUS_OBJECT_ALLOCATE_ENABLED() 0
+#define RUBINIUS_OBJECT_ALLOCATE(arg0, arg1, arg2) do { } while(0)
 
 #define RUBINIUS_JIT_FUNCTION_BEGIN_ENABLED() 0
 #define RUBINIUS_JIT_FUNCTION_BEGIN(arg0, arg1, arg2, arg3) do { } while(0)
 
 #define RUBINIUS_JIT_FUNCTION_END_ENABLED() 0
 #define RUBINIUS_JIT_FUNCTION_END(arg0, arg1, arg2, arg3) do { } while(0)
+
+#define RUBINIUS_OBJECT_ALLOCATE_ENABLED() 0
+#define RUBINIUS_OBJECT_ALLOCATE(arg0, arg1, arg2) do { } while(0)
 
 #ifdef __cplusplus
 }

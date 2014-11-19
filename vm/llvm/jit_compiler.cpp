@@ -179,13 +179,13 @@ namespace jit {
 
 #ifdef HAVE_DTRACE
     if(RUBINIUS_JIT_FUNCTION_BEGIN_ENABLED()) {
-      RBX_DTRACE_CONST char* class_name =
-          const_cast<RBX_DTRACE_CONST char*>(
+      RBX_DTRACE_CHAR class_name =
+          const_cast<RBX_DTRACE_CHAR>(
               ctx_->llvm_state()->enclosure_name(code).c_str());
-      RBX_DTRACE_CONST char* method_name =
-          const_cast<RBX_DTRACE_CONST char*>("<block>");
-      RBX_DTRACE_CONST char* file_name =
-          const_cast<RBX_DTRACE_CONST char*>(
+      RBX_DTRACE_CHAR method_name =
+          const_cast<RBX_DTRACE_CHAR>("<block>");
+      RBX_DTRACE_CHAR file_name =
+          const_cast<RBX_DTRACE_CHAR>(
               ctx_->llvm_state()->symbol_debug_str(code->file()).c_str());
       int line = code->start_line();
       RUBINIUS_JIT_FUNCTION_BEGIN(class_name, method_name, file_name, line);
@@ -210,13 +210,13 @@ namespace jit {
 
 #ifdef HAVE_DTRACE
     if(RUBINIUS_JIT_FUNCTION_END_ENABLED()) {
-      RBX_DTRACE_CONST char* class_name =
-          const_cast<RBX_DTRACE_CONST char*>(
+      RBX_DTRACE_CHAR class_name =
+          const_cast<RBX_DTRACE_CHAR>(
               ctx_->llvm_state()->enclosure_name(code).c_str());
-      RBX_DTRACE_CONST char* method_name =
-          const_cast<RBX_DTRACE_CONST char*>("<block>");
-      RBX_DTRACE_CONST char* file_name =
-          const_cast<RBX_DTRACE_CONST char*>(
+      RBX_DTRACE_CHAR method_name =
+          const_cast<RBX_DTRACE_CHAR>("<block>");
+      RBX_DTRACE_CHAR file_name =
+          const_cast<RBX_DTRACE_CHAR>(
               ctx_->llvm_state()->symbol_debug_str(code->file()).c_str());
       int line = code->start_line();
       RUBINIUS_JIT_FUNCTION_END(class_name, method_name, file_name, line);
@@ -240,14 +240,14 @@ namespace jit {
 
 #ifdef HAVE_DTRACE
     if(RUBINIUS_JIT_FUNCTION_BEGIN_ENABLED()) {
-      RBX_DTRACE_CONST char* class_name =
-          const_cast<RBX_DTRACE_CONST char*>(
+      RBX_DTRACE_CHAR class_name =
+          const_cast<RBX_DTRACE_CHAR>(
               ctx_->llvm_state()->enclosure_name(code).c_str());
-      RBX_DTRACE_CONST char* method_name =
-          const_cast<RBX_DTRACE_CONST char*>(
+      RBX_DTRACE_CHAR method_name =
+          const_cast<RBX_DTRACE_CHAR>(
               ctx_->llvm_state()->symbol_debug_str(code->name()).c_str());
-      RBX_DTRACE_CONST char* file_name =
-          const_cast<RBX_DTRACE_CONST char*>(
+      RBX_DTRACE_CHAR file_name =
+          const_cast<RBX_DTRACE_CHAR>(
               ctx_->llvm_state()->symbol_debug_str(code->file()).c_str());
       int line = code->start_line();
       RUBINIUS_JIT_FUNCTION_BEGIN(class_name, method_name, file_name, line);
@@ -272,14 +272,14 @@ namespace jit {
 
 #ifdef HAVE_DTRACE
     if(RUBINIUS_JIT_FUNCTION_END_ENABLED()) {
-      RBX_DTRACE_CONST char* class_name =
-          const_cast<RBX_DTRACE_CONST char*>(
+      RBX_DTRACE_CHAR class_name =
+          const_cast<RBX_DTRACE_CHAR>(
               ctx_->llvm_state()->enclosure_name(code).c_str());
-      RBX_DTRACE_CONST char* method_name =
-          const_cast<RBX_DTRACE_CONST char*>(
+      RBX_DTRACE_CHAR method_name =
+          const_cast<RBX_DTRACE_CHAR>(
               ctx_->llvm_state()->symbol_debug_str(code->name()).c_str());
-      RBX_DTRACE_CONST char* file_name =
-          const_cast<RBX_DTRACE_CONST char*>(
+      RBX_DTRACE_CHAR file_name =
+          const_cast<RBX_DTRACE_CHAR>(
               ctx_->llvm_state()->symbol_debug_str(code->file()).c_str());
       int line = code->start_line();
       RUBINIUS_JIT_FUNCTION_END(class_name, method_name, file_name, line);

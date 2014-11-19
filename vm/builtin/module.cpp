@@ -18,6 +18,9 @@
 #include "object_memory.hpp"
 #include "on_stack.hpp"
 
+#include "call_frame.hpp"
+#include "dtrace/dtrace.h"
+
 #include <string>
 
 namespace rubinius {
@@ -195,6 +198,9 @@ namespace rubinius {
         }
       }
     }
+
+    RUBINIUS_METHOD_CACHE_RESET_HOOK(state, this, name, state->vm()->saved_call_frame());
+
     return cNil;
   }
 

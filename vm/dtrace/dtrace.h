@@ -1,23 +1,25 @@
 #ifndef RUBINIUS_DTRACE_H
 #define RUBINIUS_DTRACE_H
 
+#define RBX_DTRACE_CHAR RBX_DTRACE_CONST char*
+
 #ifdef HAVE_DTRACE
 #include "dtrace/probes.h"
 
 #define RUBINIUS_METHOD_HOOK(probe, state, mod, method, previous) \
 { \
   if(RUBINIUS_METHOD_##probe##_ENABLED()) { \
-    RBX_DTRACE_CONST char* module_name = \
-        const_cast<RBX_DTRACE_CONST char*>(mod->debug_str(state).c_str()); \
-    RBX_DTRACE_CONST char* code_name = \
-        const_cast<RBX_DTRACE_CONST char*>(method->debug_str(state).c_str()); \
-    RBX_DTRACE_CONST char* file_name = \
-        const_cast<RBX_DTRACE_CONST char*>("<unknown>"); \
+    RBX_DTRACE_CHAR module_name = \
+        const_cast<RBX_DTRACE_CHAR>(mod->debug_str(state).c_str()); \
+    RBX_DTRACE_CHAR code_name = \
+        const_cast<RBX_DTRACE_CHAR>(method->debug_str(state).c_str()); \
+    RBX_DTRACE_CHAR file_name = \
+        const_cast<RBX_DTRACE_CHAR>("<unknown>"); \
     int line = 0; \
     if(previous) { \
       Symbol* file = previous->file(state); \
       if(!file->nil_p()) { \
-        file_name = const_cast<RBX_DTRACE_CONST char*>(file->debug_str(state).c_str()); \
+        file_name = const_cast<RBX_DTRACE_CHAR>(file->debug_str(state).c_str()); \
       } \
       line = previous->line(state); \
     } \
@@ -25,9 +27,33 @@
   } \
 } \
 
+#define RUBINIUS_OBJECT_ALLOCATE_HOOK(state, obj, frame) \
+{ \
+  if(RUBINIUS_OBJECT_ALLOCATE_ENABLED()) { \
+    Class* mod = obj->direct_class(state); \
+    RBX_DTRACE_CHAR module_name = \
+      const_cast<RBX_DTRACE_CHAR>(mod->debug_str(state).c_str()); \
+    RBX_DTRACE_CHAR file_name = \
+      const_cast<RBX_DTRACE_CHAR>("<unknown>"); \
+    int line = 0; \
+    if(frame) { \
+      Symbol* file = frame->file(state); \
+      if(!file->nil_p()) { \
+        file_name = const_cast<RBX_DTRACE_CHAR>(file->debug_str(state).c_str()); \
+      } \
+      line = frame->line(state); \
+    } \
+    RUBINIUS_OBJECT_ALLOCATE(module_name, file_name, line); \
+  } \
+} \
+
 #else
+
 #include "dtrace/probes_dummy.h"
+
 #define RUBINIUS_METHOD_HOOK(probe, state, mod, method, previous) do { } while(0)
+#define RUBINIUS_OBJECT_ALLOCATE_HOOK(state, obj, frame) do { } while(0)
+
 #endif
 
 #define RUBINIUS_METHOD_ENTRY_HOOK(state, module, method, previous) \
@@ -53,5 +79,8 @@
 
 #define RUBINIUS_METHOD_PRIMITIVE_RETURN_HOOK(state, module, method, previous) \
     RUBINIUS_METHOD_HOOK(PRIMITIVE_RETURN, state, module, method, previous)
+
+#define RUBINIUS_METHOD_CACHE_RESET_HOOK(state, module, method, previous) \
+    RUBINIUS_METHOD_HOOK(CACHE_RESET, state, module, method, previous)
 
 #endif

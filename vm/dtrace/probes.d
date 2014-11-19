@@ -68,6 +68,14 @@ provider rubinius {
   probe method__primitive__return(const char*, const char*, const char*, int);
 
   /*
+     rubinius::method-cache-reset(classname, methodname, filename, lineno);
+
+     This probie is fired whenever a method cache is reset. The arguments are
+     the same as "rubinius::method-entry".
+   */
+  probe method__cache__reset(const char*, const char*, const char*, int);
+
+  /*
      rubinius:::gc-begin(full);
 
      Fired at the beginning of a GC.
@@ -82,6 +90,17 @@ provider rubinius {
      * `full` whether this is a full GC or not
   */
   probe gc__end(int full);
+
+  /*
+    rubinius::object-allocate(classname, filename, lineno)
+
+    Fired when a new object is allocated
+
+    * `classname` the name of the class/module that was allocated
+    * `filename` the path to the file where the object was allocated
+    * `lineno` the line number of the allocation
+   */
+  probe object__allocate(const char *, const char *, int);
 
   /*
      rubinius:::thread-start(thread_id);
