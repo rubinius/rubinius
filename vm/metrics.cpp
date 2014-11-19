@@ -6,9 +6,9 @@
 #include "configuration.hpp"
 #include "ontology.hpp"
 
-#include "builtin/bignum.hpp"
 #include "builtin/class.hpp"
 #include "builtin/fixnum.hpp"
+#include "builtin/integer.hpp"
 #include "builtin/lookup_table.hpp"
 #include "builtin/thread.hpp"
 #include "builtin/tuple.hpp"
@@ -410,7 +410,7 @@ namespace rubinius {
           i != metrics_map_.end();
           ++i)
       {
-        values->put(state, index++, Bignum::from(state, (*i)->second));
+        values->put(state, index++, Integer::from(state, (*i)->second));
       }
     }
 
