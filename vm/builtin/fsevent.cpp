@@ -28,7 +28,7 @@ namespace rubinius {
   }
 
   FSEvent* FSEvent::create(STATE) {
-    FSEvent* fsevent = state->new_object<FSEvent>(G(fsevent));
+    FSEvent* fsevent = state->new_object_pinned<FSEvent>(G(fsevent));
     if((fsevent->kq_ = kqueue()) < 0) {
       logger::error("%s: unable to create kqueue", strerror(errno));
     } else {
@@ -76,7 +76,7 @@ namespace rubinius {
   }
 
   FSEvent* FSEvent::create(STATE) {
-    FSEvent* fsevent = state->new_object<FSEvent>(G(fsevent));
+    FSEvent* fsevent = state->new_object_pinned<FSEvent>(G(fsevent));
     fsevent->watch_set_ = false;
     if((fsevent->in_ = inotify_init()) < 0) {
       logger::error("%s: unable to create inotify", strerror(errno));
