@@ -51,7 +51,7 @@ rubysl-io-nonblock-2.0.0.gem
 rubysl-io-wait-2.0.0.gem
 rubysl-ipaddr-2.0.0.gem
 rubysl-irb-2.1.0.gem
-rubysl-logger-2.0.0.gem
+rubysl-logger-2.1.0.gem
 rubysl-mathn-2.0.0.gem
 rubysl-matrix-2.1.0.gem
 rubysl-mkmf-2.0.1.gem
@@ -92,7 +92,7 @@ rubysl-socket-2.0.1.gem
 rubysl-stringio-2.0.0.gem
 rubysl-strscan-2.0.0.gem
 rubysl-sync-2.0.0.gem
-rubysl-syslog-2.0.1.gem
+rubysl-syslog-2.1.0.gem
 rubysl-tempfile-2.0.1.gem
 rubysl-test-unit-2.0.3.gem
 rubysl-thread-2.0.2.gem
