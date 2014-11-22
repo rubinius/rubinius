@@ -119,8 +119,15 @@ namespace rubinius {
 
 #define RBX_FSEVENT_BUF_LEN   (sizeof(struct inotify_event) + RBX_FSEVENT_NAME_MAX)
 
+  struct fsevent_inotify_event {
+    union {
+      unsigned char buf[RBX_FSEVENT_BUF_LEN];
+      struct inotify_event event;
+    } u;
+  };
+
   Object* FSEvent::wait_for_event(STATE) {
-    char buf[RBX_FSEVENT_BUF_LEN];
+    struct fsevent_inotify_event fsevent;
     int status;
 
     if(!watch_set_) {
@@ -129,9 +136,9 @@ namespace rubinius {
       watch_set_ = false;
     }
 
-    status = read(in_, buf, RBX_FSEVENT_BUF_LEN);
+    status = read(in_, &fsevent, RBX_FSEVENT_BUF_LEN);
 
-    if(status <= 0 || !(((struct inotify_event*)buf)->mask & IN_MODIFY)) {
+    if(status <= 0 || !(fsevent.u.event.mask & IN_MODIFY)) {
       return cNil;
     }
 
