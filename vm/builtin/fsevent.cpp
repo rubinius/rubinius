@@ -87,11 +87,21 @@ namespace rubinius {
     return fsevent;
   }
 
+#define RBX_FSEVENT_MASK    (IN_MODIFY \
+                             | IN_CLOSE_WRITE \
+                             | IN_CLOSE_NOWRITE \
+                             | IN_DELETE \
+                             | IN_ONESHOT)
+
+  static int fsevent_add_watch(int fd, const char* path) {
+    return inotify_add_watch(fd, path, RBX_FSEVENT_MASK);
+  }
+
   Object* FSEvent::watch_file(STATE, Fixnum* fd, String* path) {
     this->fileno(state, fd);
     this->path(state, path);
 
-    inotify_add_watch(in_, path->c_str(state), IN_MODIFY | IN_ONESHOT);
+    fsevent_add_watch(in_, path->c_str(state));
     watch_set_ = true;
 
     return cNil;
@@ -114,14 +124,16 @@ namespace rubinius {
     int status;
 
     if(!watch_set_) {
-      inotify_add_watch(in_, path_->c_str(state), IN_MODIFY | IN_ONESHOT);
+      fsevent_add_watch(in_, path_->c_str(state));
     } else {
       watch_set_ = false;
     }
 
     status = read(in_, buf, RBX_FSEVENT_BUF_LEN);
 
-    if(status <= 0) return cNil;
+    if(status <= 0 || !(((struct inotify_event*)buf)->mask & IN_MODIFY)) {
+      return cNil;
+    }
 
     return cTrue;
   }

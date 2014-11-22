@@ -11,6 +11,7 @@
 
 #include "dtrace/dtrace.h"
 
+#include "util/atomic.hpp"
 #include "util/file.hpp"
 #include "util/logger.hpp"
 
@@ -156,6 +157,11 @@ namespace rubinius {
       fsevent_.set(fsevent);
     }
 
+    void Console::reset(STATE) {
+      close_files(false);
+      setup_files(state);
+    }
+
     void Console::start(STATE) {
       initialize(state);
       setup_files(state);
@@ -205,9 +211,11 @@ namespace rubinius {
       if(request_vm_) {
         wakeup();
 
-        void* return_value;
-        pthread_t os = request_vm_->os_thread();
-        pthread_join(os, &return_value);
+        if(atomic::poll(request_running_, false)) {
+          void* return_value;
+          pthread_t os = request_vm_->os_thread();
+          pthread_join(os, &return_value);
+        }
 
         request_vm_ = NULL;
       }
@@ -218,9 +226,11 @@ namespace rubinius {
 
         response_cond_.signal();
 
-        void* return_value;
-        pthread_t os = response_vm_->os_thread();
-        pthread_join(os, &return_value);
+        if(atomic::poll(response_running_, false)) {
+          void* return_value;
+          pthread_t os = response_vm_->os_thread();
+          pthread_join(os, &return_value);
+        }
 
         response_vm_ = NULL;
       }
@@ -291,6 +301,8 @@ namespace rubinius {
       RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CONST char*>(thread_name),
                             state->vm()->thread_id(), 1);
 
+      request_running_ = true;
+
       state->vm()->thread->hard_unlock(state, gct, 0);
       state->gc_independent(gct, 0);
 
@@ -298,7 +310,11 @@ namespace rubinius {
         Object* status = fsevent_.get()->wait_for_event(state);
 
         if(request_exit_) break;
-        if(status->nil_p()) continue;
+
+        if(status->nil_p()) {
+          reset(state);
+          continue;
+        }
 
         char* request = read_request(state);
 
@@ -309,6 +325,8 @@ namespace rubinius {
           response_cond_.signal();
         }
       }
+
+      request_running_ = false;
 
       state->gc_dependent(gct, 0);
 
@@ -348,6 +366,8 @@ namespace rubinius {
 
       RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CONST char*>(thread_name),
                             state->vm()->thread_id(), 1);
+
+      response_running_ = true;
 
       state->vm()->thread->hard_unlock(state, gct, 0);
       state->gc_dependent(gct, 0);
@@ -391,6 +411,8 @@ namespace rubinius {
           response_cond_.wait(response_lock_);
         }
       }
+
+      response_running_ = false;
 
       RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CONST char*>(thread_name),
                            state->vm()->thread_id(), 1);

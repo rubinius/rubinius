@@ -80,6 +80,18 @@ namespace atomic {
 #endif
   }
 
+  inline bool poll(bool& flag, bool expected) {
+    struct timespec ts = {0, 1000};
+
+    for(int limit = 0; limit < 100; limit++) {
+      memory_barrier();
+      if(flag == expected) return true;
+      nanosleep(&ts, NULL);
+    }
+
+    return false;
+  }
+
   inline bool compare_and_swap(uint32_t* ptr, uint32_t old_val, uint32_t new_val) {
 #if defined(GCC_SYNC)
     return __sync_bool_compare_and_swap(ptr, old_val, new_val);

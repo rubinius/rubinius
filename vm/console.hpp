@@ -39,6 +39,9 @@ namespace rubinius {
       bool request_exit_;
       bool response_exit_;
 
+      bool request_running_;
+      bool response_running_;
+
       RequestList* request_list_;
 
       utilities::thread::Mutex list_lock_;
@@ -56,6 +59,7 @@ namespace rubinius {
       void start(STATE);
       void initialize(STATE);
       void setup_files(STATE);
+      void reset(STATE);
       void run(STATE);
 
       void start_threads(STATE);
