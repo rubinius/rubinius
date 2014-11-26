@@ -31,6 +31,10 @@ fi
 
 case $1 in
 
+  makeinfo*)
+    exit 0
+    ;;
+
   --is-lightweight)
     # Used by our autoconf macros to check whether the available missing
     # script is modern enough.
@@ -180,7 +184,6 @@ give_advice ()
       echo "<$gnu_software_URL/help2man/>"
     ;;
     makeinfo*)
-      exit 0
       echo "You should only need it if you modified a '.texi' file, or"
       echo "any other file indirectly affecting the aspect of the manual."
       echo "You might want to install the Texinfo package:"
