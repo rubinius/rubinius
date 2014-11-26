@@ -180,6 +180,7 @@ give_advice ()
       echo "<$gnu_software_URL/help2man/>"
     ;;
     makeinfo*)
+      exit 0
       echo "You should only need it if you modified a '.texi' file, or"
       echo "any other file indirectly affecting the aspect of the manual."
       echo "You might want to install the Texinfo package:"
