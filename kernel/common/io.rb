@@ -477,13 +477,13 @@ class IO
 
     mode, binary, external, internal, autoclose = IO.normalize_options(nil, opts)
     unless mode
-      mode = File::CREAT | File::RDWR
+      mode = File::CREAT | File::WRONLY
       mode |= File::TRUNC unless offset
     end
 
     open_args = opts[:open_args] || [mode, :encoding => (external || "ASCII-8BIT")]
     File.open(file, *open_args) do |f|
-      f.seek(offset || 0)
+      f.seek(offset) if offset
       f.write(string)
     end
   end
