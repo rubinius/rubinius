@@ -31,7 +31,15 @@
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/LinkAllPasses.h"
 #include "llvm/ModuleProvider.h"
+#ifdef RBX_LLVM_MCJIT_ENABLED
+#include "llvm/ExecutionEngine/MCJIT.h"
+#include "llvm/ExecutionEngine/SectionMemoryManager.h"
+#include "llvm/ExecutionEngine/ObjectImage.h"
+#include "llvm/ADT/DenseMapInfo.h"
+#include "llvm/Object/ObjectFile.h"
+#else
 #include "llvm/ExecutionEngine/JIT.h"
+#endif
 #include "llvm/ExecutionEngine/Interpreter.h"
 #include "llvm/ExecutionEngine/GenericValue.h"
 #include <llvm/Support/CommandLine.h>

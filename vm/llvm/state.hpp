@@ -24,7 +24,17 @@
 #else
 #include <llvm/Support/IRBuilder.h>
 #endif
+#ifdef RBX_LLVM_MCJIT_ENABLED
+#include "llvm/ExecutionEngine/MCJIT.h"
+#include "llvm/ExecutionEngine/SectionMemoryManager.h"
+#include "llvm/ExecutionEngine/ObjectImage.h"
+#include "llvm/ADT/DenseMapInfo.h"
+#include "llvm/Object/ObjectFile.h"
+#include "llvm/ExecutionEngine/Interpreter.h"
+#include "llvm/ExecutionEngine/GenericValue.h"
+#else
 #include <llvm/ExecutionEngine/JIT.h>
+#endif
 #include <llvm/CodeGen/MachineCodeInfo.h>
 #include <llvm/Transforms/IPO/PassManagerBuilder.h>
 #include <llvm/Pass.h>

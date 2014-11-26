@@ -81,6 +81,9 @@ namespace rubinius {
     factory.setJITMemoryManager(memory_);
     factory.setEngineKind(EngineKind::JIT);
     factory.setErrorStr(&error);
+#ifdef RBX_LLVM_MCJIT_ENABLED
+    factory.setUseMCJIT(true);
+#endif
 
 #if RBX_LLVM_API_VER > 300
     llvm::TargetOptions opts;
@@ -96,6 +99,11 @@ namespace rubinius {
     factory.setMCPU(ls_->cpu());
 
     engine_ = factory.create();
+
+#ifdef RBX_LLVM_MCJIT_ENABLED
+    engine_->finalizeObject();
+#endif
+
     if(!engine_) {
       std::cerr << "Error setting up LLVM Execution Engine: "<< error << std::endl;
       rubinius::bug("error configuring LLVM");
@@ -176,7 +184,9 @@ namespace rubinius {
     void* addr = memory_->generatedFunction();
     memory_->resetGeneratedFunction();
 
+#ifndef RBX_LLVM_MCJIT_ENABLED
     engine_->freeMachineCodeForFunction(function_);
+#endif
 
     // Nuke the Function from the module
     function_->replaceAllUsesWith(UndefValue::get(function_->getType()));

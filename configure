@@ -59,6 +59,7 @@ class Configure
 
     # LLVM settings
     @llvm_enabled           = true
+    @llvm_mcjit_enabled     = false
     @llvm_path              = nil
     @llvm_system_name       = get_system_name
     @llvm_configure         = nil
@@ -332,6 +333,10 @@ class Configure
 
     o.on "--disable-llvm", "Don't build with LLVM" do
       @llvm_enabled = false
+    end
+
+    o.on "--enable-mcjit", "Enable MCJIT" do
+      @llvm_mcjit_enabled = true
     end
 
     o.on "--system-name", "NAME", "Name of OS (eg fedora-8, ubuntu-10.04)" do |name|
@@ -1483,6 +1488,7 @@ int main() { return tgetnum(""); }
       :build_rake         => @rake,
       :build_perl         => @perl,
       :llvm_enabled       => @llvm_enabled,
+      :llvm_mcjit_enabled => @llvm_mcjit_enabled,
       :llvm_path          => @llvm_path,
       :llvm_system_name   => @llvm_system_name,
       :llvm_configure     => @llvm_configure,
@@ -1613,6 +1619,10 @@ int main() { return tgetnum(""); }
 
       if @little_endian
         f.puts "#define RBX_LITTLE_ENDIAN    1"
+      end
+
+      if @llvm_mcjit_enabled
+        f.puts "#define RBX_LLVM_MCJIT_ENABLED    1"
       end
 
       if @tr1
