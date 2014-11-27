@@ -1,5 +1,23 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 
+describe "SystemCallError" do
+  before :each do
+    ScratchPad.clear
+  end
+
+  it "can be subclassed" do
+    ExceptionSpecs::SCESub = Class.new(SystemCallError) do
+      def initialize
+        ScratchPad.record :initialize
+      end
+    end
+
+    exc = ExceptionSpecs::SCESub.new
+    ScratchPad.recorded.should equal(:initialize)
+    exc.should be_an_instance_of(ExceptionSpecs::SCESub)
+  end
+end
+
 describe "SystemCallError.new" do
   it "requires at least one argumentt" do
     lambda { SystemCallError.new }.should raise_error(ArgumentError)
@@ -54,5 +72,3 @@ describe "SystemCallError#message" do
     SystemCallError.new("XXX").message.should =~ /XXX/
   end
 end
-
-
