@@ -371,7 +371,17 @@ class SystemCallError < StandardError
   # We use .new here because when errno is set, we attempt to
   # lookup and return a subclass of SystemCallError, specificly,
   # one of the Errno subclasses.
-  def self.new(message=undefined, errno=undefined)
+  def self.new(*args)
+    case args.size
+    when 0
+      message = errno = undefined
+    when 1
+      message = args.first
+      errno = undefined
+    else
+      message, errno = args
+    end
+
     # This method is used 2 completely different ways. One is when it's called
     # on SystemCallError, in which case it tries to construct a Errno subclass
     # or makes a generic instead of itself.
@@ -414,7 +424,15 @@ class SystemCallError < StandardError
         message = StringValue(message)
       end
 
-      if error = SystemCallError.errno_error(message, self::Errno)
+      if self::Errno.kind_of? Fixnum
+        error = SystemCallError.errno_error(message, self::Errno)
+      else
+        error = allocate
+      end
+
+      if error
+        Rubinius::Unsafe.set_class error, self
+        Rubinius.privately { error.initialize(*args) }
         return error
       end
 
