@@ -2,7 +2,7 @@ GEM
   remote: https://rubygems.org/
   specs:
     daedalus-core (0.1.0)
-    rake (10.3.2)
+    rake (10.4.0)
     redcard (1.1.0)
     rubinius-ast (2.2.5)
     rubinius-bridge (1.1.0)
@@ -14,8 +14,8 @@ GEM
       rubinius-processor (~> 2.0)
       rubinius-toolset (~> 2.0)
     rubinius-compiler (2.2.1)
-    rubinius-melbourne (2.2.2.0)
-    rubinius-processor (2.2.1)
+    rubinius-melbourne (2.3.0.0)
+    rubinius-processor (2.3.0)
     rubinius-toolset (2.3.1)
 
 PLATFORMS
