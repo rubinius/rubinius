@@ -1,3 +1,19 @@
+Version: 2.4.0 (2014-12-01)
+
+* File defines FNM_EXTGLOB constant. (Jesse Cooke)
+* File.fnmatch supports FNM_EXTGLOB feature. (Jesse Cooke)
+* DTrace pre-linking enabled on Linux. (Yorick Peterse)
+* The double-conversion vendored library is updated to 1.1.5.
+	(Gustavo Frederico Temple Pedrosa)
+* The libffi vendored library is updated to 3.2.
+	(Gustavo Frederico Temple Pedrosa)
+* IO.write is improved for FIFOs. (skliew)
+* Marshal handles immediate values returned by custom _dump methods.
+	(Sophia Shao)
+* Kernel#caller_locations is provided. (Yorick Peterse)
+* Kernel#caller supports a limit argument. (Yorick Peterse)
+* Errno classes can be subclassed. (Brian Shirai)
+
 Version: 2.3.0 (2014-10-31)
 
 * Compatibility of INT2NUM is improved. (Yorick Peterse)
