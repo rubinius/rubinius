@@ -367,7 +367,42 @@ namespace jit {
       break_at(current_ip_ + 2);
     }
 
-    void visit_goto_if_defined(opcode which) {
+    void visit_goto_if_nil(opcode which) {
+      if(current_ip_ < which) loops_ = true;
+
+      break_at(which);
+      break_at(current_ip_ + 2);
+    }
+
+    void visit_goto_if_not_nil(opcode which) {
+      if(current_ip_ < which) loops_ = true;
+
+      break_at(which);
+      break_at(current_ip_ + 2);
+    }
+
+    void visit_goto_if_undefined(opcode which) {
+      if(current_ip_ < which) loops_ = true;
+
+      break_at(which);
+      break_at(current_ip_ + 2);
+    }
+
+    void visit_goto_if_not_undefined(opcode which) {
+      if(current_ip_ < which) loops_ = true;
+
+      break_at(which);
+      break_at(current_ip_ + 2);
+    }
+
+    void visit_goto_if_equal(opcode which) {
+      if(current_ip_ < which) loops_ = true;
+
+      break_at(which);
+      break_at(current_ip_ + 2);
+    }
+
+    void visit_goto_if_not_equal(opcode which) {
       if(current_ip_ < which) loops_ = true;
 
       break_at(which);

@@ -119,6 +119,12 @@ namespace rubinius {
       case insn_goto:
       case insn_goto_if_true:
       case insn_goto_if_false:
+      case insn_goto_if_nil:
+      case insn_goto_if_not_nil:
+      case insn_goto_if_undefined:
+      case insn_goto_if_not_undefined:
+      case insn_goto_if_equal:
+      case insn_goto_if_not_equal:
       case insn_setup_unwind:
         return true;
       default:

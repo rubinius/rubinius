@@ -2829,22 +2829,27 @@ use_send:
       stack_push(val);
     }
 
+    static void branch_location_missing(LLVMState* state,
+                                        opcode ip, const char* instruction)
+    {
+      if(state->config().jit_show_compiling) {
+        llvm::outs() << "[[[ JIT error: " << instruction
+                     << ": no block at: " << ip << "]]]\n";
+      }
+      throw Unsupported();
+    }
+
     void visit_goto(opcode ip) {
       BasicBlock* bb = block_map_[ip].block;
-      if(!bb) {
-        if(llvm_state()->config().jit_show_compiling) {
-          llvm::outs() << "[[[ JIT error: visit_goto: no block at: " << ip << "]]]\n";
-        }
-        throw Unsupported();
-      }
+      if(!bb) branch_location_missing(llvm_state(), ip, "visit_goto");
       b().CreateBr(bb);
       set_block(new_block("continue"));
     }
 
     void visit_goto_if_true(opcode ip) {
-      Value* cond = stack_pop();
+      Value* value = stack_pop();
       Value* i = b().CreatePtrToInt(
-          cond, ctx_->IntPtrTy, "as_int");
+          value, ctx_->IntPtrTy, "as_int");
 
       Value* anded = b().CreateAnd(i,
           clong(FALSE_MASK), "and");
@@ -2854,38 +2859,126 @@ use_send:
 
       BasicBlock* cont = new_block("continue");
       BasicBlock* bb = block_map_[ip].block;
-      if(!bb) {
-        if(llvm_state()->config().jit_show_compiling) {
-          llvm::outs() << "[[[ JIT error: visit_goto_if_true: no block at: "
-                       << ip << "]]]\n";
-        }
-        throw Unsupported();
-      }
+      if(!bb) branch_location_missing(llvm_state(), ip, "visit_goto_if_true");
       b().CreateCondBr(cmp, bb, cont);
 
       set_block(cont);
     }
 
     void visit_goto_if_false(opcode ip) {
-      Value* cond = stack_pop();
+      Value* value = stack_pop();
       Value* i = b().CreatePtrToInt(
-          cond, ctx_->IntPtrTy, "as_int");
+          value, ctx_->IntPtrTy, "as_int");
 
       Value* anded = b().CreateAnd(i,
           clong(FALSE_MASK), "and");
 
       Value* cmp = b().CreateICmpEQ(anded,
-          clong(reinterpret_cast<long>(cFalse)), "is_true");
+          clong(reinterpret_cast<long>(cFalse)), "is_false");
 
       BasicBlock* cont = new_block("continue");
       BasicBlock* bb = block_map_[ip].block;
-      if(!bb) {
-        if(llvm_state()->config().jit_show_compiling) {
-          llvm::outs() << "[[[ JIT error: visit_goto_if_false: no block at: "
-                       << ip << "]]]\n";
-        }
-        throw Unsupported();
-      }
+      if(!bb) branch_location_missing(llvm_state(), ip, "visit_goto_if_false");
+      b().CreateCondBr(cmp, bb, cont);
+
+      set_block(cont);
+    }
+
+    void visit_goto_if_nil(opcode ip) {
+      Value* value = stack_pop();
+      Value* i = b().CreatePtrToInt(
+          value, ctx_->IntPtrTy, "as_int");
+
+      Value* anded = b().CreateAnd(i,
+          clong(FALSE_MASK), "and");
+
+      Value* cmp = b().CreateICmpEQ(anded,
+          clong(reinterpret_cast<long>(cNil)), "is_nil");
+
+      BasicBlock* cont = new_block("continue");
+      BasicBlock* bb = block_map_[ip].block;
+      if(!bb) branch_location_missing(llvm_state(), ip, "visit_goto_if_nil");
+      b().CreateCondBr(cmp, bb, cont);
+
+      set_block(cont);
+    }
+
+    void visit_goto_if_not_nil(opcode ip) {
+      Value* value = stack_pop();
+      Value* i = b().CreatePtrToInt(
+          value, ctx_->IntPtrTy, "as_int");
+
+      Value* anded = b().CreateAnd(i,
+          clong(FALSE_MASK), "and");
+
+      Value* cmp = b().CreateICmpNE(anded,
+          clong(reinterpret_cast<long>(cNil)), "is_not_nil");
+
+      BasicBlock* cont = new_block("continue");
+      BasicBlock* bb = block_map_[ip].block;
+      if(!bb) branch_location_missing(llvm_state(), ip, "visit_goto_if_not_nil");
+      b().CreateCondBr(cmp, bb, cont);
+
+      set_block(cont);
+    }
+
+    void visit_goto_if_undefined(opcode ip) {
+      Value* value = stack_pop();
+
+      Object** addr = llvm_state()->shared().globals.undefined.object_address();
+      Value* l_addr = constant(addr, ObjArrayTy);
+      Value* undefined = b().CreateLoad(l_addr, "undefined object");
+
+      Value* cmp = b().CreateICmpEQ(value, undefined, "test undefined");
+
+      BasicBlock* cont = new_block("continue");
+      BasicBlock* bb = block_map_[ip].block;
+      if(!bb) branch_location_missing(llvm_state(), ip, "visit_goto_if_undefined");
+      b().CreateCondBr(cmp, bb, cont);
+
+      set_block(cont);
+    }
+
+    void visit_goto_if_not_undefined(opcode ip) {
+      Value* value = stack_pop();
+
+      Object** addr = llvm_state()->shared().globals.undefined.object_address();
+      Value* l_addr = constant(addr, ObjArrayTy);
+      Value* undefined = b().CreateLoad(l_addr, "undefined object");
+
+      Value* cmp = b().CreateICmpNE(value, undefined, "test not undefined");
+
+      BasicBlock* cont = new_block("continue");
+      BasicBlock* bb = block_map_[ip].block;
+      if(!bb) branch_location_missing(llvm_state(), ip, "visit_goto_if_not_undefined");
+      b().CreateCondBr(cmp, bb, cont);
+
+      set_block(cont);
+    }
+
+    void visit_goto_if_equal(opcode ip) {
+      Value* value1 = stack_pop();
+      Value* value2 = stack_pop();
+
+      Value* cmp = b().CreateICmpEQ(value1, value2, "goto_if_equal");
+
+      BasicBlock* cont = new_block("continue");
+      BasicBlock* bb = block_map_[ip].block;
+      if(!bb) branch_location_missing(llvm_state(), ip, "visit_goto_if_equal");
+      b().CreateCondBr(cmp, bb, cont);
+
+      set_block(cont);
+    }
+
+    void visit_goto_if_not_equal(opcode ip) {
+      Value* value1 = stack_pop();
+      Value* value2 = stack_pop();
+
+      Value* cmp = b().CreateICmpNE(value1, value2, "goto_if_not_equal");
+
+      BasicBlock* cont = new_block("continue");
+      BasicBlock* bb = block_map_[ip].block;
+      if(!bb) branch_location_missing(llvm_state(), ip, "visit_goto_if_not_equal");
       b().CreateCondBr(cmp, bb, cont);
 
       set_block(cont);
