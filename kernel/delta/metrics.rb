@@ -5,6 +5,8 @@ module Rubinius
     end
 
     class Data
+      MetricsHash = Hash.new
+
       def keys
         Map.keys
       end
@@ -18,7 +20,8 @@ module Rubinius
       end
 
       def to_hash
-        Map.map { |k, i| [k, Values[i]] }.to_h
+        Map.map { |k, i| MetricsHash[k] = Values[i] }
+        MetricsHash
       end
     end
   end
