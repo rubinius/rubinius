@@ -8,6 +8,25 @@ typically changes that are related to specs, build system, or refactoring.
 
 For source changes, see https://github.com/rubinius/rubinius/commits/master.
 
+Version: 2.4.0 (2014-12-01)
+
+* File.fnmatch support for FNM_EXTGLOB has been added.
+
+* Marshal handles immediate values returned by custom _dump methods.
+
+* Kernel#caller_locations has been added. Kernel#caller now supports a limit
+  argument.
+
+* Errno classes can be subclassed.
+
+* An issue caused by the god monitoring facility, where god would forcefully
+  close all file descriptors in the process from 3 to 256, has been mitigated.
+  Previously, this issue could cause Rubinius to hang when running god and
+  exec'ing a subprocess.
+
+* Rubinius::Metrics.data.to_hash now re-uses a Hash instance instead of
+  creating a new one on every call.
+
 Version 2.3.0 (2014-10-31)
 
 * Keyword arguments (both optional and required) are supported. Other syntax
