@@ -571,7 +571,7 @@ step2:
     return false;
   }
 
-  void ObjectHeader::unlock_dead_thread(STATE, GCToken gct, CallFrame* call_frame) {
+  void ObjectHeader::unlock_object_after_fork(STATE, GCToken gct) {
     switch(header.f.meaning) {
     case eAuxWordEmpty:
     case eAuxWordObjID:

@@ -191,8 +191,7 @@ namespace rubinius {
         }
 
         if(Thread* thread = vm->thread.get()) {
-          thread->unlock_dead_thread(state, gct, call_frame);
-          thread->unlock_locks(state, gct, call_frame);
+          thread->unlock_after_fork(state, gct);
           thread->stopped();
         }
 

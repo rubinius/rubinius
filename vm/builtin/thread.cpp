@@ -114,6 +114,21 @@ namespace rubinius {
     return cNil;
   }
 
+  void Thread::unlock_after_fork(STATE, GCToken gct) {
+    unlock_object_after_fork(state, gct);
+
+    LockedObjects& los = vm_->locked_objects();
+    for(LockedObjects::iterator i = los.begin();
+        i != los.end();
+        ++i) {
+      Object* obj = static_cast<Object*>(*i);
+      if(obj && obj != this) {
+        obj->unlock_object_after_fork(state, gct);
+      }
+    }
+    los.clear();
+  }
+
   Object* Thread::locals_aref(STATE, Symbol* key) {
     /*
      * If we're not trying to set values on the current thread,
