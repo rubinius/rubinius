@@ -10,6 +10,10 @@ describe :rb_path_to_class, :shared => true do
     @s.send(@method, "CApiClassSpecs::A::B").should equal(CApiClassSpecs::A::B)
   end
 
+  it "resolves autoload constants" do
+    @s.send(@method, "CApiClassSpecs::A::D").name.should == "CApiClassSpecs::A::D"
+  end
+
   it "raises an ArgumentError if a constant in the path does not exist" do
     lambda { @s.send(@method, "CApiClassSpecs::NotDefined::B") }.should raise_error(ArgumentError)
   end
