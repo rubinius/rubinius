@@ -56,7 +56,7 @@ class Autoload
     end
   end
 
-  def find_const under
+  def find_const(under)
     current, constant = under, undefined
 
     while current
