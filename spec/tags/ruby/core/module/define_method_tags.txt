@@ -1,0 +1,2 @@
+fails:Module#define_method raises a TypeError when an UnboundMethod from a child class is defined on a parent class
+fails:Module#define_method raises a TypeError when an UnboundMethod from one class is defined on an unrelated class
