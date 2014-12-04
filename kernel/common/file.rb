@@ -672,12 +672,12 @@ class File < IO
     pattern = StringValue(pattern)
     path    = Rubinius::Type.coerce_to_path(path)
     flags   = Rubinius::Type.coerce_to(flags, Fixnum, :to_int)
+    brace_match = false
 
     if (flags & FNM_EXTGLOB) != 0
-      braces(pattern, flags).any? { |p| super(p, path, flags) }
-    else
-      super pattern, path, flags
+      brace_match = braces(pattern, flags).any? { |p| super(p, path, flags) }
     end
+    brace_match || super(pattern, path, flags)
   end
 
   ##
