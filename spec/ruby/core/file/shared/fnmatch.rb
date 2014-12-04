@@ -32,7 +32,6 @@ describe :file_fnmatch, :shared => true do
     File.send(@method, "{1,5{a,b{c,d}}}", "5bd", File::FNM_EXTGLOB).should == true
     File.send(@method, "\\\\{a\\,b,b\\}c}", "\\a,b", File::FNM_EXTGLOB).should == true
     File.send(@method, "\\\\{a\\,b,b\\}c}", "\\b}c", File::FNM_EXTGLOB).should == true
-
   end
 
   it "doesn't support some { } patterns even when File::FNM_EXTGLOB is passed" do
@@ -60,6 +59,10 @@ describe :file_fnmatch, :shared => true do
 
   it "doesn't match an extra } when File::FNM_EXTGLOB is passed" do
     File.send(@method, 'c{at,ub}}s', 'cats', File::FNM_EXTGLOB).should == false
+  end
+
+  it "matches when both FNM_EXTGLOB and FNM_PATHNAME are passed" do
+    File.send(@method, "?.md", "a.md", File::FNM_EXTGLOB | File::FNM_PATHNAME).should == true
   end
 
   it "matches a single character for each ? character" do
