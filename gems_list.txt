@@ -3,7 +3,7 @@ ffi2-generators-0.1.1.gem
 json-1.8.1.gem
 minitest-4.7.5.gem
 racc-1.4.12.gem
-rake-10.4.0.gem
+rake-10.4.2.gem
 rb-readline-0.5.1.gem
 rdoc-4.1.2.gem
 rubinius-ast-2.3.0.gem
