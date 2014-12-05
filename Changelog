@@ -1,3 +1,17 @@
+Version: 2.4.1 (2014-12-04)
+
+* C-API rb_path2class, rb_path_to_class, rb_const_get, rb_const_get_at,
+  rb_const_get_from resolve autoloads. (Brian Shirai)
+* C-API defines are added for RUBY_DEFAULT_FREE, RUBY_NEVER_FREE,
+  RUBY_TYPED_DEFAULT_FREE, RUBY_TYPEED_NEVER_FREE, RUBY_TYPED_FREE_IMMEDIATELY,
+  RUBY_TYPED_WB_PROTECTED. These defines are specific to MRI's garbage
+	collector and should never be used outside of MRI itself, but gems like
+	Psych do use them, so we are forced to define them. (Brian Shirai)
+* The C-API defines the Check_TypedStruct constant. (Brian Shirai)
+* Kernel#require_relative is improved for IRB and -e. (Brian Shirai)
+* File.fnmatch support for FNM_EXTGLOB and FNM_PATHNAME is improved.
+	(Jesse Cooke)
+
 Version: 2.4.0 (2014-12-01)
 
 * File defines FNM_EXTGLOB constant. (Jesse Cooke)
