@@ -610,20 +610,20 @@ describe :kernel_require, :shared => true do
 
           t1_res = nil
           t2_res = nil
-          
+
           t1_running = false
           t2_running = false
-          
+
           t2 = nil
 
           t1 = Thread.new do
             Thread.current[:con_raise] = true
             t1_running = true
-            
+
             lambda {
               @object.require(@path)
             }.should raise_error(RuntimeError)
-            
+
             # This hits the bug. Because MRI removes it's internal lock from a table
             # when the exception is raised, this #require doesn't see that t2 is
             # in the middle of requiring the file, so this #require runs when it should
@@ -634,24 +634,24 @@ describe :kernel_require, :shared => true do
             t1_res = @object.require(@path)
 
             Thread.pass until fin
-            
+
             ScratchPad.recorded << :t1_post
           end
-          
+
           t2 = Thread.new do
             t2_running = true
-            
+
             Thread.pass until t1_running && t1[:in_concurrent_rb] == true
-            
+
             begin
               t2_res = @object.require(@path)
-              
+
               ScratchPad.recorded << :t2_post
             ensure
               fin = true
             end
           end
-          
+
           t1.join
           t2.join
 
