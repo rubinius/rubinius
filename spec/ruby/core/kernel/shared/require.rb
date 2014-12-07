@@ -114,20 +114,19 @@ describe :kernel_require_basic, :shared => true do
       ScratchPad.recorded.should == [:loaded]
     end
 
-    ruby_bug "http://redmine.ruby-lang.org/issues/show/2578", "1.8" do
-      it "loads a ./ relative path from the current working directory with empty $LOAD_PATH" do
-        Dir.chdir CODE_LOADING_DIR do
-          @object.send(@method, "./load_fixture.rb").should be_true
-        end
-        ScratchPad.recorded.should == [:loaded]
+    # "http://redmine.ruby-lang.org/issues/show/2578"
+    it "loads a ./ relative path from the current working directory with empty $LOAD_PATH" do
+      Dir.chdir CODE_LOADING_DIR do
+        @object.send(@method, "./load_fixture.rb").should be_true
       end
+      ScratchPad.recorded.should == [:loaded]
+    end
 
-      it "loads a ../ relative path from the current working directory with empty $LOAD_PATH" do
-        Dir.chdir CODE_LOADING_DIR do
-          @object.send(@method, "../code/load_fixture.rb").should be_true
-        end
-        ScratchPad.recorded.should == [:loaded]
+    it "loads a ../ relative path from the current working directory with empty $LOAD_PATH" do
+      Dir.chdir CODE_LOADING_DIR do
+        @object.send(@method, "../code/load_fixture.rb").should be_true
       end
+      ScratchPad.recorded.should == [:loaded]
     end
 
     it "loads a ./ relative path from the current working directory with non-empty $LOAD_PATH" do
@@ -461,18 +460,17 @@ describe :kernel_require, :shared => true do
       ENV["HOME"] = @env_home
     end
 
-    ruby_bug "#3171", "1.8.7.249" do
-      it "performs tilde expansion on a .rb file before storing paths in $LOADED_FEATURES" do
-        path = File.expand_path("load_fixture.rb", CODE_LOADING_DIR)
-        @object.require("~/load_fixture.rb").should be_true
-        $LOADED_FEATURES.should == [path]
-      end
+    # "#3171"
+    it "performs tilde expansion on a .rb file before storing paths in $LOADED_FEATURES" do
+      path = File.expand_path("load_fixture.rb", CODE_LOADING_DIR)
+      @object.require("~/load_fixture.rb").should be_true
+      $LOADED_FEATURES.should == [path]
+    end
 
-      it "performs tilde expansion on a non-extensioned file before storing paths in $LOADED_FEATURES" do
-        path = File.expand_path("load_fixture.rb", CODE_LOADING_DIR)
-        @object.require("~/load_fixture").should be_true
-        $LOADED_FEATURES.should == [path]
-      end
+    it "performs tilde expansion on a non-extensioned file before storing paths in $LOADED_FEATURES" do
+      path = File.expand_path("load_fixture.rb", CODE_LOADING_DIR)
+      @object.require("~/load_fixture").should be_true
+      $LOADED_FEATURES.should == [path]
     end
   end
 
@@ -603,63 +601,62 @@ describe :kernel_require, :shared => true do
         ScratchPad.recorded.should == [:con_pre, :con_pre, :con_post, :t2_post, :t1_post]
       end
 
-      ruby_bug "redmine #5754", "1.9.3" do
-        it "blocks a 3rd require if the 1st raises an exception and the 2nd is still running" do
-          start = false
-          fin = false
+      # "redmine #5754"
+      it "blocks a 3rd require if the 1st raises an exception and the 2nd is still running" do
+        start = false
+        fin = false
 
-          t1_res = nil
-          t2_res = nil
+        t1_res = nil
+        t2_res = nil
 
-          t1_running = false
-          t2_running = false
+        t1_running = false
+        t2_running = false
 
-          t2 = nil
+        t2 = nil
 
-          t1 = Thread.new do
-            Thread.current[:con_raise] = true
-            t1_running = true
+        t1 = Thread.new do
+          Thread.current[:con_raise] = true
+          t1_running = true
 
-            lambda {
-              @object.require(@path)
-            }.should raise_error(RuntimeError)
+          lambda {
+            @object.require(@path)
+          }.should raise_error(RuntimeError)
 
-            # This hits the bug. Because MRI removes it's internal lock from a table
-            # when the exception is raised, this #require doesn't see that t2 is
-            # in the middle of requiring the file, so this #require runs when it should
-            # not.
-            #
-            # Sometimes this raises a ThreadError also, but I'm not sure why.
-            Thread.pass until t2_running && t2[:in_concurrent_rb] == true
-            t1_res = @object.require(@path)
+          # This hits the bug. Because MRI removes it's internal lock from a table
+          # when the exception is raised, this #require doesn't see that t2 is
+          # in the middle of requiring the file, so this #require runs when it should
+          # not.
+          #
+          # Sometimes this raises a ThreadError also, but I'm not sure why.
+          Thread.pass until t2_running && t2[:in_concurrent_rb] == true
+          t1_res = @object.require(@path)
 
-            Thread.pass until fin
+          Thread.pass until fin
 
-            ScratchPad.recorded << :t1_post
-          end
-
-          t2 = Thread.new do
-            t2_running = true
-
-            Thread.pass until t1_running && t1[:in_concurrent_rb] == true
-
-            begin
-              t2_res = @object.require(@path)
-
-              ScratchPad.recorded << :t2_post
-            ensure
-              fin = true
-            end
-          end
-
-          t1.join
-          t2.join
-
-          t1_res.should be_false
-          t2_res.should be_true
-
-          ScratchPad.recorded.should == [:con_pre, :con_pre, :con_post, :t2_post, :t1_post]
+          ScratchPad.recorded << :t1_post
         end
+
+        t2 = Thread.new do
+          t2_running = true
+
+          Thread.pass until t1_running && t1[:in_concurrent_rb] == true
+
+          begin
+            t2_res = @object.require(@path)
+
+            ScratchPad.recorded << :t2_post
+          ensure
+            fin = true
+          end
+        end
+
+        t1.join
+        t2.join
+
+        t1_res.should be_false
+        t2_res.should be_true
+
+        ScratchPad.recorded.should == [:con_pre, :con_pre, :con_post, :t2_post, :t1_post]
       end
     end
 
