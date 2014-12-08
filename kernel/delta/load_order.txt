@@ -1,8 +1,8 @@
-agent.rbc
 ctype.rbc
 exception.rbc
 file.rbc
 rubinius.rbc
+runtime.rbc
 module.rbc
 class.rbc
 file_test.rbc
@@ -14,6 +14,9 @@ signal.rbc
 struct.rbc
 thread.rbc
 code_loader.rbc
+fsevent.rbc
+console.rbc
 ffi.rbc
 ruby_constants.rbc
 pack.rbc
+metrics.rbc

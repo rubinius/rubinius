@@ -38,15 +38,16 @@ class Array
       end
 
       if ary
-        @tuple = ary.tuple.dup
-        @start = ary.start
-        @total = ary.size
+        m = Rubinius::Mirror::Array.reflect ary
+        @tuple = m.tuple.dup
+        @start = m.start
+        @total = m.total
 
         return self
       end
     end
 
-    size = Rubinius::Type.coerce_to size_or_array, Integer, :to_int
+    size = Rubinius::Type.coerce_to_collection_length size_or_array
     raise ArgumentError, "size must be positive" if size < 0
     raise ArgumentError, "size must be <= #{Fixnum::MAX}" if size > Fixnum::MAX
 
@@ -74,9 +75,10 @@ class Array
 
     other = Rubinius::Type.coerce_to other, Array, :to_ary
 
-    @tuple = other.tuple.dup
-    @total = other.total
-    @start = other.start
+    m = Rubinius::Mirror::Array.reflect other
+    @tuple = m.tuple.dup
+    @total = m.total
+    @start = m.start
 
     Rubinius::Type.infect(self, other)
     self
@@ -100,7 +102,7 @@ class Array
       start_idx += @total if start_idx < 0
 
       if arg2
-        count = Rubinius::Type.coerce_to arg2, Fixnum, :to_int
+        count = Rubinius::Type.coerce_to_collection_index arg2
       else
         return nil if start_idx >= @total
 
@@ -115,7 +117,7 @@ class Array
         end
       end
     when Range
-      start_idx = Rubinius::Type.coerce_to arg1.begin, Fixnum, :to_int
+      start_idx = Rubinius::Type.coerce_to_collection_index arg1.begin
       # Convert negative indices
       start_idx += @total if start_idx < 0
 
@@ -123,7 +125,7 @@ class Array
       # before we check the right index boundary cases
       return nil if start_idx < 0 or start_idx > @total
 
-      right_idx = Rubinius::Type.coerce_to arg1.end, Fixnum, :to_int
+      right_idx = Rubinius::Type.coerce_to_collection_index arg1.end
       right_idx += @total if right_idx < 0
       right_idx -= 1 if arg1.exclude_end?
 
@@ -133,13 +135,13 @@ class Array
 
     # Slower, less common generic coercion case.
     else
-      start_idx = Rubinius::Type.coerce_to arg1, Fixnum, :to_int
+      start_idx = Rubinius::Type.coerce_to_collection_index arg1
 
       # Convert negative indices
       start_idx += @total if start_idx < 0
 
       if arg2
-        count = Rubinius::Type.coerce_to arg2, Fixnum, :to_int
+        count = Rubinius::Type.coerce_to_collection_index arg2
       else
         return nil if start_idx >= @total
 
@@ -185,6 +187,51 @@ class Array
 
   alias_method :__append__, :<<
 
+  def *(multiplier)
+    if multiplier.respond_to? :to_str
+      return join(multiplier)
+
+    else
+      multiplier = Rubinius::Type.coerce_to_collection_index multiplier
+
+      raise ArgumentError, "Count cannot be negative" if multiplier < 0
+
+      case @total
+      when 0
+        # Edge case
+        out = self.class.allocate
+        Rubinius::Type.infect(out, self)
+        return out
+      when 1
+        # Easy case
+        tuple = Rubinius::Tuple.pattern multiplier, at(0)
+        out = self.class.allocate
+        m = Rubinius::Mirror::Array.reflect out
+        m.tuple = tuple
+        m.total = multiplier
+        Rubinius::Type.infect(out, self)
+        return out
+      end
+
+      new_total = multiplier * @total
+      new_tuple = Rubinius::Tuple.new(new_total)
+
+      out = self.class.allocate
+      m = Rubinius::Mirror::Array.reflect out
+      m.tuple = new_tuple
+      m.total = new_total
+      Rubinius::Type.infect(out, self)
+
+      offset = 0
+      while offset < new_total
+        new_tuple.copy_from @tuple, @start, @total, offset
+        offset += @total
+      end
+
+      out
+    end
+  end
+
   def &(other)
     other = Rubinius::Type.coerce_to other, Array, :to_ary
 
@@ -219,63 +266,20 @@ class Array
     array
   end
 
-  def *(multiplier)
-    if multiplier.respond_to? :to_str
-      return join(multiplier)
-
-    else
-      # Aaargh stupid MRI's stupid specific stupid error stupid types stupid
-      multiplier = Rubinius::Type.coerce_to multiplier, Fixnum, :to_int
-
-      raise ArgumentError, "Count cannot be negative" if multiplier < 0
-
-      case @total
-      when 0
-        # Edge case
-        out = self.class.allocate
-        Rubinius::Type.infect(out, self)
-        return out
-      when 1
-        # Easy case
-        tuple = Rubinius::Tuple.pattern multiplier, at(0)
-        out = self.class.allocate
-        out.tuple = tuple
-        out.total = multiplier
-        Rubinius::Type.infect(out, self) if multiplier != 0.0
-        return out
-      end
-
-      new_total = multiplier * @total
-      new_tuple = Rubinius::Tuple.new(new_total)
-
-      out = self.class.allocate
-      out.tuple = new_tuple
-      out.total = new_total
-      Rubinius::Type.infect(out, self) if multiplier != 0.0
-
-      offset = 0
-      while offset < new_total
-        new_tuple.copy_from @tuple, @start, @total, offset
-        offset += @total
-      end
-
-      out
-    end
-  end
-
   def <=>(other)
     other = Rubinius::Type.check_convert_type other, Array, :to_ary
     return 0 if equal? other
     return nil if other.nil?
 
-    other_total = other.total
+    total = Rubinius::Mirror::Array.reflect(other).total
+
     Thread.detect_recursion self, other do
       i = 0
-      total = other_total < @total ? other_total : @total
+      count = total < @total ? total : @total
 
-      while i < total
-        diff = self[i] <=> other[i]
-        return diff unless diff == 0
+      while i < count
+        order = self[i] <=> other[i]
+        return order unless order == 0
 
         i += 1
       end
@@ -284,7 +288,7 @@ class Array
     # subtle: if we are recursing on that pair, then let's
     # no go any further down into that pair;
     # any difference will be found elsewhere if need be
-    @total <=> other_total
+    @total <=> total
   end
 
   def ==(other)
@@ -297,11 +301,13 @@ class Array
     return false unless size == other.size
 
     Thread.detect_recursion self, other do
+      m = Rubinius::Mirror::Array.reflect other
+
       md = @tuple
-      od = other.tuple
+      od = m.tuple
 
       i = @start
-      j = other.start
+      j = m.start
 
       total = i + @total
 
@@ -325,24 +331,47 @@ class Array
     nil
   end
 
-  def at(idx)
-    Rubinius.primitive :array_aref
-    idx = Rubinius::Type.coerce_to idx, Fixnum, :to_int
+  def bsearch
+    return to_enum :bsearch unless block_given?
 
-    total = @start + @total
+    m = Rubinius::Mirror::Array.reflect self
 
-    if idx < 0
-      idx += total
-    else
-      idx += @start
+    tuple = m.tuple
+
+    min = start = m.start
+    max = total = start + m.total
+
+    last_true = nil
+    i = start + m.total / 2
+
+    while max >= min and i >= start and i < total
+      x = yield tuple.at(i)
+
+      return tuple.at(i) if x == 0
+
+      case x
+      when Numeric
+        if x > 0
+          min = i + 1
+        else
+          max = i - 1
+        end
+      when true
+        last_true = i
+        max = i - 1
+      when false, nil
+        min = i + 1
+      else
+        raise TypeError, "Array#bsearch block must return Numeric or boolean"
+      end
+
+      i = min + (max - min) / 2
     end
 
-    return nil if idx >= total or idx < @start
-    return @tuple.at(idx)
-  end
+    return tuple.at(i) if max > min
+    return tuple.at(last_true) if last_true
 
-  def choice
-    at Kernel.rand(size)
+    nil
   end
 
   def clear
@@ -355,7 +384,7 @@ class Array
   end
 
   def combination(num)
-    num = Rubinius::Type.coerce_to num, Fixnum, :to_int
+    num = Rubinius::Type.coerce_to_collection_index num
     return to_enum(:combination, num) unless block_given?
 
     if num == 0
@@ -392,7 +421,10 @@ class Array
 
   def compact
     out = dup
-    out.compact! || out
+    out.untaint if out.tainted?
+    out.trust if out.untrusted?
+
+    Array.new(out.compact! || out)
   end
 
   def compact!
@@ -411,11 +443,23 @@ class Array
     Rubinius.primitive :array_concat
 
     other = Rubinius::Type.coerce_to(other, Array, :to_ary)
-    return self if other.empty?
-
     Rubinius.check_frozen
 
+    return self if other.empty?
+
     concat other
+  end
+
+  def count(item = undefined)
+    seq = 0
+    if !undefined.equal?(item)
+      each { |o| seq += 1 if item == o }
+    elsif block_given?
+      each { |o| seq += 1 if yield(o) }
+    else
+      return @total
+    end
+    seq
   end
 
   def cycle(n=nil)
@@ -428,7 +472,7 @@ class Array
         each { |x| yield x }
       end
     else
-      n = Rubinius::Type.coerce_to n, Fixnum, :to_int
+      n = Rubinius::Type.coerce_to_collection_index n
       n.times do
         each { |x| yield x }
       end
@@ -436,10 +480,43 @@ class Array
     nil
   end
 
+  def delete(obj)
+    key = undefined
+    i = @start
+    total = i + @total
+    tuple = @tuple
+
+    while i < total
+      element = tuple.at i
+      if element == obj
+        # We MUST check frozen here, not at the top, because MRI
+        # requires that #delete not raise unless an element would
+        # be deleted.
+        Rubinius.check_frozen
+        tuple.put i, key
+        last_matched_element = element
+      end
+      i += 1
+    end
+
+    deleted = @tuple.delete @start, @total, key
+    if deleted > 0
+      @total -= deleted
+      reallocate_shrink()
+      return last_matched_element
+    end
+
+    if block_given?
+      yield
+    else
+      nil
+    end
+  end
+
   def delete_at(idx)
     Rubinius.check_frozen
 
-    idx = Rubinius::Type.coerce_to idx, Fixnum, :to_int
+    idx = Rubinius::Type.coerce_to_collection_index idx
 
     # Flip to positive and weed out out of bounds
     idx += @total if idx < 0
@@ -459,37 +536,6 @@ class Array
 
     @total -= 1
     obj
-  end
-
-  def delete(obj)
-    key = undefined
-    i = @start
-    total = i + @total
-    tuple = @tuple
-
-    while i < total
-      if tuple.at(i) == obj
-        # We MUST check frozen here, not at the top, because MRI
-        # requires that #delete not raise unless an element would
-        # be deleted.
-        Rubinius.check_frozen
-        tuple.put i, key
-      end
-      i += 1
-    end
-
-    deleted = @tuple.delete @start, @total, key
-    if deleted > 0
-      @total -= deleted
-      reallocate_shrink()
-      return obj
-    end
-
-    if block_given?
-      yield
-    else
-      nil
-    end
   end
 
   def delete_if
@@ -534,6 +580,38 @@ class Array
     self
   end
 
+  # WARNING: This method does no boundary checking. It is expected that
+  # the caller handle that, eg #slice!
+  def delete_range(index, del_length)
+    # optimize for fast removal..
+    reg_start = index + del_length
+    reg_length = @total - reg_start
+
+    if reg_start <= @total
+      # If we're removing from the front, also reset @start to better
+      # use the Tuple
+      if index == 0
+        # Use a shift start optimization if we're only removing one
+        # element and the shift started isn't already huge.
+        if del_length == 1
+          @start += 1
+        else
+          @tuple.copy_from @tuple, reg_start + @start, reg_length, 0
+          @start = 0
+        end
+      else
+        @tuple.copy_from @tuple, reg_start + @start, reg_length,
+          @start + index
+      end
+
+      # TODO we leave the old references in the Tuple, we should
+      # probably clear them out though.
+      @total -= del_length
+    end
+  end
+
+  private :delete_range
+
   def eql?(other)
     return true if equal? other
     return false unless other.kind_of?(Array)
@@ -556,7 +634,7 @@ class Array
 
   def fetch(idx, default=undefined)
     orig = idx
-    idx = Rubinius::Type.coerce_to(idx, Fixnum, :to_int)
+    idx = Rubinius::Type.coerce_to_collection_index idx
 
     idx += @total if idx < 0
 
@@ -591,23 +669,23 @@ class Array
     if one.kind_of? Range
       raise TypeError, "length invalid with range" unless undefined.equal?(two)
 
-      left = Rubinius::Type.coerce_to one.begin, Fixnum, :to_int
+      left = Rubinius::Type.coerce_to_collection_length one.begin
       left += size if left < 0
       raise RangeError, "#{one.inspect} out of range" if left < 0
 
-      right = Rubinius::Type.coerce_to one.end, Fixnum, :to_int
+      right = Rubinius::Type.coerce_to_collection_length one.end
       right += size if right < 0
       right += 1 unless one.exclude_end?
       return self if right <= left           # Nothing to modify
 
     elsif one and !undefined.equal?(one)
-      left = Rubinius::Type.coerce_to one, Fixnum, :to_int
+      left = Rubinius::Type.coerce_to_collection_length one
       left += size if left < 0
       left = 0 if left < 0
 
       if two and !undefined.equal?(two)
         begin
-          right = Rubinius::Type.coerce_to two, Fixnum, :to_int
+          right = Rubinius::Type.coerce_to_collection_length two
         rescue TypeError
           raise ArgumentError, "second argument must be a Fixnum"
         end
@@ -653,15 +731,15 @@ class Array
   def first(n = undefined)
     return at(0) if undefined.equal?(n)
 
-    n = Rubinius::Type.coerce_to n, Fixnum, :to_int
+    n = Rubinius::Type.coerce_to_collection_index n
     raise ArgumentError, "Size must be positive" if n < 0
 
     Array.new self[0, n]
   end
 
   def flatten(level=-1)
-    level = Rubinius::Type.coerce_to(level, Integer, :to_int)
-    return self if level == 0
+    level = Rubinius::Type.coerce_to_collection_index level
+    return self.dup if level == 0
 
     out = new_reserved size
     recursively_flatten(self, out, level)
@@ -670,7 +748,9 @@ class Array
   end
 
   def flatten!(level=-1)
-    level = Rubinius::Type.coerce_to(level, Integer, :to_int)
+    Rubinius.check_frozen
+
+    level = Rubinius::Type.coerce_to_collection_index level
     return nil if level == 0
 
     out = new_reserved size
@@ -765,32 +845,13 @@ class Array
 
   alias_method :index, :find_index
 
-  def indexes(*args)
-    warn 'Array#indexes is deprecated, use Array#values_at instead'
-
-    out = []
-
-    args.each do |a|
-      if a.kind_of? Range
-        out << self[a]
-      else
-        idx = Rubinius::Type.coerce_to(a, Fixnum, :to_int)
-        out << at(idx)
-      end
-    end
-
-    out
-  end
-
-  alias_method :indices, :indexes
-
   def insert(idx, *items)
-    return self if items.length == 0
-
     Rubinius.check_frozen
 
+    return self if items.length == 0
+
     # Adjust the index for correct insertion
-    idx = Rubinius::Type.coerce_to idx, Fixnum, :to_int
+    idx = Rubinius::Type.coerce_to_collection_index idx
     idx += (@total + 1) if idx < 0    # Negatives add AFTER the element
     raise IndexError, "#{idx} out of bounds" if idx < 0
 
@@ -799,41 +860,48 @@ class Array
   end
 
   def inspect
-    return "[]" if @total == 0
-
+    return "[]".force_encoding(Encoding::US_ASCII) if @total == 0
     comma = ", "
     result = "["
 
     return "[...]" if Thread.detect_recursion self do
-      each { |o| result << o.inspect << comma }
+      each_with_index do |element, index|
+        temp = element.inspect
+        result.force_encoding(temp.encoding) if index == 0
+        result << temp << comma
+      end
     end
 
     Rubinius::Type.infect(result, self)
     result.shorten!(2)
     result << "]"
+    result
   end
 
+  alias_method :to_s, :inspect
+
   def join(sep=nil)
-    return "" if @total == 0
+    return "".force_encoding(Encoding::US_ASCII) if @total == 0
 
     out = ""
-    return "[...]" if Thread.detect_recursion self do
+    raise ArgumentError, "recursive array join" if Thread.detect_recursion self do
       sep = sep.nil? ? $, : StringValue(sep)
 
       # We've manually unwound the first loop entry for performance
       # reasons.
       x = @tuple[@start]
 
-      case x
-      when String
-        # Nothing
-      when Array
-        x = x.join(sep)
+      if str = String.try_convert(x)
+        x = str
+      elsif ary = Array.try_convert(x)
+        x = ary.join(sep)
       else
         x = x.to_s
       end
 
+      out.force_encoding(x.encoding)
       out << x
+
       total = @start + size()
       i = @start + 1
 
@@ -842,11 +910,10 @@ class Array
 
         x = @tuple[i]
 
-        case x
-        when String
-          # Nothing
-        when Array
-          x = x.join(sep)
+        if str = String.try_convert(x)
+          x = str
+        elsif ary = Array.try_convert(x)
+          x = ary.join(sep)
         else
           x = x.to_s
         end
@@ -859,6 +926,14 @@ class Array
     Rubinius::Type.infect(out, self)
   end
 
+  def keep_if(&block)
+    return to_enum :keep_if unless block_given?
+
+    Rubinius.check_frozen
+
+    replace select(&block)
+  end
+
   def last(n=undefined)
     if undefined.equal?(n)
       return at(-1)
@@ -866,7 +941,7 @@ class Array
       return []
     end
 
-    n = Rubinius::Type.coerce_to n, Fixnum, :to_int
+    n = Rubinius::Type.coerce_to_collection_index n
     return [] if n == 0
 
     raise ArgumentError, "count must be positive" if n < 0
@@ -901,7 +976,7 @@ class Array
     if undefined.equal? num
       num = @total
     else
-      num = Rubinius::Type.coerce_to num, Fixnum, :to_int
+      num = Rubinius::Type.coerce_to_collection_index num
     end
 
     if num < 0 || @total < num
@@ -971,7 +1046,7 @@ class Array
 
       elem
     else
-      many = Rubinius::Type.coerce_to(many, Fixnum, :to_int)
+      many = Rubinius::Type.coerce_to_collection_index many
       raise ArgumentError, "negative array size" if many < 0
 
       first = @total - many
@@ -1020,10 +1095,18 @@ class Array
 
     outer_lambda.call([])
 
-    result
+    if block_given?
+      block_result = self
+      result.each { |v| block_result << yield(v) }
+      block_result
+    else
+      result
+    end
   end
 
   def push(*args)
+    Rubinius.check_frozen
+
     return self if args.empty?
 
     concat args
@@ -1041,7 +1124,7 @@ class Array
 
   def reject(&block)
     return to_enum(:reject) unless block_given?
-    dup.delete_if(&block)
+    Array.new(self).delete_if(&block)
   end
 
   def reject!(&block)
@@ -1056,8 +1139,70 @@ class Array
     self
   end
 
+  def repeated_combination(combination_size, &block)
+    combination_size = combination_size.to_i
+    unless block_given?
+      return Enumerator.new(self, :repeated_combination, combination_size)
+    end
+
+    if combination_size < 0
+      # yield nothing
+    else
+      Rubinius.privately do
+        dup.compile_repeated_combinations(combination_size, [], 0, combination_size, &block)
+      end
+    end
+
+    return self
+  end
+
+  def compile_repeated_combinations(combination_size, place, index, depth, &block)
+    if depth > 0
+      (length - index).times do |i|
+        place[combination_size-depth] = index + i
+        compile_repeated_combinations(combination_size,place,index + i,depth-1, &block)
+      end
+    else
+      yield place.map { |element| self[element] }
+    end
+  end
+
+  private :compile_repeated_combinations
+
+  def repeated_permutation(combination_size, &block)
+    combination_size = combination_size.to_i
+    unless block_given?
+      return Enumerator.new(self, :repeated_permutation, combination_size)
+    end
+
+    if combination_size < 0
+      # yield nothing
+    elsif combination_size == 0
+      yield []
+    else
+      Rubinius.privately do
+        dup.compile_repeated_permutations(combination_size, [], 0, &block)
+      end
+    end
+
+    return self
+  end
+
+  def compile_repeated_permutations(combination_size, place, index, &block)
+    length.times do |i|
+      place[index] = i
+      if index < (combination_size-1)
+        compile_repeated_permutations(combination_size, place, index + 1, &block)
+      else
+        yield place.map { |element| self[element] }
+      end
+    end
+  end
+
+  private :compile_repeated_permutations
+
   def reverse
-    dup.reverse!
+    Array.new dup.reverse!
   end
 
   def reverse!
@@ -1111,9 +1256,80 @@ class Array
     nil
   end
 
-  # Some code depends on Array having it's own #select method,
-  # not just using the Enumerable one. This alias achieves that.
-  alias_method :select, :find_all
+  def rotate(n=1)
+    n = Rubinius::Type.coerce_to_collection_index n
+    return Array.new(self) if length == 1
+    return []       if empty?
+
+    ary = Array.new(self)
+    idx = n % ary.size
+
+    ary[idx..-1].concat ary[0...idx]
+  end
+
+  def rotate!(cnt=1)
+    Rubinius.check_frozen
+
+    return self if length == 0 || length == 1
+
+    ary = rotate(cnt)
+    replace ary
+  end
+
+  def sample(count=undefined, options=undefined)
+    return at Kernel.rand(size) if undefined.equal? count
+
+    if undefined.equal? options
+      if o = Rubinius::Type.check_convert_type(count, Hash, :to_hash)
+        options = o
+        count = nil
+      else
+        options = nil
+        count = Rubinius::Type.coerce_to_collection_index count
+      end
+    else
+      count = Rubinius::Type.coerce_to_collection_index count
+      options = Rubinius::Type.coerce_to options, Hash, :to_hash
+    end
+
+    if count and count < 0
+      raise ArgumentError, "count must be greater than 0"
+    end
+
+    rng = options[:random] if options
+    rng = Kernel unless rng and rng.respond_to? :rand
+
+    unless count
+      random = Rubinius::Type.coerce_to_collection_index rng.rand(size)
+      raise RangeError, "random value must be >= 0" if random < 0
+      raise RangeError, "random value must be less than Array size" unless random < size
+
+      return at random
+    end
+
+    count = size if count > size
+    result = Array.new self
+    tuple = Rubinius::Mirror::Array.reflect(result).tuple
+
+    count.times do |i|
+      random = Rubinius::Type.coerce_to_collection_index rng.rand(size)
+      raise RangeError, "random value must be >= 0" if random < 0
+      raise RangeError, "random value must be less than Array size" unless random < size
+
+      tuple.swap i, random
+    end
+
+    return count == size ? result : result[0, count]
+  end
+
+  def select!(&block)
+    return to_enum :select! unless block_given?
+
+    Rubinius.check_frozen
+
+    ary = select(&block)
+    replace ary unless size == ary.size
+  end
 
   def set_index(index, ent, fin=undefined)
     Rubinius.primitive :array_aset
@@ -1122,7 +1338,7 @@ class Array
 
     ins_length = nil
     unless undefined.equal? fin
-      ins_length = Rubinius::Type.coerce_to ent, Fixnum, :to_int
+      ins_length = Rubinius::Type.coerce_to_collection_index ent
       ent = fin             # 2nd arg (ins_length) is the optional one!
     end
 
@@ -1132,11 +1348,11 @@ class Array
         raise ArgumentError, "Second argument invalid with a range"
       end
 
-      last = Rubinius::Type.coerce_to index.last, Fixnum, :to_int
+      last = Rubinius::Type.coerce_to_collection_index index.last
       last += @total if last < 0
       last += 1 unless index.exclude_end?
 
-      index = Rubinius::Type.coerce_to index.first, Fixnum, :to_int
+      index = Rubinius::Type.coerce_to_collection_index index.first
 
       if index < 0
         index += @total
@@ -1148,7 +1364,7 @@ class Array
 
       ins_length = last - index
     else
-      index = Rubinius::Type.coerce_to index, Fixnum, :to_int
+      index = Rubinius::Type.coerce_to_collection_index index
 
       if index < 0
         index += @total
@@ -1168,39 +1384,7 @@ class Array
 
       replace_count = 0
 
-      if ent.nil?
-        # optimize for fast removal..
-        reg_start = index + ins_length
-        reg_length = @total - reg_start
-
-        if reg_start <= @total
-          # If we're removing from the front, also reset @start to better
-          # use the Tuple
-          if index == 0
-            # Use a shift start optimization if we're only removing one
-            # element and the shift started isn't already huge.
-            if ins_length == 1
-              @start += 1
-            else
-              @tuple.copy_from @tuple, reg_start + @start, reg_length, 0
-              @start = 0
-            end
-          else
-            @tuple.copy_from @tuple, reg_start + @start, reg_length,
-                             @start + index
-          end
-
-          # TODO we leave the old references in the Tuple, we should
-          # probably clear them out though.
-
-          @total -= ins_length
-
-          return ent
-        end
-
-        # This is actually an addition! silly, I know.
-        replace_count = 0
-      elsif ent.kind_of? Array
+      if ent.kind_of? Array
         replacement = ent
         replace_count = replacement.size
         replacement = replacement.first if replace_count == 1
@@ -1236,8 +1420,8 @@ class Array
         when 0
           # nothing
         else
-          new_tuple.copy_from(replacement.tuple, replacement.start,
-                              replace_count, index)
+          m = Rubinius::Mirror::Array.reflect replacement
+          new_tuple.copy_from m.tuple, m.start, replace_count, index
         end
 
         if index < @total
@@ -1264,8 +1448,8 @@ class Array
         when 0
           # nothing
         else
-          @tuple.copy_from(replacement.tuple, replacement.start,
-                              replace_count, @start + index)
+          m = Rubinius::Mirror::Array.reflect replacement
+          @tuple.copy_from m.tuple, m.start, replace_count, @start + index
         end
 
         @total = new_total
@@ -1288,6 +1472,10 @@ class Array
 
   private :set_index
 
+  # Some code depends on Array having it's own #select method,
+  # not just using the Enumerable one. This alias achieves that.
+  alias_method :select, :find_all
+
   def shift(n=undefined)
     Rubinius.check_frozen
 
@@ -1300,37 +1488,34 @@ class Array
 
       obj
     else
-      n = Rubinius::Type.coerce_to(n, Fixnum, :to_int)
+      n = Rubinius::Type.coerce_to_collection_index n
       raise ArgumentError, "negative array size" if n < 0
 
       Array.new slice!(0, n)
     end
   end
 
-  def shuffle
-    dup.shuffle!
+  def shuffle(options = undefined)
+    return dup.shuffle!(options) if instance_of? Array
+    Array.new(self).shuffle!(options)
   end
 
-  def shuffle!
+  def shuffle!(options = undefined)
     Rubinius.check_frozen
 
+    random_generator = Kernel
+
+    unless undefined.equal? options
+      options = Rubinius::Type.coerce_to options, Hash, :to_hash
+      random_generator = options[:random] if options[:random].respond_to?(:rand)
+    end
+
     size.times do |i|
-      r = i + Kernel.rand(size - i)
+      r = i + random_generator.rand(size - i).to_int
+      raise RangeError, "random number too big #{r - i}" if r < 0 || r >= size
       @tuple.swap(@start + i, @start + r)
     end
     self
-  end
-
-  def drop(n)
-    n = Rubinius::Type.coerce_to(n, Fixnum, :to_int)
-    raise ArgumentError, "attempt to drop negative size" if n < 0
-
-    return [] if @total == 0
-
-    new_size = @total - n
-    return [] if new_size <= 0
-
-    new_range n, new_size
   end
 
   def slice!(start, length=undefined)
@@ -1338,16 +1523,33 @@ class Array
 
     if undefined.equal? length
       if start.kind_of? Range
-        out = self[start]
+        range = start
+        out = self[range]
 
-        s = Rubinius::Type.coerce_to start.begin, Fixnum, :to_int
-        unless s >= @total or -s > @total
-          self[start] = nil
+        range_start = Rubinius::Type.coerce_to_collection_index range.begin
+        if range_start < 0
+          range_start = range_start + @total
+        end
+
+        range_end = Rubinius::Type.coerce_to_collection_index range.end
+        if range_end < 0
+          range_end = range_end + @total
+        elsif range_end >= @total
+          range_end = @total - 1
+          range_end += 1 if range.exclude_end?
+        end
+
+        range_length = range_end - range_start
+        range_length += 1 unless range.exclude_end?
+        range_end    -= 1 if     range.exclude_end?
+
+        if range_start < @total && range_start >= 0 && range_end < @total && range_end >= 0 && range_length > 0
+          delete_range(range_start, range_length)
         end
       else
         # make sure that negative values are not passed through to the
         # []= assignment
-        start = Rubinius::Type.coerce_to start, Integer, :to_int
+        start = Rubinius::Type.coerce_to_collection_index start
         start = start + @total if start < 0
 
         # This is to match the MRI behaviour of not extending the array
@@ -1363,25 +1565,52 @@ class Array
           @total -= 1
           @start += 1
         else
-          self[start, 1] = nil
+          delete_range(start, 1)
         end
       end
     else
-      start = Rubinius::Type.coerce_to start, Fixnum, :to_int
-      length = Rubinius::Type.coerce_to length, Fixnum, :to_int
+      start = Rubinius::Type.coerce_to_collection_index start
+      length = Rubinius::Type.coerce_to_collection_index length
 
       out = self[start, length]
 
-      unless start >= @total or -start > @total
-        self[start, length] = nil
+      if start < 0
+        start = @total + start
+      end
+      if start + length > @total
+        length = @total - start
+      end
+
+      if start < @total && start >= 0
+        delete_range(start, length)
       end
     end
 
     out
   end
 
+  def drop(n)
+    n = Rubinius::Type.coerce_to_collection_index n
+    raise ArgumentError, "attempt to drop negative size" if n < 0
+
+    return [] if @total == 0
+
+    new_size = @total - n
+    return [] if new_size <= 0
+
+    new_range @start + n, new_size
+  end
+
   def sort(&block)
-    dup.sort_inplace(&block)
+    Array.new dup.sort_inplace(&block)
+  end
+
+  def sort_by!(&block)
+    Rubinius.check_frozen
+
+    return to_enum :sort_by! unless block_given?
+
+    replace sort_by(&block)
   end
 
   # Sorts this Array in-place. See #sort.
@@ -1433,8 +1662,8 @@ class Array
     self
   end
 
-  def to_s
-    join
+  def to_h
+    super
   end
 
   def transpose
@@ -1459,36 +1688,42 @@ class Array
     out
   end
 
-  def uniq
-    dup.uniq! or dup
+  def uniq(&block)
+    dup.uniq!(&block) or dup
   end
 
-  def uniq!
-    im = Rubinius::IdentityMap.from self
-    return if im.size == size
-
+  def uniq!(&block)
     Rubinius.check_frozen
 
-    array = im.to_array
-    @tuple = array.tuple
-    @start = array.start
-    @total = array.total
+    if block_given?
+      im = Rubinius::IdentityMap.from(self, &block)
+    else
+      im = Rubinius::IdentityMap.from(self)
+    end
+    return if im.size == size
+
+    m = Rubinius::Mirror::Array.reflect im.to_array
+    @tuple = m.tuple
+    @start = m.start
+    @total = m.total
 
     self
   end
 
   def unshift(*values)
+    Rubinius.check_frozen
+
     return self if values.empty?
 
-    Rubinius.check_frozen
+    m = Rubinius::Mirror::Array.reflect values
 
     if @start > values.size
       # fit the new values in between 0 and @start if possible
       @start -= values.size
-      @tuple.copy_from(values.tuple, 0, values.size, @start)
+      @tuple.copy_from(m.tuple, 0, values.size, @start)
     else
       new_tuple = Rubinius::Tuple.new @total + values.size
-      new_tuple.copy_from values.tuple, 0, values.size, 0
+      new_tuple.copy_from m.tuple, 0, values.size, 0
       new_tuple.copy_from @tuple, @start, @total, values.size
       @start = 0
       @tuple = new_tuple
@@ -1504,22 +1739,21 @@ class Array
     args.each do |elem|
       # Cannot use #[] because of subtly different errors
       if elem.kind_of? Range
-        finish = Rubinius::Type.coerce_to elem.last, Fixnum, :to_int
-        start = Rubinius::Type.coerce_to elem.first, Fixnum, :to_int
+        finish = Rubinius::Type.coerce_to_collection_index elem.last
+        start = Rubinius::Type.coerce_to_collection_index elem.first
 
         start += @total if start < 0
         next if start < 0
 
         finish += @total if finish < 0
         finish -= 1 if elem.exclude_end?
-        finish = @total unless finish < @total
 
         next if finish < start
 
         start.upto(finish) { |i| out << at(i) }
 
       else
-        i = Rubinius::Type.coerce_to elem, Fixnum, :to_int
+        i = Rubinius::Type.coerce_to_collection_index elem
         out << at(i)
       end
     end
@@ -1529,7 +1763,15 @@ class Array
 
   def zip(*others)
     out = Array.new(size) { [] }
-    others = others.map { |ary| ary.to_ary }
+    others = others.map do |ary|
+      if ary.respond_to?(:to_ary)
+        ary.to_ary
+      else
+        elements = []
+        ary.each { |e| elements << e }
+        elements
+      end
+    end
 
     size.times do |i|
       slot = out.at(i)
@@ -1597,9 +1839,11 @@ class Array
 
     max_levels -= 1
     recursion = Thread.detect_recursion(array) do
-      i = array.start
-      total = i + array.total
-      tuple = array.tuple
+      m = Rubinius::Mirror::Array.reflect array
+
+      i = m.start
+      total = i + m.total
+      tuple = m.tuple
 
       while i < total
         o = tuple.at i

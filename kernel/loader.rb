@@ -13,7 +13,7 @@ module Rubinius
       @evals        = []
       @script       = nil
       @debugging    = false
-      @run_irb      = true
+      @repl         = true
       @printed_version = false
       @input_loop   = false
       @input_loop_print = false
@@ -21,8 +21,7 @@ module Rubinius
       @simple_options = false
       @early_option_stop = false
       @check_syntax = false
-
-      @enable_gems = false
+      @load_profiler = false
       @load_gemfile = false
 
       version = RUBY_VERSION.split(".").first(2).join(".")
@@ -129,7 +128,7 @@ module Rubinius
     # path to the subcommand if it does; otherwise, returns nil.
     def find_subcommand(base)
       command = File.join @main_lib_bin, "#{base}.rb"
-      return command if File.exists? command
+      return command if File.exist? command
       return nil
     end
 
@@ -138,7 +137,7 @@ module Rubinius
     def find_gem_wrapper(base)
       @gem_bins.each do |dir|
         wrapper = File.join dir, base
-        return wrapper if File.exists? wrapper
+        return wrapper if File.exist? wrapper
       end
       return nil
     end
@@ -239,7 +238,7 @@ module Rubinius
 
       options.doc "\nRuby options"
       options.on "-", "Read and evaluate code from STDIN" do
-        @run_irb = false
+        @repl = false
         set_program_name "-"
         stdin = STDIN.dup
         script = STDIN.read
@@ -258,7 +257,7 @@ module Rubinius
       end
 
       options.on "-c", "Only check the syntax" do
-        @run_irb = false
+        @repl = false
         @check_syntax = true
       end
 
@@ -272,7 +271,7 @@ module Rubinius
       end
 
       options.on "-e", "CODE", "Compile and execute CODE" do |code|
-        @run_irb = false
+        @repl = false
         set_program_name "(eval)"
         @evals << code
       end
@@ -286,7 +285,7 @@ module Rubinius
       end
 
       options.on "-h", "--help", "Display this help" do
-        @run_irb = false
+        @repl = false
         puts options
         done
       end
@@ -339,7 +338,7 @@ module Rubinius
       options.on("-S", "SCRIPT",
                  "Run SCRIPT using PATH environment variable to find it") do |script|
         options.stop_parsing
-        @run_irb = false
+        @repl = false
 
         # Load a gemfile now if we need to so that -S can see binstubs
         # internal to the Gemfile
@@ -353,7 +352,7 @@ module Rubinius
             search = ENV['PATH'].split(File::PATH_SEPARATOR)
             search.each do |d|
               path = File.join d, script
-              if File.exists? path
+              if File.exist? path
                 file = path
                 break
               end
@@ -368,7 +367,7 @@ module Rubinius
       end
 
       options.on "-v", "Display the version and set $VERBOSE to true" do
-        @run_irb = false
+        @repl = false
         $VERBOSE = true
 
         unless @printed_version
@@ -398,7 +397,7 @@ module Rubinius
       end
 
       options.on "--version", "Display the version" do
-        @run_irb = false
+        @repl = false
         puts Rubinius.version
       end
 
@@ -461,7 +460,7 @@ VM Options
       end
 
       if Rubinius::Config['profile'] || Rubinius::Config['jit.profile']
-        require 'profile'
+        @load_profiler = true
       end
 
       if @check_syntax
@@ -532,8 +531,7 @@ VM Options
           CodeLoader.require_compiled script
         end
       rescue Object => e
-        STDERR.puts "Unable to run compiled file: #{script}"
-        e.render
+        Rubinius::Logger.log_exception "Unable to run compiled file: #{script}", e
         exit 1
       end
 
@@ -546,13 +544,10 @@ VM Options
       begin
         CodeLoader.load_compiler
       rescue LoadError => e
-        STDERR.puts <<-EOM
-Unable to load the bytecode compiler. Please run 'rake' or 'rake install'
-to rebuild the compiler.
-
-        EOM
-
-        e.render
+        Rubinius::Logger.system.error "Unable to load the bytecode compiler."
+        Rubinius::Logger.system.error(
+          "Please run 'rake' or 'rake install' to rebuild the compiler.")
+        Rubinius::Logger.log_exception message, e
         exit 1
       end
     end
@@ -570,20 +565,21 @@ to rebuild the compiler.
       end
     end
 
-    def rubygems
-      @stage = "loading Rubygems"
-
-      require "rubygems" if @enable_gems
-    end
-
     def gemfile
       @stage = "loading Gemfile"
 
       if @load_gemfile
-        require 'rubygems'
+        CodeLoader.load_rubygems
         require 'bundler/setup'
         @load_gemfile = false
       end
+    end
+
+    def profiler
+      return unless @load_profiler
+      @stage = "loading profiler"
+
+      require 'profile'
     end
 
     # Require any -r arguments
@@ -597,8 +593,10 @@ to rebuild the compiler.
     def evals
       return if @evals.empty?
 
-      @run_irb = false
+      @repl = false
       @stage = "evaluating command line code"
+
+      Dir.chdir(@directory) if @directory
 
       if @input_loop
         while gets
@@ -615,14 +613,14 @@ to rebuild the compiler.
     def script
       return unless @script and @evals.empty?
 
-      @run_irb = false
+      @repl = false
 
       handle_simple_options(ARGV) if @simple_options
 
       @stage = "running #{@script}"
       Dir.chdir @directory if @directory
 
-      if File.exists? @script
+      if File.exist? @script
         if IO.read(@script, 6) == "!RBIX\n"
           raise LoadError, "'#{@script}' is not a Ruby source file"
         end
@@ -631,7 +629,7 @@ to rebuild the compiler.
           raise LoadError, "unable to find '#{@script}'"
         else
           command = File.join @main_lib_bin, "#{@script}.rb"
-          unless File.exists? command
+          unless File.exist? command
             raise LoadError, "unable to find Rubinius command '#{@script}'"
           else
             @script = command
@@ -645,63 +643,42 @@ to rebuild the compiler.
 
     #Check Ruby syntax of source
     def check_syntax
-      parser = Rubinius::ToolSets::Runtime::Melbourne
+      parser_class = Rubinius::ToolSets::Runtime::Melbourne
 
       if @script
-        if File.exists?(@script)
-          mel = parser.new @script, 1, []
-
-          begin
-            mel.parse_file
-          rescue SyntaxError => e
-            show_syntax_errors(mel.syntax_errors)
-            exit 1
-          end
+        if File.exist?(@script)
+          parser = parser_class.new @script, 1, []
+          parser.parse_file
         else
           puts "rbx: Unable to find file -- #{@script} (LoadError)"
           exit 1
         end
       elsif not @evals.empty?
-        begin
-          mel = parser.parse_string @evals.join("\n")
-        rescue SyntaxError => e
-          show_syntax_errors(mel.syntax_errors)
-          exit 1
-        end
+        parser = parser_class.new('-e', 1, [])
+        parser.parse_string(@evals.join("\n"))
       else
-        begin
-          mel = parser.parse_string STDIN.read
-        rescue SyntaxError => e
-          show_syntax_errors(mel.syntax_errors)
-          exit 1
-        end
+        parser = parser_class.new('-', 1, [])
+        parser.parse_string(STDIN.read)
       end
 
       puts "Syntax OK"
       exit 0
+    rescue SyntaxError => e
+      show_syntax_errors(parser.syntax_errors)
+      exit 1
     end
 
     # Run IRB unless we were passed -e, -S arguments or a script to run.
-    def irb
-      return unless @run_irb
+    def repl
+      return unless @repl
 
       @stage = "running IRB"
 
+      # Check if a different REPL is set.
+      repl = ENV["RBX_REPL"] || "irb"
+
       if Terminal
-        repr = ENV['RBX_REPR'] || "bin/irb"
-        set_program_name repr
-        prog = File.join @main_lib, repr
-        begin
-          # HACK: this was load but load raises LoadError
-          # with prog == "lib/bin/irb". However, require works.
-          # Investigate when we have specs running.
-          require prog
-        rescue LoadError => e
-          STDERR.puts "Unable to load REPL named '#{repr}'"
-          STDERR.puts e.message
-          puts e.awesome_backtrace.show
-          exit 1
-        end
+        load File.join(Rubinius::GEMS_PATH, "bin", repl)
       else
         set_program_name "(eval)"
         CodeLoader.execute_script "p #{STDIN.read}"
@@ -721,6 +698,11 @@ to rebuild the compiler.
       end
     end
 
+    def flush_stdio
+      STDOUT.flush unless STDOUT.closed?
+      STDERR.flush unless STDERR.closed?
+    end
+
     # Cleanup and at_exit processing.
     def epilogue
       @stage = "running at_exit handlers"
@@ -737,13 +719,10 @@ to rebuild the compiler.
       ::GC.start
       ObjectSpace.run_finalizers
 
-      # TODO: Fix these with better -X processing
-      if Config['rbx.jit_stats']
-        p VM.jit_info
-      end
+      flush_stdio
 
     rescue Object => e
-      e.render "An exception occurred #{@stage}"
+      Rubinius::Logger.log_exception "An exception occurred #{@stage}", e
       @exit_code = 1
     end
 
@@ -796,25 +775,6 @@ to rebuild the compiler.
       Process.exit! @exit_code
     end
 
-    def write_last_error(e)
-      unless path = Config['vm.crash_report_path']
-        path = "#{ENV['HOME']}/.rbx/rubinius_last_error_#{@process_id}"
-      end
-
-      File.open(path, "wb") do |f|
-        f.puts "Rubinius Crash Report #rbxcrashreport"
-        f.puts ""
-        f.puts "[[Exception]]"
-        e.render("A toplevel exception occurred", f, false)
-
-        f.puts ""
-        f.puts "[[Version]]"
-        f.puts Rubinius.version
-      end
-    rescue SystemCallError
-      # Ignore writing the last error report
-    end
-
     # Orchestrate everything.
     def main
       preamble
@@ -826,13 +786,13 @@ to rebuild the compiler.
       detect_alias
       options
       load_paths
-      debugger
-      rubygems
       gemfile
+      debugger
+      profiler
       requires
       evals
       script
-      irb
+      repl
 
     rescue SystemExit => e
       @exit_code = e.status
@@ -850,8 +810,7 @@ to rebuild the compiler.
     rescue Interrupt => e
       @exit_code = 1
 
-      write_last_error(e)
-      e.render "An exception occurred #{@stage}:"
+      Rubinius::Logger.log_exception "An exception occurred #{@stage}:", e
       epilogue
     rescue SignalException => e
       Signal.trap(e.signo, "SIG_DFL")
@@ -860,8 +819,7 @@ to rebuild the compiler.
     rescue Object => e
       @exit_code = 1
 
-      write_last_error(e)
-      e.render "An exception occurred #{@stage}:"
+      Rubinius::Logger.log_exception "An exception occurred #{@stage}:", e
       epilogue
     else
       # We do this, run epilogue both in the rescue blocks and also here,
@@ -872,3 +830,4 @@ to rebuild the compiler.
     end
   end
 end
+

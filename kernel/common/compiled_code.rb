@@ -28,7 +28,8 @@ module Rubinius
     attr_accessor :lines         # [Tuple]   tuple of the lines where its found
     attr_accessor :file          # [Symbol]  the file where this comes from
     attr_accessor :local_names   # [Array<Symbol>] names of the local vars
-    attr_accessor :scope
+    attr_accessor :scope         # [ConstantScope] scope for looking up constants
+    attr_accessor :arity         # [Integer] number of arguments, negative if variadic.
 
     ##
     # Compare this method with +other+. Instead of bugging out if +other+
@@ -441,14 +442,6 @@ module Rubinius
       end
     end
 
-    def arity
-      if @required_args == @total_args and (@splat.nil? or @splat == -3)
-        @required_args
-      else
-        -(@required_args + 1)
-      end
-    end
-
     def add_metadata(key, val)
       raise TypeError, "key must be a symbol" unless key.kind_of? Symbol
 
@@ -503,39 +496,6 @@ module Rubinius
       end
 
       return nil
-    end
-
-    ##
-    # For Method#parameters
-    def parameters
-      params = []
-
-      return params unless respond_to?(:local_names)
-
-      m = required_args - post_args
-      o = m + total_args - required_args
-      p = o + post_args
-      p += 1 if splat
-
-      local_names.each_with_index do |name, i|
-        if i < m
-          params << [:req, name]
-        elsif i < o
-          params << [:opt, name]
-        elsif splat == i
-          if name == :*
-            params << [:rest]
-          else
-            params << [:rest, name]
-          end
-        elsif i < p
-          params << [:req, name]
-        elsif block_index == i
-          params << [:block, name]
-        end
-      end
-
-      params
     end
 
     ##

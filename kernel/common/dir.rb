@@ -1,6 +1,10 @@
 class Dir
   include Enumerable
 
+  # This seems silly, I know. But we do this to make Dir more resistent to people
+  # screwing with ::File later (ie, fakefs)
+  PrivateFile = ::File
+
   FFI = Rubinius::FFI
 
   def self.[](*patterns)

@@ -4,6 +4,172 @@
 # these methods can be written *in those classes* to override these.
 
 module Enumerable
+  def chunk(initial_state = nil, &original_block)
+    raise ArgumentError, "no block given" unless block_given?
+    ::Enumerator.new do |yielder|
+      previous = nil
+      accumulate = []
+      block = if initial_state.nil?
+        original_block
+      else
+        duplicated_initial_state = initial_state.dup
+        Proc.new{ |val| original_block.yield(val, duplicated_initial_state)}
+      end
+      each do |val|
+        key = block.yield(val)
+        if key.nil? || (key.is_a?(Symbol) && key.to_s[0, 1] == "_")
+          yielder.yield [previous, accumulate] unless accumulate.empty?
+          accumulate = []
+          previous = nil
+          case key
+          when nil, :_separator
+          when :_alone
+            yielder.yield [key, [val]]
+          else
+            raise RuntimeError, "symbols beginning with an underscore are reserved"
+          end
+        else
+          if previous.nil? || previous == key
+            accumulate << val
+          else
+            yielder.yield [previous, accumulate] unless accumulate.empty?
+            accumulate = [val]
+          end
+          previous = key
+        end
+      end
+      yielder.yield [previous, accumulate] unless accumulate.empty?
+    end
+  end
+
+  def collect
+    if block_given?
+      ary = []
+      each do |*o|
+        ary << yield(*o)
+      end
+      ary
+    else
+      to_enum :collect
+    end
+  end
+
+  alias_method :map, :collect
+
+  def count(item = undefined)
+    seq = 0
+    if !undefined.equal?(item)
+      each { |o| seq += 1 if item == o }
+    elsif block_given?
+      each { |o| seq += 1 if yield(o) }
+    else
+      each { seq += 1 }
+    end
+    seq
+  end
+
+  def each_entry(*pass)
+    return to_enum :each_entry, *pass unless block_given?
+    each(*pass) do |*args|
+      yield args.size == 1 ? args[0] : args
+    end
+    self
+  end
+
+  def each_with_object(memo)
+    return to_enum :each_with_object, memo unless block_given?
+    each do
+      obj = Rubinius.single_block_arg
+      yield obj, memo
+    end
+    memo
+  end
+
+  alias_method :with_object, :each_with_object
+
+  def enumerator_size
+    Rubinius::Type.object_respond_to?(self, :size) ? size : nil
+  end
+  private :enumerator_size
+
+  def group_by
+    return to_enum(:group_by) unless block_given?
+
+    h = {}
+    each do
+      o = Rubinius.single_block_arg
+      key = yield(o)
+      if h.key?(key)
+        h[key] << o
+      else
+        h[key] = [o]
+      end
+    end
+    Rubinius::Type.infect h, self
+    h
+  end
+
+  def to_a(*arg)
+    ary = []
+    each(*arg) do
+      o = Rubinius.single_block_arg
+      ary << o
+      nil
+    end
+    Rubinius::Type.infect ary, self
+    ary
+  end
+  alias_method :entries, :to_a
+
+  def zip(*args)
+    args.map! do |a|
+      if a.respond_to? :to_ary
+        a.to_ary
+      else
+        a.to_enum(:each)
+      end
+    end
+
+    results = []
+    i = 0
+    each do
+      o = Rubinius.single_block_arg
+      entry = args.inject([o]) do |ary, a|
+        ary << case a
+               when Array
+                 a[i]
+               else
+                 begin
+                   a.next
+                 rescue StopIteration
+                   nil
+                 end
+               end
+      end
+
+      yield entry if block_given?
+
+      results << entry
+      i += 1
+    end
+
+    return nil if block_given?
+    results
+  end
+
+  def each_with_index(*args)
+    return to_enum(:each_with_index, *args) unless block_given?
+
+    idx = 0
+    each(*args) do
+      o = Rubinius.single_block_arg
+      yield o, idx
+      idx += 1
+    end
+
+    self
+  end
+
   def grep(pattern)
     ary = []
 
@@ -29,7 +195,8 @@ module Enumerable
   end
 
   def sort(&prc)
-    to_a.sort!(&prc)
+    ary = to_a
+    ary.frozen? ? ary.sort(&prc) : ary.sort!(&prc)
   end
 
   class SortedElement
@@ -115,36 +282,11 @@ module Enumerable
     false
   end
 
-  def collect
-    if block_given?
-      ary = []
-      each { |o| ary << yield(o) }
-      ary
-    else
-      to_a
-    end
-  end
-
-  alias_method :map, :collect
-
-  def count(item = undefined)
-    seq = 0
-    if !undefined.equal?(item)
-      each { |o| seq += 1 if item == o }
-    elsif block_given?
-      each { |o| seq += 1 if yield(o) }
-    else
-      return size if respond_to? :size
-      each { seq += 1 }
-    end
-    seq
-  end
-
   def cycle(many=nil)
     return to_enum(:cycle, many) unless block_given?
 
     if many
-      many = Rubinius::Type.coerce_to(many, Fixnum, :to_int)
+      many = Rubinius::Type.coerce_to_collection_index many
       return nil if many <= 0
     else
       many = nil
@@ -176,7 +318,7 @@ module Enumerable
   end
 
   def drop(n)
-    n = Rubinius::Type.coerce_to(n, Fixnum, :to_int)
+    n = Rubinius::Type.coerce_to_collection_index n
     raise ArgumentError, "attempt to drop negative size" if n < 0
 
     ary = to_a
@@ -200,7 +342,7 @@ module Enumerable
   def each_cons(num)
     return to_enum(:each_cons, num) unless block_given?
 
-    n = Rubinius::Type.coerce_to(num, Fixnum, :to_int)
+    n = Rubinius::Type.coerce_to_collection_index num
     raise ArgumentError, "invalid size: #{n}" if n <= 0
 
     array = []
@@ -213,12 +355,10 @@ module Enumerable
     nil
   end
 
-  alias_method :enum_cons, :each_cons
-
   def each_slice(slice_size)
     return to_enum(:each_slice, slice_size) unless block_given?
 
-    n = Rubinius::Type.coerce_to(slice_size, Fixnum, :to_int)
+    n = Rubinius::Type.coerce_to_collection_index slice_size
     raise ArgumentError, "invalid slice size: #{n}" if n <= 0
 
     a = []
@@ -233,21 +373,6 @@ module Enumerable
 
     yield a unless a.empty?
     nil
-  end
-
-  alias_method :enum_slice, :each_slice
-
-  def each_with_index
-    return to_enum(:each_with_index) unless block_given?
-
-    idx = 0
-    each do
-      o = Rubinius.single_block_arg
-      yield o, idx
-      idx += 1
-    end
-
-    self
   end
 
   def find(ifnone=nil)
@@ -274,24 +399,6 @@ module Enumerable
     ary
   end
 
-  alias_method :enum_with_index, :each_with_index
-
-  def group_by
-    return to_enum(:group_by) unless block_given?
-
-    h = {}
-    each do
-      o = Rubinius.single_block_arg
-      key = yield(o)
-      if h.key?(key)
-        h[key] << o
-      else
-        h[key] = [o]
-      end
-    end
-    h
-  end
-
   alias_method :select, :find_all
 
   def find_index(value=undefined)
@@ -299,13 +406,14 @@ module Enumerable
       return to_enum(:find_index) unless block_given?
 
       i = 0
-      each do |e|
-        return i if yield(e)
+      each do |*args|
+        return i if yield(*args)
         i += 1
       end
     else
       i = 0
-      each do |e|
+      each do
+        e = Rubinius.single_block_arg
         return i if e == value
         i += 1
       end
@@ -531,7 +639,7 @@ module Enumerable
   end
 
   def take(n)
-    n = Rubinius::Type.coerce_to(n, Fixnum, :to_int)
+    n = Rubinius::Type.coerce_to_collection_index n
     raise ArgumentError, "attempt to take negative size: #{n}" if n < 0
 
     array = []
@@ -561,18 +669,6 @@ module Enumerable
     array
   end
 
-  def to_a(*arg)
-    ary = []
-    each(*arg) do
-      o = Rubinius.single_block_arg
-      ary << o
-      nil
-    end
-    ary
-  end
-
-  alias_method :entries, :to_a
-
   def include?(obj)
     each { return true if Rubinius.single_block_arg == obj }
     false
@@ -580,22 +676,4 @@ module Enumerable
 
   alias_method :member?, :include?
 
-  def zip(*args)
-    args.map! { |a| a.to_a }
-
-    results = []
-    i = 0
-    each do
-      o = Rubinius.single_block_arg
-      entry = args.inject([o]) { |ary, a| ary << a[i] }
-
-      yield entry if block_given?
-
-      results << entry
-      i += 1
-    end
-
-    return nil if block_given?
-    results
-  end
 end

@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 #
 # This is the beginning of loading Ruby code. At this point, the VM
 # is bootstrapped and the fundamental data structures, primitive
@@ -246,6 +244,13 @@ end
 # See kernel/bootstrap/rubinius.rb
 #
 module Rubinius
+
+  module Runtime
+    def self.dup_as_array(obj)
+      Rubinius.primitive :array_dup_as_array
+      raise PrimitiveFailure, "Rubinius::Runtime.dup_as_array primitive failed"
+    end
+  end
 
   # Executable abstraction for accessors.
   #
@@ -563,6 +568,20 @@ class Module
     attr_reader(name)
     attr_writer(name)
     nil
+  end
+
+  # :internal:
+  #
+  # Basic version used in kernel code.
+  # Cannot be used as a toggle, and only
+  # takes a single method name.
+  #
+  # Redefined in kernel/delta/module.rb.
+  #
+  def public(name)
+    if entry = @method_table.lookup(name)
+      entry.visibility = :public
+    end
   end
 
   # :internal:

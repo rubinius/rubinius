@@ -80,6 +80,8 @@ class Rubinius::Backtrace
 
     str = ""
     lines.each do |recv, location, rec_times|
+      next unless location
+
       pos  = location.position(Dir.getwd)
       color = show_color ? color_from_loc(pos, first) : ""
       first = false # special handling for first line

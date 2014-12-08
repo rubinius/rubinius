@@ -21,15 +21,7 @@ module Rubinius
     alias_method :activate, :call
 
     def arity
-      if @method.respond_to? :arity
-        @method.arity
-      else
-        0
-      end
-    end
-
-    def source_location
-      @receiver.source_location
+      @receiver.arity
     end
   end
 end

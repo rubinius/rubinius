@@ -38,7 +38,7 @@ continuation.rbc
 delegated_method.rbc
 fixnum.rbc
 dir.rbc
-lrucache.rbc
+lru_cache.rbc
 dir_glob.rbc
 env.rbc
 errno.rbc
@@ -47,7 +47,7 @@ false.rbc
 fiber.rbc
 io.rbc
 file.rbc
-filetest.rbc
+file_test.rbc
 stat.rbc
 float.rbc
 immediate.rbc
@@ -57,6 +57,7 @@ main.rbc
 marshal.rbc
 math.rbc
 method.rbc
+method_equality.rbc
 method_table.rbc
 native_method.rbc
 nil.rbc
@@ -65,6 +66,7 @@ string.rbc
 range.rbc
 struct.rbc
 process.rbc
+process_mirror.rbc
 random.rbc
 regexp.rbc
 signal.rbc

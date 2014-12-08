@@ -35,6 +35,16 @@ module Rubinius
     # Lazy initialized hash map used for flip-flops
     attr_accessor :flip_flops
 
+    def const_defined?(name, search_parents=true)
+      scope = self
+      while scope and scope.module != Object
+        return true if scope.module.const_defined?(name)
+        scope = scope.parent
+      end
+
+      return Object.const_defined?(name)
+    end
+
     def inspect
       current = " current=#{@current_module}" if @current_module
       "#<#{self.class.name}:0x#{self.object_id.to_s(16)} parent=#{@parent.inspect} module=#{@module}#{current}>"
@@ -121,16 +131,6 @@ module Rubinius
       end
 
       return nil
-    end
-
-    def const_defined?(name)
-      scope = self
-      while scope and scope.module != Object
-        return true if scope.module.const_defined?(name)
-        scope = scope.parent
-      end
-
-      return Object.const_defined?(name)
     end
 
     def current_script

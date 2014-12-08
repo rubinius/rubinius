@@ -6,26 +6,25 @@ module Rubinius
     include Enumerable
     include Rubinius::EnvironmentAccess
 
+    def [](key)
+      value = getenv(StringValue(key))
+      value.freeze if value
+      value
+    end
+
     def []=(key, value)
       key = StringValue(key)
       if value.nil?
         unsetenv(key)
       else
-        setenv key, StringValue(value), 1
+        if setenv(key, StringValue(value), 1) != 0
+          Errno.handle("setenv")
+        end
       end
       value
     end
 
     alias_method :store, :[]=
-
-    def [](key)
-      value = getenv(StringValue(key))
-      if value
-        value = set_encoding value
-        value.freeze
-      end
-      value
-    end
 
     def each_key
       return to_enum(:each_key) unless block_given?
@@ -54,9 +53,6 @@ module Rubinius
         value.taint if value
         key.taint if key
 
-        key = set_encoding key
-        value = set_encoding value
-
         yield key, value
 
         offset += ptr_size
@@ -84,6 +80,16 @@ module Rubinius
       self
     end
 
+    def include?(key)
+      !self[key].nil?
+    end
+
+    alias_method :has_key?, :include?
+    alias_method :key?, :include?
+
+    # More efficient than using the one from Enumerable
+    alias_method :member?, :include?
+
     def fetch(key, absent=undefined)
       if block_given? and !undefined.equal?(absent)
         warn "block supersedes default value argument"
@@ -101,15 +107,6 @@ module Rubinius
 
       return absent
     end
-
-    def include?(key)
-      !self[key].nil?
-    end
-
-    alias_method :has_key?, :include?
-    alias_method :key?, :include?
-    # More efficient than using the one from Enumerable
-    alias_method :member?, :include?
 
     def to_s
       "ENV"
@@ -230,17 +227,8 @@ module Rubinius
 
       delete key
 
-      key = set_encoding key
-      value = set_encoding value
-
       return [key, value]
     end
-
-    def set_encoding(value)
-      value
-    end
-
-    private :set_encoding
 
     def to_a
       ary = []
@@ -261,7 +249,5 @@ module Rubinius
         other.each { |k, v| self[k] = v }
       end
     end
-
-    # Missing and deprecated: indexes, indices
   end
 end

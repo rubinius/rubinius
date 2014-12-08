@@ -48,8 +48,8 @@ module Kernel
     Rubinius::Type.object_singleton_class self
   end
 
-  def extend(*mods)
-    Rubinius::Type.object_singleton_class(self).include(*mods)
+  def extend(mod)
+    Rubinius::Type.object_singleton_class(self).include(mod)
     self
   end
 

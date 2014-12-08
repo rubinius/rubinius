@@ -91,6 +91,9 @@ module FFI
     # In the first form, +c_name+ will also be used for the name of the module
     # method. In the second form, the module method name is +mod_name+.
     #
+    # In either form, an optional options hash will be accepted as an
+    # additional argument, although currently all options are ignored.
+    #
     # The +c_name+ and +mod_name+ can be given as Strings or Symbols.
     #
     # The types of the arguments to the C function, +c_arg1+, +c_arg2+, etc, are
@@ -98,24 +101,15 @@ module FFI
     #
     # The final argument, +ret+, is the type of the return value from the C
     # function.
-    def attach_function(name, a3, a4, a5=nil)
-      if a5
-        cname = a3.to_s
-        if a3.kind_of? Pointer
-          cname = a3
-          int_name = name.to_sym
-        else
-          cname = a3.to_s
-          int_name = cname.to_sym
-        end
-
-        args = a4
-        ret = a5
-      else
-        cname = name.to_s
-        int_name = cname.to_sym
+    def attach_function(name, a2, a3, a4=nil, a5=nil)
+      if a4 && (a2.kind_of?(String) || a2.kind_of?(Symbol))
+        cname = a2.to_s
         args = a3
         ret = a4
+      else
+        cname = name.to_s
+        args = a2
+        ret = a3
       end
 
       mname = name.to_sym
@@ -344,44 +338,32 @@ module FFI
       # Accept nil and check for ruby-ffi API compat
       flags ||= RTLD_LAZY | RTLD_GLOBAL
 
-      if name
-        @name = name
-        @handle = DynamicLibrary.open_library name, flags
-
-        unless @handle
-          orig_error = last_error
-
-          # Try with suffixes
-          FFI::LIB_SUFFIXES.detect do |suffix|
-            @name = "#{name}.#{suffix}"
-            @handle = DynamicLibrary.open_library @name, flags
-          end
-
-          # Try with a prefix
-          unless @handle
-            FFI::LIB_SUFFIXES.detect do |suffix|
-              @name = "lib#{name}"
-              @handle = DynamicLibrary.open_library @name, flags
-            end
-          end
-
-          # Try with suffixes and a prefix
-          unless @handle
-            FFI::LIB_SUFFIXES.detect do |suffix|
-              @name = "lib#{name}.#{suffix}"
-              @handle = DynamicLibrary.open_library @name, flags
-            end
-          end
-
-          unless @handle
-            orig_error = orig_error.split("\n").first
-            # API Compat. LoadError is wrong here.
-            raise LoadError, "Could not open library #{name} - #{orig_error}"
-          end
-        end
-      else
+      unless name
         @name = "[current process]"
         @handle = FFI::Pointer::CURRENT_PROCESS
+        return
+      end
+
+      @name = name
+      @handle = DynamicLibrary.open_library name, flags
+
+      unless @handle
+        orig_error = last_error
+
+        libnames = FFI::LIB_SUFFIXES.map {|suffix| "#{name}.#{suffix}" }
+        libnames << "lib#{name}"
+        libnames += FFI::LIB_SUFFIXES.map {|suffix| "lib#{name}.#{suffix}" }
+
+        libnames.detect do |libname|
+          @name = libname
+          @handle = DynamicLibrary.open_library libname, flags
+        end
+      end
+
+      unless @handle
+        orig_error = orig_error.split("\n").first
+        # API Compat. LoadError is wrong here.
+        raise LoadError, "Could not open library #{name} - #{orig_error}"
       end
     end
 
