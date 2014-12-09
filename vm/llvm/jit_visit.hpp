@@ -2885,15 +2885,7 @@ use_send:
     }
 
     void visit_goto_if_nil(opcode ip) {
-      Value* value = stack_pop();
-      Value* i = b().CreatePtrToInt(
-          value, ctx_->IntPtrTy, "as_int");
-
-      Value* anded = b().CreateAnd(i,
-          clong(FALSE_MASK), "and");
-
-      Value* cmp = b().CreateICmpEQ(anded,
-          clong(reinterpret_cast<long>(cNil)), "is_nil");
+      Value* cmp = b().CreateICmpEQ(stack_pop(), constant(cNil), "is_nil");
 
       BasicBlock* cont = new_block("continue");
       BasicBlock* bb = block_map_[ip].block;
@@ -2904,15 +2896,7 @@ use_send:
     }
 
     void visit_goto_if_not_nil(opcode ip) {
-      Value* value = stack_pop();
-      Value* i = b().CreatePtrToInt(
-          value, ctx_->IntPtrTy, "as_int");
-
-      Value* anded = b().CreateAnd(i,
-          clong(FALSE_MASK), "and");
-
-      Value* cmp = b().CreateICmpNE(anded,
-          clong(reinterpret_cast<long>(cNil)), "is_not_nil");
+      Value* cmp = b().CreateICmpNE(stack_pop(), constant(cNil), "is_not_nil");
 
       BasicBlock* cont = new_block("continue");
       BasicBlock* bb = block_map_[ip].block;
