@@ -316,7 +316,6 @@ public:
     Root r(roots, mature);
 
     om.collect_mature(state, gc_data);
-    om.wait_for_mature_marker(state);
     // marker thread cleans up gc_data
     gc_data = NULL;
 
@@ -340,7 +339,6 @@ public:
     Root r(roots, young);
 
     om.collect_mature(state, gc_data);
-    om.wait_for_mature_marker(state);
     gc_data = NULL;
 
     TS_ASSERT(young->marked_p(mark));
@@ -365,7 +363,6 @@ public:
     Root r(roots, young);
 
     om.collect_mature(state, gc_data);
-    om.wait_for_mature_marker(state);
     gc_data = NULL;
 
     mature = as<Tuple>(young->field[0]);

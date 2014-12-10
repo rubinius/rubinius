@@ -29,7 +29,7 @@ public:
   }
 
   void tearDown() {
-    delete args;
+    delete[] args;
     destroy();
   }
 

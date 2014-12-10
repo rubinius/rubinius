@@ -19,7 +19,7 @@ class TestFixnum : public CxxTest::TestSuite, public VMTest {
   }
 
   void test_init() {
-#ifdef IS_X8664
+#ifdef IS_64BIT_ARCH
     size_t max_size =  4611686018427387903U;
     size_t min_size = -4611686018427387903U;
 #else

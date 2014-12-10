@@ -6,6 +6,7 @@
 #include "vm/object_utils.hpp"
 #include "object_memory.hpp"
 #include "configuration.hpp"
+#include "metrics.hpp"
 #include "vm/detection.hpp"
 
 #include <cxxtest/TestSuite.h>
@@ -23,6 +24,7 @@ public:
     config_parser = new ConfigParser;
     shared = new SharedState(0, config, *config_parser);
     VM* vm = shared->new_vm();
+    vm->metrics()->init(metrics::eRubyMetrics);
     vm->initialize_as_root();
     state = new State(vm);
   }
