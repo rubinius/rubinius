@@ -637,7 +637,8 @@ remember:
     BasicBlock* entry = work.setup_inline(recv(), blk, args);
 
     if(!work.generate_body()) {
-      rubinius::bug("LLVM failed to compile a function");
+      ctx_->set_failure();
+      return;
     }
 
     // Branch to the inlined method!
@@ -689,7 +690,8 @@ remember:
         ops_.constant(cNil, ops_.context()->ptr_type("Module")), args);
 
     if(!work.generate_body()) {
-      rubinius::bug("LLVM failed to compile a function");
+      ctx_->set_failure();
+      return;
     }
 
     // Branch to the inlined block!
@@ -721,7 +723,7 @@ remember:
 
       case RBX_FFI_TYPE_LONG:
       case RBX_FFI_TYPE_ULONG:
-#ifdef IS_X8664
+#ifdef IS_64BIT_ARCH
         return ops_.context()->Int64Ty;
 #else
         return ops_.context()->Int32Ty;
@@ -922,7 +924,8 @@ remember:
       }
 
       default:
-        rubinius::bug("Unknown FFI type in JIT FFI inliner");
+        ctx_->set_failure();
+        return false;
       }
     }
 
@@ -954,7 +957,7 @@ remember:
     case RBX_FFI_TYPE_USHORT:
     case RBX_FFI_TYPE_INT:
     case RBX_FFI_TYPE_UINT:
-#ifndef IS_X8664
+#ifndef IS_64BIT_ARCH
     case RBX_FFI_TYPE_LONG:
     case RBX_FFI_TYPE_ULONG:
 #endif
@@ -973,7 +976,7 @@ remember:
 
     case RBX_FFI_TYPE_LONG_LONG:
     case RBX_FFI_TYPE_ULONG_LONG:
-#ifdef IS_X8664
+#ifdef IS_64BIT_ARCH
     case RBX_FFI_TYPE_LONG:
     case RBX_FFI_TYPE_ULONG:
 #endif
@@ -1043,7 +1046,8 @@ remember:
 
     default:
       result = 0;
-      rubinius::bug("Invalid FFI type in JIT");
+      ctx_->set_failure();
+      return false;
     }
 
     exception_safe();

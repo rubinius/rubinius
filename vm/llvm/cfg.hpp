@@ -149,6 +149,12 @@ namespace jit {
         case InstructionSequence::insn_goto:
         case InstructionSequence::insn_goto_if_true:
         case InstructionSequence::insn_goto_if_false:
+        case InstructionSequence::insn_goto_if_nil:
+        case InstructionSequence::insn_goto_if_not_nil:
+        case InstructionSequence::insn_goto_if_undefined:
+        case InstructionSequence::insn_goto_if_not_undefined:
+        case InstructionSequence::insn_goto_if_equal:
+        case InstructionSequence::insn_goto_if_not_equal:
           if(iter.operand1() < iter.position()) {
             if(!find_block(iter.operand1())) {
               CFGBlock* blk = new CFGBlock(iter.operand1(), true);
@@ -208,6 +214,12 @@ namespace jit {
         case InstructionSequence::insn_goto:
         case InstructionSequence::insn_goto_if_true:
         case InstructionSequence::insn_goto_if_false:
+        case InstructionSequence::insn_goto_if_nil:
+        case InstructionSequence::insn_goto_if_not_nil:
+        case InstructionSequence::insn_goto_if_undefined:
+        case InstructionSequence::insn_goto_if_not_undefined:
+        case InstructionSequence::insn_goto_if_equal:
+        case InstructionSequence::insn_goto_if_not_equal:
           if(iter.operand1() > iter.position()) {
             current_->add_child(add_block(iter.operand1()));
           } else {

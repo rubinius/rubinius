@@ -2,6 +2,8 @@ namespace rubinius {
   class OpcodeIterator {
     MachineCode* machine_code_;
 
+    bool valid_;
+
     opcode ip_;
     int width_;
 
@@ -34,7 +36,7 @@ namespace rubinius {
 #undef HANDLE_INST2
 
       default:
-        rubinius::bug("Unknown opcode");
+        valid_ = false;
       }
     }
 
@@ -44,6 +46,7 @@ namespace rubinius {
   public:
     OpcodeIterator(MachineCode* mcode, int ip=0)
       : machine_code_(mcode)
+      , valid_(true)
       , ip_(ip)
       , width_(0)
     {
@@ -52,6 +55,10 @@ namespace rubinius {
 
     opcode* stream() {
       return machine_code_->opcodes;
+    }
+
+    bool valid_p() {
+      return valid_;
     }
 
     opcode ip() {
@@ -112,6 +119,12 @@ namespace rubinius {
       case insn_goto:
       case insn_goto_if_true:
       case insn_goto_if_false:
+      case insn_goto_if_nil:
+      case insn_goto_if_not_nil:
+      case insn_goto_if_undefined:
+      case insn_goto_if_not_undefined:
+      case insn_goto_if_equal:
+      case insn_goto_if_not_equal:
       case insn_setup_unwind:
         return true;
       default:

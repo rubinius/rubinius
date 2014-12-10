@@ -36,6 +36,7 @@ namespace rubinius {
   Context::Context(LLVMState* ls)
     : ls_(ls)
     , root_info_(0)
+    , success_(true)
     , inlined_block_(false)
     , inline_depth_(0)
     , rds_(new jit::RuntimeDataHolder)
@@ -52,7 +53,7 @@ namespace rubinius {
     Int32Ty = Type::getInt32Ty(ctx_);
     Int64Ty = Type::getInt64Ty(ctx_);
 
-#ifdef IS_X8664
+#ifdef IS_64BIT_ARCH
     IntPtrTy = Int64Ty;
 #else
     IntPtrTy = Int32Ty;
@@ -107,7 +108,10 @@ namespace rubinius {
     builder_->OptLevel = 2;
     passes_ = new llvm::FunctionPassManager(module_);
 
-#if RBX_LLVM_API_VER >= 302
+#if RBX_LLVM_API_VER >= 305
+    module_->setDataLayout(engine_->getDataLayout()->getStringRepresentation());
+    passes_->add(new llvm::DataLayoutPass(module_));
+#elif RBX_LLVM_API_VER >= 302
     module_->setDataLayout(engine_->getDataLayout()->getStringRepresentation());
     passes_->add(new llvm::DataLayout(*engine_->getDataLayout()));
 #else

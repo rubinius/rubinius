@@ -7,6 +7,7 @@
 #include "builtin/constant_scope.hpp"
 #include "builtin/module.hpp"
 #include "builtin/block_environment.hpp"
+#include "builtin/jit.hpp"
 #include "field_offset.hpp"
 
 #include "call_frame.hpp"
@@ -21,14 +22,19 @@
 #else
 #include <llvm/Target/TargetData.h>
 #endif
+#if RBX_LLVM_API_VER >= 305
+#include <llvm/IR/Verifier.h>
+#include <llvm/IR/CFG.h>
+#else
 #include <llvm/Analysis/Verifier.h>
-#include <llvm/Transforms/Scalar.h>
+#include <llvm/Support/CFG.h>
+#endif
 #if RBX_LLVM_API_VER >= 303
 #include <llvm/IR/CallingConv.h>
 #else
 #include <llvm/CallingConv.h>
 #endif
-#include <llvm/Support/CFG.h>
+#include <llvm/Transforms/Scalar.h>
 #include <llvm/Analysis/Passes.h>
 
 #include <llvm/Target/TargetOptions.h>
@@ -41,7 +47,6 @@
 #include "llvm/jit_compiler.hpp"
 #include "llvm/jit_method.hpp"
 #include "llvm/jit_block.hpp"
-#include "llvm/background_compile_request.hpp"
 
 #include "llvm/method_info.hpp"
 
@@ -62,7 +67,7 @@ namespace jit {
     if(!mci_) {
       if(!function_) return NULL;
 
-      if(indy) ctx_->llvm_state()->gc_independent();
+      if(indy) ctx_->llvm_state()->shared().gc_independent(ctx_->llvm_state()->vm());
       if(ctx_->llvm_state()->jit_dump_code() & cSimple) {
         llvm::outs() << "[[[ LLVM Simple IR: " << function_->getName() << " ]]]\n";
         llvm::outs() << *function_ << "\n";
@@ -97,13 +102,17 @@ namespace jit {
         (*i)->eraseFromParent();
       }
 
+#if RBX_LLVM_API_VER >= 305
+      if(Broken or llvm::verifyFunction(*function_, &llvm::outs())) {
+#else
       if(Broken or llvm::verifyFunction(*function_, PrintMessageAction)) {
-        llvm::outs() << "ERROR: complication error detected.\n";
+#endif
+        llvm::outs() << "ERROR: compilation error detected.\n";
         llvm::outs() << "ERROR: Please report the above message and the\n";
         llvm::outs() << "       code below to http://github.com/rubinius/rubinius/issues\n";
         llvm::outs() << *function_ << "\n";
         function_ = NULL;
-        if(indy) ctx_->llvm_state()->gc_dependent();
+        if(indy) ctx_->llvm_state()->shared().gc_dependent(ctx_->llvm_state()->vm());
         return NULL;
       }
 
@@ -124,7 +133,7 @@ namespace jit {
         function_->dropAllReferences();
       }
 
-      if(indy) ctx_->llvm_state()->gc_dependent();
+      if(indy) ctx_->llvm_state()->shared().gc_dependent(ctx_->llvm_state()->vm());
 
       ctx_->llvm_state()->add_code_bytes(mci_->size());
       // Inject the RuntimeData objects used into the original CompiledCode
@@ -142,7 +151,7 @@ namespace jit {
     return mci_->address();
   }
 
-  void Compiler::compile(BackgroundCompileRequest* req) {
+  void Compiler::compile(JITCompileRequest* req) {
     if(req->is_block()) {
       compile_block(req);
     } else {
@@ -150,7 +159,7 @@ namespace jit {
     }
   }
 
-  void Compiler::compile_block(BackgroundCompileRequest* req) {
+  void Compiler::compile_block(JITCompileRequest* req) {
 
     CompiledCode* code = req->method();
     MachineCode* mcode = req->machine_code();
@@ -170,9 +179,14 @@ namespace jit {
 
 #ifdef HAVE_DTRACE
     if(RUBINIUS_JIT_FUNCTION_BEGIN_ENABLED()) {
-      const char* class_name = ctx_->llvm_state()->enclosure_name(code).c_str();
-      const char* method_name = "<block>";
-      const char* file_name = ctx_->llvm_state()->symbol_debug_str(code->file()).c_str();
+      RBX_DTRACE_CONST char* class_name =
+          const_cast<RBX_DTRACE_CONST char*>(
+              ctx_->llvm_state()->enclosure_name(code).c_str());
+      RBX_DTRACE_CONST char* method_name =
+          const_cast<RBX_DTRACE_CONST char*>("<block>");
+      RBX_DTRACE_CONST char* file_name =
+          const_cast<RBX_DTRACE_CONST char*>(
+              ctx_->llvm_state()->symbol_debug_str(code->file()).c_str());
       int line = code->start_line();
       RUBINIUS_JIT_FUNCTION_BEGIN(class_name, method_name, file_name, line);
     }
@@ -196,16 +210,21 @@ namespace jit {
 
 #ifdef HAVE_DTRACE
     if(RUBINIUS_JIT_FUNCTION_END_ENABLED()) {
-      const char* class_name = ctx_->llvm_state()->enclosure_name(code).c_str();
-      const char* method_name = "<block>";
-      const char* file_name = ctx_->llvm_state()->symbol_debug_str(code->file()).c_str();
+      RBX_DTRACE_CONST char* class_name =
+          const_cast<RBX_DTRACE_CONST char*>(
+              ctx_->llvm_state()->enclosure_name(code).c_str());
+      RBX_DTRACE_CONST char* method_name =
+          const_cast<RBX_DTRACE_CONST char*>("<block>");
+      RBX_DTRACE_CONST char* file_name =
+          const_cast<RBX_DTRACE_CONST char*>(
+              ctx_->llvm_state()->symbol_debug_str(code->file()).c_str());
       int line = code->start_line();
       RUBINIUS_JIT_FUNCTION_END(class_name, method_name, file_name, line);
     }
 #endif
   }
 
-  void Compiler::compile_method(BackgroundCompileRequest* req) {
+  void Compiler::compile_method(JITCompileRequest* req) {
     CompiledCode* code = req->method();
 
     if(ctx_->llvm_state()->config().jit_inline_debug) {
@@ -221,9 +240,15 @@ namespace jit {
 
 #ifdef HAVE_DTRACE
     if(RUBINIUS_JIT_FUNCTION_BEGIN_ENABLED()) {
-      const char* class_name = ctx_->llvm_state()->enclosure_name(code).c_str();
-      const char* method_name = ctx_->llvm_state()->symbol_debug_str(code->name()).c_str();
-      const char* file_name = ctx_->llvm_state()->symbol_debug_str(code->file()).c_str();
+      RBX_DTRACE_CONST char* class_name =
+          const_cast<RBX_DTRACE_CONST char*>(
+              ctx_->llvm_state()->enclosure_name(code).c_str());
+      RBX_DTRACE_CONST char* method_name =
+          const_cast<RBX_DTRACE_CONST char*>(
+              ctx_->llvm_state()->symbol_debug_str(code->name()).c_str());
+      RBX_DTRACE_CONST char* file_name =
+          const_cast<RBX_DTRACE_CONST char*>(
+              ctx_->llvm_state()->symbol_debug_str(code->file()).c_str());
       int line = code->start_line();
       RUBINIUS_JIT_FUNCTION_BEGIN(class_name, method_name, file_name, line);
     }
@@ -247,9 +272,15 @@ namespace jit {
 
 #ifdef HAVE_DTRACE
     if(RUBINIUS_JIT_FUNCTION_END_ENABLED()) {
-      const char* class_name = ctx_->llvm_state()->enclosure_name(code).c_str();
-      const char* method_name = ctx_->llvm_state()->symbol_debug_str(code->name()).c_str();
-      const char* file_name = ctx_->llvm_state()->symbol_debug_str(code->file()).c_str();
+      RBX_DTRACE_CONST char* class_name =
+          const_cast<RBX_DTRACE_CONST char*>(
+              ctx_->llvm_state()->enclosure_name(code).c_str());
+      RBX_DTRACE_CONST char* method_name =
+          const_cast<RBX_DTRACE_CONST char*>(
+              ctx_->llvm_state()->symbol_debug_str(code->name()).c_str());
+      RBX_DTRACE_CONST char* file_name =
+          const_cast<RBX_DTRACE_CONST char*>(
+              ctx_->llvm_state()->symbol_debug_str(code->file()).c_str());
       int line = code->start_line();
       RUBINIUS_JIT_FUNCTION_END(class_name, method_name, file_name, line);
     }
@@ -262,6 +293,7 @@ namespace jit {
     function_ = info.function();
 
     if(!work.generate_body()) {
+      ctx_->set_failure();
       function_ = NULL;
       // This is too noisy to report
       // llvm::outs() << "not supported yet.\n";

@@ -8,23 +8,24 @@
 #else
 #include <llvm/Target/TargetData.h>
 #endif
-// #include <llvm/LinkAllPasses.h>
+#if RBX_LLVM_API_VER >= 305
+#include <llvm/IR/Verifier.h>
+#include <llvm/IR/CFG.h>
+#else
 #include <llvm/Analysis/Verifier.h>
-#include <llvm/Transforms/Scalar.h>
+#include <llvm/Support/CFG.h>
+#endif
 #if RBX_LLVM_API_VER >= 303
 #include <llvm/IR/CallingConv.h>
-#else
-#include <llvm/CallingConv.h>
-#endif
-#include <llvm/Support/CFG.h>
-#include <llvm/Analysis/Passes.h>
-
-#include <llvm/Target/TargetOptions.h>
-#if RBX_LLVM_API_VER >= 303
 #include <llvm/IR/Module.h>
 #else
+#include <llvm/CallingConv.h>
 #include <llvm/Module.h>
 #endif
+#include <llvm/Transforms/Scalar.h>
+#include <llvm/Analysis/Passes.h>
+// #include <llvm/LinkAllPasses.h>
+#include <llvm/Target/TargetOptions.h>
 
 using namespace llvm;
 
@@ -38,7 +39,7 @@ namespace llvm {
 #endif
 
 namespace autogen_types {
-#ifdef IS_X8664
+#ifdef IS_64BIT_ARCH
 #include "llvm/types64.cpp.gen"
 #else
 #include "llvm/types32.cpp.gen"

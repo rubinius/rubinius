@@ -11,7 +11,9 @@
 
 #include "instruments/tooling.hpp"
 #include <llvm/Analysis/CaptureTracking.h>
-#if RBX_LLVM_API_VER > 301
+#if RBX_LLVM_API_VER > 304
+#include <llvm/IR/DebugInfo.h>
+#elif RBX_LLVM_API_VER > 301
 #include <llvm/DebugInfo.h>
 #else
 #include <llvm/Analysis/DebugInfo.h>
@@ -365,7 +367,42 @@ namespace jit {
       break_at(current_ip_ + 2);
     }
 
-    void visit_goto_if_defined(opcode which) {
+    void visit_goto_if_nil(opcode which) {
+      if(current_ip_ < which) loops_ = true;
+
+      break_at(which);
+      break_at(current_ip_ + 2);
+    }
+
+    void visit_goto_if_not_nil(opcode which) {
+      if(current_ip_ < which) loops_ = true;
+
+      break_at(which);
+      break_at(current_ip_ + 2);
+    }
+
+    void visit_goto_if_undefined(opcode which) {
+      if(current_ip_ < which) loops_ = true;
+
+      break_at(which);
+      break_at(current_ip_ + 2);
+    }
+
+    void visit_goto_if_not_undefined(opcode which) {
+      if(current_ip_ < which) loops_ = true;
+
+      break_at(which);
+      break_at(current_ip_ + 2);
+    }
+
+    void visit_goto_if_equal(opcode which) {
+      if(current_ip_ < which) loops_ = true;
+
+      break_at(which);
+      break_at(current_ip_ + 2);
+    }
+
+    void visit_goto_if_not_equal(opcode which) {
       if(current_ip_ < which) loops_ = true;
 
       break_at(which);
@@ -486,15 +523,26 @@ namespace jit {
     JITVisit& v_;
     BlockMap& map_;
     Builder& builder_;
+    bool valid_;
 
   public:
     Walker(JITVisit& v, BlockMap& map, Builder& builder)
       : v_(v)
       , map_(map)
       , builder_(builder)
+      , valid_(true)
     {}
 
+    bool valid_p() {
+      return valid_;
+    }
+
     void call(OpcodeIterator& iter) {
+      if(!iter.valid_p()) {
+        valid_ = false;
+        return;
+      }
+
       builder_.set_current_location(iter.ip());
       v_.dispatch(iter.ip());
 
@@ -534,7 +582,12 @@ namespace jit {
 
     try {
       walker.run<Walker>(cb);
+      if(!walker.valid_p()) {
+        ctx_->set_failure();
+        return false;
+      }
     } catch(JITVisit::Unsupported &e) {
+      ctx_->set_failure();
       return false;
     }
 

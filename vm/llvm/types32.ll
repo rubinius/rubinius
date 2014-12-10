@@ -243,8 +243,9 @@ declare void @outputClass(%"struct.rubinius::Class"*)
                    %"struct.rubinius::Tuple"*, ; local_names
                   %"struct.rubinius::Symbol"*, ; file
            %"struct.rubinius::ConstantScope"*, ; scope
+                  %"struct.rubinius::Fixnum"*, ; arity
              %"struct.rubinius::LookupTable"*, ; breakpoints
-                %"struct.rubinius::MachineCode"*, ; machine_code
+             %"struct.rubinius::MachineCode"*, ; machine_code
   %"struct.rubinius::jit::RuntimeDataHolder"*, ; jit_data
                    %"struct.rubinius::Tuple"*  ; literals
 }

@@ -34,7 +34,7 @@ namespace jit {
        << ctx_->llvm_state()->enclosure_name(info_.method())
        << "#"
        << ctx_->llvm_state()->symbol_debug_str(info_.method()->name())
-       << "@" << ctx_->llvm_state()->add_jitted_method();
+       << "k@" << ++ctx_->llvm_state()->vm()->metrics()->m.jit_metrics.methods_compiled;
 
     llvm::Function* func = Function::Create(ft, GlobalValue::ExternalLinkage,
                             ss.str(), ctx_->module());
@@ -47,9 +47,9 @@ namespace jit {
     llvm::Value* args = ai++; args->setName("args");
 
     BasicBlock* block = BasicBlock::Create(ctx_->llvm_context(), "entry", func);
-    builder_.SetInsertPoint(block);
+    b().SetInsertPoint(block);
 
-    info_.context()->set_function(func);
+    ctx_->set_function(func);
 
     info_.set_state(state);
     info_.set_args(args);
