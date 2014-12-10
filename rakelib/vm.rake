@@ -76,9 +76,11 @@ field_extract_headers = %w[
   vm/builtin/dir.hpp
   vm/builtin/exception.hpp
   vm/builtin/float.hpp
+  vm/builtin/fsevent.hpp
   vm/builtin/immediates.hpp
   vm/builtin/iseq.hpp
   vm/builtin/list.hpp
+  vm/builtin/logger.hpp
   vm/builtin/lookup_table.hpp
   vm/builtin/ffi_pointer.hpp
   vm/builtin/method_table.hpp
@@ -113,7 +115,30 @@ field_extract_headers = %w[
   vm/builtin/call_unit_adapter.hpp
   vm/builtin/atomic.hpp
   vm/builtin/thread_state.hpp
+  vm/builtin/jit.hpp
 ]
+
+transcoders_src_dir = File.expand_path "../../vendor/oniguruma/enc/trans", __FILE__
+
+libdir = "#{BUILD_CONFIG[:build_prefix]}"
+transcoders_lib_dir = "#{libdir}/#{BUILD_CONFIG[:encdir]}"
+directory transcoders_lib_dir
+
+TRANSCODING_LIBS = []
+
+Dir["#{transcoders_src_dir}/*.c"].each do |name|
+  name.sub!(/\.c$/, ".#{$dlext}")
+  target = File.join transcoders_lib_dir, File.basename(name)
+
+  task name do
+  end
+
+  file target => name do |t|
+    cp t.prerequisites.first, t.name, :preserve => true, :verbose => $verbose
+  end
+
+  TRANSCODING_LIBS << target
+end
 
 ############################################################
 # Other Tasks
@@ -121,25 +146,8 @@ field_extract_headers = %w[
 # Build options.
 namespace :build do
 
-  desc "Build LLVM"
-  task :llvm do
-    if Rubinius::BUILD_CONFIG[:llvm] == :svn
-      unless File.file?("vendor/llvm/Release/bin/llvm-config")
-        Dir.chdir "vendor/llvm" do
-          host = Rubinius::BUILD_CONFIG[:host]
-          llvm_config_flags = "--build=#{host} --host=#{host} " \
-                              "--enable-optimized --disable-assertions "\
-                              " --enable-targets=host,cpp"
-          sh %[sh -c "#{File.expand_path("./configure")} #{llvm_config_flags}"]
-          sh Rubinius::BUILD_CONFIG[:build_make]
-        end
-      end
-    end
-  end
-
   # Issue the actual build commands. NEVER USE DIRECTLY.
   task :build => %W[
-    build:llvm
     #{VM_EXE}
     compiler:generate
     stage:bin
@@ -295,9 +303,16 @@ namespace :vm do
 
   desc "Clean up vm build files"
   task :clean do
-    blueprint = Daedalus.load "rakelib/blueprint.rb"
+    begin
+      blueprint = Daedalus.load "rakelib/blueprint.rb"
+      blueprint.clean
+    rescue
+      # Ignore clean failures
+    end
+
     files = FileList[
       GENERATED,
+      'vm/dtrace/probes.o',
       'vm/gen/*',
       'vm/test/runner',
       'vm/test/runner.cpp',
@@ -317,8 +332,6 @@ namespace :vm do
     files.each do |filename|
       rm_rf filename, :verbose => $verbose
     end
-
-    blueprint.clean
   end
 
   desc "Clean up, including all external libs"

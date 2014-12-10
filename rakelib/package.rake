@@ -2,22 +2,6 @@ require 'rakelib/package'
 require 'date'
 
 namespace :package do
-  desc "Package up the LLVM build into a tar.gz"
-  task :llvm do
-    host_triple = Rubinius::BUILD_CONFIG[:host]
-    llvm_version = Rubinius::BUILD_CONFIG[:llvm_version]
-    gcc_major_version = Rubinius::BUILD_CONFIG[:gcc_major]
-    if host_triple == "i686-pc-linux-gnu" || host_triple == "x86_64-unknown-linux-gnu"
-      prebuilt_archive = "llvm-#{llvm_version}-#{host_triple}-#{gcc_major_version}.tar.bz2"
-    else
-      prebuilt_archive = "llvm-#{llvm_version}-#{host_triple}.tar.bz2"
-    end
-
-    sh "tar -c -C vendor/llvm --exclude .svn --exclude \"*.dylib\" --exclude \"*.so\" -f - Release/lib Release/bin/llvm-config include | bzip2 -9 > #{prebuilt_archive}"
-
-    write_md5_digest_file prebuilt_archive
-    write_sha1_digest_file prebuilt_archive
-  end
 
   desc "Create a release tarball from the source"
   task :tar do
@@ -54,5 +38,20 @@ namespace :package do
 
     sh "rake package:binary_builder RBX_BINARY_PACKAGE=#{heroku_package} " \
        "RBX_BINARY_PREFIX=/app/vendor/#{heroku_package}"
+  end
+
+  desc "Build a binary package for Homebrew"
+  task :homebrew do
+    version = BUILD_CONFIG[:version]
+    homebrew_package = "rubinius-#{version}"
+    prefix = "/#{homebrew_package}"
+    lib = "lib/rubinius/#{version}"
+    config = "'--bindir=#{prefix}/bin --appdir=#{prefix}/#{lib} " \
+             "--includedir=#{prefix}/include/rubinius " \
+             "--gemsdir=#{prefix}/#{lib}/gems " \
+             "--mandir=#{prefix}/man'"
+
+    sh "rake package:binary_builder RBX_BINARY_PACKAGE=#{homebrew_package} " \
+       "RBX_BINARY_CONFIG=#{config}"
   end
 end
