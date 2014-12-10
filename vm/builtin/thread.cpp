@@ -16,6 +16,7 @@
 #include "object_utils.hpp"
 #include "ontology.hpp"
 #include "on_stack.hpp"
+#include "metrics.hpp"
 
 /* HACK: returns a value that should identify a native thread
  * for debugging threading issues. The winpthreads library
@@ -50,6 +51,11 @@ namespace rubinius {
   {
     Thread* thr = state->vm()->new_object_mature<Thread>(G(thread));
 
+    if(!target) {
+      target = state->shared().new_vm();
+      target->metrics()->init(metrics::eRubyMetrics);
+    }
+
     thr->pin();
     thr->thread_id(state, Fixnum::from(target->thread_id()));
     thr->sleep(state, cFalse);
@@ -73,6 +79,9 @@ namespace rubinius {
 
     target->thread.set(thr);
 
+    state->vm()->metrics()->system_metrics.vm_threads++;
+    state->vm()->metrics()->system_metrics.vm_threads_total++;
+
     return thr;
   }
 
@@ -81,8 +90,7 @@ namespace rubinius {
   }
 
   Thread* Thread::allocate(STATE, Object* self) {
-    VM* vm = state->shared().new_vm();
-    return Thread::create(state, vm, self, send_run);
+    return Thread::create(state, NULL, self, send_run);
   }
 
   Thread* Thread::current(STATE) {
@@ -104,6 +112,21 @@ namespace rubinius {
     }
     los.clear();
     return cNil;
+  }
+
+  void Thread::unlock_after_fork(STATE, GCToken gct) {
+    unlock_object_after_fork(state, gct);
+
+    LockedObjects& los = vm_->locked_objects();
+    for(LockedObjects::iterator i = los.begin();
+        i != los.end();
+        ++i) {
+      Object* obj = static_cast<Object*>(*i);
+      if(obj && obj != this) {
+        obj->unlock_object_after_fork(state, gct);
+      }
+    }
+    los.clear();
   }
 
   Object* Thread::locals_aref(STATE, Symbol* key) {
@@ -234,7 +257,8 @@ namespace rubinius {
       thread_name = tn.str();
     }
 
-    RUBINIUS_THREAD_START(thread_name.c_str(), vm->thread_id(), 0);
+    RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CONST char*>(thread_name.c_str()),
+                          vm->thread_id(), 0);
 
     if(cDebugThreading) {
       std::cerr << "[THREAD " << vm->thread_id()
@@ -292,7 +316,8 @@ namespace rubinius {
       std::cerr << "[LOCK thread " << vm->thread_id() << " exited]\n";
     }
 
-    RUBINIUS_THREAD_STOP(thread_name.c_str(), vm->thread_id(), 0);
+    RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CONST char*>(thread_name.c_str()),
+                         vm->thread_id(), 0);
     shared.gc_independent();
     return 0;
   }

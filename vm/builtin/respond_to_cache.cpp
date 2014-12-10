@@ -50,7 +50,7 @@ namespace rubinius {
         visibility            = args.get_argument(1);
       }
 
-      register uint64_t recv_data = recv_class->data_raw();
+      uint64_t recv_data = recv_class->data_raw();
       if(likely(recv_data == cache->receiver_data_raw() && message == cache->message_ && visibility == cache->visibility_)) {
         cache->hit();
         return cache->responds_;

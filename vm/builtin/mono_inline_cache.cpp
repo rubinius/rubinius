@@ -66,7 +66,7 @@ namespace rubinius {
     MonoInlineCache* cache = reinterpret_cast<MonoInlineCache*>(call_site);
     Class* const recv_class = args.recv()->direct_class(state);
 
-    register uint64_t recv_data = recv_class->data_raw();
+    uint64_t recv_data = recv_class->data_raw();
 
     if(likely(cache->receiver_.raw == recv_data)) {
       cache->hits_++;
@@ -82,7 +82,7 @@ namespace rubinius {
 
     Class* const recv_class = args.recv()->direct_class(state);
 
-    register uint64_t recv_data = recv_class->data_raw();
+    uint64_t recv_data = recv_class->data_raw();
 
     if(likely(cache->receiver_.raw == recv_data)) {
       cache->hits_++;
@@ -96,6 +96,10 @@ namespace rubinius {
 
   void MonoInlineCache::mono_cache_updater(STATE, CallSite* call_site, Class* klass, Dispatch& dispatch) {
     MonoInlineCache* mono_cache = reinterpret_cast<MonoInlineCache*>(call_site);
+
+    if(SingletonClass* cls = try_as<SingletonClass>(klass)) {
+      if(!try_as<Class>(cls->attached_instance())) return;
+    }
 
     // If it's the same class, replace it since the old cache is
     // for an older version of the same class and we don't

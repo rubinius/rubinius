@@ -5,6 +5,7 @@
 #include "builtin/constant_scope.hpp"
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
+#include "builtin/jit.hpp"
 #include "builtin/location.hpp"
 #include "builtin/native_method.hpp"
 #include "builtin/object.hpp"
@@ -280,14 +281,11 @@ namespace rubinius {
 
 #ifdef ENABLE_LLVM
     if(mcode->call_count >= 0) {
-      if(mcode->call_count >= state->shared().config.jit_call_til_compile) {
-        LLVMState* ls = LLVMState::get(state);
-
-        GCTokenImpl gct;
+      if(mcode->call_count >= state->shared().config.jit_threshold_compile) {
         OnStack<1> os(state, env);
-        ls->compile_soon(state, gct, env->compiled_code(), previous,
-                         invocation.self->direct_class(state), env, true);
 
+        G(jit)->compile_soon(state, env->compiled_code(), previous,
+            invocation.self->direct_class(state), env, true);
       } else {
         mcode->call_count++;
       }
@@ -298,8 +296,13 @@ namespace rubinius {
 
     Module* mod = invocation.module;
     if(!mod) mod = env->module();
-    scope->initialize(invocation.self, env->top_scope_->block(),
-                      mod, mcode->number_of_locals);
+
+    Object* block = cNil;
+    if(VariableScope* scope = env->top_scope_) {
+      if(!scope->nil_p()) block = scope->block();
+    }
+
+    scope->initialize(invocation.self, block, mod, mcode->number_of_locals);
     scope->set_parent(env->scope_);
 
     InterpreterCallFrame* frame = ALLOCA_CALLFRAME(mcode->stack_size);
@@ -316,6 +319,17 @@ namespace rubinius {
     frame->top_scope_ = env->top_scope_;
     frame->flags = invocation.flags | CallFrame::cMultipleScopes
                                     | CallFrame::cBlock;
+
+    if(!GenericArguments::call(state, frame, mcode, scope, args, invocation.flags)) {
+      if(state->vm()->thread_state()->raise_reason() == cNone) {
+        Exception* exc =
+          Exception::make_argument_error(state, mcode->required_args, args.total(),
+                                         mcode->name());
+        exc->locations(state, Location::from_call_stack(state, previous));
+        state->raise_exception(exc);
+      }
+      return NULL;
+    }
 
 #ifdef RBX_PROFILER
     if(unlikely(state->vm()->tooling())) {

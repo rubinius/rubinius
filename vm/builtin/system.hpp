@@ -58,8 +58,11 @@ namespace rubinius {
     // Rubinius.primitive :vm_exec
     static Object*  vm_exec(STATE, String* path, Array* args, CallFrame* calling_environment);
 
-    // Rubinius.primitive :vm_replace
-    static Object*  vm_replace(STATE, String* str, CallFrame* calling_environment);
+    // Rubinius.primitive :vm_spawn
+    static Object*  vm_spawn(STATE, GCToken gct, Object* pstate, String* path, Array* args, CallFrame* calling_environment);
+
+    // Rubinius.primitive :vm_backtick
+    static Object*  vm_backtick(STATE, GCToken gct, String* str, CallFrame* calling_environment);
 
     // Rubinius.primitive :vm_wait_pid
     static Object*  vm_wait_pid(STATE, Fixnum* pid, Object* no_hang, CallFrame* calling_environment);
@@ -79,34 +82,6 @@ namespace rubinius {
      */
     // Rubinius.primitive :vm_gc_start
     static Object*  vm_gc_start(STATE, GCToken gct, Object* force, CallFrame* calling_environment);
-
-    /**
-     *  Retrieve the number of garbage collections
-     *
-     */
-    // Rubinius.primitive+ :vm_gc_count
-    static Integer*  vm_gc_count(STATE);
-
-    /**
-     *  Retrieve the amount of memory allocated by the gc
-     *
-     */
-    // Rubinius.primitive+ :vm_gc_size
-    static Integer*  vm_gc_size(STATE);
-
-    /**
-     *  Retrieve the total time spent garbage collecting
-     *
-     */
-    // Rubinius.primitive+ :vm_gc_time
-    static Integer*  vm_gc_time(STATE);
-
-    /**
-     *  Retrieve object memory and garbage collection metrics.
-     *
-     */
-    // Rubinius.primitive+ :vm_gc_stat
-    static Tuple* vm_gc_stat(STATE, Object* stats);
 
     /**
      *  Retrieve a value from VM configuration.
@@ -176,12 +151,6 @@ namespace rubinius {
      */
     // Rubinius.primitive :vm_write_error
     static Object*  vm_write_error(STATE, String* str);
-
-    /**
-     *  Returns information about how the JIT is working.
-     */
-    // Rubinius.primitive :vm_jit_info
-    static Object*  vm_jit_info(STATE);
 
     // Rubinius.primitive+ :vm_memory_size
     static Fixnum* vm_memory_size(STATE, Object* obj);
@@ -310,12 +279,6 @@ namespace rubinius {
 
     // Rubinius.primitive :vm_get_user_home
     static String* vm_get_user_home(STATE, String* name);
-
-    // Rubinius.primitive :vm_agent_start
-    static Object* vm_agent_start(STATE);
-
-    // Rubinius.primitive :vm_agent_loopback
-    static IO*     vm_agent_loopback(STATE);
 
     // Rubinius.primitive :vm_dump_heap
     static Object* vm_dump_heap(STATE, String* path);

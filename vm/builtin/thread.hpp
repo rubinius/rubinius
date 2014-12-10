@@ -232,6 +232,10 @@ namespace rubinius {
     // Rubinius.primitive :thread_unlock_locks
     Object* unlock_locks(STATE, GCToken gct, CallFrame* calling_environment);
 
+    // This method must only be called after fork() with only one active
+    // thread.
+    void unlock_after_fork(STATE, GCToken gct);
+
     /**
      * Retrieve a value store in the thread locals.
      * This is done in a primitive because it also has

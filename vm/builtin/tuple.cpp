@@ -108,14 +108,16 @@ namespace rubinius {
     return tup;
   }
 
-  Tuple* Tuple::allocate(STATE, Fixnum* fields) {
+  Tuple* Tuple::allocate(STATE, Object* self, Fixnum* fields) {
     native_int size = fields->to_native();
 
     if(size < 0) {
       Exception::argument_error(state, "negative tuple size");
     }
 
-    return create(state, fields->to_native());
+    Tuple* tuple = create(state, fields->to_native());
+    tuple->klass(state, as<Class>(self));
+    return tuple;
   }
 
   Tuple* Tuple::from(STATE, native_int fields, ...) {
@@ -287,7 +289,7 @@ namespace rubinius {
     Object** pos1 = field + start;
     Object** pos2 = field + end;
 
-    register Object* tmp;
+    Object* tmp;
     while(pos1 < pos2) {
       tmp = *pos1;
       *pos1++ = *pos2;
