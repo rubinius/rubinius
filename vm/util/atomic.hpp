@@ -17,7 +17,7 @@
 #elif defined(__APPLE__)
 #define APPLE_SYNC 1
 
-#elif defined(_LP64) || defined(__LP64__) || defined(__x86_64__) || defined(__amd64__)
+#elif (defined(_LP64) || defined(__LP64__)) && (defined(__x86_64__) || defined(__amd64__))
 #define X86_SYNC 1
 #define X86_64_SYNC 1
 
@@ -31,7 +31,7 @@
 #if (__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 4))
 #define GCC_BARRIER 1
 
-#elif defined(_LP64) || defined(__LP64__) || defined(__x86_64__) || defined(__amd64__)
+#elif (defined(_LP64) || defined(__LP64__)) && (defined(__x86_64__) || defined(__amd64__))
 #define X86_BARRIER 1
 
 #elif defined(i386) || defined(__i386) || defined(__i386__)
@@ -43,7 +43,7 @@
 
 #endif
 
-#if defined(_LP64) || defined(__LP64__) || defined(__x86_64__) || defined(__amd64__)
+#if (defined(_LP64) || defined(__LP64__)) && (defined(__x86_64__) || defined(__amd64__))
 #define X86_PAUSE 1
 
 #elif defined(i386) || defined(__i386) || defined(__i386__)
@@ -78,6 +78,18 @@ namespace atomic {
     struct timespec ts = {0, 0};
     nanosleep(&ts, NULL);
 #endif
+  }
+
+  inline bool poll(bool& flag, bool expected) {
+    struct timespec ts = {0, 1000};
+
+    for(int limit = 0; limit < 100; limit++) {
+      memory_barrier();
+      if(flag == expected) return true;
+      nanosleep(&ts, NULL);
+    }
+
+    return false;
   }
 
   inline bool compare_and_swap(uint32_t* ptr, uint32_t old_val, uint32_t new_val) {

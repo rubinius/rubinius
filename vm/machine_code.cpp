@@ -13,6 +13,7 @@
 #include "builtin/exception.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/iseq.hpp"
+#include "builtin/jit.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/tuple.hpp"
 #include "builtin/class.hpp"
@@ -90,7 +91,7 @@ namespace rubinius {
 
     // Disable JIT for large methods
     if(state->shared().config.jit_disabled ||
-        total > (size_t)state->shared().config.jit_max_method_size) {
+        total > (size_t)state->shared().config.jit_limit_method_size) {
       call_count = -1;
     }
 
@@ -331,7 +332,9 @@ namespace rubinius {
   // For when the method expects no arguments at all (no splat, nothing)
   class NoArguments {
   public:
-    static bool call(STATE, MachineCode* mcode, StackVariables* scope, Arguments& args) {
+    static bool call(STATE, MachineCode* mcode, StackVariables* scope,
+                     Arguments& args, CallFrame* call_frame)
+    {
       return args.total() == 0;
     }
   };
@@ -339,7 +342,9 @@ namespace rubinius {
   // For when the method expects 1 and only 1 argument
   class OneArgument {
   public:
-    static bool call(STATE, MachineCode* mcode, StackVariables* scope, Arguments& args) {
+    static bool call(STATE, MachineCode* mcode, StackVariables* scope,
+                     Arguments& args, CallFrame* call_frame)
+    {
       if(args.total() != 1) return false;
       scope->set_local(0, args.get_argument(0));
       return true;
@@ -349,7 +354,9 @@ namespace rubinius {
   // For when the method expects 2 and only 2 arguments
   class TwoArguments {
   public:
-    static bool call(STATE, MachineCode* mcode, StackVariables* scope, Arguments& args) {
+    static bool call(STATE, MachineCode* mcode, StackVariables* scope,
+                     Arguments& args, CallFrame* call_frame)
+    {
       if(args.total() != 2) return false;
       scope->set_local(0, args.get_argument(0));
       scope->set_local(1, args.get_argument(1));
@@ -360,7 +367,9 @@ namespace rubinius {
   // For when the method expects 3 and only 3 arguments
   class ThreeArguments {
   public:
-    static bool call(STATE, MachineCode* mcode, StackVariables* scope, Arguments& args) {
+    static bool call(STATE, MachineCode* mcode, StackVariables* scope,
+                     Arguments& args, CallFrame* call_frame)
+    {
       if(args.total() != 3) return false;
       scope->set_local(0, args.get_argument(0));
       scope->set_local(1, args.get_argument(1));
@@ -372,7 +381,9 @@ namespace rubinius {
   // For when the method expects a fixed number of arguments (no splat)
   class FixedArguments {
   public:
-    static bool call(STATE, MachineCode* mcode, StackVariables* scope, Arguments& args) {
+    static bool call(STATE, MachineCode* mcode, StackVariables* scope,
+                     Arguments& args, CallFrame* call_frame)
+    {
       if((native_int)args.total() != mcode->total_args) return false;
 
       for(native_int i = 0; i < mcode->total_args; i++) {
@@ -386,7 +397,9 @@ namespace rubinius {
   // For when a method takes all arguments as a splat
   class SplatOnlyArgument {
   public:
-    static bool call(STATE, MachineCode* mcode, StackVariables* scope, Arguments& args) {
+    static bool call(STATE, MachineCode* mcode, StackVariables* scope,
+                     Arguments& args, CallFrame* call_frame)
+    {
       const size_t total = args.total();
       Array* ary = Array::create(state, total);
 
@@ -611,11 +624,13 @@ namespace rubinius {
       InterpreterCallFrame* frame = ALLOCA_CALLFRAME(mcode->stack_size);
 
       // If argument handling fails..
-      if(ArgumentHandler::call(state, mcode, scope, args) == false) {
-        Exception* exc =
-          Exception::make_argument_error(state, mcode->total_args, args.total(), args.name());
-        exc->locations(state, Location::from_call_stack(state, previous));
-        state->raise_exception(exc);
+      if(ArgumentHandler::call(state, mcode, scope, args, previous) == false) {
+        if(state->vm()->thread_state()->raise_reason() == cNone) {
+          Exception* exc =
+            Exception::make_argument_error(state, mcode->total_args, args.total(), args.name());
+          exc->locations(state, Location::from_call_stack(state, previous));
+          state->raise_exception(exc);
+        }
 
         return NULL;
       }
@@ -638,10 +653,10 @@ namespace rubinius {
       // A negative call_count means we've disabled usage based JIT
       // for this method.
       if(mcode->call_count >= 0) {
-        if(mcode->call_count >= state->shared().config.jit_call_til_compile) {
-          LLVMState* ls = LLVMState::get(state);
+        if(mcode->call_count >= state->shared().config.jit_threshold_compile) {
           OnStack<3> os(state, exec, mod, code);
-          ls->compile_callframe(state, gct, code, frame);
+
+          G(jit)->compile_callframe(state, code, frame);
         } else {
           mcode->call_count++;
         }
@@ -741,8 +756,7 @@ namespace rubinius {
                             bool disable)
   {
 #ifdef ENABLE_LLVM
-    LLVMState* ls = LLVMState::get(state);
-    ls->start_method_update();
+    G(jit)->start_method_update(state);
 
     bool still_others = false;
 
@@ -793,7 +807,7 @@ namespace rubinius {
       if(!found) rubinius::bug("no specializations!");
     }
 
-    ls->end_method_update();
+    G(jit)->end_method_update(state);
 #endif
   }
 

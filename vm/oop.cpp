@@ -571,6 +571,28 @@ step2:
     return false;
   }
 
+  void ObjectHeader::unlock_object_after_fork(STATE, GCToken gct) {
+    switch(header.f.meaning) {
+    case eAuxWordEmpty:
+    case eAuxWordObjID:
+    case eAuxWordHandle:
+      return;
+
+    case eAuxWordLock: {
+      unsigned int locker_tid = header.f.aux_word >> cAuxLockTIDShift;
+
+      if(locker_tid == state->vm()->thread_id()) {
+        state->vm()->del_locked_object(this);
+      }
+    }
+      // Fall through
+    case eAuxWordInflated:
+      // Just set the values
+      header.f.meaning = eAuxWordEmpty;
+      header.f.aux_word = 0;
+    }
+  }
+
   LockStatus ObjectHeader::unlock(STATE, GCToken gct, CallFrame* call_frame) {
     // This case is slightly easier than locking.
 
@@ -765,7 +787,7 @@ step2:
     void** dst = this->__body__;
     size_t field_count = bytes_to_fields(bytes);
 
-    for(register size_t counter = 0; counter < field_count; ++counter) {
+    for(size_t counter = 0; counter < field_count; ++counter) {
       dst[counter] = cNil;
     }
   }

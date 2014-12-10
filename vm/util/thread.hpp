@@ -16,6 +16,7 @@
 #include <iostream>
 
 #include "util/atomic.hpp"
+#include "util/logger.hpp"
 
 intptr_t thread_debug_self();
 
@@ -33,7 +34,7 @@ namespace utilities {
 namespace thread {
 
   static inline void fail(const char* str) {
-    std::cerr << "ABORTING: " << str << std::endl;
+    logger::fatal(str);
     abort();
   }
 
@@ -154,7 +155,7 @@ namespace thread {
       int err = pthread_join(native_, &bunk);
       if(err != 0) {
         if(err == EDEADLK) {
-          std::cout << "Thread deadlock in ::join()!\n";
+          logger::fatal("Thread deadlock in ::join()!");
           abort();
         }
 
@@ -251,17 +252,17 @@ namespace thread {
 
     void lock() {
       if(cDebugLockGuard) {
-        std::cout << "[[ " << thread_debug_self() << "   Locking " << lock_.describe() << " ]]\n";
+        logger::debug("%d: Locking %s", thread_debug_self(), lock_.describe());
       }
       lock_.lock();
       if(cDebugLockGuard) {
-        std::cout << "[[ " << thread_debug_self() << "   Locked " << lock_.describe() << " ]]\n";
+        logger::debug("%d: Locked %s", thread_debug_self(), lock_.describe());
       }
     }
 
     void unlock() {
       if(cDebugLockGuard) {
-        std::cout << "[[ " << thread_debug_self() << " Unlocking " << lock_.describe() << " ]]\n";
+        logger::debug("%d: Unlocking %s", thread_debug_self(), lock_.describe());
       }
       lock_.unlock();
     }
@@ -324,9 +325,16 @@ namespace thread {
     ~Mutex() {
       int err = pthread_mutex_destroy(&native_);
       if(err != 0) {
-        if(err == EBUSY) fail("mutex is busy!");
-        if(err == EINVAL) fail("mutex is dead!");
-        fail("mutex is screwed!");
+        switch(err) {
+        case EBUSY:
+          logger::error("~Mutex: mutex is busy");
+          break;
+        case EINVAL:
+          logger::error("~Mutex: mutex is dead");
+          break;
+        default:
+          logger::error("~Mutex: unknown error");
+        }
       }
     }
 
@@ -340,7 +348,7 @@ namespace thread {
 
     void lock() {
       if(cDebugLockGuard) {
-        std::cout << "[[ " << thread_debug_self() << "   MLocking " << describe() << " ]]\n";
+        logger::debug("%d MLocking %s", thread_debug_self(), describe());
       }
 
       int err = pthread_mutex_lock(&native_);
@@ -349,11 +357,11 @@ namespace thread {
       case 0:
         break;
       case EDEADLK:
-        std::cout << "Thread deadlock in ::lock()!\n";
+        logger::fatal("Thread deadlock in ::join()!");
         abort();
         break;
       case EINVAL:
-        std::cout << "Mutex invalid (Thread corrupt?)\n";
+        logger::fatal("Mutex invalid (Thread corrupt?)");
         abort();
         break;
       }
@@ -361,7 +369,7 @@ namespace thread {
       owner_ = pthread_self();
 
       if(cDebugLockGuard) {
-        std::cout << "[[ " << thread_debug_self() << "    MLocked " << describe() << " ]]\n";
+        logger::debug("%d MLocked %s", thread_debug_self(), describe());
       }
     }
 
@@ -369,6 +377,8 @@ namespace thread {
       int err = pthread_mutex_trylock(&native_);
       if(err != 0) {
         if(err == EBUSY) return cLockBusy;
+
+        logger::fatal("Mutex::try_lock: unknown error");
         abort();
       }
 
@@ -379,23 +389,25 @@ namespace thread {
 
     Code unlock() {
       if(cDebugLockGuard) {
-        std::cout << "[[ " << thread_debug_self() << "   MUnlocking " << describe() << " ]]\n";
+        logger::debug("%d MUnlocking %s", thread_debug_self(), describe());
       }
 
       int err = pthread_mutex_unlock(&native_);
       if(err != 0) {
         if(err == EPERM) return cNotYours;
+
+        logger::fatal("Mutex::unlock: unknown error");
         abort();
       }
 
       return cUnlocked;
     }
 
-    std::string describe() const {
+    const char* describe() const {
       std::ostringstream ss;
       ss << "Mutex ";
       ss << (void*)this;
-      return ss.str();
+      return ss.str().c_str();
     }
   };
 
@@ -412,7 +424,19 @@ namespace thread {
     }
 
     ~Condition() {
-      pthread_check(pthread_cond_destroy(&native_));
+      int err = pthread_cond_destroy(&native_);
+      if(err != 0) {
+        switch(err) {
+        case EBUSY:
+          logger::error("~Condition: locked by another thread");
+          break;
+        case EINVAL:
+          logger::error("~Condition: invalid value");
+          break;
+        default:
+          logger::error("~Condition: unknown error");
+        }
+      }
     }
 
     void signal() {
@@ -425,24 +449,24 @@ namespace thread {
 
     void wait(Mutex& mutex) {
       if(cDebugLockGuard) {
-        std::cout << "[[ " << thread_debug_self() << "   CUnlocking " << mutex.describe() << " ]]\n";
+        logger::debug("%d CUnlocking %s", thread_debug_self(), mutex.describe());
       }
 
       pthread_check(pthread_cond_wait(&native_, mutex.native()));
 
       if(cDebugLockGuard) {
-        std::cout << "[[ " << thread_debug_self() << "   CLocked " << mutex.describe() << " ]]\n";
+        logger::debug("%d CLocked %s", thread_debug_self(), mutex.describe());
       }
     }
 
     Code wait_until(Mutex& mutex, const struct timespec* ts) {
       if(cDebugLockGuard) {
-        std::cout << "[[ " << thread_debug_self() << "   CUnlocking " << mutex.describe() << " ]]\n";
+        logger::debug("%d CUnlocking %s", thread_debug_self(), mutex.describe());
       }
 
       int err = pthread_cond_timedwait(&native_, mutex.native(), ts);
       if(cDebugLockGuard) {
-        std::cout << "[[ " << thread_debug_self() << "   CLocked " << mutex.describe() << " ]]\n";
+        logger::debug("%d CLocked %s", thread_debug_self(), mutex.describe());
       }
 
       if(err != 0) {
@@ -460,7 +484,7 @@ namespace thread {
           // too, but we've got no recourse if that is true.
           return cReady;
         default:
-          std::cout << "Unknown failure from pthread_cond_timedwait!\n";
+          logger::fatal("Unknown failure from pthread_cond_timedwait!");
         }
 
         abort();
@@ -514,11 +538,11 @@ namespace thread {
       return cLocked;
     }
 
-    std::string describe() const {
+    const char* describe() const {
       std::ostringstream ss;
       ss << "SpinLock ";
       ss << (void*)this;
-      return ss.str();
+      return ss.str().c_str();
     }
   };
 };
@@ -565,11 +589,11 @@ namespace thread {
       return cLockBusy;
     }
 
-    std::string describe() const {
+    const char* describe() const {
       std::ostringstream ss;
       ss << "SpinLock ";
       ss << (void*)this;
-      return ss.str();
+      return ss.str().c_str();
     }
   };
 }

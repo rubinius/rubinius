@@ -6,6 +6,7 @@
 #include "gc/root_buffer.hpp"
 #include "gc/root.hpp"
 #include "lock.hpp"
+#include "metrics.hpp"
 
 #include <algorithm>
 #include <vector>
@@ -42,6 +43,7 @@ namespace rubinius {
     LockedObjects locked_objects_;
     RunState run_state_;
     Kind kind_;
+    metrics::MetricsData metrics_;
 
   protected:
     gc::Slab local_slab_;
@@ -50,6 +52,7 @@ namespace rubinius {
 
   public:
     ManagedThread(uint32_t id, SharedState& ss, Kind kind);
+    ~ManagedThread();
 
     Roots& roots() {
       return roots_;
@@ -123,6 +126,10 @@ namespace rubinius {
 
     RunState run_state() const {
       return run_state_;
+    }
+
+    metrics::MetricsData* metrics() {
+      return &metrics_;
     }
 
   public:

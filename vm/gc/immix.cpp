@@ -19,8 +19,9 @@ namespace rubinius {
 #endif
 
     if(object_memory_) {
+      object_memory_->state()->metrics()->m.ruby_metrics.memory_immix_chunks_total++;
+
       if(gc_->dec_chunks_left() <= 0) {
-        // object_memory_->collect_mature_now = true;
         gc_->reset_chunks_left();
       }
     }
@@ -373,12 +374,6 @@ namespace rubinius {
   void ImmixGC::start_marker(STATE) {
     if(!marker_) {
       marker_ = new ImmixMarker(state, this);
-    }
-  }
-
-  void ImmixGC::wait_for_marker(STATE) {
-    if(marker_) {
-      marker_->wait_for_marker(state);
     }
   }
 

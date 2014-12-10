@@ -20,9 +20,12 @@
 #include "builtin/executable.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/float.hpp"
+#include "builtin/fsevent.hpp"
 #include "builtin/io.hpp"
 #include "builtin/iseq.hpp"
+#include "builtin/jit.hpp"
 #include "builtin/list.hpp"
+#include "builtin/logger.hpp"
 #include "builtin/lookup_table.hpp"
 #include "builtin/method_table.hpp"
 #include "builtin/ffi_pointer.hpp"
@@ -344,7 +347,9 @@ namespace rubinius {
     Fiber::init(state);
     Alias::init(state);
     Randomizer::init(state);
-    kcode::init(state);
+    FSEvent::init(state);
+    Logger::init(state);
+    JIT::init(state);
   }
 
   // @todo document all the sections of bootstrap_ontology
@@ -465,6 +470,9 @@ namespace rubinius {
 
     G(rubinius)->set_const(state, "PROGRAM_NAME", String::create(state, RBX_PROGRAM_NAME));
     G(rubinius)->set_const(state, "RUBY_VERSION", String::create(state, RBX_RUBY_VERSION));
+#ifdef ENABLE_LLVM
+    G(rubinius)->set_const(state, "LLVM_VERSION", String::create(state, RBX_LLVM_VERSION));
+#endif
     G(rubinius)->set_const(state, "VERSION", String::create(state, RBX_VERSION));
     G(rubinius)->set_const(state, "LIB_VERSION", String::create(state, RBX_LIB_VERSION));
     G(rubinius)->set_const(state, "BUILD_REV", String::create(state, RBX_BUILD_REV));

@@ -57,6 +57,7 @@ namespace rubinius {
     : young_(new BakerGC(this, config.gc_young_initial_bytes * 2))
     , mark_sweep_(new MarkSweepGC(this, config))
     , immix_(new ImmixGC(this))
+    , immix_marker_(NULL)
     , inflated_headers_(new InflatedHeaders)
     , capi_handles_(new capi::Handles)
     , code_manager_(&state->shared)
@@ -123,7 +124,7 @@ namespace rubinius {
     delete inflated_headers_;
   }
 
-  void ObjectMemory::on_fork(STATE) {
+  void ObjectMemory::after_fork_child(STATE) {
     lock_init(state->vm());
     contention_lock_.init();
     mature_gc_in_progress_ = false;
@@ -436,13 +437,17 @@ step1:
 
     Address addr = young_->allocate_for_slab(slab_size_);
 
-    gc_stats.slab_allocated(slab.allocations(), slab.byte_used());
+    metrics::MetricsData* metrics = state->vm()->metrics();
+    metrics->m.ruby_metrics.memory_young_objects_total += slab.allocations();
+    metrics->m.ruby_metrics.memory_young_bytes_total += slab.bytes_used();
 
     if(addr) {
       slab.refill(addr, slab_size_);
+      metrics->m.ruby_metrics.memory_slab_refills_total++;
       return true;
     } else {
       slab.refill(0, 0);
+      metrics->m.ruby_metrics.memory_slab_refills_fails++;
       return false;
     }
   }
@@ -481,7 +486,9 @@ step1:
 
     Object* copy = immix_->move_object(obj, sz);
 
-    gc_stats.promoted_object_allocated(sz);
+    state()->metrics()->m.ruby_metrics.memory_promoted_objects_total++;
+    state()->metrics()->m.ruby_metrics.memory_promoted_bytes_total += sz;
+
     if(unlikely(!copy)) {
       copy = mark_sweep_->move_object(obj, sz, &collect_mature_now);
     }
@@ -534,7 +541,12 @@ step1:
       collect_young(state, &gc_data, &stats);
 #endif
       RUBINIUS_GC_END(0);
-      print_young_stats(state, &gc_data, &stats);
+
+      metrics::MetricsData* metrics = state->vm()->metrics();
+      metrics->m.ruby_metrics.memory_young_bytes =
+        state->memory()->young_bytes_allocated();
+      metrics->m.ruby_metrics.memory_young_percent_used = stats.percentage_used;
+      metrics->m.ruby_metrics.gc_young_lifetime = stats.lifetime;
     }
 
     if(collect_mature_now) {
@@ -552,7 +564,6 @@ step1:
 #endif
       if(!mature_mark_concurrent_) {
         collect_mature_finish(state, gc_data);
-        print_mature_stats(state, gc_data);
         delete gc_data;
       }
     }
@@ -567,8 +578,10 @@ step1:
     collect_young_now = false;
 #endif
 
-    timer::Running<1000000> timer(gc_stats.total_young_collection_time,
-                                  gc_stats.last_young_collection_time);
+    timer::StopWatch<timer::milliseconds> timerx(
+        state->vm()->metrics()->m.ruby_metrics.gc_young_last_ms,
+        state->vm()->metrics()->m.ruby_metrics.gc_young_total_ms
+      );
 
     young_gc_while_marking_++;
     young_->reset_stats();
@@ -576,7 +589,11 @@ step1:
     young_->collect(data, stats);
 
     prune_handles(data->handles(), data->cached_handles(), young_);
-    gc_stats.young_collection_count++;
+
+    metrics::MetricsData* metrics = state->vm()->metrics();
+    metrics->m.ruby_metrics.gc_young_count++;
+    metrics->m.ruby_metrics.memory_capi_handles = capi_handles_->size();
+    metrics->m.ruby_metrics.memory_inflated_headers = inflated_headers_->size();
 
     data->global_cache()->prune_young();
 
@@ -585,8 +602,6 @@ step1:
           i != data->threads()->end();
           ++i) {
         gc::Slab& slab = (*i)->local_slab();
-
-        gc_stats.slab_allocated(slab.allocations(), slab.byte_used());
 
         // Reset the slab to a size of 0 so that the thread has to do
         // an allocation to get a proper refill. This keeps the number
@@ -606,8 +621,10 @@ step1:
   }
 
   void ObjectMemory::collect_mature(STATE, GCData* data) {
-    timer::Running<1000000> timer(gc_stats.total_full_stop_collection_time,
-                                  gc_stats.last_full_stop_collection_time);
+    timer::StopWatch<timer::milliseconds> timerx(
+        state->vm()->metrics()->m.ruby_metrics.gc_immix_conc_last_ms,
+        state->vm()->metrics()->m.ruby_metrics.gc_immix_conc_total_ms);
+
 #ifndef RBX_GC_STRESS_MATURE
     collect_mature_now = false;
 #endif
@@ -652,7 +669,15 @@ step1:
 
     rotate_mark();
 
-    gc_stats.full_collection_count++;
+    metrics::MetricsData* metrics = state->vm()->metrics();
+    metrics->m.ruby_metrics.gc_immix_count++;
+    metrics->m.ruby_metrics.gc_large_count++;
+    metrics->m.ruby_metrics.memory_immix_bytes = immix_->bytes_allocated();
+    metrics->m.ruby_metrics.memory_large_bytes = mark_sweep_->allocated_bytes;
+    metrics->m.ruby_metrics.memory_symbols_bytes = shared_.symbols.bytes_used();
+    metrics->m.ruby_metrics.memory_code_bytes = code_manager_.size();
+    metrics->m.ruby_metrics.memory_jit_bytes = data->jit_bytes_allocated();
+
     if(FinalizerHandler* hdl = state->shared().finalizer_handler()) {
       hdl->finish_collection(state);
     }
@@ -683,54 +708,8 @@ step1:
     }
   }
 
-  void ObjectMemory::wait_for_mature_marker(STATE) {
-    immix_->wait_for_marker(state);
-  }
-
   immix::MarkStack& ObjectMemory::mature_mark_stack() {
     return immix_->mark_stack();
-  }
-
-
-  void ObjectMemory::print_young_stats(STATE, GCData* data, YoungCollectStats* stats) {
-    if(state->shared().config.gc_show) {
-      size_t before_kb = data->young_bytes_allocated() / 1024;
-      size_t kb = state->memory()->young_bytes_allocated() / 1024;
-      uint64_t diff = gc_stats.last_young_collection_time.value;
-
-      std::cerr << "[Young GC ";
-      if(before_kb != kb) {
-        std::cerr << before_kb << "kB => ";
-      }
-      std::cerr << kb << "kB " << std::fixed << std::setprecision(1) << stats->percentage_used << "% "
-                << stats->promoted_objects << "/" << stats->excess_objects << " "
-                << stats->lifetime << " " << diff << "ms]" << std::endl;
-
-      if(state->shared().config.gc_noisy) {
-        std::cerr << "\a" << std::flush;
-      }
-    }
-  }
-
-  void ObjectMemory::print_mature_stats(STATE, GCData* data) {
-    if(state->shared().config.gc_show) {
-      uint64_t stop = gc_stats.last_full_stop_collection_time.value;
-      uint64_t concur = gc_stats.last_full_concurrent_collection_time.value;
-      size_t before_mature_kb = data->mature_bytes_allocated() / 1024;
-      size_t mature_kb = mature_bytes_allocated() / 1024;
-      size_t before_code_kb = data->code_bytes_allocated() / 1024;
-      size_t code_kb = code_bytes_allocated() / 1024;
-      std::cerr << "[Full GC mature: " << before_mature_kb << "kB => " << mature_kb << "kB, ";
-      std::cerr << "code: " << before_code_kb << "kB => " << code_kb << "kB, ";
-      std::cerr << "symbols: " << data->symbol_bytes_allocated() / 1024 << "kB, ";
-      std::cerr << "jit: " << data->jit_bytes_allocated() / 1024 << "kB, ";
-      std::cerr << "time: " << stop << "ms (" << concur << "ms), ";
-      std::cerr << capi_handles_->size() << " C-API handles, " << inflated_headers_->size() << " inflated headers]" << std::endl;
-
-      if(state->shared().config.gc_noisy) {
-        std::cerr << "\a\a" << std::flush;
-      }
-    }
   }
 
   void ObjectMemory::inflate_for_id(STATE, ObjectHeader* obj, uint32_t id) {
@@ -809,22 +788,27 @@ step1:
     }
   }
 
+  // TODO: delete after metrics
   size_t ObjectMemory::young_bytes_allocated() const {
     return young_->bytes_size();
   }
 
+  // TODO: delete after metrics
   size_t ObjectMemory::mature_bytes_allocated() const {
     return immix_->bytes_allocated() + mark_sweep_->allocated_bytes;
   }
 
+  // TODO: delete after metrics
   size_t ObjectMemory::code_bytes_allocated() const {
     return code_manager_.size();
   }
 
+  // TODO: delete after metrics
   size_t ObjectMemory::symbol_bytes_allocated() const {
     return shared_.symbols.bytes_used();
   }
 
+  // TODO: delete after metrics
   size_t ObjectMemory::jit_bytes_allocated() const {
 #if ENABLE_LLVM
     return shared_.llvm_state->code_bytes();
@@ -850,7 +834,8 @@ step1:
       obj = mark_sweep_->allocate(bytes, &collect_mature_now);
       if(unlikely(!obj)) return NULL;
 
-      gc_stats.mature_object_allocated(bytes);
+      state()->metrics()->m.ruby_metrics.memory_immix_objects_total++;
+      state()->metrics()->m.ruby_metrics.memory_immix_bytes_total += bytes;
 
       if(collect_mature_now) shared_.gc_soon();
 
@@ -866,11 +851,13 @@ step1:
           obj = mark_sweep_->allocate(bytes, &collect_mature_now);
         }
 
-        gc_stats.mature_object_allocated(bytes);
+        state()->metrics()->m.ruby_metrics.memory_immix_objects_total++;
+        state()->metrics()->m.ruby_metrics.memory_immix_bytes_total += bytes;
 
         if(collect_mature_now) shared_.gc_soon();
       } else {
-        gc_stats.young_object_allocated(bytes);
+        state()->metrics()->m.ruby_metrics.memory_young_objects_total++;
+        state()->metrics()->m.ruby_metrics.memory_young_bytes_total += bytes;
       }
     }
 
@@ -897,7 +884,8 @@ step1:
         obj = mark_sweep_->allocate(bytes, &collect_mature_now);
       }
 
-      gc_stats.mature_object_allocated(bytes);
+      state()->metrics()->m.ruby_metrics.memory_immix_objects_total++;
+      state()->metrics()->m.ruby_metrics.memory_immix_bytes_total += bytes;
     }
 
     if(collect_mature_now) shared_.gc_soon();
@@ -963,7 +951,9 @@ step1:
     Object* obj = mark_sweep_->allocate(bytes, &collect_mature_now);
     if(unlikely(!obj)) return NULL;
 
-    gc_stats.mature_object_allocated(bytes);
+    state()->metrics()->m.ruby_metrics.memory_immix_objects_total++;
+    state()->metrics()->m.ruby_metrics.memory_immix_bytes_total += bytes;
+
     obj->clear_fields(bytes);
     return obj;
   }
@@ -974,7 +964,8 @@ step1:
     Object* obj = mark_sweep_->allocate(bytes, &collect_mature_now);
     if(unlikely(!obj)) return NULL;
 
-    gc_stats.mature_object_allocated(bytes);
+    state->vm()->metrics()->m.ruby_metrics.memory_immix_objects_total++;
+    state->vm()->metrics()->m.ruby_metrics.memory_immix_bytes_total += bytes;
 
     if(collect_mature_now) shared_.gc_soon();
 
@@ -1035,6 +1026,7 @@ step1:
     if(!obj->reference_p()) {
       rubinius::bug("Trying to add a handle for a non reference");
     }
+    state->vm()->metrics()->m.ruby_metrics.memory_capi_handles_total++;
     uintptr_t handle_index = capi_handles_->allocate_index(state, obj);
     obj->set_handle_index(state, handle_index);
     return obj->handle(state);

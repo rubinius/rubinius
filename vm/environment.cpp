@@ -12,10 +12,13 @@
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
 #include "builtin/exception.hpp"
+#include "builtin/jit.hpp"
 #include "builtin/string.hpp"
 #include "builtin/symbol.hpp"
 #include "builtin/module.hpp"
 #include "builtin/native_method.hpp"
+
+#include "util/logger.hpp"
 
 #ifdef ENABLE_LLVM
 #include "llvm/state.hpp"
@@ -27,12 +30,11 @@
 #include <llvm/Support/ManagedStatic.h>
 #endif
 
+#include "gc/immix_marker.hpp"
 #include "gc/finalize.hpp"
 
 #include "signal.hpp"
 #include "object_utils.hpp"
-
-#include "agent.hpp"
 
 #include "instruments/tooling.hpp"
 
@@ -50,9 +52,12 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <string.h>
 #include <stdlib.h>
 #include <sys/param.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <pwd.h>
 
 #include "missing/setproctitle.h"
 
@@ -75,9 +80,11 @@ namespace rubinius {
     , finalizer_handler_(NULL)
   {
 #ifdef ENABLE_LLVM
+#if RBX_LLVM_API_VER < 305
     if(!llvm::llvm_start_multithreaded()) {
       assert(0 && "llvm doesn't support threading!");
     }
+#endif
 #endif
 
     String::init_hash();
@@ -90,11 +97,17 @@ namespace rubinius {
     shared = new SharedState(this, config, config_parser);
 
     load_vm_options(argc_, argv_);
+
     root_vm = shared->new_vm();
+    root_vm->metrics()->init(metrics::eRubyMetrics);
     state = new State(root_vm);
+
+    start_logging(state);
   }
 
   Environment::~Environment() {
+    stop_logging(state);
+
     delete signal_handler_;
     delete finalizer_handler_;
 
@@ -123,13 +136,96 @@ namespace rubinius {
     std::set_terminate(cpp_exception_bug);
   }
 
-  void Environment::start_signals() {
+  void Environment::start_jit(STATE) {
+    utilities::thread::SpinLock::LockGuard lg(state->shared().llvm_state_lock());
+
+    if(state->shared().config.jit_disabled) return;
+
+#ifdef ENABLE_LLVM
+    if(!state->shared().llvm_state) {
+      state->shared().llvm_state = new LLVMState(state);
+    }
+#endif
+  }
+
+  void Environment::stop_logging(STATE) {
+    utilities::logger::close();
+  }
+
+  void Environment::stop_jit(STATE) {
+    utilities::thread::SpinLock::LockGuard lg(state->shared().llvm_state_lock());
+
+    if(state->shared().config.jit_disabled) return;
+
+#ifdef ENABLE_LLVM
+    if(state->shared().llvm_state) {
+      state->shared().llvm_state->stop(state);
+    }
+#endif
+  }
+
+  void Environment::start_signals(STATE) {
     state->vm()->set_run_signals(true);
     signal_handler_ = new SignalHandler(state, config);
   }
 
-  void Environment::start_finalizer() {
+  void Environment::start_finalizer(STATE) {
     finalizer_handler_ = new FinalizerHandler(state);
+  }
+
+  void Environment::start_logging(STATE) {
+    utilities::logger::logger_level level = utilities::logger::eWarn;
+
+    if(!config.system_log_level.value.compare("fatal")) {
+      level = utilities::logger::eFatal;
+    } else if(!config.system_log_level.value.compare("error")) {
+      level = utilities::logger::eError;
+    } else if(!config.system_log_level.value.compare("warn")) {
+      level = utilities::logger::eWarn;
+    } else if(!config.system_log_level.value.compare("info")) {
+      level = utilities::logger::eInfo;
+    } else if(!config.system_log_level.value.compare("debug")) {
+      level = utilities::logger::eDebug;
+    }
+
+    if(!config.system_log.value.compare("syslog")) {
+      utilities::logger::open(utilities::logger::eSyslog, RBX_PROGRAM_NAME, level);
+    } else if(!config.system_log.value.compare("console")) {
+      utilities::logger::open(utilities::logger::eConsoleLogger, RBX_PROGRAM_NAME, level);
+    } else {
+      const char* place_holder = "$PROGRAM_NAME";
+      size_t index = config.system_log.value.find(place_holder);
+
+      if(index != std::string::npos) {
+        config.system_log.value.replace(index, strlen(place_holder), RBX_PROGRAM_NAME);
+      }
+
+      int fd;
+
+      if((fd = open(config.system_log.value.c_str(), O_CREAT, 0644)) > 0) {
+        close(fd);
+      } else if(errno == EACCES) {
+        std::ostringstream path;
+
+        if(const char* s = strrchr(config.system_log.value.c_str(), '/')) {
+          path << (s + 1);
+        } else {
+          path << config.system_log.value.c_str();
+        }
+
+        config.system_log.value.assign(config.system_tmp.value + path.str());
+
+        if((fd = open(config.system_log.value.c_str(), O_CREAT, 0644)) > 0) {
+          close(fd);
+        } else {
+          std::cerr << RBX_PROGRAM_NAME << ": unable to open log: "
+                    << config.system_log.value.c_str() << std::endl;
+        }
+      }
+
+      utilities::logger::open(utilities::logger::eFileLogger,
+          config.system_log.value.c_str(), level);
+    }
   }
 
   void Environment::copy_argv(int argc, char** argv) {
@@ -144,10 +240,32 @@ namespace rubinius {
   }
 
   void Environment::load_vm_options(int argc, char**argv) {
-    /* Parse -X options from RBXOPT environment variable.  We parse these
-     * first to permit arguments passed directly to the VM to override
-     * settings from the environment.
+    /* We parse -X options from three sources in the following order:
+     *
+     *  1. The file .rbxrc in the current working directory.
+     *  2. The RBXOPT environment variable.
+     *  3. The command line options.
+     *
+     * This order permits environment and command line ot override
+     * "application" configuration. Likewise, command line can override
+     * environment configuration.
      */
+
+#define RBX_CONFIG_FILE_LINE_MAX    256
+
+    // Configuration file.
+    if(FILE* fp = fopen(".rbxrc", "r")) {
+      char buf[RBX_CONFIG_FILE_LINE_MAX];
+      while(fgets(buf, RBX_CONFIG_FILE_LINE_MAX, fp)) {
+        int size = strlen(buf);
+        if(buf[size-1] == '\n') buf[size-1] = '\0';
+        if(strncmp(buf, "-X", 2) == 0) {
+          config_parser.import_line(buf + 2);
+        }
+      }
+    }
+
+    // Environment.
     char* rbxopt = getenv("RBXOPT");
     if(rbxopt) {
       char *e, *b = rbxopt = strdup(rbxopt);
@@ -171,6 +289,7 @@ namespace rubinius {
       free(rbxopt);
     }
 
+    // Command line.
     for(int i=1; i < argc; i++) {
       char* arg = argv[i];
 
@@ -192,6 +311,45 @@ namespace rubinius {
     }
 
     config_parser.update_configuration(config);
+
+    set_tmp_path();
+    set_fsapi_path();
+  }
+
+  void Environment::set_tmp_path() {
+    if(!config.system_tmp.value.compare("$TMPDIR")) {
+      std::ostringstream path;
+      const char* tmp = getenv("TMPDIR");
+
+      if(tmp) {
+        path << tmp;
+        if(tmp[strlen(tmp)-1] != '/') path << "/";
+      } else {
+        path << "/tmp/";
+      }
+
+      config.system_tmp.value.assign(path.str());
+    }
+  }
+
+  void Environment::set_fsapi_path() {
+    std::ostringstream path;
+    struct passwd *user_passwd = getpwuid(getuid());
+
+    if(!config.system_fsapi_path.value.compare("$TMPDIR")) {
+      path << config.system_tmp.value;
+    } else {
+      std::string cpath = config.system_fsapi_path.value;
+
+      path << cpath;
+      if(cpath[cpath.size() - 1] != '/') path << "/";
+    }
+
+    path << "rbx-" << user_passwd->pw_name << "-" << getpid();
+
+    shared->fsapi_path.assign(path.str());
+
+    create_fsapi(state);
   }
 
   void Environment::load_argv(int argc, char** argv) {
@@ -241,16 +399,6 @@ namespace rubinius {
       std::cout << "=================================\n";
     } else if(config.print_config) {
       config.print();
-    }
-
-    if(config.agent_start > 0) {
-      // if port_ is 1, the user wants to use a randomly assigned local
-      // port which will be written to the temp file for console to pick
-      // up.
-
-      int port = config.agent_start;
-      if(port == 1) port = 0;
-      start_agent(port);
     }
 
     state->shared().set_use_capi_lock(config.capi_lock);
@@ -354,6 +502,31 @@ namespace rubinius {
     delete cf;
   }
 
+  void Environment::before_exec(STATE) {
+    remove_fsapi(state);
+  }
+
+  void Environment::after_exec(STATE) {
+    create_fsapi(state);
+  }
+
+  void Environment::create_fsapi(STATE) {
+    if(mkdir(shared->fsapi_path.c_str(), shared->config.system_fsapi_access) < 0) {
+      utilities::logger::error("%s: unable to create FSAPI path", strerror(errno));
+    }
+
+    // The umask setting will override our permissions for mkdir().
+    if(chmod(shared->fsapi_path.c_str(), shared->config.system_fsapi_access) < 0) {
+      utilities::logger::error("%s: unable to set mode for FSAPI path", strerror(errno));
+    }
+  }
+
+  void Environment::remove_fsapi(STATE) {
+    if(rmdir(shared->fsapi_path.c_str()) < 0) {
+      utilities::logger::error("%s: unable to remove FSAPI path", strerror(errno));
+    }
+  }
+
   void Environment::halt_and_exit(STATE) {
     halt(state);
     int code = exit_code(state);
@@ -365,6 +538,11 @@ namespace rubinius {
 
   void Environment::halt(STATE) {
     state->shared().tool_broker()->shutdown(state);
+    if(ImmixMarker* im = state->memory()->immix_marker()) {
+      im->shutdown(state);
+    }
+
+    stop_jit(state);
 
     GCTokenImpl gct;
 
@@ -391,22 +569,14 @@ namespace rubinius {
     }
 
     NativeMethod::cleanup_thread(state);
+
+    remove_fsapi(state);
   }
 
   /**
    * Returns the exit code to use when exiting the rbx process.
    */
   int Environment::exit_code(STATE) {
-
-#ifdef ENABLE_LLVM
-    if(LLVMState* ls = shared->llvm_state) {
-      std::ostream& jit_log = ls->log();
-      if(jit_log != std::cerr) {
-        static_cast<std::ofstream&>(jit_log).close();
-      }
-    }
-#endif
-
     if(state->vm()->thread_state()->raise_reason() == cExit) {
       if(Fixnum* fix = try_as<Fixnum>(state->vm()->thread_state()->raise_value())) {
         return fix->to_native();
@@ -416,14 +586,6 @@ namespace rubinius {
     }
 
     return 0;
-  }
-
-  void Environment::start_agent(int port) {
-    QueryAgent* agent = state->shared().start_agent(state);
-
-    if(config.agent_verbose) agent->set_verbose();
-
-    if(!agent->bind(port)) return;
   }
 
   /**
@@ -630,14 +792,16 @@ namespace rubinius {
 
     load_platform_conf(runtime);
     boot_vm();
-    start_finalizer();
+    start_finalizer(state);
 
     load_argv(argc_, argv_);
 
-    start_signals();
+    start_signals(state);
     state->vm()->initialize_config();
 
     load_tool();
+
+    start_jit(state);
 
     G(rubinius)->set_const(state, "Signature", Integer::from(state, signature_));
 
@@ -651,12 +815,18 @@ namespace rubinius {
 
     state->vm()->thread_state()->clear();
 
+    state->shared().start_console(state);
+    state->shared().start_metrics(state);
+
     Object* loader = G(rubinius)->get_const(state, state->symbol("Loader"));
     if(loader->nil_p()) {
       rubinius::bug("Unable to find loader");
     }
 
     OnStack<1> os(state, loader);
+
+    // Enable the JIT after the core library has loaded
+    G(jit)->enable(state);
 
     Object* inst = loader->send(state, 0, state->symbol("new"));
     if(inst) {

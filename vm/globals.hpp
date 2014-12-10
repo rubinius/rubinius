@@ -36,6 +36,7 @@ namespace rubinius {
   class Class;
   class Symbol;
   class Exception;
+  class JIT;
 
   struct Globals {
 
@@ -122,6 +123,9 @@ namespace rubinius {
     TypedRoot<Class*> vm_class;
     TypedRoot<Class*> atomic_ref;
     TypedRoot<Class*> mirror;
+    TypedRoot<Class*> fsevent;
+    TypedRoot<Class*> logger;
+    TypedRoot<JIT*> jit;
 
     /* Add new globals above this line. */
 
@@ -245,7 +249,10 @@ namespace rubinius {
       type(&roots),
       vm_class(&roots),
       atomic_ref(&roots),
-      mirror(&roots)
+      mirror(&roots),
+      fsevent(&roots),
+      logger(&roots),
+      jit(&roots)
 
       /* Add initialize of globals above this line. */
     { }

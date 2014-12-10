@@ -1,4 +1,7 @@
+#ifndef RBX_WORLD_STATE_H
+#define RBX_WORLD_STATE_H
 
+#include "instruments/timing.hpp"
 #include "util/thread.hpp"
 #include "gc/managed.hpp"
 
@@ -10,21 +13,14 @@ namespace rubinius {
     int should_stop_;
     bool* check_global_interrupts_;
 
-    atomic::integer time_waiting_;
-
   public:
     WorldState(bool* check_global_interrupts)
       : pending_threads_(0)
       , should_stop_(0)
       , check_global_interrupts_(check_global_interrupts)
-      , time_waiting_(0)
     {
       mutex_.init();
       waiting_to_run_.init();
-    }
-
-    uint64_t time_waiting() {
-      return time_waiting_.read();
     }
 
     /**
@@ -37,7 +33,7 @@ namespace rubinius {
       // should_stop to 1 so we start off in the proper state
       // and can continue after a fork.
       pending_threads_ = 0;
-      should_stop_ = 1;
+      should_stop_ = 0;
       mutex_.init();
       waiting_to_run_.init();
     }
@@ -121,7 +117,7 @@ namespace rubinius {
       }
     }
 
-    bool wait_til_alone(THREAD) {
+    bool wait_till_alone(THREAD) {
       if(!atomic::compare_and_swap(&should_stop_, 0, 1)) {
         if(cDebugThreading) {
           std::cerr << "[" << VM::current()
@@ -143,7 +139,9 @@ namespace rubinius {
       // For ourself..
       atomic::fetch_and_sub(&pending_threads_, 1);
 
-      timer::Running<> timer(time_waiting_);
+      timer::StopWatch<timer::nanoseconds> timer(
+          state->metrics()->system_metrics.locks_stop_the_world_last_ns,
+          state->metrics()->system_metrics.locks_stop_the_world_total_ns);
 
       // We need a write barrier so we're sure we're seeing an up to
       // date version of pending_threads_ in each loop.
@@ -288,3 +286,5 @@ namespace rubinius {
     }
   };
 }
+
+#endif

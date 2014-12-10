@@ -72,13 +72,21 @@ namespace rubinius {
     }
 
     template <class T>
-      T* new_object(Class *cls) {
+      T* new_object(Class* cls) {
         return static_cast<T*>(vm_->new_object_typed(cls, sizeof(T), T::type));
       }
 
     template <class T>
-      T* new_object_dirty(Class *cls) {
+      T* new_object_dirty(Class* cls) {
         return static_cast<T*>(vm_->new_object_typed_dirty(cls, sizeof(T), T::type));
+      }
+
+    template <class T>
+      T* new_object_pinned(Class* cls) {
+        T* obj = static_cast<T*>(vm_->new_object_typed_mature(cls, sizeof(T), T::type));
+        obj->pin();
+
+        return obj;
       }
 
     VMThreadState* thread_state() {

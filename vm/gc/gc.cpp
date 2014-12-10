@@ -40,7 +40,7 @@ namespace rubinius {
     , threads_(state->shared.threads())
     , global_handle_locations_(state->om->global_capi_handle_locations())
 #ifdef ENABLE_LLVM
-    , llvm_state_(LLVMState::get_if_set(state))
+    , llvm_state_(state->shared.llvm_state)
 #endif
     , young_bytes_allocated_(state->om->young_bytes_allocated())
     , mature_bytes_allocated_(state->om->mature_bytes_allocated())
@@ -293,8 +293,9 @@ namespace rubinius {
         }
       }
 
-      if(call_frame->multiple_scopes_p() && call_frame->top_scope_) {
-        call_frame->top_scope_->validate();
+      VariableScope* scope = call_frame->top_scope_;
+      if(call_frame->multiple_scopes_p() && scope && !scope->nil_p()) {
+        scope->validate();
       }
 
       if(BlockEnvironment* env = call_frame->block_env()) {

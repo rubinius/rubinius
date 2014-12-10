@@ -57,9 +57,31 @@ namespace timer {
     return (double)get_current_time() * 1000000000;
   }
 
-  const int milliseconds = 1000000;
+  const int nanoseconds = 1;
   const int microseconds = 1000;
+  const int milliseconds = 1000000;
   const int seconds = 1000000000;
+
+  template <int factor=milliseconds>
+  class StopWatch {
+    uint64_t& lap_;
+    uint64_t& total_;
+    uint64_t start_;
+
+  public:
+    StopWatch(uint64_t& lap, uint64_t& total)
+      : lap_(lap)
+      , total_(total)
+    {
+      start_ = get_current_time();
+    }
+
+    ~StopWatch() {
+      uint64_t now = get_current_time();
+      lap_ = (now - start_) / ((uint64_t)factor);
+      total_ += lap_;
+    }
+  };
 
   template <int factor=1>
   class Running {

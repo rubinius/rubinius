@@ -8,6 +8,7 @@
 #include "builtin/compiled_code.hpp"
 #include "builtin/machine_method.hpp"
 #include "compiled_file.hpp"
+#include "metrics.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -21,7 +22,8 @@ int main(int argc, char **argv) {
   SharedState * shared = manager->create_shared_state();
   ConfigParser * config = new ConfigParser;
   shared->user_config = config;
-  VM * state = shared->new_vm();
+  VM* state = shared->new_vm();
+  state->metrics()->init(metrics::eRubyMetrics);
 
   state->initialize(VM::default_bytes);
   state->boot();

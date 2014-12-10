@@ -96,6 +96,12 @@ section "Flow control"
 # [See Also]
 #   goto_if_true
 #   goto_if_false
+#   goto_if_nil
+#   goto_if_not_nil
+#   goto_if_undefined
+#   goto_if_not_undefined
+#   goto_if_equal
+#   goto_if_not_equal
 
 instruction goto(location) [ -- ] => branch
   store_ip(location);
@@ -107,6 +113,12 @@ end
 # [See Also]
 #   goto
 #   goto_if_true
+#   goto_if_nil
+#   goto_if_not_nil
+#   goto_if_undefined
+#   goto_if_not_undefined
+#   goto_if_equal
+#   goto_if_not_equal
 
 instruction goto_if_false(location) [ value -- ] => branch
   Object* t1 = stack_pop();
@@ -121,10 +133,138 @@ end
 # [See Also]
 #   goto
 #   goto_if_false
+#   goto_if_nil
+#   goto_if_not_nil
+#   goto_if_undefined
+#   goto_if_not_undefined
+#   goto_if_equal
+#   goto_if_not_equal
 
 instruction goto_if_true(location) [ value -- ] => branch
   Object* t1 = stack_pop();
   if(CBOOL(t1)) {
+    store_ip(location);
+  }
+end
+
+# [Description]
+#   Remove the top value on the stack, and if `nil`, set the instruction
+#   pointer to the value specified by _location_.
+# [See Also]
+#   goto
+#   goto_if_false
+#   goto_if_true
+#   goto_if_not_nil
+#   goto_if_undefined
+#   goto_if_not_undefined
+#   goto_if_equal
+#   goto_if_not_equal
+
+instruction goto_if_nil(location) [ value -- ] => branch
+  Object* t1 = stack_pop();
+  if(t1 == cNil) {
+    store_ip(location);
+  }
+end
+
+# [Description]
+#   Remove the top value on the stack, and if not `nil`, set the instruction
+#   pointer to the value specified by _location_.
+# [See Also]
+#   goto
+#   goto_if_false
+#   goto_if_true
+#   goto_if_nil
+#   goto_if_undefined
+#   goto_if_not_undefined
+#   goto_if_equal
+#   goto_if_not_equal
+
+instruction goto_if_not_nil(location) [ value -- ] => branch
+  Object* t1 = stack_pop();
+  if(t1 != cNil) {
+    store_ip(location);
+  }
+end
+
+# [Description]
+#   Remove the top value on the stack, and if the special value `undefined`, set
+#   the instruction pointer to the value specified by _location_.
+# [See Also]
+#   goto
+#   goto_if_false
+#   goto_if_true
+#   goto_if_nil
+#   goto_if_not_nil
+#   goto_if_not_undefined
+#   goto_if_equal
+#   goto_if_not_equal
+
+instruction goto_if_undefined(location) [ value -- ] => branch
+  Object* t1 = stack_pop();
+  if(t1 == G(undefined)) {
+    store_ip(location);
+  }
+end
+
+# [Description]
+#   Remove the top value on the stack, and if not the special value `undefined`,
+#   set the instruction pointer to the value specified by _location_.
+# [See Also]
+#   goto
+#   goto_if_false
+#   goto_if_true
+#   goto_if_nil
+#   goto_if_not_nil
+#   goto_if_undefined
+#   goto_if_equal
+#   goto_if_not_equal
+
+instruction goto_if_not_undefined(location) [ value -- ] => branch
+  Object* t1 = stack_pop();
+  if(t1 != G(undefined)) {
+    store_ip(location);
+  }
+end
+
+# [Description]
+#   Remove the top two values on the stack, and if they are C `==`, set the
+#   instruction pointer to the value specified by _location_.
+# [See Also]
+#   goto
+#   goto_if_false
+#   goto_if_true
+#   goto_if_nil
+#   goto_if_not_nil
+#   goto_if_undefined
+#   goto_if_not_undefined
+#   goto_if_not_equal
+
+instruction goto_if_equal(location) [ value1 value2 -- ] => branch
+  Object* t1 = stack_pop();
+  Object* t2 = stack_pop();
+  if(t1 == t2) {
+    store_ip(location);
+  }
+end
+
+# [Description]
+#   Remove the top two values on the stack, and if they are C `!=`, set
+#   the instruction pointer to the value specified by _location_.
+# [See Also]
+#   goto
+#   goto_if_false
+#   goto_if_true
+#   goto_if_nil
+#   goto_if_not_nil
+#   goto_if_undefined
+#   goto_if_not_undefined
+#   goto_if_equal
+
+instruction goto_if_not_equal(location) [ value1 value2 -- ] => branch
+  Object* t1 = stack_pop();
+  Object* t2 = stack_pop();
+  if(t1 != t2) {
     store_ip(location);
   }
 end

@@ -1,5 +1,6 @@
 #include "vm.hpp"
 #include "shared_state.hpp"
+#include "call_frame.hpp"
 #include "config_parser.hpp"
 #include "config.h"
 #include "object_memory.hpp"
@@ -11,7 +12,8 @@
 #include "util/thread.hpp"
 #include "configuration.hpp"
 
-#include "agent.hpp"
+#include "console.hpp"
+#include "metrics.hpp"
 #include "world_state.hpp"
 #include "builtin/randomizer.hpp"
 #include "builtin/array.hpp"
@@ -31,7 +33,8 @@ namespace rubinius {
     : auxiliary_threads_(0)
     , signal_handler_(0)
     , finalizer_handler_(0)
-    , query_agent_(0)
+    , console_(0)
+    , metrics_(0)
     , world_(new WorldState(&check_global_interrupts_))
     , method_count_(1)
     , class_count_(1)
@@ -43,7 +46,6 @@ namespace rubinius {
     , check_gc_(false)
     , kcode_page_(kcode::eAscii)
     , kcode_table_(kcode::null_table())
-    , agent_(0)
     , root_vm_(0)
     , env_(env)
     , tool_broker_(new tooling::ToolBroker)
@@ -69,18 +71,15 @@ namespace rubinius {
   SharedState::~SharedState() {
     if(!initialized_) return;
 
-    if(config.gc_show) {
-      std::cerr << "Time spent waiting for the world to stop: " << world_->time_waiting() << "ns\n";
-    }
-
 #ifdef ENABLE_LLVM
     if(llvm_state) {
       delete llvm_state;
     }
 #endif
 
-    if(agent_) {
-      delete agent_;
+    if(console_) {
+      delete console_;
+      console_ = 0;
     }
 
     delete tool_broker_;
@@ -157,32 +156,82 @@ namespace rubinius {
     return threads;
   }
 
-  QueryAgent* SharedState::start_agent(STATE) {
+  console::Console* SharedState::start_console(STATE) {
     SYNC(state);
 
-    if(!agent_) {
-      agent_ = new QueryAgent(state);
+    if(!console_) {
+      console_ = new console::Console(state);
+      console_->start(state);
     }
 
-    return agent_;
+    return console_;
   }
 
-  void SharedState::reset_threads(STATE) {
+  metrics::Metrics* SharedState::start_metrics(STATE) {
+    SYNC(state);
+
+    if(!metrics_) {
+      metrics_ = new metrics::Metrics(state);
+      metrics_->start(state);
+      metrics_->init_ruby_metrics(state);
+    }
+
+    return metrics_;
+  }
+
+  void SharedState::reset_threads(STATE, GCToken gct, CallFrame* call_frame) {
     VM* current = state->vm();
+
     for(ThreadList::iterator i = threads_.begin();
            i != threads_.end();
            ++i) {
       if(VM* vm = (*i)->as_vm()) {
-        if(vm == current) continue;
-        Thread* thread = vm->thread.get();
-        thread->stopped();
+        if(vm == current) {
+          vm->metrics()->init(metrics::eRubyMetrics);
+          state->vm()->metrics()->system_metrics.vm_threads++;
+          continue;
+        }
+
+        if(Thread* thread = vm->thread.get()) {
+          thread->unlock_after_fork(state, gct);
+          thread->stopped();
+        }
+
+        vm->unlock(state->vm());
+        delete vm;
       }
     }
     threads_.clear();
     threads_.push_back(current);
   }
 
-  void SharedState::reinit(STATE) {
+  void SharedState::after_fork_exec_child(STATE, GCToken gct, CallFrame* call_frame) {
+    // For now, we disable inline debugging here. This makes inspecting
+    // it much less confusing.
+
+    config.jit_inline_debug.set("no");
+    env_->set_root_vm(state->vm());
+
+    reset_threads(state, gct, call_frame);
+    lock_init(state->vm());
+    global_cache->reset();
+    ruby_critical_lock_.init();
+    capi_ds_lock_.init();
+    capi_locks_lock_.init();
+    capi_constant_lock_.init();
+    auxiliary_threads_->init();
+    world_->reinit();
+
+    om->after_fork_child(state);
+
+    env_->start_finalizer(state);
+    state->shared().finalizer_handler()->start_thread(state);
+
+    state->vm()->set_run_state(ManagedThread::eIndependent);
+    gc_dependent(state, 0);
+  }
+
+  void SharedState::after_fork_child(STATE, GCToken gct, CallFrame* call_frame) {
     // For now, we disable inline debugging here. This makes inspecting
     // it much less confusing.
 
@@ -190,7 +239,7 @@ namespace rubinius {
 
     env_->set_root_vm(state->vm());
 
-    reset_threads(state);
+    reset_threads(state, gct, call_frame);
 
     // Reinit the locks for this object
     lock_init(state->vm());
@@ -201,7 +250,17 @@ namespace rubinius {
     capi_constant_lock_.init();
     auxiliary_threads_->init();
 
+    env_->set_fsapi_path();
+
+    env_->stop_logging(state);
+    env_->start_logging(state);
+
     world_->reinit();
+
+    om->after_fork_child(state);
+
+    state->vm()->set_run_state(ManagedThread::eIndependent);
+    gc_dependent(state, 0);
   }
 
   bool SharedState::should_stop() const {
@@ -209,7 +268,7 @@ namespace rubinius {
   }
 
   bool SharedState::stop_the_world(THREAD) {
-    return world_->wait_til_alone(state);
+    return world_->wait_till_alone(state);
   }
 
   void SharedState::stop_threads_externally() {

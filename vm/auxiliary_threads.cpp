@@ -1,4 +1,7 @@
+#include "vm.hpp"
 #include "prelude.hpp"
+#include "environment.hpp"
+
 #include "auxiliary_threads.hpp"
 
 namespace rubinius {
@@ -36,11 +39,15 @@ namespace rubinius {
         ++i) {
       (*i)->before_exec(state);
     }
+
+    state->shared().env()->before_exec(state);
   }
 
   void AuxiliaryThreads::after_exec(STATE) {
     // We don't guard here on the assumption that only one thread is running
     // after execvp() call.
+    state->shared().env()->after_exec(state);
+
     for(std::list<AuxiliaryThread*>::iterator i = threads_.begin();
         i != threads_.end();
         ++i) {
@@ -48,6 +55,43 @@ namespace rubinius {
     }
 
     exec_in_progress_ = false;
+  }
+
+  void AuxiliaryThreads::before_fork_exec(STATE) {
+    utilities::thread::Mutex::LockGuard guard(mutex_);
+
+    if(fork_exec_in_progress_) return;
+    fork_exec_in_progress_ = true;
+
+    for(std::list<AuxiliaryThread*>::reverse_iterator i = threads_.rbegin();
+        i != threads_.rend();
+        ++i) {
+      (*i)->before_fork_exec(state);
+    }
+  }
+
+  void AuxiliaryThreads::after_fork_exec_parent(STATE) {
+    // We don't guard here on the assumption that only one thread is running
+    // after fork() call.
+    for(std::list<AuxiliaryThread*>::iterator i = threads_.begin();
+        i != threads_.end();
+        ++i) {
+      (*i)->after_fork_exec_parent(state);
+    }
+
+    fork_in_progress_ = false;
+  }
+
+  void AuxiliaryThreads::after_fork_exec_child(STATE) {
+    // We don't guard here on the assumption that only one thread is running
+    // after execvp() call.
+    for(std::list<AuxiliaryThread*>::iterator i = threads_.begin();
+        i != threads_.end();
+        ++i) {
+      (*i)->after_fork_exec_child(state);
+    }
+
+    fork_exec_in_progress_ = false;
   }
 
   void AuxiliaryThreads::before_fork(STATE) {

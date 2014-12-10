@@ -22,6 +22,7 @@
 #include "builtin/channel.hpp"
 #include "builtin/call_site.hpp"
 #include "builtin/exception.hpp"
+#include "builtin/jit.hpp"
 
 #include "instruments/tooling.hpp"
 #include "instruments/rbxti-internal.hpp"
@@ -109,6 +110,8 @@ namespace rubinius {
     vm->unlock(state->vm());
 
     delete vm;
+
+    state->vm()->metrics()->system_metrics.vm_threads--;
   }
 
   void VM::initialize_as_root() {
@@ -145,8 +148,12 @@ namespace rubinius {
     State state(this);
 
 #ifdef ENABLE_LLVM
+    Array* ary = Array::create(&state, 3);
+
+    G(jit)->available(&state, cTrue);
+    G(jit)->properties(&state, ary);
+
     if(!shared.config.jit_disabled) {
-      Array* ary = Array::create(&state, 3);
       ary->append(&state, state.symbol("usage"));
       if(shared.config.jit_inline_generic) {
         ary->append(&state, state.symbol("inline_generic"));
@@ -155,12 +162,14 @@ namespace rubinius {
       if(shared.config.jit_inline_blocks) {
         ary->append(&state, state.symbol("inline_blocks"));
       }
-      G(rubinius)->set_const(&state, "JIT", ary);
+      G(jit)->enabled(&state, cTrue);
     } else {
-      G(rubinius)->set_const(&state, "JIT", cFalse);
+      G(jit)->enabled(&state, cFalse);
     }
 #else
-    G(rubinius)->set_const(&state, "JIT", cNil);
+    G(jit)->available(&state, cFalse);
+    G(jit)->properties(&state, nil<Array>());
+    G(jit)->enabled(&state, cFalse);
 #endif
   }
 

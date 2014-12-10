@@ -426,7 +426,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
 
     /* The whole point of this is inlining */
     size_t size_in_bytes(VM* vm) const {
-      register size_t size = TypeInfo::instance_sizes[type_id()];
+      size_t size = TypeInfo::instance_sizes[type_id()];
       if(size != 0) {
         return size;
       } else {
@@ -575,6 +575,7 @@ Object* const cUndef = reinterpret_cast<Object*>(0x22L);
     bool locked_p(STATE, GCToken gct, CallFrame* call_frame);
     LockStatus unlock(STATE, GCToken gct, CallFrame* call_frame);
     void unlock_for_terminate(STATE, GCToken gct, CallFrame* call_frame);
+    void unlock_object_after_fork(STATE, GCToken gct);
 
     // Abort if unable to lock
     void hard_lock(STATE, GCToken gct, CallFrame* call_frame, size_t us=0);

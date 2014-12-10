@@ -85,8 +85,8 @@ Object* MachineCode::interpreter(STATE,
   InterpreterState is;
   GCTokenImpl gct;
 
-  register opcode* ip_ptr = mcode->opcodes;
-  register Object** stack_ptr = call_frame->stk - 1;
+  opcode* ip_ptr = mcode->opcodes;
+  Object** stack_ptr = call_frame->stk - 1;
 
   UnwindInfoSet unwinds;
 
@@ -215,7 +215,7 @@ Object* MachineCode::uncommon_interpreter(STATE,
 
   MachineCode* mc = method_call_frame->compiled_code->machine_code();
 
-  if(force_deoptimize || ++mc->uncommon_count > state->shared().config.jit_deoptimize_threshold) {
+  if(force_deoptimize || ++mc->uncommon_count > state->shared().config.jit_limit_deoptimize) {
     if(state->shared().config.jit_uncommon_print) {
       std::cerr << "[[[ Deoptimizing uncommon method ]]]\n";
       call_frame->print_backtrace(state);

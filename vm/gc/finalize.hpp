@@ -81,7 +81,7 @@ namespace rubinius {
 
   private:
     SharedState& shared_;
-    VM* self_;
+    VM* vm_;
 
     TypedRoot<Thread*> thread_;
     FinalizeObjectsList* lists_;
@@ -93,10 +93,8 @@ namespace rubinius {
     utilities::thread::Mutex live_guard_;
     utilities::thread::Mutex worker_lock_;
     utilities::thread::Condition worker_cond_;
-    utilities::thread::Condition pause_cond_;
     utilities::thread::Mutex supervisor_lock_;
     utilities::thread::Condition supervisor_cond_;
-    bool paused_;
     bool exit_;
     bool finishing_;
 
@@ -131,10 +129,6 @@ namespace rubinius {
     void stop_thread(STATE);
 
     void shutdown(STATE);
-    void before_exec(STATE);
-    void after_exec(STATE);
-    void before_fork(STATE);
-    void after_fork_parent(STATE);
     void after_fork_child(STATE);
   };
 }

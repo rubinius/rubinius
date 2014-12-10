@@ -22,6 +22,7 @@
 
 #include "capi/capi_constants.h"
 
+#include <string>
 #include <vector>
 
 #include "missing/unordered_map.hpp"
@@ -42,6 +43,14 @@ namespace rubinius {
     class ToolBroker;
   }
 
+  namespace console {
+    class Console;
+  }
+
+  namespace metrics {
+    class Metrics;
+  }
+
   class SignalHandler;
   class FinalizerHandler;
   class ObjectMemory;
@@ -55,6 +64,8 @@ namespace rubinius {
   class ManagedThread;
   class QueryAgent;
   class Environment;
+
+  struct CallFrame;
 
   typedef std_unordered_set<std::string> CApiBlackList;
   typedef std::vector<Mutex*> CApiLocks;
@@ -80,7 +91,8 @@ namespace rubinius {
     AuxiliaryThreads* auxiliary_threads_;
     SignalHandler* signal_handler_;
     FinalizerHandler* finalizer_handler_;
-    QueryAgent* query_agent_;
+    console::Console* console_;
+    metrics::Metrics* metrics_;
 
     CApiConstantNameMap capi_constant_name_map_;
     CApiConstantHandleMap capi_constant_handle_map_;
@@ -123,7 +135,7 @@ namespace rubinius {
     bool use_capi_lock_;
     int primitive_hits_[Primitives::cTotalPrimitives];
 
-    void reset_threads(STATE);
+    void reset_threads(STATE, GCToken gct, CallFrame* call_frame);
 
   public:
     Globals globals;
@@ -133,7 +145,7 @@ namespace rubinius {
     ConfigParser& user_variables;
     SymbolTable symbols;
     LLVMState* llvm_state;
-    Stats stats;
+    std::string fsapi_path;
     uint32_t hash_seed;
 
   public:
@@ -167,14 +179,6 @@ namespace rubinius {
 
     void set_finalizer_handler(FinalizerHandler* thr) {
       finalizer_handler_ = thr;
-    }
-
-    QueryAgent* query_agent() const {
-      return query_agent_;
-    }
-
-    void set_query_agent(QueryAgent* thr) {
-      query_agent_ = thr;
     }
 
     VM* new_vm();
@@ -232,11 +236,17 @@ namespace rubinius {
       kcode_page_ = page;
     }
 
-    QueryAgent* agent() const {
-      return agent_;
+    console::Console* console() const {
+      return console_;
     }
 
-    QueryAgent* start_agent(STATE);
+    console::Console* start_console(STATE);
+
+    metrics::Metrics* metrics() const {
+      return metrics_;
+    }
+
+    metrics::Metrics* start_metrics(STATE);
 
     Environment* env() const {
       return env_;
@@ -305,7 +315,8 @@ namespace rubinius {
 
     void scheduler_loop();
 
-    void reinit(STATE);
+    void after_fork_exec_child(STATE, GCToken gct, CallFrame* call_frame);
+    void after_fork_child(STATE, GCToken gct, CallFrame* call_frame);
 
     bool should_stop() const;
 

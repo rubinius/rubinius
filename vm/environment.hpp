@@ -102,17 +102,29 @@ namespace rubinius {
     void load_conf(std::string path);
     void load_string(std::string str);
     void run_file(std::string path);
+    void set_tmp_path();
+    void set_fsapi_path();
     void load_tool();
     void run_from_filesystem();
     void boot_vm();
+
+    void before_exec(STATE);
+    void after_exec(STATE);
 
     void halt(STATE);
     void halt_and_exit(STATE);
     int exit_code(STATE);
 
-    void start_signals();
-    void start_finalizer();
-    void start_agent(int port);
+    void create_fsapi(STATE);
+    void remove_fsapi(STATE);
+
+    void start_signals(STATE);
+    void start_finalizer(STATE);
+    void start_logging(STATE);
+    void start_jit(STATE);
+
+    void stop_logging(STATE);
+    void stop_jit(STATE);
   };
 
 }
