@@ -111,7 +111,8 @@ namespace rubinius {
                                       const char* file, int line,
                                       Object* recv, Symbol* method,
                                       size_t arg_count,
-                                      Object** args, Object* block)
+                                      Object** args, Object* block,
+                                      bool allow_private)
     {
       int marker = 0;
       if(!capi_check_interrupts(env->state(), env->current_call_frame(), &marker)) {
@@ -128,7 +129,13 @@ namespace rubinius {
       // Run in a block so objects are properly deconstructed when we
       // do a longjmp because of an exception.
       {
-        LookupData lookup(recv, recv->lookup_begin(env->state()), env->state()->globals().sym_private.get());
+        Symbol* min_visibility;
+        if(allow_private) {
+          min_visibility = env->state()->globals().sym_private.get();
+        } else {
+          min_visibility = env->state()->globals().sym_public.get();
+        }
+        LookupData lookup(recv, recv->lookup_begin(env->state()), min_visibility);
         Arguments args_o(method, recv, block, arg_count, args);
         Dispatch dis(method);
 
@@ -465,7 +472,7 @@ extern "C" {
     return capi_funcall_backend_native(env, "", 0,
         env->get_object(receiver),
         reinterpret_cast<Symbol*>(method_name),
-        arg_count, args, blk);
+        arg_count, args, blk, true);
   }
 
   VALUE rb_funcall2(VALUE receiver, ID method_name, int arg_count, const VALUE* v_args) {
@@ -487,12 +494,10 @@ extern "C" {
     return capi_funcall_backend_native(env, "", 0,
         env->get_object(receiver),
         reinterpret_cast<Symbol*>(method_name),
-        arg_count, args, blk);
+        arg_count, args, blk, true);
   }
 
-  VALUE rb_funcall2b(VALUE receiver, ID method_name, int arg_count,
-                     const VALUE* v_args, VALUE block)
-  {
+  VALUE rb_funcall3(VALUE receiver, ID method_name, int arg_count, const VALUE* v_args) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     Object* args[arg_count];
@@ -501,10 +506,17 @@ extern "C" {
       args[i] = env->get_object(v_args[i]);
     }
 
+    Object* blk = cNil;
+
+    if(VALUE blk_handle = env->outgoing_block()) {
+      blk = env->get_object(blk_handle);
+      env->set_outgoing_block(0);
+    }
+
     return capi_funcall_backend_native(env, "", 0,
         env->get_object(receiver),
         reinterpret_cast<Symbol*>(method_name),
-        arg_count, args, env->get_object(block));
+        arg_count, args, blk, false);
   }
 
   VALUE rb_yield(VALUE argument_handle) {

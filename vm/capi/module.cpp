@@ -75,7 +75,8 @@ extern "C" {
     if(reason != vFound) return const_missing(module_handle, id_name);
 
     if(Autoload* autoload = try_as<Autoload>(val)) {
-      return capi_fast_call(env->get_handle(autoload), rb_intern("call"), 0);
+      return capi_fast_call(env->get_handle(autoload),
+          rb_intern("call"), 1, module_handle);
     }
 
     return env->get_handle(val);
@@ -93,7 +94,8 @@ extern "C" {
       Object* val = module->get_const(state, name, G(sym_private), &reason);
       if(reason == vFound) {
         if(Autoload* autoload = try_as<Autoload>(val)) {
-          return capi_fast_call(env->get_handle(autoload), rb_intern("call"), 0);
+          return capi_fast_call(env->get_handle(autoload),
+              rb_intern("call"), 1, module_handle);
         }
 
         return env->get_handle(val);
@@ -117,7 +119,8 @@ extern "C" {
       Object* val = module->get_const(state, name, G(sym_private), &reason);
       if(reason == vFound) {
         if(Autoload* autoload = try_as<Autoload>(val)) {
-          return capi_fast_call(env->get_handle(autoload), rb_intern("call"), 0);
+          return capi_fast_call(env->get_handle(autoload),
+              rb_intern("call"), 1, env->get_handle(module));
         }
 
         return env->get_handle(val);
@@ -133,7 +136,8 @@ extern "C" {
       Object* val = module->get_const(state, name, G(sym_private), &reason);
       if(reason == vFound) {
         if(Autoload* autoload = try_as<Autoload>(val)) {
-          return capi_fast_call(env->get_handle(autoload), rb_intern("call"), 0);
+          return capi_fast_call(env->get_handle(autoload),
+              rb_intern("call"), 1, env->get_handle(module));
         }
 
         return env->get_handle(val);

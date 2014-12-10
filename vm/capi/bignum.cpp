@@ -130,6 +130,14 @@ extern "C" {
     return d;
   }
 
+  VALUE rb_dbl2big(double num) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Integer* bignum = Bignum::from_double(env->state(), num);
+
+    return env->get_handle(bignum);
+  }
+
   int rb_big_bytes_used(VALUE obj) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
@@ -144,5 +152,16 @@ extern "C" {
     Bignum* big = c_as<Bignum>(env->get_object(obj));
 
     return big->mp_val()->sign != MP_NEG;
+  }
+
+  VALUE rb_big_cmp(VALUE x, VALUE y) {
+    return rb_funcall(x, rb_intern("<=>"), 1, y);
+  }
+
+  void rb_big_pack(VALUE val, unsigned long *buf, long num_longs)
+  {
+    rb_integer_pack(val, buf, num_longs, sizeof(long), 0,
+      INTEGER_PACK_LSWORD_FIRST | INTEGER_PACK_NATIVE_BYTE_ORDER |
+      INTEGER_PACK_2COMP);
   }
 }

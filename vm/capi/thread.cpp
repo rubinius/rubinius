@@ -332,9 +332,7 @@ extern "C" {
 
     Pointer* ptr = Pointer::create(state, arg);
 
-    VM* vm = state->shared().new_vm();
-    Thread* thr = Thread::create(env->state(), vm, G(thread), run_function);
-    vm->thread.set(thr);
+    Thread* thr = Thread::create(env->state(), NULL, G(thread), run_function);
 
     thr->locals_store(state, state->symbol("function"), nm);
     thr->locals_store(state, state->symbol("argument"), ptr);

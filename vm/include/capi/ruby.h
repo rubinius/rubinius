@@ -410,10 +410,10 @@ struct RFile {
 #define NUM2UINT(x)       ((unsigned int)NUM2ULONG(x))
 
 /** Convert a Fixnum into an int. */
-#define FIX2INT(x)        ((int)FIX2LONG(x))
+#define FIX2INT(x)        rb_fix2int((VALUE)x)
 
 /** Convert a Fixnum into an unsigned int. */
-#define FIX2UINT(x)       ((unsigned int)FIX2ULONG(x))
+#define FIX2UINT(x)       rb_fix2uint((VALUE)x)
 
 /** Get a handle for the Symbol object represented by ID. */
 #define ID2SYM(id)        (id)
@@ -756,6 +756,10 @@ VALUE rb_uint2big(unsigned long number);
 
   VALUE   rb_iterate(VALUE (*ifunc)(VALUE), VALUE ary, VALUE(*cb)(ANYARGS), VALUE cb_data);
 
+  VALUE   rb_dbl2big(double num);
+
+  VALUE   rb_big_cmp(VALUE x, VALUE y);
+
   VALUE   rb_big2str(VALUE self, int base);
 
   long    rb_big2long(VALUE obj);
@@ -767,6 +771,8 @@ VALUE rb_uint2big(unsigned long number);
   unsigned long long rb_big2ull(VALUE);
 
   double  rb_big2dbl(VALUE obj);
+
+  void    rb_big_pack(VALUE val, unsigned long *buf, long num_longs);
 
   int     rb_big_bytes_used(VALUE obj);
 #define RBIGNUM_LEN(obj) rb_big_bytes_used(obj)
@@ -1028,6 +1034,9 @@ VALUE rb_uint2big(unsigned long number);
   /** Returns a File opened with the specified mode. */
   VALUE rb_file_open(const char* name, const char* mode);
 
+  long rb_fix2int(VALUE obj);
+  unsigned long rb_fix2uint(VALUE obj);
+
   /**
    *  Call method on receiver, args as varargs. Calls private methods.
    */
@@ -1054,10 +1063,9 @@ VALUE rb_uint2big(unsigned long number);
                           VALUE obj, VALUE arg);
 #define HAVE_RB_EXEC_RECURSIVE 1
 
-  /** @todo define rb_funcall3, which is the same as rb_funcall2 but
-   * will not call private methods.
-   */
-  #define rb_funcall3 rb_funcall2
+  /** Same as rb_funcall2 but will not call private methods. */
+  VALUE   rb_funcall3(VALUE receiver, ID method_name,
+                      int arg_count, const VALUE* args);
 
   /** Return the hash id of the object **/
   VALUE   rb_hash(VALUE self);
@@ -1135,8 +1143,7 @@ VALUE rb_uint2big(unsigned long number);
   VALUE rb_mutex_sleep(VALUE mutex, VALUE timeout);
   VALUE rb_mutex_synchronize(VALUE mutex, VALUE (*func)(VALUE arg), VALUE arg);
 
-/* This is a HACK. */
-#define rb_io_taint_check(io)   rb_check_frozen(io)
+  VALUE   rb_io_taint_check(VALUE io);
 
   /** Mark ruby object ptr. */
   void    rb_gc_mark(VALUE ptr);
@@ -1517,6 +1524,8 @@ VALUE rb_uint2big(unsigned long number);
    * @note This is NOT an MRI C-API function.
    */
   long    rb_str_len(VALUE self);
+
+  VALUE   rb_str_length(VALUE self);
 
   void    rb_str_set_len(VALUE self, size_t len);
 

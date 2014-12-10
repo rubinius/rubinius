@@ -1,3 +1,4 @@
+#include "builtin/autoload.hpp"
 #include "builtin/class.hpp"
 #include "builtin/module.hpp"
 #include "builtin/string.hpp"
@@ -105,6 +106,12 @@ extern "C" {
       if(reason != vFound) {
         free(pathd);
         rb_raise(rb_eArgError, "undefined class or module %s", path);
+      }
+
+      if(Autoload* autoload = try_as<Autoload>(val)) {
+        VALUE m = capi_fast_call(env->get_handle(autoload),
+            rb_intern("call"), 1, env->get_handle(mod));
+        val = env->get_object(m);
       }
 
       if(!(mod = try_as<Module>(val))) {
