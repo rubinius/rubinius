@@ -1,1 +1,0 @@
-fails:Regexp.new given a Regexp with $KCODE set falls back to ASCII for an invalid UTF-8 regexp
