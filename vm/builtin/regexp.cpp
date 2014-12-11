@@ -273,13 +273,20 @@ namespace rubinius {
     err = onig_new(&this->onig_data, pat, end, opts, enc, ONIG_SYNTAX_RUBY, &err_info);
 
     if(err != ONIG_NORMAL) {
-      UChar onig_err_buf[ONIG_MAX_ERROR_MESSAGE_LEN];
-      char err_buf[1024];
-      onig_error_code_to_str(onig_err_buf, err, &err_info);
-      snprintf(err_buf, 1024, "%s: %s", onig_err_buf, pat);
+      // retry compilation with ASCII kcode
+      enc = ONIG_ENCODING_ASCII;
+      forced_encoding_ = true;
+      err = onig_new(&this->onig_data, pat, end, opts & OPTION_MASK, enc, ONIG_SYNTAX_RUBY, &err_info);
 
-      Exception::regexp_error(state, err_buf);
-      return 0;
+      if (err != ONIG_NORMAL) {
+        UChar onig_err_buf[ONIG_MAX_ERROR_MESSAGE_LEN];
+        char err_buf[1024];
+        onig_error_code_to_str(onig_err_buf, err, &err_info);
+        snprintf(err_buf, 1024, "%s: %s", onig_err_buf, pat);
+
+        Exception::regexp_error(state, err_buf);
+        return 0;
+      }
     }
 
     this->source(state, pattern);
