@@ -472,7 +472,7 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
     String* string = capi_get_string(env, self);
-    return LONG2FIX(string->char_size(env->state()));
+    return LONG2FIX(string->size());
   }
 
   void rb_str_set_len(VALUE self, size_t len) {

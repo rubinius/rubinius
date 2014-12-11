@@ -397,7 +397,7 @@ namespace rubinius {
 
             write_response(state,
                 reinterpret_cast<const char*>(response->byte_address()),
-                response->byte_size());
+                response->size());
           }
 
           request = NULL;

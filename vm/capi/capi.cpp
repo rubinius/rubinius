@@ -519,6 +519,29 @@ extern "C" {
         arg_count, args, blk, false);
   }
 
+  static VALUE call_function_with_block(VALUE receiver, ID method_name, int arg_count,
+                                        const VALUE* v_args, VALUE block, bool allow_private)
+  {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    Object* args[arg_count];
+
+    for(int i = 0; i < arg_count; i++) {
+      args[i] = env->get_object(v_args[i]);
+    }
+
+    return capi_funcall_backend_native(env, "", 0,
+        env->get_object(receiver),
+        reinterpret_cast<Symbol*>(method_name),
+        arg_count, args, env->get_object(block), allow_private);
+  }
+
+  VALUE rb_funcall2b(VALUE receiver, ID method_name, int arg_count,
+                     const VALUE* v_args, VALUE block)
+  {
+    return call_function_with_block(receiver, method_name, arg_count, v_args, block, true);
+  }
+
   VALUE rb_yield(VALUE argument_handle) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 

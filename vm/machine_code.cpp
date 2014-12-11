@@ -415,7 +415,8 @@ namespace rubinius {
   // The fallback, can handle all cases
   class GenericArguments {
   public:
-    static bool call(STATE, MachineCode* mcode, StackVariables* scope, Arguments& args) {
+    static bool call(STATE, MachineCode* mcode, StackVariables* scope,
+        Arguments& args, CallFrame* call_frame) {
       const bool has_splat = (mcode->splat_position >= 0);
       native_int total_args = args.total();
 

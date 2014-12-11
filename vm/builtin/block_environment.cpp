@@ -320,6 +320,7 @@ namespace rubinius {
     frame->flags = invocation.flags | CallFrame::cMultipleScopes
                                     | CallFrame::cBlock;
 
+    /* TODO: Fix this method to process 1.8 arguments
     if(!GenericArguments::call(state, frame, mcode, scope, args, invocation.flags)) {
       if(state->vm()->thread_state()->raise_reason() == cNone) {
         Exception* exc =
@@ -330,6 +331,7 @@ namespace rubinius {
       }
       return NULL;
     }
+    */
 
 #ifdef RBX_PROFILER
     if(unlikely(state->vm()->tooling())) {
