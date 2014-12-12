@@ -4,44 +4,6 @@
 # these methods can be written *in those classes* to override these.
 
 module Enumerable
-  def chunk(initial_state = nil, &original_block)
-    raise ArgumentError, "no block given" unless block_given?
-    ::Enumerator.new do |yielder|
-      previous = nil
-      accumulate = []
-      block = if initial_state.nil?
-        original_block
-      else
-        duplicated_initial_state = initial_state.dup
-        Proc.new{ |val| original_block.yield(val, duplicated_initial_state)}
-      end
-      each do |val|
-        key = block.yield(val)
-        if key.nil? || (key.is_a?(Symbol) && key.to_s[0, 1] == "_")
-          yielder.yield [previous, accumulate] unless accumulate.empty?
-          accumulate = []
-          previous = nil
-          case key
-          when nil, :_separator
-          when :_alone
-            yielder.yield [key, [val]]
-          else
-            raise RuntimeError, "symbols beginning with an underscore are reserved"
-          end
-        else
-          if previous.nil? || previous == key
-            accumulate << val
-          else
-            yielder.yield [previous, accumulate] unless accumulate.empty?
-            accumulate = [val]
-          end
-          previous = key
-        end
-      end
-      yielder.yield [previous, accumulate] unless accumulate.empty?
-    end
-  end
-
   def collect
     if block_given?
       ary = []
@@ -50,7 +12,7 @@ module Enumerable
       end
       ary
     else
-      to_enum :collect
+      to_a
     end
   end
 
@@ -63,6 +25,7 @@ module Enumerable
     elsif block_given?
       each { |o| seq += 1 if yield(o) }
     else
+      return size if respond_to? :size
       each { seq += 1 }
     end
     seq
@@ -105,7 +68,6 @@ module Enumerable
         h[key] = [o]
       end
     end
-    Rubinius::Type.infect h, self
     h
   end
 
@@ -116,36 +78,18 @@ module Enumerable
       ary << o
       nil
     end
-    Rubinius::Type.infect ary, self
     ary
   end
   alias_method :entries, :to_a
 
   def zip(*args)
-    args.map! do |a|
-      if a.respond_to? :to_ary
-        a.to_ary
-      else
-        a.to_enum(:each)
-      end
-    end
+    args.map! { |a| a.to_a }
 
     results = []
     i = 0
     each do
       o = Rubinius.single_block_arg
-      entry = args.inject([o]) do |ary, a|
-        ary << case a
-               when Array
-                 a[i]
-               else
-                 begin
-                   a.next
-                 rescue StopIteration
-                   nil
-                 end
-               end
-      end
+      entry = args.inject([o]) { |ary, a| ary << a[i] }
 
       yield entry if block_given?
 

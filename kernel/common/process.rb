@@ -79,8 +79,8 @@ module Process
   end
 
   def self.fork
-    pid = perform_fork
-    pid = nil if pid == 0
+    pid = Rubinius::Mirror::Process.fork
+
     if block_given? and pid.nil?
       begin
         yield nil
@@ -244,7 +244,7 @@ module Process
   def self.exec(cmd, *args)
     if args.empty? and cmd.kind_of? String
       raise Errno::ENOENT if cmd.empty?
-      Process.perform_exec cmd, []
+      Rubinius::Mirror::Process.exec cmd, []
     else
       if ary = Rubinius::Type.try_convert(cmd, Array, :to_ary)
         raise ArgumentError, "wrong first argument" unless ary.size == 2
@@ -259,7 +259,7 @@ module Process
         argv << arg.to_s
       end
 
-      Process.perform_exec prog, argv
+      Rubinius::Mirror::Process.exec prog, argv
     end
   end
 
@@ -474,6 +474,9 @@ module Process
     alias_method :waitpid, :wait
     alias_method :waitpid2, :wait2
   end
+
+  Rubinius::Globals.read_only :$?
+  Rubinius::Globals.set_hook(:$?) { Thread.current[:$?] }
 
   #--
   # TODO: Most of the fields aren't implemented yet.
@@ -776,49 +779,6 @@ module Process
           return eff
         end
       end
-
     end
   end
-
-end
-
-module Kernel
-
-  def fork(&block)
-    Process.fork(&block)
-  end
-  module_function :fork
-
-  def `(str) #`
-    str = StringValue(str) unless str.kind_of?(String)
-    pid, output = Process.replace(str)
-
-    Process.waitpid(pid)
-    return Rubinius::Type.external_string(output)
-  end
-
-  module_function :` # `
-
-  def system(prog, *args)
-    pid = Process.fork
-    if pid
-      Process.waitpid(pid)
-      $?.exitstatus == 0
-    else
-      begin
-        Kernel.exec(prog, *args)
-      rescue Exception => e
-        if $DEBUG
-          e.render("Unable to execute subprogram", STDERR)
-        end
-        exit! 1
-      end
-
-      if $DEBUG
-        STDERR.puts "Unable to execute subprogram - exec silently returned"
-      end
-      exit! 1
-    end
-  end
-  module_function :system
 end

@@ -14,6 +14,15 @@ module Kernel
   alias_method :send, :__send__
   alias_method :object_id, :__id__
 
+  def `(str) #`
+    str = StringValue(str) unless str.kind_of?(String)
+    pid, output = Rubinius::Mirror::Process.backtick str
+    Process.waitpid(pid)
+
+    Rubinius::Type.external_string output
+  end
+  module_function :` # `
+
   def Array(obj)
     ary = Rubinius::Type.check_convert_type obj, Array, :to_ary
 
@@ -840,22 +849,51 @@ module Kernel
   end
   module_function :syscall
 
-  def trace_var(*args)
-    raise NotImplementedError
-  end
-  module_function :trace_var
-
   def type
     Kernel.warn "Object#type IS fully deprecated; use Object#class OR ELSE."
     self.class
   end
 
-  def untrace_var(*args)
-    raise NotImplementedError
+  def trace_var(name, cmd = nil, &block)
+    if !cmd && !block
+      raise(
+        ArgumentError,
+        'The 2nd argument should be a Proc/String, alternatively use a block'
+      )
+    end
+
+    # We have to use a custom proc since set_hook passes in both the variable
+    # name and value.
+    set = proc do |_, value|
+      if cmd.is_a?(String)
+        eval(cmd)
+
+      # In MRI if one passes both a proc in `cmd` and a block the latter will
+      # be ignored.
+      elsif cmd.is_a?(Proc)
+        cmd.call(value)
+
+      elsif block
+        block.call(value)
+      end
+    end
+
+    Rubinius::Globals.set_hook(name, :[], set)
+  end
+  module_function :trace_var
+
+  # In MRI one can specify a 2nd argument to remove a specific tracer.
+  # Rubinius::Globals however only supports one hook per variable, hence the
+  # 2nd dummy argument.
+  def untrace_var(name, *args)
+    Rubinius::Globals.remove_hook(name)
   end
   module_function :untrace_var
 
-  # Perlisms.
+  def fork(&block)
+    Process.fork(&block)
+  end
+  module_function :fork
 
   def getc
     $stdin.getc
@@ -928,4 +966,17 @@ module Kernel
     target.sub!(pattern, rep, &block)
   end
   module_function :sub!
+
+  def system(command, *args)
+    begin
+      pid = Rubinius::Mirror::Process.spawn(command, args)
+    rescue SystemCallError
+      return false
+    end
+
+    Process.waitpid pid
+    $?.exitstatus == 0
+  end
+  module_function :system
+
 end

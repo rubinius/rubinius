@@ -59,7 +59,7 @@ namespace rubinius {
     static Object*  vm_exec(STATE, String* path, Array* args, CallFrame* calling_environment);
 
     // Rubinius.primitive :vm_spawn
-    static Object*  vm_spawn(STATE, GCToken gct, Object* pstate, String* path, Array* args, CallFrame* calling_environment);
+    static Object*  vm_spawn(STATE, GCToken gct, String* path, Array* args, CallFrame* calling_environment);
 
     // Rubinius.primitive :vm_backtick
     static Object*  vm_backtick(STATE, GCToken gct, String* str, CallFrame* calling_environment);

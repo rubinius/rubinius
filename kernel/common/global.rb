@@ -5,7 +5,6 @@ module Rubinius
   class GlobalVariables
     def initialize
       load_path = %w[.]
-
       loaded_features = LoadedFeatures.new
 
       @internal = LookupTable.new
@@ -129,6 +128,10 @@ module Rubinius
 
         @hooks[var] = [getter, setter, set_internal]
       end
+    end
+
+    def remove_hook(var)
+      @hooks.delete(var)
     end
 
     def nil_return

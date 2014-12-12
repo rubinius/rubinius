@@ -4,12 +4,12 @@ module Comparable
 
     begin
       unless comp = (self <=> other)
-        return false
+        return nil
       end
 
       return Comparable.compare_int(comp) == 0
     rescue StandardError, SystemStackError
-      return false
+      return nil
     end
   end
 

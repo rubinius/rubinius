@@ -2,6 +2,7 @@ class Exception
 
   attr_accessor :locations
   attr_accessor :parent
+  attr_accessor :custom_backtrace
 
   def initialize(message = nil)
     @reason_message = message
@@ -99,7 +100,21 @@ class Exception
       if hidden_bt = Rubinius::Backtrace.detect_backtrace(bt)
         @backtrace = hidden_bt
       else
-        @custom_backtrace = bt
+        type_error = TypeError.new "backtrace must be Array of String"
+        case bt
+        when Array
+          if bt.all? { |s| s.kind_of? String }
+            @custom_backtrace = bt
+          else
+            raise type_error
+          end
+        when String
+          @custom_backtrace = [bt]
+        when nil
+          @custom_backtrace = nil
+        else
+          raise type_error
+        end
       end
     end
   end
@@ -168,38 +183,6 @@ class StandardError < Exception
 end
 
 class SignalException < Exception
-  attr_reader :signo
-  attr_reader :signm
-
-  def initialize(signo = nil, signm = nil)
-    # MRI overrides this behavior just for SignalException itself
-    # but not for anything that inherits from it, therefore we
-    # need this ugly check to make sure it works as intented.
-    return super(signo) unless self.class == SignalException
-    if signo.is_a? Integer
-      unless @signm = Signal::Numbers[signo]
-        raise ArgumentError, "invalid signal number #{signo}"
-      end
-      @signo = signo
-      @signm = signm || "SIG#{@signm}"
-    elsif signo
-      if signm
-        raise ArgumentError, "wrong number of arguments (2 for 1)"
-      end
-      signm = signo
-      if sym_sig = signo.kind_of?(Symbol)
-        signm = signm.to_s
-      else
-        signm = StringValue(signm)
-      end
-      signm = signm[3..-1] if signm.prefix? "SIG"
-      unless @signo = Signal::Names[signm]
-        raise ArgumentError, "invalid signal name #{signm}"
-      end
-      @signm = sym_sig ? signm : signo
-    end
-    super(@signm)
-  end
 end
 
 class NoMemoryError < Exception
@@ -378,7 +361,17 @@ class SystemCallError < StandardError
   # We use .new here because when errno is set, we attempt to
   # lookup and return a subclass of SystemCallError, specificly,
   # one of the Errno subclasses.
-  def self.new(message=undefined, errno=undefined)
+  def self.new(*args)
+    case args.size
+    when 0
+      message = errno = undefined
+    when 1
+      message = args.first
+      errno = undefined
+    else
+      message, errno = args
+    end
+
     # This method is used 2 completely different ways. One is when it's called
     # on SystemCallError, in which case it tries to construct a Errno subclass
     # or makes a generic instead of itself.
@@ -421,7 +414,15 @@ class SystemCallError < StandardError
         message = StringValue(message)
       end
 
-      if error = SystemCallError.errno_error(message, self::Errno)
+      if self::Errno.kind_of? Fixnum
+        error = SystemCallError.errno_error(message, self::Errno)
+      else
+        error = allocate
+      end
+
+      if error
+        Rubinius::Unsafe.set_class error, self
+        Rubinius.privately { error.initialize(*args) }
         return error
       end
 
@@ -444,6 +445,49 @@ class SystemCallError < StandardError
     msg << " - #{StringValue(message)}" if message
     super(msg)
   end
+end
+
+class KeyError < IndexError
+end
+
+class SignalException < Exception
+  attr_reader :signo
+  attr_reader :signm
+
+  def initialize(signo = nil, signm = nil)
+    # MRI overrides this behavior just for SignalException itself
+    # but not for anything that inherits from it, therefore we
+    # need this ugly check to make sure it works as intented.
+    return super(signo) unless self.class == SignalException
+    if signo.is_a? Integer
+      unless @signm = Signal::Numbers[signo]
+        raise ArgumentError, "invalid signal number #{signo}"
+      end
+      @signo = signo
+      @signm = signm || "SIG#{@signm}"
+    elsif signo
+      if signm
+        raise ArgumentError, "wrong number of arguments (2 for 1)"
+      end
+      signm = signo
+      if sym_sig = signo.kind_of?(Symbol)
+        signm = signm.to_s
+      else
+        signm = StringValue(signm)
+      end
+      signm = signm[3..-1] if signm.prefix? "SIG"
+      unless @signo = Signal::Names[signm]
+        raise ArgumentError, "invalid signal name #{signm}"
+      end
+      @signm = sym_sig ? signm : signo
+    end
+    super(@signm)
+  end
+end
+
+class StopIteration
+  attr_accessor :result
+  private :result=
 end
 
 ##

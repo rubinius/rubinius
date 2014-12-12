@@ -37,9 +37,7 @@ compiled_code.rbc
 continuation.rbc
 delegated_method.rbc
 fixnum.rbc
-dir.rbc
 lru_cache.rbc
-dir_glob.rbc
 env.rbc
 errno.rbc
 eval.rbc
@@ -47,6 +45,8 @@ false.rbc
 fiber.rbc
 io.rbc
 file.rbc
+dir.rbc
+dir_glob.rbc
 file_test.rbc
 stat.rbc
 float.rbc

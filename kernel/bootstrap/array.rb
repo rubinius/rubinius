@@ -83,7 +83,7 @@ class Array
   # Creates a new Array from the return values of passing
   # each element in self to the supplied block.
   def map
-    return to_enum :map unless block_given?
+    return dup unless block_given?
     out = Array.new size
 
     i = @start

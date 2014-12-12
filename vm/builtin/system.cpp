@@ -290,11 +290,9 @@ namespace rubinius {
     }
   };
 
-  Object* System::vm_spawn(STATE, GCToken gct, Object* pstate, String* path, Array* args,
+  Object* System::vm_spawn(STATE, GCToken gct, String* path, Array* args,
                            CallFrame* calling_environment)
   {
-    OnStack<1> os(state, pstate);
-
     /* Setting up the command and arguments may raise an exception so do it
      * before everything else.
      */
@@ -349,9 +347,6 @@ namespace rubinius {
       state->vm()->thread->init_lock();
       state->shared().after_fork_exec_child(state, gct, calling_environment);
       state->shared().auxiliary_threads()->after_fork_exec_child(state);
-
-      // Setup ENV, redirects, groups, etc. in the child before exec().
-      pstate->send(state, calling_environment, state->symbol("setup_process"));
 
       /* Reset all signal handlers to the defaults, so any we setup in
        * Rubinius won't leak through. We need to use sigaction() here since

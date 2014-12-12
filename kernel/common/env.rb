@@ -17,9 +17,7 @@ module Rubinius
       if value.nil?
         unsetenv(key)
       else
-        if setenv(key, StringValue(value), 1) != 0
-          Errno.handle("setenv")
-        end
+        setenv key, StringValue(value), 1
       end
       value
     end

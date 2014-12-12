@@ -585,7 +585,7 @@ class IO
     pa_read, ch_write = pipe if readable
     ch_read, pa_write = pipe if writable
 
-    pid = Process.fork
+    pid = Rubinius::Mirror::Process.fork
 
     # child
     if !pid
@@ -607,7 +607,7 @@ class IO
           return nil
         end
       else
-        Process.perform_exec str, []
+        Rubinius::Mirror::Process.exec str, []
       end
     end
 

@@ -139,8 +139,6 @@ module Kernel
   # Alias $0 $PROGRAM_NAME
   Rubinius::Globals.add_alias(:$0, :$PROGRAM_NAME)
 
-  Rubinius::Globals.read_only :$?
-
   Rubinius::Globals.read_only :$:, :$LOAD_PATH, :$-I
   Rubinius::Globals.read_only :$", :$LOADED_FEATURES
   Rubinius::Globals.read_only :$<
