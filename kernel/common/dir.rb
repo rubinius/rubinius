@@ -29,24 +29,6 @@ class Dir
     ret
   end
 
-  #   files = []
-  #   index = 0
-
-  #   patterns.each do |pat|
-  #     enc = Rubinius::Type.ascii_compatible_encoding pat
-
-  #     Dir::Glob.glob pat, 0, files
-
-  #     total = files.size
-  #     while index < total
-  #       Rubinius::Type.encode_string files[index], enc
-  #       index += 1
-  #     end
-  #   end
-
-  #   files
-  # end
-
   def self.glob(pattern, flags=0, &block)
     if pattern.kind_of? Array
       patterns = pattern
@@ -62,14 +44,7 @@ class Dir
     index = 0
 
     patterns.each do |pat|
-      enc = Rubinius::Type.ascii_compatible_encoding pat
       Dir::Glob.glob pat, flags, matches
-
-      total = matches.size
-      while index < total
-        Rubinius::Type.encode_string matches[index], enc
-        index += 1
-      end
     end
 
     if block

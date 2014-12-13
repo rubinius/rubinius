@@ -824,7 +824,7 @@ module Marshal
 
     def serialize_instance_variables_prefix(obj, exclude_ivars = false)
       ivars = serializable_instance_variables(obj, exclude_ivars)
-      Rubinius::Type.binary_string(!ivars.empty? || serialize_encoding?(obj) ? "I" : "")
+      Rubinius::Type.binary_string(!ivars.empty? ? "I" : "")
     end
 
     def serialize_instance_variables_suffix(obj, force=false,
@@ -832,18 +832,13 @@ module Marshal
                                             exclude_ivars=false)
       ivars = serializable_instance_variables(obj, exclude_ivars)
 
-      unless force or !ivars.empty? or serialize_encoding?(obj)
+      unless force or !ivars.empty?
         return Rubinius::Type.binary_string("")
       end
 
       count = ivars.size
 
-      if serialize_encoding?(obj)
-        str = serialize_integer(count + 1)
-        str << serialize_encoding(obj)
-      else
-        str = serialize_integer(count)
-      end
+      str = serialize_integer(count)
 
       ivars.each do |ivar|
         sym = ivar.to_sym
@@ -980,10 +975,6 @@ module Marshal
           obj.__instance_variable_set__ :@reason_message, value
         end
       end
-    end
-
-    def serialize_encoding?(obj)
-      false
     end
 
     def set_instance_variables(obj)

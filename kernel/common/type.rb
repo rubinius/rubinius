@@ -396,16 +396,6 @@ module Rubinius
       string
     end
 
-    def self.encode_string(string, enc)
-      string
-    end
-
-    def self.ascii_compatible_encoding(string)
-    end
-
-    def self.compatible_encoding(a, b)
-    end
-
     def self.bindable_method?(source, destination)
     end
 

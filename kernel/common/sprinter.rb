@@ -297,10 +297,6 @@ module Rubinius
         @g.ret
       end
 
-      def encode_value(str)
-        str
-      end
-
       def meta_op_minus
         @op_minus ||= @g.find_literal(:-)
         @g.meta_send_op_minus @op_minus
@@ -1121,12 +1117,6 @@ module Rubinius
 
         atoms = []
 
-        # Always push an empty string at first for correct
-        # encoding protocols
-        atom = LiteralAtom.new(self, @g, "", "")
-        atom.set_value(encode_value(""))
-
-        atoms << atom
         pos = 0
         while match = RE.match_start(@format, pos)
           pos = match.full.at(1)

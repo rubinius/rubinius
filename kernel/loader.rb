@@ -474,16 +474,6 @@ VM Options
     end
     private :set_program_name
 
-    def set_default_internal_encoding(encoding)
-      if @default_internal_encoding_set && Encoding.default_internal.name != encoding
-        raise RuntimeError, "Default internal encoding already set to '#{Encoding.default_internal.name}'."
-      else
-        @default_internal_encoding_set = true
-        Encoding.default_internal = encoding
-      end
-    end
-    private :set_default_internal_encoding
-
     RUBYOPT_VALID_OPTIONS = "IdvwWrKT"
 
     def handle_rubyopt(options)

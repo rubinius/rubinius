@@ -1292,7 +1292,6 @@ class String
       raise IndexError, "byte index #{index} is outside bounds of String"
     end
 
-    @ascii_only = @valid_encoding = nil
     @data[index] = byte
   end
 
@@ -1687,7 +1686,6 @@ class String
                       next
                     end
                     index = i
-                    name.force_encoding result.encoding
                     match[name]
                   else
                     '\\'.append(cap.chr)
@@ -1770,7 +1768,6 @@ class String
       @shared = nil
     end
 
-    @ascii_only = @valid_encoding = nil
     @hash_value = nil # reset the hash value
   end
 

@@ -1,5 +1,3 @@
-# -*- encoding: us-ascii -*-
-
 module Rubinius
   module Runtime
     def self.matches_when(array, receiver)
@@ -54,14 +52,6 @@ module Rubinius
 
     def self.rbx_marshal_constant
       name
-    end
-
-    def self.get_encoding(name)
-      if defined?(Encoding)
-        Encoding.find name
-      else
-        name
-      end
     end
 
     def self.pre_exe
