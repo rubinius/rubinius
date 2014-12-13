@@ -60,8 +60,7 @@ describe "IO.popen" do
     end
 
     it "does not throw an exception if child exited and has been waited for" do
-      @io = IO.popen("echo ready; sleep 1000")
-      true until @io.gets =~ /ready/
+      @io = IO.popen("sleep 1000")
       Process.kill "KILL", @io.pid
       Process.wait @io.pid
       @io.close
