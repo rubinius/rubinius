@@ -283,11 +283,11 @@ namespace rubinius {
         utilities::file::LockGuard guard(logger_fd_, LOCK_EX);
 
         const char* time = timestamp();
-        write(logger_fd_, time, strlen(time));
-        write(logger_fd_, identifier_->c_str(), identifier_->size());
-        write(logger_fd_, level, strlen(level));
-        write(logger_fd_, " ", 1);
-        write(logger_fd_, message, size);
+        write_status_ = write(logger_fd_, time, strlen(time));
+        write_status_ = write(logger_fd_, identifier_->c_str(), identifier_->size());
+        write_status_ = write(logger_fd_, level, strlen(level));
+        write_status_ = write(logger_fd_, " ", 1);
+        write_status_ = write(logger_fd_, message, size);
       }
 
       void FileLogger::fatal(const char* message, int size) {
