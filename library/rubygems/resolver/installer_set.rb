@@ -154,7 +154,13 @@ class Gem::Resolver::InstallerSet < Gem::Resolver::Set
   end
 
   def prefetch(reqs)
-    @remote_set.prefetch(reqs)
+    @remote_set.prefetch(reqs) if consider_remote?
+  end
+
+  def prerelease= allow_prerelease
+    super
+
+    @remote_set.prerelease = allow_prerelease
   end
 
   def inspect # :nodoc:

@@ -2,7 +2,7 @@
 
 begin
   gem 'minitest', '~> 4.0'
-rescue NoMethodError
+rescue NoMethodError, Gem::LoadError
   # for ruby tests
 end
 
@@ -218,8 +218,11 @@ class Gem::TestCase < MiniTest::Unit::TestCase
   def setup
     super
 
-    @orig_gem_home = ENV['GEM_HOME']
-    @orig_gem_path = ENV['GEM_PATH']
+    @orig_gem_home   = ENV['GEM_HOME']
+    @orig_gem_path   = ENV['GEM_PATH']
+    @orig_gem_vendor = ENV['GEM_VENDOR']
+
+    ENV['GEM_VENDOR'] = nil
 
     @current_dir = Dir.pwd
     @fetcher     = nil
@@ -347,8 +350,9 @@ class Gem::TestCase < MiniTest::Unit::TestCase
 
     FileUtils.rm_rf @tempdir unless ENV['KEEP_FILES']
 
-    ENV['GEM_HOME'] = @orig_gem_home
-    ENV['GEM_PATH'] = @orig_gem_path
+    ENV['GEM_HOME']   = @orig_gem_home
+    ENV['GEM_PATH']   = @orig_gem_path
+    ENV['GEM_VENDOR'] = @orig_gem_vendor
 
     Gem.ruby = @orig_ruby if @orig_ruby
 
@@ -1031,6 +1035,37 @@ Also, a list:
     Zlib::Deflate.deflate data
   end
 
+  def util_set_RUBY_VERSION(version, patchlevel = nil, revision = nil)
+    if Gem.instance_variables.include? :@ruby_version or
+       Gem.instance_variables.include? '@ruby_version' then
+      Gem.send :remove_instance_variable, :@ruby_version
+    end
+
+    @RUBY_VERSION    = RUBY_VERSION
+    @RUBY_PATCHLEVEL = RUBY_PATCHLEVEL if defined?(RUBY_PATCHLEVEL)
+    @RUBY_REVISION   = RUBY_REVISION   if defined?(RUBY_REVISION)
+
+    Object.send :remove_const, :RUBY_VERSION
+    Object.send :remove_const, :RUBY_PATCHLEVEL if defined?(RUBY_PATCHLEVEL)
+    Object.send :remove_const, :RUBY_REVISION   if defined?(RUBY_REVISION)
+
+    Object.const_set :RUBY_VERSION,    version
+    Object.const_set :RUBY_PATCHLEVEL, patchlevel if patchlevel
+    Object.const_set :RUBY_REVISION,   revision   if revision
+  end
+
+  def util_restore_RUBY_VERSION
+    Object.send :remove_const, :RUBY_VERSION
+    Object.send :remove_const, :RUBY_PATCHLEVEL if defined?(RUBY_PATCHLEVEL)
+    Object.send :remove_const, :RUBY_REVISION   if defined?(RUBY_REVISION)
+
+    Object.const_set :RUBY_VERSION,    @RUBY_VERSION
+    Object.const_set :RUBY_PATCHLEVEL, @RUBY_PATCHLEVEL if
+      defined?(@RUBY_PATCHLEVEL)
+    Object.const_set :RUBY_REVISION,   @RUBY_REVISION   if
+      defined?(@RUBY_REVISION)
+  end
+
   ##
   # Is this test being run on a Windows platform?
 
@@ -1301,7 +1336,7 @@ Also, a list:
     # Finds all gems matching +dep+ in this set.
 
     def find_all(dep)
-      @specs.find_all { |s| dep.match? s }
+      @specs.find_all { |s| dep.match? s, @prerelease }
     end
 
     ##

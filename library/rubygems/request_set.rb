@@ -47,6 +47,13 @@ class Gem::RequestSet
 
   attr_accessor :ignore_dependencies
 
+  attr_reader :install_dir # :nodoc:
+
+  ##
+  # If true, allow dependencies to match prerelease gems.
+
+  attr_accessor :prerelease
+
   ##
   # When false no remote sets are used for resolving gems.
 
@@ -82,6 +89,7 @@ class Gem::RequestSet
     @dependencies = deps
 
     @always_install      = []
+    @conservative        = false
     @dependency_names    = {}
     @development         = false
     @development_shallow = false
@@ -89,6 +97,7 @@ class Gem::RequestSet
     @git_set             = nil
     @ignore_dependencies = false
     @install_dir         = Gem.dir
+    @prerelease          = false
     @remote              = true
     @requests            = []
     @sets                = []
@@ -134,6 +143,7 @@ class Gem::RequestSet
     end
 
     cache_dir = options[:cache_dir] || Gem.dir
+    @prerelease = options[:prerelease]
 
     requests = []
 
@@ -190,16 +200,18 @@ class Gem::RequestSet
     gemdeps = options[:gemdeps]
 
     @install_dir = options[:install_dir] || Gem.dir
+    @prerelease  = options[:prerelease]
     @remote      = options[:domain] != :local
+    @conservative = true if options[:conservative]
 
-    gem_deps_api = load_gemdeps gemdeps, options[:without_groups]
+    gem_deps_api = load_gemdeps gemdeps, options[:without_groups], true
 
     resolve
 
     if options[:explain]
       puts "Gems to install:"
 
-      specs.sorted_requests.each do |spec|
+      sorted_requests.each do |spec|
         puts "  #{spec.full_name}"
       end
 
@@ -232,6 +244,7 @@ class Gem::RequestSet
     options[:development] = false
     options[:install_dir] = dir
     options[:only_install_dir] = true
+    @prerelease = options[:prerelease]
 
     sorted_requests.each do |request|
       spec = request.spec
@@ -256,7 +269,7 @@ class Gem::RequestSet
   ##
   # Load a dependency management file.
 
-  def load_gemdeps path, without_groups = []
+  def load_gemdeps path, without_groups = [], installing = false
     @git_set    = Gem::Resolver::GitSet.new
     @vendor_set = Gem::Resolver::VendorSet.new
 
@@ -266,8 +279,51 @@ class Gem::RequestSet
     lockfile.parse
 
     gf = Gem::RequestSet::GemDependencyAPI.new self, path
+    gf.installing = installing
     gf.without_groups = without_groups if without_groups
     gf.load
+  end
+
+  def pretty_print q # :nodoc:
+    q.group 2, '[RequestSet:', ']' do
+      q.breakable
+
+      if @remote then
+        q.text 'remote'
+        q.breakable
+      end
+
+      if @prerelease then
+        q.text 'prerelease'
+        q.breakable
+      end
+
+      if @development_shallow then
+        q.text 'shallow development'
+        q.breakable
+      elsif @development then
+        q.text 'development'
+        q.breakable
+      end
+
+      if @soft_missing then
+        q.text 'soft missing'
+      end
+
+      q.group 2, '[dependencies:', ']' do
+        q.breakable
+        @dependencies.map do |dep|
+          q.text dep.to_s
+          q.breakable
+        end
+      end
+
+      q.breakable
+      q.text 'sets:'
+
+      q.breakable
+      q.pp @sets.map { |set| set.class }
+    end
   end
 
   ##
@@ -281,12 +337,21 @@ class Gem::RequestSet
 
     set = Gem::Resolver.compose_sets(*@sets)
     set.remote = @remote
+    set.prerelease = @prerelease
 
     resolver = Gem::Resolver.new @dependencies, set
     resolver.development         = @development
     resolver.development_shallow = @development_shallow
     resolver.ignore_dependencies = @ignore_dependencies
     resolver.soft_missing        = @soft_missing
+
+    if @conservative
+      installed_gems = {}
+      Gem::Specification.find_all do |spec|
+        (installed_gems[spec.name] ||= []) << spec
+      end
+      resolver.skip_gems = installed_gems
+    end
 
     @resolver = resolver
 
@@ -327,7 +392,9 @@ class Gem::RequestSet
     node.spec.dependencies.each do |dep|
       next if dep.type == :development and not @development
 
-      match = @requests.find { |r| dep.match? r.spec.name, r.spec.version }
+      match = @requests.find { |r|
+        dep.match? r.spec.name, r.spec.version, @prerelease
+      }
 
       unless match then
         next if dep.type == :development and @development_shallow
@@ -336,10 +403,7 @@ class Gem::RequestSet
               "Unresolved dependency found during sorting - #{dep} (requested by #{node.spec.full_name})"
       end
 
-      begin
-        yield match
-      rescue TSort::Cyclic
-      end
+      yield match
     end
   end
 

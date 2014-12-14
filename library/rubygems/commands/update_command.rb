@@ -16,6 +16,8 @@ class Gem::Commands::UpdateCommand < Gem::Command
 
   attr_reader :installer # :nodoc:
 
+  attr_reader :updated # :nodoc:
+
   def initialize
     super 'update', 'Update installed gems to the latest version',
       :document => %w[rdoc ri],
@@ -56,7 +58,7 @@ class Gem::Commands::UpdateCommand < Gem::Command
     <<-EOF
 The update command will update your gems to the latest version.
 
-The update comamnd does not remove the previous version.  Use the cleanup
+The update command does not remove the previous version. Use the cleanup
 command to remove old versions.
     EOF
   end
@@ -82,8 +84,6 @@ command to remove old versions.
   end
 
   def execute
-    hig = {}
-
     if options[:system] then
       update_rubygems
       return
@@ -201,17 +201,16 @@ command to remove old versions.
   def update_gem name, version = Gem::Requirement.default
     return if @updated.any? { |spec| spec.name == name }
 
-    @installer ||= Gem::DependencyInstaller.new options
+    update_options = options.dup
+    update_options[:prerelease] = version.prerelease?
 
-    success = false
+    @installer = Gem::DependencyInstaller.new update_options
 
     say "Updating #{name}"
     begin
       @installer.install name, Gem::Requirement.new(version)
-      success = true
-    rescue Gem::InstallError => e
+    rescue Gem::InstallError, Gem::DependencyError => e
       alert_error "Error installing #{name}:\n\t#{e.message}"
-      success = false
     end
 
     @installer.installed_gems.each do |spec|

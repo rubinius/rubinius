@@ -28,6 +28,10 @@ class Gem::Request::ConnectionPools # :nodoc:
     end
   end
 
+  def close_all
+    @pools.each_value {|pool| pool.close_all}
+  end
+
   private
 
   ##
@@ -47,11 +51,13 @@ class Gem::Request::ConnectionPools # :nodoc:
 
   def no_proxy? host, env_no_proxy
     host = host.downcase
-    env_no_proxy.each do |pattern|
+
+    env_no_proxy.any? do |pattern|
       pattern = pattern.downcase
-      return true if host[-pattern.length, pattern.length ] == pattern
+
+      host[-pattern.length, pattern.length] == pattern or
+        (pattern.start_with? '.' and pattern[1..-1] == host)
     end
-    return false
   end
 
   def net_http_args uri, proxy_uri
@@ -67,7 +73,7 @@ class Gem::Request::ConnectionPools # :nodoc:
         Gem::UriFormatter.new(proxy_uri.password).unescape,
       ]
     elsif no_proxy? uri.host, no_proxy then
-      net_http_args += [nil, nil]
+      net_http_args + [nil, nil]
     else
       net_http_args
     end

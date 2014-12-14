@@ -55,6 +55,8 @@ class Gem::RequestSet::Lockfile
     @gem_deps_file = File.expand_path(gem_deps_file)
     @gem_deps_dir  = File.dirname(@gem_deps_file)
 
+    @gem_deps_file.untaint unless gem_deps_file.tainted?
+
     @current_token  = nil
     @line           = 0
     @line_pos       = 0
@@ -166,8 +168,12 @@ class Gem::RequestSet::Lockfile
     dest = File.expand_path(dest)
     base = File.expand_path(base)
 
-    if dest.index(base) == 0
-      return dest[base.size+1..-1]
+    if dest.index(base) == 0 then
+      offset = dest[base.size+1..-1]
+
+      return '.' unless offset
+
+      offset
     else
       dest
     end
@@ -193,6 +199,8 @@ class Gem::RequestSet::Lockfile
     out << "PLATFORMS"
 
     platforms = @requests.map { |request| request.spec.platform }.uniq
+
+    platforms = platforms.sort_by { |platform| platform.to_s }
 
     platforms.sort.each do |platform|
       out << "  #{platform}"
@@ -271,14 +279,7 @@ class Gem::RequestSet::Lockfile
       when :bang then
         get :bang
 
-        spec = @set.sets.select { |set|
-          Gem::Resolver::GitSet    === set or
-          Gem::Resolver::VendorSet === set
-        }.map { |set|
-          set.specs[name]
-        }.compact.first
-
-        requirements << spec.version
+        requirements << pinned_requirement(name)
       when :l_paren then
         get :l_paren
 
@@ -294,6 +295,13 @@ class Gem::RequestSet::Lockfile
         end
 
         get :r_paren
+
+        if peek[0] == :bang then
+          requirements.clear
+          requirements << pinned_requirement(name)
+
+          get :bang
+        end
       end
 
       @set.gem name, *requirements
@@ -385,6 +393,8 @@ class Gem::RequestSet::Lockfile
     skip :newline
 
     set = Gem::Resolver::GitSet.new
+    set.root_dir = @set.install_dir
+
     last_spec = nil
 
     while not @tokens.empty? and :text == peek.first do
@@ -403,7 +413,7 @@ class Gem::RequestSet::Lockfile
         else
           dependency = parse_dependency name, data
 
-          last_spec.spec.dependencies << dependency
+          last_spec.add_dependency dependency
         end
 
         get :r_paren
@@ -446,7 +456,7 @@ class Gem::RequestSet::Lockfile
         else
           dependency = parse_dependency name, data
 
-          last_spec.spec.dependencies << dependency
+          last_spec.dependencies << dependency
         end
 
         get :r_paren
@@ -475,7 +485,7 @@ class Gem::RequestSet::Lockfile
   # the first token of the requirements and returns a Gem::Dependency object.
 
   def parse_dependency name, op # :nodoc:
-    return Gem::Dependency.new name unless peek[0] == :text
+    return Gem::Dependency.new name, op unless peek[0] == :text
 
     _, version, = get :text
 
@@ -497,6 +507,17 @@ class Gem::RequestSet::Lockfile
 
   def peek # :nodoc:
     @tokens.first || [:EOF]
+  end
+
+  def pinned_requirement name # :nodoc:
+    spec = @set.sets.select { |set|
+      Gem::Resolver::GitSet    === set or
+        Gem::Resolver::VendorSet === set
+    }.map { |set|
+      set.specs[name]
+    }.compact.first
+
+    spec.version
   end
 
   def skip type # :nodoc:
@@ -618,8 +639,10 @@ class Gem::RequestSet::Lockfile
   # Writes the lock file alongside the gem dependencies file
 
   def write
+    content = to_s
+
     open "#{@gem_deps_file}.lock", 'w' do |io|
-      io.write to_s
+      io.write content
     end
   end
 

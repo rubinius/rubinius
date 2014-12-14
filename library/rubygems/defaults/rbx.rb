@@ -16,7 +16,7 @@ module Gem
   def self.default_path
     dirs = [default_dir]
     # This is the same test rubygems/defaults.rb uses
-    dirs.unshift(Gem.user_dir) if File.exists?(Gem.user_home)
+    dirs.unshift(Gem.user_dir) if File.exist?(Gem.user_home)
     dirs
   end
 

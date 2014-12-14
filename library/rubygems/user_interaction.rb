@@ -318,7 +318,6 @@ class Gem::StreamUI
   elsif Gem.win_platform?
     def _gets_noecho
       require "Win32API"
-      char = nil
       password = ''
 
       while char = Win32API.new("crtdll", "_getch", [ ], "L").Call do
@@ -386,7 +385,11 @@ class Gem::StreamUI
   # handlers that might have been defined.
 
   def terminate_interaction(status = 0)
+    close
     raise Gem::SystemExitException, status
+  end
+
+  def close
   end
 
   ##
@@ -689,6 +692,12 @@ class Gem::SilentUI < Gem::StreamUI
     end
 
     super reader, writer, writer, false
+  end
+
+  def close
+    super
+    @ins.close
+    @outs.close
   end
 
   def download_reporter(*args) # :nodoc:
