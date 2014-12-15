@@ -1,7 +1,7 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    daedalus-core (0.1.0)
+    daedalus-core (0.2.0)
     rake (10.4.2)
     redcard (1.1.0)
     rubinius-ast (1.3.0)
@@ -15,7 +15,6 @@ GEM
       rubinius-toolset (~> 2.0)
     rubinius-compiler (1.2.0)
     rubinius-melbourne (1.2.0.0)
-      rubinius-toolset (~> 2.0)
     rubinius-processor (1.3.0)
     rubinius-toolset (2.3.1)
 
