@@ -294,11 +294,11 @@ namespace rubinius {
 
     void Console::process_requests(STATE) {
       GCTokenImpl gct;
-      RBX_DTRACE_CONST char* thread_name =
-        const_cast<RBX_DTRACE_CONST char*>("rbx.console.request");
+      RBX_DTRACE_CHAR_P thread_name =
+        const_cast<RBX_DTRACE_CHAR_P>("rbx.console.request");
       request_vm_->set_name(thread_name);
 
-      RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CONST char*>(thread_name),
+      RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
                             state->vm()->thread_id(), 1);
 
       request_running_ = true;
@@ -330,7 +330,7 @@ namespace rubinius {
 
       state->gc_dependent(gct, 0);
 
-      RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CONST char*>(thread_name),
+      RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
                            state->vm()->thread_id(), 1);
     }
 
@@ -360,11 +360,11 @@ namespace rubinius {
 
     void Console::process_responses(STATE) {
       GCTokenImpl gct;
-      RBX_DTRACE_CONST char* thread_name =
-        const_cast<RBX_DTRACE_CONST char*>("rbx.console.response");
+      RBX_DTRACE_CHAR_P thread_name =
+        const_cast<RBX_DTRACE_CHAR_P>("rbx.console.response");
       response_vm_->set_name(thread_name);
 
-      RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CONST char*>(thread_name),
+      RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
                             state->vm()->thread_id(), 1);
 
       response_running_ = true;
@@ -414,7 +414,7 @@ namespace rubinius {
 
       response_running_ = false;
 
-      RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CONST char*>(thread_name),
+      RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
                            state->vm()->thread_id(), 1);
     }
   }

@@ -171,11 +171,11 @@ namespace rubinius {
 
   void FinalizerHandler::perform(STATE) {
     GCTokenImpl gct;
-    RBX_DTRACE_CONST char* thread_name =
-      const_cast<RBX_DTRACE_CONST char*>("rbx.finalizer");
+    RBX_DTRACE_CHAR_P thread_name =
+      const_cast<RBX_DTRACE_CHAR_P>("rbx.finalizer");
     vm_->set_name(thread_name);
 
-    RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CONST char*>(thread_name),
+    RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
                           state->vm()->thread_id(), 1);
 
     state->vm()->thread->hard_unlock(state, gct, 0);
@@ -211,7 +211,7 @@ namespace rubinius {
       finalize(state);
       next_process_item();
     }
-    RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CONST char*>(thread_name),
+    RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
                          state->vm()->thread_id(), 1);
   }
 

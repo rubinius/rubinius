@@ -1826,7 +1826,7 @@ retry:
     if(RUBINIUS_RUBY_PROBE_ENABLED()) {
       char* bytes = reinterpret_cast<char*>(payload->byte_address());
       RUBINIUS_RUBY_PROBE(
-          const_cast<RBX_DTRACE_CONST char*>(bytes),
+          const_cast<RBX_DTRACE_CHAR_P>(bytes),
           payload->byte_size());
       return cTrue;
     }
