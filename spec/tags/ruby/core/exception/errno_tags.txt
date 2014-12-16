@@ -1,0 +1,3 @@
+fails:Errno::EINVAL.new can be called with no arguments
+fails:Errno::EINVAL.new accepts an optional custom message
+fails:Errno::EINVAL.new accepts an optional custom message and location
