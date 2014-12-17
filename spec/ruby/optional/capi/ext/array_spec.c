@@ -220,6 +220,12 @@ static VALUE array_spec_rb_ary_concat(VALUE self, VALUE array1, VALUE array2) {
 }
 #endif
 
+#ifdef HAVE_RB_ARY_PLUS
+static VALUE array_spec_rb_ary_plus(VALUE self, VALUE array1, VALUE array2) {
+  return rb_ary_plus(array1, array2);
+}
+#endif
+
 #ifdef HAVE_RB_ARY_UNSHIFT
 static VALUE array_spec_rb_ary_unshift(VALUE self, VALUE array, VALUE val) {
   return rb_ary_unshift(array, val);
@@ -415,6 +421,10 @@ void Init_array_spec() {
 
 #ifdef HAVE_RB_ARY_CONCAT
   rb_define_method(cls, "rb_ary_concat", array_spec_rb_ary_concat, 2);
+#endif
+
+#ifdef HAVE_RB_ARY_PLUS
+  rb_define_method(cls, "rb_ary_plus", array_spec_rb_ary_plus, 2);
 #endif
 
 #ifdef HAVE_RB_ARY_UNSHIFT

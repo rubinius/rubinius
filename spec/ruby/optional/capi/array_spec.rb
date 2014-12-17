@@ -185,6 +185,12 @@ describe "C-API Array function" do
     end
   end
 
+  describe "rb_ary_plus" do
+    it "adds two arrays together" do
+      @s.rb_ary_plus([10], [20]).should == [10, 20]
+    end
+  end
+
   describe "RARRAY_PTR" do
     it "returns a pointer to a C array of the array's elements" do
       a = [1, 2, 3]
