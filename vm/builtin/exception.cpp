@@ -250,18 +250,23 @@ namespace rubinius {
           get_object_bounds_exceeded_error(state), reason));
   }
 
-  Exception* Exception::make_errno_exception(STATE, Class* exc_class, Object* reason) {
+  Exception* Exception::make_errno_exception(STATE, Class* exc_class, Object* reason, Object* loc) {
     Exception* exc = state->new_object<Exception>(exc_class);
 
     String* message = force_as<String>(reason);
     if(String* str = try_as<String>(exc_class->get_const(state, "Strerror"))) {
       str = str->string_dup(state);
-      if(String* r = try_as<String>(reason)) {
-        str->append(state, " - ");
-        message = str->append(state, r);
-      } else {
+      if(String* l = try_as<String>(loc)) {
+        str->append(state, " @ ");
+        str->append(state, l);
         message = str;
       }
+      if(String* r = try_as<String>(reason)) {
+        str->append(state, " - ");
+        str->append(state, r);
+        message = str;
+      }
+      message = str;
     }
     exc->reason_message(state, message);
 
@@ -272,11 +277,11 @@ namespace rubinius {
   }
 
   /* exception_errno_error primitive */
-  Object* Exception::errno_error(STATE, Object* reason, Fixnum* ern) {
+  Object* Exception::errno_error(STATE, Object* reason, Fixnum* ern, Object* loc) {
     Class* exc_class = get_errno_error(state, ern);
     if(exc_class->nil_p()) return cNil;
 
-    return make_errno_exception(state, exc_class, reason);
+    return make_errno_exception(state, exc_class, reason, loc);
   }
 
   void Exception::errno_error(STATE, const char* reason, int ern, const char* entity) {
@@ -302,7 +307,7 @@ namespace rubinius {
         message = String::create(state, msg.str().c_str(), msg.str().size());
       }
 
-      exc = make_errno_exception(state, exc_class, message);
+      exc = make_errno_exception(state, exc_class, message, cNil);
     }
 
     RubyException::raise(exc);
@@ -318,7 +323,7 @@ namespace rubinius {
       message = String::create(state, reason);
     }
 
-    exc = make_errno_exception(state, exc_class, message);
+    exc = make_errno_exception(state, exc_class, message, cNil);
 
     RubyException::raise(exc);
   }
