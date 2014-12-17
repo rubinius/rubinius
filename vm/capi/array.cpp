@@ -373,6 +373,10 @@ extern "C" {
     return self;
   }
 
+  VALUE rb_ary_plus(VALUE self, VALUE second) {
+    return rb_funcall(self, rb_intern("+"), 1, second);
+  }
+
   VALUE rb_ary_unshift(VALUE self, VALUE object) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 
