@@ -219,6 +219,11 @@ class Thread
   end
 
   def join_inner(timeout = undefined)
+    if undefined.equal?(timeout) || nil.equal?(timeout)
+      timeout = nil
+    else
+      timeout = Rubinius::Type.coerce_to_float(timeout)
+    end
     result = nil
     Rubinius.lock(self)
     begin
@@ -227,14 +232,14 @@ class Thread
         @joins << jc
         Rubinius.unlock(self)
         begin
-          if undefined.equal? timeout
+          if !timeout
             while true
               res = jc.receive
               # receive returns false if it was a spurious wakeup
               break if res != false
             end
           else
-            duration = timeout.to_f
+            duration = timeout
             while true
               start = Time.now.to_f
               res = jc.receive_timeout duration
