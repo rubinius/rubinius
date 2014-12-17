@@ -298,10 +298,6 @@ end
 class LocalJumpError < StandardError
 end
 
-# For libraries that Rubinius does not support
-class UnsupportedLibraryError < StandardError
-end
-
 class SyntaxError < ScriptError
   attr_accessor :column
   attr_accessor :line
