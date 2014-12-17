@@ -362,9 +362,11 @@ namespace rubinius {
         // Just set ourselves to use the new fd and go on with life.
         descriptor(state, Fixnum::from(other_fd));
       } else {
+        if(other_fd > 0) ::close(other_fd);
         Exception::errno_error(state, p->c_str_null_safe(state));
-        return NULL;
       }
+    } else {
+      ::close(other_fd);
     }
 
     self->set_mode(state);
