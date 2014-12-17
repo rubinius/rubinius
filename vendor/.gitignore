@@ -48,3 +48,10 @@ zlib/minigzipsh
 zlib/zconf.h
 zlib/zlib.pc
 
+# yaml
+libyaml/config.*
+libyaml/libtool
+libyaml/Makefile
+libyaml/*/Makefile
+libyaml/tests/*
+libyaml/yaml-0.1.pc

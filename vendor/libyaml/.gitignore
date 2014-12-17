@@ -1,5 +1,0 @@
-config.*
-libtool
-Makefile
-tests/*
-yaml-0.1.pc
