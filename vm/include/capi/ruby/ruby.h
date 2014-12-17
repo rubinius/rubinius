@@ -921,6 +921,8 @@ struct RTypedData {
   /** New Array of given length, filled with varargs elements. */
   VALUE   rb_ary_new3(unsigned long length, ...);
 
+#define rb_ary_new_from_args rb_ary_new3
+
   /** New Array of given length, filled with copies of given object. */
   VALUE   rb_ary_new4(unsigned long length, const VALUE* object);
 
