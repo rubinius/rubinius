@@ -135,11 +135,6 @@ namespace rubinius {
 
   void PolyInlineCache::inline_cache_updater(STATE, CallSite* call_site, Class* klass, Dispatch& dispatch) {
     PolyInlineCache* cache = reinterpret_cast<PolyInlineCache*>(call_site);
-
-    if(SingletonClass* cls = try_as<SingletonClass>(klass)) {
-      if(!try_as<Class>(cls->attached_instance())) return;
-    }
-
     InlineCacheEntry* entry = InlineCacheEntry::create(state, klass->data(), klass, dispatch, 1);
     cache->set_cache(state, entry);
   }

@@ -216,13 +216,7 @@ namespace rubinius {
     }
   }
 
-  void CallSite::empty_cache_updater(STATE, CallSite* call_site, Class* klass,
-      Dispatch& dispatch)
-  {
-    if(SingletonClass* cls = try_as<SingletonClass>(klass)) {
-      if(!try_as<Class>(cls->attached_instance())) return;
-    }
-
+  void CallSite::empty_cache_updater(STATE, CallSite* call_site, Class* klass, Dispatch& dispatch) {
     MonoInlineCache* cache = MonoInlineCache::create(state, call_site, klass, dispatch);
     call_site->update_call_site(state, cache);
   }
