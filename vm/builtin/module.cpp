@@ -217,7 +217,7 @@ namespace rubinius {
     Module* mod_to_query = 0;
 
     if(SingletonClass* sc = try_as<SingletonClass>(mod)) {
-      mod_to_query = try_as<Module>(sc->attached_instance());
+      mod_to_query = try_as<Module>(sc->singleton());
       if(!mod_to_query) mod_to_query = mod;
     } else if(IncludedModule* im = try_as<IncludedModule>(mod)) {
       mod_to_query = im->module();
@@ -294,7 +294,7 @@ namespace rubinius {
 
     mod = this;
     if(SingletonClass* sc = try_as<SingletonClass>(mod)) {
-      mod = as<Module>(sc->attached_instance());
+      mod = as<Module>(sc->singleton());
     }
 
     std::ostringstream ss;
@@ -382,7 +382,7 @@ namespace rubinius {
 
     std::ostringstream ss;
     if(SingletonClass* sc = try_as<SingletonClass>(mod)) {
-      mod = as<Module>(sc->attached_instance());
+      mod = as<Module>(sc->singleton());
     }
 
     if(CBOOL(this->cvar_defined(state, name))) {

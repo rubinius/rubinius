@@ -287,7 +287,7 @@ namespace rubinius {
             stream << "__block__";
           } else {
             if(SingletonClass* sc = try_as<SingletonClass>(frame->module())) {
-              Object* obj = sc->attached_instance();
+              Object* obj = sc->singleton();
 
               if(Module* mod = try_as<Module>(obj)) {
                 stream << mod->debug_str(state) << ".";

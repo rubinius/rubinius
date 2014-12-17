@@ -462,7 +462,7 @@ namespace rubinius {
      * class itself.
      */
     if(SingletonClass* sc_klass = try_as<SingletonClass>(sc->klass())) {
-      if(sc != sc_klass->attached_instance()) {
+      if(sc != sc_klass->singleton()) {
         SingletonClass::attach(state, sc);
       }
     }
@@ -479,7 +479,7 @@ namespace rubinius {
        * works properly. BUT we should not return that parent singleton
        * class, we need to only return a SingletonClass that is for this!
        */
-      if(!sc || sc->attached_instance() != this) {
+      if(!sc || sc->singleton() != this) {
         sc = SingletonClass::attach(state, this);
       }
 

@@ -312,7 +312,7 @@ namespace rbxti {
 
   robject Env::metaclass_attached_instance(rmodule mod) {
     if(SingletonClass* mc = try_as<SingletonClass>(i(mod))) {
-      return s(mc->attached_instance());
+      return s(mc->singleton());
     }
 
     return NULL;

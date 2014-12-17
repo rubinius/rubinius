@@ -1221,7 +1221,7 @@ namespace rubinius {
 
   Object* System::vm_singleton_class_object(STATE, Module* mod) {
     if(SingletonClass* sc = try_as<SingletonClass>(mod)) {
-      return sc->attached_instance();
+      return sc->singleton();
     }
 
     return cNil;

@@ -870,7 +870,7 @@ namespace rubinius {
 
           check_reference_class(obj, class_id, serial_id, class_id_failure, serial_id_failure);
           if(SingletonClass* singleton = try_as<SingletonClass>(klass)) {
-            if(Class* attached_class = try_as<Class>(singleton->attached_instance())) {
+            if(Class* attached_class = try_as<Class>(singleton->singleton())) {
               return type::KnownType::class_object(attached_class->class_id());
             } else {
               return type::KnownType::singleton_instance(class_id);
