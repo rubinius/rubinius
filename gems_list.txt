@@ -5,12 +5,12 @@ minitest-4.7.5.gem
 racc-1.4.12.gem
 rake-10.4.2.gem
 rb-readline-0.5.1.gem
-rdoc-4.1.2.gem
+rdoc-4.2.0.gem
 rubinius-ast-2.3.0.gem
 rubinius-build_tools-2.0.0.gem
 rubinius-compiler-2.3.0.gem
 rubinius-coverage-2.0.3.gem
-rubinius-debugger-2.1.0.gem
+rubinius-debugger-2.2.0.gem
 rubinius-developer_tools-2.0.0.gem
 rubinius-melbourne-2.3.0.0.gem
 rubinius-processor-2.3.0.gem
@@ -77,7 +77,7 @@ rubysl-prime-2.0.1.gem
 rubysl-profile-2.0.0.gem
 rubysl-profiler-2.0.1.gem
 rubysl-pstore-2.0.0.gem
-rubysl-pty-2.0.2.gem
+rubysl-pty-2.0.3.gem
 rubysl-rational-2.0.1.gem
 rubysl-resolv-2.1.0.gem
 rubysl-rexml-2.0.4.gem
