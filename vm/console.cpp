@@ -4,6 +4,7 @@
 #include "object_utils.hpp"
 
 #include "builtin/array.hpp"
+#include "builtin/io.hpp"
 #include "builtin/class.hpp"
 #include "builtin/fsevent.hpp"
 #include "builtin/string.hpp"
@@ -134,7 +135,7 @@ namespace rubinius {
 
     static int open_file(STATE, std::string path) {
       int perms = state->shared().config.system_console_access;
-      int fd = ::open(path.c_str(), O_CREAT | O_TRUNC | O_RDWR | O_SYNC | O_CLOEXEC, perms);
+      int fd = IO::open_with_cloexec(state, path.c_str(), O_CREAT | O_TRUNC | O_RDWR | O_SYNC, perms);
 
       if(fd < 0) {
         logger::error("%s: console: unable to open: %s", strerror(errno), path.c_str());

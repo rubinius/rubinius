@@ -107,7 +107,7 @@ namespace rubinius {
 
     {
       GCIndependent guard(state, calling_environment);
-      fd = ::open(path, mode, permissions);
+      fd = open_with_cloexec(state, path, mode, permissions);
     }
 
     free(path);
@@ -115,9 +115,20 @@ namespace rubinius {
     if(fd < 0) {
       Exception::errno_error(state, p->c_str_null_safe(state));
     }
-    new_open_fd(state, fd);
 
     return Fixnum::from(fd);
+  }
+
+  native_int IO::open_with_cloexec(STATE, const char* path, int mode, int permissions) {
+#ifdef O_CLOEXEC
+    int fd = ::open(path, mode | O_CLOEXEC, permissions);
+    update_max_fd(state, fd);
+#else
+    int fd = ::open(path, mode, permissions)
+    new_open_fd(state, fd);
+#endif
+
+    return fd;
   }
 
   void IO::new_open_fd(STATE, native_int new_fd) {
@@ -346,7 +357,7 @@ namespace rubinius {
 
     {
       GCIndependent guard(state, calling_environment);
-      other_fd = ::open(path, mode, 0666);
+      other_fd = open_with_cloexec(state, path, mode, 0666);
     }
 
     free(path);
@@ -354,8 +365,6 @@ namespace rubinius {
     if(other_fd < 0) {
       Exception::errno_error(state, p->c_str_null_safe(state));
     }
-
-    new_open_fd(state, other_fd);
 
     if(dup2(other_fd, cur_fd) == -1) {
       if(errno == EBADF) { // this means cur_fd is closed
