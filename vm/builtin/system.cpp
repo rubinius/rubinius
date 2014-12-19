@@ -52,6 +52,7 @@
 
 #ifndef RBX_WINDOWS
 #include <sys/resource.h>
+#include <sys/stat.h>
 #include <sys/wait.h>
 #include <pwd.h>
 #include <dlfcn.h>
@@ -290,10 +291,101 @@ namespace rubinius {
     }
   };
 
-  Object* System::vm_spawn(STATE, GCToken gct, Object* pstate, String* path, Array* args,
-                           CallFrame* calling_environment)
+  static void redirect_file_descriptor(int from, int to) {
+    if(dup2(to, from) < 0) return;
+
+    int flags = fcntl(from, F_GETFD);
+    if(flags < 0) return;
+
+    fcntl(from, F_SETFD, flags & ~FD_CLOEXEC);
+  }
+
+  Object* System::vm_spawn_setup(STATE, Object* spawn_state) {
+    if(LookupTable* table = try_as<LookupTable>(spawn_state)) {
+      if(Array* env = try_as<Array>(
+            table->fetch(state, state->symbol("env"))))
+      {
+        native_int size = env->size();
+        for(native_int i = 0; i < size; i += 2) {
+          const char* key = as<String>(env->get(state, i))->c_str_null_safe(state);
+          Object* value = env->get(state, i + 1);
+
+          if(value->nil_p()) {
+            unsetenv(key);
+          } else {
+            setenv(key, as<String>(value)->c_str_null_safe(state), 1);
+          }
+        }
+      }
+
+      if(Fixnum* pgrp = try_as<Fixnum>(
+            table->fetch(state, state->symbol("pgroup"))))
+      {
+        setpgid(0, pgrp->to_native());
+      }
+
+      if(Fixnum* mask = try_as<Fixnum>(
+            table->fetch(state, state->symbol("umask"))))
+      {
+        umask(mask->to_native());
+      }
+
+      if(String* str = try_as<String>(
+            table->fetch(state, state->symbol("chdir"))))
+      {
+        const char* dir = str->c_str_null_safe(state);
+        if(chdir(dir) < 0) {
+          utilities::logger::error("%s: spawn: failed to change directory: %s",
+              strerror(errno), dir);
+        }
+      }
+
+      if(CBOOL(table->has_key(state, state->symbol("close_others")))) {
+        int max = IO::max_descriptors();
+        int flags;
+
+        for(int fd = 0; fd < max; fd++) {
+          if((flags = fcntl(fd, F_GETFD)) >= 0) {
+            fcntl(fd, F_SETFD, flags | FD_CLOEXEC);
+          }
+        }
+      }
+
+      if(Array* assign = try_as<Array>(
+            table->fetch(state, state->symbol("assign_fd"))))
+      {
+        native_int size = assign->size();
+        for(native_int i = 0; i < size; i += 4) {
+          int from = as<Fixnum>(assign->get(state, i))->to_native();
+          int mode = as<Fixnum>(assign->get(state, i + 2))->to_native();
+          int perm = as<Fixnum>(assign->get(state, i + 3))->to_native();
+          const char* name = as<String>(assign->get(state, i + 1))->c_str_null_safe(state);
+
+          int to = IO::open_with_cloexec(state, name, mode, perm);
+          redirect_file_descriptor(from, to);
+        }
+      }
+
+      if(Array* redirect = try_as<Array>(
+            table->fetch(state, state->symbol("redirect_fd"))))
+      {
+        native_int size = redirect->size();
+        for(native_int i = 0; i < size; i += 2) {
+          int from = as<Fixnum>(redirect->get(state, i))->to_native();
+          int to = as<Fixnum>(redirect->get(state, i + 1))->to_native();
+
+          redirect_file_descriptor(from, to < 0 ? (-to + 1) : to);
+        }
+      }
+    }
+
+    return cNil;
+  }
+
+  Object* System::vm_spawn(STATE, GCToken gct, Object* spawn_state, String* path,
+                           Array* args, CallFrame* calling_environment)
   {
-    OnStack<1> os(state, pstate);
+    OnStack<1> os(state, spawn_state);
 
     /* Setting up the command and arguments may raise an exception so do it
      * before everything else.
@@ -351,7 +443,7 @@ namespace rubinius {
       state->shared().auxiliary_threads()->after_fork_exec_child(state);
 
       // Setup ENV, redirects, groups, etc. in the child before exec().
-      pstate->send(state, calling_environment, state->symbol("setup_process"));
+      vm_spawn_setup(state, spawn_state);
 
       /* Reset all signal handlers to the defaults, so any we setup in
        * Rubinius won't leak through. We need to use sigaction() here since

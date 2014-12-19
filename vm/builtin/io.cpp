@@ -37,6 +37,8 @@
 #endif
 
 namespace rubinius {
+  int IO::max_descriptors_ = 2;
+
   void IO::init(STATE) {
     GO(io).set(ontology::new_class(state, "IO", G(object)));
     G(io)->set_object_type(state, IOType);
@@ -44,9 +46,6 @@ namespace rubinius {
     GO(iobuffer).set(ontology::new_class(state, "InternalBuffer",
           G(object), G(io)));
     G(iobuffer)->set_object_type(state, IOBufferType);
-
-    AtomicReference* ref = AtomicReference::create(state, Fixnum::from(-1));
-    G(io)->set_ivar(state, state->symbol("@max_open_fd"), ref);
   }
 
   IO* IO::create(STATE, int fd) {
@@ -142,12 +141,11 @@ namespace rubinius {
   }
 
   void IO::update_max_fd(STATE, native_int new_fd) {
-    AtomicReference* ref = as<AtomicReference>(G(io)->get_ivar(state, state->symbol("@max_open_fd")));
-    Fixnum* old_fd = as<Fixnum>(ref->get(state));
+    while(true) {
+      int max = atomic::read(&max_descriptors_);
 
-    while(old_fd->to_native() < new_fd &&
-          ref->compare_and_set(state, old_fd, Fixnum::from(new_fd))->false_p()) {
-      old_fd = as<Fixnum>(ref->get(state));
+      if(new_fd < max_descriptors_) return;
+      if(atomic::compare_and_swap(&max_descriptors_, max, new_fd)) return;
     }
   }
 

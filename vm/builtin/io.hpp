@@ -9,6 +9,8 @@ namespace rubinius {
   class Encoding;
 
   class IO : public Object {
+    static int max_descriptors_;
+
   public:
     const static object_type type = IOType;
 
@@ -42,6 +44,10 @@ namespace rubinius {
 
     static void init(STATE);
     static IO* create(STATE, int fd);
+
+    static int max_descriptors() {
+      return max_descriptors_;
+    }
 
     native_int to_fd();
     void set_mode(STATE);

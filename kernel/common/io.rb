@@ -978,10 +978,6 @@ class IO
     end
   end
 
-  def self.max_open_fd
-    @max_open_fd.get
-  end
-
   #
   # Create a new IO associated with the given fd.
   #

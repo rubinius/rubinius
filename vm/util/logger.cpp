@@ -255,7 +255,7 @@ namespace rubinius {
       }
 
 #define LOGGER_MAX_FILE     5242880
-#define LOGGER_OPEN_FLAGS   (O_CREAT | O_APPEND | O_WRONLY)
+#define LOGGER_OPEN_FLAGS   (O_CREAT | O_APPEND | O_WRONLY | O_CLOEXEC)
 #define LOGGER_OPEN_PERMS   0644
 
       FileLogger::FileLogger(const char* identifier)
