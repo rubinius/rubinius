@@ -1425,6 +1425,8 @@ struct RTypedData {
   void    rb_update_max_fd(int fd);
   void    rb_fd_fix_cloexec(int fd);
 #define HAVE_RB_FD_FIX_CLOEXEC 1
+  int     rb_cloexec_open(const char *pathname, int flags, int mode);
+#define HAVE_RB_FD_CLOEXEC_OPEN 1
 
   void    rb_thread_wait_fd(int fd);
   void    rb_thread_fd_writable(int fd);
