@@ -364,6 +364,7 @@
 
 #ifdef RUBY_VERSION_IS_2_0
 #define HAVE_RB_FD_FIX_CLOEXEC             1
+#define HAVE_RB_CLOEXEC_OPEN               1
 #endif
 
 /* Kernel */
