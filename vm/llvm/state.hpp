@@ -291,7 +291,6 @@ namespace rubinius {
     void stop_thread(STATE);
 
     void after_fork_child(STATE);
-    void after_fork_exec_child(STATE);
 
     void gc_scan(GarbageCollector* gc);
 

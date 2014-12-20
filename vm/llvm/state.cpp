@@ -242,13 +242,6 @@ namespace rubinius {
     vm_->metrics()->init(metrics::eJITMetrics);
   }
 
-  void LLVMState::after_fork_exec_child(STATE) {
-    compile_list_.get()->clear(state);
-    current_compiler_ = 0;
-    enabled_ = false;
-    vm_ = NULL;
-  }
-
   void LLVMState::perform(STATE) {
     GCTokenImpl gct;
     RBX_DTRACE_CHAR_P thread_name = const_cast<RBX_DTRACE_CHAR_P>("rbx.jit");

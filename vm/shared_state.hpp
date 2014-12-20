@@ -295,7 +295,6 @@ namespace rubinius {
 
     void scheduler_loop();
 
-    void after_fork_exec_child(STATE, GCToken gct, CallFrame* call_frame);
     void after_fork_child(STATE, GCToken gct, CallFrame* call_frame);
 
     bool should_stop() const;
