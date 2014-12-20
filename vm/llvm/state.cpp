@@ -335,7 +335,7 @@ namespace rubinius {
 
       // We were unable to compile this function, likely
       // because it's got something we don't support.
-      if(!func || !ctx.success_p()) {
+      if(!func) {
         if(config().jit_show_compiling) {
           CompiledCode* code = compile_request->method();
           llvm::outs() << "[[[ JIT error background compiling "
@@ -559,8 +559,8 @@ namespace rubinius {
 
     int depth = config().jit_limit_search;
 
-    if(!start) return NULL;
-    if(!call_frame) return NULL;
+    if(!start) rubinius::bug("null start");
+    if(!call_frame) rubinius::bug("null call_frame");
 
     // if(!start) {
       // start = call_frame->compiled_code;

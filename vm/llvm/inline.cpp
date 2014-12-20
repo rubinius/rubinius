@@ -637,8 +637,7 @@ remember:
     BasicBlock* entry = work.setup_inline(recv(), blk, args);
 
     if(!work.generate_body()) {
-      ctx_->set_failure();
-      return;
+      rubinius::bug("LLVM failed to compile a function");
     }
 
     // Branch to the inlined method!
@@ -690,8 +689,7 @@ remember:
         ops_.constant(cNil, ops_.context()->ptr_type("Module")), args);
 
     if(!work.generate_body()) {
-      ctx_->set_failure();
-      return;
+      rubinius::bug("LLVM failed to compile a function");
     }
 
     // Branch to the inlined block!
@@ -924,8 +922,7 @@ remember:
       }
 
       default:
-        ctx_->set_failure();
-        return false;
+        rubinius::bug("Unknown FFI type in JIT FFI inliner");
       }
     }
 
@@ -1046,8 +1043,7 @@ remember:
 
     default:
       result = 0;
-      ctx_->set_failure();
-      return false;
+      rubinius::bug("Invalid FFI type in JIT");
     }
 
     exception_safe();
