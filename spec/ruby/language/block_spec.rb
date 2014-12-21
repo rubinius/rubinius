@@ -49,6 +49,16 @@ describe "A block yielded a single" do
       result.should == [1, 2, [], 3, 2, {x: 9}]
     end
 
+    it "treats hashes with symbol keys as keyword arguments" do
+      result = m([a: 10]) { |a = nil, **b| [a, b] }
+      result.should == [nil, a: 10]
+    end
+
+    it "does not treat hashes with string keys as keyword arguments" do
+      result = m(["a" => 10]) { |a = nil, **b| [a, b] }
+      result.should == [{"a" => 10}, {}]
+    end
+
     it "calls #to_hash on the last element if keyword arguments are present" do
       obj = mock("destructure block keyword arguments")
       obj.should_receive(:to_hash).and_return({x: 9})

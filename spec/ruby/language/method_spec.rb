@@ -949,6 +949,18 @@ describe "A method" do
     end
 
     evaluate <<-ruby do
+        def m(a = nil, **k) [a, k] end
+      ruby
+
+      m().should == [nil, {}]
+      m("a" => 1).should == [{"a" => 1}, {}]
+      m(a: 1).should == [nil, {a: 1}]
+      m("a" => 1, a: 1).should == [{"a" => 1}, {a: 1}]
+      m({ "a" => 1 }, a: 1).should == [{"a" => 1}, {a: 1}]
+      m({a: 1}, {}).should == [{a: 1}, {}]
+    end
+
+    evaluate <<-ruby do
         def m(*a, **k) [a, k] end
       ruby
 
@@ -956,6 +968,13 @@ describe "A method" do
       m(1).should == [[1], {}]
       m(a: 1, b: 2).should == [[], {a: 1, b: 2}]
       m(1, 2, 3, a: 2).should == [[1, 2, 3], {a: 2}]
+
+      m("a" => 1).should == [[{"a" => 1}], {}]
+      m(a: 1).should == [[], {a: 1}]
+      m("a" => 1, a: 1).should == [[{"a" => 1}], {a: 1}]
+      m({ "a" => 1 }, a: 1).should == [[{"a" => 1}], {a: 1}]
+      m({a: 1}, {}).should == [[{a: 1}], {}]
+      m({a: 1}, {"a" => 1}).should == [[{a: 1}, {"a" => 1}], {}]
     end
 
     evaluate <<-ruby do
