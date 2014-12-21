@@ -106,8 +106,6 @@ namespace rubinius {
 
     static const int cHintLazyBlockArgs = 1;
 
-    class Unsupported {};
-
     JITVisit(jit::Builder* builder, JITMethodInfo& info, BlockMap& bm,
              llvm::BasicBlock* start)
       : JITOperations(builder, info, start)
@@ -448,7 +446,7 @@ namespace rubinius {
         addr = llvm_state()->shared().globals.mirror.object_address();
         break;
       default:
-        rubinius::bug("invalid system object");
+        throw LLVMState::CompileError("invalid system object");
       }
 
       Value* l_addr = constant(addr, ObjArrayTy);
@@ -458,7 +456,7 @@ namespace rubinius {
     // visitors.
 
     void visit(opcode op, opcode arg1, opcode arg2) {
-      throw Unsupported();
+      throw LLVMState::CompileError("JIT: visit: unsupported");
     }
 
     void visit_noop() {
@@ -1770,7 +1768,9 @@ namespace rubinius {
           nfo = nfo->creator_info();
         }
 
-        if(mis.size() == 0) rubinius::bug("no method info in inlined block");
+        if(mis.size() == 0) {
+          throw LLVMState::CompileError("no method info in inlined block");
+        }
 
         call_args.push_back(cint(mis.size()));
 
@@ -2832,7 +2832,7 @@ use_send:
         llvm::outs() << "[[[ JIT error: " << instruction
                      << ": no block at: " << ip << "]]]\n";
       }
-      throw Unsupported();
+      throw LLVMState::CompileError("JIT: branch location missing");
     }
 
     void visit_goto(opcode ip) {

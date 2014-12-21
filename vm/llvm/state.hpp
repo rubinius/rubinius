@@ -295,8 +295,20 @@ namespace rubinius {
     void gc_scan(GarbageCollector* gc);
 
     static void show_machine_code(void* impl, size_t bytes);
-  };
 
+    class CompileError {
+      const char* error_;
+
+    public:
+      CompileError(const char* error)
+        : error_(error)
+      { }
+
+      const char* error() {
+        return error_;
+      }
+    };
+  };
 }
 
 #endif

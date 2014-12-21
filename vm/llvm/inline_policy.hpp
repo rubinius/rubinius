@@ -4,6 +4,7 @@
 #include "machine_code.hpp"
 #include "instructions_util.hpp"
 #include "llvm/jit_context.hpp"
+#include "vm/util/logger.hpp"
 
 namespace rubinius {
   struct InlineOptions {
@@ -35,8 +36,6 @@ namespace rubinius {
   class InlineEvaluator : public VisitInstructions<InlineEvaluator> {
   public:
 
-    class Unsupported {};
-
     static bool can_inline_p(MachineCode* mcode, InlineOptions& opts) {
       // Reject methods with splat arguments
       if(!opts.allow_splat && mcode->splat_position >= 0) return false;
@@ -47,7 +46,8 @@ namespace rubinius {
 
       try {
         eval.drive(mcode);
-      } catch(Unsupported& e) {
+      } catch(LLVMState::CompileError& e) {
+        utilities::logger::warn("JIT: inline evaluator: compile error: %s", e.error());
         return false;
       }
 
@@ -61,51 +61,61 @@ namespace rubinius {
     {}
 
     void visit_push_block() {
-      throw Unsupported();
+      throw LLVMState::CompileError("push_block");
     }
 
     void visit_push_has_block() {
-      if(!options_.allow_has_block) throw Unsupported();
+      if(!options_.allow_has_block) {
+        throw LLVMState::CompileError("push_has_block");
+      }
     }
 
     void visit_yield_splat(opcode count) {
-      throw Unsupported();
+      throw LLVMState::CompileError("yield_splat");
     }
 
     void visit_push_proc() {
-      throw Unsupported();
+      throw LLVMState::CompileError("push_proc");
     }
 
     void visit_push_block_arg() {
-      throw Unsupported();
+      throw LLVMState::CompileError("push_block_arg");
     }
 
     void visit_setup_unwind(opcode where, opcode type) {
-      if(!options_.allow_exceptions) throw Unsupported();
+      if(!options_.allow_exceptions) {
+        throw LLVMState::CompileError("setup_unwind");
+      }
     }
 
     void visit_create_block(opcode which) {
-      if(!options_.allow_blocks) throw Unsupported();
+      if(!options_.allow_blocks) {
+        throw LLVMState::CompileError("create_block");
+      }
     }
 
     void visit_send_super_stack_with_block(opcode which, opcode args) {
-      throw Unsupported();
+      throw LLVMState::CompileError("send_super_stack_with_block");
     }
 
     void visit_send_super_stack_with_splat(opcode which, opcode args) {
-      throw Unsupported();
+      throw LLVMState::CompileError("send_super_stack_with_splat");
     }
 
     void visit_zsuper(opcode which) {
-      throw Unsupported();
+      throw LLVMState::CompileError("zsuper");
     }
 
     void visit_raise_return() {
-      if(!options_.allow_raise_flow) throw Unsupported();
+      if(!options_.allow_raise_flow) {
+        throw LLVMState::CompileError("raise_return");
+      }
     }
 
     void visit_raise_break() {
-      if(!options_.allow_raise_flow) throw Unsupported();
+      if(!options_.allow_raise_flow) {
+        throw LLVMState::CompileError("raise_break");
+      }
     }
   };
 

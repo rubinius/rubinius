@@ -291,22 +291,59 @@ namespace rubinius {
 
       uint32_t class_id = 0;
       uint32_t serial_id = 0;
+      void* func = 0;
       Class* receiver_class = compile_request->receiver_class();
 
       OnStack<1> os2(state, receiver_class);
 
-      if(receiver_class && !receiver_class->nil_p()) {
+      try {
+        if(receiver_class && !receiver_class->nil_p()) {
 
-        // Apparently already compiled, probably some race
-        if(compile_request->method()->find_specialized(receiver_class)) {
+          // Apparently already compiled, probably some race
+          if(compile_request->method()->find_specialized(receiver_class)) {
+            if(config().jit_show_compiling) {
+              CompiledCode* code = compile_request->method();
+              llvm::outs() << "[[[ JIT already compiled "
+                        << enclosure_name(code) << "#" << symbol_debug_str(code->name())
+                        << (compile_request->is_block() ? " (block)" : " (method)")
+                        << " ]]]\n";
+            }
+
+            // If someone was waiting on this, wake them up.
+            if(utilities::thread::Condition* cond = compile_request->waiter()) {
+              cond->signal();
+            }
+
+            current_compiler_ = 0;
+
+            continue;
+          }
+
+          class_id = receiver_class->class_id();
+          serial_id = receiver_class->serial_id();
+        }
+
+        {
+          timer::StopWatch<timer::microseconds> timer(
+              vm()->metrics()->m.jit_metrics.time_last_us,
+              vm()->metrics()->m.jit_metrics.time_total_us);
+
+          jit.compile(compile_request);
+
+          bool indy = !config().jit_sync;
+          func = jit.generate_function(indy);
+        }
+
+        // We were unable to compile this function, likely
+        // because it's got something we don't support.
+        if(!func) {
           if(config().jit_show_compiling) {
             CompiledCode* code = compile_request->method();
-            llvm::outs() << "[[[ JIT already compiled "
+            llvm::outs() << "[[[ JIT error background compiling "
                       << enclosure_name(code) << "#" << symbol_debug_str(code->name())
                       << (compile_request->is_block() ? " (block)" : " (method)")
                       << " ]]]\n";
           }
-
           // If someone was waiting on this, wake them up.
           if(utilities::thread::Condition* cond = compile_request->waiter()) {
             cond->signal();
@@ -316,38 +353,13 @@ namespace rubinius {
 
           continue;
         }
+      } catch(LLVMState::CompileError& e) {
+        utilities::logger::warn("JIT: compile error: %s", e.error());
 
-        class_id = receiver_class->class_id();
-        serial_id = receiver_class->serial_id();
-      }
-
-      void* func = 0;
-      {
-        timer::StopWatch<timer::microseconds> timer(
-            vm()->metrics()->m.jit_metrics.time_last_us,
-            vm()->metrics()->m.jit_metrics.time_total_us);
-
-        jit.compile(compile_request);
-
-        bool indy = !config().jit_sync;
-        func = jit.generate_function(indy);
-      }
-
-      // We were unable to compile this function, likely
-      // because it's got something we don't support.
-      if(!func) {
-        if(config().jit_show_compiling) {
-          CompiledCode* code = compile_request->method();
-          llvm::outs() << "[[[ JIT error background compiling "
-                    << enclosure_name(code) << "#" << symbol_debug_str(code->name())
-                    << (compile_request->is_block() ? " (block)" : " (method)")
-                    << " ]]]\n";
-        }
         // If someone was waiting on this, wake them up.
         if(utilities::thread::Condition* cond = compile_request->waiter()) {
           cond->signal();
         }
-
         current_compiler_ = 0;
 
         continue;
@@ -559,8 +571,13 @@ namespace rubinius {
 
     int depth = config().jit_limit_search;
 
-    if(!start) rubinius::bug("null start");
-    if(!call_frame) rubinius::bug("null call_frame");
+    if(!start) {
+      throw CompileError("find_candidate: null start");
+    }
+
+    if(!call_frame) {
+      throw CompileError("find_candidate: null call frame");
+    }
 
     // if(!start) {
       // start = call_frame->compiled_code;

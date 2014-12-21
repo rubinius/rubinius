@@ -884,7 +884,7 @@ namespace rubinius {
           performed = ops.b().CreateICmpSGE(lint, rint, "fixnum.ge");
           break;
         default:
-          rubinius::bug("Unknown fixnum operation in JIT");
+          throw LLVMState::CompileError("unknown Fixnum operation");
       }
 
       Value* le = ops.b().CreateSelect(
@@ -1076,7 +1076,7 @@ namespace rubinius {
           performed = ops.b().CreateFRem(lhs, rhs, "float.mod");
           break;
         default:
-          rubinius::bug("Unknown float operation in JIT");
+          throw LLVMState::CompileError("unknown Float operation");
       }
 
       Signature sig(ops.context(), ops.context()->ptr_type("Float"));
@@ -1251,7 +1251,7 @@ namespace rubinius {
           performed = ops.b().CreateFCmpUGE(lhs, rhs, "float.ge");
           break;
         default:
-          rubinius::bug("Unknown float operation in JIT");
+          throw LLVMState::CompileError("unknown Float operation");
       }
 
       Value* imm_value = ops.b().CreateSelect(performed,
@@ -1847,7 +1847,7 @@ namespace rubinius {
       ip.tuple_swap();
       break;
     default:
-      rubinius::bug("Unknown inline intrinsic in JIT");
+      throw LLVMState::CompileError("unknown inline intrinsic");
     }
   }
 }

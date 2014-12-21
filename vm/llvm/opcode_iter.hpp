@@ -34,7 +34,7 @@ namespace rubinius {
 #undef HANDLE_INST2
 
       default:
-        rubinius::bug("Unknown opcode");
+        throw LLVMState::CompileError("unknown opcode");
       }
     }
 
