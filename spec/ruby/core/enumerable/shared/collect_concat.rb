@@ -19,6 +19,15 @@ describe :enumerable_collect_concat, :shared => true do
     numerous.send(@method){ |i| i }.should == [:foo, obj2]
   end
 
+  it "only returns the first value when multiple values are yielded" do
+    obj = Object.new
+    def obj.each
+      yield(1, 2)
+    end
+    obj.extend(Enumerable)
+    obj.send(@method){ |i| i }.should == [1]
+  end
+
   it "returns an enumerator when no block given" do
     enum = EnumerableSpecs::Numerous.new(1, 2).send(@method)
     enum.should be_an_instance_of(enumerator_class)
