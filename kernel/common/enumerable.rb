@@ -90,11 +90,12 @@ module Enumerable
   def flat_map
     return to_enum(:flat_map) unless block_given?
 
-    inject([]) do |a, e|
-      result = yield e
-
+    a = []
+    each do |*args|
+      result = yield(*args)
       Rubinius::Type.object_respond_to_ary?(result) ? a.concat(result) : a.push(result)
     end
+    a
   end
 
   alias_method :collect_concat, :flat_map
