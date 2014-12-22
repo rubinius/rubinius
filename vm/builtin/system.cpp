@@ -344,7 +344,7 @@ namespace rubinius {
         int max = IO::max_descriptors();
         int flags;
 
-        for(int fd = 0; fd < max; fd++) {
+        for(int fd = STDERR_FILENO + 1; fd < max; fd++) {
           if((flags = fcntl(fd, F_GETFD)) >= 0) {
             fcntl(fd, F_SETFD, flags | FD_CLOEXEC);
           }
