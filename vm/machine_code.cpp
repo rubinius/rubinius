@@ -478,6 +478,8 @@ namespace rubinius {
        *    P* : number of post parameters
        *    PI : index of the first post parameter
        *    KP : true if a keyword parameter is defined, false otherwise
+       *    KA : true if the keyword argument was extracted from the passed
+       *         argument leaving a remaining value
        *    KI : index of keyword rest parameter
        *
        *  (*) The values of H and P are fixed and they represent the same
@@ -485,7 +487,7 @@ namespace rubinius {
        *
        *  formulas
        *  --------
-       *    K  = KP && N > M ? 1 : 0
+       *    K  = KP && !KA && N > M ? 1 : 0
        *    E  = N - M - K
        *    O  = T - M - (keywords ? 1 : 0)
        *    ON = (X = MIN(O, E)) > 0 ? X : 0
@@ -498,6 +500,7 @@ namespace rubinius {
       const native_int N = args.total();
       const native_int T = mcode->total_args;
       const native_int M = mcode->required_args;
+      const native_int O = T - M - (mcode->keywords ? 1 : 0);
 
       /* TODO: Clean up usage to uniformly refer to 'splat' as N arguments
        * passed from sender at a single position and 'rest' as N arguments
@@ -525,43 +528,46 @@ namespace rubinius {
       const native_int H  = M - P;
 
       Object* kw = 0;
+      Object* kw_remainder = 0;
       bool KP = false;
+      bool KA = false;
 
       if(mcode->keywords && N > M) {
-        Object* cls = G(object)->get_const(state, "Hash");
         Object* obj = args.get_argument(N - 1);
 
-        if(!cls->nil_p()) {
-          if(obj->kind_of_p(state, cls)) {
-            kw = obj;
-            KP = true;
-          } else {
-            OnStack<1> os(state, cls);
+        OnStack<1> os(state, obj);
+        Object* arguments[2];
 
-            Symbol* name = G(sym_to_hash);
-            if(CBOOL(obj->respond_to(state, name, cFalse))) {
-              Arguments args(name, obj, 0, 0);
-              Dispatch dis(name);
+        arguments[0] = obj;
+        arguments[1] = RBOOL(O > 0 || RP);
+        Arguments args(G(sym_keyword_object), G(runtime), 2, arguments);
+        Dispatch dis(G(sym_keyword_object));
 
-              obj = dis.send(state, call_frame, args);
-              if(obj) {
-                if(obj->kind_of_p(state, cls)) {
-                  kw = obj;
-                  KP = true;
-                }
-              } else {
-                return false;
-              }
+        Object* kw_result = dis.send(state, call_frame, args);
+
+        if(kw_result) {
+          if(Array* ary = try_as<Array>(kw_result)) {
+            Object* o = 0;
+
+            if(!(o = ary->get(state, 0))->nil_p()) {
+              kw_remainder = o;
+              KA = true;
+            }
+
+            if(!(o = ary->get(state, 1))->nil_p()) {
+              kw = o;
+              KP = true;
             }
           }
+        } else {
+          return false;
         }
       }
 
-      const native_int K = (KP && N > M) ? 1 : 0;
-      const native_int O = T - M - (mcode->keywords ? 1 : 0);
+      const native_int K = (KP && !KA && N > M) ? 1 : 0;
       const native_int E = N - M - K;
 
-      // A single kwrest argument
+      // Too many arguments
       if(mcode->keywords && !RP && !KP && E > O) return false;
 
       native_int X;
@@ -575,17 +581,25 @@ namespace rubinius {
       native_int l = 0;   // local index
 
       // head arguments
-      for(; a < H; l++, a++) {
-        scope->set_local(l, args.get_argument(a));
+      if(H > 0) {
+        for(; a < H; l++, a++) {
+          scope->set_local(l, args.get_argument(a));
+        }
       }
 
       // optional arguments
-      for(; l < H + O && a < H + ON; l++, a++) {
-        scope->set_local(l, args.get_argument(a));
-      }
+      if(O > 0) {
+        for(; l < H + O && a < H + ON; l++, a++) {
+          if(unlikely(kw_remainder && !RP && (a == N - 1))) {
+            scope->set_local(l, kw_remainder);
+          } else {
+            scope->set_local(l, args.get_argument(a));
+          }
+        }
 
-      for(; l < H + O; l++) {
-        scope->set_local(l, G(undefined));
+        for(; l < H + O; l++) {
+          scope->set_local(l, G(undefined));
+        }
       }
 
       // rest arguments
@@ -596,7 +610,11 @@ namespace rubinius {
           ary = Array::create(state, RN);
 
           for(int i = 0; i < RN && a < N - P - K; i++, a++) {
-            ary->set(state, i, args.get_argument(a));
+            if(unlikely(kw_remainder && (a == N - 1))) {
+              ary->set(state, i, kw_remainder);
+            } else {
+              ary->set(state, i, args.get_argument(a));
+            }
           }
         } else {
           ary = Array::create(state, 0);
@@ -606,12 +624,14 @@ namespace rubinius {
       }
 
       // post arguments
-      for(l = PI; l < PI + P && a < N - K; l++, a++) {
-        scope->set_local(l, args.get_argument(a));
+      if(P > 0) {
+        for(l = PI; l < PI + P && a < N - K; l++, a++) {
+          scope->set_local(l, args.get_argument(a));
+        }
       }
 
       // keywords
-      if(KP && K > 0 && kw) {
+      if(kw) {
         scope->set_local(KI, kw);
       }
 

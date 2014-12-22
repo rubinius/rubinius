@@ -66,7 +66,7 @@ namespace rubinius {
     TypedRoot<Symbol*> sym_plus, sym_minus, sym_equal, sym_nequal, sym_tequal, sym_lt, sym_gt;
     TypedRoot<Symbol*> sym_initialize;
     TypedRoot<Symbol*> sym_coerce_to_array, sym_to_ary, sym_to_hash;
-    TypedRoot<Symbol*> sym_allocation_site;
+    TypedRoot<Symbol*> sym_allocation_site, sym_keyword_object;
 
     TypedRoot<Class*> exception;
     TypedRoot<Class*> exc_arg, exc_segfault;
@@ -129,6 +129,7 @@ namespace rubinius {
     TypedRoot<Class*> fsevent;
     TypedRoot<Class*> logger;
     TypedRoot<JIT*> jit;
+    TypedRoot<Module*> runtime;
 
     TypedRoot<Encoding*> usascii_encoding, utf8_encoding, ascii8bit_encoding;
 
@@ -194,6 +195,7 @@ namespace rubinius {
       sym_to_ary(&roots),
       sym_to_hash(&roots),
       sym_allocation_site(&roots),
+      sym_keyword_object(&roots),
       exception(&roots),
       exc_arg(&roots),
       exc_segfault(&roots),
@@ -261,6 +263,7 @@ namespace rubinius {
       fsevent(&roots),
       logger(&roots),
       jit(&roots),
+      runtime(&roots),
       usascii_encoding(&roots),
       utf8_encoding(&roots),
       ascii8bit_encoding(&roots)

@@ -93,29 +93,14 @@ namespace rubinius {
     return Integer::from_cppstr(state, data, 16);
   }
 
-  static Object* compiler_runtime(STATE) {
-    Object* recv = try_as<Object>(G(rubinius)->get_const(state, "Runtime"));
-
-    if(!recv) {
-      Exception::runtime_error(state,
-          "unable to access Rubinius::Runtime from code unmarshaller");
-      return cNil;
-    } else {
-      return recv;
-    }
-  }
-
   Object* UnMarshaller::get_rational() {
-    Object* recv = compiler_runtime(state);
-    if(recv->nil_p()) return cNil;
-
     Object* objs[2];
 
     objs[0] = unmarshal();
     objs[1] = unmarshal();
 
     Symbol* name = state->symbol("unmarshal_rational");
-    Arguments args(name, recv, 2, objs);
+    Arguments args(name, G(runtime), 2, objs);
     Dispatch dis(name);
 
     if(Object* r = dis.send(state, NULL, args)) {
@@ -126,16 +111,13 @@ namespace rubinius {
   }
 
   Object* UnMarshaller::get_complex() {
-    Object* recv = compiler_runtime(state);
-    if(recv->nil_p()) return cNil;
-
     Object* objs[2];
 
     objs[0] = unmarshal();
     objs[1] = unmarshal();
 
     Symbol* name = state->symbol("unmarshal_complex");
-    Arguments args(name, recv, 2, objs);
+    Arguments args(name, G(runtime), 2, objs);
     Dispatch dis(name);
 
     if(Object* c = dis.send(state, NULL, args)) {

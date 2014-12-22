@@ -260,6 +260,7 @@ namespace rubinius {
 
     // Create the namespace for various implementation classes
     GO(rubinius).set(ontology::new_module(state, "Rubinius"));
+    GO(runtime).set(ontology::new_module(state, "Runtime", G(rubinius)));
 
     // Finish initializing the rest of the special 8
     G(tuple)->setup(state, "Tuple", G(rubinius));
@@ -562,6 +563,7 @@ namespace rubinius {
     GO(sym_lt).set(state->symbol("<"));
     GO(sym_gt).set(state->symbol(">"));
     GO(sym_allocation_site).set(state->symbol("@__allocation_site__"));
+    GO(sym_keyword_object).set(state->symbol("keyword_object?"));
   }
 
   void VM::setup_errno(STATE, int num, const char* name, Class* sce, Module* ern) {

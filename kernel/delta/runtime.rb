@@ -78,6 +78,46 @@ module Rubinius
       hash
     end
 
+    def self.keyword_object?(obj, optional)
+      hash = Rubinius::Type.try_convert obj, Hash, :to_hash
+      return unless hash
+
+      hs = hash.size
+      return [nil, hash] if hs == 0
+
+      kw = {}
+      t = Tuple.new hs
+      i = 0
+
+      hash.each do |key, value|
+        if key.instance_of? Symbol
+          kw[key] = value
+        else
+          return unless optional
+
+          t[i] = key
+          i += 1
+        end
+      end
+
+      if i == 0
+        [nil, kw]
+      elsif i == hs
+        [obj, kw]
+      else
+        nk = {}
+        j = 0
+
+        while j < i
+          k = t[j]
+          nk[k] = hash[k]
+          j += 1
+        end
+
+        [nk, kw]
+      end
+    end
+
     def self.keywords_missing(hash)
       keywords = CompiledCode.of_sender.keywords
 
@@ -100,8 +140,6 @@ module Rubinius
 
     def self.keywords_extra(hash, kwrest)
       keywords = CompiledCode.of_sender.keywords
-
-      hash = hash.dup
 
       total = keywords.size
       i = 0
