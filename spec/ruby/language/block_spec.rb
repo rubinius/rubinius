@@ -49,14 +49,30 @@ describe "A block yielded a single" do
       result.should == [1, 2, [], 3, 2, {x: 9}]
     end
 
-    it "treats hashes with symbol keys as keyword arguments" do
-      result = m([a: 10]) { |a = nil, **b| [a, b] }
-      result.should == [nil, a: 10]
+    it "assigns symbol keys from a Hash to keyword arguments" do
+      result = m(["a" => 1, a: 10]) { |a=nil, **b| [a, b] }
+      result.should == [{"a" => 1}, a: 10]
     end
 
-    it "does not treat hashes with string keys as keyword arguments" do
-      result = m(["a" => 10]) { |a = nil, **b| [a, b] }
-      result.should == [{"a" => 10}, {}]
+    it "assigns symbol keys from a Hash returned by #to_hash to keyword arguments" do
+      obj = mock("coerce block keyword arguments")
+      obj.should_receive(:to_hash).and_return({"a" => 1, b: 2})
+
+      result = m([obj]) { |a=nil, **b| [a, b] }
+      result.should == [{"a" => 1}, b: 2]
+    end
+
+    it "calls #to_hash on the argument but does not use the result when no keywords are present" do
+      obj = mock("coerce block keyword arguments")
+      obj.should_receive(:to_hash).and_return({"a" => 1, "b" => 2})
+
+      result = m([obj]) { |a=nil, **b| [a, b] }
+      result.should == [obj, {}]
+    end
+
+    it "assigns non-symbol keys to non-keyword arguments" do
+      result = m(["a" => 10, b: 2]) { |a=nil, **b| [a, b] }
+      result.should == [{"a" => 10}, {b: 2}]
     end
 
     it "calls #to_hash on the last element if keyword arguments are present" do

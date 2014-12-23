@@ -515,6 +515,7 @@ describe "A method" do
 
       lambda { m() }.should raise_error(ArgumentError)
       m(a: 1).should == 1
+      lambda { m("a" => 1, :a => 1) }.should raise_error(ArgumentError)
     end
 
     evaluate <<-ruby do
@@ -671,6 +672,7 @@ describe "A method" do
       ruby
 
       m(1, b: 2).should == [1, 2]
+      lambda { m("a" => 1, b: 2) }.should raise_error(ArgumentError)
     end
 
     evaluate <<-ruby do
@@ -679,6 +681,7 @@ describe "A method" do
 
       m(2).should == [2, 1]
       m(1, b: 2).should == [1, 2]
+      m("a" => 1, b: 2).should == [{"a" => 1, :b => 2}, 1]
     end
 
     evaluate <<-ruby do
@@ -687,6 +690,7 @@ describe "A method" do
 
       m(1).should == 1
       m(1, a: 2, b: 3).should == 1
+      m("a" => 1, b: 2).should == {"a" => 1, :b => 2}
     end
 
     evaluate <<-ruby do
@@ -695,6 +699,7 @@ describe "A method" do
 
       m(1).should == [1, {}]
       m(1, a: 2, b: 3).should == [1, {a: 2, b: 3}]
+      m("a" => 1, b: 2).should == [{"a" => 1, :b => 2}, {}]
     end
 
     evaluate <<-ruby do
@@ -811,6 +816,7 @@ describe "A method" do
 
       m(b: 2).should == [1, 2]
       m(2, b: 1).should == [2, 1]
+      m("a" => 1, b: 2).should == [{"a" => 1}, 2]
     end
 
     evaluate <<-ruby do
@@ -820,6 +826,7 @@ describe "A method" do
       m().should == [1, 2]
       m(2).should == [2, 2]
       m(b: 3).should == [1, 3]
+      m("a" => 1, b: 2).should == [{"a" => 1}, 2]
     end
 
     evaluate <<-ruby do
@@ -828,6 +835,7 @@ describe "A method" do
 
       m().should == 1
       m(2, a: 1, b: 0).should == 2
+      m("a" => 1, a: 2).should == {"a" => 1}
     end
 
     evaluate <<-ruby do
@@ -873,6 +881,7 @@ describe "A method" do
 
       m(a: 1).should == 1
       m(1, 2, a: 3).should == 3
+      m("a" => 1, a: 2).should == 2
     end
 
     evaluate <<-ruby do
@@ -881,6 +890,7 @@ describe "A method" do
 
       m(b: 1).should == [[], 1]
       m(1, 2, b: 3).should == [[1, 2], 3]
+      m("a" => 1, b: 2).should == [[{"a" => 1}], 2]
     end
 
     evaluate <<-ruby do
@@ -891,6 +901,7 @@ describe "A method" do
       m(1, 2).should == 1
       m(a: 2).should == 2
       m(1, a: 2).should == 2
+      m("a" => 1, a: 2).should == 2
     end
 
     evaluate <<-ruby do
@@ -899,6 +910,7 @@ describe "A method" do
 
       m().should == [[], 1]
       m(1, 2, 3, b: 4).should == [[1, 2, 3], 4]
+      m("a" => 1, b: 2).should == [[{"a" => 1}], 2]
 
       a = mock("splat")
       a.should_not_receive(:to_ary)
@@ -929,6 +941,7 @@ describe "A method" do
 
       m().should == []
       m(1, 2, 3, a: 4, b: 5).should == [1, 2, 3]
+      m("a" => 1, a: 1).should == [{"a" => 1}]
       m(1, **{a: 2}).should == [1]
 
       h = mock("keyword splat")
@@ -942,6 +955,7 @@ describe "A method" do
 
       m().should == {}
       m(1, 2, 3, a: 4, b: 5).should == {a: 4, b: 5}
+      m("a" => 1, a: 1).should == {a: 1}
 
       h = mock("keyword splat")
       h.should_receive(:to_hash).and_return({a: 1})
@@ -958,6 +972,31 @@ describe "A method" do
       m("a" => 1, a: 1).should == [{"a" => 1}, {a: 1}]
       m({ "a" => 1 }, a: 1).should == [{"a" => 1}, {a: 1}]
       m({a: 1}, {}).should == [{a: 1}, {}]
+
+      h = {"a" => 1, b: 2}
+      m(h).should == [{"a" => 1}, {b: 2}]
+      h.should == {"a" => 1, b: 2}
+
+      h = {"a" => 1}
+      m(h).first.should equal(h)
+
+      h = {}
+      r = m(h)
+      r.first.should be_nil
+      r.last.should == {}
+      r.last.should_not equal(h)
+
+      hh = {}
+      h = mock("keyword splat empty hash")
+      h.should_receive(:to_hash).and_return(hh)
+      r = m(h)
+      r.first.should be_nil
+      r.last.should == {}
+      r.last.should_not equal(hh)
+
+      h = mock("keyword splat")
+      h.should_receive(:to_hash).and_return({"a" => 1, a: 2})
+      m(h).should == [{"a" => 1}, {a: 2}]
     end
 
     evaluate <<-ruby do
@@ -1000,6 +1039,7 @@ describe "A method" do
       ruby
 
       m(a: 1, b: 2).should == [1, 2]
+      lambda { m("a" => 1, a: 1, b: 2) }.should raise_error(ArgumentError)
     end
 
     evaluate <<-ruby do
@@ -1008,6 +1048,7 @@ describe "A method" do
 
       m(a: 1).should == [1, 1]
       m(a: 1, b: 2).should == [1, 2]
+      lambda { m("a" => 1, a: 1, b: 2) }.should raise_error(ArgumentError)
     end
 
     evaluate <<-ruby do
@@ -1016,6 +1057,7 @@ describe "A method" do
 
       m(a: 1).should == 1
       m(a: 1, b: 2).should == 1
+      lambda { m("a" => 1, a: 1, b: 2) }.should raise_error(ArgumentError)
     end
 
     evaluate <<-ruby do
@@ -1024,6 +1066,7 @@ describe "A method" do
 
       m(a: 1).should == [1, {}]
       m(a: 1, b: 2, c: 3).should == [1, {b: 2, c: 3}]
+      lambda { m("a" => 1, a: 1, b: 2) }.should raise_error(ArgumentError)
     end
 
     evaluate <<-ruby do
