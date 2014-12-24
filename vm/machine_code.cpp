@@ -554,10 +554,8 @@ namespace rubinius {
               KA = true;
             }
 
-            if(!(o = ary->get(state, 1))->nil_p()) {
-              kw = o;
-              KP = true;
-            }
+            kw = ary->get(state, 1);
+            KP = true;
           }
         } else {
           return false;
