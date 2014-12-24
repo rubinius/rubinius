@@ -1941,6 +1941,12 @@ class String
       replace = replace.force_encoding(Encoding::BINARY)
     end
 
+    # MRI appears to just return a copy of self when the input encoding is
+    # BINARY/ASCII_8BIT.
+    if input.encoding == Encoding::BINARY
+      return input
+    end
+
     converter = Encoding::Converter.new(input.encoding, Encoding::BINARY)
 
     while input.length > 0
