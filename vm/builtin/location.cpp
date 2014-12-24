@@ -38,7 +38,7 @@ namespace rubinius {
     }
 
     MachineCode* mcode = call_frame->compiled_code->machine_code();
-    if(mcode && mcode->jitted()) {
+    if(mcode && mcode->jitted_p()) {
       loc->set_is_jit(state);
     }
 

@@ -237,7 +237,7 @@ namespace rubinius {
             ops_.llvm_state()->log() << " ("
               << ops_.llvm_state()->symbol_debug_str(klass->module_name()) << ")";
 
-            if(mcode->jitted()) {
+            if(mcode->jitted_p()) {
               ops_.llvm_state()->log() << " (jitted)\n";
             } else {
               ops_.llvm_state()->log() << " (interp)\n";

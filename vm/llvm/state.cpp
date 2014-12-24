@@ -546,7 +546,7 @@ namespace rubinius {
     }
 
     if(candidate->compiled_code->machine_code()->call_count <= 1) {
-      if(!start || start->machine_code()->jitted()) return;
+      if(!start || start->machine_code()->jitted_p()) return;
       // Ignore it. compile this one.
       candidate = call_frame;
     }
@@ -678,7 +678,7 @@ namespace rubinius {
         return callee;
       }
 
-      if(mcode->jitted()) {
+      if(mcode->jitted_p()) {
         if(debug_search) {
           std::cout << "JIT: STOP. reason: already jitted" << std::endl;
         }
