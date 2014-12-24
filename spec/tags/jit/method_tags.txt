@@ -1,0 +1,3 @@
+fails:JIT compiling a method call to m(a: 0) returns the passed value of the keyword
+fails:JIT compiling a method call to m(a: 0) raises an ArgumentError when passed a non-matching keyword argument
+fails:JIT compiling a method call to m(a: 0) raises an ArgumentError when passed extra keyword arguments

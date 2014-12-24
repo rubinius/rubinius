@@ -1,6 +1,26 @@
 require File.expand_path("../spec_helper", __FILE__)
 
 describe "JIT compiling a method call" do
+  context "to m()" do
+    before :each do
+      klass = Class.new do
+        def m() :m end
+      end
+
+      @o = klass.new
+
+      warmup { @o.m }
+    end
+
+    it "returns the last computed value" do
+      @o.m.should equal(:m)
+    end
+
+    it "raises an ArgumentError if passed an argument" do
+      lambda { @o.m 5 }.should raise_error(ArgumentError)
+    end
+  end
+
   context "to m(a)" do
     before :each do
       klass = Class.new do
@@ -41,10 +61,38 @@ describe "JIT compiling a method call" do
     end
   end
 
+  context "to m(a: 0)" do
+    before :each do
+      klass = Class.new do
+        def m(a: 0) a end
+      end
+
+      @o = klass.new
+
+      warmup { @o.m }
+    end
+
+    it "returns the default keyword value when passed no arguments" do
+      @o.m.should == 0
+    end
+
+    it "returns the passed value of the keyword" do
+      @o.m(a: 2).should == 2
+    end
+
+    it "raises an ArgumentError when passed a non-matching keyword argument" do
+      lambda { @o.m(b: 2) }.should raise_error(ArgumentError)
+    end
+
+    it "raises an ArgumentError when passed extra keyword arguments" do
+      lambda { @o.m(a: 2, b: 3) }.should raise_error(ArgumentError)
+    end
+  end
+
   context "to m(a=1, **kw)" do
     before :each do
       klass = Class.new do
-        def m(a=1 **kw) [a, kw] end
+        def m(a=1, **kw) [a, kw] end
       end
 
       @o = klass.new
