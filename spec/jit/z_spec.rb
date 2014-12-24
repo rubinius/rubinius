@@ -1,0 +1,1 @@
+Rubinius::JIT.sync = RubiniusJITSync
