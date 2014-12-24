@@ -19,6 +19,19 @@ namespace rubinius {
     G(jit)->compile_list(state, List::create(state));
   }
 
+  Object* JIT::compile_threshold(STATE) {
+    return Integer::from(state, state->shared().config.jit_threshold_compile);
+  }
+
+  Object* JIT::sync_set(STATE, Object* flag) {
+    state->shared().config.jit_sync.set(CBOOL(flag));
+    return sync_get(state);
+  }
+
+  Object* JIT::sync_get(STATE) {
+    return RBOOL(state->shared().config.jit_sync);
+  }
+
   Object* JIT::enable(STATE) {
     if(!CBOOL(enabled())) return cFalse;
 

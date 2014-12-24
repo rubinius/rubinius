@@ -122,6 +122,15 @@ namespace rubinius {
     Object* start_method_update(STATE);
     Object* end_method_update(STATE);
 
+    // Rubinius.primitive :jit_compile_threshold
+    Object* compile_threshold(STATE);
+
+    // Rubinius.primitive :jit_sync_set
+    Object* sync_set(STATE, Object* flag);
+
+    // Rubinius.primitive :jit_sync_get
+    Object* sync_get(STATE);
+
     class Info : public Module::Info {
     public:
       BASIC_TYPEINFO(Module::Info)

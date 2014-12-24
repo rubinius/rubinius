@@ -207,6 +207,11 @@ namespace config {
       value = convert(str);
     }
 
+    virtual void set(bool flag) {
+      set_ = true;
+      value = flag;
+    }
+
     virtual void print_value(std::ostream& stream) {
       stream << (value ? "true" : "false");
     }
