@@ -93,9 +93,9 @@ describe "A block yielded a single" do
 
     it "calls #to_hash on the element that maps to the keyword arguments" do
       x = mock("destructure matching block keyword argument")
-      x.should_receive(:to_hash).and_return({x: 9})
+      x.should_not_receive(:to_hash)
       y = mock("destructure non-matching block keyword argument")
-      y.should_not_receive(:to_hash)
+      y.should_receive(:to_hash).and_return({x: 9})
 
       result = m([1, 2, 3, x, 4, 5, y]) { |a, b=5, c, **k| [a, b, c, k] }
       result.should == [1, 2, 3, {x: 9}]
