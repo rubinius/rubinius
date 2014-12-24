@@ -1957,8 +1957,12 @@ class String
       elsif result == :undefined_conversion
         output << converter.primitive_errinfo[3]
       else
+        # Blocks can return strings in any encoding so we'll make sure it's the
+        # same as our buffer for the mean time.
         if block_given?
-          output << yield(converter.primitive_errinfo[3])
+          block_output = yield(converter.primitive_errinfo[3])
+
+          output << block_output.force_encoding(output.encoding)
         else
           output << replace
         end
