@@ -130,6 +130,9 @@ namespace rubinius {
     // Rubinius.primitive :compiledcode_constant_caches
     Tuple* constant_caches(STATE, CallFrame* calling_environment);
 
+    // Rubinius.primitive :compiledcode_jitted_p
+    Object* jitted_p(STATE);
+
     String* full_name(STATE);
 
     bool kernel_method(STATE);

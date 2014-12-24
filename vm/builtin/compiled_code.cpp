@@ -409,6 +409,10 @@ namespace rubinius {
     return calling_environment->compiled_code;
   }
 
+  Object* CompiledCode::jitted_p(STATE) {
+    return RBOOL(machine_code_ && machine_code_->jitted_p());
+  }
+
   void CompiledCode::Info::mark(Object* obj, ObjectMark& mark) {
     auto_mark(obj, mark);
 
