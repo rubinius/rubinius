@@ -37,6 +37,9 @@ namespace rubinius {
     // Rubinius.primitive :pointer_free
     Object* free(STATE);
 
+    // Rubinius.primitive :pointer_autorelease_p
+    Object* autorelease_p(STATE);
+
     // Rubinius.primitive :pointer_set_autorelease
     Object* set_autorelease(STATE, Object* val);
 

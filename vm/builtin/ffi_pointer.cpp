@@ -106,13 +106,24 @@ namespace rubinius {
     return Pointer::create(state, (char*)pointer + amount->to_native());
   }
 
+  Object* Pointer::autorelease_p(STATE) {
+    return set_finalizer ? cTrue : cFalse;
+  }
+
   Object* Pointer::set_autorelease(STATE, Object* val) {
     autorelease = val->true_p() ? true : false;
 
-    if(autorelease && !set_finalizer) {
-      state->memory()->needs_finalization(this,
-          (FinalizerFunction)&Pointer::finalize);
-      set_finalizer = true;
+    if(autorelease) {
+      if(!set_finalizer) {
+        state->memory()->needs_finalization(this,
+            (FinalizerFunction)&Pointer::finalize);
+        set_finalizer = true;
+      }
+    } else {
+      if(set_finalizer) {
+        state->memory()->set_ruby_finalizer(this, cNil);
+        set_finalizer = false;
+      }
     }
 
     return val;
