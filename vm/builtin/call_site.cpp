@@ -139,6 +139,7 @@ namespace rubinius {
     Dispatch dis(call_site->name());
 
     if(!dis.resolve(state, call_site->name(), lookup)) {
+      dis.method_missing = eVCall;
       if(!lookup_method_missing(state, call_frame, args,
           dis, call_frame->self(), recv->lookup_begin(state))) {
         return NULL;
