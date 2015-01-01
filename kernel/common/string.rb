@@ -1561,6 +1561,7 @@ class String
     @hash_value = nil
     force_encoding(other.encoding)
     @valid_encoding = other.valid_encoding?
+    @ascii_only = nil
 
     Rubinius::Type.infect(self, other)
   end
