@@ -526,7 +526,7 @@ module Process
     attr_reader :termsig
     attr_reader :stopsig
 
-    def initialize(pid, exitstatus, termsig=nil, stopsig=nil)
+    def initialize(pid=nil, exitstatus=nil, termsig=nil, stopsig=nil)
       @pid = pid
       @exitstatus = exitstatus
       @termsig = termsig
