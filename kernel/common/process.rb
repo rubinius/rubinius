@@ -533,7 +533,7 @@ module Process
     end
 
     def exitstatus
-      return @status
+      @status
     end
 
     def to_i
