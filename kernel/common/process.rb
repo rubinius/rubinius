@@ -401,9 +401,9 @@ module Process
     # wait_pid_prim returns a tuple when wait needs to communicate
     # the pid that was actually detected as stopped (since wait
     # can wait for all child pids, groups, etc)
-    status, termsig, stopsig, pid = value
+    pid, status = value
 
-    status = Process::Status.new(pid, status, termsig, stopsig)
+    status = Process::Status.new(pid, status)
     Rubinius::Mirror::Process.set_status_global status
 
     [pid, status]
@@ -521,15 +521,11 @@ module Process
   #++
 
   class Status
-
-    attr_reader :termsig
-    attr_reader :stopsig
-
-    def initialize(pid=nil, status=nil, termsig=nil, stopsig=nil)
+    # Rubinius constructs with pid, status.
+    # MRI constructs then sets the ivars.
+    def initialize(pid=nil, status=nil)
       @pid = pid
       @status = status
-      @termsig = termsig
-      @stopsig = stopsig
     end
 
     def exitstatus
@@ -562,7 +558,7 @@ module Process
     end
 
     def exited?
-      @status != nil
+      (@status & 0xff) == 0
     end
 
     def pid
@@ -570,11 +566,11 @@ module Process
     end
 
     def signaled?
-      @termsig != nil
+      (@status & 0x7f) > 0 && (@status & 0x7f) < 0x7f
     end
 
     def stopped?
-      @stopsig != nil
+      (@status & 0xff) == 0x7f
     end
 
     def success?
@@ -583,6 +579,18 @@ module Process
       else
         nil
       end
+    end
+
+    def exitstatus
+      (@status >> 8) & 0xff
+    end
+
+    def termsig
+      @status & 0x7f
+    end
+
+    def stopsig
+      (@status >> 8) & 0xff
     end
   end
 
