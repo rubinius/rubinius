@@ -8,6 +8,10 @@ module Rubinius
       alias_method :available?, :available
       alias_method :enabled?, :enabled
 
+      def compile(object, compiled_code, block_environment=nil)
+        Rubinius.invoke_primitive :jit_compile, self, object, compiled_code, block_environment
+      end
+
       # TODO: Fix configuration
       def compile_threshold
         Rubinius.primitive :jit_compile_threshold

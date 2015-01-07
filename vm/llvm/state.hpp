@@ -269,8 +269,11 @@ namespace rubinius {
       method_update_lock_.unlock();
     }
 
+    void compile(STATE, GCToken gct, CompiledCode* code, CallFrame* call_frame,
+        Class* receiver_class, BlockEnvironment* block_env = NULL, bool is_block=false);
+
     void compile_soon(STATE, GCToken gct, CompiledCode* code, CallFrame* call_frame,
-                      Class* receiver_class, BlockEnvironment* block_env = NULL, bool is_block=false);
+        Class* receiver_class, BlockEnvironment* block_env = NULL, bool is_block=false);
 
     void add(STATE, JITCompileRequest* req);
     void remove(void* func);

@@ -449,6 +449,32 @@ namespace rubinius {
     compile_cond_.signal();
   }
 
+  void LLVMState::compile(STATE, GCToken gct, CompiledCode* code, CallFrame* call_frame,
+      Class* receiver_class, BlockEnvironment* block_env, bool is_block)
+  {
+    if(!enabled_) return;
+
+    JITCompileRequest* req = JITCompileRequest::create(state, code, receiver_class,
+        0, block_env, is_block);
+
+    wait_mutex.lock();
+    req->set_waiter(&wait_cond);
+
+    add(state, req);
+
+    state->set_call_frame(call_frame);
+
+    wait_cond.wait(wait_mutex);
+    wait_mutex.unlock();
+    state->set_call_frame(0);
+
+    if(state->shared().config.jit_show_compiling) {
+      llvm::outs() << "[[[ JIT compiled "
+        << enclosure_name(code) << "#" << symbol_debug_str(code->name())
+        << (req->is_block() ? " (block) " : " (method) ") << " ]]]\n";
+    }
+  }
+
   void LLVMState::compile_soon(STATE, GCToken gct, CompiledCode* code, CallFrame* call_frame,
                                Class* receiver_class, BlockEnvironment* block_env, bool is_block)
   {

@@ -122,6 +122,9 @@ namespace rubinius {
     Object* start_method_update(STATE);
     Object* end_method_update(STATE);
 
+    // Rubinius.primitive :jit_compile
+    Object* compile(STATE, Object* object, CompiledCode* code, Object* block_environment, CallFrame* calling_environment);
+
     // Rubinius.primitive :jit_compile_threshold
     Object* compile_threshold(STATE);
 
