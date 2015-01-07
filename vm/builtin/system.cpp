@@ -772,19 +772,7 @@ namespace rubinius {
       return cNil;
     }
 
-    Object* output  = cNil;
-    Object* termsig = cNil;
-    Object* stopsig = cNil;
-
-    if(WIFEXITED(status)) {
-      output = Fixnum::from(WEXITSTATUS(status));
-    } else if(WIFSIGNALED(status)) {
-      termsig = Fixnum::from(WTERMSIG(status));
-    } else if(WIFSTOPPED(status)){
-      stopsig = Fixnum::from(WSTOPSIG(status));
-    }
-
-    return Tuple::from(state, 4, output, termsig, stopsig, Fixnum::from(pid));
+    return Tuple::from(state, 2, Fixnum::from(pid), Fixnum::from(status));
 #endif  // RBX_WINDOWS
   }
 
