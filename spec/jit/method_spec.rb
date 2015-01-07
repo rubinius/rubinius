@@ -9,7 +9,11 @@ describe "JIT compiling a method call" do
 
       @o = klass.new
 
-      warmup { @o.m }
+      jit(@o, :m) { @o.m }
+    end
+
+    it "compiles" do
+      @o.method(:m).executable.jitted?.should be_true
     end
 
     it "returns the last computed value" do
@@ -29,7 +33,11 @@ describe "JIT compiling a method call" do
 
       @o = klass.new
 
-      warmup { @o.m 5 }
+      jit(@o, :m) { @o.m 5 }
+    end
+
+    it "compiles" do
+      @o.method(:m).executable.jitted?.should be_true
     end
 
     it "returns the passed argument" do
@@ -49,7 +57,11 @@ describe "JIT compiling a method call" do
 
       @o = klass.new
 
-      warmup { @o.m }
+      jit(@o, :m) { @o.m }
+    end
+
+    it "compiles" do
+      @o.method(:m).executable.jitted?.should be_true
     end
 
     it "returns an empty Array when passed no argument" do
@@ -69,7 +81,11 @@ describe "JIT compiling a method call" do
 
       @o = klass.new
 
-      warmup { @o.m }
+      jit(@o, :m) { @o.m }
+    end
+
+    it "compiles" do
+      @o.method(:m).executable.jitted?.should be_true
     end
 
     it "returns the default keyword value when passed no arguments" do
@@ -97,7 +113,11 @@ describe "JIT compiling a method call" do
 
       @o = klass.new
 
-      warmup { @o.m }
+      jit(@o, :m) { @o.m }
+    end
+
+    it "compiles" do
+      @o.method(:m).executable.jitted?.should be_true
     end
 
     context "when passed one argument" do

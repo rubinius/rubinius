@@ -1,12 +1,2 @@
-fails:JIT compiling a method call to m(a: 0) returns the passed value of the keyword
-fails:JIT compiling a method call to m(a: 0) raises an ArgumentError when passed a non-matching keyword argument
-fails:JIT compiling a method call to m(a: 0) raises an ArgumentError when passed extra keyword arguments
-fails:JIT compiling a method call to m() returns the last computed value
-fails:JIT compiling a method call to m() raises an ArgumentError if passed an argument
-fails:JIT compiling a method call to m(a) returns the passed argument
-fails:JIT compiling a method call to m(a) raises an ArgumentError when not passed an argument
-fails:JIT compiling a method call to m(*a) returns an empty Array when passed no argument
-fails:JIT compiling a method call to m(*a) returns a one-element Array when passed one argument
 fails:JIT compiling a method call to m(a: 0) returns the default keyword value when passed no arguments
-fails:JIT compiling a method call to m(a=1, **kw) when passed one argument assigns Symbol keys to the keyword rest argument
 fails:JIT compiling a method call to m(a=1, **kw) when passed one argument assigns non-Symbol keys to the default argument
