@@ -599,6 +599,29 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
       end
       if which
         config = File.join(which, "llvm-config")
+      elsif @darwin
+        @log.print "  Checking for brew package manager: "
+        brew = `command -v brew`.chomp
+        if $?.success?
+          @log.write "found! #{brew}"
+          @log.print "  Checking for brew llvm: "
+          formula = `brew list --versions llvm | head 1`.chomp
+          if $?.success?
+            @log.write "found! #{formula}"
+            @log.print "  Checking for brew llvm-config: "
+            path = `brew list llvm | grep '/llvm-config$'`.chomp
+            if $?.success?
+              @log.write "found! #{path}"
+              config = path
+            else
+              @log.write "found! #{formula}"
+            end
+          else
+            @log.write "not found"
+          end
+        else
+          @log.write "not found"
+        end
       end
     end
 
