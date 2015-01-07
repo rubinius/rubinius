@@ -380,7 +380,7 @@ namespace rubinius {
 
         if(!compile_request->is_block()) {
           if(class_id) {
-            compile_request->method()->add_specialized(class_id, serial_id, reinterpret_cast<executor>(func), rd);
+            compile_request->method()->add_specialized(state, class_id,serial_id, reinterpret_cast<executor>(func), rd);
           } else {
             compile_request->method()->set_unspecialized(reinterpret_cast<executor>(func), rd);
           }

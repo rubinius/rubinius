@@ -17,6 +17,10 @@
 #include "on_stack.hpp"
 #include "ontology.hpp"
 
+#include "util/logger.hpp"
+
+#include <ostream>
+
 #ifdef ENABLE_LLVM
 #include "llvm/state.hpp"
 #include "llvm/jit_compiler.hpp"
@@ -283,31 +287,46 @@ namespace rubinius {
     }
   }
 
-  void CompiledCode::add_specialized(uint32_t class_id, uint32_t serial_id, executor exec,
+  void CompiledCode::add_specialized(STATE, uint32_t class_id, uint32_t serial_id, executor exec,
                                        jit::RuntimeDataHolder* rd)
   {
-    if(!machine_code_) rubinius::bug("specializing with no backend");
+    if(!machine_code_) {
+      utilities::logger::error("specializing with no backend");
+      return;
+    }
 
     MachineCode* v = machine_code_;
 
-    for(int i = 0; i < MachineCode::cMaxSpecializations; i++) {
-      uint32_t id = v->specializations[i].class_data.f.class_id;
-      if(id == 0 || id == class_id) {
-        v->specializations[i].class_data.f.class_id = class_id;
-        v->specializations[i].class_data.f.serial_id = serial_id;
-        v->specializations[i].execute = exec;
-        v->specializations[i].jit_data = rd;
+    int i;
 
-        v->set_execute_status(MachineCode::eJIT);
-        if(primitive()->nil_p()) {
-          execute = specialized_executor;
-        }
-        return;
-      }
+    for(i = 0; i < MachineCode::cMaxSpecializations; i++) {
+      uint32_t id = v->specializations[i].class_data.f.class_id;
+
+      if(id == 0 || id == class_id) break;
     }
 
-    // No room for the specialization, this is bad.
-    std::cerr << "No room for specialization!\n";
+    /* We have fixed space for specializations. If we exceed this, overwrite
+     * the first one. This should be converted to some sort of LRU cache.
+     */
+    if(i == MachineCode::cMaxSpecializations) {
+      std::ostringstream msg;
+
+      msg << "Specialization space exceeded for " <<
+        machine_code_->name()->cpp_str(state);
+      utilities::logger::warn(msg.str().c_str());
+
+      i = 0;
+    }
+
+    v->specializations[i].class_data.f.class_id = class_id;
+    v->specializations[i].class_data.f.serial_id = serial_id;
+    v->specializations[i].execute = exec;
+    v->specializations[i].jit_data = rd;
+
+    v->set_execute_status(MachineCode::eJIT);
+    if(primitive()->nil_p()) {
+      execute = specialized_executor;
+    }
   }
 
   executor CompiledCode::find_specialized(Class* cls) {
