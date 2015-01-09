@@ -1466,7 +1466,7 @@ int main() { return tgetnum(""); }
       @libc = "libc.dylib"
     else
       begin
-        exe = ENV["SHELL"] || "/usr/sh"
+        exe = ENV["SHELL"] || "/bin/sh"
         ldd_output = `ldd #{exe}`
 
         @libc = ldd_output[/libc\.so\.[0-9]+/]
