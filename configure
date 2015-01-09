@@ -147,6 +147,7 @@ class Configure
       "rubysl-uri",
       "rubysl-yaml",
       "rubysl-zlib",
+      "psych",
     ]
 
     # List of all gems to pre-install.
