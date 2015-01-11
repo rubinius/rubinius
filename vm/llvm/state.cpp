@@ -454,6 +454,11 @@ namespace rubinius {
   {
     if(!enabled_) return;
 
+    // TODO: Fix compile policy checks
+    if(!code->keywords()->nil_p()) {
+      return;
+    }
+
     JITCompileRequest* req = JITCompileRequest::create(state, code, receiver_class,
         0, block_env, is_block);
 
@@ -481,6 +486,11 @@ namespace rubinius {
     bool wait = config().jit_sync;
 
     if(!enabled_) return;
+
+    // TODO: Fix compile policy checks
+    if(!code->keywords()->nil_p()) {
+      return;
+    }
 
     if(code->machine_code()->call_count <= 1) {
       return;
@@ -536,8 +546,13 @@ namespace rubinius {
 
   const static size_t eMaxInlineSendCount = 10;
 
-  void LLVMState::compile_callframe(STATE, GCToken gct, CompiledCode* start, CallFrame* call_frame,
-                                    int primitive) {
+  void LLVMState::compile_callframe(STATE, GCToken gct, CompiledCode* start,
+      CallFrame* call_frame, int primitive)
+  {
+    // TODO: Fix compile policy checks
+    if(!start->keywords()->nil_p()) {
+      return;
+    }
 
     if(debug_search) {
       std::cout << std::endl << "JIT:       triggered: "
@@ -545,7 +560,7 @@ namespace rubinius {
             << symbol_debug_str(start->name()) << std::endl;
     }
 
-    CallFrame* candidate = find_candidate(state, start, call_frame);
+   CallFrame* candidate = find_candidate(state, start, call_frame);
     if(!candidate || candidate->jitted_p() || candidate->inline_method_p()) {
       if(config().jit_show_compiling) {
         llvm::outs() << "[[[ JIT error finding call frame "
