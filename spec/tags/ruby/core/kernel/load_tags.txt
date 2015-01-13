@@ -1,0 +1,2 @@
+fails:Kernel#load when passed true for 'wrap' with top-level methods allows calling top-level methods
+fails:Kernel.load when passed true for 'wrap' with top-level methods allows calling top-level methods
