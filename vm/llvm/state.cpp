@@ -356,6 +356,8 @@ namespace rubinius {
       } catch(LLVMState::CompileError& e) {
         utilities::logger::warn("JIT: compile error: %s", e.error());
 
+        vm()->metrics()->m.jit_metrics.methods_failed++;
+
         // If someone was waiting on this, wake them up.
         if(utilities::thread::Condition* cond = compile_request->waiter()) {
           cond->signal();
@@ -456,6 +458,8 @@ namespace rubinius {
 
     // TODO: Fix compile policy checks
     if(!code->keywords()->nil_p()) {
+      vm()->metrics()->m.jit_metrics.methods_failed++;
+
       return;
     }
 
@@ -489,6 +493,8 @@ namespace rubinius {
 
     // TODO: Fix compile policy checks
     if(!code->keywords()->nil_p()) {
+      vm()->metrics()->m.jit_metrics.methods_failed++;
+
       return;
     }
 
@@ -551,6 +557,8 @@ namespace rubinius {
   {
     // TODO: Fix compile policy checks
     if(!start->keywords()->nil_p()) {
+      vm()->metrics()->m.jit_metrics.methods_failed++;
+
       return;
     }
 

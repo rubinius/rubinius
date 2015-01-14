@@ -232,6 +232,8 @@ namespace rubinius {
       metrics_map_.push_back(new MetricsItem(
             "jit.methods.compiled", metrics_collection_.jit_metrics.methods_compiled));
       metrics_map_.push_back(new MetricsItem(
+            "jit.methods.failed", metrics_collection_.jit_metrics.methods_failed));
+      metrics_map_.push_back(new MetricsItem(
             "jit.time.last.us", metrics_collection_.jit_metrics.time_last_us));
       metrics_map_.push_back(new MetricsItem(
             "jit.time.total.us", metrics_collection_.jit_metrics.time_total_us));

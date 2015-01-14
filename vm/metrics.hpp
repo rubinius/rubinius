@@ -181,12 +181,14 @@ namespace rubinius {
     struct JITMetrics {
       metric methods_queued;
       metric methods_compiled;
+      metric methods_failed;
       metric time_last_us;
       metric time_total_us;
 
       void init() {
         methods_queued = 0;
         methods_compiled = 0;
+        methods_failed = 0;
         time_last_us = 0;
         time_total_us = 0;
       }
@@ -194,6 +196,7 @@ namespace rubinius {
       void add(JITMetrics* data) {
         methods_queued += data->methods_queued;
         methods_compiled += data->methods_compiled;
+        methods_failed += data->methods_failed;
         time_last_us += data->time_last_us;
         time_total_us += data->time_total_us;
       }
