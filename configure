@@ -1652,6 +1652,10 @@ int main() { return tgetnum(""); }
 
       f.puts "#define RBX_DTRACE_CONST     #{@dtrace_const ? "const" : ""}"
 
+      if @features["vendor-yaml"].value
+        f.puts "#define RBX_VENDOR_YAML      1"
+      end
+
       write_have_defines f
     end
 
