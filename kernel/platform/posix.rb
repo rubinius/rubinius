@@ -40,11 +40,18 @@ module FFI::Platform::POSIX
   attach_function :chroot,    [:string], :int
 
   # File/IO
-  attach_function :fcntl,    [:int, :int, :long], :int
-  attach_function :ioctl,    [:int, :ulong, :long], :int
-  attach_function :fsync,    [:int], :int
-  attach_function :dup,      [:int], :int
-  attach_function :dup2,     [:int, :int], :int
+  attach_function :fcntl,       [:int, :int, :long], :int
+  attach_function :ioctl,       [:int, :ulong, :long], :int
+  attach_function :fsync,       [:int], :int
+  attach_function :dup,         [:int], :int
+  attach_function :open,        [:string, :int, :mode_t], :int
+  attach_function :close,       [:int], :int
+  attach_function :lseek,       [:int, :off_t, :int], :off_t
+  attach_function :read,        [:int, :pointer, :size_t], :ssize_t
+  attach_function :mmap,        [:pointer, :size_t, :int, :int, :int, :off_t], :pointer
+  attach_function :msync,       [:pointer, :size_t, :int], :int
+  attach_function :munmap,      [:pointer, :size_t], :int
+  attach_function :getpagesize, [], :int
 
   #   inspecting
   attach_function :isatty,   [:int], :int
