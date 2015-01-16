@@ -162,22 +162,6 @@ Daedalus.blueprint do |i|
   gcc.add_library udis
   files << udis
 
-  if Rubinius::BUILD_CONFIG[:vendor_yaml]
-    yaml = i.external_lib "vendor/libyaml" do |l|
-      l.cflags = ["-I#{src}/vendor/libyaml/include"] + gcc.cflags
-      l.objects = [l.file("src/.libs/libyaml.a")]
-      l.to_build do |x|
-        unless File.exist?("Makefile") and File.exist?("config.h")
-          x.command "sh -c './configure --enable-static --disable-shared'"
-        end
-
-        x.command make
-      end
-    end
-    gcc.add_library yaml
-    files << yaml
-  end
-
   if Rubinius::BUILD_CONFIG[:vendor_zlib]
     zlib = i.external_lib "vendor/zlib" do |l|
       l.cflags = ["-I#{src}/vendor/zlib"] + gcc.cflags

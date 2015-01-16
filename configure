@@ -455,7 +455,6 @@ class Configure
 
     feature "execinfo", true
     feature "vendor-zlib", false
-    feature "vendor-yaml", false
     feature "alloc-tracking", false
     feature "fibers", true
     feature "dtrace", false
@@ -751,9 +750,6 @@ int main() { LLVMContext &Context = getGlobalContext(); }
   def setup_platform
     @ldsharedxx = "#{@cxx} -shared"
     @ldshared   = "#{@cc} -shared"
-
-    @system_cflags << " -Wno-unused-result "
-    @system_cxxflags << " -Wno-unused-result "
 
     @include_dirs.each do |d|
       @system_cflags << "-I#{d} "
@@ -1162,11 +1158,6 @@ int main() { return tgetnum(""); }
   end
 
   def enable_features
-    if @features["vendor-yaml"].value
-      @include_dirs << "#{@vendored_libdir}/libyaml/include"
-      @lib_dirs     << "#{@vendored_libdir}/libyaml/src/.libs"
-    end
-
     if @features["vendor-zlib"].value
       # Our vendored zlib uses long as the crc_table type
       # If we update vendored zlib in the future, we have to
@@ -1279,12 +1270,6 @@ int main() { return tgetnum(""); }
     unless @features["vendor-zlib"].value
       unless has_header("zlib.h")
         failure "zlib.h is required"
-      end
-    end
-
-    unless @features["vendor-yaml"].value
-      unless has_header("yaml.h")
-        failure "yaml.h is required"
       end
     end
 
@@ -1566,7 +1551,6 @@ int main() { return tgetnum(""); }
       :darwin             => @darwin,
       :bsd                => @bsd,
       :linux              => @linux,
-      :vendor_yaml        => @features["vendor-yaml"].value,
       :vendor_zlib        => @features["vendor-zlib"].value,
       :vm_release_h       => @vm_release_h,
       :bootstrap_gems     => @bootstrap_gems,
@@ -1651,10 +1635,6 @@ int main() { return tgetnum(""); }
       end
 
       f.puts "#define RBX_DTRACE_CONST     #{@dtrace_const ? "const" : ""}"
-
-      if @features["vendor-yaml"].value
-        f.puts "#define RBX_VENDOR_YAML      1"
-      end
 
       write_have_defines f
     end
