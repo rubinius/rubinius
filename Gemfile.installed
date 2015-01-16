@@ -1,5 +1,7 @@
 source 'https://rubygems.org'
 
+gem "bundler", "~> 1.7"
+
 gem "rubinius-build_tools", "~> 2.0"
 gem "rubinius-developer_tools", "~> 2.0"
 
