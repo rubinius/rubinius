@@ -44,6 +44,7 @@ module FFI::Platform::POSIX
   attach_function :ioctl,       [:int, :ulong, :long], :int
   attach_function :fsync,       [:int], :int
   attach_function :dup,         [:int], :int
+  attach_function :dup2,        [:int, :int], :int
   attach_function :open,        [:string, :int, :mode_t], :int
   attach_function :close,       [:int], :int
   attach_function :lseek,       [:int, :off_t, :int], :off_t
