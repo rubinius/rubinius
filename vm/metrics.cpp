@@ -527,8 +527,10 @@ namespace rubinius {
 
 #ifdef ENABLE_LLVM
           if(state->shared().llvm_state) {
-            if(VM* vm = state->shared().llvm_state->vm()) {
-              metrics_collection_.add(vm->metrics());
+            if(Thread* thread = state->shared().llvm_state->thread()) {
+              if(VM* vm = thread->vm()) {
+                metrics_collection_.add(vm->metrics());
+              }
             }
           }
 #endif

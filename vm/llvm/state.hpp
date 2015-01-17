@@ -189,6 +189,10 @@ namespace rubinius {
       return vm_;
     }
 
+    Thread* thread() {
+      return thread_.get();
+    }
+
     uint32_t fixnum_class_id() {
       return fixnum_class_id_;
     }

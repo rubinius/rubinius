@@ -196,6 +196,8 @@ namespace rubinius {
 
     if(!vm_) {
       vm_ = state->shared().new_vm();
+      vm_->metrics()->init(metrics::eJITMetrics);
+
       thread_exit_ = false;
 
       Thread* thread = Thread::create(state, vm_, G(thread), jit_llvm_trampoline, true);
@@ -239,7 +241,6 @@ namespace rubinius {
     vm_ = NULL;
 
     start_thread(state);
-    vm_->metrics()->init(metrics::eJITMetrics);
   }
 
   void LLVMState::perform(STATE) {
