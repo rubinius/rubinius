@@ -8,6 +8,30 @@ typically changes that are related to specs, build system, or refactoring.
 
 For source changes, see https://github.com/rubinius/rubinius/commits/master.
 
+Version: 2.5.0 (2015-01-17)
+
+* Process.spawn has been improved by not relying on the virtual machine to be
+  in a partially functioning state after fork() is called and before exec() is
+  called. All the subprocess state setup is done in the VM itself now, rather
+  than calling back to Ruby. This significantly improves reliability.
+
+* The JIT has been improved to be more transparent. Previously, JIT failures
+  could impact the semantics of running Ruby code. This is contrary to the
+  purpose of a JIT, which is to provide exactly the same Ruby semantics while
+  optimizing the execution of the Ruby code.
+
+* The JIT metrics are now emitted correctly. See the following blog post about
+  using the Rubinius Metrics with InfluxDB and Grafana:
+
+    http://rubini.us/2015/01/05/rubinius-metrics-meets-influxdb-part2/
+
+* The Psych gem is now pre-installed to provide YAML functionality. This
+  replaces the previous use of Syck to bootstrap YAML for RubyGems.
+
+* RubyGems is updated to 2.4.5.
+
+* Bundler is updated to 1.7.12.
+
 Version: 2.4.1 (2014-12-04)
 
 * Several C-API now resolve autoloads when looking up a constant:
