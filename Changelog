@@ -1,3 +1,36 @@
+Version: 2.5.0 (2015-01-17)
+
+* The JIT emits correct code for goto_if_nil, goto_if_not_nil. (Brian Shirai)
+* RubyGems is updated to 2.4.5. (Brian Shirai)
+* Building with GCC 4.6.3 is fixed. (Brian Shirai)
+* SystemCallError.new compatibility is improved. (Joe Eli McIlvain)
+* Thread#join timeout value is coerced to Float and nil values are handled
+  correctly. (Joe Eli McIlvain)
+* File#reopen with a path closes the previous file descriptor. (Brian Shirai)
+* The C-API function rb_ary_new_from_args aliases rb_ary_new3. (Yorick Peterse)
+* The C-API function rb_ary_plus is added. (Yorick Peterse)
+* The C-API function rb_cloexec_open is added. (Sophia Shao)
+* Process.spawn is more robust. (Brian Shirai)
+* Enumerable#flat_map is improved. (Erik Michaels-Ober)
+* Block keyword parsing is updated to Ruby 2.2.0 behavior. (Brian Shirai)
+* Keyword argument objects that include both Symbol keys and other keys are
+  now split into two separate Hash instances. (Brian Shirai)
+* String#scrub with BINARY input is fixed. (Yorick Peterse)
+* String#scrub is fixed with custom block encodings. (Yorick Peterse)
+* FFI::MemoryPointer#autorelease= is fixed. (Joe Eli McIlvain)
+* FFI::MemoryPointer#autorelease? is added. (Joe Eli McIlvain)
+* A missing method raises NoMethodError, a missing variable reference raises
+  NameError. (Joe Eli McIlvain)
+* String ascii_only cache is reset when calling String#replace. (Yorick Peterse)
+* Process::Status creation is fixed. (Yorick Peterse)
+* String#include? does not accept a Fixnum. (Chris Seaton)
+* The fallback path for SHELL in configure is fixed. (Lars Kanis)
+* The C-API rb_data_type_struct matches Ruby 2.2.0. (Brian Shirai)
+* The included Bundler version is 1.7.12. (Brian Shirai)
+* The JIT internalizes a CompiledCode instance before processing. (Yorick Peterse)
+* The Psych gem version 2.0.10 is pre-installed. (Brian Shirai)
+* The JIT metrics are emitted correctly. (Brian Shirai)
+
 Version: 2.4.1 (2014-12-04)
 
 * C-API rb_path2class, rb_path_to_class, rb_const_get, rb_const_get_at,
