@@ -25,6 +25,30 @@ describe "JIT compiling a method call" do
     end
   end
 
+  context "to m() without calling it" do
+    before :each do
+      klass = Class.new do
+        def m() :m end
+      end
+
+      @o = klass.new
+
+      jit(@o, :m)
+    end
+
+    it "compiles" do
+      @o.method(:m).executable.jitted?.should be_true
+    end
+
+    it "returns the last computed value" do
+      @o.m.should == :m
+    end
+
+    it "raises an ArgumentError if passed an argument" do
+      lambda { @o.m 5 }.should raise_error(ArgumentError)
+    end
+  end
+
   context "to m(a)" do
     before :each do
       klass = Class.new do

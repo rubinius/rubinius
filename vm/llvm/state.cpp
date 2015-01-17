@@ -463,6 +463,11 @@ namespace rubinius {
       return;
     }
 
+    // In case the method hasn't been internalized yet
+    if(!code->machine_code()) {
+      code->internalize(state, gct, call_frame);
+    }
+
     JITCompileRequest* req = JITCompileRequest::create(state, code, receiver_class,
         0, block_env, is_block);
 
