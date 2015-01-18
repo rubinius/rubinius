@@ -42,6 +42,7 @@ namespace :package do
 
   desc "Build a binary package for Homebrew"
   task :homebrew do
+    ENV["LDFLAGS"] = "-Wl,-macosx_version_min,10.8"
     version = BUILD_CONFIG[:version]
     homebrew_package = "rubinius-#{version}"
     prefix = "/#{homebrew_package}"
