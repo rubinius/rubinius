@@ -426,6 +426,10 @@ VM Options
      All variables, even ones that the VM doesn't understand, are available
      in Rubinius::Config.
 
+     These options can also be passed via the RBXOPT environment variable:
+
+       RBXOPT=-Xint rbx
+
      A number of Rubinius features are driven by setting these variables.
       DOC
 
