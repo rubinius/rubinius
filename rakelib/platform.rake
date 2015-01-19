@@ -180,6 +180,7 @@ file 'runtime/platform.conf' => deps do |task|
         O_APPEND
         O_NONBLOCK
         O_SYNC
+        O_CLOEXEC
         S_IRUSR
         S_IWUSR
         S_IXUSR
