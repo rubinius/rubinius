@@ -1,6 +1,12 @@
 class IO
   #@@max_descriptors = 2 #Rubinius::AtomicReference.new(2)
 
+  # Import platform constants
+
+  SEEK_SET = Rubinius::Config['rbx.platform.io.SEEK_SET']
+  SEEK_CUR = Rubinius::Config['rbx.platform.io.SEEK_CUR']
+  SEEK_END = Rubinius::Config['rbx.platform.io.SEEK_END']
+
   F_GETFL  = Rubinius::Config['rbx.platform.fcntl.F_GETFL']
   F_SETFL  = Rubinius::Config['rbx.platform.fcntl.F_SETFL']
 
@@ -18,7 +24,7 @@ class IO
 
   def initialize(fd)
     @descriptor = fd
-    acc_mode = FFI::Platform::POSIX.fcntl(fd, F_GETFL)
+    acc_mode = FFI::Platform::POSIX.fcntl(fd, F_GETFL, 0)
 
     if acc_mode < 0
       # Assume it's closed.
@@ -35,8 +41,12 @@ class IO
     @ibuffer = InternalBuffer.new
     @eof = false
     @lineno = 0
-    @offset = 0
     @sync = true
+    @pagesize = FFI::Platform::POSIX.getpagesize
+    
+    # Discover final size of file so we can set EOF properly
+    @total_size = sysseek(0, SEEK_END)
+    @offset = sysseek(0)
 
     # Don't bother to add finalization for stdio
     if fd >= 3
@@ -124,7 +134,7 @@ class IO
     if descriptor.nil?
       raise IOError, "uninitialized stream"
     elsif descriptor == -1
-      raise IOErrorm "closed stream"
+      raise IOError, "closed stream"
     elsif descriptor == -2
       raise IOError, "shutdown stream"
     end
@@ -146,7 +156,7 @@ class IO
     return true
   end
 
-  def seek(offset, whence=SEEK_SET)
+  def sysseek(offset, whence=SEEK_SET)
     ensure_open
 
     # FIXME: check +amount+ to make sure it isn't too large
@@ -178,34 +188,21 @@ class IO
   end
 
   def close
-    begin
-      flush
-    ensure
-      ensure_open
-      fd = descriptor
-      if fd != -1
-        ret_code = FFI::Platform::POSIX.close(fd)
+    ensure_open
+    fd = descriptor
+    if fd != -1
+      ret_code = FFI::Platform::POSIX.close(fd)
 
-        if ret_code == -1
-          Errno.handle("close failed")
-        elsif ret_code == 0
-          # no op
-        else
-          raise IOError, "::close(): Unknown error on fd #{fd}"
-        end
+      if ret_code == -1
+        Errno.handle("close failed")
+      elsif ret_code == 0
+        # no op
+      else
+        raise IOError, "::close(): Unknown error on fd #{fd}"
       end
-
-      self.descriptor = -1
     end
 
-    if @pid and @pid != 0
-      begin
-        Process.wait @pid
-      rescue Errno::ECHILD
-        # If the child already exited
-      end
-      @pid = nil
-    end
+    self.descriptor = -1
 
     return nil
   end
@@ -323,22 +320,40 @@ class IO
   #  end
 
   def read(length, output_string=nil)
-    raise_unless_open
+    while true
+      ensure_open
 
-    storage = FFI::MemoryPointer.new(length)
-    bytes_read = read_into_storage(length, storage)
-    @eof = true if 0 == bytes_read
+      length ||= @pagesize
+      storage = FFI::MemoryPointer.new(length)
+      bytes_read = read_into_storage(length, storage)
+
+      if bytes_read == -1
+        if Errno.eql?(Errno::EAGAIN) || Errno.eql?(Errno::EINTR)
+          redo
+        else
+          Errno.handle "read(2) failed"
+        end
+
+        return nil
+      elsif bytes_read == 0
+        @eof = true if length > 0
+        return nil
+      else
+        break
+      end
+    end
 
     if output_string
       output_string.replace(storage.read_string(bytes_read))
     else
       output_string = storage.read_string(bytes_read)
-
-      @offset += bytes_read
-      output_string
     end
-  end
+    
+    @offset += bytes_read
+    @eof = true if @offset == @total_size
 
+    return output_string
+  end
 
   def read_into_storage(count, storage)
     while true
@@ -358,7 +373,7 @@ class IO
       end
     end
 
-    bytes_read
+    return bytes_read
   end
   private :read_into_storage
 
@@ -371,6 +386,10 @@ class IO
     Rubinius.primitive :io_write
     raise PrimitiveFailure, "IO#write primitive failed"
   end
+
+  #  def write(str)
+  #    FFI::Platform::POSIX.write(descriptor, str, str.size)
+  #  end
 
   def read_if_available(size)
     Rubinius.primitive :io_read_if_available
