@@ -20,244 +20,10 @@ class IO
   SEEK_CUR = Rubinius::Config['rbx.platform.io.SEEK_CUR']
   SEEK_END = Rubinius::Config['rbx.platform.io.SEEK_END']
 
-  # InternalBuffer provides a sliding window into a region of bytes.
-  # The buffer is filled to the +used+ indicator, which is
-  # always less than or equal to +total+. As bytes are taken
-  # from the buffer, the +start+ indicator is incremented by
-  # the number of bytes taken. Once +start+ == +used+, the
-  # buffer is +empty?+ and needs to be refilled.
-  #
-  # This description should be independent of the "direction"
-  # in which the buffer is used. As a read buffer, +fill_from+
-  # appends at +used+, but not exceeding +total+. When +used+
-  # equals total, no additional bytes will be filled until the
-  # buffer is emptied.
-  #
-  # As a write buffer, +empty_to+ removes bytes from +start+ up
-  # to +used+. When +start+ equals +used+, no additional bytes
-  # will be emptied until the buffer is filled.
-  #
-  # IO presents a stream of input. Buffer presents buckets of
-  # input. IO's task is to chain the buckets so the user sees
-  # a stream. IO explicitly requests that the buffer be filled
-  # (on input) and then determines how much of the input to take
-  # (e.g. by looking for a separator or collecting a certain
-  # number of bytes). Buffer decides whether or not to go to the
-  # source for more data or just present what is already in the
-  # buffer.
-  class InternalBuffer
-
-    attr_reader :total
-    attr_reader :start
-    attr_reader :used
-
-    ##
-    # Returns +true+ if the buffer can be filled.
-    def empty?
-      @start == @used
-    end
-
-    ##
-    # Returns +true+ if the buffer is empty and cannot be filled further.
-    def exhausted?
-      @eof and empty?
-    end
-
-    ##
-    # A request to the buffer to have data. The buffer decides whether
-    # existing data is sufficient, or whether to read more data from the
-    # +IO+ instance. Any new data causes this method to return.
-    #
-    # Returns the number of bytes in the buffer.
-    def fill_from(io, skip = nil)
-      Rubinius.synchronize(self) do
-        empty_to io
-        discard skip if skip
-
-        return size unless empty?
-
-        reset!
-
-        if fill(io) < 0
-          raise IOError, "error occurred while filling buffer (#{obj})"
-        end
-
-        if @used == 0
-          io.eof!
-          @eof = true
-        end
-
-        return size
-      end
-    end
-
-    def empty_to(io)
-      return 0 if @write_synced or empty?
-      @write_synced = true
-
-      io.prim_write(String.from_bytearray(@storage, @start, size))
-      reset!
-
-      return size
-    end
-
-    ##
-    # Advances the beginning-of-buffer marker past any number
-    # of contiguous characters == +skip+. For example, if +skip+
-    # is ?\n and the buffer contents are "\n\n\nAbc...", the
-    # start marker will be positioned on 'A'.
-    def discard(skip)
-      while @start < @used
-        break unless @storage[@start] == skip
-        @start += 1
-      end
-    end
-
-    ##
-    # Returns the number of bytes to fetch from the buffer up-to-
-    # and-including +pattern+. Returns +nil+ if pattern is not found.
-    def find(pattern, discard = nil)
-      if count = @storage.locate(pattern, @start, @used)
-        count - @start
-      end
-    end
-
-    ##
-    # Returns +true+ if the buffer is filled to capacity.
-    def full?
-      @total == @used
-    end
-
-    def inspect # :nodoc:
-      "#<IO::InternalBuffer:0x%x total=%p start=%p used=%p data=%p>" % [
-        object_id, @total, @start, @used, @storage
-      ]
-    end
-
-    ##
-    # Resets the buffer state so the buffer can be filled again.
-    def reset!
-      @start = @used = 0
-      @eof = false
-      @write_synced = true
-    end
-
-    def write_synced?
-      @write_synced
-    end
-
-    def unseek!(io)
-      Rubinius.synchronize(self) do
-        # Unseek the still buffered amount
-        return unless write_synced?
-        io.prim_seek @start - @used, IO::SEEK_CUR unless empty?
-        reset!
-      end
-    end
-
-    ##
-    # Returns +count+ bytes from the +start+ of the buffer as a new String.
-    # If +count+ is +nil+, returns all available bytes in the buffer.
-    def shift(count=nil)
-      Rubinius.synchronize(self) do
-        total = size
-        total = count if count and count < total
-
-        str = String.from_bytearray @storage, @start, total
-        @start += total
-
-        str
-      end
-    end
-
-    PEEK_AHEAD_LIMIT = 16
-
-    def read_to_char_boundary(io, str)
-      str.force_encoding(io.external_encoding || Encoding.default_external)
-      return IO.read_encode(io, str) if str.valid_encoding?
-
-      peek_ahead = 0
-      while size > 0 and peek_ahead < PEEK_AHEAD_LIMIT
-        str.force_encoding Encoding::ASCII_8BIT
-        str << @storage[@start]
-        @start += 1
-        peek_ahead += 1
-
-        str.force_encoding(io.external_encoding || Encoding.default_external)
-        if str.valid_encoding?
-          return IO.read_encode io, str
-        end
-      end
-
-      IO.read_encode io, str
-    end
-
-    ##
-    # Returns one Fixnum as the start byte.
-    def getbyte(io)
-      return if size == 0 and fill_from(io) == 0
-
-      Rubinius.synchronize(self) do
-        byte = @storage[@start]
-        @start += 1
-        byte
-      end
-    end
-
-    # TODO: fix this when IO buffering is re-written.
-    def getchar(io)
-      return if size == 0 and fill_from(io) == 0
-
-      Rubinius.synchronize(self) do
-        char = ""
-        while size > 0
-          char.force_encoding Encoding::ASCII_8BIT
-          char << @storage[@start]
-          @start += 1
-
-          char.force_encoding(io.external_encoding || Encoding.default_external)
-          if char.chr_at(0)
-            return IO.read_encode io, char
-          end
-        end
-      end
-    end
-
-    ##
-    # Prepends the byte +chr+ to the internal buffer, so that future
-    # reads will return it.
-    def put_back(chr)
-      # A simple case, which is common and can be done efficiently
-      if @start > 0
-        @start -= 1
-        @storage[@start] = chr
-      else
-        @storage = @storage.prepend(chr.chr)
-        @start = 0
-        @total = @storage.size
-        @used += 1
-      end
-    end
-
-    ##
-    # Returns the number of bytes available in the buffer.
-    def size
-      @used - @start
-    end
-
-    ##
-    # Returns the number of bytes of capacity remaining in the buffer.
-    # This is the number of additional bytes that can be added to the
-    # buffer before it is full.
-    def unused
-      @total - @used
-    end
-  end
-
-  attr_accessor :descriptor
+#  attr_accessor :descriptor
   attr_accessor :external
   attr_accessor :internal
-  attr_accessor :mode
+#  attr_accessor :mode
 
   def self.binread(file, length=nil, offset=0)
     raise ArgumentError, "Negative length #{length} given" if !length.nil? && length < 0
@@ -1075,7 +841,8 @@ class IO
   end
   # Used to find out if there is buffered data available.
   def buffer_empty?
-    @ibuffer.empty?
+    #@ibuffer.empty?
+    true
   end
 
   def close_on_exec=(value)
@@ -1378,9 +1145,9 @@ class IO
       end
     end
 
-    return if @ibuffer.exhausted?
+    return if @eof #@ibuffer.exhausted?
 
-    EachReader.new(self, @ibuffer, sep, limit).each(&block)
+#    EachReader.new(self, @ibuffer, sep, limit).each(&block)
 
     self
   end
@@ -1456,8 +1223,8 @@ class IO
   # So IO#sysread doesn't work with IO#eof?.
   def eof?
     ensure_open_and_readable
-    @ibuffer.fill_from self unless @ibuffer.exhausted?
-    @eof and @ibuffer.exhausted?
+#    @ibuffer.fill_from self unless @ibuffer.exhausted?
+    @eof # and @ibuffer.exhausted?
   end
 
   alias_method :eof, :eof?
@@ -1571,7 +1338,7 @@ class IO
   #  no newline
   def flush
     ensure_open
-    @ibuffer.empty_to self
+    #@ibuffer.empty_to self
     self
   end
 
@@ -1594,7 +1361,7 @@ class IO
   def getbyte
     ensure_open
 
-    return @ibuffer.getbyte(self)
+    return nil #@ibuffer.getbyte(self)
   end
 
   ##
@@ -1607,7 +1374,7 @@ class IO
   def getc
     ensure_open
 
-    return @ibuffer.getchar(self)
+    return nil #@ibuffer.getchar(self)
   end
 
   def gets(sep_or_limit=$/, limit=nil)
@@ -1693,7 +1460,7 @@ class IO
   #
   def pos
     flush
-    @ibuffer.unseek! self
+    #@ibuffer.unseek! self
 
     prim_seek 0, SEEK_CUR
   end
@@ -1809,22 +1576,22 @@ class IO
       return buffer.replace(str)
     end
 
-    if @ibuffer.exhausted?
-      buffer.clear if buffer
-      return nil
-    end
+#    if @ibuffer.exhausted?
+#      buffer.clear if buffer
+#      return nil
+#    end
 
     str = ""
     needed = length
-    while needed > 0 and not @ibuffer.exhausted?
-      available = @ibuffer.fill_from self
-
-      count = available > needed ? needed : available
-      str << @ibuffer.shift(count)
-      str = nil if str.empty?
-
-      needed -= count
-    end
+#    while needed > 0 and not @ibuffer.exhausted?
+#      available = @ibuffer.fill_from self
+#
+#      count = available > needed ? needed : available
+#      str << @ibuffer.shift(count)
+#      str = nil if str.empty?
+#
+#      needed -= count
+#    end
 
     if str
       if buffer
@@ -1843,10 +1610,10 @@ class IO
   # If the buffer is already exhausted, returns +""+.
   def read_all
     str = ""
-    until @ibuffer.exhausted?
-      @ibuffer.fill_from self
-      str << @ibuffer.shift
-    end
+#    until @ibuffer.exhausted?
+#      @ibuffer.fill_from self
+#      str << @ibuffer.shift
+#    end
 
     str
   end
@@ -1876,10 +1643,7 @@ class IO
 
     buffer = StringValue buffer if buffer
 
-    if @ibuffer.size > 0
-      return @ibuffer.shift(size)
-    end
-
+##
     if str = read_if_available(size)
       buffer.replace(str) if buffer
       return str
@@ -1991,11 +1755,11 @@ class IO
 
       return buffer if size == 0
 
-      if @ibuffer.size > 0
-        data = @ibuffer.shift(size)
-      else
+#      if @ibuffer.size > 0
+#        data = @ibuffer.shift(size)
+#      else
         data = sysread(size)
-      end
+#      end
 
       buffer.replace(data)
 
@@ -2003,9 +1767,9 @@ class IO
     else
       return "" if size == 0
 
-      if @ibuffer.size > 0
-        return @ibuffer.shift(size)
-      end
+#      if #@ibuffer.size > 0
+#        return ##@ibuffer.shift(size)
+#      end
 
       return sysread(size)
     end
@@ -2068,7 +1832,7 @@ class IO
   # Internal method used to reset the state of the buffer, including the
   # physical position in the stream.
   def reset_buffering
-    @ibuffer.unseek! self
+#    ##@ibuffer.unseek! self
   end
 
   ##
@@ -2102,7 +1866,7 @@ class IO
   def seek(amount, whence=SEEK_SET)
     flush
 
-    @ibuffer.unseek! self
+#    #@ibuffer.unseek! self
     @eof = false
 
     prim_seek Integer(amount), whence
@@ -2286,7 +2050,7 @@ class IO
   #
   def sysread(number_of_bytes, buffer=undefined)
     flush
-    raise IOError unless @ibuffer.empty?
+#    raise IOError unless @ibuffer.empty?
 
     str = read_primitive number_of_bytes
     raise EOFError if str.nil?
@@ -2307,11 +2071,11 @@ class IO
   #  f.sysread(10)                  #=> "And so on."
   def sysseek(amount, whence=SEEK_SET)
     ensure_open
-    if @ibuffer.write_synced?
-      raise IOError unless @ibuffer.empty?
-    else
+#    if @ibuffer.write_synced?
+#      raise IOError unless @ibuffer.empty?
+#    else
       warn 'sysseek for buffered IO'
-    end
+#    end
 
     amount = Integer(amount)
 
@@ -2339,7 +2103,7 @@ class IO
     return 0 if data.bytesize == 0
 
     ensure_open_and_writable
-    @ibuffer.unseek!(self) unless @sync
+#    @ibuffer.unseek!(self) unless @sync
 
     prim_write(data)
   end
@@ -2351,7 +2115,7 @@ class IO
     when String
       str = obj
     when Integer
-      @ibuffer.put_back(obj & 0xff)
+#      @ibuffer.put_back(obj & 0xff)
       return
     when nil
       return
@@ -2359,7 +2123,7 @@ class IO
       str = StringValue(obj)
     end
 
-    str.bytes.reverse_each { |byte| @ibuffer.put_back byte }
+#    str.bytes.reverse_each { |byte| @ibuffer.put_back byte }
 
     nil
   end
@@ -2371,7 +2135,7 @@ class IO
     when String
       str = obj
     when Integer
-      @ibuffer.put_back(obj)
+#      @ibuffer.put_back(obj)
       return
     when nil
       return
@@ -2379,7 +2143,7 @@ class IO
       str = StringValue(obj)
     end
 
-    str.bytes.reverse_each { |b| @ibuffer.put_back b }
+#    str.bytes.reverse_each { |b| @ibuffer.put_back b }
 
     nil
   end
@@ -2401,13 +2165,13 @@ class IO
     if @sync
       prim_write(data)
     else
-      @ibuffer.unseek! self
-      bytes_to_write = data.bytesize
-
-      while bytes_to_write > 0
-        bytes_to_write -= @ibuffer.unshift(data, data.bytesize - bytes_to_write)
-        @ibuffer.empty_to self if @ibuffer.full? or sync
-      end
+#      @ibuffer.unseek! self
+#      bytes_to_write = data.bytesize
+#
+#      while bytes_to_write > 0
+#        bytes_to_write -= @ibuffer.unshift(data, data.bytesize - bytes_to_write)
+#        @ibuffer.empty_to self if @ibuffer.full? or sync
+#      end
     end
 
     data.bytesize
@@ -2419,7 +2183,7 @@ class IO
     data = String data
     return 0 if data.bytesize == 0
 
-    @ibuffer.unseek!(self) unless @sync
+#    @ibuffer.unseek!(self) unless @sync
 
     raw_write(data)
   end
