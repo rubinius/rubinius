@@ -49,10 +49,15 @@ module FFI::Platform::POSIX
   attach_function :close,       [:int], :int
   attach_function :lseek,       [:int, :off_t, :int], :off_t
   attach_function :read,        [:int, :pointer, :size_t], :ssize_t
+  attach_function :ftruncate,   [:int, :off_t], :int
+  attach_function :truncate,    [:string, :off_t], :int
+  
+  # Other I/O
   attach_function :mmap,        [:pointer, :size_t, :int, :int, :int, :off_t], :pointer
   attach_function :msync,       [:pointer, :size_t, :int], :int
   attach_function :munmap,      [:pointer, :size_t], :int
   attach_function :getpagesize, [], :int
+  attach_function :shutdown,    [:int, :int], :int
 
   #   inspecting
   attach_function :isatty,   [:int], :int
