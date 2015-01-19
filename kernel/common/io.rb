@@ -20,10 +20,10 @@ class IO
   #  SEEK_CUR = Rubinius::Config['rbx.platform.io.SEEK_CUR']
   #  SEEK_END = Rubinius::Config['rbx.platform.io.SEEK_END']
 
-#  attr_accessor :descriptor
+  #  attr_accessor :descriptor
   attr_accessor :external
   attr_accessor :internal
-#  attr_accessor :mode
+  #  attr_accessor :mode
 
   def self.binread(file, length=nil, offset=0)
     raise ArgumentError, "Negative length #{length} given" if !length.nil? && length < 0
@@ -424,14 +424,14 @@ class IO
 
     case mode[1]
     when ?+
-      ret &= ~(RDONLY | WRONLY)
+        ret &= ~(RDONLY | WRONLY)
       ret |= RDWR
     when ?b
       ret |= BINARY
     when ?t
       ret &= ~BINARY
     when ?:
-      warn("encoding options not supported in 1.8")
+        warn("encoding options not supported in 1.8")
       return ret
     else
       raise ArgumentError, "invalid mode -- #{mode}"
@@ -441,14 +441,14 @@ class IO
 
     case mode[2]
     when ?+
-      ret &= ~(RDONLY | WRONLY)
+        ret &= ~(RDONLY | WRONLY)
       ret |= RDWR
     when ?b
       ret |= BINARY
     when ?t
       ret &= ~BINARY
     when ?:
-      warn("encoding options not supported in 1.8")
+        warn("encoding options not supported in 1.8")
       return ret
     else
       raise ArgumentError, "invalid mode -- #{mode}"
@@ -458,13 +458,13 @@ class IO
   end
 
   def self.pipe(external=nil, internal=nil, options=nil)
-    lhs = allocate
-    rhs = allocate
+    lhs = initialize_pipe #allocate
+    rhs = initialize_pipe #allocate
 
     connect_pipe(lhs, rhs)
 
     lhs.set_encoding external || Encoding.default_external,
-                     internal || Encoding.default_internal, options
+      internal || Encoding.default_internal, options
 
     lhs.sync = true
     rhs.sync = true
@@ -586,8 +586,8 @@ class IO
       if io_options
         io_options.delete_if do |key, _|
           [:mode, :external_encoding, :internal_encoding,
-            :encoding, :textmode, :binmode, :autoclose
-          ].include? key
+           :encoding, :textmode, :binmode, :autoclose
+           ].include? key
         end
 
         options.merge! io_options
@@ -653,45 +653,45 @@ class IO
 
     if readables
       readables =
-        Rubinius::Type.coerce_to(readables, Array, :to_ary).map do |obj|
-          if obj.kind_of? IO
-            raise IOError, "closed stream" if obj.closed?
-            return [[obj],[],[]] unless obj.buffer_empty?
-            obj
-          else
-            io = Rubinius::Type.coerce_to(obj, IO, :to_io)
-            raise IOError, "closed stream" if io.closed?
-            [obj, io]
-          end
+      Rubinius::Type.coerce_to(readables, Array, :to_ary).map do |obj|
+        if obj.kind_of? IO
+          raise IOError, "closed stream" if obj.closed?
+          return [[obj],[],[]] unless obj.buffer_empty?
+          obj
+        else
+          io = Rubinius::Type.coerce_to(obj, IO, :to_io)
+          raise IOError, "closed stream" if io.closed?
+          [obj, io]
         end
+      end
     end
 
     if writables
       writables =
-        Rubinius::Type.coerce_to(writables, Array, :to_ary).map do |obj|
-          if obj.kind_of? IO
-            raise IOError, "closed stream" if obj.closed?
-            obj
-          else
-            io = Rubinius::Type.coerce_to(obj, IO, :to_io)
-            raise IOError, "closed stream" if io.closed?
-            [obj, io]
-          end
+      Rubinius::Type.coerce_to(writables, Array, :to_ary).map do |obj|
+        if obj.kind_of? IO
+          raise IOError, "closed stream" if obj.closed?
+          obj
+        else
+          io = Rubinius::Type.coerce_to(obj, IO, :to_io)
+          raise IOError, "closed stream" if io.closed?
+          [obj, io]
         end
+      end
     end
 
     if errorables
       errorables =
-        Rubinius::Type.coerce_to(errorables, Array, :to_ary).map do |obj|
-          if obj.kind_of? IO
-            raise IOError, "closed stream" if obj.closed?
-            obj
-          else
-            io = Rubinius::Type.coerce_to(obj, IO, :to_io)
-            raise IOError, "closed stream" if io.closed?
-            [obj, io]
-          end
+      Rubinius::Type.coerce_to(errorables, Array, :to_ary).map do |obj|
+        if obj.kind_of? IO
+          raise IOError, "closed stream" if obj.closed?
+          obj
+        else
+          io = Rubinius::Type.coerce_to(obj, IO, :to_io)
+          raise IOError, "closed stream" if io.closed?
+          [obj, io]
         end
+      end
     end
 
     IO.select_primitive(readables, writables, errorables, timeout)
@@ -743,7 +743,7 @@ class IO
       io.sync ||= STDERR.fileno == fd
     end
   end
-  
+
   # Since we are reopening this class, save the original initializer from the
   # bootstrap.
   alias_method :bootstrap_initialize, :initialize
@@ -755,7 +755,7 @@ class IO
     if block_given?
       warn 'IO::new() does not take block; use IO::open() instead'
     end
-    
+
     bootstrap_initialize(fd)
 
     mode, binary, external, internal, @autoclose = IO.normalize_options(mode, options)
@@ -771,7 +771,7 @@ class IO
 
     if @internal
       if Encoding.default_external == Encoding.default_internal or
-         (@external || Encoding.default_external) == Encoding::ASCII_8BIT
+        (@external || Encoding.default_external) == Encoding::ASCII_8BIT
         @internal = nil
       end
     elsif @mode != RDONLY
@@ -942,9 +942,8 @@ class IO
   #
 
   class EachReader
-    def initialize(io, buffer, separator, limit)
+    def initialize(io, separator, limit)
       @io = io
-      @buffer = buffer
       @separator = separator
       @limit = limit
       @skip = nil
@@ -952,20 +951,25 @@ class IO
 
     def each(&block)
       if @separator
+        STDERR.puts "has separator"
         if @separator.empty?
           @separator = "\n\n"
           @skip = 10
         end
 
         if @limit
+          STDERR.puts "read sep to limit"
           read_to_separator_with_limit(&block)
         else
+          STDERR.puts "read to sep"
           read_to_separator(&block)
         end
       else
         if @limit
+          STDERR.puts "read to limit"
           read_to_limit(&block)
         else
+          STDERR.puts "read all"
           read_all(&block)
         end
       end
@@ -974,29 +978,51 @@ class IO
     # method A, D
     def read_to_separator
       str = ""
+      buffer = ""
 
-      until @buffer.exhausted?
-        available = @buffer.fill_from @io, @skip
-        break unless available > 0
+      until buffer.size == 0 && @io.eof?
+        if buffer.size == 0
+          consumed_chars = 0
+          starting_position = @io.pos
+          buffer = @io.read
+        end
 
-        if count = @buffer.find(@separator)
-          str << @buffer.shift(count)
+        break unless buffer.size > 0
+
+        if count = buffer.index(@separator)
+          consumed_chars += count
+          str << buffer.slice!(0, count + 1)
 
           str = IO.read_encode(@io, str)
           str.taint
 
           $. = @io.increment_lineno
-          @buffer.discard @skip if @skip
 
+          if @skip
+            skip_count = 0
+            skip_count += 1 while buffer[skip_count] == @skip
+            consumed_chars += skip_count
+            buffer.slice!(0, skip_count + 1) if skip_count > 0
+          end
+
+          # Must update position before we yield since yielded block *could*
+          # return directly and rob us of a chance to do our housekeeping
+          @io.pos = starting_position + consumed_chars + 1
           yield str
 
           str = ""
         else
-          str << @buffer.shift
+          str << buffer
+          consumed_chars += buffer.size
+          buffer.clear
         end
       end
 
-      str << @buffer.shift
+      str << buffer
+
+      consumed_chars += buffer.size
+      @io.pos = starting_position + consumed_chars + 1
+
       unless str.empty?
         str = IO.read_encode(@io, str)
         str.taint
@@ -1005,48 +1031,143 @@ class IO
       end
     end
 
+    #    # method A, D
+    #    def read_to_separator
+    #      str = ""
+    #      buffer = @io.read(@io.pagesize)
+    #      starting_position = @io.pos
+    #      used_chars = 0
+    #
+    #      while buffer.size > 0 && !@io.eof?
+    #        break unless buffer.size > 0
+    #
+    #        if count = buffer.index(@separator)
+    #          used_chars += count
+    #          str << buffer.slice!(0, count + 1)
+    #
+    #          str = IO.read_encode(@io, str)
+    #          str.taint
+    #
+    #          $. = @io.increment_lineno
+    #
+    #          if @skip
+    #            skip_count = buffer.index(@skip)
+    #            used_chars += skip_count
+    #            buffer.slice!(0, skip_count + 1)
+    #          end
+    #
+    #          yield str
+    #
+    #          str = ""
+    #        else
+    #          str << buffer
+    #          used_chars += buffer.size
+    #        end
+    #
+    #        buffer = @io.read(@io.pagesize)
+    #      end
+    #
+    #      str << buffer
+    #      used_chars += buffer.size
+    #
+    #      # reset file pointer to account for consumed characters
+    #      @io.pos = starting_position + used_chars
+    #
+    #      unless str.empty?
+    #        str = IO.read_encode(@io, str)
+    #        str.taint
+    #        $. = @io.increment_lineno
+    #        yield str
+    #      end
+    #    end
+    #
     # method B, E
+
+
+    def try_to_force_encoding(io, str)
+      str.force_encoding(io.external_encoding || Encoding.default_external)
+
+      IO.read_encode io, str
+    end
+
+    PEEK_AHEAD_LIMIT = 16
+
+    def read_to_char_boundary(io, str, buffer)
+      str.force_encoding(io.external_encoding || Encoding.default_external)
+      return IO.read_encode(io, str) if str.valid_encoding?
+
+      peek_ahead = 0
+      while buffer.size > 0 and peek_ahead < PEEK_AHEAD_LIMIT
+        str.force_encoding Encoding::ASCII_8BIT
+        str << buffer.slice!(0, 1)
+        peek_ahead += 1
+
+        str.force_encoding(io.external_encoding || Encoding.default_external)
+        if str.valid_encoding?
+          return IO.read_encode io, str
+        end
+      end
+
+      IO.read_encode io, str
+    end
+
     def read_to_separator_with_limit
       str = ""
 
       #TODO: implement ignoring encoding with negative limit
       wanted = limit = @limit.abs
 
-      until @buffer.exhausted?
-        available = @buffer.fill_from @io, @skip
-        break unless available > 0
+      until @io.eof?
+        buffer = @io.read
+        if @skip
+          skip_count = 0
+          skip_count += 1 while buffer[skip_count] == @skip
+          consumed_chars += skip_count
+          buffer.slice!(0, skip_count + 1) if skip_count > 0
+        end
+        break unless buffer.size > 0
 
-        if count = @buffer.find(@separator)
+        if count = buffer.index(@separator)
           bytes = count < wanted ? count : wanted
-          str << @buffer.shift(bytes)
+          str << buffer.slice!(0, bytes + 1)
 
           str = IO.read_encode(@io, str)
           str.taint
 
           $. = @io.increment_lineno
-          @buffer.discard @skip if @skip
+          if @skip
+            skip_count = 0
+            skip_count += 1 while buffer[skip_count] == @skip
+            consumed_chars += skip_count
+            buffer.slice!(0, skip_count + 1) if skip_count > 0
+          end
 
           yield str
 
           str = ""
           wanted = limit
         else
-          if wanted < available
-            str << @buffer.shift(wanted)
+          if wanted < buffer.size
+            str << buffer.slice!(0, wanted + 1)
 
-            str = @buffer.read_to_char_boundary(@io, str)
+            str = read_to_char_boundary(@io, str, buffer)
             str.taint
 
             $. = @io.increment_lineno
-            @buffer.discard @skip if @skip
+            if @skip
+              skip_count = 0
+              skip_count += 1 while buffer[skip_count] == @skip
+              consumed_chars += skip_count
+              buffer.slice!(0, skip_count + 1) if skip_count > 0
+            end
 
             yield str
 
             str = ""
             wanted = limit
           else
-            str << @buffer.shift
-            wanted -= available
+            str << buffer
+            wanted -= buffer.size
           end
         end
       end
@@ -1062,9 +1183,9 @@ class IO
     # Method G
     def read_all
       str = ""
-      until @buffer.exhausted?
-        @buffer.fill_from @io
-        str << @buffer.shift
+
+      until @io.eof?
+        str << @io.read
       end
 
       unless str.empty?
@@ -1080,12 +1201,11 @@ class IO
       str = ""
       wanted = limit = @limit.abs
 
-      until @buffer.exhausted?
-        available = @buffer.fill_from @io
-        if wanted < available
-          str << @buffer.shift(wanted)
+      until @io.eof?
+        str << @io.read(wanted)
 
-          str = @buffer.read_to_char_boundary(@io, str)
+        if str.size < wanted
+          str = try_to_force_encoding(@io, str)
           str.taint
 
           $. = @io.increment_lineno
@@ -1094,8 +1214,7 @@ class IO
           str = ""
           wanted = limit
         else
-          str << @buffer.shift
-          wanted -= available
+          wanted -= str.size
         end
       end
 
@@ -1152,9 +1271,9 @@ class IO
       end
     end
 
-    return if @eof #@ibuffer.exhausted?
+    return if eof? #@ibuffer.exhausted?
 
-#    EachReader.new(self, @ibuffer, sep, limit).each(&block)
+    EachReader.new(self, sep, limit).each(&block)
 
     self
   end
@@ -1230,7 +1349,7 @@ class IO
   # So IO#sysread doesn't work with IO#eof?.
   def eof?
     ensure_open_and_readable
-#    @ibuffer.fill_from self unless @ibuffer.exhausted?
+    #    @ibuffer.fill_from self unless @ibuffer.exhausted?
     @eof # and @ibuffer.exhausted?
   end
 
@@ -1385,6 +1504,7 @@ class IO
   end
 
   def gets(sep_or_limit=$/, limit=nil)
+    STDERR.puts "each, [#{sep_or_limit.inspect}], [#{limit.inspect}]"
     each sep_or_limit, limit do |line|
       $_ = line if line
       return line
@@ -1583,24 +1703,24 @@ class IO
       return buffer.replace(str)
     end
 
-#    if @ibuffer.exhausted?
-#      buffer.clear if buffer
-#      return nil
-#    end
+    #    if @ibuffer.exhausted?
+    #      buffer.clear if buffer
+    #      return nil
+    #    end
 
     str = ""
-#    needed = length
+    #    needed = length
     result = prim_read(length, str)
     str = nil if str.empty? && length > 0
-#    while needed > 0 and not @ibuffer.exhausted?
-#      available = @ibuffer.fill_from self
-#
-#      count = available > needed ? needed : available
-#      str << @ibuffer.shift(count)
-#      str = nil if str.empty?
-#
-#      needed -= count
-#    end
+    #    while needed > 0 and not @ibuffer.exhausted?
+    #      available = @ibuffer.fill_from self
+    #
+    #      count = available > needed ? needed : available
+    #      str << @ibuffer.shift(count)
+    #      str = nil if str.empty?
+    #
+    #      needed -= count
+    #    end
 
     if str
       if buffer
@@ -1619,11 +1739,15 @@ class IO
   # If the buffer is already exhausted, returns +""+.
   def read_all
     str = ""
-    prim_read(nil, str)
-#    until @ibuffer.exhausted?
-#      @ibuffer.fill_from self
-#      str << @ibuffer.shift
-#    end
+    until eof?
+      buffer = ""
+      prim_read(nil, buffer)
+      str << buffer
+    end
+    #    until @ibuffer.exhausted?
+    #      @ibuffer.fill_from self
+    #      str << @ibuffer.shift
+    #    end
 
     str
   end
@@ -1653,7 +1777,7 @@ class IO
 
     buffer = StringValue buffer if buffer
 
-##
+    ##
     if str = read_if_available(size)
       buffer.replace(str) if buffer
       return str
@@ -1673,7 +1797,7 @@ class IO
   def readbyte
     byte = getbyte
     raise EOFError, "end of file reached" unless byte
-    raise EOFError, "end of file" unless bytes
+    #raise EOFError, "end of file" unless bytes # bytes/each_byte is deprecated
     byte
   end
 
@@ -1765,11 +1889,11 @@ class IO
 
       return buffer if size == 0
 
-#      if @ibuffer.size > 0
-#        data = @ibuffer.shift(size)
-#      else
-        data = sysread(size)
-#      end
+      #      if @ibuffer.size > 0
+      #        data = @ibuffer.shift(size)
+      #      else
+      data = sysread(size)
+      #      end
 
       buffer.replace(data)
 
@@ -1777,9 +1901,9 @@ class IO
     else
       return "" if size == 0
 
-#      if #@ibuffer.size > 0
-#        return ##@ibuffer.shift(size)
-#      end
+      #      if #@ibuffer.size > 0
+      #        return ##@ibuffer.shift(size)
+      #      end
 
       return sysread(size)
     end
@@ -1842,7 +1966,7 @@ class IO
   # Internal method used to reset the state of the buffer, including the
   # physical position in the stream.
   def reset_buffering
-#    ##@ibuffer.unseek! self
+    #    ##@ibuffer.unseek! self
   end
 
   ##
@@ -1876,7 +2000,7 @@ class IO
   def seek(amount, whence=SEEK_SET)
     flush
 
-#    #@ibuffer.unseek! self
+    #    #@ibuffer.unseek! self
     @eof = false
 
     prim_seek Integer(amount), whence
@@ -2060,7 +2184,7 @@ class IO
   #
   def sysread(number_of_bytes, buffer=undefined)
     flush
-#    raise IOError unless @ibuffer.empty?
+    #    raise IOError unless @ibuffer.empty?
 
     str = prim_read number_of_bytes
     raise EOFError if str.nil?
@@ -2081,11 +2205,11 @@ class IO
   #  f.sysread(10)                  #=> "And so on."
   def sysseek(amount, whence=SEEK_SET)
     ensure_open
-#    if @ibuffer.write_synced?
-#      raise IOError unless @ibuffer.empty?
-#    else
-#      warn 'sysseek for buffered IO'
-#    end
+    #    if @ibuffer.write_synced?
+    #      raise IOError unless @ibuffer.empty?
+    #    else
+    #      warn 'sysseek for buffered IO'
+    #    end
 
     amount = Integer(amount)
 
@@ -2113,7 +2237,7 @@ class IO
     return 0 if data.bytesize == 0
 
     ensure_open_and_writable
-#    @ibuffer.unseek!(self) unless @sync
+    #    @ibuffer.unseek!(self) unless @sync
 
     prim_write(data)
   end
@@ -2125,7 +2249,7 @@ class IO
     when String
       str = obj
     when Integer
-#      @ibuffer.put_back(obj & 0xff)
+      #      @ibuffer.put_back(obj & 0xff)
       return
     when nil
       return
@@ -2133,7 +2257,7 @@ class IO
       str = StringValue(obj)
     end
 
-#    str.bytes.reverse_each { |byte| @ibuffer.put_back byte }
+    #    str.bytes.reverse_each { |byte| @ibuffer.put_back byte }
 
     nil
   end
@@ -2145,7 +2269,7 @@ class IO
     when String
       str = obj
     when Integer
-#      @ibuffer.put_back(obj)
+      #      @ibuffer.put_back(obj)
       return
     when nil
       return
@@ -2153,7 +2277,7 @@ class IO
       str = StringValue(obj)
     end
 
-#    str.bytes.reverse_each { |b| @ibuffer.put_back b }
+    #    str.bytes.reverse_each { |b| @ibuffer.put_back b }
 
     nil
   end
@@ -2165,24 +2289,24 @@ class IO
     ensure_open_and_writable
 
     if !binmode? && external_encoding &&
-       external_encoding != data.encoding &&
-       external_encoding != Encoding::ASCII_8BIT
+        external_encoding != data.encoding &&
+        external_encoding != Encoding::ASCII_8BIT
       unless data.ascii_only? && external_encoding.ascii_compatible?
         data.encode!(external_encoding)
       end
     end
 
-#    if @sync
-      prim_write(data)
-#    else
-#      @ibuffer.unseek! self
-#      bytes_to_write = data.bytesize
-#
-#      while bytes_to_write > 0
-#        bytes_to_write -= @ibuffer.unshift(data, data.bytesize - bytes_to_write)
-#        @ibuffer.empty_to self if @ibuffer.full? or sync
-#      end
-#    end
+    #    if @sync
+    prim_write(data)
+    #    else
+    #      @ibuffer.unseek! self
+    #      bytes_to_write = data.bytesize
+    #
+    #      while bytes_to_write > 0
+    #        bytes_to_write -= @ibuffer.unshift(data, data.bytesize - bytes_to_write)
+    #        @ibuffer.empty_to self if @ibuffer.full? or sync
+    #      end
+    #    end
 
     data.bytesize
   end
@@ -2193,7 +2317,7 @@ class IO
     data = String data
     return 0 if data.bytesize == 0
 
-#    @ibuffer.unseek!(self) unless @sync
+    #    @ibuffer.unseek!(self) unless @sync
 
     raw_write(data)
   end

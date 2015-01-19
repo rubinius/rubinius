@@ -39,10 +39,8 @@ class IO
 
     #io->ibuffer(state, IOBuffer::create(state));
     @ibuffer = InternalBuffer.new
-    @eof = false
-    @lineno = 0
     @sync = true
-    @pagesize = FFI::Platform::POSIX.getpagesize
+    @lineno = 0
     
     # Discover final size of file so we can set EOF properly
     @total_size = sysseek(0, SEEK_END)
@@ -52,6 +50,23 @@ class IO
     if fd >= 3
       # finalize
     end
+  end
+  
+  def self.initialize_pipe
+    obj = allocate
+    obj.instance_variable_set :@descriptor, nil
+    obj.instance_variable_set :@mode, nil
+    obj.instance_variable_set :@eof, false
+    obj.instance_variable_set :@lineno, 0
+    obj.instance_variable_set :@offset, 0
+    
+    # setup finalization for pipes
+    
+    obj
+  end
+  
+  def self.pagesize
+    @pagesize ||= FFI::Platform::POSIX.getpagesize
   end
 
   def self.open_with_mode(path, mode, perm)
@@ -320,10 +335,11 @@ class IO
   #  end
 
   def read(length, output_string=nil)
+    length ||= IO.pagesize
+
     while true
       ensure_open
 
-      length ||= @pagesize
       storage = FFI::MemoryPointer.new(length)
       bytes_read = read_into_storage(length, storage)
 
