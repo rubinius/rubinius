@@ -41,7 +41,7 @@ Rubinius::ConfigurationVariables.define do |c|
       "Control whether or not GC.start is honored when called"
 
     s.vm_variable "autopack", true,
-      "Set whether or not objects should be backed tightly in memory"
+      "Set whether or not objects should be packed tightly in memory"
 
     s.vm_variable "marksweep_threshold", (10 * 1024 * 1024),
       "The number of bytes allocated before the marksweep GC region is collected"
@@ -95,13 +95,13 @@ Rubinius::ConfigurationVariables.define do |c|
       :description => "Print out a status message when the JIT is operating"
 
     s.vm_variable "profile", false,
-      "The JIT will emit code to be sure JITd methods can be profile"
+      "The JIT will emit code to be sure JITd methods can be profiled"
 
     s.section "inline" do |i|
       i.vm_variable "generic", true, "Have the JIT inline generic methods"
 
       i.vm_variable "blocks", true,
-        "Have the JIT try and inline methods and their literal blocks"
+        "Have the JIT try to inline methods and their literal blocks"
 
       i.vm_variable "debug", false,
         "Have the JIT print out information about inlining"
