@@ -14,11 +14,11 @@ class IO
     include ::IO::WaitWritable
   end
 
-  # Import platform constants
-
-  SEEK_SET = Rubinius::Config['rbx.platform.io.SEEK_SET']
-  SEEK_CUR = Rubinius::Config['rbx.platform.io.SEEK_CUR']
-  SEEK_END = Rubinius::Config['rbx.platform.io.SEEK_END']
+  #  # Import platform constants
+  #
+  #  SEEK_SET = Rubinius::Config['rbx.platform.io.SEEK_SET']
+  #  SEEK_CUR = Rubinius::Config['rbx.platform.io.SEEK_CUR']
+  #  SEEK_END = Rubinius::Config['rbx.platform.io.SEEK_END']
 
 #  attr_accessor :descriptor
   attr_accessor :external
@@ -743,6 +743,10 @@ class IO
       io.sync ||= STDERR.fileno == fd
     end
   end
+  
+  # Since we are reopening this class, save the original initializer from the
+  # bootstrap.
+  alias_method :bootstrap_initialize, :initialize
 
   #
   # Create a new IO associated with the given fd.
@@ -751,6 +755,8 @@ class IO
     if block_given?
       warn 'IO::new() does not take block; use IO::open() instead'
     end
+    
+    bootstrap_initialize(fd)
 
     mode, binary, external, internal, @autoclose = IO.normalize_options(mode, options)
 
@@ -797,6 +803,7 @@ class IO
 
   alias_method :prim_write, :write
   alias_method :prim_close, :close
+  alias_method :prim_read, :read
 
   def advise(advice, offset = 0, len = 0)
     raise IOError, "stream is closed" if closed?
@@ -1374,7 +1381,7 @@ class IO
   def getc
     ensure_open
 
-    return nil #@ibuffer.getchar(self)
+    return read(1) #@ibuffer.getchar(self)
   end
 
   def gets(sep_or_limit=$/, limit=nil)
@@ -1582,7 +1589,9 @@ class IO
 #    end
 
     str = ""
-    needed = length
+#    needed = length
+    result = prim_read(length, str)
+    str = nil if str.empty? && length > 0
 #    while needed > 0 and not @ibuffer.exhausted?
 #      available = @ibuffer.fill_from self
 #
@@ -1610,6 +1619,7 @@ class IO
   # If the buffer is already exhausted, returns +""+.
   def read_all
     str = ""
+    prim_read(nil, str)
 #    until @ibuffer.exhausted?
 #      @ibuffer.fill_from self
 #      str << @ibuffer.shift
@@ -2052,7 +2062,7 @@ class IO
     flush
 #    raise IOError unless @ibuffer.empty?
 
-    str = read_primitive number_of_bytes
+    str = prim_read number_of_bytes
     raise EOFError if str.nil?
 
     unless undefined.equal? buffer
@@ -2074,7 +2084,7 @@ class IO
 #    if @ibuffer.write_synced?
 #      raise IOError unless @ibuffer.empty?
 #    else
-      warn 'sysseek for buffered IO'
+#      warn 'sysseek for buffered IO'
 #    end
 
     amount = Integer(amount)
@@ -2162,9 +2172,9 @@ class IO
       end
     end
 
-    if @sync
+#    if @sync
       prim_write(data)
-    else
+#    else
 #      @ibuffer.unseek! self
 #      bytes_to_write = data.bytesize
 #
@@ -2172,7 +2182,7 @@ class IO
 #        bytes_to_write -= @ibuffer.unshift(data, data.bytesize - bytes_to_write)
 #        @ibuffer.empty_to self if @ibuffer.full? or sync
 #      end
-    end
+#    end
 
     data.bytesize
   end
