@@ -247,8 +247,8 @@ namespace rubinius {
      *  2. The RBXOPT environment variable.
      *  3. The command line options.
      *
-     * This order permits environment and command line ot override
-     * "application" configuration. Likewise, command line can override
+     * This order permits environment and command line options to override
+     * "application" configuration. Likewise, command line options can override
      * environment configuration.
      */
 

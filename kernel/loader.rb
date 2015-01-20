@@ -426,9 +426,15 @@ VM Options
      All variables, even ones that the VM doesn't understand, are available
      in Rubinius::Config.
 
-     These options can also be passed via the RBXOPT environment variable:
+     Options are parsed from these sources, in this order:
 
-       RBXOPT=-Xint rbx
+     1. The file .rbxrc in the current working directory.
+     2. The RBXOPT environment variable.
+     3. The command line options.
+
+     This order permits environment and command line options to override
+     "application" configuration. Likewise, command line options can override
+     environment configuration.
 
      A number of Rubinius features are driven by setting these variables.
       DOC
