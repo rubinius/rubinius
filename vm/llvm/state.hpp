@@ -189,6 +189,10 @@ namespace rubinius {
       return vm_;
     }
 
+    Thread* thread() {
+      return thread_.get();
+    }
+
     uint32_t fixnum_class_id() {
       return fixnum_class_id_;
     }
@@ -269,8 +273,11 @@ namespace rubinius {
       method_update_lock_.unlock();
     }
 
+    void compile(STATE, GCToken gct, CompiledCode* code, CallFrame* call_frame,
+        Class* receiver_class, BlockEnvironment* block_env = NULL, bool is_block=false);
+
     void compile_soon(STATE, GCToken gct, CompiledCode* code, CallFrame* call_frame,
-                      Class* receiver_class, BlockEnvironment* block_env = NULL, bool is_block=false);
+        Class* receiver_class, BlockEnvironment* block_env = NULL, bool is_block=false);
 
     void add(STATE, JITCompileRequest* req);
     void remove(void* func);
@@ -291,13 +298,24 @@ namespace rubinius {
     void stop_thread(STATE);
 
     void after_fork_child(STATE);
-    void after_fork_exec_child(STATE);
 
     void gc_scan(GarbageCollector* gc);
 
     static void show_machine_code(void* impl, size_t bytes);
-  };
 
+    class CompileError {
+      const char* error_;
+
+    public:
+      CompileError(const char* error)
+        : error_(error)
+      { }
+
+      const char* error() {
+        return error_;
+      }
+    };
+  };
 }
 
 #endif

@@ -304,13 +304,21 @@ namespace rubinius {
     }
   }
 
-  SingletonClass* SingletonClass::attach(STATE, Object* obj, Class* sup) {
+  SingletonClass* SingletonClass::create(STATE, Object* obj) {
     SingletonClass *sc;
     sc = state->memory()->new_object_enduring<SingletonClass>(state, G(klass));
     sc->init(state);
 
-    sc->attached_instance(state, obj);
+    WeakRef* weakref = WeakRef::create(state, obj);
+    sc->object_reference(state, weakref);
+
     sc->setup(state);
+
+    return sc;
+  }
+
+  SingletonClass* SingletonClass::attach(STATE, Object* obj, Class* sup) {
+    SingletonClass* sc = create(state, obj);
 
     if(kind_of<PackedObject>(obj)) {
       sc->set_type_info(state->memory()->type_info[Object::type]);
@@ -358,7 +366,7 @@ namespace rubinius {
 
   void SingletonClass::Info::show(STATE, Object* self, int level) {
     SingletonClass* cls = as<SingletonClass>(self);
-    Module* mod = try_as<Module>(cls->attached_instance());
+    Module* mod = try_as<Module>(cls->singleton());
 
     std::string name;
 

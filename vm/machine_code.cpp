@@ -419,7 +419,6 @@ namespace rubinius {
         Arguments& args, CallFrame* call_frame) {
       const bool has_splat = (mcode->splat_position >= 0);
       native_int total_args = args.total();
-
       // expecting 0, got 0.
       if(mcode->total_args == 0 && total_args == 0) {
         if(has_splat) {
@@ -458,7 +457,6 @@ namespace rubinius {
 
       const native_int P = mcode->post_args;
       const native_int R = mcode->required_args;
-
       // M is for mandatory
       const native_int M = R - P;
       const native_int T = total_args;

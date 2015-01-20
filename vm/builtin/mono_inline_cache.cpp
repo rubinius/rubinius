@@ -97,10 +97,6 @@ namespace rubinius {
   void MonoInlineCache::mono_cache_updater(STATE, CallSite* call_site, Class* klass, Dispatch& dispatch) {
     MonoInlineCache* mono_cache = reinterpret_cast<MonoInlineCache*>(call_site);
 
-    if(SingletonClass* cls = try_as<SingletonClass>(klass)) {
-      if(!try_as<Class>(cls->attached_instance())) return;
-    }
-
     // If it's the same class, replace it since the old cache is
     // for an older version of the same class and we don't
     // want to go polymorphic in that case.

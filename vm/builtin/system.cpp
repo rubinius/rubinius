@@ -52,6 +52,7 @@
 
 #ifndef RBX_WINDOWS
 #include <sys/resource.h>
+#include <sys/stat.h>
 #include <sys/wait.h>
 #include <pwd.h>
 #include <dlfcn.h>
@@ -304,9 +305,9 @@ namespace rubinius {
       state->shared().auxiliary_threads()->before_fork_exec(state);
     }
 
-    int pid = -1, fds[2];
+    int pid = -1, errors[2];
 
-    if(pipe(fds) != 0) {
+    if(pipe(errors) != 0) {
       {
         // TODO: Make this guard unnecessary
         GCIndependent guard(state, calling_environment);
@@ -318,7 +319,7 @@ namespace rubinius {
     }
 
     // If execvp() succeeds, we'll read EOF and know.
-    fcntl(fds[1], F_SETFD, FD_CLOEXEC);
+    fcntl(errors[1], F_SETFD, FD_CLOEXEC);
 
     {
       StopTheWorld stw(state, gct, calling_environment);
@@ -328,8 +329,8 @@ namespace rubinius {
 
     // error
     if(pid == -1) {
-      close(fds[0]);
-      close(fds[1]);
+      close(errors[0]);
+      close(errors[1]);
 
       {
         // TODO: Make this guard unnecessary
@@ -342,10 +343,9 @@ namespace rubinius {
     }
 
     if(pid == 0) {
-      close(fds[0]);
+      close(errors[0]);
 
       state->vm()->thread->init_lock();
-      state->shared().after_fork_exec_child(state, gct, calling_environment);
       state->shared().auxiliary_threads()->after_fork_exec_child(state);
 
       /* Reset all signal handlers to the defaults, so any we setup in
@@ -379,19 +379,21 @@ namespace rubinius {
           strerror(errno), command_line.str().c_str());
 
       int error_no = errno;
-      (void)write(fds[1], &error_no, sizeof(int));
-      close(fds[1]);
+      if(write(errors[1], &error_no, sizeof(int)) < 0) {
+        utilities::logger::error("%s: spawn: writing error status", strerror(errno));
+      }
+      close(errors[1]);
 
       exit(1);
     }
 
-    close(fds[1]);
+    close(errors[1]);
 
     state->shared().auxiliary_threads()->after_fork_exec_parent(state);
 
     int error_no;
-    ssize_t size = read(fds[0], &error_no, sizeof(int));
-    close(fds[0]);
+    ssize_t size = read(errors[0], &error_no, sizeof(int));
+    close(errors[0]);
 
     if(size != 0) {
       Exception::errno_error(state, "execvp(2) failed", error_no);
@@ -471,7 +473,6 @@ namespace rubinius {
 
     if(pid == 0) {
       state->vm()->thread->init_lock();
-      state->shared().after_fork_exec_child(state, gct, calling_environment);
       state->shared().auxiliary_threads()->after_fork_exec_child(state);
 
       close(errors[0]);
@@ -502,7 +503,9 @@ namespace rubinius {
           strerror(errno), exe.command());
 
       int error_no = errno;
-      (void)write(errors[1], &error_no, sizeof(int));
+      if(write(errors[1], &error_no, sizeof(int)) < 0) {
+        utilities::logger::error("%s: backtick: writing error status", strerror(errno));
+      }
       close(errors[1]);
 
       exit(1);
@@ -1212,7 +1215,7 @@ namespace rubinius {
 
   Object* System::vm_singleton_class_object(STATE, Module* mod) {
     if(SingletonClass* sc = try_as<SingletonClass>(mod)) {
-      return sc->attached_instance();
+      return sc->singleton();
     }
 
     return cNil;
@@ -1846,8 +1849,8 @@ retry:
     if(RUBINIUS_RUBY_PROBE_ENABLED()) {
       char* bytes = reinterpret_cast<char*>(payload->byte_address());
       RUBINIUS_RUBY_PROBE(
-          const_cast<RBX_DTRACE_CONST char*>(bytes),
-          payload->size());
+          const_cast<RBX_DTRACE_CHAR_P>(bytes),
+          payload->byte_size());
       return cTrue;
     }
     return cFalse;

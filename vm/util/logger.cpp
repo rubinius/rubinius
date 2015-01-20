@@ -255,7 +255,7 @@ namespace rubinius {
       }
 
 #define LOGGER_MAX_FILE     5242880
-#define LOGGER_OPEN_FLAGS   (O_CREAT | O_APPEND | O_WRONLY)
+#define LOGGER_OPEN_FLAGS   (O_CREAT | O_APPEND | O_WRONLY | O_CLOEXEC)
 #define LOGGER_OPEN_PERMS   0644
 
       FileLogger::FileLogger(const char* identifier)
@@ -283,11 +283,11 @@ namespace rubinius {
         utilities::file::LockGuard guard(logger_fd_, LOCK_EX);
 
         const char* time = timestamp();
-        write(logger_fd_, time, strlen(time));
-        write(logger_fd_, identifier_->c_str(), identifier_->size());
-        write(logger_fd_, level, strlen(level));
-        write(logger_fd_, " ", 1);
-        write(logger_fd_, message, size);
+        write_status_ = write(logger_fd_, time, strlen(time));
+        write_status_ = write(logger_fd_, identifier_->c_str(), identifier_->size());
+        write_status_ = write(logger_fd_, level, strlen(level));
+        write_status_ = write(logger_fd_, " ", 1);
+        write_status_ = write(logger_fd_, message, size);
       }
 
       void FileLogger::fatal(const char* message, int size) {

@@ -509,10 +509,6 @@ class IO
     end
   end
 
-  def self.max_open_fd
-    @max_open_fd.get
-  end
-
   def self.pipe
     lhs = allocate
     rhs = allocate

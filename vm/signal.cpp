@@ -149,10 +149,10 @@ namespace rubinius {
 #endif
 
     GCTokenImpl gct;
-    RBX_DTRACE_CONST char* thread_name = const_cast<RBX_DTRACE_CONST char*>("rbx.signal");
+    RBX_DTRACE_CHAR_P thread_name = const_cast<RBX_DTRACE_CHAR_P>("rbx.signal");
     vm_->set_name(thread_name);
 
-    RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CONST char*>(thread_name),
+    RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
                           state->vm()->thread_id(), 1);
 
     state->vm()->thread->hard_unlock(state, gct, 0);
@@ -175,7 +175,7 @@ namespace rubinius {
 
       target_->wakeup(state, gct, 0);
     }
-    RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CONST char*>(thread_name),
+    RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
                          state->vm()->thread_id(), 1);
   }
 
@@ -287,7 +287,7 @@ namespace rubinius {
             stream << "__block__";
           } else {
             if(SingletonClass* sc = try_as<SingletonClass>(frame->module())) {
-              Object* obj = sc->attached_instance();
+              Object* obj = sc->singleton();
 
               if(Module* mod = try_as<Module>(obj)) {
                 stream << mod->debug_str(state) << ".";

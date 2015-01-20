@@ -41,7 +41,9 @@ To install Rubinius, use the following steps:
   6. rake
 
 When the install process finishes, follow the directions printed to the
-terminal to add the Rubinius executable (bin) directory to your PATH.
+terminal to add the Rubinius executable (bin) directory to your PATH. For more
+information see http://rubini.us/doc/en/getting-started/requirements/
+and http://rubini.us/doc/en/getting-started/building/.
 
 If you are unable to build melbourne during the rake step you may be using an
 incompatible version of bison. Rubinius 2.x/melbourne 2.x can be built with

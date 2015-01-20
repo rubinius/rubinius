@@ -486,36 +486,39 @@ module Process
 
   class Status
 
-    attr_reader :exitstatus
     attr_reader :termsig
     attr_reader :stopsig
 
-    def initialize(pid, exitstatus, termsig=nil, stopsig=nil)
+    def initialize(pid=nil, status=nil, termsig=nil, stopsig=nil)
       @pid = pid
-      @exitstatus = exitstatus
+      @status = status
       @termsig = termsig
       @stopsig = stopsig
     end
 
+    def exitstatus
+      @status
+    end
+
     def to_i
-      @exitstatus
+      @status
     end
 
     def to_s
-      @exitstatus.to_s
+      @status.to_s
     end
 
     def &(num)
-      @exitstatus & num
+      @status & num
     end
 
     def ==(other)
       other = other.to_i if other.kind_of? Process::Status
-      @exitstatus == other
+      @status == other
     end
 
     def >>(num)
-      @exitstatus >> num
+      @status >> num
     end
 
     def coredump?
@@ -523,7 +526,7 @@ module Process
     end
 
     def exited?
-      @exitstatus != nil
+      @status != nil
     end
 
     def pid
@@ -540,7 +543,7 @@ module Process
 
     def success?
       if exited?
-        @exitstatus == 0
+        @status == 0
       else
         nil
       end

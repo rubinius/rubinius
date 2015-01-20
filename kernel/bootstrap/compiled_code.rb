@@ -43,6 +43,11 @@ module Rubinius
       raise PrimitiveFailure, "CompiledCode.of_sender primitive failed"
     end
 
+    def jitted?
+      Rubinius.primitive :compiledcode_jitted_p
+      raise PrimitiveFailure, "CompiledCode.jitted? primitive failed"
+    end
+
     # Returns the CompiledCode object for the currently executing Ruby
     # method. For example:
     #

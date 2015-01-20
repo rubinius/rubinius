@@ -1,6 +1,7 @@
 require File.expand_path('../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/block', __FILE__)
 
+# TODO: rewrite
 describe "A block" do
   before :each do
     @y = BlockSpecs::Yielder.new

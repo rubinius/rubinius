@@ -4,6 +4,7 @@
 #include "builtin/object.hpp"
 #include "builtin/fixnum.hpp"
 #include "builtin/module.hpp"
+#include "builtin/weakref.hpp"
 #include "type_info.hpp"
 
 namespace rubinius {
@@ -116,16 +117,21 @@ namespace rubinius {
     const static object_type type = SingletonClassType;
 
   private:
-    Object* attached_instance_; // slot
+    WeakRef* object_reference_; // slot
 
   public:
     /* accessors */
 
-    attr_accessor(attached_instance, Object);
+    attr_accessor(object_reference, WeakRef);
 
     /* interface */
 
+    static SingletonClass* create(STATE, Object* obj);
     static SingletonClass* attach(STATE, Object* obj, Class* sup = NULL);
+
+    Object* singleton() {
+      return object_reference_->object();
+    }
 
     class Info : public Class::Info {
     public:

@@ -195,6 +195,8 @@ namespace rubinius {
 
     if(!vm_) {
       vm_ = state->shared().new_vm();
+      vm_->metrics()->init(metrics::eJITMetrics);
+
       thread_exit_ = false;
 
       Thread* thread = Thread::create(state, vm_, G(thread), jit_llvm_trampoline, true);
@@ -238,22 +240,14 @@ namespace rubinius {
     vm_ = NULL;
 
     start_thread(state);
-    vm_->metrics()->init(metrics::eJITMetrics);
-  }
-
-  void LLVMState::after_fork_exec_child(STATE) {
-    compile_list_.get()->clear(state);
-    current_compiler_ = 0;
-    enabled_ = false;
-    vm_ = NULL;
   }
 
   void LLVMState::perform(STATE) {
     GCTokenImpl gct;
-    RBX_DTRACE_CONST char* thread_name = const_cast<RBX_DTRACE_CONST char*>("rbx.jit");
+    RBX_DTRACE_CHAR_P thread_name = const_cast<RBX_DTRACE_CHAR_P>("rbx.jit");
     vm_->set_name(thread_name);
 
-    RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CONST char*>(thread_name),
+    RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
                           state->vm()->thread_id(), 1);
 
     state->vm()->thread->hard_unlock(state, gct, 0);
@@ -297,22 +291,59 @@ namespace rubinius {
 
       uint32_t class_id = 0;
       uint32_t serial_id = 0;
+      void* func = 0;
       Class* receiver_class = compile_request->receiver_class();
 
       OnStack<1> os2(state, receiver_class);
 
-      if(receiver_class && !receiver_class->nil_p()) {
+      try {
+        if(receiver_class && !receiver_class->nil_p()) {
 
-        // Apparently already compiled, probably some race
-        if(compile_request->method()->find_specialized(receiver_class)) {
+          // Apparently already compiled, probably some race
+          if(compile_request->method()->find_specialized(receiver_class)) {
+            if(config().jit_show_compiling) {
+              CompiledCode* code = compile_request->method();
+              llvm::outs() << "[[[ JIT already compiled "
+                        << enclosure_name(code) << "#" << symbol_debug_str(code->name())
+                        << (compile_request->is_block() ? " (block)" : " (method)")
+                        << " ]]]\n";
+            }
+
+            // If someone was waiting on this, wake them up.
+            if(utilities::thread::Condition* cond = compile_request->waiter()) {
+              cond->signal();
+            }
+
+            current_compiler_ = 0;
+
+            continue;
+          }
+
+          class_id = receiver_class->class_id();
+          serial_id = receiver_class->serial_id();
+        }
+
+        {
+          timer::StopWatch<timer::microseconds> timer(
+              vm()->metrics()->m.jit_metrics.time_last_us,
+              vm()->metrics()->m.jit_metrics.time_total_us);
+
+          jit.compile(compile_request);
+
+          bool indy = !config().jit_sync;
+          func = jit.generate_function(indy);
+        }
+
+        // We were unable to compile this function, likely
+        // because it's got something we don't support.
+        if(!func) {
           if(config().jit_show_compiling) {
             CompiledCode* code = compile_request->method();
-            llvm::outs() << "[[[ JIT already compiled "
+            llvm::outs() << "[[[ JIT error background compiling "
                       << enclosure_name(code) << "#" << symbol_debug_str(code->name())
                       << (compile_request->is_block() ? " (block)" : " (method)")
                       << " ]]]\n";
           }
-
           // If someone was waiting on this, wake them up.
           if(utilities::thread::Condition* cond = compile_request->waiter()) {
             cond->signal();
@@ -322,38 +353,15 @@ namespace rubinius {
 
           continue;
         }
+      } catch(LLVMState::CompileError& e) {
+        utilities::logger::warn("JIT: compile error: %s", e.error());
 
-        class_id = receiver_class->class_id();
-        serial_id = receiver_class->serial_id();
-      }
+        vm()->metrics()->m.jit_metrics.methods_failed++;
 
-      void* func = 0;
-      {
-        timer::StopWatch<timer::microseconds> timer(
-            vm()->metrics()->m.jit_metrics.time_last_us,
-            vm()->metrics()->m.jit_metrics.time_total_us);
-
-        jit.compile(compile_request);
-
-        bool indy = !config().jit_sync;
-        func = jit.generate_function(indy);
-      }
-
-      // We were unable to compile this function, likely
-      // because it's got something we don't support.
-      if(!func || !ctx.success_p()) {
-        if(config().jit_show_compiling) {
-          CompiledCode* code = compile_request->method();
-          llvm::outs() << "[[[ JIT error background compiling "
-                    << enclosure_name(code) << "#" << symbol_debug_str(code->name())
-                    << (compile_request->is_block() ? " (block)" : " (method)")
-                    << " ]]]\n";
-        }
         // If someone was waiting on this, wake them up.
         if(utilities::thread::Condition* cond = compile_request->waiter()) {
           cond->signal();
         }
-
         current_compiler_ = 0;
 
         continue;
@@ -374,7 +382,7 @@ namespace rubinius {
 
         if(!compile_request->is_block()) {
           if(class_id) {
-            compile_request->method()->add_specialized(class_id, serial_id, reinterpret_cast<executor>(func), rd);
+            compile_request->method()->add_specialized(state, class_id,serial_id, reinterpret_cast<executor>(func), rd);
           } else {
             compile_request->method()->set_unspecialized(reinterpret_cast<executor>(func), rd);
           }
@@ -443,6 +451,37 @@ namespace rubinius {
     compile_cond_.signal();
   }
 
+  void LLVMState::compile(STATE, GCToken gct, CompiledCode* code, CallFrame* call_frame,
+      Class* receiver_class, BlockEnvironment* block_env, bool is_block)
+  {
+    if(!enabled_) return;
+
+    // In case the method hasn't been internalized yet
+    if(!code->machine_code()) {
+      code->internalize(state, gct, call_frame);
+    }
+
+    JITCompileRequest* req = JITCompileRequest::create(state, code, receiver_class,
+        0, block_env, is_block);
+
+    wait_mutex.lock();
+    req->set_waiter(&wait_cond);
+
+    add(state, req);
+
+    state->set_call_frame(call_frame);
+
+    wait_cond.wait(wait_mutex);
+    wait_mutex.unlock();
+    state->set_call_frame(0);
+
+    if(state->shared().config.jit_show_compiling) {
+      llvm::outs() << "[[[ JIT compiled "
+        << enclosure_name(code) << "#" << symbol_debug_str(code->name())
+        << (req->is_block() ? " (block) " : " (method) ") << " ]]]\n";
+    }
+  }
+
   void LLVMState::compile_soon(STATE, GCToken gct, CompiledCode* code, CallFrame* call_frame,
                                Class* receiver_class, BlockEnvironment* block_env, bool is_block)
   {
@@ -504,16 +543,16 @@ namespace rubinius {
 
   const static size_t eMaxInlineSendCount = 10;
 
-  void LLVMState::compile_callframe(STATE, GCToken gct, CompiledCode* start, CallFrame* call_frame,
-                                    int primitive) {
-
+  void LLVMState::compile_callframe(STATE, GCToken gct, CompiledCode* start,
+      CallFrame* call_frame, int primitive)
+  {
     if(debug_search) {
       std::cout << std::endl << "JIT:       triggered: "
             << enclosure_name(start) << "#"
             << symbol_debug_str(start->name()) << std::endl;
     }
 
-    CallFrame* candidate = find_candidate(state, start, call_frame);
+   CallFrame* candidate = find_candidate(state, start, call_frame);
     if(!candidate || candidate->jitted_p() || candidate->inline_method_p()) {
       if(config().jit_show_compiling) {
         llvm::outs() << "[[[ JIT error finding call frame "
@@ -540,7 +579,7 @@ namespace rubinius {
     }
 
     if(candidate->compiled_code->machine_code()->call_count <= 1) {
-      if(!start || start->machine_code()->jitted()) return;
+      if(!start || start->machine_code()->jitted_p()) return;
       // Ignore it. compile this one.
       candidate = call_frame;
     }
@@ -565,8 +604,13 @@ namespace rubinius {
 
     int depth = config().jit_limit_search;
 
-    if(!start) return NULL;
-    if(!call_frame) return NULL;
+    if(!start) {
+      throw CompileError("find_candidate: null start");
+    }
+
+    if(!call_frame) {
+      throw CompileError("find_candidate: null call frame");
+    }
 
     // if(!start) {
       // start = call_frame->compiled_code;
@@ -667,7 +711,7 @@ namespace rubinius {
         return callee;
       }
 
-      if(mcode->jitted()) {
+      if(mcode->jitted_p()) {
         if(debug_search) {
           std::cout << "JIT: STOP. reason: already jitted" << std::endl;
         }

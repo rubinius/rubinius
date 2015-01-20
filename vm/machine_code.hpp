@@ -99,7 +99,7 @@ namespace rubinius {
     virtual void cleanup(STATE, CodeManager* code) {}
     virtual int size();
 
-    bool jitted() const {
+    bool jitted_p() const {
       return execute_status_ == eJIT;
     }
 

@@ -596,6 +596,9 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
       end
       if which
         config = File.join(which, "llvm-config")
+      elsif @darwin
+        out = `brew list llvm | grep '/llvm-config$'`
+        config = out.chomp if $?.success?
       end
     end
 
@@ -744,9 +747,6 @@ int main() { LLVMContext &Context = getGlobalContext(); }
   def setup_platform
     @ldsharedxx = "#{@cxx} -shared"
     @ldshared   = "#{@cc} -shared"
-
-    @system_cflags << " -Wno-unused-result "
-    @system_cxxflags << " -Wno-unused-result "
 
     @include_dirs.each do |d|
       @system_cflags << "-I#{d} "
@@ -1449,7 +1449,7 @@ int main() { return tgetnum(""); }
       @libc = "libc.dylib"
     else
       begin
-        exe = ENV["SHELL"] || "/usr/sh"
+        exe = ENV["SHELL"] || "/bin/sh"
         ldd_output = `ldd #{exe}`
 
         @libc = ldd_output[/libc\.so\.[0-9]+/]

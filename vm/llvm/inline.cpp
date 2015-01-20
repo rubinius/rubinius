@@ -237,7 +237,7 @@ namespace rubinius {
             ops_.llvm_state()->log() << " ("
               << ops_.llvm_state()->symbol_debug_str(klass->module_name()) << ")";
 
-            if(mcode->jitted()) {
+            if(mcode->jitted_p()) {
               ops_.llvm_state()->log() << " (jitted)\n";
             } else {
               ops_.llvm_state()->log() << " (interp)\n";
@@ -637,8 +637,7 @@ remember:
     BasicBlock* entry = work.setup_inline(recv(), blk, args);
 
     if(!work.generate_body()) {
-      ctx_->set_failure();
-      return;
+      throw LLVMState::CompileError("failed to compile function");
     }
 
     // Branch to the inlined method!
@@ -690,8 +689,7 @@ remember:
         ops_.constant(cNil, ops_.context()->ptr_type("Module")), args);
 
     if(!work.generate_body()) {
-      ctx_->set_failure();
-      return;
+      throw LLVMState::CompileError("failed to compile function");
     }
 
     // Branch to the inlined block!
@@ -924,8 +922,7 @@ remember:
       }
 
       default:
-        ctx_->set_failure();
-        return false;
+        throw LLVMState::CompileError("unknown FFI type in FFI inliner");
       }
     }
 
@@ -1046,8 +1043,7 @@ remember:
 
     default:
       result = 0;
-      ctx_->set_failure();
-      return false;
+      throw LLVMState::CompileError("invalid FFI type");
     }
 
     exception_safe();

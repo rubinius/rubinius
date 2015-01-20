@@ -126,6 +126,7 @@ namespace rubinius {
     TypedRoot<Class*> fsevent;
     TypedRoot<Class*> logger;
     TypedRoot<JIT*> jit;
+    TypedRoot<Module*> runtime;
 
     /* Add new globals above this line. */
 

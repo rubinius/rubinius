@@ -37,6 +37,8 @@
 #endif
 
 namespace rubinius {
+  int IO::max_descriptors_ = 2;
+
   void IO::init(STATE) {
     GO(io).set(ontology::new_class(state, "IO", G(object)));
     G(io)->set_object_type(state, IOType);
@@ -44,9 +46,6 @@ namespace rubinius {
     GO(iobuffer).set(ontology::new_class(state, "InternalBuffer",
           G(object), G(io)));
     G(iobuffer)->set_object_type(state, IOBufferType);
-
-    AtomicReference* ref = AtomicReference::create(state, Fixnum::from(-1));
-    G(io)->set_ivar(state, state->symbol("@max_open_fd"), ref);
   }
 
   IO* IO::create(STATE, int fd) {
@@ -107,7 +106,7 @@ namespace rubinius {
 
     {
       GCIndependent guard(state, calling_environment);
-      fd = ::open(path, mode, permissions);
+      fd = open_with_cloexec(state, path, mode, permissions);
     }
 
     free(path);
@@ -115,9 +114,20 @@ namespace rubinius {
     if(fd < 0) {
       Exception::errno_error(state, p->c_str_null_safe(state));
     }
-    new_open_fd(state, fd);
 
     return Fixnum::from(fd);
+  }
+
+  native_int IO::open_with_cloexec(STATE, const char* path, int mode, int permissions) {
+#ifdef O_CLOEXEC
+    int fd = ::open(path, mode | O_CLOEXEC, permissions);
+    update_max_fd(state, fd);
+#else
+    int fd = ::open(path, mode, permissions)
+    new_open_fd(state, fd);
+#endif
+
+    return fd;
   }
 
   void IO::new_open_fd(STATE, native_int new_fd) {
@@ -131,12 +141,11 @@ namespace rubinius {
   }
 
   void IO::update_max_fd(STATE, native_int new_fd) {
-    AtomicReference* ref = as<AtomicReference>(G(io)->get_ivar(state, state->symbol("@max_open_fd")));
-    Fixnum* old_fd = as<Fixnum>(ref->get(state));
+    while(true) {
+      int max = atomic::read(&max_descriptors_);
 
-    while(old_fd->to_native() < new_fd &&
-          ref->compare_and_set(state, old_fd, Fixnum::from(new_fd))->false_p()) {
-      old_fd = as<Fixnum>(ref->get(state));
+      if(new_fd < max_descriptors_) return;
+      if(atomic::compare_and_swap(&max_descriptors_, max, new_fd)) return;
     }
   }
 
@@ -346,7 +355,7 @@ namespace rubinius {
 
     {
       GCIndependent guard(state, calling_environment);
-      other_fd = ::open(path, mode, 0666);
+      other_fd = open_with_cloexec(state, path, mode, 0666);
     }
 
     free(path);
@@ -355,16 +364,16 @@ namespace rubinius {
       Exception::errno_error(state, p->c_str_null_safe(state));
     }
 
-    new_open_fd(state, other_fd);
-
     if(dup2(other_fd, cur_fd) == -1) {
       if(errno == EBADF) { // this means cur_fd is closed
         // Just set ourselves to use the new fd and go on with life.
         descriptor(state, Fixnum::from(other_fd));
       } else {
+        if(other_fd > 0) ::close(other_fd);
         Exception::errno_error(state, p->c_str_null_safe(state));
-        return NULL;
       }
+    } else {
+      ::close(other_fd);
     }
 
     self->set_mode(state);

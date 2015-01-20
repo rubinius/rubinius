@@ -405,4 +405,9 @@ extern "C" {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
     IO::new_open_fd(env->state(), fd);
   }
+
+  int rb_cloexec_open(const char *pathname, int flags, int mode) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    return IO::open_with_cloexec(env->state(), pathname, mode, flags);
+  }
 }

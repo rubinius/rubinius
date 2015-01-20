@@ -135,11 +135,6 @@ namespace rubinius {
 
   void PolyInlineCache::inline_cache_updater(STATE, CallSite* call_site, Class* klass, Dispatch& dispatch) {
     PolyInlineCache* cache = reinterpret_cast<PolyInlineCache*>(call_site);
-
-    if(SingletonClass* cls = try_as<SingletonClass>(klass)) {
-      if(!try_as<Class>(cls->attached_instance())) return;
-    }
-
     InlineCacheEntry* entry = InlineCacheEntry::create(state, klass->data(), klass, dispatch, 1);
     cache->set_cache(state, entry);
   }
@@ -155,10 +150,10 @@ namespace rubinius {
         Module* mod = entries_[i]->receiver_class();
         if(mod) {
           if(SingletonClass* sc = try_as<SingletonClass>(mod)) {
-            if(Module* inner = try_as<Module>(sc->attached_instance())) {
+            if(Module* inner = try_as<Module>(sc->singleton())) {
               stream << "  SingletonClass:" << inner->debug_str(state);
             } else {
-              stream << "  SingletonClass:" << sc->attached_instance()->class_object(state)->debug_str(state);
+              stream << "  SingletonClass:" << sc->singleton()->class_object(state)->debug_str(state);
             }
           } else {
             stream << "  " << mod->debug_str(state);

@@ -288,10 +288,6 @@ end
 class LocalJumpError < StandardError
 end
 
-# For libraries that Rubinius does not support
-class UnsupportedLibraryError < StandardError
-end
-
 class SyntaxError < ScriptError
   attr_accessor :column
   attr_accessor :line
@@ -353,7 +349,7 @@ class SystemCallError < StandardError
 
   attr_reader :errno
 
-  def self.errno_error(message, errno)
+  def self.errno_error(message, errno, location)
     Rubinius.primitive :exception_errno_error
     raise PrimitiveFailure, "SystemCallError.errno_error failed"
   end
@@ -362,16 +358,6 @@ class SystemCallError < StandardError
   # lookup and return a subclass of SystemCallError, specificly,
   # one of the Errno subclasses.
   def self.new(*args)
-    case args.size
-    when 0
-      message = errno = undefined
-    when 1
-      message = args.first
-      errno = undefined
-    else
-      message, errno = args
-    end
-
     # This method is used 2 completely different ways. One is when it's called
     # on SystemCallError, in which case it tries to construct a Errno subclass
     # or makes a generic instead of itself.
@@ -379,54 +365,57 @@ class SystemCallError < StandardError
     # Otherwise it's called on a Errno subclass and just helps setup
     # a instance of the subclass
     if self.equal? SystemCallError
-      if undefined.equal? message
-        raise ArgumentError, "must supply at least a message/errno"
-      end
-
-      if undefined.equal? errno
-        if message.kind_of?(Fixnum)
-          if inst = SystemCallError.errno_error(nil, message)
-            return inst
-          else # It's some random errno
-            errno = message
-            message = nil
-          end
+      case args.size
+      when 1
+        if args.first.kind_of?(Fixnum)
+          errno = args.first
+          message = nil
         else
           errno = nil
+          message = StringValue(args.first)
         end
+        location = nil
+      when 2
+        message, errno = args
+        location = nil
+      when 3
+        message, errno, location = args
       else
-        message = StringValue(message) if message
-
-        if errno.kind_of? Fixnum
-          if error = SystemCallError.errno_error(message, errno)
-            return error
-          end
-        end
+        raise ArgumentError, "wrong number of arguments (#{args.size} for 1..3)"
       end
 
-      return super(message, errno)
-    else
-      unless undefined.equal? errno
-        raise ArgumentError, "message is the only argument"
-      end
-
-      if message and !undefined.equal?(message)
-        message = StringValue(message)
-      end
-
-      if self::Errno.kind_of? Fixnum
-        error = SystemCallError.errno_error(message, self::Errno)
-      else
-        error = allocate
-      end
-
-      if error
-        Rubinius::Unsafe.set_class error, self
-        Rubinius.privately { error.initialize(*args) }
+      # If it corresponds to a known Errno class, create and return it now
+      if errno && error = SystemCallError.errno_error(message, errno, location)
         return error
+      else
+        return super(message, errno, location)
+      end
+    else
+      case args.size
+      when 0
+        message = nil
+        location = nil
+      when 1
+        message = StringValue(args.first)
+        location = nil
+      when 2
+        message, location = args
+      else
+        raise ArgumentError, "wrong number of arguments (#{args.size} for 0..2)"
       end
 
-      raise TypeError, "invalid Errno subclass"
+      if defined?(self::Errno) && self::Errno.kind_of?(Fixnum)
+        errno = self::Errno
+        error = SystemCallError.errno_error(message, self::Errno, location)
+        if error && error.class.equal?(self)
+          return error
+        end
+      end
+
+      error = allocate
+      Rubinius::Unsafe.set_class error, self
+      Rubinius.privately { error.initialize(*args) }
+      return error
     end
   end
 
@@ -438,10 +427,12 @@ class SystemCallError < StandardError
 
   # Use splat args here so that arity returns -1 to match MRI.
   def initialize(*args)
-    message, errno = args
+    kls = self.class
+    message, errno, location = args
     @errno = errno
 
     msg = "unknown error"
+    msg << " @ #{StringValue(location)}" if location
     msg << " - #{StringValue(message)}" if message
     super(msg)
   end

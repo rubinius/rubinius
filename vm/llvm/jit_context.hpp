@@ -41,7 +41,6 @@ namespace rubinius {
   class Context {
     LLVMState* ls_;
     JITMethodInfo* root_info_;
-    bool success_;
     bool inlined_block_;
     int inline_depth_;
 
@@ -92,14 +91,6 @@ namespace rubinius {
 
     llvm::LLVMContext& llvm_context() {
       return ctx_;
-    }
-
-    bool success_p() {
-      return success_;
-    }
-
-    void set_failure() {
-      success_ = false;
     }
 
     llvm::FunctionPassManager* passes() {

@@ -337,7 +337,7 @@ namespace rubinius {
     if(unlikely(state->vm()->tooling())) {
       Module* mod = scope->module();
       if(SingletonClass* sc = try_as<SingletonClass>(mod)) {
-        if(Module* ma = try_as<Module>(sc->attached_instance())) {
+        if(Module* ma = try_as<Module>(sc->singleton())) {
           mod = ma;
         }
       }

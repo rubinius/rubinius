@@ -84,6 +84,7 @@ namespace rubinius {
       class FileLogger : public Logger {
         std::string* identifier_;
         int logger_fd_;
+        int write_status_;
 
         void write_log(const char* level, const char* message, int size);
 

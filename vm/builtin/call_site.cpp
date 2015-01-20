@@ -139,6 +139,7 @@ namespace rubinius {
     Dispatch dis(call_site->name());
 
     if(!dis.resolve(state, call_site->name(), lookup)) {
+      dis.method_missing = eVCall;
       if(!lookup_method_missing(state, call_frame, args,
           dis, call_frame->self(), recv->lookup_begin(state))) {
         return NULL;
@@ -216,13 +217,7 @@ namespace rubinius {
     }
   }
 
-  void CallSite::empty_cache_updater(STATE, CallSite* call_site, Class* klass,
-      Dispatch& dispatch)
-  {
-    if(SingletonClass* cls = try_as<SingletonClass>(klass)) {
-      if(!try_as<Class>(cls->attached_instance())) return;
-    }
-
+  void CallSite::empty_cache_updater(STATE, CallSite* call_site, Class* klass, Dispatch& dispatch) {
     MonoInlineCache* cache = MonoInlineCache::create(state, call_site, klass, dispatch);
     call_site->update_call_site(state, cache);
   }

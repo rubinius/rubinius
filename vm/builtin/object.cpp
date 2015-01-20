@@ -450,7 +450,7 @@ namespace rubinius {
      * class itself.
      */
     if(SingletonClass* sc_klass = try_as<SingletonClass>(sc->klass())) {
-      if(sc != sc_klass->attached_instance()) {
+      if(sc != sc_klass->singleton()) {
         SingletonClass::attach(state, sc);
       }
     }
@@ -467,7 +467,7 @@ namespace rubinius {
        * works properly. BUT we should not return that parent singleton
        * class, we need to only return a SingletonClass that is for this!
        */
-      if(!sc || sc->attached_instance() != this) {
+      if(!sc || sc->singleton() != this) {
         sc = SingletonClass::attach(state, this);
       }
 
@@ -828,16 +828,11 @@ namespace rubinius {
       if(RespondToCache* rct = try_as<RespondToCache>(existing)) {
         existing = rct->fallback_call_site();
       }
-
-      SingletonClass* cls = try_as<SingletonClass>(self->direct_class(state));
-
-      if(!cls || try_as<Class>(cls->attached_instance())) {
-        RespondToCache* cache = RespondToCache::create(state, existing,
-                                  self, name, priv, responds, 1);
-        state->vm()->global_cache()->add_seen(state, name);
-        atomic::memory_barrier();
-        existing->update_call_site(state, cache);
-      }
+      RespondToCache* cache = RespondToCache::create(state, existing,
+                                self, name, priv, responds, 1);
+      state->vm()->global_cache()->add_seen(state, name);
+      atomic::memory_barrier();
+      existing->update_call_site(state, cache);
     }
 
     return responds;

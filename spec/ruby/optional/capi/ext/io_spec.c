@@ -261,7 +261,6 @@ void Init_io_spec() {
 #ifdef HAVE_RB_IO_BINMODE
   rb_define_method(cls, "rb_io_binmode", io_spec_rb_io_binmode, 1);
 #endif
-
 }
 
 #ifdef __cplusplus

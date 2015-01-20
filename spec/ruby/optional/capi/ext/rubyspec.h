@@ -59,6 +59,7 @@
 #define HAVE_RB_ARY_NEW                    1
 #define HAVE_RB_ARY_NEW2                   1
 #define HAVE_RB_ARY_NEW3                   1
+#define HAVE_RB_ARY_NEW_FROM_ARGS          1
 #define HAVE_RB_ARY_NEW4                   1
 #define HAVE_RB_ARY_POP                    1
 #define HAVE_RB_ARY_PUSH                   1
@@ -66,6 +67,7 @@
 #define HAVE_RB_ARY_SHIFT                  1
 #define HAVE_RB_ARY_STORE                  1
 #define HAVE_RB_ARY_CONCAT                 1
+#define HAVE_RB_ARY_PLUS                   1
 #define HAVE_RB_ARY_TO_ARY                 1
 #define HAVE_RB_ARY_TO_S                   1
 #define HAVE_RB_ARY_UNSHIFT                1

@@ -523,26 +523,15 @@ namespace jit {
     JITVisit& v_;
     BlockMap& map_;
     Builder& builder_;
-    bool valid_;
 
   public:
     Walker(JITVisit& v, BlockMap& map, Builder& builder)
       : v_(v)
       , map_(map)
       , builder_(builder)
-      , valid_(true)
     {}
 
-    bool valid_p() {
-      return valid_;
-    }
-
     void call(OpcodeIterator& iter) {
-      if(!iter.valid_p()) {
-        valid_ = false;
-        return;
-      }
-
       builder_.set_current_location(iter.ip());
       v_.dispatch(iter.ip());
 
@@ -582,12 +571,8 @@ namespace jit {
 
     try {
       walker.run<Walker>(cb);
-      if(!walker.valid_p()) {
-        ctx_->set_failure();
-        return false;
-      }
-    } catch(JITVisit::Unsupported &e) {
-      ctx_->set_failure();
+    } catch(LLVMState::CompileError &e) {
+      utilities::logger::warn("JIT: builder: generate body: compile error: %s", e.error());
       return false;
     }
 

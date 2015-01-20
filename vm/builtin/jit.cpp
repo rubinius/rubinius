@@ -1,3 +1,4 @@
+#include "builtin/block_environment.hpp"
 #include "builtin/jit.hpp"
 #include "builtin/list.hpp"
 
@@ -17,6 +18,37 @@ namespace rubinius {
     G(jit)->compile_class(state, cls);
 
     G(jit)->compile_list(state, List::create(state));
+  }
+
+  Object* JIT::compile(STATE, Object* object, CompiledCode* code,
+                       Object* block_environment, CallFrame* call_frame)
+  {
+#ifndef ENABLE_LLVM
+    return cFalse;
+#else
+    GCTokenImpl gct;
+    BlockEnvironment* block_env = try_as<BlockEnvironment>(block_environment);
+    if(!block_env) block_env = nil<BlockEnvironment>();
+
+    LLVMState* ls = state->shared().llvm_state;
+    ls->compile(state, gct, code, call_frame, object->direct_class(state),
+        block_env, !block_env->nil_p());
+
+    return cTrue;
+#endif
+  }
+
+  Object* JIT::compile_threshold(STATE) {
+    return Integer::from(state, state->shared().config.jit_threshold_compile);
+  }
+
+  Object* JIT::sync_set(STATE, Object* flag) {
+    state->shared().config.jit_sync.set(CBOOL(flag));
+    return sync_get(state);
+  }
+
+  Object* JIT::sync_get(STATE) {
+    return RBOOL(state->shared().config.jit_sync);
   }
 
   Object* JIT::enable(STATE) {

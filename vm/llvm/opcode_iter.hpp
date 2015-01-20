@@ -2,8 +2,6 @@ namespace rubinius {
   class OpcodeIterator {
     MachineCode* machine_code_;
 
-    bool valid_;
-
     opcode ip_;
     int width_;
 
@@ -36,7 +34,7 @@ namespace rubinius {
 #undef HANDLE_INST2
 
       default:
-        valid_ = false;
+        throw LLVMState::CompileError("unknown opcode");
       }
     }
 
@@ -46,7 +44,6 @@ namespace rubinius {
   public:
     OpcodeIterator(MachineCode* mcode, int ip=0)
       : machine_code_(mcode)
-      , valid_(true)
       , ip_(ip)
       , width_(0)
     {
@@ -55,10 +52,6 @@ namespace rubinius {
 
     opcode* stream() {
       return machine_code_->opcodes;
-    }
-
-    bool valid_p() {
-      return valid_;
     }
 
     opcode ip() {

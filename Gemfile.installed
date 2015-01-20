@@ -1,7 +1,8 @@
 source 'https://rubygems.org'
 
+gem "bundler", "~> 1.7"
+
 gem "rubinius-build_tools", "~> 1.0"
-gem "rubinius-developer_tools", "~> 2.0"
 gem "rubinius-toolset", "~> 2.2.0"
 
 gem "rubysl", "~> 1.0"
@@ -11,3 +12,4 @@ gem "racc", "~> 1.4"
 gem "rake", "~> 10.1"
 gem "json", "~> 1.8"
 gem "rdoc", "~> 4.0"
+gem "rb-readline", "~> 0.5"

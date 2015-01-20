@@ -232,6 +232,8 @@ namespace rubinius {
       metrics_map_.push_back(new MetricsItem(
             "jit.methods.compiled", metrics_collection_.jit_metrics.methods_compiled));
       metrics_map_.push_back(new MetricsItem(
+            "jit.methods.failed", metrics_collection_.jit_metrics.methods_failed));
+      metrics_map_.push_back(new MetricsItem(
             "jit.time.last.us", metrics_collection_.jit_metrics.time_last_us));
       metrics_map_.push_back(new MetricsItem(
             "jit.time.total.us", metrics_collection_.jit_metrics.time_total_us));
@@ -483,11 +485,11 @@ namespace rubinius {
 
     void Metrics::process_metrics(STATE) {
       GCTokenImpl gct;
-      RBX_DTRACE_CONST char* thread_name =
-        const_cast<RBX_DTRACE_CONST char*>("rbx.metrics");
+      RBX_DTRACE_CHAR_P thread_name =
+        const_cast<RBX_DTRACE_CHAR_P>("rbx.metrics");
       vm_->set_name(thread_name);
 
-      RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CONST char*>(thread_name),
+      RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
                             state->vm()->thread_id(), 1);
 
       state->vm()->thread->hard_unlock(state, gct, 0);
@@ -525,8 +527,10 @@ namespace rubinius {
 
 #ifdef ENABLE_LLVM
           if(state->shared().llvm_state) {
-            if(VM* vm = state->shared().llvm_state->vm()) {
-              metrics_collection_.add(vm->metrics());
+            if(Thread* thread = state->shared().llvm_state->thread()) {
+              if(VM* vm = thread->vm()) {
+                metrics_collection_.add(vm->metrics());
+              }
             }
           }
 #endif
@@ -545,7 +549,7 @@ namespace rubinius {
 
       timer_->clear();
 
-      RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CONST char*>(thread_name),
+      RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
                            state->vm()->thread_id(), 1);
     }
   }

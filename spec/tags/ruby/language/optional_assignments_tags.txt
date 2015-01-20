@@ -1,0 +1,1 @@
+fails:Optional variable assignments using a single variable does not re-assign a variable with a truthy value when using an inline rescue

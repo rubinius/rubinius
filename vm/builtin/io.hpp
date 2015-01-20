@@ -8,6 +8,8 @@ namespace rubinius {
   class String;
 
   class IO : public Object {
+    static int max_descriptors_;
+
   public:
     const static object_type type = IOType;
 
@@ -38,6 +40,10 @@ namespace rubinius {
     static void init(STATE);
     static IO* create(STATE, int fd);
 
+    static int max_descriptors() {
+      return max_descriptors_;
+    }
+
     native_int to_fd();
     void set_mode(STATE);
     void force_read_only(STATE);
@@ -55,6 +61,7 @@ namespace rubinius {
     // Rubinius.primitive :io_open
     static Fixnum*  open(STATE, String* path, Fixnum* mode, Fixnum* perm, CallFrame* calling_environment);
 
+    static native_int open_with_cloexec(STATE, const char* path, int mode, int permissions);
     static void new_open_fd(STATE, native_int fd);
     static void update_max_fd(STATE, native_int fd);
 

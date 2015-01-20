@@ -712,6 +712,9 @@ VALUE rb_uint2big(unsigned long number);
   /** Concat two arrays */
   VALUE   rb_ary_concat(VALUE self, VALUE second);
 
+  /** Adds two arrays together */
+  VALUE   rb_ary_plus(VALUE self, VALUE second);
+
   /** Add object to the front of Array. Changes old indexes +1. Returns object. */
   VALUE   rb_ary_unshift(VALUE self, VALUE object);
 
