@@ -45,6 +45,8 @@ class IO
     # Discover final size of file so we can set EOF properly
     @total_size = sysseek(0, SEEK_END)
     @offset = sysseek(0)
+    @eof = @offset == @total_size
+    @unget_buffer = []
 
     # Don't bother to add finalization for stdio
     if fd >= 3
@@ -59,6 +61,7 @@ class IO
     obj.instance_variable_set :@eof, false
     obj.instance_variable_set :@lineno, 0
     obj.instance_variable_set :@offset, 0
+    obj.instance_variable_set :@unget_buffer, []
     
     # setup finalization for pipes
     
@@ -180,7 +183,7 @@ class IO
 
     Errno.handle("seek failed") if position == -1
 
-    @offset = position
+    #@offset = position
     return position
   end
 

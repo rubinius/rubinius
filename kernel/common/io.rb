@@ -984,7 +984,7 @@ class IO
         if buffer.size == 0
           consumed_chars = 0
           starting_position = @io.pos
-          buffer = @io.read
+          buffer = @io.read#(IO.pagesize)
         end
 
         break unless buffer.size > 0
@@ -1350,7 +1350,7 @@ class IO
   def eof?
     ensure_open_and_readable
     #    @ibuffer.fill_from self unless @ibuffer.exhausted?
-    @eof # and @ibuffer.exhausted?
+    @eof && @unget_buffer.empty? # and @ibuffer.exhausted?
   end
 
   alias_method :eof, :eof?
@@ -1487,7 +1487,7 @@ class IO
   def getbyte
     ensure_open
 
-    return nil #@ibuffer.getbyte(self)
+    return read(1).ord
   end
 
   ##
@@ -1500,7 +1500,8 @@ class IO
   def getc
     ensure_open
 
-    return read(1) #@ibuffer.getchar(self)
+    str = read(1)
+    return str
   end
 
   def gets(sep_or_limit=$/, limit=nil)
@@ -1588,8 +1589,9 @@ class IO
   def pos
     flush
     #@ibuffer.unseek! self
-
-    prim_seek 0, SEEK_CUR
+    #prim_seek @offset, SEEK_SET
+    @offset = prim_seek 0, SEEK_CUR
+    @offset - @unget_buffer.size
   end
 
   alias_method :tell, :pos
@@ -1697,7 +1699,13 @@ class IO
     buffer = StringValue(buffer) if buffer
 
     unless length
-      str = IO.read_encode self, read_all
+      # force +val+ to #chr so we can easily build a string. +val+ is sometimes a Fixnum
+      # when someone #ungetbyte on the stream. probably a better way to handle this...
+      # maybe force that "byte" into a chr during the unget step since we convert it to
+      # ordinal in #getbyte anyway.
+      unget_buffer = @unget_buffer.inject("") { |sum, val| val.chr + sum }
+      @unget_buffer.clear
+      str = IO.read_encode self, (unget_buffer + read_all)
       return str unless buffer
 
       return buffer.replace(str)
@@ -1709,9 +1717,40 @@ class IO
     #    end
 
     str = ""
-    #    needed = length
+    needed = length
+    
+    if length > 0
+      # FIXME: need to twiddle @pos or @offset too
+      #STDERR.puts "read length is [#{length}], @unget_buffer.size [#{@unget_buffer.size}]"
+      if !@unget_buffer.empty?
+        if length >= @unget_buffer.size
+          unget_buffer = @unget_buffer.inject("") { |sum, val| val.chr + sum }
+          length -= @unget_buffer.size
+          @offset += @unget_buffer.size
+          STDERR.puts "1 @offset [#{@offset}], pos [#{sysseek(0, SEEK_CUR)}]"
+          @unget_buffer.clear
+#          STDERR.puts "1 unget_buffer [#{unget_buffer.inspect}], length [#{length}]"
+        else
+          unget_buffer = ""
+          length.times do
+            unget_buffer << @unget_buffer.pop
+          end
+#          STDERR.puts "2 unget_buffer [#{unget_buffer.inspect}], @unget_buffer #{@unget_buffer.inspect}"
+          @offset += length
+          STDERR.puts "2 @offset [#{@offset}], pos [#{sysseek(0, SEEK_CUR)}]"
+          length = 0
+        end
+      end
+    end
+
     result = prim_read(length, str)
-    str = nil if str.empty? && length > 0
+    #str = nil if str.empty? && needed > 0
+    if unget_buffer
+      str = unget_buffer + str.to_s
+    elsif str.empty? && needed > 0
+      STDERR.puts "str [#{str.inspect}] was empty, str.nil? [#{str.nil?}]"
+      str = nil
+    end
     #    while needed > 0 and not @ibuffer.exhausted?
     #      available = @ibuffer.fill_from self
     #
@@ -2009,38 +2048,53 @@ class IO
   end
 
   def set_encoding(external, internal=nil, options=undefined)
+#    STDERR.puts "SE1 ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
     case external
     when Encoding
       @external = external
+#      STDERR.puts "SE2 ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
     when String
       @external = nil
+#      STDERR.puts "SE3 ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
     when nil
       if @mode == RDONLY || @external
         @external = nil
       else
         @external = Encoding.default_external
       end
+#      STDERR.puts "SE4 ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
     else
       @external = nil
       external = StringValue(external)
+#      STDERR.puts "SE5 ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
     end
 
     if @external.nil? and not external.nil?
+#      STDERR.puts "A ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
+#      STDERR.puts "B [#{external.index(':').inspect}]"
       if index = external.index(":")
         internal = external[index+1..-1]
+#        STDERR.puts "C ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
         external = external[0, index]
+#        STDERR.puts "D ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
       end
 
       if external[3] == ?|
+#        STDERR.puts "E ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
         if encoding = strip_bom
           external = encoding
+#          STDERR.puts "F ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
         else
           external = external[4..-1]
+#          STDERR.puts "G ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
         end
       end
 
+#      STDERR.puts "H ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
       @external = Encoding.find external
+#      STDERR.puts "I ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
     end
+#    STDERR.puts "SE6 ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
 
     unless undefined.equal? options
       # TODO: set the encoding options on the IO instance
@@ -2128,7 +2182,7 @@ class IO
         end
         ungetbyte b3
       end
-      ungetbyt b2
+      ungetbyt b2  # FIXME: syntax error waiting to happen!
     end
 
     ungetbyte b1
@@ -2184,7 +2238,7 @@ class IO
   #
   def sysread(number_of_bytes, buffer=undefined)
     flush
-    #    raise IOError unless @ibuffer.empty?
+    raise IOError unless @unget_buffer.empty?
 
     str = prim_read number_of_bytes
     raise EOFError if str.nil?
@@ -2250,6 +2304,7 @@ class IO
       str = obj
     when Integer
       #      @ibuffer.put_back(obj & 0xff)
+      @unget_buffer << (obj & 0xff)
       return
     when nil
       return
@@ -2258,6 +2313,9 @@ class IO
     end
 
     #    str.bytes.reverse_each { |byte| @ibuffer.put_back byte }
+    str.bytes.reverse_each do |byte| 
+      @unget_buffer << byte
+    end
 
     nil
   end
@@ -2270,6 +2328,7 @@ class IO
       str = obj
     when Integer
       #      @ibuffer.put_back(obj)
+      @unget_buffer << obj
       return
     when nil
       return
@@ -2278,6 +2337,9 @@ class IO
     end
 
     #    str.bytes.reverse_each { |b| @ibuffer.put_back b }
+    str.bytes.reverse_each do |byte| 
+      @unget_buffer << byte
+    end
 
     nil
   end
