@@ -9,8 +9,12 @@ rdoc-4.2.0.gem
 rubinius-ast-1.3.0.gem
 rubinius-build_tools-1.0.0.gem
 rubinius-compiler-1.2.0.gem
+rubinius-coverage-2.0.3.gem
+rubinius-debugger-2.2.0.gem
+rubinius-developer_tools-2.0.0.gem
 rubinius-melbourne-1.2.0.0.gem
 rubinius-processor-1.3.0.gem
+rubinius-profiler-2.0.1.gem
 rubinius-toolset-2.3.1.gem
 rubysl-1.0.8.gem
 rubysl-abbrev-1.0.1.gem
