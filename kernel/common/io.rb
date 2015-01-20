@@ -1499,9 +1499,20 @@ class IO
   #  f.getc   #=> 104
   def getc
     ensure_open
+    return if eof?
 
-    str = read(1)
-    return str
+    char = ""
+    until eof?
+      char.force_encoding Encoding::ASCII_8BIT
+      char << read(1)
+
+      char.force_encoding(self.external_encoding || Encoding.default_external)
+      if char.chr_at(0)
+        return IO.read_encode self, char
+      end
+    end
+
+    return nil
   end
 
   def gets(sep_or_limit=$/, limit=nil)
