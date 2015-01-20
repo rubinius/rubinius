@@ -3,7 +3,6 @@ source 'https://rubygems.org'
 gem "bundler", "~> 1.7"
 
 gem "rubinius-build_tools", "~> 1.0"
-gem "rubinius-toolset", "~> 2.2.0"
 
 gem "rubysl", "~> 1.0"
 gem "rubysl-test-unit", "~> 1.0"
