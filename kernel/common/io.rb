@@ -979,19 +979,21 @@ class IO
     def read_to_separator
       str = ""
       buffer = ""
+      separator_size = @separator.bytesize
 
       until buffer.size == 0 && @io.eof?
         if buffer.size == 0
-          consumed_chars = 0
+          consumed_bytes = 0
           starting_position = @io.pos
-          buffer = @io.read#(IO.pagesize)
+          buffer = @io.read
         end
 
         break unless buffer.size > 0
 
         if count = buffer.index(@separator)
-          consumed_chars += count
-          str << buffer.slice!(0, count + 1)
+          substring = buffer.slice!(0, count + separator_size)
+          consumed_bytes += substring.bytesize
+          str << substring
 
           str = IO.read_encode(@io, str)
           str.taint
@@ -1000,28 +1002,31 @@ class IO
 
           if @skip
             skip_count = 0
-            skip_count += 1 while buffer[skip_count] == @skip
-            consumed_chars += skip_count
-            buffer.slice!(0, skip_count + 1) if skip_count > 0
+            skip_count += 1 while buffer[skip_count].ord == @skip
+            if skip_count > 0
+              slice = buffer.slice!(0, skip_count)
+              consumed_bytes += slice.bytesize
+            end
           end
 
           # Must update position before we yield since yielded block *could*
           # return directly and rob us of a chance to do our housekeeping
-          @io.pos = starting_position + consumed_chars + 1
-          yield str
+          @io.pos = starting_position + consumed_bytes
+         yield str
 
           str = ""
         else
           str << buffer
-          consumed_chars += buffer.size
+          consumed_bytes += buffer.size + 1
+          @io.pos = starting_position + consumed_bytes
           buffer.clear
         end
       end
 
       str << buffer
 
-      consumed_chars += buffer.size
-      @io.pos = starting_position + consumed_chars + 1
+      consumed_bytes += buffer.size + 1
+      @io.pos = starting_position + consumed_bytes
 
       unless str.empty?
         str = IO.read_encode(@io, str)
@@ -1031,58 +1036,7 @@ class IO
       end
     end
 
-    #    # method A, D
-    #    def read_to_separator
-    #      str = ""
-    #      buffer = @io.read(@io.pagesize)
-    #      starting_position = @io.pos
-    #      used_chars = 0
-    #
-    #      while buffer.size > 0 && !@io.eof?
-    #        break unless buffer.size > 0
-    #
-    #        if count = buffer.index(@separator)
-    #          used_chars += count
-    #          str << buffer.slice!(0, count + 1)
-    #
-    #          str = IO.read_encode(@io, str)
-    #          str.taint
-    #
-    #          $. = @io.increment_lineno
-    #
-    #          if @skip
-    #            skip_count = buffer.index(@skip)
-    #            used_chars += skip_count
-    #            buffer.slice!(0, skip_count + 1)
-    #          end
-    #
-    #          yield str
-    #
-    #          str = ""
-    #        else
-    #          str << buffer
-    #          used_chars += buffer.size
-    #        end
-    #
-    #        buffer = @io.read(@io.pagesize)
-    #      end
-    #
-    #      str << buffer
-    #      used_chars += buffer.size
-    #
-    #      # reset file pointer to account for consumed characters
-    #      @io.pos = starting_position + used_chars
-    #
-    #      unless str.empty?
-    #        str = IO.read_encode(@io, str)
-    #        str.taint
-    #        $. = @io.increment_lineno
-    #        yield str
-    #      end
-    #    end
-    #
     # method B, E
-
 
     def try_to_force_encoding(io, str)
       str.force_encoding(io.external_encoding || Encoding.default_external)
@@ -1113,41 +1067,54 @@ class IO
 
     def read_to_separator_with_limit
       str = ""
+      buffer = ""
 
       #TODO: implement ignoring encoding with negative limit
       wanted = limit = @limit.abs
 
-      until @io.eof?
-        buffer = @io.read
+      until buffer.size == 0 && @io.eof?
+        if buffer.size == 0
+          consumed_chars = 0
+          starting_position = @io.pos
+          buffer = @io.read
+        end
+
         if @skip
           skip_count = 0
-          skip_count += 1 while buffer[skip_count] == @skip
-          consumed_chars += skip_count
-          buffer.slice!(0, skip_count + 1) if skip_count > 0
+          skip_count += 1 while buffer[skip_count].ord == @skip
+          if skip_count > 0
+            slice = buffer.slice!(0, skip_count)
+            consumed_bytes += slice.bytesize
+          end
         end
         break unless buffer.size > 0
 
         if count = buffer.index(@separator)
-          bytes = count < wanted ? count : wanted
-          str << buffer.slice!(0, bytes + 1)
+          consumed_chars += count
+          str << buffer.slice!(0, count + 1)
 
           str = IO.read_encode(@io, str)
           str.taint
 
           $. = @io.increment_lineno
+          
           if @skip
             skip_count = 0
-            skip_count += 1 while buffer[skip_count] == @skip
-            consumed_chars += skip_count
-            buffer.slice!(0, skip_count + 1) if skip_count > 0
+            skip_count += 1 while buffer[skip_count].ord == @skip
+            if skip_count > 0
+              slice = buffer.slice!(0, skip_count)
+              consumed_bytes += slice.bytesize
+            end
           end
 
+          @io.pos = starting_position + consumed_chars + 1
           yield str
 
           str = ""
           wanted = limit
         else
           if wanted < buffer.size
+            consumed_chars += wanted
             str << buffer.slice!(0, wanted + 1)
 
             str = read_to_char_boundary(@io, str, buffer)
@@ -1156,11 +1123,14 @@ class IO
             $. = @io.increment_lineno
             if @skip
               skip_count = 0
-              skip_count += 1 while buffer[skip_count] == @skip
-              consumed_chars += skip_count
-              buffer.slice!(0, skip_count + 1) if skip_count > 0
+              skip_count += 1 while buffer[skip_count].ord == @skip
+              if skip_count > 0
+                slice = buffer.slice!(0, skip_count)
+                consumed_bytes += slice.bytesize
+              end
             end
 
+            @io.pos = starting_position + consumed_chars + 1
             yield str
 
             str = ""
@@ -1168,9 +1138,13 @@ class IO
           else
             str << buffer
             wanted -= buffer.size
+            consumed_chars += buffer.size
+            buffer.clear
           end
         end
       end
+      
+      @io.pos = starting_position + consumed_chars + 1
 
       unless str.empty?
         str = IO.read_encode(@io, str)
