@@ -488,7 +488,18 @@ namespace rubinius {
     state->shared().auxiliary_threads()->after_fork_exec_parent(state);
 
     int error_no;
-    ssize_t size = read(errors[0], &error_no, sizeof(int));
+    ssize_t size;
+
+    while((size = read(errors[0], &error_no, sizeof(int))) < 0) {
+      switch(errno) {
+      case EAGAIN:
+      case EINTR:
+        continue;
+      default:
+        utilities::logger::error("%s: spawn: reading error status", strerror(errno));
+        break;
+      }
+    }
     close(errors[0]);
 
     if(size != 0) {
@@ -613,7 +624,18 @@ namespace rubinius {
     state->shared().auxiliary_threads()->after_fork_exec_parent(state);
 
     int error_no;
-    ssize_t size = read(errors[0], &error_no, sizeof(int));
+    ssize_t size;
+
+    while((size = read(errors[0], &error_no, sizeof(int))) < 0) {
+      switch(errno) {
+      case EAGAIN:
+      case EINTR:
+        continue;
+      default:
+        utilities::logger::error("%s: backtick: reading error status", strerror(errno));
+        break;
+      }
+    }
     close(errors[0]);
 
     if(size != 0) {
