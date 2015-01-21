@@ -47,7 +47,7 @@ rubysl-gserver-1.0.0.gem
 rubysl-iconv-1.0.1.gem
 rubysl-io-wait-1.0.0.gem
 rubysl-ipaddr-1.0.0.gem
-rubysl-irb-1.0.0.gem
+rubysl-irb-1.0.1.gem
 rubysl-jcode-1.0.0.gem
 rubysl-logger-1.0.0.gem
 rubysl-mail-1.0.0.gem
