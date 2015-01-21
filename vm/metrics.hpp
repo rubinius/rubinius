@@ -380,6 +380,7 @@ namespace rubinius {
       SharedState& shared_;
       VM* vm_;
       bool thread_exit_;
+      bool thread_running_;
 
       TypedRoot<Thread*> thread_;
       TypedRoot<Tuple*> values_;

@@ -193,6 +193,7 @@ namespace rubinius {
       , shared_(state->shared())
       , vm_(NULL)
       , thread_exit_(false)
+      , thread_running_(false)
       , thread_(state)
       , values_(state)
       , interval_(state->shared().config.system_metrics_interval)
@@ -419,6 +420,7 @@ namespace rubinius {
     void Metrics::start(STATE) {
       vm_ = NULL;
       thread_exit_ = false;
+      thread_running_ = false;
 
       timer_ = new timer::Timer;
 
@@ -433,7 +435,10 @@ namespace rubinius {
 
       atomic::memory_barrier();
 
-      if(timer_) timer_->cancel();
+      if(timer_) {
+        timer_->clear();
+        timer_->cancel();
+      }
     }
 
     void Metrics::start_thread(STATE) {
@@ -456,10 +461,11 @@ namespace rubinius {
       if(vm_) {
         wakeup();
 
-        pthread_t os = vm_->os_thread();
-
-        void* return_value;
-        pthread_join(os, &return_value);
+        if(atomic::poll(thread_running_, false)) {
+          void* return_value;
+          pthread_t os = vm_->os_thread();
+          pthread_join(os, &return_value);
+        }
 
         vm_ = NULL;
       }
@@ -491,6 +497,8 @@ namespace rubinius {
 
       RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
                             state->vm()->thread_id(), 1);
+
+      thread_running_ = true;
 
       state->vm()->thread->hard_unlock(state, gct, 0);
       state->gc_dependent(gct, 0);
@@ -548,6 +556,8 @@ namespace rubinius {
       }
 
       timer_->clear();
+
+      thread_running_ = false;
 
       RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
                            state->vm()->thread_id(), 1);
