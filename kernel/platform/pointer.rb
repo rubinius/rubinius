@@ -295,6 +295,8 @@ module FFI
       else
         total = size
       end
+      
+      return NULL if total < 0
 
       ptr = malloc total
       ptr.total = total
