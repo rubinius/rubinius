@@ -20,6 +20,7 @@ branches:
     - master
     - 1.8.7
 notifications:
+  email: false
   irc:
     channels:
       - "chat.freenode.net#rubinius"
