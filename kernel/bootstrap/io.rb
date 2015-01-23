@@ -24,7 +24,7 @@ class IO
 
   def initialize(fd)
     @descriptor = fd
-    acc_mode = FFI::Platform::POSIX.fcntl(fd, F_GETFL, 0)
+    acc_mode = FFI::Platform::POSIX.fcntl(@descriptor, F_GETFL, 0)
 
     if acc_mode < 0
       # Assume it's closed.
@@ -49,7 +49,7 @@ class IO
     @unget_buffer = []
 
     # Don't bother to add finalization for stdio
-    if fd >= 3
+    if @descriptor >= 3
       # finalize
     end
   end
