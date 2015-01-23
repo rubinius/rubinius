@@ -344,6 +344,7 @@ class IO
       ensure_open
 
       storage = FFI::MemoryPointer.new(length)
+      raise IOError, "read(2) failed to malloc a buffer for read length #{length}" if storage.null?
       bytes_read = read_into_storage(length, storage)
 
       if bytes_read == -1
@@ -365,7 +366,7 @@ class IO
     if output_string
       output_string.replace(storage.read_string(bytes_read))
     else
-      output_string = storage.read_string(bytes_read)
+      output_string = storage.read_string(bytes_read).force_encoding(Encoding::ASCII_8BIT)
     end
     
     @offset += bytes_read
