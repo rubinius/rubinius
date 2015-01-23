@@ -944,34 +944,42 @@ class IO
   class EachReader
     def initialize(io, separator, limit)
       @io = io
-      @separator = separator
+      @separator = separator ? separator.force_encoding("ASCII-8BIT") : separator
       @limit = limit
       @skip = nil
     end
 
     def each(&block)
       if @separator
-        STDERR.puts "has separator"
         if @separator.empty?
           @separator = "\n\n"
           @skip = 10
         end
 
         if @limit
-          STDERR.puts "read sep to limit"
           read_to_separator_with_limit(&block)
         else
-          STDERR.puts "read to sep"
           read_to_separator(&block)
         end
       else
         if @limit
-          STDERR.puts "read to limit"
           read_to_limit(&block)
         else
-          STDERR.puts "read all"
           read_all(&block)
         end
+      end
+    end
+
+    def do_skip(buffer)
+      return 0 unless @skip
+
+      skip_count = 0
+      skip_count += 1 while buffer[skip_count].ord == @skip
+      if skip_count > 0
+        slice = buffer.slice!(0, skip_count)
+        slice.bytesize
+      else
+        0
       end
     end
 
@@ -989,9 +997,13 @@ class IO
         end
 
         break unless buffer.size > 0
-
+        
         if count = buffer.index(@separator)
-          substring = buffer.slice!(0, count + separator_size)
+          # #index returns a 0-based location but we want a length (so +1) and it should include
+          # the pattern/separator which may be >1. therefore, add the separator size.
+          count += separator_size
+          
+          substring = buffer.slice!(0, count)
           consumed_bytes += substring.bytesize
           str << substring
 
@@ -1000,19 +1012,12 @@ class IO
 
           $. = @io.increment_lineno
 
-          if @skip
-            skip_count = 0
-            skip_count += 1 while buffer[skip_count].ord == @skip
-            if skip_count > 0
-              slice = buffer.slice!(0, skip_count)
-              consumed_bytes += slice.bytesize
-            end
-          end
+          consumed_bytes += do_skip(buffer)
 
           # Must update position before we yield since yielded block *could*
           # return directly and rob us of a chance to do our housekeeping
           @io.pos = starting_position + consumed_bytes
-         yield str
+          yield str
 
           str = ""
         else
@@ -1025,7 +1030,7 @@ class IO
 
       str << buffer
 
-      consumed_bytes += buffer.size + 1
+      consumed_bytes += buffer.size
       @io.pos = starting_position + consumed_bytes
 
       unless str.empty?
@@ -1048,103 +1053,86 @@ class IO
 
     def read_to_char_boundary(io, str, buffer)
       str.force_encoding(io.external_encoding || Encoding.default_external)
-      return IO.read_encode(io, str) if str.valid_encoding?
+      return [IO.read_encode(io, str), 0] if str.valid_encoding?
 
       peek_ahead = 0
       while buffer.size > 0 and peek_ahead < PEEK_AHEAD_LIMIT
         str.force_encoding Encoding::ASCII_8BIT
-        str << buffer.slice!(0, 1)
+        substring = buffer.slice!(0, 1)
+        str << substring
         peek_ahead += 1
 
         str.force_encoding(io.external_encoding || Encoding.default_external)
         if str.valid_encoding?
-          return IO.read_encode io, str
+          return [IO.read_encode(io, str), peek_ahead]
         end
       end
-
-      IO.read_encode io, str
+      
+      [IO.read_encode(io, str), peek_ahead]
     end
 
     def read_to_separator_with_limit
       str = ""
       buffer = ""
+      separator_size = @separator.bytesize
 
       #TODO: implement ignoring encoding with negative limit
       wanted = limit = @limit.abs
 
       until buffer.size == 0 && @io.eof?
         if buffer.size == 0
-          consumed_chars = 0
+          consumed_bytes = 0
           starting_position = @io.pos
-          buffer = @io.read
+          buffer = @io.read(IO.pagesize)
         end
+        
 
-        if @skip
-          skip_count = 0
-          skip_count += 1 while buffer[skip_count].ord == @skip
-          if skip_count > 0
-            slice = buffer.slice!(0, skip_count)
-            consumed_bytes += slice.bytesize
-          end
-        end
-        break unless buffer.size > 0
+        break unless buffer && buffer.size > 0
 
         if count = buffer.index(@separator)
-          consumed_chars += count
-          str << buffer.slice!(0, count + 1)
+          # #index returns a 0-based location but we want a length (so +1) and it should include
+          # the pattern/separator which may be >1. therefore, add the separator size.
+          count += separator_size
+          bytes = count < wanted ? count : wanted
+          substring = buffer.slice!(0, bytes)
+          consumed_bytes += substring.bytesize
+          str << substring
 
           str = IO.read_encode(@io, str)
           str.taint
 
           $. = @io.increment_lineno
+          consumed_bytes += do_skip(buffer)
+          @io.pos = starting_position + consumed_bytes
           
-          if @skip
-            skip_count = 0
-            skip_count += 1 while buffer[skip_count].ord == @skip
-            if skip_count > 0
-              slice = buffer.slice!(0, skip_count)
-              consumed_bytes += slice.bytesize
-            end
-          end
-
-          @io.pos = starting_position + consumed_chars + 1
           yield str
 
           str = ""
-          wanted = limit
         else
           if wanted < buffer.size
-            consumed_chars += wanted
-            str << buffer.slice!(0, wanted + 1)
+            str << buffer.slice!(0, wanted)
+            consumed_bytes += wanted
 
-            str = read_to_char_boundary(@io, str, buffer)
+            str, bytes_read = read_to_char_boundary(@io, str, buffer)
             str.taint
 
             $. = @io.increment_lineno
-            if @skip
-              skip_count = 0
-              skip_count += 1 while buffer[skip_count].ord == @skip
-              if skip_count > 0
-                slice = buffer.slice!(0, skip_count)
-                consumed_bytes += slice.bytesize
-              end
-            end
+            consumed_bytes += do_skip(buffer)
+            consumed_bytes += bytes_read
+            @io.pos = starting_position + consumed_bytes
 
-            @io.pos = starting_position + consumed_chars + 1
             yield str
 
             str = ""
-            wanted = limit
           else
             str << buffer
+            consumed_bytes += buffer.size
+            @io.pos = starting_position + consumed_bytes
             wanted -= buffer.size
-            consumed_chars += buffer.size
             buffer.clear
           end
         end
       end
-      
-      @io.pos = starting_position + consumed_chars + 1
 
       unless str.empty?
         str = IO.read_encode(@io, str)
@@ -1178,18 +1166,13 @@ class IO
       until @io.eof?
         str << @io.read(wanted)
 
-        if str.size < wanted
-          str = try_to_force_encoding(@io, str)
-          str.taint
+        str = try_to_force_encoding(@io, str)
+        str.taint
 
-          $. = @io.increment_lineno
-          yield str
+        $. = @io.increment_lineno
+        yield str
 
-          str = ""
-          wanted = limit
-        else
-          wanted -= str.size
-        end
+        str = ""
       end
 
       unless str.empty?
@@ -1245,7 +1228,7 @@ class IO
       end
     end
 
-    return if eof? #@ibuffer.exhausted?
+    return if eof?
 
     EachReader.new(self, sep, limit).each(&block)
 
@@ -1490,7 +1473,6 @@ class IO
   end
 
   def gets(sep_or_limit=$/, limit=nil)
-    STDERR.puts "each, [#{sep_or_limit.inspect}], [#{limit.inspect}]"
     each sep_or_limit, limit do |line|
       $_ = line if line
       return line
@@ -1703,48 +1685,33 @@ class IO
 
     str = ""
     needed = length
-    
+
     if length > 0
       # FIXME: need to twiddle @pos or @offset too
-      #STDERR.puts "read length is [#{length}], @unget_buffer.size [#{@unget_buffer.size}]"
       if !@unget_buffer.empty?
         if length >= @unget_buffer.size
           unget_buffer = @unget_buffer.inject("") { |sum, val| val.chr + sum }
           length -= @unget_buffer.size
           @offset += @unget_buffer.size
-          STDERR.puts "1 @offset [#{@offset}], pos [#{sysseek(0, SEEK_CUR)}]"
           @unget_buffer.clear
-#          STDERR.puts "1 unget_buffer [#{unget_buffer.inspect}], length [#{length}]"
         else
           unget_buffer = ""
           length.times do
             unget_buffer << @unget_buffer.pop
           end
-#          STDERR.puts "2 unget_buffer [#{unget_buffer.inspect}], @unget_buffer #{@unget_buffer.inspect}"
           @offset += length
-          STDERR.puts "2 @offset [#{@offset}], pos [#{sysseek(0, SEEK_CUR)}]"
           length = 0
         end
       end
     end
 
     result = prim_read(length, str)
-    #str = nil if str.empty? && needed > 0
+
     if unget_buffer
       str = unget_buffer + str.to_s
     elsif str.empty? && needed > 0
-      STDERR.puts "str [#{str.inspect}] was empty, str.nil? [#{str.nil?}]"
       str = nil
     end
-    #    while needed > 0 and not @ibuffer.exhausted?
-    #      available = @ibuffer.fill_from self
-    #
-    #      count = available > needed ? needed : available
-    #      str << @ibuffer.shift(count)
-    #      str = nil if str.empty?
-    #
-    #      needed -= count
-    #    end
 
     if str
       if buffer
@@ -2033,53 +2000,38 @@ class IO
   end
 
   def set_encoding(external, internal=nil, options=undefined)
-#    STDERR.puts "SE1 ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
     case external
     when Encoding
       @external = external
-#      STDERR.puts "SE2 ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
     when String
       @external = nil
-#      STDERR.puts "SE3 ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
     when nil
       if @mode == RDONLY || @external
         @external = nil
       else
         @external = Encoding.default_external
       end
-#      STDERR.puts "SE4 ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
     else
       @external = nil
       external = StringValue(external)
-#      STDERR.puts "SE5 ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
     end
 
     if @external.nil? and not external.nil?
-#      STDERR.puts "A ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
-#      STDERR.puts "B [#{external.index(':').inspect}]"
       if index = external.index(":")
         internal = external[index+1..-1]
-#        STDERR.puts "C ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
         external = external[0, index]
-#        STDERR.puts "D ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
       end
 
       if external[3] == ?|
-#        STDERR.puts "E ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
         if encoding = strip_bom
           external = encoding
-#          STDERR.puts "F ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
         else
           external = external[4..-1]
-#          STDERR.puts "G ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
         end
       end
 
-#      STDERR.puts "H ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
       @external = Encoding.find external
-#      STDERR.puts "I ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
     end
-#    STDERR.puts "SE6 ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
 
     unless undefined.equal? options
       # TODO: set the encoding options on the IO instance
@@ -2298,7 +2250,7 @@ class IO
     end
 
     #    str.bytes.reverse_each { |byte| @ibuffer.put_back byte }
-    str.bytes.reverse_each do |byte| 
+    str.bytes.reverse_each do |byte|
       @unget_buffer << byte
     end
 
@@ -2322,7 +2274,7 @@ class IO
     end
 
     #    str.bytes.reverse_each { |b| @ibuffer.put_back b }
-    str.bytes.reverse_each do |byte| 
+    str.bytes.reverse_each do |byte|
       @unget_buffer << byte
     end
 
