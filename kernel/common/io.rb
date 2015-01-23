@@ -951,20 +951,25 @@ class IO
 
     def each(&block)
       if @separator
+        STDERR.puts "has separator"
         if @separator.empty?
           @separator = "\n\n"
           @skip = 10
         end
 
         if @limit
+          STDERR.puts "read sep to limit"
           read_to_separator_with_limit(&block)
         else
+          STDERR.puts "read to sep"
           read_to_separator(&block)
         end
       else
         if @limit
+          STDERR.puts "read to limit"
           read_to_limit(&block)
         else
+          STDERR.puts "read all"
           read_all(&block)
         end
       end
@@ -1121,6 +1126,7 @@ class IO
             consumed_bytes += bytes_read
             @io.pos = starting_position + consumed_bytes
 
+            @io.pos = starting_position + consumed_chars + 1
             yield str
 
             str = ""
@@ -1133,6 +1139,8 @@ class IO
           end
         end
       end
+      
+      @io.pos = starting_position + consumed_chars + 1
 
       unless str.empty?
         str = IO.read_encode(@io, str)
@@ -1473,6 +1481,7 @@ class IO
   end
 
   def gets(sep_or_limit=$/, limit=nil)
+    STDERR.puts "each, [#{sep_or_limit.inspect}], [#{limit.inspect}]"
     each sep_or_limit, limit do |line|
       $_ = line if line
       return line
@@ -1712,6 +1721,15 @@ class IO
     elsif str.empty? && needed > 0
       str = nil
     end
+    #    while needed > 0 and not @ibuffer.exhausted?
+    #      available = @ibuffer.fill_from self
+    #
+    #      count = available > needed ? needed : available
+    #      str << @ibuffer.shift(count)
+    #      str = nil if str.empty?
+    #
+    #      needed -= count
+    #    end
 
     if str
       if buffer
@@ -2000,38 +2018,53 @@ class IO
   end
 
   def set_encoding(external, internal=nil, options=undefined)
+#    STDERR.puts "SE1 ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
     case external
     when Encoding
       @external = external
+#      STDERR.puts "SE2 ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
     when String
       @external = nil
+#      STDERR.puts "SE3 ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
     when nil
       if @mode == RDONLY || @external
         @external = nil
       else
         @external = Encoding.default_external
       end
+#      STDERR.puts "SE4 ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
     else
       @external = nil
       external = StringValue(external)
+#      STDERR.puts "SE5 ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
     end
 
     if @external.nil? and not external.nil?
+#      STDERR.puts "A ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
+#      STDERR.puts "B [#{external.index(':').inspect}]"
       if index = external.index(":")
         internal = external[index+1..-1]
+#        STDERR.puts "C ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
         external = external[0, index]
+#        STDERR.puts "D ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
       end
 
       if external[3] == ?|
+#        STDERR.puts "E ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
         if encoding = strip_bom
           external = encoding
+#          STDERR.puts "F ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
         else
           external = external[4..-1]
+#          STDERR.puts "G ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
         end
       end
 
+#      STDERR.puts "H ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
       @external = Encoding.find external
+#      STDERR.puts "I ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
     end
+#    STDERR.puts "SE6 ext [#{external}], int [#{internal}], options #{options.inspect}, @ext [#{@external}], @int [#{@internal}]"
 
     unless undefined.equal? options
       # TODO: set the encoding options on the IO instance
