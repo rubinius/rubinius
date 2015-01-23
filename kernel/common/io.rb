@@ -458,8 +458,8 @@ class IO
   end
 
   def self.pipe(external=nil, internal=nil, options=nil)
-    lhs = initialize_pipe #allocate
-    rhs = initialize_pipe #allocate
+    lhs = initialize_pipe
+    rhs = initialize_pipe
 
     connect_pipe(lhs, rhs)
 
@@ -848,8 +848,7 @@ class IO
   end
   # Used to find out if there is buffered data available.
   def buffer_empty?
-    #@ibuffer.empty?
-    true
+    @unget_buffer.empty?
   end
 
   def close_on_exec=(value)
@@ -1306,8 +1305,7 @@ class IO
   # So IO#sysread doesn't work with IO#eof?.
   def eof?
     ensure_open_and_readable
-    #    @ibuffer.fill_from self unless @ibuffer.exhausted?
-    @eof && @unget_buffer.empty? # and @ibuffer.exhausted?
+    @eof && @unget_buffer.empty?
   end
 
   alias_method :eof, :eof?
@@ -1421,7 +1419,6 @@ class IO
   #  no newline
   def flush
     ensure_open
-    #@ibuffer.empty_to self
     self
   end
 
@@ -1555,8 +1552,6 @@ class IO
   #
   def pos
     flush
-    #@ibuffer.unseek! self
-    #prim_seek @offset, SEEK_SET
     @offset = prim_seek 0, SEEK_CUR
     @offset - @unget_buffer.size
   end
@@ -1678,11 +1673,6 @@ class IO
       return buffer.replace(str)
     end
 
-    #    if @ibuffer.exhausted?
-    #      buffer.clear if buffer
-    #      return nil
-    #    end
-
     str = ""
     needed = length
 
@@ -1712,15 +1702,6 @@ class IO
     elsif str.empty? && needed > 0
       str = nil
     end
-    #    while needed > 0 and not @ibuffer.exhausted?
-    #      available = @ibuffer.fill_from self
-    #
-    #      count = available > needed ? needed : available
-    #      str << @ibuffer.shift(count)
-    #      str = nil if str.empty?
-    #
-    #      needed -= count
-    #    end
 
     if str
       if buffer
@@ -1744,10 +1725,6 @@ class IO
       prim_read(nil, buffer)
       str << buffer
     end
-    #    until @ibuffer.exhausted?
-    #      @ibuffer.fill_from self
-    #      str << @ibuffer.shift
-    #    end
 
     str
   end
@@ -2000,7 +1977,6 @@ class IO
   def seek(amount, whence=SEEK_SET)
     flush
 
-    #    #@ibuffer.unseek! self
     @eof = false
 
     prim_seek Integer(amount), whence
