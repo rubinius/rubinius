@@ -756,11 +756,11 @@ class IO
       warn 'IO::new() does not take block; use IO::open() instead'
     end
 
-    bootstrap_initialize(fd)
-
     mode, binary, external, internal, @autoclose = IO.normalize_options(mode, options)
 
-    IO.setup self, Rubinius::Type.coerce_to(fd, Integer, :to_int), mode
+    fd = Rubinius::Type.coerce_to fd, Integer, :to_int
+    IO.setup self, fd, mode
+    bootstrap_initialize(fd)
 
     binmode if binary
     set_encoding external, internal
