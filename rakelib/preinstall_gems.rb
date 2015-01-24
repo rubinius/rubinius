@@ -21,7 +21,9 @@ options = {
   :install_dir          => install_dir
 }
 
-def install(gem, options)
+def install(gem, install_dir, options)
+  return if File.directory? "#{install_dir}/gems/#{gem[0..-5]}"
+
   file = File.join(BUILD_CONFIG[:gems_cache], "#{gem}")
 
   installer = Gem::Installer.new file, options
@@ -30,14 +32,13 @@ def install(gem, options)
 end
 
 gems.each do |gem|
-  next if File.directory? "#{install_dir}/gems/#{gem[0..-5]}"
   next if gem =~ /readline/
 
-  install gem, options
+  install gem, install_dir, options
 end
 
 if RUBY_PLATFORM =~ /freebsd/
-  install(gems.find { |g| g =~ /rubysl-readline/ }, options)
+  install(gems.find { |g| g =~ /rubysl-readline/ }, install_dir, options)
 else
-  install(gems.find { |g| g =~ /rb-readline/ }, options)
+  install(gems.find { |g| g =~ /rb-readline/ }, install_dir, options)
 end
