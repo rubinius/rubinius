@@ -174,18 +174,23 @@ class IO
     return true
   end
 
+  CLONG_OVERFLOW = 1 << 64
+
   def sysseek(offset, whence=SEEK_SET)
     ensure_open
 
     # FIXME: check +amount+ to make sure it isn't too large
+    raise RangeError if offset > CLONG_OVERFLOW
 
     position = FFI::Platform::POSIX.lseek(descriptor, offset, whence)
 
     Errno.handle("seek failed") if position == -1
 
     #@offset = position
+    @eof = position == @total_size
     return position
   end
+  alias_method :prim_seek, :sysseek
 
   def ftruncate(offset)
     ensure_open
@@ -436,10 +441,10 @@ class IO
     reopen_path StringValue(string), Integer(mode)
   end
 
-  def prim_seek(amount, whence)
-    Rubinius.primitive :io_seek
-    raise RangeError, "#{amount} is too big"
-  end
+#  def prim_seek(amount, whence)
+#    Rubinius.primitive :io_seek
+#    raise RangeError, "#{amount} is too big"
+#  end
 
   def self.prim_truncate(name, offset)
     Rubinius.primitive :io_truncate
