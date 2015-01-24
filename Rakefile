@@ -11,6 +11,12 @@ if ENV["CDPATH"]
   ENV.delete("CDPATH")
 end
 
+# Wipe out RUBYGEMS_GEMDEPS, it causes the build to fail with
+# "no such file to load -- tsort" when running rbx extconf.rb
+if ENV["RUBYGEMS_GEMDEPS"]
+  ENV.delete("RUBYGEMS_GEMDEPS")
+end
+
 $trace ||= false
 $VERBOSE = true
 $verbose = Rake.application.options.trace || ARGV.delete("-v")
