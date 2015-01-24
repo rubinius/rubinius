@@ -665,12 +665,15 @@ class Array
       unless undefined.equal?(c)
         raise ArgumentError, "wrong number of arguments"
       end
-      one, two = a, b
+      one = a
+      two = b
     else
       if undefined.equal?(a)
         raise ArgumentError, "wrong number of arguments"
       end
-      obj, one, two = a, b, c
+      obj = a
+      one = b
+      two = c
     end
 
     if one.kind_of? Range

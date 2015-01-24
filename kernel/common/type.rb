@@ -208,7 +208,8 @@ module Rubinius
       end
 
       name = coerce_to_constant_name name
-      current, constant = mod, undefined
+      current = mod
+      constant = undefined
 
       while current and object_kind_of? current, Module
         if bucket = current.constant_table.lookup(name)
