@@ -247,8 +247,8 @@ module Rubinius
 
     def self.const_get(mod, name, inherit = true)
       name = coerce_to_constant_name name
-
-      current, constant = mod, undefined
+      current = mod
+      constant = undefined
 
       while current
         if bucket = current.constant_table.lookup(name)

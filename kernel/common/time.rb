@@ -101,10 +101,22 @@ class Time
         raise ArgumentError, "wrong number of arguments (9 for 1..8)"
       end
 
-      y, m, d, hr, min, sec, usec = p1, p2, p3, p4, p5, p6, p7
+      y = p1
+      m = p2
+      d = p3
+      hr = p4
+      min = p5
+      sec = p6
+      usec = p7
       is_dst = -1
     else
-      y, m, d, hr, min, sec, usec = p6, p5, p4, p3, p2, p1, 0
+      y = p6
+      m = p5
+      d = p4
+      hr = p3
+      min = p2
+      sec = p1
+      usec = 0
       is_dst = is_dst ? 1 : 0
     end
 

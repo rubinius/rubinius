@@ -379,7 +379,9 @@ namespace rubinius {
     class Metrics : public AuxiliaryThread, public Lockable {
       SharedState& shared_;
       VM* vm_;
+      bool enabled_;
       bool thread_exit_;
+      bool thread_running_;
 
       TypedRoot<Thread*> thread_;
       TypedRoot<Tuple*> values_;
@@ -407,6 +409,10 @@ namespace rubinius {
 
       void init_ruby_metrics(STATE);
       void update_ruby_values(STATE);
+
+      void disable(STATE) {
+        enabled_ = false;
+      }
 
       void start(STATE);
 

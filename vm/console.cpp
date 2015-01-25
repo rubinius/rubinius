@@ -59,6 +59,8 @@ namespace rubinius {
       , response_fd_(-1)
       , request_exit_(false)
       , response_exit_(false)
+      , request_running_(false)
+      , response_running_(false)
       , request_list_(NULL)
     {
       shared_.auxiliary_threads()->register_thread(this);
@@ -111,6 +113,9 @@ namespace rubinius {
 
       request_exit_ = false;
       response_exit_ = false;
+
+      request_running_ = false;
+      response_running_ = false;
 
       list_lock_.init();
       response_lock_.init();

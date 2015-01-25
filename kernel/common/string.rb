@@ -728,7 +728,9 @@ class String
 
     self.modify!
 
-    i, j = 0, -1
+    i = 0
+    j = -1
+
     while i < @num_bytes
       c = @data[i]
       unless table[c] == 1
