@@ -177,6 +177,10 @@ namespace rubinius {
     return metrics_;
   }
 
+  void SharedState::disable_metrics(STATE) {
+    if(metrics_) metrics_->disable(state);
+  }
+
   void SharedState::reset_threads(STATE, GCToken gct, CallFrame* call_frame) {
     VM* current = state->vm();
 
@@ -211,12 +215,15 @@ namespace rubinius {
 
     env_->set_root_vm(state->vm());
 
+    disable_metrics(state);
+
     reset_threads(state, gct, call_frame);
 
     // Reinit the locks for this object
     lock_init(state->vm());
     global_cache->reset();
     ruby_critical_lock_.init();
+    fork_exec_lock_.init();
     capi_ds_lock_.init();
     capi_locks_lock_.init();
     capi_constant_lock_.init();

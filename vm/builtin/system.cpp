@@ -382,6 +382,23 @@ namespace rubinius {
     return cNil;
   }
 
+  static int fork_exec(STATE, int errors_fd) {
+    utilities::thread::Mutex::LockGuard guard(state->shared().fork_exec_lock());
+
+    state->shared().auxiliary_threads()->before_fork_exec(state);
+
+    // If execvp() succeeds, we'll read EOF and know.
+    fcntl(errors_fd, F_SETFD, FD_CLOEXEC);
+
+    int pid = ::fork();
+
+    if(pid > 0) {
+      state->shared().auxiliary_threads()->after_fork_exec_parent(state);
+    }
+
+    return pid;
+  }
+
   Object* System::vm_spawn(STATE, GCToken gct, Object* spawn_state, String* path,
                            Array* args, CallFrame* calling_environment)
   {
@@ -392,44 +409,19 @@ namespace rubinius {
      */
     ExecCommand exe(state, path, args);
 
-    {
-      // TODO: Make this guard unnecessary
-      GCIndependent guard(state, calling_environment);
-      state->shared().auxiliary_threads()->before_fork_exec(state);
-    }
-
-    int pid = -1, errors[2];
+    int errors[2];
 
     if(pipe(errors) != 0) {
-      {
-        // TODO: Make this guard unnecessary
-        GCIndependent guard(state, calling_environment);
-        state->shared().auxiliary_threads()->after_fork_exec_parent(state);
-      }
-
       Exception::errno_error(state, "error setting up pipes", errno, "pipe(2)");
       return NULL;
     }
 
-    // If execvp() succeeds, we'll read EOF and know.
-    fcntl(errors[1], F_SETFD, FD_CLOEXEC);
-
-    {
-      StopTheWorld stw(state, gct, calling_environment);
-
-      pid = ::fork();
-    }
+    int pid = fork_exec(state, errors[1]);
 
     // error
     if(pid == -1) {
       close(errors[0]);
       close(errors[1]);
-
-      {
-        // TODO: Make this guard unnecessary
-        GCIndependent guard(state, calling_environment);
-        state->shared().auxiliary_threads()->after_fork_exec_parent(state);
-      }
 
       Exception::errno_error(state, "error forking", errno, "fork(2)");
       return NULL;
@@ -485,8 +477,6 @@ namespace rubinius {
 
     close(errors[1]);
 
-    state->shared().auxiliary_threads()->after_fork_exec_parent(state);
-
     int error_no;
     ssize_t size;
 
@@ -522,44 +512,19 @@ namespace rubinius {
      */
     ExecCommand exe(state, str);
 
-    {
-      // TODO: Make this guard unnecessary
-      GCIndependent guard(state, calling_environment);
-      state->shared().auxiliary_threads()->before_fork_exec(state);
-    }
-
-    int pid, errors[2], output[2];
+    int errors[2], output[2];
 
     if(pipe(errors) != 0) {
-      {
-        // TODO: Make this guard unnecessary
-        GCIndependent guard(state, calling_environment);
-        state->shared().auxiliary_threads()->after_fork_exec_parent(state);
-      }
-
       Exception::errno_error(state, "error setting up pipes", errno, "pipe(2)");
       return NULL;
     }
 
     if(pipe(output) != 0) {
-      {
-        // TODO: Make this guard unnecessary
-        GCIndependent guard(state, calling_environment);
-        state->shared().auxiliary_threads()->after_fork_exec_parent(state);
-      }
-
       Exception::errno_error(state, "error setting up pipes", errno, "pipe(2)");
       return NULL;
     }
 
-    // If execvp() succeeds, we'll read EOF and know.
-    fcntl(errors[1], F_SETFD, FD_CLOEXEC);
-
-    {
-      StopTheWorld stw(state, gct, calling_environment);
-
-      pid = ::fork();
-    }
+    int pid = fork_exec(state, errors[1]);
 
     // error
     if(pid == -1) {
@@ -567,12 +532,6 @@ namespace rubinius {
       close(errors[1]);
       close(output[0]);
       close(output[1]);
-
-      {
-        // TODO: Make this guard unnecessary
-        GCIndependent guard(state, calling_environment);
-        state->shared().auxiliary_threads()->after_fork_exec_parent(state);
-      }
 
       Exception::errno_error(state, "error forking", errno, "fork(2)");
       return NULL;
@@ -620,8 +579,6 @@ namespace rubinius {
 
     close(errors[1]);
     close(output[1]);
-
-    state->shared().auxiliary_threads()->after_fork_exec_parent(state);
 
     int error_no;
     ssize_t size;
@@ -685,16 +642,14 @@ namespace rubinius {
   Object* System::vm_exec(STATE, String* path, Array* args,
                           CallFrame* calling_environment)
   {
+    utilities::thread::Mutex::LockGuard guard(state->shared().fork_exec_lock());
+
     /* Setting up the command and arguments may raise an exception so do it
      * before everything else.
      */
     ExecCommand exe(state, path, args);
 
-    {
-      // TODO: Make this guard unnecessary
-      GCIndependent guard(state, calling_environment);
-      state->shared().auxiliary_threads()->before_exec(state);
-    }
+    state->shared().auxiliary_threads()->before_exec(state);
 
     void* old_handlers[NSIG];
 
@@ -823,22 +778,16 @@ namespace rubinius {
 #else
     int pid = -1;
 
-    /*
-     * We have to bring all the threads to a safe point before we can
-     * fork the process so any internal locks are unlocked before we fork
-     */
-
     {
-      // TODO: Make this guard unnecessary
-      GCIndependent guard(state, calling_environment);
+      utilities::thread::Mutex::LockGuard guard(state->shared().fork_exec_lock());
+
       state->shared().auxiliary_threads()->before_fork(state);
-    }
 
-    {
-      StopTheWorld stw(state, gct, calling_environment);
-
-      // ok, now fork!
       pid = ::fork();
+
+      if(pid > 0) {
+        state->shared().auxiliary_threads()->after_fork_parent(state);
+      }
     }
 
     // We're in the child...
@@ -851,12 +800,6 @@ namespace rubinius {
 
       // In the child, the PID is nil in Ruby.
       return nil<Fixnum>();
-    } else {
-      {
-        // TODO: Make this guard unnecessary
-        GCIndependent guard(state, calling_environment);
-        state->shared().auxiliary_threads()->after_fork_parent(state);
-      }
     }
 
     if(pid == -1) {
