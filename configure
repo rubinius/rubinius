@@ -162,8 +162,8 @@ class Configure
     # Essential settings (modify these for creating releases)
     @ruby_version = "1.8.7"
     @libversion = "1.4"
-    @patch_version = "0"
-    @release_date = nil
+    @patch_version = "1"
+    @release_date = "2015-01-26"
 
     # Configure settings
     @release_build = !git_directory
