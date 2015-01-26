@@ -80,6 +80,11 @@ namespace rubinius {
       console_ = 0;
     }
 
+    if(metrics_) {
+      delete metrics_;
+      metrics_ = 0;
+    }
+
     delete tool_broker_;
     delete global_cache;
     delete world_;
