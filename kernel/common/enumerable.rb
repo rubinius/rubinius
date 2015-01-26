@@ -114,6 +114,8 @@ module Enumerable
     self
   end
 
+  alias_method :enum_with_index, :each_with_index
+
   def grep(pattern)
     ary = []
 
