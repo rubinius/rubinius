@@ -8,6 +8,23 @@ typically changes that are related to specs, build system, or refactoring.
 
 For source changes, see https://github.com/rubinius/rubinius/commits/master.
 
+Version: 2.5.1 (2015-01-26)
+
+* The locking in the virtual machine around fork and fork/exec (e.g. for
+  Process.spawn or Kernel#`) has been improved.
+
+* When executing, for example, Process.spawn or Kernel#`, the subprocess
+  status is read from a pipe in the parent process. This read could get
+  interrupted by the system. The interrupted reads are now handled properly.
+
+* On FreeBSD, the Readline C-ext (rubysl-readline) is used in place of the
+  pure Ruby rb-readline because the latter depends on commands that are not
+  available on FreeBSD.
+
+* Enumerable#flat_map compatibility is improved.
+
+* Command line option help and -Xhelp is improved.
+
 Version: 2.5.0 (2015-01-17)
 
 * Process.spawn has been improved by not relying on the virtual machine to be
