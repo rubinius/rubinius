@@ -661,7 +661,7 @@ int main() { LLVMContext &Context = getGlobalContext(); }
     }
 
     shared_configs.each do |desc, objs|
-      status = check_program(false, *common_args, *objs) do |f|
+      status = check_program(false, *(common_args + objs)) do |f|
         f.puts src
         @log.log src
       end
