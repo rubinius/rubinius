@@ -163,7 +163,7 @@ class Configure
     @ruby_version = "1.8.7"
     @libversion = "1.4"
     @patch_version = "1"
-    @release_date = "2015-01-26"
+    @release_date = nil
 
     # Configure settings
     @release_build = !git_directory
@@ -658,7 +658,7 @@ int main() { LLVMContext &Context = getGlobalContext(); }
     }
 
     shared_configs.each do |desc, objs|
-      status = check_program(false, *common_args, *objs) do |f|
+      status = check_program(false, *(common_args + objs)) do |f|
         f.puts src
         @log.log src
       end
