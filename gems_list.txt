@@ -1,4 +1,5 @@
 bundler-1.7.12.gem
+daedalus-core-0.2.0.gem
 ffi2-generators-0.1.1.gem
 json-1.8.2.gem
 minitest-4.7.5.gem
@@ -7,6 +8,7 @@ racc-1.4.12.gem
 rake-10.4.2.gem
 rb-readline-0.5.2.gem
 rdoc-4.2.0.gem
+redcard-1.1.0.gem
 rubinius-ast-2.3.1.gem
 rubinius-build_tools-2.0.0.gem
 rubinius-compiler-2.3.0.gem
@@ -30,7 +32,7 @@ rubysl-continuation-2.0.0.gem
 rubysl-coverage-2.0.3.gem
 rubysl-csv-2.0.2.gem
 rubysl-curses-2.0.1.gem
-rubysl-date-2.0.8.gem
+rubysl-date-2.0.9.gem
 rubysl-delegate-2.0.1.gem
 rubysl-digest-2.0.3.gem
 rubysl-drb-2.0.1.gem
