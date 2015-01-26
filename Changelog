@@ -1,3 +1,8 @@
+Version 1.4.1 (2015-01-26)
+
+* The developer tool gems are installed. (Brian Shirai)
+* All master branch changes for 2.5.1 are included. (Brian Shirai)
+
 Version 1.4.0 (2015-01-20)
 
 * JIT allocates correct CallFrame scope size (Sophia Shao)
