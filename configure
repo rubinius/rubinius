@@ -600,8 +600,12 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
       if which
         config = File.join(which, "llvm-config")
       elsif @darwin
-        out = `brew list llvm | grep '/llvm-config$'`
-        config = out.chomp if $?.success?
+        if macports?
+          config = macports_llvm_config
+        else
+          out = `brew list llvm | grep '/llvm-config$'`
+          config = out.chomp if $?.success?
+        end
       end
     end
 
