@@ -2000,18 +2000,17 @@ Available commands are:
   end
 
   # Query MacPorts for the path to the latest installed version of
-  # llvm-config.
+  # llvm-config that is within the range of supported LLVM versions.
   def macports_llvm_config
-    # Select latest installed port, as MacPorts can have multiple
-    # versions installed.
-    llvm_port   =
-      %x(port installed | egrep -o 'llvm-[^ ]+' | tail -1).chomp
-    # Query MacPorts for an array of all llvm-config* binaries.
-    llvm_config =
-      %x(port contents #{llvm_port} | fgrep llvm-config).split
-    # Use the binary installed by the port into /opt/local/bin rather
-    # than /opt/local/libexec/<version>/bin.
-    llvm_config.reject { |fname| fname.include? 'libexec' }.last
+    supported_versions = (3.0 .. 3.5)
+    installed_ports    = %x(port installed | egrep -o 'llvm-[^ ]+' ).split
+    latest_usable_port = installed_ports.sort.select do |fname|
+                           version = fname.match(/-\K.*/)[0].to_f
+                           supported_versions.include? version
+                         end.last
+    avail_binaries     = %x(port contents #{latest_usable_port} |
+                            fgrep llvm-config).split
+    avail_binaries.reject { |fname| fname.include? 'libexec' }.last
   end
 end
 
