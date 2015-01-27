@@ -814,8 +814,6 @@ class Hash
   def select
     return to_enum(:select) unless block_given?
 
-    Rubinius.check_frozen
-
     hsh = Hash.allocate
 
     each_item do |e|
