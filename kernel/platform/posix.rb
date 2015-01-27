@@ -51,6 +51,7 @@ module FFI::Platform::POSIX
   attach_function :read,        [:int, :pointer, :size_t], :ssize_t
   attach_function :ftruncate,   [:int, :off_t], :int
   attach_function :truncate,    [:string, :off_t], :int
+  attach_function :write,       [:int, :pointer, :size_t], :ssize_t
   
   # Other I/O
   attach_function :mmap,        [:pointer, :size_t, :int, :int, :int, :off_t], :pointer

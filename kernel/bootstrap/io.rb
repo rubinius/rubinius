@@ -41,7 +41,7 @@ class IO
     @ibuffer = InternalBuffer.new
     @sync = true
     @lineno = 0
-    
+
     # Discover final size of file so we can set EOF properly
     @total_size = sysseek(0, SEEK_END)
     @offset = sysseek(0)
@@ -53,7 +53,7 @@ class IO
       # finalize
     end
   end
-  
+
   def self.initialize_pipe
     obj = allocate
     obj.instance_variable_set :@descriptor, nil
@@ -62,12 +62,12 @@ class IO
     obj.instance_variable_set :@lineno, 0
     obj.instance_variable_set :@offset, 0
     obj.instance_variable_set :@unget_buffer, []
-    
+
     # setup finalization for pipes
-    
+
     obj
   end
-  
+
   def self.pagesize
     @pagesize ||= FFI::Platform::POSIX.getpagesize
   end
@@ -303,13 +303,6 @@ class IO
 
   # FIXME: skipped #read_if_available since it depends on #select which is unfinished
 
-  def write(buf)
-    buf_size = buf.size
-    left = buf_size
-
-    # FIXME: incomplete
-  end
-
   #  def self.allocate
   #    Rubinius.primitive :io_allocate
   #    raise PrimitiveFailure, "IO.allocate primitive failed"
@@ -373,7 +366,7 @@ class IO
     else
       output_string = storage.read_string(bytes_read).force_encoding(Encoding::ASCII_8BIT)
     end
-    
+
     @offset += bytes_read
     @eof = true if @offset == @total_size
 
@@ -407,14 +400,45 @@ class IO
   #    raise PrimitiveFailure, "IO::sysread primitive failed"
   #  end
 
-  def write(str)
+  def write2(str)
     Rubinius.primitive :io_write
     raise PrimitiveFailure, "IO#write primitive failed"
   end
 
-  #  def write(str)
-  #    FFI::Platform::POSIX.write(descriptor, str, str.size)
-  #  end
+  def write(str)
+    buf_size = str.bytesize
+    left = buf_size
+
+    buffer = FFI::MemoryPointer.new(left)
+    buffer.write_string(str)
+    error = false
+
+    while left > 0
+      bytes_written = FFI::Platform::POSIX.write(@descriptor, buffer, left)
+
+      if bytes_written == -1
+        errno = Errno.errno
+        if errno == Errno::EINTR || errno == Errno::EAGAIN
+          # do a #select and wait for descriptor to become writable
+          continue
+        elsif errno == Errno::EPIPE
+          if @descriptor == 1 || @descriptor == 2
+            return buf_size
+          end
+        else
+          error = true
+          break
+        end
+      end
+
+      break if error
+
+      left -= bytes_written
+      buffer += bytes_written
+    end
+
+    return(buf_size - left)
+  end
 
   def read_if_available(size)
     Rubinius.primitive :io_read_if_available
@@ -441,10 +465,10 @@ class IO
     reopen_path StringValue(string), Integer(mode)
   end
 
-#  def prim_seek(amount, whence)
-#    Rubinius.primitive :io_seek
-#    raise RangeError, "#{amount} is too big"
-#  end
+  #  def prim_seek(amount, whence)
+  #    Rubinius.primitive :io_seek
+  #    raise RangeError, "#{amount} is too big"
+  #  end
 
   def self.prim_truncate(name, offset)
     Rubinius.primitive :io_truncate
