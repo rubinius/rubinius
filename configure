@@ -1989,6 +1989,11 @@ Available commands are:
       message.index("\n") != nil
     end
   end
+
+  # Returns true if MacPorts is installed in its default location.
+  def macports?
+    File.exists? '/opt/local/bin/port'
+  end
 end
 
 STDOUT.sync = true
