@@ -1994,6 +1994,21 @@ Available commands are:
   def macports?
     File.exists? '/opt/local/bin/port'
   end
+
+  # Query MacPorts for the path to the latest installed version of
+  # llvm-config.
+  def macports_llvm_config
+    # Select latest installed port, as MacPorts can have multiple
+    # versions installed.
+    llvm_port   =
+      %x(port installed | egrep -o 'llvm-[^ ]+' | tail -1).chomp
+    # Query MacPorts for an array of all llvm-config* binaries.
+    llvm_config =
+      %x(port contents #{llvm_port} | fgrep llvm-config).split
+    # Use the binary installed by the port into /opt/local/bin rather
+    # than /opt/local/libexec/<version>/bin.
+    llvm_config.reject { |fname| fname.include? 'libexec' }.last
+  end
 end
 
 STDOUT.sync = true
