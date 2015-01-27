@@ -4,8 +4,10 @@
 def redefine_io(const)
   descriptor = const.descriptor
   mode = const.mode
+  sync = const.sync
   new_io = IO.for_fd(descriptor, mode, Hash.new)
   new_io.mode = mode
+  new_io.sync = sync
   return new_io
 end
 
