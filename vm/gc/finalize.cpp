@@ -137,7 +137,6 @@ namespace rubinius {
     utilities::thread::Mutex::LockGuard lg(worker_lock_);
 
     thread_exit_ = true;
-
     atomic::memory_barrier();
 
     worker_signal();

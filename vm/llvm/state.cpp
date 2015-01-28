@@ -103,6 +103,7 @@ namespace rubinius {
     , log_(NULL)
     , enabled_(false)
     , thread_exit_(false)
+    , thread_running_(false)
     , current_compiler_(0)
   {
     state->shared().auxiliary_threads()->register_thread(this);
@@ -211,21 +212,28 @@ namespace rubinius {
     }
   }
 
+  void LLVMState::wakeup() {
+    utilities::thread::Mutex::LockGuard lg(compile_lock_);
+
+    thread_exit_ = true;
+    atomic::memory_barrier();
+
+    compile_cond_.signal();
+  }
+
   void LLVMState::stop_thread(STATE) {
     SYNC(state);
 
     if(vm_) {
-      {
-        utilities::thread::Mutex::LockGuard lg(compile_lock_);
-        thread_exit_ = true;
-        compile_cond_.signal();
+      wakeup();
+
+      if(atomic::poll(thread_running_, false)) {
+        void* return_value;
+        pthread_t os = vm_->os_thread();
+        pthread_join(os, &return_value);
       }
 
-      pthread_t os = vm_->os_thread();
-
-      void* return_value;
-      pthread_join(os, &return_value);
-
+      VM::discard(state, vm_);
       vm_ = NULL;
     }
   }

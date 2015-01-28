@@ -114,6 +114,7 @@ namespace rubinius {
 
     bool enabled_;
     bool thread_exit_;
+    bool thread_running_;
 
     jit::Compiler* current_compiler_;
 
@@ -293,6 +294,8 @@ namespace rubinius {
 
     void perform(STATE);
     void stop(STATE);
+
+    void wakeup();
 
     void start_thread(STATE);
     void stop_thread(STATE);
