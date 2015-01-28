@@ -14,16 +14,524 @@ class IO
     include ::IO::WaitWritable
   end
 
-  #  # Import platform constants
-  #
-  #  SEEK_SET = Rubinius::Config['rbx.platform.io.SEEK_SET']
-  #  SEEK_CUR = Rubinius::Config['rbx.platform.io.SEEK_CUR']
-  #  SEEK_END = Rubinius::Config['rbx.platform.io.SEEK_END']
+  @@max_descriptors = Rubinius::AtomicReference.new(2)
 
-  #  attr_accessor :descriptor
+  # Import platform constants
+
+  SEEK_SET = Rubinius::Config['rbx.platform.io.SEEK_SET']
+  SEEK_CUR = Rubinius::Config['rbx.platform.io.SEEK_CUR']
+  SEEK_END = Rubinius::Config['rbx.platform.io.SEEK_END']
+
+  F_GETFL  = Rubinius::Config['rbx.platform.fcntl.F_GETFL']
+  F_SETFL  = Rubinius::Config['rbx.platform.fcntl.F_SETFL']
+
+  # O_ACCMODE is /undocumented/ for fcntl() on some platforms
+  O_ACCMODE  = Rubinius::Config['rbx.platform.fcntl.O_ACCMODE']
+
+  F_GETFD  = Rubinius::Config['rbx.platform.fcntl.F_GETFD']
+  F_SETFD  = Rubinius::Config['rbx.platform.fcntl.F_SETFD']
+  FD_CLOEXEC = Rubinius::Config['rbx.platform.fcntl.FD_CLOEXEC']
+  O_CLOEXEC = Rubinius::Config['rbx.platform.file.O_CLOEXEC']
+
+  Stat = Rubinius::Stat
+
+  class FileDescriptor
+    #    attr_accessor :descriptor
+    #    attr_accessor :mode
+    #    attr_accessor :sync
+    attr_reader :offset
+
+    O_RDONLY   = Rubinius::Config['rbx.platform.file.O_RDONLY']
+    O_WRONLY   = Rubinius::Config['rbx.platform.file.O_WRONLY']
+    O_RDWR     = Rubinius::Config['rbx.platform.file.O_RDWR']
+
+    def self.choose_type(fd)
+      stat = Stat.fstat(fd)
+
+      case stat.ftype
+      when "file"
+        new(fd, stat)
+      when "pipe"
+        PipeFileDescriptor.new(fd, stat)
+      when "socket"
+      else
+        new(fd, stat)
+      end
+    end
+
+    def self.pagesize
+      @pagesize ||= FFI::Platform::POSIX.getpagesize
+    end
+
+    def initialize(fd, stat)
+      @descriptor, @stat = fd, stat
+      acc_mode = FFI::Platform::POSIX.fcntl(@descriptor, F_GETFL, 0)
+
+      if acc_mode < 0
+        # Assume it's closed.
+        if Errno.eql?(Errno::EBADF)
+          @descriptor = -1
+        end
+
+        @mode = nil
+      else
+        @mode = acc_mode
+      end
+
+      @sync = true
+
+      # Discover final size of file so we can set EOF properly
+      @total_size = @stat.size #sysseek(0, SEEK_END)
+      @offset = 0 # sysseek(0)
+      @eof = @offset == @total_size
+
+      # Don't bother to add finalization for stdio
+      if @descriptor >= 3
+        # finalize
+      end
+    end
+
+    def self.new_unset_pipe
+      obj = allocate
+      obj.instance_variable_set :@descriptor, nil
+      obj.instance_variable_set :@mode, nil
+      obj.instance_variable_set :@sync, true
+      return obj
+    end
+
+    def descriptor
+      @descriptor
+    end
+
+    def descriptor=(value)
+      @descriptor = value
+    end
+
+    def mode
+      @mode
+    end
+
+    def mode=(value)
+      @mode = value
+    end
+
+    def sync
+      @sync
+    end
+
+    def sync=(value)
+      @sync = value
+    end
+
+    CLONG_OVERFLOW = 1 << 64
+
+    def sysseek(offset, whence=SEEK_SET)
+      ensure_open
+
+      # FIXME: check +amount+ to make sure it isn't too large
+      raise RangeError if offset > CLONG_OVERFLOW
+
+      position = FFI::Platform::POSIX.lseek(descriptor, offset, whence)
+
+      Errno.handle("seek failed") if position == -1
+
+      @offset = position
+      @eof = position == @total_size
+      return position
+    end
+
+    def read(length, output_string=nil)
+      length ||= FileDescriptor.pagesize
+
+      while true
+        ensure_open
+
+        storage = FFI::MemoryPointer.new(length)
+        raise IOError, "read(2) failed to malloc a buffer for read length #{length}" if storage.null?
+        bytes_read = read_into_storage(length, storage)
+
+        if bytes_read == -1
+          if Errno.eql?(Errno::EAGAIN) || Errno.eql?(Errno::EINTR)
+            redo
+          else
+            Errno.handle "read(2) failed"
+          end
+
+          return nil
+        elsif bytes_read == 0
+          @eof = true if length > 0
+          return nil
+        else
+          break
+        end
+      end
+
+      if output_string
+        output_string.replace(storage.read_string(bytes_read))
+      else
+        output_string = storage.read_string(bytes_read).force_encoding(Encoding::ASCII_8BIT)
+      end
+
+      @offset += bytes_read
+      @eof = true if @offset == @total_size
+
+      return output_string
+    end
+
+    def read_into_storage(count, storage)
+      while true
+        bytes_read = FFI::Platform::POSIX.read(descriptor, storage, count)
+
+        if bytes_read == -1
+          errno = Errno.errno
+
+          if errno == Errno::EAGAIN || errno == Errno::EINTR
+            ensure_open
+            next
+          else
+            Errno.handle "read(2) failed"
+          end
+        else
+          break
+        end
+      end
+
+      return bytes_read
+    end
+    private :read_into_storage
+
+    def write(str)
+      buf_size = str.bytesize
+      left = buf_size
+
+      buffer = FFI::MemoryPointer.new(left)
+      buffer.write_string(str)
+      error = false
+
+      while left > 0
+        bytes_written = FFI::Platform::POSIX.write(@descriptor, buffer, left)
+
+        if bytes_written == -1
+          errno = Errno.errno
+          if errno == Errno::EINTR || errno == Errno::EAGAIN
+            # do a #select and wait for descriptor to become writable
+            continue
+          elsif errno == Errno::EPIPE
+            if @descriptor == 1 || @descriptor == 2
+              return buf_size
+            end
+          else
+            error = true
+            break
+          end
+        end
+
+        break if error
+
+        left -= bytes_written
+        buffer += bytes_written
+        @offset += bytes_written
+      end
+
+      return(buf_size - left)
+    end
+
+    def close
+      ensure_open
+      fd = @descriptor
+
+      if fd != -1
+        ret_code = FFI::Platform::POSIX.close(fd)
+
+        if ret_code == -1
+          Errno.handle("close failed")
+        elsif ret_code == 0
+          # no op
+        else
+          raise IOError, "::close(): Unknown error on fd #{fd}"
+        end
+      end
+
+      @descriptor = -1
+
+      return nil
+    end
+
+    def eof?
+      @eof
+    end
+
+    #  /**
+    #   *  This is NOT the same as close().
+    #   *
+    #   *  @todo   Need to build the infrastructure to be able to only
+    #   *          remove read or write waiters if a partial shutdown
+    #   *          is requested. --rue
+    #   */
+    def shutdown(how)
+      ensure_open
+      fd = descriptor
+
+      if how != IO::SHUT_RD && how != IO::SHUT_WR && how != IO::SHUT_RDWR
+        raise ArgumentError, "::shutdown(): Invalid `how` #{how} for fd #{fd}"
+      end
+
+      ret_code = FFI::Platform::POSIX.shutdown(fd, how)
+
+      if ret_code == -1
+        Errno.handle("shutdown(2) failed")
+      elsif ret_code == 0
+        if how == IO::SHUT_RDWR
+          close
+          self.descriptor = -2
+        end
+      else
+        Errno.handle("::shutdown(): Unknown error on fd #{fd}")
+      end
+
+      return how
+    end
+
+    def ensure_open
+      if descriptor.nil?
+        raise IOError, "uninitialized stream"
+      elsif descriptor == -1
+        raise IOError, "closed stream"
+      elsif descriptor == -2
+        raise IOError, "shutdown stream"
+      end
+      return nil
+    end
+
+    def force_read_only
+      @mode = (@mode & ~IO::O_ACCMODE ) | O_RDONLY
+    end
+
+    def force_write_only
+      @mode = (@mode & ~IO::O_ACCMODE) | O_WRONLY
+    end
+    
+    def read_only?
+      (@mode & O_ACCMODE) == O_RDONLY
+    end
+    
+    def write_only?
+      (@mode & O_ACCMODE) == O_WRONLY
+    end
+    
+    def read_write?
+      (@mode & O_ACCMODE) == O_RDWR
+    end
+
+    def reopen(other_fd)
+      current_fd = @descriptor
+
+      if FFI::Platform::POSIX.dup2(otherfd, current_fd) == -1
+        Errno.handle("reopen")
+        return nil
+      end
+
+      set_mode
+
+      return true
+    end
+
+    def set_mode
+      if IO::F_GETFL
+        acc_mode = FFI::Platform::POSIX.fcntl(@descriptor, IO::F_GETFL)
+        Ernno.handle("failed") if acc_mode < 0
+      else
+        acc_mode = 0
+      end
+
+      @mode = acc_mode
+    end
+
+    def ftruncate(offset)
+      ensure_open
+
+      # FIXME: fail if +offset+ is too large, see C++ code
+
+      status = FFI::Platform::POSIX.ftruncate(descriptor, offset)
+      Errno.handle("ftruncate(2) failed") if status == -1
+      return status
+    end
+
+    def truncate(name, offset)
+      # FIXME: fail if +offset+ is too large, see C++ code
+
+      status = FFI::Platform::POSIX.truncate(name, offset)
+      Errno.handle("truncate(2) failed") if status == -1
+      return status
+    end
+
+    ##
+    # Returns true if ios is associated with a terminal device (tty), false otherwise.
+    #
+    #  File.new("testfile").isatty   #=> false
+    #  File.new("/dev/tty").isatty   #=> true
+    def tty?
+      ensure_open
+      FFI::Platform::POSIX.isatty(@descriptor) == 1
+    end
+  end # class FileDescriptor
+
+  class BufferedFileDescriptor < FileDescriptor
+    def initialize(*args)
+      super
+      @unget_buffer = []
+    end
+
+    def read(length, output_string=nil)
+      length ||= FileDescriptor.pagesize
+
+      # FIXME: offset & eof stuff
+      if length > @unget_buffer.size
+        @offset += @unget_buffer.size
+        length -= @unget_buffer.size
+
+        str = @unget_buffer.inject("") { |sum, val| val.chr + sum }
+        str2 = super(length, output_string)
+        str += str2 if str2
+        @unget_buffer.clear
+      elsif length == @unget_buffer.size
+        @offset += length
+        length -= @unget_buffer.size
+
+        str = @unget_buffer.inject("") { |sum, val| val.chr + sum }
+        @unget_buffer.clear
+      else
+        @offset += @unget_buffer.size
+        str = ""
+
+        length.times do
+          str << @unget_buffer.pop
+        end
+      end
+
+      if output_string
+        output_string.replace(str)
+      else
+        output_string = str.force_encoding(Encoding::ASCII_8BIT)
+      end
+
+      @eof = true if @offset == @total_size
+
+      return output_string
+    end
+    
+    def eof?
+      super && @unget_buffer.empty?
+    end
+
+    def flush
+      @unget_buffer.clear
+    end
+    
+    def raise_if_buffering
+      raise IOError unless @unget_buffer.empty?
+    end
+
+    def unget(byte)
+      @offset -= 1
+      @unget_buffer << byte
+    end
+  end # class BufferedFileDescriptor
+
+
+  def self.initialize_pipe
+    obj = allocate
+    obj.instance_variable_set :@fd, BufferedFileDescriptor.new_unset_pipe
+    obj.instance_variable_set :@eof, false
+    obj.instance_variable_set :@lineno, 0
+    obj.instance_variable_set :@offset, 0
+    obj.instance_variable_set :@unget_buffer, []
+
+    # setup finalization for pipes, FIXME
+
+    return obj
+  end
+
+  def self.open_with_mode(path, mode, perm)
+    fd = -1
+    fd = open_with_cloexec(path, mode, perm)
+
+    if fd < 0
+      Errno.handle("failed to open file")
+    end
+
+    return fd
+  end
+
+  def self.open_with_cloexec(path, mode, perm)
+    if O_CLOEXEC
+      fd = FFI::Platform::POSIX.open(path, mode | O_CLOEXEC, perm)
+      update_max_fd(fd)
+    else
+      fd = FFI::Platform::POSIX.open(path, mode, perm)
+      new_open_fd(fd)
+    end
+
+    return fd
+  end
+
+  def self.new_open_fd(new_fd)
+    if new_fd > 2
+      flags = FFI::Platform::POSIX.fcntl(new_fd, F_GETFD)
+      Errno.handle("fcntl(2) failed") if flags == -1
+      flags = FFI::Platform::POSIX.fcntl(new_fd, F_SETFD, FFI::Platform::POSIX.fcntl(new_fd, F_GETFL) | O_CLOEXEC)
+      Errno.handle("fcntl(2) failed") if flags == -1
+    end
+
+    update_max_fd(new_fd)
+  end
+
+  def self.update_max_fd(new_fd)
+    @@max_descriptors.get_and_set(new_fd)
+  end
+
+  def reopen_path(path, mode)
+    current_fd = descriptor
+
+    other_fd = -1
+    other_fd = IO.open_with_cloexec(path, mode, 0666)
+
+    Exception::errno_error("could not reopen path", Errno.errno, "reopen_path") if other_fd < 0
+
+    if FFI::Platform::POSIX.dup2(other_fd, current_fd) == -1
+      if Errno.eql?(Errno::EBADF)
+        # means current_fd is closed, so set ourselves to use the new fd and continue
+        self.descriptor = other_fd
+      else
+        FFI::Platform::POSIX.close(other_fd) if other_fd > 0
+        Exception::errno_error("could not reopen path", Errno.errno, "reopen_path")
+      end
+    else
+      FFI::Platform::POSIX.close(other_fd)
+    end
+
+    set_mode # FIXME
+    return true
+  end
+
+  def connect_pipe(lhs, rhs)
+    fds = [0, 0]
+
+    Errno.handle("creating pipe failed") if pipe(fds) == -1
+
+    new_open_fd(fds[0])
+    new_open_fd(fds[1])
+
+    lhs.descriptor = fds[0]
+    rhs.descriptor = fds[1]
+    lhs.mode = O_RDONLY
+    rhs.mode = O_WRONLY
+    return true
+  end
+
+
   attr_accessor :external
   attr_accessor :internal
-  #  attr_accessor :mode
 
   def self.binread(file, length=nil, offset=0)
     raise ArgumentError, "Negative length #{length} given" if !length.nil? && length < 0
@@ -130,7 +638,7 @@ class IO
 
       @to.close if @to.kind_of? IO unless @to_io
     end
-  end
+  end # class StreamCopier
 
   def self.copy_stream(from, to, max_length=nil, offset=nil)
     StreamCopier.new(from, to, max_length, offset).run
@@ -458,7 +966,7 @@ class IO
   end
 
   def self.pipe(external=nil, internal=nil, options=nil)
-    lhs = initialize_pipe
+    lhs = initialize_pipe # FIXME - whole method needs to move
     rhs = initialize_pipe
 
     connect_pipe(lhs, rhs)
@@ -656,7 +1164,7 @@ class IO
       Rubinius::Type.coerce_to(readables, Array, :to_ary).map do |obj|
         if obj.kind_of? IO
           raise IOError, "closed stream" if obj.closed?
-          return [[obj],[],[]] unless obj.buffer_empty?
+          return [[obj],[],[]] unless obj.buffer_empty? # FIXME: eliminated buffer_empty? so what do we check here?
           obj
         else
           io = Rubinius::Type.coerce_to(obj, IO, :to_io)
@@ -731,22 +1239,22 @@ class IO
       end
     end
 
-    io.descriptor = fd
+    #io.descriptor = fd
     io.mode       = mode || cur_mode
     io.sync       = !!sync
 
-    if STDOUT.respond_to?(:fileno) and not STDOUT.closed?
-      io.sync ||= STDOUT.fileno == fd
-    end
-
-    if STDERR.respond_to?(:fileno) and not STDERR.closed?
-      io.sync ||= STDERR.fileno == fd
-    end
+    # FIXME - re-enable this somehow. Right now this breaks kernel/delta/io.rb when it
+    # redefines STDIN/STDOUT/STDERR from the IO.open call. The new IO code has already
+    # loaded so we can no longer access the object that STDIN/STDOUT/STDERR points to
+    # via Ruby code, so the following code blows up.
+    #    if STDOUT.respond_to?(:fileno) and not STDOUT.closed?
+    #      io.sync ||= STDOUT.fileno == fd
+    #    end
+    #
+    #    if STDERR.respond_to?(:fileno) and not STDERR.closed?
+    #      io.sync ||= STDERR.fileno == fd
+    #    end
   end
-
-  # Since we are reopening this class, save the original initializer from the
-  # bootstrap.
-  alias_method :bootstrap_initialize, :initialize
 
   #
   # Create a new IO associated with the given fd.
@@ -759,8 +1267,11 @@ class IO
     mode, binary, external, internal, @autoclose = IO.normalize_options(mode, options)
 
     fd = Rubinius::Type.coerce_to fd, Integer, :to_int
+    @fd = BufferedFileDescriptor.choose_type(fd)
+    raise "FD could not be allocated for fd [#{fd}]" unless @fd
+    raise "No descriptor set for fd [#{fd}]" unless @fd.descriptor
     IO.setup self, fd, mode
-    bootstrap_initialize(fd)
+    @lineno = 0
 
     binmode if binary
     set_encoding external, internal
@@ -774,7 +1285,7 @@ class IO
         (@external || Encoding.default_external) == Encoding::ASCII_8BIT
         @internal = nil
       end
-    elsif @mode != RDONLY
+    elsif !@fd.read_only?
       if Encoding.default_external != Encoding.default_internal
         @internal = Encoding.default_internal
       end
@@ -788,7 +1299,7 @@ class IO
       end
     end
 
-    @pipe = false
+    @pipe = false # FIXME
   end
 
   private :initialize
@@ -796,14 +1307,38 @@ class IO
   ##
   # Obtains a new duplicate descriptor for the current one.
   def initialize_copy(original) # :nodoc:
-    @descriptor = FFI::Platform::POSIX.dup(@descriptor)
+    self.descriptor = FFI::Platform::POSIX.dup(original)
   end
 
   private :initialize_copy
 
-  alias_method :prim_write, :write
-  alias_method :prim_close, :close
-  alias_method :prim_read, :read
+  #  alias_method :prim_write, :write
+  #  alias_method :prim_close, :close
+  #  alias_method :prim_read, :read
+
+  def descriptor
+    @fd.descriptor
+  end
+
+  def descriptor=(value)
+    @fd.descriptor = value
+  end
+
+  def mode
+    @fd.mode
+  end
+
+  def mode=(value)
+    @fd.mode = value
+  end
+
+  def sync
+    @fd.sync
+  end
+
+  def sync=(value)
+    @fd.sync = value
+  end
 
   def advise(advice, offset = 0, len = 0)
     raise IOError, "stream is closed" if closed?
@@ -846,9 +1381,10 @@ class IO
   def binmode?
     !@binmode.nil?
   end
+
   # Used to find out if there is buffered data available.
   def buffer_empty?
-    @unget_buffer.empty?
+    #@unget_buffer.empty?
   end
 
   def close_on_exec=(value)
@@ -882,7 +1418,7 @@ class IO
   #  prog.rb:3:in `readlines': not opened for reading (IOError)
   #   from prog.rb:3
   def close_read
-    if @mode == WRONLY || @mode == RDWR
+    if @fd.write_only? || @fd.read_write?
       raise IOError, 'closing non-duplex IO for reading'
     end
     close
@@ -902,7 +1438,7 @@ class IO
   #   from prog.rb:3:in `print'
   #   from prog.rb:3
   def close_write
-    if @mode == RDONLY || @mode == RDWR
+    if @fd.read_only? || @fd.read_write?
       raise IOError, 'closing non-duplex IO for writing'
     end
     close
@@ -921,12 +1457,12 @@ class IO
   #  f.close_read    #=> nil
   #  f.closed?       #=> true
   def closed?
-    @descriptor == -1
+    @fd.descriptor == -1
   end
 
   def dup
     ensure_open
-    super
+    super # FIXME - what's its super?
   end
 
   # Argument matrix for IO#gets and IO#each:
@@ -996,12 +1532,12 @@ class IO
         end
 
         break unless buffer.size > 0
-        
+
         if count = buffer.index(@separator)
           # #index returns a 0-based location but we want a length (so +1) and it should include
           # the pattern/separator which may be >1. therefore, add the separator size.
           count += separator_size
-          
+
           substring = buffer.slice!(0, count)
           consumed_bytes += substring.bytesize
           str << substring
@@ -1066,7 +1602,7 @@ class IO
           return [IO.read_encode(io, str), peek_ahead]
         end
       end
-      
+
       [IO.read_encode(io, str), peek_ahead]
     end
 
@@ -1084,7 +1620,7 @@ class IO
           starting_position = @io.pos
           buffer = @io.read(IO.pagesize)
         end
-        
+
 
         break unless buffer && buffer.size > 0
 
@@ -1103,7 +1639,7 @@ class IO
           $. = @io.increment_lineno
           consumed_bytes += do_skip(buffer)
           @io.pos = starting_position + consumed_bytes
-          
+
           yield str
 
           str = ""
@@ -1132,7 +1668,7 @@ class IO
           end
         end
       end
-      
+
       unless str.empty?
         str = IO.read_encode(@io, str)
         str.taint
@@ -1190,8 +1726,8 @@ class IO
   ##
   # Return a string describing this IO object.
   def inspect
-    if @descriptor != -1
-      "#<#{self.class}:fd #{@descriptor}>"
+    if @fd.descriptor != -1
+      "#<#{self.class}:fd #{@fd.descriptor}>"
     else
       "#<#{self.class}:(closed)"
     end
@@ -1305,26 +1841,14 @@ class IO
   # So IO#sysread doesn't work with IO#eof?.
   def eof?
     ensure_open_and_readable
-    @eof && @unget_buffer.empty?
+    @fd.eof?
   end
 
   alias_method :eof, :eof?
 
-  def ensure_open_and_readable
-    ensure_open
-    write_only = @mode & ACCMODE == WRONLY
-    raise IOError, "not opened for reading" if write_only
-  end
-
-  def ensure_open_and_writable
-    ensure_open
-    read_only = @mode & ACCMODE == RDONLY
-    raise IOError, "not opened for writing" if read_only
-  end
-
   def external_encoding
     return @external if @external
-    return Encoding.default_external if @mode == RDONLY
+    return Encoding.default_external if @fd.read_only?
   end
 
   ##
@@ -1402,7 +1926,7 @@ class IO
   #  $stdout.fileno   #=> 1
   def fileno
     ensure_open
-    @descriptor
+    return @fd.descriptor
   end
 
   alias_method :to_i, :fileno
@@ -1419,7 +1943,16 @@ class IO
   #  no newline
   def flush
     ensure_open
-    self
+    @fd.flush
+    return self
+  end
+
+  def force_read_only
+    @fd.force_read_only
+  end
+
+  def force_write_only
+    @fd.force_write_only
   end
 
   ##
@@ -1431,11 +1964,11 @@ class IO
   def fsync
     flush
 
-    err = FFI::Platform::POSIX.fsync @descriptor
+    err = FFI::Platform::POSIX.fsync descriptor
 
     Errno.handle 'fsync(2)' if err < 0
 
-    err
+    return err
   end
 
   def getbyte
@@ -1475,7 +2008,7 @@ class IO
       return line
     end
 
-    nil
+    return nil
   end
 
   ##
@@ -1495,7 +2028,7 @@ class IO
   def lineno
     ensure_open
 
-    @lineno
+    return @lineno
   end
 
   ##
@@ -1551,9 +2084,8 @@ class IO
   ##
   #
   def pos
-    flush
-    @offset = prim_seek 0, SEEK_CUR
-    @offset - @unget_buffer.size
+    ensure_open
+    @fd.offset
   end
 
   alias_method :tell, :pos
@@ -1661,45 +2193,16 @@ class IO
     buffer = StringValue(buffer) if buffer
 
     unless length
-      # force +val+ to #chr so we can easily build a string. +val+ is sometimes a Fixnum
-      # when someone #ungetbyte on the stream. probably a better way to handle this...
-      # maybe force that "byte" into a chr during the unget step since we convert it to
-      # ordinal in #getbyte anyway.
-      unget_buffer = @unget_buffer.inject("") { |sum, val| val.chr + sum }
-      @unget_buffer.clear
-      str = IO.read_encode self, (unget_buffer + read_all)
+      str = IO.read_encode self, read_all
       return str unless buffer
 
       return buffer.replace(str)
     end
 
     str = ""
-    needed = length
+    result = @fd.read(length, str)
 
-    if length > 0
-      # FIXME: need to twiddle @pos or @offset too
-      if !@unget_buffer.empty?
-        if length >= @unget_buffer.size
-          unget_buffer = @unget_buffer.inject("") { |sum, val| val.chr + sum }
-          length -= @unget_buffer.size
-          @offset += @unget_buffer.size
-          @unget_buffer.clear
-        else
-          unget_buffer = ""
-          length.times do
-            unget_buffer << @unget_buffer.pop
-          end
-          @offset += length
-          length = 0
-        end
-      end
-    end
-
-    result = prim_read(length, str)
-
-    if unget_buffer
-      str = unget_buffer + str.to_s
-    elsif str.empty? && needed > 0
+    if str.empty? && length > 0
       str = nil
     end
 
@@ -1722,7 +2225,7 @@ class IO
     str = ""
     until eof?
       buffer = ""
-      prim_read(nil, buffer)
+      @fd.read(nil, buffer)
       str << buffer
     end
 
@@ -1774,7 +2277,7 @@ class IO
   def readbyte
     byte = getbyte
     raise EOFError, "end of file reached" unless byte
-    #raise EOFError, "end of file" unless bytes # bytes/each_byte is deprecated
+    #raise EOFError, "end of file" unless bytes # bytes/each_byte is deprecated, FIXME - is this line necessary?
     byte
   end
 
@@ -1912,7 +2415,8 @@ class IO
       io.ensure_open
       io.reset_buffering
 
-      reopen_io io
+      #reopen_io io
+      @fd.reopen(io.descriptor)
       Rubinius::Unsafe.set_class self, io.class
       if io.respond_to?(:path)
         @path = io.path
@@ -1922,7 +2426,7 @@ class IO
 
       # If a mode isn't passed in, use the mode that the IO is already in.
       if undefined.equal? mode
-        mode = @mode
+        mode = @fd.mode
         # If this IO was already opened for writing, we should
         # create the target file if it doesn't already exist.
         if (mode & RDWR == RDWR) || (mode & WRONLY == WRONLY)
@@ -1979,7 +2483,7 @@ class IO
 
     @eof = false
 
-    prim_seek Integer(amount), whence
+    @fd.sysseek Integer(amount), whence
 
     return 0
   end
@@ -1991,7 +2495,7 @@ class IO
     when String
       @external = nil
     when nil
-      if @mode == RDONLY || @external
+      if @fd.read_only? || @external
         @external = nil
       else
         @external = Encoding.default_external
@@ -2052,7 +2556,7 @@ class IO
   end
 
   def strip_bom
-    return unless File::Stat.fstat(@descriptor).file?
+    return unless File::Stat.fstat(descriptor).file?
 
     case b1 = getbyte
     when 0x00
@@ -2122,7 +2626,7 @@ class IO
   def stat
     ensure_open
 
-    File::Stat.fstat @descriptor
+    File::Stat.fstat descriptor
   end
 
   ##
@@ -2159,10 +2663,10 @@ class IO
   #  @todo  Improve reading into provided buffer.
   #
   def sysread(number_of_bytes, buffer=undefined)
-    flush
-    raise IOError unless @unget_buffer.empty?
+    flush # FIXME: is this necessary?
+    @fd.raise_if_buffering
 
-    str = prim_read number_of_bytes
+    str = @fd.read number_of_bytes
     raise EOFError if str.nil?
 
     unless undefined.equal? buffer
@@ -2189,11 +2693,19 @@ class IO
 
     amount = Integer(amount)
 
-    prim_seek amount, whence
+    @fd.sysseek amount, whence
   end
 
   def to_io
     self
+  end
+
+  def ftruncate(offset)
+    @fd.ftruncate offset
+  end
+
+  def truncate(name, offset)
+    @fd.truncate name, offset
   end
 
   ##
@@ -2202,8 +2714,7 @@ class IO
   #  File.new("testfile").isatty   #=> false
   #  File.new("/dev/tty").isatty   #=> true
   def tty?
-    ensure_open
-    FFI::Platform::POSIX.isatty(@descriptor) == 1
+    @fd.tty?
   end
 
   alias_method :isatty, :tty?
@@ -2215,7 +2726,7 @@ class IO
     ensure_open_and_writable
     #    @ibuffer.unseek!(self) unless @sync
 
-    prim_write(data)
+    @fd.write(data)
   end
 
   def ungetbyte(obj)
@@ -2226,7 +2737,8 @@ class IO
       str = obj
     when Integer
       #      @ibuffer.put_back(obj & 0xff)
-      @unget_buffer << (obj & 0xff)
+      #@unget_buffer << (obj & 0xff)
+      @fd.unget(obj & 0xff)
       return
     when nil
       return
@@ -2236,7 +2748,8 @@ class IO
 
     #    str.bytes.reverse_each { |byte| @ibuffer.put_back byte }
     str.bytes.reverse_each do |byte|
-      @unget_buffer << byte
+      #@unget_buffer << byte
+      @fd.unget(byte)
     end
 
     nil
@@ -2250,7 +2763,8 @@ class IO
       str = obj
     when Integer
       #      @ibuffer.put_back(obj)
-      @unget_buffer << obj
+      #@unget_buffer << obj
+      @fd.unget(obj)
       return
     when nil
       return
@@ -2260,7 +2774,8 @@ class IO
 
     #    str.bytes.reverse_each { |b| @ibuffer.put_back b }
     str.bytes.reverse_each do |byte|
-      @unget_buffer << byte
+      #@unget_buffer << byte
+      @fd.unget(byte)
     end
 
     nil
@@ -2281,7 +2796,7 @@ class IO
     end
 
     #    if @sync
-    prim_write(data)
+    @fd.write(data)
     #    else
     #      @ibuffer.unseek! self
     #      bytes_to_write = data.bytesize
@@ -2310,7 +2825,7 @@ class IO
     begin
       flush
     ensure
-      prim_close
+      @fd.close
     end
 
     if @pid and @pid != 0
@@ -2325,6 +2840,22 @@ class IO
     return nil
   end
 
+  def ensure_open
+    @fd.ensure_open
+  end
+  private :ensure_open
+
+  def ensure_open_and_readable
+    ensure_open
+    raise IOError, "not opened for reading" if @fd.write_only?
+  end
+  private :ensure_open_and_readable
+
+  def ensure_open_and_writable
+    ensure_open
+    raise IOError, "not opened for writing" if @fd.read_only?
+  end
+  private :ensure_open_and_writable
 end
 
 ##
