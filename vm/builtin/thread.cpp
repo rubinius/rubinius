@@ -256,10 +256,11 @@ namespace rubinius {
           vm->thread_id(), (unsigned int)thread_debug_self());
     }
 
+    GCTokenImpl gct;
     int calculate_stack = 0;
     vm->set_root_stack(reinterpret_cast<uintptr_t>(&calculate_stack), THREAD_STACK_SIZE);
 
-    GCTokenImpl gct;
+    NativeMethod::init_thread(state);
 
     // Lock the thread object and unlock it at __run__ in the ruby land.
     vm->thread->alive(state, cTrue);
@@ -294,6 +295,8 @@ namespace rubinius {
 
     vm->thread->stopped();
 
+    NativeMethod::cleanup_thread(state);
+
     if(cDebugThreading) {
       utilities::logger::debug("Thread: exit thread: id: %d", vm->thread_id());
     }
@@ -302,9 +305,12 @@ namespace rubinius {
   void* Thread::internal_thread(void* ptr) {
     VM* vm = reinterpret_cast<VM*>(ptr);
 
+    SharedState& shared = vm->shared;
     State state_obj(vm), *state = &state_obj;
 
     execute_thread(state, vm);
+
+    shared.gc_independent();
 
     return 0;
   }
@@ -314,8 +320,6 @@ namespace rubinius {
 
     SharedState& shared = vm->shared;
     State state_obj(vm), *state = &state_obj;
-
-    NativeMethod::init_thread(state);
 
     std::string thread_name;
 
@@ -330,8 +334,6 @@ namespace rubinius {
                           vm->thread_id(), 0);
 
     execute_thread(state, vm);
-
-    NativeMethod::cleanup_thread(state);
 
     vm->thread->vm_ = NULL;
     VM::discard(state, vm);

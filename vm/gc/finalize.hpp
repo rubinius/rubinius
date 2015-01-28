@@ -95,7 +95,8 @@ namespace rubinius {
     utilities::thread::Condition worker_cond_;
     utilities::thread::Mutex supervisor_lock_;
     utilities::thread::Condition supervisor_cond_;
-    bool exit_;
+    bool thread_exit_;
+    bool thread_running_;
     bool finishing_;
 
   public:
@@ -124,6 +125,7 @@ namespace rubinius {
     void worker_wait();
     void supervisor_signal();
     void supervisor_wait();
+    void wakeup();
 
     void start_thread(STATE);
     void stop_thread(STATE);
