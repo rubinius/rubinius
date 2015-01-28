@@ -15,7 +15,7 @@
 
 namespace rubinius {
 
-  Object* immix_marker_tramp(STATE) {
+  Object* immix_marker_trampoline(STATE) {
     state->memory()->immix_marker()->perform(state);
     GCTokenImpl gct;
     state->gc_dependent(gct, 0);
@@ -64,7 +64,7 @@ namespace rubinius {
     vm_->metrics()->init(metrics::eRubyMetrics);
     exit_ = false;
     thread_.set(Thread::create(state, vm_, G(thread),
-          immix_marker_tramp, true));
+          immix_marker_trampoline, true));
     run(state);
   }
 

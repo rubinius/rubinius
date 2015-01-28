@@ -50,7 +50,7 @@ namespace rubinius {
 
     void add_signal(State*, int sig, HandlerType type = eCustom);
     void handle_signal(int sig);
-    static void signal_tramp(int sig);
+    static void signal_handler(int sig);
 
     bool deliver_signals(STATE, CallFrame* call_frame);
 

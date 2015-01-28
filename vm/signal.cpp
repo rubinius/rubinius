@@ -50,7 +50,7 @@ namespace rubinius {
   // crashing inside the crash handler.
   static struct utsname machine_info;
 
-  Object* signal_handler_tramp(STATE) {
+  Object* signal_handler_trampoline(STATE) {
     state->shared().signal_handler()->perform(state);
     GCTokenImpl gct;
     state->gc_dependent(gct, 0);
@@ -99,7 +99,7 @@ namespace rubinius {
     vm_->metrics()->init(metrics::eRubyMetrics);
     exit_ = false;
     thread_.set(Thread::create(state, vm_, G(thread),
-          signal_handler_tramp, true));
+          signal_handler_trampoline, true));
     run(state);
   }
 
@@ -182,7 +182,7 @@ namespace rubinius {
                          state->vm()->thread_id(), 1);
   }
 
-  void SignalHandler::signal_tramp(int sig) {
+  void SignalHandler::signal_handler(int sig) {
     signal_handler_->handle_signal(sig);
   }
 
@@ -223,7 +223,7 @@ namespace rubinius {
       action.sa_handler = SIG_IGN;
       watched_signals_.push_back(sig);
     } else {
-      action.sa_handler = signal_tramp;
+      action.sa_handler = signal_handler;
       watched_signals_.push_back(sig);
     }
 

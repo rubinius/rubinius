@@ -70,7 +70,7 @@ namespace rubinius {
     return current_ == end_;
   }
 
-  Object* finalizer_handler_tramp(STATE) {
+  Object* finalizer_handler_trampoline(STATE) {
     state->shared().finalizer_handler()->perform(state);
     GCTokenImpl gct;
     state->gc_dependent(gct, 0);
@@ -126,7 +126,7 @@ namespace rubinius {
     vm_->metrics()->init(metrics::eFinalizerMetrics);
     exit_ = false;
     thread_.set(Thread::create(state, vm_, G(thread),
-          finalizer_handler_tramp, true));
+          finalizer_handler_trampoline, true));
     run(state);
   }
 
