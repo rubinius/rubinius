@@ -51,10 +51,8 @@ namespace rubinius {
 
     utilities::thread::SpinLock init_lock_;
 
-    /// Whether this is an internal VM thread that should
-    /// not be exposed in Ruby land but does need to be a
-    /// managed thread.
-    bool system_thread_;
+    /// An internal thread, for example, the GC finalizer thread.
+    bool internal_thread_;
 
     /// The VM state for this thread and this thread alone
     VM* vm_;
@@ -98,8 +96,8 @@ namespace rubinius {
       return vm_;
     }
 
-    bool system_thread() const {
-      return system_thread_;
+    bool internal_thread() const {
+      return internal_thread_;
     }
 
   public:
@@ -291,10 +289,12 @@ namespace rubinius {
      *  @see  Thread::allocate().
      */
     static Thread* create(STATE, VM* target, Object* self, Run runner,
-                          bool system_thread = false);
+                          bool internal_thread = false);
 
-    int start_new_thread(STATE, const pthread_attr_t &attrs);
-    static void* in_new_thread(void*);
+    int start_thread(STATE, const pthread_attr_t &attrs);
+    static void execute_thread(STATE, VM* vm);
+    static void* internal_thread(void*);
+    static void* ruby_thread(void*);
 
   public:   /* TypeInfo */
 

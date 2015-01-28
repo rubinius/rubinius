@@ -98,7 +98,8 @@ namespace rubinius {
     vm_ = state->shared().new_vm();
     vm_->metrics()->init(metrics::eRubyMetrics);
     exit_ = false;
-    thread_.set(Thread::create(state, vm_, G(thread), signal_handler_tramp, true));
+    thread_.set(Thread::create(state, vm_, G(thread),
+          signal_handler_tramp, true));
     run(state);
   }
 
@@ -116,6 +117,8 @@ namespace rubinius {
 
     void* return_value;
     pthread_join(os, &return_value);
+
+    VM::discard(state, vm_);
     vm_ = NULL;
   }
 

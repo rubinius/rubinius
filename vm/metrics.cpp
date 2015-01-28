@@ -449,7 +449,8 @@ namespace rubinius {
       if(!vm_) {
         vm_ = state->shared().new_vm();
         thread_exit_ = false;
-        thread_.set(Thread::create(state, vm_, G(thread), metrics_trampoline, true));
+        thread_.set(Thread::create(state, vm_, G(thread),
+              metrics_trampoline, true));
       }
 
       if(thread_.get()->fork_attached(state)) {
@@ -469,6 +470,7 @@ namespace rubinius {
           pthread_join(os, &return_value);
         }
 
+        VM::discard(state, vm_);
         vm_ = NULL;
       }
     }
