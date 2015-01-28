@@ -1,4 +1,5 @@
 #include "config.h"
+#include "release.h"
 #include "vm.hpp"
 #include "call_frame.hpp"
 #include "environment.hpp"
@@ -50,7 +51,7 @@ namespace rubinius {
   // crashing inside the crash handler.
   static struct utsname machine_info;
 
-  Object* signal_handler_tramp(STATE) {
+  Object* signal_handler_trampoline(STATE) {
     state->shared().signal_handler()->perform(state);
     GCTokenImpl gct;
     state->gc_dependent(gct, 0);
@@ -63,7 +64,8 @@ namespace rubinius {
     , target_(state->vm())
     , vm_(NULL)
     , queued_signals_(0)
-    , exit_(false)
+    , thread_exit_(false)
+    , thread_running_(false)
     , thread_(state)
   {
     signal_handler_ = this;
@@ -88,6 +90,8 @@ namespace rubinius {
   void SignalHandler::initialize(STATE) {
     worker_lock_.init();
     worker_cond_.init();
+    thread_exit_ = false;
+    thread_running_ = false;
     vm_ = NULL;
   }
 
@@ -97,26 +101,37 @@ namespace rubinius {
     utilities::thread::Mutex::LockGuard lg(worker_lock_);
     vm_ = state->shared().new_vm();
     vm_->metrics()->init(metrics::eRubyMetrics);
-    exit_ = false;
-    thread_.set(Thread::create(state, vm_, G(thread), signal_handler_tramp, true));
+    thread_exit_ = false;
+    thread_.set(Thread::create(state, vm_, G(thread),
+          signal_handler_trampoline, true));
     run(state);
+  }
+
+  void SignalHandler::wakeup() {
+    utilities::thread::Mutex::LockGuard lg(worker_lock_);
+
+    thread_exit_ = true;
+
+    atomic::memory_barrier();
+
+    worker_cond_.signal();
   }
 
   void SignalHandler::stop_thread(STATE) {
     SYNC(state);
-    if(!vm_) return;
 
-    pthread_t os = vm_->os_thread();
-    {
-      utilities::thread::Mutex::LockGuard lg(worker_lock_);
-      // Thread might have already been stopped
-      exit_ = true;
-      worker_cond_.signal();
+    if(vm_) {
+      wakeup();
+
+      if(atomic::poll(thread_running_, false)) {
+        void* return_value;
+        pthread_t os = vm_->os_thread();
+        pthread_join(os, &return_value);
+      }
+
+      VM::discard(state, vm_);
+      vm_ = NULL;
     }
-
-    void* return_value;
-    pthread_join(os, &return_value);
-    vm_ = NULL;
   }
 
   void SignalHandler::shutdown(STATE) {
@@ -155,36 +170,41 @@ namespace rubinius {
     RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
                           state->vm()->thread_id(), 1);
 
+    thread_running_ = true;
+
     state->vm()->thread->hard_unlock(state, gct, 0);
 
-    while(!exit_) {
+    while(!thread_exit_) {
       {
         utilities::thread::Mutex::LockGuard lg(worker_lock_);
-        if(exit_) break;
+        if(thread_exit_) break;
         state->gc_independent(gct, 0);
         worker_cond_.wait(worker_lock_);
         // If we should exit now, don't try to become
         // dependent first but break and exit the thread
-        if(exit_) break;
+        if(thread_exit_) break;
       }
       state->gc_dependent(gct, 0);
       {
         utilities::thread::Mutex::LockGuard lg(worker_lock_);
-        if(exit_) break;
+        if(thread_exit_) break;
       }
 
       target_->wakeup(state, gct, 0);
     }
+
+    thread_running_ = false;
+
     RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
                          state->vm()->thread_id(), 1);
   }
 
-  void SignalHandler::signal_tramp(int sig) {
+  void SignalHandler::signal_handler(int sig) {
     signal_handler_->handle_signal(sig);
   }
 
   void SignalHandler::handle_signal(int sig) {
-    if(exit_) return;
+    if(thread_exit_) return;
 
     target_->metrics()->system_metrics.os_signals_received++;
 
@@ -220,7 +240,7 @@ namespace rubinius {
       action.sa_handler = SIG_IGN;
       watched_signals_.push_back(sig);
     } else {
-      action.sa_handler = signal_tramp;
+      action.sa_handler = signal_handler;
       watched_signals_.push_back(sig);
     }
 
@@ -405,6 +425,15 @@ namespace rubinius {
     logger::fatal("version: %s", machine_info.version);
     logger::fatal("machine: %s", machine_info.machine);
     logger::fatal("--- end system info ---");
+
+    logger::fatal("--- begin rubinius info ---");
+    logger::fatal("program name: %s", RBX_PROGRAM_NAME);
+    logger::fatal("version: %s", RBX_VERSION);
+    logger::fatal("ruby version: %s", RBX_RUBY_VERSION);
+    logger::fatal("release date: %s", RBX_RELEASE_DATE);
+    logger::fatal("build revision: %s", RBX_BUILD_REV);
+    logger::fatal("llvm version: %s", RBX_LLVM_VERSION);
+    logger::fatal("--- end rubinius info ---");
 
     logger::fatal("--- begin system backtrace ---");
     for(i = 0; i < frames; i++) {

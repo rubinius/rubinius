@@ -597,8 +597,12 @@ Unsupported language version requested: #{version}. Options are #{@supported_ver
       if which
         config = File.join(which, "llvm-config")
       elsif @darwin
-        out = `brew list llvm | grep '/llvm-config$'`
-        config = out.chomp if $?.success?
+        if macports?
+          config = macports_llvm_config
+        else
+          out = `brew list llvm | grep '/llvm-config$'`
+          config = out.chomp if $?.success?
+        end
       end
     end
 
@@ -1986,6 +1990,25 @@ Available commands are:
     def multiline?(message)
       message.index("\n") != nil
     end
+  end
+
+  # Returns true if MacPorts is installed in its default location.
+  def macports?
+    File.exists? '/opt/local/bin/port'
+  end
+
+  # Query MacPorts for the path to the latest installed version of
+  # llvm-config that is within the range of supported LLVM versions.
+  def macports_llvm_config
+    supported_versions = (3.0 .. 3.5)
+    installed_ports    = `port installed | egrep -o 'llvm-[^ ]+'`.split
+    latest_usable_port = installed_ports.sort.select do |fname|
+                           version = fname.match(/-\K.*/)[0].to_f
+                           supported_versions.include? version
+                         end.last
+    avail_binaries     = `port contents #{latest_usable_port} |
+                          fgrep llvm-config`.split
+    avail_binaries.reject { |fname| fname.include? 'libexec' }.last
   end
 end
 

@@ -171,6 +171,7 @@ namespace rubinius {
 
   void Environment::start_finalizer(STATE) {
     finalizer_handler_ = new FinalizerHandler(state);
+    finalizer_handler_->start_thread(state);
   }
 
   void Environment::start_logging(STATE) {
@@ -809,7 +810,6 @@ namespace rubinius {
                            runtime.c_str(), runtime.size()));
 
     load_kernel(runtime);
-    shared->finalizer_handler()->start_thread(state);
 
     run_file(runtime + "/loader.rbc");
 
