@@ -1,5 +1,6 @@
 ctype.rbc
 exception.rbc
+io.rbc
 file.rbc
 rubinius.rbc
 runtime.rbc
@@ -20,4 +21,3 @@ ffi.rbc
 ruby_constants.rbc
 pack.rbc
 metrics.rbc
-io.rbc
