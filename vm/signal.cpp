@@ -1,4 +1,5 @@
 #include "config.h"
+#include "release.h"
 #include "vm.hpp"
 #include "call_frame.hpp"
 #include "environment.hpp"
@@ -408,6 +409,15 @@ namespace rubinius {
     logger::fatal("version: %s", machine_info.version);
     logger::fatal("machine: %s", machine_info.machine);
     logger::fatal("--- end system info ---");
+
+    logger::fatal("--- begin rubinius info ---");
+    logger::fatal("program name: %s", RBX_PROGRAM_NAME);
+    logger::fatal("version: %s", RBX_VERSION);
+    logger::fatal("ruby version: %s", RBX_RUBY_VERSION);
+    logger::fatal("release date: %s", RBX_RELEASE_DATE);
+    logger::fatal("build revision: %s", RBX_BUILD_REV);
+    logger::fatal("llvm version: %s", RBX_LLVM_VERSION);
+    logger::fatal("--- end rubinius info ---");
 
     logger::fatal("--- begin system backtrace ---");
     for(i = 0; i < frames; i++) {
