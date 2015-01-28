@@ -414,11 +414,12 @@ module Rubinius
     # Sets +@feature+, +@file_path+, +@load_path+ with the correct format.
     # Used by #verify_load_path, #check_path and #check_file.
     def update_paths(file, path)
-      path = "./#{path}" unless qualified_path? path
+      path = File.expand_path path
 
-      @feature = file
+      @feature = path
+      @short_path = file
       @file_path = path
-      @load_path = File.expand_path path
+      @load_path = path
     end
 
     # Raises a LoadError if the requested file cannot be found or loaded.

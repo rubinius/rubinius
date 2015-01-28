@@ -390,133 +390,66 @@ describe :kernel_require, :shared => true do
       end
     end
 
-    ruby_version_is "".."1.9" do
-      it "stores ./ relative paths as passed in" do
-        $LOAD_PATH << "an_irrelevant_dir"
-        Dir.chdir CODE_LOADING_DIR do
-          @object.require("./load_fixture.rb").should be_true
-        end
-        $LOADED_FEATURES.should == ["./load_fixture.rb"]
+    it "stores ../ relative paths as absolute paths" do
+      Dir.chdir CODE_LOADING_DIR do
+        @object.require("../code/load_fixture.rb").should be_true
       end
-
-      it "stores ../ relative paths as passed in" do
-        $LOAD_PATH << "an_irrelevant_dir"
-        Dir.chdir CODE_LOADING_DIR do
-          @object.require("../code/load_fixture.rb").should be_true
-        end
-        $LOADED_FEATURES.should == ["../code/load_fixture.rb"]
-      end
-
-      it "does not collapse duplicate path separators" do
-        $LOAD_PATH << "."
-        sep = File::Separator + File::Separator
-        path = ["..", "code", "load_fixture.rb"].join(sep)
-        Dir.chdir CODE_LOADING_DIR do
-          @object.require(path).should be_true
-        end
-        $LOADED_FEATURES.should == [path]
-      end
-
-      it "stores the resolved filename" do
-        $LOAD_PATH << CODE_LOADING_DIR
-        @object.require("load_fixture.rb").should be_true
-        $LOADED_FEATURES.should == ["load_fixture.rb"]
-      end
-
-      it "adds the suffix of the resolved filename" do
-        $LOAD_PATH << CODE_LOADING_DIR
-        @object.require("load_fixture").should be_true
-        $LOADED_FEATURES.should == ["load_fixture.rb"]
-      end
-
-      it "loads a non-canonical path for a file already loaded" do
-        $LOADED_FEATURES << @path
-        $LOAD_PATH << File.dirname(CODE_LOADING_DIR)
-        @object.require("code/../code/load_fixture.rb").should be_true
-        ScratchPad.recorded.should == [:loaded]
-      end
-
-      it "loads a ./ relative path for a file already loaded" do
-        $LOADED_FEATURES << @path
-        $LOAD_PATH << "an_irrelevant_dir"
-        Dir.chdir CODE_LOADING_DIR do
-          @object.require("./load_fixture.rb").should be_true
-        end
-        ScratchPad.recorded.should == [:loaded]
-      end
-
-      it "loads a ../ relative path for a file already loaded" do
-        $LOADED_FEATURES << @path
-        $LOAD_PATH << "an_irrelevant_dir"
-        Dir.chdir CODE_LOADING_DIR do
-          @object.require("../code/load_fixture.rb").should be_true
-        end
-        ScratchPad.recorded.should == [:loaded]
-      end
+      $LOADED_FEATURES.should == [@path]
     end
 
-    ruby_version_is "1.9" do
-      it "stores ../ relative paths as absolute paths" do
-        Dir.chdir CODE_LOADING_DIR do
-          @object.require("../code/load_fixture.rb").should be_true
-        end
-        $LOADED_FEATURES.should == [@path]
+    it "stores ./ relative paths as absolute paths" do
+      Dir.chdir CODE_LOADING_DIR do
+        @object.require("./load_fixture.rb").should be_true
       end
+      $LOADED_FEATURES.should == [@path]
+    end
 
-      it "stores ./ relative paths as absolute paths" do
-        Dir.chdir CODE_LOADING_DIR do
-          @object.require("./load_fixture.rb").should be_true
-        end
-        $LOADED_FEATURES.should == [@path]
-      end
-
-      it "collapses duplicate path separators" do
-        $LOAD_PATH << "."
-        sep = File::Separator + File::Separator
-        path = ["..", "code", "load_fixture.rb"].join(sep)
-        Dir.chdir CODE_LOADING_DIR do
-          @object.require(path).should be_true
-        end
-        $LOADED_FEATURES.should == [@path]
-      end
-
-      it "canonicalizes non-unique absolute paths" do
-        dir, file = File.split(File.expand_path("load_fixture.rb", CODE_LOADING_DIR))
-        path = File.join dir, ["..", "code"], file
+    it "collapses duplicate path separators" do
+      $LOAD_PATH << "."
+      sep = File::Separator + File::Separator
+      path = ["..", "code", "load_fixture.rb"].join(sep)
+      Dir.chdir CODE_LOADING_DIR do
         @object.require(path).should be_true
-        $LOADED_FEATURES.should == [@path]
       end
+      $LOADED_FEATURES.should == [@path]
+    end
 
-      it "adds the suffix of the resolved filename" do
-        $LOAD_PATH << CODE_LOADING_DIR
-        @object.require("load_fixture").should be_true
-        $LOADED_FEATURES.should == [@path]
-      end
+    it "canonicalizes non-unique absolute paths" do
+      dir, file = File.split(File.expand_path("load_fixture.rb", CODE_LOADING_DIR))
+      path = File.join dir, ["..", "code"], file
+      @object.require(path).should be_true
+      $LOADED_FEATURES.should == [@path]
+    end
 
-      it "does not load a non-canonical path for a file already loaded" do
-        $LOADED_FEATURES << @path
-        $LOAD_PATH << File.dirname(CODE_LOADING_DIR)
-        @object.require("code/../code/load_fixture.rb").should be_false
-        ScratchPad.recorded.should == []
-      end
+    it "adds the suffix of the resolved filename" do
+      $LOAD_PATH << CODE_LOADING_DIR
+      @object.require("load_fixture").should be_true
+      $LOADED_FEATURES.should == [@path]
+    end
 
-      it "does not load a ./ relative path for a file already loaded" do
-        $LOADED_FEATURES << @path
-        $LOAD_PATH << "an_irrelevant_dir"
-        Dir.chdir CODE_LOADING_DIR do
-          @object.require("./load_fixture.rb").should be_false
-        end
-        ScratchPad.recorded.should == []
-      end
+    it "does not load a non-canonical path for a file already loaded" do
+      $LOADED_FEATURES << @path
+      $LOAD_PATH << File.dirname(CODE_LOADING_DIR)
+      @object.require("code/../code/load_fixture.rb").should be_false
+      ScratchPad.recorded.should == []
+    end
 
-      it "does not load a ../ relative path for a file already loaded" do
-        $LOADED_FEATURES << @path
-        $LOAD_PATH << "an_irrelevant_dir"
-        Dir.chdir CODE_LOADING_DIR do
-          @object.require("../code/load_fixture.rb").should be_false
-        end
-        ScratchPad.recorded.should == []
+    it "does not load a ./ relative path for a file already loaded" do
+      $LOADED_FEATURES << @path
+      $LOAD_PATH << "an_irrelevant_dir"
+      Dir.chdir CODE_LOADING_DIR do
+        @object.require("./load_fixture.rb").should be_false
       end
+      ScratchPad.recorded.should == []
+    end
+
+    it "does not load a ../ relative path for a file already loaded" do
+      $LOADED_FEATURES << @path
+      $LOAD_PATH << "an_irrelevant_dir"
+      Dir.chdir CODE_LOADING_DIR do
+        @object.require("../code/load_fixture.rb").should be_false
+      end
+      ScratchPad.recorded.should == []
     end
   end
 
@@ -676,20 +609,20 @@ describe :kernel_require, :shared => true do
 
           t1_res = nil
           t2_res = nil
-          
+
           t1_running = false
           t2_running = false
-          
+
           t2 = nil
 
           t1 = Thread.new do
             Thread.current[:con_raise] = true
             t1_running = true
-            
+
             lambda {
               @object.require(@path)
             }.should raise_error(RuntimeError)
-            
+
             # This hits the bug. Because MRI removes it's internal lock from a table
             # when the exception is raised, this #require doesn't see that t2 is
             # in the middle of requiring the file, so this #require runs when it should
@@ -700,24 +633,24 @@ describe :kernel_require, :shared => true do
             t1_res = @object.require(@path)
 
             Thread.pass until fin
-            
+
             ScratchPad.recorded << :t1_post
           end
-          
+
           t2 = Thread.new do
             t2_running = true
-            
+
             Thread.pass until t1_running && t1[:in_concurrent_rb] == true
-            
+
             begin
               t2_res = @object.require(@path)
-              
+
               ScratchPad.recorded << :t2_post
             ensure
               fin = true
             end
           end
-          
+
           t1.join
           t2.join
 
