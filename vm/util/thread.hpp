@@ -34,7 +34,7 @@ namespace utilities {
 namespace thread {
 
   static inline void fail(const char* str) {
-    logger::fatal(str);
+    std::cerr << "utilities::thread: " << str << std::endl;
     abort();
   }
 
@@ -154,10 +154,7 @@ namespace thread {
       void* bunk;
       int err = pthread_join(native_, &bunk);
       if(err != 0) {
-        if(err == EDEADLK) {
-          logger::fatal("Thread deadlock in ::join()!");
-          abort();
-        }
+        if(err == EDEADLK) fail("Thread::join: deadlock");
 
         // Ignore the other errors, since they mean there is no thread
         // so we can consider us already joined to it.
@@ -327,13 +324,13 @@ namespace thread {
       if(err != 0) {
         switch(err) {
         case EBUSY:
-          logger::error("~Mutex: mutex is busy");
+          fail("~Mutex: mutex is busy");
           break;
         case EINVAL:
-          logger::error("~Mutex: mutex is dead");
+          fail("~Mutex: mutex is dead");
           break;
         default:
-          logger::error("~Mutex: unknown error");
+          fail("~Mutex: unknown error");
         }
       }
     }
@@ -357,12 +354,10 @@ namespace thread {
       case 0:
         break;
       case EDEADLK:
-        logger::fatal("Thread deadlock in ::join()!");
-        abort();
+        fail("Mutex::lock: deadlock");
         break;
       case EINVAL:
-        logger::fatal("Mutex invalid (Thread corrupt?)");
-        abort();
+        fail("Mutex::lock: invalid");
         break;
       }
 
@@ -378,8 +373,7 @@ namespace thread {
       if(err != 0) {
         if(err == EBUSY) return cLockBusy;
 
-        logger::fatal("Mutex::try_lock: unknown error");
-        abort();
+        fail("Mutex::try_lock: unknown error");
       }
 
       owner_ = pthread_self();
@@ -396,8 +390,7 @@ namespace thread {
       if(err != 0) {
         if(err == EPERM) return cNotYours;
 
-        logger::fatal("Mutex::unlock: unknown error");
-        abort();
+        fail("Mutex::unlock: unknown error");
       }
 
       return cUnlocked;
@@ -428,13 +421,13 @@ namespace thread {
       if(err != 0) {
         switch(err) {
         case EBUSY:
-          logger::error("~Condition: locked by another thread");
+          fail("~Condition: locked by another thread");
           break;
         case EINVAL:
-          logger::error("~Condition: invalid value");
+          fail("~Condition: invalid value");
           break;
         default:
-          logger::error("~Condition: unknown error");
+          fail("~Condition: unknown error");
         }
       }
     }
@@ -484,10 +477,8 @@ namespace thread {
           // too, but we've got no recourse if that is true.
           return cReady;
         default:
-          logger::fatal("Unknown failure from pthread_cond_timedwait!");
+          fail("Condition::wait_until: unknown failure from pthread_cond_timedwait");
         }
-
-        abort();
       }
       return cReady;
     }
