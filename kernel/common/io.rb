@@ -14,8 +14,6 @@ class IO
     include ::IO::WaitWritable
   end
 
-  @@max_descriptors = Rubinius::AtomicReference.new(2)
-
   # Import platform constants
 
   SEEK_SET = Rubinius::Config['rbx.platform.io.SEEK_SET']
@@ -36,9 +34,8 @@ class IO
   Stat = Rubinius::Stat
 
   class FileDescriptor
-    #    attr_accessor :descriptor
-    #    attr_accessor :mode
-    #    attr_accessor :sync
+    @@max_descriptors = Rubinius::AtomicReference.new(2)
+
     attr_reader :offset
 
     O_RDONLY   = Rubinius::Config['rbx.platform.file.O_RDONLY']
@@ -52,16 +49,55 @@ class IO
       when "file"
         new(fd, stat)
       when "pipe"
-        PipeFileDescriptor.new(fd, stat)
+        PipeFileDescriptor.new(fd)
       when "socket"
       else
         new(fd, stat)
       end
     end
 
+    def self.open_with_mode(path, mode, perm)
+      fd = -1
+      fd = open_with_cloexec(path, mode, perm)
+
+      if fd < 0
+        Errno.handle("failed to open file")
+      end
+
+      return fd
+    end
+
+    def self.open_with_cloexec(path, mode, perm)
+      if O_CLOEXEC
+        fd = FFI::Platform::POSIX.open(path, mode | O_CLOEXEC, perm)
+        update_max_fd(fd)
+      else
+        fd = FFI::Platform::POSIX.open(path, mode, perm)
+        new_open_fd(fd)
+      end
+
+      return fd
+    end
+
+    def self.new_open_fd(new_fd)
+      if new_fd > 2
+        flags = FFI::Platform::POSIX.fcntl(new_fd, F_GETFD, 0)
+        Errno.handle("fcntl(2) failed") if flags == -1
+        flags = FFI::Platform::POSIX.fcntl(new_fd, F_SETFD, FFI::Platform::POSIX.fcntl(new_fd, F_GETFL, 0) | O_CLOEXEC)
+        Errno.handle("fcntl(2) failed") if flags == -1
+      end
+
+      update_max_fd(new_fd)
+    end
+
     def self.pagesize
       @pagesize ||= FFI::Platform::POSIX.getpagesize
     end
+
+    def self.update_max_fd(new_fd)
+      @@max_descriptors.get_and_set(new_fd)
+    end
+
 
     def initialize(fd, stat)
       @descriptor, @stat = fd, stat
@@ -89,14 +125,6 @@ class IO
       if @descriptor >= 3
         # finalize
       end
-    end
-
-    def self.new_unset_pipe
-      obj = allocate
-      obj.instance_variable_set :@descriptor, nil
-      obj.instance_variable_set :@mode, nil
-      obj.instance_variable_set :@sync, true
-      return obj
     end
 
     def descriptor
@@ -292,12 +320,14 @@ class IO
       return how
     end
 
-    def ensure_open
-      if descriptor.nil?
+    def ensure_open(fd=nil)
+      fd ||= descriptor
+      
+      if fd.nil?
         raise IOError, "uninitialized stream"
-      elsif descriptor == -1
+      elsif fd == -1
         raise IOError, "closed stream"
-      elsif descriptor == -2
+      elsif fd == -2
         raise IOError, "shutdown stream"
       end
       return nil
@@ -326,7 +356,7 @@ class IO
     def reopen(other_fd)
       current_fd = @descriptor
 
-      if FFI::Platform::POSIX.dup2(otherfd, current_fd) == -1
+      if FFI::Platform::POSIX.dup2(other_fd, current_fd) == -1
         Errno.handle("reopen")
         return nil
       end
@@ -336,10 +366,36 @@ class IO
       return true
     end
 
+    def reopen_path(path, mode)
+      current_fd = @descriptor
+
+      other_fd = -1
+      other_fd = FileDescriptor.open_with_cloexec(path, mode, 0666)
+
+      SystemCallError.errno_error("could not reopen path", Errno.errno, "reopen_path") if other_fd < 0
+      
+      FileDescriptor.new_open_fd(other_fd)
+
+      if FFI.call_failed?(FFI::Platform::POSIX.dup2(other_fd, current_fd))
+        if Errno.eql?(Errno::EBADF)
+          # means current_fd is closed, so set ourselves to use the new fd and continue
+          @descriptor = other_fd
+        else
+          SystemCallError.errno_error("could not reopen path", Errno.errno, "reopen_path")
+          return nil
+        end
+      end
+
+      # FIXME: figure out a way to reset the buffer in BufferedFileDescriptor
+      #reset_buffer
+      set_mode
+      return true
+    end
+
     def set_mode
       if IO::F_GETFL
-        acc_mode = FFI::Platform::POSIX.fcntl(@descriptor, IO::F_GETFL)
-        Ernno.handle("failed") if acc_mode < 0
+        acc_mode = FFI::Platform::POSIX.fcntl(@descriptor, IO::F_GETFL, 0)
+        Errno.handle("failed") if acc_mode < 0
       else
         acc_mode = 0
       end
@@ -377,6 +433,7 @@ class IO
   end # class FileDescriptor
 
   class BufferedFileDescriptor < FileDescriptor
+    
     def initialize(*args)
       super
       @unget_buffer = []
@@ -385,7 +442,8 @@ class IO
     def read(length, output_string=nil)
       length ||= FileDescriptor.pagesize
 
-      # FIXME: offset & eof stuff
+      # Preferentially read from the buffer and then from the underlying
+      # FileDescriptor.
       if length > @unget_buffer.size
         @offset += @unget_buffer.size
         length -= @unget_buffer.size
@@ -437,97 +495,45 @@ class IO
       @unget_buffer << byte
     end
   end # class BufferedFileDescriptor
+  
+  class PipeFileDescriptor < BufferedFileDescriptor
 
+    def self.connect_pipe_fds
+      fds = FFI::MemoryPointer.new(:int, 2)
 
-  def self.initialize_pipe
-    obj = allocate
-    obj.instance_variable_set :@fd, BufferedFileDescriptor.new_unset_pipe
-    obj.instance_variable_set :@eof, false
-    obj.instance_variable_set :@lineno, 0
-    obj.instance_variable_set :@offset, 0
-    obj.instance_variable_set :@unget_buffer, []
+      Errno.handle("creating pipe failed") if FFI.call_failed?(FFI::Platform::POSIX.pipe(fds))
+      fd0, fd1 = fds.read_array_of_int(2)
+
+      FileDescriptor.new_open_fd(fd0)
+      FileDescriptor.new_open_fd(fd1)
+    
+      return [fd0, fd1]
+    end
+    
+    def initialize(fd, mode)
+      @descriptor = fd
+      @mode = mode
+      @sync = true
+      @offset = 0
+      @eof = false
+      
+      @unget_buffer = []
+    end
+  end # class PipeFileDescriptor
+  
+  def new_pipe(fd, io, external, internal, options, mode)
+    @fd = PipeFileDescriptor.new(fd, mode)
+    @lineno = 0
+    @pipe = true
+    
+    if external || internal
+      io.set_encoding(external || Encoding.default_external,
+      internal || Encoding.default_internal, options)
+    end
 
     # setup finalization for pipes, FIXME
-
-    return obj
   end
-
-  def self.open_with_mode(path, mode, perm)
-    fd = -1
-    fd = open_with_cloexec(path, mode, perm)
-
-    if fd < 0
-      Errno.handle("failed to open file")
-    end
-
-    return fd
-  end
-
-  def self.open_with_cloexec(path, mode, perm)
-    if O_CLOEXEC
-      fd = FFI::Platform::POSIX.open(path, mode | O_CLOEXEC, perm)
-      update_max_fd(fd)
-    else
-      fd = FFI::Platform::POSIX.open(path, mode, perm)
-      new_open_fd(fd)
-    end
-
-    return fd
-  end
-
-  def self.new_open_fd(new_fd)
-    if new_fd > 2
-      flags = FFI::Platform::POSIX.fcntl(new_fd, F_GETFD)
-      Errno.handle("fcntl(2) failed") if flags == -1
-      flags = FFI::Platform::POSIX.fcntl(new_fd, F_SETFD, FFI::Platform::POSIX.fcntl(new_fd, F_GETFL) | O_CLOEXEC)
-      Errno.handle("fcntl(2) failed") if flags == -1
-    end
-
-    update_max_fd(new_fd)
-  end
-
-  def self.update_max_fd(new_fd)
-    @@max_descriptors.get_and_set(new_fd)
-  end
-
-  def reopen_path(path, mode)
-    current_fd = descriptor
-
-    other_fd = -1
-    other_fd = IO.open_with_cloexec(path, mode, 0666)
-
-    Exception::errno_error("could not reopen path", Errno.errno, "reopen_path") if other_fd < 0
-
-    if FFI::Platform::POSIX.dup2(other_fd, current_fd) == -1
-      if Errno.eql?(Errno::EBADF)
-        # means current_fd is closed, so set ourselves to use the new fd and continue
-        self.descriptor = other_fd
-      else
-        FFI::Platform::POSIX.close(other_fd) if other_fd > 0
-        Exception::errno_error("could not reopen path", Errno.errno, "reopen_path")
-      end
-    else
-      FFI::Platform::POSIX.close(other_fd)
-    end
-
-    set_mode # FIXME
-    return true
-  end
-
-  def connect_pipe(lhs, rhs)
-    fds = [0, 0]
-
-    Errno.handle("creating pipe failed") if pipe(fds) == -1
-
-    new_open_fd(fds[0])
-    new_open_fd(fds[1])
-
-    lhs.descriptor = fds[0]
-    rhs.descriptor = fds[1]
-    lhs.mode = O_RDONLY
-    rhs.mode = O_WRONLY
-    return true
-  end
+  private :new_pipe
 
 
   attr_accessor :external
@@ -802,7 +808,6 @@ class IO
     str = nil
     begin
       io.seek(offset) unless offset == 0
-
       if undefined.equal?(length)
         str = io.read
       else
@@ -966,19 +971,14 @@ class IO
   end
 
   def self.pipe(external=nil, internal=nil, options=nil)
-    lhs = initialize_pipe # FIXME - whole method needs to move
-    rhs = initialize_pipe
-
-    connect_pipe(lhs, rhs)
-
-    lhs.set_encoding external || Encoding.default_external,
-      internal || Encoding.default_internal, options
-
-    lhs.sync = true
-    rhs.sync = true
-
-    lhs.pipe = true
-    rhs.pipe = true
+    # The use of #allocate is to make sure we create an IO obj. Would be so much
+    # cleaner to just do a PipeIO class as a subclass, but that would not be
+    # backward compatible. <sigh>
+    fd0, fd1 = PipeFileDescriptor.connect_pipe_fds
+    lhs = allocate
+    lhs.send(:new_pipe, fd0, self, external, internal, options, FileDescriptor::O_RDONLY)
+    rhs = allocate
+    rhs.send(:new_pipe, fd1, self, nil, nil, nil, FileDescriptor::O_WRONLY)
 
     if block_given?
       begin
@@ -1213,7 +1213,7 @@ class IO
     mode = parse_mode(mode || "r")
     perm ||= 0666
 
-    open_with_mode path, mode, perm
+    FileDescriptor.open_with_mode path, mode, perm
   end
 
   #
@@ -2412,8 +2412,10 @@ class IO
         end
       end
 
-      io.ensure_open
-      io.reset_buffering
+      # Note: this is the whole reason that FileDescriptor#ensure_open takes an argument.
+      # 
+      ensure_open(io.descriptor)
+#      io.reset_buffering
 
       #reopen_io io
       @fd.reopen(io.descriptor)
@@ -2437,10 +2439,14 @@ class IO
       end
 
       reopen_path Rubinius::Type.coerce_to_path(other), mode
-      seek 0, SEEK_SET
+      seek 0, SEEK_SET unless closed?
     end
 
     self
+  end
+
+  def reopen_path(path, mode)
+    return @fd.reopen_path(path, mode)
   end
 
   ##
@@ -2840,8 +2846,8 @@ class IO
     return nil
   end
 
-  def ensure_open
-    @fd.ensure_open
+  def ensure_open(fd=nil)
+    @fd.ensure_open(fd)
   end
   private :ensure_open
 
