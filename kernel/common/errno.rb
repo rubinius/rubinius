@@ -18,10 +18,10 @@ module Errno
   end
   
   def self.errno
-    FFI::Platform::POSIX.errno
+    FFI.errno
   end
   
   def self.eql?(code)
-    FFI::Platform::POSIX.errno == code
+    FFI.errno == code
   end
 end
