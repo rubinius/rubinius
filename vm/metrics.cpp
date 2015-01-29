@@ -116,6 +116,14 @@ namespace rubinius {
         prefix_ = prefix;
       }
 
+      index = prefix_.find("$pid");
+      if(index != std::string::npos) {
+        std::ostringstream pid;
+        pid << getpid();
+
+        prefix_.replace(index, strlen("$pid"), pid.str());
+      }
+
       if(prefix_.size() > 0) prefix_ += ".";
 
       initialize();

@@ -200,7 +200,7 @@ Rubinius::ConfigurationVariables.define do |c|
     s.vm_variable "metrics.statsd.server", "localhost:8125",
       "The [host:]port of the StatsD server"
 
-    s.vm_variable "metrics.statsd.prefix", "host.$nodename.app.rbx",
+    s.vm_variable "metrics.statsd.prefix", "host.$nodename.$pid.app.rbx",
       "Prefix for StatsD metric names"
   end
 end
