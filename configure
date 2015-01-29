@@ -1994,9 +1994,10 @@ Available commands are:
     end
   end
 
-  # Returns true if MacPorts is installed in its default location.
+  # Returns true if the *port* command is in the PATH and identifies
+  # itself with "MacPorts" when run interactively.
   def macports?
-    File.exists? '/opt/local/bin/port'
+    `echo quit | port 2>&-`.start_with? 'MacPorts'
   end
 
   # Query MacPorts for the path to the latest installed version of
