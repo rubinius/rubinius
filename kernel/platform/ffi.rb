@@ -82,6 +82,10 @@ module FFI
       FFI::Platform::POSIX.errno
     end
 
+    # Convenience method for determining if a function call succeeded or failed
+    def call_failed?(return_code)
+      return_code == -1
+    end
   end
 
   # Converts a char
