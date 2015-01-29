@@ -1306,8 +1306,17 @@ class IO
 
   ##
   # Obtains a new duplicate descriptor for the current one.
-  def initialize_copy(original) # :nodoc:
-    self.descriptor = FFI::Platform::POSIX.dup(original)
+  def initialize_copy(original_io) # :nodoc:
+    # Make a complete copy of the +original_io+ object including
+    # the mode, path, position, lineno, and a new FD.
+    dest_io = self
+    
+    fd = FFI::Platform::POSIX.dup(original_io.descriptor)
+    dest_io.descriptor = fd
+    dest_io.mode = original_io.mode
+    dest_io.sync = original_io.sync
+    
+    dest_io
   end
 
   private :initialize_copy
@@ -1462,7 +1471,7 @@ class IO
 
   def dup
     ensure_open
-    super # FIXME - what's its super?
+    super # calls #initialize_copy
   end
 
   # Argument matrix for IO#gets and IO#each:
