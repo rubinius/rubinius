@@ -57,7 +57,8 @@ class Autoload
   end
 
   def find_const(under)
-    current, constant = under, undefined
+    current = under
+    constant = undefined
 
     while current
       if entry = current.constant_table.lookup(name)

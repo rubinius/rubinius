@@ -1,3 +1,14 @@
+Version: 2.5.1 (2015-01-26)
+
+* The -Xhelp output is improved. (John Muhl)
+* Command help explains RBXOPT. (Jason R. Clark)
+* Enumerable#flat_map compatibility is improved. (Brian Shirai)
+* Rubinius::Metrics timer is canceled properly on FreeBSD. (Brian Shirai)
+* Reading subprocess status when spawning handles EINTR. (Brian Shirai)
+* The readline C-ext is used on FreeBSD. (Brian Shirai)
+* Locking for fork and fork/exec is improved. (Brian Shirai)
+* Rubinius::Metrics are free'd on process halt. (Joe Eli McIlvain)
+
 Version: 2.5.0 (2015-01-17)
 
 * The JIT emits correct code for goto_if_nil, goto_if_not_nil. (Brian Shirai)

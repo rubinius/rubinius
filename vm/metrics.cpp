@@ -192,6 +192,7 @@ namespace rubinius {
       : AuxiliaryThread()
       , shared_(state->shared())
       , vm_(NULL)
+      , enabled_(true)
       , thread_exit_(false)
       , thread_running_(false)
       , thread_(state)
@@ -419,6 +420,7 @@ namespace rubinius {
 
     void Metrics::start(STATE) {
       vm_ = NULL;
+      enabled_ = true;
       thread_exit_ = false;
       thread_running_ = false;
 
@@ -447,7 +449,8 @@ namespace rubinius {
       if(!vm_) {
         vm_ = state->shared().new_vm();
         thread_exit_ = false;
-        thread_.set(Thread::create(state, vm_, G(thread), metrics_trampoline, true));
+        thread_.set(Thread::create(state, vm_, G(thread),
+              metrics_trampoline, true));
       }
 
       if(thread_.get()->fork_attached(state)) {
@@ -467,6 +470,7 @@ namespace rubinius {
           pthread_join(os, &return_value);
         }
 
+        VM::discard(state, vm_);
         vm_ = NULL;
       }
     }
@@ -484,9 +488,13 @@ namespace rubinius {
     }
 
     void Metrics::add_historical_metrics(MetricsData* metrics) {
-      utilities::thread::Mutex::LockGuard guard(metrics_lock_);
+      if(!enabled_) return;
 
-      metrics_history_.add(metrics);
+      {
+        utilities::thread::Mutex::LockGuard guard(metrics_lock_);
+
+        metrics_history_.add(metrics);
+      }
     }
 
     void Metrics::process_metrics(STATE) {

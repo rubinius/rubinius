@@ -20,8 +20,8 @@ namespace rubinius {
     ImmixGC* immix_;
     GCData* data_;
 
-    bool exit_;
-    bool running_;
+    bool thread_exit_;
+    bool thread_running_;
 
     TypedRoot<Thread*> thread_;
 
@@ -36,6 +36,8 @@ namespace rubinius {
     void perform(STATE);
 
     void initialize(STATE);
+
+    void wakeup();
 
     void start_thread(STATE);
     void stop_thread(STATE);

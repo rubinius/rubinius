@@ -222,9 +222,13 @@ module FFI
 
     def callback(a1, a2, a3=nil)
       if a3
-        name, params, ret =  a1, a2, a3
+        name = a1
+        params = a2
+        ret = a3
       else
-        name, params, ret = nil, a1, a2
+        name = nil
+        params = a1
+        ret = a2
       end
 
       args = params.map { |x| find_type(x) }

@@ -24,7 +24,8 @@ namespace rubinius {
     int pending_signals_[NSIG];
     int queued_signals_;
 
-    bool exit_;
+    bool thread_exit_;
+    bool thread_running_;
 
     TypedRoot<Thread*> thread_;
 
@@ -50,13 +51,14 @@ namespace rubinius {
 
     void add_signal(State*, int sig, HandlerType type = eCustom);
     void handle_signal(int sig);
-    static void signal_tramp(int sig);
+    static void signal_handler(int sig);
 
     bool deliver_signals(STATE, CallFrame* call_frame);
 
     void print_backtraces();
 
     void open_pipes();
+    void wakeup();
     void start_thread(STATE);
     void stop_thread(STATE);
 

@@ -15,12 +15,12 @@
 namespace rubinius {
   namespace utilities {
     namespace logger {
-      static thread::Mutex mutex_ = 0;
+      static thread::SpinLock lock_;
       static Logger* logger_ = 0;
       static logger_level loglevel_ = eWarn;
 
       void open(logger_type type, const char* identifier, logger_level level) {
-        mutex_.init();
+        lock_.init();
 
         switch(type) {
         case eSyslog:
@@ -64,7 +64,7 @@ namespace rubinius {
       }
 
       void fatal(const char* message, ...) {
-        thread::Mutex::LockGuard guard(mutex_);
+        thread::SpinLock::LockGuard guard(lock_);
 
         if(loglevel_ < eFatal) return;
 
@@ -82,7 +82,7 @@ namespace rubinius {
       }
 
       void error(const char* message, ...) {
-        thread::Mutex::LockGuard guard(mutex_);
+        thread::SpinLock::LockGuard guard(lock_);
 
         if(loglevel_ < eError) return;
 
@@ -99,7 +99,7 @@ namespace rubinius {
       }
 
       void warn(const char* message, ...) {
-        thread::Mutex::LockGuard guard(mutex_);
+        thread::SpinLock::LockGuard guard(lock_);
 
         if(loglevel_ < eWarn) return;
 
@@ -116,7 +116,7 @@ namespace rubinius {
       }
 
       void info(const char* message, ...) {
-        thread::Mutex::LockGuard guard(mutex_);
+        thread::SpinLock::LockGuard guard(lock_);
 
         if(loglevel_ < eInfo) return;
 
@@ -133,7 +133,7 @@ namespace rubinius {
       }
 
       void debug(const char* message, ...) {
-        thread::Mutex::LockGuard guard(mutex_);
+        thread::SpinLock::LockGuard guard(lock_);
 
         if(loglevel_ < eDebug) return;
 
@@ -153,9 +153,9 @@ namespace rubinius {
         time_t clock;
 
         time(&clock);
-        strftime(formatted_time, LOGGER_TIME_SIZE, "%b %e %H:%M:%S",
+        strftime(formatted_time_, LOGGER_TIME_SIZE, "%b %e %H:%M:%S",
             localtime(&clock));
-        return formatted_time;
+        return formatted_time_;
       }
 
       Syslog::Syslog(const char* identifier)

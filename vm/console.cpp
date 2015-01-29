@@ -223,6 +223,7 @@ namespace rubinius {
           pthread_join(os, &return_value);
         }
 
+        VM::discard(state, request_vm_);
         request_vm_ = NULL;
       }
 
@@ -238,6 +239,7 @@ namespace rubinius {
           pthread_join(os, &return_value);
         }
 
+        VM::discard(state, response_vm_);
         response_vm_ = NULL;
       }
     }

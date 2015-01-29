@@ -1,6 +1,15 @@
 require File.expand_path('../../spec_helper', __FILE__)
 
 describe "A method send" do
+  evaluate <<-ruby do
+      def m(a) a end
+    ruby
+
+    a = b = m 1
+    a.should == 1
+    b.should == 1
+  end
+
   context "with a single splatted Object argument" do
     before :all do
       def m(a) a end

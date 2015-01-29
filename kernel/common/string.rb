@@ -263,7 +263,9 @@ class String
 
     self.modify!
 
-    i, j = 0, -1
+    i = 0
+    j = -1
+
     while i < @num_bytes
       c = @data[i]
       unless table[c] == 1
@@ -516,7 +518,10 @@ class String
     table = count_table(*strings).__data__
     self.modify!
 
-    i, j, last = 1, 0, @data[0]
+    i = 1
+    j = 0
+    last = @data[0]
+
     while i < @num_bytes
       c = @data[i]
       unless c == last and table[c] == 1

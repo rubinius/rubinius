@@ -116,6 +116,8 @@ namespace rubinius {
     utilities::thread::Mutex ruby_critical_lock_;
     pthread_t ruby_critical_thread_;
 
+    utilities::thread::Mutex fork_exec_lock_;
+
     utilities::thread::SpinLock capi_ds_lock_;
     utilities::thread::SpinLock capi_locks_lock_;
     utilities::thread::SpinLock capi_constant_lock_;
@@ -227,6 +229,7 @@ namespace rubinius {
     }
 
     metrics::Metrics* start_metrics(STATE);
+    void disable_metrics(STATE);
 
     Environment* env() const {
       return env_;
@@ -274,6 +277,10 @@ namespace rubinius {
     }
 
     const unsigned int* object_memory_mark_address() const;
+
+    utilities::thread::Mutex& fork_exec_lock() {
+      return fork_exec_lock_;
+    }
 
     void set_use_capi_lock(bool s) {
       use_capi_lock_ = s;

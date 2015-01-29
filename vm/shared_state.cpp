@@ -80,6 +80,11 @@ namespace rubinius {
       console_ = 0;
     }
 
+    if(metrics_) {
+      delete metrics_;
+      metrics_ = 0;
+    }
+
     delete tool_broker_;
     delete global_cache;
     delete world_;
@@ -146,7 +151,7 @@ namespace rubinius {
         ++i) {
       if(VM* vm = (*i)->as_vm()) {
         Thread *thread = vm->thread.get();
-        if(!thread->system_thread() && CBOOL(thread->alive())) {
+        if(!thread->internal_thread() && CBOOL(thread->alive())) {
           threads->append(state, thread);
         }
       }
@@ -175,6 +180,10 @@ namespace rubinius {
     }
 
     return metrics_;
+  }
+
+  void SharedState::disable_metrics(STATE) {
+    if(metrics_) metrics_->disable(state);
   }
 
   void SharedState::reset_threads(STATE, GCToken gct, CallFrame* call_frame) {
@@ -211,12 +220,15 @@ namespace rubinius {
 
     env_->set_root_vm(state->vm());
 
+    disable_metrics(state);
+
     reset_threads(state, gct, call_frame);
 
     // Reinit the locks for this object
     lock_init(state->vm());
     global_cache->reset();
     ruby_critical_lock_.init();
+    fork_exec_lock_.init();
     capi_ds_lock_.init();
     capi_locks_lock_.init();
     capi_constant_lock_.init();

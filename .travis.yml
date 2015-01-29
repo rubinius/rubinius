@@ -1,7 +1,9 @@
 language: cpp
+
 compiler:
   - gcc
   - clang
+
 before_install:
   - echo $LANG
   - echo $LC_ALL
@@ -10,15 +12,23 @@ before_install:
   - rvm use $RVM --install --binary --fuzzy
   - gem update --system
   - gem --version
+
 before_script:
   - travis_retry bundle
   - if [ $TRAVIS_OS_NAME == linux ]; then travis_retry ./configure --llvm-config llvm-config-3.4; fi
   - if [ $TRAVIS_OS_NAME == osx ]; then travis_retry ./configure --llvm-config /usr/local/opt/llvm/bin/llvm-config; fi
+
 script: rake
+
+after_success:
+  - if [ $TRAVIS_BRANCH == $TRAVIS_TAG ]; then rake deploy; fi
+
 branches:
   only:
     - master
     - 1.8.7
+    - /^v\d+\./
+
 notifications:
   email: false
   irc:
@@ -32,9 +42,12 @@ notifications:
     on_success: change
     on_failure: always
     on_start: false
+
 env:
   - RVM=2.0.0 LANG="en_US.UTF-8"
+
 os:
   - linux
   - osx
+
 osx_image: xcode61
