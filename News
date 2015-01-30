@@ -8,6 +8,29 @@ typically changes that are related to specs, build system, or refactoring.
 
 For source changes, see https://github.com/rubinius/rubinius/commits/master.
 
+Version: 2.5.2 (2015-01-30)
+
+* Thread handling has been improved based on analysis by Joe Eli McIlvain
+  using valgrind:
+
+  1. Metrics counts for threads are updated before destructing thread state.
+  2. Threads sleeping when fork() is called are cleaned up in the child.
+  3. Thread state is destructed after joining the system thread.
+  4. Stopping internal threads uses a timeout to avoid system hangs.
+  5. The system checkpoints before fork().
+
+* Configure finds LLVM if it is available via MacPorts.
+
+* The StatsD emmiter for Metrics includes PID in the key prefix to improve
+  support for systems using multiple processes or forking subprocesses.
+
+* Process.groups used to return a maximum of 32 groups unless the
+  Process.maxgroups= accessor was called to increase the maximum. This created
+  an issue installing the rubysl-openssl gem for users with more than 32
+  groups. The default value of 32 is specified in MRI documentation. The
+  default value is retained for compatibility but Process.groups first
+  queries the total number of groups then returns an Array of all groups.
+
 Version: 2.5.1 (2015-01-26)
 
 * The locking in the virtual machine around fork and fork/exec (e.g. for
