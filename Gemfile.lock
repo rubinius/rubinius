@@ -13,7 +13,7 @@ GEM
       rubinius-melbourne (~> 1.0)
       rubinius-processor (~> 1.0)
       rubinius-toolset (~> 2.0)
-    rubinius-compiler (1.2.0)
+    rubinius-compiler (1.2.1)
     rubinius-melbourne (1.2.0.0)
     rubinius-processor (1.3.0)
     rubinius-toolset (2.3.1)
