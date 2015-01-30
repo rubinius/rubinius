@@ -524,6 +524,12 @@ class IO
       
       @unget_buffer = []
     end
+
+    def eof?
+      str = read(1)
+      unget(str) if str
+      @eof
+    end
   end # class PipeFileDescriptor
   
   def new_pipe(fd, external, internal, options, mode, do_encoding=false)
