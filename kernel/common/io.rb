@@ -47,7 +47,7 @@ class IO
 
       case stat.ftype
       when "file"
-        new(fd, stat)
+        BufferedFileDescriptor.new(fd, stat)
       when "pipe"
         PipeFileDescriptor.new(fd)
       when "socket"
@@ -57,7 +57,6 @@ class IO
     end
 
     def self.open_with_mode(path, mode, perm)
-      fd = -1
       fd = open_with_cloexec(path, mode, perm)
 
       if fd < 0
@@ -1314,18 +1313,27 @@ class IO
   # Obtains a new duplicate descriptor for the current one.
   def initialize_copy(original_io) # :nodoc:
     # Make a complete copy of the +original_io+ object including
-    # the mode, path, position, lineno, and a new FD.
+    # the mode, binmode, path, position, lineno, and a new FD.
     dest_io = self
     
     fd = FFI::Platform::POSIX.dup(original_io.descriptor)
-    dest_io.descriptor = fd
+
+    # The system makes a shallow copy of all ivars, so this copy has
+    # the same @fd as the original. That shallow copy is really only
+    # relevant for primitive values (Fixnum, String, etc) and not
+    # our own objects. Instantiate a new @fd.
+    @fd = FileDescriptor.choose_type(fd)
     dest_io.mode = original_io.mode
     dest_io.sync = original_io.sync
+    dest_io.binmode if original_io.binmode?
     
     dest_io
   end
-
   private :initialize_copy
+  
+  def super_inspect
+    "<IO:#{object_id}> \n#{@fd.inspect}"
+  end
 
   #  alias_method :prim_write, :write
   #  alias_method :prim_close, :close
