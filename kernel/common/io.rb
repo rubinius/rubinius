@@ -104,7 +104,7 @@ class IO
 
       if acc_mode < 0
         # Assume it's closed.
-        if Errno.eql?(Errno::EBADF)
+        if Errno.eql?(Errno::EBADF::Errno)
           @descriptor = -1
         end
 
@@ -178,7 +178,7 @@ class IO
         bytes_read = read_into_storage(length, storage)
 
         if bytes_read == -1
-          if Errno.eql?(Errno::EAGAIN) || Errno.eql?(Errno::EINTR)
+          if Errno.eql?(Errno::EAGAIN::Errno) || Errno.eql?(Errno::EINTR::Errno)
             redo
           else
             Errno.handle "read(2) failed"
@@ -212,7 +212,7 @@ class IO
         if bytes_read == -1
           errno = Errno.errno
 
-          if errno == Errno::EAGAIN || errno == Errno::EINTR
+          if errno == Errno::EAGAIN::Errno || errno == Errno::EINTR::Errno
             ensure_open
             next
           else
@@ -240,10 +240,10 @@ class IO
 
         if bytes_written == -1
           errno = Errno.errno
-          if errno == Errno::EINTR || errno == Errno::EAGAIN
+          if errno == Errno::EINTR::Errno || errno == Errno::EAGAIN::Errno
             # do a #select and wait for descriptor to become writable
             continue
-          elsif errno == Errno::EPIPE
+          elsif errno == Errno::EPIPE::Errno
             if @descriptor == 1 || @descriptor == 2
               return buf_size
             end
@@ -367,22 +367,20 @@ class IO
 
     def reopen_path(path, mode)
       current_fd = @descriptor
-
-      other_fd = -1
       other_fd = FileDescriptor.open_with_cloexec(path, mode, 0666)
 
-      SystemCallError.errno_error("could not reopen path", Errno.errno, "reopen_path") if other_fd < 0
-      
-      FileDescriptor.new_open_fd(other_fd)
+      Errno.handle("could not reopen path \"#{path}\"") if other_fd < 0
 
       if FFI.call_failed?(FFI::Platform::POSIX.dup2(other_fd, current_fd))
-        if Errno.eql?(Errno::EBADF)
+        if Errno.eql?(Errno::EBADF::Errno)
           # means current_fd is closed, so set ourselves to use the new fd and continue
           @descriptor = other_fd
         else
-          SystemCallError.errno_error("could not reopen path", Errno.errno, "reopen_path")
-          return nil
+          FFI::Platform::POSIX.close(other_fd) if other_fd > 0
+          Errno.handle("could not reopen path \"#{path}\"")
         end
+      else
+        FFI::Platform::POSIX.close(other_fd)
       end
 
       # FIXME: figure out a way to reset the buffer in BufferedFileDescriptor
