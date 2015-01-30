@@ -8,7 +8,7 @@ rb-readline-0.5.2.gem
 rdoc-4.2.0.gem
 rubinius-ast-1.3.0.gem
 rubinius-build_tools-1.0.0.gem
-rubinius-compiler-1.2.0.gem
+rubinius-compiler-1.2.1.gem
 rubinius-coverage-2.0.3.gem
 rubinius-debugger-2.2.0.gem
 rubinius-developer_tools-2.0.0.gem
