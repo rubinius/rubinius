@@ -1647,7 +1647,7 @@ class IO
         if buffer.size == 0
           consumed_bytes = 0
           starting_position = @io.pos
-          buffer = @io.read(IO.pagesize)
+          buffer = @io.read(FileDescriptor.pagesize)
         end
 
 
@@ -2002,8 +2002,8 @@ class IO
 
   def getbyte
     ensure_open
-
-    return read(1).ord
+    byte = read(1)
+    return(byte ? byte.ord : nil)
   end
 
   ##
