@@ -1,3 +1,13 @@
+Version: 2.5.2 (2015-01-30)
+
+* Metrics tracking of Thread count is improved. (Joe Eli McIlvain)
+* HAMT Hash#select handles frozen instances. (Sophia Shao)
+* LLVM is detected from MacPorts. (Todd A. Jacobs)
+* Thread cleanup is improved. (Brian Shirai, Joe Eli McIlvain)
+* Thread handling around fork() is improved. (Brian Shirai)
+* StatsD tag prefix includes PID by default. (Brian Shirai)
+* Process.groups returns all groups on the system. (Brian Shirai)
+
 Version: 2.5.1 (2015-01-26)
 
 * The -Xhelp output is improved. (John Muhl)
