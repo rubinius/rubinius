@@ -527,13 +527,13 @@ class IO
     end
   end # class PipeFileDescriptor
   
-  def new_pipe(fd, io, external, internal, options, mode)
+  def new_pipe(fd, external, internal, options, mode)
     @fd = PipeFileDescriptor.new(fd, mode)
     @lineno = 0
     @pipe = true
-    
+
     if external || internal
-      io.set_encoding(external || Encoding.default_external,
+      set_encoding(external || Encoding.default_external,
       internal || Encoding.default_internal, options)
     end
 
@@ -982,9 +982,9 @@ class IO
     # backward compatible. <sigh>
     fd0, fd1 = PipeFileDescriptor.connect_pipe_fds
     lhs = allocate
-    lhs.send(:new_pipe, fd0, self, external, internal, options, FileDescriptor::O_RDONLY)
+    lhs.send(:new_pipe, fd0, external, internal, options, FileDescriptor::O_RDONLY)
     rhs = allocate
-    rhs.send(:new_pipe, fd1, self, nil, nil, nil, FileDescriptor::O_WRONLY)
+    rhs.send(:new_pipe, fd1, nil, nil, nil, FileDescriptor::O_WRONLY)
 
     if block_given?
       begin
