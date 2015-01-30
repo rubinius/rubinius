@@ -382,7 +382,7 @@ namespace rubinius {
     return cNil;
   }
 
-  static int fork_exec(STATE, int errors_fd) {
+  static int fork_exec(STATE, GCToken gct, CallFrame* call_frame, int errors_fd) {
     utilities::thread::Mutex::LockGuard guard(state->shared().fork_exec_lock());
 
     state->shared().auxiliary_threads()->before_fork_exec(state);
@@ -390,7 +390,13 @@ namespace rubinius {
     // If execvp() succeeds, we'll read EOF and know.
     fcntl(errors_fd, F_SETFD, FD_CLOEXEC);
 
-    int pid = ::fork();
+    int pid;
+
+    {
+      StopTheWorld stw(state, gct, call_frame);
+
+      pid = ::fork();
+    }
 
     if(pid > 0) {
       state->shared().auxiliary_threads()->after_fork_exec_parent(state);
@@ -416,7 +422,7 @@ namespace rubinius {
       return NULL;
     }
 
-    int pid = fork_exec(state, errors[1]);
+    int pid = fork_exec(state, gct, calling_environment, errors[1]);
 
     // error
     if(pid == -1) {
@@ -524,7 +530,7 @@ namespace rubinius {
       return NULL;
     }
 
-    int pid = fork_exec(state, errors[1]);
+    int pid = fork_exec(state, gct, calling_environment, errors[1]);
 
     // error
     if(pid == -1) {
@@ -783,7 +789,11 @@ namespace rubinius {
 
       state->shared().auxiliary_threads()->before_fork(state);
 
-      pid = ::fork();
+      {
+        StopTheWorld stw(state, gct, calling_environment);
+
+        pid = ::fork();
+      }
 
       if(pid > 0) {
         state->shared().auxiliary_threads()->after_fork_parent(state);
