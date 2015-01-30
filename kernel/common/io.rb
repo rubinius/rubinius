@@ -81,9 +81,9 @@ class IO
     def self.new_open_fd(new_fd)
       if new_fd > 2
         flags = FFI::Platform::POSIX.fcntl(new_fd, F_GETFD, 0)
-        Errno.handle("fcntl(2) failed") if flags == -1
+        Errno.handle("fcntl(2) failed") if FFI.call_failed?(flags)
         flags = FFI::Platform::POSIX.fcntl(new_fd, F_SETFD, FFI::Platform::POSIX.fcntl(new_fd, F_GETFL, 0) | O_CLOEXEC)
-        Errno.handle("fcntl(2) failed") if flags == -1
+        Errno.handle("fcntl(2) failed") if FFI.call_failed?(flags)
       end
 
       update_max_fd(new_fd)
@@ -160,7 +160,7 @@ class IO
 
       position = FFI::Platform::POSIX.lseek(descriptor, offset, whence)
 
-      Errno.handle("seek failed") if position == -1
+      Errno.handle("seek failed") if FFI.call_failed?(position)
 
       @offset = position
       @eof = position == @total_size
@@ -177,7 +177,7 @@ class IO
         raise IOError, "read(2) failed to malloc a buffer for read length #{length}" if storage.null?
         bytes_read = read_into_storage(length, storage)
 
-        if bytes_read == -1
+        if FFI.call_failed?(bytes_read)
           if Errno.eql?(Errno::EAGAIN::Errno) || Errno.eql?(Errno::EINTR::Errno)
             redo
           else
@@ -209,7 +209,7 @@ class IO
       while true
         bytes_read = FFI::Platform::POSIX.read(descriptor, storage, count)
 
-        if bytes_read == -1
+        if FFI.call_failed?(bytes_read)
           errno = Errno.errno
 
           if errno == Errno::EAGAIN::Errno || errno == Errno::EINTR::Errno
@@ -238,7 +238,7 @@ class IO
       while left > 0
         bytes_written = FFI::Platform::POSIX.write(@descriptor, buffer, left)
 
-        if bytes_written == -1
+        if FFI.call_failed?(bytes_written)
           errno = Errno.errno
           if errno == Errno::EINTR::Errno || errno == Errno::EAGAIN::Errno
             # do a #select and wait for descriptor to become writable
@@ -270,7 +270,7 @@ class IO
       if fd != -1
         ret_code = FFI::Platform::POSIX.close(fd)
 
-        if ret_code == -1
+        if FFI.call_failed?(ret_code)
           Errno.handle("close failed")
         elsif ret_code == 0
           # no op
@@ -305,7 +305,7 @@ class IO
 
       ret_code = FFI::Platform::POSIX.shutdown(fd, how)
 
-      if ret_code == -1
+      if FFI.call_failed?(ret_code)
         Errno.handle("shutdown(2) failed")
       elsif ret_code == 0
         if how == IO::SHUT_RDWR
@@ -355,7 +355,7 @@ class IO
     def reopen(other_fd)
       current_fd = @descriptor
 
-      if FFI::Platform::POSIX.dup2(other_fd, current_fd) == -1
+      if FFI.call_failed?(FFI::Platform::POSIX.dup2(other_fd, current_fd))
         Errno.handle("reopen")
         return nil
       end
@@ -406,7 +406,7 @@ class IO
       # FIXME: fail if +offset+ is too large, see C++ code
 
       status = FFI::Platform::POSIX.ftruncate(descriptor, offset)
-      Errno.handle("ftruncate(2) failed") if status == -1
+      Errno.handle("ftruncate(2) failed") if FFI.call_failed?(status)
       return status
     end
 
@@ -414,7 +414,7 @@ class IO
       # FIXME: fail if +offset+ is too large, see C++ code
 
       status = FFI::Platform::POSIX.truncate(name, offset)
-      Errno.handle("truncate(2) failed") if status == -1
+      Errno.handle("truncate(2) failed") if FFI.call_failed?(status)
       return status
     end
 
