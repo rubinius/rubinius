@@ -434,8 +434,7 @@ namespace rubinius {
     void clear_waiter();
     bool wakeup(STATE, GCToken gct, CallFrame* call_frame);
 
-    void set_parked();
-    void set_unparked();
+    void reset_parked();
 
     void set_sleeping();
     void clear_sleeping();

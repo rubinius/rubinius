@@ -66,4 +66,9 @@ namespace rubinius {
 
     return timeout;
   }
+
+  void Park::reset_parked() {
+    mutex_.init();
+    cond_.init();
+  }
 }

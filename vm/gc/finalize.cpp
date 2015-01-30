@@ -99,12 +99,7 @@ namespace rubinius {
     lists_ = new FinalizeObjectsList();
     live_list_ = new FinalizeObjects();
 
-    live_guard_.init();
-    worker_lock_.init();
-    worker_cond_.init();
-
-    supervisor_lock_.init();
-    supervisor_cond_.init();
+    initialize(state);
   }
 
   FinalizerHandler::~FinalizerHandler() {
@@ -119,6 +114,18 @@ namespace rubinius {
       }
       delete lists_;
     }
+  }
+
+  void FinalizerHandler::initialize(STATE) {
+    live_guard_.init();
+    worker_lock_.init();
+    worker_cond_.init();
+    supervisor_lock_.init();
+    supervisor_cond_.init();
+    thread_exit_ = false;
+    thread_running_ = false;
+    finishing_ = false;
+    vm_ = NULL;
   }
 
   void FinalizerHandler::start_thread(STATE) {
@@ -165,15 +172,7 @@ namespace rubinius {
   }
 
   void FinalizerHandler::after_fork_child(STATE) {
-    live_guard_.init();
-    worker_lock_.init();
-    worker_cond_.init();
-    supervisor_lock_.init();
-    supervisor_cond_.init();
-    thread_exit_ = false;
-    thread_running_ = false;
-    finishing_ = false;
-    vm_ = NULL;
+    initialize(state);
 
     start_thread(state);
   }

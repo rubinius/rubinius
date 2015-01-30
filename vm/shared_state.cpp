@@ -204,7 +204,9 @@ namespace rubinius {
           thread->stopped();
         }
 
-        vm->unlock(state->vm());
+        vm->unlock();
+        vm->reset_parked();
+
         delete vm;
       }
     }
@@ -332,7 +334,7 @@ namespace rubinius {
   void SharedState::leave_capi(STATE) {
     NativeMethodEnvironment* env = state->vm()->native_method_environment;
     if(int lock_index = env->current_native_frame()->capi_lock_index()) {
-      capi_locks_[lock_index - 1]->unlock(state->vm());
+      capi_locks_[lock_index - 1]->unlock();
     }
   }
 
