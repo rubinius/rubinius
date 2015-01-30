@@ -8,18 +8,31 @@ typically changes that are related to specs, build system, or refactoring.
 
 For source changes, see https://github.com/rubinius/rubinius/commits/master.
 
+Version 1.4.2 (2015-01-30)
+
+* The semanics of Kernel#require are changed to match those of Ruby 1.9+ where
+  a file is only required one time regardless of the path passed to #require
+  when that path refers to the same file.
+
+* Enumerable#enum_with_index is provided.
+
+* The HAMT implementation of Hash#select hondles frozen instances.
+
+* All changes from master for 2.5.2 that are not language version dependent are
+  merged into 1.8.7 branch.
+
 Version 1.4.1 (2015-01-26)
 
-The developer tools and IRB are included in the release builds again.
+* The developer tools and IRB are included in the release builds again.
 
-All changes from master for 2.5.1 that are not language version dependent are
-merged into 1.8.7 branch.
+* All changes from master for 2.5.1 that are not language version dependent are
+  merged into 1.8.7 branch.
 
 Version: 1.4.0 (2015-01-20)
 
-All changes from master for 2.3.0-2.5.0 that are not language version
-dependent are merged into 1.8.7 branch. These changes are listed below
-verbatim from master News.
+* All changes from master for 2.3.0-2.5.0 that are not language version
+  dependent are merged into 1.8.7 branch. These changes are listed below
+  verbatim from master News.
 
 Added in: 2.5.0 (2015-01-17)
 
