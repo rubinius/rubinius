@@ -444,13 +444,19 @@ class IO
 
       # Preferentially read from the buffer and then from the underlying
       # FileDescriptor.
+      # FIXME: make this logic clearer.
       if length > @unget_buffer.size
         @offset += @unget_buffer.size
         length -= @unget_buffer.size
 
         str = @unget_buffer.inject("") { |sum, val| val.chr + sum }
         str2 = super(length, output_string)
-        str += str2 if str2
+        
+        if str.size == 0 && str2.nil?
+          return nil
+        elsif str2
+          str += str2
+        end
         @unget_buffer.clear
       elsif length == @unget_buffer.size
         @offset += length
@@ -2858,19 +2864,16 @@ class IO
   def ensure_open(fd=nil)
     @fd.ensure_open(fd)
   end
-  private :ensure_open
 
   def ensure_open_and_readable
     ensure_open
     raise IOError, "not opened for reading" if @fd.write_only?
   end
-  private :ensure_open_and_readable
 
   def ensure_open_and_writable
     ensure_open
     raise IOError, "not opened for writing" if @fd.read_only?
   end
-  private :ensure_open_and_writable
 end
 
 ##
