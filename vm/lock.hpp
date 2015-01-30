@@ -69,7 +69,7 @@ namespace rubinius {
       lock_line_ = line;
     }
 
-    void unlock(ManagedThread* th) {
+    void unlock() {
       locking_thread_ = 0;
       utilities::thread::Mutex::unlock();
       lock_file_ = "";
@@ -97,7 +97,7 @@ namespace rubinius {
       lock_line_ = line;
     }
 
-    void unlock(ManagedThread* th) {
+    void unlock() {
       locking_thread_ = 0;
       utilities::thread::SpinLock::unlock();
       lock_file_ = "";
@@ -138,9 +138,9 @@ namespace rubinius {
 
     ~ScopeLock() {
       if(Mutex* mutex = lock_->as_mutex()) {
-        mutex->unlock(thread_);
+        mutex->unlock();
       } else if(SpinLock* sl = lock_->as_spinlock()) {
-        sl->unlock(thread_);
+        sl->unlock();
       } else {
         std::cerr << "Syncronize used with confusing lock type.\n";
       }
@@ -169,8 +169,8 @@ namespace rubinius {
       mutex_.lock(th, file, line);
     }
 
-    void unlock(ManagedThread* th) {
-      mutex_.unlock(th);
+    void unlock() {
+      mutex_.unlock();
     }
   };
 
@@ -205,7 +205,7 @@ namespace rubinius {
 
       if(locked_) {
         locked_ = false;
-        lock_->unlock(thread_);
+        lock_->unlock();
       }
     }
 
@@ -219,7 +219,7 @@ namespace rubinius {
     }
 
     ~LockableScopedLock() {
-      if(locked_) lock_->unlock(thread_);
+      if(locked_) lock_->unlock();
     }
   };
 

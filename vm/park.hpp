@@ -32,6 +32,7 @@ namespace rubinius {
       return sleeping_;
     }
 
+    void reset_parked();
     Object* park(STATE, CallFrame* call_frame);
     Object* park_timed(STATE, CallFrame* call_frame, struct timespec* ts);
   };

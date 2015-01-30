@@ -107,7 +107,7 @@ namespace rubinius {
     vm->lock(state->vm());
     vm->saved_call_frame_ = 0;
     vm->shared.remove_vm(vm);
-    vm->unlock(state->vm());
+    vm->unlock();
 
     state->vm()->metrics()->system_metrics.vm_threads--;
 
@@ -443,6 +443,10 @@ namespace rubinius {
 
   void VM::clear_sleeping() {
     thread->sleep(this, cFalse);
+  }
+
+  void VM::reset_parked() {
+    park_->reset_parked();
   }
 
   void VM::register_raise(STATE, Exception* exc) {

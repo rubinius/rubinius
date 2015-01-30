@@ -361,8 +361,9 @@ module Process
 
   def self.groups
     g = []
-    FFI::MemoryPointer.new(:int, @maxgroups) { |p|
-      num_groups = FFI::Platform::POSIX.getgroups(@maxgroups, p)
+    count = Rubinius::FFI::Platform::POSIX.getgroups(0, nil)
+    FFI::MemoryPointer.new(:int, count) { |p|
+      num_groups = FFI::Platform::POSIX.getgroups(count, p)
       Errno.handle if num_groups == -1
       g = p.read_array_of_int(num_groups)
     }

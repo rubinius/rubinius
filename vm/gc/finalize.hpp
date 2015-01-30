@@ -127,6 +127,8 @@ namespace rubinius {
     void supervisor_wait();
     void wakeup();
 
+    void initialize(STATE);
+
     void start_thread(STATE);
     void stop_thread(STATE);
 

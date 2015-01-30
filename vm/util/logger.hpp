@@ -35,7 +35,7 @@ namespace rubinius {
       class Logger {
 #define LOGGER_TIME_SIZE    16
 
-        char formatted_time[LOGGER_TIME_SIZE];
+        char formatted_time_[LOGGER_TIME_SIZE];
 
       public:
 
