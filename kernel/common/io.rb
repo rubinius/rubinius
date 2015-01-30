@@ -527,15 +527,15 @@ class IO
     end
   end # class PipeFileDescriptor
   
-  def new_pipe(fd, external, internal, options, mode)
+  def new_pipe(fd, external, internal, options, mode, do_encoding=false)
     @fd = PipeFileDescriptor.new(fd, mode)
     @lineno = 0
     @pipe = true
 
-    if external || internal
-      set_encoding(external || Encoding.default_external,
-      internal || Encoding.default_internal, options)
-    end
+    # Why do we only set encoding for the "left hand side" pipe? Why not both?
+    if do_encoding
+      set_encoding((external || Encoding.default_external), (internal || Encoding.default_internal), options)
+   end
 
     # setup finalization for pipes, FIXME
   end
@@ -982,7 +982,7 @@ class IO
     # backward compatible. <sigh>
     fd0, fd1 = PipeFileDescriptor.connect_pipe_fds
     lhs = allocate
-    lhs.send(:new_pipe, fd0, external, internal, options, FileDescriptor::O_RDONLY)
+    lhs.send(:new_pipe, fd0, external, internal, options, FileDescriptor::O_RDONLY, true)
     rhs = allocate
     rhs.send(:new_pipe, fd1, nil, nil, nil, FileDescriptor::O_WRONLY)
 
