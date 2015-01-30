@@ -1,3 +1,11 @@
+Version 1.4.2 (2015-01-30)
+
+* Enumerable#enum_with_index is provided. (Sophia Shao)
+* Kernel#require stores absolute paths preventing multiple requires of a
+  single file based on different require paths. (Sophia Shao)
+* HAMT Hash#select handles frozen instances. (Sophia Shao)
+* All master branch changes for 2.5.2 are included. (Brian Shirai)
+
 Version 1.4.1 (2015-01-26)
 
 * The developer tool gems are installed. (Brian Shirai)
