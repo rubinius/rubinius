@@ -115,10 +115,7 @@ class IO
 
       @sync = true
 
-      # Discover final size of file so we can set EOF properly
-      @total_size = @stat.size #sysseek(0, SEEK_END)
-      @offset = 0 # sysseek(0)
-      @eof = @offset == @total_size
+      reset_positioning(@stat)
 
       # Don't bother to add finalization for stdio
       if @descriptor >= 3
@@ -164,6 +161,7 @@ class IO
 
       @offset = position
       @eof = position == @total_size
+
       return position
     end
 
@@ -321,7 +319,7 @@ class IO
 
     def ensure_open(fd=nil)
       fd ||= descriptor
-      
+
       if fd.nil?
         raise IOError, "uninitialized stream"
       elsif fd == -1
@@ -339,15 +337,15 @@ class IO
     def force_write_only
       @mode = (@mode & ~IO::O_ACCMODE) | O_WRONLY
     end
-    
+
     def read_only?
       (@mode & O_ACCMODE) == O_RDONLY
     end
-    
+
     def write_only?
       (@mode & O_ACCMODE) == O_WRONLY
     end
-    
+
     def read_write?
       (@mode & O_ACCMODE) == O_RDWR
     end
@@ -361,6 +359,7 @@ class IO
       end
 
       set_mode
+      reset_positioning
 
       return true
     end
@@ -383,11 +382,20 @@ class IO
         FFI::Platform::POSIX.close(other_fd)
       end
 
-      # FIXME: figure out a way to reset the buffer in BufferedFileDescriptor
-      #reset_buffer
       set_mode
+      reset_positioning
+      
       return true
     end
+    
+    def reset_positioning(stat=nil)
+      # Discover final size of file so we can set EOF properly
+      stat = Stat.fstat(@descriptor) unless stat
+      @total_size = stat.size
+      @offset = 0
+      @eof = @offset == @total_size
+    end
+    private :reset_positioning
 
     def set_mode
       if IO::F_GETFL
@@ -430,11 +438,6 @@ class IO
   end # class FileDescriptor
 
   class BufferedFileDescriptor < FileDescriptor
-    
-    def initialize(*args)
-      super
-      @unget_buffer = []
-    end
 
     def read(length, output_string=nil)
       length ||= FileDescriptor.pagesize
@@ -448,7 +451,7 @@ class IO
 
         str = @unget_buffer.inject("") { |sum, val| val.chr + sum }
         str2 = super(length, output_string)
-        
+
         if str.size == 0 && str2.nil?
           return nil
         elsif str2
@@ -480,7 +483,7 @@ class IO
 
       return output_string
     end
-    
+
     def eof?
       super && @unget_buffer.empty?
     end
@@ -488,9 +491,14 @@ class IO
     def flush
       @unget_buffer.clear
     end
-    
+
     def raise_if_buffering
       raise IOError unless @unget_buffer.empty?
+    end
+    
+    def reset_positioning(*args)
+      super
+      @unget_buffer = []
     end
 
     def unget(byte)
@@ -498,7 +506,7 @@ class IO
       @unget_buffer << byte
     end
   end # class BufferedFileDescriptor
-  
+
   class PipeFileDescriptor < BufferedFileDescriptor
 
     def self.connect_pipe_fds
@@ -509,17 +517,17 @@ class IO
 
       FileDescriptor.new_open_fd(fd0)
       FileDescriptor.new_open_fd(fd1)
-    
+
       return [fd0, fd1]
     end
-    
+
     def initialize(fd, mode)
       @descriptor = fd
       @mode = mode
       @sync = true
       @offset = 0
       @eof = false
-      
+
       @unget_buffer = []
     end
 
@@ -529,7 +537,7 @@ class IO
       @eof
     end
   end # class PipeFileDescriptor
-  
+
   def new_pipe(fd, external, internal, options, mode, do_encoding=false)
     @fd = PipeFileDescriptor.new(fd, mode)
     @lineno = 0
@@ -538,7 +546,7 @@ class IO
     # Why do we only set encoding for the "left hand side" pipe? Why not both?
     if do_encoding
       set_encoding((external || Encoding.default_external), (internal || Encoding.default_internal), options)
-   end
+    end
 
     # setup finalization for pipes, FIXME
   end
@@ -1319,7 +1327,7 @@ class IO
     # Make a complete copy of the +original_io+ object including
     # the mode, binmode, path, position, lineno, and a new FD.
     dest_io = self
-    
+
     fd = FFI::Platform::POSIX.dup(original_io.descriptor)
 
     # The system makes a shallow copy of all ivars, so this copy has
@@ -1330,11 +1338,11 @@ class IO
     dest_io.mode = original_io.mode
     dest_io.sync = original_io.sync
     dest_io.binmode if original_io.binmode?
-    
+
     dest_io
   end
   private :initialize_copy
-  
+
   def super_inspect
     "<IO:#{object_id}> \n#{@fd.inspect}"
   end
@@ -2440,11 +2448,10 @@ class IO
       end
 
       # Note: this is the whole reason that FileDescriptor#ensure_open takes an argument.
-      # 
+      #
       ensure_open(io.descriptor)
-#      io.reset_buffering
+      #      io.reset_buffering
 
-      #reopen_io io
       @fd.reopen(io.descriptor)
       Rubinius::Unsafe.set_class self, io.class
       if io.respond_to?(:path)
