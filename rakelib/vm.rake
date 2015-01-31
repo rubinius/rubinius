@@ -209,7 +209,7 @@ file transcoders_database => [transcoders_lib_dir, transcoders_extract] do |t|
 end
 
 task vm_release_h do |t|
-  write_release t.name, BUILD_CONFIG[:version], BUILD_CONFIG[:release_date]
+  write_release t.name
 end
 
 file 'vm/gen/config_variables.h' => %w[library/rubinius/configuration.rb config.rb] do |t|

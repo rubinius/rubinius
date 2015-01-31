@@ -160,10 +160,9 @@ class Configure
     # Vendored library settings
     @vendored_libdir = File.join(root, "/vendor")
 
-    # Essential settings (modify these for creating releases)
+    # Ruby compatibility version
     @ruby_version = "2.1.0"
-    @libversion, @patch_version, @revision = release_version
-    @release_date = release_date
+    @ruby_libversion = @ruby_version.split(/\./)[0..1].join.to_i
 
     # Configure settings
     @release_build = !git_directory
@@ -490,22 +489,6 @@ class Configure
 
   def parse(ary)
     @options.parse ary
-  end
-
-  def version
-    version = "#{@libversion}.#{@patch_version}"
-    version += ".n#{Time.now.strftime("%j").to_i}" unless @release_date
-    version
-  end
-
-  def normalize_version(str)
-    version = str.gsub(/[^\d]/, "")
-    unless @supported_versions.include? version
-      failure <<-EOM
-Unsupported language version requested: #{version}. Options are #{@supported_versions.join(", ")}
-      EOM
-    end
-    version
   end
 
   def md5_checksum(md5_path, full_path)
@@ -1559,11 +1542,7 @@ int main() { return tgetnum(""); }
       :bootstrap_gems     => @bootstrap_gems,
       :runtime_gems       => @runtime_gems,
       :ruby_version       => @ruby_version,
-      :version            => version,
-      :libversion         => @libversion,
-      :patch_version      => @patch_version,
-      :release_date       => @release_date,
-      :revision           => @revision,
+      :ruby_libversion    => @ruby_libversion,
     }
 
     write_config_rb @config, config_settings
@@ -1599,8 +1578,7 @@ int main() { return tgetnum(""); }
 #define RBX_CPU              "#{@cpu}"
 #define RBX_VENDOR           "#{@vendor}"
 #define RBX_OS               "#{@os}"
-#define RBX_LIB_VERSION      "#{@libversion}"
-#define RBX_RUBY_LIB_VERSION #{@libversion.gsub(/\D/, "").to_i}
+#define RBX_RUBY_LIB_VERSION #{@ruby_libversion}
 #define RBX_LDSHARED         "#{@ldshared}"
 #define RBX_LDSHAREDXX       "#{@ldsharedxx}"
 #define RBX_SIZEOF_LONG      #{sizeof("long")}
@@ -1656,7 +1634,7 @@ int main() { return tgetnum(""); }
     end
 
     # Write release header file.
-    write_release @vm_release_h, version, @release_date
+    write_release @vm_release_h
 
     # Write the rubinius-specific C-API config headers.
     vm_capi_header_gen = "#{@capi_includedir}/gen"
@@ -1854,7 +1832,7 @@ irc.freenode.net and provide the following system information:
 
     unless @stagingdir
       build_msg = <<-EOM
-Rubinius (#{@revision[0, 8]}) has been configured.
+Rubinius (#{release_revision.last[0, 8]}) has been configured.
 
 Run 'rake' to build and test Rubinius.
       EOM

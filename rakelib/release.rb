@@ -3,32 +3,27 @@ def git_directory
   File.directory?(git_dir) && git_dir
 end
 
-def read_revision
-  `git rev-parse HEAD`.chomp
-end
-
 def revision_file
   File.expand_path "../../.revision", __FILE__
 end
 
+def describe_revision
+  @description ||= `git describe --tags --abbrev=40`
+end
+
 def release_revision
-  return unless File.exist? revision_file
-  IO.read revision_file
-end
-
-def build_revision
   if git_directory
-    read_revision
-  else
-    Rubinius::BUILD_CONFIG[:revision] || release_revision || "build"
+    if m = describe_revision.match(/^v(\d+\.\d+(\.\d+)?)-(\d+)-g([0-9a-f]+)/)
+      version = [m[1], m[3]].compact.join(".c")
+      return version, m[4]
+    end
   end
-end
 
-def release_version
-  if git_directory
-    `git describe --tags --abbrev=8`
-  else
+  if File.exist? revision_file
+    return IO.read(revision_file)
   end
+
+  ["X.Y.Z", default_release_date, "build"]
 end
 
 def release_date
@@ -44,13 +39,14 @@ def default_release_date
   Time.now.strftime "%F"
 end
 
-def write_release(path, version, date)
-  date ||= default_release_date
+def write_release(path)
+  version, revision = release_revision
 
   File.open path, "wb" do |f|
     f.puts %[#define RBX_RUBY_VERSION  "#{Rubinius::BUILD_CONFIG[:ruby_version]}"]
     f.puts %[#define RBX_VERSION       "#{version}"]
-    f.puts %[#define RBX_RELEASE_DATE  "#{date}"]
-    f.puts %[#define RBX_BUILD_REV     "#{build_revision}"]
+    f.puts %[#define RBX_LIB_VERSION   "#{version.split(/\./)[0..1].join}"]
+    f.puts %[#define RBX_RELEASE_DATE  "#{release_date}"]
+    f.puts %[#define RBX_BUILD_REV     "#{revision}"]
   end
 end
