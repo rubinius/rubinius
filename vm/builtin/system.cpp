@@ -145,8 +145,7 @@ namespace rubinius {
     }
 
     uint64_t sig = signature->to_ulong_long();
-    if((sig > 0 && cf->signature != sig)
-        || cf->version != version->to_native()) {
+    if((sig > 0 && cf->signature != sig)) {
       delete cf;
       return Primitives::failure();
     }

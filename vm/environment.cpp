@@ -76,7 +76,6 @@ namespace rubinius {
     : argc_(argc)
     , argv_(0)
     , signature_(0)
-    , version_(0)
     , signal_handler_(NULL)
     , finalizer_handler_(NULL)
   {
@@ -476,8 +475,7 @@ namespace rubinius {
           << ": path: " << file << ", magic: " << cf->magic;
       throw std::runtime_error(msg.str().c_str());
     }
-    if((signature_ > 0 && cf->signature != signature_)
-        || cf->version != version_) {
+    if((signature_ > 0 && cf->signature != signature_)) {
       throw BadKernelFile(file);
     }
 
@@ -614,9 +612,6 @@ namespace rubinius {
       std::string error = "Unable to load kernel index: " + root;
       throw std::runtime_error(error);
     }
-
-    version_ = as<Fixnum>(G(rubinius)->get_const(
-          state, state->symbol("RUBY_LIB_VERSION")))->to_native();
 
     // Load alpha
     run_file(root + "/alpha.rbc");

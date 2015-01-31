@@ -54,9 +54,6 @@ namespace rubinius {
      */
     uint64_t signature_;
 
-    // The Ruby library version with which the .rbc file is compatible.
-    int version_;
-
     SignalHandler* signal_handler_;
     FinalizerHandler* finalizer_handler_;
 
