@@ -162,9 +162,8 @@ class Configure
 
     # Essential settings (modify these for creating releases)
     @ruby_version = "2.1.0"
-    @libversion = "2.5"
-    @patch_version = "2"
-    @release_date = nil
+    @libversion, @patch_version, @revision = release_version
+    @release_date = release_date
 
     # Configure settings
     @release_build = !git_directory
@@ -1563,8 +1562,8 @@ int main() { return tgetnum(""); }
       :version            => version,
       :libversion         => @libversion,
       :patch_version      => @patch_version,
-      :release_date       => @release_date || default_release_date,
-      :revision           => build_revision,
+      :release_date       => @release_date,
+      :revision           => @revision,
     }
 
     write_config_rb @config, config_settings
@@ -1855,13 +1854,13 @@ irc.freenode.net and provide the following system information:
 
     unless @stagingdir
       build_msg = <<-EOM
-Rubinius (#{build_revision[0, 8]}) has been configured.
+Rubinius (#{@revision[0, 8]}) has been configured.
 
 Run 'rake' to build and test Rubinius.
       EOM
     else
       build_msg = <<-EOM
-Rubinius (#{build_revision[0, 8]}) has been configured for the following paths:
+Rubinius (#{@revision[0, 8]}) has been configured for the following paths:
 
 prefix:     #{@prefixdir}
 bin:        #{@prefixdir}#{@bindir}

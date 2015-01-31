@@ -392,11 +392,15 @@ namespace rubinius {
 
     int pid;
 
+    state->gc_dependent(gct, call_frame);
+
     {
       StopTheWorld stw(state, gct, call_frame);
 
       pid = ::fork();
     }
+
+    state->gc_independent(gct, call_frame);
 
     if(pid > 0) {
       state->shared().auxiliary_threads()->after_fork_exec_parent(state);
@@ -422,7 +426,13 @@ namespace rubinius {
       return NULL;
     }
 
-    int pid = fork_exec(state, gct, calling_environment, errors[1]);
+    int pid;
+
+    {
+      GCIndependent guard(state, 0);
+
+      pid = fork_exec(state, gct, calling_environment, errors[1]);
+    }
 
     // error
     if(pid == -1) {
@@ -530,7 +540,13 @@ namespace rubinius {
       return NULL;
     }
 
-    int pid = fork_exec(state, gct, calling_environment, errors[1]);
+    int pid;
+
+    {
+      GCIndependent guard(state, 0);
+
+      pid = fork_exec(state, gct, calling_environment, errors[1]);
+    }
 
     // error
     if(pid == -1) {

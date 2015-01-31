@@ -24,6 +24,22 @@ def build_revision
   end
 end
 
+def release_version
+  if git_directory
+    `git describe --tags --abbrev=8`
+  else
+  end
+end
+
+def release_date
+  if git_directory
+    m = `git show --format="%ci" HEAD`.match(/^(\d+-\d+-\d+)/)
+    date = m[1]
+  end
+
+  date || default_release_date
+end
+
 def default_release_date
   Time.now.strftime "%F"
 end
