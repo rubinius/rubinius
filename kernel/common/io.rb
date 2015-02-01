@@ -160,7 +160,7 @@ class IO
       Errno.handle("seek failed") if FFI.call_failed?(position)
 
       @offset = position
-      @eof = position == @total_size
+      @eof = false #position == @total_size
 
       return position
     end
@@ -186,6 +186,9 @@ class IO
         elsif bytes_read == 0
           @eof = true if length > 0
           return nil
+          #elsif bytes_read < length
+          #@eof = true
+          #break
         else
           break
         end
@@ -198,7 +201,7 @@ class IO
       end
 
       @offset += bytes_read
-      @eof = true if @offset == @total_size
+      determine_eof
 
       return output_string
     end
@@ -281,6 +284,14 @@ class IO
 
       return nil
     end
+    
+    def determine_eof
+      if @offset >= @total_size
+        @eof = true
+        @total_size += (@total_size - @offset)
+      end
+    end
+    private :determine_eof
 
     def eof?
       @eof
@@ -358,8 +369,8 @@ class IO
         return nil
       end
 
-      set_mode
-      reset_positioning
+      #set_mode
+      #reset_positioning
 
       return true
     end
@@ -382,8 +393,8 @@ class IO
         FFI::Platform::POSIX.close(other_fd)
       end
 
-      set_mode
-      reset_positioning
+      #set_mode
+      #reset_positioning
       
       return true
     end
@@ -392,10 +403,15 @@ class IO
       # Discover final size of file so we can set EOF properly
       stat = Stat.fstat(@descriptor) unless stat
       @total_size = stat.size
-      @offset = 0
-      @eof = @offset == @total_size
+      seek_positioning
+      #@eof = @offset >= @total_size
+      determine_eof
     end
-    private :reset_positioning
+    
+    def seek_positioning
+      @offset = sysseek(0, SEEK_CUR) # find current position if we are reopening!
+    end
+    private :seek_positioning
 
     def set_mode
       if IO::F_GETFL
@@ -453,6 +469,7 @@ class IO
         str2 = super(length, output_string)
 
         if str.size == 0 && str2.nil?
+          determine_eof
           return nil
         elsif str2
           str += str2
@@ -479,8 +496,7 @@ class IO
         output_string = str.force_encoding(Encoding::ASCII_8BIT)
       end
 
-      @eof = true if @offset == @total_size
-
+      determine_eof
       return output_string
     end
 
@@ -525,16 +541,31 @@ class IO
       @descriptor = fd
       @mode = mode
       @sync = true
-      @offset = 0
-      @eof = false
-
-      @unget_buffer = []
+      reset_positioning
+      @eof = false # force to false
+    end
+    
+    def determine_eof
+      if @offset >= @total_size
+        @eof = true
+        
+        # No seeking allowed on a pipe, so its size is always its offset
+        @total_size = @offset
+      end
     end
 
     def eof?
+      # The only way to confirm we are EOF with a pipe is to try to read from
+      # it. If we fail, then we are EOF. If we succeed, then unget the byte
+      # so that EOF is false (i.e. more to read).
       str = read(1)
       unget(str) if str
-      @eof
+      super
+    end
+
+    def seek_positioning
+      # no seeking allowed for pipes
+      @offset = 0
     end
   end # class PipeFileDescriptor
 
@@ -1978,7 +2009,7 @@ class IO
   #  no newline
   def flush
     ensure_open
-    @fd.flush
+    @fd.reset_positioning
     return self
   end
 
@@ -2453,6 +2484,10 @@ class IO
       #      io.reset_buffering
 
       @fd.reopen(io.descriptor)
+      
+      # When reopening we may be going from a Pipe to a File or vice versa. Let the
+      # system figure out the proper FD class.
+      @fd = FileDescriptor.choose_type(descriptor)
       Rubinius::Unsafe.set_class self, io.class
       if io.respond_to?(:path)
         @path = io.path
@@ -2473,6 +2508,7 @@ class IO
       end
 
       reopen_path Rubinius::Type.coerce_to_path(other), mode
+      @fd = FileDescriptor.choose_type(descriptor)
       seek 0, SEEK_SET unless closed?
     end
 
@@ -2480,7 +2516,9 @@ class IO
   end
 
   def reopen_path(path, mode)
-    return @fd.reopen_path(path, mode)
+    status =  @fd.reopen_path(path, mode)
+    @fd = FileDescriptor.choose_type(descriptor)
+    return status
   end
 
   ##
