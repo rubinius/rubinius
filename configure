@@ -1838,7 +1838,7 @@ Run 'rake' to build and test Rubinius.
       EOM
     else
       build_msg = <<-EOM
-Rubinius (#{@revision[0, 8]}) has been configured for the following paths:
+Rubinius (#{release_revision.last[0, 8]}) has been configured for the following paths:
 
 prefix:     #{@prefixdir}
 bin:        #{@prefixdir}#{@bindir}
