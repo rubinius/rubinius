@@ -570,6 +570,13 @@ class IO
       # no seeking allowed for pipes
       @offset = 0
     end
+
+    def sysseek(offset, whence=SEEK_SET)
+      ensure_open
+      
+      # lseek does not work with pipes.
+      raise Errno::ESPIPE
+    end
   end # class PipeFileDescriptor
 
   def new_pipe(fd, external, internal, options, mode, do_encoding=false)
