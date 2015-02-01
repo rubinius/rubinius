@@ -160,7 +160,7 @@ class IO
       Errno.handle("seek failed") if FFI.call_failed?(position)
 
       @offset = position
-      @eof = false #position == @total_size
+      determine_eof
 
       return position
     end
@@ -289,6 +289,9 @@ class IO
       if @offset >= @total_size
         @eof = true
         @total_size += (@total_size - @offset)
+        @total_size = @offset if @offset > @total_size
+      else
+        @eof = false
       end
     end
     private :determine_eof
