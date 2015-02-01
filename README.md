@@ -72,4 +72,4 @@ For additional help, visit the [Rubinius Gitter chat room](https://gitter.im/rub
 ### Contributing
 
 The Rubinius team welcomes contributions. For more information, read the
-[CONTRIBUTING](https://github.com/rubinius/rubinius/blob/master/CONTRIBUTING) file and see the documentation [about contributing](http://rubini.us/doc/en/contributing/).
+[CONTRIBUTING](https://github.com/rubinius/rubinius/blob/master/CONTRIBUTING.md) file and see the documentation [about contributing](http://rubini.us/doc/en/contributing/).
