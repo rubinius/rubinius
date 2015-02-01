@@ -47,7 +47,7 @@ To install Rubinius, use the following steps:
 1. ./configure --prefix=/path/to/install/dir
 1. rake
 
-When the install process finishes, follow the directions printed to the terminal to add the Rubinius executable (bin) directory to your PATH. For more information see http://rubini.us/doc/en/getting-started/requirements/ and http://rubini.us/doc/en/getting-started/building/.
+When the install process finishes, follow the directions printed to the terminal to add the Rubinius executable (bin) directory to your PATH. For more information see the documentation for [Build Requirements](http://rubini.us/doc/en/getting-started/requirements/) and [Building Rubinius](http://rubini.us/doc/en/getting-started/building/).
 
 
 ### Using RubyGems
