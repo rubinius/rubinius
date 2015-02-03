@@ -13,4 +13,14 @@ describe "Kernel#inspect" do
   it "returns an untrusted string if self is untrusted" do
     Object.new.untrust.inspect.untrusted?.should be_true
   end
+
+  it "does not call #to_s if it is defined" do
+    # We must use a bare Object here
+    obj = Object.new
+    inspected = obj.inspect
+
+    obj.stub!(:to_s).and_return("to_s'd")
+
+    obj.inspect.should == inspected
+  end
 end
