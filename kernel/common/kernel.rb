@@ -383,7 +383,7 @@ module Kernel
     ivars = __instance_variables__
 
     if ivars.empty?
-      return Rubinius::Type.infect prefix, self
+      return Rubinius::Type.infect "#{prefix}>", self
     end
 
     # Otherwise, if it's already been inspected, return the ...
