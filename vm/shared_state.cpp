@@ -241,8 +241,6 @@ namespace rubinius {
     env_->stop_logging(state);
     env_->start_logging(state);
 
-    world_->reinit();
-
     om->after_fork_child(state);
 
     state->vm()->set_run_state(ManagedThread::eIndependent);
@@ -259,6 +257,10 @@ namespace rubinius {
 
   void SharedState::stop_threads_externally() {
     world_->stop_threads_externally();
+  }
+
+  void SharedState::reinit_world() {
+    world_->reinit();
   }
 
   void SharedState::restart_world(THREAD) {

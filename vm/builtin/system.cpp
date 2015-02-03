@@ -397,6 +397,8 @@ namespace rubinius {
       StopTheWorld stw(state, gct, call_frame);
 
       pid = ::fork();
+
+      if(pid == 0) state->shared().reinit_world();
     }
 
     state->gc_independent(gct, call_frame);
@@ -808,6 +810,8 @@ namespace rubinius {
         StopTheWorld stw(state, gct, calling_environment);
 
         pid = ::fork();
+
+        if(pid == 0) state->shared().reinit_world();
       }
 
       if(pid > 0) {

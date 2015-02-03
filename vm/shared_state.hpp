@@ -306,6 +306,8 @@ namespace rubinius {
 
     bool should_stop() const;
 
+    void reinit_world();
+
     bool stop_the_world(THREAD) WARN_UNUSED;
     void restart_world(THREAD);
 
