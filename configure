@@ -705,7 +705,6 @@ int main() { LLVMContext &Context = getGlobalContext(); }
 
     check_tool_version @cc, '-dumpversion', [4, 1]
     check_tool_version @cxx, '-dumpversion', [4, 1]
-    check_tool_version 'bison', '--version', [2, 3]
 
     @make ||= ENV['MAKE'] || 'make'
     @rake ||= ENV['RAKE'] || 'rake'
