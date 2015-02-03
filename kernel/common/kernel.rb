@@ -372,19 +372,19 @@ module Kernel
   private :initialize_copy
 
   def inspect
-    # The protocol here seems odd, but it's to match MRI.
+    prefix = "#<#{self.class}:0x#{self.__id__.to_s(16)}"
 
+    # The protocol here seems odd, but it's to match MRI.
+    #
+    # MRI side-calls to the C function that implements Kernel#to_s. If that
+    # method is overridden, the new Ruby method is never called. So, we inline
+    # the code for Kernel#to_s here because we simply dispatch to Ruby
+    # methods.
     ivars = __instance_variables__
 
-    # If this object has no ivars, then we call to_s and return that.
-    # NOTE MRI has an additional check for when to call to_s. It also does:
-    # "if (TYPE(obj) == T_OBJECT ..." ie, for all builtin types, don't run
-    # this code. I'm going to ignore that for now, since the builtin types
-    # generally have their own inspect anyway, and if for some reason things
-    # get here, thats ok.
-    return to_s if ivars.empty?
-
-    prefix = "#<#{self.class}:0x#{self.__id__.to_s(16)}"
+    if ivars.empty?
+      return Rubinius::Type.infect prefix, self
+    end
 
     # Otherwise, if it's already been inspected, return the ...
     return "#{prefix} ...>" if Thread.guarding? self
