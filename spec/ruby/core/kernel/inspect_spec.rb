@@ -23,4 +23,9 @@ describe "Kernel#inspect" do
 
     obj.inspect.should == inspected
   end
+
+  it "returns a String with the object class and object_id encoded" do
+    obj = Object.new
+    obj.inspect.should =~ /^#<Object:0x[0-9a-f]+>$/
+  end
 end
