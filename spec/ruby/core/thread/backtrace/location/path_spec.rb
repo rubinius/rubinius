@@ -6,7 +6,7 @@ describe 'Thread::Backtrace::Location#path' do
     @frame = ThreadBacktraceLocationSpecs.locations[0]
   end
 
-  it 'returns the file name of the call frame' do
-    @frame.path.should == File.basename(__FILE__)
+  it 'returns the absolute path of the call frame' do
+    @frame.path.should == __FILE__
   end
 end

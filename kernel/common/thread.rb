@@ -150,17 +150,7 @@ class Thread
       end
 
       alias_method :base_label, :label
-
-      ##
-      # The MRI documentation states this method should return the file name. In
-      # reality however this method just returns the full path.
-      #
-      # Rubinius here sticks to whatever the documentation specifies, thus we
-      # return only the filename.
-      #
-      def path
-        File.basename(absolute_path)
-      end
+      alias_method :path, :absolute_path
 
       def to_s
         "#{absolute_path}:#{lineno}:in `#{label}'"
