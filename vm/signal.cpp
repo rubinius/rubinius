@@ -427,6 +427,7 @@ namespace rubinius {
     logger::fatal("--- end system info ---");
 
     logger::fatal("--- begin rubinius info ---");
+    logger::fatal("pid: %d", getpid());
     logger::fatal("program name: %s", RBX_PROGRAM_NAME);
     logger::fatal("version: %s", RBX_VERSION);
     logger::fatal("ruby version: %s", RBX_RUBY_VERSION);
