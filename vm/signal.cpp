@@ -389,7 +389,7 @@ namespace rubinius {
     }
   }
 
-  static void segv_handler(int sig) {
+  static void abandon_ship_handler(int sig) {
     struct sigaction action;
 
     // Unset our handler for this signal.
@@ -473,7 +473,7 @@ namespace rubinius {
 #ifdef USE_EXECINFO
     // If we have execinfo, setup some crash handlers
     if(!getenv("DISABLE_SEGV")) {
-      action.sa_handler = segv_handler;
+      action.sa_handler = abandon_ship_handler;
       sigaction(SIGSEGV, &action, NULL);
       sigaction(SIGBUS,  &action, NULL);
       sigaction(SIGILL,  &action, NULL);
