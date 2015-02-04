@@ -700,12 +700,12 @@ int main() { LLVMContext &Context = getGlobalContext(); }
   end
 
   def default_cc
-    return 'clang' if `clang --version > /dev/null 2>&1`
+    return 'clang' if `clang --version > /dev/null 2>&1` && $?.success?
     return 'gcc'
   end
 
   def default_cxx
-    return 'clang++' if `clang++ --version > /dev/null 2>&1`
+    return 'clang++' if `clang++ --version > /dev/null 2>&1` && $?.success?
     return 'g++'
   end
 
