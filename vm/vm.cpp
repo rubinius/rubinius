@@ -75,6 +75,7 @@ namespace rubinius {
     , tooling_env_(NULL)
     , method_missing_reason_(eNone)
     , constant_missing_reason_(vFound)
+    , zombie_(false)
     , run_signals_(false)
     , shared(shared)
     , waiting_channel_(this, nil<Channel>())
@@ -104,10 +105,8 @@ namespace rubinius {
   }
 
   void VM::discard(STATE, VM* vm) {
-    vm->lock(state->vm());
     vm->saved_call_frame_ = 0;
     vm->shared.remove_vm(vm);
-    vm->unlock();
 
     state->vm()->metrics()->system_metrics.vm_threads--;
 

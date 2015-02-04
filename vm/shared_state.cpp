@@ -206,8 +206,6 @@ namespace rubinius {
 
         vm->unlock();
         vm->reset_parked();
-
-        delete vm;
       }
     }
     threads_.clear();

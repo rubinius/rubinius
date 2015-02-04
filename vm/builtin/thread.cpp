@@ -80,10 +80,20 @@ namespace rubinius {
 
     target->thread.set(thr);
 
+    if(!internal_thread) {
+      state->memory()->needs_finalization(thr, (FinalizerFunction)&Thread::finalize);
+    }
+
     state->vm()->metrics()->system_metrics.vm_threads++;
     state->vm()->metrics()->system_metrics.vm_threads_total++;
 
     return thr;
+  }
+
+  void Thread::finalize(STATE, Thread* thread) {
+    if(thread->vm()->zombie_p()) {
+      VM::discard(state, thread->vm());
+    }
   }
 
   Object* send_run(STATE) {
@@ -335,11 +345,10 @@ namespace rubinius {
 
     execute_thread(state, vm);
 
-    vm->thread->vm_ = NULL;
-    VM::discard(state, vm);
-
     shared.clear_critical(state);
     shared.gc_independent();
+
+    vm->set_zombie();
 
     RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CHAR_P>(thread_name.c_str()),
                          vm->thread_id(), 0);

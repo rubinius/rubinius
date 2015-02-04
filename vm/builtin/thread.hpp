@@ -291,6 +291,8 @@ namespace rubinius {
     static Thread* create(STATE, VM* target, Object* self, Run runner,
                           bool internal_thread = false);
 
+    static void finalize(STATE, Thread* thread);
+
     int start_thread(STATE, const pthread_attr_t &attrs);
     static void execute_thread(STATE, VM* vm);
     static void* internal_thread(void*);
