@@ -282,11 +282,12 @@ module Kernel
         break
       end
 
-      locations << Thread::Backtrace::Location.new(
-        tup[3].to_s,
-        tup[0].active_path,
-        tup[1]
-      )
+      scope    = tup[0].scope
+      abs_path = tup[0].active_path
+      path     = scope ? scope.active_path : abs_path
+      label    = tup[3].to_s
+
+      locations << Thread::Backtrace::Location.new(label, abs_path, path, tup[1])
     end
 
     locations

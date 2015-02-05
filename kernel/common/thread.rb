@@ -140,17 +140,18 @@ class Thread
     # Stores location of a single call frame, available since Ruby 2.0.
     class Location
       attr_reader :label
+      attr_reader :path
       attr_reader :absolute_path
       attr_reader :lineno
 
-      def initialize(label, absolute_path, lineno)
+      def initialize(label, absolute_path, path, lineno)
         @label         = label
         @absolute_path = absolute_path
+        @path          = path
         @lineno        = lineno
       end
 
       alias_method :base_label, :label
-      alias_method :path, :absolute_path
 
       def to_s
         "#{absolute_path}:#{lineno}:in `#{label}'"
