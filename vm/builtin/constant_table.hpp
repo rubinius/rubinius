@@ -65,8 +65,8 @@ namespace rubinius {
 
     /* interface */
 
-    static ConstantTable* create(STATE, native_int sz = CONSTANT_TABLE_MIN_SIZE);
-    void setup(STATE, native_int sz);
+    static ConstantTable* create(STATE, native_int size = 0);
+    void setup(STATE, native_int size);
 
     // Rubinius.primitive :constant_table_allocate
     static ConstantTable* allocate(STATE, Object* self);
@@ -76,6 +76,9 @@ namespace rubinius {
 
     // Rubinius.primitive :constant_table_duplicate
     ConstantTable* duplicate(STATE);
+
+    // Rubinius.primitive :constant_table_values
+    Tuple* values(STATE);
 
     ConstantTableBucket* find_entry(STATE, Symbol* name);
 
