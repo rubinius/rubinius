@@ -186,9 +186,6 @@ class IO
         elsif bytes_read == 0
           @eof = true if length > 0
           return nil
-          #elsif bytes_read < length
-          #@eof = true
-          #break
         else
           break
         end
@@ -468,7 +465,7 @@ class IO
         @offset += @unget_buffer.size
         length -= @unget_buffer.size
 
-        str = @unget_buffer.inject("") { |sum, val| val.chr + sum }
+        str = @unget_buffer.inject("".force_encoding(Encoding::ASCII_8BIT)) { |sum, val| val.chr + sum }
         str2 = super(length, output_string)
 
         if str.size == 0 && str2.nil?
@@ -482,11 +479,11 @@ class IO
         @offset += length
         length -= @unget_buffer.size
 
-        str = @unget_buffer.inject("") { |sum, val| val.chr + sum }
+        str = @unget_buffer.inject("".force_encoding(Encoding::ASCII_8BIT)) { |sum, val| val.chr + sum }
         @unget_buffer.clear
       else
         @offset += @unget_buffer.size
-        str = ""
+        str = "".force_encoding(Encoding::ASCII_8BIT)
 
         length.times do
           str << @unget_buffer.pop
@@ -501,6 +498,12 @@ class IO
 
       determine_eof
       return output_string
+    end
+    
+    def sysread(byte_count)
+      STDERR.puts "sysread [#{byte_count}], @unget_buffer #{@unget_buffer.inspect}"
+      raise_if_buffering
+      read(byte_count)
     end
 
     def eof?
@@ -1596,15 +1599,13 @@ class IO
 
     # method A, D
     def read_to_separator
-      str = ""
-      buffer = ""
+      str = "".force_encoding(Encoding::ASCII_8BIT)
+      buffer = "".force_encoding(Encoding::ASCII_8BIT)
       separator_size = @separator.bytesize
 
       until buffer.size == 0 && @io.eof?
         if buffer.size == 0
-          consumed_bytes = 0
-          starting_position = @io.pos
-          buffer = @io.read
+          @io.read(PEEK_AHEAD_LIMIT + 2, buffer)
         end
 
         break unless buffer.size > 0
@@ -1615,7 +1616,6 @@ class IO
           count += separator_size
 
           substring = buffer.slice!(0, count)
-          consumed_bytes += substring.bytesize
           str << substring
 
           str = IO.read_encode(@io, str)
@@ -1623,26 +1623,25 @@ class IO
 
           $. = @io.increment_lineno
 
-          consumed_bytes += do_skip(buffer)
+          do_skip(buffer)
 
-          # Must update position before we yield since yielded block *could*
-          # return directly and rob us of a chance to do our housekeeping
-          @io.pos = starting_position + consumed_bytes
+          # Unused bytes/chars should be saved for the next read. Since the block that we yield to
+          # may +return+ we don't want to drop the bytes that are stored in +buffer+. To save, 
+          # unget them so the next read will fetch them again. This might be expensive and could
+          # potentially use a little tuning. Maybe use an +unread(bytes)+ method which just moves
+          # a pointer around. Think about this for the mmap stuff.
+          @io.ungetc(buffer)
+          buffer.clear
           yield str
 
-          str = ""
+          str = "".force_encoding(Encoding::ASCII_8BIT)
         else
           str << buffer
-          consumed_bytes += buffer.size + 1
-          @io.pos = starting_position + consumed_bytes
           buffer.clear
         end
       end
 
       str << buffer
-
-      consumed_bytes += buffer.size
-      @io.pos = starting_position + consumed_bytes
 
       unless str.empty?
         str = IO.read_encode(@io, str)
@@ -1683,8 +1682,8 @@ class IO
     end
 
     def read_to_separator_with_limit
-      str = ""
-      buffer = ""
+      str = "".force_encoding(Encoding::ASCII_8BIT)
+      buffer = "".force_encoding(Encoding::ASCII_8BIT)
       separator_size = @separator.bytesize
 
       #TODO: implement ignoring encoding with negative limit
@@ -1692,11 +1691,8 @@ class IO
 
       until buffer.size == 0 && @io.eof?
         if buffer.size == 0
-          consumed_bytes = 0
-          starting_position = @io.pos
-          buffer = @io.read(FileDescriptor.pagesize)
+          buffer = @io.read(PEEK_AHEAD_LIMIT + 2)
         end
-
 
         break unless buffer && buffer.size > 0
 
@@ -1706,39 +1702,36 @@ class IO
           count += separator_size
           bytes = count < wanted ? count : wanted
           substring = buffer.slice!(0, bytes)
-          consumed_bytes += substring.bytesize
           str << substring
 
           str = IO.read_encode(@io, str)
           str.taint
 
           $. = @io.increment_lineno
-          consumed_bytes += do_skip(buffer)
-          @io.pos = starting_position + consumed_bytes
+          do_skip(buffer)
+          @io.ungetc(buffer)
+          buffer.clear
 
           yield str
 
-          str = ""
+          str = "".force_encoding(Encoding::ASCII_8BIT)
         else
           if wanted < buffer.size
             str << buffer.slice!(0, wanted)
-            consumed_bytes += wanted
 
             str, bytes_read = read_to_char_boundary(@io, str, buffer)
             str.taint
 
             $. = @io.increment_lineno
-            consumed_bytes += do_skip(buffer)
-            consumed_bytes += bytes_read
-            @io.pos = starting_position + consumed_bytes
+            do_skip(buffer)
+            @io.ungetc(buffer)
+            buffer.clear
 
             yield str
 
-            str = ""
+            str = "".force_encoding(Encoding::ASCII_8BIT)
           else
             str << buffer
-            consumed_bytes += buffer.size
-            @io.pos = starting_position + consumed_bytes
             wanted -= buffer.size
             buffer.clear
           end
@@ -2751,10 +2744,7 @@ class IO
   #  @todo  Improve reading into provided buffer.
   #
   def sysread(number_of_bytes, buffer=undefined)
-    flush # FIXME: is this necessary?
-    @fd.raise_if_buffering
-
-    str = @fd.read number_of_bytes
+    str = @fd.sysread number_of_bytes
     raise EOFError if str.nil?
 
     unless undefined.equal? buffer
@@ -2824,8 +2814,6 @@ class IO
     when String
       str = obj
     when Integer
-      #      @ibuffer.put_back(obj & 0xff)
-      #@unget_buffer << (obj & 0xff)
       @fd.unget(obj & 0xff)
       return
     when nil
@@ -2834,11 +2822,7 @@ class IO
       str = StringValue(obj)
     end
 
-    #    str.bytes.reverse_each { |byte| @ibuffer.put_back byte }
-    str.bytes.reverse_each do |byte|
-      #@unget_buffer << byte
-      @fd.unget(byte)
-    end
+    str.bytes.reverse_each { |byte| @fd.unget byte }
 
     nil
   end
@@ -2850,8 +2834,6 @@ class IO
     when String
       str = obj
     when Integer
-      #      @ibuffer.put_back(obj)
-      #@unget_buffer << obj
       @fd.unget(obj)
       return
     when nil
@@ -2860,11 +2842,7 @@ class IO
       str = StringValue(obj)
     end
 
-    #    str.bytes.reverse_each { |b| @ibuffer.put_back b }
-    str.bytes.reverse_each do |byte|
-      #@unget_buffer << byte
-      @fd.unget(byte)
-    end
+    str.bytes.reverse_each { |byte| @fd.unget byte }
 
     nil
   end
