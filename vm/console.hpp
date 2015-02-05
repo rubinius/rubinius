@@ -54,7 +54,7 @@ namespace rubinius {
 
       void close_files(bool remove_files);
       void empty_request_list();
-      void wakeup();
+      void wakeup(STATE);
 
       void start(STATE);
       void initialize(STATE);

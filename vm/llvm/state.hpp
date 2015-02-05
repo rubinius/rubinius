@@ -77,7 +77,6 @@ namespace rubinius {
 
     Configuration& config_;
 
-    VM* vm_;
     TypedRoot<Thread*> thread_;
     TypedRoot<List*> compile_list_;
     SymbolTable& symbols_;
@@ -114,7 +113,6 @@ namespace rubinius {
 
     bool enabled_;
     bool thread_exit_;
-    bool thread_running_;
 
     jit::Compiler* current_compiler_;
 
@@ -184,10 +182,6 @@ namespace rubinius {
 
     std::ostream& log() {
       return *log_;
-    }
-
-    VM* vm() {
-      return vm_;
     }
 
     Thread* thread() {
@@ -295,11 +289,8 @@ namespace rubinius {
     void perform(STATE);
     void stop(STATE);
 
-    void wakeup();
-
+    void wakeup(STATE);
     void start_thread(STATE);
-    void stop_thread(STATE);
-
     void after_fork_child(STATE);
 
     void gc_scan(GarbageCollector* gc);

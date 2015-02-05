@@ -73,7 +73,7 @@ namespace rubinius {
       request_list_ = NULL;
     }
 
-    void Console::wakeup() {
+    void Console::wakeup(STATE) {
       request_exit_ = true;
       atomic::memory_barrier();
 
@@ -215,15 +215,15 @@ namespace rubinius {
       SYNC(state);
 
       if(request_vm_) {
-        wakeup();
+        wakeup(state);
 
         if(atomic::poll(request_running_, false)) {
           void* return_value;
           pthread_t os = request_vm_->os_thread();
           pthread_join(os, &return_value);
+          VM::discard(state, request_vm_);
         }
 
-        VM::discard(state, request_vm_);
         request_vm_ = NULL;
       }
 
@@ -237,9 +237,9 @@ namespace rubinius {
           void* return_value;
           pthread_t os = response_vm_->os_thread();
           pthread_join(os, &return_value);
+          VM::discard(state, response_vm_);
         }
 
-        VM::discard(state, response_vm_);
         response_vm_ = NULL;
       }
     }

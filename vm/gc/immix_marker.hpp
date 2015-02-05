@@ -16,12 +16,10 @@ namespace rubinius {
 
   class ImmixMarker : public AuxiliaryThread, public Lockable {
     SharedState& shared_;
-    VM* vm_;
     ImmixGC* immix_;
     GCData* data_;
 
     bool thread_exit_;
-    bool thread_running_;
 
     TypedRoot<Thread*> thread_;
 
@@ -37,12 +35,10 @@ namespace rubinius {
 
     void initialize(STATE);
 
-    void wakeup();
-
     void start_thread(STATE);
-    void stop_thread(STATE);
 
     void shutdown(STATE);
+    void wakeup(STATE);
     void after_fork_child(STATE);
 
     void concurrent_mark(GCData* data);

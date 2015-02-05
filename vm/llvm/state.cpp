@@ -91,7 +91,6 @@ namespace rubinius {
   LLVMState::LLVMState(STATE)
     : AuxiliaryThread()
     , config_(state->shared().config)
-    , vm_(NULL)
     , thread_(state)
     , compile_list_(state)
     , symbols_(state->shared().symbols)
@@ -103,7 +102,6 @@ namespace rubinius {
     , log_(NULL)
     , enabled_(false)
     , thread_exit_(false)
-    , thread_running_(false)
     , current_compiler_(0)
   {
     state->shared().auxiliary_threads()->register_thread(this);
@@ -195,13 +193,13 @@ namespace rubinius {
   void LLVMState::start_thread(STATE) {
     SYNC(state);
 
-    if(!vm_) {
-      vm_ = state->shared().new_vm();
-      vm_->metrics()->init(metrics::eJITMetrics);
+    if(!vm()) {
+      set_vm(state->shared().new_vm());
+      vm()->metrics()->init(metrics::eJITMetrics);
 
       thread_exit_ = false;
 
-      Thread* thread = Thread::create(state, vm_, G(thread), jit_llvm_trampoline, true);
+      Thread* thread = Thread::create(state, vm(), G(thread), jit_llvm_trampoline, true);
       OnStack<1> os(state, thread);
 
       if(thread->fork_attached(state)) {
@@ -212,30 +210,13 @@ namespace rubinius {
     }
   }
 
-  void LLVMState::wakeup() {
+  void LLVMState::wakeup(STATE) {
     utilities::thread::Mutex::LockGuard lg(compile_lock_);
 
     thread_exit_ = true;
     atomic::memory_barrier();
 
     compile_cond_.signal();
-  }
-
-  void LLVMState::stop_thread(STATE) {
-    SYNC(state);
-
-    if(vm_) {
-      wakeup();
-
-      if(atomic::poll(thread_running_, false)) {
-        void* return_value;
-        pthread_t os = vm_->os_thread();
-        pthread_join(os, &return_value);
-      }
-
-      VM::discard(state, vm_);
-      vm_ = NULL;
-    }
   }
 
   void LLVMState::stop(STATE) {
@@ -246,7 +227,8 @@ namespace rubinius {
   void LLVMState::after_fork_child(STATE) {
     compile_list_.get()->clear(state);
     current_compiler_ = 0;
-    vm_ = NULL;
+    set_vm(NULL);
+    set_thread_running(false);
 
     start_thread(state);
   }
@@ -254,13 +236,15 @@ namespace rubinius {
   void LLVMState::perform(STATE) {
     GCTokenImpl gct;
     RBX_DTRACE_CHAR_P thread_name = const_cast<RBX_DTRACE_CHAR_P>("rbx.jit");
-    vm_->set_name(thread_name);
+    vm()->set_name(thread_name);
 
     RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
                           state->vm()->thread_id(), 1);
 
     state->vm()->thread->hard_unlock(state, gct, 0);
     state->gc_dependent(gct, 0);
+
+    set_thread_running(true);
 
     bool show_machine_code_ = jit_dump_code() & cMachineCode;
 
@@ -422,6 +406,11 @@ namespace rubinius {
       current_compiler_ = 0;
       vm()->metrics()->m.jit_metrics.methods_compiled++;
     }
+
+    set_thread_running(false);
+
+    RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
+                         state->vm()->thread_id(), 1);
   }
 
   void LLVMState::gc_scan(GarbageCollector* gc) {
@@ -560,7 +549,7 @@ namespace rubinius {
   }
 
   void LLVMState::remove(void* func) {
-    if(vm_) vm_->metrics()->m.jit_metrics.methods_compiled--;
+    if(vm()) vm()->metrics()->m.jit_metrics.methods_compiled--;
     if(memory_) memory_->deallocateFunctionBody(func);
   }
 

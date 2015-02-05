@@ -25,11 +25,9 @@ namespace rubinius {
   ImmixMarker::ImmixMarker(STATE, ImmixGC* immix)
     : AuxiliaryThread()
     , shared_(state->shared())
-    , vm_(NULL)
     , immix_(immix)
     , data_(NULL)
     , thread_exit_(false)
-    , thread_running_(false)
     , thread_(state)
   {
     shared_.auxiliary_threads()->register_thread(this);
@@ -51,47 +49,30 @@ namespace rubinius {
   void ImmixMarker::initialize(STATE) {
     run_lock_.init();
     run_cond_.init();
-    vm_ = NULL;
-    thread_running_ = false;
+    set_vm(NULL);
+    set_thread_running(false);
     thread_exit_ = false;
   }
 
   void ImmixMarker::start_thread(STATE) {
     SYNC(state);
-    if(vm_) return;
+    if(vm()) return;
     utilities::thread::Mutex::LockGuard lg(run_lock_);
-    vm_ = state->shared().new_vm();
-    vm_->metrics()->init(metrics::eRubyMetrics);
+    set_vm(state->shared().new_vm());
+    vm()->metrics()->init(metrics::eRubyMetrics);
     thread_exit_ = false;
-    thread_.set(Thread::create(state, vm_, G(thread),
+    thread_.set(Thread::create(state, vm(), G(thread),
           immix_marker_trampoline, true));
     run(state);
   }
 
-  void ImmixMarker::wakeup() {
+  void ImmixMarker::wakeup(STATE) {
     utilities::thread::Mutex::LockGuard lg(run_lock_);
 
     thread_exit_ = true;
     atomic::memory_barrier();
 
     run_cond_.signal();
-  }
-
-  void ImmixMarker::stop_thread(STATE) {
-    SYNC(state);
-
-    if(vm_) {
-      wakeup();
-
-      if(atomic::poll(thread_running_, false)) {
-        void* return_value;
-        pthread_t os = vm_->os_thread();
-        pthread_join(os, &return_value);
-      }
-
-      VM::discard(state, vm_);
-      vm_ = NULL;
-    }
   }
 
   void ImmixMarker::shutdown(STATE) {
@@ -123,14 +104,14 @@ namespace rubinius {
   void ImmixMarker::perform(STATE) {
     GCTokenImpl gct;
     RBX_DTRACE_CHAR_P thread_name = const_cast<RBX_DTRACE_CHAR_P>("rbx.immix");
-    vm_->set_name(thread_name);
+    vm()->set_name(thread_name);
 
     RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
                           state->vm()->thread_id(), 1);
 
     state->vm()->thread->hard_unlock(state, gct, 0);
 
-    thread_running_ = true;
+    set_thread_running(true);
 
     while(!thread_exit_) {
       if(data_) {
@@ -188,7 +169,7 @@ namespace rubinius {
 
     state->memory()->clear_mature_mark_in_progress();
 
-    thread_running_ = false;
+    set_thread_running(false);
 
     RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
                          state->vm()->thread_id(), 1);

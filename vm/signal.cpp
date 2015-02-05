@@ -62,10 +62,8 @@ namespace rubinius {
     : AuxiliaryThread()
     , shared_(state->shared())
     , target_(state->vm())
-    , vm_(NULL)
     , queued_signals_(0)
     , thread_exit_(false)
-    , thread_running_(false)
     , thread_(state)
   {
     signal_handler_ = this;
@@ -91,23 +89,23 @@ namespace rubinius {
     worker_lock_.init();
     worker_cond_.init();
     thread_exit_ = false;
-    thread_running_ = false;
-    vm_ = NULL;
+    set_thread_running(false);
+    set_vm(NULL);
   }
 
   void SignalHandler::start_thread(STATE) {
     SYNC(state);
-    if(vm_) return;
+    if(vm()) return;
     utilities::thread::Mutex::LockGuard lg(worker_lock_);
-    vm_ = state->shared().new_vm();
-    vm_->metrics()->init(metrics::eRubyMetrics);
+    set_vm(state->shared().new_vm());
+    vm()->metrics()->init(metrics::eRubyMetrics);
     thread_exit_ = false;
-    thread_.set(Thread::create(state, vm_, G(thread),
+    thread_.set(Thread::create(state, vm(), G(thread),
           signal_handler_trampoline, true));
     run(state);
   }
 
-  void SignalHandler::wakeup() {
+  void SignalHandler::wakeup(STATE) {
     utilities::thread::Mutex::LockGuard lg(worker_lock_);
 
     thread_exit_ = true;
@@ -115,23 +113,6 @@ namespace rubinius {
     atomic::memory_barrier();
 
     worker_cond_.signal();
-  }
-
-  void SignalHandler::stop_thread(STATE) {
-    SYNC(state);
-
-    if(vm_) {
-      wakeup();
-
-      if(atomic::poll(thread_running_, false)) {
-        void* return_value;
-        pthread_t os = vm_->os_thread();
-        pthread_join(os, &return_value);
-      }
-
-      VM::discard(state, vm_);
-      vm_ = NULL;
-    }
   }
 
   void SignalHandler::shutdown(STATE) {
@@ -165,12 +146,12 @@ namespace rubinius {
 
     GCTokenImpl gct;
     RBX_DTRACE_CHAR_P thread_name = const_cast<RBX_DTRACE_CHAR_P>("rbx.signal");
-    vm_->set_name(thread_name);
+    vm()->set_name(thread_name);
 
     RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
                           state->vm()->thread_id(), 1);
 
-    thread_running_ = true;
+    set_thread_running(true);
 
     state->vm()->thread->hard_unlock(state, gct, 0);
 
@@ -193,7 +174,7 @@ namespace rubinius {
       target_->wakeup(state, gct, 0);
     }
 
-    thread_running_ = false;
+    set_thread_running(false);
 
     RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
                          state->vm()->thread_id(), 1);

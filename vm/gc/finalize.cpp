@@ -82,7 +82,6 @@ namespace rubinius {
   FinalizerHandler::FinalizerHandler(STATE)
     : AuxiliaryThread()
     , shared_(state->shared())
-    , vm_(NULL)
     , thread_(state)
     , lists_(NULL)
     , live_list_(NULL)
@@ -90,7 +89,6 @@ namespace rubinius {
     , iterator_(NULL)
     , process_item_kind_(eRuby)
     , thread_exit_(false)
-    , thread_running_(false)
     , finishing_(false)
   {
     shared_.auxiliary_threads()->register_thread(this);
@@ -123,47 +121,30 @@ namespace rubinius {
     supervisor_lock_.init();
     supervisor_cond_.init();
     thread_exit_ = false;
-    thread_running_ = false;
     finishing_ = false;
-    vm_ = NULL;
+    set_vm(NULL);
+    set_thread_running(false);
   }
 
   void FinalizerHandler::start_thread(STATE) {
     SYNC(state);
-    if(vm_) return;
+    if(vm()) return;
     utilities::thread::Mutex::LockGuard lg(worker_lock_);
-    vm_ = state->shared().new_vm();
-    vm_->metrics()->init(metrics::eFinalizerMetrics);
+    set_vm(state->shared().new_vm());
+    vm()->metrics()->init(metrics::eFinalizerMetrics);
     thread_exit_ = false;
-    thread_.set(Thread::create(state, vm_, G(thread),
+    thread_.set(Thread::create(state, vm(), G(thread),
           finalizer_handler_trampoline, true));
     run(state);
   }
 
-  void FinalizerHandler::wakeup() {
+  void FinalizerHandler::wakeup(STATE) {
     utilities::thread::Mutex::LockGuard lg(worker_lock_);
 
     thread_exit_ = true;
     atomic::memory_barrier();
 
     worker_signal();
-  }
-
-  void FinalizerHandler::stop_thread(STATE) {
-    SYNC(state);
-
-    if(vm_) {
-      wakeup();
-
-      if(atomic::poll(thread_running_, false)) {
-        void* return_value;
-        pthread_t os = vm_->os_thread();
-        pthread_join(os, &return_value);
-      }
-
-      VM::discard(state, vm_);
-      vm_ = NULL;
-    }
   }
 
   void FinalizerHandler::shutdown(STATE) {
@@ -186,12 +167,12 @@ namespace rubinius {
     GCTokenImpl gct;
     RBX_DTRACE_CHAR_P thread_name =
       const_cast<RBX_DTRACE_CHAR_P>("rbx.finalizer");
-    vm_->set_name(thread_name);
+    vm()->set_name(thread_name);
 
     RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
                           state->vm()->thread_id(), 1);
 
-    thread_running_ = true;
+    set_thread_running(true);
 
     state->vm()->thread->hard_unlock(state, gct, 0);
     state->gc_dependent(gct, 0);
@@ -228,7 +209,7 @@ namespace rubinius {
       next_process_item();
     }
 
-    thread_running_ = false;
+    set_thread_running(false);
 
     RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
                          state->vm()->thread_id(), 1);
@@ -323,7 +304,7 @@ namespace rubinius {
         process_list_ = NULL;
         process_item_kind_ = eRuby;
         lists_->pop_back();
-        if(vm_) vm_->metrics()->m.finalizer_metrics.objects_finalized++;
+        if(vm()) vm()->metrics()->m.finalizer_metrics.objects_finalized++;
         break;
       }
     }
@@ -381,7 +362,7 @@ namespace rubinius {
     // Makes a copy of fi.
     live_list_->push_front(fi);
 
-    vm_->metrics()->m.finalizer_metrics.objects_queued++;
+    vm()->metrics()->m.finalizer_metrics.objects_queued++;
   }
 
   void FinalizerHandler::set_ruby_finalizer(Object* obj, Object* finalizer) {

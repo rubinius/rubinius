@@ -378,10 +378,8 @@ namespace rubinius {
 
     class Metrics : public AuxiliaryThread, public Lockable {
       SharedState& shared_;
-      VM* vm_;
       bool enabled_;
       bool thread_exit_;
-      bool thread_running_;
 
       TypedRoot<Thread*> thread_;
       TypedRoot<Tuple*> values_;
@@ -403,8 +401,6 @@ namespace rubinius {
 
       void map_metrics();
 
-      void wakeup();
-
       void add_historical_metrics(MetricsData* metrics);
 
       void init_ruby_metrics(STATE);
@@ -415,11 +411,10 @@ namespace rubinius {
       }
 
       void start(STATE);
-
       void start_thread(STATE);
-      void stop_thread(STATE);
 
       void shutdown(STATE);
+      void wakeup(STATE);
       void after_fork_child(STATE);
 
       void process_metrics(STATE);

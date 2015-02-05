@@ -81,7 +81,6 @@ namespace rubinius {
 
   private:
     SharedState& shared_;
-    VM* vm_;
 
     TypedRoot<Thread*> thread_;
     FinalizeObjectsList* lists_;
@@ -96,7 +95,6 @@ namespace rubinius {
     utilities::thread::Mutex supervisor_lock_;
     utilities::thread::Condition supervisor_cond_;
     bool thread_exit_;
-    bool thread_running_;
     bool finishing_;
 
   public:
@@ -125,14 +123,13 @@ namespace rubinius {
     void worker_wait();
     void supervisor_signal();
     void supervisor_wait();
-    void wakeup();
 
     void initialize(STATE);
 
     void start_thread(STATE);
-    void stop_thread(STATE);
 
     void shutdown(STATE);
+    void wakeup(STATE);
     void after_fork_child(STATE);
   };
 }

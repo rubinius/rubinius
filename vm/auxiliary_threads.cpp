@@ -5,6 +5,26 @@
 #include "auxiliary_threads.hpp"
 
 namespace rubinius {
+  void AuxiliaryThread::shutdown(STATE) {
+    stop_thread(state);
+  }
+
+  void AuxiliaryThread::stop_thread(STATE) {
+    if(vm_) {
+      wakeup(state);
+
+      if(atomic::poll(thread_running_, false)) {
+        void* return_value;
+        pthread_t os = vm_->os_thread();
+        pthread_join(os, &return_value);
+        VM::discard(state, vm_);
+      }
+
+      vm_ = NULL;
+    }
+  }
+
+
   void AuxiliaryThreads::register_thread(AuxiliaryThread* thread) {
     threads_.push_back(thread);
   }

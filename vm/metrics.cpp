@@ -199,10 +199,8 @@ namespace rubinius {
     Metrics::Metrics(STATE)
       : AuxiliaryThread()
       , shared_(state->shared())
-      , vm_(NULL)
       , enabled_(true)
       , thread_exit_(false)
-      , thread_running_(false)
       , thread_(state)
       , values_(state)
       , interval_(state->shared().config.system_metrics_interval)
@@ -427,10 +425,11 @@ namespace rubinius {
     }
 
     void Metrics::start(STATE) {
-      vm_ = NULL;
+      set_vm(NULL);
+      set_thread_running(false);
+
       enabled_ = true;
       thread_exit_ = false;
-      thread_running_ = false;
 
       timer_ = new timer::Timer;
 
@@ -440,7 +439,7 @@ namespace rubinius {
       start_thread(state);
     }
 
-    void Metrics::wakeup() {
+    void Metrics::wakeup(STATE) {
       thread_exit_ = true;
 
       atomic::memory_barrier();
@@ -454,32 +453,15 @@ namespace rubinius {
     void Metrics::start_thread(STATE) {
       SYNC(state);
 
-      if(!vm_) {
-        vm_ = state->shared().new_vm();
+      if(!vm()) {
+        set_vm(state->shared().new_vm());
         thread_exit_ = false;
-        thread_.set(Thread::create(state, vm_, G(thread),
+        thread_.set(Thread::create(state, vm(), G(thread),
               metrics_trampoline, true));
       }
 
       if(thread_.get()->fork_attached(state)) {
         rubinius::bug("Unable to start metrics thread");
-      }
-    }
-
-    void Metrics::stop_thread(STATE) {
-      SYNC(state);
-
-      if(vm_) {
-        wakeup();
-
-        if(atomic::poll(thread_running_, false)) {
-          void* return_value;
-          pthread_t os = vm_->os_thread();
-          pthread_join(os, &return_value);
-        }
-
-        VM::discard(state, vm_);
-        vm_ = NULL;
       }
     }
 
@@ -489,7 +471,7 @@ namespace rubinius {
 
     void Metrics::after_fork_child(STATE) {
       metrics_lock_.init();
-      vm_ = NULL;
+      set_vm(NULL);
 
       start(state);
       if(emitter_) emitter_->reinit();
@@ -509,12 +491,12 @@ namespace rubinius {
       GCTokenImpl gct;
       RBX_DTRACE_CHAR_P thread_name =
         const_cast<RBX_DTRACE_CHAR_P>("rbx.metrics");
-      vm_->set_name(thread_name);
+      vm()->set_name(thread_name);
 
       RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
                             state->vm()->thread_id(), 1);
 
-      thread_running_ = true;
+      set_thread_running(true);
 
       state->vm()->thread->hard_unlock(state, gct, 0);
       state->gc_dependent(gct, 0);
@@ -573,7 +555,7 @@ namespace rubinius {
 
       timer_->clear();
 
-      thread_running_ = false;
+      set_thread_running(false);
 
       RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
                            state->vm()->thread_id(), 1);

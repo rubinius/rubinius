@@ -19,13 +19,11 @@ namespace rubinius {
   class SignalHandler : public AuxiliaryThread, public Lockable {
     SharedState& shared_;
     VM* target_;
-    VM* vm_;
 
     int pending_signals_[NSIG];
     int queued_signals_;
 
     bool thread_exit_;
-    bool thread_running_;
 
     TypedRoot<Thread*> thread_;
 
@@ -58,11 +56,11 @@ namespace rubinius {
     void print_backtraces();
 
     void open_pipes();
-    void wakeup();
+
     void start_thread(STATE);
-    void stop_thread(STATE);
 
     void shutdown(STATE);
+    void wakeup(STATE);
     void after_fork_child(STATE);
 
     void run(STATE);
