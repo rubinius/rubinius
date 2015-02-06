@@ -21,6 +21,7 @@
 
 #include <string>
 #include <vector>
+#include <list>
 
 #include "missing/unordered_map.hpp"
 #include "missing/unordered_set.hpp"

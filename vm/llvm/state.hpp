@@ -77,7 +77,6 @@ namespace rubinius {
 
     Configuration& config_;
 
-    TypedRoot<Thread*> thread_;
     TypedRoot<List*> compile_list_;
     SymbolTable& symbols_;
 
@@ -112,7 +111,6 @@ namespace rubinius {
     bool type_optz_;
 
     bool enabled_;
-    bool thread_exit_;
 
     jit::Compiler* current_compiler_;
 
@@ -182,10 +180,6 @@ namespace rubinius {
 
     std::ostream& log() {
       return *log_;
-    }
-
-    Thread* thread() {
-      return thread_.get();
     }
 
     uint32_t fixnum_class_id() {
@@ -286,11 +280,11 @@ namespace rubinius {
 
     std::string enclosure_name(CompiledCode* code);
 
-    void perform(STATE);
+
+    void run(STATE);
+    void wakeup(STATE);
     void stop(STATE);
 
-    void wakeup(STATE);
-    void start_thread(STATE);
     void after_fork_child(STATE);
 
     void gc_scan(GarbageCollector* gc);

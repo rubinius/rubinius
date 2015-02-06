@@ -47,14 +47,14 @@ namespace rubinius {
     G(thread)->set_object_type(state, Thread::type);
   }
 
-  Thread* Thread::create(STATE, VM* target, Object* self, Run runner,
+  Thread* Thread::create(STATE, VM* target, Object* self, ThreadFunction function,
                          bool internal_thread)
   {
     Thread* thr = state->vm()->new_object_mature<Thread>(G(thread));
 
     if(!target) {
       target = state->shared().new_vm();
-      target->metrics()->init(metrics::eRubyMetrics);
+      target->metrics().init(metrics::eRubyMetrics);
     }
 
     thr->pin();
@@ -74,7 +74,7 @@ namespace rubinius {
 
     thr->vm_ = target;
     thr->klass(state, as<Class>(self));
-    thr->runner_ = runner;
+    thr->function_ = function;
     thr->init_lock_.init();
     thr->internal_thread_ = internal_thread;
 
@@ -84,8 +84,8 @@ namespace rubinius {
       state->memory()->needs_finalization(thr, (FinalizerFunction)&Thread::finalize);
     }
 
-    state->vm()->metrics()->system_metrics.vm_threads++;
-    state->vm()->metrics()->system_metrics.vm_threads_total++;
+    state->vm()->metrics().system_metrics.vm_threads++;
+    state->vm()->metrics().system_metrics.vm_threads_total++;
 
     return thr;
   }
@@ -283,7 +283,7 @@ namespace rubinius {
     vm->thread->hard_lock(state, gct, 0);
 
     vm->shared.tool_broker()->thread_start(state);
-    Object* ret = vm->thread->runner_(state);
+    Object* ret = vm->thread->function_(state);
     vm->shared.tool_broker()->thread_stop(state);
 
     if(!ret) {

@@ -14,7 +14,6 @@ namespace rubinius {
   class State;
   class Configuration;
   struct CallFrame;
-  class Thread;
 
   class SignalHandler : public AuxiliaryThread, public Lockable {
     SharedState& shared_;
@@ -22,10 +21,6 @@ namespace rubinius {
 
     int pending_signals_[NSIG];
     int queued_signals_;
-
-    bool thread_exit_;
-
-    TypedRoot<Thread*> thread_;
 
     std::list<int> watched_signals_;
 
@@ -40,12 +35,9 @@ namespace rubinius {
     };
 
     SignalHandler(STATE, Configuration& config);
-    virtual ~SignalHandler();
 
     void initialize(STATE);
     void setup_default_handlers();
-
-    void perform(STATE);
 
     void add_signal(State*, int sig, HandlerType type = eCustom);
     void handle_signal(int sig);
@@ -57,13 +49,9 @@ namespace rubinius {
 
     void open_pipes();
 
-    void start_thread(STATE);
-
+    void run(STATE);
     void shutdown(STATE);
     void wakeup(STATE);
-    void after_fork_child(STATE);
-
-    void run(STATE);
   };
 }
 

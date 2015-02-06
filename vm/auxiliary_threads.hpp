@@ -3,18 +3,36 @@
 
 #include "util/thread.hpp"
 
+#include <string>
 #include <list>
 
 namespace rubinius {
   class VM;
 
+  namespace metrics {
+    struct MetricsData;
+  }
+
   class AuxiliaryThread {
     VM* vm_;
+    std::string name_;
     bool thread_running_;
+
+    metrics::MetricsData& metrics_;
+
+  protected:
+
+    bool thread_exit_;
 
   public:
 
+    AuxiliaryThread(STATE, std::string name);
     virtual ~AuxiliaryThread() { };
+
+    // OS thread trampoline
+    static void* run(void*);
+
+    // Events
     virtual void before_exec(STATE) { };
     virtual void after_exec(STATE) { };
     virtual void before_fork_exec(STATE) { };
@@ -22,33 +40,24 @@ namespace rubinius {
     virtual void after_fork_exec_child(STATE) { };
     virtual void before_fork(STATE) { };
     virtual void after_fork_parent(STATE) { };
-    virtual void after_fork_child(STATE) { };
-    virtual void wakeup(STATE) { };
+    virtual void after_fork_child(STATE);
+    virtual void run(STATE) { };
 
-    AuxiliaryThread()
-      : vm_(NULL)
-      , thread_running_(false)
-    {
-    }
-
-    bool& thread_running() {
-      return thread_running_;
-    }
-
-    void set_thread_running(bool state) {
-      thread_running_ = state;
-    }
-
+    // Object interface
     VM* vm() {
       return vm_;
     }
 
-    void set_vm(VM* vm) {
-      vm_ = vm;
+    metrics::MetricsData& metrics() {
+      return metrics_;
     }
 
-    void shutdown(STATE);
-    void stop_thread(STATE);
+    virtual void initialize(STATE);
+    virtual void start(STATE);
+    virtual void start_thread(STATE);
+    virtual void wakeup(STATE);
+    virtual void stop_thread(STATE);
+    virtual void stop(STATE);
   };
 
   class AuxiliaryThreads {

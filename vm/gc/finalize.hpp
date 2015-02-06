@@ -14,7 +14,6 @@ namespace rubinius {
   class State;
   struct CallFrame;
   class Object;
-  class Thread;
 
   typedef void (*FinalizerFunction)(STATE, Object*);
 
@@ -80,9 +79,6 @@ namespace rubinius {
     };
 
   private:
-    SharedState& shared_;
-
-    TypedRoot<Thread*> thread_;
     FinalizeObjectsList* lists_;
     FinalizeObjects* live_list_;
     FinalizeObjects* process_list_;
@@ -94,7 +90,6 @@ namespace rubinius {
     utilities::thread::Condition worker_cond_;
     utilities::thread::Mutex supervisor_lock_;
     utilities::thread::Condition supervisor_cond_;
-    bool thread_exit_;
     bool finishing_;
 
   public:
@@ -102,8 +97,6 @@ namespace rubinius {
     FinalizerHandler(STATE);
     virtual ~FinalizerHandler();
 
-    void run(STATE);
-    void perform(STATE);
     void finalize(STATE);
     void first_process_item();
     void next_process_item();
@@ -125,11 +118,8 @@ namespace rubinius {
     void supervisor_wait();
 
     void initialize(STATE);
-
-    void start_thread(STATE);
-
+    void run(STATE);
     void wakeup(STATE);
-    void after_fork_child(STATE);
   };
 }
 

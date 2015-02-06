@@ -57,9 +57,9 @@ namespace rubinius {
     /// The VM state for this thread and this thread alone
     VM* vm_;
 
-    typedef Object* (*Run)(STATE);
+    typedef Object* (*ThreadFunction)(STATE);
 
-    Run runner_;
+    ThreadFunction function_;
 
   public:
     const static object_type type = ThreadType;
@@ -288,7 +288,7 @@ namespace rubinius {
      *
      *  @see  Thread::allocate().
      */
-    static Thread* create(STATE, VM* target, Object* self, Run runner,
+    static Thread* create(STATE, VM* target, Object* self, ThreadFunction function,
                           bool internal_thread = false);
 
     static void finalize(STATE, Thread* thread);

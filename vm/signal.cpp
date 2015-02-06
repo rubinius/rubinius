@@ -51,24 +51,14 @@ namespace rubinius {
   // crashing inside the crash handler.
   static struct utsname machine_info;
 
-  Object* signal_handler_trampoline(STATE) {
-    state->shared().signal_handler()->perform(state);
-    GCTokenImpl gct;
-    state->gc_dependent(gct, 0);
-    return cNil;
-  }
-
   SignalHandler::SignalHandler(STATE, Configuration& config)
-    : AuxiliaryThread()
+    : AuxiliaryThread(state, "rbx.signal")
     , shared_(state->shared())
     , target_(state->vm())
     , queued_signals_(0)
-    , thread_exit_(false)
-    , thread_(state)
   {
     signal_handler_ = this;
 
-    shared_.auxiliary_threads()->register_thread(this);
     shared_.set_signal_handler(this);
 
     for(int i = 0; i < NSIG; i++) {
@@ -81,36 +71,17 @@ namespace rubinius {
     start_thread(state);
   }
 
-  SignalHandler::~SignalHandler() {
-    shared_.auxiliary_threads()->unregister_thread(this);
-  }
-
   void SignalHandler::initialize(STATE) {
+    AuxiliaryThread::initialize(state);
+
     worker_lock_.init();
     worker_cond_.init();
-    thread_exit_ = false;
-    set_thread_running(false);
-    set_vm(NULL);
-  }
-
-  void SignalHandler::start_thread(STATE) {
-    SYNC(state);
-    if(vm()) return;
-    utilities::thread::Mutex::LockGuard lg(worker_lock_);
-    set_vm(state->shared().new_vm());
-    vm()->metrics()->init(metrics::eRubyMetrics);
-    thread_exit_ = false;
-    thread_.set(Thread::create(state, vm(), G(thread),
-          signal_handler_trampoline, true));
-    run(state);
   }
 
   void SignalHandler::wakeup(STATE) {
     utilities::thread::Mutex::LockGuard lg(worker_lock_);
 
-    thread_exit_ = true;
-
-    atomic::memory_barrier();
+    AuxiliaryThread::wakeup(state);
 
     worker_cond_.signal();
   }
@@ -126,18 +97,7 @@ namespace rubinius {
     stop_thread(state);
   }
 
-  void SignalHandler::after_fork_child(STATE) {
-    initialize(state);
-
-    start_thread(state);
-  }
-
   void SignalHandler::run(STATE) {
-    int error = thread_.get()->fork_attached(state);
-    if(error) rubinius::bug("Unable to start signal handler thread");
-  }
-
-  void SignalHandler::perform(STATE) {
 #ifndef RBX_WINDOWS
     sigset_t set;
     sigfillset(&set);
@@ -145,15 +105,8 @@ namespace rubinius {
 #endif
 
     GCTokenImpl gct;
-    RBX_DTRACE_CHAR_P thread_name = const_cast<RBX_DTRACE_CHAR_P>("rbx.signal");
-    vm()->set_name(thread_name);
 
-    RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
-                          state->vm()->thread_id(), 1);
-
-    set_thread_running(true);
-
-    state->vm()->thread->hard_unlock(state, gct, 0);
+    metrics().init(metrics::eRubyMetrics);
 
     while(!thread_exit_) {
       {
@@ -173,11 +126,6 @@ namespace rubinius {
 
       target_->wakeup(state, gct, 0);
     }
-
-    set_thread_running(false);
-
-    RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
-                         state->vm()->thread_id(), 1);
   }
 
   void SignalHandler::signal_handler(int sig) {
@@ -187,7 +135,7 @@ namespace rubinius {
   void SignalHandler::handle_signal(int sig) {
     if(thread_exit_) return;
 
-    target_->metrics()->system_metrics.os_signals_received++;
+    target_->metrics().system_metrics.os_signals_received++;
 
     queued_signals_ = 1;
     pending_signals_[sig] = 1;
@@ -239,7 +187,7 @@ namespace rubinius {
       if(pending_signals_[i] > 0) {
         pending_signals_[i] = 0;
 
-        target_->metrics()->system_metrics.os_signals_processed++;
+        target_->metrics().system_metrics.os_signals_processed++;
 
         Array* args = Array::create(state, 1);
         args->set(state, 0, Fixnum::from(i));

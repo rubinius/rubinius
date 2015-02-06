@@ -89,9 +89,8 @@ namespace rubinius {
   static const bool debug_search = false;
 
   LLVMState::LLVMState(STATE)
-    : AuxiliaryThread()
+    : AuxiliaryThread(state, "rbx.jit")
     , config_(state->shared().config)
-    , thread_(state)
     , compile_list_(state)
     , symbols_(state->shared().symbols)
     , accessors_inlined_(0)
@@ -101,11 +100,8 @@ namespace rubinius {
     , code_bytes_(0)
     , log_(NULL)
     , enabled_(false)
-    , thread_exit_(false)
     , current_compiler_(0)
   {
-    state->shared().auxiliary_threads()->register_thread(this);
-
     if(state->shared().config.jit_log.value.size() == 0) {
       log_ = &std::cerr;
     } else {
@@ -158,8 +154,6 @@ namespace rubinius {
   }
 
   LLVMState::~LLVMState() {
-    shared_.auxiliary_threads()->unregister_thread(this);
-
     delete memory_;
     memory_ = NULL;
 
@@ -183,33 +177,6 @@ namespace rubinius {
     return config_.jit_debug;
   }
 
-  Object* jit_llvm_trampoline(STATE) {
-    state->shared().llvm_state->perform(state);
-    GCTokenImpl gct;
-    state->gc_dependent(gct, 0);
-    return cNil;
-  }
-
-  void LLVMState::start_thread(STATE) {
-    SYNC(state);
-
-    if(!vm()) {
-      set_vm(state->shared().new_vm());
-      vm()->metrics()->init(metrics::eJITMetrics);
-
-      thread_exit_ = false;
-
-      Thread* thread = Thread::create(state, vm(), G(thread), jit_llvm_trampoline, true);
-      OnStack<1> os(state, thread);
-
-      if(thread->fork_attached(state)) {
-        rubinius::bug("Unable to start JIT LLVM thread");
-      }
-
-      thread_.set(thread);
-    }
-  }
-
   void LLVMState::wakeup(STATE) {
     utilities::thread::Mutex::LockGuard lg(compile_lock_);
 
@@ -227,24 +194,16 @@ namespace rubinius {
   void LLVMState::after_fork_child(STATE) {
     compile_list_.get()->clear(state);
     current_compiler_ = 0;
-    set_vm(NULL);
-    set_thread_running(false);
 
     start_thread(state);
   }
 
-  void LLVMState::perform(STATE) {
+  void LLVMState::run(STATE) {
     GCTokenImpl gct;
-    RBX_DTRACE_CHAR_P thread_name = const_cast<RBX_DTRACE_CHAR_P>("rbx.jit");
-    vm()->set_name(thread_name);
 
-    RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
-                          state->vm()->thread_id(), 1);
+    metrics().init(metrics::eJITMetrics);
 
-    state->vm()->thread->hard_unlock(state, gct, 0);
     state->gc_dependent(gct, 0);
-
-    set_thread_running(true);
 
     bool show_machine_code_ = jit_dump_code() & cMachineCode;
 
@@ -318,8 +277,8 @@ namespace rubinius {
 
         {
           timer::StopWatch<timer::microseconds> timer(
-              vm()->metrics()->m.jit_metrics.time_last_us,
-              vm()->metrics()->m.jit_metrics.time_total_us);
+              metrics().m.jit_metrics.time_last_us,
+              metrics().m.jit_metrics.time_total_us);
 
           jit.compile(compile_request);
 
@@ -349,7 +308,7 @@ namespace rubinius {
       } catch(LLVMState::CompileError& e) {
         utilities::logger::warn("JIT: compile error: %s", e.error());
 
-        vm()->metrics()->m.jit_metrics.methods_failed++;
+        metrics().m.jit_metrics.methods_failed++;
 
         // If someone was waiting on this, wake them up.
         if(utilities::thread::Condition* cond = compile_request->waiter()) {
@@ -404,13 +363,8 @@ namespace rubinius {
       }
 
       current_compiler_ = 0;
-      vm()->metrics()->m.jit_metrics.methods_compiled++;
+      metrics().m.jit_metrics.methods_compiled++;
     }
-
-    set_thread_running(false);
-
-    RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
-                         state->vm()->thread_id(), 1);
   }
 
   void LLVMState::gc_scan(GarbageCollector* gc) {
@@ -444,7 +398,7 @@ namespace rubinius {
     if(!enabled_) return;
 
     G(jit)->compile_list()->append(state, req);
-    vm()->metrics()->m.jit_metrics.methods_queued++;
+    metrics().m.jit_metrics.methods_queued++;
 
     compile_cond_.signal();
   }
@@ -456,7 +410,7 @@ namespace rubinius {
 
     // TODO: Fix compile policy checks
     if(!code->keywords()->nil_p()) {
-      vm()->metrics()->m.jit_metrics.methods_failed++;
+      metrics().m.jit_metrics.methods_failed++;
 
       return;
     }
@@ -496,7 +450,7 @@ namespace rubinius {
 
     // TODO: Fix compile policy checks
     if(!code->keywords()->nil_p()) {
-      vm()->metrics()->m.jit_metrics.methods_failed++;
+      metrics().m.jit_metrics.methods_failed++;
 
       return;
     }
@@ -549,7 +503,7 @@ namespace rubinius {
   }
 
   void LLVMState::remove(void* func) {
-    if(vm()) vm()->metrics()->m.jit_metrics.methods_compiled--;
+    metrics().m.jit_metrics.methods_compiled--;
     if(memory_) memory_->deallocateFunctionBody(func);
   }
 
@@ -560,7 +514,7 @@ namespace rubinius {
   {
     // TODO: Fix compile policy checks
     if(!start->keywords()->nil_p()) {
-      vm()->metrics()->m.jit_metrics.methods_failed++;
+      metrics().m.jit_metrics.methods_failed++;
 
       return;
     }

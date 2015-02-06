@@ -194,14 +194,16 @@ namespace rubinius {
            ++i) {
       if(VM* vm = (*i)->as_vm()) {
         if(vm == current) {
-          vm->metrics()->init(metrics::eRubyMetrics);
-          state->vm()->metrics()->system_metrics.vm_threads++;
+          vm->metrics().init(metrics::eRubyMetrics);
+          state->vm()->metrics().system_metrics.vm_threads++;
           continue;
         }
 
         if(Thread* thread = vm->thread.get()) {
-          thread->unlock_after_fork(state, gct);
-          thread->stopped();
+          if(!thread->nil_p()) {
+            thread->unlock_after_fork(state, gct);
+            thread->stopped();
+          }
         }
 
         vm->unlock();

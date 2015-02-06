@@ -4,9 +4,76 @@
 
 #include "auxiliary_threads.hpp"
 
+#include "dtrace/dtrace.h"
+#include "util/logger.hpp"
+
 namespace rubinius {
-  void AuxiliaryThread::shutdown(STATE) {
-    stop_thread(state);
+  using namespace utilities;
+
+#define AUXILIARY_THREAD_STACK_SIZE   0x100000
+
+  AuxiliaryThread::AuxiliaryThread(STATE, std::string name)
+    : vm_(state->shared().new_vm())
+    , name_(name)
+    , thread_running_(false)
+    , metrics_(vm_->metrics())
+    , thread_exit_(false)
+  {
+    state->shared().auxiliary_threads()->register_thread(this);
+  }
+
+  void* AuxiliaryThread::run(void* ptr) {
+    AuxiliaryThread* thread = reinterpret_cast<AuxiliaryThread*>(ptr);
+    VM* vm = thread->vm();
+
+    SharedState& shared = vm->shared;
+    State state_obj(vm), *state = &state_obj;
+
+    RBX_DTRACE_CHAR_P thread_name =
+      const_cast<RBX_DTRACE_CHAR_P>(thread->name_.c_str());
+    vm->set_name(thread_name);
+
+    RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
+                          vm->thread_id(), 1);
+
+    thread->thread_running_ = true;
+
+    thread->run(state);
+
+    thread->thread_running_ = false;
+
+    RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
+                         vm->thread_id(), 1);
+
+    shared.gc_independent();
+
+    return 0;
+  }
+
+  void AuxiliaryThread::initialize(STATE) {
+    thread_exit_ = false;
+    thread_running_ = false;
+  }
+
+  void AuxiliaryThread::start(STATE) {
+    initialize(state);
+    start_thread(state);
+  }
+
+  void AuxiliaryThread::start_thread(STATE) {
+    pthread_attr_t attrs;
+    pthread_attr_init(&attrs);
+    pthread_attr_setstacksize(&attrs, AUXILIARY_THREAD_STACK_SIZE);
+
+    if(int error = pthread_create(&vm_->os_thread(), &attrs,
+          AuxiliaryThread::run, (void*)this)) {
+      logger::error("%s: %s: create thread failed", strerror(error), name_.c_str());
+    }
+  }
+
+  void AuxiliaryThread::wakeup(STATE) {
+    thread_exit_ = true;
+    atomic::memory_barrier();
   }
 
   void AuxiliaryThread::stop_thread(STATE) {
@@ -24,6 +91,14 @@ namespace rubinius {
     }
   }
 
+  void AuxiliaryThread::stop(STATE) {
+    stop_thread(state);
+  }
+
+  void AuxiliaryThread::after_fork_child(STATE) {
+    initialize(state);
+    start_thread(state);
+  }
 
   void AuxiliaryThreads::register_thread(AuxiliaryThread* thread) {
     threads_.push_back(thread);
@@ -42,7 +117,7 @@ namespace rubinius {
     for(std::list<AuxiliaryThread*>::reverse_iterator i = threads_.rbegin();
         i != threads_.rend();
         ++i) {
-      (*i)->shutdown(state);
+      (*i)->stop(state);
     }
 
     shutdown_in_progress_ = false;

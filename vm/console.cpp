@@ -47,7 +47,7 @@ namespace rubinius {
     }
 
     Console::Console(STATE)
-      : AuxiliaryThread()
+      : AuxiliaryThread(state, "rbx.console")
       , shared_(state->shared())
       , request_vm_(NULL)
       , response_vm_(NULL)
@@ -192,7 +192,7 @@ namespace rubinius {
 
       if(!request_vm_) {
         request_vm_ = state->shared().new_vm();
-        request_vm_->metrics()->init(metrics::eConsoleMetrics);
+        request_vm_->metrics().init(metrics::eConsoleMetrics);
         request_exit_ = false;
         request_.set(Thread::create(state, request_vm_, G(thread),
                      console_request_trampoline, true));
@@ -200,7 +200,7 @@ namespace rubinius {
 
       if(!response_vm_) {
         response_vm_ = state->shared().new_vm();
-        response_vm_->metrics()->init(metrics::eConsoleMetrics);
+        response_vm_->metrics().init(metrics::eConsoleMetrics);
         response_exit_ = false;
         response_.set(Thread::create(state, response_vm_, G(thread),
                      console_response_trampoline, true));
@@ -285,7 +285,7 @@ namespace rubinius {
         req = new char[bytes+1];
         memcpy(req, buf, bytes);
         req[bytes] = 0;
-        request_vm_->metrics()->m.console_metrics.requests_received++;
+        request_vm_->metrics().m.console_metrics.requests_received++;
       } else if(bytes < 0) {
         logger::error("%s: console: unable to read request", strerror(errno));
       }
@@ -363,7 +363,7 @@ namespace rubinius {
         logger::error("%s: console: unable to write response", strerror(errno));
       }
 
-      response_vm_->metrics()->m.console_metrics.responses_sent++;
+      response_vm_->metrics().m.console_metrics.responses_sent++;
     }
 
     void Console::process_responses(STATE) {

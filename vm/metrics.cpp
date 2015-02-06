@@ -36,39 +36,32 @@ namespace rubinius {
   using namespace utilities;
 
   namespace metrics {
-    void RubyMetrics::add(MetricsData* data) {
-      if(data->type != eRubyMetrics) return;
+    void RubyMetrics::add(MetricsData& data) {
+      if(data.type != eRubyMetrics) return;
 
-      add(&data->m.ruby_metrics);
+      add(data.m.ruby_metrics);
     }
 
-    void FinalizerMetrics::add(MetricsData* data) {
-      if(data->type != eFinalizerMetrics) return;
+    void FinalizerMetrics::add(MetricsData& data) {
+      if(data.type != eFinalizerMetrics) return;
 
-      add(&data->m.finalizer_metrics);
+      add(data.m.finalizer_metrics);
     }
 
-    void JITMetrics::add(MetricsData* data) {
-      if(data->type != eJITMetrics) return;
+    void JITMetrics::add(MetricsData& data) {
+      if(data.type != eJITMetrics) return;
 
-      add(&data->m.jit_metrics);
+      add(data.m.jit_metrics);
     }
 
-    void ConsoleMetrics::add(MetricsData* data) {
-      if(data->type != eConsoleMetrics) return;
+    void ConsoleMetrics::add(MetricsData& data) {
+      if(data.type != eConsoleMetrics) return;
 
-      add(&data->m.console_metrics);
+      add(data.m.console_metrics);
     }
 
-    void SystemMetrics::add(MetricsData* data) {
-      add(&data->system_metrics);
-    }
-
-    Object* metrics_trampoline(STATE) {
-      state->shared().metrics()->process_metrics(state);
-      GCTokenImpl gct;
-      state->gc_dependent(gct, 0);
-      return cNil;
+    void SystemMetrics::add(MetricsData& data) {
+      add(data.system_metrics);
     }
 
     StatsDEmitter::StatsDEmitter(MetricsMap& map, std::string server, std::string prefix)
@@ -197,11 +190,8 @@ namespace rubinius {
     }
 
     Metrics::Metrics(STATE)
-      : AuxiliaryThread()
-      , shared_(state->shared())
+      : AuxiliaryThread(state, "rbx.metrics")
       , enabled_(true)
-      , thread_exit_(false)
-      , thread_(state)
       , values_(state)
       , interval_(state->shared().config.system_metrics_interval)
       , timer_(NULL)
@@ -210,13 +200,11 @@ namespace rubinius {
       metrics_lock_.init();
       map_metrics();
 
-      if(!shared_.config.system_metrics_target.value.compare("statsd")) {
+      if(!state->shared().config.system_metrics_target.value.compare("statsd")) {
         emitter_ = new StatsDEmitter(metrics_map_,
-            shared_.config.system_metrics_statsd_server.value,
-            shared_.config.system_metrics_statsd_prefix.value);
+            state->shared().config.system_metrics_statsd_server.value,
+            state->shared().config.system_metrics_statsd_prefix.value);
       }
-
-      shared_.auxiliary_threads()->register_thread(this);
     }
 
     Metrics::~Metrics() {
@@ -229,8 +217,6 @@ namespace rubinius {
       {
         delete (*i);
       }
-
-      shared_.auxiliary_threads()->unregister_thread(this);
     }
 
     void Metrics::map_metrics() {
@@ -424,25 +410,19 @@ namespace rubinius {
       }
     }
 
-    void Metrics::start(STATE) {
-      set_vm(NULL);
-      set_thread_running(false);
+    void Metrics::initialize(STATE) {
+      AuxiliaryThread::initialize(state);
 
       enabled_ = true;
-      thread_exit_ = false;
 
       timer_ = new timer::Timer;
 
       metrics_collection_.init();
       metrics_history_.init();
-
-      start_thread(state);
     }
 
     void Metrics::wakeup(STATE) {
-      thread_exit_ = true;
-
-      atomic::memory_barrier();
+      AuxiliaryThread::wakeup(state);
 
       if(timer_) {
         timer_->clear();
@@ -450,30 +430,13 @@ namespace rubinius {
       }
     }
 
-    void Metrics::start_thread(STATE) {
-      SYNC(state);
-
-      if(!vm()) {
-        set_vm(state->shared().new_vm());
-        thread_exit_ = false;
-        thread_.set(Thread::create(state, vm(), G(thread),
-              metrics_trampoline, true));
-      }
-
-      if(thread_.get()->fork_attached(state)) {
-        rubinius::bug("Unable to start metrics thread");
-      }
-    }
-
     void Metrics::after_fork_child(STATE) {
-      metrics_lock_.init();
-      set_vm(NULL);
-
-      start(state);
       if(emitter_) emitter_->reinit();
+
+      AuxiliaryThread::after_fork_child(state);
     }
 
-    void Metrics::add_historical_metrics(MetricsData* metrics) {
+    void Metrics::add_historical_metrics(MetricsData& metrics) {
       if(!enabled_) return;
 
       {
@@ -483,18 +446,9 @@ namespace rubinius {
       }
     }
 
-    void Metrics::process_metrics(STATE) {
+    void Metrics::run(STATE) {
       GCTokenImpl gct;
-      RBX_DTRACE_CHAR_P thread_name =
-        const_cast<RBX_DTRACE_CHAR_P>("rbx.metrics");
-      vm()->set_name(thread_name);
 
-      RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
-                            state->vm()->thread_id(), 1);
-
-      set_thread_running(true);
-
-      state->vm()->thread->hard_unlock(state, gct, 0);
       state->gc_dependent(gct, 0);
 
       timer_->set(interval_);
@@ -521,23 +475,17 @@ namespace rubinius {
               i != threads->end();
               ++i) {
             if(VM* vm = (*i)->as_vm()) {
-              if(MetricsData* data = vm->metrics()) {
-                metrics_collection_.add(data);
-              }
+              metrics_collection_.add(vm->metrics());
             }
           }
 
 #ifdef ENABLE_LLVM
-          if(state->shared().llvm_state) {
-            if(Thread* thread = state->shared().llvm_state->thread()) {
-              if(VM* vm = thread->vm()) {
-                metrics_collection_.add(vm->metrics());
-              }
-            }
+          if(LLVMState* llvm_state = state->shared().llvm_state) {
+            metrics_collection_.add(llvm_state->metrics());
           }
 #endif
 
-          metrics_collection_.add(&metrics_history_);
+          metrics_collection_.add(metrics_history_);
 
           update_ruby_values(state);
         }
@@ -550,11 +498,6 @@ namespace rubinius {
       }
 
       timer_->clear();
-
-      set_thread_running(false);
-
-      RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
-                           state->vm()->thread_id(), 1);
     }
   }
 }

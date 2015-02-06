@@ -99,8 +99,10 @@ namespace rubinius {
     load_vm_options(argc_, argv_);
 
     root_vm = shared->new_vm();
-    root_vm->metrics()->init(metrics::eRubyMetrics);
+    root_vm->metrics().init(metrics::eRubyMetrics);
     state = new State(root_vm);
+
+    NativeMethod::init_thread(state);
 
     start_logging(state);
   }
@@ -543,8 +545,9 @@ namespace rubinius {
 
   void Environment::halt(STATE) {
     state->shared().tool_broker()->shutdown(state);
+
     if(ImmixMarker* im = state->memory()->immix_marker()) {
-      im->shutdown(state);
+      im->stop(state);
     }
 
     stop_jit(state);
