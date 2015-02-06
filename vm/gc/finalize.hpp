@@ -128,7 +128,6 @@ namespace rubinius {
 
     void start_thread(STATE);
 
-    void shutdown(STATE);
     void wakeup(STATE);
     void after_fork_child(STATE);
   };

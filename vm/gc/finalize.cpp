@@ -147,11 +147,6 @@ namespace rubinius {
     worker_signal();
   }
 
-  void FinalizerHandler::shutdown(STATE) {
-    // We do nothing now because we have to finish processing all remaining
-    // live objects once everything shuts down.
-  }
-
   void FinalizerHandler::after_fork_child(STATE) {
     initialize(state);
 

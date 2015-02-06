@@ -75,10 +75,6 @@ namespace rubinius {
     run_cond_.signal();
   }
 
-  void ImmixMarker::shutdown(STATE) {
-    stop_thread(state);
-  }
-
   void ImmixMarker::after_fork_child(STATE) {
     initialize(state);
 
