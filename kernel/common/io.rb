@@ -48,9 +48,16 @@ class IO
       case stat.ftype
       when "file"
         BufferedFileDescriptor.new(fd, stat)
-      when "pipe"
-        PipeFileDescriptor.new(fd)
+      when "fifo", "characterSpecial"
+        FIFOFileDescriptor.new(fd, stat)
       when "socket"
+        raise "cannot make socket yet"
+      when "directory"
+        raise "cannot make a directory"
+      when "blockSpecial"
+        raise "cannot make block special"
+      when "link"
+        raise "cannot make link"
       else
         new(fd, stat)
       end
@@ -82,7 +89,7 @@ class IO
       if new_fd > 2
         flags = FFI::Platform::POSIX.fcntl(new_fd, F_GETFD, 0)
         Errno.handle("fcntl(2) failed") if FFI.call_failed?(flags)
-        flags = FFI::Platform::POSIX.fcntl(new_fd, F_SETFD, FFI::Platform::POSIX.fcntl(new_fd, F_GETFL, 0) | O_CLOEXEC)
+        flags = FFI::Platform::POSIX.fcntl(new_fd, F_SETFD, FFI::Platform::POSIX.fcntl(new_fd, F_GETFL, 0) | FD_CLOEXEC)
         Errno.handle("fcntl(2) failed") if FFI.call_failed?(flags)
       end
 
@@ -114,7 +121,6 @@ class IO
       end
 
       @sync = true
-
       reset_positioning(@stat)
 
       # Don't bother to add finalization for stdio
@@ -149,7 +155,7 @@ class IO
 
     CLONG_OVERFLOW = 1 << 64
 
-    def sysseek(offset, whence=SEEK_SET)
+    def lseek(offset, whence=SEEK_SET)
       ensure_open
 
       # FIXME: check +amount+ to make sure it isn't too large
@@ -243,12 +249,12 @@ class IO
             continue
           elsif errno == Errno::EPIPE::Errno
             if @descriptor == 1 || @descriptor == 2
-              return buf_size
+              return(buf_size)
             end
-          else
-            error = true
-            break
           end
+
+          error = true
+          break
         end
 
         break if error
@@ -257,6 +263,8 @@ class IO
         buffer += bytes_written
         @offset += bytes_written
       end
+      
+      Errno.handle("write failed") if error
 
       return(buf_size - left)
     end
@@ -409,7 +417,7 @@ class IO
     end
     
     def seek_positioning
-      @offset = sysseek(0, SEEK_CUR) # find current position if we are reopening!
+      @offset = lseek(0, SEEK_CUR) # find current position if we are reopening!
     end
     private :seek_positioning
 
@@ -454,6 +462,11 @@ class IO
   end # class FileDescriptor
 
   class BufferedFileDescriptor < FileDescriptor
+    
+    def buffer_reset
+      @unget_buffer.clear
+    end
+    private :buffer_reset
 
     def read(length, output_string=nil)
       length ||= FileDescriptor.pagesize
@@ -474,13 +487,13 @@ class IO
         elsif str2
           str += str2
         end
-        @unget_buffer.clear
+        buffer_reset
       elsif length == @unget_buffer.size
         @offset += length
         length -= @unget_buffer.size
 
         str = @unget_buffer.inject("".force_encoding(Encoding::ASCII_8BIT)) { |sum, val| val.chr + sum }
-        @unget_buffer.clear
+        buffer_reset
       else
         @offset += @unget_buffer.size
         str = "".force_encoding(Encoding::ASCII_8BIT)
@@ -500,10 +513,25 @@ class IO
       return output_string
     end
     
+    def seek(bytes, whence)
+      # @offset may not match actual file pointer if there were calls to #unget.
+      if whence == SEEK_CUR
+        # adjust the number of bytes to seek based on how far ahead we are with the buffer
+        bytes -= @unget_buffer.size
+      end
+
+      buffer_reset
+      lseek(bytes, whence)
+    end
+    
     def sysread(byte_count)
-      STDERR.puts "sysread [#{byte_count}], @unget_buffer #{@unget_buffer.inspect}"
       raise_if_buffering
       read(byte_count)
+    end
+    
+    def sysseek(bytes, whence)
+      raise_if_buffering
+      lseek(bytes, whence)
     end
 
     def eof?
@@ -511,7 +539,7 @@ class IO
     end
 
     def flush
-      @unget_buffer.clear
+      #@unget_buffer.clear
     end
 
     def raise_if_buffering
@@ -519,8 +547,8 @@ class IO
     end
     
     def reset_positioning(*args)
-      super
       @unget_buffer = []
+      super
     end
 
     def unget(byte)
@@ -529,7 +557,7 @@ class IO
     end
   end # class BufferedFileDescriptor
 
-  class PipeFileDescriptor < BufferedFileDescriptor
+  class FIFOFileDescriptor < BufferedFileDescriptor
 
     def self.connect_pipe_fds
       fds = FFI::MemoryPointer.new(:int, 2)
@@ -543,11 +571,9 @@ class IO
       return [fd0, fd1]
     end
 
-    def initialize(fd, mode)
-      @descriptor = fd
-      @mode = mode
-      @sync = true
-      reset_positioning
+    def initialize(fd, stat, mode=nil)
+      super(fd, stat)
+      @mode = mode if mode
       @eof = false # force to false
     end
     
@@ -575,15 +601,13 @@ class IO
     end
 
     def sysseek(offset, whence=SEEK_SET)
-      ensure_open
-      
       # lseek does not work with pipes.
       raise Errno::ESPIPE
     end
-  end # class PipeFileDescriptor
+  end # class FIFOFileDescriptor
 
   def new_pipe(fd, external, internal, options, mode, do_encoding=false)
-    @fd = PipeFileDescriptor.new(fd, mode)
+    @fd = FIFOFileDescriptor.new(fd, nil, mode)
     @lineno = 0
     @pipe = true
 
@@ -591,8 +615,6 @@ class IO
     if do_encoding
       set_encoding((external || Encoding.default_external), (internal || Encoding.default_internal), options)
     end
-
-    # setup finalization for pipes, FIXME
   end
   private :new_pipe
 
@@ -1035,7 +1057,7 @@ class IO
     # The use of #allocate is to make sure we create an IO obj. Would be so much
     # cleaner to just do a PipeIO class as a subclass, but that would not be
     # backward compatible. <sigh>
-    fd0, fd1 = PipeFileDescriptor.connect_pipe_fds
+    fd0, fd1 = FIFOFileDescriptor.connect_pipe_fds
     lhs = allocate
     lhs.send(:new_pipe, fd0, external, internal, options, FileDescriptor::O_RDONLY, true)
     rhs = allocate
@@ -1143,7 +1165,7 @@ class IO
           else
             return nil
           end
-        rescue
+        rescue => e
           exit! 0
         end
       end
@@ -1556,6 +1578,8 @@ class IO
   #
 
   class EachReader
+    READ_SIZE = 512 # bytes
+    
     def initialize(io, separator, limit)
       @io = io
       @separator = separator ? separator.force_encoding("ASCII-8BIT") : separator
@@ -1605,7 +1629,7 @@ class IO
 
       until buffer.size == 0 && @io.eof?
         if buffer.size == 0
-          @io.read(PEEK_AHEAD_LIMIT + 2, buffer)
+          buffer = @io.read(READ_SIZE)
         end
 
         break unless buffer.size > 0
@@ -1691,7 +1715,7 @@ class IO
 
       until buffer.size == 0 && @io.eof?
         if buffer.size == 0
-          buffer = @io.read(PEEK_AHEAD_LIMIT + 2)
+          buffer = @io.read(READ_SIZE)
         end
 
         break unless buffer && buffer.size > 0
@@ -1719,6 +1743,8 @@ class IO
           if wanted < buffer.size
             str << buffer.slice!(0, wanted)
 
+            # replenish the buffer if we don't have enough bytes to satisfy the peek ahead
+            buffer += @io.read(PEEK_AHEAD_LIMIT) if buffer.size < PEEK_AHEAD_LIMIT
             str, bytes_read = read_to_char_boundary(@io, str, buffer)
             str.taint
 
@@ -2012,7 +2038,7 @@ class IO
   #  no newline
   def flush
     ensure_open
-    @fd.reset_positioning
+    #@fd.reset_positioning
     return self
   end
 
@@ -2564,7 +2590,7 @@ class IO
 
     @eof = false
 
-    @fd.sysseek Integer(amount), whence
+    @fd.seek Integer(amount), whence
 
     return 0
   end
@@ -2763,12 +2789,6 @@ class IO
   #  f.sysread(10)                  #=> "And so on."
   def sysseek(amount, whence=SEEK_SET)
     ensure_open
-    #    if @ibuffer.write_synced?
-    #      raise IOError unless @ibuffer.empty?
-    #    else
-    #      warn 'sysseek for buffered IO'
-    #    end
-
     amount = Integer(amount)
 
     @fd.sysseek amount, whence
