@@ -998,7 +998,9 @@ end
 # [Description]
 #   Pushes a constant onto the stack scoped under the module on the top of
 #   the stack. Caches the lookup to provide faster future lookup. This
-#   instruction is normally emitted only by the Generator.
+#   instruction is normally emitted only by the Generator. If found,
+#   it is pushed onto the stack; otherwise, nothing is pushed onto the stack,
+#   and a `NameError` exception is raised.
 # [See Also]
 #   find_const
 # [Example]
@@ -1034,6 +1036,50 @@ instruction find_const_fast(literal) [ module -- constant ]
       }
     } else {
       res = Helpers::const_missing_under(state, under, sym, call_frame);
+    }
+  }
+
+  CHECK_AND_PUSH(res);
+end
+
+# [Description]
+#   Pushes a constant onto the stack scoped under the module on the top of
+#   the stack. Caches the lookup to provide faster future lookup. This
+#   instruction is normally emitted only by the Generator. If found,
+#   it is pushed onto the stack; otherwise, the special undefined value is
+#   pushed onto the stack.
+# [See Also]
+#   find_const
+#   find_const_fast
+
+instruction try_find_const_fast(literal) [ module -- constant ]
+
+  Module* under = as<Module>(stack_pop());
+
+  ConstantCache* cache = reinterpret_cast<ConstantCache*>(literal);
+
+  Object* res = cache->retrieve(state, under, call_frame->constant_scope());
+
+  if(!res) {
+    ConstantMissingReason reason;
+    flush_ip();
+
+    Symbol* sym = cache->name();
+    res = Helpers::const_get_under(state, under, sym, &reason);
+
+    if(reason == vFound) {
+      OnStack<3> os(state, cache, under, res);
+      if(Autoload* autoload = try_as<Autoload>(res)) {
+        flush_ip();
+        res = autoload->resolve(state, gct, call_frame, under);
+      }
+
+      if(res) {
+        ConstantCache* update = ConstantCache::create(state, cache, res, under, call_frame->constant_scope());
+        cache->update_constant_cache(state, update);
+      }
+    } else {
+      res = G(undefined);
     }
   }
 

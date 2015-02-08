@@ -179,6 +179,7 @@ namespace rubinius {
           break;
         case InstructionSequence::insn_push_const_fast:
         case InstructionSequence::insn_find_const_fast:
+        case InstructionSequence::insn_try_find_const_fast:
           constants++;
           break;
         }
@@ -274,7 +275,8 @@ namespace rubinius {
       opcode op = opcodes[ip];
       switch(op) {
       case InstructionSequence::insn_push_const_fast:
-      case InstructionSequence::insn_find_const_fast: {
+      case InstructionSequence::insn_find_const_fast:
+      case InstructionSequence::insn_try_find_const_fast: {
         Symbol* name = as<Symbol>(original->literals()->at(opcodes[ip + 1]));
 
         ConstantCache* cache = ConstantCache::empty(state, name, original, ip);

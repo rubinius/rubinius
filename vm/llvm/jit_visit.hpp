@@ -3679,6 +3679,133 @@ use_send:
       stack_push(phi, type::KnownType::constant_cache(constant_cache));
     }
 
+    void visit_try_find_const_fast(opcode& name) {
+      BasicBlock* cont = 0;
+
+      Value* cached_value = 0;
+      BasicBlock* cached_block = 0;
+
+      Value* under = stack_pop();
+
+      ConstantCache** constant_cache_ptr = reinterpret_cast<ConstantCache**>(&name);
+      ConstantCache* constant_cache = *constant_cache_ptr;
+
+      Value* global_serial = b().CreateLoad(global_serial_pos, "global_serial");
+
+
+      Value* cache_ptr = b().CreateIntToPtr(
+        ConstantInt::get(context()->IntPtrTy, (reinterpret_cast<uintptr_t>(constant_cache_ptr))),
+        ptr_type(ptr_type("ConstantCache")), "cast_to_ptr");
+
+      Value* cache = b().CreateLoad(cache_ptr, "constant_cache");
+
+      Value* constant_scope_pos_idx[] = {
+        context()->cint(0),
+        context()->cint(offset::ConstantCache::scope),
+      };
+
+      Value* constant_scope_pos = b().CreateGEP(cache,
+          constant_scope_pos_idx, "constant_cache_pos");
+
+      Value* constant_scope = b().CreateLoad(constant_scope_pos, "constant_scope");
+
+      Value* frame_scope = b().CreateLoad(
+          b().CreateConstGEP2_32(call_frame_, 0,
+                                 offset::CallFrame::constant_scope, "scope_pos"), "frame_scope");
+
+      Value* scope_cmp = b().CreateICmpEQ(constant_scope, frame_scope, "same_scope");
+
+      BasicBlock* check_serial = new_block("check_serial");
+      BasicBlock* check_under  = new_block("check_under");
+      BasicBlock* use_cache    = new_block("use_cache");
+      BasicBlock* use_call     = new_block("use_call");
+
+      cont =      new_block("continue");
+
+      b().CreateCondBr(scope_cmp, check_serial, use_call);
+
+      set_block(check_serial);
+
+      Value* serial_pos_idx[] = {
+        context()->cint(0),
+        context()->cint(offset::ConstantCache::serial),
+      };
+
+      Value* serial_pos = b().CreateGEP(cache,
+          serial_pos_idx, "serial_pos");
+
+      Value* current_serial = b().CreateLoad(serial_pos, "serial");
+
+      Value* cache_cmp = b().CreateICmpEQ(global_serial, current_serial, "use_under");
+
+      b().CreateCondBr(cache_cmp, check_under, use_call);
+
+      set_block(check_under);
+
+      Value* under_pos_idx[] = {
+        context()->cint(0),
+        context()->cint(offset::ConstantCache::under),
+      };
+
+      Value* under_pos = b().CreateGEP(cache,
+          under_pos_idx, "value_pos");
+
+      Value* cached_under = b().CreateBitCast(b().CreateLoad(under_pos, "cached_under"),
+                                              ptr_type("Object"), "downcast");
+
+      Value* under_cmp = b().CreateICmpEQ(cached_under, under, "use_cache");
+
+      b().CreateCondBr(under_cmp, use_cache, use_call);
+
+      set_block(use_cache);
+
+      Value* value_pos_idx[] = {
+        context()->cint(0),
+        context()->cint(offset::ConstantCache::value),
+      };
+
+      Value* value_pos = b().CreateGEP(cache,
+          value_pos_idx, "value_pos");
+
+      cached_value = b().CreateLoad(value_pos, "cached_value");
+      cached_block = b().GetInsertBlock();
+
+      b().CreateBr(cont);
+
+      set_block(use_call);
+
+      Signature sig(ctx_, ObjType);
+
+      sig << StateTy;
+      sig << CallFrameTy;
+      sig << ptr_type(ptr_type("ConstantCache"));
+      sig << ObjType;
+
+      Value* call_args[] = {
+        state_,
+        call_frame_,
+        constant(constant_cache_ptr, ptr_type(ptr_type("ConstantCache"))),
+        under
+      };
+
+      flush();
+
+      CallInst* ret = sig.call("rbx_try_find_const_fast", call_args, 4, "constant", b());
+      ret->setOnlyReadsMemory();
+      ret->setDoesNotThrow();
+      check_for_exception(ret);
+
+      BasicBlock* ret_block = b().GetInsertBlock();
+      b().CreateBr(cont);
+      set_block(cont);
+
+      PHINode* phi = b().CreatePHI(ObjType, 2, "constant");
+      phi->addIncoming(cached_value, cached_block);
+      phi->addIncoming(ret, ret_block);
+
+      stack_push(phi, type::KnownType::constant_cache(constant_cache));
+    }
+
     void visit_instance_of() {
       Signature sig(ctx_, ObjType);
 
