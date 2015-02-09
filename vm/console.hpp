@@ -6,6 +6,8 @@
 
 #include "gc/root.hpp"
 
+#include "util/thread.hpp"
+
 #include <list>
 #include <string>
 
@@ -15,66 +17,100 @@ namespace rubinius {
   class FSEvent;
   class Object;
   class String;
-  class Thread;
 
   namespace console {
-    typedef std::list<char*> RequestList;
+    class Request;
+    class Response;
 
-    class Console : public AuxiliaryThread, public Lockable {
-      SharedState& shared_;
-      VM* request_vm_;
-      VM* response_vm_;
+    class Console {
+      std::string path_;
 
-      TypedRoot<Thread*> request_;
-      TypedRoot<Thread*> response_;
-      TypedRoot<Object*> console_;
-      TypedRoot<FSEvent*> fsevent_;
+      Response* response_;
+      Request* request_;
 
-      std::string request_path_;
-      std::string response_path_;
-
-      int request_fd_;
-      int response_fd_;
-
-      bool request_exit_;
-      bool response_exit_;
-
-      bool request_running_;
-      bool response_running_;
-
-      RequestList* request_list_;
-
-      utilities::thread::Mutex list_lock_;
-      utilities::thread::Mutex response_lock_;
-      utilities::thread::Condition response_cond_;
+      TypedRoot<Object*> ruby_console_;
 
     public:
       Console(STATE);
       virtual ~Console();
 
-      void close_files(bool remove_files);
-      void empty_request_list();
-      void wakeup(STATE);
+      Request* request() {
+        return request_;
+      }
+
+      Response* response() {
+        return response_;
+      }
 
       void start(STATE);
+      void stop(STATE);
+
+      Class* server_class(STATE);
+      Object* evaluate(STATE, char* request);
+    };
+
+    typedef std::list<char*> RequestList;
+
+    class Response : public AuxiliaryThread, public Lockable {
+      Console* console_;
+
+      std::string path_;
+      int fd_;
+
+      RequestList* request_list_;
+
+      utilities::thread::SpinLock list_lock_;
+
+      utilities::thread::Mutex response_lock_;
+      utilities::thread::Condition response_cond_;
+
+    public:
+
+      Response(STATE, Console* console);
+      virtual ~Response();
+
       void initialize(STATE);
-      void setup_files(STATE);
-      void reset(STATE);
+      void start_thread(STATE);
       void run(STATE);
+      void wakeup(STATE);
+      void close_response(STATE);
+      void clear_requests(STATE);
+      void stop_thread(STATE);
 
-      void start_threads(STATE);
-      void stop_threads(STATE);
-
-      void shutdown(STATE);
       void before_exec(STATE);
       void after_exec(STATE);
       void after_fork_child(STATE);
 
-      void process_requests(STATE);
-      void process_responses(STATE);
+      void send_request(STATE, const char* request);
+      void write_response(STATE, const char* response, native_int size);
+    };
+
+    class Request : public AuxiliaryThread, public Lockable {
+      Console* console_;
+      Response* response_;
+
+      std::string path_;
+      int fd_;
+
+      TypedRoot<FSEvent*> fsevent_;
+
+    public:
+
+      Request(STATE, Console* console);
+
+      void initialize(STATE);
+      void start_thread(STATE);
+      void run(STATE);
+      void wakeup(STATE);
+      void setup_request(STATE);
+      void close_request(STATE);
+      void stop_thread(STATE);
+
+      void before_exec(STATE);
+      void after_exec(STATE);
+      void after_fork_child(STATE);
 
       char* read_request(STATE);
-      void write_response(STATE, const char* response, native_int size);
     };
   }
 }

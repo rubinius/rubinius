@@ -96,8 +96,7 @@ namespace rubinius {
   }
 
   void AuxiliaryThread::after_fork_child(STATE) {
-    initialize(state);
-    start_thread(state);
+    start(state);
   }
 
   void AuxiliaryThreads::register_thread(AuxiliaryThread* thread) {
