@@ -211,8 +211,7 @@ namespace rubinius {
 
     while(!thread_exit_) {
       JITCompileRequest* compile_request = nil<JITCompileRequest>();
-      Class* receiver_class;
-      OnStack<2> os(state, compile_request, receiver_class);
+      OnStack<1> cr(state, compile_request);
 
       current_compiler_ = 0;
 
@@ -249,7 +248,8 @@ namespace rubinius {
       void* func = 0;
 
       try {
-        receiver_class = compile_request->receiver_class();
+        Class* receiver_class = compile_request->receiver_class();
+        OnStack<1> rc(state, receiver_class);
 
         if(receiver_class && !receiver_class->nil_p()) {
 
@@ -432,7 +432,12 @@ namespace rubinius {
 
     state->set_call_frame(call_frame);
 
-    wait_cond.wait(wait_mutex);
+    {
+      GCIndependent guard(state, 0);
+
+      wait_cond.wait(wait_mutex);
+    }
+
     wait_mutex.unlock();
     state->set_call_frame(0);
 
