@@ -7,7 +7,7 @@
 #include "gc/variable_buffer.hpp"
 #include "gc/root_buffer.hpp"
 
-#include "auxiliary_threads.hpp"
+#include "internal_threads.hpp"
 #include "globals.hpp"
 #include "symbol_table.hpp"
 
@@ -86,7 +86,7 @@ namespace rubinius {
 
   class SharedState : public RefCount, public Lockable {
   private:
-    AuxiliaryThreads* auxiliary_threads_;
+    InternalThreads* internal_threads_;
     SignalHandler* signal_handler_;
     FinalizerHandler* finalizer_handler_;
     console::Console* console_;
@@ -157,8 +157,8 @@ namespace rubinius {
       initialized_ = true;
     }
 
-    AuxiliaryThreads* auxiliary_threads() const {
-      return auxiliary_threads_;
+    InternalThreads* internal_threads() const {
+      return internal_threads_;
     }
 
     SignalHandler* signal_handler() const {

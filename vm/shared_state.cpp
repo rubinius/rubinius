@@ -30,7 +30,7 @@
 namespace rubinius {
 
   SharedState::SharedState(Environment* env, Configuration& config, ConfigParser& cp)
-    : auxiliary_threads_(0)
+    : internal_threads_(0)
     , signal_handler_(0)
     , finalizer_handler_(0)
     , console_(0)
@@ -56,7 +56,7 @@ namespace rubinius {
   {
     ref();
 
-    auxiliary_threads_ = new AuxiliaryThreads();
+    internal_threads_ = new InternalThreads();
 
     for(int i = 0; i < Primitives::cTotalPrimitives; i++) {
       primitive_hits_[i] = 0;
@@ -89,7 +89,7 @@ namespace rubinius {
     delete global_cache;
     delete world_;
     delete om;
-    delete auxiliary_threads_;
+    delete internal_threads_;
   }
 
   void SharedState::add_managed_thread(ManagedThread* thr) {
@@ -151,7 +151,7 @@ namespace rubinius {
         ++i) {
       if(VM* vm = (*i)->as_vm()) {
         Thread *thread = vm->thread.get();
-        if(!thread->nil_p() && !thread->internal_thread() && CBOOL(thread->alive())) {
+        if(!thread->nil_p() && CBOOL(thread->alive())) {
           threads->append(state, thread);
         }
       }
@@ -234,7 +234,7 @@ namespace rubinius {
     capi_ds_lock_.init();
     capi_locks_lock_.init();
     capi_constant_lock_.init();
-    auxiliary_threads_->init();
+    internal_threads_->init();
 
     env_->set_fsapi_path();
 

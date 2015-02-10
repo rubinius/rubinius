@@ -2,7 +2,7 @@
 #define RBX_SIGNAL_HPP
 
 #include "lock.hpp"
-#include "auxiliary_threads.hpp"
+#include "internal_threads.hpp"
 
 #include "gc/root.hpp"
 
@@ -15,7 +15,7 @@ namespace rubinius {
   class Configuration;
   struct CallFrame;
 
-  class SignalHandler : public AuxiliaryThread, public Lockable {
+  class SignalHandler : public InternalThread, public Lockable {
     SharedState& shared_;
     VM* target_;
 

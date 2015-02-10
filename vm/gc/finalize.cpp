@@ -73,7 +73,7 @@ namespace rubinius {
   }
 
   FinalizerHandler::FinalizerHandler(STATE)
-    : AuxiliaryThread(state, "rbx.finalizer")
+    : InternalThread(state, "rbx.finalizer")
     , lists_(NULL)
     , live_list_(NULL)
     , process_list_(NULL)
@@ -100,7 +100,7 @@ namespace rubinius {
   }
 
   void FinalizerHandler::initialize(STATE) {
-    AuxiliaryThread::initialize(state);
+    InternalThread::initialize(state);
 
     live_guard_.init();
     worker_lock_.init();
@@ -113,7 +113,7 @@ namespace rubinius {
   void FinalizerHandler::wakeup(STATE) {
     utilities::thread::Mutex::LockGuard lg(worker_lock_);
 
-    AuxiliaryThread::wakeup(state);
+    InternalThread::wakeup(state);
 
     worker_signal();
   }

@@ -2,7 +2,7 @@
 #define RBX_CONSOLE_HPP
 
 #include "lock.hpp"
-#include "auxiliary_threads.hpp"
+#include "internal_threads.hpp"
 
 #include "gc/root.hpp"
 
@@ -51,7 +51,7 @@ namespace rubinius {
 
     typedef std::list<char*> RequestList;
 
-    class Response : public AuxiliaryThread, public Lockable {
+    class Response : public InternalThread, public Lockable {
       Console* console_;
 
       std::string path_;
@@ -85,7 +85,7 @@ namespace rubinius {
       void write_response(STATE, const char* response, native_int size);
     };
 
-    class Request : public AuxiliaryThread, public Lockable {
+    class Request : public InternalThread, public Lockable {
       Console* console_;
       Response* response_;
 

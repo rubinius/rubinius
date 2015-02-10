@@ -21,7 +21,7 @@
 #include "builtin/list.hpp"
 #include "builtin/thread.hpp"
 
-#include "auxiliary_threads.hpp"
+#include "internal_threads.hpp"
 #include "machine_code.hpp"
 #include "field_offset.hpp"
 #include "object_memory.hpp"
@@ -89,7 +89,7 @@ namespace rubinius {
   static const bool debug_search = false;
 
   LLVMState::LLVMState(STATE)
-    : AuxiliaryThread(state, "rbx.jit")
+    : InternalThread(state, "rbx.jit")
     , config_(state->shared().config)
     , compile_list_(state)
     , symbols_(state->shared().symbols)
@@ -188,9 +188,9 @@ namespace rubinius {
 
   void LLVMState::stop(STATE) {
     enabled_ = false;
-    AuxiliaryThread::stop(state);
+    InternalThread::stop(state);
 
-    state->shared().auxiliary_threads()->unregister_thread(this);
+    state->shared().internal_threads()->unregister_thread(this);
   }
 
   void LLVMState::after_fork_child(STATE) {

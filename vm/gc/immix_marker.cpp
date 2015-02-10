@@ -16,7 +16,7 @@
 namespace rubinius {
 
   ImmixMarker::ImmixMarker(STATE, ImmixGC* immix)
-    : AuxiliaryThread(state, "rbx.immix")
+    : InternalThread(state, "rbx.immix")
     , immix_(immix)
     , data_(NULL)
   {
@@ -31,7 +31,7 @@ namespace rubinius {
   }
 
   void ImmixMarker::initialize(STATE) {
-    AuxiliaryThread::initialize(state);
+    InternalThread::initialize(state);
 
     run_lock_.init();
     run_cond_.init();
@@ -40,7 +40,7 @@ namespace rubinius {
   void ImmixMarker::wakeup(STATE) {
     utilities::thread::Mutex::LockGuard lg(run_lock_);
 
-    AuxiliaryThread::wakeup(state);
+    InternalThread::wakeup(state);
 
     run_cond_.signal();
   }
@@ -48,7 +48,7 @@ namespace rubinius {
   void ImmixMarker::after_fork_child(STATE) {
     cleanup();
 
-    AuxiliaryThread::after_fork_child(state);
+    InternalThread::after_fork_child(state);
   }
 
   void ImmixMarker::cleanup() {
@@ -59,8 +59,8 @@ namespace rubinius {
   }
 
   void ImmixMarker::stop(STATE) {
-    AuxiliaryThread::stop(state);
-    state->shared().auxiliary_threads()->unregister_thread(this);
+    InternalThread::stop(state);
+    state->shared().internal_threads()->unregister_thread(this);
   }
 
   void ImmixMarker::concurrent_mark(GCData* data) {

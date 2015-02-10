@@ -2,7 +2,7 @@
 #define RBX_GC_FINALIZE_HPP
 
 #include "lock.hpp"
-#include "auxiliary_threads.hpp"
+#include "internal_threads.hpp"
 
 #include "gc/finalize.hpp"
 #include "gc/root.hpp"
@@ -52,7 +52,7 @@ namespace rubinius {
   typedef std::list<FinalizeObject> FinalizeObjects;
   typedef std::list<FinalizeObjects*> FinalizeObjectsList;
 
-  class FinalizerHandler : public AuxiliaryThread, public Lockable {
+  class FinalizerHandler : public InternalThread, public Lockable {
   public:
     class iterator {
       FinalizerHandler* handler_;

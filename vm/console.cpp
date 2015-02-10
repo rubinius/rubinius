@@ -51,7 +51,7 @@ namespace rubinius {
     }
 
     Request::Request(STATE, Console* console)
-      : AuxiliaryThread(state, "rbx.console.request")
+      : InternalThread(state, "rbx.console.request")
       , console_(console)
       , response_(console->response())
       , fd_(-1)
@@ -79,11 +79,11 @@ namespace rubinius {
     void Request::start_thread(STATE) {
       setup_request(state);
 
-      AuxiliaryThread::start_thread(state);
+      InternalThread::start_thread(state);
     }
 
     void Request::wakeup(STATE) {
-      AuxiliaryThread::wakeup(state);
+      InternalThread::wakeup(state);
 
       if(write(fd_, "x", 1) < 0) {
         logger::error("%s: console: unable to wake request thread", strerror(errno));
@@ -98,7 +98,7 @@ namespace rubinius {
     }
 
     void Request::stop_thread(STATE) {
-      AuxiliaryThread::stop_thread(state);
+      InternalThread::stop_thread(state);
 
       close_request(state);
       unlink(path_.c_str());
@@ -115,7 +115,7 @@ namespace rubinius {
     void Request::after_fork_child(STATE) {
       close_request(state);
 
-      AuxiliaryThread::after_fork_child(state);
+      InternalThread::after_fork_child(state);
     }
 
     char* Request::read_request(STATE) {
@@ -172,7 +172,7 @@ namespace rubinius {
     }
 
     Response::Response(STATE, Console* console)
-      : AuxiliaryThread(state, "rbx.console.response")
+      : InternalThread(state, "rbx.console.response")
       , console_(console)
       , fd_(-1)
       , request_list_(NULL)
@@ -202,11 +202,11 @@ namespace rubinius {
 
       request_list_ = new RequestList;
 
-      AuxiliaryThread::start_thread(state);
+      InternalThread::start_thread(state);
     }
 
     void Response::wakeup(STATE) {
-      AuxiliaryThread::wakeup(state);
+      InternalThread::wakeup(state);
 
       response_cond_.signal();
     }
@@ -232,7 +232,7 @@ namespace rubinius {
     }
 
     void Response::stop_thread(STATE) {
-      AuxiliaryThread::stop_thread(state);
+      InternalThread::stop_thread(state);
 
       clear_requests(state);
 
@@ -252,7 +252,7 @@ namespace rubinius {
       close_response(state);
       clear_requests(state);
 
-      AuxiliaryThread::after_fork_child(state);
+      InternalThread::after_fork_child(state);
     }
 
     void Response::send_request(STATE, const char* request) {

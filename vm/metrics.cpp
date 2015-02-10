@@ -190,7 +190,7 @@ namespace rubinius {
     }
 
     Metrics::Metrics(STATE)
-      : AuxiliaryThread(state, "rbx.metrics")
+      : InternalThread(state, "rbx.metrics")
       , enabled_(true)
       , values_(state)
       , interval_(state->shared().config.system_metrics_interval)
@@ -413,7 +413,7 @@ namespace rubinius {
     }
 
     void Metrics::initialize(STATE) {
-      AuxiliaryThread::initialize(state);
+      InternalThread::initialize(state);
 
       enabled_ = true;
 
@@ -424,7 +424,7 @@ namespace rubinius {
     }
 
     void Metrics::wakeup(STATE) {
-      AuxiliaryThread::wakeup(state);
+      InternalThread::wakeup(state);
 
       if(timer_) {
         timer_->clear();
@@ -435,7 +435,7 @@ namespace rubinius {
     void Metrics::after_fork_child(STATE) {
       if(emitter_) emitter_->reinit();
 
-      AuxiliaryThread::after_fork_child(state);
+      InternalThread::after_fork_child(state);
     }
 
     void Metrics::add_historical_metrics(MetricsData& metrics) {

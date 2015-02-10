@@ -563,7 +563,7 @@ namespace rubinius {
 
     {
       GCIndependent guard(state, 0);
-      shared->auxiliary_threads()->shutdown(state);
+      shared->internal_threads()->shutdown(state);
       root_vm->set_call_frame(0);
     }
 

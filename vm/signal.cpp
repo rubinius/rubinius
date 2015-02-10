@@ -52,7 +52,7 @@ namespace rubinius {
   static struct utsname machine_info;
 
   SignalHandler::SignalHandler(STATE, Configuration& config)
-    : AuxiliaryThread(state, "rbx.signal")
+    : InternalThread(state, "rbx.signal")
     , shared_(state->shared())
     , target_(state->vm())
     , queued_signals_(0)
@@ -72,7 +72,7 @@ namespace rubinius {
   }
 
   void SignalHandler::initialize(STATE) {
-    AuxiliaryThread::initialize(state);
+    InternalThread::initialize(state);
 
     worker_lock_.init();
     worker_cond_.init();
@@ -81,7 +81,7 @@ namespace rubinius {
   void SignalHandler::wakeup(STATE) {
     utilities::thread::Mutex::LockGuard lg(worker_lock_);
 
-    AuxiliaryThread::wakeup(state);
+    InternalThread::wakeup(state);
 
     worker_cond_.signal();
   }

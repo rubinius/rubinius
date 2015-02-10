@@ -40,7 +40,7 @@
 #include "llvm/local_info.hpp"
 
 #include "gc/managed.hpp"
-#include "auxiliary_threads.hpp"
+#include "internal_threads.hpp"
 #include "configuration.hpp"
 #include "lock.hpp"
 #include "metrics.hpp"
@@ -71,7 +71,7 @@ namespace rubinius {
     cMachineCode = 4
   };
 
-  class LLVMState : public AuxiliaryThread, public Lockable {
+  class LLVMState : public InternalThread, public Lockable {
     jit::RubiniusJITMemoryManager* memory_;
     llvm::JITEventListener* jit_event_listener_;
 

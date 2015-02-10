@@ -384,7 +384,7 @@ namespace rubinius {
   static int fork_exec(STATE, GCToken gct, CallFrame* call_frame, int errors_fd) {
     utilities::thread::Mutex::LockGuard guard(state->shared().fork_exec_lock());
 
-    state->shared().auxiliary_threads()->before_fork_exec(state);
+    state->shared().internal_threads()->before_fork_exec(state);
 
     // If execvp() succeeds, we'll read EOF and know.
     fcntl(errors_fd, F_SETFD, FD_CLOEXEC);
@@ -404,7 +404,7 @@ namespace rubinius {
     state->gc_independent(gct, call_frame);
 
     if(pid > 0) {
-      state->shared().auxiliary_threads()->after_fork_exec_parent(state);
+      state->shared().internal_threads()->after_fork_exec_parent(state);
     }
 
     return pid;
@@ -448,7 +448,7 @@ namespace rubinius {
       close(errors[0]);
 
       state->vm()->thread->init_lock();
-      state->shared().auxiliary_threads()->after_fork_exec_child(state);
+      state->shared().internal_threads()->after_fork_exec_child(state);
 
       // Setup ENV, redirects, groups, etc. in the child before exec().
       vm_spawn_setup(state, spawn_state);
@@ -562,7 +562,7 @@ namespace rubinius {
 
     if(pid == 0) {
       state->vm()->thread->init_lock();
-      state->shared().auxiliary_threads()->after_fork_exec_child(state);
+      state->shared().internal_threads()->after_fork_exec_child(state);
 
       close(errors[0]);
       close(output[0]);
@@ -672,7 +672,7 @@ namespace rubinius {
      */
     ExecCommand exe(state, path, args);
 
-    state->shared().auxiliary_threads()->before_exec(state);
+    state->shared().internal_threads()->before_exec(state);
 
     void* old_handlers[NSIG];
 
@@ -713,7 +713,7 @@ namespace rubinius {
       sigaction(i, &action, NULL);
     }
 
-    state->shared().auxiliary_threads()->after_exec(state);
+    state->shared().internal_threads()->after_exec(state);
 
     /* execvp() returning means it failed. */
     Exception::errno_error(state, "execvp(2) failed", erno);
@@ -804,7 +804,7 @@ namespace rubinius {
     {
       utilities::thread::Mutex::LockGuard guard(state->shared().fork_exec_lock());
 
-      state->shared().auxiliary_threads()->before_fork(state);
+      state->shared().internal_threads()->before_fork(state);
 
       {
         StopTheWorld stw(state, gct, calling_environment);
@@ -815,7 +815,7 @@ namespace rubinius {
       }
 
       if(pid > 0) {
-        state->shared().auxiliary_threads()->after_fork_parent(state);
+        state->shared().internal_threads()->after_fork_parent(state);
       }
     }
 
@@ -825,7 +825,7 @@ namespace rubinius {
 
       state->vm()->thread->init_lock();
       state->shared().after_fork_child(state, gct, calling_environment);
-      state->shared().auxiliary_threads()->after_fork_child(state);
+      state->shared().internal_threads()->after_fork_child(state);
 
       // In the child, the PID is nil in Ruby.
       return nil<Fixnum>();
