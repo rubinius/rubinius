@@ -74,9 +74,9 @@ namespace rubinius {
 
     metrics().init(metrics::eRubyMetrics);
 
-    while(!thread_exit_) {
-      state->gc_dependent(gct, 0);
+    state->gc_dependent(gct, 0);
 
+    while(!thread_exit_) {
       if(data_) {
         {
           timer::StopWatch<timer::milliseconds> timer(
