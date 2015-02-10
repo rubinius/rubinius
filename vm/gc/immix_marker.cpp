@@ -27,10 +27,7 @@ namespace rubinius {
   }
 
   ImmixMarker::~ImmixMarker() {
-    if(data_) {
-      delete data_;
-      data_ = NULL;
-    }
+    cleanup();
   }
 
   void ImmixMarker::initialize(STATE) {
@@ -49,12 +46,21 @@ namespace rubinius {
   }
 
   void ImmixMarker::after_fork_child(STATE) {
+    cleanup();
+
+    AuxiliaryThread::after_fork_child(state);
+  }
+
+  void ImmixMarker::cleanup() {
     if(data_) {
       delete data_;
       data_ = NULL;
     }
+  }
 
-    AuxiliaryThread::after_fork_child(state);
+  void ImmixMarker::stop(STATE) {
+    AuxiliaryThread::stop(state);
+    state->shared().auxiliary_threads()->unregister_thread(this);
   }
 
   void ImmixMarker::concurrent_mark(GCData* data) {
@@ -69,6 +75,8 @@ namespace rubinius {
     metrics().init(metrics::eRubyMetrics);
 
     while(!thread_exit_) {
+      state->gc_dependent(gct, 0);
+
       if(data_) {
         {
           timer::StopWatch<timer::milliseconds> timer(
@@ -110,16 +118,16 @@ namespace rubinius {
       }
 
       {
-        utilities::thread::Mutex::LockGuard lg(run_lock_);
-        if(data_) {
-          delete data_;
-          data_ = NULL;
-        }
+        utilities::thread::Mutex::LockGuard guard(run_lock_);
+
+        cleanup();
         if(thread_exit_) break;
-        state->gc_independent(gct, 0);
-        run_cond_.wait(run_lock_);
+
+        {
+          GCIndependent guard(state, 0);
+          run_cond_.wait(run_lock_);
+        }
       }
-      state->gc_dependent(gct, 0);
     }
 
     state->memory()->clear_mature_mark_in_progress();

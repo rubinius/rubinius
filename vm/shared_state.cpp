@@ -151,7 +151,7 @@ namespace rubinius {
         ++i) {
       if(VM* vm = (*i)->as_vm()) {
         Thread *thread = vm->thread.get();
-        if(!thread->internal_thread() && CBOOL(thread->alive())) {
+        if(!thread->nil_p() && !thread->internal_thread() && CBOOL(thread->alive())) {
           threads->append(state, thread);
         }
       }

@@ -1,6 +1,7 @@
 #include "vm.hpp"
 #include "console.hpp"
 
+#include "on_stack.hpp"
 #include "object_utils.hpp"
 
 #include "builtin/array.hpp"
@@ -151,10 +152,6 @@ namespace rubinius {
     }
 
     void Request::run(STATE) {
-      GCTokenImpl gct;
-
-      state->gc_independent(gct, 0);
-
       while(!thread_exit_) {
         Object* status = fsevent_.get()->wait_for_event(state);
 
@@ -290,10 +287,7 @@ namespace rubinius {
     }
 
     void Response::run(STATE) {
-      GCTokenImpl gct;
       char* request = NULL;
-
-      state->gc_dependent(gct, 0);
 
       while(!thread_exit_) {
         {
@@ -308,11 +302,18 @@ namespace rubinius {
         if(thread_exit_) break;
 
         if(request) {
-          Object* result = console_->evaluate(state, request);
+          Object* result;
+          String* response;
+
+          OnStack<2> os(state, result, response);
+
+          {
+            GCDependent guard(state, 0);
+
+            result = console_->evaluate(state, request);
+          }
 
           if(String* response = try_as<String>(result)) {
-            GCIndependent guard(state, 0);
-
             write_response(state,
                 reinterpret_cast<const char*>(response->byte_address()),
                 response->byte_size());
@@ -324,10 +325,7 @@ namespace rubinius {
 
           if(thread_exit_) break;
 
-          {
-            GCIndependent guard(state, 0);
-            response_cond_.wait(response_lock_);
-          }
+          response_cond_.wait(response_lock_);
         }
       }
     }

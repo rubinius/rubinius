@@ -26,8 +26,10 @@ namespace rubinius {
     virtual ~ImmixMarker();
 
     void initialize(STATE);
+    void cleanup();
     void run(STATE);
     void wakeup(STATE);
+    void stop(STATE);
 
     void after_fork_child(STATE);
 

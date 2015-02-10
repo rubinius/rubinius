@@ -399,6 +399,8 @@ namespace rubinius {
     }
 
     void Metrics::update_ruby_values(STATE) {
+      GCDependent guard(state, 0);
+
       Tuple* values = values_.get();
       int index = 0;
 
@@ -447,20 +449,12 @@ namespace rubinius {
     }
 
     void Metrics::run(STATE) {
-      GCTokenImpl gct;
-
-      state->gc_dependent(gct, 0);
-
       timer_->set(interval_);
 
       while(!thread_exit_) {
-        {
-          GCIndependent guard(state, 0);
-
-          if(timer_->wait_for_tick() < 0) {
-            logger::error("metrics: error waiting for timer, exiting thread");
-            break;
-          }
+        if(timer_->wait_for_tick() < 0) {
+          logger::error("metrics: error waiting for timer, exiting thread");
+          break;
         }
 
         if(thread_exit_) break;
@@ -490,11 +484,7 @@ namespace rubinius {
           update_ruby_values(state);
         }
 
-        {
-          GCIndependent guard(state, 0);
-
-          if(emitter_) emitter_->send_metrics();
-        }
+        if(emitter_) emitter_->send_metrics();
       }
 
       timer_->clear();

@@ -188,7 +188,9 @@ namespace rubinius {
 
   void LLVMState::stop(STATE) {
     enabled_ = false;
-    stop_thread(state);
+    AuxiliaryThread::stop(state);
+
+    state->shared().auxiliary_threads()->unregister_thread(this);
   }
 
   void LLVMState::after_fork_child(STATE) {
@@ -209,6 +211,9 @@ namespace rubinius {
 
     while(!thread_exit_) {
       JITCompileRequest* compile_request = nil<JITCompileRequest>();
+      Class* receiver_class;
+      OnStack<2> os(state, compile_request, receiver_class);
+
       current_compiler_ = 0;
 
       {
@@ -234,8 +239,6 @@ namespace rubinius {
         if(!compile_request || compile_request->nil_p()) continue;
       }
 
-      OnStack<1> os(state, compile_request);
-
       Context ctx(this);
       jit::Compiler jit(&ctx);
 
@@ -244,11 +247,10 @@ namespace rubinius {
       uint32_t class_id = 0;
       uint32_t serial_id = 0;
       void* func = 0;
-      Class* receiver_class = compile_request->receiver_class();
-
-      OnStack<1> os2(state, receiver_class);
 
       try {
+        receiver_class = compile_request->receiver_class();
+
         if(receiver_class && !receiver_class->nil_p()) {
 
           // Apparently already compiled, probably some race

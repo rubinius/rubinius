@@ -494,6 +494,23 @@ namespace rubinius {
 
   class NativeMethodEnvironment;
 
+  class GCDependent {
+    State* state_;
+
+  public:
+    GCDependent(STATE, CallFrame* call_frame)
+      : state_(state)
+    {
+      GCTokenImpl gct;
+      state_->gc_dependent(gct, call_frame);
+    }
+
+    ~GCDependent() {
+      GCTokenImpl gct;
+      state_->gc_independent(gct, state_->vm()->saved_call_frame());
+    }
+  };
+
   class GCIndependent {
     State* state_;
 

@@ -29,6 +29,8 @@ namespace rubinius {
     SharedState& shared = vm->shared;
     State state_obj(vm), *state = &state_obj;
 
+    state->vm()->set_run_state(ManagedThread::eIndependent);
+
     RBX_DTRACE_CHAR_P thread_name =
       const_cast<RBX_DTRACE_CHAR_P>(thread->name_.c_str());
     vm->set_name(thread_name);
@@ -45,7 +47,9 @@ namespace rubinius {
     RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
                          vm->thread_id(), 1);
 
-    shared.gc_independent();
+    if(state->vm()->run_state() != ManagedThread::eIndependent) {
+      shared.gc_independent();
+    }
 
     return 0;
   }
@@ -77,22 +81,18 @@ namespace rubinius {
   }
 
   void AuxiliaryThread::stop_thread(STATE) {
-    if(vm_) {
-      wakeup(state);
+    wakeup(state);
 
-      if(atomic::poll(thread_running_, false)) {
-        void* return_value;
-        pthread_t os = vm_->os_thread();
-        pthread_join(os, &return_value);
-        VM::discard(state, vm_);
-      }
-
-      vm_ = NULL;
+    if(atomic::poll(thread_running_, false)) {
+      void* return_value;
+      pthread_t os = vm_->os_thread();
+      pthread_join(os, &return_value);
     }
   }
 
   void AuxiliaryThread::stop(STATE) {
     stop_thread(state);
+    VM::discard(state, vm_);
   }
 
   void AuxiliaryThread::after_fork_child(STATE) {
