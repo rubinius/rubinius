@@ -47,9 +47,7 @@ namespace rubinius {
     G(thread)->set_object_type(state, Thread::type);
   }
 
-  Thread* Thread::create(STATE, VM* target, Object* self, ThreadFunction function,
-                         bool internal_thread)
-  {
+  Thread* Thread::create(STATE, VM* target, Object* self, ThreadFunction function) {
     Thread* thr = state->vm()->new_object_mature<Thread>(G(thread));
 
     if(!target) {
@@ -76,13 +74,10 @@ namespace rubinius {
     thr->klass(state, as<Class>(self));
     thr->function_ = function;
     thr->init_lock_.init();
-    thr->internal_thread_ = internal_thread;
 
     target->thread.set(thr);
 
-    if(!internal_thread) {
-      state->memory()->needs_finalization(thr, (FinalizerFunction)&Thread::finalize);
-    }
+    state->memory()->needs_finalization(thr, (FinalizerFunction)&Thread::finalize);
 
     state->vm()->metrics().system_metrics.vm_threads++;
     state->vm()->metrics().system_metrics.vm_threads_total++;
@@ -234,16 +229,8 @@ namespace rubinius {
 
     self->init_lock_.lock();
 
-    void* (*thread_function)(void *);
-
-    if(internal_thread_) {
-      thread_function = internal_thread;
-    } else {
-      thread_function = ruby_thread;
-    }
-
     if(int error = pthread_create(&self->vm_->os_thread(),
-          &attrs, thread_function, (void*)self->vm_)) {
+          &attrs, Thread::run, (void*)self->vm_)) {
       return error;
     }
 
@@ -260,13 +247,31 @@ namespace rubinius {
     return 0;
   }
 
-  void Thread::execute_thread(STATE, VM* vm) {
+  void* Thread::run(void* ptr) {
+    GCTokenImpl gct;
+
+    VM* vm = reinterpret_cast<VM*>(ptr);
+
+    SharedState& shared = vm->shared;
+    State state_obj(vm), *state = &state_obj;
+
+    std::string thread_name;
+
+    {
+      std::ostringstream tn;
+      tn << "rbx.ruby." << vm->thread_id();
+      VM::set_current(vm, tn.str());
+      thread_name = tn.str();
+    }
+
+    RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CHAR_P>(thread_name.c_str()),
+                          vm->thread_id(), 0);
+
     if(cDebugThreading) {
       utilities::logger::debug("Thread: start thread: id: %d, pthread: %d",
           vm->thread_id(), (unsigned int)thread_debug_self());
     }
 
-    GCTokenImpl gct;
     int calculate_stack = 0;
     vm->set_root_stack(reinterpret_cast<uintptr_t>(&calculate_stack), THREAD_STACK_SIZE);
 
@@ -310,40 +315,6 @@ namespace rubinius {
     if(cDebugThreading) {
       utilities::logger::debug("Thread: exit thread: id: %d", vm->thread_id());
     }
-  }
-
-  void* Thread::internal_thread(void* ptr) {
-    VM* vm = reinterpret_cast<VM*>(ptr);
-
-    SharedState& shared = vm->shared;
-    State state_obj(vm), *state = &state_obj;
-
-    execute_thread(state, vm);
-
-    shared.gc_independent();
-
-    return 0;
-  }
-
-  void* Thread::ruby_thread(void* ptr) {
-    VM* vm = reinterpret_cast<VM*>(ptr);
-
-    SharedState& shared = vm->shared;
-    State state_obj(vm), *state = &state_obj;
-
-    std::string thread_name;
-
-    {
-      std::ostringstream tn;
-      tn << "rbx.ruby." << vm->thread_id();
-      VM::set_current(vm, tn.str());
-      thread_name = tn.str();
-    }
-
-    RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CHAR_P>(thread_name.c_str()),
-                          vm->thread_id(), 0);
-
-    execute_thread(state, vm);
 
     shared.clear_critical(state);
     shared.gc_independent();
@@ -375,14 +346,6 @@ namespace rubinius {
     }
 
     return cNil;
-  }
-
-  int Thread::fork_attached(STATE) {
-    pthread_attr_t attrs;
-    pthread_attr_init(&attrs);
-    pthread_attr_setstacksize(&attrs, THREAD_STACK_SIZE);
-
-    return start_thread(state, attrs);
   }
 
   Object* Thread::pass(STATE, CallFrame* calling_environment) {
