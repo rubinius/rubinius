@@ -314,8 +314,6 @@ class String
     self
   end
 
-  alias_method :chars, :each_char
-
   def each_byte
     return to_enum :each_byte unless block_given?
     i = 0
@@ -325,8 +323,6 @@ class String
     end
     self
   end
-
-  alias_method :bytes, :each_byte
 
   def empty?
     @num_bytes == 0
