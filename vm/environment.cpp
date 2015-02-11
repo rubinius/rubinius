@@ -169,11 +169,16 @@ namespace rubinius {
   void Environment::start_signals(STATE) {
     state->vm()->set_run_signals(true);
     signal_handler_ = new SignalHandler(state, config);
+    signal_handler_->start(state);
+  }
+
+  void Environment::stop_signals(STATE) {
+    signal_handler_->stop(state);
   }
 
   void Environment::start_finalizer(STATE) {
     finalizer_handler_ = new FinalizerHandler(state);
-    finalizer_handler_->start_thread(state);
+    finalizer_handler_->start(state);
   }
 
   void Environment::start_logging(STATE) {
@@ -545,6 +550,8 @@ namespace rubinius {
 
   void Environment::halt(STATE) {
     state->shared().tool_broker()->shutdown(state);
+
+    stop_signals(state);
 
     if(ImmixMarker* im = state->memory()->immix_marker()) {
       im->stop(state);

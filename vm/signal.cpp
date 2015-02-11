@@ -58,43 +58,36 @@ namespace rubinius {
     , queued_signals_(0)
   {
     signal_handler_ = this;
-
     shared_.set_signal_handler(this);
 
-    for(int i = 0; i < NSIG; i++) {
-      pending_signals_[i] = 0;
-    }
-
-    initialize(state);
     setup_default_handlers();
-
-    start_thread(state);
   }
 
   void SignalHandler::initialize(STATE) {
     InternalThread::initialize(state);
+
+    for(int i = 0; i < NSIG; i++) {
+      pending_signals_[i] = 0;
+    }
 
     worker_lock_.init();
     worker_cond_.init();
   }
 
   void SignalHandler::wakeup(STATE) {
-    utilities::thread::Mutex::LockGuard lg(worker_lock_);
-
     InternalThread::wakeup(state);
 
     worker_cond_.signal();
   }
 
-  void SignalHandler::shutdown(STATE) {
+  void SignalHandler::stop(STATE) {
     for(std::list<int>::iterator i = watched_signals_.begin();
         i != watched_signals_.end();
-        ++i)
-    {
+        ++i) {
       signal(*i, SIG_DFL);
     }
 
-    stop_thread(state);
+    InternalThread::stop(state);
   }
 
   void SignalHandler::run(STATE) {

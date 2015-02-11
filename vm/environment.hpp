@@ -115,12 +115,15 @@ namespace rubinius {
     void create_fsapi(STATE);
     void remove_fsapi(STATE);
 
-    void start_signals(STATE);
     void start_finalizer(STATE);
-    void start_logging(STATE);
-    void start_jit(STATE);
 
+    void start_signals(STATE);
+    void stop_signals(STATE);
+
+    void start_logging(STATE);
     void stop_logging(STATE);
+
+    void start_jit(STATE);
     void stop_jit(STATE);
   };
 

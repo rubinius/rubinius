@@ -50,7 +50,7 @@ namespace rubinius {
     void open_pipes();
 
     void run(STATE);
-    void shutdown(STATE);
+    void stop(STATE);
     void wakeup(STATE);
   };
 }
