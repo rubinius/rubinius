@@ -43,10 +43,11 @@ def write_release(path)
   version, revision = release_revision
 
   File.open path, "wb" do |f|
-    f.puts %[#define RBX_RUBY_VERSION  "#{Rubinius::BUILD_CONFIG[:ruby_version]}"]
-    f.puts %[#define RBX_VERSION       "#{version}"]
-    f.puts %[#define RBX_LIB_VERSION   "#{version.split(/\./)[0..1].join}"]
-    f.puts %[#define RBX_RELEASE_DATE  "#{release_date}"]
-    f.puts %[#define RBX_BUILD_REV     "#{revision}"]
+    f.puts %[#define RBX_RUBY_VERSION     "#{Rubinius::BUILD_CONFIG[:ruby_version]}"]
+    f.puts %[#define RBX_ENGINE_VERSION   "#{version.split(".")[0, 3].compact.join(".")}"]
+    f.puts %[#define RBX_VERSION          "#{version}"]
+    f.puts %[#define RBX_LIB_VERSION      "#{version.split(/\./)[0..1].join}"]
+    f.puts %[#define RBX_RELEASE_DATE     "#{release_date}"]
+    f.puts %[#define RBX_BUILD_REV        "#{revision}"]
   end
 end
