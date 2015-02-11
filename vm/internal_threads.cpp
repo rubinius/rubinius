@@ -91,6 +91,8 @@ namespace rubinius {
   }
 
   void InternalThread::stop(STATE) {
+    state->shared().internal_threads()->unregister_thread(this);
+
     stop_thread(state);
     VM::discard(state, vm_);
   }

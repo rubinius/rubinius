@@ -178,19 +178,15 @@ namespace rubinius {
   }
 
   void LLVMState::wakeup(STATE) {
-    utilities::thread::Mutex::LockGuard lg(compile_lock_);
-
-    thread_exit_ = true;
-    atomic::memory_barrier();
+    InternalThread::wakeup(state);
 
     compile_cond_.signal();
+    wait_cond.signal();
   }
 
   void LLVMState::stop(STATE) {
     enabled_ = false;
     InternalThread::stop(state);
-
-    state->shared().internal_threads()->unregister_thread(this);
   }
 
   void LLVMState::after_fork_child(STATE) {

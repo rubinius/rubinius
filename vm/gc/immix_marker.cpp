@@ -60,7 +60,6 @@ namespace rubinius {
 
   void ImmixMarker::stop(STATE) {
     InternalThread::stop(state);
-    state->shared().internal_threads()->unregister_thread(this);
   }
 
   void ImmixMarker::concurrent_mark(GCData* data) {
