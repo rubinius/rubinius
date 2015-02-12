@@ -551,13 +551,13 @@ namespace rubinius {
   void Environment::halt(STATE) {
     state->shared().tool_broker()->shutdown(state);
 
+    stop_jit(state);
+
     stop_signals(state);
 
     if(ImmixMarker* im = state->memory()->immix_marker()) {
       im->stop(state);
     }
-
-    stop_jit(state);
 
     GCTokenImpl gct;
 
