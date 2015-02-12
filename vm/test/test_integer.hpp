@@ -13,6 +13,10 @@ public:
     destroy();
   }
 
+  void test_from_zero_yields_fixnum() {
+    TS_ASSERT(kind_of<Fixnum>(Integer::from(state, 0)));
+  }
+
   void test_kind_of_numeric() {
     Fixnum* fix = Fixnum::from(13);
     Bignum* big = Bignum::from(state, (native_int)14);

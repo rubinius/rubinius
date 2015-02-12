@@ -391,7 +391,7 @@ namespace rubinius {
           i != metrics_map_.end();
           ++i)
       {
-        values->put(state, index, Bignum::from(state, (*i)->second));
+        values->put(state, index, Integer::from(state, (*i)->second));
 
         Object* key = reinterpret_cast<Object*>(state->symbol((*i)->first.c_str()));
         map->store(state, key, Fixnum::from(index++));
