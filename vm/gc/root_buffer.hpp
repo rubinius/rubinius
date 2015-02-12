@@ -27,7 +27,8 @@ namespace rubinius {
 
   public:
     RootBuffer(RootBuffers& roots, Object** buffer, int size)
-      : buffer_(buffer)
+      : LinkedList::Node()
+      , buffer_(buffer)
       , roots_(roots)
       , size_(size)
     {
