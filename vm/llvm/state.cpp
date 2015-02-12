@@ -244,13 +244,11 @@ namespace rubinius {
       void* func = 0;
 
       try {
-        Class* receiver_class = compile_request->receiver_class();
-        OnStack<1> rc(state, receiver_class);
-
-        if(receiver_class && !receiver_class->nil_p()) {
-
+        if(compile_request->receiver_class() &&
+            !compile_request->receiver_class()->nil_p()) {
           // Apparently already compiled, probably some race
-          if(compile_request->method()->find_specialized(receiver_class)) {
+          if(compile_request->method()->find_specialized(
+                compile_request->receiver_class())) {
             if(config().jit_show_compiling) {
               CompiledCode* code = compile_request->method();
               llvm::outs() << "[[[ JIT already compiled "
@@ -269,8 +267,8 @@ namespace rubinius {
             continue;
           }
 
-          class_id = receiver_class->class_id();
-          serial_id = receiver_class->serial_id();
+          class_id = compile_request->receiver_class()->class_id();
+          serial_id = compile_request->receiver_class()->serial_id();
         }
 
         {
@@ -332,7 +330,8 @@ namespace rubinius {
 
         if(!compile_request->is_block()) {
           if(class_id) {
-            compile_request->method()->add_specialized(state, class_id,serial_id, reinterpret_cast<executor>(func), rd);
+            compile_request->method()->add_specialized(state,
+                class_id, serial_id, reinterpret_cast<executor>(func), rd);
           } else {
             compile_request->method()->set_unspecialized(reinterpret_cast<executor>(func), rd);
           }
