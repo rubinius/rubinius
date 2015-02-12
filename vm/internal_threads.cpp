@@ -83,11 +83,9 @@ namespace rubinius {
   void InternalThread::stop_thread(STATE) {
     wakeup(state);
 
-    if(atomic::poll(thread_running_, false)) {
-      void* return_value;
-      pthread_t os = vm_->os_thread();
-      pthread_join(os, &return_value);
-    }
+    void* return_value;
+    pthread_t os = vm_->os_thread();
+    pthread_join(os, &return_value);
   }
 
   void InternalThread::stop(STATE) {
