@@ -47,4 +47,9 @@ describe "Enumerable#each_with_index" do
     e.to_a.should == [[:apple, 0]]
     count.arguments_passed.should == [:foo, :bar]
   end
+
+  it "has correct size with no proc given" do
+    [1, 2, 3, 5].each_with_index.size.should == 4
+  end
+
 end
