@@ -26,6 +26,8 @@ namespace rubinius {
 #ifndef ENABLE_LLVM
     return cFalse;
 #else
+    if(!CBOOL(enabled())) return cFalse;
+
     GCTokenImpl gct;
     BlockEnvironment* block_env = try_as<BlockEnvironment>(block_environment);
     if(!block_env) block_env = nil<BlockEnvironment>();
