@@ -169,12 +169,26 @@ namespace rubinius {
   void LLVMState::enable(STATE) {
     utilities::thread::SpinLock::LockGuard lg(shared_.llvm_state_lock());
 
-    start_thread(state);
-    enabled_ = true;
+    if(enabled_) return;
+
+    start(state);
   }
 
   bool LLVMState::debug_p() {
     return config_.jit_debug;
+  }
+
+  void LLVMState::initialize(STATE) {
+    InternalThread::initialize(state);
+
+    method_update_lock_.init();
+    wait_mutex.init();
+    wait_cond.init();
+    request_lock_.init();
+    compile_lock_.init();
+    compile_cond_.init();
+
+    enabled_ = true;
   }
 
   void LLVMState::wakeup(STATE) {
@@ -193,7 +207,7 @@ namespace rubinius {
     compile_list_.get()->clear(state);
     current_compiler_ = 0;
 
-    start_thread(state);
+    InternalThread::after_fork_child(state);
   }
 
   void LLVMState::run(STATE) {

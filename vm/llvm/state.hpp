@@ -281,6 +281,7 @@ namespace rubinius {
     std::string enclosure_name(CompiledCode* code);
 
 
+    void initialize(STATE);
     void run(STATE);
     void wakeup(STATE);
     void stop(STATE);
