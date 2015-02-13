@@ -188,7 +188,7 @@ files TYPE_GEN, field_extract_headers + %w[vm/codegen/field_extract.rb] + [:run_
 end
 
 task vm_release_h do |t|
-  write_release t.name, BUILD_CONFIG[:version], BUILD_CONFIG[:release_date]
+  write_release t.name
 end
 
 file 'vm/gen/config_variables.h' => %w[library/rubinius/configuration.rb config.rb] do |t|

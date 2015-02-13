@@ -51,15 +51,12 @@ namespace rubinius {
 
     utilities::thread::SpinLock init_lock_;
 
-    /// An internal thread, for example, the GC finalizer thread.
-    bool internal_thread_;
-
     /// The VM state for this thread and this thread alone
     VM* vm_;
 
-    typedef Object* (*Run)(STATE);
+    typedef Object* (*ThreadFunction)(STATE);
 
-    Run runner_;
+    ThreadFunction function_;
 
   public:
     const static object_type type = ThreadType;
@@ -94,10 +91,6 @@ namespace rubinius {
 
     VM* vm() const {
       return vm_;
-    }
-
-    bool internal_thread() const {
-      return internal_thread_;
     }
 
   public:
@@ -288,13 +281,12 @@ namespace rubinius {
      *
      *  @see  Thread::allocate().
      */
-    static Thread* create(STATE, VM* target, Object* self, Run runner,
-                          bool internal_thread = false);
+    static Thread* create(STATE, VM* target, Object* self, ThreadFunction function);
+
+    static void finalize(STATE, Thread* thread);
 
     int start_thread(STATE, const pthread_attr_t &attrs);
-    static void execute_thread(STATE, VM* vm);
-    static void* internal_thread(void*);
-    static void* ruby_thread(void*);
+    static void* run(void*);
 
   public:   /* TypeInfo */
 

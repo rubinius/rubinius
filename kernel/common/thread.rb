@@ -129,5 +129,4 @@ class Thread
       "#{code.active_path}:#{line}:in `#{name}'"
     end
   end
-
 end

@@ -33,7 +33,7 @@ namespace rubinius {
   class ImmixGC;
   class InflatedHeaders;
   class Thread;
-  class FinalizerHandler;
+  class FinalizerThread;
   class ImmixMarker;
 
   namespace gc {
@@ -187,7 +187,7 @@ namespace rubinius {
       allow_gc_ = false;
     }
 
-    FinalizerHandler* finalizer_handler() const {
+    FinalizerThread* finalizer_handler() const {
       return shared_.finalizer_handler();
     }
 

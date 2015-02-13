@@ -128,8 +128,8 @@ namespace rubinius {
       return run_state_;
     }
 
-    metrics::MetricsData* metrics() {
-      return &metrics_;
+    metrics::MetricsData& metrics() {
+      return metrics_;
     }
 
   public:

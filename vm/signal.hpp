@@ -2,7 +2,7 @@
 #define RBX_SIGNAL_HPP
 
 #include "lock.hpp"
-#include "auxiliary_threads.hpp"
+#include "internal_threads.hpp"
 
 #include "gc/root.hpp"
 
@@ -14,20 +14,13 @@ namespace rubinius {
   class State;
   class Configuration;
   struct CallFrame;
-  class Thread;
 
-  class SignalHandler : public AuxiliaryThread, public Lockable {
+  class SignalThread : public InternalThread, public Lockable {
     SharedState& shared_;
     VM* target_;
-    VM* vm_;
 
     int pending_signals_[NSIG];
     int queued_signals_;
-
-    bool thread_exit_;
-    bool thread_running_;
-
-    TypedRoot<Thread*> thread_;
 
     std::list<int> watched_signals_;
 
@@ -41,13 +34,10 @@ namespace rubinius {
       eCustom
     };
 
-    SignalHandler(STATE, Configuration& config);
-    virtual ~SignalHandler();
+    SignalThread(STATE, Configuration& config);
 
     void initialize(STATE);
     void setup_default_handlers();
-
-    void perform(STATE);
 
     void add_signal(State*, int sig, HandlerType type = eCustom);
     void handle_signal(int sig);
@@ -58,14 +48,10 @@ namespace rubinius {
     void print_backtraces();
 
     void open_pipes();
-    void wakeup();
-    void start_thread(STATE);
-    void stop_thread(STATE);
-
-    void shutdown(STATE);
-    void after_fork_child(STATE);
 
     void run(STATE);
+    void stop(STATE);
+    void wakeup(STATE);
   };
 }
 

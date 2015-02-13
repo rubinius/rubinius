@@ -83,7 +83,7 @@ namespace atomic {
   inline bool poll(bool& flag, bool expected) {
     struct timespec ts = {0, 1000};
 
-    for(int limit = 0; limit < 100; limit++) {
+    for(int limit = 0; limit < 1000; limit++) {
       memory_barrier();
       if(flag == expected) return true;
       nanosleep(&ts, NULL);

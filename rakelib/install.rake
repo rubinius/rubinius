@@ -284,7 +284,7 @@ appropriate command to elevate permissions (eg su, sudo).
     STDOUT.puts <<-EOM
 --------
 
-Successfully installed Rubinius #{BUILD_CONFIG[:version]}
+Successfully installed Rubinius #{release_revision.first}
 
 Add '#{BUILD_CONFIG[:prefixdir]}#{BUILD_CONFIG[:bindir]}' to your PATH. Available commands are:
 

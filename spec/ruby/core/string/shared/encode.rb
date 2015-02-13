@@ -100,6 +100,12 @@ describe :string_encode, :shared => true do
         str.send(@method, :invalid => :replace, :undef => :replace)
       end.should raise_error(Encoding::ConverterNotFoundError)
     end
+
+    it "replaces invalid characters when replacing Emacs-Mule encoded strings" do
+      got = "\x80".force_encoding('Emacs-Mule').send(@method, :invalid => :replace)
+
+      got.should == "?".encode('Emacs-Mule')
+    end
   end
 
   describe "when passed to, from" do

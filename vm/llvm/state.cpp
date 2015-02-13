@@ -21,7 +21,7 @@
 #include "builtin/list.hpp"
 #include "builtin/thread.hpp"
 
-#include "auxiliary_threads.hpp"
+#include "internal_threads.hpp"
 #include "machine_code.hpp"
 #include "field_offset.hpp"
 #include "object_memory.hpp"
@@ -89,10 +89,8 @@ namespace rubinius {
   static const bool debug_search = false;
 
   LLVMState::LLVMState(STATE)
-    : AuxiliaryThread()
+    : InternalThread(state, "rbx.jit")
     , config_(state->shared().config)
-    , vm_(NULL)
-    , thread_(state)
     , compile_list_(state)
     , symbols_(state->shared().symbols)
     , accessors_inlined_(0)
@@ -102,12 +100,8 @@ namespace rubinius {
     , code_bytes_(0)
     , log_(NULL)
     , enabled_(false)
-    , thread_exit_(false)
-    , thread_running_(false)
     , current_compiler_(0)
   {
-    state->shared().auxiliary_threads()->register_thread(this);
-
     if(state->shared().config.jit_log.value.size() == 0) {
       log_ = &std::cerr;
     } else {
@@ -159,8 +153,6 @@ namespace rubinius {
   }
 
   LLVMState::~LLVMState() {
-    shared_.auxiliary_threads()->unregister_thread(this);
-
     delete memory_;
     memory_ = NULL;
 
@@ -176,95 +168,60 @@ namespace rubinius {
   void LLVMState::enable(STATE) {
     utilities::thread::SpinLock::LockGuard lg(shared_.llvm_state_lock());
 
-    start_thread(state);
-    enabled_ = true;
+    if(enabled_) return;
+
+    start(state);
   }
 
   bool LLVMState::debug_p() {
     return config_.jit_debug;
   }
 
-  Object* jit_llvm_trampoline(STATE) {
-    state->shared().llvm_state->perform(state);
-    GCTokenImpl gct;
-    state->gc_dependent(gct, 0);
-    return cNil;
+  void LLVMState::initialize(STATE) {
+    InternalThread::initialize(state);
+
+    method_update_lock_.init();
+    wait_mutex.init();
+    wait_cond.init();
+    request_lock_.init();
+    compile_lock_.init();
+    compile_cond_.init();
+
+    enabled_ = true;
   }
 
-  void LLVMState::start_thread(STATE) {
-    SYNC(state);
-
-    if(!vm_) {
-      vm_ = state->shared().new_vm();
-      vm_->metrics()->init(metrics::eJITMetrics);
-
-      thread_exit_ = false;
-
-      Thread* thread = Thread::create(state, vm_, G(thread), jit_llvm_trampoline, true);
-      OnStack<1> os(state, thread);
-
-      if(thread->fork_attached(state)) {
-        rubinius::bug("Unable to start JIT LLVM thread");
-      }
-
-      thread_.set(thread);
-    }
-  }
-
-  void LLVMState::wakeup() {
-    utilities::thread::Mutex::LockGuard lg(compile_lock_);
-
-    thread_exit_ = true;
-    atomic::memory_barrier();
+  void LLVMState::wakeup(STATE) {
+    InternalThread::wakeup(state);
 
     compile_cond_.signal();
-  }
-
-  void LLVMState::stop_thread(STATE) {
-    SYNC(state);
-
-    if(vm_) {
-      wakeup();
-
-      if(atomic::poll(thread_running_, false)) {
-        void* return_value;
-        pthread_t os = vm_->os_thread();
-        pthread_join(os, &return_value);
-      }
-
-      VM::discard(state, vm_);
-      vm_ = NULL;
-    }
+    wait_cond.signal();
   }
 
   void LLVMState::stop(STATE) {
     enabled_ = false;
-    stop_thread(state);
+    InternalThread::stop(state);
   }
 
   void LLVMState::after_fork_child(STATE) {
     compile_list_.get()->clear(state);
     current_compiler_ = 0;
-    vm_ = NULL;
 
-    start_thread(state);
+    InternalThread::after_fork_child(state);
   }
 
-  void LLVMState::perform(STATE) {
+  void LLVMState::run(STATE) {
     GCTokenImpl gct;
-    RBX_DTRACE_CHAR_P thread_name = const_cast<RBX_DTRACE_CHAR_P>("rbx.jit");
-    vm_->set_name(thread_name);
+    JITCompileRequest* compile_request = nil<JITCompileRequest>();
+    OnStack<1> os(state, compile_request);
 
-    RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
-                          state->vm()->thread_id(), 1);
+    metrics().init(metrics::eJITMetrics);
 
-    state->vm()->thread->hard_unlock(state, gct, 0);
     state->gc_dependent(gct, 0);
 
     bool show_machine_code_ = jit_dump_code() & cMachineCode;
 
     while(!thread_exit_) {
-      JITCompileRequest* compile_request = nil<JITCompileRequest>();
+
       current_compiler_ = 0;
 
       {
@@ -290,8 +247,6 @@ namespace rubinius {
         if(!compile_request || compile_request->nil_p()) continue;
       }
 
-      OnStack<1> os(state, compile_request);
-
       Context ctx(this);
       jit::Compiler jit(&ctx);
 
@@ -300,15 +255,13 @@ namespace rubinius {
       uint32_t class_id = 0;
       uint32_t serial_id = 0;
       void* func = 0;
-      Class* receiver_class = compile_request->receiver_class();
-
-      OnStack<1> os2(state, receiver_class);
 
       try {
-        if(receiver_class && !receiver_class->nil_p()) {
-
+        if(compile_request->receiver_class() &&
+            !compile_request->receiver_class()->nil_p()) {
           // Apparently already compiled, probably some race
-          if(compile_request->method()->find_specialized(receiver_class)) {
+          if(compile_request->method()->find_specialized(
+                compile_request->receiver_class())) {
             if(config().jit_show_compiling) {
               CompiledCode* code = compile_request->method();
               llvm::outs() << "[[[ JIT already compiled "
@@ -327,14 +280,14 @@ namespace rubinius {
             continue;
           }
 
-          class_id = receiver_class->class_id();
-          serial_id = receiver_class->serial_id();
+          class_id = compile_request->receiver_class()->class_id();
+          serial_id = compile_request->receiver_class()->serial_id();
         }
 
         {
           timer::StopWatch<timer::microseconds> timer(
-              vm()->metrics()->m.jit_metrics.time_last_us,
-              vm()->metrics()->m.jit_metrics.time_total_us);
+              metrics().m.jit_metrics.time_last_us,
+              metrics().m.jit_metrics.time_total_us);
 
           jit.compile(compile_request);
 
@@ -364,7 +317,7 @@ namespace rubinius {
       } catch(LLVMState::CompileError& e) {
         utilities::logger::warn("JIT: compile error: %s", e.error());
 
-        vm()->metrics()->m.jit_metrics.methods_failed++;
+        metrics().m.jit_metrics.methods_failed++;
 
         // If someone was waiting on this, wake them up.
         if(utilities::thread::Condition* cond = compile_request->waiter()) {
@@ -390,7 +343,8 @@ namespace rubinius {
 
         if(!compile_request->is_block()) {
           if(class_id) {
-            compile_request->method()->add_specialized(state, class_id,serial_id, reinterpret_cast<executor>(func), rd);
+            compile_request->method()->add_specialized(state,
+                class_id, serial_id, reinterpret_cast<executor>(func), rd);
           } else {
             compile_request->method()->set_unspecialized(reinterpret_cast<executor>(func), rd);
           }
@@ -419,7 +373,7 @@ namespace rubinius {
       }
 
       current_compiler_ = 0;
-      vm()->metrics()->m.jit_metrics.methods_compiled++;
+      metrics().m.jit_metrics.methods_compiled++;
     }
   }
 
@@ -454,7 +408,7 @@ namespace rubinius {
     if(!enabled_) return;
 
     G(jit)->compile_list()->append(state, req);
-    vm()->metrics()->m.jit_metrics.methods_queued++;
+    metrics().m.jit_metrics.methods_queued++;
 
     compile_cond_.signal();
   }
@@ -464,6 +418,16 @@ namespace rubinius {
   {
     if(!enabled_) return;
 
+<<<<<<< HEAD
+=======
+    // TODO: Fix compile policy checks
+    if(!code->keywords()->nil_p()) {
+      metrics().m.jit_metrics.methods_failed++;
+
+      return;
+    }
+
+>>>>>>> origin
     // In case the method hasn't been internalized yet
     if(!code->machine_code()) {
       code->internalize(state, gct, call_frame);
@@ -479,7 +443,12 @@ namespace rubinius {
 
     state->set_call_frame(call_frame);
 
-    wait_cond.wait(wait_mutex);
+    {
+      GCIndependent guard(state, 0);
+
+      wait_cond.wait(wait_mutex);
+    }
+
     wait_mutex.unlock();
     state->set_call_frame(0);
 
@@ -497,6 +466,16 @@ namespace rubinius {
 
     if(!enabled_) return;
 
+<<<<<<< HEAD
+=======
+    // TODO: Fix compile policy checks
+    if(!code->keywords()->nil_p()) {
+      metrics().m.jit_metrics.methods_failed++;
+
+      return;
+    }
+
+>>>>>>> origin
     if(code->machine_code()->call_count <= 1) {
       return;
     }
@@ -545,7 +524,7 @@ namespace rubinius {
   }
 
   void LLVMState::remove(void* func) {
-    if(vm_) vm_->metrics()->m.jit_metrics.methods_compiled--;
+    metrics().m.jit_metrics.methods_compiled--;
     if(memory_) memory_->deallocateFunctionBody(func);
   }
 
@@ -554,6 +533,16 @@ namespace rubinius {
   void LLVMState::compile_callframe(STATE, GCToken gct, CompiledCode* start,
       CallFrame* call_frame, int primitive)
   {
+<<<<<<< HEAD
+=======
+    // TODO: Fix compile policy checks
+    if(!start->keywords()->nil_p()) {
+      metrics().m.jit_metrics.methods_failed++;
+
+      return;
+    }
+
+>>>>>>> origin
     if(debug_search) {
       std::cout << std::endl << "JIT:       triggered: "
             << enclosure_name(start) << "#"

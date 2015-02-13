@@ -2,7 +2,7 @@ require "rakelib/release"
 
 task :revision_file do
   if git_directory
-    File.open(revision_file, "w") { |f| f.write read_revision }
+    File.open(revision_file, "w") { |f| f.write release_revision }
   end
 end
 

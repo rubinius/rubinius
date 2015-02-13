@@ -36,39 +36,32 @@ namespace rubinius {
   using namespace utilities;
 
   namespace metrics {
-    void RubyMetrics::add(MetricsData* data) {
-      if(data->type != eRubyMetrics) return;
+    void RubyMetrics::add(MetricsData& data) {
+      if(data.type != eRubyMetrics) return;
 
-      add(&data->m.ruby_metrics);
+      add(data.m.ruby_metrics);
     }
 
-    void FinalizerMetrics::add(MetricsData* data) {
-      if(data->type != eFinalizerMetrics) return;
+    void FinalizerMetrics::add(MetricsData& data) {
+      if(data.type != eFinalizerMetrics) return;
 
-      add(&data->m.finalizer_metrics);
+      add(data.m.finalizer_metrics);
     }
 
-    void JITMetrics::add(MetricsData* data) {
-      if(data->type != eJITMetrics) return;
+    void JITMetrics::add(MetricsData& data) {
+      if(data.type != eJITMetrics) return;
 
-      add(&data->m.jit_metrics);
+      add(data.m.jit_metrics);
     }
 
-    void ConsoleMetrics::add(MetricsData* data) {
-      if(data->type != eConsoleMetrics) return;
+    void ConsoleMetrics::add(MetricsData& data) {
+      if(data.type != eConsoleMetrics) return;
 
-      add(&data->m.console_metrics);
+      add(data.m.console_metrics);
     }
 
-    void SystemMetrics::add(MetricsData* data) {
-      add(&data->system_metrics);
-    }
-
-    Object* metrics_trampoline(STATE) {
-      state->shared().metrics()->process_metrics(state);
-      GCTokenImpl gct;
-      state->gc_dependent(gct, 0);
-      return cNil;
+    void SystemMetrics::add(MetricsData& data) {
+      add(data.system_metrics);
     }
 
     StatsDEmitter::StatsDEmitter(MetricsMap& map, std::string server, std::string prefix)
@@ -197,13 +190,8 @@ namespace rubinius {
     }
 
     Metrics::Metrics(STATE)
-      : AuxiliaryThread()
-      , shared_(state->shared())
-      , vm_(NULL)
+      : InternalThread(state, "rbx.metrics")
       , enabled_(true)
-      , thread_exit_(false)
-      , thread_running_(false)
-      , thread_(state)
       , values_(state)
       , interval_(state->shared().config.system_metrics_interval)
       , timer_(NULL)
@@ -212,13 +200,11 @@ namespace rubinius {
       metrics_lock_.init();
       map_metrics();
 
-      if(!shared_.config.system_metrics_target.value.compare("statsd")) {
+      if(!state->shared().config.system_metrics_target.value.compare("statsd")) {
         emitter_ = new StatsDEmitter(metrics_map_,
-            shared_.config.system_metrics_statsd_server.value,
-            shared_.config.system_metrics_statsd_prefix.value);
+            state->shared().config.system_metrics_statsd_server.value,
+            state->shared().config.system_metrics_statsd_prefix.value);
       }
-
-      shared_.auxiliary_threads()->register_thread(this);
     }
 
     Metrics::~Metrics() {
@@ -231,8 +217,6 @@ namespace rubinius {
       {
         delete (*i);
       }
-
-      shared_.auxiliary_threads()->unregister_thread(this);
     }
 
     void Metrics::map_metrics() {
@@ -407,7 +391,7 @@ namespace rubinius {
           i != metrics_map_.end();
           ++i)
       {
-        values->put(state, index, Bignum::from(state, (*i)->second));
+        values->put(state, index, Integer::from(state, (*i)->second));
 
         Object* key = reinterpret_cast<Object*>(state->symbol((*i)->first.c_str()));
         map->store(state, key, Fixnum::from(index++));
@@ -415,6 +399,8 @@ namespace rubinius {
     }
 
     void Metrics::update_ruby_values(STATE) {
+      GCDependent guard(state, 0);
+
       Tuple* values = values_.get();
       int index = 0;
 
@@ -426,24 +412,19 @@ namespace rubinius {
       }
     }
 
-    void Metrics::start(STATE) {
-      vm_ = NULL;
+    void Metrics::initialize(STATE) {
+      InternalThread::initialize(state);
+
       enabled_ = true;
-      thread_exit_ = false;
-      thread_running_ = false;
 
       timer_ = new timer::Timer;
 
       metrics_collection_.init();
       metrics_history_.init();
-
-      start_thread(state);
     }
 
-    void Metrics::wakeup() {
-      thread_exit_ = true;
-
-      atomic::memory_barrier();
+    void Metrics::wakeup(STATE) {
+      InternalThread::wakeup(state);
 
       if(timer_) {
         timer_->clear();
@@ -451,51 +432,13 @@ namespace rubinius {
       }
     }
 
-    void Metrics::start_thread(STATE) {
-      SYNC(state);
-
-      if(!vm_) {
-        vm_ = state->shared().new_vm();
-        thread_exit_ = false;
-        thread_.set(Thread::create(state, vm_, G(thread),
-              metrics_trampoline, true));
-      }
-
-      if(thread_.get()->fork_attached(state)) {
-        rubinius::bug("Unable to start metrics thread");
-      }
-    }
-
-    void Metrics::stop_thread(STATE) {
-      SYNC(state);
-
-      if(vm_) {
-        wakeup();
-
-        if(atomic::poll(thread_running_, false)) {
-          void* return_value;
-          pthread_t os = vm_->os_thread();
-          pthread_join(os, &return_value);
-        }
-
-        VM::discard(state, vm_);
-        vm_ = NULL;
-      }
-    }
-
-    void Metrics::shutdown(STATE) {
-      stop_thread(state);
-    }
-
     void Metrics::after_fork_child(STATE) {
-      metrics_lock_.init();
-      vm_ = NULL;
-
-      start(state);
       if(emitter_) emitter_->reinit();
+
+      InternalThread::after_fork_child(state);
     }
 
-    void Metrics::add_historical_metrics(MetricsData* metrics) {
+    void Metrics::add_historical_metrics(MetricsData& metrics) {
       if(!enabled_) return;
 
       {
@@ -505,30 +448,13 @@ namespace rubinius {
       }
     }
 
-    void Metrics::process_metrics(STATE) {
-      GCTokenImpl gct;
-      RBX_DTRACE_CHAR_P thread_name =
-        const_cast<RBX_DTRACE_CHAR_P>("rbx.metrics");
-      vm_->set_name(thread_name);
-
-      RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
-                            state->vm()->thread_id(), 1);
-
-      thread_running_ = true;
-
-      state->vm()->thread->hard_unlock(state, gct, 0);
-      state->gc_dependent(gct, 0);
-
+    void Metrics::run(STATE) {
       timer_->set(interval_);
 
       while(!thread_exit_) {
-        {
-          GCIndependent guard(state, 0);
-
-          if(timer_->wait_for_tick() < 0) {
-            logger::error("metrics: error waiting for timer, exiting thread");
-            break;
-          }
+        if(timer_->wait_for_tick() < 0) {
+          logger::error("metrics: error waiting for timer, exiting thread");
+          break;
         }
 
         if(thread_exit_) break;
@@ -543,40 +469,25 @@ namespace rubinius {
               i != threads->end();
               ++i) {
             if(VM* vm = (*i)->as_vm()) {
-              if(MetricsData* data = vm->metrics()) {
-                metrics_collection_.add(data);
-              }
+              metrics_collection_.add(vm->metrics());
             }
           }
 
 #ifdef ENABLE_LLVM
-          if(state->shared().llvm_state) {
-            if(Thread* thread = state->shared().llvm_state->thread()) {
-              if(VM* vm = thread->vm()) {
-                metrics_collection_.add(vm->metrics());
-              }
-            }
+          if(LLVMState* llvm_state = state->shared().llvm_state) {
+            metrics_collection_.add(llvm_state->metrics());
           }
 #endif
 
-          metrics_collection_.add(&metrics_history_);
+          metrics_collection_.add(metrics_history_);
 
           update_ruby_values(state);
         }
 
-        {
-          GCIndependent guard(state, 0);
-
-          if(emitter_) emitter_->send_metrics();
-        }
+        if(emitter_) emitter_->send_metrics();
       }
 
       timer_->clear();
-
-      thread_running_ = false;
-
-      RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
-                           state->vm()->thread_id(), 1);
     }
   }
 }

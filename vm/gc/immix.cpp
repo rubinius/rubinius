@@ -19,7 +19,7 @@ namespace rubinius {
 #endif
 
     if(object_memory_) {
-      object_memory_->state()->metrics()->m.ruby_metrics.memory_immix_chunks_total++;
+      object_memory_->state()->metrics().m.ruby_metrics.memory_immix_chunks_total++;
 
       if(gc_->dec_chunks_left() <= 0) {
         gc_->reset_chunks_left();
@@ -386,10 +386,10 @@ namespace rubinius {
   }
 
   void ImmixGC::walk_finalizers() {
-    FinalizerHandler* fh = object_memory_->finalizer_handler();
+    FinalizerThread* fh = object_memory_->finalizer_handler();
     if(!fh) return;
 
-    for(FinalizerHandler::iterator i = fh->begin();
+    for(FinalizerThread::iterator i = fh->begin();
         !i.end();
         /* advance is handled in the loop */)
     {

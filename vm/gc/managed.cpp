@@ -20,7 +20,7 @@ namespace rubinius {
 
   ManagedThread::~ManagedThread() {
     if(metrics::Metrics* metrics = shared_.metrics()) {
-      metrics->add_historical_metrics(&metrics_);
+      metrics->add_historical_metrics(metrics_);
     }
   }
 

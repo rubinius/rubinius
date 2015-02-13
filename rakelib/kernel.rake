@@ -43,7 +43,6 @@ class KernelCompiler
     generator.processor Rubinius::ToolSets::Build::Generator
 
     writer = compiler.writer
-    writer.version = BUILD_CONFIG[:libversion].sub(/\D/, "")
     writer.name = output
 
     compiler.run

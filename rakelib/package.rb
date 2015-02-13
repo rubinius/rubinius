@@ -21,6 +21,10 @@ def write_sha1_digest_file(filename)
   puts "Computed SHA1 to #{digest_file}"
 end
 
+def rbx_version
+  release_revision.first
+end
+
 class RubiniusPackager
   attr_writer :prefix, :root, :bin, :config, :archive, :package
 
@@ -31,10 +35,6 @@ class RubiniusPackager
     @config = options[:config]
     @archive = options[:archive]
     @package = options[:package]
-  end
-
-  def rbx_version
-    BUILD_CONFIG[:version]
   end
 
   # passed verbatim to --prefix

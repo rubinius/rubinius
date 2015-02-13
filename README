@@ -1,35 +1,38 @@
-1. What is Rubinius
+1. The Rubinius Language Platform
 
-Rubinius is an implementation of the Ruby programming language. Rubinius is
-compatible with Ruby version 1.8.7.
+Rubinius is a modern language platform that supports a number of programming
+languages.
 
-Rubinius includes a Ruby parser, bytecode virtual machine, bytecode compiler,
-generational garbage collector, and just-in-time (JIT) native machine code
-compiler. Rubinius uses native OS threads with no global interpreter lock.
-Rubinius also provides C-API compatibility for native C extensions.
-
-The Ruby core library is written almost entirely in Ruby. Rubinius tools, such
-as the bytecode compiler and debugger, are also written in Ruby.  Rubinius
-provides the same standard libraries as Matz's Ruby implementation (MRI) with
-the following exceptions:
-
-* Continuation
-* Ripper
-* TracePoint
-* Tracer
+Rubinius includes a bytecode virtual machine, generational garbage collector,
+and just-in-time (JIT) native machine code compiler. Rubinius provides
+concurrency support via native OS threads with no global interpreter lock.
 
 Rubinius runs on Mac OS X and many Unix/Linux operating systems.  Microsoft
 Windows is not yet supported.
 
-Most popular Ruby applications, like Rails, run on Rubinius.
+
+2. The Ruby Programming Language
+
+Many popular Ruby applications, like Rails, run on Rubinius, which aims to be
+compatible with Ruby version 1.8.7.
+
+Rubinius includes a Ruby parser, Ruby bytecode compiler, Ruby core library,
+and C-API compatibility for native C extensions. The Ruby core library is
+written almost entirely in Ruby. The Ruby bytecode compiler and other tools,
+such as the debugger, are also written in Ruby.  Rubinius provides the
+standard Ruby libraries.
+
+The following Ruby features are not supported on Rubinius:
+
+* $SAFE levels
 
 
-2. License
+3. License
 
 Rubinius uses the BSD license. See LICENSE for details.
 
 
-3. Installing Rubinius from Source
+4. Installing Rubinius from Source
 
 To install Rubinius, use the following steps:
 
@@ -45,71 +48,33 @@ terminal to add the Rubinius executable (bin) directory to your PATH. For more
 information see http://rubini.us/doc/en/getting-started/requirements/
 and http://rubini.us/doc/en/getting-started/building/.
 
-If you are unable to build melbourne during the rake step you may be using an
-incompatible version of bison. Rubinius 2.x/melbourne 2.x can be built with
-bison 3.x but Rubinius 1.x/melbourne 1.x must be built with bison 2.x
 
-On Debian and Ubuntu variants, a good way to have both versions installed is to
-use update-alternatives. You can accomplish this by either installing bison
-via apt-get and then moving files around, or installing both versions by source.
-
-It's unknown at this time if moving the package manager-installed files will
-break updates by the package manager in the future, so the steps below will
-outline how to build via source.
-
-1.  wget http://ftp.gnu.org/gnu/bison/bison-2.5.1.tar.gz
-2.  wget http://ftp.gnu.org/gnu/bison/bison-3.0.2.tar.gz
-3.  tar xzf bison-2.5.1.tar.gz
-4.  tar xzf bison-3.0.2.tar.gz
-5.  cd bison-2.5.1/
-6.  ./configure --program-suffix="-2.5.1" --datarootdir=/usr/share/bison-2.5.1
-7.  make && sudo make install
-8.  cd ../bison-3.0.2/
-9.  ./configure --program-suffix="-3.0.2" --datarootdir=/usr/share/bison-3.0.2
-10. make && sudo make install
-11. sudo update-alternatives \
-      --install \
-        /usr/local/bin/bison \
-        bison \
-        /usr/local/bin/bison-3.0.2 \
-        150 \
-      --slave \
-        /usr/share/bison \
-        bison-share-dir \
-        /usr/share/bison-3.0.2/bison
-12. sudo update-alternatives \
-      --install \
-        /usr/local/bin/bison \
-        bison \
-        /usr/local/bin/bison-2.5.1 \
-        100 \
-      --slave \
-        /usr/share/bison \
-        bison-share-dir \
-        /usr/share/bison-2.5.1/bison
-13. sudo update-alternatives --config bison
-
-4. Using RubyGems
+5. Using RubyGems
 
 Rubinius comes with RubyGems built-in. To install a gem, run the following:
 
-  rbx -S gem install <gem_name>
+  $ rbx -S gem install <gem_name>
 
 
-5. Documentation
+6. Documentation
 
-After installing Rubinius, run 'rbx docs' to access the built-in documentation
-at any time.
+The Rubinius documentation is available at the Rubinius website:
+
+  http://rubini.us
 
 
-6. Tickets
+7. Issues & Support
 
 Please file tickets for bugs or problems. The issue tracker is:
 
   http://github.com/rubinius/rubinius/issues
 
+For additional help, visit the Rubinius Gitter chat room:
 
-7. Contributing
+  https://gitter.im/rubinius/rubinius
 
-The Rubinius team welcomes contributions. For more information read the
+
+8. Contributing
+
+The Rubinius team welcomes contributions. For more information, read the
 CONTRIBUTING file in the root directory of Rubinius.

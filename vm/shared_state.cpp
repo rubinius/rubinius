@@ -30,9 +30,9 @@
 namespace rubinius {
 
   SharedState::SharedState(Environment* env, Configuration& config, ConfigParser& cp)
-    : auxiliary_threads_(0)
-    , signal_handler_(0)
-    , finalizer_handler_(0)
+    : internal_threads_(0)
+    , signal_thread_(0)
+    , finalizer_thread_(0)
     , console_(0)
     , metrics_(0)
     , world_(new WorldState(&check_global_interrupts_))
@@ -58,7 +58,7 @@ namespace rubinius {
   {
     ref();
 
-    auxiliary_threads_ = new AuxiliaryThreads();
+    internal_threads_ = new InternalThreads();
 
     for(int i = 0; i < Primitives::cTotalPrimitives; i++) {
       primitive_hits_[i] = 0;
@@ -91,7 +91,7 @@ namespace rubinius {
     delete global_cache;
     delete world_;
     delete om;
-    delete auxiliary_threads_;
+    delete internal_threads_;
   }
 
   void SharedState::add_managed_thread(ManagedThread* thr) {
@@ -153,7 +153,7 @@ namespace rubinius {
         ++i) {
       if(VM* vm = (*i)->as_vm()) {
         Thread *thread = vm->thread.get();
-        if(!thread->internal_thread() && CBOOL(thread->alive())) {
+        if(!thread->nil_p() && CBOOL(thread->alive())) {
           threads->append(state, thread);
         }
       }
@@ -196,20 +196,20 @@ namespace rubinius {
            ++i) {
       if(VM* vm = (*i)->as_vm()) {
         if(vm == current) {
-          vm->metrics()->init(metrics::eRubyMetrics);
-          state->vm()->metrics()->system_metrics.vm_threads++;
+          vm->metrics().init(metrics::eRubyMetrics);
+          state->vm()->metrics().system_metrics.vm_threads++;
           continue;
         }
 
         if(Thread* thread = vm->thread.get()) {
-          thread->unlock_after_fork(state, gct);
-          thread->stopped();
+          if(!thread->nil_p()) {
+            thread->unlock_after_fork(state, gct);
+            thread->stopped();
+          }
         }
 
         vm->unlock();
         vm->reset_parked();
-
-        delete vm;
       }
     }
     threads_.clear();
@@ -236,14 +236,12 @@ namespace rubinius {
     capi_ds_lock_.init();
     capi_locks_lock_.init();
     capi_constant_lock_.init();
-    auxiliary_threads_->init();
+    internal_threads_->init();
 
     env_->set_fsapi_path();
 
     env_->stop_logging(state);
     env_->start_logging(state);
-
-    world_->reinit();
 
     om->after_fork_child(state);
 
@@ -261,6 +259,10 @@ namespace rubinius {
 
   void SharedState::stop_threads_externally() {
     world_->stop_threads_externally();
+  }
+
+  void SharedState::reinit_world() {
+    world_->reinit();
   }
 
   void SharedState::restart_world(THREAD) {

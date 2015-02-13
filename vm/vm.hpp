@@ -106,6 +106,7 @@ namespace rubinius {
     MethodMissingReason method_missing_reason_;
     ConstantMissingReason constant_missing_reason_;
 
+    bool zombie_;
     bool run_signals_;
     bool tooling_;
     bool allocation_tracking_;
@@ -146,6 +147,14 @@ namespace rubinius {
 
     uint32_t thread_id() const {
       return id_;
+    }
+
+    void set_zombie() {
+      zombie_ = true;
+    }
+
+    bool zombie_p() {
+      return zombie_;
     }
 
     bool run_signals_p() const {
@@ -484,6 +493,23 @@ namespace rubinius {
   };
 
   class NativeMethodEnvironment;
+
+  class GCDependent {
+    State* state_;
+
+  public:
+    GCDependent(STATE, CallFrame* call_frame)
+      : state_(state)
+    {
+      GCTokenImpl gct;
+      state_->gc_dependent(gct, call_frame);
+    }
+
+    ~GCDependent() {
+      GCTokenImpl gct;
+      state_->gc_independent(gct, state_->vm()->saved_call_frame());
+    }
+  };
 
   class GCIndependent {
     State* state_;
