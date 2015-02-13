@@ -212,6 +212,8 @@ namespace rubinius {
 
   void LLVMState::run(STATE) {
     GCTokenImpl gct;
+    JITCompileRequest* compile_request = nil<JITCompileRequest>();
+    OnStack<1> os(state, compile_request);
 
     metrics().init(metrics::eJITMetrics);
 
@@ -220,8 +222,6 @@ namespace rubinius {
     bool show_machine_code_ = jit_dump_code() & cMachineCode;
 
     while(!thread_exit_) {
-      JITCompileRequest* compile_request = nil<JITCompileRequest>();
-      OnStack<1> cr(state, compile_request);
 
       current_compiler_ = 0;
 
