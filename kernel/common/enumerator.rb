@@ -149,15 +149,7 @@ module Enumerable
     end
 
     def size
-      if @size.kind_of?(Proc)
-        @size.call
-      elsif @size.kind_of?(Numeric)
-        @size
-      elsif @size.respond_to? :size
-        @size.size
-      else
-        @size
-      end
+      @size.kind_of?(Proc) ? @size.call : @size
     end
 
     def size=(size)

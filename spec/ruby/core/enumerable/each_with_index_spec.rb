@@ -47,9 +47,4 @@ describe "Enumerable#each_with_index" do
     e.to_a.should == [[:apple, 0]]
     count.arguments_passed.should == [:foo, :bar]
   end
-
-  it "returns the correct size when no block is given" do
-    [1, 2, 3, 5].each_with_index.size.should == 4
-  end
-
 end
