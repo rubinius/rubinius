@@ -81,6 +81,8 @@ namespace rubinius {
   }
 
   void InternalThread::stop_thread(STATE) {
+    GCIndependent guard(state, 0);
+
     wakeup(state);
 
     void* return_value;
