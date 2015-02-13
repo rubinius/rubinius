@@ -149,9 +149,7 @@ namespace rubinius {
       return id_;
     }
 
-    void set_zombie() {
-      zombie_ = true;
-    }
+    void set_zombie();
 
     bool zombie_p() {
       return zombie_;
