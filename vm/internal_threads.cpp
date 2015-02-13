@@ -1,8 +1,9 @@
 #include "vm.hpp"
 #include "prelude.hpp"
 #include "environment.hpp"
-
 #include "internal_threads.hpp"
+
+#include "builtin/native_method.hpp"
 
 #include "dtrace/dtrace.h"
 #include "util/logger.hpp"
@@ -38,11 +39,15 @@ namespace rubinius {
     RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
                           vm->thread_id(), 1);
 
+    NativeMethod::init_thread(state);
+
     thread->thread_running_ = true;
 
     thread->run(state);
 
     thread->thread_running_ = false;
+
+    NativeMethod::cleanup_thread(state);
 
     RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
                          vm->thread_id(), 1);
