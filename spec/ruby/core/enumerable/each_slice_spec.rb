@@ -57,7 +57,7 @@ describe "Enumerable#each_slice" do
     multi.each_slice(2).to_a.should == [[[1, 2], [3, 4, 5]], [[6, 7, 8, 9]]]
   end
 
-  it "has correct size with no proc given" do
+  it "returns the correct size when no block is given" do
     [1, 2, 3, 5].each_slice(2).size.should == 2
   end
 

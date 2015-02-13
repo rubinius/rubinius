@@ -151,7 +151,7 @@ module Enumerable
     def size
       if @size.kind_of?(Proc)
         @size.call
-      elsif @size.is_a? Numeric
+      elsif @size.kind_of?(Numeric)
         @size
       elsif @size.respond_to? :size
         @size.size

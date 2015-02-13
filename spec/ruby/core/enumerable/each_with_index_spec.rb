@@ -48,7 +48,7 @@ describe "Enumerable#each_with_index" do
     count.arguments_passed.should == [:foo, :bar]
   end
 
-  it "has correct size with no proc given" do
+  it "returns the correct size when no block is given" do
     [1, 2, 3, 5].each_with_index.size.should == 4
   end
 
