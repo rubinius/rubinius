@@ -35,6 +35,7 @@ module Enumerable
           raise ArgumentError, "Enumerator#initialize requires a block when called without arguments"
         end
 
+        size = receiver_or_size
         receiver = receiver_or_size
       end
 
@@ -149,6 +150,10 @@ module Enumerable
 
     def size
       @size.kind_of?(Proc) ? @size.call : @size
+    end
+
+    def size=(size)
+      @size = size
     end
 
     def with_index(offset=0)

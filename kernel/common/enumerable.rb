@@ -424,7 +424,11 @@ module Enumerable
   end
 
   def each_slice(slice_size)
-    return to_enum(:each_slice, slice_size) unless block_given?
+    unless block_given?
+      enum = to_enum(:each_slice, slice_size)
+      enum.size = Proc.new { enum.count }
+      return enum
+    end
 
     n = Rubinius::Type.coerce_to_collection_index slice_size
     raise ArgumentError, "invalid slice size: #{n}" if n <= 0
