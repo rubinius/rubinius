@@ -113,6 +113,11 @@ namespace rubinius {
     delete vm;
   }
 
+  void VM::set_zombie() {
+    thread.set(nil<Thread>());
+    zombie_ = true;
+  }
+
   void VM::initialize_as_root() {
 
     om = new ObjectMemory(this, shared.config);
