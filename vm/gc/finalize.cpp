@@ -121,8 +121,6 @@ namespace rubinius {
   void FinalizerThread::run(STATE) {
     GCTokenImpl gct;
 
-    NativeMethod::init_thread(state);
-
     metrics().init(metrics::eFinalizerMetrics);
 
     state->gc_dependent(gct, 0);
@@ -158,8 +156,6 @@ namespace rubinius {
       finalize(state);
       next_process_item();
     }
-
-    NativeMethod::cleanup_thread(state);
   }
 
   void FinalizerThread::finalize(STATE) {
