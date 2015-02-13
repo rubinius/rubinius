@@ -551,19 +551,17 @@ namespace rubinius {
   void Environment::halt(STATE) {
     state->shared().tool_broker()->shutdown(state);
 
-    stop_jit(state);
-
-    stop_signals(state);
-
     if(ImmixMarker* im = state->memory()->immix_marker()) {
       im->stop(state);
     }
 
-    GCTokenImpl gct;
+    stop_jit(state);
+    stop_signals(state);
 
     root_vm->set_call_frame(0);
 
     // Handle an edge case where another thread is waiting to stop the world.
+    GCTokenImpl gct;
     if(state->shared().should_stop()) {
       state->checkpoint(gct, 0);
     }
