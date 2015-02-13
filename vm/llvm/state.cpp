@@ -418,16 +418,6 @@ namespace rubinius {
   {
     if(!enabled_) return;
 
-<<<<<<< HEAD
-=======
-    // TODO: Fix compile policy checks
-    if(!code->keywords()->nil_p()) {
-      metrics().m.jit_metrics.methods_failed++;
-
-      return;
-    }
-
->>>>>>> origin
     // In case the method hasn't been internalized yet
     if(!code->machine_code()) {
       code->internalize(state, gct, call_frame);
@@ -466,16 +456,6 @@ namespace rubinius {
 
     if(!enabled_) return;
 
-<<<<<<< HEAD
-=======
-    // TODO: Fix compile policy checks
-    if(!code->keywords()->nil_p()) {
-      metrics().m.jit_metrics.methods_failed++;
-
-      return;
-    }
-
->>>>>>> origin
     if(code->machine_code()->call_count <= 1) {
       return;
     }
@@ -533,16 +513,6 @@ namespace rubinius {
   void LLVMState::compile_callframe(STATE, GCToken gct, CompiledCode* start,
       CallFrame* call_frame, int primitive)
   {
-<<<<<<< HEAD
-=======
-    // TODO: Fix compile policy checks
-    if(!start->keywords()->nil_p()) {
-      metrics().m.jit_metrics.methods_failed++;
-
-      return;
-    }
-
->>>>>>> origin
     if(debug_search) {
       std::cout << std::endl << "JIT:       triggered: "
             << enclosure_name(start) << "#"
