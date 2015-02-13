@@ -96,6 +96,7 @@ namespace rubinius {
   }
 
   void InternalThread::after_fork_child(STATE) {
+    vm_ = state->shared().new_vm();
     start(state);
   }
 
