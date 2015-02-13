@@ -52,17 +52,17 @@ namespace rubinius {
   typedef std::list<FinalizeObject> FinalizeObjects;
   typedef std::list<FinalizeObjects*> FinalizeObjectsList;
 
-  class FinalizerHandler : public InternalThread, public Lockable {
+  class FinalizerThread : public InternalThread, public Lockable {
   public:
     class iterator {
-      FinalizerHandler* handler_;
+      FinalizerThread* handler_;
       FinalizeObjects* current_list_;
       FinalizeObjects::iterator end_;
       FinalizeObjects::iterator current_;
       FinalizeObjectsList::iterator lists_iterator_;
 
     public:
-      iterator(FinalizerHandler* fh);
+      iterator(FinalizerThread* fh);
       ~iterator() {}
 
       void next(bool live);
@@ -83,7 +83,7 @@ namespace rubinius {
     FinalizeObjects* live_list_;
     FinalizeObjects* process_list_;
     FinalizeObjects::iterator process_item_;
-    FinalizerHandler::iterator* iterator_;
+    FinalizerThread::iterator* iterator_;
     ProcessItemKind process_item_kind_;
     utilities::thread::Mutex live_guard_;
     utilities::thread::Mutex worker_lock_;
@@ -94,8 +94,8 @@ namespace rubinius {
 
   public:
 
-    FinalizerHandler(STATE);
-    virtual ~FinalizerHandler();
+    FinalizerThread(STATE);
+    virtual ~FinalizerThread();
 
     void finalize(STATE);
     void first_process_item();
@@ -110,7 +110,7 @@ namespace rubinius {
     void start_collection(STATE);
     void finish_collection(STATE);
 
-    FinalizerHandler::iterator& begin();
+    FinalizerThread::iterator& begin();
 
     void worker_signal();
     void worker_wait();

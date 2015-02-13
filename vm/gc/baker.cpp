@@ -477,10 +477,10 @@ namespace rubinius {
   }
 
   void BakerGC::walk_finalizers() {
-    FinalizerHandler* fh = object_memory_->finalizer_handler();
-    if(!fh) return;
+    FinalizerThread* ft = object_memory_->finalizer_handler();
+    if(!ft) return;
 
-    for(FinalizerHandler::iterator i = fh->begin();
+    for(FinalizerThread::iterator i = ft->begin();
         !i.end();
         /* advance is handled in the loop */)
     {

@@ -31,8 +31,8 @@ namespace rubinius {
 
   SharedState::SharedState(Environment* env, Configuration& config, ConfigParser& cp)
     : internal_threads_(0)
-    , signal_handler_(0)
-    , finalizer_handler_(0)
+    , signal_thread_(0)
+    , finalizer_thread_(0)
     , console_(0)
     , metrics_(0)
     , world_(new WorldState(&check_global_interrupts_))

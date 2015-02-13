@@ -49,8 +49,8 @@ namespace rubinius {
     class Metrics;
   }
 
-  class SignalHandler;
-  class FinalizerHandler;
+  class SignalThread;
+  class FinalizerThread;
   class ObjectMemory;
   class GlobalCache;
   class ConfigParser;
@@ -87,8 +87,8 @@ namespace rubinius {
   class SharedState : public RefCount, public Lockable {
   private:
     InternalThreads* internal_threads_;
-    SignalHandler* signal_handler_;
-    FinalizerHandler* finalizer_handler_;
+    SignalThread* signal_thread_;
+    FinalizerThread* finalizer_thread_;
     console::Console* console_;
     metrics::Metrics* metrics_;
 
@@ -161,20 +161,20 @@ namespace rubinius {
       return internal_threads_;
     }
 
-    SignalHandler* signal_handler() const {
-      return signal_handler_;
+    SignalThread* signal_handler() const {
+      return signal_thread_;
     }
 
-    void set_signal_handler(SignalHandler* thr) {
-      signal_handler_ = thr;
+    void set_signal_handler(SignalThread* thr) {
+      signal_thread_ = thr;
     }
 
-    FinalizerHandler* finalizer_handler() const {
-      return finalizer_handler_;
+    FinalizerThread* finalizer_handler() const {
+      return finalizer_thread_;
     }
 
-    void set_finalizer_handler(FinalizerHandler* thr) {
-      finalizer_handler_ = thr;
+    void set_finalizer_handler(FinalizerThread* thr) {
+      finalizer_thread_ = thr;
     }
 
     VM* new_vm();

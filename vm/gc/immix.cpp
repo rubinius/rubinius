@@ -386,10 +386,10 @@ namespace rubinius {
   }
 
   void ImmixGC::walk_finalizers() {
-    FinalizerHandler* fh = object_memory_->finalizer_handler();
+    FinalizerThread* fh = object_memory_->finalizer_handler();
     if(!fh) return;
 
-    for(FinalizerHandler::iterator i = fh->begin();
+    for(FinalizerThread::iterator i = fh->begin();
         !i.end();
         /* advance is handled in the loop */)
     {

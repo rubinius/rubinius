@@ -615,7 +615,7 @@ step1:
 #ifdef RBX_GC_DEBUG
     young_->verify(data);
 #endif
-    if(FinalizerHandler* hdl = state->shared().finalizer_handler()) {
+    if(FinalizerThread* hdl = state->shared().finalizer_handler()) {
       hdl->finish_collection(state);
     }
   }
@@ -678,7 +678,7 @@ step1:
     metrics.m.ruby_metrics.memory_code_bytes = code_manager_.size();
     metrics.m.ruby_metrics.memory_jit_bytes = data->jit_bytes_allocated();
 
-    if(FinalizerHandler* hdl = state->shared().finalizer_handler()) {
+    if(FinalizerThread* hdl = state->shared().finalizer_handler()) {
       hdl->finish_collection(state);
     }
 
@@ -1013,7 +1013,7 @@ step1:
   }
 
   void ObjectMemory::needs_finalization(Object* obj, FinalizerFunction func) {
-    if(FinalizerHandler* fh = shared_.finalizer_handler()) {
+    if(FinalizerThread* fh = shared_.finalizer_handler()) {
       fh->record(obj, func);
     }
   }

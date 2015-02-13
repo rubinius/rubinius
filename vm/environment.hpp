@@ -12,8 +12,8 @@ namespace rubinius {
 
   class ConfigParser;
   class QueryAgent;
-  class SignalHandler;
-  class FinalizerHandler;
+  class SignalThread;
+  class FinalizerThread;
 
   /**
    * Thrown when unable to find Rubinius runtime directories.
@@ -54,8 +54,8 @@ namespace rubinius {
      */
     uint64_t signature_;
 
-    SignalHandler* signal_handler_;
-    FinalizerHandler* finalizer_handler_;
+    SignalThread* signal_thread_;
+    FinalizerThread* finalizer_thread_;
 
     std::string system_prefix_;
 

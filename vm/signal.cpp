@@ -45,25 +45,25 @@
 namespace rubinius {
   using namespace utilities;
 
-  static SignalHandler* signal_handler_ = 0;
+  static SignalThread* signal_thread_ = 0;
 
   // Used by the segfault reporter. Calculated up front to avoid
   // crashing inside the crash handler.
   static struct utsname machine_info;
 
-  SignalHandler::SignalHandler(STATE, Configuration& config)
+  SignalThread::SignalThread(STATE, Configuration& config)
     : InternalThread(state, "rbx.signal")
     , shared_(state->shared())
     , target_(state->vm())
     , queued_signals_(0)
   {
-    signal_handler_ = this;
+    signal_thread_ = this;
     shared_.set_signal_handler(this);
 
     setup_default_handlers();
   }
 
-  void SignalHandler::initialize(STATE) {
+  void SignalThread::initialize(STATE) {
     InternalThread::initialize(state);
 
     for(int i = 0; i < NSIG; i++) {
@@ -74,13 +74,13 @@ namespace rubinius {
     worker_cond_.init();
   }
 
-  void SignalHandler::wakeup(STATE) {
+  void SignalThread::wakeup(STATE) {
     InternalThread::wakeup(state);
 
     worker_cond_.signal();
   }
 
-  void SignalHandler::stop(STATE) {
+  void SignalThread::stop(STATE) {
     for(std::list<int>::iterator i = watched_signals_.begin();
         i != watched_signals_.end();
         ++i) {
@@ -90,7 +90,7 @@ namespace rubinius {
     InternalThread::stop(state);
   }
 
-  void SignalHandler::run(STATE) {
+  void SignalThread::run(STATE) {
 #ifndef RBX_WINDOWS
     sigset_t set;
     sigfillset(&set);
@@ -121,11 +121,11 @@ namespace rubinius {
     }
   }
 
-  void SignalHandler::signal_handler(int sig) {
-    signal_handler_->handle_signal(sig);
+  void SignalThread::signal_handler(int sig) {
+    signal_thread_->handle_signal(sig);
   }
 
-  void SignalHandler::handle_signal(int sig) {
+  void SignalThread::handle_signal(int sig) {
     if(thread_exit_) return;
 
     target_->metrics().system_metrics.os_signals_received++;
@@ -148,7 +148,7 @@ namespace rubinius {
     worker_cond_.signal();
   }
 
-  void SignalHandler::add_signal(STATE, int sig, HandlerType type) {
+  void SignalThread::add_signal(STATE, int sig, HandlerType type) {
     SYNC(state);
     utilities::thread::Mutex::LockGuard lg(worker_lock_);
 
@@ -173,7 +173,7 @@ namespace rubinius {
 #endif
   }
 
-  bool SignalHandler::deliver_signals(STATE, CallFrame* call_frame) {
+  bool SignalThread::deliver_signals(STATE, CallFrame* call_frame) {
     queued_signals_ = 0;
 
     for(int i = 0; i < NSIG; i++) {
@@ -200,7 +200,7 @@ namespace rubinius {
     return true;
   }
 
-  void SignalHandler::print_backtraces() {
+  void SignalThread::print_backtraces() {
     STATE = shared_.env()->state;
     ThreadList* threads = shared_.threads();
 
@@ -365,14 +365,14 @@ namespace rubinius {
     logger::fatal("--- end system backtrace ---");
 
     logger::fatal("--- begin Ruby backtraces ---");
-    signal_handler_->print_backtraces();
+    signal_thread_->print_backtraces();
     logger::fatal("--- end Ruby backtraces ---");
 
     raise(sig);
   }
 #endif
 
-  void SignalHandler::setup_default_handlers() {
+  void SignalThread::setup_default_handlers() {
 #ifndef RBX_WINDOWS
     // Get the machine info.
     uname(&machine_info);

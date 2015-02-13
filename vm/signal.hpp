@@ -15,7 +15,7 @@ namespace rubinius {
   class Configuration;
   struct CallFrame;
 
-  class SignalHandler : public InternalThread, public Lockable {
+  class SignalThread : public InternalThread, public Lockable {
     SharedState& shared_;
     VM* target_;
 
@@ -34,7 +34,7 @@ namespace rubinius {
       eCustom
     };
 
-    SignalHandler(STATE, Configuration& config);
+    SignalThread(STATE, Configuration& config);
 
     void initialize(STATE);
     void setup_default_handlers();

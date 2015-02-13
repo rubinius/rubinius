@@ -76,8 +76,8 @@ namespace rubinius {
     : argc_(argc)
     , argv_(0)
     , signature_(0)
-    , signal_handler_(NULL)
-    , finalizer_handler_(NULL)
+    , signal_thread_(NULL)
+    , finalizer_thread_(NULL)
   {
 #ifdef ENABLE_LLVM
 #if RBX_LLVM_API_VER < 305
@@ -110,8 +110,8 @@ namespace rubinius {
   Environment::~Environment() {
     stop_logging(state);
 
-    delete signal_handler_;
-    delete finalizer_handler_;
+    delete signal_thread_;
+    delete finalizer_thread_;
 
     VM::discard(state, root_vm);
     SharedState::discard(shared);
@@ -168,17 +168,17 @@ namespace rubinius {
 
   void Environment::start_signals(STATE) {
     state->vm()->set_run_signals(true);
-    signal_handler_ = new SignalHandler(state, config);
-    signal_handler_->start(state);
+    signal_thread_ = new SignalThread(state, config);
+    signal_thread_->start(state);
   }
 
   void Environment::stop_signals(STATE) {
-    signal_handler_->stop(state);
+    signal_thread_->stop(state);
   }
 
   void Environment::start_finalizer(STATE) {
-    finalizer_handler_ = new FinalizerHandler(state);
-    finalizer_handler_->start(state);
+    finalizer_thread_ = new FinalizerThread(state);
+    finalizer_thread_->start(state);
   }
 
   void Environment::start_logging(STATE) {
