@@ -14,13 +14,14 @@ end
 def release_revision
   if git_directory
     if m = describe_revision.match(/^v(\d+\.\d+(\.\d+)?)-(\d+)-g([0-9a-f]+)/)
-      version = [m[1], m[3]].compact.join(".c")
+      patch = m[3] unless m[3] == "0"
+      version = [m[1], patch].compact.join(".c")
       return version, m[4]
     end
   end
 
   if File.exist? revision_file
-    return IO.read(revision_file)
+    return IO.read(revision_file).split
   end
 
   ["X.Y.Z", default_release_date, "build"]
