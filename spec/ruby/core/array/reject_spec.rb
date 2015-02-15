@@ -41,6 +41,10 @@ describe "Array#reject" do
     array.reject { false }.instance_variable_get("@variable").should == nil
   end
 
+  it "returns the correct size when no block is given" do
+    [1, 2, 3, 4, 5, 6].reject.size.should == 6
+  end
+
   it_behaves_like :enumeratorize, :reject
 end
 
@@ -106,6 +110,10 @@ describe "Array#reject!" do
 
   it "raises a RuntimeError on an empty frozen array" do
     lambda { ArraySpecs.empty_frozen_array.reject! {} }.should raise_error(RuntimeError)
+  end
+
+  it "returns the correct size when no block is given" do
+    [1, 2, 3, 4, 5, 6].reject!.size.should == 6
   end
 
   it_behaves_like :enumeratorize, :reject!

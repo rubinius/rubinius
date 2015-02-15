@@ -42,4 +42,8 @@ describe "Array#sort_by!" do
     }
     partially_sorted.any?{|ary| ary != [1, 2, 3, 4, 5]}.should be_true
   end
+
+  it "returns the correct size when no block is given" do
+    [1, 2, 3, 4, 5, 6].sort_by!.size.should == 6
+  end
 end

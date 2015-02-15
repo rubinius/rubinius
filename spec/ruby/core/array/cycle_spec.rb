@@ -91,4 +91,12 @@ describe "Array#cycle" do
   it "raises a TypeError if passed false" do
     lambda { @array.cycle(false) { } }.should raise_error(TypeError)
   end
+
+  it "returns Float::INFINITY as size when passed no argument and no block is given" do
+    @array.cycle.size.should == Float::INFINITY
+  end
+
+  it "returns the correct size when passed a number n as argument and no block is given" do
+    @array.cycle(2).size.should == 6
+  end
 end
