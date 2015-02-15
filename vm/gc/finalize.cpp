@@ -4,6 +4,7 @@
 #include "object_memory.hpp"
 #include "call_frame.hpp"
 #include "metrics.hpp"
+#include "exception_point.hpp"
 
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
@@ -182,7 +183,9 @@ namespace rubinius {
 
         NativeMethodEnvironment* env = state->vm()->native_method_environment;
         NativeMethodFrame nmf(env, 0, 0);
+        ExceptionPoint ep(env);
         CallFrame* call_frame = ALLOCA_CALLFRAME(0);
+
         call_frame->previous = 0;
         call_frame->constant_scope_ = 0;
         call_frame->dispatch_data = (void*)&nmf;
@@ -201,7 +204,13 @@ namespace rubinius {
 
         nmf.setup(Qnil, Qnil, Qnil, Qnil);
 
-        (*process_item_->finalizer)(state, process_item_->object);
+        PLACE_EXCEPTION_POINT(ep);
+
+        if(unlikely(ep.jumped_to())) {
+          // TODO: log this?
+        } else {
+          (*process_item_->finalizer)(state, process_item_->object);
+        }
 
         state->set_call_frame(0);
         env->set_current_call_frame(0);
