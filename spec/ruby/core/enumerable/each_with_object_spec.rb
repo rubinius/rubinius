@@ -35,4 +35,9 @@ describe "Enumerable#each_with_object" do
     multi.each_with_object(array) { |elem, obj| obj << elem }
     array.should == [[1, 2], [3, 4, 5], [6, 7, 8, 9]]
   end
+
+  it "returns the correct size when no block is given" do
+    enum = EnumerableSpecs::NumerousWithSize.new(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+    enum.each_with_object([]).size.should == 10
+  end
 end

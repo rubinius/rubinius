@@ -47,4 +47,9 @@ describe :enumerable_collect_concat, :shared => true do
     enum.should be_an_instance_of(enumerator_class)
     enum.each{ |i| [i] * i }.should == [1, 2, 2]
   end
+
+  it "returns the correct size when no block is given" do
+    enum = EnumerableSpecs::NumerousWithSize.new([1, 2], [3, 4], [5, 6])
+    enum.send(@method).size.should == 3
+  end
 end

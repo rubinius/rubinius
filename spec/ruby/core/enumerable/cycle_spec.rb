@@ -39,6 +39,11 @@ describe "Enumerable#cycle" do
       enum.cycle { |x| break if x == 20}
       enum.times_yielded.should == 2
     end
+
+    it "returns Float::INFINITY as size when no block is given" do
+      enum = EnumerableSpecs::NumerousWithSize.new(*['a', 'b', 'c'])
+      enum.cycle.size.should == Float::INFINITY
+    end
   end
 
   describe "passed a number n as an argument" do
@@ -81,6 +86,11 @@ describe "Enumerable#cycle" do
     it "gathers whole arrays as elements when each yields multiple" do
       multi = EnumerableSpecs::YieldsMulti.new
       multi.cycle(2).to_a.should == [[1, 2], [3, 4, 5], [6, 7, 8, 9], [1, 2], [3, 4, 5], [6, 7, 8, 9]]
+    end
+
+    it "returns the correct size when no block is given" do
+      enum = EnumerableSpecs::NumerousWithSize.new('a', 'b', 'c')
+      enum.cycle(2).size.should == 6
     end
   end
 end

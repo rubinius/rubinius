@@ -47,4 +47,9 @@ describe "Enumerable#each_with_index" do
     e.to_a.should == [[:apple, 0]]
     count.arguments_passed.should == [:foo, :bar]
   end
+
+  it "returns the correct size when no block is given" do
+    enum = EnumerableSpecs::NumerousWithSize.new(1, 2, 3)
+    enum.each_with_index.size.should == 3
+  end
 end
