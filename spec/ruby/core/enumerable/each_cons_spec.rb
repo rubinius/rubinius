@@ -18,6 +18,10 @@ describe "Enumerable#each_cons" do
     lambda{ @enum.each_cons(-2){}   }.should raise_error(ArgumentError)
     lambda{ @enum.each_cons{}       }.should raise_error(ArgumentError)
     lambda{ @enum.each_cons(2,2){}  }.should raise_error(ArgumentError)
+    lambda{ @enum.each_cons(0)      }.should raise_error(ArgumentError)
+    lambda{ @enum.each_cons(-2)     }.should raise_error(ArgumentError)
+    lambda{ @enum.each_cons         }.should raise_error(ArgumentError)
+    lambda{ @enum.each_cons(2,2)    }.should raise_error(ArgumentError)
   end
 
   it "tries to convert n to an Integer using #to_int" do

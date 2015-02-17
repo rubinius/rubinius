@@ -18,6 +18,10 @@ describe "Enumerable#each_slice" do
     lambda{ @enum.each_slice(-2){}   }.should raise_error(ArgumentError)
     lambda{ @enum.each_slice{}       }.should raise_error(ArgumentError)
     lambda{ @enum.each_slice(2,2){}  }.should raise_error(ArgumentError)
+    lambda{ @enum.each_slice(0)      }.should raise_error(ArgumentError)
+    lambda{ @enum.each_slice(-2)     }.should raise_error(ArgumentError)
+    lambda{ @enum.each_slice         }.should raise_error(ArgumentError)
+    lambda{ @enum.each_slice(2,2)    }.should raise_error(ArgumentError)
   end
 
   it "tries to convert n to an Integer using #to_int" do
