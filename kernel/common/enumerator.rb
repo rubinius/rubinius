@@ -152,7 +152,9 @@ module Enumerable
         @size.call
       elsif @size
         @size
-      else
+      # Lazy enums don't have a size and in case of Rbx can go into an infinite
+      # loop when using "count".
+      elsif !kind_of?(Enumerator::Lazy)
         count
       end
     end
