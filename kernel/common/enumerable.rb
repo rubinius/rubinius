@@ -424,7 +424,17 @@ module Enumerable
   end
 
   def each_slice(slice_size)
-    return to_enum(:each_slice, slice_size) unless block_given?
+    unless block_given?
+      enum = to_enum(:each_slice, slice_size)
+
+      # For non lazy enumerators the enum size must be set to the size of the
+      # slice, _not_ the size of the containing enumerator.
+      unless enum.kind_of?(Enumerator::Lazy)
+        Rubinius.privately { enum.size = enum.count }
+      end
+
+      return enum
+    end
 
     n = Rubinius::Type.coerce_to_collection_index slice_size
     raise ArgumentError, "invalid slice size: #{n}" if n <= 0

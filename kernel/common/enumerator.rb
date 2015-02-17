@@ -148,15 +148,7 @@ module Enumerable
     end
 
     def size
-      if @size.kind_of?(Proc)
-        @size.call
-      elsif @size
-        @size
-      # Lazy enums don't have a size and in case of Rbx can go into an infinite
-      # loop when using "count".
-      elsif !kind_of?(Enumerator::Lazy)
-        count
-      end
+      @size.kind_of?(Proc) ? @size.call : @size
     end
 
     def with_index(offset=0)
