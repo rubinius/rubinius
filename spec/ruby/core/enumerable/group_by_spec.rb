@@ -39,4 +39,9 @@ describe "Enumerable#group_by" do
   it "returns an untrusted hash if self is untrusted" do
     EnumerableSpecs::Empty.new.untrust.group_by {}.untrusted?.should be_true
   end
+
+  it "returns the correct size when no block is given" do
+    enum = EnumerableSpecs::NumerousWithSize.new(1, 2, 3, 4, 5, 6)
+    enum.group_by.size.should == 6
+  end
 end

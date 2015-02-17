@@ -51,6 +51,11 @@ describe "Enumerable#find_index" do
     it "gathers whole arrays as elements when each yields multiple" do
       @yieldsmixed.find_index([0, 1, 2]).should == 3
     end
+
+    it "returns nil as size" do
+      enum = EnumerableSpecs::NumerousWithSize.new(*@elements)
+      enum.find_index.size.should == nil
+    end
   end
 
   describe "with block" do

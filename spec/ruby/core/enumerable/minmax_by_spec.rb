@@ -38,4 +38,9 @@ describe "Enumerable#minmax_by" do
     multi = EnumerableSpecs::YieldsMulti.new
     multi.minmax_by {|e| e.size}.should == [[1, 2], [6, 7, 8, 9]]
   end
+
+  it "returns the correct size when no block is given" do
+    enum = EnumerableSpecs::NumerousWithSize.new(1, 2, 3, 4, 5, 6)
+    enum.minmax_by.size.should == 6
+  end
 end

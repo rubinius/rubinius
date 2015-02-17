@@ -28,6 +28,11 @@ describe "Enumerable#slice_before" do
       e = @enum.slice_before(arg)
       e.to_a.should == [[7], [6, 5, 4, 3], [2, 1]]
     end
+
+    it "returns nil as size" do
+      enum = EnumerableSpecs::NumerousWithSize.new(1, 2, 3, 4, 5, 6)
+      enum.slice_before(3).size.should == nil
+    end
   end
 
   describe "when given a block" do

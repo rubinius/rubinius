@@ -36,5 +36,9 @@ describe "Array#each_index" do
     ScratchPad.recorded.should == [0]
   end
 
+  it "returns the correct size when no block is given" do
+    [1, 2, 3].each_index.size.should == 3
+  end
+
   it_behaves_like :enumeratorize, :each_index
 end

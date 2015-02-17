@@ -56,4 +56,9 @@ describe "Enumerable#each_cons" do
     multi = EnumerableSpecs::YieldsMulti.new
     multi.each_cons(2).to_a.should == [[[1, 2], [3, 4, 5]], [[3, 4, 5], [6, 7, 8, 9]]]
   end
+
+  it "returns the correct size when no block is given" do
+    enum = EnumerableSpecs::NumerousWithSize.new(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+    enum.each_cons(3).size.should == 8
+  end
 end

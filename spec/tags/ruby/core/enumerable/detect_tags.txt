@@ -1,0 +1,1 @@
+fails:Enumerable#detect returns the nil as size when no block is given

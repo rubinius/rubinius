@@ -58,4 +58,8 @@ describe "Array#delete_if" do
     @a.delete_if{ true }
     @a.untrusted?.should be_true
   end
+
+  it "returns the correct size when no block is given" do
+    [1, 2, 3].delete_if.size.should == 3
+  end
 end

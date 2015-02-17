@@ -1,0 +1,1 @@
+fails:Enumerable#map returns the correct size when no block is given
