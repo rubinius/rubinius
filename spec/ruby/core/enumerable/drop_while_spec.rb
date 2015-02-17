@@ -45,7 +45,7 @@ describe "Enumerable#drop_while" do
     multi.drop_while {|e| e != [6, 7, 8, 9] }.should == [[6, 7, 8, 9]]
   end
 
-  it "returns the nil as size when no block is given" do
+  it "returns nil as size when no block is given" do
     enum = EnumerableSpecs::NumerousWithSize.new(1, 2, 3, 4, 5, 0)
     enum.drop_while.size.should == nil
   end
