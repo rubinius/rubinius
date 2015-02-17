@@ -1,5 +1,6 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
+require File.expand_path('../shared/enumerable_enumeratorized', __FILE__)
 
 describe "Enumerable#each_with_index" do
 
@@ -48,8 +49,5 @@ describe "Enumerable#each_with_index" do
     count.arguments_passed.should == [:foo, :bar]
   end
 
-  it "returns the correct size when no block is given" do
-    enum = EnumerableSpecs::NumerousWithSize.new(1, 2, 3)
-    enum.each_with_index.size.should == 3
-  end
+  it_behaves_like :enumerable_enumeratorized_with_origin_size, :each_with_index
 end

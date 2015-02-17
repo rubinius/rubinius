@@ -41,6 +41,15 @@ module EnumerableSpecs
     end
   end
 
+  class EmptyWithSize
+    include Enumerable
+    def each
+    end
+    def size
+      0
+    end
+  end
+
   class ThrowingEach
     include Enumerable
     def each

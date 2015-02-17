@@ -1,5 +1,6 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
+require File.expand_path('../shared/enumerable_enumeratorized', __FILE__)
 
 describe "Enumerable#drop_while" do
   before :each do
@@ -45,8 +46,5 @@ describe "Enumerable#drop_while" do
     multi.drop_while {|e| e != [6, 7, 8, 9] }.should == [[6, 7, 8, 9]]
   end
 
-  it "returns nil as size when no block is given" do
-    enum = EnumerableSpecs::NumerousWithSize.new(1, 2, 3, 4, 5, 0)
-    enum.drop_while.size.should == nil
-  end
+  it_behaves_like :enumerable_enumeratorized_with_unknown_size, :drop_while
 end

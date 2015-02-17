@@ -1,5 +1,6 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
+require File.expand_path('../shared/enumerable_enumeratorized', __FILE__)
 
 describe "Enumerable#each_with_object" do
   before :each do
@@ -36,8 +37,8 @@ describe "Enumerable#each_with_object" do
     array.should == [[1, 2], [3, 4, 5], [6, 7, 8, 9]]
   end
 
-  it "returns the correct size when no block is given" do
-    enum = EnumerableSpecs::NumerousWithSize.new(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
-    enum.each_with_object([]).size.should == 10
+  before :all do
+    @method_args = [[]]
   end
+  it_behaves_like :enumerable_enumeratorized_with_origin_size, :each_with_object
 end

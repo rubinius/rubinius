@@ -1,3 +1,5 @@
+require File.expand_path('../enumerable_enumeratorized', __FILE__)
+
 describe :enumerable_find_all, :shared => true do
   before :each do
     ScratchPad.record []
@@ -25,8 +27,5 @@ describe :enumerable_find_all, :shared => true do
     multi.send(@method) {|e| e == [3, 4, 5] }.should == [[3, 4, 5]]
   end
 
-  it "returns the correct size when no block is given" do
-    enum = EnumerableSpecs::NumerousWithSize.new(*@elements)
-    enum.send(@method).size.should == 10
-  end
+  it_should_behave_like :enumerable_enumeratorized_with_origin_size
 end
