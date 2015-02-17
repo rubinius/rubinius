@@ -1,5 +1,6 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
+require File.expand_path('../shared/enumerable_enumeratorized', __FILE__)
 
 describe "Enumerable#minmax_by" do
   it "returns an enumerator if no block" do
@@ -39,8 +40,5 @@ describe "Enumerable#minmax_by" do
     multi.minmax_by {|e| e.size}.should == [[1, 2], [6, 7, 8, 9]]
   end
 
-  it "returns the correct size when no block is given" do
-    enum = EnumerableSpecs::NumerousWithSize.new(1, 2, 3, 4, 5, 6)
-    enum.minmax_by.size.should == 6
-  end
+  it_behaves_like :enumerable_enumeratorized_with_origin_size, :minmax_by
 end

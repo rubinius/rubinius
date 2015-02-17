@@ -1,5 +1,6 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
+require File.expand_path('../shared/enumeratorized', __FILE__)
 
 describe "Enumerable#cycle" do
   describe "passed no argument or nil" do
@@ -38,11 +39,6 @@ describe "Enumerable#cycle" do
       enum = EnumerableSpecs::EachCounter.new(10, 20, 30)
       enum.cycle { |x| break if x == 20}
       enum.times_yielded.should == 2
-    end
-
-    it "returns Float::INFINITY as size when no block is given" do
-      enum = EnumerableSpecs::NumerousWithSize.new(*['a', 'b', 'c'])
-      enum.cycle.size.should == Float::INFINITY
     end
   end
 
@@ -87,10 +83,22 @@ describe "Enumerable#cycle" do
       multi = EnumerableSpecs::YieldsMulti.new
       multi.cycle(2).to_a.should == [[1, 2], [3, 4, 5], [6, 7, 8, 9], [1, 2], [3, 4, 5], [6, 7, 8, 9]]
     end
-
-    it "returns the correct size when no block is given" do
-      enum = EnumerableSpecs::NumerousWithSize.new('a', 'b', 'c')
-      enum.cycle(2).size.should == 6
-    end
   end
+
+  describe "Enumerable with size" do
+    before :all do
+      @object = EnumerableSpecs::NumerousWithSize.new(1, 2, 3, 4)
+      @empty_object = EnumerableSpecs::EmptyWithSize.new
+    end
+    it_should_behave_like :enumeratorized_with_cycle_size
+  end
+
+  describe "Enumerable with no size" do
+    before :all do
+      @object = EnumerableSpecs::Numerous.new(1, 2, 3, 4)
+      @method = :cycle
+    end
+    it_should_behave_like :enumeratorized_with_unknown_size
+  end
+
 end
