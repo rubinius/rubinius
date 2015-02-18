@@ -196,7 +196,7 @@ end
 
 desc "Run specs as in the spec task, but with CI formatting"
 task :ci do
-  SpecRunner.flags = "-f s"
+  SpecRunner.flags = "-V" # show spec file names
   Rake::Task["spec"].invoke
 end
 
