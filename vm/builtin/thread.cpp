@@ -47,16 +47,18 @@ namespace rubinius {
     G(thread)->set_object_type(state, Thread::type);
   }
 
-  Thread* Thread::create(STATE, VM* target, Object* self, ThreadFunction function) {
+  Thread* Thread::create(STATE, VM* vm) {
+    return Thread::create(state, G(thread), vm);
+  }
+
+  Thread* Thread::create(STATE, Class* klass, VM* vm) {
     Thread* thr = state->vm()->new_object_mature<Thread>(G(thread));
 
-    if(!target) {
-      target = state->shared().new_vm();
-      target->metrics().init(metrics::eRubyMetrics);
-    }
-
     thr->pin();
-    thr->thread_id(state, Fixnum::from(target->thread_id()));
+    thr->init_lock_.init();
+
+    thr->vm_ = vm;
+    thr->thread_id(state, Fixnum::from(vm->thread_id()));
     thr->sleep(state, cFalse);
     thr->control_channel(state, nil<Channel>());
     thr->locals(state, LookupTable::create(state));
@@ -69,13 +71,20 @@ namespace rubinius {
     thr->joins(state, Array::create(state, 1));
     thr->killed(state, cFalse);
     thr->priority(state, Fixnum::from(0));
+    thr->klass(state, klass);
 
-    thr->vm_ = target;
-    thr->klass(state, as<Class>(self));
+    vm->thread.set(thr);
+
+    return thr;
+  }
+
+  Thread* Thread::create(STATE, Object* self, ThreadFunction function) {
+    VM* vm = state->shared().new_vm();
+    vm->metrics().init(metrics::eRubyMetrics);
+
+    Thread* thr = Thread::create(state, as<Class>(self), vm);
+
     thr->function_ = function;
-    thr->init_lock_.init();
-
-    target->thread.set(thr);
 
     state->memory()->needs_finalization(thr, (FinalizerFunction)&Thread::finalize);
 
@@ -96,7 +105,7 @@ namespace rubinius {
   }
 
   Thread* Thread::allocate(STATE, Object* self) {
-    return Thread::create(state, NULL, self, send_run);
+    return Thread::create(state, self, send_run);
   }
 
   Thread* Thread::current(STATE) {

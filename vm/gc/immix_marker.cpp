@@ -33,6 +33,8 @@ namespace rubinius {
   void ImmixMarker::initialize(STATE) {
     InternalThread::initialize(state);
 
+    Thread::create(state, vm());
+
     run_lock_.init();
     run_cond_.init();
   }
