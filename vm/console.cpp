@@ -188,6 +188,8 @@ namespace rubinius {
       path_ = state->shared().fsapi_path + "/console-response";
       console_->server_class(state)->set_const(state, state->symbol("ResponsePath"),
           String::create(state, path_.c_str()));
+
+      Thread::create(state, vm());
     }
 
     void Response::start_thread(STATE) {
@@ -313,7 +315,13 @@ namespace rubinius {
             result = console_->evaluate(state, request);
           }
 
-          if(String* response = try_as<String>(result)) {
+          if(!result) {
+            if(Exception* exception = try_as<Exception>(
+                  state->thread_state()->current_exception())) {
+              String* msg = as<String>(exception->reason_message());
+              logger::error("console: response: exception: %s", msg->c_str(state));
+            }
+          } else if(String* response = try_as<String>(result)) {
             write_response(state,
                 reinterpret_cast<const char*>(response->byte_address()),
                 response->size());

@@ -74,5 +74,4 @@ describe :enumerable_find, :shared => true do
     multi = EnumerableSpecs::YieldsMulti.new
     multi.send(@method) {|e| e == [1, 2] }.should == [1, 2]
   end
-
 end

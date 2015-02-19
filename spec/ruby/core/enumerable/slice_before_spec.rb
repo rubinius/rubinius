@@ -16,11 +16,16 @@ ruby_version_is '1.9' do
         e.to_a.should == [[7], [6, 5, 4, 3], [2, 1]]
       end
 
-      it "doesn't yield an empty array if the filter matches the first entry or the last entry" do
+      it "uses standard boolean as a test" do
         arg = mock "filter"
-        arg.should_receive(:===).and_return(true).exactly(7)
+        arg.should_receive(:===).and_return(false, :foo, nil, false, false, 42, false)
         e = @enum.slice_before(arg)
-        e.to_a.should == [[7], [6], [5], [4], [3], [2], [1]]
+        e.to_a.should == [[7], [6, 5, 4, 3], [2, 1]]
+      end
+
+      it "returns nil as size" do
+        enum = EnumerableSpecs::NumerousWithSize.new(1, 2, 3, 4, 5, 6)
+        enum.slice_before(3).size.should == nil
       end
 
       it "uses standard boolean as a test" do

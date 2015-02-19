@@ -332,7 +332,7 @@ extern "C" {
 
     Pointer* ptr = Pointer::create(state, arg);
 
-    Thread* thr = Thread::create(env->state(), NULL, G(thread), run_function);
+    Thread* thr = Thread::create(env->state(), G(thread), run_function);
 
     thr->locals_store(state, state->symbol("function"), nm);
     thr->locals_store(state, state->symbol("argument"), ptr);

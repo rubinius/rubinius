@@ -45,4 +45,8 @@ ruby_version_is "1.9" do
       partially_sorted.any?{|ary| ary != [1, 2, 3, 4, 5]}.should be_true
     end
   end
+
+  it "returns the correct size when no block is given" do
+    [1, 2, 3, 4, 5, 6].sort_by!.size.should == 6
+  end
 end

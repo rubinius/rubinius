@@ -80,6 +80,7 @@ class SpecRunner
 
   @at_exit_handler_set = false
   @at_exit_status = 0
+  @flags = nil
 
   def self.at_exit_status
     @at_exit_status
@@ -96,16 +97,24 @@ class SpecRunner
     @at_exit_status = status
   end
 
+  def self.flags
+    @flags
+  end
+
+  def self.flags=(value)
+    @flags = value
+  end
+
   def initialize
     @handler = lambda do |ok, status|
       self.class.set_at_exit_status(status.exitstatus) unless ok
     end
   end
 
-  def run(suite=:ci_files, flags=nil)
+  def run(suite=:ci_files)
     self.class.set_at_exit_handler
 
-    sh("bin/mspec ci :#{suite} #{ENV['CI_MODE_FLAG'] || flags} -t bin/#{BUILD_CONFIG[:program_name]} -d --background", &@handler)
+    sh("bin/mspec ci :#{suite} #{self.class.flags} -t bin/#{BUILD_CONFIG[:program_name]} -d --background", &@handler)
   end
 end
 
@@ -177,12 +186,18 @@ task :docs do
   Rubinius::Documentation.main
 end
 
-desc "Run CI in default (configured) mode but do not rebuild on failure"
+desc "Run specs in default (configured) mode but do not rebuild on failure"
 task :spec => %w[build vm:test] do
   clean_environment
 
   spec_runner = SpecRunner.new
   spec_runner.run
+end
+
+desc "Run specs as in the spec task, but with CI formatting"
+task :ci do
+  SpecRunner.flags = "-V" # show spec file names
+  Rake::Task["spec"].invoke
 end
 
 desc "Print list of items marked to-do in kernel/ (@todo|TODO)"

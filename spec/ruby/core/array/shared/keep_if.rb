@@ -9,6 +9,10 @@ describe :keep_if, :shared => true do
     [1, 2, 3].send(@method).should be_an_instance_of(enumerator_class)
   end
 
+  it "returns the correct size when no block is given" do
+    [1, 2, 3].send(@method).size.should == 3
+  end
+
   describe "on frozen objects" do
     before(:each) do
       @origin = [true, false]

@@ -281,7 +281,9 @@ namespace rubinius {
      *
      *  @see  Thread::allocate().
      */
-    static Thread* create(STATE, VM* target, Object* self, ThreadFunction function);
+    static Thread* create(STATE, Object* self, ThreadFunction function);
+    static Thread* create(STATE, VM* vm);
+    static Thread* create(STATE, Class* klass, VM* vm);
 
     static void finalize(STATE, Thread* thread);
 

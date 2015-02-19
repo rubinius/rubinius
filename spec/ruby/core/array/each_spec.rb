@@ -26,5 +26,9 @@ describe "Array#each" do
     b.should == [2, nil, 4]
   end
 
+  it "returns the correct size when no block is given" do
+    [1, 2, 3].each.size.should == 3
+  end
+
   it_behaves_like :enumeratorize, :each
 end

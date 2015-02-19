@@ -103,6 +103,8 @@ namespace rubinius {
   void FinalizerThread::initialize(STATE) {
     InternalThread::initialize(state);
 
+    Thread::create(state, vm());
+
     live_guard_.init();
     worker_lock_.init();
     worker_cond_.init();
