@@ -105,7 +105,7 @@ extern "C" {
 
       if(reason != vFound) {
         free(pathd);
-        rb_raise(rb_eArgError, "undefined class or module %s", path);
+        rb_raise(rb_eArgError, "undefined class/module %s", path);
       }
 
       if(Autoload* autoload = try_as<Autoload>(val)) {
