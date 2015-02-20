@@ -37,6 +37,11 @@ describe "Array#slice!" do
     a.should == []
     a.slice!(0, 4).should == []
     a.should == []
+
+    a = [1]
+    a.slice!(0, 1).should == [1]
+    a.should == []
+    a[-1].should == nil
   end
 
   it "returns nil if length is negative" do
