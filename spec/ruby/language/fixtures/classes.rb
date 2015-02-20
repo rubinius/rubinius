@@ -34,10 +34,6 @@ module LanguageSpecs
   end
 
   def self.white_spaces
-    ruby_version_is "1.9" do
-      # 1.9 treats \v as white space.
-      return blanks + "\f\n\r\v"
-    end
     return blanks + "\f\n\r"
   end
 

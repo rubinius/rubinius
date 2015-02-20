@@ -53,55 +53,53 @@ describe "CApiGlobalSpecs" do
     end
   end
 
-  ruby_version_is ""..."1.9" do
-    describe "rb_get_kcode" do
-      before :each do
-        @kcode = $KCODE
-      end
-
-      after :each do
-        $KCODE = @kcode
-      end
-
-      it "returns 'NONE' when $KCODE is unset" do
-        $KCODE = ""
-        @f.rb_get_kcode().should == "NONE"
-      end
-
-      it "returns 'NONE' for ASCII" do
-        $KCODE = "A"
-        @f.rb_get_kcode().should == "NONE"
-      end
-
-      it "returns 'EUC' for EUC" do
-        $KCODE = "E"
-        @f.rb_get_kcode().should == "EUC"
-      end
-
-      it "returns 'SJIS' for SJIS" do
-        $KCODE = "S"
-        @f.rb_get_kcode().should == "SJIS"
-      end
-
-      it "returns 'UTF8' for UTF8" do
-        $KCODE = "U"
-        @f.rb_get_kcode().should == "UTF8"
-      end
+  describe "rb_get_kcode" do
+    before :each do
+      @kcode = $KCODE
     end
 
-    describe "rb_set_kcode" do
-      before :each do
-        @kcode = $KCODE
-      end
+    after :each do
+      $KCODE = @kcode
+    end
 
-      after :each do
-        $KCODE = @kcode
-      end
+    it "returns 'NONE' when $KCODE is unset" do
+      $KCODE = ""
+      @f.rb_get_kcode().should == "NONE"
+    end
 
-      it "sets the value of $KCODE" do
-        @f.rb_set_kcode("U")
-        $KCODE.should == "UTF8"
-      end
+    it "returns 'NONE' for ASCII" do
+      $KCODE = "A"
+      @f.rb_get_kcode().should == "NONE"
+    end
+
+    it "returns 'EUC' for EUC" do
+      $KCODE = "E"
+      @f.rb_get_kcode().should == "EUC"
+    end
+
+    it "returns 'SJIS' for SJIS" do
+      $KCODE = "S"
+      @f.rb_get_kcode().should == "SJIS"
+    end
+
+    it "returns 'UTF8' for UTF8" do
+      $KCODE = "U"
+      @f.rb_get_kcode().should == "UTF8"
+    end
+  end
+
+  describe "rb_set_kcode" do
+    before :each do
+      @kcode = $KCODE
+    end
+
+    after :each do
+      $KCODE = @kcode
+    end
+
+    it "sets the value of $KCODE" do
+      @f.rb_set_kcode("U")
+      $KCODE.should == "UTF8"
     end
   end
 

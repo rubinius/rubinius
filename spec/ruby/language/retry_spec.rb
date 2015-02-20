@@ -30,12 +30,6 @@ describe "The retry statement" do
 
     results.should == [1, 2, 3, 1, 2, 4, 5, 6, 4, 5]
   end
-
-  ruby_version_is "1.9" do
-    it "raises a SyntaxError when used outside of a begin statement" do
-      lambda { eval 'retry' }.should raise_error(SyntaxError)
-    end
-  end
 end
 
 describe "The retry keyword inside a begin block's rescue block" do
@@ -53,6 +47,23 @@ describe "The retry keyword inside a begin block's rescue block" do
   end
 end
 
-ruby_version_is "1.8"..."1.9" do
-  require File.expand_path("../versions/retry_1.8", __FILE__)
+describe "The retry statement" do
+  it "raises a LocalJumpError if used outside of a block" do
+    def bad_meth_retry; retry; end
+    lambda { bad_meth_retry()      }.should raise_error(LocalJumpError)
+    lambda { lambda { retry }.call }.should raise_error(LocalJumpError)
+  end
+
+  # block retry has been officially deprecated by matz and is unsupported in 1.9
+  not_compliant_on :rubinius, :jruby do
+    it "re-executes the entire enumeration" do
+      list = []
+      [1,2,3].each do |x|
+        list << x
+        break if list.size == 6
+        retry if x == 3
+      end
+      list.should == [1,2,3,1,2,3]
+    end
+  end
 end

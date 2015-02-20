@@ -305,12 +305,18 @@ describe "The 'case'-construct with no target expression" do
     when 'foo'; 'good'
     end.should == 'good'
   end
-end
 
-ruby_version_is "1.8"..."1.9" do
-  require File.expand_path("../versions/case_1.8", __FILE__)
-end
+  it "returns the statement following ':'" do
+    case "a"
+      when "a": 'foo'
+      when "b": 'bar'
+    end.should == 'foo'
+  end
 
-ruby_version_is "1.9" do
-  require File.expand_path("../versions/case_1.9", __FILE__)
+  it "allows mixing ':' and 'then'" do
+    case "b"
+      when "a": 'foo'
+      when "b" then 'bar'
+    end.should == 'bar'
+  end
 end

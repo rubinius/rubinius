@@ -14,12 +14,6 @@ describe :file_grpowned, :shared => true do
       @object.send(@method, @file).should be_true
     end
 
-    ruby_version_is "1.9" do
-      it "accepts an object that has a #to_path method" do
-        @object.send(@method, mock_to_path(@file)).should be_true
-      end
-    end
-
     it 'takes non primary groups into account' do
       group = (Process.groups - [Process.egid]).first
 

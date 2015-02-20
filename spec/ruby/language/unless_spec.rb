@@ -40,8 +40,8 @@ describe "The unless expression" do
   it "allows expression and body to be on one line (using 'then')" do
     unless false then 'foo'; else 'bar'; end.should == 'foo'
   end
-end
 
-ruby_version_is "1.8"..."1.9" do
-  require File.expand_path("../versions/unless_1.8", __FILE__)
+  it "allows expression and body to be on one line (using ':')" do
+    unless false: 'foo'; else 'bar'; end.should == 'foo'
+  end
 end

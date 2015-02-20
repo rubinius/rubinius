@@ -151,20 +151,10 @@ describe "C-API IO function" do
   end
 
   describe "rb_io_binmode" do
-
     it "returns self" do
       @o.rb_io_binmode(@io).should == @io
     end
-
-    ruby_version_is "1.9" do
-      it "sets binmode" do
-        @o.rb_io_binmode(@io)
-        @io.binmode?.should be_true
-      end
-    end
-
   end
-
 end
 
 describe "C-API IO function" do

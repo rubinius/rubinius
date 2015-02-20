@@ -67,29 +67,11 @@ describe "A Symbol literal" do
     }
   end
 
-  ruby_version_is ""..."1.9" do
-    it "does not contain null in the string" do
-      lambda { eval ':"\0" ' }.should raise_error(SyntaxError)
-    end
+  it "does not contain null in the string" do
+    lambda { eval ':"\0" ' }.should raise_error(SyntaxError)
   end
 
-  ruby_version_is "1.9".."2.0" do
-    it "can contain null in the string" do
-      eval(':"\0" ').inspect.should == ':"\\x00"'
-    end
+  it "must not be an empty string" do
+    lambda { eval ":''" }.should raise_error(SyntaxError)
   end
-
-  ruby_version_is "2.1" do
-    it "can contain null in the string" do
-      eval(':"\0" ').inspect.should == ':"\\000"'
-    end
-  end
-end
-
-ruby_version_is "1.8"..."1.9" do
-  require File.expand_path("../versions/symbol_1.8", __FILE__)
-end
-
-ruby_version_is "1.9" do
-  require File.expand_path("../versions/symbol_1.9", __FILE__)
 end

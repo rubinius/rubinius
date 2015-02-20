@@ -61,7 +61,3 @@ describe "Hash literal" do
     lambda {eval("{:a ==> 1}")}.should raise_error(SyntaxError)
   end
 end
-
-ruby_version_is "1.9" do
-  require File.expand_path("../versions/hash_1.9", __FILE__)
-end

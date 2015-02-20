@@ -31,38 +31,6 @@ describe "Defining an 'initialize_copy' method" do
   end
 end
 
-ruby_version_is "2.0" do
-  describe "Defining an 'initialize_dup' method" do
-    it "sets the method's visibility to private" do
-      class DefInitializeDupSpec
-        def initialize_dup
-        end
-      end
-      DefInitializeDupSpec.should have_private_instance_method(:initialize_dup, false)
-    end
-  end
-
-  describe "Defining an 'initialize_clone' method" do
-    it "sets the method's visibility to private" do
-      class DefInitializeCloneSpec
-        def initialize_clone
-        end
-      end
-      DefInitializeCloneSpec.should have_private_instance_method(:initialize_clone, false)
-    end
-  end
-
-  describe "Defining a 'respond_to_missing?' method" do
-    it "sets the method's visibility to private" do
-      class DefRespondToMissingPSpec
-        def respond_to_missing?
-        end
-      end
-      DefRespondToMissingPSpec.should have_private_instance_method(:respond_to_missing?, false)
-    end
-  end
-end
-
 describe "An instance method definition with a splat" do
   it "accepts an unnamed '*' argument" do
     def foo(*); end;
@@ -217,20 +185,10 @@ describe "A singleton method definition" do
     (obj==2).should == 2
   end
 
-  ruby_version_is ""..."1.9" do
-    it "raises TypeError if frozen" do
-      obj = Object.new
-      obj.freeze
-      lambda { def obj.foo; end }.should raise_error(TypeError)
-    end
-  end
-
-  ruby_version_is "1.9" do
-    it "raises RuntimeError if frozen" do
-      obj = Object.new
-      obj.freeze
-      lambda { def obj.foo; end }.should raise_error(RuntimeError)
-    end
+  it "raises TypeError if frozen" do
+    obj = Object.new
+    obj.freeze
+    lambda { def obj.foo; end }.should raise_error(TypeError)
   end
 end
 
@@ -370,25 +328,12 @@ describe "A method definition inside a metaclass scope" do
     lambda { Object.new.a_singleton_method }.should raise_error(NoMethodError)
   end
 
-  ruby_version_is ""..."1.9" do
-    it "raises TypeError if frozen" do
-      obj = Object.new
-      obj.freeze
+  it "raises TypeError if frozen" do
+    obj = Object.new
+    obj.freeze
 
-      class << obj
-        lambda { def foo; end }.should raise_error(TypeError)
-      end
-    end
-  end
-
-  ruby_version_is "1.9" do
-    it "raises RuntimeError if frozen" do
-      obj = Object.new
-      obj.freeze
-
-      class << obj
-        lambda { def foo; end }.should raise_error(RuntimeError)
-      end
+    class << obj
+      lambda { def foo; end }.should raise_error(TypeError)
     end
   end
 end
@@ -591,6 +536,28 @@ describe "The def keyword" do
   end
 end
 
-ruby_version_is "1.8"..."1.9" do
-  require File.expand_path("../versions/def_1.8", __FILE__)
+describe "An instance method definition with a splat" do
+  it "creates a method that can be invoked with an inline hash argument" do
+    def foo(a,b,*c); [a,b,c] end
+
+    foo('abc', 'rbx' => 'cool', 'specs' => 'fail sometimes', 'oh' => 'shit', *[789, 'yeah']).
+      should ==
+      ['abc', { 'rbx' => 'cool', 'specs' => 'fail sometimes', 'oh' => 'shit'}, [789, 'yeah']]
+  end
+
+  it "creates a method that can be invoked with an inline hash and a block" do
+    def foo(a,b,*c,&d); [a,b,c,yield] end
+
+    foo('abc', 'rbx' => 'cool', 'specs' => 'fail sometimes', 'oh' => 'shit', *[789, 'yeah']) { 3 }.
+      should ==
+      ['abc', { 'rbx' => 'cool', 'specs' => 'fail sometimes', 'oh' => 'shit'}, [789, 'yeah'], 3]
+
+    foo('abc', 'rbx' => 'cool', 'specs' => 'fail sometimes', *[789, 'yeah']) do 3 end.should ==
+      ['abc', { 'rbx' => 'cool', 'specs' => 'fail sometimes' }, [789, 'yeah'], 3]
+
+    l = lambda { 3 }
+
+    foo('abc', 'rbx' => 'cool', 'specs' => 'fail sometimes', *[789, 'yeah'], &l).should ==
+      ['abc', { 'rbx' => 'cool', 'specs' => 'fail sometimes' }, [789, 'yeah'], 3]
+  end
 end

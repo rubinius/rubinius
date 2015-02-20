@@ -90,9 +90,4 @@ describe "Regexp with character classes" do
     /[\[:alnum:]+/.match("[:a:l:n:u:m").to_a.should == ["[:a:l:n:u:m"] # should behave like regular character class composed of the individual letters
     lambda { eval('/[[:alpha:]-[:digit:]]/') }.should raise_error(SyntaxError) # can't use character class as a start value of range
   end
-
-  ruby_version_is "1.9" do
-    require File.expand_path("../versions/character_classes_1.9", __FILE__)
-  end
 end
-

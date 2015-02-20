@@ -95,35 +95,33 @@ describe "CApiBignumSpecs" do
     end
   end
 
-  ruby_version_is "1.8.7" do
-    describe "RBIGNUM_SIGN" do
-      it "returns C true if the Bignum has a positive sign" do
-        @s.RBIGNUM_SIGN(bignum_value()).should be_true
-      end
-
-      it "retuns C false if the Bignum has a negative sign" do
-        @s.RBIGNUM_SIGN(-bignum_value()).should be_false
-      end
+  describe "RBIGNUM_SIGN" do
+    it "returns C true if the Bignum has a positive sign" do
+      @s.RBIGNUM_SIGN(bignum_value()).should be_true
     end
 
-    describe "RBIGNUM_POSITIVE_P" do
-      it "returns C true if the Bignum has a positive sign" do
-        @s.RBIGNUM_POSITIVE_P(bignum_value()).should be_true
-      end
+    it "retuns C false if the Bignum has a negative sign" do
+      @s.RBIGNUM_SIGN(-bignum_value()).should be_false
+    end
+  end
 
-      it "retuns C false if the Bignum has a negative sign" do
-        @s.RBIGNUM_POSITIVE_P(-bignum_value()).should be_false
-      end
+  describe "RBIGNUM_POSITIVE_P" do
+    it "returns C true if the Bignum has a positive sign" do
+      @s.RBIGNUM_POSITIVE_P(bignum_value()).should be_true
     end
 
-    describe "RBIGNUM_NEGATIVE_P" do
-      it "returns C false if the Bignum has a positive sign" do
-        @s.RBIGNUM_NEGATIVE_P(bignum_value()).should be_false
-      end
+    it "retuns C false if the Bignum has a negative sign" do
+      @s.RBIGNUM_POSITIVE_P(-bignum_value()).should be_false
+    end
+  end
 
-      it "retuns C true if the Bignum has a negative sign" do
-        @s.RBIGNUM_NEGATIVE_P(-bignum_value()).should be_true
-      end
+  describe "RBIGNUM_NEGATIVE_P" do
+    it "returns C false if the Bignum has a positive sign" do
+      @s.RBIGNUM_NEGATIVE_P(bignum_value()).should be_false
+    end
+
+    it "retuns C true if the Bignum has a negative sign" do
+      @s.RBIGNUM_NEGATIVE_P(-bignum_value()).should be_true
     end
   end
 end

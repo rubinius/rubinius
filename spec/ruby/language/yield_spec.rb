@@ -80,16 +80,8 @@ describe "The yield call" do
       @y.r([[]]) { |*a| a }.should == [[]]
     end
 
-    ruby_version_is ""..."1.9" do
-      it "passes nil as a value" do
-        @y.r(nil) { |*a| a }.should == [nil]
-      end
-    end
-
-    ruby_version_is "1.9" do
-      it "passes no values when give nil as an argument" do
-        @y.r(nil) { |*a| a }.should == []
-      end
+    it "passes nil as a value" do
+      @y.r(nil) { |*a| a }.should == [nil]
     end
   end
 
@@ -113,20 +105,8 @@ describe "The yield call" do
       @y.rs(1, 2, [3, 4, 5]) { |*a| a }.should == [1, 2, 3, 4, 5]
     end
 
-    ruby_version_is ""..."1.9" do
-      it "passes nil as the argument value if the splatted argument is nil" do
-        @y.rs(1, 2, nil) { |*a| a }.should == [1, 2, nil]
-      end
-    end
-
-    ruby_version_is "1.9" do
-      it "does not pass an argument value if the splatted argument is nil" do
-        @y.rs(1, 2, nil) { |*a| a }.should == [1, 2]
-      end
+    it "passes nil as the argument value if the splatted argument is nil" do
+      @y.rs(1, 2, nil) { |*a| a }.should == [1, 2, nil]
     end
   end
-end
-
-ruby_version_is "1.9" do
-  require File.expand_path("../versions/yield_1.9", __FILE__)
 end

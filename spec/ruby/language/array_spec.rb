@@ -110,14 +110,16 @@ describe "The unpacking splat operator (*)" do
   end
 end
 
-describe "The packing splat operator (*)" do
+describe "The unpacking splat operator (*)" do
+  it "when applied to a non-Array value attempts to coerce it to Array if the object respond_to?(:to_ary)" do
+    obj = mock("pseudo-array")
+    obj.should_receive(:to_ary).and_return([2, 3, 4])
+    [1, *obj].should == [1, 2, 3, 4]
+  end
 
-end
-
-ruby_version_is "1.8"..."1.9" do
-  require File.expand_path("../versions/array_1.8", __FILE__)
-end
-
-ruby_version_is "1.9" do
-  require File.expand_path("../versions/array_1.9", __FILE__)
+  it "when applied to a non-Array value uses it unchanged if it does not respond_to?(:to_ary)" do
+    obj = Object.new
+    obj.should_not respond_to(:to_ary)
+    [1, *obj].should == [1, obj]
+  end
 end

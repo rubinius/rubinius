@@ -113,12 +113,6 @@ describe "C-API Class function" do
     it_behaves_like :rb_path_to_class, :rb_path2class
   end
 
-  ruby_version_is "1.9" do
-    describe "rb_path_to_class" do
-      it_behaves_like :rb_path_to_class, :rb_path_to_class
-    end
-  end
-
   describe "rb_cvar_defined" do
     it "returns false when the class variable is not defined" do
       @s.rb_cvar_defined(CApiClassSpecs::CVars, "@@nocvar").should be_false
@@ -247,19 +241,6 @@ describe "C-API Class function" do
     it "raises a TypeError if passed a singleton class as the superclass" do
       metaclass = Object.new.singleton_class
       lambda { @s.rb_class_new(metaclass) }.should raise_error(TypeError)
-    end
-  end
-
-  ruby_version_is "1.9.3" do
-    describe "rb_class_superclass" do
-      it "returns the superclass of a class" do
-        cls = @s.rb_class_superclass(CApiClassSpecs::Sub)
-        cls.should == CApiClassSpecs::Super
-      end
-
-      it "returns nil if the class has no superclass" do
-        @s.rb_class_superclass(BasicObject).should be_nil
-      end
     end
   end
 end

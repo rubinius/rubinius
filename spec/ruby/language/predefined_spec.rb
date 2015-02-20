@@ -235,13 +235,11 @@ describe "Predefined global $stdout" do
     $stdout = @old_stdout
   end
 
-  ruby_version_is "" ... "1.9" do
-    it "is the same as $defout" do
-      $stdout.should == $defout
+  it "is the same as $defout" do
+    $stdout.should == $defout
 
-      $stdout = IOStub.new
-      $stdout.should == $defout
-    end
+    $stdout = IOStub.new
+    $stdout.should == $defout
   end
 
   it "raises TypeError error if assigned to nil" do
@@ -259,23 +257,6 @@ end
 
 describe "Predefined global $!" do
   it "needs to be reviewed for spec completeness"
-
-  ruby_version_is "1.9" do
-    # See http://jira.codehaus.org/browse/JRUBY-5550
-    it "remains nil after a failed core class \"checked\" coercion against a class that defines method_missing" do
-      $!.should == nil
-
-      obj = Class.new do
-        def method_missing(*args)
-          super
-        end
-      end.new
-
-      [obj, 'foo'].join
-
-      $!.should == nil
-    end
-  end
 end
 
 =begin
@@ -539,16 +520,8 @@ describe "Execution variable $:" do
     ($:.length > 0).should == true
   end
 
-  ruby_version_is ""..."1.9" do
-    it "includes the current directory" do
-      $:.should include(".")
-    end
-  end
-
-  ruby_version_is "1.9" do
-    it "does not include the current directory" do
-      $:.should_not include(".")
-    end
+  it "includes the current directory" do
+    $:.should include(".")
   end
 
   not_compliant_on :rubinius do
@@ -626,19 +599,10 @@ describe "Global variable $?" do
     }.should raise_error(NameError)
   end
 
-  ruby_version_is ""..."1.9" do
-    it "is shared across threads" do
-      system("true")
-      pid = $?.pid
-      Thread.new { $?.pid.should == pid }.join
-    end
-  end
-
-  ruby_version_is "1.9" do
-    it "is thread-local" do
-      system("true")
-      Thread.new { $?.should be_nil }.join
-    end
+  it "is shared across threads" do
+    system("true")
+    pid = $?.pid
+    Thread.new { $?.pid.should == pid }.join
   end
 end
 
@@ -865,11 +829,9 @@ describe "The predefined global constants" do
     Object.const_defined?(:RUBY_PLATFORM).should == true
   end
 
-  ruby_version_is "" ... "1.9" do
-    it "includes PLATFORM" do
-      Object.const_defined?(:PLATFORM).should == true
-      RUBY_PLATFORM == PLATFORM
-    end
+  it "includes PLATFORM" do
+    Object.const_defined?(:PLATFORM).should == true
+    RUBY_PLATFORM == PLATFORM
   end
 
   it "includes TOPLEVEL_BINDING" do
@@ -1010,14 +972,6 @@ describe "Processing RUBYOPT" do
     result.should =~ /value of \$DEBUG is true/
   end
 
-  ruby_version_is "1.9" do
-    it "prints the version number for '-v'" do
-      ENV["RBXOPT"] = '-X19'
-      ENV["RUBYOPT"] = '-v'
-      ruby_exe("").chomp.should == RUBY_DESCRIPTION
-    end
-  end
-
   it "sets $VERBOSE to true for '-w'" do
     ENV["RUBYOPT"] = '-w'
     ruby_exe("p $VERBOSE", :escape => true).chomp.should == "true"
@@ -1049,61 +1003,59 @@ describe "Processing RUBYOPT" do
     ruby_exe("").should =~ /^rubyopt.rb required/
   end
 
-  ruby_version_is ""..."1.9" do
-    it "sets $KCODE to 'NONE' with '-K'" do
-      ENV["RUBYOPT"] = '-K'
-      ruby_exe("puts $KCODE", :escape => true).chomp.should == "NONE"
-    end
+  it "sets $KCODE to 'NONE' with '-K'" do
+    ENV["RUBYOPT"] = '-K'
+    ruby_exe("puts $KCODE", :escape => true).chomp.should == "NONE"
+  end
 
-    it "sets $KCODE to 'NONE' with '-Ka'" do
-      ENV["RUBYOPT"] = '-Ka'
-      ruby_exe("puts $KCODE", :escape => true).chomp.should == "NONE"
-    end
+  it "sets $KCODE to 'NONE' with '-Ka'" do
+    ENV["RUBYOPT"] = '-Ka'
+    ruby_exe("puts $KCODE", :escape => true).chomp.should == "NONE"
+  end
 
-    it "sets $KCODE to 'NONE' with '-KA'" do
-      ENV["RUBYOPT"] = '-KA'
-      ruby_exe("puts $KCODE", :escape => true).chomp.should == "NONE"
-    end
+  it "sets $KCODE to 'NONE' with '-KA'" do
+    ENV["RUBYOPT"] = '-KA'
+    ruby_exe("puts $KCODE", :escape => true).chomp.should == "NONE"
+  end
 
-    it "sets $KCODE to 'NONE' with '-Kn'" do
-      ENV["RUBYOPT"] = '-Kn'
-      ruby_exe("puts $KCODE", :escape => true).chomp.should == "NONE"
-    end
+  it "sets $KCODE to 'NONE' with '-Kn'" do
+    ENV["RUBYOPT"] = '-Kn'
+    ruby_exe("puts $KCODE", :escape => true).chomp.should == "NONE"
+  end
 
-    it "sets $KCODE to 'NONE' with '-KN'" do
-      ENV["RUBYOPT"] = '-KN'
-      ruby_exe("puts $KCODE", :escape => true).chomp.should == "NONE"
-    end
+  it "sets $KCODE to 'NONE' with '-KN'" do
+    ENV["RUBYOPT"] = '-KN'
+    ruby_exe("puts $KCODE", :escape => true).chomp.should == "NONE"
+  end
 
-    it "sets $KCODE to 'EUC' with '-Ke'" do
-      ENV["RUBYOPT"] = '-Ke'
-      ruby_exe("puts $KCODE", :escape => true).chomp.should == "EUC"
-    end
+  it "sets $KCODE to 'EUC' with '-Ke'" do
+    ENV["RUBYOPT"] = '-Ke'
+    ruby_exe("puts $KCODE", :escape => true).chomp.should == "EUC"
+  end
 
-    it "sets $KCODE to 'EUC' with '-KE'" do
-      ENV["RUBYOPT"] = '-KE'
-      ruby_exe("puts $KCODE", :escape => true).chomp.should == "EUC"
-    end
+  it "sets $KCODE to 'EUC' with '-KE'" do
+    ENV["RUBYOPT"] = '-KE'
+    ruby_exe("puts $KCODE", :escape => true).chomp.should == "EUC"
+  end
 
-    it "sets $KCODE to 'UTF8' with '-Ku'" do
-      ENV["RUBYOPT"] = '-Ku'
-      ruby_exe("puts $KCODE", :escape => true).chomp.should == "UTF8"
-    end
+  it "sets $KCODE to 'UTF8' with '-Ku'" do
+    ENV["RUBYOPT"] = '-Ku'
+    ruby_exe("puts $KCODE", :escape => true).chomp.should == "UTF8"
+  end
 
-    it "sets $KCODE to 'UTF8' with '-KU'" do
-      ENV["RUBYOPT"] = '-KU'
-      ruby_exe("puts $KCODE", :escape => true).chomp.should == "UTF8"
-    end
+  it "sets $KCODE to 'UTF8' with '-KU'" do
+    ENV["RUBYOPT"] = '-KU'
+    ruby_exe("puts $KCODE", :escape => true).chomp.should == "UTF8"
+  end
 
-    it "sets $KCODE to 'SJIS' with '-Ks'" do
-      ENV["RUBYOPT"] = '-Ks'
-      ruby_exe("puts $KCODE", :escape => true).chomp.should == "SJIS"
-    end
+  it "sets $KCODE to 'SJIS' with '-Ks'" do
+    ENV["RUBYOPT"] = '-Ks'
+    ruby_exe("puts $KCODE", :escape => true).chomp.should == "SJIS"
+  end
 
-    it "sets $KCODE to 'SJIS' with '-KS'" do
-      ENV["RUBYOPT"] = '-KS'
-      ruby_exe("puts $KCODE", :escape => true).chomp.should == "SJIS"
-    end
+  it "sets $KCODE to 'SJIS' with '-KS'" do
+    ENV["RUBYOPT"] = '-KS'
+    ruby_exe("puts $KCODE", :escape => true).chomp.should == "SJIS"
   end
 
   it "raises a RuntimeError for '-a'" do

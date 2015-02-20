@@ -65,21 +65,6 @@ describe "Ruby character strings" do
     "#$ip".tainted?.should be_true
   end
 
-  ruby_version_is "1.9" do
-    it "untrusts the result of interpolation when an interpolated value is untrusted" do
-      "#{"".untrust}".untrusted?.should be_true
-
-      @ip.untrust
-      "#@ip".untrusted?.should be_true
-
-      @@ip.untrust
-      "#@@ip".untrusted?.should be_true
-
-      $ip.untrust
-      "#$ip".untrusted?.should be_true
-    end
-  end
-
   it "allows using non-alnum characters as string delimiters" do
     %(hey #{@ip}).should == "hey xxx"
     %[hey #{@ip}].should == "hey xxx"
@@ -212,60 +197,6 @@ HERE
   it "allows a dynamic string to parse a nested do...end block as an argument to a call without parens, interpolated" do
     s = eval 'eval "#{proc do; 1; end.call}"'
     s.should == 1
-  end
-
-  ruby_version_is '1.9' do
-    it "are produced from character shortcuts" do
-      ?z.should == 'z'
-    end
-
-    it "are produced from control character shortcuts" do
-      # Control-Z
-      ?\C-z.should == "\x1A"
-
-      # Meta-Z
-      ?\M-z.should == "\xFA"
-
-      # Meta-Control-Z
-      ?\M-\C-z.should == "\x9A"
-    end
-
-    describe "Unicode escaping" do
-      it "can be done with \\u and four hex digits" do
-        [ ["\u0000", 0x0000],
-          ["\u2020", 0x2020]
-        ].should be_computed_by(:ord)
-      end
-
-      it "can be done with \\u{} and one to six hex digits" do
-        [ ["\u{a}", 0xa],
-          ["\u{ab}", 0xab],
-          ["\u{abc}", 0xabc],
-          ["\u{1abc}", 0x1abc],
-          ["\u{12abc}", 0x12abc],
-          ["\u{100000}", 0x100000]
-        ].should be_computed_by(:ord)
-      end
-
-      # TODO: spec other source encodings
-      describe "with US-ASCII source encoding" do
-        it "produces an ASCII string when escaping ASCII characters via \\u" do
-          "\u0000".encoding.should == Encoding::US_ASCII
-        end
-
-        it "produces an ASCII string when escaping ASCII characters via \\u{}" do
-          "\u{0000}".encoding.should == Encoding::US_ASCII
-        end
-
-        it "produces a UTF-8-encoded string when escaping non-ASCII characters via \\u" do
-          "\u1234".encoding.should == Encoding::UTF_8
-        end
-
-        it "produces a UTF-8-encoded string when escaping non-ASCII characters via \\u{}" do
-          "\u{1234}".encoding.should == Encoding::UTF_8
-        end
-      end
-    end
   end
 end
 
