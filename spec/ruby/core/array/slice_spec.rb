@@ -39,6 +39,12 @@ describe "Array#slice!" do
     a.should == []
   end
 
+  it "returns nil if length is negative" do
+    a = [1, 2, 3]
+    a.slice!(2, -1).should == nil
+    a.should == [1, 2, 3]
+  end
+
   it "properly handles recursive arrays" do
     empty = ArraySpecs.empty_recursive_array
     empty.slice(0).should == empty

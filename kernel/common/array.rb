@@ -1580,7 +1580,8 @@ class Array
       end
     else
       start = Rubinius::Type.coerce_to_collection_index start
-      length = Rubinius::Type.coerce_to_collection_index length
+      length = Rubinius::Type.coerce_to_collection_length length
+      return nil if length < 0
 
       out = self[start, length]
 
