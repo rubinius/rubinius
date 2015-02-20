@@ -601,6 +601,7 @@ class Array
         # Use a shift start optimization if we're only removing one
         # element and the shift started isn't already huge.
         if del_length == 1
+          @tuple.put @start, nil
           @start += 1
         else
           @tuple.copy_from @tuple, reg_start + @start, reg_length, 0
@@ -1580,7 +1581,8 @@ class Array
       end
     else
       start = Rubinius::Type.coerce_to_collection_index start
-      length = Rubinius::Type.coerce_to_collection_index length
+      length = Rubinius::Type.coerce_to_collection_length length
+      return nil if length < 0
 
       out = self[start, length]
 
