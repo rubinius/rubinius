@@ -1,6 +1,7 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
 require File.expand_path('../shared/enumeratorize', __FILE__)
+require File.expand_path('../../enumerable/shared/enumeratorized', __FILE__)
 
 # Modifying a collection while the contents are being iterated
 # gives undefined behavior. See
@@ -38,4 +39,5 @@ describe "Array#reverse_each" do
   end
 
   it_behaves_like :enumeratorize, :reverse_each
+  it_behaves_like :enumeratorized_with_origin_size, :reverse_each, [1,2,3]
 end

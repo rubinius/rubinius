@@ -1,2 +1,0 @@
-fails:Array#cycle returns Float::INFINITY as size when passed no argument and no block is given
-fails:Array#cycle returns the correct size when passed a number n as argument and no block is given
