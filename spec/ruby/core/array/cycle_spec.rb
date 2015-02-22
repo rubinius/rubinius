@@ -1,4 +1,5 @@
 require File.expand_path('../../../spec_helper', __FILE__)
+require File.expand_path('../../enumerable/shared/enumeratorized', __FILE__)
 
 describe "Array#cycle" do
   before :each do
@@ -92,11 +93,9 @@ describe "Array#cycle" do
     lambda { @array.cycle(false) { } }.should raise_error(TypeError)
   end
 
-  it "returns Float::INFINITY as size when passed no argument and no block is given" do
-    @array.cycle.size.should == Float::INFINITY
+  before :all do
+    @object = [1, 2, 3, 4]
+    @empty_object = []
   end
-
-  it "returns the correct size when passed a number n as argument and no block is given" do
-    @array.cycle(2).size.should == 6
-  end
+  it_should_behave_like :enumeratorized_with_cycle_size
 end

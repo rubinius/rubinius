@@ -1,6 +1,7 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
 require File.expand_path('../shared/enumeratorize', __FILE__)
+require File.expand_path('../../enumerable/shared/enumeratorized', __FILE__)
 
 describe "Array#delete_if" do
   before do
@@ -59,7 +60,5 @@ describe "Array#delete_if" do
     @a.untrusted?.should be_true
   end
 
-  it "returns the correct size when no block is given" do
-    [1, 2, 3].delete_if.size.should == 3
-  end
+  it_behaves_like :enumeratorized_with_origin_size, :delete_if, [1,2,3]
 end

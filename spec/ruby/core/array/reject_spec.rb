@@ -1,6 +1,7 @@
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../fixtures/classes', __FILE__)
 require File.expand_path('../shared/enumeratorize', __FILE__)
+require File.expand_path('../../enumerable/shared/enumeratorized', __FILE__)
 
 describe "Array#reject" do
   it "returns a new array without elements for which block is true" do
@@ -41,11 +42,8 @@ describe "Array#reject" do
     array.reject { false }.instance_variable_get("@variable").should == nil
   end
 
-  it "returns the correct size when no block is given" do
-    [1, 2, 3, 4, 5, 6].reject.size.should == 6
-  end
-
   it_behaves_like :enumeratorize, :reject
+  it_behaves_like :enumeratorized_with_origin_size, :reject, [1,2,3]
 end
 
 describe "Array#reject!" do
@@ -112,9 +110,6 @@ describe "Array#reject!" do
     lambda { ArraySpecs.empty_frozen_array.reject! {} }.should raise_error(RuntimeError)
   end
 
-  it "returns the correct size when no block is given" do
-    [1, 2, 3, 4, 5, 6].reject!.size.should == 6
-  end
-
   it_behaves_like :enumeratorize, :reject!
+  it_behaves_like :enumeratorized_with_origin_size, :reject!, [1,2,3]
 end
