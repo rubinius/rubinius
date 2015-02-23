@@ -392,7 +392,12 @@ class Array
 
   def combination(num)
     num = Rubinius::Type.coerce_to_collection_index num
-    return to_enum(:combination, num) unless block_given?
+
+    unless block_given?
+      return to_enum(:combination, num) do
+        Rubinius::Mirror::Array.reflect(self).combination_size(num)
+      end
+    end
 
     if num == 0
       yield []
@@ -470,7 +475,12 @@ class Array
   end
 
   def cycle(n=nil)
-    return to_enum(:cycle, n) unless block_given?
+    unless block_given?
+      return to_enum(:cycle, n) do
+        Rubinius::EnumerableHelper.cycle_size(size, n)
+      end
+    end
+
     return nil if empty?
 
     # Don't use nil? because, historically, lame code has overridden that method
@@ -546,7 +556,7 @@ class Array
   end
 
   def delete_if
-    return to_enum(:delete_if) unless block_given?
+    return to_enum(:delete_if) { size } unless block_given?
 
     Rubinius.check_frozen
 
@@ -574,7 +584,7 @@ class Array
   end
 
   def each_index
-    return to_enum(:each_index) unless block_given?
+    return to_enum(:each_index) { size } unless block_given?
 
     i = 0
     total = @total
@@ -938,7 +948,7 @@ class Array
   end
 
   def keep_if(&block)
-    return to_enum :keep_if unless block_given?
+    return to_enum(:keep_if) { size } unless block_given?
 
     Rubinius.check_frozen
 
@@ -982,7 +992,11 @@ class Array
   end
 
   def permutation(num=undefined, &block)
-    return to_enum(:permutation, num) unless block_given?
+    unless block_given?
+      return to_enum(:permutation, num) do 
+        Rubinius::Mirror::Array.reflect(self).permutation_size(num)
+      end
+    end
 
     if undefined.equal? num
       num = @total
@@ -1134,12 +1148,12 @@ class Array
   end
 
   def reject(&block)
-    return to_enum(:reject) unless block_given?
+    return to_enum(:reject) { size } unless block_given?
     Array.new(self).delete_if(&block)
   end
 
   def reject!(&block)
-    return to_enum(:reject!) unless block_given?
+    return to_enum(:reject!) { size } unless block_given?
 
     Rubinius.check_frozen
 
@@ -1153,7 +1167,9 @@ class Array
   def repeated_combination(combination_size, &block)
     combination_size = combination_size.to_i
     unless block_given?
-      return Enumerator.new(self, :repeated_combination, combination_size)
+      return to_enum(:repeated_combination, combination_size) do
+        Rubinius::Mirror::Array.reflect(self).repeated_combination_size(combination_size)
+      end
     end
 
     if combination_size < 0
@@ -1183,7 +1199,9 @@ class Array
   def repeated_permutation(combination_size, &block)
     combination_size = combination_size.to_i
     unless block_given?
-      return Enumerator.new(self, :repeated_permutation, combination_size)
+      return to_enum(:repeated_permutation, combination_size) do
+        Rubinius::Mirror::Array.reflect(self).repeated_permutation_size(combination_size)
+      end
     end
 
     if combination_size < 0
@@ -1227,7 +1245,7 @@ class Array
   end
 
   def reverse_each
-    return to_enum(:reverse_each) unless block_given?
+    return to_enum(:reverse_each) { size } unless block_given?
 
     stop = @start - 1
     i = stop + @total
@@ -1334,7 +1352,7 @@ class Array
   end
 
   def select!(&block)
-    return to_enum :select! unless block_given?
+    return to_enum(:select!) { size } unless block_given?
 
     Rubinius.check_frozen
 
@@ -1620,7 +1638,7 @@ class Array
   def sort_by!(&block)
     Rubinius.check_frozen
 
-    return to_enum :sort_by! unless block_given?
+    return to_enum(:sort_by!) { size } unless block_given?
 
     replace sort_by(&block)
   end

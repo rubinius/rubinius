@@ -66,7 +66,7 @@ class Array
   # Passes each element in the Array to the given block
   # and returns self.
   def each
-    return to_enum(:each) unless block_given?
+    return to_enum(:each) { size } unless block_given?
 
     i = @start
     total = i + @total
@@ -83,7 +83,7 @@ class Array
   # Creates a new Array from the return values of passing
   # each element in self to the supplied block.
   def map
-    return to_enum :map unless block_given?
+    return to_enum(:map) { size } unless block_given?
     out = Array.new size
 
     i = @start
@@ -105,7 +105,7 @@ class Array
   # Replaces each element in self with the return value
   # of passing that element to the supplied block.
   def map!
-    return to_enum(:map!) unless block_given?
+    return to_enum(:map!) { size } unless block_given?
 
     Rubinius.check_frozen
 
