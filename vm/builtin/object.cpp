@@ -872,7 +872,7 @@ namespace rubinius {
   }
 
   Object* Object::respond_to(STATE, Symbol* name, Object* priv) {
-    LookupData lookup(this, lookup_begin(state), CBOOL(priv) ? G(sym_private) : G(sym_protected));
+    LookupData lookup(cUndef, lookup_begin(state), CBOOL(priv) ? G(sym_private) : G(sym_public));
 
     Dispatch dis(name);
 
