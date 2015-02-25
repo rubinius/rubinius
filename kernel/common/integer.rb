@@ -189,7 +189,7 @@ class Integer < Numeric
   end
 
   def times
-    return to_enum(:times) unless block_given?
+    return to_enum(:times) { self } unless block_given?
 
     i = 0
     while i < self
@@ -200,7 +200,7 @@ class Integer < Numeric
   end
 
   def upto(val)
-    return to_enum(:upto, val) unless block_given?
+    return to_enum(:upto, val) { self <= val ? val - self + 1 : 0 } unless block_given?
 
     i = self
     while i <= val
@@ -211,7 +211,7 @@ class Integer < Numeric
   end
 
   def downto(val)
-    return to_enum(:downto, val) unless block_given?
+    return to_enum(:downto, val) { self >= val ? self - val + 1 : 0 } unless block_given?
 
     i = self
     while i >= val
