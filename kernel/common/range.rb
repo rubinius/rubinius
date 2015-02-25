@@ -103,7 +103,7 @@ class Range
   end
 
   def each
-    return to_enum unless block_given?
+    return to_enum { size } unless block_given?
     first, last = @begin, @end
 
     unless first.respond_to?(:succ) && !first.kind_of?(Time)
@@ -213,44 +213,20 @@ class Range
   end
 
   def step(step_size=1) # :yields: object
-    return to_enum(:step, step_size) unless block_given?
+    return to_enum(:step, step_size) do
+      m = Rubinius::Mirror::Range.reflect(self)
+      m.step_iterations_size(*m.validate_step_size(@begin, @end, step_size))
+    end unless block_given?
 
-    first = @begin
-    last = @end
-
-    if step_size.kind_of? Float or first.kind_of? Float or last.kind_of? Float
-      # if any are floats they all must be
-      begin
-        step_size = Float(from = step_size)
-        first     = Float(from = first)
-        last      = Float(from = last)
-      rescue ArgumentError
-        raise TypeError, "no implicit conversion to float from #{from.class}"
-      end
-    else
-      step_size = Integer(from = step_size)
-
-      unless step_size.kind_of? Integer
-        raise TypeError, "can't convert #{from.class} to Integer (#{from.class}#to_int gives #{step_size.class})"
-      end
-    end
-
-    if step_size <= 0
-      raise ArgumentError, "step can't be negative" if step_size < 0
-      raise ArgumentError, "step can't be 0"
-    end
+    m = Rubinius::Mirror::Range.reflect(self)
+    values = m.validate_step_size(@begin, @end, step_size)
+    first = values[0]
+    last = values[1]
+    step_size = values[2]
 
     case first
     when Float
-      err = (first.abs + last.abs + (last - first).abs) / step_size.abs * Float::EPSILON
-      err = 0.5 if err > 0.5
-
-      if @excl
-        iterations = ((last - first) / step_size - err).floor
-        iterations += 1 if iterations * step_size + first < last
-      else
-        iterations = ((last - first) / step_size + err).floor + 1
-      end
+      iterations = m.step_float_iterations_size(first, last, step_size)
 
       i = 0
       while i < iterations

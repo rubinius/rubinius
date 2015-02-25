@@ -65,6 +65,7 @@ native_method.rbc
 nil.rbc
 object_space.rbc
 string.rbc
+range_mirror.rbc
 range.rbc
 struct.rbc
 process.rbc
