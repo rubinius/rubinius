@@ -144,6 +144,7 @@ module Enumerable
       @object.rewind if @object.respond_to? :rewind
       @generator.rewind if @generator
       @lookahead = []
+      @feedvalue = nil
       self
     end
 
