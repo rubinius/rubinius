@@ -53,6 +53,17 @@ describe :marshal_load, :shared => true do
     marshaled_obj.should == [nil, str, str]
   end
 
+  it "loads any structure with multiple references to an object with _dump that returns an immediate value" do
+    array_dump = "\004\b[\au:\031UserDefinedImmediate\000@\006"
+    hash_dump = "\004\b{\a:\006bu:\031UserDefinedImmediate\000:\006a@\006"
+
+    marshaled_obj = Marshal.send(@method, hash_dump)
+    marshaled_obj.should == {:a => nil, :b => nil}
+
+    marshaled_obj = Marshal.send(@method, array_dump)
+    marshaled_obj.should == [nil, nil]
+  end
+
   it "does not set instance variables of an object with user-defined _dump/_load" do
     # this string represents: <#UserPreviouslyDefinedWithInitializedIvar @field2=7 @field1=6>
     dump_str = "\004\bu:-UserPreviouslyDefinedWithInitializedIvar\a:\f@field2i\f:\f@field1i\v"
