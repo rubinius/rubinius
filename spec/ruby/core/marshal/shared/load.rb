@@ -20,17 +20,94 @@ describe :marshal_load, :shared => true do
     lambda { Marshal.send(@method, kaboom) }.should raise_error(ArgumentError)
   end
 
-  it "ignores the value of the proc when called with a proc" do
-    Marshal.send(@method, Marshal.dump([1,2]), proc { [3,4] }).should ==  [1,2]
+  describe "when called with a proc" do
+    it "ignores the value of the proc" do
+      Marshal.send(@method, Marshal.dump([1,2]), proc { [3,4] }).should ==  [1,2]
+    end
+
+    it "doesn't call the proc for recursively visited data" do
+      a = [1]
+      a << a
+      ret = []
+      Marshal.send(@method, Marshal.dump(a), proc { |arg| ret << arg })
+      ret.first.should == 1
+      ret.size.should == 2
+    end
+
+    it "loads an Array with proc" do
+      arr = []
+      s = 'hi'
+      s.instance_variable_set(:@foo, 5)
+      st = Struct.new("Brittle", :a).new
+      st.instance_variable_set(:@clue, 'none')
+      st.a = 0.0
+      h = Hash.new('def')
+      h['nine'] = 9
+      a = [:a, :b, :c]
+      a.instance_variable_set(:@two, 2)
+      obj = [s, 10, s, s, st, h, a]
+      obj.instance_variable_set(:@zoo, 'ant')
+      proc = Proc.new { |o| arr << o }
+
+      new_obj = Marshal.send(@method, "\004\bI[\fI\"\ahi\006:\t@fooi\ni\017@\006@\006IS:\024Struct::Brittle\006:\006af\0060\006:\n@clue\"\tnone}\006\"\tninei\016\"\bdefI[\b;\a:\006b:\006c\006:\t@twoi\a\006:\t@zoo\"\bant", proc)
+
+      new_obj.should == obj
+      new_obj.instance_variable_get(:@zoo).should == 'ant'
+
+      arr.should ==
+        [5, s, 10, 0.0, 'none', st, 'nine', 9, 'def', h, :b, :c, 2, a, 'ant', obj]
+    end
   end
 
-  it "doesn't call the proc for recursively visited data" do
-    a = [1]
-    a << a
-    ret = []
-    Marshal.send(@method, Marshal.dump(a), proc { |arg| ret << arg })
-    ret.first.should == 1
-    ret.size.should == 2
+  describe "when called on objects with custom _dump methods" do
+    it "does not set instance variables of the object" do
+      # this string represents: <#UserPreviouslyDefinedWithInitializedIvar @field2=7 @field1=6>
+      dump_str = "\004\bu:-UserPreviouslyDefinedWithInitializedIvar\a:\f@field2i\f:\f@field1i\v"
+
+      UserPreviouslyDefinedWithInitializedIvar.should_receive(:_load).and_return(UserPreviouslyDefinedWithInitializedIvar.new)
+      marshaled_obj = Marshal.send(@method, dump_str)
+
+      marshaled_obj.should be_an_instance_of(UserPreviouslyDefinedWithInitializedIvar)
+      marshaled_obj.field1.should be_nil
+      marshaled_obj.field2.should be_nil
+    end
+
+    describe "that return an immediate value" do
+      it "loads an array containing an instance of the object, followed by multiple instances of another object" do
+        str = "string"
+
+        # this string represents: [<#UserDefinedImmediate A>, <#String "string">, <#String "string">]
+        marshaled_obj = Marshal.send(@method, "\004\b[\bu:\031UserDefinedImmediate\000\"\vstring@\a")
+
+        marshaled_obj.should == [nil, str, str]
+      end
+
+      it "loads any structure containing multiple references to the same object, followed by multiple instances of another object" do
+        str = "string"
+
+        # this string represents: {:a => <#UserDefinedImmediate A>, :b => <#UserDefinedImmediate A>, :c => <#String "string">, :d => <#String "string">}
+        hash_dump = "\x04\b{\t:\x06aIu:\x19UserDefinedImmediate\x00\x06:\x06ET:\x06b@\x06:\x06cI\"\vstring\x06;\aT:\x06d@\a"
+
+        marshaled_obj = Marshal.send(@method, hash_dump)
+        marshaled_obj.should == {:a => nil, :b => nil, :c => str, :d => str}
+
+        # this string represents: [<#UserDefinedImmediate A>, <#UserDefinedImmediate A>, <#String "string">, <#String "string">]
+        array_dump = "\x04\b[\tIu:\x19UserDefinedImmediate\x00\x06:\x06ET@\x06I\"\vstring\x06;\x06T@\a"
+
+        marshaled_obj = Marshal.send(@method, array_dump)
+        marshaled_obj.should == [nil, nil, str, str]
+      end
+
+      it "loads an array containing references to multiple instances of the object, followed by multiple instances of another object" do
+        str = "string"
+
+        # this string represents: [<#UserDefinedImmediate A>, <#UserDefinedImmediate B>, <#String "string">, <#String "string">]
+        array_dump = "\x04\b[\tIu:\x19UserDefinedImmediate\x00\x06:\x06ETIu;\x00\x00\x06;\x06TI\"\vstring\x06;\x06T@\b"
+
+        marshaled_obj = Marshal.send(@method, array_dump)
+        marshaled_obj.should == [nil, nil, str, str]
+      end
+    end
   end
 
   it "loads an array containing objects having _dump method, and with proc" do
@@ -45,44 +122,6 @@ describe :marshal_load, :shared => true do
     arr.should == [o1, o2, obj]
   end
 
-  it "loads an array containing an object with _dump that returns an immediate value, followed by multiple instances of another object" do
-    str = "string"
-
-    marshaled_obj = Marshal.send(@method, "\004\b[\bu:\031UserDefinedImmediate\000\"\vstring@\a")
-
-    marshaled_obj.should == [nil, str, str]
-  end
-
-  it "loads any structure with multiple references to the same object with _dump that returns an immediate value" do
-    array_dump = "\004\b[\au:\031UserDefinedImmediate\000@\006"
-    hash_dump = "\004\b{\a:\006bu:\031UserDefinedImmediate\000:\006a@\006"
-
-    marshaled_obj = Marshal.send(@method, hash_dump)
-    marshaled_obj.should == {:a => nil, :b => nil}
-
-    marshaled_obj = Marshal.send(@method, array_dump)
-    marshaled_obj.should == [nil, nil]
-  end
-
-  it "loads an array with multiple references to multiple objects with _dump that returns an immediate value, followed by multiple instances of another object" do
-    array_dump = "\x04\b[\tIu:\x19UserDefinedImmediate\x00\x06:\x06ETIu;\x00\x00\x06;\x06TI\"\vstring\x06;\x06T@\b"
-
-    marshaled_obj = Marshal.send(@method, array_dump)
-    marshaled_obj.should == [nil, nil, "string", "string"]
-  end
-
-  it "does not set instance variables of an object with user-defined _dump/_load" do
-    # this string represents: <#UserPreviouslyDefinedWithInitializedIvar @field2=7 @field1=6>
-    dump_str = "\004\bu:-UserPreviouslyDefinedWithInitializedIvar\a:\f@field2i\f:\f@field1i\v"
-
-    UserPreviouslyDefinedWithInitializedIvar.should_receive(:_load).and_return(UserPreviouslyDefinedWithInitializedIvar.new)
-    marshaled_obj = Marshal.send(@method, dump_str)
-
-    marshaled_obj.should be_an_instance_of(UserPreviouslyDefinedWithInitializedIvar)
-    marshaled_obj.field1.should be_nil
-    marshaled_obj.field2.should be_nil
-  end
-
   it "loads an array containing objects having marshal_dump method, and with proc" do
     arr = []
     proc = Proc.new { |o| arr << o }
@@ -93,30 +132,6 @@ describe :marshal_load, :shared => true do
     Marshal.send(@method, "\004\b[\tU:\020UserMarshal\"\nstuffU:\030UserMarshalWithIvar[\006\"\fmy data@\006@\b", proc)
 
     arr.should == ['stuff', o1, 'my data', ['my data'], o2, obj]
-  end
-
-  it "loads an Array with proc" do
-    arr = []
-    s = 'hi'
-    s.instance_variable_set(:@foo, 5)
-    st = Struct.new("Brittle", :a).new
-    st.instance_variable_set(:@clue, 'none')
-    st.a = 0.0
-    h = Hash.new('def')
-    h['nine'] = 9
-    a = [:a, :b, :c]
-    a.instance_variable_set(:@two, 2)
-    obj = [s, 10, s, s, st, h, a]
-    obj.instance_variable_set(:@zoo, 'ant')
-    proc = Proc.new { |o| arr << o }
-
-    new_obj = Marshal.send(@method, "\004\bI[\fI\"\ahi\006:\t@fooi\ni\017@\006@\006IS:\024Struct::Brittle\006:\006af\0060\006:\n@clue\"\tnone}\006\"\tninei\016\"\bdefI[\b;\a:\006b:\006c\006:\t@twoi\a\006:\t@zoo\"\bant", proc)
-
-    new_obj.should == obj
-    new_obj.instance_variable_get(:@zoo).should == 'ant'
-
-    arr.should ==
-      [5, s, 10, 0.0, 'none', st, 'nine', 9, 'def', h, :b, :c, 2, a, 'ant', obj]
   end
 
   it "assigns classes to nested subclasses of Array correctly" do
@@ -176,7 +191,6 @@ describe :marshal_load, :shared => true do
     y.tainted?.should be_true
     y.first.tainted?.should be_true
     y.first.first.tainted?.should be_true
-
   end
 
   it "preserves taintedness of nested structure" do
@@ -257,8 +271,8 @@ describe :marshal_load, :shared => true do
     end
 
     it "loads a string through StringIO stream" do
-        obj = "This is a string which should be unmarshalled through StringIO stream!"
-        Marshal.send(@method, StringIO.new(Marshal.dump(obj))).should == obj
+      obj = "This is a string which should be unmarshalled through StringIO stream!"
+      Marshal.send(@method, StringIO.new(Marshal.dump(obj))).should == obj
     end
 
     it "loads a string with an ivar" do
