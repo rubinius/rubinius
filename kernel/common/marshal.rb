@@ -465,7 +465,7 @@ module Marshal
     end
 
     def add_object(obj)
-      sz = @links.size
+      sz = @objects.size
       @objects[sz] = obj
       @links[obj.__id__] = sz
     end
