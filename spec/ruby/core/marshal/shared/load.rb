@@ -55,7 +55,7 @@ describe :marshal_load, :shared => true do
     marshaled_obj.should == [nil, str, str]
   end
 
-  it "loads any structure with multiple references to an object with _dump that returns an immediate value" do
+  it "loads any structure with multiple references to the same object with _dump that returns an immediate value" do
     array_dump = "\004\b[\au:\031UserDefinedImmediate\000@\006"
     hash_dump = "\004\b{\a:\006bu:\031UserDefinedImmediate\000:\006a@\006"
 
@@ -64,6 +64,13 @@ describe :marshal_load, :shared => true do
 
     marshaled_obj = Marshal.send(@method, array_dump)
     marshaled_obj.should == [nil, nil]
+  end
+
+  it "loads an array with multiple references to multiple objects with _dump that returns an immediate value, followed by multiple instances of another object" do
+    array_dump = "\x04\b[\tIu:\x19UserDefinedImmediate\x00\x06:\x06ETIu;\x00\x00\x06;\x06TI\"\vstring\x06;\x06T@\b"
+
+    marshaled_obj = Marshal.send(@method, array_dump)
+    marshaled_obj.should == [nil, nil, "string", "string"]
   end
 
   it "does not set instance variables of an object with user-defined _dump/_load" do
