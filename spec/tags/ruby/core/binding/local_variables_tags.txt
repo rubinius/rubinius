@@ -1,0 +1,5 @@
+fails:Binding#local_variables returns an Array
+fails:Binding#local_variables includes local variables in the current scope
+fails:Binding#local_variables includes local variables defined after calling binding.local_variables
+fails:Binding#local_variables includes local variables of inherited scopes and eval'ed context
+fails:Binding#local_variables includes shadowed local variables only once
