@@ -2,7 +2,7 @@
 #define RBX_METRICS_HPP
 
 #include "lock.hpp"
-#include "auxiliary_threads.hpp"
+#include "internal_threads.hpp"
 
 #include "gc/root.hpp"
 
@@ -16,7 +16,6 @@
 namespace rubinius {
   class VM;
   class State;
-  class Thread;
   class Tuple;
   class SharedState;
 
@@ -117,48 +116,48 @@ namespace rubinius {
         gc_large_sweep_total_ms = 0;
       }
 
-      void add(RubyMetrics* data) {
-        memory_young_bytes += data->memory_young_bytes;
-        memory_young_bytes_total += data->memory_young_bytes_total;
-        memory_young_objects += data->memory_young_objects;
-        memory_young_objects_total += data->memory_young_objects_total;
-        memory_young_percent_used += data->memory_young_percent_used;
-        memory_immix_bytes += data->memory_immix_bytes;
-        memory_immix_bytes_total += data->memory_immix_bytes_total;
-        memory_immix_objects += data->memory_immix_objects;
-        memory_immix_objects_total += data->memory_immix_objects_total;
-        memory_immix_chunks += data->memory_immix_chunks;
-        memory_immix_chunks_total += data->memory_immix_chunks_total;
-        memory_large_bytes += data->memory_large_bytes;
-        memory_large_bytes_total += data->memory_large_bytes_total;
-        memory_large_objects += data->memory_large_objects;
-        memory_large_objects_total += data->memory_large_objects_total;
-        memory_symbols_bytes += data->memory_symbols_bytes;
-        memory_code_bytes += data->memory_code_bytes;
-        memory_jit_bytes += data->memory_jit_bytes;
-        memory_promoted_bytes_total += data->memory_promoted_bytes_total;
-        memory_promoted_objects_total += data->memory_promoted_objects_total;
-        memory_slab_refills_total += data->memory_slab_refills_total;
-        memory_slab_refills_fails += data->memory_slab_refills_fails;
-        memory_data_objects_total += data->memory_data_objects_total;
-        memory_capi_handles += data->memory_capi_handles;
-        memory_capi_handles_total += data->memory_capi_handles_total;
-        memory_inflated_headers += data->memory_inflated_headers;
-        gc_young_count += data->gc_young_count;
-        gc_young_last_ms += data->gc_young_last_ms;
-        gc_young_total_ms += data->gc_young_total_ms;
-        gc_young_lifetime += data->gc_young_lifetime;
-        gc_immix_count += data->gc_immix_count;
-        gc_immix_stop_last_ms += data->gc_immix_stop_last_ms;
-        gc_immix_stop_total_ms += data->gc_immix_stop_total_ms;
-        gc_immix_conc_last_ms += data->gc_immix_conc_last_ms;
-        gc_immix_conc_total_ms += data->gc_immix_conc_total_ms;
-        gc_large_count += data->gc_large_count;
-        gc_large_sweep_last_ms += data->gc_large_sweep_last_ms;
-        gc_large_sweep_total_ms += data->gc_large_sweep_total_ms;
+      void add(RubyMetrics& data) {
+        memory_young_bytes += data.memory_young_bytes;
+        memory_young_bytes_total += data.memory_young_bytes_total;
+        memory_young_objects += data.memory_young_objects;
+        memory_young_objects_total += data.memory_young_objects_total;
+        memory_young_percent_used += data.memory_young_percent_used;
+        memory_immix_bytes += data.memory_immix_bytes;
+        memory_immix_bytes_total += data.memory_immix_bytes_total;
+        memory_immix_objects += data.memory_immix_objects;
+        memory_immix_objects_total += data.memory_immix_objects_total;
+        memory_immix_chunks += data.memory_immix_chunks;
+        memory_immix_chunks_total += data.memory_immix_chunks_total;
+        memory_large_bytes += data.memory_large_bytes;
+        memory_large_bytes_total += data.memory_large_bytes_total;
+        memory_large_objects += data.memory_large_objects;
+        memory_large_objects_total += data.memory_large_objects_total;
+        memory_symbols_bytes += data.memory_symbols_bytes;
+        memory_code_bytes += data.memory_code_bytes;
+        memory_jit_bytes += data.memory_jit_bytes;
+        memory_promoted_bytes_total += data.memory_promoted_bytes_total;
+        memory_promoted_objects_total += data.memory_promoted_objects_total;
+        memory_slab_refills_total += data.memory_slab_refills_total;
+        memory_slab_refills_fails += data.memory_slab_refills_fails;
+        memory_data_objects_total += data.memory_data_objects_total;
+        memory_capi_handles += data.memory_capi_handles;
+        memory_capi_handles_total += data.memory_capi_handles_total;
+        memory_inflated_headers += data.memory_inflated_headers;
+        gc_young_count += data.gc_young_count;
+        gc_young_last_ms += data.gc_young_last_ms;
+        gc_young_total_ms += data.gc_young_total_ms;
+        gc_young_lifetime += data.gc_young_lifetime;
+        gc_immix_count += data.gc_immix_count;
+        gc_immix_stop_last_ms += data.gc_immix_stop_last_ms;
+        gc_immix_stop_total_ms += data.gc_immix_stop_total_ms;
+        gc_immix_conc_last_ms += data.gc_immix_conc_last_ms;
+        gc_immix_conc_total_ms += data.gc_immix_conc_total_ms;
+        gc_large_count += data.gc_large_count;
+        gc_large_sweep_last_ms += data.gc_large_sweep_last_ms;
+        gc_large_sweep_total_ms += data.gc_large_sweep_total_ms;
       }
 
-      void add(MetricsData* data);
+      void add(MetricsData& data);
     };
 
     struct FinalizerMetrics {
@@ -170,12 +169,12 @@ namespace rubinius {
         objects_finalized = 0;
       }
 
-      void add(FinalizerMetrics* data) {
-        objects_queued += data->objects_queued;
-        objects_finalized += data->objects_finalized;
+      void add(FinalizerMetrics& data) {
+        objects_queued += data.objects_queued;
+        objects_finalized += data.objects_finalized;
       }
 
-      void add(MetricsData* data);
+      void add(MetricsData& data);
     };
 
     struct JITMetrics {
@@ -193,15 +192,15 @@ namespace rubinius {
         time_total_us = 0;
       }
 
-      void add(JITMetrics* data) {
-        methods_queued += data->methods_queued;
-        methods_compiled += data->methods_compiled;
-        methods_failed += data->methods_failed;
-        time_last_us += data->time_last_us;
-        time_total_us += data->time_total_us;
+      void add(JITMetrics& data) {
+        methods_queued += data.methods_queued;
+        methods_compiled += data.methods_compiled;
+        methods_failed += data.methods_failed;
+        time_last_us += data.time_last_us;
+        time_total_us += data.time_total_us;
       }
 
-      void add(MetricsData* data);
+      void add(MetricsData& data);
     };
 
     struct ConsoleMetrics {
@@ -213,12 +212,12 @@ namespace rubinius {
         responses_sent = 0;
       }
 
-      void add(ConsoleMetrics* data) {
-        requests_received += data->requests_received;
-        responses_sent += data->responses_sent;
+      void add(ConsoleMetrics& data) {
+        requests_received += data.requests_received;
+        responses_sent += data.responses_sent;
       }
 
-      void add(MetricsData* data);
+      void add(MetricsData& data);
     };
 
     struct SystemMetrics {
@@ -251,19 +250,19 @@ namespace rubinius {
         locks_stop_the_world_total_ns = 0;
       }
 
-      void add(SystemMetrics* data) {
-        io_read_bytes += data->io_read_bytes;
-        io_write_bytes += data->io_write_bytes;
-        os_signals_received += data->os_signals_received;
-        os_signals_processed += data->os_signals_processed;
-        vm_inline_cache_resets += data->vm_inline_cache_resets;
-        vm_threads += data->vm_threads;
-        vm_threads_total += data->vm_threads_total;
-        locks_stop_the_world_last_ns += data->locks_stop_the_world_last_ns;
-        locks_stop_the_world_total_ns += data->locks_stop_the_world_total_ns;
+      void add(SystemMetrics& data) {
+        io_read_bytes += data.io_read_bytes;
+        io_write_bytes += data.io_write_bytes;
+        os_signals_received += data.os_signals_received;
+        os_signals_processed += data.os_signals_processed;
+        vm_inline_cache_resets += data.vm_inline_cache_resets;
+        vm_threads += data.vm_threads;
+        vm_threads_total += data.vm_threads_total;
+        locks_stop_the_world_last_ns += data.locks_stop_the_world_last_ns;
+        locks_stop_the_world_total_ns += data.locks_stop_the_world_total_ns;
       }
 
-      void add(MetricsData* data);
+      void add(MetricsData& data);
     };
 
     struct MetricsData {
@@ -315,8 +314,8 @@ namespace rubinius {
         system_metrics.init();
       }
 
-      void add(MetricsData* data) {
-        switch(data->type) {
+      void add(MetricsData& data) {
+        switch(data.type) {
         case eNone:
           break;
         case eRubyMetrics:
@@ -336,12 +335,12 @@ namespace rubinius {
         system_metrics.add(data);
       }
 
-      void add(MetricsCollection* data) {
-        ruby_metrics.add(&data->ruby_metrics);
-        finalizer_metrics.add(&data->finalizer_metrics);
-        jit_metrics.add(&data->jit_metrics);
-        console_metrics.add(&data->console_metrics);
-        system_metrics.add(&data->system_metrics);
+      void add(MetricsCollection& data) {
+        ruby_metrics.add(data.ruby_metrics);
+        finalizer_metrics.add(data.finalizer_metrics);
+        jit_metrics.add(data.jit_metrics);
+        console_metrics.add(data.console_metrics);
+        system_metrics.add(data.system_metrics);
       }
     };
 
@@ -376,14 +375,9 @@ namespace rubinius {
       void reinit();
     };
 
-    class Metrics : public AuxiliaryThread, public Lockable {
-      SharedState& shared_;
-      VM* vm_;
+    class Metrics : public InternalThread, public Lockable {
       bool enabled_;
-      bool thread_exit_;
-      bool thread_running_;
 
-      TypedRoot<Thread*> thread_;
       TypedRoot<Tuple*> values_;
 
       int interval_;
@@ -403,9 +397,7 @@ namespace rubinius {
 
       void map_metrics();
 
-      void wakeup();
-
-      void add_historical_metrics(MetricsData* metrics);
+      void add_historical_metrics(MetricsData& metrics);
 
       void init_ruby_metrics(STATE);
       void update_ruby_values(STATE);
@@ -414,15 +406,10 @@ namespace rubinius {
         enabled_ = false;
       }
 
-      void start(STATE);
-
-      void start_thread(STATE);
-      void stop_thread(STATE);
-
-      void shutdown(STATE);
+      void initialize(STATE);
+      void run(STATE);
+      void wakeup(STATE);
       void after_fork_child(STATE);
-
-      void process_metrics(STATE);
     };
   }
 }

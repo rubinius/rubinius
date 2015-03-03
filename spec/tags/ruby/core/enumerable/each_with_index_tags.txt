@@ -1,0 +1,1 @@
+fails:Enumerable#each_with_index returns the correct size when no block is given

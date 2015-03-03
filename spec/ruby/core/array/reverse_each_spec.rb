@@ -33,5 +33,9 @@ describe "Array#reverse_each" do
     ScratchPad.recorded.should == [array, array, array, array, array, 3.0, 'two', 1]
   end
 
+  it "returns the correct size when no block is given" do
+    [1, 2, 3].reverse_each.size.should == 3
+  end
+
   it_behaves_like :enumeratorize, :reverse_each
 end

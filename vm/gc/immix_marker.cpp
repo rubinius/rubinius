@@ -15,24 +15,11 @@
 
 namespace rubinius {
 
-  Object* immix_marker_trampoline(STATE) {
-    state->memory()->immix_marker()->perform(state);
-    GCTokenImpl gct;
-    state->gc_dependent(gct, 0);
-    return cNil;
-  }
-
   ImmixMarker::ImmixMarker(STATE, ImmixGC* immix)
-    : AuxiliaryThread()
-    , shared_(state->shared())
-    , vm_(NULL)
+    : InternalThread(state, "rbx.immix")
     , immix_(immix)
     , data_(NULL)
-    , thread_exit_(false)
-    , thread_running_(false)
-    , thread_(state)
   {
-    shared_.auxiliary_threads()->register_thread(this);
     state->memory()->set_immix_marker(this);
 
     initialize(state);
@@ -40,73 +27,41 @@ namespace rubinius {
   }
 
   ImmixMarker::~ImmixMarker() {
-    shared_.auxiliary_threads()->unregister_thread(this);
-
-    if(data_) {
-      delete data_;
-      data_ = NULL;
-    }
+    cleanup();
   }
 
   void ImmixMarker::initialize(STATE) {
+    InternalThread::initialize(state);
+
+    Thread::create(state, vm());
+
     run_lock_.init();
     run_cond_.init();
-    vm_ = NULL;
-    thread_running_ = false;
-    thread_exit_ = false;
   }
 
-  void ImmixMarker::start_thread(STATE) {
-    SYNC(state);
-    if(vm_) return;
-    utilities::thread::Mutex::LockGuard lg(run_lock_);
-    vm_ = state->shared().new_vm();
-    vm_->metrics()->init(metrics::eRubyMetrics);
-    thread_exit_ = false;
-    thread_.set(Thread::create(state, vm_, G(thread),
-          immix_marker_trampoline, true));
-    run(state);
-  }
-
-  void ImmixMarker::wakeup() {
+  void ImmixMarker::wakeup(STATE) {
     utilities::thread::Mutex::LockGuard lg(run_lock_);
 
-    thread_exit_ = true;
-    atomic::memory_barrier();
+    InternalThread::wakeup(state);
 
     run_cond_.signal();
   }
 
-  void ImmixMarker::stop_thread(STATE) {
-    SYNC(state);
-
-    if(vm_) {
-      wakeup();
-
-      if(atomic::poll(thread_running_, false)) {
-        void* return_value;
-        pthread_t os = vm_->os_thread();
-        pthread_join(os, &return_value);
-      }
-
-      VM::discard(state, vm_);
-      vm_ = NULL;
-    }
-  }
-
-  void ImmixMarker::shutdown(STATE) {
-    stop_thread(state);
-  }
-
   void ImmixMarker::after_fork_child(STATE) {
-    initialize(state);
+    cleanup();
 
+    InternalThread::after_fork_child(state);
+  }
+
+  void ImmixMarker::cleanup() {
     if(data_) {
       delete data_;
       data_ = NULL;
     }
+  }
 
-    start_thread(state);
+  void ImmixMarker::stop(STATE) {
+    InternalThread::stop(state);
   }
 
   void ImmixMarker::concurrent_mark(GCData* data) {
@@ -116,28 +71,18 @@ namespace rubinius {
   }
 
   void ImmixMarker::run(STATE) {
-    int error = thread_.get()->fork_attached(state);
-    if(error) rubinius::bug("Unable to immix marker thread");
-  }
-
-  void ImmixMarker::perform(STATE) {
     GCTokenImpl gct;
-    RBX_DTRACE_CHAR_P thread_name = const_cast<RBX_DTRACE_CHAR_P>("rbx.immix");
-    vm_->set_name(thread_name);
 
-    RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
-                          state->vm()->thread_id(), 1);
+    metrics().init(metrics::eRubyMetrics);
 
-    state->vm()->thread->hard_unlock(state, gct, 0);
-
-    thread_running_ = true;
+    state->gc_dependent(gct, 0);
 
     while(!thread_exit_) {
       if(data_) {
         {
           timer::StopWatch<timer::milliseconds> timer(
-              state->vm()->metrics()->m.ruby_metrics.gc_immix_conc_last_ms,
-              state->vm()->metrics()->m.ruby_metrics.gc_immix_conc_total_ms
+              state->vm()->metrics().m.ruby_metrics.gc_immix_conc_last_ms,
+              state->vm()->metrics().m.ruby_metrics.gc_immix_conc_total_ms
             );
 
           // Allow for a young stop the world GC to occur
@@ -155,8 +100,8 @@ namespace rubinius {
 
         {
           timer::StopWatch<timer::milliseconds> timer(
-              state->vm()->metrics()->m.ruby_metrics.gc_immix_stop_last_ms,
-              state->vm()->metrics()->m.ruby_metrics.gc_immix_stop_total_ms
+              state->vm()->metrics().m.ruby_metrics.gc_immix_stop_last_ms,
+              state->vm()->metrics().m.ruby_metrics.gc_immix_stop_total_ms
             );
 
           // Finish and pause
@@ -174,23 +119,18 @@ namespace rubinius {
       }
 
       {
-        utilities::thread::Mutex::LockGuard lg(run_lock_);
-        if(data_) {
-          delete data_;
-          data_ = NULL;
-        }
+        utilities::thread::Mutex::LockGuard guard(run_lock_);
+
+        cleanup();
         if(thread_exit_) break;
-        state->gc_independent(gct, 0);
-        run_cond_.wait(run_lock_);
+
+        {
+          GCIndependent guard(state, 0);
+          run_cond_.wait(run_lock_);
+        }
       }
-      state->gc_dependent(gct, 0);
     }
 
     state->memory()->clear_mature_mark_in_progress();
-
-    thread_running_ = false;
-
-    RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
-                         state->vm()->thread_id(), 1);
   }
 }

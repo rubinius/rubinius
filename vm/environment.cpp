@@ -76,9 +76,8 @@ namespace rubinius {
     : argc_(argc)
     , argv_(0)
     , signature_(0)
-    , version_(0)
-    , signal_handler_(NULL)
-    , finalizer_handler_(NULL)
+    , signal_thread_(NULL)
+    , finalizer_thread_(NULL)
   {
 #ifdef ENABLE_LLVM
 #if RBX_LLVM_API_VER < 305
@@ -100,8 +99,10 @@ namespace rubinius {
     load_vm_options(argc_, argv_);
 
     root_vm = shared->new_vm();
-    root_vm->metrics()->init(metrics::eRubyMetrics);
+    root_vm->metrics().init(metrics::eRubyMetrics);
     state = new State(root_vm);
+
+    NativeMethod::init_thread(state);
 
     start_logging(state);
   }
@@ -109,8 +110,8 @@ namespace rubinius {
   Environment::~Environment() {
     stop_logging(state);
 
-    delete signal_handler_;
-    delete finalizer_handler_;
+    delete signal_thread_;
+    delete finalizer_thread_;
 
     VM::discard(state, root_vm);
     SharedState::discard(shared);
@@ -167,12 +168,17 @@ namespace rubinius {
 
   void Environment::start_signals(STATE) {
     state->vm()->set_run_signals(true);
-    signal_handler_ = new SignalHandler(state, config);
+    signal_thread_ = new SignalThread(state, config);
+    signal_thread_->start(state);
+  }
+
+  void Environment::stop_signals(STATE) {
+    signal_thread_->stop(state);
   }
 
   void Environment::start_finalizer(STATE) {
-    finalizer_handler_ = new FinalizerHandler(state);
-    finalizer_handler_->start_thread(state);
+    finalizer_thread_ = new FinalizerThread(state);
+    finalizer_thread_->start(state);
   }
 
   void Environment::start_logging(STATE) {
@@ -476,8 +482,7 @@ namespace rubinius {
           << ": path: " << file << ", magic: " << cf->magic;
       throw std::runtime_error(msg.str().c_str());
     }
-    if((signature_ > 0 && cf->signature != signature_)
-        || cf->version != version_) {
+    if((signature_ > 0 && cf->signature != signature_)) {
       throw BadKernelFile(file);
     }
 
@@ -545,24 +550,25 @@ namespace rubinius {
 
   void Environment::halt(STATE) {
     state->shared().tool_broker()->shutdown(state);
+
     if(ImmixMarker* im = state->memory()->immix_marker()) {
-      im->shutdown(state);
+      im->stop(state);
     }
 
     stop_jit(state);
-
-    GCTokenImpl gct;
+    stop_signals(state);
 
     root_vm->set_call_frame(0);
 
     // Handle an edge case where another thread is waiting to stop the world.
+    GCTokenImpl gct;
     if(state->shared().should_stop()) {
       state->checkpoint(gct, 0);
     }
 
     {
       GCIndependent guard(state, 0);
-      shared->auxiliary_threads()->shutdown(state);
+      shared->internal_threads()->shutdown(state);
       root_vm->set_call_frame(0);
     }
 
@@ -614,9 +620,6 @@ namespace rubinius {
       std::string error = "Unable to load kernel index: " + root;
       throw std::runtime_error(error);
     }
-
-    version_ = as<Fixnum>(G(rubinius)->get_const(
-          state, state->symbol("RUBY_LIB_VERSION")))->to_native();
 
     // Load alpha
     run_file(root + "/alpha.rbc");

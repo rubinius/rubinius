@@ -50,11 +50,11 @@ namespace rubinius {
 
     entries.push_back(obj);
 
-    object_memory_->state()->metrics()->m.ruby_metrics.memory_large_objects++;
-    object_memory_->state()->metrics()->m.ruby_metrics.memory_large_bytes += bytes;
+    object_memory_->state()->metrics().m.ruby_metrics.memory_large_objects++;
+    object_memory_->state()->metrics().m.ruby_metrics.memory_large_bytes += bytes;
 
-    object_memory_->state()->metrics()->m.ruby_metrics.memory_large_objects_total++;
-    object_memory_->state()->metrics()->m.ruby_metrics.memory_large_bytes_total += bytes;
+    object_memory_->state()->metrics().m.ruby_metrics.memory_large_objects_total++;
+    object_memory_->state()->metrics().m.ruby_metrics.memory_large_bytes_total += bytes;
 
     next_collection_bytes -= bytes;
     if(next_collection_bytes < 0) {
@@ -73,8 +73,8 @@ namespace rubinius {
 
       last_freed++;
 
-      object_memory_->state()->metrics()->m.ruby_metrics.memory_large_objects--;
-      object_memory_->state()->metrics()->m.ruby_metrics.memory_large_bytes -=
+      object_memory_->state()->metrics().m.ruby_metrics.memory_large_objects--;
+      object_memory_->state()->metrics().m.ruby_metrics.memory_large_bytes -=
         obj->size_in_bytes(object_memory_->state());
     }
 
@@ -120,11 +120,11 @@ namespace rubinius {
   }
 
   void MarkSweepGC::after_marked() {
-    metrics::MetricsData* metrics = object_memory_->state()->metrics();
+    metrics::MetricsData& metrics = object_memory_->state()->metrics();
 
     timer::StopWatch<timer::milliseconds> timer(
-        metrics->m.ruby_metrics.gc_large_sweep_last_ms,
-        metrics->m.ruby_metrics.gc_large_sweep_total_ms);
+        metrics.m.ruby_metrics.gc_large_sweep_last_ms,
+        metrics.m.ruby_metrics.gc_large_sweep_total_ms);
 
     last_freed = 0;
 

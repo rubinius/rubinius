@@ -87,9 +87,9 @@ module RbConfig
   CONFIG["NROFF"]              = "/usr/bin/nroff"
   CONFIG["MAKEDIRS"]           = "mkdir -p"
   # compile tools
-  CONFIG["CC"]                 = Rubinius::BUILD_CONFIG[:cc]
-  CONFIG["CXX"]                = Rubinius::BUILD_CONFIG[:cxx]
-  CONFIG["CPP"]                = "#{Rubinius::BUILD_CONFIG[:cc]} -E"
+  CONFIG["CC"]                 = (ENV["CC"] || Rubinius::BUILD_CONFIG[:cc].sub(/^(gcc|clang)/, "cc")).dup
+  CONFIG["CXX"]                = (ENV["CXX"] || Rubinius::BUILD_CONFIG[:cxx].sub(/^(g|clang)\+\+/, "c++")).dup
+  CONFIG["CPP"]                = "#{(ENV["CPP"] || Rubinius::BUILD_CONFIG[:cc].sub(/^(gcc|clang)/, "cc"))} -E"
   CONFIG["YACC"]               = "bison -y"
   CONFIG["RANLIB"]             = "ranlib"
   CONFIG["AR"]                 = "ar"

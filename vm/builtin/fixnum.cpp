@@ -56,7 +56,10 @@ namespace rubinius {
   }
 
   Integer* Fixnum::sub(STATE, Bignum* other) {
-    return as<Bignum>(other->neg(state))->add(state, this);
+    Integer* neg = other->neg(state);
+    if (Bignum* bneg = try_as<Bignum>(neg))
+      return bneg->add(state, this);
+    return as<Fixnum>(neg)->add(state, this);
   }
 
   Float* Fixnum::sub(STATE, Float* other) {

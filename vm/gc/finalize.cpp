@@ -4,6 +4,7 @@
 #include "object_memory.hpp"
 #include "call_frame.hpp"
 #include "metrics.hpp"
+#include "exception_point.hpp"
 
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
@@ -20,7 +21,7 @@
 #include "dtrace/dtrace.h"
 
 namespace rubinius {
-  FinalizerHandler::iterator::iterator(FinalizerHandler* fh)
+  FinalizerThread::iterator::iterator(FinalizerThread* fh)
     : handler_(fh)
     , current_list_(NULL)
   {
@@ -46,7 +47,7 @@ namespace rubinius {
     }
   }
 
-  void FinalizerHandler::iterator::next(bool live) {
+  void FinalizerThread::iterator::next(bool live) {
     if(current_list_ == handler_->live_list_) {
       if(!live) current_->queued();
 
@@ -68,48 +69,26 @@ namespace rubinius {
     }
   }
 
-  bool FinalizerHandler::iterator::end() {
+  bool FinalizerThread::iterator::end() {
     return current_ == end_;
   }
 
-  Object* finalizer_handler_trampoline(STATE) {
-    state->shared().finalizer_handler()->perform(state);
-    GCTokenImpl gct;
-    state->gc_dependent(gct, 0);
-    return cNil;
-  }
-
-  FinalizerHandler::FinalizerHandler(STATE)
-    : AuxiliaryThread()
-    , shared_(state->shared())
-    , vm_(NULL)
-    , thread_(state)
+  FinalizerThread::FinalizerThread(STATE)
+    : InternalThread(state, "rbx.finalizer")
     , lists_(NULL)
     , live_list_(NULL)
     , process_list_(NULL)
     , iterator_(NULL)
     , process_item_kind_(eRuby)
-    , thread_exit_(false)
-    , thread_running_(false)
     , finishing_(false)
   {
-    shared_.auxiliary_threads()->register_thread(this);
-    shared_.set_finalizer_handler(this);
+    state->shared().set_finalizer_handler(this);
 
     lists_ = new FinalizeObjectsList();
     live_list_ = new FinalizeObjects();
-
-    live_guard_.init();
-    worker_lock_.init();
-    worker_cond_.init();
-
-    supervisor_lock_.init();
-    supervisor_cond_.init();
   }
 
-  FinalizerHandler::~FinalizerHandler() {
-    shared_.auxiliary_threads()->unregister_thread(this);
-
+  FinalizerThread::~FinalizerThread() {
     if(iterator_) delete iterator_;
     if(live_list_) delete live_list_;
 
@@ -121,80 +100,32 @@ namespace rubinius {
     }
   }
 
-  void FinalizerHandler::start_thread(STATE) {
-    SYNC(state);
-    if(vm_) return;
-    utilities::thread::Mutex::LockGuard lg(worker_lock_);
-    vm_ = state->shared().new_vm();
-    vm_->metrics()->init(metrics::eFinalizerMetrics);
-    thread_exit_ = false;
-    thread_.set(Thread::create(state, vm_, G(thread),
-          finalizer_handler_trampoline, true));
-    run(state);
-  }
+  void FinalizerThread::initialize(STATE) {
+    InternalThread::initialize(state);
 
-  void FinalizerHandler::wakeup() {
-    utilities::thread::Mutex::LockGuard lg(worker_lock_);
+    Thread::create(state, vm());
 
-    thread_exit_ = true;
-    atomic::memory_barrier();
-
-    worker_signal();
-  }
-
-  void FinalizerHandler::stop_thread(STATE) {
-    SYNC(state);
-
-    if(vm_) {
-      wakeup();
-
-      if(atomic::poll(thread_running_, false)) {
-        void* return_value;
-        pthread_t os = vm_->os_thread();
-        pthread_join(os, &return_value);
-      }
-
-      VM::discard(state, vm_);
-      vm_ = NULL;
-    }
-  }
-
-  void FinalizerHandler::shutdown(STATE) {
-    // We do nothing now because we have to finish processing all remaining
-    // live objects once everything shuts down.
-  }
-
-  void FinalizerHandler::after_fork_child(STATE) {
     live_guard_.init();
     worker_lock_.init();
     worker_cond_.init();
     supervisor_lock_.init();
     supervisor_cond_.init();
-    thread_exit_ = false;
-    thread_running_ = false;
     finishing_ = false;
-    vm_ = NULL;
-
-    start_thread(state);
   }
 
-  void FinalizerHandler::run(STATE) {
-    int error = thread_.get()->fork_attached(state);
-    if(error) rubinius::bug("Unable to start finalizer handler thread");
+  void FinalizerThread::wakeup(STATE) {
+    utilities::thread::Mutex::LockGuard lg(worker_lock_);
+
+    InternalThread::wakeup(state);
+
+    worker_signal();
   }
 
-  void FinalizerHandler::perform(STATE) {
+  void FinalizerThread::run(STATE) {
     GCTokenImpl gct;
-    RBX_DTRACE_CHAR_P thread_name =
-      const_cast<RBX_DTRACE_CHAR_P>("rbx.finalizer");
-    vm_->set_name(thread_name);
 
-    RUBINIUS_THREAD_START(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
-                          state->vm()->thread_id(), 1);
+    metrics().init(metrics::eFinalizerMetrics);
 
-    thread_running_ = true;
-
-    state->vm()->thread->hard_unlock(state, gct, 0);
     state->gc_dependent(gct, 0);
 
     while(!thread_exit_) {
@@ -228,15 +159,9 @@ namespace rubinius {
       finalize(state);
       next_process_item();
     }
-
-    thread_running_ = false;
-
-    RUBINIUS_THREAD_STOP(const_cast<RBX_DTRACE_CHAR_P>(thread_name),
-                         state->vm()->thread_id(), 1);
   }
 
-  void FinalizerHandler::finalize(STATE) {
-
+  void FinalizerThread::finalize(STATE) {
     switch(process_item_kind_) {
     case eRuby: {
       if(process_item_->ruby_finalizer) {
@@ -260,7 +185,9 @@ namespace rubinius {
 
         NativeMethodEnvironment* env = state->vm()->native_method_environment;
         NativeMethodFrame nmf(env, 0, 0);
+        ExceptionPoint ep(env);
         CallFrame* call_frame = ALLOCA_CALLFRAME(0);
+
         call_frame->previous = 0;
         call_frame->constant_scope_ = 0;
         call_frame->dispatch_data = (void*)&nmf;
@@ -279,7 +206,13 @@ namespace rubinius {
 
         nmf.setup(Qnil, Qnil, Qnil, Qnil);
 
-        (*process_item_->finalizer)(state, process_item_->object);
+        PLACE_EXCEPTION_POINT(ep);
+
+        if(unlikely(ep.jumped_to())) {
+          // TODO: log this?
+        } else {
+          (*process_item_->finalizer)(state, process_item_->object);
+        }
 
         state->set_call_frame(0);
         env->set_current_call_frame(0);
@@ -301,14 +234,14 @@ namespace rubinius {
     }
   }
 
-  void FinalizerHandler::first_process_item() {
+  void FinalizerThread::first_process_item() {
     if(!process_list_ && !lists_->empty()) {
       process_list_ = lists_->back();
       process_item_ = process_list_->begin();
     }
   }
 
-  void FinalizerHandler::next_process_item() {
+  void FinalizerThread::next_process_item() {
     if(++process_item_ == process_list_->end()) {
       switch(process_item_kind_) {
       case eRuby:
@@ -324,13 +257,13 @@ namespace rubinius {
         process_list_ = NULL;
         process_item_kind_ = eRuby;
         lists_->pop_back();
-        if(vm_) vm_->metrics()->m.finalizer_metrics.objects_finalized++;
+        metrics().m.finalizer_metrics.objects_finalized++;
         break;
       }
     }
   }
 
-  void FinalizerHandler::finish(STATE, GCToken gct) {
+  void FinalizerThread::finish(STATE, GCToken gct) {
     finishing_ = true;
 
     stop_thread(state);
@@ -365,11 +298,11 @@ namespace rubinius {
     }
 
     if(!lists_->empty() || !live_list_->empty() || process_list_ != NULL) {
-      utilities::logger::warn("FinalizerHandler exiting with pending finalizers");
+      utilities::logger::warn("FinalizerThread exiting with pending finalizers");
     }
   }
 
-  void FinalizerHandler::record(Object* obj, FinalizerFunction func) {
+  void FinalizerThread::record(Object* obj, FinalizerFunction func) {
     utilities::thread::Mutex::LockGuard lg(live_guard_);
 
     if(finishing_) return;
@@ -382,10 +315,10 @@ namespace rubinius {
     // Makes a copy of fi.
     live_list_->push_front(fi);
 
-    vm_->metrics()->m.finalizer_metrics.objects_queued++;
+    metrics().m.finalizer_metrics.objects_queued++;
   }
 
-  void FinalizerHandler::set_ruby_finalizer(Object* obj, Object* finalizer) {
+  void FinalizerThread::set_ruby_finalizer(Object* obj, Object* finalizer) {
     utilities::thread::Mutex::LockGuard lg(live_guard_);
 
     // Ignore Ruby finalizers created when finishing running finalizers.
@@ -431,7 +364,7 @@ namespace rubinius {
     live_list_->push_front(fi);
   }
 
-  void FinalizerHandler::queue_objects() {
+  void FinalizerThread::queue_objects() {
     FinalizeObjects* dead_list = new FinalizeObjects();
 
     for(FinalizeObjects::iterator i = live_list_->begin();
@@ -453,7 +386,7 @@ namespace rubinius {
     }
   }
 
-  void FinalizerHandler::start_collection(STATE) {
+  void FinalizerThread::start_collection(STATE) {
     if(process_item_kind_ == eRelease) {
       while(process_list_) {
         finalize(state);
@@ -462,7 +395,7 @@ namespace rubinius {
     }
   }
 
-  void FinalizerHandler::finish_collection(STATE) {
+  void FinalizerThread::finish_collection(STATE) {
     queue_objects();
 
     if(iterator_) {
@@ -473,23 +406,23 @@ namespace rubinius {
     worker_signal();
   }
 
-  void FinalizerHandler::supervisor_signal() {
+  void FinalizerThread::supervisor_signal() {
     supervisor_cond_.signal();
   }
 
-  void FinalizerHandler::supervisor_wait() {
+  void FinalizerThread::supervisor_wait() {
     supervisor_cond_.wait(supervisor_lock_);
   }
 
-  void FinalizerHandler::worker_signal() {
+  void FinalizerThread::worker_signal() {
     worker_cond_.signal();
   }
 
-  void FinalizerHandler::worker_wait() {
+  void FinalizerThread::worker_wait() {
     worker_cond_.wait(worker_lock_);
   }
 
-  FinalizerHandler::iterator& FinalizerHandler::begin() {
+  FinalizerThread::iterator& FinalizerThread::begin() {
     if(iterator_) delete iterator_;
     iterator_ = new iterator(this);
     return *iterator_;

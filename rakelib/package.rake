@@ -1,13 +1,15 @@
+require 'rakelib/release'
 require 'rakelib/package'
 require 'date'
+
 
 namespace :package do
 
   desc "Create a release tarball from the source"
   task :tar do
-    archive = "rubinius-#{BUILD_CONFIG[:version]}.tar.bz2"
+    archive = "rubinius-#{rbx_version}.tar.bz2"
     files = "{ git ls-files; ls .revision; ls vendor/cache/*.gem; }"
-    prefix = "-s '|^|rubinius-#{BUILD_CONFIG[:version]}/|'"
+    prefix = "-s '|^|rubinius-#{rbx_version}/|'"
     sh "#{files} | sort | uniq | tar -c #{prefix} -T - -f - | bzip2 > #{archive}"
 
     write_md5_digest_file archive
@@ -34,7 +36,7 @@ namespace :package do
 
   desc "Build a general Linux Heroku binary package"
   task :heroku do
-    heroku_package = "ruby-#{BUILD_CONFIG[:ruby_version]}-rbx-#{BUILD_CONFIG[:version]}"
+    heroku_package = "ruby-#{BUILD_CONFIG[:ruby_version]}-rbx-#{rbx_version}"
 
     sh "rake package:binary_builder RBX_BINARY_PACKAGE=#{heroku_package} " \
        "RBX_BINARY_PREFIX=/app/vendor/#{heroku_package}"
@@ -43,10 +45,9 @@ namespace :package do
   desc "Build a binary package for Homebrew"
   task :homebrew do
     ENV["LDFLAGS"] = "-Wl,-macosx_version_min,10.8"
-    version = BUILD_CONFIG[:version]
-    homebrew_package = "rubinius-#{version}"
+    homebrew_package = "rubinius-#{rbx_version}"
     prefix = "/#{homebrew_package}"
-    lib = "lib/rubinius/#{version}"
+    lib = "lib/rubinius/#{rbx_version}"
     config = "'--bindir=#{prefix}/bin --appdir=#{prefix}/#{lib} " \
              "--includedir=#{prefix}/include/rubinius " \
              "--gemsdir=#{prefix}/#{lib}/gems " \

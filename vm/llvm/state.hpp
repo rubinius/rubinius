@@ -40,7 +40,7 @@
 #include "llvm/local_info.hpp"
 
 #include "gc/managed.hpp"
-#include "auxiliary_threads.hpp"
+#include "internal_threads.hpp"
 #include "configuration.hpp"
 #include "lock.hpp"
 #include "metrics.hpp"
@@ -71,14 +71,12 @@ namespace rubinius {
     cMachineCode = 4
   };
 
-  class LLVMState : public AuxiliaryThread, public Lockable {
+  class LLVMState : public InternalThread, public Lockable {
     jit::RubiniusJITMemoryManager* memory_;
     llvm::JITEventListener* jit_event_listener_;
 
     Configuration& config_;
 
-    VM* vm_;
-    TypedRoot<Thread*> thread_;
     TypedRoot<List*> compile_list_;
     SymbolTable& symbols_;
 
@@ -113,8 +111,6 @@ namespace rubinius {
     bool type_optz_;
 
     bool enabled_;
-    bool thread_exit_;
-    bool thread_running_;
 
     jit::Compiler* current_compiler_;
 
@@ -184,14 +180,6 @@ namespace rubinius {
 
     std::ostream& log() {
       return *log_;
-    }
-
-    VM* vm() {
-      return vm_;
-    }
-
-    Thread* thread() {
-      return thread_.get();
     }
 
     uint32_t fixnum_class_id() {
@@ -292,13 +280,11 @@ namespace rubinius {
 
     std::string enclosure_name(CompiledCode* code);
 
-    void perform(STATE);
+
+    void initialize(STATE);
+    void run(STATE);
+    void wakeup(STATE);
     void stop(STATE);
-
-    void wakeup();
-
-    void start_thread(STATE);
-    void stop_thread(STATE);
 
     void after_fork_child(STATE);
 

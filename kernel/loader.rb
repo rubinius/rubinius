@@ -552,7 +552,8 @@ VM Options
       begin
         CodeLoader.load_compiler
       rescue LoadError => e
-        Rubinius::Logger.system.error "Unable to load the bytecode compiler."
+        message = "Unable to load the bytecode compiler."
+        Rubinius::Logger.system.error message
         Rubinius::Logger.system.error(
           "Please run 'rake' or 'rake install' to rebuild the compiler.")
         Rubinius::Logger.log_exception message, e

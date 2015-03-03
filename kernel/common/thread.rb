@@ -140,27 +140,18 @@ class Thread
     # Stores location of a single call frame, available since Ruby 2.0.
     class Location
       attr_reader :label
+      attr_reader :path
       attr_reader :absolute_path
       attr_reader :lineno
 
-      def initialize(label, absolute_path, lineno)
+      def initialize(label, absolute_path, path, lineno)
         @label         = label
         @absolute_path = absolute_path
+        @path          = path
         @lineno        = lineno
       end
 
       alias_method :base_label, :label
-
-      ##
-      # The MRI documentation states this method should return the file name. In
-      # reality however this method just returns the full path.
-      #
-      # Rubinius here sticks to whatever the documentation specifies, thus we
-      # return only the filename.
-      #
-      def path
-        File.basename(absolute_path)
-      end
 
       def to_s
         "#{absolute_path}:#{lineno}:in `#{label}'"

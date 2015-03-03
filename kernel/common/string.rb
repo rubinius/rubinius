@@ -152,11 +152,6 @@ class String
       length = 0 if length < 0
 
       return substring(start, length)
-    # A really stupid case hit for rails. Either we define this or we define
-    # Symbol#to_int. We removed Symbol#to_int in late 2007 because it's evil,
-    # and do not want to re add it.
-    when Symbol
-      return nil
     else
       index = Rubinius::Type.coerce_to index, Fixnum, :to_int
       return self[index]
@@ -314,8 +309,6 @@ class String
     self
   end
 
-  alias_method :chars, :each_char
-
   def each_byte
     return to_enum :each_byte unless block_given?
     i = 0
@@ -325,8 +318,6 @@ class String
     end
     self
   end
-
-  alias_method :bytes, :each_byte
 
   def empty?
     @num_bytes == 0

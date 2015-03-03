@@ -170,7 +170,7 @@ namespace rubinius {
     }
 
     void unlock() {
-      vm_->unlock(vm_);
+      vm_->unlock();
     }
 
     Object* park(GCToken gct, CallFrame* call_frame);

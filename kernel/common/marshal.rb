@@ -465,7 +465,7 @@ module Marshal
     end
 
     def add_object(obj)
-      sz = @links.size
+      sz = @objects.size
       @objects[sz] = obj
       @links[obj.__id__] = sz
     end
@@ -525,11 +525,14 @@ module Marshal
               construct_data
             when 64   # ?@
               num = construct_integer
-              obj = @objects[num]
 
-              raise ArgumentError, "dump format error (unlinked)" unless obj
+              begin
+                obj = @objects.fetch(num)
+                return obj
+              rescue IndexError
+                raise ArgumentError, "dump format error (unlinked)"
+              end
 
-              return obj
             when 59   # ?;
               num = construct_integer
               sym = @symbols[num]

@@ -26,6 +26,28 @@ file 'runtime/platform.conf' => deps do |task|
       s.field :ai_next, :pointer
     end.write_config(f)
 
+    Rubinius::FFI::Generators::Structures.new 'ifaddrs' do |s|
+      s.include 'sys/types.h'
+      s.include 'ifaddrs.h'
+
+      s.name 'struct ifaddrs'
+
+      s.field :ifa_next, :pointer
+      s.field :ifa_name, :string
+      s.field :ifa_flags, :int
+      s.field :ifa_addr, :pointer
+      s.field :ifa_netmask, :pointer
+    end.write_config(f)
+
+    Rubinius::FFI::Generators::Structures.new 'sockaddr' do |s|
+      s.include 'sys/socket.h'
+
+      s.name 'struct sockaddr'
+
+      s.field :sa_data, :char_array
+      s.field :sa_family, :sa_family_t
+    end.write_config(f)
+
     Rubinius::FFI::Generators::Structures.new 'dirent' do |s|
       s.include "sys/types.h"
       s.include "dirent.h"

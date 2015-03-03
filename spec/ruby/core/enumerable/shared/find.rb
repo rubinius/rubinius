@@ -67,4 +67,8 @@ describe :enumerable_find, :shared => true do
     multi.send(@method) {|e| e == [1, 2] }.should == [1, 2]
   end
 
+  it "returns the nil as size when no block is given" do
+    enum = EnumerableSpecs::NumerousWithSize.new(*@elements)
+    enum.send(@method).size.should == nil
+  end
 end

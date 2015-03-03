@@ -45,4 +45,9 @@ describe "Enumerable#take_while" do
     EnumerableSpecs::YieldsMixed.new.take_while{ |v| yields << v }
     yields.should == [1, [2], 3, 5, [8, 9], nil, []]
   end
+
+  it "returns nil as size when no block is given" do
+    enum = EnumerableSpecs::NumerousWithSize.new(1, 2, 3, 4, 5, 6)
+    enum.take_while.size.should == nil
+  end
 end

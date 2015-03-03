@@ -1,35 +1,44 @@
-1. What is Rubinius
+1. The Rubinius Language Platform
 
-Rubinius is an implementation of the Ruby programming language. Rubinius aims
-to be compatible with Ruby version 2.1.
+Rubinius is a modern language platform that supports a number of programming
+languages.
 
-Rubinius includes a Ruby parser, bytecode virtual machine, bytecode compiler,
-generational garbage collector, and just-in-time (JIT) native machine code
-compiler. Rubinius uses native OS threads with no global interpreter lock.
-Rubinius also provides C-API compatibility for native C extensions.
+Rubinius includes a bytecode virtual machine, generational garbage collector,
+and just-in-time (JIT) native machine code compiler. Rubinius provides
+concurrency support via native OS threads with no global interpreter lock.
 
-The Ruby core library is written almost entirely in Ruby. Rubinius tools, such
-as the bytecode compiler and debugger, are also written in Ruby.  Rubinius
-provides the same standard libraries as Matz's Ruby implementation (MRI) with
-the following exceptions:
+Rubinius runs on Mac OS X and many Unix/Linux operating systems.  Microsoft
+Windows is not yet supported.
+
+
+2. The Ruby Programming Language
+
+Many popular Ruby applications, like Rails, run on Rubinius, which aims to be
+compatible with Ruby version 2.1.
+
+Rubinius includes a Ruby parser, Ruby bytecode compiler, Ruby core library,
+and C-API compatibility for native C extensions. The Ruby core library is
+written almost entirely in Ruby. The Ruby bytecode compiler and other tools,
+such as the debugger, are also written in Ruby.  Rubinius provides the
+standard Ruby libraries, with the following exceptions:
 
 * Continuation
 * Ripper
 * TracePoint
 * Tracer
 
-Rubinius runs on Mac OS X and many Unix/Linux operating systems.  Microsoft
-Windows is not yet supported.
+The following Ruby features are not supported on Rubinius:
 
-Most popular Ruby applications, like Rails, run on Rubinius.
+* Refinements
+* $SAFE levels
 
 
-2. License
+3. License
 
 Rubinius uses the BSD license. See LICENSE for details.
 
 
-3. Installing Rubinius from Source
+4. Installing Rubinius from Source
 
 To install Rubinius, use the following steps:
 
@@ -46,36 +55,32 @@ information see http://rubini.us/doc/en/getting-started/requirements/
 and http://rubini.us/doc/en/getting-started/building/.
 
 
-4. Using RubyGems
+5. Using RubyGems
 
 Rubinius comes with RubyGems built-in. To install a gem, run the following:
 
-  rbx -S gem install <gem_name>
+  $ rbx -S gem install <gem_name>
 
 
-5. Documentation
+6. Documentation
 
-After installing Rubinius, run 'rbx docs' to access the built-in documentation
-at any time.
+The Rubinius documentation is available at the Rubinius website:
+
+  http://rubini.us
 
 
-6. Tickets
+7. Issues & Support
 
 Please file tickets for bugs or problems. The issue tracker is:
 
   http://github.com/rubinius/rubinius/issues
 
+For additional help, visit the Rubinius Gitter chat room:
 
-7. Contributing
+  https://gitter.im/rubinius/rubinius
 
-The Rubinius team welcomes contributions. For more information read the
+
+8. Contributing
+
+The Rubinius team welcomes contributions. For more information, read the
 CONTRIBUTING file in the root directory of Rubinius.
-
-
-8. Features Currently Not Supported
-
-The following features of Ruby/MRI are currently not (yet) supported by
-Rubinius:
-
-* Refinements
-* $SAFE levels

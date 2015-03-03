@@ -75,6 +75,7 @@ namespace rubinius {
     , tooling_env_(NULL)
     , method_missing_reason_(eNone)
     , constant_missing_reason_(vFound)
+    , zombie_(false)
     , run_signals_(false)
     , shared(shared)
     , waiting_channel_(this, nil<Channel>())
@@ -104,14 +105,17 @@ namespace rubinius {
   }
 
   void VM::discard(STATE, VM* vm) {
-    vm->lock(state->vm());
     vm->saved_call_frame_ = 0;
     vm->shared.remove_vm(vm);
-    vm->unlock(state->vm());
 
-    state->vm()->metrics()->system_metrics.vm_threads--;
+    state->vm()->metrics().system_metrics.vm_threads--;
 
     delete vm;
+  }
+
+  void VM::set_zombie() {
+    thread.set(nil<Thread>());
+    zombie_ = true;
   }
 
   void VM::initialize_as_root() {
@@ -137,7 +141,7 @@ namespace rubinius {
 
     // Setup the main Thread, which is wrapper of the main native thread
     // when the VM boots.
-    thread.set(Thread::create(&state, this, G(thread), 0), &globals().roots);
+    Thread::create(&state, this);
     thread->alive(&state, cTrue);
     thread->sleep(&state, cFalse);
 
@@ -443,6 +447,10 @@ namespace rubinius {
 
   void VM::clear_sleeping() {
     thread->sleep(this, cFalse);
+  }
+
+  void VM::reset_parked() {
+    park_->reset_parked();
   }
 
   void VM::register_raise(STATE, Exception* exc) {

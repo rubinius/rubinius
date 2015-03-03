@@ -11,7 +11,6 @@ module Rubinius
       end
     end
 
-    attr_reader :values
     attr_reader :bins
 
     def size
@@ -67,9 +66,10 @@ module Rubinius
     def each
       raise LocalJumpError, "no block given" unless block_given?
 
+      vals = values
+
       i = 0
       max = @bins
-      vals = @values
 
       while i < max
         if entry = vals.at(i)
@@ -83,6 +83,9 @@ module Rubinius
       self
     end
 
+    def values
+      Rubinius.primitive :constant_table_values
+      raise PrimitiveFailure, "ConstantTable#values primitive failed"
+    end
   end
 end
-

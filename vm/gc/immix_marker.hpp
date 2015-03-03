@@ -2,7 +2,7 @@
 #define RBX_GC_IMMIX_MARKER_HPP
 
 #include "lock.hpp"
-#include "auxiliary_threads.hpp"
+#include "internal_threads.hpp"
 
 #include "gc/root.hpp"
 
@@ -10,20 +10,12 @@ namespace rubinius {
   class VM;
   class State;
   struct CallFrame;
-  class Thread;
   class ImmixGC;
   class GCData;
 
-  class ImmixMarker : public AuxiliaryThread, public Lockable {
-    SharedState& shared_;
-    VM* vm_;
+  class ImmixMarker : public InternalThread, public Lockable {
     ImmixGC* immix_;
     GCData* data_;
-
-    bool thread_exit_;
-    bool thread_running_;
-
-    TypedRoot<Thread*> thread_;
 
     utilities::thread::Condition run_cond_;
     utilities::thread::Mutex run_lock_;
@@ -33,21 +25,15 @@ namespace rubinius {
     ImmixMarker(STATE, ImmixGC* immix);
     virtual ~ImmixMarker();
 
-    void perform(STATE);
-
     void initialize(STATE);
+    void cleanup();
+    void run(STATE);
+    void wakeup(STATE);
+    void stop(STATE);
 
-    void wakeup();
-
-    void start_thread(STATE);
-    void stop_thread(STATE);
-
-    void shutdown(STATE);
     void after_fork_child(STATE);
 
     void concurrent_mark(GCData* data);
-
-    void run(STATE);
   };
 }
 

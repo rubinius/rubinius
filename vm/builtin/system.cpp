@@ -145,8 +145,7 @@ namespace rubinius {
     }
 
     uint64_t sig = signature->to_ulong_long();
-    if((sig > 0 && cf->signature != sig)
-        || cf->version != version->to_native()) {
+    if((sig > 0 && cf->signature != sig)) {
       delete cf;
       return Primitives::failure();
     }
@@ -382,18 +381,30 @@ namespace rubinius {
     return cNil;
   }
 
-  static int fork_exec(STATE, int errors_fd) {
+  static int fork_exec(STATE, GCToken gct, CallFrame* call_frame, int errors_fd) {
     utilities::thread::Mutex::LockGuard guard(state->shared().fork_exec_lock());
 
-    state->shared().auxiliary_threads()->before_fork_exec(state);
+    state->shared().internal_threads()->before_fork_exec(state);
 
     // If execvp() succeeds, we'll read EOF and know.
     fcntl(errors_fd, F_SETFD, FD_CLOEXEC);
 
-    int pid = ::fork();
+    int pid;
+
+    state->gc_dependent(gct, call_frame);
+
+    {
+      StopTheWorld stw(state, gct, call_frame);
+
+      pid = ::fork();
+
+      if(pid == 0) state->shared().reinit_world();
+    }
+
+    state->gc_independent(gct, call_frame);
 
     if(pid > 0) {
-      state->shared().auxiliary_threads()->after_fork_exec_parent(state);
+      state->shared().internal_threads()->after_fork_exec_parent(state);
     }
 
     return pid;
@@ -416,7 +427,13 @@ namespace rubinius {
       return NULL;
     }
 
-    int pid = fork_exec(state, errors[1]);
+    int pid;
+
+    {
+      GCIndependent guard(state, 0);
+
+      pid = fork_exec(state, gct, calling_environment, errors[1]);
+    }
 
     // error
     if(pid == -1) {
@@ -431,7 +448,7 @@ namespace rubinius {
       close(errors[0]);
 
       state->vm()->thread->init_lock();
-      state->shared().auxiliary_threads()->after_fork_exec_child(state);
+      state->shared().internal_threads()->after_fork_exec_child(state);
 
       // Setup ENV, redirects, groups, etc. in the child before exec().
       vm_spawn_setup(state, spawn_state);
@@ -524,7 +541,13 @@ namespace rubinius {
       return NULL;
     }
 
-    int pid = fork_exec(state, errors[1]);
+    int pid;
+
+    {
+      GCIndependent guard(state, 0);
+
+      pid = fork_exec(state, gct, calling_environment, errors[1]);
+    }
 
     // error
     if(pid == -1) {
@@ -539,7 +562,7 @@ namespace rubinius {
 
     if(pid == 0) {
       state->vm()->thread->init_lock();
-      state->shared().auxiliary_threads()->after_fork_exec_child(state);
+      state->shared().internal_threads()->after_fork_exec_child(state);
 
       close(errors[0]);
       close(output[0]);
@@ -649,7 +672,7 @@ namespace rubinius {
      */
     ExecCommand exe(state, path, args);
 
-    state->shared().auxiliary_threads()->before_exec(state);
+    state->shared().internal_threads()->before_exec(state);
 
     void* old_handlers[NSIG];
 
@@ -690,7 +713,7 @@ namespace rubinius {
       sigaction(i, &action, NULL);
     }
 
-    state->shared().auxiliary_threads()->after_exec(state);
+    state->shared().internal_threads()->after_exec(state);
 
     /* execvp() returning means it failed. */
     Exception::errno_error(state, "execvp(2) failed", erno);
@@ -781,12 +804,18 @@ namespace rubinius {
     {
       utilities::thread::Mutex::LockGuard guard(state->shared().fork_exec_lock());
 
-      state->shared().auxiliary_threads()->before_fork(state);
+      state->shared().internal_threads()->before_fork(state);
 
-      pid = ::fork();
+      {
+        StopTheWorld stw(state, gct, calling_environment);
+
+        pid = ::fork();
+
+        if(pid == 0) state->shared().reinit_world();
+      }
 
       if(pid > 0) {
-        state->shared().auxiliary_threads()->after_fork_parent(state);
+        state->shared().internal_threads()->after_fork_parent(state);
       }
     }
 
@@ -796,7 +825,7 @@ namespace rubinius {
 
       state->vm()->thread->init_lock();
       state->shared().after_fork_child(state, gct, calling_environment);
-      state->shared().auxiliary_threads()->after_fork_child(state);
+      state->shared().internal_threads()->after_fork_child(state);
 
       // In the child, the PID is nil in Ruby.
       return nil<Fixnum>();
@@ -865,7 +894,7 @@ namespace rubinius {
     state->vm()->global_cache()->clear(state, name);
     mod->reset_method_cache(state, name);
 
-    state->vm()->metrics()->system_metrics.vm_inline_cache_resets++;
+    state->vm()->metrics().system_metrics.vm_inline_cache_resets++;
 
     if(state->shared().config.ic_debug) {
       String* mod_name = mod->get_name(state);
@@ -983,13 +1012,13 @@ namespace rubinius {
   }
 
   Object* System::vm_watch_signal(STATE, Fixnum* sig, Object* ignored) {
-    SignalHandler* h = state->shared().signal_handler();
-    if(h) {
+    SignalThread* st = state->shared().signal_handler();
+    if(st) {
       native_int i = sig->to_native();
       if(i < 0) {
-        h->add_signal(state, -i, SignalHandler::eDefault);
+        st->add_signal(state, -i, SignalThread::eDefault);
       } else if(i > 0) {
-        h->add_signal(state, i, CBOOL(ignored) ? SignalHandler::eIgnore : SignalHandler::eCustom);
+        st->add_signal(state, i, CBOOL(ignored) ? SignalThread::eIgnore : SignalThread::eCustom);
       }
 
       return cTrue;

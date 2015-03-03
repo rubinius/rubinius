@@ -7,7 +7,7 @@
 #include "gc/variable_buffer.hpp"
 #include "gc/root_buffer.hpp"
 
-#include "auxiliary_threads.hpp"
+#include "internal_threads.hpp"
 #include "globals.hpp"
 #include "symbol_table.hpp"
 
@@ -21,6 +21,7 @@
 
 #include <string>
 #include <vector>
+#include <list>
 
 #include "missing/unordered_map.hpp"
 #include "missing/unordered_set.hpp"
@@ -48,8 +49,8 @@ namespace rubinius {
     class Metrics;
   }
 
-  class SignalHandler;
-  class FinalizerHandler;
+  class SignalThread;
+  class FinalizerThread;
   class ObjectMemory;
   class GlobalCache;
   class ConfigParser;
@@ -85,9 +86,9 @@ namespace rubinius {
 
   class SharedState : public RefCount, public Lockable {
   private:
-    AuxiliaryThreads* auxiliary_threads_;
-    SignalHandler* signal_handler_;
-    FinalizerHandler* finalizer_handler_;
+    InternalThreads* internal_threads_;
+    SignalThread* signal_thread_;
+    FinalizerThread* finalizer_thread_;
     console::Console* console_;
     metrics::Metrics* metrics_;
 
@@ -156,24 +157,24 @@ namespace rubinius {
       initialized_ = true;
     }
 
-    AuxiliaryThreads* auxiliary_threads() const {
-      return auxiliary_threads_;
+    InternalThreads* internal_threads() const {
+      return internal_threads_;
     }
 
-    SignalHandler* signal_handler() const {
-      return signal_handler_;
+    SignalThread* signal_handler() const {
+      return signal_thread_;
     }
 
-    void set_signal_handler(SignalHandler* thr) {
-      signal_handler_ = thr;
+    void set_signal_handler(SignalThread* thr) {
+      signal_thread_ = thr;
     }
 
-    FinalizerHandler* finalizer_handler() const {
-      return finalizer_handler_;
+    FinalizerThread* finalizer_handler() const {
+      return finalizer_thread_;
     }
 
-    void set_finalizer_handler(FinalizerHandler* thr) {
-      finalizer_handler_ = thr;
+    void set_finalizer_handler(FinalizerThread* thr) {
+      finalizer_thread_ = thr;
     }
 
     VM* new_vm();
@@ -305,6 +306,8 @@ namespace rubinius {
     void after_fork_child(STATE, GCToken gct, CallFrame* call_frame);
 
     bool should_stop() const;
+
+    void reinit_world();
 
     bool stop_the_world(THREAD) WARN_UNUSED;
     void restart_world(THREAD);
