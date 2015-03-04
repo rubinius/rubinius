@@ -1,0 +1,2 @@
+fails:Enumerable#min when called with an argument n without a block returns an array containing the minimum n elements
+fails:Enumerable#min when called with an argument n with a block returns an array containing the minimum n elements
