@@ -88,4 +88,19 @@ describe "Enumerable#min" do
     multi.min.should == [1, 2]
   end
 
+  context "when called with an argument n" do
+    context "without a block" do
+      it "returns an array containing the minimum n elements" do
+        result = @e_ints.min(2)
+        result.should == [22, 333]
+      end
+    end
+
+    context "with a block" do
+      it "returns an array containing the minimum n elements" do
+        result = @e_ints.min(2) { |a, b| a * 2 <=> b * 2 }
+        result.should == [22, 333]
+      end
+    end
+  end
 end
