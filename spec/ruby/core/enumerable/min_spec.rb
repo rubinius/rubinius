@@ -100,5 +100,18 @@ describe "Enumerable#min" do
         result.should == [22, 333]
       end
     end
+
+    context "on a enumerable of length x where x < n" do
+      it "returns an array containing the minimum n elements of length x" do
+        result = @e_ints.min(500)
+        result.length.should == 5
+      end
+    end
+
+    context "that is negative" do
+      it "raises an Argument error" do
+        lambda { @e_ints.min(-1) }.should raise_error(ArgumentError)
+      end
+    end
   end
 end
