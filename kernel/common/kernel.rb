@@ -504,7 +504,7 @@ module Kernel
   module_function :load
 
   def loop
-    return to_enum(:loop) unless block_given?
+    return to_enum(:loop) { Float::INFINITY } unless block_given?
 
     begin
       while true
