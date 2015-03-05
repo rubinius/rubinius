@@ -1169,7 +1169,7 @@ class String
 
     if undefined.equal? replacement
       unless block_given?
-        return to_enum(:sub, pattern, replacement)
+        raise ArgumentError, "method '#{__method__}': given 1, expected 2"
       end
       use_yield = true
       tainted = false
@@ -1236,7 +1236,7 @@ class String
 
     if undefined.equal? replacement
       unless block_given?
-        return to_enum(:sub, pattern, replacement)
+        raise ArgumentError, "method '#{__method__}': given 1, expected 2"
       end
       Rubinius.check_frozen
       use_yield = true
