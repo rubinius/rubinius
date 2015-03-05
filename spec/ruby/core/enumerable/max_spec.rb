@@ -68,7 +68,7 @@ describe "Enumerable#max" do
     end
   end
 
-  it "returns the minimum for enumerables that contain nils" do
+  it "returns the maximum for enumerables that contain nils" do
     arr = EnumerableSpecs::Numerous.new(nil, nil, true)
     arr.max { |a, b|
       x = a.nil? ? 1 : a ? 0 : -1
