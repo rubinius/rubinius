@@ -3,8 +3,6 @@ require File.expand_path('../fixtures/classes', __FILE__)
 
 describe "Enumerable#max" do
   before :each do
-    @a = EnumerableSpecs::EachDefiner.new( 2, 4, 6, 8, 10 )
-
     @e_strs = EnumerableSpecs::EachDefiner.new("333", "22", "666666", "1", "55555", "1010101010")
     @e_ints = EnumerableSpecs::EachDefiner.new( 333,   22,   666666,   55555, 1010101010)
   end
