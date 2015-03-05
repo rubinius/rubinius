@@ -1,7 +1,7 @@
 module Rubinius
   class Mirror
     class Array < Mirror
-      subject = ::Array
+      self.subject = ::Array
 
       def self.reflect(object)
         m = super(object)
