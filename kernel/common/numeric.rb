@@ -32,35 +32,39 @@ class Numeric
   end
 
   def step(limit, step=1)
-    return to_enum(:step, limit, step) unless block_given?
+    unless block_given?
+      return to_enum(:step, limit, step) do
+        Rubinius::Mirror::Numeric.reflect(self).step_size(limit, step)
+      end
+    end
 
     raise ArgumentError, "step cannot be 0" if step == 0
 
-    value = self
-    if value.kind_of? Float or limit.kind_of? Float or step.kind_of? Float
-      # Ported from MRI
+    m = Rubinius::Mirror::Numeric.reflect(self)
+    values = m.step_fetch_args(limit, step)
+    value = values[0]
+    limit = values[1]
+    step = values[2]
+    asc = values[3]
+    is_float = values[4]
 
-      value = FloatValue(value)
-      limit = FloatValue(limit)
-      step =  FloatValue(step)
+    if is_float
+      n = m.step_float_size(value, limit, step, asc)
 
-      if step.infinite?
-        yield value if step > 0 ? value <= limit : value >= limit
-      else
-        err = (value.abs + limit.abs + (limit - value).abs) / step.abs * Float::EPSILON
-        if err.finite?
-          err = 0.5 if err > 0.5
-          n = ((limit - value) / step + err).floor
+      if n > 0
+        if step.infinite?
+          yield value
+        else
           i = 0
-          if step > 0
-            while i <= n
+          if asc
+            while i < n
               d = i * step + value
               d = limit if limit < d
               yield d
               i += 1
             end
           else
-            while i <= n
+            while i < n
               d = i * step + value
               d = limit if limit > d
               yield d
@@ -70,7 +74,7 @@ class Numeric
         end
       end
     else
-      if step > 0
+      if asc
         until value > limit
           yield value
           value += step

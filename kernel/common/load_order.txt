@@ -22,6 +22,7 @@ loaded_features.rbc
 global.rbc
 backtrace.rbc
 comparable.rbc
+numeric_mirror.rbc
 numeric.rbc
 ctype.rbc
 integer.rbc
