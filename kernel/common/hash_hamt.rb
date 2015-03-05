@@ -496,7 +496,7 @@ class Hash
   end
 
   def delete_if
-    return to_enum(:delete_if) unless block_given?
+    return to_enum(:delete_if) { size } unless block_given?
 
     Rubinius.check_frozen
 
@@ -506,7 +506,7 @@ class Hash
   end
 
   def each
-    return to_enum(:each) unless block_given?
+    return to_enum(:each) { size } unless block_given?
 
     if @state
       item = @state.head
@@ -532,7 +532,7 @@ class Hash
   end
 
   def each_key
-    return to_enum(:each_key) unless block_given?
+    return to_enum(:each_key) { size } unless block_given?
 
     each_item { |e| yield e.key }
 
@@ -540,7 +540,7 @@ class Hash
   end
 
   def each_value
-    return to_enum(:each_value) unless block_given?
+    return to_enum(:each_value) { size } unless block_given?
 
     each_item { |e| yield e.value }
 
@@ -666,7 +666,7 @@ class Hash
   end
 
   def keep_if
-    return to_enum(:keep_if) unless block_given?
+    return to_enum(:keep_if) { size } unless block_given?
 
     Rubinius.check_frozen
 
@@ -767,7 +767,7 @@ class Hash
   end
 
   def reject(&block)
-    return to_enum(:reject) unless block_given?
+    return to_enum(:reject) { size } unless block_given?
 
     hsh = dup.delete_if(&block)
     hsh.taint if tainted?
@@ -775,7 +775,7 @@ class Hash
   end
 
   def reject!(&block)
-    return to_enum(:reject!) unless block_given?
+    return to_enum(:reject!) { size } unless block_given?
 
     Rubinius.check_frozen
 
@@ -812,7 +812,7 @@ class Hash
   end
 
   def select
-    return to_enum(:select) unless block_given?
+    return to_enum(:select) { size } unless block_given?
 
     hsh = Hash.allocate
 
@@ -826,7 +826,7 @@ class Hash
   end
 
   def select!
-    return to_enum(:select!) unless block_given?
+    return to_enum(:select!) { size } unless block_given?
 
     Rubinius.check_frozen
 
