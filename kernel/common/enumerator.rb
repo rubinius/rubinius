@@ -83,7 +83,7 @@ module Enumerable
     private :each_with_block
 
     def each_with_index
-      return to_enum(:each_with_index) unless block_given?
+      return to_enum(:each_with_index) { size } unless block_given?
 
       idx = 0
 
@@ -159,7 +159,7 @@ module Enumerable
         offset = 0
       end
 
-      return to_enum(:with_index, offset) unless block_given?
+      return to_enum(:with_index, offset) { size } unless block_given?
 
       each do
         o = Rubinius.single_block_arg
