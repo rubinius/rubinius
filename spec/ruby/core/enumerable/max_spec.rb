@@ -7,7 +7,7 @@ describe "Enumerable#max" do
     @e_ints = EnumerableSpecs::EachDefiner.new( 333,   22,   666666,   55555, 1010101010)
   end
 
-  it "max should return the maximum element" do
+  it "returns the maximum element" do
     EnumerableSpecs::Numerous.new.max.should == 6
   end
 
