@@ -52,21 +52,22 @@ describe "Enumerable#max" do
     end.should raise_error(ArgumentError)
   end
 
-  it "returns the maximum element (with block" do
-    # with a block
-    EnumerableSpecs::EachDefiner.new("2","33","4","11").max {|a,b| a <=> b }.should == "4"
-    EnumerableSpecs::EachDefiner.new( 2 , 33 , 4 , 11 ).max {|a,b| a <=> b }.should == 33
+  context "when passed a block" do
+    it "returns the maximum element" do
+      EnumerableSpecs::EachDefiner.new("2","33","4","11").max {|a,b| a <=> b }.should == "4"
+      EnumerableSpecs::EachDefiner.new( 2 , 33 , 4 , 11 ).max {|a,b| a <=> b }.should == 33
 
-    EnumerableSpecs::EachDefiner.new("2","33","4","11").max {|a,b| b <=> a }.should == "11"
-    EnumerableSpecs::EachDefiner.new( 2 , 33 , 4 , 11 ).max {|a,b| b <=> a }.should == 2
+      EnumerableSpecs::EachDefiner.new("2","33","4","11").max {|a,b| b <=> a }.should == "11"
+      EnumerableSpecs::EachDefiner.new( 2 , 33 , 4 , 11 ).max {|a,b| b <=> a }.should == 2
 
-    @e_strs.max {|a,b| a.length <=> b.length }.should == "1010101010"
+      @e_strs.max {|a,b| a.length <=> b.length }.should == "1010101010"
 
-    @e_strs.max {|a,b| a <=> b }.should == "666666"
-    @e_strs.max {|a,b| a.to_i <=> b.to_i }.should == "1010101010"
+      @e_strs.max {|a,b| a <=> b }.should == "666666"
+      @e_strs.max {|a,b| a.to_i <=> b.to_i }.should == "1010101010"
 
-    @e_ints.max {|a,b| a <=> b }.should == 1010101010
-    @e_ints.max {|a,b| a.to_s <=> b.to_s }.should == 666666
+      @e_ints.max {|a,b| a <=> b }.should == 1010101010
+      @e_ints.max {|a,b| a.to_s <=> b.to_s }.should == 666666
+    end
   end
 
   it "returns the minimum for enumerables that contain nils" do
