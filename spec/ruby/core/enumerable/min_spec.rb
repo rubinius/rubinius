@@ -109,7 +109,7 @@ describe "Enumerable#min" do
     end
 
     context "that is negative" do
-      it "raises an Argument error" do
+      it "raises an ArgumentError" do
         lambda { @e_ints.min(-1) }.should raise_error(ArgumentError)
       end
     end
