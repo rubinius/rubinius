@@ -105,7 +105,7 @@ describe "Enumerable#max" do
     end
 
     context "that is negative" do
-      it "raises an Argument error" do
+      it "raises an ArgumentError" do
         lambda { @e_ints.max(-1) }.should raise_error(ArgumentError)
       end
     end

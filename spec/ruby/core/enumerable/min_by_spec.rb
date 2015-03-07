@@ -68,7 +68,7 @@ describe "Enumerable#min_by" do
       end
 
       context "when n is negative" do
-        it "raises an Argument error" do
+        it "raises an ArgumentError" do
           lambda { @enum.min_by(-1) { |i| i.to_s } }.should raise_error(ArgumentError)
         end
       end
