@@ -40,13 +40,13 @@ describe "Enumerable#slice_after" do
     end
 
     describe "and an argument" do
-      it "raises an Argument error" do
+      it "raises an ArgumentError" do
         lambda { @enum.slice_after(42) { |i| i == 6 } }.should raise_error(ArgumentError)
       end
     end
   end
 
-  it "raises an Argument error when given an incorrect number of arguments" do
+  it "raises an ArgumentError when given an incorrect number of arguments" do
     lambda { @enum.slice_after("one", "two") }.should raise_error(ArgumentError)
     lambda { @enum.slice_after }.should raise_error(ArgumentError)
   end
