@@ -160,6 +160,31 @@ module Enumerable
     end
   end
 
+  def slice_after(pattern = undefined, &block)
+    pattern_given = !undefined.equal?(pattern)
+
+    raise ArgumentError, "cannot pass both pattern and block" if pattern_given && block_given?
+    raise ArgumentError, "wrong number of arguments (0 for 1)" if !pattern_given && !block_given?
+
+    block = Proc.new { |elem| pattern === elem } if pattern_given
+
+    Enumerator.new do |yielder|
+      accumulator = nil
+      each do |elem|
+        end_chunk = block.yield(elem)
+        accumulator ||= []
+        if end_chunk
+          accumulator << elem
+          yielder.yield accumulator
+          accumulator = nil
+        else
+          accumulator << elem
+        end
+      end
+      yielder.yield accumulator if accumulator
+    end
+  end
+
   def to_a(*arg)
     ary = []
     each(*arg) do
