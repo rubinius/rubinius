@@ -54,12 +54,4 @@ class Binding
 
     Kernel.eval(expr, self, filename, lineno)
   end
-
-  def local_variables
-    eval('local_variables')
-  end
-
-  def receiver
-    @self
-  end
 end
