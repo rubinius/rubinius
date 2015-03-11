@@ -3,8 +3,16 @@ class Binding
   attr_accessor :compiled_code
   attr_accessor :constant_scope
   attr_accessor :proc_environment
-  attr_accessor :self
   attr_accessor :location
+  attr_reader   :receiver
+
+  def self=(obj)
+    @receiver = obj
+  end
+
+  def self
+    @receiver
+  end
 
   def from_proc?
     @proc_environment
@@ -53,5 +61,9 @@ class Binding
     lineno ||= filename ? 1 : line_number
 
     Kernel.eval(expr, self, filename, lineno)
+  end
+
+  def local_variables
+    variables.local_variables
   end
 end
