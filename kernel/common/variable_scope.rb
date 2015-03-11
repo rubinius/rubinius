@@ -101,6 +101,32 @@ module Rubinius
       out
     end
 
+    # Returns the names of local variables available in this scope
+    #
+    def local_variables
+      locals = []
+      scope = self
+
+      # Ascend up through all applicable blocks to get all vars.
+      while scope
+        if scope.method.local_names
+          scope.method.local_names.each do |name|
+            locals << name
+          end
+        end
+
+        if dyn = scope.dynamic_locals
+          dyn.keys.each do |name|
+            locals << name unless locals.include?(name)
+          end
+        end
+
+        scope = scope.parent
+      end
+
+      locals
+    end
+
     def exitted?
       @exitted
     end

@@ -107,28 +107,8 @@ module Kernel
   # Names of local variables at point of call (including evaled)
   #
   def local_variables
-    locals = []
-
     scope = Rubinius::VariableScope.of_sender
-
-    # Ascend up through all applicable blocks to get all vars.
-    while scope
-      if scope.method.local_names
-        scope.method.local_names.each do |name|
-          locals << name
-        end
-      end
-
-      if dyn = scope.dynamic_locals
-        dyn.keys.each do |name|
-          locals << name unless locals.include?(name)
-        end
-      end
-
-      scope = scope.parent
-    end
-
-    locals
+    scope.local_variables
   end
   module_function :local_variables
 
