@@ -153,7 +153,7 @@ module Kernel
     c = Rubinius::ToolSets::Runtime::Compiler
     be = c.construct_block string, binding, filename, lineno
 
-    result = be.call_on_instance(binding.self)
+    result = be.call_on_instance(binding.receiver)
     binding.constant_scope = existing_scope
     result
   end
