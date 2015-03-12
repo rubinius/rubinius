@@ -21,13 +21,15 @@ module Rubinius
         end
       end
 
-      def step_size(limit, step)
-        values = step_fetch_args(limit, step)
+      def step_size(limit, step, to, by)
+        values = step_fetch_args(limit, step, to, by)
         value = values[0]
         limit = values[1]
         step = values[2]
         asc = values[3]
         is_float = values[4]
+
+        return Float::INFINITY if step == 0
 
         if is_float
           # Ported from MRI
@@ -43,9 +45,13 @@ module Rubinius
         end
       end
 
-      def step_fetch_args(limit, step)
+      def step_fetch_args(limit, step, to, by)
+        raise ArgumentError, "limit is given twice" if limit && to
+        raise ArgumentError, "step is given twice" if step && by
         raise ArgumentError, "step cannot be 0" if step == 0
 
+        limit ||= to
+        step ||= by || 1
         value = @object
         asc = step > 0
         if value.kind_of? Float or limit.kind_of? Float or step.kind_of? Float
