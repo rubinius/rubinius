@@ -1,7 +1,7 @@
 module Rubinius
   class Mirror
     class Range < Mirror
-      subject = ::Range
+      self.subject = ::Range
 
       def excl
         Rubinius.invoke_primitive :object_get_ivar, @object, :@excl
