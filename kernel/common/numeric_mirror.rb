@@ -1,7 +1,7 @@
 module Rubinius
   class Mirror
     class Numeric < Mirror
-      subject = ::Numeric
+      self.subject = ::Numeric
 
       def step_float_size(value, limit, step, asc)
         if (asc && value > limit) || (!asc && value < limit)
