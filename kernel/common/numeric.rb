@@ -46,7 +46,7 @@ class Numeric
     asc = values[3]
     is_float = values[4]
 
-    if(step == 0)
+    if step == 0
       while true
         yield self
       end
