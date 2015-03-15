@@ -59,7 +59,7 @@ describe :numeric_step, :shared => true do
 
   describe "Numeric#step with [stop, step] when self, stop and step are Fixnums" do
     it "yields only Fixnums" do
-      1.send(@method, *get_args(@args_type, 5, 1)) { |x| x.should be_kind_of(Fixnum) }
+      1.send(@method, *get_args(@args_type, 5, 1)) { |x| x.should be_an_instance_of(Fixnum) }
     end
   end
 
@@ -131,15 +131,15 @@ describe :numeric_step, :shared => true do
 
   describe "Numeric#step with [stop, step]" do
     it "yields only Floats when self is a Float" do
-      1.5.send(@method, *get_args(@args_type, 5, 1)) { |x| x.should be_kind_of(Float) }
+      1.5.send(@method, *get_args(@args_type, 5, 1)) { |x| x.should be_an_instance_of(Float) }
     end
 
     it "yields only Floats when stop is a Float" do
-      1.send(@method, *get_args(@args_type, 5.0, 1)) { |x| x.should be_kind_of(Float) }
+      1.send(@method, *get_args(@args_type, 5.0, 1)) { |x| x.should be_an_instance_of(Float) }
     end
 
     it "yields only Floats when step is a Float" do
-      1.send(@method, *get_args(@args_type, 5, 1.0)) { |x| x.should be_kind_of(Float) }
+      1.send(@method, *get_args(@args_type, 5, 1.0)) { |x| x.should be_an_instance_of(Float) }
     end
   end
 
