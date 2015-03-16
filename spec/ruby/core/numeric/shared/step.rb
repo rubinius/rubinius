@@ -29,34 +29,6 @@ describe :numeric_step, :shared => true do
     0.send(@method, *get_args(@args_type, 5, 2)).to_a.should == [0, 2, 4]
   end
 
-  describe "with [stop, step]" do
-    before :each do
-      @stop = mock("Numeric#step stop value")
-      @step = mock("Numeric#step step value")
-      @obj = NumericSpecs::Subclass.new
-    end
-
-    it "increments self using #+ until self > stop when step > 0" do
-      @step.should_receive(:>).with(0).and_return(true)
-      @obj.should_receive(:>).with(@stop).and_return(false, false, false, true)
-      @obj.should_receive(:+).with(@step).and_return(@obj, @obj, @obj)
-
-      @obj.send(@method, *get_args(@args_type, @stop, @step), &@prc)
-
-      ScratchPad.recorded.should == [@obj, @obj, @obj]
-    end
-
-    it "decrements self using #+ until self < stop when step < 0" do
-      @step.should_receive(:>).with(0).and_return(false)
-      @obj.should_receive(:<).with(@stop).and_return(false, false, false, true)
-      @obj.should_receive(:+).with(@step).and_return(@obj, @obj, @obj)
-
-      @obj.send(@method, *get_args(@args_type, @stop, @step), &@prc)
-
-      ScratchPad.recorded.should == [@obj, @obj, @obj]
-    end
-  end
-
   describe "Numeric#step with [stop, step] when self, stop and step are Fixnums" do
     it "yields only Fixnums" do
       1.send(@method, *get_args(@args_type, 5, 1)) { |x| x.should be_an_instance_of(Fixnum) }
