@@ -13,260 +13,247 @@ describe :numeric_step, :shared => true do
     ScratchPad.recorded.should == [1, 2, 3, 4, 5]
   end
 
-  it "returns an Enumerator when step is 0" do
-    1.send(@method, *get_args(@args_type, 2, 0)).should be_an_instance_of(enumerator_class)
-  end
-
-  it "returns an Enumerator when not passed a block and self > stop" do
-    1.send(@method, *get_args(@args_type, 0, 2)).should be_an_instance_of(enumerator_class)
-  end
-
-  it "returns an Enumerator when not passed a block and self < stop" do
-    1.send(@method, *get_args(@args_type, 2, 3)).should be_an_instance_of(enumerator_class)
-  end
-
-  it "returns an Enumerator that uses the given step" do
-    0.send(@method, *get_args(@args_type, 5, 2)).to_a.should == [0, 2, 4]
-  end
-
-  describe "Numeric#step with [stop, step] when self, stop and step are Fixnums" do
+  describe "when self, stop and step are Fixnums" do
     it "yields only Fixnums" do
       1.send(@method, *get_args(@args_type, 5, 1)) { |x| x.should be_an_instance_of(Fixnum) }
     end
-  end
 
-  describe "Numeric#step with [stop, step] when self and stop are Fixnums but step is a String" do
-    it "returns an Enumerator if not given a block" do
-      1.send(@method, *get_args(@args_type, 5, "1")).should be_an_instance_of(enumerator_class)
-      1.send(@method, *get_args(@args_type, 5, "0.1")).should be_an_instance_of(enumerator_class)
-      1.send(@method, *get_args(@args_type, 5, "1/3")).should be_an_instance_of(enumerator_class)
-      1.send(@method, *get_args(@args_type, 5, "foo")).should be_an_instance_of(enumerator_class)
+    describe "with a positive step" do
+      it "yields while increasing self by step until stop is reached" do
+        1.send(@method, *get_args(@args_type, 5, 1), &@prc)
+        ScratchPad.recorded.should == [1, 2, 3, 4, 5]
+      end
+
+      it "yields once when self equals stop" do
+        1.send(@method, *get_args(@args_type, 1, 1), &@prc)
+        ScratchPad.recorded.should == [1]
+      end
+
+      it "does not yield when self is greater than stop" do
+        2.send(@method, *get_args(@args_type, 1, 1), &@prc)
+        ScratchPad.recorded.should == []
+      end
     end
 
-    it "raises an ArgumentError if given a block" do
-      lambda { 1.send(@method, *get_args(@args_type, 5, "1")) {} }.should raise_error(ArgumentError)
-      lambda { 1.send(@method, *get_args(@args_type, 5, "0.1")) {} }.should raise_error(ArgumentError)
-      lambda { 1.send(@method, *get_args(@args_type, 5, "1/3")) {} }.should raise_error(ArgumentError)
-      lambda { 1.send(@method, *get_args(@args_type, 5, "foo")) {} }.should raise_error(ArgumentError)
-    end
-  end
+    describe "with a negative step" do
+      it "yields while decreasing self by step until stop is reached" do
+        5.send(@method, *get_args(@args_type, 1, -1), &@prc)
+        ScratchPad.recorded.should == [5, 4, 3, 2, 1]
+      end
 
-  describe "Numeric#step with [stop, step] when self and stop are Floats but step is a String" do
-    it "returns an Enumerator if not given a block" do
-      1.1.send(@method, *get_args(@args_type, 5.1, "1")).should be_an_instance_of(enumerator_class)
-      1.1.send(@method, *get_args(@args_type, 5.1, "0.1")).should be_an_instance_of(enumerator_class)
-      1.1.send(@method, *get_args(@args_type, 5.1, "1/3")).should be_an_instance_of(enumerator_class)
-      1.1.send(@method, *get_args(@args_type, 5.1, "foo")).should be_an_instance_of(enumerator_class)
-    end
+      it "yields once when self equals stop" do
+        5.send(@method, *get_args(@args_type, 5, -1), &@prc)
+        ScratchPad.recorded.should == [5]
+      end
 
-    it "raises a ArgumentError if given a block" do
-      lambda { 1.1.send(@method, *get_args(@args_type, 5.1, "1")) {} }.should raise_error(ArgumentError)
-      lambda { 1.1.send(@method, *get_args(@args_type, 5.1, "0.1")) {} }.should raise_error(ArgumentError)
-      lambda { 1.1.send(@method, *get_args(@args_type, 5.1, "1/3")) {} }.should raise_error(ArgumentError)
-      lambda { 1.1.send(@method, *get_args(@args_type, 5.1, "foo")) {} }.should raise_error(ArgumentError)
-    end
-  end
-
-  describe "Numeric#step with [stop, +step] when self, stop and step are Fixnums" do
-    it "yields while increasing self by step until stop is reached" do
-      1.send(@method, *get_args(@args_type, 5, 1), &@prc)
-      ScratchPad.recorded.should == [1, 2, 3, 4, 5]
-    end
-
-    it "yields once when self equals stop" do
-      1.send(@method, *get_args(@args_type, 1, 1), &@prc)
-      ScratchPad.recorded.should == [1]
-    end
-
-    it "does not yield when self is greater than stop" do
-      2.send(@method, *get_args(@args_type, 1, 1), &@prc)
-      ScratchPad.recorded.should == []
+      it "does not yield when self is less than stop" do
+        1.send(@method, *get_args(@args_type, 5, -1), &@prc)
+        ScratchPad.recorded.should == []
+      end
     end
   end
 
-  describe "Numeric#step with [stop, -step] when self, stop and step are Fixnums" do
-    it "yields while decreasing self by step until stop is reached" do
-      5.send(@method, *get_args(@args_type, 1, -1), &@prc)
-      ScratchPad.recorded.should == [5, 4, 3, 2, 1]
-    end
-
-    it "yields once when self equals stop" do
-      5.send(@method, *get_args(@args_type, 5, -1), &@prc)
-      ScratchPad.recorded.should == [5]
-    end
-
-    it "does not yield when self is less than stop" do
-      1.send(@method, *get_args(@args_type, 5, -1), &@prc)
-      ScratchPad.recorded.should == []
-    end
-  end
-
-  describe "Numeric#step with [stop, step]" do
-    it "yields only Floats when self is a Float" do
+  describe "when self, stop or step are a Float" do
+    it "yields Floats even if only self is a Float" do
       1.5.send(@method, *get_args(@args_type, 5, 1)) { |x| x.should be_an_instance_of(Float) }
     end
 
-    it "yields only Floats when stop is a Float" do
+    it "yields Floats even if only stop is a Float" do
       1.send(@method, *get_args(@args_type, 5.0, 1)) { |x| x.should be_an_instance_of(Float) }
     end
 
-    it "yields only Floats when step is a Float" do
+    it "yields Floats even if only step is a Float" do
       1.send(@method, *get_args(@args_type, 5, 1.0)) { |x| x.should be_an_instance_of(Float) }
     end
-  end
 
-  describe "Numeric#step with [stop, +step] when self, stop or step is a Float" do
-    it "yields while increasing self by step while < stop" do
-      1.5.send(@method, *get_args(@args_type, 5, 1), &@prc)
-      ScratchPad.recorded.should == [1.5, 2.5, 3.5, 4.5]
-    end
-
-    it "yields once when self equals stop" do
-      1.5.send(@method, *get_args(@args_type, 1.5, 1), &@prc)
-      ScratchPad.recorded.should == [1.5]
-    end
-
-    it "does not yield when self is greater than stop" do
-      2.5.send(@method, *get_args(@args_type, 1.5, 1), &@prc)
-      ScratchPad.recorded.should == []
-    end
-
-    ruby_bug "redmine #4576", "1.9.3" do
-      it "is careful about not yielding a value greater than limit" do
-        # As 9*1.3+1.0 == 12.700000000000001 > 12.7, we test:
-        1.0.send(@method, *get_args(@args_type, 12.7, 1.3), &@prc)
-        ScratchPad.recorded.should eql [1.0, 2.3, 3.6, 4.9, 6.2, 7.5, 8.8, 10.1, 11.4, 12.7]
-      end
-    end
-  end
-
-  describe "Numeric#step with [stop, -step] when self, stop or step is a Float" do
-    it "yields while decreasing self by step while self > stop" do
-      5.send(@method, *get_args(@args_type, 1.5, -1), &@prc)
-      ScratchPad.recorded.should == [5.0, 4.0, 3.0, 2.0]
-    end
-
-    it "yields once when self equals stop" do
-      1.5.send(@method, *get_args(@args_type, 1.5, -1), &@prc)
-      ScratchPad.recorded.should == [1.5]
-    end
-
-    it "does not yield when self is less than stop" do
-      1.send(@method, *get_args(@args_type, 5, -1.5), &@prc)
-      ScratchPad.recorded.should == []
-    end
-
-    ruby_bug "redmine #4576", "1.9.3" do
-      it "is careful about not yielding a value smaller than limit" do
-        # As -9*1.3-1.0 == -12.700000000000001 < -12.7, we test:
-        -1.0.send(@method, *get_args(@args_type, -12.7, -1.3), &@prc)
-        ScratchPad.recorded.should eql [-1.0, -2.3, -3.6, -4.9, -6.2, -7.5, -8.8, -10.1, -11.4, -12.7]
-      end
-    end
-  end
-
-  describe "Numeric#step with [stop, +Infinity]" do
-    ruby_bug "#781", "1.8.7" do
-      it "yields once if self < stop" do
-        42.send(@method, *get_args(@args_type, 100, infinity_value), &@prc)
-        ScratchPad.recorded.should == [42]
-      end
-
-      it "yields once when stop is Infinity" do
-        42.send(@method, *get_args(@args_type, infinity_value, infinity_value), &@prc)
-        ScratchPad.recorded.should == [42]
+    describe "with a positive step" do
+      it "yields while increasing self by step while < stop" do
+        1.5.send(@method, *get_args(@args_type, 5, 1), &@prc)
+        ScratchPad.recorded.should == [1.5, 2.5, 3.5, 4.5]
       end
 
       it "yields once when self equals stop" do
-        42.send(@method, *get_args(@args_type, 42, infinity_value), &@prc)
-        ScratchPad.recorded.should == [42]
+        1.5.send(@method, *get_args(@args_type, 1.5, 1), &@prc)
+        ScratchPad.recorded.should == [1.5]
       end
 
-      it "yields once when self and stop are Infinity" do
-        (infinity_value).send(@method, *get_args(@args_type, infinity_value, infinity_value), &@prc)
-        ScratchPad.recorded.should == [infinity_value]
-      end
-    end
-
-    ruby_bug "#3945", "1.9.2.135" do
-      it "does not yield when self > stop" do
-        100.send(@method, *get_args(@args_type, 42, infinity_value), &@prc)
+      it "does not yield when self is greater than stop" do
+        2.5.send(@method, *get_args(@args_type, 1.5, 1), &@prc)
         ScratchPad.recorded.should == []
       end
 
-      it "does not yield when stop is -Infinity" do
-        42.send(@method, *get_args(@args_type, -infinity_value, infinity_value), &@prc)
-        ScratchPad.recorded.should == []
+      ruby_bug "redmine #4576", "1.9.3" do
+        it "is careful about not yielding a value greater than limit" do
+          # As 9*1.3+1.0 == 12.700000000000001 > 12.7, we test:
+          1.0.send(@method, *get_args(@args_type, 12.7, 1.3), &@prc)
+          ScratchPad.recorded.should eql [1.0, 2.3, 3.6, 4.9, 6.2, 7.5, 8.8, 10.1, 11.4, 12.7]
+        end
       end
     end
-  end
 
-  describe "Numeric#step with [stop, -infinity]" do
-    ruby_bug "#3945", "1.9.2.135" do
-      it "yields once if self > stop" do
-        42.send(@method, *get_args(@args_type, 6, -infinity_value), &@prc)
-        ScratchPad.recorded.should == [42]
-      end
-
-      it "yields once if stop is -Infinity" do
-        42.send(@method, *get_args(@args_type, -infinity_value, -infinity_value), &@prc)
-        ScratchPad.recorded.should == [42]
+    describe "with a negative step" do
+      it "yields while decreasing self by step while self > stop" do
+        5.send(@method, *get_args(@args_type, 1.5, -1), &@prc)
+        ScratchPad.recorded.should == [5.0, 4.0, 3.0, 2.0]
       end
 
       it "yields once when self equals stop" do
-        42.send(@method, *get_args(@args_type, 42, -infinity_value), &@prc)
-        ScratchPad.recorded.should == [42]
+        1.5.send(@method, *get_args(@args_type, 1.5, -1), &@prc)
+        ScratchPad.recorded.should == [1.5]
       end
 
-      it "yields once when self and stop are Infinity" do
-        (infinity_value).send(@method, *get_args(@args_type, infinity_value, -infinity_value), &@prc)
-        ScratchPad.recorded.should == [infinity_value]
-      end
-    end
-
-    ruby_bug "#781", "1.8.7" do
-      it "does not yield when self > stop" do
-        42.send(@method, *get_args(@args_type, 100, -infinity_value), &@prc)
+      it "does not yield when self is less than stop" do
+        1.send(@method, *get_args(@args_type, 5, -1.5), &@prc)
         ScratchPad.recorded.should == []
       end
 
-      it "does not yield when stop is Infinity" do
-        42.send(@method, *get_args(@args_type, infinity_value, -infinity_value), &@prc)
+      ruby_bug "redmine #4576", "1.9.3" do
+        it "is careful about not yielding a value smaller than limit" do
+          # As -9*1.3-1.0 == -12.700000000000001 < -12.7, we test:
+          -1.0.send(@method, *get_args(@args_type, -12.7, -1.3), &@prc)
+          ScratchPad.recorded.should eql [-1.0, -2.3, -3.6, -4.9, -6.2, -7.5, -8.8, -10.1, -11.4, -12.7]
+        end
+      end
+    end
+
+    describe "with a positive Infinity step" do
+      ruby_bug "#781", "1.8.7" do
+        it "yields once if self < stop" do
+          42.send(@method, *get_args(@args_type, 100, infinity_value), &@prc)
+          ScratchPad.recorded.should == [42]
+        end
+
+        it "yields once when stop is Infinity" do
+          42.send(@method, *get_args(@args_type, infinity_value, infinity_value), &@prc)
+          ScratchPad.recorded.should == [42]
+        end
+
+        it "yields once when self equals stop" do
+          42.send(@method, *get_args(@args_type, 42, infinity_value), &@prc)
+          ScratchPad.recorded.should == [42]
+        end
+
+        it "yields once when self and stop are Infinity" do
+          (infinity_value).send(@method, *get_args(@args_type, infinity_value, infinity_value), &@prc)
+          ScratchPad.recorded.should == [infinity_value]
+        end
+      end
+
+      ruby_bug "#3945", "1.9.2.135" do
+        it "does not yield when self > stop" do
+          100.send(@method, *get_args(@args_type, 42, infinity_value), &@prc)
+          ScratchPad.recorded.should == []
+        end
+
+        it "does not yield when stop is -Infinity" do
+          42.send(@method, *get_args(@args_type, -infinity_value, infinity_value), &@prc)
+          ScratchPad.recorded.should == []
+        end
+      end
+    end
+
+    describe "with a negative Infinity step" do
+      ruby_bug "#3945", "1.9.2.135" do
+        it "yields once if self > stop" do
+          42.send(@method, *get_args(@args_type, 6, -infinity_value), &@prc)
+          ScratchPad.recorded.should == [42]
+        end
+
+        it "yields once if stop is -Infinity" do
+          42.send(@method, *get_args(@args_type, -infinity_value, -infinity_value), &@prc)
+          ScratchPad.recorded.should == [42]
+        end
+
+        it "yields once when self equals stop" do
+          42.send(@method, *get_args(@args_type, 42, -infinity_value), &@prc)
+          ScratchPad.recorded.should == [42]
+        end
+
+        it "yields once when self and stop are Infinity" do
+          (infinity_value).send(@method, *get_args(@args_type, infinity_value, -infinity_value), &@prc)
+          ScratchPad.recorded.should == [infinity_value]
+        end
+      end
+
+      ruby_bug "#781", "1.8.7" do
+        it "does not yield when self > stop" do
+          42.send(@method, *get_args(@args_type, 100, -infinity_value), &@prc)
+          ScratchPad.recorded.should == []
+        end
+
+        it "does not yield when stop is Infinity" do
+          42.send(@method, *get_args(@args_type, infinity_value, -infinity_value), &@prc)
+          ScratchPad.recorded.should == []
+        end
+      end
+    end
+
+    describe "with a Infinity stop and a positive step" do
+      it "does not yield when self is infinity" do
+        (infinity_value).send(@method, *get_args(@args_type, infinity_value, 1), &@prc)
         ScratchPad.recorded.should == []
       end
     end
-  end
 
-  describe "Numeric#step with [infinity, -step]" do
-    it "does not yield when self is -infinity" do
-      (-infinity_value).send(@method, *get_args(@args_type, infinity_value, -1), &@prc)
-      ScratchPad.recorded.should == []
+    describe "with a Infinity stop and a negative step" do
+      it "does not yield when self is negative infinity" do
+        (-infinity_value).send(@method, *get_args(@args_type, infinity_value, -1), &@prc)
+        ScratchPad.recorded.should == []
+      end
+
+      it "does not yield when self is positive infinity" do
+        infinity_value.send(@method, *get_args(@args_type, infinity_value, -1), &@prc)
+        ScratchPad.recorded.should == []
+      end
     end
 
-    it "does not yield when self is +infinity" do
-      infinity_value.send(@method, *get_args(@args_type, infinity_value, -1), &@prc)
-      ScratchPad.recorded.should == []
+    describe "with a negative Infinity stop and a positive step" do
+      it "does not yield when self is negative infinity" do
+        (-infinity_value).send(@method, *get_args(@args_type, -infinity_value, 1), &@prc)
+        ScratchPad.recorded.should == []
+      end
     end
+
+    describe "with a negative Infinity stop and a negative step" do
+      it "does not yield when self is negative infinity" do
+        (-infinity_value).send(@method, *get_args(@args_type, -infinity_value, -1), &@prc)
+        ScratchPad.recorded.should == []
+      end
+    end
+
   end
 
-  describe "Numeric#step with [infinity, step]" do
-    it "does not yield when self is infinity" do
-      (infinity_value).send(@method, *get_args(@args_type, infinity_value, 1), &@prc)
-      ScratchPad.recorded.should == []
-    end
-  end
+  describe "when step is a String" do
+    describe "with self and stop as Fixnums" do
+      it "returns an Enumerator if not given a block" do
+        1.send(@method, *get_args(@args_type, 5, "1")).should be_an_instance_of(enumerator_class)
+        1.send(@method, *get_args(@args_type, 5, "0.1")).should be_an_instance_of(enumerator_class)
+        1.send(@method, *get_args(@args_type, 5, "1/3")).should be_an_instance_of(enumerator_class)
+        1.send(@method, *get_args(@args_type, 5, "foo")).should be_an_instance_of(enumerator_class)
+      end
 
-  describe "Numeric#step with [-infinity, step]" do
-    it "does not yield when self is -infinity" do
-      (-infinity_value).send(@method, *get_args(@args_type, -infinity_value, 1), &@prc)
-      ScratchPad.recorded.should == []
+      it "raises an ArgumentError if given a block" do
+        lambda { 1.send(@method, *get_args(@args_type, 5, "1")) {} }.should raise_error(ArgumentError)
+        lambda { 1.send(@method, *get_args(@args_type, 5, "0.1")) {} }.should raise_error(ArgumentError)
+        lambda { 1.send(@method, *get_args(@args_type, 5, "1/3")) {} }.should raise_error(ArgumentError)
+        lambda { 1.send(@method, *get_args(@args_type, 5, "foo")) {} }.should raise_error(ArgumentError)
+      end  
     end
-  end
 
-  describe "Numeric#step with [-infinity, -step]" do
-    it "does not yield when self is -infinity" do
-      (-infinity_value).send(@method, *get_args(@args_type, -infinity_value, -1), &@prc)
-      ScratchPad.recorded.should == []
+    describe "with self and stop as Floats" do
+      it "returns an Enumerator if not given a block" do
+        1.1.send(@method, *get_args(@args_type, 5.1, "1")).should be_an_instance_of(enumerator_class)
+        1.1.send(@method, *get_args(@args_type, 5.1, "0.1")).should be_an_instance_of(enumerator_class)
+        1.1.send(@method, *get_args(@args_type, 5.1, "1/3")).should be_an_instance_of(enumerator_class)
+        1.1.send(@method, *get_args(@args_type, 5.1, "foo")).should be_an_instance_of(enumerator_class)
+      end
+
+      it "raises a ArgumentError if given a block" do
+        lambda { 1.1.send(@method, *get_args(@args_type, 5.1, "1")) {} }.should raise_error(ArgumentError)
+        lambda { 1.1.send(@method, *get_args(@args_type, 5.1, "0.1")) {} }.should raise_error(ArgumentError)
+        lambda { 1.1.send(@method, *get_args(@args_type, 5.1, "1/3")) {} }.should raise_error(ArgumentError)
+        lambda { 1.1.send(@method, *get_args(@args_type, 5.1, "foo")) {} }.should raise_error(ArgumentError)
+      end
     end
   end
 
@@ -279,6 +266,22 @@ describe :numeric_step, :shared => true do
   end
 
   describe "when no block is given" do
+    it "returns an Enumerator when step is 0" do
+      1.send(@method, *get_args(@args_type, 2, 0)).should be_an_instance_of(enumerator_class)
+    end
+
+    it "returns an Enumerator when not passed a block and self > stop" do
+      1.send(@method, *get_args(@args_type, 0, 2)).should be_an_instance_of(enumerator_class)
+    end
+
+    it "returns an Enumerator when not passed a block and self < stop" do
+      1.send(@method, *get_args(@args_type, 2, 3)).should be_an_instance_of(enumerator_class)
+    end
+
+    it "returns an Enumerator that uses the given step" do
+      0.send(@method, *get_args(@args_type, 5, 2)).to_a.should == [0, 2, 4]
+    end
+
     describe "returned Enumerator" do
       describe "size" do
         describe "when self, stop and step are Fixnums and step is positive" do
