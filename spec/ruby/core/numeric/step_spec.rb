@@ -53,12 +53,12 @@ describe "Numeric#step" do
     describe "when no block is given" do
       describe "returned Enumerator" do
         describe "size" do
-          it "should return Float::INFINITY when step is 0" do
-            1.step(to: 5, by: 0).size.should == Float::INFINITY
+          it "should return infinity_value when step is 0" do
+            1.step(to: 5, by: 0).size.should == infinity_value
           end
 
-          it "should return Float::INFINITY when step is 0.0" do
-            1.step(to: 2, by: 0.0).size.should == Float::INFINITY
+          it "should return infinity_value when step is 0.0" do
+            1.step(to: 2, by: 0.0).size.should == infinity_value
           end
         end
       end
@@ -96,12 +96,12 @@ describe "Numeric#step" do
     describe "when no block is given" do
       describe "returned Enumerator" do
         describe "size" do
-          it "should return Float::INFINITY when step is 0" do
-            1.step(5, by: 0).size.should == Float::INFINITY
+          it "should return infinity_value when step is 0" do
+            1.step(5, by: 0).size.should == infinity_value
           end
 
-          it "should return Float::INFINITY when step is 0.0" do
-            1.step(2, by: 0.0).size.should == Float::INFINITY
+          it "should return infinity_value when step is 0.0" do
+            1.step(2, by: 0.0).size.should == infinity_value
           end
         end
       end

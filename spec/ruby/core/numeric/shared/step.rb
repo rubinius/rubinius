@@ -362,11 +362,11 @@ describe :numeric_step, :shared => true do
               10.send(@method, *get_args(@args_type, 5.5)).size.should == 0
               11.send(@method, *get_args(@args_type, 10, 1.0)).size.should == 0
               11.send(@method, *get_args(@args_type, 10, 1.5)).size.should == 0
-              10.send(@method, *get_args(@args_type, 5, Float::INFINITY)).size.should == 0
+              10.send(@method, *get_args(@args_type, 5, infinity_value)).size.should == 0
             end
 
-            it "returns 1 if step is Float::INFINITY" do
-              5.send(@method, *get_args(@args_type, 10, Float::INFINITY)).size.should == 1
+            it "returns 1 if step is infinity_value" do
+              5.send(@method, *get_args(@args_type, 10, infinity_value)).size.should == 1
             end
           end
 
@@ -385,11 +385,11 @@ describe :numeric_step, :shared => true do
             it "returns 0 if value < limit" do
               10.send(@method, *get_args(@args_type, 11, -1.0)).size.should == 0
               10.send(@method, *get_args(@args_type, 11, -1.5)).size.should == 0
-              5.send(@method, *get_args(@args_type, 10, -Float::INFINITY)).size.should == 0
+              5.send(@method, *get_args(@args_type, 10, -infinity_value)).size.should == 0
             end
 
-            it "returns 1 if step is Float::INFINITY" do
-              10.send(@method, *get_args(@args_type, 5, -Float::INFINITY)).size.should == 1
+            it "returns 1 if step is infinity_value" do
+              10.send(@method, *get_args(@args_type, 5, -infinity_value)).size.should == 1
             end
           end
         end
