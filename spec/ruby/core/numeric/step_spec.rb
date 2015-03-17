@@ -16,6 +16,14 @@ describe "Numeric#step" do
     it_behaves_like :numeric_step, :step
 
     describe "when no block is given" do
+      it "returns an Enumerator when step is 0" do
+        1.step(5, 0).should be_an_instance_of(enumerator_class)
+      end
+
+      it "returns an Enumerator when step is 0.0" do
+        1.step(2, 0.0).should be_an_instance_of(enumerator_class)
+      end
+
       describe "returned Enumerator" do
         describe "size" do
           it "raises an ArgumentError when step is 0" do
@@ -75,7 +83,7 @@ describe "Numeric#step" do
       lambda { 1.step(5, 1, to: 5) { break } }.should raise_error(ArgumentError)
     end
 
-    it "doesn't raise an error when step is 0.0" do
+    it "raises a ArgumentError when step and by are defined" do
       lambda { 1.step(5, 1, by: 5) { break } }.should raise_error(ArgumentError)
     end
 
