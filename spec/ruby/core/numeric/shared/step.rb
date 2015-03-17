@@ -225,33 +225,23 @@ describe :numeric_step, :shared => true do
 
   describe "when step is a String" do
     describe "with self and stop as Fixnums" do
-      it "returns an Enumerator if not given a block" do
-        1.send(@method, *get_args(@args_type, 5, "1")).should be_an_instance_of(enumerator_class)
-        1.send(@method, *get_args(@args_type, 5, "0.1")).should be_an_instance_of(enumerator_class)
-        1.send(@method, *get_args(@args_type, 5, "1/3")).should be_an_instance_of(enumerator_class)
-        1.send(@method, *get_args(@args_type, 5, "foo")).should be_an_instance_of(enumerator_class)
-      end
-
-      it "raises an ArgumentError if given a block" do
+      it 'raises an ArgumentError when step is a numeric representation' do
         lambda { 1.send(@method, *get_args(@args_type, 5, "1")) {} }.should raise_error(ArgumentError)
         lambda { 1.send(@method, *get_args(@args_type, 5, "0.1")) {} }.should raise_error(ArgumentError)
         lambda { 1.send(@method, *get_args(@args_type, 5, "1/3")) {} }.should raise_error(ArgumentError)
+      end
+      it 'raises an ArgumentError with step as an alphanumeric string' do
         lambda { 1.send(@method, *get_args(@args_type, 5, "foo")) {} }.should raise_error(ArgumentError)
-      end  
+      end
     end
 
     describe "with self and stop as Floats" do
-      it "returns an Enumerator if not given a block" do
-        1.1.send(@method, *get_args(@args_type, 5.1, "1")).should be_an_instance_of(enumerator_class)
-        1.1.send(@method, *get_args(@args_type, 5.1, "0.1")).should be_an_instance_of(enumerator_class)
-        1.1.send(@method, *get_args(@args_type, 5.1, "1/3")).should be_an_instance_of(enumerator_class)
-        1.1.send(@method, *get_args(@args_type, 5.1, "foo")).should be_an_instance_of(enumerator_class)
-      end
-
-      it "raises a ArgumentError if given a block" do
+      it 'raises an ArgumentError when step is a numeric representation' do
         lambda { 1.1.send(@method, *get_args(@args_type, 5.1, "1")) {} }.should raise_error(ArgumentError)
         lambda { 1.1.send(@method, *get_args(@args_type, 5.1, "0.1")) {} }.should raise_error(ArgumentError)
         lambda { 1.1.send(@method, *get_args(@args_type, 5.1, "1/3")) {} }.should raise_error(ArgumentError)
+      end
+      it 'raises an ArgumentError with step as an alphanumeric string' do
         lambda { 1.1.send(@method, *get_args(@args_type, 5.1, "foo")) {} }.should raise_error(ArgumentError)
       end
     end
@@ -282,8 +272,45 @@ describe :numeric_step, :shared => true do
       0.send(@method, *get_args(@args_type, 5, 2)).to_a.should eql [0, 2, 4]
     end
 
+    describe "when step is a String" do
+      describe "with self and stop as Fixnums" do
+        it "returns an Enumerator" do
+          1.send(@method, *get_args(@args_type, 5, "foo")).should be_an_instance_of(enumerator_class)
+        end
+      end
+
+      describe "with self and stop as Floats" do
+        it "returns an Enumerator" do
+          1.1.send(@method, *get_args(@args_type, 5.1, "foo")).should be_an_instance_of(enumerator_class)
+        end
+      end
+    end
+
     describe "returned Enumerator" do
       describe "size" do
+        describe "when step is a String" do
+          describe "with self and stop as Fixnums" do
+            it 'raises an ArgumentError when step is a numeric representation' do
+              lambda { 1.send(@method, *get_args(@args_type, 5, "1")).size }.should raise_error(ArgumentError)
+              lambda { 1.send(@method, *get_args(@args_type, 5, "0.1")).size }.should raise_error(ArgumentError)
+              lambda { 1.send(@method, *get_args(@args_type, 5, "1/3")).size }.should raise_error(ArgumentError)
+            end
+            it 'raises an ArgumentError with step as an alphanumeric string' do
+              lambda { 1.send(@method, *get_args(@args_type, 5, "foo")).size }.should raise_error(ArgumentError)
+            end
+          end
+
+          describe "with self and stop as Floats" do
+            it 'raises an ArgumentError when step is a numeric representation' do
+              lambda { 1.1.send(@method, *get_args(@args_type, 5.1, "1")).size }.should raise_error(ArgumentError)
+              lambda { 1.1.send(@method, *get_args(@args_type, 5.1, "0.1")).size }.should raise_error(ArgumentError)
+              lambda { 1.1.send(@method, *get_args(@args_type, 5.1, "1/3")).size }.should raise_error(ArgumentError)
+            end
+            it 'raises an ArgumentError with step as an alphanumeric string' do
+              lambda { 1.1.send(@method, *get_args(@args_type, 5.1, "foo")).size }.should raise_error(ArgumentError)
+            end
+          end
+        end
         describe "when self, stop and step are Fixnums and step is positive" do
           it "returns the difference between self and stop divided by the number of steps" do
             5.send(@method, *get_args(@args_type, 10, 11)).size.should == 1
