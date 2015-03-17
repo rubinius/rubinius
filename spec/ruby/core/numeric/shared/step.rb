@@ -10,7 +10,7 @@ describe :numeric_step, :shared => true do
 
   it "defaults to step = 1" do
     1.send(@method, *get_args(@args_type, 5), &@prc)
-    ScratchPad.recorded.should == [1, 2, 3, 4, 5]
+    ScratchPad.recorded.should eql [1, 2, 3, 4, 5]
   end
 
   describe "when self, stop and step are Fixnums" do
@@ -21,29 +21,29 @@ describe :numeric_step, :shared => true do
     describe "with a positive step" do
       it "yields while increasing self by step until stop is reached" do
         1.send(@method, *get_args(@args_type, 5, 1), &@prc)
-        ScratchPad.recorded.should == [1, 2, 3, 4, 5]
+        ScratchPad.recorded.should eql [1, 2, 3, 4, 5]
       end
 
       it "yields once when self equals stop" do
         1.send(@method, *get_args(@args_type, 1, 1), &@prc)
-        ScratchPad.recorded.should == [1]
+        ScratchPad.recorded.should eql [1]
       end
 
       it "does not yield when self is greater than stop" do
         2.send(@method, *get_args(@args_type, 1, 1), &@prc)
-        ScratchPad.recorded.should == []
+        ScratchPad.recorded.should eql []
       end
     end
 
     describe "with a negative step" do
       it "yields while decreasing self by step until stop is reached" do
         5.send(@method, *get_args(@args_type, 1, -1), &@prc)
-        ScratchPad.recorded.should == [5, 4, 3, 2, 1]
+        ScratchPad.recorded.should eql [5, 4, 3, 2, 1]
       end
 
       it "yields once when self equals stop" do
         5.send(@method, *get_args(@args_type, 5, -1), &@prc)
-        ScratchPad.recorded.should == [5]
+        ScratchPad.recorded.should eql [5]
       end
 
       it "does not yield when self is less than stop" do
@@ -69,12 +69,12 @@ describe :numeric_step, :shared => true do
     describe "with a positive step" do
       it "yields while increasing self by step while < stop" do
         1.5.send(@method, *get_args(@args_type, 5, 1), &@prc)
-        ScratchPad.recorded.should == [1.5, 2.5, 3.5, 4.5]
+        ScratchPad.recorded.should eql [1.5, 2.5, 3.5, 4.5]
       end
 
       it "yields once when self equals stop" do
         1.5.send(@method, *get_args(@args_type, 1.5, 1), &@prc)
-        ScratchPad.recorded.should == [1.5]
+        ScratchPad.recorded.should eql [1.5]
       end
 
       it "does not yield when self is greater than stop" do
@@ -94,12 +94,12 @@ describe :numeric_step, :shared => true do
     describe "with a negative step" do
       it "yields while decreasing self by step while self > stop" do
         5.send(@method, *get_args(@args_type, 1.5, -1), &@prc)
-        ScratchPad.recorded.should == [5.0, 4.0, 3.0, 2.0]
+        ScratchPad.recorded.should eql [5.0, 4.0, 3.0, 2.0]
       end
 
       it "yields once when self equals stop" do
         1.5.send(@method, *get_args(@args_type, 1.5, -1), &@prc)
-        ScratchPad.recorded.should == [1.5]
+        ScratchPad.recorded.should eql [1.5]
       end
 
       it "does not yield when self is less than stop" do
@@ -120,17 +120,17 @@ describe :numeric_step, :shared => true do
       ruby_bug "#781", "1.8.7" do
         it "yields once if self < stop" do
           42.send(@method, *get_args(@args_type, 100, infinity_value), &@prc)
-          ScratchPad.recorded.should == [42]
+          ScratchPad.recorded.should eql [42.0]
         end
 
         it "yields once when stop is Infinity" do
           42.send(@method, *get_args(@args_type, infinity_value, infinity_value), &@prc)
-          ScratchPad.recorded.should == [42]
+          ScratchPad.recorded.should eql [42.0]
         end
 
         it "yields once when self equals stop" do
           42.send(@method, *get_args(@args_type, 42, infinity_value), &@prc)
-          ScratchPad.recorded.should == [42]
+          ScratchPad.recorded.should eql [42.0]
         end
 
         it "yields once when self and stop are Infinity" do
@@ -156,17 +156,17 @@ describe :numeric_step, :shared => true do
       ruby_bug "#3945", "1.9.2.135" do
         it "yields once if self > stop" do
           42.send(@method, *get_args(@args_type, 6, -infinity_value), &@prc)
-          ScratchPad.recorded.should == [42]
+          ScratchPad.recorded.should eql [42.0]
         end
 
         it "yields once if stop is -Infinity" do
           42.send(@method, *get_args(@args_type, -infinity_value, -infinity_value), &@prc)
-          ScratchPad.recorded.should == [42]
+          ScratchPad.recorded.should eql [42.0]
         end
 
         it "yields once when self equals stop" do
           42.send(@method, *get_args(@args_type, 42, -infinity_value), &@prc)
-          ScratchPad.recorded.should == [42]
+          ScratchPad.recorded.should eql [42.0]
         end
 
         it "yields once when self and stop are Infinity" do
@@ -279,7 +279,7 @@ describe :numeric_step, :shared => true do
     end
 
     it "returns an Enumerator that uses the given step" do
-      0.send(@method, *get_args(@args_type, 5, 2)).to_a.should == [0, 2, 4]
+      0.send(@method, *get_args(@args_type, 5, 2)).to_a.should eql [0, 2, 4]
     end
 
     describe "returned Enumerator" do

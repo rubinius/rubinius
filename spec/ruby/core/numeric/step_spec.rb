@@ -80,9 +80,9 @@ describe "Numeric#step" do
     end
 
     it "should loop over self when step is 0 or 0.0" do
-      1.step(2, by: 0.0).take(5).should == [1, 1, 1, 1, 1]
-      1.step(2, by: 0).take(5).should == [1, 1, 1, 1, 1]
-      1.1.step(2, by: 0).take(5).should == [1.1, 1.1, 1.1, 1.1, 1.1]
+      1.step(2, by: 0.0).take(5).should eql [1.0, 1.0, 1.0, 1.0, 1.0]
+      1.step(2, by: 0).take(5).should eql [1, 1, 1, 1, 1]
+      1.1.step(2, by: 0).take(5).should eql [1.1, 1.1, 1.1, 1.1, 1.1]
     end
 
     describe "when no block is given" do
