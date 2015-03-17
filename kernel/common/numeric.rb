@@ -48,7 +48,7 @@ class Numeric
 
     if step == 0
       while true
-        yield self
+        yield value
       end
     end
 
