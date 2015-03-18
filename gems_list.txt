@@ -9,7 +9,7 @@ rake-10.4.2.gem
 rb-readline-0.5.2.gem
 rdoc-4.2.0.gem
 redcard-1.1.0.gem
-rubinius-ast-2.3.1.gem
+rubinius-ast-2.3.2.gem
 rubinius-build_tools-2.0.0.gem
 rubinius-compiler-2.3.1.gem
 rubinius-coverage-2.0.3.gem
