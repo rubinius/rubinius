@@ -1,0 +1,1 @@
+fails:Hash literal accepts mixed 'key: value', 'key => value' and '"key"': value' syntax
