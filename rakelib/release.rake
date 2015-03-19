@@ -11,6 +11,7 @@ task :release => :revision_file do
   Dir.chdir BUILD_CONFIG[:gems_cache] do
     sh "rm -f *", :verbose => $verbose
   end
+  sh "gem install bundler", :verbose => $verbose
   sh "bundle update", :verbose => $verbose
   Rake::Task['gems:update_list'].invoke
   Dir.chdir BUILD_CONFIG[:gems_cache] do
