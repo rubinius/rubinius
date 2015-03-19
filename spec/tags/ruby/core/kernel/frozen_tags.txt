@@ -1,0 +1,3 @@
+fails:Kernel#frozen? on nil returns true
+fails:Kernel#frozen? on true returns true
+fails:Kernel#frozen? on false returns true
