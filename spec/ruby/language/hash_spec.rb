@@ -73,9 +73,9 @@ describe "Hash literal" do
     {rbx: :cool, specs: 'fail_sometimes',}.should == h
   end
 
-  it "accepts mixed 'key: value' and 'key => value' syntax" do
-    h = {:a => 1, :b => 2, "c" => 3}
-    {a: 1, :b => 2, "c" => 3}.should == h
+  it "accepts mixed 'key: value', 'key => value' and '\"key\"': value' syntax" do
+    h = {:a => 1, :b => 2, "c" => 3, :d => 4}
+    eval('{a: 1, :b => 2, "c" => 3, "d": 4}').should == h
   end
 
   it "expands an '**{}' element into the containing Hash literal initialization" do
