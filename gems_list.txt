@@ -29,6 +29,7 @@ rubysl-curses-1.0.0.gem
 rubysl-date-1.0.1.gem
 rubysl-delegate-1.0.0.gem
 rubysl-digest-1.0.1.gem
+rubysl-dl-1.0.3.gem
 rubysl-drb-1.0.0.gem
 rubysl-e2mmap-1.0.0.gem
 rubysl-english-1.0.0.gem
