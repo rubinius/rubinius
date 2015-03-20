@@ -20,7 +20,7 @@ module Rubinius
     end
 
     class Object < Mirror
-      subject = ::Object
+      self.subject = ::Object
     end
 
     def inspect

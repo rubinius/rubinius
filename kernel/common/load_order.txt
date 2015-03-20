@@ -1,4 +1,3 @@
-mirror.rbc
 string_mirror.rbc
 class.rbc
 autoload.rbc
