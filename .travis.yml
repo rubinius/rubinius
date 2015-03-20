@@ -41,7 +41,7 @@ notifications:
       - https://webhooks.gitter.im/e/9502afd22ca6c8e85fb3
     on_success: change
     on_failure: always
-    on_start: false
+    on_start: always
 
 env:
   - RVM=2.0.0 LANG="en_US.UTF-8"
