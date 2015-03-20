@@ -82,12 +82,10 @@ describe :numeric_step, :shared => true do
         ScratchPad.recorded.should == []
       end
 
-      ruby_bug "redmine #4576", "1.9.3" do
-        it "is careful about not yielding a value greater than limit" do
-          # As 9*1.3+1.0 == 12.700000000000001 > 12.7, we test:
-          1.0.send(@method, *get_args(@args_type, 12.7, 1.3), &@prc)
-          ScratchPad.recorded.should eql [1.0, 2.3, 3.6, 4.9, 6.2, 7.5, 8.8, 10.1, 11.4, 12.7]
-        end
+      it "is careful about not yielding a value greater than limit" do
+        # As 9*1.3+1.0 == 12.700000000000001 > 12.7, we test:
+        1.0.send(@method, *get_args(@args_type, 12.7, 1.3), &@prc)
+        ScratchPad.recorded.should eql [1.0, 2.3, 3.6, 4.9, 6.2, 7.5, 8.8, 10.1, 11.4, 12.7]
       end
     end
 
@@ -107,84 +105,74 @@ describe :numeric_step, :shared => true do
         ScratchPad.recorded.should == []
       end
 
-      ruby_bug "redmine #4576", "1.9.3" do
-        it "is careful about not yielding a value smaller than limit" do
-          # As -9*1.3-1.0 == -12.700000000000001 < -12.7, we test:
-          -1.0.send(@method, *get_args(@args_type, -12.7, -1.3), &@prc)
-          ScratchPad.recorded.should eql [-1.0, -2.3, -3.6, -4.9, -6.2, -7.5, -8.8, -10.1, -11.4, -12.7]
-        end
+      it "is careful about not yielding a value smaller than limit" do
+        # As -9*1.3-1.0 == -12.700000000000001 < -12.7, we test:
+        -1.0.send(@method, *get_args(@args_type, -12.7, -1.3), &@prc)
+        ScratchPad.recorded.should eql [-1.0, -2.3, -3.6, -4.9, -6.2, -7.5, -8.8, -10.1, -11.4, -12.7]
       end
     end
 
     describe "with a positive Infinity step" do
-      ruby_bug "#781", "1.8.7" do
-        it "yields once if self < stop" do
-          42.send(@method, *get_args(@args_type, 100, infinity_value), &@prc)
-          ScratchPad.recorded.should eql [42.0]
-        end
-
-        it "yields once when stop is Infinity" do
-          42.send(@method, *get_args(@args_type, infinity_value, infinity_value), &@prc)
-          ScratchPad.recorded.should eql [42.0]
-        end
-
-        it "yields once when self equals stop" do
-          42.send(@method, *get_args(@args_type, 42, infinity_value), &@prc)
-          ScratchPad.recorded.should eql [42.0]
-        end
-
-        it "yields once when self and stop are Infinity" do
-          (infinity_value).send(@method, *get_args(@args_type, infinity_value, infinity_value), &@prc)
-          ScratchPad.recorded.should == [infinity_value]
-        end
+      it "yields once if self < stop" do
+        42.send(@method, *get_args(@args_type, 100, infinity_value), &@prc)
+        ScratchPad.recorded.should eql [42.0]
       end
 
-      ruby_bug "#3945", "1.9.2.135" do
-        it "does not yield when self > stop" do
-          100.send(@method, *get_args(@args_type, 42, infinity_value), &@prc)
-          ScratchPad.recorded.should == []
-        end
+      it "yields once when stop is Infinity" do
+        42.send(@method, *get_args(@args_type, infinity_value, infinity_value), &@prc)
+        ScratchPad.recorded.should eql [42.0]
+      end
 
-        it "does not yield when stop is -Infinity" do
-          42.send(@method, *get_args(@args_type, -infinity_value, infinity_value), &@prc)
-          ScratchPad.recorded.should == []
-        end
+      it "yields once when self equals stop" do
+        42.send(@method, *get_args(@args_type, 42, infinity_value), &@prc)
+        ScratchPad.recorded.should eql [42.0]
+      end
+
+      it "yields once when self and stop are Infinity" do
+        (infinity_value).send(@method, *get_args(@args_type, infinity_value, infinity_value), &@prc)
+        ScratchPad.recorded.should == [infinity_value]
+      end
+
+      it "does not yield when self > stop" do
+        100.send(@method, *get_args(@args_type, 42, infinity_value), &@prc)
+        ScratchPad.recorded.should == []
+      end
+
+      it "does not yield when stop is -Infinity" do
+        42.send(@method, *get_args(@args_type, -infinity_value, infinity_value), &@prc)
+        ScratchPad.recorded.should == []
       end
     end
 
     describe "with a negative Infinity step" do
-      ruby_bug "#3945", "1.9.2.135" do
-        it "yields once if self > stop" do
-          42.send(@method, *get_args(@args_type, 6, -infinity_value), &@prc)
-          ScratchPad.recorded.should eql [42.0]
-        end
-
-        it "yields once if stop is -Infinity" do
-          42.send(@method, *get_args(@args_type, -infinity_value, -infinity_value), &@prc)
-          ScratchPad.recorded.should eql [42.0]
-        end
-
-        it "yields once when self equals stop" do
-          42.send(@method, *get_args(@args_type, 42, -infinity_value), &@prc)
-          ScratchPad.recorded.should eql [42.0]
-        end
-
-        it "yields once when self and stop are Infinity" do
-          (infinity_value).send(@method, *get_args(@args_type, infinity_value, -infinity_value), &@prc)
-          ScratchPad.recorded.should == [infinity_value]
-        end
+      it "yields once if self > stop" do
+        42.send(@method, *get_args(@args_type, 6, -infinity_value), &@prc)
+        ScratchPad.recorded.should eql [42.0]
       end
 
-      ruby_bug "#781", "1.8.7" do
-        it "does not yield when self > stop" do
-          42.send(@method, *get_args(@args_type, 100, -infinity_value), &@prc)
-          ScratchPad.recorded.should == []
-        end
+      it "yields once if stop is -Infinity" do
+        42.send(@method, *get_args(@args_type, -infinity_value, -infinity_value), &@prc)
+        ScratchPad.recorded.should eql [42.0]
+      end
 
-        it "does not yield when stop is Infinity" do
-          42.send(@method, *get_args(@args_type, infinity_value, -infinity_value), &@prc)
-          ScratchPad.recorded.should == []
-        end
+      it "yields once when self equals stop" do
+        42.send(@method, *get_args(@args_type, 42, -infinity_value), &@prc)
+        ScratchPad.recorded.should eql [42.0]
+      end
+
+      it "yields once when self and stop are Infinity" do
+        (infinity_value).send(@method, *get_args(@args_type, infinity_value, -infinity_value), &@prc)
+        ScratchPad.recorded.should == [infinity_value]
+      end
+
+      it "does not yield when self > stop" do
+        42.send(@method, *get_args(@args_type, 100, -infinity_value), &@prc)
+        ScratchPad.recorded.should == []
+      end
+
+      it "does not yield when stop is Infinity" do
+        42.send(@method, *get_args(@args_type, infinity_value, -infinity_value), &@prc)
+        ScratchPad.recorded.should == []
       end
     end
 
