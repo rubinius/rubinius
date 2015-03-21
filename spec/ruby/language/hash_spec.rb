@@ -93,7 +93,7 @@ describe "Hash literal" do
     obj = mock("hash splat")
     obj.should_receive(:to_hash).and_return({a: 2, b: 3})
 
-    {a: 1, **obj, c: 3}.should == {a:1, b: 3, c: 3}
+    {a: 1, **obj, c: 3}.should == {a: 2, b: 3, c: 3}
   end
 
   it "raises a TypeError if #to_hash does not return a Hash" do
@@ -103,12 +103,12 @@ describe "Hash literal" do
     lambda { {**obj} }.should raise_error(TypeError)
   end
 
-  it "merges the containing Hash into the **obj before importing obj's items" do
-    {a: 1, **{a: 2, b: 3, c: 4}, c: 3}.should == {a: 1, b: 3, c: 3}
+  it "expands an '**obj' element into the containing Hash and keeps the latter keys if there are duplicates" do
+    {a: 1, **{a: 2, b: 3, c: 4}, c: 3}.should == {a: 2, b: 3, c: 3}
   end
 
   it "merges multiple nested '**obj' in Hash literals" do
     h = {a: 1, **{a: 2, **{b: 3, **{c: 4}}, **{d: 5}, }, **{d: 6}}
-    h.should == {a: 1, b: 3, c: 4, d: 5}
+    h.should == {a: 2, b: 3, c: 4, d: 6}
   end
 end
