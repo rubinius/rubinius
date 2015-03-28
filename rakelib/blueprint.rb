@@ -51,8 +51,7 @@ Daedalus.blueprint do |i|
 
   gcc.ldflags << "-lm"
 
-  if Rubinius::BUILD_CONFIG[:dtrace] #and
-     #Rubinius::BUILD_CONFIG[:os] =~ /freebsd(9|10)/
+  if Rubinius::BUILD_CONFIG[:dtrace]
     gcc.ldflags << "-lelf"
     gcc.ldflags << "vm/dtrace/probes.o"
 
