@@ -149,6 +149,7 @@ namespace rubinius {
     SymbolTable symbols;
     LLVMState* llvm_state;
     std::string fsapi_path;
+    std::string username;
     uint32_t hash_seed;
 
   public:

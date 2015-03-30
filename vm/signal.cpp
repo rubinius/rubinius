@@ -349,6 +349,7 @@ namespace rubinius {
     logger::fatal("--- end system info ---");
 
     logger::fatal("--- begin rubinius info ---");
+    logger::fatal("user: %s", signal_thread_->shared().username.c_str());
     logger::fatal("pid: %d", getpid());
     logger::fatal("program name: %s", RBX_PROGRAM_NAME);
     logger::fatal("version: %s", RBX_VERSION);

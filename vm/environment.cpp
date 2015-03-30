@@ -200,34 +200,25 @@ namespace rubinius {
     } else if(!config.system_log.value.compare("console")) {
       utilities::logger::open(utilities::logger::eConsoleLogger, RBX_PROGRAM_NAME, level);
     } else {
-      const char* place_holder = "$PROGRAM_NAME";
-      size_t index = config.system_log.value.find(place_holder);
+      const char* tmpdir = "$TMPDIR";
+      size_t index = config.system_log.value.find(tmpdir);
 
       if(index != std::string::npos) {
-        config.system_log.value.replace(index, strlen(place_holder), RBX_PROGRAM_NAME);
+        config.system_log.value.replace(index, strlen(tmpdir), config.system_tmp);
       }
 
-      int fd;
+      const char* program_name = "$PROGRAM_NAME";
+      index = config.system_log.value.find(program_name);
 
-      if((fd = open(config.system_log.value.c_str(), O_CREAT, 0644)) > 0) {
-        close(fd);
-      } else if(errno == EACCES) {
-        std::ostringstream path;
+      if(index != std::string::npos) {
+        config.system_log.value.replace(index, strlen(program_name), RBX_PROGRAM_NAME);
+      }
 
-        if(const char* s = strrchr(config.system_log.value.c_str(), '/')) {
-          path << (s + 1);
-        } else {
-          path << config.system_log.value.c_str();
-        }
+      const char* user = "$USER";
+      index = config.system_log.value.find(user);
 
-        config.system_log.value.assign(config.system_tmp.value + path.str());
-
-        if((fd = open(config.system_log.value.c_str(), O_CREAT, 0644)) > 0) {
-          close(fd);
-        } else {
-          std::cerr << RBX_PROGRAM_NAME << ": unable to open log: "
-                    << config.system_log.value.c_str() << std::endl;
-        }
+      if(index != std::string::npos) {
+        config.system_log.value.replace(index, strlen(user), shared->username);
       }
 
       utilities::logger::open(utilities::logger::eFileLogger,
@@ -320,6 +311,7 @@ namespace rubinius {
     config_parser.update_configuration(config);
 
     set_tmp_path();
+    set_username();
     set_fsapi_path();
   }
 
@@ -339,9 +331,14 @@ namespace rubinius {
     }
   }
 
+  void Environment::set_username() {
+    struct passwd *user_passwd = getpwuid(getuid());
+
+    shared->username.assign(user_passwd->pw_name);
+  }
+
   void Environment::set_fsapi_path() {
     std::ostringstream path;
-    struct passwd *user_passwd = getpwuid(getuid());
 
     if(!config.system_fsapi_path.value.compare("$TMPDIR")) {
       path << config.system_tmp.value;
@@ -352,7 +349,7 @@ namespace rubinius {
       if(cpath[cpath.size() - 1] != '/') path << "/";
     }
 
-    path << "rbx-" << user_passwd->pw_name << "-" << getpid();
+    path << "rbx-" << shared->username << "-" << getpid();
 
     shared->fsapi_path.assign(path.str());
 
