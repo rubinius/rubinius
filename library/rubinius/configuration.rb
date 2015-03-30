@@ -172,10 +172,10 @@ Rubinius::ConfigurationVariables.define do |c|
   c.vm_variable "profiler.threshold", 1000000,
     "The minimum number of nanoseconds a profiler node must have to be reported"
 
-  c.vm_variable "system.tmp", "$TMPDIR",
-    "Default temp/fallback directory for the process"
-
   c.section "system" do |s|
+    s.vm_variable "tmp", "$TMPDIR",
+      "Default temp/fallback directory for the process"
+
     s.vm_variable "fsapi.path", "$TMPDIR",
       "Base directory of the Rubinius File System API files"
 
@@ -185,7 +185,7 @@ Rubinius::ConfigurationVariables.define do |c|
     s.vm_variable "console.access", 0660,
       "Permissions on the Rubinius Console files"
 
-    s.vm_variable "log", "/var/log/$PROGRAM_NAME.log",
+    s.vm_variable "log", "$TMPDIR/$USER-$PROGRAM_NAME.log",
       "Logging facility to use: 'syslog', 'console', or path"
 
     s.vm_variable "log.level", "warn",
