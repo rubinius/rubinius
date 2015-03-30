@@ -36,6 +36,10 @@ namespace rubinius {
 
     SignalThread(STATE, Configuration& config);
 
+    SharedState& shared() {
+      return shared_;
+    }
+
     void initialize(STATE);
     void setup_default_handlers();
 
