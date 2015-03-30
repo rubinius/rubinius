@@ -1510,4 +1510,49 @@ failed: /* try next '*' position */
     start += used_->to_native();
     return start;
   }
-};
+  
+  void FDSet::init(STATE) {
+    // Create a constant for FDSet under the IO::Select namespace, i.e. IO::Select::FDSet
+    GO(select).set(ontology::new_class_under(state, "Select", G(io)));
+    GO(fdset).set(ontology::new_class_under(state, "FDSet", G(select)));
+    G(fdset)->set_object_type(state, FDSetType);
+  }
+
+  FDSet* FDSet::allocate(STATE, Object* self) {
+    FDSet* fdset = create(state);
+    fdset->klass(state, as<Class>(self));
+    return fdset;
+  }
+
+  FDSet* FDSet::create(STATE) {
+    FDSet* fdset = state->new_object<FDSet>(G(fdset));
+    fdset->actual_set = (fd_set*)malloc(sizeof(fd_set));
+    return fdset;
+  }
+  
+  Object* FDSet::zero(STATE) {
+    FD_ZERO(actual_set);
+    return cTrue;
+  }
+  
+  Object* FDSet::set(STATE, Fixnum* descriptor) {
+    native_int fd = descriptor->to_native();
+    
+    FD_SET((int_fd_t)fd, actual_set);
+    
+    return cTrue;
+  }
+  
+  Object* FDSet::is_set(STATE, Fixnum* descriptor) {
+    native_int fd = descriptor->to_native();
+    
+    if (FD_ISSET(fd, actual_set)) {
+      return cTrue;
+    }
+    else {
+      return cFalse;
+    }
+  }
+  
+}; // ends namespace rubinius
+

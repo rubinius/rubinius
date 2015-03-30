@@ -366,6 +366,7 @@ namespace rubinius {
     Randomizer::init(state);
     Encoding::init(state);
     FSEvent::init(state);
+    FDSet::init(state);
     Logger::init(state);
     JIT::init(state);
   }

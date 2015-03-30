@@ -605,23 +605,102 @@ class IO
       raise Errno::ESPIPE
     end
   end # class FIFOFileDescriptor
-
-  def new_pipe(fd, external, internal, options, mode, do_encoding=false)
-    @fd = FIFOFileDescriptor.new(fd, nil, mode)
-    @lineno = 0
-    @pipe = true
-
-    # Why do we only set encoding for the "left hand side" pipe? Why not both?
-    if do_encoding
-      set_encoding((external || Encoding.default_external), (internal || Encoding.default_internal), options)
+  
+  # Encapsulates all of the logic necessary for handling #select.
+  class Select
+    class FDSet
+      def self.new
+        Rubinius.primitive :fdset_allocate
+        raise PrimitiveFailure, "FDSet.allocate failed"
+      end
+      
+      def zero
+        Rubinius.primitive :fdset_zero
+        raise PrimitiveFailure, "FDSet.zero failed"
+      end
+      
+      def set(descriptor)
+        Rubinius.primitive :fdset_set
+        raise PrimitiveFailure, "FDSet.set failed"
+      end
+      
+      def set?(descriptor)
+        Rubinius.primitive :fdset_is_set
+        raise PrimitiveFailure, "FDSet.set? failed"
+      end
+      
+      def to_set
+        Rubinius.primitive :fdset_to_set
+        raise PrimitiveFailure, "FDSet.to_set failed"
+      end
     end
-  end
-  private :new_pipe
+    
+    MAX_FD = 1024
+    
+    def self.fd_set_from_array(array)
+      highest = -1
+      fd_set = FDSet.new
+      fd_set.zero
+      
+      array.each do |io|
+        descriptor = io.descriptor
+        
+        if descriptor >= MAX_FD
+          raise IOError
+        elsif descriptor >= 0
+          fd_set.set(descriptor)
+        end
+      end
+      
+      return [fd_set, highest]
+    end
+    
+    def self.collect_set_fds(array, fd_set)
+      array.select { |io| fd_set.set?(io.descriptor) || io.descriptor < 0 }
+    end
+    
+    def self.make_timeout(time)
+      
+    end
+    
+    def self.reset_timeout(limit, now)
+      
+    end
+    
+    def self.select(readables, writables, errorables, timeout)
+      read_set, highest_read_fd = fd_set_from_array(readables)
+      write_set, highest_write_fd = fd_set_from_array(writables)
+      error_set, highest_err_fd = fd_set_from_array(errorables)
+      max_fd = [highest_read_fd, highest_write_fd, highest_err_fd].max
+      
+      time_limit, now = make_timeval_timeout(timeout)
+      
+      loop do
+        if FFI.called_failed?(events = FFI::Platform::POSIX.select(max_fd, read_set, write_set, error_set, time_limit))
 
+          if Errno::EAGAIN::Errno == Errno.errno || Errno::EINTR::Errno == Errno.errno
+            # return nil if async_interruption?
+            time_limit, now = reset_timeval_timeout(time_limit, now)
+            continue
+          end
+          
+          Errno.handle("select(2) failed")
+        end
+      end
+      
+      return nil if events.zero?
+      
+      output_fds = []
+      output_fds << collect_set_fds(readables, read_set)
+      output_fds << collect_set_fds(writables, write_set)
+      output_fds << collect_set_fds(errorables, error_set)
+      return output_fds
+    end
+  end # class Select
 
   attr_accessor :external
   attr_accessor :internal
-
+  
   def self.binread(file, length=nil, offset=0)
     raise ArgumentError, "Negative length #{length} given" if !length.nil? && length < 0
 
@@ -1285,7 +1364,7 @@ class IO
       end
     end
 
-    IO.select_primitive(readables, writables, errorables, timeout)
+    IO::Select.select(readables, writables, errorables, timeout)
   end
 
   ##
@@ -1408,6 +1487,18 @@ class IO
     dest_io
   end
   private :initialize_copy
+
+  def new_pipe(fd, external, internal, options, mode, do_encoding=false)
+    @fd = FIFOFileDescriptor.new(fd, nil, mode)
+    @lineno = 0
+    @pipe = true
+
+    # Why do we only set encoding for the "left hand side" pipe? Why not both?
+    if do_encoding
+      set_encoding((external || Encoding.default_external), (internal || Encoding.default_internal), options)
+    end
+  end
+  private :new_pipe
 
   def super_inspect
     "<IO:#{object_id}> \n#{@fd.inspect}"

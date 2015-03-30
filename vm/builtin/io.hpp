@@ -207,7 +207,38 @@ namespace rubinius {
       BASIC_TYPEINFO(TypeInfo)
     };
   };
+  
+  class FDSet : public Object {
+  public:
+    const static object_type type = FDSetType;
+    
+  private:
+    fd_set* actual_set;
+    
+  public:
+  
+    static void init(STATE);
 
+    static FDSet* create(STATE);
+    
+    // Rubinius.primitive :fdset_allocate
+    static FDSet* allocate(STATE, Object* self);
+    
+      // Rubinius.primitive :fdset_zero
+    Object* zero(STATE);
+    
+    // Rubinius.primitive :fdset_is_set
+    Object* is_set(STATE, Fixnum* descriptor);
+    
+    // Rubinius.primitive :fdset_set
+    Object* set(STATE, Fixnum* descriptor);
+
+    class Info : public TypeInfo {
+    public:
+      BASIC_TYPEINFO(TypeInfo)
+    };
+  };
+  
 }
 
 #endif
