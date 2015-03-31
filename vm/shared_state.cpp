@@ -55,6 +55,9 @@ namespace rubinius {
     , config(config)
     , user_variables(cp)
     , llvm_state(0)
+    , fsapi_path("")
+    , username("")
+    , pid("")
   {
     ref();
 
