@@ -89,6 +89,8 @@ namespace rubinius {
       Console* console_;
       Response* response_;
 
+      bool enabled_;
+
       std::string path_;
       int fd_;
 

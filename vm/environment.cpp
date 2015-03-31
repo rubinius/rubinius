@@ -201,26 +201,9 @@ namespace rubinius {
     } else if(!config.system_log.value.compare("console")) {
       utilities::logger::open(utilities::logger::eConsoleLogger, RBX_PROGRAM_NAME, level);
     } else {
-      const char* tmpdir = "$TMPDIR";
-      size_t index = config.system_log.value.find(tmpdir);
-
-      if(index != std::string::npos) {
-        config.system_log.value.replace(index, strlen(tmpdir), config.system_tmp);
-      }
-
-      const char* program_name = "$PROGRAM_NAME";
-      index = config.system_log.value.find(program_name);
-
-      if(index != std::string::npos) {
-        config.system_log.value.replace(index, strlen(program_name), RBX_PROGRAM_NAME);
-      }
-
-      const char* user = "$USER";
-      index = config.system_log.value.find(user);
-
-      if(index != std::string::npos) {
-        config.system_log.value.replace(index, strlen(user), shared->username);
-      }
+      expand_config_value(config.system_log, "$TMPDIR", config.system_tmp);
+      expand_config_value(config.system_log, "$PROGRAM_NAME", RBX_PROGRAM_NAME);
+      expand_config_value(config.system_log, "$USER", shared->username.c_str());
 
       utilities::logger::open(utilities::logger::eFileLogger,
           config.system_log.value.c_str(), level);
@@ -313,7 +296,19 @@ namespace rubinius {
 
     set_tmp_path();
     set_username();
+    set_pid();
+
     set_fsapi_path();
+  }
+
+  void Environment::expand_config_value(config::String& cvar,
+      const char* var, const char* value)
+  {
+    size_t index = cvar.value.find(var);
+
+    if(index != std::string::npos) {
+      cvar.value.replace(index, strlen(var), value);
+    }
   }
 
   void Environment::set_tmp_path() {
@@ -338,21 +333,19 @@ namespace rubinius {
     shared->username.assign(user_passwd->pw_name);
   }
 
+  void Environment::set_pid() {
+    std::ostringstream pid;
+    pid << getpid();
+    shared->pid.assign(pid.str());
+  }
+
   void Environment::set_fsapi_path() {
-    std::ostringstream path;
+    expand_config_value(config.system_fsapi_path, "$TMPDIR", config.system_tmp);
+    expand_config_value(config.system_fsapi_path, "$PROGRAM_NAME", RBX_PROGRAM_NAME);
+    expand_config_value(config.system_fsapi_path, "$USER", shared->username.c_str());
+    expand_config_value(config.system_fsapi_path, "$PID", shared->pid.c_str());
 
-    if(!config.system_fsapi_path.value.compare("$TMPDIR")) {
-      path << config.system_tmp.value;
-    } else {
-      std::string cpath = config.system_fsapi_path.value;
-
-      path << cpath;
-      if(cpath[cpath.size() - 1] != '/') path << "/";
-    }
-
-    path << "rbx-" << shared->username << "-" << getpid();
-
-    shared->fsapi_path.assign(path.str());
+    shared->fsapi_path.assign(config.system_fsapi_path.value);
 
     create_fsapi(state);
   }

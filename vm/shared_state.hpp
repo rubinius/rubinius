@@ -19,6 +19,7 @@
 
 #include "capi/capi_constants.h"
 
+#include <unistd.h>
 #include <string>
 #include <vector>
 #include <list>
@@ -143,6 +144,7 @@ namespace rubinius {
     LLVMState* llvm_state;
     std::string fsapi_path;
     std::string username;
+    std::string pid;
     uint32_t hash_seed;
 
   public:

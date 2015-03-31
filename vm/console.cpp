@@ -54,6 +54,7 @@ namespace rubinius {
       : InternalThread(state, "rbx.console.request")
       , console_(console)
       , response_(console->response())
+      , enabled_(false)
       , fd_(-1)
       , fsevent_(state)
     {
@@ -74,6 +75,8 @@ namespace rubinius {
       FSEvent* fsevent = FSEvent::create(state);
       fsevent->watch_file(state, fd_, path_.c_str());
       fsevent_.set(fsevent);
+
+      enabled_ = true;
     }
 
     void Request::start_thread(STATE) {
@@ -152,6 +155,8 @@ namespace rubinius {
     }
 
     void Request::run(STATE) {
+      if(!enabled_) return;
+
       while(!thread_exit_) {
         Object* status = fsevent_.get()->wait_for_event(state);
 
