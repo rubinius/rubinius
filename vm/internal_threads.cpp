@@ -121,10 +121,8 @@ namespace rubinius {
     if(shutdown_in_progress_) return;
     shutdown_in_progress_ = true;
 
-    for(std::list<InternalThread*>::reverse_iterator i = threads_.rbegin();
-        i != threads_.rend();
-        ++i) {
-      (*i)->stop(state);
+    while(!threads_.empty()) {
+      threads_.front()->stop(state);
     }
 
     shutdown_in_progress_ = false;
