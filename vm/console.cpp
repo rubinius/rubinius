@@ -1,13 +1,16 @@
 #include "vm.hpp"
 #include "console.hpp"
 
+#include "arguments.hpp"
+#include "dispatch.hpp"
 #include "on_stack.hpp"
 #include "object_utils.hpp"
 
 #include "builtin/array.hpp"
-#include "builtin/io.hpp"
+#include "builtin/channel.hpp"
 #include "builtin/class.hpp"
 #include "builtin/fsevent.hpp"
+#include "builtin/io.hpp"
 #include "builtin/string.hpp"
 #include "builtin/thread.hpp"
 
@@ -88,7 +91,7 @@ namespace rubinius {
     void Request::wakeup(STATE) {
       InternalThread::wakeup(state);
 
-      if(write(fd_, "x", 1) < 0) {
+      if(write(fd_, "\0", 1) < 0) {
         logger::error("%s: console: unable to wake request thread", strerror(errno));
       }
     }
@@ -294,7 +297,17 @@ namespace rubinius {
     }
 
     void Response::run(STATE) {
+      GCTokenImpl gct;
+      size_t pending_requests = 0;
       char* request = NULL;
+
+      Channel* inbox = as<Channel>(
+          console_->ruby_console()->get_ivar(state, state->symbol("@inbox")));
+      Channel* outbox = as<Channel>(
+          console_->ruby_console()->get_ivar(state, state->symbol("@outbox")));
+
+      String* response = 0;
+      OnStack<3> os(state, inbox, outbox, response);
 
       while(!thread_exit_) {
         {
@@ -309,31 +322,27 @@ namespace rubinius {
         if(thread_exit_) break;
 
         if(request) {
-          Object* result;
-          String* response;
+          GCDependent guard(state, 0);
 
-          OnStack<2> os(state, result, response);
+          pending_requests++;
 
-          {
-            GCDependent guard(state, 0);
+          inbox->send(state, gct, String::create(state, request), 0);
 
-            result = console_->evaluate(state, request);
-          }
+          request = NULL;
+        }
 
-          if(!result) {
-            if(Exception* exception = try_as<Exception>(
-                  state->thread_state()->current_exception())) {
-              String* msg = as<String>(exception->reason_message());
-              logger::error("console: response: exception: %s", msg->c_str(state));
-            }
-          } else if(String* response = try_as<String>(result)) {
+        if(pending_requests > 0) {
+          if((response = try_as<String>(outbox->try_receive(state, gct, 0)))) {
             write_response(state,
                 reinterpret_cast<const char*>(response->byte_address()),
                 response->byte_size());
+            pending_requests--;
+            continue;
           }
+        }
 
-          request = NULL;
-        } else {
+        {
+          GCIndependent gc_guard(state, 0);
           utilities::thread::Mutex::LockGuard guard(response_lock_);
 
           if(thread_exit_) break;
@@ -365,13 +374,6 @@ namespace rubinius {
     Class* Console::server_class(STATE) {
       Module* mod = as<Module>(G(rubinius)->get_const(state, "Console"));
       return as<Class>(mod->get_const(state, "Server"));
-    }
-
-    Object* Console::evaluate(STATE, char* request) {
-      Array* args = Array::create(state, 1);
-      args->aset(state, 0, String::create(state, request));
-
-      return ruby_console_.get()->send(state, 0, state->symbol("evaluate"), args, cNil);
     }
   }
 }

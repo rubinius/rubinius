@@ -42,11 +42,14 @@ namespace rubinius {
         return response_;
       }
 
+      Object* ruby_console() {
+        return ruby_console_.get();
+      }
+
       void start(STATE);
       void stop(STATE);
 
       Class* server_class(STATE);
-      Object* evaluate(STATE, char* request);
     };
 
     typedef std::list<char*> RequestList;
