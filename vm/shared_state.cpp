@@ -239,6 +239,7 @@ namespace rubinius {
     capi_constant_lock_.init();
     internal_threads_->init();
 
+    env_->set_pid();
     env_->set_fsapi_path();
 
     env_->stop_logging(state);
