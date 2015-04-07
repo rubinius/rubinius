@@ -56,14 +56,14 @@ class Binding
   end
 
   def local_variable_defined?(symbol)
-    eval("defined?(#{symbol}) == 'local-variable'")
+    variables.local_defined?(symbol)
   end
 
   def local_variable_get(symbol)
-    eval("#{symbol}")
+    variables.get_eval_local(symbol)
   end
 
   def local_variable_set(symbol, obj)
-    eval("#{symbol} = #{obj}")
+    variables.set_eval_local(symbol, obj)
   end
 end
