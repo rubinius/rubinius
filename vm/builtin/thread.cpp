@@ -67,7 +67,6 @@ namespace rubinius {
     thr->result(state, cFalse);
     thr->exception(state, nil<Exception>());
     thr->critical(state, cFalse);
-    thr->dying(state, cFalse);
     thr->joins(state, Array::create(state, 1));
     thr->killed(state, cFalse);
     thr->priority(state, Fixnum::from(0));

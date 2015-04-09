@@ -44,7 +44,6 @@ namespace rubinius {
     Object* result_; // slot
     Exception* exception_; // slot
     Object* critical_; // slot
-    Object* dying_; // slot
     Array* joins_; // slot
     Object* killed_; // slot
     Fixnum* priority_; // slot
@@ -84,7 +83,6 @@ namespace rubinius {
     attr_accessor(result, Object);
     attr_accessor(exception, Exception);
     attr_accessor(critical, Object);
-    attr_accessor(dying, Object);
     attr_accessor(joins, Array);
     attr_accessor(killed, Object);
     attr_accessor(priority, Fixnum);

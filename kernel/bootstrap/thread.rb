@@ -194,8 +194,6 @@ class Thread
     if @alive
       if @sleep
         "sleep"
-      elsif @dying
-        "aborting"
       else
         "run"
       end
@@ -421,9 +419,7 @@ class Thread
         end
       end
     rescue Exception => e
-      # I don't really get this, but this is MRI's behavior. If we're dying
-      # by request, ignore any raised exception.
-      exception = e # unless @dying
+      exception = e
     ensure
       unless exception && (abort_on_exception || Thread.abort_on_exception)
         @exception = exception
@@ -445,7 +441,6 @@ class Thread
   end
 
   def kill
-    @dying = true
     @sleep = false
     Rubinius.synchronize(self) do
       kill_prim
