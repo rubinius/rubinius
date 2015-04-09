@@ -573,26 +573,6 @@ namespace rubinius {
         return env->get_object(ret);
       }
 
-      case C_BLOCK_CALL: {
-        VALUE val;
-        VALUE ary[args.total()];
-        VALUE cb_data = env->get_handle(nm->get_ivar(state, state->symbol("cb_data")));
-
-        if(args.total() > 0) {
-          val = env->get_handle(args.get_argument(0));
-        } else {
-          val = env->get_handle(cNil);
-        }
-
-        for (std::size_t i = 0; i < args.total(); ++i) {
-          ary[i] = env->get_handle(args.get_argument(i));
-        }
-
-        VALUE ret = nm->func()(val, cb_data, args.total(), ary);
-
-        return env->get_object(ret);
-      }
-
       case C_LAMBDA: {
         VALUE cb_data = env->get_handle(nm->get_ivar(state, state->symbol("cb_data")));
         VALUE val = env->get_handle(args.as_array(state));
