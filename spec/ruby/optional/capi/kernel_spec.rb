@@ -27,17 +27,6 @@ describe "C-API Kernel function" do
     end
   end
 
-  describe "rb_block_call" do
-    before :each do
-      ScratchPad.record []
-    end
-
-    it "calls the block with a single argument" do
-      ary = [1, 3, 5]
-      @s.rb_block_call(ary).should == [2, 4, 6]
-    end
-  end
-
   describe "rb_raise" do
     it "raises an exception" do
       lambda { @s.rb_raise({}) }.should raise_error(TypeError)
