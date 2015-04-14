@@ -3,6 +3,7 @@
 #include "builtin/exception.hpp"
 #include "builtin/fiber.hpp"
 #include "builtin/fixnum.hpp"
+#include "builtin/float.hpp"
 #include "builtin/location.hpp"
 #include "builtin/lookup_table.hpp"
 #include "builtin/native_method.hpp"
@@ -56,6 +57,8 @@ namespace rubinius {
 
     thr->pin();
     thr->init_lock_.init();
+    thr->join_lock_.init();
+    thr->join_cond_.init();
 
     thr->vm_ = vm;
     thr->thread_id(state, Fixnum::from(vm->thread_id()));
@@ -299,15 +302,18 @@ namespace rubinius {
     Object* ret = vm->thread->function_(state);
     vm->shared.tool_broker()->thread_stop(state);
 
+    // Clear the call_frame, so that if we wait for GC going independent,
+    // the GC doesn't see pointers into now-unallocated CallFrames
+    vm->set_call_frame(0);
+
+    vm->thread->join_lock_.lock();
+    vm->thread->stopped();
+
     if(!ret) {
       if(vm->thread_state()->raise_reason() == cExit) {
         vm->shared.env()->halt_and_exit(state);
       }
     }
-
-    // Clear the call_frame, so that if we wait for GC going independent,
-    // the GC doesn't see pointers into now-unallocated CallFrames
-    vm->set_call_frame(0);
 
     LockedObjects& los = vm->locked_objects();
     for(LockedObjects::iterator i = los.begin();
@@ -316,7 +322,8 @@ namespace rubinius {
       (*i)->unlock_for_terminate(state, gct, 0);
     }
 
-    vm->thread->stopped();
+    vm->thread->join_cond_.broadcast();
+    vm->thread->join_lock_.unlock();
 
     NativeMethod::cleanup_thread(state);
 
@@ -471,47 +478,39 @@ namespace rubinius {
     init_lock_.init();
   }
 
-  Object* Thread::join(STATE, GCToken gct, CallFrame* calling_environment) {
-    state->set_call_frame(calling_environment);
-
-    init_lock_.lock();
-
-    VM* vm = vm_;
-
-    if(!vm) {
-      init_lock_.unlock();
-      return cTrue;
-    }
-
-    pthread_t id = vm->os_thread();
-
-    if(cDebugThreading) {
-      std::cerr << "[THREAD joining " << thread_debug_id(id) << "]\n";
-    }
-
-    init_lock_.unlock();
+  Thread* Thread::join(STATE, GCToken gct, Object* timeout,
+      CallFrame* calling_environment)
+  {
+    Thread* self = this;
+    OnStack<2> os(state, self, timeout);
 
     state->gc_independent(gct, calling_environment);
-    void* val;
-    int err = pthread_join(id, &val);
-    state->gc_dependent(gct, calling_environment);
 
-    switch(err) {
-    case 0:
-      break;
-    case EDEADLK:
-      std::cerr << "Join deadlock: " << thread_debug_id(id) << "/" << thread_debug_self() << "\n";
-      break;
-    case EINVAL:
-      std::cerr << "Invalid thread id: " << thread_debug_id(id) << "\n";
-      break;
-    case ESRCH:
-      // This means that the thread finished execution and detached
-      // itself. We treat this as having joined it.
-      break;
+    {
+      utilities::thread::Mutex::LockGuard guard(self->join_lock_);
+      state->gc_dependent(gct, calling_environment);
+      atomic::memory_barrier();
+
+      if(self->alive()->true_p()) {
+        GCIndependent gc_guard(state, calling_environment);
+
+        if(timeout->nil_p()) {
+          self->join_cond_.wait(self->join_lock_);
+        } else {
+          struct timespec ts = {0,0};
+          self->join_cond_.offset(&ts, as<Float>(timeout)->val);
+
+          for(;;) {
+            if(self->join_cond_.wait_until(self->join_lock_, &ts)
+                == utilities::thread::cTimedOut) {
+              return nil<Thread>();
+            }
+          }
+        }
+      }
     }
 
-    return cTrue;
+    return self;
   }
 
   Object* Thread::set_critical(STATE, Object* obj, CallFrame* calling_environment) {

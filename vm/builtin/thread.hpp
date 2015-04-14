@@ -49,6 +49,8 @@ namespace rubinius {
     Fixnum* priority_; // slot
 
     utilities::thread::SpinLock init_lock_;
+    utilities::thread::Mutex join_lock_;
+    utilities::thread::Condition join_cond_;
 
     /// The VM state for this thread and this thread alone
     VM* vm_;
@@ -213,7 +215,7 @@ namespace rubinius {
     Array* mri_backtrace(STATE, GCToken gct, CallFrame* calling_environment);
 
     // Rubinius.primitive :thread_join
-    Object* join(STATE, GCToken gct, CallFrame* calling_environment);
+    Thread* join(STATE, GCToken gct, Object* timeout, CallFrame* calling_environment);
 
     // Rubinius.primitive :thread_set_critical
     static Object* set_critical(STATE, Object* obj, CallFrame* calling_environment);
