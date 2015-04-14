@@ -200,9 +200,9 @@ namespace rubinius {
     } else if(!config.system_log.value.compare("console")) {
       utilities::logger::open(utilities::logger::eConsoleLogger, RBX_PROGRAM_NAME, level);
     } else {
-      expand_config_value(config.system_log, "$TMPDIR", config.system_tmp);
-      expand_config_value(config.system_log, "$PROGRAM_NAME", RBX_PROGRAM_NAME);
-      expand_config_value(config.system_log, "$USER", shared->username.c_str());
+      expand_config_value(config.system_log.value, "$TMPDIR", config.system_tmp);
+      expand_config_value(config.system_log.value, "$PROGRAM_NAME", RBX_PROGRAM_NAME);
+      expand_config_value(config.system_log.value, "$USER", shared->username.c_str());
 
       utilities::logger::open(utilities::logger::eFileLogger,
           config.system_log.value.c_str(), level);
@@ -300,13 +300,13 @@ namespace rubinius {
     set_fsapi_path();
   }
 
-  void Environment::expand_config_value(config::String& cvar,
+  void Environment::expand_config_value(std::string& cvar,
       const char* var, const char* value)
   {
-    size_t index = cvar.value.find(var);
+    size_t index = cvar.find(var);
 
     if(index != std::string::npos) {
-      cvar.value.replace(index, strlen(var), value);
+      cvar.replace(index, strlen(var), value);
     }
   }
 
@@ -339,12 +339,12 @@ namespace rubinius {
   }
 
   void Environment::set_fsapi_path() {
-    expand_config_value(config.system_fsapi_path, "$TMPDIR", config.system_tmp);
-    expand_config_value(config.system_fsapi_path, "$PROGRAM_NAME", RBX_PROGRAM_NAME);
-    expand_config_value(config.system_fsapi_path, "$USER", shared->username.c_str());
-    expand_config_value(config.system_fsapi_path, "$PID", shared->pid.c_str());
-
     shared->fsapi_path.assign(config.system_fsapi_path.value);
+
+    expand_config_value(shared->fsapi_path, "$TMPDIR", config.system_tmp);
+    expand_config_value(shared->fsapi_path, "$PROGRAM_NAME", RBX_PROGRAM_NAME);
+    expand_config_value(shared->fsapi_path, "$USER", shared->username.c_str());
+    expand_config_value(shared->fsapi_path, "$PID", shared->pid.c_str());
 
     create_fsapi(state);
   }

@@ -99,7 +99,7 @@ namespace rubinius {
     void load_conf(std::string path);
     void load_string(std::string str);
     void run_file(std::string path);
-    void expand_config_value(config::String& cvar, const char* var, const char* value);
+    void expand_config_value(std::string& cvar, const char* var, const char* value);
     void set_tmp_path();
     void set_username();
     void set_pid();
