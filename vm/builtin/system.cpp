@@ -1323,6 +1323,10 @@ namespace rubinius {
     return RBOOL(obj->kind_of_p(state, mod));
   }
 
+  Object* System::vm_global_serial(STATE, CallFrame* calling_environment) {
+    return Fixnum::from(state->shared().global_serial());
+  }
+
   Object* System::vm_inc_global_serial(STATE, CallFrame* calling_environment) {
     if(state->shared().config.serial_debug) {
       std::cout << "[Global serial increased from " << state->shared().global_serial() << "]" << std::endl;

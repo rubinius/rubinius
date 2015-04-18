@@ -224,6 +224,10 @@ namespace rubinius {
     // Rubinius.primitive+ :vm_object_kind_of
     static Object* vm_object_kind_of(STATE, Object* obj, Module* mod);
 
+    // Return the internal global serial number, used for caching
+    // Rubinius.primitive :vm_global_serial
+    static Object* vm_global_serial(STATE, CallFrame* calling_environment);
+
     // Increment the internal global serial number, used for caching
     // Rubinius.primitive :vm_inc_global_serial
     static Object* vm_inc_global_serial(STATE, CallFrame* calling_environment);
