@@ -663,6 +663,39 @@ extern "C" {
     CPP_CATCH
   }
 
+  Object* rbx_try_find_const_fast(STATE, CallFrame* call_frame, ConstantCache** cache_ptr, Object* top) {
+    CPP_TRY
+
+    Module* under = as<Module>(top);
+    ConstantCache* cache = *cache_ptr;
+
+    Object* res = cache->retrieve(state, under, call_frame->constant_scope());
+
+    if(!res) {
+      ConstantMissingReason reason;
+      res = Helpers::const_get_under(state, under, cache->name(), &reason);
+
+      if(reason == vFound) {
+        GCTokenImpl gct;
+        OnStack<2> os(state, cache, res);
+        if(Autoload* autoload = try_as<Autoload>(res)) {
+          res = autoload->resolve(state, gct, call_frame, under);
+        }
+
+        if(res) {
+          ConstantCache* update = ConstantCache::create(state, cache, res, under, call_frame->constant_scope());
+          cache->update_constant_cache(state, update);
+        }
+      } else {
+        res = G(undefined);
+      }
+    }
+
+    return res;
+
+    CPP_CATCH
+  }
+
   Object* rbx_instance_of(STATE, CallFrame* call_frame, Object* top, Object* b1) {
     CPP_TRY
 
