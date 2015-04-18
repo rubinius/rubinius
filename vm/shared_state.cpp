@@ -239,12 +239,6 @@ namespace rubinius {
     capi_constant_lock_.init();
     internal_threads_->init();
 
-    env_->set_pid();
-    env_->set_fsapi_path();
-
-    env_->stop_logging(state);
-    env_->start_logging(state);
-
     om->after_fork_child(state);
 
     state->vm()->set_run_state(ManagedThread::eIndependent);

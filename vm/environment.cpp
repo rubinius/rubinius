@@ -87,6 +87,8 @@ namespace rubinius {
 #endif
 #endif
 
+    halt_lock_.init();
+
     String::init_hash();
 
     VM::init_stack_size();
@@ -164,6 +166,8 @@ namespace rubinius {
     if(state->shared().llvm_state) {
       state->shared().llvm_state->stop(state);
     }
+
+    llvm::llvm_shutdown();
 #endif
   }
 
@@ -521,7 +525,22 @@ namespace rubinius {
   }
 
   void Environment::after_exec(STATE) {
+    halt_lock_.init();
     create_fsapi(state);
+  }
+
+  void Environment::after_fork_child(STATE) {
+    halt_lock_.init();
+
+    set_pid();
+    set_fsapi_path();
+
+    stop_logging(state);
+    start_logging(state);
+  }
+
+  void Environment::after_fork_exec_child(STATE) {
+    halt_lock_.init();
   }
 
   void Environment::create_fsapi(STATE) {
@@ -543,14 +562,12 @@ namespace rubinius {
 
   void Environment::halt_and_exit(STATE) {
     halt(state);
-    int code = exit_code(state);
-#ifdef ENABLE_LLVM
-    llvm::llvm_shutdown();
-#endif
-    exit(code);
+    exit(exit_code(state));
   }
 
   void Environment::halt(STATE) {
+    utilities::thread::Mutex::LockGuard guard(halt_lock_);
+
     state->shared().tool_broker()->shutdown(state);
 
     if(ImmixMarker* im = state->memory()->immix_marker()) {

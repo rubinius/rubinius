@@ -191,6 +191,7 @@ namespace rubinius {
       (*i)->after_fork_exec_child(state);
     }
 
+    state->shared().env()->after_fork_exec_child(state);
     fork_exec_in_progress_ = false;
   }
 
@@ -228,6 +229,7 @@ namespace rubinius {
       (*i)->after_fork_child(state);
     }
 
+    state->shared().env()->after_fork_child(state);
     fork_in_progress_ = false;
   }
 
