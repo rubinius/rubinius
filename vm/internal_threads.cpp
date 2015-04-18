@@ -223,13 +223,14 @@ namespace rubinius {
   void InternalThreads::after_fork_child(STATE) {
     // We don't guard here on the assumption that only one thread is running
     // after fork() call.
+    state->shared().env()->after_fork_child(state);
+
     for(std::list<InternalThread*>::iterator i = threads_.begin();
         i != threads_.end();
         ++i) {
       (*i)->after_fork_child(state);
     }
 
-    state->shared().env()->after_fork_child(state);
     fork_in_progress_ = false;
   }
 
