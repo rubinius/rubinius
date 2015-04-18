@@ -105,6 +105,7 @@ namespace rubinius {
     NativeMethod::init_thread(state);
 
     start_logging(state);
+    log_argv();
   }
 
   Environment::~Environment() {
@@ -219,6 +220,17 @@ namespace rubinius {
       argv_[i] = new char[size];
       strncpy(argv_[i], argv[i], size);
     }
+  }
+
+  void Environment::log_argv() {
+    std::ostringstream args;
+
+    for(int i = 0; argv_[i]; i++) {
+      if(i > 0) args << " ";
+      args << argv_[i];
+    }
+
+    utilities::logger::write("command line: %s", args.str().c_str());
   }
 
   void Environment::load_vm_options(int argc, char**argv) {
