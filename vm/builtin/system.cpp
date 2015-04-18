@@ -468,6 +468,8 @@ namespace rubinius {
         sigaction(i, &action, NULL);
       }
 
+      utilities::logger::write("spawn: %s", exe.command());
+
       if(exe.argc()) {
         (void)::execvp(exe.command(), exe.argv());
       } else {
@@ -585,6 +587,8 @@ namespace rubinius {
         sigaction(i, &action, NULL);
       }
 
+      utilities::logger::write("backtick: %s", exe.command());
+
       exec_sh_fallback(state, exe.command(), exe.command_size());
 
       /* execvp() returning means it failed. */
@@ -692,6 +696,8 @@ namespace rubinius {
       sigaction(i, &action, &old_action);
       old_handlers[i] = (void*)old_action.sa_handler;
     }
+
+    utilities::logger::write("exec: %s", exe.command());
 
     if(exe.argc()) {
       (void)::execvp(exe.command(), exe.argv());
@@ -816,6 +822,7 @@ namespace rubinius {
 
       if(pid > 0) {
         state->shared().internal_threads()->after_fork_parent(state);
+        utilities::logger::write("fork: child: %d", pid);
       }
     }
 
