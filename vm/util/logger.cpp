@@ -63,6 +63,22 @@ namespace rubinius {
         loglevel_ = level;
       }
 
+      void write(const char* message, ...) {
+        thread::SpinLock::LockGuard guard(lock_);
+
+        if(logger_) {
+          char buf[LOGGER_MSG_SIZE];
+
+          va_list args;
+
+          va_start(args, message);
+          (void) vsnprintf(buf, LOGGER_MSG_SIZE, message, args);
+          va_end(args);
+
+          logger_->write(buf, append_newline(buf));
+        }
+      }
+
       void fatal(const char* message, ...) {
         thread::SpinLock::LockGuard guard(lock_);
 
@@ -190,6 +206,12 @@ namespace rubinius {
         closelog();
       }
 
+      // Syslog doesn't give us the ability to write a message to the log
+      // independent of a priority. Bummer.
+      void Syslog::write(const char* message, int size) {
+        syslog(LOG_INFO, "%s", message);
+      }
+
       void Syslog::fatal(const char* message, int size) {
         syslog(LOG_ERR, "%s", message);
         fprintf(stderr, "%s", message);
@@ -233,6 +255,10 @@ namespace rubinius {
 #define LOGGER_LEVEL_WARN   "<Warn>"
 #define LOGGER_LEVEL_INFO   "<Info>"
 #define LOGGER_LEVEL_DEBUG  "<Debug>"
+
+      void ConsoleLogger::write(const char* message, int size) {
+        fprintf(stderr, "%s %s %s", timestamp(), identifier_->c_str(), message);
+      }
 
       void ConsoleLogger::fatal(const char* message, int size) {
         write_log(LOGGER_LEVEL_FATAL, message, size);
@@ -283,11 +309,17 @@ namespace rubinius {
         utilities::file::LockGuard guard(logger_fd_, LOCK_EX);
 
         const char* time = timestamp();
-        write_status_ = write(logger_fd_, time, strlen(time));
-        write_status_ = write(logger_fd_, identifier_->c_str(), identifier_->size());
-        write_status_ = write(logger_fd_, level, strlen(level));
-        write_status_ = write(logger_fd_, " ", 1);
-        write_status_ = write(logger_fd_, message, size);
+        write_status_ = ::write(logger_fd_, time, strlen(time));
+        write_status_ = ::write(logger_fd_, identifier_->c_str(), identifier_->size());
+        if(level) {
+          write_status_ = ::write(logger_fd_, level, strlen(level));
+          write_status_ = ::write(logger_fd_, " ", 1);
+        }
+        write_status_ = ::write(logger_fd_, message, size);
+      }
+
+      void FileLogger::write(const char* message, int size) {
+        write_log(NULL, message, size);
       }
 
       void FileLogger::fatal(const char* message, int size) {

@@ -24,6 +24,7 @@ namespace rubinius {
       void open(logger_type type, const char* identifier, logger_level level=eWarn);
       void close();
 
+      void write(const char* message, ...);
       void fatal(const char* message, ...);
       void error(const char* message, ...);
       void warn(const char* message, ...);
@@ -42,6 +43,7 @@ namespace rubinius {
         Logger() { }
         virtual ~Logger() { }
 
+        virtual void write(const char* message, int size) = 0;
         virtual void fatal(const char* message, int size) = 0;
         virtual void error(const char* message, int size) = 0;
         virtual void warn(const char* message, int size) = 0;
@@ -57,6 +59,7 @@ namespace rubinius {
         Syslog(const char* identifier);
         ~Syslog();
 
+        void write(const char* message, int size);
         void fatal(const char* message, int size);
         void error(const char* message, int size);
         void warn(const char* message, int size);
@@ -74,6 +77,7 @@ namespace rubinius {
         ConsoleLogger(const char* identifier);
         ~ConsoleLogger();
 
+        void write(const char* message, int size);
         void fatal(const char* message, int size);
         void error(const char* message, int size);
         void warn(const char* message, int size);
@@ -93,6 +97,7 @@ namespace rubinius {
         FileLogger(const char* identifier);
         ~FileLogger();
 
+        void write(const char* message, int size);
         void fatal(const char* message, int size);
         void error(const char* message, int size);
         void warn(const char* message, int size);
