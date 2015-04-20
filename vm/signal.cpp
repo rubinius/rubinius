@@ -12,6 +12,8 @@
 #include "builtin/array.hpp"
 #include "builtin/class.hpp"
 #include "builtin/constant_scope.hpp"
+#include "builtin/jit.hpp"
+#include "builtin/module.hpp"
 #include "builtin/module.hpp"
 #include "builtin/native_method.hpp"
 #include "builtin/string.hpp"
@@ -357,6 +359,9 @@ namespace rubinius {
     logger::fatal("release date: %s", RBX_RELEASE_DATE);
     logger::fatal("build revision: %s", RBX_BUILD_REV);
     logger::fatal("llvm version: %s", RBX_LLVM_VERSION);
+    logger::fatal("jit status: %s",
+        CBOOL(signal_thread_->shared().env()->state->globals().jit.get()->enabled())
+        ? "enabled" : "disabled");
     logger::fatal("--- end rubinius info ---");
 
     logger::fatal("--- begin system backtrace ---");

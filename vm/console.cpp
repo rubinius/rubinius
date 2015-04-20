@@ -166,8 +166,8 @@ namespace rubinius {
         if(thread_exit_) break;
 
         if(status->nil_p()) {
-          close_request(state);
-          setup_request(state);
+          utilities::logger::error("%s: console: request: wait for event failed",
+              strerror(errno));
           continue;
         }
 

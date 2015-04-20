@@ -59,6 +59,8 @@ namespace rubinius {
 
     std::string system_prefix_;
 
+    utilities::thread::Mutex halt_lock_;
+
   public:
     SharedState* shared;
     VM* root_vm;
@@ -91,6 +93,7 @@ namespace rubinius {
     bool verify_paths(std::string prefix);
     bool load_signature(std::string dir);
     void copy_argv(int argc, char** argv);
+    void log_argv();
     void load_vm_options(int argc, char** argv);
     void load_argv(int argc, char** argv);
     void load_kernel(std::string root);
@@ -110,6 +113,8 @@ namespace rubinius {
 
     void before_exec(STATE);
     void after_exec(STATE);
+    void after_fork_child(STATE);
+    void after_fork_exec_child(STATE);
 
     void halt(STATE);
     void halt_and_exit(STATE);

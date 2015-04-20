@@ -137,9 +137,5 @@ int main(int argc, char** argv) {
     }
   }
 
-#ifdef ENABLE_LLVM
-  llvm::llvm_shutdown();
-#endif
-
   return exit_code;
 }

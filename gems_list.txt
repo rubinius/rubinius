@@ -36,7 +36,7 @@ rubysl-enumerator-1.0.0.gem
 rubysl-erb-1.0.1.gem
 rubysl-etc-1.0.1.gem
 rubysl-expect-1.0.0.gem
-rubysl-fcntl-1.0.2.gem
+rubysl-fcntl-1.0.1.gem
 rubysl-fileutils-1.0.0.gem
 rubysl-find-1.0.0.gem
 rubysl-forwardable-1.0.0.gem

@@ -11,6 +11,7 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <sys/time.h>
 
 #include <sstream>
 #include <iostream>
@@ -450,6 +451,18 @@ namespace thread {
       if(cDebugLockGuard) {
         logger::debug("%d CLocked %s", thread_debug_self(), mutex.describe());
       }
+    }
+
+#define NS_PER_SEC    1000000000
+#define NS_PER_USEC   1000
+
+    void offset(struct timespec* ts, double sec) {
+      struct timeval tv = {0,0};
+      gettimeofday(&tv, 0);
+
+      uint64_t ns = (uint64_t)(sec * NS_PER_SEC + tv.tv_usec * NS_PER_USEC);
+      ts->tv_sec = (time_t)(tv.tv_sec + ns / NS_PER_SEC);
+      ts->tv_nsec = (long)(ns % NS_PER_SEC);
     }
 
     Code wait_until(Mutex& mutex, const struct timespec* ts) {

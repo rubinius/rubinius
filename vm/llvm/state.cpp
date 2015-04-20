@@ -247,6 +247,11 @@ namespace rubinius {
         if(!compile_request || compile_request->nil_p()) continue;
       }
 
+      utilities::thread::Condition* cond = compile_request->waiter();
+
+      // Don't proceed until requester has reached the wait_cond
+      if(cond) wait_mutex.lock();
+
       Context ctx(this);
       jit::Compiler jit(&ctx);
 
@@ -271,7 +276,8 @@ namespace rubinius {
             }
 
             // If someone was waiting on this, wake them up.
-            if(utilities::thread::Condition* cond = compile_request->waiter()) {
+            if(cond) {
+              wait_mutex.unlock();
               cond->signal();
             }
 
@@ -306,7 +312,8 @@ namespace rubinius {
                       << " ]]]\n";
           }
           // If someone was waiting on this, wake them up.
-          if(utilities::thread::Condition* cond = compile_request->waiter()) {
+          if(cond) {
+            wait_mutex.unlock();
             cond->signal();
           }
 
@@ -320,7 +327,8 @@ namespace rubinius {
         metrics().m.jit_metrics.methods_failed++;
 
         // If someone was waiting on this, wake them up.
-        if(utilities::thread::Condition* cond = compile_request->waiter()) {
+        if(cond) {
+          wait_mutex.unlock();
           cond->signal();
         }
         current_compiler_ = 0;
@@ -368,7 +376,8 @@ namespace rubinius {
       }
 
       // If someone was waiting on this, wake them up.
-      if(utilities::thread::Condition* cond = compile_request->waiter()) {
+      if(cond) {
+        wait_mutex.unlock();
         cond->signal();
       }
 

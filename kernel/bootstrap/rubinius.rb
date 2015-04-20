@@ -19,6 +19,11 @@ module Rubinius
     raise PrimitiveFailure, "Rubinius.extended_modules primitive failed"
   end
 
+  def self.global_serial
+    Rubinius.primitive :vm_global_serial
+    raise PrimitiveFailure, "Rubinius.vm_global_serial primitive failed"
+  end
+
   def self.inc_global_serial
     Rubinius.primitive :vm_inc_global_serial
     raise PrimitiveFailure, "Rubinius.vm_inc_global_serial primitive failed"
