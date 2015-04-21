@@ -131,7 +131,7 @@ describe :rb_thread_blocking_region, :shared => true do
     thr.wakeup
 
     # Make sure it stopped
-    thr.join(1).should_not be_nil
+    thr.join.should_not be_nil
 
     # And we got a proper value
     thr.value.should be_true
