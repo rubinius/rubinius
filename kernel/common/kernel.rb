@@ -524,7 +524,7 @@ module Kernel
     elsif respond_to_missing?(name, true)
       Method.new(self, self.class, Rubinius::MissingMethod.new(self,  name), name)
     else
-      raise NameError, "undefined method `#{name}' for #{self.inspect}"
+      raise NameError, "undefined method `#{name}' for class #{self.class}"
     end
   end
 
