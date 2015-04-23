@@ -56,6 +56,11 @@ namespace rubinius {
     void run(STATE);
     void stop(STATE);
     void wakeup(STATE);
+
+    typedef void (*PrintFunction)(const char* message, ...);
+
+    void print_machine_info(PrintFunction function);
+    void print_process_info(PrintFunction function);
   };
 }
 

@@ -92,6 +92,29 @@ namespace rubinius {
     InternalThread::stop(state);
   }
 
+  void SignalThread::print_machine_info(PrintFunction function) {
+    function("sysname: %s", machine_info.sysname);
+    function("nodename: %s", machine_info.nodename);
+    function("release: %s", machine_info.release);
+    function("version: %s", machine_info.version);
+    function("machine: %s", machine_info.machine);
+  }
+
+
+  void SignalThread::print_process_info(PrintFunction function) {
+    function("user: %s", signal_thread_->shared().username.c_str());
+    function("pid: %s", signal_thread_->shared().pid.c_str());
+    function("program name: %s", RBX_PROGRAM_NAME);
+    function("version: %s", RBX_VERSION);
+    function("ruby version: %s", RBX_RUBY_VERSION);
+    function("release date: %s", RBX_RELEASE_DATE);
+    function("build revision: %s", RBX_BUILD_REV);
+    function("llvm version: %s", RBX_LLVM_VERSION);
+    function("jit status: %s",
+        CBOOL(signal_thread_->shared().env()->state->globals().jit.get()->enabled())
+        ? "enabled" : "disabled");
+  }
+
   void SignalThread::run(STATE) {
 #ifndef RBX_WINDOWS
     sigset_t set;
@@ -335,6 +358,8 @@ namespace rubinius {
       sleep(timeout);
     }
 
+    signal_thread_->shared().env()->atexit();
+
 #define RBX_ABORT_CALLSTACK_SIZE    128
     void* callstack[RBX_ABORT_CALLSTACK_SIZE];
     int i, frames = backtrace(callstack, RBX_ABORT_CALLSTACK_SIZE);
@@ -343,25 +368,11 @@ namespace rubinius {
     logger::fatal("The Rubinius process is aborting with signal: %s",
                   rbx_signal_string(sig));
     logger::fatal("--- begin system info ---");
-    logger::fatal("sysname: %s", machine_info.sysname);
-    logger::fatal("nodename: %s", machine_info.nodename);
-    logger::fatal("release: %s", machine_info.release);
-    logger::fatal("version: %s", machine_info.version);
-    logger::fatal("machine: %s", machine_info.machine);
+    signal_thread_->print_machine_info(logger::fatal);
     logger::fatal("--- end system info ---");
 
     logger::fatal("--- begin rubinius info ---");
-    logger::fatal("user: %s", signal_thread_->shared().username.c_str());
-    logger::fatal("pid: %s", signal_thread_->shared().pid.c_str());
-    logger::fatal("program name: %s", RBX_PROGRAM_NAME);
-    logger::fatal("version: %s", RBX_VERSION);
-    logger::fatal("ruby version: %s", RBX_RUBY_VERSION);
-    logger::fatal("release date: %s", RBX_RELEASE_DATE);
-    logger::fatal("build revision: %s", RBX_BUILD_REV);
-    logger::fatal("llvm version: %s", RBX_LLVM_VERSION);
-    logger::fatal("jit status: %s",
-        CBOOL(signal_thread_->shared().env()->state->globals().jit.get()->enabled())
-        ? "enabled" : "disabled");
+    signal_thread_->print_process_info(logger::fatal);
     logger::fatal("--- end rubinius info ---");
 
     logger::fatal("--- begin system backtrace ---");

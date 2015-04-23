@@ -551,7 +551,7 @@ module Kernel
     if code
       Method.new(self, code[1], code[0], name)
     else
-      raise NameError, "undefined method `#{name}' for #{self.inspect}"
+      raise NameError, "undefined method `#{name}' for class #{self.class}"
     end
   end
 
