@@ -864,6 +864,9 @@ namespace rubinius {
 
     start_jit(state);
 
+    signal_thread_->print_machine_info(utilities::logger::write);
+    signal_thread_->print_process_info(utilities::logger::write);
+
     G(rubinius)->set_const(state, "Signature", Integer::from(state, signature_));
 
     G(rubinius)->set_const(state, "RUNTIME_PATH", String::create(state,
