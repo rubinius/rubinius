@@ -119,6 +119,7 @@ namespace rubinius {
     void halt(STATE);
     void halt_and_exit(STATE);
     int exit_code(STATE);
+    void atexit();
 
     void create_fsapi(STATE);
     void remove_fsapi(STATE);

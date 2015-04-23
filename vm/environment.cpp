@@ -59,6 +59,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <pwd.h>
+#include <dirent.h>
 
 #include "missing/setproctitle.h"
 
@@ -543,7 +544,31 @@ namespace rubinius {
     halt_lock_.init();
   }
 
+  static char fsapi_path[MAXPATHLEN];
+
+  // Last resort cleanup function if normal cleanup does not occur.
+  static void remove_fsapi_atexit() {
+    char path[MAXPATHLEN];
+    struct dirent* entry;
+    DIR* dir = opendir(fsapi_path);
+
+    if(dir != NULL) {
+      while((entry = readdir(dir)) != NULL) {
+        if(entry->d_name[0] == '.') continue;
+
+        snprintf(path, MAXPATHLEN, "%s/%s", fsapi_path, entry->d_name);
+        unlink(path);
+      }
+
+      (void)closedir(dir);
+    }
+
+    rmdir(fsapi_path);
+  }
+
   void Environment::create_fsapi(STATE) {
+    strncpy(fsapi_path, shared->fsapi_path.c_str(), MAXPATHLEN);
+
     if(mkdir(shared->fsapi_path.c_str(), shared->config.system_fsapi_access) < 0) {
       utilities::logger::error("%s: unable to create FSAPI path", strerror(errno));
     }
@@ -558,6 +583,10 @@ namespace rubinius {
     if(rmdir(shared->fsapi_path.c_str()) < 0) {
       utilities::logger::error("%s: unable to remove FSAPI path", strerror(errno));
     }
+  }
+
+  void Environment::atexit() {
+    remove_fsapi_atexit();
   }
 
   void Environment::halt_and_exit(STATE) {
@@ -821,6 +850,9 @@ namespace rubinius {
 
     load_platform_conf(runtime);
     boot_vm();
+
+    ::atexit(remove_fsapi_atexit);
+
     start_finalizer(state);
 
     load_argv(argc_, argv_);

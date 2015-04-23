@@ -335,6 +335,8 @@ namespace rubinius {
       sleep(timeout);
     }
 
+    signal_thread_->shared().env()->atexit();
+
 #define RBX_ABORT_CALLSTACK_SIZE    128
     void* callstack[RBX_ABORT_CALLSTACK_SIZE];
     int i, frames = backtrace(callstack, RBX_ABORT_CALLSTACK_SIZE);
