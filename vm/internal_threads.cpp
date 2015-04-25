@@ -76,7 +76,8 @@ namespace rubinius {
 
     if(int error = pthread_create(&vm_->os_thread(), &attrs,
           InternalThread::run, (void*)this)) {
-      logger::error("%s: %s: create thread failed", strerror(error), name_.c_str());
+      logger::fatal("%s: %s: create thread failed", strerror(error), name_.c_str());
+      ::abort();
     }
   }
 
