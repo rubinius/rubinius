@@ -390,6 +390,9 @@ namespace rubinius {
     if(current_compiler_) {
       jit::RuntimeDataHolder* rd = current_compiler_->context()->runtime_data_holder();
       rd->set_mark();
+
+      ObjectMark mark(gc);
+      rd->mark_all(0, mark);
     }
   }
 
