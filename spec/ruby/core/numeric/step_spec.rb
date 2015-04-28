@@ -13,6 +13,12 @@ describe "Numeric#step" do
       lambda { 1.step(2, 0.0) {} }.should raise_error(ArgumentError)
     end
 
+    before :all do
+      # This lambda definition limits to return the arguments it receives.
+      # It's needed to test numeric_step behaviour with positional arguments.
+      @step_args = ->(*args) { args }
+    end
+
     it_behaves_like :numeric_step, :step
 
     describe "when no block is given" do
@@ -65,7 +71,14 @@ describe "Numeric#step" do
     end
 
     before :all do
-      @args_type = :kw
+      # This lambda transforms a positional step method args into
+      # keyword arguments.
+      # It's needed to test numeric_step behaviour with keyword arguments.
+      @step_args = ->(*args) do
+        kw_args = {to: args[0]}
+        kw_args[:by] = args[1] if args.size == 2
+        [kw_args]
+      end
     end
     it_behaves_like :numeric_step, :step
   end
@@ -107,7 +120,17 @@ describe "Numeric#step" do
       end
     end
     before :all do
-      @args_type = :mix
+      # This lambda definition transforms a positional step method args into
+      # a mix of positional and keyword arguments.
+      # It's needed to test numeric_step behaviour with positional mixed with
+      # keyword arguments.
+      @step_args = ->(*args) do 
+        if args.size == 2
+          [args[0], {by: args[1]}]
+        else
+          args
+        end
+      end
     end
     it_behaves_like :numeric_step, :step
   end
