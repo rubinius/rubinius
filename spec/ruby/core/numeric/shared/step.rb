@@ -1,9 +1,9 @@
 require File.expand_path('../../../../spec_helper', __FILE__)
 require File.expand_path('../../fixtures/classes', __FILE__)
 
-# Describes Numeric#step shared specs between different argument types.
+# Describes Numeric#step shared specs between different argument styles.
 # To be able to do it, the @step_args var must contain a Proc that transforms
-# the step call arguments passed as positional arguments to the type of
+# the step call arguments passed as positional arguments to the style of
 # arguments pretended to test.
 describe :numeric_step, :shared => true do
   before :each do
