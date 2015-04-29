@@ -22,6 +22,22 @@ public:
     destroy();
   }
 
+  void test_detect_kind_with_constant() {
+    const char *input = "Pettson";
+
+    SymbolTable::Kind kind = symbols->detect_kind(input, strlen(input));
+
+    TS_ASSERT_EQUALS(kind, SymbolTable::Constant);
+  }
+
+  void test_detect_kind_with_unicode_constant() {
+    const char *input = "Pettsonλ";
+
+    SymbolTable::Kind kind = symbols->detect_kind(input, strlen(input));
+
+    TS_ASSERT_EQUALS(kind, SymbolTable::Constant);
+  }
+
   void test_lookup_with_c_str() {
     Object* sym = symbols->lookup(state, std::string("unique"));
     TS_ASSERT(sym->symbol_p());

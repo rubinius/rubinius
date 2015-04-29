@@ -16,13 +16,8 @@ namespace rubinius {
   SymbolTable::Kind SymbolTable::detect_kind(const char* str, size_t size) {
     const char one = str[0];
 
-    // A constant begins with an uppercase letter.
-    if(one >= 'A' && one <= 'Z') {
-      // Make sure that the rest of it is only alphanumerics
-      for(size_t i = 1; i < size; i++) {
-        if((isalnum(str[i]) || str[i] == '_') == false)
-          return SymbolTable::Normal;
-      }
+    // Constants start with A-Z
+    if(isupper(one)) {
       return SymbolTable::Constant;
     }
 
