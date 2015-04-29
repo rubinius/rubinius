@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 require File.expand_path('../../../spec_helper', __FILE__)
 require File.expand_path('../../../fixtures/constants', __FILE__)
 
@@ -73,6 +75,10 @@ describe "Module#const_defined?" do
 
   it "returns true when passed a scoped constant name" do
     ConstantSpecs.const_defined?("ClassC::CS_CONST1").should be_true
+  end
+
+  it "returns true when passed a scoped constant name with unicode characters" do
+    ConstantSpecs.const_defined?("CS_CONSTλ").should be_true
   end
 
   it "returns true when passed a scoped constant name for a constant in the inheritance hierarchy and the inherited flag is default" do
