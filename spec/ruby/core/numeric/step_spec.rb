@@ -56,6 +56,12 @@ describe "Numeric#step" do
       lambda { 1.step(to: 2, by: 0.0) { break } }.should_not raise_error
     end
 
+    it "should loop over self when step is 0 or 0.0" do
+      1.step(to: 2, by: 0.0).take(5).should eql [1.0, 1.0, 1.0, 1.0, 1.0]
+      1.step(to: 2, by: 0).take(5).should eql [1, 1, 1, 1, 1]
+      1.1.step(to: 2, by: 0).take(5).should eql [1.1, 1.1, 1.1, 1.1, 1.1]
+    end
+
     describe "when no block is given" do
       describe "returned Enumerator" do
         describe "size" do
