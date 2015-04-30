@@ -12,53 +12,63 @@
 
 namespace rubinius {
 
-  SymbolTable::Kind SymbolTable::detect_kind(const char* str, size_t size) {
-    const char one = str[0];
+  SymbolTable::Kind SymbolTable::detect_kind(STATE, const Symbol* sym) {
+    std::string str = strings[sym->index()];
+    size_t size = str.size();
+    uint8_t* p = reinterpret_cast<uint8_t*>(const_cast<char*>(str.c_str()));
 
-    // A constant begins with an uppercase letter.
-    if(one >= 'A' && one <= 'Z') {
-      // Make sure that the rest of it is only alphanumerics
+    // Constants start with A-Z, followed by alphanumeric characters or '_'.
+    if(isupper(*p)) {
       for(size_t i = 1; i < size; i++) {
-        if((isalnum(str[i]) || str[i] == '_') == false)
-          return SymbolTable::Normal;
+        if(!isalnum(p[i]) && p[i] != '_') {
+          return SymbolTable::eNormal;
+        }
       }
-      return SymbolTable::Constant;
+
+      return SymbolTable::eConstant;
     }
 
-    if(one == '@') {
+    if(p[0] == '@') {
       // A class variable begins with @@
-      if(size > 1 && str[1] == '@') {
-        return SymbolTable::CVar;
+      if(size > 1 && p[1] == '@') {
+        return SymbolTable::eCVar;
       }
 
       // An instance variable can't start with a digit
       if(size > 1 && ISDIGIT(str[1])) {
-        return SymbolTable::Normal;
+        return SymbolTable::eNormal;
       }
 
       // An instance variable begins with @
-      return SymbolTable::IVar;
+      return SymbolTable::eIVar;
     }
 
     // A system variable begins with __
-    if(size > 2 && one == '_' && str[1] == '_') {
-      return SymbolTable::System;
+    if(size > 2 && p[0] == '_' && p[1] == '_') {
+      return SymbolTable::eSystem;
     }
 
     // Everything else is normal
-    return SymbolTable::Normal;
+    return SymbolTable::eNormal;
   }
 
   SymbolTable::Kind SymbolTable::kind(STATE, const Symbol* sym) {
     utilities::thread::SpinLock::LockGuard guard(lock_);
-    return kinds[sym->index()];
+
+    Kind k = kinds[sym->index()];
+
+    if(k == eUnknown) {
+      k = kinds[sym->index()] = detect_kind(state, sym);
+    }
+
+    return k;
   }
 
   size_t SymbolTable::add(std::string str) {
     bytes_used_ += (str.size() + sizeof(std::string) + sizeof(Kind));
 
     strings.push_back(str);
-    kinds.push_back(detect_kind(str.data(), str.size()));
+    kinds.push_back(eUnknown);
     return strings.size() - 1;
   }
 

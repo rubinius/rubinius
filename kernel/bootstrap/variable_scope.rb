@@ -10,6 +10,11 @@ module Rubinius
       raise PrimitiveFailure, "Rubinius::VariableScope.current primitive failed"
     end
 
+    def self.allocate
+      Rubinius.primitive :variable_scope_allocate
+      raise PrimitiveFailure, "Rubinius::VariableScope.allocate primitive failed"
+    end
+
     def self.synthesize(method, module_, parent, self_, block, locals)
       Rubinius.primitive :variable_scope_synthesize
       raise PrimitiveFailure, "Rubinius::VariableScope.synthesize primitive failed"

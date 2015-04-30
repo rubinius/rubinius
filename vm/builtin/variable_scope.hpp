@@ -100,6 +100,9 @@ namespace rubinius {
     // Rubinius.primitive+ :variable_scope_current
     static VariableScope* current(STATE, CallFrame* calling_environment);
 
+    // Rubinius.primitive :variable_scope_allocate
+    static VariableScope* allocate(STATE);
+
     // Rubinius.primitive :variable_scope_synthesize
     static VariableScope* synthesize(STATE, CompiledCode* method, Module* module, Object* parent, Object* self, Object* block, Tuple* locals);
 
