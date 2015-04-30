@@ -190,7 +190,7 @@ class Module
 
     mod = self
     while mod
-      if entry = mod.method_table.lookup(name)
+      if mod == mod.origin && entry = mod.method_table.lookup(name)
         vis = entry.visibility
         break if vis == :undef
 

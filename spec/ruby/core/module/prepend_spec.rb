@@ -90,6 +90,7 @@ describe "Module#prepend" do
     m = Module.new { def meth; end }
     c = Class.new { def meth; end; prepend(m) }
     c.instance_method(:meth).owner.should == m
+    c.public_instance_method(:meth).owner.should == m
   end
 
   it "sees an instance of a prepended class as kind of the prepended module" do
