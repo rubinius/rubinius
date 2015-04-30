@@ -1,0 +1,1 @@
+fails:Module#prepend reports the prepended module as the unbound method owner
