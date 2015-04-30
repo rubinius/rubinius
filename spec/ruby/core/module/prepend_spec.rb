@@ -82,13 +82,13 @@ describe "Module#prepend" do
 
   it "reports the prepended module as the method owner" do
     m = Module.new { def meth; end }
-    c = Class.new { def meth; end; prepend m }
+    c = Class.new { def meth; end; prepend(m) }
     c.new.method(:meth).owner.should == m
   end
 
   it "reports the prepended module as the unbound method owner" do
     m = Module.new { def meth; end }
-    c = Class.new { def meth; end; prepend m }
+    c = Class.new { def meth; end; prepend(m) }
     c.instance_method(:meth).owner.should == m
   end
 
