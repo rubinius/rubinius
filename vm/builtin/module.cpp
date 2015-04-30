@@ -202,10 +202,12 @@ namespace rubinius {
     Module* mod = this;
 
     do {
-      MethodTableBucket* buk = mod->method_table()->find_entry(name);
-      if(buk) {
-        if(defined_in) *defined_in = mod;
-        return buk->method();
+      if(mod == mod->origin_) {
+        MethodTableBucket* buk = mod->method_table()->find_entry(name);
+        if(buk) {
+          if(defined_in) *defined_in = mod;
+          return buk->method();
+        }
       }
       mod = mod->superclass();
     } while(!mod->nil_p());

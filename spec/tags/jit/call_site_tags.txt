@@ -1,1 +1,0 @@
-fails:JIT compiling a call site to m() that calls super defined in a prepended module returns the result of calling the prepended method
