@@ -293,7 +293,7 @@ class Module
     mod = self
 
     while mod
-      if entry = mod.method_table.lookup(sym.to_sym)
+      if mod == mod.origin && entry = mod.method_table.lookup(sym.to_sym)
         mod = mod.module if trim_im and mod.kind_of? Rubinius::IncludedModule
         return [mod, entry]
       end

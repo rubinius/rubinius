@@ -1,1 +1,0 @@
-fails:Module#prepend causes the prepended module's method to be aliased by alias_method
