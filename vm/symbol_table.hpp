@@ -45,11 +45,12 @@ namespace rubinius {
     // easily about it without having to get the string representation
     // and perform comparisons against the char data.
     enum Kind {
-      Normal,
-      Constant,
-      IVar,
-      CVar,
-      System
+      eUnknown,
+      eNormal,
+      eConstant,
+      eIVar,
+      eCVar,
+      eSystem
     };
 
     typedef std::vector<Kind> SymbolKinds;
@@ -61,8 +62,6 @@ namespace rubinius {
     SymbolKinds kinds;
     utilities::thread::SpinLock lock_;
     size_t bytes_used_;
-
-    Symbol* lookup(const char* str, size_t length, int enc, uint32_t seed);
 
   public:
 
@@ -79,6 +78,7 @@ namespace rubinius {
     Symbol* lookup(SharedState* shared, const std::string& str);
     Symbol* lookup(STATE, const std::string& str);
     Symbol* lookup(STATE, const char* str, size_t length);
+    Symbol* lookup(const char* str, size_t length, int enc, uint32_t seed);
     Symbol* lookup(STATE, String* str);
     String* lookup_string(STATE, const Symbol* sym);
 
@@ -91,7 +91,7 @@ namespace rubinius {
     Kind kind(STATE, const Symbol* sym);
 
     size_t add(std::string str, int enc);
-    static Kind detect_kind(const char* str, size_t size);
+    Kind detect_kind(STATE, const Symbol* sym);
   };
 };
 

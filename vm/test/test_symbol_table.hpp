@@ -23,19 +23,17 @@ public:
   }
 
   void test_detect_kind_with_constant() {
-    const char *input = "Pettson";
+    Symbol* sym = symbols->lookup(state, "Pettson");
+    SymbolTable::Kind kind = symbols->detect_kind(state, sym);
 
-    SymbolTable::Kind kind = symbols->detect_kind(input, strlen(input));
-
-    TS_ASSERT_EQUALS(kind, SymbolTable::Constant);
+    TS_ASSERT_EQUALS(kind, SymbolTable::eConstant);
   }
 
   void test_detect_kind_with_unicode_constant() {
-    const char *input = "Pettsonλ";
+    Symbol* sym = symbols->lookup("Pettsonλ", 9, Encoding::eUtf8, 0);
+    SymbolTable::Kind kind = symbols->detect_kind(state, sym);
 
-    SymbolTable::Kind kind = symbols->detect_kind(input, strlen(input));
-
-    TS_ASSERT_EQUALS(kind, SymbolTable::Constant);
+    TS_ASSERT_EQUALS(kind, SymbolTable::eConstant);
   }
 
   void test_lookup_with_c_str() {

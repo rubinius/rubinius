@@ -1,3 +1,7 @@
+#include "oniguruma.h" // Must be first.
+#include "regenc.h"
+#include "transcoder.h"
+
 #include "symbol_table.hpp"
 #include "exception.hpp"
 #include "configuration.hpp"
@@ -13,41 +17,70 @@
 
 namespace rubinius {
 
-  SymbolTable::Kind SymbolTable::detect_kind(const char* str, size_t size) {
-    const char one = str[0];
+  SymbolTable::Kind SymbolTable::detect_kind(STATE, const Symbol* sym) {
+    std::string str = strings[sym->index()];
+    size_t size = str.size();
+    uint8_t* p = reinterpret_cast<uint8_t*>(const_cast<char*>(str.c_str()));
 
-    // Constants start with A-Z
-    if(isupper(one)) {
-      return SymbolTable::Constant;
+    Encoding* e = Encoding::from_index(state, encodings[sym->index()]);
+    OnigEncodingType* enc = e->get_encoding();
+
+    // Constants start with A-Z, followed by alphanumeric characters or '_' or
+    // non-ascii character.
+    if(isupper(*p)) {
+      uint8_t* e = p + size;
+      int n = 0, code = 0;
+
+      for(++p; p < e; p += n) {
+        n = Encoding::precise_mbclen(p, e, enc);
+        if(!ONIGENC_MBCLEN_CHARFOUND_P(n)) {
+          return SymbolTable::eNormal;
+        }
+
+        n = ONIGENC_MBCLEN_CHARFOUND_LEN(n);
+        code = ONIGENC_MBC_TO_CODE(enc, p, p + n);
+        if(!(ONIGENC_IS_CODE_ALNUM(enc, code) || *p == '_' || !ISASCII(*p))) {
+          return SymbolTable::eNormal;
+        }
+      }
+
+      return SymbolTable::eConstant;
     }
 
-    if(one == '@') {
+    if(p[0] == '@') {
       // A class variable begins with @@
-      if(size > 1 && str[1] == '@') {
-        return SymbolTable::CVar;
+      if(size > 1 && p[1] == '@') {
+        return SymbolTable::eCVar;
       }
 
       // An instance variable can't start with a digit and can't be just @.
-      if((size == 1) || (size > 1 && ISDIGIT(str[1]))) {
-        return SymbolTable::Normal;
+      if((size == 1) || (size > 1 && ISDIGIT(p[1]))) {
+        return SymbolTable::eNormal;
       }
 
       // An instance variable begins with @
-      return SymbolTable::IVar;
+      return SymbolTable::eIVar;
     }
 
     // A system variable begins with __
-    if(size > 2 && one == '_' && str[1] == '_') {
-      return SymbolTable::System;
+    if(size > 2 && p[0] == '_' && p[1] == '_') {
+      return SymbolTable::eSystem;
     }
 
     // Everything else is normal
-    return SymbolTable::Normal;
+    return SymbolTable::eNormal;
   }
 
   SymbolTable::Kind SymbolTable::kind(STATE, const Symbol* sym) {
     utilities::thread::SpinLock::LockGuard guard(lock_);
-    return kinds[sym->index()];
+
+    Kind k = kinds[sym->index()];
+
+    if(k == eUnknown) {
+      k = kinds[sym->index()] = detect_kind(state, sym);
+    }
+
+    return k;
   }
 
   size_t SymbolTable::add(std::string str, int enc) {
@@ -55,7 +88,7 @@ namespace rubinius {
 
     strings.push_back(str);
     encodings.push_back(enc);
-    kinds.push_back(detect_kind(str.data(), str.size()));
+    kinds.push_back(eUnknown);
     return strings.size() - 1;
   }
 
