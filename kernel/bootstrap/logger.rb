@@ -49,6 +49,11 @@ module Rubinius
       @format = "#{name}: %s"
     end
 
+    def write(message)
+      Rubinius.primitive :logger_write
+      raise PrimitiveFailure, "Rubinius::Logger#write primitive failed"
+    end
+
     def fatal(message)
       Rubinius.primitive :logger_fatal
       raise PrimitiveFailure, "Rubinius::Logger#fatal primitive failed"
