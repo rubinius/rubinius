@@ -56,7 +56,7 @@ describe :numeric_step, :shared => true do
     end
   end
 
-  describe "when self, stop or step are a Float" do
+  describe "when at least one of self, stop or step is a Float" do
     it "yields Floats even if only self is a Float" do
       1.5.send(@method, *@step_args.call(5, 1)) { |x| x.should be_an_instance_of(Float) }
     end
