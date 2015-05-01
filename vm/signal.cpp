@@ -109,7 +109,9 @@ namespace rubinius {
     function("ruby version: %s", RBX_RUBY_VERSION);
     function("release date: %s", RBX_RELEASE_DATE);
     function("build revision: %s", RBX_BUILD_REV);
+#if ENABLE_LLVM
     function("llvm version: %s", RBX_LLVM_VERSION);
+#endif
     function("jit status: %s",
         CBOOL(signal_thread_->shared().env()->state->globals().jit.get()->enabled())
         ? "enabled" : "disabled");
