@@ -25,6 +25,11 @@ namespace rubinius {
     return logger;
   }
 
+  Object* Logger::write(STATE, String* message) {
+    logger::write(format()->c_str(state), message->c_str(state));
+    return cNil;
+  }
+
   Object* Logger::fatal(STATE, String* message) {
     logger::fatal(format()->c_str(state), message->c_str(state));
     return cNil;

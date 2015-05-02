@@ -1,0 +1,2 @@
+fails:Time.mktime timezone changes correctly adjusts the timezone change to 'EET' on 'Europe/Istanbul'
+fails:Time.mktime timezone changes correctly adjusts the timezone change to 'WET' on 'Europe/Lisbon'
