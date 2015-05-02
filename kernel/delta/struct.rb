@@ -92,9 +92,7 @@ class Struct
     CODE
 
     begin
-      include Module.new do
-        module_eval code
-      end
+      module_eval code
     rescue SyntaxError
       # SyntaxError means that something is wrong with the
       # specialization code. Just eat the error and don't specialize.
