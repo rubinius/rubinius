@@ -190,7 +190,7 @@ namespace rubinius {
     }
 
     native_int new_size = size() + osize;
-    Tuple* nt = Tuple::create(state, new_size);
+    Tuple* nt = Tuple::create_dirty(state, new_size);
     nt->copy_from(state, tuple_, start_, total_, Fixnum::from(0));
     nt->copy_from(state, other->tuple(), other->start(), other->total(), total_);
 
