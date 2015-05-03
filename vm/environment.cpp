@@ -238,30 +238,48 @@ namespace rubinius {
     utilities::logger::write("command line: %s", args.str().c_str());
   }
 
+  static void read_config_file(FILE* fp, ConfigParser& config_parser) {
+#define RBX_CONFIG_FILE_LINE_MAX    256
+
+    char buf[RBX_CONFIG_FILE_LINE_MAX];
+    while(fgets(buf, RBX_CONFIG_FILE_LINE_MAX, fp)) {
+      int size = strlen(buf);
+      if(buf[size-1] == '\n') buf[size-1] = '\0';
+      if(strncmp(buf, "-X", 2) == 0) {
+        config_parser.import_line(buf + 2);
+      }
+    }
+  }
+
   void Environment::load_vm_options(int argc, char**argv) {
     /* We parse -X options from three sources in the following order:
      *
-     *  1. The file .rbxrc in the current working directory.
-     *  2. The RBXOPT environment variable.
-     *  3. The command line options.
+     *  1. The file $HOME/.rbxconfig if $HOME is defined.
+     *  2. The file .rbxconfig in the current working directory.
+     *  3. The RBXOPT environment variable.
+     *  4. The command line options.
      *
      * This order permits environment and command line options to override
      * "application" configuration. Likewise, command line options can override
      * environment configuration.
      */
 
-#define RBX_CONFIG_FILE_LINE_MAX    256
+    char* home = getenv("HOME");
+    if(home) {
+      std::string config_path(home);
+      config_path += "/.rbxconfig";
+
+      if(FILE* fp = fopen(config_path.c_str(), "r")) {
+        read_config_file(fp, config_parser);
+      }
+    }
 
     // Configuration file.
-    if(FILE* fp = fopen(".rbxrc", "r")) {
-      char buf[RBX_CONFIG_FILE_LINE_MAX];
-      while(fgets(buf, RBX_CONFIG_FILE_LINE_MAX, fp)) {
-        int size = strlen(buf);
-        if(buf[size-1] == '\n') buf[size-1] = '\0';
-        if(strncmp(buf, "-X", 2) == 0) {
-          config_parser.import_line(buf + 2);
-        }
-      }
+    if(FILE* fp = fopen(".rbxconfig", "r")) {
+      read_config_file(fp, config_parser);
+    } else if(FILE* fp = fopen(".rbxrc", "r")) {
+      std::cerr << "Use of config file .rbxrc is deprecated, use .rbxconfig." << std::endl;
+      read_config_file(fp, config_parser);
     }
 
     // Environment.
