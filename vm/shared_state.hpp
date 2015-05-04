@@ -142,7 +142,6 @@ namespace rubinius {
     ConfigParser& user_variables;
     SymbolTable symbols;
     LLVMState* llvm_state;
-    std::string fsapi_path;
     std::string username;
     std::string pid;
     uint32_t hash_seed;

@@ -176,14 +176,11 @@ Rubinius::ConfigurationVariables.define do |c|
     s.vm_variable "tmp", "$TMPDIR",
       "Default temp/fallback directory for the process"
 
-    s.vm_variable "fsapi.path", "$TMPDIR/$PROGRAM_NAME-$USER-$PID",
-      "Base directory of the Rubinius File System API files"
-
-    s.vm_variable "fsapi.access", 0750,
-      "Permissions on the Rubinius File System API directory"
+    s.vm_variable "console.path", "$TMPDIR/$PROGRAM_NAME-$USER-console",
+      "Path for Rubinius Console connection file"
 
     s.vm_variable "console.access", 0660,
-      "Permissions on the Rubinius Console files"
+      "Permissions on the Rubinius Console connection file"
 
     s.vm_variable "log", "$TMPDIR/$PROGRAM_NAME-$USER.log",
       "Logging facility to use: 'syslog', 'console', or path"

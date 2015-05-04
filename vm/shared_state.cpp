@@ -53,7 +53,6 @@ namespace rubinius {
     , config(config)
     , user_variables(cp)
     , llvm_state(0)
-    , fsapi_path("")
     , username("")
     , pid("")
   {
@@ -240,6 +239,7 @@ namespace rubinius {
     internal_threads_->init();
 
     om->after_fork_child(state);
+    console_->after_fork_child(state);
 
     state->vm()->set_run_state(ManagedThread::eIndependent);
     gc_dependent(state, 0);

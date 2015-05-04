@@ -332,8 +332,7 @@ namespace rubinius {
     set_tmp_path();
     set_username();
     set_pid();
-
-    set_fsapi_path();
+    set_console_path();
   }
 
   void Environment::expand_config_value(std::string& cvar,
@@ -374,15 +373,14 @@ namespace rubinius {
     shared->pid.assign(pid.str());
   }
 
-  void Environment::set_fsapi_path() {
-    shared->fsapi_path.assign(config.system_fsapi_path.value);
+  void Environment::set_console_path() {
+    std::string path(config.system_console_path.value);
 
-    expand_config_value(shared->fsapi_path, "$TMPDIR", config.system_tmp);
-    expand_config_value(shared->fsapi_path, "$PROGRAM_NAME", RBX_PROGRAM_NAME);
-    expand_config_value(shared->fsapi_path, "$USER", shared->username.c_str());
-    expand_config_value(shared->fsapi_path, "$PID", shared->pid.c_str());
+    expand_config_value(path, "$TMPDIR", config.system_tmp);
+    expand_config_value(path, "$PROGRAM_NAME", RBX_PROGRAM_NAME);
+    expand_config_value(path, "$USER", shared->username.c_str());
 
-    create_fsapi(state);
+    config.system_console_path.value.assign(path);
   }
 
   void Environment::load_argv(int argc, char** argv) {
@@ -539,20 +537,14 @@ namespace rubinius {
     delete cf;
   }
 
-  void Environment::before_exec(STATE) {
-    remove_fsapi(state);
-  }
-
   void Environment::after_exec(STATE) {
     halt_lock_.init();
-    create_fsapi(state);
   }
 
   void Environment::after_fork_child(STATE) {
     halt_lock_.init();
 
     set_pid();
-    set_fsapi_path();
 
     stop_logging(state);
     start_logging(state);
@@ -560,51 +552,6 @@ namespace rubinius {
 
   void Environment::after_fork_exec_child(STATE) {
     halt_lock_.init();
-  }
-
-  static char fsapi_path[MAXPATHLEN];
-
-  // Last resort cleanup function if normal cleanup does not occur.
-  static void remove_fsapi_atexit() {
-    char path[MAXPATHLEN];
-    struct dirent* entry;
-    DIR* dir = opendir(fsapi_path);
-
-    if(dir != NULL) {
-      while((entry = readdir(dir)) != NULL) {
-        if(entry->d_name[0] == '.') continue;
-
-        snprintf(path, MAXPATHLEN, "%s/%s", fsapi_path, entry->d_name);
-        unlink(path);
-      }
-
-      (void)closedir(dir);
-    }
-
-    rmdir(fsapi_path);
-  }
-
-  void Environment::create_fsapi(STATE) {
-    strncpy(fsapi_path, shared->fsapi_path.c_str(), MAXPATHLEN);
-
-    if(mkdir(shared->fsapi_path.c_str(), shared->config.system_fsapi_access) < 0) {
-      utilities::logger::error("%s: unable to create FSAPI path", strerror(errno));
-    }
-
-    // The umask setting will override our permissions for mkdir().
-    if(chmod(shared->fsapi_path.c_str(), shared->config.system_fsapi_access) < 0) {
-      utilities::logger::error("%s: unable to set mode for FSAPI path", strerror(errno));
-    }
-  }
-
-  void Environment::remove_fsapi(STATE) {
-    if(rmdir(shared->fsapi_path.c_str()) < 0) {
-      utilities::logger::error("%s: unable to remove FSAPI path", strerror(errno));
-    }
-  }
-
-  void Environment::atexit() {
-    remove_fsapi_atexit();
   }
 
   void Environment::halt_and_exit(STATE) {
@@ -617,8 +564,10 @@ namespace rubinius {
 
     state->shared().tool_broker()->shutdown(state);
 
-    if(ImmixMarker* im = state->memory()->immix_marker()) {
-      im->stop(state);
+    if(ObjectMemory* om = state->memory()) {
+      if(ImmixMarker* im = om->immix_marker()) {
+        im->stop(state);
+      }
     }
 
     stop_jit(state);
@@ -648,8 +597,6 @@ namespace rubinius {
     }
 
     NativeMethod::cleanup_thread(state);
-
-    remove_fsapi(state);
   }
 
   /**
@@ -868,8 +815,6 @@ namespace rubinius {
 
     load_platform_conf(runtime);
     boot_vm();
-
-    ::atexit(remove_fsapi_atexit);
 
     start_finalizer(state);
 
