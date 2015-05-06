@@ -454,7 +454,7 @@ namespace rubinius {
     state->set_call_frame(call_frame);
 
     {
-      GCIndependent guard(state, 0);
+      GCIndependent guard(state, call_frame);
 
       wait_cond.wait(wait_mutex);
     }
@@ -507,7 +507,11 @@ namespace rubinius {
 
       state->set_call_frame(call_frame);
 
-      wait_cond.wait(wait_mutex);
+      {
+        GCIndependent guard(state, call_frame);
+
+        wait_cond.wait(wait_mutex);
+      }
 
       wait_mutex.unlock();
       state->set_call_frame(0);
