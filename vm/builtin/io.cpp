@@ -486,6 +486,9 @@ namespace rubinius {
     // Invalid descriptor no matter what.
     descriptor(state, Fixnum::from(-1));
 
+    // Don't close stdin, stdout, stderr descriptors.
+    if(desc < 3) return cNil;
+
     // If there is a handle for this IO, and it's been promoted into
     // a lowlevel RIO struct using fdopen, then we MUST use fclose
     // to close it.
