@@ -107,12 +107,11 @@ namespace rubinius {
     void set_tmp_path();
     void set_username();
     void set_pid();
-    void set_fsapi_path();
+    void set_console_path();
     void load_tool();
     void run_from_filesystem();
     void boot_vm();
 
-    void before_exec(STATE);
     void after_exec(STATE);
     void after_fork_child(STATE);
     void after_fork_exec_child(STATE);
@@ -121,9 +120,6 @@ namespace rubinius {
     void halt_and_exit(STATE);
     int exit_code(STATE);
     void atexit();
-
-    void create_fsapi(STATE);
-    void remove_fsapi(STATE);
 
     void start_finalizer(STATE);
 

@@ -140,8 +140,6 @@ namespace rubinius {
         ++i) {
       (*i)->before_exec(state);
     }
-
-    state->shared().env()->before_exec(state);
   }
 
   void InternalThreads::after_exec(STATE) {
