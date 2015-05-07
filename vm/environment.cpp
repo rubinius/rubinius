@@ -100,6 +100,8 @@ namespace rubinius {
 
     load_vm_options(argc_, argv_);
 
+    check_io_descriptors();
+
     root_vm = shared->new_vm();
     root_vm->metrics().init(metrics::eRubyMetrics);
     state = new State(root_vm);
@@ -139,6 +141,30 @@ namespace rubinius {
     // Install a better terminate function to tell the user
     // there was a rubinius bug.
     std::set_terminate(cpp_exception_bug);
+  }
+
+  static void assign_io_descriptor(std::string dir, int std_fd, const char* desc) {
+    std::string path = dir + desc;
+
+    int fd = open(path.c_str(), O_CREAT | O_TRUNC | O_RDWR, 0600);
+    dup2(fd, std_fd);
+    unlink(path.c_str());
+  }
+
+  void Environment::check_io_descriptors() {
+    std::string dir = config.system_tmp.value;
+
+    if(fcntl(STDIN_FILENO, F_GETFD) < 0 && errno == EBADF) {
+      assign_io_descriptor(dir, STDIN_FILENO, "stdin");
+    }
+
+    if(fcntl(STDOUT_FILENO, F_GETFD) < 0 && errno == EBADF) {
+      assign_io_descriptor(dir, STDOUT_FILENO, "stdout");
+    }
+
+    if(fcntl(STDERR_FILENO, F_GETFD) < 0 && errno == EBADF) {
+      assign_io_descriptor(dir, STDERR_FILENO, "stderr");
+    }
   }
 
   void Environment::start_jit(STATE) {
