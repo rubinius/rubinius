@@ -386,6 +386,9 @@ struct RString {
 #define RSTRING(str)    capi_rstring_struct(str, RSTRING_CACHE_SAFE)
 #endif
 
+#define RSTRING_GETMEM(rb_str, c_str, c_str_len) \
+  ((c_str) = RSTRING_PTR(rb_str), (c_str_len) = RSTRING_LEN(rb_str))
+
 struct RArray {
   ssize_t len;
   struct {
