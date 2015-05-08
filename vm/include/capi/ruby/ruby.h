@@ -557,6 +557,9 @@ struct RFile {
 /** Reallocate memory allocated with ALLOC or ALLOC_N. */
 #define REALLOC_N(ptr, type, n) (ptr)=(type*)realloc(ptr, sizeof(type) * (n));
 
+#define ZALLOC_N(type,n) ((type*)xcalloc((n),sizeof(type)))
+#define ZALLOC(type) (ZALLOC_N(type,1))
+
 /** Interrupt checking (no-op). */
 #define CHECK_INTS             /* No-op */
 #define rb_thread_check_ints() /* No-op */
