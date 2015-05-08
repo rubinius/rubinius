@@ -1585,6 +1585,8 @@ struct RTypedData {
   ID      rb_intern_str(VALUE string);
 #define HAVE_RB_INTERN_STR 1
 
+  VALUE rb_sym2str(VALUE sym);
+
   /** Coerce x and y and perform 'x func y' */
   VALUE rb_num_coerce_bin(VALUE x, VALUE y, ID func);
 

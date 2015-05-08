@@ -40,4 +40,8 @@ extern "C" {
     Object* p = reinterpret_cast<Symbol*>(sym)->is_cvar_p(env->state());
     return CBOOL(p) ? Qtrue : Qfalse;
   }
+
+  VALUE rb_sym2str(VALUE sym) {
+    return rb_id2str(SYM2ID(sym));
+  }
 }
