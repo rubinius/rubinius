@@ -1434,6 +1434,8 @@ struct RTypedData {
   /** Return the value associated with the key, excluding default values. */
   VALUE   rb_hash_lookup(VALUE self, VALUE key);
 
+  VALUE   rb_hash_lookup2(VALUE hash, VALUE key, VALUE def);
+
   /** Set the value associated with the key. */
   VALUE   rb_hash_aset(VALUE self, VALUE key, VALUE value);
 

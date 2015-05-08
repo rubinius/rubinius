@@ -35,11 +35,16 @@ extern "C" {
   }
 
   VALUE rb_hash_lookup(VALUE self, VALUE key) {
-    VALUE entry = capi_fast_call(self, rb_intern("find_item"), 1, key);
+    return rb_hash_lookup2(self, key, Qnil);
+  }
+
+  VALUE rb_hash_lookup2(VALUE hash, VALUE key, VALUE def) {
+    VALUE entry = capi_fast_call(hash, rb_intern("find_item"), 1, key);
+
     if(entry != Qnil) {
       return capi_fast_call(entry, rb_intern("value"), 0);
     } else {
-      return Qnil;
+      return def;
     }
   }
 

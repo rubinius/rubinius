@@ -86,6 +86,12 @@ VALUE hash_spec_rb_hash_lookup_nil(VALUE self, VALUE hash, VALUE key) {
 }
 #endif
 
+#ifdef HAVE_RB_HASH_LOOKUP2
+VALUE hash_spec_rb_hash_lookup2(VALUE self, VALUE hash, VALUE key, VALUE def) {
+  return rb_hash_lookup2(hash, key, def);
+}
+#endif
+
 #ifdef HAVE_RB_HASH_NEW
 VALUE hash_spec_rb_hash_new(VALUE self) {
   return rb_hash_new();
@@ -133,6 +139,10 @@ void Init_hash_spec() {
 #ifdef HAVE_RB_HASH_LOOKUP
   rb_define_method(cls, "rb_hash_lookup_nil", hash_spec_rb_hash_lookup_nil, 2);
   rb_define_method(cls, "rb_hash_lookup", hash_spec_rb_hash_lookup, 2);
+#endif
+
+#ifdef HAVE_RB_HASH_LOOKUP2
+  rb_define_method(cls, "rb_hash_lookup2", hash_spec_rb_hash_lookup2, 3);
 #endif
 
 #ifdef HAVE_RB_HASH_NEW
