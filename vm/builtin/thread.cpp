@@ -500,11 +500,9 @@ namespace rubinius {
           struct timespec ts = {0,0};
           self->join_cond_.offset(&ts, as<Float>(timeout)->val);
 
-          for(;;) {
-            if(self->join_cond_.wait_until(self->join_lock_, &ts)
+          if(self->join_cond_.wait_until(self->join_lock_, &ts)
                 == utilities::thread::cTimedOut) {
-              return nil<Thread>();
-            }
+            return nil<Thread>();
           }
         }
       }
