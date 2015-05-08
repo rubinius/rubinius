@@ -1401,6 +1401,8 @@ struct RTypedData {
   VALUE   rb_funcall2(VALUE receiver, ID method_name,
                       int arg_count, const VALUE* args);
 
+#define rb_funcallv rb_funcall2
+
   /** Call the method with args provided in a C array and block.
    *  Calls private methods. */
   VALUE   rb_funcall2b(VALUE receiver, ID method_name, int arg_count,
