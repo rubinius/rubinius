@@ -105,6 +105,12 @@ VALUE hash_spec_rb_hash_size(VALUE self, VALUE hash) {
 }
 #endif
 
+#ifdef HAVE_RB_HASH_SET_IFNONE
+VALUE hash_spec_rb_hash_set_ifnone(VALUE self, VALUE hash, VALUE def) {
+  return rb_hash_set_ifnone(hash, def);
+}
+#endif
+
 void Init_hash_spec() {
   VALUE cls;
   cls = rb_define_class("CApiHashSpecs", rb_cObject);
@@ -151,6 +157,10 @@ void Init_hash_spec() {
 
 #ifdef HAVE_RB_HASH_SIZE
   rb_define_method(cls, "rb_hash_size", hash_spec_rb_hash_size, 1);
+#endif
+
+#ifdef HAVE_RB_HASH_SET_IFNONE
+  rb_define_method(cls, "rb_hash_set_ifnone", hash_spec_rb_hash_set_ifnone, 2);
 #endif
 }
 

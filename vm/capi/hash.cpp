@@ -80,4 +80,10 @@ extern "C" {
       }
     }
   }
+
+  VALUE rb_hash_set_ifnone(VALUE hash, VALUE def) {
+    capi_fast_call(hash, rb_intern("default="), 1, def);
+
+    return hash;
+  }
 }

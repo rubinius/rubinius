@@ -421,6 +421,8 @@ struct RFloat {
 #define RHASH(obj)      ({ C_API_RHASH_is_not_supported_in_Rubinius })
 #define RHASH_TBL(obj)  ({ C_API_RHASH_TBL_is_not_supported_in_Rubinius })
 
+#define RHASH_SET_IFNONE(hash, def) rb_hash_set_ifnone(hash, def)
+
 typedef struct rb_io_t {
   VALUE handle;
   int fd;
@@ -1461,6 +1463,8 @@ struct RTypedData {
   void rb_hash_foreach(VALUE self,
                        int (*func)(ANYARGS),
                        VALUE farg);
+
+  VALUE rb_hash_set_ifnone(VALUE hash, VALUE def);
 
   void    rb_eof_error();
 

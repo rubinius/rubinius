@@ -168,4 +168,14 @@ describe "C-API Hash function" do
       end
     end
   end
+
+  describe "rb_hash_set_ifnone" do
+    it "sets the default value of non existing keys" do
+      hash = {}
+
+      @s.rb_hash_set_ifnone(hash, 10)
+
+      hash[:chunky].should == 10
+    end
+  end
 end
