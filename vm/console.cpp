@@ -57,7 +57,7 @@ namespace rubinius {
     }
 
     Request::Request(STATE, Console* console, Response* response)
-      : InternalThread(state, "rbx.console.request")
+      : InternalThread(state, "rbx.console.request", InternalThread::eSmall)
       , console_(console)
       , response_(response)
       , enabled_(false)
@@ -166,7 +166,7 @@ namespace rubinius {
     }
 
     Response::Response(STATE, Console* console)
-      : InternalThread(state, "rbx.console.response")
+      : InternalThread(state, "rbx.console.response", InternalThread::eSmall)
       , console_(console)
       , inbox_(state)
       , outbox_(state)
@@ -328,7 +328,7 @@ namespace rubinius {
     }
 
     Listener::Listener(STATE, Console* console)
-      : InternalThread(state, "rbx.console.listener")
+      : InternalThread(state, "rbx.console.listener", InternalThread::eSmall)
       , console_(console)
       , fsevent_(state)
       , fd_(-1)

@@ -361,6 +361,8 @@ namespace rubinius {
       Exception::thread_error(state, err);
     }
 
+    pthread_attr_destroy(&attrs);
+
     return cNil;
   }
 

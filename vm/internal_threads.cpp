@@ -11,12 +11,11 @@
 namespace rubinius {
   using namespace utilities;
 
-#define AUXILIARY_THREAD_STACK_SIZE   0x100000
-
-  InternalThread::InternalThread(STATE, std::string name)
+  InternalThread::InternalThread(STATE, std::string name, StackSize stack_size)
     : vm_(state->shared().new_vm())
     , name_(name)
     , thread_running_(false)
+    , stack_size_(stack_size)
     , metrics_(vm_->metrics())
     , thread_exit_(false)
   {
@@ -72,13 +71,15 @@ namespace rubinius {
   void InternalThread::start_thread(STATE) {
     pthread_attr_t attrs;
     pthread_attr_init(&attrs);
-    pthread_attr_setstacksize(&attrs, AUXILIARY_THREAD_STACK_SIZE);
+    pthread_attr_setstacksize(&attrs, stack_size_);
 
     if(int error = pthread_create(&vm_->os_thread(), &attrs,
           InternalThread::run, (void*)this)) {
       logger::fatal("%s: %s: create thread failed", strerror(error), name_.c_str());
       ::abort();
     }
+
+    pthread_attr_destroy(&attrs);
   }
 
   void InternalThread::wakeup(STATE) {

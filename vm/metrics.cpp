@@ -190,7 +190,7 @@ namespace rubinius {
     }
 
     Metrics::Metrics(STATE)
-      : InternalThread(state, "rbx.metrics")
+      : InternalThread(state, "rbx.metrics", InternalThread::eSmall)
       , enabled_(true)
       , values_(state)
       , interval_(state->shared().config.system_metrics_interval)

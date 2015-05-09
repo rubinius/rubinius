@@ -54,7 +54,7 @@ namespace rubinius {
   static struct utsname machine_info;
 
   SignalThread::SignalThread(STATE, Configuration& config)
-    : InternalThread(state, "rbx.signal")
+    : InternalThread(state, "rbx.signal", InternalThread::eSmall)
     , shared_(state->shared())
     , target_(state->vm())
     , queued_signals_(0)
