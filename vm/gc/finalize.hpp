@@ -19,6 +19,11 @@ namespace rubinius {
 
   struct FinalizeObject {
   public:
+    enum FinalizeKind {
+      eManaged,
+      eUnmanaged
+    };
+
     enum FinalizationStatus {
       eLive,
       eQueued,
@@ -36,6 +41,7 @@ namespace rubinius {
     {}
 
     Object* object;
+    FinalizeKind kind;
     FinalizationStatus status;
     FinalizerFunction finalizer;
     Object* ruby_finalizer;
@@ -102,7 +108,7 @@ namespace rubinius {
     void next_process_item();
     void finish(STATE, GCToken gct);
 
-    void record(Object* obj, FinalizerFunction func);
+    void record(Object* obj, FinalizerFunction func, FinalizeObject::FinalizeKind kind);
     void set_ruby_finalizer(Object* obj, Object* finalizer);
 
     void queue_objects();

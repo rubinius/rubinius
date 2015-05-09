@@ -704,7 +704,8 @@ namespace rubinius {
 
     c->set_converter(NULL);
 
-    state->memory()->needs_finalization(c, (FinalizerFunction)&Converter::finalize);
+    state->memory()->needs_finalization(c, (FinalizerFunction)&Converter::finalize,
+        FinalizeObject::eUnmanaged);
 
     return c;
   }

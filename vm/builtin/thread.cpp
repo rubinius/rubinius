@@ -88,7 +88,8 @@ namespace rubinius {
 
     thr->function_ = function;
 
-    state->memory()->needs_finalization(thr, (FinalizerFunction)&Thread::finalize);
+    state->memory()->needs_finalization(thr, (FinalizerFunction)&Thread::finalize,
+        FinalizeObject::eUnmanaged);
 
     state->vm()->metrics().system_metrics.vm_threads++;
     state->vm()->metrics().system_metrics.vm_threads_total++;
