@@ -48,6 +48,6 @@ env:
 
 os:
   - linux
-  - osx
+  # - osx
 
 osx_image: xcode61
