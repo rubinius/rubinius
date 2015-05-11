@@ -89,7 +89,7 @@ namespace rubinius {
   static const bool debug_search = false;
 
   LLVMState::LLVMState(STATE)
-    : InternalThread(state, "rbx.jit")
+    : InternalThread(state, "rbx.jit", InternalThread::eXLarge)
     , config_(state->shared().config)
     , compile_list_(state)
     , symbols_(state->shared().symbols)

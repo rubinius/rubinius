@@ -17,6 +17,7 @@ namespace rubinius {
     VM* vm_;
     std::string name_;
     bool thread_running_;
+    uint32_t stack_size_;
 
     metrics::MetricsData& metrics_;
 
@@ -26,7 +27,13 @@ namespace rubinius {
 
   public:
 
-    InternalThread(STATE, std::string name);
+    enum StackSize {
+      eSmall  = 0x1000,
+      eLarge  = 0x10000,
+      eXLarge = 0x100000,
+    };
+
+    InternalThread(STATE, std::string name, StackSize stack_size=eLarge);
     virtual ~InternalThread() { };
 
     // OS thread trampoline

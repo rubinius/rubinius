@@ -320,7 +320,8 @@ namespace rubinius {
 
     void collect_maybe(STATE, GCToken gct, CallFrame* call_frame);
 
-    void needs_finalization(Object* obj, FinalizerFunction func);
+    void needs_finalization(Object* obj, FinalizerFunction func,
+        FinalizeObject::FinalizeKind kind = FinalizeObject::eManaged);
     void set_ruby_finalizer(Object* obj, Object* finalizer);
 
     size_t& loe_usage();

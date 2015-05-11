@@ -54,7 +54,7 @@ namespace rubinius {
   static struct utsname machine_info;
 
   SignalThread::SignalThread(STATE, Configuration& config)
-    : InternalThread(state, "rbx.signal")
+    : InternalThread(state, "rbx.signal", InternalThread::eSmall)
     , shared_(state->shared())
     , target_(state->vm())
     , queued_signals_(0)
@@ -93,28 +93,37 @@ namespace rubinius {
   }
 
   void SignalThread::print_machine_info(PrintFunction function) {
-    function("sysname: %s", machine_info.sysname);
-    function("nodename: %s", machine_info.nodename);
-    function("release: %s", machine_info.release);
-    function("version: %s", machine_info.version);
-    function("machine: %s", machine_info.machine);
+    function("node info: %s %s", machine_info.nodename, machine_info.version);
   }
 
 
+#define RBX_PROCESS_INFO_LEN    256
+
   void SignalThread::print_process_info(PrintFunction function) {
-    function("user: %s", signal_thread_->shared().username.c_str());
-    function("pid: %s", signal_thread_->shared().pid.c_str());
-    function("program name: %s", RBX_PROGRAM_NAME);
-    function("version: %s", RBX_VERSION);
-    function("ruby version: %s", RBX_RUBY_VERSION);
-    function("release date: %s", RBX_RELEASE_DATE);
-    function("build revision: %s", RBX_BUILD_REV);
+    const char* llvm_version;
+    const char* jit_status;
+
 #if ENABLE_LLVM
-    function("llvm version: %s", RBX_LLVM_VERSION);
+    llvm_version = RBX_LLVM_VERSION;
+#else
+    llvm_version = "LLVM Disabled";
 #endif
-    function("jit status: %s",
-        CBOOL(signal_thread_->shared().env()->state->globals().jit.get()->enabled())
-        ? "enabled" : "disabled");
+
+    if(CBOOL(signal_thread_->shared().env()->state->globals().jit.get()->enabled())) {
+      jit_status = "JIT";
+    } else {
+      jit_status = "JIT disabled";
+    }
+
+    char process_info[RBX_PROCESS_INFO_LEN];
+
+    snprintf(process_info, RBX_PROCESS_INFO_LEN, "%s %s %s %s %s %s %.8s %s %s",
+        signal_thread_->shared().username.c_str(),
+        RBX_PROGRAM_NAME, signal_thread_->shared().pid.c_str(),
+        RBX_VERSION, RBX_RUBY_VERSION, RBX_RELEASE_DATE, RBX_BUILD_REV,
+        llvm_version, jit_status);
+
+    function("process info: %s", process_info);
   }
 
   void SignalThread::run(STATE) {

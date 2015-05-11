@@ -182,41 +182,44 @@ namespace rubinius {
     }
     case eNative:
       if(process_item_->finalizer) {
-
-        NativeMethodEnvironment* env = state->vm()->native_method_environment;
-        NativeMethodFrame nmf(env, 0, 0);
-        ExceptionPoint ep(env);
-        CallFrame* call_frame = ALLOCA_CALLFRAME(0);
-
-        call_frame->previous = 0;
-        call_frame->constant_scope_ = 0;
-        call_frame->dispatch_data = (void*)&nmf;
-        call_frame->compiled_code = 0;
-        call_frame->flags = CallFrame::cNativeMethod;
-        call_frame->optional_jit_data = 0;
-        call_frame->top_scope_ = 0;
-        call_frame->scope = 0;
-        call_frame->arguments = 0;
-
-        env->set_current_call_frame(0);
-        env->set_current_native_frame(&nmf);
-
-        // Register the CallFrame, because we might GC below this.
-        state->set_call_frame(call_frame);
-
-        nmf.setup(Qnil, Qnil, Qnil, Qnil);
-
-        PLACE_EXCEPTION_POINT(ep);
-
-        if(unlikely(ep.jumped_to())) {
-          // TODO: log this?
-        } else {
+        if(process_item_->kind == FinalizeObject::eUnmanaged) {
           (*process_item_->finalizer)(state, process_item_->object);
-        }
+        } else {
+          NativeMethodEnvironment* env = state->vm()->native_method_environment;
+          NativeMethodFrame nmf(env, 0, 0);
+          ExceptionPoint ep(env);
+          CallFrame* call_frame = ALLOCA_CALLFRAME(0);
 
-        state->set_call_frame(0);
-        env->set_current_call_frame(0);
-        env->set_current_native_frame(0);
+          call_frame->previous = 0;
+          call_frame->constant_scope_ = 0;
+          call_frame->dispatch_data = (void*)&nmf;
+          call_frame->compiled_code = 0;
+          call_frame->flags = CallFrame::cNativeMethod;
+          call_frame->optional_jit_data = 0;
+          call_frame->top_scope_ = 0;
+          call_frame->scope = 0;
+          call_frame->arguments = 0;
+
+          env->set_current_call_frame(0);
+          env->set_current_native_frame(&nmf);
+
+          // Register the CallFrame, because we might GC below this.
+          state->set_call_frame(call_frame);
+
+          nmf.setup(Qnil, Qnil, Qnil, Qnil);
+
+          PLACE_EXCEPTION_POINT(ep);
+
+          if(unlikely(ep.jumped_to())) {
+            // TODO: log this?
+          } else {
+            (*process_item_->finalizer)(state, process_item_->object);
+          }
+
+          state->set_call_frame(0);
+          env->set_current_call_frame(0);
+          env->set_current_native_frame(0);
+        }
       }
       process_item_->status = FinalizeObject::eNativeFinalized;
       break;
@@ -302,13 +305,16 @@ namespace rubinius {
     }
   }
 
-  void FinalizerThread::record(Object* obj, FinalizerFunction func) {
+  void FinalizerThread::record(Object* obj, FinalizerFunction func,
+      FinalizeObject::FinalizeKind kind)
+  {
     utilities::thread::Mutex::LockGuard lg(live_guard_);
 
     if(finishing_) return;
 
     FinalizeObject fi;
     fi.object = obj;
+    fi.kind = kind;
     fi.status = FinalizeObject::eLive;
     fi.finalizer = func;
 

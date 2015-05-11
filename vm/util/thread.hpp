@@ -134,7 +134,11 @@ namespace thread {
       }
       pthread_attr_setdetachstate(&attrs, PTHREAD_CREATE_JOINABLE);
 
-      return pthread_create(&native_, &attrs, trampoline, (void*)this);
+      int status = pthread_create(&native_, &attrs, trampoline, (void*)this);
+
+      pthread_attr_destroy(&attrs);
+
+      return status;
     }
 
     virtual void perform() { }

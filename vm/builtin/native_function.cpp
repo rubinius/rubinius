@@ -342,9 +342,10 @@ namespace rubinius {
 
       // Detect the stack size and set it up in the VM object
       size_t stack_size;
-      pthread_attr_t attr;
-      pthread_attr_init(&attr);
-      pthread_attr_getstacksize (&attr, &stack_size);
+      pthread_attr_t attrs;
+      pthread_attr_init(&attrs);
+      pthread_attr_getstacksize (&attrs, &stack_size);
+      pthread_attr_destroy(&attrs);
       vm->set_root_stack(reinterpret_cast<uintptr_t>(&calculate_stack), stack_size);
 
       // Setup nativemethod handles into thread local
