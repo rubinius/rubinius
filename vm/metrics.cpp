@@ -197,7 +197,6 @@ namespace rubinius {
       , timer_(NULL)
       , emitter_(NULL)
     {
-      metrics_lock_.init();
       map_metrics();
 
       if(!state->shared().config.system_metrics_target.value.compare("statsd")) {
@@ -419,6 +418,7 @@ namespace rubinius {
 
       timer_ = new timer::Timer;
 
+      metrics_lock_.init();
       metrics_collection_.init();
       metrics_history_.init();
     }
@@ -459,30 +459,30 @@ namespace rubinius {
 
         if(thread_exit_) break;
 
+        metrics_collection_.init();
+        ThreadList* threads = state->shared().threads();
+
+        for(ThreadList::iterator i = threads->begin();
+            i != threads->end();
+            ++i) {
+          if(VM* vm = (*i)->as_vm()) {
+            metrics_collection_.add(vm->metrics());
+          }
+        }
+
+#ifdef ENABLE_LLVM
+        if(LLVMState* llvm_state = state->shared().llvm_state) {
+          metrics_collection_.add(llvm_state->metrics());
+        }
+#endif
+
         {
           utilities::thread::Mutex::LockGuard guard(metrics_lock_);
 
-          metrics_collection_.init();
-          ThreadList* threads = state->shared().threads();
-
-          for(ThreadList::iterator i = threads->begin();
-              i != threads->end();
-              ++i) {
-            if(VM* vm = (*i)->as_vm()) {
-              metrics_collection_.add(vm->metrics());
-            }
-          }
-
-#ifdef ENABLE_LLVM
-          if(LLVMState* llvm_state = state->shared().llvm_state) {
-            metrics_collection_.add(llvm_state->metrics());
-          }
-#endif
-
           metrics_collection_.add(metrics_history_);
-
-          update_ruby_values(state);
         }
+
+        update_ruby_values(state);
 
         if(emitter_) emitter_->send_metrics();
       }
