@@ -166,6 +166,27 @@ extern "C" {
     return handle->as_rstring(env, cache_level);
   }
 
+  void* rb_alloc_tmp_buffer(VALUE* store, long len) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    VALUE s =  env->get_handle(String::create_pinned(env->state(), Fixnum::from(len)));
+    *store = s;
+
+    return RSTRING_PTR(s);
+  }
+
+  void rb_free_tmp_buffer(VALUE* store)
+  {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    VALUE s = *store;
+    *store = 0;
+
+    String* str = c_as<String>(env->get_object(s));
+    str->num_bytes(env->state(), 0);
+    str->data(env->state(), ByteArray::create(env->state(), 1));
+  }
+
   void rb_str_modify(VALUE self) {
     NativeMethodEnvironment* env = NativeMethodEnvironment::get();
 

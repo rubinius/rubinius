@@ -565,11 +565,7 @@ struct RFile {
 #define ZALLOC_N(type,n) ((type*)xcalloc((n),sizeof(type)))
 #define ZALLOC(type) (ZALLOC_N(type,1))
 
-#ifdef C_ALLOCA
-# define ALLOCV(v, n) rb_alloc_tmp_buffer(&(v), (n))
-#else
-# define ALLOCV(v, n) ((n) < 1024 ? (RB_GC_GUARD(v) = 0, alloca(n)) : rb_alloc_tmp_buffer(&(v), (n)))
-#endif
+#define ALLOCV(v, n) rb_alloc_tmp_buffer(&(v), (n))
 #define ALLOCV_N(type, v, n) ((type*)ALLOCV((v), sizeof(type)*(n)))
 #define ALLOCV_END(v) rb_free_tmp_buffer(&(v))
 
@@ -1855,6 +1851,9 @@ struct RTypedData {
 
   /** Returns a String in locale encoding. */
   VALUE rb_locale_str_new(const char* string, long len);
+
+  void* rb_alloc_tmp_buffer(VALUE* s, long len);
+  void rb_free_tmp_buffer(VALUE* s);
 
   VALUE rb_str_export(VALUE);
   VALUE rb_str_export_locale(VALUE);
