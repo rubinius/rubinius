@@ -194,10 +194,20 @@ namespace rubinius {
       // There is enough space in the current tuple, so just copy into it.
       tuple_->copy_from(state, other->tuple(), other->start(), other->total(), total_);
     } else {
+      native_int s = size();
+
+      if(s == 0) s = 2;
+      while(s <= new_size) s *= 2;
+
       // We need to create a bigger tuple, then copy both tuples into it.
-      Tuple* nt = Tuple::create_dirty(state, new_size);
+      Tuple* nt = Tuple::create_dirty(state, s);
       nt->copy_from(state, tuple_, start_, total_, Fixnum::from(0));
       nt->copy_from(state, other->tuple(), other->start(), other->total(), total_);
+
+      for(native_int i = new_size; i < s; i++) {
+        nt->put_nil(i);
+      }
+
       tuple(state, nt);
     }
 
