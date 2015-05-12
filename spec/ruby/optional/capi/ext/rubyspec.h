@@ -538,6 +538,8 @@
 #define HAVE_RB_SECURE                     1
 
 /* String */
+#define HAVE_RB_ALLOC_TMP_BUFFER           1
+#define HAVE_RB_FREE_TMP_BUFFER            1
 #define HAVE_RB_CSTR2INUM                  1
 #define HAVE_RB_CSTR_TO_INUM               1
 #define HAVE_RB_STR2CSTR                   1

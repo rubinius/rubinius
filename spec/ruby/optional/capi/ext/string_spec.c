@@ -11,6 +11,23 @@
 extern "C" {
 #endif
 
+#ifdef HAVE_RB_ALLOC_TMP_BUFFER
+VALUE string_spec_rb_alloc_tmp_buffer(VALUE self, VALUE len) {
+  VALUE str;
+
+  char* s = (char*)rb_alloc_tmp_buffer(&str, FIX2INT(len));
+
+  return str;
+}
+#endif
+
+#ifdef HAVE_RB_FREE_TMP_BUFFER
+VALUE string_spec_rb_free_tmp_buffer(VALUE self, VALUE str) {
+  rb_free_tmp_buffer(&str);
+  return str == 0 ? Qnil : Qfalse;
+}
+#endif
+
 #ifdef HAVE_RB_CSTR2INUM
 VALUE string_spec_rb_cstr2inum(VALUE self, VALUE str, VALUE inum) {
   int num = FIX2INT(inum);
@@ -592,6 +609,14 @@ static VALUE string_spec_rb_usascii_str_new_cstr(VALUE self, VALUE str) {
 void Init_string_spec() {
   VALUE cls;
   cls = rb_define_class("CApiStringSpecs", rb_cObject);
+
+#ifdef HAVE_RB_ALLOC_TMP_BUFFER
+  rb_define_method(cls, "rb_alloc_tmp_buffer", string_spec_rb_alloc_tmp_buffer, 1);
+#endif
+
+#ifdef HAVE_RB_FREE_TMP_BUFFER
+  rb_define_method(cls, "rb_free_tmp_buffer", string_spec_rb_free_tmp_buffer, 1);
+#endif
 
 #ifdef HAVE_RB_CSTR2INUM
   rb_define_method(cls, "rb_cstr2inum", string_spec_rb_cstr2inum, 2);
