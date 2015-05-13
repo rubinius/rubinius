@@ -1,5 +1,4 @@
 #include <string.h>
-#include <stdarg.h>
 
 #include "ruby.h"
 #include "rubyspec.h"

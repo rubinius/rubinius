@@ -30,6 +30,7 @@ extern "C" {
 
 // A number of extensions expect these to be already included
 #include <sys/time.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
