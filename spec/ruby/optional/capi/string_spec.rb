@@ -767,6 +767,13 @@ describe "C-API String function" do
     end
   end
 
+  describe "rb_vsprintf" do
+    it "returns a formatted String from a variable number of arguments" do
+      s = @s.rb_vsprintf("%s, %d, %.2f", "abc", 42, 2.7);
+      s.should == "abc, 42, 2.70"
+    end
+  end
+
   describe "rb_alloc_tmp_buffer" do
     it "creates a String and returns an address" do
       s = @s.rb_alloc_tmp_buffer(5)
