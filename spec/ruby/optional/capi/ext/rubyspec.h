@@ -599,6 +599,7 @@
 #define HAVE_RB_STRUCT_DEFINE              1
 #define HAVE_RB_STRUCT_NEW                 1
 #define HAVE_RB_STRUCT_GETMEMBER           1
+#define HAVE_RB_STRUCT_S_MEMBERS           1
 
 /* Symbol */
 #define HAVE_RB_ID2NAME                    1

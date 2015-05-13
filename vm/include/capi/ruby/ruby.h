@@ -1849,6 +1849,8 @@ struct RTypedData {
   /** Sets the value of the key. */
   VALUE rb_struct_aset(VALUE s, VALUE key, VALUE value);
 
+  VALUE rb_struct_s_members(VALUE obj);
+
   /** Returns a String in locale encoding. */
   VALUE rb_locale_str_new_cstr(const char* string);
 

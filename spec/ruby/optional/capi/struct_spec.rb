@@ -126,4 +126,18 @@ describe "C-API Struct function" do
       i.c.should == 3
     end
   end
+
+  describe "rb_struct_s_members" do
+    it "returns the members of a Struct as an Array" do
+      struct = Struct.new(:foo, :bar)
+
+      @s.rb_struct_s_members(struct).should == [:foo, :bar]
+    end
+
+    it "returns the members of a Struct instance as an Array" do
+      struct = Struct.new(:foo, :bar).new
+
+      @s.rb_struct_s_members(struct).should == [:foo, :bar]
+    end
+  end
 end
