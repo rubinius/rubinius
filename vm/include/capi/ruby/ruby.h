@@ -1083,6 +1083,8 @@ struct RTypedData {
 
   VALUE   rb_iterate(VALUE (*ifunc)(VALUE), VALUE ary, VALUE(*cb)(ANYARGS), VALUE cb_data);
 
+  size_t  rb_absint_size(VALUE value, int* nlz_bits);
+
   VALUE   rb_big2str(VALUE self, int base);
 
   long    rb_big2long(VALUE obj);
