@@ -2019,6 +2019,7 @@ struct RTypedData {
   void    rb_str_free(VALUE str);
 
   VALUE rb_sprintf(const char* format, ...);
+  VALUE rb_vsprintf(const char *format, va_list varargs);
 
   VALUE   rb_str_equal(VALUE self, VALUE other);
 

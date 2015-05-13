@@ -15,6 +15,7 @@
 #include "util/vsnprintf.h"
 
 #include <string.h>
+#include <sys/mman.h>
 
 using namespace rubinius;
 using namespace rubinius::capi;
@@ -661,5 +662,26 @@ extern "C" {
 
     rb_str_set_len(result, err);
     return result;
+  }
+
+#define RBX_RB_VSPRINTF_LEN 0x10000
+
+  VALUE rb_vsprintf(const char *format, va_list varargs) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+
+    void* buffer = mmap(NULL, RBX_RB_VSPRINTF_LEN,
+        PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
+
+    if(buffer == MAP_FAILED) {
+      return env->get_handle(String::create(env->state(),
+            "rb_vsprintf failed to allocate space for result"));
+    }
+
+    native_int length = vsnprintf((char*)buffer, RBX_RB_VSPRINTF_LEN, format, varargs);
+    String* str = String::create(env->state(), (const char*)buffer, length);
+
+    munmap(buffer, RBX_RB_VSPRINTF_LEN);
+
+    return env->get_handle(str);
   }
 }
