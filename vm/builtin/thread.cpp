@@ -20,6 +20,8 @@
 #include "metrics.hpp"
 #include "util/logger.hpp"
 
+#include <sys/syscall.h>
+
 /* HACK: returns a value that should identify a native thread
  * for debugging threading issues. The winpthreads library
  * defines pthread_t to be a structure not a pointer.
@@ -73,6 +75,7 @@ namespace rubinius {
     thr->joins(state, Array::create(state, 1));
     thr->killed(state, cFalse);
     thr->priority(state, Fixnum::from(0));
+    thr->pid(state, Fixnum::from(0));
     thr->klass(state, klass);
 
     vm->thread.set(thr);
@@ -288,6 +291,12 @@ namespace rubinius {
     vm->set_root_stack(reinterpret_cast<uintptr_t>(&calculate_stack), THREAD_STACK_SIZE);
 
     NativeMethod::init_thread(state);
+
+#ifdef __APPLE__
+    vm->thread->pid(state, Fixnum::from(syscall(SYS_thread_selfid)));
+#else
+    vm->thread->pid(state, Fixnum::from(syscall(SYS_gettid)));
+#endif
 
     // Lock the thread object and unlock it at __run__ in the ruby land.
     vm->thread->alive(state, cTrue);

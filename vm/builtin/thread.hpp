@@ -47,6 +47,7 @@ namespace rubinius {
     Array* joins_; // slot
     Object* killed_; // slot
     Fixnum* priority_; // slot
+    Fixnum* pid_; // slot
 
     utilities::thread::SpinLock init_lock_;
     utilities::thread::Mutex join_lock_;
@@ -88,6 +89,7 @@ namespace rubinius {
     attr_accessor(joins, Array);
     attr_accessor(killed, Object);
     attr_accessor(priority, Fixnum);
+    attr_accessor(pid, Fixnum);
 
     VM* vm() const {
       return vm_;
