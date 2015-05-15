@@ -107,6 +107,7 @@ module RbConfig
   CONFIG["MANTYPE"]            = "doc"
   CONFIG["MAKEFILES"]          = "Makefile"
   CONFIG["NULLCMD"]            = ":"
+  CONFIG["THREAD_MODEL"]       = "pthread"
   # compile tools flags
   # since we hardcode using gcc, and this flag is only
   # used by mkmf to compile extensions, be sure PIC is in
