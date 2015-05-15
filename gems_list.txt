@@ -34,7 +34,7 @@ rubysl-csv-2.0.2.gem
 rubysl-curses-2.0.1.gem
 rubysl-date-2.0.9.gem
 rubysl-delegate-2.0.1.gem
-rubysl-digest-2.0.3.gem
+rubysl-digest-2.0.7.gem
 rubysl-drb-2.0.1.gem
 rubysl-e2mmap-2.0.0.gem
 rubysl-english-2.0.0.gem
