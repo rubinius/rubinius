@@ -523,15 +523,12 @@ namespace jit {
 
   void MethodBuilder::return_value(Value* ret, BasicBlock* cont) {
     if(ctx_->llvm_state()->include_profiling()) {
-      Value* test = b().CreateLoad(ctx_->profiling(), "profiling");
       BasicBlock* end_profiling = info_.new_block("end_profiling");
       if(!cont) {
         cont = info_.new_block("continue");
       }
 
-      b().CreateCondBr(test, end_profiling, cont);
-
-      b().SetInsertPoint(end_profiling);
+      ctx_->profiling(b(), end_profiling, cont);
 
       Signature sig(ctx_, ctx_->VoidTy);
       sig << llvm::PointerType::getUnqual(ctx_->Int8Ty);
@@ -640,14 +637,10 @@ namespace jit {
         get_field(call_frame, offset::CallFrame::jit_data));
 
     if(ctx_->llvm_state()->include_profiling()) {
-      Value* test = b().CreateLoad(ctx_->profiling(), "profiling");
-
       BasicBlock* setup_profiling = info_.new_block("setup_profiling");
       BasicBlock* cont = info_.new_block("continue");
 
-      b().CreateCondBr(test, setup_profiling, cont);
-
-      b().SetInsertPoint(setup_profiling);
+      ctx_->profiling(b(), setup_profiling, cont);
 
       Signature sig(ctx_, ctx_->VoidTy);
       sig << "State";
