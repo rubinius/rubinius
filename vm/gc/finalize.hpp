@@ -111,7 +111,7 @@ namespace rubinius {
     void record(Object* obj, FinalizerFunction func, FinalizeObject::FinalizeKind kind);
     void set_ruby_finalizer(Object* obj, Object* finalizer);
 
-    void queue_objects();
+    void queue_objects(STATE);
 
     void start_collection(STATE);
     void finish_collection(STATE);
