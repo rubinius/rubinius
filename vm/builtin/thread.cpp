@@ -72,7 +72,6 @@ namespace rubinius {
     thr->result(state, cFalse);
     thr->exception(state, nil<Exception>());
     thr->critical(state, cFalse);
-    thr->joins(state, Array::create(state, 1));
     thr->killed(state, cFalse);
     thr->priority(state, Fixnum::from(0));
     thr->pid(state, Fixnum::from(0));
@@ -472,14 +471,6 @@ namespace rubinius {
     CallFrame* cf = vm->saved_call_frame();
 
     return Location::mri_backtrace(state, cf);
-  }
-
-  void Thread::release_joins(STATE, GCToken gct, CallFrame* calling_environment) {
-    for(native_int i = 0; i < joins_->size(); ++i) {
-      if(Channel* chn = try_as<Channel>(joins_->get(state, i))) {
-        chn->send(state, gct, this, calling_environment);
-      }
-    }
   }
 
   void Thread::stopped() {

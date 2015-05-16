@@ -219,10 +219,6 @@ class Thread
     @group
   end
 
-  def add_to_group(group)
-    @group = group
-  end
-
   def raise(exc=undefined, msg=nil, trace=nil)
     Rubinius.lock(self)
 
@@ -377,7 +373,6 @@ class Thread
           Rubinius.check_interrupts
         ensure
           unlock_locks
-          @joins.each { |join| join.send self }
         end
       end
     rescue Exception => e
@@ -389,6 +384,8 @@ class Thread
           STDERR.puts "Exception in thread: #{@exception.message} (#{@exception.class})"
         end
       end
+
+      Rubinius::Mirror.reflect(@group).remove self
 
       if Rubinius.thread_state[0] == :thread_kill
         @killed = true
