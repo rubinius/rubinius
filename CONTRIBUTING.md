@@ -10,10 +10,10 @@ guidelines that we ask you to follow so we can successfully address your issue.
 
 Please include the following:
 
-* The Rubinius version (rbx -v)
-* Your OS (uname -a) RVM/rbenv/chruby/etc version or the commit hash from git
+* The Rubinius version (`rbx -v`)
+* Your OS (`uname -a`) RVM/rbenv/chruby/etc version or the commit hash from git
   if you're building off of a clone
-* Stack trace (preferably as a Gist, since they're easier to read) If you can
+* Stack trace (preferably as a Gist, since they're easier to read.) If you can
   add a failing spec, that's great!
 * Please include the simplest possible reproduction you can. This last point is
   vital to fixing issues.
@@ -21,8 +21,8 @@ Please include the following:
 If available, please also include the contents of the following files as a
 Gist:
 
-* configure.log
-* config.rb
+* `configure.log`
+* `config.rb`
 
 These two files contain the output of the compilation process and the various
 configuration options used (e.g. compiler options).
@@ -35,19 +35,19 @@ the following command, it will run all the Ruby Array specs:
 
     $ bin/mspec core/array
 
-The -t option specifies which Ruby implementation to run the specs under. The
-default in Rubinius is to run them with Rubinius, so -tx is implied. You can
+The `-t` option specifies which Ruby implementation to run the specs under. The
+default in Rubinius is to run them with Rubinius, so `-tx` is implied. You can
 easily run with another target by giving the name of an executable on your PATH
 or the full path to an executable. Since the specs are intended to show the
 behavior of MRI, if you are writing new specs you need to run them under the
-current stable release of MRI 2.0. For example, if you have a ruby2.0.0
-executable on your PATH, you can do the following:
+current stable release of MRI 2.0. For example, if you have a `ruby2.0.0`
+executable on your `PATH`, you can do the following:
 
     $ bin/mspec -t ruby2.0.0 core/array
 
-Finally, if you are running bin/mspec in the Rubinius source directory, the
-location of the RubySpecs are known (spec/ruby/), so you can use the full path
-or the shortened version core/array above.
+Finally, if you are running `bin/mspec` in the Rubinius source directory, the
+location of the RubySpecs are known (`spec/ruby/`), so you can use the full path
+or the shortened version `core/array` above.
 
 ### Fixing A Bug
 
@@ -75,11 +75,11 @@ A lot of this is already covered in [How To Write A
 Spec](http://rubini.us/doc/en/how-to/write-a-spec/) but the basic gist of it is
 as following:
 
-* Spec descriptions (for both "describe" and "it" blocks) should be written in
+* Spec descriptions (for both `describe` and `it` blocks) should be written in
   natural English.
 * Specs should include only the bare minimum that is required to test
   something.
-* Setup code that is re-used between examples should be placed in a before()
+* Setup code that is re-used between examples should be placed in a `before()`
   block
 * When unsure, please ask!
 
