@@ -3,7 +3,6 @@
 
 #include "config.h"
 
-#include "util/refcount.hpp"
 #include "gc/variable_buffer.hpp"
 #include "gc/root_buffer.hpp"
 
@@ -85,7 +84,7 @@ namespace rubinius {
    * single process.
    */
 
-  class SharedState : public RefCount, public Lockable {
+  class SharedState : public Lockable {
   private:
     InternalThreads* internal_threads_;
     SignalThread* signal_thread_;
@@ -150,8 +149,6 @@ namespace rubinius {
     SharedState(Environment* env, Configuration& config, ConfigParser& cp);
     ~SharedState();
 
-    static void discard(SharedState* ss);
-
     int size();
 
     void set_initialized() {
@@ -187,9 +184,6 @@ namespace rubinius {
     }
 
     Array* vm_threads(STATE);
-
-    void add_managed_thread(ManagedThread* thr);
-    void remove_managed_thread(ManagedThread* thr);
 
     int global_serial() const {
       return global_serial_;

@@ -9,7 +9,6 @@
 #include "gc/managed.hpp"
 #include "vm_thread_state.hpp"
 
-#include "util/refcount.hpp"
 #include "util/thread.hpp"
 
 #include "gc/variable_buffer.hpp"

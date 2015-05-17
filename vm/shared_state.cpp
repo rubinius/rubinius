@@ -56,8 +56,6 @@ namespace rubinius {
     , username("")
     , pid("")
   {
-    ref();
-
     internal_threads_ = new InternalThreads();
 
     for(int i = 0; i < Primitives::cTotalPrimitives; i++) {
@@ -94,24 +92,10 @@ namespace rubinius {
     delete internal_threads_;
   }
 
-  void SharedState::add_managed_thread(ManagedThread* thr) {
-    SYNC_TL;
-    threads_.push_back(thr);
-  }
-
-  void SharedState::remove_managed_thread(ManagedThread* thr) {
-    SYNC_TL;
-    threads_.remove(thr);
-  }
-
   int SharedState::size() {
     return sizeof(SharedState) +
       sizeof(WorldState) +
       symbols.bytes_used();
-  }
-
-  void SharedState::discard(SharedState* ss) {
-    if(ss->deref()) delete ss;
   }
 
   uint32_t SharedState::new_thread_id() {
@@ -129,8 +113,6 @@ namespace rubinius {
     VM* vm = new VM(id, *this);
     threads_.push_back(vm);
 
-    this->ref();
-
     // If there is no root vm, then the first one created becomes it.
     if(!root_vm_) root_vm_ = vm;
     return vm;
@@ -139,7 +121,6 @@ namespace rubinius {
   void SharedState::remove_vm(VM* vm) {
     SYNC_TL;
     threads_.remove(vm);
-    this->deref();
 
     // Don't delete ourself here, it's too problematic.
   }

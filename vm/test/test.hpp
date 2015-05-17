@@ -8,6 +8,7 @@
 #include "configuration.hpp"
 #include "metrics.hpp"
 #include "vm/detection.hpp"
+#include "vm/gc/immix_marker.hpp"
 
 #include <cxxtest/TestSuite.h>
 
@@ -30,8 +31,14 @@ public:
   }
 
   void destroy() {
+    if(ObjectMemory* om = state->memory()) {
+      if(ImmixMarker* im = om->immix_marker()) {
+        im->stop(state);
+      }
+    }
+
     VM::discard(state, state->vm());
-    SharedState::discard(shared);
+    delete shared;
     delete state;
   }
 
