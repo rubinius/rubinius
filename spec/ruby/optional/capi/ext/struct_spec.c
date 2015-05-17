@@ -55,6 +55,12 @@ static VALUE struct_spec_rb_struct_new(VALUE self, VALUE klass,
 }
 #endif
 
+#ifdef HAVE_RB_STRUCT_S_MEMBERS
+static VALUE struct_spec_rb_struct_s_members(VALUE self, VALUE obj) {
+  return rb_struct_s_members(obj);
+}
+#endif
+
 void Init_struct_spec() {
   VALUE cls;
   cls = rb_define_class("CApiStructSpecs", rb_cObject);
@@ -77,6 +83,10 @@ void Init_struct_spec() {
 
 #ifdef HAVE_RB_STRUCT_NEW
   rb_define_method(cls, "rb_struct_new", struct_spec_rb_struct_new, 4);
+#endif
+
+#ifdef HAVE_RB_STRUCT_S_MEMBERS
+  rb_define_method(cls, "rb_struct_s_members", struct_spec_rb_struct_s_members, 1);
 #endif
 }
 

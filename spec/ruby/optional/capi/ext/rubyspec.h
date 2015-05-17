@@ -497,6 +497,8 @@
 #define HAVE_RB_SECURE                     1
 
 /* String */
+#define HAVE_RB_ALLOC_TMP_BUFFER           1
+#define HAVE_RB_FREE_TMP_BUFFER            1
 #define HAVE_RB_CSTR2INUM                  1
 #define HAVE_RB_CSTR_TO_INUM               1
 #define HAVE_RB_STR2CSTR                   1
@@ -547,6 +549,7 @@
 #define HAVE_RB_STR_LENGTH                 1
 #define HAVE_RB_STR_EQUAL                  1
 #define HAVE_RB_STR_SUBSEQ                 1
+#define HAVE_RB_VSPRINTF                   1
 #endif
 
 /* Struct */
@@ -555,6 +558,7 @@
 #define HAVE_RB_STRUCT_DEFINE              1
 #define HAVE_RB_STRUCT_NEW                 1
 #define HAVE_RB_STRUCT_GETMEMBER           1
+#define HAVE_RB_STRUCT_S_MEMBERS           1
 
 /* Symbol */
 #define HAVE_RB_ID2NAME                    1

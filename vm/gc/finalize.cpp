@@ -286,7 +286,7 @@ namespace rubinius {
               i->queued();
             }
 
-            queue_objects();
+            queue_objects(state);
           }
 
           first_process_item();
@@ -370,7 +370,9 @@ namespace rubinius {
     live_list_->push_front(fi);
   }
 
-  void FinalizerThread::queue_objects() {
+  void FinalizerThread::queue_objects(STATE) {
+    if(live_list_->empty()) return;
+
     FinalizeObjects* dead_list = new FinalizeObjects();
 
     for(FinalizeObjects::iterator i = live_list_->begin();
@@ -378,7 +380,12 @@ namespace rubinius {
         /* advance is handled in the loop */)
     {
       if(i->queued_p()) {
-        dead_list->push_front(*i);
+        if(i->kind == FinalizeObject::eUnmanaged && !i->ruby_finalizer) {
+          i->finalizer(state, i->object);
+        } else {
+          dead_list->push_front(*i);
+        }
+
         i = live_list_->erase(i);
       } else {
         ++i;
@@ -402,7 +409,7 @@ namespace rubinius {
   }
 
   void FinalizerThread::finish_collection(STATE) {
-    queue_objects();
+    queue_objects(state);
 
     if(iterator_) {
       delete iterator_;

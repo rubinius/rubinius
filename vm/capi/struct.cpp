@@ -61,4 +61,8 @@ extern "C" {
   VALUE rb_struct_aset(VALUE struct_handle, VALUE key, VALUE value) {
     return rb_funcall(struct_handle, rb_intern("[]="), 2, key, value);
   }
+
+  VALUE rb_struct_s_members(VALUE obj) {
+    return rb_funcall(obj, rb_intern("members"), 0);
+  }
 }

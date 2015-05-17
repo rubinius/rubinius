@@ -74,6 +74,7 @@ sprinter.rbc
 symbol.rbc
 thread.rbc
 thread_group.rbc
+thread_group_mirror.rbc
 throw_catch.rbc
 time.rbc
 true.rbc

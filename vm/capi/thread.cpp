@@ -294,7 +294,6 @@ extern "C" {
         self->hard_lock(state, gct, call_frame, false);
         Exception* exc = capi::c_as<Exception>(self->current_exception(state));
         self->exception(state, exc);
-        self->release_joins(state, gct, call_frame);
         self->alive(state, cFalse);
         self->hard_unlock(state, gct, call_frame);
       }
@@ -314,7 +313,6 @@ extern "C" {
     OnStack<1> os(state, self);
 
     self->hard_lock(state, gct, &cf, false);
-    self->release_joins(state, gct, &cf);
     self->alive(state, cFalse);
     self->hard_unlock(state, gct, &cf);
 

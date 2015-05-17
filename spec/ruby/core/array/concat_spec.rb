@@ -110,4 +110,17 @@ describe "Array#concat" do
       ary[3].untrusted?.should be_false
     end
   end
+
+  it "appends elements to an Array with enough capacity that has been shifted" do
+    ary = 1, 2, 3, 4, 5
+    2.times { ary.shift }
+    2.times { ary.pop }
+    ary.concat([5, 6]).should == [3, 5, 6]
+  end
+
+  it "appends elements to an Array without enough capacity that has been shifted" do
+    ary = 1, 2, 3, 4
+    3.times { ary.shift }
+    ary.concat([5, 6]).should == [4, 5, 6]
+  end
 end

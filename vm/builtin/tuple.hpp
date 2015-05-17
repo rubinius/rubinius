@@ -37,6 +37,10 @@ namespace rubinius {
     // Rubinius.primitive :tuple_at
     Object* at_prim(STATE, Fixnum* pos);
 
+    void put_nil(native_int idx) {
+      field[idx] = cNil;
+    }
+
     Object* put(STATE, native_int idx, Object* val) {
       field[idx] = val;
       write_barrier(state, val);

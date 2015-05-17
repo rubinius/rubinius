@@ -155,11 +155,6 @@ namespace rubinius {
 
     ObjTy = ptr_type("Object");
 
-    profiling_ = new GlobalVariable(
-        *module_, Int1Ty, false,
-        GlobalVariable::ExternalLinkage,
-        0, "profiling_flag");
-
     metadata_id_ = ctx_.getMDKindID("rbx-classid");
   }
 
@@ -181,6 +176,22 @@ namespace rubinius {
     function_->replaceAllUsesWith(UndefValue::get(function_->getType()));
     function_->removeFromParent();
     return addr;
+  }
+
+  void Context::profiling(IRBuilder& b, BasicBlock* prof, BasicBlock* cont) {
+    Signature sig(this, Int32Ty);
+    sig << "State";
+
+    Value* call_args[] = {
+      state_
+    };
+
+    Value* val = sig.call("rbx_check_tooling", call_args, 1, "tooling_p", b);
+
+    Value* test = b.CreateICmpEQ(val, cint(1), "profiling_p");
+
+    b.CreateCondBr(test, prof, cont);
+    b.SetInsertPoint(prof);
   }
 
   llvm::Type* Context::ptr_type(llvm::Type* type) {

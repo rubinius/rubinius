@@ -7,6 +7,30 @@ using namespace rubinius;
 using namespace rubinius::capi;
 
 extern "C" {
+  /* This is a really wacky MRI API, which is actually marked internal
+   * despite being used in external code. The existing Fixnum#size and
+   * Bignum#size methods are sufficient for the 3-4 places it's used in MRI's
+   * code itself, where the 2nd argument isn't even used.
+   *
+   * We provide a "good enough" implementation.
+   */
+  size_t rb_absint_size(VALUE value, int* nlz_bits) {
+    NativeMethodEnvironment* env = NativeMethodEnvironment::get();
+    size_t size = 0;
+
+    if(TYPE(value) == T_FIXNUM) {
+      size = FIXNUM_WIDTH;
+    } else if(TYPE(value) == T_BIGNUM) {
+      Bignum* big = c_as<Bignum>(env->get_object(value));
+      size = big->size(env->state())->to_native();
+    }
+
+    // Within bounds
+    if(nlz_bits) *nlz_bits = 0;
+
+    return size;
+  }
+
   int rb_integer_pack(VALUE value, void *words, size_t numwords, size_t wordsize,
                       size_t nails, int flags)
   {

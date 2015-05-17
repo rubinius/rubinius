@@ -63,14 +63,11 @@ namespace jit {
     setup_block_scope();
 
     if(ctx_->llvm_state()->include_profiling()) {
-      Value* test = b().CreateLoad(ctx_->profiling(), "profiling");
-
-      BasicBlock* setup_profiling = BasicBlock::Create(ctx_->llvm_context(), "setup_profiling", func);
+      BasicBlock* setup_profiling = BasicBlock::Create(ctx_->llvm_context(),
+          "setup_profiling", func);
       BasicBlock* cont = BasicBlock::Create(ctx_->llvm_context(), "continue", func);
 
-      b().CreateCondBr(test, setup_profiling, cont);
-
-      b().SetInsertPoint(setup_profiling);
+      ctx_->profiling(b(), setup_profiling, cont);
 
       Signature sig(ctx_, ctx_->VoidTy);
       sig << "State";

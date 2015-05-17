@@ -888,6 +888,10 @@ extern "C" {
     return scope->get_local(state, index);
   }
 
+  int rbx_check_tooling(STATE) {
+    return state->vm()->tooling();
+  }
+
   Object* rbx_prologue_check(STATE, CallFrame* call_frame) {
     GCTokenImpl gct;
 

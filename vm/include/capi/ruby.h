@@ -955,6 +955,9 @@ VALUE rb_uint2big(unsigned long number);
   VALUE   rb_data_object_alloc(VALUE klass, void* sval,
       RUBY_DATA_FUNC mark, RUBY_DATA_FUNC free);
 
+  void*   rb_alloc_tmp_buffer(VALUE* store, long len);
+  void    rb_free_tmp_buffer(VALUE* store);
+
   /** Alias method by old name as new name. Methods are independent of eachother. */
   void    rb_define_alias(VALUE module, const char *new_name, const char *old_name);
   void    rb_alias(VALUE module, ID id_new, ID id_old);
@@ -1055,6 +1058,8 @@ VALUE rb_uint2big(unsigned long number);
 
   /** Returns a string formatted with Kernel#sprintf. */
   VALUE rb_f_sprintf(int argc, const VALUE* argv);
+
+  VALUE rb_vsprintf(const char *format, va_list varargs);
 
   /** Returns a File opened with the specified mode. */
   VALUE rb_file_open(const char* name, const char* mode);
@@ -1468,6 +1473,8 @@ VALUE rb_uint2big(unsigned long number);
 
   /** Creat an instance of a struct */
   VALUE rb_struct_new(VALUE klass, ...);
+
+  VALUE rb_struct_s_members(VALUE obj);
 
   /** Returns the value of the key. */
   VALUE rb_struct_aref(VALUE s, VALUE key);

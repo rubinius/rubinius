@@ -7,34 +7,23 @@ class ThreadGroup
   Default = ThreadGroup.new
 
   def add(thread)
-    if thread.group
-      thread.group.remove(thread)
-    end
-    thread.add_to_group self
+    if g = thread.group
+      raise ThreadError, "can't move from the enclosed thread group" if g.enclosed?
 
-    @threads.delete_if do |w|
-      obj = w.__object__
-      !(obj and obj.alive?)
+      gm = Rubinius::Mirror.reflect g
+      gm.remove thread
     end
 
-    @threads << WeakRef.new(thread)
+    tm = Rubinius::Mirror.reflect thread
+    tm.group = self
+
+    @threads << thread
+
     self
   end
 
-  def remove(thread)
-    if enclosed?
-      raise ThreadError, "can't move from the enclosed thread group"
-    end
-    @threads.delete_if { |w| w.__object__ == thread }
-  end
-
   def list
-    list = []
-    @threads.each do |w|
-      obj = w.__object__
-      list << obj if obj and obj.alive?
-    end
-    list
+    @threads
   end
 
   def enclose

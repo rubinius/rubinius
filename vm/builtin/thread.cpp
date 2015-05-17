@@ -20,6 +20,8 @@
 #include "metrics.hpp"
 #include "util/logger.hpp"
 
+#include <sys/syscall.h>
+
 /* HACK: returns a value that should identify a native thread
  * for debugging threading issues. The winpthreads library
  * defines pthread_t to be a structure not a pointer.
@@ -70,9 +72,9 @@ namespace rubinius {
     thr->result(state, cFalse);
     thr->exception(state, nil<Exception>());
     thr->critical(state, cFalse);
-    thr->joins(state, Array::create(state, 1));
     thr->killed(state, cFalse);
     thr->priority(state, Fixnum::from(0));
+    thr->pid(state, Fixnum::from(0));
     thr->klass(state, klass);
 
     vm->thread.set(thr);
@@ -289,6 +291,12 @@ namespace rubinius {
 
     NativeMethod::init_thread(state);
 
+#ifdef __APPLE__
+    vm->thread->pid(state, Fixnum::from(syscall(SYS_thread_selfid)));
+#else
+    vm->thread->pid(state, Fixnum::from(syscall(SYS_gettid)));
+#endif
+
     // Lock the thread object and unlock it at __run__ in the ruby land.
     vm->thread->alive(state, cTrue);
     vm->thread->init_lock_.unlock();
@@ -463,14 +471,6 @@ namespace rubinius {
     CallFrame* cf = vm->saved_call_frame();
 
     return Location::mri_backtrace(state, cf);
-  }
-
-  void Thread::release_joins(STATE, GCToken gct, CallFrame* calling_environment) {
-    for(native_int i = 0; i < joins_->size(); ++i) {
-      if(Channel* chn = try_as<Channel>(joins_->get(state, i))) {
-        chn->send(state, gct, this, calling_environment);
-      }
-    }
   }
 
   void Thread::stopped() {

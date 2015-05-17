@@ -44,9 +44,9 @@ namespace rubinius {
     Object* result_; // slot
     Exception* exception_; // slot
     Object* critical_; // slot
-    Array* joins_; // slot
     Object* killed_; // slot
     Fixnum* priority_; // slot
+    Fixnum* pid_; // slot
 
     utilities::thread::SpinLock init_lock_;
     utilities::thread::Mutex join_lock_;
@@ -85,9 +85,9 @@ namespace rubinius {
     attr_accessor(result, Object);
     attr_accessor(exception, Exception);
     attr_accessor(critical, Object);
-    attr_accessor(joins, Array);
     attr_accessor(killed, Object);
     attr_accessor(priority, Fixnum);
+    attr_accessor(pid, Fixnum);
 
     VM* vm() const {
       return vm_;
@@ -269,7 +269,6 @@ namespace rubinius {
 
     void init_lock();
     void stopped();
-    void release_joins(STATE, GCToken gct, CallFrame* calling_environment);
 
     /**
      *  Create a Thread object.

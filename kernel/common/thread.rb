@@ -7,6 +7,7 @@
 class Thread
 
   attr_reader :recursive_objects
+  attr_reader :pid
 
   # Implementation note: ideally, the recursive_objects
   # lookup table would be different per method call.

@@ -57,7 +57,6 @@ namespace rubinius {
     llvm::Value* out_args_;
     llvm::Value* counter_;
 
-    llvm::GlobalVariable* profiling_;
     unsigned int metadata_id_;
 
   public:
@@ -138,10 +137,6 @@ namespace rubinius {
       return module_;
     }
 
-    llvm::GlobalVariable* profiling() {
-      return profiling_;
-    }
-
     void set_inlined_block(bool val=true) {
       inlined_block_ = val;
     }
@@ -197,6 +192,8 @@ namespace rubinius {
     void set_counter(llvm::Value* counter) {
       counter_ = counter;
     }
+
+    void profiling(IRBuilder& b, llvm::BasicBlock* prof, llvm::BasicBlock* cont);
 
     void init_variables(IRBuilder& b);
 

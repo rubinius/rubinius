@@ -174,6 +174,7 @@ namespace rubinius {
   }
 
   Array* Array::concat(STATE, Array* other) {
+    native_int size = this->size();
     native_int osize = other->size();
 
     if(osize == 0) return this;
@@ -181,23 +182,38 @@ namespace rubinius {
     if(is_frozen_p()) return force_as<Array>(Primitives::failure());
 
     if(osize == 1) {
-      set(state, size(), other->get(state, 0));
+      set(state, size, other->get(state, 0));
       return this;
     }
 
-    native_int new_size = size() + osize;
+    native_int new_size = size + osize;
     if(new_size <= tuple_->num_fields()) {
-      // There is enough space in the current tuple, so just copy into it.
-      tuple_->copy_from(state, other->tuple(), other->start(), other->total(), total_);
+      // We have enough space, but may need to shift elements.
+      if(start_->to_native() + new_size <= tuple_->num_fields()) {
+        tuple_->copy_from(state, other->tuple(), other->start(), other->total(),
+            Fixnum::from(start_->to_native() + total_->to_native()));
+      } else {
+        tuple_->copy_from(state, tuple_, start_, total_, Fixnum::from(0));
+        tuple_->copy_from(state, other->tuple(), other->start(), other->total(), total_);
+        start(state, Fixnum::from(0));
+      }
     } else {
       // We need to create a bigger tuple, then copy both tuples into it.
-      Tuple* nt = Tuple::create_dirty(state, new_size);
+      if(size == 0) size = 2;
+      while(size <= new_size) size *= 2;
+
+      Tuple* nt = Tuple::create_dirty(state, size);
       nt->copy_from(state, tuple_, start_, total_, Fixnum::from(0));
       nt->copy_from(state, other->tuple(), other->start(), other->total(), total_);
+
+      for(native_int i = new_size; i < size; i++) {
+        nt->put_nil(i);
+      }
+
       tuple(state, nt);
+      start(state, Fixnum::from(0));
     }
 
-    start(state, Fixnum::from(0));
     total(state, Fixnum::from(new_size));
 
     return this;
