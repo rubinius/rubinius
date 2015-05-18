@@ -273,7 +273,7 @@ class Thread
   end
 
   def stop?
-    !alive? || @sleep
+    !alive? || sleeping?
   end
 
   def sleeping?

@@ -119,7 +119,7 @@ namespace rubinius {
     delete finalizer_thread_;
 
     VM::discard(state, root_vm);
-    SharedState::discard(shared);
+    delete shared;
     delete state;
 
     for(int i = 0; i < argc_; i++) {
