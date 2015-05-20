@@ -22,6 +22,10 @@
 
 #include <sys/syscall.h>
 
+#if defined(__FreeBSD__)
+#include <sys/thr.h>
+#endif
+
 /* HACK: returns a value that should identify a native thread
  * for debugging threading issues. The winpthreads library
  * defines pthread_t to be a structure not a pointer.
@@ -294,7 +298,13 @@ namespace rubinius {
 #ifdef __APPLE__
     vm->thread->pid(state, Fixnum::from(syscall(SYS_thread_selfid)));
 #else
+#ifdef __FreeBSD__
+    long lwpid;
+    thr_self(&lwpid);
+    vm->thread->pid(state, Fixnum::from((unsigned)lwpid));
+#else
     vm->thread->pid(state, Fixnum::from(syscall(SYS_gettid)));
+#endif
 #endif
 
     // Lock the thread object and unlock it at __run__ in the ruby land.
