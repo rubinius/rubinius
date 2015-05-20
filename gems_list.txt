@@ -14,7 +14,7 @@ rubinius-debugger-2.2.1.gem
 rubinius-developer_tools-2.0.0.gem
 rubinius-melbourne-1.2.1.0.gem
 rubinius-processor-1.3.0.gem
-rubinius-profiler-2.0.1.gem
+rubinius-profiler-2.0.2.gem
 rubinius-toolset-2.3.1.gem
 rubysl-1.1.0.gem
 rubysl-abbrev-1.0.1.gem
@@ -63,7 +63,7 @@ rubysl-net-pop-1.0.0.gem
 rubysl-net-protocol-1.0.0.gem
 rubysl-net-smtp-1.0.0.gem
 rubysl-net-telnet-1.0.0.gem
-rubysl-nkf-1.0.0.gem
+rubysl-nkf-1.1.0.gem
 rubysl-observer-1.0.0.gem
 rubysl-open-uri-1.0.0.gem
 rubysl-open3-1.0.0.gem
