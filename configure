@@ -1220,6 +1220,10 @@ int main() { return tgetnum(""); }
       @defines << "HAVE_INOTIFY"
     end
 
+    if has_function("gettid", ["unistd.d", "sys/types.h"])
+      @defines << "HAVE_GETTID"
+    end
+
     # glibc has useless lchmod() so we don't try to use lchmod() on linux
     if !@linux and has_function("lchmod", ["sys/stat.h", "unistd.h"])
       @have_lchmod = true
