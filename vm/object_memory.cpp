@@ -507,6 +507,13 @@ step1:
     // Don't go any further unless we're allowed to GC.
     if(!can_gc()) return;
 
+    /* A pending GC is less common than not, so don't checkpoint the entire
+     * process to check for the condition.
+     *
+     * This is a race, but that is handled by the stop_the_world code below.
+     */
+    if(!collect_young_now && !collect_mature_now) return;
+
     while(!state->stop_the_world()) {
       state->checkpoint(gct, call_frame);
 
